@@ -12,7 +12,6 @@ import 'chat_detail_page.dart';
 import 'chat_info_parts.dart' show ChatConfirmLayout, showChatInfoConfirm;
 import 'chat_media.dart';
 import 'chat_sheet_parts.dart' show showChatMuteSheet;
-import 'chatd_parts.dart' show kChatdNavy;
 import 'chatlist_widgets.dart';
 import 'conversation_actions.dart';
 import 'message_bubble.dart' show OnceBadge;
@@ -511,8 +510,10 @@ class _ChatTabState extends State<ChatTab> {
                           ),
                           ChatlistRoundButton(
                               icon: LucideIcons.archive, tooltip: context.l10n.chatMiscArchive, onTap: () => _setArchiveView(true)),
-                          const SizedBox(width: 10),
-                          ChatlistNewButton(tooltip: context.l10n.chatMiscNewChat, onTap: _openNew),
+                          const SizedBox(width: 4),
+                          // Boş durumda birincil eylem sayfadaki tek düğmedir; başlıktaki "+" sakinleşir.
+                          ChatlistNewButton(
+                              tooltip: context.l10n.chatMiscNewChat, onTap: _openNew, quiet: !_loading && _error == null && _visible.isEmpty),
                         ],
                       ),
                     ),
@@ -576,7 +577,6 @@ class _ChatTabState extends State<ChatTab> {
       view = BuEmptyState(
         illustration: BuIllustration.box,
         title: l.chatMiscEmptyArchive,
-        message: l.p06ArchiveEmptyBody,
         actionLabel: l.p06BackToChats,
         onAction: () => _setArchiveView(false),
       );
@@ -584,7 +584,6 @@ class _ChatTabState extends State<ChatTab> {
       view = BuEmptyState(
         illustration: BuIllustration.search,
         title: l.chatMiscEmptyNoMatch,
-        message: _query.trim().isNotEmpty ? l.p06NoMatchBody(_query.trim()) : null,
         actionLabel: l.p06ResetSearch,
         onAction: _resetSearch,
       );
@@ -592,7 +591,6 @@ class _ChatTabState extends State<ChatTab> {
       view = BuEmptyState(
         illustration: BuIllustration.message,
         title: l.chatMiscEmptyNone,
-        message: l.p06EmptyNoneBody,
         actionLabel: l.chatMiscNewChat,
         onAction: _openNew,
       );
@@ -606,7 +604,7 @@ class _ChatTabState extends State<ChatTab> {
   Widget _list(List<Map<String, dynamic>> list) {
     final t = context.bu;
     return SliverPadding(
-      padding: const EdgeInsets.fromLTRB(20, 4, 20, kNavInset),
+      padding: const EdgeInsets.fromLTRB(20, 8, 20, kNavInset),
       sliver: SliverList.builder(
         itemCount: list.length + (_loadingMore ? 1 : 0),
         itemBuilder: (_, k) {
@@ -617,8 +615,6 @@ class _ChatTabState extends State<ChatTab> {
             );
           }
           final c = list[k];
-          final first = k == 0;
-          final last = k == list.length - 1;
           final row = Dismissible(
             key: ValueKey('conv-${c['id']}'),
             direction: DismissDirection.endToStart,
@@ -626,28 +622,24 @@ class _ChatTabState extends State<ChatTab> {
               await _toggleArchive(c);
               return false; // satırı _toggleArchive kendisi kaldırır
             },
+            // Kaydırma eylemi sakin: nötr zemin, tek simge + kısa etiket (kırmızı/lacivert dolgu yok).
             background: Container(
               alignment: AlignmentDirectional.centerEnd,
-              padding: const EdgeInsetsDirectional.only(end: 16),
-              color: kChatdNavy,
+              padding: const EdgeInsetsDirectional.only(end: 20),
+              decoration: BoxDecoration(color: t.sf2, borderRadius: BuRadius.bMd),
               child: SizedBox(
-                width: 96,
+                width: 88,
                 child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Container(
-                    width: 44,
-                    height: 44,
-                    decoration: BoxDecoration(color: t.pr, shape: BoxShape.circle),
-                    child: Icon(_archived ? LucideIcons.archiveRestore : LucideIcons.archive, size: 20, color: t.onPr),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(_archived ? context.l10n.chatMiscUnarchiveAction : context.l10n.chatMiscArchiveAction,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: Theme.of(context).textTheme.labelMedium!.copyWith(color: t.onMedia, fontWeight: FontWeight.w700)),
-                ],
-              ),
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(_archived ? LucideIcons.archiveRestore : LucideIcons.archive, size: 22, color: t.ink),
+                    const SizedBox(height: 4),
+                    Text(_archived ? context.l10n.chatMiscUnarchiveAction : context.l10n.chatMiscArchiveAction,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: Theme.of(context).textTheme.labelMedium!.copyWith(color: t.mut, fontWeight: FontWeight.w600)),
+                  ],
+                ),
               ),
             ),
             child: Builder(
@@ -655,8 +647,6 @@ class _ChatTabState extends State<ChatTab> {
                 title: _title(context, c),
                 conversation: c,
                 myId: widget.session.userId,
-                first: first,
-                last: last,
                 onTap: () => _openChat(c),
                 onLongPress: () {
                   HapticFeedback.selectionClick();
@@ -709,7 +699,7 @@ class _PinnedFilterDelegate extends SliverPersistentHeaderDelegate {
   final ValueChanged<String> onQuery;
   final ValueChanged<int> onSelect;
 
-  double get _height => !showSearch ? 0 : (showChips ? 12 + 52 + 4 + 52 + 4 : 12 + 52 + 8);
+  double get _height => !showSearch ? 0 : (showChips ? 12 + BuSize.search + 4 + 52 + 4 : 12 + BuSize.search + 8);
 
   @override
   double get minExtent => _height;
@@ -751,34 +741,31 @@ class _SkeletonList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final t = context.bu;
+    // Satır iskeleti gerçek satırla aynı: sayfa zemininde, kartsız.
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 4, 20, 0),
+      padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
       child: ExcludeSemantics(
-        child: DecoratedBox(
-          decoration: BoxDecoration(color: t.sf, borderRadius: BorderRadius.circular(24), border: Border.all(color: t.bd)),
-          child: BuSkeletonScope(
-            child: Column(
-              children: [
-                for (var i = 0; i < 7; i++)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                    child: Row(children: [
-                      const BuSkeleton(width: 52, height: 52, radius: 18),
-                      const SizedBox(width: 14),
-                      Expanded(
-                        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                          BuSkeleton.line(width: 130 + (i % 3) * 20, height: 14),
-                          const SizedBox(height: 10),
-                          BuSkeleton.line(width: 210 - (i % 2) * 40, height: 12),
-                        ]),
-                      ),
-                      const SizedBox(width: 12),
-                      const BuSkeleton(width: 30, height: 10),
-                    ]),
-                  ),
-              ],
-            ),
+        child: BuSkeletonScope(
+          child: Column(
+            children: [
+              for (var i = 0; i < 7; i++)
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  child: Row(children: [
+                    const BuSkeleton(width: 52, height: 52, radius: 18),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                        BuSkeleton.line(width: 130 + (i % 3) * 20, height: 14),
+                        const SizedBox(height: 10),
+                        BuSkeleton.line(width: 210 - (i % 2) * 40, height: 12),
+                      ]),
+                    ),
+                    const SizedBox(width: 12),
+                    const BuSkeleton(width: 30, height: 10),
+                  ]),
+                ),
+            ],
           ),
         ),
       ),
@@ -787,7 +774,6 @@ class _SkeletonList extends StatelessWidget {
 }
 
 /// Sohbet satırı (referans 18): avatar, ad (+ Kulüp/Etkinlik etiketi), son mesaj, saat, rozet.
-/// [first]/[last]: kartın üst/alt köşesi ve ayırıcı çizgisi için.
 class _ConversationRow extends StatelessWidget {
   const _ConversationRow({
     required this.title,
@@ -795,8 +781,6 @@ class _ConversationRow extends StatelessWidget {
     required this.onTap,
     required this.onLongPress,
     this.myId,
-    this.first = true,
-    this.last = true,
   });
 
   final String title;
@@ -804,8 +788,6 @@ class _ConversationRow extends StatelessWidget {
   final VoidCallback onTap;
   final VoidCallback onLongPress;
   final int? myId;
-  final bool first;
-  final bool last;
 
   @override
   Widget build(BuildContext context) {
@@ -866,17 +848,16 @@ class _ConversationRow extends StatelessWidget {
       _ => null,
     };
     final bodyColor = hot ? t.ink : t.mut;
-    const r = Radius.circular(24);
-    final radius = BorderRadius.vertical(top: first ? r : Radius.zero, bottom: last ? r : Radius.zero);
 
     // Basılınca hafifçe küçülür (bitişik satırlar arasında boşluk açılmasın diye çok hafif: .99).
     return BuPressable(
       scale: .99,
       child: Semantics(
       container: true,
+      // Kartsız satır: sayfa zemininde, ayırıcı çizgi yok (boşlukla ayrılır); basılınca yumuşak dalga.
       child: Material(
-        color: t.sf,
-        shape: RoundedRectangleBorder(borderRadius: radius),
+        color: Colors.transparent,
+        shape: const RoundedRectangleBorder(borderRadius: BuRadius.bMd),
         clipBehavior: Clip.antiAlias,
         child: InkWell(
           onTap: onTap,
@@ -884,7 +865,7 @@ class _ConversationRow extends StatelessWidget {
           child: Stack(
             children: [
               Padding(
-                padding: const EdgeInsetsDirectional.fromSTEB(16, 14, 16, 14),
+                padding: const EdgeInsetsDirectional.fromSTEB(0, 12, 0, 12),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -893,12 +874,8 @@ class _ConversationRow extends StatelessWidget {
                       url: avatarUrl,
                       group: !isDirect,
                       online: online,
-                      badge: type == 'CLUB'
-                          ? LucideIcons.megaphone
-                          : type == 'EVENT'
-                              ? LucideIcons.calendar
-                              : null,
-                      badgeAtTop: type == 'CLUB',
+                      // Tür adı yanındaki nötr etiketle (ya da ekran okuyucuyla) söylenir; avatarda ikinci işaret yok.
+                      heroTag: 'chat-avatar-${conversation['id']}',
                     ),
                     const SizedBox(width: 14),
                     Expanded(
@@ -920,7 +897,7 @@ class _ConversationRow extends StatelessWidget {
                                         maxLines: narrow ? 2 : 1,
                                         overflow: TextOverflow.ellipsis,
                                         semanticsLabel: narrow && tag != null ? '$title, $tag' : null,
-                                        style: tx.titleMedium!.copyWith(color: t.ink, fontWeight: hot ? FontWeight.w800 : FontWeight.w700)),
+                                        style: tx.titleMedium!.copyWith(color: t.ink, fontWeight: FontWeight.w600)),
                                   ),
                                   if (showTag) ...[
                                     const SizedBox(width: 6),
@@ -940,7 +917,7 @@ class _ConversationRow extends StatelessWidget {
                               Text(_stamp(context, when),
                                   style: tx.labelMedium!.copyWith(
                                       color: t.mut, // zaman metni hep nötr; vurgu yalnız okunmamış rozetinde
-                                      fontWeight: hot ? FontWeight.w700 : FontWeight.w500,
+                                      fontWeight: FontWeight.w400,
                                       fontFeatures: const [FontFeature.tabularFigures()])),
                             ],
                           ),
@@ -965,14 +942,14 @@ class _ConversationRow extends StatelessWidget {
                                 Expanded(
                                   child: Text.rich(
                                     TextSpan(children: [
-                                      if (prefix != null) TextSpan(text: '$prefix: ', style: tx.bodyMedium!.copyWith(color: t.ink, fontWeight: FontWeight.w700)),
+                                      if (prefix != null) TextSpan(text: '$prefix: ', style: tx.bodyMedium!.copyWith(color: t.ink, fontWeight: FontWeight.w500)),
                                       TextSpan(text: preview),
                                     ]),
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
                                     style: tx.bodyMedium!.copyWith(
-                                        color: bodyColor,
-                                        fontWeight: hot ? FontWeight.w700 : FontWeight.w400,
+                                        color: bodyColor, // okunmamış: yalnız renk koyulaşır (kalın yazı yok)
+                                        fontWeight: FontWeight.w400,
                                         fontStyle: removedMsg ? FontStyle.italic : FontStyle.normal),
                                   ),
                                 ),
@@ -1005,13 +982,6 @@ class _ConversationRow extends StatelessWidget {
                   ],
                 ),
               ),
-              if (!last)
-                PositionedDirectional(
-                  start: 82,
-                  end: 0,
-                  bottom: 0,
-                  child: Container(height: 1, color: t.bd),
-                ),
             ],
           ),
         ),

@@ -36,6 +36,9 @@ class FakeMediaLibrary implements MediaLibrary {
   Future<LibraryAccess> requestAccess() async => access;
 
   @override
+  Future<LibraryAccess?> currentAccess() async => access;
+
+  @override
   Future<List<GalleryAlbum>> albums() async => albumList;
 
   @override

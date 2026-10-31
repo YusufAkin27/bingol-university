@@ -13,17 +13,17 @@ import 'media_library.dart';
 import 'media_pick.dart';
 import 'media_preview_page.dart';
 import 'sohbety_sheet.dart';
-import 'sohbety_widgets.dart' show sohbetyUpper;
 
 export 'media_pick.dart' show kMaxPicks, kMaxVideoMs;
 
 typedef EnsureAccess = Future<bool> Function(BuildContext context, AppPermission permission, {String? rationale});
 
-/// Tam ekran galeri seçici (Stitch 25-1/2/3): en yeni önce, 4 sütunlu sayfalı kare ızgara, ilk karo kamera,
-/// sayılı çoklu seçim, albüm seçici, sınırlı erişim notu ve izin yok durumu. "İleri" / "Önizle (N)" ile
-/// önizlemeye gider; önizlemeden [MediaSendPlan] döner; kapatılırsa null.
+/// Tam ekran galeri seçici (P3-CHAT, modern ızgara): en yeni önce, 3 sütunlu sayfalı ızgara (4 dp aralık, 12 dp köşe),
+/// seçilince köşede dolu kırmızı onay (çoklu seçimde sayı), seçili kare hafif küçülüp çerçeve alır; üstte sade çubuk
+/// (Kapat, albüm, "Gönder (n)") ve alt çubuk YOK. [showCameraTile] ilk karoda kamera (gönderi oluşturucu); sohbette kamera
+/// "+" menüsündedir. "Gönder (n)" önizlemeye gider; önizlemeden [MediaSendPlan] döner; kapatılırsa null.
 class MediaPickerPage extends StatefulWidget {
-  const MediaPickerPage({super.key, required this.library, this.ensureAccess, this.openCamera, this.pageSize = 60, this.maxItems = kMaxPicks});
+  const MediaPickerPage({super.key, required this.library, this.ensureAccess, this.openCamera, this.pageSize = 60, this.maxItems = kMaxPicks, this.showCameraTile = true});
 
   final MediaLibrary library;
   final EnsureAccess? ensureAccess;
@@ -32,6 +32,9 @@ class MediaPickerPage extends StatefulWidget {
 
   /// En çok seçilebilecek öğe (varsayılan [kMaxPicks]; gönderi oluşturucu kalan hakkı verir).
   final int maxItems;
+
+  /// İlk karoda kamera karosu (sohbette false: kamera "+" menüsünde).
+  final bool showCameraTile;
 
   @override
   State<MediaPickerPage> createState() => _MediaPickerPageState();
@@ -229,9 +232,7 @@ class _MediaPickerPageState extends State<MediaPickerPage> {
         bottom: false,
         child: Column(children: [
           _header(context),
-          Divider(height: 1, thickness: 1, color: t.bd),
           Expanded(child: _body(context)),
-          if (_picked.isNotEmpty) _bottomBar(context),
         ]),
       ),
     );
@@ -273,7 +274,7 @@ class _MediaPickerPageState extends State<MediaPickerPage> {
             child: Semantics(
               button: true,
               enabled: has,
-              label: l.sohbetmedyaNext,
+              label: has ? l.p67PickerSend(_picked.length.toString()) : l.chatDetailSend,
               excludeSemantics: true,
               child: BuPressable(
                 key: const ValueKey('pickerNext'),
@@ -285,9 +286,9 @@ class _MediaPickerPageState extends State<MediaPickerPage> {
                   duration: BuMotion.of(context, BuMotion.short),
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    decoration: BoxDecoration(color: t.pr, borderRadius: BuRadius.bPill, boxShadow: BuElevation.of(context, 1)),
-                    child: Text(l.sohbetmedyaNext,
-                        maxLines: 1, style: tx.labelLarge!.copyWith(color: t.onPr, fontWeight: FontWeight.w600)),
+                    decoration: BoxDecoration(color: t.pr, borderRadius: BuRadius.bPill),
+                    child: Text(has ? l.p67PickerSend(_picked.length.toString()) : l.chatDetailSend,
+                        maxLines: 1, style: tx.labelLarge!.copyWith(color: t.onPr, fontWeight: FontWeight.w600, fontFeatures: const [FontFeature.tabularFigures()])),
                   ),
                 ),
               ),
@@ -336,22 +337,22 @@ class _MediaPickerPageState extends State<MediaPickerPage> {
       key: const ValueKey('galleryGrid'),
       controller: _scroll,
       slivers: [
-        SliverToBoxAdapter(child: _limitNote(context)),
         if (_access == LibraryAccess.limited) SliverToBoxAdapter(child: _limitedCard(context)),
         SliverPadding(
           padding: const EdgeInsets.fromLTRB(4, 4, 4, 24),
           sliver: SliverGrid.builder(
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 4, mainAxisSpacing: 2, crossAxisSpacing: 2),
-            itemCount: _items.length + 1,
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 3, mainAxisSpacing: 4, crossAxisSpacing: 4),
+            itemCount: _items.length + (widget.showCameraTile ? 1 : 0),
             itemBuilder: (c, i) {
-              if (i == 0) return _cameraTile(t);
-              final g = _items[i - 1];
+              if (widget.showCameraTile && i == 0) return _cameraTile(t);
+              final g = _items[widget.showCameraTile ? i - 1 : i];
               final order = _indexOf(g.id);
               return _GalleryTile(
                 key: ValueKey('galleryTile_${g.id}'),
                 item: g,
                 library: widget.library,
                 order: order < 0 ? null : order + 1,
+                multi: widget.maxItems > 1,
                 onTap: () => _toggle(g),
               );
             },
@@ -366,31 +367,6 @@ class _MediaPickerPageState extends State<MediaPickerPage> {
             ),
           ),
       ],
-    );
-  }
-
-  /// "En fazla 10 öğe seçebilirsiniz. Video en fazla 60 saniye olabilir." bilgi kutusu.
-  Widget _limitNote(BuildContext context) {
-    final t = context.bu;
-    final tx = Theme.of(context).textTheme;
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-        decoration: BoxDecoration(
-          color: t.sf2,
-          borderRadius: BuRadius.bSm,
-          border: Border.all(color: t.bd.withValues(alpha: .6)),
-        ),
-        child: Row(children: [
-          ExcludeSemantics(child: Icon(LucideIcons.info, size: 20, color: t.mut)),
-          BuGap.w12,
-          Expanded(
-            child: Text(context.l10n.sohbetmedyaLimitNote(widget.maxItems.toString()),
-                style: tx.bodySmall!.copyWith(color: t.mut, height: 1.3)),
-          ),
-        ]),
-      ),
     );
   }
 
@@ -518,9 +494,9 @@ class _MediaPickerPageState extends State<MediaPickerPage> {
         key: const ValueKey('galleryLoading'),
         physics: const NeverScrollableScrollPhysics(),
         padding: const EdgeInsets.fromLTRB(4, 4, 4, 0),
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 4, mainAxisSpacing: 2, crossAxisSpacing: 2),
-        itemCount: 24,
-        itemBuilder: (c, i) => const BuSkeleton(radius: 0),
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 3, mainAxisSpacing: 4, crossAxisSpacing: 4),
+        itemCount: 18,
+        itemBuilder: (c, i) => const BuSkeleton(radius: 12),
       ),
     );
   }
@@ -535,79 +511,17 @@ class _MediaPickerPageState extends State<MediaPickerPage> {
         key: const ValueKey('cameraTile'),
         onTap: _camera,
         child: Container(
-          color: t.nav,
+          decoration: BoxDecoration(color: t.sf2, borderRadius: BuRadius.bSm),
           alignment: Alignment.center,
           padding: const EdgeInsets.all(4),
           child: Column(mainAxisSize: MainAxisSize.min, children: [
-            Icon(LucideIcons.camera, size: 28, color: t.onNav),
+            Icon(LucideIcons.camera, size: 28, color: t.ink),
             BuGap.h4,
-            Text(sohbetyUpper(context, context.l10n.chatMiscCamera),
+            Text(context.l10n.chatMiscCamera,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: tx.labelSmall!.copyWith(color: t.onNav, fontWeight: FontWeight.w700, letterSpacing: .4)),
+                style: tx.labelMedium!.copyWith(color: t.ink, fontWeight: FontWeight.w600)),
           ]),
-        ),
-      ),
-    );
-  }
-
-  /// "3 / 10 seçildi" + "Önizle (3)".
-  Widget _bottomBar(BuildContext context) {
-    final t = context.bu;
-    final l = context.l10n;
-    final tx = Theme.of(context).textTheme;
-    final n = _picked.length.toString();
-    return Material(
-      type: MaterialType.transparency,
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          color: t.sf,
-          border: Border(top: BorderSide(color: t.bd.withValues(alpha: .6))),
-          boxShadow: [BoxShadow(color: t.shadow.withValues(alpha: .06), blurRadius: 16, offset: const Offset(0, -4))],
-        ),
-        child: SafeArea(
-          top: false,
-          child: Padding(
-            padding: const EdgeInsetsDirectional.fromSTEB(16, 12, 16, 12),
-            child: Row(children: [
-              ExcludeSemantics(child: Icon(LucideIcons.images, size: 22, color: t.pr)),
-              BuGap.w4,
-              Expanded(
-                child: Text.rich(
-                  TextSpan(children: [
-                    TextSpan(
-                        text: '\u202A${l.p10SelCount(n, widget.maxItems.toString())}\u202C',
-                        style: tx.titleMedium!.copyWith(color: t.ink, fontWeight: FontWeight.w600)),
-                    TextSpan(text: ' ${l.p10SelWord}', style: tx.bodyMedium!.copyWith(color: t.mut)),
-                  ]),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              BuGap.w8,
-              Semantics(
-                button: true,
-                excludeSemantics: true,
-                label: l.chatMiscPreviewCount(n),
-                child: BuPressable(
-                  key: const ValueKey('pickerPreview'),
-                  onTap: _preview,
-                  haptic: BuHaptic.light,
-                  child: Container(
-                    constraints: const BoxConstraints(minHeight: 44),
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                    decoration: BoxDecoration(color: t.nav, borderRadius: BuRadius.bPill, boxShadow: BuElevation.of(context, 1)),
-                    child: Row(mainAxisSize: MainAxisSize.min, children: [
-                      Icon(LucideIcons.eye, size: 18, color: t.onNav),
-                      BuGap.w6,
-                      Text(l.chatMiscPreviewCount(n),
-                          maxLines: 1, style: tx.labelLarge!.copyWith(color: t.onNav, fontWeight: FontWeight.w600)),
-                    ]),
-                  ),
-                ),
-              ),
-            ]),
-          ),
         ),
       ),
     );
@@ -656,19 +570,22 @@ class _ActionPill extends StatelessWidget {
 }
 
 class _GalleryTile extends StatefulWidget {
-  const _GalleryTile({super.key, required this.item, required this.library, required this.order, required this.onTap});
+  const _GalleryTile({super.key, required this.item, required this.library, required this.order, required this.onTap, this.multi = true});
 
   final GalleryItem item;
   final MediaLibrary library;
   final int? order;
   final VoidCallback onTap;
 
+  /// Çoklu seçim: onay dairesinde sıra sayısı; tekli seçimde onay işareti.
+  final bool multi;
+
   @override
   State<_GalleryTile> createState() => _GalleryTileState();
 }
 
 class _GalleryTileState extends State<_GalleryTile> {
-  late final Future<Uint8List?> _thumb = widget.library.thumb(widget.item, 200);
+  late final Future<Uint8List?> _thumb = widget.library.thumb(widget.item, 300);
 
   @override
   Widget build(BuildContext context) {
@@ -685,49 +602,66 @@ class _GalleryTileState extends State<_GalleryTile> {
       excludeSemantics: true,
       child: GestureDetector(
         onTap: widget.onTap,
-        child: Stack(fit: StackFit.expand, children: [
-          ColoredBox(color: t.sf2),
-          FutureBuilder<Uint8List?>(
-            future: _thumb,
-            builder: (c, s) => s.data == null
-                ? const SizedBox.shrink()
-                : Image.memory(s.data!, fit: BoxFit.cover, gaplessPlayback: true, cacheWidth: 200),
-          ),
-          if (order != null) ColoredBox(color: t.scrim.withValues(alpha: .38)),
-          PositionedDirectional(
-            top: 6,
-            end: 6,
-            child: Container(
-              width: 20,
-              height: 20,
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: order != null ? t.pr : t.onMedia.withValues(alpha: .8),
-                boxShadow: [BoxShadow(color: t.scrim.withValues(alpha: .25), blurRadius: 3, offset: const Offset(0, 1))],
+        child: AnimatedScale(
+          // Seçili kare hafif küçülür ve marka rengi çerçeve alır (yalnız transform).
+          scale: order != null ? .94 : 1,
+          duration: BuMotion.of(context, BuMotion.short),
+          curve: Curves.easeOutCubic,
+          child: ClipRRect(
+            borderRadius: BuRadius.bSm,
+            child: Stack(fit: StackFit.expand, children: [
+              ColoredBox(color: t.sf2),
+              FutureBuilder<Uint8List?>(
+                future: _thumb,
+                builder: (c, s) => s.data == null
+                    ? const SizedBox.shrink()
+                    : Image.memory(s.data!,
+                        fit: BoxFit.cover,
+                        gaplessPlayback: true,
+                        cacheWidth: 300,
+                        frameBuilder: (c, child, frame, sync) =>
+                            sync ? child : AnimatedOpacity(opacity: frame == null ? 0 : 1, duration: BuMotion.of(c, BuMotion.medium), child: child)),
               ),
-              child: order != null
-                  ? Text('$order',
-                      style: tx.labelSmall!.copyWith(color: t.onPr, fontWeight: FontWeight.w700, height: 1))
-                  : null,
-            ),
-          ),
-          if (g.isVideo)
-            PositionedDirectional(
-              end: 4,
-              bottom: 4,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                decoration: BoxDecoration(color: t.scrim.withValues(alpha: .75), borderRadius: BorderRadius.circular(4)),
-                child: Row(mainAxisSize: MainAxisSize.min, children: [
-                  Icon(LucideIcons.play, size: 10, color: t.onMedia),
-                  const SizedBox(width: 2),
-                  Text(formatMediaDuration(g.durationMs),
-                      style: tx.labelSmall!.copyWith(color: t.onMedia, fontWeight: FontWeight.w700, height: 1.2)),
-                ]),
+              if (order != null)
+                Positioned.fill(child: DecoratedBox(decoration: BoxDecoration(border: Border.all(color: t.pr, width: 3), borderRadius: BuRadius.bSm))),
+              PositionedDirectional(
+                top: 8,
+                end: 8,
+                child: AnimatedContainer(
+                  duration: BuMotion.of(context, BuMotion.short),
+                  width: 24,
+                  height: 24,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: order != null ? t.pr : t.scrim.withValues(alpha: .28),
+                    border: Border.all(color: order != null ? t.pr : t.onMedia, width: 1.5),
+                  ),
+                  child: order == null
+                      ? null
+                      : (widget.multi
+                          ? Text('$order', style: tx.labelSmall!.copyWith(color: t.onPr, fontWeight: FontWeight.w700, height: 1, fontFeatures: const [FontFeature.tabularFigures()]))
+                          : Icon(LucideIcons.check, size: 14, color: t.onPr)),
+                ),
               ),
-            ),
-        ]),
+              if (g.isVideo)
+                PositionedDirectional(
+                  start: 6,
+                  bottom: 6,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    decoration: BoxDecoration(color: t.scrim.withValues(alpha: .65), borderRadius: BorderRadius.circular(6)),
+                    child: Row(mainAxisSize: MainAxisSize.min, children: [
+                      Icon(LucideIcons.play, size: 10, color: t.onMedia),
+                      const SizedBox(width: 2),
+                      Text(formatMediaDuration(g.durationMs),
+                          style: tx.labelSmall!.copyWith(color: t.onMedia, fontWeight: FontWeight.w700, height: 1.2)),
+                    ]),
+                  ),
+                ),
+            ]),
+          ),
+        ),
       ),
     );
   }

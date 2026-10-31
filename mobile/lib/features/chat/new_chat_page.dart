@@ -229,7 +229,7 @@ class _NewChatPageState extends State<NewChatPage> {
             child: ListView(
               controller: _scroll,
               physics: const AlwaysScrollableScrollPhysics(),
-              padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
+              padding: const EdgeInsets.fromLTRB(20, 4, 20, 16),
               children: [
                 if (grouping) ...[
                   if (n > 0) ...[
@@ -243,11 +243,11 @@ class _NewChatPageState extends State<NewChatPage> {
                   _SectionTitle(l.p23AddPeople),
                 ],
                 ChatlistSearch(hint: l.chatMiscUserSearchHint, controller: _search, onChanged: _onQuery),
-                const SizedBox(height: 12),
+                const SizedBox(height: 16),
                 if (showActions) ...[
                   NcActionCard(
                     cardKey: const ValueKey('new-group'),
-                    tile: NcTile(icon: LucideIcons.userPlus, bg: t.soft, fg: t.onSoft),
+                    tile: NcTile(icon: LucideIcons.userPlus, bg: t.sf2, fg: t.ink),
                     title: l.sohbetyNewGroup,
                     subtitle: l.sohbetyNewGroupSub,
                     onTap: () => setState(() {
@@ -255,9 +255,8 @@ class _NewChatPageState extends State<NewChatPage> {
                       _createError = null;
                     }),
                   ),
-                  const SizedBox(height: 12),
                   ContactsEntryRow(session: widget.session),
-                  const SizedBox(height: 28),
+                  const SizedBox(height: 16),
                 ],
                 ..._resultWidgets(t),
               ],
@@ -265,8 +264,8 @@ class _NewChatPageState extends State<NewChatPage> {
           ),
           if (grouping)
             Padding(
-              padding: EdgeInsets.fromLTRB(16, 8, 16, 12 + MediaQuery.paddingOf(context).bottom),
-              child: BuButton(label: l.chatMiscCreateGroup, icon: LucideIcons.userPlus, busy: _busy, onPressed: _create),
+              padding: EdgeInsets.fromLTRB(20, 8, 20, 12 + MediaQuery.paddingOf(context).bottom),
+              child: BuButton(label: l.chatMiscCreateGroup, busy: _busy, onPressed: _create),
             ),
         ],
       ),
@@ -278,10 +277,12 @@ class _NewChatPageState extends State<NewChatPage> {
     final tx = Theme.of(context).textTheme;
     final l = context.l10n;
     return NcCard(
+      flat: true,
+      padding: EdgeInsets.zero,
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(children: [
-          Expanded(child: Text(l.p23Selected, style: tx.titleSmall!.copyWith(color: t.ink, fontWeight: FontWeight.w700))),
-          Text(l.p23MinTwo, style: tx.labelSmall!.copyWith(color: t.mut, fontWeight: FontWeight.w600)),
+          Expanded(child: Text(l.p23Selected, style: tx.titleSmall!.copyWith(color: t.ink, fontWeight: FontWeight.w600))),
+          Text(l.p23MinTwo, style: tx.labelMedium!.copyWith(color: t.mut)),
         ]),
         if (n > 0) ...[
           const SizedBox(height: 12),
@@ -321,10 +322,12 @@ class _NewChatPageState extends State<NewChatPage> {
     final tx = Theme.of(context).textTheme;
     final l = context.l10n;
     return NcCard(
+      flat: true,
+      padding: EdgeInsets.zero,
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(children: [
-          Expanded(child: Text(l.chatMiscGroupName, style: tx.titleSmall!.copyWith(color: t.ink, fontWeight: FontWeight.w700))),
-          Text(l.chatMiscMax50, style: tx.labelSmall!.copyWith(color: t.mut, fontWeight: FontWeight.w600)),
+          Expanded(child: Text(l.chatMiscGroupName, style: tx.titleSmall!.copyWith(color: t.ink, fontWeight: FontWeight.w600))),
+          Text(l.chatMiscMax50, style: tx.labelMedium!.copyWith(color: t.mut)),
         ]),
         const SizedBox(height: 12),
         TextField(
@@ -338,7 +341,6 @@ class _NewChatPageState extends State<NewChatPage> {
           decoration: InputDecoration(
             hintText: l.p23GroupNameHint,
             hintStyle: tx.bodyLarge!.copyWith(color: t.mut),
-            prefixIcon: Icon(LucideIcons.notebookPen, size: 18, color: t.mut),
             counterText: '',
             isDense: true,
             filled: true,
@@ -362,16 +364,9 @@ class _NewChatPageState extends State<NewChatPage> {
     final tx = Theme.of(context).textTheme;
     if (_search.text.trim().length < 2) {
       return [
-        Center(
-          child: Column(children: [
-            NcTile(icon: LucideIcons.textSearch, bg: t.sf2, fg: t.mut, size: 56),
-            const SizedBox(height: 14),
-            Row(mainAxisSize: MainAxisSize.min, children: [
-              Icon(LucideIcons.info, size: 15, color: t.mut),
-              const SizedBox(width: 6),
-              Flexible(child: Text(l.chatMiscSearchMin, textAlign: TextAlign.center, style: tx.bodySmall!.copyWith(color: t.mut))),
-            ]),
-          ]),
+        Padding(
+          padding: const EdgeInsets.only(top: 24),
+          child: Text(l.chatMiscSearchMin, textAlign: TextAlign.center, style: tx.bodyMedium!.copyWith(color: t.mut)),
         ),
       ];
     }
@@ -381,8 +376,8 @@ class _NewChatPageState extends State<NewChatPage> {
           child: Column(children: [
             for (var i = 0; i < 3; i++)
               const Padding(
-                padding: EdgeInsets.only(bottom: 12),
-                child: NcCard(child: Row(children: [BuSkeleton.circle(48), SizedBox(width: 12), Expanded(child: BuSkeleton(height: 14))])),
+                padding: EdgeInsets.symmetric(vertical: 8),
+                child: Row(children: [BuSkeleton.circle(48), SizedBox(width: 12), Expanded(child: BuSkeleton(height: 14))]),
               ),
           ]),
         ),
@@ -393,23 +388,15 @@ class _NewChatPageState extends State<NewChatPage> {
     }
     if (_results.isEmpty) {
       return [
-        NcCard(
-          radius: 24,
-          padding: const EdgeInsets.fromLTRB(20, 24, 20, 24),
-          child: Column(children: [
-            NcTile(icon: LucideIcons.userSearch, bg: t.sf2, fg: t.mut, size: 56),
-            const SizedBox(height: 14),
-            Text(l.chatMiscNoMatchPeople, textAlign: TextAlign.center, style: tx.titleSmall!.copyWith(color: t.ink, fontWeight: FontWeight.w700)),
-          ]),
+        Padding(
+          padding: const EdgeInsets.only(top: 24),
+          child: Text(l.chatMiscNoMatchPeople, textAlign: TextAlign.center, style: tx.bodyMedium!.copyWith(color: t.mut)),
         ),
       ];
     }
     return [
       if (!_groupMode) NcLabel(trUpper(l.chatMiscPeopleHeader)),
-      for (final u in _results) ...[
-        _row(t, u),
-        const SizedBox(height: 12),
-      ],
+      for (final u in _results) _row(t, u),
       if (_loadingMore)
         const Padding(
           padding: EdgeInsets.all(16),
@@ -451,9 +438,7 @@ class _CountPill extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(color: t.sf2, borderRadius: BuRadius.bPill),
       child: Row(mainAxisSize: MainAxisSize.min, children: [
-        Container(width: 8, height: 8, decoration: BoxDecoration(color: t.pr, shape: BoxShape.circle)),
-        const SizedBox(width: 8),
-        Text(text, style: Theme.of(context).textTheme.labelMedium!.copyWith(color: t.ink, fontWeight: FontWeight.w700)),
+        Text(text, style: Theme.of(context).textTheme.labelMedium!.copyWith(color: t.ink, fontWeight: FontWeight.w600)),
       ]),
     );
   }
@@ -467,12 +452,7 @@ class _SectionTitle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Padding(
-        padding: const EdgeInsetsDirectional.fromSTEB(4, 0, 4, 10),
-        child: Row(mainAxisSize: MainAxisSize.min, children: [
-          Text(text, style: Theme.of(context).textTheme.titleSmall!.copyWith(color: context.bu.ink, fontWeight: FontWeight.w700)),
-          // Kırmızı zorunlu noktası: en az 2 kişi seçilmeli.
-          const SizedBox(width: 6),
-          Container(width: 6, height: 6, decoration: BoxDecoration(color: context.bu.pr, shape: BoxShape.circle)),
-        ]),
+        padding: const EdgeInsetsDirectional.fromSTEB(0, 0, 0, 8),
+        child: Text(text, style: Theme.of(context).textTheme.titleSmall!.copyWith(color: context.bu.ink, fontWeight: FontWeight.w600)),
       );
 }

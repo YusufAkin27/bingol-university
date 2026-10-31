@@ -28,6 +28,9 @@ abstract class MediaLibrary {
   /// Sistem izni/erişimi ister.
   Future<LibraryAccess> requestAccess();
 
+  /// Mevcut erişim durumu; İZİN İSTEMEZ (null: bilinmiyor / sağlayıcı desteklemiyor). "+" menüsü şeridi bununla açar.
+  Future<LibraryAccess?> currentAccess();
+
   /// Albüm listesi (ilk eleman "Tümü").
   Future<List<GalleryAlbum>> albums();
 
@@ -62,6 +65,18 @@ class PhotoManagerLibrary implements MediaLibrary {
     if (st.isAuth) return LibraryAccess.full;
     if (st.hasAccess) return LibraryAccess.limited;
     return LibraryAccess.denied;
+  }
+
+  @override
+  Future<LibraryAccess?> currentAccess() async {
+    try {
+      final st = await pm.PhotoManager.getPermissionState(requestOption: const pm.PermissionRequestOption());
+      if (st.isAuth) return LibraryAccess.full;
+      if (st.hasAccess) return LibraryAccess.limited;
+      return LibraryAccess.denied;
+    } catch (_) {
+      return null;
+    }
   }
 
   @override

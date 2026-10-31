@@ -302,7 +302,7 @@ class MessageBubble extends StatelessWidget {
               behavior: HitTestBehavior.opaque,
               onTap: preview ? null : onSenderTap,
               child: Text(senderName!,
-                  maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.labelMedium!.copyWith(color: t.tint(senderName.hashCode).fg, fontWeight: FontWeight.w700)),
+                  maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.labelMedium!.copyWith(color: t.mut, fontWeight: FontWeight.w600)),
             ),
           );
     final core = Container(
@@ -412,7 +412,7 @@ class MessageBubble extends StatelessWidget {
   /// Yanıt alıntısı: başta renkli ince çizgi (kendi mesajım / başkasınınki), tonal zemin.
   Widget _quote(BuildContext context, BuTokens t, Map<String, dynamic> reply, Color fg) {
     final tx = Theme.of(context).textTheme;
-    final bar = mine ? fg : (replyMine ? t.pr : t.ok);
+    final bar = mine ? fg : t.mut.withValues(alpha: .5); // nötr çizgi (yeşil/kırmızı ayrımı yok)
     final raw = reply['deleted'] == true
         ? removedPlaceholder(context,
             serverText: reply['text'] as String?, deleted: true, removed: true, kind: reply['placeholderKind'])
@@ -433,7 +433,7 @@ class MessageBubble extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 6),
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
                 Text(replyName ?? context.l10n.chatMiscUser,
-                    maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.labelMedium!.copyWith(color: mine ? fg : bar, fontWeight: FontWeight.w700)),
+                    maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.labelMedium!.copyWith(color: mine ? fg : t.mut, fontWeight: FontWeight.w600)),
                 Text(quoted, maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.bodySmall!.copyWith(color: fg.withValues(alpha: .88))),
               ]),
             ),
@@ -497,10 +497,10 @@ class _ReactionChip extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
           decoration: BoxDecoration(
             color: mine ? t.soft : t.sf,
-            border: Border.all(color: mine ? t.pr : t.bd, width: mine ? 1.4 : 1),
+            border: mine ? null : Border.all(color: t.bd),
             borderRadius: BuRadius.bPill,
           ),
-          child: Text('$emoji $count', textAlign: TextAlign.center, style: tx.labelMedium!.copyWith(color: mine ? t.onSoft : t.ink, fontWeight: mine ? FontWeight.w700 : FontWeight.w600)),
+          child: Text('$emoji $count', textAlign: TextAlign.center, style: tx.labelMedium!.copyWith(color: mine ? t.onSoft : t.ink, fontWeight: FontWeight.w600, fontFeatures: const [FontFeature.tabularFigures()])),
         ),
       ),
     );

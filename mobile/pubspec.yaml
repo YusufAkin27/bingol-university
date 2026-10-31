@@ -55,6 +55,7 @@ flutter:
     - assets/branding/mark_white.png
     - assets/branding/default_avatar.png
     - assets/branding/default_group.png
+    - assets/chat_wallpapers/
 
   # Tek yazi tipi: Inter (SIL OFL, assets/fonts/OFL.txt). Arapca icin sistem yedegi kullanilir.
   fonts:

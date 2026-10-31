@@ -41,6 +41,9 @@ class _ShotLibrary implements MediaLibrary {
   Future<LibraryAccess> requestAccess() async => access;
 
   @override
+  Future<LibraryAccess?> currentAccess() async => access;
+
+  @override
   Future<List<GalleryAlbum>> albums() async => const [
         GalleryAlbum(id: 'all', name: 'Recent', count: 1428, isAll: true),
         GalleryAlbum(id: 'cam', name: 'Camera', count: 312),

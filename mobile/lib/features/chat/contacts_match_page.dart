@@ -20,12 +20,11 @@ class ContactsEntryRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
-    final tint = t.tint(1);
     return Padding(
       padding: padding,
       child: NcActionCard(
         cardKey: const ValueKey('contacts-entry'),
-        tile: NcTile(icon: LucideIcons.contact, bg: tint.bg, fg: tint.fg),
+        tile: NcTile(icon: LucideIcons.contact, bg: t.sf2, fg: t.ink),
         title: context.l10n.chatMiscContactsFind,
         subtitle: context.l10n.chatMiscContactsSubtitle,
         onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => ContactsMatchPage(session: session))),
@@ -164,11 +163,10 @@ class _ContactsMatchPageState extends State<ContactsMatchPage> {
       case _Phase.error:
         return _scroll([
           NcCard(
-            radius: 24,
+            flat: true,
+            padding: const EdgeInsets.symmetric(vertical: 8),
             child: Row(children: [
-              NcTile(icon: LucideIcons.refreshCcw, bg: t.soft, fg: t.pr, size: 44),
-              const SizedBox(width: 12),
-              Expanded(child: Text(l.p06LoadFailedTitle, style: Theme.of(context).textTheme.titleSmall!.copyWith(color: t.ink, fontWeight: FontWeight.w700))),
+              Expanded(child: Text(l.p06LoadFailedTitle, style: Theme.of(context).textTheme.titleSmall!.copyWith(color: t.ink, fontWeight: FontWeight.w600))),
               const SizedBox(width: 8),
               BuButton(label: l.chatMiscRetry, icon: LucideIcons.refreshCw, kind: BuButtonKind.soft, compact: true, onPressed: _load),
             ]),
@@ -201,19 +199,8 @@ class _ContactsMatchPageState extends State<ContactsMatchPage> {
     final searching = _q.trim().isNotEmpty;
     return _scroll([
       if (_all.isNotEmpty) ...[
-        NcCard(
-          padding: const EdgeInsets.all(16),
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Row(children: [
-              Icon(LucideIcons.users, size: 20, color: t.pr),
-              const SizedBox(width: 10),
-              Expanded(child: Text(l.chatMiscContactsSubtitle, style: Theme.of(context).textTheme.titleMedium!.copyWith(color: t.ink, fontWeight: FontWeight.w800))),
-            ]),
-            const SizedBox(height: 14),
-            _searchField(t),
-          ]),
-        ),
-        const SizedBox(height: 12),
+        _searchField(t),
+        const SizedBox(height: 16),
       ],
       if (_truncated) ...[
         NcNote(icon: LucideIcons.info, warn: true, text: l.chatMiscContactsTruncated),
@@ -229,14 +216,14 @@ class _ContactsMatchPageState extends State<ContactsMatchPage> {
         NcStateCard(icon: LucideIcons.userSearch, title: l.chatMiscContactsNoSearchMatch)
       else ...[
         NcLabel(trUpper(l.chatMiscContactsCount(list.length.toString()))),
-        for (final m in list) ...[_row(t, m), const SizedBox(height: 12)],
+        for (final m in list) _row(t, m),
       ],
       if (_all.isNotEmpty) ...[const SizedBox(height: 4), _PrivacyNote()],
     ]);
   }
 
   Widget _scroll(List<Widget> children) => ListView(
-        padding: EdgeInsets.fromLTRB(16, 4, 16, 16 + MediaQuery.paddingOf(context).bottom),
+        padding: EdgeInsets.fromLTRB(20, 4, 20, 16 + MediaQuery.paddingOf(context).bottom),
         children: children,
       );
 
@@ -274,8 +261,8 @@ class _ContactsMatchPageState extends State<ContactsMatchPage> {
   }
 
   Widget _skeleton() => NcCard(
-        radius: 24,
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        flat: true,
+        padding: const EdgeInsets.symmetric(vertical: 8),
         child: ExcludeSemantics(
           child: BuSkeletonScope(
             child: Column(children: [

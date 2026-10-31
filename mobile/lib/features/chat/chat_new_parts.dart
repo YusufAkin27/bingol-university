@@ -43,8 +43,10 @@ class NcHeader extends StatelessWidget {
 
 /// Beyaz yuvarlatılmış kart (20 dp, ince çizgi).
 class NcCard extends StatelessWidget {
-  const NcCard({super.key, required this.child, this.padding = const EdgeInsets.all(16), this.radius = 20, this.onTap, this.color});
+  const NcCard({super.key, required this.child, this.padding = const EdgeInsets.all(16), this.radius = 20, this.onTap, this.color, this.flat = false});
 
+  /// true: kartsız bölüm (zemin ve çerçeve yok; yalnız iç boşluk).
+  final bool flat;
   final Widget child;
   final EdgeInsetsGeometry padding;
   final double radius;
@@ -57,7 +59,7 @@ class NcCard extends StatelessWidget {
     final box = Container(
       width: double.infinity,
       padding: padding,
-      decoration: BoxDecoration(color: color ?? t.sf, borderRadius: BorderRadius.circular(radius), border: Border.all(color: t.bd)),
+      decoration: flat ? const BoxDecoration(color: Colors.transparent) : BoxDecoration(color: color ?? t.sf, borderRadius: BorderRadius.circular(radius), border: Border.all(color: t.bd)),
       child: child,
     );
     return onTap == null ? box : BuPressable(onTap: onTap, scale: .99, child: box);
@@ -102,26 +104,24 @@ class NcActionCard extends StatelessWidget {
       child: NcCard(
         key: cardKey,
         onTap: onTap,
-        padding: const EdgeInsetsDirectional.fromSTEB(14, 14, 14, 14),
-        child: Row(children: [
-          tile,
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
-              Text(title, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.titleSmall!.copyWith(color: t.ink, fontWeight: FontWeight.w700)),
-              const SizedBox(height: 2),
-              Text(subtitle, maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.bodySmall!.copyWith(color: t.mut)),
-            ]),
-          ),
-          const SizedBox(width: 8),
-          trailing ??
-              Container(
-                width: 32,
-                height: 32,
-                decoration: BoxDecoration(color: t.sf2, shape: BoxShape.circle),
-                child: Icon(buDirIcon(context, LucideIcons.chevronRight), size: 16, color: t.mut),
-              ),
-        ]),
+        flat: true,
+        padding: const EdgeInsetsDirectional.fromSTEB(0, 8, 0, 8),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minHeight: BuSize.touch),
+          child: Row(children: [
+            tile,
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
+                Text(title, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.titleSmall!.copyWith(color: t.ink, fontWeight: FontWeight.w600)),
+                const SizedBox(height: 2),
+                Text(subtitle, maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.bodySmall!.copyWith(color: t.mut)),
+              ]),
+            ),
+            const SizedBox(width: 8),
+            trailing ?? Icon(buDirIcon(context, LucideIcons.chevronRight), size: 18, color: t.mut),
+          ]),
+        ),
       ),
     );
   }
@@ -147,7 +147,8 @@ class NcPersonRow extends StatelessWidget {
     return NcCard(
       key: rowKey,
       onTap: onTap,
-      padding: const EdgeInsetsDirectional.fromSTEB(14, 10, 12, 10),
+      flat: true,
+      padding: const EdgeInsetsDirectional.fromSTEB(0, 8, 0, 8),
       child: ConstrainedBox(
         constraints: const BoxConstraints(minHeight: 48),
         child: Row(children: [
@@ -155,7 +156,7 @@ class NcPersonRow extends StatelessWidget {
           const SizedBox(width: 12),
           Expanded(
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
-              Text(name, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.titleSmall!.copyWith(color: t.ink, fontWeight: FontWeight.w700)),
+              Text(name, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.titleSmall!.copyWith(color: t.ink, fontWeight: FontWeight.w600)),
               if (sub.isNotEmpty) ...[
                 const SizedBox(height: 2),
                 // Sağdaki hap genişlik yer: bölüm adı kesilmek yerine 2 satıra iner.
@@ -178,7 +179,7 @@ class NcPillButton extends StatelessWidget {
   final VoidCallback? onTap;
   final bool busy;
 
-  /// true: kırmızı tonlu (Sohbet başlat); false: nötr (Mesaj).
+  /// Eski kırmızı ton seçeneği; satır içi hap artık her durumda nötr (yalnız sayfanın tek birincil eylemi renkli).
   final bool soft;
   final Key? pillKey;
 
@@ -186,8 +187,8 @@ class NcPillButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.bu;
     final tx = Theme.of(context).textTheme;
-    final bg = soft ? t.soft : t.sf2;
-    final fg = soft ? t.onSoft : t.ink;
+    final bg = t.sf2;
+    final fg = t.ink;
     return Semantics(
       button: true,
       label: label,
@@ -205,11 +206,7 @@ class NcPillButton extends StatelessWidget {
             alignment: Alignment.center,
             child: busy
                 ? SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2.4, color: fg))
-                : Row(mainAxisSize: MainAxisSize.min, children: [
-                    Icon(LucideIcons.messageSquare, size: 14, color: fg),
-                    const SizedBox(width: 6),
-                    Flexible(child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.labelMedium!.copyWith(color: fg, fontWeight: FontWeight.w700))),
-                  ]),
+                : Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.labelMedium!.copyWith(color: fg, fontWeight: FontWeight.w600)),
           ),
         ),
       ),
@@ -246,8 +243,8 @@ class NcLabel extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.bu;
     return Padding(
-      padding: const EdgeInsetsDirectional.fromSTEB(4, 6, 4, 8),
-      child: Text(text, style: Theme.of(context).textTheme.labelMedium!.copyWith(color: t.mut, fontWeight: FontWeight.w700, letterSpacing: .6)),
+      padding: const EdgeInsetsDirectional.fromSTEB(0, 8, 0, 8),
+      child: Text(text, style: Theme.of(context).textTheme.labelMedium!.copyWith(color: t.mut, fontWeight: FontWeight.w600)),
     );
   }
 }
@@ -294,17 +291,17 @@ class NcStateCard extends StatelessWidget {
     final t = context.bu;
     final tx = Theme.of(context).textTheme;
     return NcCard(
-      radius: 28,
-      padding: const EdgeInsets.fromLTRB(20, 28, 20, 20),
+      flat: true,
+      padding: const EdgeInsets.fromLTRB(0, 24, 0, 8),
       child: Column(mainAxisSize: MainAxisSize.min, children: [
         Container(
-          width: 112,
-          height: 112,
+          width: 80,
+          height: 80,
           decoration: BoxDecoration(color: t.soft, shape: BoxShape.circle),
-          child: Icon(icon, size: 44, color: t.pr),
+          child: Icon(icon, size: 32, color: t.onSoft),
         ),
-        const SizedBox(height: 20),
-        Semantics(header: true, child: Text(title, textAlign: TextAlign.center, style: tx.titleLarge!.copyWith(color: t.ink, fontWeight: FontWeight.w800))),
+        const SizedBox(height: 16),
+        Semantics(header: true, child: Text(title, textAlign: TextAlign.center, style: tx.titleMedium!.copyWith(color: t.ink, fontWeight: FontWeight.w700))),
         if (text != null) ...[
           const SizedBox(height: 8),
           Text(text!, textAlign: TextAlign.center, style: tx.bodyMedium!.copyWith(color: t.mut, height: 1.5)),

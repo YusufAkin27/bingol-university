@@ -25,12 +25,14 @@ import '../../widgets/report_sheet.dart';
 import '../clubs/club_detail_page.dart';
 import '../profile/user_profile_page.dart';
 import '../events/event_detail_page.dart';
+import 'chat_attach_sheet.dart';
 import 'chat_info_page.dart';
 import 'chat_media.dart';
 import 'chatd_parts.dart' show ChatTypingDots;
 import 'chatlist_widgets.dart' show ChatlistAvatar;
 import 'chat_media_viewer.dart';
 import 'chat_video_player.dart';
+import 'chat_wallpaper.dart';
 import 'forward_sheet.dart';
 import 'view_once_viewer.dart';
 import 'sohbety_widgets.dart'
@@ -40,6 +42,7 @@ import 'media_camera_page.dart';
 import 'media_library.dart';
 import 'media_pick.dart';
 import 'media_picker_page.dart';
+import 'media_preview_page.dart';
 import 'message_bubble.dart';
 import 'photo_autosave.dart';
 
@@ -196,6 +199,9 @@ class _ChatDetailPageState extends State<ChatDetailPage>
   bool _loadingMore = false;
   bool _polling = false;
   bool _changed = false;
+
+  /// "+" menüsü açık (düğme 45 derece dönük "x" görünür).
+  bool _attachOpen = false;
   Object? _error;
 
   Map<String, dynamic>? _replyTo;
@@ -1305,20 +1311,47 @@ class _ChatDetailPageState extends State<ChatDetailPage>
 
   /// Ek düğmesi: doğrudan tüm galeriyi açar; seçim önizlemeden geçip gönderilir. Çevrimdışıyken de seçilebilir:
   /// fotoğraf/video yerel kuyruğa alınır ve bağlantı gelince kendiliğinden gider.
-  Future<void> _openGallery() async {
-    final plan = await Navigator.push<MediaSendPlan>(
-      context,
-      MaterialPageRoute(
-        builder: (_) => MediaPickerPage(
-          library: widget.mediaLibrary ?? PhotoManagerLibrary(),
-          ensureAccess: widget.ensureAccess,
-          openCamera: widget.openCamera,
-        ),
-      ),
-    );
+  Future<void> _openAttach() async {
+    if (_attachOpen) return;
+    final library = widget.mediaLibrary ?? PhotoManagerLibrary();
+    setState(() => _attachOpen = true);
+    ChatAttachResult? choice;
+    try {
+      choice = await showChatAttachSheet(context, library: library, ensureAccess: widget.ensureAccess);
+    } finally {
+      if (mounted) setState(() => _attachOpen = false);
+    }
+    if (choice == null || !mounted) return;
+    MediaSendPlan? plan;
+    switch (choice) {
+      case ChatAttachGallery():
+        plan = await Navigator.push<MediaSendPlan>(
+          context,
+          MaterialPageRoute(
+            builder: (_) => MediaPickerPage(
+              library: library,
+              ensureAccess: widget.ensureAccess,
+              openCamera: widget.openCamera,
+              showCameraTile: false, // kamera "+" menüsünde
+            ),
+          ),
+        );
+      case ChatAttachCamera():
+        final launcher = widget.openCamera;
+        final pick = launcher != null ? await launcher(context) : await openMediaCamera(context);
+        if (pick == null || !mounted) return;
+        plan = await _previewPlan(pick);
+      case ChatAttachRecent(:final pick):
+        plan = await _previewPlan(pick);
+    }
     if (plan == null || !mounted) return;
     await _sendPlan(plan);
   }
+
+  Future<MediaSendPlan?> _previewPlan(MediaPick pick) => Navigator.push<MediaSendPlan>(
+        context,
+        MaterialPageRoute(builder: (_) => MediaPreviewPage(picks: [pick])),
+      );
 
   static String _videoErrorText(AppLocalizations l, String code) =>
       switch (code) {
@@ -2311,7 +2344,8 @@ class _ChatDetailPageState extends State<ChatDetailPage>
         resizeToAvoidBottomInset: true,
         body: Column(children: [
           _searching ? _searchBar(t) : _topBar(t),
-          Expanded(child: _body(t)),
+          // Duvar kağıdı yalnız mesaj alanının arkasında (üst çubuk/yazma alanı düz kalır).
+          Expanded(child: ChatWallpaper(child: _body(t))),
           _noticeStack(),
           _closed
               ? _closedBar(t)
@@ -2354,9 +2388,9 @@ class _ChatDetailPageState extends State<ChatDetailPage>
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
         SizedBox(
-          height: 64,
+          height: BuSize.appBar,
           child: Padding(
-            padding: const EdgeInsetsDirectional.only(start: 14, end: 10),
+            padding: const EdgeInsetsDirectional.only(start: 12, end: 12),
             child: Row(children: [
               Tooltip(
                 message: l.chatDetailBack,
@@ -2376,7 +2410,22 @@ class _ChatDetailPageState extends State<ChatDetailPage>
                   ),
                 ),
               ),
-              const SizedBox(width: 6),
+              Semantics(
+                button: true,
+                label: _direct ? l.chatDetailOpenProfile : l.chatDetailChatInfo,
+                excludeSemantics: true,
+                onTap: openHeader,
+                child: GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: openHeader,
+                  child: SizedBox(
+                    width: 48,
+                    height: 48,
+                    child: Center(child: _headerAvatar()),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 4),
               Expanded(
                 child: InkWell(
                   onTap: _openInfo,
@@ -2387,7 +2436,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
                         Text(_title,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: tx.titleLarge!.copyWith(color: t.ink)),
+                            style: tx.titleMedium!.copyWith(color: t.ink, fontWeight: FontWeight.w600)),
                         ValueListenableBuilder<bool>(
                           valueListenable: _typingNow,
                           builder: (c, typing, _) {
@@ -2418,9 +2467,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
                                       overflow: TextOverflow.ellipsis,
                                       style: tx.labelMedium!.copyWith(
                                           color: typing ? t.pr : t.mut,
-                                          fontWeight: typing
-                                              ? FontWeight.w700
-                                              : FontWeight.w500)),
+                                          fontWeight: FontWeight.w400)),
                                 ),
                                 if (typing) ...[
                                   const SizedBox(width: 4),
@@ -2452,28 +2499,6 @@ class _ChatDetailPageState extends State<ChatDetailPage>
                   ),
                 ),
               ),
-              Semantics(
-                button: true,
-                label: _direct ? l.chatDetailOpenProfile : l.chatDetailChatInfo,
-                excludeSemantics: true,
-                onTap: openHeader,
-                child: GestureDetector(
-                  behavior: HitTestBehavior.opaque,
-                  onTap: openHeader,
-                  child: SizedBox(
-                    width: 48,
-                    height: 48,
-                    child: Center(
-                      child: BuAvatar(
-                          name: _title,
-                          url: _avatarUrl,
-                          size: 36,
-                          group: !_direct,
-                          headers: _avatarHeaders(_avatarUrl)),
-                    ),
-                  ),
-                ),
-              ),
             ]),
           ),
         ),
@@ -2487,6 +2512,13 @@ class _ChatDetailPageState extends State<ChatDetailPage>
           ),
       ]),
     );
+  }
+
+  /// Üst çubuk avatarı; sohbet listesindeki avatarla aynı Hero etiketini (`chat-avatar-<id>`) taşır.
+  Widget _headerAvatar() {
+    final avatar = BuAvatar(name: _title, url: _avatarUrl, size: 36, group: !_direct, headers: _avatarHeaders(_avatarUrl));
+    if (_conv['id'] is! num) return avatar;
+    return BuHero(tag: 'chat-avatar-$_cid', radius: 18, child: avatar);
   }
 
   /// Kulüp/etkinlik odası başlığının altındaki sayfa bağlantısı hapı.
@@ -2716,8 +2748,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
     if (_msgs.isEmpty) {
       return BuEmptyState(
           illustration: BuIllustration.message,
-          title: context.l10n.p07ChatEmptyTitle,
-          message: context.l10n.p07ChatEmptyBody);
+          title: context.l10n.p07ChatEmptyTitle);
     }
     return Stack(children: [
       Positioned.fill(
@@ -2726,14 +2757,14 @@ class _ChatDetailPageState extends State<ChatDetailPage>
           builder: (c, peerRead, _) => _list(t, peerRead),
         ),
       ),
-      PositionedDirectional(end: 16, bottom: 12, child: _downButton(t)),
+      PositionedDirectional(end: 20, bottom: 12, child: _downButton(t)),
     ]);
   }
 
   /// Yükleniyor: sohbet düzenine benzeyen balon iskeleti (çember yok).
   Widget _skeleton(BuTokens t) {
     Widget bubble(bool mine, double w, double h) => Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
           child: Row(
               mainAxisAlignment:
                   mine ? MainAxisAlignment.end : MainAxisAlignment.start,
@@ -2764,7 +2795,22 @@ class _ChatDetailPageState extends State<ChatDetailPage>
     return ValueListenableBuilder<bool>(
       valueListenable: _showDown,
       builder: (c, show, _) {
-        if (!show) return const SizedBox.shrink();
+        // Belirme/kaybolma: 150 ms solma + %80 -> %100 ölçek (yalnız transform/opacity; "azalt"ta anında).
+        return AnimatedSwitcher(
+          duration: BuMotion.of(c, BuMotion.short),
+          transitionBuilder: (child, anim) => FadeTransition(
+              opacity: anim, child: ScaleTransition(scale: Tween<double>(begin: .8, end: 1).animate(anim), child: child)),
+          child: show
+              ? KeyedSubtree(key: const ValueKey('down-shown'), child: _downBody(t))
+              : const SizedBox.shrink(key: ValueKey('down-hidden')),
+        );
+      },
+    );
+  }
+
+  Widget _downBody(BuTokens t) {
+    return Builder(
+      builder: (c) {
         return ValueListenableBuilder<int>(
           valueListenable: _newBelow,
           builder: (c, n, _) => Semantics(
@@ -2788,12 +2834,6 @@ class _ChatDetailPageState extends State<ChatDetailPage>
                     color: t.sf,
                     shape: BoxShape.circle,
                     border: Border.all(color: t.bd),
-                    boxShadow: [
-                      BoxShadow(
-                          color: t.shadow.withValues(alpha: .12),
-                          blurRadius: 8,
-                          offset: const Offset(0, 2))
-                    ],
                   ),
                   child: Icon(LucideIcons.chevronDown, size: 20, color: t.ink),
                 ),
@@ -2843,7 +2883,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
           controller: _scroll,
           reverse: true,
           keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+          padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
           itemCount: _msgs.length + 1,
           findChildIndexCallback: (key) {
             if (key is ValueKey<String>) return indexOf[key.value];
@@ -2904,8 +2944,11 @@ class _ChatDetailPageState extends State<ChatDetailPage>
         padding: const EdgeInsets.symmetric(vertical: 8),
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+          // Duvar kağıdı üstünde okunur kalsın: dolu yüzey + ince çizgi (balonlarla aynı dil).
           decoration: BoxDecoration(
-              color: t.sf2, borderRadius: BorderRadius.circular(999)),
+              color: t.sf,
+              border: Border.all(color: t.bd),
+              borderRadius: BorderRadius.circular(999)),
           child: Text(label,
               style: BuType.caption.copyWith(
                   color: t.mut, fontSize: 12, fontWeight: FontWeight.w600)),
@@ -3080,22 +3123,21 @@ class _ChatDetailPageState extends State<ChatDetailPage>
             offset: const Offset(0, -1)),
       ];
 
-  /// Yazma alanının yuvarlak tonal düğmesi (Ekle, Kamera): 44 dp görünüm, 48 dp dokunma alanı.
-  Widget _roundTool(BuTokens t,
-      {required Key key,
-      required IconData icon,
-      required String label,
-      required VoidCallback onTap}) {
+  /// Tek "+" düğmesi (Ekle): 44 dp yumuşak nötr daire, 48 dp dokunma alanı; menü açıkken 45 derece dönüp "x" olur
+  /// (yalnız transform; "animasyonları azalt"ta anında). Kamera ve galeri bu menüdedir.
+  Widget _plusButton(BuTokens t) {
+    final label = context.l10n.chatDetailAdd;
     return Semantics(
       button: true,
       label: label,
       excludeSemantics: true,
       child: Tooltip(
         message: label,
-        child: InkWell(
-          key: key,
-          customBorder: const CircleBorder(),
-          onTap: onTap,
+        child: BuPressable(
+          key: const ValueKey('attachButton'),
+          onTap: _openAttach,
+          scale: .92,
+          haptic: BuHaptic.selection,
           child: SizedBox(
             width: 48,
             height: 48,
@@ -3104,7 +3146,12 @@ class _ChatDetailPageState extends State<ChatDetailPage>
                 width: 44,
                 height: 44,
                 decoration: BoxDecoration(color: t.sf2, shape: BoxShape.circle),
-                child: Icon(icon, size: 22, color: t.ink),
+                child: AnimatedRotation(
+                  turns: _attachOpen ? .125 : 0,
+                  duration: BuMotion.of(context, BuMotion.short),
+                  curve: Curves.easeOutCubic,
+                  child: Icon(LucideIcons.plus, size: 24, color: t.ink),
+                ),
               ),
             ),
           ),
@@ -3136,7 +3183,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
               children: [
                 Row(children: [
                   Icon(editing ? LucideIcons.pencil : LucideIcons.reply,
-                      size: 14, color: t.pr),
+                      size: 14, color: t.mut),
                   const SizedBox(width: 6),
                   Expanded(
                     child: Text(
@@ -3146,7 +3193,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: tx.labelMedium!.copyWith(
-                            color: t.pr, fontWeight: FontWeight.w700)),
+                            color: t.ink, fontWeight: FontWeight.w600)),
                   ),
                 ]),
                 const SizedBox(height: 2),
@@ -3178,14 +3225,11 @@ class _ChatDetailPageState extends State<ChatDetailPage>
     final len = _len(trimmed); // gönderilen metinle aynı ölçü (kod noktası, kırpılmış)
     final canSend = trimmed.isNotEmpty && len <= _maxLen;
     final banner = _editing ?? _replyTo;
-    final rtl = Directionality.of(context) == TextDirection.rtl;
-    Widget sendIcon = Icon(
-        _editing != null ? LucideIcons.check : LucideIcons.send,
+    // Yukarı ok: yönsüz simge (RTL'de çevirmeye gerek yok).
+    final Widget sendIcon = Icon(
+        _editing != null ? LucideIcons.check : LucideIcons.arrowUp,
         size: 22,
-        color: t.onPr);
-    if (_editing == null && rtl) {
-      sendIcon = Transform.flip(flipX: true, child: sendIcon);
-    }
+        color: canSend ? t.onPr : t.mut);
     return Container(
       decoration: BoxDecoration(color: t.bg, boxShadow: _topShadow(t)),
       child: Column(mainAxisSize: MainAxisSize.min, children: [
@@ -3203,25 +3247,21 @@ class _ChatDetailPageState extends State<ChatDetailPage>
           ),
         Padding(
           padding: EdgeInsetsDirectional.fromSTEB(
-              12, 8, 16, 8 + MediaQuery.paddingOf(context).bottom),
+              12, 8, 20, 8 + MediaQuery.paddingOf(context).bottom),
           child: Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
             if (_editing == null) ...[
-              _roundTool(t,
-                  key: const ValueKey('attachButton'),
-                  icon: LucideIcons.plus,
-                  label: l.chatDetailAdd,
-                  onTap: _openGallery),
+              _plusButton(t),
               const SizedBox(width: 4),
             ] else
-              const SizedBox(width: 4),
+              const SizedBox(width: 8),
             Expanded(
               child: Padding(
                 padding: const EdgeInsets.symmetric(vertical: 1),
                 child: Container(
-                  constraints: const BoxConstraints(minHeight: 46),
+                  constraints: const BoxConstraints(minHeight: 44),
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   decoration: BoxDecoration(
-                      color: t.sf, borderRadius: BorderRadius.circular(23)),
+                      color: t.sf, borderRadius: BorderRadius.circular(22)),
                   child: TextField(
                     key: const ValueKey('composerField'),
                     controller: _input,
@@ -3238,7 +3278,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
                       enabledBorder: InputBorder.none,
                       focusedBorder: InputBorder.none,
                       filled: false,
-                      contentPadding: const EdgeInsets.symmetric(vertical: 13),
+                      contentPadding: const EdgeInsets.symmetric(vertical: 12),
                       hintText: l.chatDetailWriteMessage,
                       hintStyle: tx.bodyLarge!.copyWith(color: t.mut),
                     ),
@@ -3252,22 +3292,30 @@ class _ChatDetailPageState extends State<ChatDetailPage>
               enabled: canSend,
               label: _editing != null ? l.chatDetailSave : l.chatDetailSend,
               excludeSemantics: true,
-              child: GestureDetector(
+              // Yazı yokken soluk (nötr), yazınca marka kırmızısı + kısa "pop"; basınca küçülür.
+              child: BuPressable(
                 key: const ValueKey('sendButton'),
+                enabled: canSend,
                 onTap: canSend ? _submit : null,
-                child: Container(
+                scale: .9,
+                haptic: BuHaptic.light,
+                child: SizedBox(
                   width: 48,
                   height: 48,
-                  decoration: BoxDecoration(
-                      color: t.pr,
-                      shape: BoxShape.circle,
-                      boxShadow: [
-                        BoxShadow(
-                            color: t.pr.withValues(alpha: .3),
-                            blurRadius: 12,
-                            offset: const Offset(0, 4))
-                      ]),
-                  child: sendIcon,
+                  child: Center(
+                    child: BuPop(
+                      trigger: canSend,
+                      child: AnimatedContainer(
+                        duration: BuMotion.of(context, BuMotion.short),
+                        width: 44,
+                        height: 44,
+                        decoration: BoxDecoration(
+                            color: canSend ? t.pr : t.sf2,
+                            shape: BoxShape.circle),
+                        child: sendIcon,
+                      ),
+                    ),
+                  ),
                 ),
               ),
             ),

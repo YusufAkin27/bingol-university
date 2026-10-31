@@ -340,7 +340,8 @@ void main() {
       expect(find.byIcon(LucideIcons.check), findsOneWidget);
       expect(find.byIcon(LucideIcons.checkCheck), findsNWidgets(2));
       final read = tester.widget<Icon>(find.byIcon(LucideIcons.checkCheck).last);
-      expect(read.color, isNot(equals(tester.widget<Icon>(find.byIcon(LucideIcons.checkCheck).first).color)));
+      // Okundu tiki de nötr (P2/P3: marka vurgusu yalnız okunmamış rozetinde): iki çift tik aynı sakin renk.
+      expect(read.color, equals(tester.widget<Icon>(find.byIcon(LucideIcons.checkCheck).first).color));
       // Tüm sohbet avatarları 52 dp; fotoğrafsızlar varsayılan görselli, fotoğraflılar tam daire BuAvatar.
       final avatars = tester.widgetList<ChatlistAvatar>(find.byType(ChatlistAvatar));
       expect(avatars, isNotEmpty);

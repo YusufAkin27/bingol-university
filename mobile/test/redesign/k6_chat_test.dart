@@ -230,10 +230,10 @@ void main() {
     _ok(t);
   });
 
-  testWidgets('boş sohbet: başlık + yönlendirme metni', (t) async {
+  testWidgets('boş sohbet: tek cümle (P3-CHAT: açıklama satırı kalktı)', (t) async {
     await _pump(t, _page(_backend([]), _direct()));
     expect(find.text('Henüz mesaj yok'), findsOneWidget);
-    expect(find.text('İlk mesajı sen yaz.'), findsOneWidget);
+    expect(find.text('İlk mesajı sen yaz.'), findsNothing);
     expect(find.byKey(const ValueKey('composerField')), findsOneWidget);
     await unmount(t);
     _ok(t);
