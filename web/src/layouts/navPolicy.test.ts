@@ -52,6 +52,7 @@ const NAV_ENDPOINT: Record<string, string> = {
   ops: '/api/admin/ops/health',
   crashes: '/api/admin/crashes',
   dataRetention: '/api/admin/data-retention/tables',
+  appVersions: '/api/admin/app-versions',
   settings: '/api/admin/settings',
   roles: '/api/admin/rbac/matrix',
   audit: '/api/admin/audit',

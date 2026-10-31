@@ -548,6 +548,38 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/admin/app-versions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["distribution"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/app-versions/enforce": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["enforce"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/admin/appeals/export.csv": {
         parameters: {
             query?: never;
@@ -8903,6 +8935,12 @@ export interface components {
             supportEmail?: string | null;
             website?: string | null;
         };
+        AppVersionCount: {
+            /** Format: int64 */
+            devices?: number | null;
+            platform?: string | null;
+            version?: string | null;
+        };
         AppealDecision: {
             accept: boolean;
             note?: string | null;
@@ -10248,6 +10286,29 @@ export interface components {
         };
         EmailRequest: {
             email: string;
+        };
+        EnforceRequest: {
+            /** @enum {string} */
+            mode: "FORCE" | "SOFT" | "OFF";
+            platform: string;
+            reason?: string | null;
+            version?: string | null;
+        };
+        EnforceResponse: {
+            /** Format: int64 */
+            affectedDevices?: number | null;
+            latestVersion?: string | null;
+            minVersion?: string | null;
+            /** @enum {string|null} */
+            mode?: "FORCE" | "SOFT" | "OFF" | null;
+            platform?: string | null;
+            /** Format: int64 */
+            platformDevices?: number | null;
+            previousLatest?: string | null;
+            previousMin?: string | null;
+            source?: string | null;
+            sourceNote?: string | null;
+            state?: string | null;
         };
         Engagement: {
             daily?: components["schemas"]["EngagementDay"][];
@@ -13204,6 +13265,8 @@ export interface components {
         };
         VersionCheck: {
             latestVersion?: string | null;
+            marketUrl?: string | null;
+            message?: string | null;
             storeUrl?: string | null;
             updateAvailable?: boolean | null;
             updateRequired?: boolean | null;
@@ -13213,6 +13276,34 @@ export interface components {
             count?: number | null;
             platform?: string | null;
             version?: string | null;
+        };
+        VersionDistribution: {
+            /** Format: int64 */
+            belowLatest?: number | null;
+            /** Format: int64 */
+            belowMin?: number | null;
+            distribution?: components["schemas"]["AppVersionCount"][];
+            platforms?: components["schemas"]["VersionPlatformSummary"][];
+            source?: string | null;
+            sourceNote?: string | null;
+            /** Format: int64 */
+            total?: number | null;
+            /** Format: int32 */
+            windowDays?: number | null;
+        };
+        VersionPlatformSummary: {
+            /** Format: int64 */
+            belowLatest?: number | null;
+            /** Format: int64 */
+            belowMin?: number | null;
+            latestVersion?: string | null;
+            minVersion?: string | null;
+            platform?: string | null;
+            state?: string | null;
+            /** Format: int64 */
+            total?: number | null;
+            /** Format: int64 */
+            unknownVersion?: number | null;
         };
         VersionRow: {
             createdAt?: string | null;
@@ -15749,6 +15840,113 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["AdminAnnouncementView"];
+                };
+            };
+            /** @description Dogrulama / is kurali hatasi (code alanina bakin) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Token yok/gecersiz/suresi dolmus */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description ADMIN rolu gerekli */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description RATE_LIMITED: istek siniri asildi */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    distribution: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["VersionDistribution"];
+                };
+            };
+            /** @description Dogrulama / is kurali hatasi (code alanina bakin) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Token yok/gecersiz/suresi dolmus */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description ADMIN rolu gerekli */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    enforce: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EnforceRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["EnforceResponse"];
                 };
             };
             /** @description Dogrulama / is kurali hatasi (code alanina bakin) */

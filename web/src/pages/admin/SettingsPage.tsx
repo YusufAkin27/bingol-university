@@ -24,6 +24,7 @@ import { GuardedDialog } from '../../components/admin/GuardedDialog';
 import { useI18n } from '../../i18n/I18nProvider';
 import { usePageTitle } from '../../lib/hooks';
 import { adminErrorMessage, Callout } from './campaigns/shared';
+import { AppVersionsLink } from './appVersions/SettingsLink';
 import { EventSettings } from './settings/EventSettings';
 import { FacultyEditor } from './settings/FacultyEditor';
 import { SettingDiff } from './settings/SettingDiff';
@@ -207,6 +208,7 @@ export default function SettingsPage() {
 
           {group === 'stores' && (
             <>
+              <AppVersionsLink />
               {(['android', 'ios'] as const).map((p) => {
                 const min = valueOf({ server, edits }, `min_version_${p}`).trim();
                 const latest = valueOf({ server, edits }, `latest_version_${p}`).trim();
@@ -241,9 +243,43 @@ export default function SettingsPage() {
                         <Callout tone="warning">{t('admin.settings.stores.inverted')}</Callout>
                       </div>
                     )}
+                    <div className={styles.grid}>
+                      {p === 'android' ? (
+                        <SettingRow
+                          k="store_package_android"
+                          label={t('admin.settings.key.store_package_android')}
+                          hint={t('admin.uv.settings.packageHint')}
+                          ltr
+                          placeholder="tr.com.bukampus.app"
+                        />
+                      ) : (
+                        <SettingRow
+                          k="apple_app_id_ios"
+                          label={t('admin.settings.key.apple_app_id_ios')}
+                          hint={t('admin.uv.settings.appleHint')}
+                          ltr
+                          placeholder="1234567890"
+                        />
+                      )}
+                    </div>
+                    <p className={styles.cardIntro}>{t('admin.uv.settings.storeHint')}</p>
                   </Card>
                 );
               })}
+              <Card title={t('admin.uv.settings.messagesTitle')}>
+                <p className={styles.cardIntro}>{t('admin.uv.settings.messagesIntro')}</p>
+                <div className={styles.grid}>
+                  {LANGS.map((l) => (
+                    <SettingRow
+                      key={l}
+                      k={`update_message_${l}`}
+                      label={t(`admin.settings.key.update_message_${l}`)}
+                      kind="textarea"
+                      lang={l}
+                    />
+                  ))}
+                </div>
+              </Card>
             </>
           )}
 

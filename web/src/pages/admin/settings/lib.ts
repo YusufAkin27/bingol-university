@@ -48,11 +48,22 @@ export function moveItem<T>(list: T[], index: number, delta: -1 | 1): T[] {
 
 const VERSION = /^\d+(\.\d+){0,3}$/;
 
-export type SettingError = 'HTTPS' | 'VERSION' | 'BOOL' | 'EMAIL' | 'TOO_LONG' | 'INT';
+export type SettingError = 'HTTPS' | 'VERSION' | 'BOOL' | 'EMAIL' | 'TOO_LONG' | 'INT' | 'PACKAGE' | 'APPLE_ID' | 'MESSAGE';
+
+/** Güncelleme ekranı metni üst sınırı (sunucu ile aynı). */
+export const UPDATE_MESSAGE_MAX = 280;
 
 /** Etkinlik ayarları: açma/kapama anahtarı ve 0-1000 arası sınırlar (0 = sınırsız). */
 export const EVENT_BOOL_KEYS = ['events_require_approval'];
 export const EVENT_INT_KEYS = ['event_max_open_per_user', 'event_daily_create_limit'];
+
+function hasControl(v: string): boolean {
+  for (let i = 0; i < v.length; i++) {
+    const c = v.charCodeAt(i);
+    if (c <= 0x1f || (c >= 0x7f && c <= 0x9f)) return true;
+  }
+  return false;
+}
 
 /** Anahtara göre istemci doğrulaması (sunucu kurallarıyla aynı + e-posta biçimi). Hata yoksa null. */
 export function validateSetting(key: string, value: string): SettingError | null {
@@ -72,6 +83,18 @@ export function validateSetting(key: string, value: string): SettingError | null
   if ((key === 'contact_email' || key === 'support_email') && v) {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v) ? null : 'EMAIL';
   }
+  if (key.startsWith('update_message_') && v) {
+    // HTML, bağlantı ve kontrol karakteri yok (sunucu SETTING_INVALID verir)
+    return v.length <= UPDATE_MESSAGE_MAX && !/[<>&]|:\/\/|www\.|javascript:/i.test(v) && !hasControl(v)
+      ? null
+      : 'MESSAGE';
+  }
+  if (key === 'store_package_android' && v) {
+    return /^[A-Za-z][A-Za-z0-9_]*(\.[A-Za-z][A-Za-z0-9_]*)+$/.test(v) ? null : 'PACKAGE';
+  }
+  if (key === 'apple_app_id_ios' && v) {
+    return /^\d{5,15}$/.test(v) ? null : 'APPLE_ID';
+  }
   if (key === 'faculties') {
     return facultiesError(parseFaculties(v)) ? 'TOO_LONG' : null;
   }
@@ -88,6 +111,9 @@ export function isCriticalSetting(key: string): boolean {
     key.startsWith('min_version_') ||
     key.startsWith('latest_version_') ||
     key.startsWith('store_url_') ||
+    key.startsWith('store_package_') ||
+    key.startsWith('apple_app_id_') ||
+    key.startsWith('update_message_') ||
     key.startsWith('banner_') ||
     key.startsWith('maintenance_') ||
     key.startsWith('legal.') ||
@@ -132,6 +158,11 @@ export const GROUP_KEYS: Record<SettingGroup, string[]> = {
     'min_version_ios',
     'latest_version_ios',
     'store_url_ios',
+    'store_package_android',
+    'apple_app_id_ios',
+    'update_message_tr',
+    'update_message_en',
+    'update_message_ar',
   ],
   banner: ['banner_text_tr', 'banner_text_en', 'banner_text_ar', 'banner_url'],
   maintenance: ['maintenance_mode', 'maintenance_message_tr', 'maintenance_message_en', 'maintenance_message_ar'],
