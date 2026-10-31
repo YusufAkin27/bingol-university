@@ -17352,6 +17352,66 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'{count} kişi'**
   String p51EvPeople(String count);
+
+  /// No description provided for @p51EvQrTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yoklama QR'**
+  String get p51EvQrTitle;
+
+  /// No description provided for @p51EvReqTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Başvurular'**
+  String get p51EvReqTitle;
+
+  /// No description provided for @p51EvTabPending.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bekleyen'**
+  String get p51EvTabPending;
+
+  /// No description provided for @p51EvTabApproved.
+  ///
+  /// In tr, this message translates to:
+  /// **'Onaylanan'**
+  String get p51EvTabApproved;
+
+  /// No description provided for @p51EvTabRejected.
+  ///
+  /// In tr, this message translates to:
+  /// **'Reddedilen'**
+  String get p51EvTabRejected;
+
+  /// No description provided for @p51EvQuota.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kontenjan {cap} · {going} onaylı'**
+  String p51EvQuota(String cap, String going);
+
+  /// No description provided for @p51EvQuotaGoing.
+  ///
+  /// In tr, this message translates to:
+  /// **'{n} onaylı'**
+  String p51EvQuotaGoing(String n);
+
+  /// No description provided for @p51EvQuotaNote.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kontenjan dolduğunda yeni istek onaylanamaz.'**
+  String get p51EvQuotaNote;
+
+  /// No description provided for @p51EvPresentAbsent.
+  ///
+  /// In tr, this message translates to:
+  /// **'{present} geldi · {absent} gelmedi'**
+  String p51EvPresentAbsent(String present, String absent);
+
+  /// No description provided for @p51EvTotalPeople.
+  ///
+  /// In tr, this message translates to:
+  /// **'Toplam {count} kişi'**
+  String p51EvTotalPeople(String count);
 }
 
 class _AppLocalizationsDelegate

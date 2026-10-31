@@ -3005,5 +3005,49 @@
         "type": "String"
       }
     }
+  },
+  "p51EvQrTitle": "رمز QR للحضور",
+  "p51EvReqTitle": "الطلبات",
+  "p51EvTabPending": "قيد الانتظار",
+  "p51EvTabApproved": "المقبولة",
+  "p51EvTabRejected": "المرفوضة",
+  "p51EvQuota": "السعة {cap} · {going} مقبول",
+  "@p51EvQuota": {
+    "placeholders": {
+      "cap": {
+        "type": "String"
+      },
+      "going": {
+        "type": "String"
+      }
+    }
+  },
+  "p51EvQuotaGoing": "{n} مقبول",
+  "@p51EvQuotaGoing": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "p51EvQuotaNote": "لا يمكن قبول طلبات جديدة عند اكتمال السعة.",
+  "p51EvPresentAbsent": "{present} حضروا · {absent} لم يحضروا",
+  "@p51EvPresentAbsent": {
+    "placeholders": {
+      "present": {
+        "type": "String"
+      },
+      "absent": {
+        "type": "String"
+      }
+    }
+  },
+  "p51EvTotalPeople": "الإجمالي {count} شخص",
+  "@p51EvTotalPeople": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
   }
 }

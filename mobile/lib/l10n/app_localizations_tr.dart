@@ -9541,4 +9541,42 @@ class AppLocalizationsTr extends AppLocalizations {
   String p51EvPeople(String count) {
     return '$count kişi';
   }
+
+  @override
+  String get p51EvQrTitle => 'Yoklama QR';
+
+  @override
+  String get p51EvReqTitle => 'Başvurular';
+
+  @override
+  String get p51EvTabPending => 'Bekleyen';
+
+  @override
+  String get p51EvTabApproved => 'Onaylanan';
+
+  @override
+  String get p51EvTabRejected => 'Reddedilen';
+
+  @override
+  String p51EvQuota(String cap, String going) {
+    return 'Kontenjan $cap · $going onaylı';
+  }
+
+  @override
+  String p51EvQuotaGoing(String n) {
+    return '$n onaylı';
+  }
+
+  @override
+  String get p51EvQuotaNote => 'Kontenjan dolduğunda yeni istek onaylanamaz.';
+
+  @override
+  String p51EvPresentAbsent(String present, String absent) {
+    return '$present geldi · $absent gelmedi';
+  }
+
+  @override
+  String p51EvTotalPeople(String count) {
+    return 'Toplam $count kişi';
+  }
 }

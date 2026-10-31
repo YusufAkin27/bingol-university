@@ -4801,5 +4801,49 @@
         "type": "String"
       }
     }
+  },
+  "p51EvQrTitle": "Yoklama QR",
+  "p51EvReqTitle": "Başvurular",
+  "p51EvTabPending": "Bekleyen",
+  "p51EvTabApproved": "Onaylanan",
+  "p51EvTabRejected": "Reddedilen",
+  "p51EvQuota": "Kontenjan {cap} · {going} onaylı",
+  "@p51EvQuota": {
+    "placeholders": {
+      "cap": {
+        "type": "String"
+      },
+      "going": {
+        "type": "String"
+      }
+    }
+  },
+  "p51EvQuotaGoing": "{n} onaylı",
+  "@p51EvQuotaGoing": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "p51EvQuotaNote": "Kontenjan dolduğunda yeni istek onaylanamaz.",
+  "p51EvPresentAbsent": "{present} geldi · {absent} gelmedi",
+  "@p51EvPresentAbsent": {
+    "placeholders": {
+      "present": {
+        "type": "String"
+      },
+      "absent": {
+        "type": "String"
+      }
+    }
+  },
+  "p51EvTotalPeople": "Toplam {count} kişi",
+  "@p51EvTotalPeople": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
   }
 }

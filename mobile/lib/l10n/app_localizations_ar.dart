@@ -9472,4 +9472,42 @@ class AppLocalizationsAr extends AppLocalizations {
   String p51EvPeople(String count) {
     return '$count شخص';
   }
+
+  @override
+  String get p51EvQrTitle => 'رمز QR للحضور';
+
+  @override
+  String get p51EvReqTitle => 'الطلبات';
+
+  @override
+  String get p51EvTabPending => 'قيد الانتظار';
+
+  @override
+  String get p51EvTabApproved => 'المقبولة';
+
+  @override
+  String get p51EvTabRejected => 'المرفوضة';
+
+  @override
+  String p51EvQuota(String cap, String going) {
+    return 'السعة $cap · $going مقبول';
+  }
+
+  @override
+  String p51EvQuotaGoing(String n) {
+    return '$n مقبول';
+  }
+
+  @override
+  String get p51EvQuotaNote => 'لا يمكن قبول طلبات جديدة عند اكتمال السعة.';
+
+  @override
+  String p51EvPresentAbsent(String present, String absent) {
+    return '$present حضروا · $absent لم يحضروا';
+  }
+
+  @override
+  String p51EvTotalPeople(String count) {
+    return 'الإجمالي $count شخص';
+  }
 }

@@ -3005,5 +3005,49 @@
         "type": "String"
       }
     }
+  },
+  "p51EvQrTitle": "Check-in QR",
+  "p51EvReqTitle": "Requests",
+  "p51EvTabPending": "Pending",
+  "p51EvTabApproved": "Approved",
+  "p51EvTabRejected": "Rejected",
+  "p51EvQuota": "Capacity {cap} · {going} approved",
+  "@p51EvQuota": {
+    "placeholders": {
+      "cap": {
+        "type": "String"
+      },
+      "going": {
+        "type": "String"
+      }
+    }
+  },
+  "p51EvQuotaGoing": "{n} approved",
+  "@p51EvQuotaGoing": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "p51EvQuotaNote": "New requests can't be approved once the capacity is full.",
+  "p51EvPresentAbsent": "{present} present · {absent} absent",
+  "@p51EvPresentAbsent": {
+    "placeholders": {
+      "present": {
+        "type": "String"
+      },
+      "absent": {
+        "type": "String"
+      }
+    }
+  },
+  "p51EvTotalPeople": "Total {count} people",
+  "@p51EvTotalPeople": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
   }
 }

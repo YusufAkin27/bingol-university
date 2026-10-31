@@ -9573,4 +9573,43 @@ class AppLocalizationsEn extends AppLocalizations {
   String p51EvPeople(String count) {
     return '$count people';
   }
+
+  @override
+  String get p51EvQrTitle => 'Check-in QR';
+
+  @override
+  String get p51EvReqTitle => 'Requests';
+
+  @override
+  String get p51EvTabPending => 'Pending';
+
+  @override
+  String get p51EvTabApproved => 'Approved';
+
+  @override
+  String get p51EvTabRejected => 'Rejected';
+
+  @override
+  String p51EvQuota(String cap, String going) {
+    return 'Capacity $cap · $going approved';
+  }
+
+  @override
+  String p51EvQuotaGoing(String n) {
+    return '$n approved';
+  }
+
+  @override
+  String get p51EvQuotaNote =>
+      'New requests can\'t be approved once the capacity is full.';
+
+  @override
+  String p51EvPresentAbsent(String present, String absent) {
+    return '$present present · $absent absent';
+  }
+
+  @override
+  String p51EvTotalPeople(String count) {
+    return 'Total $count people';
+  }
 }
