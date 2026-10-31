@@ -47,6 +47,12 @@ public class VerificationService {
     private final StringRedisTemplate redis;
     private final MailService mail;
     private final SecureRandom random = new SecureRandom();
+    /**
+     * Kod ozeti icin gizli tuz (T-009): 6 haneli kodun SHA-256'si tuzsuzken Redis sizintisinda 1e6 denemeyle kirilirdi.
+     * HMAC-SHA256(pepper, e-posta:kod). Bos ise (birim testleri) duz SHA-256.
+     */
+    @org.springframework.beans.factory.annotation.Value("${app.auth.code-pepper:${jwt.secret:}}")
+    private String pepper = "";
 
     public VerificationService(StringRedisTemplate redis, MailService mail) {
         this.redis = redis;
@@ -110,6 +116,13 @@ public class VerificationService {
         return token;
     }
 
+    /** Anahtar gecerli mi? Tuketmez (zayif parola reddi anahtari yakmasin). */
+    public boolean checkResetToken(String email, String token) {
+        String stored = redis.opsForValue().get("prt:" + email);
+        return stored != null && MessageDigest.isEqual(stored.getBytes(StandardCharsets.UTF_8),
+                Hashing.sha256(token).getBytes(StandardCharsets.UTF_8));
+    }
+
     /**
      * Anahtar eslesirse tuketir ve true doner. Once karsilastirilir, yalniz eslesirse silinir: yanlis anahtarli
      * istek gercek kullanicinin gecerli anahtarini yakmaz. delete() ile es zamanli iki istekten yalniz biri gecer.
@@ -134,6 +147,9 @@ public class VerificationService {
         redis.opsForValue().set(ns + ":" + email, hash(email, code), CODE_TTL);
         redis.delete(List.of(ns + ":att:" + email, ns + ":lock:" + email));
         redis.delete(ns + ":gatt:" + email);
+        // Kapsamli (e-posta, istemci) yanlis deneme sayac/kilitleri de sifirlanir (T-006): 5 yanlis denemeden sonra
+        // gelen YENI kod, ayni istemcide dogru girilince 429'a takilmasin. Istemci anahtarlari kumede izlenir.
+        clearScoped(ns, email);
         // Saatlik toplam yanlis deneme siniri asildiysa yeni kod kilidi ACMAZ (sayac sifirlama yolu kapali).
         if (totalWrong(ns, email) > MAX_HOURLY_WRONG) {
             redis.opsForValue().set(ns + ":lock:" + email, "1", LOCK_TTL);
@@ -150,6 +166,20 @@ public class VerificationService {
             redis.delete(ns + ":" + email);
             throw e;
         }
+    }
+
+    private void clearScoped(String ns, String email) {
+        String setKey = ns + ":scopes:" + email;
+        java.util.Set<String> scopes = redis.opsForSet().members(setKey);
+        if (scopes != null && !scopes.isEmpty()) {
+            List<String> keys = new java.util.ArrayList<>();
+            for (String sc : scopes) {
+                keys.add(ns + ":sc:" + email + ":" + sc + ":att");
+                keys.add(ns + ":sc:" + email + ":" + sc + ":lock");
+            }
+            redis.delete(keys);
+        }
+        redis.delete(setKey);
     }
 
     private long totalWrong(String ns, String email) {
@@ -170,6 +200,12 @@ public class VerificationService {
         String stored = redis.opsForValue().get(ns + ":" + email);
         if (stored == null) {
             return false;
+        }
+        if (scoped != null) {
+            // Yeni kod bu istemcinin sayac/kilidini sifirlayabilsin diye istemci anahtarini kumeye yaz (T-006)
+            String setKey = ns + ":scopes:" + email;
+            redis.opsForSet().add(setKey, scope);
+            redis.expire(setKey, CODE_TTL.plus(LOCK_TTL));
         }
         // Istemci (e-posta, istemci) cifti basina sayac; scope yoksa adres basina (eski davranis).
         String attKey = scoped != null ? scoped + ":att" : ns + ":att:" + email;
@@ -223,7 +259,16 @@ public class VerificationService {
                 "Çok fazla hatalı deneme. Yeni kod isteyin.");
     }
 
-    private static String hash(String email, String code) {
-        return Hashing.sha256(email + ":" + code);
+    private String hash(String email, String code) {
+        if (pepper == null || pepper.isEmpty()) {
+            return Hashing.sha256(email + ":" + code);
+        }
+        try {
+            javax.crypto.Mac mac = javax.crypto.Mac.getInstance("HmacSHA256");
+            mac.init(new javax.crypto.spec.SecretKeySpec(pepper.getBytes(StandardCharsets.UTF_8), "HmacSHA256"));
+            return java.util.HexFormat.of().formatHex(mac.doFinal((email + ":" + code).getBytes(StandardCharsets.UTF_8)));
+        } catch (java.security.GeneralSecurityException e) {
+            throw new IllegalStateException(e);
+        }
     }
 }

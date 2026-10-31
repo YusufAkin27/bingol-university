@@ -31,6 +31,9 @@ public class RefreshTokenService {
     private static final String TOKEN_PREFIX = "rt:";
     private static final String TOMBSTONE_PREFIX = "rtx:";
     private static final String USED_PREFIX = "rtused:";
+    /** Rotasyon kaydi (T-007): eski token ozeti -> SIFRELI yeni cift; kaybolan yanit yeniden denemesi ayni cifti alir. */
+    private static final String NEXT_PREFIX = "rtnext:";
+    static final Duration NEXT_TTL = Duration.ofSeconds(45);
 
     /** Tuketilen refresh token'in sahibi, istemci turu ve oturumun ilk giris ani (ms; 0 = eski token, bilinmiyor). */
     public record Session(Long userId, String client, long authTimeMs) {
@@ -137,6 +140,72 @@ public class RefreshTokenService {
         return OptionalLong.of(owner);
     }
 
+    /**
+     * Rotasyon sonucunu (yeni token cifti, metin) kaydeder: AES-GCM, anahtar = SHA-256(ESKI token). Redis'te yalniz
+     * eski token'in OZETI durur, anahtar ham token'dan turer; Redis sizintisi tek basina yeni refresh token'i vermez.
+     * Kayit {@link #NEXT_TTL} kadar yasar. Hata yutulur (idempotans en-iyi-caba; rotasyonu bozmaz).
+     */
+    public void rememberRotation(String oldToken, String payload) {
+        try {
+            redis.opsForValue().set(NEXT_PREFIX + Hashing.sha256(oldToken), seal(oldToken, payload), NEXT_TTL);
+        } catch (RuntimeException e) {
+            // yoksay
+        }
+    }
+
+    /**
+     * Daha once tuketilmis `oldToken` icin kayitli rotasyon sonucunu doner (yoksa/cozulemezse null). Yeni refresh
+     * token hala gecerli degilse (yeniden dondu, iptal edildi) null: eski cift canlandirilmaz.
+     */
+    public String replayRotation(String oldToken, java.util.function.Predicate<String> stillValid) {
+        String sealed = redis.opsForValue().get(NEXT_PREFIX + Hashing.sha256(oldToken));
+        if (sealed == null) {
+            return null;
+        }
+        String payload = open(oldToken, sealed);
+        return payload != null && stillValid.test(payload) ? payload : null;
+    }
+
+    private static byte[] key(String token) {
+        try {
+            return java.security.MessageDigest.getInstance("SHA-256").digest(token.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+        } catch (java.security.NoSuchAlgorithmException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
+    private String seal(String token, String payload) {
+        try {
+            byte[] iv = new byte[12];
+            random.nextBytes(iv);
+            javax.crypto.Cipher c = javax.crypto.Cipher.getInstance("AES/GCM/NoPadding");
+            c.init(javax.crypto.Cipher.ENCRYPT_MODE, new javax.crypto.spec.SecretKeySpec(key(token), "AES"),
+                    new javax.crypto.spec.GCMParameterSpec(128, iv));
+            byte[] ct = c.doFinal(payload.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+            byte[] all = new byte[iv.length + ct.length];
+            System.arraycopy(iv, 0, all, 0, iv.length);
+            System.arraycopy(ct, 0, all, iv.length, ct.length);
+            return Base64.getEncoder().encodeToString(all);
+        } catch (java.security.GeneralSecurityException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
+    private static String open(String token, String sealed) {
+        try {
+            byte[] all = Base64.getDecoder().decode(sealed);
+            if (all.length < 13) {
+                return null;
+            }
+            javax.crypto.Cipher c = javax.crypto.Cipher.getInstance("AES/GCM/NoPadding");
+            c.init(javax.crypto.Cipher.DECRYPT_MODE, new javax.crypto.spec.SecretKeySpec(key(token), "AES"),
+                    new javax.crypto.spec.GCMParameterSpec(128, all, 0, 12));
+            return new String(c.doFinal(all, 12, all.length - 12), java.nio.charset.StandardCharsets.UTF_8);
+        } catch (java.security.GeneralSecurityException | IllegalArgumentException e) {
+            return null;
+        }
+    }
+
     private static long parseLong(String s) {
         try {
             return Long.parseLong(s);
@@ -171,6 +240,13 @@ public class RefreshTokenService {
     /** Token daha once oturum iptaliyle (baska cihaz girisi, tum oturumlari kapatma) silindi mi? */
     public boolean wasRevoked(String token) {
         return Boolean.TRUE.equals(redis.hasKey(TOMBSTONE_PREFIX + Hashing.sha256(token)));
+    }
+
+    /** Iptal mezar tasindaki sahip (T-009): iptalin nedenini ayirt etmek icin; kayit yoksa null. */
+    public Long revokedOwner(String token) {
+        String v = redis.opsForValue().get(TOMBSTONE_PREFIX + Hashing.sha256(token));
+        long id = v == null ? 0 : parseLong(v);
+        return id > 0 ? id : null;
     }
 
     /** Cikis: token tuketilir ama "kullanildi" isareti birakilmaz (cikis yapilmis token calinma sayilmaz). */

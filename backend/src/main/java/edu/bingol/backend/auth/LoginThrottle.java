@@ -20,6 +20,10 @@ import org.springframework.stereotype.Component;
  *   <li>Cihaz basina ({@code loginDeviceFailMax}): farkli hesaplari tarayan cihaz.</li>
  *   <li>IP basina ({@code loginIpFailMax}, yuksek): NAT'i sagir etmeyecek kadar genis credential stuffing tavani.</li>
  * </ul>
+ * <p>HEDEFLI KILITLEME (DoS) KORUMASI (T-006): e-posta basina tavan YALNIZ "bilinmeyen" istemciler icindir. Hesapla
+ * daha once basarili giris yapmis cihaz (cihaz kimligi yoksa IP) {@code lgf:ok:*} isaretiyle {@link #TRUST_TTL} boyunca
+ * "tanidik" sayilir: tavan onlara uygulanmaz ve onlarin hatalari tavani doldurmaz; saldirgan sahte cihaz kimlikleriyle
+ * hesabin gercek sahibini kilitleyemez. Tanidik istemcinin KENDI cift sayaci (10) yine uygulanir.
  * Basarili giris cift sayaclarini sifirlar. Anahtarlar e-postanin ozetidir (ham deger/uzun girdi Redis'i sisirmez).
  */
 @Component
@@ -28,6 +32,8 @@ public class LoginThrottle {
     static final int PAIR_MAX = 10;
     static final int EMAIL_MAX = 60;
     static final Duration WINDOW = Duration.ofMinutes(15);
+    /** Basarili girisle "tanidik" sayilan istemci isareti omru. */
+    static final Duration TRUST_TTL = Duration.ofDays(30);
 
     private final StringRedisTemplate redis;
     private final RateLimitProperties limits;
@@ -57,7 +63,9 @@ public class LoginThrottle {
         } else {
             requireBelow(pairKey(email, clientKey), limits.loginPairFailMax());
         }
-        requireBelow(emailKey(email), limits.loginEmailFailMax());
+        if (!trusted(email, clientKey, deviceHash)) {
+            requireBelow(emailKey(email), limits.loginEmailFailMax());
+        }
     }
 
     public void recordFailure(String email, String clientKey) {
@@ -66,7 +74,9 @@ public class LoginThrottle {
 
     public void recordFailure(String email, String clientKey, String deviceHash) {
         bump(pairKey(email, clientKey));
-        bump(emailKey(email));
+        if (!trusted(email, clientKey, deviceHash)) {
+            bump(emailKey(email)); // tanidik istemcinin hatalari hesap geneli tavani doldurmaz
+        }
         bump(ipFailKey(clientKey));
         if (deviceHash != null) {
             bump(devicePairKey(email, deviceHash));
@@ -79,10 +89,24 @@ public class LoginThrottle {
     }
 
     public void recordSuccess(String email, String clientKey, String deviceHash) {
+        try {
+            redis.opsForValue().set(trustKey(email, clientKey, deviceHash), "1", TRUST_TTL);
+        } catch (RuntimeException e) {
+            // isaret en-iyi-caba; giris akisini bozmaz
+        }
         redis.delete(pairKey(email, clientKey));
         if (deviceHash != null) {
             redis.delete(devicePairKey(email, deviceHash));
         }
+    }
+
+    /** Bu hesapla daha once basarili giris yapmis istemci mi (bkz. sinif aciklamasi)? */
+    private boolean trusted(String email, String clientKey, String deviceHash) {
+        return Boolean.TRUE.equals(redis.hasKey(trustKey(email, clientKey, deviceHash)));
+    }
+
+    private static String trustKey(String email, String clientKey, String deviceHash) {
+        return "lgf:ok:" + digest(email) + ":" + (deviceHash != null ? "d:" + deviceHash : "i:" + clientKey);
     }
 
     private void requireBelow(String key, int max) {

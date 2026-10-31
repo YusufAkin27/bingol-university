@@ -25,6 +25,8 @@ class LoginThrottleTest {
     private static final String EMAIL = "ali@bingol.edu.tr";
 
     private final Map<String, Long> counters = new HashMap<>();
+    /** Basarili girisle "tanidik" isaretlenen istemci anahtarlari (lgf:ok:*). */
+    private final java.util.Set<String> trusted = new java.util.HashSet<>();
     private final StringRedisTemplate redis = mock(StringRedisTemplate.class);
     @SuppressWarnings("unchecked")
     private final ValueOperations<String, String> ops = mock(ValueOperations.class);
@@ -39,6 +41,37 @@ class LoginThrottleTest {
         when(ops.increment(anyString())).thenAnswer(i -> counters.merge(i.<String>getArgument(0), 1L, Long::sum));
         when(redis.getExpire(anyString())).thenReturn(600L);
         when(redis.delete(anyString())).thenAnswer(i -> counters.remove(i.<String>getArgument(0)) != null);
+        org.mockito.Mockito.doAnswer(i -> trusted.add(i.<String>getArgument(0)))
+                .when(ops).set(startsWith("lgf:ok:"), anyString(), org.mockito.ArgumentMatchers.any(java.time.Duration.class));
+        when(redis.hasKey(anyString())).thenAnswer(i -> trusted.contains(i.<String>getArgument(0)));
+    }
+
+    @Test
+    void knownOwnerDeviceIsNotLockedOutByRotatingDeviceAttackers() {
+        // gercek sahip bir kez basariyla girdi: cihazi "tanidik"
+        throttle.recordSuccess(EMAIL, "198.51.100.7", "dev-owner");
+
+        // saldirgan her seferinde sahte cihaz/IP ile 31 (> 30) yanlis deneme yapar; hesap geneli tavan dolar
+        for (int i = 0; i < LoginThrottle.EMAIL_MAX + 1; i++) {
+            throttle.recordFailure(EMAIL, "10.9." + (i / 200) + "." + (i % 200), "fake-" + i);
+        }
+
+        // bilinmeyen istemci tavana takilir ...
+        assertThrows(RateLimitedException.class, () -> throttle.check(EMAIL, "198.51.100.200", "dev-unknown"));
+        // ... ama sahibin tanidik cihazi girebilir (kilit DoS'u yok)
+        assertDoesNotThrow(() -> throttle.check(EMAIL, "198.51.100.7", "dev-owner"));
+        assertDoesNotThrow(() -> throttle.check(EMAIL, "198.51.100.8", "dev-owner"));
+    }
+
+    @Test
+    void knownDeviceFailuresDoNotFillTheAccountWideCeiling() {
+        throttle.recordSuccess(EMAIL, "198.51.100.7", "dev-owner");
+        for (int i = 0; i < LoginThrottle.EMAIL_MAX + 5; i++) {
+            throttle.recordFailure(EMAIL, "198.51.100.7", "dev-owner"); // sahip kendi cihazindan yanlis yazar
+        }
+
+        // hesap geneli sayac artmadi: baska (bilinmeyen) istemci etkilenmez
+        assertDoesNotThrow(() -> throttle.check(EMAIL, "203.0.113.5", "dev-friend"));
     }
 
     @Test

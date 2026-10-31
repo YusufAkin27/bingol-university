@@ -14,16 +14,16 @@ field() { grep -o "\"$1\":\"[^\"]*" | head -1 | cut -d'"' -f4; }
 
 EMAIL="tek$RANDOM$RANDOM@bingol.edu.tr"
 curl -s -o /dev/null -X POST -H "$H" $A/auth/register \
-  -d "{\"email\":\"$EMAIL\",\"password\":\"Sifre1234\",\"displayName\":\"Tek Oturum\",\"acceptTerms\":true}"
+  -d "{\"email\":\"$EMAIL\",\"password\":\"Zk7-Qmv-Lpx92w\",\"displayName\":\"Tek Oturum\",\"acceptTerms\":true}"
 sleep 1
 CODE=$(docker compose logs backend 2>&1 | grep "$EMAIL icin" | grep -o 'kodu: [0-9]*' | tail -1 | cut -d' ' -f2)
-curl -s -o /dev/null -X POST -H "$H" $A/auth/verify-email -d "{\"email\":\"$EMAIL\",\"code\":\"$CODE\",\"password\":\"Sifre1234\"}"
+curl -s -o /dev/null -X POST -H "$H" $A/auth/verify-email -d "{\"email\":\"$EMAIL\",\"code\":\"$CODE\",\"password\":\"Zk7-Qmv-Lpx92w\"}"
 
 login() { # $1 = client (mobile|web|bos)
   if [ -n "${1:-}" ]; then
-    curl -s -X POST -H "$H" $A/auth/login -d "{\"email\":\"$EMAIL\",\"password\":\"Sifre1234\",\"client\":\"$1\"}"
+    curl -s -X POST -H "$H" $A/auth/login -d "{\"email\":\"$EMAIL\",\"password\":\"Zk7-Qmv-Lpx92w\",\"client\":\"$1\"}"
   else
-    curl -s -X POST -H "$H" $A/auth/login -d "{\"email\":\"$EMAIL\",\"password\":\"Sifre1234\"}"
+    curl -s -X POST -H "$H" $A/auth/login -d "{\"email\":\"$EMAIL\",\"password\":\"Zk7-Qmv-Lpx92w\"}"
   fi
 }
 me() { curl -s -w '\n%{http_code}' -H "Authorization: Bearer $1" -H "Accept-Language: ${2:-tr}" $A/auth/me; }
@@ -59,6 +59,27 @@ D3=$(login mobile); AT3=$(echo "$D3" | field accessToken)
 check "yeni mobil giris" 200 "$(status "$AT3")"
 check "web oturumu mobil giristen etkilenmez" 200 "$(status "$WAT")"
 check "onceki mobil kapandi" 401 "$(status "$AT2B")"
+
+echo "== refresh idempotansi: kaybolan yanit yeniden denemesi (W1-A T-007)"
+W3=$(login web); RTW=$(echo "$W3" | field refreshToken); ATW=$(echo "$W3" | field accessToken)
+RA=$(curl -s -X POST -H "$H" $A/auth/refresh -d "{\"refreshToken\":\"$RTW\"}"); NEWA=$(echo "$RA" | field refreshToken)
+RB=$(curl -s -X POST -H "$H" $A/auth/refresh -d "{\"refreshToken\":\"$RTW\"}"); NEWB=$(echo "$RB" | field refreshToken)
+[ -n "$NEWA" ] && check "ayni eski token tekrar: AYNI yeni refresh doner" "$NEWA" "$NEWB" || { echo "  FAIL ilk refresh bos"; FAIL=1; }
+RC=$(curl -s -X POST -H "$H" $A/auth/refresh -d "{\"refreshToken\":\"$NEWA\"}"); NEWC=$(echo "$RC" | field refreshToken)
+[ -n "$NEWC" ] && echo "  ok   yeni cift hala calisir (oturumlar kapanmadi)" || { echo "  FAIL yeni refresh"; FAIL=1; }
+ATC=$(echo "$RC" | field accessToken)
+check "yeniden deneme sonrasi oturum acik" 200 "$(status "$ATC")"
+
+echo "== logout-all FCM cihaz kayitlarini siler (W1-A T-008)"
+D5=$(login mobile); AT5=$(echo "$D5" | field accessToken)
+curl -s -o /dev/null -X POST -H "$H" -H "Authorization: Bearer $AT5" $A/devices -d '{"fcmToken":"tok-w1a-smoke-0123456789","platform":"ANDROID"}'
+NDEV=$(curl -s -H "Authorization: Bearer $AT5" $A/devices | grep -o '"tokenSuffix":"456789"' | wc -l)
+check "cihaz kaydi var" 1 "$NDEV"
+curl -s -o /dev/null -X POST -H "Authorization: Bearer $AT5" $A/auth/logout-all
+D6=$(login web); AT6=$(echo "$D6" | field accessToken)
+NDEV=$(curl -s -H "Authorization: Bearer $AT6" $A/devices | grep -o '"tokenSuffix":"456789"' | wc -l)
+check "logout-all sonrasi cihaz kaydi yok" 0 "$NDEV"
+AT3=$(login mobile | field accessToken); WAT=$(login web | field accessToken)
 
 echo "== logout-all tum istemcileri kapatir"
 curl -s -o /dev/null -X POST -H "Authorization: Bearer $AT3" $A/auth/logout-all

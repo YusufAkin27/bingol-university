@@ -18,6 +18,7 @@ import edu.bingol.backend.common.ApiException;
 import edu.bingol.backend.common.ClientIp;
 import edu.bingol.backend.config.AdminProperties;
 import edu.bingol.backend.i18n.Lang;
+import edu.bingol.backend.profile.naming.DisplayNamePolicy;
 import edu.bingol.backend.user.Role;
 import edu.bingol.backend.user.UserStatus;
 import edu.bingol.backend.user.User;
@@ -40,7 +41,7 @@ public class AuthService {
 
     /** bingol.edu.tr ve alt alan adlari (ogr.bingol.edu.tr gibi). */
     private static final Pattern UNIVERSITY_EMAIL =
-            Pattern.compile("^[a-z0-9._%+\\-]+@([a-z0-9\\-]+\\.)*bingol\\.edu\\.tr$");
+            Pattern.compile("^[a-z0-9_+\\-]+(\\.[a-z0-9_+\\-]+)*@([a-z0-9\\-]+\\.)*bingol\\.edu\\.tr$");
 
     private final UserRepository users;
     private final PasswordEncoder encoder;
@@ -55,6 +56,11 @@ public class AuthService {
     /** Dogrulamada parola kaniti zorunlu mu (varsayilan evet; eski istemciler icin kapatilabilir). */
     @org.springframework.beans.factory.annotation.Value("${app.auth.verify-requires-password:true}")
     private boolean verifyRequiresPassword = true;
+    /** Parola politikasi (T-005, K-09): en az uzunluk; yonetici hesaplari icin daha uzun. */
+    @org.springframework.beans.factory.annotation.Value("${app.auth.password-min-length:10}")
+    private int passwordMinLength = PasswordPolicy.DEFAULT_MIN;
+    @org.springframework.beans.factory.annotation.Value("${app.auth.password-min-length-admin:12}")
+    private int passwordMinLengthAdmin = PasswordPolicy.DEFAULT_ADMIN_MIN;
     /** Kullanici yokken de encoder.matches calissin diye: giris suresi hesap varligini sizdirmasin. */
     private final String dummyHash;
     /** Erisim engeli (IP/cihaz/kullanici) ve cihaz gunlugu; testlerde/eski cagrilarda null olabilir. */
@@ -83,6 +89,11 @@ public class AuthService {
         this.pending = pending;
         this.sessions = sessions;
         this.dummyHash = encoder.encode("dummy-password-for-timing");
+    }
+
+    /** Bu hesap icin gecerli en kisa parola uzunlugu (yoneticiler daha uzun). */
+    private int minPasswordFor(boolean adminAccount) {
+        return adminAccount ? Math.max(passwordMinLength, passwordMinLengthAdmin) : passwordMinLength;
     }
 
     void setVerifyRequiresPassword(boolean v) {
@@ -140,6 +151,11 @@ public class AuthService {
                     "E-posta adresinde + etiketi kullanılamaz.");
         }
         requirePasswordBytes(password);
+        // Gorunen ad politikasi + parola politikasi: hicbir yan etki (kota, kod e-postasi) olmadan ONCE (T-001/T-005).
+        // ADMIN_EMAILS yalniz "ayrilmis ad" kisitindan muaftir; bicim kurallari (gorunmez karakter, baglanti...) herkese.
+        boolean adminAddress = admin.isAdminEmail(email);
+        String name = DisplayNamePolicy.normalize(displayName, adminAddress);
+        PasswordPolicy.require(password, minPasswordFor(adminAddress), new PasswordPolicy.Context(email, name));
         String fa = blankToNull(faculty);
         String de = blankToNull(department);
         String gr = blankToNull(grade);
@@ -151,11 +167,11 @@ public class AuthService {
                     "Bu e-posta ile zaten kayıt olunmuş.");
         }
         // Kod e-postasi gitmeden once her sey dogrulansin (hata kod gonderiminden sonra kalmasin).
-        ContentGuard.clean(contentGuard, Entity.PROFILE, "displayName", null, displayName);
+        ContentGuard.clean(contentGuard, Entity.PROFILE, "displayName", null, name);
         String hash = encoder.encode(password);
         // Kod once gider (bekleme suresi doluysa burada 429); bekleyen kayit ancak sonra ezilir.
         verification.issue(email, lang);
-        pending.save(email, new Pending(hash, displayName.trim(), lang.code(), fa, de, gr));
+        pending.save(email, new Pending(hash, name, lang.code(), fa, de, gr));
     }
 
     public void resendCode(String rawEmail) {
@@ -216,6 +232,16 @@ public class AuthService {
         String email = normalizeEmail(rawEmail);
         User user = users.findByEmail(email).filter(User::isEmailVerified).filter(User::isActive)
                 .orElseThrow(() -> new ApiException(HttpStatus.BAD_REQUEST, "INVALID_CODE", "Kod geçersiz veya süresi dolmuş."));
+        // Anahtar GECERLI mi (tuketmeden): zayif/ayni parola reddi anahtari yakmasin, kullanici duzeltip tekrar denesin.
+        if (!verification.checkResetToken(email, resetToken)) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "INVALID_CODE", "Kod geçersiz veya süresi dolmuş.");
+        }
+        PasswordPolicy.require(newPassword, minPasswordFor(isAdminAccount(user)),
+                new PasswordPolicy.Context(user.getEmail(), user.getDisplayName()));
+        if (encoder.matches(newPassword, user.getPasswordHash())) {
+            throw new ApiException(HttpStatus.UNPROCESSABLE_ENTITY, "PASSWORD_UNCHANGED",
+                    "Yeni şifre mevcut şifreyle aynı olamaz.");
+        }
         if (!verification.consumeResetToken(email, resetToken)) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "INVALID_CODE", "Kod geçersiz veya süresi dolmuş.");
         }
@@ -223,6 +249,12 @@ public class AuthService {
         users.save(user);
         // Sifre degisince calinmis olabilecek tum oturumlar (refresh + access) kapanir.
         sessions.revokeAll(user.getId());
+        // Hesap sahibi bilsin (kod e-postasina erisen biri sifreyi degistirmis olabilir).
+        notifyPasswordChanged(user);
+    }
+
+    private boolean isAdminAccount(User user) {
+        return user.getRole() == Role.ADMIN || admin.isAdminEmail(user.getEmail());
     }
 
     /**
@@ -242,6 +274,8 @@ public class AuthService {
             throw new ApiException(HttpStatus.UNPROCESSABLE_ENTITY, "PASSWORD_UNCHANGED",
                     "Yeni şifre mevcut şifreyle aynı olamaz.");
         }
+        PasswordPolicy.require(newPassword, minPasswordFor(isAdminAccount(user)),
+                new PasswordPolicy.Context(user.getEmail(), user.getDisplayName()));
         user.setPasswordHash(encoder.encode(newPassword));
         users.save(user);
         sessions.revokeAll(userId);
@@ -379,7 +413,19 @@ public class AuthService {
     public TokenResponse refresh(String refreshToken, ClientContext ctx) {
         RefreshTokenService.Session s = refresh.consumeSession(refreshToken);
         if (s == null) {
+            // Yaniti kaybolan istegin yeniden denemesi (T-007): ayni eski token, kisa pencerede AYNI yeni cifti alir;
+            // oturumlar kapanmaz. Cift hala gecerliyse (yeniden donmediyse/iptal edilmediyse) doner.
+            TokenResponse again = replayRotation(refreshToken);
+            if (again != null) {
+                return again;
+            }
             if (refresh.wasRevoked(refreshToken)) {
+                // Askiya alma da oturumlari iptal eder: "baska cihazdan giris" yaniltmasi yerine gercek neden (A11-07).
+                Long owner = refresh.revokedOwner(refreshToken);
+                User u = owner == null ? null : users.findById(owner).orElse(null);
+                if (u != null && u.getStatus() == UserStatus.SUSPENDED) {
+                    throw new ApiException(HttpStatus.FORBIDDEN, "ACCOUNT_SUSPENDED", "Hesabınız askıya alınmıştır.");
+                }
                 throw new ApiException(HttpStatus.UNAUTHORIZED, "SESSION_REPLACED",
                         "Hesabınıza başka bir cihazdan giriş yapıldı.");
             }
@@ -393,10 +439,14 @@ public class AuthService {
             }
             throw invalidRefresh();
         }
+        User found = users.findById(s.userId()).orElse(null);
+        if (found != null && found.getStatus() == UserStatus.SUSPENDED) {
+            throw new ApiException(HttpStatus.FORBIDDEN, "ACCOUNT_SUSPENDED", "Hesabınız askıya alınmıştır.");
+        }
         if (refresh.isExpired(s) || sessionRevoked(s)) {
             throw invalidRefresh();
         }
-        User user = users.findById(s.userId()).filter(User::isEmailVerified).filter(User::isActive).orElse(null);
+        User user = found != null && found.isEmailVerified() && found.isActive() ? found : null;
         if (user == null) {
             throw invalidRefresh();
         }
@@ -408,7 +458,26 @@ public class AuthService {
             refresh.revoke(next.refreshToken());
             throw invalidRefresh();
         }
+        refresh.rememberRotation(refreshToken, next.accessToken() + "\n" + next.refreshToken() + "\n"
+                + next.expiresInSeconds() + "\n" + next.tokenType());
         return next;
+    }
+
+    /** Kayitli rotasyon sonucunu (bkz. RefreshTokenService.rememberRotation) cozer; yoksa/gecersizse null. */
+    private TokenResponse replayRotation(String oldToken) {
+        String payload = refresh.replayRotation(oldToken, p -> {
+            String[] f = p.split("\n", 4);
+            return f.length == 4 && refresh.peekUserId(f[1]) != null;
+        });
+        if (payload == null) {
+            return null;
+        }
+        String[] f = payload.split("\n", 4);
+        try {
+            return new TokenResponse(f[0], f[1], Long.parseLong(f[2]), f[3]);
+        } catch (NumberFormatException e) {
+            return null;
+        }
     }
 
     /** Oturum, acilisindan sonra "tum cihazlardan cik"/sifre degisimi/tek cihaz kuraliyla kapatildi mi (eski token: hayir). */

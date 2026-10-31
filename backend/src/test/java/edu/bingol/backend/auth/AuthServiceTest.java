@@ -46,8 +46,8 @@ class AuthServiceTest {
     private final AccountCreator accounts = mock(AccountCreator.class);
     private final JwtService jwt = mock(JwtService.class);
     private final RefreshTokenService refresh = mock(RefreshTokenService.class);
-    /** Bekleyen kayitta saklanan parolanin (Sifre1234) ozeti: dogrulamada parola kaniti icin. */
-    private static final String PW = "Sifre1234";
+    /** Bekleyen kayitta saklanan parolanin (Kx7-mQ2vLp9z) ozeti: dogrulamada parola kaniti icin. */
+    private static final String PW = "Kx7-mQ2vLp9z";
     private static final String PW_HASH = new BCryptPasswordEncoder(4).encode(PW);
 
     private final AuthService auth = new AuthService(users, new BCryptPasswordEncoder(4), jwt, refresh,
@@ -56,7 +56,7 @@ class AuthServiceTest {
     @ParameterizedTest
     @ValueSource(strings = {"a@gmail.com", "a@bingol.edu.tr.evil.com", "a@evilbingol.edu.tr", "a@bingol.edu.com"})
     void rejectsNonUniversityEmails(String email) {
-        ApiException e = assertThrows(ApiException.class, () -> auth.register(email, "Sifre1234", "Ali", Lang.TR));
+        ApiException e = assertThrows(ApiException.class, () -> auth.register(email, "Kx7-mQ2vLp9z", "Ali", Lang.TR));
 
         assertEquals("EMAIL_DOMAIN_NOT_ALLOWED", e.code());
         verifyNoInteractions(users, verification, pending);
@@ -71,7 +71,7 @@ class AuthServiceTest {
     void registerKeepsDataInRedisAndNeverTouchesUserTable() {
         when(users.findByEmail(EMAIL)).thenReturn(Optional.empty());
 
-        auth.register(" Ali@bingol.edu.tr ", "Sifre1234", " Ali ", Lang.TR);
+        auth.register(" Ali@bingol.edu.tr ", "Kx7-mQ2vLp9z", " Ali ", Lang.TR);
 
         verify(verification).issue(EMAIL, Lang.TR);
         verify(pending).save(eq(EMAIL), any(Pending.class));
@@ -85,7 +85,7 @@ class AuthServiceTest {
         unverified.setPasswordHash("old-hash");
         when(users.findByEmail(EMAIL)).thenReturn(Optional.of(unverified));
 
-        auth.register(EMAIL, "Sifre1234", "Mallory", Lang.TR);
+        auth.register(EMAIL, "Kx7-mQ2vLp9z", "Mallory", Lang.TR);
 
         assertEquals("old-hash", unverified.getPasswordHash());
         verify(users, never()).save(any());
@@ -97,7 +97,7 @@ class AuthServiceTest {
         verified.setEmailVerified(true);
         when(users.findByEmail(EMAIL)).thenReturn(Optional.of(verified));
 
-        ApiException e = assertThrows(ApiException.class, () -> auth.register(EMAIL, "Sifre1234", "Ali", Lang.TR));
+        ApiException e = assertThrows(ApiException.class, () -> auth.register(EMAIL, "Kx7-mQ2vLp9z", "Ali", Lang.TR));
 
         assertEquals("EMAIL_ALREADY_REGISTERED", e.code());
         verify(verification).requireMailQuota();
@@ -204,7 +204,7 @@ class AuthServiceTest {
     @Test
     void registerRejectsPlusAliasWithoutSideEffects() {
         ApiException e = assertThrows(ApiException.class,
-                () -> auth.register("ali+2@bingol.edu.tr", "Sifre1234", "Ali", Lang.TR));
+                () -> auth.register("ali+2@bingol.edu.tr", "Kx7-mQ2vLp9z", "Ali", Lang.TR));
 
         assertEquals("EMAIL_ALIAS_NOT_ALLOWED", e.code());
         assertEquals(HttpStatus.BAD_REQUEST, e.status());
@@ -226,7 +226,7 @@ class AuthServiceTest {
     void registerAcceptsMultiByteButShortEnoughPassword() {
         when(users.findByEmail(EMAIL)).thenReturn(Optional.empty());
 
-        auth.register(EMAIL, "ğ".repeat(36), "Ali", Lang.TR); // 72 bayt
+        auth.register(EMAIL, "ğş".repeat(18), "Ali", Lang.TR); // 72 bayt
 
         verify(pending).save(eq(EMAIL), any(Pending.class));
     }
@@ -399,7 +399,7 @@ class AuthServiceTest {
     void loginForUnknownUserIsGenericInvalidCredentials() {
         when(users.findByEmail(EMAIL)).thenReturn(Optional.empty());
 
-        ApiException e = assertThrows(ApiException.class, () -> auth.login(EMAIL, "Sifre1234"));
+        ApiException e = assertThrows(ApiException.class, () -> auth.login(EMAIL, "Kx7-mQ2vLp9z"));
 
         assertEquals("INVALID_CREDENTIALS", e.code());
     }
@@ -408,7 +408,7 @@ class AuthServiceTest {
     void studentNumberRegistersAsUniversityEmail() {
         when(users.findByEmail("226051015@bingol.edu.tr")).thenReturn(Optional.empty());
 
-        auth.register("226 051 015", "Sifre1234", "Ali", Lang.TR);
+        auth.register("226 051 015", "Kx7-mQ2vLp9z", "Ali", Lang.TR);
 
         verify(verification).issue("226051015@bingol.edu.tr", Lang.TR);
         verify(pending).save(eq("226051015@bingol.edu.tr"), any(Pending.class));
@@ -435,7 +435,7 @@ class AuthServiceTest {
         u.setEmail("226051015@bingol.edu.tr");
         when(users.findByEmail("226051015@bingol.edu.tr")).thenReturn(Optional.of(u));
 
-        auth.login("226051015", "Sifre1234");
+        auth.login("226051015", "Kx7-mQ2vLp9z");
 
         verify(users).findByEmail("226051015@bingol.edu.tr");
     }
@@ -443,10 +443,10 @@ class AuthServiceTest {
     @Test
     void loginWithPendingRegistrationAndCorrectPasswordIsEmailNotVerified() {
         when(users.findByEmail(EMAIL)).thenReturn(Optional.empty());
-        String hash = new BCryptPasswordEncoder(4).encode("Sifre1234");
+        String hash = new BCryptPasswordEncoder(4).encode("Kx7-mQ2vLp9z");
         when(pending.find(EMAIL)).thenReturn(new Pending(hash, "Ali", "tr"));
 
-        ApiException e = assertThrows(ApiException.class, () -> auth.login(EMAIL, "Sifre1234"));
+        ApiException e = assertThrows(ApiException.class, () -> auth.login(EMAIL, "Kx7-mQ2vLp9z"));
 
         assertEquals("EMAIL_NOT_VERIFIED", e.code());
         assertEquals(HttpStatus.FORBIDDEN, e.status());
@@ -455,7 +455,7 @@ class AuthServiceTest {
     @Test
     void loginWithPendingRegistrationAndWrongPasswordIsGeneric() {
         when(users.findByEmail(EMAIL)).thenReturn(Optional.empty());
-        String hash = new BCryptPasswordEncoder(4).encode("Sifre1234");
+        String hash = new BCryptPasswordEncoder(4).encode("Kx7-mQ2vLp9z");
         when(pending.find(EMAIL)).thenReturn(new Pending(hash, "Ali", "tr"));
 
         ApiException e = assertThrows(ApiException.class, () -> auth.login(EMAIL, "Yanlis1234"));
@@ -500,7 +500,7 @@ class AuthServiceTest {
 
     private User loginUser() {
         User u = verifiedUser();
-        u.setPasswordHash(new BCryptPasswordEncoder(4).encode("Sifre1234"));
+        u.setPasswordHash(new BCryptPasswordEncoder(4).encode("Kx7-mQ2vLp9z"));
         when(users.findByEmail(EMAIL)).thenReturn(Optional.of(u));
         when(jwt.accessTtl()).thenReturn(java.time.Duration.ofMinutes(15));
         return u;
@@ -510,7 +510,7 @@ class AuthServiceTest {
     void mobileLoginRevokesPreviousMobileSessionsBeforeIssuingTokens() {
         loginUser();
 
-        auth.login(EMAIL, "Sifre1234", "mobile");
+        auth.login(EMAIL, "Kx7-mQ2vLp9z", "mobile");
 
         org.mockito.InOrder order = org.mockito.Mockito.inOrder(sessions, refresh);
         order.verify(sessions).revokeClient(7L, "mobile", true);
@@ -522,8 +522,8 @@ class AuthServiceTest {
     void webLoginAndMissingClientRevokeNothing() {
         loginUser();
 
-        auth.login(EMAIL, "Sifre1234", "web");
-        auth.login(EMAIL, "Sifre1234");
+        auth.login(EMAIL, "Kx7-mQ2vLp9z", "web");
+        auth.login(EMAIL, "Kx7-mQ2vLp9z");
 
         verify(sessions, never()).revokeClient(any(), anyString(), org.mockito.ArgumentMatchers.anyBoolean());
         verify(sessions, never()).revokeAll(any());
@@ -572,6 +572,7 @@ class AuthServiceTest {
     @Test
     void passwordResetStillRevokesAllClients() {
         loginUser();
+        when(verification.checkResetToken(EMAIL, "rt")).thenReturn(true);
         when(verification.consumeResetToken(EMAIL, "rt")).thenReturn(true);
 
         auth.resetPassword(EMAIL, "rt", "YeniSifre123");
@@ -643,6 +644,7 @@ class AuthServiceTest {
     void resetPasswordStoresNewHashAndClosesAllSessions() {
         User u = verifiedUser();
         when(users.findByEmail(EMAIL)).thenReturn(Optional.of(u));
+        when(verification.checkResetToken(EMAIL, "tok")).thenReturn(true);
         when(verification.consumeResetToken(EMAIL, "tok")).thenReturn(true);
 
         auth.resetPassword(" Ali@bingol.edu.tr ", "tok", "YeniSifre123");
@@ -656,7 +658,7 @@ class AuthServiceTest {
     void registerCarriesAcademicFieldsIntoPendingRegistration() {
         when(users.findByEmail(EMAIL)).thenReturn(Optional.empty());
 
-        auth.register(EMAIL, "Sifre1234", "Ali", Lang.TR, "Mühendislik Fakültesi", "Bilgisayar Mühendisliği", "2");
+        auth.register(EMAIL, "Kx7-mQ2vLp9z", "Ali", Lang.TR, "Mühendislik Fakültesi", "Bilgisayar Mühendisliği", "2");
 
         org.mockito.ArgumentCaptor<Pending> cap = org.mockito.ArgumentCaptor.forClass(Pending.class);
         verify(pending).save(eq(EMAIL), cap.capture());
@@ -669,7 +671,7 @@ class AuthServiceTest {
     void registerTreatsBlankAcademicFieldsAsMissing() {
         when(users.findByEmail(EMAIL)).thenReturn(Optional.empty());
 
-        auth.register(EMAIL, "Sifre1234", "Ali", Lang.TR, " ", "", null);
+        auth.register(EMAIL, "Kx7-mQ2vLp9z", "Ali", Lang.TR, " ", "", null);
 
         org.mockito.ArgumentCaptor<Pending> cap = org.mockito.ArgumentCaptor.forClass(Pending.class);
         verify(pending).save(eq(EMAIL), cap.capture());
@@ -683,7 +685,7 @@ class AuthServiceTest {
                 {"Hukuk Fakültesi", "Bilgisayar Mühendisliği", null}, {"Uydurma", null, null},
                 {null, "Hukuk", null}, {null, null, "12"}}) {
             ApiException e = assertThrows(ApiException.class,
-                    () -> auth.register(EMAIL, "Sifre1234", "Ali", Lang.TR, bad[0], bad[1], bad[2]));
+                    () -> auth.register(EMAIL, "Kx7-mQ2vLp9z", "Ali", Lang.TR, bad[0], bad[1], bad[2]));
             assertEquals("ACADEMIC_INVALID", e.code());
             assertEquals(HttpStatus.BAD_REQUEST, e.status());
         }
@@ -702,7 +704,7 @@ class AuthServiceTest {
         String admin = "ysufakin23@gmail.com";
         when(users.findByEmail(admin)).thenReturn(Optional.empty());
 
-        authWithAdmins(admin).register(" YsufAkin23@Gmail.com ", "Sifre1234", "Yonetici", Lang.TR);
+        authWithAdmins(admin).register(" YsufAkin23@Gmail.com ", "Kx7-mQ2vLp9z", "Yonetici", Lang.TR);
 
         verify(verification).requireMailQuota();
         verify(verification).issue(admin, Lang.TR); // kod e-postayla gider: sahiplik kaniti sart
@@ -713,7 +715,7 @@ class AuthServiceTest {
     @Test
     void nonAdminGmailIsStillRejectedWhenAdminListIsNonEmpty() {
         ApiException e = assertThrows(ApiException.class, () ->
-                authWithAdmins("ysufakin23@gmail.com").register("baska@gmail.com", "Sifre1234", "X", Lang.TR));
+                authWithAdmins("ysufakin23@gmail.com").register("baska@gmail.com", "Kx7-mQ2vLp9z", "Xyz", Lang.TR));
 
         assertEquals("EMAIL_DOMAIN_NOT_ALLOWED", e.code());
         verifyNoInteractions(users, verification, pending);
@@ -723,7 +725,7 @@ class AuthServiceTest {
     void adminDomainExemptionIsExactAddressNotDomainOrPrefix() {
         AuthService a = authWithAdmins("ysufakin23@gmail.com");
         for (String bad : new String[]{"ysufakin23@gmail.com.evil.com", "xysufakin23@gmail.com", "ysufakin23@mail.gmail.com"}) {
-            ApiException e = assertThrows(ApiException.class, () -> a.register(bad, "Sifre1234", "X", Lang.TR));
+            ApiException e = assertThrows(ApiException.class, () -> a.register(bad, "Kx7-mQ2vLp9z", "Xyz", Lang.TR));
             assertEquals("EMAIL_DOMAIN_NOT_ALLOWED", e.code());
         }
         verifyNoInteractions(users, verification, pending);
@@ -732,7 +734,7 @@ class AuthServiceTest {
     @Test
     void adminExemptionDoesNotLiftPlusAliasBan() {
         ApiException e = assertThrows(ApiException.class, () ->
-                authWithAdmins("yonetici+x@gmail.com").register("yonetici+x@gmail.com", "Sifre1234", "X", Lang.TR));
+                authWithAdmins("yonetici+x@gmail.com").register("yonetici+x@gmail.com", "Kx7-mQ2vLp9z", "Xyz", Lang.TR));
 
         assertEquals("EMAIL_ALIAS_NOT_ALLOWED", e.code());
         verifyNoInteractions(users, verification, pending);
@@ -743,13 +745,13 @@ class AuthServiceTest {
         String admin = "ysufakin23@gmail.com";
         AuthService a = authWithAdmins(admin);
         ApiException tooLong = assertThrows(ApiException.class,
-                () -> a.register(admin, "x".repeat(73), "X", Lang.TR));
+                () -> a.register(admin, "x".repeat(73), "Xyz", Lang.TR));
         assertEquals("PASSWORD_TOO_LONG", tooLong.code());
 
         User verified = new User();
         verified.setEmailVerified(true);
         when(users.findByEmail(admin)).thenReturn(Optional.of(verified));
-        ApiException dup = assertThrows(ApiException.class, () -> a.register(admin, "Sifre1234", "X", Lang.TR));
+        ApiException dup = assertThrows(ApiException.class, () -> a.register(admin, "Kx7-mQ2vLp9z", "Xyz", Lang.TR));
         assertEquals("EMAIL_ALREADY_REGISTERED", dup.code());
     }
 
@@ -772,5 +774,167 @@ class AuthServiceTest {
 
         a.forgotPassword(admin);
         verify(verification).issueReset(eq(admin), any());
+    }
+
+    // ---------------------------------------------------------------- W1-A: T-001 / T-005 / T-007 / T-009
+
+    @ParameterizedTest
+    @ValueSource(strings = {"Rektörlük Duyuru", "Admin Destek", "Bingöl Üniversitesi Resmi", "Yönetici Ekibi"})
+    void registerRejectsImpersonatingDisplayNamesBeforeAnyCodeIsSent(String name) {
+        ApiException e = assertThrows(ApiException.class, () -> auth.register(EMAIL, PW, name, Lang.TR));
+
+        assertEquals("RESERVED_DISPLAY_NAME", e.code());
+        verifyNoInteractions(users, verification, pending);
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"Ali​Veli", "Ali‮Veli", "<script>alert(1)</script>", "bit.ly", "www.evil", "http://x",
+            "a", "Ali@evil"})
+    void registerRejectsInvisibleMarkupLinkAndTooShortNames(String name) {
+        ApiException e = assertThrows(ApiException.class, () -> auth.register(EMAIL, PW, name, Lang.TR));
+
+        assertEquals("INVALID_DISPLAY_NAME", e.code());
+        verifyNoInteractions(users, verification, pending);
+    }
+
+    @Test
+    void registerNormalizesTheDisplayNameStoredInThePendingRegistration() {
+        when(users.findByEmail(EMAIL)).thenReturn(Optional.empty());
+
+        auth.register(EMAIL, PW, "  Ali    Veli  ", Lang.TR);
+
+        org.mockito.ArgumentCaptor<Pending> cap = org.mockito.ArgumentCaptor.forClass(Pending.class);
+        verify(pending).save(eq(EMAIL), cap.capture());
+        assertEquals("Ali Veli", cap.getValue().displayName());
+    }
+
+    @Test
+    void adminEmailIsExemptFromReservedNamesButNotFromFormatRules() {
+        String admin = "ysufakin23@gmail.com";
+        AuthService a = authWithAdmins(admin);
+        when(users.findByEmail(admin)).thenReturn(Optional.empty());
+
+        a.register(admin, "Kx7-mQ2vLp9zW", "Yönetici Destek", Lang.TR); // ayrilmis ad: yonetici muaf
+
+        verify(pending).save(eq(admin), any(Pending.class));
+        ApiException e = assertThrows(ApiException.class, () -> a.register(admin, "Kx7-mQ2vLp9zW", "Ali​Veli", Lang.TR));
+        assertEquals("INVALID_DISPLAY_NAME", e.code());
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"a%evil.com@bingol.edu.tr", "a..b@bingol.edu.tr", ".ali@bingol.edu.tr", "ali.@bingol.edu.tr",
+            "a%40evil.com@bingol.edu.tr"})
+    void registerRejectsPercentAndConsecutiveDotLocalParts(String email) {
+        ApiException e = assertThrows(ApiException.class, () -> auth.register(email, PW, "Ali Veli", Lang.TR));
+
+        assertEquals("EMAIL_DOMAIN_NOT_ALLOWED", e.code());
+        verifyNoInteractions(users, verification, pending);
+    }
+
+    @Test
+    void registerStillAcceptsDottedAndHyphenatedLocalParts() {
+        when(users.findByEmail(any())).thenReturn(Optional.empty());
+
+        auth.register("ali.veli-2@bingol.edu.tr", PW, "Ali Veli", Lang.TR);
+
+        verify(pending).save(eq("ali.veli-2@bingol.edu.tr"), any(Pending.class));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"12345678", "password1", "1234567890", "qwertyuiop", "Sifre1234567", "Galatasaray1905", "Abc12345!"})
+    void registerRejectsWeakPasswordsWithoutSendingMail(String pw) {
+        ApiException e = assertThrows(ApiException.class, () -> auth.register(EMAIL, pw, "Ali Veli", Lang.TR));
+
+        assertEquals("PASSWORD_TOO_WEAK", e.code());
+        assertEquals(HttpStatus.BAD_REQUEST, e.status());
+        verifyNoInteractions(users, verification, pending);
+    }
+
+    @Test
+    void registerRejectsPasswordContainingSchoolNumberFromTheEmail() {
+        ApiException e = assertThrows(ApiException.class,
+                () -> auth.register("226051015@bingol.edu.tr", "Zk-226051015-q", "Ali Veli", Lang.TR));
+
+        assertEquals("PASSWORD_TOO_WEAK", e.code());
+    }
+
+    @Test
+    void administratorAccountsNeedTwelveCharacters() {
+        String admin = "ysufakin23@gmail.com";
+        AuthService a = authWithAdmins(admin);
+        ApiException e = assertThrows(ApiException.class, () -> a.register(admin, "Kx7-mQ2vLp9", "Ali Veli", Lang.TR)); // 11
+
+        assertEquals("PASSWORD_TOO_WEAK", e.code());
+        assertEquals("12", e.args()[0]);
+    }
+
+    @Test
+    void resetPasswordRejectsWeakAndSamePasswordsWithoutConsumingTheToken() {
+        User u = verifiedUser();
+        u.setPasswordHash(PW_HASH);
+        when(users.findByEmail(EMAIL)).thenReturn(Optional.of(u));
+        when(verification.checkResetToken(EMAIL, "tok")).thenReturn(true);
+
+        ApiException weak = assertThrows(ApiException.class, () -> auth.resetPassword(EMAIL, "tok", "12345678"));
+        ApiException same = assertThrows(ApiException.class, () -> auth.resetPassword(EMAIL, "tok", PW));
+
+        assertEquals("PASSWORD_TOO_WEAK", weak.code());
+        assertEquals("PASSWORD_UNCHANGED", same.code());
+        verify(verification, never()).consumeResetToken(any(), any());
+        verify(sessions, never()).revokeAll(any());
+    }
+
+    @Test
+    void resetPasswordSendsAPasswordChangedMail() {
+        User u = verifiedUser();
+        when(users.findByEmail(EMAIL)).thenReturn(Optional.of(u));
+        when(verification.checkResetToken(EMAIL, "tok")).thenReturn(true);
+        when(verification.consumeResetToken(EMAIL, "tok")).thenReturn(true);
+        edu.bingol.backend.mail.MailService mailer = mock(edu.bingol.backend.mail.MailService.class);
+        org.springframework.test.util.ReflectionTestUtils.setField(auth, "mail", mailer);
+
+        auth.resetPassword(EMAIL, "tok", "YeniSifre123");
+
+        verify(mailer).sendPasswordChanged(eq(EMAIL), anyString(), any());
+    }
+
+    @Test
+    void suspendedAccountGets403InsteadOfSessionReplacedOnRefresh() {
+        User u = loginUser();
+        u.setStatus(edu.bingol.backend.user.UserStatus.SUSPENDED);
+        when(users.findById(7L)).thenReturn(Optional.of(u));
+        // oturumlar askiya almada iptal edildi: mezar tasi var
+        when(refresh.consumeSession("tok")).thenReturn(null);
+        when(refresh.wasRevoked("tok")).thenReturn(true);
+        when(refresh.revokedOwner("tok")).thenReturn(7L);
+
+        ApiException e = assertThrows(ApiException.class, () -> auth.refresh("tok"));
+
+        assertEquals("ACCOUNT_SUSPENDED", e.code());
+        assertEquals(HttpStatus.FORBIDDEN, e.status());
+    }
+
+    @Test
+    void suspendedAccountWithLiveRefreshTokenAlsoGets403() {
+        User u = loginUser();
+        u.setStatus(edu.bingol.backend.user.UserStatus.SUSPENDED);
+        when(users.findById(7L)).thenReturn(Optional.of(u));
+        when(refresh.consumeSession("tok")).thenReturn(new RefreshTokenService.Session(7L, "mobile"));
+
+        ApiException e = assertThrows(ApiException.class, () -> auth.refresh("tok"));
+
+        assertEquals("ACCOUNT_SUSPENDED", e.code());
+    }
+
+    @Test
+    void replacedSessionStillReportsSessionReplacedWhenTheOwnerIsActive() {
+        User u = loginUser();
+        when(users.findById(7L)).thenReturn(Optional.of(u));
+        when(refresh.wasRevoked("tok")).thenReturn(true);
+        when(refresh.revokedOwner("tok")).thenReturn(7L);
+
+        ApiException e = assertThrows(ApiException.class, () -> auth.refresh("tok"));
+
+        assertEquals("SESSION_REPLACED", e.code());
     }
 }

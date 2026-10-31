@@ -7,6 +7,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
+import java.util.regex.Pattern;
 import org.springframework.http.HttpStatus;
 
 /**
@@ -32,6 +33,15 @@ public final class DisplayNamePolicy {
 
     private static final Set<Integer> INVISIBLE_LETTERS = Set.of(0x115F, 0x1160, 0x17B4, 0x17B5, 0x2800, 0x3164,
             0xFFA0, 0x180E);
+
+    /**
+     * Baglanti/alan adi gibi gorunen adlar ("bit.ly", "www.x", "http..."): gorunen ad reklam/yonlendirme araci olmasin
+     * (T-001). Kisaltmalar ("Dr.Ali", "M.Ali") TLD listesinde olmadigindan gecer.
+     */
+    private static final Pattern LINK_LIKE = Pattern.compile("(?i)(?:^|[\\s(])(?:www\\."
+            + "|https?(?![\\p{L}\\p{N}])"
+            + "|[\\p{L}\\p{N}-]+\\.(?:com|net|org|edu|gov|info|biz|xyz|ly|gl|me|io|co|cc|tk|to|ws|app|link|site"
+            + "|online|top|click|shop|store|live|tr|ru|de|uk|us|bz|vip|club|fun|pw|ml|ga|cf|gq)(?![\\p{L}\\p{N}]))");
 
     private DisplayNamePolicy() {}
 
@@ -93,6 +103,9 @@ public final class DisplayNamePolicy {
             throw invalid();
         }
         checkMixedScript(out);
+        if (LINK_LIKE.matcher(out).find()) {
+            throw invalid();
+        }
         if (!exemptFromReserved && isReserved(out)) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "RESERVED_DISPLAY_NAME",
                     "Bu ad kullanılamaz (yönetici/destek adına benzer).");

@@ -117,9 +117,9 @@ class ChangePasswordTest {
         String oldWeb = jwt.createAccessToken(user, "web");
         assertTrue(accepted(oldToken));
 
-        TokenResponse r = auth.changePassword(7L, "Eski12345", "Yeni12345", "mobile");
+        TokenResponse r = auth.changePassword(7L, "Eski12345", "Yeni-Sifre-912", "mobile");
 
-        assertTrue(ENC.matches("Yeni12345", user.getPasswordHash()));
+        assertTrue(ENC.matches("Yeni-Sifre-912", user.getPasswordHash()));
         verify(users).save(user);
         verify(refresh).revokeAll(7L);
         assertFalse(accepted(oldToken), "eski mobil access token iptal olmali");
@@ -135,7 +135,7 @@ class ChangePasswordTest {
     void newTokenSurvivesRevokeEvenWithinSameMillisecond() throws Exception {
         for (int i = 0; i < 200; i++) {
             store.clear();
-            TokenResponse r = auth.changePassword(7L, "Eski12345", "Yeni12345", "mobile");
+            TokenResponse r = auth.changePassword(7L, "Eski12345", "Yeni-Sifre-912", "mobile");
             assertTrue(accepted(r.accessToken()));
             user.setPasswordHash(ENC.encode("Eski12345"));
         }
@@ -144,7 +144,7 @@ class ChangePasswordTest {
     @Test
     void wrongCurrentPasswordIs403AndChangesNothing() {
         ApiException e = assertThrows(ApiException.class,
-                () -> auth.changePassword(7L, "Yanlis123", "Yeni12345", "mobile"));
+                () -> auth.changePassword(7L, "Yanlis123", "Yeni-Sifre-912", "mobile"));
 
         assertEquals("WRONG_PASSWORD", e.code());
         assertEquals(403, e.status().value());
@@ -169,7 +169,7 @@ class ChangePasswordTest {
     void mailFailureDoesNotBreakChange() {
         doThrow(new RuntimeException("smtp")).when(mail).sendPasswordChanged(any(), any(), any());
 
-        TokenResponse r = auth.changePassword(7L, "Eski12345", "Yeni12345", "mobile");
+        TokenResponse r = auth.changePassword(7L, "Eski12345", "Yeni-Sifre-912", "mobile");
 
         assertEquals("rt-new", r.refreshToken());
     }
@@ -178,10 +178,15 @@ class ChangePasswordTest {
     void weakNewPasswordFailsValidation() {
         var v = Validation.buildDefaultValidatorFactory().getValidator();
 
-        assertFalse(v.validate(new ChangePasswordRequest("Eski12345", "kisa")).isEmpty());
+        // En az uzunluk/guc artik PasswordPolicy'de (serviste, PASSWORD_TOO_WEAK); DTO yalniz ust siniri (72) denetler
+        assertTrue(v.validate(new ChangePasswordRequest("Eski12345", "kisa")).isEmpty());
+        ApiException weak = assertThrows(ApiException.class, () -> auth.changePassword(7L, "Eski12345", "kisa", "mobile"));
+        assertEquals("PASSWORD_TOO_WEAK", weak.code());
+        assertEquals(400, weak.status().value());
+        verify(users, never()).save(any());
         assertFalse(v.validate(new ChangePasswordRequest("Eski12345", "x".repeat(73))).isEmpty());
-        assertFalse(v.validate(new ChangePasswordRequest("", "Yeni12345")).isEmpty());
-        assertTrue(v.validate(new ChangePasswordRequest("Eski12345", "Yeni12345")).isEmpty());
+        assertFalse(v.validate(new ChangePasswordRequest("", "Yeni-Sifre-912")).isEmpty());
+        assertTrue(v.validate(new ChangePasswordRequest("Eski12345", "Yeni-Sifre-912")).isEmpty());
     }
 
     @Test
@@ -198,14 +203,14 @@ class ChangePasswordTest {
         doThrow(new RateLimitedException(60)).when(limiter).check("chpw:user:7", 5, Duration.ofHours(1));
 
         assertThrows(RateLimitedException.class,
-                () -> c.changePassword(new ChangePasswordRequest("Eski12345", "Yeni12345"), authn, http));
+                () -> c.changePassword(new ChangePasswordRequest("Eski12345", "Yeni-Sifre-912"), authn, http));
 
         verify(svc, never()).changePassword(any(), any(), any(), any());
         // IP penceresi de uygulanir
         doThrow(new RateLimitedException(60)).when(limiter).check("chpw:ip:1.2.3.4", 600, Duration.ofHours(1));
         org.mockito.Mockito.doNothing().when(limiter).check("chpw:user:7", 5, Duration.ofHours(1));
         assertThrows(RateLimitedException.class,
-                () -> c.changePassword(new ChangePasswordRequest("Eski12345", "Yeni12345"), authn, http));
+                () -> c.changePassword(new ChangePasswordRequest("Eski12345", "Yeni-Sifre-912"), authn, http));
         verify(svc, never()).changePassword(any(), any(), any(), any());
     }
 }

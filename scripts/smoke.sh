@@ -16,15 +16,15 @@ code() { curl -s -o /dev/null -w '%{http_code}' "$@"; }
 
 # kayit + dogrulama -> access token
 register() {
-  curl -s -o /dev/null -X POST -H "$H" $A/auth/register -d "{\"email\":\"$1\",\"password\":\"Sifre1234\",\"displayName\":\"$2\",\"acceptTerms\":true,\"language\":\"${3:-tr}\"}"
+  curl -s -o /dev/null -X POST -H "$H" $A/auth/register -d "{\"email\":\"$1\",\"password\":\"Zk7-Qmv-Lpx92w\",\"displayName\":\"$2\",\"acceptTerms\":true,\"language\":\"${3:-tr}\"}"
   sleep 1
   local c t
   c=$(docker compose logs backend 2>&1 | grep "$1 icin" | grep -o 'kodu: [0-9]*' | tail -1 | cut -d' ' -f2)
-  t=$(curl -s -X POST -H "$H" $A/auth/verify-email -d "{\"email\":\"$1\",\"code\":\"$c\",\"password\":\"Sifre1234\"}" |
+  t=$(curl -s -X POST -H "$H" $A/auth/verify-email -d "{\"email\":\"$1\",\"code\":\"$c\",\"password\":\"Zk7-Qmv-Lpx92w\"}" |
     grep -o '"accessToken":"[^"]*' | cut -d'"' -f4)
   # Hesap onceden kayitliysa (ornek: onceki betik) giris yap
   if [ -z "$t" ]; then
-    t=$(curl -s -X POST -H "$H" $A/auth/login -d "{\"email\":\"$1\",\"password\":\"Sifre1234\"}" |
+    t=$(curl -s -X POST -H "$H" $A/auth/login -d "{\"email\":\"$1\",\"password\":\"Zk7-Qmv-Lpx92w\"}" |
       grep -o '"accessToken":"[^"]*' | cut -d'"' -f4)
   fi
   echo "$t"
@@ -75,7 +75,7 @@ if [ -n "$TA" ]; then
   # (RID: yukarida olusturulan raporun id si)
   check "rapor coz (askiya al)" 204 "$(code -X POST -H "$H" -H "$AUTHA" $A/admin/reports/$RID/resolve -d '{"action":"SUSPEND_USER","message":"test"}')"
   check "askidaki kullanici token'i gecersiz" 401 "$(code -H "$AUTH2" $A/users/me)"
-  check "askidaki giris 403" 403 "$(code -X POST -H "$H" $A/auth/login -d "{\"email\":\"ayse$SFX@bingol.edu.tr\",\"password\":\"Sifre1234\"}")"
+  check "askidaki giris 403" 403 "$(code -X POST -H "$H" $A/auth/login -d "{\"email\":\"ayse$SFX@bingol.edu.tr\",\"password\":\"Zk7-Qmv-Lpx92w\"}")"
   check "geri ac" 204 "$(code -X POST -H "$AUTHA" $A/admin/users/$ID2/unsuspend)"
 else
   echo "  atlandi: admin token yok (ADMIN_EMAILS ayarli mi?)"
@@ -87,10 +87,38 @@ check "cihaz kaydi" 204 "$(code -X POST -H "$H" -H "$AUTH1" $A/devices -d '{"fcm
 check "liste" 200 "$(code -H "$AUTH1" $A/notifications)"
 check "tumunu okundu" 204 "$(code -X POST -H "$H" -H "$AUTH1" $A/notifications/read -d '{"all":true}')"
 
+echo "== kimlik politikalari (W1-A: T-001/T-005)"
+reg_code() { code -X POST -H "$H" $A/auth/register -d "{\"email\":\"$1\",\"password\":\"$2\",\"displayName\":\"$3\",\"acceptTerms\":true}"; }
+check "zayif parola 400" 400 "$(reg_code "zayif$SFX@bingol.edu.tr" "12345678" "Zayif Parola")"
+check "yaygin parola+yil 400" 400 "$(reg_code "zayif$SFX@bingol.edu.tr" "Galatasaray1905" "Zayif Parola")"
+check "ayrilmis ad 400" 400 "$(reg_code "ad$SFX@bingol.edu.tr" "Zk7-Qmv-Lpx92w" "Admin Destek")"
+check "rektorluk adi 400" 400 "$(reg_code "ad$SFX@bingol.edu.tr" "Zk7-Qmv-Lpx92w" "Rektörlük Duyuru")"
+check "gorunmez karakterli ad 400" 400 "$(reg_code "ad$SFX@bingol.edu.tr" "Zk7-Qmv-Lpx92w" "Ali​Veli")"
+check "baglanti adi 400" 400 "$(reg_code "ad$SFX@bingol.edu.tr" "Zk7-Qmv-Lpx92w" "bit.ly")"
+check "% yerel kisim 400" 400 "$(reg_code "a%evil.com@bingol.edu.tr" "Zk7-Qmv-Lpx92w" "Ali Veli")"
+check "ardisik nokta 400" 400 "$(reg_code "a..b$SFX@bingol.edu.tr" "Zk7-Qmv-Lpx92w" "Ali Veli")"
+
+echo "== hata zarfi (W1-A: T-004)"
+BODY=$(curl -s -X DELETE -H "$AUTH2" $A/news)
+check "DELETE /api/news 405" 405 "$(code -X DELETE -H "$AUTH2" $A/news)"
+case "$BODY" in *'"code":"METHOD_NOT_ALLOWED"'*) check "405 govde code" 1 1;; *) check "405 govde code ($BODY)" 1 0;; esac
+BODY=$(curl -s -H "$AUTH2" $A/yok-boyle-bir-uc)
+check "bilinmeyen yol 404" 404 "$(code -H "$AUTH2" $A/yok-boyle-bir-uc)"
+case "$BODY" in *'"code":"NOT_FOUND"'*) check "404 govde code" 1 1;; *) check "404 govde code ($BODY)" 1 0;; esac
+HDRS=$(curl -s -D - -o /dev/null -H "Authorization: Bearer bozuk.token.degeri" $A/admin/users)
+check "bozuk Bearer admin 401" 401 "$(code -H "Authorization: Bearer bozuk.token.degeri" $A/admin/users)"
+case "$HDRS" in *[Ww][Ww][Ww]-[Aa]uthenticate*) check "bozuk Bearer'a Basic challenge YOK" 0 1;; *) check "bozuk Bearer'a Basic challenge YOK" 0 0;; esac
+
+if [ -n "${TA:-}" ]; then
+  echo "== yonetici kendini silemez (W1-A: T-002)"
+  check "yonetici self-delete 409" 409 "$(code -X DELETE -H "$H" -H "Authorization: Bearer $TA" $A/users/me -d '{"password":"Zk7-Qmv-Lpx92w"}')"
+  check "yonetici hala yonetici" 200 "$(code -H "Authorization: Bearer $TA" "$A/admin/users")"
+fi
+
 echo "== hesap silme"
 check "yanlis sifre" 403 "$(code -X DELETE -H "$H" -H "$AUTH1" $A/users/me -d '{"password":"yanlis"}')"
-check "hesap sil" 204 "$(code -X DELETE -H "$H" -H "$AUTH1" $A/users/me -d '{"password":"Sifre1234"}')"
-check "silinmis giris 401" 401 "$(code -X POST -H "$H" $A/auth/login -d "{\"email\":\"ali$SFX@bingol.edu.tr\",\"password\":\"Sifre1234\"}")"
+check "hesap sil" 204 "$(code -X DELETE -H "$H" -H "$AUTH1" $A/users/me -d '{"password":"Zk7-Qmv-Lpx92w"}')"
+check "silinmis giris 401" 401 "$(code -X POST -H "$H" $A/auth/login -d "{\"email\":\"ali$SFX@bingol.edu.tr\",\"password\":\"Zk7-Qmv-Lpx92w\"}")"
 
 [ $FAIL -eq 0 ] && echo "TUMU GECTI" || echo "HATA VAR"
 exit $FAIL

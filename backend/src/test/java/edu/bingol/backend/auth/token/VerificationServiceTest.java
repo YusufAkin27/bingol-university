@@ -32,8 +32,61 @@ class VerificationServiceTest {
     private final MailService mail = mock(MailService.class);
     private final VerificationService service = new VerificationService(redis, mail);
 
+    @SuppressWarnings("unchecked")
+    private final org.springframework.data.redis.core.SetOperations<String, String> setOps =
+            mock(org.springframework.data.redis.core.SetOperations.class);
+
     VerificationServiceTest() {
         when(redis.opsForValue()).thenReturn(ops);
+        when(redis.opsForSet()).thenReturn(setOps);
+    }
+
+    @Test
+    void newCodeAfterFiveWrongAttemptsFromTheSameClientIsAcceptedT006() {
+        // T-006: kapsamli (e-posta, istemci) sayac yeni kodla sifirlanmazdi: 5 yanlis + yeni kod + DOGRU kod = 429
+        edu.bingol.backend.auth.FakeRedis fake = new edu.bingol.backend.auth.FakeRedis();
+        VerificationService vs = new VerificationService(fake.template, mail);
+        ArgumentCaptor<String> code = ArgumentCaptor.forClass(String.class);
+        String scope = "203.0.113.9";
+
+        vs.issue(EMAIL, Lang.TR);
+        for (int i = 0; i < VerificationService.MAX_ATTEMPTS; i++) {
+            assertFalse(vs.verify(EMAIL, "000000", scope));
+        }
+        fake.values.remove("vc:cd:" + EMAIL); // 60 sn bekleme gecti
+        vs.issue(EMAIL, Lang.TR);
+        verify(mail, org.mockito.Mockito.times(2)).sendVerificationCode(eq(EMAIL), code.capture(), anyInt(), any());
+
+        assertTrue(vs.verify(EMAIL, code.getAllValues().get(1), scope));
+    }
+
+    @Test
+    void hourlyTotalLockSurvivesNewCode() {
+        edu.bingol.backend.auth.FakeRedis fake = new edu.bingol.backend.auth.FakeRedis();
+        VerificationService vs = new VerificationService(fake.template, mail);
+        fake.values.put("vc:tot:" + EMAIL, String.valueOf(VerificationService.MAX_HOURLY_WRONG + 1));
+
+        vs.issue(EMAIL, Lang.TR);
+
+        // saatlik toplam asildiysa yeni kod kilidi ACMAZ (tahmin butcesi yenilenemez)
+        assertTrue(fake.values.containsKey("vc:lock:" + EMAIL));
+    }
+
+    @Test
+    void codeDigestIsKeyedWhenAPepperIsConfigured() throws Exception {
+        edu.bingol.backend.auth.FakeRedis fake = new edu.bingol.backend.auth.FakeRedis();
+        VerificationService vs = new VerificationService(fake.template, mail);
+        java.lang.reflect.Field f = VerificationService.class.getDeclaredField("pepper");
+        f.setAccessible(true);
+        f.set(vs, "test-pepper-secret");
+        ArgumentCaptor<String> code = ArgumentCaptor.forClass(String.class);
+
+        vs.issue(EMAIL, Lang.TR);
+        verify(mail).sendVerificationCode(eq(EMAIL), code.capture(), anyInt(), any());
+
+        String stored = fake.values.get("vc:" + EMAIL);
+        assertFalse(stored.equals(Hashing.sha256(EMAIL + ":" + code.getValue())), "tuzsuz SHA-256 olmamali");
+        assertTrue(vs.verify(EMAIL, code.getValue()));
     }
 
     private static String hash(String code) {
