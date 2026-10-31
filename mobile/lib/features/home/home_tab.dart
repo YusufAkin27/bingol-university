@@ -296,9 +296,7 @@ class _HomeTabState extends State<HomeTab> {
   Widget build(BuildContext context) {
     final t = context.bu;
     Widget body;
-    if (_loading) {
-      body = const HomeSkeleton();
-    } else if (_error != null) {
+    if (!_loading && _error != null) {
       body = ErrorView(
           error: _error!,
           onRetry: () {
@@ -306,14 +304,23 @@ class _HomeTabState extends State<HomeTab> {
             _load();
           });
     } else {
-      body = RefreshIndicator(
-        color: t.pr,
-        onRefresh: _reload,
-        child: ListView(
-          padding: const EdgeInsets.only(bottom: kNavInset),
-          physics: const AlwaysScrollableScrollPhysics(),
-          children: _content(context),
-        ),
+      // İskelet -> içerik: yalnız opaklık geçişi; kartlar ilk görünürde bir kez sırayla belirir (yenilemede oynamaz).
+      body = BuSwapIn(
+        loading: _loading,
+        skeleton: const HomeSkeleton(),
+        child: _loading
+            ? const SizedBox.shrink()
+            : RefreshIndicator(
+                color: t.pr,
+                onRefresh: _reload,
+                child: BuStaggerScope(
+                  child: ListView(
+                    padding: const EdgeInsets.only(bottom: kNavInset),
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    children: _content(context),
+                  ),
+                ),
+              ),
       );
     }
     return ColoredBox(color: t.bg, child: body);
@@ -334,9 +341,13 @@ class _HomeTabState extends State<HomeTab> {
         ),
       if (_newsStale) StaleBanner(text: context.l10n.homeSourceUnreachable, icon: LucideIcons.triangleAlert),
     ];
+    // Kademeli giriş yalnız ilk ekrandaki blokta (ilk 4); aşağıdakiler kaydırırken animasyonlanmaz.
+    var slot = 0;
+    Widget stag(Widget w) => BuStaggerItem(index: slot++, maxAnimated: 4, child: w);
+    // Blok aralığı ritmi: 16 (üst bloklar) / 24 (bölümler arası).
     return [
       if (banners.isNotEmpty)
-        Padding(
+        stag(Padding(
           padding: EdgeInsets.fromLTRB(20, MediaQuery.of(context).padding.top + 8, 20, 0),
           child: Column(children: [
             for (var i = 0; i < banners.length; i++) ...[
@@ -344,14 +355,14 @@ class _HomeTabState extends State<HomeTab> {
               banners[i],
             ],
           ]),
-        ),
-      _header(context, afterBanner: banners.isNotEmpty),
-      Padding(
-        padding: const EdgeInsets.fromLTRB(20, 14, 20, 0),
+        )),
+      stag(_header(context, afterBanner: banners.isNotEmpty)),
+      stag(Padding(
+        padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
         child: HomeSearchBox(hint: context.l10n.homeSearchHint, onTap: () => _push(SearchPage(session: _s))),
-      ),
-      Padding(padding: const EdgeInsets.fromLTRB(20, 18, 20, 0), child: _mealCard(context)),
-      Padding(padding: const EdgeInsets.fromLTRB(20, 22, 20, 0), child: _quickAccess(context)),
+      )),
+      stag(Padding(padding: const EdgeInsets.fromLTRB(20, 16, 20, 0), child: _mealCard(context))),
+      stag(Padding(padding: const EdgeInsets.fromLTRB(20, 24, 20, 0), child: _quickAccess(context))),
       _LazyOnce(onFirstBuild: _ensureNews, child: _newsSection(context)),
       _eventSection(context),
     ];
@@ -407,7 +418,7 @@ class _HomeTabState extends State<HomeTab> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Padding(
-          padding: const EdgeInsets.fromLTRB(20, 18, 20, 0),
+          padding: const EdgeInsets.fromLTRB(20, 24, 20, 0),
           child: HomeSectionHeader(
             title: l.p03HomeFeaturedNews,
             action: l.homeAll,
@@ -453,7 +464,7 @@ class _HomeTabState extends State<HomeTab> {
               children: [
                 Text(_greeting(context), style: BuType.body.copyWith(fontSize: 13, color: t.mut)),
                 Text(name.isEmpty ? l.anasayfaHelloNoName : l.anasayfaHello(name),
-                    maxLines: 1,
+                    maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     style: BuType.display.copyWith(fontSize: 24, letterSpacing: -.4, color: t.ink)),
               ],
@@ -470,7 +481,7 @@ class _HomeTabState extends State<HomeTab> {
     final card = _eventCard(context);
     final has = _event != null;
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 18, 20, 0),
+      padding: const EdgeInsets.fromLTRB(20, 24, 20, 0),
       child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
         if (has) HomeSectionHeader(title: l.p03HomeUpcoming, action: l.homeAll, onAction: () => _push(EventsPage(session: _s))),
         card,
@@ -575,20 +586,17 @@ class _HomeTabState extends State<HomeTab> {
       (LucideIcons.graduationCap, l.p03HomeQuickSchedule, HomeTone.blue, () => _push(AcademicHubPage(session: _s))),
     ];
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      // Bölüm başlıklarıyla aynı yazı stili ve hizası (diğer bölümler 17 sp ink).
       Padding(
-        padding: const EdgeInsetsDirectional.only(start: 4, bottom: 10),
+        padding: const EdgeInsets.only(bottom: 12),
         child: Semantics(
           header: true,
-          child: Text(l.p03HomeQuickTitle, style: Theme.of(context).textTheme.titleMedium!.copyWith(fontWeight: FontWeight.w700, color: t.mut)),
+          child: Text(l.p03HomeQuickTitle, maxLines: 1, overflow: TextOverflow.ellipsis, style: BuType.title.copyWith(fontSize: 17, color: t.ink)),
         ),
       ),
-      Row(
-        children: [
-          for (var i = 0; i < items.length; i++) ...[
-            if (i > 0) const SizedBox(width: 8),
-            Expanded(child: HomeQuickTile(icon: items[i].$1, label: items[i].$2, tone: items[i].$3, onTap: items[i].$4)),
-          ],
-        ],
+      HomeQuickGrid(
+        labels: [for (final i in items) i.$2],
+        tiles: [for (final i in items) HomeQuickTile(icon: i.$1, label: i.$2, tone: i.$3, onTap: i.$4)],
       ),
     ]);
   }

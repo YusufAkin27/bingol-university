@@ -756,11 +756,14 @@ class _DetailedPrefsPageState extends State<_DetailedPrefsPage> {
     final t = context.bu;
     final l = context.l10n;
     final tx = Theme.of(context).textTheme;
-    return AcademicScaffold(
-      title: l.profil1Notifications,
-      child: ListView(
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
-        children: [
+    return Scaffold(
+      backgroundColor: t.bg,
+      body: Column(children: [
+        BuHeader(title: l.profil1Notifications, onBack: () => Navigator.pop(context)),
+        Expanded(
+          child: ListView(
+            padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
+            children: [
           Container(
             padding: const EdgeInsets.all(14),
             margin: const EdgeInsets.only(bottom: 14),
@@ -778,8 +781,10 @@ class _DetailedPrefsPageState extends State<_DetailedPrefsPage> {
             ]),
           ),
           for (final g in _subtypeGroups.keys) _group(g),
-        ],
-      ),
+            ],
+          ),
+        ),
+      ]),
     );
   }
 }
@@ -793,12 +798,17 @@ class NotificationPrefsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return AcademicScaffold(
-      title: context.l10n.profil1Notifications,
-      child: ListView(
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
-        children: [NotificationPrefsGroup(session: session, push: push, showPushCard: true)],
-      ),
+    return Scaffold(
+      backgroundColor: context.bu.bg,
+      body: Column(children: [
+        BuHeader(title: context.l10n.profil1Notifications, onBack: () => Navigator.pop(context)),
+        Expanded(
+          child: ListView(
+            padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
+            children: [NotificationPrefsGroup(session: session, push: push, showPushCard: true)],
+          ),
+        ),
+      ]),
     );
   }
 }

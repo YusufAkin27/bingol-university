@@ -82,7 +82,7 @@ class _PrivacyDataPageState extends State<PrivacyDataPage> {
       backgroundColor: t.ink,
       duration: const Duration(seconds: 6),
       margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-      shape: RoundedRectangleBorder(borderRadius: BuRadius.bMd),
+      shape: const RoundedRectangleBorder(borderRadius: BuRadius.bMd),
       padding: const EdgeInsetsDirectional.fromSTEB(14, 10, 6, 10),
       content: Row(children: [
         Container(

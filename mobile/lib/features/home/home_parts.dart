@@ -20,23 +20,26 @@ class HomeSearchBox extends StatelessWidget {
       label: hint,
       excludeSemantics: true,
       onTap: onTap,
-      child: Material(
-        color: t.sf,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16), side: BorderSide(color: t.bd)),
-        child: InkWell(
-          customBorder: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          onTap: onTap,
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(minHeight: 52),
-            child: Padding(
-              padding: const EdgeInsetsDirectional.symmetric(horizontal: 16, vertical: 8),
-              child: Row(children: [
-                Icon(LucideIcons.search, size: 18, color: t.mut),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Text(hint, maxLines: 1, overflow: TextOverflow.ellipsis, style: BuType.body.copyWith(fontSize: 14, color: t.mut)),
-                ),
-              ]),
+      child: BuPressable(
+        scale: .985,
+        child: Material(
+          color: t.sf,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16), side: BorderSide(color: t.bd)),
+          child: InkWell(
+            customBorder: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            onTap: onTap,
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(minHeight: 52),
+              child: Padding(
+                padding: const EdgeInsetsDirectional.symmetric(horizontal: 16, vertical: 8),
+                child: Row(children: [
+                  Icon(LucideIcons.search, size: 18, color: t.mut),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(hint, maxLines: 1, overflow: TextOverflow.ellipsis, style: BuType.body.copyWith(fontSize: 14, color: t.mut)),
+                  ),
+                ]),
+              ),
             ),
           ),
         ),
@@ -121,6 +124,52 @@ class HomeQuickTile extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+/// Hızlı erişim ızgarası: beş karo tek satırda, etiketler okunur boyutta sığarsa; sığmazsa (dar ekran, büyük yazı)
+/// 3 + 2 iki satır. Yazı hiçbir durumda 11.5 sp altına küçülmez, karolar aynı boyda kalır.
+class HomeQuickGrid extends StatelessWidget {
+  const HomeQuickGrid({super.key, required this.tiles, required this.labels});
+
+  /// Karolar ([HomeQuickTile]) ve aynı sırada etiketleri (sığma ölçümü için).
+  final List<Widget> tiles;
+  final List<String> labels;
+
+  static const _gap = 8.0;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(builder: (context, c) {
+      final style = Theme.of(context).textTheme.labelSmall!.copyWith(fontWeight: FontWeight.w600);
+      final scaler = MediaQuery.textScalerOf(context).clamp(maxScaleFactor: 1.3);
+      var longest = 0.0;
+      for (final label in labels) {
+        for (final w in label.split(' ')) {
+          final tp = TextPainter(
+            text: TextSpan(text: w, style: style),
+            textDirection: Directionality.of(context),
+            textScaler: scaler,
+            maxLines: 1,
+          )..layout();
+          longest = math.max(longest, tp.width);
+        }
+      }
+      final n = tiles.length;
+      final inner = (c.maxWidth - _gap * (n - 1)) / n - 8; // karo yatay iç boşluğu 4 + 4
+      final cols = longest <= inner ? n : 3;
+      final rows = <Widget>[];
+      for (var start = 0; start < n; start += cols) {
+        if (start > 0) rows.add(const SizedBox(height: _gap));
+        rows.add(Row(children: [
+          for (var j = 0; j < cols; j++) ...[
+            if (j > 0) const SizedBox(width: _gap),
+            Expanded(child: start + j < n ? tiles[start + j] : const SizedBox.shrink()),
+          ],
+        ]));
+      }
+      return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: rows);
+    });
   }
 }
 
@@ -584,9 +633,9 @@ class HomeMealHero extends StatelessWidget {
                 child: Padding(
                   padding: const EdgeInsets.all(18),
                   child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-                    Align(
-                      alignment: AlignmentDirectional.centerStart,
-                      child: Container(
+                    // Rozet + saat aynı satırda (dar/büyük yazıda alt satıra sarar); başlık tam genişlikte okunur.
+                    Wrap(spacing: 8, runSpacing: 8, crossAxisAlignment: WrapCrossAlignment.center, children: [
+                      Container(
                         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                         decoration: BoxDecoration(color: fg.withValues(alpha: .2), borderRadius: BorderRadius.circular(BuRadius.pill)),
                         child: Row(mainAxisSize: MainAxisSize.min, children: [
@@ -595,19 +644,14 @@ class HomeMealHero extends StatelessWidget {
                           Flexible(child: Text(chip, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.labelMedium!.copyWith(fontWeight: FontWeight.w800, color: fg))),
                         ]),
                       ),
-                    ),
-                    const SizedBox(height: 14),
-                    Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
-                      Expanded(
-                        child: Text(title, maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.headlineSmall!.copyWith(fontWeight: FontWeight.w800, color: fg)),
-                      ),
-                      const SizedBox(width: 8),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                         decoration: BoxDecoration(color: fg.withValues(alpha: .2), borderRadius: BorderRadius.circular(BuRadius.pill)),
                         child: Text(time, maxLines: 1, style: tx.labelMedium!.copyWith(fontWeight: FontWeight.w700, color: fg)),
                       ),
                     ]),
+                    const SizedBox(height: 12),
+                    Text(title, maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.headlineSmall!.copyWith(fontWeight: FontWeight.w800, color: fg)),
                     const SizedBox(height: 14),
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),

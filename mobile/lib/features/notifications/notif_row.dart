@@ -84,7 +84,10 @@ class NotifRow extends StatelessWidget {
     return Semantics(
       button: true,
       label: unread ? unreadLabel : null,
-      child: Container(
+      // Basılı tutunca hafif küçülür (dokunmayı içerideki InkWell yakalar).
+      child: BuPressable(
+        scale: .985,
+        child: Container(
         decoration: BoxDecoration(
           color: t.sf,
           borderRadius: radius,
@@ -145,8 +148,9 @@ class NotifRow extends StatelessWidget {
                           maxLines: 1, style: tx.labelMedium!.copyWith(fontWeight: FontWeight.w500, color: t.mut)),
                     ]),
                     const SizedBox(height: 6),
+                    // Gövde yoksa başlık iki satıra kadar okunur (mesajın kendisi); gövde varsa tek satır.
                     Text(title,
-                        maxLines: 1,
+                        maxLines: body.isEmpty ? 2 : 1,
                         overflow: TextOverflow.ellipsis,
                         style: tx.titleMedium!.copyWith(
                             height: 1.25, color: t.ink, fontWeight: unread ? FontWeight.w800 : FontWeight.w600)),
@@ -163,6 +167,7 @@ class NotifRow extends StatelessWidget {
               ]),
             ),
           ),
+        ),
         ),
       ),
     );

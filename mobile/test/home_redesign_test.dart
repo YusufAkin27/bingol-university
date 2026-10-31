@@ -80,6 +80,8 @@ void main() {
       home: home(b),
     ));
     await settle(tester, const Duration(seconds: 2));
+    // Bolumler arasi bosluk 24 dp: haber basligi 320x700'de ilk ekranin disinda (tembel kurulur), kaydirarak ulasilir.
+    await tester.scrollUntilVisible(find.text('أبرز الأخبار'), 300, scrollable: find.byType(Scrollable).first);
     expect(find.text('أبرز الأخبار'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });

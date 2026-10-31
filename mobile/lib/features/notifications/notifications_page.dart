@@ -294,13 +294,12 @@ class _NotificationsPageState extends State<NotificationsPage> {
     final t = context.bu;
     final l = context.l10n;
     // Büyük yazı ölçeğinde başlığı ezmesin diye düğme başlığın altına iner.
-    final bigText = MediaQuery.textScalerOf(context).scale(10) > 11.5 || MediaQuery.sizeOf(context).width < 340;
+    final bigText = MediaQuery.textScalerOf(context).scale(10) > 11.5 || MediaQuery.sizeOf(context).width < 430;
     final pill = _unread > 0 || _s.badges.notifications.value > 0
         ? ConstrainedBox(
             // Dar ekran/büyük yazıda başlığı ezmesin: genişliğin sınırlı bölümü, metin kısalır.
-            constraints: BoxConstraints(maxWidth: MediaQuery.sizeOf(context).width * (bigText ? .9 : .4)),
-            child: InkWell(
-              borderRadius: BorderRadius.circular(12),
+            constraints: BoxConstraints(maxWidth: MediaQuery.sizeOf(context).width * (bigText ? .9 : .6)),
+            child: BuPressable(
               onTap: _markAll,
               child: Container(
                 constraints: const BoxConstraints(minHeight: 48),
@@ -311,7 +310,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
                   const SizedBox(width: 6),
                   Flexible(
                     child: Text(l.notifMarkAll,
-                        maxLines: 2,
+                        maxLines: bigText ? 2 : 1,
                         textAlign: TextAlign.end,
                         overflow: TextOverflow.ellipsis,
                         style: Theme.of(context).textTheme.labelLarge!.copyWith(fontWeight: FontWeight.w700, color: t.pr)),
@@ -326,9 +325,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
     final failed = _error != null;
 
     Widget body;
-    if (_loading) {
-      body = const BuSkeletonList(itemCount: 6, padding: EdgeInsets.fromLTRB(20, 12, 20, 24));
-    } else if (failed && _items.isEmpty) {
+    if (failed && _items.isEmpty) {
       body = ListView(
         padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
         children: [_ErrorCard(onRetry: _load)],
@@ -367,6 +364,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
       }
       final today = l.notifGroupToday;
       final tx = Theme.of(context).textTheme;
+      var row = 0;
       for (final n in shown) {
         final g = _group(n['createdAt'] as String?);
         if (g != last) {
@@ -388,7 +386,9 @@ class _NotificationsPageState extends State<NotificationsPage> {
             ]),
           ));
         }
-        children.add(Padding(padding: const EdgeInsets.fromLTRB(20, 0, 20, 10), child: _tile(t, n)));
+        // İlk görünürde ilk 8 satır sırayla belirir; kaydırınca ya da süzünce yeniden oynamaz.
+        children.add(Padding(
+            padding: const EdgeInsets.fromLTRB(20, 0, 20, 10), child: BuStaggerItem(index: row++, child: _tile(t, n))));
       }
       if (_more) {
         children.add(Padding(
@@ -442,14 +442,23 @@ class _NotificationsPageState extends State<NotificationsPage> {
       }
       body = RefreshIndicator(
         onRefresh: () => _load(silent: true),
-        child: ListView(
-          controller: _scroll,
-          physics: const AlwaysScrollableScrollPhysics(),
-          padding: EdgeInsets.fromLTRB(0, 0, 0, MediaQuery.of(context).padding.bottom + 24),
-          children: children,
+        child: BuStaggerScope(
+          child: ListView(
+            controller: _scroll,
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: EdgeInsets.fromLTRB(0, 0, 0, MediaQuery.of(context).padding.bottom + 24),
+            children: children,
+          ),
         ),
       );
     }
+
+    // İskelet -> içerik: yalnız opaklık geçişi (düzen kayması yok).
+    body = BuSwapIn(
+      loading: _loading,
+      skeleton: const BuSkeletonList(itemCount: 6, padding: EdgeInsets.fromLTRB(20, 12, 20, 24)),
+      child: body,
+    );
 
     return Scaffold(
       backgroundColor: t.bg,
@@ -461,7 +470,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
         ),
         if (pill != null && bigText)
           Padding(
-            padding: const EdgeInsets.fromLTRB(20, 4, 20, 0),
+            padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
             child: Align(alignment: AlignmentDirectional.centerEnd, child: pill),
           ),
         if (!_loading) _filters(t),

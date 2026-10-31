@@ -120,15 +120,20 @@ class _MenuPageState extends State<MenuPage> {
               padding: const EdgeInsets.fromLTRB(_hPad, 4, _hPad, 0),
               child: StaleBanner(text: context.l10n.menuStale, icon: LucideIcons.triangleAlert),
             ),
-          if (_loading && _byMonth.isEmpty) ...[
-            const Expanded(child: MenuSkeleton()),
-          ] else ...[
-            Padding(
-              padding: const EdgeInsets.only(top: 12),
-              child: MenuDayStrip(days: _days, selected: _selected, onSelect: _select),
+          // İskelet -> içerik: yalnız opaklık geçişi (düzen kayması yok).
+          Expanded(
+            child: BuSwapIn(
+              loading: _loading && _byMonth.isEmpty,
+              skeleton: const MenuSkeleton(),
+              child: Column(children: [
+                Padding(
+                  padding: const EdgeInsets.only(top: 12),
+                  child: MenuDayStrip(days: _days, selected: _selected, onSelect: _select),
+                ),
+                Expanded(child: _body(t)),
+              ]),
             ),
-            Expanded(child: _body(t)),
-          ],
+          ),
         ],
       ),
     );
@@ -151,15 +156,24 @@ class _MenuPageState extends State<MenuPage> {
         physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.fromLTRB(_hPad, 16, _hPad, 24),
         children: [
-          MenuDayLabel(text: label, today: today),
-          const SizedBox(height: 12),
-          if (has)
-            MenuPhotoGate(
-              url: day.imageUrl,
-              builder: (context, photo) => MenuMealCard(day: day, photo: photo, time: _time),
-            )
-          else
-            MenuEmptyCard(maintenance: _maintenance, onRetry: _load),
+          // Gün değişince etiket + kart kısa süre solarak yer değiştirir (puanlama kartı yeniden kurulmaz).
+          BuFadeThrough(
+            child: Column(
+              key: ValueKey('menu-day-${d.year}-${d.month}-${d.day}'),
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                MenuDayLabel(text: label, today: today),
+                const SizedBox(height: 12),
+                if (has)
+                  MenuPhotoGate(
+                    url: day.imageUrl,
+                    builder: (context, photo) => MenuMealCard(day: day, photo: photo, time: _time),
+                  )
+                else
+                  MenuEmptyCard(maintenance: _maintenance, onRetry: _load),
+              ],
+            ),
+          ),
           if (today) PollMenuCard(session: widget.session),
         ],
       ),
