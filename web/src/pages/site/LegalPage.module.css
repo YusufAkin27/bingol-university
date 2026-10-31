@@ -17,7 +17,10 @@
 .skeleton {
   display: grid;
   gap: var(--space-3);
+  align-content: start;
   max-width: 72ch;
+  /* alt bilgi ilk ekranın altında kalsın: metin gelince alttaki öğeler görünür alanda kaymasın (CLS) */
+  min-height: max(70vh, 26rem);
 }
 .more {
   display: grid;

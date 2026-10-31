@@ -56,7 +56,7 @@ function LegalDocPage({ type }: { type: LegalType }) {
     ? `${t('legal.version', { version: doc.data.version })}, ${t('legal.publishedAt', {
         date: formatDate(doc.data.publishedAt),
       })}`
-    : undefined;
+    : ' '; // yüklenirken bir satır yer tutar: sürüm satırı gelince içerik kaymaz (CLS)
   const older = (versions.data ?? []).filter((v) => !doc.data || v.version < doc.data.version);
 
   return (
