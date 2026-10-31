@@ -2,264 +2,197 @@ import 'package:flutter/material.dart';
 
 import '../../core/locale_controller.dart';
 import '../../widgets/bu.dart';
+import 'acad_ref_widgets.dart';
 import 'academic_models.dart';
-import 'akad_widgets.dart';
 import 'reminders.dart';
 
-/// Ders programı sayfasının görsel parçaları (Stitch 43): dönem/aktar satırı, gün hapları, şu an/sıradaki ders kartları,
-/// günlük akış satırları, "Derslerim" kartları, boş durum kartları, iskelet. Durum ve veri `timetable_page.dart`'ta kalır.
+/// Ders programı sayfasının görsel parçaları (Stitch v3 02): üst satır (hafta + dönem + "+"), gün şeridi, kartsız
+/// zaman çizelgesi satırları, "Şimdi" çizgisi, özet satırı, boş durum, iskelet. Durum/veri `timetable_page.dart`'ta.
 
 /// ".ics" gibi LTR parçayı RTL metin içinde ters dönmeyecek biçimde sarar (Unicode isolate).
 String isolateIcs(String s) => s.replaceAll('(.ics)', '\u2066(.ics)\u2069');
 
-/// Dönem seçme düğmesi + .ics aktarma düğmesi (yan yana, beyaz kartlar); büyük yazıda alt alta.
-class TtTopRow extends StatelessWidget {
-  const TtTopRow({super.key, required this.name, required this.onPickSemester, required this.onExport});
+/// Toplam süre metni: tam saatse "7 saat", değilse "5 saat 15 dk"; bir saatten kısaysa "45 dk".
+String ttHoursText(BuildContext context, int minutes) {
+  final l = context.l10n;
+  final h = minutes ~/ 60, m = minutes % 60;
+  if (h == 0) return l.acadTimeMinutes(m.toString());
+  if (m == 0) return l.p69Hours(h.toString());
+  return '${l.p69Hours(h.toString())} ${l.acadTimeMinutes(m.toString())}';
+}
 
-  final String name;
-  final VoidCallback onPickSemester, onExport;
+/// Üst satır: solda "Haftalık akış · 5. hafta", sağda dönem hapı (beyaz, 32 dp) ve `soft` daire "+" (30 dp).
+/// Hap/artı 48 dp dokunma alanlıdır.
+class TtTopRow extends StatelessWidget {
+  const TtTopRow({super.key, required this.semester, required this.week, required this.onPickSemester, required this.onAdd});
+
+  final String semester;
+  final int? week;
+  final VoidCallback onPickSemester, onAdd;
 
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
     final tx = Theme.of(context).textTheme;
     final l = context.l10n;
-    final big = MediaQuery.textScalerOf(context).scale(14) / 14 > 1.15;
-    Widget box({required VoidCallback onTap, required String semantic, required Widget child}) => Semantics(
-          button: true,
-          label: semantic,
-          excludeSemantics: true,
-          onTap: onTap,
-          child: AkadCard(
-            onTap: onTap,
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-            child: ConstrainedBox(constraints: const BoxConstraints(minHeight: 28), child: child),
-          ),
-        );
-    final sem = box(
-      onTap: onPickSemester,
-      semantic: '${l.acadTimePickSemester}: $name',
-      child: Row(children: [
-        Icon(LucideIcons.graduationCap, size: 18, color: t.pr),
-        const SizedBox(width: 8),
-        Expanded(child: Text(name, maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.titleMedium!.copyWith(fontWeight: FontWeight.w800, color: t.ink))),
-        const SizedBox(width: 4),
-        Icon(LucideIcons.chevronDown, size: 16, color: t.mut),
+    final left = Text.rich(
+      TextSpan(children: [
+        TextSpan(text: l.p69WeeklyFlow, style: tx.bodySmall!.copyWith(fontWeight: FontWeight.w500, color: t.mut)),
+        if (week != null) ...[
+          TextSpan(text: '  •  ', style: tx.bodySmall!.copyWith(color: t.mut)),
+          TextSpan(text: l.p69WeekN(week.toString()), style: tx.bodySmall!.copyWith(fontWeight: FontWeight.w600, color: t.pr)),
+        ],
       ]),
+      maxLines: 2,
+      overflow: TextOverflow.ellipsis,
     );
-    final exp = box(
-      onTap: onExport,
-      semantic: l.acadTimeExportTooltip,
-      child: Row(children: [
-        Icon(LucideIcons.calendarArrowUp, size: 18, color: t.pr),
-        const SizedBox(width: 8),
-        Expanded(
-          child: FittedBox(
-            fit: BoxFit.scaleDown,
-            alignment: AlignmentDirectional.centerStart,
-            child: Text(isolateIcs(l.acadTimeExportTooltip), maxLines: 1, style: tx.labelMedium!.copyWith(fontWeight: FontWeight.w700, color: t.ink)),
+    // 48 dp dokunma kutuları üste hizalı: görünür hap/artı Stitch'teki yüksekliklere (y 62-94) oturur.
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 0, 11, 0),
+      child: SizedBox(
+        height: BuSize.touch,
+        child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Expanded(child: Padding(padding: const EdgeInsets.only(top: 13), child: left)),
+          const SizedBox(width: 8),
+          ConstrainedBox(
+            constraints: BoxConstraints(maxWidth: MediaQuery.sizeOf(context).width * .5),
+            child: Semantics(
+              button: true,
+              label: '${l.acadTimePickSemester}: $semester',
+              excludeSemantics: true,
+              onTap: onPickSemester,
+              child: BuPressable(
+                onTap: onPickSemester,
+                haptic: BuHaptic.selection,
+                scale: .97,
+                child: SizedBox(
+                  height: BuSize.touch,
+                  child: Align(
+                    alignment: AlignmentDirectional.topCenter,
+                    widthFactor: 1,
+                    child: Padding(
+                      padding: const EdgeInsets.only(top: 6),
+                      child: Container(
+                        height: 32,
+                        padding: const EdgeInsets.symmetric(horizontal: 14),
+                        decoration: BoxDecoration(color: t.sf, borderRadius: BuRadius.bPill, border: Border.all(color: t.bd)),
+                        child: Row(mainAxisSize: MainAxisSize.min, children: [
+                          Flexible(child: Text(semester, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.labelMedium!.copyWith(fontSize: 13, fontWeight: FontWeight.w500, color: t.ink))),
+                          const SizedBox(width: 6),
+                          ExcludeSemantics(child: Icon(LucideIcons.chevronDown, size: 16, color: t.ink)),
+                        ]),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
           ),
-        ),
-      ]),
-    );
-    if (big) return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [sem, const SizedBox(height: 8), exp]);
-    return IntrinsicHeight(
-      child: Row(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        Flexible(flex: 5, child: sem),
-        const SizedBox(width: 8),
-        Flexible(flex: 4, child: exp),
-      ]),
+          Semantics(
+            button: true,
+            label: l.acadTimeAddCourse,
+            excludeSemantics: true,
+            onTap: onAdd,
+            child: Tooltip(
+              message: l.acadTimeAddCourse,
+              excludeFromSemantics: true,
+              child: BuPressable(
+                onTap: onAdd,
+                haptic: BuHaptic.selection,
+                scale: .94,
+                child: SizedBox(
+                  width: BuSize.touch,
+                  height: BuSize.touch,
+                  child: Align(
+                    alignment: Alignment.topCenter,
+                    child: Padding(
+                      padding: const EdgeInsets.only(top: 7),
+                      child: Container(width: 30, height: 30, decoration: BoxDecoration(color: t.soft, shape: BoxShape.circle), child: Icon(Icons.add, size: 22, color: t.pr)),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ]),
+      ),
     );
   }
 }
 
-/// Gün haps şeridi (Pzt..Paz, yatay kayar): seçili gün koyu hap; bugün seçiliyken "Per, bugün" + kırmızı nokta.
-class TtDayPills extends StatefulWidget {
-  const TtDayPills({super.key, required this.selected, required this.todayWeekday, required this.onSelect});
+/// Gün şeridi: hafta içi 5 gün (Cmt/Paz yalnız dersi varsa ya da seçiliyse) eşit sütunlar; her hücrede gün adı +
+/// tarih; seçili = `soft` yuvarlak dikdörtgen + `pr` metin, bugünün altında `pr` nokta. Altta tam genişlik ayraç.
+class TtDayStrip extends StatelessWidget {
+  const TtDayStrip({super.key, required this.selected, required this.todayWeekday, required this.dates, required this.days, required this.onSelect});
 
   final int selected, todayWeekday; // 1..7
+  final List<int> days; // gösterilecek gün numaraları (1..7)
+  final Map<int, DateTime> dates; // gün numarası -> o haftanın tarihi
   final ValueChanged<int> onSelect;
 
   @override
-  State<TtDayPills> createState() => _TtDayPillsState();
-}
-
-class _TtDayPillsState extends State<TtDayPills> {
-  final _keys = List.generate(7, (_) => GlobalKey());
-
-  @override
-  void didUpdateWidget(TtDayPills old) {
-    super.didUpdateWidget(old);
-    if (old.selected != widget.selected) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        final c = _keys[widget.selected - 1].currentContext;
-        if (c != null && c.mounted) Scrollable.ensureVisible(c, duration: BuMotion.of(c, BuMotion.medium), alignment: .5);
-      });
-    }
-  }
-
-  @override
   Widget build(BuildContext context) {
     final t = context.bu;
     final tx = Theme.of(context).textTheme;
     final l = context.l10n;
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      padding: const EdgeInsets.symmetric(horizontal: 20),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 10),
       child: Row(children: [
-        for (var d = 1; d <= 7; d++) ...[
-          if (d > 1) const SizedBox(width: 8),
-          Builder(
-            key: _keys[d - 1],
-            builder: (context) {
-              final sel = widget.selected == d;
-              final today = widget.todayWeekday == d;
-              final short = acadDayShort(l, d);
-              final label = sel && today ? l.acadTimeDayToday(short) : short;
-              final fg = sel ? t.onSoft : t.ink;
+        for (final d in days)
+          Expanded(
+            child: Builder(builder: (context) {
+              final sel = selected == d;
+              final today = todayWeekday == d;
+              final date = dates[d];
               return Semantics(
                 button: true,
                 selected: sel,
-                label: today ? l.acadTimeDayToday(acadDayName(l, d)) : acadDayName(l, d),
+                label: '${today ? l.acadTimeDayToday(acadDayName(l, d)) : acadDayName(l, d)}${date == null ? '' : ' ${date.day}'}',
                 excludeSemantics: true,
-                onTap: () => widget.onSelect(d),
+                onTap: () => onSelect(d),
                 child: BuPressable(
-                  scale: .95,
-                  onTap: () => widget.onSelect(d),
+                  scale: .96,
+                  onTap: () => onSelect(d),
                   haptic: BuHaptic.selection,
-                  child: AnimatedContainer(
-                    duration: BuMotion.of(context, BuMotion.short),
-                    constraints: const BoxConstraints(minHeight: 48, minWidth: 48),
-                    padding: const EdgeInsets.symmetric(horizontal: 18),
-                    alignment: Alignment.center,
-                    decoration: ShapeDecoration(color: sel ? t.soft : t.sf, shape: StadiumBorder(side: BorderSide(color: sel ? t.selectedBorder : t.bd))),
+                  child: Center(
                     child: MediaQuery.withClampedTextScaling(
-                      maxScaleFactor: 1.3,
-                      child: Row(mainAxisSize: MainAxisSize.min, children: [
-                        if (sel && today) ...[Container(width: 7, height: 7, decoration: BoxDecoration(color: t.pr, shape: BoxShape.circle)), const SizedBox(width: 6)],
-                        Text(label, maxLines: 1, style: tx.labelLarge!.copyWith(fontWeight: sel ? FontWeight.w800 : FontWeight.w600, color: fg)),
-                      ]),
+                      maxScaleFactor: 1.2,
+                      child: AnimatedContainer(
+                        duration: BuMotion.of(context, BuMotion.short),
+                        curve: BuMotion.standard,
+                        constraints: const BoxConstraints(minWidth: 44, minHeight: BuSize.touch),
+                        padding: const EdgeInsets.fromLTRB(8, 7, 8, 6),
+                        decoration: BoxDecoration(color: sel ? t.soft : Colors.transparent, borderRadius: BorderRadius.circular(24)),
+                        child: Column(mainAxisSize: MainAxisSize.min, children: [
+                          Text(acadDayShort(l, d), maxLines: 1, style: tx.labelMedium!.copyWith(fontSize: 13, fontWeight: sel ? FontWeight.w600 : FontWeight.w500, color: sel ? t.pr : t.mut)),
+                          const SizedBox(height: 2),
+                          Text(date == null ? '' : '${date.day}', maxLines: 1, style: tx.headlineSmall!.copyWith(fontWeight: FontWeight.w700, color: sel ? t.pr : t.ink)),
+                          const SizedBox(height: 3),
+                          SizedBox(height: 5, child: today ? const AcadDot(size: 5) : null),
+                        ]),
+                      ),
                     ),
                   ),
                 ),
               );
-            },
+            }),
           ),
-        ],
       ]),
     );
   }
 }
 
-/// "Şu an derste" kartı: pembe etiket + derslik, ders adı + kalan dk, ilerleme çubuğu.
-class TtNowCard extends StatelessWidget {
-  const TtNowCard({super.key, required this.name, required this.minutesLeft, required this.progress, this.room});
-
-  final String name;
-  final int minutesLeft;
-  final double progress;
-  final String? room;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = context.bu;
-    final tx = Theme.of(context).textTheme;
-    final l = context.l10n;
-    return Semantics(
-      container: true,
-      label: '${l.acadTimeNowInClass}. ${l.acadTimeMinLeft(name, minutesLeft.toString())}',
-      excludeSemantics: true,
-      child: AkadCard(
-        padding: const EdgeInsets.all(16),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-          Row(children: [
-            AkadPill(l.acadTimeNowInClass, bg: t.soft, fg: t.onSoft, dot: true),
-            const Spacer(),
-            if (room != null) Flexible(child: Text(room!, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.labelMedium!.copyWith(color: t.mut))),
-          ]),
-          const SizedBox(height: 10),
-          Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
-            Expanded(child: Text(name, maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.titleLarge!.copyWith(fontWeight: FontWeight.w800, color: t.ink))),
-            const SizedBox(width: 8),
-            // Kalan dakika her dakika değişir: eski değer yukarı kayıp solar, yenisi alttan gelir (yalnız opacity/transform).
-            AnimatedSwitcher(
-              duration: BuMotion.of(context, BuMotion.medium),
-              switchInCurve: BuMotion.emphasizedDecelerate,
-              switchOutCurve: BuMotion.emphasizedAccelerate,
-              transitionBuilder: (c, a) => FadeTransition(
-                opacity: a,
-                child: SlideTransition(position: Tween(begin: const Offset(0, .5), end: Offset.zero).animate(a), child: c),
-              ),
-              child: Text(l.acadCountdownMinutes(minutesLeft.toString()),
-                  key: ValueKey<int>(minutesLeft),
-                  style: tx.labelLarge!.copyWith(fontWeight: FontWeight.w700, color: t.pr, fontFeatures: const [FontFeature.tabularFigures()])),
-            ),
-          ]),
-          const SizedBox(height: 10),
-          ClipRRect(
-            borderRadius: BuRadius.bPill,
-            child: TweenAnimationBuilder<double>(
-              tween: Tween(begin: 0, end: progress.clamp(0.0, 1.0)),
-              duration: BuMotion.of(context, BuMotion.long),
-              curve: BuMotion.emphasizedDecelerate,
-              builder: (c, v, _) => LinearProgressIndicator(value: v, minHeight: 6, color: t.pr, backgroundColor: t.sf2),
-            ),
-          ),
-        ]),
-      ),
-    );
-  }
-}
-
-/// "Sıradaki ders" kartı (ya da hafta bitti / gün tamam bilgi satırı): simge karosu + başlık + sağda hap.
-class TtInfoCard extends StatelessWidget {
-  const TtInfoCard({super.key, required this.icon, required this.tileBg, required this.tileFg, required this.title, this.label, this.body, this.pill});
-
-  final IconData icon;
-  final Color tileBg, tileFg;
-  final String title;
-  final String? label, body, pill;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = context.bu;
-    final tx = Theme.of(context).textTheme;
-    final l = context.l10n;
-    return Semantics(
-      container: true,
-      label: [if (label != null) label!, title, if (body != null) body!, if (pill != null) pill!].join('. '),
-      excludeSemantics: true,
-      child: AkadCard(
-        padding: const EdgeInsets.all(14),
-        child: Row(children: [
-          AkadIconTile(icon: icon, bg: tileBg, fg: tileFg),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              if (label != null)
-                Text(akadUpper(context, label!),
-                    maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.labelSmall!.copyWith(fontWeight: FontWeight.w700, letterSpacing: l.localeName == 'ar' ? 0 : .6, color: t.mut)),
-              Text(title, maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.titleMedium!.copyWith(fontWeight: FontWeight.w800, color: t.ink)),
-              if (body != null) Text(body!, style: tx.bodySmall!.copyWith(color: t.mut)),
-            ]),
-          ),
-          if (pill != null) ...[
-            const SizedBox(width: 8),
-            ConstrainedBox(constraints: const BoxConstraints(maxWidth: 150), child: AkadPill(pill!, bg: t.sf2, fg: t.ink)),
-          ],
-        ]),
-      ),
-    );
-  }
-}
-
-/// Günlük akış satırı: solda durum çubuğu, durum etiketi + saat hapı, ders adı, derslik ve hoca.
+/// Zaman çizelgesi satırı (kartsız): solda başlangıç/bitiş saati, 3 dp dikey çubuk (süren ders `pr`), ders adı
+/// 17 sp/600 + sağda durum metni, muted "kod · derslik", varsa öğretim üyesi. Altta (satır içi) ayraç ayrı çizilir.
 class TtSlotCard extends StatelessWidget {
-  const TtSlotCard({super.key, required this.slot, required this.todayView, required this.onTap});
+  const TtSlotCard({super.key, required this.slot, required this.todayView, required this.onTap, this.trailing});
 
   final DaySlot slot;
-  final bool todayView; // seçili gün bugün mü (durum etiketleri yalnız bugün)
+  final bool todayView; // seçili gün bugün mü (durum yalnız bugün)
   final VoidCallback onTap;
+
+  /// Sağdaki durum metni ("Tamamlandı", "25 dk kaldı", "1 sa 45 dk sonra", "Son oturum"); null = yok.
+  final String? trailing;
 
   @override
   Widget build(BuildContext context) {
@@ -270,79 +203,73 @@ class TtSlotCard extends StatelessWidget {
     final c = s.course;
     final past = todayView && s.status == SlotStatus.past;
     final ongoing = todayView && s.status == SlotStatus.ongoing;
+    final room = s.session.room;
+    final sub = [if (c.code != null) c.code!, if (room != null) l.p17RoomLabel(room)].join(' · ');
     final status = !todayView
         ? null
         : switch (s.status) {
             SlotStatus.ongoing => l.acadTimeStatusNow,
-            SlotStatus.past => l.acadTimeStatusDone,
-            // Gelecek derste "Bekliyor" gürültüsü yok: saat ve ders adı yeterli, durum yalnız süren/biten derste.
+            SlotStatus.past => l.p69Done,
             SlotStatus.upcoming => null,
           };
-    // Sol çubuk nötr: süren ders marka rengiyle öne çıkar, geçmiş soluk (ekranda tek vurgu rengi).
-    final bar = ongoing ? t.pr : (past ? t.bd : t.mut.withValues(alpha: .45));
     final semantic =
-        '${l.acadTimeSlotSemantic(c.name, acadDayName(l, s.session.dayOfWeek.clamp(1, 7)), s.session.start, s.session.end)}${s.session.room != null ? ', ${s.session.room}' : ''}${status != null ? ', $status' : ''}';
-    final timePillBg = ongoing ? t.soft : t.sf2;
-    final timePillFg = ongoing ? t.onSoft : (past ? t.mut : t.ink);
-    final room = s.session.room;
+        '${l.acadTimeSlotSemantic(c.name, acadDayName(l, s.session.dayOfWeek.clamp(1, 7)), s.session.start, s.session.end)}${room != null ? ', $room' : ''}${status != null ? ', $status' : ''}';
+    final titleColor = past ? t.mut : t.ink;
+    final barColor = ongoing ? t.pr : t.bd;
     return Semantics(
       container: true,
       button: true,
       label: semantic,
       excludeSemantics: true,
       onTap: onTap,
-      child: Opacity(
-        opacity: past ? .62 : 1,
-        child: AkadCard(
-          onTap: onTap,
-          padding: EdgeInsets.zero,
-          child: IntrinsicHeight(
-            child: Row(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-              Container(width: 5, color: bar),
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsetsDirectional.fromSTEB(14, 12, 14, 14),
-                  child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-                    Row(children: [
-                      if (status != null)
-                        AkadPill(status, bg: ongoing ? t.soft : t.sf2, fg: ongoing ? t.onSoft : t.mut, dot: ongoing)
-                      else if (c.code != null)
-                        AkadPill(c.code!, bg: t.sf2, fg: t.mut),
-                      const Spacer(),
-                      AkadPill('${s.session.start} - ${s.session.end}', bg: timePillBg, fg: timePillFg),
+      child: Material(
+        type: MaterialType.transparency,
+        child: InkWell(
+          onTap: () {
+            buHaptic(BuHaptic.selection);
+            onTap();
+          },
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(20, 20, 24, 20),
+            child: IntrinsicHeight(
+              child: Row(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+                SizedBox(
+                  width: 48,
+                  child: Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
+                    Text(s.session.start, maxLines: 1, style: tx.titleSmall!.copyWith(fontSize: 15, fontWeight: past ? FontWeight.w500 : FontWeight.w700, color: past ? t.mut : t.ink, fontFeatures: const [FontFeature.tabularFigures()])),
+                    Text(s.session.end, maxLines: 1, style: tx.bodySmall!.copyWith(fontSize: 13, color: past ? t.mut : t.ink.withValues(alpha: .8), fontFeatures: const [FontFeature.tabularFigures()])),
+                  ]),
+                ),
+                const SizedBox(width: 17),
+                ExcludeSemantics(child: Container(width: 3, decoration: BoxDecoration(color: barColor, borderRadius: BorderRadius.circular(2)))),
+                const SizedBox(width: 15),
+                Expanded(
+                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                      Expanded(child: Text(c.name, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.titleMedium!.copyWith(fontSize: 17, fontWeight: FontWeight.w600, color: titleColor))),
+                      if (trailing != null) ...[
+                        const SizedBox(width: 8),
+                        Flexible(
+                          flex: 0,
+                          child: Padding(
+                            padding: const EdgeInsets.only(top: 3),
+                            child: Text(trailing!, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.bodySmall!.copyWith(fontSize: 13, fontWeight: ongoing ? FontWeight.w600 : FontWeight.w400, color: ongoing ? t.pr : t.mut)),
+                          ),
+                        ),
+                      ],
                     ]),
-                    const SizedBox(height: 10),
-                    Text(c.name,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: tx.titleLarge!.copyWith(
-                            fontWeight: FontWeight.w800, color: past ? t.mut : t.ink, decoration: past ? TextDecoration.lineThrough : null)),
-                    if (room != null || c.instructor != null) ...[
-                      const SizedBox(height: 10),
-                      Row(children: [
-                        if (room != null)
-                          Flexible(
-                            child: Row(mainAxisSize: MainAxisSize.min, children: [
-                              Icon(LucideIcons.doorOpen, size: 15, color: t.mut),
-                              const SizedBox(width: 6),
-                              Flexible(child: Text(l.p17RoomLabel(room), maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.bodySmall!.copyWith(color: t.mut))),
-                            ]),
-                          ),
-                        if (room != null && c.instructor != null) const SizedBox(width: 12),
-                        if (c.instructor != null)
-                          Flexible(
-                            child: Row(mainAxisSize: MainAxisSize.min, children: [
-                              Icon(LucideIcons.user, size: 15, color: t.mut),
-                              const SizedBox(width: 6),
-                              Flexible(child: Text(c.instructor!, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.bodySmall!.copyWith(color: t.mut))),
-                            ]),
-                          ),
-                      ]),
+                    if (sub.isNotEmpty) ...[
+                      const SizedBox(height: 4),
+                      Text(sub, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.bodySmall!.copyWith(fontSize: 13, color: t.mut)),
+                    ],
+                    if (c.instructor != null) ...[
+                      const SizedBox(height: 6),
+                      Text(c.instructor!, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.bodySmall!.copyWith(fontSize: 13, fontWeight: FontWeight.w500, color: t.ink.withValues(alpha: .8))),
                     ],
                   ]),
                 ),
-              ),
-            ]),
+              ]),
+            ),
           ),
         ),
       ),
@@ -350,49 +277,8 @@ class TtSlotCard extends StatelessWidget {
   }
 }
 
-/// "Derslerim" ızgara kartı: ders kodu etiketi, ad, haftalık süre.
-class TtCourseTile extends StatelessWidget {
-  const TtCourseTile({super.key, required this.course, required this.days, required this.onTap});
-
-  final Course course;
-  final String days;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = context.bu;
-    final tx = Theme.of(context).textTheme;
-    final l = context.l10n;
-    var mins = 0;
-    for (final s in course.sessions) {
-      final d = s.endMin - s.startMin;
-      if (d > 0) mins += d;
-    }
-    final hours = mins / 60;
-    final hoursText = hours.round().toString();
-    return Semantics(
-      container: true,
-      button: true,
-      label: l.acadTimeCourseSemantic(course.name, days),
-      excludeSemantics: true,
-      onTap: onTap,
-      child: AkadCard(
-        onTap: onTap,
-        padding: const EdgeInsets.all(14),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          if (course.code != null) AkadPill(course.code!, bg: t.sf2, fg: t.mut) else const SizedBox(height: 24),
-          const SizedBox(height: 14),
-          Text(course.name, maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.titleMedium!.copyWith(fontWeight: FontWeight.w800, color: t.ink)),
-          const SizedBox(height: 2),
-          Text(mins == 0 ? l.acadTimeNoSessions : l.p17HoursPerWeek(hoursText), style: tx.bodySmall!.copyWith(color: t.mut)),
-        ]),
-      ),
-    );
-  }
-}
-
-/// "Şimdi" çizgisi: günlük akışta geçmiş ve yaklaşan dersler arasına konur (nokta + ince çizgi + saat hapı).
-/// Bir kez solarak ve çizgi soldan sağa uzayarak belirir; sürekli hareket yoktur.
+/// "Şimdi · 11:20" çizgisi: `pr` nokta + `pr` metin + ince ayraç. Geçmiş ve yaklaşan dersler arasına konur; bir kez
+/// solarak belirir, sürekli hareket yoktur.
 class TtNowLine extends StatelessWidget {
   const TtNowLine({super.key, required this.time});
 
@@ -402,167 +288,90 @@ class TtNowLine extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
+    final tx = Theme.of(context).textTheme;
     final l = context.l10n;
+    final text = '${l.p69Now} · $time';
     return Semantics(
       container: true,
-      label: '${l.acadTimeStatusNow} $time',
+      label: text,
       excludeSemantics: true,
       child: TweenAnimationBuilder<double>(
         tween: Tween(begin: 0, end: 1),
         duration: BuMotion.of(context, BuMotion.long),
         curve: BuMotion.emphasizedDecelerate,
         builder: (_, v, child) => Opacity(opacity: v, child: child),
-        child: Padding(
-          padding: const EdgeInsets.only(bottom: 12),
-          child: Row(children: [
-            Container(width: 8, height: 8, decoration: BoxDecoration(color: t.pr, shape: BoxShape.circle)),
-            Expanded(child: Container(height: 1.5, color: t.pr.withValues(alpha: .35))),
-            const SizedBox(width: 8),
-            AkadPill('${l.acadTimeStatusNow} $time', bg: t.soft, fg: t.onSoft),
-          ]),
+        child: SizedBox(
+          height: 32,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Row(children: [
+              const Padding(padding: EdgeInsetsDirectional.only(start: 4), child: AcadDot(size: 8)),
+              const SizedBox(width: 6),
+              Text(text, maxLines: 1, style: tx.bodySmall!.copyWith(fontSize: 13, fontWeight: FontWeight.w600, color: t.pr, fontFeatures: const [FontFeature.tabularFigures()])),
+              const SizedBox(width: 9),
+              const Expanded(child: AcadRule()),
+            ]),
+          ),
         ),
       ),
     );
   }
 }
 
-/// "Bugün N ders kaldı" alt satırı (kırmızı nokta + metin).
-class TtLeftLine extends StatelessWidget {
-  const TtLeftLine({super.key, required this.text});
+/// Alt özet: solda küçük simge + "Bugün toplam 4 oturum (7 saat)", sağda `pr` metin bağlantı (Sınav takvimi).
+class TtSummary extends StatelessWidget {
+  const TtSummary({super.key, required this.text, required this.actionLabel, required this.onAction});
 
-  final String text;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = context.bu;
-    return Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-      Container(width: 6, height: 6, decoration: BoxDecoration(color: t.pr, shape: BoxShape.circle)),
-      const SizedBox(width: 8),
-      Flexible(child: Text(text, textAlign: TextAlign.center, style: Theme.of(context).textTheme.labelLarge!.copyWith(fontWeight: FontWeight.w600, color: t.mut))),
-    ]);
-  }
-}
-
-/// Dönem yok: büyük simge, başlık, açıklama, "Yeni dönem ekle".
-class TtNoSemesterCard extends StatelessWidget {
-  const TtNoSemesterCard({super.key, required this.onAdd});
-
-  final VoidCallback onAdd;
+  final String text, actionLabel;
+  final VoidCallback onAction;
 
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
     final tx = Theme.of(context).textTheme;
-    final l = context.l10n;
-    return AkadCard(
-      padding: const EdgeInsets.fromLTRB(20, 28, 20, 20),
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
+      child: Row(children: [
+        ExcludeSemantics(child: Icon(LucideIcons.circleCheck, size: 16, color: t.mut)),
+        const SizedBox(width: 8),
+        Expanded(child: Text(text, maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.bodySmall!.copyWith(fontSize: 13, color: t.ink.withValues(alpha: .8)))),
+        const SizedBox(width: 8),
+        Flexible(flex: 0, child: AcadTextAction(actionLabel, onTap: onAction, size: 13)),
+      ]),
+    );
+  }
+}
+
+/// Dönem ya da ders yokken ortalı boş durum (kartsız): başlık + muted açıklama + birincil düğme.
+class TtEmpty extends StatelessWidget {
+  const TtEmpty({super.key, required this.title, required this.body, required this.actionLabel, required this.onAction, this.semesterLabel, this.onPickSemester});
+
+  final String title, body, actionLabel;
+  final VoidCallback onAction;
+  final String? semesterLabel;
+  final VoidCallback? onPickSemester;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.bu;
+    final tx = Theme.of(context).textTheme;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 24, 20, 0),
       child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        Center(
-          child: Stack(clipBehavior: Clip.none, children: [
-            Container(width: 64, height: 64, decoration: BoxDecoration(color: t.sf2, shape: BoxShape.circle), child: Icon(LucideIcons.calendarDays, size: 28, color: t.pr)),
-            PositionedDirectional(
-              top: -2,
-              end: -4,
-              child: Container(
-                width: 22,
-                height: 22,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(color: t.pr, shape: BoxShape.circle),
-                child: Text('!', style: tx.labelMedium!.copyWith(fontWeight: FontWeight.w900, color: t.onPr)),
-              ),
-            ),
-          ]),
-        ),
-        const SizedBox(height: 16),
-        Semantics(header: true, child: Text(l.p17NoSemesterTitle, textAlign: TextAlign.center, style: tx.titleLarge!.copyWith(fontWeight: FontWeight.w800, color: t.ink))),
+        if (semesterLabel != null && onPickSemester != null)
+          Align(alignment: AlignmentDirectional.centerStart, child: AcadTextAction(semesterLabel!, onTap: onPickSemester)),
+        const SizedBox(height: 32),
+        Semantics(header: true, child: Text(title, textAlign: TextAlign.center, style: tx.titleMedium!.copyWith(fontSize: 17, fontWeight: FontWeight.w600, color: t.ink))),
         const SizedBox(height: 6),
-        Text(l.p17NoSemesterBody, textAlign: TextAlign.center, style: tx.bodyMedium!.copyWith(color: t.mut)),
-        const SizedBox(height: 20),
-        BuButton(label: l.acadTimeAddSemester, icon: LucideIcons.plus, onPressed: onAdd),
+        Text(body, textAlign: TextAlign.center, style: tx.bodyMedium!.copyWith(color: t.mut)),
+        const SizedBox(height: 24),
+        BuButton(label: actionLabel, onPressed: onAction),
       ]),
     );
   }
 }
 
-/// Ders yok: kitap simgesi, başlık, açıklama, koyu "İlk dersini ekle".
-class TtNoCourseCard extends StatelessWidget {
-  const TtNoCourseCard({super.key, required this.semester, required this.onAdd, required this.onPickSemester});
-
-  final String? semester;
-  final VoidCallback onAdd, onPickSemester;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = context.bu;
-    final tx = Theme.of(context).textTheme;
-    final l = context.l10n;
-    return AkadCard(
-      padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        if (semester != null)
-          Align(
-            alignment: AlignmentDirectional.centerStart,
-            child: GestureDetector(onTap: onPickSemester, child: AkadPill(semester!, bg: t.soft, fg: t.onSoft)),
-          ),
-        const SizedBox(height: 18),
-        Center(
-          child: Container(
-            width: 64,
-            height: 64,
-            decoration: BoxDecoration(color: t.sf2, borderRadius: BorderRadius.circular(20)),
-            child: Icon(LucideIcons.bookOpen, size: 28, color: t.ink),
-          ),
-        ),
-        const SizedBox(height: 16),
-        Semantics(header: true, child: Text(l.p17NoCourseTitle, textAlign: TextAlign.center, style: tx.titleLarge!.copyWith(fontWeight: FontWeight.w800, color: t.ink))),
-        const SizedBox(height: 6),
-        Text(l.p17NoCourseBody, textAlign: TextAlign.center, style: tx.bodyMedium!.copyWith(color: t.mut)),
-        const SizedBox(height: 20),
-        FilledButton.icon(
-          style: FilledButton.styleFrom(backgroundColor: t.ink, foregroundColor: t.bg, minimumSize: const Size(0, BuSize.button)),
-          onPressed: onAdd,
-          icon: const Icon(LucideIcons.bookPlus, size: 18),
-          label: Text(l.acadTimeAddFirst),
-        ),
-      ]),
-    );
-  }
-}
-
-/// Gün boş: tarih dairesi + gün adı, içte kahve simgeli kutu.
-class TtEmptyDay extends StatelessWidget {
-  const TtEmptyDay({super.key, required this.dayName, required this.dayOfMonth, required this.text});
-
-  final String dayName, text;
-  final int dayOfMonth;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = context.bu;
-    final tx = Theme.of(context).textTheme;
-    final l = context.l10n;
-    return AkadCard(
-      padding: const EdgeInsets.all(16),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        Row(children: [
-          Container(
-            width: 40,
-            height: 40,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(color: t.soft, shape: BoxShape.circle),
-            child: Text('$dayOfMonth', style: tx.titleMedium!.copyWith(fontWeight: FontWeight.w800, color: t.onSoft)),
-          ),
-          const SizedBox(width: 12),
-          Expanded(child: Text(dayName, style: tx.titleMedium!.copyWith(fontWeight: FontWeight.w800, color: t.ink))),
-        ]),
-        const SizedBox(height: 14),
-        AkadEmptyBox(icon: LucideIcons.coffee, iconColor: t.pr, title: text, message: l.p17DayFreeBody),
-      ]),
-    );
-  }
-}
-
-/// Ders programı yükleniyor iskeleti: ekranın kendi düzenine benzer (üst satır, gün haps, kartlar).
+/// Ders programı yükleniyor iskeleti: üst satır, gün şeridi, satırlar.
 class TtSkeleton extends StatelessWidget {
   const TtSkeleton({super.key});
 
@@ -578,27 +387,25 @@ class TtSkeleton extends StatelessWidget {
           padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
           child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
             const Row(children: [
-              Expanded(child: BuSkeleton(height: 48, radius: 16)),
-              SizedBox(width: 8),
-              Expanded(child: BuSkeleton(height: 48, radius: 16)),
+              BuSkeleton.line(width: 140, height: 14),
+              Spacer(),
+              BuSkeleton(width: 130, height: 32, radius: 16),
             ]),
-            const SizedBox(height: 16),
+            const SizedBox(height: 22),
             Row(children: [
               for (var i = 0; i < 5; i++) ...[
                 if (i > 0) const SizedBox(width: 8),
-                const Expanded(child: BuSkeleton(height: 44, radius: 22)),
+                const Expanded(child: BuSkeleton(height: 56, radius: 24)),
               ],
             ]),
-            const SizedBox(height: 16),
-            const BuSkeleton(height: 96, radius: 20),
-            const SizedBox(height: 12),
-            const BuSkeleton(height: 64, radius: 20),
-            const SizedBox(height: 22),
-            const BuSkeleton.line(width: 170, height: 20),
-            const SizedBox(height: 14),
+            const SizedBox(height: 28),
             for (var i = 0; i < 3; i++) ...[
-              const BuSkeleton(height: 104, radius: 20),
-              const SizedBox(height: 12),
+              const Row(children: [
+                BuSkeleton(width: 48, height: 40, radius: 6),
+                SizedBox(width: 24),
+                Expanded(child: BuSkeleton(height: 46, radius: 6)),
+              ]),
+              const SizedBox(height: 28),
             ],
           ]),
         ),

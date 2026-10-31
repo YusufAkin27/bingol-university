@@ -6,18 +6,20 @@ import 'package:flutter/services.dart';
 import '../../core/api.dart';
 import '../../core/locale_controller.dart';
 import '../../core/session.dart';
+import '../../l10n/app_localizations.dart';
 import '../../widgets/bu.dart';
+import 'acad_ref_widgets.dart';
 import 'academic_api.dart';
 import 'academic_models.dart';
 import 'academic_widgets.dart';
-import 'akad_widgets.dart';
 import 'course_form_page.dart';
+import 'exams_page.dart';
 import 'reminders.dart';
 import 'semester_sheet.dart';
 import 'timetable_parts.dart';
 
-/// Ders programı (Stitch 43): dönem + .ics satırı, gün hapları, şu an/sıradaki ders, günlük akış, "Derslerim" ızgarası,
-/// "Ders ekle" yüzen düğmesi. Çekerek yenilenir; dönem/ders yokken boş durum kartları.
+/// Ders programı (Stitch v3 02): hafta + dönem + "+" satırı, gün şeridi, kartsız zaman çizelgesi ("Şimdi" çizgisi), özet.
+/// Çekerek yenilenir; dönem/ders yokken ortalı boş durum.
 class TimetablePage extends StatefulWidget {
   const TimetablePage({super.key, required this.session});
 
@@ -125,29 +127,10 @@ class _TimetablePageState extends State<TimetablePage> {
   Widget build(BuildContext context) {
     final l = context.l10n;
     final data = _data;
-    final hasCourses = data != null && data.courses.isNotEmpty;
     return AcademicScaffold(
       title: l.acadTimeTitle,
-      floatingActionButton: hasCourses
-          ? DecoratedBox(
-              decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: [BoxShadow(color: context.bu.pr.withValues(alpha: .3), blurRadius: 16, offset: const Offset(0, 6), spreadRadius: -4)]),
-              child: FloatingActionButton.extended(
-                heroTag: null,
-                elevation: 0,
-                focusElevation: 0,
-                hoverElevation: 0,
-                highlightElevation: 0,
-                tooltip: l.acadTimeAddCourse,
-                onPressed: () => _openForm(day: _day),
-                icon: const Icon(LucideIcons.plus),
-                label: Text(l.acadTimeAddCourse),
-              ),
-            )
-          : null,
       child: Column(children: [
-        if (_error != null && data != null) AkadStaleStrip(text: l.acadTimeStale),
+        if (_error != null && data != null) Padding(padding: const EdgeInsets.fromLTRB(20, 0, 20, 8), child: AcadAmberNote(text: l.acadTimeStale)),
         Expanded(child: _body(data)),
       ]),
     );
@@ -158,42 +141,76 @@ class _TimetablePageState extends State<TimetablePage> {
       if (_loading) return const SingleChildScrollView(physics: NeverScrollableScrollPhysics(), child: TtSkeleton());
       return RefreshIndicator(
         onRefresh: () => _load(quiet: true),
-        child: ListView(physics: const AlwaysScrollableScrollPhysics(), padding: const EdgeInsets.fromLTRB(20, 16, 20, 32), children: [_errorCard()]),
+        child: ListView(physics: const AlwaysScrollableScrollPhysics(), padding: const EdgeInsets.only(bottom: 32), children: [_errorBlock()]),
       );
     }
     return RefreshIndicator(
       onRefresh: () => _load(quiet: true),
       child: ListView(
         physics: const AlwaysScrollableScrollPhysics(),
-        padding: const EdgeInsets.fromLTRB(0, 16, 0, 112),
+        padding: const EdgeInsets.only(bottom: 32),
         children: _content(data),
       ),
     );
   }
 
-  Widget _errorCard() {
+  Widget _errorBlock() {
     final l = context.l10n;
     final e = _error;
     if (e is ApiError && e.status == 503) {
       return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        AkadNoticeCard(text: e.message.isNotEmpty ? e.message : l.acadMaintenance),
-        const SizedBox(height: 12),
-        Align(alignment: AlignmentDirectional.centerEnd, child: BuButton(label: l.acadRetry, compact: true, kind: BuButtonKind.soft, onPressed: _load)),
+        Padding(padding: const EdgeInsets.fromLTRB(20, 8, 20, 0), child: AcadAmberNote(text: e.message.isNotEmpty ? e.message : l.acadMaintenance)),
+        AcadStateText(text: '', actionLabel: l.acadRetry, onAction: _load, top: 0),
       ]);
     }
-    return AkadErrorCard(title: l.p17LoadErrTitle, message: e == null ? null : errorText(e), onRetry: _load, retryLabel: l.acadRetry);
+    return AcadStateText(text: e == null ? l.p17LoadErrTitle : '${l.p17LoadErrTitle}\n${errorText(e)}', actionLabel: l.acadRetry, onAction: _load);
   }
 
-  Widget _pad(Widget w, {double top = 0}) => Padding(padding: EdgeInsetsDirectional.fromSTEB(20, top, 20, 0), child: w);
+  /// Yarıyılın kaçıncı haftasındayız (1'den); dönem tarihi yoksa ya da dışındaysak null.
+  int? _weekOf(Semester? sem, DateTime nowWall) {
+    final st = sem?.startDate;
+    if (st == null) return null;
+    final today = DateTime.utc(nowWall.year, nowWall.month, nowWall.day);
+    final monday = DateTime.utc(st.year, st.month, st.day).subtract(Duration(days: st.weekday - 1));
+    final w = today.difference(monday).inDays ~/ 7 + 1;
+    if (w < 1) return null;
+    final end = sem?.endDate;
+    if (end != null && today.isAfter(end)) return null;
+    return w;
+  }
+
+  /// Gün şeridinde gösterilecek günler: hafta içi 5 gün; Cmt/Paz yalnız dersi varsa ya da seçiliyse.
+  List<int> _stripDays(List<Course> courses) => [
+        for (var d = 1; d <= 7; d++)
+          if (d <= 5 || d == _day || courses.any((c) => c.sessions.any((s) => s.dayOfWeek == d))) d,
+      ];
+
+  String _ago(AppLocalizations l, int minutesUntil) {
+    if (minutesUntil < 60) return l.acadTimeWhenMin(minutesUntil.toString());
+    return minutesUntil % 60 == 0
+        ? l.acadTimeWhenHours((minutesUntil ~/ 60).toString())
+        : l.acadTimeWhenHoursMin((minutesUntil ~/ 60).toString(), (minutesUntil % 60).toString());
+  }
 
   List<Widget> _content(TimetableData data) {
     final l = context.l10n;
     final t = context.bu;
     final sem = data.semester;
     final nowWall = istanbulWall(academicClock());
-    if (sem == null && data.courses.isEmpty) return [_pad(TtNoSemesterCard(onAdd: _pickSemester))];
+    if (sem == null && data.courses.isEmpty) {
+      return [TtEmpty(title: l.p17NoSemesterTitle, body: l.p17NoSemesterBody, actionLabel: l.acadTimeAddSemester, onAction: _pickSemester)];
+    }
     if (data.courses.isEmpty) {
-      return [_pad(TtNoCourseCard(semester: sem?.name, onAdd: () => _openForm(day: _day), onPickSemester: _pickSemester))];
+      return [
+        TtEmpty(
+          title: l.p17NoCourseTitle,
+          body: l.p17NoCourseBody,
+          actionLabel: l.acadTimeAddFirst,
+          onAction: () => _openForm(day: _day),
+          semesterLabel: sem?.name,
+          onPickSemester: _pickSemester,
+        ),
+      ];
     }
     final date = _dateOf(_day, nowWall);
     final inSem = slotsForDay(data.courses, sem, date, nowWall: nowWall);
@@ -201,138 +218,86 @@ class _TimetablePageState extends State<TimetablePage> {
     final list = inSem.isNotEmpty ? inSem : slotsForDay(data.courses, null, date, nowWall: nowWall);
     final todayView = _day == nowWall.weekday;
     final dayName = acadDayName(l, _day);
-    final left = todayView ? list.where((s) => s.status != SlotStatus.past).length : 0;
-    final hasOngoing = list.any((s) => s.status == SlotStatus.ongoing);
-    final firstUpcoming = list.indexWhere((s) => s.status == SlotStatus.upcoming);
-    final nowTime = '${nowWall.hour.toString().padLeft(2, '0')}:${nowWall.minute.toString().padLeft(2, '0')}';
+    final nowMin = nowWall.hour * 60 + nowWall.minute;
+    final nowTime = hhmm(nowMin);
+    var nowIdx = list.indexWhere((s) => s.status != SlotStatus.past);
+    if (nowIdx < 0) nowIdx = list.length; // hepsi bitti: çizgi en sonda
+    var totalMin = 0;
+    for (final s in list) {
+      final d = s.session.endMin - s.session.startMin;
+      if (d > 0) totalMin += d;
+    }
+    String? trailingOf(int i) {
+      final s = list[i];
+      if (todayView) {
+        switch (s.status) {
+          case SlotStatus.past:
+            return l.p69Done;
+          case SlotStatus.ongoing:
+            return l.acadCountdownMinutes((s.session.endMin - nowMin).toString());
+          case SlotStatus.upcoming:
+            return i == list.length - 1 ? l.p69LastSession : _ago(l, s.session.startMin - nowMin);
+        }
+      }
+      return i == list.length - 1 && list.length > 1 ? l.p69LastSession : null;
+    }
+
+    final rows = <Widget>[];
+    for (var i = 0; i < list.length; i++) {
+      if (todayView && i == nowIdx) rows.add(TtNowLine(time: nowTime));
+      rows.add(BuStaggerItem(
+        index: i,
+        child: TtSlotCard(slot: list[i], todayView: todayView, trailing: trailingOf(i), onTap: () => _openForm(course: list[i].course)),
+      ));
+      final nextIsNow = todayView && i + 1 == nowIdx;
+      if (i < list.length - 1 && !nextIsNow) rows.add(const Padding(padding: EdgeInsetsDirectional.only(start: 85), child: AcadRule()));
+    }
+    if (todayView && nowIdx == list.length && list.isNotEmpty) rows.add(TtNowLine(time: nowTime));
     return [
-      _pad(TtTopRow(name: sem?.name ?? l.acadTimePickSemester, onPickSemester: _pickSemester, onExport: _export)),
-      const SizedBox(height: 14),
-      TtDayPills(
+      TtTopRow(semester: sem?.name ?? l.acadTimePickSemester, week: _weekOf(sem, nowWall), onPickSemester: _pickSemester, onAdd: () => _openForm(day: _day)),
+      const SizedBox(height: 6),
+      TtDayStrip(
         selected: _day,
         todayWeekday: nowWall.weekday,
+        days: _stripDays(data.courses),
+        dates: {for (var d = 1; d <= 7; d++) d: _dateOf(d, nowWall)},
         onSelect: (d) => setState(() {
           _dayDir = d >= _day ? 1 : -1;
           _day = d;
         }),
       ),
-      const SizedBox(height: 14),
-      ..._nowAndNext(data, nowWall),
-      const SizedBox(height: 22),
-      // Gün değişince günlük akış yatay kayarak yer değiştirir (ileri gün: sola, geri: sağa).
+      const SizedBox(height: 17),
+      const Padding(padding: EdgeInsets.symmetric(horizontal: 20), child: AcadRule()),
+      const SizedBox(height: 12),
+      // Gün değişince akış yatay kayarak yer değiştirir (ileri gün: sola, geri: sağa).
       BuSharedAxis(
         reverse: _dayDir < 0,
         distance: 24,
         child: KeyedSubtree(
           key: ValueKey<int>(_day),
           child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-      _pad(AkadTitle(l.p17DailyFlow,
-          chip: dayName,
-          trailing: list.isEmpty
-              ? null
-              : Text(l.p17DayPlanned(list.length.toString()), textAlign: TextAlign.end, style: Theme.of(context).textTheme.labelMedium!.copyWith(fontWeight: FontWeight.w700, color: t.mut)))),
-      const SizedBox(height: 12),
-      if (outOfRange)
-        _pad(TtInfoCard(icon: LucideIcons.calendarX, tileBg: t.sf2, tileFg: t.mut, title: l.acadTimeOutOfRange, body: l.p17OutOfRangeBody)),
-      if (outOfRange && list.isNotEmpty) const SizedBox(height: 12),
-      if (list.isEmpty && !outOfRange) _pad(TtEmptyDay(dayName: dayName, dayOfMonth: date.day, text: l.acadTimeNoClassDay(dayName))),
-      if (list.isNotEmpty)
-        _pad(BuStaggerScope(
-          child: Column(children: [
-            for (var i = 0; i < list.length; i++) ...[
-              // "Şimdi" çizgisi: ders sürmüyorsa ilk yaklaşan dersin hemen üstünde (geçmiş / gelecek ayrımı).
-              if (todayView && !hasOngoing && i == firstUpcoming) TtNowLine(time: nowTime),
-              BuStaggerItem(
-                index: i,
-                child: Padding(
-                  padding: EdgeInsets.only(bottom: i == list.length - 1 ? 0 : 12),
-                  child: TtSlotCard(slot: list[i], todayView: todayView, onTap: () => _openForm(course: list[i].course)),
-                ),
-              ),
-            ],
-          ]),
-        )),
+            if (outOfRange) AcadStateText(text: l.acadTimeOutOfRange, top: 4),
+            if (list.isEmpty && !outOfRange) AcadStateText(text: l.acadTimeNoClassDay(dayName), top: 18),
+            if (list.isNotEmpty) BuStaggerScope(child: Column(children: rows)),
           ]),
         ),
       ),
-      if (todayView && list.isNotEmpty) ...[
-        const SizedBox(height: 14),
-        _pad(left > 0
-            ? TtLeftLine(text: l.acadTimeTodayLeft(left.toString()))
-            : TtInfoCard(icon: LucideIcons.circleCheck, tileBg: t.tint(1).bg, tileFg: t.tint(1).fg, title: l.acadTimeTodayNone, body: l.p17TodayDoneBody)),
-      ],
-      const SizedBox(height: 24),
-      _pad(AkadTitle(l.p17MyCourses, count: data.courses.length)),
-      const SizedBox(height: 12),
-      _pad(_courseGrid(data.courses)),
-    ];
-  }
-
-  Widget _courseGrid(List<Course> courses) {
-    final l = context.l10n;
-    Widget tile(Course c) {
-      final days = {for (final s in c.sessions) '${acadDayShort(l, s.dayOfWeek.clamp(1, 7))} ${s.start}-${s.end}'}.join(' · ');
-      return TtCourseTile(course: c, days: days, onTap: () => _openForm(course: c));
-    }
-
-    return Column(children: [
-      for (var i = 0; i < courses.length; i += 2) ...[
-        if (i > 0) const SizedBox(height: 12),
-        IntrinsicHeight(
-          child: Row(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-            Expanded(child: tile(courses[i])),
-            const SizedBox(width: 12),
-            Expanded(child: i + 1 < courses.length ? tile(courses[i + 1]) : const SizedBox.shrink()),
-          ]),
+      if (list.isNotEmpty) ...[
+        const SizedBox(height: 20),
+        TtSummary(
+          text: todayView ? l.p69TodayTotal(list.length.toString(), ttHoursText(context, totalMin)) : l.p17DayPlanned(list.length.toString()),
+          actionLabel: l.p69ExamCalendar,
+          onAction: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => ExamsPage(session: widget.session))),
         ),
       ],
-    ]);
-  }
-
-  /// Süren ders kartı + sıradaki ders kartı (ya da hafta bitti bilgisi).
-  List<Widget> _nowAndNext(TimetableData data, DateTime nowWall) {
-    final l = context.l10n;
-    final t = context.bu;
-    final today = slotsForDay(data.courses, data.semester, nowWall, nowWall: nowWall);
-    DaySlot? ongoing;
-    for (final s in today) {
-      if (s.status == SlotStatus.ongoing) ongoing = s;
-    }
-    final next = nextSlot(data.courses, data.semester, nowWall);
-    final out = <Widget>[];
-    if (ongoing != null) {
-      final nowMin = nowWall.hour * 60 + nowWall.minute;
-      final len = ongoing.session.endMin - ongoing.session.startMin;
-      out.add(_pad(TtNowCard(
-        name: ongoing.course.name,
-        minutesLeft: ongoing.session.endMin - nowMin,
-        progress: len <= 0 ? 0 : (nowMin - ongoing.session.startMin) / len,
-        room: ongoing.session.room,
-      )));
-    }
-    if (next != null) {
-      final s = next.slot;
-      final isToday = s.date.day == nowWall.day && s.date.month == nowWall.month;
-      final when = next.minutesUntil < 60
-          ? l.acadTimeWhenMin(next.minutesUntil.toString())
-          : isToday
-              ? (next.minutesUntil % 60 == 0
-                  ? l.acadTimeWhenHours((next.minutesUntil ~/ 60).toString())
-                  : l.acadTimeWhenHoursMin((next.minutesUntil ~/ 60).toString(), (next.minutesUntil % 60).toString()))
-              : l.acadTimeWhenDay(acadDayName(l, s.date.weekday), s.session.start);
-      if (out.isNotEmpty) out.add(const SizedBox(height: 12));
-      out.add(_pad(TtInfoCard(
-        icon: LucideIcons.clock,
-        tileBg: t.tint(1).bg,
-        tileFg: t.tint(1).fg,
-        label: l.acadTimeNextClass,
-        title: s.course.name,
-        pill: when,
-      )));
-    } else if (ongoing == null) {
-      out.add(_pad(TtInfoCard(icon: LucideIcons.sofa, tileBg: t.soft, tileFg: t.onSoft, title: l.acadTimeNoMoreWeek, body: l.p17WeekDoneBody)));
-    }
-    return out;
+      Align(
+        alignment: AlignmentDirectional.centerStart,
+        child: Padding(
+          padding: const EdgeInsetsDirectional.only(start: 20),
+          child: AcadTextAction(isolateIcs(l.acadTimeExportTooltip), onTap: _export, size: 13, color: t.mut, semanticLabel: l.acadTimeExportTooltip),
+        ),
+      ),
+    ];
   }
 
   /// Haftanın [weekday] gününün tarihi (bu hafta içinde).
