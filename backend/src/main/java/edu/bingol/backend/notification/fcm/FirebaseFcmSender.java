@@ -1,5 +1,7 @@
 package edu.bingol.backend.notification.fcm;
 
+import com.google.api.client.http.HttpTransport;
+import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.auth.oauth2.ServiceAccountCredentials;
 import com.google.firebase.FirebaseApp;
@@ -31,14 +33,32 @@ public class FirebaseFcmSender implements FcmSender {
     private static final int BATCH = 500;
     private static final int MAX_APNS_COLLAPSE_ID = 64;
 
+    /** Baglanti kurma / yanit okuma zaman asimlari (ms): takili FCM cagrisi kuyruk isleyicisini bloklamasin. */
+    private static final int CONNECT_TIMEOUT_MS = 10_000;
+    private static final int READ_TIMEOUT_MS = 30_000;
+
+    /**
+     * Aktarim ACIKCA JDK (HttpURLConnection) olarak secilir. firebase-admin 9.4.1 varsayilani ApacheHttp2Transport'tur
+     * ve Spring Boot BOM'u httpclient5'i (5.6.x) / httpcore5'i (5.4.x) yukselttigi icin gzip'li FCM yanitini iki kez
+     * acmaya calisir: "FirebaseMessagingException: Unknown error while making a remote service call: Not in GZIP format
+     * (cause=ZipException)" ve tum gonderimler UNKNOWN koduyla DEAD olur. Yerel yeniden uretim:
+     * {@code FcmTransportGzipTest}. OAuth belirteci istegi de ayni aktarimi kullanir.
+     */
+    private static final HttpTransport TRANSPORT = new NetHttpTransport();
+
+    static HttpTransport transport() {
+        return TRANSPORT;
+    }
+
     private final FirebaseMessaging messaging;
     private final String projectId;
 
     public FirebaseFcmSender(InputStream credentials) throws IOException {
         FirebaseApp app;
         if (FirebaseApp.getApps().isEmpty()) {
-            GoogleCredentials creds = GoogleCredentials.fromStream(credentials);
-            FirebaseOptions.Builder ob = FirebaseOptions.builder().setCredentials(creds);
+            GoogleCredentials creds = GoogleCredentials.fromStream(credentials, () -> TRANSPORT);
+            FirebaseOptions.Builder ob = FirebaseOptions.builder().setCredentials(creds).setHttpTransport(TRANSPORT)
+                    .setConnectTimeout(CONNECT_TIMEOUT_MS).setReadTimeout(READ_TIMEOUT_MS);
             // Proje kimligi servis hesabi JSON'undaki project_id'den okunur (acikca verilir).
             if (creds instanceof ServiceAccountCredentials sac && sac.getProjectId() != null
                     && !sac.getProjectId().isBlank()) {

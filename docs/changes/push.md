@@ -210,3 +210,11 @@ Kullanıcının **kendi girdiği** sınavlar (`tt_exam`) için sınavdan 2 saat 
 - **Metin (alıcının dilinde, tr/en/ar):** `notif.academic.examReminder[.Room].title|body` (`messages*.properties`): başlık "Sınav hatırlatması", gövde "<başlık> sınavına 2 saat kaldı (SS:dd[, salon])"; saat `Europe/Istanbul`; sınav başlığı kullanıcı girdisidir, çevrilmez.
 - **Mobil:** yerel `examHourBefore` (1 saat önce) hatırlatması artık kurulmaz (çift bildirim olmasın); 1 gün önceki yerel hatırlatma kalır. Ayarlar sayfasındaki satır "Sınavdan 2 saat önce (bildirim)" sunucu push'unu anlatır ve Profil > Bildirim tercihleri'ne (Akademik duyurular) götürür. Eski yerel saatlik alarmlar bir sonraki yeniden planlamada (`replaceGroup('academic')`) silinir.
 - **Dağıtım notu:** V1010 uygulanmadan yeni sürüm açılmamalı (entity yok, düz SQL; kolon yoksa görev sorgusu hata verir ve tur atlanır, sınav CRUD'u `reminded_starts_at` yazdığı için create de 500 verir). Sıra: migration + backend birlikte.
+
+
+## FCM gonderim hatasi: "Not in GZIP format" (2026-10-31)
+
+Belirti: yonetici panelinde dead-letter push kayitlari `FirebaseMessagingException; errorCode=UNKNOWN; msg=Unknown error while making a remote service call: Not in GZIP format; cause=ZipException`.
+Kok neden: firebase-admin 9.4.1 varsayilan aktarimi `ApacheHttp2Transport`; Spring Boot BOM'u httpclient5'i 5.6.x / httpcore5'i 5.4.x'e yukseltince (SDK 5.3.1 / 5.2.4 ile derli) gzip'li FCM yaniti iki kez acilmaya calisiliyor. Her deneme ayni hatayi verdigi icin kayitlar DEAD oldu. Yerelde birebir uretildi (gzip yanitli sahte sunucu: varsayilan aktarim ZipException, NetHttpTransport sorunsuz).
+Duzeltme: `FirebaseFcmSender` aktarimi acikca `NetHttpTransport` (JDK) olarak sabitler (FirebaseOptions + OAuth belirteci istegi), baglanti 10 sn / okuma 30 sn zaman asimi. Test: `FcmTransportGzipTest`.
+Dagitimdan sonra: yonetici panelinde dead-letter push kayitlarini "yeniden dene" (`/api/admin/push/outbox/*`); eski kayitlar eski hata koduyla DEAD kalmistir. Gercek FCM ile dogrulama dagitim sonrasi bir test push'uyla yapilir (yerelde FCM kimligi yok).
