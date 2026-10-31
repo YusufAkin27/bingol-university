@@ -1,6 +1,7 @@
 package edu.bingol.backend.moderation;
 
 import edu.bingol.backend.auth.jwt.JwtAuthFilter;
+import edu.bingol.backend.common.AfterCommit;
 import edu.bingol.backend.common.ApiException;
 import edu.bingol.backend.notification.NotificationService;
 import edu.bingol.backend.notification.NotificationType;
@@ -43,23 +44,31 @@ public class UserModerationService {
         u.setStatus(UserStatus.SUSPENDED);
         u.setSuspendedReason(reason);
         users.save(u);
-        redis.opsForValue().set(JwtAuthFilter.SUSPENDED_KEY_PREFIX + userId, "1");
-        // Refresh token'lar silinir ve eski access token'lar isaretlenir: geri acilinca eski oturumlar canlanmaz.
-        if (sessions != null) {
-            sessions.revokeAll(userId);
-        }
+        // Redis isareti ve oturum iptali COMMIT SONRASI (T-009): islem geri alinirsa kullanici yanlisla kilitlenmez.
+        AfterCommit.run(() -> {
+            redis.opsForValue().set(JwtAuthFilter.SUSPENDED_KEY_PREFIX + userId, "1");
+            // Refresh token'lar silinir ve eski access token'lar isaretlenir: geri acilinca eski oturumlar canlanmaz.
+            if (sessions != null) {
+                sessions.revokeAll(userId);
+            }
+        });
     }
 
     @Transactional
     public void unsuspend(Long userId) {
         User u = find(userId);
-        if (u.getStatus() == UserStatus.SUSPENDED) {
-            u.setStatus(UserStatus.ACTIVE);
-            u.setSuspendedReason(null);
-            users.save(u);
+        // Yalniz ASKIDAKI hesap geri acilir: silinmis (DELETED) hesabin `suspended:` isareti silinirse eski access
+        // token'lar silinen hesapta canlanirdi; aktif hesaba da "yeniden acildi" bildirimi gitmez (T-009).
+        if (u.getStatus() != UserStatus.SUSPENDED) {
+            return;
         }
-        redis.delete(JwtAuthFilter.SUSPENDED_KEY_PREFIX + userId);
-        notifications.sendLocalized(userId, NotificationType.SYSTEM, "notif.account.reactivated.title", null, null, null);
+        u.setStatus(UserStatus.ACTIVE);
+        u.setSuspendedReason(null);
+        users.save(u);
+        AfterCommit.run(() -> {
+            redis.delete(JwtAuthFilter.SUSPENDED_KEY_PREFIX + userId);
+            notifications.sendLocalized(userId, NotificationType.SYSTEM, "notif.account.reactivated.title", null, null, null);
+        });
     }
 
     private User find(Long id) {

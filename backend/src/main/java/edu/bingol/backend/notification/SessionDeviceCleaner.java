@@ -10,7 +10,8 @@ import org.springframework.stereotype.Component;
 
 /**
  * Tek cihaz kurali: baska bir mobil cihazdaki yeni giris eski oturumu kapatinca eski cihazin FCM kaydi da silinir
- * (eski cihaza bildirim gitmesin). Yeni cihaz giristen sonra `POST /devices` ile kendini yeniden kaydeder.
+ * (eski cihaza bildirim gitmesin). Tum oturumlar kapaninca (logout-all, sifre degisimi/sifirlama, askiya alma) da
+ * kullanicinin tum FCM kayitlari silinir. Etkin cihaz `POST /devices` ile kendini yeniden kaydeder.
  */
 @Component
 public class SessionDeviceCleaner {
@@ -25,7 +26,12 @@ public class SessionDeviceCleaner {
 
     @EventListener
     public void onSessionsRevoked(SessionsRevokedEvent e) {
-        if (!e.newLogin() || !"mobile".equals(e.client())) {
+        // (1) tek cihaz kurali: baska mobil cihazdaki yeni giris; (2) TUM oturumlar kapandi (logout-all, sifre
+        // degisimi/sifirlama, askiya alma): kilit ekraninda bildirim surmesin (T-008). Etkin cihaz giristen/yeni
+        // token'dan sonra kendini POST /devices ile yeniden kaydeder.
+        boolean singleDeviceRule = e.newLogin() && "mobile".equals(e.client());
+        boolean allSessions = e.client() == null && !e.newLogin();
+        if (!singleDeviceRule && !allSessions) {
             return;
         }
         try {

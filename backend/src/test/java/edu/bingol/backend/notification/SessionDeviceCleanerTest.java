@@ -21,10 +21,21 @@ class SessionDeviceCleanerTest {
     }
 
     @Test
-    void otherRevocationsKeepDevices() {
+    void revokeAllSessionsDeletesAllDeviceRecordsT008() {
+        // logout-all, sifre degisimi/sifirlama, askiya alma: istemci null + yeni giris degil -> kilit ekraninda bildirim kalmasin
         cleaner.onSessionsRevoked(new SessionsRevokedEvent(7L));
+        cleaner.onSessionsRevoked(new SessionsRevokedEvent(8L, null, false, true));
+
+        verify(devices).deleteAllByUser(7L);
+        verify(devices).deleteAllByUser(8L);
+    }
+
+    @Test
+    void otherRevocationsKeepDevices() {
+        // web yeni girisi ve mobil "kismi" iptal (yeni giris degil) cihaz kayitlarina dokunmaz
         cleaner.onSessionsRevoked(new SessionsRevokedEvent(7L, "web", true, true));
         cleaner.onSessionsRevoked(new SessionsRevokedEvent(7L, "mobile", false, true));
+        cleaner.onSessionsRevoked(new SessionsRevokedEvent(7L, "web", false, true));
 
         verify(devices, never()).deleteAllByUser(anyLong());
     }

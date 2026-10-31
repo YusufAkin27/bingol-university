@@ -235,7 +235,28 @@ public class ProfileService {
         if (!encoder.matches(password, u.getPasswordHash())) {
             throw new ApiException(HttpStatus.FORBIDDEN, "WRONG_PASSWORD", "Şifre hatalı.");
         }
+        // Yonetici kendini silemez (T-002): once baska bir yonetici rolunu dusurmeli (panelde son yonetici/son FULL
+        // korumasi orada isler); ADMIN_EMAILS hesaplari rol dusurulemedigi icin hic silemez.
+        if (u.getRole() == Role.ADMIN || (adminProps != null && adminProps.isAdminEmail(u.getEmail()))) {
+            throw new ApiException(HttpStatus.CONFLICT, "ADMIN_CANNOT_SELF_DELETE",
+                    "Yönetici hesabı kendi kendini silemez; önce başka bir yönetici rolünüzü kaldırmalıdır.");
+        }
         anonymize(u);
+    }
+
+    /** Yapilandirilmis yonetici adresleri (istege bagli: birim testlerinde yok). */
+    private edu.bingol.backend.config.AdminProperties adminProps;
+    /** Oturum iptali (istege bagli: birim testlerinde yok). */
+    private edu.bingol.backend.auth.token.SessionService sessions;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setAdminProperties(edu.bingol.backend.config.AdminProperties adminProps) {
+        this.adminProps = adminProps;
+    }
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setSessions(edu.bingol.backend.auth.token.SessionService sessions) {
+        this.sessions = sessions;
     }
 
     /** Parolasiz anonimlestirme: yonetici silme akisi da ayni mantigi kullanir (parola kontrolu cagirana aittir). */
@@ -257,6 +278,9 @@ public class ProfileService {
         u.setBio(null);
         u.setAvatarUrl(null);
         u.setShowEmail(false);
+        // Silinen hesapta yonetici yetkisi kalmasin (T-002): panelden/yanlis geri aciliste bile rol tasinmaz.
+        u.setRole(Role.USER);
+        u.setAdminProfile(null);
         u.setStatus(UserStatus.DELETED);
         u.setDeletedAt(Instant.now());
         users.saveAndFlush(u);
@@ -274,8 +298,15 @@ public class ProfileService {
             }
             rsvps.delete(r);
         }
-        // Eldeki access token'lar aninda gecersiz olsun (askiya almadaki mekanizma)
-        redis.opsForValue().set(JwtAuthFilter.SUSPENDED_KEY_PREFIX + u.getId(), "1");
+        // Eldeki access token'lar aninda gecersiz olsun (askiya almadaki mekanizma) + refresh oturumlari kapansin.
+        // COMMIT SONRASI: islem geri alinirsa hesap yanlisla kilitli kalmaz (T-009); refresh kumesi (rtu:<id>) temizlenir.
+        Long uid = u.getId();
+        edu.bingol.backend.common.AfterCommit.run(() -> {
+            redis.opsForValue().set(JwtAuthFilter.SUSPENDED_KEY_PREFIX + uid, "1");
+            if (sessions != null) {
+                sessions.revokeAll(uid);
+            }
+        });
         // Sahipsiz kulup, yetim basvuru/bekleme listesi, gonderi gorselleri: commit sonrasi dinleyicilerde
         if (publisher != null) {
             publisher.publishEvent(new UserAccountDeletedEvent(u.getId(), List.copyOf(freedEvents)));
