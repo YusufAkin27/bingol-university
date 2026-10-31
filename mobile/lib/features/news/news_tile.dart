@@ -130,7 +130,7 @@ class NewsTile extends StatelessWidget {
             fallbackIcon: newsTypeIcon(type),
             tint: tint ?? BuTint(t.soft, t.onSoft),
           );
-    if (id != null && img != null && img.isNotEmpty) thumb = Hero(tag: 'news-img-$id', child: thumb);
+    if (id != null && img != null && img.isNotEmpty) thumb = newsHero(id: id, radius: 14, child: thumb);
     return IcerikCard(
       onTap: onTap,
       shadow: false,
@@ -214,7 +214,7 @@ class NewsFeaturedCard extends StatelessWidget {
               ),
             ),
           );
-    if (id != null && hasImg) cover = Hero(tag: 'news-img-$id', child: cover);
+    if (id != null && hasImg) cover = newsHero(id: id, radius: 24, child: cover);
     return BuPressable(
       scale: .98,
       child: DecoratedBox(

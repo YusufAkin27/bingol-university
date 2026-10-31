@@ -201,10 +201,26 @@ class _NewsDetailPageState extends State<NewsDetailPage> {
                           overlay: overlay,
                           onTap: () => Navigator.pop(context)),
                     ),
-                    title: AnimatedOpacity(
-                      opacity: collapsed ? 1 : 0,
+                    // Daralınca ince alt çizgi belirir (içerik başlığın altından kayarken ayrışma).
+                    bottom: PreferredSize(
+                      preferredSize: const Size.fromHeight(1),
+                      child: AnimatedOpacity(
+                        key: const ValueKey('news-bar-hairline'),
+                        opacity: collapsed ? 1 : 0,
+                        duration: BuMotion.of(context, BuMotion.short),
+                        child: Divider(height: 1, thickness: 1, color: t.bd),
+                      ),
+                    ),
+                    // Başlık çubuğunda belirirken hafifçe yukarı kayar (yalnız opaklık + öteleme).
+                    title: AnimatedSlide(
+                      offset: Offset(0, collapsed ? 0 : .25),
                       duration: BuMotion.of(context, BuMotion.medium),
-                      child: Text(title, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.titleMedium!.copyWith(color: t.ink)),
+                      curve: BuMotion.emphasizedDecelerate,
+                      child: AnimatedOpacity(
+                        opacity: collapsed ? 1 : 0,
+                        duration: BuMotion.of(context, BuMotion.medium),
+                        child: Text(title, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.titleMedium!.copyWith(color: t.ink)),
+                      ),
                     ),
                     centerTitle: false,
                     actions: [
@@ -231,8 +247,8 @@ class _NewsDetailPageState extends State<NewsDetailPage> {
                             collapseMode: CollapseMode.parallax,
                             stretchModes: const [StretchMode.zoomBackground],
                             background: Stack(fit: StackFit.expand, children: [
-                              Hero(
-                                tag: 'news-img-$_id',
+                              newsHero(
+                                id: _id,
                                 child: SizedBox.expand(
                                   child: BuImage(img, width: double.infinity, height: double.infinity, maxDecodeWidth: 1400),
                                 ),

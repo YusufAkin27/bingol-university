@@ -111,14 +111,14 @@ IconData _iconOf(String type) {
   }
 }
 
-/// Sonuç türüne göre simge karosu tonu (haber/duyuru mavi ailesi, etkinlik amber, kulüp yeşil, gönderi/kişi nötr).
+/// Sonuç simge karosu tonu: tek vurgu (mavi); kişi/diğer nötr (en çok iki ton, amber yalnız uyarı içindir).
 BuTint _tintOf(BuTokens t, String type) {
-  if (type == 'ANNOUNCEMENT') return t.tint(BuTintId.aqua);
+  if (type == 'ANNOUNCEMENT') return t.tint(BuTintId.blue);
   return switch (_tabOf(type)) {
     _Tab.news => t.tint(BuTintId.blue),
-    _Tab.club => t.tint(BuTintId.green),
-    _Tab.event => t.tint(BuTintId.amber),
-    _Tab.post => t.tint(BuTintId.aqua),
+    _Tab.club => t.tint(BuTintId.blue),
+    _Tab.event => t.tint(BuTintId.blue),
+    _Tab.post => t.tint(BuTintId.blue),
     _ => t.tint(BuTintId.slate),
   };
 }
@@ -473,7 +473,8 @@ class _SearchPageState extends State<SearchPage> {
             ),
           ),
           if (active && _loading && _query.isNotEmpty) const LinearProgressIndicator(minHeight: 2) else const SizedBox(height: 2),
-          Expanded(child: active ? _results(t) : _suggestions(t)),
+          // Öneriler <-> sonuçlar yumuşak geçiş (anahtar: etkin mi); sonuç içi iskelet/sıralı giriş kendi içinde.
+          Expanded(child: BuFadeThrough(child: KeyedSubtree(key: ValueKey<bool>(active), child: active ? _results(t) : _suggestions(t)))),
         ],
       ),
     );

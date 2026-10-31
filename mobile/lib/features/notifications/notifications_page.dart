@@ -191,7 +191,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
       case 'POST_LIKE':
         return NotifTone.red;
       case 'COMMUNITY':
-        return NotifTone.aqua;
+        return NotifTone.blue;
       case 'MESSAGE':
       case 'POLL':
       case 'POLL_CLOSED':
@@ -486,7 +486,10 @@ class _NotificationsPageState extends State<NotificationsPage> {
     return Dismissible(
       key: ValueKey('notif-${n['id']}'),
       direction: DismissDirection.endToStart,
-      onDismissed: (_) => _delete(n),
+      onDismissed: (_) {
+        buHaptic(BuHaptic.light);
+        _delete(n);
+      },
       background: Container(
         alignment: AlignmentDirectional.centerEnd,
         padding: const EdgeInsetsDirectional.only(end: 28),

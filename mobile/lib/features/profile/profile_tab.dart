@@ -327,7 +327,7 @@ class _ProfileTabState extends State<ProfileTab> {
                     ),
                     ProfilRow(
                       icon: LucideIcons.moon,
-                      tint: t.tint(BuTintId.slate),
+                      tint: t.tint(BuTintId.blue),
                       label: l10n.profil1Theme,
                       value: _modeName(_modeId()),
                       onTap: _pickTheme,
@@ -356,7 +356,7 @@ class _ProfileTabState extends State<ProfileTab> {
                 ),
                 ProfilRow(
                   icon: LucideIcons.download,
-                  tint: t.tint(BuTintId.slate),
+                  tint: t.tint(BuTintId.blue),
                   label: l.profil1MyData,
                   onTap: () => _go(MyDataPage(session: widget.session)),
                 ),
@@ -376,7 +376,7 @@ class _ProfileTabState extends State<ProfileTab> {
                 ),
                 ProfilRow(
                   icon: LucideIcons.fileText,
-                  tint: t.tint(BuTintId.slate),
+                  tint: t.tint(BuTintId.blue),
                   label: l.profil1Legal,
                   onTap: () => _go(LegalListPage(session: widget.session)),
                 ),
@@ -626,10 +626,18 @@ class _StatTile extends StatelessWidget {
           onTap();
         },
         child: Column(mainAxisSize: MainAxisSize.min, children: [
-          Text(count ?? '–',
-              maxLines: 1,
+          // Sayı ilk görününce 0'dan sayarak oturur (animasyonları azalt açıkken anında); sayısal değilse düz metin.
+          if (int.tryParse(count ?? '') case final n?)
+            BuCountUp(
+              value: n,
               style: tx.headlineSmall!.copyWith(
-                  color: accent ? t.pr : t.ink, fontWeight: FontWeight.w800)),
+                  color: accent ? t.pr : t.ink, fontWeight: FontWeight.w800, fontFeatures: const [FontFeature.tabularFigures()]),
+            )
+          else
+            Text(count ?? '–',
+                maxLines: 1,
+                style: tx.headlineSmall!.copyWith(
+                    color: accent ? t.pr : t.ink, fontWeight: FontWeight.w800, fontFeatures: const [FontFeature.tabularFigures()])),
           const SizedBox(height: 4),
           FittedBox(
             fit: BoxFit.scaleDown,

@@ -8723,7 +8723,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get p03HomeQuickEvents => 'الفعاليات';
 
   @override
-  String get p03HomeQuickSchedule => 'جدول الدروس';
+  String get p03HomeQuickSchedule => 'الجدول';
 
   @override
   String get p03HomeFeaturedNews => 'أبرز الأخبار';

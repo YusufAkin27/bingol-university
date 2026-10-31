@@ -15994,7 +15994,7 @@ abstract class AppLocalizations {
   /// No description provided for @p03HomeQuickSchedule.
   ///
   /// In tr, this message translates to:
-  /// **'Ders Programı'**
+  /// **'Program'**
   String get p03HomeQuickSchedule;
 
   /// No description provided for @p03HomeFeaturedNews.

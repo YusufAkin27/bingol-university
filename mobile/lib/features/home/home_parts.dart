@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../../core/locale_controller.dart';
 import '../../widgets/bu.dart';
+import '../news/icerik_parts.dart' show newsHero;
 
 /// Yuvarlak (16) arama kutusu; dokununca arama sayfasına gider.
 class HomeSearchBox extends StatelessWidget {
@@ -129,15 +130,56 @@ class HomeQuickTile extends StatelessWidget {
 
 /// Hızlı erişim ızgarası: beş karo tek satırda, etiketler okunur boyutta sığarsa; sığmazsa (dar ekran, büyük yazı)
 /// 3 + 2 iki satır. Yazı hiçbir durumda 11.5 sp altına küçülmez, karolar aynı boyda kalır.
-class HomeQuickGrid extends StatelessWidget {
+class HomeQuickGrid extends StatefulWidget {
   const HomeQuickGrid({super.key, required this.tiles, required this.labels});
 
   /// Karolar ([HomeQuickTile]) ve aynı sırada etiketleri (sığma ölçümü için).
   final List<Widget> tiles;
   final List<String> labels;
 
+  @override
+  State<HomeQuickGrid> createState() => _HomeQuickGridState();
+}
+
+class _HomeQuickGridState extends State<HomeQuickGrid> with SingleTickerProviderStateMixin {
   // 6 dp: 5 karoda her karoya ~1.6 dp ek iç genişlik ("Timetable" gibi uzun etiket kenara yapışmasın).
   static const _gap = 6.0;
+  static const _totalMs = 490; // 120 ms bekleme (blok girişiyle çakışmasın) + 4x30 ms + 250 ms
+
+  List<Widget> get tiles => widget.tiles;
+  List<String> get labels => widget.labels;
+
+  // Giriş: karolar 30 ms arayla hafifçe büyüyerek belirir; tek denetleyici, yalnız bir kez (yenilemede oynamaz).
+  late final AnimationController _in = AnimationController(vsync: this, duration: const Duration(milliseconds: _totalMs));
+  bool _started = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_started) return;
+    _started = true;
+    if (BuMotion.reduced(context)) {
+      _in.value = 1;
+    } else {
+      _in.forward();
+    }
+  }
+
+  @override
+  void dispose() {
+    _in.dispose();
+    super.dispose();
+  }
+
+  Widget _tileIn(int i, Widget child) {
+    final start = ((120 + i * 30) / _totalMs).clamp(0.0, 1.0);
+    final end = (start + 250 / _totalMs).clamp(0.0, 1.0);
+    final a = CurvedAnimation(parent: _in, curve: Interval(start, end, curve: BuMotion.emphasizedDecelerate));
+    return FadeTransition(
+      opacity: a,
+      child: ScaleTransition(scale: Tween<double>(begin: .9, end: 1).animate(a), child: child),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -165,7 +207,7 @@ class HomeQuickGrid extends StatelessWidget {
         rows.add(Row(children: [
           for (var j = 0; j < cols; j++) ...[
             if (j > 0) const SizedBox(width: _gap),
-            Expanded(child: start + j < n ? tiles[start + j] : const SizedBox.shrink()),
+            Expanded(child: start + j < n ? _tileIn(start + j, tiles[start + j]) : const SizedBox.shrink()),
           ],
         ]));
       }
@@ -736,8 +778,19 @@ class HomeMealHero extends StatelessWidget {
 
 /// Öne çıkan haber kartı (yatay kaydırma): üstte görsel + tür etiketi, altta başlık ve tarih + ok.
 class HomeNewsCard extends StatelessWidget {
-  const HomeNewsCard({super.key, required this.title, required this.tag, required this.dateText, required this.imageUrl, required this.onTap, this.width = 280});
+  const HomeNewsCard({
+    super.key,
+    required this.title,
+    required this.tag,
+    required this.dateText,
+    required this.imageUrl,
+    required this.onTap,
+    this.width = 280,
+    this.heroId,
+  });
 
+  /// Verilirse görsel, haber detayının kapağına paylaşılan geçişle (Hero) uçar.
+  final int? heroId;
   final String title;
   final String tag;
   final String dateText;
@@ -763,7 +816,13 @@ class HomeNewsCard extends StatelessWidget {
               height: 150,
               child: Stack(fit: StackFit.expand, children: [
                 if (hasImg)
-                  BuImage(imageUrl, width: double.infinity, height: 150, maxDecodeWidth: 700)
+                  heroId == null
+                      ? BuImage(imageUrl, width: double.infinity, height: 150, maxDecodeWidth: 700)
+                      : newsHero(
+                          id: heroId!,
+                          radius: 23,
+                          child: BuImage(imageUrl, width: double.infinity, height: 150, maxDecodeWidth: 700),
+                        )
                 else
                   DecoratedBox(
                     decoration: BoxDecoration(gradient: t.hero),
@@ -913,6 +972,113 @@ class HomeEventCard extends StatelessWidget {
           ),
         ]),
         if (footer != null) ...[const SizedBox(height: 16), footer!],
+      ]),
+    );
+  }
+}
+
+/// Yatay haber şeridi: kenarlarda yumuşak solma (kaydırılabilir olduğunu ima eder) ve başlangıç kenarından çıkan
+/// kart hafifçe küçülür (en çok %6, yalnız `transform`). Kaydırma denetleyicisi dinlenir, kartlar yeniden kurulmaz;
+/// "animasyonları azalt" açıkken küçülme yoktur. Kartların toplam genişliği: [itemExtent] + [gap].
+class HomeNewsStrip extends StatefulWidget {
+  const HomeNewsStrip({
+    super.key,
+    required this.height,
+    required this.itemCount,
+    required this.itemBuilder,
+    this.itemExtent = 280,
+    this.gap = 12,
+    this.hPad = 20,
+  });
+
+  final double height;
+  final int itemCount;
+  final IndexedWidgetBuilder itemBuilder;
+  final double itemExtent;
+  final double gap;
+  final double hPad;
+
+  @override
+  State<HomeNewsStrip> createState() => _HomeNewsStripState();
+}
+
+class _HomeNewsStripState extends State<HomeNewsStrip> {
+  final _c = ScrollController();
+
+  @override
+  void initState() {
+    super.initState();
+    // İlk karede kaydırma boyutu bilinince kenar solmaları doğru duruma gelsin (içerik sığıyorsa görünmez).
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) setState(() {});
+    });
+  }
+
+  @override
+  void dispose() {
+    _c.dispose();
+    super.dispose();
+  }
+
+  double get _offset => _c.hasClients ? _c.offset : 0;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.bu;
+    final reduced = BuMotion.reduced(context);
+    final step = widget.itemExtent + widget.gap;
+    return SizedBox(
+      height: widget.height,
+      child: Stack(children: [
+        ListView.separated(
+          controller: _c,
+          scrollDirection: Axis.horizontal,
+          padding: EdgeInsets.symmetric(horizontal: widget.hPad),
+          itemCount: widget.itemCount,
+          separatorBuilder: (_, __) => SizedBox(width: widget.gap),
+          itemBuilder: (context, i) {
+            final child = widget.itemBuilder(context, i);
+            if (reduced) return child;
+            return ListenableBuilder(
+              listenable: _c,
+              child: child,
+              builder: (context, c) {
+                final p = ((_offset - i * step) / step).clamp(0.0, 1.0);
+                return p == 0 ? c! : Transform.scale(scale: 1 - .06 * p, child: c);
+              },
+            );
+          },
+        ),
+        // Kenar solması: başlangıçta yalnız bitiş kenarı, kaydırınca başlangıç kenarı da görünür.
+        for (final atStart in const [true, false])
+          PositionedDirectional(
+            start: atStart ? 0 : null,
+            end: atStart ? null : 0,
+            top: 0,
+            bottom: 0,
+            width: widget.hPad,
+            child: IgnorePointer(
+              child: ListenableBuilder(
+                listenable: _c,
+                builder: (context, _) {
+                  final max = (_c.hasClients && _c.position.hasContentDimensions) ? _c.position.maxScrollExtent : 1.0;
+                  final o = atStart ? (_offset / 24) : ((max - _offset) / 24);
+                  return Opacity(
+                    opacity: o.clamp(0.0, 1.0),
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: atStart ? AlignmentDirectional.centerStart : AlignmentDirectional.centerEnd,
+                          end: atStart ? AlignmentDirectional.centerEnd : AlignmentDirectional.centerStart,
+                          colors: [t.bg, t.bg.withValues(alpha: 0)],
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ),
       ]),
     );
   }

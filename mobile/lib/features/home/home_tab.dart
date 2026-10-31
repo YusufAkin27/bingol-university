@@ -394,24 +394,20 @@ class _HomeTabState extends State<HomeTab> {
       );
     } else {
       final scale = MediaQuery.textScalerOf(context).scale(10) / 10;
-      list = SizedBox(
+      list = HomeNewsStrip(
         height: 150 + 122 * scale.clamp(1.0, 1.5),
-        child: ListView.separated(
-          scrollDirection: Axis.horizontal,
-          padding: const EdgeInsets.symmetric(horizontal: 20),
-          itemCount: news.length,
-          separatorBuilder: (_, __) => const SizedBox(width: 12),
-          itemBuilder: (context, i) {
-            final n = news[i];
-            return HomeNewsCard(
-              title: (n['title'] as String?) ?? '',
-              tag: newsTypeLabel(context, n['type'] as String?),
-              dateText: newsLocalDate(context, n['publishedDate'] as String?),
-              imageUrl: n['imageUrl'] as String?,
-              onTap: () => _push(NewsDetailPage(session: _s, item: n)),
-            );
-          },
-        ),
+        itemCount: news.length,
+        itemBuilder: (context, i) {
+          final n = news[i];
+          return HomeNewsCard(
+            title: (n['title'] as String?) ?? '',
+            tag: newsTypeLabel(context, n['type'] as String?),
+            dateText: newsLocalDate(context, n['publishedDate'] as String?),
+            imageUrl: n['imageUrl'] as String?,
+            heroId: (n['id'] as num?)?.toInt(),
+            onTap: () => _push(NewsDetailPage(session: _s, item: n)),
+          );
+        },
       );
     }
     return Column(
@@ -580,8 +576,8 @@ class _HomeTabState extends State<HomeTab> {
     final t = context.bu;
     final items = <(IconData, String, HomeTone, VoidCallback)>[
       (LucideIcons.newspaper, l.icerikNewsTitle, HomeTone.blue, () => _push(NewsListPage(session: _s))),
-      (LucideIcons.utensils, l.homeQuickFood, HomeTone.green, () => _push(MenuPage(session: _s))),
-      (LucideIcons.calendar, l.p03HomeQuickEvents, HomeTone.aqua, () => _push(EventsPage(session: _s))),
+      (LucideIcons.utensils, l.homeQuickFood, HomeTone.blue, () => _push(MenuPage(session: _s))),
+      (LucideIcons.calendar, l.p03HomeQuickEvents, HomeTone.blue, () => _push(EventsPage(session: _s))),
       (LucideIcons.vote, l.discoverPolls, HomeTone.blue, () => openPollList(context, _s)),
       (LucideIcons.graduationCap, l.p03HomeQuickSchedule, HomeTone.blue, () => _push(AcademicHubPage(session: _s))),
     ];

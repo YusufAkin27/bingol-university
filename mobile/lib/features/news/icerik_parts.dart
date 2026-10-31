@@ -521,3 +521,28 @@ class IcerikErrorCard extends StatelessWidget {
     );
   }
 }
+
+/// Haber görseli Hero'su: liste/kart görseli kapak fotoğrafına uçarken köşe yarıçapı [radius]'tan 0'a (geri dönüşte
+/// tersi) yumuşakça geçer; uçuş sırasında keskin köşe sıçraması olmaz. Etiket her haberde benzersiz (`news-img-<id>`).
+/// "Animasyonları azalt" açıkken geçişin kendisi sayfa rotası tarafından zaten kısalır.
+Widget newsHero({required int id, required Widget child, double radius = 20}) {
+  return Hero(
+    tag: 'news-img-$id',
+    flightShuttleBuilder: (flightContext, animation, direction, fromContext, toContext) {
+      final from = fromContext.widget as Hero;
+      final to = toContext.widget as Hero;
+      final shuttle = direction == HeroFlightDirection.push ? to.child : from.child;
+      return AnimatedBuilder(
+        animation: animation,
+        child: shuttle,
+        builder: (context, c) {
+          final a = animation.value.clamp(0.0, 1.0);
+          // Rota animasyonu itişte 0 -> 1, dönüşte 1 -> 0 gider; iki yönde de kart köşesi 1 - a ile kapakta 0 olur.
+          final r = radius * (1 - a);
+          return ClipRRect(borderRadius: BorderRadius.circular(r), child: c);
+        },
+      );
+    },
+    child: child,
+  );
+}

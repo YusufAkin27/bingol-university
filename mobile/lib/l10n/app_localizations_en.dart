@@ -8816,7 +8816,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get p03HomeQuickEvents => 'Events';
 
   @override
-  String get p03HomeQuickSchedule => 'Timetable';
+  String get p03HomeQuickSchedule => 'Schedule';
 
   @override
   String get p03HomeFeaturedNews => 'Featured News';

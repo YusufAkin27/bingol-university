@@ -129,7 +129,10 @@ class _MenuDayStripState extends State<MenuDayStrip> {
               excludeSemantics: true,
               child: BuPressable(
                 key: ValueKey('yemek_day_${d.year}-${d.month}-${d.day}'),
-                onTap: () => widget.onSelect(d),
+                onTap: () {
+                  if (!sel) buHaptic(BuHaptic.selection);
+                  widget.onSelect(d);
+                },
                 child: AnimatedContainer(
                   duration: BuMotion.of(context, BuMotion.short),
                   decoration: BoxDecoration(
@@ -139,13 +142,24 @@ class _MenuDayStripState extends State<MenuDayStrip> {
                   ),
                   alignment: Alignment.center,
                   child: Column(mainAxisSize: MainAxisSize.min, children: [
-                    Text(dayName,
-                        maxLines: 1,
-                        style: tx.labelSmall!.copyWith(fontWeight: FontWeight.w700, color: sel ? t.onSoft : t.mut)),
+                    // Metin rengi de kapsül rengiyle birlikte yumuşakça değişir (150 ms).
+                    AnimatedDefaultTextStyle(
+                      duration: BuMotion.of(context, BuMotion.short),
+                      maxLines: 1,
+                      style: tx.labelSmall!.copyWith(fontWeight: FontWeight.w700, color: sel ? t.onSoft : t.mut),
+                      child: Text(dayName),
+                    ),
                     const SizedBox(height: 2),
-                    Text('${d.day}',
-                        maxLines: 1,
-                        style: tx.titleLarge!.copyWith(fontWeight: FontWeight.w800, height: 1.15, color: sel ? t.onSoft : t.ink)),
+                    AnimatedDefaultTextStyle(
+                      duration: BuMotion.of(context, BuMotion.short),
+                      maxLines: 1,
+                      style: tx.titleLarge!.copyWith(
+                          fontWeight: FontWeight.w800,
+                          height: 1.15,
+                          color: sel ? t.onSoft : t.ink,
+                          fontFeatures: const [FontFeature.tabularFigures()]),
+                      child: Text('${d.day}'),
+                    ),
                     SizedBox(
                       height: 8,
                       child: today ? Center(child: Container(width: 5, height: 5, decoration: BoxDecoration(color: sel ? t.onSoft : t.pr, shape: BoxShape.circle))) : null,
@@ -303,7 +317,9 @@ class _DishRow extends StatelessWidget {
         Expanded(child: Text(menuDishTitle(dish.name), style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w600, height: 1.3, color: t.ink))),
         const SizedBox(width: 10),
         if (kcal != null)
-          Text(l.p03MenuKcal('$kcal'), maxLines: 1, style: tx.labelMedium!.copyWith(fontWeight: FontWeight.w700, color: t.ink))
+          Text(l.p03MenuKcal('$kcal'),
+              maxLines: 1,
+              style: tx.labelMedium!.copyWith(fontWeight: FontWeight.w700, color: t.ink, fontFeatures: const [FontFeature.tabularFigures()]))
         else
           Semantics(
             label: l.p03MenuKcalNone,
@@ -343,7 +359,13 @@ class _TotalRow extends StatelessWidget {
             Icon(LucideIcons.flame, size: 18, color: t.bg),
             const SizedBox(width: 10),
             Expanded(child: Text(l.p03MenuTotal, style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w700, color: t.bg))),
-            Text(l.p03MenuKcal('$total'), maxLines: 1, style: tx.titleLarge!.copyWith(fontWeight: FontWeight.w800, color: t.soft)),
+            // Toplam kalori gün değişince 0'dan sayarak oturur (animasyonları azalt açıkken anında).
+            BuCountUp(
+              key: ValueKey('menu-total-$total'),
+              value: total,
+              format: (v) => l.p03MenuKcal('$v'),
+              style: tx.titleLarge!.copyWith(fontWeight: FontWeight.w800, color: t.soft, fontFeatures: const [FontFeature.tabularFigures()]),
+            ),
           ]),
         ),
       );
@@ -355,7 +377,10 @@ class _TotalRow extends StatelessWidget {
         Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
           Expanded(child: Text(l.p03MenuTotalEnergy, style: tx.labelLarge!.copyWith(fontWeight: FontWeight.w700, color: t.ink))),
           const SizedBox(width: 8),
-          Flexible(child: Text(l.p03MenuAtLeast('$total'), textAlign: TextAlign.end, style: tx.titleLarge!.copyWith(fontWeight: FontWeight.w800, color: t.pr))),
+          Flexible(
+              child: Text(l.p03MenuAtLeast('$total'),
+                  textAlign: TextAlign.end,
+                  style: tx.titleLarge!.copyWith(fontWeight: FontWeight.w800, color: t.pr, fontFeatures: const [FontFeature.tabularFigures()]))),
         ]),
         const SizedBox(height: 8),
         Row(children: [

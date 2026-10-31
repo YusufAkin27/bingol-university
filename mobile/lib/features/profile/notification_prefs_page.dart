@@ -32,7 +32,12 @@ class PrefSwitch extends StatelessWidget {
       enabled: onChanged != null,
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
-        onTap: onChanged == null ? null : () => onChanged!(!value),
+        onTap: onChanged == null
+            ? null
+            : () {
+                buHaptic(BuHaptic.selection);
+                onChanged!(!value);
+              },
         child: SizedBox(
           width: 52,
           height: 44, // dokunma alanı

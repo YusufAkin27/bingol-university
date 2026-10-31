@@ -112,17 +112,27 @@ class NotifRow extends StatelessWidget {
                       decoration: BoxDecoration(color: circleBg, shape: BoxShape.circle),
                       child: Icon(icon, size: 22, color: circleFg),
                     ),
-                    if (unread)
-                      PositionedDirectional(
-                        end: 0,
-                        top: 0,
-                        child: Container(
-                          width: 12,
-                          height: 12,
-                          decoration: BoxDecoration(
-                              color: t.pr, shape: BoxShape.circle, border: Border.all(color: t.sf, width: 2)),
+                    // Okundu olunca nokta küçülerek solar (ağaçta kalır; yalnız transform + opaklık).
+                    PositionedDirectional(
+                      end: 0,
+                      top: 0,
+                      child: AnimatedScale(
+                        key: const ValueKey('notif-unread-dot'),
+                        scale: unread ? 1 : 0,
+                        duration: BuMotion.of(context, BuMotion.medium),
+                        curve: BuMotion.emphasizedDecelerate,
+                        child: AnimatedOpacity(
+                          opacity: unread ? 1 : 0,
+                          duration: BuMotion.of(context, BuMotion.short),
+                          child: Container(
+                            width: 12,
+                            height: 12,
+                            decoration: BoxDecoration(
+                                color: t.pr, shape: BoxShape.circle, border: Border.all(color: t.sf, width: 2)),
+                          ),
                         ),
                       ),
+                    ),
                   ]),
                 ),
                 const SizedBox(width: 12),
@@ -149,11 +159,17 @@ class NotifRow extends StatelessWidget {
                     ]),
                     const SizedBox(height: 6),
                     // Gövde yoksa başlık iki satıra kadar okunur (mesajın kendisi); gövde varsa tek satır.
-                    Text(title,
-                        maxLines: body.isEmpty ? 2 : 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: tx.titleMedium!.copyWith(
-                            height: 1.25, color: t.ink, fontWeight: unread ? FontWeight.w800 : FontWeight.w600)),
+                    // Okundu olunca başlık yumuşakça hafifler (kalınlık + ton, 250 ms).
+                    AnimatedDefaultTextStyle(
+                      duration: BuMotion.of(context, BuMotion.medium),
+                      maxLines: body.isEmpty ? 2 : 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: tx.titleMedium!.copyWith(
+                          height: 1.25,
+                          color: unread ? t.ink : Color.lerp(t.ink, t.mut, .3),
+                          fontWeight: unread ? FontWeight.w800 : FontWeight.w600),
+                      child: Text(title, maxLines: body.isEmpty ? 2 : 1, overflow: TextOverflow.ellipsis),
+                    ),
                     if (body.isNotEmpty)
                       Padding(
                         padding: const EdgeInsets.only(top: 4),

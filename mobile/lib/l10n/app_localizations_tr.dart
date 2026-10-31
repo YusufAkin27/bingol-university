@@ -8783,7 +8783,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get p03HomeQuickEvents => 'Etkinlikler';
 
   @override
-  String get p03HomeQuickSchedule => 'Ders Programı';
+  String get p03HomeQuickSchedule => 'Program';
 
   @override
   String get p03HomeFeaturedNews => 'Öne Çıkan Haberler';
