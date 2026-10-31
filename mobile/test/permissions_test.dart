@@ -164,7 +164,7 @@ void main() {
   });
 
   group('ensurePermission', () {
-    Future<bool?> run(WidgetTester tester, FakePermissionService svc, Future<void> Function() interact) async {
+    Future<bool?> run(WidgetTester tester, FakePermissionService svc, Future<void> Function() interact, {bool direct = false}) async {
       bool? result;
       useScreen(tester, kPhoneMedium);
       await tester.pumpWidget(buildApp(
@@ -172,7 +172,7 @@ void main() {
           builder: (c) => Scaffold(
             body: Center(
               child: TextButton(
-                onPressed: () async => result = await ensurePermission(c, AppPermission.camera, service: svc),
+                onPressed: () async => result = await ensurePermission(c, AppPermission.camera, service: svc, direct: direct),
                 child: const Text('ac'),
               ),
             ),
@@ -235,6 +235,45 @@ void main() {
       expect(r, isFalse);
       expect(svc.requested, isEmpty);
       expect(svc.settingsOpened, 0);
+    });
+
+    testWidgets('direct: uygulamanin gerekce penceresi cikmaz, dogrudan sistem istegi -> true', (tester) async {
+      final svc = _fake();
+      final r = await run(tester, svc, () async {
+        expect(find.text('Devam'), findsNothing);
+        expect(find.textContaining('kameraya erişmemiz'), findsNothing);
+      }, direct: true);
+      expect(r, isTrue);
+      expect(svc.requested, [AppPermission.camera]);
+    });
+
+    testWidgets('direct: ilk ret sessiz (ayarlar sheeti yok), sonraki denemede kalici ret Ayarlar sheeti', (tester) async {
+      final svc = _fake()..willAnswer(AppPermission.camera, PermState.denied);
+      final r = await run(tester, svc, () async {}, direct: true);
+      expect(r, isFalse);
+      expect(svc.requested, [AppPermission.camera]);
+      expect(find.text('Ayarlardan aç'), findsNothing);
+      expect(svc.settingsOpened, 0);
+    });
+
+    testWidgets('direct: sistem kalici reddederse Ayarlardan ac gosterilir', (tester) async {
+      final svc = _fake()..willAnswer(AppPermission.camera, PermState.permanentlyDenied);
+      final r = await run(tester, svc, () async {
+        expect(find.text('Ayarlardan aç'), findsOneWidget);
+        await tester.tap(find.text('Ayarlardan aç'));
+      }, direct: true);
+      expect(r, isFalse);
+      expect(svc.settingsOpened, 1);
+    });
+
+    testWidgets('direct: onceden kalici ret yine dogrudan Ayarlar sheeti', (tester) async {
+      final svc = _fake(initial: {AppPermission.camera: PermState.permanentlyDenied});
+      final r = await run(tester, svc, () async {
+        expect(find.text('Ayarlardan aç'), findsOneWidget);
+        await tester.tap(find.text('Kapat'));
+      }, direct: true);
+      expect(r, isFalse);
+      expect(svc.requested, isEmpty);
     });
 
     test('platform yoksa (unavailable) engellenmez', () {

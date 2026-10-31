@@ -50,7 +50,8 @@ class ImageService {
     if (source == ImageSource.camera) {
       final ctx = rootNavigatorKey.currentContext;
       if (ctx != null && ctx.mounted) {
-        if (!await ensurePermission(ctx, AppPermission.camera)) return null;
+        // direct: 'Fotoğraf çek' dokunuşu zaten niyeti söylüyor; yalnız sistem istemi (çift pencere yok).
+        if (!await ensurePermission(ctx, AppPermission.camera, direct: true)) return null;
       }
     }
     return _picker.pickImage(source: source, maxWidth: maxWidth, imageQuality: quality, requestFullMetadata: false);

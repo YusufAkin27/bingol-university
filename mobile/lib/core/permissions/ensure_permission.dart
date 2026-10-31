@@ -36,6 +36,7 @@ Future<bool> ensurePermission(
   AppPermission permission, {
   String? rationale,
   PermissionService? service,
+  bool direct = false,
 }) async {
   final svc = service ?? PermissionService.instance;
   final info = permissionInfo(permission, context);
@@ -46,17 +47,23 @@ Future<bool> ensurePermission(
     await _showSettingsSheet(context, svc, info);
     return false;
   }
-  final go = await _showSheet(
-    context,
-    icon: info.icon,
-    title: info.title,
-    text: rationale ?? info.rationale,
-    primary: context.l10n.permContinue,
-    secondary: context.l10n.permNotNow,
-  );
-  if (go != true) return false;
+  // [direct]: eylemin amacı ortada (örn. 'Fotoğraf çek') olduğundan uygulamanın kendi gerekçe penceresi atlanır;
+  // kullanıcı yalnız TEK istem (sistem) görür. Kalıcı reddedilmişse yine ayarlar sayfası gösterilir.
+  if (!direct) {
+    final go = await _showSheet(
+      context,
+      icon: info.icon,
+      title: info.title,
+      text: rationale ?? info.rationale,
+      primary: context.l10n.permContinue,
+      secondary: context.l10n.permNotNow,
+    );
+    if (go != true) return false;
+  }
   final res = await svc.request(permission);
   if (res.usable) return true;
+  // [direct] iken ilk ret sessizdir (kullanıcı az önce kendisi reddetti); sonraki denemede ayarlar sayfası çıkar.
+  if (direct && !res.needsSettings) return false;
   if (context.mounted) await _showSettingsSheet(context, svc, info);
   return false;
 }
