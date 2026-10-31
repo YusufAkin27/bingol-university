@@ -10,6 +10,7 @@ import '../../widgets/bu.dart';
 import '../profile/notification_prefs_page.dart';
 import 'academic_api.dart';
 import 'academic_widgets.dart';
+import 'acad_ref_widgets.dart';
 import 'akad_widgets.dart';
 import 'reminders.dart';
 
@@ -78,228 +79,153 @@ class _ReminderSettingsPageState extends State<ReminderSettingsPage> with Widget
       child: !_loaded
           ? const SizedBox.shrink()
           : ListView(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
+              padding: const EdgeInsets.fromLTRB(20, 0, 20, 32),
               children: [
-                if (_permOk) _introCard(t, tx, l) else ...[_permCard(t, tx, l), const SizedBox(height: 14), _plainIntro(t, tx, l)],
-                const SizedBox(height: 22),
+                if (!_permOk) ...[
+                  AcadAmberNote(
+                    text: l.p69PermOff,
+                    actionLabel: l.p20RemOpenSettings,
+                    onAction: () async {
+                      await PermissionService.instance.openSettings();
+                      unawaited(_checkPermission());
+                    },
+                  ),
+                  const SizedBox(height: 40),
+                ] else
+                  const SizedBox(height: 8),
+                _sectionTitle(t, tx, l.acadExamsTitle),
+                const SizedBox(height: 4),
                 IgnorePointer(
                   ignoring: !_permOk,
                   child: Opacity(
                     opacity: _permOk ? 1 : .55,
                     child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-                      _sectionTitle(t, tx, LucideIcons.graduationCap, l.acadTimeClassReminder),
-                      const SizedBox(height: 12),
-                      _classCard(t, tx, l),
-                      const SizedBox(height: 22),
-                      _sectionTitle(t, tx, LucideIcons.clipboardList, l.acadTimeExamReminders),
-                      const SizedBox(height: 12),
-                      _examCard(t, tx, l),
+                      _SwitchRow(title: l.p69ExamReminder, sub: l.p69ExamReminderSub, value: _permOk && _s.examDayBefore, onChanged: _permOk ? (v) => _update(_s.copyWith(examDayBefore: v)) : null),
+                      _serverPushRow(t, tx, l),
                     ]),
                   ),
                 ),
+                const SizedBox(height: 14),
+                const AcadRule(),
+                const SizedBox(height: 22),
+                _sectionTitle(t, tx, l.p69Classes),
+                const SizedBox(height: 4),
+                IgnorePointer(
+                  ignoring: !_permOk,
+                  child: Opacity(
+                    opacity: _permOk ? 1 : .55,
+                    child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+                      _SwitchRow(
+                        title: l.acadTimeClassReminder,
+                        sub: l.p69ClassReminderSub(_s.classLeadMin.toString()),
+                        value: _permOk && _s.classEnabled,
+                        onChanged: _permOk ? (v) => _update(_s.copyWith(classEnabled: v)) : null,
+                      ),
+                      if (_s.classEnabled || !_permOk) ...[
+                        const SizedBox(height: 20),
+                        Semantics(header: true, child: Text(l.p69Duration, style: tx.bodyMedium!.copyWith(color: t.ink))),
+                        const SizedBox(height: 3),
+                        _leadChips(l),
+                      ],
+                    ]),
+                  ),
+                ),
+                const SizedBox(height: 14),
+                const AcadRule(),
+                const SizedBox(height: 25),
+                Text(l.p69RemindersFooter, style: tx.bodyMedium!.copyWith(color: t.mut)),
               ],
             ),
     );
   }
 
-  Widget _sectionTitle(BuTokens t, TextTheme tx, IconData icon, String text) => Padding(
-        padding: const EdgeInsetsDirectional.only(start: 4),
-        child: Semantics(
-          header: true,
-          child: Row(children: [
-            Icon(icon, size: 22, color: t.pr),
-            const SizedBox(width: 10),
-            Expanded(child: Text(text, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.titleLarge!.copyWith(fontWeight: FontWeight.w800, color: t.ink))),
-          ]),
+  Widget _sectionTitle(BuTokens t, TextTheme tx, String text) => Semantics(
+        header: true,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minHeight: 28),
+          child: Text(text, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.titleLarge!.copyWith(fontWeight: FontWeight.w700, color: t.ink)),
         ),
       );
 
-  /// Pembe bilgi kartı: simge karosu + açıklama, köşede yarı saydam daire.
-  Widget _introCard(BuTokens t, TextTheme tx, AppLocalizations l) => Container(
-        clipBehavior: Clip.antiAlias,
-        decoration: BoxDecoration(color: t.soft, borderRadius: BuRadius.bLg),
-        child: Stack(children: [
-          PositionedDirectional(
-            end: -30,
-            bottom: -40,
-            child: ExcludeSemantics(child: Container(width: 120, height: 120, decoration: BoxDecoration(color: t.pr.withValues(alpha: .08), shape: BoxShape.circle))),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              AkadIconTile(icon: LucideIcons.bellRing, bg: t.pr, fg: t.onPr, size: 56, radius: 16, iconSize: 26),
-              const SizedBox(width: 14),
-              Expanded(child: Text(l.acadTimeRemindersIntro, style: tx.bodyMedium!.copyWith(color: t.onSoft, height: 1.5))),
-            ]),
-          ),
-        ]),
-      );
-
-  /// İzin yokken beyaz bilgi satırı.
-  Widget _plainIntro(BuTokens t, TextTheme tx, AppLocalizations l) => AkadCard(
-        padding: const EdgeInsets.all(16),
-        child: Row(children: [
-          AkadIconTile(icon: LucideIcons.circleCheck, bg: t.sf2, fg: t.ink, size: 44, radius: 22, iconSize: 20),
-          const SizedBox(width: 14),
-          Expanded(child: Text(l.acadTimeRemindersIntro, style: tx.bodyMedium!.copyWith(color: t.mut, height: 1.5))),
-        ]),
-      );
-
-  /// Bildirim izni verilmedi: kehribar kart + "Ayarlardan aç".
-  Widget _permCard(BuTokens t, TextTheme tx, AppLocalizations l) => Semantics(
-        container: true,
-        liveRegion: true,
-        child: Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(color: t.warnSoft, borderRadius: BuRadius.bLg),
-          child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-            Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(color: t.sf.withValues(alpha: .6), shape: BoxShape.circle),
-                child: ExcludeSemantics(child: Icon(LucideIcons.triangleAlert, size: 24, color: t.onWarnSoft)),
-              ),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Text(l.p20RemPermTitle, style: tx.titleMedium!.copyWith(fontWeight: FontWeight.w800, color: t.onWarnSoft)),
-                  const SizedBox(height: 4),
-                  Text(l.p20RemPermBody, style: tx.bodyMedium!.copyWith(color: t.onWarnSoft)),
-                ]),
-              ),
-            ]),
-            const SizedBox(height: 14),
-            BuButton(
-              label: l.p20RemOpenSettings,
-              icon: LucideIcons.settings,
-              onPressed: () async {
-                await PermissionService.instance.openSettings();
-                unawaited(_checkPermission());
-              },
-            ),
-          ]),
-        ),
-      );
-
-  Widget _classCard(BuTokens t, TextTheme tx, AppLocalizations l) {
-    final opts = ReminderSettings.leadOptions.where((m) => m != 5 || _s.classLeadMin == 5).toList();
-    return AkadCard(
-      padding: EdgeInsets.zero,
-      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        AkadSwitchRow(
-          title: l.acadTimeClassReminder,
-          subtitle: l.akademik2RemindEach,
-          value: _permOk && _s.classEnabled,
-          onChanged: (v) => _update(_s.copyWith(classEnabled: v)),
-        ),
-        if (_s.classEnabled || !_permOk)
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
-            child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-              Row(children: [
-                Icon(LucideIcons.clock, size: 16, color: t.mut),
-                const SizedBox(width: 8),
-                Expanded(child: Text('${l.acadTimeBeforeClass}:', style: tx.labelLarge!.copyWith(fontWeight: FontWeight.w700, color: t.mut))),
-              ]),
-              const SizedBox(height: 10),
-              Row(children: [
-                for (var i = 0; i < opts.length; i++)
-                  Expanded(
-                    child: Padding(
-                      padding: EdgeInsetsDirectional.only(start: i == 0 ? 0 : 8),
-                      child: _leadChip(t, tx, l, opts[i]),
-                    ),
-                  ),
-              ]),
-            ]),
+  /// Ders hatırlatma süresi çipleri: 5 / 15 / 30 dk (+ kayıtlı değer bunların dışındaysa o da, seçili görünsün).
+  Widget _leadChips(AppLocalizations l) {
+    final opts = {5, 15, 30, _s.classLeadMin}.toList()..sort();
+    return Align(
+      alignment: AlignmentDirectional.centerStart,
+      child: Wrap(spacing: 8, children: [
+        for (final m in opts)
+          AkadChip(
+            label: m == 60 ? l.acadTimeOneHour : l.acadTimeMinutes(m.toString()),
+            selected: _s.classLeadMin == m,
+            radius: 8,
+            onTap: _permOk ? () => _update(_s.copyWith(classLeadMin: m)) : null,
           ),
       ]),
     );
   }
 
-  Widget _leadChip(BuTokens t, TextTheme tx, AppLocalizations l, int m) {
-    final sel = _s.classLeadMin == m;
-    final label = m == 60 ? l.acadTimeOneHour : l.acadTimeMinutes(m.toString());
-    return Semantics(
-      button: true,
-      selected: sel,
-      label: label,
-      excludeSemantics: true,
-      onTap: () => _update(_s.copyWith(classLeadMin: m)),
-      child: BuPressable(
-        scale: .95,
-        onTap: () => _update(_s.copyWith(classLeadMin: m)),
-        haptic: BuHaptic.selection,
-        child: AnimatedContainer(
-          duration: BuMotion.of(context, BuMotion.short),
-          constraints: const BoxConstraints(minHeight: 48),
-          alignment: Alignment.center,
-          decoration: ShapeDecoration(color: sel ? t.soft : t.sf2, shape: StadiumBorder(side: sel ? BorderSide(color: t.selectedBorder) : BorderSide.none)),
-          child: MediaQuery.withClampedTextScaling(
-            maxScaleFactor: 1.3,
-            child: FittedBox(fit: BoxFit.scaleDown, child: Text(label, maxLines: 1, style: tx.labelLarge!.copyWith(fontWeight: FontWeight.w800, color: sel ? t.onSoft : t.ink))),
+  /// "Sınavdan 2 saat önce (bildirim)": sunucu push'u; yerel anahtar değil, akademik bildirim tercihine gider.
+  Widget _serverPushRow(BuTokens t, TextTheme tx, AppLocalizations l) => AcadRow(
+        rule: false,
+        minHeight: 60,
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        semanticLabel: '${l.acadTimeHourBefore}. ${l.p20RemHourSub}',
+        onTap: () => Navigator.push<void>(context, MaterialPageRoute<void>(builder: (_) => NotificationPrefsPage(session: widget.session))),
+        child: Row(children: [
+          Expanded(
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
+              Text(l.acadTimeHourBefore, style: tx.bodyLarge!.copyWith(fontSize: 16, color: t.ink)),
+              const SizedBox(height: 2),
+              Text(l.p20RemHourSub, style: tx.bodySmall!.copyWith(fontSize: 13, color: t.mut)),
+            ]),
+          ),
+          const SizedBox(width: 12),
+          ExcludeSemantics(child: Icon(buDirIcon(context, LucideIcons.chevronRight), size: 18, color: t.mut)),
+        ]),
+      );
+}
+
+/// Anahtar satırı (kartsız, ikonsuz): başlık 16 sp + muted açıklama, sağda anahtar (48 dp genişlik); tüm satır dokunulur.
+class _SwitchRow extends StatelessWidget {
+  const _SwitchRow({required this.title, required this.sub, required this.value, required this.onChanged});
+
+  final String title, sub;
+  final bool value;
+  final ValueChanged<bool>? onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.bu;
+    final tx = Theme.of(context).textTheme;
+    return MergeSemantics(
+      child: InkWell(
+        onTap: onChanged == null
+            ? null
+            : () {
+                buHaptic(BuHaptic.selection);
+                onChanged!(!value);
+              },
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minHeight: 60),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            child: Row(children: [
+              Expanded(
+                child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
+                  Text(title, style: tx.bodyLarge!.copyWith(fontSize: 16, color: t.ink)),
+                  const SizedBox(height: 2),
+                  Text(sub, style: tx.bodySmall!.copyWith(fontSize: 13, color: t.mut)),
+                ]),
+              ),
+              const SizedBox(width: 24),
+              Transform.translate(
+                offset: Offset(Directionality.of(context) == TextDirection.rtl ? -4 : 4, 0),
+                child: Transform.scale(scale: .92, alignment: AlignmentDirectional.centerEnd, child: Switch(value: value, onChanged: onChanged)),
+              ),
+            ]),
           ),
         ),
       ),
     );
   }
-
-  Widget _examCard(BuTokens t, TextTheme tx, AppLocalizations l) => AkadCard(
-        padding: EdgeInsets.zero,
-        child: Column(children: [
-          _examRow(t, LucideIcons.calendar, l.acadTimeDayBefore, l.p20RemDaySub, _permOk && _s.examDayBefore, (v) => _update(_s.copyWith(examDayBefore: v))),
-          const AkadDivider(),
-          _serverPushRow(t, l),
-        ]),
-      );
-
-  /// "Sınavdan 2 saat önce (bildirim)": sunucu push'u; yerel anahtar değil, akademik bildirim tercihine gider.
-  Widget _serverPushRow(BuTokens t, AppLocalizations l) => Semantics(
-        button: true,
-        child: InkWell(
-          onTap: () {
-            buHaptic(BuHaptic.selection);
-            Navigator.push<void>(context, MaterialPageRoute<void>(builder: (_) => NotificationPrefsPage(session: widget.session)));
-          },
-          child: Padding(
-            padding: const EdgeInsetsDirectional.only(start: 16, end: 16, top: 12, bottom: 12),
-            child: Row(children: [
-              AkadIconTile(icon: LucideIcons.timer, bg: t.sf2, fg: t.ink, size: 40, radius: 20, iconSize: 18),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Text(l.acadTimeHourBefore, style: Theme.of(context).textTheme.titleMedium!.copyWith(fontWeight: FontWeight.w700, color: t.ink)),
-                  Text(l.p20RemHourSub, style: Theme.of(context).textTheme.bodySmall!.copyWith(color: t.mut)),
-                ]),
-              ),
-              const SizedBox(width: 8),
-              Icon(buDirIcon(context, LucideIcons.chevronRight), size: 20, color: t.mut),
-            ]),
-          ),
-        ),
-      );
-
-  Widget _examRow(BuTokens t, IconData icon, String title, String sub, bool value, ValueChanged<bool> onChanged) => MergeSemantics(
-        child: InkWell(
-          onTap: () {
-            buHaptic(BuHaptic.selection);
-            onChanged(!value);
-          },
-          child: Padding(
-            padding: const EdgeInsetsDirectional.only(start: 16, end: 8, top: 8, bottom: 8),
-            child: Row(children: [
-              AkadIconTile(icon: icon, bg: t.sf2, fg: t.ink, size: 40, radius: 20, iconSize: 18),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Text(title, style: Theme.of(context).textTheme.titleMedium!.copyWith(fontWeight: FontWeight.w700, color: t.ink)),
-                  Text(sub, style: Theme.of(context).textTheme.bodySmall!.copyWith(color: t.mut)),
-                ]),
-              ),
-              Switch(value: value, onChanged: onChanged),
-            ]),
-          ),
-        ),
-      );
 }
