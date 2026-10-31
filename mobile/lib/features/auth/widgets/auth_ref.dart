@@ -862,7 +862,8 @@ class _RefPasswordFieldState extends State<RefPasswordField> {
 }
 
 /// Okul numarası ya da e-posta alanı. Yalnız rakam yazılırken (okul numarası) sağda `@bingol.edu.tr` hapı görünür;
-/// tam adres yazılınca hap kalkar.
+/// tam adres yazılınca hap kalkar. `allowStudentNumber: false` (kayıt): yalnız tam e-posta; hap yok, yardımcı metin
+/// e-posta örneği verir.
 class RefIdentifierField extends StatelessWidget {
   const RefIdentifierField({
     super.key,
@@ -875,7 +876,11 @@ class RefIdentifierField extends StatelessWidget {
     this.forceError,
     this.helper = true,
     this.label,
+    this.allowStudentNumber = true,
   });
+
+  /// Kapalıysa (kayıt) okul numarası kısayolu yoktur: hap gösterilmez, varsayılan doğrulayıcı tam e-posta ister.
+  final bool allowStudentNumber;
 
   final TextEditingController controller;
   final String? Function(String?)? validator;
@@ -895,8 +900,8 @@ class RefIdentifierField extends StatelessWidget {
       valueListenable: controller,
       builder: (context, value, _) => RefTextField(
         controller: controller,
-        label: label ?? context.l10n.authIdHint,
-        helper: helper ? context.l10n.authIdHelper : null,
+        label: label ?? (allowStudentNumber ? context.l10n.authIdHint : context.l10n.authRegIdLabel),
+        helper: helper ? (allowStudentNumber ? context.l10n.authIdHelper : context.l10n.authRegIdHelper) : null,
         enabled: enabled,
         onCard: onCard,
         forceError: forceError,
@@ -904,9 +909,9 @@ class RefIdentifierField extends StatelessWidget {
         textInputAction: textInputAction,
         autocorrect: false,
         autofillHints: const [AutofillHints.username, AutofillHints.email],
-        validator: validator ?? validateIdentifier,
+        validator: validator ?? (allowStudentNumber ? validateIdentifier : validateRegisterEmail),
         onSubmitted: onSubmitted,
-        suffixChip: isStudentNumberInput(value.text) ? '@$kEmailDomain' : null,
+        suffixChip: allowStudentNumber && isStudentNumberInput(value.text) ? '@$kEmailDomain' : null,
       ),
     );
   }

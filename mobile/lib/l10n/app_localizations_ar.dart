@@ -5085,6 +5085,19 @@ class AppLocalizationsAr extends AppLocalizations {
   String get authIdHelper => '226051015 أو name.surname@bingol.edu.tr';
 
   @override
+  String get authRegIdLabel => 'بريدك الإلكتروني الجامعي';
+
+  @override
+  String get authRegIdHelper => 'مثال: name.surname@bingol.edu.tr';
+
+  @override
+  String get authRegIdEmpty => 'أدخل بريدك الإلكتروني الجامعي.';
+
+  @override
+  String get authRegIdFull =>
+      'أدخل عنوان بريدك الإلكتروني الجامعي كاملاً، مثل name.surname@bingol.edu.tr';
+
+  @override
   String get supportCatAccount => 'الحساب';
 
   @override

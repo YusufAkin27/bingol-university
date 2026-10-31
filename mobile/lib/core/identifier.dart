@@ -32,6 +32,16 @@ String fullEmail(String identifier) {
   return _digitsRe.hasMatch(s) ? '$s@$kEmailDomain' : s;
 }
 
+/// Kayıt alanı: yalnız TAM okul e-postası (numara kısayolu yok; kod, yazılan adrese gider). Giriş ve şifre
+/// sıfırlama `validateIdentifier` ile numarayı kabul etmeye devam eder.
+String? validateRegisterEmail(String? v) {
+  final s = normalizeIdentifier(v);
+  final l = lookupAppLocalizations(LocaleController.current?.locale ?? const Locale('tr'));
+  if (s.isEmpty) return l.authRegIdEmpty;
+  if (!s.contains('@')) return l.authRegIdFull;
+  return _emailRe.hasMatch(s) ? null : l.coreIdDomain;
+}
+
 String? validateIdentifier(String? v) {
   final s = normalizeIdentifier(v);
   final l = lookupAppLocalizations(LocaleController.current?.locale ?? const Locale('tr'));

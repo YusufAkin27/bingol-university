@@ -235,19 +235,19 @@ abstract class AppLocalizations {
   /// No description provided for @settingsSectionAppearance.
   ///
   /// In tr, this message translates to:
-  /// **'GÖRÜNÜM'**
+  /// **'Görünüm'**
   String get settingsSectionAppearance;
 
   /// No description provided for @settingsSectionNotifications.
   ///
   /// In tr, this message translates to:
-  /// **'BİLDİRİMLER'**
+  /// **'Bildirimler'**
   String get settingsSectionNotifications;
 
   /// No description provided for @settingsSectionPrivacy.
   ///
   /// In tr, this message translates to:
-  /// **'GİZLİLİK VE HESAP'**
+  /// **'Gizlilik ve hesap'**
   String get settingsSectionPrivacy;
 
   /// No description provided for @themeSystem.
@@ -8926,7 +8926,7 @@ abstract class AppLocalizations {
   /// No description provided for @profileSaved.
   ///
   /// In tr, this message translates to:
-  /// **'Kaydedilenler'**
+  /// **'Kayıtlı haberler'**
   String get profileSaved;
 
   /// No description provided for @profileAcademic.
@@ -9456,6 +9456,30 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'226051015 ya da ad.soyad@bingol.edu.tr'**
   String get authIdHelper;
+
+  /// No description provided for @authRegIdLabel.
+  ///
+  /// In tr, this message translates to:
+  /// **'Okul e-posta adresiniz'**
+  String get authRegIdLabel;
+
+  /// No description provided for @authRegIdHelper.
+  ///
+  /// In tr, this message translates to:
+  /// **'Örn. ad.soyad@bingol.edu.tr'**
+  String get authRegIdHelper;
+
+  /// No description provided for @authRegIdEmpty.
+  ///
+  /// In tr, this message translates to:
+  /// **'Okul e-posta adresinizi girin.'**
+  String get authRegIdEmpty;
+
+  /// No description provided for @authRegIdFull.
+  ///
+  /// In tr, this message translates to:
+  /// **'Okul e-posta adresinizin tamamını yazın, örn. ad.soyad@bingol.edu.tr'**
+  String get authRegIdFull;
 
   /// No description provided for @supportCatAccount.
   ///
@@ -10546,7 +10570,7 @@ abstract class AppLocalizations {
   /// No description provided for @profil1SecContent.
   ///
   /// In tr, this message translates to:
-  /// **'İçeriklerim'**
+  /// **'İçeriğim'**
   String get profil1SecContent;
 
   /// No description provided for @profil1SecAccount.
@@ -10600,7 +10624,7 @@ abstract class AppLocalizations {
   /// No description provided for @profil1Support.
   ///
   /// In tr, this message translates to:
-  /// **'Destek'**
+  /// **'Yardım ve destek'**
   String get profil1Support;
 
   /// No description provided for @profil1Legal.
@@ -11116,19 +11140,19 @@ abstract class AppLocalizations {
   /// No description provided for @icerikStatPosts.
   ///
   /// In tr, this message translates to:
-  /// **'gönderi'**
+  /// **'Gönderi'**
   String get icerikStatPosts;
 
   /// No description provided for @icerikStatFollowers.
   ///
   /// In tr, this message translates to:
-  /// **'takipçi'**
+  /// **'Takipçi'**
   String get icerikStatFollowers;
 
   /// No description provided for @icerikStatFollowing.
   ///
   /// In tr, this message translates to:
-  /// **'takip'**
+  /// **'Takip'**
   String get icerikStatFollowing;
 
   /// No description provided for @icerikMessageSend.

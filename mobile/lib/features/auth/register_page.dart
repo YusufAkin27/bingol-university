@@ -172,7 +172,7 @@ class _RegisterPageState extends State<RegisterPage> {
   String? _validateRegisterId(String? v) {
     final server = _emailFieldError;
     if (server != null) return server;
-    final base = validateIdentifier(v);
+    final base = validateRegisterEmail(v);
     if (base != null) return base;
     final s = normalizeIdentifier(v);
     final at = s.indexOf('@');
@@ -236,7 +236,8 @@ class _RegisterPageState extends State<RegisterPage> {
             ),
             const SizedBox(height: 18),
             RefIdentifierField(
-              label: l.p02IdLabel,
+              allowStudentNumber: false,
+              label: l.authRegIdLabel,
               controller: _email,
               enabled: !_busy,
               validator: _validateRegisterId,

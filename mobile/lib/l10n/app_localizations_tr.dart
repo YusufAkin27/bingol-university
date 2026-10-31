@@ -5107,6 +5107,19 @@ class AppLocalizationsTr extends AppLocalizations {
   String get authIdHelper => '226051015 ya da ad.soyad@bingol.edu.tr';
 
   @override
+  String get authRegIdLabel => 'Okul e-posta adresiniz';
+
+  @override
+  String get authRegIdHelper => 'Örn. ad.soyad@bingol.edu.tr';
+
+  @override
+  String get authRegIdEmpty => 'Okul e-posta adresinizi girin.';
+
+  @override
+  String get authRegIdFull =>
+      'Okul e-posta adresinizin tamamını yazın, örn. ad.soyad@bingol.edu.tr';
+
+  @override
   String get supportCatAccount => 'Hesap';
 
   @override

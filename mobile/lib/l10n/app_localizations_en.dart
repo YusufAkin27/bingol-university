@@ -5131,6 +5131,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get authIdHelper => '226051015 or first.last@bingol.edu.tr';
 
   @override
+  String get authRegIdLabel => 'Your school email address';
+
+  @override
+  String get authRegIdHelper => 'e.g. first.last@bingol.edu.tr';
+
+  @override
+  String get authRegIdEmpty => 'Enter your school email address.';
+
+  @override
+  String get authRegIdFull =>
+      'Enter your full school email address, e.g. first.last@bingol.edu.tr';
+
+  @override
   String get supportCatAccount => 'Account';
 
   @override

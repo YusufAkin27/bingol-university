@@ -38,6 +38,19 @@ void main() {
       expect(validateIdentifier('a@gmail.com'), isNotNull);
       expect(validateIdentifier('a@evilbingol.edu.tr'), isNotNull);
     });
+    test('kayit alani yalniz TAM e-posta kabul eder (numara kisayolu yok)', () {
+      const full = 'Okul e-posta adresinizin tamamını yazın, örn. ad.soyad@bingol.edu.tr';
+      expect(validateRegisterEmail('226051015'), full);
+      expect(validateRegisterEmail('226 051-015'), full);
+      expect(validateRegisterEmail('ad.soyad'), full);
+      expect(validateRegisterEmail(''), 'Okul e-posta adresinizi girin.');
+      expect(validateRegisterEmail('ayse.yilmaz@bingol.edu.tr'), isNull);
+      expect(validateRegisterEmail('226051015@bingol.edu.tr'), isNull);
+      expect(validateRegisterEmail('a@ogr.bingol.edu.tr'), isNull);
+      expect(validateRegisterEmail('a@gmail.com'), isNotNull);
+      // giris/sifre sifirlama dogrulayicisi numarayi kabul etmeye devam eder
+      expect(validateIdentifier('226051015'), isNull);
+    });
     test('normalize ve tam e-posta', () {
       expect(normalizeIdentifier(' 226-051 015 '), '226051015');
       expect(fullEmail('226051015'), '226051015@bingol.edu.tr');
@@ -231,7 +244,7 @@ void main() {
   });
 
   group('kayit', () {
-    testWidgets('tum alanlar tek istekte; numara govdede; dogrulama sayfasi tam e-postayi gosterir', (tester) async {
+    testWidgets('tum alanlar tek istekte; tam e-posta govdede; dogrulama sayfasi tam e-postayi gosterir', (tester) async {
       useScreen(tester, const Size(390, 1800));
       final b = FakeBackend();
       fakeCatalog(b);
@@ -243,9 +256,9 @@ void main() {
       await tester.pump(const Duration(milliseconds: 400));
       final fields = find.byType(TextFormField);
       await tester.enterText(fields.at(0), 'Ayşe Yılmaz');
-      await tester.enterText(fields.at(1), '226051015');
+      await tester.enterText(fields.at(1), '226051015@bingol.edu.tr');
       await tester.pump();
-      expect(_suffix(), findsOneWidget);
+      expect(_suffix(), findsNothing);
       await tester.tap(find.text('Devam'));
       await tester.pump(const Duration(milliseconds: 400));
       await tester.pump(const Duration(milliseconds: 400));
@@ -255,7 +268,7 @@ void main() {
       await settle(tester, const Duration(milliseconds: 600));
       expect(b.count('/auth/register'), 1);
       final body = b.bodies['POST /auth/register'] as Map;
-      expect(body['email'], '226051015');
+      expect(body['email'], '226051015@bingol.edu.tr');
       expect(body['displayName'], 'Ayşe Yılmaz');
       expect(body['password'], 'Sifre1234');
       expect(body['acceptTerms'], true);
@@ -263,26 +276,49 @@ void main() {
       expect(body['grade'], '3');
       expect(find.byType(VerifyCodePage), findsOneWidget);
       expect(find.textContaining('226051015@bingol.edu.tr adresine gönderildi'), findsOneWidget);
-      expect((await s.pending.load())?.identifier, '226051015');
+      expect((await s.pending.load())?.identifier, '226051015@bingol.edu.tr');
       await unmount(tester);
     });
 
-    testWidgets('gecersiz numara kayitta reddedilir', (tester) async {
+    testWidgets('yalniz numara kayitta reddedilir: hap yok, ornek e-posta, istek yok', (tester) async {
       useScreen(tester, const Size(390, 1800));
       final b = FakeBackend();
       fakeCatalog(b);
       await tester.pumpWidget(buildApp(RegisterPage(session: makeSession(b, signedIn: false))));
       await settle(tester, const Duration(milliseconds: 300));
-      // Kayıt 3 adımlı sihirbaz: numara 2. adımda doğrulanır, geçersizse 3. adıma geçilmez.
+      await fillAcademic(tester);
+      await tester.tap(find.text('Devam'));
+      await tester.pump(const Duration(milliseconds: 400));
+      expect(find.text('Okul e-posta adresiniz'), findsOneWidget);
+      await tester.enterText(find.byType(TextFormField).at(0), 'Ayşe Yılmaz');
+      await tester.enterText(find.byType(TextFormField).at(1), '226051015');
+      await tester.pump();
+      expect(_suffix(), findsNothing);
+      expect(find.textContaining('226051015 ya da'), findsNothing);
+      await tester.tap(find.text('Devam'));
+      await tester.pump();
+      expect(find.text('Okul e-posta adresinizin tamamını yazın, örn. ad.soyad@bingol.edu.tr'), findsOneWidget);
+      expect(find.text('Adım 2/3'), findsOneWidget);
+      expect(b.count('/auth/register'), 0);
+      await unmount(tester);
+    });
+
+    testWidgets('gecersiz alan adi kayitta reddedilir', (tester) async {
+      useScreen(tester, const Size(390, 1800));
+      final b = FakeBackend();
+      fakeCatalog(b);
+      await tester.pumpWidget(buildApp(RegisterPage(session: makeSession(b, signedIn: false))));
+      await settle(tester, const Duration(milliseconds: 300));
+      // Kayıt 3 adımlı sihirbaz: e-posta 2. adımda doğrulanır, geçersizse 3. adıma geçilmez.
       await fillAcademic(tester);
       await tester.tap(find.text('Devam'));
       await tester.pump(const Duration(milliseconds: 400));
       await tester.enterText(find.byType(TextFormField).at(0), 'Ayşe Yılmaz');
-      await tester.enterText(find.byType(TextFormField).at(1), '123');
+      await tester.enterText(find.byType(TextFormField).at(1), 'ayse@gmail.com');
       await tester.pump();
       await tester.tap(find.text('Devam'));
       await tester.pump();
-      expect(find.text('Okul numarasını kontrol edin.'), findsOneWidget);
+      expect(find.text('Yalnızca bingol.edu.tr uzantılı adres kullanılabilir.'), findsOneWidget);
       expect(find.text('Adım 2/3'), findsOneWidget);
       expect(b.count('/auth/register'), 0);
       await unmount(tester);
@@ -304,6 +340,31 @@ void main() {
   });
 
   group('tasma matrisi', () {
+    for (final br in Brightness.values) {
+      testWidgets('kayit e-posta adimi + hata | ${br.name} 320 x1.3', (tester) async {
+        useScreen(tester, kPhoneSmall);
+        tester.platformDispatcher.textScaleFactorTestValue = 1.3;
+        addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+        final b = FakeBackend();
+        fakeCatalog(b);
+        await tester.pumpWidget(
+            buildApp(RegisterPage(session: makeSession(b, signedIn: false)), brightness: br, size: kPhoneSmall));
+        await settle(tester, const Duration(milliseconds: 300));
+        await fillAcademic(tester);
+        await tester.ensureVisible(find.text('Devam'));
+        await tester.tap(find.text('Devam'));
+        await tester.pump(const Duration(milliseconds: 400));
+        await tester.enterText(find.byType(TextFormField).at(1), '226051015');
+        await tester.pump();
+        await tester.ensureVisible(find.text('Devam'));
+        await tester.tap(find.text('Devam'));
+        await settle(tester, const Duration(milliseconds: 600));
+        expect(find.text('Okul e-posta adresinizin tamamını yazın, örn. ad.soyad@bingol.edu.tr'), findsOneWidget);
+        expect(tester.takeException(), isNull);
+        await unmount(tester);
+      });
+    }
+
     for (final br in Brightness.values) {
       for (final size in kPhoneSizes) {
         testWidgets('numara + sonek + bant | ${br.name} ${size.width.toInt()}', (tester) async {

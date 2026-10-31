@@ -229,7 +229,8 @@ class Session extends ChangeNotifier {
       false,
     );
     final server = res is Map ? res['email'] : null;
-    return server is String && server.isNotEmpty ? server : fullEmail(email);
+    // Kayıtta numara kısayolu yok: yazılan adres olduğu gibi (normalize) kullanılır.
+    return server is String && server.isNotEmpty ? server : normalizeIdentifier(email);
   }
 
   Future<void> resendCode(String email) =>
