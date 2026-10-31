@@ -1689,7 +1689,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get chatInfoNoMedia => 'Bu sohbette henüz görsel yok.';
 
   @override
-  String get chatInfoSeeAllMedia => 'Tüm medyayı gör';
+  String get chatInfoSeeAllMedia => 'Tümünü gör';
 
   @override
   String chatInfoMediaDot(String count) {
@@ -9340,4 +9340,108 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get p51EvOffline => 'Çevrimdışısın. Kayıtlı etkinlikler gösteriliyor.';
+
+  @override
+  String get p69WeeklyFlow => 'Haftalık akış';
+
+  @override
+  String p69WeekN(String n) {
+    return '$n. hafta';
+  }
+
+  @override
+  String get p69Done => 'Tamamlandı';
+
+  @override
+  String get p69LastSession => 'Son oturum';
+
+  @override
+  String p69Hours(String h) {
+    return '$h saat';
+  }
+
+  @override
+  String p69TodayTotal(String n, String hours) {
+    return 'Bugün toplam $n oturum ($hours)';
+  }
+
+  @override
+  String get p69ExamCalendar => 'Sınav takvimi';
+
+  @override
+  String get p69Now => 'Şimdi';
+
+  @override
+  String get p69ExamName => 'Sınav adı';
+
+  @override
+  String get p69ExamNameHint => 'Örn. Veri Yapıları Vize';
+
+  @override
+  String get p69ExamNameErr => 'Sınav adı gerekli.';
+
+  @override
+  String get p69PickCourse => 'Ders seçin';
+
+  @override
+  String get p69DateLabel => 'Tarih';
+
+  @override
+  String get p69TimeLabel => 'Saat';
+
+  @override
+  String get p69ExamNote =>
+      'Sınavdan 1 gün önce yerel, 2 saat önce push bildirimi alırsın.';
+
+  @override
+  String p69SemesterTerm(String name) {
+    return '$name yarıyılı';
+  }
+
+  @override
+  String get p69TodayJump => 'Güne dön';
+
+  @override
+  String get p69Events => 'Akademik olaylar';
+
+  @override
+  String p69Records(String n) {
+    return '$n kayıt';
+  }
+
+  @override
+  String get p69OpenAttachment => 'Ekli belgeyi aç';
+
+  @override
+  String get p69ExamReminder => 'Sınav hatırlatması';
+
+  @override
+  String get p69ExamReminderSub =>
+      'Sınavdan 1 gün önce telefonunda, 2 saat önce bildirim olarak.';
+
+  @override
+  String p69ClassReminderSub(String n) {
+    return 'Dersten $n dakika önce.';
+  }
+
+  @override
+  String get p69Duration => 'Süre';
+
+  @override
+  String get p69Classes => 'Dersler';
+
+  @override
+  String get p69RemindersFooter => 'Hatırlatmalar bu telefonda oluşturulur.';
+
+  @override
+  String get p69PermOff =>
+      'Bildirim izni kapalı. Hatırlatma almak için ayarlardan izin ver.';
+
+  @override
+  String get p69NoExams => 'Henüz sınav eklemedin.';
+
+  @override
+  String p69AnnUnitDate(String unit, String date) {
+    return '$unit · $date';
+  }
 }

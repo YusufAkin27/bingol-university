@@ -9271,4 +9271,108 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get p51EvOffline => 'أنت غير متصل. تُعرض الفعاليات المحفوظة.';
+
+  @override
+  String get p69WeeklyFlow => 'الجدول الأسبوعي';
+
+  @override
+  String p69WeekN(String n) {
+    return 'الأسبوع $n';
+  }
+
+  @override
+  String get p69Done => 'اكتملت';
+
+  @override
+  String get p69LastSession => 'آخر محاضرة';
+
+  @override
+  String p69Hours(String h) {
+    return '$h ساعة';
+  }
+
+  @override
+  String p69TodayTotal(String n, String hours) {
+    return 'اليوم: $n محاضرات في المجموع ($hours)';
+  }
+
+  @override
+  String get p69ExamCalendar => 'جدول الامتحانات';
+
+  @override
+  String get p69Now => 'الآن';
+
+  @override
+  String get p69ExamName => 'اسم الامتحان';
+
+  @override
+  String get p69ExamNameHint => 'مثال: امتحان منتصف الفصل في هياكل البيانات';
+
+  @override
+  String get p69ExamNameErr => 'اسم الامتحان مطلوب.';
+
+  @override
+  String get p69PickCourse => 'اختر مقررًا';
+
+  @override
+  String get p69DateLabel => 'التاريخ';
+
+  @override
+  String get p69TimeLabel => 'الوقت';
+
+  @override
+  String get p69ExamNote =>
+      'ستصلك تذكير محلي قبل الامتحان بيوم وإشعار فوري قبله بساعتين.';
+
+  @override
+  String p69SemesterTerm(String name) {
+    return 'فصل $name';
+  }
+
+  @override
+  String get p69TodayJump => 'العودة إلى اليوم';
+
+  @override
+  String get p69Events => 'الأحداث الأكاديمية';
+
+  @override
+  String p69Records(String n) {
+    return '$n عناصر';
+  }
+
+  @override
+  String get p69OpenAttachment => 'فتح المستند المرفق';
+
+  @override
+  String get p69ExamReminder => 'تذكير الامتحان';
+
+  @override
+  String get p69ExamReminderSub =>
+      'على هاتفك قبل الامتحان بيوم، وكإشعار قبله بساعتين.';
+
+  @override
+  String p69ClassReminderSub(String n) {
+    return 'قبل المحاضرة بـ $n دقيقة.';
+  }
+
+  @override
+  String get p69Duration => 'المدة';
+
+  @override
+  String get p69Classes => 'المحاضرات';
+
+  @override
+  String get p69RemindersFooter => 'تُنشأ التذكيرات على هذا الهاتف.';
+
+  @override
+  String get p69PermOff =>
+      'إذن الإشعارات متوقف. اسمح به من الإعدادات لتلقي التذكيرات.';
+
+  @override
+  String get p69NoExams => 'لم تضف أي امتحان بعد.';
+
+  @override
+  String p69AnnUnitDate(String unit, String date) {
+    return '$unit · $date';
+  }
 }

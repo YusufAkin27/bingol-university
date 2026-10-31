@@ -9371,4 +9371,108 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get p51EvOffline => 'You are offline. Showing saved events.';
+
+  @override
+  String get p69WeeklyFlow => 'Weekly schedule';
+
+  @override
+  String p69WeekN(String n) {
+    return 'Week $n';
+  }
+
+  @override
+  String get p69Done => 'Completed';
+
+  @override
+  String get p69LastSession => 'Last session';
+
+  @override
+  String p69Hours(String h) {
+    return '$h h';
+  }
+
+  @override
+  String p69TodayTotal(String n, String hours) {
+    return 'Today: $n sessions in total ($hours)';
+  }
+
+  @override
+  String get p69ExamCalendar => 'Exam schedule';
+
+  @override
+  String get p69Now => 'Now';
+
+  @override
+  String get p69ExamName => 'Exam name';
+
+  @override
+  String get p69ExamNameHint => 'e.g. Data Structures Midterm';
+
+  @override
+  String get p69ExamNameErr => 'Exam name is required.';
+
+  @override
+  String get p69PickCourse => 'Select a course';
+
+  @override
+  String get p69DateLabel => 'Date';
+
+  @override
+  String get p69TimeLabel => 'Time';
+
+  @override
+  String get p69ExamNote =>
+      'You get a local reminder 1 day before and a push notification 2 hours before the exam.';
+
+  @override
+  String p69SemesterTerm(String name) {
+    return '$name semester';
+  }
+
+  @override
+  String get p69TodayJump => 'Back to today';
+
+  @override
+  String get p69Events => 'Academic events';
+
+  @override
+  String p69Records(String n) {
+    return '$n items';
+  }
+
+  @override
+  String get p69OpenAttachment => 'Open attached document';
+
+  @override
+  String get p69ExamReminder => 'Exam reminder';
+
+  @override
+  String get p69ExamReminderSub =>
+      'On your phone 1 day before the exam, as a notification 2 hours before.';
+
+  @override
+  String p69ClassReminderSub(String n) {
+    return '$n minutes before class.';
+  }
+
+  @override
+  String get p69Duration => 'Lead time';
+
+  @override
+  String get p69Classes => 'Classes';
+
+  @override
+  String get p69RemindersFooter => 'Reminders are created on this phone.';
+
+  @override
+  String get p69PermOff =>
+      'Notification permission is off. Allow it in settings to get reminders.';
+
+  @override
+  String get p69NoExams => 'You haven\'t added any exams yet.';
+
+  @override
+  String p69AnnUnitDate(String unit, String date) {
+    return '$unit · $date';
+  }
 }

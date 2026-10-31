@@ -3178,7 +3178,7 @@ abstract class AppLocalizations {
   /// No description provided for @chatInfoSeeAllMedia.
   ///
   /// In tr, this message translates to:
-  /// **'Tüm medyayı gör'**
+  /// **'Tümünü gör'**
   String get chatInfoSeeAllMedia;
 
   /// No description provided for @chatInfoMediaDot.
@@ -16992,6 +16992,180 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Çevrimdışısın. Kayıtlı etkinlikler gösteriliyor.'**
   String get p51EvOffline;
+
+  /// No description provided for @p69WeeklyFlow.
+  ///
+  /// In tr, this message translates to:
+  /// **'Haftalık akış'**
+  String get p69WeeklyFlow;
+
+  /// No description provided for @p69WeekN.
+  ///
+  /// In tr, this message translates to:
+  /// **'{n}. hafta'**
+  String p69WeekN(String n);
+
+  /// No description provided for @p69Done.
+  ///
+  /// In tr, this message translates to:
+  /// **'Tamamlandı'**
+  String get p69Done;
+
+  /// No description provided for @p69LastSession.
+  ///
+  /// In tr, this message translates to:
+  /// **'Son oturum'**
+  String get p69LastSession;
+
+  /// No description provided for @p69Hours.
+  ///
+  /// In tr, this message translates to:
+  /// **'{h} saat'**
+  String p69Hours(String h);
+
+  /// No description provided for @p69TodayTotal.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bugün toplam {n} oturum ({hours})'**
+  String p69TodayTotal(String n, String hours);
+
+  /// No description provided for @p69ExamCalendar.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sınav takvimi'**
+  String get p69ExamCalendar;
+
+  /// No description provided for @p69Now.
+  ///
+  /// In tr, this message translates to:
+  /// **'Şimdi'**
+  String get p69Now;
+
+  /// No description provided for @p69ExamName.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sınav adı'**
+  String get p69ExamName;
+
+  /// No description provided for @p69ExamNameHint.
+  ///
+  /// In tr, this message translates to:
+  /// **'Örn. Veri Yapıları Vize'**
+  String get p69ExamNameHint;
+
+  /// No description provided for @p69ExamNameErr.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sınav adı gerekli.'**
+  String get p69ExamNameErr;
+
+  /// No description provided for @p69PickCourse.
+  ///
+  /// In tr, this message translates to:
+  /// **'Ders seçin'**
+  String get p69PickCourse;
+
+  /// No description provided for @p69DateLabel.
+  ///
+  /// In tr, this message translates to:
+  /// **'Tarih'**
+  String get p69DateLabel;
+
+  /// No description provided for @p69TimeLabel.
+  ///
+  /// In tr, this message translates to:
+  /// **'Saat'**
+  String get p69TimeLabel;
+
+  /// No description provided for @p69ExamNote.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sınavdan 1 gün önce yerel, 2 saat önce push bildirimi alırsın.'**
+  String get p69ExamNote;
+
+  /// No description provided for @p69SemesterTerm.
+  ///
+  /// In tr, this message translates to:
+  /// **'{name} yarıyılı'**
+  String p69SemesterTerm(String name);
+
+  /// No description provided for @p69TodayJump.
+  ///
+  /// In tr, this message translates to:
+  /// **'Güne dön'**
+  String get p69TodayJump;
+
+  /// No description provided for @p69Events.
+  ///
+  /// In tr, this message translates to:
+  /// **'Akademik olaylar'**
+  String get p69Events;
+
+  /// No description provided for @p69Records.
+  ///
+  /// In tr, this message translates to:
+  /// **'{n} kayıt'**
+  String p69Records(String n);
+
+  /// No description provided for @p69OpenAttachment.
+  ///
+  /// In tr, this message translates to:
+  /// **'Ekli belgeyi aç'**
+  String get p69OpenAttachment;
+
+  /// No description provided for @p69ExamReminder.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sınav hatırlatması'**
+  String get p69ExamReminder;
+
+  /// No description provided for @p69ExamReminderSub.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sınavdan 1 gün önce telefonunda, 2 saat önce bildirim olarak.'**
+  String get p69ExamReminderSub;
+
+  /// No description provided for @p69ClassReminderSub.
+  ///
+  /// In tr, this message translates to:
+  /// **'Dersten {n} dakika önce.'**
+  String p69ClassReminderSub(String n);
+
+  /// No description provided for @p69Duration.
+  ///
+  /// In tr, this message translates to:
+  /// **'Süre'**
+  String get p69Duration;
+
+  /// No description provided for @p69Classes.
+  ///
+  /// In tr, this message translates to:
+  /// **'Dersler'**
+  String get p69Classes;
+
+  /// No description provided for @p69RemindersFooter.
+  ///
+  /// In tr, this message translates to:
+  /// **'Hatırlatmalar bu telefonda oluşturulur.'**
+  String get p69RemindersFooter;
+
+  /// No description provided for @p69PermOff.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bildirim izni kapalı. Hatırlatma almak için ayarlardan izin ver.'**
+  String get p69PermOff;
+
+  /// No description provided for @p69NoExams.
+  ///
+  /// In tr, this message translates to:
+  /// **'Henüz sınav eklemedin.'**
+  String get p69NoExams;
+
+  /// No description provided for @p69AnnUnitDate.
+  ///
+  /// In tr, this message translates to:
+  /// **'{unit} · {date}'**
+  String p69AnnUnitDate(String unit, String date);
 }
 
 class _AppLocalizationsDelegate
