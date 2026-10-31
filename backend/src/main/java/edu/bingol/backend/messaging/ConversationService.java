@@ -127,6 +127,14 @@ public class ConversationService {
         this.limiter = limiter;
     }
 
+    /** T-026: mesaj istegi karari (yoksa her uyelik dogrudan kabul edilmis olur: eski davranis). */
+    private MessageRequestPolicy requestPolicy;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setRequestPolicy(MessageRequestPolicy requestPolicy) {
+        this.requestPolicy = requestPolicy;
+    }
+
     /** C1: kulup/etkinlik odasi moderasyon yetkisi (yoksa odada canModerate=false). */
     private edu.bingol.backend.messaging.room.RoomModeration roomModeration;
 
@@ -172,7 +180,21 @@ public class ConversationService {
             // Yeni karsi taraf: gunluk sinir (islem geri alinir; mevcut konusmayi yeniden acmak sayilmaz)
             limitDaily("conv:newpeer:", me);
             members.save(ConversationMember.of(c.getId(), me, ConversationMember.Role.MEMBER));
-            members.save(ConversationMember.of(c.getId(), otherId, ConversationMember.Role.MEMBER));
+            ConversationMember other = ConversationMember.of(c.getId(), otherId, ConversationMember.Role.MEMBER);
+            // T-026: ortak baglam yoksa karsi taraf icin istek (kabul edene kadar listede/bildirimde yok)
+            if (requestPolicy != null && !requestPolicy.directAllowed(me, otherId)) {
+                other.setRequestState(ConversationMember.RequestState.PENDING);
+            }
+            members.save(other);
+        } else {
+            // Konusmayi KENDIM acmak rizamdir: bekleyen/reddettigim istek kabul edilmis olur ve listede yeniden belirir
+            members.findByConversationIdAndUserId(c.getId(), me)
+                    .filter(m -> m.getLeftAt() == null && !m.isAccepted())
+                    .ifPresent(m -> {
+                        m.setRequestState(ConversationMember.RequestState.ACCEPTED);
+                        m.setHiddenAt(null);
+                        members.save(m);
+                    });
         }
         return new Opened(views(me, List.of(c)).get(0), created);
     }
@@ -205,9 +227,67 @@ public class ConversationService {
         for (Long id : addable) {
             ConversationMember m = ConversationMember.of(c.getId(), id, ConversationMember.Role.MEMBER);
             m.setAddedBy(me);
+            m.setRequestState(inviteState(me, id));
             members.save(m);
         }
         return views(me, List.of(c)).get(0);
+    }
+
+    /** T-026: gruba davetin baslangic durumu: ekleyenle onceden rizasi olan dogrudan, digerleri kabul bekler. */
+    private ConversationMember.RequestState inviteState(Long adder, Long invitee) {
+        return requestPolicy == null || requestPolicy.groupInviteAllowed(adder, invitee)
+                ? ConversationMember.RequestState.ACCEPTED : ConversationMember.RequestState.PENDING;
+    }
+
+    /** Bekleyen mesaj istekleri ve grup davetleri (T-026); en yeni once, imlec = konusma kimligi. */
+    @Transactional(readOnly = true)
+    public CursorPage<ConversationView> requests(Long me, Long cursor, int size) {
+        int s = CursorPage.clampSize(size);
+        List<Conversation> rows = convs.requests(me, cursor == null ? Long.MAX_VALUE : cursor, PageRequest.of(0, s + 1));
+        boolean more = rows.size() > s;
+        List<Conversation> page = more ? rows.subList(0, s) : rows;
+        return new CursorPage<>(views(me, page), more ? page.get(page.size() - 1).getId() : null);
+    }
+
+    /** Bekleyen istek sayisi (rozet). */
+    @Transactional(readOnly = true)
+    public long requestCount(Long me) {
+        return members.countPending(me);
+    }
+
+    /** Istegi kabul eder (idempotent): konusma ana listede belirir, bildirimler baslar. Uye degilse 404. */
+    @Transactional
+    public ConversationView accept(Long me, Long id) {
+        ConversationMember self = requireMember(id, me);
+        Conversation c = convs.findById(id).orElseThrow(ConversationService::notFound);
+        if (!self.isAccepted()) {
+            self.setRequestState(ConversationMember.RequestState.ACCEPTED);
+            self.setHiddenAt(null);
+            members.save(self);
+        }
+        return views(me, List.of(c)).get(0);
+    }
+
+    /**
+     * Istegi reddeder: birebirde DECLINED (gizli; gonderen ayni sinirla devam eder, reddedildigini ogrenmez), grupta
+     * gruptan ayrilir ve davet eden bir daha ekleyemez (T-025 yasagi). Bekleyen istek degilse 409 REQUEST_NOT_PENDING.
+     */
+    @Transactional
+    public void decline(Long me, Long id) {
+        ConversationMember self = requireMember(id, me);
+        Conversation c = convs.findById(id).orElseThrow(ConversationService::notFound);
+        if (self.isAccepted()) {
+            throw new ApiException(HttpStatus.CONFLICT, "REQUEST_NOT_PENDING", "Bu konuşma bir istek değil.");
+        }
+        if (c.getType() == Conversation.Type.GROUP) {
+            self.setLeftAt(Instant.now());
+            members.save(self);
+            recordAddBan(self, id);
+            notifyRemoved(id, List.of(me));
+            return;
+        }
+        self.setRequestState(ConversationMember.RequestState.DECLINED);
+        members.save(self);
     }
 
     /** Mesaji olan konusmalar, en yeni mesaj once. Imlec = onceki sayfanin son `lastMessage.id` degeri. */
@@ -356,6 +436,7 @@ public class ConversationService {
                 m.setRole(ConversationMember.Role.MEMBER);
             }
             m.setAddedBy(me);
+            m.setRequestState(inviteState(me, uid)); // T-026: ortak riza yoksa davet kabul bekler
             m.setHiddenAt(null); // sohbeti silmis olsa da yeniden eklenince listede gorunur
             m.setLastReadMessageId(c.getLastMessageId() == null ? 0L : c.getLastMessageId());
             m.setLastDeliveredMessageId(m.getLastReadMessageId());
@@ -669,7 +750,8 @@ public class ConversationService {
                     unread.getOrDefault(c.getId(), 0L), iBlockedPeer,
                     c.getCreatedAt().toString(), muted, muted ? mine.getMutedUntil().toString() : null,
                     mine != null && mine.getArchivedAt() != null, mine != null && mine.isMutedForever(),
-                    club ? room.getRefId() : null, event ? room.getRefId() : null, c.getAvatarUrl(), canModerate);
+                    club ? room.getRefId() : null, event ? room.getRefId() : null, c.getAvatarUrl(), canModerate,
+                    mine != null && !mine.isAccepted() ? mine.getRequestState().name() : null);
         }).toList();
     }
 

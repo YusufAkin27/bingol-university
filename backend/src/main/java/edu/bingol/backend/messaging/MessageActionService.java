@@ -292,7 +292,7 @@ public class MessageActionService {
             Instant created = a.message.getCreatedAt();
             long msgId = a.message.getId();
             List<Long> recipients = members.findByConversationIdAndLeftAtIsNullOrderByJoinedAtAscIdAsc(a.conversation.getId()).stream()
-                    .filter(m -> m.getUserId().equals(actorId) || (!related.contains(m.getUserId())
+                    .filter(m -> m.getUserId().equals(actorId) || (m.isAccepted() && !related.contains(m.getUserId())
                             && !(group && created != null && created.isBefore(m.getJoinedAt()))
                             && msgId > m.getClearedUpToMessageId()))
                     .map(ConversationMember::getUserId).toList();

@@ -36,6 +36,9 @@ public class PrivacyService {
         if (r.classYear() != null) {
             p.setClassYearAudience(r.classYear());
         }
+        if (r.presence() != null) {
+            p.setPresenceAudience(r.presence());
+        }
         p.setUpdatedAt(Instant.now());
         return repo.save(p);
     }

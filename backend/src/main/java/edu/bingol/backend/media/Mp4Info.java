@@ -99,6 +99,51 @@ public final class Mp4Info {
         return new Info(ms, w, h);
     }
 
+    /** Meta veri tasiyabilen kutu turleri (GPS, cihaz/model, XMP, serbest uuid): icerigi sifirlanir. */
+    private static final java.util.Set<String> META_BOXES = java.util.Set.of("udta", "meta", "uuid", "XMP_", "©xyz");
+
+    /**
+     * T-038: sohbet videosunun GPS / cihaz / yazilim meta verisini (udta, meta, uuid, XMP_, (c)xyz) etkisiz kilar.
+     * Kutular silinmez: turu {@code free} yapilip icerigi sifirlanir; boylece kutu boyutlari ve chunk ofsetleri
+     * (stco/co64) degismez, oynatma etkilenmez (ffmpeg yok; yeniden kodlama gerekmez). Ust duzey + {@code moov}
+     * ve {@code moov/trak} cocuklari taranir. Bozuk yapida girdi oldugu gibi doner (ayristirma zaten reddeder).
+     *
+     * @return yeni dizi (girdi degismez) ve temizlenen kutu sayisi
+     */
+    public static Stripped stripMetadata(byte[] d) {
+        byte[] out = d.clone();
+        ByteBuffer b = ByteBuffer.wrap(out);
+        int n = wipeMeta(b, out, 0, out.length, 0);
+        return new Stripped(out, n);
+    }
+
+    public record Stripped(byte[] data, int wiped) {}
+
+    private static int wipeMeta(ByteBuffer b, byte[] out, int from, int to, int depth) {
+        int pos = from;
+        int wiped = 0;
+        int guard = 0;
+        while (pos + 8 <= to && guard++ < MAX_DEPTH_BOXES) {
+            long[] box = boxAt(b, pos, to);
+            if (box == null) {
+                break;
+            }
+            String t = type(b, pos);
+            if (META_BOXES.contains(t)) {
+                for (int i = (int) box[0]; i < (int) box[1]; i++) {
+                    out[i] = 0;
+                }
+                byte[] free = "free".getBytes(StandardCharsets.ISO_8859_1);
+                System.arraycopy(free, 0, out, pos + 4, 4);
+                wiped++;
+            } else if (depth < 2 && (t.equals("moov") || (depth == 1 && t.equals("trak")))) {
+                wiped += wipeMeta(b, out, (int) box[0], (int) box[1], depth + 1);
+            }
+            pos = (int) box[1];
+        }
+        return wiped;
+    }
+
     /** [yukBaslangici, kutuSonu] ya da yoksa null. Alt kutu araması `from..to` icinde dolasir. */
     private static long[] findBox(ByteBuffer b, int from, int to, String wanted) throws Invalid {
         int pos = from;

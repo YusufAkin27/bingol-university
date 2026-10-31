@@ -68,6 +68,38 @@ public class ConversationController {
         return conversations.list(CurrentUser.id(), cursor, size, archived);
     }
 
+    /** T-026: bekleyen mesaj istekleri ve grup davetleri ("Istekler" sekmesi); bildirim/WS yok, buradan okunur. */
+    @GetMapping("/requests")
+    public CursorPage<ConversationView> requests(@RequestParam(required = false) Long cursor,
+                                                 @RequestParam(defaultValue = "20") int size) {
+        Long uid = CurrentUser.id();
+        limiter.check("conv:requests:" + uid, 120, Duration.ofMinutes(1));
+        return conversations.requests(uid, cursor, size);
+    }
+
+    /** Bekleyen istek sayisi: {@code {"count":n}} (rozet). */
+    @GetMapping("/requests/count")
+    public java.util.Map<String, Long> requestCount() {
+        Long uid = CurrentUser.id();
+        limiter.check("conv:requests:" + uid, 120, Duration.ofMinutes(1));
+        return java.util.Map.of("count", conversations.requestCount(uid));
+    }
+
+    @PostMapping("/{id}/accept")
+    public ConversationView accept(@PathVariable Long id) {
+        Long uid = CurrentUser.id();
+        limitManage(uid);
+        return conversations.accept(uid, id);
+    }
+
+    @PostMapping("/{id}/decline")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void decline(@PathVariable Long id) {
+        Long uid = CurrentUser.id();
+        limitManage(uid);
+        conversations.decline(uid, id);
+    }
+
     /** Rozet: sessize alinmamis konusmalardaki toplam okunmamis + konusma bazli dokum. */
     @GetMapping("/unread-count")
     public UnreadSummary unreadCount() {

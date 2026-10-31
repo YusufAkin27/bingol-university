@@ -65,6 +65,10 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
     List<Object[]> unreadCounts(@Param("uid") Long userId, @Param("cids") Collection<Long> conversationIds,
                                 @Param("excluded") Collection<Long> excludedSenders);
 
+    /** T-026: gonderenin bu konusmadaki silinmemis mesaj sayisi (yanitsiz istek sinirı). */
+    @Query("SELECT COUNT(m) FROM Message m WHERE m.conversationId = :cid AND m.senderId = :sid AND m.deletedAt IS NULL")
+    long countSentBy(@Param("cid") Long conversationId, @Param("sid") Long senderId);
+
     /** `NOT IN` bos kumeyle calismaz: engel iliskisi yoksa gecersiz bir yer tutucu id doner. */
     static List<Long> excludedSenders(Collection<Long> related) {
         return related.isEmpty() ? List.of(-1L) : List.copyOf(related);

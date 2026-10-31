@@ -22,6 +22,9 @@ public class ConversationMember {
 
     public enum Role { MEMBER, ADMIN }
 
+    /** Mesaj istegi (T-026): ACCEPTED normal uye; PENDING kabul bekliyor; DECLINED reddetti (gizli). */
+    public enum RequestState { ACCEPTED, PENDING, DECLINED }
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -41,6 +44,11 @@ public class ConversationMember {
 
     /** Uyeyi gruba ekleyen kullanici (T-025: cikan/cikarilan uyeyi ayni kisi yeniden ekleyemez); kurucu/eski kayit null. */
     private Long addedBy;
+
+    /** Mesaj istegi durumu (T-026, V981). Yalniz ACCEPTED uyeler listede gorur, bildirim/WS/makbuz alir. */
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 10)
+    private RequestState requestState = RequestState.ACCEPTED;
 
     /** Doluysa uye ayrildi/cikarildi: erisim yok. */
     private Instant leftAt;
@@ -90,6 +98,10 @@ public class ConversationMember {
         m.userId = userId;
         m.role = role;
         return m;
+    }
+
+    public boolean isAccepted() {
+        return requestState == RequestState.ACCEPTED;
     }
 
     public boolean isAdmin() {

@@ -213,6 +213,11 @@ public class MessageService {
             }
         }
         List<ConversationMember> active = members.findByConversationIdAndLeftAtIsNullOrderByJoinedAtAscIdAsc(conversationId);
+        // T-026: bekleyen / reddetmis alici yanit yazarsa istegi kabul etmis olur (yazmak rizadir)
+        if (!sender.isAccepted()) {
+            sender.setRequestState(ConversationMember.RequestState.ACCEPTED);
+            members.save(sender);
+        }
         boolean suppressed = false;
         if (conv.getType() == Conversation.Type.DIRECT) {
             Long peerId = active.stream().map(ConversationMember::getUserId).filter(id -> !id.equals(senderId))
@@ -222,6 +227,15 @@ public class MessageService {
             if (users.findById(peerId).filter(User::isActive).isEmpty()) {
                 throw new ApiException(HttpStatus.FORBIDDEN, "USER_UNAVAILABLE", "Bu kullanıcıya mesaj gönderilemez.");
             }
+        }
+        // T-026: kimse kabul etmediyse gonderen yanitsiz en fazla MAX_UNANSWERED mesaj yazabilir (istek spam'i yok);
+        // golge engelli (bastirilmis) mesajlarda sinir uygulanmaz: sinir davranisi engeli ele vermesin.
+        if (!suppressed && active.size() > 1
+                && active.stream().noneMatch(a -> !a.getUserId().equals(senderId) && a.isAccepted())
+                && messages.countSentBy(conversationId, senderId) >= MAX_UNANSWERED) {
+            throw new ApiException(HttpStatus.CONFLICT, "MESSAGE_REQUEST_PENDING",
+                    "Karşı taraf isteğinizi kabul edene kadar daha fazla mesaj gönderemezsiniz.",
+                    String.valueOf(MAX_UNANSWERED));
         }
         // Ek dogrulamasi mesaj hakkini harcamadan once (baskasinin/kullanilmis/uygunsuz ek -> 400)
         List<Long> ids = hasMedia ? (viewOnce ? attachments.precheck(senderId, conversationId, attachmentIds, true)
@@ -247,13 +261,18 @@ public class MessageService {
         }
         MessageView view = viewFor(senderId, saved, since);
         try {
-            deliver(conv, saved, view, active);
+            // T-026: kabul etmemis (bekleyen/reddeden) uyelere WS, push ve bildirim gitmez
+            deliver(conv, saved, view, active.stream()
+                    .filter(a -> a.isAccepted() || a.getUserId().equals(senderId)).toList());
         } catch (RuntimeException e) {
             // Mesaj kayitli; teslim hatasi gondericiye hata olarak donmez (istemci yeniden baglaninca ceker).
             log.warn("Mesaj teslimi basarisiz (mesaj {}): {}", saved.getId(), e.toString());
         }
         return new SendResult(view, true);
     }
+
+    /** T-026: istek kabul edilmeden gonderenin yazabilecegi mesaj sayisi (RequestPolicy). */
+    static final int MAX_UNANSWERED = 3;
 
     private Message persist(Message draft, List<Long> attachmentIds, boolean viewOnce) {
         String plain = draft.getBody();
@@ -513,6 +532,9 @@ public class MessageService {
         } catch (ApiException e) {
             return;
         }
+        if (!me.isAccepted()) {
+            return; // T-026: bekleyen istek: okundu imleci ilerlemez, "goruldu" bilgisi gonderene gitmez
+        }
         long oldRead = me.getLastReadMessageId();
         long oldDelivered = me.getLastDeliveredMessageId();
         if (members.advanceRead(conversationId, userId, lastMessageId) > 0) {
@@ -537,7 +559,9 @@ public class MessageService {
         } catch (ApiException e) {
             return;
         }
-        requireMember(conversationId, userId);
+        if (!requireMember(conversationId, userId).isAccepted()) {
+            return; // T-026: bekleyen istekte "yaziyor" bilgisi gitmez
+        }
         try {
             limiter.check("typing:" + userId + ":" + conversationId, 1, Duration.ofSeconds(2));
         } catch (ApiException e) {
@@ -560,6 +584,7 @@ public class MessageService {
     private List<Long> othersOf(Long conversationId, Long userId, boolean skipRelated) {
         Set<Long> related = skipRelated ? blocks.hiddenFrom(userId) : Set.of();
         return members.findByConversationIdAndLeftAtIsNullOrderByJoinedAtAscIdAsc(conversationId).stream()
+                .filter(ConversationMember::isAccepted)
                 .map(ConversationMember::getUserId).filter(id -> !id.equals(userId) && !related.contains(id)).toList();
     }
 

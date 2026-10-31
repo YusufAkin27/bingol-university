@@ -43,7 +43,9 @@ public class ConversationPrefsService {
      * olusturulmaz. Rozet toplami (`total`) sessizdekileri disarida birakir, `mutedTotal` ayri doner.
      */
     public UnreadSummary unreadSummary(Long userId) {
-        List<ConversationMember> mine = members.findByUserIdAndLeftAtIsNull(userId);
+        // T-026: bekleyen istekler rozete girmez (kabul edilene kadar yok)
+        List<ConversationMember> mine = members.findByUserIdAndLeftAtIsNull(userId).stream()
+                .filter(ConversationMember::isAccepted).toList();
         if (mine.isEmpty()) {
             return new UnreadSummary(0, 0, List.of());
         }
@@ -82,7 +84,7 @@ public class ConversationPrefsService {
      */
     public long unreadBadge(Long userId) {
         List<Long> ids = members.findByUserIdAndLeftAtIsNull(userId).stream()
-                .filter(m -> !m.isMuted()).map(ConversationMember::getConversationId).toList();
+                .filter(m -> !m.isMuted() && m.isAccepted()).map(ConversationMember::getConversationId).toList();
         if (ids.isEmpty()) {
             return 0;
         }

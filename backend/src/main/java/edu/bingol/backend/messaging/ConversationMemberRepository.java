@@ -67,8 +67,15 @@ public interface ConversationMemberRepository extends JpaRepository<Conversation
             + "WHERE m.conversationId = :cid AND m.userId = :uid AND m.hiddenAt IS NOT NULL")
     int unhideMember(@Param("cid") Long conversationId, @Param("uid") Long userId);
 
-    /** Iki kullanicinin ortak (ikisi de ayrilmamis) bir konusmasi var mi. */
+    /** Bekleyen mesaj istegi / grup daveti sayisi (T-026). */
+    @Query("SELECT COUNT(m) FROM ConversationMember m WHERE m.userId = :uid AND m.leftAt IS NULL "
+            + "AND m.requestState = edu.bingol.backend.messaging.ConversationMember.RequestState.PENDING")
+    long countPending(@Param("uid") Long userId);
+
+    /** Iki kullanicinin ortak (ikisi de ayrilmamis VE ikisi de kabul etmis) bir konusmasi var mi (presence: karsilikli kabul). */
     @Query("SELECT COUNT(a) > 0 FROM ConversationMember a, ConversationMember b WHERE a.conversationId = b.conversationId "
-            + "AND a.userId = :a AND b.userId = :b AND a.leftAt IS NULL AND b.leftAt IS NULL")
+            + "AND a.userId = :a AND b.userId = :b AND a.leftAt IS NULL AND b.leftAt IS NULL "
+            + "AND a.requestState = edu.bingol.backend.messaging.ConversationMember.RequestState.ACCEPTED "
+            + "AND b.requestState = edu.bingol.backend.messaging.ConversationMember.RequestState.ACCEPTED")
     boolean shareConversation(@Param("a") Long userA, @Param("b") Long userB);
 }

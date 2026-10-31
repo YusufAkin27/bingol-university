@@ -55,6 +55,7 @@ public interface ConversationRepository extends JpaRepository<Conversation, Long
     /** Kullanicinin (ayrilmadigi) mesajli konusmalari, en yeni mesaj once. Imlec = son mesaj id'si (benzersiz). */
     @Query("SELECT c FROM Conversation c, ConversationMember m WHERE m.conversationId = c.id AND m.userId = :uid "
             + "AND m.leftAt IS NULL AND m.hiddenAt IS NULL AND c.lastMessageId IS NOT NULL "
+            + "AND m.requestState = edu.bingol.backend.messaging.ConversationMember.RequestState.ACCEPTED "
             + "AND (CASE WHEN c.shadowed = true THEN GREATEST(COALESCE(c.lastVisibleMessageId, 0L), m.lastOwnSuppressedMessageId) "
             + "ELSE c.lastMessageId END) > 0 "
             + "AND ((:archived = true AND m.archivedAt IS NOT NULL) OR (:archived = false AND m.archivedAt IS NULL)) "
@@ -64,4 +65,10 @@ public interface ConversationRepository extends JpaRepository<Conversation, Long
             + "m.lastOwnSuppressedMessageId) ELSE c.lastMessageId END) DESC")
     List<Conversation> page(@Param("uid") Long userId, @Param("cursor") Long cursor,
                             @Param("archived") boolean archived, Pageable pageable);
+
+    /** Bekleyen mesaj istekleri / grup davetleri (T-026), en yeni once; imlec = konusma kimligi (azalan). */
+    @Query("SELECT c FROM Conversation c, ConversationMember m WHERE m.conversationId = c.id AND m.userId = :uid "
+            + "AND m.leftAt IS NULL AND m.requestState = edu.bingol.backend.messaging.ConversationMember.RequestState.PENDING "
+            + "AND c.id < :cursor ORDER BY c.id DESC")
+    List<Conversation> requests(@Param("uid") Long userId, @Param("cursor") long cursor, Pageable pageable);
 }

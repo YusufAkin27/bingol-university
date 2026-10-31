@@ -258,7 +258,8 @@ public final class MessagingDtos {
                                    boolean admin, MessageView lastMessage, long unreadCount, boolean blocked,
                                    String createdAt, boolean muted, String mutedUntil, boolean archived,
                                    boolean mutedForever, Long communityId, Long eventId, String avatarUrl,
-                                   boolean canModerate) {}
+                                   boolean canModerate,
+                                   @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL) String requestState) {}
 
     /** `department`/`classYear`: profil gizlilik ayari bakana izin veriyorsa (yoksa gonderilmez). */
     public record MemberView(Long userId, String displayName, String avatarUrl, String role,

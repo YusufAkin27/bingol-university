@@ -249,6 +249,8 @@ public class MessageAttachmentService {
         if (posterRaw != null) {
             rejectIfBlocked(posterRaw);
         }
+        // T-038: GPS / cihaz / yazilim meta verisi alicilara gitmesin (boyut ve oynatma degismez)
+        raw = Mp4Info.stripMetadata(raw).data();
         String[] st = store.storeVideo(BUCKET, conversationId, raw, posterRaw, POSTER_MAX_DIM,
                 img -> rejectIfBlocked(img.data()));
         try {

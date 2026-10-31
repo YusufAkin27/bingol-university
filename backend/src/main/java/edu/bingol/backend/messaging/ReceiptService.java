@@ -105,7 +105,7 @@ public class ReceiptService {
         Map<Long, List<ConversationMember>> others = new HashMap<>();
         for (Long cid : cids) {
             others.put(cid, by.getOrDefault(cid, List.of()).stream()
-                    .filter(o -> !o.getUserId().equals(viewerId) && !excluded.contains(o.getUserId())).toList());
+                    .filter(o -> o.isAccepted() && !o.getUserId().equals(viewerId) && !excluded.contains(o.getUserId())).toList());
         }
         Map<Long, String> out = new HashMap<>();
         for (Message m : mine) {
@@ -132,6 +132,9 @@ public class ReceiptService {
                 .orElseThrow(ReceiptService::notFound);
         if (lastMessageId == null || lastMessageId <= 0) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "INVALID_MESSAGE_ID", "Geçersiz mesaj kimliği.");
+        }
+        if (!me.isAccepted()) {
+            return; // T-026: bekleyen istekte "iletildi" bilgisi gonderene gitmez
         }
         Conversation conv = convs.findById(conversationId).orElseThrow(ReceiptService::notFound);
         if (conv.getLastMessageId() == null) {
@@ -168,7 +171,11 @@ public class ReceiptService {
     /** (from, to] araligi icin mesaj sahiplerine olay. Engel iliskisi olanlara gitmez. */
     private void publish(Conversation conv, Long actor, String kind, long from, long to) {
         List<ConversationMember> active = members
-                .findByConversationIdAndLeftAtIsNullOrderByJoinedAtAscIdAsc(conv.getId());
+                .findByConversationIdAndLeftAtIsNullOrderByJoinedAtAscIdAsc(conv.getId()).stream()
+                .filter(ConversationMember::isAccepted).toList(); // T-026: bekleyen uyelere makbuz gitmez
+        if (active.stream().noneMatch(a -> a.getUserId().equals(actor))) {
+            return; // eylemi yapan kabul etmemis (bekleyen istek): goruldu/iletildi sizmaz
+        }
         Set<Long> related = blocks.hiddenFrom(actor);
         String at = Instant.now().toString();
         if (conv.getType() == Conversation.Type.DIRECT) {
