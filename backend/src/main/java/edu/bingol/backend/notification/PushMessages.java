@@ -13,6 +13,8 @@ final class PushMessages {
     static final String CHANNEL_EVENT = "event";
     static final String CHANNEL_POLL = "poll";
     static final String CHANNEL_SOCIAL = "social";
+    /** Sinav hatirlatmasi (istemci kanali yerel ders/sinav hatirlatmalariyla ortak, HIGH). */
+    static final String CHANNEL_ACADEMIC = "academic";
 
     private PushMessages() {}
 
@@ -21,9 +23,10 @@ final class PushMessages {
                           Map<String, String> payload, String collapseKey, Integer badge) {
         // Yuksek oncelik: mesaj, hesap guvenligi (SYSTEM) ve etkinlik basvuru sonucu; begeni/takip normal.
         boolean urgent = type == NotificationType.MESSAGE || type == NotificationType.SYSTEM
-                || subtype == NotificationSubtype.EVENT_ADMISSION;
+                || subtype == NotificationSubtype.EVENT_ADMISSION || subtype == NotificationSubtype.EXAM_REMINDER;
         String thread = threadId(type, payload);
-        String channel = payload.containsKey("pollId") ? CHANNEL_POLL : channel(type);
+        String channel = payload.containsKey("pollId") ? CHANNEL_POLL
+                : subtype == NotificationSubtype.EXAM_REMINDER ? CHANNEL_ACADEMIC : channel(type);
         Map<String, String> data = new java.util.LinkedHashMap<>(payload);
         data.put("channelId", channel);
         data.put("threadId", thread);
@@ -48,6 +51,9 @@ final class PushMessages {
     static int ttlSeconds(NotificationType type, NotificationSubtype subtype) {
         if (subtype == NotificationSubtype.EVENT_REMINDER) {
             return 6 * 3600;
+        }
+        if (subtype == NotificationSubtype.EXAM_REMINDER) {
+            return 3600; // sinava <= 2 sa var: 1 saatten sonra ulasan hatirlatma anlamsiz
         }
         return switch (type) {
             case MESSAGE, SYSTEM -> 7 * 86_400;
@@ -87,6 +93,9 @@ final class PushMessages {
         String post = payload.get("postId");
         if (post != null) {
             return "post-" + post;
+        }
+        if (payload.containsKey("examId")) {
+            return "academic"; // sinav hatirlatmalari tek baslik altinda
         }
         return type.name().toLowerCase();
     }

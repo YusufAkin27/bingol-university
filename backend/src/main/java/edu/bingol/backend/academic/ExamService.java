@@ -121,9 +121,11 @@ public class ExamService {
         ContentGuard.clean(guard, Entity.OTHER, "title", uid, title);
         ContentGuard.clean(guard, Entity.OTHER, "note", uid, note);
         checkCourse(uid, r.courseId());
-        long id = insert(jdbc, "INSERT INTO tt_exam (user_id, course_id, title, type, starts_at, ends_at, room, note) "
-                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?)", uid, r.courseId(), title, type, Timestamp.from(starts),
-                ends == null ? null : Timestamp.from(ends), room, note);
+        // Sinav zaten 2 saat icinde (ya da gecmis) girildiyse kullanici bunu biliyor: aninda push gelmesin.
+        Timestamp reminded = withinReminderLead(starts) ? Timestamp.from(starts) : null;
+        long id = insert(jdbc, "INSERT INTO tt_exam (user_id, course_id, title, type, starts_at, ends_at, room, note, "
+                + "reminded_starts_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)", uid, r.courseId(), title, type,
+                Timestamp.from(starts), ends == null ? null : Timestamp.from(ends), room, note, reminded);
         return get(uid, id);
     }
 
@@ -149,7 +151,16 @@ public class ExamService {
         jdbc.update("UPDATE tt_exam SET course_id = ?, title = ?, type = ?, starts_at = ?, ends_at = ?, room = ?, note = ? "
                 + "WHERE id = ? AND user_id = ?", courseId, title, type, Timestamp.from(starts),
                 ends == null ? null : Timestamp.from(ends), room, note, id, uid);
+        // Saat degistiyse hatirlatma yeniden hak eder (reminded_starts_at artik starts_at'ten farkli); yeni saat zaten
+        // 2 saat icindeyse kullanici onu bilerek girmistir, aninda push gonderilmez.
+        if (!starts.equals(AcademicTime.parseInstant(cur.startsAt())) && withinReminderLead(starts)) {
+            jdbc.update("UPDATE tt_exam SET reminded_starts_at = starts_at WHERE id = ? AND user_id = ?", id, uid);
+        }
         return get(uid, id);
+    }
+
+    private boolean withinReminderLead(Instant starts) {
+        return !starts.isAfter(clock.instant().plus(ExamReminderJob.LEAD));
     }
 
     @Transactional

@@ -22,23 +22,29 @@ public class AcademicTestSchema {
     @Bean
     SmartInitializingSingleton academicSchema(JdbcTemplate jdbc) {
         return () -> {
-            try {
-                String sql = new String(new ClassPathResource("db/migration/V320__academic.sql").getInputStream().readAllBytes(),
-                        StandardCharsets.UTF_8)
-                        .replace("TIMESTAMPTZ", "TIMESTAMP WITH TIME ZONE").replace("now()", "CURRENT_TIMESTAMP");
-                for (String stmt : sql.replaceAll("(?m)^--.*$", "").split(";")) {
-                    String s = stmt.replaceAll("(?m)^--.*$", "").strip();
-                    if (!s.isEmpty()) {
-                        try {
-                            jdbc.execute(s);
-                        } catch (RuntimeException e) {
-                            log.warn("academic test schema: {}", e.getMessage());
-                        }
-                    }
-                }
-            } catch (IOException e) {
-                throw new IllegalStateException(e);
+            for (String file : new String[] {"V320__academic.sql", "V1010__exr9_exam_reminder.sql"}) {
+                apply(jdbc, file);
             }
         };
+    }
+
+    private static void apply(JdbcTemplate jdbc, String file) {
+        try {
+            String sql = new String(new ClassPathResource("db/migration/" + file).getInputStream().readAllBytes(),
+                    StandardCharsets.UTF_8)
+                    .replace("TIMESTAMPTZ", "TIMESTAMP WITH TIME ZONE").replace("now()", "CURRENT_TIMESTAMP");
+            for (String stmt : sql.replaceAll("(?m)^--.*$", "").split(";")) {
+                String s = stmt.replaceAll("(?m)^--.*$", "").strip();
+                if (!s.isEmpty()) {
+                    try {
+                        jdbc.execute(s);
+                    } catch (RuntimeException e) {
+                        log.warn("academic test schema ({}): {}", file, e.getMessage());
+                    }
+                }
+            }
+        } catch (IOException e) {
+            throw new IllegalStateException(e);
+        }
     }
 }
