@@ -498,7 +498,7 @@ class _ChatTabState extends State<ChatTab> {
                   ? BuHeader(title: context.l10n.chatMiscArchive, onBack: () => _setArchiveView(false))
                   : Padding(
                       // Üst güvenli alan (durum çubuğu) eklenir: Android 15 edge-to-edge'de başlık saat/simgelere binmesin (BuHeader ile aynı 12 dp).
-                      padding: EdgeInsetsDirectional.fromSTEB(20, MediaQuery.paddingOf(context).top + 12, 20, 4),
+                      padding: EdgeInsetsDirectional.fromSTEB(16, MediaQuery.paddingOf(context).top + 12, 10, 4),
                       child: Row(
                         children: [
                           Expanded(
@@ -508,8 +508,12 @@ class _ChatTabState extends State<ChatTab> {
                                   maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.headlineMedium!.copyWith(color: t.ink)),
                             ),
                           ),
-                          ChatlistRoundButton(
-                              icon: LucideIcons.archive, tooltip: context.l10n.chatMiscArchive, onTap: () => _setArchiveView(true)),
+                          // Stitch v3: iki ikonun merkezi 40 dp arayla (48 dp alanlar 8 dp üst üste biner; sağdaki "+" üstte kalır).
+                          Transform.translate(
+                            offset: Offset(Directionality.of(context) == TextDirection.rtl ? -8 : 8, 0),
+                            child: ChatlistRoundButton(
+                                icon: LucideIcons.archive, tooltip: context.l10n.chatMiscArchive, onTap: () => _setArchiveView(true)),
+                          ),
                           ChatlistNewButton(tooltip: context.l10n.chatMiscNewChat, onTap: _openNew),
                         ],
                       ),
@@ -717,15 +721,17 @@ class _PinnedFilterDelegate extends SliverPersistentHeaderDelegate {
       height: _height,
       color: t.bg,
       child: Column(
+        // Çip satırı sola yaslı tam genişlik (ortalanmış dar satır çipleri 16 dp yerine 32 dp'ye iterdi).
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Padding(
-            padding: const EdgeInsetsDirectional.fromSTEB(20, 12, 20, 0),
+            padding: const EdgeInsetsDirectional.fromSTEB(16, 12, 16, 0),
             child: ChatlistSearch(hint: context.l10n.chatlistSearchHint, controller: controller, onChanged: onQuery),
           ),
           if (showChips)
             Padding(
               padding: const EdgeInsets.only(top: 4),
-              child: KeyedSubtree(key: const ValueKey('chat-segment'), child: BuChipRow(labels: filters, selected: selected, onSelected: onSelect)),
+              child: KeyedSubtree(key: const ValueKey('chat-segment'), child: BuChipRow(labels: filters, selected: selected, onSelected: onSelect, padding: const EdgeInsetsDirectional.symmetric(horizontal: 16))),
             ),
         ],
       ),
@@ -741,7 +747,7 @@ class _SkeletonList extends StatelessWidget {
   Widget build(BuildContext context) {
     // Satır iskeleti gerçek satırla aynı: sayfa zemininde, kartsız.
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
       child: ExcludeSemantics(
         child: BuSkeletonScope(
           child: Column(
@@ -865,7 +871,7 @@ class _ConversationRow extends StatelessWidget {
           child: Stack(
             children: [
               Padding(
-                padding: const EdgeInsetsDirectional.fromSTEB(20, 12, 20, 12),
+                padding: const EdgeInsetsDirectional.fromSTEB(16, 12, 16, 12),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -877,7 +883,7 @@ class _ConversationRow extends StatelessWidget {
                       // Tür adı yanındaki nötr etiketle (ya da ekran okuyucuyla) söylenir; avatarda ikinci işaret yok.
                       heroTag: 'chat-avatar-${conversation['id']}',
                     ),
-                    const SizedBox(width: 14),
+                    const SizedBox(width: 12),
                     Expanded(
                       child: LayoutBuilder(builder: (context, box) {
                         // Dar ekran / büyük yazıda tür çipi başlığı 3 harfe sıkıştırır (T-114): çip kalkar (avatar
@@ -961,11 +967,11 @@ class _ConversationRow extends StatelessWidget {
                               BuPop(
                                 trigger: unread,
                                 child: Container(
-                                  constraints: const BoxConstraints(minWidth: 22),
-                                  height: 22,
-                                  padding: const EdgeInsets.symmetric(horizontal: 7),
+                                  constraints: const BoxConstraints(minWidth: 20),
+                                  height: 20,
+                                  padding: const EdgeInsets.symmetric(horizontal: 6),
                                   alignment: Alignment.center,
-                                  decoration: BoxDecoration(color: muted ? t.sf2 : t.pr, borderRadius: BorderRadius.circular(11)),
+                                  decoration: BoxDecoration(color: muted ? t.sf2 : t.pr, borderRadius: BorderRadius.circular(10)),
                                   child: Text(unread > 99 ? '99+' : '$unread',
                                       style: tx.labelSmall!.copyWith(
                                           fontWeight: FontWeight.w700,
@@ -984,7 +990,7 @@ class _ConversationRow extends StatelessWidget {
               ),
               if (!last)
                 PositionedDirectional(
-                  start: 20 + 52 + 14,
+                  start: 16 + 52 + 12,
                   end: 0,
                   bottom: 0,
                   child: Container(height: 1, color: t.bd),

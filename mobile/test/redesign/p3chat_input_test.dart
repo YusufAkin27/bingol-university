@@ -201,7 +201,7 @@ void main() {
       final clip = tester.widgetList<ClipRRect>(find.descendant(of: find.byKey(const ValueKey('galleryTile_p1')), matching: find.byType(ClipRRect))).first;
       expect(clip.borderRadius, BorderRadius.circular(10));
       expect(find.byKey(const ValueKey('pickerPreview')), findsNothing, reason: 'alt çubuk yok');
-      expect(find.textContaining('En fazla 10 öğe'), findsOneWidget, reason: 'alt not (düz metin)');
+      expect(find.textContaining('En fazla 10 öğe', skipOffstage: false), findsOneWidget, reason: 'izgaranın altında düz not');
     });
 
     testWidgets('seçim sayacı: dolu daire + sıra sayısı, "Gönder (n)" hapı; kare küçülür', (tester) async {
@@ -217,8 +217,8 @@ void main() {
       expect(one, findsOneWidget);
       final circle = tester.widget<AnimatedContainer>(find.ancestor(of: one, matching: find.byType(AnimatedContainer)).first);
       expect((circle.decoration as BoxDecoration).color, bu.pr);
-      final scale = tester.widget<AnimatedScale>(find.descendant(of: find.byKey(const ValueKey('galleryTile_p1')), matching: find.byType(AnimatedScale)));
-      expect(scale.scale, lessThan(1));
+      // Stitch PNG'si: seçili karede çerçeve/kararma/küçülme yok, yalnız sayılı daire (seçilmemiş karede halka yok).
+      expect(find.descendant(of: find.byKey(const ValueKey('galleryTile_p3')), matching: find.byType(AnimatedContainer)), findsNothing);
       // Seçimi kaldır: sayaç düşer.
       await tester.tap(find.byKey(const ValueKey('galleryTile_p1')));
       await tester.pump(const Duration(milliseconds: 300));

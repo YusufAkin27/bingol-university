@@ -61,7 +61,7 @@ void main() {
   testWidgets('birebir sohbet: başlık, çevrimiçi noktası ve yazma alanı öğeleri', (t) async {
     await _pump(t, _page(_backend([_m(1, 11, 'Selam')]), _direct()));
     expect(find.text('Ali Veli'), findsWidgets);
-    expect(find.text('Çevrimiçi'), findsOneWidget);
+    expect(find.text('çevrimiçi'), findsOneWidget);
     expect(find.byKey(const ValueKey('onlineDot')), findsNothing, reason: 'Stitch v3: yalnız metin');
     expect(find.byKey(const ValueKey('roomPageChip')), findsNothing);
     for (final k in ['attachButton', 'composerField']) {

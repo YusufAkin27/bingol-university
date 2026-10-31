@@ -1,5 +1,4 @@
 import 'dart:math' as math;
-import 'dart:ui' show ImageFilter;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -8,7 +7,6 @@ import '../../core/locale_controller.dart';
 import '../../core/theme.dart';
 import '../../core/theme/bu_motion.dart';
 import '../../core/typography.dart';
-import '../../widgets/bu.dart' show BuRadius;
 
 /// Eylem listesindeki tek satır.
 class MessageAction {
@@ -157,11 +155,8 @@ class _MessageActionsOverlay extends StatelessWidget {
               child: GestureDetector(
                 behavior: HitTestBehavior.opaque,
                 onTap: close,
-                child: BackdropFilter(
-                  filter: ImageFilter.blur(sigmaX: 4, sigmaY: 4),
-                  child: ColoredBox(
-                      color: t.scrim.withValues(alpha: dark ? .6 : .38)),
-                ),
+                // Stitch v3 (30_mesaj_menusu): bulanıklık yok, düz karartma.
+                child: ColoredBox(color: t.scrim.withValues(alpha: dark ? .6 : .38)),
               ),
             ),
           ),
@@ -330,32 +325,17 @@ class _ActionRow extends StatelessWidget {
       onTap: onTap,
       child: Container(
         height: _MessageActionsOverlay._rowH,
-        padding: const EdgeInsetsDirectional.symmetric(horizontal: 10),
-        decoration: BoxDecoration(
-            border: first
-                ? null
-                : Border(
-                    top: BorderSide(
-                        color: t.bd.withValues(alpha: .5), width: .5))),
+        padding: const EdgeInsetsDirectional.symmetric(horizontal: 16),
+        decoration: BoxDecoration(border: first ? null : Border(top: BorderSide(color: t.bd))),
         child: Row(children: [
-          ExcludeSemantics(
-            child: Container(
-              width: 36,
-              height: 36,
-              decoration: BoxDecoration(
-                  color: action.danger ? t.soft : t.sf2,
-                  borderRadius: BuRadius.bSm),
-              child: Icon(action.icon,
-                  size: 18, color: action.danger ? t.danger : t.ink),
-            ),
-          ),
-          const SizedBox(width: 12),
+          // Stitch v3: simge kutusuz 24 dp çizgi ikon, etiket 16 sp normal ağırlık.
+          ExcludeSemantics(child: Icon(action.icon, size: 24, color: color)),
+          const SizedBox(width: 16),
           Expanded(
             child: Text(action.label,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: BuType.bodyStrong
-                    .copyWith(color: color, decoration: TextDecoration.none)),
+                style: BuType.body.copyWith(color: color, fontWeight: FontWeight.w400, decoration: TextDecoration.none)),
           ),
         ]),
       ),

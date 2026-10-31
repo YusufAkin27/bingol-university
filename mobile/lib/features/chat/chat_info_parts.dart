@@ -176,7 +176,7 @@ class ChatInfoRow extends StatelessWidget {
     this.soft = false,
     this.dotSize = 36,
     this.iconSize = 20,
-    this.minHeight = 56,
+    this.minHeight = 48,
     this.padding = 16,
   });
 
@@ -296,7 +296,7 @@ class ChatInfoQuickAction extends StatelessWidget {
           constraints: const BoxConstraints(minHeight: BuSize.touch + 16),
           child: Column(mainAxisSize: MainAxisSize.min, mainAxisAlignment: MainAxisAlignment.center, children: [
             Icon(icon, size: 24, color: t.ink),
-            const SizedBox(height: 8),
+            const SizedBox(height: 4),
             Text(label,
                 maxLines: 2,
                 textAlign: TextAlign.center,

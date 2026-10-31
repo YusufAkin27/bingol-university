@@ -101,6 +101,13 @@ void main() {
       await t.pump(const Duration(milliseconds: 400));
       await t.pump(const Duration(milliseconds: 400));
     }),
+    ('mesaj_menusu', _conversation, 844, (t) async {
+      await t.longPress(find.textContaining('Yarınki sınav'));
+      await t.pump();
+      for (var i = 0; i < 5; i++) {
+        await t.pump(const Duration(milliseconds: 150));
+      }
+    }),
     ('arti_menusu', _conversation, 844, (t) async {
       await t.tap(find.byKey(const ValueKey('attachButton')));
       await t.pump();

@@ -110,6 +110,21 @@ void main() {
       expect(tester.takeException(), isNull);
     });
 
+    testWidgets('Stitch v3 hizalama: başlık, arama, çip, avatar hepsi 16 dp kenarda; sağ ikonlar referans merkezlerinde', (tester) async {
+      useScreen(tester, kPhoneMedium);
+      await tester.pumpWidget(buildApp(ChatTab(session: makeSession(_be(items)), connectRealtime: false), size: kPhoneMedium));
+      await settle(tester, const Duration(seconds: 1));
+      expect(tester.getTopLeft(find.text('Sohbet').first).dx, 16);
+      expect(tester.getTopLeft(find.byType(ChatlistSearch)).dx, 16);
+      expect(tester.getTopLeft(find.text('Tümü').first).dx, greaterThanOrEqualTo(16));
+      final chip = tester.getRect(find.ancestor(of: find.text('Tümü').first, matching: find.byType(BuChip)).first);
+      expect(chip.left, closeTo(16, 1));
+      expect(tester.getTopLeft(find.byType(ChatlistAvatar).first).dx, 16);
+      // "+" merkezi 356, arşiv merkezi 316 (referans).
+      expect(tester.getCenter(find.byIcon(LucideIcons.plus).first).dx, closeTo(356, 1));
+      expect(tester.getCenter(find.byIcon(LucideIcons.archive).first).dx, closeTo(316, 1));
+    });
+
     testWidgets('dolu listede + düğmesi düz ikon, 48 dp dokunma alanı; arama 52 dp', (tester) async {
       useScreen(tester, kPhoneMedium);
       await tester.pumpWidget(buildApp(ChatTab(session: makeSession(_be(items)), connectRealtime: false)));

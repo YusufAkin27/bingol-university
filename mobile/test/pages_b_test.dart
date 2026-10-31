@@ -520,7 +520,7 @@ void main() {
       expect(find.byType(BuSkeleton), findsWidgets); // iskelet (dönen çember yok)
       await settle(tester, const Duration(seconds: 2));
       expect(find.text('Selam'), findsOneWidget);
-      expect(find.text('Çevrimiçi'), findsOneWidget);
+      expect(find.text('çevrimiçi'), findsOneWidget);
       expect(find.text('Bu mesaj silindi'), findsOneWidget);
       _noErrors(tester);
       await unmount(tester);

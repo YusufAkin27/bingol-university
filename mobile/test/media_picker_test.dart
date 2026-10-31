@@ -95,7 +95,7 @@ void main() {
       await _openHost(tester, () => _picker(lib), res);
       expect(find.text('Son eklenenler'), findsOneWidget);
       expect(find.text('Kamera'), findsOneWidget);
-      expect(find.text('En fazla 10 öğe seçebilirsiniz. Video en fazla 60 saniye olabilir.'), findsOneWidget);
+      expect(find.text('En fazla 10 öğe seçebilirsiniz.'), findsOneWidget);
       final cam = tester.getRect(find.byKey(const ValueKey('cameraTile')));
       final first = tester.getRect(_tile('v1'));
       final second = tester.getRect(_tile('p1'));

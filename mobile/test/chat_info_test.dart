@@ -135,9 +135,9 @@ void main() {
     expect(find.byType(BuSkeleton), findsWidgets);
     expect(find.byType(CircularProgressIndicator), findsNothing);
     await settle(tester);
-    final grid = tester.widget<SliverGrid>(find.byType(SliverGrid));
-    final d = grid.gridDelegate as SliverGridDelegateWithFixedCrossAxisCount;
-    expect(d.crossAxisCount, 4);
+    // Stitch v3: 72 dp sabit kare küçük resimler (4 karo), 8 dp aralık.
+    expect(find.byType(ChatInfoThumb), findsNWidgets(4));
+    expect(tester.getSize(find.byType(ChatInfoThumb).first), const Size(72, 72));
     expect(find.text('Medya · 12'), findsOneWidget);
     expect(find.text('+9'), findsOneWidget);
     expect(contentImages(), findsNWidgets(4));
@@ -151,7 +151,7 @@ void main() {
     await pump(tester, be);
     await settle(tester);
     expect(find.text('Bu sohbette henüz görsel yok.'), findsOneWidget);
-    expect(find.text('Tüm medyayı gör'), findsNothing);
+    expect(find.text('Tümünü gör'), findsNothing);
     await unmount(tester);
   });
 
@@ -167,7 +167,7 @@ void main() {
     });
     await tester.tap(find.text('Yeniden dene'));
     await settle(tester);
-    expect(find.byType(SliverGrid), findsOneWidget);
+    expect(find.byType(ChatInfoThumb), findsWidgets);
     expect(find.text('Yeniden dene'), findsNothing);
     await unmount(tester);
   });
@@ -185,7 +185,7 @@ void main() {
     await pump(tester, be);
     await settle(tester);
     expect(be.count('before='), 0);
-    await tester.tap(find.text('Tüm medyayı gör'));
+    await tester.tap(find.text('Tümünü gör'));
     await settle(tester);
     expect(be.count('before='), 0);
     await tester.drag(find.byType(CustomScrollView).last, const Offset(0, -3000));
@@ -276,7 +276,7 @@ void main() {
     expect(find.text('Profili görüntüle'), findsOneWidget);
     expect(find.text('Bildirimleri sessize al'), findsOneWidget);
     expect(find.text('Açık'), findsOneWidget);
-    expect(find.text("Mehmet Kaya'yı Engelle"), findsOneWidget);
+    expect(find.text('Engelle'), findsOneWidget);
     expect(find.text('Kullanıcıyı şikâyet et'), findsOneWidget);
     expect(find.text('Bilgisayar Mühendisliği · 3. Sınıf'), findsOneWidget);
     expect(find.text('Üyeler'), findsNothing);
@@ -320,15 +320,15 @@ void main() {
     await settle(tester);
     expect(be.bodies['PUT /conversations/5/archive'], {'keepArchived': false});
     expect(find.text('Arşivden çıkar'), findsOneWidget);
-    await tester.tap(find.text("Mehmet Kaya'yı Engelle"));
+    await tester.tap(find.text('Engelle').first);
     await settle(tester);
     expect(find.text('Kullanıcı engellensin mi?'), findsOneWidget);
     await tester.tap(find.text('Vazgeç'));
     await settle(tester);
     expect(be.count('POST /users/2/block'), 0);
-    await tester.tap(find.text("Mehmet Kaya'yı Engelle"));
+    await tester.tap(find.text('Engelle').first);
     await settle(tester);
-    await tester.tap(find.text('Engelle'));
+    await tester.tap(find.text('Engelle').last);
     await settle(tester);
     expect(be.count('POST /users/2/block'), 1);
     expect(find.text('Engeli kaldır'), findsOneWidget);
@@ -389,9 +389,9 @@ void main() {
     final be = backend(images: 8);
     await pump(tester, be, conv: _group(admin: false), members: _manyMembers(3));
     await settle(tester);
-    await scrollTo(tester, find.text('Tüm medyayı gör'));
+    await scrollTo(tester, find.text('Tümünü gör'));
     expect(contentImages(), findsNWidgets(3));
-    await tester.tap(find.text('Tüm medyayı gör'));
+    await tester.tap(find.text('Tümünü gör'));
     await settle(tester);
     expect(find.byType(ChatMediaGridPage), findsOneWidget);
     await unmount(tester);

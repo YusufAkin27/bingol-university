@@ -641,14 +641,12 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
   List<Widget> _directBody(BuTokens t) {
     final l = context.l10n;
     final sub = _directSub;
-    final name = (_peer?['displayName'] as String?) ?? _title;
-    final lang = l.localeName;
     return [
       Padding(
-        padding: const EdgeInsets.fromLTRB(kChatInfoMargin, 16, kChatInfoMargin, 24),
+        padding: const EdgeInsets.fromLTRB(kChatInfoMargin, 24, kChatInfoMargin, 13),
         child: Column(children: [
           _bigAvatar(),
-          const SizedBox(height: 12),
+          const SizedBox(height: 10),
           Text(_title, textAlign: TextAlign.center, maxLines: 2, overflow: TextOverflow.ellipsis, style: _nameStyle(t)),
           if (sub.isNotEmpty)
             Padding(
@@ -658,33 +656,32 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
         ]),
       ),
       _quickRow(dense: false),
-      const SizedBox(height: 24),
-      _gap([
+      const SizedBox(height: 20),
+      // Stitch v3 sırası: Profili görüntüle, Bildirimleri sessize al, Medya (tek bant), 24 dp boşluk, yıkıcı satırlar.
+      ChatInfoRows(children: [
         if (_peerId != null)
-          ChatInfoRows(children: [
-            ChatInfoRow(
-                icon: LucideIcons.idCard,
-                label: l.chatInfoViewProfile,
-                onTap: () => _openProfile({'userId': _peerId, 'displayName': _title, 'avatarUrl': _peer?['avatarUrl']})),
-          ]),
-        _mediaCard(t, direct: true),
-        ChatInfoRows(children: [
           ChatInfoRow(
-              icon: _muted ? LucideIcons.bellOff : LucideIcons.bell,
-              label: l.chatInfoMuteNotifications,
-              // Kısa "Açık" sağda, uzun "Sessiz · 8 saat sonra açılır" alt satırda.
-              value: _muted ? null : _muteStatus(),
-              sub: _muted ? _muteStatus() : null,
-              onTap: _toggleMute),
-        ]),
-        ChatInfoRows(children: [
-          ChatInfoRow(
-              icon: LucideIcons.ban,
-              label: _blocked ? l.chatInfoUnblock : l.p09BlockNamed(chatInfoAccusative(name, lang)),
-              danger: true,
-              onTap: _toggleBlock),
-          ChatInfoRow(icon: LucideIcons.octagonAlert, label: l.chatInfoReportUser, danger: true, onTap: _report),
-        ]),
+              icon: LucideIcons.idCard,
+              label: l.chatInfoViewProfile,
+              onTap: () => _openProfile({'userId': _peerId, 'displayName': _title, 'avatarUrl': _peer?['avatarUrl']})),
+        ChatInfoRow(
+            icon: _muted ? LucideIcons.bellOff : LucideIcons.bell,
+            label: l.chatInfoMuteNotifications,
+            // Kısa "Açık" sağda, uzun "Sessiz · 8 saat sonra açılır" alt satırda.
+            value: _muted ? null : _muteStatus(),
+            sub: _muted ? _muteStatus() : null,
+            onTap: _toggleMute),
+      ]),
+      _mediaCard(t, direct: true),
+      const SizedBox(height: 24),
+      ChatInfoRows(children: [
+        ChatInfoRow(
+            icon: LucideIcons.ban,
+            label: _blocked ? l.chatInfoUnblock : l.chatInfoBlock,
+            danger: true,
+            chevron: false,
+            onTap: _toggleBlock),
+        ChatInfoRow(icon: LucideIcons.octagonAlert, label: l.chatInfoReportUser, danger: true, chevron: false, onTap: _report),
       ]),
     ];
   }
@@ -975,16 +972,16 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
       final tiles = f.items.take(cols).toList();
       // Birebir şerit: 4'ten fazla görselde son karo "+N" örtüsü taşır.
       final overflow = direct && n > cols ? n - (cols - 1) : null;
-      body = GridView.count(
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
-        padding: EdgeInsets.zero,
-        crossAxisCount: cols,
-        mainAxisSpacing: 8,
-        crossAxisSpacing: 8,
+      // Stitch v3: 72 dp sabit kare küçük resimler, 8 dp aralık.
+      body = Wrap(
+        spacing: 8,
+        runSpacing: 8,
         children: [
           for (var i = 0; i < tiles.length; i++)
-            ChatInfoThumb(
+            SizedBox(
+              width: 72,
+              height: 72,
+              child: ChatInfoThumb(
               item: tiles[i],
               video: f.isVideo(tiles[i]),
               durationMs: f.videoMeta[tiles[i].url],
@@ -992,11 +989,12 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
               moreCount: overflow != null && i == cols - 1 ? overflow : null,
               onTap: overflow != null && i == cols - 1 ? _openAllMedia : () => _openViewer(i),
             ),
+            ),
         ],
       );
     }
     return ChatInfoCard(
-      padding: EdgeInsets.fromLTRB(direct ? 16 : 20, 12, direct ? 16 : 20, direct ? 16 : 20),
+      padding: EdgeInsets.fromLTRB(direct ? 16 : 20, 6, direct ? 16 : 20, 20),
       child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
         ChatInfoSectionHead(
           title: direct && n > 0 ? l.chatInfoMediaDot(total) : l.chatInfoMedia,
@@ -1005,7 +1003,7 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
           largeAction: direct,
           onAction: _openAllMedia,
         ),
-        const SizedBox(height: 4),
+        const SizedBox(height: 2),
         body,
       ]),
     );

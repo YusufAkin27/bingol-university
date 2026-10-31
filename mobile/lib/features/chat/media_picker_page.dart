@@ -233,12 +233,6 @@ class _MediaPickerPageState extends State<MediaPickerPage> {
         child: Column(children: [
           _header(context),
           Expanded(child: _body(context)),
-          if (_access != LibraryAccess.denied)
-            Padding(
-              padding: EdgeInsets.fromLTRB(20, 8, 20, 8 + MediaQuery.paddingOf(context).bottom),
-              child: Text(context.l10n.sohbetmedyaLimitNote(widget.maxItems.toString()),
-                  textAlign: TextAlign.center, style: Theme.of(context).textTheme.bodySmall!.copyWith(color: t.mut)),
-            ),
         ]),
       ),
     );
@@ -250,8 +244,10 @@ class _MediaPickerPageState extends State<MediaPickerPage> {
     final tx = Theme.of(context).textTheme;
     final has = _picked.isNotEmpty;
     final title = _album == null || _album!.isAll ? l.sohbetmedyaRecent : _album!.name;
-    return SizedBox(
-      height: 56,
+    return DecoratedBox(
+      decoration: BoxDecoration(border: Border(bottom: BorderSide(color: t.bd))),
+      child: SizedBox(
+      height: 52,
       child: Stack(alignment: Alignment.center, children: [
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 112),
@@ -290,12 +286,16 @@ class _MediaPickerPageState extends State<MediaPickerPage> {
                 child: AnimatedOpacity(
                   opacity: 1,
                   duration: BuMotion.of(context, BuMotion.short),
-                  child: Container(
+                  child: ConstrainedBox(
                     constraints: const BoxConstraints(minHeight: 48),
-                    alignment: Alignment.center,
-                    padding: const EdgeInsets.symmetric(horizontal: 8),
-                    child: Text(has ? l.p67PickerSend(_picked.length.toString()) : l.chatDetailSend,
-                        maxLines: 1, style: tx.titleSmall!.copyWith(color: has ? t.pr : t.mut, fontWeight: FontWeight.w600, fontFeatures: const [FontFeature.tabularFigures()])),
+                    child: Center(
+                      widthFactor: 1,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                        child: Text(has ? l.p67PickerSend(_picked.length.toString()) : l.chatDetailSend,
+                            maxLines: 1, style: tx.titleSmall!.copyWith(color: has ? t.pr : t.mut, fontWeight: FontWeight.w600, fontFeatures: const [FontFeature.tabularFigures()])),
+                      ),
+                    ),
                   ),
                 ),
               ),
@@ -303,6 +303,7 @@ class _MediaPickerPageState extends State<MediaPickerPage> {
           ),
         ),
       ]),
+      ),
     );
   }
 
@@ -312,14 +313,13 @@ class _MediaPickerPageState extends State<MediaPickerPage> {
     final multi = _albums.length > 1;
     final pill = Container(
       constraints: const BoxConstraints(minHeight: 36),
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-      decoration: BoxDecoration(color: t.sf2, borderRadius: BuRadius.bPill),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
       child: Row(mainAxisSize: MainAxisSize.min, children: [
         Flexible(
           child: Text(title,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: tx.labelMedium!.copyWith(color: t.ink, fontWeight: FontWeight.w600, letterSpacing: .2)),
+              style: tx.titleMedium!.copyWith(color: t.ink, fontWeight: FontWeight.w600)),
         ),
         if (multi) ...[
           BuGap.w6,
@@ -365,6 +365,15 @@ class _MediaPickerPageState extends State<MediaPickerPage> {
             },
           ),
         ),
+        // Stitch v3: "En fazla 10 öğe seçebilirsiniz." izgaranın hemen altında, ortalı, 15 sp `mut`.
+        if (!_loading && _items.isNotEmpty)
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: EdgeInsets.fromLTRB(20, 20, 20, 24 + MediaQuery.paddingOf(context).bottom),
+              child: Text(context.l10n.p67PickerLimit(widget.maxItems.toString()),
+                  textAlign: TextAlign.center, style: Theme.of(context).textTheme.bodyMedium!.copyWith(color: t.mut)),
+            ),
+          ),
         if (!_loading && _items.isEmpty)
           SliverToBoxAdapter(
             child: Padding(
@@ -611,7 +620,7 @@ class _GalleryTileState extends State<_GalleryTile> {
         onTap: widget.onTap,
         child: AnimatedScale(
           // Seçili kare hafif küçülür ve marka rengi çerçeve alır (yalnız transform).
-          scale: order != null ? .94 : 1,
+          scale: 1,
           duration: BuMotion.of(context, BuMotion.short),
           curve: Curves.easeOutCubic,
           child: ClipRRect(
@@ -629,12 +638,10 @@ class _GalleryTileState extends State<_GalleryTile> {
                         frameBuilder: (c, child, frame, sync) =>
                             sync ? child : AnimatedOpacity(opacity: frame == null ? 0 : 1, duration: BuMotion.of(c, BuMotion.medium), child: child)),
               ),
-              if (order != null) Positioned.fill(child: ColoredBox(color: t.scrim.withValues(alpha: .15))),
               if (order != null)
-                Positioned.fill(child: DecoratedBox(decoration: BoxDecoration(border: Border.all(color: t.pr, width: 3), borderRadius: BorderRadius.circular(10)))),
               PositionedDirectional(
-                top: 6,
-                end: 6,
+                top: 8,
+                end: 8,
                 child: AnimatedContainer(
                   duration: BuMotion.of(context, BuMotion.short),
                   width: 22,
@@ -642,14 +649,11 @@ class _GalleryTileState extends State<_GalleryTile> {
                   alignment: Alignment.center,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: order != null ? t.pr : t.scrim.withValues(alpha: .28),
-                    border: Border.all(color: order != null ? t.pr : t.onMedia, width: 1.5),
+                    color: t.pr,
                   ),
-                  child: order == null
-                      ? null
-                      : (widget.multi
-                          ? Text('$order', style: tx.labelSmall!.copyWith(color: t.onPr, fontWeight: FontWeight.w700, height: 1, fontFeatures: const [FontFeature.tabularFigures()]))
-                          : Icon(LucideIcons.check, size: 14, color: t.onPr)),
+                  child: widget.multi
+                      ? Text('$order', style: tx.labelSmall!.copyWith(color: t.onPr, fontWeight: FontWeight.w700, height: 1, fontFeatures: const [FontFeature.tabularFigures()]))
+                      : Icon(LucideIcons.check, size: 14, color: t.onPr),
                 ),
               ),
               if (g.isVideo)
