@@ -91,7 +91,7 @@ class _DiscoverTabState extends State<DiscoverTab> {
         SizedBox(height: MediaQuery.paddingOf(context).top + BuSpace.md),
         Padding(
           // Sekme başlıkları (Ana Sayfa/Sohbet/Kulüpler/Profil) ile aynı 20 dp kenar boşluğu ve 44 dp düğmeler.
-          padding: const EdgeInsets.symmetric(horizontal: 20),
+          padding: BuSpace.pageH,
           child: Row(children: [
             Expanded(
               child: Text(l.navDiscover,
@@ -115,7 +115,7 @@ class _DiscoverTabState extends State<DiscoverTab> {
           ]),
         ),
         Padding(
-          padding: const EdgeInsets.fromLTRB(20, BuSpace.xs, 20, BuSpace.xs),
+          padding: const EdgeInsets.fromLTRB(BuSpace.page, BuSpace.xs, BuSpace.page, BuSpace.sm),
           child: Row(children: [
             BuChip(
                 key: const ValueKey('discoverChipAll'),

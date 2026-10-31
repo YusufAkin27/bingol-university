@@ -115,7 +115,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
                         children: [
                           if (p == null)
                             const Padding(
-                              padding: EdgeInsets.symmetric(horizontal: 16),
+                              padding: BuSpace.pageH,
                               child: PostCardSkeleton(),
                             )
                           else
@@ -138,7 +138,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
   }
 }
 
-/// "Gönderi bulunamadı (silinmiş veya gizlenmiş olabilir)" bilgi kartı (referans 11/6).
+/// "Gönderi bulunamadı (silinmiş veya gizlenmiş olabilir)": kart/gölge yok, tek simge + tek cümle.
 class _NotFound extends StatelessWidget {
   const _NotFound({super.key});
 
@@ -146,33 +146,21 @@ class _NotFound extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.bu;
     return Padding(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.fromLTRB(BuSpace.page, BuSpace.xxxl, BuSpace.page, 0),
       child: Align(
         alignment: Alignment.topCenter,
-        child: DecoratedBox(
-          decoration: BoxDecoration(
-              color: t.sf,
-              borderRadius: BorderRadius.circular(BuRadius.lg),
-              boxShadow: BuElevation.of(context, 1)),
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Row(children: [
-              Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(color: t.sf2, shape: BoxShape.circle),
-                child: Icon(LucideIcons.info, size: 20, color: t.mut),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                  child: Text(context.l10n.p04PostNotFound,
-                      style: Theme.of(context)
-                          .textTheme
-                          .bodyMedium
-                          ?.copyWith(color: t.mut))),
-            ]),
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
+          Container(
+            width: 64,
+            height: 64,
+            decoration: BoxDecoration(color: t.sf2, shape: BoxShape.circle),
+            child: Icon(LucideIcons.image, size: 28, color: t.mut),
           ),
-        ),
+          BuGap.h16,
+          Text(context.l10n.p04PostNotFound,
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: t.mut)),
+        ]),
       ),
     );
   }

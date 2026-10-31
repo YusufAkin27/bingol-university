@@ -140,7 +140,6 @@ Future<void> _confirmDelete(BuildContext context, Session session, Post post, Vo
               confirm: BuButton(
                 key: const ValueKey('post-dialog-confirm'),
                 label: l.postComposeDelete,
-                icon: LucideIcons.trash2,
                 kind: BuButtonKind.danger,
                 compact: true,
                 onPressed: () => Navigator.pop(c, true),
@@ -185,7 +184,6 @@ Future<void> _confirmBlock(BuildContext context, Session session, Post post, Voi
               confirm: BuButton(
                 key: const ValueKey('post-dialog-confirm'),
                 label: l.postComposeBlock,
-                icon: LucideIcons.ban,
                 kind: BuButtonKind.danger,
                 compact: true,
                 onPressed: () => Navigator.pop(c, true),
@@ -266,21 +264,7 @@ class _EditDialogState extends State<_EditDialog> {
     return _DialogShell(
       child: SingleChildScrollView(
         child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Row(children: [
-            Expanded(child: Text(l.postComposeEditTitle, style: tt.titleLarge?.copyWith(color: t.ink, fontWeight: FontWeight.w700))),
-            Tooltip(
-              message: l.postComposeClose,
-              child: Material(
-                color: t.sf2,
-                shape: const CircleBorder(),
-                child: InkWell(
-                  customBorder: const CircleBorder(),
-                  onTap: _busy ? null : () => Navigator.pop(context),
-                  child: SizedBox.square(dimension: 44, child: Icon(LucideIcons.x, size: 20, color: t.ink)),
-                ),
-              ),
-            ),
-          ]),
+          Text(l.postComposeEditTitle, style: tt.titleLarge?.copyWith(color: t.ink, fontWeight: FontWeight.w700)),
           const SizedBox(height: 16),
           DecoratedBox(
             decoration: BoxDecoration(
@@ -320,7 +304,7 @@ class _EditDialogState extends State<_EditDialog> {
                   alignment: AlignmentDirectional.centerEnd,
                   child: Text(l.gonderiWordCount(postWordCount(_c.text).toString(), kPostMaxWords.toString()),
                       key: const ValueKey('edit-post-counter'),
-                      style: tt.labelMedium?.copyWith(color: over ? t.danger : t.mut, fontWeight: FontWeight.w700)),
+                      style: tt.labelMedium?.copyWith(color: over ? t.danger : t.mut, fontWeight: over ? FontWeight.w700 : FontWeight.w400)),
                 ),
               ]),
             ),
@@ -548,7 +532,7 @@ class _Row extends StatelessWidget {
               child: Text(action.label,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(color: color, fontWeight: FontWeight.w700, decoration: TextDecoration.none)),
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(color: color, fontWeight: FontWeight.w600, decoration: TextDecoration.none)),
             ),
           ]),
         ),

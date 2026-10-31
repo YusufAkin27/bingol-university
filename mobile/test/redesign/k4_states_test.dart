@@ -69,7 +69,7 @@ void main() {
       await tester.pumpWidget(buildApp(discover(b)));
       await tester.pump(const Duration(milliseconds: 50));
       final sk = tester.getTopLeft(find.descendant(of: find.byKey(const ValueKey('discoverSkeleton')), matching: find.byType(DecoratedBox)).first);
-      expect(sk.dx, 16);
+      expect(sk.dx, 20); // sayfa kenari 20 dp (baslikla ayni)
       expect(find.byType(DiscoverFeedSkeleton), findsOneWidget);
       await settle(tester, const Duration(milliseconds: 800));
       noErr(tester);

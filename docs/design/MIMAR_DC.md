@@ -66,3 +66,29 @@ Kural: yalnız transform/opacity, 150-250 ms (tek seferlik büyük kalp 520 ms),
 - Widget testi: `mobile/test/redesign/p2dc_test.dart` 18 test (başlangıç/ara kare/bitiş, "azalt"ta anında, tekrar oynamama, 44-48 dp hedef); ilgili 21 mevcut dosya (637 test) yeşil; `flutter analyze` posts/discover/chat 0 sorun.
 - Ara kare görüntüleri (gerçek render, tr390 açık+koyu): `C:\bu_qa\shots\tasarim\p2\dc\` (`kesfet_giris_70|110|180|600ms`, `cift_dokunus_kalp|sonra`, `gorunturu_acik|surukleme|zoom`, `sohbet_balon_60|110|400ms`, `sohbet_liste_80|160|700ms`); üretim: `test/redesign/p2dc_shots_test.dart` (`P2DC_OUT`, `P2DC_MODES`, `P2DC_LANG`).
 - Emülatör gezisi ve gfxinfo ölçümü YAPILMADI (paylaşımlı ağır makine, başka ajanların derlemesi sürüyordu); gerçek cihazda (Redmi 13C, iPhone) akıcılık ölçülemedi.
+
+---
+
+# Tur 3 (P3-FEED, minimal): Keşfet, gönderi, kırpma
+
+Kapsam: `features/discover/**`, `features/posts/**`, `features/media_crop/**`. Ortak dosyalara, ARB'ye, API/ağ katmanına dokunulmadı; yeni renk, yeni metin, yeni istek yok. Ürün kuralı korunur (1 fotoğraf + en çok 7 kelime/60 karakter + beğeni). Önce/sonra: `C:\bu_qa\shots\tasarim\p3\feed\onceki|sonra\{kesfet,kesfet320,gonderi}` (tr390 açık, koyu, x1.3, ar390; kesfet320 = 320 dp x1.3). Üretim: gerçek render (yer tutucu fotoğraflı) `d2_kesfet_shots_test` + `k4_yeni_shots_test`.
+
+| Ekran | Kaldırılan | Sadeleşen | Renk (vurgu) önce -> sonra |
+|---|---|---|---|
+| Keşfet akışı + üst alan | Kart kenarı 16 dp (başlıktan farklıydı) | Yatay kenar her yerde 20 dp (başlık, çipler, kartlar, iskelet, öneri şeridi); çip satırı alt boşluğu 4 -> 8 | kırmızı: `+`, seçili çip (değişmedi) |
+| Keşfet kartı (`DiscoverPostCard`) | Ayrı birleştirilmiş "bölüm • zaman" metni | `PostMetaLine`: tek satır, sığmazsa sondan kırpılır; fotoğraf öncelikli düzen, tek gölge, çerçeve yok (korundu) | 1 -> 1 |
+| Tanıyor olabilirsin | 10 adede kadar aynı anda dolgulu kırmızı "Takip et" düğmesi | Takip et = yumuşak zemin (`soft`/`onSoft`), takipte nötr; zemin 150 ms geçer | kırmızı dolgu 10 -> 0 (tek birincil `+` kalır) |
+| Keşfet boş | Kart yüzeyi + gölge, düğmede kamera simgesi, 96 dp daire | Sayfa zemininde: 80 dp yumuşak daire + tek cümle + tek düğme | soft + kırmızı düğme -> soft + kırmızı düğme (kart/gölge yok) |
+| Keşfet hata/çevrimdışı | Kart + gölge, açıklama cümlesi ("Bağlantınızı kontrol edin..."), düğmede simge | Nötr daire + tek cümle ("Sunucuya ulaşılamadı") + Yeniden dene; açık hata kırmızısı yok | kırmızı daire simgesi -> nötr |
+| Gönderi kartı / detay (`PostCard`) | "Düzenlendi" rozet kutusu; 44 dp avatar + `titleLarge` ad; bölüm 2 satır; detayda 16 dp yan boşluk | Ad `titleSmall`, avatar 40, meta tek satır (düzenlendi satır içi sade metin, anahtar `post-edited`), detay yan boşluğu 20 dp | 2 -> 1 (rozet zemini kalktı) |
+| Gönderi oluştur | Fotoğraf üstünde "4:5" rozeti, önizleme altında bilgi satırı (simge + cümle), çerçeveli kamera dairesi, fotoğraf yok + metin yazılı durumunda 3 ayrı başlık/yardım metni, kalın sayaç | Boş seçicide yalın kamera simgesi + iki seçenek + gri tek ipucu; metin var/fotoğraf yok: tek cümle; sayaç `labelMedium` normal ağırlık (yalnız sınırda/aşımda vurgulanır); yan boşluk 20 dp; tek birincil düğme = Paylaş | 1 -> 1 (nötr + Paylaş) |
+| Gönderi bulunamadı | Kart + gölge + bilgi simgeli satır | Ortalanmış simge + tek cümle | nötr |
+| Gönderilerim | Boş: kart+gölge+3 öğe; hata: kart + kırmızı dolgulu daire; kenar 16 dp | Boş: simge + tek cümle (+ kendi gönderilerimde tek düğme); hata: tek cümle + 48 dp yenile; kenar 20 dp | hata kırmızı daire -> nötr |
+| Gönderi menüleri/diyaloglar | Menü satırı kalın (w700), Sil/Engelle düğmesinde ikinci simge, Düzenle diyaloğunda yinelenen kapat (X) dairesi (Vazgeç var), sayaçta hep kalın | Satır w600; düğmeler yalnız metin; Vazgeç tek çıkış; sayaç yalnız aşımda kalın | kırmızı yalnız tehlike eylemi (değişmedi) |
+| Fotoğraf kırpma | Ölçek satırında süs simgesi + kırmızı değer; önizleme kartında dikey üç nokta | Ölçek değeri sessiz (tabular rakam, `mut`); önizleme gerçek karttaki gibi yatay üç nokta | 2 -> 1 vurgu |
+
+Uygulanmayanlar: (1) Keşfet üst alanının başlık + çiplerini tek satıra birleştirmek: 390 dp'de başlık + iki çip + iki düğme sığmaz, 320 dp x1.3'te kesinlikle taşar; bunun yerine eylem satırı tek satır, çipler tek satır kaldı. (2) Gönderi ızgarası (Gönderilerim) alt gradyanı: yazı okunurluğu için gerekli. (3) "Kaydedilenler": ürün kuralı gereği (kaydet kaldırıldı) ekran yok. (4) Kırpma sayfası düzeni: kilitli, yalnız süs/renk sadeleştirmesi yapıldı.
+
+Ortak parça notu: Keşfet kartı ve `PostCard` ortak "meta satırı" gereksinimi `post_card.dart` içindeki `PostMetaLine` ile çözüldü (ortak widget gerekmedi).
+
+Testler: `mobile/test/redesign/p3feed_test.dart` (PostMetaLine tek satır + taşma, boş/hata sadeliği, öneri düğmesi yumuşak zemin, oluştur sadeliği, bulunamadı/Gönderilerim boş, 320/390 dp x1.3 açık+koyu taşma matrisi). Kenar 16 -> 20 değişikliği için `discover_masonry_test` (kart sol kenarı 20, genişlik 350) ve `k4_states_test` (iskelet 20) güncellendi (gevşetilmedi, yeni kural).

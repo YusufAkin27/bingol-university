@@ -254,7 +254,7 @@ class _ActionBar extends StatelessWidget {
                   customBorder: RoundedRectangleBorder(borderRadius: BorderRadius.circular(BuRadius.md)),
                   onTap: busy ? null : onCancel,
                   child: SizedBox(
-                    height: 52,
+                    height: BuSize.button,
                     child: Center(
                       child: Text(l.postComposeCancel,
                           style: Theme.of(context).textTheme.titleMedium?.copyWith(color: t.ink, fontWeight: FontWeight.w700)),
@@ -523,11 +523,10 @@ class _Controls extends StatelessWidget {
           padding: const EdgeInsets.fromLTRB(14, 12, 14, 6),
           child: Column(children: [
             Row(children: [
-              Icon(LucideIcons.zoomIn, size: 18, color: t.pr),
-              const SizedBox(width: 8),
               Expanded(child: Text(l.p04CropScale, style: tt.labelLarge?.copyWith(color: t.ink, fontWeight: FontWeight.w600))),
               Text('${c.zoom.toStringAsFixed(1)}x',
-                  key: const ValueKey('cropZoomValue'), style: tt.labelLarge?.copyWith(color: t.pr, fontWeight: FontWeight.w700)),
+                  key: const ValueKey('cropZoomValue'),
+                  style: tt.labelLarge?.copyWith(color: t.mut, fontWeight: FontWeight.w600, fontFeatures: const [FontFeature.tabularFigures()])),
             ]),
             Row(children: [
               IconButton(
@@ -643,7 +642,7 @@ class _Previews extends StatelessWidget {
                       child: Text(spec.previewName ?? '',
                           maxLines: 1, overflow: TextOverflow.ellipsis, style: tt.labelLarge?.copyWith(color: t.ink, fontWeight: FontWeight.w700)),
                     ),
-                    Icon(Icons.more_vert, size: 18, color: t.ink),
+                    Icon(Icons.more_horiz, size: 18, color: t.ink),
                   ]),
                 ),
                 AspectRatio(aspectRatio: 4 / 5, key: const ValueKey('cropPreviewFeed'), child: _FrameView(controller: controller, bytes: bytes)),

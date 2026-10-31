@@ -103,6 +103,38 @@ class PostPhoto extends StatelessWidget {
   }
 }
 
+/// Yazar satırının ikincil çizgisi: "bölüm • zaman (• düzenlendi)" TEK satır, sığmazsa sondan kırpılır.
+/// "Düzenlendi" rozet değil, satır içi sade metindir (anahtar `post-edited`).
+class PostMetaLine extends StatelessWidget {
+  const PostMetaLine({super.key, required this.department, required this.time, this.edited = false, this.style});
+
+  final String department;
+  final String time;
+  final bool edited;
+  final TextStyle? style;
+
+  @override
+  Widget build(BuildContext context) {
+    final parts = [department, time].where((e) => e.isNotEmpty).join(' • ');
+    if (parts.isEmpty && !edited) return const SizedBox.shrink();
+    return Text.rich(
+      TextSpan(children: [
+        TextSpan(text: parts),
+        if (edited)
+          WidgetSpan(
+            alignment: PlaceholderAlignment.baseline,
+            baseline: TextBaseline.alphabetic,
+            child: Text(parts.isEmpty ? context.l10n.postViewEdited : ' • ${context.l10n.postViewEdited}',
+                key: const ValueKey('post-edited'), maxLines: 1, style: style),
+          ),
+      ]),
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
+      style: style,
+    );
+  }
+}
+
 /// Gönderi kartı: yazar, tek fotoğraf, beğeni, kısa metin (tasarım 17). Fotoğrafa çift dokunuş beğenir.
 /// [detail] true: metin kırpılmaz, dokununca yeni sayfa açılmaz (detay sayfasında kullanılır).
 class PostCard extends StatefulWidget {
@@ -182,15 +214,13 @@ class _PostCardState extends State<PostCard> {
   Widget build(BuildContext context) {
     final t = context.bu;
     final tt = Theme.of(context).textTheme;
-    final meta = [
-      if ((p.author.department ?? '').isNotEmpty) context.departmentName(p.author.department),
-      postRelativeTime(context, p.createdAt),
-    ].where((e) => e.isNotEmpty).join(' • ');
+    final dept = context.departmentName(p.author.department);
+    final time = postRelativeTime(context, p.createdAt);
     final mine = p.mine || p.author.id == widget.session.userId;
     final hasMenu = !(mine && !p.canEdit && !p.canDelete);
     final detail = widget.detail;
-    // Detay: fotoğraf ekran genişliğinde (kenarsız), metin satırları 16 kenar boşluklu (referans 10/5-6).
-    const sidePad = EdgeInsetsDirectional.symmetric(horizontal: BuSpace.lg);
+    // Detay: fotoğraf ekran genişliğinde (kenarsız), metin satırları 20 kenar boşluklu (sayfa kenarı).
+    const sidePad = BuSpace.pageH;
     return _CardSurface(
       key: _cardKey,
       flat: detail,
@@ -205,12 +235,12 @@ class _PostCardState extends State<PostCard> {
             Padding(
               padding: detail ? sidePad : EdgeInsets.zero,
               child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   BuAvatar(
                       name: p.author.displayName,
                       url: p.author.avatarUrl,
-                      size: 44,
+                      size: 40,
                       headers: postAuthHeaders(widget.session)),
                   BuGap.w12,
                   Expanded(
@@ -219,7 +249,7 @@ class _PostCardState extends State<PostCard> {
                       onTap: () => openUserPosts(context, widget.session,
                           userId: p.author.id, name: p.author.displayName),
                       child: ConstrainedBox(
-                        constraints: const BoxConstraints(minHeight: 44),
+                        constraints: const BoxConstraints(minHeight: 48),
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -227,34 +257,15 @@ class _PostCardState extends State<PostCard> {
                             Text(p.author.displayName,
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
-                                style: tt.titleLarge?.copyWith(
+                                style: tt.titleSmall?.copyWith(
                                     color: t.ink,
-                                    fontWeight: FontWeight.w600,
-                                    height: 1.2)),
-                            if (meta.isNotEmpty)
-                              // Bölüm adı uzunsa "• 1 g önce" kırpılmasın: en çok 2 satır.
-                              Text(meta,
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: tt.bodySmall?.copyWith(color: t.mut)),
-                            if (p.editedAt != null) ...[
-                              BuGap.h4,
-                              DecoratedBox(
-                                decoration: BoxDecoration(
-                                    color: t.sf2,
-                                    borderRadius: BorderRadius.circular(6)),
-                                child: Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 8, vertical: 2),
-                                  child: Text(context.l10n.postViewEdited,
-                                      key: const ValueKey('post-edited'),
-                                      maxLines: 1,
-                                      style: tt.labelSmall?.copyWith(
-                                          color: t.mut,
-                                          fontWeight: FontWeight.w700)),
-                                ),
-                              ),
-                            ],
+                                    fontWeight: FontWeight.w700,
+                                    height: 1.25)),
+                            PostMetaLine(
+                                department: dept,
+                                time: time,
+                                edited: p.editedAt != null,
+                                style: tt.labelSmall?.copyWith(color: t.mut)),
                           ],
                         ),
                       ),
@@ -298,8 +309,8 @@ class _PostCardState extends State<PostCard> {
             Padding(
               padding: EdgeInsets.only(
                   top: BuSpace.sm,
-                  left: detail ? BuSpace.lg : 0,
-                  right: detail ? BuSpace.lg : 0),
+                  left: detail ? BuSpace.page : 0,
+                  right: detail ? BuSpace.page : 0),
               child: LikeButton(
                   session: widget.session,
                   post: p,
@@ -344,7 +355,7 @@ class PostCardSkeleton extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(children: [
-                BuSkeleton.circle(44),
+                BuSkeleton.circle(40),
                 BuGap.w12,
                 Expanded(
                   child: Column(

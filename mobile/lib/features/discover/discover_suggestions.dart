@@ -53,7 +53,7 @@ class _DiscoverSuggestionsState extends State<DiscoverSuggestions> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
-            padding: const EdgeInsetsDirectional.fromSTEB(BuSpace.lg, 0, BuSpace.lg, BuSpace.sm),
+            padding: const EdgeInsetsDirectional.fromSTEB(BuSpace.page, 0, BuSpace.page, BuSpace.sm),
             child: Row(children: [
               Expanded(
                 child: Text(l.p04SuggestTitle,
@@ -83,7 +83,7 @@ class _DiscoverSuggestionsState extends State<DiscoverSuggestions> {
                 ? const BuSkeletonScope(child: _SuggestionSkeletonRow())
                 : ListView.separated(
                     scrollDirection: Axis.horizontal,
-                    padding: const EdgeInsets.symmetric(horizontal: BuSpace.lg, vertical: 6),
+                    padding: const EdgeInsets.symmetric(horizontal: BuSpace.page, vertical: 6),
                     itemCount: items.length,
                     separatorBuilder: (_, __) => BuGap.w12,
                     itemBuilder: (_, i) => _SuggestionCard(session: widget.session, user: items[i]),
@@ -103,7 +103,7 @@ class _SuggestionSkeletonRow extends StatelessWidget {
     return ListView.separated(
       scrollDirection: Axis.horizontal,
       physics: const NeverScrollableScrollPhysics(),
-      padding: const EdgeInsets.symmetric(horizontal: BuSpace.lg, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: BuSpace.page, vertical: 6),
       itemCount: 3,
       separatorBuilder: (_, __) => BuGap.w12,
       itemBuilder: (_, __) => const _SuggestionSurface(
@@ -210,12 +210,14 @@ class _SuggestionCardState extends State<_SuggestionCard> {
             child: ConstrainedBox(
               constraints: const BoxConstraints(minHeight: 44),
               child: Center(
-                child: Container(
+                child: AnimatedContainer(
+                  duration: BuMotion.of(context, BuMotion.short),
+                  curve: BuMotion.standard,
                   width: double.infinity,
                   height: 32,
                   alignment: Alignment.center,
                   decoration: BoxDecoration(
-                    color: _followed ? t.sf2 : t.pr,
+                    color: _followed ? t.sf2 : t.soft,
                     borderRadius: BorderRadius.circular(BuRadius.pill),
                   ),
                   child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
@@ -224,7 +226,7 @@ class _SuggestionCardState extends State<_SuggestionCard> {
                       child: Text(_followed ? context.l10n.p04FollowingState : context.l10n.p04FollowAction,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: tt.labelMedium?.copyWith(color: _followed ? t.mut : t.onPr, fontWeight: FontWeight.w600)),
+                          style: tt.labelMedium?.copyWith(color: _followed ? t.mut : t.onSoft, fontWeight: FontWeight.w600)),
                     ),
                   ]),
                 ),

@@ -254,7 +254,7 @@ class _DiscoverMasonryFeedState extends State<DiscoverMasonryFeed> {
           if (inline != null && i == at) return inline;
           final p = _items[inline != null && i > at ? i - 1 : i];
           Widget card = Padding(
-            padding: const EdgeInsets.symmetric(horizontal: BuSpace.lg),
+            padding: BuSpace.pageH,
             child: DiscoverPostCard(
               key: ValueKey('discover-post-${p.id}'),
               session: widget.session,
@@ -397,7 +397,7 @@ class DiscoverFeedSkeleton extends StatelessWidget {
         child: BuSkeletonScope(
           child: Padding(
             key: const ValueKey('discoverSkeleton'),
-            padding: const EdgeInsets.symmetric(horizontal: BuSpace.lg),
+            padding: BuSpace.pageH,
             child: Column(children: [card(), BuGap.h16, card()]),
           ),
         ),
@@ -406,7 +406,7 @@ class DiscoverFeedSkeleton extends StatelessWidget {
   }
 }
 
-/// Boş durum (referans 12/2): kamera dairesi, "Henüz gönderi yok. İlk gönderiyi sen paylaş!", Gönderi oluştur.
+/// Boş durum: sade kamera dairesi, tek cümle, tek eylem (kart/gölge yok; sayfa zemininde durur).
 class DiscoverEmptyCard extends StatelessWidget {
   const DiscoverEmptyCard({super.key, this.onCompose});
 
@@ -418,34 +418,30 @@ class DiscoverEmptyCard extends StatelessWidget {
     final tt = Theme.of(context).textTheme;
     final l = context.l10n;
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: BuSpace.lg),
-      child: DecoratedBox(
+      padding: const EdgeInsets.fromLTRB(BuSpace.page, BuSpace.xxxl, BuSpace.page, 0),
+      child: Column(
         key: const ValueKey('discoverEmpty'),
-        decoration: BoxDecoration(color: t.sf, borderRadius: BorderRadius.circular(BuRadius.xl), boxShadow: BuElevation.of(context, 1)),
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(24, 28, 24, 28),
-          child: Column(mainAxisSize: MainAxisSize.min, children: [
-            Container(
-              width: 96,
-              height: 96,
-              decoration: BoxDecoration(color: t.soft, shape: BoxShape.circle),
-              child: Icon(LucideIcons.camera, size: 40, color: t.pr),
-            ),
-            BuGap.h20,
-            Text(l.postViewFeedEmpty, textAlign: TextAlign.center, style: tt.titleLarge?.copyWith(color: t.ink, fontWeight: FontWeight.w700)),
-            if (onCompose != null) ...[
-              BuGap.h20,
-              BuButton(key: const ValueKey('discoverEmptyCompose'), label: l.discoverCompose, icon: LucideIcons.camera, compact: true, onPressed: onCompose),
-            ],
-          ]),
-        ),
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 80,
+            height: 80,
+            decoration: BoxDecoration(color: t.soft, shape: BoxShape.circle),
+            child: Icon(LucideIcons.camera, size: 32, color: t.onSoft),
+          ),
+          BuGap.h16,
+          Text(l.postViewFeedEmpty, textAlign: TextAlign.center, style: tt.titleMedium?.copyWith(color: t.ink, fontWeight: FontWeight.w600)),
+          if (onCompose != null) ...[
+            BuGap.h24,
+            BuButton(key: const ValueKey('discoverEmptyCompose'), label: l.discoverCompose, compact: true, onPressed: onCompose),
+          ],
+        ],
       ),
     );
   }
 }
 
-/// Hata / çevrimdışı (referans 12/3): sunucuya ulaşılamadı kartı ve Yeniden dene (kayıtlı veri yoksa gösterilir).
-/// Pasif "internet yok" şeridi YOK.
+/// Hata / çevrimdışı: tek simge, tek cümle, Yeniden dene (kayıtlı veri yoksa gösterilir). Pasif "internet yok" şeridi YOK.
 class DiscoverErrorCard extends StatelessWidget {
   const DiscoverErrorCard({super.key, required this.offline, required this.onRetry});
 
@@ -458,30 +454,23 @@ class DiscoverErrorCard extends StatelessWidget {
     final tt = Theme.of(context).textTheme;
     final l = context.l10n;
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: BuSpace.lg),
-      child: Column(children: [
-        DecoratedBox(
-          key: const ValueKey('discoverError'),
-          decoration: BoxDecoration(color: t.sf, borderRadius: BorderRadius.circular(BuRadius.xl), boxShadow: BuElevation.of(context, 1)),
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(24, 24, 24, 24),
-            child: Column(mainAxisSize: MainAxisSize.min, children: [
-              Container(
-                width: 64,
-                height: 64,
-                decoration: BoxDecoration(color: t.soft, shape: BoxShape.circle),
-                child: Icon(LucideIcons.wifiOff, size: 28, color: t.pr),
-              ),
-              BuGap.h12,
-              Text(l.p04FeedErrTitle, textAlign: TextAlign.center, style: tt.titleLarge?.copyWith(color: t.ink, fontWeight: FontWeight.w700)),
-              BuGap.h6,
-              Text(l.p04FeedErrBody, textAlign: TextAlign.center, style: tt.bodyMedium?.copyWith(color: t.mut)),
-              BuGap.h16,
-              BuButton(key: const ValueKey('discoverRetry'), label: l.postViewRetry, icon: LucideIcons.refreshCw, compact: true, onPressed: onRetry),
-            ]),
+      padding: const EdgeInsets.fromLTRB(BuSpace.page, BuSpace.xxxl, BuSpace.page, 0),
+      child: Column(
+        key: const ValueKey('discoverError'),
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 80,
+            height: 80,
+            decoration: BoxDecoration(color: t.sf2, shape: BoxShape.circle),
+            child: Icon(LucideIcons.wifiOff, size: 32, color: t.mut),
           ),
-        ),
-      ]),
+          BuGap.h16,
+          Text(l.p04FeedErrTitle, textAlign: TextAlign.center, style: tt.titleMedium?.copyWith(color: t.ink, fontWeight: FontWeight.w600)),
+          BuGap.h24,
+          BuButton(key: const ValueKey('discoverRetry'), label: l.postViewRetry, compact: true, onPressed: onRetry),
+        ],
+      ),
     );
   }
 }
@@ -550,8 +539,6 @@ class _DiscoverPostCardState extends State<DiscoverPostCard> {
     final time = postRelativeTime(context, p.createdAt);
     final text = (p.text ?? '').trim();
     final label = [if (text.isNotEmpty) text, name].join(', ');
-    // Ad tek başına satırda (kırpılmaz); bölüm ve zaman ikinci satırda.
-    final sub = [if (dept.isNotEmpty) dept, if (time.isNotEmpty) time].join(' • ');
     return Semantics(
       container: true,
       child: DecoratedBox(
@@ -583,8 +570,10 @@ class _DiscoverPostCardState extends State<DiscoverPostCard> {
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: tt.titleSmall?.copyWith(color: t.ink, fontWeight: FontWeight.w700, height: 1.25)),
-                          if (sub.isNotEmpty)
-                            Text(sub, maxLines: 1, overflow: TextOverflow.ellipsis, style: tt.labelSmall?.copyWith(color: t.mut)),
+                          PostMetaLine(
+                              department: dept,
+                              time: time,
+                              style: tt.labelSmall?.copyWith(color: t.mut)),
                         ],
                       ),
                     ),

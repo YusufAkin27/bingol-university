@@ -33,12 +33,12 @@ void main() {
       expect(find.text('Haberler'), findsNothing);
       expect(find.text('Tümü'), findsOneWidget);
       expect(find.text('Popüler'), findsOneWidget);
-      // Tek sutun: kartlar ayni sol kenarda (16) ve tam genislikte.
+      // Tek sutun: kartlar ayni sol kenarda (20 = sayfa kenari, baslikla ayni) ve tam genislikte.
       final lefts = {
         for (final e in tester.elementList(find.byType(DiscoverPostCard))) tester.getTopLeft(find.byWidget(e.widget)).dx.round()
       };
-      expect(lefts, {16});
-      expect(tester.getSize(find.byType(DiscoverPostCard).first).width, 358);
+      expect(lefts, {20});
+      expect(tester.getSize(find.byType(DiscoverPostCard).first).width, 350);
       // Yorum/kaydet/paylas yok.
       for (final i in [Icons.bookmark_border, Icons.mode_comment_outlined, Icons.send, Icons.share]) {
         expect(find.byIcon(i), findsNothing);

@@ -204,7 +204,7 @@ class _ComposePostPageState extends State<ComposePostPage> {
               Expanded(
                 child: ListView(
                   keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-                  padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
+                  padding: const EdgeInsets.fromLTRB(BuSpace.page, 4, BuSpace.page, 24),
                   children: [
                     // Seçici -> önizleme geçişi anında "zıplamaz": kısa solma (hareket azaltılmışsa anlık).
                     AnimatedSwitcher(
@@ -213,7 +213,7 @@ class _ComposePostPageState extends State<ComposePostPage> {
                       switchOutCurve: BuMotion.standard,
                       child: KeyedSubtree(key: ValueKey(_photo != null), child: _photoArea(t)),
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 16),
                     _textField(t),
                     // Uyarı/hata satırları açılırken yükseklik yumuşakça büyür, satır solarak belirir.
                     AnimatedSize(
@@ -222,20 +222,6 @@ class _ComposePostPageState extends State<ComposePostPage> {
                       alignment: Alignment.topCenter,
                       child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: _errors(t)),
                     ),
-                    if (_photo != null)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 20),
-                        child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                          Icon(LucideIcons.info, size: 16, color: t.mut),
-                          const SizedBox(width: 6),
-                          Flexible(
-                            child: Text(context.l10n.gonderiPhotoHint,
-                                key: const ValueKey('composeSingleHint'),
-                                textAlign: TextAlign.center,
-                                style: Theme.of(context).textTheme.bodySmall?.copyWith(color: t.mut)),
-                          ),
-                        ]),
-                      ),
                   ],
                 ),
               ),
@@ -324,17 +310,6 @@ class _ComposePostPageState extends State<ComposePostPage> {
             child: Stack(fit: StackFit.expand, children: [
               ColoredBox(color: t.sf2),
               Image.memory(bytes, fit: BoxFit.cover, gaplessPlayback: true, errorBuilder: (_, __, ___) => Center(child: Icon(LucideIcons.image, color: t.mut))),
-              PositionedDirectional(
-                top: 12,
-                end: 12,
-                child: DecoratedBox(
-                  decoration: BoxDecoration(color: t.scrim.withValues(alpha: .55), borderRadius: BorderRadius.circular(BuRadius.pill)),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                    child: Text('4:5', style: tt.labelSmall?.copyWith(color: t.onMedia, fontWeight: FontWeight.w700)),
-                  ),
-                ),
-              ),
               if (!_publishing)
                 PositionedDirectional(
                   start: 12,
@@ -361,22 +336,13 @@ class _ComposePostPageState extends State<ComposePostPage> {
         child: Padding(
           padding: const EdgeInsets.all(20),
           child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-            Container(
-              width: 64,
-              height: 64,
-              decoration: BoxDecoration(color: t.sf, shape: BoxShape.circle, border: Border.all(color: t.bd)),
-              child: Icon(LucideIcons.camera, size: 28, color: t.ink),
-            ),
+            Icon(LucideIcons.camera, size: 32, color: t.mut),
             const SizedBox(height: 16),
             if (hint) ...[
-              Text(context.l10n.p04PostPhotoNone, textAlign: TextAlign.center, style: tt.titleSmall?.copyWith(color: t.ink, fontWeight: FontWeight.w700)),
-              const SizedBox(height: 4),
               Text(context.l10n.gonderiPhotoRequired,
                   key: const ValueKey('composePhotoHint'),
                   textAlign: TextAlign.center,
-                  style: tt.titleSmall?.copyWith(color: t.ink, fontWeight: FontWeight.w700)),
-              const SizedBox(height: 2),
-              Text(context.l10n.p04PostFormatHint, textAlign: TextAlign.center, style: tt.bodySmall?.copyWith(color: t.mut)),
+                  style: tt.titleSmall?.copyWith(color: t.ink, fontWeight: FontWeight.w600)),
               const SizedBox(height: 16),
             ],
             _bigBtn(const ValueKey('composeGallery'), LucideIcons.images, context.l10n.gonderiPickPhoto, () => _pick(ImageSource.gallery)),
@@ -385,7 +351,7 @@ class _ComposePostPageState extends State<ComposePostPage> {
                 () => _pick(ImageSource.camera)),
             if (!hint) ...[
               const SizedBox(height: 16),
-              Text(context.l10n.gonderiPhotoHint, textAlign: TextAlign.center, style: tt.bodyMedium?.copyWith(color: t.ink)),
+              Text(context.l10n.gonderiPhotoHint, textAlign: TextAlign.center, style: tt.bodySmall?.copyWith(color: t.mut)),
             ],
           ]),
         ),
@@ -486,9 +452,9 @@ class _ComposePostPageState extends State<ComposePostPage> {
               duration: BuMotion.of(context, BuMotion.short),
               curve: BuMotion.standard,
               // Sayaç yalnız sınırda/aşımda vurgulanır; normalde sessiz kalır.
-              style: (tt.labelLarge ?? const TextStyle()).copyWith(
+              style: (tt.labelMedium ?? const TextStyle()).copyWith(
                   color: over ? t.danger : (_words >= kPostMaxWords ? t.ink : t.mut),
-                  fontWeight: over || _words >= kPostMaxWords ? FontWeight.w700 : FontWeight.w500,
+                  fontWeight: over || _words >= kPostMaxWords ? FontWeight.w700 : FontWeight.w400,
                   fontFeatures: const [FontFeature.tabularFigures()]),
               child: Text(context.l10n.gonderiWordCount(_words.toString(), kPostMaxWords.toString()),
                   key: const ValueKey('composeCounter')),

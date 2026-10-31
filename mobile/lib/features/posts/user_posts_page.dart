@@ -132,7 +132,7 @@ class _UserPostsPageState extends State<UserPostsPage> {
         onRefresh: () => _load(silent: true),
         loading: const Padding(
           key: ValueKey('userPostsSkeleton'),
-          padding: EdgeInsets.fromLTRB(16, 8, 16, 0),
+          padding: EdgeInsets.fromLTRB(BuSpace.page, 8, BuSpace.page, 0),
           child: PostCardSkeleton(),
         ),
 
@@ -142,7 +142,7 @@ class _UserPostsPageState extends State<UserPostsPage> {
         slivers: [
           if (failed) SliverToBoxAdapter(child: _ErrorRow(onRetry: _load)),
           SliverPadding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
+            padding: BuSpace.pageH,
             sliver: SliverGrid.builder(
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 3,
@@ -161,7 +161,7 @@ class _UserPostsPageState extends State<UserPostsPage> {
           ),
           if (_more)
             const SliverToBoxAdapter(
-              child: Padding(padding: EdgeInsets.fromLTRB(16, 12, 16, 0), child: PostCardSkeleton()),
+              child: Padding(padding: EdgeInsets.fromLTRB(BuSpace.page, 12, BuSpace.page, 0), child: PostCardSkeleton()),
             ),
         ],
       ),
@@ -235,7 +235,7 @@ class _GridTile extends StatelessWidget {
   }
 }
 
-/// Boş durum kartı (referans 11/6): kamera, "Henüz gönderi yok", açıklama, Gönderi oluştur (yalnız kendi gönderilerim).
+/// Boş durum: kart/gölge yok; simge, tek cümle, (yalnız kendi gönderilerimde) tek eylem.
 class _EmptyCard extends StatelessWidget {
   const _EmptyCard({required this.mine, required this.onCompose});
 
@@ -248,38 +248,33 @@ class _EmptyCard extends StatelessWidget {
     final tt = Theme.of(context).textTheme;
     final l = context.l10n;
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+      padding: const EdgeInsets.fromLTRB(BuSpace.page, BuSpace.xxxl, BuSpace.page, 0),
       child: Align(
         alignment: Alignment.topCenter,
-        child: DecoratedBox(
+        child: Column(
           key: const ValueKey('userPostsEmpty'),
-          decoration: BoxDecoration(color: t.sf, borderRadius: BorderRadius.circular(BuRadius.lg), boxShadow: BuElevation.of(context, 1)),
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(20, 28, 20, 24),
-            child: Column(mainAxisSize: MainAxisSize.min, children: [
-              Container(
-                width: 64,
-                height: 64,
-                decoration: BoxDecoration(color: t.sf2, shape: BoxShape.circle),
-                child: Icon(LucideIcons.camera, size: 28, color: t.ink),
-              ),
-              const SizedBox(height: 14),
-              Text(l.postViewNoPosts, textAlign: TextAlign.center, style: tt.titleMedium?.copyWith(color: t.ink, fontWeight: FontWeight.w700)),
-              if (mine) ...[
-                const SizedBox(height: 6),
-                Text(l.p04PostsEmptyBody, textAlign: TextAlign.center, style: tt.bodyMedium?.copyWith(color: t.mut)),
-                const SizedBox(height: 18),
-                BuButton(key: const ValueKey('userPostsCompose'), label: l.discoverCompose, icon: LucideIcons.camera, compact: true, onPressed: onCompose),
-              ],
-            ]),
-          ),
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 72,
+              height: 72,
+              decoration: BoxDecoration(color: t.sf2, shape: BoxShape.circle),
+              child: Icon(LucideIcons.camera, size: 28, color: t.mut),
+            ),
+            BuGap.h16,
+            Text(l.postViewNoPosts, textAlign: TextAlign.center, style: tt.titleMedium?.copyWith(color: t.ink, fontWeight: FontWeight.w600)),
+            if (mine) ...[
+              BuGap.h24,
+              BuButton(key: const ValueKey('userPostsCompose'), label: l.discoverCompose, compact: true, onPressed: onCompose),
+            ],
+          ],
         ),
       ),
     );
   }
 }
 
-/// Hata satırı (referans 11/6): kırmızı uyarı dairesi, "Yüklenemedi, tekrar dene", yenile düğmesi.
+/// Hata satırı: kart/kırmızı daire yok; tek cümle + yenile (48 dp).
 class _ErrorRow extends StatelessWidget {
   const _ErrorRow({required this.onRetry});
 
@@ -290,36 +285,24 @@ class _ErrorRow extends StatelessWidget {
     final t = context.bu;
     final tt = Theme.of(context).textTheme;
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-      child: DecoratedBox(
-        key: const ValueKey('userPostsError'),
-        decoration: BoxDecoration(color: t.sf, borderRadius: BorderRadius.circular(BuRadius.lg), boxShadow: BuElevation.of(context, 1)),
-        child: Padding(
-          padding: const EdgeInsets.all(14),
-          child: Row(children: [
-            Container(
-              width: 44,
-              height: 44,
-              decoration: BoxDecoration(color: t.danger.withValues(alpha: .12), shape: BoxShape.circle),
-              child: Icon(LucideIcons.triangleAlert, size: 22, color: t.danger),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(context.l10n.p04PostsLoadFail, style: tt.titleSmall?.copyWith(color: t.ink, fontWeight: FontWeight.w700)),
-            ),
-            Material(
-              color: t.sf2,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(BuRadius.sm)),
-              child: InkWell(
-                key: const ValueKey('userPostsRetry'),
-                customBorder: RoundedRectangleBorder(borderRadius: BorderRadius.circular(BuRadius.sm)),
-                onTap: onRetry,
-                child: SizedBox.square(dimension: 44, child: Icon(LucideIcons.refreshCw, size: 20, color: t.ink)),
-              ),
-            ),
-          ]),
+      key: const ValueKey('userPostsError'),
+      padding: const EdgeInsets.fromLTRB(BuSpace.page, 8, BuSpace.page, 0),
+      child: Row(children: [
+        Expanded(
+          child: Text(context.l10n.p04PostsLoadFail, style: tt.bodyLarge?.copyWith(color: t.mut)),
         ),
-      ),
+        BuGap.w8,
+        Material(
+          color: t.sf2,
+          shape: const CircleBorder(),
+          child: InkWell(
+            key: const ValueKey('userPostsRetry'),
+            customBorder: const CircleBorder(),
+            onTap: onRetry,
+            child: SizedBox.square(dimension: 48, child: Icon(LucideIcons.refreshCw, size: 20, color: t.ink)),
+          ),
+        ),
+      ]),
     );
   }
 }
