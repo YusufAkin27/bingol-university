@@ -192,11 +192,12 @@ export default function MenuPage() {
                       }`}
                       aria-pressed={isSel}
                       aria-current={d === today ? 'date' : undefined}
-                      aria-label={formatDate(d, { weekday: 'long', day: 'numeric', month: 'long' })}
                       onClick={() => setDate(d)}
                     >
                       <span className={styles.chipDow}>{formatDate(d, { weekday: 'short' })}</span>
                       <span className={styles.chipNum}>{Number(d.slice(8))}</span>
+                      {/* erişilebilir ad görünen metinle başlar (WCAG 2.5.3): aria-label yerine gizli ay adı eklenir */}
+                      <span className="sr-only">{`, ${formatDate(d, { month: 'long' })}`}</span>
                     </button>
                   );
                 })}
