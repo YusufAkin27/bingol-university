@@ -4687,5 +4687,28 @@
   "p66TrackSend": "Gönder",
   "p66TrackClosed": "Bu talep kapatıldı.",
   "p66MyTicket": "Talebim",
-  "p66AboutBody": "Bingöl Üniversitesi öğrencileri ve personeli için geliştirilen bağımsız bir öğrenci uygulamasıdır."
+  "p66AboutBody": "Bingöl Üniversitesi öğrencileri ve personeli için geliştirilen bağımsız bir öğrenci uygulamasıdır.",
+  "p67AttachRecent": "Son fotoğraflar",
+  "p67AttachOnceHint": "Tek gösterimlik göndermek için fotoğrafı seçtikten sonra 1 simgesine dokunun.",
+  "p67AttachGrant": "İzin ver",
+  "p51ClubsEmpty": "Henüz kulüp yok.",
+  "p51ClubsLoadFailed": "Yüklenemedi, tekrar dene",
+  "p51Managed": "Yönettiklerim",
+  "p51RoleMember": "Üye",
+  "p51AwaitingReply": "Yanıt bekleniyor",
+  "p51ApplyDate": "Başvuru tarihi: {date}",
+  "@p51ApplyDate": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "p51AboutFounded": "Kuruluş",
+  "p51CreateClubTitle": "Kulüp oluştur",
+  "p51Create": "Oluştur",
+  "p51JoinApproval": "İstek ile",
+  "p51DescLabel": "Açıklama",
+  "p51DescHint": "Kulübünüzün amacını ve hedeflerini kısaca anlatın…",
+  "p51AddJoinQuestion": "Katılma sorusu ekle"
 }

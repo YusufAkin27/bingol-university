@@ -16842,6 +16842,102 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Bingöl Üniversitesi öğrencileri ve personeli için geliştirilen bağımsız bir öğrenci uygulamasıdır.'**
   String get p66AboutBody;
+
+  /// No description provided for @p67AttachRecent.
+  ///
+  /// In tr, this message translates to:
+  /// **'Son fotoğraflar'**
+  String get p67AttachRecent;
+
+  /// No description provided for @p67AttachOnceHint.
+  ///
+  /// In tr, this message translates to:
+  /// **'Tek gösterimlik göndermek için fotoğrafı seçtikten sonra 1 simgesine dokunun.'**
+  String get p67AttachOnceHint;
+
+  /// No description provided for @p67AttachGrant.
+  ///
+  /// In tr, this message translates to:
+  /// **'İzin ver'**
+  String get p67AttachGrant;
+
+  /// No description provided for @p51ClubsEmpty.
+  ///
+  /// In tr, this message translates to:
+  /// **'Henüz kulüp yok.'**
+  String get p51ClubsEmpty;
+
+  /// No description provided for @p51ClubsLoadFailed.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yüklenemedi, tekrar dene'**
+  String get p51ClubsLoadFailed;
+
+  /// No description provided for @p51Managed.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yönettiklerim'**
+  String get p51Managed;
+
+  /// No description provided for @p51RoleMember.
+  ///
+  /// In tr, this message translates to:
+  /// **'Üye'**
+  String get p51RoleMember;
+
+  /// No description provided for @p51AwaitingReply.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yanıt bekleniyor'**
+  String get p51AwaitingReply;
+
+  /// No description provided for @p51ApplyDate.
+  ///
+  /// In tr, this message translates to:
+  /// **'Başvuru tarihi: {date}'**
+  String p51ApplyDate(String date);
+
+  /// No description provided for @p51AboutFounded.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kuruluş'**
+  String get p51AboutFounded;
+
+  /// No description provided for @p51CreateClubTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kulüp oluştur'**
+  String get p51CreateClubTitle;
+
+  /// No description provided for @p51Create.
+  ///
+  /// In tr, this message translates to:
+  /// **'Oluştur'**
+  String get p51Create;
+
+  /// No description provided for @p51JoinApproval.
+  ///
+  /// In tr, this message translates to:
+  /// **'İstek ile'**
+  String get p51JoinApproval;
+
+  /// No description provided for @p51DescLabel.
+  ///
+  /// In tr, this message translates to:
+  /// **'Açıklama'**
+  String get p51DescLabel;
+
+  /// No description provided for @p51DescHint.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kulübünüzün amacını ve hedeflerini kısaca anlatın…'**
+  String get p51DescHint;
+
+  /// No description provided for @p51AddJoinQuestion.
+  ///
+  /// In tr, this message translates to:
+  /// **'Katılma sorusu ekle'**
+  String get p51AddJoinQuestion;
 }
 
 class _AppLocalizationsDelegate

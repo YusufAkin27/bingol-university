@@ -9191,4 +9191,55 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get p66AboutBody =>
       'تطبيق طلابي مستقل مخصص لطلاب وموظفي جامعة بينغول.';
+
+  @override
+  String get p67AttachRecent => 'أحدث الصور';
+
+  @override
+  String get p67AttachOnceHint =>
+      'لإرسال صورة تُعرض مرة واحدة، اختر الصورة ثم المس الرمز 1.';
+
+  @override
+  String get p67AttachGrant => 'سماح';
+
+  @override
+  String get p51ClubsEmpty => 'لا توجد أندية بعد.';
+
+  @override
+  String get p51ClubsLoadFailed => 'تعذّر التحميل، حاول مجددًا';
+
+  @override
+  String get p51Managed => 'أديرها';
+
+  @override
+  String get p51RoleMember => 'عضو';
+
+  @override
+  String get p51AwaitingReply => 'بانتظار الرد';
+
+  @override
+  String p51ApplyDate(String date) {
+    return 'تاريخ الطلب: $date';
+  }
+
+  @override
+  String get p51AboutFounded => 'التأسيس';
+
+  @override
+  String get p51CreateClubTitle => 'إنشاء نادٍ';
+
+  @override
+  String get p51Create => 'إنشاء';
+
+  @override
+  String get p51JoinApproval => 'بطلب';
+
+  @override
+  String get p51DescLabel => 'الوصف';
+
+  @override
+  String get p51DescHint => 'صف هدف ناديك وأهدافه باختصار…';
+
+  @override
+  String get p51AddJoinQuestion => 'إضافة سؤال انضمام';
 }

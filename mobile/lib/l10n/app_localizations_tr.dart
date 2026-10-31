@@ -9259,4 +9259,56 @@ class AppLocalizationsTr extends AppLocalizations {
   @override
   String get p66AboutBody =>
       'Bingöl Üniversitesi öğrencileri ve personeli için geliştirilen bağımsız bir öğrenci uygulamasıdır.';
+
+  @override
+  String get p67AttachRecent => 'Son fotoğraflar';
+
+  @override
+  String get p67AttachOnceHint =>
+      'Tek gösterimlik göndermek için fotoğrafı seçtikten sonra 1 simgesine dokunun.';
+
+  @override
+  String get p67AttachGrant => 'İzin ver';
+
+  @override
+  String get p51ClubsEmpty => 'Henüz kulüp yok.';
+
+  @override
+  String get p51ClubsLoadFailed => 'Yüklenemedi, tekrar dene';
+
+  @override
+  String get p51Managed => 'Yönettiklerim';
+
+  @override
+  String get p51RoleMember => 'Üye';
+
+  @override
+  String get p51AwaitingReply => 'Yanıt bekleniyor';
+
+  @override
+  String p51ApplyDate(String date) {
+    return 'Başvuru tarihi: $date';
+  }
+
+  @override
+  String get p51AboutFounded => 'Kuruluş';
+
+  @override
+  String get p51CreateClubTitle => 'Kulüp oluştur';
+
+  @override
+  String get p51Create => 'Oluştur';
+
+  @override
+  String get p51JoinApproval => 'İstek ile';
+
+  @override
+  String get p51DescLabel => 'Açıklama';
+
+  @override
+  String get p51DescHint =>
+      'Kulübünüzün amacını ve hedeflerini kısaca anlatın…';
+
+  @override
+  String get p51AddJoinQuestion => 'Katılma sorusu ekle';
 }

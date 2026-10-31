@@ -2892,5 +2892,28 @@
   "p66TrackSend": "Send",
   "p66TrackClosed": "This request is closed.",
   "p66MyTicket": "My request",
-  "p66AboutBody": "An independent student app built for the students and staff of Bingöl University."
+  "p66AboutBody": "An independent student app built for the students and staff of Bingöl University.",
+  "p67AttachRecent": "Recent photos",
+  "p67AttachOnceHint": "To send a view-once photo, select it and tap the 1 icon.",
+  "p67AttachGrant": "Allow",
+  "p51ClubsEmpty": "No clubs yet.",
+  "p51ClubsLoadFailed": "Couldn't load. Try again.",
+  "p51Managed": "Managed by me",
+  "p51RoleMember": "Member",
+  "p51AwaitingReply": "Awaiting reply",
+  "p51ApplyDate": "Applied: {date}",
+  "@p51ApplyDate": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "p51AboutFounded": "Founded",
+  "p51CreateClubTitle": "Create club",
+  "p51Create": "Create",
+  "p51JoinApproval": "By request",
+  "p51DescLabel": "Description",
+  "p51DescHint": "Briefly describe your club's purpose and goals…",
+  "p51AddJoinQuestion": "Add a join question"
 }

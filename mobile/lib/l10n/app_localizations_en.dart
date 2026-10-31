@@ -9291,4 +9291,55 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get p66AboutBody =>
       'An independent student app built for the students and staff of Bingöl University.';
+
+  @override
+  String get p67AttachRecent => 'Recent photos';
+
+  @override
+  String get p67AttachOnceHint =>
+      'To send a view-once photo, select it and tap the 1 icon.';
+
+  @override
+  String get p67AttachGrant => 'Allow';
+
+  @override
+  String get p51ClubsEmpty => 'No clubs yet.';
+
+  @override
+  String get p51ClubsLoadFailed => 'Couldn\'t load. Try again.';
+
+  @override
+  String get p51Managed => 'Managed by me';
+
+  @override
+  String get p51RoleMember => 'Member';
+
+  @override
+  String get p51AwaitingReply => 'Awaiting reply';
+
+  @override
+  String p51ApplyDate(String date) {
+    return 'Applied: $date';
+  }
+
+  @override
+  String get p51AboutFounded => 'Founded';
+
+  @override
+  String get p51CreateClubTitle => 'Create club';
+
+  @override
+  String get p51Create => 'Create';
+
+  @override
+  String get p51JoinApproval => 'By request';
+
+  @override
+  String get p51DescLabel => 'Description';
+
+  @override
+  String get p51DescHint => 'Briefly describe your club\'s purpose and goals…';
+
+  @override
+  String get p51AddJoinQuestion => 'Add a join question';
 }

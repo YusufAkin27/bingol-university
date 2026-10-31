@@ -2892,5 +2892,28 @@
   "p66TrackSend": "إرسال",
   "p66TrackClosed": "تم إغلاق هذا الطلب.",
   "p66MyTicket": "طلبي",
-  "p66AboutBody": "تطبيق طلابي مستقل مخصص لطلاب وموظفي جامعة بينغول."
+  "p66AboutBody": "تطبيق طلابي مستقل مخصص لطلاب وموظفي جامعة بينغول.",
+  "p67AttachRecent": "أحدث الصور",
+  "p67AttachOnceHint": "لإرسال صورة تُعرض مرة واحدة، اختر الصورة ثم المس الرمز 1.",
+  "p67AttachGrant": "سماح",
+  "p51ClubsEmpty": "لا توجد أندية بعد.",
+  "p51ClubsLoadFailed": "تعذّر التحميل، حاول مجددًا",
+  "p51Managed": "أديرها",
+  "p51RoleMember": "عضو",
+  "p51AwaitingReply": "بانتظار الرد",
+  "p51ApplyDate": "تاريخ الطلب: {date}",
+  "@p51ApplyDate": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "p51AboutFounded": "التأسيس",
+  "p51CreateClubTitle": "إنشاء نادٍ",
+  "p51Create": "إنشاء",
+  "p51JoinApproval": "بطلب",
+  "p51DescLabel": "الوصف",
+  "p51DescHint": "صف هدف ناديك وأهدافه باختصار…",
+  "p51AddJoinQuestion": "إضافة سؤال انضمام"
 }
