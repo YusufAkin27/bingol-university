@@ -61,3 +61,8 @@ Kural: yalnız transform/opacity, 150-250 ms (tek seferlik büyük kalp 520 ms),
 - Sohbet "en alta in" düğmesi belirme animasyonu, tarih ayırıcı yapışkan başlık ve liste -> konuşma avatar Hero'su: üçü de `chat_detail_page.dart` içinde (sınırlı dosya); öneri: düğmeyi `AnimatedScale`/`AnimatedOpacity` ile `ValueListenableBuilder` içinde göstermek, üst çubuk avatarına `BuHero(tag: 'chat-avatar-<id>')`, listedeki `ChatlistAvatar`'ı aynı etiketle sarmak.
 - Seçici -> kırpma -> önizleme geçişleri: kırpma rotası platform tema geçişini kullanıyor (`fullscreenDialog`), önizleme tur 1'de AnimatedSwitcher aldı; ek değişiklik gerekmedi.
 - Sohbet medya görüntüleyici (`ChatZoomImage`): pinch, çift dokunuş yakınlaştırma (animasyonlu) ve çıkış zaten var; sürükleyerek kapatma eklenmedi (davranış katmanına yakın, ayrı karar).
+
+## Tur 2 doğrulama
+- Widget testi: `mobile/test/redesign/p2dc_test.dart` 18 test (başlangıç/ara kare/bitiş, "azalt"ta anında, tekrar oynamama, 44-48 dp hedef); ilgili 21 mevcut dosya (637 test) yeşil; `flutter analyze` posts/discover/chat 0 sorun.
+- Ara kare görüntüleri (gerçek render, tr390 açık+koyu): `C:\bu_qa\shots\tasarim\p2\dc\` (`kesfet_giris_70|110|180|600ms`, `cift_dokunus_kalp|sonra`, `gorunturu_acik|surukleme|zoom`, `sohbet_balon_60|110|400ms`, `sohbet_liste_80|160|700ms`); üretim: `test/redesign/p2dc_shots_test.dart` (`P2DC_OUT`, `P2DC_MODES`, `P2DC_LANG`).
+- Emülatör gezisi ve gfxinfo ölçümü YAPILMADI (paylaşımlı ağır makine, başka ajanların derlemesi sürüyordu); gerçek cihazda (Redmi 13C, iPhone) akıcılık ölçülemedi.
