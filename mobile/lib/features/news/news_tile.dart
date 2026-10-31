@@ -81,8 +81,8 @@ String newsSourceHost(Map<String, dynamic> item) {
   return h.startsWith('www.') ? h.substring(4) : h;
 }
 
-/// Liste satırı (Ic2/Ic4): küçük resim (yoksa tür karosu), isteğe bağlı rozet, başlık, kaynak + tarih,
-/// isteğe bağlı favori düğmesi. Görsel, detay sayfasının kapağına paylaşılan geçişle (Hero) uçar.
+/// Liste satırı (Ic2/Ic4): sade, çerçevesiz satır: küçük görsel (yoksa nötr karo), başlık, tarih (+ gerekirse tür),
+/// isteğe bağlı sakin favori düğmesi. Görsel, detay sayfasının kapağına paylaşılan geçişle (Hero) uçar.
 class NewsTile extends StatelessWidget {
   const NewsTile({
     super.key,
@@ -101,10 +101,10 @@ class NewsTile extends StatelessWidget {
   final VoidCallback? onToggleSave;
   final double thumbSize;
 
-  /// Meta satırının başına kaynak site adı eklenir (favorilerde yalnız tarih).
+  /// Kaynak site adı yalnız üniversitenin ana sitesinden farklıysa meta satırına eklenir (aynı ad her satırda gürültüdür).
   final bool showSource;
 
-  /// Başlığın üstünde tür rozeti (sekmeyle zaten belli olan listede kapatılır).
+  /// Meta satırının başında tür adı (sekmeyle zaten belli olan listede kapatılır). Rozet çizilmez.
   final bool showType;
 
   @override
@@ -112,61 +112,52 @@ class NewsTile extends StatelessWidget {
     final t = context.bu;
     final tx = Theme.of(context).textTheme;
     final type = item['type'] as String?;
-    final date = newsDateLabel(context, item);
-    final meta = showSource ? '$date • ${newsSourceHost(item)}' : date;
+    final host = newsSourceHost(item);
+    final meta = [
+      if (showType) newsTypeLabel(context, type),
+      newsDateLabel(context, item),
+      if (showSource && host != 'bingol.edu.tr') host,
+    ].join(' • ');
     final hasSave = onToggleSave != null;
-    final tint = newsTypeTint(t, type);
     final img = item['imageUrl'] as String?;
     final id = (item['id'] as num?)?.toInt();
     final evDate = type == 'ETKINLIK' ? DateTime.tryParse((item['eventDate'] as String?) ?? '') : null;
     final noImg = img == null || img.isEmpty;
-    // Görselsiz etkinlik: tarih etiketli yeşil karo ("18 KAS"); diğerleri tür simgeli karo.
+    // Görselsiz etkinlik: nötr tarih karosu ("18 KAS"); diğerleri nötr tür simgeli karo (kategori başına renk yok).
     Widget thumb = (noImg && evDate != null)
-        ? _EventDateTile(date: evDate, size: thumbSize, tint: tint ?? BuTint(t.soft, t.onSoft))
-        : IcerikThumb(
-            url: img,
-            size: thumbSize,
-            radius: 14,
-            fallbackIcon: newsTypeIcon(type),
-            tint: tint ?? BuTint(t.soft, t.onSoft),
-          );
-    if (id != null && img != null && img.isNotEmpty) thumb = newsHero(id: id, radius: 14, child: thumb);
-    return IcerikCard(
+        ? _EventDateTile(date: evDate, size: thumbSize)
+        : IcerikThumb(url: img, size: thumbSize, radius: BuRadius.sm, fallbackIcon: newsTypeIcon(type));
+    if (id != null && img != null && img.isNotEmpty) thumb = newsHero(id: id, radius: BuRadius.sm, child: thumb);
+    return BuPressable(
+      scale: .985,
       onTap: onTap,
-      shadow: false,
-      padding: EdgeInsetsDirectional.fromSTEB(12, 12, hasSave ? 0 : 12, 12),
       child: ConstrainedBox(
         constraints: const BoxConstraints(minHeight: 72),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            thumb,
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  if (showType)
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 6),
-                      child: Align(
-                        alignment: AlignmentDirectional.centerStart,
-                        child: IcerikBadge(newsTypeLabel(context, type), soft: tint == null, tint: tint),
-                      ),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 6),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              thumb,
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      (item['title'] as String?) ?? '',
+                      maxLines: 3,
+                      overflow: TextOverflow.ellipsis,
+                      style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w600, height: 1.32, color: t.ink),
                     ),
-                  Text(
-                    (item['title'] as String?) ?? '',
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w700, height: 1.3, color: t.ink),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(meta, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.bodySmall!.copyWith(color: t.mut)),
-                ],
+                    const SizedBox(height: 6),
+                    Text(meta, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.bodySmall!.copyWith(color: t.mut)),
+                  ],
+                ),
               ),
-            ),
-            if (hasSave) _SaveIcon(saved: saved, onTap: onToggleSave!),
-          ],
+              if (hasSave) _SaveIcon(saved: saved, onTap: onToggleSave!),
+            ],
+          ),
         ),
       ),
     );
@@ -306,11 +297,11 @@ class _SaveIcon extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.bu;
     final label = saved ? context.l10n.newsSaveRemove : context.l10n.newsSaveAdd;
-    final fg = overlay ? (saved ? t.pr : t.onMedia) : (saved ? t.pr : t.mut);
+    final fg = overlay ? (saved ? t.pr : t.onMedia) : (saved ? t.pr : t.mut.withValues(alpha: .8));
     final icon = Icon(
       saved ? Icons.bookmark : LucideIcons.bookmark,
       key: ValueKey(saved),
-      size: 22,
+      size: 20,
       color: fg,
     );
     return Semantics(
@@ -354,27 +345,30 @@ class _SaveIcon extends StatelessWidget {
   }
 }
 
-/// Görselsiz etkinlik karosu: takvim simgesi + "18 KAS" (etkinlik tarihi).
+/// Görselsiz etkinlik karosu: nötr zemin, büyük gün + kısa ay ("18 KAS").
 class _EventDateTile extends StatelessWidget {
-  const _EventDateTile({required this.date, required this.size, required this.tint});
+  const _EventDateTile({required this.date, required this.size});
 
   final DateTime date;
   final double size;
-  final BuTint tint;
 
   @override
   Widget build(BuildContext context) {
+    final t = context.bu;
     final tx = Theme.of(context).textTheme;
-    final label = '${date.day} ${trUpper(newsMonthName(context, date.month)).characters.take(3)}';
-    return Container(
-      width: size,
-      height: size,
-      decoration: BoxDecoration(color: tint.bg, borderRadius: BorderRadius.circular(14)),
-      child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-        Icon(LucideIcons.calendar, size: size * .34, color: tint.fg),
-        const SizedBox(height: 4),
-        Text(label, maxLines: 1, style: tx.labelSmall!.copyWith(fontWeight: FontWeight.w800, color: tint.fg)),
-      ]),
+    final month = trUpper(newsMonthName(context, date.month)).characters.take(3).toString();
+    return ExcludeSemantics(
+      child: Container(
+        width: size,
+        height: size,
+        decoration: BoxDecoration(color: t.sf2, borderRadius: BorderRadius.circular(BuRadius.sm)),
+        child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+          Text('${date.day}',
+              maxLines: 1,
+              style: tx.titleLarge!.copyWith(fontWeight: FontWeight.w700, height: 1.1, color: t.ink, fontFeatures: const [FontFeature.tabularFigures()])),
+          Text(month, maxLines: 1, style: tx.labelSmall!.copyWith(fontWeight: FontWeight.w600, color: t.mut)),
+        ]),
+      ),
     );
   }
 }

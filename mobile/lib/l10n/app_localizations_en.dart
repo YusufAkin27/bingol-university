@@ -2786,7 +2786,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get permPageIntro =>
-      'We ask for the permissions below to give you the best experience. You can skip them now and change them later in Settings.';
+      'Allow what you like now; you can change the rest later in Settings.';
 
   @override
   String get permStart => 'Get started';
@@ -6230,7 +6230,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get sistemuiOfflineBody =>
-      'Check your internet connection and try again. The server may be unreachable right now.';
+      'Check your internet connection and try again.';
 
   @override
   String get sistemuiErrorTitle => 'Something went wrong';
@@ -6240,7 +6240,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get sistemuiMaintBody =>
-      'We are making improvements. Please try again shortly. Your data is safe.';
+      'Please try again shortly. Your data is safe.';
 
   @override
   String get sistemuiMaintBand =>
@@ -9143,4 +9143,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get p30AutosaveConsentOk => 'Turn on';
+
+  @override
+  String get p65PermSkip => 'Skip';
 }

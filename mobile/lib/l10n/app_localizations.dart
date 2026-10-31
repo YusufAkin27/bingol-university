@@ -5176,7 +5176,7 @@ abstract class AppLocalizations {
   /// No description provided for @permPageIntro.
   ///
   /// In tr, this message translates to:
-  /// **'Uygulamayı en iyi şekilde kullanabilmeniz için aşağıdaki izinleri isteriz. Hiçbirini şimdi vermek zorunda değilsiniz; sonradan Ayarlar’dan da değiştirebilirsiniz.'**
+  /// **'Dilediğiniz izni şimdi verebilir, diğerlerini sonra Ayarlar’dan açabilirsiniz.'**
   String get permPageIntro;
 
   /// No description provided for @permStart.
@@ -11500,7 +11500,7 @@ abstract class AppLocalizations {
   /// No description provided for @sistemuiOfflineBody.
   ///
   /// In tr, this message translates to:
-  /// **'İnternet bağlantınızı kontrol edip tekrar deneyin. Sunucuya şu an ulaşılamıyor olabilir.'**
+  /// **'İnternet bağlantınızı kontrol edip tekrar deneyin.'**
   String get sistemuiOfflineBody;
 
   /// No description provided for @sistemuiErrorTitle.
@@ -11518,7 +11518,7 @@ abstract class AppLocalizations {
   /// No description provided for @sistemuiMaintBody.
   ///
   /// In tr, this message translates to:
-  /// **'Sizin için daha iyi hale getiriyoruz. Kısa süre sonra tekrar deneyin. Verileriniz güvende.'**
+  /// **'Kısa süre sonra tekrar deneyin. Verileriniz güvende.'**
   String get sistemuiMaintBody;
 
   /// No description provided for @sistemuiMaintBand.
@@ -16560,6 +16560,12 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Aç'**
   String get p30AutosaveConsentOk;
+
+  /// No description provided for @p65PermSkip.
+  ///
+  /// In tr, this message translates to:
+  /// **'Atla'**
+  String get p65PermSkip;
 }
 
 class _AppLocalizationsDelegate

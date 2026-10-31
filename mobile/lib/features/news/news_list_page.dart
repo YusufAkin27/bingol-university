@@ -25,7 +25,6 @@ class NewsListPage extends StatefulWidget {
 
 class _NewsListPageState extends State<NewsListPage> {
   static const _types = ['HABER', 'DUYURU', 'ETKINLIK'];
-  static const _tabIcons = [LucideIcons.newspaper, LucideIcons.megaphone, LucideIcons.calendar];
   static const _pageSize = 20;
 
   final _scroll = ScrollController();
@@ -220,16 +219,20 @@ class _NewsListPageState extends State<NewsListPage> {
       controller: _scroll,
       bottomInset: MediaQuery.paddingOf(context).bottom + 16,
       actions: [
+        // Yalnız simge (çerçevesiz): 48 dp dokunma alanı, görsel sağ kenar 20 dp kenar boşluğuyla hizalanır.
         IcerikIconButton(
-            key: const ValueKey('news-search'), icon: LucideIcons.search, label: l.commonSearchHint, onTap: _openSearch),
-        const SizedBox(width: 4),
+            key: const ValueKey('news-search'),
+            icon: LucideIcons.search,
+            label: l.commonSearchHint,
+            plain: true,
+            onTap: _openSearch),
         IcerikIconButton(
             key: const ValueKey('news-favorites'),
             icon: LucideIcons.bookmark,
             label: l.icerikFavorites,
+            plain: true,
             onTap: _openFavorites),
-        // Düğme 48 dp dokunma alanı içinde 44 dp görünür: görsel sağ kenar sayfa kenar boşluğuyla (20 dp) hizalanır.
-        const SizedBox(width: 18),
+        const SizedBox(width: 14),
       ],
       bottom: PreferredSize(
         preferredSize: const Size.fromHeight(68),
@@ -237,7 +240,6 @@ class _NewsListPageState extends State<NewsListPage> {
           padding: const EdgeInsets.fromLTRB(20, 4, 20, 10),
           child: IcerikTabs(
             labels: [for (var i = 0; i < _types.length; i++) _tabLabel(i)],
-            icons: _tabIcons,
             index: _tab,
             keyPrefix: 'news-tab-',
             raised: true,
@@ -264,8 +266,7 @@ class _NewsListPageState extends State<NewsListPage> {
         SliverPadding(
           padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
           sliver: SliverToBoxAdapter(
-            child: IcerikErrorCard(
-                title: l.p05ListErrorTitle, body: l.p05ListErrorBody, retryLabel: l.commonRetry, onRetry: _reload),
+            child: IcerikErrorCard(title: l.p05ListErrorTitle, retryLabel: l.commonRetry, onRetry: _reload),
           ),
         ),
       ];
@@ -275,12 +276,7 @@ class _NewsListPageState extends State<NewsListPage> {
         SliverPadding(
           padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
           sliver: SliverToBoxAdapter(
-            child: IcerikCard(
-              shadow: false,
-              padding: const EdgeInsets.symmetric(vertical: 20),
-              child: BuEmptyState(
-                  illustration: BuIllustration.document, title: l.icerikNewsEmpty, message: l.p05NewsEmptyBody, compact: true),
-            ),
+            child: BuEmptyState(illustration: BuIllustration.document, title: l.icerikNewsEmpty, compact: true),
           ),
         ),
       ];
@@ -298,7 +294,7 @@ class _NewsListPageState extends State<NewsListPage> {
               padding: const EdgeInsets.fromLTRB(20, 4, 20, 0),
               sliver: SliverList.separated(
                 itemCount: rest.length,
-                separatorBuilder: (_, __) => const SizedBox(height: 12),
+                separatorBuilder: (_, __) => const SizedBox(height: 8),
                 itemBuilder: (context, i) {
                   final n = rest[i];
                   return BuStaggerItem(
@@ -306,7 +302,7 @@ class _NewsListPageState extends State<NewsListPage> {
                     child: NewsTile(
                       item: n,
                       thumbSize: 72,
-                      // Sekme türü zaten söylüyor: her satırda tekrarlayan rozet gürültüdür.
+                      // Sekme türü zaten söylüyor: satırda tür adı ve ana siteyle aynı kaynak adı tekrarlanmaz.
                       showType: false,
                       saved: _savedIds.contains((n['id'] as num).toInt()),
                       onToggleSave: () => _toggleSave(n),

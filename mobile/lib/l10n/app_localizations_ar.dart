@@ -2766,7 +2766,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get permPageIntro =>
-      'نطلب الأذونات التالية لتستفيد من التطبيق بأفضل شكل. لست مضطرًا لمنح أي منها الآن، ويمكنك تغييرها لاحقًا من الإعدادات.';
+      'امنح ما تشاء الآن، ويمكنك تغيير الباقي لاحقًا من الإعدادات.';
 
   @override
   String get permStart => 'ابدأ';
@@ -6175,8 +6175,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get sistemuiOfflineTitle => 'لا يوجد اتصال';
 
   @override
-  String get sistemuiOfflineBody =>
-      'تحقق من اتصالك بالإنترنت وحاول مرة أخرى. قد يتعذر الوصول إلى الخادم الآن.';
+  String get sistemuiOfflineBody => 'تحقق من اتصالك بالإنترنت وحاول مرة أخرى.';
 
   @override
   String get sistemuiErrorTitle => 'حدث خطأ ما';
@@ -6185,8 +6184,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get sistemuiMaintTitle => 'النظام قيد الصيانة';
 
   @override
-  String get sistemuiMaintBody =>
-      'نعمل على تحسين التطبيق من أجلك. حاول مرة أخرى بعد قليل. بياناتك في أمان.';
+  String get sistemuiMaintBody => 'حاول مرة أخرى بعد قليل. بياناتك في أمان.';
 
   @override
   String get sistemuiMaintBand => 'قد تكون بعض الميزات غير متاحة مؤقتًا.';
@@ -9044,4 +9042,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get p30AutosaveConsentOk => 'تشغيل';
+
+  @override
+  String get p65PermSkip => 'تخطَّ';
 }

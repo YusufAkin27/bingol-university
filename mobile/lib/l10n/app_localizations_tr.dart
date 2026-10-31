@@ -2771,7 +2771,7 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get permPageIntro =>
-      'Uygulamayı en iyi şekilde kullanabilmeniz için aşağıdaki izinleri isteriz. Hiçbirini şimdi vermek zorunda değilsiniz; sonradan Ayarlar’dan da değiştirebilirsiniz.';
+      'Dilediğiniz izni şimdi verebilir, diğerlerini sonra Ayarlar’dan açabilirsiniz.';
 
   @override
   String get permStart => 'Başla';
@@ -6204,7 +6204,7 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get sistemuiOfflineBody =>
-      'İnternet bağlantınızı kontrol edip tekrar deneyin. Sunucuya şu an ulaşılamıyor olabilir.';
+      'İnternet bağlantınızı kontrol edip tekrar deneyin.';
 
   @override
   String get sistemuiErrorTitle => 'Bir şeyler ters gitti';
@@ -6214,7 +6214,7 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get sistemuiMaintBody =>
-      'Sizin için daha iyi hale getiriyoruz. Kısa süre sonra tekrar deneyin. Verileriniz güvende.';
+      'Kısa süre sonra tekrar deneyin. Verileriniz güvende.';
 
   @override
   String get sistemuiMaintBand =>
@@ -9109,4 +9109,7 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get p30AutosaveConsentOk => 'Aç';
+
+  @override
+  String get p65PermSkip => 'Atla';
 }

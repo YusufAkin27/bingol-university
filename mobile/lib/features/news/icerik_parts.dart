@@ -63,6 +63,7 @@ class IcerikIconButton extends StatelessWidget {
     this.toggled,
     this.shadow = false,
     this.overlay = false,
+    this.plain = false,
   });
 
   final IconData icon;
@@ -73,6 +74,9 @@ class IcerikIconButton extends StatelessWidget {
   final bool shadow;
   final bool overlay;
 
+  /// true: zemin ve çerçeve yok (yalnız simge, 48 dp dokunma alanı); seçili durum yalnız marka renkli simgedir.
+  final bool plain;
+
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
@@ -82,6 +86,10 @@ class IcerikIconButton extends StatelessWidget {
     if (overlay) {
       bg = on ? t.sf : t.scrim.withValues(alpha: .42);
       fg = on ? t.pr : t.onMedia;
+      border = Colors.transparent;
+    } else if (plain) {
+      bg = Colors.transparent;
+      fg = on ? t.pr : t.ink;
       border = Colors.transparent;
     } else {
       bg = on ? t.soft : t.sf;
@@ -388,7 +396,7 @@ class IcerikNotice extends StatelessWidget {
   }
 }
 
-/// Haber listesi iskeleti: öne çıkan kart + satır kartları (tek ticker).
+/// Haber listesi iskeleti: çerçevesiz satırlar (görsel + iki satır + kısa meta), tek ticker.
 class IcerikListSkeleton extends StatelessWidget {
   const IcerikListSkeleton({super.key, this.featured = true, this.count = 4, this.padding = const EdgeInsets.fromLTRB(20, 8, 20, 24)});
 
@@ -398,27 +406,21 @@ class IcerikListSkeleton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final t = context.bu;
-    Widget row() => DecoratedBox(
-          decoration: BoxDecoration(color: t.sf, borderRadius: BorderRadius.circular(20), border: Border.all(color: t.bd)),
-          child: const Padding(
-            padding: EdgeInsets.all(12),
-            child: Row(children: [
-              BuSkeleton(width: 88, height: 88, radius: 14),
-              SizedBox(width: 12),
-              Expanded(
-                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  BuSkeleton(width: 64, height: 18, radius: 9),
-                  SizedBox(height: 10),
-                  BuSkeleton.line(),
-                  SizedBox(height: 6),
-                  BuSkeleton.line(width: 110),
-                  SizedBox(height: 12),
-                  BuSkeleton.line(width: 80, height: 10),
-                ]),
-              ),
-            ]),
-          ),
+    Widget row() => const Padding(
+          padding: EdgeInsets.symmetric(vertical: 6),
+          child: Row(children: [
+            BuSkeleton(width: 72, height: 72, radius: BuRadius.sm),
+            SizedBox(width: 16),
+            Expanded(
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                BuSkeleton.line(),
+                SizedBox(height: 8),
+                BuSkeleton.line(width: 110),
+                SizedBox(height: 12),
+                BuSkeleton.line(width: 80, height: 10),
+              ]),
+            ),
+          ]),
         );
     return Semantics(
       container: true,
@@ -442,7 +444,7 @@ class IcerikListSkeleton extends StatelessWidget {
   }
 }
 
-/// "Daha fazla yükleniyor" satırı: beyaz hap kart, küçük çember + metin (sayfalama).
+/// "Daha fazla yükleniyor": yalnız küçük çember (sayfalama), ekran okuyucuya metin etiketiyle bildirilir.
 class IcerikLoadMore extends StatelessWidget {
   const IcerikLoadMore({super.key, required this.text});
 
@@ -452,26 +454,20 @@ class IcerikLoadMore extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.bu;
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
+      padding: const EdgeInsets.symmetric(vertical: 16),
       child: Semantics(
         liveRegion: true,
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 16),
-          decoration: BoxDecoration(color: t.sf, borderRadius: BorderRadius.circular(BuRadius.pill), border: Border.all(color: t.bd)),
-          child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-            SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: t.pr)),
-            const SizedBox(width: 10),
-            Flexible(child: Text(text, style: Theme.of(context).textTheme.labelLarge!.copyWith(fontWeight: FontWeight.w700, color: t.ink))),
-          ]),
-        ),
+        label: text,
+        child: Center(child: SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: t.pr))),
       ),
     );
   }
 }
 
-/// Liste hata kartı: bulut-kapalı simge + kırmızı uyarı noktası, başlık, açıklama, "Yeniden dene".
+/// Liste hata durumu: sakin simge, tek cümle ([title]), tek eylem ("Yeniden dene"). [body] verilirse ikinci satır
+/// olarak eklenir (varsayılan boş: tek cümle).
 class IcerikErrorCard extends StatelessWidget {
-  const IcerikErrorCard({super.key, required this.title, required this.body, required this.retryLabel, required this.onRetry});
+  const IcerikErrorCard({super.key, required this.title, this.body = '', required this.retryLabel, required this.onRetry});
 
   final String title;
   final String body;
@@ -482,41 +478,28 @@ class IcerikErrorCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.bu;
     final tx = Theme.of(context).textTheme;
-    return IcerikCard(
-      shadow: false,
-      padding: const EdgeInsets.fromLTRB(20, 24, 20, 20),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(0, 40, 0, 16),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.center, children: [
         ExcludeSemantics(
-          child: Center(
-            child: Stack(clipBehavior: Clip.none, children: [
-              Container(
-                width: 64,
-                height: 64,
-                decoration: BoxDecoration(color: t.soft, shape: BoxShape.circle),
-                child: Icon(LucideIcons.cloudOff, size: 28, color: t.onSoft),
-              ),
-              PositionedDirectional(
-                end: -8,
-                top: -6,
-                child: Container(
-                  width: 24,
-                  height: 24,
-                  decoration: BoxDecoration(color: t.pr, shape: BoxShape.circle, border: Border.all(color: t.sf, width: 2)),
-                  child: Icon(LucideIcons.x, size: 13, color: t.onPr),
-                ),
-              ),
-            ]),
+          child: Container(
+            width: 56,
+            height: 56,
+            decoration: BoxDecoration(color: t.sf2, shape: BoxShape.circle),
+            child: Icon(LucideIcons.cloudOff, size: 24, color: t.mut),
           ),
         ),
         const SizedBox(height: 16),
         Semantics(
           liveRegion: true,
-          child: Text(title, textAlign: TextAlign.center, style: tx.titleMedium!.copyWith(fontWeight: FontWeight.w800, color: t.ink)),
+          child: Text(title, textAlign: TextAlign.center, style: tx.titleMedium!.copyWith(fontWeight: FontWeight.w600, color: t.ink)),
         ),
-        const SizedBox(height: 6),
-        Text(body, textAlign: TextAlign.center, style: tx.bodyMedium!.copyWith(color: t.mut, height: 1.45)),
-        const SizedBox(height: 18),
-        BuButton(label: retryLabel, icon: LucideIcons.refreshCw, onPressed: onRetry),
+        if (body.isNotEmpty) ...[
+          const SizedBox(height: 6),
+          Text(body, textAlign: TextAlign.center, style: tx.bodyMedium!.copyWith(color: t.mut, height: 1.45)),
+        ],
+        const SizedBox(height: 20),
+        BuButton(label: retryLabel, kind: BuButtonKind.outline, compact: true, onPressed: onRetry),
       ]),
     );
   }
