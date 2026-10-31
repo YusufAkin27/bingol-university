@@ -9373,7 +9373,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get p51EvOffline => 'You are offline. Showing saved events.';
 
   @override
-  String get p69WeeklyFlow => 'Weekly schedule';
+  String get p69WeeklyFlow => 'Weekly Schedule';
 
   @override
   String p69WeekN(String n) {
@@ -9397,7 +9397,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get p69ExamCalendar => 'Exam schedule';
+  String get p69ExamCalendar => 'Exam Schedule';
 
   @override
   String get p69Now => 'Now';
@@ -9430,10 +9430,10 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get p69TodayJump => 'Back to today';
+  String get p69TodayJump => 'Back to Today';
 
   @override
-  String get p69Events => 'Academic events';
+  String get p69Events => 'Academic Events';
 
   @override
   String p69Records(String n) {
@@ -9618,4 +9618,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get p68TypeRanked => 'Ranked';
+
+  @override
+  String get p69SchoolSchedule => 'School schedule';
+
+  @override
+  String p69WeeksAgo(String n) {
+    return '$n weeks ago';
+  }
 }

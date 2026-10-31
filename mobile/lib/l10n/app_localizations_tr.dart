@@ -9342,11 +9342,11 @@ class AppLocalizationsTr extends AppLocalizations {
   String get p51EvOffline => 'Çevrimdışısın. Kayıtlı etkinlikler gösteriliyor.';
 
   @override
-  String get p69WeeklyFlow => 'Haftalık akış';
+  String get p69WeeklyFlow => 'Haftalık Akış';
 
   @override
   String p69WeekN(String n) {
-    return '$n. hafta';
+    return '$n. Hafta';
   }
 
   @override
@@ -9366,7 +9366,7 @@ class AppLocalizationsTr extends AppLocalizations {
   }
 
   @override
-  String get p69ExamCalendar => 'Sınav takvimi';
+  String get p69ExamCalendar => 'Sınav Takvimi';
 
   @override
   String get p69Now => 'Şimdi';
@@ -9399,14 +9399,14 @@ class AppLocalizationsTr extends AppLocalizations {
   }
 
   @override
-  String get p69TodayJump => 'Güne dön';
+  String get p69TodayJump => 'Güne Dön';
 
   @override
-  String get p69Events => 'Akademik olaylar';
+  String get p69Events => 'Akademik Olaylar';
 
   @override
   String p69Records(String n) {
-    return '$n kayıt';
+    return '$n Kayıt';
   }
 
   @override
@@ -9585,4 +9585,12 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get p68TypeRanked => 'Sıralı';
+
+  @override
+  String get p69SchoolSchedule => 'Okul programı';
+
+  @override
+  String p69WeeksAgo(String n) {
+    return '$n hafta önce';
+  }
 }

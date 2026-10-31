@@ -3051,5 +3051,8 @@
     }
   },
   "p68TypeMulti": "متعدد",
-  "p68TypeRanked": "مرتّب"
+  "p68TypeRanked": "مرتّب",
+  "p69SchoolSchedule": "جدول الكلية",
+  "p69WeeksAgo": "منذ {n} أسابيع",
+  "@p69WeeksAgo": {"placeholders": {"n": {"type": "String"}}}
 }

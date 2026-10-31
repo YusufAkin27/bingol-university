@@ -4727,8 +4727,8 @@
   "p51EvEmptyDayBody": "Başka bir gün seç ya da kulüplere göz at.",
   "p51EvBrowseAll": "Tüm kulüpleri keşfet",
   "p51EvOffline": "Çevrimdışısın. Kayıtlı etkinlikler gösteriliyor.",
-  "p69WeeklyFlow": "Haftalık akış",
-  "p69WeekN": "{n}. hafta",
+  "p69WeeklyFlow": "Haftalık Akış",
+  "p69WeekN": "{n}. Hafta",
   "@p69WeekN": {"placeholders": {"n": {"type": "String"}}},
   "p69Done": "Tamamlandı",
   "p69LastSession": "Son oturum",
@@ -4736,7 +4736,7 @@
   "@p69Hours": {"placeholders": {"h": {"type": "String"}}},
   "p69TodayTotal": "Bugün toplam {n} oturum ({hours})",
   "@p69TodayTotal": {"placeholders": {"n": {"type": "String"}, "hours": {"type": "String"}}},
-  "p69ExamCalendar": "Sınav takvimi",
+  "p69ExamCalendar": "Sınav Takvimi",
   "p69Now": "Şimdi",
   "p69ExamName": "Sınav adı",
   "p69ExamNameHint": "Örn. Veri Yapıları Vize",
@@ -4747,9 +4747,9 @@
   "p69ExamNote": "Sınavdan 1 gün önce yerel, 2 saat önce push bildirimi alırsın.",
   "p69SemesterTerm": "{name} yarıyılı",
   "@p69SemesterTerm": {"placeholders": {"name": {"type": "String"}}},
-  "p69TodayJump": "Güne dön",
-  "p69Events": "Akademik olaylar",
-  "p69Records": "{n} kayıt",
+  "p69TodayJump": "Güne Dön",
+  "p69Events": "Akademik Olaylar",
+  "p69Records": "{n} Kayıt",
   "@p69Records": {"placeholders": {"n": {"type": "String"}}},
   "p69OpenAttachment": "Ekli belgeyi aç",
   "p69ExamReminder": "Sınav hatırlatması",
@@ -4847,5 +4847,8 @@
     }
   },
   "p68TypeMulti": "Çoklu",
-  "p68TypeRanked": "Sıralı"
+  "p68TypeRanked": "Sıralı",
+  "p69SchoolSchedule": "Okul programı",
+  "p69WeeksAgo": "{n} hafta önce",
+  "@p69WeeksAgo": {"placeholders": {"n": {"type": "String"}}}
 }

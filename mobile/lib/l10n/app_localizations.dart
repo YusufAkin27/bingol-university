@@ -16996,13 +16996,13 @@ abstract class AppLocalizations {
   /// No description provided for @p69WeeklyFlow.
   ///
   /// In tr, this message translates to:
-  /// **'Haftalık akış'**
+  /// **'Haftalık Akış'**
   String get p69WeeklyFlow;
 
   /// No description provided for @p69WeekN.
   ///
   /// In tr, this message translates to:
-  /// **'{n}. hafta'**
+  /// **'{n}. Hafta'**
   String p69WeekN(String n);
 
   /// No description provided for @p69Done.
@@ -17032,7 +17032,7 @@ abstract class AppLocalizations {
   /// No description provided for @p69ExamCalendar.
   ///
   /// In tr, this message translates to:
-  /// **'Sınav takvimi'**
+  /// **'Sınav Takvimi'**
   String get p69ExamCalendar;
 
   /// No description provided for @p69Now.
@@ -17092,19 +17092,19 @@ abstract class AppLocalizations {
   /// No description provided for @p69TodayJump.
   ///
   /// In tr, this message translates to:
-  /// **'Güne dön'**
+  /// **'Güne Dön'**
   String get p69TodayJump;
 
   /// No description provided for @p69Events.
   ///
   /// In tr, this message translates to:
-  /// **'Akademik olaylar'**
+  /// **'Akademik Olaylar'**
   String get p69Events;
 
   /// No description provided for @p69Records.
   ///
   /// In tr, this message translates to:
-  /// **'{n} kayıt'**
+  /// **'{n} Kayıt'**
   String p69Records(String n);
 
   /// No description provided for @p69OpenAttachment.
@@ -17424,6 +17424,18 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Sıralı'**
   String get p68TypeRanked;
+
+  /// No description provided for @p69SchoolSchedule.
+  ///
+  /// In tr, this message translates to:
+  /// **'Okul programı'**
+  String get p69SchoolSchedule;
+
+  /// No description provided for @p69WeeksAgo.
+  ///
+  /// In tr, this message translates to:
+  /// **'{n} hafta önce'**
+  String p69WeeksAgo(String n);
 }
 
 class _AppLocalizationsDelegate

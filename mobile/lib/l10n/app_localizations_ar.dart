@@ -9516,4 +9516,12 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get p68TypeRanked => 'مرتّب';
+
+  @override
+  String get p69SchoolSchedule => 'جدول الكلية';
+
+  @override
+  String p69WeeksAgo(String n) {
+    return 'منذ $n أسابيع';
+  }
 }

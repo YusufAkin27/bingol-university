@@ -2932,7 +2932,7 @@
   "p51EvEmptyDayBody": "Pick another day or browse clubs.",
   "p51EvBrowseAll": "Explore all clubs",
   "p51EvOffline": "You are offline. Showing saved events.",
-  "p69WeeklyFlow": "Weekly schedule",
+  "p69WeeklyFlow": "Weekly Schedule",
   "p69WeekN": "Week {n}",
   "@p69WeekN": {"placeholders": {"n": {"type": "String"}}},
   "p69Done": "Completed",
@@ -2941,7 +2941,7 @@
   "@p69Hours": {"placeholders": {"h": {"type": "String"}}},
   "p69TodayTotal": "Today: {n} sessions in total ({hours})",
   "@p69TodayTotal": {"placeholders": {"n": {"type": "String"}, "hours": {"type": "String"}}},
-  "p69ExamCalendar": "Exam schedule",
+  "p69ExamCalendar": "Exam Schedule",
   "p69Now": "Now",
   "p69ExamName": "Exam name",
   "p69ExamNameHint": "e.g. Data Structures Midterm",
@@ -2952,8 +2952,8 @@
   "p69ExamNote": "You get a local reminder 1 day before and a push notification 2 hours before the exam.",
   "p69SemesterTerm": "{name} semester",
   "@p69SemesterTerm": {"placeholders": {"name": {"type": "String"}}},
-  "p69TodayJump": "Back to today",
-  "p69Events": "Academic events",
+  "p69TodayJump": "Back to Today",
+  "p69Events": "Academic Events",
   "p69Records": "{n} items",
   "@p69Records": {"placeholders": {"n": {"type": "String"}}},
   "p69OpenAttachment": "Open attached document",
@@ -3051,5 +3051,8 @@
     }
   },
   "p68TypeMulti": "Multiple",
-  "p68TypeRanked": "Ranked"
+  "p68TypeRanked": "Ranked",
+  "p69SchoolSchedule": "School schedule",
+  "p69WeeksAgo": "{n} weeks ago",
+  "@p69WeeksAgo": {"placeholders": {"n": {"type": "String"}}}
 }
