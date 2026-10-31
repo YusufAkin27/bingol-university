@@ -575,10 +575,12 @@ void main() {
     /// Ek düğmesi -> galeri -> videoyu seç -> "Gönder".
     Future<void> openVideoSheet(WidgetTester tester, [String? _]) async {
       await tester.tap(find.byKey(const ValueKey('attachButton')));
-      await settle(tester, const Duration(milliseconds: 400));
+      await settle(tester, const Duration(milliseconds: 600));
+      await tester.tap(find.byKey(const ValueKey('attachGallery')));
+      await settle(tester, const Duration(milliseconds: 600));
       await tester.tap(find.byKey(const ValueKey('galleryTile_v1')));
       await tester.pump();
-      await tester.tap(find.byKey(const ValueKey('pickerPreview')));
+      await tester.tap(find.byKey(const ValueKey('pickerNext')));
       await settle(tester, const Duration(milliseconds: 400));
       await tester.tap(find.byKey(const ValueKey('previewSend')));
       await tester.pump();
@@ -598,7 +600,9 @@ void main() {
         ..on('/conversations/1/messages', _msg(9, 1, '', extra: {'status': 'SENT', 'attachments': [_videoAtt(id: 88, durationMs: 20000)]}));
       await _pump(tester, _detail(makeSession(be), video: _svc(comp), upload: client));
       await tester.tap(find.byKey(const ValueKey('attachButton')));
-      await settle(tester, const Duration(milliseconds: 400));
+      await settle(tester, const Duration(milliseconds: 600));
+      await tester.tap(find.byKey(const ValueKey('attachGallery')));
+      await settle(tester, const Duration(milliseconds: 600));
       for (final l in ['Galeriden seç', 'Fotoğraf çek', 'Galeriden video seç', 'Video çek']) {
         expect(find.text(l), findsNothing); // eski 4'lü menü yok, doğrudan galeri
       }
@@ -606,7 +610,7 @@ void main() {
       be.delay = const Duration(milliseconds: 500);
       await tester.tap(find.byKey(const ValueKey('galleryTile_v1')));
       await tester.pump();
-      await tester.tap(find.byKey(const ValueKey('pickerPreview')));
+      await tester.tap(find.byKey(const ValueKey('pickerNext')));
       await settle(tester, const Duration(milliseconds: 400));
       await tester.tap(find.byKey(const ValueKey('previewSend')));
       await settle(tester, const Duration(milliseconds: 800)); // seçici kapanır, yükleme başlar
@@ -697,8 +701,8 @@ void main() {
       );
       await tester.tap(find.byKey(const ValueKey('attachButton')));
       await settle(tester, const Duration(milliseconds: 600));
-      await tester.tap(find.byKey(const ValueKey('cameraTile')));
-      await settle(tester, const Duration(milliseconds: 400));
+      await tester.tap(find.byKey(const ValueKey('attachCamera')));
+      await settle(tester, const Duration(milliseconds: 600));
       expect(opened, 1);
       expect(find.byKey(const ValueKey('onceButton_0')), findsNothing); // videoda tek gönderimlik yok
       expect(find.text('1 / 1'), findsOneWidget);

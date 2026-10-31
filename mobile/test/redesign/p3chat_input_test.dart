@@ -67,27 +67,26 @@ void main() {
       h.dispose();
     });
 
-    testWidgets('gönder: boşken soluk (nötr, devre dışı), yazınca kırmızı yukarı ok; semantik "Gönder"', (tester) async {
+    testWidgets('gönder: boşken görünmez, yazınca kırmızı yukarı ok belirir (ölçek+solma), silinince kaybolur; semantik "Gönder"', (tester) async {
       final h = tester.ensureSemantics();
       await _pump(tester, _page());
       final bu = tester.element(find.byType(ChatDetailPage)).bu;
-      Color? fill() {
-        final c = tester.widget<AnimatedContainer>(find.descendant(of: find.byKey(const ValueKey('sendButton')), matching: find.byType(AnimatedContainer)));
-        return (c.decoration as BoxDecoration).color;
-      }
-
-      expect(fill(), bu.sf2);
-      expect(find.byIcon(LucideIcons.arrowUp), findsOneWidget);
-      expect(find.byIcon(LucideIcons.send), findsNothing);
+      expect(find.byKey(const ValueKey('sendButton')), findsNothing);
+      expect(find.byIcon(LucideIcons.arrowUp), findsNothing);
       await tester.enterText(find.byKey(const ValueKey('composerField')), 'selam');
       await tester.pump();
+      // Ara kare: ölçek/solma sürerken düğme vardır ve dokunulabilir (başlangıç ölçeği 0.6).
+      expect(find.byKey(const ValueKey('sendButton')), findsOneWidget);
       await tester.pump(const Duration(milliseconds: 250));
-      expect(fill(), bu.pr);
+      final box = tester.widget<Container>(find.descendant(of: find.byKey(const ValueKey('sendButton')), matching: find.byType(Container)).last);
+      expect((box.decoration as BoxDecoration).color, bu.pr);
+      expect(find.byIcon(LucideIcons.arrowUp), findsOneWidget);
+      expect(find.byIcon(LucideIcons.send), findsNothing);
       expect(find.bySemanticsLabel('Gönder'), findsOneWidget);
-      // Yazı silinince tekrar soluk.
       await tester.enterText(find.byKey(const ValueKey('composerField')), '');
+      await tester.pump();
       await tester.pump(const Duration(milliseconds: 300));
-      expect(fill(), bu.sf2);
+      expect(find.byKey(const ValueKey('sendButton')), findsNothing);
       h.dispose();
     });
 
@@ -119,8 +118,10 @@ void main() {
       expect(find.byKey(const ValueKey('attachAllowPhotos')), findsNothing);
       // Şerit yatay kaydırmalı; ilk karelerden bazıları görünür.
       expect(find.byKey(const ValueKey('attachRecent_p1')), findsOneWidget);
-      await tester.dragUntilVisible(find.byKey(const ValueKey('attachAll')), find.byKey(const ValueKey('attachStrip')), const Offset(-120, 0));
+      expect(find.text('Son fotoğraflar'), findsOneWidget);
+      expect(find.byKey(const ValueKey('attachAll')), findsOneWidget);
       expect(find.text('Tümü'), findsOneWidget);
+      expect(find.textContaining('1 simgesine dokunun'), findsOneWidget);
       expect(tester.takeException(), isNull);
     });
 
@@ -150,14 +151,14 @@ void main() {
       expect(find.text('Fotoğraflara erişime izin ver'), findsOneWidget, reason: 'reddedilince satır kalır');
     });
 
-    testWidgets('Galeri karosu seçiciyi açar (kamera karosu seçicide yok)', (tester) async {
+    testWidgets('Galeri karosu seçiciyi açar (ilk karo Kamera: Stitch v3)', (tester) async {
       await _pump(tester, _page());
       await tester.tap(find.byKey(const ValueKey('attachButton')));
       await settle(tester, const Duration(milliseconds: 600));
       await tester.tap(find.byKey(const ValueKey('attachGallery')));
       await settle(tester, const Duration(milliseconds: 800));
       expect(find.byType(MediaPickerPage), findsOneWidget);
-      expect(find.byKey(const ValueKey('cameraTile')), findsNothing);
+      expect(find.byKey(const ValueKey('cameraTile')), findsOneWidget);
       expect(find.byKey(const ValueKey('galleryTile_p1')), findsOneWidget);
     });
 
@@ -187,20 +188,20 @@ void main() {
       await settle(tester, const Duration(milliseconds: 800));
     }
 
-    testWidgets('3 sütun, 4 dp aralık, 12 dp köşe; kamera karosu kapalıyken ilk hücre ilk fotoğraf', (tester) async {
+    testWidgets('3 sütun, 2 dp aralık, 10 dp köşe (Stitch v3); kamera karosu kapalıyken ilk hücre ilk fotoğraf', (tester) async {
       await openPicker(tester);
       final a = tester.getRect(find.byKey(const ValueKey('galleryTile_p1')));
       final b = tester.getRect(find.byKey(const ValueKey('galleryTile_p2')));
       final c = tester.getRect(find.byKey(const ValueKey('galleryTile_p3')));
       final d = tester.getRect(find.byKey(const ValueKey('galleryTile_p4')));
-      expect(b.left - a.right, closeTo(4, .01));
-      expect(c.left - b.right, closeTo(4, .01));
-      expect(d.top - a.bottom, closeTo(4, .01));
+      expect(b.left - a.right, closeTo(2, .01));
+      expect(c.left - b.right, closeTo(2, .01));
+      expect(d.top - a.bottom, closeTo(2, .01));
       expect(d.left, a.left, reason: 'dördüncü hücre ikinci satırın başı (3 sütun)');
       final clip = tester.widgetList<ClipRRect>(find.descendant(of: find.byKey(const ValueKey('galleryTile_p1')), matching: find.byType(ClipRRect))).first;
-      expect(clip.borderRadius, BuRadius.bSm);
-      expect(find.byKey(const ValueKey('pickerBottom')), findsNothing);
+      expect(clip.borderRadius, BorderRadius.circular(10));
       expect(find.byKey(const ValueKey('pickerPreview')), findsNothing, reason: 'alt çubuk yok');
+      expect(find.textContaining('En fazla 10 öğe'), findsOneWidget, reason: 'alt not (düz metin)');
     });
 
     testWidgets('seçim sayacı: dolu daire + sıra sayısı, "Gönder (n)" hapı; kare küçülür', (tester) async {

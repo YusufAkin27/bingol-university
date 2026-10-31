@@ -68,7 +68,7 @@ class NcCard extends StatelessWidget {
 
 /// Simge karosu (14 dp köşe): yumuşak zemin + simge.
 class NcTile extends StatelessWidget {
-  const NcTile({super.key, required this.icon, required this.bg, required this.fg, this.size = 48});
+  const NcTile({super.key, required this.icon, required this.bg, required this.fg, this.size = 40});
 
   final IconData icon;
   final Color bg;
@@ -79,8 +79,8 @@ class NcTile extends StatelessWidget {
   Widget build(BuildContext context) => Container(
         width: size,
         height: size,
-        decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(14)),
-        child: Icon(icon, size: size * .46, color: fg),
+        decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(size * .3)),
+        child: Icon(icon, size: size * .5, color: fg),
       );
 }
 
@@ -179,7 +179,7 @@ class NcPillButton extends StatelessWidget {
   final VoidCallback? onTap;
   final bool busy;
 
-  /// Eski kırmızı ton seçeneği; satır içi hap artık her durumda nötr (yalnız sayfanın tek birincil eylemi renkli).
+  /// Eski ton seçeneği (uyumluluk için durur); görünüm her durumda çerçeveli küçük düğme.
   final bool soft;
   final Key? pillKey;
 
@@ -187,26 +187,34 @@ class NcPillButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.bu;
     final tx = Theme.of(context).textTheme;
-    final bg = t.sf2;
-    final fg = t.ink;
+    final fg = t.pr;
     return Semantics(
       button: true,
       label: label,
       excludeSemantics: true,
       child: Material(
         key: pillKey,
-        color: bg,
+        color: Colors.transparent,
         shape: const StadiumBorder(),
         child: InkWell(
           customBorder: const StadiumBorder(),
           onTap: busy ? null : onTap,
-          child: Container(
-            constraints: const BoxConstraints(minHeight: 44, minWidth: 44),
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            alignment: Alignment.center,
-            child: busy
-                ? SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2.4, color: fg))
-                : Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.labelMedium!.copyWith(color: fg, fontWeight: FontWeight.w600)),
+          // Stitch v3: küçük çerçeveli düğme (34 dp görünür, 48 dp dokunma alanı), pr metin.
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(minHeight: BuSize.touch, minWidth: BuSize.touch),
+            child: Center(
+              widthFactor: 1,
+              child: Container(
+                height: BuSize.buttonCompact,
+                constraints: const BoxConstraints(minWidth: 44),
+                padding: const EdgeInsets.symmetric(horizontal: 14),
+                alignment: Alignment.center,
+                decoration: BoxDecoration(borderRadius: BuRadius.bPill, border: Border.all(color: t.bdStrong)),
+                child: busy
+                    ? SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2.2, color: fg))
+                    : Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.labelLarge!.copyWith(color: fg, fontWeight: FontWeight.w600)),
+              ),
+            ),
           ),
         ),
       ),

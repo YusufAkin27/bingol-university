@@ -447,6 +447,7 @@ Future<void> fillRegister(WidgetTester tester,
 /// Varsayılan avatar/grup görselleri hariç, içerik görselleri (ağ/bellek) için bulucu.
 Finder contentImages() => find.byWidgetPredicate((w) {
       if (w is! Image) return false;
+      if (w.key == const ValueKey('chatWallpaperAsset')) return false; // sohbet duvar kağıdı içerik değildir
       final i = w.image;
       return !(i is AssetImage && i.assetName.contains('default_'));
     });

@@ -289,8 +289,9 @@ class MessageBubble extends StatelessWidget {
       );
     }
 
-    final r = Radius.circular(mediaStyle ? 22 : 20);
-    const small = Radius.circular(6);
+    // Stitch v3: köşe 18 dp, kuyruk köşesi 4 dp (giden balonda üst-uç, gelende alt-baş).
+    final r = Radius.circular(mediaStyle ? 20 : 18);
+    const small = Radius.circular(4);
     // Hap tek gösterimlik durumları (Açıldı/Gönderildi): gelen soluk zemin, giden kırmızı.
     final oncePill = hasOnce && !onceLocked;
     final softPill = oncePill && solidMine;
@@ -302,22 +303,22 @@ class MessageBubble extends StatelessWidget {
               behavior: HitTestBehavior.opaque,
               onTap: preview ? null : onSenderTap,
               child: Text(senderName!,
-                  maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.labelMedium!.copyWith(color: t.mut, fontWeight: FontWeight.w600)),
+                  maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.labelLarge!.copyWith(color: t.ink, fontWeight: FontWeight.w600)),
             ),
           );
     final core = Container(
       constraints: BoxConstraints(maxWidth: maxW),
       clipBehavior: mediaStyle ? Clip.antiAlias : Clip.none,
-      padding: EdgeInsets.symmetric(horizontal: mediaStyle ? 0 : 14, vertical: mediaStyle ? 0 : 9),
+      padding: EdgeInsets.symmetric(horizontal: mediaStyle ? 0 : 14, vertical: mediaStyle ? 0 : 10),
       decoration: BoxDecoration(
         color: onceLocked ? BuTokens.light.ink : (softPill ? t.soft : (oncePill && !mine && !ghost ? t.sf2 : bodyColor)),
         border: highlighted ? Border.all(color: t.pr, width: 2) : ((mine || ghost) ? null : Border.all(color: t.bd)),
         // Mantıksal köşeler: sağdan sola düzende kuyruk köşesi de aynalanır.
         borderRadius: BorderRadiusDirectional.only(
           topStart: r,
-          topEnd: r,
+          topEnd: (mine && tail) ? small : r,
           bottomStart: (mine || !tail) ? r : small,
-          bottomEnd: (mine && tail) ? small : r,
+          bottomEnd: r,
         ),
       ),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [

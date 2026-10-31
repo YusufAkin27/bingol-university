@@ -22,14 +22,14 @@ enum ChatBgStyle {
   strong,
   plain,
 
-  /// Varlık (asset) tabanlı duvar kağıtları: `assets/chat_wallpapers/<ad>_light.png|<ad>_dark.png`.
-  wpA,
+  /// Ek varlık duvar kağıtları (ileride): `assets/chat_wallpapers/<ad>_light.png|<ad>_dark.png`.
   wpB,
   wpC;
 
-  /// Varlık dosyası adı (`wp_a`...); yordamsal stillerde null.
+  /// Varlık dosyası adı; yordamsal stillerde (Hafif/Orta/Düz) null. VARSAYILAN "Desen" = Stitch v3 kampüs doodle
+  /// duvar kağıdı (`wp_a_light.png` / `wp_a_dark.png`, 1170x2532).
   String? get assetName => switch (this) {
-        ChatBgStyle.wpA => 'wp_a',
+        ChatBgStyle.pattern => 'wp_a',
         ChatBgStyle.wpB => 'wp_b',
         ChatBgStyle.wpC => 'wp_c',
         _ => null,
@@ -306,6 +306,7 @@ class _ChatWallpaperState extends State<ChatWallpaper> {
         Positioned.fill(child: ColoredBox(color: t.bg)),
         Positioned.fill(
           child: RepaintBoundary(
+            key: const ValueKey('chatWallpaper'),
             child: IgnorePointer(
               child: ExcludeSemantics(
                 child: LayoutBuilder(builder: (context, c) {

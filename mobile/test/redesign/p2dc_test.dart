@@ -467,11 +467,11 @@ void main() {
       await tester.pumpWidget(buildApp(ChatTab(session: makeSession(b), connectRealtime: false)));
       await settle(tester, const Duration(milliseconds: 1200));
       final bu = tester.element(find.text('Mehmet Kaya')).bu;
-      // Zaman metni (okunmamis satirda bile) notr ikincil renk.
+      // Stitch v3: okunmamis satirin saati marka renginde (iki satir da okunmamis).
       final stamp = tester.widgetList<Text>(find.byWidgetPredicate((w) => w is Text && RegExp(r'^\d\d:\d\d$').hasMatch(w.data ?? '')));
       expect(stamp, isNotEmpty);
       for (final t in stamp) {
-        expect(t.style!.color, bu.mut);
+        expect(t.style!.color, bu.pr);
       }
       // Tur etiketi: notr yuzey (sf2) + ikincil metin; yesil/mavi ton yok.
       final tag = find.text('Kulüp');

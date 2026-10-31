@@ -65,25 +65,28 @@ void main() {
       _row(3, 'EVENT', 'Bahar Şenliği'),
     ];
 
-    testWidgets('satırlar kartsız ve ayırıcısız; tür ikinci kez avatar rozetiyle işaretlenmez', (tester) async {
+    testWidgets('Stitch v3 satır: kartsız, okunmamış tam genişlik yüzey, satırlar arası ince çizgi; tür avatar rozeti yok', (tester) async {
       useScreen(tester, kPhoneMedium);
       await tester.pumpWidget(buildApp(ChatTab(session: makeSession(_be(items)), connectRealtime: false)));
       await settle(tester, const Duration(seconds: 1));
       final bu = tester.element(find.text('Mehmet Kaya')).bu;
-      // Satır zemini saydam (kart yok): satırdaki Material rengi transparent.
-      final mat = tester.widget<Material>(find.ancestor(of: find.text('Mehmet Kaya'), matching: find.byType(Material)).first);
-      expect(mat.color, Colors.transparent);
-      // Ayırıcı çizgi yok: satır içinde yükseklik 1 olan bd renkli kutu yok.
+      // Okunmamış satır (Mehmet): tam genişlik yüzey; okunmuş satır (Edebiyat): saydam (kart yok).
+      final hot = tester.widget<Material>(find.ancestor(of: find.text('Mehmet Kaya'), matching: find.byType(Material)).first);
+      expect(hot.color, bu.sf);
+      final read = tester.widget<Material>(find.ancestor(of: find.text('Edebiyat Kulübü'), matching: find.byType(Material)).first);
+      expect(read.color, Colors.transparent);
+      // Ayırıcı: son satır hariç her satırın altında 1 dp bd çizgi (3 satır -> 2 çizgi).
       final hairlines = tester.widgetList<Container>(find.byType(Container)).where((c) => c.color == bu.bd && c.constraints?.maxHeight == 1);
-      expect(hairlines, isEmpty);
+      expect(hairlines.length, 2);
       // Tür simgesi (megafon/takvim rozeti) avatarda yok; tür yalnız nötr etiketle söylenir.
       expect(find.byIcon(LucideIcons.megaphone), findsNothing);
       expect(find.byIcon(LucideIcons.calendar), findsNothing);
       expect(find.text('Kulüp'), findsOneWidget);
-      // Başlık kalınlığı okunmamışta da aynı (vurgu yalnız rozet).
+      // Okunmamış başlık 700, okunmuş 600; okunmamış saat marka renginde.
       final unreadTitle = tester.widget<Text>(find.text('Mehmet Kaya'));
       final readTitle = tester.widget<Text>(find.text('Edebiyat Kulübü'));
-      expect(unreadTitle.style!.fontWeight, readTitle.style!.fontWeight);
+      expect(unreadTitle.style!.fontWeight, FontWeight.w700);
+      expect(readTitle.style!.fontWeight, FontWeight.w600);
       expect(tester.takeException(), isNull);
     });
 
@@ -95,29 +98,23 @@ void main() {
       expect(tags, containsAll(<Object>['chat-avatar-1', 'chat-avatar-2', 'chat-avatar-3']));
     });
 
-    testWidgets('boş durum: tek cümle + tek birincil düğme; başlıktaki + sakin', (tester) async {
+    testWidgets('boş durum: tek cümle + tek birincil düğme; başlıktaki + düz ikon', (tester) async {
       useScreen(tester, kPhoneMedium);
       await tester.pumpWidget(buildApp(ChatTab(session: makeSession(_be(const [])), connectRealtime: false)));
       await settle(tester, const Duration(seconds: 1));
-      final bu = tester.element(find.byType(ChatTab)).bu;
-      // Dolgulu kırmızı öğe sayısı: yalnız boş durumdaki düğme.
-      final btn = tester.widget<ChatlistNewButton>(find.byType(ChatlistNewButton));
-      expect(btn.quiet, isTrue);
-      final dot = tester.widget<AnimatedContainer>(find.descendant(of: find.byType(ChatlistNewButton), matching: find.byType(AnimatedContainer)));
-      expect((dot.decoration as BoxDecoration).color, bu.soft);
+      // Başlık "+" düz çizgi ikon (daire/dolgu yok): içinde dolgulu kutu yok.
+      expect(find.descendant(of: find.byType(ChatlistNewButton), matching: find.byType(AnimatedContainer)), findsNothing);
+      expect(find.descendant(of: find.byType(ChatlistNewButton), matching: find.byIcon(LucideIcons.plus)), findsOneWidget);
       expect(find.byType(BuEmptyState), findsOneWidget);
       expect(tester.widget<BuEmptyState>(find.byType(BuEmptyState)).message, isNull);
       expect(tester.takeException(), isNull);
     });
 
-    testWidgets('dolu listede + düğmesi birincil (dolgulu kırmızı)', (tester) async {
+    testWidgets('dolu listede + düğmesi düz ikon, 48 dp dokunma alanı; arama 52 dp', (tester) async {
       useScreen(tester, kPhoneMedium);
       await tester.pumpWidget(buildApp(ChatTab(session: makeSession(_be(items)), connectRealtime: false)));
       await settle(tester, const Duration(seconds: 1));
-      final bu = tester.element(find.byType(ChatTab)).bu;
-      expect(tester.widget<ChatlistNewButton>(find.byType(ChatlistNewButton)).quiet, isFalse);
-      final dot = tester.widget<AnimatedContainer>(find.descendant(of: find.byType(ChatlistNewButton), matching: find.byType(AnimatedContainer)));
-      expect((dot.decoration as BoxDecoration).color, bu.pr);
+      expect(tester.getSize(find.byType(ChatlistSearch)).height, 52);
       // + düğmesi 48 dp dokunma alanı
       expect(tester.getSize(find.byType(ChatlistNewButton)).shortestSide, greaterThanOrEqualTo(48));
     });
@@ -138,7 +135,7 @@ void main() {
   });
 
   group('yeni sohbet', () {
-    testWidgets('eylem satırı kartsız, simge karosu nötr; kenar 20 dp', (tester) async {
+    testWidgets('eylem satırı kartsız, simge karosu nötr; kenar 16 dp', (tester) async {
       useScreen(tester, kPhoneMedium);
       final be = FakeBackend()..on('/users*', {'items': <Object>[], 'nextCursor': null});
       await tester.pumpWidget(buildApp(NewChatPage(session: makeSession(be))));
@@ -146,8 +143,8 @@ void main() {
       final bu = tester.element(find.byType(NewChatPage)).bu;
       final group = find.byKey(const ValueKey('new-group'));
       expect(group, findsOneWidget);
-      // Satır sol kenarı 20 dp (arama kutusuyla aynı).
-      expect(tester.getTopLeft(find.byType(ChatlistSearch)).dx, 20);
+      // Satır sol kenarı 16 dp (Stitch v3, arama kutusuyla aynı).
+      expect(tester.getTopLeft(find.byType(ChatlistSearch)).dx, 16);
       expect(tester.getTopLeft(find.text('Yeni grup').first).dx, greaterThanOrEqualTo(20));
       // Kartsız: satır zemininde çerçeveli kutu yok.
       final boxes = tester.widgetList<Container>(find.descendant(of: group, matching: find.byType(Container))).where((c) {
@@ -162,37 +159,35 @@ void main() {
   });
 
   group('konuşma ekranı', () {
-    testWidgets('üst çubuk: geri, avatar (Hero chat-avatar-1), ad; avatar adın solunda', (tester) async {
+    testWidgets('üst çubuk: geri, avatar 40 dp (Hero chat-avatar-1), ad; avatar adın solunda; alt çizgi', (tester) async {
       useScreen(tester, kPhoneMedium);
       await tester.pumpWidget(buildApp(_detail(_detailBe(const [])), size: kPhoneMedium));
       await settle(tester, const Duration(milliseconds: 700));
       final hero = tester.widgetList<Hero>(find.byType(Hero)).where((h) => h.tag == 'chat-avatar-1');
       expect(hero.length, 1);
-      final avatarX = tester.getCenter(find.byType(BuAvatar).first).dx;
+      expect(tester.getSize(find.byType(ChatlistAvatar).first), const Size(40, 40));
+      final avatarX = tester.getCenter(find.byType(ChatlistAvatar).first).dx;
       final titleX = tester.getTopLeft(find.text('Ali Veli').first).dx;
       expect(avatarX, lessThan(titleX));
       expect(tester.getSize(find.byTooltip('Geri')).shortestSide, greaterThanOrEqualTo(48));
       expect(tester.takeException(), isNull);
     });
 
-    testWidgets('yazma alanı: boşken Gönder sakin (kırmızı değil), yazınca kırmızı; ek düğmesi dolgusuz', (tester) async {
+    testWidgets('yazma alanı: boşken Gönder yok, yazınca 44 dp kırmızı düğme belirir; + beyaz yuvarlatılmış kare', (tester) async {
       useScreen(tester, kPhoneMedium);
       await tester.pumpWidget(buildApp(_detail(_detailBe(const [])), size: kPhoneMedium));
       await settle(tester, const Duration(milliseconds: 700));
       final bu = tester.element(find.byType(ChatDetailPage)).bu;
-      Color? sendFill() {
-        final c = tester.widget<AnimatedContainer>(find.descendant(of: find.byKey(const ValueKey('sendButton')), matching: find.byType(AnimatedContainer)));
-        return (c.decoration as BoxDecoration).color;
-      }
-
-      expect(sendFill(), bu.sf2);
+      expect(find.byKey(const ValueKey('sendButton')), findsNothing, reason: 'metin yokken gönder görünmez');
       await tester.enterText(find.byKey(const ValueKey('composerField')), 'merhaba');
       await tester.pump();
       await settle(tester, const Duration(milliseconds: 300));
-      expect(sendFill(), bu.pr);
-      // 44 dp görünür daire, 48 dp dokunma alanı
+      expect(find.byKey(const ValueKey('sendButton')), findsOneWidget);
+      final box = tester.widget<Container>(find.descendant(of: find.byKey(const ValueKey('sendButton')), matching: find.byType(Container)).last);
+      expect((box.decoration as BoxDecoration).color, bu.pr);
+      // 44 dp görünür, 48 dp dokunma alanı
       expect(tester.getSize(find.byKey(const ValueKey('sendButton'))), const Size(48, 48));
-      expect(tester.getSize(find.descendant(of: find.byKey(const ValueKey('sendButton')), matching: find.byType(AnimatedContainer))), const Size(44, 44));
+      expect(tester.getSize(find.descendant(of: find.byKey(const ValueKey('sendButton')), matching: find.byType(Container)).last), const Size(44, 44));
       expect(tester.getSize(find.byKey(const ValueKey('attachButton'))).shortestSide, greaterThanOrEqualTo(48));
       expect(tester.takeException(), isNull);
     });

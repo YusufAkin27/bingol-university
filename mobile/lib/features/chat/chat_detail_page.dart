@@ -1332,7 +1332,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
               library: library,
               ensureAccess: widget.ensureAccess,
               openCamera: widget.openCamera,
-              showCameraTile: false, // kamera "+" menüsünde
+              // Stitch v3: ilk karo Kamera ("+" menüsünde de var).
             ),
           ),
         );
@@ -2361,13 +2361,9 @@ class _ChatDetailPageState extends State<ChatDetailPage>
 
   /// Üst çubuk ve altındaki arama çubuğu aynı gölgeli, sayfa zeminli çerçeveyi kullanır.
   Widget _barFrame(BuTokens t, Widget child) {
+    // Stitch v3: gölge yok, altta 1 dp `bd` çizgi (duvar kağıdı ile mesaj alanı arasında net sınır).
     return Container(
-      decoration: BoxDecoration(color: t.bg, boxShadow: [
-        BoxShadow(
-            color: t.shadow.withValues(alpha: .08),
-            blurRadius: 6,
-            offset: const Offset(0, 1)),
-      ]),
+      decoration: BoxDecoration(color: t.bg, border: Border(bottom: BorderSide(color: t.bd))),
       padding: EdgeInsets.only(top: MediaQuery.paddingOf(context).top),
       child: child,
     );
@@ -2493,8 +2489,8 @@ class _ChatDetailPageState extends State<ChatDetailPage>
                     child: SizedBox(
                       width: 48,
                       height: 48,
-                      child: Icon(LucideIcons.ellipsisVertical,
-                          size: 20, color: t.ink),
+                      child: Icon(LucideIcons.ellipsis,
+                          size: 24, color: t.ink),
                     ),
                   ),
                 ),
@@ -2515,11 +2511,14 @@ class _ChatDetailPageState extends State<ChatDetailPage>
   }
 
   /// Üst çubuk avatarı; sohbet listesindeki avatarla aynı Hero etiketini (`chat-avatar-<id>`) taşır.
-  Widget _headerAvatar() {
-    final avatar = BuAvatar(name: _title, url: _avatarUrl, size: 36, group: !_direct, headers: _avatarHeaders(_avatarUrl));
-    if (_conv['id'] is! num) return avatar;
-    return BuHero(tag: 'chat-avatar-$_cid', radius: 18, child: avatar);
-  }
+  Widget _headerAvatar() => ChatlistAvatar(
+        name: _title,
+        url: _avatarUrl,
+        size: 40,
+        group: !_direct,
+        headers: _avatarHeaders(_avatarUrl),
+        heroTag: _conv['id'] is num ? 'chat-avatar-$_cid' : null,
+      );
 
   /// Kulüp/etkinlik odası başlığının altındaki sayfa bağlantısı hapı.
   Widget _roomChip(BuTokens t) {
@@ -2828,8 +2827,8 @@ class _ChatDetailPageState extends State<ChatDetailPage>
               },
               child: Stack(clipBehavior: Clip.none, children: [
                 Container(
-                  width: 44,
-                  height: 44,
+                  width: BuSize.iconBtn,
+                  height: BuSize.iconBtn,
                   decoration: BoxDecoration(
                     color: t.sf,
                     shape: BoxShape.circle,
@@ -2842,12 +2841,12 @@ class _ChatDetailPageState extends State<ChatDetailPage>
                     top: -6,
                     end: -4,
                     child: Container(
-                      constraints: const BoxConstraints(minWidth: 20),
-                      height: 20,
-                      padding: const EdgeInsets.symmetric(horizontal: 6),
+                      constraints: const BoxConstraints(minWidth: 16),
+                      height: 16,
+                      padding: const EdgeInsets.symmetric(horizontal: 4),
                       alignment: Alignment.center,
                       decoration: BoxDecoration(
-                          color: t.pr, borderRadius: BorderRadius.circular(10)),
+                          color: t.pr, borderRadius: BorderRadius.circular(8)),
                       child: Text(n > 99 ? '99+' : '$n',
                           style: BuType.caption.copyWith(color: t.onPr, fontWeight: FontWeight.w500)),
                     ),
@@ -2946,7 +2945,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
           // Duvar kağıdı üstünde okunur kalsın: dolu yüzey + ince çizgi (balonlarla aynı dil).
           decoration: BoxDecoration(
-              color: t.sf,
+              color: t.sf2,
               border: Border.all(color: t.bd),
               borderRadius: BorderRadius.circular(999)),
           child: Text(label,
@@ -3116,12 +3115,8 @@ class _ChatDetailPageState extends State<ChatDetailPage>
     );
   }
 
-  List<BoxShadow> _topShadow(BuTokens t) => [
-        BoxShadow(
-            color: t.shadow.withValues(alpha: .08),
-            blurRadius: 6,
-            offset: const Offset(0, -1)),
-      ];
+  /// Alt çubuklar (yazma alanı, engelli/kapalı bandı): gölge yok, üstte 1 dp `bd` çizgi.
+  List<BoxShadow> _topShadow(BuTokens t) => const [];
 
   /// Tek "+" düğmesi (Ekle): 44 dp yumuşak nötr daire, 48 dp dokunma alanı; menü açıkken 45 derece dönüp "x" olur
   /// (yalnız transform; "animasyonları azalt"ta anında). Kamera ve galeri bu menüdedir.
@@ -3145,7 +3140,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
               child: Container(
                 width: 44,
                 height: 44,
-                decoration: BoxDecoration(color: t.sf2, shape: BoxShape.circle),
+                decoration: BoxDecoration(color: t.sf, borderRadius: BuRadius.bControl),
                 child: AnimatedRotation(
                   turns: _attachOpen ? .125 : 0,
                   duration: BuMotion.of(context, BuMotion.short),
@@ -3228,10 +3223,10 @@ class _ChatDetailPageState extends State<ChatDetailPage>
     // Yukarı ok: yönsüz simge (RTL'de çevirmeye gerek yok).
     final Widget sendIcon = Icon(
         _editing != null ? LucideIcons.check : LucideIcons.arrowUp,
-        size: 22,
+        size: 24,
         color: canSend ? t.onPr : t.mut);
     return Container(
-      decoration: BoxDecoration(color: t.bg, boxShadow: _topShadow(t)),
+      decoration: BoxDecoration(color: t.bg, border: Border(top: BorderSide(color: t.bd))),
       child: Column(mainAxisSize: MainAxisSize.min, children: [
         if (banner != null) _replyBar(t, banner),
         if (len >= 1500)
@@ -3258,10 +3253,10 @@ class _ChatDetailPageState extends State<ChatDetailPage>
               child: Padding(
                 padding: const EdgeInsets.symmetric(vertical: 1),
                 child: Container(
-                  constraints: const BoxConstraints(minHeight: 44),
+                  constraints: const BoxConstraints(minHeight: 46),
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   decoration: BoxDecoration(
-                      color: t.sf, borderRadius: BorderRadius.circular(22)),
+                      color: t.sf, borderRadius: BorderRadius.circular(24)),
                   child: TextField(
                     key: const ValueKey('composerField'),
                     controller: _input,
@@ -3278,7 +3273,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
                       enabledBorder: InputBorder.none,
                       focusedBorder: InputBorder.none,
                       filled: false,
-                      contentPadding: const EdgeInsets.symmetric(vertical: 12),
+                      contentPadding: const EdgeInsets.symmetric(vertical: 13),
                       hintText: l.chatDetailWriteMessage,
                       hintStyle: tx.bodyLarge!.copyWith(color: t.mut),
                     ),
@@ -3286,38 +3281,44 @@ class _ChatDetailPageState extends State<ChatDetailPage>
                 ),
               ),
             ),
-            const SizedBox(width: 6),
-            Semantics(
-              button: true,
-              enabled: canSend,
-              label: _editing != null ? l.chatDetailSave : l.chatDetailSend,
-              excludeSemantics: true,
-              // Yazı yokken soluk (nötr), yazınca marka kırmızısı + kısa "pop"; basınca küçülür.
-              child: BuPressable(
-                key: const ValueKey('sendButton'),
-                enabled: canSend,
-                onTap: canSend ? _submit : null,
-                scale: .9,
-                haptic: BuHaptic.light,
-                child: SizedBox(
-                  width: 48,
-                  height: 48,
-                  child: Center(
-                    child: BuPop(
-                      trigger: canSend,
-                      child: AnimatedContainer(
-                        duration: BuMotion.of(context, BuMotion.short),
-                        width: 44,
-                        height: 44,
-                        decoration: BoxDecoration(
-                            color: canSend ? t.pr : t.sf2,
-                            shape: BoxShape.circle),
-                        child: sendIcon,
+            // Gönder yalnız metin varken görünür (Stitch v3); boşken alan genişler. 150 ms ölçek + solma, basınca küçülür.
+            AnimatedSwitcher(
+              duration: BuMotion.of(context, BuMotion.short),
+              // Başlangıç opaklığı .4: ilk karede de dokunulabilir ve ekran okuyucuya görünür.
+              transitionBuilder: (child, anim) => FadeTransition(
+                  opacity: Tween<double>(begin: .4, end: 1).animate(anim),
+                  child: ScaleTransition(scale: Tween<double>(begin: .6, end: 1).animate(anim), child: child)),
+              child: trimmed.isEmpty
+                  ? const SizedBox.shrink(key: ValueKey('noSend'))
+                  : Padding(
+                      key: const ValueKey('sendSlot'),
+                      padding: const EdgeInsetsDirectional.only(start: 6),
+                      child: Semantics(
+                        button: true,
+                        label: _editing != null ? l.chatDetailSave : l.chatDetailSend,
+                        excludeSemantics: true,
+                        child: BuPressable(
+                          key: const ValueKey('sendButton'),
+                          enabled: canSend,
+                          onTap: canSend ? _submit : null,
+                          scale: .9,
+                          haptic: BuHaptic.light,
+                          child: SizedBox(
+                            width: 48,
+                            height: 48,
+                            child: Center(
+                              // Sınır aşıldıysa (2000+) düğme görünür ama soluk ve devre dışı; sayaç kırmızı uyarır.
+                              child: Container(
+                                width: 44,
+                                height: 44,
+                                decoration: BoxDecoration(color: canSend ? t.pr : t.sf2, borderRadius: BuRadius.bControl),
+                                child: sendIcon,
+                              ),
+                            ),
+                          ),
+                        ),
                       ),
                     ),
-                  ),
-                ),
-              ),
             ),
           ]),
         ),

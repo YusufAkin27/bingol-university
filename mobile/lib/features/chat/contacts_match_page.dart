@@ -223,7 +223,7 @@ class _ContactsMatchPageState extends State<ContactsMatchPage> {
   }
 
   Widget _scroll(List<Widget> children) => ListView(
-        padding: EdgeInsets.fromLTRB(20, 4, 20, 16 + MediaQuery.paddingOf(context).bottom),
+        padding: EdgeInsets.fromLTRB(16, 4, 16, 16 + MediaQuery.paddingOf(context).bottom),
         children: children,
       );
 

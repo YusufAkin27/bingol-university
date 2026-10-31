@@ -94,7 +94,7 @@ void main() {
       final res = <Object?>[];
       await _openHost(tester, () => _picker(lib), res);
       expect(find.text('Son eklenenler'), findsOneWidget);
-      expect(find.text('KAMERA'), findsOneWidget);
+      expect(find.text('Kamera'), findsOneWidget);
       expect(find.text('En fazla 10 öğe seçebilirsiniz. Video en fazla 60 saniye olabilir.'), findsOneWidget);
       final cam = tester.getRect(find.byKey(const ValueKey('cameraTile')));
       final first = tester.getRect(_tile('v1'));
@@ -130,10 +130,10 @@ void main() {
       expect(_badge('p1', '1'), findsOneWidget);
       expect(_badge('p2', '2'), findsOneWidget);
       expect(_badge('p3', '3'), findsOneWidget);
-      expect(find.textContaining('3 / 10', findRichText: true), findsOneWidget);
+      expect(find.text('Gönder (3)'), findsOneWidget);
       await _tap(tester, _tile('p2'));
       expect(_badge('p3', '2'), findsOneWidget);
-      expect(find.textContaining('2 / 10', findRichText: true), findsOneWidget);
+      expect(find.text('Gönder (2)'), findsOneWidget);
       _ok(tester);
     });
 
@@ -143,10 +143,10 @@ void main() {
       for (var i = 1; i <= 10; i++) {
         await _tap(tester, _tile('p$i'));
       }
-      expect(find.textContaining('10 / 10', findRichText: true), findsOneWidget);
+      expect(find.text('Gönder (10)'), findsOneWidget);
       await _tap(tester, _tile('p11'));
       expect(find.text('En fazla 10 öğe seçebilirsin'), findsOneWidget);
-      expect(find.textContaining('10 / 10', findRichText: true), findsOneWidget);
+      expect(find.text('Gönder (10)'), findsOneWidget);
       _ok(tester);
     });
 
@@ -156,7 +156,7 @@ void main() {
       await _tap(tester, _tile('v1'));
       await _tap(tester, _tile('v2'));
       await _tap(tester, _tile('p1'));
-      expect(find.textContaining('3 / 10', findRichText: true), findsOneWidget);
+      expect(find.text('Gönder (3)'), findsOneWidget);
       _ok(tester);
     });
 
@@ -165,7 +165,8 @@ void main() {
       await _openHost(tester, () => _picker(lib), []);
       await _tap(tester, _tile('long'));
       expect(find.text('Video en fazla 60 saniye olabilir'), findsOneWidget);
-      expect(find.byKey(const ValueKey('pickerPreview')), findsNothing);
+      expect(find.byKey(const ValueKey('pickerNext')), findsOneWidget);
+      expect(find.text('Gönder'), findsOneWidget, reason: 'secim yokken pasif "Gönder"');
       _ok(tester);
     });
 
@@ -180,7 +181,7 @@ void main() {
       // Önizlemeyi kapat: seçici açık kalır, kamera öğesi seçili.
       await _tap(tester, find.byKey(const ValueKey('previewClose')));
       await settle(tester, const Duration(milliseconds: 400));
-      expect(find.textContaining('1 / 10', findRichText: true), findsOneWidget);
+      expect(find.text('Gönder (1)'), findsOneWidget);
       _ok(tester);
     });
 
@@ -240,7 +241,7 @@ void main() {
       await _openHost(tester, () => rtl(_picker(lib)), [], size: const Size(320, 640));
       await _tap(tester, _tile('v1'));
       await _tap(tester, _tile('p1'));
-      expect(find.byKey(const ValueKey('pickerPreview')), findsOneWidget);
+      expect(find.text('Gönder (2)'), findsOneWidget);
       _ok(tester);
       await unmount(tester);
       await _openHost(tester, () => rtl(MediaPreviewPage(picks: [fakePhotoPick('a'), fakeVideoPick('v')])), [],
@@ -372,7 +373,7 @@ void main() {
       await settle(tester, const Duration(milliseconds: 600));
     }
 
-    testWidgets('yazma cubugu (Q1): + , ortada metin kutusu, ayri gonder; kamera ikonu YOK; bos iken devre disi', (tester) async {
+    testWidgets('yazma cubugu (Stitch v3): + , ortada metin kutusu, gonder yalniz metin varken; kamera ikonu YOK', (tester) async {
       await openChat(tester, _chatBackend(), FakeMediaLibrary.photos(3));
       expect(find.byKey(const ValueKey('viewOnceToggle')), findsNothing);
       expect(find.byTooltip('Görsel gönder'), findsNothing);
@@ -380,22 +381,26 @@ void main() {
       expect(find.byKey(const ValueKey('cameraShortcut')), findsNothing); // Q1: sohbet barinda kamera ikonu yok
       expect(find.byTooltip('Kamera'), findsNothing);
       final field = tester.getRect(find.byKey(const ValueKey('composerField')));
-      final send = tester.getRect(find.byKey(const ValueKey('sendButton')));
       expect(field.left, greaterThanOrEqualTo(plus.right - 1)); // artı, sonra metin kutusu
-      expect(send.left, greaterThanOrEqualTo(field.right)); // gönder düğmesi kutunun dışında, sağda
-      expect(find.ancestor(of: find.byKey(const ValueKey('sendButton')), matching: find.byType(TextField)), findsNothing);
-      expect(find.descendant(of: find.byType(TextField), matching: find.byKey(const ValueKey('sendButton'))), findsNothing);
-      expect(tester.widget<GestureDetector>(find.byKey(const ValueKey('sendButton'))).onTap, isNull);
+      expect(find.byKey(const ValueKey('sendButton')), findsNothing, reason: 'metin yokken gönder görünmez');
       await tester.enterText(find.byKey(const ValueKey('composerField')), 'Selam');
       await tester.pump();
-      expect(tester.widget<GestureDetector>(find.byKey(const ValueKey('sendButton'))).onTap, isNotNull);
+      await tester.pump(const Duration(milliseconds: 300));
+      final send = tester.getRect(find.byKey(const ValueKey('sendButton')));
+      expect(send.left, greaterThanOrEqualTo(tester.getRect(find.byKey(const ValueKey('composerField'))).right)); // gönder kutunun dışında, sağda
+      expect(find.ancestor(of: find.byKey(const ValueKey('sendButton')), matching: find.byType(TextField)), findsNothing);
+      expect(find.descendant(of: find.byType(TextField), matching: find.byKey(const ValueKey('sendButton'))), findsNothing);
       _ok(tester);
     });
 
-    testWidgets('+ dogrudan galeriyi acar (eski 4 secenekli menu yok)', (tester) async {
+    testWidgets('+ menusu: Galeri ve Kamera karolari; Galeri secici acar (eski 4 secenekli menu yok)', (tester) async {
       await openChat(tester, _chatBackend(), FakeMediaLibrary.photos(3));
       await _tap(tester, find.byKey(const ValueKey('attachButton')));
-      await settle(tester, const Duration(milliseconds: 400));
+      await settle(tester, const Duration(milliseconds: 600));
+      expect(find.byKey(const ValueKey('attachGallery')), findsOneWidget);
+      expect(find.byKey(const ValueKey('attachCamera')), findsOneWidget);
+      await _tap(tester, find.byKey(const ValueKey('attachGallery')));
+      await settle(tester, const Duration(milliseconds: 600));
       expect(find.byType(MediaPickerPage), findsOneWidget);
       for (final l in ['Galeriden seç', 'Fotoğraf çek', 'Galeriden video seç', 'Video çek']) {
         expect(find.text(l), findsNothing);
@@ -403,17 +408,17 @@ void main() {
       _ok(tester);
     });
 
-    testWidgets('+ acilinca KAMERA karosu var; dokununca kamera acilir, cekilen foto onizlemeye gider', (tester) async {
+    testWidgets('+ menusunde Kamera karosu var; dokununca kamera acilir, cekilen foto onizlemeye gider', (tester) async {
       var opened = 0;
       await openChat(tester, _chatBackend(), FakeMediaLibrary.photos(1), camera: (c) async {
         opened++;
         return fakePhotoPick('c1');
       });
       await _tap(tester, find.byKey(const ValueKey('attachButton')));
-      await settle(tester, const Duration(milliseconds: 400));
-      expect(find.byKey(const ValueKey('cameraTile')), findsOneWidget);
-      await _tap(tester, find.byKey(const ValueKey('cameraTile')));
-      await settle(tester, const Duration(milliseconds: 400));
+      await settle(tester, const Duration(milliseconds: 600));
+      expect(find.byKey(const ValueKey('attachCamera')), findsOneWidget);
+      await _tap(tester, find.byKey(const ValueKey('attachCamera')));
+      await settle(tester, const Duration(milliseconds: 600));
       expect(opened, 1);
       expect(find.byType(MediaPreviewPage), findsOneWidget);
       _ok(tester);
@@ -423,11 +428,13 @@ void main() {
       final be = _chatBackend();
       await openChat(tester, be, FakeMediaLibrary.photos(4));
       await _tap(tester, find.byKey(const ValueKey('attachButton')));
-      await settle(tester, const Duration(milliseconds: 400));
+      await settle(tester, const Duration(milliseconds: 600));
+      await _tap(tester, find.byKey(const ValueKey('attachGallery')));
+      await settle(tester, const Duration(milliseconds: 600));
       for (final id in ['p1', 'p2', 'p3']) {
         await _tap(tester, _tile(id));
       }
-      await _tap(tester, find.byKey(const ValueKey('pickerPreview')));
+      await _tap(tester, find.byKey(const ValueKey('pickerNext')));
       await settle(tester, const Duration(milliseconds: 400));
       await _tap(tester, find.byKey(const ValueKey('previewThumb_1')));
       await settle(tester, const Duration(milliseconds: 400));
@@ -456,6 +463,7 @@ void main() {
           await openChat(tester, _chatBackend(), FakeMediaLibrary.photos(1), size: size, b: b);
           await tester.enterText(find.byKey(const ValueKey('composerField')), 'Çok satırlı\nmetin\nüç\ndört\nbeş\naltı');
           await tester.pump();
+          await tester.pump(const Duration(milliseconds: 300));
           // Çok satıra büyüyünce + ve gönder düğmeleri altta kalır.
           final field = tester.getRect(find.byKey(const ValueKey('composerField')));
           final plus = tester.getRect(find.byKey(const ValueKey('attachButton')));

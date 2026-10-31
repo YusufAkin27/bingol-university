@@ -15,7 +15,7 @@ class ChatlistNewButton extends StatelessWidget {
   final String tooltip;
   final VoidCallback onTap;
 
-  /// true: yumuşak zemin (ekranda başka birincil eylem varken, ör. boş durumdaki "Yeni sohbet" düğmesi).
+  /// Eski yumuşak-zemin seçeneği; Stitch v3'te düğme her durumda düz ikondur (parametre uyumluluk için durur).
   final bool quiet;
 
   @override
@@ -34,13 +34,8 @@ class ChatlistNewButton extends StatelessWidget {
             width: 48,
             height: 48,
             child: Center(
-              child: AnimatedContainer(
-                duration: BuMotion.of(context, BuMotion.short),
-                width: BuSize.iconBtn,
-                height: BuSize.iconBtn,
-                decoration: BoxDecoration(color: quiet ? t.soft : t.pr, shape: BoxShape.circle),
-                child: Icon(LucideIcons.plus, size: 20, color: quiet ? t.onSoft : t.onPr),
-              ),
+              // Stitch v3 liste: daire/çerçeve yok, 24 dp çizgi ikon (tek birincil eylem sayfadaki boş durum düğmesidir).
+              child: Icon(LucideIcons.plus, size: 24, color: t.ink),
             ),
           ),
         ),
@@ -71,12 +66,7 @@ class ChatlistRoundButton extends StatelessWidget {
             width: 48,
             height: 48,
             child: Center(
-              child: Container(
-                width: BuSize.iconBtn,
-                height: BuSize.iconBtn,
-                decoration: BoxDecoration(color: t.sf2, shape: BoxShape.circle),
-                child: Icon(icon, size: 20, color: t.ink),
-              ),
+              child: Icon(icon, size: 24, color: t.ink),
             ),
           ),
         ),
@@ -98,12 +88,11 @@ class ChatlistSearch extends StatelessWidget {
     final t = context.bu;
     final tx = Theme.of(context).textTheme;
     return Container(
-      height: BuSize.search,
+      height: BuSize.field,
       padding: const EdgeInsetsDirectional.only(start: 16, end: 4),
       decoration: BoxDecoration(
-        color: t.sf,
         borderRadius: BuRadius.bMd,
-        border: Border.all(color: t.bd),
+        border: Border.all(color: t.bdStrong),
       ),
       child: Row(
         children: [

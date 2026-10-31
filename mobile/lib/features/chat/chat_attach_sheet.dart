@@ -141,7 +141,7 @@ class _ChatAttachSheetState extends State<ChatAttachSheet> {
     final tx = Theme.of(context).textTheme;
     final recent = _recent;
     if (_loading) {
-      return const SizedBox(height: 84, child: ExcludeSemantics(child: Align(alignment: Alignment.center, child: SizedBox.shrink())));
+      return const SizedBox(height: 72, child: ExcludeSemantics(child: SizedBox.shrink()));
     }
     if (recent == null) {
       // İzin yok / henüz verilmedi: tek satır.
@@ -166,46 +166,53 @@ class _ChatAttachSheetState extends State<ChatAttachSheet> {
                 Icon(LucideIcons.image, size: 22, color: t.mut),
                 const SizedBox(width: 12),
                 Expanded(child: Text(l.p67AttachAllowPhotos, style: tx.bodyLarge!.copyWith(color: t.ink))),
-                Icon(buDirIcon(context, LucideIcons.chevronRight), size: 18, color: t.mut),
+                Text(l.p67AttachGrant, style: tx.bodyMedium!.copyWith(color: t.pr, fontWeight: FontWeight.w600)),
               ]),
             ),
           ),
         ),
       );
     }
-    return SizedBox(
-      height: 84,
-      child: ListView.separated(
-        key: const ValueKey('attachStrip'),
-        scrollDirection: Axis.horizontal,
+    return Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+      Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20),
-        itemCount: recent.length + 1,
-        separatorBuilder: (c, i) => const SizedBox(width: 8),
-        itemBuilder: (c, i) {
-          if (i == recent.length) {
-            return Semantics(
-              button: true,
-              label: l.chatMiscAll,
-              excludeSemantics: true,
-              child: BuPressable(
-                key: const ValueKey('attachAll'),
-                onTap: () => Navigator.pop(context, const ChatAttachGallery()),
-                haptic: BuHaptic.selection,
-                child: Container(
-                  width: 84,
-                  height: 84,
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(color: t.sf2, borderRadius: BuRadius.bSm),
-                  child: Text(l.chatMiscAll, maxLines: 1, style: tx.labelLarge!.copyWith(color: t.ink, fontWeight: FontWeight.w600)),
-                ),
+        child: Row(children: [
+          Expanded(child: Text(l.p67AttachRecent, style: tx.bodyMedium!.copyWith(color: t.mut, fontWeight: FontWeight.w500))),
+          Semantics(
+            button: true,
+            label: l.chatMiscAll,
+            excludeSemantics: true,
+            child: BuPressable(
+              key: const ValueKey('attachAll'),
+              onTap: () => Navigator.pop(context, const ChatAttachGallery()),
+              haptic: BuHaptic.selection,
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(minHeight: 48, minWidth: 48),
+                child: Center(child: Text(l.chatMiscAll, maxLines: 1, style: tx.bodyMedium!.copyWith(color: t.pr, fontWeight: FontWeight.w600))),
               ),
-            );
-          }
-          final g = recent[i];
-          return _Thumb(key: ValueKey('attachRecent_${g.id}'), item: g, library: widget.library, onTap: () => Navigator.pop(context, ChatAttachRecent(_pickOf(g))));
-        },
+            ),
+          ),
+        ]),
       ),
-    );
+      SizedBox(
+        height: 72,
+        child: ListView.separated(
+          key: const ValueKey('attachStrip'),
+          scrollDirection: Axis.horizontal,
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          itemCount: recent.length,
+          separatorBuilder: (c, i) => const SizedBox(width: 8),
+          itemBuilder: (c, i) {
+            final g = recent[i];
+            return _Thumb(key: ValueKey('attachRecent_${g.id}'), item: g, library: widget.library, onTap: () => Navigator.pop(context, ChatAttachRecent(_pickOf(g))));
+          },
+        ),
+      ),
+      Padding(
+        padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+        child: Text(l.p67AttachOnceHint, style: tx.bodySmall!.copyWith(color: t.mut)),
+      ),
+    ]);
   }
 }
 
@@ -228,10 +235,10 @@ class _Tile extends StatelessWidget {
         onTap: onTap,
         haptic: BuHaptic.selection,
         child: Container(
-          height: 88,
-          decoration: BoxDecoration(color: t.sf2, borderRadius: BuRadius.bLg),
+          height: 100,
+          decoration: BoxDecoration(color: t.bg, borderRadius: BuRadius.bMd, border: Border.all(color: t.bd)),
           child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-            Icon(icon, size: 26, color: t.ink),
+            Icon(icon, size: 28, color: t.ink),
             const SizedBox(height: 8),
             Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, style: Theme.of(context).textTheme.labelLarge!.copyWith(color: t.ink, fontWeight: FontWeight.w600)),
           ]),
@@ -268,8 +275,8 @@ class _ThumbState extends State<_Thumb> {
         child: ClipRRect(
           borderRadius: BuRadius.bSm,
           child: SizedBox(
-            width: 84,
-            height: 84,
+            width: 72,
+            height: 72,
             child: Stack(fit: StackFit.expand, children: [
               ColoredBox(color: t.sf2),
               FutureBuilder<Uint8List?>(

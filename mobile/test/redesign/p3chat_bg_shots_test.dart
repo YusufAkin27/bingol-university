@@ -15,6 +15,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../support/fake_app.dart';
+import '../support/fake_media.dart';
 
 /// P3-CHAT sohbet arka planı ekran görüntüleri (konuşma + ayarlar). Varsayılan `flutter test` ile ÇALIŞMAZ.
 /// Üretim: `P3BG_OUT=C:/bu_qa/shots/tasarim/chat_bg/sonra flutter test test/redesign/p3chat_bg_shots_test.dart`
@@ -73,6 +74,8 @@ Widget _conversation() {
   return ChatDetailPage(
     session: makeSession(be),
     connectRealtime: false,
+    mediaLibrary: FakeMediaLibrary.photos(8),
+    ensureAccess: (c, p, {rationale}) async => true,
     conversation: const {
       'id': 1,
       'type': 'DIRECT',
@@ -89,14 +92,23 @@ void main() {
   final plain = Platform.environment['P3BG_PLAIN'] == '1';
   setUpAll(loadTestFonts);
 
-  final boards = <(String, Widget Function(), double)>[
-    ('konusma', _conversation, 844),
-    ('ayarlar', () => const ChatBackgroundSettingsPage(), 844),
+  final boards = <(String, Widget Function(), double, Future<void> Function(WidgetTester)?)>[
+    ('konusma', _conversation, 844, null),
+    ('ayarlar', () => const ChatBackgroundSettingsPage(), 844, null),
+    ('giris_yazarken', _conversation, 844, (t) async {
+      await t.enterText(find.byKey(const ValueKey('composerField')), 'Yarın sınavdan önce notları birlikte gözden geçirelim mi? Kütüphane 3. katta saat 10.00'da buluşabiliriz.');
+      await t.pump(const Duration(milliseconds: 400));
+    }),
+    ('arti_menusu', _conversation, 844, (t) async {
+      await t.tap(find.byKey(const ValueKey('attachButton')));
+      await t.pump(const Duration(milliseconds: 800));
+    }),
   ];
   for (final dark in [false, true]) {
     for (final scale in [1.0, 1.3]) {
       for (final b in boards) {
         if (scale != 1.0 && b.$1 != 'konusma') continue;
+        if (plain && b.$1 == 'ayarlar') continue;
         final name = '${b.$1}_${dark ? 'koyu' : 'acik'}${scale == 1.0 ? '' : '_x1.3'}_$lang';
         testWidgets('p3bg $name', skip: skip != null, (tester) async {
           mockSecureStorage();
@@ -113,6 +125,7 @@ void main() {
           await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 100)));
           await settle(tester, const Duration(seconds: 1));
           await tester.pump(const Duration(milliseconds: 400));
+          if (b.$4 != null) await b.$4!(tester);
           final err = tester.takeException();
           if (err != null) fail('Istisna: $err');
           await tester.runAsync(() async {

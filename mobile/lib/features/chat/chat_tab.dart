@@ -510,10 +510,7 @@ class _ChatTabState extends State<ChatTab> {
                           ),
                           ChatlistRoundButton(
                               icon: LucideIcons.archive, tooltip: context.l10n.chatMiscArchive, onTap: () => _setArchiveView(true)),
-                          const SizedBox(width: 4),
-                          // Boş durumda birincil eylem sayfadaki tek düğmedir; başlıktaki "+" sakinleşir.
-                          ChatlistNewButton(
-                              tooltip: context.l10n.chatMiscNewChat, onTap: _openNew, quiet: !_loading && _error == null && _visible.isEmpty),
+                          ChatlistNewButton(tooltip: context.l10n.chatMiscNewChat, onTap: _openNew),
                         ],
                       ),
                     ),
@@ -604,7 +601,7 @@ class _ChatTabState extends State<ChatTab> {
   Widget _list(List<Map<String, dynamic>> list) {
     final t = context.bu;
     return SliverPadding(
-      padding: const EdgeInsets.fromLTRB(20, 8, 20, kNavInset),
+      padding: const EdgeInsets.fromLTRB(0, 8, 0, kNavInset),
       sliver: SliverList.builder(
         itemCount: list.length + (_loadingMore ? 1 : 0),
         itemBuilder: (_, k) {
@@ -647,6 +644,7 @@ class _ChatTabState extends State<ChatTab> {
                 title: _title(context, c),
                 conversation: c,
                 myId: widget.session.userId,
+                last: k == list.length - 1,
                 onTap: () => _openChat(c),
                 onLongPress: () {
                   HapticFeedback.selectionClick();
@@ -781,6 +779,7 @@ class _ConversationRow extends StatelessWidget {
     required this.onTap,
     required this.onLongPress,
     this.myId,
+    this.last = true,
   });
 
   final String title;
@@ -788,6 +787,9 @@ class _ConversationRow extends StatelessWidget {
   final VoidCallback onTap;
   final VoidCallback onLongPress;
   final int? myId;
+
+  /// Son satırda ayırıcı çizgi çizilmez.
+  final bool last;
 
   @override
   Widget build(BuildContext context) {
@@ -854,18 +856,16 @@ class _ConversationRow extends StatelessWidget {
       scale: .99,
       child: Semantics(
       container: true,
-      // Kartsız satır: sayfa zemininde, ayırıcı çizgi yok (boşlukla ayrılır); basılınca yumuşak dalga.
+      // Stitch v3: kartsız/çerçevesiz satır; okunmamış satır tam genişlik hafif yüzey, satırlar arası ince çizgi.
       child: Material(
-        color: Colors.transparent,
-        shape: const RoundedRectangleBorder(borderRadius: BuRadius.bMd),
-        clipBehavior: Clip.antiAlias,
+        color: hot ? t.sf : Colors.transparent,
         child: InkWell(
           onTap: onTap,
           onLongPress: onLongPress,
           child: Stack(
             children: [
               Padding(
-                padding: const EdgeInsetsDirectional.fromSTEB(0, 12, 0, 12),
+                padding: const EdgeInsetsDirectional.fromSTEB(20, 12, 20, 12),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -897,7 +897,7 @@ class _ConversationRow extends StatelessWidget {
                                         maxLines: narrow ? 2 : 1,
                                         overflow: TextOverflow.ellipsis,
                                         semanticsLabel: narrow && tag != null ? '$title, $tag' : null,
-                                        style: tx.titleMedium!.copyWith(color: t.ink, fontWeight: FontWeight.w600)),
+                                        style: tx.titleMedium!.copyWith(color: t.ink, fontWeight: hot ? FontWeight.w700 : FontWeight.w600)),
                                   ),
                                   if (showTag) ...[
                                     const SizedBox(width: 6),
@@ -916,8 +916,8 @@ class _ConversationRow extends StatelessWidget {
                               ],
                               Text(_stamp(context, when),
                                   style: tx.labelMedium!.copyWith(
-                                      color: t.mut, // zaman metni hep nötr; vurgu yalnız okunmamış rozetinde
-                                      fontWeight: FontWeight.w400,
+                                      color: hot ? t.pr : t.mut, // okunmamışta saat marka rengi (Stitch v3)
+                                      fontWeight: hot ? FontWeight.w600 : FontWeight.w400,
                                       fontFeatures: const [FontFeature.tabularFigures()])),
                             ],
                           ),
@@ -948,7 +948,7 @@ class _ConversationRow extends StatelessWidget {
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
                                     style: tx.bodyMedium!.copyWith(
-                                        color: bodyColor, // okunmamış: yalnız renk koyulaşır (kalın yazı yok)
+                                        color: bodyColor, // okunmamış: önizleme koyulaşır
                                         fontWeight: FontWeight.w400,
                                         fontStyle: removedMsg ? FontStyle.italic : FontStyle.normal),
                                   ),
@@ -982,6 +982,13 @@ class _ConversationRow extends StatelessWidget {
                   ],
                 ),
               ),
+              if (!last)
+                PositionedDirectional(
+                  start: 20 + 52 + 14,
+                  end: 0,
+                  bottom: 0,
+                  child: Container(height: 1, color: t.bd),
+                ),
             ],
           ),
         ),

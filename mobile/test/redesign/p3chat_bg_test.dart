@@ -51,7 +51,7 @@ void main() {
   group('çizim', () {
     for (final dark in [false, true]) {
       testWidgets('desen ${dark ? 'koyu' : 'açık'} temada çizilir ve doku TEK sefer üretilir', (tester) async {
-        await pumpWall(tester, dark: dark, style: ChatBgStyle.pattern);
+        await pumpWall(tester, dark: dark, style: ChatBgStyle.strong);
         await tester.pump(const Duration(milliseconds: 400));
         expect(wall(), findsOneWidget);
         expect(ChatWallpaper.debugTileBuilds, 1);
@@ -59,7 +59,7 @@ void main() {
         for (var i = 0; i < 5; i++) {
           await tester.pump(const Duration(milliseconds: 100));
         }
-        await pumpWall(tester, dark: dark, style: ChatBgStyle.pattern);
+        await pumpWall(tester, dark: dark, style: ChatBgStyle.strong);
         await tester.pump(const Duration(milliseconds: 400));
         expect(ChatWallpaper.debugTileBuilds, 1, reason: 'aynı tema/stil/yoğunluk önbellekten gelir');
         // Ayrı RepaintBoundary + blur yok.
@@ -70,9 +70,9 @@ void main() {
     }
 
     testWidgets('tema değişince yeniden üretilir (koyu -> açık)', (tester) async {
-      await pumpWall(tester, style: ChatBgStyle.pattern);
+      await pumpWall(tester, style: ChatBgStyle.strong);
       await tester.pump(const Duration(milliseconds: 400));
-      await pumpWall(tester, dark: true, style: ChatBgStyle.pattern);
+      await pumpWall(tester, dark: true, style: ChatBgStyle.strong);
       await tester.pump(const Duration(milliseconds: 400));
       expect(ChatWallpaper.debugTileBuilds, 2);
     });
@@ -97,18 +97,20 @@ void main() {
 
   group('hareket', () {
     testWidgets('yeni doku 150 ms solarak gelir', (tester) async {
-      await pumpWall(tester, style: ChatBgStyle.pattern);
+      await pumpWall(tester, style: ChatBgStyle.strong);
       await tester.pump();
-      var o = tester.widget<AnimatedOpacity>(wall());
-      expect(o.opacity, 0.0);
-      await tester.pump(const Duration(milliseconds: 20));
-      o = tester.widget<AnimatedOpacity>(wall());
-      expect(o.opacity, 1.0);
+      // Hedef opaklık 1; animasyon 0 -> 1 arasında sürüyor (ara kare).
+      final o = tester.widget<AnimatedOpacity>(wall());
       expect(o.duration, const Duration(milliseconds: 150));
+      await tester.pump(const Duration(milliseconds: 60));
+      final mid = tester.widget<FadeTransition>(find.descendant(of: wall(), matching: find.byType(FadeTransition))).opacity.value;
+      expect(mid, inExclusiveRange(0.0, 1.0));
+      await tester.pump(const Duration(milliseconds: 200));
+      expect(tester.widget<FadeTransition>(find.descendant(of: wall(), matching: find.byType(FadeTransition))).opacity.value, 1.0);
     });
 
     testWidgets('"animasyonları azalt": anında, süre sıfır', (tester) async {
-      await pumpWall(tester, reduced: true, style: ChatBgStyle.pattern);
+      await pumpWall(tester, reduced: true, style: ChatBgStyle.strong);
       await tester.pump();
       final o = tester.widget<AnimatedOpacity>(wall());
       expect(o.opacity, 1.0);
@@ -116,9 +118,9 @@ void main() {
     });
 
     testWidgets('önbellekteki doku ikinci açılışta solmadan, anında görünür', (tester) async {
-      await pumpWall(tester, style: ChatBgStyle.pattern);
+      await pumpWall(tester, style: ChatBgStyle.strong);
       await tester.pump(const Duration(milliseconds: 300));
-      await pumpWall(tester, style: ChatBgStyle.pattern, dark: false);
+      await pumpWall(tester, style: ChatBgStyle.strong, dark: false);
       await tester.pump();
       expect(tester.widget<AnimatedOpacity>(wall()).opacity, 1.0);
     });
@@ -127,16 +129,18 @@ void main() {
   group('varlık (asset) duvar kağıdı', () {
     testWidgets('varlık stili: Image.asset katmanı kurulur; dosya yoksa düz zeminle çökmeden devam eder', (tester) async {
       for (final dark in [false, true]) {
-        await pumpWall(tester, dark: dark, style: ChatBgStyle.wpA);
+        await pumpWall(tester, dark: dark, style: ChatBgStyle.pattern);
         await tester.pump(const Duration(milliseconds: 300));
         expect(find.byKey(const ValueKey('chatWallpaperAsset')), findsOneWidget);
         expect(ChatWallpaper.debugTileBuilds, 0, reason: 'yordamsal doku üretilmez');
         expect(tester.takeException(), isNull);
       }
+      expect(chatWallpaperAssetPath(ChatBgStyle.pattern, dark: true), 'assets/chat_wallpapers/wp_a_dark.png');
       expect(chatWallpaperAssetPath(ChatBgStyle.wpB, dark: true), 'assets/chat_wallpapers/wp_b_dark.png');
       expect(chatWallpaperAssetPath(ChatBgStyle.wpC, dark: false), 'assets/chat_wallpapers/wp_c_light.png');
-      expect(ChatBgStyle.pattern.isAsset, isFalse);
-      expect(ChatBgStyle.wpA.isAsset, isTrue);
+      expect(ChatBgStyle.soft.isAsset, isFalse);
+      expect(ChatBgStyle.strong.isAsset, isFalse);
+      expect(ChatBgStyle.pattern.isAsset, isTrue);
     });
   });
 

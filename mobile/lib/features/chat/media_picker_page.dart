@@ -233,6 +233,12 @@ class _MediaPickerPageState extends State<MediaPickerPage> {
         child: Column(children: [
           _header(context),
           Expanded(child: _body(context)),
+          if (_access != LibraryAccess.denied)
+            Padding(
+              padding: EdgeInsets.fromLTRB(20, 8, 20, 8 + MediaQuery.paddingOf(context).bottom),
+              child: Text(context.l10n.sohbetmedyaLimitNote(widget.maxItems.toString()),
+                  textAlign: TextAlign.center, style: Theme.of(context).textTheme.bodySmall!.copyWith(color: t.mut)),
+            ),
         ]),
       ),
     );
@@ -282,13 +288,14 @@ class _MediaPickerPageState extends State<MediaPickerPage> {
                 onTap: has ? _preview : null,
                 haptic: BuHaptic.light,
                 child: AnimatedOpacity(
-                  opacity: has ? 1 : .45,
+                  opacity: 1,
                   duration: BuMotion.of(context, BuMotion.short),
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    decoration: BoxDecoration(color: t.pr, borderRadius: BuRadius.bPill),
+                    constraints: const BoxConstraints(minHeight: 48),
+                    alignment: Alignment.center,
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
                     child: Text(has ? l.p67PickerSend(_picked.length.toString()) : l.chatDetailSend,
-                        maxLines: 1, style: tx.labelLarge!.copyWith(color: t.onPr, fontWeight: FontWeight.w600, fontFeatures: const [FontFeature.tabularFigures()])),
+                        maxLines: 1, style: tx.titleSmall!.copyWith(color: has ? t.pr : t.mut, fontWeight: FontWeight.w600, fontFeatures: const [FontFeature.tabularFigures()])),
                   ),
                 ),
               ),
@@ -341,7 +348,7 @@ class _MediaPickerPageState extends State<MediaPickerPage> {
         SliverPadding(
           padding: const EdgeInsets.fromLTRB(4, 4, 4, 24),
           sliver: SliverGrid.builder(
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 3, mainAxisSpacing: 4, crossAxisSpacing: 4),
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 3, mainAxisSpacing: 2, crossAxisSpacing: 2),
             itemCount: _items.length + (widget.showCameraTile ? 1 : 0),
             itemBuilder: (c, i) {
               if (widget.showCameraTile && i == 0) return _cameraTile(t);
@@ -494,9 +501,9 @@ class _MediaPickerPageState extends State<MediaPickerPage> {
         key: const ValueKey('galleryLoading'),
         physics: const NeverScrollableScrollPhysics(),
         padding: const EdgeInsets.fromLTRB(4, 4, 4, 0),
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 3, mainAxisSpacing: 4, crossAxisSpacing: 4),
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 3, mainAxisSpacing: 2, crossAxisSpacing: 2),
         itemCount: 18,
-        itemBuilder: (c, i) => const BuSkeleton(radius: 12),
+        itemBuilder: (c, i) => const BuSkeleton(radius: 10),
       ),
     );
   }
@@ -511,7 +518,7 @@ class _MediaPickerPageState extends State<MediaPickerPage> {
         key: const ValueKey('cameraTile'),
         onTap: _camera,
         child: Container(
-          decoration: BoxDecoration(color: t.sf2, borderRadius: BuRadius.bSm),
+          decoration: BoxDecoration(color: t.sf2, borderRadius: BorderRadius.circular(10)),
           alignment: Alignment.center,
           padding: const EdgeInsets.all(4),
           child: Column(mainAxisSize: MainAxisSize.min, children: [
@@ -608,7 +615,7 @@ class _GalleryTileState extends State<_GalleryTile> {
           duration: BuMotion.of(context, BuMotion.short),
           curve: Curves.easeOutCubic,
           child: ClipRRect(
-            borderRadius: BuRadius.bSm,
+            borderRadius: BorderRadius.circular(10),
             child: Stack(fit: StackFit.expand, children: [
               ColoredBox(color: t.sf2),
               FutureBuilder<Uint8List?>(
@@ -622,15 +629,16 @@ class _GalleryTileState extends State<_GalleryTile> {
                         frameBuilder: (c, child, frame, sync) =>
                             sync ? child : AnimatedOpacity(opacity: frame == null ? 0 : 1, duration: BuMotion.of(c, BuMotion.medium), child: child)),
               ),
+              if (order != null) Positioned.fill(child: ColoredBox(color: t.scrim.withValues(alpha: .15))),
               if (order != null)
-                Positioned.fill(child: DecoratedBox(decoration: BoxDecoration(border: Border.all(color: t.pr, width: 3), borderRadius: BuRadius.bSm))),
+                Positioned.fill(child: DecoratedBox(decoration: BoxDecoration(border: Border.all(color: t.pr, width: 3), borderRadius: BorderRadius.circular(10)))),
               PositionedDirectional(
-                top: 8,
-                end: 8,
+                top: 6,
+                end: 6,
                 child: AnimatedContainer(
                   duration: BuMotion.of(context, BuMotion.short),
-                  width: 24,
-                  height: 24,
+                  width: 22,
+                  height: 22,
                   alignment: Alignment.center,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,

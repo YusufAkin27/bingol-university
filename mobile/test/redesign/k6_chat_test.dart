@@ -64,9 +64,10 @@ void main() {
     expect(find.text('Çevrimiçi'), findsOneWidget);
     expect(find.byKey(const ValueKey('onlineDot')), findsOneWidget);
     expect(find.byKey(const ValueKey('roomPageChip')), findsNothing);
-    for (final k in ['attachButton', 'composerField', 'sendButton']) {
+    for (final k in ['attachButton', 'composerField']) {
       expect(find.byKey(ValueKey(k)), findsOneWidget, reason: k);
     }
+    expect(find.byKey(const ValueKey('sendButton')), findsNothing, reason: 'metin yokken gönder görünmez (Stitch v3)');
     expect(find.byKey(const ValueKey('cameraShortcut')), findsNothing); // Q1: sohbet barinda kamera ikonu yok
     expect(find.byTooltip('Ekle'), findsOneWidget);
     expect(find.byTooltip('Kamera'), findsNothing);

@@ -8,6 +8,7 @@ import 'package:bu_kampus/features/chat/forward_sheet.dart';
 import 'package:bu_kampus/features/chat/chat_media.dart';
 import 'package:bu_kampus/features/chat/chat_media_viewer.dart';
 import 'package:bu_kampus/features/chat/chat_tab.dart';
+import 'package:bu_kampus/features/chat/chatlist_widgets.dart';
 import 'package:bu_kampus/features/chat/view_once_viewer.dart';
 import 'package:bu_kampus/widgets/bu_widgets.dart';
 import 'package:flutter/material.dart';
@@ -301,10 +302,12 @@ void main() {
       be.delay = const Duration(milliseconds: 1500);
       expect(find.byKey(const ValueKey('viewOnceToggle')), findsNothing); // eski anahtar kalktı
       await tester.tap(find.byKey(const ValueKey('attachButton')));
-      await settle(tester, const Duration(milliseconds: 400));
+      await settle(tester, const Duration(milliseconds: 600));
+      await tester.tap(find.byKey(const ValueKey('attachGallery')));
+      await settle(tester, const Duration(milliseconds: 600));
       await tester.tap(find.byKey(const ValueKey('galleryTile_p1')));
       await tester.pump();
-      await tester.tap(find.byKey(const ValueKey('pickerPreview')));
+      await tester.tap(find.byKey(const ValueKey('pickerNext')));
       await settle(tester, const Duration(milliseconds: 400));
       await tester.tap(find.byKey(const ValueKey('onceButton_0')));
       await tester.pump();
@@ -326,10 +329,12 @@ void main() {
         ..on('/conversations/1/messages', _msg(9, 1, ''));
       await _pump(tester, _detail(makeSession(be), upload: be));
       await tester.tap(find.byKey(const ValueKey('attachButton')));
-      await settle(tester, const Duration(milliseconds: 400));
+      await settle(tester, const Duration(milliseconds: 600));
+      await tester.tap(find.byKey(const ValueKey('attachGallery')));
+      await settle(tester, const Duration(milliseconds: 600));
       await tester.tap(find.byKey(const ValueKey('galleryTile_p1')));
       await tester.pump();
-      await tester.tap(find.byKey(const ValueKey('pickerPreview')));
+      await tester.tap(find.byKey(const ValueKey('pickerNext')));
       await settle(tester, const Duration(milliseconds: 400));
       await tester.tap(find.byKey(const ValueKey('previewSend')));
       await settle(tester, const Duration(seconds: 2));
@@ -498,8 +503,8 @@ void main() {
       final s = makeSession(_backend([_msg(1, 11, 'Merhaba')]));
       s.api.tokens = Tokens('acc', 'ref');
       Map<String, String>? headersFor(String url) {
-        final f = find.byWidgetPredicate((w) => w is BuAvatar && w.url == url);
-        return f.evaluate().isEmpty ? null : tester.widget<BuAvatar>(f.first).headers;
+        final f = find.byWidgetPredicate((w) => w is ChatlistAvatar && w.url == url);
+        return f.evaluate().isEmpty ? null : tester.widget<ChatlistAvatar>(f.first).headers;
       }
 
       await _pump(tester, _detail(s, conv: {'id': 1, 'type': 'GROUP', 'title': 'Grup', 'avatarUrl': '/api/conversations/1/avatar'}));

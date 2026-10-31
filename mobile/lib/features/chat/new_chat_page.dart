@@ -229,7 +229,7 @@ class _NewChatPageState extends State<NewChatPage> {
             child: ListView(
               controller: _scroll,
               physics: const AlwaysScrollableScrollPhysics(),
-              padding: const EdgeInsets.fromLTRB(20, 4, 20, 16),
+              padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
               children: [
                 if (grouping) ...[
                   if (n > 0) ...[
@@ -247,7 +247,7 @@ class _NewChatPageState extends State<NewChatPage> {
                 if (showActions) ...[
                   NcActionCard(
                     cardKey: const ValueKey('new-group'),
-                    tile: NcTile(icon: LucideIcons.userPlus, bg: t.sf2, fg: t.ink),
+                    tile: NcTile(icon: LucideIcons.userPlus, bg: t.sf2, fg: t.pr),
                     title: l.sohbetyNewGroup,
                     subtitle: l.sohbetyNewGroupSub,
                     onTap: () => setState(() {
@@ -264,7 +264,7 @@ class _NewChatPageState extends State<NewChatPage> {
           ),
           if (grouping)
             Padding(
-              padding: EdgeInsets.fromLTRB(20, 8, 20, 12 + MediaQuery.paddingOf(context).bottom),
+              padding: EdgeInsets.fromLTRB(16, 8, 16, 12 + MediaQuery.paddingOf(context).bottom),
               child: BuButton(label: l.chatMiscCreateGroup, busy: _busy, onPressed: _create),
             ),
         ],
