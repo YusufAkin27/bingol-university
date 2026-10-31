@@ -31,6 +31,12 @@
   color: var(--text);
   outline: none;
 }
+.compact {
+  font-size: clamp(1.65rem, 1.2rem + 2vw, 2.5rem);
+  line-height: 1.15;
+  max-width: 28ch;
+  overflow-wrap: anywhere;
+}
 .lead {
   font-size: var(--text-lg);
   max-width: 58ch;

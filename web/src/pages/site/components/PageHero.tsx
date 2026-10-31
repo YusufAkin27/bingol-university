@@ -24,13 +24,15 @@ interface Props {
   eyebrow?: ReactNode;
   /** Ekmek kırıntısı öğeleri ("Ana sayfa" otomatik eklenir). */
   crumbs?: Crumb[];
+  /** `compact`: uzun, içerikten gelen başlıklar (haber başlığı) için daha küçük ve geniş başlık. */
+  size?: 'default' | 'compact';
 }
 
 /**
  * Tüm iç sayfaların minimal başlık bölümü: bol boşluk, büyük başlık, kısa cümle; zemin sayfa rengidir,
  * üstte çok hafif bir kırmızı ışıma. (Eski kırmızı dolgulu hero ve sıradağ silueti kaldırıldı.)
  */
-export function PageHero({ title, lead, children, eyebrow, crumbs }: Props) {
+export function PageHero({ title, lead, children, eyebrow, crumbs, size = 'default' }: Props) {
   const h1 = useHeadingFocus<HTMLHeadingElement>();
   return (
     <section className={styles.hero}>
@@ -38,7 +40,7 @@ export function PageHero({ title, lead, children, eyebrow, crumbs }: Props) {
         <MaintenanceNotice />
         {crumbs && <Breadcrumbs items={crumbs} />}
         {eyebrow && <p className={styles.eyebrow}>{eyebrow}</p>}
-        <h1 ref={h1} tabIndex={-1} className={styles.title}>
+        <h1 ref={h1} tabIndex={-1} className={`${styles.title} ${size === 'compact' ? styles.compact : ''}`}>
           {title}
         </h1>
         {lead && <p className={styles.lead}>{lead}</p>}
