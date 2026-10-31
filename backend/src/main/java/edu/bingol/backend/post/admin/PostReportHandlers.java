@@ -1,5 +1,6 @@
 package edu.bingol.backend.post.admin;
 
+import edu.bingol.backend.moderation.BlockService;
 import edu.bingol.backend.moderation.MediaPreview;
 import edu.bingol.backend.moderation.ReportTargetHandler;
 import edu.bingol.backend.moderation.ReportTargetType;
@@ -24,10 +25,12 @@ public final class PostReportHandlers {
 
         private final JdbcTemplate jdbc;
         private final PostMediaService media;
+        private final BlockService blocks;
 
-        public FeedPostHandler(JdbcTemplate jdbc, PostMediaService media) {
+        public FeedPostHandler(JdbcTemplate jdbc, PostMediaService media, BlockService blocks) {
             this.jdbc = jdbc;
             this.media = media;
+            this.blocks = blocks;
         }
 
         @Override
@@ -38,6 +41,22 @@ public final class PostReportHandlers {
         @Override
         public boolean exists(Long targetId) {
             return count("SELECT COUNT(*) FROM post WHERE id = ? AND deleted_at IS NULL", targetId) > 0;
+        }
+
+        /**
+         * Raporlayan gonderiyi GOREBILIYORSA (T-057; PostService.requireVisible ile ayni kural): silinmemis, gizli
+         * degil, yazar aktif ve engel iliskisi yok. Gizli/silinmis/engelli gonderi olmayanla ayni 404.
+         */
+        @Override
+        public boolean exists(Long viewerId, Long targetId) {
+            List<Long> r = jdbc.queryForList("SELECT p.author_id FROM post p JOIN app_user u ON u.id = p.author_id "
+                    + "WHERE p.id = ? AND p.deleted_at IS NULL AND p.hidden_at IS NULL AND u.status = 'ACTIVE'",
+                    Long.class, targetId);
+            if (r.isEmpty()) {
+                return false;
+            }
+            Long author = r.get(0);
+            return viewerId == null || author.equals(viewerId) || !blocks.isBlocked(viewerId, author);
         }
 
         @Override

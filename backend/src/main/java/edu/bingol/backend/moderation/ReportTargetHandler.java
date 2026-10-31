@@ -22,6 +22,16 @@ public interface ReportTargetHandler {
 
     boolean exists(Long targetId);
 
+    /**
+     * Raporlayan icin hedef GORUNUR mu (T-057: varlik oracle'i kapali). Rapor ucu bunu cagirir: gorunmeyen hedef
+     * (onay bekleyen/gizli etkinlik, ozel kulup yazisi, engelleyenin gonderisi, aski/silinmis kullanici) ile olmayan
+     * hedef ayni 404'u verir. Varsayilan {@link #exists(Long)}'a duser; gorunurluk kurali olan tur ezmelidir.
+     * Yonetici karar akisi (cozum/itiraz) bunu KULLANMAZ.
+     */
+    default boolean exists(Long viewerId, Long targetId) {
+        return exists(targetId);
+    }
+
     /** Icerigin sahibi (uyari/askiya alma icin); bilinmiyorsa bos. */
     Optional<Long> ownerId(Long targetId);
 

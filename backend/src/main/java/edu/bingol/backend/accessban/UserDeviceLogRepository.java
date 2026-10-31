@@ -45,6 +45,13 @@ public interface UserDeviceLogRepository extends JpaRepository<UserDeviceLog, Lo
     @Query("SELECT DISTINCT l.userId FROM UserDeviceLog l WHERE l.deviceHash = :hash AND l.userId <> :uid")
     List<Long> otherUsersOfDevice(@Param("hash") String hash, @Param("uid") Long uid, Pageable page);
 
+    /** Raporlayici kumeleme (T-057): verilen kullanicilarin tum cihaz/IP satirlari. */
+    List<UserDeviceLog> findByUserIdIn(Collection<Long> userIds);
+
+    /** IP basina farkli kullanici sayisi (kampus NAT'i gibi cok kullanicili IP'ler kume sinyali sayilmaz). */
+    @Query("SELECT l.ip, COUNT(DISTINCT l.userId) FROM UserDeviceLog l WHERE l.ip IN :ips GROUP BY l.ip")
+    List<Object[]> userCountsByIp(@Param("ips") Collection<String> ips);
+
     @Transactional
     @Modifying
     @Query("DELETE FROM UserDeviceLog l WHERE l.userId = :uid")

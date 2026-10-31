@@ -48,6 +48,13 @@ public interface ReportRepository extends JpaRepository<Report, Long>, JpaSpecif
     long countEligibleOpenReporters(@Param("type") ReportTargetType type, @Param("id") Long id,
                                     @Param("cutoff") Instant cutoff);
 
+    /** Esige sayilabilir raporlayici kimlikleri (kumeleme icin; countEligibleOpenReporters ile ayni suzgec). */
+    @Query("SELECT DISTINCT r.reporterId FROM Report r WHERE r.targetType = :type AND r.targetId = :id "
+            + "AND r.status = edu.bingol.backend.moderation.Report.Status.OPEN "
+            + "AND r.reporterId IN (SELECT u.id FROM User u WHERE u.createdAt <= :cutoff)")
+    List<Long> eligibleOpenReporterIds(@Param("type") ReportTargetType type, @Param("id") Long id,
+                                       @Param("cutoff") Instant cutoff);
+
     @Modifying
     @Query("UPDATE Report r SET r.priority = :p WHERE r.targetType = :type AND r.targetId = :id AND r.status = edu.bingol.backend.moderation.Report.Status.OPEN")
     int updateOpenPriority(@Param("type") ReportTargetType type, @Param("id") Long id, @Param("p") int priority);

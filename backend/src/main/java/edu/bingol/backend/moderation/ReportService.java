@@ -43,6 +43,19 @@ public class ReportService {
         this.templates = templates;
     }
 
+    /** Raporlayici kumeleme (T-057, istege bagli: birim testlerinde yok -> eski sayim). */
+    private ReporterClusters clusters;
+    /** Kulup (COMMUNITY/COMMUNITY_COVER) icin yukseltilmis esik; 0 = genel esik. */
+    @org.springframework.beans.factory.annotation.Value("${app.moderation.community-auto-hide-threshold:5}")
+    private int communityThreshold = 5;
+    /** Esik asan geri alinamaz (kulup, kullanici...) hedefe eklenen oncelik: yonetici kuyrugunda one cikar. */
+    static final int ESCALATION_PRIORITY = 200;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setClusters(ReporterClusters clusters) {
+        this.clusters = clusters;
+    }
+
     /** Gecerli (etkin) karar nedeni kodu; bos ya da gecersizse bos. */
     private Optional<String> parseReason(String code) {
         return templates != null ? templates.validCode(code) : DecisionReason.parse(code).map(Enum::name);
@@ -69,7 +82,11 @@ public class ReportService {
                     "Çok sayıda reddedilen rapor nedeniyle geçici olarak rapor gönderemezsiniz.");
         }
         ReportTargetHandler h = handler(r.targetType());
-        if (!h.exists(r.targetId())) {
+        // Gorunmeyen hedef (gizli/onay bekleyen/engelli/ozel) olmayanla ayni 404: varlik oracle'i yok (T-057).
+        // Yonetici her seyi gorur.
+        boolean visible = edu.bingol.backend.common.CurrentUser.isAdmin() ? h.exists(r.targetId())
+                : h.exists(reporterId, r.targetId());
+        if (!visible) {
             throw new ApiException(HttpStatus.NOT_FOUND, "TARGET_NOT_FOUND", "Raporlanan içerik bulunamadı.");
         }
         Optional<Long> owner = h.ownerId(r.targetId());
@@ -94,23 +111,51 @@ public class ReportService {
         return report;
     }
 
-    /** Oncelik hesabi + (geri alinabilir turlerde) esik asildiysa otomatik gecici gizleme. */
+    /** Tur bazli otomatik gizleme/yukseltme esigi: kulup icin yuksek (itibar saldirisi riski), digerleri genel. */
+    int thresholdFor(ReportTargetType type) {
+        int general = props.autoHideThreshold();
+        if (general <= 0) {
+            return 0;
+        }
+        boolean club = type == ReportTargetType.COMMUNITY || type == ReportTargetType.COMMUNITY_COVER;
+        return club && communityThreshold > 0 ? Math.max(general, communityThreshold) : general;
+    }
+
+    /** Esige sayilan BAGIMSIZ raporlayici sayisi: yeterince eski hesaplar, ayni cihaz/IP kumesi tek sayilir. */
+    private long independentEligible(ReportTargetType type, Long id, Instant cutoff) {
+        if (clusters == null) {
+            return reports.countEligibleOpenReporters(type, id, cutoff);
+        }
+        return clusters.independentCount(reports.eligibleOpenReporterIds(type, id, cutoff));
+    }
+
+    /**
+     * Oncelik hesabi + (geri alinabilir turlerde) esik asildiysa otomatik gecici gizleme. Geri alinamaz turlerde
+     * (kulup, kullanici...) otomatik islem YOK; esik asilinca yalniz kuyruk onceligi yukselir (yonetici onayi).
+     */
     private void applyPolicy(Report report, ReportTargetHandler h, Optional<Long> owner) {
         ReportTargetType type = report.getTargetType();
         Long id = report.getTargetId();
         boolean hidden = states.findByTargetTypeAndTargetId(type, id).filter(s -> s.getHiddenBy() != null).isPresent();
-        int threshold = props.autoHideThreshold();
-        if (!hidden && threshold > 0 && h.reversible()) {
+        int threshold = thresholdFor(type);
+        boolean escalated = false;
+        if (!hidden && threshold > 0) {
             Instant cutoff = Instant.now().minus(Duration.ofHours(props.newAccountMinAgeHours()));
-            if (reports.countEligibleOpenReporters(type, id, cutoff) >= threshold) {
-                h.hide(id);
-                states.markHidden(type.name(), id, ModerationTargetState.HiddenBy.AUTO.name());
-                hidden = true;
-                owner.ifPresent(uid -> notifier.autoHidden(uid, type, id));
-                log.info("Otomatik gizleme: {} #{} (esik {})", type, id, threshold);
+            if (independentEligible(type, id, cutoff) >= threshold) {
+                if (h.reversible()) {
+                    h.hide(id);
+                    states.markHidden(type.name(), id, ModerationTargetState.HiddenBy.AUTO.name());
+                    hidden = true;
+                    owner.ifPresent(uid -> notifier.autoHidden(uid, type, id));
+                    log.info("Otomatik gizleme: {} #{} (esik {})", type, id, threshold);
+                } else {
+                    escalated = true;
+                    log.info("Yonetici onceligi: {} #{} (bagimsiz rapor esigi {})", type, id, threshold);
+                }
             }
         }
-        int priority = (int) reports.countOpenReporters(type, id) * 10 + (hidden ? 100 : 0);
+        int priority = (int) reports.countOpenReporters(type, id) * 10 + (hidden ? 100 : 0)
+                + (escalated ? ESCALATION_PRIORITY : 0);
         reports.updateOpenPriority(type, id, priority);
         report.setPriority(priority);
     }

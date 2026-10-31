@@ -45,6 +45,7 @@ class ReportServiceTest {
     void setUp() {
         when(handler.type()).thenReturn(TYPE);
         when(handler.exists(TARGET)).thenReturn(true);
+        when(handler.exists(anyLong(), eq(TARGET))).thenReturn(true); // T-057: raporlayana gorunur
         when(handler.ownerId(TARGET)).thenReturn(Optional.of(OWNER));
         when(handler.reversible()).thenReturn(true);
         when(redis.opsForValue()).thenReturn(ops);

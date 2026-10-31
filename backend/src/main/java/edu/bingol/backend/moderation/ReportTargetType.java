@@ -9,5 +9,11 @@ public enum ReportTargetType {
     USER, MESSAGE, POST, COMMUNITY, EVENT,
     MESSAGE_IMAGE, USER_AVATAR, COMMUNITY_COVER, EVENT_COVER,
     /** Kesfet akisi gonderisi (post paketi, bkz. docs/POSTS_DESIGN.md). */
-    FEED_POST
+    FEED_POST,
+    /** Grup sohbetinin kendisi (baslik/avatar/toplu uye kaynakli taciz; T-057). Yalniz aktif uye raporlayabilir. */
+    CONVERSATION,
+    /** Kulup duyurusu (community_post.announcement = true; T-057). */
+    ANNOUNCEMENT,
+    /** Anket (T-057). */
+    POLL
 }

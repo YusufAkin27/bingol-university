@@ -1,5 +1,6 @@
 package edu.bingol.backend.profile.privacy;
 
+import edu.bingol.backend.moderation.BlockService;
 import edu.bingol.backend.moderation.ReportTargetHandler;
 import edu.bingol.backend.moderation.ReportTargetType;
 import edu.bingol.backend.user.User;
@@ -16,10 +17,19 @@ public class AvatarReportHandler implements ReportTargetHandler {
 
     private final UserRepository users;
     private final PrivacyService privacy;
+    /** Gorunurluk denetimi (T-057): istege bagli; yoksa (elle kurulan testler) yalniz exists(id) kurali. */
+    private AvatarVisibility visibility;
+    private BlockService blocks;
 
     public AvatarReportHandler(UserRepository users, PrivacyService privacy) {
         this.users = users;
         this.privacy = privacy;
+    }
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    public void setVisibility(AvatarVisibility visibility, BlockService blocks) {
+        this.visibility = visibility;
+        this.blocks = blocks;
     }
 
     @Override
@@ -31,6 +41,25 @@ public class AvatarReportHandler implements ReportTargetHandler {
     @Override
     public boolean exists(Long targetId) {
         return users.findById(targetId).filter(User::isActive).map(u -> u.getAvatarUrl() != null).orElse(false);
+    }
+
+    /**
+     * Raporlayan avatari GOREBILIYORSA (T-057): aktif hesap + avatar var + moderasyonla gizli degil + sahibi raporlayani
+     * engellememis + avatar gizlilik kitlesi raporlayani kapsiyor (ONLY_ME avatar olmayanla ayni 404).
+     */
+    @Override
+    public boolean exists(Long viewerId, Long targetId) {
+        if (!exists(targetId)) {
+            return false;
+        }
+        if (viewerId == null || viewerId.equals(targetId) || visibility == null || blocks == null) {
+            return true;
+        }
+        if (blocks.hasBlocked(targetId, viewerId) || privacy.get(targetId).isAvatarHidden()) {
+            return false;
+        }
+        return visibility.visibleOwners(viewerId, java.util.List.of(targetId),
+                java.util.List.of(AvatarVisibility.Field.AVATAR)).get(AvatarVisibility.Field.AVATAR).contains(targetId);
     }
 
     @Override
