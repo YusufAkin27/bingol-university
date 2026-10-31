@@ -3,12 +3,10 @@ library;
 
 import 'dart:async';
 import 'dart:io';
-import 'dart:typed_data';
 import 'dart:ui' as ui;
 
 import 'package:bu_kampus/core/contacts/contacts_service.dart';
 import 'package:bu_kampus/core/permissions/permission_service.dart';
-import 'package:bu_kampus/core/theme.dart';
 import 'package:bu_kampus/features/chat/chat_media_viewer.dart';
 import 'package:bu_kampus/features/chat/chat_video_player.dart';
 import 'package:bu_kampus/features/chat/contacts_match_page.dart';
@@ -247,7 +245,7 @@ Widget _viewer({int index = 1, bool videoAt2 = false, Object? saveError}) => Cha
       saveVideo: (u, h) async {},
     );
 
-Widget _player() => ChatVideoPlayerPage(url: '/api/conversations/1/media/90', headers: const {}, durationMs: 42000);
+Widget _player() => const ChatVideoPlayerPage(url: '/api/conversations/1/media/90', headers: {}, durationMs: 42000);
 
 FakeBackend _onceBackend({int status = 200, bool network = false}) {
   final be = FakeBackend();
@@ -264,7 +262,7 @@ FakeBackend _onceBackend({int status = 200, bool network = false}) {
 Widget _once(FakeBackend be) => ViewOnceViewer(api: makeSession(be).api, conversationId: 1, attachmentId: 50);
 
 final _boards = <_Board>[
-  _Board('N01_yeni_sohbet', _newChat),
+  const _Board('N01_yeni_sohbet', _newChat),
   _Board('N02_arama_sonuclari', _newChat, after: (t) => _type(t, 'mehmet')),
   _Board('N02b_arama_bos', () => _newChat(empty: true), after: (t) => _type(t, 'zzz')),
   _Board('N03_yeni_grup', _newChat, height: 1000, after: (t) async {
@@ -304,11 +302,11 @@ final _boards = <_Board>[
   _Board('V02f_gorsel_yuklenemedi', () => _viewer(), img: _Img.err, settleMs: 700),
   _Board('V02c_gorsel_yukleniyor', () => _viewer(), img: _Img.hang, settleMs: 700),
   _Board('V03_video_poster', () => _viewer(index: 2, videoAt2: true)),
-  _Board('V04_video_oynuyor', _player),
+  const _Board('V04_video_oynuyor', _player),
   _Board('V04b_video_duraklatildi', _player, after: (t) async {
     await t.tap(find.byKey(const ValueKey('videoStage')));
   }),
-  _Board('V05_video_hata', _player, video: _Vid.fail, settleMs: 700),
+  const _Board('V05_video_hata', _player, video: _Vid.fail, settleMs: 700),
   _Board('V06_tek_gosterimlik', () => _once(_onceBackend())),
   _Board('V06b_tek_tuketildi', () => _once(_onceBackend(status: 410))),
   _Board('V06c_tek_kendi', () => _once(_onceBackend(status: 403))),

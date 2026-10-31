@@ -17,7 +17,7 @@ void main() {
     expect(tr.toLowerCase(), isNot(contains('hesabınız')));
   });
 
-  testWidgets('A9-03: karşılama ekranında marka "BÜ Kampüs"', (tester) async {
+  testWidgets('A9-03: karşılama ekranı (Stitch v3 01: marka etiketi yok; iki satırlı başlık) ve yanlış "BU Kampüs" yazımı asla', (tester) async {
     useScreen(tester, const Size(390, 1000));
     final lc = LocaleController(deviceLocales: () => [const Locale('tr')])..pref = 'tr';
     LocaleController.current = lc;
@@ -25,14 +25,15 @@ void main() {
     mockSecureStorage();
     await tester.pumpWidget(buildApp(WelcomePage(onLogin: () {}, onRegister: () {})));
     await settle(tester, const Duration(milliseconds: 600));
-    expect(find.text('BÜ Kampüs'), findsOneWidget);
+    expect(find.text(AppLocalizationsTr().welcomeHeadline), findsOneWidget);
     expect(find.text('BU Kampüs'), findsNothing);
+    expect(find.text('BU KAMPÜS'), findsNothing);
   });
 
   testWidgets('A9-03: ana sayfa üst çubuğunda selamlama (Stitch v3: uygulama adı/logo yok, "BU KAMPÜS" yazımı asla)', (tester) async {
     useScreen(tester, const Size(390, 844));
-    await tester.pumpWidget(buildApp(Scaffold(
-      body: HomeBrandHeader(actions: const [SizedBox()], hello: 'Merhaba, Ayşe', greeting: 'İyi günler'),
+    await tester.pumpWidget(buildApp(const Scaffold(
+      body: HomeBrandHeader(actions: [SizedBox()], hello: 'Merhaba, Ayşe', greeting: 'İyi günler'),
     )));
     await settle(tester, const Duration(milliseconds: 300));
     expect(find.text('Merhaba, Ayşe'), findsOneWidget);

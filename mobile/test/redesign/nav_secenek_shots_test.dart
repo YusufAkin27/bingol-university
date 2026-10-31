@@ -222,7 +222,7 @@ class _GlassPainter extends CustomPainter {
 }
 
 class _Glass extends StatelessWidget {
-  const _Glass({required this.child, this.width, this.height = ProtoNav.height});
+  const _Glass({required this.child, this.width}) : height = ProtoNav.height;
   final Widget child;
   final double? width;
   final double height;
@@ -436,7 +436,7 @@ class _NavSlotState extends State<NavSlot> {
   Widget build(BuildContext context) {
     final i = widget.position;
     final k = _NavColors(context, widget.variant);
-    final label = ProtoNav_labels(context)[i];
+    final label = protoNavLabels(context)[i];
     final tab = MaterialLocalizations.of(context).tabLabel(tabIndex: i + 1, tabCount: 5);
     final sel = widget.selected;
     // Ayna oval: secili degilken hover %40, basili %70; seciliyken yalniz basili ince koyulasma.
@@ -532,7 +532,7 @@ class _NavSlotState extends State<NavSlot> {
           shape: BoxShape.circle,
           border: Border.all(color: color, width: 1.75 + .5 * v),
         ),
-        child: ChatlistAvatar(name: 'Toprak Çevik', url: null, size: ProtoNav.icon - 6, circle: true),
+        child: const ChatlistAvatar(name: 'Toprak Çevik', url: null, size: ProtoNav.icon - 6, circle: true),
       );
     }
     if (i != 2) return g;
@@ -570,7 +570,7 @@ class _NavSlotState extends State<NavSlot> {
   }
 }
 
-List<String> ProtoNav_labels(BuildContext c) {
+List<String> protoNavLabels(BuildContext c) {
   final l = c.l10n;
   return [l.navHome, l.navDiscover, l.navChat, l.navClubs, l.navProfile];
 }
@@ -1084,7 +1084,7 @@ void main() {
     LocaleController.current = LocaleController(deviceLocales: () => [const Locale('tr')])..pref = 'tr';
     addTearDown(() => LocaleController.current = null);
     final key = GlobalKey();
-    await tester.pumpWidget(_app(_Host(variant: NavVariant.k, initial: 0, body: const SizedBox.expand()), false, key));
+    await tester.pumpWidget(_app(const _Host(variant: NavVariant.k, initial: 0, body: SizedBox.expand()), false, key));
     await _precache(tester);
     await tester.pump(const Duration(milliseconds: 400));
     double ghost(int i) => tester.widget<AnimatedOpacity>(find.byKey(ValueKey('ghost-$i'))).opacity;
@@ -1117,10 +1117,10 @@ void main() {
     LocaleController.current = LocaleController(deviceLocales: () => [const Locale('tr')])..pref = 'tr';
     addTearDown(() => LocaleController.current = null);
     final key = GlobalKey();
-    await tester.pumpWidget(_app(_Host(variant: NavVariant.k, body: const SizedBox.expand()), false, key));
+    await tester.pumpWidget(_app(const _Host(variant: NavVariant.k, body: SizedBox.expand()), false, key));
     await _precache(tester);
     await tester.pump(const Duration(milliseconds: 400));
-    tester.view.viewInsets = FakeViewPadding(bottom: 300 * _dpr);
+    tester.view.viewInsets = const FakeViewPadding(bottom: 300 * _dpr);
     addTearDown(tester.view.resetViewInsets);
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 500));
@@ -1135,7 +1135,7 @@ void main() {
     tester.platformDispatcher.accessibilityFeaturesTestValue = const FakeAccessibilityFeatures(disableAnimations: true);
     addTearDown(tester.platformDispatcher.clearAccessibilityFeaturesTestValue);
     final key = GlobalKey();
-    await tester.pumpWidget(_app(_Host(variant: NavVariant.k, initial: 0, body: const SizedBox.expand()), false, key));
+    await tester.pumpWidget(_app(const _Host(variant: NavVariant.k, initial: 0, body: SizedBox.expand()), false, key));
     await tester.tap(find.byKey(const ValueKey('slot-3')));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 16));

@@ -3,10 +3,8 @@ library;
 
 import 'dart:async';
 import 'dart:io';
-import 'dart:typed_data';
 import 'dart:ui' as ui;
 
-import 'package:bu_kampus/core/theme.dart';
 import 'package:bu_kampus/core/closed_conversations.dart';
 import 'package:bu_kampus/features/chat/chat_detail_page.dart';
 import 'package:bu_kampus/features/chat/chat_tab.dart';
@@ -395,13 +393,13 @@ final _boards = <_Board>[
   _Board('L06_yukleniyor', () => _tab(_listBackend(delay: const Duration(seconds: 2))), settleMs: 300, drainMs: 2500),
   _Board('L06b_hata_cevrimdisi', () => _tab(_listBackend(network: true))),
   _Board('L07_avatar_hata', () => _tab(_listBackend()), img: _Img.err, settleMs: 900),
-  _Board('B1_balon_metin', _b1, height: 700),
-  _Board('B2_balon_grup', _b2, height: 700),
-  _Board('B3_balon_medya', _b3, height: 1000),
-  _Board('B3b_balon_gorsel_yukleniyor', _b3b, height: 700, img: _Img.hang, settleMs: 700),
-  _Board('B4_balon_tek_gosterimlik', _b4, height: 520),
-  _Board('B5_balon_hata_kuyruk', _b5, height: 560),
-  _Board('B6_sohbet_kapali', _closedChat),
+  const _Board('B1_balon_metin', _b1, height: 700),
+  const _Board('B2_balon_grup', _b2, height: 700),
+  const _Board('B3_balon_medya', _b3, height: 1000),
+  const _Board('B3b_balon_gorsel_yukleniyor', _b3b, height: 700, img: _Img.hang, settleMs: 700),
+  const _Board('B4_balon_tek_gosterimlik', _b4, height: 520),
+  const _Board('B5_balon_hata_kuyruk', _b5, height: 560),
+  const _Board('B6_sohbet_kapali', _closedChat),
 ];
 
 Future<void> _pumpImages(WidgetTester tester) async {

@@ -107,7 +107,7 @@ FakeBackend _detailBe({required String status, String? role, int pending = 0}) {
 }
 
 class _Scn {
-  const _Scn(this.file, this.backend, this.page, {this.height = 844, this.act});
+  const _Scn(this.file, this.backend, this.page, {this.act}) : height = 844;
   final String file;
   final FakeBackend Function() backend;
   final Widget Function(FakeBackend b) page;
@@ -123,7 +123,7 @@ Future<void> _tapText(WidgetTester t, String text) async {
 }
 
 final _scns = <_Scn>[
-  _Scn('01_kesfet', _listBe, _tab),
+  const _Scn('01_kesfet', _listBe, _tab),
   _Scn('02_kuluplerim', _listBe, _tab, act: (t) => _tapText(t, 'Kulüplerim')),
   _Scn('03a_yukleniyor', () => _listBe()..delay = const Duration(seconds: 3), _tab),
   _Scn('03b_bos', () => _listBe(discover: []), _tab),

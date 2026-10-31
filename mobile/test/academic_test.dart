@@ -259,7 +259,8 @@ void main() {
       await tester.tap(find.text('Devam'));
       await tester.pump();
       expect(find.text('Adınızı ve soyadınızı girin.'), findsOneWidget);
-      expect(find.text('Okul numaranızı veya e-posta adresinizi girin.'), findsOneWidget);
+      // Kayıt artık yalnız okul e-postası ister (öğrenci numarasıyla kayıt yok): boş alan "Okul e-posta adresinizi girin."
+      expect(find.text('Okul e-posta adresinizi girin.'), findsOneWidget);
       expect(find.text('Adım 2/3'), findsOneWidget);
       expect(b.count('/auth/register'), 0);
       await unmount(tester);
@@ -435,7 +436,7 @@ void main() {
   });
 
   group('Profil özeti ve gizlilik', () {
-    testWidgets('profil sekmesi "Bölüm · sınıf" özeti gösterir', (tester) async {
+    testWidgets('profil sekmesi "Bölüm · sınıf" özeti gösterir (Stitch v3: fakülte satırı yok)', (tester) async {
       useScreen(tester, kPhoneMedium);
       final b = FakeBackend()
         ..on('/users/me', {
@@ -449,8 +450,8 @@ void main() {
       await tester.pumpWidget(
           buildApp(ProfileTab(session: makeSession(b), themeController: ThemeController())));
       await settle(tester);
-      expect(find.text('Bilgisayar Mühendisliği • 3. sınıf'), findsOneWidget);
-      expect(find.text('Mühendislik Fakültesi'), findsOneWidget);
+      expect(find.text('Bilgisayar Mühendisliği · 3. sınıf'), findsOneWidget);
+      expect(find.text('Mühendislik Fakültesi'), findsNothing); // BIREBIR_PROFIL: yalnız "bölüm · sınıf" satırı
       await unmount(tester);
     });
 
@@ -462,7 +463,9 @@ void main() {
           await tester.pumpWidget(
               buildApp(PrivacyDataPage(session: makeSession(b)), brightness: br, size: size));
           await settle(tester);
-          expect(find.text(trUpper('Profil görünürlüğü')), findsOneWidget);
+          // Stitch v3 Gizlilik: büyük harfli bölüm etiketi yok; üst çubuk başlığı + alan başına satır (etiket + 3'lü seçici).
+          expect(find.text('Gizlilik ve engellenenler'), findsOneWidget);
+          expect(find.byKey(const ValueKey('privacy-row-bio')), findsOneWidget);
           // Liste tembel kurulur: alttaki satır küçük ekranda kaydırılınca oluşur.
           await tester.scrollUntilVisible(find.text('Verilerim ve hesap'), 300, scrollable: find.byType(Scrollable).first);
           expect(find.text('Verilerim ve hesap'), findsOneWidget);

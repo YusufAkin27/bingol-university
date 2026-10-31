@@ -277,7 +277,7 @@ void main() {
       b.handlers.insert(
           0,
           (req, p) => p == '/announcements/500'
-              ? FakeResult.json({
+              ? const FakeResult.json({
                   'id': 500,
                   'title': 'Güz dönemi staj başvuruları',
                   'body': 'Giriş metni.\n\nHususlar:\n\n- Birinci madde\n- İkinci madde\n\nSon not.',

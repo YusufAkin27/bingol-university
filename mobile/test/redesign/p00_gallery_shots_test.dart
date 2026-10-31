@@ -5,7 +5,6 @@ import 'dart:io';
 import 'dart:ui' as ui;
 
 import 'package:bu_kampus/core/api.dart';
-import 'package:bu_kampus/core/theme.dart';
 import 'package:bu_kampus/widgets/bu.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -301,7 +300,9 @@ Widget _boardInputs() => Builder(builder: (context) {
               Switch(value: false, onChanged: (_) {}),
               Checkbox(value: true, onChanged: (_) {}),
               Checkbox(value: false, onChanged: (_) {}),
+              // ignore: deprecated_member_use
               Radio<int>(value: 1, groupValue: 1, onChanged: (_) {}),
+              // ignore: deprecated_member_use
               Radio<int>(value: 2, groupValue: 1, onChanged: (_) {}),
             ]),
             Slider(value: .4, onChanged: (_) {}),
@@ -344,7 +345,7 @@ Widget _boardInputs() => Builder(builder: (context) {
               destinations: [
                 NavigationDestination(icon: const Icon(LucideIcons.house), label: s('Ana Sayfa', 'Home', 'الرئيسية')),
                 NavigationDestination(icon: const Icon(LucideIcons.compass), label: s('Keşfet', 'Explore', 'استكشاف')),
-                NavigationDestination(icon: Badge(label: const Text('2'), child: const Icon(LucideIcons.messageCircle)), label: s('Sohbet', 'Chat', 'محادثة')),
+                NavigationDestination(icon: const Badge(label: Text('2'), child: Icon(LucideIcons.messageCircle)), label: s('Sohbet', 'Chat', 'محادثة')),
                 NavigationDestination(icon: const Icon(LucideIcons.users), label: s('Kulüpler', 'Clubs', 'النوادي')),
                 NavigationDestination(icon: const Icon(LucideIcons.user), label: s('Profil', 'Profile', 'الملف')),
               ],
@@ -456,7 +457,7 @@ Widget _boardStates() => Builder(builder: (context) {
           ),
         ),
         _Sec('BuOfflineBanner', BuOfflineBanner(onRetry: () {}, margin: EdgeInsets.zero)),
-        _Sec(
+        const _Sec(
           'BuSkeleton',
           SizedBox(height: 230, child: BuSkeletonList(variant: BuSkeletonVariant.row, itemCount: 3, padding: EdgeInsets.zero, shrinkWrap: true)),
         ),
@@ -500,11 +501,11 @@ Widget _boardHero() => Builder(builder: (context) {
         hero(BuHeroPattern.rings, 'rings'),
         hero(BuHeroPattern.waves, 'waves'),
         const SizedBox(height: 8),
-        BuProgressSteps(count: 4, current: 0),
+        const BuProgressSteps(count: 4, current: 0),
         const SizedBox(height: 18),
-        BuProgressSteps(count: 4, current: 2),
+        const BuProgressSteps(count: 4, current: 2),
         const SizedBox(height: 18),
-        BuProgressSteps(count: 4, current: 3),
+        const BuProgressSteps(count: 4, current: 3),
       ]);
     });
 
@@ -587,13 +588,13 @@ Widget _overlayHost() => Builder(builder: (context) {
 BuildContext _ctx(WidgetTester t) => t.element(find.byType(Scaffold).first);
 
 final _boards = <_Board>[
-  _Board('01_renk_yazi', _boardColors, height: 1500),
-  _Board('02_dugmeler_cipler', _boardButtons, height: 1500),
-  _Board('03_girdiler', _boardInputs, height: 1650),
-  _Board('04_kartlar_listeler', _boardCards, height: 1800),
-  _Board('05_durumlar', _boardStates, height: 1700),
-  _Board('06_iskelet_bos', _boardStates2, height: 1100),
-  _Board('07_vitrin_adimlar', _boardHero, height: 880),
+  const _Board('01_renk_yazi', _boardColors, height: 1500),
+  const _Board('02_dugmeler_cipler', _boardButtons, height: 1500),
+  const _Board('03_girdiler', _boardInputs, height: 1650),
+  const _Board('04_kartlar_listeler', _boardCards, height: 1800),
+  const _Board('05_durumlar', _boardStates, height: 1700),
+  const _Board('06_iskelet_bos', _boardStates2, height: 1100),
+  const _Board('07_vitrin_adimlar', _boardHero, height: 880),
   _Board('08_sayfa_hazir', () => _scaffoldReady(), height: 844),
   _Board('09_sayfa_kaydirilmis', () => _scaffoldReady(scrolled: true), height: 844),
   _Board('10_sayfa_yukleniyor', () => _scaffoldState(BuViewState.loading), height: 844),

@@ -92,7 +92,7 @@ FakeAcademic _ann(FakeBackend b) {
 }
 
 class _Scene {
-  const _Scene(this.file, this.build, {this.setup, this.after, this.now, this.height = 884, this.settleMs = 900, this.perm = PermState.granted, this.store});
+  const _Scene(this.file, this.build, {this.setup, this.after, this.now, this.height = 884, this.perm = PermState.granted, this.store}) : settleMs = 900;
   final String file;
   final Widget Function(FakeBackend b) build;
   final void Function(FakeBackend b)? setup;
@@ -109,7 +109,7 @@ Future<void> _tapText(WidgetTester t, String text) async {
   await settle(t, const Duration(milliseconds: 700));
 }
 
-final _detailBody = 'Güz yarıyılı zorunlu ve isteğe bağlı staj başvuruları başlamıştır.\n'
+const _detailBody = 'Güz yarıyılı zorunlu ve isteğe bağlı staj başvuruları başlamıştır.\n'
     'Staj yapacak öğrencilerin staj kabul formunu eksiksiz doldurarak bölüm sekreterliğine elden veya e-posta yoluyla teslim etmeleri gerekmektedir.\n\n'
     'Başvuru sürecinde dikkat edilmesi gereken temel hususlar aşağıda belirtilmiştir:\n\n'
     '- Staj başlangıç tarihinden en az 15 gün önce başvuru evrakları teslim edilmelidir.\n'
@@ -148,7 +148,7 @@ final _scenes = <_Scene>[
     b.handlers.insert(
         0,
         (req, p) => p == '/announcements/500'
-            ? FakeResult.json({
+            ? const FakeResult.json({
                 'id': 500,
                 'title': 'Güz dönemi staj başvuruları',
                 'body': _detailBody,

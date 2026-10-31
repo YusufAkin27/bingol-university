@@ -96,7 +96,7 @@ void _data(FakeBackend b) {
 }
 
 class _Shot {
-  const _Shot(this.file, this.build, {this.height = 1700, this.loading = false, this.layout, this.after});
+  const _Shot(this.file, this.build, {this.height = 1700, this.loading = false, this.layout}) : after = null;
   final String file;
   final Widget Function(FakeBackend b) build;
   final double height;
@@ -108,8 +108,8 @@ class _Shot {
 Widget _home(FakeBackend b) => HomeTab(session: makeSession(b), onOpenTab: (i, {newsType}) {});
 
 final _shots = <_Shot>[
-  _Shot('01_ana_sayfa', _home),
-  _Shot('02_iskelet', _home, loading: true, height: 844),
+  const _Shot('01_ana_sayfa', _home),
+  const _Shot('02_iskelet', _home, loading: true, height: 844),
   _Shot('03_tum_gizli', _home, height: 844, layout: _allHidden()),
   _Shot('05_duzenle', (b) => HomeLayoutPage(controller: HomeLayoutController(uid: 1)), height: 900),
   _Shot('07_secici', (b) {

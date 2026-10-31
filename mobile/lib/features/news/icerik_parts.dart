@@ -107,7 +107,7 @@ class IcerikIconButton extends StatelessWidget {
                   shape: BoxShape.circle,
                   color: bg,
                   boxShadow: shadow && !plain && !overlay
-                      ? [BoxShadow(color: Colors.black.withValues(alpha: .06), blurRadius: 3, offset: const Offset(0, 1))]
+                      ? [BoxShadow(color: t.shadow.withValues(alpha: .06), blurRadius: 3, offset: const Offset(0, 1))]
                       : null,
                 ),
                 child: Material(

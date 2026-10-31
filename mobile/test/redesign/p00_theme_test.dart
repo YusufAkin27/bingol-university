@@ -1,4 +1,3 @@
-import 'package:bu_kampus/core/theme.dart';
 import 'package:bu_kampus/core/theme/bu_design.dart';
 import 'package:bu_kampus/core/theme/bu_theme_builder.dart';
 import 'package:flutter/material.dart';

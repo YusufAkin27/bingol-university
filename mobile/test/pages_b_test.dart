@@ -781,6 +781,9 @@ void main() {
       testWidgets('menu 320x640 tasmadan acilir (${b.name})', (tester) async {
         await _pump(tester, build(makeSession(withEmojis())), b: b, size: kPhoneSmall);
         for (final target in [find.text('Selam'), find.textContaining('Tamamdır'), find.text('Merhaba')]) {
+          // Üst çubuk + dolu mesaj listesi 320x640'ta en eski mesajı kaydırma alanının dışına iter: önce görünür kıl.
+          await tester.ensureVisible(target);
+          await tester.pump(const Duration(milliseconds: 100));
           await openMenu(tester, target);
           _noErrors(tester);
           for (final k in [card, bar]) {
@@ -930,7 +933,8 @@ void main() {
     testWidgets('bos', (tester) async {
       final be = FakeBackend()..on('/communities', {'items': [], 'nextCursor': null});
       await _pump(tester, build(makeSession(be)));
-      expect(find.text('Kulüp bulunamadı.'), findsOneWidget);
+      // Stitch v3 Kulüpler (BIREBIR_KULUP 03): keşfet sekmesinde boş metin "Henüz kulüp yok." (+ "Kulüp kur" eylemi).
+      expect(find.text('Henüz kulüp yok.'), findsOneWidget);
       _noErrors(tester);
       await unmount(tester);
     });
@@ -955,10 +959,12 @@ void main() {
       await unmount(tester);
     });
 
-    testWidgets('Kulupler: serit basligi + arama alani', (tester) async {
+    testWidgets('Kulupler: baslik + metin sekmeleri + arama alani', (tester) async {
       await _pump(tester, build(makeSession(full())), size: kPhoneSmall);
-      expect(find.text('Kulüplerim'), findsOneWidget); // şerit başlığı
-      await tester.tap(find.byTooltip('Ara'));
+      expect(find.text('Kulüpler'), findsOneWidget); // Stitch v3 sayfa başlığı
+      expect(find.text('Keşfet'), findsOneWidget); // metin sekmeleri
+      expect(find.text('Kulüplerim'), findsOneWidget);
+      await tester.tap(find.bySemanticsLabel('Ara'));
       await tester.pump();
       expect(find.byType(TextField), findsOneWidget);
       _noErrors(tester);
@@ -1064,6 +1070,9 @@ void main() {
     testWidgets('bos sekme', (tester) async {
       final be = full()..on('/communities/7/posts*', {'items': [], 'nextCursor': null});
       await _pump(tester, build(makeSession(be)));
+      // Stitch v3: açılış sekmesi Hakkında; gönderiler "Gönderiler" sekmesinde.
+      await tester.tap(find.text('Gönderiler'));
+      await settle(tester, const Duration(milliseconds: 500));
       expect(find.text('Henüz gönderi yok.'), findsOneWidget);
       _noErrors(tester);
       await unmount(tester);
@@ -1095,6 +1104,8 @@ void main() {
     testWidgets('gonderi sekmesi hatasi -> yeniden dene', (tester) async {
       final be = full()..fail('/communities/7/posts*');
       await _pump(tester, build(makeSession(be)));
+      await tester.tap(find.text('Gönderiler')); // Stitch v3: açılış sekmesi Hakkında
+      await settle(tester, const Duration(milliseconds: 500));
       expect(find.text('Yeniden dene'), findsOneWidget);
       be.on('/communities/7/posts*', {'items': [], 'nextCursor': null});
       await _reveal(tester, find.text('Yeniden dene'));
@@ -1315,6 +1326,9 @@ void main() {
       await tester.pump();
       await tester.enterText(find.byType(TextField), '5.123.abc');
       await _reveal(tester, find.text('Yoklamayı gönder'));
+      // Düğme kaydırma sonunda üstteki yüzen çubuğun altında kalabilir: ortaya getir.
+      await tester.drag(find.byType(Scrollable).first, const Offset(0, 160), warnIfMissed: false);
+      await tester.pump(const Duration(milliseconds: 300));
       await tester.tap(find.text('Yoklamayı gönder'));
       await settle(tester, const Duration(milliseconds: 300));
       expect(be.requests, contains('POST /events/5/check-in'));

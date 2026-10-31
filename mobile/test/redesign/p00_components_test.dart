@@ -1,7 +1,6 @@
 import 'package:bu_kampus/core/api.dart';
 import 'package:bu_kampus/widgets/bu.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/semantics.dart';
 import 'package:bu_kampus/widgets/common.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -25,7 +24,7 @@ void main() {
             Wrap(children: [BuButton(label: 'Katıl', kind: k, compact: true, onPressed: () {})]),
             const SizedBox(height: 8),
           ],
-          BuButton(label: 'Devre dışı'),
+          const BuButton(label: 'Devre dışı'),
           const SizedBox(height: 8),
           BuButton(label: 'Yükleniyor', busy: true, onPressed: () {}),
         ]),
@@ -201,12 +200,12 @@ void main() {
             BuSettingsTile.toggle(icon: LucideIcons.bell, title: 'Bildirimler', subtitle: 'Yeni mesaj ve duyurular', value: true, onChanged: (_) {}),
             BuSettingsTile(icon: LucideIcons.logOut, title: 'Çıkış yap', danger: true, onTap: () {}),
           ]),
-          Wrap(spacing: 8, children: [
-            const BuCountBadge(7),
-            const BuCountBadge(2, muted: true),
-            const BuBadge('Yeni', soft: true),
-            const BuAvatar(name: 'Ali', size: 36, online: true),
-            const BuAvatar(group: true, square: true, size: 48),
+          const Wrap(spacing: 8, children: [
+            BuCountBadge(7),
+            BuCountBadge(2, muted: true),
+            BuBadge('Yeni', soft: true),
+            BuAvatar(name: 'Ali', size: 36, online: true),
+            BuAvatar(group: true, square: true, size: 48),
           ]),
         ]),
       );
@@ -384,7 +383,7 @@ void main() {
 
     testWidgets('banner başlığın altında gösterilir', (t) async {
       await t.pumpWidget(p00App(
-        BuPageScaffold(title: 'X', banner: const BuOfflineBanner(), slivers: const [SliverToBoxAdapter(child: Text('içerik'))]),
+        const BuPageScaffold(title: 'X', banner: BuOfflineBanner(), slivers: [SliverToBoxAdapter(child: Text('içerik'))]),
         scaffold: false,
       ));
       await t.pump(const Duration(milliseconds: 500));
@@ -431,8 +430,8 @@ void main() {
     });
 
     testWidgets('BuFadeThrough animasyonları azalt: anında', (t) async {
-      await t.pumpWidget(p00App(BuFadeThrough(child: const Text('A', key: ValueKey('A'))), disableAnimations: true));
-      await t.pumpWidget(p00App(BuFadeThrough(child: const Text('B', key: ValueKey('B'))), disableAnimations: true));
+      await t.pumpWidget(p00App(const BuFadeThrough(child: Text('A', key: ValueKey('A'))), disableAnimations: true));
+      await t.pumpWidget(p00App(const BuFadeThrough(child: Text('B', key: ValueKey('B'))), disableAnimations: true));
       await t.pump();
       expect(find.text('A'), findsNothing);
     });
@@ -589,7 +588,7 @@ void main() {
         () => Scaffold(
           body: Column(children: [
             const SearchBar(hintText: 'Ara'),
-            DefaultTabController(length: 3, child: TabBar(tabs: const [Tab(text: 'Gönderiler'), Tab(text: 'Etkinlikler'), Tab(text: 'Üyeler')])),
+            const DefaultTabController(length: 3, child: TabBar(tabs: [Tab(text: 'Gönderiler'), Tab(text: 'Etkinlikler'), Tab(text: 'Üyeler')])),
             const Spacer(),
             NavigationBar(selectedIndex: 2, destinations: const [
               NavigationDestination(icon: Icon(Icons.home), label: 'Ana Sayfa'),

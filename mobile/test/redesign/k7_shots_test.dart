@@ -288,7 +288,7 @@ class _CreateHost extends StatelessWidget {
 
 final _shots = <_Shot>[
   // ---- 27: kulup yonetimi
-  _Shot('27_01_uyeler', _membersBe, _membersPage),
+  const _Shot('27_01_uyeler', _membersBe, _membersPage),
   _Shot('27_02a_uye_islemleri', _membersBe, _membersPage, after: (t, b) => _tapTip(t, _l.clubMgmtMemberActions)),
   _Shot('27_02b_cikar_onayi', _membersBe, _membersPage, after: (t, b) async {
     await _tapTip(t, _l.clubMgmtMemberActions);

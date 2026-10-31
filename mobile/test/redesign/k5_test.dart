@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:bu_kampus/features/chat/chatlist_widgets.dart';
-import 'package:flutter/foundation.dart';
 import 'package:bu_kampus/widgets/bu_default_avatar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';

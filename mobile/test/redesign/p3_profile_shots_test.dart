@@ -28,7 +28,6 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../support/fake_app.dart';
 import '../support/store_shots_images.dart';
@@ -162,14 +161,6 @@ void _follow(FakeBackend b) {
 // ---------------------------------------------------------------------------------------------------------------
 // Ekranlar
 
-Future<void> _tapIcon(WidgetTester t, IconData icon) async {
-  await t.scrollUntilVisible(find.byIcon(icon), 200, scrollable: find.byType(Scrollable).first);
-  await t.pump();
-  await t.tap(find.byIcon(icon).first);
-  await t.pump();
-  await t.pump(const Duration(milliseconds: 500));
-}
-
 Widget _tab(Session s) => ProfileTab(session: s, themeController: ThemeController());
 
 final _shots = <_Shot>[
@@ -197,7 +188,7 @@ final _shots = <_Shot>[
     b.on('/users/2', _other());
     b.on('/users/2/presence', {'online': true});
   }, height: 1100),
-  _Shot('07_duzenle', (b, s) => EditProfilePage(session: s, profile: {
+  _Shot('07_duzenle', (b, s) => EditProfilePage(session: s, profile: const {
         'id': 1,
         'displayName': 'Ayşe Kaya',
         'email': 'seed.ayse@bingol.edu.tr',

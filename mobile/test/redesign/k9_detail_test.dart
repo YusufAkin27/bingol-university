@@ -1,6 +1,5 @@
 import 'package:bu_kampus/features/clubs/clubs_widgets.dart';
 import 'package:bu_kampus/widgets/bu.dart';
-import 'package:bu_kampus/features/events/etkinlik_parts.dart';
 import 'package:bu_kampus/features/events/event_detail_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';

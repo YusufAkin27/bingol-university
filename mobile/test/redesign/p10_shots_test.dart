@@ -219,7 +219,7 @@ Widget _videoBoard() => Builder(builder: (c) {
 
 final _boards = <_Board>[
   _Board('01_galeri_secici', _picker, after: (t) => _select(t, [1, 2, 3])),
-  _Board('01b_galeri_bos_secim', _picker),
+  const _Board('01b_galeri_bos_secim', _picker),
   _Board('02_galeri_sinirli', () => _picker(LibraryAccess.limited)),
   _Board('02b_galeri_izin_yok', () => _picker(LibraryAccess.denied)),
   _Board('03_album', _picker, after: (t) async {
@@ -237,7 +237,7 @@ final _boards = <_Board>[
   _Board('05c_kamera_flas_otomatik', () => Builder(builder: (c) => _cameraChrome(c, false, flash: SohbetyFlashMode.auto))),
   _Board('05d_kamera_flas_acik', () => Builder(builder: (c) => _cameraChrome(c, false, flash: SohbetyFlashMode.on))),
   _Board('05e_kamera_izin_yok', () => const MediaCameraPage()),
-  _Board('06_video_hazirlama', _videoBoard),
+  const _Board('06_video_hazirlama', _videoBoard),
 ];
 
 void main() {
@@ -265,7 +265,7 @@ void main() {
       final name = '${b.file}${v.$1}_$_lang';
       testWidgets('p10 $name', skip: skip != null, (tester) async {
         tester.view.devicePixelRatio = _dpr;
-        tester.view.physicalSize = Size(390 * _dpr, 844 * _dpr);
+        tester.view.physicalSize = const Size(390 * _dpr, 844 * _dpr);
         tester.view.padding = const FakeViewPadding(top: 28 * _dpr, bottom: 16 * _dpr);
         tester.view.viewPadding = const FakeViewPadding(top: 28 * _dpr, bottom: 16 * _dpr);
         addTearDown(tester.view.reset);

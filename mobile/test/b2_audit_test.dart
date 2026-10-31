@@ -203,6 +203,8 @@ void main() {
           ClubDetailPage(session: makeSession(b), communityId: 7, imageService: _FakeImages()),
           size: kPhoneMedium));
       await settle(tester, const Duration(milliseconds: 600));
+      await tester.tap(find.text('Gönderiler')); // Stitch v3: açılış sekmesi Hakkında; yazma kutusu Gönderiler'de
+      await settle(tester, const Duration(milliseconds: 500));
       await tester.tap(find.text('Görsel ekle'));
       await tester.pump(const Duration(milliseconds: 300));
       expect(find.byKey(const ValueKey('clubPostTextRequired')), findsOneWidget);
@@ -221,6 +223,8 @@ void main() {
       final b = be()..on('/communities/7/posts', {'id': 1});
       await tester.pumpWidget(buildApp(ClubDetailPage(session: makeSession(b), communityId: 7), size: kPhoneMedium));
       await settle(tester, const Duration(milliseconds: 600));
+      await tester.tap(find.text('Gönderiler'));
+      await settle(tester, const Duration(milliseconds: 500));
       await tester.enterText(find.byType(TextField).first, 'Merhaba kulüp');
       await tester.pump();
       await tester.tap(find.text('Paylaş'));

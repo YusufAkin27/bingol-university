@@ -225,7 +225,7 @@ class EtkinlikActionButton extends StatelessWidget {
         haptic: primary ? BuHaptic.light : BuHaptic.selection,
         scale: .97,
         child: Container(
-          constraints: BoxConstraints(minHeight: BuSize.button),
+          constraints: const BoxConstraints(minHeight: BuSize.button),
           padding: const EdgeInsets.symmetric(horizontal: 12),
           decoration: BoxDecoration(color: bg, borderRadius: BuRadius.bControl, border: selected ? Border.all(color: t.pr, width: 1.5) : null),
           child: Row(mainAxisAlignment: MainAxisAlignment.center, mainAxisSize: MainAxisSize.min, children: [

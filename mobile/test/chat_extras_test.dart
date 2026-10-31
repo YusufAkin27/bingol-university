@@ -10,7 +10,6 @@ import 'package:bu_kampus/features/chat/chat_media_viewer.dart';
 import 'package:bu_kampus/features/chat/chat_tab.dart';
 import 'package:bu_kampus/features/chat/chatlist_widgets.dart';
 import 'package:bu_kampus/features/chat/view_once_viewer.dart';
-import 'package:bu_kampus/widgets/bu_widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';

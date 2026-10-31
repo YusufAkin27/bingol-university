@@ -9,7 +9,6 @@ import 'package:bu_kampus/features/events/events_page.dart';
 import 'package:bu_kampus/features/media_crop/media_crop.dart';
 import 'package:bu_kampus/features/home/home_tab.dart';
 import 'package:flutter/material.dart';
-import 'package:bu_kampus/features/events/etkinlik_parts.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'support/fake_app.dart';

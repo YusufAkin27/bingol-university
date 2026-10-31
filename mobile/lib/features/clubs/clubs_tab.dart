@@ -282,16 +282,13 @@ class _ClubsTabState extends State<ClubsTab> {
                         style: BuType.display.copyWith(fontSize: 28, height: 1.2, color: t.ink)),
                   ),
                 ),
-                Semantics(
-                  button: true,
-                  label: context.l10n.clubMgmtSearch,
-                  child: BuPressable(
-                    onTap: _toggleSearch,
-                    child: SizedBox(
-                      width: 44,
-                      height: 48,
-                      child: Icon(_searching ? LucideIcons.x : LucideIcons.search, size: 22, color: t.mut),
-                    ),
+                BuPressable(
+                  onTap: _toggleSearch,
+                  semanticLabel: context.l10n.clubMgmtSearch, // dış Semantics ayrı, etiketsiz bir dokunma düğümü bırakıyordu
+                  child: SizedBox(
+                    width: 44,
+                    height: 48,
+                    child: Icon(_searching ? LucideIcons.x : LucideIcons.search, size: 22, color: t.mut),
                   ),
                 ),
                 TextButton(

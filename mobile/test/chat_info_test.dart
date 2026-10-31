@@ -87,7 +87,7 @@ void main() {
     });
 
   /// Görüntüleyicinin İndir denetimi (düğme etiketi ya da ipucu).
-  Finder _download() => find.byTooltip('İndir').evaluate().isNotEmpty ? find.byTooltip('İndir') : find.text('İndir');
+  Finder download() => find.byTooltip('İndir').evaluate().isNotEmpty ? find.byTooltip('İndir') : find.text('İndir');
 
   Future<void> scrollTo(WidgetTester tester, Finder f) async {
     await tester.scrollUntilVisible(f, 300, scrollable: find.byType(Scrollable).first);
@@ -202,7 +202,7 @@ void main() {
     await tester.tap(contentImages().first);
     await settle(tester);
     expect(find.textContaining(' / 8'), findsOneWidget);
-    await tester.tap(_download());
+    await tester.tap(download());
     await settle(tester);
     expect(saved.length, 1);
     expect(find.text('Galeriye kaydedildi'), findsOneWidget);
@@ -230,7 +230,7 @@ void main() {
     await settle(tester);
     await tester.tap(contentImages().first);
     await settle(tester);
-    await tester.tap(_download());
+    await tester.tap(download());
     await settle(tester);
     expect(find.text('Bu cihazda desteklenmiyor.'), findsOneWidget);
     await unmount(tester);
