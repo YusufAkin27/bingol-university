@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 import '../../core/cache/image_disk_cache.dart';
 import '../../core/locale_controller.dart';
 import '../../widgets/bu.dart';
+import 'bubble_entry.dart';
 import 'bubble_text_meta.dart';
 import 'chat_media.dart';
 import 'chat_media_parts.dart';
@@ -404,7 +405,8 @@ class MessageBubble extends StatelessWidget {
         ],
       ),
     );
-    return onSwipeReply == null ? column : _SwipeReply(onReply: onSwipeReply!, child: column);
+    final row = onSwipeReply == null ? column : _SwipeReply(onReply: onSwipeReply!, child: column);
+    return BubbleEntry(mine: mine, fresh: BubbleEntry.isFresh(m), child: row);
   }
 
   /// Yanıt alıntısı: başta renkli ince çizgi (kendi mesajım / başkasınınki), tonal zemin.
@@ -537,7 +539,12 @@ class _Tick extends StatelessWidget {
           width: 16,
           height: 14,
           child: AnimatedSwitcher(
-            duration: BuMotion.of(context, const Duration(milliseconds: 220)),
+            duration: BuMotion.of(context, BuMotion.short),
+            // Saat -> tek tik -> çift tik: eski simge solar, yenisi hafifçe büyüyerek gelir.
+            transitionBuilder: (c, anim) => FadeTransition(
+              opacity: anim,
+              child: ScaleTransition(scale: Tween<double>(begin: .7, end: 1).animate(anim), child: c),
+            ),
             child: Icon(icon, key: ValueKey<String>(status), size: 13, color: status == 'READ' ? readColor : (status == 'failed' ? failedColor : color)),
           ),
         ),

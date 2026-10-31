@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
 import '../../core/locale_controller.dart';
 import '../../core/session.dart';
@@ -117,17 +116,19 @@ class _LikeButtonState extends State<LikeButton> with TickerProviderStateMixin {
     if (v == _count) return;
     _prevCount = _count;
     _count = v;
-    _countAnim.forward(from: 0);
+    // "Animasyonları azalt" açıkken sayı anında değişir.
+    if (!BuMotion.reduced(context)) _countAnim.forward(from: 0);
   }
 
   void _setLiked(bool v, {bool onlyIfDifferent = false}) {
     if (onlyIfDifferent && _liked == v) return;
-    HapticFeedback.selectionClick();
+    // Beğeni hafif darbe, vazgeçme seçim tıkı (BuHaptics hareketi sınırlar).
+    buHaptic(v ? BuHaptic.light : BuHaptic.selection);
     setState(() {
       _liked = v;
       _changeCount(math.max(0, _confirmedCount + (v == _confirmedLiked ? 0 : (v ? 1 : -1))));
     });
-    if (v) _anim.forward(from: 0);
+    if (v && !BuMotion.reduced(context)) _anim.forward(from: 0);
     widget.onChanged?.call(_post.copyWith(likedByMe: _liked, likeCount: _count));
     _timer?.cancel();
     _timer = Timer(LikeButton.debounce, _flush);
@@ -216,7 +217,9 @@ class _LikeButtonState extends State<LikeButton> with TickerProviderStateMixin {
       ),
     );
 
-    final style = (widget.compact ? tt.titleSmall : tt.titleMedium)?.copyWith(color: t.ink, height: 1.2);
+    // Tabular rakamlar: sayı değişirken satır genişliği titremesin.
+    final style = (widget.compact ? tt.titleSmall : tt.titleMedium)
+        ?.copyWith(color: t.ink, height: 1.2, fontFeatures: const [FontFeature.tabularFigures()]);
     final countText = Text(_label(_count), key: const ValueKey('like-count'), maxLines: 1, style: style);
     final count = AnimatedBuilder(
       animation: _countAnim,
@@ -271,8 +274,12 @@ class _HeartIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Tasarım 17: dolu kalp ve çizgi kalp aynı Material kalp ailesindendir.
-    return Icon(filled ? Icons.favorite : Icons.favorite_border, size: size, color: color);
+    // Tasarım 17: dolu kalp ve çizgi kalp aynı Material kalp ailesindendir. Renk 150 ms'de yumuşakça geçer.
+    return TweenAnimationBuilder<Color?>(
+      tween: ColorTween(end: color),
+      duration: BuMotion.of(context, BuMotion.short),
+      builder: (context, c, _) => Icon(filled ? Icons.favorite : Icons.favorite_border, size: size, color: c ?? color),
+    );
   }
 }
 
@@ -328,7 +335,7 @@ class DoubleTapLike extends StatefulWidget {
 
 class _DoubleTapLikeState extends State<DoubleTapLike> with SingleTickerProviderStateMixin {
   late final AnimationController _c =
-      AnimationController(vsync: this, duration: const Duration(milliseconds: 700));
+      AnimationController(vsync: this, duration: const Duration(milliseconds: 520));
 
   @override
   void dispose() {
@@ -343,12 +350,16 @@ class _DoubleTapLikeState extends State<DoubleTapLike> with SingleTickerProvider
 
   @override
   Widget build(BuildContext context) {
-    final scale = TweenSequence<double>([
-      TweenSequenceItem(tween: Tween(begin: .3, end: 1.2).chain(CurveTween(curve: Curves.easeOutBack)), weight: 35),
-      TweenSequenceItem(tween: Tween(begin: 1.2, end: 1.0), weight: 15),
-      TweenSequenceItem(tween: ConstantTween(1.0), weight: 30),
-      TweenSequenceItem(tween: Tween(begin: 1.0, end: 1.3), weight: 20),
-    ]).animate(_c);
+    // Hareket azaltılmışsa kalp ölçeklenmez; yalnız belirip solar (geri bildirim korunur).
+    final calm = BuMotion.reduced(context);
+    final scale = calm
+        ? const AlwaysStoppedAnimation<double>(1.0)
+        : TweenSequence<double>([
+            TweenSequenceItem(tween: Tween(begin: .3, end: 1.2).chain(CurveTween(curve: Curves.easeOutBack)), weight: 35),
+            TweenSequenceItem(tween: Tween(begin: 1.2, end: 1.0), weight: 15),
+            TweenSequenceItem(tween: ConstantTween(1.0), weight: 30),
+            TweenSequenceItem(tween: Tween(begin: 1.0, end: 1.3), weight: 20),
+          ]).animate(_c);
     final opacity = TweenSequence<double>([
       TweenSequenceItem(tween: Tween(begin: 0.0, end: 1.0), weight: 15),
       TweenSequenceItem(tween: ConstantTween(1.0), weight: 55),

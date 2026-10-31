@@ -21,7 +21,11 @@ class PostDetailPage extends StatefulWidget {
     this.initial,
     this.onChanged,
     this.onDeleted,
+    this.heroTag,
   });
+
+  /// Listeden gelen fotoğraf Hero etiketi (yoksa uçuş yok).
+  final Object? heroTag;
 
   final Session session;
   final int postId;
@@ -119,6 +123,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
                               session: widget.session,
                               post: p,
                               detail: true,
+                              heroTag: widget.heroTag,
                               onChanged: _onPostChanged,
                               onDeleted: _onPostDeleted,
                             ),

@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 
 import '../../core/locale_controller.dart';
 import '../../core/theme.dart';
+import '../../core/theme/bu_motion.dart';
 import '../../core/typography.dart';
 import '../../widgets/bu.dart' show BuRadius;
 
@@ -41,7 +42,7 @@ Future<String?> showMessageActions(
     barrierLabel: context.l10n.chatDetailClose,
     barrierColor:
         Colors.transparent, // karartmayı kendimiz çiziyoruz (animasyonlu)
-    transitionDuration: const Duration(milliseconds: 180),
+    transitionDuration: BuMotion.of(context, const Duration(milliseconds: 180)),
     transitionBuilder: (c, a, s, child) => child,
     pageBuilder: (c, animation, _) => _MessageActionsOverlay(
       animation: animation,

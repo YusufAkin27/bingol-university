@@ -10,9 +10,10 @@ export 'compose_post_page.dart' show openComposePost;
 /// Gönderi ekranlarına ince yönlendirme (tek giriş noktası).
 
 /// Gönderi detayı. Sayfa kapanırken güncel [Post] döndürürse çağıran listeyi tazeler.
-Future<Post?> openPostDetail(BuildContext context, Session session, int postId, {Post? initial}) =>
+/// [heroTag] verilirse listedeki fotoğraf detaya paylaşılan öğe olarak uçar (aynı etiket kartta da kullanılmalı).
+Future<Post?> openPostDetail(BuildContext context, Session session, int postId, {Post? initial, Object? heroTag}) =>
     Navigator.of(context).push<Post>(MaterialPageRoute<Post>(
-        builder: (_) => PostDetailPage(session: session, postId: postId, initial: initial)));
+        builder: (_) => PostDetailPage(session: session, postId: postId, initial: initial, heroTag: heroTag)));
 
 /// Bir kullanıcının gönderileri.
 Future<void> openUserPosts(BuildContext context, Session session, {required int userId, String? name}) =>

@@ -36,3 +36,28 @@ Ekran görüntüleri: `C:\bu_qa\shots\tasarim\dc\onceki|sonra\` (tr390 açık/ko
 | Kulüpler kategori çipleri | `SizedBox(height: 34)` içinde 48 dp BuChip: "Technology" yazısı alttan kırpılıyordu | Kutu 48 dp (üst boşluk 14 → 8, ritim aynı). Keşfet (Row) ve Sohbet (BuChipRow 52 dp) etkilenmiyor |
 | Ana Sayfa boş menü | ~180 dp'lik başlık + kutu + simge kartı | `HomeEmptyCard(compact: true)`: tek satır (simge + "Bugün için liste yok" + alt metin + ok); dolu menü ve diğer boş kartlar aynı |
 | Ana Sayfa Hızlı Erişim | "Timetable" karo kenarına çok yakın | Karo arası boşluk 8 → 6 dp (karo başına ~1.6 dp iç genişlik). 390 dp'de Türkçe etiketler zaten sınırda olduğundan 3+2 eşiği sıkılaştırılmadı (db_redesign_test 5 karo tek satır bekliyor) |
+
+---
+
+# Tur 2 (P2-DC): ince detay + animasyon (Keşfet, gönderi, sohbet)
+
+Kural: yalnız transform/opacity, 150-250 ms (tek seferlik büyük kalp 520 ms), sürekli döngü yok, kaydırırken yok, "animasyonları azalt"ta anında. Ortak parçalar yalnız kullanıldı (BuStaggerItem/Scope, BuHero, BuPop, BuPressable, BuMotion); `widgets/*`, `core/motion/*`, `chat_detail_page.dart` ve stomp/outbox DEĞİŞMEDİ. Yeni renk, yeni metin (ARB), yeni istek yok. Testler: `mobile/test/redesign/p2dc_test.dart`.
+
+| Ekran / öğe | Önce | Sonra (uygulanan) | Dosya |
+|---|---|---|---|
+| Keşfet akışı girişi | Tüm liste tek parça `SliverAnimatedOpacity` ile soluyordu | İlk 6 kart kademeli (BuStaggerItem, 40 ms arayla, solma + yükselme); kaydırınca/yenilemede/çip değişmeyen durumda tekrar yok (kapsam anahtarı yalnız Tümü/Popüler değişince artar, kaydırma durumu GlobalKey ile korunur); boş/hata kartı yükselerek belirir | `discover_masonry.dart` |
+| Yeni gönderi listeye giriş | Liste anında kayıyordu | Oluşturulan gönderi başa eklenince kendi kartı solarak + 16 dp yükselerek girer (`_EntryRise`), liste en üste kayar | `discover_masonry.dart` |
+| Beğeni kalbi / sayı | Kalp patlaması vardı; "azalt"ta bile oynuyordu; sayı proportional rakam; kalp rengi anlık | "Azalt"ta kalp/sayı animasyonu yok, çift dokunuşta büyük kalp yalnız belirip solar (ölçek yok); beğeni = lightImpact, vazgeç = selectionClick (BuHaptics ile sınırlı); kalp rengi 150 ms geçer; sayı tabular rakam; büyük kalp 700 -> 520 ms | `like_button.dart` |
+| Fotoğraf yükleme | Yer tutucu -> tam boy fade vardı; küçük resim sert beliriyordu | Küçük resim de fade ile gelir (renk -> küçük resim -> tam boy); önbellekteyse anında | `post_card.dart` |
+| Kart -> detay | Düz sayfa geçişi | Fotoğraf Hero (BuHero: uçuşta köşe yarıçapı 8 -> 0); detay küçük resmi de kullanır (uçuşta boş kare yok); etiket `discover-post-<id>` (Keşfet) / `post-card-<id>` (liste) | `post_card.dart`, `post_routes.dart`, `post_detail_page.dart` |
+| Detayda fotoğraf | Dokunma işlevsizdi | Dokununca tam ekran görüntüleyici: iki parmak yakınlaştırma, çift dokunuş 2.5x (animasyonlu, titreşimli), yakınlaştırılmamışken sürükleyerek kapatma (110 dp ya da hız eşiği; arka plan sürükledikçe açılır, eşik altında geri yaylanır); yakınlaştırılmışken Hero etiketi değişir (yanlış kareye geri uçmaz); kapat düğmesi 48 dp | `post_photo_viewer.dart` (yeni) |
+| Gönderi oluştur | Sayaç rengi anlık; uyarı satırı sert açılıyordu; Paylaş düğmesi dolgusu/metni anlık | Sayaç AnimatedDefaultTextStyle 150 ms (renk + ağırlık, tabular rakam); uyarı/hata satırları AnimatedSize + solarak; Paylaş dolgusu 150 ms renk geçişi, metin <-> "Paylaşılıyor" çapraz geçiş | `compose_post_page.dart` |
+| Sohbet listesi | Satırlar anında; basma yalnız dalga | İlk 8 satır kademeli (kapsam: her indeks bir kez); satır basılınca %1 küçülür (BuPressable); okunmamış rozeti sayı değişince BuPop; saat ve rozette tabular rakam | `chat_tab.dart` |
+| Mesaj balonu girişi | Anında | Taze gönderilen balon alttan 14 dp + solma (220 ms), taze alınan balon yalnız solma (150 ms); "taze" = yerel bekleyen/başarısız ya da 3 sn içinde oluşmuş; geçmiş yüklenirken/kaydırırken animasyon ve controller yok; alt durum satır anahtarıyla korunur | `bubble_entry.dart` (yeni), `message_bubble.dart` |
+| Gönderim durum ikonu | Çapraz solma | Solma + %70 -> %100 ölçek (saat -> tek tik -> çift tik) | `message_bubble.dart` |
+| Mesaj menüsü | Sabit 180 ms | "Azalt"ta anında | `message_actions.dart` |
+
+## Uygulanmayanlar
+- Sohbet "en alta in" düğmesi belirme animasyonu, tarih ayırıcı yapışkan başlık ve liste -> konuşma avatar Hero'su: üçü de `chat_detail_page.dart` içinde (sınırlı dosya); öneri: düğmeyi `AnimatedScale`/`AnimatedOpacity` ile `ValueListenableBuilder` içinde göstermek, üst çubuk avatarına `BuHero(tag: 'chat-avatar-<id>')`, listedeki `ChatlistAvatar`'ı aynı etiketle sarmak.
+- Seçici -> kırpma -> önizleme geçişleri: kırpma rotası platform tema geçişini kullanıyor (`fullscreenDialog`), önizleme tur 1'de AnimatedSwitcher aldı; ek değişiklik gerekmedi.
+- Sohbet medya görüntüleyici (`ChatZoomImage`): pinch, çift dokunuş yakınlaştırma (animasyonlu) ve çıkış zaten var; sürükleyerek kapatma eklenmedi (davranış katmanına yakın, ayrı karar).

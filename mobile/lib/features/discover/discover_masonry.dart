@@ -61,6 +61,7 @@ class _DiscoverMasonryFeedState extends State<DiscoverMasonryFeed> {
   static const _pageSize = 12;
 
   final _scroll = ScrollController();
+  final _scrollKey = GlobalKey(); // kapsam anahtarı değişince kaydırma durumu (ve denetleyici) taşınır, yeniden kurulmaz
   final List<Post> _items = [];
   late PostApi _api;
 
@@ -69,7 +70,8 @@ class _DiscoverMasonryFeedState extends State<DiscoverMasonryFeed> {
   bool _hasMore = true;
   bool _loading = false;
   bool _loaded = false;
-  bool _revealed = false; // ağdan gelen ilk sayfa yumuşakça belirir; önbellekten gelen anında görünür
+  int _scopeGen = 0; // yalnız kapsam değişince artar: ilk 6 kartın kademeli girişi o zaman yeniden oynar (yenilemede değil)
+  int? _freshId; // az önce oluşturulup başa eklenen gönderi: girişi ayrıca (solma + yükselme) oynar
   Object? _error;
   Object? _moreError;
 
@@ -110,7 +112,7 @@ class _DiscoverMasonryFeedState extends State<DiscoverMasonryFeed> {
       _items.removeWhere((e) => e.id == p.id);
       _items.insert(0, p);
       _loaded = true;
-      _revealed = true;
+      _freshId = p.id;
       _error = null;
     });
     if (_scroll.hasClients) {
@@ -125,7 +127,8 @@ class _DiscoverMasonryFeedState extends State<DiscoverMasonryFeed> {
       _cursor = null;
       _hasMore = true;
       _loaded = false;
-      _revealed = false;
+      _scopeGen++;
+      _freshId = null;
       _loading = false;
       _error = null;
       _moreError = null;
@@ -145,7 +148,6 @@ class _DiscoverMasonryFeedState extends State<DiscoverMasonryFeed> {
         _cursor = page.nextCursor;
         _hasMore = page.hasMore;
         _loaded = true;
-        _revealed = true;
       });
       await _fetch(gen, replace: true, quiet: true);
       return;
@@ -187,11 +189,6 @@ class _DiscoverMasonryFeedState extends State<DiscoverMasonryFeed> {
         _error = null;
         _moreError = null;
       });
-      if (!_revealed) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (mounted && gen == _gen) setState(() => _revealed = true);
-        });
-      }
       // İçerik ekranı doldurmuyorsa kaydırma olmayacağından sonraki sayfayı kendimiz iste.
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted && _hasMore && _scroll.hasClients && _scroll.position.maxScrollExtent <= 0) _loadMore();
@@ -230,7 +227,7 @@ class _DiscoverMasonryFeedState extends State<DiscoverMasonryFeed> {
   }
 
   Future<void> _open(Post p) async {
-    final r = await openPostDetail(context, widget.session, p.id, initial: p);
+    final r = await openPostDetail(context, widget.session, p.id, initial: p, heroTag: discoverHeroTag(p.id));
     if (r != null) _changed(r);
   }
 
@@ -240,50 +237,53 @@ class _DiscoverMasonryFeedState extends State<DiscoverMasonryFeed> {
     if (!_loaded && _error == null) {
       body = const SliverToBoxAdapter(child: DiscoverFeedSkeleton());
     } else if (_error != null && !_loaded) {
-      body = SliverToBoxAdapter(child: DiscoverErrorCard(offline: _error is ApiError && (_error as ApiError).isNetwork, onRetry: _reload));
+      body = SliverToBoxAdapter(
+          child: _EntryRise(child: DiscoverErrorCard(offline: _error is ApiError && (_error as ApiError).isNetwork, onRetry: _reload)));
     } else if (_items.isEmpty) {
-      body = SliverToBoxAdapter(child: DiscoverEmptyCard(onCompose: widget.onCompose));
+      body = SliverToBoxAdapter(child: _EntryRise(child: DiscoverEmptyCard(onCompose: widget.onCompose)));
     } else {
       final inline = widget.inline;
       final at = _items.length < widget.inlineAfter ? _items.length : widget.inlineAfter;
       final count = _items.length + (inline == null ? 0 : 1);
-      body = SliverAnimatedOpacity(
-        opacity: _revealed ? 1 : 0,
-        duration: BuMotion.of(context, BuMotion.medium),
-        curve: BuMotion.standard,
-        // Kartlar yan boşluğu kendisi taşır; araya giren öneri şeridi kenardan kenara kayabilsin diye liste dolgusuz.
-        sliver: SliverList.separated(
-          itemCount: count,
-          separatorBuilder: (_, __) => BuGap.h16,
-          itemBuilder: (_, i) {
-            if (inline != null && i == at) return inline;
-            final p = _items[inline != null && i > at ? i - 1 : i];
-            return Padding(
-              padding: const EdgeInsets.symmetric(horizontal: BuSpace.lg),
-              child: DiscoverPostCard(
-                key: ValueKey('discover-post-${p.id}'),
-                session: widget.session,
-                post: p,
-                onOpen: _open,
-                onChanged: _changed,
-                onDeleted: _removed,
-              ),
-            );
-          },
-        ),
+      // Kartlar yan boşluğu kendisi taşır; araya giren öneri şeridi kenardan kenara kayabilsin diye liste dolgusuz.
+      // İlk 6 kart sırayla belirir (BuStaggerItem; kaydırınca geri gelenler ve yenileme tekrar oynatmaz).
+      body = SliverList.separated(
+        itemCount: count,
+        separatorBuilder: (_, __) => BuGap.h16,
+        itemBuilder: (_, i) {
+          if (inline != null && i == at) return inline;
+          final p = _items[inline != null && i > at ? i - 1 : i];
+          Widget card = Padding(
+            padding: const EdgeInsets.symmetric(horizontal: BuSpace.lg),
+            child: DiscoverPostCard(
+              key: ValueKey('discover-post-${p.id}'),
+              session: widget.session,
+              post: p,
+              onOpen: _open,
+              onChanged: _changed,
+              onDeleted: _removed,
+            ),
+          );
+          if (p.id == _freshId) card = _EntryRise(key: ValueKey('discover-fresh-${p.id}'), child: card);
+          return BuStaggerItem(key: ValueKey('discover-row-${p.id}'), index: i, maxAnimated: _staggerCards, child: card);
+        },
       );
     }
     return RefreshIndicator(
       onRefresh: _refresh,
-      child: CustomScrollView(
-        controller: _scroll,
-        physics: const AlwaysScrollableScrollPhysics(),
-        slivers: [
-          if (widget.header != null) SliverToBoxAdapter(child: widget.header),
-          body,
-          SliverToBoxAdapter(child: _footer()),
-          const SliverToBoxAdapter(child: SizedBox(height: kNavInset)),
-        ],
+      child: BuStaggerScope(
+        key: ValueKey('discover-scope-$_scopeGen'),
+        child: CustomScrollView(
+          key: _scrollKey,
+          controller: _scroll,
+          physics: const AlwaysScrollableScrollPhysics(),
+          slivers: [
+            if (widget.header != null) SliverToBoxAdapter(child: widget.header),
+            body,
+            SliverToBoxAdapter(child: _footer()),
+            const SliverToBoxAdapter(child: SizedBox(height: kNavInset)),
+          ],
+        ),
       ),
     );
   }
@@ -304,6 +304,57 @@ class _DiscoverMasonryFeedState extends State<DiscoverMasonryFeed> {
       );
     }
     return BuGap.h4;
+  }
+}
+
+/// Kademeli girişte animasyonlanan en çok kart sayısı.
+const int _staggerCards = 6;
+
+/// Keşfet fotoğrafının Hero etiketi (kart ve gönderi detayı aynı etiketi kullanır).
+String discoverHeroTag(int postId) => 'discover-post-$postId';
+
+/// Tek seferlik giriş: solma + hafif yükselme (yalnız opacity/transform, 250 ms). Hareket azaltılmışsa anında.
+class _EntryRise extends StatefulWidget {
+  const _EntryRise({super.key, required this.child});
+
+  final Widget child;
+
+  @override
+  State<_EntryRise> createState() => _EntryRiseState();
+}
+
+class _EntryRiseState extends State<_EntryRise> with SingleTickerProviderStateMixin {
+  AnimationController? _c;
+  late Animation<double> _curve;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_c != null) return;
+    if (BuMotion.reduced(context)) return;
+    final c = AnimationController(vsync: this, duration: BuMotion.medium)..forward();
+    _curve = CurvedAnimation(parent: c, curve: BuMotion.emphasizedDecelerate);
+    _c = c;
+  }
+
+  @override
+  void dispose() {
+    _c?.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final c = _c;
+    if (c == null) return widget.child;
+    return FadeTransition(
+      opacity: _curve,
+      child: AnimatedBuilder(
+        animation: _curve,
+        child: widget.child,
+        builder: (_, child) => Transform.translate(offset: Offset(0, 16 * (1 - _curve.value)), child: child),
+      ),
+    );
   }
 }
 
@@ -569,6 +620,7 @@ class _DiscoverPostCardState extends State<DiscoverPostCard> {
                       radius: BuRadius.sm,
                       aspectRatio: kDiscoverPhotoRatio,
                       progressive: true,
+                      heroTag: discoverHeroTag(p.id),
                     ),
                   ),
                 ),

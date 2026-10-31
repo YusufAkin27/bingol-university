@@ -7,6 +7,7 @@ import '../../widgets/bu.dart';
 import 'like_button.dart';
 import 'post_actions.dart';
 import 'post_models.dart';
+import 'post_photo_viewer.dart';
 import 'post_routes.dart';
 import '../../core/academic_catalog.dart';
 
@@ -22,6 +23,7 @@ class PostPhoto extends StatelessWidget {
     this.radius = BuRadius.lg,
     this.aspectRatio = 4 / 5,
     this.progressive = false,
+    this.heroTag,
   });
 
   final Session session;
@@ -29,6 +31,10 @@ class PostPhoto extends StatelessWidget {
   final double radius;
   final double aspectRatio;
   final bool progressive;
+
+  /// Verilirse fotoğraf liste -> detay (ve detay -> tam ekran) geçişinde paylaşılan öğe (Hero) olarak uçar.
+  /// Etiket aynı rota içinde benzersiz olmalı (kart + detay aynı etiketi, farklı rotalarda taşır).
+  final Object? heroTag;
 
   /// Küçük resmin (sunucu: uzun kenar >= 480 px) çözüm genişliği.
   static const _thumbPx = 480;
@@ -41,8 +47,8 @@ class PostPhoto extends StatelessWidget {
     final dpr = MediaQuery.devicePixelRatioOf(context);
     final headers = postAuthHeaders(session);
     final thumb = progressive ? m.thumbUrl : null;
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(radius),
+    final photo = ClipRRect(
+      borderRadius: BorderRadius.circular(heroTag != null ? 0 : radius),
       child: AspectRatio(
         aspectRatio: aspectRatio,
         child: LayoutBuilder(builder: (context, c) {
@@ -62,6 +68,10 @@ class PostPhoto extends StatelessWidget {
                     fit: BoxFit.cover,
                     gaplessPlayback: true,
                     excludeFromSemantics: true,
+                    // Yer tutucu renk -> küçük resim -> tam boy: her basamak yumuşakça belirir (önbellekteyse anında).
+                    frameBuilder: (context, child, frame, sync) => sync
+                        ? child
+                        : AnimatedOpacity(opacity: frame == null ? 0 : 1, duration: fade, curve: BuMotion.standard, child: child),
                     errorBuilder: (_, __, ___) => const SizedBox.shrink(),
                   ),
                 // Disk destekli: Keşfet fotoğrafları ikinci açılışta ağdan değil diskten gelir (çıkışta silinir).
@@ -87,6 +97,9 @@ class PostPhoto extends StatelessWidget {
         }),
       ),
     );
+    final tag = heroTag;
+    // Köşe yarıçapını BuHero yönetir (uçuşta kart -> tam genişlik arası yumuşak geçer).
+    return tag == null ? photo : BuHero(tag: tag, radius: radius, child: photo);
   }
 }
 
@@ -101,6 +114,7 @@ class PostCard extends StatefulWidget {
     required this.onDeleted,
     this.onOpen,
     this.detail = false,
+    this.heroTag,
   });
 
   final Session session;
@@ -111,6 +125,9 @@ class PostCard extends StatefulWidget {
   /// Karta dokununca (varsayılan: gönderi detayı).
   final ValueChanged<Post>? onOpen;
   final bool detail;
+
+  /// Fotoğrafın Hero etiketi (detayda: listeden gelen etiket). Liste kartında, [onOpen] yoksa, kimlikten türetilir.
+  final Object? heroTag;
 
   @override
   State<PostCard> createState() => _PostCardState();
@@ -146,15 +163,20 @@ class _PostCardState extends State<PostCard> {
 
   Post get p => widget.post;
 
+  Object? get _heroTag => widget.heroTag ?? (!widget.detail && widget.onOpen == null ? 'post-card-${p.id}' : null);
+
   void _open() {
     if (widget.detail) return;
     final cb = widget.onOpen;
     if (cb != null) {
       cb(p);
     } else {
-      openPostDetail(context, widget.session, p.id, initial: p);
+      openPostDetail(context, widget.session, p.id, initial: p, heroTag: _heroTag);
     }
   }
+
+  /// Detayda fotoğrafa dokunma: tam ekran görüntüleyici (yakınlaştırma + sürükleyerek kapatma).
+  void _openViewer() => openPostPhotoViewer(context, widget.session, p, heroTag: _heroTag);
 
   @override
   Widget build(BuildContext context) {
@@ -260,10 +282,17 @@ class _PostCardState extends State<PostCard> {
               BuGap.h16,
               DoubleTapLike(
                 onLike: _like.like,
-                onTap: widget.detail ? null : _open,
+                onTap: widget.detail ? _openViewer : _open,
                 // Detayda fotoğraf ekran kenarlarına dayanır: köşe yuvarlağı ekran kenarında bozuk görünür.
                 radius: detail ? 0 : BuRadius.lg,
-                child: PostPhoto(session: widget.session, post: p, radius: detail ? 0 : BuRadius.lg),
+                child: PostPhoto(
+                  session: widget.session,
+                  post: p,
+                  radius: detail ? 0 : BuRadius.lg,
+                  // Detayda küçük resim de kullanılır: Hero uçuşunda ve ilk açılışta boş kare görünmez.
+                  progressive: detail,
+                  heroTag: _heroTag,
+                ),
               ),
             ],
             Padding(

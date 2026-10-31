@@ -215,7 +215,13 @@ class _ComposePostPageState extends State<ComposePostPage> {
                     ),
                     const SizedBox(height: 12),
                     _textField(t),
-                    ..._errors(t),
+                    // Uyarı/hata satırları açılırken yükseklik yumuşakça büyür, satır solarak belirir.
+                    AnimatedSize(
+                      duration: BuMotion.of(context, BuMotion.short),
+                      curve: BuMotion.standard,
+                      alignment: Alignment.topCenter,
+                      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: _errors(t)),
+                    ),
                     if (_photo != null)
                       Padding(
                         padding: const EdgeInsets.only(top: 20),
@@ -262,10 +268,15 @@ class _ComposePostPageState extends State<ComposePostPage> {
           ),
           Padding(
             padding: const EdgeInsetsDirectional.only(end: 12),
-            child: Material(
-              key: const ValueKey('composeShare'),
-              color: enabled || _publishing ? t.pr : Colors.transparent,
-              borderRadius: BorderRadius.circular(BuRadius.pill),
+            child: TweenAnimationBuilder<Color?>(
+              tween: ColorTween(end: enabled || _publishing ? t.pr : t.pr.withValues(alpha: 0)),
+              duration: BuMotion.of(context, BuMotion.short),
+              builder: (context, fill, child) => Material(
+                key: const ValueKey('composeShare'),
+                color: fill,
+                borderRadius: BorderRadius.circular(BuRadius.pill),
+                child: child,
+              ),
               child: InkWell(
                 borderRadius: BorderRadius.circular(BuRadius.pill),
                 onTap: enabled ? _publish : null,
@@ -276,14 +287,18 @@ class _ComposePostPageState extends State<ComposePostPage> {
                     child: Center(
                       widthFactor: 1,
                       heightFactor: 1,
-                      child: _publishing
-                          ? Row(mainAxisSize: MainAxisSize.min, children: [
+                      child: AnimatedSwitcher(
+                        duration: BuMotion.of(context, BuMotion.short),
+                        child: _publishing
+                          ? Row(key: const ValueKey('sharing'), mainAxisSize: MainAxisSize.min, children: [
                               SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: t.onPr)),
                               const SizedBox(width: 8),
                               Text(context.l10n.p04PostSharing, style: tt.labelLarge?.copyWith(color: t.onPr, fontWeight: FontWeight.w700)),
                             ])
                           : Text(context.l10n.postComposeShare,
+                              key: const ValueKey('share'),
                               style: tt.labelLarge?.copyWith(color: enabled ? t.onPr : t.mut, fontWeight: FontWeight.w700)),
+                      ),
                     ),
                   ),
                 ),
@@ -466,12 +481,18 @@ class _ComposePostPageState extends State<ComposePostPage> {
           alignment: AlignmentDirectional.centerEnd,
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 4),
-            child: Text(context.l10n.gonderiWordCount(_words.toString(), kPostMaxWords.toString()),
-                key: const ValueKey('composeCounter'),
-                // Sayaç yalnız sınırda/aşımda vurgulanır; normalde sessiz kalır.
-                style: tt.labelLarge?.copyWith(
-                    color: over ? t.danger : (_words >= kPostMaxWords ? t.ink : t.mut),
-                    fontWeight: over || _words >= kPostMaxWords ? FontWeight.w700 : FontWeight.w500)),
+            // Renk/ağırlık 150 ms'de yumuşakça geçer; tabular rakam: sayı değişirken genişlik oynamaz.
+            child: AnimatedDefaultTextStyle(
+              duration: BuMotion.of(context, BuMotion.short),
+              curve: BuMotion.standard,
+              // Sayaç yalnız sınırda/aşımda vurgulanır; normalde sessiz kalır.
+              style: (tt.labelLarge ?? const TextStyle()).copyWith(
+                  color: over ? t.danger : (_words >= kPostMaxWords ? t.ink : t.mut),
+                  fontWeight: over || _words >= kPostMaxWords ? FontWeight.w700 : FontWeight.w500,
+                  fontFeatures: const [FontFeature.tabularFigures()]),
+              child: Text(context.l10n.gonderiWordCount(_words.toString(), kPostMaxWords.toString()),
+                  key: const ValueKey('composeCounter')),
+            ),
           ),
         ),
       ],
@@ -490,7 +511,7 @@ class _ComposePostPageState extends State<ComposePostPage> {
             Expanded(child: child),
           ]),
         );
-    return [
+    final items = <Widget>[
       if (!_textOk)
         row(LucideIcons.circleAlert,
             Text(l.gonderiWordLimit(kPostMaxWords.toString()),
@@ -548,6 +569,40 @@ class _ComposePostPageState extends State<ComposePostPage> {
         row(LucideIcons.circleAlert, Text(_errText, key: const ValueKey('composeError'), style: tt.labelLarge?.copyWith(color: t.danger)),
             color: t.danger),
     ];
+    return [for (final w in items) _Appear(child: w)];
+  }
+}
+
+/// Eklenince bir kez solarak belirir (250 ms, yalnız opacity); hareket azaltılmışsa anında.
+class _Appear extends StatefulWidget {
+  const _Appear({required this.child});
+
+  final Widget child;
+
+  @override
+  State<_Appear> createState() => _AppearState();
+}
+
+class _AppearState extends State<_Appear> with SingleTickerProviderStateMixin {
+  AnimationController? _c;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_c != null || BuMotion.reduced(context)) return;
+    _c = AnimationController(vsync: this, duration: BuMotion.medium)..forward();
+  }
+
+  @override
+  void dispose() {
+    _c?.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final c = _c;
+    return c == null ? widget.child : FadeTransition(opacity: CurvedAnimation(parent: c, curve: BuMotion.standard), child: widget.child);
   }
 }
 

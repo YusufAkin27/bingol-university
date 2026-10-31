@@ -487,7 +487,9 @@ class _ChatTabState extends State<ChatTab> {
       body: RefreshIndicator(
         color: t.pr,
         onRefresh: () => _load(silent: true),
-        child: CustomScrollView(
+        // Satırların kademeli girişi: her indeks yalnız bir kez oynar (kaydırma/yenileme/süzme tekrar oynatmaz).
+        child: BuStaggerScope(
+          child: CustomScrollView(
           controller: _scroll,
           physics: const AlwaysScrollableScrollPhysics(),
           slivers: [
@@ -529,6 +531,7 @@ class _ChatTabState extends State<ChatTab> {
             ),
             ..._bodySlivers(t),
           ],
+        ),
         ),
       ),
     );
@@ -663,16 +666,20 @@ class _ChatTabState extends State<ChatTab> {
             ),
           );
           final removing = _removing.contains((c['id'] as num?)?.toInt());
-          return ClipRect(
-            key: ValueKey('wrap-${c['id']}'),
-            child: IgnorePointer(
-              ignoring: removing,
-              child: AnimatedAlign(
-                alignment: Alignment.topCenter,
-                heightFactor: removing ? 0 : 1,
-                duration: BuMotion.of(context, const Duration(milliseconds: 220)),
-                curve: Curves.easeOutCubic,
-                child: row,
+          return BuStaggerItem(
+            key: ValueKey('stagger-${c['id']}'),
+            index: k,
+            child: ClipRect(
+              key: ValueKey('wrap-${c['id']}'),
+              child: IgnorePointer(
+                ignoring: removing,
+                child: AnimatedAlign(
+                  alignment: Alignment.topCenter,
+                  heightFactor: removing ? 0 : 1,
+                  duration: BuMotion.of(context, const Duration(milliseconds: 220)),
+                  curve: Curves.easeOutCubic,
+                  child: row,
+                ),
               ),
             ),
           );
@@ -863,7 +870,10 @@ class _ConversationRow extends StatelessWidget {
     const r = Radius.circular(24);
     final radius = BorderRadius.vertical(top: first ? r : Radius.zero, bottom: last ? r : Radius.zero);
 
-    return Semantics(
+    // Basılınca hafifçe küçülür (bitişik satırlar arasında boşluk açılmasın diye çok hafif: .99).
+    return BuPressable(
+      scale: .99,
+      child: Semantics(
       container: true,
       child: Material(
         color: t.sf,
@@ -929,7 +939,10 @@ class _ConversationRow extends StatelessWidget {
                                 const SizedBox(width: 4),
                               ],
                               Text(_stamp(context, when),
-                                  style: tx.labelMedium!.copyWith(color: hot ? t.pr : t.mut, fontWeight: hot ? FontWeight.w700 : FontWeight.w500)),
+                                  style: tx.labelMedium!.copyWith(
+                                      color: hot ? t.pr : t.mut,
+                                      fontWeight: hot ? FontWeight.w700 : FontWeight.w500,
+                                      fontFeatures: const [FontFeature.tabularFigures()])),
                             ],
                           ),
                           const SizedBox(height: 4),
@@ -968,14 +981,21 @@ class _ConversationRow extends StatelessWidget {
                             ),
                             if (unread > 0) ...[
                               const SizedBox(width: 8),
-                              Container(
-                                constraints: const BoxConstraints(minWidth: 22),
-                                height: 22,
-                                padding: const EdgeInsets.symmetric(horizontal: 7),
-                                alignment: Alignment.center,
-                                decoration: BoxDecoration(color: muted ? t.sf2 : t.pr, borderRadius: BorderRadius.circular(11)),
-                                child: Text(unread > 99 ? '99+' : '$unread',
-                                    style: tx.labelSmall!.copyWith(fontWeight: FontWeight.w700, color: muted ? t.mut : t.onPr)),
+                              // Sayı değişince rozet bir kez "pop" yapar (ilk çizimde oynamaz).
+                              BuPop(
+                                trigger: unread,
+                                child: Container(
+                                  constraints: const BoxConstraints(minWidth: 22),
+                                  height: 22,
+                                  padding: const EdgeInsets.symmetric(horizontal: 7),
+                                  alignment: Alignment.center,
+                                  decoration: BoxDecoration(color: muted ? t.sf2 : t.pr, borderRadius: BorderRadius.circular(11)),
+                                  child: Text(unread > 99 ? '99+' : '$unread',
+                                      style: tx.labelSmall!.copyWith(
+                                          fontWeight: FontWeight.w700,
+                                          color: muted ? t.mut : t.onPr,
+                                          fontFeatures: const [FontFeature.tabularFigures()])),
+                                ),
                               ),
                             ],
                           ]),
@@ -996,6 +1016,7 @@ class _ConversationRow extends StatelessWidget {
             ],
           ),
         ),
+      ),
       ),
     );
   }
