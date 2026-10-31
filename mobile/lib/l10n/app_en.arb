@@ -2838,5 +2838,20 @@
   "p31ChatRemovedToast": "You were removed from this chat.",
   "p30AutosaveConsentTitle": "Save photos to your gallery?",
   "p30AutosaveConsentBody": "Photos you send and receive in one-to-one chats are saved to your phone's gallery (BU Kampus album). View-once photos are never saved. You can turn this off here at any time.",
-  "p30AutosaveConsentOk": "Turn on"
+  "p30AutosaveConsentOk": "Turn on",
+  "p60EditHome": "Edit home",
+  "p60EditHint": "Press and hold to drag, or use the arrows.",
+  "p60Done": "Done",
+  "p60ResetDefault": "Reset to default",
+  "p60SectionClasses": "Classes today",
+  "p60MoveUp": "Move {name} up",
+  "p60MoveDown": "Move {name} down",
+  "p60Shortcuts": "Choose shortcuts",
+  "p60ShortcutsCount": "{n} shortcuts",
+  "p60ShortcutsHint": "Pick up to 5 shortcuts.",
+  "p60EmptyTitle": "Your home is empty",
+  "p60EmptyAction": "Add a section",
+  "p60NoClassesToday": "No classes today",
+  "p60NoTimetable": "No timetable yet",
+  "p60ShortSearch": "Search"
 }

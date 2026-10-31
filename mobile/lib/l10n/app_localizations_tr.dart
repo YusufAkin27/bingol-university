@@ -9110,5 +9110,53 @@ class AppLocalizationsTr extends AppLocalizations {
   String get p30AutosaveConsentOk => 'Aç';
 
   @override
-  String get p65PermSkip => 'Atla';
+  String get p60EditHome => 'Ana sayfayı düzenle';
+
+  @override
+  String get p60EditHint => 'Uzun basıp sürükle ya da okları kullan.';
+
+  @override
+  String get p60Done => 'Bitti';
+
+  @override
+  String get p60ResetDefault => 'Varsayılana dön';
+
+  @override
+  String get p60SectionClasses => 'Bugünkü dersler';
+
+  @override
+  String p60MoveUp(String name) {
+    return '$name bölümünü yukarı taşı';
+  }
+
+  @override
+  String p60MoveDown(String name) {
+    return '$name bölümünü aşağı taşı';
+  }
+
+  @override
+  String get p60Shortcuts => 'Kısayolları seç';
+
+  @override
+  String p60ShortcutsCount(String n) {
+    return '$n kısayol';
+  }
+
+  @override
+  String get p60ShortcutsHint => 'En çok 5 kısayol seçebilirsin.';
+
+  @override
+  String get p60EmptyTitle => 'Ana sayfan boş';
+
+  @override
+  String get p60EmptyAction => 'Bölüm ekle';
+
+  @override
+  String get p60NoClassesToday => 'Bugün dersin yok';
+
+  @override
+  String get p60NoTimetable => 'Ders programı eklenmemiş';
+
+  @override
+  String get p60ShortSearch => 'Arama';
 }

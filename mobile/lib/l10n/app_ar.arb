@@ -2838,5 +2838,20 @@
   "p31ChatRemovedToast": "تمت إزالتك من هذه المحادثة.",
   "p30AutosaveConsentTitle": "حفظ الصور في المعرض؟",
   "p30AutosaveConsentBody": "تُحفظ الصور التي ترسلها وتستقبلها في المحادثات الفردية في معرض هاتفك (ألبوم BU Kampus). لا تُحفظ الصور ذات المشاهدة الواحدة. يمكنك إيقاف ذلك من هنا في أي وقت.",
-  "p30AutosaveConsentOk": "تشغيل"
+  "p30AutosaveConsentOk": "تشغيل",
+  "p60EditHome": "تعديل الصفحة الرئيسية",
+  "p60EditHint": "اضغط مطولًا للسحب أو استخدم الأسهم.",
+  "p60Done": "تم",
+  "p60ResetDefault": "استعادة الافتراضي",
+  "p60SectionClasses": "دروس اليوم",
+  "p60MoveUp": "انقل {name} للأعلى",
+  "p60MoveDown": "انقل {name} للأسفل",
+  "p60Shortcuts": "اختيار الاختصارات",
+  "p60ShortcutsCount": "{n} اختصارات",
+  "p60ShortcutsHint": "اختر حتى 5 اختصارات.",
+  "p60EmptyTitle": "صفحتك الرئيسية فارغة",
+  "p60EmptyAction": "إضافة قسم",
+  "p60NoClassesToday": "لا دروس اليوم",
+  "p60NoTimetable": "لم تتم إضافة جدول دروس",
+  "p60ShortSearch": "بحث"
 }

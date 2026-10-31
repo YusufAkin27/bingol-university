@@ -16561,11 +16561,95 @@ abstract class AppLocalizations {
   /// **'Aç'**
   String get p30AutosaveConsentOk;
 
-  /// No description provided for @p65PermSkip.
+  /// No description provided for @p60EditHome.
   ///
   /// In tr, this message translates to:
-  /// **'Atla'**
-  String get p65PermSkip;
+  /// **'Ana sayfayı düzenle'**
+  String get p60EditHome;
+
+  /// No description provided for @p60EditHint.
+  ///
+  /// In tr, this message translates to:
+  /// **'Uzun basıp sürükle ya da okları kullan.'**
+  String get p60EditHint;
+
+  /// No description provided for @p60Done.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bitti'**
+  String get p60Done;
+
+  /// No description provided for @p60ResetDefault.
+  ///
+  /// In tr, this message translates to:
+  /// **'Varsayılana dön'**
+  String get p60ResetDefault;
+
+  /// No description provided for @p60SectionClasses.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bugünkü dersler'**
+  String get p60SectionClasses;
+
+  /// No description provided for @p60MoveUp.
+  ///
+  /// In tr, this message translates to:
+  /// **'{name} bölümünü yukarı taşı'**
+  String p60MoveUp(String name);
+
+  /// No description provided for @p60MoveDown.
+  ///
+  /// In tr, this message translates to:
+  /// **'{name} bölümünü aşağı taşı'**
+  String p60MoveDown(String name);
+
+  /// No description provided for @p60Shortcuts.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kısayolları seç'**
+  String get p60Shortcuts;
+
+  /// No description provided for @p60ShortcutsCount.
+  ///
+  /// In tr, this message translates to:
+  /// **'{n} kısayol'**
+  String p60ShortcutsCount(String n);
+
+  /// No description provided for @p60ShortcutsHint.
+  ///
+  /// In tr, this message translates to:
+  /// **'En çok 5 kısayol seçebilirsin.'**
+  String get p60ShortcutsHint;
+
+  /// No description provided for @p60EmptyTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Ana sayfan boş'**
+  String get p60EmptyTitle;
+
+  /// No description provided for @p60EmptyAction.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bölüm ekle'**
+  String get p60EmptyAction;
+
+  /// No description provided for @p60NoClassesToday.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bugün dersin yok'**
+  String get p60NoClassesToday;
+
+  /// No description provided for @p60NoTimetable.
+  ///
+  /// In tr, this message translates to:
+  /// **'Ders programı eklenmemiş'**
+  String get p60NoTimetable;
+
+  /// No description provided for @p60ShortSearch.
+  ///
+  /// In tr, this message translates to:
+  /// **'Arama'**
+  String get p60ShortSearch;
 }
 
 class _AppLocalizationsDelegate

@@ -9142,5 +9142,53 @@ class AppLocalizationsEn extends AppLocalizations {
   String get p30AutosaveConsentOk => 'Turn on';
 
   @override
-  String get p65PermSkip => 'Skip';
+  String get p60EditHome => 'Edit home';
+
+  @override
+  String get p60EditHint => 'Press and hold to drag, or use the arrows.';
+
+  @override
+  String get p60Done => 'Done';
+
+  @override
+  String get p60ResetDefault => 'Reset to default';
+
+  @override
+  String get p60SectionClasses => 'Classes today';
+
+  @override
+  String p60MoveUp(String name) {
+    return 'Move $name up';
+  }
+
+  @override
+  String p60MoveDown(String name) {
+    return 'Move $name down';
+  }
+
+  @override
+  String get p60Shortcuts => 'Choose shortcuts';
+
+  @override
+  String p60ShortcutsCount(String n) {
+    return '$n shortcuts';
+  }
+
+  @override
+  String get p60ShortcutsHint => 'Pick up to 5 shortcuts.';
+
+  @override
+  String get p60EmptyTitle => 'Your home is empty';
+
+  @override
+  String get p60EmptyAction => 'Add a section';
+
+  @override
+  String get p60NoClassesToday => 'No classes today';
+
+  @override
+  String get p60NoTimetable => 'No timetable yet';
+
+  @override
+  String get p60ShortSearch => 'Search';
 }

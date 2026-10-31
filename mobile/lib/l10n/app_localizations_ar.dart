@@ -9042,5 +9042,53 @@ class AppLocalizationsAr extends AppLocalizations {
   String get p30AutosaveConsentOk => 'تشغيل';
 
   @override
-  String get p65PermSkip => 'تخطَّ';
+  String get p60EditHome => 'تعديل الصفحة الرئيسية';
+
+  @override
+  String get p60EditHint => 'اضغط مطولًا للسحب أو استخدم الأسهم.';
+
+  @override
+  String get p60Done => 'تم';
+
+  @override
+  String get p60ResetDefault => 'استعادة الافتراضي';
+
+  @override
+  String get p60SectionClasses => 'دروس اليوم';
+
+  @override
+  String p60MoveUp(String name) {
+    return 'انقل $name للأعلى';
+  }
+
+  @override
+  String p60MoveDown(String name) {
+    return 'انقل $name للأسفل';
+  }
+
+  @override
+  String get p60Shortcuts => 'اختيار الاختصارات';
+
+  @override
+  String p60ShortcutsCount(String n) {
+    return '$n اختصارات';
+  }
+
+  @override
+  String get p60ShortcutsHint => 'اختر حتى 5 اختصارات.';
+
+  @override
+  String get p60EmptyTitle => 'صفحتك الرئيسية فارغة';
+
+  @override
+  String get p60EmptyAction => 'إضافة قسم';
+
+  @override
+  String get p60NoClassesToday => 'لا دروس اليوم';
+
+  @override
+  String get p60NoTimetable => 'لم تتم إضافة جدول دروس';
+
+  @override
+  String get p60ShortSearch => 'بحث';
 }
