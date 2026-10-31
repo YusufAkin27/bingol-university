@@ -79,6 +79,32 @@ TC=$(curl -s -D - -H "$AD" "$A/admin/support/tickets/export.csv?priority=HIGH" |
 has "talep csv baslik" 'id,durum,kategori,oncelik' "$TC"
 hasnt "talep csv: ic not yok" "$SECRET" "$TC"
 
+echo "== maskeleme (T-018): SUPPORT/VIEWER maskeli e-posta gorur, FULL tam adres"
+# yardimci personel hesaplari: rol ADMIN yapilir (VIEWER baslar), SUPPORT atanir; ikincisi VIEWER kalir
+RS="X-Admin-Reason: smoke maskeleme"
+SE="smksupm$SFX@bingol.edu.tr"; VE="smksupv$SFX@bingol.edu.tr"
+TSU=$(register "$SE" "Smoke Destek Personeli"); TVW=$(register "$VE" "Smoke Izleyici")
+USID=$(curl -s -H "Authorization: Bearer $TSU" $A/users/me | idof); UVID=$(curl -s -H "Authorization: Bearer $TVW" $A/users/me | idof)
+check "SUPPORT adayi ADMIN" 204 "$(code -X PATCH -H "$H" -H "$AD" -H "$RS" $A/admin/users/$USID/role -d '{"role":"ADMIN"}')"
+check "VIEWER adayi ADMIN" 204 "$(code -X PATCH -H "$H" -H "$AD" -H "$RS" $A/admin/users/$UVID/role -d '{"role":"ADMIN"}')"
+check "SUPPORT ata" 204 "$(code -X PUT -H "$H" -H "$AD" $A/admin/rbac/users/$USID/profile -d '{"profile":"SUPPORT","reason":"duman testi atamasi"}')"
+TSU=$(curl -s -X POST -H "$H" $A/auth/login -d "{\"email\":\"$SE\",\"password\":\"Sifre1234\"}" | grep -o '"accessToken":"[^"]*' | cut -d'"' -f4)
+TVW=$(curl -s -X POST -H "$H" $A/auth/login -d "{\"email\":\"$VE\",\"password\":\"Sifre1234\"}" | grep -o '"accessToken":"[^"]*' | cut -d'"' -f4)
+SU="Authorization: Bearer $TSU"; VW="Authorization: Bearer $TVW"
+T2=$(curl -s -X POST -H "$H" -H "$US" $A/support/tickets -d "{\"category\":\"TECHNICAL\",\"subject\":\"Maske talep $SFX\",\"message\":\"Maske mesaj\"}")
+TID2=$(echo "$T2" | idof)
+for H2 in "$SU" "$VW"; do
+  L=$(curl -s -H "$H2" "$A/admin/support/tickets?size=50")
+  hasnt "liste: tam e-posta yok" "$UE" "$L"
+  has "liste: maskeli adres" 's***@bingol.edu.tr' "$L"
+  hasnt "ayrinti: tam e-posta yok" "$UE" "$(curl -s -H "$H2" $A/admin/support/tickets/$TID2)"
+  hasnt "geri bildirim listesi: tam e-posta yok" "$UE" "$(curl -s -H "$H2" "$A/admin/feedback?size=50")"
+  hasnt "talep csv: tam e-posta yok" "$UE" "$(curl -s -H "$H2" $A/admin/support/tickets/export.csv)"
+  hasnt "kitle onizleme: tam e-posta yok" "$UE" "$(curl -s -X POST -H "$H" -H "$H2" $A/admin/push/audience/preview -d "{\"audience\":{\"type\":\"USERS\",\"value\":\"$UID1\"},\"type\":\"ANNOUNCEMENT\"}")"
+done
+has "FULL: tam e-posta gorur" "$UE" "$(curl -s -H "$AD" $A/admin/support/tickets/$TID2)"
+curl -s -o /dev/null -X DELETE -H "$AD" -H 'X-Admin-Reason: smoke temizligi' $A/admin/support/tickets/$TID2
+
 echo "== talep silme"
 check "silme: sebepsiz" 400 "$(code -X DELETE -H "$AD" $A/admin/support/tickets/$TID)"
 check "silme" 204 "$(code -X DELETE -H "$AD" -H 'X-Admin-Reason: smoke temizligi' $A/admin/support/tickets/$TID)"

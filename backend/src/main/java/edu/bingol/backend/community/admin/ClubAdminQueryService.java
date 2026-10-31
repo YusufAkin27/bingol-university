@@ -1,5 +1,6 @@
 package edu.bingol.backend.community.admin;
 
+import edu.bingol.backend.admin.rbac.PermissionAwareMasking;
 import edu.bingol.backend.common.ApiException;
 import edu.bingol.backend.community.Community;
 import edu.bingol.backend.community.CommunityMember;
@@ -111,7 +112,8 @@ public class ClubAdminQueryService {
         List<StaffRow> staff = jdbc.query("SELECT m.user_id, u.display_name, u.email, m.role FROM community_member m "
                 + "JOIN app_user u ON u.id = m.user_id WHERE m.community_id = :id AND m.status = 'ACTIVE' "
                 + "AND m.role IN ('OWNER','ADMIN','MODERATOR') ORDER BY m.id", p,
-                (rs, i) -> new StaffRow(rs.getLong("user_id"), rs.getString("display_name"), rs.getString("email"),
+                (rs, i) -> new StaffRow(rs.getLong("user_id"), rs.getString("display_name"),
+                        PermissionAwareMasking.email(rs.getString("email")),
                         CommunityMember.Role.valueOf(rs.getString("role"))));
         // OWNER, ADMIN, MODERATOR sirasi: id sirasi yerine rol onceligi
         List<StaffRow> sorted = new ArrayList<>(staff);
@@ -158,7 +160,9 @@ public class ClubAdminQueryService {
         }
         String like = Texts.likePattern(q);
         if (!like.isEmpty()) {
-            where.append(" AND (lower(u.display_name) LIKE :like ESCAPE '!' OR lower(u.email) LIKE :like ESCAPE '!')");
+            // T-019: users.pii olmayan profil e-posta ile arayarak adresi yeniden kuramaz
+            where.append(" AND (lower(u.display_name) LIKE :like ESCAPE '!'"
+                    + (PermissionAwareMasking.canSeePii() ? " OR lower(u.email) LIKE :like ESCAPE '!'" : "") + ")");
             params.addValue("like", like);
         }
         String from = " FROM community_member m JOIN app_user u ON u.id = m.user_id" + where;
@@ -169,7 +173,8 @@ public class ClubAdminQueryService {
                 + "(SELECT COUNT(*) FROM club_member_grant g WHERE g.community_id = m.community_id AND g.user_id = m.user_id) AS grants"
                 + from + " ORDER BY CASE m.role WHEN 'OWNER' THEN 0 WHEN 'ADMIN' THEN 1 WHEN 'MODERATOR' THEN 2 ELSE 3 END, m.id"
                 + " LIMIT :lim OFFSET :off", params,
-                (rs, i) -> new MemberRow(rs.getLong("user_id"), rs.getString("display_name"), rs.getString("email"),
+                (rs, i) -> new MemberRow(rs.getLong("user_id"), rs.getString("display_name"),
+                        PermissionAwareMasking.email(rs.getString("email")),
                         rs.getString("avatar_url"), CommunityMember.Role.valueOf(rs.getString("role")),
                         rs.getString("status"), rs.getString("account_status"), instant(rs.getTimestamp("joined_at")),
                         rs.getLong("grants") > 0));
@@ -212,7 +217,8 @@ public class ClubAdminQueryService {
         String like = Texts.likePattern(f.q());
         if (!like.isEmpty()) {
             w.append(" AND (lower(c.name) LIKE :like ESCAPE '!' OR lower(c.slug) LIKE :like ESCAPE '!'"
-                    + " OR lower(ou.display_name) LIKE :like ESCAPE '!' OR lower(ou.email) LIKE :like ESCAPE '!')");
+                    + " OR lower(ou.display_name) LIKE :like ESCAPE '!'"
+                    + (PermissionAwareMasking.canSeePii() ? " OR lower(ou.email) LIKE :like ESCAPE '!'" : "") + ")");
             p.addValue("like", like);
         }
         return w.toString();
@@ -268,7 +274,7 @@ public class ClubAdminQueryService {
     private static ClubRow row(ResultSet rs) throws SQLException {
         return new ClubRow(rs.getLong("id"), rs.getString("name"), rs.getString("slug"), rs.getString("category"),
                 rs.getString("status"), rs.getString("visibility"), rs.getString("join_policy"), rs.getLong("owner_id"),
-                rs.getString("owner_name"), rs.getString("owner_email"), rs.getString("cover_url"),
+                rs.getString("owner_name"), PermissionAwareMasking.email(rs.getString("owner_email")), rs.getString("cover_url"),
                 rs.getString("logo_url"), rs.getLong("member_count"), rs.getLong("pending_count"),
                 rs.getInt("open_reports"), rs.getLong("event_count"), instant(rs.getTimestamp("created_at")),
                 instant(rs.getTimestamp("updated_at")));

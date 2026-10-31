@@ -1,6 +1,7 @@
 package edu.bingol.backend.support.admin;
 
 import edu.bingol.backend.admin.AuditContext;
+import edu.bingol.backend.admin.rbac.PermissionAwareMasking;
 import edu.bingol.backend.common.ApiException;
 import edu.bingol.backend.notification.NotificationService;
 import edu.bingol.backend.notification.NotificationType;
@@ -66,8 +67,9 @@ public class SupportAdminService {
         }
         // zaman sirasi; esitlikte once mesaj sonra not
         all.sort(Comparator.comparing(Row::at).thenComparing(r -> r.view().internal()).thenComparing(r -> r.view().id()));
-        String email = t.isPublicTicket() ? t.getContactEmail()
-                : t.getUserId() == null ? null : users.findById(t.getUserId()).map(User::getEmail).orElse(null);
+        // T-018: users.pii olmayan profil maskeli gorur; yanit e-postasini sunucu gonderir (istemci adresi bilmez)
+        String email = PermissionAwareMasking.email(t.isPublicTicket() ? t.getContactEmail()
+                : t.getUserId() == null ? null : users.findById(t.getUserId()).map(User::getEmail).orElse(null));
         String assignee = t.getAssigneeId() == null ? null
                 : users.findById(t.getAssigneeId()).map(User::getDisplayName).orElse(null);
         return new AdminTicketDetailView(TicketSummary.of(t), all.stream().map(Row::view).toList(), t.getUserId(), email, t.getPriority(),

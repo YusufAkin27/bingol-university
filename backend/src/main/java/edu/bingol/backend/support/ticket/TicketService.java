@@ -1,5 +1,6 @@
 package edu.bingol.backend.support.ticket;
 
+import edu.bingol.backend.admin.rbac.PermissionAwareMasking;
 import edu.bingol.backend.common.ApiException;
 import edu.bingol.backend.common.CursorPage;
 import edu.bingol.backend.notification.NotificationService;
@@ -98,8 +99,8 @@ public class TicketService {
                 .stream().collect(Collectors.toMap(User::getId, Function.identity()));
         CursorPage<AdminTicketSummary> page = CursorPage.of(rows, s, SupportTicket::getId, t -> new AdminTicketSummary(
                 t.getId(), t.getUserId(),
-                t.isPublicTicket() ? t.getContactEmail()
-                        : (byId.containsKey(t.getUserId()) ? byId.get(t.getUserId()).getEmail() : null),
+                PermissionAwareMasking.email(t.isPublicTicket() ? t.getContactEmail()
+                        : (byId.containsKey(t.getUserId()) ? byId.get(t.getUserId()).getEmail() : null)),
                 t.getCategory(), t.getSubject(), t.getStatus(), t.getCreatedAt().toString(), t.getUpdatedAt().toString(),
                 t.isPublicTicket(), t.getPriority(), t.getAssigneeId()));
         return new AdminTicketList(page.items(), page.nextCursor());
@@ -108,8 +109,9 @@ public class TicketService {
     public AdminTicketDetail adminDetail(Long ticketId) {
         SupportTicket t = find(ticketId);
         TicketDetail d = toDetail(t);
-        String email = t.isPublicTicket() ? t.getContactEmail()
-                : users.findById(t.getUserId()).map(User::getEmail).orElse(null);
+        // T-018: users.pii olmayan profil (SUPPORT/VIEWER) maskeli gorur; yanit e-postasini sunucu gonderir
+        String email = PermissionAwareMasking.email(t.isPublicTicket() ? t.getContactEmail()
+                : users.findById(t.getUserId()).map(User::getEmail).orElse(null));
         return new AdminTicketDetail(d.ticket(), d.messages(), t.getUserId(), email);
     }
 
@@ -174,7 +176,8 @@ public class TicketService {
     /** Baskasinin talebi icin de 404 doner (varligini sizdirmaz). */
     private SupportTicket ownTicket(Long userId, Long id) {
         SupportTicket t = find(id);
-        if (!t.getUserId().equals(userId)) {
+        // T-021: herkese acik talebin userId'si null; NPE/varlik oracle'i yerine 404
+        if (t.getUserId() == null || !t.getUserId().equals(userId)) {
             throw new ApiException(HttpStatus.NOT_FOUND, "TICKET_NOT_FOUND", "Talep bulunamadı.");
         }
         return t;

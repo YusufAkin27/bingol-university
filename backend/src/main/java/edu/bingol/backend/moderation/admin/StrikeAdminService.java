@@ -1,5 +1,6 @@
 package edu.bingol.backend.moderation.admin;
 
+import edu.bingol.backend.admin.rbac.PermissionAwareMasking;
 import edu.bingol.backend.admin.AuditContext;
 import edu.bingol.backend.common.ApiException;
 import edu.bingol.backend.moderation.ModerationNotifier;
@@ -111,7 +112,7 @@ public class StrikeAdminService {
         }
         return list.stream().map(s -> {
             User u = byId.get(s.getUserId());
-            return StrikeRow.of(s, u == null ? null : u.getDisplayName(), u == null ? null : u.getEmail());
+            return StrikeRow.of(s, u == null ? null : u.getDisplayName(), u == null ? null : PermissionAwareMasking.email(u.getEmail()));
         }).toList();
     }
 }

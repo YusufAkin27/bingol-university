@@ -1,5 +1,6 @@
 package edu.bingol.backend.post.admin;
 
+import edu.bingol.backend.admin.rbac.PermissionAwareMasking;
 import edu.bingol.backend.common.ApiException;
 import edu.bingol.backend.post.PostService;
 import edu.bingol.backend.moderation.ModerationNotifier;
@@ -96,7 +97,9 @@ public class AdminPostService {
         }
         if (q != null && !q.isBlank()) {
             String like = likePattern(q.trim());
-            sql.append(" AND (p.body ILIKE :like OR u.display_name ILIKE :like OR u.email ILIKE :like)");
+            // T-019: users.pii olmayan profil e-posta ile aramaz (adresi yeniden kurma yolu)
+            sql.append(" AND (p.body ILIKE :like OR u.display_name ILIKE :like"
+                    + (PermissionAwareMasking.canSeePii() ? " OR u.email ILIKE :like" : "") + ")");
             p.addValue("like", like);
         }
         if (authorId != null) {
@@ -242,7 +245,8 @@ public class AdminPostService {
             + "FROM post p JOIN app_user u ON u.id = p.author_id";
 
     private PostRow postRow(java.sql.ResultSet rs) throws java.sql.SQLException {
-        Author a = new Author(rs.getLong("author_id"), rs.getString("display_name"), rs.getString("email"),
+        Author a = new Author(rs.getLong("author_id"), rs.getString("display_name"),
+                PermissionAwareMasking.email(rs.getString("email")),
                 rs.getString("avatar_url"));
         return new PostRow(rs.getLong("id"), a, rs.getString("body"), List.of(), rs.getInt("like_count"),
                 rs.getInt("media_count"), rs.getTimestamp("hidden_at") != null,

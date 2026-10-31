@@ -1,5 +1,6 @@
 package edu.bingol.backend.community.admin;
 
+import edu.bingol.backend.admin.rbac.PermissionAwareMasking;
 import edu.bingol.backend.admin.AuditContext;
 import edu.bingol.backend.common.ApiException;
 import edu.bingol.backend.community.CommunityPost;
@@ -248,7 +249,8 @@ public class ClubContentAdminService {
         String like = Texts.likePattern(f.q());
         if (!like.isEmpty()) {
             w.append(" AND (lower(p.content) LIKE :like ESCAPE '!' OR lower(u.display_name) LIKE :like ESCAPE '!'"
-                    + " OR lower(u.email) LIKE :like ESCAPE '!' OR lower(c.name) LIKE :like ESCAPE '!')");
+                    + (PermissionAwareMasking.canSeePii() ? " OR lower(u.email) LIKE :like ESCAPE '!'" : "")
+                    + " OR lower(c.name) LIKE :like ESCAPE '!')");
             p.addValue("like", like);
         }
         Instant from = day(f.from(), false);
@@ -268,7 +270,8 @@ public class ClubContentAdminService {
         boolean deleted = rs.getBoolean("deleted");
         Timestamp hidden = rs.getTimestamp("hidden_at");
         String state = deleted ? "DELETED" : hidden != null ? "HIDDEN" : "VISIBLE";
-        PostAuthor a = new PostAuthor(rs.getLong("author_id"), rs.getString("display_name"), rs.getString("email"),
+        PostAuthor a = new PostAuthor(rs.getLong("author_id"), rs.getString("display_name"),
+                PermissionAwareMasking.email(rs.getString("email")),
                 rs.getString("avatar_url"));
         return new PostRow(rs.getLong("id"), rs.getLong("community_id"), rs.getString("community_name"),
                 rs.getBoolean("announcement") ? "ANNOUNCEMENT" : "POST", state, a, rs.getString("content"),

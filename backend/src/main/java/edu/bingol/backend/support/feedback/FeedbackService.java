@@ -1,5 +1,6 @@
 package edu.bingol.backend.support.feedback;
 
+import edu.bingol.backend.admin.rbac.PermissionAwareMasking;
 import edu.bingol.backend.moderation.profanity.ContentGuard;
 import edu.bingol.backend.moderation.profanity.ContentGuard.Entity;
 import edu.bingol.backend.common.ApiException;
@@ -106,7 +107,8 @@ public class FeedbackService {
         Map<Long, User> byId = users.findAllById(pageRows.stream().map(Feedback::getUserId).distinct().toList())
                 .stream().collect(Collectors.toMap(User::getId, Function.identity()));
         CursorPage<AdminFeedbackView> page = CursorPage.of(rows, s, Feedback::getId, f -> new AdminFeedbackView(
-                f.getId(), f.getUserId(), byId.containsKey(f.getUserId()) ? byId.get(f.getUserId()).getEmail() : null,
+                f.getId(), f.getUserId(),
+                PermissionAwareMasking.email(byId.containsKey(f.getUserId()) ? byId.get(f.getUserId()).getEmail() : null),
                 f.getCategory(), f.getSubject(), f.getMessage(), f.getStatus(), f.getAdminResponse(),
                 f.isPublicVisible(), f.getVoteCount(), f.getAppVersion(), f.getPlatform(), f.getCreatedAt().toString()));
         return new AdminFeedbackPage(page.items(), page.nextCursor());

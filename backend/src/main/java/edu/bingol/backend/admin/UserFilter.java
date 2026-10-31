@@ -1,5 +1,6 @@
 package edu.bingol.backend.admin;
 
+import edu.bingol.backend.admin.rbac.PermissionAwareMasking;
 import edu.bingol.backend.common.ApiException;
 import edu.bingol.backend.user.Role;
 import edu.bingol.backend.user.UserStatus;
@@ -21,6 +22,9 @@ public record UserFilter(String q, UserStatus status, Role role, String faculty,
 
     /** Gun sinirlari (kayit/son gorulme araligi) Europe/Istanbul gunune gore yorumlanir (analytics.DateRange ile ayni). */
     static final ZoneId ZONE = ZoneId.of("Europe/Istanbul");
+
+    /** users.pii olmayan profillerde q icin en az uzunluk (T-019). */
+    static final int MASKED_Q_MIN = 3;
 
     /** Tarih araligi olmayan eski bicim (P09 oncesi cagrilar ve testler). */
     public UserFilter(String q, UserStatus status, Role role, String faculty, String department,
@@ -44,7 +48,17 @@ public record UserFilter(String q, UserStatus status, Role role, String faculty,
         List<String> c = new ArrayList<>();
         MapSqlParameterSource p = new MapSqlParameterSource();
         if (q != null && !q.isBlank()) {
-            c.add("(display_name ILIKE :q ESCAPE '\\' OR email ILIKE :q ESCAPE '\\')");
+            if (PermissionAwareMasking.canSeePii()) {
+                c.add("(display_name ILIKE :q ESCAPE '\\' OR email ILIKE :q ESCAPE '\\')");
+            } else {
+                // T-019: users.pii olmayan profil e-posta ile arayip maskeli adresi harf harf yeniden kuramaz;
+                // yalniz gorunen ad aranir (kisa sorgu reddedilir: tek harfle liste taramayi zorlastirir)
+                if (q.trim().length() < MASKED_Q_MIN) {
+                    throw new ApiException(HttpStatus.BAD_REQUEST, "VALIDATION_ERROR",
+                            "Arama için en az " + MASKED_Q_MIN + " karakter girin.");
+                }
+                c.add("display_name ILIKE :q ESCAPE '\\'");
+            }
             p.addValue("q", "%" + escapeLike(q.trim()) + "%");
         }
         if (status != null) {

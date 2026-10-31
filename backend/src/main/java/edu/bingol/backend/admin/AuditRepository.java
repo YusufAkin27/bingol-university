@@ -1,6 +1,7 @@
 package edu.bingol.backend.admin;
 
 import edu.bingol.backend.admin.AdminDtos.AuditRow;
+import edu.bingol.backend.admin.rbac.PermissionAwareMasking;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.Instant;
@@ -89,7 +90,10 @@ public class AuditRepository {
         }
         statusClause(f.status(), c, p);
         if (f.q() != null && !f.q().isBlank()) {
-            c.add("(path ILIKE :q ESCAPE '\\' OR admin_email ILIKE :q ESCAPE '\\' OR reason ILIKE :q ESCAPE '\\' "
+            // T-019: users.pii olmayan profil yonetici e-postasi uzerinden arayarak adresi yeniden kuramaz
+            c.add("(path ILIKE :q ESCAPE '\\' "
+                    + (PermissionAwareMasking.canSeePii() ? "OR admin_email ILIKE :q ESCAPE '\\' " : "")
+                    + "OR reason ILIKE :q ESCAPE '\\' "
                     + "OR summary ILIKE :q ESCAPE '\\' OR target_id ILIKE :q ESCAPE '\\')");
             p.addValue("q", "%" + UserFilter.escapeLike(f.q().trim()) + "%");
         }
@@ -141,8 +145,10 @@ public class AuditRepository {
     private static AuditRow row(ResultSet rs) throws SQLException {
         long adminId = rs.getLong("admin_id");
         Long admin = rs.wasNull() ? null : adminId;
-        return new AuditRow(rs.getLong("id"), admin, rs.getString("admin_email"), rs.getString("method"),
-                rs.getString("path"), rs.getInt("status"), AdminUserRepository.ts(rs, "created_at"), rs.getString("ip"),
+        // T-018: users.pii olmayan profil (VIEWER) yonetici e-postasini ve IP'sini maskeli gorur (JSON ve CSV ortak)
+        return new AuditRow(rs.getLong("id"), admin, PermissionAwareMasking.email(rs.getString("admin_email")),
+                rs.getString("method"), rs.getString("path"), rs.getInt("status"),
+                AdminUserRepository.ts(rs, "created_at"), PermissionAwareMasking.opaque(rs.getString("ip")),
                 rs.getString("target_type"), rs.getString("target_id"), rs.getString("reason"),
                 rs.getString("summary"), rs.getString("request_id"));
     }

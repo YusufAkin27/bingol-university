@@ -1,5 +1,6 @@
 package edu.bingol.backend.mail.admin;
 
+import edu.bingol.backend.admin.rbac.PermissionAwareMasking;
 import edu.bingol.backend.admin.AuditContext;
 import edu.bingol.backend.common.ApiException;
 import edu.bingol.backend.mail.MailCategory;
@@ -118,7 +119,8 @@ public class MailSuppressionAdminService {
         if (t.indexOf('@') > 0 && t.indexOf('@') < t.length() - 1) {
             return Set.of(MailSuppressionService.hash(t));
         }
-        if (t.length() < 3) {
+        if (t.length() < 3 || !PermissionAwareMasking.canSeePii()) {
+            // T-019: users.pii olmayan profil kayitli kullanici adreslerinde parca arayamaz (adresi yeniden kurma yolu)
             return Set.of();
         }
         String like = "%" + t.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_") + "%";
@@ -176,7 +178,9 @@ public class MailSuppressionAdminService {
         }
         String masked = s.getEmailMasked() != null ? s.getEmailMasked() : email != null ? LogMasking.email(email) : null;
         boolean optOut = optOut(s);
-        return new SuppressionDetail(s.getId(), masked, email, email != null, userId, hashPrefix(s),
+        // T-018: tam adres yalniz users.pii izni olanlara (SUPPORT/VIEWER maskeli gorur)
+        return new SuppressionDetail(s.getId(), masked, PermissionAwareMasking.email(email), email != null, userId,
+                hashPrefix(s),
                 s.getReason().name(), s.getCategory().name(), s.getNote(), s.getCreatedAt().toString(),
                 s.getCreatedBy(), optOut, optOut ? OPT_OUT_MIN_REASON : MIN_REASON, optOut,
                 warning(s.getReason()));

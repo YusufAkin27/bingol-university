@@ -1,5 +1,6 @@
 package edu.bingol.backend.moderation.dto;
 
+import edu.bingol.backend.admin.rbac.PermissionAwareMasking;
 import edu.bingol.backend.moderation.BlockedContentHash;
 import edu.bingol.backend.moderation.MediaPreview;
 import edu.bingol.backend.moderation.ModerationAppeal;
@@ -49,7 +50,12 @@ public final class ModerationDtos {
     }
 
     /** Kisa kisi gorunumu (yonetici): kimlik, ad, e-posta. */
-    public record Person(Long id, String displayName, String email) {}
+    public record Person(Long id, String displayName, String email) {
+        /** T-018: users.pii olmayan profil (SUPPORT/VIEWER) e-postayi maskeli gorur; maskeleme idempotenttir. */
+        public Person {
+            email = PermissionAwareMasking.email(email);
+        }
+    }
 
     public record ReportQueue(List<ReportView> items, Long nextCursor) {}
 

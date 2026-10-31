@@ -1,6 +1,7 @@
 package edu.bingol.backend.support.admin;
 
 import edu.bingol.backend.admin.AuditContext;
+import edu.bingol.backend.admin.rbac.PermissionAwareMasking;
 import edu.bingol.backend.admin.Csv;
 import edu.bingol.backend.common.RateLimiter;
 import edu.bingol.backend.support.feedback.Feedback;
@@ -112,7 +113,8 @@ public class SupportExportController {
         try {
             write(res, "talepler.csv", TICKET_HEADER, rows.stream().map(r -> Arrays.<Object>asList(r.getId(),
                     r.getStatus(), r.getCategory(), r.getPriority(), r.getAssigneeId(), r.getSubject(), r.getUserId(),
-                    r.isPublicTicket() ? r.getContactEmail() : emails.get(r.getUserId()), r.isPublicTicket(),
+                    PermissionAwareMasking.email(r.isPublicTicket() ? r.getContactEmail() : emails.get(r.getUserId())),
+                    r.isPublicTicket(),
                     r.getCreatedAt(), r.getUpdatedAt(), r.getClosedAt())).toList());
         } finally {
             AuditContext.target("TICKET", null).summary("csv satir=" + rows.size());
@@ -149,7 +151,8 @@ public class SupportExportController {
         Map<Long, String> emails = emailsOf(rows.stream().map(Feedback::getUserId).toList());
         try {
             write(res, "geri-bildirimler.csv", FEEDBACK_HEADER, rows.stream().map(r -> Arrays.<Object>asList(r.getId(),
-                    r.getCategory(), r.getStatus(), r.getSubject(), r.getUserId(), emails.get(r.getUserId()),
+                    r.getCategory(), r.getStatus(), r.getSubject(), r.getUserId(),
+                    PermissionAwareMasking.email(emails.get(r.getUserId())),
                     r.isPublicVisible(), r.getVoteCount(), r.getPlatform(), r.getAppVersion(), r.getCreatedAt(),
                     r.getRespondedAt())).toList());
         } finally {

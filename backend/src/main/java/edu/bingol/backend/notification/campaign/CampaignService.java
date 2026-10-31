@@ -1,5 +1,6 @@
 package edu.bingol.backend.notification.campaign;
 
+import edu.bingol.backend.admin.rbac.PermissionAwareMasking;
 import edu.bingol.backend.common.ApiException;
 import edu.bingol.backend.common.CursorPage;
 import edu.bingol.backend.i18n.Lang;
@@ -157,7 +158,9 @@ public class CampaignService {
             byLang.merge(Lang.of(m.language()).code(), 1, Integer::sum);
         }
         List<SamplePerson> sample = members.stream().limit(10)
-                .map(m -> new SamplePerson(m.id(), m.displayName(), m.email(), m.language())).toList();
+                // T-018: users.pii olmayan profil (SUPPORT/EDITOR/VIEWER) onizlemede maskeli e-posta gorur
+                .map(m -> new SamplePerson(m.id(), m.displayName(), PermissionAwareMasking.email(m.email()),
+                        m.language())).toList();
         return new AudiencePreview(members.size(), willReceive, members.size() - willReceive, byLang, sample,
                 r.notFound());
     }
