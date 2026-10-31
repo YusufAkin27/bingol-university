@@ -29,13 +29,14 @@ import org.springframework.stereotype.Service;
  * (DB ile ayni dosya sisteminde okunabilir dizin) varsa yuzde OLCULUR ({@code MEASURED}); yoksa
  * {@code app.storage.db-disk-capacity-bytes} varsa kullanim = DB + yukleme + yedek + sabit pay toplamindan HESAPLANIR
  * ({@code COMPUTED}); ikisi de yoksa {@code UNKNOWN}. PostgreSQL'e dosya sistemi sorusu SORULMAZ (superuser/pg_monitor
- * gerektirir, guvensiz). Sonuc 30 sn onbelleklenir; dizin boyutu taramasi 10 dk onbelleklenir ve zaman/dosya butcelidir.
+ * gerektirir, guvensiz). Sonuc 5 dk onbelleklenir (T-075: pg_class taramasi ~0,6 sn); dizin boyutu taramasi 10 dk onbelleklenir ve zaman/dosya butcelidir.
  */
 @Service
 public class StorageUsageService {
 
     private static final Logger log = LoggerFactory.getLogger(StorageUsageService.class);
-    private static final long REPORT_TTL_MS = 30_000;
+    /** Alarm dongusu dakikada bir okusa da agir olcum (pg_total_relation_size, pg_database_size) en cok 5 dakikada bir yapilir. */
+    static final long REPORT_TTL_MS = 300_000;
     private static final long DIR_TTL_MS = 600_000;
     private static final long DIR_BUDGET_MS = 4_000;
     private static final long DIR_MAX_FILES = 2_000_000;
@@ -79,7 +80,7 @@ public class StorageUsageService {
         this.backup = backup;
     }
 
-    /** Onbellekli rapor (30 sn). */
+    /** Onbellekli rapor (5 dk). */
     public Report report() {
         long now = System.currentTimeMillis();
         Cached c = cache.get();

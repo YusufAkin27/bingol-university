@@ -19,6 +19,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -62,6 +65,10 @@ public class PushOutboxWorker {
         t.setDaemon(true);
         return t;
     });
+    /** Takili FCM cagrisi tum tur(lar)i sonsuza dek bloklamasin: grup gonderimlerinin toplam bekleme siniri (T-074). */
+    private volatile long groupSendTimeoutMs = 30_000;
+    /** Bir tur zaten siradaysa ikincisi yigilmaz (poll + nudge ayni yurutucuyu paylasir). */
+    private final AtomicBoolean roundQueued = new AtomicBoolean(false);
     private final ExecutorService nudgeExecutor = Executors.newSingleThreadExecutor(r -> {
         Thread t = new Thread(r, "push-outbox-nudge");
         t.setDaemon(true);
@@ -102,16 +109,36 @@ public class PushOutboxWorker {
     /** Yeni push yazilinca (transaction commit'inden sonra) beklemeden bir tur calistirir. */
     @TransactionalEventListener(fallbackExecution = true)
     void onQueued(PushQueued event) {
+        submitRound();
+    }
+
+    /**
+     * Zamanlayici yalniz turu SIRAYA koyar; FCM beklemesi {@code sched-*} havuzunu degil kendi tek is parcacikli
+     * yurutucusunu tutar (T-074 / A2-10: FCM yanit vermezse posta, presence, bakim donguleri etkilenmesin).
+     */
+    @Scheduled(fixedDelayString = "${app.push.outbox.poll-ms:5000}")
+    public void poll() {
+        submitRound();
+    }
+
+    private void submitRound() {
+        if (!roundQueued.compareAndSet(false, true)) {
+            return; // zaten sirada/kosuyor: bir sonraki kayitlar o turda ya da sonraki zamanlayici vurusunda alinir
+        }
         try {
-            nudgeExecutor.execute(this::processDue);
+            nudgeExecutor.execute(() -> {
+                roundQueued.set(false); // tur BASLARKEN acilir: calisirken gelen yeni kayit icin yeni tur siraya girebilir
+                processDue();
+            });
         } catch (RuntimeException e) {
+            roundQueued.set(false);
             log.debug("Push isleyici tetiklenemedi, zamanlayici alacak: {}", e.toString());
         }
     }
 
-    @Scheduled(fixedDelayString = "${app.push.outbox.poll-ms:5000}")
-    public void poll() {
-        processDue();
+    /** Test: grup gonderimi toplam bekleme siniri (ms). */
+    void setGroupSendTimeoutMs(long ms) {
+        this.groupSendTimeoutMs = Math.max(1, ms);
     }
 
     /** SENT 7 gun, DEAD 30 gun sonra silinir; 30 gunden eski her kayit (takilmis dahil) gider. */
@@ -177,17 +204,35 @@ public class PushOutboxWorker {
             }
         }
         if (groups.size() <= 1) {
-            groups.forEach((payload, list) -> sendGroup(payload, list, byId, now));
+            groups.forEach((payload, list) -> sendGroup(payload, list, byId, now, null));
         } else {
             // Alici basina farkli yuk (sohbet mesajlari): her grup ayri FCM cagrisi. Ardisik gonderim 500 uyeli bir
             // grupta dakikalarca surerdi; sinirli esdegerlikle gonderilir (gruplar ayri satirlari degistirir).
             List<java.util.concurrent.Callable<Void>> tasks = new ArrayList<>();
-            groups.forEach((payload, list) -> tasks.add(() -> {
-                sendGroup(payload, list, byId, now);
-                return null;
-            }));
+            List<AtomicBoolean> abandoned = new ArrayList<>();
+            groups.forEach((payload, list) -> {
+                AtomicBoolean flag = new AtomicBoolean();
+                abandoned.add(flag);
+                tasks.add(() -> {
+                    sendGroup(payload, list, byId, now, flag);
+                    return null;
+                });
+            });
             try {
-                sendPool.invokeAll(tasks);
+                List<Future<Void>> done = sendPool.invokeAll(tasks, groupSendTimeoutMs, TimeUnit.MILLISECONDS);
+                // Sinira takilip iptal edilen gruplar: SENDING'de kalmasin, ustel geri cekilmeyle yeniden denensin
+                int i = 0;
+                for (List<PushOutbox> list : groups.values()) {
+                    AtomicBoolean flag = abandoned.get(i);
+                    if (done.get(i++).isCancelled()) {
+                        flag.set(true); // gec donen FCM cagrisi satirlari artik degistirmesin (yeniden denenecek)
+                        list.forEach(r -> {
+                            if (r.getStatus() == PushOutboxStatus.SENDING) {
+                                failed(r, "FCM zaman asimi", now, "SEND_TIMEOUT");
+                            }
+                        });
+                    }
+                }
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
             }
@@ -195,7 +240,8 @@ public class PushOutboxWorker {
         repo.saveAll(rows);
     }
 
-    private void sendGroup(String payload, List<PushOutbox> group, Map<Long, Device> byId, Instant now) {
+    private void sendGroup(String payload, List<PushOutbox> group, Map<Long, Device> byId, Instant now,
+                           AtomicBoolean abandoned) {
         PushMessage message;
         try {
             message = json.readValue(payload, PushMessage.class);
@@ -211,6 +257,9 @@ public class PushOutboxWorker {
             }
             try {
                 SendResult res = fcm.deliver(byToken.keySet(), message);
+                if (abandoned != null && abandoned.get()) {
+                    return; // zaman asimiyla vazgecildi: satirlar FAILED/yeniden deneme olarak yazildi
+                }
                 Set<String> invalid = new HashSet<>(res.invalid() == null ? List.of() : res.invalid());
                 Set<String> retry = new HashSet<>(res.retryable() == null ? List.of() : res.retryable());
                 Set<String> permanent = new HashSet<>(res.permanent() == null ? List.of() : res.permanent());

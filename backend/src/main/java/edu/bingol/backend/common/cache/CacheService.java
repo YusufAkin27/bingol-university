@@ -72,6 +72,11 @@ public class CacheService {
     private final ConcurrentHashMap<String, CompletableFuture<Result>> inflight = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, LongAdder> counters = new ConcurrentHashMap<>();
     private volatile long redisDownUntil;
+    /**
+     * T-075 (A2-15): Redis kesintisinde L2 surum sayacina yazilamayan gecersiz kilmalar. Redis donunce ilk okumada
+     * INCR ile telafi edilir; yoksa eski surumun (stable 6 sa / daily 20 dk) anahtarlari yeniden erisilebilir olur.
+     */
+    private final java.util.Set<String> pendingInvalidate = ConcurrentHashMap.newKeySet();
 
     @Autowired
     public CacheService(CacheProperties props, JsonMapper mapper, ObjectProvider<StringRedisTemplate> redis,
@@ -142,6 +147,7 @@ public class CacheService {
         String redisVer = null;
         if (redisUsable()) {
             try {
+                flushPendingInvalidations();
                 redisVer = redisVersion(ns);
                 String raw = redis.opsForValue().get(redisKey(ns, redisVer, key));
                 if (raw != null) {
@@ -306,17 +312,44 @@ public class CacheService {
                 l1.keySet().removeIf(k -> k.startsWith(prefix));
             }
             count(ns, "invalidate");
+            if (redis == null || !props.redisEnabled()) {
+                continue;
+            }
             if (redisUsable()) {
                 try {
-                    String vk = PREFIX + ns + ":v";
-                    redis.opsForValue().increment(vk);
-                    redis.expire(vk, VERSION_TTL);
+                    bumpRedisVersion(ns);
                 } catch (RuntimeException ex) {
                     redisFailed(ex);
-                    log.warn("Onbellek gecersiz kilma Redis'e yazilamadi (L1 temizlendi): {}", ns);
+                    pendingInvalidate.add(ns);
+                    log.warn("Onbellek gecersiz kilma Redis'e yazilamadi (L1 temizlendi, telafi icin isaretlendi): {}", ns);
                 }
+            } else {
+                pendingInvalidate.add(ns); // Redis geri atlama penceresinde: donunce telafi
             }
         }
+    }
+
+    private void bumpRedisVersion(String ns) {
+        String vk = PREFIX + ns + ":v";
+        redis.opsForValue().increment(vk);
+        redis.expire(vk, VERSION_TTL);
+    }
+
+    /** Kesinti sirasinda kacirilan gecersiz kilmalari L2 surum sayacina yazar; basarisizsa isaret kalir. */
+    private void flushPendingInvalidations() {
+        if (pendingInvalidate.isEmpty()) {
+            return;
+        }
+        for (String ns : java.util.List.copyOf(pendingInvalidate)) {
+            bumpRedisVersion(ns); // hata yukari: cagiran redisFailed ile devreye alir, isaret kalir
+            pendingInvalidate.remove(ns);
+            count(ns, "invalidate_compensated");
+        }
+    }
+
+    /** Test/tanilama: Redis'e henuz yazilamamis gecersiz kilma sayisi. */
+    int pendingInvalidationCount() {
+        return pendingInvalidate.size();
     }
 
     // ---- gozlem ----

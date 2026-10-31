@@ -316,15 +316,46 @@ public class PresenceService {
         return out;
     }
 
-    /** Bu sunucuya bagli kullanicilarin anahtarini yeniler (heartbeat). */
+    /** {@code lastseen:} yenileme sikligi: her N. heartbeat (10 sn x 6 = 60 sn); kapanista zaten yazilir. */
+    static final int LAST_SEEN_EVERY = 6;
+    private int refreshTick;
+
+    /**
+     * Bu sunucuya bagli kullanicilarin anahtarini yeniler (heartbeat). T-075 (A2-16): tum kullanicilar TEK boru hattinda
+     * (eskiden kullanici basina 2 sirali SET = 5000 baglantida 10.000 gidis-donus/10 sn); {@code lastseen:} yalniz her
+     * 60 sn'de bir ve baglanti/kapanista yazilir (yanit "cevrimici" iken lastseen zaten gosterilmez).
+     */
     @Scheduled(fixedDelay = 10_000)
     void refreshLocal() {
+        List<Long> ids = new java.util.ArrayList<>();
         for (SimpUser u : registry.getUsers()) {
             try {
-                markOnline(Long.valueOf(u.getName()));
+                ids.add(Long.valueOf(u.getName()));
             } catch (NumberFormatException e) {
                 // yalnizca sayisal kullanici kimlikleri atanir; digerleri yok sayilir
             }
+        }
+        if (ids.isEmpty()) {
+            return;
+        }
+        boolean touchLastSeen = refreshTick++ % LAST_SEEN_EVERY == 0;
+        String now = String.valueOf(Instant.now().toEpochMilli());
+        long onlineSec = ONLINE_TTL.toSeconds();
+        long lastSeenSec = LAST_SEEN_TTL.toSeconds();
+        try {
+            redis.executePipelined((org.springframework.data.redis.core.RedisCallback<Object>) conn -> {
+                org.springframework.data.redis.connection.StringRedisConnection c =
+                        (org.springframework.data.redis.connection.StringRedisConnection) conn;
+                for (Long id : ids) {
+                    c.setEx(ONLINE_PREFIX + id, onlineSec, "1");
+                    if (touchLastSeen) {
+                        c.setEx(LAST_SEEN_PREFIX + id, lastSeenSec, now);
+                    }
+                }
+                return null;
+            });
+        } catch (RuntimeException e) {
+            log.warn("Presence toplu yenileme basarisiz: {}", e.toString());
         }
     }
 }

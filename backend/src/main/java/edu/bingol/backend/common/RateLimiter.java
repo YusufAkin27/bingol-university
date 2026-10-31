@@ -89,11 +89,15 @@ public class RateLimiter {
                 }
                 max = (int) Math.min(Integer.MAX_VALUE, (long) max * Math.max(1, overflowMultiplier));
             }
-        } else if (redis.getExpire(k) < 0) {
-            redis.expire(k, window); // TTL'siz kalan anahtar (nadir) onarilir
         }
         if (n > max) {
+            // T-075 (A2-16): istek basina ikinci komut (getExpire) kaldirildi; INCR ile EXPIRE arasinda kesilmis (TTL'siz)
+            // anahtar yalniz limite ulasinca (kalici kilit riski) burada onarilir.
             Long ttl = redis.getExpire(k);
+            if (ttl != null && ttl < 0) {
+                redis.expire(k, window);
+                ttl = window.toSeconds();
+            }
             throw new RateLimitedException(ttl == null || ttl < 0 ? window.toSeconds() : ttl);
         }
     }

@@ -23,7 +23,34 @@ public class MenuScraper {
 
     /** Bos liste = beklenen tablo bulunamadi (sayfa yapisi degismis olabilir). */
     public List<Day> fetch() throws IOException {
-        return parse(Jsoup.connect(URL).userAgent(UA).timeout(20_000).get());
+        return parse(getWithin(() -> Jsoup.connect(URL).userAgent(UA).timeout(20_000).get(), TOTAL_BUDGET_MS));
+    }
+
+    /** T-074: Jsoup timeout'u okuma basinadir; yavas damlayan site toplamda zamanlayici is parcacigini tutmasin. */
+    private static final long TOTAL_BUDGET_MS = 60_000;
+    private static final java.util.concurrent.ExecutorService IO = java.util.concurrent.Executors.newCachedThreadPool(r -> {
+        Thread t = new Thread(r, "menu-scraper-io");
+        t.setDaemon(true);
+        return t;
+    });
+
+    static Document getWithin(java.util.concurrent.Callable<Document> call, long budgetMs) throws IOException {
+        java.util.concurrent.Future<Document> f = IO.submit(call);
+        try {
+            return f.get(budgetMs, java.util.concurrent.TimeUnit.MILLISECONDS);
+        } catch (java.util.concurrent.TimeoutException e) {
+            f.cancel(true);
+            throw new IOException("Kaynak site toplam sure butcesini asti (" + budgetMs + " ms)", e);
+        } catch (InterruptedException e) {
+            f.cancel(true);
+            Thread.currentThread().interrupt();
+            throw new IOException("Kesildi", e);
+        } catch (java.util.concurrent.ExecutionException e) {
+            if (e.getCause() instanceof IOException io) {
+                throw io;
+            }
+            throw new IOException(e.getCause() == null ? e : e.getCause());
+        }
     }
 
     static List<Day> parse(Document doc) {

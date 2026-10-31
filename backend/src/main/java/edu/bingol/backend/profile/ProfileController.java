@@ -104,11 +104,18 @@ public class ProfileController {
         return profiles.publicProfile(uid, id);
     }
 
-    /** Herkese acik fakulte listesi (yonetici `faculties` ayarindan; bos olabilir). */
+    /**
+     * Herkese acik fakulte listesi (yonetici `faculties` ayarindan; bos olabilir). Herkese ayni cevap: tarayici/CDN
+     * onbellegi acik (T-075 / A7-12); yonetici degisikligi en gec {@code max-age} sonra gorunur.
+     */
     @GetMapping("/faculties")
-    public List<String> faculties() {
-        return profiles.faculties();
+    public org.springframework.http.ResponseEntity<List<String>> faculties() {
+        return org.springframework.http.ResponseEntity.ok()
+                .header("Cache-Control", FACULTIES_CACHE_CONTROL)
+                .body(profiles.faculties());
     }
+
+    static final String FACULTIES_CACHE_CONTROL = "public, max-age=300, stale-while-revalidate=600";
 
     /** Profil formunda otomatik tamamlama icin sistemde kullanilan bolum adlari. */
     @GetMapping("/departments")

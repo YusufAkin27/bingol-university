@@ -34,6 +34,9 @@ public class NewsSyncService {
     /** Gece cekimi gunde bir kez calistigindan ayni kayit en cok gunde bir denenir. */
     private static final Duration RETRY_INTERVAL = Duration.ofHours(20);
 
+    /** T-074: bir senkron turunun toplam sure butcesi (Jsoup timeout'u okuma basinadir; yavasa baglanan site isi dakikalarca tutmasin). */
+    static final Duration DEFAULT_BUDGET = Duration.ofMinutes(5);
+
     private final NewsScraper scraper;
     private final NewsRepository repo;
     private final StatusService status;
@@ -41,6 +44,22 @@ public class NewsSyncService {
     private final SyncProperties props;
     private final NotificationService notifications;
     private final I18n i18n;
+    private volatile Duration budget = DEFAULT_BUDGET;
+    /** Tur basina ayarlanir (running kilidi tek tur garantiler). */
+    private volatile long deadlineNanos;
+    private volatile boolean budgetExceeded;
+
+    /** Test: sure butcesi. */
+    void setBudget(Duration budget) {
+        this.budget = budget;
+    }
+
+    private boolean overBudget() {
+        if (!budgetExceeded && System.nanoTime() - deadlineNanos > 0) {
+            budgetExceeded = true;
+        }
+        return budgetExceeded;
+    }
 
     public NewsSyncService(NewsScraper scraper, NewsRepository repo, StatusService status, SyncProperties props,
                            NotificationService notifications, I18n i18n) {
@@ -78,7 +97,12 @@ public class NewsSyncService {
             // Veritabani bossa (ilk dolum) kimseye bildirim gonderme
             boolean notify = repo.count() > 0;
             List<String> failures = new ArrayList<>();
+            budgetExceeded = false;
+            deadlineNanos = System.nanoTime() + budget.toNanos();
             for (ContentType type : ContentType.values()) {
+                if (overBudget()) {
+                    break;
+                }
                 try {
                     added.put(type, syncType(type, notify));
                 } catch (Exception e) {
@@ -87,7 +111,11 @@ public class NewsSyncService {
                 }
             }
             retryMissingContentSafely();
-            if (failures.size() == ContentType.values().length) {
+            if (overBudget()) {
+                // Kaynak site cok yavas: yarim kalan is bir sonraki gece turunda tamamlanir, eski veri sunulur
+                log.warn("Haber senkronizasyonu sure butcesini ({} dk) asti, kesildi: {}", budget.toMinutes(), added);
+                status.markMaintenance(StatusService.NEWS, "Kaynak site cok yavas: sure butcesi asildi");
+            } else if (failures.size() == ContentType.values().length) {
                 status.markMaintenance(StatusService.NEWS, "Kaynak site okunamadi: " + String.join("; ", failures));
             } else {
                 status.markOk(StatusService.NEWS, failures.isEmpty() ? null : "Kismi hata: " + String.join("; ", failures));
@@ -123,6 +151,9 @@ public class NewsSyncService {
         for (NewsScraper.ListEntry e : entries) {
             if (repo.existsByUrl(e.url())) {
                 continue;
+            }
+            if (overBudget()) {
+                break;
             }
             Instant now = Instant.now();
             NewsItem item = new NewsItem();
@@ -164,6 +195,9 @@ public class NewsSyncService {
                 now.minus(RETRY_INTERVAL), PageRequest.of(0, RETRY_BATCH));
         int filled = 0;
         for (NewsItem item : pending) {
+            if (overBudget()) {
+                break;
+            }
             applyDetail(item, scraper.fetchDetail(item.getUrl()), now);
             repo.save(item);
             if (item.getContent() != null) {

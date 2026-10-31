@@ -92,13 +92,21 @@ public class PostRankService {
                 Map<Long, Integer> followers = toMap(ranks.followers(authors));
                 Map<Long, Integer> recent = toMap(ranks.recentLikes(ids, now.minus(Duration.ofHours(24))));
                 Map<Long, Integer> reports = toMap(ranks.openReports(ids));
+                List<Post> changed = new java.util.ArrayList<>();
                 for (Post p : batch) {
                     double ageH = Duration.between(p.getCreatedAt(), now).toSeconds() / 3600.0;
-                    p.setRankScore(PostRank.compute(props, p.getLikeCount(), 0,
+                    double score = PostRank.compute(props, p.getLikeCount(), 0,
                             followers.getOrDefault(p.getAuthorId(), 0), recent.getOrDefault(p.getId(), 0),
-                            reports.getOrDefault(p.getId(), 0), ageH));
+                            reports.getOrDefault(p.getId(), 0), ageH);
+                    // T-075 (A2-14): sonum nedeniyle her turda binlerce satir yeniden yazilmasin; anlamli degisim esikli
+                    if (shouldWrite(p.getRankScore(), score)) {
+                        p.setRankScore(score);
+                        changed.add(p);
+                    }
                 }
-                posts.saveAll(batch);
+                if (!changed.isEmpty()) {
+                    posts.saveAll(changed);
+                }
                 return batch.size() < BATCH ? null : batch.get(batch.size() - 1).getId();
             });
             if (last == null) {
@@ -107,6 +115,11 @@ public class PostRankService {
             after = last;
         }
         version.set(now.getEpochSecond());
+    }
+
+    /** Mutlak 0,001 ya da eski puanin %1'i kadar degisim yazilir (siralama icin onemsiz sapmalar atlanir). */
+    static boolean shouldWrite(double old, double next) {
+        return Math.abs(next - old) > Math.max(0.001, 0.01 * Math.abs(old));
     }
 
     private static Map<Long, Integer> toMap(List<Object[]> rows) {
