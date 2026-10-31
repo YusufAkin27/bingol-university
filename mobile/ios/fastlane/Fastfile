@@ -1,0 +1,46 @@
+# fastlane taslagi (macOS). DOGRULANAMADI: Windows'ta calistirilamadi; sozdizimi Ruby ile elle gozden gecirildi.
+# Kurulum: `cd mobile/ios && bundle install` (Gemfile) ya da `brew install fastlane`.
+# Gerekli ortam (sirlar depoya girmez): IOS_API_KEY_ID, IOS_API_ISSUER_ID, IOS_API_KEY_P8_BASE64, IOS_TEAM_ID.
+# Ana yayin hatti scripts/ios/build-ipa.sh + upload-testflight.sh'tir; bu dosya ayni isin fastlane alternatifidir
+# ve App Store Connect'te uygulama/App ID olusturma (`create_app`) gibi tek seferlik isleri kapsar.
+
+default_platform(:ios)
+
+platform :ios do
+  # App Store Connect API anahtari (base64 .p8). Dosya diske yazilmaz, bellekten verilir.
+  private_lane :asc_key do
+    app_store_connect_api_key(
+      key_id: ENV.fetch("IOS_API_KEY_ID"),
+      issuer_id: ENV.fetch("IOS_API_ISSUER_ID"),
+      key_content: ENV.fetch("IOS_API_KEY_P8_BASE64"),
+      is_key_content_base64: true,
+      in_house: false
+    )
+  end
+
+  desc "Tek seferlik: Apple'da App ID (Push Notifications dahil) ve App Store Connect kaydini olusturur"
+  lane :create_app do
+    asc_key
+    produce(
+      app_identifier: CredentialsManager::AppfileConfig.try_fetch_value(:app_identifier),
+      app_name: "BU Kampus",
+      language: "turkish",
+      app_version: "1.0",
+      sku: "bu-kampus-ios",
+      enable_services: { push_notification: "on" },
+      skip_itc: false
+    )
+  end
+
+  desc "Hazir IPA'yi TestFlight'a yukler (IPA once scripts/ios/build-ipa.sh ile uretilir)"
+  lane :beta do |options|
+    asc_key
+    ipa = options[:ipa] || Dir[File.expand_path("../../build/ios-release/ipa/*.ipa", __dir__)].first
+    UI.user_error!("IPA bulunamadi (mobile/build/ios-release/ipa)") if ipa.nil?
+    upload_to_testflight(
+      ipa: ipa,
+      skip_waiting_for_build_processing: true,
+      changelog: options[:changelog] || "Ic test surumu"
+    )
+  end
+end

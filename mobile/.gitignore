@@ -51,3 +51,15 @@ app.*.map.json
 /android/key.properties
 *.jks
 *.keystore
+
+# iOS yayin: sirlar ve CI cikti (SIR/yerel; docs/IOS_RELEASE.md)
+/ios/Runner/GoogleService-Info.plist
+/ios/Flutter/BuPush.xcconfig
+*.p8
+*.p12
+*.mobileprovision
+*.certSigningRequest
+/ios/fastlane/report.xml
+/ios/fastlane/Preview.html
+/ios/fastlane/README.md
+/ios/Gemfile.lock.local

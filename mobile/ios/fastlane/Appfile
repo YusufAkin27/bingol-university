@@ -1,0 +1,5 @@
+# fastlane Appfile. DOGRULANAMADI (Windows'ta fastlane calistirilamaz). Sir yok.
+# Bundle id degisirse scripts/ios/set-bundle-id.sh bu satiri da gunceller.
+app_identifier("edu.bingol.buKampus")
+# Team ID ortamdan gelir (Apple Developer > Membership); depoya yazilmaz.
+team_id(ENV["IOS_TEAM_ID"]) if ENV["IOS_TEAM_ID"]

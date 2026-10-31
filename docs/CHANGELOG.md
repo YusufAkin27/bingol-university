@@ -4,6 +4,13 @@
 
 Ayrıntılı modül notları: `docs/changes/*.md`. Mobil API rehberi: [MOBILE_API_GUIDE.md](MOBILE_API_GUIDE.md).
 
+### iOS yayın hazırlığı (IOS1)
+
+- **Belgeler:** [IOS_RELEASE.md](IOS_RELEASE.md) (Apple Developer hesabı açıldığında adım adım, kararlar K1-K9, kullanıcıdan gerekenler, red riskleri, yapılanlar/yapılamayanlar tablosu), mağaza paketi [ios-store/](ios-store/README.md) (tr/en/ar metin, App Privacy, inceleme notu, ekran görüntüsü kılavuzu), [MOBILE_PUSH.md](MOBILE_PUSH.md) "iOS doğrulama".
+- **Proje (dosya düzeyinde, Xcode'da derlenmedi):** `PrivacyInfo.xcprivacy` (takip yok, 13 veri türü, FileTimestamp C617.1 + SystemBootTime 35F9.1), Info.plist (dürüst Türkçe izin metinleri, `ITSAppUsesNonExemptEncryption=false`, `CFBundleLocalizations` tr/en/ar, yalnız dikey iPhone, `arm64`), `{tr,en,ar}.lproj/InfoPlist.strings`, iPhone-only (`TARGETED_DEVICE_FAMILY=1`). Bundle id **değişmedi** (karar bekliyor: `scripts/ios/set-bundle-id.sh`).
+- **iOS'a özgü düzeltmeler:** simge rozeti (`core/push/icon_badge.dart`, sunucu `badge` sayısı okununca takılı kalıyordu), iOS yerel ders/sınav hatırlatmaları ve rozet köprüsü (`ios/Runner/BuNativeBridge.swift`; yalnız `swiftc -parse` ve sahte modüllerle tip denetimi, macOS'ta derlenmeli), yeniden kurulumda Keychain'de kalan oturum jetonlarının temizlenmesi (`core/platform/fresh_install.dart`; cihaz kimliği korunur). Testler: `icon_badge_test`, `fresh_install_test`.
+- **Hatlar (çalıştırılmadı):** `.github/workflows/ios-release.yml`, `codemagic.yaml`, `scripts/ios/{prepare-ci,build-ipa,upload-testflight,set-bundle-id,simulator-shots}.sh`, `mobile/ios/fastlane/`, `mobile/ios/ExportOptions.plist`; denetim betikleri `scripts/ios/check-ios-static.py`, `check-store-lengths.py`.
+
 ### Yayın hazırlığı (REL1)
 
 - **Geri yükleme provası:** `scripts/restore-drill.sh` (tohum veri + fotoğraf -> gerçek yedek -> `down -v` -> yeni boş yığında `restore-live.sh` -> parmak izi karşılaştırması). Sonuç ve süreler: [BACKUP_RESTORE.md](BACKUP_RESTORE.md) bölüm 10. Prova üç gerçek hata buldu ve düzeltildi: prod compose'ta redis `setpriv` için `SETUID/SETGID`, yedek servisi için `FOWNER` (aksi halde yedek konteyneri döngüde), ve backend'in `prod` profilinde açılmamasına yol açan `OpenApiConfig.uniqueSchemaNames` (springdoc kapalıyken `ObjectMapperProvider` yok).

@@ -28,7 +28,7 @@ Doğrulama: `curl localhost:8080/actuator/health` içinde `fcm.details.enabled` 
 
 ## 3. iOS (APNs)
 
-iOS push için ücretli Apple Developer hesabı gerekir. Adım adım kurulum (plist, `.p8`, imza anahtarı, test): [MOBILE_PUSH.md](MOBILE_PUSH.md) "iOS anahtarlarını nasıl ekleriz". Hazırlık kontrolü: `powershell -File scripts/check-ios-push.ps1`.
+iOS push için ücretli Apple Developer hesabı gerekir. Adım adım kurulum (plist, `.p8`, imza anahtarı, test): [MOBILE_PUSH.md](MOBILE_PUSH.md) "iOS anahtarlarını nasıl ekleriz"; mağaza yayını (TestFlight, CI, Secrets): [IOS_RELEASE.md](IOS_RELEASE.md). Hazırlık kontrolü: `powershell -File scripts/check-ios-push.ps1` (Windows) ya da `python -I -X utf8 scripts/ios/check-ios-static.py`. Tek APNs `.p8` anahtarı hem geliştirme hem üretim (TestFlight/App Store) ortamı için yeter.
 
 1. developer.apple.com, Certificates/Identifiers & Profiles, Keys: "Apple Push Notifications service (APNs)" etkin yeni anahtar oluşturun, `.p8` dosyasını indirin (bir kez indirilir), Key ID ve Team ID'yi not edin.
 2. Firebase konsolu, Proje ayarları, Cloud Messaging, "Apple uygulaması yapılandırması": APNs Authentication Key olarak `.p8`, Key ID ve Team ID'yi yükleyin.
@@ -38,7 +38,7 @@ iOS push için ücretli Apple Developer hesabı gerekir. Adım adım kurulum (pl
 
 - Android: `google-services.json` dosyasını `mobile/android/app/` altına koyun.
 - iOS: `GoogleService-Info.plist` dosyasını `mobile/ios/Runner/` altına koyun (Xcode'a elle eklemek gerekmez; build fazı dosya varsa pakete kopyalar).
-- Bu dosyalar sır değildir ancak ortama özeldir; commit edilip edilmeyeceğine ekip karar verir.
+- Bu dosyalar sır değildir ancak ortama özeldir. **Karar:** iOS `GoogleService-Info.plist` commitlenmez (`mobile/.gitignore`); CI base64 gizli değişkenden yazar (`scripts/ios/prepare-ci.sh`). Android `google-services.json` için de aynı yol izlenir (`release-android.yml`).
 - Android 13+ için `POST_NOTIFICATIONS` izni istenmeli; kanallar `chat`, `event`, `announcement` oluşturulmalıdır.
 - Token alındığında ve her açılışta `POST /api/devices` çağrılır, çıkışta `DELETE /api/devices/{token}`.
   Yük sözleşmesi: `docs/changes/push.md`.

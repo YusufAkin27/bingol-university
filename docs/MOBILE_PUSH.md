@@ -15,8 +15,8 @@ push.attach(onSignedIn: hooks.onSignedIn, onSignedOut: hooks.onSignedOut);
 ## iOS anahtarlarını nasıl ekleriz (adım adım)
 Kod ve proje ayarları hazırdır; anahtarlar geldiğinde **kod değişikliği gerekmez**. Anahtarlar yokken uygulama çökmeden çalışır, push sessizce kapalı kalır (`Firebase.initializeApp` hatası yakalanır).
 
-1. **Firebase konsolu** > Proje ayarları > Uygulamalarınız > iOS uygulaması ekle. Bundle id = `edu.bingol.buKampus` (`ios/Runner.xcodeproj` içindeki `PRODUCT_BUNDLE_IDENTIFIER`; birebir aynı olmalı). `GoogleService-Info.plist` dosyasını indirin.
-2. Dosyayı `mobile/ios/Runner/GoogleService-Info.plist` yoluna koyun. Elle Xcode kaydı gerekmez: `Runner` hedefinde "Bundle GoogleService-Info.plist (optional)" adlı bir Run Script fazı dosyayı varsa `.app` paketine kopyalar, yoksa uyarı notu yazıp atlar (derleme kırılmaz).
+1. **Firebase konsolu** > Proje ayarları > Uygulamalarınız > iOS uygulaması ekle. Bundle id = `edu.bingol.buKampus` (`ios/Runner.xcodeproj` içindeki `PRODUCT_BUNDLE_IDENTIFIER`; birebir aynı olmalı; **bundle id kararı bekliyor**: önerilen `tr.com.bukampus.app`, bkz. [IOS_RELEASE.md](IOS_RELEASE.md) K1 ve `scripts/ios/set-bundle-id.sh`). `GoogleService-Info.plist` dosyasını indirin.
+2. Dosyayı `mobile/ios/Runner/GoogleService-Info.plist` yoluna koyun (`mobile/.gitignore` içinde, commitlenmez; macOS CI `IOS_GOOGLE_SERVICE_INFO_PLIST_BASE64` gizli değişkeninden `scripts/ios/prepare-ci.sh` ile yazar). Elle Xcode kaydı gerekmez: `Runner` hedefinde "Bundle GoogleService-Info.plist (optional)" adlı bir Run Script fazı dosyayı varsa `.app` paketine kopyalar, yoksa uyarı notu yazıp atlar (derleme kırılmaz).
 3. **Apple Developer** (ücretli hesap şart) > Certificates, Identifiers & Profiles:
    - Identifiers > `edu.bingol.buKampus` App ID > **Push Notifications** yeteneğini işaretleyin.
    - Keys > yeni anahtar > **Apple Push Notifications service (APNs)** > `.p8` dosyasını indirin (bir kez indirilir). **Key ID** ve **Team ID**'yi not edin. `.p8` repoya girmez.
@@ -38,6 +38,16 @@ Kod ve proje ayarları hazırdır; anahtarlar geldiğinde **kod değişikliği g
 - `FirebaseAppDelegateProxyEnabled` tanımsız (proxy açık) bırakılmıştır: APNs belirteci kaydı Firebase eklentisi tarafından yapılır; `AppDelegate.swift` yalnız `UNUserNotificationCenter` delegesini atar. Anahtarı `NO` yaparsanız belirteç elle aktarılmalıdır.
 - xcross (Windows'tan derleme): Run Script fazının, `#include?` xcconfig'in ve entitlements imzalamasının xcross tarafından işlendiği **doğrulanmadı** (macOS/Xcode'da standarttır). Çalışmazsa dosyayı `Runner.app` içine elle kopyalamak veya gerçek Xcode ile derlemek gerekir. Ücretsiz Apple ID imzası 7 gün geçerlidir.
 - Sunucu APNs yükü (`FirebaseFcmSender.apns`): `apns-push-type=alert`, `apns-priority` 10 (yüksek) / 5, `sound=default`, `mutable-content=1`, isteğe bağlı `badge`, `thread-id`, `category`, `apns-collapse-id`. `content-available` gönderilmez (sessiz/veri push'u kullanılmıyor); alert push'ları arka planda bunsuz da iletilir.
+
+## iOS doğrulama (macOS CI / gerçek cihaz; Windows'ta YAPILAMADI)
+
+Dosya düzeyinde doğrulananlar (`python -I -X utf8 scripts/ios/check-ios-static.py`): `aps-environment` Debug/Profile=`development`, Release=`production`; pbxproj'ta `CODE_SIGN_ENTITLEMENTS` 3/3 yapılandırmada; `UIBackgroundModes=remote-notification`; `FirebaseAppDelegateProxyEnabled` tanımsız (swizzling açık); `AppDelegate` `UNUserNotificationCenter` delegesini atar. **CI güvenliği:** `BuPush.xcconfig` yoksa push yetkisi imzaya girmez; `prepare-ci.sh` dosyayı üretir ve `build-ipa.sh` arşivde `aps-environment` yoksa durur.
+
+Dart tarafı iOS için incelendi: APNs belirteci beklenir, ön plan sistem şeridi kapalı + uygulama içi şerit, `getInitialMessage`/`onMessageOpenedApp` ile `targetType/targetId` yönlendirmesi, sessiz push yok. iOS'a özgü iki eksik giderildi:
+- **Simge rozeti:** sunucu `badge`'i okunmamış bildirim sayısıyla gönderir; istemci okununca sıfırlamıyordu. `core/push/icon_badge.dart` `AppBadges.notifications`'ı `bu_kampus/badge` kanalıyla (`ios/Runner/BuNativeBridge.swift`, `setBadgeCount`) simgeye yansıtır; çıkışta 0.
+- **Yerel ders/sınav hatırlatmaları:** `bu_kampus/notify` yalnız Android'deydi; `BuNativeBridge.swift` `UNUserNotificationCenter` ile zamanlar ve dokunuşu `onTap`/`takeLaunchPayload` ile iletir. Kendi yerel bildirimlerine (`buLocal`) yanıt verir, FCM bildirimlerine dokunmaz (çift tamamlayıcı çağrısı yok).
+
+macOS'ta cihazda doğrulanacaklar: (1) TestFlight yapısında bildirim gelir (production APNs); (2) ön plan/arka plan/kapalı dokunuşları ilgili ekrana gider; (3) bir ders hatırlatması zamanında görünür ve dokunuşla Akademik'e gider; (4) bildirimleri okuyunca simge rozeti düşer; (5) `POST /api/devices` `platform=IOS` gitmiştir. Ayrıntı: [IOS_RELEASE.md](IOS_RELEASE.md) bölüm 3, 6, 9.
 
 ## Davranış
 - Ön plan: sistem şeridi kapalı; uygulama içi SnackBar ("Aç" ile yönlendirir).

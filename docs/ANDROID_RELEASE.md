@@ -1,6 +1,6 @@
 # Android üretim (release) rehberi
 
-Paket (applicationId): `tr.com.bukampus.app`, ad "BÜ Kampüs". Kaynak paketi/`namespace` bilerek `edu.bingol.bu_kampus` kalır (Kotlin `MainActivity` vb.; manifestte `.MainActivity` göreli yazılıdır, dış kimliği etkilemez). iOS bundle id (`edu.bingol.buKampus`) bu değişiklikte değişmedi, ayrı karardır. Tüm komutlar `C:\bu_mobile` (mobile/ klasörünün ASCII bağlantısı) içinde, PowerShell'de çalışır.
+Paket (applicationId): `tr.com.bukampus.app`, ad "BÜ Kampüs". Kaynak paketi/`namespace` bilerek `edu.bingol.bu_kampus` kalır (Kotlin `MainActivity` vb.; manifestte `.MainActivity` göreli yazılıdır, dış kimliği etkilemez). iOS bundle id (`edu.bingol.buKampus`) bu değişiklikte değişmedi, ayrı karardır ([IOS_RELEASE.md](IOS_RELEASE.md) K1: Android ile aynı `tr.com.bukampus.app` önerilir). Tüm komutlar `C:\bu_mobile` (mobile/ klasörünün ASCII bağlantısı) içinde, PowerShell'de çalışır.
 
 Ortam (her oturumda):
 

@@ -1,0 +1,73 @@
+name: Release iOS
+
+# Elle tetiklenir (Apple Developer hesabi + App Store Connect API anahtari hazir olunca).
+# IPA uretir; "upload" secilirse TestFlight'a yukler. Windows'ta CALISTIRILAMADI: ilk kosuyu izleyin (docs/IOS_RELEASE.md bolum 9).
+# Gerekli GitHub Secrets (ortam: production): IOS_TEAM_ID, IOS_API_KEY_ID, IOS_API_ISSUER_ID, IOS_API_KEY_P8_BASE64,
+# IOS_GOOGLE_SERVICE_INFO_PLIST_BASE64. Degisken (vars): API_BASE (varsayilan https://bukampus.com.tr).
+on:
+  workflow_dispatch:
+    inputs:
+      upload:
+        description: 'IPA uretildikten sonra TestFlight a yukle'
+        type: boolean
+        default: false
+
+concurrency:
+  group: release-ios-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  FLUTTER_VERSION: '3.47.8'
+
+jobs:
+  build:
+    name: IPA derle (macOS)
+    runs-on: macos-latest
+    timeout-minutes: 75
+    environment: production
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: subosito/flutter-action@fd55f4c5af5b953cc57a2be44cb082c8f6635e8e # v2.21.0
+        with:
+          channel: stable
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
+      - name: Dosya duzeyi iOS kontrolu (hata varsa durur)
+        run: python3 scripts/ios/check-ios-static.py
+      - name: Hazirlik (GoogleService-Info.plist, push yetkisi)
+        env:
+          IOS_GOOGLE_SERVICE_INFO_PLIST_BASE64: ${{ secrets.IOS_GOOGLE_SERVICE_INFO_PLIST_BASE64 }}
+          REQUIRE_PUSH: '1'
+        run: bash scripts/ios/prepare-ci.sh
+      - name: IPA (archive + export, App Store Connect API anahtariyla bulut imzasi)
+        env:
+          IOS_TEAM_ID: ${{ secrets.IOS_TEAM_ID }}
+          IOS_API_KEY_ID: ${{ secrets.IOS_API_KEY_ID }}
+          IOS_API_ISSUER_ID: ${{ secrets.IOS_API_ISSUER_ID }}
+          IOS_API_KEY_P8_BASE64: ${{ secrets.IOS_API_KEY_P8_BASE64 }}
+          API_BASE: ${{ vars.API_BASE || 'https://bukampus.com.tr' }}
+        run: bash scripts/ios/build-ipa.sh
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: ios-ipa
+          path: mobile/build/ios-release/ipa/*.ipa
+          retention-days: 30
+      # Cokme izlerini cozmek icin gerekir; KAYBETMEYIN (artifact 90 gun, kalici kopya: parola yoneticisi/sifreli yedek)
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: ios-symbols
+          path: mobile/build/ios-release/symbols
+          retention-days: 90
+      - name: TestFlight a yukle
+        if: ${{ inputs.upload }}
+        env:
+          IOS_API_KEY_ID: ${{ secrets.IOS_API_KEY_ID }}
+          IOS_API_ISSUER_ID: ${{ secrets.IOS_API_ISSUER_ID }}
+          IOS_API_KEY_P8_BASE64: ${{ secrets.IOS_API_KEY_P8_BASE64 }}
+        run: bash scripts/ios/upload-testflight.sh
+      - name: Temizlik
+        if: always()
+        run: rm -f mobile/ios/Runner/GoogleService-Info.plist mobile/ios/Flutter/BuPush.xcconfig

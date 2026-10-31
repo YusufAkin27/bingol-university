@@ -1,0 +1,4 @@
+source "https://rubygems.org"
+
+# Yalniz macOS CI/yerel yayin icin (docs/IOS_RELEASE.md). Surum kilidi (Gemfile.lock) ilk `bundle install`dan sonra eklenir.
+gem "fastlane", "~> 2.230"

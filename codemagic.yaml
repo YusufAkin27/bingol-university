@@ -1,0 +1,64 @@
+# Codemagic iOS yayin hatti (GitHub Actions ios-release.yml'e ALTERNATIF; ikisini birden kurmak gerekmez).
+# Windows'ta CALISTIRILAMADI: ilk kosuyu izleyin (docs/IOS_RELEASE.md bolum 9). Sir yok; yalniz isimler.
+# Codemagic kurulumu: (1) Teams > Integrations > Developer Portal: App Store Connect API anahtari ekleyin
+#   (ad: bu_kampus_asc  <- asagidaki integrations.app_store_connect ile ayni olmali); (2) Environment variables
+#   grubu "bu_ios" olusturun: IOS_GOOGLE_SERVICE_INFO_PLIST_BASE64 (Secure), API_BASE (https://bukampus.com.tr);
+#   (3) Code signing identities'e gerek yok: ios_signing App Store Connect API anahtariyla profili/sertifikayi otomatik uretir.
+workflows:
+  ios-release:
+    name: BU Kampus iOS (TestFlight)
+    instance_type: mac_mini_m2
+    max_build_duration: 75
+    working_directory: mobile
+    integrations:
+      app_store_connect: bu_kampus_asc
+    environment:
+      groups:
+        - bu_ios
+      flutter: 3.47.8
+      xcode: latest
+      cocoapods: default
+      vars:
+        BUNDLE_ID: "edu.bingol.buKampus"   # KULLANICI KARARI: scripts/ios/set-bundle-id.sh ile birlikte degisir
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: edu.bingol.buKampus
+    triggering:
+      events: []   # yalniz elle (Codemagic arayuzu veya API)
+    scripts:
+      - name: Dosya duzeyi iOS kontrolu
+        script: python3 ../scripts/ios/check-ios-static.py
+      - name: GoogleService-Info.plist + push yetkisi
+        script: |
+          export REQUIRE_PUSH=1
+          bash ../scripts/ios/prepare-ci.sh
+      - name: Flutter bagimliliklari
+        script: flutter pub get
+      - name: Surum numarasi (pubspec ile ayni; CFBundleVersion = +N)
+        script: |
+          VERSION_LINE="$(grep -E '^version:' pubspec.yaml | head -1 | sed 's/version:[[:space:]]*//')"
+          echo "BUILD_NAME=${VERSION_LINE%%+*}" >> $CM_ENV
+          echo "BUILD_NUMBER=${VERSION_LINE##*+}" >> $CM_ENV
+      - name: Xcode projesine imza profillerini uygula
+        script: xcode-project use-profiles
+      - name: IPA
+        script: |
+          flutter build ipa --release \
+            --obfuscate --split-debug-info=$CM_BUILD_DIR/symbols \
+            --build-name="$BUILD_NAME" --build-number="$BUILD_NUMBER" \
+            --export-options-plist=/Users/builder/export_options.plist \
+            --dart-define=API_BASE="${API_BASE:-https://bukampus.com.tr}" \
+            --dart-define=APP_VERSION="$BUILD_NAME"
+    artifacts:
+      - build/ios/ipa/*.ipa
+      - /tmp/xcodebuild_logs/*.log
+    publishing:
+      app_store_connect:
+        auth: integration
+        submit_to_testflight: true
+      email:
+        recipients:
+          - ysufakin23@gmail.com
+        notify:
+          success: true
+          failure: true
