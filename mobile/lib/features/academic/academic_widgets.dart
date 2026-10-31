@@ -11,10 +11,20 @@ import 'akad_widgets.dart';
 /// Yeni sayfalar büyük başlıklı [BuPageScaffold] kullanır; bu iskelet gövdesi kendi kaydırmasını yöneten sayfalar içindir.
 class AcademicScaffold extends StatelessWidget {
   const AcademicScaffold(
-      {super.key, required this.title, required this.child, this.actions = const [], this.subtitle, this.bottomBar, this.floatingActionButton});
+      {super.key,
+      required this.title,
+      required this.child,
+      this.actions = const [],
+      this.subtitle,
+      this.bottomBar,
+      this.floatingActionButton,
+      this.showTitle = true});
 
   final String title;
   final String? subtitle;
+
+  /// false: üst çubukta yalnız geri oku durur (sayfa kendi büyük başlığını çizer; Stitch v3 Sınavlar).
+  final bool showTitle;
   final List<Widget> actions;
   final Widget child;
 
@@ -34,7 +44,7 @@ class AcademicScaffold extends StatelessWidget {
         children: [
           Column(
             children: [
-              _AkadHeader(title: title, subtitle: subtitle, actions: actions),
+              _AkadHeader(title: title, subtitle: subtitle, actions: actions, showTitle: showTitle),
               Expanded(child: child),
             ],
           ),
@@ -45,22 +55,24 @@ class AcademicScaffold extends StatelessWidget {
   }
 }
 
-//// Üst başlık (referans): yüzey renkli çubuk, düz geri oku, başlık ve sağda eylemler.
+//// Üst başlık (Stitch v3): sayfa zemininde düz çubuk (gölge/ayraç yok), geri oku 36 dp merkezde, başlık 64 dp'den
+/// 18 sp/700, sağda eylemler. 56 dp + güvenli alan.
 class _AkadHeader extends StatelessWidget {
-  const _AkadHeader({required this.title, required this.actions, this.subtitle});
+  const _AkadHeader({required this.title, required this.actions, this.subtitle, this.showTitle = true});
 
   final String title;
   final String? subtitle;
   final List<Widget> actions;
+  final bool showTitle;
 
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
     final tx = Theme.of(context).textTheme;
-    return DecoratedBox(
-      decoration: BoxDecoration(color: t.sf, boxShadow: BuElevation.of(context, 1)),
+    return ColoredBox(
+      color: t.bg,
       child: Padding(
-        padding: EdgeInsetsDirectional.fromSTEB(4, MediaQuery.paddingOf(context).top, 12, 0),
+        padding: EdgeInsetsDirectional.fromSTEB(12, MediaQuery.paddingOf(context).top, 20, 0),
         child: SizedBox(
           height: 56,
           child: Row(children: [
@@ -72,16 +84,18 @@ class _AkadHeader extends StatelessWidget {
             ),
             const SizedBox(width: 4),
             Expanded(
-              child: MediaQuery.withClampedTextScaling(
-                maxScaleFactor: 1.3,
-                child: Semantics(
-                  header: true,
-                  child: Column(mainAxisAlignment: MainAxisAlignment.center, crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    Text(title, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.titleLarge!.copyWith(fontWeight: FontWeight.w700, color: t.ink)),
-                    if (subtitle != null) Text(subtitle!, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.bodySmall!.copyWith(color: t.mut)),
-                  ]),
-                ),
-              ),
+              child: !showTitle
+                  ? const SizedBox.shrink()
+                  : MediaQuery.withClampedTextScaling(
+                      maxScaleFactor: 1.3,
+                      child: Semantics(
+                        header: true,
+                        child: Column(mainAxisAlignment: MainAxisAlignment.center, crossAxisAlignment: CrossAxisAlignment.start, children: [
+                          Text(title, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.titleLarge!.copyWith(fontWeight: FontWeight.w700, color: t.ink)),
+                          if (subtitle != null) Text(subtitle!, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.bodySmall!.copyWith(color: t.mut)),
+                        ]),
+                      ),
+                    ),
             ),
             for (final a in actions) ...[const SizedBox(width: 8), a],
           ]),

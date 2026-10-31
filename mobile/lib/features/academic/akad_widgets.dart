@@ -50,9 +50,10 @@ class AkadSection extends StatelessWidget {
   }
 }
 
-/// Çip: seçili = marka tonu (soft + onSoft), kayan renk geçişi, titreşim + hafif küçülme. Dokunma hedefi >= 48 dp.
+/// Çip (Stitch v3): seçili = `soft` zemin + `pr` yazı, seçili değil = beyaz yüzey + `ink` yazı; çerçevesiz, 34 dp
+/// görünür yükseklik, dokunma alanı >= 48 dp.
 class AkadChip extends StatelessWidget {
-  const AkadChip({super.key, required this.label, this.selected = false, this.onTap, this.expand = false, this.semanticLabel, this.fontSize = 14});
+  const AkadChip({super.key, required this.label, this.selected = false, this.onTap, this.expand = false, this.semanticLabel, this.fontSize = 14, this.radius});
 
   final String label;
   final bool selected;
@@ -63,60 +64,45 @@ class AkadChip extends StatelessWidget {
   /// Eski imza (kullanılmaz; yazı boyutu TextTheme'den gelir). `expand` çiplerde etiket küçülerek sığar.
   final double fontSize;
 
+  /// null: hap; verilirse yuvarlatılmış dikdörtgen köşesi (Stitch Hatırlatmalar süre çipleri).
+  final double? radius;
+
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
     final tx = Theme.of(context).textTheme;
-    final fg = selected ? t.onSoft : t.ink;
-    void tap() {
-      buHaptic(BuHaptic.selection);
-      onTap?.call();
-    }
-
+    final fg = selected ? t.pr : t.ink;
+    final style = tx.labelLarge!.copyWith(fontWeight: selected ? FontWeight.w700 : FontWeight.w600, color: fg);
     final text = MediaQuery.withClampedTextScaling(
       maxScaleFactor: 1.3,
       child: expand
-          ? FittedBox(
-              fit: BoxFit.scaleDown,
-              child: Text(label, maxLines: 1, style: tx.labelLarge!.copyWith(fontWeight: selected ? FontWeight.w700 : FontWeight.w600, color: fg)),
-            )
-          : Text(label,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: tx.labelLarge!.copyWith(fontWeight: selected ? FontWeight.w700 : FontWeight.w600, color: fg)),
+          ? FittedBox(fit: BoxFit.scaleDown, child: Text(label, maxLines: 1, style: style))
+          : Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, style: style),
     );
     return Semantics(
       button: true,
       selected: selected,
-      label: semanticLabel,
-      excludeSemantics: semanticLabel != null,
+      label: semanticLabel ?? label,
+      excludeSemantics: true,
       onTap: onTap,
       child: BuPressable(
         scale: .95,
-        child: Padding(
-          // expand: görsel hap 2 dp içeriden, anlamsal/dokunma alanı hücrenin tamamı (7 gün sütunu).
-          padding: EdgeInsets.symmetric(horizontal: expand ? 2 : 0),
-          child: AnimatedContainer(
-            duration: BuMotion.of(context, BuMotion.short),
-            curve: BuMotion.standard,
-            decoration: ShapeDecoration(
-              color: selected ? t.soft : t.sf,
-              shape: StadiumBorder(side: BorderSide(color: selected ? t.selectedBorder : t.bd)),
-            ),
-            child: Material(
-              type: MaterialType.transparency,
-              child: InkWell(
-                customBorder: const StadiumBorder(),
-                excludeFromSemantics: true,
-                onTap: onTap == null ? null : tap,
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(minHeight: 48, minWidth: 48),
-                  child: Padding(
-                    padding: EdgeInsets.symmetric(horizontal: expand ? 2 : 16),
-                    child: Center(widthFactor: expand ? null : 1, child: text),
-                  ),
-                ),
+        onTap: onTap,
+        haptic: onTap == null ? BuHaptic.none : BuHaptic.selection,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minHeight: BuSize.touch, minWidth: BuSize.touch),
+          child: Center(
+            widthFactor: expand ? null : 1,
+            child: AnimatedContainer(
+              duration: BuMotion.of(context, BuMotion.short),
+              curve: BuMotion.standard,
+              constraints: const BoxConstraints(minHeight: BuSize.chip),
+              padding: EdgeInsets.symmetric(horizontal: expand ? 2 : 16),
+              decoration: ShapeDecoration(
+                color: selected ? t.soft : t.sf,
+                shape: radius == null ? const StadiumBorder() : RoundedRectangleBorder(borderRadius: BorderRadius.circular(radius!)),
               ),
+              child: Center(widthFactor: expand ? null : 1, heightFactor: 1, child: text),
             ),
           ),
         ),
