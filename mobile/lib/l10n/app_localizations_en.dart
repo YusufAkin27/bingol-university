@@ -9341,4 +9341,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get p51AddJoinQuestion => 'Add a join question';
+
+  @override
+  String get p64CropDone => 'Done';
 }

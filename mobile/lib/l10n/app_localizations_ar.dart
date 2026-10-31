@@ -9241,4 +9241,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get p51AddJoinQuestion => 'إضافة سؤال انضمام';
+
+  @override
+  String get p64CropDone => 'تم';
 }

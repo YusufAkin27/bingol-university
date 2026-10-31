@@ -16938,6 +16938,12 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Katılma sorusu ekle'**
   String get p51AddJoinQuestion;
+
+  /// No description provided for @p64CropDone.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bitti'**
+  String get p64CropDone;
 }
 
 class _AppLocalizationsDelegate

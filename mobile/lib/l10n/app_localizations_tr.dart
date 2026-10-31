@@ -9310,4 +9310,7 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get p51AddJoinQuestion => 'Katılma sorusu ekle';
+
+  @override
+  String get p64CropDone => 'Bitti';
 }

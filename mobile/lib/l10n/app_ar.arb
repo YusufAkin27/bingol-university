@@ -2915,5 +2915,6 @@
   "p51JoinApproval": "بطلب",
   "p51DescLabel": "الوصف",
   "p51DescHint": "صف هدف ناديك وأهدافه باختصار…",
-  "p51AddJoinQuestion": "إضافة سؤال انضمام"
+  "p51AddJoinQuestion": "إضافة سؤال انضمام",
+  "p64CropDone": "تم"
 }
