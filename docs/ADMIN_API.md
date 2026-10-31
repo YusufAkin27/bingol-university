@@ -706,9 +706,10 @@ Ayar: `app.admin.require-reason` (varsayılan `true`; testlerde `false`). Kapal�
 | `PATCH /api/admin/users/{id}/role` | 5 |
 | `DELETE /api/admin/users/{id}` | 5 |
 | `POST /api/admin/legal/{type}` (sözleşme yayınlama) | 5 |
-| `PUT /api/admin/settings/{key}`, yalnız kritik anahtarlar: `maintenance_mode`, `min_version_*`, `store_url_*`, `legal.*`/`legal_*`, `support_email` | 5 |
+| `PUT /api/admin/settings/{key}` (**tüm anahtarlar**, W1-B T-013; eskiden yalnız kritik olanlar) | 5 |
+| W1-B (T-011/T-013) eklenenler: `POST /users/{id}/suspend\|block-access\|verify-email\|send-reset\|revoke-sessions`, `POST /pending-registrations/{email}/verify`, `POST /posts/{id}/hide\|unhide`, `POST /community-posts/{id}/hide\|unhide`, `DELETE /posts/{id}`, `PATCH /news/{id}`, `POST /access-bans`, `POST /push/campaigns` (+`/{id}/cancel`), `POST /mail/campaigns` (+`/{id}/schedule\|cancel`), `POST /crypto/rewrap`, `POST /moderation/appeals/{id}/decide` | 5 |
 | `POST .../bulk` (örn. `/access-bans/bulk`) | 5 |
-| Sohbet içeriği açan GET'ler: `GET /api/admin/users/{id}/conversations[/{cid}/messages]`, `GET /api/admin/chat-media`, `GET /api/admin/chat-messages`, sohbet bağlamı dönen `GET /api/admin/reports/{id}` | **10** (`message_access_audit.reason` kısıtı) |
+| Sohbet içeriği açan GET'ler: `GET /api/admin/users/{id}/conversations[/{cid}/messages]`, `GET /api/admin/chat-media`, `GET /api/admin/chat-messages`, sohbet bağlamı dönen `GET /api/admin/reports/{id}` | **20** (W1-B T-015; eskiden 10. `message_access_audit.reason` veritabanı kısıtı 10'da kalır) |
 
 Sohbet uçlarında girilen gerçek sebep `message_access_audit.reason`'a yazılır (sistem gerekçesinin yerine). Sohbet **istatistik** ucu (`/chat-media/stats`) ve medya önizleme (`<img>`) sebep istemez. Web notu: sayfalama isteklerinde aynı sebep her isteğe eklenmelidir (durumsuz). Şikâyet detayında yalnız sohbet mesajı bağlamı açılıyorsa sebep aranır (kullanıcı/kulüp şikâyetlerinde aranmaz).
 
@@ -750,6 +751,42 @@ Kişisel veri okuyan uçlar kayda girer (sebep zorunlu değil; kayıt zorunlu): 
 ### Yeni hata kodları (3 dilde `i18n/obs*.properties`)
 `REASON_REQUIRED` (400, `{0}` en az uzunluk), `ADMIN_EMAIL_PINNED` (409), `REQUEST_IN_PROGRESS` (409), `IDEMPOTENCY_KEY_REUSED` (422).
 
+
+## Yönetici yetki sertleştirmesi (W1-B, T-010..T-017)
+
+Denetim kaynağı: `docs/audit/A1-backend-guvenlik.md` (A1-01/05/06/07/08/33/37/38) ve `A14-yonetim-rbac-ve-islev.md` (A14-04/05/07/08/11/12/13). Yeni migration yoktur.
+
+### Yol çözümleme (T-010)
+`HttpServletRequest#getRequestURI()` ham yoldur; Spring MVC segmenti çözerek eşler (`/%63onversations` = `/conversations`). Eskiden izin (`AdminPermissionPolicy`), gerekçe/hız (`AdminGuardPolicy`) ve denetim (`AuditRecorder.shouldAudit`) kararları ham yola baktığından kodlu segment bunların hepsini atlatıyordu (VIEWER özel mesajı ve tüm kullanıcı CSV'sini okuyabiliyordu). Düzeltme:
+- **`admin/AdminPaths.of(req)`** tek çözümleyicidir: bağlam yolu atılır, `;param` atılır, her segment UTF-8 olarak çözülür (kodlu `/` etkisiz karaktere çevrilir, bozuk `%` olduğu gibi kalır = hiçbir özel kurala eşleşmez = en sıkı varsayılan). `AdminPermissionInterceptor`, `AdminGuardInterceptor`, `AuditInterceptor`, `AuditAccessDeniedHandler`, `AuditRecorder` (hedef çıkarımı) ve `AdminReasonFilter` bunu kullanır.
+- **`AdminPathGuardFilter`** (ek savunma, Spring Security'den önce): çözülmüş yolu `/api/admin` olan istekte `%40` (e-posta `@`) dışında yüzde-kodlu karakter varsa `400 ADMIN_PATH_INVALID` (`/api/%61dmin/...` dahil). Yolda `%` yoksa maliyetsizdir. Web paneli yalnız `encodeURIComponent(e-posta)` (`%40`), ayar anahtarı, tablo adı ve oturum kimliği (hex) kodlar; bunlar etkilenmez. Sorgu dizgesi (`?q=%27`) filtreye girmez.
+- **HEAD**: `AdminPermissionPolicy` HEAD'i GET olarak değerlendirir (Spring HEAD'i GET işleyicisine yönlendirir; eskiden GET-yalnız kurallar HEAD'de atlanıyordu).
+- Test: `AdminPathBypassTest`; `RbacCoverageTest.percentEncodedVariantsGetTheSameDecisions` ve `interceptorTreatsEncodedVariantsLikePlainPaths` (her admin ucunun her harfi tek tek ve hepsi birlikte `%xx` yapılmış türevleri aynı izin/gerekçe/denetim kararını verir); `RbacMvcTest` (HTTP).
+
+### `users.verify` izni (T-011)
+`POST /api/admin/users/{id}/verify-email` ve `POST /api/admin/pending-registrations/{email}/verify` artık **`users.verify`** ister (**yalnız FULL**; eskiden `users.write`: MODERATOR de yapabiliyordu). Kodsuz doğrulama e-posta sahipliğini kanıtlamadan hesap açmaktır (CLAUDE.md §4.2). Ek kurallar: gerekçe **>= 5 karakter** (`400 REASON_REQUIRED`) + yıkıcı saatlik sınır; hedef e-posta `ADMIN_EMAILS`'te ise `409 VERIFY_ADMIN_EMAIL_FORBIDDEN` (sabit FULL yönetici yalnız e-posta koduyla oluşur; `AccountCreator.create(email, p, promoteAdmin=false)` kodsuz yolda terfi yapmaz); denetim özeti "e-posta kodu ATLANDI ..."; `ADMIN_VERIFY` log satırında e-posta maskelidir (`LogMasking.email`). **Davranış değişikliği:** MODERATOR artık bu iki uçta `403 ADMIN_PERMISSION_DENIED` (`users.verify`) alır. Web (W2-K): nav/`GuardedAction` için yeni izin anahtarı `users.verify`.
+
+### Rol düşürme / silme ve "son FULL" (T-012)
+`PATCH /api/admin/users/{id}/role` (ADMIN → USER) ve `DELETE /api/admin/users/{id}` hedefin etkin profili **FULL** ise `409 RBAC_APPROVAL_REQUIRED` verir (iki kişi onayı kuralı artık `/rbac/**` dışında da geçerli; `RbacService.needsApproval` paylaşılır): önce RBAC akışıyla (`POST /rbac/changes`, ikinci FULL onayı) FULL profili düşürülür, sonra rol/silme tek başına yapılabilir. Hedef son FULL ise `409 RBAC_LAST_FULL`. FULL olmayan yönetici hedefler doğrudan düşürülür/silinir. Toplu kullanıcı işlemi (`POST /users/bulk`) ADMIN hedefleri zaten `ADMIN_TARGET` ile atlar.
+
+### Gerekçe kapsamı (T-013)
+Gerekçe (>= 5 karakter, yoksa `400 REASON_REQUIRED`) + yıkıcı saatlik sınır (20/saat) artık yukarıdaki "Sebep ZORUNLU" tablosundaki W1-B satırındaki isteklerde ve **tüm** `PUT /settings/{key}` isteklerinde zorunludur. Test gönderimi (`/push/campaigns/test`), kitle önizlemesi ve okuma uçları gerekçe istemez. **Gerekçe içeriği:** `X-Admin-Reason` başlığı ya da `?reason=` kontrol karakteri (CR/LF/sekme/NUL) içeriyorsa `400 REASON_INVALID` (JSON gövdedeki `reason` metni çok satırlı olabilir; denetim satırında kontrol karakterleri boşluğa çevrilir). **Web (W2-K):** ayar kaydetme, gönderi/haber gizleme, kampanya oluşturma/zamanlama, erişim engeli ekleme gibi eylemler gerekçe sormalıdır.
+
+### Hiyerarşi (T-014)
+`users.write` (MODERATOR) sahibi, **yönetici (ADMIN) hesaplarına** müdahale edemez: `POST /users/{id}/revoke-sessions|send-reset|verify-email`, `PATCH /users/{id}/profile`, `DELETE /users/{id}/sessions/{sid}`, `DELETE /users/{id}/push-devices/{did}` hedef ADMIN ise yalnız FULL'a açıktır, aksi halde `403 ADMIN_TARGET_FORBIDDEN`. Kural tek yerdedir: `admin/AdminHierarchy.requireManageable(User)` (`Targets.manageable`, `AdminAccountVerificationService.find`); istek bağlamı yoksa (zamanlayıcı/birim testi) kısıtlama yoktur. Askıya alma ve toplu işlem zaten yönetici hedefi reddediyordu.
+
+### Sohbet çözme kotası (T-015)
+`AdminDecryptService.record`, içerik dönmeden önce `app.crypto.admin-decrypt-per-hour` (varsayılan 30, **istek sayısı/saat/yönetici**; Redis anahtarı `rl:admindecrypt:<adminId>`) kotasını uygular: aşımda `429 RATE_LIMITED` + `Retry-After`, içerik dönmez ve denetim satırı yazılmaz; tek çağrıda `app.crypto.admin-decrypt-max-messages` (200) mesajı aşan çözme `400 DECRYPT_BATCH_TOO_LARGE`. **Genel akış** (`GET /chat-messages`, `GET /chat-media`) `userId`, `senderId` (yalnız mesaj akışı) veya `conversationId` süzgeci olmadan `400 FEED_FILTER_REQUIRED`. Sohbet içeriği açan uçların gerekçesi **>= 20 karakter** (`AdminDecryptService.MIN_REASON`). Bu iş akışında YAPILMADI (K-13 kararı bekliyor): rapor kimliği zorunluluğu, ikinci onay, hacim eşiği uyarısı (bkz. `docs/changes/ops.md`).
+
+### Denetim kalitesi (T-016)
+- Reddedilen/başarısız isteğin (`status >= 400`) denetim özeti, denetleyicinin önceden koyduğu başarı metni yerine `BASARISIZ: HTTP <kod>` olarak yazılır (eskiden `DELETE /users/1` 400 dönerken "hesap anonimlestirildi" kayıtlıydı); `AdminUserController` rol/silme özetini ayrıca işlem BİTTİKTEN sonra koyar.
+- Kişisel veri okuyan GET'ler denetlenir: `users.pii` ile eşlenen tüm uçlar (`GET /users/{id}/sessions|push-devices|devices`, `GET /pending-registrations[...]`) ile `GET /users/{id}/strikes`, `GET /support/tickets[/{id}]`, `GET /mail/outbox[/{id}]` (HEAD dahil). Genel liste uçlarına (`GET /users`) eklenmez (kayıt seli).
+
+### Ayar doğrulama (T-017)
+`PUT /api/admin/settings/{key}`: e-posta anahtarları (`support_email`, `contact_email`, `*_email`, `*.email`) tek ve geçerli bir adres olmalı (boşluk, satır sonu, virgül, `<` reddedilir; `Reply-To` başlık enjeksiyonu), bağlantı anahtarları (`store_url_*`, `banner_url`, `website`, `instagram`, `twitter`, `youtube`) `https://` ile başlamalı ve boşluk/kontrol/`<>"` içermemeli; boş değer serbest (ayar temizleme). Geçersiz: `400 SETTING_INVALID` (`{0}` = anahtar). Bu anahtarlar için eski `VALIDATION_ERROR` (https) yerine `SETTING_INVALID` döner.
+
+### Yeni hata kodları ve izin
+`ADMIN_PATH_INVALID` (400), `ADMIN_TARGET_FORBIDDEN` (403), `VERIFY_ADMIN_EMAIL_FORBIDDEN` (409), `REASON_INVALID` (400): tr/en/ar `i18n/rbac*.properties`. `FEED_FILTER_REQUIRED` (400), `DECRYPT_BATCH_TOO_LARGE` (400): `i18n/chatadmin*.properties`. `SETTING_INVALID` (400): `i18n/ops*.properties`. Yeni izin: `users.verify` (yalnız FULL). Mevcut `RBAC_APPROVAL_REQUIRED` / `RBAC_LAST_FULL` artık `PATCH /users/{id}/role` ve `DELETE /users/{id}` yanıtlarında da görülür.
 
 ## Etkinlik derin yönetimi (P07, V690)
 
@@ -874,7 +911,7 @@ Haber, akademik içerik, yemek menüsü ve bekleyen kayıtlar için toplu işlem
 | dashboard.read, analytics.read, legal.read, content.read | x | x | x | x | x |
 | users.read (e-posta maskeli: SUPPORT, VIEWER) | x | x | x |  | x |
 | users.pii, users.write | x | x |  |  |  |
-| users.role, users.delete, users.export | x |  |  |  |  |
+| users.role, users.delete, users.export, users.verify (W1-B T-011: kodsuz hesap doğrulama) | x |  |  |  |  |
 | moderation.read | x | x |  |  | x |
 | moderation.write, chat.read, chat.write | x | x |  |  |  |
 | content.write | x |  |  | x |  |
