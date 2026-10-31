@@ -111,7 +111,7 @@ void main() {
       expect(photo, findsOneWidget);
       final card = tester.getSize(find.byKey(const ValueKey('discover-post-999')));
       final ph = tester.getSize(find.ancestor(of: photo, matching: find.byType(AspectRatio)).first);
-      expect(ph.width, card.width - 20); // kart ici bosluk 10 + 10
+      expect(ph.width, card.width); // Stitch v3: gorsel karti tam kaplar (ic bosluk yok)
       expect((ph.width / ph.height - 4 / 5).abs(), lessThan(0.01));
       noErr(tester);
     });
@@ -124,9 +124,9 @@ void main() {
       await settle(tester, const Duration(milliseconds: 600));
       final card = find.byKey(const ValueKey('discover-post-999'));
       final like = find.descendant(of: card, matching: find.byKey(const ValueKey('like-heart')));
-      int count() => int.parse((tester.widget(find.descendant(of: card, matching: find.byKey(const ValueKey('like-count')))) as Text).data!.split(' ').first);
+      int count() => int.parse((tester.widget(find.descendant(of: card, matching: find.byKey(const ValueKey('like-count')))) as Text).data!);
       final before = count();
-      expect((tester.widget(find.descendant(of: card, matching: find.byKey(const ValueKey('like-count')))) as Text).data, endsWith('beğeni'));
+      expect((tester.widget(find.descendant(of: card, matching: find.byKey(const ValueKey('like-count')))) as Text).data, matches(r'^\d+$')); // gorunur: yalniz rakam (hap icinde)
       // 44 px dokunma alani.
       expect(tester.getSize(like).height, greaterThanOrEqualTo(44));
       await tester.ensureVisible(like);
@@ -261,7 +261,7 @@ void main() {
     }
 
     testWidgets('size=12, nextCursor opak aynen geri gider, son sayfada durur', (tester) async {
-      useScreen(tester, const Size(390, 844));
+      useScreen(tester, const Size(390, 1800)  /* 24 dp bosluk + buyuk kartlar: tum kartlar bir ekrana sigsin */);
       final seen = <Uri>[];
       final b = topBackend([
         (u) => u.queryParameters['cursor'] == null
@@ -286,7 +286,7 @@ void main() {
     });
 
     testWidgets('hint=RANK_REFRESHED: ayni id ikinci kez eklenmez', (tester) async {
-      useScreen(tester, const Size(390, 844));
+      useScreen(tester, const Size(390, 1800)  /* 24 dp bosluk + buyuk kartlar: tum kartlar bir ekrana sigsin */);
       final seen = <Uri>[];
       final b = topBackend([
         (u) => u.queryParameters['cursor'] == null
@@ -303,7 +303,7 @@ void main() {
     });
 
     testWidgets('400 POST_CURSOR_INVALID: akis imlecsiz bastan yuklenir', (tester) async {
-      useScreen(tester, const Size(390, 844));
+      useScreen(tester, const Size(390, 1800)  /* 24 dp bosluk + buyuk kartlar: tum kartlar bir ekrana sigsin */);
       final seen = <Uri>[];
       final b = topBackend([
         (u) => u.queryParameters['cursor'] == null
@@ -322,7 +322,7 @@ void main() {
     });
 
     testWidgets('cekip yenileme imleci sifirlar', (tester) async {
-      useScreen(tester, const Size(390, 844));
+      useScreen(tester, const Size(390, 1800)  /* 24 dp bosluk + buyuk kartlar: tum kartlar bir ekrana sigsin */);
       final seen = <Uri>[];
       final b = topBackend([
         (u) => FakeResult.json({'items': [post(1), post(2)], 'nextCursor': u.queryParameters['cursor'] == null ? 'c1' : null, 'hint': null}),

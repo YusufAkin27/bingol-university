@@ -48,7 +48,7 @@ class _DiscoverSuggestionsState extends State<DiscoverSuggestions> {
     if (_failed || (items != null && items.isEmpty)) return const SizedBox.shrink();
     return Padding(
       key: const ValueKey('discoverSuggestions'),
-      padding: const EdgeInsets.symmetric(vertical: BuSpace.sm),
+      padding: const EdgeInsets.only(top: BuSpace.sm, bottom: BuSpace.xxxl),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -59,7 +59,7 @@ class _DiscoverSuggestionsState extends State<DiscoverSuggestions> {
                 child: Text(l.p04SuggestTitle,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: tt.titleMedium?.copyWith(color: t.ink, fontWeight: FontWeight.w700)),
+                    style: tt.titleMedium?.copyWith(color: t.ink, fontSize: 16, fontWeight: FontWeight.w600)),
               ),
               InkWell(
                 key: const ValueKey('discoverSuggestionsAll'),
@@ -71,21 +71,21 @@ class _DiscoverSuggestionsState extends State<DiscoverSuggestions> {
                   child: Align(
                     widthFactor: 1,
                     child: Text(l.p04SuggestSeeAll,
-                        style: tt.labelSmall?.copyWith(color: t.pr, fontWeight: FontWeight.w700)),
+                        style: tt.labelMedium?.copyWith(color: t.pr, fontSize: 14, fontWeight: FontWeight.w600)),
                   ),
                 ),
               ),
             ]),
           ),
           SizedBox(
-            height: 184 * (MediaQuery.textScalerOf(context).scale(14) / 14).clamp(1.0, 1.6),
+            height: 172 * (MediaQuery.textScalerOf(context).scale(14) / 14).clamp(1.0, 1.6),
             child: items == null
                 ? const BuSkeletonScope(child: _SuggestionSkeletonRow())
                 : ListView.separated(
                     scrollDirection: Axis.horizontal,
-                    padding: const EdgeInsets.symmetric(horizontal: BuSpace.page, vertical: 6),
+                    padding: const EdgeInsets.symmetric(horizontal: BuSpace.page),
                     itemCount: items.length,
-                    separatorBuilder: (_, __) => BuGap.w12,
+                    separatorBuilder: (_, __) => BuGap.w16,
                     itemBuilder: (_, i) => _SuggestionCard(session: widget.session, user: items[i]),
                   ),
           ),
@@ -103,42 +103,32 @@ class _SuggestionSkeletonRow extends StatelessWidget {
     return ListView.separated(
       scrollDirection: Axis.horizontal,
       physics: const NeverScrollableScrollPhysics(),
-      padding: const EdgeInsets.symmetric(horizontal: BuSpace.page, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: BuSpace.page),
       itemCount: 3,
-      separatorBuilder: (_, __) => BuGap.w12,
+      separatorBuilder: (_, __) => BuGap.w16,
       itemBuilder: (_, __) => const _SuggestionSurface(
         child: Column(children: [
-          BuSkeleton.circle(52),
+          BuSkeleton.circle(56),
           BuGap.h8,
           BuSkeleton.line(width: 72, height: 12),
           BuGap.h6,
           BuSkeleton.line(width: 56, height: 10),
           Spacer(),
-          BuSkeleton(width: double.infinity, height: 30, radius: 999),
+          BuSkeleton(width: double.infinity, height: 36, radius: 999),
         ]),
       ),
     );
   }
 }
 
+/// Öneri öğesi: kart/zemin/gölge yok (Stitch v3), 104 dp genişlik.
 class _SuggestionSurface extends StatelessWidget {
   const _SuggestionSurface({required this.child});
 
   final Widget child;
 
   @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 136,
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: context.bu.sf,
-        borderRadius: BorderRadius.circular(BuRadius.md),
-        boxShadow: BuElevation.of(context, 1),
-      ),
-      child: child,
-    );
-  }
+  Widget build(BuildContext context) => SizedBox(width: 104, child: child);
 }
 
 class _SuggestionCard extends StatefulWidget {
@@ -185,18 +175,18 @@ class _SuggestionCardState extends State<_SuggestionCard> {
     return _SuggestionSurface(
       child: Column(children: [
         BuAvatar(
-            name: u.displayName, url: u.avatarUrl, size: 52, headers: postAuthHeaders(widget.session)),
+            name: u.displayName, url: u.avatarUrl, size: 56, headers: postAuthHeaders(widget.session)),
         BuGap.h8,
         Text(u.displayName,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             textAlign: TextAlign.center,
-            style: tt.titleSmall?.copyWith(color: t.ink, fontWeight: FontWeight.w600)),
+            style: tt.titleSmall?.copyWith(color: t.ink, fontSize: 14, fontWeight: FontWeight.w600)),
         Text(dept,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             textAlign: TextAlign.center,
-            style: tt.labelSmall?.copyWith(color: t.mut)),
+            style: tt.labelSmall?.copyWith(color: t.mut, fontSize: 12)),
         const Spacer(),
         Semantics(
           button: true,
@@ -214,21 +204,16 @@ class _SuggestionCardState extends State<_SuggestionCard> {
                   duration: BuMotion.of(context, BuMotion.short),
                   curve: BuMotion.standard,
                   width: double.infinity,
-                  height: 32,
+                  height: 36,
                   alignment: Alignment.center,
                   decoration: BoxDecoration(
-                    color: _followed ? t.sf2 : t.soft,
                     borderRadius: BorderRadius.circular(BuRadius.pill),
+                    border: Border.all(color: _followed ? t.bd : t.bdStrong),
                   ),
-                  child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                    if (_followed) ...[Icon(Icons.check, size: 14, color: t.mut), BuGap.w4],
-                    Flexible(
-                      child: Text(_followed ? context.l10n.p04FollowingState : context.l10n.p04FollowAction,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: tt.labelMedium?.copyWith(color: _followed ? t.mut : t.onSoft, fontWeight: FontWeight.w600)),
-                    ),
-                  ]),
+                  child: Text(_followed ? context.l10n.p04FollowingState : context.l10n.p04FollowAction,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: tt.labelMedium?.copyWith(color: _followed ? t.mut : t.ink, fontSize: 13, fontWeight: FontWeight.w600)),
                 ),
               ),
             ),

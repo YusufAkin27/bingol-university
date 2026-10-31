@@ -32,6 +32,9 @@ Future<Post?> openComposePost(BuildContext context, Session session) => Navigato
 
 enum _Err { none, generic, profanity, rate, network }
 
+/// Önizleme / boş alan köşesi (Stitch v3: 24 dp).
+const double kComposeRadius = 24;
+
 /// Sade gönderi oluşturucu: tam 1 fotoğraf (zorunlu, 4:5 kırpılır) + isteğe bağlı kısa metin (en çok 7 kelime, canlı
 /// sayaç). Fotoğraf `POST /posts/media` ile yüklenir, sonra gönderi `mediaIds: [id]` ile oluşturulur.
 class ComposePostPage extends StatefulWidget {
@@ -242,48 +245,55 @@ class _ComposePostPageState extends State<ComposePostPage> {
           IconButton(
             key: const ValueKey('composeClose'),
             tooltip: context.l10n.postComposeClose,
-            icon: Icon(LucideIcons.x, color: t.ink),
+            icon: Icon(LucideIcons.x, size: 24, color: t.ink),
             onPressed: _publishing ? null : _close,
           ),
           Expanded(
             child: Text(context.l10n.postComposeNewPost,
                 textAlign: TextAlign.center,
-                style: tt.titleMedium?.copyWith(color: t.ink, fontWeight: FontWeight.w700),
+                style: tt.titleMedium?.copyWith(color: t.ink, fontSize: 17, fontWeight: FontWeight.w600),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis),
           ),
+          // Küçük pr hap: görünür 36 dp, dokunma alanı 48 dp; hazır değilken %40 opak (150 ms geçiş).
           Padding(
             padding: const EdgeInsetsDirectional.only(end: 12),
-            child: TweenAnimationBuilder<Color?>(
-              tween: ColorTween(end: enabled || _publishing ? t.pr : t.pr.withValues(alpha: 0)),
+            child: AnimatedOpacity(
+              opacity: enabled || _publishing ? 1 : .4,
               duration: BuMotion.of(context, BuMotion.short),
-              builder: (context, fill, child) => Material(
+              child: Material(
                 key: const ValueKey('composeShare'),
-                color: fill,
-                borderRadius: BorderRadius.circular(BuRadius.pill),
-                child: child,
-              ),
-              child: InkWell(
-                borderRadius: BorderRadius.circular(BuRadius.pill),
-                onTap: enabled ? _publish : null,
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(minHeight: 40, minWidth: 64),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                color: Colors.transparent,
+                child: InkWell(
+                  customBorder: const StadiumBorder(),
+                  onTap: enabled ? _publish : null,
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(minHeight: BuSize.touch, minWidth: 64),
                     child: Center(
                       widthFactor: 1,
-                      heightFactor: 1,
-                      child: AnimatedSwitcher(
-                        duration: BuMotion.of(context, BuMotion.short),
-                        child: _publishing
-                          ? Row(key: const ValueKey('sharing'), mainAxisSize: MainAxisSize.min, children: [
-                              SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: t.onPr)),
-                              const SizedBox(width: 8),
-                              Text(context.l10n.p04PostSharing, style: tt.labelLarge?.copyWith(color: t.onPr, fontWeight: FontWeight.w700)),
-                            ])
-                          : Text(context.l10n.postComposeShare,
-                              key: const ValueKey('share'),
-                              style: tt.labelLarge?.copyWith(color: enabled ? t.onPr : t.mut, fontWeight: FontWeight.w700)),
+                      child: DecoratedBox(
+                        decoration: BoxDecoration(color: t.pr, borderRadius: BorderRadius.circular(BuRadius.pill)),
+                        child: SizedBox(
+                          height: 36,
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            child: Center(
+                              widthFactor: 1,
+                              child: AnimatedSwitcher(
+                                duration: BuMotion.of(context, BuMotion.short),
+                                child: _publishing
+                                    ? Semantics(
+                                        key: const ValueKey('sharing'),
+                                        label: context.l10n.p04PostSharing,
+                                        child: SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: t.onPr)),
+                                      )
+                                    : Text(context.l10n.postComposeShare,
+                                        key: const ValueKey('share'),
+                                        style: tt.labelLarge?.copyWith(color: t.onPr, fontSize: 14, fontWeight: FontWeight.w600)),
+                              ),
+                            ),
+                          ),
+                        ),
                       ),
                     ),
                   ),
@@ -302,9 +312,9 @@ class _ComposePostPageState extends State<ComposePostPage> {
     if (bytes != null) {
       return Container(
         key: const ValueKey('composePreview'),
-        decoration: BoxDecoration(borderRadius: BorderRadius.circular(BuRadius.lg), boxShadow: BuElevation.of(context, 1)),
+        decoration: BoxDecoration(borderRadius: BorderRadius.circular(kComposeRadius), boxShadow: BuElevation.of(context, 1)),
         child: ClipRRect(
-          borderRadius: BorderRadius.circular(BuRadius.lg),
+          borderRadius: BorderRadius.circular(kComposeRadius),
           child: AspectRatio(
             aspectRatio: 4 / 5,
             child: Stack(fit: StackFit.expand, children: [
@@ -321,59 +331,41 @@ class _ComposePostPageState extends State<ComposePostPage> {
                     Flexible(child: _pill(const ValueKey('composeRecrop'), LucideIcons.crop, context.l10n.p04Recrop, _recrop)),
                   ]),
                 ),
-              if (_publishing) Positioned.fill(child: ColoredBox(color: t.scrim.withValues(alpha: .35))),
+              if (_publishing)
+                Positioned.fill(child: ColoredBox(color: t.bg.withValues(alpha: .4))),
             ]),
           ),
         ),
       );
     }
-    final hint = _text.text.trim().isNotEmpty; // metin yazıldı ama fotoğraf yok: zorunluluk ipucu
-    return CustomPaint(
+    final hint = _text.text.trim().isNotEmpty; // metin yazıldı ama fotoğraf yok: kısa ipucu
+    return DecoratedBox(
       key: const ValueKey('composePicker'),
-      painter: _DashedBorder(color: t.bd, radius: BuRadius.lg),
+      decoration: BoxDecoration(color: t.sf2, borderRadius: BorderRadius.circular(kComposeRadius)),
       child: AspectRatio(
         aspectRatio: 4 / 5,
         child: Padding(
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.symmetric(horizontal: BuSpace.xxxl),
           child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-            Icon(LucideIcons.camera, size: 32, color: t.mut),
-            const SizedBox(height: 16),
+            // Tek birincil eylem; ikincil: Kamera (metin düğmesi). Başka öğe yok (Stitch v3 01).
+            BuButton(
+                key: const ValueKey('composeGallery'),
+                label: context.l10n.gonderiPickPhoto,
+                onPressed: () => _pick(ImageSource.gallery)),
+            const SizedBox(height: 12),
+            TextButton(
+              key: const ValueKey('composeCamera'),
+              onPressed: () => _pick(ImageSource.camera),
+              style: TextButton.styleFrom(minimumSize: const Size(BuSize.touch, BuSize.touch), foregroundColor: t.mut),
+              child: Text(context.l10n.postComposeCamera, style: tt.labelLarge?.copyWith(color: t.mut, fontSize: 15, fontWeight: FontWeight.w500)),
+            ),
             if (hint) ...[
+              const SizedBox(height: 8),
               Text(context.l10n.gonderiPhotoRequired,
                   key: const ValueKey('composePhotoHint'),
                   textAlign: TextAlign.center,
-                  style: tt.titleSmall?.copyWith(color: t.ink, fontWeight: FontWeight.w600)),
-              const SizedBox(height: 16),
+                  style: tt.bodySmall?.copyWith(color: t.mut)),
             ],
-            _bigBtn(const ValueKey('composeGallery'), LucideIcons.images, context.l10n.gonderiPickPhoto, () => _pick(ImageSource.gallery)),
-            const SizedBox(height: 10),
-            _bigBtn(const ValueKey('composeCamera'), LucideIcons.camera, context.l10n.gonderiTakePhoto,
-                () => _pick(ImageSource.camera)),
-            if (!hint) ...[
-              const SizedBox(height: 16),
-              Text(context.l10n.gonderiPhotoHint, textAlign: TextAlign.center, style: tt.bodySmall?.copyWith(color: t.mut)),
-            ],
-          ]),
-        ),
-      ),
-    );
-  }
-
-  Widget _bigBtn(Key key, IconData icon, String label, VoidCallback onTap) {
-    final t = context.bu;
-    return Material(
-      key: key,
-      color: t.sf,
-      shape: StadiumBorder(side: BorderSide(color: t.bd)),
-      child: InkWell(
-        customBorder: const StadiumBorder(),
-        onTap: onTap,
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(minHeight: 48, minWidth: 210),
-          child: Row(mainAxisSize: MainAxisSize.min, mainAxisAlignment: MainAxisAlignment.center, children: [
-            Icon(icon, size: 18, color: t.ink),
-            const SizedBox(width: 8),
-            Text(label, style: Theme.of(context).textTheme.labelLarge?.copyWith(color: t.ink)),
           ]),
         ),
       ),
@@ -382,28 +374,25 @@ class _ComposePostPageState extends State<ComposePostPage> {
 
   Widget _pill(Key key, IconData icon, String label, VoidCallback onTap) {
     final t = context.bu;
-    // Fotoğraf üstünde yüzen hap: Material gölgesi koyu halka gibi görünüyordu; ortak yumuşak gölge kullanılır.
-    return DecoratedBox(
-      decoration: BoxDecoration(borderRadius: BorderRadius.circular(BuRadius.pill), boxShadow: BuElevation.of(context, 2)),
-      child: Material(
+    // Fotoğraf üstünde yarı saydam koyu hap (scrim/onMedia); gölge yok, dokunma alanı 48 dp.
+    return Material(
       key: key,
-      color: t.sf,
+      color: t.scrim.withValues(alpha: .45),
       shape: const StadiumBorder(),
       child: InkWell(
         customBorder: const StadiumBorder(),
         onTap: onTap,
         child: ConstrainedBox(
-          constraints: const BoxConstraints(minHeight: 44),
+          constraints: const BoxConstraints(minHeight: BuSize.touch),
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 14),
             child: Row(mainAxisSize: MainAxisSize.min, children: [
-              Icon(icon, size: 16, color: t.ink),
+              Icon(icon, size: 16, color: t.onMedia),
               const SizedBox(width: 6),
-              Flexible(child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, style: Theme.of(context).textTheme.labelMedium?.copyWith(color: t.ink, fontWeight: FontWeight.w600))),
+              Flexible(child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, style: Theme.of(context).textTheme.labelMedium?.copyWith(color: t.onMedia, fontWeight: FontWeight.w600))),
             ]),
           ),
         ),
-      ),
       ),
     );
   }
@@ -411,57 +400,61 @@ class _ComposePostPageState extends State<ComposePostPage> {
   Widget _textField(BuTokens t) {
     final over = !_textOk;
     final tt = Theme.of(context).textTheme;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        TextField(
-          key: const ValueKey('composeText'),
-          controller: _text,
-          focusNode: _focus,
-          enabled: !_publishing,
-          minLines: 1,
-          maxLines: 3,
-          textInputAction: TextInputAction.done,
-          textCapitalization: TextCapitalization.sentences,
-          inputFormatters: [
-            FilteringTextInputFormatter.deny(RegExp(r'[\r\n]')),
-            LengthLimitingTextInputFormatter(kPostMaxChars),
-          ],
-          onChanged: (_) => setState(() {}),
-          style: tt.bodyLarge?.copyWith(color: t.ink),
-          decoration: InputDecoration(
-            hintText: context.l10n.gonderiTextHint,
-            hintStyle: tt.bodyLarge?.copyWith(color: t.mut),
-            filled: false,
-            border: InputBorder.none,
-            enabledBorder: InputBorder.none,
-            disabledBorder: InputBorder.none,
-            focusedBorder: InputBorder.none,
-            errorBorder: InputBorder.none,
-            focusedErrorBorder: InputBorder.none,
-            isDense: true,
-            contentPadding: const EdgeInsets.symmetric(horizontal: 4, vertical: 12),
-          ),
-        ),
-        Align(
-          alignment: AlignmentDirectional.centerEnd,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 4),
-            // Renk/ağırlık 150 ms'de yumuşakça geçer; tabular rakam: sayı değişirken genişlik oynamaz.
-            child: AnimatedDefaultTextStyle(
-              duration: BuMotion.of(context, BuMotion.short),
-              curve: BuMotion.standard,
-              // Sayaç yalnız sınırda/aşımda vurgulanır; normalde sessiz kalır.
-              style: (tt.labelMedium ?? const TextStyle()).copyWith(
-                  color: over ? t.danger : (_words >= kPostMaxWords ? t.ink : t.mut),
-                  fontWeight: over || _words >= kPostMaxWords ? FontWeight.w700 : FontWeight.w400,
-                  fontFeatures: const [FontFeature.tabularFigures()]),
-              child: Text(context.l10n.gonderiWordCount(_words.toString(), kPostMaxWords.toString()),
-                  key: const ValueKey('composeCounter')),
+    return AnimatedContainer(
+      duration: BuMotion.of(context, BuMotion.short),
+      curve: BuMotion.standard,
+      constraints: const BoxConstraints(minHeight: BuSize.field),
+      decoration: BoxDecoration(
+        color: t.sf,
+        borderRadius: BorderRadius.circular(BuRadius.md),
+        border: Border.all(color: over ? t.danger : t.bdStrong, width: over ? 1.5 : 1),
+      ),
+      padding: const EdgeInsetsDirectional.fromSTEB(16, 0, 14, 0),
+      child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
+        Expanded(
+          child: TextField(
+            key: const ValueKey('composeText'),
+            controller: _text,
+            focusNode: _focus,
+            enabled: !_publishing,
+            minLines: 1,
+            maxLines: 3,
+            textInputAction: TextInputAction.done,
+            textCapitalization: TextCapitalization.sentences,
+            inputFormatters: [
+              FilteringTextInputFormatter.deny(RegExp(r'[\r\n]')),
+              LengthLimitingTextInputFormatter(kPostMaxChars),
+            ],
+            onChanged: (_) => setState(() {}),
+            style: tt.bodyLarge?.copyWith(color: t.ink, fontSize: 15),
+            decoration: InputDecoration(
+              hintText: context.l10n.gonderiTextHint,
+              hintStyle: tt.bodyLarge?.copyWith(color: t.mut, fontSize: 15),
+              filled: false,
+              border: InputBorder.none,
+              enabledBorder: InputBorder.none,
+              disabledBorder: InputBorder.none,
+              focusedBorder: InputBorder.none,
+              errorBorder: InputBorder.none,
+              focusedErrorBorder: InputBorder.none,
+              isDense: true,
+              contentPadding: const EdgeInsets.symmetric(vertical: 14),
             ),
           ),
         ),
-      ],
+        const SizedBox(width: 8),
+        // Sessiz sayaç: 12 sp mut; yalnız sınırda (7/7) ve aşımda vurgulanır; renk 150 ms geçer, tabular rakam.
+        AnimatedDefaultTextStyle(
+          duration: BuMotion.of(context, BuMotion.short),
+          curve: BuMotion.standard,
+          style: (tt.labelSmall ?? const TextStyle()).copyWith(
+              color: over ? t.danger : (_words >= kPostMaxWords ? t.ink : t.mut),
+              fontSize: 12,
+              fontWeight: over || _words >= kPostMaxWords ? FontWeight.w700 : FontWeight.w400,
+              fontFeatures: const [FontFeature.tabularFigures()]),
+          child: Text(context.l10n.gonderiWordCount(_words.toString(), kPostMaxWords.toString()), key: const ValueKey('composeCounter')),
+        ),
+      ]),
     );
   }
 
@@ -607,28 +600,4 @@ class _DiscardDialog extends StatelessWidget {
       ),
     );
   }
-}
-
-class _DashedBorder extends CustomPainter {
-  const _DashedBorder({required this.color, required this.radius});
-
-  final Color color;
-  final double radius;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final p = Paint()
-      ..color = color
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.5;
-    final path = Path()..addRRect(RRect.fromRectAndRadius(Offset.zero & size, Radius.circular(radius)));
-    for (final m in path.computeMetrics()) {
-      for (var d = 0.0; d < m.length; d += 12) {
-        canvas.drawPath(m.extractPath(d, d + 6), p);
-      }
-    }
-  }
-
-  @override
-  bool shouldRepaint(_DashedBorder o) => o.color != color || o.radius != radius;
 }

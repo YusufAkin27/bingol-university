@@ -351,6 +351,7 @@ class PostMenuButton extends StatelessWidget {
     this.active = false,
     this.cardKey,
     this.onOpenChanged,
+    this.onMedia = false,
   });
 
   final Session session;
@@ -360,6 +361,9 @@ class PostMenuButton extends StatelessWidget {
   final bool active;
   final GlobalKey? cardKey;
   final ValueChanged<bool>? onOpenChanged;
+
+  /// Görselin üstünde: yarı saydam yuvarlak zemin + `onMedia` simge (48 dp dokunma alanı aynı).
+  final bool onMedia;
 
   @override
   Widget build(BuildContext context) {
@@ -376,14 +380,16 @@ class PostMenuButton extends StatelessWidget {
             duration: BuMotion.of(context, BuMotion.short),
             width: 40,
             height: 40,
-            decoration: BoxDecoration(color: active ? t.soft : Colors.transparent, shape: BoxShape.circle),
+            decoration: BoxDecoration(
+                color: onMedia ? t.scrim.withValues(alpha: active ? .55 : .35) : (active ? t.soft : Colors.transparent),
+                shape: BoxShape.circle),
           ),
           IconButton(
             key: const ValueKey('post-menu-button'),
             tooltip: context.l10n.postComposeMore,
             padding: EdgeInsets.zero,
             constraints: const BoxConstraints.tightFor(width: 48, height: 48),
-            icon: Icon(Icons.more_horiz, size: 24, color: active ? t.onSoft : t.ink),
+            icon: Icon(Icons.more_horiz, size: 24, color: onMedia ? t.onMedia : (active ? t.onSoft : t.ink)),
             onPressed: () => showPostActions(context,
                 session: session,
                 post: post,

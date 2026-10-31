@@ -249,7 +249,7 @@ class _DiscoverMasonryFeedState extends State<DiscoverMasonryFeed> {
       // İlk 6 kart sırayla belirir (BuStaggerItem; kaydırınca geri gelenler ve yenileme tekrar oynatmaz).
       body = SliverList.separated(
         itemCount: count,
-        separatorBuilder: (_, __) => BuGap.h16,
+        separatorBuilder: (_, __) => BuGap.h24,
         itemBuilder: (_, i) {
           if (inline != null && i == at) return inline;
           final p = _items[inline != null && i > at ? i - 1 : i];
@@ -358,39 +358,20 @@ class _EntryRiseState extends State<_EntryRise> with SingleTickerProviderStateMi
   }
 }
 
-/// Kart içi kenar boşluğu ve fotoğraf oranı (iskelet ile gerçek kart aynı ölçüde: yerleşim kaymaz).
-const double _cardPad = 10;
+/// Fotoğraf oranı ve köşe (iskelet ile gerçek kart aynı ölçüde: yerleşim kaymaz).
 const double kDiscoverPhotoRatio = 4 / 5;
+const double kDiscoverCardRadius = 24;
 
-/// Yükleniyor: gerçek kartla aynı ölçüde iki kart iskeleti (yazar satırı, 4:5 fotoğraf, beğeni + alt yazı).
+/// Yükleniyor: gerçek kartla aynı ölçüde iki 4:5 blok (yer tutucu tonal sf2, parıltı yok) + tek soluk metin çubuğu.
 class DiscoverFeedSkeleton extends StatelessWidget {
   const DiscoverFeedSkeleton({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final t = context.bu;
-    Widget card() => DecoratedBox(
-          decoration: BoxDecoration(color: t.sf, borderRadius: BorderRadius.circular(BuRadius.lg), boxShadow: BuElevation.of(context, 1)),
-          child: const Padding(
-            padding: EdgeInsets.all(_cardPad),
-            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              SizedBox(
-                height: 48,
-                child: Row(children: [
-                  BuSkeleton.circle(36),
-                  BuGap.w12,
-                  BuSkeleton.line(width: 120, height: 12),
-                ]),
-              ),
-              AspectRatio(aspectRatio: kDiscoverPhotoRatio, child: BuSkeleton(radius: BuRadius.sm)),
-              BuGap.h16,
-              BuSkeleton.line(width: 72, height: 12),
-              BuGap.h8,
-              BuSkeleton.line(width: 200, height: 12),
-              BuGap.h8,
-            ]),
-          ),
-        );
+    Widget card() => const Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          AspectRatio(aspectRatio: kDiscoverPhotoRatio, child: BuSkeleton(radius: kDiscoverCardRadius)),
+          Padding(padding: EdgeInsets.fromLTRB(4, 10, 4, 0), child: BuSkeleton.line(width: 200, height: 12)),
+        ]);
     return Semantics(
       label: context.l10n.commonLoading,
       child: ExcludeSemantics(
@@ -398,7 +379,7 @@ class DiscoverFeedSkeleton extends StatelessWidget {
           child: Padding(
             key: const ValueKey('discoverSkeleton'),
             padding: BuSpace.pageH,
-            child: Column(children: [card(), BuGap.h16, card()]),
+            child: Column(children: [card(), BuGap.h24, card()]),
           ),
         ),
       ),
@@ -417,23 +398,25 @@ class DiscoverEmptyCard extends StatelessWidget {
     final t = context.bu;
     final tt = Theme.of(context).textTheme;
     final l = context.l10n;
+    final parts = l.postViewFeedEmpty.split(RegExp(r'(?<=[.!?])\s+'));
     return Padding(
-      padding: const EdgeInsets.fromLTRB(BuSpace.page, BuSpace.xxxl, BuSpace.page, 0),
+      padding: const EdgeInsets.fromLTRB(BuSpace.page, BuSpace.huge, BuSpace.page, 0),
       child: Column(
         key: const ValueKey('discoverEmpty'),
         mainAxisSize: MainAxisSize.min,
         children: [
-          Container(
-            width: 80,
-            height: 80,
-            decoration: BoxDecoration(color: t.soft, shape: BoxShape.circle),
-            child: Icon(LucideIcons.camera, size: 32, color: t.onSoft),
-          ),
-          BuGap.h16,
-          Text(l.postViewFeedEmpty, textAlign: TextAlign.center, style: tt.titleMedium?.copyWith(color: t.ink, fontWeight: FontWeight.w600)),
+          // Stitch v3: illüstrasyon yok; ilk cümle başlık (18/600), ikinci cümle soluk gövde (15).
+          Text(parts.first, textAlign: TextAlign.center, style: tt.titleMedium?.copyWith(color: t.ink, fontSize: 18, fontWeight: FontWeight.w600)),
+          if (parts.length > 1) ...[
+            BuGap.h6,
+            Text(parts.sublist(1).join(' '), textAlign: TextAlign.center, style: tt.bodyLarge?.copyWith(color: t.mut, fontSize: 15)),
+          ],
           if (onCompose != null) ...[
             BuGap.h24,
-            BuButton(key: const ValueKey('discoverEmptyCompose'), label: l.discoverCompose, compact: true, onPressed: onCompose),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: BuSpace.xxl),
+              child: BuButton(key: const ValueKey('discoverEmptyCompose'), label: l.discoverCompose, onPressed: onCompose),
+            ),
           ],
         ],
       ),
@@ -454,21 +437,19 @@ class DiscoverErrorCard extends StatelessWidget {
     final tt = Theme.of(context).textTheme;
     final l = context.l10n;
     return Padding(
-      padding: const EdgeInsets.fromLTRB(BuSpace.page, BuSpace.xxxl, BuSpace.page, 0),
+      padding: const EdgeInsets.fromLTRB(BuSpace.page, BuSpace.huge, BuSpace.page, 0),
       child: Column(
         key: const ValueKey('discoverError'),
         mainAxisSize: MainAxisSize.min,
         children: [
-          Container(
-            width: 80,
-            height: 80,
-            decoration: BoxDecoration(color: t.sf2, shape: BoxShape.circle),
-            child: Icon(LucideIcons.wifiOff, size: 32, color: t.mut),
+          Text(l.p04FeedErrTitle, textAlign: TextAlign.center, style: tt.titleMedium?.copyWith(color: t.ink, fontSize: 18, fontWeight: FontWeight.w600)),
+          BuGap.h8,
+          TextButton(
+            key: const ValueKey('discoverRetry'),
+            onPressed: onRetry,
+            style: TextButton.styleFrom(minimumSize: const Size(BuSize.touch, BuSize.touch), foregroundColor: t.pr),
+            child: Text(l.postViewRetry, style: tt.labelLarge?.copyWith(color: t.pr, fontSize: 15, fontWeight: FontWeight.w600)),
           ),
-          BuGap.h16,
-          Text(l.p04FeedErrTitle, textAlign: TextAlign.center, style: tt.titleMedium?.copyWith(color: t.ink, fontWeight: FontWeight.w600)),
-          BuGap.h24,
-          BuButton(key: const ValueKey('discoverRetry'), label: l.postViewRetry, compact: true, onPressed: onRetry),
         ],
       ),
     );
@@ -532,120 +513,184 @@ class _DiscoverPostCardState extends State<DiscoverPostCard> {
   Widget build(BuildContext context) {
     final t = context.bu;
     final tt = Theme.of(context).textTheme;
-    final l = context.l10n;
     final p = widget.post;
     final name = p.author.displayName;
     final dept = context.departmentName((p.author.department ?? '').trim());
     final time = postRelativeTime(context, p.createdAt);
     final text = (p.text ?? '').trim();
     final label = [if (text.isNotEmpty) text, name].join(', ');
-    return Semantics(
-      container: true,
-      child: DecoratedBox(
-        key: _cardKey,
-        decoration: BoxDecoration(
-          color: t.sf,
-          borderRadius: BorderRadius.circular(BuRadius.lg),
-          boxShadow: BuElevation.of(context, 1),
+    final radius = BorderRadius.circular(kDiscoverCardRadius);
+    // Fotoğrafsız (eski/metin) kayıt: kısa şerit; görselli gönderi 4:5..4:3.
+    final ratio = p.photo == null ? 2.4 : _photoRatio(p);
+    // Görsel öncelikli kart: 4:5 görsel kartı tam kaplar; ad/bölüm/zaman alt %35'te yumuşak koyu gradyan üstünde,
+    // beğeni sağ altta yarı saydam hap, ⋯ sağ üstte yarı saydam daire. Metin görselin altında kartın yüzeyinde.
+    final media = AspectRatio(
+      aspectRatio: ratio,
+      child: Stack(fit: StackFit.expand, children: [
+        if (p.photo != null)
+          Semantics(
+            button: true,
+            onTap: () => widget.onOpen(p),
+            label: label,
+            // Basınca %2 küçülür, bırakınca yaylanarak döner (yalnız transform; kaydırmada tetiklenmez).
+            child: BuPressable(
+              scale: .98,
+              pressedOpacity: 1,
+              child: DoubleTapLike(
+                onLike: _like.like,
+                onTap: () => widget.onOpen(p),
+                onLongPress: _hasMenu ? _longPress : null,
+                radius: 0,
+                child: PostPhoto(
+                  session: widget.session,
+                  post: p,
+                  radius: kDiscoverCardRadius,
+                  aspectRatio: ratio,
+                  progressive: true,
+                  heroTag: discoverHeroTag(p.id),
+                ),
+              ),
+            ),
+          )
+        else
+          ColoredBox(color: t.sf2),
+        // Alt %35 gradyan örtü (yalnız scrim token'ı; yazı onMedia).
+        Align(
+          alignment: Alignment.bottomCenter,
+          child: FractionallySizedBox(
+            heightFactor: .28,
+            widthFactor: 1,
+            child: IgnorePointer(
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [t.scrim.withValues(alpha: 0), t.scrim.withValues(alpha: .25), t.scrim.withValues(alpha: .6)]),
+                ),
+              ),
+            ),
+          ),
         ),
-        child: Padding(
-          padding: const EdgeInsets.all(_cardPad),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              GestureDetector(
+        PositionedDirectional(
+          start: 16,
+          end: 12,
+          bottom: 12,
+          child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
+            Expanded(
+              child: GestureDetector(
                 behavior: HitTestBehavior.opaque,
                 onTap: () => openUserPosts(context, widget.session, userId: p.author.id, name: name),
                 onLongPress: _longPress,
                 child: ConstrainedBox(
-                  constraints: const BoxConstraints(minHeight: 48),
+                  constraints: const BoxConstraints(minHeight: BuSize.touch),
                   child: Row(children: [
-                    BuAvatar(name: name, url: p.author.avatarUrl, size: 36, headers: postAuthHeaders(widget.session)),
-                    const SizedBox(width: 10),
+                    DecoratedBox(
+                      decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: t.onMedia.withValues(alpha: .4), width: 2)),
+                      child: BuAvatar(name: name, url: p.author.avatarUrl, size: 28, headers: postAuthHeaders(widget.session)),
+                    ),
+                    const SizedBox(width: 8),
                     Expanded(
                       child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(name,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                              style: tt.titleSmall?.copyWith(color: t.ink, fontWeight: FontWeight.w700, height: 1.25)),
+                              style: tt.titleSmall?.copyWith(color: t.onMedia, fontSize: 15, fontWeight: FontWeight.w600, height: 1.25)),
                           PostMetaLine(
                               department: dept,
                               time: time,
-                              style: tt.labelSmall?.copyWith(color: t.mut)),
+                              separator: ' · ',
+                              style: tt.labelSmall?.copyWith(color: t.onMedia.withValues(alpha: .85), fontSize: 12, fontWeight: FontWeight.w500)),
                         ],
                       ),
                     ),
-                    if (_hasMenu)
-                      PostMenuButton(
-                        key: _menuKey,
-                        session: widget.session,
-                        post: p,
-                        onChanged: widget.onChanged,
-                        onDeleted: (id) => widget.onDeleted?.call(id),
-                        active: _menuOpen,
-                        cardKey: _cardKey,
-                        onOpenChanged: (v) {
-                          if (mounted) setState(() => _menuOpen = v);
-                        },
-                      ),
                   ]),
                 ),
               ),
-              if (p.photo != null)
-                Semantics(
-                  button: true,
-                  onTap: () => widget.onOpen(p),
-                  label: label,
-                  child: DoubleTapLike(
-                    onLike: _like.like,
-                    onTap: () => widget.onOpen(p),
-                    onLongPress: _hasMenu ? _longPress : null,
-                    radius: BuRadius.sm,
-                    child: PostPhoto(
-                      session: widget.session,
-                      post: p,
-                      radius: BuRadius.sm,
-                      aspectRatio: kDiscoverPhotoRatio,
-                      progressive: true,
-                      heroTag: discoverHeroTag(p.id),
-                    ),
-                  ),
+            ),
+            const SizedBox(width: 8),
+            // Beğeni: 44 dp yüksekliğinde yarı saydam koyu hap (#171E33 %50; kalp 20 + sayı 13/600).
+            DecoratedBox(
+              decoration: BoxDecoration(color: BuColors.ink.withValues(alpha: .5), borderRadius: BorderRadius.circular(BuRadius.pill)),
+              child: Padding(
+                padding: const EdgeInsetsDirectional.only(start: 14),
+                child: LikeButton(
+                  session: widget.session,
+                  post: p,
+                  controller: _like,
+                  compact: true,
+                  size: 20,
+                  onMedia: true,
+                  a11yCount: (n) => context.l10n.p04LikeCount('$n'),
+                  onChanged: widget.onChanged,
                 ),
-              BuGap.h4,
-              LikeButton(
-                session: widget.session,
-                post: p,
-                controller: _like,
-                compact: true,
-                size: 24,
-                countLabel: (n) => l.p04LikeCount('$n'),
-                onChanged: widget.onChanged,
               ),
-              if (text.isNotEmpty)
-                Padding(
-                  padding: const EdgeInsetsDirectional.only(bottom: 4, end: 4),
-                  child: GestureDetector(
-                    behavior: HitTestBehavior.opaque,
-                    excludeFromSemantics: true,
-                    onTap: () => widget.onOpen(p),
-                    child: Text.rich(
-                      TextSpan(children: [
-                        TextSpan(text: name, style: const TextStyle(fontWeight: FontWeight.w600)),
-                        TextSpan(text: ' $text'),
-                      ]),
-                      key: const ValueKey('post-text'),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: tt.bodyMedium?.copyWith(color: t.ink, height: 1.4),
-                    ),
-                  ),
-                ),
-            ],
-          ),
+            ),
+          ]),
         ),
+        if (_hasMenu)
+          PositionedDirectional(
+            top: 4,
+            end: 4,
+            child: PostMenuButton(
+              key: _menuKey,
+              session: widget.session,
+              post: p,
+              onMedia: true,
+              onChanged: widget.onChanged,
+              onDeleted: (id) => widget.onDeleted?.call(id),
+              active: _menuOpen,
+              cardKey: _cardKey,
+              onOpenChanged: (v) {
+                if (mounted) setState(() => _menuOpen = v);
+              },
+            ),
+          ),
+      ]),
+    );
+    return Semantics(
+      container: true,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // Kart sarmalayıcı yok: görselin kendisi 24 dp köşeli, tek hafif gölgeli karttır.
+          DecoratedBox(
+            key: _cardKey,
+            decoration: BoxDecoration(
+              borderRadius: radius,
+              boxShadow: Theme.of(context).brightness == Brightness.dark
+                  ? const []
+                  : [BoxShadow(color: t.shadow.withValues(alpha: .05), blurRadius: 2, offset: const Offset(0, 1))],
+            ),
+            child: ClipRRect(borderRadius: radius, child: media),
+          ),
+          if (text.isNotEmpty)
+            GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              excludeFromSemantics: true,
+              onTap: () => widget.onOpen(p),
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(4, 10, 4, 0),
+                child: Text(text,
+                    key: const ValueKey('post-text'),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: tt.bodyLarge?.copyWith(color: t.ink, fontSize: 15, fontWeight: FontWeight.w500, height: 1.4)),
+              ),
+            ),
+        ],
       ),
     );
+  }
+
+  /// Gönderinin görsel oranı: 4:5 (en dik) ile 4:3 (en yatay) arasına sıkıştırılır; bilinmiyorsa 4:5.
+  static double _photoRatio(Post p) {
+    final m = p.photo;
+    final w = m?.width, h = m?.height;
+    if (w == null || h == null || w <= 0 || h <= 0) return kDiscoverPhotoRatio;
+    return (w / h).clamp(kDiscoverPhotoRatio, 4 / 3);
   }
 }

@@ -94,7 +94,9 @@ void main() {
   });
 
   group('begeni', () {
-    Finder countTexts(Finder card) => find.descendant(of: card, matching: find.textContaining('beğeni'));
+    Finder countTexts(Finder card) => find.descendant(
+        of: card,
+        matching: find.byWidgetPredicate((w) => w is Text && (w.key == const ValueKey('like-count') || w.key == const ValueKey('like-count-prev'))));
 
     testWidgets('sayi gecisi: ara karede eski+yeni sayi birlikte, sonunda tek; kalp renkli dolu kalp olur', (tester) async {
       useScreen(tester, const Size(390, 844));

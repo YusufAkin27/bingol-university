@@ -71,17 +71,18 @@ void main() {
   });
 
   group('Kesfet sade durumlar', () {
-    testWidgets('bos durum: kart/golge yok, tek birincil dugme, dugmede simge yok', (tester) async {
+    testWidgets('bos durum: kart/golge/illustrasyon yok, iki cumle, tek birincil dugme (48 dp)', (tester) async {
       useScreen(tester, const Size(390, 844));
       await tester.pumpWidget(buildApp(Scaffold(body: DiscoverEmptyCard(onCompose: () {}))));
       await tester.pump();
       expect(shadowBoxes(tester, find.byKey(const ValueKey('discoverEmpty'))), 0);
       expect(find.byType(BuButton), findsOneWidget);
-      expect(find.descendant(of: find.byType(BuButton), matching: find.byType(Icon)), findsNothing);
+      expect(find.descendant(of: find.byKey(const ValueKey('discoverEmpty')), matching: find.byType(Icon)), findsNothing);
+      expect(tester.getSize(find.byType(BuButton)).height, 48);
       noErr(tester);
     });
 
-    testWidgets('hata: tek cumle + Yeniden dene (aciklama metni ve dugme simgesi yok)', (tester) async {
+    testWidgets('hata: tek cumle + metin dugmesi Yeniden dene (illustrasyon/aciklama yok, 48 dp hedef)', (tester) async {
       useScreen(tester, const Size(390, 844));
       var retried = 0;
       await tester.pumpWidget(buildApp(Scaffold(body: DiscoverErrorCard(offline: true, onRetry: () => retried++))));
@@ -90,12 +91,14 @@ void main() {
       expect(find.textContaining('Bağlantınızı kontrol'), findsNothing);
       expect(shadowBoxes(tester, find.byKey(const ValueKey('discoverError'))), 0);
       expect(find.byIcon(LucideIcons.refreshCw), findsNothing);
+      expect(find.descendant(of: find.byKey(const ValueKey('discoverError')), matching: find.byType(Icon)), findsNothing);
+      expect(tester.getSize(find.byKey(const ValueKey('discoverRetry'))).height, greaterThanOrEqualTo(48));
       await tester.tap(find.byKey(const ValueKey('discoverRetry')));
       expect(retried, 1);
       noErr(tester);
     });
 
-    testWidgets('oneriler: Takip et dugmesi yumusak zemin (birincil kirmizi degil); takipte nötr', (tester) async {
+    testWidgets('oneriler: Takip et ince cerceveli hap (dolgu yok, bdStrong); takipte bd cerceve + soluk', (tester) async {
       useScreen(tester, const Size(390, 844));
       final b = FakeBackend();
       fakePosts(b);
@@ -110,14 +113,59 @@ void main() {
       // Öneri şeridi akışın 3. gönderisinden sonra; oraya kaydır.
       await tester.dragUntilVisible(find.byKey(const ValueKey('discover-follow-31')), find.byType(CustomScrollView).last, const Offset(0, -300));
       await settle(tester, const Duration(milliseconds: 300));
-      Color fill(int id) {
+      Border border(int id) {
         final c = tester.widget<AnimatedContainer>(find.descendant(of: find.byKey(ValueKey('discover-follow-$id')), matching: find.byType(AnimatedContainer)));
-        return (c.decoration as BoxDecoration).color!;
+        final d = c.decoration! as BoxDecoration;
+        expect(d.color, isNull, reason: 'dolgu yok (tek birincil: + dugmesi)');
+        return d.border! as Border;
       }
 
-      expect(fill(31), BuTokens.light.soft);
-      expect(fill(31), isNot(BuTokens.light.pr));
-      expect(fill(32), BuTokens.light.sf2);
+      expect(border(31).top.color, BuTokens.light.bdStrong);
+      expect(border(32).top.color, BuTokens.light.bd);
+      expect(tester.getSize(find.descendant(of: find.byKey(const ValueKey('discover-follow-31')), matching: find.byType(AnimatedContainer))).height, 36);
+      noErr(tester);
+    });
+  });
+
+  group('Kesfet gorsel oncelikli kart (Stitch v3 yon A)', () {
+    testWidgets('gorsel karti tam kaplar, 24 dp kose, alt %28 gradyan, ad onMedia 15, hap 44, kart sarmalayici/golge yok, metin tek satir', (tester) async {
+      useScreen(tester, const Size(390, 844));
+      final b = FakeBackend();
+      fakePosts(b);
+      await tester.pumpWidget(buildApp(DiscoverTab(session: makeSession(b), typeRequest: ValueNotifier<String?>(null))));
+      await settle(tester, const Duration(milliseconds: 1200));
+      final card = find.byKey(const ValueKey('discover-post-999'));
+      expect(card, findsOneWidget);
+      // Kenar 20 dp: kart genisligi 350.
+      expect(tester.getSize(card).width, 350);
+      final ratio = find.descendant(of: card, matching: find.byType(AspectRatio)).first;
+      expect(tester.widget<AspectRatio>(ratio).aspectRatio, closeTo(.8, .001));
+      expect(tester.getSize(ratio).width, 350);
+      final clip = tester.widget<ClipRRect>(find.descendant(of: card, matching: find.byType(ClipRRect)).first);
+      expect(clip.borderRadius, BorderRadius.circular(24));
+      final grad = find.descendant(of: card, matching: find.byWidgetPredicate((w) => w is FractionallySizedBox && w.heightFactor == .28));
+      expect(grad, findsOneWidget);
+      // Beyaz kart yuzeyi yok: gorsel disinda sf dolgulu DecoratedBox bulunmaz.
+      expect(find.descendant(of: card, matching: find.byWidgetPredicate((w) => w is DecoratedBox && w.decoration is BoxDecoration && (w.decoration as BoxDecoration).color == BuTokens.light.sf)), findsNothing);
+      final heart = find.descendant(of: card, matching: find.byKey(const ValueKey('like-heart')));
+      expect(tester.getSize(heart).height, 44);
+      final name = tester.widget<Text>(find.descendant(of: card, matching: find.text('Ayşe Yılmaz')).first);
+      expect(name.style?.color, BuTokens.light.onMedia);
+      expect(name.style?.fontSize, 15);
+      noErr(tester);
+    });
+
+    testWidgets('gonderi metni gorselin altinda tek satir (ellipsis), 15 sp', (tester) async {
+      useScreen(tester, const Size(390, 844));
+      final b = FakeBackend();
+      final fp = fakePosts(b);
+      fp.posts[1]['text'] = 'Yedi kelimelik bir metin burada yaziyor gercekten';
+      await tester.pumpWidget(buildApp(DiscoverTab(session: makeSession(b), typeRequest: ValueNotifier<String?>(null))));
+      await settle(tester, const Duration(milliseconds: 1200));
+      final t = tester.widget<Text>(find.descendant(of: find.byKey(const ValueKey('discover-post-999')), matching: find.byKey(const ValueKey('post-text'))));
+      expect(t.maxLines, 1);
+      expect(t.style?.fontSize, 15);
+      expect(t.overflow, TextOverflow.ellipsis);
       noErr(tester);
     });
   });
@@ -136,13 +184,15 @@ void main() {
       )));
       await settle(tester, const Duration(milliseconds: 300));
       expect(find.byKey(const ValueKey('composePicker')), findsOneWidget);
-      expect(find.text('Gönderi tek bir fotoğraftan oluşur.'), findsOneWidget);
+      // Stitch v3 01: tek birincil + metin dugmesi Kamera; baska oge yok.
+      expect(find.byType(BuButton), findsOneWidget);
+      expect(find.byKey(const ValueKey('composeCamera')), findsOneWidget);
+      expect(find.byIcon(LucideIcons.camera), findsNothing);
       await tester.tap(find.byKey(const ValueKey('composeGallery')));
       await settle(tester, const Duration(milliseconds: 400));
       expect(find.byKey(const ValueKey('composePreview')), findsOneWidget);
       expect(find.text('4:5'), findsNothing);
       expect(find.byKey(const ValueKey('composeSingleHint')), findsNothing);
-      expect(find.text('Gönderi tek bir fotoğraftan oluşur.'), findsNothing);
       // Tek birincil düğme: Paylaş (Material dolgusu) + sayaç sessiz.
       final counter = tester.widget<Text>(find.byKey(const ValueKey('composeCounter')));
       expect(counter.style?.fontWeight ?? FontWeight.w400, isNot(FontWeight.w700), reason: 'sayac sinirdan once sessiz');

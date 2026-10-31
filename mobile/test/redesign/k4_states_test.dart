@@ -30,7 +30,8 @@ void main() {
       await tester.pumpWidget(buildApp(discover(b)));
       await settle(tester, const Duration(milliseconds: 600));
       expect(find.byKey(const ValueKey('discoverEmpty')), findsOneWidget);
-      expect(find.text('Henüz gönderi yok. İlk gönderiyi sen paylaş!'), findsOneWidget);
+      expect(find.text('Henüz gönderi yok.'), findsOneWidget); // Stitch v3: baslik + soluk ikinci cumle
+      expect(find.text('İlk gönderiyi sen paylaş!'), findsOneWidget);
       expect(find.byKey(const ValueKey('discoverEmptyCompose')), findsOneWidget);
       expect(find.byType(DiscoverPostCard), findsNothing);
       await tester.tap(find.byKey(const ValueKey('discoverEmptyCompose')));
@@ -68,7 +69,7 @@ void main() {
       fakePosts(b);
       await tester.pumpWidget(buildApp(discover(b)));
       await tester.pump(const Duration(milliseconds: 50));
-      final sk = tester.getTopLeft(find.descendant(of: find.byKey(const ValueKey('discoverSkeleton')), matching: find.byType(DecoratedBox)).first);
+      final sk = tester.getTopLeft(find.descendant(of: find.byKey(const ValueKey('discoverSkeleton')), matching: find.byType(AspectRatio)).first);
       expect(sk.dx, 20); // sayfa kenari 20 dp (baslikla ayni)
       expect(find.byType(DiscoverFeedSkeleton), findsOneWidget);
       await settle(tester, const Duration(milliseconds: 800));

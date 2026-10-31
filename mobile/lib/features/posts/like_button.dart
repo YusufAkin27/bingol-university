@@ -30,6 +30,8 @@ class LikeButton extends StatefulWidget {
     this.controller,
     this.countLabel,
     this.size,
+    this.onMedia = false,
+    this.a11yCount,
   });
 
   final Session session;
@@ -43,6 +45,12 @@ class LikeButton extends StatefulWidget {
 
   /// Kalp boyutu (varsayılan 26, kompaktta 22).
   final double? size;
+
+  /// Koyu görsel/gradyan üstünde: simge ve sayı `onMedia` rengiyle çizilir (beğenilince dolu beyaz kalp), 13 sp/600 tabular sayı.
+  final bool onMedia;
+
+  /// Yalnız ekran okuyucu için sayı metni (görünür sayı yalnız rakamsa): "284 beğeni".
+  final String Function(int count)? a11yCount;
 
   static const debounce = Duration(milliseconds: 250);
 
@@ -181,7 +189,9 @@ class _LikeButtonState extends State<LikeButton> with TickerProviderStateMixin {
     final t = context.bu;
     final tt = Theme.of(context).textTheme;
     final size = widget.size ?? (widget.compact ? 22.0 : 26.0);
-    final color = _liked ? t.pr : t.mut;
+    // Görsel üstü hapta beğeni kırmızı değil: dolu beyaz kalp (Stitch v3); normal yerde marka kırmızısı.
+    final color = widget.onMedia ? t.onMedia : (_liked ? t.pr : t.mut);
+    const box = 44.0;
     final scale = TweenSequence<double>([
       TweenSequenceItem(tween: Tween(begin: 1.0, end: 1.4).chain(CurveTween(curve: Curves.easeOut)), weight: 30),
       TweenSequenceItem(tween: Tween(begin: 1.4, end: .92).chain(CurveTween(curve: Curves.easeInOut)), weight: 30),
@@ -192,14 +202,15 @@ class _LikeButtonState extends State<LikeButton> with TickerProviderStateMixin {
     final heart = Semantics(
       button: true,
       label: _liked ? context.l10n.postViewUnlike : context.l10n.postViewLike,
+      value: widget.a11yCount?.call(_count),
       child: InkResponse(
         key: const ValueKey('like-heart'),
         onTap: _toggle,
         radius: 24,
         child: SizedBox(
           // En az 44x44 dokunma hedefi (erişilebilirlik); kalp başlangıç kenarına hizalı kalır.
-          width: math.max(size + 10, 44),
-          height: 44,
+          width: math.max(size + 10, box),
+          height: box,
           child: Align(
             alignment: AlignmentDirectional.centerStart,
             child: AnimatedBuilder(
@@ -218,8 +229,8 @@ class _LikeButtonState extends State<LikeButton> with TickerProviderStateMixin {
     );
 
     // Tabular rakamlar: sayı değişirken satır genişliği titremesin.
-    final style = (widget.compact ? tt.titleSmall : tt.titleMedium)
-        ?.copyWith(color: t.ink, height: 1.2, fontFeatures: const [FontFeature.tabularFigures()]);
+    final style = (widget.onMedia ? tt.labelMedium?.copyWith(fontSize: 13, fontWeight: FontWeight.w600) : (widget.compact ? tt.titleSmall : tt.titleMedium))
+        ?.copyWith(color: widget.onMedia ? t.onMedia : t.ink, height: 1.2, fontFeatures: const [FontFeature.tabularFigures()]);
     final countText = Text(_label(_count), key: const ValueKey('like-count'), maxLines: 1, style: style);
     final count = AnimatedBuilder(
       animation: _countAnim,
@@ -230,7 +241,7 @@ class _LikeButtonState extends State<LikeButton> with TickerProviderStateMixin {
           Opacity(
             opacity: 1 - v,
             child: Transform.translate(
-                offset: Offset(0, -8 * v), child: Text(_label(_prevCount), maxLines: 1, style: style)),
+                offset: Offset(0, -8 * v), child: Text(_label(_prevCount), key: const ValueKey('like-count-prev'), maxLines: 1, style: style)),
           ),
           Opacity(
             opacity: v,
@@ -252,7 +263,7 @@ class _LikeButtonState extends State<LikeButton> with TickerProviderStateMixin {
             behavior: HitTestBehavior.opaque,
             onTap: _toggle,
             child: ConstrainedBox(
-              constraints: const BoxConstraints(minHeight: 44, minWidth: 28),
+              constraints: const BoxConstraints(minHeight: box, minWidth: 28),
               child: Padding(
                 padding: const EdgeInsetsDirectional.only(end: 8),
                 child: Align(alignment: AlignmentDirectional.centerStart, widthFactor: 1, child: count),

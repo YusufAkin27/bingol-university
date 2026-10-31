@@ -106,16 +106,17 @@ class PostPhoto extends StatelessWidget {
 /// Yazar satırının ikincil çizgisi: "bölüm • zaman (• düzenlendi)" TEK satır, sığmazsa sondan kırpılır.
 /// "Düzenlendi" rozet değil, satır içi sade metindir (anahtar `post-edited`).
 class PostMetaLine extends StatelessWidget {
-  const PostMetaLine({super.key, required this.department, required this.time, this.edited = false, this.style});
+  const PostMetaLine({super.key, required this.department, required this.time, this.edited = false, this.style, this.separator = ' • '});
 
   final String department;
   final String time;
   final bool edited;
   final TextStyle? style;
+  final String separator;
 
   @override
   Widget build(BuildContext context) {
-    final parts = [department, time].where((e) => e.isNotEmpty).join(' • ');
+    final parts = [department, time].where((e) => e.isNotEmpty).join(separator);
     if (parts.isEmpty && !edited) return const SizedBox.shrink();
     return Text.rich(
       TextSpan(children: [

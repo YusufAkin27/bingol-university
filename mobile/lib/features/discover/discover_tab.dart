@@ -88,7 +88,7 @@ class _DiscoverTabState extends State<DiscoverTab> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        SizedBox(height: MediaQuery.paddingOf(context).top + BuSpace.md),
+        SizedBox(height: MediaQuery.paddingOf(context).top + BuSpace.sm),
         Padding(
           // Sekme başlıkları (Ana Sayfa/Sohbet/Kulüpler/Profil) ile aynı 20 dp kenar boşluğu ve 44 dp düğmeler.
           padding: BuSpace.pageH,
@@ -97,12 +97,13 @@ class _DiscoverTabState extends State<DiscoverTab> {
               child: Text(l.navDiscover,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: tt.headlineMedium?.copyWith(color: t.ink)),
+                  style: tt.headlineMedium?.copyWith(color: t.ink, fontSize: 28, fontWeight: FontWeight.w700)),
             ),
             BuIconButton(
               key: const ValueKey('discoverSearch'),
               icon: LucideIcons.search,
               tooltip: l.discoverSearch,
+              size: 44,
               onTap: _openSearch,
             ),
             BuGap.w8,
@@ -110,12 +111,13 @@ class _DiscoverTabState extends State<DiscoverTab> {
               icon: LucideIcons.plus,
               tooltip: l.discoverCompose,
               filled: true,
+              size: 44,
               onTap: _compose,
             ),
           ]),
         ),
         Padding(
-          padding: const EdgeInsets.fromLTRB(BuSpace.page, BuSpace.xs, BuSpace.page, BuSpace.sm),
+          padding: const EdgeInsets.fromLTRB(BuSpace.page, BuSpace.sm, BuSpace.page, BuSpace.lg),
           child: Row(children: [
             BuChip(
                 key: const ValueKey('discoverChipAll'),
