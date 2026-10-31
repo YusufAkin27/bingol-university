@@ -2,14 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/academic_catalog.dart' show AcademicLabels, gradeLabelL;
+import '../../core/api.dart';
 import '../../core/locale_controller.dart';
 import '../../core/session.dart';
 import '../../l10n/app_localizations.dart';
 import '../../widgets/bu.dart';
+import 'acad_ref_widgets.dart';
 import 'academic_api.dart';
 import 'academic_models.dart';
 import 'academic_widgets.dart';
-import 'akad_widgets.dart';
 
 String _audience(BuildContext context, AppLocalizations l, Announcement a) {
   final p = [
@@ -20,26 +21,28 @@ String _audience(BuildContext context, AppLocalizations l, Announcement a) {
   return p.isEmpty ? l.acadAnnAudienceAll : p.join(' · ');
 }
 
-/// Kısa kapsam etiketi (çip kesilmesin): Bölüm / Fakülte / sınıf.
-String _shortScope(BuildContext context, AppLocalizations l, Announcement a) => a.department != null
-    ? l.profileDepartment
-    : (a.faculty != null ? l.profileFaculty : _audience(context, l, a));
-
-/// "Bugün, 14:20" / "Dün, 09:45" / "12 Ekim 2026" (İstanbul saati).
-String _when(AppLocalizations l, DateTime? at) {
-  if (at == null) return '';
-  final w = istanbulWall(at);
-  final n = istanbulWall(academicClock());
-  final d = DateTime.utc(w.year, w.month, w.day);
-  final today = DateTime.utc(n.year, n.month, n.day);
-  final time = hhmm(w.hour * 60 + w.minute);
-  final diff = today.difference(d).inDays;
-  if (diff == 0) return '${l.acadTimeToday}, $time';
-  if (diff == 1) return '${l.p20Yesterday}, $time';
-  return fmtWallDateL(l, d);
+/// Birim adı (fakülte/bölüm); yoksa kapsam metni ("Tüm üniversite" vb.).
+String _unit(BuildContext context, AppLocalizations l, Announcement a) {
+  if (a.faculty != null) return context.facultyName(a.faculty);
+  if (a.department != null) return context.departmentName(a.department);
+  return _audience(context, l, a);
 }
 
-/// Bölüm duyuruları (Stitch 45): "Bölümüm | Tümü" sekmeleri, sabitlenmiş/okunmamış etiketli kartlar, imleçli akış.
+/// "2 gün önce" / "3 saat önce"; bir haftadan eskiyse tarih (İstanbul saati, academicClock'a göre).
+String _ago(AppLocalizations l, DateTime? at) {
+  if (at == null) return '';
+  final diff = academicClock().difference(at);
+  if (diff.inMinutes < 1) return l.commonJustNow;
+  if (diff.inMinutes < 60) return l.commonMinutesAgo(diff.inMinutes.toString());
+  if (diff.inHours < 24) return l.commonHoursAgo(diff.inHours.toString());
+  if (diff.inDays < 7) return l.commonDaysAgo(diff.inDays.toString());
+  if (diff.inDays < 30) return l.p69WeeksAgo((diff.inDays ~/ 7).toString());
+  final w = istanbulWall(at);
+  return fmtWallDateL(l, DateTime.utc(w.year, w.month, w.day));
+}
+
+/// Bölüm duyuruları (Stitch v3 06): "Bölümüm | Tümü" metin sekmeleri, kartsız satırlar (okunmamışta `pr` nokta + kalın
+/// başlık, sabitlenmişte sağda "Sabitlenmiş"), imleçli akış.
 class AnnouncementsPage extends StatefulWidget {
   const AnnouncementsPage({super.key, required this.session});
 
@@ -164,31 +167,12 @@ class _AnnouncementsPageState extends State<AnnouncementsPage> {
   Widget build(BuildContext context) {
     final unread = _items.where((a) => !a.read).length;
     final l = context.l10n;
-    final t = context.bu;
-    final tx = Theme.of(context).textTheme;
     return AcademicScaffold(
       title: l.acadAnnTitle,
+      actions: [if (unread > 0) BuIconButton(icon: LucideIcons.checkCheck, tooltip: l.acadAnnReadAll, onTap: _readAll)],
       child: Column(children: [
-        Padding(
-          padding: const EdgeInsetsDirectional.fromSTEB(16, 8, 8, 0),
-          child: Align(
-            alignment: AlignmentDirectional.centerEnd,
-            child: TextButton.icon(
-              style: TextButton.styleFrom(foregroundColor: t.pr, minimumSize: const Size(48, 48)),
-              onPressed: unread == 0 ? null : _readAll,
-              icon: Icon(LucideIcons.checkCheck, size: 18, color: unread == 0 ? t.mut : t.pr),
-              label: Text(l.acadAnnReadAll, style: tx.labelLarge!.copyWith(fontWeight: FontWeight.w800, color: unread == 0 ? t.mut : t.pr)),
-            ),
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-          child: Row(children: [
-            _TabChip(label: l.acadMyDept, icon: LucideIcons.graduationCap, selected: _mine, badge: _mine ? unread : 0, onTap: () => _setMine(true)),
-            const SizedBox(width: 10),
-            _TabChip(label: l.acadAll, icon: LucideIcons.globe, selected: !_mine, onTap: () => _setMine(false)),
-          ]),
-        ),
+        const SizedBox(height: 2),
+        AcadTabs(labels: [l.acadMyDept, l.acadAll], index: _mine ? 0 : 1, onChanged: (i) => _setMine(i == 0)),
         Expanded(child: _body()),
       ]),
     );
@@ -196,184 +180,70 @@ class _AnnouncementsPageState extends State<AnnouncementsPage> {
 
   Widget _body() {
     final l = context.l10n;
-    final t = context.bu;
-    if (_loading && _items.isEmpty) {
-      return Semantics(
-        label: l.commonLoading,
-        liveRegion: true,
-        child: const BuSkeletonScope(
-          child: SingleChildScrollView(
-            physics: NeverScrollableScrollPhysics(),
-            padding: EdgeInsets.fromLTRB(16, 8, 16, 0),
-            child: Column(children: [
-              BuSkeleton(height: 150, radius: 20),
-              SizedBox(height: 14),
-              BuSkeleton(height: 150, radius: 20),
-              SizedBox(height: 14),
-              BuSkeleton(height: 150, radius: 20),
-            ]),
-          ),
-        ),
-      );
-    }
+    if (_loading && _items.isEmpty) return const SingleChildScrollView(physics: NeverScrollableScrollPhysics(), child: AcadRowsSkeleton(count: 5));
     if (_error != null && _items.isEmpty) {
-      return ListView(padding: const EdgeInsets.all(16), children: [AcademicErrorViewCard(error: _error!, onRetry: _reload)]);
+      final e = _error!;
+      return ListView(padding: const EdgeInsets.only(top: 16), children: [
+        if (e is ApiError && e.status == 503)
+          Padding(padding: const EdgeInsets.fromLTRB(20, 0, 20, 0), child: AcadAmberNote(text: e.message.isNotEmpty ? e.message : l.acadMaintenance))
+        else
+          AcadStateText(text: '${l.sistemuiErrorTitle}\n${errorText(e)}', top: 12),
+        AcadStateText(text: '', actionLabel: l.acadRetry, onAction: _reload, top: 0),
+      ]);
     }
     return RefreshIndicator(
       onRefresh: _reload,
       child: ListView(
         controller: _scroll,
         physics: const AlwaysScrollableScrollPhysics(),
-        padding: const EdgeInsetsDirectional.fromSTEB(16, 8, 16, 32),
+        padding: const EdgeInsets.only(bottom: 32),
         children: [
-          for (final a in _items) Padding(padding: const EdgeInsets.only(bottom: 14), child: _tile(t, a)),
+          if (_items.isEmpty) AcadStateText(text: _mine ? l.acadAnnEmptyMine : l.acadAnnEmptyAll, top: 36),
+          BuStaggerScope(
+            child: Column(children: [
+              for (var i = 0; i < _items.length; i++) BuStaggerItem(index: i, child: _tile(_items[i])),
+            ]),
+          ),
           if (_more) const Padding(padding: EdgeInsets.all(16), child: Center(child: CircularProgressIndicator())),
-          if (!_hasMore && !_more) _footer(t, l),
         ],
       ),
     );
   }
 
-  /// Liste sonu / boş durum: zil simgeli bilgi kartı.
-  Widget _footer(BuTokens t, AppLocalizations l) {
-    final tx = Theme.of(context).textTheme;
-    final empty = _items.isEmpty;
-    return Semantics(
-      container: true,
-      child: Container(
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(color: t.sf2.withValues(alpha: .7), borderRadius: BuRadius.bLg),
-        child: Column(children: [
-          Container(width: 48, height: 48, decoration: BoxDecoration(color: t.sf, shape: BoxShape.circle), child: Icon(LucideIcons.bell, size: 22, color: t.mut)),
-          const SizedBox(height: 12),
-          Text(empty ? (_mine ? l.acadAnnEmptyMine : l.acadAnnEmptyAll) : l.p20AnnFooterTitle,
-              textAlign: TextAlign.center, style: tx.titleMedium!.copyWith(fontWeight: FontWeight.w800, color: t.ink)),
-          if (!empty) ...[
-            const SizedBox(height: 4),
-            Text(l.p20AnnFooterBody, textAlign: TextAlign.center, style: tx.bodyMedium!.copyWith(color: t.mut)),
-          ],
-        ]),
-      ),
-    );
-  }
-
-  Widget _tile(BuTokens t, Announcement a) {
+  Widget _tile(Announcement a) {
     final l = context.l10n;
-    final tx = Theme.of(context).textTheme;
-    final audience = _audience(context, l, a);
-    final unit = a.faculty != null ? context.facultyName(a.faculty) : (a.department != null ? context.departmentName(a.department) : null);
-    return Semantics(
-      container: true,
-      button: true,
-      label: [if (!a.read) l.acadAnnUnread, if (a.pinned) l.acadAnnPinned, a.title, audience].join('. '),
-      excludeSemantics: true,
-      onTap: () => _open(a),
-      child: AkadCard(
-        onTap: () => _open(a),
-        padding: const EdgeInsets.all(16),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-          Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Expanded(child: _tags(t, a, audience)),
-            const SizedBox(width: 8),
-            Icon(LucideIcons.clock, size: 14, color: t.mut),
-            const SizedBox(width: 4),
-            Text(_when(l, a.publishAt), style: tx.labelMedium!.copyWith(color: t.mut)),
-          ]),
-          const SizedBox(height: 12),
-          Text(a.title, maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.titleMedium!.copyWith(fontWeight: FontWeight.w800, color: t.ink)),
-          if (a.body.isNotEmpty) ...[
-            const SizedBox(height: 6),
-            Text(a.body, maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.bodyMedium!.copyWith(color: t.mut)),
-          ],
-          const SizedBox(height: 12),
-          Row(children: [
-            if (unit != null) ...[
-              Icon(LucideIcons.building2, size: 16, color: t.ink),
-              const SizedBox(width: 8),
-              Expanded(child: Text(unit, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.labelLarge!.copyWith(fontWeight: FontWeight.w600, color: t.ink))),
-            ] else if (a.attachmentUrl != null) ...[
-              Icon(LucideIcons.paperclip, size: 16, color: t.pr),
-              const SizedBox(width: 8),
-              Expanded(child: Text(l.akademik2Attachment, style: tx.labelLarge!.copyWith(fontWeight: FontWeight.w700, color: t.pr))),
-            ] else
-              const Spacer(),
-            Icon(buDirIcon(context, LucideIcons.chevronRight), size: 20, color: t.ink),
-          ]),
-        ]),
-      ),
-    );
-  }
-
-  Widget _tags(BuTokens t, Announcement a, String audience) {
-    final l = context.l10n;
-    final all = a.department == null && a.faculty == null && a.grade == null;
-    return Wrap(spacing: 6, runSpacing: 6, children: [
-      if (a.pinned) AkadPill(l.acadAnnPinned, bg: t.tint(1).bg, fg: t.tint(1).fg, icon: LucideIcons.pin),
-      if (!a.read) AkadPill(l.acadAnnUnread, bg: t.soft, fg: t.onSoft, dot: true),
-      if (all) AkadPill(audience, bg: t.tint(1).bg, fg: t.tint(1).fg, icon: LucideIcons.building2) else if (a.read && !a.pinned) AkadPill(_shortScope(context, l, a), bg: t.sf2, fg: t.mut, icon: LucideIcons.folder),
-    ]);
-  }
-}
-
-/// Üst sekme hapı: simge + etiket (+ okunmamış sayısı balonu); seçili = koyu.
-class _TabChip extends StatelessWidget {
-  const _TabChip({required this.label, required this.icon, required this.selected, required this.onTap, this.badge = 0});
-
-  final String label;
-  final IconData icon;
-  final bool selected;
-  final int badge;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
     final t = context.bu;
     final tx = Theme.of(context).textTheme;
-    final fg = selected ? t.onSoft : t.mut;
-    return Flexible(
-      child: Semantics(
-        button: true,
-        selected: selected,
-        label: badge > 0 ? '$label, $badge' : label,
-        excludeSemantics: true,
-        onTap: onTap,
-        child: BuPressable(
-          onTap: onTap,
-          haptic: BuHaptic.selection,
-          scale: .96,
-          child: BuTouchTarget(
-            child: AnimatedContainer(
-            duration: BuMotion.of(context, BuMotion.short),
-            constraints: const BoxConstraints(minHeight: BuSize.chip),
-            padding: const EdgeInsets.symmetric(horizontal: 14),
-            decoration: ShapeDecoration(color: selected ? t.soft : t.sf2, shape: StadiumBorder(side: selected ? BorderSide(color: t.selectedBorder) : BorderSide.none)),
-            child: MediaQuery.withClampedTextScaling(
-              maxScaleFactor: 1.3,
-              child: Row(mainAxisSize: MainAxisSize.min, children: [
-                Icon(icon, size: 18, color: fg),
-                const SizedBox(width: 8),
-                Flexible(child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w800, color: fg))),
-                if (badge > 0) ...[
-                  const SizedBox(width: 8),
-                  Container(
-                    constraints: const BoxConstraints(minWidth: 22, minHeight: 22),
-                    padding: const EdgeInsets.symmetric(horizontal: 6),
-                    alignment: Alignment.center,
-                    decoration: BoxDecoration(color: t.pr, borderRadius: BuRadius.bPill),
-                    child: Text(badge > 99 ? '99+' : '$badge', style: tx.labelSmall!.copyWith(fontWeight: FontWeight.w800, color: t.onPr)),
-                  ),
-                ],
-              ]),
-            ),
-            ),
-          ),
+    final unit = _unit(context, l, a);
+    final ago = _ago(l, a.publishAt);
+    return AcadRow(
+      minHeight: 75,
+      onTap: () => _open(a),
+      semanticLabel: [if (!a.read) l.acadAnnUnread, if (a.pinned) l.acadAnnPinned, a.title, unit].join('. '),
+      child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        if (!a.read) const Padding(padding: EdgeInsets.only(top: 9, right: 12), child: AcadDot()),
+        Expanded(
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
+            Text(a.title,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: tx.bodyLarge!.copyWith(fontSize: 16, fontWeight: a.read ? FontWeight.w400 : FontWeight.w700, color: t.ink)),
+            const SizedBox(height: 1),
+            Text(ago.isEmpty ? unit : l.p69AnnUnitDate(unit, ago), maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.bodySmall!.copyWith(fontSize: 13, color: t.mut)),
+          ]),
         ),
-      ),
+        const SizedBox(width: 12),
+        if (a.pinned)
+          Flexible(flex: 0, child: Padding(padding: const EdgeInsets.only(top: 4), child: Text(l.acadAnnPinned, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.bodySmall!.copyWith(fontSize: 12, color: t.mut))))
+        else
+          Padding(padding: const EdgeInsets.only(top: 3), child: ExcludeSemantics(child: Icon(buDirIcon(context, LucideIcons.chevronRight), size: 18, color: t.mut.withValues(alpha: .6)))),
+      ]),
     );
   }
 }
 
-/// Duyuru ayrıntısı: açılınca sunucu okundu işaretler.
+/// Duyuru ayrıntısı (Stitch v3 09): başlık 24 sp/700, muted "birim · tarih", ayraç, gövde 16 sp/1.6 (madde işaretli
+/// satırlar liste olur), `pr` "Ekli belgeyi aç". Açılınca sunucu okundu işaretler.
 class AnnouncementDetailPage extends StatefulWidget {
   const AnnouncementDetailPage({super.key, required this.session, required this.id, this.preview});
 
@@ -389,7 +259,7 @@ class _AnnouncementDetailPageState extends State<AnnouncementDetailPage> {
   late final AcademicApi _api = AcademicApi(widget.session);
   Announcement? _a;
   Object? _error;
-  String? _failedUrl; // açılamayan ek (hata kartı için)
+  String? _failedUrl; // açılamayan ek (not için)
 
   @override
   void initState() {
@@ -435,108 +305,123 @@ class _AnnouncementDetailPageState extends State<AnnouncementDetailPage> {
     final a = _a;
     Widget body;
     if (a == null && _error != null) {
-      body = ListView(padding: const EdgeInsets.all(16), children: [AcademicErrorViewCard(error: _error!, onRetry: _load)]);
+      final e = _error!;
+      body = ListView(padding: const EdgeInsets.only(top: 16), children: [
+        if (e is ApiError && e.status == 503)
+          Padding(padding: const EdgeInsets.fromLTRB(20, 0, 20, 0), child: AcadAmberNote(text: e.message.isNotEmpty ? e.message : l.acadMaintenance))
+        else
+          AcadStateText(text: '${l.sistemuiErrorTitle}\n${errorText(e)}', top: 12),
+        AcadStateText(text: '', actionLabel: l.acadRetry, onAction: _load, top: 0),
+      ]);
     } else if (a == null) {
       body = Semantics(
         label: l.commonLoading,
         liveRegion: true,
         child: const BuSkeletonScope(
           child: Padding(
-            padding: EdgeInsets.all(16),
-            child: Column(children: [BuSkeleton(height: 420, radius: 20)]),
+            padding: EdgeInsets.fromLTRB(20, 24, 20, 0),
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              BuSkeleton.line(width: 240, height: 24),
+              SizedBox(height: 14),
+              BuSkeleton.line(width: 170, height: 14),
+              SizedBox(height: 40),
+              BuSkeleton.line(height: 16),
+              SizedBox(height: 10),
+              BuSkeleton.line(height: 16),
+              SizedBox(height: 10),
+              BuSkeleton.line(width: 200, height: 16),
+            ]),
           ),
         ),
       );
     } else {
-      final all = a.department == null && a.faculty == null && a.grade == null;
+      final w = a.publishAt == null ? null : istanbulWall(a.publishAt!);
+      final meta = [_unit(context, l, a), if (w != null) fmtWallDateL(l, DateTime.utc(w.year, w.month, w.day))].join(' · ');
       final file = a.attachmentUrl == null ? null : _fileName(a.attachmentUrl!);
-      final ext = file != null && file.contains('.') ? file.split('.').last.toUpperCase() : null;
-      body = ListView(padding: const EdgeInsets.fromLTRB(16, 16, 16, 32), children: [
-        AkadCard(
-          padding: const EdgeInsets.all(20),
-          child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-            Wrap(spacing: 8, runSpacing: 6, children: [
-              if (a.pinned) AkadPill(l.acadAnnPinned, bg: t.soft, fg: t.onSoft, icon: LucideIcons.pin),
-              AkadPill(_audience(context, l, a), bg: all ? t.tint(1).bg : t.sf2, fg: all ? t.tint(1).fg : t.mut),
-            ]),
-            if ((a.faculty ?? a.department) != null) ...[
-              const SizedBox(height: 10),
-              Row(children: [
-                Icon(LucideIcons.graduationCap, size: 16, color: t.mut),
-                const SizedBox(width: 6),
-                Flexible(child: Text(a.faculty != null ? context.facultyName(a.faculty) : context.departmentName(a.department), style: tx.bodyMedium!.copyWith(fontWeight: FontWeight.w600, color: t.ink))),
-              ]),
-            ],
-            if (a.publishAt != null) ...[
-              const SizedBox(height: 10),
-              Row(children: [
-                Icon(LucideIcons.clock, size: 16, color: t.mut),
-                const SizedBox(width: 6),
-                Flexible(child: Text(fmtInstantL(l, a.publishAt!), style: tx.bodyMedium!.copyWith(color: t.mut))),
-              ]),
-            ],
-            const SizedBox(height: 16),
-            Semantics(header: true, child: Text(a.title, style: tx.headlineSmall!.copyWith(fontWeight: FontWeight.w800, color: t.ink))),
-            const SizedBox(height: 16),
-            SelectableText(a.body, style: tx.bodyLarge!.copyWith(color: t.ink, height: 1.6)),
-            if (a.attachmentUrl != null) ...[
-              const SizedBox(height: 20),
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(color: t.sf2, borderRadius: BuRadius.bMd),
-                child: Row(children: [
-                  AkadIconTile(icon: LucideIcons.paperclip, bg: t.soft, fg: t.pr, size: 48, radius: 14, iconSize: 22),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                      Text(file ?? l.akademik2Attachment, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w800, color: t.ink)),
-                      if (ext != null && ext.length <= 5) Text(ext, style: tx.labelMedium!.copyWith(fontWeight: FontWeight.w800, color: t.pr)),
-                    ]),
-                  ),
-                  const SizedBox(width: 8),
-                  FilledButton.icon(
-                    style: FilledButton.styleFrom(backgroundColor: t.ink, foregroundColor: t.bg, minimumSize: const Size(0, 48), padding: const EdgeInsets.symmetric(horizontal: 14)),
-                    onPressed: () => _openLink(a.attachmentUrl!),
-                    icon: const Icon(LucideIcons.externalLink, size: 16),
-                    label: Text(l.acadAnnOpenAttachment),
-                  ),
-                ]),
-              ),
-            ],
-          ]),
-        ),
-        if (_failedUrl != null) ...[const SizedBox(height: 16), _linkError(t, tx, l)],
+      body = ListView(padding: const EdgeInsets.fromLTRB(20, 20, 20, 32), children: [
+        Semantics(header: true, child: Text(a.title, style: tx.headlineMedium!.copyWith(fontWeight: FontWeight.w700, letterSpacing: 0, color: t.ink))),
+        const SizedBox(height: 10),
+        Text(meta, style: tx.bodyMedium!.copyWith(color: t.mut)),
+        const SizedBox(height: 16),
+        const AcadRule(),
+        const SizedBox(height: 14),
+        _AnnBody(text: a.body),
+        if (a.attachmentUrl != null) ...[
+          const SizedBox(height: 8),
+          Align(
+            alignment: AlignmentDirectional.centerStart,
+            child: AcadTextAction(l.p69OpenAttachment, onTap: () => _openLink(a.attachmentUrl!), size: 16, weight: FontWeight.w700, semanticLabel: file == null ? l.p69OpenAttachment : '${l.p69OpenAttachment}: $file'),
+          ),
+        ],
+        if (_failedUrl != null)
+          Padding(
+            padding: const EdgeInsets.only(top: 12),
+            child: AcadAmberNote(text: '${l.acadAnnLinkError} ${l.p20AnnLinkErrBody}', actionLabel: l.acadRetry, onAction: () => _openLink(_failedUrl!)),
+          ),
       ]);
     }
     return AcademicScaffold(title: l.acadAnnDetailTitle, child: body);
   }
+}
 
-  /// Bağlantı açılamadı: pembe kart (yeniden dene + kapat).
-  Widget _linkError(BuTokens t, TextTheme tx, AppLocalizations l) => Semantics(
-        container: true,
-        liveRegion: true,
-        child: Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(color: t.soft, borderRadius: BuRadius.bLg),
-          child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Container(width: 40, height: 40, decoration: BoxDecoration(color: t.pr, shape: BoxShape.circle), child: Icon(LucideIcons.circleAlert, size: 20, color: t.onPr)),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text(l.acadAnnLinkError, style: tx.titleMedium!.copyWith(fontWeight: FontWeight.w800, color: t.onSoft)),
-                const SizedBox(height: 2),
-                Text(l.p20AnnLinkErrBody, style: tx.bodySmall!.copyWith(color: t.onSoft)),
-                const SizedBox(height: 10),
-                BuButton(label: l.acadRetry, icon: LucideIcons.rotateCw, compact: true, onPressed: () => _openLink(_failedUrl!)),
-              ]),
-            ),
-            IconButton(
-              constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
-              tooltip: l.acadTimeClose,
-              icon: Icon(LucideIcons.x, size: 20, color: t.onSoft),
-              onPressed: () => setState(() => _failedUrl = null),
-            ),
-          ]),
-        ),
-      );
+/// Duyuru gövdesi: boş satırla ayrılan paragraflar (16 dp aralık), "- ", "* " ya da "• " ile başlayan satırlar madde
+/// işaretli liste (8 dp aralık). Metin seçilebilir.
+class _AnnBody extends StatelessWidget {
+  const _AnnBody({required this.text});
+
+  final String text;
+
+  static final _bullet = RegExp(r'^\s*(?:[-*\u2022])\s+');
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.bu;
+    final style = Theme.of(context).textTheme.bodyLarge!.copyWith(fontSize: 16, height: 1.6, color: t.ink);
+    final out = <Widget>[];
+    final para = <String>[];
+    var lastBullet = false;
+    void flush() {
+      if (para.isEmpty) return;
+      if (out.isNotEmpty) out.add(const SizedBox(height: 16));
+      out.add(SelectableText(para.join('\n'), style: style));
+      para.clear();
+      lastBullet = false;
+    }
+
+    for (final raw in text.split(RegExp(r'\r?\n'))) {
+      if (raw.trim().isEmpty) {
+        flush();
+      } else if (_bullet.hasMatch(raw)) {
+        flush();
+        if (out.isNotEmpty) out.add(SizedBox(height: lastBullet ? 8 : 16));
+        out.add(_Bullet(text: raw.replaceFirst(_bullet, ''), style: style));
+        lastBullet = true;
+      } else {
+        para.add(raw.trim());
+      }
+    }
+    flush();
+    return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: out);
+  }
+}
+
+class _Bullet extends StatelessWidget {
+  const _Bullet({required this.text, required this.style});
+
+  final String text;
+  final TextStyle style;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.bu;
+    return Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      const SizedBox(width: 2),
+      Padding(
+        padding: EdgeInsets.only(top: (style.fontSize ?? 16) * (style.height ?? 1.6) / 2 - 2),
+        child: ExcludeSemantics(child: Container(width: 4, height: 4, decoration: BoxDecoration(color: t.mut, shape: BoxShape.circle))),
+      ),
+      const SizedBox(width: 10),
+      Expanded(child: SelectableText(text, style: style)),
+    ]);
+  }
 }
