@@ -210,8 +210,9 @@ class _PostCardState extends State<PostCard> {
                                     fontWeight: FontWeight.w600,
                                     height: 1.2)),
                             if (meta.isNotEmpty)
+                              // Bölüm adı uzunsa "• 1 g önce" kırpılmasın: en çok 2 satır.
                               Text(meta,
-                                  maxLines: 1,
+                                  maxLines: 2,
                                   overflow: TextOverflow.ellipsis,
                                   style: tt.bodySmall?.copyWith(color: t.mut)),
                             if (p.editedAt != null) ...[

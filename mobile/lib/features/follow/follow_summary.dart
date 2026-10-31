@@ -48,7 +48,8 @@ class _FollowSummaryState extends State<FollowSummary> {
       excludeSemantics: true,
       child: BuCard(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-        style: BuCardStyle.filled,
+        // Altındaki Kulüp/Etkinlik sayaçlarıyla aynı çizgili yüzey ve 10 dp aralık.
+        style: BuCardStyle.outlined,
         radius: 18,
         onTap: () async {
           buHaptic(BuHaptic.selection);
@@ -93,7 +94,7 @@ class _FollowSummaryState extends State<FollowSummary> {
       IntrinsicHeight(
         child: Row(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
           Expanded(child: _tile(t, s.followers, context.l10n.followersCount, true)),
-          const SizedBox(width: 12),
+          const SizedBox(width: 10),
           Expanded(child: _tile(t, s.following, context.l10n.followingCount, false)),
         ]),
       ),

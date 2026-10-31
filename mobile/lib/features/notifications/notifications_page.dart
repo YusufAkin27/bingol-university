@@ -528,6 +528,8 @@ class _NotifFilterChip extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.bu;
     final tx = Theme.of(context).textTheme;
+    // Sıfır sayaç kırmızı "uyarı" gibi görünmesin: yalnız seçili ve sayı > 0 iken vurgulu.
+    final lit = selected && count > 0;
     return Semantics(
       button: true,
       selected: selected,
@@ -550,9 +552,9 @@ class _NotifFilterChip extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 6),
               alignment: Alignment.center,
               decoration:
-                  BoxDecoration(color: selected ? t.pr : t.sf2, borderRadius: BorderRadius.circular(BuRadius.pill)),
+                  BoxDecoration(color: lit ? t.pr : t.sf2, borderRadius: BorderRadius.circular(BuRadius.pill)),
               child: Text(count > 99 ? '99+' : '$count',
-                  style: tx.labelSmall!.copyWith(fontWeight: FontWeight.w700, color: selected ? t.onPr : t.mut)),
+                  style: tx.labelSmall!.copyWith(fontWeight: FontWeight.w700, color: lit ? t.onPr : t.mut)),
             ),
           ]),
         ),

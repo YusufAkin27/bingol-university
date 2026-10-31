@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../core/session.dart';
+import '../../core/theme.dart';
 import '../../core/theme_controller.dart';
 import '../../core/theme/bu_motion.dart';
 import '../../widgets/bu_overlays.dart' show BuToast;
@@ -189,21 +190,43 @@ class _AppShellState extends State<AppShell> with WidgetsBindingObserver, Single
   }
 
   Widget _scaffold() {
+    // Sekmelerde AppBar yok: durum çubuğu simge rengini burada tema parlaklığına göre sabitleriz. Aksi halde kapaklı
+    // bir sayfanın (açık renk simge) bıraktığı stil geri dönüşte açık temada beyaz simge olarak takılı kalır.
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: dark ? Brightness.light : Brightness.dark,
+        statusBarBrightness: dark ? Brightness.dark : Brightness.light,
+      ),
+      child: _scaffoldBody(),
+    );
+  }
+
+  Widget _scaffoldBody() {
     return Scaffold(
       extendBody: true,
-      body: IndexedStack(
-        index: _tab,
+      body: Stack(
         children: [
-          for (var i = 0; i <= AppTab.profile; i++)
-            // Kurulmamış sekme boş kalır: ağ isteği/ağaç maliyeti ilk seçime ertelenir.
-            if (_built.contains(i))
-              _TabFade(
-                key: ValueKey('tab-$i'),
-                animation: i == _tab ? _fadeIn : null,
-                child: _tabBody(i),
-              )
-            else
-              const SizedBox.shrink(),
+          Positioned.fill(
+            child: IndexedStack(
+              index: _tab,
+              children: [
+                for (var i = 0; i <= AppTab.profile; i++)
+                  // Kurulmamış sekme boş kalır: ağ isteği/ağaç maliyeti ilk seçime ertelenir.
+                  if (_built.contains(i))
+                    _TabFade(
+                      key: ValueKey('tab-$i'),
+                      animation: i == _tab ? _fadeIn : null,
+                      child: _tabBody(i),
+                    )
+                  else
+                    const SizedBox.shrink(),
+              ],
+            ),
+          ),
+          // Edge-to-edge: kaydırılan içerik saat/simgelerin altında okunmaz kalmasın diye durağan zemin örtüsü.
+          const PositionedDirectional(top: 0, start: 0, end: 0, child: _StatusBarScrim()),
         ],
       ),
       bottomNavigationBar: ListenableBuilder(
@@ -238,6 +261,36 @@ class _TabFade extends StatelessWidget {
       child: ScaleTransition(
         scale: Tween<double>(begin: .985, end: 1).animate(a),
         child: child,
+      ),
+    );
+  }
+}
+
+/// Durum çubuğu alanında zemin renginden saydamlığa inen örtü: dokunmayı geçirir, dururken görünmez
+/// (başlıklar zaten güvenli alanın altından başlar), kaydırılan içeriği saat/simgelerden ayırır.
+class _StatusBarScrim extends StatelessWidget {
+  const _StatusBarScrim();
+
+  @override
+  Widget build(BuildContext context) {
+    final bg = context.bu.bg;
+    final top = MediaQuery.paddingOf(context).top;
+    return IgnorePointer(
+      child: ExcludeSemantics(
+        child: SizedBox(
+          key: const ValueKey('status-bar-scrim'),
+          height: top + 6,
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                stops: const [0, .78, 1],
+                colors: [bg, bg.withValues(alpha: .94), bg.withValues(alpha: 0)],
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }

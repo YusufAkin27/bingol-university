@@ -17,7 +17,12 @@ export 'package:lucide_icons_flutter/lucide_icons.dart' show LucideIcons;
 
 /// Türkçe büyük harf: i -> İ, ı -> I ("kasım" -> "KASIM", "bildirim" -> "BİLDİRİM").
 /// Dart'ın toUpperCase'i yerel ayara bakmaz; i -> I yapar.
-String trUpper(String s) => s.replaceAll('i', 'İ').replaceAll('ı', 'I').toUpperCase();
+/// Yalnız arayüz dili Türkçe (ya da henüz bilinmiyor) iken uygulanır: İngilizcede "Fri" -> "FRİ" olmasın.
+String trUpper(String s) {
+  final lang = LocaleController.current?.locale.languageCode;
+  if (lang != null && lang != 'tr') return s.toUpperCase();
+  return s.replaceAll('i', 'İ').replaceAll('ı', 'I').toUpperCase();
+}
 
 /// "Ayşe Yılmaz" -> "AY"
 String initialsOf(String? name) {

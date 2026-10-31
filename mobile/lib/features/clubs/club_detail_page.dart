@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show SystemUiOverlayStyle;
 
 import '../../core/api.dart';
 import '../../core/locale_controller.dart';
@@ -557,6 +558,7 @@ class _ClubDetailPageState extends State<ClubDetailPage> {
                 labels: [l10n.clubTabPosts, l10n.clubTabEvents, l10n.clubTabMembers, l10n.clubTabPolls],
                 index: _tab,
                 onChanged: _setTab,
+                brightness: Theme.of(context).brightness,
               ),
             ),
             ..._content(t),
@@ -570,12 +572,22 @@ class _ClubDetailPageState extends State<ClubDetailPage> {
   Widget _appBar(BuTokens t) {
     final l10n = context.l10n;
     final name = (_club!['name'] ?? '').toString();
-    return SliverAppBar(
+    return ValueListenableBuilder<bool>(
+      valueListenable: _collapsed,
+      builder: (context, collapsed, _) => SliverAppBar(
       pinned: true,
       expandedHeight: _coverH + kClubCoverBand,
       backgroundColor: t.bg,
       surfaceTintColor: t.bg.withValues(alpha: 0),
       scrolledUnderElevation: 0,
+      // Kapak (koyu görsel/ton) durum çubuğunun arkasındadır: açılışta saat/simgeler açık renk, daralınca tema rengi.
+      systemOverlayStyle: collapsed || (_club!['coverUrl']?.toString() ?? '').isEmpty
+          ? null
+          : const SystemUiOverlayStyle(
+              statusBarColor: Colors.transparent,
+              statusBarIconBrightness: Brightness.light,
+              statusBarBrightness: Brightness.dark,
+            ),
       automaticallyImplyLeading: false,
       leadingWidth: 62,
       leading: ValueListenableBuilder<bool>(
@@ -611,7 +623,7 @@ class _ClubDetailPageState extends State<ClubDetailPage> {
         seed: (_club!['id'] as num?)?.toInt() ?? widget.communityId,
         logo: _logo(t),
       ),
-    );
+    ));
   }
 
   /// Kulüp logosu: yuvarlak; yüklenmişse görsel, yoksa kategori tonlu baş harfler. Kapakla çakışır.

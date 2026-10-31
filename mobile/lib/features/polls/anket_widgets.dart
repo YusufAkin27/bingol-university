@@ -124,10 +124,8 @@ class AnketRoundIcon extends StatelessWidget {
 
 /// Boş durum kartı (liste sekmeleri): üstte sekme etiketi + küçük simge, ortada yuvarlak simge, başlık, açıklama.
 class AnketEmptyCard extends StatelessWidget {
-  const AnketEmptyCard({super.key, required this.tag, required this.tagIcon, required this.icon, required this.title, required this.body});
+  const AnketEmptyCard({super.key, required this.icon, required this.title, required this.body});
 
-  final String tag;
-  final IconData tagIcon;
   final IconData icon;
   final String title;
   final String body;
@@ -136,21 +134,12 @@ class AnketEmptyCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.bu;
     final tx = Theme.of(context).textTheme;
+    // Seçili sekme zaten üstte görünür: kartta aynı adı taşıyan rozet/simge tekrarı yok (tek simge, başlık, açıklama).
     return BuCard(
-      padding: const EdgeInsetsDirectional.fromSTEB(16, 16, 16, 24),
+      padding: const EdgeInsetsDirectional.fromSTEB(16, 28, 16, 28),
       child: SizedBox(
         width: double.infinity,
         child: Column(children: [
-          Row(children: [
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
-              decoration: BoxDecoration(color: t.sf2, borderRadius: BuRadius.bPill),
-              child: Text(tag, style: tx.labelSmall!.copyWith(color: t.ink, fontWeight: FontWeight.w700)),
-            ),
-            const Spacer(),
-            ExcludeSemantics(child: Icon(tagIcon, size: 18, color: t.mut)),
-          ]),
-          const SizedBox(height: 12),
           AnketRoundIcon(icon, size: 64, fg: t.ink),
           const SizedBox(height: 16),
           Semantics(

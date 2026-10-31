@@ -192,11 +192,15 @@ class ClubCoverSpace extends StatelessWidget {
 
 /// Sabitlenen sekme çubuğu (BuSegmented): kaydırınca app bar'ın altında kalır, çakışınca ince çizgi çıkar.
 class ClubTabsDelegate extends SliverPersistentHeaderDelegate {
-  ClubTabsDelegate({required this.labels, required this.index, required this.onChanged});
+  ClubTabsDelegate({required this.labels, required this.index, required this.onChanged, required this.brightness});
 
   final List<String> labels;
   final int index;
   final ValueChanged<int> onChanged;
+
+  /// Tema parlaklığı: sliver başlığı yalnız yerleşimde kurulur, tema değişince kendiliğinden yenilenmez;
+  /// [shouldRebuild] bunu karşılaştırır (açık/koyu geçişte şerit zemini eski temada kalmasın).
+  final Brightness brightness;
 
   static const double extent = 68;
 
@@ -223,7 +227,8 @@ class ClubTabsDelegate extends SliverPersistentHeaderDelegate {
   }
 
   @override
-  bool shouldRebuild(ClubTabsDelegate old) => old.index != index || !_same(old.labels, labels);
+  bool shouldRebuild(ClubTabsDelegate old) =>
+      old.index != index || old.brightness != brightness || !_same(old.labels, labels);
 
   static bool _same(List<String> a, List<String> b) {
     if (a.length != b.length) return false;

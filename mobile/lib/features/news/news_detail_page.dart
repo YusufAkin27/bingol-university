@@ -183,6 +183,14 @@ class _NewsDetailPageState extends State<NewsDetailPage> {
                     backgroundColor: t.bg,
                     surfaceTintColor: t.bg,
                     scrolledUnderElevation: 0,
+                    // Kapak fotoğrafı üstteki karartmayla birlikte durum çubuğunun arkasındadır: saat/simgeler açık renk.
+                    systemOverlayStyle: overlay
+                        ? const SystemUiOverlayStyle(
+                            statusBarColor: Colors.transparent,
+                            statusBarIconBrightness: Brightness.light,
+                            statusBarBrightness: Brightness.dark,
+                          )
+                        : null,
                     automaticallyImplyLeading: false,
                     leadingWidth: 72,
                     leading: Padding(

@@ -239,11 +239,11 @@ class _PollListPageState extends State<PollListPage> {
       );
     }
     return switch (_tab) {
-      0 => AnketEmptyCard(tag: l.pollTabOpen, tagIcon: LucideIcons.vote, icon: LucideIcons.vote, title: l.pollEmptyOpen, body: l.p13PollEmptyOpenBody),
+      0 => AnketEmptyCard(icon: LucideIcons.vote, title: l.pollEmptyOpen, body: l.p13PollEmptyOpenBody),
       1 => AnketEmptyCard(
-          tag: l.pollTabMine, tagIcon: LucideIcons.userCheck, icon: LucideIcons.listChecks, title: l.pollEmptyMine, body: l.p13PollEmptyMineBody),
+          icon: LucideIcons.listChecks, title: l.pollEmptyMine, body: l.p13PollEmptyMineBody),
       _ => AnketEmptyCard(
-          tag: l.pollTabClosed, tagIcon: LucideIcons.archive, icon: LucideIcons.archive, title: l.pollEmptyClosed, body: l.p13PollEmptyClosedBody),
+          icon: LucideIcons.archive, title: l.pollEmptyClosed, body: l.p13PollEmptyClosedBody),
     };
   }
 

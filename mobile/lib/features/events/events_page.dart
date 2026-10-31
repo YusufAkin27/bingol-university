@@ -980,7 +980,7 @@ class _EventsPageState extends State<EventsPage> {
           _calendarCard(),
           if (note != null) ...[const SizedBox(height: 12), _noteRow(note)],
           if (items.isEmpty) ...[
-            if (_selected != null) _dayHeader(_selected!, 0),
+            if (_selected != null) _dayHeader(_selected!, 0) else const SizedBox(height: 12),
             _emptyForTab(),
           ],
           if (others.isNotEmpty) _otherDaysHeader(others.length),

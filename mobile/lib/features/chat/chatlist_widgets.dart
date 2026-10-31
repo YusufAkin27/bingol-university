@@ -8,7 +8,7 @@ import '../../widgets/bu.dart';
 
 /// Sohbet listesi bileşenleri (referans 18).
 
-/// "Yeni sohbet" kırmızı yuvarlak düğme (48 dp, yumuşak kırmızı gölge).
+/// "Yeni sohbet" kırmızı yuvarlak düğme (44 dp görünür / 48 dp dokunma alanı, yumuşak kırmızı gölge).
 class ChatlistNewButton extends StatelessWidget {
   const ChatlistNewButton({super.key, required this.tooltip, required this.onTap});
 
@@ -26,15 +26,22 @@ class ChatlistNewButton extends StatelessWidget {
         child: BuPressable(
           onTap: onTap,
           haptic: BuHaptic.light,
-          child: Container(
+          // 48 dp dokunma alanı, 44 dp görünür daire (diğer sekme başlıklarındaki BuIconButton ile aynı).
+          child: SizedBox(
             width: 48,
             height: 48,
-            decoration: BoxDecoration(
-              color: t.pr,
-              shape: BoxShape.circle,
-              boxShadow: [BoxShadow(color: t.pr.withValues(alpha: .38), blurRadius: 16, offset: const Offset(0, 8), spreadRadius: -6)],
+            child: Center(
+              child: Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: t.pr,
+                  shape: BoxShape.circle,
+                  boxShadow: [BoxShadow(color: t.pr.withValues(alpha: .38), blurRadius: 16, offset: const Offset(0, 8), spreadRadius: -6)],
+                ),
+                child: Icon(LucideIcons.plus, size: 20, color: t.onPr),
+              ),
             ),
-            child: Icon(LucideIcons.plus, size: 24, color: t.onPr),
           ),
         ),
       ),
@@ -60,11 +67,17 @@ class ChatlistRoundButton extends StatelessWidget {
         message: tooltip,
         child: BuPressable(
           onTap: onTap,
-          child: Container(
+          child: SizedBox(
             width: 48,
             height: 48,
-            decoration: BoxDecoration(color: t.sf, shape: BoxShape.circle, border: Border.all(color: t.bd)),
-            child: Icon(icon, size: 20, color: t.ink),
+            child: Center(
+              child: Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(color: t.sf, shape: BoxShape.circle, border: Border.all(color: t.bd)),
+                child: Icon(icon, size: 20, color: t.ink),
+              ),
+            ),
           ),
         ),
       ),

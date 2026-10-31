@@ -222,12 +222,14 @@ class _NewsListPageState extends State<NewsListPage> {
       actions: [
         IcerikIconButton(
             key: const ValueKey('news-search'), icon: LucideIcons.search, label: l.commonSearchHint, onTap: _openSearch),
+        const SizedBox(width: 4),
         IcerikIconButton(
             key: const ValueKey('news-favorites'),
             icon: LucideIcons.bookmark,
             label: l.icerikFavorites,
             onTap: _openFavorites),
-        const SizedBox(width: 8),
+        // Düğme 48 dp dokunma alanı içinde 44 dp görünür: görsel sağ kenar sayfa kenar boşluğuyla (20 dp) hizalanır.
+        const SizedBox(width: 18),
       ],
       bottom: PreferredSize(
         preferredSize: const Size.fromHeight(68),
