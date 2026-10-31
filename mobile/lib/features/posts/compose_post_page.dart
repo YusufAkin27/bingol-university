@@ -144,6 +144,14 @@ class _ComposePostPageState extends State<ComposePostPage> {
     }
   }
 
+  /// "Fotoğraf seç": iki satırlık kaynak sayfası (Galeri / Kamera); kamera izni tek istemle ImageService'te istenir.
+  Future<void> _chooseSource() async {
+    if (_publishing) return;
+    final src = await showPhotoSourceSheet(context, simple: true);
+    if (src == null || !mounted) return;
+    await _pick(src == PhotoSource.camera ? ImageSource.camera : ImageSource.gallery);
+  }
+
   Future<void> _recrop() async {
     final orig = _original;
     if (orig == null || _publishing) return;
@@ -351,7 +359,7 @@ class _ComposePostPageState extends State<ComposePostPage> {
             BuButton(
                 key: const ValueKey('composeGallery'),
                 label: context.l10n.gonderiPickPhoto,
-                onPressed: () => _pick(ImageSource.gallery)),
+                onPressed: _chooseSource),
             const SizedBox(height: 12),
             TextButton(
               key: const ValueKey('composeCamera'),

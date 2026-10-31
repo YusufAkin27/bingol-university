@@ -73,6 +73,10 @@ Future<void> _openCrop(WidgetTester t) async {
 Future<void> _pickPhoto(WidgetTester t) async {
   // (gorsel cozumleme gercek zaman ister)
   await t.tap(find.byKey(const ValueKey('composeGallery')));
+  await t.pump(const Duration(milliseconds: 500));
+  await t.pump(const Duration(milliseconds: 500));
+  await t.pump(const Duration(milliseconds: 500));
+  await t.tap(find.byKey(const ValueKey('photoSrcGallery')));
   await t.pump();
   await t.pump(const Duration(milliseconds: 400));
   await t.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 300)));

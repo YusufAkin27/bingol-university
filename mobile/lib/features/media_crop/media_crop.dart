@@ -55,8 +55,9 @@ enum PhotoSource { gallery, camera, remove }
 /// "Fotoğraf" kaynak alt sayfası (referans 09/6): Galeriden seç / Fotoğraf çek / (isteğe bağlı) Fotoğrafı kaldır, sağ üstte
 /// kapat düğmesi. [error] verilirse altta kırmızı uyarı kartı (başlık [errorTitle], örn. "Dosya boyutu yüksek" + 2 MB metni).
 /// İptalde null.
-Future<PhotoSource?> showPhotoSourceSheet(BuildContext context, {bool removable = false, String? error, String? errorTitle}) {
+Future<PhotoSource?> showPhotoSourceSheet(BuildContext context, {bool removable = false, String? error, String? errorTitle, bool simple = false}) {
   final l = context.l10n;
+  if (simple) return _showSimpleSourceSheet(context);
   return BuSheet.show<PhotoSource>(
     context,
     builder: (ctx) {
@@ -128,6 +129,37 @@ Future<PhotoSource?> showPhotoSourceSheet(BuildContext context, {bool removable 
               ),
             ),
           ),
+      ]);
+    },
+  );
+}
+
+/// Sade kaynak sayfası (Stitch v3 02): tutamaç + iki satır (56 dp, 24 dp ince çizgi simge, 1 dp ayırıcı); başlık/açıklama/kapat yok.
+Future<PhotoSource?> _showSimpleSourceSheet(BuildContext context) {
+  final l = context.l10n;
+  return BuSheet.show<PhotoSource>(
+    context,
+    scrollable: false,
+    padding: const EdgeInsetsDirectional.fromSTEB(20, 0, 20, 8),
+    builder: (ctx) {
+      final t = ctx.bu;
+      final tt = Theme.of(ctx).textTheme;
+      Widget row(Key key, IconData icon, String label, PhotoSource v) => InkWell(
+            key: key,
+            onTap: () => Navigator.pop(ctx, v),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(minHeight: BuSize.row),
+              child: Row(children: [
+                Icon(icon, size: 24, color: t.ink),
+                const SizedBox(width: 16),
+                Expanded(child: Text(label, style: tt.bodyLarge?.copyWith(color: t.ink, fontSize: 16, fontWeight: FontWeight.w500))),
+              ]),
+            ),
+          );
+      return Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        row(const ValueKey('photoSrcGallery'), LucideIcons.images, l.p04SrcGallery, PhotoSource.gallery),
+        Divider(height: 1, color: t.bd),
+        row(const ValueKey('photoSrcCamera'), LucideIcons.camera, l.p04SrcCamera, PhotoSource.camera),
       ]);
     },
   );

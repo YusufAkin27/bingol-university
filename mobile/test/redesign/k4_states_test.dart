@@ -49,7 +49,7 @@ void main() {
       expect(find.text('Keşfet'), findsOneWidget); // baslik hata durumunda da var
       expect(find.byKey(const ValueKey('discoverOfflineStrip')), findsNothing);
       expect(find.textContaining('İnternet bağlantısı yok'), findsNothing);
-      expect(find.text('Sunucuya ulaşılamadı'), findsOneWidget);
+      expect(find.text('Yüklenemedi'), findsOneWidget);
       expect(find.byKey(const ValueKey('discoverRetry')), findsOneWidget);
       await tester.pumpWidget(const SizedBox());
 

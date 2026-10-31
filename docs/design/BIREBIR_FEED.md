@@ -9,7 +9,7 @@ Uygulama görüntüleri (önce/sonra): `C:\bu_qa\shots\tasarim\p3\feed\onceki|so
 |---|---|---|---|
 | Başlık "Keşfet" | 28 sp / 700 | 28 / 700 (`discover_tab.dart`) | 0 |
 | Arama + "+" düğmeleri | 44 dp yuvarlak, arada 8 | `BuIconButton(size: 44)`, 8 | 0 (hit alanı 48) |
-| Çipler | 36 dp yükseklik, 13 sp/500 | `BuChip` (ortak, 34 dp görünür / 48 hit) | -2 dp; ortak bileşen, `widgets/*` kilitli, raporda öneri |
+| Çipler | 36 dp yükseklik, 13 sp/500 | `BuChip` (ortak, 34 dp görünür / 48 hit) | -2 dp; `widgets/*` ortak ve kilitli: BuChip görünür yüksekliğinin 36'ya çıkması önerisi raporlandı |
 | Yatay kenar | 20 | 20 (`BuSpace.page`) tüm parçalarda | 0 |
 | Çipten ilk gönderiye | 16 | 16 (çip satırı alt 16) | 0 |
 | Gönderiler arası | 24 | 24 | 0 |
@@ -20,23 +20,23 @@ Uygulama görüntüleri (önce/sonra): `C:\bu_qa\shots\tasarim\p3\feed\onceki|so
 | "bölüm · zaman" | 12 sp / 500, beyaz %85 | 12 / 500 `onMedia` %85, ayraç " · ", tek satır (`PostMetaLine`) | 0 |
 | Kalp hapı | 44 dp, yatay 14, #171E33 %50 + blur, kalp 20, sayı 13/600; beğenilince dolu BEYAZ kalp | 44 dp, başlangıç 14, `BuColors.ink` %50 (blur YOK: kaydırma listesinde BackdropFilter pahalı), kalp 20, sayı 13/600 tabular, beğenilince dolu beyaz | blur yok (gerekçeli); hit 44 (referansın kendisi 44) |
 | Gönderi metni | görselin 10 dp altında tek satır 15 sp/500, yatay 4 | 10 dp, tek satır 15/500, 4 | 0 |
-| ⋯ menü | referansta yok | sağ üstte yarı saydam daire (scrim %35), 48 dp hit | SAPMA: Şikâyet/Düzenle/Sil/Engelle erişimi için gerekli; uzun basma da açar |
+| ⋯ menü | referansta yok | sağ üstte yarı saydam daire (scrim %35), 48 dp hit | KASITLI: işlev (Şikâyet/Düzenle/Sil/Engelle) için kalıyor (onaylandı) |
 | Çift dokunuş / basma | beyaz kalp 88 dp, basınca ölçek .98 | korundu; `BuPressable(scale: .98)` | 0 |
 | Öneri şeridi | kartsız; öğe 104 dp, aralık 16, avatar 56, ad 14/600, bölüm 12 mut, "Takip et" ince çerçeveli hap 36 dp bdStrong 1 dp 13/600; başlık 16/600, "Tümü" 14/600 pr; üst 8 / alt 32 | aynı değerler; takipte `bd` çerçeve + `mut` metin; başlık/Tümü aynı | 0 |
 | Yükleniyor | aynı oran, tonal blok, tek soluk metin çubuğu, parıltı yok | 2 x 4:5 `BuSkeleton` (24 köşe) + tek çubuk | baskın renk yer tutucu uygulanmadı (yerel ucuz hesap yok: nötr sf2; talimat böyle) |
 | Boş | "Henüz gönderi yok" 18/600 + mut 15 ikinci cümle + 24 dp altta 48 dp pr düğme, illüstrasyon yok | aynı (ARB tek cümle "Henüz gönderi yok. İlk gönderiyi sen paylaş!" cümle sınırında bölünür) | 0 |
-| Hata | "Yüklenemedi" 18/600 + mut açıklama + pr metin düğmesi | başlık 18/600 (mevcut ARB "Sunucuya ulaşılamadı") + pr metin düğmesi "Yeniden dene" 48 dp; açıklama cümlesi YOK | metin farkı (ARB kilidi) |
-| Çevrimdışı/Bakım notu (warnSoft) | akış üstünde uyarı notu | UYGULANMADI | yeni metin + durum gerektirir (ARB p64 + akış mantığı); sonraki iş |
+| Hata | "Yüklenemedi" 18/600 + mut açıklama + pr metin düğmesi | ARB güncellendi (tr/en/ar): başlık "Yüklenemedi", açıklama "Bağlantını kontrol edip tekrar dene." 15 mut, pr metin düğmesi 48 dp hedef | 0 |
+| Çevrimdışı notu (warnSoft) | başlık/çip altında tam genişlik düz not: warnSoft, onWarnSoft 14/500, köşe 16, dolgu 12x16, ikonsuz, altta eski gönderiler | UYGULANDI (`_OfflineNote`): yalnız mevcut ağ hatası bilgisiyle (önbellekten çizilmiş akışta ağ hatası), yeni mantık yok; ağ dönünce kalkar; metin ARB `p64FeedOffline` tr/en/ar | 0. Bakım notu: akış için bakım durumu kaynağı yok, uygulanmadı |
 
 ## Yeni gönderi
 
 | Öğe | Referans | Uygulama | Fark / not |
 |---|---|---|---|
 | Üst çubuk | 56 dp, çizgisiz, sol "x" 24 dp (48 hit), ortada 17/600, sağ "Paylaş" pr hap 36 dp, yatay 16, 14/600 beyaz, hazır değilken %40 opak | aynı; hap görünür 36 / hit 48; hazır değilken `AnimatedOpacity(.4)` 150 ms; paylaşılırken aynı hapta 16 dp spinner (anlamsal etiket "Paylaşılıyor") | 0 |
-| 01 Başlangıç | 20 dp kenar, boş 4:5, köşe 24, sf2, çerçeve/kesikli yok; tek pr "Fotoğraf seç" 48 dp + 12 dp altta mut "Kamera" | aynı yerleşim; çerçevesiz sf2, köşe 24; pr düğme etiketi "Galeriden seç" (ARB `gonderiPickPhoto`), "Kamera" metin düğmesi | etiket farkı: "Fotoğraf seç" yeni ARB metni ister; ARB kilidi ve çift dokunuş yerine ertelendi |
-| 02 Kaynak sheet | alt sayfa, iki satır 56 dp, başlıksız | UYGULANMADI: iki seçenek (galeri / kamera) zaten 01'de görünür; sheet ek bir dokunuş eklerdi | `showPhotoSourceSheet` diğer akışlarla paylaşımlı; sade varyantı sonraki iş |
-| 03 Kırpma | koyu tuval, sabit 4:5 çerçeve, Vazgeç/Bitti alt çubuk, dönder/sıfırla yok | UYGULANMADI (yalnız ölçek değeri ve önizleme "⋯" sadeleşti) | `crop_page.dart` profil/kulüp/kapak ile paylaşımlı; dönder/önizleme satırını kaldırmak ürün kararı ve mevcut testleri (k4_posts_test) değiştirir |
-| 04 Önizleme/yazma | 20 dp, 4:5 köşe 24 hafif gölge, 16 dp altta tek satır alan: sf, 1 dp bdStrong, köşe 16, 52 dp yükseklik, 16 dp iç, sağda sessiz sayaç 12 sp mut | aynı (`BuSize.field` 52 min, `BuRadius.md` 16, `bdStrong` 1 dp, sayaç 12 sp) | yer tutucu "Kısa bir not ekle (isteğe bağlı)" (ARB), referans "Birkaç kelime yaz…"; fotoğraf çerçeveyi TAM kaplar (BoxFit.cover), beyaz bant yok |
+| 01 Başlangıç | 20 dp kenar, boş 4:5, köşe 24, sf2, çerçeve/kesikli yok; tek pr "Fotoğraf seç" 48 dp + 12 dp altta mut "Kamera" | aynı; birincil düğme "Fotoğraf seç" (ARB güncellendi, tr/en/ar), "Kamera" 12 dp altta mut metin düğmesi (doğrudan kamera) | 0 |
+| 02 Kaynak sheet | alt sayfa, tutamaç, iki satır 56 dp ("Galeriden seç", "Fotoğraf çek"), 24 dp ince çizgi simge, 1 dp ayırıcı, başlık/açıklama yok | UYGULANDI: `showPhotoSourceSheet(simple: true)` (paylaşımlı sheet'in ek sade varyantı; diğer kullanımlar değişmedi); "Fotoğraf seç" onu açar, seçim `_pick`'e gider; kamera izni `ImageService` içinde tek istem (`ensurePermission direct`) | 0 |
+| 03 Kırpma | koyu tuval, sabit 4:5 çerçeve (beyaz 1.5 dp), köşe tutamaçları, 3x3 kılavuz (beyaz %35, .5 dp), çerçeve dışı %55 karartma, sol üstte x, altta 72 dp çubuk: "Vazgeç" 15/500 + beyaz "Bitti" hapı (40 dp, siyah 15/600); başlık/döndür/sıfırla yok | UYGULANDI yalnız `CropKind.post` için (`_postScaffold`, `_PostStage`, `_PostFramePainter`): çerçeve 390 dp'de 312 x 390, yan boşluk 39, çizgi kalınlıkları ekranda sabit; "Bitti" ARB `p64CropDone` tr/en/ar. Profil/kulüp/kapak/sohbet kırpma DEĞİŞMEDİ (k4_posts_test profil+kapak testleri geçiyor) | 0; döndürme jesti post kırpmada kalktı (controller'da duruyor) |
+| 04 Önizleme/yazma | 20 dp, 4:5 köşe 24 hafif gölge, 16 dp altta tek satır alan: sf, 1 dp bdStrong, köşe 16, 52 dp yükseklik, 16 dp iç, sağda sessiz sayaç 12 sp mut | aynı (`BuSize.field` 52 min, `BuRadius.md` 16, `bdStrong` 1 dp, sayaç 12 sp) | yer tutucu "Birkaç kelime yaz…" (ARB güncellendi); fotoğraf çerçeveyi TAM kaplar (BoxFit.cover), beyaz bant yok |
 | Sayaç | yalnız sınırda danger | 7/7 ink-kalın, aşımda danger + alan çerçevesi danger 1.5 dp (150 ms) | 0 |
 | 05 Paylaşılıyor | görsel %60 opak, alan pasif | görsel üstü `bg` %40 örtü, alan `enabled:false`, hap spinner | 0 |
 | 06 Uyarılar | danger sayaç/çerçeve, danger altı metin, dangerSoft moderasyon notu | mevcut hata satırları korundu (davranış değişmez); çerçeve/sayaç danger | moderasyon kutusu mevcut stil (çerçeveli kart) |

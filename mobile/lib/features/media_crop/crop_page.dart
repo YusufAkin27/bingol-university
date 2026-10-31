@@ -95,6 +95,7 @@ class _CropPageState extends State<CropPage> {
     const d = BuTokens.dark; // tuval her temada koyu
     final t = context.bu;
     final c = _c;
+    if (widget.spec.kind == CropKind.post) return _postScaffold(context, c, d);
     return Scaffold(
       backgroundColor: d.bg,
       body: SafeArea(
@@ -111,6 +112,105 @@ class _CropPageState extends State<CropPage> {
           if (c != null && !_failed) _ActionBar(busy: _busy, spec: widget.spec, onCancel: () => Navigator.of(context).pop(), onSave: _save),
         ]),
       ),
+    );
+  }
+
+  /// Gönderi kırpma (Stitch v3 03): koyu tuval, 4:5 beyaz çerçeve + 3x3 kılavuz, çerçeve dışı %55 karartma,
+  /// sol üstte yalnız kapat, altta "Vazgeç" metni + beyaz "Bitti" hapı. Döndür/sıfırla/önizleme/başlık yok.
+  Widget _postScaffold(BuildContext context, CropController? c, BuTokens d) {
+    final l = context.l10n;
+    final ready = c != null && !_failed;
+    return Scaffold(
+      backgroundColor: d.bg,
+      body: Column(children: [
+        SafeArea(
+          bottom: false,
+          child: SizedBox(
+            height: 60,
+            child: Align(
+              alignment: AlignmentDirectional.centerStart,
+              child: IconButton(
+                key: const ValueKey('cropClose'),
+                tooltip: l.postComposeClose,
+                onPressed: () => Navigator.of(context).pop(),
+                icon: Icon(LucideIcons.x, size: 24, color: d.ink),
+              ),
+            ),
+          ),
+        ),
+        Expanded(
+          child: ColoredBox(
+            color: d.scrim,
+            child: _failed
+                ? _Failed(onClose: () => Navigator.of(context).pop())
+                : c == null
+                    ? const Center(child: BuSkeletonScope(child: BuSkeleton(width: 240, height: 300, radius: 24)))
+                    : ListenableBuilder(
+                        listenable: c,
+                        builder: (context, _) => _PostStage(
+                          controller: c,
+                          bytes: _src,
+                          onScaleStart: (det) {
+                            _startZoom = c.zoom;
+                            _startOffset = c.offset;
+                            _startFocal = det.localFocalPoint;
+                          },
+                          onScaleUpdate: (det) => c.gesture(
+                            startZoom: _startZoom,
+                            factor: det.scale,
+                            startOffset: _startOffset,
+                            delta: det.localFocalPoint - _startFocal,
+                          ),
+                        ),
+                      ),
+          ),
+        ),
+        if (ready)
+          ColoredBox(
+            color: d.bg,
+            child: SafeArea(
+              top: false,
+              child: SizedBox(
+                height: 72,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: BuSpace.page),
+                  child: Row(children: [
+                    TextButton(
+                      key: const ValueKey('cropCancel'),
+                      onPressed: _busy ? null : () => Navigator.of(context).pop(),
+                      style: TextButton.styleFrom(minimumSize: const Size(BuSize.touch, BuSize.touch), foregroundColor: d.onMedia),
+                      child: Text(l.postComposeCancel,
+                          style: Theme.of(context).textTheme.labelLarge?.copyWith(color: d.onMedia.withValues(alpha: .8), fontSize: 15, fontWeight: FontWeight.w500)),
+                    ),
+                    const Spacer(),
+                    Material(
+                      key: const ValueKey('cropSave'),
+                      color: d.onMedia,
+                      shape: const StadiumBorder(),
+                      child: InkWell(
+                        customBorder: const StadiumBorder(),
+                        onTap: _busy ? null : _save,
+                        child: ConstrainedBox(
+                          constraints: const BoxConstraints(minHeight: 40, minWidth: 96),
+                          child: Center(
+                            widthFactor: 1,
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 24),
+                              child: _busy
+                                  ? SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: d.scrim))
+                                  : Text(l.p64CropDone,
+                                      style: Theme.of(context).textTheme.labelLarge?.copyWith(color: d.scrim, fontSize: 15, fontWeight: FontWeight.w600)),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ]),
+                ),
+              ),
+            ),
+          ),
+      ]),
     );
   }
 
@@ -772,4 +872,99 @@ class _Previews extends StatelessWidget {
         ]);
     }
   }
+}
+
+/// Gönderi kırpma sahnesi: fotoğraf tuvali doldurur; 4:5 çerçeve yatayda 39 dp kenar bırakır (390 dp'de 312 x 390),
+/// çerçeve dışı karartılır. Sanal koordinat = çerçeve birimi; FittedBox ekran ölçüsüne eşler.
+class _PostStage extends StatelessWidget {
+  const _PostStage({required this.controller, required this.bytes, required this.onScaleStart, required this.onScaleUpdate});
+
+  final CropController controller;
+  final Uint8List bytes;
+  final GestureScaleStartCallback onScaleStart;
+  final GestureScaleUpdateCallback onScaleUpdate;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = controller;
+    final f = c.frame;
+    return LayoutBuilder(builder: (context, box) {
+      final w = box.maxWidth, h = box.maxHeight;
+      // Çerçevenin ekrandaki genişliği: yan boşluk 39 dp; yükseklik sığmazsa 16 dp pay ile küçülür.
+      var fw = w - 78;
+      if (fw * f.height / f.width > h - 32) fw = (h - 32) * f.width / f.height;
+      final k = fw / f.width; // sanal birim -> dp
+      final sv = Size(w / k, h / k);
+      final frame = Rect.fromCenter(center: Offset(sv.width / 2, sv.height / 2), width: f.width, height: f.height);
+      return FittedBox(
+        fit: BoxFit.fill,
+        child: SizedBox(
+          key: const ValueKey('cropStage'),
+          width: sv.width,
+          height: sv.height,
+          child: GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onScaleStart: onScaleStart,
+            onScaleUpdate: onScaleUpdate,
+            child: Stack(children: [
+              Positioned.fill(child: _Photo(controller: c, bytes: bytes, center: frame.center + c.offset)),
+              Positioned.fill(child: IgnorePointer(child: CustomPaint(painter: _PostFramePainter(frame: frame, unit: 1 / k)))),
+            ]),
+          ),
+        ),
+      );
+    });
+  }
+}
+
+class _PostFramePainter extends CustomPainter {
+  const _PostFramePainter({required this.frame, required this.unit});
+
+  final Rect frame;
+
+  /// 1 dp'nin sanal birim karşılığı (çizgi kalınlıkları ekranda sabit kalır).
+  final double unit;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    const d = BuTokens.dark;
+    final dim = Path.combine(PathOperation.difference, Path()..addRect(Offset.zero & size), Path()..addRect(frame));
+    canvas.drawPath(dim, Paint()..color = d.scrim.withValues(alpha: .55));
+    final grid = Paint()
+      ..color = d.onMedia.withValues(alpha: .35)
+      ..strokeWidth = .5 * unit;
+    for (var i = 1; i <= 2; i++) {
+      final x = frame.left + frame.width * i / 3, y = frame.top + frame.height * i / 3;
+      canvas.drawLine(Offset(x, frame.top), Offset(x, frame.bottom), grid);
+      canvas.drawLine(Offset(frame.left, y), Offset(frame.right, y), grid);
+    }
+    canvas.drawRect(
+        frame,
+        Paint()
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 1.5 * unit
+          ..color = d.onMedia);
+    final h = Paint()
+      ..color = d.onMedia
+      ..strokeWidth = 3.5 * unit
+      ..strokeCap = StrokeCap.round
+      ..style = PaintingStyle.stroke;
+    final len = 20 * unit;
+    for (final (corner, dx, dy) in [
+      (frame.topLeft, 1.0, 1.0),
+      (frame.topRight, -1.0, 1.0),
+      (frame.bottomLeft, 1.0, -1.0),
+      (frame.bottomRight, -1.0, -1.0),
+    ]) {
+      canvas.drawPath(
+          Path()
+            ..moveTo(corner.dx, corner.dy + dy * len)
+            ..lineTo(corner.dx, corner.dy)
+            ..lineTo(corner.dx + dx * len, corner.dy),
+          h);
+    }
+  }
+
+  @override
+  bool shouldRepaint(_PostFramePainter o) => o.frame != frame || o.unit != unit;
 }

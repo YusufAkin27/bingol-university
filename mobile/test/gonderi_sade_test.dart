@@ -89,6 +89,9 @@ void main() {
     testWidgets('tek fotograf secilince onizleme gelir ve paylas aktif olur', (tester) async {
       final (_, _, _, asked) = await open(tester);
       await tester.tap(find.byKey(const ValueKey('composeGallery')));
+      // Stitch v3 02: Fotoğraf seç -> iki satırlık kaynak sayfası
+      await settle(tester, const Duration(milliseconds: 900));
+      await tester.tap(find.byKey(const ValueKey('photoSrcGallery')));
       await settle(tester, const Duration(milliseconds: 300));
       expect(asked, [ImageSource.gallery]);
       expect(find.byKey(const ValueKey('composePreview')), findsOneWidget);
@@ -136,6 +139,9 @@ void main() {
     testWidgets('paylas: once tek foto yuklenir, sonra mediaIds tek ogeyle gonderi olusur', (tester) async {
       final (b, fp, up, _) = await open(tester);
       await tester.tap(find.byKey(const ValueKey('composeGallery')));
+      // Stitch v3 02: Fotoğraf seç -> iki satırlık kaynak sayfası
+      await settle(tester, const Duration(milliseconds: 900));
+      await tester.tap(find.byKey(const ValueKey('photoSrcGallery')));
       await settle(tester, const Duration(milliseconds: 300));
       await tester.enterText(find.byKey(const ValueKey('composeText')), 'kisa not');
       await tester.pump();
@@ -152,6 +158,9 @@ void main() {
     testWidgets('metinsiz de paylasilir (metin istege bagli)', (tester) async {
       final (b, _, _, _) = await open(tester);
       await tester.tap(find.byKey(const ValueKey('composeGallery')));
+      // Stitch v3 02: Fotoğraf seç -> iki satırlık kaynak sayfası
+      await settle(tester, const Duration(milliseconds: 900));
+      await tester.tap(find.byKey(const ValueKey('photoSrcGallery')));
       await settle(tester, const Duration(milliseconds: 300));
       await tester.tap(find.byKey(const ValueKey('composeShare')));
       await settle(tester, const Duration(milliseconds: 600));

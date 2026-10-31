@@ -109,29 +109,32 @@ void main() {
       await tester.pump(const Duration(milliseconds: 300));
     }
 
-    testWidgets('post 4:5: baslik, kilavuz, onizleme, yakinlastir, dondur, sifirla, Kirp 4:5 JPEG dondurur', (tester) async {
+    testWidgets('post 4:5 (Stitch v3 03): yalniz kapat + Vazgec/Bitti, dondur/sifirla/onizleme/baslik yok; sahne tuvali doldurur; Bitti 4:5 JPEG dondurur', (tester) async {
+      useScreen(tester, const Size(390, 844));
       CropOutcome? out;
       var done = false;
       await openCrop(tester, const CropSpec.post(previewName: 'Elif Yıldız', previewCaption: 'Güzel gün', allowChange: true), (o) {
         out = o;
         done = true;
       });
-      expect(find.text('Gönderi fotoğrafı'), findsOneWidget);
-      expect(find.text('Sürükle ve yakınlaştır'), findsOneWidget);
-      expect(find.text('Akışta böyle görünecek'), findsOneWidget);
-      expect(find.text('Elif Yıldız'), findsWidgets);
-      expect(find.byKey(const ValueKey('cropChange')), findsOneWidget);
-      final stage = tester.getSize(find.byKey(const ValueKey('cropStage')));
-      expect(stage.width, 240 + 56);
-      expect(find.text('1.0x'), findsOneWidget);
-      await tester.tap(find.byTooltip('Fotoğraf ölçeği').last);
-      await tester.pump();
-      expect(find.text('1.3x'), findsOneWidget);
-      await tester.tap(find.byKey(const ValueKey('cropRotate')));
-      await tester.pump();
-      expect(find.byKey(const ValueKey('cropReset')), findsOneWidget);
-      await tester.tap(find.byKey(const ValueKey('cropReset')));
-      await tester.pump();
+      expect(find.byKey(const ValueKey('cropClose')), findsOneWidget);
+      expect(find.byKey(const ValueKey('cropCancel')), findsOneWidget);
+      expect(find.text('Vazgeç'), findsOneWidget);
+      expect(find.text('Bitti'), findsOneWidget);
+      // Kaldirilanlar: baslik, ipucu hapi, onizleme karti, dondur/sifirla/olcek, fotografi degistir baglantisi.
+      expect(find.text('Gönderi fotoğrafı'), findsNothing);
+      expect(find.text('Sürükle ve yakınlaştır'), findsNothing);
+      expect(find.text('Akışta böyle görünecek'), findsNothing);
+      expect(find.byKey(const ValueKey('cropChange')), findsNothing);
+      expect(find.byKey(const ValueKey('cropRotate')), findsNothing);
+      expect(find.byKey(const ValueKey('cropReset')), findsNothing);
+      expect(find.byKey(const ValueKey('cropZoom')), findsNothing);
+      // Sahne: tam genislik; 4:5 cerceve 39 dp yan bosluk (312 dp genislik).
+      // Sahne sanal birimde cizilir (FittedBox dp'ye esler): ekrandaki kutu tam genislik.
+      final stage = tester.getSize(find.ancestor(of: find.byKey(const ValueKey('cropStage')), matching: find.byType(FittedBox)).first);
+      expect(stage.width, closeTo(390, 0.5));
+      final bar = tester.getSize(find.byKey(const ValueKey('cropSave')));
+      expect(bar.height, greaterThanOrEqualTo(40));
       await tester.tap(find.byKey(const ValueKey('cropSave')));
       await tester.pump();
       await tester.runAsync(() async {
@@ -143,6 +146,21 @@ void main() {
       expect(done, isTrue);
       final d = img.decodeJpg(out!.bytes!)!;
       expect(d.width / d.height, closeTo(0.8, 0.01));
+      noErr(tester);
+    });
+
+    testWidgets('post kirpma: Vazgec null dondurur (kapatma ile ayni)', (tester) async {
+      useScreen(tester, const Size(390, 844));
+      CropOutcome? out;
+      var done = false;
+      await openCrop(tester, const CropSpec.post(), (o) {
+        out = o;
+        done = true;
+      });
+      await tester.tap(find.byKey(const ValueKey('cropCancel')));
+      await tester.pump(const Duration(milliseconds: 400));
+      expect(done, isTrue);
+      expect(out, isNull);
       noErr(tester);
     });
 
@@ -313,6 +331,9 @@ void main() {
       await tester.pump();
       expect(find.byKey(const ValueKey('composePhotoHint')), findsOneWidget);
       await tester.tap(find.byKey(const ValueKey('composeGallery')));
+      // Stitch v3 02: Fotoğraf seç -> iki satırlık kaynak sayfası
+      await settle(tester, const Duration(milliseconds: 900));
+      await tester.tap(find.byKey(const ValueKey('photoSrcGallery')));
       await settle(tester, const Duration(milliseconds: 300));
       await tester.tap(find.byKey(const ValueKey('composeShare')));
       await settle(tester, const Duration(milliseconds: 600));

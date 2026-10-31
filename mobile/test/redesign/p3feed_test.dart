@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:bu_kampus/core/theme.dart';
 import 'package:bu_kampus/features/discover/discover_masonry.dart';
 import 'package:bu_kampus/features/discover/discover_tab.dart';
+import 'package:bu_kampus/core/platform/image_service.dart' show ImageSource;
 import 'package:bu_kampus/features/media_crop/media_crop.dart';
 import 'package:bu_kampus/features/posts/compose_post_page.dart';
 import 'package:bu_kampus/features/posts/post_card.dart';
@@ -82,19 +83,43 @@ void main() {
       noErr(tester);
     });
 
-    testWidgets('hata: tek cumle + metin dugmesi Yeniden dene (illustrasyon/aciklama yok, 48 dp hedef)', (tester) async {
+    testWidgets('hata: baslik + soluk aciklama + metin dugmesi Yeniden dene (illustrasyon yok, 48 dp hedef)', (tester) async {
       useScreen(tester, const Size(390, 844));
       var retried = 0;
       await tester.pumpWidget(buildApp(Scaffold(body: DiscoverErrorCard(offline: true, onRetry: () => retried++))));
       await tester.pump();
-      expect(find.text('Sunucuya ulaşılamadı'), findsOneWidget);
-      expect(find.textContaining('Bağlantınızı kontrol'), findsNothing);
+      expect(find.text('Yüklenemedi'), findsOneWidget);
+      expect(find.text('Bağlantını kontrol edip tekrar dene.'), findsOneWidget);
       expect(shadowBoxes(tester, find.byKey(const ValueKey('discoverError'))), 0);
       expect(find.byIcon(LucideIcons.refreshCw), findsNothing);
       expect(find.descendant(of: find.byKey(const ValueKey('discoverError')), matching: find.byType(Icon)), findsNothing);
       expect(tester.getSize(find.byKey(const ValueKey('discoverRetry'))).height, greaterThanOrEqualTo(48));
       await tester.tap(find.byKey(const ValueKey('discoverRetry')));
       expect(retried, 1);
+      noErr(tester);
+    });
+
+    testWidgets('cevrimdisi notu: ag yokken yenileme basarisiz olursa warnSoft not (ikonsuz) + eski gonderiler; ag donunce kalkar', (tester) async {
+      useScreen(tester, const Size(390, 844));
+      final b = FakeBackend();
+      fakePosts(b);
+      b.on('/users/me/follow-suggestions*', {'items': <Object>[]});
+      await tester.pumpWidget(buildApp(DiscoverTab(session: makeSession(b), typeRequest: ValueNotifier<String?>(null))));
+      await settle(tester, const Duration(milliseconds: 1000));
+      expect(find.byKey(const ValueKey('discoverOffline')), findsNothing);
+      b.offline = true;
+      await tester.fling(find.byType(CustomScrollView).last, const Offset(0, 500), 2000);
+      await settle(tester, const Duration(milliseconds: 1500));
+      expect(find.byKey(const ValueKey('discoverOffline')), findsOneWidget);
+      expect(find.text('Çevrimdışısın. Gösterilen gönderiler eski olabilir.'), findsOneWidget);
+      expect(find.byType(DiscoverPostCard), findsWidgets);
+      final box = tester.widget<DecoratedBox>(find.descendant(of: find.byKey(const ValueKey('discoverOffline')), matching: find.byType(DecoratedBox)).first);
+      expect((box.decoration as BoxDecoration).color, BuTokens.light.warnSoft);
+      expect(find.descendant(of: find.byKey(const ValueKey('discoverOffline')), matching: find.byType(Icon)), findsNothing);
+      b.offline = false;
+      await tester.fling(find.byType(CustomScrollView).last, const Offset(0, 500), 2000);
+      await settle(tester, const Duration(milliseconds: 1500));
+      expect(find.byKey(const ValueKey('discoverOffline')), findsNothing);
       noErr(tester);
     });
 
@@ -189,6 +214,9 @@ void main() {
       expect(find.byKey(const ValueKey('composeCamera')), findsOneWidget);
       expect(find.byIcon(LucideIcons.camera), findsNothing);
       await tester.tap(find.byKey(const ValueKey('composeGallery')));
+      // Stitch v3 02: Fotoğraf seç -> iki satırlık kaynak sayfası
+      await settle(tester, const Duration(milliseconds: 900));
+      await tester.tap(find.byKey(const ValueKey('photoSrcGallery')));
       await settle(tester, const Duration(milliseconds: 400));
       expect(find.byKey(const ValueKey('composePreview')), findsOneWidget);
       expect(find.text('4:5'), findsNothing);
@@ -235,6 +263,65 @@ void main() {
       expect(find.byKey(const ValueKey('userPostsEmpty')), findsOneWidget);
       expect(shadowBoxes(tester, find.byKey(const ValueKey('userPostsEmpty'))), 0);
       expect(find.descendant(of: find.byKey(const ValueKey('userPostsEmpty')), matching: find.byType(BuButton)), findsOneWidget);
+      noErr(tester);
+    });
+  });
+
+  group('Kaynak sayfasi (Stitch v3 02)', () {
+    testWidgets('Fotograf sec: basliksiz iki satir (Galeriden sec / Fotograf cek, 56 dp); Fotograf cek kamera ister', (tester) async {
+      useScreen(tester, const Size(390, 844));
+      final b = FakeBackend();
+      fakePosts(b);
+      final s = makeSession(b);
+      final asked = <ImageSource>[];
+      await tester.pumpWidget(buildApp(ComposePostPage(
+        session: s,
+        uploader: _Up(s),
+        cropPhoto: (c, bytes, spec) async => CropOutcome.cropped(bytes),
+        pickPhoto: (src) async {
+          asked.add(src);
+          return Uint8List.fromList(kFakePng);
+        },
+      )));
+      await settle(tester, const Duration(milliseconds: 300));
+      expect(find.text('Fotoğraf seç'), findsOneWidget);
+      await tester.tap(find.byKey(const ValueKey('composeGallery')));
+      await settle(tester, const Duration(milliseconds: 900));
+      expect(find.byKey(const ValueKey('photoSrcGallery')), findsOneWidget);
+      expect(find.byKey(const ValueKey('photoSrcCamera')), findsOneWidget);
+      expect(find.byKey(const ValueKey('photoSrcClose')), findsNothing, reason: 'sade sayfada kapat/baslik yok');
+      expect(find.text('Galeriden seç'), findsOneWidget);
+      expect(find.text('Fotoğraf çek'), findsOneWidget);
+      expect(tester.getSize(find.byKey(const ValueKey('photoSrcGallery'))).height, greaterThanOrEqualTo(56));
+      await tester.tap(find.byKey(const ValueKey('photoSrcCamera')));
+      await settle(tester, const Duration(milliseconds: 500));
+      expect(asked, [ImageSource.camera]);
+      expect(find.byKey(const ValueKey('composePreview')), findsOneWidget);
+      noErr(tester);
+    });
+
+    testWidgets('kaynak sayfasi kapatilirsa hicbir sey secilmez', (tester) async {
+      useScreen(tester, const Size(390, 844));
+      final b = FakeBackend();
+      fakePosts(b);
+      final s = makeSession(b);
+      var asked = 0;
+      await tester.pumpWidget(buildApp(ComposePostPage(
+        session: s,
+        uploader: _Up(s),
+        cropPhoto: (c, bytes, spec) async => CropOutcome.cropped(bytes),
+        pickPhoto: (src) async {
+          asked++;
+          return null;
+        },
+      )));
+      await settle(tester, const Duration(milliseconds: 300));
+      await tester.tap(find.byKey(const ValueKey('composeGallery')));
+      await settle(tester, const Duration(milliseconds: 900));
+      await tester.tapAt(const Offset(195, 120)); // karartma
+      await settle(tester, const Duration(milliseconds: 500));
+      expect(asked, 0);
+      expect(find.byKey(const ValueKey('composePicker')), findsOneWidget);
       noErr(tester);
     });
   });

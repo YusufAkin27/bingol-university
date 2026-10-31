@@ -74,6 +74,7 @@ class _DiscoverMasonryFeedState extends State<DiscoverMasonryFeed> {
   int? _freshId; // az önce oluşturulup başa eklenen gönderi: girişi ayrıca (solma + yükselme) oynar
   Object? _error;
   Object? _moreError;
+  bool _stale = false; // ağ yokken önbellekten gösterilen akış: çevrimdışı notu (Stitch v3)
 
   @override
   void initState() {
@@ -188,6 +189,7 @@ class _DiscoverMasonryFeedState extends State<DiscoverMasonryFeed> {
         _loading = false;
         _error = null;
         _moreError = null;
+        _stale = false;
       });
       // İçerik ekranı doldurmuyorsa kaydırma olmayacağından sonraki sayfayı kendimiz iste.
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -203,6 +205,7 @@ class _DiscoverMasonryFeedState extends State<DiscoverMasonryFeed> {
       }
       setState(() {
         _loading = false;
+        if (_loaded && e is ApiError && e.isNetwork) _stale = true;
         if (!_loaded) {
           _error = e;
         } else if (quiet) {
@@ -279,6 +282,7 @@ class _DiscoverMasonryFeedState extends State<DiscoverMasonryFeed> {
           physics: const AlwaysScrollableScrollPhysics(),
           slivers: [
             if (widget.header != null) SliverToBoxAdapter(child: widget.header),
+            if (_stale && _loaded && _items.isNotEmpty) const SliverToBoxAdapter(child: _OfflineNote(key: ValueKey('discoverOffline'))),
             body,
             SliverToBoxAdapter(child: _footer()),
             const SliverToBoxAdapter(child: SizedBox(height: kNavInset)),
@@ -304,6 +308,27 @@ class _DiscoverMasonryFeedState extends State<DiscoverMasonryFeed> {
       );
     }
     return BuGap.h4;
+  }
+}
+
+/// Çevrimdışı notu (Stitch v3): warnSoft zemin, onWarnSoft 14/500, köşe 16, ikonsuz; altında eski gönderiler normal.
+class _OfflineNote extends StatelessWidget {
+  const _OfflineNote({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.bu;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(BuSpace.page, 0, BuSpace.page, BuSpace.lg),
+      child: DecoratedBox(
+        decoration: BoxDecoration(color: t.warnSoft, borderRadius: BorderRadius.circular(BuRadius.md)),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          child: Text(context.l10n.p64FeedOffline,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: t.onWarnSoft, fontSize: 14, fontWeight: FontWeight.w500)),
+        ),
+      ),
+    );
   }
 }
 
@@ -443,6 +468,8 @@ class DiscoverErrorCard extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(l.p04FeedErrTitle, textAlign: TextAlign.center, style: tt.titleMedium?.copyWith(color: t.ink, fontSize: 18, fontWeight: FontWeight.w600)),
+          BuGap.h6,
+          Text(l.p04FeedErrBody, textAlign: TextAlign.center, style: tt.bodyLarge?.copyWith(color: t.mut, fontSize: 15)),
           BuGap.h8,
           TextButton(
             key: const ValueKey('discoverRetry'),
