@@ -451,6 +451,38 @@ void main() {
       noErr(tester);
     });
 
+    testWidgets('renk sadeligi: zaman metni ve tur etiketi notr, marka rengi yalniz okunmamis rozette', (tester) async {
+      useScreen(tester, const Size(390, 844));
+      final b = FakeBackend()
+        ..on('/conversations/unread-count', {'total': 2})
+        ..on('/conversations*', {
+          'items': [
+            {...row(1, 'Mehmet Kaya', unread: 2), 'lastMessage': {...row(1, 'x')['lastMessage'] as Map<String, dynamic>, 'status': 'READ', 'senderId': 1}},
+            {...row(2, 'Edebiyat Kulubu', unread: 1), 'type': 'CLUB', 'peer': null},
+          ],
+          'nextCursor': null,
+        });
+      await tester.pumpWidget(buildApp(ChatTab(session: makeSession(b), connectRealtime: false)));
+      await settle(tester, const Duration(milliseconds: 1200));
+      final bu = tester.element(find.text('Mehmet Kaya')).bu;
+      // Zaman metni (okunmamis satirda bile) notr ikincil renk.
+      final stamp = tester.widgetList<Text>(find.byWidgetPredicate((w) => w is Text && RegExp(r'^\d\d:\d\d$').hasMatch(w.data ?? '')));
+      expect(stamp, isNotEmpty);
+      for (final t in stamp) {
+        expect(t.style!.color, bu.mut);
+      }
+      // Tur etiketi: notr yuzey (sf2) + ikincil metin; yesil/mavi ton yok.
+      final tag = find.text('Kulüp');
+      expect(tag, findsOneWidget);
+      expect(tester.widget<Text>(tag).style!.color, bu.mut);
+      final chip = tester.widget<DecoratedBox>(find.ancestor(of: tag, matching: find.byType(DecoratedBox)).first);
+      expect((chip.decoration as BoxDecoration).color, bu.sf2);
+      // Okunmamis rozeti marka rengi (t.pr) kalir.
+      final badge = tester.widget<DecoratedBox>(find.ancestor(of: find.text('2'), matching: find.byType(DecoratedBox)).first);
+      expect((badge.decoration as BoxDecoration).color, bu.pr);
+      noErr(tester);
+    });
+
     testWidgets('animasyonlari azalt: satirlar anında, basma olcegi uygulanmaz', (tester) async {
       reduceMotion(tester);
       useScreen(tester, const Size(390, 844));

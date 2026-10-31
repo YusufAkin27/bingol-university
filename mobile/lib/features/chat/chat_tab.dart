@@ -824,7 +824,6 @@ class _ConversationRow extends StatelessWidget {
       'EVENT' => l.chatMiscTagEvent,
       _ => null
     };
-    final tagTint = type == 'CLUB' ? t.tint(BuTintId.green) : t.tint(BuTintId.blue);
     final isDirect = type == 'DIRECT';
     final avatarUrl = isDirect ? (peer is Map ? peer['avatarUrl'] as String? : null) : conversation['avatarUrl'] as String?;
     // `online` yalnız sunucu alanı gelirse çizilir (BACKEND-ISTEK: ConversationView.peer.online).
@@ -863,7 +862,7 @@ class _ConversationRow extends StatelessWidget {
     final tick = switch (status) {
       'SENT' => (LucideIcons.check, t.mut),
       'DELIVERED' => (LucideIcons.checkCheck, t.mut),
-      'READ' => (LucideIcons.checkCheck, t.pr),
+      'READ' => (LucideIcons.checkCheck, t.mut), // okundu: çift tik yeter; marka vurgusu yalnız okunmamış rozetinde
       _ => null,
     };
     final bodyColor = hot ? t.ink : t.mut;
@@ -927,8 +926,8 @@ class _ConversationRow extends StatelessWidget {
                                     const SizedBox(width: 6),
                                     Container(
                                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                                      decoration: BoxDecoration(color: tagTint.bg, borderRadius: BuRadius.bPill),
-                                      child: Text(tag, maxLines: 1, style: tx.labelSmall!.copyWith(color: tagTint.fg, fontWeight: FontWeight.w700)),
+                                      decoration: BoxDecoration(color: t.sf2, borderRadius: BuRadius.bPill), // nötr yüzey tonu (renk vurgusu yok)
+                                      child: Text(tag, maxLines: 1, style: tx.labelSmall!.copyWith(color: t.mut, fontWeight: FontWeight.w700)),
                                     ),
                                   ],
                                 ]),
@@ -940,7 +939,7 @@ class _ConversationRow extends StatelessWidget {
                               ],
                               Text(_stamp(context, when),
                                   style: tx.labelMedium!.copyWith(
-                                      color: hot ? t.pr : t.mut,
+                                      color: t.mut, // zaman metni hep nötr; vurgu yalnız okunmamış rozetinde
                                       fontWeight: hot ? FontWeight.w700 : FontWeight.w500,
                                       fontFeatures: const [FontFeature.tabularFigures()])),
                             ],
