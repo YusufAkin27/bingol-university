@@ -153,21 +153,33 @@ public class PollVoteService {
         applyCounters(p, voterDelta, delta, now);
     }
 
-    /** Sayaclari en sonda yazar: once anket (acik mi + secmen sayisi), sonra secenekler (kimlik sirasiyla). */
+    /**
+     * Sayaclari en sonda yazar (T-069): once secenekler (kimlik sirasiyla), anket satiri ISLEMIN SON ifadesi.
+     * Tum oylar ayni {@code poll} satirinda ({@code voter_count}) cakisir; satir kilidi UPDATE'ten commit'e kadar
+     * tutuldugu icin onceden anket UPDATE'i basta olunca kilit 3 secenek guncellemesi + commit suresince tutuluyor,
+     * tek ankete ~30 oy/sn tavani vardi (A2-06). Artik kilit yalniz son ifade + commit suresince tutulur.
+     * Kilit sirasi hep ayni (secenekler artan kimlik, sonra anket) oldugu icin kilitlenme olmaz.
+     *
+     * <p>Secmen sayisi degismiyorsa (oy degisikligi, {@code voterDelta == 0}) sicak anket satirina HIC dokunulmaz;
+     * anketin hala acik oldugu kilitsiz sayimla dogrulanir (hazirlik asamasinda zaten denetlendi; kalan pencere
+     * yalniz yonetici durum degisikligidir).
+     */
     private void applyCounters(Poll p, int voterDelta, Map<Long, int[]> delta, Instant now) {
-        if (polls.addVotersIfOpen(p.getId(), voterDelta, now) == 0) {
-            // Okuma ile yazma arasinda kapandi/iptal edildi: islem geri alinir
+        delta.forEach((optionId, d) -> {
+            if (d[0] != 0 || d[1] != 0) {
+                options.addCounts(optionId, d[0], d[1]);
+            }
+        });
+        boolean open = voterDelta != 0 ? polls.addVotersIfOpen(p.getId(), voterDelta, now) > 0
+                : polls.countOpenAt(p.getId(), now) > 0;
+        if (!open) {
+            // Okuma ile yazma arasinda kapandi/iptal edildi: islem geri alinir (secenek sayaclari da)
             Poll fresh = polls.findById(p.getId()).orElseThrow(PollService::notFound);
             if (fresh.getStatus() == Poll.Status.OPEN && fresh.getOpensAt().isAfter(now)) {
                 throw new ApiException(HttpStatus.CONFLICT, "POLL_NOT_OPEN", "Bu anket henüz açılmadı.");
             }
             throw new ApiException(HttpStatus.CONFLICT, "POLL_CLOSED", "Bu anket kapalı.");
         }
-        delta.forEach((optionId, d) -> {
-            if (d[0] != 0 || d[1] != 0) {
-                options.addCounts(optionId, d[0], d[1]);
-            }
-        });
     }
 
     private static void bump(Map<Long, int[]> delta, Long optionId, int votes, int score) {

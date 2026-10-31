@@ -116,6 +116,17 @@ public interface PollRepository extends JpaRepository<Poll, Long>, JpaSpecificat
         return addVotersIfOpen(id, delta, now, Poll.Status.OPEN);
     }
 
+    /** Kilitsiz "hala acik mi" (secmen sayisi degismeyen oy degisikliginde sicak satira dokunmamak icin; T-069). */
+    @Query("""
+            SELECT COUNT(p) FROM Poll p
+            WHERE p.id = :id AND p.status = :open AND p.opensAt <= :now
+              AND (p.closesAt IS NULL OR p.closesAt > :now)""")
+    long countOpenAtQuery(@Param("id") Long id, @Param("now") Instant now, @Param("open") Poll.Status open);
+
+    default long countOpenAt(Long id, Instant now) {
+        return countOpenAtQuery(id, now, Poll.Status.OPEN);
+    }
+
     /** Acildi bildirimi isareti (yalniz henuz isaretlenmemisse; 0 donerse baska ornek gondermistir). */
     @Transactional
     @Modifying(flushAutomatically = true, clearAutomatically = true)

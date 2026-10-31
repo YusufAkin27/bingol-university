@@ -5,6 +5,7 @@ import edu.bingol.backend.moderation.profanity.ContentGuard.Entity;
 import edu.bingol.backend.admin.rbac.PermissionMatrix;
 import edu.bingol.backend.common.ApiException;
 import edu.bingol.backend.common.CursorPage;
+import edu.bingol.backend.common.ShortTx;
 import edu.bingol.backend.community.extras.ClubExtrasHooks;
 import edu.bingol.backend.media.ImageKind;
 import edu.bingol.backend.media.MediaService;
@@ -57,6 +58,14 @@ public class CommunityService {
     private final ClubPermissions permissions;
     private final ClubAuditService audit;
     private final ClubExtrasHooks hooks;
+
+    /** Kisa DB islemi (T-068: gorsel isleme islem disinda); yoksa dogrudan calisir (elle kurulan testler). */
+    private ShortTx tx = ShortTx.direct();
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setTxManager(org.springframework.transaction.PlatformTransactionManager tm) {
+        this.tx = ShortTx.of(tm);
+    }
 
     /** Herkese acik metin denetimi (istege bagli: guard'siz kurulan testler icin). */
     @org.springframework.beans.factory.annotation.Autowired(required = false)
@@ -358,35 +367,42 @@ public class CommunityService {
     }
 
     /** Kapak: T1 hatti (dogrula, yeniden kodla/sikistir, EXIF temizle); eski dosya referans yoksa silinir. */
-    @Transactional
     public CommunityView setCover(Actor a, Long id, MultipartFile file) {
-        Community c = load(id);
+        load(id);
         permissions.require(a, id, ClubPermission.EDIT_INFO);
+        // T-068: gorsel isleme islem DISINDA; yalniz URL yazimi + gorunum kisa islemde
         String url = media.storeImage(file, ImageKind.COVER).url();
-        String old = c.getCoverUrl();
-        c.setCoverUrl(url);
-        c.setUpdatedAt(Instant.now());
-        communities.saveAndFlush(c);
-        if (old != null && !old.equals(url)) {
-            media.release(old);
+        ShortTx.Replaced<CommunityView> r = tx.call(() -> {
+            Community c = load(id);
+            String old = c.getCoverUrl();
+            c.setCoverUrl(url);
+            c.setUpdatedAt(Instant.now());
+            communities.saveAndFlush(c);
+            return new ShortTx.Replaced<>(views(List.of(c), a).get(0), old);
+        });
+        if (r.old() != null && !r.old().equals(url)) {
+            media.release(r.old());
         }
-        return views(List.of(c), a).get(0);
+        return r.value();
     }
 
     /** Logo: kare/kucuk gorsel icin AVATAR boyut-kalite sinirlari; baska bir hatta gerek yok (T1 hatti). */
-    @Transactional
     public CommunityView setLogo(Actor a, Long id, MultipartFile file) {
-        Community c = load(id);
+        load(id);
         permissions.require(a, id, ClubPermission.EDIT_INFO);
-        String url = media.storeImage(file, ImageKind.AVATAR).url();
-        String old = c.getLogoUrl();
-        c.setLogoUrl(url);
-        c.setUpdatedAt(Instant.now());
-        communities.saveAndFlush(c);
-        if (old != null && !old.equals(url)) {
-            media.release(old);
+        String url = media.storeImage(file, ImageKind.AVATAR).url(); // T-068: islem disinda
+        ShortTx.Replaced<CommunityView> r = tx.call(() -> {
+            Community c = load(id);
+            String old = c.getLogoUrl();
+            c.setLogoUrl(url);
+            c.setUpdatedAt(Instant.now());
+            communities.saveAndFlush(c);
+            return new ShortTx.Replaced<>(views(List.of(c), a).get(0), old);
+        });
+        if (r.old() != null && !r.old().equals(url)) {
+            media.release(r.old());
         }
-        return views(List.of(c), a).get(0);
+        return r.value();
     }
 
     /** Logoyu kaldirir (idempotent). */
@@ -591,6 +607,14 @@ public class CommunityService {
     /** Kulup yetkisi sorgusu (gonderi/etkinlik gibi diger servisler icin); sistem ADMIN'i her yetkiye sahip. */
     public boolean can(Actor a, Long communityId, ClubPermission p) {
         return permissions.has(a, communityId, p);
+    }
+
+    /**
+     * Liste ekranlari icin TOPLU konum (T-072): kullanicinin verilen kuluplerdeki aktif konumu (uye degilse harita
+     * girdisi yok). Tum kulupler icin 2 sorgu; {@link #can} kulup basina 2 sorgu yapar. Sistem ADMIN kisayolu yok.
+     */
+    public Map<Long, ClubPermissions.Standing> standingsOf(Long userId, Collection<Long> communityIds) {
+        return permissions.standingsOfUser(userId, communityIds);
     }
 
     /** Yetki yoksa 403. */

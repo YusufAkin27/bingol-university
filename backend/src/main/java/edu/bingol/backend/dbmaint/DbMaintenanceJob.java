@@ -83,7 +83,15 @@ public class DbMaintenanceJob {
         if (!enabled) {
             return;
         }
-        lock.tryRun("dbmaint-nightly", Duration.ofMinutes(60), this::runAll);
+        long failedBefore = deleter.failedChunks();
+        lock.tryRun("dbmaint-nightly", Duration.ofMinutes(60), () -> {
+            runAll();
+            // T-071: parca hatasi eskiden yutulurdu; artik is "basarisiz" sayilir (JobMonitor son hata + bu_scheduler_errors)
+            long failed = deleter.failedChunks() - failedBefore;
+            if (failed > 0) {
+                throw new IllegalStateException("dbmaint: " + failed + " silme parcasi basarisiz (ayrinti log'da)");
+            }
+        });
     }
 
     /** Tum gorevleri sirayla calistirir; gorev adi -> silinen satir. Hata cagirana sizmaz. */
@@ -135,13 +143,13 @@ public class DbMaintenanceJob {
     }
 
     private int notifRead(Instant now) {
-        return notifReadDays <= 0 ? 0 : deleter.delete("notification_read",
+        return notifReadDays <= 0 ? 0 : deleter.deleteHeavy("notification_read",
                 "DELETE FROM notification WHERE id IN (SELECT id FROM notification WHERE read_at IS NOT NULL AND read_at < :cutoff LIMIT :lim)",
                 Map.of("cutoff", cutoff(now, notifReadDays)));
     }
 
     private int notifUnread(Instant now) {
-        return notifUnreadDays <= 0 ? 0 : deleter.delete("notification_unread",
+        return notifUnreadDays <= 0 ? 0 : deleter.deleteHeavy("notification_unread",
                 "DELETE FROM notification WHERE id IN (SELECT id FROM notification WHERE read_at IS NULL AND created_at < :cutoff LIMIT :lim)",
                 Map.of("cutoff", cutoff(now, notifUnreadDays)));
     }
@@ -155,7 +163,7 @@ public class DbMaintenanceJob {
                 "SELECT user_id FROM notification GROUP BY user_id HAVING count(*) > ? LIMIT 5000", Long.class, notifCap);
         int total = 0;
         for (Long uid : users) {
-            total += deleter.delete("notification_cap",
+            total += deleter.deleteHeavy("notification_cap",
                     "DELETE FROM notification WHERE id IN (SELECT id FROM notification WHERE user_id = :uid AND id < "
                             + "(SELECT id FROM notification WHERE user_id = :uid ORDER BY id DESC LIMIT 1 OFFSET :cap) LIMIT :lim)",
                     Map.of("uid", uid, "cap", notifCap - 1));
@@ -164,13 +172,13 @@ public class DbMaintenanceJob {
     }
 
     private int mailSent(Instant now) {
-        return mailSentDays <= 0 ? 0 : deleter.delete("mail_sent",
+        return mailSentDays <= 0 ? 0 : deleter.deleteHeavy("mail_sent",
                 "DELETE FROM mail_outbox WHERE id IN (SELECT id FROM mail_outbox WHERE status = 'SENT' AND sent_at < :cutoff LIMIT :lim)",
                 Map.of("cutoff", cutoff(now, mailSentDays)));
     }
 
     private int mailDead(Instant now) {
-        return mailDeadDays <= 0 ? 0 : deleter.delete("mail_dead",
+        return mailDeadDays <= 0 ? 0 : deleter.deleteHeavy("mail_dead",
                 "DELETE FROM mail_outbox WHERE id IN (SELECT id FROM mail_outbox WHERE status = 'DEAD' AND created_at < :cutoff LIMIT :lim)",
                 Map.of("cutoff", cutoff(now, mailDeadDays)));
     }

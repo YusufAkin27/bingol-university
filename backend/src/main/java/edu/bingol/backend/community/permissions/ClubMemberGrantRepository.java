@@ -16,6 +16,9 @@ public interface ClubMemberGrantRepository extends JpaRepository<ClubMemberGrant
 
     List<ClubMemberGrant> findByUserId(Long userId);
 
+    /** Bir kullanicinin verilen kuluplerdeki ozel yetki kumeleri (liste ekranlari icin toplu; T-072). */
+    List<ClubMemberGrant> findByUserIdAndCommunityIdIn(Long userId, Collection<Long> communityIds);
+
     List<ClubMemberGrant> findByCommunityIdAndUserIdIn(Long communityId, Collection<Long> userIds);
 
     @Modifying

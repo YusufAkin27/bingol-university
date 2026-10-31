@@ -89,6 +89,29 @@ public class ClubPermissions {
                 .map(m -> standingOf(m, grants.findByCommunityIdAndUserId(communityId, userId)));
     }
 
+    /**
+     * Toplu konum (T-072): bir kullanicinin verilen kuluplerdeki ETKIN konumu, tum kulupler icin 2 sorguyla
+     * (uyelikler + ozel yetkiler). {@link #standingOfUser} ile ayni kural; yalniz aktif uyelikler doner,
+     * sistem ADMIN'i kisayolu uygulanmaz (cagiran gerekirse kendisi ele alir). Kulup basina sorgu (N+1) yok.
+     */
+    public java.util.Map<Long, Standing> standingsOfUser(Long userId, java.util.Collection<Long> communityIds) {
+        java.util.Map<Long, Standing> out = new java.util.HashMap<>();
+        if (communityIds == null || communityIds.isEmpty()) {
+            return out;
+        }
+        List<CommunityMember> active = members.findByUserIdAndCommunityIdIn(userId, communityIds).stream()
+                .filter(CommunityMember::isActive).toList();
+        if (active.isEmpty()) {
+            return out;
+        }
+        java.util.Map<Long, ClubMemberGrant> grantByClub = new java.util.HashMap<>();
+        grants.findByUserIdAndCommunityIdIn(userId, communityIds).forEach(g -> grantByClub.put(g.getCommunityId(), g));
+        for (CommunityMember m : active) {
+            out.put(m.getCommunityId(), standingOf(m, Optional.ofNullable(grantByClub.get(m.getCommunityId()))));
+        }
+        return out;
+    }
+
     public boolean has(Actor a, Long communityId, ClubPermission p) {
         return standing(a, communityId).map(s -> s.has(p)).orElse(false);
     }

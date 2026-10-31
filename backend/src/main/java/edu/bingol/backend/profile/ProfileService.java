@@ -6,6 +6,7 @@ import edu.bingol.backend.catalog.CatalogService;
 import edu.bingol.backend.moderation.profanity.ContentGuard;
 import edu.bingol.backend.moderation.profanity.ContentGuard.Entity;
 import edu.bingol.backend.common.ApiException;
+import edu.bingol.backend.common.ShortTx;
 import edu.bingol.backend.media.ImageKind;
 import edu.bingol.backend.media.MediaService;
 import edu.bingol.backend.media.StoredImage;
@@ -55,6 +56,14 @@ public class ProfileService {
     private final StringRedisTemplate redis;
     private final AccountDataPurger purger;
     private final CatalogService catalog;
+
+    /** Kisa DB islemi (T-068: gorsel isleme islem disinda); yoksa dogrudan calisir (elle kurulan testler). */
+    private ShortTx tx = ShortTx.direct();
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setTxManager(org.springframework.transaction.PlatformTransactionManager tm) {
+        this.tx = ShortTx.of(tm);
+    }
 
     /** Herkese acik metin denetimi (istege bagli: guard'siz kurulan testler icin). */
     @org.springframework.beans.factory.annotation.Autowired(required = false)
@@ -171,18 +180,24 @@ public class ProfileService {
         return users.save(u);
     }
 
-    /** Avatar medya hattindan gecer (dogrula, EXIF temizle, 512 px, sikistir); eski dosya serbest birakilir. */
-    @Transactional
+    /**
+     * Avatar medya hattindan gecer (dogrula, EXIF temizle, 512 px, sikistir); eski dosya serbest birakilir.
+     * Gorsel isleme islem DISINDA (T-068): yalniz URL yazimi kisa islemdedir.
+     */
     public User setAvatar(Long id, MultipartFile file) {
-        User u = get(id);
+        get(id); // yoksa gorsel islenmeden 404
         StoredImage img = media.storeImage(file, ImageKind.AVATAR);
-        String old = u.getAvatarUrl();
-        u.setAvatarUrl(img.url());
-        users.saveAndFlush(u);
-        if (old != null && !old.equals(img.url())) {
-            media.release(old);
+        ShortTx.Replaced<User> r = tx.call(() -> {
+            User u = get(id);
+            String old = u.getAvatarUrl();
+            u.setAvatarUrl(img.url());
+            users.saveAndFlush(u);
+            return new ShortTx.Replaced<>(u, old);
+        });
+        if (r.old() != null && !r.old().equals(img.url())) {
+            media.release(r.old());
         }
-        return u;
+        return r.value();
     }
 
     /** Avatari kaldirir (yoksa sessizce basarili); profil bas harf avatarina duser. */

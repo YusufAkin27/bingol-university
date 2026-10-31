@@ -5,6 +5,7 @@ import edu.bingol.backend.moderation.profanity.ContentGuard;
 import edu.bingol.backend.moderation.profanity.ContentGuard.Entity;
 import edu.bingol.backend.common.ApiException;
 import edu.bingol.backend.common.CursorPage;
+import edu.bingol.backend.common.ShortTx;
 import edu.bingol.backend.media.ImageKind;
 import edu.bingol.backend.media.MediaService;
 import edu.bingol.backend.community.Actor;
@@ -86,6 +87,14 @@ public class EventService {
     /** Herkese acik metin denetimi (istege bagli: guard'siz kurulan testler icin). */
     @org.springframework.beans.factory.annotation.Autowired(required = false)
     private ContentGuard guard;
+
+    /** Kisa DB islemi (T-068: gorsel isleme islem disinda); yoksa dogrudan calisir (elle kurulan testler). */
+    private ShortTx tx = ShortTx.direct();
+
+    @Autowired(required = false)
+    void setTxManager(org.springframework.transaction.PlatformTransactionManager tm) {
+        this.tx = ShortTx.of(tm);
+    }
 
     public EventService(UserEventRepository events, EventRsvpRepository rsvps, OfficialEventRepository official,
                         CommunityService communities, NotificationService notifications, MediaService media) {
@@ -406,20 +415,26 @@ public class EventService {
     }
 
     /** Kapak: medya hatti (dogrula, yeniden kodla, EXIF temizle, en cok 1600 px); eski dosya referans yoksa silinir. */
-    @Transactional
     public EventView setCover(Actor a, Long id, MultipartFile file) {
-        UserEvent e = load(id);
-        requireManager(a, e);
-        requireCoverEditable(e);
+        UserEvent pre = load(id);
+        requireManager(a, pre);
+        requireCoverEditable(pre);
+        // T-068: gorsel isleme islem DISINDA; yetki/durum kisa islemde yeniden dogrulanir (arada degismis olabilir)
         String url = media.storeImage(file, ImageKind.COVER).url();
-        String old = e.getCoverUrl();
-        e.setCoverUrl(url);
-        e.setUpdatedAt(Instant.now());
-        events.saveAndFlush(e);
-        if (old != null && !old.equals(url)) {
-            media.release(old);
+        ShortTx.Replaced<EventView> r = tx.call(() -> {
+            UserEvent e = load(id);
+            requireManager(a, e);
+            requireCoverEditable(e);
+            String old = e.getCoverUrl();
+            e.setCoverUrl(url);
+            e.setUpdatedAt(Instant.now());
+            events.saveAndFlush(e);
+            return new ShortTx.Replaced<>(views(List.of(e), a, true).get(0), old);
+        });
+        if (r.old() != null && !r.old().equals(url)) {
+            media.release(r.old());
         }
-        return views(List.of(e), a, true).get(0);
+        return r.value();
     }
 
     /** Kapagi kaldirir (idempotent). */
@@ -951,19 +966,27 @@ public class EventService {
         }
         Set<Long> coOrg = coOrganizers == null ? Set.of()
                 : coOrganizers.coOrganizedAmong(rest.stream().map(UserEvent::getId).toList(), a.id());
-        Actor member = new Actor(a.id(), false); // sistem yoneticisi kisayolu olmadan gercek kulup yetkisi
-        Map<Long, Boolean> clubCan = new HashMap<>();
-        Map<Long, Boolean> clubMember = new HashMap<>();
+        // T-072: kulup basina sorgu (N+1: 20 etkinlik = 19 kulup = 38 sorgu) yerine TEK toplu konum (uyelik + ozel
+        // yetki = 2 sorgu). Sistem yoneticisi kisayolu yok: gercek kulup yetkisi (canManage ile ayni kural).
+        Set<Long> clubIds = new HashSet<>();
+        for (UserEvent e : rest) {
+            if (e.getCommunityId() != null) {
+                clubIds.add(e.getCommunityId());
+            }
+        }
+        Map<Long, edu.bingol.backend.community.permissions.ClubPermissions.Standing> standings =
+                clubIds.isEmpty() ? Map.of() : communities.standingsOf(a.id(), clubIds);
         for (UserEvent e : rest) {
             Long cid = e.getCommunityId();
             if (cid == null) {
                 if (coOrg.contains(e.getId())) {
                     out.add(e.getId());
                 }
-            } else if (clubCan.computeIfAbsent(cid, c -> communities.can(member, c, ClubPermission.MANAGE_EVENTS))
-                    || (coOrg.contains(e.getId())
-                            && clubMember.computeIfAbsent(cid, c -> communities.roleOf(c, a.id()).isPresent()))) {
-                out.add(e.getId());
+            } else {
+                var standing = standings.get(cid); // aktif uye degilse null
+                if (standing != null && (standing.has(ClubPermission.MANAGE_EVENTS) || coOrg.contains(e.getId()))) {
+                    out.add(e.getId());
+                }
             }
         }
         return out;

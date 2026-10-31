@@ -1,6 +1,7 @@
 package edu.bingol.backend.menu;
 
 import edu.bingol.backend.common.ApiException;
+import edu.bingol.backend.common.ShortTx;
 import edu.bingol.backend.media.ImageKind;
 import edu.bingol.backend.media.MediaService;
 import edu.bingol.backend.menu.dto.MenuImageResponse;
@@ -25,6 +26,14 @@ public class MenuAdminService {
     private final MenuRepository repo;
     private final MediaService media;
     private final MenuCalorieService calories;
+
+    /** Kisa DB islemi (T-068); yoksa dogrudan calisir (elle kurulan testler). */
+    private ShortTx tx = ShortTx.direct();
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setTxManager(org.springframework.transaction.PlatformTransactionManager tm) {
+        this.tx = ShortTx.of(tm);
+    }
 
     public MenuAdminService(MenuRepository repo, MediaService media, MenuCalorieService calories) {
         this.repo = repo;
@@ -56,13 +65,17 @@ public class MenuAdminService {
                 .map(d -> MenuResponse.of(d, kcal.getOrDefault(d.getMenuDate(), Map.of()))).toList();
     }
 
-    @Transactional
+    /** Gorsel isleme islem DISINDA (T-068); yalniz URL yazimi kisa islemdedir. */
     public MenuImageResponse setImage(LocalDate date, MultipartFile file) {
-        MenuDay day = load(date);
+        load(date); // yoksa gorsel islenmeden 404
         String url = media.storeImage(file, ImageKind.COVER).url();
-        String old = day.getImageUrl();
-        day.setImageUrl(url);
-        repo.saveAndFlush(day);
+        String old = tx.call(() -> {
+            MenuDay day = load(date);
+            String prev = day.getImageUrl();
+            day.setImageUrl(url);
+            repo.saveAndFlush(day);
+            return prev;
+        });
         if (old != null && !old.equals(url)) {
             media.release(old);
         }

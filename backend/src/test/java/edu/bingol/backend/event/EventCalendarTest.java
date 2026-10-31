@@ -9,6 +9,7 @@ import static org.mockito.ArgumentMatchers.anyCollection;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -16,7 +17,9 @@ import static org.mockito.Mockito.when;
 import edu.bingol.backend.common.CursorPage;
 import edu.bingol.backend.media.MediaService;
 import edu.bingol.backend.community.Actor;
+import edu.bingol.backend.community.CommunityMember;
 import edu.bingol.backend.community.CommunityService;
+import edu.bingol.backend.community.permissions.ClubPermissions;
 import edu.bingol.backend.community.permissions.ClubPermission;
 import edu.bingol.backend.event.EventService.CalendarResult;
 import edu.bingol.backend.event.dto.EventDtos.CalendarItem;
@@ -163,7 +166,8 @@ class EventCalendarTest {
         UserEvent b = event(2L, s, s.plusSeconds(3600), 4L);
         UserEvent c = event(3L, s, s.plusSeconds(3600), null);
         upcoming(List.of(a, b, c));
-        when(communities.can(me, 4L, ClubPermission.MANAGE_EVENTS)).thenReturn(true);
+        when(communities.standingsOf(eq(1L), anyCollection())).thenReturn(Map.of(4L,
+                ClubPermissions.standing(CommunityMember.Role.MODERATOR, Set.of(ClubPermission.MANAGE_EVENTS))));
         CoOrganizerLookup lookup = mock(CoOrganizerLookup.class);
         when(lookup.coOrganizedAmong(anyCollection(), eq(1L))).thenReturn(Set.of(3L));
         svc.setCoOrganizers(lookup);
@@ -171,8 +175,35 @@ class EventCalendarTest {
         CursorPage<EventView> page = svc.list(me, Instant.parse("2026-11-01T00:00:00Z"), null, null, null, 20);
 
         assertTrue(page.items().stream().allMatch(EventView::canManage));
-        verify(communities, times(1)).can(any(), eq(4L), any());
+        verify(communities, times(1)).standingsOf(eq(1L), anyCollection());
+        verify(communities, never()).can(any(), anyLong(), any()); // T-072: kulup basina sorgu yok
         verify(lookup, times(1)).coOrganizedAmong(anyCollection(), eq(1L));
+    }
+
+    /** T-072 (A2-09): 20 etkinlik / 19 farkli kulup = tek toplu konum sorgusu (eskiden kulup basina 1+). */
+    @Test
+    void manyClubsResolvedWithSingleBulkStandingLookup() {
+        Instant s = Instant.parse("2026-11-10T09:00:00Z");
+        List<UserEvent> rows = new ArrayList<>();
+        for (long i = 1; i <= 19; i++) {
+            rows.add(event(i, s, s.plusSeconds(3600), 100L + i));
+        }
+        upcoming(rows);
+        // yalniz 105. kulupte MANAGE_EVENTS var; 106. kulupte sade uye; digerlerinde uye degil
+        when(communities.standingsOf(eq(1L), anyCollection())).thenReturn(Map.of(
+                105L, ClubPermissions.standing(CommunityMember.Role.MODERATOR, Set.of(ClubPermission.MANAGE_EVENTS)),
+                106L, ClubPermissions.standing(CommunityMember.Role.MEMBER, Set.of())));
+        CoOrganizerLookup lookup = mock(CoOrganizerLookup.class);
+        when(lookup.coOrganizedAmong(anyCollection(), eq(1L))).thenReturn(Set.of());
+        svc.setCoOrganizers(lookup);
+
+        CursorPage<EventView> page = svc.list(me, Instant.parse("2026-11-01T00:00:00Z"), null, null, null, 20);
+
+        assertEquals(19, page.items().size());
+        assertEquals(List.of(5L), page.items().stream().filter(EventView::canManage).map(EventView::id).toList());
+        verify(communities, times(1)).standingsOf(eq(1L), anyCollection());
+        verify(communities, never()).can(any(), anyLong(), any());
+        verify(communities, never()).roleOf(anyLong(), anyLong());
     }
 
     @Test

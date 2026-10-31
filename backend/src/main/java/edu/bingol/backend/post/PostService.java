@@ -219,8 +219,13 @@ public class PostService {
         long cid = c == null ? 0 : c.id();
         List<Post> rows;
         if ("following".equals(scope)) {
-            rows = c == null ? repo.followingFirst(viewer, PageRequest.of(0, n + 1))
-                    : repo.followingAfter(viewer, at, cid, PageRequest.of(0, n + 1));
+            // T-070: acik yazar listesi (kendisi + takip ettikleri) -> yazar indeksi; EXISTS/OR yerine
+            java.util.LinkedHashSet<Long> authors = new java.util.LinkedHashSet<>();
+            authors.add(viewer);
+            authors.addAll(repo.followeeIds(viewer,
+                    PageRequest.of(0, edu.bingol.backend.post.social.SocialFeedRepository.MAX_FOLLOWED_AUTHORS)));
+            rows = c == null ? repo.followingFirst(viewer, authors, PageRequest.of(0, n + 1))
+                    : repo.followingAfter(viewer, authors, at, cid, PageRequest.of(0, n + 1));
         } else {
             String dept = users.findById(viewer).map(u -> u.getDepartment()).filter(d -> d != null && !d.isBlank())
                     .orElse(null);

@@ -4,6 +4,7 @@ import edu.bingol.backend.moderation.profanity.ContentGuard;
 import edu.bingol.backend.moderation.profanity.ContentGuard.Entity;
 import edu.bingol.backend.common.ApiException;
 import edu.bingol.backend.common.CursorPage;
+import edu.bingol.backend.common.ShortTx;
 import edu.bingol.backend.messaging.dto.MessagingDtos.ConversationDetail;
 import edu.bingol.backend.messaging.dto.MessagingDtos.ConversationView;
 import edu.bingol.backend.messaging.dto.MessagingDtos.MemberView;
@@ -73,6 +74,14 @@ public class ConversationService {
     /** Grup fotografi (herkese acik avatar hatti) ve uyelere olay bildirimi (setter enjeksiyonu; yoksa ozellik kapali). */
     private edu.bingol.backend.media.MediaService media;
     private edu.bingol.backend.messaging.ws.ChatEventBus bus;
+
+    /** Kisa DB islemi (T-068: gorsel isleme islem disinda); yoksa dogrudan calisir (elle kurulan testler). */
+    private ShortTx tx = ShortTx.direct();
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setTxManager(org.springframework.transaction.PlatformTransactionManager tm) {
+        this.tx = ShortTx.of(tm);
+    }
 
     @org.springframework.beans.factory.annotation.Autowired(required = false)
     void setMedia(edu.bingol.backend.media.MediaService media) {
@@ -277,21 +286,25 @@ public class ConversationService {
     }
 
     /** Grup fotografi (yalniz kullanici gruplari, yalniz yonetici). Avatar hattindan gecer: tur/boyut, yeniden kodlama, EXIF. */
-    @Transactional
     public ConversationView setAvatar(Long me, Long id, org.springframework.web.multipart.MultipartFile file) {
-        Conversation c = requireUserGroupAdmin(id, me);
+        requireUserGroupAdmin(id, me);
         if (media == null) {
             throw new ApiException(HttpStatus.SERVICE_UNAVAILABLE, "STORAGE_UNAVAILABLE", "Depolama kullanılamıyor.");
         }
+        // T-068: gorsel isleme islem DISINDA; yetki kisa islemde yeniden dogrulanir, yalniz URL yazimi islemdedir
         String url = media.storeImage(file, edu.bingol.backend.media.ImageKind.AVATAR).url();
-        String old = c.getAvatarUrl();
-        c.setAvatarUrl(url);
-        convs.saveAndFlush(c);
-        if (old != null && !old.equals(url)) {
-            media.release(old);
+        ShortTx.Replaced<ConversationView> r = tx.call(() -> {
+            Conversation c = requireUserGroupAdmin(id, me);
+            String old = c.getAvatarUrl();
+            c.setAvatarUrl(url);
+            convs.saveAndFlush(c);
+            notifyUpdated(c, me);
+            return new ShortTx.Replaced<>(views(me, List.of(c)).get(0), old);
+        });
+        if (r.old() != null && !r.old().equals(url)) {
+            media.release(r.old());
         }
-        notifyUpdated(c, me);
-        return views(me, List.of(c)).get(0);
+        return r.value();
     }
 
     /** Grup fotografini kaldirir (idempotent). */
