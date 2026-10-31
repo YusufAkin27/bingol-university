@@ -6,3 +6,8 @@ Hedef Flutter ajani: DD (clubs, events, polls, support, academic).
 
 ## Tamamlanan kategoriler
 - Kulupler (6 ekran): Kesfet, Kuluplerim, durumlar, detay ziyaretci, detay yonetici, olustur/duzenle. Ilke: kartsiz sade satirlar, metin sekmeleri, tek `pr` birincil dugme, amber not satiri.
+- Etkinlikler (9 ekran): liste+takvim, durumlar, detay ziyaretci/katilimci, olustur, kulup yoneticiligi gerekli, yoklama QR, basvurular, yoklama listesi.
+- Anketler (4): liste, oy verme, sonuclar, olustur.
+- Destek (5): ana, yazisma, yeni talep, durumlar, oneriler.
+- Akademik (9): hub, ders programi, sinavlar, sinav ekle, akademik takvim, bolum duyurulari, hatirlatmalar (+izin kapali), duyuru detay.
+Ortak: Stitch'in uydurdugu ust cubuk/avatar/Aktif Donem/mavi bilgi kutusu uygulamaya alinmaz; ayrinti SARTNAME.md.
