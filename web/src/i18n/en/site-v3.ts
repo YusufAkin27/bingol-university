@@ -46,18 +46,18 @@ const m = {
 
   // SITE2: information pages (FAQ, Help, Menu, News, Press kit)
   'site.shot.support.alt': 'BÜ Kampüs Support screen: frequently asked questions, my requests list and a “New request” button.',
-  'site2.help.appTitle': 'Support lives inside the app',
-  'site2.help.appText':
+  'site.s2.help.appTitle': 'Support lives inside the app',
+  'site.s2.help.appText':
     'Browse the frequently asked questions in the app’s Support section, open a new request and follow the replies in the same place.',
-  'site2.menu.appTitle': 'Today’s menu in your pocket',
-  'site2.menu.appText':
+  'site.s2.menu.appTitle': 'Today’s menu in your pocket',
+  'site.s2.menu.appText':
     'See the dining menu for the day and the week in the app with calories per dish, and rate the menu of the day.',
-  'site2.news.appTitle': 'News and announcements in the app',
-  'site2.news.appText':
+  'site.s2.news.appTitle': 'News and announcements in the app',
+  'site.s2.news.appText':
     'Read the news, announcements and events gathered from the university’s official sites in the app; you choose which notifications you receive.',
-  'site2.brand.shotsTitle': 'App screens',
-  'site2.brand.shotsText':
+  'site.s2.brand.shotsTitle': 'App screens',
+  'site.s2.brand.shotsText':
     'The app’s own screenshots. When you use them, state that BÜ Kampüs is an independent student app and not the official app of Bingöl University.',
-  'site2.notFound.try': 'You might want to try these',
+  'site.s2.notFound.try': 'You might want to try these',
 } as const;
 export default m;

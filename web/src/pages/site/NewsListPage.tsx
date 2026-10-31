@@ -159,7 +159,7 @@ export default function NewsListPage() {
           </div>
         </div>
       </section>
-      <AppCallout shot="home" title={t('site2.news.appTitle')} text={t('site2.news.appText')} crop={0.8} />
+      <AppCallout shot="home" title={t('site.s2.news.appTitle')} text={t('site.s2.news.appText')} crop={0.8} />
     </>
   );
 }

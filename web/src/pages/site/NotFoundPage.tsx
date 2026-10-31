@@ -38,8 +38,8 @@ function NotFound() {
         <h1 className={styles.title}>{t('site.notFound.title')}</h1>
         <p className={styles.lead}>{t('site.notFound.hint')}</p>
         <ButtonLink to={paths.site.home}>{t('site.notFound.home')}</ButtonLink>
-        <nav className={styles.try} aria-label={t('site2.notFound.try')}>
-          <p className={styles.tryTitle}>{t('site2.notFound.try')}</p>
+        <nav className={styles.try} aria-label={t('site.s2.notFound.try')}>
+          <p className={styles.tryTitle}>{t('site.s2.notFound.try')}</p>
           <ul className={styles.chips}>
             {SUGGESTIONS.map((s) => (
               <li key={s.to}>

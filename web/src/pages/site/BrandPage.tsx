@@ -338,9 +338,9 @@ export default function BrandPage() {
 
           <section aria-labelledby="brand-shots">
             <h2 id="brand-shots" className={shared.h3}>
-              {t('site2.brand.shotsTitle')}
+              {t('site.s2.brand.shotsTitle')}
             </h2>
-            <p className={shared.muted}>{t('site2.brand.shotsText')}</p>
+            <p className={shared.muted}>{t('site.s2.brand.shotsText')}</p>
             <ul className={styles.shots}>
               {PRESS_SHOTS.map((id, i) => (
                 <li key={id}>

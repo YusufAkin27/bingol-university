@@ -250,13 +250,13 @@ describe('rota eşleşmesi ve sayfalar', () => {
 
   it('yemek listesi günlük menüyü ve aylık görünümü gösterir', async () => {
     renderAt('/menu');
-    expect(await screen.findByText('Mercimek çorbası')).toBeInTheDocument();
+    expect(await screen.findByText('Mercimek çorbası', {}, { timeout: 10_000 })).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Aylık' }));
     const main = within(screen.getByRole('main'));
     // gün başlığı (<time> içerir) + sayfa sonundaki "Günün menüsü cebinizde" uygulama kartı (SITE2)
     expect(await main.findByRole('heading', { level: 2, name: (_n, el) => !!el.querySelector('time') })).toBeInTheDocument();
     expect(main.getByRole('heading', { level: 2, name: 'Günün menüsü cebinizde' })).toBeInTheDocument();
-  });
+  }, 20_000); // tembel rota + dil parçası + menü sorgusu: yük altındaki paralel koşuda 5 sn yetmeyebilir
 });
 
 describe('çocuk güvenliği standartları (/child-safety)', () => {

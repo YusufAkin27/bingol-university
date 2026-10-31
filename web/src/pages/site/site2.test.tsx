@@ -50,15 +50,15 @@ function renderAt(route: string, lang: 'tr' | 'en' | 'ar' = 'tr') {
 
 const KEYS = [
   'site.shot.support.alt',
-  'site2.help.appTitle',
-  'site2.help.appText',
-  'site2.menu.appTitle',
-  'site2.menu.appText',
-  'site2.news.appTitle',
-  'site2.news.appText',
-  'site2.brand.shotsTitle',
-  'site2.brand.shotsText',
-  'site2.notFound.try',
+  'site.s2.help.appTitle',
+  'site.s2.help.appText',
+  'site.s2.menu.appTitle',
+  'site.s2.menu.appText',
+  'site.s2.news.appTitle',
+  'site.s2.news.appText',
+  'site.s2.brand.shotsTitle',
+  'site.s2.brand.shotsText',
+  'site.s2.notFound.try',
 ] as const;
 
 describe('SITE2 metinleri ve görseli', () => {
@@ -78,10 +78,10 @@ describe('SITE2 metinleri ve görseli', () => {
   it('metinlerde resmî uygulama iddiası yok; bağımsızlık belirtilir', () => {
     for (const lang of ['tr', 'en', 'ar'] as const) {
       const d = dictionaries[lang];
-      expect(d['site2.brand.shotsText' as keyof typeof d]).toBeTruthy();
+      expect(d['site.s2.brand.shotsText' as keyof typeof d]).toBeTruthy();
     }
-    expect(dictionaries.tr['site2.brand.shotsText' as keyof (typeof dictionaries)['tr']]).toMatch(/bağımsız/);
-    expect(dictionaries.en['site2.brand.shotsText' as keyof (typeof dictionaries)['en']]).toMatch(/independent/);
+    expect(dictionaries.tr['site.s2.brand.shotsText' as keyof (typeof dictionaries)['tr']]).toMatch(/bağımsız/);
+    expect(dictionaries.en['site.s2.brand.shotsText' as keyof (typeof dictionaries)['en']]).toMatch(/independent/);
   });
 });
 

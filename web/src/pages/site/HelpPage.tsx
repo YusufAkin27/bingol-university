@@ -59,7 +59,7 @@ export default function HelpPage() {
           </div>
         </div>
       </section>
-      <AppCallout shot="support" title={t('site2.help.appTitle')} text={t('site2.help.appText')} phoneFirst />
+      <AppCallout shot="support" title={t('site.s2.help.appTitle')} text={t('site.s2.help.appText')} phoneFirst />
     </>
   );
 }

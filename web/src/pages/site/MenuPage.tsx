@@ -278,7 +278,7 @@ export default function MenuPage() {
           )}
         </div>
       </section>
-      <AppCallout shot="menu" title={t('site2.menu.appTitle')} text={t('site2.menu.appText')} crop={0.85} />
+      <AppCallout shot="menu" title={t('site.s2.menu.appTitle')} text={t('site.s2.menu.appText')} crop={0.85} />
     </>
   );
 }

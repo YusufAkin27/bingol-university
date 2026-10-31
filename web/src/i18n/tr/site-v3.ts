@@ -48,18 +48,18 @@ const m = {
 
   // SITE2: bilgi sayfaları (SSS, Yardım, Menü, Haber, Basın kiti)
   'site.shot.support.alt': 'BÜ Kampüs Destek ekranı: sık sorulan sorular, taleplerim listesi ve “Yeni talep” düğmesi.',
-  'site2.help.appTitle': 'Destek uygulamanın içinde',
-  'site2.help.appText':
+  'site.s2.help.appTitle': 'Destek uygulamanın içinde',
+  'site.s2.help.appText':
     'Uygulamadaki Destek bölümünden sık sorulan sorulara bakın, yeni talep açın ve yanıtları aynı yerden takip edin.',
-  'site2.menu.appTitle': 'Günün menüsü cebinizde',
-  'site2.menu.appText':
+  'site.s2.menu.appTitle': 'Günün menüsü cebinizde',
+  'site.s2.menu.appText':
     'Uygulamada günün ve haftanın yemek listesini yemek başına kalori bilgisiyle görün; günün menüsünü puanlayın.',
-  'site2.news.appTitle': 'Haberler ve duyurular uygulamada',
-  'site2.news.appText':
+  'site.s2.news.appTitle': 'Haberler ve duyurular uygulamada',
+  'site.s2.news.appText':
     'Üniversitenin resmî sitelerinden derlenen haber, duyuru ve etkinlikleri uygulamadan okuyun; hangi bildirimleri alacağınızı siz seçersiniz.',
-  'site2.brand.shotsTitle': 'Uygulama ekranları',
-  'site2.brand.shotsText':
+  'site.s2.brand.shotsTitle': 'Uygulama ekranları',
+  'site.s2.brand.shotsText':
     'Uygulamanın kendi ekran çıktıları. Kullanırken BÜ Kampüs’ün Bingöl Üniversitesi’nin resmî uygulaması değil, bağımsız bir öğrenci uygulaması olduğunu belirtin.',
-  'site2.notFound.try': 'Bunlara göz atabilirsiniz',
+  'site.s2.notFound.try': 'Bunlara göz atabilirsiniz',
 } as const;
 export default m;
