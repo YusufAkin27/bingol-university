@@ -10,13 +10,18 @@ export const refresh = (refreshToken: string) =>
 export const logout = (refreshToken: string) =>
   apiFetch<void>('/auth/logout', { method: 'POST', body: { refreshToken }, auth: false });
 
-/** Yönetici kaydı (E-posta sunucudaki ADMIN_EMAILS listesindeyse alan adı kısıtı yok); 202 + e-postaya kod. */
+/**
+ * Kayıt (202 + e-postaya kod). `adminPortal: true` yalnız yönetici paneli kayıt sayfasından gönderilir ve sunucuya
+ * YALNIZ daha sıkı davranış ister: adres sunucudaki ADMIN_EMAILS listesinde değilse (bingol.edu.tr dahil) sunucu
+ * sessizce 202 döner, kod göndermez, kayıt açmaz. Bayrak hiçbir kuralı gevşetmez; yoksa genel kayıt kuralı geçerlidir.
+ */
 export interface RegisterRequest {
   email: string;
   password: string;
   displayName: string;
   acceptTerms: boolean;
   language?: 'tr' | 'en' | 'ar';
+  adminPortal?: boolean;
 }
 export const register = (r: RegisterRequest) =>
   apiFetch<{ message?: string }>('/auth/register', { method: 'POST', body: r, auth: false });

@@ -41,10 +41,12 @@ afterEach(() => {
   clearTokens();
 });
 
-async function fillForm(user: ReturnType<typeof userEvent.setup>, email: string, accept = true) {
+const PASSWORD = 'Sifre-12345-xy';
+
+async function fillForm(user: ReturnType<typeof userEvent.setup>, email: string, accept = true, password = PASSWORD) {
   await user.type(await screen.findByLabelText(/Ad soyad/), 'Yusuf Yönetici');
   await user.type(screen.getByLabelText(/E-posta/), email);
-  await user.type(screen.getByLabelText(/Şifre/, { selector: 'input' }), 'Sifre1234');
+  await user.type(screen.getByLabelText(/Şifre/, { selector: 'input' }), password);
   if (accept) await user.click(screen.getByRole('checkbox'));
   await user.click(screen.getByRole('button', { name: 'Kayıt ol ve kod gönder' }));
 }
@@ -63,7 +65,29 @@ describe('yönetici hesabı kaydı', () => {
       acceptTerms: true,
       displayName: 'Yusuf Yönetici',
       language: 'tr',
+      adminPortal: true,
     });
+  });
+
+  it('kayıt isteği HER ZAMAN adminPortal:true taşır (okul adresi dahil); sunucu yetkisizi sessizce 202 ile geçirir', async () => {
+    const user = userEvent.setup();
+    const f = mockFetch((url) => (url.endsWith('/auth/register') ? jsonResponse(202, { message: 'ok' }) : jsonResponse(404)));
+    render(<App />);
+    await fillForm(user, 'ogrenci@bingol.edu.tr');
+
+    // Yetkisiz adreste de kod adımına geçilir (sunucu ayırt ettirmez); not iki adımda da görünür.
+    expect(await screen.findByRole('heading', { name: 'E-postanızı doğrulayın' })).toBeInTheDocument();
+    const call = f.mock.calls.find(([u]) => String(u).endsWith('/auth/register'))!;
+    expect(JSON.parse(String(call[1]?.body)).adminPortal).toBe(true);
+    expect(screen.getByText(/Kod gelmediyse adresiniz yetkili değildir/)).toBeInTheDocument();
+  });
+
+  it('form adımında yalnız yetkili adreslerin kayıt olabildiği notu görünür', async () => {
+    mockFetch(() => jsonResponse(404));
+    render(<App />);
+
+    expect(await screen.findByText(/Yalnızca yetkilendirilmiş yönetici e-posta adresleri kayıt olabilir/)).toBeInTheDocument();
+    expect(screen.getByText(/Kod gelmediyse adresiniz yetkili değildir/)).toBeInTheDocument();
   });
 
   it('sunucu alan adını reddederse sunucu mesajı gösterilir, form korunur', async () => {
@@ -78,6 +102,16 @@ describe('yönetici hesabı kaydı', () => {
 
     expect(await screen.findByText(/Yalnızca bingol\.edu\.tr/)).toBeInTheDocument();
     expect(screen.queryByRole('heading', { name: 'E-postanızı doğrulayın' })).toBeNull();
+  });
+
+  it('12 karakterden kısa şifreyle (sunucu yönetici asgarisi) istek atılmaz', async () => {
+    const user = userEvent.setup();
+    const f = mockFetch(() => jsonResponse(404));
+    render(<App />);
+    await fillForm(user, 'x@gmail.com', true, 'Sifre1234');
+
+    expect(await screen.findByText('Şifre en az 12 karakter olmalıdır.')).toBeInTheDocument();
+    expect(f.mock.calls.some(([u]) => String(u).endsWith('/auth/register'))).toBe(false);
   });
 
   it('kabul işaretlenmeden ya da kısa şifreyle istek atılmaz', async () => {
@@ -108,7 +142,7 @@ describe('yönetici hesabı kaydı', () => {
     expect(JSON.parse(String(verify[1]?.body))).toMatchObject({
       email: 'ysufakin23@gmail.com',
       code: '482915',
-      password: 'Sifre1234',
+      password: PASSWORD,
       client: 'web',
     });
   });

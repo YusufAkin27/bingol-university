@@ -18,6 +18,7 @@ import edu.bingol.backend.common.ApiException;
 import edu.bingol.backend.common.ClientIp;
 import edu.bingol.backend.config.AdminProperties;
 import edu.bingol.backend.i18n.Lang;
+import edu.bingol.backend.observability.LogMasking;
 import edu.bingol.backend.profile.naming.DisplayNamePolicy;
 import edu.bingol.backend.user.Role;
 import edu.bingol.backend.user.UserStatus;
@@ -142,6 +143,18 @@ public class AuthService {
     /** faculty/department/grade opsiyoneldir; verilenler katalogla dogrulanir (bos metin = verilmedi). */
     public void register(String rawEmail, String password, String displayName, Lang lang, String faculty,
                          String department, String grade) {
+        register(rawEmail, password, displayName, lang, faculty, department, grade, false);
+    }
+
+    /**
+     * adminPortal=true (yonetici paneli kayit sayfasi): YALNIZ daha siki. Adres ADMIN_EMAILS'te degilse (ya da zaten
+     * dogrulanmis hesapsa) kod gonderilmez, bekleyen kayit yazilmaz, hesap acilmaz; cagirana genel basari doner (202),
+     * boylece liste uyeligi sizmaz. Dogrulamalar (parola/ad/katalog/alias/kota) iki durumda da AYNI ve yonetici
+     * kurallariyla kosar (yanit farki liste uyeligini sezdirmesin); gecersiz girdi iki durumda da ayni hatayi alir.
+     * Parola ozeti iki durumda da hesaplanir (sure farki sizdirmasin). adminPortal=false: genel kayit kurali aynen.
+     */
+    public void register(String rawEmail, String password, String displayName, Lang lang, String faculty,
+                         String department, String grade, boolean adminPortal) {
         // Kayitta okul numarasi kisayolu yok: kod gidecek adres kullanicinin yazdigi TAM adres olmali (numara@ tahmini,
         // gercek kutusu olmayan ogrencilerde kodun kaybolmasina yol aciyordu). Giris/sifre sifirlama numarayi kabul etmeye devam eder.
         if (rawEmail != null && !rawEmail.isBlank() && rawEmail.indexOf('@') < 0) {
@@ -151,7 +164,9 @@ public class AuthService {
         String email = normalizeEmail(rawEmail);
         // Tek istisna: yapilandirmadaki yonetici adresleri (app.admin.emails / ADMIN_EMAILS) alan adi kisitindan muaftir
         // (bagimsiz/gmail yonetici hesabi). Baska hicbir adres icin gevsemez; e-posta dogrulamasi ve diger kurallar aynidir.
-        if (!UNIVERSITY_EMAIL.matcher(email).matches() && !admin.isAdminEmail(email)) {
+        boolean authorizedAdmin = admin.isAdminEmail(email);
+        // Yonetici portalinda alan adi karari yoktur: yetkisiz adres asagida sessizce elenir (bingol.edu.tr dahil).
+        if (!adminPortal && !UNIVERSITY_EMAIL.matcher(email).matches() && !authorizedAdmin) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "EMAIL_DOMAIN_NOT_ALLOWED",
                     "Yalnızca bingol.edu.tr uzantılı e-posta ile kayıt olunabilir.");
         }
@@ -163,7 +178,7 @@ public class AuthService {
         requirePasswordBytes(password);
         // Gorunen ad politikasi + parola politikasi: hicbir yan etki (kota, kod e-postasi) olmadan ONCE (T-001/T-005).
         // ADMIN_EMAILS yalniz "ayrilmis ad" kisitindan muaftir; bicim kurallari (gorunmez karakter, baglanti...) herkese.
-        boolean adminAddress = admin.isAdminEmail(email);
+        boolean adminAddress = authorizedAdmin || adminPortal;
         String name = DisplayNamePolicy.normalize(displayName, adminAddress);
         PasswordPolicy.require(password, minPasswordFor(adminAddress), new PasswordPolicy.Context(email, name));
         String fa = blankToNull(faculty);
@@ -175,8 +190,22 @@ public class AuthService {
             violationLedger.requireNotBanned(email);
         }
         verification.requireMailQuota();
+        if (adminPortal && !authorizedAdmin) {
+            // Yetkisiz adres: yetkili akisla ayni sure/cevap (parola ozeti + ayni dogrulamalar), yan etki YOK.
+            ContentGuard.clean(contentGuard, Entity.PROFILE, "displayName", null, name);
+            encoder.encode(password);
+            log.info("Yonetici portali kaydi yetkisiz adres icin sessizce atlandi: {}", LogMasking.email(email));
+            return;
+        }
         User user = users.findByEmail(email).orElse(null);
         if (user != null && user.isEmailVerified()) {
+            if (adminPortal) {
+                // Yetkili ama zaten kayitli: 409 ADMIN_EMAILS uyeligini sizdirirdi; yetkisizle ayni sessiz 202.
+                ContentGuard.clean(contentGuard, Entity.PROFILE, "displayName", null, name);
+                encoder.encode(password);
+                log.info("Yonetici portali kaydi zaten kayitli adres icin atlandi: {}", LogMasking.email(email));
+                return;
+            }
             throw new ApiException(HttpStatus.CONFLICT, "EMAIL_ALREADY_REGISTERED",
                     "Bu e-posta ile zaten kayıt olunmuş.");
         }
@@ -184,7 +213,16 @@ public class AuthService {
         ContentGuard.clean(contentGuard, Entity.PROFILE, "displayName", null, name);
         String hash = encoder.encode(password);
         // Kod once gider (bekleme suresi doluysa burada 429); bekleyen kayit ancak sonra ezilir.
-        verification.issue(email, lang);
+        try {
+            verification.issue(email, lang);
+        } catch (ApiException e) {
+            if (adminPortal && "RESEND_COOLDOWN".equals(e.code())) {
+                // 429 yalnizca yetkili adreste doneceginden liste uyeligini sizdirirdi: portalda yutulur (eski kod/kayit kalir).
+                log.debug("Yonetici portali kayit bekleme suresi nedeniyle atlandi: {}", LogMasking.email(email));
+                return;
+            }
+            throw e;
+        }
         pending.save(email, new Pending(hash, name, lang.code(), fa, de, gr));
     }
 

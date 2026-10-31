@@ -3,6 +3,7 @@ package edu.bingol.backend.auth;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -112,7 +113,7 @@ class AuthControllerThrottleTest {
 
     @Test
     void registerHasPerEmailHourlyAndDailyLimitsKeyedByAliasDigest() {
-        RegisterRequest r = new RegisterRequest("Ali+1@bingol.edu.tr", "Sifre1234", "Ali", true, null, null, null, null);
+        RegisterRequest r = new RegisterRequest("Ali+1@bingol.edu.tr", "Sifre1234", "Ali", true, null, null, null, null, null);
 
         controller.register(r, from("203.0.113.9"));
 
@@ -124,14 +125,35 @@ class AuthControllerThrottleTest {
     }
 
     @Test
+    void adminPortalFlagIsForwardedAndConsumesTheSameLimits() {
+        RegisterRequest r = new RegisterRequest(EMAIL, "Sifre1234", "Ali", true, null, null, null, null, true);
+
+        controller.register(r, from("203.0.113.9"));
+
+        String digest = LoginThrottle.digest(EMAIL);
+        verify(limiter).check("register:email:" + digest, 5, Duration.ofHours(1));
+        verify(limiter).check("codemail:day:" + digest, 20, Duration.ofHours(24));
+        verify(limiter).check(startsWith("register:ip:"), anyInt(), any(Duration.class));
+        verify(auth).register(eq(EMAIL), eq("Sifre1234"), eq("Ali"), any(), any(), any(), any(), eq(true));
+    }
+
+    @Test
+    void missingAdminPortalFlagMeansTheGeneralRegistrationRule() {
+        controller.register(new RegisterRequest(EMAIL, "Sifre1234", "Ali", true, null, null, null, null, null),
+                from("203.0.113.9"));
+
+        verify(auth).register(eq(EMAIL), eq("Sifre1234"), eq("Ali"), any(), any(), any(), any(), eq(false));
+    }
+
+    @Test
     void registerOverTheEmailLimitIsRejectedBeforeAnyMailIsSent() {
         doThrow(new RateLimitedException(3000)).when(limiter)
                 .check(startsWith("register:email:"), anyInt(), any(Duration.class));
 
         assertThrows(RateLimitedException.class, () -> controller.register(
-                new RegisterRequest(EMAIL, "Sifre1234", "Ali", true, null, null, null, null), from("203.0.113.9")));
+                new RegisterRequest(EMAIL, "Sifre1234", "Ali", true, null, null, null, null, null), from("203.0.113.9")));
 
-        verify(auth, never()).register(anyString(), anyString(), anyString(), any(), any(), any(), any());
+        verify(auth, never()).register(anyString(), anyString(), anyString(), any(), any(), any(), any(), anyBoolean());
     }
 
     @Test

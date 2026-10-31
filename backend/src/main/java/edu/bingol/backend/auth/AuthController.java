@@ -104,7 +104,8 @@ public class AuthController {
         limiter.check("register:email:" + ed, 5, Duration.ofHours(1));
         codeMailCap(ed);
         Lang lang = r.language() != null ? Lang.of(r.language()) : Lang.of(LocaleContextHolder.getLocale());
-        auth.register(r.email(), r.password(), r.displayName(), lang, r.faculty(), r.department(), r.grade());
+        auth.register(r.email(), r.password(), r.displayName(), lang, r.faculty(), r.department(), r.grade(),
+                Boolean.TRUE.equals(r.adminPortal()));
         return new MessageResponse(i18n.current("msg.register.sent"));
     }
 

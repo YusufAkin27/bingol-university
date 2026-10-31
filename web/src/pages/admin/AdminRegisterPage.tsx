@@ -1,8 +1,10 @@
 import { useNoIndex } from '../../lib/useNoIndex';
 // SAYFA: Yönetici hesabı kaydı (/admin/register): e-posta + şifre + kabul -> e-postaya 6 haneli kod -> doğrula -> otomatik giriş.
 // API: POST /api/auth/register, POST /api/auth/verify-email (parola kanıtı), ardından AuthProvider.login (GET /api/admin/me).
-// Alan adı kısıtı İSTEMCİDE YOKTUR: karar yalnız sunucudadır (bingol.edu.tr ya da sunucudaki ADMIN_EMAILS listesi);
-// reddedilirse sunucunun EMAIL_DOMAIN_NOT_ALLOWED mesajı gösterilir. Yönetici olmayan hesap panele girince "yetkiniz yok" ekranı çıkar.
+// Kayıt isteği `adminPortal: true` gönderir: YALNIZ sunucudaki ADMIN_EMAILS listesindeki adresler kayıt açabilir (gmail vb.
+// olabilir); listede olmayan adres (bingol.edu.tr dahil) için sunucu hiçbir şey belli etmeden 202 döner ve kod GÖNDERMEZ.
+// Bu yüzden kod adımına her durumda geçilir ve "kod gelmediyse adresiniz yetkili değildir" notu iki adımda da görünür.
+// Alan adı/yetki kararı İSTEMCİDE YOKTUR, yalnız sunucudadır.
 import { useState, type FormEvent } from 'react';
 import { Link, Navigate } from 'react-router-dom';
 import { authApi } from '../../api';
@@ -19,6 +21,8 @@ import { paths } from '../../paths';
 import styles from './LoginPage.module.css';
 
 type Step = 'form' | 'code';
+/** Sunucudaki yönetici asgari parola uzunluğu (app.auth.password-min-length-admin, varsayılan 12). */
+const MIN_PASSWORD = 12;
 
 export default function AdminRegisterPage() {
   useNoIndex();
@@ -44,7 +48,7 @@ export default function AdminRegisterPage() {
   const cleanEmail = email.trim();
   const emailError = touched ? (!cleanEmail ? required : !cleanEmail.includes('@') ? t('admin.reg.invalidEmail') : null) : null;
   const nameError = touched && !name.trim() ? required : null;
-  const passError = touched ? (!password ? required : password.length < 8 ? t('admin.reg.passwordShort') : null) : null;
+  const passError = touched ? (!password ? required : password.length < MIN_PASSWORD ? t('admin.reg.passwordShort') : null) : null;
   const termsError = touched && !terms ? t('admin.reg.termsRequired') : null;
   const codeOk = /^\d{6}$/.test(code.trim());
 
@@ -59,7 +63,7 @@ export default function AdminRegisterPage() {
     setTouched(true);
     setError(null);
     setInfo(null);
-    if (!cleanEmail.includes('@') || !name.trim() || password.length < 8 || !terms) return;
+    if (!cleanEmail.includes('@') || !name.trim() || password.length < MIN_PASSWORD || !terms) return;
     setBusy(true);
     try {
       await authApi.register({
@@ -68,6 +72,7 @@ export default function AdminRegisterPage() {
         displayName: name.trim(),
         acceptTerms: true,
         language: 'tr',
+        adminPortal: true,
       });
       setStep('code');
     } catch (err) {
@@ -180,6 +185,7 @@ export default function AdminRegisterPage() {
               {busy ? t('admin.reg.submitting') : t('admin.reg.submit')}
             </Button>
             <p className={styles.note}>{t('admin.reg.note')}</p>
+            <p className={styles.note}>{t('admin.reg.authorizedOnly')}</p>
           </form>
         ) : (
           <form className={styles.card} onSubmit={onVerify} noValidate aria-busy={busy || undefined}>
@@ -199,6 +205,7 @@ export default function AdminRegisterPage() {
                 {info}
               </p>
             )}
+            <p className={styles.note}>{t('admin.reg.authorizedOnly')}</p>
             <FormField label={t('admin.reg.code')} error={touched && !codeOk && code ? t('admin.reg.codeInvalid') : null} required>
               <Input
                 name="code"

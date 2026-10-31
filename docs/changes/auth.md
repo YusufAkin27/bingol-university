@@ -193,3 +193,13 @@ Kapsam: `docs/audit/prompts/W1-A-kimlik-oturum.md`. Yeni Flyway migration YOK (V
 - Mobil: kayit alani `RefIdentifierField(allowStudentNumber: false)` + `validateRegisterEmail` (yalniz tam e-posta, `@bingol.edu.tr` hapi yok, yardimci metin e-posta ornegi). Giris ve sifre sifirlama alanlari degismedi.
 - Yeni hata kodu: `EMAIL_FULL_REQUIRED` (`auth.properties`, `_en`, `_ar`).
 - Testler: `AuthServiceTest.studentNumberAloneIsRejectedAtRegisterWithoutSendingCode`, `fullStudentEmailRegistersAsIs`; mobil `student_number_test.dart`.
+
+## Yonetici portali kaydi yalniz ADMIN_EMAILS (ADMINREG, 2026-10-31)
+
+- **Sorun:** yonetici kayit sayfasi (`/<ADMIN_PATH>/register`) normal kayit ucunu cagiriyordu; herhangi bir `bingol.edu.tr` adresi buradan USER hesabi acabiliyordu.
+- **Cozum:** `RegisterRequest.adminPortal` (opsiyonel `Boolean`, varsayilan yok = false). YALNIZ daha siki davranis ister, hicbir kurali gevsetmez. `adminPortal=true` iken adres `AdminProperties.isAdminEmail` degilse (bingol.edu.tr dahil) `AuthService.register` sessizce doner: kod e-postasi YOK, `pending.save` YOK, hesap aranmaz/acilmaz, cevap yetkili adresle ayni `202 {message}`. Controller hiz sinirlari (IP/cihaz, `register:email`, `codemail:day`) ve `requireMailQuota` iki durumda da ayni tuketilir; log'da e-posta `LogMasking.email` ile maskelidir.
+- **Sizinti kapatma (portalda yetkili/yetkisiz ayirt edilemez):** parola/ad/katalog/alias dogrulamalari iki durumda da YONETICI kurallariyla kosar (parola asgari 12, ayrilmis ad muafiyeti); yetkisizde de parola ozeti (bcrypt) hesaplanir (sure farki yok); yetkili ama zaten kayitli adreste `409 EMAIL_ALREADY_REGISTERED` yerine sessiz 202; yetkili adreste kod bekleme suresi `429 RESEND_COOLDOWN` yutulur (eski kod/kayit kalir). Yetkili ve henuz kayitsiz adreste akis aynen surer (alan adi istisnasi, +etiket reddi, parola politikasi, dogrulama kodu).
+- **Degismeyenler:** `adminPortal` yok/false iken bugunku davranis birebir (yalniz bingol.edu.tr + ADMIN_EMAILS istisnasi, `EMAIL_DOMAIN_NOT_ALLOWED`, 409 vb.). Mobil kayit etkilenmez. `verify-email`, `resend-code`, `login` degismedi. Yeni uc/hata kodu/i18n anahtari yok.
+- **Web:** `authApi.register({..., adminPortal: true})` yalniz `AdminRegisterPage`'den; form ve kod adiminda "Yalnizca yetkilendirilmis yonetici e-posta adresleri kayit olabilir. Kod gelmediyse adresiniz yetkili degildir." notu; istemci asgari parola 12 (sunucu yonetici asgarisiyle uyumlu).
+- **Not:** `docs/openapi.json` yeniden uretilmeli (`RegisterRequest.adminPortal`).
+- Testler: `AdminPortalRegisterTest` (yeni), `AuthControllerThrottleTest` (bayrak iletimi + ayni sayaclar), web `AdminRegisterPage.test.tsx`.
