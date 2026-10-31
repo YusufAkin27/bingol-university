@@ -11,8 +11,7 @@ import 'post_api.dart';
 import 'post_models.dart';
 import 'post_text_rules.dart';
 
-/// Gönderi ⋯ menüsü (referans 11): arka plan karartılır, gönderi kartı karartmanın üstünde kalır, menü kartı ⋯ düğmesinin
-/// altında açılır. Yazara Düzenle/Sil, başkalarına Profili gör / Şikâyet et / Bu kullanıcıyı engelle.
+/// Gönderi ⋯ menüsü (Stitch v3 04/05): alt sayfa, 56 dp satırlar. Yazara Düzenle/Sil, başkalarına Profili gör / Şikâyet et / Bu kullanıcıyı engelle.
 /// [anchorContext] ⋯ düğmesinin, [cardContext] kartın bağlamıdır (konum ölçümü için; verilmezse ortada açılır).
 /// [onOpenChanged] menü açılıp kapanırken çağrılır (⋯ düğmesinin dolu hali için).
 /// [onDeleted] silme ve engelleme sonrası çağrılır (gönderi artık akışta görünmemeli).
@@ -39,19 +38,21 @@ Future<void> showPostActions(
   ];
   if (actions.isEmpty) return;
   HapticFeedback.selectionClick();
-  final anchor = _rectOf(anchorContext);
-  final card = _rectOf(cardContext);
   onOpenChanged?.call(true);
   final String? id;
   try {
-    id = await showGeneralDialog<String>(
-      context: context,
-      barrierDismissible: true,
-      barrierLabel: l.postComposeClose,
-      barrierColor: Colors.transparent,
-      transitionDuration: const Duration(milliseconds: 180),
-      transitionBuilder: (c, a, s, child) => child,
-      pageBuilder: (c, animation, _) => _PostMenuOverlay(animation: animation, actions: actions, anchor: anchor, card: card),
+    // Stitch v3 04/05: alt sayfa, her satır 56 dp, satırlar arası 1 dp bd; başka satır yok.
+    id = await BuSheet.show<String>(
+      context,
+      scrollable: false,
+      padding: EdgeInsets.zero,
+      builder: (ctx) => Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        for (var i = 0; i < actions.length; i++) ...[
+          if (i > 0) Divider(height: 1, color: ctx.bu.bd),
+          _SheetRow(action: actions[i]),
+        ],
+        SizedBox(height: MediaQuery.paddingOf(ctx).bottom > 0 ? 0 : 8),
+      ]),
     );
   } finally {
     onOpenChanged?.call(false);
@@ -77,12 +78,6 @@ Future<void> showPostActions(
   }
 }
 
-Rect? _rectOf(BuildContext? c) {
-  final o = c?.findRenderObject();
-  if (o is! RenderBox || !o.attached || !o.hasSize) return null;
-  return o.localToGlobal(Offset.zero) & o.size;
-}
-
 /// Ortak diyalog kabuğu: 28 köşe, geniş iç boşluk.
 class _DialogShell extends StatelessWidget {
   const _DialogShell({required this.child});
@@ -95,22 +90,24 @@ class _DialogShell extends StatelessWidget {
         elevation: 0,
         surfaceTintColor: Colors.transparent,
         insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
-        child: Padding(padding: const EdgeInsets.fromLTRB(24, 24, 24, 20), child: child),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        child: Padding(padding: const EdgeInsets.all(24), child: child),
       );
 }
 
 Widget _dialogButtons(BuildContext c, {required String cancel, required Widget confirm, required VoidCallback onCancel}) {
   final t = c.bu;
-  return Row(mainAxisAlignment: MainAxisAlignment.end, children: [
-    TextButton(
-      key: const ValueKey('post-dialog-cancel'),
-      onPressed: onCancel,
-      style: TextButton.styleFrom(minimumSize: const Size(64, 48), foregroundColor: t.mut),
-      child: Text(cancel, style: const TextStyle(fontWeight: FontWeight.w700)),
+  return Row(children: [
+    Expanded(
+      child: TextButton(
+        key: const ValueKey('post-dialog-cancel'),
+        onPressed: onCancel,
+        style: TextButton.styleFrom(minimumSize: const Size(64, BuSize.button), foregroundColor: t.mut),
+        child: Text(cancel, style: const TextStyle(fontWeight: FontWeight.w600)),
+      ),
     ),
     const SizedBox(width: 8),
-    confirm,
+    Expanded(child: confirm),
   ]);
 }
 
@@ -123,14 +120,7 @@ Future<void> _confirmDelete(BuildContext context, Session session, Post post, Vo
       final tt = Theme.of(c).textTheme;
       return _DialogShell(
         child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Container(
-            width: 48,
-            height: 48,
-            decoration: BoxDecoration(color: t.danger.withValues(alpha: .12), borderRadius: BorderRadius.circular(16)),
-            child: Icon(LucideIcons.trash2, size: 22, color: t.danger),
-          ),
-          const SizedBox(height: 16),
-          Text(l.postComposeDeleteTitle, style: tt.titleLarge?.copyWith(color: t.ink, fontWeight: FontWeight.w700)),
+          Text(l.postComposeDeleteTitle, style: tt.titleLarge?.copyWith(color: t.ink, fontSize: 20, fontWeight: FontWeight.w600)),
           const SizedBox(height: 8),
           Text(l.postComposeDeleteBody, style: tt.bodyMedium?.copyWith(color: t.mut)),
           const SizedBox(height: 24),
@@ -141,7 +131,6 @@ Future<void> _confirmDelete(BuildContext context, Session session, Post post, Vo
                 key: const ValueKey('post-dialog-confirm'),
                 label: l.postComposeDelete,
                 kind: BuButtonKind.danger,
-                compact: true,
                 onPressed: () => Navigator.pop(c, true),
               )),
         ]),
@@ -167,14 +156,7 @@ Future<void> _confirmBlock(BuildContext context, Session session, Post post, Voi
       final tt = Theme.of(c).textTheme;
       return _DialogShell(
         child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Container(
-            width: 48,
-            height: 48,
-            decoration: BoxDecoration(color: t.danger.withValues(alpha: .12), borderRadius: BorderRadius.circular(16)),
-            child: Icon(LucideIcons.ban, size: 22, color: t.danger),
-          ),
-          const SizedBox(height: 16),
-          Text(l.postComposeBlockTitle, style: tt.titleLarge?.copyWith(color: t.ink, fontWeight: FontWeight.w700)),
+          Text(l.postComposeBlockTitle, style: tt.titleLarge?.copyWith(color: t.ink, fontSize: 20, fontWeight: FontWeight.w600)),
           const SizedBox(height: 8),
           Text(l.postComposeBlockBody, style: tt.bodyMedium?.copyWith(color: t.mut)),
           const SizedBox(height: 24),
@@ -185,7 +167,6 @@ Future<void> _confirmBlock(BuildContext context, Session session, Post post, Voi
                 key: const ValueKey('post-dialog-confirm'),
                 label: l.postComposeBlock,
                 kind: BuButtonKind.danger,
-                compact: true,
                 onPressed: () => Navigator.pop(c, true),
               )),
         ]),
@@ -264,18 +245,20 @@ class _EditDialogState extends State<_EditDialog> {
     return _DialogShell(
       child: SingleChildScrollView(
         child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text(l.postComposeEditTitle, style: tt.titleLarge?.copyWith(color: t.ink, fontWeight: FontWeight.w700)),
+          Text(l.postComposeEditTitle, style: tt.titleLarge?.copyWith(color: t.ink, fontSize: 20, fontWeight: FontWeight.w600)),
           const SizedBox(height: 16),
+          // Stitch v3 06: alan 16 köşe, 1 dp bdStrong (hata/aşımda danger), iç 16x14, en az 72 dp; sayaç alanın altında sağda.
           DecoratedBox(
             decoration: BoxDecoration(
-              color: t.sf2,
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: over || _error != null ? t.danger : t.bd),
+              color: t.sf,
+              borderRadius: BorderRadius.circular(BuRadius.md),
+              border: Border.all(color: over || _error != null ? t.danger : t.bdStrong),
             ),
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 12, 16, 10),
-              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                TextField(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(minHeight: 72),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                child: TextField(
                   key: const ValueKey('edit-post-text'),
                   controller: _c,
                   enabled: !_busy,
@@ -300,23 +283,22 @@ class _EditDialogState extends State<_EditDialog> {
                     contentPadding: EdgeInsets.zero,
                   ),
                 ),
-                Align(
-                  alignment: AlignmentDirectional.centerEnd,
-                  child: Text(l.gonderiWordCount(postWordCount(_c.text).toString(), kPostMaxWords.toString()),
-                      key: const ValueKey('edit-post-counter'),
-                      style: tt.labelMedium?.copyWith(color: over ? t.danger : t.mut, fontWeight: over ? FontWeight.w700 : FontWeight.w400)),
-                ),
-              ]),
+              ),
+            ),
+          ),
+          Align(
+            alignment: AlignmentDirectional.centerEnd,
+            child: Padding(
+              padding: const EdgeInsets.only(top: 6),
+              child: Text(l.gonderiWordCount(postWordCount(_c.text).toString(), kPostMaxWords.toString()),
+                  key: const ValueKey('edit-post-counter'),
+                  style: tt.labelSmall?.copyWith(color: over ? t.danger : t.mut, fontSize: 12, fontWeight: over ? FontWeight.w700 : FontWeight.w400)),
             ),
           ),
           if (_error != null)
             Padding(
               padding: const EdgeInsets.only(top: 10),
-              child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Icon(Icons.error, size: 18, color: t.danger),
-                const SizedBox(width: 8),
-                Expanded(child: Text(_error!, key: const ValueKey('edit-post-error'), style: tt.bodySmall?.copyWith(color: t.danger))),
-              ]),
+              child: Text(_error!, key: const ValueKey('edit-post-error'), style: tt.bodySmall?.copyWith(color: t.danger, fontSize: 13)),
             ),
           if (_empty)
             Padding(
@@ -330,7 +312,6 @@ class _EditDialogState extends State<_EditDialog> {
               confirm: BuButton(
                 key: const ValueKey('edit-post-save'),
                 label: l.postComposeSave,
-                compact: true,
                 busy: _busy,
                 onPressed: _canSave ? _save : null,
               )),
@@ -414,109 +395,8 @@ class PostMenuAction {
   final bool danger;
 }
 
-class _PostMenuOverlay extends StatelessWidget {
-  const _PostMenuOverlay({required this.animation, required this.actions, this.anchor, this.card});
-
-  final Animation<double> animation;
-  final List<PostMenuAction> actions;
-  final Rect? anchor;
-  final Rect? card;
-
-  static const _w = 236.0;
-  static const _row = 52.0;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = context.bu;
-    final dark = Theme.of(context).brightness == Brightness.dark;
-    final fade = CurvedAnimation(parent: animation, curve: Curves.easeOut);
-    final size = MediaQuery.sizeOf(context);
-    final rtl = Directionality.of(context) == TextDirection.rtl;
-    final menuH = actions.length * _row + 12;
-    final w = _w.clamp(0.0, size.width - 32);
-
-    // Konum: ⋯ düğmesinin altında, düğmenin dış kenarına hizalı; sığmazsa üstünde. Ölçüm yoksa ortada.
-    double? top, left;
-    var alignment = AlignmentDirectional.topEnd.resolve(Directionality.of(context));
-    if (anchor != null) {
-      final below = anchor!.bottom + 6;
-      final fits = below + menuH <= size.height - MediaQuery.paddingOf(context).bottom - 12;
-      top = fits ? below : (anchor!.top - 6 - menuH).clamp(12.0, size.height);
-      left = rtl ? anchor!.left : anchor!.right - w;
-      left = left.clamp(16.0, size.width - w - 16);
-      alignment = fits ? (rtl ? Alignment.topLeft : Alignment.topRight) : (rtl ? Alignment.bottomLeft : Alignment.bottomRight);
-    }
-    final menu = ScaleTransition(
-      scale: Tween<double>(begin: .9, end: 1).chain(CurveTween(curve: Curves.easeOutCubic)).animate(animation),
-      alignment: alignment,
-      child: FadeTransition(
-        opacity: fade,
-        child: Container(
-          key: const ValueKey('postMenu.card'),
-          width: w,
-          padding: const EdgeInsets.symmetric(vertical: 6),
-          decoration: BoxDecoration(
-            color: t.sf3,
-            borderRadius: BorderRadius.circular(20),
-            border: dark ? Border.all(color: t.bd) : null,
-            boxShadow: BuElevation.of(context, 3),
-          ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(16),
-            child: Material(
-              type: MaterialType.transparency,
-              child: Column(mainAxisSize: MainAxisSize.min, children: [for (final a in actions) _Row(action: a)]),
-            ),
-          ),
-        ),
-      ),
-    );
-    return Material(
-      key: const ValueKey('postMenu.root'),
-      type: MaterialType.transparency,
-      child: DefaultTextStyle(
-        style: Theme.of(context).textTheme.bodyMedium!.copyWith(color: t.ink, decoration: TextDecoration.none),
-        child: Stack(children: [
-          Positioned.fill(
-            child: FadeTransition(
-              opacity: fade,
-              child: GestureDetector(
-                behavior: HitTestBehavior.opaque,
-                onTap: () => Navigator.of(context).pop(),
-                // Gönderi kartı karartmanın üstünde kalır (karttan sonra delik bırakılır).
-                child: CustomPaint(painter: _ScrimPainter(hole: card, color: t.scrim.withValues(alpha: dark ? .62 : .42))),
-              ),
-            ),
-          ),
-          if (anchor != null) Positioned(top: top, left: left, child: menu) else Center(child: menu),
-        ]),
-      ),
-    );
-  }
-}
-
-class _ScrimPainter extends CustomPainter {
-  const _ScrimPainter({required this.hole, required this.color});
-
-  final Rect? hole;
-  final Color color;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final all = Path()..addRect(Offset.zero & size);
-    final h = hole;
-    final path = h == null
-        ? all
-        : Path.combine(PathOperation.difference, all, Path()..addRRect(RRect.fromRectAndRadius(h, const Radius.circular(BuRadius.lg))));
-    canvas.drawPath(path, Paint()..color = color);
-  }
-
-  @override
-  bool shouldRepaint(_ScrimPainter o) => o.hole != hole || o.color != color;
-}
-
-class _Row extends StatelessWidget {
-  const _Row({required this.action});
+class _SheetRow extends StatelessWidget {
+  const _SheetRow({required this.action});
 
   final PostMenuAction action;
 
@@ -527,18 +407,18 @@ class _Row extends StatelessWidget {
     return InkWell(
       key: ValueKey('post-act-${action.id}'),
       onTap: () => Navigator.of(context).pop(action.id),
-      child: SizedBox(
-        height: _PostMenuOverlay._row,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(minHeight: BuSize.row),
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
+          padding: const EdgeInsets.symmetric(horizontal: 24),
           child: Row(children: [
-            Icon(action.icon, size: 20, color: action.danger ? t.danger : t.mut),
-            const SizedBox(width: 14),
+            Icon(action.icon, size: 24, color: color),
+            const SizedBox(width: 16),
             Expanded(
               child: Text(action.label,
-                  maxLines: 1,
+                  maxLines: 2,
                   overflow: TextOverflow.ellipsis,
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(color: color, fontWeight: FontWeight.w600, decoration: TextDecoration.none)),
+                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: color, fontSize: 16, fontWeight: FontWeight.w500)),
             ),
           ]),
         ),

@@ -137,7 +137,7 @@ class _PostPhotoViewerState extends State<PostPhotoViewer> with TickerProviderSt
             child: ValueListenableBuilder<double>(
               valueListenable: _dy,
               builder: (_, dy, __) => ColoredBox(
-                color: t.scrim.withValues(alpha: .94 * (1 - (dy.abs() / (size.height * .5)).clamp(0.0, 1.0))),
+                color: t.scrim.withValues(alpha: 1 - (dy.abs() / (size.height * .5)).clamp(0.0, 1.0)),
               ),
             ),
           ),
@@ -170,7 +170,7 @@ class _PostPhotoViewerState extends State<PostPhotoViewer> with TickerProviderSt
           ),
           PositionedDirectional(
             top: MediaQuery.paddingOf(context).top + BuSpace.sm,
-            end: BuSpace.sm,
+            start: BuSpace.sm,
             child: AnimatedOpacity(
               opacity: _zoomed ? 0 : 1,
               duration: BuMotion.of(context, BuMotion.short),
@@ -185,12 +185,8 @@ class _PostPhotoViewerState extends State<PostPhotoViewer> with TickerProviderSt
                     child: SizedBox(
                       width: 48,
                       height: 48,
-                      child: Center(
-                        child: DecoratedBox(
-                          decoration: BoxDecoration(color: t.scrim.withValues(alpha: .45), shape: BoxShape.circle),
-                          child: SizedBox(width: 40, height: 40, child: Icon(LucideIcons.x, size: 20, color: t.onMedia)),
-                        ),
-                      ),
+                      // Stitch v3 03: saf siyah zemin, tek beyaz 24 dp "x" (48 dp hedef), zemin dairesi yok.
+                      child: Center(child: Icon(LucideIcons.x, size: 24, color: t.onMedia)),
                     ),
                   ),
                 ),

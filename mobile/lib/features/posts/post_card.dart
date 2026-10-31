@@ -211,6 +211,108 @@ class _PostCardState extends State<PostCard> {
   /// Detayda fotoğrafa dokunma: tam ekran görüntüleyici (yakınlaştırma + sürükleyerek kapatma).
   void _openViewer() => openPostPhotoViewer(context, widget.session, p, heroTag: _heroTag);
 
+  /// Gönderi detayı (Stitch v3 01): yazar satırı (40 dp avatar, ad 15/600, "bölüm · zaman" 13 mut, ⋯), 20 dp kenar içinde
+  /// 4:5 fotoğraf (köşe 16, kart/gölge yok), altında kalp 22 + sayı 15/600 + "·" + metin 15, 6 dp altta "düzenlendi" 12 mut.
+  Widget _buildDetail(BuildContext context, {required bool mine, required bool hasMenu}) {
+    final t = context.bu;
+    final tt = Theme.of(context).textTheme;
+    final dept = context.departmentName(p.author.department);
+    final time = postRelativeTime(context, p.createdAt);
+    final text = (p.text ?? '').trim();
+    return Padding(
+      key: _cardKey,
+      padding: const EdgeInsetsDirectional.only(bottom: BuSpace.lg),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsetsDirectional.fromSTEB(BuSpace.page, BuSpace.sm, BuSpace.xs, BuSpace.sm),
+            child: Row(children: [
+              BuAvatar(name: p.author.displayName, url: p.author.avatarUrl, size: 40, headers: postAuthHeaders(widget.session)),
+              BuGap.w12,
+              Expanded(
+                child: GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: () => openUserPosts(context, widget.session, userId: p.author.id, name: p.author.displayName),
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(minHeight: BuSize.touch),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(p.author.displayName,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: tt.titleSmall?.copyWith(color: t.ink, fontSize: 15, fontWeight: FontWeight.w600, height: 1.25)),
+                        PostMetaLine(
+                            department: dept,
+                            time: time,
+                            separator: ' · ',
+                            style: tt.bodySmall?.copyWith(color: t.mut, fontSize: 13)),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              if (hasMenu)
+                PostMenuButton(
+                  session: widget.session,
+                  post: p,
+                  onChanged: widget.onChanged,
+                  onDeleted: widget.onDeleted,
+                  active: _menuOpen,
+                  cardKey: _cardKey,
+                  onOpenChanged: (v) {
+                    if (mounted) setState(() => _menuOpen = v);
+                  },
+                ),
+            ]),
+          ),
+          if (p.photo != null)
+            Padding(
+              padding: BuSpace.pageH,
+              child: DoubleTapLike(
+                onLike: _like.like,
+                onTap: _openViewer,
+                radius: 16,
+                child: PostPhoto(
+                  session: widget.session,
+                  post: p,
+                  radius: 16,
+                  progressive: true,
+                  heroTag: _heroTag,
+                ),
+              ),
+            ),
+          Padding(
+            padding: const EdgeInsetsDirectional.fromSTEB(BuSpace.page, BuSpace.sm, BuSpace.page, 0),
+            child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
+              LikeButton(session: widget.session, post: p, controller: _like, compact: true, size: 22, detail: true, onChanged: widget.onChanged),
+              if (text.isNotEmpty) ...[
+                Text('·', style: tt.bodyLarge?.copyWith(color: t.mut, fontSize: 15)),
+                BuGap.w8,
+                Expanded(
+                  child: GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    excludeFromSemantics: true,
+                    onTap: _openViewer,
+                    child: Text(text, key: const ValueKey('post-text'), style: tt.bodyLarge?.copyWith(color: t.ink, fontSize: 15, height: 1.4)),
+                  ),
+                ),
+              ],
+            ]),
+          ),
+          if (p.editedAt != null)
+            Padding(
+              padding: const EdgeInsetsDirectional.fromSTEB(BuSpace.page, 6, BuSpace.page, 0),
+              child: Text(context.l10n.postViewEdited,
+                  key: const ValueKey('post-edited'), style: tt.bodySmall?.copyWith(color: t.mut, fontSize: 12)),
+            ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
@@ -220,6 +322,7 @@ class _PostCardState extends State<PostCard> {
     final mine = p.mine || p.author.id == widget.session.userId;
     final hasMenu = !(mine && !p.canEdit && !p.canDelete);
     final detail = widget.detail;
+    if (detail) return _buildDetail(context, mine: mine, hasMenu: hasMenu);
     // Detay: fotoğraf ekran genişliğinde (kenarsız), metin satırları 20 kenar boşluklu (sayfa kenarı).
     const sidePad = BuSpace.pageH;
     return _CardSurface(
@@ -348,45 +451,27 @@ class PostCardSkeleton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Stitch v3: kart yüzeyi/gölge yok; yazar iskeleti + 4:5 blok (köşe 16) + kalp/metin çubuğu.
     return const BuSkeletonScope(
-      child: _CardSurface(
-        child: Padding(
-          padding: EdgeInsetsDirectional.all(BuSpace.xl),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(children: [
-                BuSkeleton.circle(40),
-                BuGap.w12,
-                Expanded(
-                  child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        BuSkeleton.line(width: 120, height: 12),
-                        BuGap.h8,
-                        BuSkeleton.line(width: 84, height: 10),
-                      ]),
-                ),
-                BuSkeleton.circle(28),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(children: [
+            BuSkeleton.circle(40),
+            BuGap.w12,
+            Expanded(
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                BuSkeleton.line(width: 120, height: 12),
+                BuGap.h8,
+                BuSkeleton.line(width: 84, height: 10),
               ]),
-              BuGap.h16,
-              AspectRatio(
-                aspectRatio: 4 / 5,
-                child: BuSkeleton(height: double.infinity, radius: BuRadius.lg),
-              ),
-              BuGap.h16,
-              Row(children: [
-                BuSkeleton.circle(24),
-                BuGap.w8,
-                BuSkeleton.line(width: 32, height: 12),
-              ]),
-              BuGap.h12,
-              BuSkeleton.line(height: 12),
-              BuGap.h8,
-              BuSkeleton.line(width: 180, height: 12),
-            ],
-          ),
-        ),
+            ),
+          ]),
+          BuGap.h16,
+          AspectRatio(aspectRatio: 4 / 5, child: BuSkeleton(height: double.infinity, radius: 16)),
+          BuGap.h12,
+          BuSkeleton.line(width: 180, height: 12),
+        ],
       ),
     );
   }

@@ -221,24 +221,27 @@ void main() {
       return (b, deleted);
     }
 
-    testWidgets('baskasinin menusu: Profili gor / Sikayet et / Engelle (kaydet/paylas/kopyala yok), menu dugmenin altinda', (tester) async {
+    testWidgets('baskasinin menusu (Stitch v3 05): alt sayfa, Profili gor / Sikayet et / Engelle, 56 dp satirlar (kaydet/paylas/kopyala yok)', (tester) async {
       await open(tester, post());
-      final btn = tester.getRect(find.byKey(const ValueKey('post-menu-button')));
       await tester.tap(find.byKey(const ValueKey('post-menu-button')));
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 300));
+      await settle(tester, const Duration(milliseconds: 900));
       expect(find.byKey(const ValueKey('post-act-profile')), findsOneWidget);
       expect(find.byKey(const ValueKey('post-act-report')), findsOneWidget);
       expect(find.byKey(const ValueKey('post-act-block')), findsOneWidget);
       expect(find.byKey(const ValueKey('post-act-edit')), findsNothing);
       expect(find.text('Şikâyet et'), findsOneWidget);
-      final menu = tester.getRect(find.byKey(const ValueKey('postMenu.card')));
-      expect(menu.top, greaterThanOrEqualTo(btn.bottom));
-      expect((menu.right - btn.right).abs(), lessThan(24)); // dugmenin dis kenarina hizali
+      for (final id in ['profile', 'report', 'block']) {
+        expect(tester.getSize(find.byKey(ValueKey('post-act-$id'))).height, greaterThanOrEqualTo(56));
+      }
+      // Alt sayfa: ekranin alt yarisinda, tam genislikte.
+      expect(tester.getRect(find.byKey(const ValueKey('post-act-report'))).width, 390);
+      expect(tester.getRect(find.byKey(const ValueKey('post-act-report'))).top, greaterThan(422));
       for (final s in ['Kaydet', 'Paylaş', 'Bağlantıyı kopyala']) {
         expect(find.text(s), findsNothing);
       }
-      await tester.tap(find.byKey(const ValueKey('postMenu.root')), warnIfMissed: false);
+      await tester.tapAt(const Offset(195, 60)); // karartma: kapat
+      await settle(tester, const Duration(milliseconds: 600));
+      expect(find.byKey(const ValueKey('post-act-report')), findsNothing);
       noErr(tester);
     });
 
@@ -246,8 +249,7 @@ void main() {
       await open(tester, post(mine: true, edited: true));
       expect(find.byKey(const ValueKey('post-edited')), findsOneWidget);
       await tester.tap(find.byKey(const ValueKey('post-menu-button')));
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 300));
+      await settle(tester, const Duration(milliseconds: 900));
       expect(find.byKey(const ValueKey('post-act-edit')), findsOneWidget);
       expect(find.byKey(const ValueKey('post-act-delete')), findsOneWidget);
       expect(find.byKey(const ValueKey('post-act-report')), findsNothing);
@@ -258,8 +260,7 @@ void main() {
       final (b, deleted) = await open(tester, post(mine: true));
       Future<void> openDelete() async {
         await tester.tap(find.byKey(const ValueKey('post-menu-button')));
-        await tester.pump();
-        await tester.pump(const Duration(milliseconds: 300));
+        await settle(tester, const Duration(milliseconds: 900));
         await tester.tap(find.byKey(const ValueKey('post-act-delete')));
         await tester.pump();
         await tester.pump(const Duration(milliseconds: 300));
@@ -285,8 +286,7 @@ void main() {
     testWidgets('duzenleme: bos metin kaydedilmez ("Metin bos olamaz."), 8. kelimede kirmizi sayac, kaydet PATCH atar', (tester) async {
       final (b, _) = await open(tester, post(mine: true));
       await tester.tap(find.byKey(const ValueKey('post-menu-button')));
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 300));
+      await settle(tester, const Duration(milliseconds: 900));
       await tester.tap(find.byKey(const ValueKey('post-act-edit')));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 300));

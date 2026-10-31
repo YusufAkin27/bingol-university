@@ -94,8 +94,7 @@ void main() {
       // Ilk kart benim: ⋯ ile Duzenle/Sil.
       final first = find.byKey(const ValueKey('discover-post-1000'));
       await tester.tap(find.descendant(of: first, matching: find.byKey(const ValueKey('post-menu-button'))));
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 300));
+      await settle(tester, const Duration(milliseconds: 900));
       expect(find.byKey(const ValueKey('post-act-edit')), findsOneWidget);
       expect(find.byKey(const ValueKey('post-act-delete')), findsOneWidget);
       // Menü dışında (sol kenar) bir noktaya dokunarak kapat; merkez noktası menü kartına denk gelebilir.

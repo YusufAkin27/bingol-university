@@ -326,6 +326,130 @@ void main() {
     });
   });
 
+  group('Gonderi detayi (Stitch v3 kategori 3)', () {
+    Future<FakeBackend> openDetail(WidgetTester tester, {bool mine = false, bool edited = true, double w = 390}) async {
+      useScreen(tester, Size(w, 844));
+      final b = FakeBackend();
+      final post = samplePost(id: 999, text: 'Bahar geldi kampüse', media: [samplePostMedia(id: 9990)], likeCount: 128, mine: mine, authorId: mine ? 1 : 12);
+      (post['author'] as Map)['department'] = 'Makine Mühendisliği';
+      if (edited) post['editedAt'] = '2026-10-26T10:00:00Z';
+      if (mine) {
+        post['canEdit'] = true;
+        post['canDelete'] = true;
+      }
+      b.on('/posts/999', post);
+      await tester.pumpWidget(buildApp(PostDetailPage(session: makeSession(b), postId: 999)));
+      await settle(tester, const Duration(milliseconds: 1000));
+      return b;
+    }
+
+    testWidgets('yerlesim: 20 dp kenar, 4:5 fotograf kose 16 kart/golge yok, kalp 22 + sayi + metin, duzenlendi 12 mut altta', (tester) async {
+      await openDetail(tester);
+      final photo = find.byKey(const ValueKey('post-photo-999'));
+      final ratio = find.ancestor(of: photo, matching: find.byType(AspectRatio)).first;
+      final r = tester.getRect(ratio);
+      expect(r.left, 20);
+      expect(r.width, 350);
+      expect((r.width / r.height - .8).abs(), lessThan(.01));
+      final clips = tester.widgetList<ClipRRect>(find.ancestor(of: photo, matching: find.byType(ClipRRect)));
+      expect(clips.any((c) => c.borderRadius == BorderRadius.circular(16)), isTrue);
+      // Kart yuzeyi / golge yok
+      expect(find.byWidgetPredicate((w) => w is DecoratedBox && w.decoration is BoxDecoration && (w.decoration as BoxDecoration).boxShadow != null && (w.decoration as BoxDecoration).boxShadow!.isNotEmpty), findsNothing);
+      // Yazar satiri: 40 dp avatar, 'bolum · zaman'
+      expect(find.textContaining('Makine Mühendisliği · '), findsOneWidget);
+      // Kalp 22 + sayi 15/600 + metin
+      final count = tester.widget<Text>(find.byKey(const ValueKey('like-count')));
+      expect(count.style?.fontSize, 15);
+      expect(count.style?.fontWeight, FontWeight.w600);
+      expect(find.text('·'), findsOneWidget);
+      expect(find.text('Bahar geldi kampüse'), findsOneWidget);
+      final edited = find.byKey(const ValueKey('post-edited'));
+      expect(edited, findsOneWidget);
+      expect(tester.widget<Text>(edited).style?.fontSize, 12);
+      expect(tester.getTopLeft(edited).dy, greaterThan(tester.getBottomLeft(find.text('Bahar geldi kampüse')).dy));
+      noErr(tester);
+    });
+
+    testWidgets('tam ekran: saf siyah zemin, yalniz sol ustte 24 dp beyaz x (48 dp hedef)', (tester) async {
+      await openDetail(tester);
+      await tester.tap(find.byKey(const ValueKey('post-photo-999')), warnIfMissed: false);
+      await settle(tester, const Duration(milliseconds: 1000));
+      final close = find.byKey(const ValueKey('postViewerClose'));
+      expect(close, findsOneWidget);
+      expect(tester.getSize(close).width, greaterThanOrEqualTo(48));
+      expect(tester.getTopLeft(close).dx, lessThan(20)); // sol ust
+      final icon = tester.widget<Icon>(find.descendant(of: close, matching: find.byType(Icon)));
+      expect(icon.size, 24);
+      expect(icon.color, BuTokens.light.onMedia);
+      noErr(tester);
+    });
+
+    testWidgets('menu: alt sayfa; kendi: Duzenle + Sil (danger), 56 dp, ikinci satir danger rengi', (tester) async {
+      await openDetail(tester, mine: true);
+      await tester.tap(find.byKey(const ValueKey('post-menu-button')));
+      await settle(tester, const Duration(milliseconds: 900));
+      expect(tester.getSize(find.byKey(const ValueKey('post-act-edit'))).height, greaterThanOrEqualTo(56));
+      final del = tester.widget<Text>(find.descendant(of: find.byKey(const ValueKey('post-act-delete')), matching: find.byType(Text)));
+      expect(del.style?.color, BuTokens.light.danger);
+      expect(find.byKey(const ValueKey('post-act-report')), findsNothing);
+      noErr(tester);
+    });
+
+    testWidgets('duzenle diyalogu: alan 16 kose 1 dp bdStrong, sayac alanin altinda sagda 12 mut; Vazgec + Kaydet', (tester) async {
+      await openDetail(tester, mine: true);
+      await tester.tap(find.byKey(const ValueKey('post-menu-button')));
+      await settle(tester, const Duration(milliseconds: 900));
+      await tester.tap(find.byKey(const ValueKey('post-act-edit')));
+      await settle(tester, const Duration(milliseconds: 600));
+      final counter = find.byKey(const ValueKey('edit-post-counter'));
+      expect(counter, findsOneWidget);
+      expect(tester.widget<Text>(counter).style?.fontSize, 12);
+      expect(tester.getTopLeft(counter).dy, greaterThan(tester.getBottomLeft(find.byKey(const ValueKey('edit-post-text'))).dy));
+      expect(find.byKey(const ValueKey('post-dialog-cancel')), findsOneWidget);
+      expect(tester.getSize(find.byKey(const ValueKey('edit-post-save'))).height, greaterThanOrEqualTo(48));
+      noErr(tester);
+    });
+
+    testWidgets('silme onayi: ikon karosu yok, Vazgec + Sil (danger dolu 48 dp)', (tester) async {
+      await openDetail(tester, mine: true);
+      await tester.tap(find.byKey(const ValueKey('post-menu-button')));
+      await settle(tester, const Duration(milliseconds: 900));
+      await tester.tap(find.byKey(const ValueKey('post-act-delete')));
+      await settle(tester, const Duration(milliseconds: 600));
+      expect(find.text('Gönderi silinsin mi?'), findsOneWidget);
+      expect(find.byIcon(LucideIcons.trash2), findsNothing);
+      expect(tester.getSize(find.byKey(const ValueKey('post-dialog-confirm'))).height, greaterThanOrEqualTo(48));
+      noErr(tester);
+    });
+
+    testWidgets('bulunamadi: baslik 18/600 + soluk ikinci satir, simge/kart yok', (tester) async {
+      useScreen(tester, const Size(390, 844));
+      final b = FakeBackend();
+      fakePosts(b);
+      await tester.pumpWidget(buildApp(PostDetailPage(session: makeSession(b), postId: 99999)));
+      await settle(tester, const Duration(milliseconds: 600));
+      expect(find.text('Gönderi bulunamadı'), findsOneWidget);
+      expect(find.text('silinmiş veya gizlenmiş olabilir'), findsOneWidget);
+      expect(find.descendant(of: find.byKey(const ValueKey('postNotFound')), matching: find.byType(Icon)), findsNothing);
+      noErr(tester);
+    });
+
+    for (final w in [320.0, 390.0]) {
+      testWidgets('tasma: detay + menu + duzenle $w x1.3', (tester) async {
+        tester.platformDispatcher.textScaleFactorTestValue = 1.3;
+        addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+        await openDetail(tester, mine: true, w: w);
+        noErr(tester);
+        await tester.tap(find.byKey(const ValueKey('post-menu-button')));
+        await settle(tester, const Duration(milliseconds: 900));
+        noErr(tester);
+        await tester.tap(find.byKey(const ValueKey('post-act-edit')));
+        await settle(tester, const Duration(milliseconds: 600));
+        noErr(tester);
+      });
+    }
+  });
+
   group('Tasma matrisi 320 dp x1.3 (acik + koyu)', () {
     for (final dark in [false, true]) {
       final mode = dark ? 'koyu' : 'acik';

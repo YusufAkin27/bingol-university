@@ -32,6 +32,7 @@ class LikeButton extends StatefulWidget {
     this.size,
     this.onMedia = false,
     this.a11yCount,
+    this.detail = false,
   });
 
   final Session session;
@@ -48,6 +49,9 @@ class LikeButton extends StatefulWidget {
 
   /// Koyu görsel/gradyan üstünde: simge ve sayı `onMedia` rengiyle çizilir (beğenilince dolu beyaz kalp), 13 sp/600 tabular sayı.
   final bool onMedia;
+
+  /// Gönderi detayı (Stitch v3): beğenilmemiş kalp ink çizgi, sayı 15/600; beğenilince dolu `pr` kalp.
+  final bool detail;
 
   /// Yalnız ekran okuyucu için sayı metni (görünür sayı yalnız rakamsa): "284 beğeni".
   final String Function(int count)? a11yCount;
@@ -190,12 +194,11 @@ class _LikeButtonState extends State<LikeButton> with TickerProviderStateMixin {
     final tt = Theme.of(context).textTheme;
     final size = widget.size ?? (widget.compact ? 22.0 : 26.0);
     // Görsel üstü hapta beğeni kırmızı değil: dolu beyaz kalp (Stitch v3); normal yerde marka kırmızısı.
-    final color = widget.onMedia ? t.onMedia : (_liked ? t.pr : t.mut);
+    final color = widget.onMedia ? t.onMedia : (_liked ? t.pr : (widget.detail ? t.ink : t.mut));
     const box = 44.0;
     final scale = TweenSequence<double>([
-      TweenSequenceItem(tween: Tween(begin: 1.0, end: 1.4).chain(CurveTween(curve: Curves.easeOut)), weight: 30),
-      TweenSequenceItem(tween: Tween(begin: 1.4, end: .92).chain(CurveTween(curve: Curves.easeInOut)), weight: 30),
-      TweenSequenceItem(tween: Tween(begin: .92, end: 1.0).chain(CurveTween(curve: Curves.easeOut)), weight: 40),
+      TweenSequenceItem(tween: Tween(begin: 1.0, end: 1.38).chain(CurveTween(curve: Curves.easeOut)), weight: 40),
+      TweenSequenceItem(tween: Tween(begin: 1.38, end: 1.0).chain(CurveTween(curve: Curves.easeInOut)), weight: 60),
     ]).animate(_anim);
 
     // Kalp, fotoğrafın başlangıç kenarıyla hizalı (kutu yalnız dokunma hedefini büyütür).
@@ -229,7 +232,11 @@ class _LikeButtonState extends State<LikeButton> with TickerProviderStateMixin {
     );
 
     // Tabular rakamlar: sayı değişirken satır genişliği titremesin.
-    final style = (widget.onMedia ? tt.labelMedium?.copyWith(fontSize: 13, fontWeight: FontWeight.w600) : (widget.compact ? tt.titleSmall : tt.titleMedium))
+    final style = (widget.onMedia
+            ? tt.labelMedium?.copyWith(fontSize: 13, fontWeight: FontWeight.w600)
+            : widget.detail
+                ? tt.titleSmall?.copyWith(fontSize: 15, fontWeight: FontWeight.w600)
+                : (widget.compact ? tt.titleSmall : tt.titleMedium))
         ?.copyWith(color: widget.onMedia ? t.onMedia : t.ink, height: 1.2, fontFeatures: const [FontFeature.tabularFigures()]);
     final countText = Text(_label(_count), key: const ValueKey('like-count'), maxLines: 1, style: style);
     final count = AnimatedBuilder(
@@ -366,8 +373,8 @@ class _DoubleTapLikeState extends State<DoubleTapLike> with SingleTickerProvider
     final scale = calm
         ? const AlwaysStoppedAnimation<double>(1.0)
         : TweenSequence<double>([
-            TweenSequenceItem(tween: Tween(begin: .3, end: 1.2).chain(CurveTween(curve: Curves.easeOutBack)), weight: 35),
-            TweenSequenceItem(tween: Tween(begin: 1.2, end: 1.0), weight: 15),
+            TweenSequenceItem(tween: Tween(begin: .9, end: 1.1).chain(CurveTween(curve: Curves.easeOut)), weight: 35),
+            TweenSequenceItem(tween: Tween(begin: 1.1, end: 1.0), weight: 15),
             TweenSequenceItem(tween: ConstantTween(1.0), weight: 30),
             TweenSequenceItem(tween: Tween(begin: 1.0, end: 1.3), weight: 20),
           ]).animate(_c);
@@ -399,7 +406,7 @@ class _DoubleTapLikeState extends State<DoubleTapLike> with SingleTickerProvider
                       Positioned.fill(
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(widget.radius),
-                          child: ColoredBox(color: t.scrim.withValues(alpha: .18 * dim.value.clamp(0, 1))),
+                          child: ColoredBox(color: t.scrim.withValues(alpha: .15 * dim.value.clamp(0, 1))),
                         ),
                       ),
                       Opacity(
@@ -409,8 +416,7 @@ class _DoubleTapLikeState extends State<DoubleTapLike> with SingleTickerProvider
                           child: Icon(Icons.favorite,
                               key: const ValueKey('double-tap-heart'),
                               size: 88,
-                              color: t.onMedia,
-                              shadows: [Shadow(color: t.scrim.withValues(alpha: .3), blurRadius: 16)]),
+                              color: t.onMedia),
                         ),
                       ),
                     ])

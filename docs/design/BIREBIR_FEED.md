@@ -43,3 +43,25 @@ Uygulama görüntüleri (önce/sonra): `C:\bu_qa\shots\tasarim\p3\feed\onceki|so
 
 ## Test / doğrulama
 `mobile/test/redesign/p3feed_test.dart` (ölçü testleri: kart 350 dp tam genişlik, 4:5, 24 köşe, gradyan .28, ad onMedia 15, hap 44, metin tek satır, öneri düğmesi çerçeve/36 dp, boş/hata, compose, 320/390 dp x1.3 açık+koyu taşma matrisi).
+
+## Gönderi detayı + tam ekran fotoğraf + menüler (Stitch v3 kategori 3)
+
+Referans: `C:\bu_design\stitch\v3_feed\gonderi-detay\01..06` + SARTNAME "KATEGORİ 3". Uygulama: `post_card.dart` (`_buildDetail`), `post_detail_page.dart`, `post_photo_viewer.dart`, `post_actions.dart`, `like_button.dart`.
+
+| Öğe | Referans | Uygulama | Fark / not |
+|---|---|---|---|
+| Üst çubuk | 56 dp, geri + "Gönderi" 18/600, sağda avatar YOK | mevcut `BuHeader` (ortak, `widgets/*`) | başlık boyutu ortak bileşenden gelir (kilitli) |
+| Yazar satırı | 20 dp kenar, dikey 8, avatar 40, ad 15/600, "bölüm · zaman" 13 mut tek satır, sağda ⋯ 24 dp (48 hit) | aynı (`PostMetaLine` ayraç " · ", `bodySmall` 13 mut) | 0 |
+| Fotoğraf | 20 dp kenar içinde 4:5, köşe 16, kart/gölge yok | `Padding(pageH)` + `PostPhoto(radius: 16)`; kart yüzeyi kalktı | 0 |
+| Alt satır | kalp 22 + sayı 15/600 + "·" + metin 15; "düzenlendi" 12 mut 6 dp altta | `LikeButton(detail: true, size: 22)`: beğenilmemiş ink çizgi kalp, beğenilince dolu pr; metin kaydırılır (1 satıra sığmazsa sarar, kırpılmaz); "düzenlendi" ayrı satır, anahtar `post-edited` | metin kırpma yok (referans tek satır; detayda tam metin önceliği) |
+| Beğeni animasyonu | 1 -> 1.38 -> 1, tabular sayı | aynı (eski .92 geri vuruşu kaldırıldı) | 0 |
+| Çift dokunuş | foto %15 kararır, 88 dp beyaz dolu kalp gölgesiz, ölçek .9 -> 1.1 -> 1.0, sonra fade | aynı (`DoubleTapLike`: karartma .15, gölge kaldırıldı, ölçek .9/1.1/1.0); Keşfet kartı da aynı davranışı kullanır | 0 |
+| Tam ekran | saf siyah, tek sol üst beyaz "x" 24 dp (48 hit); pinch, çift dokunuş, sürükle-kapat | zemin `scrim` (siyah) alfa 1 -> sürüklenince açılır; "x" 24 dp `onMedia`, yuvarlak zemin kalktı, sol üst; jestler aynı | 0 |
+| Menü (kendi/başkası) | alt sayfa, her satır 56 dp, 24 dp yatay iç boşluk, 16/500, ikon 24, 1 dp bd ayırıcı, danger satırı danger renk | `BuSheet` + `_SheetRow` (anahtarlar `post-act-*` aynı); eski ⋯ altında açılan kart + karartma deliği kaldırıldı | 0 |
+| Düzenle diyaloğu | köşe 24, iç 24, başlık 20/600, alan 16 köşe 1 dp bdStrong min 72 dp iç 16x14, sayaç altta sağda 12 mut (aşımda danger), Vazgeç metin + Kaydet pr 48 dp, hata danger 13 ikonsuz | aynı (`_EditDialog`, `_DialogShell` 24) | 0 |
+| Silme/engelleme onayı | aynı diyalog kalıbı, ikon yok, Vazgeç + Sil (danger dolu) | ikon karoları kalktı, düğmeler 48 dp, eşit genişlik | 0 |
+| Şikâyet sheet'i | mevcut `BuSheet` (Stitch üretemedi) | UYGULANMADI: `widgets/report_sheet.dart` ortak dosya | ortak dosyada değişiklik gerekir (raporlandı) |
+| Yükleniyor | 4:5 blok + yazar iskeleti | `PostCardSkeleton` kartsız, blok köşe 16 | baskın renk blok yok (sf2) |
+| Bulunamadı | "Gönderi bulunamadı" 18/600 + mut "Silinmiş ya da gizlenmiş olabilir." | ARB'deki tek cümle parantezden bölünür (başlık + soluk "silinmiş veya gizlenmiş olabilir"), simge/kart yok | ikinci satır ARB metniyle (referanstan sözcük farkı) |
+
+Testler: `p3feed_test.dart` grup "Gonderi detayi (Stitch v3 kategori 3)" (yerleşim, tam ekran, menü, düzenle/sil diyalogları, bulunamadı, 320/390 dp x1.3 taşma); `k4_posts_test` menü testleri alt sayfaya göre güncellendi.

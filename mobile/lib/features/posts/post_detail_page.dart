@@ -145,21 +145,21 @@ class _NotFound extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
+    // "Gönderi bulunamadı (silinmiş veya gizlenmiş olabilir)": başlık + soluk ikinci satır (Stitch v3).
+    final raw = context.l10n.p04PostNotFound;
+    final i = raw.indexOf('(');
+    final title = i > 0 ? raw.substring(0, i).trim() : raw;
+    final detail = i > 0 ? raw.substring(i + 1).replaceAll(')', '').trim() : null;
     return Padding(
       padding: const EdgeInsets.fromLTRB(BuSpace.page, BuSpace.xxxl, BuSpace.page, 0),
       child: Align(
         alignment: Alignment.topCenter,
         child: Column(mainAxisSize: MainAxisSize.min, children: [
-          Container(
-            width: 64,
-            height: 64,
-            decoration: BoxDecoration(color: t.sf2, shape: BoxShape.circle),
-            child: Icon(LucideIcons.image, size: 28, color: t.mut),
-          ),
-          BuGap.h16,
-          Text(context.l10n.p04PostNotFound,
-              textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: t.mut)),
+          Text(title, textAlign: TextAlign.center, style: Theme.of(context).textTheme.titleMedium?.copyWith(color: t.ink, fontSize: 18, fontWeight: FontWeight.w600)),
+          if (detail != null) ...[
+            BuGap.h6,
+            Text(detail, textAlign: TextAlign.center, style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: t.mut, fontSize: 15)),
+          ],
         ]),
       ),
     );
