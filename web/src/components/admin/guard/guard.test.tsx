@@ -452,7 +452,7 @@ describe('AuditTrail', () => {
     const fetchMock = mockFetch(() => jsonResponse(404, { code: 'NOT_FOUND', message: 'yok' }));
     renderWithProviders(<AuditTrail targetType="USER" targetId={42} />);
     expect(await screen.findByText('Denetim kaydı henüz yok')).toBeInTheDocument();
-    const url = String(fetchMock.mock.calls[0][0]);
+    const url = String(fetchMock.mock.calls.map((c) => String(c[0])).find((u) => u.includes('/admin/audit')));
     expect(url).toContain('/admin/audit');
     expect(url).toContain('targetType=USER');
     expect(url).toContain('targetId=42');

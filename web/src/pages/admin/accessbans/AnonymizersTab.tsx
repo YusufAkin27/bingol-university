@@ -11,7 +11,7 @@ import {
 } from '../../../api/accessBans';
 import {
   Badge,
-  Button,
+  PermissionButton,
   Card,
   ConfirmDialog,
   ErrorState,
@@ -118,9 +118,9 @@ export function AnonymizersTab() {
             />
           </FormField>
           <div>
-            <Button type="submit" loading={upload.isPending} disabled={lines.length === 0}>
+            <PermissionButton permission="moderation.write" type="submit" loading={upload.isPending} disabled={lines.length === 0}>
               {t('admin.ab.anon.submit')}
-            </Button>
+            </PermissionButton>
           </div>
         </form>
         {result && <BulkResultView result={result} />}
@@ -141,9 +141,9 @@ export function AnonymizersTab() {
                   <strong className="ltr">{s.source || t('admin.ab.anon.noLabel')}</strong>{' '}
                   <span className={styles.muted}>{t('admin.ab.anon.count', { n: formatNumber(s.count) })}</span>
                 </span>
-                <Button size="sm" variant="danger" onClick={() => setRemoving(s)}>
+                <PermissionButton permission="moderation.write" size="sm" variant="danger" onClick={() => setRemoving(s)}>
                   {t('admin.ab.remove')}
-                </Button>
+                </PermissionButton>
               </li>
             ))}
           </ul>

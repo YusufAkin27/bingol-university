@@ -43,7 +43,9 @@ const FULL_TOKEN = 'fcm-tam-token-HICBIR-ZAMAN-GOSTERILMEZ-ABC123';
 
 type Call = { url: string; init: RequestInit };
 function calls(fn: ReturnType<typeof mockFetch>): Call[] {
-  return fn.mock.calls.map(([url, init]) => ({ url: String(url), init: (init ?? {}) as RequestInit }));
+  return fn.mock.calls
+    .map(([url, init]) => ({ url: String(url), init: (init ?? {}) as RequestInit }))
+    .filter((c) => !c.url.endsWith('/admin/rbac/me')); // izin sorgusu eylem çağrısı sayılmaz
 }
 const hdr = (c: Call, name: string) => (c.init.headers as Record<string, string> | undefined)?.[name];
 const reasonOf = (c: Call) => decodeURIComponent(hdr(c, 'X-Admin-Reason') ?? '');

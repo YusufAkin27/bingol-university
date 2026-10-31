@@ -10,6 +10,7 @@ import type { StaffReplyResult } from '../../api/types';
 import {
   Badge,
   Button,
+  PermissionButton,
   Card,
   ConfirmDialog,
   ErrorState,
@@ -27,6 +28,7 @@ import {
   toneFor,
   useToast,
 } from '../../components/ui';
+import { useCan } from '../../auth/permissions';
 import { useI18n } from '../../i18n/I18nProvider';
 import { errorMessage } from '../../lib/errors';
 import { usePageTitle } from '../../lib/hooks';
@@ -68,6 +70,7 @@ export default function TicketDetailPage() {
   const [templates, setTemplates] = useState<ReplyTemplate[]>(loadTemplates);
   const [newTpl, setNewTpl] = useState('');
   const replyRef = useRef<HTMLTextAreaElement>(null);
+  const canWrite = useCan('support.write'); // VIEWER yalnız okur (A3-06): yazma denetimleri devre dışı
 
   const query = useQuery({
     queryKey: qk.tickets.detail(id),
@@ -195,15 +198,16 @@ export default function TicketDetailPage() {
           ticket ? (
             <>
               {canClose(ticket.status) ? (
-                <Button variant="secondary" onClick={() => setCloseOpen(true)}>
+                <PermissionButton permission="support.write" variant="secondary" onClick={() => setCloseOpen(true)}>
                   {t('admin.tickets.close.button')}
-                </Button>
+                </PermissionButton>
               ) : (
-                <Button variant="secondary" loading={reopen.isPending} onClick={() => reopen.mutate()}>
+                <PermissionButton permission="support.write" variant="secondary" loading={reopen.isPending} onClick={() => reopen.mutate()}>
                   {t('admin.p12.reopen.button')}
-                </Button>
+                </PermissionButton>
               )}
               <GuardedAction
+                permission="support.write"
                 variant="ghost"
                 danger
                 irreversible
@@ -293,9 +297,9 @@ export default function TicketDetailPage() {
                   />
                 </FormField>
                 <div>
-                  <Button type="submit" variant="secondary" disabled={!noteText.trim()} loading={addNote.isPending}>
+                  <PermissionButton permission="support.write" type="submit" variant="secondary" disabled={!noteText.trim()} loading={addNote.isPending}>
                     {t('admin.p12.notes.add')}
-                  </Button>
+                  </PermissionButton>
                 </div>
               </form>
             </Card>
@@ -328,9 +332,9 @@ export default function TicketDetailPage() {
                   >
                     {t('admin.tickets.reply.counter', { n: text.length, max: MAX_REPLY })}
                   </span>
-                  <Button onClick={send} disabled={!canSend} loading={reply.isPending}>
+                  <PermissionButton permission="support.write" onClick={send} disabled={!canSend} loading={reply.isPending}>
                     {t('admin.tickets.reply.send')}
-                  </Button>
+                  </PermissionButton>
                 </div>
               </div>
             ) : (
@@ -346,7 +350,7 @@ export default function TicketDetailPage() {
                 <FormField label={t('admin.p12.triage.priority')}>
                   <Select
                     value={query.data.priority ?? 'NORMAL'}
-                    disabled={patch.isPending}
+                    disabled={patch.isPending || !canWrite}
                     onChange={(e) => patch.mutate({ priority: e.target.value as TicketPriority })}
                   >
                     {TICKET_PRIORITIES.map((p) => (
@@ -370,7 +374,7 @@ export default function TicketDetailPage() {
                       onChange={(e) => setAssignee(e.target.value)}
                     />
                   </FormField>
-                  <Button
+                  <PermissionButton permission="support.write"
                     size="sm"
                     variant="secondary"
                     disabled={parseAssignee(assignee) === null}
@@ -381,11 +385,11 @@ export default function TicketDetailPage() {
                     }}
                   >
                     {t('admin.p12.triage.assign')}
-                  </Button>
+                  </PermissionButton>
                   {query.data.assigneeId && (
-                    <Button size="sm" variant="ghost" disabled={patch.isPending} onClick={() => patch.mutate({ unassign: true })}>
+                    <PermissionButton permission="support.write" size="sm" variant="ghost" disabled={patch.isPending} onClick={() => patch.mutate({ unassign: true })}>
                       {t('admin.p12.triage.unassign')}
-                    </Button>
+                    </PermissionButton>
                   )}
                 </div>
               </div>

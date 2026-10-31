@@ -52,6 +52,7 @@ export function MessageBulkBar({ selection }: { selection: MessageSelection }) {
   return (
     <BulkBar count={selected.size} onClear={clear}>
       <GuardedAction
+        permission="chat.write"
         size="sm"
         variant="secondary"
         title={t('admin.p08.bulk.title')}

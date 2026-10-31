@@ -27,6 +27,7 @@ export function ProfileTab({ user }: { user: AdminUserDetail }) {
             {user.avatarUrl ? t('admin.p09.profile.avatar.set') : t('admin.p09.profile.avatar.none')}
           </p>
           <GuardedAction
+            permission="users.write"
             variant="secondary"
             size="sm"
             disabled={!user.avatarUrl}
@@ -53,6 +54,7 @@ export function ProfileTab({ user }: { user: AdminUserDetail }) {
             <strong>{t('admin.p09.profile.bio')}:</strong> {user.bio || t('admin.p09.profile.bio.none')}
           </p>
           <GuardedAction
+            permission="users.write"
             variant="secondary"
             size="sm"
             disabled={!user.bio}
@@ -83,6 +85,7 @@ export function ProfileTab({ user }: { user: AdminUserDetail }) {
               <Input value={name} maxLength={80} onChange={(e) => setName(e.target.value)} />
             </FormField>
             <GuardedAction
+              permission="users.write"
               variant="secondary"
               size="sm"
               disabled={trimmed.length < 2 || trimmed === user.displayName}

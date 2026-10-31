@@ -13,9 +13,11 @@ import {
   type UserDevice,
 } from '../../../api/accessBans';
 import { isApiError } from '../../../api/client';
+import { usePermGate } from '../../../auth/permissions';
 import {
   Badge,
   Button,
+  PermissionButton,
   Card,
   Checkbox,
   ConfirmDialog,
@@ -168,8 +170,15 @@ export function UserDevices({ userId }: { userId: number }) {
   const i18n = useI18n();
   const { t, td, formatDateTime, formatNumber } = i18n;
   const [action, setAction] = useState<Action | null>(null);
-  const q = useQuery({ queryKey: accessBanKeys.devices(userId), queryFn: () => listUserDevices(userId) });
+  // GET /admin/users/{id}/devices sunucuda users.pii ister (IP/cihaz = kişisel veri): izinsiz profilde bölüm gösterilmez (A3-04)
+  const gate = usePermGate('users.pii');
+  const q = useQuery({
+    queryKey: accessBanKeys.devices(userId),
+    queryFn: () => listUserDevices(userId),
+    enabled: gate === 'allowed',
+  });
 
+  if (gate === 'denied') return null;
   return (
     <Card title={t('admin.ab.dev.title')}>
       {q.isError ? (
@@ -204,9 +213,9 @@ export function UserDevices({ userId }: { userId: number }) {
                         {p.blocked ? (
                           <Badge tone="danger">{t('admin.ab.dev.blocked')}</Badge>
                         ) : (
-                          <Button size="sm" variant="ghost" onClick={() => setAction({ type: 'ip', ip: p.ip })}>
+                          <PermissionButton permission="moderation.write" size="sm" variant="ghost" onClick={() => setAction({ type: 'ip', ip: p.ip })}>
                             {t('admin.ab.dev.blockIp')}
-                          </Button>
+                          </PermissionButton>
                         )}
                       </li>
                     ))}
@@ -226,9 +235,9 @@ export function UserDevices({ userId }: { userId: number }) {
               )}
               {!d.blocked && (
                 <div className={styles.actions}>
-                  <Button size="sm" variant="danger" onClick={() => setAction({ type: 'device', device: d })}>
+                  <PermissionButton permission="moderation.write" size="sm" variant="danger" onClick={() => setAction({ type: 'device', device: d })}>
                     {t('admin.ab.dev.blockDevice')}
-                  </Button>
+                  </PermissionButton>
                 </div>
               )}
             </div>
@@ -244,9 +253,9 @@ export function UserDevices({ userId }: { userId: number }) {
                     {p.blocked ? (
                       <Badge tone="danger">{t('admin.ab.dev.blocked')}</Badge>
                     ) : (
-                      <Button size="sm" variant="ghost" onClick={() => setAction({ type: 'ip', ip: p.ip })}>
+                      <PermissionButton permission="moderation.write" size="sm" variant="ghost" onClick={() => setAction({ type: 'ip', ip: p.ip })}>
                         {t('admin.ab.dev.blockIp')}
-                      </Button>
+                      </PermissionButton>
                     )}
                   </li>
                 ))}
@@ -254,9 +263,9 @@ export function UserDevices({ userId }: { userId: number }) {
             </div>
           )}
           <div>
-            <Button variant="danger" onClick={() => setAction({ type: 'all' })}>
+            <PermissionButton permission="moderation.write" variant="danger" onClick={() => setAction({ type: 'all' })}>
               {t('admin.ab.dev.blockAll')}
-            </Button>
+            </PermissionButton>
           </div>
         </div>
       )}

@@ -10,10 +10,10 @@ import { useAuth } from '../../auth/AuthProvider';
 import {
   Avatar,
   Badge,
-  Button,
   Card,
   ErrorState,
   PageHeader,
+  PermissionButton,
   Skeleton,
   StatusPill,
   toneFor,
@@ -194,9 +194,14 @@ export default function UserDetailPage() {
           <Card title={t('admin.users.detail.notify')}>
             <p className={styles.hint}>{t('admin.users.detail.notifyHint')}</p>
             <div style={{ marginBlockStart: 'var(--space-3)' }}>
-              <Button variant="secondary" disabled={u.status === 'DELETED'} onClick={() => setNotifyOpen(true)}>
+              <PermissionButton
+                permission="comms.single"
+                variant="secondary"
+                disabled={u.status === 'DELETED'}
+                onClick={() => setNotifyOpen(true)}
+              >
                 {t('admin.users.detail.notifySend')}
-              </Button>
+              </PermissionButton>
             </div>
           </Card>
           {notifyOpen && (

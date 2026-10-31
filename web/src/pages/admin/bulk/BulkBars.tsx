@@ -39,6 +39,7 @@ export function NewsBulkBar({ ids, onClear, onDone }: BarProps & { ids: number[]
     <>
       <BulkBar count={ids.length} onClear={onClear}>
         <GuardedAction
+          permission="content.write"
           size="sm"
           variant="secondary"
           title={t('admin.p15.news.hide.title', { n: ids.length })}
@@ -55,6 +56,7 @@ export function NewsBulkBar({ ids, onClear, onDone }: BarProps & { ids: number[]
           {t('admin.p15.news.hide')}
         </GuardedAction>
         <GuardedAction
+          permission="content.write"
           size="sm"
           variant="secondary"
           title={t('admin.p15.news.show.title', { n: ids.length })}
@@ -108,6 +110,7 @@ export function AcademicBulkBar({
     <>
       <BulkBar count={ids.length} onClear={onClear}>
         <GuardedAction
+          permission="content.write"
           {...common}
           variant="secondary"
           title={t('admin.p15.acd.publish.title', { n: ids.length })}
@@ -120,6 +123,7 @@ export function AcademicBulkBar({
           {t('admin.p15.acd.publish')}
         </GuardedAction>
         <GuardedAction
+          permission="content.write"
           {...common}
           variant="secondary"
           title={t('admin.p15.acd.unpublish.title', { n: ids.length })}
@@ -132,6 +136,7 @@ export function AcademicBulkBar({
           {t('admin.p15.acd.unpublish')}
         </GuardedAction>
         <GuardedAction
+          permission="content.write"
           {...common}
           variant="danger"
           danger
@@ -160,6 +165,7 @@ export function MenuBulkBar({ dates, onClear, onDone }: BarProps & { dates: stri
     <>
       <BulkBar count={dates.length} onClear={onClear}>
         <GuardedAction
+          permission="content.write"
           size="sm"
           variant="danger"
           danger
@@ -198,6 +204,7 @@ export function PendingBulkCancel({ emails, onDone }: { emails: string[]; onDone
   return (
     <>
       <GuardedAction
+        permission="users.write"
         variant="danger"
         danger
         title={t('admin.p15.pending.cancel.title', { n: emails.length })}

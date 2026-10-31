@@ -136,6 +136,7 @@ export default function ReasonTemplatesPage() {
             {t('common.edit')}
           </Button>
           <GuardedAction
+            permission="moderation.write"
             size="sm"
             variant="ghost"
             danger

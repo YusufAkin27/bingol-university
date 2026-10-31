@@ -69,6 +69,7 @@ export function CertificatesPanel({ eventId }: { eventId: number }) {
                 {status(c)}
                 {c.revoked ? (
                   <GuardedAction
+                    permission="content.write"
                     size="sm"
                     variant="secondary"
                     title={t('admin.p07.cert.restore.title', { name: c.holderName })}
@@ -87,6 +88,7 @@ export function CertificatesPanel({ eventId }: { eventId: number }) {
                   </GuardedAction>
                 ) : (
                   <GuardedAction
+                    permission="content.write"
                     size="sm"
                     variant="danger"
                     danger

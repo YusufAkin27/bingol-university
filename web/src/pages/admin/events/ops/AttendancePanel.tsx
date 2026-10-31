@@ -43,6 +43,7 @@ export function AttendancePanel({ eventId }: { eventId: number }) {
           : null;
     return (
       <GuardedAction
+        permission="content.write"
         size="sm"
         variant="secondary"
         title={t(present ? 'admin.p07.att.markPresent.title' : 'admin.p07.att.markAbsent.title', {

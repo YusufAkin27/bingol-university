@@ -9,7 +9,7 @@ describe('AuditTrail (P02 verisi)', () => {
   it('targetType/targetId ile istenir; sebep ve özet gösterilir; tüm kayıtlara bağlanır', async () => {
     const calls: string[] = [];
     mockFetch((url) => {
-      calls.push(url);
+      if (url.includes('/admin/audit')) calls.push(url); // izin sorgusu (rbac/me) sayılmaz
       return jsonResponse(200, {
         items: [
           {

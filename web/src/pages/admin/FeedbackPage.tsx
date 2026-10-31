@@ -156,6 +156,7 @@ function FeedbackDrawer({ item, onClose }: { item: AdminFeedbackView; onClose: (
               <Input inputMode="numeric" className="ltr" value={mergeTarget} onChange={(e) => setMergeTarget(e.target.value)} />
             </FormField>
             <GuardedAction
+              permission="support.write"
               variant="secondary"
               danger
               irreversible
@@ -178,6 +179,7 @@ function FeedbackDrawer({ item, onClose }: { item: AdminFeedbackView; onClose: (
           </div>
           <div>
             <GuardedAction
+              permission="support.write"
               variant="ghost"
               danger
               irreversible

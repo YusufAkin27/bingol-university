@@ -403,6 +403,7 @@ export default function UsersPage() {
       <BulkBar count={selected.size} onClear={() => setSelected(new Set())}>
         {overLimit && <span className={deep.hint}>{t('admin.p09.bulk.limit', { max: USER_BULK_MAX })}</span>}
         <GuardedAction
+          permission="users.write"
           size="sm"
           variant="danger"
           danger
@@ -422,6 +423,7 @@ export default function UsersPage() {
           {t('admin.p09.bulk.suspend')}
         </GuardedAction>
         <GuardedAction
+          permission="users.write"
           size="sm"
           variant="secondary"
           disabled={overLimit}
@@ -440,6 +442,7 @@ export default function UsersPage() {
           {t('admin.p09.bulk.unsuspend')}
         </GuardedAction>
         <GuardedAction
+          permission="users.write"
           size="sm"
           variant="secondary"
           disabled={overLimit}

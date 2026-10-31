@@ -37,6 +37,7 @@ export function OutboxDrawer({ id, onClose }: { id: number | null; onClose: () =
           <>
             {d.canRetry && (
               <GuardedAction
+                permission="system.write"
                 variant="secondary"
                 irreversible={false}
                 title={t('admin.p14.queue.retry.title', { id: d.id })}
@@ -53,6 +54,7 @@ export function OutboxDrawer({ id, onClose }: { id: number | null; onClose: () =
             )}
             {d.canCancel && (
               <GuardedAction
+                permission="system.write"
                 variant="danger"
                 danger
                 requireReason

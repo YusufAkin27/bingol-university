@@ -156,6 +156,7 @@ export function PollDetailDrawer({
             )}
             {canClose(p.state) && (
               <GuardedAction
+                permission="content.write"
                 size="sm"
                 variant="secondary"
                 title={t('admin.p03.close.title')}
@@ -173,6 +174,7 @@ export function PollDetailDrawer({
             )}
             {canCancel(p.state) && (
               <GuardedAction
+                permission="content.write"
                 size="sm"
                 variant="danger"
                 danger
@@ -190,6 +192,7 @@ export function PollDetailDrawer({
               </GuardedAction>
             )}
             <GuardedAction
+              permission="content.write"
               size="sm"
               variant="danger"
               danger

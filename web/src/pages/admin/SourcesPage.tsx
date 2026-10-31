@@ -62,6 +62,7 @@ export default function SourcesPage() {
   function syncButton(source: SourceName) {
     return (
       <GuardedAction
+        permission="system.write"
         size="sm"
         variant="secondary"
         title={t(`admin.p15.sources.confirmTitle.${source}`)}

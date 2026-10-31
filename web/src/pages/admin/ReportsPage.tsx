@@ -8,6 +8,7 @@ import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tansta
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { modAdminApi, qk, reportsApi, usersApi } from '../../api';
+import { useCan } from '../../auth/permissions';
 import type {
   ReportOrder,
   ReportReasonCode,
@@ -144,6 +145,8 @@ export default function ReportsPage() {
   const [typeFilter, setTypeFilter] = useState<ReportTargetType | ''>('');
   const [reasonCode, setReasonCode] = useState<ReportReasonCode | ''>('');
   const [bulkIds, setBulkIds] = useState<number[]>([]);
+  // toplu seçim/işlem moderation.write ister; yalnız okuyabilen profilde (VIEWER) seçim kutuları gizlenir (A3-05)
+  const canModerate = useCan('moderation.write');
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [action, setAction] = useState<ReportResolution>('DISMISS');
   const [message, setMessage] = useState('');
@@ -301,7 +304,7 @@ export default function ReportsPage() {
           </Select>
         </FormField>
       </div>
-      {status === 'OPEN' && (
+      {status === 'OPEN' && canModerate && (
         <BulkBar
           ids={bulkIds}
           templates={templates}
@@ -338,7 +341,7 @@ export default function ReportsPage() {
                 const active = r.id === selectedId;
                 return (
                   <li key={r.id} className={status === 'OPEN' ? modStyles.rowWrap : undefined}>
-                    {status === 'OPEN' && (
+                    {status === 'OPEN' && canModerate && (
                       <Checkbox
                         label={<span className="sr-only">{t('admin.reports.bulk.select', { id: r.id })}</span>}
                         checked={bulkIds.includes(r.id)}

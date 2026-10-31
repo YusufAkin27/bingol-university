@@ -123,6 +123,7 @@ export default function StrikesPage() {
       render: (r) =>
         canForgive(r) ? (
           <GuardedAction
+            permission="moderation.write"
             size="sm"
             variant="secondary"
             irreversible

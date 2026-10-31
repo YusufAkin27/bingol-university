@@ -14,6 +14,7 @@ import {
 import {
   Badge,
   Button,
+  PermissionButton,
   ConfirmDialog,
   Drawer,
   EmptyState,
@@ -147,15 +148,15 @@ export function BansTab() {
           <Button size="sm" variant="secondary" onClick={() => setViewing(b)}>
             {t('admin.ab.attempts')}
           </Button>
-          <Button size="sm" variant="secondary" onClick={() => setEditing(b)}>
+          <PermissionButton permission="moderation.write" size="sm" variant="secondary" onClick={() => setEditing(b)}>
             {t('admin.ab.edit')}
-          </Button>
-          <Button size="sm" variant="secondary" loading={toggle.isPending && toggle.variables?.id === b.id} onClick={() => toggle.mutate(b)}>
+          </PermissionButton>
+          <PermissionButton permission="moderation.write" size="sm" variant="secondary" loading={toggle.isPending && toggle.variables?.id === b.id} onClick={() => toggle.mutate(b)}>
             {b.active ? t('admin.ab.disable') : t('admin.ab.enable')}
-          </Button>
-          <Button size="sm" variant="danger" onClick={() => setRemoving(b)}>
+          </PermissionButton>
+          <PermissionButton permission="moderation.write" size="sm" variant="danger" onClick={() => setRemoving(b)}>
             {t('admin.ab.remove')}
-          </Button>
+          </PermissionButton>
         </div>
       ),
     },
@@ -188,7 +189,7 @@ export function BansTab() {
             <SearchInput label={t('admin.ab.filter.search')} placeholder={t('admin.ab.filter.searchPh')} onSearch={setQ} />
           </div>
         </div>
-        <Button onClick={() => setAdding(true)}>{t('admin.ab.add')}</Button>
+        <PermissionButton permission="moderation.write" onClick={() => setAdding(true)}>{t('admin.ab.add')}</PermissionButton>
       </div>
 
       {query.isError ? (

@@ -59,6 +59,7 @@ export function ConversationTools({ conversationId, viewReason }: { conversation
       <div className={styles.toolsRow}>
         {c.closed ? (
           <GuardedAction
+            permission="chat.write"
             variant="secondary"
             size="sm"
             title={t('admin.p08.reopen.title')}
@@ -74,6 +75,7 @@ export function ConversationTools({ conversationId, viewReason }: { conversation
           </GuardedAction>
         ) : (
           <GuardedAction
+            permission="chat.write"
             danger
             size="sm"
             title={t('admin.p08.close.title')}
@@ -107,6 +109,7 @@ export function ConversationTools({ conversationId, viewReason }: { conversation
             ))}
           </Select>
           <GuardedAction
+            permission="chat.write"
             danger
             size="sm"
             disabled={!picked}

@@ -106,7 +106,7 @@ export const adminNav: AdminNavGroup[] = [
     items: [
       { id: 'acdCalendar', perm: 'content.read', to: paths.admin.acdCalendar, labelKey: 'admin.nav.acdCalendar', icon: 'calendar' },
       { id: 'acdExams', perm: 'content.read', to: paths.admin.acdExams, labelKey: 'admin.nav.acdExams', icon: 'list' },
-      { id: 'acdAnnouncements', perm: 'content.read', to: paths.admin.acdAnnouncements, labelKey: 'admin.nav.acdAnnouncements', icon: 'news' },
+      { id: 'acdAnnouncements', perm: 'comms.read', to: paths.admin.acdAnnouncements, labelKey: 'admin.nav.acdAnnouncements', icon: 'news' },
     ],
   },
   {

@@ -49,6 +49,7 @@ interface Call {
 let calls: Call[] = [];
 
 function record(url: string, init: RequestInit): void {
+  if (url.endsWith('/admin/rbac/me')) return; // izin sorgusu (GuardedAction permission) eylem çağrısı değildir
   calls.push({
     url,
     method: init.method ?? 'GET',

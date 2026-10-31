@@ -5,7 +5,8 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { adminPostsApi } from '../../../api';
 import type { AdminPostMedia, AdminPostRow } from '../../../api/adminPosts';
-import { Badge, Button, FormField, Input, Modal, useToast } from '../../../components/ui';
+import { Badge, Button,
+  PermissionButton, FormField, Input, Modal, useToast } from '../../../components/ui';
 import { GuardedDialog } from '../../../components/admin/GuardedDialog';
 import { ADMIN_REASON_MIN } from '../../../components/admin/guard/match';
 import { useI18n } from '../../../i18n/I18nProvider';
@@ -187,21 +188,21 @@ export function PostActionButtons({
   if (post.deleted) return null;
   return (
     <div className={styles.actions}>
-      <Button size="sm" variant="secondary" onClick={() => actions.askEdit(post)}>
+      <PermissionButton permission="content.hide" size="sm" variant="secondary" onClick={() => actions.askEdit(post)}>
         {t('admin.posts.action.edit')}
-      </Button>
+      </PermissionButton>
       {post.hidden ? (
-        <Button size="sm" variant="secondary" loading={actions.busy} onClick={() => actions.unhide(post)}>
+        <PermissionButton permission="content.hide" size="sm" variant="secondary" loading={actions.busy} onClick={() => actions.unhide(post)}>
           {t('admin.posts.action.unhide')}
-        </Button>
+        </PermissionButton>
       ) : (
-        <Button size="sm" variant="secondary" onClick={() => actions.askHide(post)}>
+        <PermissionButton permission="content.hide" size="sm" variant="secondary" onClick={() => actions.askHide(post)}>
           {t('admin.posts.action.hide')}
-        </Button>
+        </PermissionButton>
       )}
-      <Button size="sm" variant="danger" onClick={() => actions.askDelete(post)}>
+      <PermissionButton permission="content.hide" size="sm" variant="danger" onClick={() => actions.askDelete(post)}>
         {t('admin.posts.action.delete')}
-      </Button>
+      </PermissionButton>
     </div>
   );
 }

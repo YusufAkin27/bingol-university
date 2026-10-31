@@ -140,4 +140,9 @@ export default {
   'admin.p16.changes.ownProposal': 'Kendi önerinizi onaylayamazsınız; ikinci bir FULL yönetici gerekir.',
   'admin.p16.changes.reasonLabel': 'Sebep (denetim kaydına yazılır)',
   'admin.p16.changes.you': 'Siz',
+
+  // W2-K (T-156): yetkisiz bölümler gizlenir / yetkisiz hata anlaşılır anlatılır
+  'admin.p16.reportCtxHidden': 'Şikâyet ayrıntısı ve sohbet bağlamı bu yönetici profilinde gizlidir (gereken izin: chat.read).',
+  'admin.p16.sectionHidden': 'Bu bölüm yönetici profilinizde gösterilmez (gereken izin: {perm}).',
+  'admin.p16.forbiddenShort': 'Bu bilgiyi görmek için yetkiniz yok.',
 };

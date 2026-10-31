@@ -1,7 +1,9 @@
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { api, isApiError } from '../../../api/client';
+import { usePermGate } from '../../../auth/permissions';
 import { useI18n } from '../../../i18n/I18nProvider';
+import { adminError } from '../../../lib/errors';
 import { paths } from '../../../paths';
 import { ErrorState, Spinner } from '../../ui/Feedback';
 import styles from './guard.module.css';
@@ -40,8 +42,12 @@ function toRows(data: unknown): AuditTrailEntry[] {
  * Bir kaydın denetim geçmişi: kim, ne zaman, ne yaptı, sebep. Uç henüz yoksa (404/501) "henüz yok" gösterir.
  */
 export function AuditTrail({ targetType, targetId, size = 20, title }: AuditTrailProps) {
-  const { t, formatDateTime } = useI18n();
+  const i18n = useI18n();
+  const { t, formatDateTime } = i18n;
+  // GET /admin/audit sunucuda audit.read ister: izni olmayan profilde (SUPPORT, MODERATOR...) bölüm hiç gösterilmez/istenmez (A3-04)
+  const gate = usePermGate('audit.read');
   const q = useQuery({
+    enabled: gate === 'allowed',
     queryKey: ['admin', 'audit-trail', targetType, String(targetId), size],
     queryFn: async () => {
       try {
@@ -53,13 +59,19 @@ export function AuditTrail({ targetType, targetId, size = 20, title }: AuditTrai
     },
   });
   const heading = title ?? t('admin.guard.audit.title');
+  if (gate === 'denied') return null;
   return (
     <section className={styles.audit} aria-label={heading}>
       <h3 className={styles.auditTitle}>{heading}</h3>
-      {q.isPending ? (
+      {q.isPending || gate === 'loading' ? (
         <Spinner size="sm" />
       ) : q.isError ? (
-        <ErrorState compact title={t('admin.guard.audit.error')} onRetry={() => void q.refetch()} />
+        <ErrorState
+          compact
+          title={t('admin.guard.audit.error')}
+          description={adminError(i18n, q.error)}
+          onRetry={() => void q.refetch()}
+        />
       ) : q.data.length === 0 ? (
         <p className={styles.auditEmpty}>{t('admin.guard.audit.empty')}</p>
       ) : (

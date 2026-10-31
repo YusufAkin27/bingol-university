@@ -46,6 +46,7 @@ export function ApplicationsPanel({ eventId, eventStatus }: { eventId: number; e
       <div className={styles.actions}>
         {canAccept && (
           <GuardedAction
+            permission="content.write"
             size="sm"
             variant="secondary"
             disabled={!live || full}
@@ -66,6 +67,7 @@ export function ApplicationsPanel({ eventId, eventStatus }: { eventId: number; e
         )}
         {canReject && (
           <GuardedAction
+            permission="content.write"
             size="sm"
             variant="danger"
             danger

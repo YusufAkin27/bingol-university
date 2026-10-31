@@ -7,7 +7,7 @@ import { Card, ErrorState, GuardedAction, Skeleton, StatusPill } from '../../../
 import { useI18n } from '../../../i18n/I18nProvider';
 import { adminError } from '../../../lib/errors';
 import { Callout } from '../campaigns/shared';
-import { codeKey } from './lib';
+import { codeKey, fcmOffReason } from './lib';
 import styles from './pushops.module.css';
 
 export function FcmTab() {
@@ -17,6 +17,7 @@ export function FcmTab() {
   const q = useQuery({ queryKey: pushOpsKeys.fcm(), queryFn: getFcmStatus });
   const s = q.data;
 
+  const off = s && !s.enabled ? fcmOffReason(s.error) : null;
   const errorLabel = (code: string | null) => {
     if (!code) return null;
     const k = codeKey(code);
@@ -51,6 +52,14 @@ export function FcmTab() {
         {s && !s.enabled && (
           <Callout tone="warning" title={t('admin.p14.fcm.off.title')}>
             {t('admin.p14.fcm.off.body')}
+            {off && (
+              <p data-testid="fcm-why">
+                <strong>{t('admin.p14.fcm.why.title')}</strong>{' '}
+                {off.kind === 'INIT_FAILED' && !off.detail
+                  ? t('admin.p14.fcm.why.INIT_FAILED.nodetail')
+                  : t(`admin.p14.fcm.why.${off.kind}`, { detail: off.detail ?? '' })}
+              </p>
+            )}
           </Callout>
         )}
       </Card>
@@ -59,6 +68,7 @@ export function FcmTab() {
         <p className={styles.hint}>{t('admin.p14.fcm.validate.desc')}</p>
         <div className={styles.row}>
           <GuardedAction
+            permission="system.write"
             variant="secondary"
             disabled={!s?.enabled}
             irreversible={false}

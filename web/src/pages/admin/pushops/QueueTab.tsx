@@ -35,6 +35,7 @@ import {
 import { useI18n } from '../../../i18n/I18nProvider';
 import { adminError } from '../../../lib/errors';
 import { OutboxDrawer } from './OutboxDrawer';
+import { DeadCodes } from './DeadCodes';
 import { codeKey, failureCounts, parseCampaignId, STATUS_TONE, validDate } from './lib';
 import styles from './pushops.module.css';
 
@@ -157,6 +158,12 @@ export function QueueTab() {
         <StatCard title={t('admin.p14.queue.stat.sent24')} value={st ? formatNumber(st.sentLast24h) : '—'} loading={stats.isLoading} />
       </div>
 
+      {st && st.dead > 0 && (
+        <div className={styles.stack} style={{ marginBlockEnd: 'var(--space-4)' }}>
+          <DeadCodes />
+        </div>
+      )}
+
       <div className={styles.filters} role="search" aria-label={t('admin.p14.filters')}>
         <FormField label={t('admin.p14.queue.filter.status')}>
           <Select value={filters.status} onChange={(e) => set({ status: e.target.value as OutboxStatus | '' })}>
@@ -235,6 +242,7 @@ export function QueueTab() {
       <BulkBar count={selected.size} onClear={() => setSelected(new Set())}>
         {overLimit && <span className={styles.hint}>{t('admin.p14.bulk.limit', { max: BULK_MAX })}</span>}
         <GuardedAction
+          permission="system.write"
           size="sm"
           variant="secondary"
           disabled={overLimit}
@@ -253,6 +261,7 @@ export function QueueTab() {
           {t('admin.p14.bulk.retry')}
         </GuardedAction>
         <GuardedAction
+          permission="system.write"
           size="sm"
           variant="danger"
           danger

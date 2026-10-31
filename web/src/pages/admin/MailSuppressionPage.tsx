@@ -261,6 +261,7 @@ function SuppressionDrawer({ id, onClose }: { id: number; onClose: () => void })
           <div className={styles.dangerZone}>
             <p className={styles.muted}>{t('admin.p13.supp.remove.hint', { n: policy.minReason })}</p>
             <GuardedAction
+              permission="system.write"
               danger
               irreversible
               requireReason

@@ -239,6 +239,7 @@ export default function MailQueuePage() {
           {t('admin.p13.bulk.eligibility', { retry: eligible.retryable, cancel: eligible.cancellable })}
         </p>
         <GuardedAction
+          permission="system.write"
           size="sm"
           variant="secondary"
           requireReason
@@ -257,6 +258,7 @@ export default function MailQueuePage() {
           {t('admin.p13.bulk.retry.button')}
         </GuardedAction>
         <GuardedAction
+          permission="system.write"
           size="sm"
           variant="danger"
           danger
@@ -391,6 +393,7 @@ function OutboxDrawer({ id, onClose }: { id: number; onClose: () => void }) {
             <div className={styles.actionsRow}>
               {(d.status === 'DEAD' || d.status === 'SKIPPED') && (
                 <GuardedAction
+                  permission="system.write"
                   variant="secondary"
                   requireReason
                   reasonMinLength={5}
@@ -410,6 +413,7 @@ function OutboxDrawer({ id, onClose }: { id: number; onClose: () => void }) {
               )}
               {d.cancellable && (
                 <GuardedAction
+                  permission="system.write"
                   danger
                   variant="danger"
                   irreversible

@@ -37,6 +37,7 @@ export function MessageActions({ m }: { m: AdminChatMessage }) {
       <div className={styles.menuList} hidden={!open}>
         {can.hide && (
           <GuardedAction
+            permission="chat.write"
             variant="secondary"
             size="sm"
             title={t('admin.p08.hide.title')}
@@ -55,6 +56,7 @@ export function MessageActions({ m }: { m: AdminChatMessage }) {
         )}
         {can.unhide && (
           <GuardedAction
+            permission="chat.write"
             variant="secondary"
             size="sm"
             title={t('admin.p08.unhide.title')}
@@ -73,6 +75,7 @@ export function MessageActions({ m }: { m: AdminChatMessage }) {
         )}
         {can.purge && (
           <GuardedAction
+            permission="chat.write"
             danger
             size="sm"
             title={t('admin.p08.purge.title')}

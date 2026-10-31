@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { adminChatApi, qk } from '../../../api';
+import { usePermGate } from '../../../auth/permissions';
 import type { ReportPerson } from '../../../api/types';
 import { Badge, Card, ErrorState, Skeleton } from '../../../components/ui';
 import { useI18n } from '../../../i18n/I18nProvider';
@@ -40,9 +41,27 @@ export function localViewerPath(p: string | null | undefined): string | null {
 export function ReportContextCard({ reportId, targetType }: { reportId: number; targetType?: string }) {
   const { t } = useI18n();
   const [forced, setForced] = useState(false);
+  // GET /admin/reports/{id} sunucuda chat.read ister (VIEWER liste okur, bağlam okuyamaz): istek hiç atılmaz (A3-05)
+  const gate = usePermGate('chat.read');
   const body = (reason: string | null) => (
     <ReportContextBody reportId={reportId} reason={reason} onNeedReason={() => setForced(true)} />
   );
+  if (gate === 'loading') {
+    return (
+      <Card title={t('admin.reports.ctx.title')}>
+        <Skeleton width="60%" />
+      </Card>
+    );
+  }
+  if (gate === 'denied') {
+    return (
+      <Card title={t('admin.reports.ctx.title')}>
+        <p className={styles.muted} data-testid="report-ctx-hidden">
+          {t('admin.p16.reportCtxHidden')}
+        </p>
+      </Card>
+    );
+  }
   return (
     <Card title={t('admin.reports.ctx.title')}>
       {targetType === 'MESSAGE' || forced ? (

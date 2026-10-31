@@ -2,7 +2,8 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useMemo, useState } from 'react';
 import { accessBanKeys, BAN_REASONS, bulkAdd, type BanReason, type BulkResult } from '../../../api/accessBans';
-import { Button, Card, ConfirmDialog, FormField, Input, Select, Textarea, useToast } from '../../../components/ui';
+import { Button,
+  PermissionButton, Card, ConfirmDialog, FormField, Input, Select, Textarea, useToast } from '../../../components/ui';
 import { ReasonField } from '../../../components/admin/guard/ReasonField';
 import { ADMIN_REASON_MIN, isReasonValid } from '../../../components/admin/guard/match';
 import { useI18n } from '../../../i18n/I18nProvider';
@@ -128,9 +129,9 @@ export function BulkTab() {
             disabled={run.isPending}
           />
           <div>
-            <Button type="submit" variant="danger" loading={run.isPending} disabled={lines.length === 0 || !whyOk}>
+            <PermissionButton permission="moderation.write" type="submit" variant="danger" loading={run.isPending} disabled={lines.length === 0 || !whyOk}>
               {t('admin.ab.bulk.submit')}
-            </Button>
+            </PermissionButton>
           </div>
         </form>
       </Card>

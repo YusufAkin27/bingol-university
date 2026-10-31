@@ -72,6 +72,7 @@ export function FeedbackPanel({ eventId }: { eventId: number }) {
                 <span className={styles.sub}>{formatDateTime(f.createdAt)}</span>
               </div>
               <GuardedAction
+                permission="content.write"
                 size="sm"
                 variant="danger"
                 danger
@@ -139,6 +140,7 @@ export function AnnouncementsPanel({ eventId }: { eventId: number }) {
                 </span>
               </div>
               <GuardedAction
+                permission="content.write"
                 size="sm"
                 variant="danger"
                 danger
@@ -208,6 +210,7 @@ export function OrganizersPanel({ eventId }: { eventId: number }) {
                 </Badge>
                 {o.removable ? (
                   <GuardedAction
+                    permission="content.write"
                     size="sm"
                     variant="danger"
                     danger

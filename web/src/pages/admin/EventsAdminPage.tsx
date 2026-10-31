@@ -416,6 +416,7 @@ export default function EventsAdminPage() {
           <span className={opsStyles.muted}>{t('admin.p07.bulk.limit', { max: EVENT_BULK_MAX })}</span>
         )}
         <GuardedAction
+          permission="content.write"
           size="sm"
           variant="secondary"
           title={t('admin.p07.bulk.hide.title', { n: selected.size })}

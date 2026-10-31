@@ -114,6 +114,7 @@ export default function HiddenContentPage() {
         }
         return (
           <GuardedAction
+            permission="moderation.write"
             size="sm"
             variant="secondary"
             requireReason

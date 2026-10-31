@@ -28,7 +28,7 @@ function setupUserChat(opts: { rejectFirst?: boolean } = {}) {
   const calls: Call[] = [];
   let rejected = false;
   mockFetch((url, init) => {
-    calls.push({ url, reason: headerOf(init, 'X-Admin-Reason') });
+    if (!url.endsWith('/admin/rbac/me')) calls.push({ url, reason: headerOf(init, 'X-Admin-Reason') });
     if (url.includes('/conversations')) {
       if (opts.rejectFirst && !rejected) {
         rejected = true;

@@ -39,6 +39,7 @@ export function SessionsTab({ userId }: { userId: number }) {
                   </span>
                 </div>
                 <GuardedAction
+                  permission="users.write"
                   size="sm"
                   variant="secondary"
                   danger
