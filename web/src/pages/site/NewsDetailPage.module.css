@@ -3,6 +3,14 @@
   gap: var(--space-6);
   max-width: 820px;
   margin-inline: auto;
+  min-block-size: 28rem;
+  align-content: start;
+}
+.back {
+  display: inline-flex;
+  align-items: center;
+  min-height: 48px;
+  font-weight: 700;
 }
 .article {
   display: grid;

@@ -8,6 +8,7 @@ import type { TranslationKey } from '../../i18n';
 import { useI18n } from '../../i18n/I18nProvider';
 import { isoDate } from '../../lib/date';
 import { errorMessage } from '../../lib/errors';
+import { AppCallout } from './components/AppCallout';
 import { PageHero } from './components/PageHero';
 import { usePageMeta } from './components/usePageMeta';
 import shared from './components/site.module.css';
@@ -127,7 +128,7 @@ export default function MenuPage() {
 
   return (
     <>
-      <PageHero title={title} lead={t('pg.menu.lead')} crumbs={[{ label: title }]} />
+      <PageHero eyebrow={t('site.v3.eyebrow')} title={title} lead={t('pg.menu.lead')} crumbs={[{ label: title }]} />
       <section className={`${shared.section} ${shared.sectionTop}`}>
         <div className={`container ${styles.wrap}`}>
           {status.data?.MENU?.maintenance && (
@@ -277,6 +278,7 @@ export default function MenuPage() {
           )}
         </div>
       </section>
+      <AppCallout shot="menu" title={t('site2.menu.appTitle')} text={t('site2.menu.appText')} crop={0.85} />
     </>
   );
 }

@@ -1,8 +1,35 @@
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-7);
+  align-items: start;
+}
 .wrap {
   display: grid;
-  gap: var(--space-5);
-  max-width: 860px;
+  gap: var(--space-6);
+  min-width: 0;
+  max-width: 800px;
+  width: 100%;
   margin-inline: auto;
+}
+/* Telefon yalnız geniş ekranda (yanda, kaydırınca yapışık); dar ekranda hiç yüklenmez */
+.phone {
+  display: none;
+}
+@media (min-width: 1080px) {
+  .layout {
+    grid-template-columns: minmax(0, 1fr) 260px;
+    gap: var(--space-8);
+  }
+  .wrap {
+    margin-inline: 0;
+  }
+  .phone {
+    position: sticky;
+    top: calc(var(--header-h, 64px) + var(--space-5));
+    display: grid;
+    justify-items: center;
+  }
 }
 .skeletons {
   display: grid;
@@ -24,7 +51,7 @@
   width: 100%;
   min-height: 52px;
   padding-inline: 3rem;
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-pill);
   border: 1.5px solid var(--border-strong);
   background: var(--surface);
   font-size: var(--text-base);
@@ -36,7 +63,7 @@
 }
 .clear {
   position: absolute;
-  inset-inline-end: 0;
+  inset-inline-end: 4px;
   inset-block: 0;
   margin-block: auto;
   width: 44px;
@@ -52,23 +79,42 @@
 .clear:hover {
   background: var(--surface-2);
 }
+.clear:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: -3px;
+}
 .count {
   font-size: var(--text-sm);
   color: var(--text-muted);
+  margin-block: calc(var(--space-3) * -1) 0;
 }
 .group {
   display: grid;
   gap: var(--space-3);
 }
-.group > h2 {
-  padding-inline-start: var(--space-3);
-  border-inline-start: 4px solid var(--accent);
+.groupTitle {
+  font-size: var(--text-xl);
+  line-height: 1.2;
 }
 .still {
   display: grid;
-  gap: var(--space-3);
+  gap: var(--space-4);
   justify-items: start;
   padding: var(--space-5);
   border-radius: var(--radius-lg);
-  background: var(--primary-soft);
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+}
+.still > div {
+  display: grid;
+  gap: var(--space-2);
+}
+.stillTitle {
+  font-size: var(--text-lg);
+}
+@media (min-width: 640px) {
+  .still {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+  }
 }

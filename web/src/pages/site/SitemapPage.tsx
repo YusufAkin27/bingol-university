@@ -15,7 +15,7 @@ export default function SitemapPage() {
   usePageMeta({ route: 'sitemap' });
   return (
     <>
-      <PageHero title={title} lead={t('pg.sitemap.lead')} crumbs={[{ label: title }]} />
+      <PageHero eyebrow={t('site.v3.eyebrow')} title={title} lead={t('pg.sitemap.lead')} crumbs={[{ label: title }]} />
       <section className={`${shared.section} ${shared.sectionTop}`}>
         <div className={`container ${styles.grid}`}>
           <section aria-labelledby="sm-home">

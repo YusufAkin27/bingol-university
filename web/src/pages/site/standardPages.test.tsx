@@ -252,7 +252,10 @@ describe('rota eşleşmesi ve sayfalar', () => {
     renderAt('/menu');
     expect(await screen.findByText('Mercimek çorbası')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Aylık' }));
-    expect(await within(screen.getByRole('main')).findByRole('heading', { level: 2 })).toBeInTheDocument();
+    const main = within(screen.getByRole('main'));
+    // gün başlığı (<time> içerir) + sayfa sonundaki "Günün menüsü cebinizde" uygulama kartı (SITE2)
+    expect(await main.findByRole('heading', { level: 2, name: (_n, el) => !!el.querySelector('time') })).toBeInTheDocument();
+    expect(main.getByRole('heading', { level: 2, name: 'Günün menüsü cebinizde' })).toBeInTheDocument();
   });
 });
 

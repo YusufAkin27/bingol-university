@@ -19,7 +19,7 @@ export default function ChangelogPage() {
   usePageMeta({ route: 'changelog' });
   return (
     <>
-      <PageHero title={title} lead={t('pg.changelog.lead')} crumbs={[{ label: title }]} />
+      <PageHero eyebrow={t('site.v3.eyebrow')} title={title} lead={t('pg.changelog.lead')} crumbs={[{ label: title }]} />
       <section className={`${shared.section} ${shared.sectionTop}`}>
         <div className={`container ${styles.wrap}`}>
           {CHANGELOG.map((e) => (

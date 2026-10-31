@@ -9,6 +9,7 @@ import { Button, EmptyState, ErrorState, SearchInput } from '../../components/ui
 import type { TranslationKey } from '../../i18n';
 import { useI18n } from '../../i18n/I18nProvider';
 import { errorMessage } from '../../lib/errors';
+import { AppCallout } from './components/AppCallout';
 import { NewsCard, NewsCardSkeleton } from './components/NewsCard';
 import { PageHero } from './components/PageHero';
 import { usePageMeta } from './components/usePageMeta';
@@ -62,7 +63,12 @@ export default function NewsListPage() {
 
   return (
     <>
-      <PageHero title={title} lead={t('pg.news.lead')} crumbs={[{ label: title }]} />
+      <PageHero
+        eyebrow={t('site.v3.eyebrow')}
+        title={title}
+        lead={t('pg.news.lead')}
+        crumbs={[{ label: title }]}
+      />
       <section className={`${shared.section} ${shared.sectionTop}`}>
         <div className={`container ${styles.wrap}`}>
           <div className={styles.toolbar}>
@@ -89,68 +95,71 @@ export default function NewsListPage() {
             </div>
           </div>
 
-          {query.isLoading && (
-            <div role="status" aria-label={t('common.loading')} className={styles.stack}>
-              <NewsCardSkeleton featured />
-              <div className={styles.grid}>
-                {Array.from({ length: 6 }, (_, i) => (
-                  <NewsCardSkeleton key={i} />
-                ))}
-              </div>
-            </div>
-          )}
-          {query.isError && !query.data && (
-            <ErrorState
-              title={t('pg.news.error')}
-              description={errorMessage(i18n, query.error)}
-              onRetry={() => void query.refetch()}
-            />
-          )}
-          {query.data && items.length === 0 && (
-            <EmptyState
-              icon="news"
-              title={searching ? t('pg.news.emptySearch') : t('pg.news.empty')}
-              description={searching ? t('pg.news.emptySearchHint') : t('pg.news.emptyHint')}
-            />
-          )}
-          {items.length > 0 && (
-            <div className={styles.stack}>
-              {searching && (
-                <p className={shared.muted} role="status" aria-live="polite">
-                  {t('pg.news.resultCount', { count: total })}
-                </p>
-              )}
-              {featured && <NewsCard item={featured} featured />}
-              {grid.length > 0 && (
+          <div className={styles.results}>
+            {query.isLoading && (
+              <div role="status" aria-label={t('common.loading')} className={styles.stack}>
+                <NewsCardSkeleton featured />
                 <div className={styles.grid}>
-                  {grid.map((n) => (
-                    <NewsCard key={n.id} item={n} />
+                  {Array.from({ length: 6 }, (_, i) => (
+                    <NewsCardSkeleton key={i} />
                   ))}
                 </div>
-              )}
-              {query.isError && (
-                <ErrorState
-                  compact
-                  title={t('pg.news.error')}
-                  description={errorMessage(i18n, query.error)}
-                  onRetry={() => void query.fetchNextPage()}
-                />
-              )}
-              {query.hasNextPage && (
-                <div className={styles.more}>
-                  <Button
-                    variant="secondary"
-                    loading={query.isFetchingNextPage}
-                    onClick={() => void query.fetchNextPage()}
-                  >
-                    {t('common.loadMore')}
-                  </Button>
-                </div>
-              )}
-            </div>
-          )}
+              </div>
+            )}
+            {query.isError && !query.data && (
+              <ErrorState
+                title={t('pg.news.error')}
+                description={errorMessage(i18n, query.error)}
+                onRetry={() => void query.refetch()}
+              />
+            )}
+            {query.data && items.length === 0 && (
+              <EmptyState
+                icon="news"
+                title={searching ? t('pg.news.emptySearch') : t('pg.news.empty')}
+                description={searching ? t('pg.news.emptySearchHint') : t('pg.news.emptyHint')}
+              />
+            )}
+            {items.length > 0 && (
+              <div className={styles.stack}>
+                {searching && (
+                  <p className={shared.muted} role="status" aria-live="polite">
+                    {t('pg.news.resultCount', { count: total })}
+                  </p>
+                )}
+                {featured && <NewsCard item={featured} featured />}
+                {grid.length > 0 && (
+                  <div className={styles.grid}>
+                    {grid.map((n) => (
+                      <NewsCard key={n.id} item={n} />
+                    ))}
+                  </div>
+                )}
+                {query.isError && (
+                  <ErrorState
+                    compact
+                    title={t('pg.news.error')}
+                    description={errorMessage(i18n, query.error)}
+                    onRetry={() => void query.fetchNextPage()}
+                  />
+                )}
+                {query.hasNextPage && (
+                  <div className={styles.more}>
+                    <Button
+                      variant="secondary"
+                      loading={query.isFetchingNextPage}
+                      onClick={() => void query.fetchNextPage()}
+                    >
+                      {t('common.loadMore')}
+                    </Button>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
         </div>
       </section>
+      <AppCallout shot="home" title={t('site2.news.appTitle')} text={t('site2.news.appText')} crop={0.8} />
     </>
   );
 }

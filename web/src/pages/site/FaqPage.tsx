@@ -8,10 +8,12 @@ import { Button, ButtonLink, EmptyState, ErrorState, Icon, Skeleton } from '../.
 import { useI18n } from '../../i18n/I18nProvider';
 import { errorMessage } from '../../lib/errors';
 import { paths } from '../../paths';
+import { CtaBand } from './components/CtaBand';
 import { FaqAccordion } from './components/FaqAccordion';
 import { countFaq, filterFaq } from './components/faqFilter';
 import { buildNewFaq } from './components/newFaq';
 import { PageHero } from './components/PageHero';
+import { PhoneMockup } from './components/PhoneMockup';
 import { usePageMeta } from './components/usePageMeta';
 import shared from './components/site.module.css';
 import styles from './FaqPage.module.css';
@@ -28,98 +30,103 @@ export default function FaqPage() {
 
   return (
     <>
-      <PageHero title={t('site.faq.title')} lead={t('site.faq.lead')} />
+      <PageHero eyebrow={t('site.v3.eyebrow')} title={t('site.faq.title')} lead={t('site.faq.lead')} />
       <section className={`${shared.section} ${shared.sectionTop}`}>
-        <div className={`container ${styles.wrap}`}>
-          {/* Statik bölüm ÜSTTE: API'den gelen dinamik liste (iskelet -> veri) sayfanın altında büyür, üstündeki içerik kaymaz (CLS, A3-11) */}
-          <section className={styles.group} aria-labelledby="faq-new-title" data-testid="faq-new">
-            <h2 id="faq-new-title" className={shared.h3}>
-              {t('site.faq.new.title')}
-            </h2>
-            <FaqAccordion items={buildNewFaq(t)} />
-          </section>
-          {faq.isLoading && (
-            <div className={styles.skeletons} role="status" aria-label={t('common.loading')}>
-              {[0, 1, 2, 3, 4].map((i) => (
-                <Skeleton key={i} height="3.2rem" radius="8px" />
-              ))}
-            </div>
-          )}
-          {faq.isError && (
-            <ErrorState
-              description={errorMessage(i18n, faq.error)}
-              onRetry={() => void faq.refetch()}
-            />
-          )}
-          {faq.isSuccess && total === 0 && (
-            <EmptyState
-              icon="help"
-              title={t('site.faq.none')}
-              description={t('site.faq.noneHint')}
-              action={<ButtonLink to={paths.site.contact}>{t('site.faq.stillLink')}</ButtonLink>}
-            />
-          )}
-          {faq.isSuccess && total > 0 && (
-            <>
-              <div className={styles.search}>
-                <label htmlFor="faq-search" className="sr-only">
-                  {t('site.faq.searchLabel')}
-                </label>
-                <span className={styles.searchIcon} aria-hidden="true">
-                  <Icon name="search" size={20} />
-                </span>
-                <input
-                  id="faq-search"
-                  type="search"
-                  className={styles.input}
-                  value={query}
-                  placeholder={t('site.faq.searchPlaceholder')}
-                  onChange={(e) => setQuery(e.target.value)}
-                />
-                {query && (
-                  <button
-                    type="button"
-                    className={styles.clear}
-                    aria-label={t('site.faq.clear')}
-                    onClick={() => setQuery('')}
-                  >
-                    <Icon name="x" size={16} />
-                  </button>
-                )}
+        <div className={`container ${styles.layout}`}>
+          <div className={styles.wrap}>
+            {/* Statik bölüm ÜSTTE: API'den gelen dinamik liste (iskelet -> veri) sayfanın altında büyür, üstündeki içerik kaymaz (CLS, A3-11) */}
+            <section className={styles.group} aria-labelledby="faq-new-title" data-testid="faq-new">
+              <h2 id="faq-new-title" className={styles.groupTitle}>
+                {t('site.faq.new.title')}
+              </h2>
+              <FaqAccordion items={buildNewFaq(t)} />
+            </section>
+            {faq.isLoading && (
+              <div className={styles.skeletons} role="status" aria-label={t('common.loading')}>
+                {[0, 1, 2, 3, 4].map((i) => (
+                  <Skeleton key={i} height="3.2rem" radius="8px" />
+                ))}
               </div>
-              <p className={styles.count} role="status" aria-live="polite">
-                {t('site.faq.count', { count: shown })}
-              </p>
-              {shown === 0 ? (
-                <EmptyState
-                  icon="search"
-                  title={t('site.faq.empty')}
-                  description={t('site.faq.emptyHint')}
-                  action={
-                    <Button variant="secondary" onClick={() => setQuery('')}>
-                      {t('site.faq.clear')}
-                    </Button>
-                  }
-                />
-              ) : (
-                groups.map((g) => (
-                  <section key={g.category} className={styles.group} aria-label={g.category}>
-                    <h2 className={shared.h3}>{g.category}</h2>
-                    <FaqAccordion items={g.items} />
-                  </section>
-                ))
-              )}
-              <aside className={styles.still}>
-                <h2 className={shared.h3}>{t('site.faq.stillTitle')}</h2>
+            )}
+            {faq.isError && (
+              <ErrorState description={errorMessage(i18n, faq.error)} onRetry={() => void faq.refetch()} />
+            )}
+            {faq.isSuccess && total === 0 && (
+              <EmptyState
+                icon="help"
+                title={t('site.faq.none')}
+                description={t('site.faq.noneHint')}
+                action={<ButtonLink to={paths.site.contact}>{t('site.faq.stillLink')}</ButtonLink>}
+              />
+            )}
+            {faq.isSuccess && total > 0 && (
+              <>
+                <div className={styles.search}>
+                  <label htmlFor="faq-search" className="sr-only">
+                    {t('site.faq.searchLabel')}
+                  </label>
+                  <span className={styles.searchIcon} aria-hidden="true">
+                    <Icon name="search" size={20} />
+                  </span>
+                  <input
+                    id="faq-search"
+                    type="search"
+                    className={styles.input}
+                    value={query}
+                    placeholder={t('site.faq.searchPlaceholder')}
+                    onChange={(e) => setQuery(e.target.value)}
+                  />
+                  {query && (
+                    <button
+                      type="button"
+                      className={styles.clear}
+                      aria-label={t('site.faq.clear')}
+                      onClick={() => setQuery('')}
+                    >
+                      <Icon name="x" size={16} />
+                    </button>
+                  )}
+                </div>
+                <p className={styles.count} role="status" aria-live="polite">
+                  {t('site.faq.count', { count: shown })}
+                </p>
+                {shown === 0 ? (
+                  <EmptyState
+                    icon="search"
+                    title={t('site.faq.empty')}
+                    description={t('site.faq.emptyHint')}
+                    action={
+                      <Button variant="secondary" onClick={() => setQuery('')}>
+                        {t('site.faq.clear')}
+                      </Button>
+                    }
+                  />
+                ) : (
+                  groups.map((g) => (
+                    <section key={g.category} className={styles.group} aria-label={g.category}>
+                      <h2 className={styles.groupTitle}>{g.category}</h2>
+                      <FaqAccordion items={g.items} />
+                    </section>
+                  ))
+                )}
+              </>
+            )}
+            <aside className={styles.still}>
+              <div>
+                <h2 className={styles.stillTitle}>{t('site.faq.stillTitle')}</h2>
                 <p className={shared.muted}>{t('site.faq.stillText')}</p>
-                <ButtonLink to={paths.site.contact} variant="secondary">
-                  {t('site.faq.stillLink')}
-                </ButtonLink>
-              </aside>
-            </>
-          )}
+              </div>
+              <ButtonLink to={paths.site.contact} variant="secondary">
+                {t('site.faq.stillLink')}
+              </ButtonLink>
+            </aside>
+          </div>
+          <div className={styles.phone}>
+            <PhoneMockup shot="support" width="240px" crop={0.78} tilt={3} />
+          </div>
         </div>
       </section>
+      <CtaBand title={t('site.home.ctaTitle')} text={t('site.v3.cta.text')} />
     </>
   );
 }

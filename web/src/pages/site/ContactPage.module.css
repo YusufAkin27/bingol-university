@@ -1,22 +1,21 @@
 .grid {
   display: grid;
-  grid-template-columns: 1fr 320px;
-  gap: var(--space-7);
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-6);
   align-items: start;
 }
-@media (max-width: 900px) {
+@media (min-width: 960px) {
   .grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1.25fr) minmax(0, 0.75fr);
+    gap: var(--space-7);
   }
 }
-.main {
-  display: grid;
-  gap: var(--space-6);
-  min-width: 0;
-}
-.inApp {
+.main,
+.side {
   display: grid;
   gap: var(--space-4);
+  min-width: 0;
+  align-content: start;
 }
 .steps {
   list-style: none;
@@ -34,11 +33,11 @@
   display: grid;
   place-items: center;
   flex: none;
-  width: 30px;
-  height: 30px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
-  background: var(--accent);
-  color: var(--accent-contrast);
+  background: var(--primary);
+  color: var(--primary-contrast);
   font-weight: 700;
   font-size: var(--text-sm);
 }
@@ -46,7 +45,7 @@
   display: flex;
   gap: var(--space-3);
   padding: var(--space-4);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-lg);
   background: var(--info-soft);
 }
 .empty svg {
@@ -57,14 +56,18 @@
 .empty p {
   color: var(--text-muted);
 }
-.side {
+.data {
   display: grid;
   gap: var(--space-3);
+  justify-items: start;
   padding: var(--space-5);
   border-radius: var(--radius-lg);
-  background: var(--primary-soft);
-  border-inline-start: 4px solid var(--accent);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
 }
 .link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
   font-weight: 700;
 }

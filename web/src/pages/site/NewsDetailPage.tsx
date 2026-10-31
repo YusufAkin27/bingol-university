@@ -119,6 +119,7 @@ export default function NewsDetailPage() {
   return (
     <>
       <PageHero
+        size="compact"
         title={notFound ? t('pg.news.notFound') : title}
         crumbs={[{ label: list, to: paths.site.news }, { label: notFound ? t('pg.news.notFound') : title }]}
       />
@@ -220,7 +221,9 @@ export default function NewsDetailPage() {
 
           {!notFound && (
             <p>
-              <Link to={paths.site.news}>{t('pg.news.back')}</Link>
+              <Link to={paths.site.news} className={styles.back}>
+                {t('pg.news.back')}
+              </Link>
             </p>
           )}
         </div>

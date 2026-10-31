@@ -5,7 +5,9 @@ import { ButtonLink, Icon, type IconName } from '../../components/ui';
 import type { TranslationKey } from '../../i18n';
 import { useI18n } from '../../i18n/I18nProvider';
 import { paths } from '../../paths';
+import { AppCallout } from './components/AppCallout';
 import { PageHero } from './components/PageHero';
+import { Reveal } from './components/Reveal';
 import { usePageMeta } from './components/usePageMeta';
 import shared from './components/site.module.css';
 import styles from './HelpPage.module.css';
@@ -24,21 +26,24 @@ export default function HelpPage() {
   usePageMeta({ route: 'help' });
   return (
     <>
-      <PageHero title={title} lead={t('pg.help.lead')} crumbs={[{ label: title }]} />
+      <PageHero eyebrow={t('site.v3.eyebrow')} title={title} lead={t('pg.help.lead')} crumbs={[{ label: title }]} />
       <section className={`${shared.section} ${shared.sectionTop}`}>
         <div className="container">
           <ul className={styles.grid}>
-            {HELP_CATEGORIES.map((c) => (
-              <li key={c.id} className={styles.card}>
-                <span className={shared.ico} aria-hidden="true">
-                  <Icon name={c.icon} size={22} />
-                </span>
-                <h2 className={styles.h}>{t(`pg.help.cat.${c.id}.title` as TranslationKey)}</h2>
-                <p className={shared.muted}>{t(`pg.help.cat.${c.id}.text` as TranslationKey)}</p>
-                <Link to={c.to} className={styles.open}>
-                  {t('pg.help.open')}
-                  <span className="sr-only"> · {t(`pg.help.cat.${c.id}.title` as TranslationKey)}</span>
-                </Link>
+            {HELP_CATEGORIES.map((c, i) => (
+              <li key={c.id}>
+                <Reveal delay={(i % 3) * 70} className={styles.card}>
+                  <span className={shared.ico} aria-hidden="true">
+                    <Icon name={c.icon} size={22} />
+                  </span>
+                  <h2 className={styles.h}>{t(`pg.help.cat.${c.id}.title` as TranslationKey)}</h2>
+                  <p className={shared.muted}>{t(`pg.help.cat.${c.id}.text` as TranslationKey)}</p>
+                  <Link to={c.to} className={styles.open}>
+                    {t('pg.help.open')}
+                    <Icon name="chevronRight" size={18} className={styles.openIcon} />
+                    <span className="sr-only"> · {t(`pg.help.cat.${c.id}.title` as TranslationKey)}</span>
+                  </Link>
+                </Reveal>
               </li>
             ))}
           </ul>
@@ -54,6 +59,7 @@ export default function HelpPage() {
           </div>
         </div>
       </section>
+      <AppCallout shot="support" title={t('site2.help.appTitle')} text={t('site2.help.appText')} phoneFirst />
     </>
   );
 }

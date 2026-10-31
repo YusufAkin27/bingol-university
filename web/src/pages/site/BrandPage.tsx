@@ -7,6 +7,9 @@ import type { TranslationKey } from '../../i18n';
 import { useI18n } from '../../i18n/I18nProvider';
 import { paths } from '../../paths';
 import { PageHero } from './components/PageHero';
+import { PhoneMockup } from './components/PhoneMockup';
+import { Reveal } from './components/Reveal';
+import type { ShotId } from './components/screenshots';
 import { usePageMeta } from './components/usePageMeta';
 import shared from './components/site.module.css';
 import styles from './BrandPage.module.css';
@@ -128,6 +131,9 @@ export const BRAND_COLORS = [
 
 const RULES = [1, 2, 3, 4, 5] as const;
 
+/** Basın için uygulama ekranları (gerçek ekran çıktıları, kişisel veri içermez). */
+const PRESS_SHOTS: ShotId[] = ['home', 'events', 'chat'];
+
 export function hexToRgb(hex: string): string {
   const n = parseInt(hex.slice(1), 16);
   return `${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}`;
@@ -169,7 +175,7 @@ export default function BrandPage() {
   usePageMeta({ route: 'brand' });
   return (
     <>
-      <PageHero title={title} lead={t('pg.brand.lead')} crumbs={[{ label: title }]} />
+      <PageHero eyebrow={t('site.v3.eyebrow')} title={title} lead={t('pg.brand.lead')} crumbs={[{ label: title }]} />
       <section className={`${shared.section} ${shared.sectionTop}`}>
         <div className={`container ${styles.wrap}`}>
           <section aria-labelledby="brand-logos">
@@ -326,6 +332,22 @@ export default function BrandPage() {
             <ul className={styles.rules}>
               {RULES.map((n) => (
                 <li key={n}>{t(`pg.brand.rule.${n}` as TranslationKey)}</li>
+              ))}
+            </ul>
+          </section>
+
+          <section aria-labelledby="brand-shots">
+            <h2 id="brand-shots" className={shared.h3}>
+              {t('site2.brand.shotsTitle')}
+            </h2>
+            <p className={shared.muted}>{t('site2.brand.shotsText')}</p>
+            <ul className={styles.shots}>
+              {PRESS_SHOTS.map((id, i) => (
+                <li key={id}>
+                  <Reveal delay={i * 80}>
+                    <PhoneMockup shot={id} width="min(42vw, 200px)" />
+                  </Reveal>
+                </li>
               ))}
             </ul>
           </section>

@@ -13,6 +13,10 @@
   flex-wrap: wrap;
   align-items: center;
   gap: var(--space-3);
+  padding: var(--space-4) var(--space-5);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface-2);
 }
 .subject {
   flex: 1 1 100%;
@@ -48,9 +52,12 @@
 .me {
   justify-self: end;
   background: var(--primary-soft);
+  border-color: transparent;
+  border-end-end-radius: var(--radius-xs);
 }
 .staff {
   justify-self: start;
+  border-end-start-radius: var(--radius-xs);
 }
 .who {
   font-size: var(--text-xs);
@@ -67,6 +74,10 @@
 .form {
   display: grid;
   gap: var(--space-3);
+  padding: var(--space-5);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
 }
 .formLabel {
   font-weight: 700;
