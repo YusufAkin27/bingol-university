@@ -715,7 +715,8 @@ class Et2ErrorRow extends StatelessWidget {
         padding: const EdgeInsetsDirectional.fromSTEB(12, 10, 12, 10),
         constraints: const BoxConstraints(minHeight: 56),
         decoration: BoxDecoration(color: t.danger.withValues(alpha: .12), borderRadius: BorderRadius.circular(BuRadius.md)),
-        child: Row(children: [
+        // Yeniden dene düğmesi satırın en çok %60'ını alır: uzun etiket/büyük yazıda başlık sütunu 0'a ezilip taşmasın.
+        child: LayoutBuilder(builder: (context, box) => Row(children: [
           ExcludeSemantics(
             child: Container(
               width: 36,
@@ -734,7 +735,9 @@ class Et2ErrorRow extends StatelessWidget {
           ),
           if (onRetry != null) ...[
             const SizedBox(width: 8),
-            Semantics(
+            ConstrainedBox(
+              constraints: BoxConstraints(maxWidth: box.maxWidth * .6),
+              child: Semantics(
               button: true,
               label: retryLabel,
               excludeSemantics: true,
@@ -752,14 +755,15 @@ class Et2ErrorRow extends StatelessWidget {
                     child: Row(mainAxisSize: MainAxisSize.min, children: [
                       Icon(LucideIcons.refreshCw, size: 14, color: t.danger),
                       const SizedBox(width: 6),
-                      Text(retryLabel ?? '', style: tx.labelMedium!.copyWith(fontWeight: FontWeight.w700, color: t.danger)),
+                      Flexible(child: Text(retryLabel ?? '', maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.labelMedium!.copyWith(fontWeight: FontWeight.w700, color: t.danger))),
                     ]),
                   ),
                 ),
               ),
             ),
+            ),
           ],
-        ]),
+        ])),
       ),
     );
   }

@@ -708,7 +708,7 @@ class _GalleryTileState extends State<_GalleryTile> {
               ),
               child: order != null
                   ? Text('$order',
-                      style: tx.labelSmall!.copyWith(color: t.onPr, fontWeight: FontWeight.w700, fontSize: 10, height: 1))
+                      style: tx.labelSmall!.copyWith(color: t.onPr, fontWeight: FontWeight.w700, height: 1))
                   : null,
             ),
           ),
@@ -723,7 +723,7 @@ class _GalleryTileState extends State<_GalleryTile> {
                   Icon(LucideIcons.play, size: 10, color: t.onMedia),
                   const SizedBox(width: 2),
                   Text(formatMediaDuration(g.durationMs),
-                      style: tx.labelSmall!.copyWith(color: t.onMedia, fontWeight: FontWeight.w700, fontSize: 10, height: 1.2)),
+                      style: tx.labelSmall!.copyWith(color: t.onMedia, fontWeight: FontWeight.w700, height: 1.2)),
                 ]),
               ),
             ),

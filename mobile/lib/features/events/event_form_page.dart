@@ -1334,7 +1334,11 @@ class _Chip extends StatelessWidget {
               decoration: BoxDecoration(color: enabled ? bg : bg.withValues(alpha: .5), borderRadius: BorderRadius.circular(BuRadius.pill)),
               child: Row(mainAxisSize: MainAxisSize.min, children: [
                 if (lead != null) ...[Icon(lead, size: 14, color: enabled ? fg : fg.withValues(alpha: .5)), const SizedBox(width: 6)],
-                Text(label, style: tx.labelLarge!.copyWith(fontWeight: FontWeight.w700, color: enabled ? fg : t.mut.withValues(alpha: .6))),
+                Flexible(
+                    child: Text(label,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: tx.labelLarge!.copyWith(fontWeight: FontWeight.w700, color: enabled ? fg : t.mut.withValues(alpha: .6)))),
               ]),
             ),
           ),

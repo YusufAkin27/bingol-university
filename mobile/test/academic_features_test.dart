@@ -428,9 +428,10 @@ void main() {
       expect(b.requests.first, contains('scope=mine'));
       await settle(tester); // kisa liste: sonraki sayfa kendiliginden istenir
       expect(b.requests.any((r) => r.contains('cursor=3')), isTrue);
-      expect(find.text('Duyuru 5'), findsOneWidget);
+      // Yazi olcegi buyudukce satirlar uzar; 5. satir tembel listede ilk karede olusmayabilir: once kaydir.
       await tester.drag(find.byType(ListView).first, const Offset(0, -500));
       await settle(tester, const Duration(milliseconds: 600));
+      expect(find.text('Duyuru 5'), findsOneWidget);
       await tester.tap(find.text('Duyuru 5'));
       await settle(tester);
       expect(find.text('Tam metin Duyuru 5'), findsOneWidget);

@@ -345,7 +345,7 @@ class _MediaPreviewPageState extends State<MediaPreviewPage> {
                       decoration: BoxDecoration(color: on ? _onPr : t.onMedia, shape: BoxShape.circle),
                       child: Text('1',
                           style: tx.labelSmall!.copyWith(
-                              color: on ? _pr : t.scrim, fontWeight: FontWeight.w800, fontSize: 11, height: 1)),
+                              color: on ? _pr : t.scrim, fontWeight: FontWeight.w800, height: 1)),
                     ),
                     BuGap.w6,
                     Text(l.chatMiscOnceSendLabel,
@@ -521,7 +521,7 @@ class _StripThumbState extends State<_StripThumb> {
                       padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
                       decoration: BoxDecoration(color: t.scrim.withValues(alpha: .7), borderRadius: BuRadius.bPill),
                       child: Text(formatMediaDuration(p.durationMs),
-                          style: tx.labelSmall!.copyWith(color: t.onMedia, fontWeight: FontWeight.w700, fontSize: 10)),
+                          style: tx.labelSmall!.copyWith(color: t.onMedia, fontWeight: FontWeight.w700)),
                     ),
                   ),
               ]),

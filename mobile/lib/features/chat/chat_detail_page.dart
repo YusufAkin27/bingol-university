@@ -2797,7 +2797,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
                       decoration: BoxDecoration(
                           color: t.pr, borderRadius: BorderRadius.circular(10)),
                       child: Text(n > 99 ? '99+' : '$n',
-                          style: BuType.micro.copyWith(color: t.onPr)),
+                          style: BuType.caption.copyWith(color: t.onPr, fontWeight: FontWeight.w500)),
                     ),
                   ),
               ]),
@@ -2895,7 +2895,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
           decoration: BoxDecoration(
               color: t.sf2, borderRadius: BorderRadius.circular(999)),
           child: Text(label,
-              style: BuType.micro.copyWith(
+              style: BuType.caption.copyWith(
                   color: t.mut, fontSize: 12, fontWeight: FontWeight.w600)),
         ),
       );

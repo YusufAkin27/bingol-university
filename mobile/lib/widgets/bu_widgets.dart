@@ -371,7 +371,7 @@ class BuBadge extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
       decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(12)),
-      child: Text(text, style: BuType.micro.copyWith(color: fg)),
+      child: Text(text, style: BuType.caption.copyWith(color: fg, fontWeight: FontWeight.w500)),
     );
   }
 }

@@ -1093,7 +1093,7 @@ class OnceBadge extends StatelessWidget {
         width: size,
         height: size,
         child: Center(
-          child: Text('1', style: Theme.of(context).textTheme.labelMedium!.copyWith(color: color, fontWeight: FontWeight.w800, height: 1, fontSize: size >= 24 ? size * .5 : 11)),
+          child: Text('1', style: Theme.of(context).textTheme.labelMedium!.copyWith(color: color, fontWeight: FontWeight.w800, height: 1, fontSize: size >= 24 ? size * .5 : BuScale.caption)),
         ),
       ),
     );

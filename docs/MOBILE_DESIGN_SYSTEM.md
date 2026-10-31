@@ -67,15 +67,15 @@ Geçmiş: INT-I2'de açık tema Stitch'in soğuk gri-mavi tonlarına çekilmişt
 |---|---|---|
 | displayLarge / Medium / Small | 40 / 34 / 30, 800 | karşılama, büyük sayı |
 | headlineLarge / Medium / Small | 28 / 24 / 20, 800-700 | büyük sayfa başlığı (large app bar genişken: headlineMedium), bölüm başlığı |
-| titleLarge | 18, 700 | app bar başlığı (daralmış), diyalog/alt sayfa başlığı, boş durum başlığı |
-| titleMedium | 15.3, 700 | kart/bölüm başlığı, düğme (tam genişlik) |
-| titleSmall | 13.5, 600 | satır başlığı |
-| bodyLarge / Medium / Small | 15 / 13.5 / 12, 400 | gövde, açıklama, yardımcı metin |
-| labelLarge / Medium / Small | 13.5 / 12 / 11, 600-500 | düğme, çip, rozet, zaman |
+| titleLarge | 19, 700 | app bar başlığı (daralmış), diyalog/alt sayfa başlığı, boş durum başlığı |
+| titleMedium | 16, 700 | kart/bölüm başlığı, düğme (tam genişlik) |
+| titleSmall | 14, 600 | satır başlığı |
+| bodyLarge / Medium / Small | 15 / 14 / 12.5, 400 | gövde, açıklama, yardımcı metin |
+| labelLarge / Medium / Small | 14 / 12.5 / 11.5, 600-500 | düğme, çip, rozet, zaman |
 
-- Yeni kodda **`textTheme`** kullanın; `BuType` (eski ölçek: display 23.4 … micro 9.9) KİLİTLİ ve çalışır, ama yeni ekranda tercih edilmez. Elle `fontSize:` yazılmaz; renk `.copyWith(color: t.mut)` ile verilir.
+- **Tek ölçek (K-21/T-113):** boyutlar `core/typography.dart` içindeki `BuScale`'de durur (display 24, title 19, heading 16, bodyLarge 15, body 14, label 12.5, caption 11.5); `BuTextTheme` (M3 roller) ve `BuType` ikisi de buradan beslenir, ayrı sayı tutulmaz. Eski `BuType.micro` kaldırıldı, `BuType.caption` (11.5) ile birleşti (saat/rozet: `BuType.caption.copyWith(fontWeight: FontWeight.w500)`). Yeni kodda **`textTheme`** tercih edilir; `BuType` aynı ölçeği taşır. Elle `fontSize:` yazılmaz (rozet içi sayı gibi zorunlu durumda `BuScale.caption`); renk `.copyWith(color: t.mut)` ile verilir.
 - Arapça: harf aralığı 0, satır yüksekliği ×1.12 (`BuTheme.light()/dark()` `LocaleController.current` dilinden seçer; test için `BuTheme.forLocale(Brightness, 'ar')`). Başlıkta elle `letterSpacing` verirseniz Arapçada 0 yapın.
-- En küçük metin 11 dp (`labelSmall`); 1.3x ölçekte taşma olmamalı (`maxLines` + `overflow` + esnek düzen; gerekirse `MediaQuery.withClampedTextScaling`).
+- En küçük metin 11.5 sp (`labelSmall` / `BuType.caption`; bunun altında stil tanımlanmaz); 1.3x ölçekte taşma olmamalı (`maxLines` + `overflow` + esnek düzen; gerekirse `MediaQuery.withClampedTextScaling`).
 
 ## 5. Boşluk, şekil, yükseklik, hareket
 

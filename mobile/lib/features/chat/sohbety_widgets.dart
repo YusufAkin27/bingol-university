@@ -557,7 +557,7 @@ class SohbetyCameraChrome extends StatelessWidget {
                                   child: Text('A',
                                       key: const ValueKey('flashAutoBadge'),
                                       style: tx.labelSmall!.copyWith(
-                                          color: t.onMedia, fontWeight: FontWeight.w800, fontSize: 11, height: 1)),
+                                          color: t.onMedia, fontWeight: FontWeight.w800, height: 1)),
                                 ),
                               )
                             : null),

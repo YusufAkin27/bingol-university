@@ -1,33 +1,56 @@
 import 'package:flutter/painting.dart';
 
-/// Boyutlar önceki ölçeğin %10 küçültülmüş halidir (26/20/17/15/13/12/11 → ×0.9).
+/// Uygulamanın TEK yazı boyutu ölçeği (K-21, T-113). Hem `BuType` hem `BuTextTheme` (M3 TextTheme) boyutlarını
+/// buradan alır; iki paralel ölçek yoktur. En küçük metin 11.5 sp'dir (`caption`); bunun altına inen stil tanımlanmaz.
+abstract final class BuScale {
+  /// Büyük sayfa başlığı (giriş ekranı, profil adı).
+  static const double display = 24;
+
+  /// Sayfa/AppBar başlığı.
+  static const double title = 19;
+
+  /// Bölüm başlığı, kart başlığı.
+  static const double heading = 16;
+
+  /// Büyük gövde (uzun okuma, M3 bodyLarge).
+  static const double bodyLarge = 15;
+
+  /// Gövde metni (mesaj, haber özeti, form alanı, liste satırı, düğme).
+  static const double body = 14;
+
+  /// Etiket, ikincil satır, çip.
+  static const double label = 12.5;
+
+  /// Açıklama, yardımcı metin, saat, rozet: en küçük metin (eski micro + caption birleşti).
+  static const double caption = 11.5;
+}
+
 /// Uygulamanın tek yazı tipi ve boyut ölçeği. Sayfalarda elle `fontSize` yazılmaz; bu stillerden biri seçilir,
 /// renk `copyWith(color: ...)` ile verilir. Satır yüksekliği (height) ölçeğe dahildir.
+/// Boyutlar [BuScale]'dendir; yeni kodda `Theme.of(context).textTheme` (aynı ölçek) tercih edilir.
 abstract final class BuType {
   /// pubspec.yaml `fonts:` bölümündeki aile adı.
   static const family = 'Inter';
 
   /// Büyük sayfa başlığı (giriş ekranı, profil adı).
-  static const display = TextStyle(fontFamily: family, fontSize: 23.4, fontWeight: FontWeight.w800, height: 1.2);
+  static const display = TextStyle(fontFamily: family, fontSize: BuScale.display, fontWeight: FontWeight.w800, height: 1.2);
 
   /// Sayfa/AppBar başlığı.
-  static const title = TextStyle(fontFamily: family, fontSize: 18, fontWeight: FontWeight.w800, height: 1.25);
+  static const title = TextStyle(fontFamily: family, fontSize: BuScale.title, fontWeight: FontWeight.w800, height: 1.25);
 
   /// Bölüm başlığı, kart başlığı.
-  static const heading = TextStyle(fontFamily: family, fontSize: 15.3, fontWeight: FontWeight.w700, height: 1.3);
+  static const heading = TextStyle(fontFamily: family, fontSize: BuScale.heading, fontWeight: FontWeight.w700, height: 1.3);
 
   /// Gövde metni (mesaj, haber özeti, form alanı).
-  static const body = TextStyle(fontFamily: family, fontSize: 13.5, fontWeight: FontWeight.w400, height: 1.4);
+  static const body = TextStyle(fontFamily: family, fontSize: BuScale.body, fontWeight: FontWeight.w400, height: 1.4);
 
   /// Vurgulu gövde (liste satırı başlığı, düğme).
-  static const bodyStrong = TextStyle(fontFamily: family, fontSize: 13.5, fontWeight: FontWeight.w600, height: 1.4);
+  static const bodyStrong = TextStyle(fontFamily: family, fontSize: BuScale.body, fontWeight: FontWeight.w600, height: 1.4);
 
   /// Etiket, ikincil satır, çip.
-  static const label = TextStyle(fontFamily: family, fontSize: 11.7, fontWeight: FontWeight.w600, height: 1.35);
+  static const label = TextStyle(fontFamily: family, fontSize: BuScale.label, fontWeight: FontWeight.w600, height: 1.35);
 
-  /// Açıklama, yardımcı metin.
-  static const caption = TextStyle(fontFamily: family, fontSize: 10.8, fontWeight: FontWeight.w400, height: 1.35);
-
-  /// Saat, rozet, en küçük metin.
-  static const micro = TextStyle(fontFamily: family, fontSize: 9.9, fontWeight: FontWeight.w500, height: 1.3);
+  /// Açıklama, yardımcı metin, saat, rozet; en küçük metin (eski `micro` bununla birleşti;
+  /// saat/rozet için `caption.copyWith(fontWeight: FontWeight.w500)`).
+  static const caption = TextStyle(fontFamily: family, fontSize: BuScale.caption, fontWeight: FontWeight.w400, height: 1.35);
 }
