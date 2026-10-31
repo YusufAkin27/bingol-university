@@ -1,18 +1,18 @@
 import 'package:flutter/material.dart';
 
-import '../../core/api.dart';
 import '../../core/locale_controller.dart';
 import '../../core/session.dart';
 import '../../l10n/app_localizations.dart';
 import '../../widgets/bu.dart';
-import 'anket_widgets.dart';
+import 'anket_flat.dart';
 import 'poll_api.dart';
 import 'poll_models.dart';
 import 'poll_parts.dart';
 import 'poll_routes.dart';
 
-/// Anket listesi (tasarım 31): Açık | Katıldıklarım | Kapanan, imleçli sayfalama. [communityId] verilirse tek kulüp.
-/// [canCreate] true ise başlıkta "+" (kulüp anketi oluştur; yalnız [communityId] ile). İlk açılışta iskelet gösterilir.
+/// Anket listesi (Stitch v3 01): metin sekmeleri Açık | Katıldıklarım | Kapanan, kartsız satırlar, imleçli sayfalama.
+/// [communityId] verilirse tek kulüp (sekmesiz). [canCreate] true ise başlıkta `pr` "+ Yeni" (yalnız [communityId] ile).
+/// İlk açılışta iskelet gösterilir; boş/hata durumları tek soluk satır + metin düğmesidir (ikon/kart yok).
 class PollListPage extends StatefulWidget {
   const PollListPage({super.key, required this.session, this.communityId, this.title, this.canCreate = false});
 
@@ -33,8 +33,6 @@ class _PollListPageState extends State<PollListPage> {
   final List<Poll> _items = [];
   int _tab = 0;
   int _gen = 0;
-  int? _openCount;
-  List<Poll> _joined = const [];
   String? _cursor;
   bool _hasMore = false;
   bool _loading = false;
@@ -79,9 +77,7 @@ class _PollListPageState extends State<PollListPage> {
         _hasMore = page.hasMore;
         _loaded = true;
         _loading = false;
-        if (_tab == 0 && widget.communityId == null && !_hasMore) _openCount = _items.length;
       });
-      if (reset && _tab == 2 && widget.communityId == null) _loadJoined(gen);
     } catch (e) {
       if (!mounted || gen != _gen) return;
       setState(() {
@@ -91,23 +87,9 @@ class _PollListPageState extends State<PollListPage> {
     }
   }
 
-  /// Kapanan sekmesinin altındaki "Katıldıklarım" bloğu: oy verilen anketlerden en çok 2'si (hata/boşta gizli).
-  Future<void> _loadJoined(int gen) async {
-    try {
-      final page = await _api.list(scope: 'mine', size: 2);
-      if (!mounted || gen != _gen) return;
-      setState(() => _joined = page.items.where((p) => p.voted).take(2).toList());
-    } catch (_) {
-      // Sessiz: ek blok yalnız bir kolaylık.
-    }
-  }
-
   void _select(int i) {
     if (i == _tab) return;
-    setState(() {
-      _tab = i;
-      _joined = const [];
-    });
+    setState(() => _tab = i);
     _load(reset: true);
   }
 
@@ -128,7 +110,6 @@ class _PollListPageState extends State<PollListPage> {
     final club = widget.communityId != null;
     final labels = [l.pollTabOpen, l.pollTabMine, l.pollTabClosed];
     final failed = _error != null && _items.isEmpty;
-    final net = _error is ApiError && (_error! as ApiError).isNetwork;
     return BuPageScaffold(
       title: widget.title ?? l.pollListTitle,
       large: false,
@@ -139,132 +120,63 @@ class _PollListPageState extends State<PollListPage> {
       actions: [
         if (club && widget.canCreate)
           Padding(
-            padding: const EdgeInsetsDirectional.only(end: 12),
+            padding: const EdgeInsetsDirectional.only(end: 8),
             child: Semantics(
               button: true,
               label: l.pollCreate,
               excludeSemantics: true,
               onTap: _create,
-              child: SizedBox(
-                width: 48,
-                height: 48,
-                child: Center(
-                  child: Material(
-                    color: t.pr,
-                    shape: const CircleBorder(),
-                    child: InkWell(
-                      customBorder: const CircleBorder(),
-                      onTap: _create,
-                      child: SizedBox(width: 40, height: 40, child: Icon(LucideIcons.plus, size: 22, color: t.onPr)),
-                    ),
-                  ),
-                ),
+              child: TextButton(
+                style: TextButton.styleFrom(foregroundColor: t.pr, minimumSize: const Size(48, 48), padding: const EdgeInsets.symmetric(horizontal: 12)),
+                onPressed: _create,
+                child: Text('+ ${l.p68New}', style: Theme.of(context).textTheme.titleMedium!.copyWith(color: t.pr, fontSize: 17, fontWeight: FontWeight.w700)),
               ),
             ),
           ),
       ],
-      banner: failed
-          ? Padding(
-              padding: const EdgeInsetsDirectional.fromSTEB(20, 4, 20, 12),
-              child: AnketErrorBanner(
-                title: l.pollLoadFailedRetry,
-                body: net ? l.p13PollErrBody : errorText(_error!),
-                retryLabel: l.commonRetry,
-                onRetry: () => _load(reset: true),
-              ),
-            )
-          : null,
       slivers: [
-        if (!club)
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsetsDirectional.fromSTEB(20, 4, 20, 16),
-              child: AnketTabs(labels: labels, index: _tab, onChanged: _select, badge: _openCount),
-            ),
-          ),
-        if (_tab == 2 && !club && _loaded && _items.isNotEmpty)
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsetsDirectional.fromSTEB(20, 0, 20, 12),
-              child: AnketHeading(title: l.p13PollArchiveHeading, trailing: _hasMore ? null : l.p13PollArchiveCount('${_items.length}')),
-            ),
-          ),
+        if (!club) SliverToBoxAdapter(child: AnketTextTabs(labels: labels, index: _tab, onChanged: _select)),
+        SliverToBoxAdapter(child: club ? const Padding(padding: EdgeInsets.only(top: 8), child: AnketRule()) : const Padding(padding: EdgeInsets.only(top: 2), child: AnketRule())),
         if (!_loaded && _error == null)
           const SliverToBoxAdapter(child: _PollListSkeleton())
+        else if (failed)
+          SliverToBoxAdapter(
+            child: AnketStateLine(text: l.pollLoadFailedRetry, actionLabel: l.commonRetry, onAction: () => _load(reset: true)),
+          )
         else if (_loaded && _items.isEmpty)
-          SliverToBoxAdapter(child: Padding(padding: const EdgeInsetsDirectional.fromSTEB(20, 0, 20, 0), child: _empty(l)))
+          SliverToBoxAdapter(child: _empty(l))
         else
-          SliverPadding(
-            padding: const EdgeInsetsDirectional.fromSTEB(20, 0, 20, 0),
-            sliver: SliverList.separated(
-              itemCount: _items.length,
-              separatorBuilder: (_, __) => const SizedBox(height: 12),
-              itemBuilder: (_, i) {
-                final p = _items[i];
-                return BuStaggerItem(index: i, child: PollCard(poll: p, onTap: () => _open(p)));
-              },
-            ),
+          SliverList.builder(
+            itemCount: _items.length,
+            itemBuilder: (_, i) {
+              final p = _items[i];
+              return BuStaggerItem(index: i, child: PollCard(poll: p, first: i == 0, onTap: () => _open(p)));
+            },
           ),
-        if (_tab == 2 && !club && _loaded && _joined.isNotEmpty) ...[
-          SliverPadding(
-            padding: const EdgeInsetsDirectional.fromSTEB(20, 20, 20, 8),
-            sliver: SliverToBoxAdapter(
-              child: AnketHeading(title: l.pollTabMine, trailing: l.p13PollViewAll, onTrailingTap: () => _select(1)),
-            ),
-          ),
-          SliverPadding(
-            padding: const EdgeInsetsDirectional.fromSTEB(20, 0, 20, 0),
-            sliver: SliverList.separated(
-              itemCount: _joined.length,
-              separatorBuilder: (_, __) => const SizedBox(height: 12),
-              itemBuilder: (_, i) => PollCard(poll: _joined[i], reviewCta: true, onTap: () => _open(_joined[i])),
-            ),
-          ),
-        ],
-        SliverToBoxAdapter(child: _footer(l.pollLoadFailedRetry)),
+        SliverToBoxAdapter(child: _footer(l.pollLoadFailedRetry, l.commonRetry)),
       ],
     );
   }
 
   Widget _empty(AppLocalizations l) {
     if (widget.communityId != null) {
-      return BuCard(
-        padding: const EdgeInsetsDirectional.all(12),
-        child: AnketClubEmpty(
-          title: l.pollClubEmpty,
-          body: l.p13PollClubEmptyBody,
-          linkLabel: l.pollSeeAll,
-          onLink: () => openPollList(context, widget.session),
-        ),
-      );
+      return AnketStateLine(text: l.pollClubEmpty, actionLabel: l.pollSeeAll, onAction: () => openPollList(context, widget.session));
     }
-    return switch (_tab) {
-      0 => AnketEmptyCard(icon: LucideIcons.vote, title: l.pollEmptyOpen, body: l.p13PollEmptyOpenBody),
-      1 => AnketEmptyCard(
-          icon: LucideIcons.listChecks, title: l.pollEmptyMine, body: l.p13PollEmptyMineBody),
-      _ => AnketEmptyCard(
-          icon: LucideIcons.archive, title: l.pollEmptyClosed, body: l.p13PollEmptyClosedBody),
-    };
+    return AnketStateLine(text: switch (_tab) { 0 => l.pollEmptyOpen, 1 => l.pollEmptyMine, _ => l.pollEmptyClosed });
   }
 
-  Widget _footer(String retryLabel) {
+  Widget _footer(String failed, String retryLabel) {
     if (_loading && _items.isNotEmpty) {
-      return const Padding(
-        padding: EdgeInsetsDirectional.fromSTEB(20, 12, 20, 0),
-        child: BuSkeletonScope(child: _PollSkeletonCard()),
-      );
+      return const BuSkeletonScope(child: AnketSkeletonRow());
     }
     if (_error != null && _items.isNotEmpty) {
-      return Padding(
-        padding: const EdgeInsets.only(top: 8),
-        child: Center(child: BuButton(label: retryLabel, kind: BuButtonKind.soft, compact: true, onPressed: _load)),
-      );
+      return AnketStateLine(text: failed, actionLabel: retryLabel, onAction: _load, padding: const EdgeInsetsDirectional.fromSTEB(kAnketPad, 12, kAnketPad, 0));
     }
     return const SizedBox.shrink();
   }
 }
 
-/// İlk yükleme iskeleti: gerçek kartla aynı düzen (çipler, başlık, açıklama, meta).
+/// İlk yükleme iskeleti: gerçek satırla aynı düzen (başlık + meta çubuğu, ayraçlı).
 class _PollListSkeleton extends StatelessWidget {
   const _PollListSkeleton();
 
@@ -274,49 +186,11 @@ class _PollListSkeleton extends StatelessWidget {
         liveRegion: true,
         container: true,
         child: const BuSkeletonScope(
-          child: Padding(
-            padding: EdgeInsetsDirectional.fromSTEB(20, 0, 20, 20),
-            child: Column(children: [
-              _PollSkeletonCard(),
-              SizedBox(height: 12),
-              _PollSkeletonCard(),
-              SizedBox(height: 12),
-              _PollSkeletonCard(),
-            ]),
-          ),
-        ),
-      );
-}
-
-class _PollSkeletonCard extends StatelessWidget {
-  const _PollSkeletonCard();
-
-  @override
-  Widget build(BuildContext context) => const BuCard(
-        padding: EdgeInsetsDirectional.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(children: [
-              BuSkeleton(width: 64, height: 24, radius: 12),
-              SizedBox(width: 8),
-              BuSkeleton(width: 84, height: 24, radius: 12),
-              Spacer(),
-              BuSkeleton(width: 72, height: 24, radius: 12),
-            ]),
-            SizedBox(height: 14),
-            BuSkeleton.line(height: 18),
-            SizedBox(height: 8),
-            BuSkeleton.line(width: 190, height: 18),
-            SizedBox(height: 14),
-            Row(children: [
-              BuSkeleton.line(width: 84, height: 12),
-              SizedBox(width: 16),
-              BuSkeleton.line(width: 56, height: 12),
-              Spacer(),
-              BuSkeleton(width: 84, height: 40, radius: 14),
-            ]),
-          ],
+          child: Column(children: [
+            AnketSkeletonRow(titleWidth: 240),
+            AnketSkeletonRow(titleWidth: 200),
+            AnketSkeletonRow(titleWidth: 260),
+          ]),
         ),
       );
 }

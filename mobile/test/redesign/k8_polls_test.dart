@@ -1,4 +1,4 @@
-import 'package:bu_kampus/features/polls/anket_widgets.dart';
+import 'package:bu_kampus/features/polls/anket_flat.dart';
 import 'package:bu_kampus/features/polls/poll_club_section.dart';
 import 'package:bu_kampus/features/polls/poll_detail_page.dart';
 import 'package:bu_kampus/features/polls/poll_form_page.dart';
@@ -32,7 +32,7 @@ void main() {
           scaffold: false,
           settleMs: 800,
           check: (t, l, d, s) async {
-            await t.tapAt(t.getTopRight(find.byType(AnketTabs)) + const Offset(-40, 28));
+            await t.tap(find.descendant(of: find.byType(AnketTextTabs), matching: find.byType(GestureDetector)).last);
             await t.pump(const Duration(milliseconds: 600));
           });
     });
@@ -66,12 +66,12 @@ void main() {
   });
 
   group('K8 davranis', () {
-    testWidgets('liste: sekme rozeti acik sayisini gosterir; "+" yalniz kulup listesinde ve yetkiliyken', (t) async {
+    testWidgets('liste: acik anketler kartsiz satir; "+ Yeni" yalniz kulup listesinde ve yetkiliyken', (t) async {
       final b = FakeBackend();
       fakePolls(b, count: 3);
       await t.pumpWidget(p00App(PollListPage(session: makeSession(b)), scaffold: false));
       await settle(t, const Duration(milliseconds: 700));
-      expect(find.text('3'), findsOneWidget);
+      expect(find.byType(PollCard), findsNWidgets(3));
       expect(find.byTooltip('Anket oluştur'), findsNothing);
       await unmount(t);
 
@@ -95,7 +95,7 @@ void main() {
       await unmount(t);
     });
 
-    testWidgets('kart: acik+oy verilmemis -> "Oy ver"; oy verilmis -> "Oy verdiniz"; kapali -> sonuc ozeti', (t) async {
+    testWidgets('satir: oy verilmis -> "Oy verdiniz" (yesil); kapali sekme -> "Sona erdi" meta, kartsiz', (t) async {
       final b = FakeBackend();
       final f = fakePolls(b, count: 0);
       f.polls
@@ -103,7 +103,7 @@ void main() {
         ..add(samplePoll(id: 2, title: 'B', myOptionIds: [201]));
       await t.pumpWidget(p00App(PollListPage(session: makeSession(b)), scaffold: false));
       await settle(t, const Duration(milliseconds: 700));
-      expect(find.text('Oy ver'), findsOneWidget);
+      expect(find.text('Oy ver'), findsNothing); // Stitch v3: satirda eylem dugmesi yok, satir dokunulur
       expect(find.text('Oy verdiniz'), findsOneWidget);
       await unmount(t);
 
@@ -114,13 +114,9 @@ void main() {
       await settle(t, const Duration(milliseconds: 700));
       await t.tap(find.text('Kapanan'));
       await settle(t, const Duration(milliseconds: 700));
-      expect(find.byType(PollCard), findsNWidgets(3));
-      expect(find.text('En çok oy alan seçenek'), findsOneWidget);
-      expect(find.text('Ortalama Memnuniyet'), findsOneWidget);
-      expect(find.text('Sonuçlanan Anketler'), findsOneWidget);
-      expect(find.text('Katıldıklarım'), findsNWidgets(2)); // sekme + blok başlığı
-      expect(find.text('Oyu İncele'), findsOneWidget);
-      expect(find.text('Kapandı'), findsNWidgets(2));
+      expect(find.byType(PollCard), findsNWidgets(2));
+      expect(find.textContaining('Sona erdi'), findsNWidgets(2));
+      expect(find.text('Katıldıklarım'), findsOneWidget); // yalniz sekme (alt blok kalkti)
       await unmount(t);
     });
 
@@ -132,7 +128,7 @@ void main() {
       addTearDown(t.view.reset);
       await t.pumpWidget(p00App(PollDetailPage(session: makeSession(b), pollId: 1), scaffold: false));
       await settle(t, const Duration(milliseconds: 900));
-      expect(find.textContaining('Oyunuz gizli.'), findsOneWidget);
+      expect(find.textContaining('Gizli oy'), findsOneWidget); // meta satiri
       await t.tap(find.text('Oyu değiştir'));
       await settle(t, const Duration(milliseconds: 700));
       expect(find.text('Önceki seçiminiz'), findsOneWidget);
@@ -177,7 +173,7 @@ void main() {
       addTearDown(t.view.reset);
       await t.pumpWidget(p00App(PollDetailPage(session: makeSession(b), pollId: 1), scaffold: false));
       await settle(t, const Duration(milliseconds: 900));
-      expect(find.text('Oyunuz gizlidir'), findsOneWidget);
+      expect(find.textContaining('Gizli oy'), findsOneWidget); // meta satirinda
       expect(find.textContaining('Kimliğiniz hiçbir yönetici'), findsNothing);
       expect(find.text('Sonuçlar anket kapanınca görünecek.'), findsOneWidget);
       await unmount(t);
@@ -223,7 +219,7 @@ void main() {
       addTearDown(t.view.reset);
       await t.pumpWidget(p00App(PollFormPage(session: makeSession(b), communityId: 5), scaffold: false));
       await settle(t, const Duration(milliseconds: 700));
-      for (final s in ['Tek seçim', 'Çoklu seçim', 'Puanlama', 'Sıralı seçim', '1 gün', '3 gün', '7 gün', 'Her zaman', 'Oy verince', 'Anket kapanınca', 'Gizli oy', 'Bildirim gönder']) {
+      for (final s in ['Tek seçim', 'Çoklu', 'Puanlama', 'Sıralı', '1 gün', '3 gün', '7 gün', 'Her zaman', 'Oy verince', 'Anket kapanınca', 'Gizli oy', 'Bildirim gönder']) {
         expect(find.text(s), findsOneWidget, reason: s);
       }
       expect(find.text('2 / 12'), findsOneWidget);

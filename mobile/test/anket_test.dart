@@ -1,6 +1,7 @@
 import 'package:bu_kampus/features/polls/poll_detail_page.dart';
 import 'package:bu_kampus/features/polls/poll_form_page.dart';
 import 'package:bu_kampus/features/polls/poll_list_page.dart';
+import 'package:bu_kampus/features/polls/poll_parts.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -30,8 +31,9 @@ void main() {
             ..add(samplePoll(id: 2, title: 'Kulup anketi', myOptionIds: [201]))
             ..add(samplePoll(id: 3, title: 'Menu', type: 'RATING', communityId: null));
           await show(tester, PollListPage(session: makeSession(b)), size: size, b: br);
-          expect(find.text('Gizli oy'), findsOneWidget);
-          expect(find.text('Oy ver'), findsWidgets);
+          // Stitch v3: kartsiz satir (kapsam · tur · kalan sure); oy verilmis satirda "Oy verdiniz".
+          expect(find.byType(PollCard), findsNWidgets(3));
+          expect(find.text('Oy verdiniz'), findsOneWidget);
           noErr(tester);
         });
 
@@ -40,7 +42,8 @@ void main() {
           final f = fakePolls(b, count: 1);
           f.polls[0] = samplePoll(id: 1, anonymous: true, myOptionIds: [101], optionCount: 5, title: 'Uzun baslik ' * 8);
           await show(tester, PollDetailPage(session: makeSession(b), pollId: 1), size: size, b: br);
-          expect(find.textContaining('Oyunuz gizli.', skipOffstage: false), findsOneWidget);
+          // Gizli oy bilgisi basligin altindaki meta satirinda ("Kapsam · Tur · Gizli oy · kalan sure").
+          expect(find.textContaining('Gizli oy', skipOffstage: false), findsOneWidget);
           noErr(tester);
         });
 
@@ -56,6 +59,8 @@ void main() {
           final b = FakeBackend();
           fakePolls(b, count: 0);
           await show(tester, PollFormPage(session: makeSession(b), communityId: 5), size: size, b: br);
+          // "Yayinla" Stitch v3'te icerigin sonunda (sabit alt cubuk yok): kaydirarak ulasilir.
+          await tester.scrollUntilVisible(find.text('Yayınla'), 300, scrollable: find.byType(Scrollable).first);
           expect(find.text('Yayınla'), findsOneWidget);
           noErr(tester);
         });

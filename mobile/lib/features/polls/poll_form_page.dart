@@ -5,13 +5,13 @@ import '../../core/locale_controller.dart';
 import '../../core/session.dart';
 import '../../l10n/app_localizations.dart';
 import '../../widgets/bu.dart';
-import 'anket_style.dart';
-import 'anket_widgets.dart';
+import 'anket_flat.dart';
 import 'poll_api.dart';
 import 'poll_models.dart';
 
-/// Kulüp yöneticisi için anket oluşturma formu (tasarım 31): başlık, açıklama, tür, seçenekler 2-12,
-/// bitiş (hızlı süre + seçici), sonuç görünürlüğü, gizli oy ve bildirim anahtarları. Tek kaydırmalı sayfa.
+/// Kulüp yöneticisi için anket oluşturma formu (Stitch v3 04): başlık, açıklama, tür (metin segmenti), seçenekler 2-12,
+/// bitiş (1 / 3 / 7 gün ya da tarih seç), sonuç görünürlüğü (sağda radyo), gizli oy ve bildirim anahtarları (çizgili
+/// satır), "Yayınla". Tek kaydırmalı sayfa; kart yok, etiketler alanın üstünde.
 class PollFormPage extends StatefulWidget {
   const PollFormPage({super.key, required this.session, required this.communityId});
 
@@ -36,17 +36,17 @@ class _PollFormPageState extends State<PollFormPage> {
   bool _notify = true;
   String _showResults = 'AFTER_VOTE';
   DateTime? _closesAt;
+  bool _customEnd = false; // tarih seçiciyle belirlenen bitiş
   String? _error;
   bool _busy = false;
 
-  /// Kullanıcının az önce eklediği seçenek alanı (odak alır, ekrana kaydırılır); ilk iki alan odak istemez.
+  /// Kullanıcının az önce eklediği seçenek alanı (odak alır); ilk iki alan odak istemez.
   TextEditingController? _justAdded;
 
   @override
   void initState() {
     super.initState();
     _closesAt = DateTime.now().add(const Duration(days: 7));
-    _title.addListener(() => setState(() {}));
   }
 
   @override
@@ -59,9 +59,7 @@ class _PollFormPageState extends State<PollFormPage> {
     super.dispose();
   }
 
-  String _fmt(DateTime d) {
-    return DateFormat('d MMMM y, HH:mm', Localizations.localeOf(context).toString()).format(d);
-  }
+  String _fmtShort(DateTime d) => '${anketDayLabel(context, d)} ${DateFormat('HH:mm').format(d)}';
 
   /// Bitiş tarihi (A30) ve saati (A31) seçicileri.
   Future<void> _pickEnd() async {
@@ -83,7 +81,10 @@ class _PollFormPageState extends State<PollFormPage> {
       builder: (c, child) => MediaQuery(data: MediaQuery.of(c).copyWith(alwaysUse24HourFormat: true), child: child!),
     );
     if (tm == null || !mounted) return;
-    setState(() => _closesAt = DateTime(d.year, d.month, d.day, tm.hour, tm.minute));
+    setState(() {
+      _closesAt = DateTime(d.year, d.month, d.day, tm.hour, tm.minute);
+      _customEnd = true;
+    });
   }
 
   Future<void> _submit() async {
@@ -145,20 +146,8 @@ class _PollFormPageState extends State<PollFormPage> {
     buHaptic(BuHaptic.selection);
   }
 
-  /// Dolu (sf2) girdi süsü: çerçevesiz, odakta marka halkası.
-  InputDecoration _deco(BuTokens t, String? hint) {
-    OutlineInputBorder b(Color c, double w) => OutlineInputBorder(borderRadius: BuRadius.bSm, borderSide: BorderSide(color: c, width: w));
-    return InputDecoration(
-      hintText: hint,
-      counterText: '',
-      filled: true,
-      fillColor: t.sf2,
-      border: b(t.sf2, 0),
-      enabledBorder: b(t.sf2, 0),
-      focusedBorder: b(t.pr, 2),
-      contentPadding: const EdgeInsetsDirectional.symmetric(horizontal: 16, vertical: 14),
-    );
-  }
+  /// Seçenek sayısıyla ilgili doğrulama metni (alanların altında satır içi gösterilir).
+  bool _isOptionError(String e, AppLocalizations l) => e == l.pollValMin2 || e == l.pollValMax12 || e == l.pollValDistinct;
 
   @override
   Widget build(BuildContext context) {
@@ -171,353 +160,215 @@ class _PollFormPageState extends State<PollFormPage> {
       ('AFTER_CLOSE', l.anketVisAfterClose, l.p13PollVisAfterCloseSub),
     ];
     final types = [
-      (PollType.single, LucideIcons.circleDot, l.pollTypeSingle, l.p13PollTypeSingleHint),
-      (PollType.multi, LucideIcons.listChecks, l.pollTypeMulti, l.p13PollTypeMultiHint),
-      (PollType.rating, LucideIcons.star, l.pollTypeRating, l.p13PollTypeRatingHint),
-      (PollType.ranked, LucideIcons.listOrdered, l.pollTypeRanked, l.p13PollTypeRankedHint),
+      (PollType.single, l.pollTypeSingle, l.p13PollTypeSingleHint),
+      (PollType.multi, l.p68TypeMulti, l.p13PollTypeMultiHint),
+      (PollType.rating, l.pollTypeRating, l.p13PollTypeRatingHint),
+      (PollType.ranked, l.p68TypeRanked, l.p13PollTypeRankedHint),
     ];
-    Widget typeCard(int i) {
-      final (type, icon, label, hint) = types[i];
-      return Expanded(
-        child: _TypeCard(icon: icon, label: label, hint: hint, selected: _type == type, onTap: () => setState(() => _type = type)),
-      );
-    }
-
-    final label = tx.titleSmall!.copyWith(color: t.ink, fontWeight: FontWeight.w800);
+    final err = _error;
+    final optErr = err != null && _isOptionError(err, l);
+    final field = tx.bodyLarge!.copyWith(color: t.ink, fontWeight: FontWeight.w400);
     return BuPageScaffold(
       title: l.pollCreate,
       large: false,
-      bottomInset: 24,
-      bottomBar: _bottomBar(l),
+      bottomInset: 32,
       slivers: [
         SliverPadding(
-          padding: const EdgeInsetsDirectional.fromSTEB(20, 4, 20, 0),
+          padding: const EdgeInsetsDirectional.fromSTEB(kAnketPad, 17, kAnketPad, 0),
           sliver: SliverList(
             delegate: SliverChildListDelegate([
-              BuCard(
-                padding: const EdgeInsetsDirectional.all(16),
-                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Row(children: [
-                    Expanded(
-                      child: Semantics(
-                        header: true,
-                        child: Text.rich(TextSpan(style: label, children: [
-                          TextSpan(text: l.pollFieldTitle),
-                          TextSpan(text: ' *', style: TextStyle(color: t.pr)),
-                        ])),
-                      ),
-                    ),
-                    Text('${_title.text.characters.length}/$_maxTitle', style: tx.labelMedium!.copyWith(color: t.mut, fontWeight: FontWeight.w700)),
-                  ]),
-                  const SizedBox(height: 8),
-                  TextField(
-                    controller: _title,
-                    maxLength: _maxTitle,
-                    textInputAction: TextInputAction.next,
-                    decoration: _deco(t, l.pollTitleHint),
-                  ),
-                  const SizedBox(height: 18),
-                  Text(l.pollFieldDesc, style: label),
-                  const SizedBox(height: 8),
-                  TextField(
-                    controller: _desc,
-                    maxLines: 4,
-                    minLines: 3,
-                    maxLength: 1000,
-                    decoration: _deco(t, l.pollDescHint),
-                  ),
-                  const SizedBox(height: 18),
-                  Semantics(header: true, child: Text(l.p13PollFormType, style: label)),
-                  const SizedBox(height: 10),
-                  IntrinsicHeight(
-                    child: Row(crossAxisAlignment: CrossAxisAlignment.stretch, children: [typeCard(0), const SizedBox(width: 10), typeCard(1)]),
-                  ),
-                  const SizedBox(height: 10),
-                  IntrinsicHeight(
-                    child: Row(crossAxisAlignment: CrossAxisAlignment.stretch, children: [typeCard(2), const SizedBox(width: 10), typeCard(3)]),
-                  ),
-                ]),
+              AnketFieldLabel(l.pollFieldTitle),
+              TextField(
+                controller: _title,
+                maxLength: _maxTitle,
+                textInputAction: TextInputAction.next,
+                textCapitalization: TextCapitalization.sentences,
+                style: field,
+                decoration: anketFieldDeco(context, hint: l.pollTitleHint),
               ),
-              const SizedBox(height: 16),
-              AnimatedSwitcher(
-                duration: BuMotion.of(context, BuMotion.medium),
-                child: _type == PollType.rating
-                    ? const SizedBox(key: ValueKey('noOptions'), width: double.infinity)
-                    : Padding(
-                        key: const ValueKey('options'),
-                        padding: const EdgeInsets.only(bottom: 16),
-                        child: BuCard(
-                          padding: const EdgeInsetsDirectional.all(16),
-                          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                            Row(children: [
-                              Semantics(header: true, child: Text(l.p13PollOptionsTitle, style: label)),
-                              const SizedBox(width: 8),
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                                decoration: BoxDecoration(color: t.sf2, borderRadius: BuRadius.bPill),
-                                child: Text('${_opts.length} / $_maxOptions', style: tx.labelSmall!.copyWith(color: t.ink, fontWeight: FontWeight.w700)),
-                              ),
-                              const Spacer(),
-                              Flexible(child: Text(l.p13PollMin2, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.labelMedium!.copyWith(color: t.mut))),
-                            ]),
-                            const SizedBox(height: 12),
-                            for (var i = 0; i < _opts.length; i++)
-                              _Appear(
-                                key: ObjectKey(_opts[i]),
-                                child: Padding(
-                                  padding: const EdgeInsets.only(bottom: 10),
-                                  child: Row(children: [
-                                    SizedBox(
-                                      width: 20,
-                                      child: ExcludeSemantics(
-                                        child: Text('${i + 1}', textAlign: TextAlign.center, style: tx.labelLarge!.copyWith(color: t.mut, fontWeight: FontWeight.w700)),
-                                      ),
-                                    ),
-                                    const SizedBox(width: 10),
-                                    Expanded(
-                                      child: TextField(
-                                        controller: _opts[i],
-                                        maxLength: 100,
-                                        autofocus: identical(_opts[i], _justAdded),
-                                        decoration: _deco(t, l.pollOptionHint('${i + 1}')).copyWith(
-                                          suffixIcon: _opts.length > 1
-                                              ? IconButton(
-                                                  tooltip: l.pollRemoveOption,
-                                                  constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
-                                                  icon: Icon(LucideIcons.trash2, size: 20, color: t.mut),
-                                                  onPressed: () => _removeOption(i),
-                                                )
-                                              : null,
-                                        ),
-                                      ),
-                                    ),
-                                  ]),
-                                ),
-                              ),
-                            if (_opts.length < _maxOptions)
-                              Material(
-                                color: t.sf2,
-                                borderRadius: BuRadius.bSm,
-                                child: InkWell(
-                                  borderRadius: BuRadius.bSm,
-                                  onTap: _addOption,
-                                  child: ConstrainedBox(
-                                    constraints: const BoxConstraints(minHeight: BuSize.button),
-                                    child: Center(
-                                      child: Row(mainAxisSize: MainAxisSize.min, children: [
-                                        ExcludeSemantics(child: Icon(LucideIcons.circlePlus, size: 20, color: t.pr)),
-                                        const SizedBox(width: 8),
-                                        Flexible(child: Text(l.pollAddOption, style: tx.titleSmall!.copyWith(color: t.ink, fontWeight: FontWeight.w800))),
-                                      ]),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                          ]),
-                        ),
-                      ),
+              AnketFieldLabel(l.pollFieldDesc, top: 26),
+              TextField(
+                controller: _desc,
+                minLines: 3,
+                maxLines: 6,
+                maxLength: 1000,
+                textCapitalization: TextCapitalization.sentences,
+                style: field,
+                decoration: anketFieldDeco(context, hint: l.pollDescHint, pad: const EdgeInsetsDirectional.symmetric(horizontal: 16, vertical: 13)),
               ),
-              _Heading(icon: LucideIcons.clock, title: l.pollFieldEnd),
-              BuCard(
-                padding: const EdgeInsetsDirectional.all(16),
-                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Text(Localizations.localeOf(context).languageCode == 'tr' ? trUpper(l.p13PollQuick) : l.p13PollQuick.toUpperCase(), style: tx.labelSmall!.copyWith(color: t.mut, fontWeight: FontWeight.w800, letterSpacing: .6)),
-                  const SizedBox(height: 10),
-                  Row(children: [
-                    for (final days in const [1, 3, 7]) ...[
-                      if (days != 1) const SizedBox(width: 8),
-                      Expanded(
-                        child: _DurationButton(
-                          label: l.pollDurDays('$days'),
-                          selected: _closesAt != null && _daysLeft() == days,
-                          onTap: () => setState(() => _closesAt = DateTime.now().add(Duration(days: days))),
-                        ),
-                      ),
-                    ],
-                  ]),
-                  const SizedBox(height: 12),
-                  Material(
-                    color: t.sf2,
-                    borderRadius: BuRadius.bSm,
-                    child: InkWell(
-                      borderRadius: BuRadius.bSm,
-                      onTap: _pickEnd,
-                      child: Padding(
-                        padding: const EdgeInsetsDirectional.fromSTEB(12, 10, 12, 10),
-                        child: Row(children: [
-                          AnketIconTile(LucideIcons.calendarClock, bg: t.sf, fg: t.ink, size: 40),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: _closesAt == null
-                                ? Text(l.pollPickDateTime, style: tx.titleSmall!.copyWith(color: t.ink, fontWeight: FontWeight.w800))
-                                : Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                                    Text(l.p13PollDateTime, style: tx.labelSmall!.copyWith(color: t.mut, fontWeight: FontWeight.w700)),
-                                    Text(_fmt(_closesAt!), style: tx.titleSmall!.copyWith(color: t.ink, fontWeight: FontWeight.w800)),
-                                  ]),
-                          ),
-                          const SizedBox(width: 8),
-                          Container(
-                            padding: const EdgeInsetsDirectional.symmetric(horizontal: 12, vertical: 7),
-                            decoration: BoxDecoration(color: t.soft, borderRadius: BuRadius.bPill),
-                            child: Text(l.pollChange, style: tx.labelMedium!.copyWith(color: t.onSoft, fontWeight: FontWeight.w800)),
-                          ),
-                        ]),
-                      ),
-                    ),
-                  ),
-                ]),
-              ),
-              const SizedBox(height: 20),
-              _Heading(icon: LucideIcons.eye, title: l.anketVisTitle),
-              BuCard(
-                padding: const EdgeInsetsDirectional.all(8),
-                child: Column(children: [
-                  for (final o in visOptions)
-                    _RadioRow(label: o.$2, sub: o.$3, selected: _showResults == o.$1, onTap: () => setState(() => _showResults = o.$1)),
-                ]),
-              ),
-              const SizedBox(height: 20),
-              _Heading(icon: LucideIcons.slidersHorizontal, title: l.p13PollPrefs),
-              BuCard(
-                padding: EdgeInsets.zero,
-                child: Column(children: [
-                  BuSettingsTile.toggle(
-                    icon: LucideIcons.lock,
-                    title: l.pollAnonymous,
-                    subtitle: l.pollAnonymousSub,
-                    tint: t.tint(1),
-                    value: _anonymous,
-                    onChanged: (v) => setState(() => _anonymous = v),
-                  ),
-                  Padding(padding: const EdgeInsetsDirectional.symmetric(horizontal: 16), child: Divider(height: 1, color: t.bd)),
-                  BuSettingsTile.toggle(
-                    icon: LucideIcons.bellRing,
-                    title: l.anketNotifyTitle,
-                    subtitle: l.anketNotifySub,
-                    tint: t.tint(1),
-                    value: _notify,
-                    onChanged: (v) => setState(() => _notify = v),
-                  ),
-                ]),
+              AnketFieldLabel(l.p68FormKind, top: 26, bottom: 0),
+              _TypeSegment(
+                items: [for (final x in types) (x.$2, x.$3, _type == x.$1)],
+                onTap: (i) => setState(() => _type = types[i].$1),
               ),
               AnimatedSize(
                 duration: BuMotion.of(context, BuMotion.medium),
                 curve: BuMotion.emphasized,
                 alignment: Alignment.topCenter,
-                child: _error == null
+                child: _type == PollType.rating
+                    ? const SizedBox(width: double.infinity)
+                    : Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+                        AnketFieldLabel(l.p68OptionsLabel, top: 26, trailing: '${_opts.length} / $_maxOptions'),
+                        for (var i = 0; i < _opts.length; i++)
+                          _Appear(
+                            key: ObjectKey(_opts[i]),
+                            child: Padding(
+                              padding: EdgeInsets.only(bottom: i == _opts.length - 1 ? 0 : 10),
+                              child: TextField(
+                                controller: _opts[i],
+                                maxLength: 100,
+                                autofocus: identical(_opts[i], _justAdded),
+                                style: field,
+                                decoration: anketFieldDeco(
+                                  context,
+                                  hint: l.pollOptionHint('${i + 1}'),
+                                  hasError: optErr && _opts[i].text.trim().isEmpty,
+                                  pad: const EdgeInsetsDirectional.fromSTEB(16, 13, 0, 13),
+                                  suffixIcon: _opts.length > 1
+                                      ? IconButton(
+                                          tooltip: l.pollRemoveOption,
+                                          constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
+                                          icon: Icon(LucideIcons.x, size: 20, color: t.mut),
+                                          onPressed: () => _removeOption(i),
+                                        )
+                                      : null,
+                                ),
+                              ),
+                            ),
+                          ),
+                        Row(children: [
+                          Expanded(
+                            child: optErr
+                                ? Semantics(
+                                    key: _errKey,
+                                    liveRegion: true,
+                                    container: true,
+                                    child: Text(err, style: tx.bodySmall!.copyWith(color: t.danger, height: 1.35)),
+                                  )
+                                : const SizedBox.shrink(),
+                          ),
+                          if (_opts.length < _maxOptions)
+                            TextButton(
+                              style: TextButton.styleFrom(foregroundColor: t.pr, minimumSize: const Size(48, 48), padding: const EdgeInsetsDirectional.only(start: 12)),
+                              onPressed: _addOption,
+                              child: Text('+ ${l.pollAddOption}', style: tx.titleSmall!.copyWith(color: t.pr, fontWeight: FontWeight.w700)),
+                            ),
+                        ]),
+                      ]),
+              ),
+              AnketFieldLabel(l.pollFieldEnd, top: 13, bottom: 1.5),
+              Wrap(spacing: 8, children: [
+                for (final days in const [1, 3, 7])
+                  _EndChip(
+                    label: l.pollDurDays('$days'),
+                    selected: !_customEnd && _closesAt != null && _daysLeft() == days,
+                    onTap: () => setState(() {
+                      _closesAt = DateTime.now().add(Duration(days: days));
+                      _customEnd = false;
+                    }),
+                  ),
+                _EndChip(
+                  label: _customEnd && _closesAt != null ? _fmtShort(_closesAt!) : l.p68PickDate,
+                  selected: _customEnd,
+                  onTap: _pickEnd,
+                ),
+              ]),
+              AnketFieldLabel(l.anketVisTitle, top: 22),
+              for (final o in visOptions)
+                _RadioRow(label: o.$2, sub: o.$3, selected: _showResults == o.$1, onTap: () => setState(() => _showResults = o.$1)),
+              const SizedBox(height: 25),
+              _SwitchRow(title: l.pollAnonymous, sub: l.pollAnonymousSub, value: _anonymous, onChanged: (v) => setState(() => _anonymous = v)),
+              _SwitchRow(title: l.anketNotifyTitle, sub: l.anketNotifySub, value: _notify, onChanged: (v) => setState(() => _notify = v)),
+              AnimatedSize(
+                duration: BuMotion.of(context, BuMotion.medium),
+                curve: BuMotion.emphasized,
+                alignment: Alignment.topCenter,
+                child: err == null || optErr
                     ? const SizedBox(width: double.infinity)
                     : Padding(
                         key: _errKey,
-                        padding: const EdgeInsets.only(top: 20),
-                        child: _ErrorBox(text: _error!),
+                        padding: const EdgeInsets.only(top: 16),
+                        child: Semantics(liveRegion: true, container: true, child: Text(err, style: tx.bodyMedium!.copyWith(color: t.danger, height: 1.4))),
                       ),
               ),
+              const SizedBox(height: 33),
+              BuButton(label: l.pollPublish, busy: _busy, onPressed: _submit),
             ]),
           ),
         ),
       ],
     );
   }
-
-  /// Sabit alt çubuk: Yayınla. Klavye açıkken de görünür kalır.
-  Widget _bottomBar(AppLocalizations l) => AnketBottomBar(
-        solid: true,
-        child: BuButton(label: l.pollPublish, icon: LucideIcons.megaphone, busy: _busy, onPressed: _submit),
-      );
 }
 
-/// Bölüm başlığı: solda marka renginde küçük simge.
-class _Heading extends StatelessWidget {
-  const _Heading({required this.icon, required this.title});
+/// Tür seçimi: dört metin parçalı çerçeveli şerit (görünür 40 dp, dokunma alanı 48 dp); seçili parça `soft` zemin + `pr` metin.
+class _TypeSegment extends StatelessWidget {
+  const _TypeSegment({required this.items, required this.onTap});
 
-  final IconData icon;
-  final String title;
-
-  @override
-  Widget build(BuildContext context) => Padding(
-        padding: const EdgeInsetsDirectional.only(start: 2, bottom: 10),
-        child: AnketHeading(title: title, icon: icon),
-      );
-}
-
-/// Doğrulama/sunucu hatası kutusu (kırmızı çerçeveli).
-class _ErrorBox extends StatelessWidget {
-  const _ErrorBox({required this.text});
-
-  final String text;
+  /// (etiket, ipucu, seçili)
+  final List<(String, String, bool)> items;
+  final ValueChanged<int> onTap;
 
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
-    final cs = Theme.of(context).colorScheme;
-    return Semantics(
-      liveRegion: true,
-      container: true,
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsetsDirectional.fromSTEB(14, 12, 14, 12),
-        decoration: BoxDecoration(color: cs.errorContainer, borderRadius: BorderRadius.circular(16), border: Border.all(color: t.danger.withValues(alpha: .35))),
-        child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          ExcludeSemantics(child: Padding(padding: const EdgeInsets.only(top: 1), child: Icon(LucideIcons.circleAlert, size: 18, color: t.danger))),
-          const SizedBox(width: 10),
-          Expanded(child: Text(text, style: Theme.of(context).textTheme.bodyMedium!.copyWith(color: t.danger, fontWeight: FontWeight.w600, height: 1.4))),
-        ]),
-      ),
-    );
-  }
-}
-
-/// Hızlı süre düğmesi: seçiliyken dolu marka rengi.
-class _DurationButton extends StatelessWidget {
-  const _DurationButton({required this.label, required this.selected, required this.onTap});
-
-  final String label;
-  final bool selected;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = context.bu;
-    return Semantics(
-      button: true,
-      selected: selected,
-      label: label,
-      excludeSemantics: true,
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: BuMotion.of(context, BuMotion.short),
-        decoration: BoxDecoration(color: selected ? t.pr : t.sf2, borderRadius: BuRadius.bSm),
-        child: Material(
-          type: MaterialType.transparency,
-          child: InkWell(
-            borderRadius: BuRadius.bSm,
-            onTap: () {
-              if (!selected) buHaptic(BuHaptic.selection);
-              onTap();
-            },
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(minHeight: 48),
-              child: Center(
-                child: Text(label,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: Theme.of(context).textTheme.labelLarge!.copyWith(color: selected ? t.onPr : t.ink, fontWeight: FontWeight.w800)),
-              ),
-            ),
+    final tx = Theme.of(context).textTheme;
+    return SizedBox(
+      height: 48,
+      child: Stack(children: [
+        Positioned.fill(
+          top: 4,
+          bottom: 4,
+          child: DecoratedBox(
+            decoration: BoxDecoration(color: t.sf, borderRadius: BorderRadius.circular(16), border: Border.all(color: t.bdStrong)),
           ),
         ),
-      ),
+        Row(children: [
+          for (var i = 0; i < items.length; i++)
+            Expanded(
+              child: Semantics(
+                button: true,
+                selected: items[i].$3,
+                inMutuallyExclusiveGroup: true,
+                label: '${items[i].$1}. ${items[i].$2}',
+                excludeSemantics: true,
+                onTap: () => onTap(i),
+                child: GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: () {
+                    if (!items[i].$3) buHaptic(BuHaptic.selection);
+                    onTap(i);
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 7, horizontal: 3),
+                    child: AnimatedContainer(
+                      duration: BuMotion.of(context, BuMotion.short),
+                      curve: BuMotion.standard,
+                      alignment: Alignment.center,
+                      padding: const EdgeInsets.symmetric(horizontal: 2),
+                      decoration: BoxDecoration(color: items[i].$3 ? t.soft : Colors.transparent, borderRadius: BorderRadius.circular(12)),
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text(items[i].$1,
+                            maxLines: 1,
+                            style: tx.labelLarge!.copyWith(color: items[i].$3 ? t.onSoft : t.mut, fontWeight: items[i].$3 ? FontWeight.w700 : FontWeight.w500)),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+        ]),
+      ]),
     );
   }
 }
 
-/// Tür kartı: simge + ad + kısa açıklama; seçiliyken marka tonu ve onay rozeti.
-class _TypeCard extends StatelessWidget {
-  const _TypeCard({required this.icon, required this.label, required this.hint, required this.selected, required this.onTap});
+/// Bitiş çipi: 34 dp görünür, 48 dp dokunma; seçili `soft` zemin + `pr` metin, değilse çerçeveli.
+class _EndChip extends StatelessWidget {
+  const _EndChip({required this.label, required this.selected, required this.onTap});
 
-  final IconData icon;
   final String label;
-  final String hint;
   final bool selected;
   final VoidCallback onTap;
 
@@ -528,51 +379,30 @@ class _TypeCard extends StatelessWidget {
     return Semantics(
       button: true,
       selected: selected,
-      inMutuallyExclusiveGroup: true,
-      label: '$label. $hint',
+      label: label,
       excludeSemantics: true,
       onTap: onTap,
-      child: BuPressable(
-        scale: .97,
-        child: AnimatedContainer(
-          duration: BuMotion.of(context, BuMotion.short),
-          curve: BuMotion.standard,
-          decoration: BoxDecoration(color: selected ? t.soft : t.sf2, borderRadius: BuRadius.bMd),
-          child: Material(
-            type: MaterialType.transparency,
-            child: InkWell(
-              borderRadius: BuRadius.bMd,
-              onTap: () {
-                if (!selected) buHaptic(BuHaptic.selection);
-                onTap();
-              },
-              child: Padding(
-                padding: const EdgeInsets.all(14),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-                      Container(
-                        width: 36,
-                        height: 36,
-                        decoration: BoxDecoration(color: t.sf, shape: BoxShape.circle),
-                        child: Icon(icon, size: 19, color: selected ? t.pr : t.ink),
-                      ),
-                      if (selected)
-                        Container(
-                          width: 24,
-                          height: 24,
-                          decoration: BoxDecoration(color: t.pr, shape: BoxShape.circle),
-                          child: Icon(LucideIcons.check, size: 15, color: t.onPr),
-                        ),
-                    ]),
-                    const SizedBox(height: 12),
-                    Text(label, style: tx.titleSmall!.copyWith(color: selected ? t.pr : t.ink, fontWeight: FontWeight.w800)),
-                    const SizedBox(height: 2),
-                    Text(hint, style: tx.bodySmall!.copyWith(color: selected ? t.onSoft.withValues(alpha: .85) : t.mut, height: 1.35)),
-                  ],
-                ),
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: () {
+          if (!selected) buHaptic(BuHaptic.selection);
+          onTap();
+        },
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minHeight: 48, minWidth: 48),
+          child: Center(
+            widthFactor: 1,
+            child: AnimatedContainer(
+              duration: BuMotion.of(context, BuMotion.short),
+              curve: BuMotion.standard,
+              height: 34,
+              padding: const EdgeInsets.symmetric(horizontal: 13),
+              decoration: BoxDecoration(
+                color: selected ? t.soft : t.sf,
+                borderRadius: BorderRadius.circular(17),
+                border: Border.all(color: selected ? t.soft : t.bdStrong),
               ),
+              child: Center(widthFactor: 1, child: Text(label, maxLines: 1, style: tx.labelLarge!.copyWith(color: selected ? t.onSoft : t.ink, fontWeight: FontWeight.w500))),
             ),
           ),
         ),
@@ -604,7 +434,7 @@ class _Appear extends StatelessWidget {
   }
 }
 
-/// Tek seçimli satır (sonuç görünürlüğü): solda radyo, başlık + alt metin; seçiliyken yumuşak marka zemini.
+/// Tek seçimli satır (sonuç görünürlüğü): solda 16 sp ad, sağda radyo; satırlar arası `bd` ayraç. Alt metin yalnız okuyucuya.
 class _RadioRow extends StatelessWidget {
   const _RadioRow({required this.label, required this.sub, required this.selected, required this.onTap});
 
@@ -616,42 +446,72 @@ class _RadioRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
-    final tx = Theme.of(context).textTheme;
     return Semantics(
       inMutuallyExclusiveGroup: true,
       checked: selected,
       label: '$label. $sub',
       excludeSemantics: true,
       onTap: onTap,
-      child: AnimatedContainer(
-        duration: BuMotion.of(context, BuMotion.short),
-        decoration: BoxDecoration(color: selected ? t.soft.withValues(alpha: .6) : null, borderRadius: BuRadius.bSm),
-        child: Material(
-          type: MaterialType.transparency,
-          child: InkWell(
-            borderRadius: BuRadius.bSm,
-            onTap: () {
-              if (!selected) buHaptic(BuHaptic.selection);
-              onTap();
-            },
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(minHeight: 60),
-              child: Padding(
-                padding: const EdgeInsetsDirectional.symmetric(horizontal: 12, vertical: 10),
-                child: Row(children: [
-                  AnketMark(on: selected, square: false),
-                  const SizedBox(width: 14),
-                  Expanded(
-                    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                      Text(label, style: tx.titleSmall!.copyWith(color: t.ink, fontWeight: FontWeight.w800)),
-                      const SizedBox(height: 1),
-                      Text(sub, style: tx.bodySmall!.copyWith(color: t.mut, height: 1.35)),
-                    ]),
-                  ),
-                ]),
-              ),
+      child: InkWell(
+        onTap: () {
+          if (!selected) buHaptic(BuHaptic.selection);
+          onTap();
+        },
+        child: Container(
+          constraints: const BoxConstraints(minHeight: 51),
+          decoration: BoxDecoration(border: Border(bottom: BorderSide(color: t.bd))),
+          child: Row(children: [
+            Expanded(child: Text(label, style: Theme.of(context).textTheme.bodyLarge!.copyWith(fontSize: 16, color: t.ink, fontWeight: FontWeight.w400))),
+            const SizedBox(width: 12),
+            AnketMarkFlat(on: selected),
+          ]),
+        ),
+      ),
+    );
+  }
+}
+
+/// Anahtar satırı: başlık 15 sp/700 + alt metin (muted), sağda anahtar; alt `bd` ayraç. Tüm satır dokunulabilir.
+class _SwitchRow extends StatelessWidget {
+  const _SwitchRow({required this.title, required this.sub, required this.value, required this.onChanged});
+
+  final String title;
+  final String sub;
+  final bool value;
+  final ValueChanged<bool> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.bu;
+    final tx = Theme.of(context).textTheme;
+    return Semantics(
+      toggled: value,
+      label: '$title. $sub',
+      excludeSemantics: true,
+      onTap: () => onChanged(!value),
+      child: InkWell(
+        onTap: () {
+          buHaptic(BuHaptic.selection);
+          onChanged(!value);
+        },
+        child: Container(
+          constraints: const BoxConstraints(minHeight: 71),
+          padding: const EdgeInsets.symmetric(vertical: 10),
+          decoration: BoxDecoration(border: Border(bottom: BorderSide(color: t.bd))),
+          child: Row(children: [
+            Expanded(
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Text(title, style: tx.bodyLarge!.copyWith(color: t.ink, fontWeight: FontWeight.w700)),
+                const SizedBox(height: 2),
+                Text(sub, style: tx.bodySmall!.copyWith(color: t.mut, height: 1.35)),
+              ]),
             ),
-          ),
+            const SizedBox(width: 12),
+            ExcludeSemantics(child: Switch(value: value, onChanged: (v) {
+              buHaptic(BuHaptic.selection);
+              onChanged(v);
+            })),
+          ]),
         ),
       ),
     );

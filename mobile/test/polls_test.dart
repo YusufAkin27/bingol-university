@@ -230,10 +230,10 @@ void main() {
       expect(b.bodies['POST /polls/1/vote'], {'optionIds': [102]});
       expect(find.text('%100'), findsOneWidget);
       expect(find.text('Oyu değiştir'), findsOneWidget);
-      expect(find.text('Oyu geri çek'), findsOneWidget);
+      expect(find.text('Oyumu geri çek'), findsOneWidget);
       await tester.pump(const Duration(seconds: 6)); // bildirim şeridi düğmeyi örtmesin
       await tester.pumpAndSettle();
-      await tap(tester, find.text('Oyu geri çek'));
+      await tap(tester, find.text('Oyumu geri çek'));
       await tap(tester, find.text('Geri çek').last);
       expect(b.count('DELETE /polls/1/vote'), 1);
       expect(find.text('Oy ver'), findsOneWidget);
@@ -305,9 +305,9 @@ void main() {
           id: 1, allowChangeVote: false, canVote: false, voteBlockedReason: 'ALREADY_VOTED', myOptionIds: [101]);
       await show(tester, PollDetailPage(session: makeSession(b), pollId: 1));
       expect(find.text('Oyu değiştir'), findsNothing);
-      expect(find.text('Oyu geri çek'), findsNothing);
+      expect(find.text('Oyumu geri çek'), findsNothing);
       expect(find.textContaining('değiştirilemez'), findsOneWidget);
-      expect(find.text('Seçiminiz'), findsOneWidget);
+      expect(find.text('Senin oyun'), findsOneWidget);
     });
 
     testWidgets('henuz acilmadi', (tester) async {
@@ -325,7 +325,7 @@ void main() {
       final f = fakePolls(b, count: 1);
       f.polls[0] = samplePoll(id: 1, anonymous: true);
       await show(tester, PollDetailPage(session: makeSession(b), pollId: 1));
-      expect(find.text('Oyunuz gizlidir'), findsOneWidget);
+      expect(find.textContaining('Gizli oy'), findsOneWidget); // meta satirinda
     });
 
     testWidgets('kapali: secim yok, sonuclar var', (tester) async {
@@ -333,8 +333,8 @@ void main() {
       final f = fakePolls(b, count: 1);
       f.polls[0] = samplePoll(id: 1, closed: true);
       await show(tester, PollDetailPage(session: makeSession(b), pollId: 1));
-      expect(find.text('Kapandı'), findsOneWidget);
-      expect(find.text('Kazanan Seçenek'), findsOneWidget);
+      expect(find.textContaining('Sona erdi'), findsWidgets); // meta satiri + ozet
+      expect(find.byType(ResultBar), findsWidgets);
       expect(find.text('Oy ver'), findsNothing);
     });
 
@@ -387,7 +387,7 @@ void main() {
           final f = fakePolls(b, count: 1);
           f.polls[0] = samplePoll(id: 1, title: 'Uzun baslik ' * 10, type: 'MULTI', anonymous: true, optionCount: 8);
           await show(tester, PollDetailPage(session: makeSession(b), pollId: 1), size: size, b: br);
-          expect(find.text('Oyunuz gizlidir'), findsOneWidget);
+          expect(find.textContaining('Gizli oy'), findsOneWidget);
           noErr(tester);
         });
       }
@@ -429,7 +429,7 @@ void main() {
       await show(tester,
           Scaffold(body: SingleChildScrollView(child: PollClubSection(session: makeSession(b), communityId: 5, canCreate: false))));
       expect(find.text('Anket 1'), findsOneWidget);
-      expect(find.text('Anket oluştur'), findsNothing);
+      expect(find.text('+ Yeni'), findsNothing);
     });
 
     testWidgets('yonetici: olusturma gorunur, bos durum', (tester) async {
@@ -437,7 +437,7 @@ void main() {
       fakePolls(b, count: 0);
       await show(tester,
           Scaffold(body: SingleChildScrollView(child: PollClubSection(session: makeSession(b), communityId: 5, canCreate: true))));
-      expect(find.text('Anket oluştur'), findsOneWidget);
+      expect(find.text('+ Yeni'), findsOneWidget);
       expect(find.text('Bu kulübün anketi yok.'), findsOneWidget);
     });
 
@@ -469,10 +469,11 @@ void main() {
       addTearDown(tester.view.resetDevicePixelRatio);
       await show(tester, PollFormPage(session: makeSession(b), communityId: 5), size: const Size(320, 4000));
       for (var i = 0; i < 10; i++) {
-        await tester.ensureVisible(find.text('Seçenek ekle'));
-        await tap(tester, find.text('Seçenek ekle'), settle: false);
+        await tester.ensureVisible(find.text('+ Seçenek ekle'));
+        await tap(tester, find.text('+ Seçenek ekle'), settle: false);
+        await tester.pump(const Duration(milliseconds: 500)); // boyut animasyonu bitsin
       }
-      expect(find.text('Seçenek ekle'), findsNothing);
+      expect(find.text('+ Seçenek ekle'), findsNothing);
       expect(find.byTooltip('Seçeneği sil'), findsNWidgets(12));
       noErr(tester);
     });
