@@ -52,7 +52,7 @@ void main() {
             expect(find.text('Haber'), findsWidgets);
             expect(find.text('Duyuru'), findsOneWidget);
             expect(find.text('Etkinlik'), findsOneWidget);
-            expect(find.textContaining('Kaynağa ulaşılamıyor'), findsOneWidget);
+            expect(find.textContaining('Haber kaynağına şu an ulaşılamıyor'), findsOneWidget);
             expect(find.textContaining('Kampüs genelinde ulaşım'), findsWidgets);
             expect(find.byTooltip('Favori haberler'), findsOneWidget);
             _ok(tester);
@@ -144,7 +144,7 @@ void main() {
   group('Favoriler (Ic4)', () {
     for (final size in kPhoneSizes) {
       for (final b in Brightness.values) {
-        testWidgets('${size.width.toInt()} dp ${b.name}: sayı, kartlar, ipucu kartı', (tester) async {
+        testWidgets('${size.width.toInt()} dp ${b.name}: sayı, satırlar', (tester) async {
           useScreen(tester, size);
           final be = FakeBackend()
             ..on('/bookmarks', {
@@ -158,7 +158,6 @@ void main() {
           expect(find.text('Favori haberler'), findsWidgets);
           expect(find.text('3 kayıtlı haber'), findsOneWidget);
           expect(find.textContaining('Kayıtlı haber başlığı'), findsNWidgets(3));
-          expect(find.text('Daha fazla haberi kaydet'), findsOneWidget);
           _ok(tester);
           await unmount(tester);
         });
@@ -212,10 +211,10 @@ void main() {
             await settle(tester);
             expect(find.text('Tümü'), findsOneWidget);
             expect(find.text('Kişi', skipOffstage: false), findsOneWidget);
-            // Bölüm başlıkları sade (büyük harf/sayaç yok); sekme çipiyle aynı sözcük olabilir.
-            expect(find.text('Haber'), findsNWidgets(2)); // sekme + bölüm
-            expect(find.text('Kulüp', skipOffstage: false), findsNWidgets(2));
-            expect(find.text('Duyuru'), findsOneWidget);
+            // Bölüm başlıkları büyük harf (Stitch v3); sekme çipleri sentence-case.
+            expect(find.text('HABER'), findsOneWidget);
+            expect(find.text('KULÜP'), findsOneWidget);
+            expect(find.text('DUYURU'), findsOneWidget);
             expect(find.text('9 Ekim 2026'), findsOneWidget);
             _ok(tester);
             await unmount(tester);

@@ -106,103 +106,115 @@ class _SavedNewsPageState extends State<SavedNewsPage> {
     }
   }
 
-  BuViewState get _view {
-    if (_items.isEmpty) {
-      if (_loading) return BuViewState.loading;
-      if (_error != null) return BuViewState.ready; // hata kartı listede çizilir
-      return BuViewState.empty;
-    }
-    return BuViewState.ready;
-  }
-
   @override
   Widget build(BuildContext context) {
     final l = context.l10n;
     final t = context.bu;
-    return BuPageScaffold(
-      title: l.icerikFavorites,
-      large: false,
-      state: _view,
-      error: _error,
-      onRetry: _reload,
-      onRefresh: _reload,
-      controller: _scroll,
-      bottomInset: MediaQuery.paddingOf(context).bottom + 24,
-      loading: const IcerikListSkeleton(featured: false, count: 5),
-      empty: BuEmptyState(
-        icon: LucideIcons.bookmark,
-        title: l.p05SavedEmptyTitle2,
-        message: l.p05SavedEmptyBody2,
-        actionLabel: l.p05SavedDiscover,
-        onAction: () => Navigator.maybePop(context),
-      ),
-      slivers: [
-        if (_items.isEmpty && _error != null)
-          SliverPadding(
-            padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
-            sliver: SliverToBoxAdapter(
-              child: IcerikErrorCard(
-                  title: l.p05ListErrorTitle, body: l.p05ListErrorBody, retryLabel: l.commonRetry, onRetry: _reload),
-            ),
-          )
-        else ...[
-        SliverToBoxAdapter(
-          child: Padding(
-            padding: const EdgeInsetsDirectional.fromSTEB(20, 0, 20, 12),
-            child: Row(children: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(color: t.sf2, borderRadius: BorderRadius.circular(BuRadius.pill)),
-                child: Row(mainAxisSize: MainAxisSize.min, children: [
-                  Icon(Icons.bookmark, size: 15, color: t.pr),
-                  const SizedBox(width: 6),
-                  Flexible(
+    final tx = Theme.of(context).textTheme;
+    final loading = _items.isEmpty && _loading;
+    return Scaffold(
+      backgroundColor: t.bg,
+      body: BuSwapIn(
+        loading: loading,
+        skeleton: const SingleChildScrollView(
+          physics: NeverScrollableScrollPhysics(),
+          child: Padding(padding: EdgeInsets.only(top: 140), child: IcerikListSkeleton(featured: false, count: 5)),
+        ),
+        child: BuRefreshIndicator(
+          onRefresh: _reload,
+          child: CustomScrollView(
+            controller: _scroll,
+            physics: const AlwaysScrollableScrollPhysics(),
+            slivers: [
+              // Geri (40 dp daire) + büyük başlık "Favori haberler" + soluk "3 kayıtlı haber".
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: EdgeInsetsDirectional.fromSTEB(16, MediaQuery.paddingOf(context).top + 24, 20, 0),
+                  child: Align(
+                    alignment: AlignmentDirectional.centerStart,
+                    child: IcerikIconButton(
+                        icon: buDirIcon(context, LucideIcons.arrowLeft), label: l.commonBack, shadow: true, onTap: () => Navigator.maybePop(context)),
+                  ),
+                ),
+              ),
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
+                  child: Semantics(
+                    header: true,
+                    child: Text(l.icerikFavorites,
+                        style: tx.headlineMedium!.copyWith(fontSize: 28, fontWeight: FontWeight.w700, height: 1.2, color: t.ink)),
+                  ),
+                ),
+              ),
+              if (_items.isNotEmpty)
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 4, 20, 0),
                     child: Text(
                       _hasMore ? l.profileNewsCountMore('${_items.length}') : l.icerikSavedCount('${_items.length}'),
-                      style: Theme.of(context).textTheme.labelMedium!.copyWith(fontWeight: FontWeight.w700, color: t.ink),
+                      style: tx.bodyMedium!.copyWith(fontSize: 14, color: t.mut),
                     ),
                   ),
-                ]),
-              ),
-            ]),
-          ),
-        ),
-        SliverPadding(
-          padding: const EdgeInsets.symmetric(horizontal: 20),
-          sliver: BuStaggerScope(
-            child: SliverList.separated(
-              itemCount: _items.length,
-              separatorBuilder: (_, __) => const SizedBox(height: 12),
-              itemBuilder: (context, i) {
-                final n = _items[i];
-                final id = (n['id'] as num).toInt();
-                return _Leaving(
-                  key: ValueKey('saved-$id'),
-                  leaving: _leaving.contains(id),
-                  child: BuStaggerItem(
-                    index: i,
-                    child: NewsTile(
-                      item: n,
-                      saved: !_leaving.contains(id),
-                      thumbSize: 72,
-                      showSource: false,
-                      onToggleSave: () => _remove(n),
-                      onTap: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => NewsDetailPage(session: widget.session, item: n, saved: true),
-                        ),
-                      ),
+                ),
+              if (_items.isEmpty && _error != null)
+                SliverPadding(
+                  padding: const EdgeInsets.fromLTRB(20, 24, 20, 0),
+                  sliver: SliverToBoxAdapter(
+                    child: IcerikErrorCard(title: l.p05ListErrorTitle, retryLabel: l.commonRetry, onRetry: _reload),
+                  ),
+                )
+              else if (_items.isEmpty)
+                // Boş: ortada soluk tek cümle + küçük ipucu (illüstrasyon/eylem yok).
+                SliverPadding(
+                  padding: const EdgeInsets.fromLTRB(20, 64, 20, 0),
+                  sliver: SliverToBoxAdapter(
+                    child: Column(children: [
+                      Text(l.p05SavedEmptyTitle2, textAlign: TextAlign.center, style: tx.bodyLarge!.copyWith(fontSize: 16, color: t.mut)),
+                      const SizedBox(height: 8),
+                      Text(l.p05SavedEmptyBody2, textAlign: TextAlign.center, style: tx.bodyMedium!.copyWith(fontSize: 14, color: t.mut)),
+                    ]),
+                  ),
+                )
+              else ...[
+                SliverPadding(
+                  padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
+                  sliver: BuStaggerScope(
+                    child: SliverList.separated(
+                      itemCount: _items.length,
+                      separatorBuilder: (_, __) => const NewsRowDivider(),
+                      itemBuilder: (context, i) {
+                        final n = _items[i];
+                        final id = (n['id'] as num).toInt();
+                        return _Leaving(
+                          key: ValueKey('saved-$id'),
+                          leaving: _leaving.contains(id),
+                          child: BuStaggerItem(
+                            index: i,
+                            child: NewsTile(
+                              item: n,
+                              saved: !_leaving.contains(id),
+                              onToggleSave: () => _remove(n),
+                              onTap: () => Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => NewsDetailPage(session: widget.session, item: n, saved: true),
+                                ),
+                              ),
+                            ),
+                          ),
+                        );
+                      },
                     ),
                   ),
-                );
-              },
-            ),
+                ),
+                SliverToBoxAdapter(child: _footer()),
+              ],
+              SliverToBoxAdapter(child: SizedBox(height: MediaQuery.paddingOf(context).bottom + 24)),
+            ],
           ),
         ),
-        SliverToBoxAdapter(child: _footer()),
-        ],
-      ],
+      ),
     );
   }
 
@@ -229,9 +241,9 @@ class _SavedNewsPageState extends State<SavedNewsPage> {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) _loadMore();
       });
-      return const IcerikListSkeleton(featured: false, count: 1, padding: EdgeInsets.fromLTRB(20, 12, 20, 0));
+      return IcerikLoadMore(text: l.p05NewsLoadingMore);
     }
-    return const Padding(padding: EdgeInsets.fromLTRB(20, 20, 20, 0), child: _SaveMoreHint());
+    return const SizedBox(height: 4);
   }
 }
 
@@ -261,66 +273,4 @@ class _Leaving extends StatelessWidget {
       child: child,
     );
   }
-}
-
-/// Listenin sonunda kesikli çerçeveli ipucu kartı (Ic4).
-class _SaveMoreHint extends StatelessWidget {
-  const _SaveMoreHint();
-
-  @override
-  Widget build(BuildContext context) {
-    final t = context.bu;
-    final l = context.l10n;
-    final tx = Theme.of(context).textTheme;
-    return CustomPaint(
-      painter: _DashedBorder(color: t.bd, radius: 20),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-        child: SizedBox(
-          width: double.infinity,
-          child: Column(children: [
-            Container(
-              width: 44,
-              height: 44,
-              decoration: BoxDecoration(color: t.soft, shape: BoxShape.circle),
-              child: Icon(LucideIcons.bookmark, size: 20, color: t.pr),
-            ),
-            const SizedBox(height: 10),
-            Text(l.icerikSavedMoreTitle,
-                textAlign: TextAlign.center, style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w700, color: t.ink)),
-            const SizedBox(height: 2),
-            Text(l.icerikSavedMoreBody,
-                textAlign: TextAlign.center, style: tx.bodySmall!.copyWith(height: 1.4, color: t.mut)),
-          ]),
-        ),
-      ),
-    );
-  }
-}
-
-class _DashedBorder extends CustomPainter {
-  _DashedBorder({required this.color, required this.radius});
-
-  final Color color;
-  final double radius;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = color
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.5;
-    final path = Path()
-      ..addRRect(RRect.fromRectAndRadius(Offset.zero & size, Radius.circular(radius)).deflate(.75));
-    for (final m in path.computeMetrics()) {
-      var d = 0.0;
-      while (d < m.length) {
-        canvas.drawPath(m.extractPath(d, d + 6), paint);
-        d += 10;
-      }
-    }
-  }
-
-  @override
-  bool shouldRepaint(_DashedBorder old) => old.color != color || old.radius != radius;
 }

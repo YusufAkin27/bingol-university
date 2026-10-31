@@ -221,7 +221,6 @@ class _SearchPageState extends State<SearchPage> {
       _seq++;
       setState(() {
         _query = '';
-        _tab = _Tab.all;
         _hits = [];
         _tabs.clear();
         _loading = false;
@@ -436,40 +435,23 @@ class _SearchPageState extends State<SearchPage> {
       backgroundColor: t.bg,
       body: Column(
         children: [
-          // Tek arama alanı: geri düğmesi yalnız simge (çerçevesiz), alan kalan genişliği alır.
+          // Üst: yalnız BİR geri oku (40 dp daire) + arama alanı (48 dp, 16 köşe, odakta 1,5 dp marka çerçevesi).
           Padding(
-            padding: EdgeInsetsDirectional.fromSTEB(8, MediaQuery.paddingOf(context).top + 8, 20, 4),
+            padding: EdgeInsetsDirectional.fromSTEB(12, MediaQuery.paddingOf(context).top + 12, 16, 0),
             child: Row(children: [
-              IcerikIconButton(
-                  icon: buDirIcon(context, LucideIcons.arrowLeft), label: l.authBack, plain: true, onTap: () => Navigator.pop(context)),
-              const SizedBox(width: 4),
-              Expanded(
-                child: BuSearchField(
-                  hint: l.searchHint,
-                  controller: _ctrl,
-                  autofocus: true,
-                  onChanged: _onChanged,
-                  onSubmitted: _submit,
-                ),
-              ),
+              IcerikIconButton(icon: buDirIcon(context, LucideIcons.arrowLeft), label: l.authBack, onTap: () => Navigator.pop(context)),
+              const SizedBox(width: 6),
+              Expanded(child: _SearchBox(hint: l.searchHint, controller: _ctrl, onChanged: _onChanged, onSubmitted: _submit)),
             ]),
           ),
-          // Tür sekmeleri yalnız sonuç görünürken (yazmadan önce ekran tek alan + son aramalar).
-          AnimatedSize(
-            duration: BuMotion.of(context, BuMotion.short),
-            curve: BuMotion.standard,
-            alignment: Alignment.topCenter,
-            child: active
-                ? Semantics(
-                    container: true,
-                    label: l.icerikSearchTabs,
-                    child: _TabChips(
-                      labels: [for (final tab in _tabOrder) _tabLabel(l, tab)],
-                      selected: _tabOrder.indexOf(_tab),
-                      onSelected: (i) => _selectTab(_tabOrder[i]),
-                    ),
-                  )
-                : const SizedBox(width: double.infinity),
+          Semantics(
+            container: true,
+            label: l.icerikSearchTabs,
+            child: _TabChips(
+              labels: [for (final tab in _tabOrder) _tabLabel(l, tab)],
+              selected: _tabOrder.indexOf(_tab),
+              onSelected: (i) => _selectTab(_tabOrder[i]),
+            ),
           ),
           if (active && _loading && _query.isNotEmpty) const LinearProgressIndicator(minHeight: 2) else const SizedBox(height: 2),
           // Öneriler <-> sonuçlar yumuşak geçiş (anahtar: etkin mi); sonuç içi iskelet/sıralı giriş kendi içinde.
@@ -479,59 +461,83 @@ class _SearchPageState extends State<SearchPage> {
     );
   }
 
-  /// Başlangıç ekranı: tek soluk cümle (kutu/simge yok) + varsa düz "son aramalar" listesi.
+  /// Başlangıç ekranı: soluk 14 sp ipucu cümlesi + "Son aramalar" (17 sp/600, sağda marka "Temizle") + çizgili satırlar
+  /// (sol saat simgesi, 15 sp metin, sağ x); sarmal kart yok.
   Widget _suggestions(BuTokens t) {
     final l = context.l10n;
     final tx = Theme.of(context).textTheme;
     return ListView(
       keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-      padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
+      padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
       children: [
-        if (_recent.isEmpty)
-          Padding(
-            padding: const EdgeInsets.fromLTRB(0, 16, 0, 0),
-            child: Text(l.searchPrompt, style: tx.bodyMedium!.copyWith(color: t.mut, height: 1.4)),
-          )
-        else ...[
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 2),
+          child: Text(l.searchPrompt, style: tx.bodyMedium!.copyWith(fontSize: 13, height: 1.5, color: t.mut)),
+        ),
+        if (_recent.isNotEmpty) ...[
+          const SizedBox(height: 12),
           Row(children: [
             Expanded(
               child: Semantics(
                 header: true,
-                child: Text(l.searchRecent, style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w600, color: t.mut)),
+                child: Text(l.searchRecent, style: tx.titleMedium!.copyWith(fontSize: 17, fontWeight: FontWeight.w600, color: t.ink)),
               ),
             ),
             TextButton(
-              style: TextButton.styleFrom(minimumSize: const Size(48, 48), padding: const EdgeInsets.symmetric(horizontal: 8)),
+              style: TextButton.styleFrom(minimumSize: const Size(48, 48), padding: const EdgeInsets.symmetric(horizontal: 4)),
               onPressed: _clearRecent,
-              child: Text(l.searchClearRecent, style: tx.labelLarge!.copyWith(fontWeight: FontWeight.w600, color: t.pr)),
+              child: Text(l.searchClearRecent, style: tx.bodySmall!.copyWith(fontSize: 13, fontWeight: FontWeight.w500, color: t.pr)),
             ),
           ]),
           for (var i = 0; i < _recent.length; i++)
-            Row(children: [
-              Expanded(
-                child: InkWell(
-                  onTap: () => _useRecent(_recent[i]),
-                  borderRadius: BorderRadius.circular(BuRadius.sm),
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(minHeight: 48),
-                    child: Row(children: [
-                      Icon(LucideIcons.history, size: 18, color: t.mut),
-                      const SizedBox(width: 14),
-                      Expanded(
-                        child: Text(_recent[i],
-                            maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.bodyLarge!.copyWith(color: t.ink)),
-                      ),
-                    ]),
+            DecoratedBox(
+              decoration: BoxDecoration(border: Border(bottom: BorderSide(color: t.bd))),
+              child: Row(children: [
+                Expanded(
+                  child: InkWell(
+                    onTap: () => _useRecent(_recent[i]),
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(minHeight: 56),
+                      child: Row(children: [
+                        const SizedBox(width: 4),
+                        Icon(LucideIcons.clock, size: 18, color: t.mut),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(_recent[i],
+                              maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.bodyLarge!.copyWith(fontSize: 15, color: t.ink)),
+                        ),
+                      ]),
+                    ),
                   ),
                 ),
-              ),
-              IconButton(
-                tooltip: l.p05SearchRemoveRecent,
-                constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
-                onPressed: () => _removeRecent(i),
-                icon: Icon(LucideIcons.x, size: 18, color: t.mut),
-              ),
-            ]),
+                // 48 dp dokunma alanı; simge merkezi sağ kenardan 18 dp (referans: 28 dp düğme + 4 dp iç boşluk).
+                Semantics(
+                  button: true,
+                  label: l.p05SearchRemoveRecent,
+                  excludeSemantics: true,
+                  onTap: () => _removeRecent(i),
+                  child: Tooltip(
+                    message: l.p05SearchRemoveRecent,
+                    excludeFromSemantics: true,
+                    child: InkWell(
+                      customBorder: const CircleBorder(),
+                      onTap: () => _removeRecent(i),
+                      child: SizedBox(
+                        width: 48,
+                        height: 48,
+                        child: Align(
+                          alignment: AlignmentDirectional.centerEnd,
+                          child: Padding(
+                            padding: const EdgeInsetsDirectional.only(end: 10),
+                            child: Icon(LucideIcons.x, size: 16, color: t.mut),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ]),
+            ),
         ],
       ],
     );
@@ -569,6 +575,15 @@ class _SearchPageState extends State<SearchPage> {
         _ => type,
       };
 
+  /// Sonuç sayısı satırı: soluk 13 sp ("6 sonuç"; sayfalı sekmede daha fazla varsa "12+").
+  Widget _countLine(BuTokens t, String text) => Padding(
+        padding: const EdgeInsets.fromLTRB(18, 0, 18, 10),
+        child: Semantics(
+          header: true,
+          child: Text(text, style: Theme.of(context).textTheme.bodySmall!.copyWith(fontSize: 13, color: t.mut)),
+        ),
+      );
+
   Widget _results(BuTokens t) {
     final l = context.l10n;
     final paged = _tab != _Tab.all;
@@ -576,10 +591,9 @@ class _SearchPageState extends State<SearchPage> {
     final error = paged ? d?.error : _error;
     if (error != null) {
       return ListView(
-        padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
-        children: [
-          IcerikErrorCard(title: l.p05SearchErrorTitle, retryLabel: l.commonRetry, onRetry: () => paged ? _retryTab(_tab) : _run(_query)),
-        ],
+        padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+        // Referans: hata satırı çiplerin 20 dp altında; 48 dp dokunma satırı çip kutusunun boş alt bölgesine 20 dp taşar.
+        children: [Transform.translate(offset: const Offset(0, -20), child: _errorBlock(t, error, () => paged ? _retryTab(_tab) : _run(_query)))],
       );
     }
     final visible = paged ? (d?.hits ?? const <_Hit>[]) : _hits;
@@ -587,22 +601,40 @@ class _SearchPageState extends State<SearchPage> {
       return const BuSkeletonList(itemCount: 7);
     }
     if (visible.isEmpty) {
-      return ListView(padding: const EdgeInsets.fromLTRB(20, 12, 20, 24), children: [
-        BuEmptyState(illustration: BuIllustration.search, title: l.searchNoResults, compact: true),
+      // Sonuç yok: ortada tek başlık + tek soluk cümle (illüstrasyon yok).
+      final tx = Theme.of(context).textTheme;
+      return ListView(padding: const EdgeInsets.fromLTRB(16, 96, 16, 24), children: [
+        Text(l.searchNoResults,
+            textAlign: TextAlign.center, style: tx.titleMedium!.copyWith(fontSize: 16, fontWeight: FontWeight.w600, color: t.ink)),
+        const SizedBox(height: 8),
+        Text(l.p05SearchNoResultsBody, textAlign: TextAlign.center, style: tx.bodyMedium!.copyWith(fontSize: 14, color: t.mut)),
       ]);
     }
+    final more = paged && !(d?.done ?? true);
     final List<Widget> blocks;
     if (!paged) {
-      blocks = [
-        for (final key in _groupOrder)
-          ..._groupCard(t, key, [for (final h in visible) if (_groupKey(h.type) == key) h]),
-      ];
+      final sections = <Widget>[];
+      for (final key in _groupOrder) {
+        final hits = [for (final h in visible) if (_groupKey(h.type) == key) h];
+        if (hits.isEmpty) continue;
+        sections.add(_section(t, key, hits, first: sections.isEmpty));
+      }
+      blocks = [_countLine(t, l.searchResultCount('${visible.length}')), ...sections];
     } else {
       blocks = [
+        _countLine(t, l.searchResultCount('${visible.length}${more ? '+' : ''}')),
         if (_tab == _Tab.post)
-          Padding(padding: const EdgeInsets.fromLTRB(20, 8, 20, 12), child: _postGrid(t, visible))
+          Padding(padding: const EdgeInsets.fromLTRB(16, 0, 16, 12), child: _postGrid(t, visible))
         else
-          Padding(padding: const EdgeInsets.fromLTRB(20, 4, 20, 12), child: _rows(t, visible)),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Column(children: [
+              for (var i = 0; i < visible.length; i++) ...[
+                if (i > 0) const NewsRowDivider(),
+                Padding(padding: const EdgeInsets.symmetric(vertical: 10), child: _row(t, visible[i])),
+              ],
+            ]),
+          ),
         _footer(t, d!),
       ];
     }
@@ -624,41 +656,84 @@ class _SearchPageState extends State<SearchPage> {
     );
   }
 
-  /// Tümü sekmesinde bir tür bölümü: sade başlık (+ çok sonuç varsa "Tümünü gör"), altında en çok 4 satır; kart/çizgi yok.
-  List<Widget> _groupCard(BuTokens t, String key, List<_Hit> hits) {
-    if (hits.isEmpty) return const [];
+  /// Hata: sol soluk "Yüklenemedi", sağ marka "Yeniden dene"; hız sınırında `warnSoft` bant + 3 satır iskelet.
+  Widget _errorBlock(BuTokens t, Object error, VoidCallback onRetry) {
+    final l = context.l10n;
+    final tx = Theme.of(context).textTheme;
+    final limited = error is ApiError && error.status == 429;
+    return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+      Row(children: [
+        Expanded(
+          child: Semantics(
+            liveRegion: true,
+            child: Text(l.p05SearchErrorTitle, style: tx.bodyLarge!.copyWith(fontSize: 15, color: t.mut)),
+          ),
+        ),
+        TextButton.icon(
+          style: TextButton.styleFrom(minimumSize: const Size(48, 48), padding: const EdgeInsets.symmetric(horizontal: 4)),
+          onPressed: onRetry,
+          icon: Icon(LucideIcons.refreshCw, size: 16, color: t.pr),
+          label: Text(l.commonRetry, style: tx.bodyMedium!.copyWith(fontSize: 14, fontWeight: FontWeight.w500, color: t.pr)),
+        ),
+      ]),
+      if (limited) ...[
+        const SizedBox(height: 4),
+        IcerikNotice(text: l.searchTooMany, icon: LucideIcons.clock),
+        const SizedBox(height: 16),
+        const _RowsSkeleton(),
+      ],
+    ]);
+  }
+
+  /// Tümü sekmesinde bir tür bölümü: üstte 1 dp çizgi (ilk bölüm hariç), başlık (13 sp/600 soluk büyük harf) + sağda
+  /// "Tümünü gör (n)" (13 sp marka), altında satırlar; kart yok.
+  Widget _section(BuTokens t, String key, List<_Hit> hits, {required bool first}) {
     final l = context.l10n;
     final tx = Theme.of(context).textTheme;
     final tab = _tabOf(key);
-    final more = hits.length > _groupPreview || hits.length >= _pageSize;
-    return [
-      Padding(
-        padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-          Row(children: [
-            Expanded(
-              child: Semantics(
-                header: true,
-                child: Text(_groupLabel(l, key), style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w600, color: t.mut)),
-              ),
+    final ar = LocaleController.current?.locale.languageCode == 'ar';
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: DecoratedBox(
+        decoration: BoxDecoration(border: first ? null : Border(top: BorderSide(color: t.bd))),
+        child: Padding(
+          padding: const EdgeInsets.only(bottom: 6),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+            SizedBox(
+              height: 48,
+              child: Row(children: [
+                Expanded(
+                  child: Semantics(
+                    header: true,
+                    child: Text(_groupLabel(l, key),
+                        style: tx.labelMedium!.copyWith(fontSize: 13, fontWeight: FontWeight.w600, letterSpacing: ar ? 0 : .6, color: t.mut)),
+                  ),
+                ),
+                TextButton(
+                  style: TextButton.styleFrom(minimumSize: const Size(48, 48), padding: const EdgeInsets.symmetric(horizontal: 4)),
+                  onPressed: () => _selectTab(tab),
+                  child: Text(l.p05SearchSeeAllN('${hits.length}'), style: tx.bodySmall!.copyWith(fontSize: 13, fontWeight: FontWeight.w500, color: t.pr)),
+                ),
+              ]),
             ),
-            if (more)
-              TextButton(
-                style: TextButton.styleFrom(minimumSize: const Size(48, 48), padding: const EdgeInsets.symmetric(horizontal: 8)),
-                onPressed: () => _selectTab(tab),
-                child: Text(l.p05SearchSeeAllN('${hits.length}'), style: tx.labelLarge!.copyWith(fontWeight: FontWeight.w600, color: t.pr)),
-              ),
+            // Başlık 48 dp (dokunma hedefi); satırlar 8 dp yukarı alınır (referans: başlık 20 dp), boşluk bölüm altında kalır.
+            Transform.translate(
+              offset: const Offset(0, -8),
+              child: Column(children: [
+                for (var i = 0; i < hits.length && i < _groupPreview; i++) ...[
+                  if (i > 0) const SizedBox(height: 12),
+                  _row(t, hits[i]),
+                ],
+              ]),
+            ),
           ]),
-          _rows(t, hits.take(_groupPreview).toList()),
-        ]),
+        ),
       ),
-    ];
+    );
   }
 
-  /// Tümü sekmesinde bir türden en çok bu kadar satır gösterilir (gerisi sekmede).
+  /// Tümü sekmesinde bir türden en çok bu kadar satır gösterilir (gerisi tür sekmesinde).
   static const _groupPreview = 4;
-
-  Widget _rows(BuTokens t, List<_Hit> hits) => Column(children: [for (final h in hits) _row(t, h)]);
 
   /// Sekmeyi baştan yükler (yenile / yeniden dene).
   Future<void> _retryTab(_Tab tab) async {
@@ -713,55 +788,114 @@ class _SearchPageState extends State<SearchPage> {
     return b == null ? a : '$a – $b';
   }
 
-  /// Tek sonuç satırı (düz, çerçevesiz): türüne göre görünüm; simge/rozet/ok yok, ikincil bilgi tek soluk satırda.
+  /// Eşleşen metin (sorgu) marka rengi + 600 ağırlıkla vurgulanır; büyük/küçük harf ve Türkçe i/İ duyarsız.
+  InlineSpan _highlight(String text, TextStyle base, BuTokens t) {
+    String fold(String x) => x.replaceAll('İ', 'i').replaceAll('I', 'ı').toLowerCase();
+    final q = fold(_query.trim());
+    if (q.length < 2) return TextSpan(text: text, style: base);
+    final src = fold(text);
+    if (src.length != text.length) return TextSpan(text: text, style: base);
+    final spans = <InlineSpan>[];
+    var from = 0;
+    while (true) {
+      final i = src.indexOf(q, from);
+      if (i < 0) break;
+      if (i > from) spans.add(TextSpan(text: text.substring(from, i), style: base));
+      spans.add(TextSpan(text: text.substring(i, i + q.length), style: base.copyWith(fontWeight: FontWeight.w600, color: t.pr)));
+      from = i + q.length;
+    }
+    if (from < text.length) spans.add(TextSpan(text: text.substring(from), style: base));
+    return TextSpan(children: spans);
+  }
+
+  /// Kısaltma: kulüp için en çok 3, kişi için en çok 2 baş harf ("KFK", "EY").
+  String _initials(String name, int max) {
+    final parts = name.trim().split(RegExp(r'\s+')).where((e) => e.isNotEmpty).toList();
+    return trUpper(parts.take(max).map((e) => e.characters.first).join());
+  }
+
+  Widget _initialsCircle(BuTokens t, String name, int max, {double size = 44}) => ExcludeSemantics(
+        child: Container(
+          width: size,
+          height: size,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(color: t.sf2, shape: BoxShape.circle),
+          child: Text(_initials(name, max),
+              maxLines: 1, style: Theme.of(context).textTheme.labelMedium!.copyWith(fontSize: 13, fontWeight: FontWeight.w600, color: t.ink)),
+        ),
+      );
+
+  Widget _chevron(BuTokens t) =>
+      ExcludeSemantics(child: Icon(buDirIcon(context, LucideIcons.chevronRight), size: 20, color: t.mut));
+
+  /// Tek sonuç satırı (kartsız): türüne göre görünüm; eşleşen metin vurgulu.
   Widget _row(BuTokens t, _Hit h) {
     final tx = Theme.of(context).textTheme;
     final l = context.l10n;
     final tab = _tabOf(h.type);
-    final base = tx.titleSmall!.copyWith(fontWeight: FontWeight.w600, height: 1.28, color: t.ink);
+    final base = tx.bodyLarge!.copyWith(fontSize: 16, height: 1.3, color: t.ink);
+    final mut = tx.bodySmall!.copyWith(fontSize: 13, color: t.mut);
     final snip = (h.snippet ?? '').trim();
-    final mut = tx.bodySmall!.copyWith(color: t.mut);
-    Widget leading;
+    final hasImg = (h.imageUrl ?? '').isNotEmpty;
+    Widget? leading;
     String sub = '';
+    Widget? trailing;
+    var titleLines = 2;
     switch (tab) {
       case _Tab.news:
-        leading = (h.imageUrl ?? '').isNotEmpty
-            ? IcerikThumb(url: h.imageUrl, size: 56, radius: BuRadius.sm, fallbackIcon: _iconOf(h.type))
-            : _iconTile(t, h.type, 56);
+        if (hasImg) {
+          leading = ClipRRect(
+            borderRadius: BorderRadius.circular(BuRadius.xs),
+            child: SizedBox(
+              width: 64,
+              height: 56,
+              child: BuImage(h.imageUrl, width: 64, height: 56, placeholderIcon: _iconOf(h.type), maxDecodeWidth: 400),
+            ),
+          );
+        }
         if (h.date != null) sub = newsLocalDate(context, h.date);
       case _Tab.event:
         final d = h.date == null ? null : DateTime.tryParse(h.date!)?.toLocal();
-        leading = d == null
-            ? _iconTile(t, h.type, 56)
-            : Container(
-                width: 56,
-                height: 56,
-                decoration: BoxDecoration(color: t.sf2, borderRadius: BorderRadius.circular(BuRadius.sm)),
-                child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-                  Text(trUpper(newsMonthName(context, d.month)).characters.take(3).toString(),
-                      style: tx.labelSmall!.copyWith(fontWeight: FontWeight.w600, color: t.mut)),
-                  Text('${d.day}',
-                      style: tx.titleMedium!.copyWith(
-                          fontWeight: FontWeight.w700, height: 1.1, color: t.ink, fontFeatures: const [FontFeature.tabularFigures()])),
-                ]),
-              );
-        sub = [if (snip.isNotEmpty) snip, if (_timeRange(h) != null) _timeRange(h)!].join(' • ');
+        if (d != null) {
+          leading = ExcludeSemantics(
+            child: Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(borderRadius: BorderRadius.circular(BuRadius.sm), border: Border.all(color: t.bd)),
+              child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+                Text(trUpper(newsMonthName(context, d.month)).characters.take(3).toString(),
+                    style: tx.labelSmall!.copyWith(fontSize: 11.5, fontWeight: FontWeight.w700, height: 1.1, color: t.pr)),
+                Text('${d.day}',
+                    style: tx.titleMedium!.copyWith(
+                        fontSize: 20, fontWeight: FontWeight.w600, height: 1.1, color: t.ink, fontFeatures: const [FontFeature.tabularFigures()])),
+              ]),
+            ),
+          );
+        }
+        sub = [if (snip.isNotEmpty) snip, if (_timeRange(h) != null) _timeRange(h)!].join(' · ');
+        trailing = _chevron(t);
+        titleLines = 1;
       case _Tab.club:
-        leading = BuAvatar(name: h.title, url: h.imageUrl, size: 48, group: true);
-        sub = [
-          if (h.category != null) h.category!,
-          if (h.members != null) l.clubMemberCount('${h.members}') else if (snip.isNotEmpty) snip,
-          if (h.myStatus == 'ACTIVE') l.clubIsMember,
-        ].join(' • ');
+        leading = hasImg ? BuAvatar(name: h.title, url: h.imageUrl, size: 44, group: true) : _initialsCircle(t, h.title, 3);
+        sub = h.members != null ? l.clubMemberCount('${h.members}') : snip;
+        if (h.myStatus == 'ACTIVE') {
+          trailing = _ClubPill(text: l.clubIsMember, member: true);
+        } else if (h.myStatus != null) {
+          trailing = _ClubPill(text: l.clubJoin, member: false);
+        }
+        titleLines = 1;
       case _Tab.post:
-        leading = IcerikThumb(url: h.imageUrl, size: 56, radius: BuRadius.sm, fallbackIcon: LucideIcons.image);
-        if (h.likes != null) sub = l.p05SearchLikes('${h.likes}');
+        leading = IcerikThumb(url: h.imageUrl, size: 56, radius: BuRadius.xs, fallbackIcon: LucideIcons.image);
+        trailing = _chevron(t);
+        titleLines = 1;
       case _Tab.person:
       case _Tab.all:
-        leading = BuAvatar(name: h.title, url: h.imageUrl, size: 48);
+        leading = hasImg ? BuAvatar(name: h.title, url: h.imageUrl, size: 44) : _initialsCircle(t, h.title, 2);
         sub = snip;
+        trailing = _chevron(t);
+        titleLines = 1;
     }
-    // Gönderi satırında başlık yerine gönderi metni öne çıkar.
+    // Gönderi satırında başlık yerine gönderi metni öne çıkar; altında kalp + beğeni sayısı.
     final isPost = tab == _Tab.post;
     final headline = isPost && snip.isNotEmpty ? snip : h.title;
     return BuPressable(
@@ -769,76 +903,192 @@ class _SearchPageState extends State<SearchPage> {
       scale: .985,
       onTap: () => _open(h),
       child: ConstrainedBox(
-        constraints: const BoxConstraints(minHeight: 64),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 4),
-          child: Row(children: [
-            leading,
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
-                Text(headline, style: base, maxLines: 2, overflow: TextOverflow.ellipsis),
-                if (sub.isNotEmpty) Padding(padding: const EdgeInsets.only(top: 2), child: Text(sub, maxLines: 1, overflow: TextOverflow.ellipsis, style: mut)),
-              ]),
-            ),
-          ]),
-        ),
+        constraints: const BoxConstraints(minHeight: 48),
+        child: Row(children: [
+          if (leading != null) ...[leading, const SizedBox(width: 12)],
+          Expanded(
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
+              Text.rich(_highlight(headline, base, t), maxLines: titleLines, overflow: TextOverflow.ellipsis),
+              if (isPost && h.likes != null)
+                Padding(
+                  padding: const EdgeInsets.only(top: 4),
+                  child: Row(children: [
+                    Icon(LucideIcons.heart, size: 16, color: t.mut),
+                    const SizedBox(width: 6),
+                    Text('${h.likes}', style: mut.copyWith(fontFeatures: const [FontFeature.tabularFigures()])),
+                  ]),
+                )
+              else if (sub.isNotEmpty)
+                Padding(padding: const EdgeInsets.only(top: 4), child: Text(sub, maxLines: 1, overflow: TextOverflow.ellipsis, style: mut)),
+            ]),
+          ),
+          if (trailing != null) ...[const SizedBox(width: 8), trailing],
+        ]),
       ),
     );
   }
 
-  /// Görselsiz haber/etkinlik karosu: nötr zemin + soluk tür simgesi (tür başına renk yok).
-  Widget _iconTile(BuTokens t, String type, double size) => ExcludeSemantics(
-        child: Container(
-          width: size,
-          height: size,
-          decoration: BoxDecoration(color: t.sf2, borderRadius: BorderRadius.circular(BuRadius.sm)),
-          child: Icon(_iconOf(type), size: size * .4, color: t.mut),
-        ),
-      );
+  /// Gönderi sekmesi: tek sütun gönderi satırları (56 dp kare fotoğraf + altyazı + kalp + beğeni).
+  Widget _postGrid(BuTokens t, List<_Hit> hits) => Column(children: [
+        for (var i = 0; i < hits.length; i++) ...[
+          if (i > 0) const NewsRowDivider(),
+          Padding(padding: const EdgeInsets.symmetric(vertical: 10), child: _row(t, hits[i])),
+        ],
+      ]);
+}
 
-  /// Gönderi sekmesi: iki sütunlu fotoğraf kartları (çerçevesiz): fotoğraf, açıklama, beğeni sayısı + yazar.
-  Widget _postGrid(BuTokens t, List<_Hit> hits) {
-    final tx = Theme.of(context).textTheme;
-    Widget card(_Hit h) {
-      final snip = (h.snippet ?? '').trim();
-      return BuPressable(
-        key: ValueKey('search-hit-${h.type}-${h.id}'),
-        scale: .985,
-        onTap: () => _open(h),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-          AspectRatio(
-            aspectRatio: 4 / 5,
-            child: BuImage(h.imageUrl, width: double.infinity, height: double.infinity, radius: BuRadius.md, maxDecodeWidth: 600),
-          ),
-          const SizedBox(height: 8),
-          if (snip.isNotEmpty)
-            Text(snip, maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.bodyMedium!.copyWith(fontWeight: FontWeight.w600, height: 1.3, color: t.ink)),
-          const SizedBox(height: 4),
-          Row(children: [
-            if (h.likes != null) ...[
-              Icon(Icons.favorite, size: 14, color: t.mut),
-              const SizedBox(width: 4),
-              Text('${h.likes}', style: tx.labelMedium!.copyWith(color: t.mut, fontFeatures: const [FontFeature.tabularFigures()])),
-              const SizedBox(width: 8),
-            ],
-            Expanded(child: Text(h.title, maxLines: 1, overflow: TextOverflow.ellipsis, textAlign: TextAlign.end, style: tx.labelMedium!.copyWith(color: t.mut))),
-          ]),
-        ]),
-      );
-    }
+/// Kulüp satırının sağındaki küçük hap: "Katıl" = `soft` zemin + marka metni; "Üyesin" = 1 dp çerçeveli, ink metin + tik.
+class _ClubPill extends StatelessWidget {
+  const _ClubPill({required this.text, required this.member});
 
-    final left = [for (var i = 0; i < hits.length; i += 2) hits[i]];
-    final right = [for (var i = 1; i < hits.length; i += 2) hits[i]];
-    return Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Expanded(child: Column(children: [for (final h in left) Padding(padding: const EdgeInsets.only(bottom: 16), child: card(h))])),
-      const SizedBox(width: 16),
-      Expanded(child: Column(children: [for (final h in right) Padding(padding: const EdgeInsets.only(bottom: 16), child: card(h))])),
-    ]);
+  final String text;
+  final bool member;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.bu;
+    final style = Theme.of(context).textTheme.labelMedium!.copyWith(fontSize: 12.5, fontWeight: FontWeight.w500, color: member ? t.ink : t.pr);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+      decoration: BoxDecoration(
+        color: member ? Colors.transparent : t.soft,
+        borderRadius: BorderRadius.circular(BuRadius.pill),
+        border: member ? Border.all(color: t.bd) : null,
+      ),
+      child: Row(mainAxisSize: MainAxisSize.min, children: [
+        if (member) ...[Icon(LucideIcons.check, size: 14, color: t.ink), const SizedBox(width: 4)],
+        Text(text, maxLines: 1, style: style),
+      ]),
+    );
   }
 }
 
-/// Sonuç türü çipleri: seçili = mürekkep zemin (referans), yatay kaydırılır; seçili çip görünür kaydırılır.
+/// Hız sınırı sırasında gösterilen 3 satır iskelet (40 dp daire + iki çubuk, satır arası çizgi).
+class _RowsSkeleton extends StatelessWidget {
+  const _RowsSkeleton();
+
+  @override
+  Widget build(BuildContext context) {
+    Widget row(double w1, double w2) => Padding(
+          padding: const EdgeInsets.symmetric(vertical: 14),
+          child: Row(children: [
+            const BuSkeleton.circle(40),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                BuSkeleton.line(width: w1, height: 12),
+                const SizedBox(height: 8),
+                BuSkeleton.line(width: w2, height: 10),
+              ]),
+            ),
+          ]),
+        );
+    return Semantics(
+      container: true,
+      liveRegion: true,
+      label: context.l10n.commonLoading,
+      child: ExcludeSemantics(
+        child: BuSkeletonScope(child: Column(children: [row(220, 140), const NewsRowDivider(), row(240, 110), const NewsRowDivider(), row(190, 90)])),
+      ),
+    );
+  }
+}
+
+/// Arama alanı: 48 dp, beyaz, 1 dp çizgi (odakta 1,5 dp marka), 16 köşe; sol büyüteç, sağda temizle (24 dp daire x).
+class _SearchBox extends StatefulWidget {
+  const _SearchBox({required this.hint, required this.controller, required this.onChanged, required this.onSubmitted});
+
+  final String hint;
+  final TextEditingController controller;
+  final ValueChanged<String> onChanged;
+  final ValueChanged<String> onSubmitted;
+
+  @override
+  State<_SearchBox> createState() => _SearchBoxState();
+}
+
+class _SearchBoxState extends State<_SearchBox> {
+  final _focus = FocusNode();
+
+  @override
+  void initState() {
+    super.initState();
+    _focus.addListener(() {
+      if (mounted) setState(() {});
+    });
+  }
+
+  @override
+  void dispose() {
+    _focus.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.bu;
+    final l = context.l10n;
+    final focused = _focus.hasFocus;
+    return AnimatedContainer(
+      duration: BuMotion.of(context, BuMotion.short),
+      height: 48,
+      padding: const EdgeInsetsDirectional.only(start: 14, end: 0),
+      decoration: BoxDecoration(
+        color: t.sf,
+        borderRadius: BorderRadius.circular(BuRadius.md),
+        border: Border.all(color: focused ? t.pr : t.bd, width: focused ? 1.5 : 1),
+      ),
+      child: Row(children: [
+        Icon(LucideIcons.search, size: 18, color: t.mut),
+        const SizedBox(width: 8),
+        Expanded(
+          child: TextField(
+            controller: widget.controller,
+            focusNode: _focus,
+            autofocus: true,
+            onChanged: widget.onChanged,
+            onSubmitted: widget.onSubmitted,
+            textInputAction: TextInputAction.search,
+            style: Theme.of(context).textTheme.bodyLarge!.copyWith(fontSize: 15, color: t.ink),
+            decoration: InputDecoration(
+              hintText: widget.hint,
+              hintStyle: Theme.of(context).textTheme.bodyLarge!.copyWith(fontSize: 14, color: t.mut),
+              isCollapsed: true,
+              border: InputBorder.none,
+              enabledBorder: InputBorder.none,
+              focusedBorder: InputBorder.none,
+              filled: false,
+              contentPadding: EdgeInsets.zero,
+            ),
+          ),
+        ),
+        ValueListenableBuilder<TextEditingValue>(
+          valueListenable: widget.controller,
+          builder: (context, v, _) => v.text.isEmpty
+              ? const SizedBox(width: 14)
+              : IconButton(
+                  tooltip: l.searchClear,
+                  constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
+                  onPressed: () {
+                    widget.controller.clear();
+                    widget.onChanged('');
+                  },
+                  icon: Container(
+                    width: 24,
+                    height: 24,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(color: t.sf2, shape: BoxShape.circle),
+                    child: Icon(LucideIcons.x, size: 14, color: t.mut),
+                  ),
+                ),
+        ),
+      ]),
+    );
+  }
+}
+
+/// Sonuç türü çipleri (Tümü, Haber, Etkinlik, Kulüp, Kişi, Gönderi): 34 dp yüksek hap; seçili = `soft` zemin + marka metni,
+/// diğerleri beyaz + 1 dp çizgi; yatay kaydırılır, seçili çip görünür kaydırılır.
 class _TabChips extends StatefulWidget {
   const _TabChips({required this.labels, required this.selected, required this.onSelected});
 
@@ -879,34 +1129,38 @@ class _TabChipsState extends State<_TabChips> {
     final tx = Theme.of(context).textTheme;
     // Tüm çipler (en çok 6) kurulur: ensureVisible her çipin bağlamına ihtiyaç duyar.
     return SizedBox(
-      height: 56,
+      height: 60,
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+        padding: const EdgeInsets.symmetric(horizontal: 16),
         child: Row(children: [
           for (var i = 0; i < widget.labels.length; i++) ...[
-            if (i > 0) const SizedBox(width: 4),
-            // "button" burada yazılmaz: BuPressable zaten düğme bayrağı koyar; iki düğme bayrağı birleşemez ve
-            // seçili durum etiketten ayrı bir düğümde kalırdı.
+            if (i > 0) const SizedBox(width: 8),
+            // "button" burada yazılmaz: BuPressable zaten düğme bayrağı koyar.
             Semantics(
               key: _keys[i],
               selected: i == widget.selected,
               child: BuPressable(
                 onTap: () => widget.onSelected(i),
-                child: AnimatedContainer(
-                  duration: BuMotion.of(context, BuMotion.short),
-                  constraints: const BoxConstraints(minHeight: 48, minWidth: 48),
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  alignment: Alignment.center,
-                  // Seçili: yumuşak vurgu zemini; seçili olmayan: zemin/çerçeve yok (yalnız soluk yazı).
-                  decoration: BoxDecoration(
-                    color: i == widget.selected ? t.soft : Colors.transparent,
-                    borderRadius: BorderRadius.circular(BuRadius.pill),
-                  ),
-                  child: AnimatedDefaultTextStyle(
-                    duration: BuMotion.of(context, BuMotion.short),
-                    style: tx.labelLarge!.copyWith(fontWeight: FontWeight.w600, color: i == widget.selected ? t.onSoft : t.mut),
-                    child: Text(widget.labels[i]),
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(minHeight: 48),
+                  child: Center(
+                    child: AnimatedContainer(
+                      duration: BuMotion.of(context, BuMotion.short),
+                      height: 28,
+                      padding: const EdgeInsets.symmetric(horizontal: 14),
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        color: i == widget.selected ? t.soft : t.sf,
+                        borderRadius: BorderRadius.circular(BuRadius.pill),
+                      ),
+                      child: AnimatedDefaultTextStyle(
+                        duration: BuMotion.of(context, BuMotion.short),
+                        style: tx.labelLarge!.copyWith(
+                            fontSize: 13, fontWeight: i == widget.selected ? FontWeight.w500 : FontWeight.w400, color: i == widget.selected ? t.pr : t.ink),
+                        child: Text(widget.labels[i]),
+                      ),
+                    ),
                   ),
                 ),
               ),

@@ -38,6 +38,7 @@ class _NewsListPageState extends State<NewsListPage> {
   bool _loading = false;
   bool _loaded = false;
   bool _maintenance = false;
+  String? _lastSuccess; // ISO zaman damgası (bakım bandı: "Son güncelleme")
   Object? _error;
 
   String get _type => _types[_tab];
@@ -65,8 +66,18 @@ class _NewsListPageState extends State<NewsListPage> {
     try {
       final r = await widget.session.api.get('/status');
       var m = false;
-      if (r is Map && r['NEWS'] is Map) m = (r['NEWS'] as Map)['maintenance'] == true;
-      if (mounted) setState(() => _maintenance = m);
+      String? last;
+      if (r is Map && r['NEWS'] is Map) {
+        final n = r['NEWS'] as Map;
+        m = n['maintenance'] == true;
+        last = n['lastSuccessAt'] as String?;
+      }
+      if (mounted) {
+        setState(() {
+          _maintenance = m;
+          _lastSuccess = last;
+        });
+      }
     } catch (_) {}
   }
 
@@ -203,64 +214,95 @@ class _NewsListPageState extends State<NewsListPage> {
     return switch (i) { 0 => l.newsTypeNews, 1 => l.newsTypeAnnouncement, _ => l.newsTypeEvent };
   }
 
-  /// Hata ve boş durum kartları listenin içinde çizilir (sekme şeridi görünür kalır).
-  BuViewState get _view => (!_loaded && _error == null) ? BuViewState.loading : BuViewState.ready;
+  /// "14:32" (bugün) ya da "20 Ekim 14:32"; ayrıştırılamazsa null.
+  String? _lastUpdateText() {
+    final d = _lastSuccess == null ? null : DateTime.tryParse(_lastSuccess!)?.toLocal();
+    if (d == null) return null;
+    final hm = '${d.hour.toString().padLeft(2, '0')}:${d.minute.toString().padLeft(2, '0')}';
+    final n = DateTime.now();
+    final today = d.year == n.year && d.month == n.month && d.day == n.day;
+    return context.l10n.p63NewsLastUpdate(today ? hm : '${d.day} ${newsMonthName(context, d.month)} $hm');
+  }
 
   @override
   Widget build(BuildContext context) {
+    final t = context.bu;
     final l = context.l10n;
-    return BuPageScaffold(
-      title: l.icerikNewsTitle,
-      large: false,
-      state: _view,
-      error: _error,
-      onRetry: _reload,
-      onRefresh: _refresh,
-      controller: _scroll,
-      bottomInset: MediaQuery.paddingOf(context).bottom + 16,
-      actions: [
-        // Yalnız simge (çerçevesiz): 48 dp dokunma alanı, görsel sağ kenar 20 dp kenar boşluğuyla hizalanır.
-        IcerikIconButton(
-            key: const ValueKey('news-search'),
-            icon: LucideIcons.search,
-            label: l.commonSearchHint,
-            plain: true,
-            onTap: _openSearch),
-        IcerikIconButton(
-            key: const ValueKey('news-favorites'),
-            icon: LucideIcons.bookmark,
-            label: l.icerikFavorites,
-            plain: true,
-            onTap: _openFavorites),
-        const SizedBox(width: 14),
-      ],
-      bottom: PreferredSize(
-        preferredSize: const Size.fromHeight(68),
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(20, 4, 20, 10),
-          child: IcerikTabs(
-            labels: [for (var i = 0; i < _types.length; i++) _tabLabel(i)],
-            index: _tab,
-            keyPrefix: 'news-tab-',
-            raised: true,
-            semanticLabel: l.icerikNewsTypeTabs,
-            onChanged: _selectTab,
+    final loading = !_loaded && _error == null;
+    return Scaffold(
+      backgroundColor: t.bg,
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // Başlık satırı: [geri] Haberler ... [ara] [favoriler]; 40 dp daireler (48 dp dokunma alanı), yan 20 dp.
+          Padding(
+            padding: EdgeInsetsDirectional.fromSTEB(
+                Navigator.canPop(context) ? 16 : 20, MediaQuery.paddingOf(context).top + 12, 16, 0),
+            child: Row(children: [
+              if (Navigator.canPop(context))
+                IcerikIconButton(
+                    icon: buDirIcon(context, LucideIcons.arrowLeft), label: l.commonBack, shadow: true, onTap: () => Navigator.maybePop(context)),
+              if (Navigator.canPop(context)) const SizedBox(width: 4),
+              Expanded(
+                child: Semantics(
+                  header: true,
+                  child: Text(l.icerikNewsTitle,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.headlineMedium!.copyWith(fontSize: 28, fontWeight: FontWeight.w700, height: 1.2, color: t.ink)),
+                ),
+              ),
+              IcerikIconButton(
+                  key: const ValueKey('news-search'), icon: LucideIcons.search, label: l.commonSearchHint, shadow: true, onTap: _openSearch),
+              IcerikIconButton(
+                  key: const ValueKey('news-favorites'), icon: LucideIcons.bookmark, label: l.icerikFavorites, shadow: true, onTap: _openFavorites),
+            ]),
           ),
-        ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 2, 20, 0),
+            child: IcerikUnderlineTabs(
+              labels: [for (var i = 0; i < _types.length; i++) _tabLabel(i)],
+              index: _tab,
+              keyPrefix: 'news-tab-',
+              semanticLabel: l.icerikNewsTypeTabs,
+              onChanged: _selectTab,
+            ),
+          ),
+          Expanded(
+            child: BuSwapIn(
+              loading: loading,
+              skeleton: const SingleChildScrollView(
+                physics: NeverScrollableScrollPhysics(),
+                child: Padding(padding: EdgeInsets.only(top: 16), child: IcerikListSkeleton(featured: false)),
+              ),
+              child: BuRefreshIndicator(
+                onRefresh: _refresh,
+                child: CustomScrollView(
+                  controller: _scroll,
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  slivers: [
+                    if (_maintenance)
+                      SliverToBoxAdapter(
+                        child: Padding(
+                          padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+                          child: IcerikNotice(text: l.icerikMaintenance, icon: LucideIcons.refreshCw, sub: _lastUpdateText()),
+                        ),
+                      ),
+                    ..._slivers(),
+                    SliverToBoxAdapter(child: SizedBox(height: MediaQuery.paddingOf(context).bottom + 24)),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
-      banner: _maintenance
-          ? Padding(
-              padding: const EdgeInsets.fromLTRB(20, 4, 20, 8),
-              child: IcerikNotice(text: l.icerikMaintenance, icon: LucideIcons.triangleAlert),
-            )
-          : null,
-      loading: const IcerikListSkeleton(featured: false),
-      slivers: _slivers(),
     );
   }
 
   List<Widget> _slivers() {
     final l = context.l10n;
+    final t = context.bu;
     if (_error != null && !_loaded) {
       return [
         SliverPadding(
@@ -272,11 +314,15 @@ class _NewsListPageState extends State<NewsListPage> {
       ];
     }
     if (_items.isEmpty) {
+      // Boş: ortada soluk tek cümle (illüstrasyon yok).
       return [
         SliverPadding(
-          padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
+          padding: const EdgeInsets.fromLTRB(20, 64, 20, 0),
           sliver: SliverToBoxAdapter(
-            child: BuEmptyState(illustration: BuIllustration.document, title: l.icerikNewsEmpty, compact: true),
+            child: Center(
+              child: Text(l.icerikNewsEmpty,
+                  textAlign: TextAlign.center, style: Theme.of(context).textTheme.bodyLarge!.copyWith(fontSize: 16, color: t.mut)),
+            ),
           ),
         ),
       ];
@@ -286,24 +332,21 @@ class _NewsListPageState extends State<NewsListPage> {
       SliverSemantics(
         container: true,
         explicitChildNodes: true,
-        label: context.l10n.icerikNewsList,
+        label: l.icerikNewsList,
         sliver: BuStaggerScope(
           key: ValueKey('$_tab-$_gen'),
           child: SliverMainAxisGroup(slivers: [
             SliverPadding(
-              padding: const EdgeInsets.fromLTRB(20, 4, 20, 0),
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
               sliver: SliverList.separated(
                 itemCount: rest.length,
-                separatorBuilder: (_, __) => const SizedBox(height: 8),
+                separatorBuilder: (_, __) => const NewsRowDivider(),
                 itemBuilder: (context, i) {
                   final n = rest[i];
                   return BuStaggerItem(
                     index: i,
                     child: NewsTile(
                       item: n,
-                      thumbSize: 72,
-                      // Sekme türü zaten söylüyor: satırda tür adı ve ana siteyle aynı kaynak adı tekrarlanmaz.
-                      showType: false,
                       saved: _savedIds.contains((n['id'] as num).toInt()),
                       onToggleSave: () => _toggleSave(n),
                       onTap: () => _open(n),

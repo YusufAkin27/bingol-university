@@ -81,8 +81,9 @@ String newsSourceHost(Map<String, dynamic> item) {
   return h.startsWith('www.') ? h.substring(4) : h;
 }
 
-/// Liste satırı (Ic2/Ic4): sade, çerçevesiz satır: küçük görsel (yoksa nötr karo), başlık, tarih (+ gerekirse tür),
-/// isteğe bağlı sakin favori düğmesi. Görsel, detay sayfasının kapağına paylaşılan geçişle (Hero) uçar.
+/// Liste satırı (Ic2/Ic4): kartsız, zeminde; 72 dp küçük görsel (görsel yoksa hiç görsel çizilmez), başlık (16 sp/600,
+/// en çok 2 satır), tek satır soluk meta ("21 Ekim 2026 · bingol.edu.tr"), isteğe bağlı yer imi. Satırlar arası çizgiyi
+/// liste koyar ([NewsRowDivider]). Görsel, detay kapağına paylaşılan geçişle (Hero) uçar.
 class NewsTile extends StatelessWidget {
   const NewsTile({
     super.key,
@@ -90,9 +91,9 @@ class NewsTile extends StatelessWidget {
     required this.onTap,
     this.saved = false,
     this.onToggleSave,
-    this.thumbSize = 84,
+    this.thumbSize = 72,
     this.showSource = true,
-    this.showType = true,
+    this.showType = false,
   });
 
   final Map<String, dynamic> item;
@@ -101,10 +102,10 @@ class NewsTile extends StatelessWidget {
   final VoidCallback? onToggleSave;
   final double thumbSize;
 
-  /// Kaynak site adı yalnız üniversitenin ana sitesinden farklıysa meta satırına eklenir (aynı ad her satırda gürültüdür).
+  /// Meta satırına kaynak site adı eklenir (sığmazsa kaynak adı bırakılır, tarih asla kesilmez).
   final bool showSource;
 
-  /// Meta satırının başında tür adı (sekmeyle zaten belli olan listede kapatılır). Rozet çizilmez.
+  /// Meta satırının başında tür adı (varsayılan kapalı: sekme/başlık türü zaten söyler).
   final bool showType;
 
   @override
@@ -112,55 +113,71 @@ class NewsTile extends StatelessWidget {
     final t = context.bu;
     final tx = Theme.of(context).textTheme;
     final type = item['type'] as String?;
-    final host = newsSourceHost(item);
-    final meta = [
-      if (showType) newsTypeLabel(context, type),
-      newsDateLabel(context, item),
-      if (showSource && host != 'bingol.edu.tr') host,
-    ].join(' • ');
+    final date = [if (showType) newsTypeLabel(context, type), newsDateLabel(context, item)].join(' · ');
+    final host = showSource ? newsSourceHost(item) : null;
     final hasSave = onToggleSave != null;
     final img = item['imageUrl'] as String?;
     final id = (item['id'] as num?)?.toInt();
-    final evDate = type == 'ETKINLIK' ? DateTime.tryParse((item['eventDate'] as String?) ?? '') : null;
-    final noImg = img == null || img.isEmpty;
-    // Görselsiz etkinlik: nötr tarih karosu ("18 KAS"); diğerleri nötr tür simgeli karo (kategori başına renk yok).
-    Widget thumb = (noImg && evDate != null)
-        ? _EventDateTile(date: evDate, size: thumbSize)
-        : IcerikThumb(url: img, size: thumbSize, radius: BuRadius.sm, fallbackIcon: newsTypeIcon(type));
-    if (id != null && img != null && img.isNotEmpty) thumb = newsHero(id: id, radius: BuRadius.sm, child: thumb);
+    final hasImg = img != null && img.isNotEmpty;
+    Widget? thumb;
+    if (hasImg) {
+      thumb = IcerikThumb(url: img, size: thumbSize, radius: BuRadius.sm, fallbackIcon: newsTypeIcon(type));
+      if (id != null) thumb = newsHero(id: id, radius: BuRadius.sm, child: thumb);
+    }
     return BuPressable(
       scale: .985,
       onTap: onTap,
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(minHeight: 72),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 6),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              thumb,
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      (item['title'] as String?) ?? '',
-                      maxLines: 3,
-                      overflow: TextOverflow.ellipsis,
-                      style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w600, height: 1.32, color: t.ink),
-                    ),
-                    const SizedBox(height: 6),
-                    Text(meta, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.bodySmall!.copyWith(color: t.mut)),
-                  ],
-                ),
+      child: Padding(
+        padding: EdgeInsets.symmetric(vertical: hasImg ? 16 : 14),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            if (thumb != null) ...[thumb, const SizedBox(width: 16)],
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    (item['title'] as String?) ?? '',
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: tx.titleMedium!.copyWith(fontSize: 16, fontWeight: FontWeight.w600, height: 1.375, color: t.ink),
+                  ),
+                  const SizedBox(height: 4),
+                  _MetaLine(date: date, host: host, style: tx.bodySmall!.copyWith(fontSize: 13, color: t.mut)),
+                ],
               ),
-              if (hasSave) _SaveIcon(saved: saved, onTap: onToggleSave!),
-            ],
-          ),
+            ),
+            if (hasSave) _SaveIcon(saved: saved, onTap: onToggleSave!),
+          ],
         ),
       ),
     );
+  }
+}
+
+/// "Tarih · kaynak" tek satır: sığmazsa kaynak adı bırakılır (tarih asla "…" ile kesilmez).
+class _MetaLine extends StatelessWidget {
+  const _MetaLine({required this.date, required this.host, required this.style});
+
+  final String date;
+  final String? host;
+  final TextStyle style;
+
+  @override
+  Widget build(BuildContext context) {
+    final scaler = MediaQuery.textScalerOf(context);
+    final dir = Directionality.of(context);
+    return LayoutBuilder(builder: (context, c) {
+      var text = date;
+      if (host != null && host!.isNotEmpty) {
+        final full = '$date · $host';
+        final tp = TextPainter(text: TextSpan(text: full, style: style), maxLines: 1, textDirection: dir, textScaler: scaler)
+          ..layout();
+        if (tp.width <= c.maxWidth) text = full;
+      }
+      return Text(text, maxLines: 1, softWrap: false, overflow: TextOverflow.fade, style: style);
+    });
   }
 }
 
@@ -284,8 +301,8 @@ class NewsFeaturedCard extends StatelessWidget {
   }
 }
 
-/// Favori simgesi: görünür 22 dp, dokunma alanı 48x48 dp; ekran okuyucuya düğme olarak bildirilir.
-/// Durum değişince simge ölçekle belirir (kısa "pop").
+/// Favori simgesi: görünür 20 dp, dokunma alanı 48x48 dp; simge merkezi sağ kenardan 18 dp (referans: 36 dp düğme).
+/// Kayıtlı = marka renkli dolu, değil = ink çizgi. Ekran okuyucuya düğme olarak bildirilir; durum değişince kısa "pop".
 class _SaveIcon extends StatelessWidget {
   const _SaveIcon({required this.saved, required this.onTap, this.overlay = false});
 
@@ -297,7 +314,7 @@ class _SaveIcon extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.bu;
     final label = saved ? context.l10n.newsSaveRemove : context.l10n.newsSaveAdd;
-    final fg = overlay ? (saved ? t.pr : t.onMedia) : (saved ? t.pr : t.mut.withValues(alpha: .8));
+    final fg = overlay ? (saved ? t.pr : t.onMedia) : (saved ? t.pr : t.ink);
     final icon = Icon(
       saved ? Icons.bookmark : LucideIcons.bookmark,
       key: ValueKey(saved),
@@ -322,19 +339,23 @@ class _SaveIcon extends StatelessWidget {
           child: SizedBox(
             width: 48,
             height: 48,
-            child: Center(
-              child: Container(
-                width: overlay ? 40 : 36,
-                height: overlay ? 40 : 36,
-                alignment: Alignment.center,
-                decoration: overlay
-                    ? BoxDecoration(shape: BoxShape.circle, color: saved ? t.sf : t.scrim.withValues(alpha: .42))
-                    : null,
-                child: AnimatedSwitcher(
-                  duration: BuMotion.of(context, BuMotion.medium),
-                  switchInCurve: Curves.easeOutBack,
-                  transitionBuilder: (c, a) => ScaleTransition(scale: a, child: c),
-                  child: icon,
+            child: Align(
+              alignment: AlignmentDirectional.centerEnd,
+              child: Padding(
+                padding: EdgeInsetsDirectional.only(end: overlay ? 4 : 8),
+                child: Container(
+                  width: overlay ? 40 : 20,
+                  height: overlay ? 40 : 20,
+                  alignment: Alignment.center,
+                  decoration: overlay
+                      ? BoxDecoration(shape: BoxShape.circle, color: saved ? t.sf : t.scrim.withValues(alpha: .42))
+                      : null,
+                  child: AnimatedSwitcher(
+                    duration: BuMotion.of(context, BuMotion.medium),
+                    switchInCurve: Curves.easeOutBack,
+                    transitionBuilder: (c, a) => ScaleTransition(scale: a, child: c),
+                    child: icon,
+                  ),
                 ),
               ),
             ),
@@ -345,30 +366,3 @@ class _SaveIcon extends StatelessWidget {
   }
 }
 
-/// Görselsiz etkinlik karosu: nötr zemin, büyük gün + kısa ay ("18 KAS").
-class _EventDateTile extends StatelessWidget {
-  const _EventDateTile({required this.date, required this.size});
-
-  final DateTime date;
-  final double size;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = context.bu;
-    final tx = Theme.of(context).textTheme;
-    final month = trUpper(newsMonthName(context, date.month)).characters.take(3).toString();
-    return ExcludeSemantics(
-      child: Container(
-        width: size,
-        height: size,
-        decoration: BoxDecoration(color: t.sf2, borderRadius: BorderRadius.circular(BuRadius.sm)),
-        child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-          Text('${date.day}',
-              maxLines: 1,
-              style: tx.titleLarge!.copyWith(fontWeight: FontWeight.w700, height: 1.1, color: t.ink, fontFeatures: const [FontFeature.tabularFigures()])),
-          Text(month, maxLines: 1, style: tx.labelSmall!.copyWith(fontWeight: FontWeight.w600, color: t.mut)),
-        ]),
-      ),
-    );
-  }
-}

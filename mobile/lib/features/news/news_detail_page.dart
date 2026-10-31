@@ -32,7 +32,7 @@ class NewsDetailPage extends StatefulWidget {
 }
 
 class _NewsDetailPageState extends State<NewsDetailPage> {
-  static const _coverHeight = 300.0;
+  static const _coverHeight = 240.0;
 
   late Future<dynamic> _detail = _fetch();
   late bool _saved = widget.saved ?? false;
@@ -152,14 +152,11 @@ class _NewsDetailPageState extends State<NewsDetailPage> {
         final title = (n['title'] as String?) ?? '';
         final tx = Theme.of(context).textTheme;
         final host = newsSourceHost({'url': url});
-        // Tek soluk meta satırı: tür • tarih (etkinlikte etkinlik tarihi) • yalnız ana siteden farklı kaynak adı.
-        final meta = [
-          if (isEvent) l.newsEventDate(newsLocalDate(context, eventDate)) else ...[
-            newsTypeLabel(context, type),
-            newsLocalDate(context, n['publishedDate'] as String?),
-          ],
-          if (host != 'bingol.edu.tr') host,
-        ].where((e) => e.isNotEmpty).join(' • ');
+        // Tür etiketi (büyük harf, soluk) + tarih satırı: "26 Ekim 2026 · bingol.edu.tr" (etkinlikte "Etkinlik tarihi: ...").
+        final typeText = trUpper(newsTypeLabel(context, type));
+        final dateLine = isEvent
+            ? l.newsEventDate(newsLocalDate(context, eventDate))
+            : '${newsLocalDate(context, n['publishedDate'] as String?)} · $host';
 
         Widget bodyChild;
         if (!done) {
@@ -173,6 +170,7 @@ class _NewsDetailPageState extends State<NewsDetailPage> {
         }
         final showActions = done && !snap.hasError;
 
+        final topInset = MediaQuery.paddingOf(context).top;
         return Scaffold(
           backgroundColor: t.bg,
           body: CustomScrollView(
@@ -185,27 +183,20 @@ class _NewsDetailPageState extends State<NewsDetailPage> {
                   return SliverAppBar(
                     pinned: true,
                     stretch: hasCover,
-                    expandedHeight: hasCover ? _coverHeight : null,
+                    // Kapak toplam 240 dp (durum çubuğu dahil); düğmeler üstten 16 dp + güvenli alan.
+                    expandedHeight: hasCover ? _coverHeight - topInset : null,
+                    toolbarHeight: hasCover ? 72 : 56,
                     backgroundColor: t.bg,
                     surfaceTintColor: t.bg,
                     scrolledUnderElevation: 0,
-                    // Kapak fotoğrafı üstteki karartmayla birlikte durum çubuğunun arkasındadır: saat/simgeler açık renk.
-                    systemOverlayStyle: overlay
-                        ? const SystemUiOverlayStyle(
-                            statusBarColor: Colors.transparent,
-                            statusBarIconBrightness: Brightness.light,
-                            statusBarBrightness: Brightness.dark,
-                          )
-                        : null,
                     automaticallyImplyLeading: false,
-                    leadingWidth: 72,
+                    leadingWidth: 64,
                     leading: Padding(
                       padding: const EdgeInsetsDirectional.only(start: 16),
                       child: IcerikIconButton(
                           icon: buDirIcon(context, LucideIcons.arrowLeft),
                           label: l.commonBack,
                           overlay: overlay,
-                          plain: !overlay,
                           onTap: () => Navigator.pop(context)),
                     ),
                     // Daralınca ince alt çizgi belirir (içerik başlığın altından kayarken ayrışma).
@@ -238,16 +229,13 @@ class _NewsDetailPageState extends State<NewsDetailPage> {
                         on: _saved,
                         toggled: _saved,
                         overlay: overlay,
-                        plain: !overlay,
                         onTap: _toggle,
                       ),
-                      const SizedBox(width: 8),
                       IcerikIconButton(
                           key: const ValueKey('news-share'),
                           icon: LucideIcons.share2,
                           label: l.icerikShare,
                           overlay: overlay,
-                          plain: !overlay,
                           onTap: () => _share(url)),
                       const SizedBox(width: 16),
                     ],
@@ -255,45 +243,13 @@ class _NewsDetailPageState extends State<NewsDetailPage> {
                         ? FlexibleSpaceBar(
                             collapseMode: CollapseMode.parallax,
                             stretchModes: const [StretchMode.zoomBackground],
-                            background: Stack(fit: StackFit.expand, children: [
-                              newsHero(
-                                id: _id,
-                                child: SizedBox.expand(
-                                  child: BuImage(img, width: double.infinity, height: double.infinity, maxDecodeWidth: 1400),
-                                ),
+                            background: newsHero(
+                              id: _id,
+                              radius: 0,
+                              child: SizedBox.expand(
+                                child: BuImage(img, width: double.infinity, height: double.infinity, maxDecodeWidth: 1400),
                               ),
-                              // Geri/kaydet/paylaş simgelerinin okunması için üstte durağan karartma.
-                              Positioned(
-                                top: 0,
-                                left: 0,
-                                right: 0,
-                                height: 120,
-                                child: IgnorePointer(
-                                  child: DecoratedBox(
-                                    decoration: BoxDecoration(
-                                      gradient: LinearGradient(
-                                        begin: Alignment.topCenter,
-                                        end: Alignment.bottomCenter,
-                                        colors: [t.scrim.withValues(alpha: .5), t.scrim.withValues(alpha: 0)],
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              // İçerik sayfasının yuvarlak üst kenarı (kapağın üstüne biner).
-                              PositionedDirectional(
-                                start: 0,
-                                end: 0,
-                                bottom: -1,
-                                height: 24,
-                                child: DecoratedBox(
-                                  decoration: BoxDecoration(
-                                    color: t.bg,
-                                    borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-                                  ),
-                                ),
-                              ),
-                            ]),
+                            ),
                           )
                         : null,
                   );
@@ -306,44 +262,43 @@ class _NewsDetailPageState extends State<NewsDetailPage> {
                   child: ConstrainedBox(
                     constraints: const BoxConstraints(maxWidth: 640),
                     child: Padding(
-                      padding: EdgeInsets.fromLTRB(20, hasCover ? 4 : 8, 20, MediaQuery.paddingOf(context).bottom + 40),
+                      padding: EdgeInsets.fromLTRB(20, hasCover ? 24 : 16, 20, MediaQuery.paddingOf(context).bottom + 32),
                       child: SizedBox(
                         width: double.infinity,
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            if (meta.isNotEmpty)
-                              Text(meta, style: tx.labelLarge!.copyWith(fontWeight: FontWeight.w500, color: t.mut)),
-                            const SizedBox(height: 12),
+                            if (typeText.isNotEmpty)
+                              Text(typeText,
+                                  style: tx.labelMedium!.copyWith(
+                                      fontSize: 12, fontWeight: FontWeight.w600, letterSpacing: _isArabic ? 0 : .6, color: t.mut)),
+                            const SizedBox(height: 8),
                             Semantics(
                               header: true,
-                              child: Text(title, style: tx.headlineSmall!.copyWith(fontWeight: FontWeight.w700, height: 1.28, color: t.ink)),
+                              child: Text(title, style: tx.headlineSmall!.copyWith(fontSize: 26, fontWeight: FontWeight.w700, height: 1.25, color: t.ink)),
                             ),
-                            const SizedBox(height: 20),
+                            const SizedBox(height: 8),
+                            Text(dateLine, style: tx.bodySmall!.copyWith(fontSize: 13, color: t.mut)),
+                            const SizedBox(height: 24),
                             BuFadeThrough(
                                 key: const ValueKey('news-body'),
                                 child: KeyedSubtree(key: ValueKey('body-$done-${snap.hasError}'), child: bodyChild)),
                             if (showActions) ...[
-                              const SizedBox(height: 24),
-                              // Metin yoksa tek soluk cümle; varsa yalnız kaynak düğmesi (bilgi kutusu yok).
-                              if (!hasText) ...[
-                                Text(l.newsFullContent, style: tx.bodyMedium!.copyWith(color: t.mut, height: 1.4)),
-                                const SizedBox(height: 12),
-                              ],
+                              const SizedBox(height: 32),
+                              Text(l.newsFullContent, style: tx.bodySmall!.copyWith(fontSize: 13, color: t.mut)),
                               if (canOpen) ...[
-                                BuButton(
+                                const SizedBox(height: 8),
+                                _SourceButton(
                                   key: const ValueKey('news-open-source'),
                                   label: l.p05NewsOpenSource,
-                                  icon: LucideIcons.externalLink,
-                                  kind: BuButtonKind.outline,
                                   onPressed: () => _openOriginal(url),
                                 ),
                                 if (_linkFailed)
                                   Padding(
-                                    padding: const EdgeInsets.only(top: 12),
+                                    padding: const EdgeInsets.only(top: 8),
                                     child: Semantics(
                                       liveRegion: true,
-                                      child: Text(l.newsLinkOpenFailed, style: tx.bodyMedium!.copyWith(color: t.danger)),
+                                      child: Text(l.newsLinkOpenFailed, style: tx.bodySmall!.copyWith(fontSize: 13, color: t.danger)),
                                     ),
                                   ),
                               ],
@@ -361,9 +316,51 @@ class _NewsDetailPageState extends State<NewsDetailPage> {
       },
     );
   }
+
+  bool get _isArabic => LocaleController.current?.locale.languageCode == 'ar';
 }
 
-/// İçerik yüklenemedi: sakin simge, tek cümle, tek eylem.
+/// "Kaynak sayfada aç": 48 dp yüksek, beyaz yüzey, 1 dp `bdStrong` çerçeve, 16 köşe, ortalı ink metin (14 sp/600).
+class _SourceButton extends StatelessWidget {
+  const _SourceButton({super.key, required this.label, required this.onPressed});
+
+  final String label;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.bu;
+    return Semantics(
+      button: true,
+      label: label,
+      excludeSemantics: true,
+      onTap: onPressed,
+      child: BuPressable(
+        scale: .98,
+        onTap: () {
+          buHaptic(BuHaptic.selection);
+          onPressed();
+        },
+        child: Container(
+          height: 48,
+          alignment: Alignment.center,
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          decoration: BoxDecoration(
+            color: t.sf,
+            borderRadius: BorderRadius.circular(BuRadius.md),
+            border: Border.all(color: t.bdStrong),
+          ),
+          child: Text(label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: Theme.of(context).textTheme.labelLarge!.copyWith(fontSize: 14, fontWeight: FontWeight.w600, color: t.ink)),
+        ),
+      ),
+    );
+  }
+}
+
+/// İçerik yüklenemedi: soluk tek cümle + marka renkli metin düğmesi ("Yeniden dene"); simge yok.
 class _NewsError extends StatelessWidget {
   const _NewsError({required this.onRetry});
 
@@ -371,27 +368,8 @@ class _NewsError extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final t = context.bu;
-    final tx = Theme.of(context).textTheme;
     final l = context.l10n;
-    return Column(crossAxisAlignment: CrossAxisAlignment.center, children: [
-      const SizedBox(height: 8),
-      ExcludeSemantics(
-        child: Container(
-          width: 56,
-          height: 56,
-          decoration: BoxDecoration(color: t.sf2, shape: BoxShape.circle),
-          child: Icon(LucideIcons.wifiOff, size: 24, color: t.mut),
-        ),
-      ),
-      const SizedBox(height: 16),
-      Semantics(
-        liveRegion: true,
-        child: Text(l.p05NewsErrorTitle, textAlign: TextAlign.center, style: tx.titleMedium!.copyWith(fontWeight: FontWeight.w600, color: t.ink)),
-      ),
-      const SizedBox(height: 16),
-      BuButton(label: l.commonRetry, kind: BuButtonKind.outline, compact: true, onPressed: onRetry),
-    ]);
+    return IcerikErrorCard(title: l.p05NewsErrorTitle, retryLabel: l.commonRetry, onRetry: onRetry);
   }
 }
 
@@ -438,7 +416,7 @@ class _Article extends StatelessWidget {
     final tx = Theme.of(context).textTheme;
     final paragraphs = (content ?? '').split(RegExp(r'[\r\n]+')).map((p) => p.trim()).where((p) => p.isNotEmpty).toList();
     if (paragraphs.isEmpty) return const SizedBox.shrink();
-    final style = tx.bodyLarge!.copyWith(fontWeight: FontWeight.w400, height: 1.65, color: t.ink);
+    final style = tx.bodyLarge!.copyWith(fontSize: 16, fontWeight: FontWeight.w400, height: 1.5, color: t.ink);
     // SelectionArea: metin seçilip kopyalanabilir; SelectableText gibi sahte "dokunma hedefi" üretmez.
     return SelectionArea(
       child: Column(
