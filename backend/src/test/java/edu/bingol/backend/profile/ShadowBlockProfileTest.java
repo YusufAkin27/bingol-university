@@ -66,6 +66,19 @@ class ShadowBlockProfileTest {
     }
 
     @Test
+    void blockedPairHasConstantZeroCountersNotNull() { // T-029: null sayac, engelli cifti normal profilden ayirt ettirirdi
+        when(users.findById(2L)).thenReturn(Optional.of(user(2L)));
+        when(blocks.isBlocked(1L, 2L)).thenReturn(true);
+
+        PublicProfile p = service.publicProfile(1L, 2L);
+
+        assertEquals(0L, p.followerCount());
+        assertEquals(0L, p.followingCount());
+        assertEquals(Boolean.FALSE, p.followedByMe());
+        assertEquals(Boolean.FALSE, p.followsMe());
+    }
+
+    @Test
     void blockedByMeReflectsOnlyMyOwnBlockAndIsAbsentOnOwnProfile() {
         User t = user(2L);
         when(users.findById(2L)).thenReturn(Optional.of(t));

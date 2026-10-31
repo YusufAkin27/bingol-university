@@ -87,8 +87,13 @@ public class FollowService {
             throw new ApiException(HttpStatus.BAD_REQUEST, "FOLLOW_SELF", "Kendinizi takip edemezsiniz.");
         }
         User t = users.findById(target).orElseThrow(FollowService::notFound);
-        if (!t.isActive() || !t.isEmailVerified() || blocks.isBlocked(me, target)) {
+        // Benim engelledigim kisi: 404 (zaten biliyorum). Beni engelleyen: golge engel (T-029), hata yok, kayit yok;
+        // engellendigimi ogrenmemeliyim.
+        if (!t.isActive() || !t.isEmailVerified() || blocks.hasBlocked(me, target)) {
             throw notFound();
+        }
+        if (blocks.isBlocked(me, target)) {
+            return new FollowResult(true, 0);
         }
         int n = jdbc.update("INSERT INTO user_follow (follower_id, followee_id, created_at) SELECT ?, ?, CURRENT_TIMESTAMP "
                 + "WHERE NOT EXISTS (SELECT 1 FROM user_follow WHERE follower_id = ? AND followee_id = ?)",
@@ -256,7 +261,7 @@ public class FollowService {
         skip.addAll(jdbc.queryForList("SELECT blocked_id FROM user_block WHERE blocker_id = ? AND blocked_id IN (" + in
                 + ") UNION SELECT blocker_id FROM user_block WHERE blocked_id = ? AND blocker_id IN (" + in + ")",
                 Long.class, args));
-        List<Object[]> kept = rows.stream().filter(r -> !skip.contains((Long) r[0])).limit(n).toList();
+        List<Object[]> kept = rows.stream().filter(r -> !skip.contains((Long) r[0])).toList();
         if (kept.isEmpty()) {
             return List.of();
         }
@@ -266,11 +271,27 @@ public class FollowService {
         List<Suggestion> out = new ArrayList<>();
         for (Object[] r : kept) {
             PublicProfile p = byId.get((Long) r[0]);
-            if (p != null) {
-                out.add(new Suggestion(p.id(), p.displayName(), p.avatarUrl(), p.department(), (String) r[1], p.classYear()));
+            if (p == null || !reasonVisible((String) r[1], p)) {
+                continue;
+            }
+            out.add(new Suggestion(p.id(), p.displayName(), p.avatarUrl(), p.department(), (String) r[1], p.classYear()));
+            if (out.size() >= n) {
+                break;
             }
         }
         return out;
+    }
+
+    /**
+     * T-053: oneri nedeni (ayni bolum / sinif) yalniz o alan bakana ACIKSA gosterilir. Alan gizliyse aday hic
+     * onerilmez; yoksa "bolum eslesmesi" yan kanaldan ONLY_ME bolumunu sizdirirdi. CLUB nedeni ortak baglamdir (acik).
+     */
+    static boolean reasonVisible(String reason, PublicProfile p) {
+        return switch (reason) {
+            case "GRADE" -> p.department() != null && p.classYear() != null;
+            case "DEPARTMENT" -> p.department() != null;
+            default -> true;
+        };
     }
 
     private List<Object[]> suggestionRows(Long me) {

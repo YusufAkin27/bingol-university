@@ -103,7 +103,9 @@ public class ProfileService {
         if (!self && blocks.isBlocked(viewerId, targetId)) {
             // Golge engel: 404 degil; sohbet gecmisinde ad gerekebilir. Tek tutarli "bos profil" (foto/bilgi/e-posta yok).
             // blockedByMe yalniz benim engelimi gosterir; karsi tarafin beni engellemesi sizdirilmaz (false).
+            // Sayaclar sabit 0/false: null, engelli cift ile normal profili ayirt ettirirdi (T-029).
             return new PublicProfile(u.getId(), u.getDisplayName(), null, null, null, null, null, null)
+                    .withFollow(0, 0, false, false)
                     .withBlockedByMe(blocks.hasBlocked(viewerId, targetId));
         }
         PublicProfile view = mapper.map(viewerId, u);
@@ -140,6 +142,11 @@ public class ProfileService {
 
     @Transactional
     public User update(Long id, UpdateProfileRequest r) {
+        // T-055: sinirlar KOD NOKTASI ile sayilir (mesaj ve mobil sayac ile ayni); @Size UTF-16 saydigindan 300 emoji reddediliyordu
+        requireMaxCodePoints("displayName", r.displayName(), DisplayNamePolicy.MAX_LEN);
+        requireMaxCodePoints("faculty", r.faculty(), 120);
+        requireMaxCodePoints("department", r.department(), 120);
+        requireMaxCodePoints("bio", r.bio(), BIO_MAX);
         User u = get(id);
         if (r.displayName() != null) {
             String newName = DisplayNamePolicy.normalize(r.displayName(), u.getRole() == Role.ADMIN);
@@ -161,15 +168,38 @@ public class ProfileService {
         if (r.grade() != null) {
             u.setGrade(newGrade);
         }
+        // T-055: sinif yili ile sinif (grade) birbirinden bagimsiz guncellenemez: grade verilirse classYear ondan turetilir
+        // (cakisan classYear 400 ACADEMIC_INVALID); yalniz classYear verilirse grade ondan turetilir.
+        Short newClassYear = r.classYear();
+        if (r.grade() != null && newGrade != null) {
+            Short derived = classYearOfGrade(newGrade);
+            if (newClassYear != null && derived != null && !newClassYear.equals(derived)) {
+                throw new ApiException(HttpStatus.BAD_REQUEST, "ACADEMIC_INVALID",
+                        "Fakülte, bölüm veya sınıf bilgisi geçersiz.");
+            }
+            u.setClassYear(derived);
+            newClassYear = null;
+        } else if (newClassYear != null && r.grade() == null) {
+            String g = gradeOfClassYear(newClassYear);
+            if (g != null) {
+                u.setGrade(g);
+            }
+        }
         if (r.faculty() != null) {
+            String oldFaculty = u.getFaculty();
             u.setFaculty(validFaculty(blankToNull(r.faculty()), appInfo.faculties()));
+            // T-055: fakulte degisince eski bolum yeni fakulteye ait degilse temizlenir (Muhendislik + Fen-Edebiyat bolumu olmaz)
+            if (r.department() == null && u.getDepartment() != null && !java.util.Objects.equals(oldFaculty, u.getFaculty())
+                    && (u.getFaculty() == null || !catalog.isValid(u.getFaculty(), u.getDepartment()))) {
+                u.setDepartment(null);
+            }
         }
         if (r.department() != null) {
             ContentGuard.changed(guard, Entity.PROFILE, "department", id, u.getDepartment(), blankToNull(r.department()));
             u.setDepartment(blankToNull(r.department()));
         }
-        if (r.classYear() != null) {
-            u.setClassYear(r.classYear());
+        if (newClassYear != null) {
+            u.setClassYear(newClassYear);
         }
         if (r.bio() != null) {
             ContentGuard.changed(guard, Entity.PROFILE, "bio", id, u.getBio(), blankToNull(r.bio()));
@@ -404,6 +434,34 @@ public class ProfileService {
     }
 
     /** Fakulte listesi tanimliysa deger listeden biri olmali; liste bos ise serbest metin kabul edilir. */
+    /** Profil biyografisi ust siniri (kod noktasi). */
+    static final int BIO_MAX = 300;
+
+    /** Kod noktasi sayisi siniri asilirsa 400 PROFILE_FIELD_TOO_LONG (istek dilinde; {0} = sinir). null/kisa sorun degil. */
+    static void requireMaxCodePoints(String field, String value, int max) {
+        if (value != null && value.codePointCount(0, value.length()) > max) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "PROFILE_FIELD_TOO_LONG",
+                    field + " en fazla " + max + " karakter olabilir.", String.valueOf(max));
+        }
+    }
+
+    /** Sinif kimliginden sinif yili: PREP=0, "1".."6"=n, yuksek lisans/doktora=null. */
+    static Short classYearOfGrade(String grade) {
+        if ("PREP".equals(grade)) {
+            return 0;
+        }
+        return grade.length() == 1 && grade.charAt(0) >= '1' && grade.charAt(0) <= '6'
+                ? Short.valueOf((short) (grade.charAt(0) - '0')) : null;
+    }
+
+    /** Sinif yilindan sinif kimligi (0=PREP, 1..6); digerlerinde null (grade degismez). */
+    static String gradeOfClassYear(short classYear) {
+        if (classYear == 0) {
+            return "PREP";
+        }
+        return classYear >= 1 && classYear <= 6 ? String.valueOf(classYear) : null;
+    }
+
     static String validFaculty(String value, List<String> allowed) {
         if (value != null && !allowed.isEmpty() && !allowed.contains(value)) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "INVALID_FACULTY", "Geçersiz fakülte.");

@@ -118,7 +118,9 @@ class PostSocialIntegrationTest {
         User b = user(null);
         User c = user(null);
         blocks.saveAndFlush(new UserBlock(b.getId(), a.getId()));
-        assertEquals("USER_NOT_FOUND", code(() -> follow.follow(a.getId(), b.getId())));
+        // T-029: beni engelleyen kullaniciyi takip etmek golge engeldir: hata yok, kayit yok; ben engellediysem 404
+        assertEquals(0, follow.follow(a.getId(), b.getId()).followerCount());
+        assertEquals(0, count("SELECT COUNT(*) FROM user_follow WHERE follower_id = ? AND followee_id = ?", a.getId(), b.getId()));
         assertEquals("USER_NOT_FOUND", code(() -> follow.follow(b.getId(), a.getId())));
 
         follow.follow(a.getId(), c.getId());

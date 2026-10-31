@@ -38,6 +38,9 @@ public class FileController {
                 .contentType(TYPES.get(ext))
                 .cacheControl(CacheControl.maxAge(Duration.ofDays(30)).cachePublic().immutable())
                 .header("X-Content-Type-Options", "nosniff")
+                // T-054: herkese acik URL'ler (UUID, tahmin edilemez) arama motoruna girmesin, Referer ile baska siteye sizmasin
+                .header("X-Robots-Tag", "noindex, noimageindex")
+                .header("Referrer-Policy", "no-referrer")
                 .body(new PathResource(p));
     }
 }

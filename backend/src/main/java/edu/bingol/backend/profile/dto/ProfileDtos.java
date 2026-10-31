@@ -81,12 +81,16 @@ public final class ProfileDtos {
     }
 
     /** Verilmeyen (null) alanlar degismez. Bos metin gonderilirse alan temizlenir. */
-    public record UpdateProfileRequest(@Size(min = 2, max = 80) String displayName,
-                                       @Size(max = 120) String faculty,
-                                       @Size(max = 120) String department,
+    /**
+     * Metin sinirlari KOD NOKTASI ile ProfileService.update'te denetlenir (T-055; @Size UTF-16 sayar). Buradaki @Size
+     * yalniz kaba ust sinirdir (kod noktasi basina en cok 2 UTF-16 birimi).
+     */
+    public record UpdateProfileRequest(@Size(max = 160) String displayName,
+                                       @Size(max = 240) String faculty,
+                                       @Size(max = 240) String department,
                                        @Min(0) @Max(8) Short classYear,
                                        @Size(max = 8) String grade,
-                                       @Size(max = 300) String bio,
+                                       @Size(max = 600) String bio,
                                        Boolean showEmail,
                                        @Pattern(regexp = "tr|en|ar") String language) {}
 
