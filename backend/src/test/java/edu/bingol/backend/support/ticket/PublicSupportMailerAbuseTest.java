@@ -103,8 +103,9 @@ class PublicSupportMailerAbuseTest {
 
         verify(tickets, never()).save(any(SupportTicket.class));
         verify(m, never()).sendCode(any(), anyString(), anyInt());
-        // IP gunluk + genel saatlik tavan da kuruldu
+        // IP gunluk tavan kuruldu; ortak saatlik "global" tavan T-062 ile KALDIRILDI (tek saldirgan herkese formu
+        // kilitlemesin; koruma kimliksiz kod butcesi requireQuota()'da)
         verify(limiter).check("pubsup:ipd:1.2.3.4", 15, Duration.ofDays(1));
-        verify(limiter).check("pubsup:global", 100, Duration.ofHours(1));
+        verify(limiter, never()).check(eq("pubsup:global"), anyInt(), any());
     }
 }

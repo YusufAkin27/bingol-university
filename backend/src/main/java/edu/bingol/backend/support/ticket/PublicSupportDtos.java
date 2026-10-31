@@ -11,13 +11,28 @@ public final class PublicSupportDtos {
 
     private PublicSupportDtos() {}
 
-    /** website: bal kabagi (honeypot) alani, gercek kullanici bos birakir. elapsedMs: formun doldurulma suresi. */
+    /**
+     * website: bal kabagi (honeypot) alani, gercek kullanici bos birakir. formToken: formu acarken
+     * {@code GET /api/public/support/form-token} ile alinan sunucu imzali jeton (T-062). elapsedMs ESKI istemci
+     * bildirimidir; jeton zorunluyken (varsayilan) dikkate alinmaz.
+     */
     public record SubmitRequest(@NotBlank @Size(max = 80) String name,
                                 @NotBlank @Email @Size(max = 254) String email,
                                 @NotNull SupportTicket.Category category,
                                 @NotBlank @Size(min = 10, max = 2000) String message,
                                 @Size(max = 200) String website,
-                                Long elapsedMs) {}
+                                Long elapsedMs,
+                                @Size(max = 200) String formToken) {
+
+        /** Eski 6 alanli kurucu (jetonsuz). */
+        public SubmitRequest(String name, String email, SupportTicket.Category category, String message,
+                             String website, Long elapsedMs) {
+            this(name, email, category, message, website, elapsedMs, null);
+        }
+    }
+
+    /** Form jetonu ve en az doldurma suresi (saniye). */
+    public record FormToken(String formToken, int minFillSeconds) {}
 
     public record VerifyRequest(@NotBlank @Email @Size(max = 254) String email,
                                 @NotBlank @Pattern(regexp = "\\d{6}") String code) {}

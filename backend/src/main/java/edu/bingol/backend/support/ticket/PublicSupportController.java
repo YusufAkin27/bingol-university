@@ -3,6 +3,7 @@ package edu.bingol.backend.support.ticket;
 import edu.bingol.backend.common.ClientIp;
 import edu.bingol.backend.i18n.Lang;
 import edu.bingol.backend.support.ticket.PublicSupportDtos.CodeSent;
+import edu.bingol.backend.support.ticket.PublicSupportDtos.FormToken;
 import edu.bingol.backend.support.ticket.PublicSupportDtos.SubmitRequest;
 import edu.bingol.backend.support.ticket.PublicSupportDtos.TrackReplyRequest;
 import edu.bingol.backend.support.ticket.PublicSupportDtos.TrackRequest;
@@ -13,6 +14,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -30,6 +32,12 @@ public class PublicSupportController {
     public PublicSupportController(PublicSupportService service, ClientIp clientIp) {
         this.service = service;
         this.clientIp = clientIp;
+    }
+
+    /** T-062: formu acarken alinan sunucu imzali zaman damgali jeton (gonderimde `formToken`). */
+    @GetMapping("/form-token")
+    public FormToken formToken(HttpServletRequest req) {
+        return service.issueFormToken(clientIp.of(req));
     }
 
     @PostMapping("/tickets")

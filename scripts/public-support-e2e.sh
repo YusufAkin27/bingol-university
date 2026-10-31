@@ -33,13 +33,23 @@ register() {
 last_code() { logs | grep "$1 icin e-posta" | grep -iE 'verification code|dogrulama kodunuz|kodunuz' | tail -1 | grep -oE ': [0-9]{6}' | tail -1 | tr -d ': '; }
 # e-postadaki son durum baglantisi anahtari
 last_token() { logs | grep "$1 icin e-posta" | grep -o 'support/track?token=[A-Za-z0-9_-]*' | tail -1 | cut -d= -f2; }
-submit_body() { # email lang-independent govde; $2 honeypot, $3 elapsedMs, $4 mesaj
-  echo "{\"name\":\"Ali Veli\",\"email\":\"$1\",\"category\":\"TECHNICAL\",\"message\":\"$4\",\"website\":\"$2\",\"elapsedMs\":$3}"
+# T-062: sunucu imzali form jetonu (formu acarken alinir; gonderimde en az minFillSeconds (3 sn) eski olmali)
+ft() { curl -s $P/form-token | grep -o '"formToken":"[^"]*' | cut -d'"' -f4; }
+submit_body() { # email lang-independent govde; $2 honeypot, $3 elapsedMs (artik yok sayilir), $4 mesaj, $5 form jetonu
+  echo "{\"name\":\"Ali Veli\",\"email\":\"$1\",\"category\":\"TECHNICAL\",\"message\":\"$4\",\"website\":\"$2\",\"elapsedMs\":$3,\"formToken\":\"$5\"}"
 }
 
 SFX=$RANDOM
 EM="pub$SFX@example.com"
 MSG="Uygulama acilmiyor $SFX, yardim eder misiniz?"
+
+echo "== form jetonu (T-062)"
+FTCODE=$(code $P/form-token)
+check "GET /form-token 200" 200 "$FTCODE"
+T_HP=$(ft); T_BAD1=$(ft); T_BAD2=$(ft); T_MAIN=$(ft)
+T_RL1=$(ft); T_RL2=$(ft); T_RL3=$(ft); T_RL4=$(ft); T_RL5=$(ft); T_RL6=$(ft); T_RL7=$(ft)
+[ -n "$T_MAIN" ] && echo "  ok   jeton alindi" || { echo "  FAIL jeton yok"; FAIL=1; }
+sleep 4 # jetonlar en az 3 sn eskimeli
 
 echo "== yonetici"
 TA=$(register "$ADMIN_EMAIL" "Admin")
@@ -52,18 +62,23 @@ check "girissiz /support/tickets reddedilir" denied "$C0"
 check "girissiz /public/support/track gecersiz govde 400" 400 "$(code -X POST -H "$H" $P/track -d '{}')"
 
 echo "== bal kabagi ve cok hizli gonderim sessizce elenir"
-check "honeypot -> genel 202" 202 "$(code -X POST -H "$H" $P/tickets -d "$(submit_body "hp$SFX@example.com" 'http://spam' 9000 "$MSG")")"
-check "cok hizli -> genel 202" 202 "$(code -X POST -H "$H" $P/tickets -d "$(submit_body "fast$SFX@example.com" '' 300 "$MSG")")"
+check "honeypot -> genel 202" 202 "$(code -X POST -H "$H" $P/tickets -d "$(submit_body "hp$SFX@example.com" 'http://spam' 9000 "$MSG" "$T_HP")")"
+T_FAST=$(ft)
+check "cok hizli (jeton yeni) -> genel 202" 202 "$(code -X POST -H "$H" $P/tickets -d "$(submit_body "fast$SFX@example.com" '' 30000 "$MSG" "$T_FAST")")"
+check "jetonsuz + uydurma elapsedMs -> genel 202" 202 "$(code -X POST -H "$H" $P/tickets -d "$(submit_body "fab$SFX@example.com" '' 30000 "$MSG" '')")"
+check "sahte jeton -> genel 202" 202 "$(code -X POST -H "$H" $P/tickets -d "$(submit_body "forged$SFX@example.com" '' 30000 "$MSG" 'v1.1.2.3')")"
 sleep 1
 check "honeypot icin kod/e-posta uretilmedi" "" "$(last_code "hp$SFX@example.com")"
 check "hizli gonderim icin kod uretilmedi" "" "$(last_code "fast$SFX@example.com")"
+check "uydurma elapsedMs icin kod uretilmedi" "" "$(last_code "fab$SFX@example.com")"
+check "sahte jeton icin kod uretilmedi" "" "$(last_code "forged$SFX@example.com")"
 
 echo "== istemci hatalari"
-check "gecersiz e-posta" 400 "$(code -X POST -H "$H" $P/tickets -d "$(submit_body 'not-an-email' '' 9000 "$MSG")")"
-check "kisa mesaj" 400 "$(code -X POST -H "$H" $P/tickets -d "$(submit_body "$EM" '' 9000 'kisa')")"
+check "gecersiz e-posta" 400 "$(code -X POST -H "$H" $P/tickets -d "$(submit_body 'not-an-email' '' 9000 "$MSG" "$T_BAD1")")"
+check "kisa mesaj" 400 "$(code -X POST -H "$H" $P/tickets -d "$(submit_body "$EM" '' 9000 'kisa' "$T_BAD2")")"
 
 echo "== gonderim (Accept-Language: en) -> dogrulanmamis talep"
-R=$(curl -s -w ' %{http_code}' -X POST -H "$H" -H 'Accept-Language: en' $P/tickets -d "$(submit_body "$EM" '' 9000 "$MSG")")
+R=$(curl -s -w ' %{http_code}' -X POST -H "$H" -H 'Accept-Language: en' $P/tickets -d "$(submit_body "$EM" '' 9000 "$MSG" "$T_MAIN")")
 has "202 CODE_SENT" "CODE_SENT" "$R"
 sleep 1
 CODE=$(last_code "$EM")
@@ -128,10 +143,13 @@ has "yeniden OPEN" '"status":"OPEN"' "$M"
 echo "== hiz siniri (IP basina saatte 5 talep)"
 GOT429=0
 for i in 1 2 3 4 5 6 7; do
-  c=$(code -X POST -H "$H" $P/tickets -d "$(submit_body "rl$SFX$i@example.com" '' 9000 "$MSG")")
+  eval "TK=\$T_RL$i"
+  c=$(code -X POST -H "$H" $P/tickets -d "$(submit_body "rl$SFX$i@example.com" '' 9000 "$MSG" "$TK")")
   [ "$c" = "429" ] && GOT429=1
 done
 check "sinir asilinca 429" 1 "$GOT429"
+
+echo "== durum baglantisi kapanista iptal (T-062; 14 gun karenzi) -- sure testi birim testlerinde (PublicSupportFormTokenTest)"
 
 echo
 if [ "$FAIL" = "0" ]; then echo "TUM KONTROLLER GECTI"; else echo "BAZI KONTROLLER BASARISIZ"; exit 1; fi

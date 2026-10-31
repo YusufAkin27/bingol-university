@@ -21,6 +21,8 @@ import java.util.List;
 import java.util.Locale;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -48,6 +50,17 @@ public class PublicSupportService {
     private final SupportProperties props;
     private final SecureRandom random = new SecureRandom();
 
+    /** Sunucu imzali form jetonu (T-062); yoksa (elle kurulan birim testleri) eski elapsedMs denetimi. */
+    private SupportFormToken formTokens;
+
+    /** Durum baglantisi en cok bu kadar gun gecerli (olusturmadan itibaren). */
+    @Value("${app.support.track-token-days:90}")
+    private int trackTokenDays = 90;
+
+    /** Talep kapandiktan sonra durum baglantisi bu kadar gun daha calisir (yeniden acma/yanit penceresi). */
+    @Value("${app.support.track-closed-grace-days:14}")
+    private int trackClosedGraceDays = 14;
+
     public PublicSupportService(TicketRepository tickets, SupportMessageRepository messages,
                                 SupportTrackTokenRepository tokens, PublicSupportMailer mailer, RateLimiter limiter,
                                 SupportProperties props) {
@@ -57,6 +70,20 @@ public class PublicSupportService {
         this.mailer = mailer;
         this.limiter = limiter;
         this.props = props;
+    }
+
+    @Autowired(required = false)
+    void setFormTokens(SupportFormToken formTokens) {
+        this.formTokens = formTokens;
+    }
+
+    /** Formu acarken verilen jeton (T-062). Hiz siniri: IP basina saatte 60. */
+    public PublicSupportDtos.FormToken issueFormToken(String ip) {
+        limiter.check("pubsup:ftip:" + ip, 60, Duration.ofHours(1));
+        if (formTokens == null) {
+            return new PublicSupportDtos.FormToken(null, props.minFillSeconds());
+        }
+        return new PublicSupportDtos.FormToken(formTokens.issue(), props.minFillSeconds());
     }
 
     /**
@@ -69,14 +96,24 @@ public class PublicSupportService {
         limiter.check("pubsup:ip:" + ip, 5, Duration.ofHours(1));
         limiter.check("pubsup:em:" + Hashing.sha256(email), 5, Duration.ofDays(1));
         CodeSent generic = new CodeSent("CODE_SENT", (int) CODE_TTL.toMinutes());
-        boolean tooFast = r.elapsedMs() == null || r.elapsedMs() < props.minFillSeconds() * 1000L;
+        boolean tooFast;
+        if (formTokens != null && formTokens.required()) {
+            // T-062: istemcinin bildirdigi sure guvenilmez; yalniz sunucu imzali, zaman damgali jeton gecerlidir
+            SupportFormToken.Result res = formTokens.verify(r.formToken());
+            tooFast = res != SupportFormToken.Result.OK;
+            if (!tooFast) {
+                limiter.check("pubsup:ft:" + SupportFormToken.nonceOf(r.formToken()), 3, Duration.ofHours(2));
+            }
+        } else {
+            tooFast = r.elapsedMs() == null || r.elapsedMs() < props.minFillSeconds() * 1000L;
+        }
         if ((r.website() != null && !r.website().isBlank()) || tooFast) {
             log.info("Herkese acik destek talebi elendi (honeypot/hiz)");
             return generic;
         }
-        // Kota harcayan kimliksiz istek: once IP gunluk + kimliksiz kod butcesi + genel saatlik tavan
+        // Kota harcayan kimliksiz istek: once IP gunluk + kimliksiz kod butcesi (requireCodeQuota). Ortak saatlik
+        // "global" tavan KALDIRILDI (T-062): tek saldirgan formu herkese kilitleyebiliyordu; koruma kod butcesinde.
         limiter.check("pubsup:ipd:" + ip, 15, Duration.ofDays(1));
-        limiter.check("pubsup:global", 100, Duration.ofHours(1));
         mailer.requireQuota();
         SupportTicket t = new SupportTicket();
         t.setPublicTicket(true);
@@ -195,7 +232,9 @@ public class PublicSupportService {
     public int cleanup(Instant now) {
         int a = tickets.deleteUnverifiedBefore(now.minus(UNVERIFIED_TTL));
         int b = tickets.deletePublicUpdatedBefore(now.minus(Duration.ofDays(props.publicTicketRetentionDays())));
-        return a + b;
+        int c = tokens.deleteCreatedBefore(now.minus(Duration.ofDays(Math.max(1, trackTokenDays))));
+        int d = tokens.deleteForTicketsClosedBefore(now.minus(Duration.ofDays(Math.max(0, trackClosedGraceDays))));
+        return a + b + c + d;
     }
 
     // --- yardimcilar ---
@@ -214,11 +253,24 @@ public class PublicSupportService {
     private SupportTicket ticketByToken(String token, String ip) {
         SupportTrackToken row = token == null ? null : tokens.findByTokenHash(Hashing.sha256(token.trim())).orElse(null);
         SupportTicket t = row == null ? null : tickets.findById(row.getTicketId()).orElse(null);
+        if (t != null && trackLinkExpired(row, t)) {
+            t = null; // T-062: suresi dolan ya da uzun suredir kapali talebin baglantisi gecersiz (404)
+        }
         if (t == null || !t.isPublicTicket() || !t.isEmailVerified()) {
             limiter.check("pubsup:bad:" + ip, 20, Duration.ofHours(1)); // anahtar tahmini denemelerini sinirla
             throw new ApiException(HttpStatus.NOT_FOUND, "TICKET_NOT_FOUND", "Talep bulunamadı.");
         }
         return t;
+    }
+
+    /** Baglanti olusturmadan `trackTokenDays`, kapanistan `trackClosedGraceDays` sonra gecersizdir. */
+    private boolean trackLinkExpired(SupportTrackToken row, SupportTicket t) {
+        Instant now = Instant.now();
+        if (row.getCreatedAt() != null && row.getCreatedAt().isBefore(now.minus(Duration.ofDays(Math.max(1, trackTokenDays))))) {
+            return true;
+        }
+        return t.getStatus() == SupportTicket.Status.CLOSED && t.getClosedAt() != null
+                && t.getClosedAt().isBefore(now.minus(Duration.ofDays(Math.max(0, trackClosedGraceDays))));
     }
 
     private void addMessage(SupportTicket t, boolean fromStaff, String text) {
