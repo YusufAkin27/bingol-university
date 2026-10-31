@@ -92,7 +92,8 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  group('Ana Sayfa menü kartı', () {
+  // Stitch v3: Ana Sayfa'da kırmızı dolu vitrin ve menü fotoğrafı yok; düz yüzey (fotoğraf yalnız Yemek sayfasında).
+  group('Ana Sayfa günün menüsü yüzeyi', () {
     Map<String, dynamic> today({String? image}) => {
           'date': _todayStr(),
           'items': ['Mercimek çorbası', 'Pilav', 'Ayran'],
@@ -103,26 +104,20 @@ void main() {
         Scaffold(body: HomeTab(session: makeSession(b), onOpenTab: (i, {newsType}) {}));
 
     for (final dark in [false, true]) {
-      testWidgets('fotoğraflı: arka plan fotoğrafı + metin (320 dp, ${dark ? 'koyu' : 'acik'})', (tester) async {
-        useScreen(tester, const Size(320, 800));
-        MenuPhotoGate.debugProvider = (_) => MemoryImage(_png);
-        final b = FakeBackend()..on('/menu/today', today(image: '/files/menu/t.jpg'));
-                await tester.pumpWidget(buildApp(home(b), brightness: dark ? Brightness.dark : Brightness.light));
-        await settle(tester, const Duration(seconds: 2));
-        expect(find.bySemanticsLabel(RegExp('menüsü fotoğrafı')), findsOneWidget);
-        expect(find.textContaining('Mercimek çorbası'), findsOneWidget);
-        expect(tester.takeException(), isNull);
-      });
+      for (final photo in [false, true]) {
+        testWidgets('${photo ? 'fotoğraflı gün' : 'fotoğrafsız gün'}: düz yüzey, fotoğraf yok, taşma yok (320 dp, ${dark ? 'koyu' : 'acik'})', (tester) async {
+          useScreen(tester, const Size(320, 1400));
+          MenuPhotoGate.debugProvider = (_) => MemoryImage(_png);
+          final b = FakeBackend()..on('/menu/today', today(image: photo ? '/files/menu/t.jpg' : null));
+          await tester.pumpWidget(buildApp(home(b), brightness: dark ? Brightness.dark : Brightness.light));
+          await settle(tester, const Duration(seconds: 2));
+          expect(find.bySemanticsLabel(RegExp('menüsü fotoğrafı')), findsNothing);
+          expect(find.text('Günün menüsü'), findsOneWidget);
+          expect(find.text('Menüyü aç'), findsOneWidget);
+          expect(find.text('Mercimek çorbası'), findsOneWidget); // menü yüzeyindeki satır ("Bugün" satırı birleşik metindir)
+          expect(tester.takeException(), isNull);
+        });
+      }
     }
-
-    testWidgets('fotoğrafsız: eski tasarım', (tester) async {
-      useScreen(tester, const Size(320, 800));
-      final b = FakeBackend()..on('/menu/today', today());
-            await tester.pumpWidget(buildApp(home(b)));
-      await settle(tester, const Duration(seconds: 2));
-      expect(find.bySemanticsLabel(RegExp('menüsü fotoğrafı')), findsNothing);
-      expect(find.textContaining('Mercimek çorbası'), findsOneWidget);
-      expect(tester.takeException(), isNull);
-    });
   });
 }

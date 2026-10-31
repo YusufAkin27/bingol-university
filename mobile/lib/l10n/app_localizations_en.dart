@@ -7571,7 +7571,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get p03NotifLoadingMore => 'Loading more...';
 
   @override
-  String get p03HomeMealTitle => 'Menu of the Day';
+  String get p03HomeMealTitle => 'Menu of the day';
 
   @override
   String get p03HomeNoMenuBody =>
@@ -8806,7 +8806,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get p03HomeBrandSub => 'Independent student app';
 
   @override
-  String get p03HomeQuickTitle => 'Quick Access';
+  String get p03HomeQuickTitle => 'Quick access';
 
   @override
   String get p03HomeQuickEvents => 'Events';
@@ -8815,10 +8815,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get p03HomeQuickSchedule => 'Schedule';
 
   @override
-  String get p03HomeFeaturedNews => 'Featured News';
+  String get p03HomeFeaturedNews => 'Featured news';
 
   @override
-  String get p03HomeUpcoming => 'Upcoming Event';
+  String get p03HomeUpcoming => 'Upcoming events';
 
   @override
   String get p03HomeMealHeroTitle => 'Meal Menu of the Day';
@@ -9144,7 +9144,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get p60EditHome => 'Edit home';
 
   @override
-  String get p60EditHint => 'Press and hold to drag, or use the arrows.';
+  String get p60EditHint =>
+      'Drag sections to reorder; use the switch to show or hide them.';
 
   @override
   String get p60Done => 'Done';
@@ -9174,7 +9175,8 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get p60ShortcutsHint => 'Pick up to 5 shortcuts.';
+  String get p60ShortcutsHint =>
+      'Choose up to 5 shortcuts; drag to change the order.';
 
   @override
   String get p60EmptyTitle => 'Your home is empty';
@@ -9632,4 +9634,44 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get p51EvClubOnly => 'Events are created on behalf of clubs.';
+
+  @override
+  String get p60Today => 'Today';
+
+  @override
+  String get p60NextClass => 'Next class';
+
+  @override
+  String get p60UpcomingExam => 'Upcoming exam';
+
+  @override
+  String get p60OpenMenu => 'Open menu';
+
+  @override
+  String get p60NoNews => 'No news yet.';
+
+  @override
+  String get p60NoAnnouncements => 'No announcements yet.';
+
+  @override
+  String p60Classroom(String room) {
+    return 'Room $room';
+  }
+
+  @override
+  String get p60EmptySub => 'You have not chosen any section to show.';
+
+  @override
+  String get p60Selected => 'Selected shortcuts (order)';
+
+  @override
+  String get p60AllShortcuts => 'All shortcuts';
+
+  @override
+  String p60Remove(String name) {
+    return 'Remove $name';
+  }
+
+  @override
+  String get p60ShortScheduleFull => 'Timetable';
 }

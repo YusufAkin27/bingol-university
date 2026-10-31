@@ -15,7 +15,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'support/fake_app.dart';
 
-/// P3-HOME: özelleştirilebilir Ana Sayfa (bölüm sırası/görünürlüğü, Hızlı Erişim kısayolları, yerel kalıcılık).
+/// P3-HOME (Stitch v3): özelleştirilebilir Ana Sayfa (bölüm sırası/görünürlüğü, Hızlı Erişim kısayolları, yerel kalıcılık).
 void main() {
   setUpAll(loadTestFonts);
   const st = FlutterSecureStorage();
@@ -27,37 +27,45 @@ void main() {
   tearDown(HomeLayoutStore.clear);
 
   group('HomeLayout modeli', () {
-    test('varsayilan = bugunku duzen (4 bolum, ilk 5 kisayol)', () {
+    test('varsayilan: Stitch sirasi, hepsi acik, 5 kisayol', () {
       const d = HomeLayout.defaults;
-      expect(d.visible, [HomeSection.menu, HomeSection.quickAccess, HomeSection.featuredNews, HomeSection.upcomingEvents]);
+      expect(d.visible, [
+        HomeSection.quickAccess,
+        HomeSection.menu,
+        HomeSection.todayClasses,
+        HomeSection.featuredNews,
+        HomeSection.upcomingEvents,
+        HomeSection.announcements,
+      ]);
       expect(d.shortcuts, [HomeShortcut.news, HomeShortcut.menu, HomeShortcut.events, HomeShortcut.polls, HomeShortcut.schedule]);
       expect(d.isDefault, isTrue);
     });
 
     test('siralama: moveSection, reorderSection (onReorderItem kurali), sinirda degismez', () {
       var v = HomeLayout.defaults.moveSection(HomeSection.featuredNews, -1);
-      expect(v.order.take(3), [HomeSection.menu, HomeSection.featuredNews, HomeSection.quickAccess]);
-      expect(v.moveSection(HomeSection.menu, -1), v, reason: 'ilk satir yukari tasinamaz');
-      expect(v.moveSection(HomeSection.todayClasses, 1), v, reason: 'son satir asagi tasinamaz');
-      v = HomeLayout.defaults.reorderSection(0, 2); // menu -> 3. siraya (cikarildiktan sonraki indeks)
-      expect(v.order.take(3), [HomeSection.quickAccess, HomeSection.featuredNews, HomeSection.menu]);
+      expect(v.order.take(4), [HomeSection.quickAccess, HomeSection.menu, HomeSection.featuredNews, HomeSection.todayClasses]);
+      expect(v.moveSection(HomeSection.quickAccess, -1), v, reason: 'ilk satir yukari tasinamaz');
+      expect(v.moveSection(HomeSection.announcements, 1), v, reason: 'son satir asagi tasinamaz');
+      v = HomeLayout.defaults.reorderSection(0, 2); // quickAccess -> 3. siraya (cikarildiktan sonraki indeks)
+      expect(v.order.take(3), [HomeSection.menu, HomeSection.todayClasses, HomeSection.quickAccess]);
       expect(v.isDefault, isFalse);
     });
 
     test('gizle/goster', () {
-      final v = HomeLayout.defaults.setVisible(HomeSection.menu, false).setVisible(HomeSection.announcements, true);
+      final v = HomeLayout.defaults.setVisible(HomeSection.menu, false).setVisible(HomeSection.announcements, false);
       expect(v.isVisible(HomeSection.menu), isFalse);
-      expect(v.visible, contains(HomeSection.announcements));
+      expect(v.visible, isNot(contains(HomeSection.announcements)));
       expect(v.setVisible(HomeSection.menu, true).isVisible(HomeSection.menu), isTrue);
     });
 
-    test('kisayol: en cok 5, son acik kapatilamaz, siralama', () {
+    test('kisayol: en cok 5, son acik kapatilamaz, kapatilan havuza doner, siralama', () {
       var v = HomeLayout.defaults.setShortcut(HomeShortcut.chat, true);
       expect(v.shortcuts.length, 5, reason: '6. kisayol eklenemez');
       expect(v.shortcuts, isNot(contains(HomeShortcut.chat)));
       v = v.setShortcut(HomeShortcut.polls, false).setShortcut(HomeShortcut.chat, true);
-      expect(v.shortcuts, contains(HomeShortcut.chat));
+      expect(v.shortcuts.last, HomeShortcut.chat, reason: 'yeni secilen sona eklenir');
       expect(v.shortcuts, isNot(contains(HomeShortcut.polls)));
+      expect(v.shortcutPool, contains(HomeShortcut.polls));
       var one = HomeLayout.defaults;
       for (final s in HomeLayout.defaults.shortcuts) {
         one = one.setShortcut(s, false);
@@ -68,38 +76,33 @@ void main() {
     });
 
     test('json: gidis-donus, baska kullanici/bozuk/eski kayit varsayilana duser', () {
-      final v = HomeLayout.defaults.moveSection(HomeSection.quickAccess, 1).setVisible(HomeSection.todayClasses, true).setShortcut(HomeShortcut.polls, false).setShortcut(HomeShortcut.chat, true);
+      final v = HomeLayout.defaults.moveSection(HomeSection.quickAccess, 1).setVisible(HomeSection.todayClasses, false).setShortcut(HomeShortcut.polls, false).setShortcut(HomeShortcut.chat, true);
       final j = jsonDecode(jsonEncode(v.toJson(7)));
       expect(HomeLayout.fromJson(j, 7), v);
       expect(HomeLayout.fromJson(j, 8), HomeLayout.defaults, reason: 'baska kullanicinin duzeni');
-      for (final bad in <Object?>[null, 'x', 5, [], {}, {'u': 7}, {'u': 7, 'order': 'x', 'hidden': 3, 'sOrder': {}, 'sOn': 1}]) {
-        expect(HomeLayout.fromJson(bad, 7).visible.length, greaterThanOrEqualTo(0), reason: '$bad');
+      for (final bad in <Object?>[null, 'x', 5, [], {}, {'u': 7}, {'u': 7, 'order': 'x', 'hidden': 3, 'sOn': 1}]) {
+        expect(HomeLayout.fromJson(bad, 7).order.length, HomeSection.values.length, reason: '$bad');
       }
       expect(HomeLayout.fromJson('x', 7), HomeLayout.defaults);
-      expect(HomeLayout.fromJson({'u': 7, 'order': 'x', 'hidden': 3}, 7).order.length, HomeSection.values.length);
     });
 
-    test('bilinmeyen kimlik atilir, yeni bolum sona (varsayilan gorunurlukle) eklenir, tekrarlar elenir', () {
+    test('bilinmeyen kimlik atilir, yeni bolum sona eklenir, tekrarlar elenir, kisayollar 5 ile sinirli', () {
       final v = HomeLayout.fromJson({
         'u': 7,
         'order': ['featuredNews', 'eskiBolum', 'menu', 'menu'],
         'hidden': ['menu', 'eskiBolum'],
-        'sOrder': ['chat', 'yok', 'news'],
-        'sOn': ['chat', 'yok'],
+        'sOn': ['chat', 'yok', 'news', 'chat', 'menu', 'events', 'polls', 'schedule', 'clubs'],
       }, 7);
       expect(v.order.take(2), [HomeSection.featuredNews, HomeSection.menu]);
       expect(v.order.toSet(), HomeSection.values.toSet());
       expect(v.order.length, HomeSection.values.length);
       expect(v.isVisible(HomeSection.menu), isFalse);
       expect(v.isVisible(HomeSection.quickAccess), isTrue, reason: 'yeni bolum varsayilan gorunur');
-      expect(v.isVisible(HomeSection.announcements), isFalse, reason: 'varsayilan kapali bolum kapali gelir');
-      expect(v.shortcutOrder.first, HomeShortcut.chat);
-      expect(v.shortcutOrder.length, HomeShortcut.values.length);
-      expect(v.shortcuts, [HomeShortcut.chat]);
+      expect(v.shortcuts, [HomeShortcut.chat, HomeShortcut.news, HomeShortcut.menu, HomeShortcut.events, HomeShortcut.polls]);
     });
 
     test('kisayol kaydi bos/gecersizse varsayilan kisayollar', () {
-      final v = HomeLayout.fromJson({'u': 7, 'order': <String>[], 'hidden': <String>[], 'sOrder': <String>[], 'sOn': <String>[]}, 7);
+      final v = HomeLayout.fromJson({'u': 7, 'order': <String>[], 'hidden': <String>[], 'sOn': <String>[]}, 7);
       expect(v.shortcuts, HomeLayout.defaults.shortcuts);
     });
   });
@@ -131,10 +134,19 @@ void main() {
     Widget home(FakeBackend b) => Scaffold(body: HomeTab(session: makeSession(b), onOpenTab: (i, {newsType}) {}));
 
     FakeBackend be() => FakeBackend()
-      ..on('/menu/today', {'date': '2026-01-01', 'items': ['Mercimek çorbası', 'Orman kebabı']})
+      ..on('/menu/today', {
+        'date': '2026-01-01',
+        'items': ['Mercimek çorbası', 'Orman kebabı'],
+        'dishes': [
+          {'name': 'Mercimek çorbası', 'kcal': 160},
+          {'name': 'Orman kebabı', 'kcal': 380},
+        ],
+        'totalKcal': 540,
+        'kcalComplete': true,
+      })
       ..on('/news?type=HABER&page=0&size=5', {
         'items': [
-          {'id': 1, 'title': 'Bahar dönemi duyurusu', 'type': 'HABER', 'publishedDate': '2026-01-01'},
+          {'id': 1, 'title': 'Bahar dönemi haberi', 'type': 'HABER', 'publishedDate': '2026-01-01'},
         ]
       })
       ..on('/news?type=DUYURU&page=0&size=3', {
@@ -145,122 +157,169 @@ void main() {
 
     Future<void> saved(HomeLayout v, {int uid = 1}) => HomeLayoutStore.save(v, uid);
 
-    /// Alt sayfadaki satirin anahtari (satir = etiketin en yakin Row atasi).
+    /// Düzenleme sayfasındaki satırın anahtarı (satır = etiketin en yakın Row atası).
     Finder rowSwitch(String label) {
-      final text = find.descendant(of: find.byType(BottomSheet), matching: find.text(label));
+      final text = find.descendant(of: find.byType(HomeLayoutPage), matching: find.text(label));
       return find.descendant(of: find.ancestor(of: text, matching: find.byType(Row)).first, matching: find.byType(Switch));
     }
 
-    testWidgets('varsayilan: menu ve etkinlik istenir; duyuru ve dersler ISTENMEZ', (tester) async {
-      useScreen(tester, const Size(390, 1200));
+    Future<void> openEditor(WidgetTester tester) async {
+      await tester.tap(find.byTooltip('Ana sayfayı düzenle'));
+      await settle(tester, const Duration(milliseconds: 700));
+    }
+
+    testWidgets('varsayilan: altı bolum acik; menu/etkinlik/haber/duyuru/ders programi istenir', (tester) async {
+      useScreen(tester, const Size(390, 2400));
       final b = be();
       await tester.pumpWidget(buildApp(home(b)));
       await settle(tester, const Duration(seconds: 2));
       expect(b.count('/menu/today'), 1);
       expect(b.count('/events/featured'), 1);
       expect(b.count('type=HABER'), 1);
-      expect(b.count('type=DUYURU'), 0);
-      expect(b.count('/timetable'), 0);
-      expect(find.text('Günün Yemek Menüsü'), findsOneWidget);
-      expect(find.text('Duyurular'), findsNothing);
+      expect(b.count('type=DUYURU'), 1);
+      expect(b.count('/timetable'), greaterThanOrEqualTo(1));
+      expect(find.text('Günün menüsü'), findsOneWidget);
+      expect(find.text('Hızlı erişim'), findsOneWidget);
+      expect(find.text('Duyurular'), findsOneWidget);
+      expect(find.text('Bugün'), findsOneWidget);
+      // Varsayilan sira: Hizli erisim < menu < haberler < etkinlikler < duyurular (dersler veri yoksa cizilmez).
+      double y(String s) => tester.getTopLeft(find.text(s)).dy;
+      expect(y('Hızlı erişim'), lessThan(y('Günün menüsü')));
+      expect(y('Günün menüsü'), lessThan(y('Öne çıkan haberler')));
+      expect(y('Öne çıkan haberler'), lessThan(y('Yaklaşan etkinlikler')));
+      expect(y('Yaklaşan etkinlikler'), lessThan(y('Duyurular')));
       expect(tester.takeException(), isNull);
       await unmount(tester);
     });
 
-    testWidgets('gizli menu + etkinlik: veri istegi atilmaz, bolum gorunmez', (tester) async {
-      useScreen(tester, const Size(390, 1200));
-      await saved(HomeLayout.defaults.setVisible(HomeSection.menu, false).setVisible(HomeSection.upcomingEvents, false));
+    testWidgets('gizli etkinlik + haber + duyuru: veri istegi atilmaz, bolum gorunmez; menu "Bugun" icin yine istenir', (tester) async {
+      useScreen(tester, const Size(390, 1600));
+      await saved(HomeLayout.defaults
+          .setVisible(HomeSection.upcomingEvents, false)
+          .setVisible(HomeSection.featuredNews, false)
+          .setVisible(HomeSection.announcements, false)
+          .setVisible(HomeSection.menu, false));
       final b = be();
       await tester.pumpWidget(buildApp(home(b)));
       await settle(tester, const Duration(seconds: 2));
-      expect(b.count('/menu/today'), 0);
       expect(b.count('/events/featured'), 0);
-      expect(find.text('Günün Yemek Menüsü'), findsNothing);
-      expect(find.text('Bugün için liste yok'), findsNothing);
+      expect(b.count('type=HABER'), 0);
+      expect(b.count('type=DUYURU'), 0);
+      expect(find.text('Günün menüsü'), findsNothing);
+      expect(find.text('Yaklaşan etkinlikler'), findsNothing);
       expect(find.byType(HomeQuickGrid), findsOneWidget);
+      expect(find.byType(HomeTodayCard), findsOneWidget, reason: 'Bugun yuzeyi gizlenemez');
       await unmount(tester);
     });
 
     testWidgets('kayitli siralama uygulanir: haberler menuden once', (tester) async {
-      useScreen(tester, const Size(390, 1600));
-      await saved(HomeLayout.defaults.reorderSection(2, 0));
+      useScreen(tester, const Size(390, 2400));
+      await saved(HomeLayout.defaults.reorderSection(3, 1));
       final b = be();
       await tester.pumpWidget(buildApp(home(b)));
       await settle(tester, const Duration(seconds: 2));
-      expect(tester.getTopLeft(find.text('Öne Çıkan Haberler')).dy, lessThan(tester.getTopLeft(find.text('Günün Yemek Menüsü')).dy));
+      expect(tester.getTopLeft(find.text('Öne çıkan haberler')).dy, lessThan(tester.getTopLeft(find.text('Günün menüsü')).dy));
       await unmount(tester);
     });
 
     testWidgets('baska kullanicinin kaydi ve bozuk kayit: varsayilan duzen', (tester) async {
-      useScreen(tester, const Size(390, 1200));
+      useScreen(tester, const Size(390, 2400));
       await saved(HomeLayout.defaults.setVisible(HomeSection.menu, false), uid: 99); // oturum kullanicisi 1
       final b = be();
       await tester.pumpWidget(buildApp(home(b)));
       await settle(tester, const Duration(seconds: 2));
-      expect(find.text('Günün Yemek Menüsü'), findsOneWidget);
+      expect(find.text('Günün menüsü'), findsOneWidget);
       await unmount(tester);
       await st.write(key: HomeLayoutStore.key, value: 'bu json degil');
       final b2 = be();
       await tester.pumpWidget(buildApp(home(b2)));
       await settle(tester, const Duration(seconds: 2));
-      expect(find.text('Günün Yemek Menüsü'), findsOneWidget);
+      expect(find.text('Günün menüsü'), findsOneWidget);
       expect(tester.takeException(), isNull);
       await unmount(tester);
     });
 
-    testWidgets('duzenle sheet: yukari/asagi dugmeleri, gizle (kalici), varsayilana don', (tester) async {
+    testWidgets('duzenle sayfasi: yukari/asagi dugmeleri, gizle (kalici), varsayilana don, Bitti', (tester) async {
       useScreen(tester, const Size(390, 1400));
       final b = be();
       await tester.pumpWidget(buildApp(home(b)));
       await settle(tester, const Duration(seconds: 2));
-      await tester.tap(find.byTooltip('Ana sayfayı düzenle'));
-      await settle(tester, const Duration(milliseconds: 600));
-      expect(find.text('Ana sayfayı düzenle'), findsWidgets);
+      await openEditor(tester);
+      expect(find.byType(HomeLayoutPage), findsOneWidget);
+      expect(find.text('Bölümleri sürükleyerek sıralayın, anahtarla gösterin veya gizleyin.'), findsOneWidget);
       // a11y: yukari/asagi dugmeleri adlandirilmis; ilk satirin "yukari"si, son satirin "asagi"si pasif.
-      expect(find.byTooltip('Günün Menüsü bölümünü yukarı taşı'), findsOneWidget);
-      expect(tester.widget<IconButton>(find.ancestor(of: find.byTooltip('Günün Menüsü bölümünü yukarı taşı'), matching: find.byType(IconButton)).first).onPressed, isNull);
-      expect(tester.widget<IconButton>(find.ancestor(of: find.byTooltip('Bugünkü dersler bölümünü aşağı taşı'), matching: find.byType(IconButton)).first).onPressed, isNull);
-      // Hizli Erisim'i yukari tasi -> menunun ustune cikar (arkadaki sayfa canli degisir).
-      await tester.tap(find.byTooltip('Hızlı Erişim bölümünü yukarı taşı'));
+      Finder up(String name) => find.byTooltip('$name bölümünü yukarı taşı');
+      Finder down(String name) => find.byTooltip('$name bölümünü aşağı taşı');
+      expect(up('Hızlı erişim'), findsOneWidget);
+      expect(tester.widget<InkResponse>(find.descendant(of: up('Hızlı erişim'), matching: find.byType(InkResponse))).onTap, isNull);
+      expect(tester.widget<InkResponse>(find.descendant(of: down('Duyurular'), matching: find.byType(InkResponse))).onTap, isNull);
+      // Menu'yu yukari tasi -> kayit: menu en basta.
+      await tester.tap(up('Günün menüsü'));
       await settle(tester, const Duration(milliseconds: 600));
       final saved1 = jsonDecode((await st.read(key: HomeLayoutStore.key))!) as Map;
-      expect((saved1['order'] as List).take(2), ['quickAccess', 'menu']);
+      expect((saved1['order'] as List).take(2), ['menu', 'quickAccess']);
       // Menu'yu gizle.
-      await tester.tap(rowSwitch('Günün Menüsü'));
+      await tester.tap(rowSwitch('Günün menüsü'));
       await settle(tester, const Duration(milliseconds: 600));
-      expect(find.text('Günün Yemek Menüsü'), findsNothing);
       final saved2 = jsonDecode((await st.read(key: HomeLayoutStore.key))!) as Map;
       expect(saved2['hidden'], contains('menu'));
-      // Varsayilana don: kayit silinir, menu geri gelir.
+      // Varsayilana don: kayit silinir.
       await tester.tap(find.text('Varsayılana dön'));
       await settle(tester, const Duration(milliseconds: 600));
       expect(await st.read(key: HomeLayoutStore.key), isNull);
-      expect(find.text('Günün Yemek Menüsü'), findsOneWidget);
       await tester.tap(find.text('Bitti'));
-      await settle(tester, const Duration(milliseconds: 600));
+      await settle(tester, const Duration(milliseconds: 700));
+      expect(find.byType(HomeLayoutPage), findsNothing);
+      expect(find.text('Günün menüsü'), findsOneWidget);
       expect(tester.takeException(), isNull);
       await unmount(tester);
     });
 
-    testWidgets('gizli bolum acilinca verisi o zaman istenir (duyurular)', (tester) async {
-      useScreen(tester, const Size(390, 1400));
+    testWidgets('bolum gizlenince animasyonlu kaybolur (ara karede kurulu, sonunda yok); acilinca verisi o zaman istenir', (tester) async {
+      useScreen(tester, const Size(390, 2400));
+      await saved(HomeLayout.defaults.setVisible(HomeSection.announcements, false));
       final b = be();
       await tester.pumpWidget(buildApp(home(b)));
       await settle(tester, const Duration(seconds: 2));
       expect(b.count('type=DUYURU'), 0);
-      await tester.tap(find.byTooltip('Ana sayfayı düzenle'));
-      await settle(tester, const Duration(milliseconds: 600));
+      await openEditor(tester);
       await tester.tap(rowSwitch('Duyurular'));
       await settle(tester, const Duration(seconds: 1));
       expect(b.count('type=DUYURU'), 1);
+      // Menu'yu gizle: 60 ms sonra hala kurulu, 500 ms sonra yok.
+      await tester.tap(rowSwitch('Günün menüsü'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 60));
+      expect(find.text('Mercimek çorbası', skipOffstage: false), findsWidgets);
+      await tester.pump(const Duration(milliseconds: 500));
       await tester.tap(find.text('Bitti'));
-      await settle(tester, const Duration(milliseconds: 600));
+      await settle(tester, const Duration(milliseconds: 700));
       expect(find.text('Sınav takvimi açıklandı'), findsOneWidget);
+      expect(find.text('Günün menüsü'), findsNothing);
       await unmount(tester);
     });
 
-    testWidgets('hepsi gizli: sakin bos durum + "Bolum ekle" duzenlemeyi acar', (tester) async {
-      useScreen(tester, const Size(390, 1000));
+    testWidgets('animasyonlari azalt: gizleme aninda', (tester) async {
+      useScreen(tester, const Size(390, 2400));
+      tester.platformDispatcher.accessibilityFeaturesTestValue = const FakeAccessibilityFeatures(disableAnimations: true);
+      addTearDown(tester.platformDispatcher.clearAccessibilityFeaturesTestValue);
+      final b = be();
+      await tester.pumpWidget(buildApp(home(b)));
+      await settle(tester, const Duration(seconds: 1));
+      expect(find.text('Günün menüsü'), findsOneWidget);
+      await openEditor(tester);
+      await tester.tap(rowSwitch('Günün menüsü'));
+      await tester.pump();
+      await tester.tap(find.text('Bitti'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 20));
+      await tester.pump(const Duration(milliseconds: 20));
+      expect(find.text('Günün menüsü'), findsNothing);
+      await unmount(tester);
+    });
+
+    testWidgets('hepsi gizli: sakin bos durum + "Bolum ekle" duzenlemeyi acar; Bugun yuzeyi kalir', (tester) async {
+      useScreen(tester, const Size(390, 1200));
       var v = HomeLayout.defaults;
       for (final s in HomeSection.values) {
         v = v.setVisible(s, false);
@@ -270,45 +329,49 @@ void main() {
       await tester.pumpWidget(buildApp(home(b)));
       await settle(tester, const Duration(seconds: 2));
       expect(find.text('Ana sayfan boş'), findsOneWidget);
-      expect(b.count('/menu/today'), 0);
+      expect(find.text('Gösterilecek bir bölüm seçmediniz.'), findsOneWidget);
+      expect(find.byType(HomeTodayCard), findsOneWidget);
       expect(b.count('/events/featured'), 0);
       expect(b.count('type=HABER'), 0);
       await tester.tap(find.text('Bölüm ekle'));
-      await settle(tester, const Duration(milliseconds: 600));
-      expect(find.text('Varsayılana dön'), findsOneWidget);
+      await settle(tester, const Duration(milliseconds: 700));
+      expect(find.byType(HomeLayoutPage), findsOneWidget);
       await tester.tap(find.text('Varsayılana dön'));
       await settle(tester, const Duration(milliseconds: 600));
       await tester.tap(find.text('Bitti'));
       await settle(tester, const Duration(seconds: 1));
       expect(find.text('Ana sayfan boş'), findsNothing);
-      expect(find.text('Günün Yemek Menüsü'), findsOneWidget);
+      expect(find.text('Günün menüsü'), findsOneWidget);
       await unmount(tester);
     });
 
-    testWidgets('kisayol secici: 5 doluyken kapalilar pasif; birini kapatinca eklenir ve Hizli Erisim degisir', (tester) async {
-      useScreen(tester, const Size(390, 1400));
+    testWidgets('kisayol secici: 5 doluyken havuz pasif; birini kaldirinca eklenir, Hizli erisim guncellenir', (tester) async {
+      useScreen(tester, const Size(390, 2400));
       final b = be();
       await tester.pumpWidget(buildApp(home(b)));
       await settle(tester, const Duration(seconds: 2));
       expect(find.byType(HomeQuickTile), findsNWidgets(5));
-      await tester.tap(find.byTooltip('Ana sayfayı düzenle'));
-      await settle(tester, const Duration(milliseconds: 600));
-      await tester.tap(find.text('5 kısayol'));
-      await settle(tester, const Duration(milliseconds: 600));
-      expect(find.text('En çok 5 kısayol seçebilirsin.'), findsOneWidget);
-      Switch sw(String label) => tester.widget<Switch>(rowSwitch(label));
-      expect(sw('Sohbet').onChanged, isNull, reason: '5 dolu');
-      expect(sw('Haberler').onChanged, isNotNull);
-      await tester.tap(rowSwitch('Anketler'));
+      await openEditor(tester);
+      await tester.tap(find.text('Kısayolları seç'));
+      await settle(tester, const Duration(milliseconds: 700));
+      expect(find.text('5/5'), findsOneWidget);
+      expect(find.textContaining('KISAYOLLAR (SIRALAMA)'), findsOneWidget);
+      Finder poolRow(String label) => find.descendant(of: find.byType(BottomSheet), matching: find.text(label)).last;
+      // 5/5: havuzdaki "Sohbet" dokunulamaz (secilmez).
+      await tester.tap(poolRow('Sohbet'));
+      await tester.pump(const Duration(milliseconds: 200));
+      expect(find.text('5/5'), findsOneWidget);
+      // "Anketler" kaldir -> 4/5; "Sohbet" ekle -> 5/5.
+      await tester.tap(find.byTooltip('Kaldır: Anketler'));
       await tester.pump(const Duration(milliseconds: 300));
-      expect(sw('Sohbet').onChanged, isNotNull);
-      await tester.tap(rowSwitch('Sohbet'));
-      await settle(tester, const Duration(milliseconds: 600));
+      expect(find.text('4/5'), findsOneWidget);
+      await tester.tap(poolRow('Sohbet'));
+      await tester.pump(const Duration(milliseconds: 300));
+      expect(find.text('5/5'), findsOneWidget);
       final j = jsonDecode((await st.read(key: HomeLayoutStore.key))!) as Map;
-      expect(j['sOn'], containsAll(['chat']));
-      expect(j['sOn'], isNot(contains('polls')));
+      expect(j['sOn'], ['news', 'menu', 'events', 'schedule', 'chat']);
       await tester.tap(find.text('Bitti').last);
-      await settle(tester, const Duration(milliseconds: 600));
+      await settle(tester, const Duration(milliseconds: 700));
       await tester.tap(find.text('Bitti').last);
       await settle(tester, const Duration(seconds: 1));
       expect(find.byType(HomeQuickTile), findsNWidgets(5));
@@ -317,56 +380,23 @@ void main() {
       await unmount(tester);
     });
 
-    testWidgets('animasyonlari azalt: gizleme aninda (AnimatedSwitcher gecisi yok)', (tester) async {
-      useScreen(tester, const Size(390, 1400));
-      tester.platformDispatcher.accessibilityFeaturesTestValue = const FakeAccessibilityFeatures(disableAnimations: true);
-      addTearDown(tester.platformDispatcher.clearAccessibilityFeaturesTestValue);
-      final b = be();
-      await tester.pumpWidget(buildApp(home(b)));
-      await settle(tester, const Duration(seconds: 1));
-      await tester.tap(find.byTooltip('Ana sayfayı düzenle'));
-      await settle(tester, const Duration(milliseconds: 400));
-      await tester.tap(rowSwitch('Günün Menüsü'));
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 20));
-      expect(find.text('Günün Yemek Menüsü'), findsNothing);
-      await unmount(tester);
-    });
-
-    testWidgets('gizleme animasyonlu: ara karede bolum hala kurulu, sonunda yok', (tester) async {
-      useScreen(tester, const Size(390, 1400));
-      final b = be();
-      await tester.pumpWidget(buildApp(home(b)));
-      await settle(tester, const Duration(seconds: 2));
-      await tester.tap(find.byTooltip('Ana sayfayı düzenle'));
-      await settle(tester, const Duration(milliseconds: 600));
-      await tester.tap(rowSwitch('Günün Menüsü'));
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 60));
-      expect(find.text('Günün Yemek Menüsü'), findsOneWidget, reason: 'solma sürüyor');
-      await tester.pump(const Duration(milliseconds: 500));
-      expect(find.text('Günün Yemek Menüsü'), findsNothing);
-      await unmount(tester);
-    });
-
-    testWidgets('Hizli Erisim: baslik satiri yok, kapsayici etiketi var; secilen kisayol (Destek) acar', (tester) async {
-      useScreen(tester, const Size(390, 1200));
+    testWidgets('Hizli erisim: secilen kisayol (Destek) gorunur, secilmeyen (Haberler karosu) yok', (tester) async {
+      useScreen(tester, const Size(390, 2400));
       await saved(HomeLayout.defaults.setShortcut(HomeShortcut.news, false).setShortcut(HomeShortcut.support, true));
       final b = be();
       await tester.pumpWidget(buildApp(home(b)));
       await settle(tester, const Duration(seconds: 2));
-      expect(find.text('Hızlı Erişim'), findsNothing);
-      expect(find.bySemanticsLabel('Hızlı Erişim'), findsOneWidget);
-      expect(find.text('Destek'), findsOneWidget);
-      expect(find.text('Haberler'), findsNothing);
+      expect(find.text('Hızlı erişim'), findsOneWidget);
+      expect(find.descendant(of: find.byType(HomeQuickGrid), matching: find.text('Destek')), findsOneWidget);
+      expect(find.descendant(of: find.byType(HomeQuickGrid), matching: find.text('Haberler')), findsNothing);
       await unmount(tester);
     });
   });
 
-  group('Duzenleme sheet: tasma (320 dp x1.3, 3 dil, acik+koyu)', () {
+  group('Duzenleme sayfasi + secici: tasma (320 dp x1.3, 3 dil, acik+koyu)', () {
     for (final lang in ['tr', 'en', 'ar']) {
       for (final dark in [false, true]) {
-        testWidgets('sheet + secici $lang ${dark ? 'koyu' : 'acik'}', (tester) async {
+        testWidgets('sayfa + secici $lang ${dark ? 'koyu' : 'acik'}', (tester) async {
           useScreen(tester, const Size(320, 900));
           tester.platformDispatcher.textScaleFactorTestValue = 1.3;
           addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
@@ -384,16 +414,11 @@ void main() {
               GlobalWidgetsLocalizations.delegate,
               GlobalCupertinoLocalizations.delegate,
             ],
-            home: Builder(builder: (context) => Scaffold(body: Center(child: ElevatedButton(onPressed: () => showHomeLayoutSheet(context, c), child: const Text('ac'))))),
+            home: HomeLayoutPage(controller: c),
           ));
-          await tester.tap(find.text('ac'));
-          await settle(tester, const Duration(milliseconds: 700));
+          await settle(tester, const Duration(milliseconds: 500));
           expect(tester.takeException(), isNull);
           expect(find.byType(Switch), findsNWidgets(HomeSection.values.length));
-          // Tum bolumleri ac: en uzun adli satirlar da tasmasin.
-          c.update((v) => v.setVisible(HomeSection.announcements, true).setVisible(HomeSection.todayClasses, true));
-          await tester.pump(const Duration(milliseconds: 300));
-          expect(tester.takeException(), isNull);
           final ctx = tester.element(find.byType(Switch).first);
           showHomeShortcutsSheet(ctx, c);
           await settle(tester, const Duration(milliseconds: 700));

@@ -7536,7 +7536,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get p03NotifLoadingMore => 'Daha fazla yükleniyor...';
 
   @override
-  String get p03HomeMealTitle => 'Günün Menüsü';
+  String get p03HomeMealTitle => 'Günün menüsü';
 
   @override
   String get p03HomeNoMenuBody => 'Yemekhane menüsü sisteme henüz girilmedi.';
@@ -8775,7 +8775,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get p03HomeBrandSub => 'Bağımsız öğrenci uygulaması';
 
   @override
-  String get p03HomeQuickTitle => 'Hızlı Erişim';
+  String get p03HomeQuickTitle => 'Hızlı erişim';
 
   @override
   String get p03HomeQuickEvents => 'Etkinlikler';
@@ -8784,10 +8784,10 @@ class AppLocalizationsTr extends AppLocalizations {
   String get p03HomeQuickSchedule => 'Program';
 
   @override
-  String get p03HomeFeaturedNews => 'Öne Çıkan Haberler';
+  String get p03HomeFeaturedNews => 'Öne çıkan haberler';
 
   @override
-  String get p03HomeUpcoming => 'Yaklaşan Etkinlik';
+  String get p03HomeUpcoming => 'Yaklaşan etkinlikler';
 
   @override
   String get p03HomeMealHeroTitle => 'Günün Yemek Menüsü';
@@ -9112,7 +9112,8 @@ class AppLocalizationsTr extends AppLocalizations {
   String get p60EditHome => 'Ana sayfayı düzenle';
 
   @override
-  String get p60EditHint => 'Uzun basıp sürükle ya da okları kullan.';
+  String get p60EditHint =>
+      'Bölümleri sürükleyerek sıralayın, anahtarla gösterin veya gizleyin.';
 
   @override
   String get p60Done => 'Bitti';
@@ -9142,7 +9143,8 @@ class AppLocalizationsTr extends AppLocalizations {
   }
 
   @override
-  String get p60ShortcutsHint => 'En çok 5 kısayol seçebilirsin.';
+  String get p60ShortcutsHint =>
+      'En fazla 5 kısayol seçin; sırayı sürükleyerek değiştirin.';
 
   @override
   String get p60EmptyTitle => 'Ana sayfan boş';
@@ -9599,4 +9601,44 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get p51EvClubOnly => 'Etkinlikler kulüpler adına açılır.';
+
+  @override
+  String get p60Today => 'Bugün';
+
+  @override
+  String get p60NextClass => 'Sıradaki ders';
+
+  @override
+  String get p60UpcomingExam => 'Yaklaşan sınav';
+
+  @override
+  String get p60OpenMenu => 'Menüyü aç';
+
+  @override
+  String get p60NoNews => 'Henüz haber yok.';
+
+  @override
+  String get p60NoAnnouncements => 'Henüz duyuru yok.';
+
+  @override
+  String p60Classroom(String room) {
+    return 'Derslik $room';
+  }
+
+  @override
+  String get p60EmptySub => 'Gösterilecek bir bölüm seçmediniz.';
+
+  @override
+  String get p60Selected => 'Seçilen kısayollar (sıralama)';
+
+  @override
+  String get p60AllShortcuts => 'Tüm kısayollar';
+
+  @override
+  String p60Remove(String name) {
+    return 'Kaldır: $name';
+  }
+
+  @override
+  String get p60ShortScheduleFull => 'Ders programı';
 }

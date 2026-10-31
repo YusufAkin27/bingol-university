@@ -343,17 +343,15 @@ void main() {
   });
 
   group('ana sayfa karti', () {
-    testWidgets('Katil -> Etkinliklerimde, DELETE yok', (tester) async {
+    // Stitch v3: ana sayfa satiri yalniz bilgi + detaya gider; katilma/geri alma etkinlik detayinda (ana sayfada RSVP yok).
+    testWidgets('satir: Katil dugmesi yok, RSVP/DELETE istegi atilmaz', (tester) async {
       useScreen(tester, const Size(390, 2400));
       final b = FakeBackend()..on('/events/featured', {..._ev(5), 'capacity': 50});
       await tester.pumpWidget(buildApp(Scaffold(body: HomeTab(session: makeSession(b), onOpenTab: (i, {newsType}) {}))));
       await settle(tester, const Duration(seconds: 1));
-      await tester.tap(find.text('Katıl'));
-      await settle(tester, const Duration(milliseconds: 500));
-      expect(find.text('Etkinliklerimde'), findsOneWidget);
-      await tester.tap(find.text('Etkinliklerimde'));
-      await settle(tester, const Duration(milliseconds: 500));
-      expect(b.requests.any((r) => r.startsWith('DELETE')), isFalse);
+      expect(find.text('Katıl'), findsNothing);
+      expect(find.text('Etkinliklerimde'), findsNothing);
+      expect(b.requests.any((r) => r.startsWith('PUT') || r.startsWith('DELETE')), isFalse);
       await unmount(tester);
     });
   });

@@ -13834,7 +13834,7 @@ abstract class AppLocalizations {
   /// No description provided for @p03HomeMealTitle.
   ///
   /// In tr, this message translates to:
-  /// **'Günün Menüsü'**
+  /// **'Günün menüsü'**
   String get p03HomeMealTitle;
 
   /// No description provided for @p03HomeNoMenuBody.
@@ -15982,7 +15982,7 @@ abstract class AppLocalizations {
   /// No description provided for @p03HomeQuickTitle.
   ///
   /// In tr, this message translates to:
-  /// **'Hızlı Erişim'**
+  /// **'Hızlı erişim'**
   String get p03HomeQuickTitle;
 
   /// No description provided for @p03HomeQuickEvents.
@@ -16000,13 +16000,13 @@ abstract class AppLocalizations {
   /// No description provided for @p03HomeFeaturedNews.
   ///
   /// In tr, this message translates to:
-  /// **'Öne Çıkan Haberler'**
+  /// **'Öne çıkan haberler'**
   String get p03HomeFeaturedNews;
 
   /// No description provided for @p03HomeUpcoming.
   ///
   /// In tr, this message translates to:
-  /// **'Yaklaşan Etkinlik'**
+  /// **'Yaklaşan etkinlikler'**
   String get p03HomeUpcoming;
 
   /// No description provided for @p03HomeMealHeroTitle.
@@ -16570,7 +16570,7 @@ abstract class AppLocalizations {
   /// No description provided for @p60EditHint.
   ///
   /// In tr, this message translates to:
-  /// **'Uzun basıp sürükle ya da okları kullan.'**
+  /// **'Bölümleri sürükleyerek sıralayın, anahtarla gösterin veya gizleyin.'**
   String get p60EditHint;
 
   /// No description provided for @p60Done.
@@ -16618,7 +16618,7 @@ abstract class AppLocalizations {
   /// No description provided for @p60ShortcutsHint.
   ///
   /// In tr, this message translates to:
-  /// **'En çok 5 kısayol seçebilirsin.'**
+  /// **'En fazla 5 kısayol seçin; sırayı sürükleyerek değiştirin.'**
   String get p60ShortcutsHint;
 
   /// No description provided for @p60EmptyTitle.
@@ -17448,6 +17448,78 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Etkinlikler kulüpler adına açılır.'**
   String get p51EvClubOnly;
+
+  /// No description provided for @p60Today.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bugün'**
+  String get p60Today;
+
+  /// No description provided for @p60NextClass.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sıradaki ders'**
+  String get p60NextClass;
+
+  /// No description provided for @p60UpcomingExam.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yaklaşan sınav'**
+  String get p60UpcomingExam;
+
+  /// No description provided for @p60OpenMenu.
+  ///
+  /// In tr, this message translates to:
+  /// **'Menüyü aç'**
+  String get p60OpenMenu;
+
+  /// No description provided for @p60NoNews.
+  ///
+  /// In tr, this message translates to:
+  /// **'Henüz haber yok.'**
+  String get p60NoNews;
+
+  /// No description provided for @p60NoAnnouncements.
+  ///
+  /// In tr, this message translates to:
+  /// **'Henüz duyuru yok.'**
+  String get p60NoAnnouncements;
+
+  /// No description provided for @p60Classroom.
+  ///
+  /// In tr, this message translates to:
+  /// **'Derslik {room}'**
+  String p60Classroom(String room);
+
+  /// No description provided for @p60EmptySub.
+  ///
+  /// In tr, this message translates to:
+  /// **'Gösterilecek bir bölüm seçmediniz.'**
+  String get p60EmptySub;
+
+  /// No description provided for @p60Selected.
+  ///
+  /// In tr, this message translates to:
+  /// **'Seçilen kısayollar (sıralama)'**
+  String get p60Selected;
+
+  /// No description provided for @p60AllShortcuts.
+  ///
+  /// In tr, this message translates to:
+  /// **'Tüm kısayollar'**
+  String get p60AllShortcuts;
+
+  /// No description provided for @p60Remove.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kaldır: {name}'**
+  String p60Remove(String name);
+
+  /// No description provided for @p60ShortScheduleFull.
+  ///
+  /// In tr, this message translates to:
+  /// **'Ders programı'**
+  String get p60ShortScheduleFull;
 }
 
 class _AppLocalizationsDelegate

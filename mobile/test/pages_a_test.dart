@@ -23,7 +23,7 @@ SemanticsHandle sem(WidgetTester t) => t.ensureSemantics();
 
 /// Tembel (görünür olunca yüklenen) Gündem bölümüne kadar kaydırır.
 Future<void> toNews(WidgetTester tester) async {
-  await tester.scrollUntilVisible(find.text('Öne Çıkan Haberler'), 300, scrollable: find.byType(Scrollable).first);
+  await tester.scrollUntilVisible(find.text('Öne çıkan haberler'), 300, scrollable: find.byType(Scrollable).first);
   await settle(tester, const Duration(seconds: 1));
 }
 
@@ -531,7 +531,7 @@ void main() {
       expect(find.byType(CircularProgressIndicator), findsNothing); // iskelet (K3)
       await settle(tester, const Duration(seconds: 2));
       await toNews(tester);
-      expect(find.text('Öne Çıkan Haberler'), findsOneWidget);
+      expect(find.text('Öne çıkan haberler'), findsOneWidget);
       noErr(tester);
     });
 
@@ -552,7 +552,7 @@ void main() {
       await settle(tester, const Duration(seconds: 2));
       expect(find.text('Yeniden dene'), findsNothing);
       await toNews(tester);
-      expect(find.text('Öne Çıkan Haberler'), findsOneWidget);
+      expect(find.text('Öne çıkan haberler'), findsOneWidget);
       noErr(tester);
     });
 
@@ -562,7 +562,7 @@ void main() {
       await tester.pumpWidget(buildApp(home()));
       await settle(tester, const Duration(seconds: 1));
       expect(find.text('Yaklaşan etkinlik yok'), findsOneWidget);
-      expect(find.text('İçerik yok.'), findsOneWidget);
+      expect(find.text('Henüz haber yok.'), findsOneWidget);
       expect(b.count('/me/communities'), 0); // uyelik yoksa istenmez
       noErr(tester);
     });
@@ -572,9 +572,9 @@ void main() {
       await tester.pumpWidget(buildApp(home()));
       await settle(tester, const Duration(seconds: 2));
       await toNews(tester);
-      expect(find.text('İçerik yüklenemedi.'), findsOneWidget);
+      expect(find.text('İçerik yüklenemedi.'), findsWidgets); // haberler + duyurular akışı
       b.on('/news*', newsPage([newsItem(9)]));
-      await tester.tap(find.text('Yeniden dene'));
+      await tester.tap(find.text('Yeniden dene').first);
       await settle(tester, const Duration(seconds: 1));
       expect(find.text('Haber başlığı 9'), findsOneWidget);
       noErr(tester);
@@ -595,19 +595,14 @@ void main() {
       noErr(tester);
     });
 
-    testWidgets('RSVP: hata olursa iyimser guncelleme geri alinir', (tester) async {
+    testWidgets('ana sayfada katilma dugmesi yok (Stitch v3: RSVP etkinlik detayinda)', (tester) async {
       useScreen(tester, kPhoneMedium);
       final b = newB();
       full(b);
-      b.fail('/events/7/rsvp');
       await tester.pumpWidget(buildApp(home()));
       await settle(tester, const Duration(seconds: 1));
-      final btn = find.text('Katıl');
-      if (btn.evaluate().isNotEmpty) {
-        await tester.tap(btn);
-        await settle(tester, const Duration(seconds: 1));
-        expect(find.text('Katıl'), findsOneWidget);
-      }
+      expect(find.text('Katıl'), findsNothing);
+      expect(b.requests.any((r) => r.contains('/rsvp')), isFalse);
       noErr(tester);
     });
 

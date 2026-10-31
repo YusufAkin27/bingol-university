@@ -84,7 +84,7 @@ void main() {
             labels: const ['Haberler', 'Yemek', 'Etkinlikler', 'Anketler', 'Program'],
             tiles: [
               for (final s in ['Haberler', 'Yemek', 'Etkinlikler', 'Anketler', 'Program'])
-                HomeQuickTile(icon: LucideIcons.newspaper, label: s, tone: HomeTone.blue, onTap: () {}),
+                HomeQuickTile(icon: LucideIcons.newspaper, label: s, onTap: () {}),
             ],
           ),
         );
@@ -123,7 +123,7 @@ void main() {
       }
     });
 
-    testWidgets('bes karo tek vurgu tonunda (ayni ikon rengi), dokunma hedefi >= 48', (tester) async {
+    testWidgets('bes karo duz ink simge (ayni ikon rengi, renkli blob yok), dokunma hedefi >= 48', (tester) async {
       useScreen(tester, const Size(390, 844));
       await tester.pumpWidget(buildApp(grid()));
       await tester.pump(const Duration(seconds: 1));

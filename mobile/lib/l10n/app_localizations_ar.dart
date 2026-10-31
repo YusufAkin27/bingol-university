@@ -9044,7 +9044,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get p60EditHome => 'تعديل الصفحة الرئيسية';
 
   @override
-  String get p60EditHint => 'اضغط مطولًا للسحب أو استخدم الأسهم.';
+  String get p60EditHint => 'رتّب الأقسام بالسحب وأظهرها أو أخفِها بالمفتاح.';
 
   @override
   String get p60Done => 'تم';
@@ -9074,7 +9074,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get p60ShortcutsHint => 'اختر حتى 5 اختصارات.';
+  String get p60ShortcutsHint => 'اختر حتى 5 اختصارات؛ اسحب لتغيير الترتيب.';
 
   @override
   String get p60EmptyTitle => 'صفحتك الرئيسية فارغة';
@@ -9530,4 +9530,44 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get p51EvClubOnly => 'تُنشأ الفعاليات باسم الأندية.';
+
+  @override
+  String get p60Today => 'اليوم';
+
+  @override
+  String get p60NextClass => 'الدرس القادم';
+
+  @override
+  String get p60UpcomingExam => 'الاختبار القادم';
+
+  @override
+  String get p60OpenMenu => 'فتح القائمة';
+
+  @override
+  String get p60NoNews => 'لا توجد أخبار بعد.';
+
+  @override
+  String get p60NoAnnouncements => 'لا توجد إعلانات بعد.';
+
+  @override
+  String p60Classroom(String room) {
+    return 'القاعة $room';
+  }
+
+  @override
+  String get p60EmptySub => 'لم تختر أي قسم للعرض.';
+
+  @override
+  String get p60Selected => 'الاختصارات المحددة (الترتيب)';
+
+  @override
+  String get p60AllShortcuts => 'كل الاختصارات';
+
+  @override
+  String p60Remove(String name) {
+    return 'إزالة $name';
+  }
+
+  @override
+  String get p60ShortScheduleFull => 'جدول الدروس';
 }

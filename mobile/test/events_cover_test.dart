@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:bu_kampus/core/api.dart';
 import 'package:bu_kampus/core/platform/image_service.dart';
 import 'package:bu_kampus/features/events/event_cover.dart';
+import 'package:bu_kampus/features/events/event_detail_page.dart';
 import 'package:bu_kampus/features/events/event_form_page.dart';
 import 'package:bu_kampus/features/events/events_page.dart';
 import 'package:bu_kampus/features/media_crop/media_crop.dart';
@@ -280,29 +281,23 @@ void main() {
     Widget home(FakeBackend b) =>
         Scaffold(body: HomeTab(session: makeSession(b), onOpenTab: (i, {newsType}) {}));
 
-    testWidgets('200: kapak, etiket, katilimci sayisi, RSVP', (tester) async {
+    testWidgets('200: satir (ay + gun, baslik, kulup · saat), kapak yok, RSVP yok', (tester) async {
       useScreen(tester, const Size(390, 2400));
-      final b = FakeBackend()
-        ..on('/events/featured', featured())
-        ..on('/events/9/rsvp', {'myRsvp': 'GOING', 'goingCount': 43});
+      final b = FakeBackend()..on('/events/featured', featured());
       await tester.pumpWidget(buildApp(home(b)));
       await settle(tester, const Duration(seconds: 1));
       expect(b.requests, contains('GET /events/featured'));
-      expect(find.text('42 kişi katılıyor'), findsOneWidget);
-      // Yeni ana sayfa kartı (referans 00): kapak görseli yok.
+      expect(find.text('Yaklaşan etkinlikler'), findsOneWidget);
+      expect(find.text('Bahar Şenliği ' * 4), findsOneWidget);
+      expect(find.textContaining('Bilgisayar Kulübü'), findsOneWidget);
+      // Stitch v3: kapak görseli ve katılım düğmesi yok (katılma etkinlik detayında).
       expect(find.byType(EventCoverImage), findsNothing);
-      expect(find.text('Katılıyorum'), findsNothing);
-      await tester.tap(find.text('Katıl'));
-      await settle(tester, const Duration(milliseconds: 500));
-      expect(b.requests, contains('PUT /events/9/rsvp'));
-      expect(find.text('43 kişi katılıyor'), findsOneWidget);
-      // Durum: "Etkinliklerimde"; geri alma yok, kısa onay + kısayol.
-      expect(find.text('Etkinliklerimde'), findsOneWidget);
-      expect(find.text('Etkinliklerime eklendi'), findsOneWidget);
-      await tester.tap(find.text('Etkinliklerimde'));
-      await settle(tester, const Duration(milliseconds: 500));
-      expect(find.byType(EventsPage), findsOneWidget);
-      expect(b.requests.any((r) => r.startsWith('DELETE')), isFalse);
+      expect(find.text('Katıl'), findsNothing);
+      expect(find.text('42 kişi katılıyor'), findsNothing);
+      await tester.tap(find.text('Bahar Şenliği ' * 4));
+      await settle(tester, const Duration(milliseconds: 600));
+      expect(find.byType(EventDetailPage), findsOneWidget);
+      expect(b.requests.any((r) => r.startsWith('PUT') || r.startsWith('DELETE')), isFalse);
       await unmount(tester);
     });
 
@@ -311,7 +306,7 @@ void main() {
       final b = FakeBackend()..on('/events/featured', featured(cover: null));
       await tester.pumpWidget(buildApp(home(b)));
       await settle(tester, const Duration(seconds: 1));
-      expect(find.text('42 kişi katılıyor'), findsOneWidget);
+      expect(find.text('Bahar Şenliği ' * 4), findsOneWidget);
       expect(find.byType(EventCoverImage), findsNothing);
       await unmount(tester);
     });
@@ -322,6 +317,7 @@ void main() {
       await tester.pumpWidget(buildApp(home(b)));
       await settle(tester, const Duration(seconds: 1));
       expect(find.text('Yaklaşan etkinlik yok'), findsOneWidget);
+      expect(find.text('Etkinliklere göz at'), findsOneWidget);
       expect(find.text('En çok katılım'), findsNothing);
       await unmount(tester);
     });
@@ -339,7 +335,7 @@ void main() {
       await tester.tap(find.text('Tekrar dene'));
       await settle(tester, const Duration(seconds: 1));
       expect(find.text('Etkinlik yüklenemedi'), findsNothing);
-      expect(find.text('42 kişi katılıyor'), findsOneWidget);
+      expect(find.text('Bahar Şenliği ' * 4), findsOneWidget);
       await unmount(tester);
     });
   });

@@ -29,13 +29,14 @@ void main() {
     expect(find.text('BU Kampüs'), findsNothing);
   });
 
-  testWidgets('A9-03: ana sayfa marka çubuğunda "BÜ KAMPÜS"', (tester) async {
+  testWidgets('A9-03: ana sayfa üst çubuğunda selamlama (Stitch v3: uygulama adı/logo yok, "BU KAMPÜS" yazımı asla)', (tester) async {
     useScreen(tester, const Size(390, 844));
     await tester.pumpWidget(buildApp(Scaffold(
-      body: HomeBrandHeader(bell: const SizedBox(), displayName: 'Ayşe', onProfile: () {}, profileLabel: 'Profil'),
+      body: HomeBrandHeader(actions: const [SizedBox()], hello: 'Merhaba, Ayşe', greeting: 'İyi günler'),
     )));
     await settle(tester, const Duration(milliseconds: 300));
-    expect(find.text('BÜ KAMPÜS'), findsOneWidget);
+    expect(find.text('Merhaba, Ayşe'), findsOneWidget);
+    expect(find.text('İyi günler'), findsOneWidget);
     expect(find.text('BU KAMPÜS'), findsNothing);
   });
 }
