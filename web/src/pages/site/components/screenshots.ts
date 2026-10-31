@@ -14,7 +14,7 @@ import poll from '../../../assets/site/app-poll.webp';
 import qr from '../../../assets/site/app-qr.webp';
 import support from '../../../assets/site/app-support.webp';
 
-export type ShotId = 'home' | 'discover' | 'chat' | 'clubs' | 'events' | 'qr' | 'menu' | 'poll' | 'academic' | 'delete';
+export type ShotId = 'home' | 'discover' | 'chat' | 'clubs' | 'events' | 'qr' | 'menu' | 'poll' | 'academic' | 'delete' | 'support';
 
 export interface Shot {
   src: string;
