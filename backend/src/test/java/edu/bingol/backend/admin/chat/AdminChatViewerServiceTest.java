@@ -377,14 +377,14 @@ class AdminChatViewerServiceTest {
     void httpRequestWithoutRealReasonIs400AndWritesNothing() {
         msg(CONV, ALICE, "gorunmemeli");
         var req = new org.springframework.mock.web.MockHttpServletRequest();
-        edu.bingol.backend.admin.AuditContext.of(req).reason("kisa"); // < 10 karakter
+        edu.bingol.backend.admin.AuditContext.of(req).reason("kisa"); // < 20 karakter (T-015)
         org.springframework.web.context.request.RequestContextHolder.setRequestAttributes(
                 new org.springframework.web.context.request.ServletRequestAttributes(req));
         try {
             ApiException e = assertThrows(ApiException.class, () -> svc.messages(ADMIN, ALICE, CONV, null, 50, "ip"));
             assertEquals("REASON_REQUIRED", e.code());
             assertEquals(400, e.status().value());
-            assertEquals("10", e.args()[0]);
+            assertEquals("20", e.args()[0]); // T-015: sohbet icerigi icin en az 20 karakter
             assertEquals(0, audits());
             ApiException e2 = assertThrows(ApiException.class, () -> svc.conversations(ADMIN, ALICE, null, 20, "ip"));
             assertEquals("REASON_REQUIRED", e2.code());

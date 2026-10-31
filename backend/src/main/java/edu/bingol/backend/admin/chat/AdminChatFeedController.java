@@ -34,6 +34,7 @@ public class AdminChatFeedController {
             @RequestParam(required = false) Long userId, @RequestParam(required = false) Long conversationId,
             @RequestParam(required = false) String from, @RequestParam(required = false) String to,
             @RequestParam(defaultValue = "desc") String order, HttpServletRequest http) {
+        AdminChatFeedService.requireScope(userId, null, conversationId);
         long adminId = CurrentUser.id();
         limit(adminId);
         return service.media(adminId, cursor, size, kind, viewOnce, deleted, userId, conversationId, from, to, order,
@@ -57,6 +58,7 @@ public class AdminChatFeedController {
             @RequestParam(required = false) Boolean deleted, @RequestParam(required = false) Boolean suppressed,
             @RequestParam(required = false) Boolean hasMedia, @RequestParam(required = false) String from,
             @RequestParam(required = false) String to, HttpServletRequest http) {
+        AdminChatFeedService.requireScope(userId, senderId, conversationId);
         long adminId = CurrentUser.id();
         limit(adminId);
         return service.messages(adminId, cursor, size, userId, senderId, conversationId, deleted, suppressed, hasMedia,

@@ -19,8 +19,8 @@ public class AdminDecryptService {
 
     private static final Logger log = LoggerFactory.getLogger(AdminDecryptService.class);
 
-    /** Sohbet icerigi icin en kisa gercek sebep uzunlugu (veritabani kisiti ile ayni). */
-    public static final int MIN_REASON = 10;
+    /** Sohbet icerigi icin en kisa gercek sebep uzunlugu (T-015; veritabani kisiti en az 10 ister, burasi daha siki). */
+    public static final int MIN_REASON = 20;
 
     /** `app.admin.require-reason` (varsayilan acik; testlerde kapali). */
     @org.springframework.beans.factory.annotation.Value("${app.admin.require-reason:true}")
@@ -45,10 +45,18 @@ public class AdminDecryptService {
     private final MessageCipher cipher;
     private final MessageAccessAuditRepository audit;
 
+    /** Saatlik kota icin (istege bagli: yalniz birim testlerinde yok). */
+    private edu.bingol.backend.common.RateLimiter limiter;
+
     public AdminDecryptService(CryptoProperties props, MessageCipher cipher, MessageAccessAuditRepository audit) {
         this.props = props;
         this.cipher = cipher;
         this.audit = audit;
+    }
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    public void setLimiter(edu.bingol.backend.common.RateLimiter limiter) {
+        this.limiter = limiter;
     }
 
     /** Ayar kapaliysa 403 ADMIN_DECRYPT_DISABLED. */
@@ -87,8 +95,29 @@ public class AdminDecryptService {
         }
     }
 
+    /**
+     * Yonetici basina saatlik cozme kotasi (`app.crypto.admin-decrypt-per-hour`, istek sayisi) ve tek cagrida cozulebilecek
+     * en cok mesaj (`admin-decrypt-max-messages`). Kota asilirsa 429 RATE_LIMITED (Retry-After) ve ICERIK DONMEZ (T-015).
+     */
+    void enforceQuota(List<Entry> entries) {
+        if (entries == null || entries.isEmpty()) {
+            return;
+        }
+        int max = props.adminDecryptMaxMessages();
+        int total = entries.stream().mapToInt(Entry::messageCount).sum();
+        if (max > 0 && total > max) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "DECRYPT_BATCH_TOO_LARGE",
+                    "Tek istekte en fazla " + max + " mesaj çözülebilir.", String.valueOf(max));
+        }
+        if (limiter != null && props.adminDecryptPerHour() > 0) {
+            limiter.check("admindecrypt:" + entries.get(0).adminId(), props.adminDecryptPerHour(),
+                    java.time.Duration.ofHours(1));
+        }
+    }
+
     /** Erisimleri denetim kaydina yazar; yazilamazsa 503 CRYPTO_UNAVAILABLE (cagiran duz metni DONMEMELI). */
     public void record(List<Entry> entries, String ip) {
+        enforceQuota(entries);
         try {
             audit.insertAll(entries);
         } catch (DataAccessException e) {

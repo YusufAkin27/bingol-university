@@ -69,6 +69,17 @@ public class AdminChatFeedService {
         this.viewer = viewer;
     }
 
+    /**
+     * Genel akis (tum kullanicilarin ozel mesajlari/ekleri) suzgecsiz gezdirilemez (T-015): kullanici, gonderen ya da
+     * konusma kimliginden biri zorunludur; yoksa 400 FEED_FILTER_REQUIRED.
+     */
+    public static void requireScope(Long userId, Long senderId, Long conversationId) {
+        if (userId == null && senderId == null && conversationId == null) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "FEED_FILTER_REQUIRED",
+                    "Genel akışta kullanıcı veya sohbet süzgeci zorunludur.");
+        }
+    }
+
     // --- ek akisi ---
 
     public MediaPage media(long adminId, Long cursor, int size, String kind, Boolean viewOnce, Boolean deleted,
