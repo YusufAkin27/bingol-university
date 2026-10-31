@@ -35,6 +35,22 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
 
     List<Notification> findTop500ByUserIdOrderByIdDesc(Long userId);
 
+    // --- Toplu sohbet bildirimi (NotificationService.sendNewMessageBatch): alici basina degil parca basina TEK sorgu ---
+
+    /** Verilen alt turu KAPATMIS kullanicilar (satir yoksa acik sayilir). */
+    @Query("SELECT s.userId FROM NotificationSubtypePref s WHERE s.userId IN :ids AND s.subtype = :subtype "
+            + "AND s.enabled = false")
+    List<Long> subtypeDisabledAmong(@Param("ids") Collection<Long> userIds, @Param("subtype") String subtype);
+
+    /** Kullanici -> FCM token cifti (cihaz basina bir satir). */
+    @Query("SELECT d.userId, d.fcmToken FROM Device d WHERE d.userId IN :ids")
+    List<Object[]> deviceTokensOf(@Param("ids") Collection<Long> userIds);
+
+    /** Kullanici basina okunmamis bildirim sayisi (rozet): [userId, adet]; sifir olanlar donmez. */
+    @Query("SELECT n.userId, COUNT(n) FROM Notification n WHERE n.userId IN :ids AND n.readAt IS NULL "
+            + "GROUP BY n.userId")
+    List<Object[]> unreadCountsOf(@Param("ids") Collection<Long> userIds);
+
     @Transactional
     @Modifying
     @Query("UPDATE Notification n SET n.readAt = :now WHERE n.userId = :uid AND n.readAt IS NULL AND n.id IN :ids")

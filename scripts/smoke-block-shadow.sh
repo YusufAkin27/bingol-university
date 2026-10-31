@@ -70,6 +70,22 @@ check "profil bio bos" "" "$(echo "$PROF" | jget bio)"
 check "profil adi kalir" "Golge B" "$(echo "$PROF" | jget displayName)"
 check "konusma listesi peer avatar bos" "" "$(curl -s -H "$AUTH_A" $A/conversations | node -e "let d='';process.stdin.on('data',c=>d+=c).on('end',()=>{const j=JSON.parse(d);const c=(j.items||[]).find(c=>String(c.id)==process.argv[1]);console.log(c&&c.peer&&c.peer.avatarUrl||'')})" "$CONV")"
 
+echo "== golge engel sizintisi yok (T-028): engellenen taraf engellendigini ogrenemez"
+BLK_A=$(curl -s -H "$AUTH_A" $A/conversations | node -e "let d='';process.stdin.on('data',c=>d+=c).on('end',()=>{const j=JSON.parse(d);const c=(j.items||[]).find(c=>String(c.id)==process.argv[1]);console.log(c?String(c.blocked):'YOK')})" "$CONV")
+BLK_B=$(curl -s -H "$AUTH_B" $A/conversations | node -e "let d='';process.stdin.on('data',c=>d+=c).on('end',()=>{const j=JSON.parse(d);const c=(j.items||[]).find(c=>String(c.id)==process.argv[1]);console.log(c?String(c.blocked):'YOK')})" "$CONV")
+check "engellenen A: blocked=false" false "$BLK_A"
+check "engelleyen B: blocked=true" true "$BLK_B"
+check "A -> B presence 200 (404 degil)" 200 "$(code -H "$AUTH_A" $A/users/$IDB/presence)"
+check "A -> B presence sabit cevrimdisi" false "$(curl -s -H "$AUTH_A" $A/users/$IDB/presence | jget online)"
+# B (engelleyen) varken A'yi iceren grubu A kursa 403 BLOCKED vermemeli; A ucuncu kisiyle grup kurarken B'yi eklese de hata yok
+check "A, B'yi iceren grup kurar: 201 (BLOCKED yok)" 201 "$(code -X POST -H "$H" -H "$AUTH_A" $A/conversations -d "{\"title\":\"Golge Grup $RUN\",\"memberIds\":[$IDB]}")"
+check "B (engelleyen), A'yi grupta eklemek isterse bilgilendirici 403" 403 "$(code -X POST -H "$H" -H "$AUTH_B" $A/conversations -d "{\"title\":\"Engelleyen Grup $RUN\",\"memberIds\":[$IDA]}")"
+# engellenen A, B'nin eski mesajina tepki verir: hata yok (golge no-op)
+MSGB=$(curl -s -H "$AUTH_A" $A/conversations/$CONV/messages | node -e "let d='';process.stdin.on('data',c=>d+=c).on('end',()=>{const j=JSON.parse(d);const m=(j.items||[]).find(m=>m.text==='gorunur-1');console.log(m?m.id:'')})")
+[ -n "$MSGB" ] && check "engellenenin eski mesaja tepkisi hata vermez" 200 "$(code -X PUT -H "$H" -H "$AUTH_A" $A/messages/$MSGB/reaction -d '{"emoji":"\ud83d\udc4d"}')"
+# olmayan/silinmis hedefi engelleme 404
+check "olmayan kullaniciyi engelleme 404" 404 "$(code -X POST -H "$AUTH_B" $A/users/999999999/block)"
+
 echo "== engel kalkinca eski golge mesajlar gizli kalir"
 check "engel kaldir" 204 "$(code -X DELETE -H "$AUTH_B" $A/users/$IDA/block)"
 check "B yine golge mesaji gormez" 0 "$(curl -s -H "$AUTH_B" $A/conversations/$CONV/messages | count_text golge-2)"

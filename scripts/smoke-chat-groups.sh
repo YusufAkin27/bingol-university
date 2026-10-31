@@ -58,10 +58,12 @@ fi
 step "sahip sohbeti alir" 200 GET /communities/$C/chat "$T1"
 contains "tur CLUB" '"type":"CLUB"' "$BODY"
 contains "communityId dolu" "\"communityId\":$C" "$BODY"
+contains "kulup sahibi canModerate (C1)" '"canModerate":true' "$BODY"
 CONV=$(printf '%s' "$BODY" | idof)
 step "yabanci alamaz" 404 GET /communities/$C/chat "$T3"
 step "uye katilir" 200 POST /communities/$C/join "$T2"
 step "uye sohbeti alir" 200 GET /communities/$C/chat "$T2"
+contains "sade uye canModerate false (C1)" '"canModerate":false' "$BODY"
 step "ikinci cagri ayni konusma" 200 GET /communities/$C/chat "$T2"
 contains "ayni id" "\"id\":$CONV" "$BODY"
 step "uye mesaj yazar" 201 POST /conversations/$CONV/messages "$T2" "{\"text\":\"selam kulup\",\"clientId\":\"g$SFX-1\"}"
@@ -92,5 +94,25 @@ step "mesaj yazar" 201 POST /conversations/$ECONV/messages "$T3" "{\"text\":\"se
 step "RSVP iptal" 204 DELETE /events/$EV/rsvp "$T3"
 step "iptalden sonra yazamaz" 404 POST /conversations/$ECONV/messages "$T3" "{\"text\":\"hala mi\",\"clientId\":\"e$SFX-2\"}"
 step "iptalden sonra sohbet 403" 403 GET /events/$EV/chat "$T3"
+
+echo "== kullanici grubu: cikinca ayni kisi yeniden ekleyemez (T-025), canModerate (C1)"
+step "T2 profil" 200 GET /users/me "$T2"
+ID2=$(printf '%s' "$BODY" | idof)
+step "T3 profil" 200 GET /users/me "$T3"
+ID3=$(printf '%s' "$BODY" | idof)
+step "T1 grup kurar" 201 POST /conversations "$T1" "{\"title\":\"Ban Grubu $SFX\",\"memberIds\":[$ID2,$ID3]}"
+G=$(printf '%s' "$BODY" | idof)
+contains "grup yoneticisi canModerate" '"canModerate":true' "$BODY"
+contains "uye sayisi 3" '"memberCount":3' "$BODY"
+step "uye canModerate false" 200 GET /conversations/$G "$T3"
+contains "uye canModerate false" '"canModerate":false' "$BODY"
+step "T3 gruptan ayrilir" 204 POST /conversations/$G/leave "$T3"
+step "T1 ayni kisiyi yeniden ekler: hata yok" 200 POST /conversations/$G/members "$T1" "{\"userIds\":[$ID3]}"
+contains "yeniden eklenmedi (uye sayisi 2)" '"memberCount":2' "$BODY"
+step "T3 hala uye degil" 404 GET /conversations/$G "$T3"
+step "T1 yeni grupta da ekleyemez" 201 POST /conversations "$T1" "{\"title\":\"Ban Grubu 2 $SFX\",\"memberIds\":[$ID3,$ID2]}"
+contains "yeni grupta T3 yok (uye sayisi 2)" '"memberCount":2' "$BODY"
+step "T1 T2'yi cikarir" 204 DELETE /conversations/$G/members/$ID2 "$T1"
+step "cikarilan T2 grubu goremez" 404 GET /conversations/$G "$T2"
 
 [ "$FAIL" = 0 ] && echo "TUMU GECTI" || { echo "BAZI ADIMLAR BASARISIZ"; exit 1; }

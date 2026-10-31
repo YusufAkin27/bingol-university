@@ -74,15 +74,19 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         heartbeat.initialize();
         registry.setApplicationDestinationPrefixes("/app");
         registry.setUserDestinationPrefix("/user");
-        // Ayni oturumdan gelen komutlar sirayla islenir (aksi halde ardisik SEND'ler is parcaciklarinda yer degistirip
-        // mesaj id'leri gonderim sirasini bozar) ve istemciye teslim sirasi korunur.
+        // Istemciye TESLIM (cikis) sirasi korunur. Gelen komutlarin oturum basina sirasi ayri korunur:
+        // configureClientInboundChannel -> SessionOrderedExecutor (yalniz bu bayrak giris sirasini SIRALAMAZ).
         registry.setPreservePublishOrder(true);
         registry.enableSimpleBroker("/queue").setHeartbeatValue(new long[] {10_000, 10_000}).setTaskScheduler(heartbeat);
     }
 
     @Override
     public void configureClientInboundChannel(ChannelRegistration registration) {
-        registration.interceptors(stompAuth);
+        // T-037: ayni oturumun cerceveleri (ornegin hizli art arda chat.send) sirayla islenir, farkli oturumlar paralel.
+        // setPreservePublishOrder yalniz istemciye CIKIS sirasini korur; GIRIS sirasini bu yurutucu korur.
+        // KeyInterceptor kimlik denetiminden SONRA gelmelidir (reddedilen cerceve oturum anahtari yazmaz).
+        registration.taskExecutor(new SessionOrderedExecutor(Math.max(8, 2 * Runtime.getRuntime().availableProcessors())));
+        registration.interceptors(stompAuth, new SessionOrderedExecutor.KeyInterceptor());
     }
 
     @Override

@@ -69,6 +69,17 @@ public class NotificationService {
                 RecipientGuard.ALLOW_ALL);
     }
 
+    /** Toplu yaz-ya-da-guncelle (PostgreSQL); yoksa ya da desteklenmiyorsa (H2 testleri) alici basina eski yol. */
+    private NotificationBatchWriter batchWriter;
+
+    @Autowired(required = false)
+    void setBatchWriter(NotificationBatchWriter batchWriter) {
+        this.batchWriter = batchWriter;
+    }
+
+    /** Toplu sohbet bildiriminin bir alicisi: push gidecek mi ve yalniz push yukune eklenecek anahtarlar. */
+    public record MessageTarget(Long userId, boolean push, Map<String, String> pushExtra) {}
+
     /**
      * Kullanici sohbeti okudu: o sohbetin okunmamis bildirim satiri okundu olur. Yoksa satir sonsuza dek okunmamis
      * kalir, sayaci (`groupCount`) her mesajla buyur ve push govdesi hep "N yeni mesaj" olurdu; rozet de sismis kalirdi.
@@ -136,6 +147,149 @@ public class NotificationService {
                 previewRequiresOptIn);
     }
 
+    /**
+     * Cok alicili sohbet mesaji (T-035): {@link #sendNewMessage} ile AYNI karar tablosu ve sonuc (aktiflik, tercih, alt tur,
+     * sessiz saat, PushGate, onizleme izni, "N yeni mesaj"), ama alici basina degil parca basina sorgu: aktiflik+dil,
+     * tercih, alt tur tercihi, bildirim satiri (tek `INSERT .. ON CONFLICT`), cihaz token'lari ve rozet sayilari birer
+     * IN sorgusudur. `increment`: birlestirilmis dagitimda (ayni sohbette birden cok mesaj) sayaca eklenen mesaj adedi.
+     * Veritabani PostgreSQL degilse (H2 testleri) alici basina eski yola duser.
+     */
+    public void sendNewMessageBatch(List<MessageTarget> targets, String title, String pushPreview,
+                                    boolean previewRequiresOptIn, Map<String, String> data, int increment) {
+        if (targets == null || targets.isEmpty()) {
+            return;
+        }
+        if (batchWriter == null || !batchWriter.supported()) {
+            for (MessageTarget t : targets) {
+                sendNewMessage(t.userId(), title, pushPreview, previewRequiresOptIn, data, t.push(), t.pushExtra());
+            }
+            return;
+        }
+        Map<Long, MessageTarget> byId = new java.util.LinkedHashMap<>();
+        targets.forEach(t -> byId.put(t.userId(), t));
+        List<MessageTarget> all = new ArrayList<>(byId.values());
+        for (int i = 0; i < all.size(); i += BATCH_CHUNK) {
+            try {
+                messageChunk(all.subList(i, Math.min(i + BATCH_CHUNK, all.size())), title, pushPreview,
+                        previewRequiresOptIn, data, Math.max(1, increment));
+            } catch (RuntimeException e) {
+                log.warn("Toplu mesaj bildirimi parcasi basarisiz ({} alici): {}", Math.min(BATCH_CHUNK, all.size() - i),
+                        e.toString());
+            }
+        }
+    }
+
+    /** Toplu sohbet bildirimi parca boyutu: IN listeleri ve tek ifadelik yazim icin. */
+    static final int BATCH_CHUNK = 250;
+
+    /** Parca icinde push'a aday alici (satir yazildi; kapilar gecildi). */
+    private record PushCandidate(MessageTarget target, Lang lang, NotificationPref pref, String stored,
+                                 NotificationBatchWriter.Row row) {}
+
+    private void messageChunk(List<MessageTarget> chunk, String title, String pushPreview,
+                              boolean previewRequiresOptIn, Map<String, String> data, int increment) {
+        Instant now = Instant.now();
+        List<Long> ids = chunk.stream().map(MessageTarget::userId).toList();
+        Map<Long, Lang> receivable = guard.receivable(ids); // askidaki/silinmis hesap elenir (1 sorgu)
+        if (receivable.isEmpty()) {
+            return;
+        }
+        Map<Long, NotificationPref> prefMap = new java.util.HashMap<>();
+        prefs.findAllById(receivable.keySet()).forEach(p -> prefMap.put(p.getUserId(), p)); // 1 sorgu
+        String key = data != null && data.get("conversationId") != null ? "conv:" + data.get("conversationId") : null;
+        if (key != null) {
+            key = truncate(key, 120);
+        }
+        NotificationSubtype sub = data == null || data.get("conversationType") == null ? null
+                : "GROUP".equals(data.get("conversationType")) ? NotificationSubtype.MESSAGE_GROUP
+                : NotificationSubtype.MESSAGE_DIRECT;
+        java.util.Set<Long> subOff = sub != null && !sub.flagBacked()
+                ? new java.util.HashSet<>(notifications.subtypeDisabledAmong(receivable.keySet(), sub.name())) // 1 sorgu
+                : java.util.Set.of();
+        String json = toJson(data);
+        String storedData = json != null && json.length() > 1000 ? null : json;
+
+        // Izinli alicilar dile gore (saklanan govde alicinin dilinde sabit "Yeni mesaj")
+        Map<Lang, List<MessageTarget>> byLang = new java.util.EnumMap<>(Lang.class);
+        for (MessageTarget t : chunk) {
+            Long id = t.userId();
+            if (!receivable.containsKey(id)) {
+                continue;
+            }
+            NotificationPref pref = prefMap.get(id);
+            boolean allowed = enabled(pref, NotificationType.MESSAGE)
+                    && (sub != null && sub.flagBacked() ? pref == null || sub.flag(pref) : !subOff.contains(id));
+            if (!allowed) {
+                continue;
+            }
+            Lang lang = receivable.get(id) != null ? receivable.get(id) : i18n.langOf(id);
+            byLang.computeIfAbsent(lang, l -> new ArrayList<>()).add(t);
+        }
+
+        boolean pushOn = dispatcher.enabled();
+        List<PushCandidate> candidates = new ArrayList<>();
+        for (Map.Entry<Lang, List<MessageTarget>> e : byLang.entrySet()) {
+            Lang lang = e.getKey();
+            String stored = i18n.msg("notif.message.new", lang);
+            List<Long> langIds = e.getValue().stream().map(MessageTarget::userId).toList();
+            Map<Long, NotificationBatchWriter.Row> rows = batchWriter.upsertUnread(langIds, NotificationType.MESSAGE,
+                    sub == null ? null : sub.name(), key, truncate(title, 200), truncate(stored, 500), storedData,
+                    increment, now); // 1 ifade
+            for (MessageTarget t : e.getValue()) {
+                NotificationBatchWriter.Row row = rows.get(t.userId());
+                if (row == null || !t.push() || !pushOn) {
+                    continue; // alici uygulamada ya da FCM kapali: yalnizca uygulama ici kayit
+                }
+                NotificationPref pref = prefMap.get(t.userId());
+                if (QuietHours.isQuiet(pref, now)) {
+                    continue; // sessiz saat
+                }
+                if (!gate.allowMessagePush(t.userId(), key == null ? "msg" : key)) {
+                    continue; // ayni sohbet pencerede / dakikalik ust sinir
+                }
+                candidates.add(new PushCandidate(t, lang, pref, stored, row));
+            }
+        }
+        if (candidates.isEmpty()) {
+            return;
+        }
+        List<Long> pushIds = candidates.stream().map(c -> c.target().userId()).toList();
+        Map<Long, List<String>> tokens = new java.util.HashMap<>();
+        for (Object[] r : notifications.deviceTokensOf(pushIds)) { // 1 sorgu
+            tokens.computeIfAbsent((Long) r[0], k -> new ArrayList<>()).add((String) r[1]);
+        }
+        if (tokens.isEmpty()) {
+            return;
+        }
+        Map<Long, Long> badges = new java.util.HashMap<>();
+        for (Object[] r : notifications.unreadCountsOf(tokens.keySet())) { // 1 sorgu (yalniz token'i olanlar)
+            badges.put((Long) r[0], (Long) r[1]);
+        }
+        for (PushCandidate c : candidates) {
+            Long uid = c.target().userId();
+            List<String> toks = tokens.get(uid);
+            if (toks == null || toks.isEmpty()) {
+                continue;
+            }
+            int count = c.row().groupCount();
+            String pBody = pushPreview == null || pushPreview.isBlank() ? c.stored() : pushPreview;
+            if (previewRequiresOptIn && (c.pref() == null || !c.pref().isMessagePreview())) {
+                pBody = c.stored(); // onizleme izni yok: sabit "Yeni mesaj"
+            }
+            if (count > 1 && java.util.Objects.equals(pBody, c.stored())) {
+                pBody = i18n.msg("notif.message.many", c.lang(), String.valueOf(count));
+            }
+            Map<String, String> pushData = data;
+            Map<String, String> extra = c.target().pushExtra();
+            if (extra != null && !extra.isEmpty()) {
+                pushData = new java.util.HashMap<>(data == null ? Map.of() : data);
+                pushData.putAll(extra);
+            }
+            push(toks, title, pBody, NotificationType.MESSAGE, sub, pushData, count, key,
+                    (int) (long) badges.getOrDefault(uid, 0L));
+        }
+    }
+
     /** Saklanan govde (`body`) ile push govdesi (`pushBody`) ayri olabilir. */
     public void send(Long userId, NotificationType type, NotificationSubtype subtype, String collapseKey,
                      String title, String body, String pushBody, Map<String, String> data) {
@@ -160,23 +314,38 @@ public class NotificationService {
                 return;
             }
             String key = collapseKey == null ? null : truncate(collapseKey, 120);
-            Notification n = key == null ? null
-                    : notifications.findFirstByUserIdAndCollapseKeyAndReadAtIsNullOrderByIdDesc(userId, key).orElse(null);
-            if (n == null) {
-                n = new Notification();
-                n.setUserId(userId);
-                n.setType(type);
-                n.setCollapseKey(key);
-            } else {
-                n.setGroupCount(n.getGroupCount() + 1);
-                n.setCreatedAt(Instant.now());
-            }
-            n.setSubtype(subtype == null ? null : subtype.name());
-            n.setTitle(truncate(title, 200));
-            n.setBody(truncate(body, 500));
             String json = toJson(data);
-            n.setData(json != null && json.length() > 1000 ? null : json);
-            notifications.save(n);
+            String storedData = json != null && json.length() > 1000 ? null : json;
+            int count;
+            if (key != null && batchWriter != null && batchWriter.supported()) {
+                // PostgreSQL: tek ifadelik yaz-ya-da-guncelle (kismi benzersiz indeks V940); eszamanli iki istek
+                // yinelenen satir uretmez ve cagiranin islemini bozacak bir benzersizlik hatasi dogmaz.
+                NotificationBatchWriter.Row row = batchWriter.upsertUnread(List.of(userId), type,
+                        subtype == null ? null : subtype.name(), key, truncate(title, 200), truncate(body, 500),
+                        storedData, 1, Instant.now()).get(userId);
+                if (row == null) {
+                    throw new IllegalStateException("bildirim satiri yazilamadi");
+                }
+                count = row.groupCount();
+            } else {
+                Notification n = key == null ? null
+                        : notifications.findFirstByUserIdAndCollapseKeyAndReadAtIsNullOrderByIdDesc(userId, key).orElse(null);
+                if (n == null) {
+                    n = new Notification();
+                    n.setUserId(userId);
+                    n.setType(type);
+                    n.setCollapseKey(key);
+                } else {
+                    n.setGroupCount(n.getGroupCount() + 1);
+                    n.setCreatedAt(Instant.now());
+                }
+                n.setSubtype(subtype == null ? null : subtype.name());
+                n.setTitle(truncate(title, 200));
+                n.setBody(truncate(body, 500));
+                n.setData(storedData);
+                notifications.save(n);
+                count = n.getGroupCount();
+            }
 
             if (!push) {
                 return; // alici uygulamada: yalnizca uygulama ici kayit
@@ -187,7 +356,6 @@ public class NotificationService {
             if (!dispatcher.enabled()) {
                 return; // FCM kapali: uygulama ici kayit yazildi, push atlanir
             }
-            int count = n.getGroupCount();
             if (type == NotificationType.POST_LIKE && count > 1) {
                 return; // birlesen begeni: ilk begeniden push gitti, devami yalniz kutuda guncellenir
             }

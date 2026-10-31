@@ -51,8 +51,12 @@ class ChatEventBusTest {
         // Regresyon: WS ortasinda askiya alinan kullanici acik oturumuna mesaj almaya devam ediyordu.
         when(registry.getUser("1")).thenReturn(mock(SimpUser.class));
         when(registry.getUser("2")).thenReturn(mock(SimpUser.class));
-        when(redis.hasKey("suspended:1")).thenReturn(true);
-        when(redis.hasKey("suspended:2")).thenReturn(false);
+        @SuppressWarnings("unchecked")
+        org.springframework.data.redis.core.ValueOperations<String, String> ops =
+                mock(org.springframework.data.redis.core.ValueOperations.class);
+        when(redis.opsForValue()).thenReturn(ops);
+        // T-036: askida kontrolu tek MGET (sira = yerel alici sirasi); 1 askida, 2 degil
+        when(ops.multiGet(java.util.List.of("suspended:1", "suspended:2"))).thenReturn(java.util.Arrays.asList("1", null));
 
         bus.onMessage(event("{\"dest\":\"messages\",\"userIds\":[1,2],\"payload\":{\"id\":5}}"), null);
 
@@ -63,7 +67,11 @@ class ChatEventBusTest {
     @Test
     void redisFailureOnSuspendCheckStillDelivers() {
         when(registry.getUser("1")).thenReturn(mock(SimpUser.class));
-        when(redis.hasKey("suspended:1")).thenThrow(new IllegalStateException("redis yok"));
+        @SuppressWarnings("unchecked")
+        org.springframework.data.redis.core.ValueOperations<String, String> ops =
+                mock(org.springframework.data.redis.core.ValueOperations.class);
+        when(redis.opsForValue()).thenReturn(ops);
+        when(ops.multiGet(any())).thenThrow(new IllegalStateException("redis yok"));
 
         bus.onMessage(event("{\"dest\":\"typing\",\"userIds\":[1],\"payload\":{\"x\":1}}"), null);
 

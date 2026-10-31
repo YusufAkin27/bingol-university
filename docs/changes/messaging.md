@@ -171,6 +171,8 @@ Bilinen sinir: `Outbox` metin siniri hala UTF-16 (`text.length > maxTextLength`,
 
 ## W1-E: sohbet bildirimi dağıtımı ve mesaj sırası (T-035, T-036, T-037)
 
+**DURUM (W1-E): kod HENÜZ origin'e itilmedi; PostgreSQL'e özel upsert SQL'i, V940 migration'ı, ölçüm sonrası değerleri ve smoke koşuları doğrulanmadı (Docker erişilemediği için). Aşağıdaki açıklama çalışma ağacındaki (itilmemiş) kodu anlatır.**
+
 Davranış ve API değişmez (yeni uç/hata kodu yok); değişen yalnız maliyet ve sıra garantisidir. Ölçümler: `docs/PERFORMANCE.md` "Sohbet dağıtımı (W1-E)".
 
 - **Toplu bildirim yazımı (T-035).** `MessageService.notifyOffline` artık alıcı başına `sendNewMessage` çağırmaz; tek `NotificationService.sendNewMessageBatch` çağrısı yapar. Alıcılar 250'lik parçalarda işlenir: aktiflik+dil, tercih, alt tur tercihi, bildirim satırı, cihaz token'ları ve rozet sayıları parça başına birer sorgudur (eskiden alıcı başına 6-8). Bildirim satırı tek `INSERT .. ON CONFLICT (user_id, collapse_key) WHERE read_at IS NULL DO UPDATE` ile yazılır (`NotificationBatchWriter`, PostgreSQL). Karar tablosu aynıdır: askıdaki hesap, tür/alt tür tercihi, sessiz saat, `push=false`, `PushGate`, onizleme izni, "N yeni mesaj" özeti, alıcı dilinde sabit "Yeni mesaj".

@@ -26,7 +26,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.Executor;
-import java.util.concurrent.RejectedExecutionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -334,12 +333,23 @@ public class MessageService {
         Map<String, String> data = Map.of("conversationId", String.valueOf(conv.getId()),
                 "messageId", String.valueOf(m.getId()), "conversationType", conv.getType().name());
         Long convId = conv.getId();
-        try {
-            boolean optInOnly = !pushPreview && previewOptIn;
-            fanout.execute(() -> notifyOffline(senderId, convId, title, preview, optInOnly, data, candidates));
-        } catch (RejectedExecutionException e) {
-            log.warn("Bildirim kuyrugu dolu, mesaj {} icin bildirim atlandi", m.getId());
-        }
+        boolean optInOnly = !pushPreview && previewOptIn;
+        // Sohbet basina birlestirme + dolu kuyrukta bekletme/metrik/WARN (sessiz atlama yok): bkz. ChatNotifyFanout
+        fanoutQueue.submit(fanout, new ChatNotifyFanout.Job(senderId, convId, title, preview, optInOnly, data,
+                candidates, 1));
+    }
+
+    /** Bildirim dagitim kuyrugu (T-035); is parcacigi havuzunda ({@code chatFanoutExecutor}) calisir. */
+    private final ChatNotifyFanout fanoutQueue = new ChatNotifyFanout(this::runFanout);
+
+    @Autowired(required = false)
+    void setMeterRegistry(io.micrometer.core.instrument.MeterRegistry registry) {
+        fanoutQueue.bind(registry);
+    }
+
+    private void runFanout(ChatNotifyFanout.Job j) {
+        notifyOffline(j.senderId(), j.conversationId(), j.groupTitle(), j.preview(), j.previewOptInOnly(), j.data(),
+                j.candidates(), j.count());
     }
 
     /**
@@ -391,7 +401,8 @@ public class MessageService {
      * Askidaki/silinmis hesaba bildirim yok. Presence/viewing/foreground tek MGET'lerle okunur.
      */
     private void notifyOffline(Long senderId, Long conversationId, String groupTitle, String preview,
-                               boolean previewOptInOnly, Map<String, String> data, List<Long> candidates) {
+                               boolean previewOptInOnly, Map<String, String> data, List<Long> candidates,
+                               int count) {
         try {
             Set<Long> online = presence.onlineAmong(candidates);
             Set<Long> viewing = presence.viewingAmong(candidates, conversationId);
@@ -416,6 +427,8 @@ public class MessageService {
                     : avatarVisibility.viewersAmong(senderId, targets,
                             edu.bingol.backend.profile.privacy.AvatarVisibility.Field.AVATAR);
             Set<Long> related = avatarOk.isEmpty() ? Set.of() : blocks.hiddenFrom(senderId);
+            // Alici basina ek anahtarlar ayni (push yukune); asil yazim/push karari NotificationService'te PARCA basina toplu
+            List<NotificationService.MessageTarget> batch = new java.util.ArrayList<>(targets.size());
             for (Long id : targets) {
                 if (!inactive.contains(id)) {
                     boolean push = !(foreground.contains(id) && online.contains(id));
@@ -430,12 +443,11 @@ public class MessageService {
                         // Avatar yalniz push yukunde; bildirim kutusuna (kalici data) yazilmaz
                         extra.put("senderAvatarUrl", avatar);
                     }
-                    if (previewOptInOnly) {
-                        notifications.sendNewMessage(id, title, preview, true, data, push, extra);
-                    } else {
-                        notifications.sendNewMessage(id, title, preview, data, push, extra);
-                    }
+                    batch.add(new NotificationService.MessageTarget(id, push, extra));
                 }
+            }
+            if (!batch.isEmpty()) {
+                notifications.sendNewMessageBatch(batch, title, preview, previewOptInOnly, data, count);
             }
         } catch (RuntimeException e) {
             log.warn("Mesaj bildirimi gonderilemedi: {}", e.toString());

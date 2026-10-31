@@ -271,7 +271,11 @@ class MessageServiceTest {
         ArgumentCaptor<List<Long>> to = ArgumentCaptor.forClass(List.class);
         verify(bus).publish(eq("messages"), to.capture(), any(MessageView.class));
         assertEquals(List.of(ME, PEER), to.getValue());
-        verify(notifications).sendNewMessage(eq(PEER), eq("Ali"), isNull(), any(), eq(true), any()); // onizleme kapali: metin yok
+        Batch b = sentBatch();
+        assertEquals("Ali", b.title());
+        assertNull(b.preview()); // onizleme kapali: metin yok
+        assertTrue(b.of(PEER).push());
+        assertEquals(1, b.count());
     }
 
     @Test
@@ -285,7 +289,7 @@ class MessageServiceTest {
         assertEquals(CONV, draft.getValue().getConversationId());
         assertEquals(ME, draft.getValue().getSenderId());
         assertEquals("c1", draft.getValue().getClientId());
-        verify(notifications).sendNewMessage(eq(PEER), anyString(), isNull(), any(), eq(true), any());
+        assertNull(sentBatch().preview());
     }
 
     @Test
@@ -296,9 +300,7 @@ class MessageServiceTest {
 
         withPreview.send(ME, CONV, "a".repeat(150), "c9");
 
-        ArgumentCaptor<String> prev = ArgumentCaptor.forClass(String.class);
-        verify(notifications).sendNewMessage(eq(PEER), anyString(), prev.capture(), any(), eq(true), any());
-        assertEquals(101, prev.getValue().length()); // 100 karakter + "..."
+assertEquals(101, sentBatch().preview().length()); // 100 karakter + "..."
     }
 
     @Test
@@ -320,7 +322,7 @@ class MessageServiceTest {
 
         service.send(ME, CONV, "selam", "c1");
 
-        verify(notifications).sendNewMessage(eq(PEER), anyString(), any(), any(), eq(true), any());
+        assertTrue(sentBatch().of(PEER).push());
     }
 
     @Test
@@ -370,11 +372,15 @@ class MessageServiceTest {
 
         service.send(ME, CONV, "selam", "c1");
 
-        verify(notifications, never()).sendBulk(any(), any(), anyString(), anyString(), any());
+verify(notifications, never()).sendBulk(any(), any(), anyString(), anyString(), any());
+        // Tum cevrimdisi alicilar TEK toplu cagriyla gider (alici basina cagri yok); her biri kendi push bayragiyla
+        verify(notifications, never()).sendNewMessage(anyLong(), anyString(), any(), any(), anyBoolean(), any());
+        Batch b = sentBatch();
+        assertEquals(others.size(), b.targets().size());
         for (Long id : others) {
-            verify(notifications).sendNewMessage(eq(id), anyString(), any(), any(), eq(true), any()); // her aliciya kendi tercihiyle
+            assertTrue(b.of(id).push());
         }
-        verify(notifications, never()).sendNewMessage(eq(ME), anyString(), any(), any(), anyBoolean(), any());
+        assertTrue(b.targets().stream().noneMatch(t -> t.userId().equals(ME)), "gonderen bildirim almaz");
     }
 
     @Test
@@ -395,7 +401,7 @@ class MessageServiceTest {
 
         service.send(ME, CONV, "selam", "c1");
 
-        verify(notifications).sendNewMessage(eq(PEER), anyString(), any(), any(), eq(true), any());
+        assertTrue(sentBatch().of(PEER).push());
     }
 
     @Test
@@ -405,7 +411,7 @@ class MessageServiceTest {
 
         service.send(ME, CONV, "selam", "c1");
 
-        verify(notifications).sendNewMessage(eq(PEER), anyString(), any(), any(), eq(true), any());
+        assertTrue(sentBatch().of(PEER).push());
     }
 
     @Test
@@ -416,7 +422,7 @@ class MessageServiceTest {
 
         service.send(ME, CONV, "selam", "c1");
 
-        verify(notifications).sendNewMessage(eq(PEER), anyString(), any(), any(), eq(false), any());
+        assertFalse(sentBatch().of(PEER).push());
     }
 
     @Test
@@ -427,7 +433,7 @@ class MessageServiceTest {
 
         service.send(ME, CONV, "selam", "c1");
 
-        verify(notifications).sendNewMessage(eq(PEER), anyString(), any(), any(), eq(true), any());
+        assertTrue(sentBatch().of(PEER).push());
     }
 
     @Test
@@ -436,10 +442,9 @@ class MessageServiceTest {
 
         service.send(ME, CONV, "selam", "c1");
 
-        ArgumentCaptor<Map<String, String>> extra = ArgumentCaptor.forClass(Map.class);
-        verify(notifications).sendNewMessage(eq(PEER), anyString(), any(), any(), eq(true), extra.capture());
-        assertEquals("Ali", extra.getValue().get("senderName"));
-        assertNull(extra.getValue().get("senderAvatarUrl"));
+Map<String, String> extra = sentBatch().of(PEER).pushExtra();
+        assertEquals("Ali", extra.get("senderName"));
+        assertNull(extra.get("senderAvatarUrl"));
     }
 
     @Test
@@ -449,7 +454,10 @@ class MessageServiceTest {
 
         service.send(ME, CONV, "gizli metin", "c1");
 
-        verify(notifications).sendNewMessage(eq(PEER), anyString(), eq("gizli metin"), eq(true), any(), eq(true), any());
+        Batch b = sentBatch();
+        assertEquals("gizli metin", b.preview());
+        assertTrue(b.optIn());
+        assertTrue(b.of(PEER).push());
     }
 
     @Test
@@ -501,9 +509,7 @@ class MessageServiceTest {
 
         service.send(ME, CONV, "selam", "c1");
 
-        ArgumentCaptor<Map<String, String>> d = ArgumentCaptor.forClass(Map.class);
-        verify(notifications).sendNewMessage(eq(PEER), anyString(), any(), d.capture(), eq(true), any());
-        assertEquals("DIRECT", d.getValue().get("conversationType"));
+assertEquals("DIRECT", sentBatch().data().get("conversationType"));
     }
 
     @Test
@@ -713,7 +719,7 @@ class MessageServiceTest {
 
         service.send(ME, CONV, "selam", "c1");
 
-        verify(notifications).sendNewMessage(eq(PEER), anyString(), any(), any(), eq(true), any());
+        assertTrue(sentBatch().of(PEER).push());
     }
 
     @Test
@@ -722,5 +728,45 @@ class MessageServiceTest {
 
         verify(members).unarchiveOnMessage(CONV);
     }
-}
 
+    @Test
+    void backloggedSendsToTheSameConversationShareOneNotificationBatchWithSummedCount() {
+        ChatNotifyFanoutTest.ManualExecutor pool = new ChatNotifyFanoutTest.ManualExecutor(10);
+        service.setFanout(pool); // havuz mesgul: gorevler henuz calismadi
+        when(presence.onlineAmong(any())).thenReturn(Set.of());
+
+        service.send(ME, CONV, "bir", "c1");
+        service.send(ME, CONV, "iki", "c2");
+        service.send(ME, CONV, "uc", "c3");
+
+        assertEquals(1, pool.queue.size(), "ayni sohbet icin tek dagitim gorevi");
+        verify(notifications, never()).sendNewMessageBatch(any(), anyString(), any(), anyBoolean(), any(), anyInt());
+        pool.runAll();
+        Batch b = sentBatch(); // tam bir cagri
+        assertEquals(3, b.count(), "bildirim sayaci mesaj adedi kadar artar");
+        assertTrue(b.of(PEER).push());
+    }
+
+    /** Toplu bildirim cagrisinin yakalanmis hali (MessageService artik alici basina degil TEK cagri yapar). */
+    private record Batch(List<NotificationService.MessageTarget> targets, String title, String preview, boolean optIn,
+                         Map<String, String> data, int count) {
+        NotificationService.MessageTarget of(Long id) {
+            return targets.stream().filter(t -> t.userId().equals(id)).findFirst()
+                    .orElseThrow(() -> new AssertionError("alici yok: " + id));
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private Batch sentBatch() {
+        ArgumentCaptor<List<NotificationService.MessageTarget>> targets = ArgumentCaptor.forClass(List.class);
+        ArgumentCaptor<String> title = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<String> preview = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<Boolean> optIn = ArgumentCaptor.forClass(Boolean.class);
+        ArgumentCaptor<Map<String, String>> data = ArgumentCaptor.forClass(Map.class);
+        ArgumentCaptor<Integer> count = ArgumentCaptor.forClass(Integer.class);
+        verify(notifications).sendNewMessageBatch(targets.capture(), title.capture(), preview.capture(),
+                optIn.capture(), data.capture(), count.capture());
+        return new Batch(targets.getValue(), title.getValue(), preview.getValue(), optIn.getValue(), data.getValue(),
+                count.getValue());
+    }
+}
