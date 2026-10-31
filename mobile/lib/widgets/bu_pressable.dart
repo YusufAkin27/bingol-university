@@ -1,29 +1,28 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
+import '../core/haptics.dart';
 import '../core/theme/bu_motion.dart';
 
 /// Dokunma geri bildirimi türü.
 enum BuHaptic { none, selection, light, medium }
 
-/// Hafif dokunma titreşimi (tek yerden: testte ve titreşimsiz cihazda sessizce yutulur).
+/// Hafif dokunma titreşimi (tek yerden: testte ve titreşimsiz cihazda sessizce yutulur). [BuHaptics] sarmalayıcısına
+/// yönlenir; eski çağıranlar için imza korunur.
 void buHaptic([BuHaptic kind = BuHaptic.selection]) {
-  try {
-    switch (kind) {
-      case BuHaptic.none:
-        return;
-      case BuHaptic.selection:
-        HapticFeedback.selectionClick();
-      case BuHaptic.light:
-        HapticFeedback.lightImpact();
-      case BuHaptic.medium:
-        HapticFeedback.mediumImpact();
-    }
-  } catch (_) {}
+  switch (kind) {
+    case BuHaptic.none:
+      return;
+    case BuHaptic.selection:
+      BuHaptics.selection();
+    case BuHaptic.light:
+      BuHaptics.light();
+    case BuHaptic.medium:
+      BuHaptics.medium();
+  }
 }
 
-/// Basılı tutunca hafifçe küçülen (0.97) dokunma sarmalayıcısı. İki kullanım:
+/// Basılı tutunca hafifçe küçülen (0.97) ve hafifçe solan (opaklık ~0.92) dokunma sarmalayıcısı. İki kullanım:
 ///
 /// * `onTap` verilirse dokunmayı kendisi yakalar (anlamsal düğme + titreşim).
 /// * `onTap` null ise yalnız ölçek efekti verir; dokunmayı içerideki `InkWell` yakalar (kart/satır).
@@ -37,6 +36,7 @@ class BuPressable extends StatefulWidget {
     this.onTap,
     this.onLongPress,
     this.scale = .97,
+    this.pressedOpacity = .92,
     this.haptic = BuHaptic.none,
     this.enabled = true,
     this.semanticLabel,
@@ -49,6 +49,9 @@ class BuPressable extends StatefulWidget {
 
   /// Basılıyken ölçek (0.9-1.0).
   final double scale;
+
+  /// Basılıyken opaklık (1 = solma yok). Ölçekle birlikte 100 ms'de, "animasyonları azalt" açıkken hiç uygulanmaz.
+  final double pressedOpacity;
 
   /// Dokunuşta titreşim ([onTap] ile birlikte).
   final BuHaptic haptic;
@@ -75,11 +78,17 @@ class _BuPressableState extends State<BuPressable> {
 
   @override
   Widget build(BuildContext context) {
+    final pressed = _down && _active;
     Widget c = AnimatedScale(
-      scale: _down && _active ? widget.scale : 1,
+      scale: pressed ? widget.scale : 1,
       duration: BuMotion.short,
       curve: BuMotion.standard,
-      child: widget.child,
+      child: AnimatedOpacity(
+        opacity: pressed ? widget.pressedOpacity : 1,
+        duration: const Duration(milliseconds: 100),
+        curve: BuMotion.standard,
+        child: widget.child,
+      ),
     );
     c = Listener(
       behavior: HitTestBehavior.translucent,

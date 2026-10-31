@@ -213,6 +213,18 @@ BuPop(trigger: liked, child: heartIcon)                                      // 
 showModalBottomSheet(sheetAnimationStyle: BuMotionStyles.sheet(context), ...) // BuSheet/BuDialog/BuToast bunu zaten kullanır
 ```
 
+**Tur 2 (M0) ortak parçalar** - hepsi `widgets/bu.dart` ile gelir:
+
+```dart
+BuHero(tag: BuHero.tagOf('news', id), radius: 16, child: BuImage(...))  // liste kartı; detayda aynı etiket + radius: 0 -> uçuşta köşe yarıçapı geçer
+Navigator.push(context, BuPageRoute(kind: BuRouteKind.axisY, builder: (_) => const Page()));  // axisX (vars.) | axisY | fadeThrough | containerTransform
+BuHaptics.selection(); BuHaptics.light(); BuHaptics.medium();            // çip/anahtar tıkı | eşik (yenile, sürükle, beğeni) | onay/silme; buHaptic(BuHaptic.x) eski çağrı aynı yere gider
+BuPressable(scale: .97, pressedOpacity: .92, onTap: ..)                  // basılıyken ölçek 150 ms + opaklık 100 ms; azalt açıkken yok
+BuChipRow(labels: l, selected: i, onSelected: f)                          // seçili çip görünür kalır, taşan uçta 24 dp solma ipucu
+```
+
+Hero kuralları: etiket sayfada benzersiz (`BuHero.tagOf(tür, kimlik)`), iki uçta çocuk sınırı dolduran görsel olsun, `radius` her uçta kendi köşe değeri; `transitionOnUserGestures` varsayılan kapalı (Android tahmini geri ile çakışmasın).
+
 Kurallar: "animasyonları azalt" (`MediaQuery.disableAnimations`) açıkken tüm bu bileşenler anlık çalışır (süre 0; `BuMotion.of`); yalnız `transform`/`opacity` canlandırın; uzun/sonsuz animasyonlu listede `RepaintBoundary` ile ayırın. Uygulama içi ayrı bir "hareketi azalt" anahtarı yoktur; yalnız sistem ayarı dikkate alınır.
 
 ### 6.6 Tema bileşenleri (M3'ü doğrudan kullanın, ek stil gerekmez)

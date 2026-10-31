@@ -316,7 +316,9 @@ class BuChip extends StatelessWidget {
           constraints: const BoxConstraints(minHeight: 48),
           child: Center(
             widthFactor: 1,
-            child: AnimatedContainer(
+            child: BuPressable(
+              scale: .96,
+              child: AnimatedContainer(
               duration: BuMotion.of(context, BuMotion.short),
               curve: BuMotion.standard,
               decoration: ShapeDecoration(
@@ -342,15 +344,27 @@ class BuChip extends StatelessWidget {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          if (icon != null) ...[Icon(icon, size: 15, color: fg), const SizedBox(width: 6)],
-                          Text(label,
-                              style: BuType.label.copyWith(color: fg, fontWeight: selected ? FontWeight.w700 : FontWeight.w600)),
+                          if (icon != null) ...[
+                            TweenAnimationBuilder<Color?>(
+                              tween: ColorTween(end: fg),
+                              duration: BuMotion.of(context, BuMotion.short),
+                              builder: (context, c, _) => Icon(icon, size: 15, color: c ?? fg),
+                            ),
+                            const SizedBox(width: 6),
+                          ],
+                          AnimatedDefaultTextStyle(
+                            duration: BuMotion.of(context, BuMotion.short),
+                            curve: BuMotion.standard,
+                            style: BuType.label.copyWith(color: fg, fontWeight: selected ? FontWeight.w700 : FontWeight.w600),
+                            child: Text(label),
+                          ),
                         ],
                       ),
                     ),
                   ),
                 ),
               ),
+            ),
             ),
           ),
         ),

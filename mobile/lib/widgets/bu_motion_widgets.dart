@@ -204,30 +204,60 @@ class BuSharedAxis extends StatelessWidget {
   }
 }
 
+/// [BuPageRoute] geçiş türü.
+enum BuRouteKind {
+  /// Paylaşılan eksen X: yatay kayma + solma (varsayılan; ileri/geri gezinme).
+  axisX,
+
+  /// Paylaşılan eksen Y: dikey kayma + solma (alt-üst ilişkili akış, sihirbaz adımı).
+  axisY,
+
+  /// Fade-through: eski sayfa solar, yenisi hafif büyüyerek belirir (ilişkisiz hedefler).
+  fadeThrough,
+
+  /// Kapsayıcı dönüşümü (hafif): kart konumundan büyüyerek açılır; görsel varsa [BuHero] ile birlikte kullanın.
+  containerTransform,
+}
+
 /// Paylaşılan eksen (X) sayfa rotası: `Navigator.push(BuPageRoute(builder: (_) => Page()))`.
-/// 300 ms, "animasyonları azalt" açıksa anında. Geri jesti (iOS kenar kaydırma / Android tahmini geri) için
+/// 400 ms ileri / 250 ms geri, "animasyonları azalt" açıksa anında. [kind] ile Y ekseni, fade-through ya da
+/// hafif kapsayıcı dönüşümü seçilir. Geri jesti (iOS kenar kaydırma / Android tahmini geri) için
 /// tema geçişini (`MaterialPageRoute`) kullanmak yeterlidir; BuPageRoute özel akışlar (sihirbaz, tam ekran seçici) içindir.
+/// [BuHero] uçuşuyla uyumludur (rota saydamlığı Hero'yu gizlemez).
 class BuPageRoute<T> extends PageRouteBuilder<T> {
-  BuPageRoute({required WidgetBuilder builder, super.settings, super.fullscreenDialog})
-      : super(
+  BuPageRoute({
+    required WidgetBuilder builder,
+    super.settings,
+    super.fullscreenDialog,
+    BuRouteKind kind = BuRouteKind.axisX,
+  }) : super(
           transitionDuration: BuMotion.long,
           reverseTransitionDuration: BuMotion.medium,
           pageBuilder: (context, _, __) => builder(context),
           transitionsBuilder: (context, animation, secondary, child) {
             if (BuMotion.reduced(context)) return child;
-            final rtl = Directionality.of(context) == TextDirection.rtl;
-            final dx = 30.0 * (rtl ? -1 : 1);
             final inCurve = CurvedAnimation(parent: animation, curve: BuMotion.emphasizedDecelerate, reverseCurve: BuMotion.emphasizedAccelerate);
+            if (kind == BuRouteKind.fadeThrough || kind == BuRouteKind.containerTransform) {
+              final scaleFrom = kind == BuRouteKind.containerTransform ? .92 : .96;
+              return FadeTransition(
+                opacity: CurvedAnimation(parent: animation, curve: const Interval(0, .6)),
+                child: ScaleTransition(scale: Tween(begin: scaleFrom, end: 1.0).animate(inCurve), child: child),
+              );
+            }
             final outCurve = CurvedAnimation(parent: secondary, curve: BuMotion.emphasized);
+            final rtl = Directionality.of(context) == TextDirection.rtl;
+            final vertical = kind == BuRouteKind.axisY;
+            final d = 30.0 * (rtl && !vertical ? -1 : 1);
             return AnimatedBuilder(
               animation: Listenable.merge([inCurve, outCurve]),
               child: child,
               builder: (context, c) {
                 final enter = inCurve.value;
                 final exit = outCurve.value;
+                final off = d * (1 - enter) - d * exit;
                 return Opacity(
                   opacity: math.min(enter, 1 - exit * .9).clamp(0.0, 1.0),
-                  child: Transform.translate(offset: Offset(dx * (1 - enter) - dx * exit, 0), child: c),
+                  child: Transform.translate(offset: vertical ? Offset(0, off) : Offset(off, 0), child: c),
                 );
               },
             );

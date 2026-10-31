@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../core/theme.dart';
+import '../core/theme/bu_motion.dart';
 import '../core/theme/bu_shape.dart';
 import 'bu_widgets.dart';
 
@@ -291,7 +292,10 @@ class BuSettingsTile extends StatelessWidget {
 
 /// Yatay kaydırılan çip satırı (filtre/kategori). [selected] seçili indeks; [onSelected] indeks döner.
 /// RTL'de sağdan başlar. Yüksekliği 52 dp'ye sabit (çipin 44 dp dokunma alanı + boşluk).
-class BuChipRow extends StatelessWidget {
+///
+/// Seçili çip her zaman görünür kalır (seçim değişince / ilk açılışta yumuşakça ortalanır); içerik taşıyorsa
+/// kaydırılabilir yönün kenarında ~24 dp solma ipucu çıkar (1.3x yazıda son çip kesik görünse de devam ettiği anlaşılır).
+class BuChipRow extends StatefulWidget {
   const BuChipRow({
     super.key,
     required this.labels,
@@ -310,21 +314,117 @@ class BuChipRow extends StatelessWidget {
   final EdgeInsetsGeometry padding;
 
   @override
+  State<BuChipRow> createState() => _BuChipRowState();
+}
+
+class _BuChipRowState extends State<BuChipRow> {
+  final _scroll = ScrollController();
+  List<GlobalKey> _keys = const [];
+  bool _startFade = false;
+  bool _endFade = false;
+  bool _first = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _keys = List.generate(widget.labels.length, (_) => GlobalKey());
+    _scroll.addListener(_updateFade);
+    WidgetsBinding.instance.addPostFrameCallback((_) => _reveal(animate: false));
+  }
+
+  @override
+  void didUpdateWidget(BuChipRow old) {
+    super.didUpdateWidget(old);
+    if (_keys.length != widget.labels.length) {
+      _keys = List.generate(widget.labels.length, (_) => GlobalKey());
+    }
+    if (old.selected != widget.selected || old.labels.length != widget.labels.length) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _reveal(animate: true));
+    }
+  }
+
+  @override
+  void dispose() {
+    _scroll.dispose();
+    super.dispose();
+  }
+
+  void _updateFade() {
+    if (!_scroll.hasClients) return;
+    final p = _scroll.position;
+    final s = p.pixels > 4;
+    final e = p.pixels < p.maxScrollExtent - 4;
+    if (s != _startFade || e != _endFade) {
+      setState(() {
+        _startFade = s;
+        _endFade = e;
+      });
+    }
+  }
+
+  void _reveal({required bool animate}) {
+    if (!mounted) return;
+    _updateFade();
+    final i = widget.selected;
+    if (i < 0 || i >= _keys.length) return;
+    final ctx = _keys[i].currentContext;
+    if (ctx == null || !_scroll.hasClients) return;
+    // Zaten tamamen görünüyorsa kaydırma (gereksiz hareket olmasın).
+    final box = ctx.findRenderObject() as RenderBox?;
+    final vp = context.findRenderObject() as RenderBox?;
+    if (box == null || vp == null || !box.hasSize || !vp.hasSize) return;
+    final tl = box.localToGlobal(Offset.zero, ancestor: vp);
+    final inView = tl.dx >= 8 && tl.dx + box.size.width <= vp.size.width - 8;
+    if (inView) return;
+    final d = (animate && !_first && !BuMotion.reduced(context)) ? BuMotion.medium : Duration.zero;
+    _first = false;
+    Scrollable.ensureVisible(ctx, alignment: .5, duration: d, curve: BuMotion.emphasized);
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return SizedBox(
+    final rtl = Directionality.of(context) == TextDirection.rtl;
+    const w = 24.0;
+    // dstIn maskesinde yalnız alfa önemli: renk belirtecinden türetilir (sihirli renk yok).
+    final solid = context.bu.bg;
+    final clear = solid.withValues(alpha: 0);
+    Widget row = SizedBox(
       height: 52,
-      child: ListView.separated(
+      child: SingleChildScrollView(
+        controller: _scroll,
         scrollDirection: Axis.horizontal,
-        padding: padding,
-        itemCount: labels.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 8),
-        itemBuilder: (context, i) => BuChip(
-          label: labels[i],
-          selected: i == selected,
-          icon: icons != null && i < icons!.length ? icons![i] : null,
-          onTap: () => onSelected(i),
+        padding: widget.padding,
+        child: Row(
+          children: [
+            for (var i = 0; i < widget.labels.length; i++) ...[
+              if (i > 0) const SizedBox(width: 8),
+              KeyedSubtree(
+                key: _keys[i],
+                child: BuChip(
+                  label: widget.labels[i],
+                  selected: i == widget.selected,
+                  icon: widget.icons != null && i < widget.icons!.length ? widget.icons![i] : null,
+                  onTap: () => widget.onSelected(i),
+                ),
+              ),
+            ],
+          ],
         ),
       ),
     );
+    if (_startFade || _endFade) {
+      // Fiziksel sol/sağ: RTL'de başlangıç sağdadır.
+      final leftFade = rtl ? _endFade : _startFade;
+      final rightFade = rtl ? _startFade : _endFade;
+      row = ShaderMask(
+        blendMode: BlendMode.dstIn,
+        shaderCallback: (r) => LinearGradient(
+          colors: [clear, solid, solid, clear],
+          stops: [0, leftFade ? w / r.width : 0, rightFade ? 1 - w / r.width : 1, 1],
+        ).createShader(r),
+        child: row,
+      );
+    }
+    return row;
   }
 }
