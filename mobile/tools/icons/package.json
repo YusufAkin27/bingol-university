@@ -1,0 +1,8 @@
+{
+  "name": "bu-icons-tools",
+  "private": true,
+  "description": "Ikon yazi tipi dogrulama araci (yalniz gelistirme; uygulamaya girmez)",
+  "devDependencies": {
+    "@resvg/resvg-js": "2.6.2"
+  }
+}

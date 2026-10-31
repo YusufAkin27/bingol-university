@@ -375,3 +375,70 @@ Bu iki ikon için tek paket politikası tercih edilirse özel SVG (`assets/icons
 ## 10. Öneri
 
 **Şartlı evet.** Görsel olarak tutarlı ve sosyal uygulama diline uygun (yuvarlak uçlar, bol ikon), %99 kapsama ve ağaç budaması çalışıyor, boyut etkisi ihmal edilebilir. Ancak: (a) dolu hâlleri kaybetmek alt çubuk/beğeni tasarımını yeniden düşünmeyi gerektirir, (b) `IconData` tabanlı API ve 48 test dosyası değişir, (c) SVG çizim yolu Lucide yazı tipinden pahalıdır, cihazda doğrulanmadı. **Önce** tahtadaki "alt bar etkin/pasif" ve "mini önizleme" sayfalarını onaylayın; onaydan sonra geçiş `BuIcons` sözlüğü üzerinden tek dalda yapılır, kare süresi ölçümü kabul koşulu olur (profil modu, 500 satırlık sohbet/haber listesi).
+
+## 11. Uygulama kararı (font yöntemi) — ICONS-MIGRATE 1. faz
+
+Durum: **araç hattı, font ve sözlük hazır; kod geçişi (2. faz) yapılmadı.** Tarih: 2026-11-01.
+
+### 11.1 Neden `HugeIcon` widget'ı değil, kendi yazı tipimiz
+
+Bölüm 3.1'deki ölçüm (SVG dizgisi + `SvgPicture`, ikon başına 8 widget, ~1,5-1,8x yavaş) kullanıcının "telefonu zorlamayan, ucuz render" kuralıyla çelişir. Çözüm: Hugeicons **glif verisinden** statik bir yazı tipi (`mobile/assets/fonts/BuIcons.ttf`) üretmek.
+
+| Özellik | Font (seçilen) | `HugeIcon` |
+|---|---|---|
+| Çizim maliyeti | Lucide ile aynı (statik glif, `Icon` = 1 `RichText`) | SVG ayrıştırma + widget ağacı |
+| `IconData` tipi | **değişmez** (73 dosyada tip değişikliği yok) | `BuIconData` sarmalayıcı gerekir |
+| `IconTheme` (boyut/renk/opaklık), `semanticLabel`, RTL, ağaç budaması | çalışır | boyut yok sayılır, etiket yok |
+| Çalışma zamanı bağımlılığı | yok (`hugeicons` uygulamada YOK) | `hugeicons` + `flutter_svg` kod yolu |
+| Boyut | 182 glif ≈ 118 KB ham; ağaç budamasıyla kullanılanlar kadar (Lucide 930 KB -> 65 KB gibi) | +0,1 MB |
+
+Sonuç: `Icon(BuIcons.home, size: 22, color: ...)`; `BuIconButton.icon`, `ClubMenuEntry` vb. `IconData` kalır. 2. faz **salt yeniden adlandırmadır**.
+
+### 11.2 Üretim hattı
+
+`mobile/tools/icons/` (ayrıntı ve komutlar `README.md`): `parse_doc_map.py` (bu belge bölüm 6 -> `icon_map.json`) -> `extract_hugeicons.py` (`hugeicons` **4.4.0** tarball'ından yalnız kullanılan 166 ikon, `hugeicons_subset.json`) -> `build_icons.py` (skia-pathops ile stroke'u kontura çevirir: **strokeWidth 1.75**, öğe başına cap/join; birleştirir; TTF `unitsPerEm` 2400, ascent = em, descent = 0 -> glif `Icon` kutusunda SVG ile birebir oturur; `bu_icons.dart`). Kod noktaları `icon_codepoints.json` ile ekleme-yalnız sabitlenir (0xE000...).
+
+Sürüm sabitleme: yalnız `hugeicons-4.4.0` (tarball'dan indirilir; alt küme repoda). 4.x sürümleri ikonları yeniden çizebilir; yükseltme bilinçli yapılır (`VERSION` + `extract_hugeicons.py` + `build_icons.py` + tahta bakışı).
+
+Üretimde bulunan ve çözülen tuzaklar (aynı hataya düşmemek için): (1) Skia stroker offset eğrilerini kaba kuadratik yaklaşıklar, 24 birimlik koordinatta daire kareye kayar -> geometri 100x büyütülüp stroke edilir; (2) `OpBuilder` ile çok operandli UNION, butt uçlu çizgi halka ile kesişince parça kaybeder (Share08) -> parçalar normalize edilip tek yolda toplanır, `simplify` yalnız alan doğrulamasından geçerse uygulanır, aksi hâlde örtüşen konturlar bırakılır (TrueType nonzero boyar); (3) çok alt yollu tek stroke'u birleştirirken parça kaybı (UserCog) -> alt yollar ayrı stroke edilir; (4) `SquareArrowOutUpRight` oku Skia `simplify` için dejeneredir -> yukarıdaki geri düşüş.
+
+### 11.3 Glif kalitesi (ölçüldü)
+
+Bağımsız referans: aynı SVG, `resvg` ile (stroke 1.75). Aday: `BuIcons.ttf`, FreeType (PIL). `verify_icons.py`, 182 glif:
+
+| Ölçü | Sonuç |
+|---|---|
+| 24 dp @8x (192 px) kapsama IoU | ortalama 0,987; en düşük 0,942 (zapOff) |
+| 16 / 20 / 24 dp (8x üst örnek, kutu süzgeci) ortalama mutlak fark | 0,0070 / 0,0065 / 0,0030; en kötü 0,023 (qrCode, 16 dp) |
+| Mürekkep oranı font/referans (16 dp) | 0,984 – 1,018 (kalınlık sapması ≤ %2) |
+| Eşik dışı (IoU < 0,93, mürekkep ±%5, 24 dp farkı > 0,03) | yok |
+| Boş/yarım/delikli glif | yok (flutter test: 182 glif 24 dp'de boş değil, ortalı, kutuya taşmıyor) |
+
+Lucide ile karşılaştırma (165 ortak ad): sınırlayıcı kutu oranı BuIcons/Lucide **medyan 0,989** (p10 0,933, p90 1,047); yani bölüm 4'teki "~%8 küçük" gözlemi font yöntemiyle **doğrulanmadı**, boyut yaklaşık aynıdır. Mürekkep oranı medyan **0,877**: 1.75 çizgi Lucide 2.0'dan ~%12 daha az boyayı kullanır (daha hafif görünüm). Bu yüzden **em-ölçek katsayısı uygulanmadı** (`build_icons.py --scale 1.0` varsayılan); ağırlığı artırmak isterseniz `bu_icon_lib.STROKE_WIDTH` (1.75 -> 2.0) ve yeniden üretim tek yerdir. 14 dp altı kullanımlar (15 yer, bkz. 11.6) yine ince görünür; `BuIconSize.minLegible = 14` öneri sabitidir.
+
+Kontrol tahtaları (`C:\bu_design\icons\`): `migrate_kontrol_01..07_referans_font.png` (her glif: referans SVG | font | fark, 24 ve 16 dp, 4x), `migrate_kontrol_lucide_karsilastirma_1..4.png` (Lucide solda, BuIcons sağda, 24/16 dp), `migrate_kontrol_dolu_haller.png`, `migrate_kontrol_alt_bar.png`.
+
+### 11.4 Dolu hâller
+
+Ücretsiz küme yalnız çizgi stilidir; dolu glifler çizgi verisinden **kapalı şekillerin dolgusu + iç ayrıntının oyulması** ile üretildi (`bu_icon_lib.FILLED_RECIPES`): `heartFilled`, `starFilled`, `bookmarkFilled`, `bellFilled`, `homeFilled`, `chatFilled` (noktalar oyuk), `usersFilled`, `discoverFilled` (ibre oyuk), `circleCheckFilled` (tik oyuk), `circleAlertFilled`, `triangleAlertFilled`, `playFilled`, `pauseFilled` (13/13 üretildi). Alt bar önerisi (tahta 10 ile uyumlu): ana yöntem **renk + yumuşak hap zemin** (çizgi glif), dolu glif isteğe bağlı ikinci seçenektir (`migrate_kontrol_alt_bar.png` her iki satırı gösterir). Pusula doluyken ibre oyuk kalır (tahta 10'daki "iğne kaybolur" sorunu yok).
+
+### 11.5 Lisans
+
+MIT metni `mobile/assets/licenses/hugeicons-MIT.txt` (pubspec varlığı). Uygulamada lisans sayfası yoktu; `lib/core/icons/bu_icon_licenses.dart` `registerBuIconLicenses()` ile `LicenseRegistry`'ye kaydeder (2. fazda `main()` içinden bir kez çağrılır; Ayarlar > Hakkında > lisanslar sayfası ayrı iştir). Lucide (ISC) için de aynı eksik hâlâ geçerli.
+
+### 11.6 2. faz planı (mekanik değişim)
+
+Kuru çalıştırma (`python -I -X utf8 mobile/tools/icons/migrate_usages.py --dry-run`, 2026-11-01 ağacı):
+
+| Ölçü | Sayı |
+|---|---|
+| Taranan / değişecek dosya | 507 / 187 (lib 145, test 42) |
+| Değişim | `LucideIcons` 1082 + `Icons` 47 = **1129** |
+| Sınıf | `Icon(` doğrudan 350, `IconData` taşıyan parametre/liste 660, `==` karşılaştırma 10 (`buDirIcon`), `find.byIcon` 109 |
+| `IconData` tipi geçen dosya | 78 (**tip değişmez**) |
+| `widgets/bu.dart` ihracıyla gelecek (import eklenmez) / import eklenecek | 155 / 29 |
+| Lucide'de kalan (karşılıksız) kullanım | `delete` 3, `keyboard` 3 (`BuIcons.delete`/`keyboard` Lucide'e işaret eder) |
+| Eşlemede olmayan (atlanır, yalnız test dosyalarında) | Lucide: mail, house, flame, moon, paperclip, terminal, gavel, key, signal, wifi, batteryFull; Material: 20 ad (bookmark_border, mode_comment_outlined, send, share, ...) |
+
+Adımlar: (1) `widgets/bu.dart`'a `export '../core/icons/bu_icons.dart';` ekle; (2) `migrate_usages.py --apply`; (3) `bu_widgets.dart` `buDirIcon`'u `buIconDirection`'a yönlendir (veya bırak; `BuIcons` sabitleriyle zaten çalışır); (4) `main()`'e `registerBuIconLicenses()`; (5) `floating_nav.dart`, `like_button.dart`, `poll_parts.dart` gibi Material çiftli yerleri elle gözden geçir (script "elle gözden geçirilecek" listesi: alt bar `home`/`homeFilled` vb.); (6) `flutter analyze` + `flutter test` tamamı; (7) `lucide_icons_flutter` yalnız `BuIcons.delete/keyboard` için kalır; ayrı iş: o iki ikonu özel SVG/glifle çıkarıp bağımlılığı kaldırmak.
+Not: belge bölüm 8-9'daki `BuIcon` widget'ı, `BuIconData`, SVG önbelleği, 48 test dosyasında `findBuIcon` yardımcısı gereksizdir; `find.byIcon(BuIcons.x)` aynen çalışır.

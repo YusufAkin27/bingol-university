@@ -1,0 +1,1182 @@
+{
+ "hugeicons_version": "4.4.0",
+ "lucide_keep": [
+  "delete",
+  "keyboard"
+ ],
+ "filled": [
+  "heart",
+  "star",
+  "bookmark",
+  "bell",
+  "home",
+  "chat",
+  "users",
+  "discover",
+  "circleCheck",
+  "circleAlert",
+  "triangleAlert",
+  "play",
+  "pause"
+ ],
+ "glyphs": {
+  "alarmClock": "AlarmClock",
+  "archive": "Archive",
+  "archiveRestore": "ArchiveRestore",
+  "arrowLeft": "ArrowLeft02",
+  "arrowLeftRight": "ArrowLeftRight",
+  "arrowRight": "ArrowRight02",
+  "arrowUp": "ArrowUp02",
+  "arrowUpRight": "ArrowUpRight01",
+  "atSign": "AtSign",
+  "atom": "Atom02",
+  "backpack": "Backpack01",
+  "ban": "Ban",
+  "bell": "Notification01",
+  "bellOff": "NotificationOff01",
+  "bellRing": "BellRing",
+  "bookOpen": "BookOpen01",
+  "bookmark": "Bookmark01",
+  "building2": "Building02",
+  "calendar": "Calendar04",
+  "calendarCheck": "CalendarCheck01",
+  "calendarClock": "CalendarClock",
+  "calendarDays": "CalendarDays",
+  "calendarPlus": "CalendarAdd01",
+  "calendarX": "CalendarX",
+  "camera": "Camera01",
+  "cameraOff": "CameraOff01",
+  "chartPie": "PieChart",
+  "chat": "BubbleChat",
+  "check": "Tick02",
+  "checkCheck": "TickDouble01",
+  "chevronDown": "ChevronDown",
+  "chevronLeft": "ChevronLeft",
+  "chevronRight": "ChevronRight",
+  "chevronUp": "ChevronUp",
+  "circleAlert": "AlertCircle",
+  "circleCheck": "CheckmarkCircle02",
+  "circleDot": "CircleDot",
+  "circleHelp": "HelpCircle",
+  "circlePause": "PauseCircle",
+  "circlePlay": "PlayCircle",
+  "circlePlus": "AddCircle",
+  "circleX": "CancelCircle",
+  "clapperboard": "Clapperboard",
+  "clipboardCheck": "ClipboardCheck",
+  "clipboardList": "ClipboardList",
+  "clock": "Clock01",
+  "cloudOff": "CloudOff",
+  "coffee": "Coffee02",
+  "compass": "DiscoverCircle",
+  "contact": "Contact01",
+  "copy": "Copy01",
+  "cpu": "Cpu",
+  "crop": "Crop",
+  "discover": "DiscoverCircle",
+  "doorOpen": "DoorOpen",
+  "download": "Download01",
+  "ellipsis": "MoreHorizontal",
+  "ellipsisVertical": "MoreVertical",
+  "eye": "View",
+  "eyeOff": "EyeOff",
+  "fileSearch": "FileSearch",
+  "fileText": "FileText",
+  "flag": "Flag02",
+  "flashlight": "Flashlight",
+  "flashlightOff": "FlashlightOff",
+  "focus": "Focus",
+  "forward": "Redo01",
+  "globe": "Globe02",
+  "graduationCap": "GraduationCap",
+  "gripVertical": "GripVertical",
+  "hand": "Hand",
+  "hash": "Hash",
+  "headset": "Headset",
+  "heart": "Favourite",
+  "history": "History",
+  "home": "Home01",
+  "hourglass": "Hourglass",
+  "idCard": "IdCard",
+  "image": "Image02",
+  "imageDown": "ImageDown",
+  "imageOff": "ImageOff",
+  "imagePlus": "ImageAdd01",
+  "images": "Images",
+  "inbox": "Inbox",
+  "info": "InformationCircle",
+  "landmark": "Landmark",
+  "laptop": "Laptop",
+  "library": "Library",
+  "lightbulb": "Lightbulb",
+  "listChecks": "ListChecks",
+  "listOrdered": "ListOrdered",
+  "lock": "LockKeyhole",
+  "lockKeyhole": "LockKeyhole",
+  "lockOpen": "LockOpen",
+  "logOut": "Logout01",
+  "mailCheck": "MailCheck",
+  "mapPin": "Location01",
+  "megaphone": "Megaphone02",
+  "messageCircle": "MessageCircle",
+  "messageSquare": "MessageSquare",
+  "messageSquareText": "MessageSquareText",
+  "mic": "Mic01",
+  "micOff": "MicOff01",
+  "minus": "Minus",
+  "music": "Music02",
+  "newspaper": "Newspaper",
+  "notebookPen": "NotebookPen",
+  "octagonAlert": "OctagonAlert",
+  "palette": "Palette",
+  "pause": "Pause",
+  "pencil": "Pen01",
+  "pencilLine": "PencilLine",
+  "pin": "Pin",
+  "pinOff": "PinOff",
+  "play": "Play",
+  "plus": "Add01",
+  "qrCode": "QrCode",
+  "refreshCcw": "RefreshCcw",
+  "refreshCw": "RefreshCw",
+  "repeat": "Repeat",
+  "repeat2": "Repeat",
+  "reply": "Reply",
+  "rotateCcw": "Undo",
+  "rotateCw": "Redo",
+  "save": "Save",
+  "search": "Search01",
+  "searchX": "SearchX",
+  "send": "Sent",
+  "settings": "Settings01",
+  "share2": "Share08",
+  "shield": "Shield01",
+  "shieldAlert": "ShieldAlert",
+  "shieldBan": "ShieldBan",
+  "shieldCheck": "ShieldCheck",
+  "shieldX": "ShieldX",
+  "slidersHorizontal": "SlidersHorizontal",
+  "smartphone": "Smartphone",
+  "squareArrowOutUpRight": "SquareArrowOutUpRight",
+  "squarePen": "SquarePen",
+  "squareTerminal": "SquareTerminal",
+  "star": "Star",
+  "switchCamera": "SwitchCamera",
+  "tag": "Tag01",
+  "textAlignStart": "TextAlignStart",
+  "thumbsUp": "ThumbsUp",
+  "timerOff": "TimerOff",
+  "trash2": "Delete02",
+  "triangleAlert": "Alert01",
+  "trophy": "Trophy",
+  "undo2": "Undo03",
+  "user": "User",
+  "userCheck": "UserCheck01",
+  "userCog": "UserCog",
+  "userMinus": "UserMinus01",
+  "userPlus": "UserAdd01",
+  "userSearch": "UserSearch01",
+  "userX": "UserX",
+  "users": "UserGroup",
+  "utensils": "Utensils",
+  "video": "Video01",
+  "videoOff": "VideoOff",
+  "volleyball": "Volleyball",
+  "vote": "Vote",
+  "wandSparkles": "WandSparkles",
+  "wifiOff": "WifiOff01",
+  "wrench": "Wrench01",
+  "x": "Cancel01",
+  "zap": "Zap",
+  "zapOff": "ZapOff"
+ },
+ "lucide": {
+  "x": {
+   "huge": "Cancel01",
+   "conf": "birebir",
+   "uses": 49
+  },
+  "chevronRight": {
+   "huge": "ChevronRight",
+   "conf": "birebir",
+   "uses": 40
+  },
+  "check": {
+   "huge": "Tick02",
+   "conf": "birebir",
+   "uses": 33
+  },
+  "trash2": {
+   "huge": "Delete02",
+   "conf": "birebir",
+   "uses": 33
+  },
+  "circleAlert": {
+   "huge": "AlertCircle",
+   "conf": "birebir",
+   "uses": 30
+  },
+  "arrowLeft": {
+   "huge": "ArrowLeft02",
+   "conf": "birebir",
+   "uses": 24
+  },
+  "clock": {
+   "huge": "Clock01",
+   "conf": "birebir",
+   "uses": 23
+  },
+  "image": {
+   "huge": "Image02",
+   "conf": "birebir",
+   "uses": 23
+  },
+  "info": {
+   "huge": "InformationCircle",
+   "conf": "birebir",
+   "uses": 23
+  },
+  "lock": {
+   "huge": "LockKeyhole",
+   "conf": "yak\u0131n",
+   "uses": 20
+  },
+  "users": {
+   "huge": "UserGroup",
+   "conf": "yak\u0131n",
+   "uses": 20
+  },
+  "search": {
+   "huge": "Search01",
+   "conf": "birebir",
+   "uses": 19
+  },
+  "refreshCw": {
+   "huge": "RefreshCw",
+   "conf": "birebir",
+   "uses": 18
+  },
+  "camera": {
+   "huge": "Camera01",
+   "conf": "birebir",
+   "uses": 17
+  },
+  "logOut": {
+   "huge": "Logout01",
+   "conf": "birebir",
+   "uses": 16
+  },
+  "triangleAlert": {
+   "huge": "Alert01",
+   "conf": "birebir",
+   "uses": 16
+  },
+  "ban": {
+   "huge": "Ban",
+   "conf": "birebir",
+   "uses": 14
+  },
+  "calendar": {
+   "huge": "Calendar04",
+   "conf": "birebir",
+   "uses": 14
+  },
+  "userPlus": {
+   "huge": "UserAdd01",
+   "conf": "yak\u0131n",
+   "uses": 14
+  },
+  "chevronDown": {
+   "huge": "ChevronDown",
+   "conf": "birebir",
+   "uses": 13
+  },
+  "calendarDays": {
+   "huge": "CalendarDays",
+   "conf": "birebir",
+   "uses": 11
+  },
+  "circleCheck": {
+   "huge": "CheckmarkCircle02",
+   "conf": "birebir",
+   "uses": 11
+  },
+  "pencil": {
+   "huge": "Pen01",
+   "conf": "birebir",
+   "uses": 10
+  },
+  "plus": {
+   "huge": "Add01",
+   "conf": "birebir",
+   "uses": 10
+  },
+  "wifiOff": {
+   "huge": "WifiOff01",
+   "conf": "birebir",
+   "uses": 9
+  },
+  "bell": {
+   "huge": "Notification01",
+   "conf": "birebir",
+   "uses": 8
+  },
+  "calendarX": {
+   "huge": "CalendarX",
+   "conf": "birebir",
+   "uses": 8
+  },
+  "ellipsis": {
+   "huge": "MoreHorizontal",
+   "conf": "birebir",
+   "uses": 8
+  },
+  "images": {
+   "huge": "Images",
+   "conf": "birebir",
+   "uses": 8
+  },
+  "arrowUp": {
+   "huge": "ArrowUp02",
+   "conf": "birebir",
+   "uses": 7
+  },
+  "bellOff": {
+   "huge": "NotificationOff01",
+   "conf": "birebir",
+   "uses": 7
+  },
+  "ellipsisVertical": {
+   "huge": "MoreVertical",
+   "conf": "birebir",
+   "uses": 7
+  },
+  "flag": {
+   "huge": "Flag02",
+   "conf": "birebir",
+   "uses": 7
+  },
+  "graduationCap": {
+   "huge": "GraduationCap",
+   "conf": "birebir",
+   "uses": 7
+  },
+  "imageOff": {
+   "huge": "ImageOff",
+   "conf": "birebir",
+   "uses": 7
+  },
+  "settings": {
+   "huge": "Settings01",
+   "conf": "birebir",
+   "uses": 7
+  },
+  "user": {
+   "huge": "User",
+   "conf": "birebir",
+   "uses": 7
+  },
+  "userMinus": {
+   "huge": "UserMinus01",
+   "conf": "yak\u0131n",
+   "uses": 7
+  },
+  "cloudOff": {
+   "huge": "CloudOff",
+   "conf": "birebir",
+   "uses": 6
+  },
+  "eyeOff": {
+   "huge": "EyeOff",
+   "conf": "birebir",
+   "uses": 6
+  },
+  "megaphone": {
+   "huge": "Megaphone02",
+   "conf": "birebir",
+   "uses": 6
+  },
+  "messageCircle": {
+   "huge": "MessageCircle",
+   "conf": "birebir",
+   "uses": 6
+  },
+  "shield": {
+   "huge": "Shield01",
+   "conf": "birebir",
+   "uses": 6
+  },
+  "arrowRight": {
+   "huge": "ArrowRight02",
+   "conf": "birebir",
+   "uses": 5
+  },
+  "bookmark": {
+   "huge": "Bookmark01",
+   "conf": "birebir",
+   "uses": 5
+  },
+  "chevronLeft": {
+   "huge": "ChevronLeft",
+   "conf": "birebir",
+   "uses": 5
+  },
+  "circleX": {
+   "huge": "CancelCircle",
+   "conf": "birebir",
+   "uses": 5
+  },
+  "download": {
+   "huge": "Download01",
+   "conf": "birebir",
+   "uses": 5
+  },
+  "heart": {
+   "huge": "Favourite",
+   "conf": "birebir",
+   "uses": 5
+  },
+  "lockOpen": {
+   "huge": "LockOpen",
+   "conf": "birebir",
+   "uses": 5
+  },
+  "star": {
+   "huge": "Star",
+   "conf": "birebir",
+   "uses": 5
+  },
+  "userCheck": {
+   "huge": "UserCheck01",
+   "conf": "yak\u0131n",
+   "uses": 5
+  },
+  "video": {
+   "huge": "Video01",
+   "conf": "yak\u0131n",
+   "uses": 5
+  },
+  "archive": {
+   "huge": "Archive",
+   "conf": "birebir",
+   "uses": 4
+  },
+  "bookOpen": {
+   "huge": "BookOpen01",
+   "conf": "birebir",
+   "uses": 4
+  },
+  "calendarCheck": {
+   "huge": "CalendarCheck01",
+   "conf": "yak\u0131n",
+   "uses": 4
+  },
+  "checkCheck": {
+   "huge": "TickDouble01",
+   "conf": "yak\u0131n",
+   "uses": 4
+  },
+  "circleHelp": {
+   "huge": "HelpCircle",
+   "conf": "birebir",
+   "uses": 4
+  },
+  "eye": {
+   "huge": "View",
+   "conf": "birebir",
+   "uses": 4
+  },
+  "hourglass": {
+   "huge": "Hourglass",
+   "conf": "birebir",
+   "uses": 4
+  },
+  "imagePlus": {
+   "huge": "ImageAdd01",
+   "conf": "yak\u0131n",
+   "uses": 4
+  },
+  "play": {
+   "huge": "Play",
+   "conf": "birebir",
+   "uses": 4
+  },
+  "rotateCw": {
+   "huge": "Redo",
+   "conf": "yak\u0131n",
+   "uses": 4
+  },
+  "send": {
+   "huge": "Sent",
+   "conf": "birebir",
+   "uses": 4
+  },
+  "shieldAlert": {
+   "huge": "ShieldAlert",
+   "conf": "birebir",
+   "uses": 4
+  },
+  "userSearch": {
+   "huge": "UserSearch01",
+   "conf": "yak\u0131n",
+   "uses": 4
+  },
+  "wrench": {
+   "huge": "Wrench01",
+   "conf": "yak\u0131n",
+   "uses": 4
+  },
+  "calendarPlus": {
+   "huge": "CalendarAdd01",
+   "conf": "yak\u0131n",
+   "uses": 3
+  },
+  "cameraOff": {
+   "huge": "CameraOff01",
+   "conf": "birebir",
+   "uses": 3
+  },
+  "history": {
+   "huge": "History",
+   "conf": "birebir",
+   "uses": 3
+  },
+  "idCard": {
+   "huge": "IdCard",
+   "conf": "birebir",
+   "uses": 3
+  },
+  "inbox": {
+   "huge": "Inbox",
+   "conf": "yak\u0131n",
+   "uses": 3
+  },
+  "mapPin": {
+   "huge": "Location01",
+   "conf": "birebir",
+   "uses": 3
+  },
+  "messageSquare": {
+   "huge": "MessageSquare",
+   "conf": "yak\u0131n",
+   "uses": 3
+  },
+  "newspaper": {
+   "huge": "Newspaper",
+   "conf": "yak\u0131n",
+   "uses": 3
+  },
+  "reply": {
+   "huge": "Reply",
+   "conf": "birebir",
+   "uses": 3
+  },
+  "undo2": {
+   "huge": "Undo03",
+   "conf": "birebir",
+   "uses": 3
+  },
+  "archiveRestore": {
+   "huge": "ArchiveRestore",
+   "conf": "birebir",
+   "uses": 2
+  },
+  "arrowLeftRight": {
+   "huge": "ArrowLeftRight",
+   "conf": "birebir",
+   "uses": 2
+  },
+  "arrowUpRight": {
+   "huge": "ArrowUpRight01",
+   "conf": "birebir",
+   "uses": 2
+  },
+  "building2": {
+   "huge": "Building02",
+   "conf": "yak\u0131n",
+   "uses": 2
+  },
+  "chevronUp": {
+   "huge": "ChevronUp",
+   "conf": "birebir",
+   "uses": 2
+  },
+  "circlePlus": {
+   "huge": "AddCircle",
+   "conf": "birebir",
+   "uses": 2
+  },
+  "compass": {
+   "huge": "DiscoverCircle",
+   "conf": "birebir",
+   "uses": 2
+  },
+  "contact": {
+   "huge": "Contact01",
+   "conf": "yak\u0131n",
+   "uses": 2
+  },
+  "crop": {
+   "huge": "Crop",
+   "conf": "birebir",
+   "uses": 2
+  },
+  "fileText": {
+   "huge": "FileText",
+   "conf": "birebir",
+   "uses": 2
+  },
+  "globe": {
+   "huge": "Globe02",
+   "conf": "birebir",
+   "uses": 2
+  },
+  "gripVertical": {
+   "huge": "GripVertical",
+   "conf": "birebir",
+   "uses": 2
+  },
+  "headset": {
+   "huge": "Headset",
+   "conf": "birebir",
+   "uses": 2
+  },
+  "landmark": {
+   "huge": "Landmark",
+   "conf": "birebir",
+   "uses": 2
+  },
+  "mic": {
+   "huge": "Mic01",
+   "conf": "birebir",
+   "uses": 2
+  },
+  "minus": {
+   "huge": "Minus",
+   "conf": "birebir",
+   "uses": 2
+  },
+  "music": {
+   "huge": "Music02",
+   "conf": "birebir",
+   "uses": 2
+  },
+  "palette": {
+   "huge": "Palette",
+   "conf": "birebir",
+   "uses": 2
+  },
+  "pin": {
+   "huge": "Pin",
+   "conf": "yak\u0131n",
+   "uses": 2
+  },
+  "share2": {
+   "huge": "Share08",
+   "conf": "birebir",
+   "uses": 2
+  },
+  "shieldCheck": {
+   "huge": "ShieldCheck",
+   "conf": "birebir",
+   "uses": 2
+  },
+  "squarePen": {
+   "huge": "SquarePen",
+   "conf": "birebir",
+   "uses": 2
+  },
+  "textAlignStart": {
+   "huge": "TextAlignStart",
+   "conf": "birebir",
+   "uses": 2
+  },
+  "trophy": {
+   "huge": "Trophy",
+   "conf": "birebir",
+   "uses": 2
+  },
+  "userX": {
+   "huge": "UserX",
+   "conf": "yak\u0131n",
+   "uses": 2
+  },
+  "utensils": {
+   "huge": "Utensils",
+   "conf": "yak\u0131n",
+   "uses": 2
+  },
+  "alarmClock": {
+   "huge": "AlarmClock",
+   "conf": "birebir",
+   "uses": 1
+  },
+  "atSign": {
+   "huge": "AtSign",
+   "conf": "birebir",
+   "uses": 1
+  },
+  "atom": {
+   "huge": "Atom02",
+   "conf": "birebir",
+   "uses": 1
+  },
+  "backpack": {
+   "huge": "Backpack01",
+   "conf": "yak\u0131n",
+   "uses": 1
+  },
+  "bellRing": {
+   "huge": "BellRing",
+   "conf": "birebir",
+   "uses": 1
+  },
+  "calendarClock": {
+   "huge": "CalendarClock",
+   "conf": "yak\u0131n",
+   "uses": 1
+  },
+  "chartPie": {
+   "huge": "PieChart",
+   "conf": "birebir",
+   "uses": 1
+  },
+  "circleDot": {
+   "huge": "CircleDot",
+   "conf": "birebir",
+   "uses": 1
+  },
+  "circlePause": {
+   "huge": "PauseCircle",
+   "conf": "birebir",
+   "uses": 1
+  },
+  "circlePlay": {
+   "huge": "PlayCircle",
+   "conf": "birebir",
+   "uses": 1
+  },
+  "clapperboard": {
+   "huge": "Clapperboard",
+   "conf": "yak\u0131n",
+   "uses": 1
+  },
+  "clipboardCheck": {
+   "huge": "ClipboardCheck",
+   "conf": "birebir",
+   "uses": 1
+  },
+  "clipboardList": {
+   "huge": "ClipboardList",
+   "conf": "birebir",
+   "uses": 1
+  },
+  "coffee": {
+   "huge": "Coffee02",
+   "conf": "birebir",
+   "uses": 1
+  },
+  "copy": {
+   "huge": "Copy01",
+   "conf": "birebir",
+   "uses": 1
+  },
+  "cpu": {
+   "huge": "Cpu",
+   "conf": "yak\u0131n",
+   "uses": 1
+  },
+  "delete": {
+   "huge": "Delete01",
+   "conf": "zay\u0131f",
+   "uses": 1
+  },
+  "doorOpen": {
+   "huge": "DoorOpen",
+   "conf": "yak\u0131n",
+   "uses": 1
+  },
+  "fileSearch": {
+   "huge": "FileSearch",
+   "conf": "birebir",
+   "uses": 1
+  },
+  "flashlight": {
+   "huge": "Flashlight",
+   "conf": "birebir",
+   "uses": 1
+  },
+  "flashlightOff": {
+   "huge": "FlashlightOff",
+   "conf": "birebir",
+   "uses": 1
+  },
+  "focus": {
+   "huge": "Focus",
+   "conf": "yak\u0131n",
+   "uses": 1
+  },
+  "forward": {
+   "huge": "Redo01",
+   "conf": "yak\u0131n",
+   "uses": 1
+  },
+  "hand": {
+   "huge": "Hand",
+   "conf": "yak\u0131n",
+   "uses": 1
+  },
+  "hash": {
+   "huge": "Hash",
+   "conf": "birebir",
+   "uses": 1
+  },
+  "imageDown": {
+   "huge": "ImageDown",
+   "conf": "birebir",
+   "uses": 1
+  },
+  "keyboard": {
+   "huge": "Keyboard",
+   "conf": "zay\u0131f",
+   "uses": 1
+  },
+  "laptop": {
+   "huge": "Laptop",
+   "conf": "birebir",
+   "uses": 1
+  },
+  "library": {
+   "huge": "Library",
+   "conf": "yak\u0131n",
+   "uses": 1
+  },
+  "lightbulb": {
+   "huge": "Lightbulb",
+   "conf": "birebir",
+   "uses": 1
+  },
+  "listChecks": {
+   "huge": "ListChecks",
+   "conf": "birebir",
+   "uses": 1
+  },
+  "listOrdered": {
+   "huge": "ListOrdered",
+   "conf": "birebir",
+   "uses": 1
+  },
+  "lockKeyhole": {
+   "huge": "LockKeyhole",
+   "conf": "birebir",
+   "uses": 1
+  },
+  "mailCheck": {
+   "huge": "MailCheck",
+   "conf": "birebir",
+   "uses": 1
+  },
+  "messageSquareText": {
+   "huge": "MessageSquareText",
+   "conf": "yak\u0131n",
+   "uses": 1
+  },
+  "micOff": {
+   "huge": "MicOff01",
+   "conf": "birebir",
+   "uses": 1
+  },
+  "notebookPen": {
+   "huge": "NotebookPen",
+   "conf": "yak\u0131n",
+   "uses": 1
+  },
+  "octagonAlert": {
+   "huge": "OctagonAlert",
+   "conf": "birebir",
+   "uses": 1
+  },
+  "pencilLine": {
+   "huge": "PencilLine",
+   "conf": "birebir",
+   "uses": 1
+  },
+  "pinOff": {
+   "huge": "PinOff",
+   "conf": "yak\u0131n",
+   "uses": 1
+  },
+  "qrCode": {
+   "huge": "QrCode",
+   "conf": "yak\u0131n",
+   "uses": 1
+  },
+  "refreshCcw": {
+   "huge": "RefreshCcw",
+   "conf": "birebir",
+   "uses": 1
+  },
+  "repeat": {
+   "huge": "Repeat",
+   "conf": "yak\u0131n",
+   "uses": 1
+  },
+  "repeat2": {
+   "huge": "Repeat",
+   "conf": "yak\u0131n",
+   "uses": 1
+  },
+  "rotateCcw": {
+   "huge": "Undo",
+   "conf": "yak\u0131n",
+   "uses": 1
+  },
+  "save": {
+   "huge": "Save",
+   "conf": "birebir",
+   "uses": 1
+  },
+  "searchX": {
+   "huge": "SearchX",
+   "conf": "birebir",
+   "uses": 1
+  },
+  "shieldBan": {
+   "huge": "ShieldBan",
+   "conf": "birebir",
+   "uses": 1
+  },
+  "shieldX": {
+   "huge": "ShieldX",
+   "conf": "birebir",
+   "uses": 1
+  },
+  "slidersHorizontal": {
+   "huge": "SlidersHorizontal",
+   "conf": "birebir",
+   "uses": 1
+  },
+  "smartphone": {
+   "huge": "Smartphone",
+   "conf": "birebir",
+   "uses": 1
+  },
+  "squareArrowOutUpRight": {
+   "huge": "SquareArrowOutUpRight",
+   "conf": "birebir",
+   "uses": 1
+  },
+  "squareTerminal": {
+   "huge": "SquareTerminal",
+   "conf": "birebir",
+   "uses": 1
+  },
+  "switchCamera": {
+   "huge": "SwitchCamera",
+   "conf": "yak\u0131n",
+   "uses": 1
+  },
+  "tag": {
+   "huge": "Tag01",
+   "conf": "birebir",
+   "uses": 1
+  },
+  "thumbsUp": {
+   "huge": "ThumbsUp",
+   "conf": "birebir",
+   "uses": 1
+  },
+  "timerOff": {
+   "huge": "TimerOff",
+   "conf": "birebir",
+   "uses": 1
+  },
+  "userCog": {
+   "huge": "UserCog",
+   "conf": "yak\u0131n",
+   "uses": 1
+  },
+  "videoOff": {
+   "huge": "VideoOff",
+   "conf": "birebir",
+   "uses": 1
+  },
+  "volleyball": {
+   "huge": "Volleyball",
+   "conf": "birebir",
+   "uses": 1
+  },
+  "vote": {
+   "huge": "Vote",
+   "conf": "yak\u0131n",
+   "uses": 1
+  },
+  "wandSparkles": {
+   "huge": "WandSparkles",
+   "conf": "birebir",
+   "uses": 1
+  },
+  "zap": {
+   "huge": "Zap",
+   "conf": "birebir",
+   "uses": 1
+  },
+  "zapOff": {
+   "huge": "ZapOff",
+   "conf": "birebir",
+   "uses": 1
+  }
+ },
+ "material": {
+  "check_rounded": {
+   "huge": "Tick02",
+   "conf": "birebir",
+   "uses": 3,
+   "bu": "check"
+  },
+  "favorite": {
+   "huge": "Favourite",
+   "conf": "yak\u0131n",
+   "uses": 3,
+   "bu": "heartFilled"
+  },
+  "play_arrow_rounded": {
+   "huge": "Play",
+   "conf": "yak\u0131n",
+   "uses": 3,
+   "bu": "playFilled"
+  },
+  "bookmark": {
+   "huge": "Bookmark01",
+   "conf": "yak\u0131n",
+   "uses": 2,
+   "bu": "bookmarkFilled"
+  },
+  "favorite_border": {
+   "huge": "Favourite",
+   "conf": "birebir",
+   "uses": 2,
+   "bu": "heart"
+  },
+  "more_horiz": {
+   "huge": "MoreHorizontal",
+   "conf": "birebir",
+   "uses": 2,
+   "bu": "ellipsis"
+  },
+  "add": {
+   "huge": "Add01",
+   "conf": "birebir",
+   "uses": 1,
+   "bu": "plus"
+  },
+  "chat_bubble_outline_rounded": {
+   "huge": "BubbleChat",
+   "conf": "yak\u0131n",
+   "uses": 1,
+   "bu": "chat"
+  },
+  "chat_bubble_rounded": {
+   "huge": "BubbleChat",
+   "conf": "yak\u0131n",
+   "uses": 1,
+   "bu": "chatFilled"
+  },
+  "check_circle": {
+   "huge": "CheckmarkCircle02",
+   "conf": "yak\u0131n",
+   "uses": 1,
+   "bu": "circleCheckFilled"
+  },
+  "check_circle_rounded": {
+   "huge": "CheckmarkCircle02",
+   "conf": "yak\u0131n",
+   "uses": 1,
+   "bu": "circleCheckFilled"
+  },
+  "construction": {
+   "huge": "Wrench01",
+   "conf": "yak\u0131n",
+   "uses": 1,
+   "bu": "wrench"
+  },
+  "error": {
+   "huge": "AlertCircle",
+   "conf": "yak\u0131n",
+   "uses": 1,
+   "bu": "circleAlertFilled"
+  },
+  "explore_outlined": {
+   "huge": "DiscoverCircle",
+   "conf": "yak\u0131n",
+   "uses": 1,
+   "bu": "discover"
+  },
+  "explore_rounded": {
+   "huge": "DiscoverCircle",
+   "conf": "yak\u0131n",
+   "uses": 1,
+   "bu": "discoverFilled"
+  },
+  "home_outlined": {
+   "huge": "Home01",
+   "conf": "yak\u0131n",
+   "uses": 1,
+   "bu": "home"
+  },
+  "home_rounded": {
+   "huge": "Home01",
+   "conf": "yak\u0131n",
+   "uses": 1,
+   "bu": "homeFilled"
+  },
+  "image_outlined": {
+   "huge": "Image02",
+   "conf": "yak\u0131n",
+   "uses": 1,
+   "bu": "image"
+  },
+  "info_outline": {
+   "huge": "InformationCircle",
+   "conf": "birebir",
+   "uses": 1,
+   "bu": "info"
+  },
+  "pause_rounded": {
+   "huge": "Pause",
+   "conf": "yak\u0131n",
+   "uses": 1,
+   "bu": "pauseFilled"
+  },
+  "people_outline_rounded": {
+   "huge": "UserGroup",
+   "conf": "yak\u0131n",
+   "uses": 1,
+   "bu": "users"
+  },
+  "people_rounded": {
+   "huge": "UserGroup",
+   "conf": "yak\u0131n",
+   "uses": 1,
+   "bu": "usersFilled"
+  },
+  "star_outline_rounded": {
+   "huge": "Star",
+   "conf": "birebir",
+   "uses": 1,
+   "bu": "star"
+  },
+  "star_rounded": {
+   "huge": "Star",
+   "conf": "yak\u0131n",
+   "uses": 1,
+   "bu": "starFilled"
+  },
+  "warning_rounded": {
+   "huge": "Alert01",
+   "conf": "yak\u0131n",
+   "uses": 1,
+   "bu": "triangleAlertFilled"
+  }
+ }
+}
