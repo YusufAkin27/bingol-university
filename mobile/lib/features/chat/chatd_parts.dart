@@ -194,3 +194,59 @@ class ChatdSkeleton extends StatelessWidget {
     );
   }
 }
+
+/// Sohbet başlığındaki "yazıyor" göstergesi: sondaki "…" yerine üç noktalı nabız (yalnız opacity; hareket
+/// azaltılmışsa durağan). Durum satırı ile "yazıyor" arasındaki geçiş kısa solma ile yapılır.
+class ChatTypingDots extends StatefulWidget {
+  const ChatTypingDots({super.key, required this.color});
+
+  final Color color;
+
+  @override
+  State<ChatTypingDots> createState() => _ChatTypingDotsState();
+}
+
+class _ChatTypingDotsState extends State<ChatTypingDots> with SingleTickerProviderStateMixin {
+  late final AnimationController _c = AnimationController(vsync: this, duration: const Duration(milliseconds: 1100));
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (BuMotion.reduced(context)) {
+      _c.stop();
+    } else if (!_c.isAnimating) {
+      _c.repeat();
+    }
+  }
+
+  @override
+  void dispose() {
+    _c.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final reduced = BuMotion.reduced(context);
+    return ExcludeSemantics(
+      child: RepaintBoundary(
+        child: AnimatedBuilder(
+          animation: _c,
+          builder: (context, _) => Row(mainAxisSize: MainAxisSize.min, children: [
+            for (var i = 0; i < 3; i++)
+              Padding(
+                padding: EdgeInsetsDirectional.only(start: i == 0 ? 0 : 3),
+                child: Opacity(
+                  opacity: reduced ? .7 : .25 + .75 * _pulse((_c.value - i * .16) % 1.0),
+                  child: Container(width: 4, height: 4, decoration: BoxDecoration(color: widget.color, shape: BoxShape.circle)),
+                ),
+              ),
+          ]),
+        ),
+      ),
+    );
+  }
+
+  /// 0..1 arası yumuşak tepe (ilk %45'te yükselip iner, geri kalanda dinlenir).
+  static double _pulse(double v) => v > .45 ? 0 : (1 - (v / .225 - 1).abs()).clamp(0.0, 1.0);
+}

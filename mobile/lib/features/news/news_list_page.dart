@@ -304,6 +304,8 @@ class _NewsListPageState extends State<NewsListPage> {
                     child: NewsTile(
                       item: n,
                       thumbSize: 72,
+                      // Sekme türü zaten söylüyor: her satırda tekrarlayan rozet gürültüdür.
+                      showType: false,
                       saved: _savedIds.contains((n['id'] as num).toInt()),
                       onToggleSave: () => _toggleSave(n),
                       onTap: () => _open(n),

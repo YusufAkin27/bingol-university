@@ -158,7 +158,8 @@ class NcPersonRow extends StatelessWidget {
               Text(name, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.titleSmall!.copyWith(color: t.ink, fontWeight: FontWeight.w700)),
               if (sub.isNotEmpty) ...[
                 const SizedBox(height: 2),
-                Text(sub, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.bodySmall!.copyWith(color: t.mut)),
+                // Sağdaki hap genişlik yer: bölüm adı kesilmek yerine 2 satıra iner.
+                Text(sub, maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.bodySmall!.copyWith(color: t.mut, height: 1.25)),
               ],
             ]),
           ),

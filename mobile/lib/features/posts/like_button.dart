@@ -240,9 +240,23 @@ class _LikeButtonState extends State<LikeButton> with TickerProviderStateMixin {
     return Row(mainAxisSize: MainAxisSize.min, children: [
       heart,
       if (_count > 0 || _countAnim.value < 1)
-        Padding(
-          padding: const EdgeInsetsDirectional.only(end: 4),
-          child: count,
+        // Sayaç kalp kutusunun boş payına doğru kayar (kalp 44 dp dokunma kutusunun başında durur): boşluk kapanır;
+        // sayaç da dokunma alanıdır (hit test dönüşümü izler).
+        Transform.translate(
+          offset: Offset(Directionality.of(context) == TextDirection.rtl ? 12 : -12, 0),
+          child: ExcludeSemantics(
+          child: GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: _toggle,
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(minHeight: 44, minWidth: 28),
+              child: Padding(
+                padding: const EdgeInsetsDirectional.only(end: 8),
+                child: Align(alignment: AlignmentDirectional.centerStart, widthFactor: 1, child: count),
+              ),
+            ),
+          ),
+          ),
         ),
     ]);
   }

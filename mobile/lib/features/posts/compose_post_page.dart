@@ -206,7 +206,13 @@ class _ComposePostPageState extends State<ComposePostPage> {
                   keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
                   padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
                   children: [
-                    _photoArea(t),
+                    // Seçici -> önizleme geçişi anında "zıplamaz": kısa solma (hareket azaltılmışsa anlık).
+                    AnimatedSwitcher(
+                      duration: BuMotion.of(context, BuMotion.medium),
+                      switchInCurve: BuMotion.standard,
+                      switchOutCurve: BuMotion.standard,
+                      child: KeyedSubtree(key: ValueKey(_photo != null), child: _photoArea(t)),
+                    ),
                     const SizedBox(height: 12),
                     _textField(t),
                     ..._errors(t),
@@ -395,11 +401,13 @@ class _ComposePostPageState extends State<ComposePostPage> {
 
   Widget _pill(Key key, IconData icon, String label, VoidCallback onTap) {
     final t = context.bu;
-    return Material(
+    // Fotoğraf üstünde yüzen hap: Material gölgesi koyu halka gibi görünüyordu; ortak yumuşak gölge kullanılır.
+    return DecoratedBox(
+      decoration: BoxDecoration(borderRadius: BorderRadius.circular(BuRadius.pill), boxShadow: BuElevation.of(context, 2)),
+      child: Material(
       key: key,
       color: t.sf,
       shape: const StadiumBorder(),
-      elevation: 1,
       child: InkWell(
         customBorder: const StadiumBorder(),
         onTap: onTap,
@@ -414,6 +422,7 @@ class _ComposePostPageState extends State<ComposePostPage> {
             ]),
           ),
         ),
+      ),
       ),
     );
   }
@@ -459,7 +468,10 @@ class _ComposePostPageState extends State<ComposePostPage> {
             padding: const EdgeInsets.symmetric(horizontal: 4),
             child: Text(context.l10n.gonderiWordCount(_words.toString(), kPostMaxWords.toString()),
                 key: const ValueKey('composeCounter'),
-                style: tt.labelLarge?.copyWith(color: over ? t.danger : t.ink, fontWeight: FontWeight.w700)),
+                // Sayaç yalnız sınırda/aşımda vurgulanır; normalde sessiz kalır.
+                style: tt.labelLarge?.copyWith(
+                    color: over ? t.danger : (_words >= kPostMaxWords ? t.ink : t.mut),
+                    fontWeight: over || _words >= kPostMaxWords ? FontWeight.w700 : FontWeight.w500)),
           ),
         ),
       ],

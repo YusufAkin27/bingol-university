@@ -892,20 +892,27 @@ class _ConversationRow extends StatelessWidget {
                     ),
                     const SizedBox(width: 14),
                     Expanded(
-                      child: Column(
+                      child: LayoutBuilder(builder: (context, box) {
+                        // Dar ekran / büyük yazıda tür çipi başlığı 3 harfe sıkıştırır (T-114): çip kalkar (avatar
+                        // rozeti türü zaten gösterir; ekran okuyucuya başlıkla birlikte okunur), her tür başlık 2 satıra açılır.
+                        final narrow = box.maxWidth < 250 || MediaQuery.textScalerOf(context).scale(16) > 19;
+                        final showTag = tag != null && !narrow;
+                        return Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Expanded(
                                 child: Row(children: [
                                   Flexible(
                                     child: Text(title,
-                                        maxLines: 1,
+                                        maxLines: narrow ? 2 : 1,
                                         overflow: TextOverflow.ellipsis,
+                                        semanticsLabel: narrow && tag != null ? '$title, $tag' : null,
                                         style: tx.titleMedium!.copyWith(color: t.ink, fontWeight: hot ? FontWeight.w800 : FontWeight.w700)),
                                   ),
-                                  if (tag != null) ...[
+                                  if (showTag) ...[
                                     const SizedBox(width: 6),
                                     Container(
                                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
@@ -972,7 +979,8 @@ class _ConversationRow extends StatelessWidget {
                             ],
                           ]),
                         ],
-                      ),
+                      );
+                      }),
                     ),
                   ],
                 ),

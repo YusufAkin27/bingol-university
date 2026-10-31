@@ -27,6 +27,7 @@ import '../profile/user_profile_page.dart';
 import '../events/event_detail_page.dart';
 import 'chat_info_page.dart';
 import 'chat_media.dart';
+import 'chatd_parts.dart' show ChatTypingDots;
 import 'chatlist_widgets.dart' show ChatlistAvatar;
 import 'chat_media_viewer.dart';
 import 'chat_video_player.dart';
@@ -2390,11 +2391,17 @@ class _ChatDetailPageState extends State<ChatDetailPage>
                         ValueListenableBuilder<bool>(
                           valueListenable: _typingNow,
                           builder: (c, typing, _) {
-                            final text = typing ? c.l10n.chatDetailTyping : status;
+                            final text = typing
+                                ? c.l10n.chatDetailTyping.replaceAll('…', '')
+                                : status;
                             if (text == null) return const SizedBox.shrink();
                             return Padding(
                               padding: const EdgeInsets.only(top: 2),
-                              child: Row(children: [
+                              child: AnimatedSwitcher(
+                                duration: BuMotion.of(c, BuMotion.short),
+                                child: Row(
+                                  key: ValueKey(typing),
+                                  children: [
                                 if (online && !typing) ...[
                                   Container(
                                     key: const ValueKey('onlineDot'),
@@ -2415,7 +2422,12 @@ class _ChatDetailPageState extends State<ChatDetailPage>
                                               ? FontWeight.w700
                                               : FontWeight.w500)),
                                 ),
+                                if (typing) ...[
+                                  const SizedBox(width: 4),
+                                  ChatTypingDots(color: t.pr),
+                                ],
                               ]),
+                              ),
                             );
                           },
                         ),

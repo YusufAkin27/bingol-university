@@ -8,6 +8,7 @@ import 'like_button.dart';
 import 'post_actions.dart';
 import 'post_models.dart';
 import 'post_routes.dart';
+import '../../core/academic_catalog.dart';
 
 /// Gönderinin tek fotoğrafı: yetkili medya uçları için Bearer başlığı ile yüklenir. Oran varsayılan 4:5 (tasarım 17).
 /// Çözümleme genişliği ekrana göre sınırlıdır (en çok 1080 px): bellek ve çözme süresi küçük kalır.
@@ -160,7 +161,7 @@ class _PostCardState extends State<PostCard> {
     final t = context.bu;
     final tt = Theme.of(context).textTheme;
     final meta = [
-      if ((p.author.department ?? '').isNotEmpty) p.author.department!,
+      if ((p.author.department ?? '').isNotEmpty) context.departmentName(p.author.department),
       postRelativeTime(context, p.createdAt),
     ].where((e) => e.isNotEmpty).join(' • ');
     final mine = p.mine || p.author.id == widget.session.userId;
@@ -259,8 +260,9 @@ class _PostCardState extends State<PostCard> {
               DoubleTapLike(
                 onLike: _like.like,
                 onTap: widget.detail ? null : _open,
-                radius: BuRadius.lg,
-                child: PostPhoto(session: widget.session, post: p),
+                // Detayda fotoğraf ekran kenarlarına dayanır: köşe yuvarlağı ekran kenarında bozuk görünür.
+                radius: detail ? 0 : BuRadius.lg,
+                child: PostPhoto(session: widget.session, post: p, radius: detail ? 0 : BuRadius.lg),
               ),
             ],
             Padding(
