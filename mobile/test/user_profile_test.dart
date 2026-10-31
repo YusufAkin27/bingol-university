@@ -50,7 +50,7 @@ void main() {
     await tester.pumpWidget(
         buildApp(UserProfilePage(session: makeSession(be), userId: 2, initialName: 'Mehmet'), size: kPhoneMedium));
     await tester.pump();
-    expect(find.text('Profil'), findsOneWidget);
+    expect(find.text('Profil'), findsNothing); // Stitch v3: üstte başlık yok
     expect(find.byType(BuSkeleton), findsWidgets);
     expect(find.text('Hakkında'), findsNothing);
     await settle(tester);

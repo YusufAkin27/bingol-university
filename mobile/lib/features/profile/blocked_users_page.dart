@@ -170,25 +170,25 @@ class _BlockedUsersPageState extends State<BlockedUsersPage> {
       button: true,
       label: context.l10n.profilyardUnblockOf(name),
       excludeSemantics: true,
-      child: Material(
-        color: t.sf,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14), side: BorderSide(color: t.bd, width: 1.5)),
-        child: InkWell(
-          customBorder: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-          onTap: busy ? null : () => _unblock(u),
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(minHeight: 44, minWidth: 104),
-            child: Center(
-              widthFactor: 1,
-              heightFactor: 1,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 14),
-                child: busy
-                    ? SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2.4, color: t.pr))
-                    : Text(context.l10n.profilePrefsUnblock,
-                        textAlign: TextAlign.center,
-                        style: Theme.of(context).textTheme.labelLarge!.copyWith(fontWeight: FontWeight.w700, color: t.pr)),
-              ),
+      // Stitch v3: sağda çizgili (bdStrong) "Engeli kaldır", 36 dp görünür hap, 48 dp dokunma alanı.
+      child: InkWell(
+        customBorder: const StadiumBorder(),
+        onTap: busy ? null : () => _unblock(u),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minHeight: 48, minWidth: 96),
+          child: Center(
+            widthFactor: 1,
+            heightFactor: 1,
+            child: Container(
+              height: 36,
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              alignment: Alignment.center,
+              decoration: BoxDecoration(shape: BoxShape.rectangle, borderRadius: BorderRadius.circular(999), border: Border.all(color: t.bdStrong)),
+              child: busy
+                  ? SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2.4, color: t.ink))
+                  : Text(context.l10n.profilePrefsUnblock,
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context).textTheme.labelLarge!.copyWith(fontSize: 14, fontWeight: FontWeight.w600, color: t.ink)),
             ),
           ),
         ),
@@ -196,7 +196,7 @@ class _BlockedUsersPageState extends State<BlockedUsersPage> {
     );
     final avatar = BuAvatar(name: u['displayName'] as String?, url: u['avatarUrl'] as String?, size: 44);
     return ProfilyRow(
-      minHeight: 72,
+      minHeight: 64,
       child: stacked
           ? Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Row(children: [avatar, const SizedBox(width: 12), Expanded(child: info)]),

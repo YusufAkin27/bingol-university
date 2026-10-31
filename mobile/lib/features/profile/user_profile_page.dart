@@ -349,7 +349,6 @@ class _UserProfilePageState extends State<UserProfilePage> {
   Widget build(BuildContext context) {
     final t = context.bu;
     final l = context.l10n;
-    final tx = Theme.of(context).textTheme;
     final showMenu = !_self && (_p != null || _error == null);
     return Scaffold(
       backgroundColor: t.bg,
@@ -367,7 +366,8 @@ class _UserProfilePageState extends State<UserProfilePage> {
                   icon: Icon(buDirIcon(context, LucideIcons.chevronLeft), size: 26, color: t.ink),
                   onPressed: () => Navigator.maybePop(context),
                 ),
-                Expanded(child: Semantics(header: true, child: Text(l.p20ProfileTitle, style: tx.titleLarge!.copyWith(fontWeight: FontWeight.w700, color: t.ink)))),
+                // Stitch v3: üstte başlık yok (geri + sağda "...").
+                const Spacer(),
                 if (showMenu)
                   IconButton(
                     key: const ValueKey('profile-more'),
@@ -443,7 +443,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
               key: const Key('profile-avatar'),
               onTap: _viewAvatar,
               child: Stack(clipBehavior: Clip.none, children: [
-                _avatarFace(t, online: online && !_blocked),
+                _avatarFace(t),
                 if (_blocked)
                   PositionedDirectional(
                     end: 0,
@@ -469,9 +469,13 @@ class _UserProfilePageState extends State<UserProfilePage> {
             if (presence != null && !_blocked) ...[
               const SizedBox(height: 4),
               Row(mainAxisSize: MainAxisSize.min, children: [
-                // Çevrimiçi durumu avatardaki yeşil noktayla gösterilir (metinde ikinci nokta yok); son görülmede saat simgesi.
-                if (!online) ...[Icon(LucideIcons.clock, size: 14, color: t.mut), const SizedBox(width: 6)],
-                Flexible(child: Text(presence, style: tx.labelLarge!.copyWith(fontWeight: FontWeight.w600, color: t.mut))),
+                // Stitch v3: "Çevrimiçi" 13 mut + 8 dp yeşil nokta; çevrimdışıysa "Son görülme ..." (saat simgesi).
+                if (online)
+                  Container(width: 8, height: 8, decoration: BoxDecoration(color: t.ok, shape: BoxShape.circle))
+                else
+                  Icon(LucideIcons.clock, size: 14, color: t.mut),
+                const SizedBox(width: 8),
+                Flexible(child: Text(presence, style: tx.labelLarge!.copyWith(fontSize: 13, fontWeight: FontWeight.w400, color: t.mut))),
               ]),
             ],
             if (!_self && !_blocked && s != null && s.followsMe) ...[
@@ -527,22 +531,9 @@ class _UserProfilePageState extends State<UserProfilePage> {
     );
   }
 
-  /// 96 dp avatar: fotoğraf varsa foto, yoksa varsayılan profil görseli; sağ altta durum noktası
-  /// (çevrimiçi yeşil, çevrimdışı gri; durum bilinmiyorsa nokta yok).
-  Widget _avatarFace(BuTokens t, {required bool online}) {
-    final known = _presence != null && !_blocked;
-    // Fotoğraf yoksa/yüklenemezse BuAvatar varsayılan profil görselini gösterir (baş harfli daire kalktı).
-    final face = BuAvatar(name: _name, url: _avatar, size: 96, headers: _headersFor(_avatar));
-    return Stack(clipBehavior: Clip.none, children: [
-      face,
-      if (known)
-        PositionedDirectional(
-          end: 2,
-          bottom: 2,
-          child: Container(width: 20, height: 20, decoration: BoxDecoration(color: online ? t.ok : t.mut.withValues(alpha: .6), shape: BoxShape.circle, border: Border.all(color: t.sf, width: 3))),
-        ),
-    ]);
-  }
+  /// 96 dp avatar: fotoğraf varsa foto, yoksa varsayılan profil görseli (Stitch v3: durum noktası avatarda değil, metinde).
+  Widget _avatarFace(BuTokens t) =>
+      BuAvatar(name: _name, url: _avatar, size: 96, headers: _headersFor(_avatar));
 
   Widget _actions(BuTokens t, FollowStats? s) {
     final l = context.l10n;
@@ -585,11 +576,11 @@ class _UserProfilePageState extends State<UserProfilePage> {
       ),
       const SizedBox(width: 10),
       Expanded(
-        child: AkadTonalButton(
+        child: BuButton(
           key: const ValueKey('profile-message'),
           label: l.icerikMessageSend,
           icon: LucideIcons.messageSquare,
-          height: BuSize.button,
+          kind: BuButtonKind.outline,
           busy: _busyMsg,
           onPressed: _message,
         ),

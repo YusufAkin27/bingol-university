@@ -131,7 +131,7 @@ final kPageCases = <PageCase>[
           {'news': true, 'announcements': true, 'events': false, 'communities': true, 'messages': true}),
     // Bildirim anahtarları artık "Bildirim tercihleri" sayfasında (NotificationPrefsPage senaryosu); ayarlar sayfası
     // profil okunamazsa hata ekranı değil varsayılanlarla açılır (aşağıdaki "yükleme hatası" testi).
-    marker: 'E-postamı diğerlerine göster',
+    marker: 'Görünüm',
     checkLoading: false,
   ),
   PageCase(
@@ -455,7 +455,7 @@ void main() {
         await tester.pumpWidget(buildApp(SettingsPage(session: makeSession(b), themeController: ThemeController())));
         await settle(tester, const Duration(seconds: 2));
         expect(find.text('Ayarlar'), findsWidgets);
-        expect(find.text('Hata raporu gönder'), findsWidgets);
+        expect(find.text('Görünüm'), findsWidgets);
         noErr(tester);
         await unmount(tester);
       });

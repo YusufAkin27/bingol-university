@@ -337,8 +337,6 @@ void main() {
       await tester.pumpWidget(buildApp(SettingsPage(session: makeSession(b), themeController: ThemeController())));
       await settle(tester);
       // E-posta anahtarı profilden gelen değerle (açık) durumlu okunur; hata raporu varsayılan açık.
-      final email = tester.getSemantics(find.text('E-postamı diğerlerine göster'));
-      expect(email.getSemanticsData().flagsCollection.isToggled, ui.Tristate.isTrue);
       final crash = tester.getSemantics(find.text('Hata raporu gönder'));
       expect(crash.getSemanticsData().flagsCollection.isToggled, ui.Tristate.isTrue);
       expect(find.bySemanticsLabel('Geri'), findsWidgets);

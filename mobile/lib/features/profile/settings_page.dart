@@ -9,18 +9,21 @@ import '../../core/push/push_service.dart';
 import '../../core/session.dart';
 import '../../core/theme_controller.dart';
 import '../../widgets/bu.dart';
+import '../auth/help/about_page.dart';
 import '../chat/chat_background_settings_page.dart';
 import '../chat/contacts_match_page.dart';
-import '../chat/photo_autosave.dart';
 import '../support/support_page.dart';
+import 'account_security_page.dart';
+import 'blocked_users_page.dart';
 import 'notification_prefs_page.dart';
 import 'privacy_data_page.dart';
-import 'profil2_widgets.dart';
+import 'profil_widgets.dart';
 
 const _langNames = {'tr': 'Türkçe', 'en': 'English', 'ar': 'العربية'};
 
-/// Ayarlar (Stitch 49-1, 49-6): GÖRÜNÜM (dil), BİLDİRİMLER, GİZLİLİK VE HESAP; tonlu simge karolu gruplu kartlar.
-/// Tema seçimi Profil sekmesindedir.
+/// Ayarlar (Stitch v3 kategori 5, birebir): üst çubuk (geri + başlık), bölüm etiketi 13/500 mut (büyük harf değil),
+/// tam genişlik 56 dp satırlar (sf zemin, 1 dp bd ayırıcı; kutu/kart/simge karosu yok), satır yazısı 16 ink, değer 15 mut,
+/// chevron 20 mut. Bölümler: Görünüm (Dil, Tema), Sohbet, Bildirimler, Gizlilik ve hesap. En altta soluk sürüm yazısı.
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key, required this.session, required this.themeController, this.push, this.localeController});
 
@@ -38,9 +41,6 @@ class SettingsPage extends StatefulWidget {
 }
 
 class _SettingsPageState extends State<SettingsPage> {
-  bool _showEmail = false;
-  bool _loaded = false;
-  bool _saveToGallery = true; // p22: sohbet fotoğraflarını galeriye kaydet (varsayılan açık)
   String _pushStatus = '...'; // 'notConfigured' | 'on' | 'off' | 'notGranted'
 
   CrashReporter get _crash => CrashReporter.instance;
@@ -50,11 +50,7 @@ class _SettingsPageState extends State<SettingsPage> {
   @override
   void initState() {
     super.initState();
-    _loadProfile();
     _loadPushStatus();
-    PhotoAutoSave.instance.enabled().then((v) {
-      if (mounted) setState(() => _saveToGallery = v);
-    });
   }
 
   Future<void> _loadPushStatus() async {
@@ -96,50 +92,37 @@ class _SettingsPageState extends State<SettingsPage> {
     if (mounted) Navigator.of(context).popUntil((r) => r.isFirst);
   }
 
-  Future<void> _loadProfile() async {
-    try {
-      final r = await widget.session.api.get('/users/me') as Map<String, dynamic>;
-      if (!mounted) return;
-      setState(() {
-        _showEmail = r['showEmail'] == true;
-        _loaded = true;
-      });
-    } catch (_) {
-      // Profil okunamazsa varsayılanlarla devam edilir; değişiklik yine denenebilir.
-      if (mounted) setState(() => _loaded = true);
-    }
+  Future<void> _signOut() async {
+    final l = context.l10n;
+    final ok = await BuDialog.confirm(
+      context,
+      title: l.profileSignOutTitle,
+      message: l.profileSignOutBody,
+      confirmLabel: l.profileSignOut,
+      cancelLabel: l.profileCancel,
+      destructive: true,
+      icon: LucideIcons.logOut,
+    );
+    if (!ok) return;
+    await widget.session.signOut();
+    if (mounted) Navigator.of(context).popUntil((r) => r.isFirst);
   }
 
   void _toast(String m, {BuToastKind kind = BuToastKind.info}) => BuToast.show(context, m, kind: kind);
 
-  Future<void> _patch(Map<String, dynamic> body, VoidCallback rollback) async {
-    try {
-      await widget.session.api.patch('/users/me', body);
-    } catch (e) {
-      if (!mounted) return;
-      setState(rollback);
-      _toast(errorText(e), kind: BuToastKind.error);
-    }
-  }
-
-  /// Dil seçici (Stitch 49-6): Sistem / Türkçe / English / العربية; seçili satır tonlu + onay işareti.
+  /// Dil seçici (Stitch v3 "Dil sheet"): Sistem / Türkçe / English / العربية; seçili satırda onay işareti.
   Future<void> _pickLang() async {
     final lc = _lc;
     if (lc == null) return;
     final l = context.l10n;
-    final options = <(String, String, String, IconData)>[
-      ('system', l.languageSystem, l.p19LangSystemDesc, LucideIcons.smartphone),
-      ('tr', _langNames['tr']!, 'Uygulama dili Türkçe', LucideIcons.languages),
-      ('en', _langNames['en']!, 'Interface and notifications in English', LucideIcons.globe),
-      ('ar', _langNames['ar']!, 'الواجهة والإشعارات باللغة العربية', LucideIcons.earth),
-    ];
-    final chosen = await BuSheet.show<String>(
+    final chosen = await showProfilChoiceSheet(
       context,
       title: l.settingsLanguage,
-      subtitle: l.settingsLanguageHint,
-      builder: (ctx) => Column(mainAxisSize: MainAxisSize.min, children: [
-        for (final o in options) _LangOption(id: o.$1, name: o.$2, desc: o.$3, icon: o.$4, selected: o.$1 == lc.pref),
-      ]),
+      selected: lc.pref,
+      options: [
+        ('system', l.languageSystem),
+        for (final e in _langNames.entries) (e.key, e.value),
+      ],
     );
     if (chosen == null || chosen == lc.pref) return;
     await lc.set(chosen);
@@ -149,10 +132,33 @@ class _SettingsPageState extends State<SettingsPage> {
     } catch (_) {}
   }
 
-  Future<void> _toggleEmail(bool v) async {
-    final old = _showEmail;
-    setState(() => _showEmail = v);
-    await _patch({'showEmail': v}, () => _showEmail = old);
+  static const _modes = ['system', 'light', 'dark'];
+
+  String _modeId() => switch (widget.themeController.mode) {
+        ThemeMode.system => 'system',
+        ThemeMode.light => 'light',
+        ThemeMode.dark => 'dark',
+      };
+
+  String _modeName(String id) => switch (id) {
+        'light' => context.l10n.themeLight,
+        'dark' => context.l10n.themeDark,
+        _ => context.l10n.themeSystem,
+      };
+
+  Future<void> _pickTheme() async {
+    final chosen = await showProfilChoiceSheet(
+      context,
+      title: context.l10n.profil1Theme,
+      selected: _modeId(),
+      options: [for (final m in _modes) (m, _modeName(m))],
+    );
+    if (chosen == null) return;
+    widget.themeController.set(const {
+      'system': ThemeMode.system,
+      'light': ThemeMode.light,
+      'dark': ThemeMode.dark,
+    }[chosen]!);
   }
 
   void _push(Widget page) => Navigator.push(context, MaterialPageRoute(builder: (_) => page));
@@ -171,138 +177,140 @@ class _SettingsPageState extends State<SettingsPage> {
       'notGranted' => l.pushNotGranted,
       _ => _pushStatus,
     };
-    // Hap kısa metin taşır (tek satır); uzun açıklama dokununca bildirimde.
-    final pillText = switch (_pushStatus) {
+    // Değer kısa metin taşır (tek satır); uzun açıklama dokununca bildirimde.
+    final pushValue = switch (_pushStatus) {
       'on' => l.pushOn,
       'notGranted' => l.pushNotGranted,
       _ => l.p19PushOffShort,
     };
-    final blue = profilNeutralTint(context);
     return Scaffold(
       backgroundColor: t.bg,
       body: Column(
         children: [
-          BuHeader(title: l.settingsTitle, onBack: () => Navigator.pop(context)),
+          // Stitch v3: 56 dp üst çubuk, düz geri oku + başlık 18/600, çizgisiz.
+          Padding(
+            padding: EdgeInsetsDirectional.fromSTEB(4, MediaQuery.paddingOf(context).top, 16, 0),
+            child: SizedBox(
+              height: 56,
+              child: Row(children: [
+                Semantics(
+                  button: true,
+                  label: l.commonBack,
+                  excludeSemantics: true,
+                  onTap: () => Navigator.maybePop(context),
+                  child: IconButton(
+                    constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
+                    icon: Icon(buDirIcon(context, LucideIcons.arrowLeft), size: 24, color: t.ink),
+                    onPressed: () => Navigator.maybePop(context),
+                  ),
+                ),
+                const SizedBox(width: 4),
+                Expanded(
+                  child: Semantics(
+                    header: true,
+                    child: Text(l.settingsTitle,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: tx.titleLarge!.copyWith(fontSize: 18, fontWeight: FontWeight.w600, color: t.ink)),
+                  ),
+                ),
+              ]),
+            ),
+          ),
           Expanded(
             child: ListView(
-              padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
+              padding: EdgeInsets.only(bottom: MediaQuery.paddingOf(context).bottom + 32),
               children: [
-                P2SectionLabel(l.settingsSectionAppearance),
-                BuGroup(dividerIndent: 66, children: [
-                  BuSettingsTile(
+                _SSection(l.settingsSectionAppearance, first: true),
+                _SGroup(children: [
+                  _SRow(
                     key: const ValueKey('settings-language'),
-                    icon: LucideIcons.languages,
-                    title: l.settingsLanguage,
-                    subtitle: l.settingsLanguageHint,
+                    label: l.settingsLanguage,
                     value: langName,
-                    tint: blue,
-                    onTap: _lc != null ? _pickLang : null,
+                    onTap: lc != null ? _pickLang : null,
+                  ),
+                  _SRow(
+                    key: const ValueKey('settings-theme'),
+                    label: l.profil1Theme,
+                    value: _modeName(_modeId()),
+                    onTap: _pickTheme,
                   ),
                 ]),
-                const SizedBox(height: 12),
-                BuGroup(dividerIndent: 66, children: [
-                  BuSettingsTile(
+                _SSection(l.navChat),
+                _SGroup(children: [
+                  _SRow(
                     key: const ValueKey('settings-chats'),
-                    icon: LucideIcons.messageCircle,
-                    title: l.p67SettingsChats,
-                    tint: blue,
+                    label: l.p67ChatBgTitle,
                     onTap: () => _push(const ChatBackgroundSettingsPage()),
                   ),
+                  _SRow(
+                    label: l.settingsFindContacts,
+                    onTap: () => _push(ContactsMatchPage(session: widget.session)),
+                  ),
                 ]),
-                P2SectionLabel(l.settingsSectionNotifications, top: 18),
-                BuGroup(dividerIndent: 66, children: [
-                  BuSettingsTile(
+                _SSection(l.settingsSectionNotifications),
+                _SGroup(children: [
+                  _SRow(
                     key: const ValueKey('settings-notif-prefs'),
-                    icon: LucideIcons.bell,
-                    title: l.profil1Notifications,
+                    label: l.profil1Notifications,
                     onTap: () => _push(NotificationPrefsPage(session: widget.session)),
                   ),
-                  BuSettingsTile(
+                  _SRow(
                     key: const ValueKey('settings-push'),
-                    icon: LucideIcons.bellRing,
-                    title: l.pushPermission,
-                    tint: blue,
-                    trailing: Flexible(
-                      child: P2Pill(
-                        text: pillText,
-                        tone: _pushStatus == 'on' ? P2PillTone.ok : P2PillTone.mute,
-                        dot: _pushStatus == 'on',
-                      ),
-                    ),
+                    label: l.p21HelpPermTitle,
+                    value: pushValue,
                     onTap: () => _toast(_pushStatus == 'on' ? l.pushOnToast : l.pushStatusToast(pushText)),
                   ),
                 ]),
-                P2SectionLabel(l.settingsSectionPrivacy, top: 18),
+                _SSection(l.settingsSectionPrivacy),
                 ListenableBuilder(
                   listenable: _crash,
-                  builder: (_, __) => BuGroup(dividerIndent: 66, children: [
-                    BuSettingsTile.toggle(
-                      key: const ValueKey('settings-show-email'),
-                      icon: LucideIcons.atSign,
-                      title: l.settingsShowEmail,
-                      value: _showEmail,
-                      tint: blue,
-                      onChanged: _loaded ? _toggleEmail : null,
-                    ),
-                    BuSettingsTile(
-                      icon: LucideIcons.contact,
-                      title: l.settingsFindContacts,
-                      tint: blue,
-                      onTap: () => _push(ContactsMatchPage(session: widget.session)),
-                    ),
-                    BuSettingsTile(
-                      icon: LucideIcons.shield,
-                      title: l.settingsPrivacyData,
-                      tint: blue,
+                  builder: (_, __) => _SGroup(children: [
+                    _SRow(
+                      label: l.settingsPrivacyData,
                       onTap: () => _push(PrivacyDataPage(session: widget.session)),
                     ),
-                    BuSettingsTile(
-                      icon: LucideIcons.circleQuestionMark,
-                      title: l.settingsSupport,
+                    _SRow(
+                      label: l.profil1AccountSecurity,
+                      onTap: () => _push(AccountSecurityPage(session: widget.session)),
+                    ),
+                    _SRow(
+                      label: l.profilePrefsBlockedTitle,
+                      onTap: () => _push(BlockedUsersPage(session: widget.session)),
+                    ),
+                    _SRow(
+                      label: l.settingsSupport,
                       onTap: () => _push(SupportPage(session: widget.session)),
                     ),
-                    // Anonim hata raporu: açık/kapalı anahtarı.
-                    BuSettingsTile.toggle(
+                    _SRow(
+                      label: l.profileAboutShort,
+                      onTap: () => _push(AboutPage(session: widget.session)),
+                    ),
+                    // Anonim hata raporu: açık/kapalı anahtarı (açıklama altında).
+                    _SToggleRow(
                       key: const ValueKey('crashReportsSwitch'),
-                      icon: LucideIcons.bug,
-                      title: l.settingsCrashReports,
-                      subtitle: l.p19CrashReportsShort,
+                      label: l.settingsCrashReports,
+                      sub: l.p19CrashReportsShort,
                       value: _crash.enabled,
-                      tint: blue,
                       onChanged: (v) => _crash.setEnabled(v),
                     ),
-                    BuSettingsTile(
+                    _SRow(
                       key: const ValueKey('settings-logout-all'),
-                      icon: LucideIcons.logOut,
-                      title: l.settingsLogoutAll,
+                      label: l.settingsLogoutAll,
                       danger: true,
-                      trailing: ExcludeSemantics(child: Icon(buDirIcon(context, LucideIcons.chevronRight), size: 18, color: t.danger)),
                       onTap: _logoutAll,
+                    ),
+                    _SRow(
+                      key: const ValueKey('settings-sign-out'),
+                      label: l.profileSignOut,
+                      onTap: _signOut,
+                      chevron: false,
                     ),
                   ]),
                 ),
-                const SizedBox(height: 14),
-                BuGroup(dividerIndent: 66, children: [
-                  BuSettingsTile.toggle(
-                      key: const ValueKey('settings-save-to-gallery'),
-                      icon: LucideIcons.imageDown,
-                      title: l.p22SaveGalleryTitle,
-                      subtitle: l.p22SaveGalleryDesc,
-                      value: _saveToGallery,
-                      tint: blue,
-                      onChanged: (v) {
-                        setState(() => _saveToGallery = v);
-                        PhotoAutoSave.instance.setEnabled(v);
-                      },
-                    ),
-                ]),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(6, 8, 6, 0),
-                  child: Text(l.p22SaveGalleryCloud, key: const ValueKey('settings-save-to-gallery-note'), style: tx.bodySmall!.copyWith(color: t.mut)),
-                ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 24),
                 Center(
-                  child: Text(l.settingsVersion(appVersion), style: tx.bodySmall!.copyWith(color: t.mut)),
+                  child: Text(l.settingsVersion(appVersion), style: tx.bodySmall!.copyWith(fontSize: 12, color: t.mut)),
                 ),
               ],
             ),
@@ -313,69 +321,138 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 }
 
-/// Dil seçeneği satırı: simge karosu, ad, açıklama, sağda seçim halkası/onay.
-class _LangOption extends StatelessWidget {
-  const _LangOption({required this.id, required this.name, required this.desc, required this.icon, required this.selected});
+/// Bölüm etiketi: 13/500 mut, bölüm üstünde 24 dp boşluk (ilk bölümde 12).
+class _SSection extends StatelessWidget {
+  const _SSection(this.text, {this.first = false});
 
-  final String id;
-  final String name;
-  final String desc;
-  final IconData icon;
-  final bool selected;
+  final String text;
+  final bool first;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.bu;
+    return Padding(
+      padding: EdgeInsetsDirectional.fromSTEB(20, first ? 12 : 24, 20, 8),
+      child: Semantics(
+        header: true,
+        child: Text(text, style: Theme.of(context).textTheme.labelLarge!.copyWith(fontSize: 13, fontWeight: FontWeight.w500, color: t.mut)),
+      ),
+    );
+  }
+}
+
+/// Tam genişlik satır grubu: sf zemin, satırlar arasında 1 dp bd ayırıcı.
+class _SGroup extends StatelessWidget {
+  const _SGroup({required this.children});
+
+  final List<Widget> children;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.bu;
+    return ColoredBox(
+      color: t.sf,
+      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        for (var i = 0; i < children.length; i++) ...[
+          if (i > 0) Divider(height: 1, thickness: 1, color: t.bd),
+          children[i],
+        ],
+      ]),
+    );
+  }
+}
+
+/// 56 dp satır: etiket 16 ink, sağda değer 15 mut + chevron 20 mut. [danger]: etiket danger.
+class _SRow extends StatelessWidget {
+  const _SRow({super.key, required this.label, this.value, this.onTap, this.danger = false, this.chevron = true});
+
+  final String label;
+  final String? value;
+  final VoidCallback? onTap;
+  final bool danger;
+  final bool chevron;
 
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
     final tx = Theme.of(context).textTheme;
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Semantics(
-        button: true,
-        selected: selected,
-        inMutuallyExclusiveGroup: true,
-        label: '$name. $desc',
-        excludeSemantics: true,
-        child: Material(
-          color: selected ? t.soft : t.sf2,
-          borderRadius: BuRadius.bMd,
-          child: InkWell(
-            key: ValueKey('lang-$id'),
-            borderRadius: BuRadius.bMd,
-            onTap: () => Navigator.pop(context, id),
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(minHeight: 64),
-              child: Padding(
-                padding: const EdgeInsetsDirectional.fromSTEB(12, 8, 14, 8),
-                child: Row(children: [
-                  Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(color: t.sf, borderRadius: BuRadius.bSm),
-                    child: Icon(icon, size: 20, color: selected ? t.pr : t.ink),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
-                      Text(name, style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w800, color: t.ink)),
-                      const SizedBox(height: 1),
-                      Text(desc, maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.bodySmall!.copyWith(color: t.mut)),
-                    ]),
-                  ),
-                  const SizedBox(width: 10),
-                  selected
-                      ? Container(
-                          width: 26,
-                          height: 26,
-                          decoration: BoxDecoration(color: t.pr, shape: BoxShape.circle),
-                          child: Icon(LucideIcons.check, size: 15, color: t.onPr),
-                        )
-                      : Container(
-                          width: 26,
-                          height: 26,
-                          decoration: BoxDecoration(color: t.bd.withValues(alpha: .6), shape: BoxShape.circle),
-                        ),
-                ]),
+    return InkWell(
+      onTap: onTap == null
+          ? null
+          : () {
+              buHaptic(BuHaptic.selection);
+              onTap!();
+            },
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(minHeight: 56),
+        child: Padding(
+          padding: const EdgeInsetsDirectional.fromSTEB(20, 8, 16, 8),
+          child: Row(children: [
+            Expanded(
+              child: Text(label,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: tx.bodyLarge!.copyWith(
+                      fontSize: 16, color: danger ? t.danger : t.ink, fontWeight: danger ? FontWeight.w600 : FontWeight.w400)),
+            ),
+            if (value != null && value!.isNotEmpty) ...[
+              const SizedBox(width: 8),
+              ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 140),
+                child: Text(value!,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: tx.bodyMedium!.copyWith(fontSize: 15, color: t.mut)),
               ),
+            ],
+            SizedBox(
+              width: 28,
+              child: (chevron && !danger && onTap != null)
+                  ? Align(
+                      alignment: AlignmentDirectional.centerEnd,
+                      child: ExcludeSemantics(child: Icon(buDirIcon(context, LucideIcons.chevronRight), size: 20, color: t.mut)),
+                    )
+                  : null,
+            ),
+          ]),
+        ),
+      ),
+    );
+  }
+}
+
+/// Anahtarlı satır: 56 dp (açıklamalıysa daha uzun), M3 standart anahtar; satırın tamamı dokunulabilir.
+class _SToggleRow extends StatelessWidget {
+  const _SToggleRow({super.key, required this.label, required this.value, required this.onChanged, this.sub});
+
+  final String label;
+  final String? sub;
+  final bool value;
+  final ValueChanged<bool> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.bu;
+    final tx = Theme.of(context).textTheme;
+    return MergeSemantics(
+      child: Semantics(
+        toggled: value,
+        child: InkWell(
+          onTap: () => onChanged(!value),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(minHeight: 56),
+            child: Padding(
+              padding: const EdgeInsetsDirectional.fromSTEB(20, 10, 20, 10),
+              child: Row(children: [
+                Expanded(
+                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
+                    Text(label, style: tx.bodyLarge!.copyWith(fontSize: 16, color: t.ink)),
+                    if (sub != null) Text(sub!, style: tx.bodySmall!.copyWith(fontSize: 12, color: t.mut, height: 1.35)),
+                  ]),
+                ),
+                const SizedBox(width: 12),
+                ExcludeSemantics(child: Switch(value: value, onChanged: onChanged)),
+              ]),
             ),
           ),
         ),

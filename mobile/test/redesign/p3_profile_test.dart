@@ -9,6 +9,9 @@ import 'package:bu_kampus/features/profile/privacy_data_page.dart';
 import 'package:bu_kampus/features/profile/profil2_delete_account_page.dart';
 import 'package:bu_kampus/features/profile/profil2_my_data_page.dart';
 import 'package:bu_kampus/features/profile/profile_tab.dart';
+import 'package:bu_kampus/features/profile/profil_widgets.dart' show ProfilRow;
+import 'package:bu_kampus/features/profile/settings_page.dart';
+import 'package:bu_kampus/core/theme.dart';
 import 'package:bu_kampus/features/profile/user_profile_page.dart';
 import 'package:bu_kampus/widgets/bu.dart' show BuCard, BuCountUp, LucideIcons;
 import 'package:flutter/material.dart';
@@ -19,7 +22,13 @@ import 'p00_support.dart';
 
 /// Tur 3 (P3-PROFILE, minimal): Profil sekmesi tek sayac seridi, tek notr simge tonu, sakin cikis; duzenleme tek sutun;
 /// takip satiri duzeni; tum profil ekranlari 3 dil x acik/koyu x 1.3 x 320 matrisinde tasmasiz.
-FakeBackend _backend() => FakeBackend()
+FakeBackend _backend() {
+  final b = _base();
+  fakePosts(b, count: 4);
+  return b;
+}
+
+FakeBackend _base() => FakeBackend()
   ..on('/me/summary', {'communities': 3, 'events': 4, 'bookmarks': 12})
   ..on('/users/me', {
     'id': 1,
@@ -78,27 +87,26 @@ Future<void> _open(WidgetTester tester, Widget page, {Size size = kPhoneMedium})
 void main() {
   setUpAll(loadTestFonts);
 
-  group('Profil sekmesi: tek sayac seridi', () {
-    testWidgets('Takipci, Takip, Kulup, Etkinlik tek yuzeyde ve tek satirda', (tester) async {
+  group('Profil sekmesi (Stitch v3): tek kutuda 3 sutun sayac', () {
+    testWidgets('Takipci, Takip, Gonderi tek yuzeyde ve tek satirda', (tester) async {
       await _open(tester, ProfileTab(session: makeSession(_backend()), themeController: ThemeController()));
       expect(find.byType(StatStrip), findsOneWidget);
-      for (final s in ['Takipçi', 'Takip', 'Kulüp', 'Etkinlik']) {
+      for (final s in ['Takipçi', 'Takip', 'Gönderi']) {
         expect(find.descendant(of: find.byType(StatStrip), matching: find.text(s)), findsOneWidget, reason: s);
       }
-      for (final n in ['128', '94', '3', '4']) {
+      for (final n in ['128', '94']) {
         expect(find.descendant(of: find.byType(StatStrip), matching: find.text(n)), findsOneWidget, reason: n);
       }
-      // 4 hucre ayni satirda (ayni dikey konum).
-      final ys = [for (final s in ['Takipçi', 'Takip', 'Kulüp', 'Etkinlik']) tester.getCenter(find.text(s)).dy];
+      final ys = [for (final s in ['Takipçi', 'Takip', 'Gönderi']) tester.getCenter(find.text(s)).dy];
       expect(ys.every((y) => (y - ys.first).abs() < 1), isTrue, reason: '$ys');
-      // Tek kart: seridin icinde ikinci bir BuCard yok.
+      // Tek kart: seridin icinde ikinci bir BuCard yok; vurgu (kirmizi) yok: sayilar ink renginde.
       expect(find.descendant(of: find.byType(StatStrip), matching: find.byType(BuCard)), findsOneWidget);
-      expect(find.byType(BuCountUp), findsNWidgets(4));
+      expect(find.byType(BuCountUp), findsNWidgets(3));
       expect(tester.takeException(), isNull);
       await unmount(tester);
     });
 
-    testWidgets('buyuk yazi olceginde 2 x 2 dizilir, tasma yok', (tester) async {
+    testWidgets('1.3 yazi olceginde 320 dp de tek satir kalir, tasma yok', (tester) async {
       addTearDown(tester.view.reset);
       tester.view.devicePixelRatio = 1;
       tester.view.physicalSize = const Size(320, 900);
@@ -109,8 +117,8 @@ void main() {
       await tester.pump(const Duration(seconds: 1));
       await tester.pump(const Duration(seconds: 1));
       final a = tester.getCenter(find.text('Takipçi')).dy;
-      final c = tester.getCenter(find.text('Kulüp')).dy;
-      expect(c, greaterThan(a + 20), reason: 'ikinci satira inmeli');
+      final c = tester.getCenter(find.text('Gönderi')).dy;
+      expect((c - a).abs(), lessThan(2));
       expect(tester.takeException(), isNull);
       await tester.pumpWidget(const SizedBox.shrink());
       await tester.pump(const Duration(milliseconds: 400));
@@ -125,39 +133,62 @@ void main() {
       await unmount(tester);
     });
 
-    testWidgets('takip sayilari alinamazsa yalniz Kulup ve Etkinlik gorunur', (tester) async {
+    testWidgets('takip sayilari alinamazsa yalniz Gonderi gorunur', (tester) async {
       final b = _backend()..fail('/users/1', status: 500, code: 'SERVER_ERROR', message: 'x');
       await _open(tester, ProfileTab(session: makeSession(b), themeController: ThemeController()));
-      expect(find.text('Kulüp'), findsOneWidget);
-      expect(find.text('Etkinlik'), findsOneWidget);
+      expect(find.text('Gönderi'), findsOneWidget);
       expect(find.text('Takipçi'), findsNothing);
       expect(tester.takeException(), isNull);
       await unmount(tester);
     });
 
-    testWidgets('cikis sakin: simgesiz, listenin sonunda, surum yazisi altinda', (tester) async {
+    testWidgets('listeler simgesiz 56 dp satir; kulup/etkinlik sayisi satirin sagindaki deger', (tester) async {
       await _open(tester, ProfileTab(session: makeSession(_backend()), themeController: ThemeController()));
-      final list = find.byType(Scrollable).first;
-      await tester.scrollUntilVisible(find.byKey(const ValueKey('profile-signout')), 300, scrollable: list);
-      expect(find.descendant(of: find.byKey(const ValueKey('profile-signout')), matching: find.byType(Icon)), findsNothing);
-      expect(find.byIcon(LucideIcons.logOut), findsNothing);
-      final dySign = tester.getCenter(find.byKey(const ValueKey('profile-signout'))).dy;
-      final dyLegal = tester.getCenter(find.text('Sözleşmeler ve politikalar')).dy;
-      expect(dySign, greaterThan(dyLegal));
+      for (final s in ['Gönderilerim', 'Kayıtlı haberler', 'Kulüplerim', 'Etkinliklerim', 'Önerilen kişiler']) {
+        expect(find.text(s), findsOneWidget, reason: s);
+      }
+      expect(find.byIcon(LucideIcons.newspaper), findsNothing);
+      expect(find.byIcon(LucideIcons.bell), findsNothing);
+      final rows = find.byType(ProfilRow);
+      expect(rows, findsNWidgets(9));
+      for (var i = 0; i < 9; i++) {
+        expect(tester.getSize(rows.at(i)).height, greaterThanOrEqualTo(56));
+      }
+      // Kulup (3) ve Etkinlik (4) sayilari ilgili satirda deger olarak durur.
+      expect(find.descendant(of: find.widgetWithText(ProfilRow, 'Kulüplerim'), matching: find.text('3')), findsOneWidget);
+      expect(find.descendant(of: find.widgetWithText(ProfilRow, 'Etkinliklerim'), matching: find.text('4')), findsOneWidget);
+      // Dil/tema/cikis profil sekmesinde degil, Ayarlar sayfasinda.
+      expect(find.text('Çıkış yap'), findsNothing);
+      expect(find.text('Tema'), findsNothing);
+      await unmount(tester);
+    });
+
+    testWidgets('Ayarlar satiri Ayarlar sayfasini acar', (tester) async {
+      await _open(tester, ProfileTab(session: makeSession(_backend()), themeController: ThemeController()));
+      await tester.scrollUntilVisible(find.widgetWithText(ProfilRow, 'Ayarlar'), 200, scrollable: find.byType(Scrollable).first);
+      await tester.ensureVisible(find.widgetWithText(ProfilRow, 'Ayarlar'));
+      await tester.pump(const Duration(milliseconds: 300));
+      await tester.tap(find.widgetWithText(ProfilRow, 'Ayarlar'));
+      await settle(tester, const Duration(seconds: 1));
+      expect(find.byType(SettingsPage), findsOneWidget);
       await unmount(tester);
     });
   });
 
-  group('Profil sekmesi: tek yuzey ailesi, tek notr simge tonu', () {
-    testWidgets('liste satiri simge karolari ayni notr tonda', (tester) async {
-      await _open(tester, ProfileTab(session: makeSession(_backend()), themeController: ThemeController()));
-      final colors = <Color>{};
-      for (final icon in [LucideIcons.newspaper, LucideIcons.bell, LucideIcons.keyRound, LucideIcons.fileText]) {
-        await tester.scrollUntilVisible(find.byIcon(icon), 200, scrollable: find.byType(Scrollable).first);
-        final ic = tester.widget<Icon>(find.byIcon(icon));
-        colors.add(ic.color!);
+  group('Ayarlar (Stitch v3): tam genislik 56 dp satirlar', () {
+    testWidgets('bolumler, dil/tema degeri, sohbet arka plani, cikis en sonda', (tester) async {
+      await _open(tester, SettingsPage(session: makeSession(_backend()), themeController: ThemeController()), size: kPhoneLarge);
+      for (final s in ['Görünüm', 'Sohbet', 'Bildirimler', 'Gizlilik ve hesap']) {
+        expect(find.text(s), findsOneWidget, reason: s); // buyuk harf degil
       }
-      expect(colors.length, 1, reason: 'tek simge tonu: $colors');
+      expect(find.text('Dil'), findsOneWidget);
+      expect(find.text('Sohbet arka planı'), findsOneWidget);
+      final list = find.byType(Scrollable).first;
+      await tester.scrollUntilVisible(find.byKey(const ValueKey('settings-sign-out')), 300, scrollable: list);
+      final dyLogoutAll = tester.getCenter(find.byKey(const ValueKey('settings-logout-all'))).dy;
+      final dySign = tester.getCenter(find.byKey(const ValueKey('settings-sign-out'))).dy;
+      expect(dySign, greaterThan(dyLogoutAll));
+      expect(tester.takeException(), isNull);
       await unmount(tester);
     });
   });
@@ -184,21 +215,24 @@ void main() {
     });
   });
 
-  group('Takip satiri', () {
-    testWidgets('Takip et soluk marka zemini (dolgu kirmizi degil), Takipte cizgili', (tester) async {
+  group('Takip satiri (Stitch v3)', () {
+    testWidgets('Takip et cizgili (bdStrong), Takipte tonal sf2; dolgu kirmizi yok; dokunma alani 48', (tester) async {
       final b = _backend()..on('/users/11/follow', {'followerCount': 2});
       await _open(tester, FollowListPage(session: makeSession(b), userId: 7, followers: true, name: 'A'));
-      final box = tester.widget<AnimatedContainer>(find.byKey(const ValueKey('followButton')));
-      final deco = box.decoration! as BoxDecoration;
-      final ctx = tester.element(find.byKey(const ValueKey('followButton')));
-      final t = Theme.of(ctx);
-      expect(deco.color, isNot(t.colorScheme.primary));
-      expect((deco.border! as Border).top.color, Colors.transparent);
-      await tester.tap(find.byKey(const ValueKey('followButton')));
+      final key = find.byKey(const ValueKey('followButton'));
+      expect(tester.getSize(key).height, greaterThanOrEqualTo(48));
+      final ctx = tester.element(key);
+      final bu = ctx.bu;
+      var box = tester.widget<AnimatedContainer>(find.descendant(of: key, matching: find.byType(AnimatedContainer)));
+      var deco = box.decoration! as BoxDecoration;
+      expect(deco.color, Colors.transparent);
+      expect((deco.border! as Border).top.color, bu.bdStrong);
+      await tester.tap(key);
       await tester.pump(const Duration(milliseconds: 400));
-      final after = tester.widget<AnimatedContainer>(find.byKey(const ValueKey('followButton'))).decoration! as BoxDecoration;
-      expect((after.border! as Border).top.color, isNot(Colors.transparent));
-      expect(after.color, Colors.transparent);
+      box = tester.widget<AnimatedContainer>(find.descendant(of: key, matching: find.byType(AnimatedContainer)));
+      deco = box.decoration! as BoxDecoration;
+      expect(deco.color, bu.sf2);
+      expect((deco.border! as Border).top.color, Colors.transparent);
       await settle(tester, const Duration(milliseconds: 300));
       await unmount(tester);
     });

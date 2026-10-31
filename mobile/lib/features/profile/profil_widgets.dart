@@ -21,6 +21,7 @@ class ProfilCard extends StatelessWidget {
     final t = context.bu;
     final card = BuCard(
       padding: EdgeInsets.zero,
+      radius: BuRadius.md,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -45,16 +46,13 @@ class ProfilSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
-    final lang = Localizations.localeOf(context).languageCode;
-    // İngilizce dışında (tr; testte varsayılan yerel de) Türkçe büyük harf kuralı; Arapçada harf büyümez.
-    final up = lang == 'en' ? text.toUpperCase() : trUpper(text);
+    // Stitch v3: bölüm etiketi 13 sp / 500, soluk, BÜYÜK HARF DEĞİL.
     return Padding(
-      padding: EdgeInsetsDirectional.only(start: 6, bottom: 8, top: top),
+      padding: EdgeInsetsDirectional.only(start: 4, bottom: 8, top: top),
       child: Semantics(
         header: true,
-        child: Text(up,
-            style: Theme.of(context).textTheme.labelMedium!.copyWith(
-                fontWeight: FontWeight.w700, letterSpacing: lang == 'ar' ? 0 : .6, color: t.mut)),
+        child: Text(text,
+            style: Theme.of(context).textTheme.labelLarge!.copyWith(fontSize: 13, fontWeight: FontWeight.w500, color: t.mut)),
       ),
     );
   }
@@ -89,7 +87,7 @@ class ProfilIconTile extends StatelessWidget {
 class ProfilRow extends StatelessWidget {
   const ProfilRow({
     super.key,
-    required this.icon,
+    this.icon,
     required this.label,
     this.sub,
     this.value,
@@ -101,7 +99,8 @@ class ProfilRow extends StatelessWidget {
     this.tint,
   });
 
-  final IconData icon;
+  /// null: simgesiz düz satır (Stitch v3 profil listeleri).
+  final IconData? icon;
   final String label;
   final String? sub;
   final String? value;
@@ -129,12 +128,11 @@ class ProfilRow extends StatelessWidget {
             },
       child: Container(
         // Tüm satırlar aynı yükseklikte; yazı ölçeği büyüse de metin tek satırda kalır.
-        constraints: const BoxConstraints(minHeight: 60),
+        constraints: BoxConstraints(minHeight: icon == null ? 56 : 60),
         padding: const EdgeInsetsDirectional.fromSTEB(16, 8, 16, 8),
         child: Row(
           children: [
-            ProfilIconTile(icon: icon, tint: tone, danger: danger),
-            const SizedBox(width: 14),
+            if (icon != null) ...[ProfilIconTile(icon: icon!, tint: tone, danger: danger), const SizedBox(width: 14)],
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -144,7 +142,7 @@ class ProfilRow extends StatelessWidget {
                       maxLines: 1,
                       softWrap: false,
                       overflow: TextOverflow.ellipsis,
-                      style: tx.bodyLarge!.copyWith(fontWeight: FontWeight.w600, color: c)),
+                      style: tx.bodyLarge!.copyWith(fontWeight: icon == null ? FontWeight.w400 : FontWeight.w600, color: c)),
                   if (sub != null)
                     Text(sub!,
                         maxLines: 1,
@@ -162,16 +160,16 @@ class ProfilRow extends StatelessWidget {
                     maxLines: 1,
                     softWrap: false,
                     overflow: TextOverflow.ellipsis,
-                    style: tx.bodyMedium!.copyWith(fontWeight: FontWeight.w600, color: t.mut)),
+                    style: tx.bodyMedium!.copyWith(fontWeight: FontWeight.w400, color: t.mut)),
               ),
             ],
             if (trailing != null) ...[const SizedBox(width: 8), trailing!],
             // Ok alanı her satırda sabit genişlikte ayrılır: ok hepsinde aynı konumda.
             const SizedBox(width: 6),
             SizedBox(
-              width: 18,
+              width: 20,
               child: (chevron && !danger && onTap != null)
-                  ? ExcludeSemantics(child: Icon(buDirIcon(context, LucideIcons.chevronRight), size: 18, color: t.mut))
+                  ? ExcludeSemantics(child: Icon(buDirIcon(context, LucideIcons.chevronRight), size: 20, color: t.mut))
                   : null,
             ),
           ],

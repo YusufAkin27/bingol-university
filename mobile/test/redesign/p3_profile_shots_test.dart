@@ -183,8 +183,9 @@ final _shots = <_Shot>[
     _base(b);
     b.fail('/users/me', status: 500, code: 'SERVER_ERROR', message: 'Sunucu hatası');
   }),
-  _Shot('05_profil_cikis', (b, s) => _tab(s), setup: _base, after: (t) async {
-    final f = find.byKey(const ValueKey('profile-signout'));
+  _Shot('05_ayarlar_cikis_onayi', (b, s) => SettingsPage(session: s, themeController: ThemeController()), setup: _base,
+      height: 1100, after: (t) async {
+    final f = find.byKey(const ValueKey('settings-sign-out'));
     await t.scrollUntilVisible(f, 200, scrollable: find.byType(Scrollable).first);
     await t.pump();
     await t.tap(f);

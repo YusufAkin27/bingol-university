@@ -15,7 +15,8 @@ import '../../core/academic_catalog.dart';
 /// Satırın altındaki durum satırı türü.
 enum FollowRelation { none, followsYou, mutual, following }
 
-/// Takipçiler | Takip edilenler sekmesi: gri hap kutu, seçili parça beyaz, sayaç rozeti (seçiliyken kırmızı).
+/// Takipçiler | Takip edilenler: düz iki sekme (Stitch v3); seçili ink 15/600 + 2 dp marka alt çizgisi, sayı kırmızı hap
+/// DEĞİL, aynı satırda mut 13. Altta 1 dp bd çizgisi.
 class FollowTabs extends StatelessWidget {
   const FollowTabs({super.key, required this.labels, required this.counts, required this.index, required this.onChanged});
 
@@ -27,12 +28,10 @@ class FollowTabs extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
-    return Container(
-      padding: const EdgeInsets.all(4),
-      decoration: BoxDecoration(color: t.sf2, borderRadius: BorderRadius.circular(BuRadius.md), border: Border.all(color: t.bd)),
+    return DecoratedBox(
+      decoration: BoxDecoration(border: Border(bottom: BorderSide(color: t.bd))),
       child: Row(children: [
-        for (var i = 0; i < labels.length; i++)
-          Expanded(child: _tab(context, i)),
+        for (var i = 0; i < labels.length; i++) Expanded(child: _tab(context, i)),
       ]),
     );
   }
@@ -50,33 +49,30 @@ class FollowTabs extends StatelessWidget {
       excludeSemantics: true,
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
-        onTap: () => onChanged(i),
+        onTap: () {
+          if (!sel) buHaptic(BuHaptic.selection);
+          onChanged(i);
+        },
         child: AnimatedContainer(
           duration: BuMotion.of(context, BuMotion.short),
           curve: BuMotion.standard,
-          constraints: const BoxConstraints(minHeight: 44),
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+          constraints: const BoxConstraints(minHeight: 48),
+          padding: const EdgeInsets.symmetric(horizontal: 8),
           decoration: BoxDecoration(
-            color: sel ? t.sf : Colors.transparent,
-            borderRadius: BorderRadius.circular(BuRadius.sm),
-            boxShadow: sel ? BuElevation.of(context, 1) : const [],
+            border: Border(bottom: BorderSide(color: sel ? t.pr : Colors.transparent, width: 2)),
           ),
           alignment: Alignment.center,
           child: Row(mainAxisSize: MainAxisSize.min, children: [
             Flexible(
               child: Text(labels[i],
-                  maxLines: 2,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   textAlign: TextAlign.center,
-                  style: tx.labelLarge!.copyWith(fontWeight: FontWeight.w700, color: sel ? t.ink : t.mut)),
+                  style: tx.labelLarge!.copyWith(fontSize: 15, fontWeight: sel ? FontWeight.w600 : FontWeight.w400, color: sel ? t.ink : t.mut)),
             ),
             if (n != null) ...[
               const SizedBox(width: 6),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 1),
-                decoration: BoxDecoration(color: sel ? t.soft : t.bd, borderRadius: BuRadius.bPill),
-                child: Text('$n',
-                    style: tx.labelMedium!.copyWith(fontWeight: FontWeight.w700, color: sel ? t.onSoft : t.ink)),
-              ),
+              Text('$n', style: tx.labelMedium!.copyWith(fontSize: 13, fontWeight: FontWeight.w400, color: t.mut)),
             ],
           ]),
         ),
@@ -109,7 +105,7 @@ class FollowSectionLabel extends StatelessWidget {
 
 /// Satırları tek beyaz kartta toplayan sarmalayıcı (aralarında ince ayırıcı).
 class FollowCard extends StatelessWidget {
-  const FollowCard({super.key, required this.children, this.dividerIndent = 76});
+  const FollowCard({super.key, required this.children, this.dividerIndent = 72});
 
   final List<Widget> children;
   final double dividerIndent;
@@ -119,6 +115,7 @@ class FollowCard extends StatelessWidget {
     final t = context.bu;
     return BuCard(
       padding: EdgeInsets.zero,
+      radius: BuRadius.md,
       child: Column(children: [
         for (var i = 0; i < children.length; i++) ...[
           if (i > 0) Divider(height: 1, indent: dividerIndent, endIndent: 16, color: t.bd),
@@ -191,24 +188,24 @@ class FollowPersonRow extends StatelessWidget {
       child: InkWell(
         onTap: () => openUserProfile(context, session, userId: user.id, name: user.displayName, avatarUrl: user.avatarUrl),
         child: Container(
-          constraints: const BoxConstraints(minHeight: 76),
+          constraints: const BoxConstraints(minHeight: 64),
           padding: const EdgeInsetsDirectional.fromSTEB(16, 12, 16, 12),
           child: Row(children: [
-            BuAvatar(name: user.displayName, url: user.avatarUrl, size: 48, headers: postAuthHeaders(session)),
+            BuAvatar(name: user.displayName, url: user.avatarUrl, size: 44, headers: postAuthHeaders(session)),
             const SizedBox(width: 12),
             Expanded(
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
                 Text(user.displayName,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: tx.titleMedium!.copyWith(fontWeight: FontWeight.w700, color: t.ink)),
+                    style: tx.titleMedium!.copyWith(fontSize: 15, fontWeight: FontWeight.w600, color: t.ink)),
                 if (sub.isNotEmpty)
                   Padding(
                     padding: const EdgeInsets.only(top: 1),
                     child: Text(sub,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: tx.bodyMedium!.copyWith(color: t.mut)),
+                        style: tx.bodyMedium!.copyWith(fontSize: 13, color: t.mut)),
                   ),
                 if (status != null) Padding(padding: const EdgeInsets.only(top: 3), child: status),
               ]),
@@ -230,7 +227,7 @@ class FollowPersonRow extends StatelessWidget {
           child: Text(text,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: Theme.of(context).textTheme.labelMedium!.copyWith(fontWeight: FontWeight.w600, color: color)),
+              style: Theme.of(context).textTheme.labelMedium!.copyWith(fontSize: 12, fontWeight: FontWeight.w400, color: color)),
         ),
       ]);
 }
@@ -286,36 +283,36 @@ class _FollowRowButtonState extends State<FollowRowButton> {
     final t = context.bu;
     final l = context.l10n;
     final on = !_followed;
+    final r = BorderRadius.circular(BuRadius.pill);
     return Semantics(
       button: true,
       toggled: _followed,
       label: _followed ? l.followButtonUnfollow : l.followButtonFollow,
       excludeSemantics: true,
-      child: AnimatedContainer(
-        key: const ValueKey('followButton'),
-        duration: BuMotion.of(context, BuMotion.short),
-        curve: BuMotion.standard,
-        decoration: BoxDecoration(
-            color: on ? t.soft : Colors.transparent,
-            border: Border.all(color: on ? Colors.transparent : t.bd),
-            borderRadius: BorderRadius.circular(BuRadius.sm + 2)),
-        child: InkWell(
-          borderRadius: BorderRadius.circular(BuRadius.sm + 2),
-          onTap: _busy ? null : _toggle,
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(minHeight: 48, minWidth: 76),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 14),
-              child: Center(
-                widthFactor: 1,
-                child: Text(_followed ? l.followButtonFollowing : l.followButtonFollow,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: Theme.of(context)
-                        .textTheme
-                        .labelLarge!
-                        .copyWith(fontWeight: FontWeight.w700, color: on ? t.onSoft : t.mut)),
+      child: BuPressable(
+        onTap: _busy ? null : _toggle,
+        child: ConstrainedBox(
+          key: const ValueKey('followButton'),
+          constraints: const BoxConstraints(minHeight: 48, minWidth: 76),
+          child: Center(
+            widthFactor: 1,
+            // 36 dp görünür hap, 48 dp dokunma alanı.
+            child: AnimatedContainer(
+              duration: BuMotion.of(context, BuMotion.short),
+              curve: BuMotion.standard,
+              height: 36,
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                // Takip et: çizgili (bdStrong); Takipte: tonal sf2. Dolgulu kırmızı düğme yok.
+                color: on ? Colors.transparent : t.sf2,
+                border: Border.all(color: on ? t.bdStrong : Colors.transparent),
+                borderRadius: r,
               ),
+              child: Text(_followed ? l.followButtonFollowing : l.followButtonFollow,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.labelLarge!.copyWith(fontSize: 14, fontWeight: FontWeight.w600, color: t.ink)),
             ),
           ),
         ),
@@ -420,7 +417,7 @@ class FollowSkeletonCard extends StatelessWidget {
             const Padding(
               padding: EdgeInsetsDirectional.fromSTEB(16, 14, 16, 14),
               child: Row(children: [
-                BuSkeleton.circle(48),
+                BuSkeleton.circle(44),
                 SizedBox(width: 12),
                 Expanded(
                   child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
