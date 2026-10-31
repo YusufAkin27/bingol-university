@@ -80,7 +80,8 @@ void main() {
       expect(r({'targetType': 'STORY', 'targetId': '3'}), const PushTarget(PushDest.user, id: 3));
       expect(r({'targetType': 'EXAM'}), const PushTarget(PushDest.exams));
       expect(r({'targetType': 'TIMETABLE'}), const PushTarget(PushDest.timetable));
-      expect(r({'type': 'SESSION_REPLACED'}), const PushTarget(PushDest.signOut));
+      // session_replaced push'u sunucudan hic gelmez (oturum iptali 401/WS ile bildirilir): yuk artik cikis yapmaz.
+      expect(r({'type': 'SESSION_REPLACED'}), const PushTarget(PushDest.notifications));
     });
 
     test('bilinmeyen / bozuk yuk Bildirimler listesine duser (cokme yok)', () {

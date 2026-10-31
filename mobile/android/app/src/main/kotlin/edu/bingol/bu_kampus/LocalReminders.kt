@@ -21,7 +21,50 @@ object LocalReminderStore {
     private const val PREFS = "bu_local_reminders"
     const val EXTRA_PAYLOAD = "bu_reminder_payload"
 
+    /** Yuk imzasi: MainActivity launcher oldugu icin disa aciktir; baska uygulama sahte yuk basamasin diye (A4-01). */
+    const val EXTRA_SIG = "bu_reminder_sig"
+
+    // Imza anahtari AYRI dosyada: PREFS dosyasindaki her anahtar bir hatirlatma grubu sayilir (groups()).
+    private const val AUTH_PREFS = "bu_reminder_auth"
+
     private fun prefs(c: Context) = c.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+
+    private fun secret(c: Context): ByteArray {
+        val p = c.getSharedPreferences(AUTH_PREFS, Context.MODE_PRIVATE)
+        val cur = p.getString("k", null)
+        if (cur != null) {
+            try {
+                return android.util.Base64.decode(cur, android.util.Base64.NO_WRAP)
+            } catch (_: Exception) {
+            }
+        }
+        val fresh = ByteArray(32).also { java.security.SecureRandom().nextBytes(it) }
+        p.edit().putString("k", android.util.Base64.encodeToString(fresh, android.util.Base64.NO_WRAP)).apply()
+        return fresh
+    }
+
+    private fun mac(c: Context, payload: String): ByteArray {
+        val m = javax.crypto.Mac.getInstance("HmacSHA256")
+        m.init(javax.crypto.spec.SecretKeySpec(secret(c), "HmacSHA256"))
+        return m.doFinal(payload.toByteArray(Charsets.UTF_8))
+    }
+
+    /** Uygulamanin kendi PendingIntent'ine konan yuk imzasi (HMAC-SHA256, kurulum basina rastgele anahtar). */
+    fun sign(c: Context, payload: String): String =
+        android.util.Base64.encodeToString(mac(c, payload), android.util.Base64.NO_WRAP)
+
+    /** Imza gecerli mi (sabit sureli karsilastirma). Imza yok/bozuk = false. */
+    fun verify(c: Context, payload: String?, sig: String?): Boolean {
+        if (payload == null || sig == null) return false
+        return try {
+            java.security.MessageDigest.isEqual(
+                mac(c, payload),
+                android.util.Base64.decode(sig, android.util.Base64.NO_WRAP)
+            )
+        } catch (_: Exception) {
+            false
+        }
+    }
 
     fun groups(c: Context): List<String> = prefs(c).all.keys.toList()
 
@@ -130,16 +173,19 @@ object Channels {
     private const val PREFS = "bu_channels"
 
     // Kimlikler SUNUCU sozlesmesiyle ayni (PushMessages: chat/event/announcement/poll/social); academic yerel hatirlatma.
-    // Varsayilan (Turkce) adlar; Dart acilista/on plana donuste setNames ile kullanicinin diline gunceller ve
-    // SharedPreferences'a yazar: uygulama kapaliyken FCM sureci Application.onCreate'te kanallari son dille kurar.
+    // Varsayilan adlar/aciklamalar res/values{,-en,-ar}/strings.xml'den (cihaz diline gore; varsayilan = dogru
+    // diyakritikli Turkce, ARB ile ayni metin). Dart acilista/on plana donuste setNames ile kullanicinin SECTIGI dile
+    // gunceller ve SharedPreferences'a yazar: uygulama kapaliyken FCM sureci Application.onCreate'te kanallari
+    // son dille kurar; hic acilmamissa cihaz diliyle kurar.
     private val defaultNames = mapOf(
-        "chat" to "Mesajlar", "event" to "Etkinlikler", "announcement" to "Duyurular ve haberler",
-        "social" to "Sosyal (begeni, takip)", "poll" to "Anketler", "academic" to "Ders ve sinav hatirlatmalari"
+        "chat" to R.string.channel_chat_name, "event" to R.string.channel_event_name,
+        "announcement" to R.string.channel_announcement_name, "social" to R.string.channel_social_name,
+        "poll" to R.string.channel_poll_name, "academic" to R.string.channel_academic_name
     )
     private val defaultDescs = mapOf(
-        "chat" to "Birebir ve grup sohbet mesajlari.", "event" to "Etkinlik hatirlatmalari ve degisiklikler.",
-        "announcement" to "Haber, duyuru, kulup ve sistem bildirimleri.", "social" to "Begeni ve takip bildirimleri.",
-        "poll" to "Yeni anketler ve sonuclari.", "academic" to "Ders ve sinav saatinden onceki hatirlatmalar."
+        "chat" to R.string.channel_chat_desc, "event" to R.string.channel_event_desc,
+        "announcement" to R.string.channel_announcement_desc, "social" to R.string.channel_social_desc,
+        "poll" to R.string.channel_poll_desc, "academic" to R.string.channel_academic_desc
     )
 
     // Onem (kanal olusturulunca sabitlenir; kullanici sistem ayarindan degistirebilir, kod dusuremez):
@@ -172,10 +218,10 @@ object Channels {
             defaultNames.forEach { (id, defName) ->
                 val ch = NotificationChannel(
                     id,
-                    p.getString("n_$id", null) ?: defName,
+                    p.getString("n_$id", null) ?: c.getString(defName),
                     importance[id] ?: NotificationManager.IMPORTANCE_DEFAULT
                 )
-                ch.description = p.getString("d_$id", null) ?: defaultDescs[id]
+                ch.description = p.getString("d_$id", null) ?: defaultDescs[id]?.let { c.getString(it) }
                 when (id) {
                     "chat" -> {
                         ch.enableVibration(true)
@@ -222,9 +268,11 @@ class ReminderReceiver : BroadcastReceiver() {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && !nm.areNotificationsEnabled()) return
             Channels.ensure(context)
             val channel = intent.getStringExtra("channel") ?: "academic"
+            val payload = intent.getStringExtra("payload") ?: "{}"
             val open = Intent(context, MainActivity::class.java).apply {
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP
-                putExtra(LocalReminderStore.EXTRA_PAYLOAD, intent.getStringExtra("payload") ?: "{}")
+                putExtra(LocalReminderStore.EXTRA_PAYLOAD, payload)
+                putExtra(LocalReminderStore.EXTRA_SIG, LocalReminderStore.sign(context, payload))
             }
             val tap = PendingIntent.getActivity(
                 context, group.hashCode() * 31 + id, open,

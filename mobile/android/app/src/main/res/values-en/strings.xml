@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Notification channel names/descriptions in English (same text as the app_en.arb entries). -->
+    <string name="channel_chat_name">Messages</string>
+    <string name="channel_event_name">Events</string>
+    <string name="channel_announcement_name">Announcements and news</string>
+    <string name="channel_social_name">Social (likes, follows)</string>
+    <string name="channel_poll_name">Polls</string>
+    <string name="channel_academic_name">Class and exam reminders</string>
+    <string name="channel_chat_desc">Direct and group chat messages. Arrive with sound and vibration.</string>
+    <string name="channel_event_desc">Event reminders, changes and attendance results.</string>
+    <string name="channel_announcement_desc">News, announcements, club and system notifications.</string>
+    <string name="channel_social_desc">Like and follow notifications. Delivered silently.</string>
+    <string name="channel_poll_desc">New polls and their results.</string>
+    <string name="channel_academic_desc">Local reminders before your classes and exams.</string>
+</resources>

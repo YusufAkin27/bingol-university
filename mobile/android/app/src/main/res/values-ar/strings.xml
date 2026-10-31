@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- أسماء ووصف قنوات الإشعارات بالعربية (نفس نص app_ar.arb). -->
+    <string name="channel_chat_name">الرسائل</string>
+    <string name="channel_event_name">الفعاليات</string>
+    <string name="channel_announcement_name">الإعلانات والأخبار</string>
+    <string name="channel_social_name">اجتماعي (الإعجابات، المتابعات)</string>
+    <string name="channel_poll_name">الاستطلاعات</string>
+    <string name="channel_academic_name">تذكيرات المحاضرات والامتحانات</string>
+    <string name="channel_chat_desc">رسائل المحادثات الفردية والجماعية. تصل بصوت واهتزاز.</string>
+    <string name="channel_event_desc">تذكيرات الفعاليات والتغييرات ونتائج الحضور.</string>
+    <string name="channel_announcement_desc">إشعارات الأخبار والإعلانات والأندية والنظام.</string>
+    <string name="channel_social_desc">إشعارات الإعجاب والمتابعة. تصل بصمت.</string>
+    <string name="channel_poll_desc">الاستطلاعات الجديدة ونتائجها.</string>
+    <string name="channel_academic_desc">تذكيرات محلية قبل المحاضرات والامتحانات.</string>
+</resources>

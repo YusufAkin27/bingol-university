@@ -28,15 +28,15 @@ class PushRouter {
   /// PushService tarafından atanır.
   static Session? session;
 
-  static Future<void> open(Map<String, dynamic> data) async {
+  /// [localReminder] = yük yerel hatırlatma dokunuşundan geldi (Android intent ekstrası dışarıdan sahte
+  /// basılabilir): yalnız hedef anahtarları beyaz listeden geçer, sohbet durumu (kapandı/yeniden açıldı) ASLA
+  /// işlenmez. Durum değiştiren anahtarlar (`event`...) yalnız sunucudan gelen FCM yükünde etkilidir.
+  static Future<void> open(Map<String, dynamic> data, {bool localReminder = false}) async {
     final s = session;
+    final payload = localReminder ? sanitizeLocalReminderPayload(data) : data;
     // Sohbet kapatıldı/yeniden açıldı bildirimi: durum, hedef ekran açılmadan önce işlenir (bantlı açılsın).
-    ClosedConversations.instance.applyPushData(data);
-    final target = resolvePushTarget(data);
-    if (s != null && target.dest == PushDest.signOut) {
-      await s.forceSignOut(reason: SignOutReason.replaced);
-      return;
-    }
+    if (!localReminder) ClosedConversations.instance.applyPushData(payload);
+    final target = resolvePushTarget(payload);
     final nav = rootNavigatorKey.currentState;
     if (s == null || nav == null || s.state != SessionState.signedIn) return;
     try {
@@ -111,7 +111,7 @@ class PushRouter {
       case PushDest.feedback:
         push(SupportPage(session: s));
         return true;
-      case PushDest.signOut:
+      case PushDest.signOut: // ölü değer (bkz. PushDest.signOut): hiçbir yük buraya çözülmez, çıkış yapılmaz
       case PushDest.notifications:
         return false;
     }

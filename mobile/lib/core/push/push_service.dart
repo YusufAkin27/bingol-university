@@ -177,14 +177,14 @@ class PushService with WidgetsBindingObserver {
       _tapBridge = true;
       ChannelReminderBackend.channel.setMethodCallHandler((call) async {
         if (call.method == 'onTap' && call.arguments is Map) {
-          _open((call.arguments as Map).map((k, v) => MapEntry('$k', v)));
+          _open((call.arguments as Map).map((k, v) => MapEntry('$k', v)), localReminder: true);
         }
         return null;
       });
     }
     try {
       final p = await LocalReminders.instance.backend.takeLaunchPayload();
-      if (p != null && p.isNotEmpty) _open(Map<String, dynamic>.from(p));
+      if (p != null && p.isNotEmpty) _open(Map<String, dynamic>.from(p), localReminder: true);
     } catch (_) {}
   }
 
@@ -408,14 +408,15 @@ class PushService with WidgetsBindingObserver {
     return true;
   }
 
-  void _open(Map<String, dynamic> data) {
+  /// [localReminder]: yük yerel hatırlatma dokunuşundan geldi (güvenilmez kaynak; bkz. [PushRouter.open]).
+  void _open(Map<String, dynamic> data, {bool localReminder = false}) {
     final url = data['value'];
     if (('${data['target']}').toUpperCase() == 'URL') {
       // Yalnız https şemasına güvenilir; tarayıcı açma çağıran tarafın işi, burada bildirim listesine düşer.
       if (url is! String || !url.startsWith('https://')) return;
     }
     // Soğuk açılışta kabuk çizildikten sonra yönlendir.
-    WidgetsBinding.instance.addPostFrameCallback((_) => PushRouter.open(data));
+    WidgetsBinding.instance.addPostFrameCallback((_) => PushRouter.open(data, localReminder: localReminder));
     WidgetsBinding.instance.scheduleFrame();
   }
 }

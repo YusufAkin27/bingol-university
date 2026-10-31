@@ -1,4 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">BÜ Kampüs</string>
+
+    <!-- Bildirim kanalı varsayılan adları/açıklamaları (Türkçe = varsayılan dil). Dart açılışta kullanıcının dilindeki
+         ARB metniyle (bildirimmobilKanal*, p21Chan*Desc) üzerine yazar; uygulama kapalıyken ilk push bu metinlerle
+         cihaz diline göre kanal kurar. Metinler ARB ile AYNI tutulur (mobile/test/android_channel_names_test.dart). -->
+    <string name="channel_chat_name">Mesajlar</string>
+    <string name="channel_event_name">Etkinlikler</string>
+    <string name="channel_announcement_name">Duyurular ve haberler</string>
+    <string name="channel_social_name">Sosyal (beğeni, takip)</string>
+    <string name="channel_poll_name">Anketler</string>
+    <string name="channel_academic_name">Ders ve sınav hatırlatmaları</string>
+    <string name="channel_chat_desc">Birebir ve grup sohbet mesajları. Ses ve titreşimle gelir.</string>
+    <string name="channel_event_desc">Etkinlik hatırlatmaları, değişiklikler ve katılım sonuçları.</string>
+    <string name="channel_announcement_desc">Haber, duyuru, kulüp ve sistem bildirimleri.</string>
+    <string name="channel_social_desc">Beğeni ve takip bildirimleri. Sessiz gelir.</string>
+    <string name="channel_poll_desc">Yeni anketler ve sonuçları.</string>
+    <string name="channel_academic_desc">Ders ve sınav saatinden önceki yerel hatırlatmalar.</string>
 </resources>

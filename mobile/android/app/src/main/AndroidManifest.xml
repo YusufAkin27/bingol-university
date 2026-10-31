@@ -59,7 +59,9 @@
             android:name="flutterEmbedding"
             android:value="2" />
         <receiver android:name=".ReminderReceiver" android:exported="false"/>
-        <receiver android:name=".BootReceiver" android:exported="true">
+        <!-- Yalniz sistem yayinlari (BOOT_COMPLETED vb.) alinir; exported=false disaridan sahte tetiklemeyi engeller
+             (sistem yayinlari yine iletilir). rearmAll sadece yerel alarmlari yeniden kurar. -->
+        <receiver android:name=".BootReceiver" android:exported="false">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED"/>
                 <action android:name="android.intent.action.TIME_SET"/>
@@ -67,6 +69,16 @@
                 <action android:name="android.intent.action.MY_PACKAGE_REPLACED"/>
             </intent-filter>
         </receiver>
+        <!-- KVKK veri dosyasi paylasimi: yalniz cache/export/ (xml/export_file_paths.xml), gecici okuma izniyle. -->
+        <provider
+            android:name=".ExportFileProvider"
+            android:authorities="${applicationId}.exportprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/export_file_paths" />
+        </provider>
         <!-- Push: sunucu chat / event / announcement / social / poll / academic kanallarini kullanir (MainActivity olusturur). -->
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_channel_id"

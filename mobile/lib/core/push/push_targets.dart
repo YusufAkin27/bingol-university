@@ -2,6 +2,9 @@
 /// Hem [PushRouter] (push dokunuşu, yerel hatırlatma dokunuşu) hem bildirim listesi bunu kullanır.
 /// Bilinmeyen / bozuk yük [PushDest.notifications] olur; hiçbir durumda exception fırlatmaz.
 enum PushDest {
+  /// ÖLÜ: [resolvePushTarget] artık üretmez (sunucu `session_replaced` push'u hiç göndermez; oturum iptali 401/WS ile
+  /// gelir, A4-01/A13-13). Yalnız `notifications_page.dart` (W2-I sahibi) hâlâ bu değere bakar; orası temizlenince
+  /// bu değer de silinebilir.
   signOut,
   conversation,
 
@@ -37,6 +40,43 @@ class PushTarget {
 
   @override
   String toString() => 'PushTarget($dest, $id${commentId != null ? ', c$commentId' : ''})';
+}
+
+/// Yerel hatırlatma (Android intent ekstrası / iOS bildirim userInfo) yükünde İZİN VERİLEN anahtarlar.
+/// `type`/`event` gibi durum değiştiren anahtarlar BİLEREK yoktur: bunlar yalnız sunucudan gelen FCM yükünde
+/// anlamlıdır (A4-01: dışa açık launcher aktivitesine başka bir uygulama sahte yük basabilir).
+const Set<String> kLocalReminderPayloadKeys = {
+  'targetType',
+  'targetId',
+  'conversationId',
+  'eventId',
+  'postId',
+  'communityId',
+  'newsId',
+  'ticketId',
+  'pollId',
+  'userId',
+  'announcementId',
+};
+
+/// Yerel hatırlatma yükünde bir değerin en çok uzunluğu.
+const int kLocalReminderValueMax = 200;
+
+/// Yerel kaynaklı (güvenilmeyen) yükü beyaz listeye indirger: bilinmeyen anahtarlar atılır, değerler metne çevrilip
+/// [kLocalReminderValueMax] ile sınırlanır (daha uzun/boş/iç içe değerin anahtarı atılır). Exception fırlatmaz.
+Map<String, dynamic> sanitizeLocalReminderPayload(Map<dynamic, dynamic>? raw) {
+  final out = <String, dynamic>{};
+  if (raw == null) return out;
+  for (final e in raw.entries) {
+    final k = '${e.key}';
+    if (!kLocalReminderPayloadKeys.contains(k)) continue;
+    final v = e.value;
+    if (v is! String && v is! num) continue;
+    final text = '$v';
+    if (text.isEmpty || text.length > kLocalReminderValueMax) continue;
+    out[k] = text;
+  }
+  return out;
 }
 
 int? _id(Object? v) {
@@ -98,8 +138,6 @@ PushDest? _destOf(String t) {
 /// (`conversationId`, `eventId`...) kabul edilir. Doğrudan anahtarlar önceliklidir.
 PushTarget resolvePushTarget(Map<String, dynamic>? data) {
   final d = data ?? const <String, dynamic>{};
-  if ('${d['type']}'.toLowerCase() == 'session_replaced') return const PushTarget(PushDest.signOut);
-
   // P08: yönetici sohbetten çıkardı/oda kaldırıldı: sohbet artık yok, kullanıcı listeye gider.
   if ('${d['event'] ?? ''}'.toUpperCase() == 'CONVERSATION_REMOVED') return const PushTarget(PushDest.chatList);
 
