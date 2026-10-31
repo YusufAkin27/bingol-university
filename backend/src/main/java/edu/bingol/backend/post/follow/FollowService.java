@@ -209,38 +209,118 @@ public class FollowService {
 
     // ---------------------------------------------------------------- oneriler
 
+    /** Onerilen aday ust siniri (kulup arkadasi ve bolum havuzu ayri ayri); sorgu maliyetini kullanici sayisindan ayirir. */
+    static final int SUGGESTION_POOL = 300;
+    /** Onbellege alinan sirali aday sayisi (en fazla 20 istenir; takip/engel sonradan suzuldugu icin pay birakilir). */
+    private static final int SUGGESTION_CACHE_ROWS = 40;
+    private static final long SUGGESTION_TTL_MS = 15 * 60_000L;
+    private static final int SUGGESTION_CACHE_MAX = 5_000;
+
+    private record CachedRows(long at, List<Object[]> rows) {}
+
+    /** Kullanici basina sirali aday listesi (id, neden); LRU + TTL. Takip/engel okuma aninda suzulur, bu yuzden bayatlamaz. */
+    private final Map<Long, CachedRows> suggestionCache = new java.util.LinkedHashMap<>(256, 0.75f, true) {
+        @Override
+        protected boolean removeEldestEntry(Map.Entry<Long, CachedRows> eldest) {
+            return size() > SUGGESTION_CACHE_MAX;
+        }
+    };
+
+    void clearSuggestionCache() {
+        synchronized (suggestionCache) {
+            suggestionCache.clear();
+        }
+    }
+
     /** Ortak kulup, ayni bolum+sinif, ayni bolum; takip edilenler ve engel iliskileri haric. */
     @Transactional(readOnly = true)
     public List<Suggestion> suggestions(Long me, int size) {
         int n = size <= 0 ? 10 : Math.min(size, 20);
-        List<Object[]> rows = jdbc.query("SELECT id, reason FROM (SELECT u.id AS id, "
-                + "CASE WHEN EXISTS (SELECT 1 FROM community_member a JOIN community_member b ON a.community_id = b.community_id "
-                + "WHERE a.user_id = me.id AND b.user_id = u.id AND a.status = 'ACTIVE' AND b.status = 'ACTIVE') THEN 'CLUB' "
-                + "WHEN me.department IS NOT NULL AND u.department = me.department AND me.class_year IS NOT NULL "
-                + "AND u.class_year = me.class_year THEN 'GRADE' "
-                + "WHEN me.department IS NOT NULL AND u.department = me.department THEN 'DEPARTMENT' ELSE NULL END AS reason, "
-                + "COALESCE((SELECT s.follower_count FROM user_follow_stats s WHERE s.user_id = u.id), 0) AS fc "
-                + "FROM app_user u, app_user me WHERE me.id = ? AND u.id <> me.id AND u.status = 'ACTIVE' "
-                + "AND u.email_verified = TRUE "
-                + "AND NOT EXISTS (SELECT 1 FROM user_follow f WHERE f.follower_id = me.id AND f.followee_id = u.id) "
-                + "AND NOT EXISTS (SELECT 1 FROM user_block b WHERE (b.blocker_id = me.id AND b.blocked_id = u.id) "
-                + "OR (b.blocker_id = u.id AND b.blocked_id = me.id))) t WHERE reason IS NOT NULL "
-                + "ORDER BY CASE reason WHEN 'CLUB' THEN 0 WHEN 'GRADE' THEN 1 ELSE 2 END, fc DESC, id DESC LIMIT " + n,
-                (rs, i) -> new Object[] {rs.getLong(1), rs.getString(2)}, me);
+        List<Object[]> rows = suggestionRows(me);
         if (rows.isEmpty()) {
             return List.of();
         }
-        List<Long> ids = rows.stream().map(r -> (Long) r[0]).toList();
+        // Onbellek bayatlamasin: sonradan takip edilen / engellenen adaylari okuma aninda ele (iki kucuk sorgu)
+        List<Long> cachedIds = rows.stream().map(r -> (Long) r[0]).toList();
+        Set<Long> skip = new HashSet<>(follows.followedAmong(me, cachedIds));
+        String in = String.join(",", java.util.Collections.nCopies(cachedIds.size(), "?"));
+        Object[] args = new Object[cachedIds.size() * 2 + 2];
+        args[0] = me;
+        for (int i = 0; i < cachedIds.size(); i++) {
+            args[1 + i] = cachedIds.get(i);
+        }
+        args[cachedIds.size() + 1] = me;
+        for (int i = 0; i < cachedIds.size(); i++) {
+            args[cachedIds.size() + 2 + i] = cachedIds.get(i);
+        }
+        skip.addAll(jdbc.queryForList("SELECT blocked_id FROM user_block WHERE blocker_id = ? AND blocked_id IN (" + in
+                + ") UNION SELECT blocker_id FROM user_block WHERE blocked_id = ? AND blocker_id IN (" + in + ")",
+                Long.class, args));
+        List<Object[]> kept = rows.stream().filter(r -> !skip.contains((Long) r[0])).limit(n).toList();
+        if (kept.isEmpty()) {
+            return List.of();
+        }
+        List<Long> ids = kept.stream().map(r -> (Long) r[0]).toList();
         Map<Long, PublicProfile> byId = new HashMap<>();
         profiles.mapAll(me, users.findAllById(ids)).forEach(p -> byId.put(p.id(), p));
         List<Suggestion> out = new ArrayList<>();
-        for (Object[] r : rows) {
+        for (Object[] r : kept) {
             PublicProfile p = byId.get((Long) r[0]);
             if (p != null) {
                 out.add(new Suggestion(p.id(), p.displayName(), p.avatarUrl(), p.department(), (String) r[1], p.classYear()));
             }
         }
         return out;
+    }
+
+    private List<Object[]> suggestionRows(Long me) {
+        long now = System.currentTimeMillis();
+        synchronized (suggestionCache) {
+            CachedRows c = suggestionCache.get(me);
+            if (c != null && now - c.at() < SUGGESTION_TTL_MS) {
+                return c.rows();
+            }
+        }
+        List<Object[]> rows = queryCandidates(me);
+        synchronized (suggestionCache) {
+            suggestionCache.put(me, new CachedRows(now, rows));
+        }
+        return rows;
+    }
+
+    /**
+     * T-024: aday kumesi "benim kulup arkadaslarim" + "ayni bolum" havuzlarina (her biri en fazla {@value #SUGGESTION_POOL})
+     * daraltilir; eski sorgu butun kullanici tablosunu kulup kendi-birlesimiyle (O(kullanici x kulup^2)) tariyordu.
+     * Takip/engel dislamasi kucuk bir CTE'dir (anti-join). Siralama: CLUB, GRADE, DEPARTMENT; sonra takipci sayisi, id.
+     */
+    private List<Object[]> queryCandidates(Long me) {
+        return jdbc.query("WITH me AS (SELECT department, class_year FROM app_user WHERE id = ?), "
+                + "excl AS (SELECT followee_id AS id FROM user_follow WHERE follower_id = ? "
+                + "UNION SELECT blocked_id FROM user_block WHERE blocker_id = ? "
+                + "UNION SELECT blocker_id FROM user_block WHERE blocked_id = ?), "
+                + "club AS (SELECT u.id AS id, 0 AS tier, COALESCE(s.follower_count, 0) AS fc FROM "
+                + "(SELECT DISTINCT b.user_id AS id FROM community_member a JOIN community_member b "
+                + "ON b.community_id = a.community_id AND b.status = 'ACTIVE' "
+                + "WHERE a.user_id = ? AND a.status = 'ACTIVE' AND b.user_id <> a.user_id) m "
+                + "JOIN app_user u ON u.id = m.id AND u.status = 'ACTIVE' AND u.email_verified = TRUE "
+                + "LEFT JOIN user_follow_stats s ON s.user_id = u.id "
+                + "WHERE NOT EXISTS (SELECT 1 FROM excl e WHERE e.id = u.id) "
+                + "ORDER BY fc DESC, u.id DESC LIMIT " + SUGGESTION_POOL + "), "
+                + "dept AS (SELECT u.id AS id, CASE WHEN me.class_year IS NOT NULL AND u.class_year = me.class_year "
+                + "THEN 1 ELSE 2 END AS tier, COALESCE(s.follower_count, 0) AS fc FROM me "
+                + "JOIN app_user u ON me.department IS NOT NULL AND u.department = me.department AND u.id <> ? "
+                + "AND u.status = 'ACTIVE' AND u.email_verified = TRUE "
+                + "LEFT JOIN user_follow_stats s ON s.user_id = u.id "
+                + "WHERE NOT EXISTS (SELECT 1 FROM excl e WHERE e.id = u.id) "
+                + "ORDER BY tier, fc DESC, u.id DESC LIMIT " + SUGGESTION_POOL + ") "
+                + "SELECT id, tier FROM (SELECT id, MIN(tier) AS tier, MAX(fc) AS fc FROM "
+                + "(SELECT id, tier, fc FROM club UNION ALL SELECT id, tier, fc FROM dept) c GROUP BY id) g "
+                + "ORDER BY tier, fc DESC, id DESC LIMIT " + SUGGESTION_CACHE_ROWS,
+                (rs, i) -> new Object[] {rs.getLong(1), switch (rs.getInt(2)) {
+                    case 0 -> "CLUB";
+                    case 1 -> "GRADE";
+                    default -> "DEPARTMENT";
+                }}, me, me, me, me, me, me);
     }
 
     // ---------------------------------------------------------------- KVKK
