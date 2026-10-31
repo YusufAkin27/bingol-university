@@ -62,36 +62,34 @@ String acadDate(BuildContext context, DateTime d) =>
 String acadLongDate(BuildContext context, DateTime d) =>
     DateFormat('d MMMM, EEEE', Localizations.localeOf(context).toString()).format(d);
 
-/// Yerel hatırlatmalar (sunucu ders/sınav bildirimi göndermez). Plan saf Dart'ta hesaplanır,
-/// zamanlama platform kanalıyla (Android: AlarmManager, yaklaşık zaman) yapılır.
+/// Yerel hatırlatmalar: ders öncesi ve sınavdan 1 gün önce. Sınavdan 2 saat önceki bildirim SUNUCUDAN gerçek push
+/// olarak gelir (uygulama kapalıyken de); aynı sınav için yerel saatlik hatırlatma kurulmaz (çift bildirim olmasın).
+/// Plan saf Dart'ta hesaplanır, zamanlama platform kanalıyla (Android: AlarmManager, yaklaşık zaman) yapılır.
 
 class ReminderSettings {
   const ReminderSettings({
     this.classEnabled = true,
     this.classLeadMin = 10,
     this.examDayBefore = true,
-    this.examHourBefore = true,
   });
 
   final bool classEnabled;
   final int classLeadMin; // 5/10/15/30/60
-  final bool examDayBefore, examHourBefore;
+  final bool examDayBefore;
 
   static const leadOptions = [5, 10, 15, 30, 60];
 
-  ReminderSettings copyWith({bool? classEnabled, int? classLeadMin, bool? examDayBefore, bool? examHourBefore}) =>
+  ReminderSettings copyWith({bool? classEnabled, int? classLeadMin, bool? examDayBefore}) =>
       ReminderSettings(
         classEnabled: classEnabled ?? this.classEnabled,
         classLeadMin: classLeadMin ?? this.classLeadMin,
         examDayBefore: examDayBefore ?? this.examDayBefore,
-        examHourBefore: examHourBefore ?? this.examHourBefore,
       );
 
   Map<String, dynamic> toJson() => {
         'classEnabled': classEnabled,
         'classLeadMin': classLeadMin,
         'examDayBefore': examDayBefore,
-        'examHourBefore': examHourBefore,
       };
 
   factory ReminderSettings.fromJson(Map<String, dynamic> j) {
@@ -99,8 +97,8 @@ class ReminderSettings {
     return ReminderSettings(
       classEnabled: j['classEnabled'] != false,
       classLeadMin: lead is int && leadOptions.contains(lead) ? lead : 10,
+      // Eski kayıttaki 'examHourBefore' yok sayılır: saatlik sınav bildirimi artık sunucu push'u.
       examDayBefore: j['examDayBefore'] != false,
-      examHourBefore: j['examHourBefore'] != false,
     );
   }
 }
@@ -165,12 +163,6 @@ List<PlannedReminder> planReminders({
       final at = e.startsAt.subtract(const Duration(days: 1));
       if (at.isAfter(now)) {
         out.add(PlannedReminder(_hash('e${e.id}:d'), at, label, l.acadTimeRemExamTomorrow('${two(istanbulWall(e.startsAt).hour)}:${two(istanbulWall(e.startsAt).minute)}', room)));
-      }
-    }
-    if (settings.examHourBefore) {
-      final at = e.startsAt.subtract(const Duration(hours: 1));
-      if (at.isAfter(now)) {
-        out.add(PlannedReminder(_hash('e${e.id}:h'), at, label, l.acadTimeRemExamHour(room)));
       }
     }
   }

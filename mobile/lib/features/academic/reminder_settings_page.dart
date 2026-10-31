@@ -7,12 +7,15 @@ import '../../core/permissions/permission_service.dart';
 import '../../core/session.dart';
 import '../../l10n/app_localizations.dart';
 import '../../widgets/bu.dart';
+import '../profile/notification_prefs_page.dart';
 import 'academic_api.dart';
 import 'academic_widgets.dart';
 import 'akad_widgets.dart';
 import 'reminders.dart';
 
 /// Hatırlatmalar (Stitch 45): ders ve sınav yerel bildirimleri. Bildirim izni yoksa uyarı kartı ve pasif anahtarlar.
+/// Sınavdan 2 saat önceki bildirim sunucudan gelen gerçek push'tur (yerel değil): satır yalnız bilgilendirir ve
+/// Profil > Bildirim tercihleri'ne (Akademik duyurular) götürür; yeni uç/istek yoktur.
 class ReminderSettingsPage extends StatefulWidget {
   const ReminderSettingsPage({super.key, required this.session});
 
@@ -247,8 +250,34 @@ class _ReminderSettingsPageState extends State<ReminderSettingsPage> with Widget
         child: Column(children: [
           _examRow(t, LucideIcons.calendar, l.acadTimeDayBefore, l.p20RemDaySub, _permOk && _s.examDayBefore, (v) => _update(_s.copyWith(examDayBefore: v))),
           const AkadDivider(),
-          _examRow(t, LucideIcons.timer, l.acadTimeHourBefore, l.p20RemHourSub, _permOk && _s.examHourBefore, (v) => _update(_s.copyWith(examHourBefore: v))),
+          _serverPushRow(t, l),
         ]),
+      );
+
+  /// "Sınavdan 2 saat önce (bildirim)": sunucu push'u; yerel anahtar değil, akademik bildirim tercihine gider.
+  Widget _serverPushRow(BuTokens t, AppLocalizations l) => Semantics(
+        button: true,
+        child: InkWell(
+          onTap: () {
+            buHaptic(BuHaptic.selection);
+            Navigator.push<void>(context, MaterialPageRoute<void>(builder: (_) => NotificationPrefsPage(session: widget.session)));
+          },
+          child: Padding(
+            padding: const EdgeInsetsDirectional.only(start: 16, end: 16, top: 12, bottom: 12),
+            child: Row(children: [
+              AkadIconTile(icon: LucideIcons.timer, bg: t.sf2, fg: t.ink, size: 40, radius: 20, iconSize: 18),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Text(l.acadTimeHourBefore, style: Theme.of(context).textTheme.titleMedium!.copyWith(fontWeight: FontWeight.w700, color: t.ink)),
+                  Text(l.p20RemHourSub, style: Theme.of(context).textTheme.bodySmall!.copyWith(color: t.mut)),
+                ]),
+              ),
+              const SizedBox(width: 8),
+              Icon(buDirIcon(context, LucideIcons.chevronRight), size: 20, color: t.mut),
+            ]),
+          ),
+        ),
       );
 
   Widget _examRow(BuTokens t, IconData icon, String title, String sub, bool value, ValueChanged<bool> onChanged) => MergeSemantics(

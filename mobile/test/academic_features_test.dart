@@ -7,6 +7,7 @@ import 'package:bu_kampus/features/academic/reminder_settings_page.dart';
 import 'package:bu_kampus/features/academic/reminders.dart';
 import 'package:bu_kampus/features/academic/timetable_page.dart';
 import 'package:bu_kampus/features/academic/timetable_parts.dart' show isolateIcs;
+import 'package:bu_kampus/features/profile/notification_prefs_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -91,7 +92,7 @@ void main() {
       expect(slotsForDay(courses, sem, DateTime.utc(2027, 2, 1)), isEmpty);
     });
 
-    test('hatirlatma plani: ders oncesi dakika ve sinav 1 gun/1 saat', () {
+    test('hatirlatma plani: ders oncesi dakika ve sinav 1 gun (saatlik yerel hatirlatma yok: sunucu push)', () {
       final courses = [_c(1, 'Mat', [_s(1, '09:00', '10:50'), _s(1, '07:30', '08:20')])];
       final exam = Exam(id: 9, title: 'Vize', type: 'VIZE', startsAt: DateTime.utc(2026, 11, 4, 7, 0)); // 10:00 Istanbul
       final plan = planReminders(
@@ -105,7 +106,9 @@ void main() {
       // 07:30 dersi 07:15 (=04:15Z) gecmis: atlanir. 09:00 dersi 08:45 Istanbul = 05:45Z.
       expect(plan.first.at, DateTime.utc(2026, 11, 2, 5, 45));
       expect(plan.first.title, 'Mat');
-      expect(plan.where((p) => p.title.startsWith('Vize')).map((p) => p.at), [DateTime.utc(2026, 11, 3, 7, 0), DateTime.utc(2026, 11, 4, 6, 0)]);
+      // Sinav icin yalniz 1 gun onceki yerel hatirlatma; 1 saat onceki YOK (sunucu 2 saat once push gonderir, cift bildirim olmasin).
+      expect(plan.where((p) => p.title.startsWith('Vize')).map((p) => p.at), [DateTime.utc(2026, 11, 3, 7, 0)]);
+      expect(plan.any((p) => p.at == DateTime.utc(2026, 11, 4, 6, 0) || p.at == DateTime.utc(2026, 11, 4, 5, 0)), false);
       expect(plan.map((p) => p.at).toList(), [...plan.map((p) => p.at)]..sort());
       expect(plan.map((p) => p.id).toSet().length, plan.length, reason: 'kimlikler benzersiz');
       final off = planReminders(
@@ -114,7 +117,14 @@ void main() {
           exams: [exam],
           settings: const ReminderSettings(classEnabled: false, examDayBefore: false),
           now: _now);
-      expect(off.length, 1);
+      expect(off, isEmpty); // sinav gunu kapali + ders kapali: yerel hicbir sey (saatlik sinav bildirimi sunucudan)
+    });
+
+    test('eski examHourBefore ayari yok sayilir ve bir daha yazilmaz', () {
+      final s = ReminderSettings.fromJson({'classEnabled': true, 'classLeadMin': 15, 'examDayBefore': false, 'examHourBefore': true});
+      expect(s.classLeadMin, 15);
+      expect(s.examDayBefore, false);
+      expect(s.toJson().containsKey('examHourBefore'), false);
     });
 
     test('geri sayim ve ICS', () {
@@ -480,9 +490,28 @@ void main() {
       await settle(tester, const Duration(seconds: 1));
       expect(store.value.classLeadMin, 30);
       expect(platform.last.first.at, DateTime.utc(2026, 11, 2, 6, 30)); // 10:00 - 30 dk (Istanbul) = 06:30Z
+      // Sinav kartinda yalniz 1 gun onceki yerel anahtar var; 2 saat onceki satir sunucu push'u (anahtar degil).
       await tester.tap(find.byType(Switch).last);
       await settle(tester);
-      expect(store.value.examHourBefore, false);
+      expect(store.value.examDayBefore, false);
+      await unmount(tester);
+    });
+
+    testWidgets('sinav 2 saat once satiri sunucu bildirimi olarak sunulur ve bildirim tercihlerine goturur', (tester) async {
+      useScreen(tester, kPhoneMedium);
+      final b = FakeBackend();
+      fakeAcademic(b).addCourse('Fizik', 1, '10:00', '11:00');
+      await tester.pumpWidget(buildApp(ReminderSettingsPage(session: makeSession(b)), size: kPhoneMedium));
+      await settle(tester);
+      expect(find.text('1 saat önce'), findsNothing);
+      final row = find.textContaining('2 saat önce');
+      await tester.ensureVisible(row.first);
+      expect(row, findsWidgets);
+      // Bu satirda anahtar yok: ders anahtari + 1 gun onceki sinav anahtari = 2 Switch.
+      expect(find.byType(Switch), findsNWidgets(2));
+      await tester.tap(row.first);
+      await settle(tester);
+      expect(find.byType(NotificationPrefsPage), findsOneWidget);
       await unmount(tester);
     });
   });
