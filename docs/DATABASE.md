@@ -214,3 +214,13 @@ Yalnız geliştirme/test veritabanı (koruma: `-v confirm=I_AM_DEV_ONLY` ve ≤5
 - `data_export_receipt` / `data_purge_log` (V830, indeks öneki `ds_`): kanıt tabloları, `DELETE` tetikleyiciyle engelli; saklama işi dokunmaz. Elle silme `ChunkedDeleter.deleteAll` (parçalı, ilerleme) kullanır; aralık en geç `bugün - asgari saklama` (denetim kayıtları >= 90 gün, `message_access_audit` 365, diğerleri >= 7-30 gün).
 - Doluluk: `GET /api/admin/system/storage` (`StorageUsageService`): `pg_database_size`, `pg_total_relation_size` en büyük 15 tablo, uygulama diskleri `statfs`. Veritabanı sunucusu diski yalnız `app.storage.db-disk-path` (ölçülen) ya da `app.storage.db-disk-capacity-bytes` (hesaplanan) ile bilinir; yoksa UNKNOWN. Eşikler `app.observability.storage-warn-percent=80` / `storage-crit-percent=90`; `StorageAlertJob` 15 dk'da bir yöneticilere uygulama içi bildirim (e-posta yok).
 - Büyük silme sonrası `ANALYZE` otomatik; alanı işletim sistemine geri vermek için bakım penceresinde `VACUUM FULL <tablo>` (bölüm 10) çalıştırın.
+
+## 17. Moderasyon tablolari (W2-E, V990-V993, indeks oneki `mod9_`)
+
+| Tablo | Icerik | Saklama / hesap silme karari |
+|---|---|---|
+| `violation_ledger` | silinen hesabin e-posta HMAC-SHA256 ozeti + strike sayisi + askiya alinmis mi | 365 gun (`expires_at`; gece 04:40 `ViolationLedgerService.purgeExpired`); kullanici sutunu YOK, ham e-posta tutulmaz. Meşru menfaat: yaptirimdan kacisi onleme; `01_saklama_ve_imha_politikasi.md`'ye eklenmeli |
+| `account_delete_hold` | acik raporlu hesabin silme bekletmesi (`user_id`, `release_at`) | silme gerceklesince `ViolationLedgerService.recordOnDeletion` satiri siler; serbest kalmis satirlar 30 gun sonra temizlenir. `AccountDataPurger.HANDLED_ELSEWHERE` kaydi gerekir (W2-F listesi) |
+| `display_name_history` | gorunen ad degisimi (eski/yeni ad, zaman) | `ProfileService.anonymize` satirlari siler. `AccountDataPurger.HANDLED_ELSEWHERE` kaydi gerekir (W2-F listesi) |
+| `moderation_strike.inherited` | yeniden kayitta defterden devralinan strike | strike satiri gibi (yasal saklama / ihlal gecmisi) |
+| `profanity_term.category`, `profanity_hit_log.category` | kategori (PROFANITY/HATE/TERROR/SELF_HARM) | `profanity_hit_log` 90 gun |

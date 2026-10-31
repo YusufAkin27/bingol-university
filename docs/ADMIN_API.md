@@ -338,13 +338,13 @@ Tüm uçlar yalnız `ADMIN` (JWT rolü ya da Basic) ve denetlenir. Kendini silme
 
 Herkese açık metin alanlarında (kulüp/etkinlik/profil/grup başlığı vb.) küfür, argo ve hakaret reddedilir; **sohbet mesajları (gövde/açıklama) filtrelenmez**. Yerleşik liste `backend/src/main/resources/moderation/profanity-{tr,en,ar}.txt` (LDNOOBW, CC-BY-4.0 + elle yazılmış kökler; ayrıntı `NOTICE.md`) ve izin listesi `profanity-allow-tr.txt`; yönetici kayıtları `profanity_term` tablosundadır (V300). Yerleşik liste silinemez; yanlış pozitif için yönetici **ALLOW** kaydı ekler. `ADMIN` + yazma istekleri denetim kaydına yazılır; rate limit: yazma 60/dk, check 120/dk (yönetici başına).
 
-- `GET /api/admin/profanity?kind=BLOCK|ALLOW&q=&cursor=&size=` → `{items:[{id,term,kind,lang,note,createdBy,createdAt}], nextCursor}` (id azalan; `cursor` = önceki `nextCursor`; size 1..50).
-- `POST /api/admin/profanity` `{term (2-80), kind, lang?: TR|EN|AR|ALL, note?}` → `201` kayıt. Hemen etkindir (bu örnekte anında, diğer örneklerde `app.moderation.profanity.cache-ttl-seconds` = 30 sn içinde). Söz dizimi: düz kelime = kök + en fazla 7 harflik ek; `=kelime` yalnızca tam eşleşme; `*kelime` metin içinde geçme; iki sözcük = tamlama. Hatalar: `400 PROFANITY_TERM_INVALID`, `409 PROFANITY_TERM_EXISTS`.
-- `POST /api/admin/profanity/bulk` `{text (satır satır, en çok 500 satır), kind, lang?}` → `{added, skipped, invalid}` (`#` ile başlayan satırlar yok sayılır).
+- `GET /api/admin/profanity?kind=BLOCK|ALLOW&q=&cursor=&size=` → `{items:[{id,term,kind,lang,note,createdBy,createdAt,category}], nextCursor}` (id azalan; `cursor` = önceki `nextCursor`; size 1..50).
+- `POST /api/admin/profanity` `{term (2-80), kind, lang?: TR|EN|AR|KU|ALL, note?, category?: PROFANITY|HATE|TERROR|SELF_HARM}` (category bos = PROFANITY; W2-E/T-059) → `201` kayıt. Hemen etkindir (bu örnekte anında, diğer örneklerde `app.moderation.profanity.cache-ttl-seconds` = 30 sn içinde). Söz dizimi: düz kelime = kök + en fazla 7 harflik ek; `=kelime` yalnızca tam eşleşme; `*kelime` metin içinde geçme; iki sözcük = tamlama. Hatalar: `400 PROFANITY_TERM_INVALID`, `409 PROFANITY_TERM_EXISTS`.
+- `POST /api/admin/profanity/bulk` `{text (satır satır, en çok 500 satır), kind, lang?, category?}` → `{added, skipped, invalid}` (`#` ile başlayan satırlar yok sayılır).
 - `DELETE /api/admin/profanity/{id}` → `204` / `404 PROFANITY_TERM_NOT_FOUND`.
-- `POST /api/admin/profanity/check` `{text}` → `{blocked, matches:[kök], normalized}` (test kutusu; eşleşmeyi YALNIZCA yöneticiye gösterir).
-- `GET /api/admin/profanity/info` → `{builtIn:{tr,en,ar,allow,source}, adminBlock, adminAllow, settings:{enabled, mode}}`.
-- `GET /api/admin/profanity/stats` → `{last24h:{total, byField:[{entity,field,count}]}, last7d:{...}}`. `profanity_hit_log` kelime SAKLAMAZ (alan, varlık, kullanıcı, zaman); 90 gün sonra gece 04:30'da silinir.
+- `POST /api/admin/profanity/check` `{text}` → `{blocked, matches:[kök], normalized, category}` (test kutusu; `category` = eşleşmenin en şiddetli kategorisi; eşleşmeyi YALNIZCA yöneticiye gösterir).
+- `GET /api/admin/profanity/info` → `{builtIn:{tr,en,ar,allow,source}, adminBlock, adminAllow, settings:{enabled, mode}, builtInByCategory:{PROFANITY,HATE,TERROR,SELF_HARM}, adminByCategory:{...}}`.
+- `GET /api/admin/profanity/stats` → `{last24h:{total, byField:[{entity,field,count}], byCategory:{PROFANITY:n,...}}, last7d:{...}}` (kategoriye göre periyodik gözden geçirme). `profanity_hit_log` kelime SAKLAMAZ (alan, varlık, kullanıcı, zaman); 90 gün sonra gece 04:30'da silinir.
 - `GET /api/admin/profanity/export.csv?kind=` → yöneticinin eklediği kayıtlar (CSV; hücre kaçışlı).
 
 Ayarlar (salt okunur): `app.moderation.profanity.enabled` (varsayılan true), `mode` = `BLOCK` (varsayılan; 422 ile reddeder) | `FLAG` (engellemez, yalnızca istatistiğe `FLAG` yazar), `cache-ttl-seconds` (30). Web: `/admin/profanity`.
