@@ -299,9 +299,10 @@ class _ClubsTabState extends State<ClubsTab> {
             ),
           if (cats.isNotEmpty && _seg == 0)
             Padding(
-              padding: const EdgeInsets.only(top: 14),
+              padding: const EdgeInsets.only(top: 8),
+              // BuChip kendi 48 dp kutusunu ister; 34 dp kutu yazıyı alttan kırpıyordu ("g" kuyruğu).
               child: SizedBox(
-                height: 34,
+                height: 48,
                 child: ListView(
                   scrollDirection: Axis.horizontal,
                   padding: const EdgeInsetsDirectional.symmetric(horizontal: 20),

@@ -611,6 +611,7 @@ class _HomeTabState extends State<HomeTab> {
         title: l.p03HomeMealTitle,
         subtitle: l.yemekLunch,
         icon: LucideIcons.utensils,
+        compact: true,
         headline: l.homeNoMenuToday,
         body: l.p03HomeNoMenuBody,
         onTap: () => _push(MenuPage(session: _s)),

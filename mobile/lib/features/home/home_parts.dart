@@ -136,7 +136,8 @@ class HomeQuickGrid extends StatelessWidget {
   final List<Widget> tiles;
   final List<String> labels;
 
-  static const _gap = 8.0;
+  // 6 dp: 5 karoda her karoya ~1.6 dp ek iç genişlik ("Timetable" gibi uzun etiket kenara yapışmasın).
+  static const _gap = 6.0;
 
   @override
   Widget build(BuildContext context) {
@@ -412,7 +413,11 @@ class HomeEmptyCard extends StatelessWidget {
     this.onAction,
     this.trailingIcon,
     this.onTap,
+    this.compact = false,
   });
+
+  /// true: tek satırlık kompakt kart (simge + başlık + alt metin); başlık/alt başlık satırı ve iç kutu yok.
+  final bool compact;
 
   final String title;
   final String? subtitle;
@@ -428,6 +433,39 @@ class HomeEmptyCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.bu;
     final tx = Theme.of(context).textTheme;
+    if (compact) {
+      // Boş menü gibi "bugün yok" durumları ~180 dp'lik kart yerine tek satırda söylenir.
+      return BuCard(
+        radius: 20,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        onTap: onTap,
+        child: SizedBox(
+          width: double.infinity,
+          child: Row(children: [
+            ExcludeSemantics(
+              child: Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(color: t.sf2, shape: BoxShape.circle),
+                child: Icon(icon, size: 22, color: t.mut),
+              ),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Semantics(header: true, child: Text(headline, style: tx.titleMedium!.copyWith(fontWeight: FontWeight.w800, color: t.ink))),
+                const SizedBox(height: 2),
+                Text(body, style: tx.bodySmall!.copyWith(color: t.mut, height: 1.35)),
+              ]),
+            ),
+            if (onTap != null) ...[
+              const SizedBox(width: 8),
+              ExcludeSemantics(child: Icon(buDirIcon(context, LucideIcons.chevronRight), size: 20, color: t.mut)),
+            ],
+          ]),
+        ),
+      );
+    }
     return BuCard(
       radius: 20,
       padding: const EdgeInsets.all(18),

@@ -28,3 +28,11 @@ Ekran görüntüleri: `C:\bu_qa\shots\tasarim\dc\onceki|sonra\` (tr390 açık/ko
 
 ## Testler
 `mobile/test/redesign/dc_test.dart`: sohbet listesi T-114 (390/320, 1.0/1.3), haber listesi rozet tekrarı, `ChatTypingDots` (hareket azaltılmışsa durağan).
+
+## Emülatör bulguları (gerçek veri, Android 15 edge-to-edge) - düzeltildi
+| Ekran | Bulgu | Düzeltme |
+|---|---|---|
+| Sohbet sekmesi | Başlık ve "+" düğmesi durum çubuğuna biniyordu (üst güvenli alan yok sayılıyordu) | Başlık satırı üst padding = `MediaQuery.paddingOf(context).top + 12` (BuHeader ile aynı kalıp); arşiv görünümü BuHeader zaten inset alıyor. Test: status bar 24/36/48 dp |
+| Kulüpler kategori çipleri | `SizedBox(height: 34)` içinde 48 dp BuChip: "Technology" yazısı alttan kırpılıyordu | Kutu 48 dp (üst boşluk 14 → 8, ritim aynı). Keşfet (Row) ve Sohbet (BuChipRow 52 dp) etkilenmiyor |
+| Ana Sayfa boş menü | ~180 dp'lik başlık + kutu + simge kartı | `HomeEmptyCard(compact: true)`: tek satır (simge + "Bugün için liste yok" + alt metin + ok); dolu menü ve diğer boş kartlar aynı |
+| Ana Sayfa Hızlı Erişim | "Timetable" karo kenarına çok yakın | Karo arası boşluk 8 → 6 dp (karo başına ~1.6 dp iç genişlik). 390 dp'de Türkçe etiketler zaten sınırda olduğundan 3+2 eşiği sıkılaştırılmadı (db_redesign_test 5 karo tek satır bekliyor) |

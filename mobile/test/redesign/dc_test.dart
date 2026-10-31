@@ -1,5 +1,8 @@
 import 'package:bu_kampus/features/chat/chat_tab.dart';
 import 'package:bu_kampus/features/chat/chatd_parts.dart';
+import 'package:bu_kampus/features/clubs/clubs_tab.dart';
+import 'package:bu_kampus/features/home/home_parts.dart';
+import 'package:bu_kampus/widgets/bu.dart';
 import 'package:bu_kampus/features/news/news_list_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -103,4 +106,66 @@ void main() {
       }
     }
   });
+
+  for (final inset in [24.0, 36.0, 48.0]) {
+    testWidgets('sohbet sekmesi baslik ust guvenli alanin (status bar $inset dp) altinda baslar', (tester) async {
+      addTearDown(tester.view.reset);
+      tester.view.devicePixelRatio = 1;
+      tester.view.physicalSize = const Size(390, 800);
+      tester.view.padding = FakeViewPadding(top: inset);
+      tester.view.viewPadding = FakeViewPadding(top: inset);
+      await tester.pumpWidget(p00App(ChatTab(session: makeSession(_chatBe()), connectRealtime: false), scaffold: false));
+      await settle(tester, const Duration(seconds: 1));
+      expect(tester.getTopLeft(find.text('Sohbet')).dy, greaterThanOrEqualTo(inset), reason: 'baslik durum cubuguna binmemeli');
+      expect(tester.getTopLeft(find.byTooltip('Yeni sohbet')).dy, greaterThanOrEqualTo(inset), reason: '+ dugmesi durum cubuguna binmemeli');
+      // Arsiv gorunumu (BuHeader) da ayni inset'i alir.
+      await tester.tap(find.byTooltip('Arşiv'));
+      await settle(tester, const Duration(milliseconds: 600));
+      expect(tester.getTopLeft(find.text('Arşiv')).dy, greaterThanOrEqualTo(inset));
+      expect(tester.takeException(), isNull);
+    });
+  }
+
+  testWidgets('kulupler sekmesi: kategori cipleri 48 dp kutuda, yazi kirpilmaz', (tester) async {
+    addTearDown(tester.view.reset);
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(390, 800);
+    final be = FakeBackend()
+      ..on('/communities/categories', [
+        {'category': 'tech', 'count': 3, 'key': 'tech', 'name': 'Technology', 'icon': 'tag', 'sortOrder': 10},
+      ])
+      ..on('/me/communities*', {'items': <Object>[], 'nextCursor': null})
+      ..on('/communities*', {'items': <Object>[], 'nextCursor': null});
+    await tester.pumpWidget(p00App(ClubsTab(session: makeSession(be)), scaffold: false));
+    await settle(tester, const Duration(milliseconds: 800));
+    final chip = find.widgetWithText(BuChip, 'Technology');
+    expect(chip, findsOneWidget);
+    final row = find.ancestor(of: chip, matching: find.byWidgetPredicate((w) => w is SizedBox && w.height != null && w.height! >= 40));
+    expect(tester.getSize(row.first).height, greaterThanOrEqualTo(tester.getSize(chip).height), reason: 'cip satir kutusundan yuksek olamaz (kirpilir)');
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('ana sayfa bos menu karti kompakt: tek satir, ~180 dp degil', (tester) async {
+    addTearDown(tester.view.reset);
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(390, 800);
+    await tester.pumpWidget(p00App(const SingleChildScrollView(
+      child: HomeEmptyCard(
+          title: 'Menu', subtitle: 'Lunch', icon: Icons.restaurant, headline: 'No menu for today', body: 'Not entered yet.', compact: true),
+    )));
+    await tester.pump();
+    expect(find.text('Menu'), findsNothing, reason: 'kompakt kartta bolum basligi satiri yok');
+    expect(tester.getSize(find.byType(HomeEmptyCard)).height, lessThan(100));
+    final full = await _fullHeight(tester);
+    expect(full, greaterThan(160), reason: 'kompakt olmayan kart degismedi');
+    expect(tester.takeException(), isNull);
+  });
+}
+
+Future<double> _fullHeight(WidgetTester tester) async {
+  await tester.pumpWidget(p00App(const SingleChildScrollView(
+    child: HomeEmptyCard(title: 'Menu', subtitle: 'Lunch', icon: Icons.restaurant, headline: 'No menu for today', body: 'Not entered yet.'),
+  )));
+  await tester.pump();
+  return tester.getSize(find.byType(HomeEmptyCard)).height;
 }

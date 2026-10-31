@@ -496,7 +496,8 @@ class _ChatTabState extends State<ChatTab> {
               child: _archived
                   ? BuHeader(title: context.l10n.chatMiscArchive, onBack: () => _setArchiveView(false))
                   : Padding(
-                      padding: const EdgeInsetsDirectional.fromSTEB(20, 16, 20, 4),
+                      // Üst güvenli alan (durum çubuğu) eklenir: Android 15 edge-to-edge'de başlık saat/simgelere binmesin (BuHeader ile aynı 12 dp).
+                      padding: EdgeInsetsDirectional.fromSTEB(20, MediaQuery.paddingOf(context).top + 12, 20, 4),
                       child: Row(
                         children: [
                           Expanded(
