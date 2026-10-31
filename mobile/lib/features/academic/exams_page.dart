@@ -1,13 +1,14 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 
 import '../../core/academic_catalog.dart' show AcademicLabels, gradeLabelL;
 import '../../core/api.dart';
 import '../../core/locale_controller.dart';
 import '../../core/session.dart';
+import '../../l10n/app_localizations.dart';
 import '../../widgets/bu.dart';
+import 'acad_ref_widgets.dart';
 import 'academic_api.dart';
 import 'academic_models.dart';
 import 'academic_widgets.dart';
@@ -15,8 +16,8 @@ import 'akad_widgets.dart';
 import 'exam_form_page.dart';
 import 'reminders.dart';
 
-/// Sınavlar (Stitch 44): kişisel sınavlar (geri sayım, tür süzgeci) ve resmi sınav programı (bölüme göre).
-/// Üstte dönem + "Sınav ekle", koyu seçili segment (Sınavlarım / Resmi program).
+/// Sınavlar (Stitch v3 03): geri oku + 28 sp başlık + `pr` "+"; metin sekmeleri (Sınavlarım | Okul programı);
+/// kartsız satırlar (ad, muted "tarih · saat · derslik", sağda kalan süre). Resmi program satırları aynı biçimde.
 class ExamsPage extends StatefulWidget {
   const ExamsPage({super.key, required this.session, this.initialTab = 0});
 
@@ -35,7 +36,6 @@ class _ExamsPageState extends State<ExamsPage> {
 
   List<Exam> _mine = [];
   List<Course> _courses = [];
-  String? _semesterName;
   List<OfficialExam> _official = [];
   bool _profileComplete = true;
   bool _loadingMine = true, _loadingOfficial = true;
@@ -57,7 +57,6 @@ class _ExamsPageState extends State<ExamsPage> {
         _mine = r[0] as List<Exam>;
         final tt = r[1] as TimetableData;
         _courses = tt.courses;
-        _semesterName = tt.semester?.name;
         _errMine = null;
         _loadingMine = false;
       });
@@ -115,20 +114,54 @@ class _ExamsPageState extends State<ExamsPage> {
   @override
   Widget build(BuildContext context) {
     final l = context.l10n;
+    final t = context.bu;
+    final tx = Theme.of(context).textTheme;
     final mine = _tab == 0;
+    final canAdd = mine && (!_loadingMine || _mine.isNotEmpty);
     return AcademicScaffold(
       title: l.acadExamsTitle,
+      showTitle: false,
       child: RefreshIndicator(
         onRefresh: mine ? _loadMine : _loadOfficial,
         child: ListView(
           physics: const AlwaysScrollableScrollPhysics(),
-          padding: const EdgeInsets.fromLTRB(16, 14, 16, 32),
+          padding: const EdgeInsets.only(bottom: 32),
           children: [
-            if (mine && _mine.isNotEmpty) ...[_topRow(), const SizedBox(height: 14)],
-            _segment(),
-            if (!mine) ...[const SizedBox(height: 10), _scopeChips()],
-            const SizedBox(height: 14),
-            // Sekme değişince içerik yatay kayarak yer değiştirir (Sınavlarım <- -> Resmi program).
+            Padding(
+              padding: const EdgeInsetsDirectional.only(start: 20, end: 8),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(minHeight: 48),
+                child: Row(children: [
+                  Expanded(
+                    child: MediaQuery.withClampedTextScaling(
+                      maxScaleFactor: 1.3,
+                      child: Semantics(header: true, child: Text(l.acadExamsTitle, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.headlineLarge!.copyWith(fontWeight: FontWeight.w700, letterSpacing: 0, color: t.ink))),
+                    ),
+                  ),
+                  if (canAdd)
+                    Semantics(
+                      button: true,
+                      label: l.acadExamsAdd,
+                      excludeSemantics: true,
+                      onTap: () => _openForm(),
+                      child: Tooltip(
+                        message: l.acadExamsAdd,
+                        excludeFromSemantics: true,
+                        child: BuPressable(
+                          onTap: () => _openForm(),
+                          haptic: BuHaptic.selection,
+                          scale: .94,
+                          child: SizedBox(width: 48, height: 48, child: Center(child: Icon(LucideIcons.plus, size: 18, color: t.pr))),
+                        ),
+                      ),
+                    ),
+                ]),
+              ),
+            ),
+            const SizedBox(height: 4),
+            AcadTabs(labels: [l.acadExamsTabMine, l.p69SchoolSchedule], index: _tab, onChanged: (i) => setState(() => _tab = i)),
+            if (!mine) Padding(padding: const EdgeInsets.fromLTRB(20, 4, 20, 0), child: _scopeChips()),
+            // Sekme değişince içerik yatay kayarak yer değiştirir (Sınavlarım <- -> Okul programı).
             BuSharedAxis(
               reverse: mine,
               distance: 24,
@@ -143,63 +176,7 @@ class _ExamsPageState extends State<ExamsPage> {
     );
   }
 
-  Widget _topRow() {
-    final t = context.bu;
-    final l = context.l10n;
-    final tx = Theme.of(context).textTheme;
-    final canAdd = !_loadingMine || _mine.isNotEmpty;
-    return Row(children: [
-      AkadIconTile(icon: LucideIcons.calendarCheck, bg: t.soft, fg: t.onSoft, size: 36, radius: 18),
-      const SizedBox(width: 10),
-      Expanded(
-        child: Text(_semesterName ?? '', maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.labelLarge!.copyWith(fontWeight: FontWeight.w700, color: t.mut)),
-      ),
-      const SizedBox(width: 8),
-      if (canAdd) BuButton(label: l.acadExamsAdd, icon: LucideIcons.plus, compact: true, onPressed: () => _openForm()),
-    ]);
-  }
-
-  /// Koyu seçili iki parçalı segment.
-  Widget _segment() {
-    final t = context.bu;
-    final tx = Theme.of(context).textTheme;
-    final l = context.l10n;
-    Widget part(int i, String label) {
-      final sel = _tab == i;
-      return Expanded(
-        child: Semantics(
-          button: true,
-          selected: sel,
-          label: label,
-          excludeSemantics: true,
-          onTap: () => setState(() => _tab = i),
-          child: GestureDetector(
-            behavior: HitTestBehavior.opaque,
-            onTap: () {
-              buHaptic(BuHaptic.selection);
-              setState(() => _tab = i);
-            },
-            child: AnimatedContainer(
-              duration: BuMotion.of(context, BuMotion.short),
-              constraints: const BoxConstraints(minHeight: 48),
-              alignment: Alignment.center,
-              decoration: BoxDecoration(color: sel ? t.soft : Colors.transparent, borderRadius: BuRadius.bPill, border: sel ? Border.all(color: t.selectedBorder) : null),
-              child: Text(label,
-                  maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w800, color: sel ? t.onSoft : t.mut)),
-            ),
-          ),
-        ),
-      );
-    }
-
-    return Container(
-      padding: const EdgeInsets.all(4),
-      decoration: BoxDecoration(color: t.sf2, borderRadius: BuRadius.bPill),
-      child: Row(children: [part(0, l.acadExamsTabMine), part(1, l.acadExamsTabOfficial)]),
-    );
-  }
-
-  /// Resmi program kapsamı (ürün kararı, referansta yok): tek satırlık küçük çip çifti, segmentin hemen altında.
+  /// Resmi program kapsamı (ürün kararı, referansta yok): küçük çip çifti, sekmelerin hemen altında.
   Widget _scopeChips() {
     final l = context.l10n;
     return Align(
@@ -211,66 +188,82 @@ class _ExamsPageState extends State<ExamsPage> {
     );
   }
 
-  String _longDate(DateTime wall) => DateFormat('d MMMM EEEE', Localizations.localeOf(context).toString()).format(wall);
+  /// "18 Kasım · 10:30 · B-204" (İstanbul duvar saati; bugünse "Bugün · 10:30").
+  String _when(AppLocalizations l, DateTime startsAt, DateTime now, String? room) {
+    final w = istanbulWall(startsAt);
+    final n = istanbulWall(now);
+    final today = w.year == n.year && w.month == n.month && w.day == n.day;
+    return [
+      today ? l.acadTimeToday : '${w.day} ${monthNameL(l, w.month)}',
+      hhmm(w.hour * 60 + w.minute),
+      if (room != null && room.isNotEmpty) room,
+    ].join(' · ');
+  }
 
   // ---- kişisel
   List<Widget> _mineBody() {
     final l = context.l10n;
-    final t = context.bu;
     final err = _mine.isEmpty ? _errMine : null;
-    if (_loadingMine && _mine.isEmpty && err == null) return const [_ExamsSkeleton()];
-    if (err != null) {
-      final maintenance = err is ApiError && err.status == 503;
-      return [
-        if (maintenance)
-          AkadNoticeCard(text: (err).message.isNotEmpty ? err.message : l.acadMaintenance)
-        else
-          AkadErrorCard(title: l.sistemuiErrorTitle, message: errorText(err), onRetry: _loadMine, retryLabel: l.acadRetry),
-      ];
-    }
+    if (_loadingMine && _mine.isEmpty && err == null) return const [AcadRowsSkeleton(count: 3)];
+    if (err != null) return _errorBlock(err, _loadMine);
     final now = academicClock();
     final all = _mine;
     final shown = _filter == null ? all : all.where((e) => e.type == _filter).toList();
     final upcoming = shown.where((e) => (e.endsAt ?? e.startsAt).isAfter(now)).toList()..sort((a, b) => a.startsAt.compareTo(b.startsAt));
     final past = shown.where((e) => !(e.endsAt ?? e.startsAt).isAfter(now)).toList()..sort((a, b) => b.startsAt.compareTo(a.startsAt));
+    final stale = _errMine != null ? [Padding(padding: const EdgeInsets.fromLTRB(20, 12, 20, 0), child: AcadAmberNote(text: l.acadTimeStale))] : const <Widget>[];
     if (all.isEmpty) {
       return [
-        if (_errMine != null) AkadStaleStrip(text: l.acadTimeStale),
-        _InfoCard(
-          icon: LucideIcons.clipboardList,
-          tileBg: t.soft,
-          tileFg: t.onSoft,
-          title: l.p17ExamsEmptyMineTitle,
-          body: l.p17ExamsEmptyMineBody,
-          action: BuButton(label: l.acadExamsAdd, icon: LucideIcons.plus, onPressed: () => _openForm()),
+        ...stale,
+        Padding(
+          padding: const EdgeInsets.fromLTRB(20, 20, 8, 0),
+          child: Row(children: [
+            Expanded(child: Text(l.p69NoExams, style: Theme.of(context).textTheme.bodySmall!.copyWith(fontSize: 13, color: context.bu.mut))),
+            AcadTextAction(l.acadExamsAdd, onTap: () => _openForm(), size: 15, weight: FontWeight.w700),
+          ]),
         ),
       ];
     }
+    final types = {for (final e in all) e.type};
     return [
-      if (_errMine != null) ...[AkadStaleStrip(text: l.acadTimeStale), const SizedBox(height: 12)],
-      _filters(all),
-      const SizedBox(height: 16),
-      if (upcoming.isNotEmpty) ...[
-        AkadTitle(l.acadExamsUpcoming, count: upcoming.length),
-        const SizedBox(height: 12),
-        for (final e in upcoming) Padding(padding: const EdgeInsets.only(bottom: 14), child: _examCard(e, now)),
-      ] else
-        Padding(
-          padding: const EdgeInsets.only(bottom: 14),
-          child: _InfoCard(icon: LucideIcons.calendarCheck, tileBg: t.tint(1).bg, tileFg: t.tint(1).fg, title: l.acadExamsNoUpcoming, body: l.p17ExamsNoUpcomingBody),
-        ),
+      ...stale,
+      if (types.length > 1) Padding(padding: const EdgeInsets.fromLTRB(20, 4, 0, 0), child: _filters(all, types)),
+      if (upcoming.isNotEmpty)
+        BuStaggerScope(
+          child: Column(children: [
+            for (var i = 0; i < upcoming.length; i++) BuStaggerItem(index: i, child: _examRow(upcoming[i], now, first: i == 0)),
+          ]),
+        )
+      else
+        AcadStateText(text: l.acadExamsNoUpcoming, top: 24),
       if (past.isNotEmpty) ...[
-        const SizedBox(height: 6),
-        AkadTitle(l.acadExamsPast, count: past.length, muted: true),
-        const SizedBox(height: 12),
-        for (final e in past) Padding(padding: const EdgeInsets.only(bottom: 14), child: _examCard(e, now)),
+        Padding(
+          padding: const EdgeInsetsDirectional.fromSTEB(20, 22, 20, 0),
+          child: Semantics(header: true, child: Text(l.acadExamsPast, style: Theme.of(context).textTheme.labelMedium!.copyWith(fontSize: 13, color: context.bu.mut))),
+        ),
+        for (final e in past) _examRow(e, now),
       ],
     ];
   }
 
-  Widget _filters(List<Exam> all) {
+  List<Widget> _errorBlock(Object err, Future<void> Function() retry) {
     final l = context.l10n;
-    final chips = <(String?, String)>[(null, '${l.acadAll} (${all.length})'), for (final k in examTypes) (k, examTypeLabelL(l, k))];
+    if (err is ApiError && err.status == 503) {
+      return [
+        Padding(padding: const EdgeInsets.fromLTRB(20, 16, 20, 0), child: AcadAmberNote(text: err.message.isNotEmpty ? err.message : l.acadMaintenance)),
+        AcadStateText(text: '', actionLabel: l.acadRetry, onAction: retry, top: 0),
+      ];
+    }
+    return [AcadStateText(text: '${l.sistemuiErrorTitle}\n${errorText(err)}', actionLabel: l.acadRetry, onAction: retry)];
+  }
+
+  Widget _filters(List<Exam> all, Set<String> types) {
+    final l = context.l10n;
+    final chips = <(String?, String)>[
+      (null, '${l.acadAll} (${all.length})'),
+      for (final k in examTypes)
+        if (types.contains(k)) (k, examTypeLabelL(l, k)),
+    ];
     return SizedBox(
       height: 48,
       child: ListView.separated(
@@ -284,96 +277,34 @@ class _ExamsPageState extends State<ExamsPage> {
     );
   }
 
-  (Color, Color) _typeColors(String type) {
-    final t = context.bu;
-    return switch (type) {
-      'VIZE' => (t.soft, t.onSoft),
-      'FINAL' => (t.tint(BuTintId.aqua).bg, t.tint(BuTintId.aqua).fg),
-      'BUT' => (t.tint(3).bg, t.tint(3).fg),
-      'QUIZ' => (t.tint(1).bg, t.tint(1).fg),
-      _ => (t.sf2, t.mut),
-    };
-  }
-
-  Widget _examCard(Exam e, DateTime now) {
+  Widget _examRow(Exam e, DateTime now, {bool first = false}) {
     final l = context.l10n;
     final t = context.bu;
     final tx = Theme.of(context).textTheme;
     final cd = countdownTextL(l, e.startsAt, now);
     final past = cd == null;
-    final w = istanbulWall(e.startsAt);
-    final nowWall = istanbulWall(now);
-    final today = w.year == nowWall.year && w.month == nowWall.month && w.day == nowWall.day;
-    final time = hhmm(w.hour * 60 + w.minute);
-    final dateText = today ? '${l.acadTimeToday} · $time' : '${_longDate(w)} · $time';
     final typeText = examTypeLabelL(l, e.type);
-    final (tBg, tFg) = past ? (t.sf2, t.mut) : _typeColors(e.type);
-    final diff = e.startsAt.difference(now);
-    final soon = !past && diff.inHours < 24;
-    final foot = e.note ?? e.courseName;
     final semantic = cd != null
         ? l.acadExamsSemanticCd(typeText, e.title, fmtInstantL(l, e.startsAt), cd)
         : l.acadExamsSemantic(typeText, e.title, fmtInstantL(l, e.startsAt));
-    Widget line(IconData icon, String text, {Color? color, bool bold = false}) => Padding(
-          padding: const EdgeInsets.only(top: 6),
-          child: Row(children: [
-            Icon(icon, size: 18, color: color ?? t.mut),
-            const SizedBox(width: 8),
-            Expanded(child: Text(text, maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.bodyLarge!.copyWith(color: color ?? t.mut, fontWeight: bold ? FontWeight.w700 : null))),
-          ]),
-        );
-    final ink = past ? t.mut : t.ink;
-    return Semantics(
-      container: true,
-      button: true,
-      label: semantic,
-      excludeSemantics: true,
+    final right = past ? l.akademik2Passed : cd;
+    return AcadRow(
       onTap: () => _openForm(e),
-      child: Opacity(
-        opacity: past ? .8 : 1,
-        child: AkadCard(
-          onTap: () => _openForm(e),
-          padding: EdgeInsets.zero,
-          child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 14),
-              child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-                Row(children: [
-                  Flexible(child: AkadPill(typeText, bg: tBg, fg: tFg, dot: !past)),
-                  const SizedBox(width: 8),
-                  const Spacer(),
-                  if (past)
-                    AkadPill(l.akademik2Passed, bg: t.sf2, fg: t.mut, icon: LucideIcons.circleCheck)
-                  else
-                    AkadPill(cd, bg: soon ? t.pr : t.soft, fg: soon ? t.onPr : t.onSoft, icon: soon ? LucideIcons.zap : LucideIcons.hourglass),
-                ]),
-                const SizedBox(height: 10),
-                Text(e.title, maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.titleLarge!.copyWith(fontWeight: FontWeight.w800, color: ink)),
-                const SizedBox(height: 4),
-                line(past ? LucideIcons.circleCheck : (today ? LucideIcons.clock : LucideIcons.calendar), dateText,
-                    color: past ? t.mut : (today ? t.pr : t.ink), bold: today && !past),
-                if (e.room != null) line(LucideIcons.doorOpen, e.room!, color: past ? t.mut : t.mut),
-              ]),
-            ),
-            if (!past)
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-                decoration: BoxDecoration(color: t.sf2.withValues(alpha: .6)),
-                child: Row(children: [
-                  if (foot != null) ...[
-                    Icon(LucideIcons.bookOpen, size: 14, color: t.mut),
-                    const SizedBox(width: 6),
-                    Expanded(child: Text(foot, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.labelMedium!.copyWith(color: t.mut))),
-                  ] else
-                    const Spacer(),
-                  const SizedBox(width: 8),
-                  Text(l.p17ExamDetail, style: tx.labelMedium!.copyWith(fontWeight: FontWeight.w800, color: t.pr)),
-                  Icon(buDirIcon(context, LucideIcons.chevronRight), size: 16, color: t.pr),
-                ]),
-              ),
+      semanticLabel: semantic,
+      child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
+        Expanded(
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
+            Text(e.title, maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.titleMedium!.copyWith(fontSize: 17, fontWeight: FontWeight.w600, color: past ? t.mut : t.ink)),
+            const SizedBox(height: 4),
+            Text(_when(l, e.startsAt, now, e.room), maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.bodySmall!.copyWith(fontSize: 13, color: t.mut)),
           ]),
         ),
-      ),
+        const SizedBox(width: 12),
+        Flexible(
+          flex: 0,
+          child: Text(right, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.bodyMedium!.copyWith(fontWeight: FontWeight.w600, color: first && !past ? t.pr : t.mut)),
+        ),
+      ]),
     );
   }
 
@@ -382,170 +313,57 @@ class _ExamsPageState extends State<ExamsPage> {
     final l = context.l10n;
     final t = context.bu;
     final now = academicClock();
-    if (_loadingOfficial && _official.isEmpty && _errOfficial == null) return const [_ExamsSkeleton(count: 3)];
-    if (_official.isEmpty && _errOfficial != null) {
-      final err = _errOfficial!;
-      final maintenance = err is ApiError && err.status == 503;
-      return [
-        if (maintenance)
-          AkadNoticeCard(text: err.message.isNotEmpty ? err.message : l.acadMaintenance)
-        else
-          AkadErrorCard(title: l.sistemuiErrorTitle, message: errorText(err), onRetry: _loadOfficial, retryLabel: l.acadRetry),
-      ];
-    }
+    if (_loadingOfficial && _official.isEmpty && _errOfficial == null) return const [AcadRowsSkeleton(count: 3)];
+    if (_official.isEmpty && _errOfficial != null) return _errorBlock(_errOfficial!, _loadOfficial);
     return [
-      if (!_profileComplete) ...[_noDeptCard(), const SizedBox(height: 14)],
+      if (!_profileComplete)
+        Padding(
+          padding: const EdgeInsets.fromLTRB(20, 12, 20, 4),
+          child: AcadAmberNote(text: l.acadExamsProfileIncomplete, actionLabel: l.p20EditProfile, onAction: () => openEditProfile(context, widget.session)),
+        ),
       if (_official.isEmpty)
-        _InfoCard(
-          icon: LucideIcons.clipboardList,
-          tileBg: t.sf2,
-          tileFg: t.mut,
-          title: l.acadExamsEmptyOfficial,
-          body: l.p17OfficialEmptyBody,
-          badge: l.acadExamsTabOfficial,
+        Padding(
+          padding: const EdgeInsets.fromLTRB(20, 28, 20, 0),
+          child: Column(children: [
+            Semantics(header: true, child: Text(l.acadExamsEmptyOfficial, textAlign: TextAlign.center, style: Theme.of(context).textTheme.titleMedium!.copyWith(fontSize: 17, fontWeight: FontWeight.w600, color: t.ink))),
+            const SizedBox(height: 6),
+            Text(l.p17OfficialEmptyBody, textAlign: TextAlign.center, style: Theme.of(context).textTheme.bodyMedium!.copyWith(color: t.mut)),
+          ]),
         )
       else
-        for (final e in _official) Padding(padding: const EdgeInsets.only(bottom: 14), child: _officialCard(e, now)),
+        BuStaggerScope(
+          child: Column(children: [
+            for (var i = 0; i < _official.length; i++) BuStaggerItem(index: i, child: _officialRow(_official[i], now)),
+          ]),
+        ),
     ];
   }
 
-  Widget _noDeptCard() {
-    final t = context.bu;
-    final l = context.l10n;
-    final tx = Theme.of(context).textTheme;
-    return Semantics(
-      container: true,
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(color: t.soft, borderRadius: BuRadius.bLg),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-          Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Container(
-              width: 36,
-              height: 36,
-              decoration: BoxDecoration(color: t.sf.withValues(alpha: .7), shape: BoxShape.circle),
-              child: ExcludeSemantics(child: Icon(LucideIcons.info, size: 18, color: t.onSoft)),
-            ),
-            const SizedBox(width: 12),
-            Expanded(child: Text(l.acadExamsProfileIncomplete, style: tx.bodyMedium!.copyWith(fontWeight: FontWeight.w600, color: t.onSoft))),
-          ]),
-          Align(
-            alignment: AlignmentDirectional.centerEnd,
-            child: TextButton.icon(
-              style: TextButton.styleFrom(foregroundColor: t.onSoft, minimumSize: const Size(48, 48)),
-              onPressed: () => openEditProfile(context, widget.session),
-              icon: const SizedBox.shrink(),
-              label: Row(mainAxisSize: MainAxisSize.min, children: [
-                Text(l.p20EditProfile, style: tx.labelLarge!.copyWith(fontWeight: FontWeight.w800, color: t.onSoft)),
-                const SizedBox(width: 4),
-                Icon(buDirIcon(context, LucideIcons.arrowRight), size: 16, color: t.onSoft),
-              ]),
-            ),
-          ),
-        ]),
-      ),
-    );
-  }
-
-  Widget _officialCard(OfficialExam e, DateTime now) {
+  Widget _officialRow(OfficialExam e, DateTime now) {
     final l = context.l10n;
     final t = context.bu;
     final tx = Theme.of(context).textTheme;
-    final w = istanbulWall(e.startsAt);
     final who = [if (e.department != null) context.departmentName(e.department), if (e.grade != null) gradeLabelL(l, e.grade)].join(' · ');
     final sub = [if (e.courseCode != null) e.courseCode!, if (who.isNotEmpty) who].join(' · ');
     final typeText = examTypeLabelL(l, e.type);
-    final dateText = '${_longDate(w)} · ${hhmm(w.hour * 60 + w.minute)}';
-    final (tBg, tFg) = _typeColors(e.type);
     final semantic = e.room != null
         ? l.acadOfficialSemanticRoom(typeText, e.title, fmtInstantL(l, e.startsAt), e.room!)
         : l.acadOfficialSemantic(typeText, e.title, fmtInstantL(l, e.startsAt));
-    Widget row(IconData icon, String text, {Color? color}) => Padding(
-          padding: const EdgeInsets.only(top: 6),
-          child: Row(children: [
-            Icon(icon, size: 18, color: color ?? t.mut),
-            const SizedBox(width: 10),
-            Expanded(child: Text(text, maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.bodyLarge!.copyWith(color: t.ink))),
-          ]),
-        );
-    return Semantics(
-      container: true,
-      label: semantic,
-      excludeSemantics: true,
-      child: AkadCard(
-        padding: const EdgeInsets.all(16),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-          Row(children: [
-            ConstrainedBox(constraints: const BoxConstraints(maxWidth: 190), child: AkadPill(l.acadExamsTabOfficial, bg: t.ink, fg: t.bg, dot: true)),
-            const SizedBox(width: 8),
-            Expanded(child: Align(alignment: AlignmentDirectional.centerEnd, child: AkadPill(typeText, bg: tBg, fg: tFg))),
-          ]),
-          const SizedBox(height: 12),
-          Text(e.title, maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.titleLarge!.copyWith(fontWeight: FontWeight.w800, color: t.ink)),
-          if (sub.isNotEmpty) Padding(padding: const EdgeInsets.only(top: 2), child: Text(sub, maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.bodySmall!.copyWith(color: t.mut))),
-          const SizedBox(height: 12),
-          Container(
-            padding: const EdgeInsets.fromLTRB(14, 8, 14, 12),
-            decoration: BoxDecoration(color: t.sf2, borderRadius: BuRadius.bMd),
-            child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-              row(LucideIcons.calendar, dateText, color: t.pr),
-              if (e.room != null) row(LucideIcons.mapPin, e.room!),
-              if (e.note != null) row(LucideIcons.info, e.note!),
-            ]),
-          ),
-        ]),
-      ),
-    );
-  }
-}
-
-/// Başlık + açıklama + (isteğe bağlı) eylem içeren bilgi/boş durum kartı.
-class _InfoCard extends StatelessWidget {
-  const _InfoCard({required this.icon, required this.tileBg, required this.tileFg, required this.title, required this.body, this.action, this.badge});
-
-  final IconData icon;
-  final Color tileBg, tileFg;
-  final String title, body;
-  final Widget? action;
-  final String? badge;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = context.bu;
-    final tx = Theme.of(context).textTheme;
-    return Semantics(
-      container: true,
-      child: AkadCard(
-        padding: const EdgeInsets.all(20),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-          if (badge != null) ...[Align(alignment: AlignmentDirectional.centerStart, child: AkadPill(badge!, bg: t.sf2, fg: t.mut, icon: LucideIcons.graduationCap)), const SizedBox(height: 12)],
-          Align(alignment: AlignmentDirectional.centerStart, child: AkadIconTile(icon: icon, bg: tileBg, fg: tileFg, size: 48, radius: 16)),
-          const SizedBox(height: 14),
-          Semantics(header: true, child: Text(title, style: tx.titleLarge!.copyWith(fontWeight: FontWeight.w800, color: t.ink))),
-          const SizedBox(height: 4),
-          Text(body, style: tx.bodyMedium!.copyWith(color: t.mut)),
-          if (action != null) ...[const SizedBox(height: 16), action!],
-        ]),
-      ),
-    );
-  }
-}
-
-/// Sınav listesi iskeleti.
-class _ExamsSkeleton extends StatelessWidget {
-  const _ExamsSkeleton({this.count = 3});
-
-  final int count;
-
-  @override
-  Widget build(BuildContext context) => Semantics(
-        label: context.l10n.commonLoading,
-        liveRegion: true,
-        container: true,
-        child: BuSkeletonScope(
-          child: Column(children: [
-            for (var i = 0; i < count; i++) const Padding(padding: EdgeInsets.only(bottom: 14), child: BuSkeleton(height: 150, radius: 20)),
+    return AcadRow(
+      semanticLabel: semantic,
+      child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
+        Expanded(
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
+            Text(e.title, maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.titleMedium!.copyWith(fontSize: 17, fontWeight: FontWeight.w600, color: t.ink)),
+            const SizedBox(height: 4),
+            Text(_when(l, e.startsAt, now, e.room), maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.bodySmall!.copyWith(fontSize: 13, color: t.mut)),
+            if (sub.isNotEmpty) Text(sub, maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.bodySmall!.copyWith(fontSize: 13, color: t.mut)),
+            if (e.note != null) Text(e.note!, maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.bodySmall!.copyWith(fontSize: 13, color: t.mut)),
           ]),
         ),
-      );
+        const SizedBox(width: 12),
+        Flexible(flex: 0, child: Text(typeText, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.bodyMedium!.copyWith(fontWeight: FontWeight.w500, color: t.mut))),
+      ]),
+    );
+  }
 }
