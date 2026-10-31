@@ -1,7 +1,9 @@
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import '../features/academic/reminders.dart';
+import '../features/chat/chat_wallpaper.dart';
 import '../features/chat/photo_autosave.dart';
+import '../features/home/home_layout.dart';
 import '../features/search/recent_searches.dart';
 import 'api.dart';
 import 'cache/image_disk_cache.dart';
@@ -24,6 +26,8 @@ void registerUserDataCleaners(ApiClient api) {
     ..add(() => PhotoAutoSave.instance.reset()) // galeriye otomatik kayıt ayarı + kaydedilen ek kimlikleri
     ..add(ReminderService.clearUserData) // ders hatırlatıcı ayarı + kurulu yerel hatırlatmalar
     ..add(LanguageSync.clear) // son eşitlenen profil dili
+    ..add(ChatBackgroundPrefs.clear) // sohbet arka planı tercihi (Desen/Hafif/Orta/Düz)
+    ..add(HomeLayoutStore.clear) // Ana Sayfa düzeni (bölüm sırası/görünürlüğü + Hızlı Erişim kısayolları)
     ..add(_clearLegalLater); // "sözleşme onayını sonra yap" işareti (kullanıcı kimliği içerir)
 }
 

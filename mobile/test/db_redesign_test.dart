@@ -63,10 +63,10 @@ void main() {
     await tester.pumpWidget(buildApp(home(b)));
     await tester.pump(const Duration(milliseconds: 100));
     expect(find.byType(HomeSkeleton), findsOneWidget);
-    expect(find.text('Hızlı Erişim'), findsNothing);
+    expect(find.byType(HomeQuickGrid), findsNothing);
     await settle(tester, const Duration(seconds: 2));
     expect(find.byType(HomeSkeleton), findsNothing);
-    expect(find.text('Hızlı Erişim'), findsOneWidget);
+    expect(find.byType(HomeQuickGrid), findsOneWidget);
     expect(find.byType(BuSwapIn), findsOneWidget);
     // Kademeli giris bitti: ilk 4 blok tam gorunur (opaklik 1).
     final fades = tester.widgetList<FadeTransition>(find.byType(FadeTransition)).where((f) => f.opacity.value < 1);
@@ -81,14 +81,14 @@ void main() {
     addTearDown(tester.platformDispatcher.clearAccessibilityFeaturesTestValue);
     await tester.pumpWidget(buildApp(home(homeBe())));
     await settle(tester, const Duration(milliseconds: 600));
-    expect(find.text('Hızlı Erişim'), findsOneWidget);
+    expect(find.byType(HomeQuickGrid), findsOneWidget);
     expect(tester.takeException(), isNull);
     await unmount(tester);
   });
 
   testWidgets('bildirim: govdesiz baslik iki satira kadar okunur, govdeli tek satir', (tester) async {
     useScreen(tester, const Size(390, 844));
-    final long = 'Ders ekleme-bırakma tarihleri duyuruldu ve çok uzun bir başlık deneme metni burada sürüyor';
+    const long = 'Ders ekleme-bırakma tarihleri duyuruldu ve çok uzun bir başlık deneme metni burada sürüyor';
     final b = FakeBackend()
       ..on('/notifications', {
         'unreadCount': 1,

@@ -1,5 +1,6 @@
 import 'package:bu_kampus/features/discover/discover_masonry.dart';
 import 'package:bu_kampus/features/discover/discover_tab.dart';
+import 'package:bu_kampus/features/home/home_parts.dart';
 import 'package:bu_kampus/features/home/home_tab.dart';
 import 'package:bu_kampus/features/polls/poll_list_page.dart';
 import 'package:bu_kampus/features/search/search_page.dart';
@@ -171,7 +172,7 @@ void main() {
       fakePolls(b, count: 2);
       await tester.pumpWidget(buildApp(Scaffold(body: HomeTab(session: makeSession(b), onOpenTab: (i, {newsType}) {}))));
       await settle(tester, const Duration(seconds: 2));
-      expect(find.text('Hızlı Erişim'), findsOneWidget);
+      expect(find.byType(HomeQuickGrid), findsOneWidget);
       expect(find.text('Anketler'), findsOneWidget);
       expect(find.text('Kulüpler'), findsNothing);
       await tester.tap(find.text('Anketler'));

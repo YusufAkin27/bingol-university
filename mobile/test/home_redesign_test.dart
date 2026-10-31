@@ -44,15 +44,17 @@ void main() {
           await tester.pumpWidget(buildApp(home(b), brightness: dark ? Brightness.dark : Brightness.light));
           await settle(tester, const Duration(seconds: 2));
           expect(find.text('BÜ KAMPÜS'), findsOneWidget);
-          expect(find.text('Bağımsız öğrenci uygulaması'), findsOneWidget);
-          expect(find.text('Hızlı Erişim'), findsOneWidget);
+          expect(find.text('Bağımsız öğrenci uygulaması'), findsNothing); // üst çubukta tek blok: marka + selamlama
+          expect(find.textContaining('Merhaba'), findsOneWidget);
+          expect(find.text('Hızlı Erişim'), findsNothing); // başlık satırı yok, kapsayıcı etiketi var
+          expect(find.bySemanticsLabel('Hızlı Erişim'), findsOneWidget);
           expect(find.text('Yemek'), findsOneWidget);
           expect(find.text('Etkinlikler'), findsOneWidget);
           expect(find.text('Anketler'), findsOneWidget);
           expect(find.text('Kulüpler'), findsNothing); // Kulüpler alt gezinmede zaten var (bu testte kabuk yok)
           expect(find.bySemanticsLabel('Program'), findsOneWidget);
           expect(find.text('Günün Yemek Menüsü'), findsOneWidget);
-          expect(find.text('11:30 – 14:00'), findsOneWidget);
+          expect(find.textContaining('11:30 – 14:00'), findsOneWidget);
           expect(find.text('Mercimek çorbası'), findsOneWidget);
           expect(find.text('Menü Detayı'), findsOneWidget);
           expect(find.textContaining('kcal'), findsNothing); // ana sayfada kalori gösterilmez

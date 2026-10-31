@@ -1,5 +1,4 @@
 import 'dart:math' as math;
-import 'dart:ui' show FontFeature;
 
 import 'package:flutter/material.dart';
 
@@ -273,13 +272,18 @@ class HomeSectionHeader extends StatelessWidget {
     final t = context.bu;
     return Row(children: [
       Expanded(
-        child: GestureDetector(
-          behavior: HitTestBehavior.opaque,
-          onLongPress: onLongPress,
-          child: Semantics(
-            header: true,
+        child: Semantics(
+          header: true,
+          child: GestureDetector(
+            behavior: HitTestBehavior.opaque,
             onLongPress: onLongPress,
-            child: Text(title, maxLines: 1, overflow: TextOverflow.ellipsis, style: BuType.title.copyWith(fontSize: 17, color: t.ink)),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(minHeight: 48),
+              child: Align(
+                alignment: AlignmentDirectional.centerStart,
+                child: Text(title, maxLines: 1, overflow: TextOverflow.ellipsis, style: BuType.title.copyWith(fontSize: 17, color: t.ink)),
+              ),
+            ),
           ),
         ),
       ),
@@ -299,7 +303,9 @@ class HomeSectionSlot extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final d = BuMotion.of(context, BuMotion.medium);
+    // "Animasyonları azalt": geçişsiz (sıfır süreli AnimatedSize yerleşim sırasında yeniden çizim tetikler).
+    if (BuMotion.reduced(context)) return visible ? KeyedSubtree(key: const ValueKey('on'), child: builder()) : const SizedBox(width: double.infinity);
+    final d = BuMotion.medium;
     return AnimatedSize(
       duration: d,
       curve: BuMotion.standard,

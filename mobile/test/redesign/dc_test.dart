@@ -145,27 +145,16 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('ana sayfa bos menu karti kompakt: tek satir, ~180 dp degil', (tester) async {
+  testWidgets('ana sayfa bos durum karti tek satir (P3): ~180 dp degil, <= 72 dp', (tester) async {
     addTearDown(tester.view.reset);
     tester.view.devicePixelRatio = 1;
     tester.view.physicalSize = const Size(390, 800);
     await tester.pumpWidget(p00App(const SingleChildScrollView(
-      child: HomeEmptyCard(
-          title: 'Menu', subtitle: 'Lunch', icon: Icons.restaurant, headline: 'No menu for today', body: 'Not entered yet.', compact: true),
+      child: HomeEmptyCard(icon: Icons.restaurant, headline: 'No menu for today'),
     )));
     await tester.pump();
-    expect(find.text('Menu'), findsNothing, reason: 'kompakt kartta bolum basligi satiri yok');
-    expect(tester.getSize(find.byType(HomeEmptyCard)).height, lessThan(100));
-    final full = await _fullHeight(tester);
-    expect(full, greaterThan(160), reason: 'kompakt olmayan kart degismedi');
+    expect(find.text('No menu for today'), findsOneWidget);
+    expect(tester.getSize(find.byType(HomeEmptyCard)).height, lessThanOrEqualTo(72));
     expect(tester.takeException(), isNull);
   });
-}
-
-Future<double> _fullHeight(WidgetTester tester) async {
-  await tester.pumpWidget(p00App(const SingleChildScrollView(
-    child: HomeEmptyCard(title: 'Menu', subtitle: 'Lunch', icon: Icons.restaurant, headline: 'No menu for today', body: 'Not entered yet.'),
-  )));
-  await tester.pump();
-  return tester.getSize(find.byType(HomeEmptyCard)).height;
 }
