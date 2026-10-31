@@ -119,8 +119,8 @@ void main() {
       expect(find.text('Teknoloji'), findsOneWidget); // kategori satiri
       await tester.tap(find.text('Teknoloji'));
       await settle(tester, const Duration(milliseconds: 600));
-      await _reveal(tester, find.text('Kulübü oluştur'));
-      await tester.tap(find.text('Kulübü oluştur'));
+      await _reveal(tester, find.text('Oluştur'));
+      await tester.tap(find.text('Oluştur'));
       await tester.pump();
       expect(find.text('Kulüp adı en az 3 karakter olmalı.'), findsOneWidget);
       expect(be.requests.where((r) => r.startsWith('POST /communities')), isEmpty);
@@ -138,15 +138,15 @@ void main() {
       await settle(tester, const Duration(milliseconds: 700));
       await tester.tap(find.text('Spor'));
       await settle(tester, const Duration(milliseconds: 600));
-      await _reveal(tester, find.text('Onaylı'));
-      await tester.tap(find.text('Onaylı'));
+      await _reveal(tester, find.text('İstek ile'));
+      await tester.tap(find.text('İstek ile'));
       await tester.pump();
-      await _reveal(tester, find.text('Soru ekle'));
-      await tester.tap(find.text('Soru ekle'));
+      await _reveal(tester, find.text('+ Katılma sorusu ekle'));
+      await tester.tap(find.text('+ Katılma sorusu ekle'));
       await tester.pump();
       await tester.enterText(find.widgetWithText(TextField, 'Sorunu yaz...'), 'Neden katılmak istiyorsun?');
-      await _reveal(tester, find.text('Kulübü oluştur'));
-      await tester.tap(find.text('Kulübü oluştur'));
+      await _reveal(tester, find.text('Oluştur'));
+      await tester.tap(find.text('Oluştur'));
       await settle(tester, const Duration(seconds: 1));
       expect(be.bodies['POST /communities'], {
         'name': 'Yeni Kulüp',
@@ -168,8 +168,8 @@ void main() {
       await _pump(tester, host(makeSession(be)));
       await _open(tester);
       await tester.enterText(find.byType(TextField).at(0), 'Yeni Kulüp');
-      await _reveal(tester, find.text('Kulübü oluştur'));
-      await tester.tap(find.text('Kulübü oluştur'));
+      await _reveal(tester, find.text('Oluştur'));
+      await tester.tap(find.text('Oluştur'));
       await settle(tester, const Duration(seconds: 1));
       expect(find.text('Kulübün onaya gönderildi'), findsOneWidget);
       expect(be.requests, isNot(contains('GET /communities/9')));
@@ -183,8 +183,8 @@ void main() {
       await _pump(tester, host(makeSession(be)));
       await _open(tester);
       await tester.enterText(find.byType(TextField).at(0), 'Yeni Kulüp');
-      await _reveal(tester, find.text('Kulübü oluştur'));
-      await tester.tap(find.text('Kulübü oluştur'));
+      await _reveal(tester, find.text('Oluştur'));
+      await tester.tap(find.text('Oluştur'));
       await settle(tester, const Duration(milliseconds: 600));
       expect(find.text('boyut hatalı'), findsOneWidget);
       await unmount(tester);
@@ -193,9 +193,9 @@ void main() {
     testWidgets('Kulupler sekmesinde + Kulup kur dugmesi formu acar', (tester) async {
       final be = base()..on('/communities', {'items': [], 'nextCursor': null});
       await _pump(tester, ClubsTab(session: makeSession(be)), size: kPhoneSmall);
-      await tester.tap(find.byTooltip('Kulüp kur'));
+      await tester.tap(find.text('Kulüp kur').first);
       await settle(tester, const Duration(milliseconds: 600));
-      expect(find.text('Kulübü oluştur'), findsOneWidget);
+      expect(find.text('Oluştur'), findsOneWidget);
       await unmount(tester);
     });
 
@@ -205,13 +205,13 @@ void main() {
           final be = base();
           await _pump(tester, ClubFormPage(session: makeSession(be)), b: b, size: size);
           expect(tester.takeException(), isNull);
-          await _reveal(tester, find.text('Onaylı'));
-          await tester.tap(find.text('Onaylı'));
+          await _reveal(tester, find.text('İstek ile'));
+          await tester.tap(find.text('İstek ile'));
           await tester.pump();
-          await _reveal(tester, find.text('Soru ekle'));
-          await tester.tap(find.text('Soru ekle'));
+          await _reveal(tester, find.text('+ Katılma sorusu ekle'));
+          await tester.tap(find.text('+ Katılma sorusu ekle'));
           await tester.pump();
-          await _reveal(tester, find.text('Kulübü oluştur'));
+          await _reveal(tester, find.text('Oluştur'));
           await settle(tester, const Duration(milliseconds: 200));
           expect(tester.takeException(), isNull);
           await unmount(tester);

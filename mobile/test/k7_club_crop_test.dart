@@ -46,7 +46,7 @@ FakeBackend _be() => FakeBackend()..on('/communities/categories', <Object>[]);
 void main() {
   testWidgets('kapak: kaynak sayfasi -> 16:9 kirp -> "Kapagi degistir"; kaldir yalniz secilen gorseli geri alir', (tester) async {
     await _pump(tester, ClubFormPage(session: makeSession(_be()), cropPicker: _pick));
-    await tester.tap(find.text('Kapak ekle (isteğe bağlı)'));
+    await tester.tap(find.text('Kapak fotoğrafı ekle'));
     await settle(tester, const Duration(milliseconds: 700));
     expect(find.text('Galeriden seç'), findsOneWidget);
     expect(find.text('Fotoğraf çek'), findsOneWidget);
@@ -61,7 +61,7 @@ void main() {
     expect(find.text('Fotoğrafı kaldır'), findsOneWidget);
     await tester.tap(find.text('Fotoğrafı kaldır'));
     await settle(tester, const Duration(milliseconds: 600));
-    expect(find.text('Kapak ekle (isteğe bağlı)'), findsOneWidget);
+    expect(find.text('Kapak fotoğrafı ekle'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 
@@ -90,14 +90,14 @@ void main() {
     // MultipartUploader gercek ag kullanir; testte ag kapali -> yukleme basarisiz (kismi kayit yolu).
     final be = _be()..on('/communities', {'id': 9, 'status': 'ACTIVE'}, status: 201);
     await _pump(tester, ClubFormPage(session: makeSession(be), cropPicker: _pick));
-    await tester.tap(find.text('Kapak ekle (isteğe bağlı)'));
+    await tester.tap(find.text('Kapak fotoğrafı ekle'));
     await settle(tester, const Duration(milliseconds: 700));
     await tester.tap(find.text('Galeriden seç'));
     await tester.pump();
     await _cropAndSave(tester);
     await tester.enterText(find.byType(TextField).first, 'Yeni Kulüp');
-    await tester.ensureVisible(find.text('Kulübü oluştur'));
-    await tester.tap(find.text('Kulübü oluştur'));
+    await tester.ensureVisible(find.text('Oluştur'));
+    await tester.tap(find.text('Oluştur'));
     for (var i = 0; i < 40 && find.text('Kısmi kayıt uyarısı').evaluate().isEmpty; i++) {
       await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 100)));
       await tester.pump(const Duration(milliseconds: 100));

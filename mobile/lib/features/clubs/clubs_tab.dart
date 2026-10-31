@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 
+import '../../core/api.dart';
 import '../../core/locale_controller.dart';
 import '../../core/session.dart';
 import '../../widgets/bu.dart';
-import '../../widgets/common.dart' show ErrorView;
+import 'club_actions.dart';
 import 'club_categories.dart';
 import 'club_detail_page.dart';
 import 'club_form_page.dart';
@@ -198,8 +199,6 @@ class _ClubsTabState extends State<ClubsTab> {
         builder: (_) => ClubDetailPage(
           session: widget.session,
           communityId: ((c['id'] as num?)?.toInt() ?? -1),
-          previewName: (c['name'] ?? '').toString(),
-          previewLogoUrl: c['logoUrl'] as String?,
         ),
       ),
     );
@@ -263,33 +262,52 @@ class _ClubsTabState extends State<ClubsTab> {
   Widget build(BuildContext context) {
     final t = context.bu;
     final cats = _categories;
+    final tx = Theme.of(context).textTheme;
     return Scaffold(
       backgroundColor: t.bg,
       body: Column(
         children: [
-          BuHeader(
-            title: context.l10n.clubMgmtClubsTitle,
-            actions: [
-              BuIconButton(
-                icon: _searching ? LucideIcons.x : LucideIcons.search,
-                tooltip: context.l10n.clubMgmtSearch,
-                onTap: _toggleSearch,
-              ),
-              BuIconButton(
-                icon: LucideIcons.plus,
-                tooltip: context.l10n.clubMgmtCreateTitle,
-                filled: true,
-                onTap: _create,
-              ),
-            ],
-          ),
+          // Başlık: "Kulüpler" 28/700 solda; sağda marka renkli metin düğmesi "Kulüp kur" (+ arama simgesi: davranış korunur).
+          // Ölçü (Stitch çerçevesi durum çubuğunsuz): başlık ortası içerik üstünden 40 dp = 16 dp boşluk + 24 dp (48 dp satır).
           Padding(
-            padding: const EdgeInsets.fromLTRB(20, 4, 20, 0),
-            child: BuSegmented(
-              items: [context.l10n.clubMgmtTabDiscover, context.l10n.clubMgmtTabMine],
-              index: _seg,
-              onChanged: (i) => setState(() => _seg = i),
+            padding: EdgeInsetsDirectional.fromSTEB(20, MediaQuery.paddingOf(context).top + 16, 8, 0),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Semantics(
+                    header: true,
+                    child: Text(context.l10n.clubMgmtClubsTitle,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: BuType.display.copyWith(fontSize: 28, height: 1.2, color: t.ink)),
+                  ),
+                ),
+                Semantics(
+                  button: true,
+                  label: context.l10n.clubMgmtSearch,
+                  child: BuPressable(
+                    onTap: _toggleSearch,
+                    child: SizedBox(
+                      width: 44,
+                      height: 48,
+                      child: Icon(_searching ? LucideIcons.x : LucideIcons.search, size: 22, color: t.mut),
+                    ),
+                  ),
+                ),
+                TextButton(
+                  style: TextButton.styleFrom(
+                      foregroundColor: t.pr, minimumSize: const Size(48, 48), padding: const EdgeInsets.symmetric(horizontal: 12)),
+                  onPressed: _create,
+                  child: Text(context.l10n.clubMgmtCreateTitle, style: tx.bodyLarge!.copyWith(color: t.pr, fontWeight: FontWeight.w600)),
+                ),
+              ],
             ),
+          ),
+          const SizedBox(height: 6),
+          ClubTextTabs(
+            labels: [context.l10n.clubMgmtTabDiscover, context.l10n.clubMgmtTabMine],
+            index: _seg,
+            onChanged: (i) => setState(() => _seg = i),
           ),
           if (_searching)
             Padding(
@@ -306,8 +324,8 @@ class _ClubsTabState extends State<ClubsTab> {
             ),
           if (cats.isNotEmpty && _seg == 0)
             Padding(
-              padding: const EdgeInsets.only(top: 8),
-              // BuChip kendi 48 dp kutusunu ister; 34 dp kutu yazıyı alttan kırpıyordu ("g" kuyruğu).
+              padding: const EdgeInsets.only(top: 9),
+              // BuChip: görünür 34 dp, dokunma alanı 48 dp (kutu 48 dp, yazı kırpılmaz).
               child: SizedBox(
                 height: 48,
                 child: ListView(
@@ -339,50 +357,102 @@ class _ClubsTabState extends State<ClubsTab> {
     // İskelet -> içerik solarak; Keşfet <-> Kulüplerim geçişinde içerik "fade through" ile yer değiştirir.
     return BuSwapIn(
       loading: _loading,
-      skeleton: const BuSkeletonList(variant: BuSkeletonVariant.row, itemCount: 6),
+      skeleton: const Align(alignment: Alignment.topCenter, child: Padding(padding: EdgeInsets.only(top: 8), child: ClubsRowSkeleton())),
       child: BuFadeThrough(
         child: KeyedSubtree(key: ValueKey<int>(_seg), child: _content()),
       ),
     );
   }
 
+  /// Kulüplerim bölümleri: Yönettiklerim / Üye olduklarım / Bekleyen başvurular (boş bölüm gösterilmez).
+  List<(String, List<Map<String, dynamic>>)> _sections() {
+    final l = context.l10n;
+    final list = _strip;
+    bool role(Map<String, dynamic> c) => isClubManagerRole(c['myRole']?.toString());
+    final pending = list.where((c) => c['myStatus'] == 'PENDING').toList();
+    final active = list.where((c) => c['myStatus'] != 'PENDING').toList();
+    return [
+      (l.p51Managed, active.where(role).toList()),
+      (l.profilePrefsClubsMember, active.where((c) => !role(c)).toList()),
+      (l.profilePrefsClubsPending, pending),
+    ].where((s) => s.$2.isNotEmpty).toList();
+  }
+
   Widget _content() {
     final l = context.l10n;
     if (_error != null && _items.isEmpty) {
-      return ErrorView(error: _error!, onRetry: _reload);
+      final e = _error!;
+      final maintenance = e is ApiError && e.status == 503;
+      return RefreshIndicator(
+        onRefresh: _refresh,
+        child: LayoutBuilder(
+          builder: (context, c) => ListView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            children: [
+              SizedBox(
+                height: (c.maxHeight - kNavInset).clamp(240.0, double.infinity),
+                child: ClubsStateText(
+                  text: maintenance ? errorText(e) : l.p51ClubsLoadFailed,
+                  actionLabel: l.commonRetry,
+                  onAction: _reload,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
     }
     final mine = _seg == 1;
     final list = mine ? _strip : _items;
     if (list.isEmpty) {
       final Widget empty = mine && _query.isEmpty
-          ? BuEmptyState(
-              illustration: BuIllustration.club,
-              title: l.clubMgmtEmptyMine,
-              actionLabel: l.kuluplerAllClubs,
-              onAction: () => setState(() => _seg = 0),
-            )
-          : BuEmptyState(
-              illustration: _query.isNotEmpty ? BuIllustration.search : BuIllustration.club,
-              title: l.clubMgmtNotFound,
-            );
+          ? ClubsStateText(text: l.clubMgmtEmptyMine, actionLabel: l.kuluplerAllClubs, onAction: () => setState(() => _seg = 0))
+          : _query.isNotEmpty
+              ? ClubsStateText(text: l.clubMgmtNotFound)
+              : ClubsStateText(text: l.p51ClubsEmpty, actionLabel: l.clubMgmtCreateTitle, onAction: _create);
+      return RefreshIndicator(
+        onRefresh: _refresh,
+        child: LayoutBuilder(
+          builder: (context, c) => ListView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.only(bottom: kNavInset),
+            children: [SizedBox(height: (c.maxHeight - kNavInset).clamp(240.0, double.infinity), child: empty)],
+          ),
+        ),
+      );
+    }
+    Widget row(Map<String, dynamic> c) => ClubsRowCard(
+          club: c,
+          mine: mine,
+          busy: _joining.contains(_id(c)),
+          onOpen: () => _open(c),
+          onJoin: () => _join(c),
+        );
+    if (mine) {
+      // Bölümlü kısa liste (kaydırma sayfalaması yok).
+      final secs = _sections();
       return RefreshIndicator(
         onRefresh: _refresh,
         child: ListView(
           physics: const AlwaysScrollableScrollPhysics(),
           padding: const EdgeInsets.only(bottom: kNavInset),
-          children: [SizedBox(height: 420, child: empty)],
+          children: [
+            for (final s in secs) ...[
+              ClubsSectionTitle(s.$1),
+              for (final c in s.$2) row(c),
+            ],
+          ],
         ),
       );
     }
     return RefreshIndicator(
       onRefresh: _refresh,
-      // Ilk 8 kart sirayla belirir; yenileme/kaydirma geri gelen kartlar tekrar oynamaz (BuStaggerScope).
+      // İlk 8 satır sırayla belirir; yenileme/kaydırma geri gelen satırlar tekrar oynamaz (BuStaggerScope).
       child: BuStaggeredList(
-        // Yalniz Kesfet listesi sayfalar; gecis sirasinda iki liste bir arada kalabilir, denetleyici tek listede.
-        controller: mine ? null : _scroll,
+        controller: _scroll,
         physics: const AlwaysScrollableScrollPhysics(),
-        padding: const EdgeInsets.only(top: 14, bottom: kNavInset),
-        itemCount: list.length + (_more && !mine ? 1 : 0),
+        padding: const EdgeInsets.only(top: 8, bottom: kNavInset),
+        itemCount: list.length + (_more ? 1 : 0),
         itemBuilder: (_, k) {
           if (k >= list.length) {
             return const Padding(
@@ -390,16 +460,7 @@ class _ClubsTabState extends State<ClubsTab> {
               child: Center(child: SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2))),
             );
           }
-          final c = list[k];
-          return Padding(
-            padding: EdgeInsetsDirectional.fromSTEB(20, 0, 20, k == list.length - 1 ? 0 : 12),
-            child: ClubsRowCard(
-              club: c,
-              busy: _joining.contains(_id(c)),
-              onOpen: () => _open(c),
-              onJoin: () => _join(c),
-            ),
-          );
+          return row(list[k]);
         },
       ),
     );

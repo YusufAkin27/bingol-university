@@ -484,8 +484,8 @@ class ClubNoteCard extends StatelessWidget {
 // ---------------------------------------------------------------------------------------------------------------
 // Dolgu gri, kenarlıksız metin alanı (referans 27-04..06, 29-01)
 
-/// Referanstaki alan stili: dolgu gri (varsayılan `sf2`), kenarlıksız, odakta marka çizgisi; [hasError] iken
-/// pembe zemin + kırmızı çizgi + sağda "!" simgesi (hata metni alanın altında [ClubFieldError] ile).
+/// Alan stili (Stitch v3): beyaz dolgu, 1 dp `bdStrong` çerçeve, 16 dp köşe, odakta 1.5 dp marka çizgisi; [hasError]
+/// iken 1.5 dp `danger` çerçeve (dolgu beyaz kalır, hata metni alanın altında [ClubFieldError] ile). Yükseklik 52 dp.
 InputDecoration clubFill(
   BuildContext context, {
   String? hint,
@@ -496,42 +496,30 @@ InputDecoration clubFill(
   EdgeInsetsGeometry? pad,
 }) {
   final t = context.bu;
-  OutlineInputBorder b(Color? c, double w) => OutlineInputBorder(
-        borderRadius: BorderRadius.circular(BuRadius.md),
-        borderSide: c == null ? BorderSide.none : BorderSide(color: c, width: w),
+  OutlineInputBorder b(Color c, double w) => OutlineInputBorder(
+        borderRadius: BorderRadius.circular(16),
+        borderSide: BorderSide(color: c, width: w),
       );
   return InputDecoration(
     hintText: hint,
+    hintStyle: Theme.of(context).textTheme.bodyLarge!.copyWith(color: t.mut, fontWeight: FontWeight.w400),
     counterText: '',
     filled: true,
-    fillColor: hasError ? t.soft : (fill ?? t.sf2),
-    contentPadding: pad,
+    fillColor: fill ?? t.sf,
+    contentPadding: pad ?? const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
     prefixIcon: prefixIcon,
-    suffixIcon: hasError
-        ? Padding(
-            padding: const EdgeInsetsDirectional.only(end: 12),
-            child: ExcludeSemantics(
-              child: Container(
-                width: 22,
-                height: 22,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(color: t.danger, shape: BoxShape.circle),
-                child: Text('!', style: Theme.of(context).textTheme.labelMedium!.copyWith(color: t.onPr, fontWeight: FontWeight.w900, height: 1)),
-              ),
-            ),
-          )
-        : suffixIcon,
+    suffixIcon: suffixIcon,
     suffixIconConstraints: const BoxConstraints(minWidth: 0, minHeight: 0),
-    border: b(null, 0),
-    enabledBorder: b(hasError ? t.danger : null, 1.5),
-    disabledBorder: b(null, 0),
+    border: b(t.bdStrong, 1),
+    enabledBorder: b(hasError ? t.danger : t.bdStrong, hasError ? 1.5 : 1),
+    disabledBorder: b(t.bd, 1),
     focusedBorder: b(hasError ? t.danger : t.pr, 1.5),
     errorBorder: b(t.danger, 1.5),
     focusedErrorBorder: b(t.danger, 1.5),
   );
 }
 
-/// Alan altı hata satırı: uyarı simgesi + kırmızı metin.
+/// Alan altı hata satırı: simgesiz, `danger` 12-13 sp metin.
 class ClubFieldError extends StatelessWidget {
   const ClubFieldError(this.text, {super.key});
 
@@ -541,17 +529,10 @@ class ClubFieldError extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.bu;
     return Padding(
-      padding: const EdgeInsetsDirectional.fromSTEB(4, 8, 4, 0),
+      padding: const EdgeInsetsDirectional.fromSTEB(0, 6, 0, 0),
       child: Semantics(
         liveRegion: true,
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Padding(padding: const EdgeInsets.only(top: 1), child: ExcludeSemantics(child: Icon(LucideIcons.triangleAlert, size: 15, color: t.danger))),
-            const SizedBox(width: 6),
-            Expanded(child: Text(text, style: Theme.of(context).textTheme.bodySmall!.copyWith(color: t.danger, fontWeight: FontWeight.w700, height: 1.35))),
-          ],
-        ),
+        child: Text(text, style: Theme.of(context).textTheme.bodySmall!.copyWith(color: t.danger, fontWeight: FontWeight.w500, height: 1.35)),
       ),
     );
   }

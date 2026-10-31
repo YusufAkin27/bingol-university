@@ -20,18 +20,14 @@ import 'club_ref_widgets.dart';
 import 'club_join_flow.dart';
 import 'club_members_page.dart';
 import 'club_requests_page.dart';
-import 'clubs_widgets.dart' show ClubsLogo;
+import 'clubs_widgets.dart' show ClubOutlineButton;
 
 /// Kulüp detayı: kapak, üyelik, sohbet, gönderiler / etkinlikler / üyeler / anketler.
 class ClubDetailPage extends StatefulWidget {
-  const ClubDetailPage({super.key, required this.session, required this.communityId, this.imageService, this.previewName, this.previewLogoUrl});
+  const ClubDetailPage({super.key, required this.session, required this.communityId, this.imageService});
 
   final Session session;
   final int communityId;
-
-  /// Listeden gelen ad/logo: veri yüklenene kadar iskelet logosu yerine gerçek logo görünür (logo uçuşu için).
-  final String? previewName;
-  final String? previewLogoUrl;
 
   /// Testlerde galeri seçicisini taklit etmek için.
   @visibleForTesting
@@ -51,19 +47,25 @@ class _Paged {
 }
 
 /// Kapak yüksekliği (durum çubuğu hariç).
-const double _coverH = 208;
+const double _coverH = 180;
+
+/// Sekme kimlikleri (içsel). Görünüm sırası (Stitch v3): Hakkında, Etkinlikler, Üyeler, Gönderiler.
+/// Anketler artık Hakkında sekmesinin altında bir bölümdür (davranış korunur).
+const int _tabPosts = 0, _tabEvents = 1, _tabMembers = 2, _tabAbout = 4;
+const _tabOrder = [_tabAbout, _tabEvents, _tabMembers, _tabPosts];
 
 class _ClubDetailPageState extends State<ClubDetailPage> {
   Map<String, dynamic>? _club;
   Object? _error;
   bool _busy = false;
-  int _tab = 0;
+  int _tab = _tabAbout;
   int _pollGen = 0; // çekme-yenilemede anket sekmesini yeniden yükler
 
   final _posts = _Paged();
   final _events = _Paged();
   final _members = _Paged();
   final _requests = _Paged();
+  final _none = _Paged(); // Hakkında sekmesi sayfalı içerik taşımaz
 
   final _scroll = ScrollController();
   final _text = TextEditingController();
@@ -149,21 +151,21 @@ class _ClubDetailPageState extends State<ClubDetailPage> {
 
   String get _requestsPath => '$_base/requests?include=answers';
 
-  _Paged get _cur => switch (_tab) { 0 => _posts, 1 => _events, _ => _members };
+  _Paged get _cur => switch (_tab) { _tabPosts => _posts, _tabEvents => _events, _tabMembers => _members, _ => _none };
 
   String get _curPath => switch (_tab) {
-        0 => '$_base/posts',
-        1 => '/events?communityId=${widget.communityId}',
+        _tabPosts => '$_base/posts',
+        _tabEvents => '/events?communityId=${widget.communityId}',
         _ => '$_base/members',
       };
 
   void _refreshTab({bool reset = false}) {
-    if (_tab == 3) return; // Anketler sekmesi kendi içeriğini yükler
+    if (_tab == _tabAbout) return; // Hakkında: anket bölümü kendi içeriğini yükler
     _fetch(_cur, _curPath, reset: reset);
   }
 
   void _more() {
-    if (_tab == 3) return;
+    if (_tab == _tabAbout) return;
     final p = _cur;
     if (p.next != null && !p.loading) _fetch(p, _curPath);
   }
@@ -447,7 +449,7 @@ class _ClubDetailPageState extends State<ClubDetailPage> {
   void _setTab(int i) {
     if (i == _tab) return;
     setState(() => _tab = i);
-    if (i != 3 && !_locked && !_cur.loaded) _refreshTab(reset: true);
+    if (i != _tabAbout && !_locked && !_cur.loaded) _refreshTab(reset: true);
   }
 
   Future<void> _refresh() async {
@@ -466,8 +468,7 @@ class _ClubDetailPageState extends State<ClubDetailPage> {
     if (v == null || !mounted) return;
     switch (v) {
       case 'event':
-        await Navigator.push<bool>(
-            context, MaterialPageRoute(builder: (_) => EventFormPage(session: widget.session, communityId: widget.communityId)));
+        await _createEvent();
       case 'edit':
         await _edit();
       case 'requests':
@@ -542,7 +543,7 @@ class _ClubDetailPageState extends State<ClubDetailPage> {
                 }),
       );
     }
-    if (_club == null) return _DetailSkeleton(heroId: widget.communityId, previewName: widget.previewName, previewLogoUrl: widget.previewLogoUrl);
+    if (_club == null) return const _DetailSkeleton();
     return Scaffold(
       backgroundColor: t.bg,
       resizeToAvoidBottomInset: true,
@@ -560,9 +561,9 @@ class _ClubDetailPageState extends State<ClubDetailPage> {
             SliverPersistentHeader(
               pinned: true,
               delegate: ClubTabsDelegate(
-                labels: [l10n.clubTabPosts, l10n.clubTabEvents, l10n.clubTabMembers, l10n.clubTabPolls],
-                index: _tab,
-                onChanged: _setTab,
+                labels: [l10n.profileAboutShort, l10n.clubTabEvents, l10n.clubTabMembers, l10n.clubTabPosts],
+                index: _tabOrder.indexOf(_tab),
+                onChanged: (i) => _setTab(_tabOrder[i]),
                 brightness: Theme.of(context).brightness,
               ),
             ),
@@ -577,123 +578,61 @@ class _ClubDetailPageState extends State<ClubDetailPage> {
   Widget _appBar(BuTokens t) {
     final l10n = context.l10n;
     final name = (_club!['name'] ?? '').toString();
+    final hasPhoto = fileUrl(_club!['coverUrl']?.toString()) != null;
     return ValueListenableBuilder<bool>(
       valueListenable: _collapsed,
-      builder: (context, collapsed, _) => SliverAppBar(
-      pinned: true,
-      expandedHeight: _coverH + kClubCoverBand,
-      backgroundColor: t.bg,
-      surfaceTintColor: t.bg.withValues(alpha: 0),
-      scrolledUnderElevation: 0,
-      // Kapak (koyu görsel/ton) durum çubuğunun arkasındadır: açılışta saat/simgeler açık renk, daralınca tema rengi.
-      systemOverlayStyle: collapsed || (_club!['coverUrl']?.toString() ?? '').isEmpty
-          ? null
-          : const SystemUiOverlayStyle(
-              statusBarColor: Colors.transparent,
-              statusBarIconBrightness: Brightness.light,
-              statusBarBrightness: Brightness.dark,
-            ),
-      automaticallyImplyLeading: false,
-      leadingWidth: 62,
-      leading: ValueListenableBuilder<bool>(
-        valueListenable: _collapsed,
-        builder: (_, c, __) => Padding(
-          padding: const EdgeInsetsDirectional.only(start: 10),
-          child: ClubRoundButton(icon: LucideIcons.arrowLeft, tooltip: l10n.clubBack, onTap: () => Navigator.maybePop(context), onCover: !c),
-        ),
-      ),
-      title: ValueListenableBuilder<bool>(
-        valueListenable: _collapsed,
-        builder: (_, c, __) => AnimatedSwitcher(
-          duration: BuMotion.of(context, BuMotion.short),
-          child: c
-              ? Text(name, key: const ValueKey('collapsedName'), maxLines: 1, overflow: TextOverflow.ellipsis)
-              : const SizedBox.shrink(key: ValueKey('noName')),
-        ),
-      ),
-      actions: [
-        Padding(
-          padding: const EdgeInsetsDirectional.only(end: 10),
-          child: ValueListenableBuilder<bool>(
-            valueListenable: _collapsed,
-            builder: (_, c, __) => Builder(
-              builder: (anchor) => ClubRoundButton(icon: LucideIcons.ellipsis, tooltip: l10n.clubOptions, onTap: () => _openMenu(anchor), onCover: !c),
-            ),
+      builder: (context, collapsed, _) {
+        final onPhoto = hasPhoto && !collapsed;
+        final fg = onPhoto ? t.onMedia : t.ink;
+        return SliverAppBar(
+          pinned: true,
+          expandedHeight: _coverH,
+          backgroundColor: t.bg,
+          surfaceTintColor: t.bg.withValues(alpha: 0),
+          scrolledUnderElevation: 0,
+          // Kapak fotoğrafı (koyu) durum çubuğunun arkasındadır: açılışta saat/simgeler açık renk, daralınca tema rengi.
+          systemOverlayStyle: onPhoto
+              ? const SystemUiOverlayStyle(
+                  statusBarColor: Colors.transparent,
+                  statusBarIconBrightness: Brightness.light,
+                  statusBarBrightness: Brightness.dark,
+                )
+              : null,
+          automaticallyImplyLeading: false,
+          leadingWidth: 60,
+          // Stitch v3: yalnız geri oku ve üç nokta; dairesel plaka yok. Simge ortası kenardan 36 dp.
+          leading: Padding(
+            padding: const EdgeInsetsDirectional.only(start: 12),
+            child: ClubBarIcon(icon: LucideIcons.arrowLeft, tooltip: l10n.clubBack, onTap: () => Navigator.maybePop(context), color: fg),
           ),
-        ),
-      ],
-      flexibleSpace: ClubCoverSpace(
-        url: _club!['coverUrl']?.toString(),
-        coverHeight: _coverH,
-        seed: (_club!['id'] as num?)?.toInt() ?? widget.communityId,
-        logo: _logo(t),
-      ),
-    ));
-  }
-
-  /// Kulüp logosu: yuvarlak; yüklenmişse görsel, yoksa kategori tonlu baş harfler. Kapakla çakışır.
-  Widget _logo(BuTokens t) {
-    final c = _club!;
-    final tint = t.tint((c['id'] as num?)?.toInt() ?? widget.communityId);
-    final tx = Theme.of(context).textTheme;
-    final logo = fileUrl(c['logoUrl']?.toString());
-    final id = (c['id'] as num?)?.toInt() ?? widget.communityId;
-    // Listedeki logo ile aynı etiket: kulüp kartından detaya logo uçarak büyür (BuHero; köşe yumuşak geçer).
-    final Widget face = BuHero(
-      tag: BuHero.tagOf('club', id),
-      radius: 40,
-      child: logo != null
-          ? BuImage(c['logoUrl']?.toString(), width: 80, height: 80, placeholderIcon: LucideIcons.users)
-          : ColoredBox(
-              color: tint.bg,
-              child: ExcludeSemantics(
-                child: Center(
-                  child: FittedBox(
-                    fit: BoxFit.scaleDown,
-                    child: Padding(
-                      padding: const EdgeInsets.all(6),
-                      child: Text(initialsOf(c['name']?.toString()), style: tx.headlineMedium!.copyWith(color: tint.fg, fontWeight: FontWeight.w800)),
-                    ),
-                  ),
-                ),
+          title: AnimatedSwitcher(
+            duration: BuMotion.of(context, BuMotion.short),
+            child: collapsed
+                ? Text(name, key: const ValueKey('collapsedName'), maxLines: 1, overflow: TextOverflow.ellipsis)
+                : const SizedBox.shrink(key: ValueKey('noName')),
+          ),
+          actions: [
+            Padding(
+              padding: const EdgeInsetsDirectional.only(end: 12),
+              child: Builder(
+                builder: (anchor) => ClubBarIcon(icon: LucideIcons.ellipsisVertical, tooltip: l10n.clubOptions, onTap: () => _openMenu(anchor), color: fg),
               ),
             ),
-    );
-    return Container(
-      width: 88,
-      height: 88,
-      alignment: Alignment.center,
-      decoration: BoxDecoration(
-        color: logo == null ? tint.bg : t.sf,
-        shape: BoxShape.circle,
-        border: Border.all(color: t.bg, width: 4),
-        boxShadow: BuElevation.of(context, 1),
-      ),
-      child: ClipOval(child: SizedBox(width: 80, height: 80, child: face)),
+          ],
+          flexibleSpace: ClubFlatCover(url: _club!['coverUrl']?.toString(), name: name, height: _coverH),
+        );
+      },
     );
   }
 
-  /// Kategori / üye sayısı / görünürlük çipleri (referans 28-02).
-  Widget _chips(BuTokens t) {
-    final c = _club!;
+  /// Üye rolü etiketi ("Yönetici" / "Moderatör"); sade üyede null.
+  String? get _roleText {
     final l10n = context.l10n;
-    final cat = (c['category'] ?? '').toString();
-    final private = c['visibility'] == 'PRIVATE';
-    final catInfo = ClubCategories.find(cat);
-    return Wrap(
-      spacing: 8,
-      runSpacing: 8,
-      children: [
-        if (cat.isNotEmpty)
-          _InfoChip(icon: catInfo == null ? LucideIcons.tag : ClubCategory.iconFor(catInfo.icon), text: ClubCategories.labelFor(cat)),
-        _InfoChip(icon: LucideIcons.users, text: l10n.clubMemberCount('${c['memberCount'] ?? 0}')),
-        _InfoChip(
-          icon: private ? LucideIcons.lock : LucideIcons.globe,
-          text: private ? l10n.clubPrivate : l10n.clubPublic,
-          accent: private,
-        ),
-      ],
-    );
+    return switch (_role) {
+      'OWNER' || 'ADMIN' => l10n.clubRoleOwner,
+      'MODERATOR' => l10n.clubRoleModerator,
+      _ => null,
+    };
   }
 
   Widget _identity(BuTokens t) {
@@ -701,42 +640,34 @@ class _ClubDetailPageState extends State<ClubDetailPage> {
     final tx = Theme.of(context).textTheme;
     final desc = (c['description'] ?? '').toString().trim();
     final l10n = context.l10n;
-    final roleBadge = _isMember ? clubRoleBadge(context, _role) : null;
+    final cat = ClubCategories.labelFor((c['category'] ?? '').toString());
+    final private = c['visibility'] == 'PRIVATE';
+    final meta = [
+      if (cat.isNotEmpty) cat,
+      l10n.clubMemberCount('${c['memberCount'] ?? 0}'),
+      private ? l10n.clubPrivate : l10n.clubPublic,
+      if (_isManager && _roleText != null) _roleText!,
+    ].join(' · ');
     return Padding(
       padding: BuSpace.pageH,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SizedBox(height: 8),
-          Wrap(
-            spacing: 10,
-            runSpacing: 6,
-            crossAxisAlignment: WrapCrossAlignment.center,
-            children: [
-              Semantics(
-                header: true,
-                child: Text((c['name'] ?? '').toString(),
-                    maxLines: 3, overflow: TextOverflow.ellipsis, style: tx.headlineSmall!.copyWith(color: t.ink, fontWeight: FontWeight.w800)),
-              ),
-              if (roleBadge != null && _isManager) roleBadge,
-            ],
+          const SizedBox(height: 20),
+          Semantics(
+            header: true,
+            child: Text((c['name'] ?? '').toString(),
+                maxLines: 3, overflow: TextOverflow.ellipsis, style: BuType.display.copyWith(fontSize: 28, height: 1.2, color: t.ink)),
           ),
-          const SizedBox(height: 10),
-          _chips(t),
-          if (desc.isNotEmpty) ...[const SizedBox(height: 12), ClubExpandableText(desc)],
-          const SizedBox(height: 12),
+          const SizedBox(height: 8),
+          Text(meta, style: tx.bodyMedium!.copyWith(color: t.mut)),
+          if (desc.isNotEmpty) ...[const SizedBox(height: 13), ClubExpandableText(desc)],
+          SizedBox(height: desc.isNotEmpty ? 8 : 20),
           _cta(),
           if (_status == 'NONE' && (c['joinPolicy'] == 'APPROVAL' || c['visibility'] == 'PRIVATE'))
             Padding(
-              padding: const EdgeInsets.only(top: 10, left: 2, right: 2),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Padding(padding: const EdgeInsets.only(top: 2), child: ExcludeSemantics(child: Icon(LucideIcons.info, size: 15, color: t.mut))),
-                  const SizedBox(width: 8),
-                  Expanded(child: Text(l10n.p11ApprovalNote, style: tx.bodySmall!.copyWith(color: t.mut, height: 1.4))),
-                ],
-              ),
+              padding: const EdgeInsets.only(top: 12, left: 2, right: 2),
+              child: Text(l10n.p11ApprovalNote, style: tx.bodySmall!.copyWith(color: t.mut, height: 1.4)),
             ),
           if (_isPending) ...[
             const SizedBox(height: 12),
@@ -747,45 +678,51 @@ class _ClubDetailPageState extends State<ClubDetailPage> {
             ClubNoteCard(icon: LucideIcons.userX, title: l10n.p11BannedTitle, body: l10n.p11BannedBody, tone: ClubNoteTone.soft),
           ],
           if (_isManager && _requests.items.isNotEmpty) ...[
-            const SizedBox(height: 12),
+            const SizedBox(height: 16),
             ClubRequestsBanner(
               text: l10n.kulupdetayPendingBanner('${_requests.items.length}${_requests.next != null ? '+' : ''}'),
               onTap: _openRequests,
             ),
           ],
-          const SizedBox(height: 16),
+          SizedBox(height: _isManager && _requests.items.isNotEmpty ? 20 : 24),
         ],
       ),
     );
   }
 
-  /// Üyelik durumuna göre ana eylem(ler).
+  Future<void> _createEvent() async {
+    await Navigator.push<bool>(
+        context, MaterialPageRoute(builder: (_) => EventFormPage(session: widget.session, communityId: widget.communityId)));
+  }
+
+  /// Üyelik durumuna göre ana eylem(ler): Katıl (dolu) / Kulüp sohbeti (çerçeveli) / Etkinlik oluştur (yönetici).
   Widget _cta() {
     final l10n = context.l10n;
     if (_isMember) {
+      final chat = ClubOutlineButton(label: l10n.clubChat, busy: _busy, onPressed: _openChat);
+      if (!_isManager) return chat;
       return Row(
         children: [
-          Expanded(child: _StatusPill(label: l10n.clubIsMember, icon: LucideIcons.circleCheck)),
+          Expanded(child: chat),
           const SizedBox(width: 12),
-          Expanded(child: ClubBtn(label: l10n.clubChat, icon: LucideIcons.messageSquare, kind: ClubBtnKind.ink, busy: _busy, onPressed: _openChat)),
+          Expanded(child: BuButton(label: l10n.eventListCreate, onPressed: _createEvent)),
         ],
       );
     }
     if (_isPending) {
       return Row(
         children: [
-          Expanded(child: _StatusPill(label: l10n.clubRequestSent, icon: LucideIcons.hourglass, muted: true)),
+          Expanded(child: ClubOutlineButton(label: l10n.clubRequestSent)),
           const SizedBox(width: 8),
-          BuButton(label: l10n.clubWithdrawConfirm, icon: LucideIcons.undo2, kind: BuButtonKind.text, compact: true, onPressed: _busy ? null : _withdraw),
+          BuButton(label: l10n.clubWithdrawConfirm, kind: BuButtonKind.text, compact: true, onPressed: _busy ? null : _withdraw),
         ],
       );
     }
     if (_status == 'BANNED') {
-      return ClubBtn(label: l10n.clubCannotJoin, icon: LucideIcons.circleMinus, onPressed: null);
+      return ClubOutlineButton(label: l10n.clubCannotJoin);
     }
     return BuButton(
       label: _club!['joinPolicy'] == 'APPROVAL' ? l10n.clubSendJoinRequest : l10n.clubJoin,
-      icon: LucideIcons.userPlus,
       busy: _busy,
       onPressed: _join,
     );
@@ -810,27 +747,11 @@ class _ClubDetailPageState extends State<ClubDetailPage> {
         ),
       ];
     }
-    if (_tab == 3) {
-      return [
-        SliverToBoxAdapter(
-          child: PollClubSection(
-              key: ValueKey('polls-$_pollGen'), session: widget.session, communityId: widget.communityId, canCreate: _isManager),
-        ),
-      ];
-    }
+    if (_tab == _tabAbout) return _aboutContent();
     final p = _cur;
     final head = <Widget>[];
-    if (_tab == 0) {
+    if (_tab == _tabPosts) {
       if (_isMember) head.add(Padding(padding: _pad, child: _composer()));
-    }
-    if (_tab == 2 && _isManager) {
-      head.add(Padding(
-        padding: const EdgeInsetsDirectional.fromSTEB(20, 0, 20, 4),
-        child: Align(
-          alignment: AlignmentDirectional.centerEnd,
-          child: BuButton(label: l10n.clubManageMembers, icon: LucideIcons.userCog, kind: BuButtonKind.soft, compact: true, onPressed: _openMembers),
-        ),
-      ));
     }
     final out = <Widget>[if (head.isNotEmpty) SliverToBoxAdapter(child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: head))];
     if (p.error != null && p.items.isEmpty) {
@@ -844,8 +765,8 @@ class _ClubDetailPageState extends State<ClubDetailPage> {
     }
     if (p.items.isEmpty) {
       final (art, text) = switch (_tab) {
-        0 => (BuIllustration.message, l10n.clubNoPosts),
-        1 => (BuIllustration.calendar, l10n.clubNoEvents),
+        _tabPosts => (BuIllustration.message, l10n.clubNoPosts),
+        _tabEvents => (BuIllustration.calendar, l10n.clubNoEvents),
         _ => (BuIllustration.club, l10n.clubNoMembers),
       };
       out.add(SliverToBoxAdapter(child: SizedBox(height: 300, child: BuEmptyState(illustration: art, title: text, compact: true))));
@@ -862,11 +783,11 @@ class _ClubDetailPageState extends State<ClubDetailPage> {
             return BuStaggerItem(
               index: i,
               child: Padding(
-                padding: const EdgeInsets.only(bottom: 12),
+                padding: EdgeInsets.only(bottom: _tab == _tabMembers ? 0 : 12),
                 child: switch (_tab) {
-                  0 => ClubPostCard(post: it, onMenu: _isMember && _hasPostActions(it) ? () => _openPostMenu(it) : null),
-                  1 => ClubEventCard(event: it, onTap: _eventTap(it)),
-                  _ => ClubMemberTile(member: it),
+                  _tabPosts => ClubPostCard(post: it, onMenu: _isMember && _hasPostActions(it) ? () => _openPostMenu(it) : null),
+                  _tabEvents => ClubEventCard(event: it, onTap: _eventTap(it)),
+                  _ => ClubMemberRow(member: it, onMenu: _isManager ? _openMembers : null),
                 },
               ),
             );
@@ -881,6 +802,38 @@ class _ClubDetailPageState extends State<ClubDetailPage> {
           child: Center(child: BuButton(label: l10n.clubLoadFailedRetry, kind: BuButtonKind.text, compact: true, onPressed: _more))));
     }
     return out;
+  }
+
+  /// Hakkında: etiket-değer satırları (Kuruluş, Kategori, Katılım) + kulüp anketleri bölümü.
+  List<Widget> _aboutContent() {
+    final l10n = context.l10n;
+    final c = _club!;
+    final created = DateTime.tryParse('${c['createdAt'] ?? ''}')?.toLocal();
+    final cat = ClubCategories.labelFor((c['category'] ?? '').toString());
+    final approval = c['joinPolicy'] == 'APPROVAL';
+    return [
+      SliverToBoxAdapter(
+        child: Padding(
+          padding: const EdgeInsetsDirectional.fromSTEB(20, 15, 20, 0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              if (created != null) ClubAboutRow(label: l10n.p51AboutFounded, value: '${created.year}'),
+              if (cat.isNotEmpty) ClubAboutRow(label: l10n.clubMgmtCategoryLabel, value: cat),
+              ClubAboutRow(label: l10n.clubMgmtJoinLabel, value: approval ? l10n.clubMgmtApprovalPolicy : l10n.clubMgmtOpenPolicy),
+            ],
+          ),
+        ),
+      ),
+      SliverToBoxAdapter(
+        child: PollClubSection(
+            key: ValueKey('polls-$_pollGen'),
+            session: widget.session,
+            communityId: widget.communityId,
+            canCreate: _isManager,
+            hideWhenEmpty: true),
+      ),
+    ];
   }
 
   VoidCallback? _eventTap(Map<String, dynamic> e) {
@@ -907,15 +860,9 @@ class _ClubDetailPageState extends State<ClubDetailPage> {
       );
 }
 
-/// Yükleniyor görünümü: kapak + logo + metin + sekme + kart iskeleti (dönen çember yok).
+/// Yükleniyor görünümü: düz kapak + ad/meta/açıklama/düğme + sekme iskeleti (dönen çember yok).
 class _DetailSkeleton extends StatelessWidget {
-  const _DetailSkeleton({required this.heroId, this.previewName, this.previewLogoUrl});
-
-  final String? previewName;
-  final String? previewLogoUrl;
-
-  /// Listeden gelen logo uçuşunun varış noktası (veri gelene kadar iskelet daire).
-  final int heroId;
+  const _DetailSkeleton();
 
   @override
   Widget build(BuildContext context) {
@@ -935,46 +882,40 @@ class _DetailSkeleton extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    ClipRRect(
-                      borderRadius: const BorderRadius.vertical(bottom: Radius.circular(BuRadius.xl)),
-                      child: BuSkeleton(height: top + _coverH, radius: 0),
-                    ),
-                    Padding(
+                    ColoredBox(color: t.sf2, child: SizedBox(height: top + _coverH, width: double.infinity)),
+                    const Padding(
                       padding: BuSpace.pageH,
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          SizedBox(
-                            height: 56,
-                            child: Stack(
-                              clipBehavior: Clip.none,
-                              children: [PositionedDirectional(start: 0, top: -44, child: _SkeletonLogo(heroId: heroId, name: previewName, url: previewLogoUrl))],
-                            ),
-                          ),
-                          const BuSkeleton.line(width: 200, height: 24),
+                          BuGap.h20,
+                          BuSkeleton.line(width: 220, height: 28),
                           BuGap.h8,
-                          const BuSkeleton.line(width: 150),
+                          BuSkeleton.line(width: 170),
                           BuGap.h16,
-                          const BuSkeleton.line(),
+                          BuSkeleton.line(),
                           BuGap.h8,
-                          const BuSkeleton.line(width: 260),
+                          BuSkeleton.line(width: 260),
                           BuGap.h20,
-                          const BuSkeleton(height: 54, radius: BuRadius.md),
+                          BuSkeleton(height: 48, radius: 16),
                           BuGap.h20,
-                          const BuSkeleton(height: 52, radius: 26),
+                          BuSkeleton.line(width: 260, height: 14),
+                          BuGap.h20,
+                          BuSkeleton.line(),
+                          BuGap.h16,
+                          BuSkeleton.line(),
                         ],
                       ),
                     ),
-                    const BuSkeletonList(variant: BuSkeletonVariant.card, itemCount: 1, shrinkWrap: true),
                   ],
                 ),
               ),
             ),
           ),
           PositionedDirectional(
-            start: 10,
+            start: 12,
             top: top + 4,
-            child: ClubRoundButton(icon: LucideIcons.arrowLeft, tooltip: context.l10n.clubBack, onTap: () => Navigator.maybePop(context), onCover: true),
+            child: ClubBarIcon(icon: LucideIcons.arrowLeft, tooltip: context.l10n.clubBack, onTap: () => Navigator.maybePop(context)),
           ),
         ],
       ),
@@ -984,95 +925,3 @@ class _DetailSkeleton extends StatelessWidget {
 
 /// Kulüp ayrıntısı/alt kaynağı 404 (kapatılmış `HIDDEN`, silinmiş ya da var olmayan kulüp).
 bool clubIsGone(Object e) => e is ApiError && (e.status == 404 || e.code == 'COMMUNITY_NOT_FOUND');
-
-/// Kimlik bölümündeki çip: simge + metin; [accent] marka tonlu (özel kulüp).
-class _InfoChip extends StatelessWidget {
-  const _InfoChip({required this.icon, required this.text, this.accent = false});
-
-  final IconData icon;
-  final String text;
-  final bool accent;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = context.bu;
-    final fg = accent ? t.onSoft : t.ink;
-    return Container(
-      constraints: const BoxConstraints(minHeight: 32),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(color: accent ? t.soft : t.sf2, borderRadius: BuRadius.bPill),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          ExcludeSemantics(child: Icon(icon, size: 15, color: accent ? t.onSoft : t.mut)),
-          const SizedBox(width: 6),
-          Flexible(
-            child: Text(text,
-                maxLines: 1, overflow: TextOverflow.ellipsis, style: Theme.of(context).textTheme.labelLarge!.copyWith(color: fg, fontWeight: FontWeight.w700)),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-/// Dokunulmaz durum etiketi (52 dp): "Üyesin" / "İstek gönderildi".
-class _StatusPill extends StatelessWidget {
-  const _StatusPill({required this.label, required this.icon, this.muted = false});
-
-  final String label;
-  final IconData icon;
-  final bool muted;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = context.bu;
-    return Semantics(
-      container: true,
-      label: label,
-      child: ExcludeSemantics(
-        child: Container(
-          constraints: const BoxConstraints(minHeight: 48),
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-          decoration: BoxDecoration(color: t.sf2, borderRadius: BorderRadius.circular(BuRadius.md)),
-          alignment: Alignment.center,
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(icon, size: 18, color: muted ? t.mut : t.ok),
-              const SizedBox(width: 8),
-              Flexible(
-                child: Text(label,
-                    maxLines: 2,
-                    textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.labelLarge!.copyWith(color: muted ? t.mut : t.ink, fontWeight: FontWeight.w700)),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// Yükleniyor logosu: sayfa zemini halkalı daire (kapağa gömülü görünür, düz kesilmez).
-class _SkeletonLogo extends StatelessWidget {
-  const _SkeletonLogo({required this.heroId, this.name, this.url});
-
-  final int heroId;
-  final String? name;
-  final String? url;
-
-  @override
-  Widget build(BuildContext context) => Container(
-        width: 88,
-        height: 88,
-        padding: const EdgeInsets.all(4),
-        decoration: BoxDecoration(color: context.bu.bg, shape: BoxShape.circle),
-        child: BuHero(
-          tag: BuHero.tagOf('club', heroId),
-          radius: 40,
-          child: name == null ? const BuSkeleton.circle(80) : ClubsLogo(name: name!, id: heroId, url: url, size: 80, round: true),
-        ),
-      );
-}

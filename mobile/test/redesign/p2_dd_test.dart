@@ -174,14 +174,13 @@ void main() {
       await unmount(tester);
     });
 
-    testWidgets('karta dokununca detay acilir: logo Hero ucusu hatasiz, geri donus calisir', (tester) async {
+    testWidgets('karta dokununca detay acilir, geri donus calisir', (tester) async {
       useScreen(tester, kPhoneMedium);
       await tester.pumpWidget(buildApp(ClubsTab(session: makeSession(_clubsBe())), size: kPhoneMedium));
       await settle(tester, const Duration(seconds: 1));
       await tester.tap(find.text('Satranç Kulübü').first);
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 120));
-      expect(find.byType(Hero), findsWidgets, reason: 'ucus sirasinda Hero katmani');
       expect(tester.takeException(), isNull);
       await settle(tester, const Duration(milliseconds: 900));
       expect(find.text('Satranç Kulübü'), findsWidgets);

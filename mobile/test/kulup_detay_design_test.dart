@@ -68,7 +68,7 @@ void main() {
       final be = _be()..on('/communities/7/join', {'status': 'PENDING'});
       await _pump(tester, ClubDetailPage(session: makeSession(be), communityId: 7));
       expect(find.text('Katılma isteği gönder'), findsOneWidget);
-      expect(find.text('128 üye'), findsOneWidget); // çip satırı: kategori · üye · görünürlük
+      expect(find.textContaining('128 üye'), findsOneWidget); // meta satırı: kategori · üye · görünürlük
       await tester.tap(find.text('Katılma isteği gönder'));
       await settle(tester, const Duration(milliseconds: 500));
       expect(find.textContaining('Neden katılmak istiyorsun?'), findsOneWidget);
@@ -120,8 +120,9 @@ void main() {
     testWidgets('uye: Uyesin etiketi, sohbet, yazma kutusu kelime siniri', (tester) async {
       final be = _be(status: 'ACTIVE', role: 'MEMBER');
       await _pump(tester, ClubDetailPage(session: makeSession(be), communityId: 7));
-      expect(find.text('Üyesin'), findsOneWidget);
       expect(find.text('Kulüp sohbeti'), findsOneWidget);
+      await tester.tap(find.text('Gönderiler'));
+      await settle(tester, const Duration(milliseconds: 500));
       expect(find.text('Sabit'), findsOneWidget);
       await tester.enterText(find.byType(TextField).first, 'bir iki üç dört beş altı yedi sekiz');
       await tester.pump();
@@ -218,8 +219,8 @@ void main() {
           await unmount(tester);
           final fb = FakeBackend()..on('/communities/categories', [{'category': 'Sanat'}, {'category': 'Spor'}, {'category': 'Teknoloji'}, {'category': 'Bilim'}]);
           await _pump(tester, ClubFormPage(session: makeSession(fb)), b: b, size: kPhoneSmall, rtl: rtl);
-          expect(find.text('Kulüp kur'), findsOneWidget);
-          expect(find.text('Kulübü oluştur'), findsOneWidget);
+          expect(find.text('Kulüp oluştur'), findsOneWidget);
+          expect(find.text('Oluştur'), findsOneWidget);
           expect(tester.takeException(), isNull);
           await unmount(tester);
         });

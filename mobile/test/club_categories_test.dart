@@ -129,8 +129,8 @@ void main() {
       await tester.tap(find.text('Seçilmedi'));
       await settle(tester, const Duration(milliseconds: 600));
       await tester.enterText(find.byType(TextField).at(0), 'Yeni Kulüp');
-      await tester.ensureVisible(find.text('Kulübü oluştur'));
-      await tester.tap(find.text('Kulübü oluştur'));
+      await tester.ensureVisible(find.text('Oluştur'));
+      await tester.tap(find.text('Oluştur'));
       await settle(tester, const Duration(seconds: 1));
       expect((be.bodies['POST /communities'] as Map).containsKey('category'), isFalse);
       await unmount(tester);
@@ -141,8 +141,8 @@ void main() {
       await _pump(tester, ClubFormPage(session: makeSession(be)));
       await tester.enterText(find.byType(TextField).at(0), 'Yeni Kulüp');
       await pickCategory(tester, 'Sports');
-      await tester.ensureVisible(find.text('Kulübü oluştur'));
-      await tester.tap(find.text('Kulübü oluştur'));
+      await tester.ensureVisible(find.text('Oluştur'));
+      await tester.tap(find.text('Oluştur'));
       await settle(tester, const Duration(seconds: 1));
       expect((be.bodies['POST /communities'] as Map)['category'], 'spor');
       await unmount(tester);
@@ -174,8 +174,8 @@ void main() {
       await _pump(tester, ClubFormPage(session: makeSession(be)));
       await tester.enterText(find.byType(TextField).at(0), 'Yeni Kulüp');
       await pickCategory(tester, 'Sports');
-      await tester.ensureVisible(find.text('Kulübü oluştur'));
-      await tester.tap(find.text('Kulübü oluştur'));
+      await tester.ensureVisible(find.text('Oluştur'));
+      await tester.tap(find.text('Oluştur'));
       await settle(tester, const Duration(seconds: 1));
       expect(find.textContaining('Seçilen kategori geçerli değil'), findsOneWidget);
       await unmount(tester);

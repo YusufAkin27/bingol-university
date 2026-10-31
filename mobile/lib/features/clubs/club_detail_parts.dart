@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../../core/locale_controller.dart';
 import '../../widgets/bu.dart';
 import '../../widgets/common.dart';
-import '../events/calm_cover.dart';
+import 'clubs_widgets.dart' show ClubTextTabs, ClubsLogo, clubsInitials;
 
 export 'club_detail_cards.dart';
 
@@ -102,88 +102,71 @@ class ClubRoundButton extends StatelessWidget {
 // ---------------------------------------------------------------------------------------------------------------
 // Kapak
 
-/// Kapağın altında logonun yarısını taşıyan şerit yüksekliği (logo 88 dp: 44 kapağın üstünde, 44 şeritte).
-const double kClubCoverBand = 44;
-
-/// Genişleyen app bar'ın esnek alanı: kapak fotoğrafı (yoksa marka gradyanı + desen), üstte düğme kontrastı için
-/// karartma, kapakla çakışan [logo] ve şeritte [trailing]. Daralırken içerik yukarı kayar, sayfa zeminine solar
-/// (saydam renk katmanı, `Opacity` yok). Sliver'lar ters sırayla boyandığı için logo burada (app bar içinde) durur.
-class ClubCoverSpace extends StatelessWidget {
-  const ClubCoverSpace({
-    super.key,
-    required this.url,
-    required this.coverHeight,
-    required this.seed,
-    required this.logo,
-    this.trailing,
-  });
+/// Düz kapak (Stitch v3): fotoğraf yoksa `sf2` zemin + çok silik büyük baş harf filigranı; fotoğraf varsa aynı alanı
+/// doldurur (üstte düğme kontrastı için hafif karartma). Gölge/gradyan/logo yok. Genişleyen app bar'ın esnek alanıdır.
+/// Fotoğraf kaydırmanın %60'ı hızında çıkar (paralaks, yalnız transform; "animasyonları azalt" açıkken yok).
+class ClubFlatCover extends StatelessWidget {
+  const ClubFlatCover({super.key, required this.url, required this.name, required this.height});
 
   final String? url;
+  final String name;
 
-  /// Kapak yüksekliği (durum çubuğu hariç); toplam açık yükseklik = bu + [kClubCoverBand].
-  final double coverHeight;
-  final int seed;
-  final Widget logo;
-  final Widget? trailing;
+  /// Kapak yüksekliği (durum çubuğu hariç).
+  final double height;
 
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
     final top = MediaQuery.paddingOf(context).top;
-    final coverH = top + coverHeight;
-    final maxH = coverH + kClubCoverBand;
-    final minH = top + kToolbarHeight;
+    final maxH = top + height;
     final cover = fileUrl(url);
     return LayoutBuilder(
       builder: (context, c) {
-        final p = maxH <= minH ? 1.0 : ((c.maxHeight - minH) / (maxH - minH)).clamp(0.0, 1.0);
+        final delta = (maxH - c.maxHeight).clamp(0.0, maxH);
         return ClipRect(
           child: Stack(
             fit: StackFit.expand,
-            clipBehavior: Clip.hardEdge,
             children: [
-              Positioned(
-                left: 0,
-                right: 0,
-                bottom: kClubCoverBand,
-                height: coverH,
-                child: ClipRRect(
-                  borderRadius: const BorderRadius.vertical(bottom: Radius.circular(BuRadius.xl)),
-                  child: Stack(
-                    fit: StackFit.expand,
-                    children: [
-                      // Paralaks: kapak kaydırmanın %60'ı hızında çıkar (aşağı kaydırma payı kadar öteleme; yalnız transform).
-                      // Üst kenar ekran dışında kaldığı için boşluk görünmez; aşırı kaydırmada (p>1 yok) öteleme 0.
-                      Transform.translate(
-                        offset: Offset(0, BuMotion.reduced(context) ? 0 : (maxH - c.maxHeight).clamp(0.0, maxH) * .4),
-                        child: cover == null
-                            ? CalmCover(seed: seed, icon: LucideIcons.users, iconAlignment: const AlignmentDirectional(.62, -.2))
-                            : BuImage(url, width: double.infinity, height: coverH, maxDecodeWidth: 1200),
-                      ),
-                      if (cover != null)
-                        Positioned(
-                          left: 0,
-                          right: 0,
-                          top: 0,
-                          height: 112,
-                          child: DecoratedBox(
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                begin: Alignment.topCenter,
-                                end: Alignment.bottomCenter,
-                                colors: [t.scrim.withValues(alpha: .42), t.scrim.withValues(alpha: 0)],
-                              ),
-                            ),
-                          ),
-                        ),
-                    ],
+              ColoredBox(color: t.sf2),
+              if (cover == null)
+                // Filigran: ~96 sp / 800, opaklık ~0.08.
+                Align(
+                  alignment: const Alignment(0, -.05),
+                  child: ExcludeSemantics(
+                    child: Text(clubsInitials(name),
+                        maxLines: 1,
+                        style: TextStyle(fontFamily: BuType.family, fontSize: 88, fontWeight: FontWeight.w800, height: 1, color: t.ink.withValues(alpha: .08))),
+                  ),
+                )
+              else ...[
+                Positioned(
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  height: maxH,
+                  child: Transform.translate(
+                    offset: Offset(0, BuMotion.reduced(context) ? 0 : delta * .4),
+                    child: BuImage(url, width: double.infinity, height: maxH, maxDecodeWidth: 1200),
                   ),
                 ),
-              ),
-              PositionedDirectional(start: 20, bottom: 0, child: logo),
-              if (trailing != null) PositionedDirectional(end: 20, bottom: 4, child: trailing!),
+                Positioned(
+                  left: 0,
+                  right: 0,
+                  top: 0,
+                  height: 96,
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [t.scrim.withValues(alpha: .38), t.scrim.withValues(alpha: 0)],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
               // Daralırken zemin rengine erir.
-              Positioned.fill(child: IgnorePointer(child: ColoredBox(color: t.bg.withValues(alpha: 1 - p)))),
+              Positioned.fill(child: IgnorePointer(child: ColoredBox(color: t.bg.withValues(alpha: (delta / (maxH - kToolbarHeight - top).clamp(1.0, double.infinity)).clamp(0.0, 1.0))))),
             ],
           ),
         );
@@ -192,10 +175,51 @@ class ClubCoverSpace extends StatelessWidget {
   }
 }
 
+/// Üst çubuk düğmesi (geri oku, üç nokta): zeminsiz 24 dp simge, 48 dp dokunma alanı.
+class ClubBarIcon extends StatelessWidget {
+  const ClubBarIcon({super.key, required this.icon, required this.tooltip, required this.onTap, this.color, this.width = 48});
+
+  final double width;
+  final IconData icon;
+  final String tooltip;
+  final VoidCallback? onTap;
+  final Color? color;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.bu;
+    return Semantics(
+      button: true,
+      enabled: onTap != null,
+      label: tooltip,
+      excludeSemantics: true,
+      onTap: onTap,
+      child: Tooltip(
+        message: tooltip,
+        excludeFromSemantics: true,
+        child: BuPressable(
+          scale: .9,
+          enabled: onTap != null,
+          child: GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: onTap == null
+                ? null
+                : () {
+                    buHaptic(BuHaptic.selection);
+                    onTap!();
+                  },
+            child: SizedBox(width: width, height: 48, child: Icon(buDirIcon(context, icon), size: 24, color: color ?? t.ink)),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 // ---------------------------------------------------------------------------------------------------------------
 // Sekmeler
 
-/// Sabitlenen sekme çubuğu (BuSegmented): kaydırınca app bar'ın altında kalır, çakışınca ince çizgi çıkar.
+/// Sabitlenen metin sekmeleri (Stitch v3): kaydırınca app bar'ın altında kalır; seçili = marka metni + 2 dp alt çizgi.
 class ClubTabsDelegate extends SliverPersistentHeaderDelegate {
   ClubTabsDelegate({required this.labels, required this.index, required this.onChanged, required this.brightness});
 
@@ -207,7 +231,7 @@ class ClubTabsDelegate extends SliverPersistentHeaderDelegate {
   /// [shouldRebuild] bunu karşılaştırır (açık/koyu geçişte şerit zemini eski temada kalmasın).
   final Brightness brightness;
 
-  static const double extent = 68;
+  static const double extent = ClubTextTabs.height;
 
   @override
   double get minExtent => extent;
@@ -218,15 +242,11 @@ class ClubTabsDelegate extends SliverPersistentHeaderDelegate {
   @override
   Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
     final t = context.bu;
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: t.bg,
-        border: Border(bottom: BorderSide(color: overlapsContent ? t.bd : t.bg)),
-      ),
-      child: Padding(
-        padding: const EdgeInsetsDirectional.fromSTEB(20, 8, 20, 8),
-        // Büyük yazı ölçeğinde sekme adları birbirine yapışmasın: ölçek 1.1'de sınırlanır.
-        child: MediaQuery.withClampedTextScaling(maxScaleFactor: 1.1, child: BuSegmented(items: labels, index: index, onChanged: onChanged)),
+    return ColoredBox(
+      color: t.bg,
+      child: MediaQuery.withClampedTextScaling(
+        maxScaleFactor: 1.3,
+        child: ClubTextTabs(labels: labels, index: index, onChanged: onChanged),
       ),
     );
   }
@@ -265,7 +285,7 @@ class _ClubExpandableTextState extends State<ClubExpandableText> {
   Widget build(BuildContext context) {
     final t = context.bu;
     final tx = Theme.of(context).textTheme;
-    final style = tx.bodyLarge!.copyWith(height: 1.5, color: t.ink);
+    final style = tx.bodyMedium!.copyWith(height: 1.65, color: t.ink, fontWeight: FontWeight.w400);
     final l = context.l10n;
     return LayoutBuilder(
       builder: (context, c) {
@@ -292,11 +312,11 @@ class _ClubExpandableTextState extends State<ClubExpandableText> {
                 borderRadius: BuRadius.bXs,
                 onTap: () => setState(() => _open = !_open),
                 child: ConstrainedBox(
-                  constraints: const BoxConstraints(minHeight: 48),
+                  constraints: const BoxConstraints(minHeight: 40),
                   child: Align(
                     alignment: AlignmentDirectional.centerStart,
                     widthFactor: 1,
-                    child: Text(_open ? l.p11ReadLess : l.p11ReadMore, style: tx.labelLarge!.copyWith(color: t.pr, fontWeight: FontWeight.w700)),
+                    child: Text(_open ? l.p11ReadLess : l.p11ReadMore, style: tx.bodyMedium!.copyWith(color: t.pr, fontWeight: FontWeight.w700)),
                   ),
                 ),
               ),
@@ -406,7 +426,7 @@ class _MetaLine extends StatelessWidget {
   }
 }
 
-/// Bekleyen başvuru özeti (yönetici): tonal kart, sayı + ok.
+/// Bekleyen başvuru özeti (yönetici): amber not satırı (`warnSoft`, 16 dp köşe, ikon yok), sağda chevron.
 class ClubRequestsBanner extends StatelessWidget {
   const ClubRequestsBanner({super.key, required this.text, required this.onTap});
 
@@ -417,26 +437,106 @@ class ClubRequestsBanner extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.bu;
     final tx = Theme.of(context).textTheme;
-    return BuCard(
+    return Semantics(
+      button: true,
+      label: text,
+      excludeSemantics: true,
       onTap: onTap,
-      color: t.warnSoft,
-      border: false,
-      padding: const EdgeInsetsDirectional.fromSTEB(14, 12, 14, 12),
-      child: Row(
-        children: [
-          ExcludeSemantics(
-            child: Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(color: t.warn.withValues(alpha: .18), borderRadius: BuRadius.bSm),
-              child: Icon(LucideIcons.userPlus, size: 20, color: t.warn),
+      child: BuPressable(
+        scale: .985,
+        child: Material(
+          color: t.warnSoft,
+          borderRadius: BorderRadius.circular(16),
+          clipBehavior: Clip.antiAlias,
+          child: InkWell(
+            onTap: () {
+              buHaptic(BuHaptic.selection);
+              onTap();
+            },
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(minHeight: 48),
+              child: Padding(
+                padding: const EdgeInsetsDirectional.fromSTEB(16, 10, 16, 10),
+                child: Row(
+                  children: [
+                    Expanded(child: Text(text, maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.titleSmall!.copyWith(color: t.onWarnSoft, fontWeight: FontWeight.w600))),
+                    const SizedBox(width: 8),
+                    ExcludeSemantics(child: Icon(buDirIcon(context, LucideIcons.chevronRight), size: 20, color: t.onWarnSoft)),
+                  ],
+                ),
+              ),
             ),
           ),
-          const SizedBox(width: 12),
+        ),
+      ),
+    );
+  }
+}
+
+/// "Hakkında" etiket-değer satırı: etiket muted solda, değer ink sağda; altında ince ayraç (48 dp).
+class ClubAboutRow extends StatelessWidget {
+  const ClubAboutRow({super.key, required this.label, required this.value});
+
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.bu;
+    final tx = Theme.of(context).textTheme;
+    return Container(
+      constraints: const BoxConstraints(minHeight: 48),
+      padding: const EdgeInsets.symmetric(vertical: 12),
+      decoration: BoxDecoration(border: Border(bottom: BorderSide(color: t.bd))),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(label, style: tx.bodyLarge!.copyWith(color: t.mut, fontWeight: FontWeight.w400)),
+          const SizedBox(width: 16),
+          Expanded(child: Text(value, textAlign: TextAlign.end, style: tx.bodyLarge!.copyWith(color: t.ink, fontWeight: FontWeight.w500))),
+        ],
+      ),
+    );
+  }
+}
+
+/// Üye satırı (detay "Üyeler" sekmesi, Stitch v3): 40 dp baş harf dairesi, ad 16/600, altında muted rol,
+/// sağda (yalnız yönetici) dikey üç nokta; altında ince ayraç.
+class ClubMemberRow extends StatelessWidget {
+  const ClubMemberRow({super.key, required this.member, this.onMenu});
+
+  final Map<String, dynamic> member;
+  final VoidCallback? onMenu;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.bu;
+    final tx = Theme.of(context).textTheme;
+    final l = context.l10n;
+    final name = (member['displayName'] ?? l.clubUser).toString();
+    final role = member['role']?.toString();
+    final roleText = switch (role) {
+      'OWNER' || 'ADMIN' => l.clubMgmtRoleManager,
+      'MODERATOR' => l.clubMgmtRoleModerator,
+      _ => l.p51RoleMember,
+    };
+    return Container(
+      padding: const EdgeInsetsDirectional.fromSTEB(0, 14, 0, 14),
+      decoration: BoxDecoration(border: Border(bottom: BorderSide(color: t.bd))),
+      child: Row(
+        children: [
+          ClubsLogo(name: name, id: (member['userId'] as num?)?.toInt() ?? 0, url: member['avatarUrl']?.toString(), size: 44),
+          const SizedBox(width: 16),
           Expanded(
-            child: Text(text, maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.titleSmall!.copyWith(color: t.onWarnSoft, fontWeight: FontWeight.w700)),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(name, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.bodyLarge!.copyWith(color: t.ink, fontWeight: FontWeight.w600)),
+                Text(roleText, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.bodySmall!.copyWith(color: t.mut, fontSize: 13)),
+              ],
+            ),
           ),
-          ExcludeSemantics(child: Icon(buDirIcon(context, LucideIcons.chevronRight), size: 18, color: t.onWarnSoft)),
+          if (onMenu != null) ClubBarIcon(icon: LucideIcons.ellipsisVertical, tooltip: l.clubMgmtMemberActions, onTap: onMenu, color: t.ink, width: 40),
         ],
       ),
     );

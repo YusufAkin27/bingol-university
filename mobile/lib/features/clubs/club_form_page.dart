@@ -10,7 +10,8 @@ import '../../widgets/bu.dart';
 import '../media_crop/media_crop.dart';
 import 'club_categories.dart';
 import 'club_detail_page.dart';
-import 'club_detail_parts.dart' show ClubRoundButton;
+import 'club_detail_parts.dart' show ClubBarIcon;
+import 'clubs_widgets.dart' show ClubTextTabs;
 import 'club_ref_widgets.dart';
 
 /// Kulüp kurma akışını başlatır: form -> sonuç. ACTIVE ise kulüp sayfasına gider,
@@ -440,7 +441,9 @@ class _ClubFormPageState extends State<ClubFormPage> {
   Widget build(BuildContext context) {
     final t = context.bu;
     final l10n = context.l10n;
+    final tx = Theme.of(context).textTheme;
     final create = !_edit;
+    final top = MediaQuery.paddingOf(context).top;
     return PopScope(
       canPop: _savedResult == null,
       onPopInvokedWithResult: (didPop, _) {
@@ -451,16 +454,32 @@ class _ClubFormPageState extends State<ClubFormPage> {
         resizeToAvoidBottomInset: true,
         body: Column(
           children: [
-            BuHeader(
-                title:
-                    _edit ? l10n.clubMgmtEditTitle : l10n.clubMgmtCreateTitle,
-                onBack: _back),
+            // Üst çubuk (Stitch v3 06): geri oku + 22/600 başlık, altında ince ayraç.
+            Container(
+              padding: EdgeInsetsDirectional.only(top: top, start: 8, end: 20),
+              decoration: BoxDecoration(border: Border(bottom: BorderSide(color: t.bd))),
+              child: SizedBox(
+                height: 55,
+                child: Row(
+                  children: [
+                    ClubBarIcon(icon: LucideIcons.arrowLeft, tooltip: l10n.commonBack, onTap: _back),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: Semantics(
+                        header: true,
+                        child: Text(_edit ? l10n.clubMgmtEditTitle : l10n.p51CreateClubTitle,
+                            maxLines: 1, overflow: TextOverflow.ellipsis, style: BuType.title.copyWith(color: t.ink)),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
             Expanded(
               child: SingleChildScrollView(
                 controller: _scroll,
-                padding: const EdgeInsets.fromLTRB(16, 8, 16, 20),
-                keyboardDismissBehavior:
-                    ScrollViewKeyboardDismissBehavior.onDrag,
+                padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
+                keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
@@ -483,99 +502,47 @@ class _ClubFormPageState extends State<ClubFormPage> {
                       ),
                       const SizedBox(height: 16),
                     ],
-                    _mediaCard(t),
-                    const SizedBox(height: 16),
-                    _basicsCard(t, create),
-                    const SizedBox(height: 16),
-                    if (create) ...[
-                      _titledCard(
-                        t,
-                        icon: LucideIcons.eye,
-                        title: l10n.clubMgmtVisibility,
-                        child: _visibilityBlock(t),
-                      ),
-                      const SizedBox(height: 16),
-                      _titledCard(
-                        t,
-                        icon: LucideIcons.userCheck,
-                        title: l10n.clubMgmtJoinLabel,
-                        child: _joinBlock(t),
-                      ),
-                    ] else
-                      BuCard(
-                        padding: const EdgeInsets.all(20),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            Text(l10n.p12VisibilityAndJoin,
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .titleLarge!
-                                    .copyWith(
-                                        color: t.ink,
-                                        fontWeight: FontWeight.w800)),
-                            const SizedBox(height: 16),
-                            _label(t, l10n.clubMgmtVisibility),
-                            _segmented(
-                                t,
-                                [
-                                  (LucideIcons.globe, l10n.clubMgmtPublic),
-                                  (LucideIcons.lock, l10n.clubMgmtPrivate)
-                                ],
-                                _visibility == 'PRIVATE' ? 1 : 0,
-                                (i) => setState(() => _visibility =
-                                    i == 1 ? 'PRIVATE' : 'PUBLIC')),
-                            const SizedBox(height: 16),
-                            _label(t, l10n.clubMgmtJoinLabel),
-                            _segmented(
-                                t,
-                                [
-                                  (LucideIcons.zap, l10n.clubMgmtOpenPolicy),
-                                  (
-                                    LucideIcons.squareCheckBig,
-                                    l10n.clubMgmtApprovalPolicy
-                                  )
-                                ],
-                                _policy == 'APPROVAL' ? 1 : 0,
-                                (i) => setState(() =>
-                                    _policy = i == 1 ? 'APPROVAL' : 'OPEN')),
-                          ],
-                        ),
-                      ),
-                    if (_askQuestions) ...[
-                      const SizedBox(height: 16),
-                      _questionsCard(t)
-                    ],
-                    if (create) ...[const SizedBox(height: 16), _consent(t)],
+                    _coverPicker(t),
+                    const SizedBox(height: 12),
+                    _logoRow(t),
+                    const SizedBox(height: 20),
+                    _field(t, l10n.clubMgmtNameLabel, _nameField(t, tx), error: _errors['name']),
+                    const SizedBox(height: 20),
+                    _field(t, l10n.clubMgmtCategoryLabel, _categoryField(t, tx), error: _errors['category']),
+                    const SizedBox(height: 20),
+                    _field(t, l10n.p51DescLabel, _descField(t, tx), error: _errors['description']),
+                    const SizedBox(height: 20),
+                    _label(t, l10n.clubMgmtJoinLabel),
+                    ClubTextTabs(
+                      labels: [l10n.clubMgmtPublic, l10n.p51JoinApproval],
+                      index: _policy == 'APPROVAL' ? 1 : 0,
+                      padding: EdgeInsets.zero,
+                      onChanged: (i) => setState(() => _policy = i == 1 ? 'APPROVAL' : 'OPEN'),
+                    ),
+                    const SizedBox(height: 20),
+                    _label(t, l10n.clubMgmtVisibility),
+                    ClubTextTabs(
+                      labels: [l10n.clubMgmtPublic, l10n.clubMgmtPrivate],
+                      index: _visibility == 'PRIVATE' ? 1 : 0,
+                      padding: EdgeInsets.zero,
+                      onChanged: (i) => setState(() => _visibility = i == 1 ? 'PRIVATE' : 'PUBLIC'),
+                    ),
+                    _hint(t, _visibility == 'PRIVATE' ? l10n.clubMgmtPrivateHint : l10n.clubMgmtPublicHint),
+                    if (_askQuestions) ..._questionFields(t, tx),
+                    if (_questions.length < _maxQuestions) _addQuestionButton(t, tx),
+                    if (create) ...[const SizedBox(height: 8), _consentText(t)],
                     if (_formError != null) ...[
                       const SizedBox(height: 14),
-                      Text(_formError!,
-                          style: Theme.of(context)
-                              .textTheme
-                              .bodySmall!
-                              .copyWith(color: t.danger)),
+                      Text(_formError!, style: tx.bodySmall!.copyWith(color: t.danger)),
                     ],
+                    const SizedBox(height: 24),
+                    BuButton(
+                      label: _edit ? l10n.clubMgmtSave : l10n.p51Create,
+                      busy: _busy && !_partial,
+                      onPressed: _submit,
+                    ),
                   ],
                 ),
-              ),
-            ),
-            // Sabit alt çubuk: üstte yumuşak geçiş.
-            Container(
-              padding: EdgeInsets.fromLTRB(16, 12, 16,
-                  12 + MediaQuery.of(context).padding.bottom.clamp(0, 10)),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.bottomCenter,
-                  end: Alignment.topCenter,
-                  stops: const [.75, 1],
-                  colors: [t.bg, t.bg.withValues(alpha: 0)],
-                ),
-              ),
-              child: BuButton(
-                label: _edit ? l10n.clubMgmtSave : l10n.clubMgmtCreateButton,
-                icon: _edit ? LucideIcons.save : LucideIcons.rocket,
-                busy: _busy && !_partial,
-                onPressed: _submit,
               ),
             ),
           ],
@@ -584,658 +551,278 @@ class _ClubFormPageState extends State<ClubFormPage> {
     );
   }
 
-  Widget _label(BuTokens t, String s,
-          {bool required = false, String? trailing}) =>
-      Padding(
+  /// Etiket: 13-14 sp muted/600, alanın üstünde.
+  Widget _label(BuTokens t, String s) => Padding(
         padding: const EdgeInsets.only(bottom: 8),
-        child: Row(
-          children: [
-            Expanded(
-              child: Text.rich(
-                TextSpan(children: [
-                  TextSpan(text: s),
-                  if (required)
-                    TextSpan(text: ' *', style: TextStyle(color: t.pr)),
-                ]),
-                style: Theme.of(context)
-                    .textTheme
-                    .titleSmall!
-                    .copyWith(color: t.ink, fontWeight: FontWeight.w700),
-              ),
-            ),
-            if (trailing != null)
-              Text(trailing,
-                  style: Theme.of(context)
-                      .textTheme
-                      .labelMedium!
-                      .copyWith(color: t.mut, fontWeight: FontWeight.w600)),
-          ],
-        ),
+        child: Text(s, style: Theme.of(context).textTheme.labelLarge!.copyWith(color: t.mut, fontSize: 13, fontWeight: FontWeight.w600)),
       );
 
-  Widget _hint(BuTokens t, String s,
-          {IconData icon = LucideIcons.info, bool error = false}) =>
-      Padding(
-        padding: const EdgeInsets.fromLTRB(2, 10, 2, 0),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Padding(
-                padding: const EdgeInsets.only(top: 1),
-                child: ExcludeSemantics(
-                    child:
-                        Icon(icon, size: 15, color: error ? t.danger : t.mut))),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Text(s,
-                  style: Theme.of(context).textTheme.bodySmall!.copyWith(
-                      color: error ? t.danger : t.mut,
-                      height: 1.4,
-                      fontWeight: error ? FontWeight.w600 : null)),
-            ),
-          ],
-        ),
-      );
-
-  /// Başlıklı kart: kırmızı simge + başlık, altında içerik.
-  Widget _titledCard(BuTokens t,
-          {required IconData icon,
-          required String title,
-          required Widget child,
-          String? subtitle,
-          Widget? trailing}) =>
-      BuCard(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Padding(
-                    padding: const EdgeInsets.only(top: 2),
-                    child: ExcludeSemantics(
-                        child: Icon(icon, size: 22, color: t.pr))),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Semantics(
-                          header: true,
-                          child: Text(title,
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .titleLarge!
-                                  .copyWith(
-                                      color: t.ink,
-                                      fontWeight: FontWeight.w800))),
-                      if (subtitle != null)
-                        Text(subtitle,
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodySmall!
-                                .copyWith(color: t.mut)),
-                    ],
-                  ),
-                ),
-                if (trailing != null) trailing,
-              ],
-            ),
-            const SizedBox(height: 14),
-            child,
-          ],
-        ),
-      );
-
-  Widget _visibilityBlock(BuTokens t) => Column(
+  /// Etiketli alan + altında (varsa) hata metni.
+  Widget _field(BuTokens t, String label, Widget field, {String? error}) => Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          _segmented(
-              t,
-              [
-                (LucideIcons.globe, context.l10n.clubMgmtPublic),
-                (LucideIcons.lock, context.l10n.clubMgmtPrivate)
-              ],
-              _visibility == 'PRIVATE' ? 1 : 0,
-              (i) =>
-                  setState(() => _visibility = i == 1 ? 'PRIVATE' : 'PUBLIC')),
-          _hint(
-              t,
-              _visibility == 'PRIVATE'
-                  ? context.l10n.clubMgmtPrivateHint
-                  : context.l10n.clubMgmtPublicHint),
+          _label(t, label),
+          field,
+          if (error != null) ClubFieldError(error),
         ],
       );
 
-  Widget _joinBlock(BuTokens t) => Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          _segmented(
-              t,
-              [
-                (LucideIcons.zap, context.l10n.clubMgmtOpenPolicy),
-                (
-                  LucideIcons.squareCheckBig,
-                  context.l10n.clubMgmtApprovalPolicy
-                )
-              ],
-              _policy == 'APPROVAL' ? 1 : 0,
-              (i) => setState(() => _policy = i == 1 ? 'APPROVAL' : 'OPEN')),
-          _hint(
-              t,
-              _policy == 'APPROVAL'
-                  ? context.l10n.clubMgmtApprovalHint
-                  : context.l10n.clubMgmtOpenHint,
-              icon: LucideIcons.shieldCheck),
-        ],
+  /// İpucu satırı: simgesiz, muted 12.5 sp.
+  Widget _hint(BuTokens t, String s) => Padding(
+        padding: const EdgeInsets.only(top: 8),
+        child: Text(s, style: Theme.of(context).textTheme.bodySmall!.copyWith(color: t.mut, height: 1.4)),
       );
 
-  /// İki seçenekli simgeli segment: gri zemin, seçili parça beyaz.
-  Widget _segmented(BuTokens t, List<(IconData, String)> items, int index,
-          ValueChanged<int> onChanged) =>
-      Container(
-        padding: const EdgeInsets.all(4),
-        decoration: BoxDecoration(
-            color: t.sf2, borderRadius: BorderRadius.circular(BuRadius.md)),
-        child: Row(
-          children: [
-            for (var i = 0; i < items.length; i++)
-              Expanded(
-                child: Semantics(
-                  button: true,
-                  selected: i == index,
-                  label: items[i].$2,
-                  child: ExcludeSemantics(
-                    child: GestureDetector(
-                      behavior: HitTestBehavior.opaque,
-                      onTap: () {
-                        buHaptic(BuHaptic.selection);
-                        onChanged(i);
-                      },
-                      child: AnimatedContainer(
-                        duration: BuMotion.of(context, BuMotion.short),
-                        constraints: const BoxConstraints(minHeight: 48),
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 6, vertical: 8),
-                        alignment: Alignment.center,
-                        decoration: BoxDecoration(
-                          color: i == index ? t.sf : t.sf2.withValues(alpha: 0),
-                          borderRadius: BorderRadius.circular(BuRadius.sm),
-                          boxShadow:
-                              i == index ? BuElevation.of(context, 1) : null,
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(items[i].$1,
-                                size: 17, color: i == index ? t.ink : t.mut),
-                            const SizedBox(width: 8),
-                            Flexible(
-                              child: Text(items[i].$2,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .labelLarge!
-                                      .copyWith(
-                                          color: i == index ? t.ink : t.mut,
-                                          fontWeight: FontWeight.w700)),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-          ],
-        ),
+  Widget _nameField(BuTokens t, TextTheme tx) => TextField(
+        controller: _name,
+        maxLength: _nameMax,
+        textInputAction: TextInputAction.next,
+        textCapitalization: TextCapitalization.words,
+        style: tx.bodyLarge!.copyWith(color: t.ink, fontWeight: FontWeight.w400),
+        decoration: clubFill(context, hint: context.l10n.clubMgmtNameHint, hasError: _errors['name'] != null),
       );
 
-  Widget _basicsCard(BuTokens t, bool create) {
-    final l10n = context.l10n;
-    final tx = Theme.of(context).textTheme;
-    final catName = _category == null
-        ? null
-        : (_categories.where((c) => c.key == _category).firstOrNull?.name ??
-            ClubCategories.labelFor(_category));
-    return BuCard(
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
+  Widget _descField(BuTokens t, TextTheme tx) => Stack(
         children: [
-          if (!create) ...[
-            Text(l10n.p12BasicInfo,
-                style: tx.titleLarge!
-                    .copyWith(color: t.ink, fontWeight: FontWeight.w800)),
-            const SizedBox(height: 16),
-          ],
-          _label(t, l10n.clubMgmtNameLabel,
-              required: true,
-              trailing: '${_name.text.characters.length}/$_nameMax'),
-          TextField(
-            controller: _name,
-            maxLength: _nameMax,
-            textInputAction: TextInputAction.next,
-            textCapitalization: TextCapitalization.words,
-            style: tx.bodyLarge!.copyWith(color: t.ink),
-            decoration: clubFill(context,
-                hint: l10n.clubMgmtNameHint,
-                hasError: _errors['name'] != null,
-                prefixIcon: Icon(LucideIcons.flag, size: 18, color: t.mut)),
-          ),
-          if (_errors['name'] != null) ClubFieldError(_errors['name']!),
-          const SizedBox(height: 18),
-          _label(t, l10n.clubMgmtDescLabel,
-              trailing: '${_desc.text.characters.length}/$_descMax'),
           TextField(
             controller: _desc,
             maxLength: _descMax,
-            minLines: 3,
-            maxLines: 6,
+            minLines: 2,
+            maxLines: 8,
             textCapitalization: TextCapitalization.sentences,
-            style: tx.bodyLarge!.copyWith(color: t.ink),
+            style: tx.bodyLarge!.copyWith(color: t.ink, fontWeight: FontWeight.w400),
             decoration: clubFill(context,
-                hint: l10n.clubMgmtDescHint,
+                hint: context.l10n.p51DescHint,
                 hasError: _errors['description'] != null,
-                pad: const EdgeInsets.symmetric(horizontal: 16, vertical: 14)),
+                pad: const EdgeInsetsDirectional.fromSTEB(16, 16, 16, 38)),
           ),
-          if (_errors['description'] != null)
-            ClubFieldError(_errors['description']!),
-          const SizedBox(height: 18),
-          _label(t, l10n.clubMgmtCategoryLabel),
-          Semantics(
-            button: true,
-            label: l10n.clubMgmtCategoryLabel,
-            child: InkWell(
-              onTap: _pickCategory,
-              borderRadius: BorderRadius.circular(BuRadius.md),
-              child: Container(
-                constraints: const BoxConstraints(minHeight: 52),
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                decoration: BoxDecoration(
-                  color: _errors['category'] != null ? t.soft : t.sf2,
-                  borderRadius: BorderRadius.circular(BuRadius.md),
-                ),
-                child: Row(
-                  children: [
-                    ExcludeSemantics(
-                        child:
-                            Icon(LucideIcons.shapes, size: 18, color: t.mut)),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: catName == null
-                          ? Text(l10n.clubMgmtCategoryHint,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: tx.bodyLarge!.copyWith(color: t.mut))
-                          : Align(
-                              alignment: AlignmentDirectional.centerStart,
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 12, vertical: 6),
-                                decoration: BoxDecoration(
-                                    color: _errors['category'] != null
-                                        ? t.soft
-                                        : t.sf,
-                                    borderRadius: BuRadius.bPill),
-                                child: Text(catName,
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: tx.labelLarge!.copyWith(
-                                        color: _errors['category'] != null
-                                            ? t.onSoft
-                                            : t.ink,
-                                        fontWeight: FontWeight.w700)),
-                              ),
-                            ),
-                    ),
-                    ExcludeSemantics(
-                        child: Icon(LucideIcons.chevronDown,
-                            size: 20, color: t.mut)),
-                  ],
-                ),
-              ),
+          // Sayaç: alanın içinde sağ altta, muted.
+          PositionedDirectional(
+            end: 16,
+            bottom: 12,
+            child: IgnorePointer(
+              child: Text('${_desc.text.characters.length}/$_descMax', style: tx.bodySmall!.copyWith(color: t.mut)),
             ),
           ),
-          if (_errors['category'] != null)
-            _hint(t, _errors['category']!,
-                icon: LucideIcons.circleAlert, error: true),
         ],
+      );
+
+  Widget _categoryField(BuTokens t, TextTheme tx) {
+    final l10n = context.l10n;
+    final catName = _category == null
+        ? null
+        : (_categories.where((c) => c.key == _category).firstOrNull?.name ?? ClubCategories.labelFor(_category));
+    final err = _errors['category'] != null;
+    return Semantics(
+      button: true,
+      label: l10n.clubMgmtCategoryLabel,
+      child: BuPressable(
+        scale: .99,
+        child: InkWell(
+          onTap: _pickCategory,
+          borderRadius: BorderRadius.circular(16),
+          child: Container(
+            constraints: const BoxConstraints(minHeight: BuSize.field),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            decoration: BoxDecoration(
+              color: t.sf,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: err ? t.danger : t.bdStrong, width: err ? 1.5 : 1),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(catName ?? l10n.clubMgmtCategoryHint,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: tx.bodyLarge!.copyWith(color: catName == null ? t.mut : t.ink, fontWeight: FontWeight.w400)),
+                ),
+                ExcludeSemantics(child: Icon(LucideIcons.chevronDown, size: 20, color: t.ink)),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
 
-  Widget _questionsCard(BuTokens t) {
+  /// Katılma soruları (yalnız istekli/gizli kulüpte kaydedilir): alan + sil simgesi.
+  List<Widget> _questionFields(BuTokens t, TextTheme tx) {
     final l10n = context.l10n;
-    final tx = Theme.of(context).textTheme;
-    return _titledCard(
-      t,
-      icon: LucideIcons.fileQuestion,
-      title: l10n.clubMgmtQuestionsLabel('$_maxQuestions'),
-      subtitle: l10n.p12QuestionsSubtitle,
-      trailing: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-        decoration: BoxDecoration(color: t.sf2, borderRadius: BuRadius.bPill),
-        child: Text('${_questions.length} / $_maxQuestions',
-            style: tx.labelMedium!
-                .copyWith(color: t.mut, fontWeight: FontWeight.w800)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          for (var i = 0; i < _questions.length; i++)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 12),
-              child: Container(
-                padding: const EdgeInsets.fromLTRB(14, 8, 8, 14),
-                decoration: BoxDecoration(
-                    color: t.sf2,
-                    borderRadius: BorderRadius.circular(BuRadius.md)),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(
-                            child: Text(l10n.clubMgmtQuestionHint('${i + 1}'),
-                                style: tx.labelLarge!.copyWith(
-                                    color: t.ink,
-                                    fontWeight: FontWeight.w800))),
-                        ClubRoundButton(
-                          icon: LucideIcons.trash2,
-                          tooltip: l10n.clubMgmtRemoveQuestion,
-                          plain: true,
-                          size: 40,
-                          onTap: () =>
-                              setState(() => _questions.removeAt(i).dispose()),
-                        ),
-                      ],
-                    ),
-                    Padding(
-                      padding: const EdgeInsetsDirectional.only(end: 6),
-                      child: TextField(
-                        controller: _questions[i],
-                        maxLength: 200,
-                        minLines: 1,
-                        maxLines: 3,
-                        style: tx.bodyLarge!.copyWith(color: t.ink),
-                        decoration: clubFill(context,
-                            hint: l10n.p12QuestionPlaceholder,
-                            fill: t.sf,
-                            pad: const EdgeInsets.symmetric(
-                                horizontal: 16, vertical: 14)),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          if (_questions.length < _maxQuestions)
-            BuButton(
-              label: l10n.clubMgmtAddQuestion,
-              icon: LucideIcons.circlePlus,
-              kind: BuButtonKind.soft,
-              onPressed: () =>
-                  setState(() => _questions.add(TextEditingController())),
-            ),
-        ],
-      ),
-    );
+    return [
+      for (var i = 0; i < _questions.length; i++)
+        Padding(
+          padding: const EdgeInsets.only(top: 12),
+          child: TextField(
+            controller: _questions[i],
+            maxLength: 200,
+            minLines: 1,
+            maxLines: 3,
+            style: tx.bodyLarge!.copyWith(color: t.ink, fontWeight: FontWeight.w400),
+            decoration: clubFill(context,
+                hint: l10n.p12QuestionPlaceholder,
+                suffixIcon: ClubBarIcon(
+                  icon: LucideIcons.trash2,
+                  tooltip: l10n.clubMgmtRemoveQuestion,
+                  color: t.mut,
+                  onTap: () => setState(() => _questions.removeAt(i).dispose()),
+                )),
+          ),
+        ),
+    ];
   }
+
+  /// "+ Katılma sorusu ekle": marka renkli metin düğmesi. Soru yalnız istekli kulüpte anlamlıdır; açık katılımda
+  /// dokununca katılım "İstek ile"ye geçer (soru kaydı için gerekli).
+  Widget _addQuestionButton(BuTokens t, TextTheme tx) => Align(
+        alignment: AlignmentDirectional.centerStart,
+        child: TextButton(
+          style: TextButton.styleFrom(foregroundColor: t.pr, minimumSize: const Size(48, 48), padding: const EdgeInsets.symmetric(horizontal: 0)),
+          onPressed: () => setState(() {
+            if (_policy != 'APPROVAL' && _visibility != 'PRIVATE') _policy = 'APPROVAL';
+            _questions.add(TextEditingController());
+          }),
+          child: Text('+ ${context.l10n.p51AddJoinQuestion}', style: tx.titleSmall!.copyWith(color: t.pr, fontWeight: FontWeight.w600)),
+        ),
+      );
 
   /// Onay notu: "topluluk ilkelerine" ifadesi kalın.
   Widget _consentText(BuTokens t) {
     final l = context.l10n;
-    final style = Theme.of(context)
-        .textTheme
-        .bodySmall!
-        .copyWith(color: t.mut, height: 1.4);
+    final style = Theme.of(context).textTheme.bodySmall!.copyWith(color: t.mut, height: 1.4);
     final text = l.p12ConsentNote;
     final at = text.indexOf(l.p12ConsentBold);
     if (at < 0) return Text(text, style: style);
     return Text.rich(
       TextSpan(children: [
         TextSpan(text: text.substring(0, at)),
-        TextSpan(
-            text: l.p12ConsentBold,
-            style: TextStyle(color: t.ink, fontWeight: FontWeight.w800)),
+        TextSpan(text: l.p12ConsentBold, style: TextStyle(color: t.ink, fontWeight: FontWeight.w800)),
         TextSpan(text: text.substring(at + l.p12ConsentBold.length)),
       ]),
       style: style,
     );
   }
 
-  Widget _consent(BuTokens t) => Container(
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-            color: t.sf2, borderRadius: BorderRadius.circular(BuRadius.md)),
-        child: Row(
-          children: [
-            ExcludeSemantics(
-              child: Container(
-                width: 32,
-                height: 32,
-                decoration: BoxDecoration(color: t.sf, shape: BoxShape.circle),
-                child: Icon(LucideIcons.badgeCheck, size: 17, color: t.mut),
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(child: _consentText(t)),
-          ],
-        ),
-      );
-
   // -------------------------------------------------------------------------------------------------------------
   // Kapak + logo
 
-  Widget _mediaCard(BuTokens t) {
+  /// Kapak seçici: 140 dp; boşken kesik çizgili (bdStrong 1 dp) beyaz alan + tek görsel simgesi + metin; doluyken önizleme.
+  Widget _coverPicker(BuTokens t) {
     final l10n = context.l10n;
     final tx = Theme.of(context).textTheme;
     final cover = fileUrl(widget.club?['coverUrl']?.toString());
-    final logoUrl = fileUrl(widget.club?['logoUrl']?.toString());
     final hasCover = _cover != null || cover != null;
-    final hasLogo = _logo != null || (logoUrl != null && !_logoRemoved);
-    const logoSize = 96.0;
-    return BuCard(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Stack(
-            clipBehavior: Clip.none,
-            children: [
-              // Logo kapağın alt kenarına biner; Stack yüksekliği logonun yarısı kadar uzatılır ki logo/etiket tamamen dokunulabilir olsun.
-              Padding(
-                padding: const EdgeInsets.only(bottom: logoSize / 2),
-                child: Semantics(
-                  button: true,
-                  label: hasCover
-                      ? l10n.clubMgmtChangeCover
-                      : l10n.clubMgmtAddCover,
-                  child: GestureDetector(
-                    behavior: HitTestBehavior.opaque,
-                    onTap: _busy ? null : () => _pick(logo: false),
-                    child: AspectRatio(
-                      aspectRatio: 16 / 9,
-                      child: hasCover
-                          ? ClipRRect(
-                              borderRadius: BorderRadius.circular(BuRadius.md),
-                              child: Stack(
-                                fit: StackFit.expand,
-                                children: [
-                                  if (_cover != null)
-                                    Image.memory(_cover!.bytes,
-                                        fit: BoxFit.cover,
-                                        gaplessPlayback: true)
-                                  else
-                                    BuImage(
-                                        widget.club?['coverUrl']?.toString(),
-                                        width: double.infinity,
-                                        height: double.infinity),
-                                  PositionedDirectional(
-                                    end: 12,
-                                    bottom: 12,
-                                    child: Container(
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 12, vertical: 8),
-                                      decoration: BoxDecoration(
-                                          color: t.scrim.withValues(alpha: .55),
-                                          borderRadius: BuRadius.bPill),
-                                      child: Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          Icon(LucideIcons.camera,
-                                              size: 15, color: t.onMedia),
-                                          const SizedBox(width: 6),
-                                          Text(l10n.clubMgmtChangeCover,
-                                              style: tx.labelMedium!.copyWith(
-                                                  color: t.onMedia,
-                                                  fontWeight: FontWeight.w700)),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            )
-                          : CustomPaint(
-                              painter: _DashedRRect(
-                                  color: t.bd, radius: BuRadius.md),
-                              child: Container(
-                                decoration: BoxDecoration(
-                                    color: t.sf2.withValues(alpha: .5),
-                                    borderRadius:
-                                        BorderRadius.circular(BuRadius.md)),
-                                alignment: Alignment.center,
-                                child: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Container(
-                                      width: 48,
-                                      height: 48,
-                                      decoration: BoxDecoration(
-                                          color: t.sf, shape: BoxShape.circle),
-                                      child: Icon(LucideIcons.imagePlus,
-                                          size: 22, color: t.pr),
-                                    ),
-                                    const SizedBox(height: 10),
-                                    Text(l10n.clubMgmtAddCover,
-                                        textAlign: TextAlign.center,
-                                        style: tx.labelLarge!.copyWith(
-                                            color: t.ink,
-                                            fontWeight: FontWeight.w800)),
-                                    const SizedBox(height: 2),
-                                    Text(l10n.p12CoverHint,
-                                        textAlign: TextAlign.center,
-                                        style: tx.labelSmall!
-                                            .copyWith(color: t.mut)),
-                                  ],
-                                ),
-                              ),
-                            ),
-                    ),
-                  ),
-                ),
-              ),
-              if (!hasLogo)
-                PositionedDirectional(
-                  start: logoSize + 28,
-                  bottom: 14,
-                  child: GestureDetector(
-                    behavior: HitTestBehavior.opaque,
-                    onTap: _busy ? null : () => _pick(logo: true),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+    return Semantics(
+      button: true,
+      excludeSemantics: true,
+      onTap: _busy ? null : () => _pick(logo: false),
+      label: hasCover ? l10n.clubMgmtChangeCover : l10n.eventFormAddCover,
+      child: BuPressable(
+        scale: .99,
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: _busy ? null : () => _pick(logo: false),
+          child: SizedBox(
+            height: 140,
+            child: hasCover
+                ? ClipRRect(
+                    borderRadius: BorderRadius.circular(16),
+                    child: Stack(
+                      fit: StackFit.expand,
                       children: [
-                        Text(l10n.p12LogoAdd,
-                            style: tx.labelLarge!.copyWith(
-                                color: t.ink, fontWeight: FontWeight.w800)),
-                        Text(l10n.p12LogoHint,
-                            style: tx.labelSmall!.copyWith(color: t.mut)),
+                        if (_cover != null)
+                          Image.memory(_cover!.bytes, fit: BoxFit.cover, gaplessPlayback: true)
+                        else
+                          BuImage(widget.club?['coverUrl']?.toString(), width: double.infinity, height: 140),
+                        PositionedDirectional(
+                          end: 12,
+                          bottom: 12,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                            decoration: BoxDecoration(color: t.scrim.withValues(alpha: .55), borderRadius: BuRadius.bPill),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(LucideIcons.camera, size: 15, color: t.onMedia),
+                                const SizedBox(width: 6),
+                                Text(l10n.clubMgmtChangeCover, style: tx.labelMedium!.copyWith(color: t.onMedia, fontWeight: FontWeight.w700)),
+                              ],
+                            ),
+                          ),
+                        ),
                       ],
                     ),
-                  ),
-                ),
-              PositionedDirectional(
-                start: 12,
-                bottom: 0,
-                child: Semantics(
-                  button: true,
-                  label: hasLogo ? l10n.p12LogoChange : l10n.p12LogoAdd,
-                  child: GestureDetector(
-                    behavior: HitTestBehavior.opaque,
-                    onTap: _busy ? null : () => _pick(logo: true),
-                    child: SizedBox(
-                      width: logoSize + 8,
-                      height: logoSize + 8,
-                      child: Stack(
-                        clipBehavior: Clip.none,
+                  )
+                : CustomPaint(
+                    foregroundPainter: _DashedRRect(color: t.bdStrong, radius: 16),
+                    child: Container(
+                      decoration: BoxDecoration(color: t.sf, borderRadius: BorderRadius.circular(16)),
+                      alignment: Alignment.center,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
                         children: [
-                          Positioned.fill(
-                            child: Container(
-                              margin: const EdgeInsets.all(2),
-                              decoration: BoxDecoration(
-                                  color: t.sf, shape: BoxShape.circle),
-                              padding: const EdgeInsets.all(4),
-                              child: hasLogo
-                                  ? ClipOval(
-                                      child: _logo != null
-                                          ? Image.memory(_logo!.bytes,
-                                              fit: BoxFit.cover,
-                                              gaplessPlayback: true)
-                                          : BuImage(
-                                              widget.club?['logoUrl']
-                                                  ?.toString(),
-                                              width: logoSize,
-                                              height: logoSize),
-                                    )
-                                  : CustomPaint(
-                                      painter: _DashedRRect(
-                                          color: t.bd,
-                                          radius: logoSize,
-                                          circle: true),
-                                      child: Container(
-                                        decoration: BoxDecoration(
-                                            color: t.sf2.withValues(alpha: .5),
-                                            shape: BoxShape.circle),
-                                        alignment: Alignment.center,
-                                        child: Icon(LucideIcons.imagePlus,
-                                            size: 24, color: t.mut),
-                                      ),
-                                    ),
-                            ),
-                          ),
-                          PositionedDirectional(
-                            end: 2,
-                            bottom: 2,
-                            child: Container(
-                              width: 32,
-                              height: 32,
-                              decoration: BoxDecoration(
-                                  color: t.pr,
-                                  shape: BoxShape.circle,
-                                  border: Border.all(color: t.sf, width: 2)),
-                              child: Icon(
-                                  hasLogo
-                                      ? LucideIcons.pencil
-                                      : LucideIcons.camera,
-                                  size: 15,
-                                  color: t.onPr),
-                            ),
-                          ),
+                          ExcludeSemantics(child: Icon(LucideIcons.image, size: 24, color: t.mut)),
+                          const SizedBox(height: 8),
+                          Text(l10n.eventFormAddCover, textAlign: TextAlign.center, style: tx.bodyMedium!.copyWith(color: t.mut)),
                         ],
                       ),
                     ),
                   ),
-                ),
-              ),
-            ],
           ),
-          const SizedBox(height: 6),
-        ],
+        ),
+      ),
+    );
+  }
+
+  /// Logo satırı (Stitch'te yok, davranış korunur): 48 dp daire + "Logo ekle/değiştir" metni.
+  Widget _logoRow(BuTokens t) {
+    final l10n = context.l10n;
+    final tx = Theme.of(context).textTheme;
+    final logoUrl = fileUrl(widget.club?['logoUrl']?.toString());
+    final hasLogo = _logo != null || (logoUrl != null && !_logoRemoved);
+    return Semantics(
+      button: true,
+      excludeSemantics: true,
+      onTap: _busy ? null : () => _pick(logo: true),
+      label: hasLogo ? l10n.p12LogoChange : l10n.p12LogoAdd,
+      child: BuPressable(
+        scale: .99,
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: _busy ? null : () => _pick(logo: true),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(minHeight: 48),
+            child: Row(
+              children: [
+                SizedBox(
+                  width: 48,
+                  height: 48,
+                  child: hasLogo
+                      ? ClipOval(
+                          child: _logo != null
+                              ? Image.memory(_logo!.bytes, fit: BoxFit.cover, gaplessPlayback: true)
+                              : BuImage(widget.club?['logoUrl']?.toString(), width: 48, height: 48),
+                        )
+                      : CustomPaint(
+                          foregroundPainter: _DashedRRect(color: t.bdStrong, radius: 48, circle: true),
+                          child: Center(child: Icon(LucideIcons.imagePlus, size: 20, color: t.mut)),
+                        ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(hasLogo ? l10n.p12LogoChange : l10n.p12LogoAdd, style: tx.titleSmall!.copyWith(color: t.ink, fontWeight: FontWeight.w600)),
+                      Text(l10n.p12LogoHint, style: tx.bodySmall!.copyWith(color: t.mut)),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -1255,7 +842,7 @@ class _DashedRRect extends CustomPainter {
     final paint = Paint()
       ..color = color
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.6;
+      ..strokeWidth = 1;
     final rect = (Offset.zero & size).deflate(1);
     final path = Path()
       ..addRRect(circle
@@ -1264,8 +851,8 @@ class _DashedRRect extends CustomPainter {
     for (final PathMetric m in path.computeMetrics()) {
       var d = 0.0;
       while (d < m.length) {
-        canvas.drawPath(m.extractPath(d, d + 7), paint);
-        d += 12;
+        canvas.drawPath(m.extractPath(d, d + 4), paint);
+        d += 8;
       }
     }
   }

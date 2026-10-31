@@ -13,11 +13,14 @@ import 'poll_routes.dart';
 /// Kulüp detayındaki "Anketler" sekmesi içeriği: kulübün anketleri + (yönetici ise) anket oluştur.
 /// [canCreate] false ise oluşturma düğmesi hiç gösterilmez.
 class PollClubSection extends StatefulWidget {
-  const PollClubSection({super.key, required this.session, required this.communityId, required this.canCreate});
+  const PollClubSection({super.key, required this.session, required this.communityId, required this.canCreate, this.hideWhenEmpty = false});
 
   final Session session;
   final int communityId;
   final bool canCreate;
+
+  /// true: anket yoksa (ve oluşturma yetkisi yoksa) bölüm hiç çizilmez (Kulüp detayı "Hakkında" sekmesi).
+  final bool hideWhenEmpty;
 
   @override
   State<PollClubSection> createState() => _PollClubSectionState();
@@ -63,6 +66,7 @@ class _PollClubSectionState extends State<PollClubSection> {
   @override
   Widget build(BuildContext context) {
     final items = _items;
+    if (widget.hideWhenEmpty && !widget.canCreate && (items == null ? _error == null : items.isEmpty)) return const SizedBox.shrink();
     final l = context.l10n;
     final t = context.bu;
     final tx = Theme.of(context).textTheme;
