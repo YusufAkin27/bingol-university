@@ -7,9 +7,9 @@ Tam sartname (repo disi): `C:\bu_design\stitch\v3_feed\SARTNAME.md`; PNG'ler `C:
 |---|---|---|
 | 1 Kesfet (kart yonu secimi + akis + durumlar) | TAMAM, teslim edildi | FEED |
 | 2 Yeni gonderi akisi | TAMAM, teslim edildi | FEED |
-| 3 Gonderi detayi + tam ekran foto | bekliyor (istem hazir) | FEED |
-| 4 Profil ve alt sayfalar | bekliyor (istem hazir) | PROFILE |
-| 5 Ayarlar / Gizlilik / Hesap / Verilerim / Hesap sil / Engellenenler / Hakkinda | bekliyor (istem hazir) | PROFILE |
+| 3 Gonderi detayi + tam ekran foto | TAMAM, teslim edildi | FEED |
+| 4 Profil ve alt sayfalar | TAMAM, teslim edildi | PROFILE |
+| 5 Ayarlar / Gizlilik / Hesap / Verilerim / Hesap sil / Engellenenler | TAMAM, teslim edildi (Hakkinda, Dil sheet, Sohbet arka plani, sifre onay, sikayet sheet: Stitch uretemedi, SARTNAME metinsel spec) | PROFILE |
 
 ## Kesfet karar notu
 Uc yon denendi: A tek sutun buyuk 4:5 gorsel (bilgi gorsel ustunde, alt %28 gradyan), B iki sutun masonry, C hibrit. **A secildi**: tek odak, en az oge, kontrast gradyanla garanti, mevcut PostCard/LikeButton/cift dokunus korunur. B (gorsel ustunde ad yazisi okunurlugu bozar, 7 kelimelik metin yer bulamaz) ve C (iki kart dili) reddedildi. Olculer: kenar 20 dp, gonderiler arasi 24 dp, kose 24 dp, kalp hapi 44 dp (#171E33 %50), gonderi metni gorsel altinda tek satir 15 sp.
