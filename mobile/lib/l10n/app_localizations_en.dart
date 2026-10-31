@@ -9475,4 +9475,76 @@ class AppLocalizationsEn extends AppLocalizations {
   String p69AnnUnitDate(String unit, String date) {
     return '$unit · $date';
   }
+
+  @override
+  String get p68New => 'New';
+
+  @override
+  String get p68FormKind => 'Type';
+
+  @override
+  String get p68OptionsLabel => 'Options (2-12)';
+
+  @override
+  String get p68PickDate => 'Pick a date';
+
+  @override
+  String get p68Retract => 'Withdraw my vote';
+
+  @override
+  String get p68MyVote => 'Your vote';
+
+  @override
+  String p68TicketNo(String n) {
+    return 'Ticket #$n';
+  }
+
+  @override
+  String get p68Required => 'Required';
+
+  @override
+  String get p68SubjectLabel => 'Subject';
+
+  @override
+  String get p68SubjectHint => 'What happened, briefly?';
+
+  @override
+  String get p68SubjectMin => 'Subject must be at least 3 characters.';
+
+  @override
+  String get p68MessageLabel => 'Message';
+
+  @override
+  String get p68MessageHint => 'Describe the problem or request step by step…';
+
+  @override
+  String get p68ReplyNote =>
+      'You will get the reply by notification and email.';
+
+  @override
+  String get p68CategoryLabel => 'Category';
+
+  @override
+  String get p68ReplyHint => 'Write your reply';
+
+  @override
+  String get p68Staff => 'Support';
+
+  @override
+  String get p68NoTickets => 'You have no requests yet.';
+
+  @override
+  String get p68SugTitle => 'Suggestions';
+
+  @override
+  String get p68SugSend => 'Send a suggestion';
+
+  @override
+  String get p68SugTop => 'Top voted';
+
+  @override
+  String get p68SugNew => 'New';
+
+  @override
+  String get p68SugEmpty => 'No suggestions yet.';
 }

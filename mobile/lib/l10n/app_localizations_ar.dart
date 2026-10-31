@@ -9375,4 +9375,75 @@ class AppLocalizationsAr extends AppLocalizations {
   String p69AnnUnitDate(String unit, String date) {
     return '$unit · $date';
   }
+
+  @override
+  String get p68New => 'جديد';
+
+  @override
+  String get p68FormKind => 'النوع';
+
+  @override
+  String get p68OptionsLabel => 'الخيارات (2-12)';
+
+  @override
+  String get p68PickDate => 'اختر تاريخًا';
+
+  @override
+  String get p68Retract => 'سحب صوتي';
+
+  @override
+  String get p68MyVote => 'صوتك';
+
+  @override
+  String p68TicketNo(String n) {
+    return 'التذكرة #$n';
+  }
+
+  @override
+  String get p68Required => 'مطلوب';
+
+  @override
+  String get p68SubjectLabel => 'الموضوع';
+
+  @override
+  String get p68SubjectHint => 'ماذا حدث باختصار؟';
+
+  @override
+  String get p68SubjectMin => 'يجب ألا يقل الموضوع عن 3 أحرف.';
+
+  @override
+  String get p68MessageLabel => 'الرسالة';
+
+  @override
+  String get p68MessageHint => 'اشرح المشكلة أو الطلب خطوة بخطوة…';
+
+  @override
+  String get p68ReplyNote => 'ستصلك الإجابة بإشعار وبريد إلكتروني.';
+
+  @override
+  String get p68CategoryLabel => 'الفئة';
+
+  @override
+  String get p68ReplyHint => 'اكتب ردك';
+
+  @override
+  String get p68Staff => 'الدعم';
+
+  @override
+  String get p68NoTickets => 'ليس لديك طلبات بعد.';
+
+  @override
+  String get p68SugTitle => 'الاقتراحات';
+
+  @override
+  String get p68SugSend => 'أرسل اقتراحًا';
+
+  @override
+  String get p68SugTop => 'الأكثر تصويتًا';
+
+  @override
+  String get p68SugNew => 'الأحدث';
+
+  @override
+  String get p68SugEmpty => 'لا توجد اقتراحات بعد.';
 }

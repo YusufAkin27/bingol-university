@@ -9444,4 +9444,75 @@ class AppLocalizationsTr extends AppLocalizations {
   String p69AnnUnitDate(String unit, String date) {
     return '$unit · $date';
   }
+
+  @override
+  String get p68New => 'Yeni';
+
+  @override
+  String get p68FormKind => 'Tür';
+
+  @override
+  String get p68OptionsLabel => 'Seçenekler (2-12)';
+
+  @override
+  String get p68PickDate => 'Tarih seç';
+
+  @override
+  String get p68Retract => 'Oyumu geri çek';
+
+  @override
+  String get p68MyVote => 'Senin oyun';
+
+  @override
+  String p68TicketNo(String n) {
+    return 'Bilet #$n';
+  }
+
+  @override
+  String get p68Required => 'Zorunlu';
+
+  @override
+  String get p68SubjectLabel => 'Konu';
+
+  @override
+  String get p68SubjectHint => 'Kısaca ne oldu?';
+
+  @override
+  String get p68SubjectMin => 'Konu en az 3 karakter olmalı.';
+
+  @override
+  String get p68MessageLabel => 'Mesaj';
+
+  @override
+  String get p68MessageHint => 'Sorunu veya talebini adım adım detaylandır…';
+
+  @override
+  String get p68ReplyNote => 'Yanıtı bildirim ve e-posta ile alırsın.';
+
+  @override
+  String get p68CategoryLabel => 'Kategori';
+
+  @override
+  String get p68ReplyHint => 'Yanıtını yaz';
+
+  @override
+  String get p68Staff => 'Destek';
+
+  @override
+  String get p68NoTickets => 'Henüz talebin yok.';
+
+  @override
+  String get p68SugTitle => 'Öneriler';
+
+  @override
+  String get p68SugSend => 'Öneri gönder';
+
+  @override
+  String get p68SugTop => 'En çok oylanan';
+
+  @override
+  String get p68SugNew => 'Yeni';
+
+  @override
+  String get p68SugEmpty => 'Henüz öneri yok.';
 }

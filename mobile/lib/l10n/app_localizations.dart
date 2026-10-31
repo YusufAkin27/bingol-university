@@ -17166,6 +17166,144 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'{unit} · {date}'**
   String p69AnnUnitDate(String unit, String date);
+
+  /// No description provided for @p68New.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yeni'**
+  String get p68New;
+
+  /// No description provided for @p68FormKind.
+  ///
+  /// In tr, this message translates to:
+  /// **'Tür'**
+  String get p68FormKind;
+
+  /// No description provided for @p68OptionsLabel.
+  ///
+  /// In tr, this message translates to:
+  /// **'Seçenekler (2-12)'**
+  String get p68OptionsLabel;
+
+  /// No description provided for @p68PickDate.
+  ///
+  /// In tr, this message translates to:
+  /// **'Tarih seç'**
+  String get p68PickDate;
+
+  /// No description provided for @p68Retract.
+  ///
+  /// In tr, this message translates to:
+  /// **'Oyumu geri çek'**
+  String get p68Retract;
+
+  /// No description provided for @p68MyVote.
+  ///
+  /// In tr, this message translates to:
+  /// **'Senin oyun'**
+  String get p68MyVote;
+
+  /// No description provided for @p68TicketNo.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bilet #{n}'**
+  String p68TicketNo(String n);
+
+  /// No description provided for @p68Required.
+  ///
+  /// In tr, this message translates to:
+  /// **'Zorunlu'**
+  String get p68Required;
+
+  /// No description provided for @p68SubjectLabel.
+  ///
+  /// In tr, this message translates to:
+  /// **'Konu'**
+  String get p68SubjectLabel;
+
+  /// No description provided for @p68SubjectHint.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kısaca ne oldu?'**
+  String get p68SubjectHint;
+
+  /// No description provided for @p68SubjectMin.
+  ///
+  /// In tr, this message translates to:
+  /// **'Konu en az 3 karakter olmalı.'**
+  String get p68SubjectMin;
+
+  /// No description provided for @p68MessageLabel.
+  ///
+  /// In tr, this message translates to:
+  /// **'Mesaj'**
+  String get p68MessageLabel;
+
+  /// No description provided for @p68MessageHint.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sorunu veya talebini adım adım detaylandır…'**
+  String get p68MessageHint;
+
+  /// No description provided for @p68ReplyNote.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yanıtı bildirim ve e-posta ile alırsın.'**
+  String get p68ReplyNote;
+
+  /// No description provided for @p68CategoryLabel.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kategori'**
+  String get p68CategoryLabel;
+
+  /// No description provided for @p68ReplyHint.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yanıtını yaz'**
+  String get p68ReplyHint;
+
+  /// No description provided for @p68Staff.
+  ///
+  /// In tr, this message translates to:
+  /// **'Destek'**
+  String get p68Staff;
+
+  /// No description provided for @p68NoTickets.
+  ///
+  /// In tr, this message translates to:
+  /// **'Henüz talebin yok.'**
+  String get p68NoTickets;
+
+  /// No description provided for @p68SugTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Öneriler'**
+  String get p68SugTitle;
+
+  /// No description provided for @p68SugSend.
+  ///
+  /// In tr, this message translates to:
+  /// **'Öneri gönder'**
+  String get p68SugSend;
+
+  /// No description provided for @p68SugTop.
+  ///
+  /// In tr, this message translates to:
+  /// **'En çok oylanan'**
+  String get p68SugTop;
+
+  /// No description provided for @p68SugNew.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yeni'**
+  String get p68SugNew;
+
+  /// No description provided for @p68SugEmpty.
+  ///
+  /// In tr, this message translates to:
+  /// **'Henüz öneri yok.'**
+  String get p68SugEmpty;
 }
 
 class _AppLocalizationsDelegate
