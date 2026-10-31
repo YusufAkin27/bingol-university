@@ -22,6 +22,10 @@ public interface UserEventRepository extends JpaRepository<UserEvent, Long> {
     @Query("UPDATE UserEvent e SET e.goingCount = e.goingCount - 1 WHERE e.id = :id AND e.goingCount > 0")
     int decrementGoing(@Param("id") Long id);
 
+    /** Toplulugun tum etkinlik kimlikleri (T-041: dusen olusturan da odadan cikarilir). */
+    @Query("SELECT e.id FROM UserEvent e WHERE e.communityId = :cid")
+    List<Long> idsByCommunity(@Param("cid") Long communityId);
+
     /** Toplulugun etkinlik kimlikleri (belirtilen kullanicinin olusturdugu etkinlikler haric). */
     @Query("SELECT e.id FROM UserEvent e WHERE e.communityId = :cid AND e.createdBy <> :uid")
     List<Long> idsByCommunityExcludingCreator(@Param("cid") Long communityId, @Param("uid") Long userId);

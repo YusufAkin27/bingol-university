@@ -1,16 +1,19 @@
 package edu.bingol.backend.community.permissions;
 
+import edu.bingol.backend.admin.rbac.PermissionMatrix;
 import edu.bingol.backend.common.ApiException;
 import edu.bingol.backend.community.Actor;
 import edu.bingol.backend.community.CommunityMember;
 import edu.bingol.backend.community.CommunityMember.Role;
 import edu.bingol.backend.community.CommunityMemberRepository;
+import edu.bingol.backend.community.SystemAdminAudit;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 
@@ -39,6 +42,14 @@ public class ClubPermissions {
         this.grants = grants;
     }
 
+    /** T-040: sistem yoneticisi mudahalesi denetim kaydi (setter: birim testlerinde bean yok, kayit atlanir). */
+    private SystemAdminAudit audit;
+
+    @Autowired(required = false)
+    public void setAudit(SystemAdminAudit audit) {
+        this.audit = audit;
+    }
+
     /**
      * Sira: rol (MEMBER 0, MODERATOR 2, ADMIN 4, OWNER 6) + ozel yetkisi olan MEMBER icin 1. Kimse kendinden dusuk
      * olmayan sirada birine mudahale edemez; ozel yetkili uye de duz uyeden ustundur.
@@ -61,7 +72,8 @@ public class ClubPermissions {
 
     /** Uye degilse (veya bekleyen/yasakliysa) bos; sistem ADMIN'i her kulupte tum yetkilere sahip. */
     public Optional<Standing> standing(Actor a, Long communityId) {
-        if (a.admin()) {
+        // T-040: yalniz ROLE_ADMIN yetmez; kulup yonetme izni (content.write) olan profil mudahale eder
+        if (a.systemAdmin(PermissionMatrix.CONTENT_WRITE)) {
             return Optional.of(new Standing(Role.OWNER, ClubPermission.all(), SYSTEM_RANK));
         }
         return standingOfUser(communityId, a.id());
@@ -86,6 +98,11 @@ public class ClubPermissions {
         Standing s = standing(a, communityId).orElse(null);
         if (s == null || !s.has(p)) {
             throw new ApiException(HttpStatus.FORBIDDEN, "FORBIDDEN", "Bu işlem için yetkiniz yok.");
+        }
+        // Yetki yalniz sistem yoneticisi mudahalesinden geliyorsa (gercek uyelik/yetki yok) denetim kaydi yazilir
+        if (a.systemAdmin(PermissionMatrix.CONTENT_WRITE)
+                && !standingOfUser(communityId, a.id()).map(o -> o.has(p)).orElse(false)) {
+            SystemAdminAudit.used(audit, a, "COMMUNITY", communityId, "kulup yetkisi " + p);
         }
         return s;
     }

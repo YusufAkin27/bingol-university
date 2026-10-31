@@ -1,10 +1,13 @@
 package edu.bingol.backend.poll;
 
+import edu.bingol.backend.academic.AudienceKey;
+import edu.bingol.backend.admin.rbac.PermissionMatrix;
 import edu.bingol.backend.common.ApiException;
 import edu.bingol.backend.common.CursorPage;
 import edu.bingol.backend.community.Actor;
 import edu.bingol.backend.community.Community;
 import edu.bingol.backend.community.CommunityRepository;
+import edu.bingol.backend.community.SystemAdminAudit;
 import edu.bingol.backend.i18n.I18n;
 import edu.bingol.backend.menu.MenuRepository;
 import edu.bingol.backend.moderation.profanity.ContentGuard;
@@ -27,6 +30,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 import java.util.function.BiFunction;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -84,7 +88,8 @@ public class PollService {
     @Transactional(readOnly = true)
     public PollView get(Actor actor, Long id) {
         Poll p = polls.findById(id).orElseThrow(PollService::notFound);
-        if (!access.canView(p, actor, access.memberCommunityIds(actor.id()))) {
+        // T-046: hedef kitle ve uyelik kurali listede degil ID ile de gecerli (kapsam disina 404)
+        if (!access.canView(p, actor, access.memberCommunityIds(actor.id()), users.findById(actor.id()).orElse(null))) {
             throw notFound();
         }
         return assembler.view(p, actor, false);
@@ -116,7 +121,7 @@ public class PollService {
                     throw new ApiException(HttpStatus.BAD_REQUEST, "POLL_SCOPE_INVALID", "Geçersiz anket kapsamı.");
                 }
                 Long cid = parseId(s.substring("community:".length()));
-                if (!actor.admin() && !cids.contains(cid)) {
+                if (!actor.systemAdmin(PermissionMatrix.CONTENT_READ) && !cids.contains(cid)) {
                     throw new ApiException(HttpStatus.FORBIDDEN, "POLL_NOT_ELIGIBLE", "Bu ankete katılma hakkınız yok.");
                 }
                 boolean draft = access.isClubManager(cid, actor);
@@ -131,7 +136,7 @@ public class PollService {
             exhausted = batch.size() < FETCH;
             for (Poll p : batch) {
                 c = p.getId();
-                boolean ok = access.canView(p, actor, cids)
+                boolean ok = access.canView(p, actor, cids, me)
                         && (!audienceFilter || access.audienceMatches(p, me) || access.canManage(p, actor));
                 if (ok) {
                     accepted.add(p);
@@ -147,8 +152,9 @@ public class PollService {
         long openCount = countOpen(actor, me, cidList, now);
         long total = switch (s) {
             case "open" -> openCount;
-            case "closed" -> polls.countClosed(now, cidList, actor.admin(), audNorm(me == null ? null : me.getFaculty()),
-                    audNorm(me == null ? null : me.getDepartment()), audNorm(me == null ? null : me.getGrade()));
+            case "closed" -> polls.countClosed(now, cidList, actor.systemAdmin(PermissionMatrix.CONTENT_READ), actor.id(),
+                    audNorm(me == null ? null : me.getFaculty()), audNorm(me == null ? null : me.getDepartment()),
+                    gradeNorm(me == null ? null : me.getGrade()));
             case "mine" -> polls.countMine(actor.id());
             default -> {
                 Long cid = parseId(s.substring("community:".length()));
@@ -159,13 +165,20 @@ public class PollService {
     }
 
     private long countOpen(Actor actor, User me, List<Long> cidList, Instant now) {
-        return polls.countOpen(now, cidList, actor.admin(), audNorm(me == null ? null : me.getFaculty()),
-                audNorm(me == null ? null : me.getDepartment()), audNorm(me == null ? null : me.getGrade()));
+        return polls.countOpen(now, cidList, actor.systemAdmin(PermissionMatrix.CONTENT_READ), actor.id(),
+                audNorm(me == null ? null : me.getFaculty()), audNorm(me == null ? null : me.getDepartment()),
+                gradeNorm(me == null ? null : me.getGrade()));
     }
 
     /** Hedef kitle karsilastirmasi icin kucuk harf/kirpilmis deger; bos profil alani hicbir kitleyle eslesmesin diye ayirici deger. */
     private static String audNorm(String v) {
-        return v == null || v.isBlank() ? "#none#" : v.trim().toLowerCase(Locale.ROOT);
+        String k = AudienceKey.of(v);
+        return k == null ? "#none#" : k;
+    }
+
+    /** Sinif karsilastirmasi: BUYUK harf (SQL tarafi UPPER(TRIM)); bos profil alani eslesmesin. */
+    private static String gradeNorm(String v) {
+        return v == null || v.isBlank() ? "#NONE#" : v.trim().toUpperCase(Locale.ROOT);
     }
 
     // ---------- olusturma ----------
@@ -442,15 +455,27 @@ public class PollService {
 
     private void requireManage(Poll p, Actor actor) {
         if (!access.canManage(p, actor)) {
-            if (access.canView(p, actor, access.memberCommunityIds(actor.id()))) {
+            if (access.canView(p, actor, access.memberCommunityIds(actor.id()), users.findById(actor.id()).orElse(null))) {
                 throw forbidden();
             }
             throw notFound();
         }
+        // T-040: yetki yalniz sistem yoneticisi mudahalesinden geliyorsa denetim kaydi
+        if (actor.viaUserApi() && !access.canManage(p, new Actor(actor.id(), false))) {
+            SystemAdminAudit.used(adminAudit, actor, "POLL", p.getId(), "anket yonetimi");
+        }
+    }
+
+    /** T-040: sistem yoneticisi mudahalesi denetimi (istege bagli). */
+    private SystemAdminAudit adminAudit;
+
+    @Autowired(required = false)
+    public void setAdminAudit(SystemAdminAudit adminAudit) {
+        this.adminAudit = adminAudit;
     }
 
     private static void requireAdmin(Actor actor) {
-        if (!actor.admin()) {
+        if (!actor.systemAdmin(PermissionMatrix.CONTENT_WRITE)) {
             throw forbidden();
         }
     }
@@ -525,6 +550,13 @@ public class PollService {
         String g = a == null ? null : norm(a.grade());
         if ((f != null && f.length() > 120) || (d != null && d.length() > 120) || (g != null && g.length() > 8)) {
             throw invalid("poll.invalid.audience");
+        }
+        if (g != null) { // T-042: sinif katalog kumesinden olmali (PREP, 1..6, MASTER, PHD); BUYUK harfe normalize edilir
+            try {
+                g = AudienceKey.grade(g);
+            } catch (IllegalArgumentException e) {
+                throw invalid("poll.invalid.audience");
+            }
         }
         p.setAudienceFaculty(f);
         p.setAudienceDepartment(d);

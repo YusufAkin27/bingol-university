@@ -46,6 +46,14 @@ public class PollAdminService {
         this.clock = clock;
     }
 
+    /** Oy verip vermedigini (AFTER_VOTE sonuc gorunurlugu) bilmek icin; setter: elle kurulan testler etkilenmez. */
+    private PollBallotRepository ballots;
+
+    @org.springframework.beans.factory.annotation.Autowired
+    void setBallots(PollBallotRepository ballots) {
+        this.ballots = ballots;
+    }
+
     @Transactional(readOnly = true)
     public AdminPollPage list(String status, String scope, String q, int page, int size) {
         Poll.Status st = parse(Poll.Status.class, status);
@@ -134,12 +142,25 @@ public class PollAdminService {
         return new BulkResult(done, skipped);
     }
 
-    /** Olusturan / kulup yoneticisi / ADMIN icin sonuc CSV'si. */
+    /**
+     * Olusturan / kulup yoneticisi / ADMIN icin sonuc CSV'si. T-048: sonuc gorunurlugu kurali (showResults) CSV'yi de
+     * baglar: AFTER_CLOSE anket kapanmadan, AFTER_VOTE yonetici oy vermeden/kapanmadan sonuc vermez (409). Yonetici
+     * paneli ucu ({@link #csv(Long)}) ayri kalir.
+     */
     @Transactional(readOnly = true)
     public String csvFor(Actor actor, Long id) {
         Poll p = polls.findById(id).orElseThrow(PollService::notFound);
         if (!access.canManage(p, actor)) {
             throw PollService.notFound();
+        }
+        boolean closed = p.isClosedAt(clock.instant());
+        boolean visible = switch (p.getShowResults()) {
+            case ALWAYS -> true;
+            case AFTER_VOTE -> closed || ballots.findByPollIdAndUserId(p.getId(), actor.id()).isPresent();
+            case AFTER_CLOSE -> closed;
+        };
+        if (!visible) {
+            throw new ApiException(HttpStatus.CONFLICT, "POLL_RESULTS_HIDDEN", "Sonuçlar henüz görünür değil.");
         }
         return csv(p);
     }

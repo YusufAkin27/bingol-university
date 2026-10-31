@@ -273,12 +273,13 @@ public class EventAdmissionService implements EventAdmissionHooks {
             Map<Long, User> users = communities.usersById(items.stream().map(EventApplication::getUserId).toList());
             // Bolum / sinif: basvuranin profil gizlilik ayarina gore (tek sorgu); e-posta yalniz showEmail=true ise
             Map<Long, CommunityService.ProfileExtra> extras = communities.profileExtras(a.id(), users.values(), hideAvatar);
+            Map<Long, String> avatars = communities.avatarsFor(a.id(), users.values(), hideAvatar); // T-027
             return items.stream().map(x -> {
                 User u = users.get(x.getUserId());
                 CommunityService.ProfileExtra pe = extras.getOrDefault(x.getUserId(), CommunityService.ProfileExtra.NONE);
                 boolean visible = u != null && !hideAvatar.contains(x.getUserId());
                 return new ApplicantView(x.getId(), x.getUserId(), u == null ? "Kullanıcı" : u.getDisplayName(),
-                        u == null || hideAvatar.contains(x.getUserId()) ? null : u.getAvatarUrl(),
+                        avatars.get(x.getUserId()),
                         pe.department(), x.getStatus(),
                         x.getNote(), x.answers(), x.getQueuedAt(), x.getCreatedAt(), x.getUpdatedAt(),
                         visible && u.isShowEmail() ? u.getEmail() : null, pe.classYear());
@@ -388,7 +389,7 @@ public class EventAdmissionService implements EventAdmissionHooks {
 
     @Override
     public void beforeCreate(Actor a) {
-        if (a.admin()) {
+        if (a.systemAdmin(edu.bingol.backend.admin.rbac.PermissionMatrix.CONTENT_WRITE)) {
             return;
         }
         int max = settings.maxOpenPerUser();

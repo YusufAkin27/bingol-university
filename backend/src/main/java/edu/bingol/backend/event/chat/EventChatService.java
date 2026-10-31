@@ -162,8 +162,8 @@ public class EventChatService implements EventChatHooks {
                 return;
             }
             UserEvent e = eventRepo.findById(eventId).orElse(null);
-            if (e != null && (e.getCreatedBy().equals(userId) || coOrganizers.existsByEventIdAndUserId(eventId, userId))) {
-                return; // organizatorler her zaman odada
+            if (e != null && events.isOrganizer(userId, e)) {
+                return; // canli organizatorler (kulup baglantisi suruyor) her zaman odada
             }
             rooms.removeMember(RoomKind.EVENT, eventId, userId);
         } catch (RuntimeException ex) {
@@ -202,7 +202,7 @@ public class EventChatService implements EventChatHooks {
 
     /** Odaya girme hakki: GOING katilimci, olusturan, ortak organizator ya da bagli toplulugun etkinlik yetkilisi. */
     private boolean eligible(Actor a, UserEvent e) {
-        if (e.getCreatedBy().equals(a.id()) || coOrganizers.existsByEventIdAndUserId(e.getId(), a.id())) {
+        if (events.isOrganizer(a.id(), e)) { // T-041: kulup etkinliginde olusturan/ortak organizator canli yetkiye baglidir
             return true;
         }
         if (rsvps.findByEventIdAndUserId(e.getId(), a.id()).map(r -> r.getStatus() == EventRsvp.Status.GOING).orElse(false)) {

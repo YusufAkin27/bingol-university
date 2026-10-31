@@ -68,7 +68,10 @@ public class SeriesService {
             c.setCapacity(src.getCapacity());
             c.setCommunityId(src.getCommunityId());
             c.setCreatedBy(src.getCreatedBy());
-            c.setStatus(src.getStatus());
+            // T-041: kopya, kaynagin durumunu miras almaz; kulupte yonetici duzeyinde olmayan (sade uye) kullanicinin
+            // serisi onaysiz ACTIVE olmasin
+            c.setStatus(src.getCommunityId() == null || events.isStaff(a, src.getCommunityId())
+                    ? src.getStatus() : UserEvent.Status.PENDING_REVIEW);
             // Duvar saati korunur (ZonedDateTime); yaz saati olsa da ayni yerel saat.
             c.setStartsAt(src.getStartsAt().atZone(ZONE).plusWeeks(i).toInstant());
             c.setEndsAt(src.getEndsAt().atZone(ZONE).plusWeeks(i).toInstant());

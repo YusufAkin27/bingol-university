@@ -12,7 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Etkinlik sohbeti: odayi getir-ya-da-olustur, yetkiliyi (RSVP GOING/INTERESTED ya da organizator) ekle.
+ * Etkinlik sohbeti: odayi getir-ya-da-olustur, yetkiliyi (RSVP GOING ya da organizator) ekle.
  * Etkinlik gorunmuyorsa 404 EVENT_NOT_FOUND; gorunen ama yetkisiz kisiye 403 FORBIDDEN.
  */
 @Service
@@ -37,7 +37,10 @@ public class EventChatService {
         if (e.getStatus() != UserEvent.Status.ACTIVE) {
             throw notFound(); // yayinda olmayan/iptal edilen etkinlikte sohbet yok
         }
-        boolean allowed = rsvps.findByEventIdAndUserId(eventId, a.id()).isPresent() || events.canManage(a, e);
+        // T-045: yalniz GOING (kabul edilmis) katilimci ya da organizator; INTERESTED / bekleyen basvuru APPROVAL
+        // modunu atlayip odaya giremez (yeni oda ucu event.chat.EventChatService ile ayni kural)
+        boolean allowed = rsvps.findByEventIdAndUserId(eventId, a.id())
+                .map(r -> r.getStatus() == EventRsvp.Status.GOING).orElse(false) || events.canManage(a, e);
         if (!allowed) {
             throw new ApiException(HttpStatus.FORBIDDEN, "FORBIDDEN", "Bu işlem için yetkiniz yok.");
         }

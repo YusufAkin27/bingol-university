@@ -122,8 +122,8 @@ public class AcademicCalendarService {
         if (me.department() == null || me.department().isBlank()) {
             sql.append(" AND scope_department IS NULL");
         } else {
-            sql.append(" AND (scope_department IS NULL OR LOWER(scope_department) = ?)");
-            args.add(me.department().strip().toLowerCase(java.util.Locale.ROOT));
+            sql.append(" AND (scope_department IS NULL OR ").append(AudienceKey.sql("scope_department")).append(" = ?)");
+            args.add(AudienceKey.of(me.department()));
         }
     }
 

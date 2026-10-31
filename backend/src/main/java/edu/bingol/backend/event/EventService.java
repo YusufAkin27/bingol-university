@@ -1,5 +1,6 @@
 package edu.bingol.backend.event;
 
+import edu.bingol.backend.admin.rbac.PermissionMatrix;
 import edu.bingol.backend.moderation.profanity.ContentGuard;
 import edu.bingol.backend.moderation.profanity.ContentGuard.Entity;
 import edu.bingol.backend.common.ApiException;
@@ -12,6 +13,7 @@ import edu.bingol.backend.community.CommunityMember;
 import edu.bingol.backend.community.CommunityService;
 import edu.bingol.backend.community.permissions.ClubPermission;
 import edu.bingol.backend.community.Paging;
+import edu.bingol.backend.community.SystemAdminAudit;
 import edu.bingol.backend.community.Texts;
 import edu.bingol.backend.event.admission.EventAdmissionHooks;
 import edu.bingol.backend.event.chat.EventChatHooks;
@@ -101,6 +103,14 @@ public class EventService {
     @Autowired
     public void setAdmission(@Lazy EventAdmissionHooks admission) {
         this.admission = admission;
+    }
+
+    /** T-040: sistem yoneticisi mudahalesi denetimi (istege bagli: birim testlerinde yok). */
+    private SystemAdminAudit adminAudit;
+
+    @Autowired(required = false)
+    public void setAdminAudit(SystemAdminAudit adminAudit) {
+        this.adminAudit = adminAudit;
     }
 
     /** T14: ortak organizatorler de yonetici sayilir (setter + @Lazy; null iken eski davranis). */
@@ -204,9 +214,7 @@ public class EventService {
         // sade uye (ornek: EVENT_MANAGER sablonu) yonetici onayina gider.
         communities.require(a, c.getId(), ClubPermission.MANAGE_EVENTS);
         e.setCommunityId(c.getId());
-        boolean staff = a.admin() || communities.roleOf(c.getId(), a.id())
-                .map(role -> role != CommunityMember.Role.MEMBER).orElse(false);
-        e.setStatus(staff ? UserEvent.Status.ACTIVE : UserEvent.Status.PENDING_REVIEW);
+        e.setStatus(isStaff(a, c.getId()) ? UserEvent.Status.ACTIVE : UserEvent.Status.PENDING_REVIEW);
         e.setTitle(r.title().trim());
         e.setDescription(Texts.blankToNull(r.description()));
         e.setStartsAt(r.startsAt());
@@ -220,6 +228,15 @@ public class EventService {
             admission.applyJoinPolicy(e, r.joinPolicy());
         }
         return views(List.of(e), a, true).get(0);
+    }
+
+    /**
+     * Kulupte yonetici duzeyi (MODERATOR+ ya da icerik yonetme izni olan sistem ADMIN'i) mi: etkinligi onaysiz yayinlar.
+     * MANAGE_EVENTS verilmis sade uye staff degildir; yeni etkinligi ve (T-041) icerik degisikligini yonetici onayina gonderir.
+     */
+    public boolean isStaff(Actor a, Long communityId) {
+        return a.systemAdmin(PermissionMatrix.CONTENT_WRITE) || communities.roleOf(communityId, a.id())
+                .map(role -> role != CommunityMember.Role.MEMBER).orElse(false);
     }
 
     @Transactional
@@ -264,6 +281,11 @@ public class EventService {
         }
         boolean scheduleChanged = startChanged || !end.equals(e.getEndsAt())
                 || (r.location() != null && !r.location().trim().equals(e.getLocation()));
+        // T-041: onayli (ACTIVE) kulup etkinliginin metnini sade uye (staff degil) degistirirse yeniden onaya duser
+        boolean textChanged = changed(r.title(), e.getTitle()) != null || changed(r.description(), e.getDescription()) != null
+                || changed(r.location(), e.getLocation()) != null;
+        boolean backToReview = e.getStatus() == UserEvent.Status.ACTIVE && textChanged && e.getCommunityId() != null
+                && !isStaff(a, e.getCommunityId());
         if (r.title() != null && !r.title().isBlank()) {
             e.setTitle(r.title().trim());
         }
@@ -276,6 +298,9 @@ public class EventService {
         e.setStartsAt(start);
         e.setEndsAt(end);
         e.setUpdatedAt(now);
+        if (backToReview) {
+            e.setStatus(UserEvent.Status.PENDING_REVIEW);
+        }
         events.save(e);
         if (r.joinPolicy() != null && admission != null) {
             admission.applyJoinPolicy(e, r.joinPolicy());
@@ -671,10 +696,11 @@ public class EventService {
         Set<Long> hideAvatar = communities.blockedFor(a); // engel iliskisi olanin avatari gorunmez
         return Paging.map(rows, s, EventRsvp::getId, items -> {
             Map<Long, User> users = communities.usersById(items.stream().map(EventRsvp::getUserId).toList());
+            Map<Long, String> avatars = communities.avatarsFor(a.id(), users.values(), hideAvatar); // T-027
             return items.stream().map(r -> {
                 User u = users.get(r.getUserId());
                 return new AttendeeView(r.getUserId(), u == null ? "Kullanıcı" : u.getDisplayName(),
-                        u == null || hideAvatar.contains(r.getUserId()) ? null : u.getAvatarUrl(), r.getStatus(), r.getCreatedAt());
+                        avatars.get(r.getUserId()), r.getStatus(), r.getCreatedAt());
             }).toList();
         });
     }
@@ -719,27 +745,43 @@ public class EventService {
                 .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "EVENT_NOT_FOUND", "Etkinlik bulunamadı."));
     }
 
-    /** Organizator mi: ADMIN, olusturan veya bagli toplulugun MODERATOR+'si. */
+    /**
+     * Organizator mi: icerik yonetme izni olan sistem ADMIN'i (content.write) ya da canli organizator
+     * ({@link #isOrganizer}). T-041: kulup etkinliginde olusturan/ortak organizator olmak tek basina yetmez.
+     */
     public boolean canManage(Actor a, UserEvent e) {
-        if (a.admin() || a.id().equals(e.getCreatedBy())) {
+        return a.systemAdmin(PermissionMatrix.CONTENT_WRITE) || isOrganizer(a.id(), e);
+    }
+
+    /**
+     * Sistem yoneticisi mudahalesi OLMADAN yonetebilir mi (canli kulup baglantisi). Kulup etkinliginde: kulupte
+     * MANAGE_EVENTS yetkisi (olusturan dahil: yasaklanmis/cikarilmis/yetkisi alinmis olusturan yonetemez) ya da ortak
+     * organizator olup HALA aktif kulup uyesi olmak. Kulupsuz (eski) etkinlikte: olusturan veya ortak organizator.
+     */
+    public boolean isOrganizer(Long userId, UserEvent e) {
+        boolean coOrg = coOrganizers != null && coOrganizers.isCoOrganizer(e.getId(), userId);
+        Long cid = e.getCommunityId();
+        if (cid == null) {
+            return userId.equals(e.getCreatedBy()) || coOrg;
+        }
+        if (communities.can(new Actor(userId, false), cid, ClubPermission.MANAGE_EVENTS)) {
             return true;
         }
-        if (coOrganizers != null && coOrganizers.isCoOrganizer(e.getId(), a.id())) {
-            return true;
-        }
-        return e.getCommunityId() != null
-                && communities.can(a, e.getCommunityId(), ClubPermission.MANAGE_EVENTS);
+        return coOrg && communities.roleOf(cid, userId).isPresent();
     }
 
     public UserEvent requireManager(Actor a, UserEvent e) {
         // Yonetici gizledigi etkinlik organizatore de gorunmez (gizleme yonetici islemidir).
-        if (e.getStatus() == UserEvent.Status.HIDDEN && !a.admin()) {
+        if (e.getStatus() == UserEvent.Status.HIDDEN && !a.systemAdmin(PermissionMatrix.CONTENT_WRITE)) {
             throw notFound();
         }
         if (!canManage(a, e)) {
             // Gorunmeyen (onay bekleyen/gizli topluluk) etkinligin varligi sizmasin: once 404, gorunenlerde 403.
             ensureVisible(a, e);
             throw new ApiException(HttpStatus.FORBIDDEN, "FORBIDDEN", "Bu işlem için etkinlik organizatörü olmalısınız.");
+        }
+        if (a.viaUserApi() && !isOrganizer(a.id(), e)) { // yetki yalniz sistem yoneticisi mudahalesinden geliyor
+            SystemAdminAudit.used(adminAudit, a, "EVENT", e.getId(), "etkinlik yonetimi");
         }
         return e;
     }
@@ -752,12 +794,12 @@ public class EventService {
     private UserEvent ensureVisible(Actor a, UserEvent e) {
         if (e.getStatus() != UserEvent.Status.ACTIVE) {
             // HIDDEN: yalnizca yoneticiye gorunur (organizator dahil herkese 404).
-            if ((e.getStatus() != UserEvent.Status.HIDDEN || a.admin()) && canManage(a, e)) {
+            if ((e.getStatus() != UserEvent.Status.HIDDEN || a.systemAdmin(PermissionMatrix.CONTENT_WRITE)) && canManage(a, e)) {
                 return e;
             }
             throw notFound();
         }
-        if (e.getCommunityId() != null && !a.admin()) {
+        if (e.getCommunityId() != null && !a.systemAdmin(PermissionMatrix.CONTENT_READ)) {
             Community c = communities.load(e.getCommunityId());
             boolean member = communities.roleOf(c.getId(), a.id()).isPresent();
             if (c.getStatus() != Community.Status.ACTIVE
@@ -864,6 +906,7 @@ public class EventService {
         Map<Long, Long> pending = admission == null || manageable.isEmpty() ? new HashMap<>()
                 : new HashMap<>(admission.pendingCounts(manageable));
         Set<Long> hideAvatar = communities.blockedFor(a); // engel iliskisi olanin avatari gorunmez
+        Map<Long, String> organizerAvatars = communities.avatarsFor(a.id(), organizers.values(), hideAvatar); // T-027
         List<EventView> out = new ArrayList<>();
         for (UserEvent e : list) {
             User o = organizers.get(e.getCreatedBy());
@@ -876,7 +919,7 @@ public class EventService {
                     manageable.contains(e.getId()), e.getCreatedAt(), e.isRegistrationClosed(),
                     policies.getOrDefault(e.getId(), edu.bingol.backend.event.admission.EventAdmission.Mode.OPEN),
                     new EventDtos.OrganizerView(e.getCreatedBy(), o == null ? null : o.getDisplayName(),
-                            o == null || hideAvatar.contains(e.getCreatedBy()) ? null : o.getAvatarUrl()),
+                            organizerAvatars.get(e.getCreatedBy())),
                     manageable.contains(e.getId()) ? pending.getOrDefault(e.getId(), 0L) : null,
                     e.getCommunityId() == null || clubs.get(e.getCommunityId()) == null ? null
                             : clubs.get(e.getCommunityId()).getLogoUrl(),
@@ -894,8 +937,10 @@ public class EventService {
     private Set<Long> manageableIds(List<UserEvent> list, Actor a) {
         Set<Long> out = new HashSet<>();
         List<UserEvent> rest = new ArrayList<>();
+        boolean sys = a.systemAdmin(PermissionMatrix.CONTENT_WRITE);
         for (UserEvent e : list) {
-            if (a.admin() || a.id().equals(e.getCreatedBy())) {
+            // Kulupsuz (eski) etkinlikte olusturan dogrudan; kulup etkinliginde canli kulup yetkisi aranir (T-041)
+            if (sys || (e.getCommunityId() == null && a.id().equals(e.getCreatedBy()))) {
                 out.add(e.getId());
             } else {
                 rest.add(e);
@@ -904,14 +949,20 @@ public class EventService {
         if (rest.isEmpty()) {
             return out;
         }
-        if (coOrganizers != null) {
-            out.addAll(coOrganizers.coOrganizedAmong(rest.stream().map(UserEvent::getId).toList(), a.id()));
-        }
+        Set<Long> coOrg = coOrganizers == null ? Set.of()
+                : coOrganizers.coOrganizedAmong(rest.stream().map(UserEvent::getId).toList(), a.id());
+        Actor member = new Actor(a.id(), false); // sistem yoneticisi kisayolu olmadan gercek kulup yetkisi
         Map<Long, Boolean> clubCan = new HashMap<>();
+        Map<Long, Boolean> clubMember = new HashMap<>();
         for (UserEvent e : rest) {
-            if (!out.contains(e.getId()) && e.getCommunityId() != null
-                    && clubCan.computeIfAbsent(e.getCommunityId(),
-                            c -> communities.can(a, c, ClubPermission.MANAGE_EVENTS))) {
+            Long cid = e.getCommunityId();
+            if (cid == null) {
+                if (coOrg.contains(e.getId())) {
+                    out.add(e.getId());
+                }
+            } else if (clubCan.computeIfAbsent(cid, c -> communities.can(member, c, ClubPermission.MANAGE_EVENTS))
+                    || (coOrg.contains(e.getId())
+                            && clubMember.computeIfAbsent(cid, c -> communities.roleOf(c, a.id()).isPresent()))) {
                 out.add(e.getId());
             }
         }

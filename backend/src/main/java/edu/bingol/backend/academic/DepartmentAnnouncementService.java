@@ -66,14 +66,30 @@ public class DepartmentAnnouncementService {
         field(sql, args, "a.grade", me.grade(), true);
     }
 
-    private static void field(StringBuilder sql, List<Object> args, String col, String value, boolean upper) {
-        if (value == null || value.isBlank()) {
+    /**
+     * Kapsam kosulu (T-042): bolum/fakulte {@link AudienceKey} anahtariyla (Java ve SQL ayni kural; "Isletme/Iktisat/
+     * Ilahiyat" gibi buyuk I-nokta ile baslayan adlar da eslesir), sinif BUYUK harf. Bos kullanici alani yalniz
+     * kapsamsiz duyuruyu eslestirir.
+     */
+    private static void field(StringBuilder sql, List<Object> args, String col, String value, boolean grade) {
+        String key = grade ? (value == null || value.isBlank() ? null : value.strip().toUpperCase(java.util.Locale.ROOT))
+                : AudienceKey.of(value);
+        if (key == null) {
             sql.append(" AND ").append(col).append(" IS NULL");
         } else {
-            sql.append(" AND (").append(col).append(" IS NULL OR ").append(upper ? "UPPER(" : "LOWER(").append(col).append(") = ?)");
-            args.add(upper ? value.strip().toUpperCase(java.util.Locale.ROOT) : value.strip().toLowerCase(java.util.Locale.ROOT));
+            sql.append(" AND (").append(col).append(" IS NULL OR ")
+                    .append(grade ? "UPPER(TRIM(" + col + "))" : AudienceKey.sql(col)).append(" = ?)");
+            args.add(key);
         }
     }
+
+    /** Bu duyuru kullanicinin kapsamina giriyor mu (SQL eki); get/markRead/akis tek kural (T-046, K-19). */
+    private static void scopeOf(StringBuilder sql, List<Object> args, AcademicAudience.Who me) {
+        audienceSql(sql, args, me);
+    }
+
+    /** Kapsamsiz duyuru (bolum, fakulte ve sinif bos): "Tumu" sekmesi yalniz bunlari listeler (K-19). */
+    private static final String UNSCOPED = " AND a.department IS NULL AND a.faculty IS NULL AND a.grade IS NULL";
 
     /** Hedef kitle (aktif kullanicilar): duyurunun bolum/fakulte/sinif alani bossa kisitsiz. */
     static List<Long> audienceIds(JdbcTemplate jdbc, String dept, String faculty, String grade) {
@@ -85,12 +101,17 @@ public class DepartmentAnnouncementService {
         return jdbc.queryForList(sql.toString(), Long.class, args.toArray());
     }
 
-    private static void userField(StringBuilder sql, List<Object> args, String col, String scope, boolean upper) {
+    private static void userField(StringBuilder sql, List<Object> args, String col, String scope, boolean grade) {
         if (scope == null || scope.isBlank()) {
             return;
         }
-        sql.append(" AND ").append(upper ? "UPPER(" : "LOWER(").append(col).append(") = ?");
-        args.add(upper ? scope.strip().toUpperCase(java.util.Locale.ROOT) : scope.strip().toLowerCase(java.util.Locale.ROOT));
+        if (grade) {
+            sql.append(" AND UPPER(TRIM(").append(col).append(")) = ?");
+            args.add(scope.strip().toUpperCase(java.util.Locale.ROOT));
+        } else {
+            sql.append(" AND ").append(AudienceKey.sql(col)).append(" = ?");
+            args.add(AudienceKey.of(scope));
+        }
     }
 
     public long audienceCount(String dept, String faculty, String grade) {
@@ -119,7 +140,9 @@ public class DepartmentAnnouncementService {
         StringBuilder sql = new StringBuilder(USER_SELECT).append("WHERE ").append(VISIBLE);
         List<Object> args = new ArrayList<>(List.of(uid, now, now));
         if (mine) {
-            audienceSql(sql, args, audience.of(uid));
+            scopeOf(sql, args, audience.of(uid));
+        } else {
+            sql.append(UNSCOPED); // K-19 (b): kapsam disi duyuru "Tumu"de de listelenmez/sizmaz
         }
         if (cursor != null && !cursor.isBlank()) {
             Cursor c = Cursor.parse(cursor);
@@ -168,7 +191,11 @@ public class DepartmentAnnouncementService {
     @Transactional
     public AnnouncementView get(Long uid, Long id) {
         Timestamp now = Timestamp.from(clock.instant());
-        List<AnnouncementView> r = jdbc.query(USER_SELECT + "WHERE a.id = ? AND " + VISIBLE, (rs, i) -> view(rs, true), uid, id, now, now);
+        // T-046: ID ile erisimde de kapsam kurali gecerli (kapsam disi / gizli duyuru 404)
+        StringBuilder sql = new StringBuilder(USER_SELECT).append("WHERE a.id = ? AND ").append(VISIBLE);
+        List<Object> args = new ArrayList<>(List.of(uid, id, now, now));
+        scopeOf(sql, args, audience.of(uid));
+        List<AnnouncementView> r = jdbc.query(sql.toString(), (rs, i) -> view(rs, true), args.toArray());
         if (r.isEmpty()) {
             throw notFound("ANNOUNCEMENT_NOT_FOUND", "Duyuru bulunamadı.");
         }
@@ -181,7 +208,10 @@ public class DepartmentAnnouncementService {
     @Transactional
     public void markRead(Long uid, Long id) {
         Timestamp now = Timestamp.from(clock.instant());
-        Long visible = jdbc.queryForObject("SELECT COUNT(*) FROM department_announcement a WHERE a.id = ? AND " + VISIBLE, Long.class, id, now, now);
+        StringBuilder vis = new StringBuilder("SELECT COUNT(*) FROM department_announcement a WHERE a.id = ? AND ").append(VISIBLE);
+        List<Object> vargs = new ArrayList<>(List.of(id, now, now));
+        scopeOf(vis, vargs, audience.of(uid));
+        Long visible = jdbc.queryForObject(vis.toString(), Long.class, vargs.toArray());
         if (visible == null || visible == 0) {
             throw notFound("ANNOUNCEMENT_NOT_FOUND", "Duyuru bulunamadı.");
         }

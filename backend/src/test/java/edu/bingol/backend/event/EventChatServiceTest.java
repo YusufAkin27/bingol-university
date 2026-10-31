@@ -43,10 +43,27 @@ class EventChatServiceTest {
     }
 
     @Test
-    void rsvpHolderEntersRoom() {
-        when(rsvps.findByEventIdAndUserId(5L, 3L)).thenReturn(Optional.of(new EventRsvp(5L, 3L, EventRsvp.Status.INTERESTED)));
+    void goingRsvpHolderEntersRoom() {
+        when(rsvps.findByEventIdAndUserId(5L, 3L)).thenReturn(Optional.of(new EventRsvp(5L, 3L, EventRsvp.Status.GOING)));
         assertSame(view, chat.open(user, 5L));
         verify(rooms).ensureRoom(RoomKind.EVENT, 5L, "Konferans", 99L);
+    }
+
+    /** T-045: INTERESTED (ilgileniyorum) onaysiz giris yolu degildir; APPROVAL modu atlanamaz. */
+    @Test
+    void interestedRsvpHolderIsRefusedAndNeverJoinsTheRoom() {
+        when(rsvps.findByEventIdAndUserId(5L, 3L)).thenReturn(Optional.of(new EventRsvp(5L, 3L, EventRsvp.Status.INTERESTED)));
+        ApiException e = assertThrows(ApiException.class, () -> chat.open(user, 5L));
+        assertEquals(HttpStatus.FORBIDDEN, e.status());
+        verify(rooms, never()).addMember(RoomKind.EVENT, 5L, 3L);
+        verify(rooms, never()).ensureRoom(RoomKind.EVENT, 5L, "Konferans", 99L);
+    }
+
+    /** Bekleyen (PENDING) basvuru da girmez. */
+    @Test
+    void pendingApplicantIsRefused() {
+        when(rsvps.findByEventIdAndUserId(5L, 3L)).thenReturn(Optional.of(new EventRsvp(5L, 3L, EventRsvp.Status.PENDING)));
+        assertEquals(HttpStatus.FORBIDDEN, assertThrows(ApiException.class, () -> chat.open(user, 5L)).status());
     }
 
     @Test

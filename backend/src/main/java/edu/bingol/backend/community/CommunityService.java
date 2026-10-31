@@ -2,6 +2,7 @@ package edu.bingol.backend.community;
 
 import edu.bingol.backend.moderation.profanity.ContentGuard;
 import edu.bingol.backend.moderation.profanity.ContentGuard.Entity;
+import edu.bingol.backend.admin.rbac.PermissionMatrix;
 import edu.bingol.backend.common.ApiException;
 import edu.bingol.backend.common.CursorPage;
 import edu.bingol.backend.community.extras.ClubExtrasHooks;
@@ -65,6 +66,14 @@ public class CommunityService {
     @org.springframework.beans.factory.annotation.Autowired(required = false)
     private edu.bingol.backend.community.category.CommunityCategoryService categoryService;
 
+    /** T-040: sistem yoneticisi mudahalesi denetimi (istege bagli: birim testlerinde yok). */
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setAdminAudit(SystemAdminAudit adminAudit) {
+        this.adminAudit = adminAudit;
+    }
+
+    private SystemAdminAudit adminAudit;
+
     void setCategoryService(edu.bingol.backend.community.category.CommunityCategoryService s) { // testler icin
         this.categoryService = s;
     }
@@ -75,6 +84,26 @@ public class CommunityService {
     @org.springframework.beans.factory.annotation.Autowired(required = false)
     void setVisibility(edu.bingol.backend.profile.privacy.AvatarVisibility visibility) {
         this.visibility = visibility;
+    }
+
+    /**
+     * T-027: avatar URL'lerinin TEK karar noktasi (kulup / etkinlik DTO'lari buradan alir): engel iliskisi (`hide`) +
+     * profil gizliligi (ONLY_ME / SHARED_CONTEXT) + moderasyon `avatar_hidden`. Gizlilik karari verilemiyorsa
+     * (visibility yok: yalniz birim testleri) kapali basarisiz olur, avatar gonderilmez. Anahtar yoksa avatar yok.
+     */
+    public Map<Long, String> avatarsFor(Long viewerId, Collection<User> us, Set<Long> hide) {
+        Map<Long, String> out = new HashMap<>();
+        if (visibility == null || us.isEmpty()) {
+            return out;
+        }
+        Set<Long> ok = visibility.visibleOwners(viewerId, us.stream().map(User::getId).toList(),
+                edu.bingol.backend.profile.privacy.AvatarVisibility.Field.AVATAR);
+        for (User u : us) {
+            if (u.getAvatarUrl() != null && ok.contains(u.getId()) && !hide.contains(u.getId())) {
+                out.put(u.getId(), u.getAvatarUrl());
+            }
+        }
+        return out;
     }
 
     /** Uye satirina eklenen profil bilgisi: bolum + sinif (gizlilik ayarina gore bakana acik olanlar). */
@@ -186,7 +215,7 @@ public class CommunityService {
     /** Yonetici silmesi (P06): ayni islem, uyelere "sahibi tarafindan" demeyen metinle; denetim detayina yonetici notu. */
     @Transactional
     public void deleteByAdmin(Actor admin, Long id, String reason) {
-        if (!admin.admin()) {
+        if (!admin.systemAdmin(PermissionMatrix.CONTENT_WRITE)) {
             throw new ApiException(HttpStatus.FORBIDDEN, "FORBIDDEN", "Bu işlem için yetkiniz yok.");
         }
         delete(admin, id, "notif.community.adminDeleted", "admin" + (reason == null ? "" : " reason=" + reason));
@@ -194,8 +223,12 @@ public class CommunityService {
 
     private void delete(Actor a, Long id, String notifKey, String auditDetail) {
         Community c = loadVisible(a, id);
-        if (!a.admin() && !c.getOwnerId().equals(a.id())) {
+        boolean owner = c.getOwnerId().equals(a.id());
+        if (!owner && !a.systemAdmin(PermissionMatrix.CONTENT_WRITE)) {
             throw new ApiException(HttpStatus.FORBIDDEN, "FORBIDDEN", "Bu işlem için topluluk sahibi olmalısınız.");
+        }
+        if (!owner) {
+            SystemAdminAudit.used(adminAudit, a, "COMMUNITY", id, "kulup silme");
         }
         String cover = c.getCoverUrl();
         String logo = c.getLogoUrl();
@@ -282,7 +315,7 @@ public class CommunityService {
      */
     @Transactional
     public CommunityView adminUpdate(Actor a, Long id, UpdateCommunityRequest r) {
-        if (!a.admin()) {
+        if (!a.systemAdmin(PermissionMatrix.CONTENT_WRITE)) {
             throw new ApiException(HttpStatus.FORBIDDEN, "FORBIDDEN", "Bu işlem için yetkiniz yok.");
         }
         return update(a, id, r, false);
@@ -537,7 +570,8 @@ public class CommunityService {
     /** ACTIVE ise herkes; degilse yalnizca sahip ve ADMIN gorur (digerlerine 404). */
     public Community loadVisible(Actor a, Long id) {
         Community c = load(id);
-        if (c.getStatus() != Community.Status.ACTIVE && !a.admin() && !c.getOwnerId().equals(a.id())) {
+        if (c.getStatus() != Community.Status.ACTIVE && !a.systemAdmin(PermissionMatrix.CONTENT_READ)
+                && !c.getOwnerId().equals(a.id())) {
             throw new ApiException(HttpStatus.NOT_FOUND, "COMMUNITY_NOT_FOUND", "Topluluk bulunamadı.");
         }
         return c;
@@ -551,7 +585,7 @@ public class CommunityService {
 
     /** ADMIN her toplulukta OWNER sayilir. */
     public Role effectiveRole(Actor a, Community c) {
-        return a.admin() ? Role.OWNER : roleOf(c.getId(), a.id()).orElse(null);
+        return a.systemAdmin(PermissionMatrix.CONTENT_WRITE) ? Role.OWNER : roleOf(c.getId(), a.id()).orElse(null);
     }
 
     /** Kulup yetkisi sorgusu (gonderi/etkinlik gibi diger servisler icin); sistem ADMIN'i her yetkiye sahip. */
@@ -612,11 +646,12 @@ public class CommunityService {
         return Paging.map(rows, s, CommunityMember::getId, items -> {
             Map<Long, User> u = usersById(items.stream().map(CommunityMember::getUserId).toList());
             Map<Long, ProfileExtra> extras = profileExtras(viewerId, u.values(), hideAvatar);
+            Map<Long, String> avatars = avatarsFor(viewerId, u.values(), hideAvatar);
             return items.stream().map(m -> {
                 User x = u.get(m.getUserId());
                 ProfileExtra pe = extras.getOrDefault(m.getUserId(), ProfileExtra.NONE);
                 return new MemberView(m.getUserId(), x == null ? "Kullanıcı" : x.getDisplayName(),
-                        x == null || hideAvatar.contains(m.getUserId()) ? null : x.getAvatarUrl(), m.getRole(), m.getJoinedAt(),
+                        avatars.get(m.getUserId()), m.getRole(), m.getJoinedAt(),
                         pe.department(), pe.classYear());
             }).toList();
         });
@@ -625,7 +660,7 @@ public class CommunityService {
     /** Toplu gorunum: uye sayilari ve benim uyeligim tek sorguyla. viewerId null ise uyelik "NONE". */
     private List<CommunityView> views(List<Community> list, Actor viewer) {
         Long viewerId = viewer == null ? null : viewer.id();
-        boolean viewerAdmin = viewer != null && viewer.admin();
+        boolean viewerAdmin = viewer != null && viewer.systemAdmin(PermissionMatrix.CONTENT_READ);
         if (list.isEmpty()) {
             return List.of();
         }

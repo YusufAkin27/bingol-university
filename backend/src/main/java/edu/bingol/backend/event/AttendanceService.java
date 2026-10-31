@@ -132,15 +132,22 @@ public class AttendanceService {
         userIds.addAll(recs.keySet());
         recs.values().forEach(r -> userIds.add(r.getMarkedBy()));
         Map<Long, User> users = communities.usersById(userIds);
+        // T-044: engel iliskisi olan cift listede gorunmez; bolum yalniz sahibinin gizlilik ayari izin veriyorsa
+        Set<Long> blocked = communities.blockedFor(a);
+        Map<Long, CommunityService.ProfileExtra> extras = communities.profileExtras(a.id(), users.values(), blocked);
 
         List<AttendanceRow> rows = new ArrayList<>();
         for (Long uid : unionOf(going.keySet(), recs.keySet())) {
+            if (blocked.contains(uid)) {
+                continue;
+            }
             User u = users.get(uid);
             EventAttendance r = recs.get(uid);
             EventRsvp rsvp = going.get(uid);
             User by = r == null ? null : users.get(r.getMarkedBy());
             rows.add(new AttendanceRow(uid, u == null || u.getDisplayName() == null ? "Kullanıcı" : u.getDisplayName(),
-                    u == null ? null : u.getDepartment(), rsvp == null ? null : rsvp.getStatus(),
+                    extras.getOrDefault(uid, CommunityService.ProfileExtra.NONE).department(),
+                    rsvp == null ? null : rsvp.getStatus(),
                     r != null && r.isPresent(), r == null ? null : r.getMethod(), r == null ? null : r.getMarkedBy(),
                     by == null ? null : by.getDisplayName(), r == null ? null : r.getMarkedAt()));
         }
@@ -149,7 +156,10 @@ public class AttendanceService {
         return rows;
     }
 
-    /** Tek kullaniciyi elle isaretler; RSVP'siz (kapidan gelen) kullanici da eklenebilir. */
+    /**
+     * Tek kullaniciyi elle isaretler. T-044: yalniz bu etkinlikte GOING olan (ya da zaten yoklama kaydi olan) kullanici;
+     * RSVP'siz keyfi kullanici kimligine sahte yoklama ve ad/bolum sizintisi olmasin (olmayan kimlikle ayni 404).
+     */
     @Transactional
     public void mark(Actor a, Long eventId, Long userId, boolean present, Instant now) {
         UserEvent e = events.requireManager(a, events.load(eventId));
@@ -211,6 +221,12 @@ public class AttendanceService {
     private void markOne(UserEvent e, Actor a, Long userId, boolean present, Instant now) {
         User u = communities.usersById(List.of(userId)).get(userId);
         if (u == null || u.getStatus() != UserStatus.ACTIVE) {
+            throw new ApiException(HttpStatus.NOT_FOUND, "USER_NOT_FOUND", "Kullanıcı bulunamadı.");
+        }
+        boolean hasRecord = attendance.findByEventIdAndUserId(e.getId(), userId).isPresent();
+        boolean going = rsvps.findByEventIdAndUserId(e.getId(), userId)
+                .map(r -> r.getStatus() == EventRsvp.Status.GOING).orElse(false);
+        if (!hasRecord && !going) {
             throw new ApiException(HttpStatus.NOT_FOUND, "USER_NOT_FOUND", "Kullanıcı bulunamadı.");
         }
         if (admission != null) {

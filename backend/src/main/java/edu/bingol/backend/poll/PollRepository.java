@@ -1,5 +1,6 @@
 package edu.bingol.backend.poll;
 
+import edu.bingol.backend.academic.AudienceKey;
 import jakarta.persistence.LockModeType;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -140,17 +141,25 @@ public interface PollRepository extends JpaRepository<Poll, Long>, JpaSpecificat
             SELECT COUNT(p) FROM Poll p WHERE p.status = :open
               AND p.opensAt <= :now AND (p.closesAt IS NULL OR p.closesAt > :now)
               AND (p.scope <> :community OR p.communityId IN :communityIds)
-              AND (:all = TRUE OR ((p.audienceFaculty IS NULL OR LOWER(TRIM(p.audienceFaculty)) = :fac)
-                   AND (p.audienceDepartment IS NULL OR LOWER(TRIM(p.audienceDepartment)) = :dep)
-                   AND (p.audienceGrade IS NULL OR LOWER(TRIM(p.audienceGrade)) = :grade)))
+              AND (:all = TRUE OR p.createdBy = :uid
+                   OR ((p.audienceFaculty IS NULL OR LOWER(FUNCTION('translate', TRIM(p.audienceFaculty), :tFrom, :tTo)) = :fac)
+                   AND (p.audienceDepartment IS NULL OR LOWER(FUNCTION('translate', TRIM(p.audienceDepartment), :tFrom, :tTo)) = :dep)
+                   AND (p.audienceGrade IS NULL OR UPPER(TRIM(p.audienceGrade)) = :grade)))
             """)
     long countOpenQuery(@Param("now") Instant now, @Param("communityIds") Collection<Long> communityIds,
                         @Param("open") Poll.Status open, @Param("community") Poll.Scope community,
-                        @Param("all") boolean all, @Param("fac") String fac, @Param("dep") String dep,
-                        @Param("grade") String grade);
+                        @Param("all") boolean all, @Param("uid") Long uid, @Param("fac") String fac,
+                        @Param("dep") String dep, @Param("grade") String grade, @Param("tFrom") String tFrom,
+                        @Param("tTo") String tTo);
 
-    default long countOpen(Instant now, Collection<Long> communityIds, boolean all, String fac, String dep, String grade) {
-        return countOpenQuery(now, communityIds, Poll.Status.OPEN, Poll.Scope.COMMUNITY, all, fac, dep, grade);
+    /**
+     * `fac`/`dep`: {@code AudienceKey.of} anahtari (bos profil = ayirici deger), `grade`: BUYUK harf. Olusturan kendi
+     * anketini listede gordugu icin sayaca da girer (liste = sayac mantigi, T-042).
+     */
+    default long countOpen(Instant now, Collection<Long> communityIds, boolean all, Long uid, String fac, String dep,
+                           String grade) {
+        return countOpenQuery(now, communityIds, Poll.Status.OPEN, Poll.Scope.COMMUNITY, all, uid, fac, dep, grade,
+                AudienceKey.fromChars(), AudienceKey.toChars());
     }
 
     /** Kapanmis anket sayisi (uyelik + hedef kitle). */
@@ -158,17 +167,37 @@ public interface PollRepository extends JpaRepository<Poll, Long>, JpaSpecificat
             SELECT COUNT(p) FROM Poll p
             WHERE (p.status = :closed OR (p.status = :open AND p.closesAt IS NOT NULL AND p.closesAt <= :now))
               AND (p.scope <> :community OR p.communityId IN :communityIds)
-              AND (:all = TRUE OR ((p.audienceFaculty IS NULL OR LOWER(TRIM(p.audienceFaculty)) = :fac)
-                   AND (p.audienceDepartment IS NULL OR LOWER(TRIM(p.audienceDepartment)) = :dep)
-                   AND (p.audienceGrade IS NULL OR LOWER(TRIM(p.audienceGrade)) = :grade)))
+              AND (:all = TRUE OR p.createdBy = :uid
+                   OR ((p.audienceFaculty IS NULL OR LOWER(FUNCTION('translate', TRIM(p.audienceFaculty), :tFrom, :tTo)) = :fac)
+                   AND (p.audienceDepartment IS NULL OR LOWER(FUNCTION('translate', TRIM(p.audienceDepartment), :tFrom, :tTo)) = :dep)
+                   AND (p.audienceGrade IS NULL OR UPPER(TRIM(p.audienceGrade)) = :grade)))
             """)
     long countClosedQuery(@Param("now") Instant now, @Param("communityIds") Collection<Long> communityIds,
                           @Param("open") Poll.Status open, @Param("closed") Poll.Status closed,
-                          @Param("community") Poll.Scope community, @Param("all") boolean all,
-                          @Param("fac") String fac, @Param("dep") String dep, @Param("grade") String grade);
+                          @Param("community") Poll.Scope community, @Param("all") boolean all, @Param("uid") Long uid,
+                          @Param("fac") String fac, @Param("dep") String dep, @Param("grade") String grade,
+                          @Param("tFrom") String tFrom, @Param("tTo") String tTo);
 
-    default long countClosed(Instant now, Collection<Long> communityIds, boolean all, String fac, String dep, String grade) {
-        return countClosedQuery(now, communityIds, Poll.Status.OPEN, Poll.Status.CLOSED, Poll.Scope.COMMUNITY, all, fac, dep, grade);
+    default long countClosed(Instant now, Collection<Long> communityIds, boolean all, Long uid, String fac, String dep,
+                             String grade) {
+        return countClosedQuery(now, communityIds, Poll.Status.OPEN, Poll.Status.CLOSED, Poll.Scope.COMMUNITY, all, uid,
+                fac, dep, grade, AudienceKey.fromChars(), AudienceKey.toChars());
+    }
+
+    /**
+     * Kulup silinince (T-047): kulubun taslak / acik anketleri tek ifadede iptal edilir (oylar kapanir, sonuclar kalir,
+     * kapanis/acilis bildirimi sorgulari yalniz OPEN'a baktigi icin bildirim de durur). Doner: etkilenen satir.
+     */
+    @Modifying(flushAutomatically = true, clearAutomatically = true)
+    @Query("""
+            UPDATE Poll p SET p.status = :cancelled, p.closedAt = :now, p.updatedAt = :now
+            WHERE p.communityId = :cid AND p.status IN (:open, :draft)""")
+    int cancelOfCommunityQuery(@Param("cid") Long communityId, @Param("now") Instant now,
+                               @Param("cancelled") Poll.Status cancelled, @Param("open") Poll.Status open,
+                               @Param("draft") Poll.Status draft);
+
+    default int cancelOfCommunity(Long communityId, Instant now) {
+        return cancelOfCommunityQuery(communityId, now, Poll.Status.CANCELLED, Poll.Status.OPEN, Poll.Status.DRAFT);
     }
 
     /** Olusturduklarim + oy verdiklerim sayisi. */

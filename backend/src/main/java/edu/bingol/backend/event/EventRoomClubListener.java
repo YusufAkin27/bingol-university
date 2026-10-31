@@ -14,7 +14,7 @@ import org.springframework.transaction.event.TransactionalEventListener;
 /**
  * Kulupten ayrilan/cikarilan/yasaklanan kisiyi o kulube bagli etkinliklerin sohbet odalarindan cikarir
  * (yalnizca uyelik satirlari; erisimde canli yetki kontrolu zaten vardir). Uyelik islemi commit olduktan sonra,
- * ayri transaction'da calisir; hata uyelik islemini etkilemez. Etkinligi kendisi olusturduysa odada kalir.
+ * ayri transaction'da calisir; hata uyelik islemini etkilemez. T-041: etkinligi kendisi olusturduysa da cikar.
  */
 @Component
 public class EventRoomClubListener {
@@ -33,7 +33,8 @@ public class EventRoomClubListener {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void onMemberLeft(ClubMemberLeftEvent e) {
         try {
-            for (Long eventId : events.idsByCommunityExcludingCreator(e.communityId(), e.userId())) {
+            // T-041: olusturan da cikarilir; kulup baglantisi kopunca organizator degildir (GOING ise odaya yeniden girer)
+            for (Long eventId : events.idsByCommunity(e.communityId())) {
                 rooms.removeMember(RoomKind.EVENT, eventId, e.userId());
             }
         } catch (RuntimeException ex) {

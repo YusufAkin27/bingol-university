@@ -1,5 +1,6 @@
 package edu.bingol.backend.event.extras;
 
+import edu.bingol.backend.admin.rbac.PermissionMatrix;
 import edu.bingol.backend.common.ApiException;
 import edu.bingol.backend.community.Actor;
 import edu.bingol.backend.community.CommunityService;
@@ -62,6 +63,11 @@ public class CoOrganizerService {
         if (blocks.isBlocked(a.id(), targetId)) {
             throw new ApiException(HttpStatus.NOT_FOUND, "USER_NOT_FOUND", "Kullanıcı bulunamadı.");
         }
+        // T-041: kulup etkinliginde ortak organizator kulubun AKTIF uyesi olmali (kulup disi kisiye yetki verilemez)
+        if (e.getCommunityId() != null && communities.roleOf(e.getCommunityId(), targetId).isEmpty()) {
+            throw new ApiException(HttpStatus.CONFLICT, "CO_ORGANIZER_NOT_MEMBER",
+                    "Ortak organizatör kulübün üyesi olmalıdır.");
+        }
         if (repo.existsByEventIdAndUserId(eventId, targetId)) {
             throw new ApiException(HttpStatus.CONFLICT, "CO_ORGANIZER_EXISTS", "Kullanıcı zaten ortak organizatör.");
         }
@@ -80,7 +86,8 @@ public class CoOrganizerService {
         }
         notifications.sendTemplate(targetId, ExtrasTemplates.CO_ORGANIZER_ADDED,
                 Map.of("eventId", eventId.toString()), null, e.getTitle());
-        return new CoOrganizerView(targetId, target.getDisplayName(), target.getAvatarUrl(), c.getCreatedAt());
+        return new CoOrganizerView(targetId, target.getDisplayName(),
+                communities.avatarsFor(a.id(), List.of(target), blocks.hiddenFrom(a.id())).get(targetId), c.getCreatedAt());
     }
 
     @Transactional
@@ -103,17 +110,26 @@ public class CoOrganizerService {
         List<CoOrganizer> rows = repo.findByEventIdOrderById(eventId);
         Map<Long, User> users = communities.usersById(rows.stream().map(CoOrganizer::getUserId).toList());
         Set<Long> hideAvatar = blocks.hiddenFrom(a.id());
+        Map<Long, String> avatars = communities.avatarsFor(a.id(), users.values(), hideAvatar); // T-027
         return rows.stream().map(c -> {
             User u = users.get(c.getUserId());
             return new CoOrganizerView(c.getUserId(), u == null ? "Kullanıcı" : u.getDisplayName(),
-                    u == null || hideAvatar.contains(c.getUserId()) ? null : u.getAvatarUrl(), c.getCreatedAt());
+                    avatars.get(c.getUserId()), c.getCreatedAt());
         }).toList();
     }
 
-    /** Sahip duzeyi: ADMIN, olusturan veya bagli toplulugun etkinlik yetkilisi (ortak organizator DEGIL). */
+    /**
+     * Sahip duzeyi: icerik yonetme izni olan sistem ADMIN'i, kulupsuz (eski) etkinligin olusturani ya da bagli kulubun
+     * etkinlik yetkilisi (ortak organizator DEGIL). T-041: kulup etkinliginde olusturan olmak tek basina yetmez.
+     */
     boolean ownerLevel(Actor a, UserEvent e) {
-        return a.admin() || e.getCreatedBy().equals(a.id())
-                || (e.getCommunityId() != null && communities.can(a, e.getCommunityId(), ClubPermission.MANAGE_EVENTS));
+        if (a.systemAdmin(PermissionMatrix.CONTENT_WRITE)) {
+            return true;
+        }
+        if (e.getCommunityId() == null) {
+            return e.getCreatedBy().equals(a.id());
+        }
+        return communities.can(new Actor(a.id(), false), e.getCommunityId(), ClubPermission.MANAGE_EVENTS);
     }
 
     private void requireOwnerLevel(Actor a, UserEvent e) {

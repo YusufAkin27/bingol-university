@@ -47,8 +47,11 @@ public class UserEvent {
     /** Bos = sinirsiz. */
     private Integer capacity;
 
-    /** GOING sayisi; yalnizca kosullu UPDATE'lerle (EventRepository) degisir. */
-    @Column(nullable = false)
+    /**
+     * GOING sayisi; yalnizca kosullu UPDATE'lerle (UserEventRepository) degisir. updatable=false: tam-varlik UPDATE'i
+     * (kayitlari kapat, baslik duzenle, kapak...) bayat okunmus sayaci ezip kapasiteyi asmasin (T-043).
+     */
+    @Column(nullable = false, updatable = false)
     private int goingCount;
 
     /** true: yeni RSVP/basvuru kabul edilmez; etkinlik gorunur kalir, mevcut RSVP'ler etkilenmez. */

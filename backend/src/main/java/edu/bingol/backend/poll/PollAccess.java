@@ -1,6 +1,10 @@
 package edu.bingol.backend.poll;
 
+import edu.bingol.backend.academic.AudienceKey;
+import edu.bingol.backend.admin.rbac.PermissionMatrix;
 import edu.bingol.backend.community.Actor;
+import edu.bingol.backend.community.Community;
+import edu.bingol.backend.community.CommunityRepository;
 import edu.bingol.backend.community.CommunityMember;
 import edu.bingol.backend.community.CommunityMemberRepository;
 import edu.bingol.backend.community.permissions.ClubPermissions;
@@ -28,21 +32,36 @@ public class PollAccess {
     private final CommunityMemberRepository members;
     private final ClubPermissions clubPermissions;
     private final JdbcTemplate jdbc;
+    private final CommunityRepository communities;
     private final Map<String, long[]> countCache = new ConcurrentHashMap<>();
 
-    public PollAccess(CommunityMemberRepository members, ClubPermissions clubPermissions, JdbcTemplate jdbc) {
+    public PollAccess(CommunityMemberRepository members, ClubPermissions clubPermissions, JdbcTemplate jdbc,
+                      CommunityRepository communities) {
         this.members = members;
         this.clubPermissions = clubPermissions;
         this.jdbc = jdbc;
+        this.communities = communities;
     }
 
-    /** Kullanicinin aktif uyesi oldugu kulup kimlikleri. */
+    /**
+     * Kullanicinin aktif uyesi oldugu YAYINDAKI (ACTIVE) kulup kimlikleri. T-047: silinen / yayindan kalkan kulubun
+     * anketi uyeye gorunmez ve oylanamaz (sistemde uyelik satirlari silme sonrasi da kalabilir).
+     */
     public Set<Long> memberCommunityIds(Long userId) {
         Set<Long> ids = new HashSet<>();
         for (CommunityMember m : members.mine(userId, CommunityMember.Status.ACTIVE, Long.MAX_VALUE, PageRequest.of(0, 1000))) {
             ids.add(m.getCommunityId());
         }
-        return ids;
+        if (ids.isEmpty()) {
+            return ids;
+        }
+        Set<Long> live = new HashSet<>();
+        for (Community c : communities.findAllById(ids)) {
+            if (c.getStatus() == Community.Status.ACTIVE) {
+                live.add(c.getId());
+            }
+        }
+        return live;
     }
 
     /** Sorgulara bos koleksiyon verilmesin diye yer tutucu eklenmis liste. */
@@ -54,8 +73,15 @@ public class PollAccess {
         return l;
     }
 
-    private static boolean ci(String want, String have) {
-        return want == null || (have != null && want.trim().equalsIgnoreCase(have.trim()));
+    /** Hedef alan kisitsiz (bos) ya da kullanici degeriyle AYNI anahtar (T-042: Turkce I/i/ı/İ ailesi tek kural). */
+    private static boolean keyMatch(String want, String have) {
+        String w = AudienceKey.of(want);
+        return w == null || w.equals(AudienceKey.of(have));
+    }
+
+    private static boolean gradeMatch(String want, String have) {
+        return want == null || want.isBlank()
+                || (have != null && want.strip().equalsIgnoreCase(have.strip()));
     }
 
     /** Hedef kitle (fakulte/bolum/sinif) kullanicinin profiliyle eslesiyor mu; bos alan kisitsiz. */
@@ -63,8 +89,8 @@ public class PollAccess {
         if (!p.hasAudience()) {
             return true;
         }
-        return u != null && ci(p.getAudienceFaculty(), u.getFaculty()) && ci(p.getAudienceDepartment(), u.getDepartment())
-                && ci(p.getAudienceGrade(), u.getGrade());
+        return u != null && keyMatch(p.getAudienceFaculty(), u.getFaculty())
+                && keyMatch(p.getAudienceDepartment(), u.getDepartment()) && gradeMatch(p.getAudienceGrade(), u.getGrade());
     }
 
     public boolean isActiveMember(Long communityId, Long userId) {
@@ -72,9 +98,9 @@ public class PollAccess {
                 .filter(CommunityMember::isActive).isPresent();
     }
 
-    /** Kulup yoneticisi (rol ADMIN/OWNER) ya da sistem yoneticisi. */
+    /** Kulup yoneticisi (rol ADMIN/OWNER) ya da icerik yonetme izni olan sistem yoneticisi (T-040). */
     public boolean isClubManager(Long communityId, Actor a) {
-        if (a.admin()) {
+        if (a.systemAdmin(PermissionMatrix.CONTENT_WRITE)) {
             return true;
         }
         return communityId != null && clubPermissions.standingOfUser(communityId, a.id())
@@ -83,7 +109,7 @@ public class PollAccess {
 
     /** Duzenleme/kapatma/silme: sistem yoneticisi, kulup yoneticisi ya da (kulupteyse hala uye olan) olusturan. */
     public boolean canManage(Poll p, Actor a) {
-        if (a.admin()) {
+        if (a.systemAdmin(PermissionMatrix.CONTENT_WRITE)) {
             return true;
         }
         if (p.getScope() == Poll.Scope.COMMUNITY) {
@@ -93,15 +119,23 @@ public class PollAccess {
         return a.id().equals(p.getCreatedBy());
     }
 
-    /** Gorebilir mi: taslak yalniz yonetene, kulup anketi yalniz uyelere/yonetene. */
-    public boolean canView(Poll p, Actor a, Set<Long> memberCids) {
+    /**
+     * Gorebilir mi: taslak yalniz yonetene, kulup anketi yalniz (yayindaki kulubun) uyelerine/yonetene, hedef kitleli
+     * anket yalniz kitleye uyana ya da yonetene (T-046: yalniz listede degil ID ile de ayni kural). {@code me} null ise
+     * kitle kisiti olan anket yalniz yonetene/okuma izinli sistem yoneticisine gorunur.
+     */
+    public boolean canView(Poll p, Actor a, Set<Long> memberCids, User me) {
+        if (canManage(p, a)) {
+            return true;
+        }
         if (p.getStatus() == Poll.Status.DRAFT) {
-            return canManage(p, a);
+            return false;
         }
-        if (p.getScope() == Poll.Scope.COMMUNITY) {
-            return a.admin() || memberCids.contains(p.getCommunityId()) || canManage(p, a);
+        boolean sysRead = a.systemAdmin(PermissionMatrix.CONTENT_READ);
+        if (p.getScope() == Poll.Scope.COMMUNITY && !sysRead && !memberCids.contains(p.getCommunityId())) {
+            return false;
         }
-        return true;
+        return sysRead || audienceMatches(p, me);
     }
 
     /** Oy vermeye uygun mu (uyelik + hedef kitle). */
@@ -131,18 +165,7 @@ public class PollAccess {
         }
         StringBuilder sql = new StringBuilder("SELECT COUNT(*) FROM app_user WHERE status = 'ACTIVE'");
         List<Object> args = new ArrayList<>();
-        if (p.getAudienceFaculty() != null) {
-            sql.append(" AND LOWER(faculty) = ?");
-            args.add(p.getAudienceFaculty().trim().toLowerCase(Locale.ROOT));
-        }
-        if (p.getAudienceDepartment() != null) {
-            sql.append(" AND LOWER(department) = ?");
-            args.add(p.getAudienceDepartment().trim().toLowerCase(Locale.ROOT));
-        }
-        if (p.getAudienceGrade() != null) {
-            sql.append(" AND LOWER(grade) = ?");
-            args.add(p.getAudienceGrade().trim().toLowerCase(Locale.ROOT));
-        }
+        audienceClauses(p, sql, args);
         Integer n = jdbc.queryForObject(sql.toString(), Integer.class, args.toArray());
         int v = n == null ? 0 : n;
         if (countCache.size() > 200) {
@@ -156,19 +179,26 @@ public class PollAccess {
     public List<Long> audienceUserIds(Poll p) {
         StringBuilder sql = new StringBuilder("SELECT id FROM app_user WHERE status = 'ACTIVE'");
         List<Object> args = new ArrayList<>();
-        if (p.getAudienceFaculty() != null) {
-            sql.append(" AND LOWER(faculty) = ?");
-            args.add(p.getAudienceFaculty().trim().toLowerCase(Locale.ROOT));
-        }
-        if (p.getAudienceDepartment() != null) {
-            sql.append(" AND LOWER(department) = ?");
-            args.add(p.getAudienceDepartment().trim().toLowerCase(Locale.ROOT));
-        }
-        if (p.getAudienceGrade() != null) {
-            sql.append(" AND LOWER(grade) = ?");
-            args.add(p.getAudienceGrade().trim().toLowerCase(Locale.ROOT));
-        }
+        audienceClauses(p, sql, args);
         return jdbc.queryForList(sql.toString(), Long.class, args.toArray());
+    }
+
+    /** Hedef kitle kosullari: Java {@link AudienceKey#of} ile ayni normalize (SQL: translate/lower), tek yer. */
+    private static void audienceClauses(Poll p, StringBuilder sql, List<Object> args) {
+        String fac = AudienceKey.of(p.getAudienceFaculty());
+        if (fac != null) {
+            sql.append(" AND ").append(AudienceKey.sql("faculty")).append(" = ?");
+            args.add(fac);
+        }
+        String dep = AudienceKey.of(p.getAudienceDepartment());
+        if (dep != null) {
+            sql.append(" AND ").append(AudienceKey.sql("department")).append(" = ?");
+            args.add(dep);
+        }
+        if (p.getAudienceGrade() != null && !p.getAudienceGrade().isBlank()) {
+            sql.append(" AND upper(trim(grade)) = ?");
+            args.add(p.getAudienceGrade().strip().toUpperCase(Locale.ROOT));
+        }
     }
 
     /** Aktif uyelerin kimlikleri (bildirim alicilari; COMMUNITY). */

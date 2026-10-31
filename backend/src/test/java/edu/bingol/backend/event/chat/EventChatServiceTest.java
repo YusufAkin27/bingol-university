@@ -60,6 +60,7 @@ class EventChatServiceTest {
         when(events.loadVisible(any(), eq(5L))).thenReturn(e);
         when(events.requireManager(organizer, e)).thenReturn(e);
         when(events.canManage(organizer, e)).thenReturn(true);
+        when(events.isOrganizer(10L, e)).thenReturn(true); // T-041: canli organizator (kulup baglantisi suruyor)
         when(eventRepo.findById(5L)).thenReturn(Optional.of(e));
         return e;
     }
@@ -186,12 +187,22 @@ class EventChatServiceTest {
 
     @Test
     void organizersStayInRoomOnLeave() {
-        activeEvent();
+        UserEvent e = activeEvent();
         openRoom();
         svc(false).onLeft(5L, 10L); // olusturan
-        when(coOrgs.existsByEventIdAndUserId(5L, 40L)).thenReturn(true);
+        when(events.isOrganizer(40L, e)).thenReturn(true);
         svc(false).onLeft(5L, 40L); // ortak organizator
         verify(rooms, never()).removeMember(any(), any(), any());
+    }
+
+    /** T-041: kulup baglantisini kaybeden olusturan artik "organizator her zaman odada" kuralindan yararlanmaz. */
+    @Test
+    void creatorWhoLostClubAuthorityIsRemovedOnLeave() {
+        UserEvent e = activeEvent();
+        openRoom();
+        when(events.isOrganizer(10L, e)).thenReturn(false);
+        svc(false).onLeft(5L, 10L);
+        verify(rooms).removeMember(RoomKind.EVENT, 5L, 10L);
     }
 
     @Test

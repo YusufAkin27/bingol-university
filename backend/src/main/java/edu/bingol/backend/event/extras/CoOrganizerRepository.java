@@ -21,4 +21,10 @@ public interface CoOrganizerRepository extends JpaRepository<CoOrganizer, Long> 
 
     @Query("SELECT c.eventId FROM CoOrganizer c WHERE c.userId = :uid AND c.eventId IN :ids")
     List<Long> coOrganizedAmong(@Param("ids") Collection<Long> eventIds, @Param("uid") Long userId);
+
+    /** T-041: kulupten dusen kisinin o kulubun etkinliklerindeki ortak organizator kayitlari. */
+    @org.springframework.data.jpa.repository.Modifying(flushAutomatically = true, clearAutomatically = true)
+    @Query("DELETE FROM CoOrganizer c WHERE c.userId = :uid AND c.eventId IN "
+            + "(SELECT e.id FROM UserEvent e WHERE e.communityId = :cid)")
+    int deleteMemberOfCommunityEvents(@Param("cid") Long communityId, @Param("uid") Long userId);
 }

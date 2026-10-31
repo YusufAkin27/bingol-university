@@ -19,7 +19,7 @@ class EventRoomClubListenerTest {
 
     @Test
     void removesLeavingMemberFromClubEventRooms() {
-        when(events.idsByCommunityExcludingCreator(10L, 7L)).thenReturn(List.of(100L, 101L));
+        when(events.idsByCommunity(10L)).thenReturn(List.of(100L, 101L));
 
         listener.onMemberLeft(new ClubMemberLeftEvent(10L, 7L));
 
@@ -29,7 +29,7 @@ class EventRoomClubListenerTest {
 
     @Test
     void roomFailureDoesNotLeak() {
-        when(events.idsByCommunityExcludingCreator(10L, 7L)).thenReturn(List.of(100L));
+        when(events.idsByCommunity(10L)).thenReturn(List.of(100L));
         when(rooms.removeMember(RoomKind.EVENT, 100L, 7L)).thenThrow(new IllegalStateException("db"));
 
         listener.onMemberLeft(new ClubMemberLeftEvent(10L, 7L));

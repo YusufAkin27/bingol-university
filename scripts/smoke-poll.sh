@@ -87,6 +87,46 @@ check "yonetici kapatir" 200 "$(code -X POST -H "$AD" $A/admin/polls/$P2/close)"
 check "kapali ankete oy 409" 409 "$(code -X POST -H "$AB" -H "$H" $A/polls/$P2/vote -d "{\"optionIds\":[$X]}")"
 curl -s -H "$AB" $A/polls/$P2 | has '"resultsVisible":true' && echo "  ok   kapaninca sonuc acik" || { echo "  FAIL kapanis sonucu"; FAIL=1; }
 
+echo "== hedef kitle ID ile de gecerli, CSV sonuc kurali, kulup silinince anket (W1-F)"
+# ASCII betik: Turkce harfler JSON \u kacisiyla (buyuk I-nokta: T-042)
+curl -s -o /dev/null -X PATCH -H "$H" -H "$AA" $A/users/me -d '{"faculty":"\u0130ktisadi ve \u0130dari Bilimler Fak\u00fcltesi","department":"\u0130\u015fletme","grade":"2"}'
+curl -s -o /dev/null -X PATCH -H "$H" -H "$AB" $A/users/me -d '{"faculty":"Hukuk Fak\u00fcltesi","department":"Hukuk","grade":"2"}'
+R4=$(curl -s -X POST -H "$AD" -H "$H" $A/polls -d "{\"title\":\"Kitle $SFX\",\"options\":[\"E\",\"H\"],\"closesAt\":\"$CLOSES\",\"audience\":{\"department\":\"i\u015fletme\"}}")
+P4=$(echo "$R4" | jid)
+[ -n "$P4" ] || { echo "  FAIL kitle anketi olusmadi: $R4"; FAIL=1; }
+check "bolumdeki kullanici ID ile gorur" 200 "$(code -H "$AA" $A/polls/$P4)"
+check "baska bolum ID ile 404" 404 "$(code -H "$AB" $A/polls/$P4)"
+curl -s -H "$AA" "$A/polls?scope=open&size=50" | has "\"id\":$P4," && echo "  ok   Isletme kullanicisinin acik listesinde" || { echo "  FAIL Isletme kullanicisi listede yok"; FAIL=1; }
+curl -s -H "$AB" "$A/polls?scope=open&size=50" | has "\"id\":$P4," && { echo "  FAIL Hukuk kullanicisi listede"; FAIL=1; } || echo "  ok   Hukuk kullanicisinin listesinde yok"
+check "kitle disi oy 404" 404 "$(code -X POST -H "$AB" -H "$H" $A/polls/$P4/vote -d '{"optionIds":[1]}')"
+curl -s -H "$AD" $A/admin/polls/$P4 | has '"eligible":[1-9]' && echo "  ok   uygun kisi sayisi >= 1 (Isletme)" || { echo "  FAIL turnout.eligible: $(curl -s -H "$AD" $A/admin/polls/$P4)"; FAIL=1; }
+R5=$(curl -s -X POST -H "$AD" -H "$H" $A/polls -d "{\"title\":\"CSV $SFX\",\"options\":[\"E\",\"H\"],\"showResults\":\"AFTER_CLOSE\",\"closesAt\":\"$CLOSES\"}")
+P5=$(echo "$R5" | jid)
+check "AFTER_CLOSE: kapanmadan kullanici ucundan CSV 409" 409 "$(code -H "$AD" $A/polls/$P5/export.csv)"
+check "yonetici kapatir (P5)" 200 "$(code -X POST -H "$AD" $A/admin/polls/$P5/close)"
+check "kapaninca CSV 200" 200 "$(code -H "$AD" $A/polls/$P5/export.csv)"
+call_c() { curl -s -X "$1" -H "$H" -H "$2" "$A$3" ${4:+-d "$4"}; }
+CL=$(call_c POST "$AA" /communities "{\"name\":\"Anket Kulubu $SFX\",\"description\":\"x\",\"category\":\"teknoloji\",\"joinPolicy\":\"OPEN\"}")
+CLID=$(echo "$CL" | jid)
+if [ -n "$CLID" ]; then
+  check "uye katilir" 200 "$(code -X POST -H "$AB" -H "$H" $A/communities/$CLID/join -d '{}')"
+  R6=$(curl -s -X POST -H "$AA" -H "$H" $A/polls -d "{\"title\":\"Kulup anketi $SFX\",\"scope\":\"COMMUNITY\",\"communityId\":$CLID,\"options\":[\"E\",\"H\"],\"closesAt\":\"$CLOSES\"}")
+  P6=$(echo "$R6" | jid)
+  O6=$(echo "$R6" | grep -o '"options":\[{"id":[0-9]*' | grep -o '[0-9]*$')
+  [ -n "$P6" ] || { echo "  FAIL kulup anketi olusmadi: $R6"; FAIL=1; }
+  check "kulup silinmeden uye gorur" 200 "$(code -H "$AB" $A/polls/$P6)"
+  check "kulup siler" 204 "$(code -X DELETE -H "$AA" $A/communities/$CLID)"
+  sleep 1
+  check "silinen kulubun anketi uyeye kapali" 404 "$(code -H "$AB" $A/polls/$P6)"
+  check "silinen kulup anketine oy yok" 404 "$(code -X POST -H "$AB" -H "$H" $A/polls/$P6/vote -d "{\"optionIds\":[$O6]}")"
+  curl -s -H "$AD" $A/admin/polls/$P6 | has '"status":"CANCELLED"' && echo "  ok   kulup anketi iptal edildi" || { echo "  FAIL anket iptal edilmedi: $(curl -s -H "$AD" $A/admin/polls/$P6)"; FAIL=1; }
+else
+  echo "  not  kulup olusmadi (auto-approve kapali olabilir); kulup silme adimlari atlandi"
+fi
+curl -s -o /dev/null -X DELETE -H "$AD" $A/admin/polls/$P4
+curl -s -o /dev/null -X DELETE -H "$AD" $A/admin/polls/$P5
+[ -n "${P6:-}" ] && curl -s -o /dev/null -X DELETE -H "$AD" $A/admin/polls/$P6
+
 echo "== puanlama (RATING) ve menu anketi"
 R3=$(curl -s -X POST -H "$AD" -H "$H" $A/polls -d "{\"title\":\"Puan $SFX\",\"type\":\"RATING\",\"closesAt\":\"$CLOSES\"}")
 P3=$(echo "$R3" | jid)

@@ -9,7 +9,8 @@ public final class AudienceMatch {
         if (scope == null || scope.isBlank()) {
             return true;
         }
-        return userValue != null && scope.strip().equalsIgnoreCase(userValue.strip());
+        // T-042: Turkce I/i/ı/İ ailesi (Isletme, Iktisat, Ilahiyat...) tek kuralla; equalsIgnoreCase 'İ' ile 'i' ni eslemez
+        return userValue != null && AudienceKey.same(scope, userValue);
     }
 
     public static boolean matches(String scopeDepartment, String scopeFaculty, String scopeGrade,

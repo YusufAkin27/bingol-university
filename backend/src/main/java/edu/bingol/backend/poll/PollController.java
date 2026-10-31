@@ -1,6 +1,5 @@
 package edu.bingol.backend.poll;
 
-import edu.bingol.backend.common.CurrentUser;
 import edu.bingol.backend.common.RateLimiter;
 import edu.bingol.backend.community.Actor;
 import edu.bingol.backend.poll.PollDtos.CreateRequest;
@@ -114,7 +113,7 @@ public class PollController {
     }
 
     private Actor read() {
-        Actor a = new Actor(CurrentUser.id(), CurrentUser.isAdmin());
+        Actor a = Actor.current();
         limiter.check("poll:read:" + a.id(), 120, Duration.ofMinutes(1));
         return a;
     }

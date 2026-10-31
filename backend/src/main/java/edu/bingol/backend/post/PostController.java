@@ -1,7 +1,10 @@
 package edu.bingol.backend.post;
 
+import edu.bingol.backend.admin.rbac.PermissionMatrix;
 import edu.bingol.backend.common.CurrentUser;
 import edu.bingol.backend.common.RateLimiter;
+import edu.bingol.backend.community.Actor;
+import edu.bingol.backend.community.SystemAdminAudit;
 import edu.bingol.backend.post.PostDtos.CreatePostRequest;
 import edu.bingol.backend.post.PostDtos.FeedPage;
 import edu.bingol.backend.post.PostDtos.PostView;
@@ -31,6 +34,14 @@ public class PostController {
     public PostController(PostService service, RateLimiter limiter) {
         this.service = service;
         this.limiter = limiter;
+    }
+
+    /** T-040: sistem yoneticisi mudahalesi denetimi (istege bagli). */
+    private SystemAdminAudit adminAudit;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setAdminAudit(SystemAdminAudit adminAudit) {
+        this.adminAudit = adminAudit;
     }
 
     @PostMapping("/posts")
@@ -68,7 +79,13 @@ public class PostController {
     public void delete(@PathVariable Long id) {
         Long uid = CurrentUser.id();
         limiter.check("post:write:" + uid, 30, Duration.ofMinutes(1));
-        service.delete(uid, id, CurrentUser.isAdmin());
+        // T-040: yalniz ROLE_ADMIN yetmez; gonderi kaldirma (content.hide) izni olan profil baskasinin gonderisini siler
+        // ve bu mudahale admin_audit'e yazilir (yazarin kendi silmesinde de kayit dusulebilir: yazar bilgisi burada yok)
+        boolean override = CurrentUser.hasAdminPermission(PermissionMatrix.CONTENT_HIDE);
+        service.delete(uid, id, override);
+        if (override) {
+            SystemAdminAudit.used(adminAudit, Actor.current(), "POST", id, "gonderi silme");
+        }
     }
 
     @GetMapping("/users/{id}/posts")

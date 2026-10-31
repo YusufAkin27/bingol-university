@@ -48,6 +48,8 @@ T2=$(register "kuye$SFX@bingol.edu.tr" "Kulup Uyesi")
 T3=$(register "kistek$SFX@bingol.edu.tr" "Istekci Kisi")
 [ -n "$T1" ] && [ -n "$T2" ] && [ -n "$T3" ] || { echo "kayit basarisiz"; exit 1; }
 ID2=$(curl -s -H "Authorization: Bearer $T2" $A/users/me | idof)
+T_OUT=$(register "kdisi$SFX@bingol.edu.tr" "Kulup Disi")
+ID_OUT=$(curl -s -H "Authorization: Bearer $T_OUT" $A/users/me | idof)
 
 echo "== kulup kur (auto-approve) ve duzenle"
 call POST /communities "$T1" "{\"name\":\"Yasam Dongusu $SFX\",\"description\":\"ilk\",\"category\":\"teknoloji\"}"
@@ -139,6 +141,21 @@ echo "== etkinlik iptal"
 step "iptal (POST cancel)" 204 POST /events/$EV/cancel "$T1"
 call GET /events/$EV "$T1"
 contains "CANCELLED" "CANCELLED" "$BODY"
+
+echo "== kulupten cikarilan olusturan etkinligi yonetemez (T-041)"
+step "T2 moderator yapildi" 204 PUT /communities/$CID/members/$ID2/role "$T1" '{"role":"MODERATOR"}'
+call POST /events "$T2" "{\"title\":\"Moderator Etkinligi $SFX\",\"startsAt\":\"$S\",\"endsAt\":\"$E\",\"communityId\":$CID}"
+check "moderator etkinlik acar" 201 "$CODE"
+EV3=$(printf '%s' "$BODY" | idof)
+step "olusturan katilimci listesini gorur" 200 GET /events/$EV3/attendees "$T2"
+step "yabanci ortak organizator ekleyemez" 403 POST /events/$EV3/co-organizers "$T3" "{\"userId\":$ID2}"
+step "sahip kulup disi kisiyi ortak organizator yapamaz" 409 POST /events/$EV3/co-organizers "$T1" "{\"userId\":$ID_OUT}"
+contains "CO_ORGANIZER_NOT_MEMBER" "CO_ORGANIZER_NOT_MEMBER" "$BODY"
+step "sahip T2'yi yasaklar" 204 DELETE "/communities/$CID/members/$ID2?ban=true" "$T1"
+step "yasakli olusturan katilimci listesini goremez" 403 GET /events/$EV3/attendees "$T2"
+step "yasakli olusturan yoklama listesini goremez" 403 GET /events/$EV3/attendance "$T2"
+step "yasakli olusturan seri acamaz" 403 POST /events/$EV3/series "$T2" '{"count":1}'
+step "yasakli olusturan duyuru yapamaz" 403 POST /events/$EV3/announcements "$T2" '{"title":"x","message":"y"}'
 
 echo "== kulup sil"
 call POST /events "$T1" "{\"title\":\"Silinecek Etkinlik $SFX\",\"startsAt\":\"$S\",\"endsAt\":\"$E\",\"communityId\":$CID}"

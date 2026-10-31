@@ -285,6 +285,8 @@ step "elle isaretle: yabanci 403" 403 PUT /events/$EV/attendance/$ID4 "$T3" '{"p
 step "elle isaretle: yok yaz" 204 PUT /events/$EV/attendance/$ID4 "$T2" '{"present":false}'
 step "listede yok + MANUAL" 200 GET /events/$EV/attendance "$T2"
 contains "MANUAL" '"method":"MANUAL"' "$BODY"
+step "RSVP'siz kullaniciya elle yoklama yazilamaz 404 (T-044)" 404 PUT /events/$EV/attendance/$ID3 "$T2" '{"present":true}'
+step "T3 katilacagim (kapidan gelen once kayit olur)" 200 PUT /events/$EV/rsvp "$T3" '{"status":"GOING"}'
 step "QR ile gelmemis (T3) elle ekle" 204 PUT /events/$EV/attendance/$ID3 "$T2" '{"present":true}'
 step "toplu isaretle" 200 POST /events/$EV/attendance/bulk "$T2" "{\"entries\":[{\"userId\":$ID4,\"present\":true},{\"userId\":$ID3,\"present\":false}]}"
 contains "2 guncellendi" '"updated":2' "$BODY"

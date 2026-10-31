@@ -57,11 +57,12 @@ public class ClubMemberSearchService {
         return Paging.map(rows, s, CommunityMember::getId, items -> {
             Map<Long, User> users = communities.usersById(items.stream().map(CommunityMember::getUserId).toList());
             Map<Long, CommunityService.ProfileExtra> extras = communities.profileExtras(a.id(), users.values(), hideAvatar);
+            Map<Long, String> avatars = communities.avatarsFor(a.id(), users.values(), hideAvatar); // T-027
             return items.stream().map(m -> {
                 User u = users.get(m.getUserId());
                 CommunityService.ProfileExtra pe = extras.getOrDefault(m.getUserId(), CommunityService.ProfileExtra.NONE);
                 return new MemberView(m.getUserId(), u == null ? "Kullanıcı" : u.getDisplayName(),
-                        u == null || hideAvatar.contains(m.getUserId()) ? null : u.getAvatarUrl(), m.getRole(), m.getJoinedAt(),
+                        avatars.get(m.getUserId()), m.getRole(), m.getJoinedAt(),
                         pe.department(), pe.classYear());
             }).toList();
         });
