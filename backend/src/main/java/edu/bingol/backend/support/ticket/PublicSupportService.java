@@ -180,9 +180,14 @@ public class PublicSupportService {
     @Scheduled(cron = "${app.support.cleanup-cron:0 30 3 * * *}", zone = "Europe/Istanbul")
     public void scheduledCleanup() {
         try {
-            cleanup(Instant.now());
+            int n = cleanup(Instant.now());
+            if (n > 0) {
+                log.info("Herkese acik destek temizligi: {} talep silindi", n);
+            }
         } catch (RuntimeException e) {
+            // T-020: hata yutulmaz; zamanlayici gozlemi (JobMonitor, bu.scheduler.errors) ve sistem durumu gorsun
             log.error("Herkese acik talep temizligi basarisiz: {}", e.toString());
+            throw e;
         }
     }
 

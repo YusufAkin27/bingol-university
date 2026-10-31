@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.transaction.annotation.Transactional;
 
 public interface TicketRepository extends JpaRepository<SupportTicket, Long>, JpaSpecificationExecutor<SupportTicket> {
 
@@ -32,10 +33,14 @@ public interface TicketRepository extends JpaRepository<SupportTicket, Long>, Jp
             + "AND t.contactEmail = :email ORDER BY t.id DESC")
     List<SupportTicket> pendingByEmail(@Param("email") String email, Pageable pageable);
 
+    // T-020: @Modifying silme islem ister; aynı sinif ici cagri (scheduledCleanup -> cleanup) proxy'yi dolandigindan
+    // islemi depo yontemi kendisi acar (hangi yoldan cagrilirsa cagrilsin calisir)
+    @Transactional
     @Modifying
     @Query("DELETE FROM SupportTicket t WHERE t.publicTicket = true AND t.emailVerified = false AND t.createdAt < :before")
     int deleteUnverifiedBefore(@Param("before") Instant before);
 
+    @Transactional
     @Modifying
     @Query("DELETE FROM SupportTicket t WHERE t.publicTicket = true AND t.updatedAt < :before")
     int deletePublicUpdatedBefore(@Param("before") Instant before);
