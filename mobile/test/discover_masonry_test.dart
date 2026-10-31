@@ -1,3 +1,4 @@
+import 'package:bu_kampus/widgets/bu.dart' show LucideIcons;
 import 'package:bu_kampus/features/discover/discover_masonry.dart';
 import 'package:bu_kampus/features/discover/discover_tab.dart';
 import 'package:bu_kampus/features/posts/post_detail_page.dart';
@@ -72,6 +73,11 @@ void main() {
       b.on('/users/31/follow', {'following': true, 'followerCount': 3});
       await tester.pumpWidget(buildApp(discover(b)));
       await settle(tester, const Duration(milliseconds: 600));
+      // Oneri seridi akisin icinde (3. gonderiden sonra); yalniz oraya kaydirilinca kurulur ve istek atar.
+      expect(find.text('Tanıyor Olabilirsin'), findsNothing);
+      expect(b.requests.any((r) => r.contains('follow-suggestions')), isFalse);
+      await tester.scrollUntilVisible(find.text('Tanıyor Olabilirsin'), 300, scrollable: find.byType(Scrollable).first);
+      await settle(tester, const Duration(milliseconds: 600));
       expect(find.text('Tanıyor Olabilirsin'), findsOneWidget);
       expect(find.text('Deniz Aksoy'), findsOneWidget);
       expect(find.text('Takip Et'), findsWidgets);
@@ -86,11 +92,14 @@ void main() {
       b2.on('/users/me/follow-suggestions*', {'items': <Object>[]});
       await tester.pumpWidget(buildApp(discover(b2)));
       await settle(tester, const Duration(milliseconds: 600));
+      await tester.drag(find.byType(CustomScrollView).last, const Offset(0, -1500));
+      await settle(tester, const Duration(milliseconds: 600));
+      expect(b2.requests.any((r) => r.contains('follow-suggestions')), isTrue);
       expect(find.byKey(const ValueKey('discoverSuggestions')), findsNothing);
       noErr(tester);
     });
 
-    testWidgets('kart: yazar adi + metin alt yazisi; gorselli gonderi 4:3 tam genislik fotograf', (tester) async {
+    testWidgets('kart: yazar adi + metin alt yazisi; gorselli gonderi 4:5 sabit oranli fotograf', (tester) async {
       useScreen(tester, const Size(390, 844));
       final b = FakeBackend();
       fakePosts(b);
@@ -102,8 +111,8 @@ void main() {
       expect(photo, findsOneWidget);
       final card = tester.getSize(find.byKey(const ValueKey('discover-post-999')));
       final ph = tester.getSize(find.ancestor(of: photo, matching: find.byType(AspectRatio)).first);
-      expect(ph.width, card.width);
-      expect((ph.width / ph.height - 4 / 3).abs(), lessThan(0.01));
+      expect(ph.width, card.width - 20); // kart ici bosluk 10 + 10
+      expect((ph.width / ph.height - 4 / 5).abs(), lessThan(0.01));
       noErr(tester);
     });
 
@@ -154,6 +163,9 @@ void main() {
       expect(r.value, isNull);
       expect(find.byKey(const ValueKey('discoverSearch')), findsOneWidget);
       expect(find.byTooltip('Gönderi oluştur'), findsOneWidget);
+      // Anketler Ana Sayfa Hizli Erisim'e tasindi: Kesfet'te anket dugmesi yok.
+      expect(find.byTooltip('Anketler'), findsNothing);
+      expect(find.byIcon(LucideIcons.vote), findsNothing);
       r.value = 'DUYURU';
       expect(r.value, isNull);
       noErr(tester);

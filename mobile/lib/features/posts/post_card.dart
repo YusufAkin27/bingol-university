@@ -9,7 +9,10 @@ import 'post_actions.dart';
 import 'post_models.dart';
 import 'post_routes.dart';
 
-/// Gönderinin tek fotoğrafı: yetkili medya uçları için Bearer başlığı ile yüklenir. Oran 4:5 (tasarım 17).
+/// Gönderinin tek fotoğrafı: yetkili medya uçları için Bearer başlığı ile yüklenir. Oran varsayılan 4:5 (tasarım 17).
+/// Çözümleme genişliği ekrana göre sınırlıdır (en çok 1080 px): bellek ve çözme süresi küçük kalır.
+/// [progressive] açıkken (Keşfet akışı) önce küçük resim (`thumbUrl`) hemen gelir, tam boy sonra üstüne yumuşakça
+/// belirir (hareket azaltılmışsa anında). Küçük resim yoksa düz zemin → tam boy geçişi yapılır.
 class PostPhoto extends StatelessWidget {
   const PostPhoto({
     super.key,
@@ -17,38 +20,70 @@ class PostPhoto extends StatelessWidget {
     required this.post,
     this.radius = BuRadius.lg,
     this.aspectRatio = 4 / 5,
+    this.progressive = false,
   });
 
   final Session session;
   final Post post;
   final double radius;
   final double aspectRatio;
+  final bool progressive;
+
+  /// Küçük resmin (sunucu: uzun kenar >= 480 px) çözüm genişliği.
+  static const _thumbPx = 480;
 
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
     final m = post.photo;
     if (m == null) return const SizedBox.shrink();
+    final dpr = MediaQuery.devicePixelRatioOf(context);
+    final headers = postAuthHeaders(session);
+    final thumb = progressive ? m.thumbUrl : null;
     return ClipRRect(
       borderRadius: BorderRadius.circular(radius),
       child: AspectRatio(
         aspectRatio: aspectRatio,
-        child: Semantics(
-          image: true,
-          label: context.l10n.postComposePhoto,
-          child: ColoredBox(
-            color: t.sf2,
-            // Disk destekli: Keşfet fotoğrafları ikinci açılışta ağdan değil diskten gelir (çıkışta silinir).
-            child: Image(
-              image: persistentNetworkImage(m.url, headers: postAuthHeaders(session), cacheWidth: 1000),
-              key: ValueKey('post-photo-${post.id}'),
-              fit: BoxFit.cover,
-              gaplessPlayback: true,
-              errorBuilder: (_, __, ___) =>
-                  Center(child: Icon(LucideIcons.image, color: t.mut)),
+        child: LayoutBuilder(builder: (context, c) {
+          final w = c.maxWidth.isFinite ? c.maxWidth : 390.0;
+          final px = (w * dpr).ceil().clamp(320, 1080);
+          final fade = BuMotion.of(context, BuMotion.medium);
+          return Semantics(
+            image: true,
+            label: context.l10n.postComposePhoto,
+            child: ColoredBox(
+              color: t.sf2,
+              child: Stack(fit: StackFit.expand, children: [
+                if (thumb != null)
+                  Image(
+                    image: persistentNetworkImage(thumb, headers: headers, cacheWidth: px < _thumbPx ? px : _thumbPx),
+                    key: ValueKey('post-thumb-${post.id}'),
+                    fit: BoxFit.cover,
+                    gaplessPlayback: true,
+                    excludeFromSemantics: true,
+                    errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                  ),
+                // Disk destekli: Keşfet fotoğrafları ikinci açılışta ağdan değil diskten gelir (çıkışta silinir).
+                Image(
+                  image: persistentNetworkImage(m.url, headers: headers, cacheWidth: px),
+                  key: ValueKey('post-photo-${post.id}'),
+                  fit: BoxFit.cover,
+                  gaplessPlayback: true,
+                  frameBuilder: (context, child, frame, sync) => sync
+                      ? child
+                      : AnimatedOpacity(
+                          opacity: frame == null ? 0 : 1,
+                          duration: fade,
+                          curve: BuMotion.standard,
+                          child: child,
+                        ),
+                  errorBuilder: (_, __, ___) =>
+                      thumb != null ? const SizedBox.shrink() : Center(child: Icon(LucideIcons.image, color: t.mut)),
+                ),
+              ]),
             ),
-          ),
-        ),
+          );
+        }),
       ),
     );
   }

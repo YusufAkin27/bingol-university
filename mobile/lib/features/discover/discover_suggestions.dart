@@ -8,8 +8,8 @@ import '../posts/post_models.dart';
 import '../posts/social_api.dart';
 import '../posts/social_models.dart';
 
-/// Keşfet: "Tanıyor Olabilirsin" yatay kart şeridi (`GET /users/me/follow-suggestions`). Öneri yoksa ya da yüklenemezse
-/// bölüm hiç görünmez (akış boş bir başlıkla başlamasın).
+/// Keşfet: "Tanıyor Olabilirsin" yatay kart şeridi (`GET /users/me/follow-suggestions`). Akışın içine girer (ilk
+/// çizimi geciktirmesin diye istek yalnız şerit kurulunca atılır). Öneri yoksa ya da yüklenemezse bölüm görünmez.
 class DiscoverSuggestions extends StatefulWidget {
   const DiscoverSuggestions({super.key, required this.session});
 
@@ -47,20 +47,18 @@ class _DiscoverSuggestionsState extends State<DiscoverSuggestions> {
     if (_failed || (items != null && items.isEmpty)) return const SizedBox.shrink();
     return Padding(
       key: const ValueKey('discoverSuggestions'),
-      padding: const EdgeInsets.only(bottom: BuSpace.xxl),
+      padding: const EdgeInsets.symmetric(vertical: BuSpace.sm),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
             padding: const EdgeInsetsDirectional.fromSTEB(BuSpace.lg, 0, BuSpace.lg, BuSpace.sm),
             child: Row(children: [
-              Icon(LucideIcons.userPlus, size: 18, color: t.pr),
-              BuGap.w6,
               Expanded(
                 child: Text(l.p04SuggestTitle,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: tt.titleLarge?.copyWith(color: t.ink, fontWeight: FontWeight.w600)),
+                    style: tt.titleMedium?.copyWith(color: t.ink, fontWeight: FontWeight.w700)),
               ),
               InkWell(
                 key: const ValueKey('discoverSuggestionsAll'),
@@ -79,12 +77,12 @@ class _DiscoverSuggestionsState extends State<DiscoverSuggestions> {
             ]),
           ),
           SizedBox(
-            height: 200 * (MediaQuery.textScalerOf(context).scale(14) / 14).clamp(1.0, 1.6),
+            height: 184 * (MediaQuery.textScalerOf(context).scale(14) / 14).clamp(1.0, 1.6),
             child: items == null
                 ? const BuSkeletonScope(child: _SuggestionSkeletonRow())
                 : ListView.separated(
                     scrollDirection: Axis.horizontal,
-                    padding: const EdgeInsets.symmetric(horizontal: BuSpace.lg, vertical: 10),
+                    padding: const EdgeInsets.symmetric(horizontal: BuSpace.lg, vertical: 6),
                     itemCount: items.length,
                     separatorBuilder: (_, __) => BuGap.w12,
                     itemBuilder: (_, i) => _SuggestionCard(session: widget.session, user: items[i]),
@@ -104,12 +102,12 @@ class _SuggestionSkeletonRow extends StatelessWidget {
     return ListView.separated(
       scrollDirection: Axis.horizontal,
       physics: const NeverScrollableScrollPhysics(),
-      padding: const EdgeInsets.symmetric(horizontal: BuSpace.lg, vertical: 10),
+      padding: const EdgeInsets.symmetric(horizontal: BuSpace.lg, vertical: 6),
       itemCount: 3,
       separatorBuilder: (_, __) => BuGap.w12,
       itemBuilder: (_, __) => const _SuggestionSurface(
         child: Column(children: [
-          BuSkeleton.circle(56),
+          BuSkeleton.circle(52),
           BuGap.h8,
           BuSkeleton.line(width: 72, height: 12),
           BuGap.h6,
@@ -130,12 +128,12 @@ class _SuggestionSurface extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 144,
-      padding: const EdgeInsets.all(14),
+      width: 136,
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: context.bu.sf,
         borderRadius: BorderRadius.circular(BuRadius.md),
-        boxShadow: BuElevation.of(context, 2),
+        boxShadow: BuElevation.of(context, 1),
       ),
       child: child,
     );
@@ -186,7 +184,7 @@ class _SuggestionCardState extends State<_SuggestionCard> {
     return _SuggestionSurface(
       child: Column(children: [
         BuAvatar(
-            name: u.displayName, url: u.avatarUrl, size: 56, headers: postAuthHeaders(widget.session)),
+            name: u.displayName, url: u.avatarUrl, size: 52, headers: postAuthHeaders(widget.session)),
         BuGap.h8,
         Text(u.displayName,
             maxLines: 1,

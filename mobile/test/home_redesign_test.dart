@@ -48,7 +48,8 @@ void main() {
           expect(find.text('Hızlı Erişim'), findsOneWidget);
           expect(find.text('Yemek'), findsOneWidget);
           expect(find.text('Etkinlikler'), findsOneWidget);
-          expect(find.text('Kulüpler'), findsOneWidget);
+          expect(find.text('Anketler'), findsOneWidget);
+          expect(find.text('Kulüpler'), findsNothing); // Kulüpler alt gezinmede zaten var (bu testte kabuk yok)
           expect(find.bySemanticsLabel('Ders Programı'), findsOneWidget);
           expect(find.text('Günün Yemek Menüsü'), findsOneWidget);
           expect(find.text('11:30 – 14:00'), findsOneWidget);

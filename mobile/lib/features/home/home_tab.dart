@@ -20,6 +20,7 @@ import '../news/news_detail_page.dart';
 import '../news/news_list_page.dart';
 import '../news/news_tile.dart' show newsLocalDate, newsMonthName, newsTypeLabel, newsWeekdayName;
 import '../notifications/notifications_page.dart';
+import '../polls/poll_routes.dart';
 import '../search/search_page.dart';
 import '../shell/app_shell.dart' show AppTab;
 import 'home_parts.dart';
@@ -562,7 +563,7 @@ class _HomeTabState extends State<HomeTab> {
     );
   }
 
-  /// Hızlı erişim: Haberler / Yemek / Etkinlikler / Kulüpler / Ders Programı (gerçek işlevler).
+  /// Hızlı erişim: Haberler / Yemek / Etkinlikler / Anketler / Ders Programı (gerçek işlevler). Kulüpler alt gezinmede zaten var.
   Widget _quickAccess(BuildContext context) {
     final l = context.l10n;
     final t = context.bu;
@@ -570,7 +571,7 @@ class _HomeTabState extends State<HomeTab> {
       (LucideIcons.newspaper, l.icerikNewsTitle, HomeTone.blue, () => _push(NewsListPage(session: _s))),
       (LucideIcons.utensils, l.homeQuickFood, HomeTone.green, () => _push(MenuPage(session: _s))),
       (LucideIcons.calendar, l.p03HomeQuickEvents, HomeTone.aqua, () => _push(EventsPage(session: _s))),
-      (LucideIcons.users, l.navClubs, HomeTone.aqua, () => widget.onOpenTab(AppTab.clubs)),
+      (LucideIcons.vote, l.discoverPolls, HomeTone.blue, () => openPollList(context, _s)),
       (LucideIcons.graduationCap, l.p03HomeQuickSchedule, HomeTone.blue, () => _push(AcademicHubPage(session: _s))),
     ];
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [

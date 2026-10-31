@@ -24,9 +24,24 @@ class DiscoverFeedController {
 
 /// Keşfet: yalnız öğrenci gönderileri, tek sütun akış (dosya adı eski masonry düzeninden kalmadır). İmleçli sonsuz
 /// kaydırma, çekip yenileme, iskelet / hata / boş durumları. Engelleme/gizlilik süzmesi sunucudadır (`/feed`).
-/// [header] akışla birlikte kayar (başlık, arama, çipler, öneriler). [scope] değişince akış baştan yüklenir.
+/// [header] akışla birlikte kayar (başlık, çipler). [scope] değişince akış baştan yüklenir; daha önce görülen
+/// kapsam önbellekten anında çizilir, arka planda doğrulanır. [inline] akışın [inlineAfter]. gönderisinden sonra
+/// (az gönderi varsa sonunda) araya girer; yalnız oraya kaydırılınca kurulur (ağ isteği de o zaman).
 class DiscoverMasonryFeed extends StatefulWidget {
-  const DiscoverMasonryFeed({super.key, required this.session, this.controller, this.header, this.scope = 'top', this.onCompose});
+  const DiscoverMasonryFeed({
+    super.key,
+    required this.session,
+    this.controller,
+    this.header,
+    this.scope = 'top',
+    this.onCompose,
+    this.inline,
+    this.inlineAfter = 3,
+  });
+
+  /// Akış içi öneri bölümü (ör. "Tanıyor Olabilirsin").
+  final Widget? inline;
+  final int inlineAfter;
 
   final Session session;
   final DiscoverFeedController? controller;
@@ -53,6 +68,7 @@ class _DiscoverMasonryFeedState extends State<DiscoverMasonryFeed> {
   bool _hasMore = true;
   bool _loading = false;
   bool _loaded = false;
+  bool _revealed = false; // ağdan gelen ilk sayfa yumuşakça belirir; önbellekten gelen anında görünür
   Object? _error;
   Object? _moreError;
 
@@ -93,6 +109,7 @@ class _DiscoverMasonryFeedState extends State<DiscoverMasonryFeed> {
       _items.removeWhere((e) => e.id == p.id);
       _items.insert(0, p);
       _loaded = true;
+      _revealed = true;
       _error = null;
     });
     if (_scroll.hasClients) {
@@ -107,10 +124,31 @@ class _DiscoverMasonryFeedState extends State<DiscoverMasonryFeed> {
       _cursor = null;
       _hasMore = true;
       _loaded = false;
+      _revealed = false;
       _loading = false;
       _error = null;
       _moreError = null;
     });
+    // Önbellekte bu kapsamın ilk sayfası varsa hemen çiz (iskelet görünmez), sonra ağdan doğrula.
+    PostPage<Post>? cached;
+    try {
+      cached = await _api.peekFeed(scope: widget.scope, size: _pageSize);
+    } catch (_) {
+      cached = null;
+    }
+    if (!mounted || gen != _gen) return;
+    if (cached != null && cached.items.isNotEmpty) {
+      final page = cached;
+      setState(() {
+        _items.addAll(page.items);
+        _cursor = page.nextCursor;
+        _hasMore = page.hasMore;
+        _loaded = true;
+        _revealed = true;
+      });
+      await _fetch(gen, replace: true, quiet: true);
+      return;
+    }
     await _fetch(gen);
   }
 
@@ -125,7 +163,8 @@ class _DiscoverMasonryFeedState extends State<DiscoverMasonryFeed> {
     await _fetch(_gen);
   }
 
-  Future<void> _fetch(int gen, {bool replace = false}) async {
+  /// [quiet]: arka plan doğrulaması; hata olursa görünen (önbellekten gelen) liste olduğu gibi kalır.
+  Future<void> _fetch(int gen, {bool replace = false, bool quiet = false}) async {
     if (_loading && !replace) return;
     setState(() {
       _loading = true;
@@ -147,6 +186,11 @@ class _DiscoverMasonryFeedState extends State<DiscoverMasonryFeed> {
         _error = null;
         _moreError = null;
       });
+      if (!_revealed) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted && gen == _gen) setState(() => _revealed = true);
+        });
+      }
       // İçerik ekranı doldurmuyorsa kaydırma olmayacağından sonraki sayfayı kendimiz iste.
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted && _hasMore && _scroll.hasClients && _scroll.position.maxScrollExtent <= 0) _loadMore();
@@ -163,6 +207,8 @@ class _DiscoverMasonryFeedState extends State<DiscoverMasonryFeed> {
         _loading = false;
         if (!_loaded) {
           _error = e;
+        } else if (quiet) {
+          // Önbellekten çizilmiş liste olduğu gibi kalır.
         } else if (replace) {
           BuToast.show(context, errorText(e), kind: BuToastKind.error);
         } else {
@@ -197,20 +243,30 @@ class _DiscoverMasonryFeedState extends State<DiscoverMasonryFeed> {
     } else if (_items.isEmpty) {
       body = SliverToBoxAdapter(child: DiscoverEmptyCard(onCompose: widget.onCompose));
     } else {
-      body = SliverPadding(
-        padding: const EdgeInsets.symmetric(horizontal: BuSpace.lg),
+      final inline = widget.inline;
+      final at = _items.length < widget.inlineAfter ? _items.length : widget.inlineAfter;
+      final count = _items.length + (inline == null ? 0 : 1);
+      body = SliverAnimatedOpacity(
+        opacity: _revealed ? 1 : 0,
+        duration: BuMotion.of(context, BuMotion.medium),
+        curve: BuMotion.standard,
+        // Kartlar yan boşluğu kendisi taşır; araya giren öneri şeridi kenardan kenara kayabilsin diye liste dolgusuz.
         sliver: SliverList.separated(
-          itemCount: _items.length,
-          separatorBuilder: (_, __) => BuGap.h20,
+          itemCount: count,
+          separatorBuilder: (_, __) => BuGap.h16,
           itemBuilder: (_, i) {
-            final p = _items[i];
-            return DiscoverPostCard(
-              key: ValueKey('discover-post-${p.id}'),
-              session: widget.session,
-              post: p,
-              onOpen: _open,
-              onChanged: _changed,
-              onDeleted: _removed,
+            if (inline != null && i == at) return inline;
+            final p = _items[inline != null && i > at ? i - 1 : i];
+            return Padding(
+              padding: const EdgeInsets.symmetric(horizontal: BuSpace.lg),
+              child: DiscoverPostCard(
+                key: ValueKey('discover-post-${p.id}'),
+                session: widget.session,
+                post: p,
+                onOpen: _open,
+                onChanged: _changed,
+                onDeleted: _removed,
+              ),
             );
           },
         ),
@@ -250,44 +306,38 @@ class _DiscoverMasonryFeedState extends State<DiscoverMasonryFeed> {
   }
 }
 
-/// Yükleniyor (referans 12/1): iki sütun, değişken yükseklikli beyaz iskelet kartları (foto bloğu + iki satır +
-/// avatar ve kalp çubuğu).
+/// Kart içi kenar boşluğu ve fotoğraf oranı (iskelet ile gerçek kart aynı ölçüde: yerleşim kaymaz).
+const double _cardPad = 10;
+const double kDiscoverPhotoRatio = 4 / 5;
+
+/// Yükleniyor: gerçek kartla aynı ölçüde iki kart iskeleti (yazar satırı, 4:5 fotoğraf, beğeni + alt yazı).
 class DiscoverFeedSkeleton extends StatelessWidget {
   const DiscoverFeedSkeleton({super.key});
-
-  static const _left = [180.0, 156.0, 200.0];
-  static const _right = [230.0, 164.0, 190.0];
 
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
-    Widget card(double photo) => DecoratedBox(
+    Widget card() => DecoratedBox(
           decoration: BoxDecoration(color: t.sf, borderRadius: BorderRadius.circular(BuRadius.lg), boxShadow: BuElevation.of(context, 1)),
-          child: Padding(
-            padding: const EdgeInsets.all(12),
+          child: const Padding(
+            padding: EdgeInsets.all(_cardPad),
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              BuSkeleton(height: photo, radius: BuRadius.md),
-              BuGap.h12,
-              const BuSkeleton.line(width: 100, height: 11),
-              BuGap.h6,
-              const BuSkeleton.line(width: 64, height: 10),
-              BuGap.h12,
-              const Row(children: [
-                BuSkeleton.circle(20),
-                BuGap.w6,
-                BuSkeleton.line(width: 46, height: 10),
-                Spacer(),
-                BuSkeleton.circle(14),
-                BuGap.w4,
-                BuSkeleton.line(width: 14, height: 10),
-              ]),
+              SizedBox(
+                height: 48,
+                child: Row(children: [
+                  BuSkeleton.circle(36),
+                  BuGap.w12,
+                  BuSkeleton.line(width: 120, height: 12),
+                ]),
+              ),
+              AspectRatio(aspectRatio: kDiscoverPhotoRatio, child: BuSkeleton(radius: BuRadius.sm)),
+              BuGap.h16,
+              BuSkeleton.line(width: 72, height: 12),
+              BuGap.h8,
+              BuSkeleton.line(width: 200, height: 12),
+              BuGap.h8,
             ]),
           ),
-        );
-    Widget col(List<double> hs) => Expanded(
-          child: Column(children: [
-            for (final h in hs) ...[card(h), BuGap.h12],
-          ]),
         );
     return Semantics(
       label: context.l10n.commonLoading,
@@ -296,7 +346,7 @@ class DiscoverFeedSkeleton extends StatelessWidget {
           child: Padding(
             key: const ValueKey('discoverSkeleton'),
             padding: const EdgeInsets.symmetric(horizontal: BuSpace.lg),
-            child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [col(_left), BuGap.w12, col(_right)]),
+            child: Column(children: [card(), BuGap.h16, card()]),
           ),
         ),
       ),
@@ -384,8 +434,9 @@ class DiscoverErrorCard extends StatelessWidget {
   }
 }
 
-/// Akış kartı (Keşfet referansı): yazar satırı (avatar, ad • zaman, bölüm), tam genişlik 4:3 fotoğraf, beğeni sayacı
-/// ("N beğeni") ve "ad metin" alt yazısı. Yorum, kaydet, paylaş yok. Fotoğrafa çift dokunuş beğenir.
+/// Akış kartı: yazar satırı (avatar, ad • zaman, bölüm), sabit 4:5 fotoğraf (gönderi kırpma oranıyla aynı: hiçbir şey
+/// kesilmez), beğeni sayacı ve "ad metin" alt yazısı. Yorum, kaydet, paylaş yok. Fotoğrafa çift dokunuş beğenir.
+/// Fotoğraf önce küçük resimle gelir, tam boy üstüne yumuşakça belirir (bkz. `PostPhoto.progressive`).
 class DiscoverPostCard extends StatefulWidget {
   const DiscoverPostCard({
     super.key,
@@ -447,6 +498,8 @@ class _DiscoverPostCardState extends State<DiscoverPostCard> {
     final time = postRelativeTime(context, p.createdAt);
     final text = (p.text ?? '').trim();
     final label = [if (text.isNotEmpty) text, name].join(', ');
+    // Ad tek başına satırda (kırpılmaz); bölüm ve zaman ikinci satırda.
+    final sub = [if (dept.isNotEmpty) dept, if (time.isNotEmpty) time].join(' • ');
     return Semantics(
       container: true,
       child: DecoratedBox(
@@ -454,10 +507,10 @@ class _DiscoverPostCardState extends State<DiscoverPostCard> {
         decoration: BoxDecoration(
           color: t.sf,
           borderRadius: BorderRadius.circular(BuRadius.lg),
-          boxShadow: BuElevation.of(context, 2),
+          boxShadow: BuElevation.of(context, 1),
         ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(BuRadius.lg),
+        child: Padding(
+          padding: const EdgeInsets.all(_cardPad),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -466,62 +519,37 @@ class _DiscoverPostCardState extends State<DiscoverPostCard> {
                 onTap: () => openUserPosts(context, widget.session, userId: p.author.id, name: name),
                 onLongPress: _longPress,
                 child: ConstrainedBox(
-                  constraints: const BoxConstraints(minHeight: 44),
-                  child: Padding(
-                    padding: EdgeInsetsDirectional.fromSTEB(14, 10, _hasMenu ? 6 : 14, 10),
-                    child: Row(children: [
-                      BuAvatar(name: name, url: p.author.avatarUrl, size: 36, headers: postAuthHeaders(widget.session)),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(children: [
-                              Flexible(
-                                child: Text(name,
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: tt.titleSmall?.copyWith(color: t.ink, fontWeight: FontWeight.w700, height: 1.25)),
-                              ),
-                              if (time.isNotEmpty) ...[
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: 4),
-                                  child: DecoratedBox(
-                                    decoration: BoxDecoration(color: t.mut, shape: BoxShape.circle),
-                                    child: const SizedBox.square(dimension: 4),
-                                  ),
-                                ),
-                                Flexible(
-                                  child: Text(time,
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: tt.bodySmall?.copyWith(color: t.mut, height: 1.25)),
-                                ),
-                              ],
-                            ]),
-                            if (dept.isNotEmpty)
-                              Text(dept,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: tt.labelSmall?.copyWith(color: t.mut)),
-                          ],
-                        ),
+                  constraints: const BoxConstraints(minHeight: 48),
+                  child: Row(children: [
+                    BuAvatar(name: name, url: p.author.avatarUrl, size: 36, headers: postAuthHeaders(widget.session)),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(name,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: tt.titleSmall?.copyWith(color: t.ink, fontWeight: FontWeight.w700, height: 1.25)),
+                          if (sub.isNotEmpty)
+                            Text(sub, maxLines: 1, overflow: TextOverflow.ellipsis, style: tt.labelSmall?.copyWith(color: t.mut)),
+                        ],
                       ),
-                      if (_hasMenu)
-                        PostMenuButton(
-                          key: _menuKey,
-                          session: widget.session,
-                          post: p,
-                          onChanged: widget.onChanged,
-                          onDeleted: (id) => widget.onDeleted?.call(id),
-                          active: _menuOpen,
-                          cardKey: _cardKey,
-                          onOpenChanged: (v) {
-                            if (mounted) setState(() => _menuOpen = v);
-                          },
-                        ),
-                    ]),
-                  ),
+                    ),
+                    if (_hasMenu)
+                      PostMenuButton(
+                        key: _menuKey,
+                        session: widget.session,
+                        post: p,
+                        onChanged: widget.onChanged,
+                        onDeleted: (id) => widget.onDeleted?.call(id),
+                        active: _menuOpen,
+                        cardKey: _cardKey,
+                        onOpenChanged: (v) {
+                          if (mounted) setState(() => _menuOpen = v);
+                        },
+                      ),
+                  ]),
                 ),
               ),
               if (p.photo != null)
@@ -533,42 +561,45 @@ class _DiscoverPostCardState extends State<DiscoverPostCard> {
                     onLike: _like.like,
                     onTap: () => widget.onOpen(p),
                     onLongPress: _hasMenu ? _longPress : null,
-                    child: PostPhoto(session: widget.session, post: p, radius: 0, aspectRatio: 4 / 3),
-                  ),
-                ),
-              Padding(
-                padding: const EdgeInsetsDirectional.fromSTEB(BuSpace.lg, BuSpace.xs, BuSpace.lg, BuSpace.lg),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    LikeButton(
+                    radius: BuRadius.sm,
+                    child: PostPhoto(
                       session: widget.session,
                       post: p,
-                      controller: _like,
-                      compact: true,
-                      size: 24,
-                      countLabel: (n) => l.p04LikeCount('$n'),
-                      onChanged: widget.onChanged,
+                      radius: BuRadius.sm,
+                      aspectRatio: kDiscoverPhotoRatio,
+                      progressive: true,
                     ),
-                    if (text.isNotEmpty)
-                      GestureDetector(
-                        behavior: HitTestBehavior.opaque,
-                        excludeFromSemantics: true,
-                        onTap: () => widget.onOpen(p),
-                        child: Text.rich(
-                          TextSpan(children: [
-                            TextSpan(text: name, style: const TextStyle(fontWeight: FontWeight.w600)),
-                            TextSpan(text: ' $text'),
-                          ]),
-                          key: const ValueKey('post-text'),
-                          maxLines: 3,
-                          overflow: TextOverflow.ellipsis,
-                          style: tt.bodyMedium?.copyWith(color: t.ink, height: 1.4),
-                        ),
-                      ),
-                  ],
+                  ),
                 ),
+              BuGap.h4,
+              LikeButton(
+                session: widget.session,
+                post: p,
+                controller: _like,
+                compact: true,
+                size: 24,
+                countLabel: (n) => l.p04LikeCount('$n'),
+                onChanged: widget.onChanged,
               ),
+              if (text.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsetsDirectional.only(bottom: 4, end: 4),
+                  child: GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    excludeFromSemantics: true,
+                    onTap: () => widget.onOpen(p),
+                    child: Text.rich(
+                      TextSpan(children: [
+                        TextSpan(text: name, style: const TextStyle(fontWeight: FontWeight.w600)),
+                        TextSpan(text: ' $text'),
+                      ]),
+                      key: const ValueKey('post-text'),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: tt.bodyMedium?.copyWith(color: t.ink, height: 1.4),
+                    ),
+                  ),
+                ),
             ],
           ),
         ),

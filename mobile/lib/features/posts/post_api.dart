@@ -21,9 +21,11 @@ class PostApi {
   }
 
   /// Video-only eski gönderiler akıştan ayıklanır (`nextCursor` sunucudan olduğu gibi kalır).
-  Future<PostPage<Post>> _posts(String path, Map<String, Object?> q) async {
-    final r = await session.api.get('$path${_q(q)}');
-    final page = PostPage.parse(r, Post.fromJson);
+  Future<PostPage<Post>> _posts(String path, Map<String, Object?> q) async =>
+      _page(await session.api.get('$path${_q(q)}'));
+
+  PostPage<Post> _page(Object? body) {
+    final page = PostPage.parse(body, Post.fromJson);
     return PostPage<Post>(
       items: [for (final p in page.items) if (!p.hiddenInFeed) p],
       nextCursor: page.nextCursor,
@@ -34,6 +36,13 @@ class PostApi {
   /// `scope`: `latest` | `popular`.
   Future<PostPage<Post>> feed({String scope = 'latest', String? cursor, int size = 10}) =>
       _posts('/feed', {'scope': scope, 'cursor': cursor, 'size': size});
+
+  /// Ağa gitmeden, önbellekteki (bayat olabilir) ilk akış sayfası; yoksa null. Keşfet ilk çizimi için: sayfa hemen
+  /// görünür, ardından [feed] ile doğrulanır.
+  Future<PostPage<Post>?> peekFeed({String scope = 'latest', int size = 10}) async {
+    final r = await session.api.peekCache('/feed${_q({'scope': scope, 'size': size})}');
+    return r == null ? null : _page(r.body);
+  }
 
   Future<Post> get(int id) async => Post.fromJson(_m(await session.api.get('/posts/$id')));
 
