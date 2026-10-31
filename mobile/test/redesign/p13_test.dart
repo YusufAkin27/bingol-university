@@ -102,7 +102,7 @@ void main() {
         final loc = lookupAppLocalizations(Locale(l));
         final votes = RegExp('^${RegExp.escape(loc.pollVotes('0')).replaceFirst('0', r'\d+')}\$');
         expect(find.byWidgetPredicate((w) => w is Text && w.data != null && votes.hasMatch(w.data!)), findsNWidgets(6), reason: l);
-        expect(find.textContaining(' · '), findsNothing);
+        expect(find.descendant(of: find.byType(ResultBar), matching: find.textContaining(' · ')), findsNothing);
       });
     });
 
@@ -170,8 +170,7 @@ void main() {
       fakePolls(b, count: 0);
       await t.pumpWidget(p00App(PollListPage(session: makeSession(b)), scaffold: false));
       await settle(t, const Duration(milliseconds: 600));
-      expect(find.text('Şu an açık anket yok.'), findsOneWidget);
-      expect(find.text('Yeni anketler açıldığında burada listelenecektir.'), findsOneWidget);
+      expect(find.text('Şu an açık anket yok.'), findsOneWidget); // Stitch v3: tek soluk satir (aciklama yok)
       await t.tap(find.text('Kapanan'));
       await settle(t, const Duration(milliseconds: 600));
       expect(find.text('Kapanan anket yok.'), findsOneWidget);
@@ -298,8 +297,8 @@ void main() {
       await t.pumpWidget(p00App(SupportPage(session: makeSession(b)), scaffold: false));
       await settle(t, const Duration(milliseconds: 700));
       expect(find.text('Henüz sık sorulan soru yok.'), findsOneWidget);
-      expect(find.text('Henüz destek talebiniz yok.'), findsOneWidget);
-      expect(find.text('Aktif veya geçmiş bir destek kaydınız bulunmuyor.'), findsOneWidget);
+      expect(find.text('Henüz talebin yok.'), findsOneWidget);
+      expect(find.widgetWithText(TextButton, 'Yeni talep'), findsOneWidget); // bos durumda tek "Yeni talep" metin dugmesi
       await unmount(t);
       final f = FakeBackend()
         ..fail('/faq')
@@ -338,17 +337,13 @@ void main() {
       addTearDown(t.view.reset);
       await t.pumpWidget(p00App(SupportTicketPage(session: makeSession(b), ticketId: 5), scaffold: false));
       await settle(t, const Duration(milliseconds: 700));
-      await t.tap(find.byType(PopupMenuButton<String>));
-      await settle(t, const Duration(milliseconds: 900));
-      await t.tap(find.text('Talebi kapat'));
+      await t.tap(find.text('Talebi kapat')); // durum satirindaki soluk metin baglantisi
       await settle(t, const Duration(milliseconds: 700));
       expect(find.byType(Dialog), findsOneWidget);
       await t.tap(find.text('Vazgeç'));
       await settle(t, const Duration(milliseconds: 500));
       expect(b.requests.where((r) => r.contains('/close')), isEmpty);
-      await t.tap(find.byType(PopupMenuButton<String>));
-      await settle(t, const Duration(milliseconds: 900));
-      await t.tap(find.text('Talebi kapat'));
+      await t.tap(find.text('Talebi kapat').first);
       await settle(t, const Duration(milliseconds: 700));
       await t.tap(find.text('Kapat').last);
       await settle(t, const Duration(milliseconds: 500));
@@ -411,7 +406,7 @@ void main() {
       final e = FakeBackend()..on('/suggestions', {'totalPages': 0, 'items': <Object>[]});
       await t.pumpWidget(p00App(SuggestionsPage(session: makeSession(e)), scaffold: false));
       await settle(t, const Duration(milliseconds: 700));
-      expect(find.text('Henüz yayımlanmış öneri yok. İlk öneriyi siz ekleyin.'), findsOneWidget);
+      expect(find.text('Henüz öneri yok.'), findsOneWidget);
       await unmount(t);
     });
 

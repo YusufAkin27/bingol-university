@@ -1,19 +1,19 @@
 import 'package:flutter/material.dart';
 
 import '../../core/api.dart';
-import '../../core/app_gate.dart' show appVersion;
 import '../../core/locale_controller.dart';
 import '../../core/session.dart';
 import '../../widgets/bu.dart';
 import '../../widgets/common.dart' show niceDate;
-import '../polls/anket_widgets.dart';
+import '../polls/anket_flat.dart';
 import 'support_common.dart';
 import 'support_feedback_page.dart';
 import 'support_new_ticket_page.dart';
 import 'support_suggestions_page.dart';
 import 'support_ticket_page.dart';
 
-/// Destek: SSS akordeonu, talep oluşturma, taleplerim, geri bildirim ve öneri panosu.
+/// Destek (Stitch v3 01): "Sık sorulan sorular" akordeonu, "Taleplerim" satırları, `pr` "Yeni talep" ve altta
+/// "Geri bildirim · Öneri panosu" metin bağlantıları. Kartsız, ince `bd` ayraçlı satırlar.
 class SupportPage extends StatefulWidget {
   const SupportPage({super.key, required this.session});
 
@@ -24,6 +24,9 @@ class SupportPage extends StatefulWidget {
 }
 
 class _SupportPageState extends State<SupportPage> {
+  /// Bu sayıdan çok soru varsa arama + kategori süzgeci görünür (referansta üç soru: süzgeç yok).
+  static const _filterThreshold = 6;
+
   List<Map<String, dynamic>> _faq = [];
   final List<Map<String, dynamic>> _tickets = [];
   int? _next;
@@ -109,11 +112,17 @@ class _SupportPageState extends State<SupportPage> {
           if (((g['category'] as String?) ?? '').isNotEmpty) g['category'] as String,
       ];
 
+  int get _faqCount => _faq.fold(0, (n, g) => n + (((g['items'] as List?) ?? []).length));
+
   @override
   Widget build(BuildContext context) {
     final l = context.l10n;
+    final t = context.bu;
     final state = _loading ? BuViewState.loading : (_error != null ? BuViewState.error : BuViewState.ready);
     final cats = _categories;
+    final filters = _faqCount > _filterThreshold;
+    void newTicket() => _push(NewTicketPage(session: widget.session));
+    final noTickets = _tickets.isEmpty && _ticketsError == null;
     return BuPageScaffold(
       title: l.supportTitle,
       large: false,
@@ -126,78 +135,70 @@ class _SupportPageState extends State<SupportPage> {
       onRefresh: _load,
       controller: _scroll,
       loading: const _SupportSkeleton(),
+      bottomInset: 28,
       slivers: [
         if (_rateLimited)
           SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsetsDirectional.fromSTEB(20, 4, 20, 8),
-              child: SupportNote(icon: LucideIcons.triangleAlert, text: l.supportTooManyRequests),
+              padding: const EdgeInsetsDirectional.fromSTEB(kAnketPad, 8, kAnketPad, 0),
+              child: AnketAmberNote(l.supportTooManyRequests),
             ),
           ),
-        SliverToBoxAdapter(child: SupportHeading(l.p13SuppFaqHeading)),
-        SliverToBoxAdapter(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: BuSearchField(
-              hint: l.destekFaqSearchHint,
-              controller: _search,
-              onChanged: (v) => setState(() => _q = v.trim().toLowerCase()),
-            ),
-          ),
-        ),
-        if (cats.length > 1)
+        SliverToBoxAdapter(child: _SectionTitle(l.p13SuppFaqHeading, top: 24)),
+        if (filters)
           SliverToBoxAdapter(
-            child: _FaqChips(
-              labels: [l.destekFaqAll, ...cats],
-              selected: _cat == null ? 0 : cats.indexOf(_cat!) + 1,
-              onSelected: (i) => setState(() => _cat = i == 0 ? null : cats[i - 1]),
+            child: Padding(
+              padding: const EdgeInsetsDirectional.fromSTEB(kAnketPad, 0, kAnketPad, 0),
+              child: TextField(
+                controller: _search,
+                textInputAction: TextInputAction.search,
+                onChanged: (v) => setState(() => _q = v.trim().toLowerCase()),
+                style: Theme.of(context).textTheme.bodyLarge!.copyWith(color: t.ink),
+                decoration: anketFieldDeco(context, hint: l.destekFaqSearchHint),
+              ),
             ),
           ),
-        SliverToBoxAdapter(child: Padding(padding: const EdgeInsets.fromLTRB(20, 12, 20, 0), child: _faqCard())),
-        SliverToBoxAdapter(child: SupportHeading(l.p13TicketsHeading)),
-        ..._ticketSlivers(),
-        SliverToBoxAdapter(child: SupportHeading(l.p13ShareHeading)),
-        SliverToBoxAdapter(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: BuCard(
-              padding: const EdgeInsetsDirectional.all(12),
-              child: Column(children: [
-                _ShareRow(
-                  icon: Icons.star_rounded,
-                  bg: context.bu.soft,
-                  fg: context.bu.pr,
-                  title: l.supportFeedbackTitle,
-                  subtitle: l.p13SuppFeedbackSub,
-                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => FeedbackPage(session: widget.session))),
-                ),
-                const SizedBox(height: 8),
-                _ShareRow(
-                  icon: LucideIcons.lightbulb,
-                  bg: context.bu.tint(1).bg,
-                  fg: context.bu.tint(1).fg,
-                  title: l.supportBoard,
-                  subtitle: l.p13SuppBoardSub,
-                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => SuggestionsPage(session: widget.session))),
-                ),
-              ]),
+        if (filters && cats.length > 1)
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.only(top: 4),
+              child: AnketTextTabs(
+                labels: [l.destekFaqAll, ...cats],
+                index: _cat == null ? 0 : cats.indexOf(_cat!) + 1,
+                onChanged: (i) => setState(() => _cat = i == 0 ? null : cats[i - 1]),
+              ),
             ),
           ),
-        ),
+        SliverToBoxAdapter(child: _faqList()),
+        SliverToBoxAdapter(child: _SectionTitle(l.p13TicketsHeading, top: 25)),
+        ..._ticketSlivers(newTicket),
         SliverToBoxAdapter(
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(20, 28, 20, 0),
-            child: Center(
-              child: Text(l.profileVersion(appVersion),
-                  style: Theme.of(context).textTheme.labelMedium!.copyWith(color: context.bu.mut, fontWeight: FontWeight.w700)),
-            ),
+            padding: const EdgeInsetsDirectional.fromSTEB(kAnketPad, 33, kAnketPad, 0),
+            child: Column(children: [
+              if (!noTickets) BuButton(label: l.supportNewTicketTitle, onPressed: newTicket),
+              Padding(
+                padding: EdgeInsets.only(top: noTickets ? 0 : 6),
+                child: Wrap(alignment: WrapAlignment.center, crossAxisAlignment: WrapCrossAlignment.center, children: [
+                  _LinkText(
+                    label: l.supportFeedbackTitle,
+                    onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => FeedbackPage(session: widget.session))),
+                  ),
+                  ExcludeSemantics(child: Padding(padding: const EdgeInsets.symmetric(horizontal: 4), child: Text('·', style: Theme.of(context).textTheme.bodyMedium!.copyWith(color: t.mut)))),
+                  _LinkText(
+                    label: l.supportBoard,
+                    onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => SuggestionsPage(session: widget.session))),
+                  ),
+                ]),
+              ),
+            ]),
           ),
         ),
       ],
     );
   }
 
-  Widget _faqCard() {
+  Widget _faqList() {
     final l = context.l10n;
     final rows = <Widget>[];
     var idx = 0;
@@ -213,45 +214,30 @@ class _SupportPageState extends State<SupportPage> {
           .toList();
       for (final it in items) {
         final i = idx++;
-        rows.add(Padding(
-          padding: EdgeInsets.only(top: rows.isEmpty ? 0 : 8),
-          child: _FaqTile(
-            question: '${it['question'] ?? ''}',
-            answer: '${it['answer'] ?? ''}',
-            open: _open.contains(i),
-            onTap: () => setState(() => _open.contains(i) ? _open.remove(i) : _open.add(i)),
-          ),
+        rows.add(_FaqTile(
+          question: '${it['question'] ?? ''}',
+          answer: '${it['answer'] ?? ''}',
+          open: _open.contains(i),
+          onTap: () => setState(() => _open.contains(i) ? _open.remove(i) : _open.add(i)),
         ));
       }
     }
     if (rows.isEmpty) {
-      final filtered = _faq.isNotEmpty;
-      return SupportEmptyCard(
-        icon: filtered ? LucideIcons.searchX : LucideIcons.circleQuestionMark,
-        title: filtered ? l.destekFaqNoMatch : l.supportNoFaq,
-        body: filtered ? l.p13SuppFaqNoMatchBody : l.p13SuppFaqEmptyBody,
-      );
+      return AnketStateLine(text: _faq.isNotEmpty ? l.destekFaqNoMatch : l.supportNoFaq, padding: const EdgeInsetsDirectional.fromSTEB(kAnketPad, 4, kAnketPad, 0));
     }
-    return BuCard(padding: const EdgeInsetsDirectional.all(12), child: Column(children: rows));
+    return Column(children: rows);
   }
 
-  List<Widget> _ticketSlivers() {
+  List<Widget> _ticketSlivers(VoidCallback newTicket) {
     final l = context.l10n;
-    final create = BuButton(
-      label: l.supportCreateTicket,
-      icon: LucideIcons.circlePlus,
-      onPressed: () => _push(NewTicketPage(session: widget.session)),
-    );
     if (_ticketsError != null && _tickets.isEmpty) {
       return [
         SliverToBoxAdapter(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: Column(children: [
-              SupportLoadError(title: l.p13SuppLoadFailed, body: _ticketsError!, retryLabel: l.supportRetry, onRetry: _load),
-              const SizedBox(height: 12),
-              create,
-            ]),
+          child: AnketStateLine(
+            text: l.pollLoadFailedRetry,
+            actionLabel: l.supportRetry,
+            onAction: _load,
+            padding: const EdgeInsetsDirectional.fromSTEB(kAnketPad, 0, kAnketPad, 0),
           ),
         ),
       ];
@@ -259,96 +245,67 @@ class _SupportPageState extends State<SupportPage> {
     if (_tickets.isEmpty) {
       return [
         SliverToBoxAdapter(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: Column(children: [
-              SupportEmptyCard(icon: LucideIcons.mail, title: l.supportNoTickets, body: l.p13SuppTicketsEmptyBody),
-              const SizedBox(height: 12),
-              create,
-            ]),
+          child: AnketStateLine(
+            text: l.p68NoTickets,
+            actionLabel: l.supportNewTicketTitle,
+            onAction: newTicket,
+            padding: const EdgeInsetsDirectional.fromSTEB(kAnketPad, 0, kAnketPad, 0),
           ),
         ),
       ];
     }
     return [
       SliverToBoxAdapter(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20),
-          child: BuCard(
-            padding: const EdgeInsetsDirectional.all(12),
-            child: Column(children: [
-              for (var i = 0; i < _tickets.length; i++)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 8),
-                  child: _TicketTile(
-                    ticket: _tickets[i],
-                    onTap: () => _push(SupportTicketPage(session: widget.session, ticketId: (_tickets[i]['id'] as num).toInt())),
-                  ),
-                ),
-              if (_more) const BuSkeletonScope(child: BuSkeleton(height: 64, radius: 16)),
-              if (_more) const SizedBox(height: 8),
-              create,
-            ]),
-          ),
-        ),
+        child: Column(children: [
+          for (var i = 0; i < _tickets.length; i++)
+            _TicketTile(
+              ticket: _tickets[i],
+              onTap: () => _push(SupportTicketPage(session: widget.session, ticketId: (_tickets[i]['id'] as num).toInt())),
+            ),
+          if (_more) const BuSkeletonScope(child: AnketSkeletonRow()),
+        ]),
       ),
     ];
   }
 }
 
-/// SSS kategori çipleri: seçili koyu (ink) dolgu, diğerleri beyaz; yatay kayar.
-class _FaqChips extends StatelessWidget {
-  const _FaqChips({required this.labels, required this.selected, required this.onSelected});
+/// Bölüm başlığı (Stitch v3): 18 sp/600 ink; tek satır, sığmazsa küçülür.
+class _SectionTitle extends StatelessWidget {
+  const _SectionTitle(this.text, {required this.top});
 
-  final List<String> labels;
-  final int selected;
-  final ValueChanged<int> onSelected;
+  final String text;
+  final double top;
 
   @override
-  Widget build(BuildContext context) {
-    final t = context.bu;
-    final tx = Theme.of(context).textTheme;
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      padding: const EdgeInsetsDirectional.fromSTEB(20, 12, 20, 0),
-      child: Row(children: [
-        for (var i = 0; i < labels.length; i++) ...[
-          if (i > 0) const SizedBox(width: 8),
-          Semantics(
-            button: true,
-            selected: i == selected,
-            label: labels[i],
-            excludeSemantics: true,
-            onTap: () => onSelected(i),
-            child: Material(
-              color: i == selected ? t.soft : t.sf,
-              shape: StadiumBorder(side: BorderSide(color: i == selected ? t.selectedBorder : t.bd)),
-              child: InkWell(
-                borderRadius: BuRadius.bPill,
-                onTap: () {
-                  if (i != selected) buHaptic(BuHaptic.selection);
-                  onSelected(i);
-                },
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(minHeight: 44),
-                  child: Padding(
-                    padding: const EdgeInsetsDirectional.symmetric(horizontal: 18),
-                    child: Center(
-                      widthFactor: 1,
-                      child: Text(labels[i], style: tx.labelLarge!.copyWith(color: i == selected ? t.onSoft : t.ink, fontWeight: FontWeight.w800)),
-                    ),
-                  ),
-                ),
-              ),
-            ),
+  Widget build(BuildContext context) => Padding(
+        padding: EdgeInsetsDirectional.fromSTEB(kAnketPad, top, kAnketPad, 16),
+        child: Semantics(
+          header: true,
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: AlignmentDirectional.centerStart,
+            child: Text(text, maxLines: 1, style: Theme.of(context).textTheme.titleLarge!.copyWith(color: context.bu.ink, fontSize: 18, fontWeight: FontWeight.w600)),
           ),
-        ],
-      ]),
-    );
-  }
+        ),
+      );
 }
 
-/// SSS satırı: gri yuvarlak kutu; soru + ok, cevap yumuşakça açılır.
+/// Alt bağlantı: muted 14 sp metin (48 dp dokunma alanı).
+class _LinkText extends StatelessWidget {
+  const _LinkText({required this.label, required this.onTap});
+
+  final String label;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) => TextButton(
+        style: TextButton.styleFrom(foregroundColor: context.bu.mut, minimumSize: const Size(48, 48), padding: const EdgeInsets.symmetric(horizontal: 8)),
+        onPressed: onTap,
+        child: Text(label, style: Theme.of(context).textTheme.bodyMedium!.copyWith(color: context.bu.mut, fontWeight: FontWeight.w400)),
+      );
+}
+
+/// SSS satırı: kartsız; soru 16 sp/500 + sağda chevron (açıkken yukarı), cevap 14 sp muted; alt `bd` ayraç.
 class _FaqTile extends StatelessWidget {
   const _FaqTile({required this.question, required this.answer, required this.open, required this.onTap});
 
@@ -362,37 +319,30 @@ class _FaqTile extends StatelessWidget {
     final t = context.bu;
     final tx = Theme.of(context).textTheme;
     final d = BuMotion.of(context, BuMotion.medium);
-    return AnimatedContainer(
-      duration: d,
-      curve: BuMotion.standard,
-      decoration: BoxDecoration(color: open ? Color.alphaBlend(t.ink.withValues(alpha: .04), t.sf2) : t.sf2, borderRadius: BuRadius.bMd),
+    return Container(
+      decoration: BoxDecoration(border: Border(bottom: BorderSide(color: t.bd))),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Semantics(
           button: true,
           expanded: open,
           child: InkWell(
-            borderRadius: BuRadius.bMd,
             onTap: () {
               buHaptic(BuHaptic.selection);
               onTap();
             },
             child: ConstrainedBox(
-              constraints: const BoxConstraints(minHeight: 56),
+              constraints: BoxConstraints(minHeight: open ? 0 : 56),
               child: Padding(
-                padding: const EdgeInsetsDirectional.fromSTEB(16, 12, 14, 12),
+                padding: EdgeInsetsDirectional.fromSTEB(kAnketPad, open ? 17 : 12, kAnketPad, open ? 10 : 12),
                 child: Row(children: [
-                  Expanded(child: Text(question, style: tx.titleSmall!.copyWith(color: t.ink, fontWeight: FontWeight.w800, height: 1.35))),
+                  Expanded(child: Text(question, style: tx.titleMedium!.copyWith(color: t.ink, fontSize: 16, fontWeight: FontWeight.w500, height: 1.35))),
                   const SizedBox(width: 12),
-                  // Ok tek simge: açılınca 180 derece döner (yalnız transform), rengi markaya geçer.
+                  // Ok tek simge: açılınca 180 derece döner (yalnız transform).
                   AnimatedRotation(
                     turns: open ? .5 : 0,
                     duration: d,
                     curve: BuMotion.emphasized,
-                    child: TweenAnimationBuilder<Color?>(
-                      tween: ColorTween(end: open ? t.pr : t.mut),
-                      duration: d,
-                      builder: (_, c, __) => Icon(LucideIcons.chevronDown, size: 20, color: c),
-                    ),
+                    child: Icon(LucideIcons.chevronDown, size: 20, color: t.mut),
                   ),
                 ]),
               ),
@@ -405,14 +355,14 @@ class _FaqTile extends StatelessWidget {
           alignment: Alignment.topCenter,
           child: open
               ? Padding(
-                  padding: const EdgeInsetsDirectional.fromSTEB(16, 0, 16, 16),
-                  // Yükseklik açılırken cevap solarak belirir (açılışta bir kez).
+                  padding: const EdgeInsetsDirectional.fromSTEB(kAnketPad, 0, kAnketPad, 17),
+                  // Cevap açılırken solarak belirir (açılışta bir kez).
                   child: TweenAnimationBuilder<double>(
                     tween: Tween(begin: 0, end: 1),
                     duration: d,
                     curve: BuMotion.standard,
                     builder: (_, v, child) => Opacity(opacity: v, child: child),
-                    child: Text(answer, style: tx.bodyMedium!.copyWith(color: t.mut, height: 1.55)),
+                    child: Text(answer, style: tx.bodyMedium!.copyWith(color: t.mut, height: 1.45)),
                   ),
                 )
               : const SizedBox(width: double.infinity),
@@ -422,109 +372,63 @@ class _FaqTile extends StatelessWidget {
   }
 }
 
-/// Talep satırı: durum noktası, konu, durum hapı; altta tarih.
+/// Talep satırı: kartsız; başlık 16 sp/600, altta "12 Ekim · Yanıtlandı" (muted; durum sözcüğü renkli); alt `bd` ayraç.
 class _TicketTile extends StatelessWidget {
   const _TicketTile({required this.ticket, required this.onTap});
 
   final Map<String, dynamic> ticket;
   final VoidCallback onTap;
 
+  /// Aynı yıl: "12 Ekim"; değilse "12 Ekim 2025".
+  static String dateLabel(BuildContext context, String? iso) {
+    final d = iso == null ? null : DateTime.tryParse(iso)?.toLocal();
+    return d == null ? niceDate(iso, context: context) : anketDayLabel(context, d);
+  }
+
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
     final tx = Theme.of(context).textTheme;
     final status = ticket['status'] as String?;
-    final date = niceDate(ticket['createdAt'] as String?, context: context);
+    final st = supportTicketStatusStyle(context, status);
+    final date = dateLabel(context, ticket['createdAt'] as String?);
+    final statusColor = switch (status) {
+      'ANSWERED' => t.ok,
+      'CLOSED' => t.mut,
+      _ => t.onWarnSoft,
+    };
+    final meta = tx.bodyMedium!.copyWith(color: t.mut, height: 1.3);
     return Semantics(
       button: true,
-      label: '${ticket['subject'] ?? ''}, ${supportTicketStatusStyle(context, status).label}, $date',
+      label: '${ticket['subject'] ?? ''}, ${st.label}, $date',
       excludeSemantics: true,
       onTap: onTap,
-      child: BuPressable(
-        scale: .985,
-        child: Material(
-        color: t.sf2,
-        borderRadius: BuRadius.bMd,
-        child: InkWell(
-          borderRadius: BuRadius.bMd,
-          onTap: onTap,
-          child: Padding(
-            padding: const EdgeInsetsDirectional.fromSTEB(14, 12, 12, 12),
-            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Row(children: [
-                Container(width: 8, height: 8, decoration: BoxDecoration(color: supportStatusDotColor(context, status), shape: BoxShape.circle)),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Text('${ticket['subject'] ?? ''}',
-                      maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.titleSmall!.copyWith(color: t.ink, fontWeight: FontWeight.w800, height: 1.3)),
-                ),
-                const SizedBox(width: 8),
-                SupportStatusPill(status),
+      child: InkWell(
+        onTap: onTap,
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsetsDirectional.fromSTEB(kAnketPad, 17, kAnketPad, 16),
+          decoration: BoxDecoration(border: Border(bottom: BorderSide(color: t.bd))),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text('${ticket['subject'] ?? ''}',
+                maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.titleMedium!.copyWith(color: t.ink, fontSize: 16, fontWeight: FontWeight.w600, height: 1.3)),
+            const SizedBox(height: 4),
+            Text.rich(
+              TextSpan(style: meta, children: [
+                TextSpan(text: '$date · '),
+                TextSpan(text: st.label, style: TextStyle(color: statusColor, fontWeight: FontWeight.w500)),
               ]),
-              const SizedBox(height: 8),
-              Row(children: [
-                Icon(LucideIcons.calendar, size: 15, color: t.mut),
-                const SizedBox(width: 8),
-                Text(date, style: tx.bodySmall!.copyWith(color: t.mut)),
-              ]),
-            ]),
-          ),
-        ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ]),
         ),
       ),
     );
   }
 }
 
-/// Paylaşım satırı (geri bildirim / öneri panosu): yuvarlak simge, başlık, açıklama, ok.
-class _ShareRow extends StatelessWidget {
-  const _ShareRow({required this.icon, required this.bg, required this.fg, required this.title, required this.subtitle, required this.onTap});
-
-  final IconData icon;
-  final Color bg;
-  final Color fg;
-  final String title;
-  final String subtitle;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = context.bu;
-    final tx = Theme.of(context).textTheme;
-    return Semantics(
-      button: true,
-      label: '$title. $subtitle',
-      excludeSemantics: true,
-      onTap: onTap,
-      child: Material(
-        color: t.sf2,
-        borderRadius: BuRadius.bMd,
-        child: InkWell(
-          borderRadius: BuRadius.bMd,
-          onTap: onTap,
-          child: Padding(
-            padding: const EdgeInsetsDirectional.fromSTEB(12, 12, 14, 12),
-            child: Row(children: [
-              AnketRoundIcon(icon, size: 48, bg: bg, fg: fg),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Text(title, style: tx.titleSmall!.copyWith(color: t.ink, fontWeight: FontWeight.w800)),
-                  const SizedBox(height: 2),
-                  Text(subtitle, style: tx.bodySmall!.copyWith(color: t.mut, height: 1.35)),
-                ]),
-              ),
-              const SizedBox(width: 8),
-              ExcludeSemantics(child: Icon(buDirIcon(context, LucideIcons.chevronRight), size: 20, color: t.mut)),
-            ]),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// İlk yükleme iskeleti: arama, çipler, sorular, talepler.
+/// İlk yükleme iskeleti: iki bölüm başlığı + satırlar.
 class _SupportSkeleton extends StatelessWidget {
   const _SupportSkeleton();
 
@@ -534,28 +438,15 @@ class _SupportSkeleton extends StatelessWidget {
         liveRegion: true,
         container: true,
         child: const BuSkeletonScope(
-          child: Padding(
-            padding: EdgeInsetsDirectional.fromSTEB(20, 16, 20, 20),
-            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              BuSkeleton.line(width: 160, height: 16),
-              SizedBox(height: 12),
-              BuSkeleton(height: 52, radius: 26),
-              SizedBox(height: 12),
-              BuSkeleton(height: 44, radius: 22),
-              SizedBox(height: 12),
-              BuSkeleton(height: 56, radius: 16),
-              SizedBox(height: 8),
-              BuSkeleton(height: 56, radius: 16),
-              SizedBox(height: 8),
-              BuSkeleton(height: 56, radius: 16),
-              SizedBox(height: 24),
-              BuSkeleton.line(width: 120, height: 16),
-              SizedBox(height: 12),
-              BuSkeleton(height: 64, radius: 16),
-              SizedBox(height: 8),
-              BuSkeleton(height: 64, radius: 16),
-            ]),
-          ),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Padding(padding: EdgeInsetsDirectional.fromSTEB(kAnketPad, 28, kAnketPad, 14), child: BuSkeleton.line(width: 170, height: 18)),
+            AnketSkeletonRow(titleWidth: 250),
+            AnketSkeletonRow(titleWidth: 200),
+            AnketSkeletonRow(titleWidth: 230),
+            Padding(padding: EdgeInsetsDirectional.fromSTEB(kAnketPad, 28, kAnketPad, 14), child: BuSkeleton.line(width: 110, height: 18)),
+            AnketSkeletonRow(titleWidth: 240),
+            AnketSkeletonRow(titleWidth: 190),
+          ]),
         ),
       );
 }

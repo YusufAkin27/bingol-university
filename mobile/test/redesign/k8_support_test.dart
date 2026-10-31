@@ -59,11 +59,22 @@ void main() {
   });
 
   group('K8 destek: davranis', () {
-    testWidgets('SSS kategori cipi suzer', (t) async {
-      t.view.physicalSize = const Size(390, 1400);
+    testWidgets('SSS kategori cipi suzer (7+ soruda)', (t) async {
+      t.view.physicalSize = const Size(390, 1800);
       t.view.devicePixelRatio = 1;
       addTearDown(t.view.reset);
-      await t.pumpWidget(p00App(SupportPage(session: makeSession(_backend())), scaffold: false));
+      final b = _backend()
+        ..on('/faq', [
+          {
+            'category': 'Hesap',
+            'items': [for (var i = 0; i < 5; i++) {'question': 'Hesap $i', 'answer': 'x'}, {'question': 'Sifremi unuttum', 'answer': 'Sifirlama baglantisi.'}],
+          },
+          {
+            'category': 'Teknik',
+            'items': [for (var i = 0; i < 2; i++) {'question': 'Teknik $i', 'answer': 'x'}, {'question': 'Uygulama acilmiyor', 'answer': 'Guncelleyin.'}],
+          },
+        ]);
+      await t.pumpWidget(p00App(SupportPage(session: makeSession(b)), scaffold: false));
       await settle(t, const Duration(milliseconds: 700));
       expect(find.text('Sifremi unuttum'), findsOneWidget);
       expect(find.text('Uygulama acilmiyor'), findsOneWidget);
@@ -71,7 +82,6 @@ void main() {
       await settle(t, const Duration(milliseconds: 400));
       expect(find.text('Sifremi unuttum'), findsNothing);
       expect(find.text('Uygulama acilmiyor'), findsOneWidget);
-      expect(find.text('Sürüm 2.0.3'), findsOneWidget);
       await unmount(t);
     });
 
@@ -126,10 +136,9 @@ void main() {
       addTearDown(t.view.reset);
       await t.pumpWidget(p00App(SuggestionsPage(session: makeSession(b)), scaffold: false));
       await settle(t, const Duration(milliseconds: 700));
-      expect(find.text('En çok oy'), findsOneWidget);
-      expect(find.text('Öneri ekle'), findsOneWidget);
-      expect(find.text('Öneriler yönetici onayından sonra yayımlanır.'), findsOneWidget);
-      await t.tap(find.text('En yeni'));
+      expect(find.text('En çok oylanan'), findsOneWidget);
+      expect(find.text('Öneri gönder'), findsOneWidget);
+      await t.tap(find.text('Yeni'));
       await settle(t, const Duration(milliseconds: 500));
       expect(b.requests.any((r) => r.contains('sort=new')), isTrue);
       await t.tap(find.text('Turnike'));

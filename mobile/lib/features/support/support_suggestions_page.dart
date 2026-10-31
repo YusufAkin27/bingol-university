@@ -3,9 +3,7 @@ import 'package:flutter/material.dart';
 import '../../core/locale_controller.dart';
 import '../../core/session.dart';
 import '../../widgets/bu.dart';
-import '../../widgets/common.dart' show relativeTime;
-import '../polls/anket_art.dart';
-import '../polls/anket_widgets.dart';
+import '../polls/anket_flat.dart';
 import 'support_common.dart';
 import 'support_feedback_page.dart';
 
@@ -121,163 +119,55 @@ class _SuggestionsPageState extends State<SuggestionsPage> {
     final t = context.bu;
     final failed = _error != null && _items.isEmpty;
     return BuPageScaffold(
-      title: l.supportBoard,
+      title: l.p68SugTitle,
       large: false,
       state: _loading ? BuViewState.loading : BuViewState.ready,
       onRefresh: () => _load(reset: true),
       loading: const _SuggestionsSkeleton(),
       bottomInset: 28,
       slivers: [
-        if (_items.isNotEmpty)
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsetsDirectional.fromSTEB(20, 0, 20, 12),
-              child: Align(alignment: AlignmentDirectional.centerEnd, child: _AddButton(label: l.p13SugAdd, onTap: _add)),
-            ),
-          ),
         if (!failed && _items.isNotEmpty)
           SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsetsDirectional.fromSTEB(20, 0, 20, 16),
-              child: _SortTabs(labels: [l.p13SugSortTop, l.supportSortNew], icons: const [LucideIcons.flame, LucideIcons.clock], index: _sort, onChanged: _setSort),
+              padding: const EdgeInsets.only(top: 4),
+              child: _SortText(labels: [l.p68SugTop, l.p68SugNew], index: _sort, onChanged: _setSort),
             ),
           ),
         if (failed)
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsetsDirectional.fromSTEB(20, 8, 20, 0),
-              child: BuCard(
-                padding: const EdgeInsetsDirectional.all(16),
-                child: Column(children: [
-                  Container(
-                    padding: const EdgeInsetsDirectional.all(14),
-                    decoration: BoxDecoration(color: t.soft, borderRadius: BuRadius.bMd),
-                    child: Row(children: [
-                      AnketRoundIcon(LucideIcons.wifiOff, size: 44, bg: t.pr.withValues(alpha: .14), fg: t.pr),
-                      const SizedBox(width: 12),
-                      Expanded(child: Text(l.pollLoadFailedRetry, style: Theme.of(context).textTheme.titleSmall!.copyWith(color: t.ink, fontWeight: FontWeight.w800))),
-                    ]),
-                  ),
-                  const SizedBox(height: 12),
-                  Semantics(
-                    button: true,
-                    label: l.supportRetry,
-                    excludeSemantics: true,
-                    onTap: () => _load(reset: true),
-                    child: Material(
-                      color: t.ink,
-                      borderRadius: BuRadius.bMd,
-                      child: InkWell(
-                        borderRadius: BuRadius.bMd,
-                        onTap: () => _load(reset: true),
-                        child: ConstrainedBox(
-                          constraints: const BoxConstraints(minHeight: BuSize.button),
-                          child: Center(
-                            child: Row(mainAxisSize: MainAxisSize.min, children: [
-                              Icon(LucideIcons.refreshCw, size: 18, color: t.bg),
-                              const SizedBox(width: 10),
-                              Text(l.supportRetry, style: Theme.of(context).textTheme.titleSmall!.copyWith(color: t.bg, fontWeight: FontWeight.w800)),
-                            ]),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ]),
-              ),
-            ),
-          )
+          SliverToBoxAdapter(child: AnketStateLine(text: l.pollLoadFailedRetry, actionLabel: l.supportRetry, onAction: () => _load(reset: true)))
         else if (_items.isEmpty)
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsetsDirectional.fromSTEB(20, 8, 20, 0),
-              child: BuCard(
-                padding: const EdgeInsetsDirectional.fromSTEB(16, 24, 16, 16),
-                child: SizedBox(
-                  width: double.infinity,
-                  child: Column(children: [
-                    SizedBox(
-                      width: 128,
-                      height: 120,
-                      child: Stack(alignment: Alignment.center, children: [
-                        const AnketArtView(AnketArt.idea, size: 112),
-                        PositionedDirectional(
-                          end: 6,
-                          bottom: 6,
-                          child: ExcludeSemantics(
-                            child: Container(
-                              width: 34,
-                              height: 34,
-                              decoration: BoxDecoration(color: t.pr, shape: BoxShape.circle, border: Border.all(color: t.sf, width: 3)),
-                              child: Icon(LucideIcons.messageSquare, size: 16, color: t.onPr),
-                            ),
-                          ),
-                        ),
-                      ]),
-                    ),
-                    const SizedBox(height: 12),
-                    Semantics(
-                      header: true,
-                      child: Text(l.supportNoSuggestions, textAlign: TextAlign.center, style: Theme.of(context).textTheme.bodyLarge!.copyWith(color: t.mut, height: 1.5)),
-                    ),
-                    const SizedBox(height: 20),
-                    Semantics(
-                      button: true,
-                      label: l.p13SugAdd,
-                      excludeSemantics: true,
-                      onTap: _add,
-                      child: Ink(
-                        decoration: BoxDecoration(color: t.pr, borderRadius: BuRadius.bMd),
-                        child: InkWell(
-                          borderRadius: BuRadius.bMd,
-                          onTap: _add,
-                          child: ConstrainedBox(
-                            constraints: const BoxConstraints(minHeight: BuSize.button),
-                            child: Center(
-                              child: Row(mainAxisSize: MainAxisSize.min, children: [
-                                Icon(LucideIcons.plus, size: 18, color: t.onPr),
-                                const SizedBox(width: 8),
-                                Text(l.p13SugAdd, style: Theme.of(context).textTheme.titleMedium!.copyWith(color: t.onPr, fontWeight: FontWeight.w800)),
-                              ]),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ]),
-                ),
-              ),
-            ),
-          )
+          SliverToBoxAdapter(child: AnketStateLine(text: l.p68SugEmpty, actionLabel: l.p68SugSend, onAction: _add))
         else ...[
-          SliverPadding(
-            padding: const EdgeInsetsDirectional.fromSTEB(20, 0, 20, 0),
-            sliver: SliverList.separated(
-              itemCount: _items.length,
-              separatorBuilder: (_, __) => const SizedBox(height: 12),
-              itemBuilder: (_, i) => BuStaggerItem(
-                index: i,
-                child: _SuggestionTile(item: _items[i], onVote: () => _toggleVote(_items[i]), onOpen: () => _openDetail(_items[i])),
-              ),
+          SliverList.builder(
+            itemCount: _items.length,
+            itemBuilder: (_, i) => BuStaggerItem(
+              index: i,
+              child: _SuggestionTile(item: _items[i], first: i == 0, onVote: () => _toggleVote(_items[i]), onOpen: () => _openDetail(_items[i])),
             ),
           ),
           if (_page + 1 < _totalPages)
             SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.only(top: 14),
+                padding: const EdgeInsets.only(top: 8),
                 child: Center(
-                  child: BuButton(label: l.supportMore, kind: BuButtonKind.outline, compact: true, busy: _more, onPressed: _load),
+                  child: TextButton(
+                    style: TextButton.styleFrom(foregroundColor: t.mut, minimumSize: const Size(48, 48)),
+                    onPressed: _more ? null : _load,
+                    child: Text(l.supportMore, style: Theme.of(context).textTheme.titleSmall!.copyWith(color: t.mut, fontWeight: FontWeight.w600)),
+                  ),
                 ),
               ),
             ),
           SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsetsDirectional.fromSTEB(24, 20, 24, 0),
-              child: Row(children: [
-                ExcludeSemantics(child: Icon(LucideIcons.info, size: 16, color: t.mut)),
-                const SizedBox(width: 8),
-                Expanded(child: Text(l.p13SugApprovalNote, style: Theme.of(context).textTheme.labelMedium!.copyWith(color: t.mut, height: 1.4))),
-              ]),
+              padding: const EdgeInsets.only(top: 28),
+              child: Center(
+                child: TextButton(
+                  style: TextButton.styleFrom(foregroundColor: t.pr, minimumSize: const Size(48, 48), padding: const EdgeInsets.symmetric(horizontal: 16)),
+                  onPressed: _add,
+                  child: Text(l.p68SugSend, style: Theme.of(context).textTheme.titleMedium!.copyWith(color: t.pr, fontWeight: FontWeight.w700)),
+                ),
+              ),
             ),
           ),
         ],
@@ -286,50 +176,11 @@ class _SuggestionsPageState extends State<SuggestionsPage> {
   }
 }
 
-/// "+ Öneri ekle" düğmesi (sağ üst).
-class _AddButton extends StatelessWidget {
-  const _AddButton({required this.label, required this.onTap});
-
-  final String label;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = context.bu;
-    return Semantics(
-      button: true,
-      label: label,
-      excludeSemantics: true,
-      onTap: onTap,
-      child: Material(
-        color: t.pr,
-        borderRadius: BorderRadius.circular(14),
-        child: InkWell(
-          borderRadius: BorderRadius.circular(14),
-          onTap: onTap,
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(minHeight: 48),
-            child: Padding(
-              padding: const EdgeInsetsDirectional.symmetric(horizontal: 18),
-              child: Row(mainAxisSize: MainAxisSize.min, children: [
-                Icon(LucideIcons.plus, size: 18, color: t.onPr),
-                const SizedBox(width: 8),
-                Text(label, style: Theme.of(context).textTheme.titleSmall!.copyWith(color: t.onPr, fontWeight: FontWeight.w800)),
-              ]),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// Sıralama anahtarı (En çok oy | En yeni): seçili parça koyu (ink) dolgu.
-class _SortTabs extends StatelessWidget {
-  const _SortTabs({required this.labels, required this.icons, required this.index, required this.onChanged});
+/// Sıralama metinleri (Stitch v3 05): "En çok oylanan | Yeni"; seçili `pr` 500, diğeri muted; aralarında 1 dp dikey çizgi.
+class _SortText extends StatelessWidget {
+  const _SortText({required this.labels, required this.index, required this.onChanged});
 
   final List<String> labels;
-  final List<IconData> icons;
   final int index;
   final ValueChanged<int> onChanged;
 
@@ -337,111 +188,93 @@ class _SortTabs extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.bu;
     final tx = Theme.of(context).textTheme;
-    return Container(
-      padding: const EdgeInsets.all(4),
-      decoration: BoxDecoration(color: t.sf2, borderRadius: BorderRadius.circular(16)),
-      child: Row(children: [
-        for (var i = 0; i < labels.length; i++)
-          Expanded(
-            child: Semantics(
-              button: true,
-              selected: i == index,
-              label: labels[i],
-              excludeSemantics: true,
-              onTap: () => onChanged(i),
-              child: AnimatedContainer(
-                duration: BuMotion.of(context, BuMotion.short),
-                decoration: BoxDecoration(color: i == index ? t.ink : null, borderRadius: BorderRadius.circular(12)),
-                child: Material(
-                  type: MaterialType.transparency,
-                  child: InkWell(
-                    borderRadius: BorderRadius.circular(12),
-                    onTap: () {
-                      if (i != index) buHaptic(BuHaptic.selection);
-                      onChanged(i);
-                    },
-                    child: ConstrainedBox(
-                      constraints: const BoxConstraints(minHeight: 44),
-                      child: Center(
-                        child: FittedBox(
-                          fit: BoxFit.scaleDown,
-                          child: Row(mainAxisSize: MainAxisSize.min, children: [
-                            Icon(icons[i], size: 16, color: i == index ? t.bg : t.mut),
-                            const SizedBox(width: 8),
-                            Text(labels[i], maxLines: 1, style: tx.labelLarge!.copyWith(color: i == index ? t.bg : t.mut, fontWeight: FontWeight.w800)),
-                          ]),
-                        ),
-                      ),
+    return Padding(
+      padding: const EdgeInsetsDirectional.symmetric(horizontal: kAnketPad),
+      child: Wrap(crossAxisAlignment: WrapCrossAlignment.center, children: [
+        for (var i = 0; i < labels.length; i++) ...[
+          if (i > 0) ExcludeSemantics(child: Container(width: 1, height: 16, margin: const EdgeInsets.symmetric(horizontal: 4), color: t.bdStrong)),
+          Semantics(
+            button: true,
+            selected: i == index,
+            label: labels[i],
+            excludeSemantics: true,
+            onTap: () => onChanged(i),
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () {
+                if (i != index) buHaptic(BuHaptic.selection);
+                onChanged(i);
+              },
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(minHeight: 48, minWidth: 48),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  child: Center(
+                    widthFactor: 1,
+                    child: AnimatedDefaultTextStyle(
+                      duration: BuMotion.of(context, BuMotion.short),
+                      style: tx.bodyMedium!.copyWith(color: i == index ? t.pr : t.mut, fontWeight: i == index ? FontWeight.w500 : FontWeight.w400),
+                      child: Text(labels[i], maxLines: 1),
                     ),
                   ),
                 ),
               ),
             ),
           ),
+        ],
       ]),
     );
   }
 }
 
-/// Öneri kartı: durum hapı + zaman, başlık, metin, sağda dikey oy düğmesi.
+/// Öneri satırı (kartsız): solda başlık 18 sp/600, 2 satır muted gövde, altta muted durum; sağda 56x64 dikey oy kontrolü.
 class _SuggestionTile extends StatelessWidget {
-  const _SuggestionTile({required this.item, required this.onVote, required this.onOpen});
+  const _SuggestionTile({required this.item, required this.onVote, required this.onOpen, this.first = false});
 
   final Map<String, dynamic> item;
   final VoidCallback onVote;
   final VoidCallback onOpen;
+  final bool first;
 
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
     final tx = Theme.of(context).textTheme;
+    final l = context.l10n;
     final voted = item['votedByMe'] == true;
     final count = (item['voteCount'] as num?)?.toInt() ?? 0;
-    final ago = relativeTime(item['createdAt'] as String?, context: context);
-    return BuCard(
-      onTap: onOpen,
-      padding: const EdgeInsetsDirectional.all(16),
-      child: SizedBox(
-        width: double.infinity,
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Row(children: [
-            SupportFeedbackPill(item['status'] as String?),
-            if (ago.isNotEmpty)
-              Expanded(
-                child: Align(
-                  alignment: AlignmentDirectional.centerEnd,
-                  child: Row(mainAxisSize: MainAxisSize.min, children: [
-                    ExcludeSemantics(child: Icon(LucideIcons.history, size: 14, color: t.mut)),
-                    const SizedBox(width: 6),
-                    Flexible(child: Text(ago, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.labelMedium!.copyWith(color: t.mut))),
-                  ]),
-                ),
-              ),
-          ]),
-          const SizedBox(height: 12),
-          // Oy düğmesi başlığın yanında dikey durur: kart alt satırı boşa gitmez, başlık-metin okunaklı kalır.
-          Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Expanded(
+    final status = supportFeedbackStatuses(l)[item['status']] ?? l.supportStNew;
+    return Semantics(
+      container: true,
+      child: Container(
+        padding: EdgeInsetsDirectional.fromSTEB(kAnketPad, first ? 2 : 17, kAnketPad, 16),
+        decoration: BoxDecoration(border: Border(bottom: BorderSide(color: t.bd))),
+        child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Expanded(
+            child: InkWell(
+              onTap: onOpen,
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text('${item['subject'] ?? ''}', style: tx.titleMedium!.copyWith(color: t.ink, fontWeight: FontWeight.w800, height: 1.35)),
-                const SizedBox(height: 6),
-                Text('${item['message'] ?? ''}', maxLines: 3, overflow: TextOverflow.ellipsis, style: tx.bodyMedium!.copyWith(height: 1.45, color: t.mut)),
+                Text('${item['subject'] ?? ''}', maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.titleMedium!.copyWith(color: t.ink, fontSize: 18, fontWeight: FontWeight.w600, height: 1.3)),
+                const SizedBox(height: 4),
+                Text('${item['message'] ?? ''}', maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.bodyMedium!.copyWith(height: 1.45, color: t.mut)),
+                const SizedBox(height: 7),
+                Text(status, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.bodySmall!.copyWith(color: t.mut, fontSize: 13, height: 1.3)),
               ]),
             ),
-            const SizedBox(width: 12),
-            VotePill(count: count, voted: voted, onTap: onVote, vertical: true),
-          ]),
+          ),
+          const SizedBox(width: 12),
+          VotePill(count: count, voted: voted, onTap: onVote, vertical: true),
         ]),
       ),
     );
   }
 }
 
-/// Oy hapı: yukarı ok + sayı; oy verilince dolu marka rengi, aksi halde gri.
+/// Oy kontrolü: yukarı ok + sayı; 56x64 (dikey), r16, 1 dp çerçeve. Oy verilince `soft` zemin + `pr` çerçeve/yazı.
 class VotePill extends StatelessWidget {
   const VotePill({super.key, required this.count, required this.voted, required this.onTap, this.vertical = false});
 
-  /// Dikey: ok üstte, sayı altta (liste kartında sağ kenar).
+  /// Dikey: ok üstte, sayı altta (liste satırında sağ kenar).
   final bool vertical;
   final int count;
   final bool voted;
@@ -451,7 +284,7 @@ class VotePill extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.bu;
     final tx = Theme.of(context).textTheme;
-    final fg = voted ? t.onPr : t.ink;
+    final fg = voted ? t.pr : t.mut;
     final d = BuMotion.of(context, BuMotion.short);
     return Semantics(
       button: true,
@@ -464,27 +297,31 @@ class VotePill extends StatelessWidget {
         child: AnimatedContainer(
           duration: d,
           curve: BuMotion.standard,
-          decoration: BoxDecoration(color: voted ? t.pr : t.sf2, borderRadius: BorderRadius.circular(16)),
+          decoration: BoxDecoration(
+            color: voted ? t.soft : t.sf,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: voted ? t.pr : t.bd),
+          ),
           child: Material(
             type: MaterialType.transparency,
             child: InkWell(
               borderRadius: BorderRadius.circular(16),
               onTap: onTap,
               child: ConstrainedBox(
-                constraints: BoxConstraints(minHeight: vertical ? 64 : 48, minWidth: vertical ? 56 : 80),
+                constraints: BoxConstraints(minHeight: vertical ? 62 : 46, minWidth: vertical ? 54 : 78), // 1 dp çerçeve dahil 56x64
                 child: Padding(
-                  padding: EdgeInsetsDirectional.symmetric(horizontal: vertical ? 10 : 16, vertical: vertical ? 8 : 0),
+                  padding: EdgeInsetsDirectional.symmetric(horizontal: vertical ? 8 : 16, vertical: vertical ? 6 : 0),
                   child: Flex(
                     direction: vertical ? Axis.vertical : Axis.horizontal,
                     mainAxisSize: MainAxisSize.min,
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(LucideIcons.arrowUp, size: 18, color: fg),
+                      Icon(LucideIcons.arrowUp, size: 20, color: voted ? t.pr : t.ink),
                       SizedBox(width: vertical ? 0 : 8, height: vertical ? 2 : 0),
                       AnimatedSwitcher(
                         duration: d,
                         transitionBuilder: (c, a) => FadeTransition(opacity: a, child: ScaleTransition(scale: Tween(begin: .8, end: 1.0).animate(a), child: c)),
-                        child: Text('$count', key: ValueKey(count), style: tx.titleSmall!.copyWith(color: fg, fontWeight: FontWeight.w800)),
+                        child: Text('$count', key: ValueKey(count), style: tx.titleSmall!.copyWith(color: fg, fontSize: 15, fontWeight: FontWeight.w700)),
                       ),
                     ],
                   ),
@@ -529,15 +366,15 @@ class _SuggestionDetailPageState extends State<SuggestionDetailPage> {
     final count = (it['voteCount'] as num?)?.toInt() ?? 0;
     final resp = it['adminResponse'] as String?;
     return BuPageScaffold(
-      title: l.supportBoard,
+      title: l.p68SugTitle,
       large: false,
       bottomInset: 28,
       slivers: [
         SliverToBoxAdapter(
           child: Padding(
             padding: const EdgeInsetsDirectional.fromSTEB(20, 4, 20, 0),
-            child: BuCard(
-              padding: const EdgeInsetsDirectional.all(16),
+            child: Padding(
+              padding: EdgeInsets.zero,
               child: SizedBox(
                 width: double.infinity,
                 child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -599,7 +436,7 @@ class _SuggestionDetailPageState extends State<SuggestionDetailPage> {
   }
 }
 
-/// Öneri iskeleti: üç kart.
+/// Öneri iskeleti: üç satır (başlık + gövde çubukları, sağda oy kutusu).
 class _SuggestionsSkeleton extends StatelessWidget {
   const _SuggestionsSkeleton();
 
@@ -609,30 +446,26 @@ class _SuggestionsSkeleton extends StatelessWidget {
         liveRegion: true,
         container: true,
         child: BuSkeletonScope(
-          child: Padding(
-            padding: const EdgeInsetsDirectional.fromSTEB(20, 0, 20, 20),
-            child: Column(children: [
-              const BuSkeleton(height: 52, radius: 16),
-              const SizedBox(height: 16),
-              for (var i = 0; i < 3; i++) ...[
-                if (i > 0) const SizedBox(height: 12),
-                const BuCard(
-                  padding: EdgeInsetsDirectional.all(16),
-                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    Row(children: [BuSkeleton(width: 84, height: 24, radius: 12), Spacer(), BuSkeleton(width: 64, height: 14, radius: 7)]),
-                    SizedBox(height: 14),
-                    BuSkeleton.line(height: 16),
-                    SizedBox(height: 8),
-                    BuSkeleton.line(width: 200, height: 16),
-                    SizedBox(height: 12),
-                    BuSkeleton.line(height: 12),
-                    SizedBox(height: 14),
-                    Align(alignment: AlignmentDirectional.centerEnd, child: BuSkeleton(width: 84, height: 44, radius: 16)),
-                  ]),
-                ),
-              ],
-            ]),
-          ),
+          child: Column(children: [
+            for (var i = 0; i < 3; i++)
+              Container(
+                padding: const EdgeInsetsDirectional.fromSTEB(kAnketPad, 17, kAnketPad, 16),
+                decoration: BoxDecoration(border: Border(bottom: BorderSide(color: context.bu.bd))),
+                child: const Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Expanded(
+                    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                      BuSkeleton.line(width: 230, height: 18),
+                      SizedBox(height: 10),
+                      BuSkeleton.line(height: 13),
+                      SizedBox(height: 6),
+                      BuSkeleton.line(width: 180, height: 13),
+                    ]),
+                  ),
+                  SizedBox(width: 12),
+                  BuSkeleton(width: 56, height: 64, radius: 16),
+                ]),
+              ),
+          ]),
         ),
       );
 }

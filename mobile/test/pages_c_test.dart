@@ -261,7 +261,7 @@ final kPageCases = <PageCase>[
       ..on('/faq', <Object>[])
       ..on('/support/tickets', _page([])),
     marker: 'Şifremi nasıl değiştiririm?',
-    emptyMarker: 'Henüz destek talebiniz yok.',
+    emptyMarker: 'Henüz talebin yok.',
     failKeys: ['/faq', '/support/tickets'],
     checkLoading: false, // iskelet (P13)
   ),
@@ -309,7 +309,7 @@ final kPageCases = <PageCase>[
     }),
     empty: (b) => b.on('/suggestions', {'totalPages': 0, 'items': <Object>[]}),
     marker: 'Karanlık tema geliştirilsin ve başlık biraz uzun olsun',
-    emptyMarker: 'Henüz yayımlanmış öneri yok. İlk öneriyi siz ekleyin.',
+    emptyMarker: 'Henüz öneri yok.',
     failKeys: ['/suggestions'],
     checkLoading: false, // iskelet (P13)
   ),

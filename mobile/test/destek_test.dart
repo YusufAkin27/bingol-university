@@ -73,16 +73,40 @@ void main() {
     }
   }
 
-  testWidgets('SSS arama listeyi suzer, kategori cipi calisir', (tester) async {
-    useScreen(tester, kPhoneMedium);
-    await tester.pumpWidget(buildApp(SupportPage(session: makeSession(_backend()))));
+  testWidgets('SSS arama (7+ soruda gorunur) listeyi suzer; az soruda arama alani yok', (tester) async {
+    useScreen(tester, const Size(390, 1200));
+    await tester.pumpWidget(buildApp(SupportPage(session: makeSession(_backend())), size: const Size(390, 1200)));
     await tester.pumpAndSettle();
     expect(find.text('Sifremi nasil degistiririm?'), findsOneWidget);
     expect(find.text('Menu nerede?'), findsOneWidget);
+    expect(find.byType(TextField), findsNothing); // Stitch v3: uc soruluk listede arama/suzgec yok
+    await tester.pumpWidget(const SizedBox.shrink());
+
+    final many = _backend()
+      ..on('/faq', [
+        {
+          'category': 'Hesap',
+          'items': [for (var i = 0; i < 5; i++) {'question': 'Soru hesap $i', 'answer': 'Cevap.'}, {'question': 'Sifremi nasil degistiririm?', 'answer': 'Ayarlar sayfasindan.'}],
+        },
+        {
+          'category': 'Yemek',
+          'items': [for (var i = 0; i < 2; i++) {'question': 'Soru yemek $i', 'answer': 'Cevap.'}, {'question': 'Menu nerede?', 'answer': 'Yemek sekmesinde.'}],
+        },
+      ]);
+    useScreen(tester, const Size(390, 1600));
+    await tester.pumpWidget(buildApp(SupportPage(session: makeSession(many)), size: const Size(390, 1600)));
+    await tester.pumpAndSettle();
+    expect(find.byType(TextField), findsOneWidget);
     await tester.enterText(find.byType(TextField), 'menu');
     await tester.pump();
     expect(find.text('Sifremi nasil degistiririm?'), findsNothing);
     expect(find.text('Menu nerede?'), findsOneWidget);
+    await tester.enterText(find.byType(TextField), '');
+    await tester.pump();
+    await tester.tap(find.text('Yemek'));
+    await tester.pumpAndSettle();
+    expect(find.text('Menu nerede?'), findsOneWidget);
+    expect(find.text('Soru hesap 0'), findsNothing);
   });
 
   // Yeni tasarimda belge sayfasinda sekme seridi yok: belge secimi liste sayfasindan yapilir.
