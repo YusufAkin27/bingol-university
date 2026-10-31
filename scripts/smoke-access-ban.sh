@@ -39,8 +39,8 @@ TA=$(register "$ADMIN_EMAIL" "Yonetici")
 AAD="Authorization: Bearer $TA"
 ADMIN_IP="198.51.100.5"          # yoneticinin simule edilen IP'si
 XA="X-Forwarded-For: $ADMIN_IP"
-adm() { curl -s -H "$AAD" -H "$XA" -H "$H" "$@"; }
-admcode() { curl -s -o /dev/null -w '%{http_code}' -H "$AAD" -H "$XA" -H "$H" "$@"; }
+adm() { curl -s -H "$AAD" -H "$XA" -H "$H" -H 'X-Admin-Reason: smoke erisim engeli' "$@"; }
+admcode() { curl -s -o /dev/null -w '%{http_code}' -H "$AAD" -H "$XA" -H "$H" -H 'X-Admin-Reason: smoke erisim engeli' "$@"; }
 
 echo "== yetki: ADMIN olmayan erisemez"
 check "anonim liste" 401 "$(code $A/admin/access-bans)"

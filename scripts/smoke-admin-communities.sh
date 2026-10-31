@@ -87,7 +87,7 @@ has "icerik listesinde" "duman gonderisi" "$(curl -s -H "$AAD" "$A/admin/communi
 check "metin duzenle" 200 "$(code -X PATCH -H "$H" -H "$AAD" $A/admin/community-posts/$PID -d '{"text":"duzenlenmis gonderi"}')"
 check "gizle" 200 "$(code -X POST -H "$H" -H "$AAD" $A/admin/community-posts/$PID/hide -d '{"reason":"deneme"}')"
 hasnt "gizli gonderi kulup akisinda yok" "duzenlenmis gonderi" "$(curl -s -H "$A2" $A/communities/$CID/posts)"
-check "geri al" 200 "$(code -X POST -H "$H" -H "$AAD" $A/admin/community-posts/$PID/unhide)"
+check "geri al" 200 "$(code -X POST -H "$H" -H "$AAD" $A/admin/community-posts/$PID/unhide -d '{"reason":"geri alma denemesi"}')"
 has "geri alinan gonderi akista" "duzenlenmis gonderi" "$(curl -s -H "$A2" $A/communities/$CID/posts)"
 check "silme sebepsiz 400" 400 "$(code -X DELETE -H "$AAD" $A/admin/community-posts/$PID)"
 check "silme" 200 "$(code -X DELETE -H "$AAD" -H 'X-Admin-Reason: duman testi sil' $A/admin/community-posts/$PID)"

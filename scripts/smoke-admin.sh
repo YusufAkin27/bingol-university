@@ -60,6 +60,12 @@ check "ayar: fakulte listesi" 204 "$(code -X PUT -H "$H" -H "$AAD" $A/admin/sett
 has "liste normalize (tekrarsiz, kirpilmis)" "[\"$FA\",\"$FB\"]" "$(curl -s $A/faculties)"
 check "ayar: fazla uzun liste" 400 "$(code -X PUT -H "$H" -H "$AAD" $A/admin/settings/faculties -d "{\"value\":\"$(printf 'x%.0s' $(seq 1 1001))\"}")"
 check "ayar: fakulte >120 karakter" 400 "$(code -X PUT -H "$H" -H "$AAD" $A/admin/settings/faculties -d "{\"value\":\"$(printf 'y%.0s' $(seq 1 121))\"}")"
+# W1-B (T-013/T-017): ayar yazimi gerekce ister; e-posta/baglanti ayarlari dogrulanir
+check "ayar: gerekcesiz yazim 400" 400 "$(command curl -s -o /dev/null -w '%{http_code}' -X PUT -H "$H" -H "$AAD" $A/admin/settings/faculties -d '{"value":"x"}')"
+check "ayar: gecersiz e-posta" 400 "$(code -X PUT -H "$H" -H "$AAD" $A/admin/settings/support_email -d '{"value":"not-an-email"}')"
+has "ayar: gecersiz e-posta kodu" SETTING_INVALID "$(curl -s -X PUT -H "$H" -H "$AAD" $A/admin/settings/contact_email -d '{"value":"<script>x</script>"}')"
+check "ayar: http baglanti" 400 "$(code -X PUT -H "$H" -H "$AAD" $A/admin/settings/store_url_ios -d '{"value":"javascript:alert(1)"}')"
+check "kodlu yonetici yolu 400" 400 "$(code -g -H "$AAD" "$A/admin/users/%65xport.csv")"
 
 echo "== kullanicilar (4 kayit)"
 T1=$(register "$E1" "Smoke Bir" tr); T2=$(register "$E2" "Smoke Iki" tr); T3=$(register "$E3" "Smoke Uc" en); T4=$(register "$E4" "Smoke Dort" ar)

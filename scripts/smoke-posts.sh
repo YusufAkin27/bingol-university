@@ -179,7 +179,7 @@ else
   check "gizli gonderi 404" 404 "$(code -H "$AB" $A/posts/$MPID)"
   curl -s -H "$AB" "$A/search?q=ozgunkelime&type=POSTS" | grep -q "\"targetId\":$MPID" && { echo "  FAIL gizli gonderi aramada"; FAIL=1; } || echo "  ok   gizli gonderi aramada yok"
   has "hidden=true suzgeci" "\"id\":$MPID," "$(curl -s -H "$AD" "$A/admin/posts?hidden=true&size=50")"
-  check "geri ac" 200 "$(code -X POST -H "$AD" -H "$H" $A/admin/posts/$MPID/unhide -d '{}')"
+  check "geri ac" 200 "$(code -X POST -H "$AD" -H "$H" $A/admin/posts/$MPID/unhide -d '{"reason":"geri acma denemesi"}')"
   check "geri acilan gonderi 200" 200 "$(code -H "$AB" $A/posts/$MPID)"
   has "denetim kaydi" "/api/admin/posts/$MPID/hide" "$(curl -s -H "$AD" "$A/admin/audit?size=20")"
   # V470 sonrasi yonetici yetenekleri: durum/yazar/rapor suzgeci, metin duzenleme (PATCH), gerekceli silme

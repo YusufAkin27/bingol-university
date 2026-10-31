@@ -179,6 +179,34 @@ TV2=$(login "$EV")
 has "taze token FULL" '"profile":"FULL"' "$(curl -s -H "Authorization: Bearer $TV2" $A/admin/rbac/me)"
 check "yeni FULL denetimi gorur" 200 "$(code -H "Authorization: Bearer $TV2" $A/admin/audit)"
 
+echo "== W1-B: yuzde-kodlu yol, hiyerarsi, users.verify, FULL rol dusurme (T-010/T-011/T-012/T-014)"
+UU=$(curl -s -H "Authorization: Bearer $TU" $A/users/me | idof)
+# yuzde-kodlu harf segmenti: 400 ADMIN_PATH_INVALID (kodsuz yol 403, kodlu yol da yetki atlatamaz)
+check "SUPPORT kodsuz sohbet yolu" 403 "$(code -H "$S" $A/admin/users/$UU/conversations)"
+check "SUPPORT kodlu sohbet yolu" 400 "$(code -g -H "$S" "$A/admin/users/$UU/%63onversations")"
+has "kodlu yol kodu" ADMIN_PATH_INVALID "$(curl -s -g -H "$S" "$A/admin/users/$UU/%63onversations")"
+check "SUPPORT kodlu CSV yolu" 400 "$(code -g -H "$S" "$A/admin/users/%65xport.csv")"
+check "MOD kodlu rol yolu" 400 "$(code -g -X PATCH -H "$M" -H "$H" -H "$R" "$A/admin/users/$UV/%72ole" -d '{"role":"USER"}')"
+check "kodlu yonetici on eki" 400 "$(code -g -H "$B" "$BASE/%61pi/admin/users")" # /%61pi: yonetici yolu cozulunce 400
+# HEAD de GET kurallariyla degerlendirilir
+check "SUPPORT HEAD sohbet 403" 403 "$(code -I -H "$S" $A/admin/users/$UU/conversations)"
+# users.verify yalniz FULL + gerekce
+check "MOD verify-email 403" 403 "$(code -X POST -H "$M" -H "$R" $A/admin/users/$UU/verify-email)"
+check "FULL verify-email gerekcesiz 400" 400 "$(code -X POST -H "$B" $A/admin/users/$UU/verify-email)"
+check "FULL verify-email gerekceli" 204 "$(code -X POST -H "$B" -H "$R" $A/admin/users/$UU/verify-email)"
+check "MOD bekleyen kayit dogrulama 403" 403 "$(code -X POST -H "$M" -H "$R" $A/admin/pending-registrations/yok$SFX@bingol.edu.tr/verify)"
+# hiyerarsi: MODERATOR, FULL yonetici hesabina mudahale edemez
+check "MOD -> FULL oturum kapatma" 403 "$(code -X POST -H "$M" -H "$R" $A/admin/users/$UV/revoke-sessions)"
+has "hiyerarsi kodu" ADMIN_TARGET_FORBIDDEN "$(curl -s -X POST -H "$M" -H "$R" $A/admin/users/$UV/revoke-sessions)"
+check "MOD -> FULL sifirlama" 403 "$(code -X POST -H "$M" -H "$R" $A/admin/users/$UV/send-reset)"
+check "MOD -> FULL profil mudahalesi" 403 "$(code -X PATCH -H "$M" -H "$H" -H "$R" $A/admin/users/$UV/profile -d '{"clearBio":true}')"
+# FULL hedefin rolu tek basina dusurulemez (iki kisi onayi); kullanici silme de
+check "FULL hedef rol dusurme 409" 409 "$(code -X PATCH -H "$B" -H "$H" -H "$R" $A/admin/users/$UV/role -d '{"role":"USER"}')"
+has "FULL hedef rol dusurme kodu" RBAC_APPROVAL_REQUIRED "$(curl -s -X PATCH -H "$B" -H "$H" -H "$R" $A/admin/users/$UV/role -d '{"role":"USER"}')"
+check "FULL hedef silme 409" 409 "$(code -X DELETE -H "$B" -H "$R" $A/admin/users/$UV)"
+# reddedilen istek denetimde basari ozeti tasimaz
+has "reddedilen istek denetimi" 'BASARISIZ: HTTP 409' "$(curl -s -H "$B" "$A/admin/audit?targetType=USER&targetId=$UV&status=4xx&size=20")"
+
 echo "== FULL dusurme de iki kisi onayi ister"
 has "dogrudan dusurme reddi" RBAC_APPROVAL_REQUIRED "$(curl -s -X PUT -H "$B" -H "$H" $A/admin/rbac/users/$UV/profile -d "$(printf "$RB" VIEWER)")"
 PR2=$(curl -s -X POST -H "$B2" -H "$H" $A/admin/rbac/changes -d "{\"userId\":$UV,\"profile\":\"VIEWER\",\"reason\":\"gecici FULL geri aliniyor\"}")

@@ -54,7 +54,7 @@ S0S=$(num "$S0" sentLast24h)
 echo "  baslangic: pending=$P0 sentLast24h=$S0S $(echo "$S0" | grep -o '"enabled":[a-z]*' | head -1) $(echo "$S0" | grep -o '"holdWhenDisabled":[a-z]*')"
 check "cihaz kaydi (yonetici)" 204 "$(code -X POST -H "$AD" -H "$H" $A/devices -d "{\"fcmToken\":\"smoke-token-$SFX-$SFX-$SFX\",\"platform\":\"android\"}")"
 # Bildirim uretmek icin yonetici push kampanyasi (hedef: yalniz yonetici = SELF)
-CAMP=$(curl -s -X POST -H "$AD" -H "$H" $A/admin/push/campaigns -d "{\"type\":\"SYSTEM\",\"audience\":{\"type\":\"SELF\"},\"tr\":{\"title\":\"Kuyruk testi $SFX\",\"body\":\"deneme\"}}")
+CAMP=$(curl -s -X POST -H "$AD" -H "$H" -H 'X-Admin-Reason: smoke kuyruk testi' $A/admin/push/campaigns -d "{\"type\":\"SYSTEM\",\"audience\":{\"type\":\"SELF\"},\"tr\":{\"title\":\"Kuyruk testi $SFX\",\"body\":\"deneme\"}}")
 echo "  kampanya: $(echo "$CAMP" | head -c 120)"
 sleep 12
 S1=$(curl -s -H "$AD" $A/admin/push/outbox/stats)

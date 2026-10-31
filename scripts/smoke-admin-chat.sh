@@ -105,8 +105,13 @@ echo "== yonetici: toplu izleme alani"
 MEDIA=$(curl -s -H "$AUTH_ADM" "$A/admin/chat-media?viewOnce=true&userId=$IDA&size=10")
 has "chat-media view-once" "\"attachmentId\":$AID" "$MEDIA"
 has "chat-media previewUrl" "/api/admin/media/attachments/$AID/preview" "$MEDIA"
-check "chat-media kind=VIDEO bos olabilir 200" 200 "$(code -H "$AUTH_ADM" "$A/admin/chat-media?kind=VIDEO")"
-check "chat-media gecersiz kind 400" 400 "$(code -H "$AUTH_ADM" "$A/admin/chat-media?kind=GIF")"
+check "chat-media kind=VIDEO bos olabilir 200" 200 "$(code -H "$AUTH_ADM" "$A/admin/chat-media?kind=VIDEO&userId=$IDA")"
+check "chat-media gecersiz kind 400" 400 "$(code -H "$AUTH_ADM" "$A/admin/chat-media?kind=GIF&userId=$IDA")"
+# W1-B (T-015): genel akis suzgecsiz gezdirilemez; sebep >= 20 karakter
+check "chat-media suzgecsiz 400" 400 "$(code -H "$AUTH_ADM" "$A/admin/chat-media")"
+has "chat-media suzgec kodu" FEED_FILTER_REQUIRED "$(curl -s -H "$AUTH_ADM" "$A/admin/chat-media")"
+has "chat-messages suzgec kodu" FEED_FILTER_REQUIRED "$(curl -s -H "$AUTH_ADM" "$A/admin/chat-messages")"
+check "kisa sebep (19 karakter) 400" 400 "$(command curl -s -o /dev/null -w '%{http_code}' -H "$AUTH_ADM" -H 'X-Admin-Reason: on dokuz karakter a' "$A/admin/users/$IDA/conversations")"
 check "chat-media stats" 200 "$(code -H "$AUTH_ADM" $A/admin/chat-media/stats)"
 has "stats alanlari" "\"viewOnceCount\"" "$(curl -s -H "$AUTH_ADM" $A/admin/chat-media/stats)"
 FEED=$(curl -s -H "$AUTH_ADM" "$A/admin/chat-messages?userId=$IDA&deleted=true&size=10")

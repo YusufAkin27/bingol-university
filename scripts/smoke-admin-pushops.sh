@@ -108,7 +108,7 @@ check "toplu 201 kimlik" 400 "$(code -X POST -H "$H" -H "$AD" -H 'X-Admin-Reason
 
 echo "== kampanya hatalari"
 check "olmayan kampanya" 404 "$(code -H "$AD" $A/admin/push/campaigns/987654321/failures)"
-C=$(curl -s -X POST -H "$H" -H "$AD" $A/admin/push/campaigns -d '{"audience":{"type":"SELF"},"tr":{"title":"Smoke kampanya","body":"Duman testi"}}')
+C=$(curl -s -X POST -H "$H" -H "$AD" -H 'X-Admin-Reason: smoke kampanya denemesi' $A/admin/push/campaigns -d '{"audience":{"type":"SELF"},"tr":{"title":"Smoke kampanya","body":"Duman testi"}}')
 CID=$(echo "$C" | grep -o '"id":[0-9]*' | head -1 | cut -d: -f2)
 if [ -n "$CID" ]; then
   CF=$(curl -s -H "$AD" $A/admin/push/campaigns/$CID/failures)
