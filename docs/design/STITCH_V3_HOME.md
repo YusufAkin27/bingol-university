@@ -9,7 +9,7 @@ Kapsam: Ana Sayfa + özelleştirme, Yemek, Bildirimler + tercihler, Haber (liste
 - Stitch'in yaygın hataları (bu grupta görüldü): sahte İngilizce üst çubuk + kırmızı avatar ("Cafeteria Menu Detail"), lavanta zemin ve koyu kırmızı, pembe uyarı bandı, uydurma içerik ("Ücretsiz", "14 yorum", bilgi kutuları). Düzeltme turu: tüm ekranlar seçilip (Ctrl+A) tek istemle düzeltilir.
 
 ## Durum
-Ana Sayfa + özelleştirme: TAMAM (HOME Flutter ajanına teslim edildi). Yemek, Bildirimler, Haber, Arama: taslak üretildi, düzeltme turu bekliyor; ayrıntı SARTNAME.md.
+5 kategorinin hepsi TAMAM ve ilgili Flutter ajanlarına toplu teslim edildi (HOME: Ana Sayfa + özelleştirme; MENU: Yemek + Bildirimler + tercihler; NEWS: Haber + Arama). Yemek/Bildirim/Haber/Arama için ilk Stitch turundaki hatalar (sahte İngilizce üst çubuk + avatar, lavanta zemin, pembe bant, uydurma içerik, yorum sayısı) tek bir düzeltme istemiyle (tüm ekranlar seçili) giderildi; kalan küçük notlar SARTNAME.md sonunda.
 
 ## Ana kararlar (Ana Sayfa)
 Kırmızı dolu menü vitrini, logo karosu, avatar ve renkli ikon blobları kalktı; "Bugün" tek bakış yüzeyi + "Bugünkü dersler" eklendi; tek yüzey ailesi (beyaz + 1 dp çerçeve, gölge yok); başlıkta kalem (Ana sayfayı düzenle) ve zil; düzenleme: tutamaç + yukarı/aşağı düğmeleri + anahtar + "Varsayılana dön" + "Bitti"; Hızlı erişim seçici 5 slot (11 havuz); hepsi gizliyken "Ana sayfan boş" + "Bölüm ekle".
