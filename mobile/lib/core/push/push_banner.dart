@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import '../../widgets/bu.dart';
 import '../locale_controller.dart' show L10nContext;
 import '../nav.dart';
+import 'push_targets.dart';
 
 /// Ön plandaki uygulama içi bildirim şeridi: üstten inen ince kart, 4 sn sonra kaybolur;
 /// aynı konuşmadan art arda gelenler tek kartta birleşir ("3 yeni mesaj").
@@ -32,6 +33,34 @@ String bannerKey(Map<String, dynamic> data, String title) {
   final id = '${data['targetId'] ?? data['value'] ?? ''}';
   if (t.isNotEmpty && id.isNotEmpty) return '$t-$id';
   return 'title-$title';
+}
+
+/// Sohbet dışı bildirimin şerit simgesi (hedef türünden): kişi görseli yalnız sohbet için anlamlıdır; etkinlik/haber/anket
+/// için kişi silueti yanıltıcı olurdu. Saf fonksiyon (test edilir); bilinmeyen/bozuk yük çan simgesine düşer.
+IconData bannerIcon(Map<String, dynamic> data) {
+  switch (resolvePushTarget(data).dest) {
+    case PushDest.conversation:
+    case PushDest.chatList:
+      return LucideIcons.messageCircle;
+    case PushDest.event:
+      return LucideIcons.calendarDays;
+    case PushDest.community:
+      return LucideIcons.users;
+    case PushDest.news:
+    case PushDest.deptAnnouncement:
+      return LucideIcons.megaphone;
+    case PushDest.post:
+      return '${data['type'] ?? ''}'.toUpperCase() == 'POST_LIKE' ? LucideIcons.heart : LucideIcons.image;
+    case PushDest.poll:
+      return LucideIcons.clipboardList;
+    case PushDest.user:
+      return LucideIcons.user;
+    case PushDest.timetable:
+    case PushDest.exams:
+      return LucideIcons.graduationCap;
+    default:
+      return LucideIcons.bell;
+  }
 }
 
 class PushBannerCenter {
@@ -153,24 +182,34 @@ class _BannerCard extends StatelessWidget {
                     child: SizedBox(
                       width: 46,
                       height: 46,
-                      child: Stack(
-                        clipBehavior: Clip.none,
-                        children: [
-                          BuAvatar(name: item.title, size: 44),
-                          if (chat)
-                            PositionedDirectional(
-                              end: -2,
-                              bottom: -2,
+                      child: chat
+                          ? Stack(
+                              clipBehavior: Clip.none,
+                              children: [
+                                BuAvatar(name: item.title, size: 44),
+                                PositionedDirectional(
+                                  end: -2,
+                                  bottom: -2,
+                                  child: Container(
+                                    width: 18,
+                                    height: 18,
+                                    alignment: Alignment.center,
+                                    decoration: BoxDecoration(color: t.pr, shape: BoxShape.circle, border: Border.all(color: t.sf3, width: 2)),
+                                    child: Icon(LucideIcons.messageCircle, size: 9, color: t.onPr),
+                                  ),
+                                ),
+                              ],
+                            )
+                          : Align(
+                              alignment: AlignmentDirectional.topStart,
                               child: Container(
-                                width: 18,
-                                height: 18,
+                                width: 44,
+                                height: 44,
                                 alignment: Alignment.center,
-                                decoration: BoxDecoration(color: t.pr, shape: BoxShape.circle, border: Border.all(color: t.sf3, width: 2)),
-                                child: Icon(LucideIcons.messageCircle, size: 9, color: t.onPr),
+                                decoration: BoxDecoration(color: t.soft, borderRadius: BorderRadius.circular(14)),
+                                child: Icon(bannerIcon(item.data), size: 22, color: t.onSoft),
                               ),
                             ),
-                        ],
-                      ),
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -182,7 +221,7 @@ class _BannerCard extends StatelessWidget {
                         Row(
                           children: [
                             if (item.title.isNotEmpty)
-                              Expanded(child: Text(item.title, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.titleMedium!.copyWith(color: t.ink)))
+                              Expanded(child: Text(item.title, maxLines: item.body.isEmpty ? 2 : 1, overflow: TextOverflow.ellipsis, style: tx.titleMedium!.copyWith(color: t.ink)))
                             else
                               const Spacer(),
                             const SizedBox(width: 8),

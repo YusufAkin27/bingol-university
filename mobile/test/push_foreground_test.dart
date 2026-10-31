@@ -84,6 +84,16 @@ void main() {
       expect(bannerKey({'targetType': 'EVENT', 'targetId': '8'}, 'x'), 'EVENT-8');
       expect(bannerKey({}, 'Baslik'), 'title-Baslik');
     });
+    test('sohbet disi seridin simgesi hedef turune gore (kisi silueti degil)', () {
+      final ev = bannerIcon({'targetType': 'EVENT', 'targetId': '7'});
+      final news = bannerIcon({'targetType': 'NEWS', 'targetId': '3'});
+      final poll = bannerIcon({'pollId': '5'});
+      final like = bannerIcon({'type': 'POST_LIKE', 'postId': '9'});
+      final chat = bannerIcon({'conversationId': '4'});
+      final unknown = bannerIcon({});
+      expect({ev, news, poll, like, chat, unknown}.length, 6, reason: 'her tur ayri simge; bos yuk cana duser');
+      expect(bannerIcon({'targetType': 'ACADEMIC_EXAM'}), bannerIcon({'targetType': 'TIMETABLE'}));
+    });
 
     testWidgets('sere gorunur, birlesir, 4 sn sonra kaybolur, dokunus yonlendirir', (tester) async {
       final center = PushBannerCenter();

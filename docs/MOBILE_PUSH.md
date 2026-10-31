@@ -15,10 +15,10 @@ push.attach(onSignedIn: hooks.onSignedIn, onSignedOut: hooks.onSignedOut);
 ## iOS anahtarlarını nasıl ekleriz (adım adım)
 Kod ve proje ayarları hazırdır; anahtarlar geldiğinde **kod değişikliği gerekmez**. Anahtarlar yokken uygulama çökmeden çalışır, push sessizce kapalı kalır (`Firebase.initializeApp` hatası yakalanır).
 
-1. **Firebase konsolu** > Proje ayarları > Uygulamalarınız > iOS uygulaması ekle. Bundle id = `edu.bingol.buKampus` (`ios/Runner.xcodeproj` içindeki `PRODUCT_BUNDLE_IDENTIFIER`; birebir aynı olmalı; **bundle id kararı bekliyor**: önerilen `tr.com.bukampus.app`, bkz. [IOS_RELEASE.md](IOS_RELEASE.md) K1 ve `scripts/ios/set-bundle-id.sh`). `GoogleService-Info.plist` dosyasını indirin.
+1. **Firebase konsolu** > Proje ayarları > Uygulamalarınız > iOS uygulaması ekle (Android uygulamasıyla **aynı proje**). Bundle id = `tr.com.bukampus.app` (kullanıcı kararı 2026-10-31; `ios/Runner.xcodeproj` içindeki `PRODUCT_BUNDLE_IDENTIFIER` ile birebir aynı; Android `applicationId` ile aynı). `GoogleService-Info.plist` dosyasını indirin ve `bash scripts/ios/install-firebase-plist.sh <dosya>` ile doğrulayıp yerleştirin (BUNDLE_ID / PROJECT_ID / iOS uygulama kimliği / gitignore / Xcode fazı denetlenir; yanlış dosyayı reddeder).
 2. Dosyayı `mobile/ios/Runner/GoogleService-Info.plist` yoluna koyun (`mobile/.gitignore` içinde, commitlenmez; macOS CI `IOS_GOOGLE_SERVICE_INFO_PLIST_BASE64` gizli değişkeninden `scripts/ios/prepare-ci.sh` ile yazar). Elle Xcode kaydı gerekmez: `Runner` hedefinde "Bundle GoogleService-Info.plist (optional)" adlı bir Run Script fazı dosyayı varsa `.app` paketine kopyalar, yoksa uyarı notu yazıp atlar (derleme kırılmaz).
 3. **Apple Developer** (ücretli hesap şart) > Certificates, Identifiers & Profiles:
-   - Identifiers > `edu.bingol.buKampus` App ID > **Push Notifications** yeteneğini işaretleyin.
+   - Identifiers > `tr.com.bukampus.app` App ID > **Push Notifications** yeteneğini işaretleyin.
    - Keys > yeni anahtar > **Apple Push Notifications service (APNs)** > `.p8` dosyasını indirin (bir kez indirilir). **Key ID** ve **Team ID**'yi not edin. `.p8` repoya girmez.
 4. Firebase konsolu > Proje ayarları > **Cloud Messaging** > "Apple uygulaması yapılandırması" > APNs Authentication Key: `.p8`, Key ID ve Team ID'yi yükleyin.
 5. **Push yetkisini imzaya ekleyin**: `powershell -File scripts/check-ios-push.ps1 -Enable` (veya `ios/Flutter/BuPush.xcconfig.example` dosyasını `BuPush.xcconfig` olarak kopyalayın). Bu, `Runner.entitlements` (Debug/Profile: `aps-environment=development`) ve `RunnerRelease.entitlements` (Release: `production`) dosyalarını imzaya bağlar. Dosya yokken push yetkisi istenmez; böylece ücretsiz Apple ID ile derleme bozulmaz. Push yeteneği ücretsiz Apple ID ile **verilemez**.
@@ -48,6 +48,26 @@ Dart tarafı iOS için incelendi: APNs belirteci beklenir, ön plan sistem şeri
 - **Yerel ders/sınav hatırlatmaları:** `bu_kampus/notify` yalnız Android'deydi; `BuNativeBridge.swift` `UNUserNotificationCenter` ile zamanlar ve dokunuşu `onTap`/`takeLaunchPayload` ile iletir. Kendi yerel bildirimlerine (`buLocal`) yanıt verir, FCM bildirimlerine dokunmaz (çift tamamlayıcı çağrısı yok).
 
 macOS'ta cihazda doğrulanacaklar: (1) TestFlight yapısında bildirim gelir (production APNs); (2) ön plan/arka plan/kapalı dokunuşları ilgili ekrana gider; (3) bir ders hatırlatması zamanında görünür ve dokunuşla Akademik'e gider; (4) bildirimleri okuyunca simge rozeti düşer; (5) `POST /api/devices` `platform=IOS` gitmiştir. Ayrıntı: [IOS_RELEASE.md](IOS_RELEASE.md) bölüm 3, 6, 9.
+
+## iOS'ta bildirim nasıl görünür (kod okunarak; cihazda DENENMEDİ)
+
+Windows'ta iOS derlenemez/çalıştırılamaz; aşağısı sunucu yükü (`FirebaseFcmSender.apns`, `PushMessages`) ve `ios/Runner` dosyalarından çıkarılan **beklenen** görünümdür. Gerçek görünüm macOS + iPhone (TestFlight) ister; bu yüzden iOS için maket/PNG üretilmemiştir.
+
+| Durum | Beklenen görünüm | Dayanak |
+|---|---|---|
+| Uygulama kapalı/arka planda | Üstten inen sistem şeridi: **uygulama simgesi** (köşeleri yuvarlak; Android'deki tek renkli küçük simge yoktur), kalın başlık, gövde (şeritte 2-3 satır, uzun basışta/genişletince daha fazla), "şimdi". Ses `default`. Başlık sohbet için kişi/grup adı, gövde varsayılan "Yeni mesaj" (önizleme tercihi kapalıysa) | `aps.alert{title,body}`, `sound=default`, `apns-push-type=alert`, `apns-priority=10` (mesaj/sistem/etkinlik başvuru sonucu; diğerleri 5) |
+| Kilit ekranı / Bildirim Merkezi | Aynı kart; aynı sohbetin bildirimleri **tek yığında** toplanır ("N bildirim daha"). Yığın başlığı iOS tarafından uygulama adıdır | `aps.thread-id` = `conv:<id>` (sohbet), `community-<id>`, `event-<id>`, `post-<id>`, yoksa tür adı |
+| Aynı sohbetten art arda gelenler | Yığın büyür (iOS'ta Android'deki `tag` ile yerine koyma YOK); `apns-collapse-id` yalnız sunucu `collapseKey` verirse (haber/gruplanmış bildirim) eskiyi değiştirir | `apns-collapse-id` (64 bayt sınırı) |
+| Sosyal (beğeni/takip) | Ekranı uyandırmadan, sessizce Bildirim Merkezi'ne düşer | `interruption-level=passive` (yalnız `social` kanalı, yüksek öncelikli değilse) |
+| Simge rozeti | Okunmamış bildirim sayısı; bildirimler okununca düşer, çıkışta 0 | `aps.badge` + `icon_badge.dart` / `BuNativeBridge.setBadgeCount` |
+| Uygulama ön planda | **Sistem şeridi çıkmaz**; Android'dekiyle aynı uygulama içi `PushBanner` kartı görünür | `setForegroundNotificationPresentationOptions(alert/badge/sound: false)` + `FirebaseMessaging.onMessage` |
+| Yerel ders/sınav hatırlatması | Aynı sistem şeridi, ön planda da gösterilir (`.banner,.list,.sound`); `threadIdentifier` = hatırlatma grubu | `BuNativeBridge.willPresent` (yalnız `buLocal` işaretli) |
+| Dokunma | Soğuk açılış `getInitialMessage`, arka plan `onMessageOpenedApp`; yerel hatırlatma `onTap`/`takeLaunchPayload`. Hepsi Android'le aynı `resolvePushTarget` | `push_service.dart`, `push_targets.dart` |
+| Arapça | iOS satır yönünü metnin diline ve cihaz diline göre kendisi belirler; uygulama bir şey yapmaz | sistem |
+
+Küçük farklar (bilinçli): iOS'ta kanal kavramı yoktur (kanal adı/önem düzeyi Android'e özgü; iOS'ta kullanıcı ayarı uygulama başına tek anahtar + "Anında teslim/Zamanlanmış özet"); `category` (MESSAGE, EVENT...) şu an hiçbir eylem düğmesine bağlı değildir; `mutable-content=1` gönderilir ama Notification Service Extension yoktur (zararsız, ileride görsel eklemek için hazır). Bildirim izni sistem istemiyle istenir; metni iOS üretir (Info.plist'te bildirim izin açıklaması anahtarı yoktur), uygulamanın kendi ön izin ekranı (`PermissionOnboarding`) üç dillidir.
+
+Cihazda doğrulanacak: yukarıdaki tablonun her satırı (özellikle yığınlama, `passive`, ön plan şeridinin sistem şeridini bastırması, Arapça hizalama). Android karşılığının ekran görüntüleri: [design/BILDIRIM_GORUNUMU.md](design/BILDIRIM_GORUNUMU.md).
 
 ## Davranış
 - Ön plan: sistem şeridi kapalı; uygulama içi SnackBar ("Aç" ile yönlendirir).
