@@ -16542,6 +16542,24 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Bu sohbetten çıkarıldınız.'**
   String get p31ChatRemovedToast;
+
+  /// No description provided for @p30AutosaveConsentTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Fotoğraflar galeriye kaydedilsin mi?'**
+  String get p30AutosaveConsentTitle;
+
+  /// No description provided for @p30AutosaveConsentBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Birebir sohbetlerde aldığın ve gönderdiğin fotoğraflar telefonunun galerisine (BU Kampus albümü) kaydedilir. Tek gösterimlik fotoğraflar kaydedilmez. Bunu istediğin zaman buradan kapatabilirsin.'**
+  String get p30AutosaveConsentBody;
+
+  /// No description provided for @p30AutosaveConsentOk.
+  ///
+  /// In tr, this message translates to:
+  /// **'Aç'**
+  String get p30AutosaveConsentOk;
 }
 
 class _AppLocalizationsDelegate

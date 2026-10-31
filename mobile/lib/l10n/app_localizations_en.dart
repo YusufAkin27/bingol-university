@@ -9133,4 +9133,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get p31ChatRemovedToast => 'You were removed from this chat.';
+
+  @override
+  String get p30AutosaveConsentTitle => 'Save photos to your gallery?';
+
+  @override
+  String get p30AutosaveConsentBody =>
+      'Photos you send and receive in one-to-one chats are saved to your phone\'s gallery (BU Kampus album). View-once photos are never saved. You can turn this off here at any time.';
+
+  @override
+  String get p30AutosaveConsentOk => 'Turn on';
 }

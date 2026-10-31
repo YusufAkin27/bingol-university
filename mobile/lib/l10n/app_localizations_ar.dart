@@ -9034,4 +9034,14 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get p31ChatRemovedToast => 'تمت إزالتك من هذه المحادثة.';
+
+  @override
+  String get p30AutosaveConsentTitle => 'حفظ الصور في المعرض؟';
+
+  @override
+  String get p30AutosaveConsentBody =>
+      'تُحفظ الصور التي ترسلها وتستقبلها في المحادثات الفردية في معرض هاتفك (ألبوم BU Kampus). لا تُحفظ الصور ذات المشاهدة الواحدة. يمكنك إيقاف ذلك من هنا في أي وقت.';
+
+  @override
+  String get p30AutosaveConsentOk => 'تشغيل';
 }

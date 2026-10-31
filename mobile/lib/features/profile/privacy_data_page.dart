@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../core/locale_controller.dart';
 import '../../core/session.dart';
 import '../../widgets/bu.dart';
+import '../chat/photo_autosave.dart';
 import 'blocked_users_page.dart';
 import 'profil2_my_data_page.dart';
 import 'profil2_widgets.dart';
@@ -34,6 +35,9 @@ class _PrivacyDataPageState extends State<PrivacyDataPage> {
   final Map<String, String> _vis = {for (final f in _fields) f: 'EVERYONE'};
   final Set<String> _saving = {};
   bool _showEmail = false;
+
+  /// Sohbet fotoğraflarını galeriye otomatik kaydet (cihazda saklanır; varsayılan KAPALI, rıza ile açılır).
+  bool _saveGallery = false;
   bool _avatarHidden = false;
   bool _loaded = false;
   Object? _error;
@@ -42,7 +46,27 @@ class _PrivacyDataPageState extends State<PrivacyDataPage> {
   @override
   void initState() {
     super.initState();
+    PhotoAutoSave.instance.enabled().then((v) {
+      if (mounted) setState(() => _saveGallery = v);
+    });
     _load();
+  }
+
+  /// Açarken rıza metni gösterilir (varsayılan kapalı); kapatmak onaysızdır.
+  Future<void> _setSaveGallery(bool v) async {
+    if (v) {
+      final l = context.l10n;
+      final ok = await BuConfirmSheet.show(
+        context,
+        title: l.p30AutosaveConsentTitle,
+        message: l.p30AutosaveConsentBody,
+        confirmLabel: l.p30AutosaveConsentOk,
+        icon: LucideIcons.imageDown,
+      );
+      if (!ok || !mounted) return;
+    }
+    setState(() => _saveGallery = v);
+    await PhotoAutoSave.instance.setEnabled(v);
   }
 
   /// Kompakt hata bildirimi: kırmızı simge + başlık/alt başlık + "Tekrar dene" + kapat.
@@ -266,6 +290,22 @@ class _PrivacyDataPageState extends State<PrivacyDataPage> {
               onChanged: _setEmail,
             ),
           ]),
+          const SizedBox(height: 16),
+          BuGroup(children: [
+            BuSettingsTile.toggle(
+              key: const ValueKey('privacy-save-gallery-switch'),
+              icon: LucideIcons.imageDown,
+              title: l.p22SaveGalleryTitle,
+              subtitle: l.p22SaveGalleryDesc,
+              value: _saveGallery,
+              tint: t.tint(1),
+              onChanged: _setSaveGallery,
+            ),
+          ]),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(6, 8, 6, 0),
+            child: Text(l.p22SaveGalleryCloud, key: const ValueKey('privacy-save-gallery-note'), style: tx.bodySmall!.copyWith(color: t.mut)),
+          ),
           P2SectionLabel(l.profil2BlockedSection, top: 20),
           BuGroup(dividerIndent: 66, children: [
             BuSettingsTile(

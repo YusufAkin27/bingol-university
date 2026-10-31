@@ -4627,5 +4627,8 @@
       }
     }
   },
-  "p31ChatRemovedToast": "Bu sohbetten çıkarıldınız."
+  "p31ChatRemovedToast": "Bu sohbetten çıkarıldınız.",
+  "p30AutosaveConsentTitle": "Fotoğraflar galeriye kaydedilsin mi?",
+  "p30AutosaveConsentBody": "Birebir sohbetlerde aldığın ve gönderdiğin fotoğraflar telefonunun galerisine (BU Kampus albümü) kaydedilir. Tek gösterimlik fotoğraflar kaydedilmez. Bunu istediğin zaman buradan kapatabilirsin.",
+  "p30AutosaveConsentOk": "Aç"
 }

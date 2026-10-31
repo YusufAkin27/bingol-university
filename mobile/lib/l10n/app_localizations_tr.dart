@@ -9099,4 +9099,14 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get p31ChatRemovedToast => 'Bu sohbetten çıkarıldınız.';
+
+  @override
+  String get p30AutosaveConsentTitle => 'Fotoğraflar galeriye kaydedilsin mi?';
+
+  @override
+  String get p30AutosaveConsentBody =>
+      'Birebir sohbetlerde aldığın ve gönderdiğin fotoğraflar telefonunun galerisine (BU Kampus albümü) kaydedilir. Tek gösterimlik fotoğraflar kaydedilmez. Bunu istediğin zaman buradan kapatabilirsin.';
+
+  @override
+  String get p30AutosaveConsentOk => 'Aç';
 }
