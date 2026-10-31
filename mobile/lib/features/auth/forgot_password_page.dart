@@ -109,23 +109,13 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
 
   @override
   Widget build(BuildContext context) {
-    final t = context.bu;
     final l = context.l10n;
     return RefPage(
       children: [
-        const SizedBox(height: 4),
-        Center(
-          child: Container(
-            width: 72,
-            height: 72,
-            decoration: BoxDecoration(color: t.soft, shape: BoxShape.circle),
-            child: Icon(LucideIcons.keyRound, size: 30, color: t.pr),
-          ),
-        ),
-        const SizedBox(height: 20),
-        RefHeading(title: l.authResetTitle, subtitle: l.authForgotSub, center: true),
+        RefHeading(title: l.authResetTitle, subtitle: l.authForgotSub),
         const SizedBox(height: 24),
-        RefCard(
+        Padding(
+          padding: EdgeInsets.zero,
           child: Form(
             key: _form,
             child: Column(
@@ -169,7 +159,6 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                 const SizedBox(height: 20),
                 RefButton(
                   label: l.authSendCode,
-                  icon: buDirIcon(context, LucideIcons.arrowRight),
                   busy: _busy,
                   onPressed: _sendCode,
                 ),
@@ -191,7 +180,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
         Center(
           child: RefLink(
             label: l.authBackToLogin,
-            icon: buDirIcon(context, LucideIcons.arrowLeft),
+            muted: true,
             onPressed: _busy ? null : () => Navigator.maybePop(context),
           ),
         ),

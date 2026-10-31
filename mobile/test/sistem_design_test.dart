@@ -139,8 +139,8 @@ void main() {
       await tester.tap(find.text('ac'));
       await settle(tester, const Duration(milliseconds: 500));
       expect(find.text('Kodu elle gir'), findsOneWidget);
-      expect(find.text('veya'), findsOneWidget);
-      expect(find.textContaining('Yoklama etkinlik saatinde'), findsOneWidget);
+      expect(find.text('veya'), findsNothing, reason: 'Stitch v3: ayraç ve bilgi kutusu yok');
+      expect(find.textContaining('Yoklama etkinlik saatinde'), findsNothing);
       await tester.enterText(find.byType(TextField), ' k7m4qx ');
       await tester.tap(find.text('Yoklamayı gönder'));
       await settle(tester, const Duration(milliseconds: 500));

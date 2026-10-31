@@ -235,16 +235,6 @@ class _LegalReacceptPageState extends State<LegalReacceptPage> {
       child: RefPage(
         showBack: false,
         children: [
-          Align(
-            alignment: AlignmentDirectional.centerStart,
-            child: Container(
-              width: 48,
-              height: 48,
-              decoration: BoxDecoration(color: t.sf2, shape: BoxShape.circle),
-              child: Icon(LucideIcons.shieldCheck, size: 24, color: t.pr),
-            ),
-          ),
-          const SizedBox(height: 20),
           if (_error != null) ...[
             RefBanner(_error!, key: ValueKey('reaccept-error-$_error'), tone: RefTone.warn, boldText: true),
             const SizedBox(height: 16),
@@ -253,24 +243,21 @@ class _LegalReacceptPageState extends State<LegalReacceptPage> {
           const SizedBox(height: 24),
           Text(l.legalReacceptListTitle, style: tx.titleSmall!.copyWith(color: t.ink, fontWeight: FontWeight.w700)),
           const SizedBox(height: 12),
-          Container(
-            decoration: BoxDecoration(color: t.sf, borderRadius: BorderRadius.circular(28), boxShadow: BuElevation.of(context, 1)),
-            clipBehavior: Clip.antiAlias,
-            child: Column(
-              children: [
-                for (var n = 0; n < widget.state.items.length; n++) ...[
-                  if (n > 0) Divider(height: 1, indent: 20, endIndent: 20, color: t.bd),
-                  _DocRow(
-                    type: widget.state.items[n].type,
-                    title: _label(widget.state.items[n]),
-                    version: l.profileVersion('${widget.state.items[n].version}'),
-                    onTap: _busy ? null : () => _open(widget.state.items[n]),
-                  ),
-                ],
+          // Kart yok (Stitch v3 "15"): düz satırlar + ince ayırıcı.
+          Column(
+            children: [
+              for (var n = 0; n < widget.state.items.length; n++) ...[
+                if (n > 0) Divider(height: 1, color: t.bd),
+                _DocRow(
+                  type: widget.state.items[n].type,
+                  title: _label(widget.state.items[n]),
+                  version: l.profileVersion('${widget.state.items[n].version}'),
+                  onTap: _busy ? null : () => _open(widget.state.items[n]),
+                ),
               ],
-            ),
+            ],
           ),
-          const SizedBox(height: 14),
+          const SizedBox(height: 16),
           // Açık rıza (EXPLICIT_CONSENT) ayrıdır: bu onayla verilmiş sayılmaz.
           Padding(
             padding: const EdgeInsetsDirectional.symmetric(horizontal: 4),
@@ -286,10 +273,10 @@ class _LegalReacceptPageState extends State<LegalReacceptPage> {
             onPressed: (_busy || !_ack) ? null : _accept,
           ),
           if (!enforced) ...[
-            const SizedBox(height: 10),
-            RefButton(label: l.legalReacceptLater, kind: RefButtonKind.soft, onPressed: _busy ? null : _later),
+            const SizedBox(height: 8),
+            RefButton(label: l.legalReacceptLater, kind: RefButtonKind.ghost, onPressed: _busy ? null : _later),
           ],
-          Center(child: RefLink(label: l.legalReacceptDecline, color: enforced ? t.pr : t.mut, onPressed: _busy ? null : _decline)),
+          Center(child: RefLink(label: l.legalReacceptDecline, color: t.mut, onPressed: _busy ? null : _decline)),
         ],
       ),
     );
@@ -309,13 +296,6 @@ class _DocRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.bu;
     final tx = Theme.of(context).textTheme;
-    final (icon, tint) = switch (type) {
-      'TERMS' => (LucideIcons.gavel, t.tint(BuTintId.blue)),
-      'PRIVACY' => (LucideIcons.shield, t.tint(BuTintId.blue)),
-      'KVKK' => (LucideIcons.lockKeyhole, t.tint(BuTintId.blue)),
-      'COMMUNITY_RULES' => (LucideIcons.users, t.tint(BuTintId.blue)),
-      _ => (LucideIcons.fileText, t.tint(BuTintId.blue)),
-    };
     return Semantics(
       button: true,
       child: InkWell(
@@ -323,21 +303,14 @@ class _DocRow extends StatelessWidget {
         child: ConstrainedBox(
           constraints: const BoxConstraints(minHeight: 72),
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+            padding: const EdgeInsets.symmetric(vertical: 12),
             child: Row(
               children: [
-                Container(
-                  width: 44,
-                  height: 44,
-                  decoration: BoxDecoration(color: tint.bg, borderRadius: BorderRadius.circular(14)),
-                  child: Icon(icon, size: 22, color: tint.fg),
-                ),
-                const SizedBox(width: 14),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(title, style: tx.titleMedium!.copyWith(color: t.ink, fontWeight: FontWeight.w700)),
+                      Text(title, style: tx.titleMedium!.copyWith(color: t.ink, fontWeight: FontWeight.w600)),
                       Text(version, style: tx.bodySmall!.copyWith(color: t.mut)),
                     ],
                   ),
@@ -369,7 +342,7 @@ class _AckCard extends StatelessWidget {
     return Semantics(
       checked: value,
       child: DecoratedBox(
-        decoration: BoxDecoration(color: t.sf, borderRadius: BorderRadius.circular(20)),
+        decoration: const BoxDecoration(),
         child: Material(
           type: MaterialType.transparency,
           child: InkWell(

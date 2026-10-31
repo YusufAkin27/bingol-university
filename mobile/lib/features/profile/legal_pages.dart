@@ -6,18 +6,6 @@ import '../../widgets/bu.dart';
 import '../../widgets/common.dart';
 import '../../widgets/simple_markdown.dart';
 
-/// Belge türüne göre simge ve kategori rengi (Stitch 07 listesi: Kullanım Koşulları, Gizlilik, KVKK, Topluluk Kuralları).
-(IconData, BuTint) _legalLook(BuildContext context, String type) {
-  final t = context.bu;
-  return switch (type) {
-    'TERMS' => (LucideIcons.gavel, t.tint(BuTintId.blue)),
-    'PRIVACY' => (LucideIcons.shield, t.tint(BuTintId.blue)),
-    'KVKK' => (LucideIcons.lockKeyhole, t.tint(BuTintId.blue)),
-    'COMMUNITY_RULES' => (LucideIcons.users, t.tint(BuTintId.blue)),
-    _ => (LucideIcons.fileText, t.tint(BuTintId.blue)),
-  };
-}
-
 /// Sözleşme listesi (kullanım koşulları, gizlilik, KVKK, topluluk kuralları).
 class LegalListPage extends StatefulWidget {
   const LegalListPage({super.key, required this.session});
@@ -73,7 +61,7 @@ class _LegalListPageState extends State<LegalListPage> {
       // Yüklenemedi: satır kartı + "Yeniden dene".
       return ListView(
         key: const ValueKey('legal-error'),
-        padding: const EdgeInsets.fromLTRB(16, 20, 16, 32),
+        padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
         children: [_FailedRow(onRetry: _refresh)],
       );
     }
@@ -81,23 +69,11 @@ class _LegalListPageState extends State<LegalListPage> {
     if (docs.isEmpty) {
       return ListView(
         key: const ValueKey('legal-empty'),
-        padding: const EdgeInsets.fromLTRB(16, 20, 16, 32),
+        padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
         children: [
-          Container(
-            padding: const EdgeInsets.fromLTRB(24, 40, 24, 40),
-            decoration: BoxDecoration(color: t.sf, borderRadius: BorderRadius.circular(28), boxShadow: BuElevation.of(context, 1)),
-            child: Column(
-              children: [
-                Container(
-                  width: 80,
-                  height: 80,
-                  decoration: BoxDecoration(color: t.sf2, borderRadius: BorderRadius.circular(24)),
-                  child: Icon(LucideIcons.fileX, size: 36, color: t.mut),
-                ),
-                const SizedBox(height: 20),
-                Text(l.profileLegalEmpty, textAlign: TextAlign.center, style: tx.titleLarge!.copyWith(color: t.ink, fontWeight: FontWeight.w800)),
-              ],
-            ),
+          Padding(
+            padding: const EdgeInsets.only(top: 64),
+            child: Text(l.profileLegalEmpty, textAlign: TextAlign.center, style: tx.bodyLarge!.copyWith(color: t.mut)),
           ),
         ],
       );
@@ -106,31 +82,19 @@ class _LegalListPageState extends State<LegalListPage> {
       key: const ValueKey('legal-list'),
       onRefresh: _refresh,
       child: ListView(
-        padding: const EdgeInsets.fromLTRB(16, 20, 16, 32),
+        padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
         children: [
-          // Dolgu Material'de: dokunma dalgası görünür (Container dolgusu dalgayı örterdi).
-          DecoratedBox(
-            decoration: BoxDecoration(borderRadius: BorderRadius.circular(28), boxShadow: BuElevation.of(context, 1)),
-            child: Material(
-              color: t.sf,
-              borderRadius: BorderRadius.circular(28),
-              clipBehavior: Clip.antiAlias,
-              child: Column(
-                children: [
-                  for (var i = 0; i < docs.length; i++) ...[
-                    if (i > 0) Divider(height: 1, indent: 20, endIndent: 20, color: t.bd),
-                    _DocRow(
-                      doc: docs[i],
-                      onTap: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (_) => LegalDocPage(session: widget.session, type: docs[i]['type'] as String)),
-                      ),
-                    ),
-                  ],
-                ],
+          // Stitch v3 "16": kart/ikon yok; düz satırlar + ince ayırıcı.
+          for (var i = 0; i < docs.length; i++) ...[
+            if (i > 0) Divider(height: 1, color: t.bd),
+            _DocRow(
+              doc: docs[i],
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => LegalDocPage(session: widget.session, type: docs[i]['type'] as String)),
               ),
             ),
-          ),
+          ],
         ],
       ),
     );
@@ -147,28 +111,20 @@ class _DocRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.bu;
     final tx = Theme.of(context).textTheme;
-    final (icon, tint) = _legalLook(context, (doc['type'] as String?) ?? '');
     return InkWell(
       onTap: onTap,
       child: ConstrainedBox(
-        constraints: const BoxConstraints(minHeight: 88),
+        constraints: const BoxConstraints(minHeight: 72),
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+          padding: const EdgeInsets.symmetric(vertical: 16),
           child: Row(
             children: [
-              Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(color: tint.bg, borderRadius: BorderRadius.circular(14)),
-                child: Icon(icon, size: 24, color: tint.fg),
-              ),
-              const SizedBox(width: 16),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text((doc['title'] as String?) ?? (doc['type'] as String? ?? ''),
-                        style: tx.titleMedium!.copyWith(color: t.ink, fontWeight: FontWeight.w700)),
+                        style: tx.titleMedium!.copyWith(color: t.ink, fontWeight: FontWeight.w600)),
                     const SizedBox(height: 2),
                     Text(_versionLine(context, doc), style: tx.bodySmall!.copyWith(color: t.mut)),
                   ],
@@ -184,7 +140,7 @@ class _DocRow extends StatelessWidget {
   }
 }
 
-/// "Yüklenemedi, tekrar dene" satır kartı.
+/// "Yüklenemedi, tekrar dene": kartsız, simgesiz tek muted cümle + metin düğmesi (Stitch v3 "16").
 class _FailedRow extends StatelessWidget {
   const _FailedRow({required this.onRetry});
 
@@ -194,29 +150,15 @@ class _FailedRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.bu;
     final tx = Theme.of(context).textTheme;
-    // Büyük yazı ölçeğinde düğme alt satıra iner (kelime ortadan bölünmesin).
-    final large = MediaQuery.textScalerOf(context).scale(14) > 16;
-    final icon = Container(
-      width: 48,
-      height: 48,
-      decoration: BoxDecoration(color: t.soft, shape: BoxShape.circle),
-      child: Icon(LucideIcons.cloudOff, size: 22, color: t.pr),
-    );
-    final text = Text(context.l10n.p01LgLoadFailed, style: tx.titleSmall!.copyWith(color: t.ink, fontWeight: FontWeight.w700));
-    final retry = BuButton(label: context.l10n.pickRetry, icon: LucideIcons.refreshCw, compact: true, onPressed: onRetry);
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(color: t.sf, borderRadius: BorderRadius.circular(24), boxShadow: BuElevation.of(context, 1)),
-      child: large
-          ? Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Row(children: [icon, const SizedBox(width: 12), Expanded(child: text)]),
-                const SizedBox(height: 12),
-                Align(alignment: AlignmentDirectional.centerEnd, child: retry),
-              ],
-            )
-          : Row(children: [icon, const SizedBox(width: 12), Expanded(child: text), const SizedBox(width: 8), retry]),
+    return Padding(
+      padding: const EdgeInsets.only(top: 48),
+      child: Column(
+        children: [
+          Text(context.l10n.p01LgLoadFailed, textAlign: TextAlign.center, style: tx.bodyLarge!.copyWith(color: t.mut)),
+          const SizedBox(height: 8),
+          BuButton(label: context.l10n.pickRetry, kind: BuButtonKind.text, compact: true, onPressed: onRetry),
+        ],
+      ),
     );
   }
 }
@@ -274,7 +216,7 @@ class _LegalDocPageState extends State<LegalDocPage> {
                     : snap.hasError
                         ? ListView(
                             key: const ValueKey('doc-error'),
-                            padding: const EdgeInsets.fromLTRB(16, 20, 16, 32),
+                            padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
                             children: [
                               _FailedRow(onRetry: () => setState(() {
                                 _future = _fetch();
@@ -283,18 +225,10 @@ class _LegalDocPageState extends State<LegalDocPage> {
                           )
                         : ListView(
                             key: const ValueKey('doc-ok'),
-                            padding: const EdgeInsets.fromLTRB(16, 20, 16, 40),
+                            padding: const EdgeInsets.fromLTRB(20, 20, 20, 40),
                             children: [
-                              Container(
-                                padding: const EdgeInsets.fromLTRB(20, 20, 20, 24),
-                                decoration: BoxDecoration(
-                                  color: t.sf,
-                                  borderRadius: BorderRadius.circular(28),
-                                  boxShadow: BuElevation.of(context, 1),
-                                ),
-                                // Başlık/alıntı/tablo/kalın destekli Markdown; HTML yorumlanmaz.
-                                child: SimpleMarkdown((d!['content'] as String?) ?? ''),
-                              ),
+                              // Kart yok (Stitch v3 "17"): metin doğrudan zeminde. Başlık/alıntı/tablo/kalın destekli Markdown; HTML yorumlanmaz.
+                              SimpleMarkdown((d!['content'] as String?) ?? ''),
                             ],
                           ),
                 ),

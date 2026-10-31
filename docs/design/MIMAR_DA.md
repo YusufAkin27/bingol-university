@@ -51,3 +51,22 @@ Kural: yalnız transform/opacity, 150-300 ms, sürekli döngü yok, "animasyonla
 | Sözleşmeler (liste + yeniden onay) | Dört belge rengi (mavi/aqua/yeşil/gri) tek tona (mavi) indi | |
 
 Uygulanmayanlar: Splash -> kök geçişi ve Splash giriş animasyonu (main.dart M0'a ait; öneri: `home` anahtarı değişince `BuFadeThrough`); OTP imleç yanıp sönmesi (sürekli döngü yasağı); sözleşme listesi -> metin Hero/özel rota (platform geçişi ve geri hareketi korunur, gövde zaten `BuFadeThrough`); PushBanner/AppGate (incelendi, değişiklik gerekmedi).
+
+## Tur 3 (minimal) + Stitch v3 (P3-AUTH)
+
+Kural: ekranda nötr + en çok tek vurgu (marka kırmızısı), kart içinde kart/bilgi kutusu/süs simgesi yok, kenar 20 dp, tek birincil düğme. Kimlik ekranları ayrıca `C:\bu_design\stitch\v3_open\` (SARTNAME.md) Stitch PNG'lerine yaklaştırıldı. Önce/sonra: `C:\bu_qa\shots\tasarim\p3\da\onceki|sonra\`. Test: `test/redesign/p65_da_minimal_test.dart`.
+
+| Ekran | Kaldırılan / sadeleşen | Renk (önce -> sonra) |
+|---|---|---|
+| Karşılama (Stitch 01) | Koyu gradyan hero + logo karosu + alt başlık, üç özellik KARTI (ikon dairesi + alt metin), mavi bilgi kutusu; yerine iki satırlı başlık, tek açıklama, nokta-metin üç satır, kırmızı tek düğme, düz metin "Kayıt ol", kayıt notu, sürüm. Dil seçici: seçili = soft zemin | 4 -> 2 |
+| Giriş (02/03/04) | Kart sarmalı, logo + rozet + "Bağımsız öğrenci uygulaması" etiketi, alan simgeleri, düğme oku; "Şifremi unuttum" alanın altında sağda; hata satırı kutusuz danger metin; bekleyen doğrulama = ikonsuz warnSoft not + iki metin düğmesi | 4 -> 2 |
+| Kayıt 1/3-3/3 (05/06/07) | Bölüm etiketi + ikon, ampul/bilgi kutuları (tek muted satır), seçici kartı (üstte etiket + beyaz alan + düz chevron), "Adım n/3" üst çubukta sağda, 4 dp çubuk; şifre gücü nötr (ink doluluk + kelime), kural satırları ink tik/boş halka | 5 -> 2 |
+| Doğrulama kodu (08), şifre kodu (10) | Kart ve üst etiket yok, OTP kutuları beyaz + bdStrong, odak pr, hata danger çerçeve (pembe dolgu yok), Yapıştır kutuların altında sağda, durum metni kutusuz | 4 -> 2 |
+| Şifremi unuttum (09), yeni şifre (11) | Anahtar simgesi, kart sarmalı, düğme oku; alanlar beyaz | 3 -> 2 |
+| Şifre güncellendi (12) | Çift halka + gölgeli onay + kart; 56 dp okSoft daire + ok onay, alta sabit tek düğme | 3 -> 2 |
+| İzinler (13/14) | Adım çubuğu, üç kart, simge karoları, durum hapları; düz satırlar + ince ayırıcı, sağ üstte outlined "İzin ver" / Verildi / Reddedildi, alt birincil + "Şimdi değil" (yalnız ilk durumda) | 4 -> 2 (+durum) |
+| Yeniden onay (15), sözleşme listesi (16), okuyucu (17) | Satır simge karoları (mavi), kart, gölge; düz satırlar + ayırıcı, okuyucuda kartsız metin; boş/hata tek muted cümle (+ metin düğmesi) | 3 -> 2 |
+| Güncelleme / bakım / çevrimdışı / erişim engeli | Sürüm hapı, hata kodu hapı, bakım üst şeridi (başlıkla tekrar), 24 -> 20 dp kenar; tek simge + başlık + tek cümle + tek düğme; metinler kısaldı (ARB) | 3 -> 2 |
+| QR tarama | Bilgi kutusu ve "veya" ayracı, izin yok ekranında çift karo + rozet noktası + kart içinde kart; kenar 20 | 4 -> 3 |
+
+Uygulanmayanlar: Splash -> ilk ekran yumuşak geçişi (`main.dart` ortak: `home` anahtarı değişince `BuFadeThrough` önerisi sürüyor); splash (tek sürekli halka yükleme göstergesidir, dokunulmadı).

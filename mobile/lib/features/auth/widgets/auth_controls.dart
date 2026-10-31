@@ -132,9 +132,9 @@ class AuthPasswordGuide extends StatelessWidget {
     final l = context.l10n;
     final tx = Theme.of(context).textTheme;
     final sc = score(password);
-    // Zayıf = kırmızı, orta = kehribar (hata değil, uyarı), güçlü = yeşil.
-    final color = sc >= 3 ? t.ok : (sc == 2 ? t.warn : t.danger);
-    final labelColor = sc >= 3 ? t.ok : (sc == 2 ? t.onWarnSoft : t.danger);
+    // Stitch v3: renk yok; doluluk (ink) + kelime ile anlatılır (zayıf/orta/güçlü için kırmızı/amber/yeşil kullanılmaz).
+    final color = t.ink;
+    final labelColor = t.ink;
     final label = sc <= 1 ? l.authPwWeak : (sc == 2 ? l.authPwFair : l.authPwStrong);
     final hasMix = RegExp(r'[A-Za-z]').hasMatch(password) && RegExp(r'\d').hasMatch(password);
     return Padding(
@@ -150,7 +150,7 @@ class AuthPasswordGuide extends StatelessWidget {
                 child: Text(
                   password.isEmpty ? '' : label,
                   key: ValueKey(password.isEmpty ? '' : label),
-                  style: tx.labelLarge!.copyWith(color: labelColor, fontWeight: FontWeight.w800),
+                  style: tx.labelLarge!.copyWith(color: labelColor, fontWeight: FontWeight.w600),
                 ),
               ),
             ],
@@ -163,10 +163,10 @@ class AuthPasswordGuide extends StatelessWidget {
                   child: AnimatedContainer(
                     duration: BuMotion.of(context, BuMotion.medium),
                     curve: BuMotion.decelerate,
-                    height: 6,
+                    height: 4,
                     decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(3),
-                      color: password.isNotEmpty && i < sc ? color : t.sf2,
+                      borderRadius: BorderRadius.circular(2),
+                      color: password.isNotEmpty && i < sc ? color : t.bd,
                     ),
                   ),
                 ),
@@ -207,23 +207,31 @@ class _AuthRuleState extends State<AuthRule> {
     final t = context.bu;
     final tx = Theme.of(context).textTheme;
     final ok = widget.ok;
-    final tint = t.tint(1);
     return Row(
       children: [
-        AnimatedContainer(
-          duration: BuMotion.of(context, BuMotion.medium),
-          curve: Curves.easeOutBack,
-          width: 22,
-          height: 22,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: ok ? tint.bg : t.sf2,
-          ),
-          child: AnimatedScale(
-            scale: ok ? 1 : 0,
-            duration: BuMotion.of(context, BuMotion.medium),
-            curve: Curves.easeOutBack,
-            child: Icon(LucideIcons.check, size: 14, color: tint.fg),
+        // Sağlanınca ink tik, sağlanmayınca boş halka (renk yok).
+        SizedBox(
+          width: 20,
+          height: 20,
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              AnimatedOpacity(
+                duration: BuMotion.of(context, BuMotion.short),
+                opacity: ok ? 0 : 1,
+                child: Container(
+                  width: 14,
+                  height: 14,
+                  decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: t.bdStrong, width: 1.2)),
+                ),
+              ),
+              AnimatedScale(
+                scale: ok ? 1 : 0,
+                duration: BuMotion.of(context, BuMotion.medium),
+                curve: Curves.easeOutBack,
+                child: Icon(LucideIcons.check, size: 18, color: t.ink),
+              ),
+            ],
           ),
         ),
         const SizedBox(width: 12),

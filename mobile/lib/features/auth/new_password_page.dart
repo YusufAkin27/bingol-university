@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import '../../core/api.dart';
 import '../../core/locale_controller.dart';
 import '../../core/session.dart';
-import '../../widgets/bu.dart';
 import 'auth_widgets.dart' show newPasswordValidator;
 import 'forgot_password_page.dart';
 import 'reset_success_page.dart';
@@ -83,14 +82,10 @@ class _NewPasswordPageState extends State<NewPasswordPage> {
     final validate = newPasswordValidator(context);
     return RefPage(
       children: [
-        const Align(
-          alignment: AlignmentDirectional.centerStart,
-          child: RefIconTile(LucideIcons.lockKeyhole, radius: 28),
-        ),
-        const SizedBox(height: 20),
         RefHeading(title: l.authNewPasswordTitle, subtitle: l.authNewPwSub),
         const SizedBox(height: 24),
-        RefCard(
+        Padding(
+          padding: EdgeInsets.zero,
           child: Form(
             key: _form,
             child: Column(
@@ -130,7 +125,6 @@ class _NewPasswordPageState extends State<NewPasswordPage> {
         const SizedBox(height: 20),
         RefButton(
           label: l.authUpdatePassword,
-          icon: buDirIcon(context, LucideIcons.arrowRight),
           busy: _busy,
           onPressed: _save,
         ),

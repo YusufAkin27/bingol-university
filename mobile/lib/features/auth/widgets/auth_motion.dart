@@ -80,7 +80,7 @@ class AuthStepBar extends StatelessWidget {
           Expanded(
             child: RepaintBoundary(
               child: SizedBox(
-                height: 6,
+                height: 4,
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(3),
                   child: ColoredBox(

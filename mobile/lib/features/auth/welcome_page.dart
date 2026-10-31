@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 
-import '../../core/app_gate.dart' show appVersion;
 import '../../core/locale_controller.dart';
+import '../../core/app_gate.dart' show appVersion;
 import '../../widgets/bu.dart';
 import 'widgets/auth_ref.dart';
 
-/// İlk açılışta (cihaz başına bir kez) gösterilen karşılama (Stitch 01 "Karşılama"): koyu lacivert tanıtım kartı,
-/// üç özellik satırı, kayıt notu, Giriş yap + Kayıt ol. Sağ üstte TR | EN | AR dil seçici.
+/// İlk açılışta (cihaz başına bir kez) gösterilen karşılama (Stitch v3 "01 Karşılama"): zemin düz, tek mesaj
+/// (iki satırlı başlık + tek satır açıklama), üç nokta-metin satırı, altta tek birincil düğme (Giriş yap), düz metin
+/// ikincil (Kayıt ol), kayıt notu ve sürüm. Hero kartı, logo karosu, kart/ikon ve bilgi kutusu yok. Sağ üstte TR | EN | AR.
 class WelcomePage extends StatelessWidget {
   const WelcomePage({super.key, required this.onLogin, required this.onRegister});
 
@@ -18,74 +19,85 @@ class WelcomePage extends StatelessWidget {
     final t = context.bu;
     final l = context.l10n;
     final tx = Theme.of(context).textTheme;
-    final features = <(IconData, Color, Color, String, String)>[
-      // Üç satır tek vurgu tonunda (sade): marka kırmızısının yumuşak zemini.
-      (LucideIcons.newspaper, t.soft, t.pr, l.welcomeNews, l.p02WelcomeNewsSub),
-      (LucideIcons.utensils, t.soft, t.pr, l.welcomeMenu, l.p02WelcomeMenuSub),
-      (LucideIcons.users, t.soft, t.pr, l.welcomeClubs, l.p02WelcomeClubsSub),
-    ];
-    return RefPage(
-      showBack: false,
-      trailing: const _LangPill(),
-      bottomPad: 20,
-      children: [
-        // Aşamalı giriş: kahraman kart -> üç özellik -> not -> düğmeler (kapsam RefPage'dedir; dil değişince yeniden oynamaz).
-        const BuStaggerItem(index: 0, child: _Hero()),
-        const SizedBox(height: 16),
-        for (var i = 0; i < features.length; i++) ...[
-          BuStaggerItem(
-            index: i + 1,
-            child: RefCard(
-              radius: 24,
-              padding: const EdgeInsets.all(16),
-              child: Row(
-                children: [
-                  Container(
-                    width: 48,
-                    height: 48,
-                    decoration: BoxDecoration(color: features[i].$2, shape: BoxShape.circle),
-                    child: Icon(features[i].$1, color: features[i].$3, size: 22),
-                  ),
-                  const SizedBox(width: 14),
-                  // Satırlar yalnız bilgi verir (dokunulmaz): gezinme oku yok, yanlış beklenti oluşturmaz.
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(features[i].$4, style: tx.titleMedium!.copyWith(color: t.ink, fontWeight: FontWeight.w700)),
-                        const SizedBox(height: 2),
-                        Text(features[i].$5, style: tx.bodySmall!.copyWith(color: t.mut, height: 1.35)),
-                      ],
+    final features = [l.welcomeNews, l.welcomeMenu, l.welcomeClubs];
+    return Scaffold(
+      backgroundColor: t.bg,
+      body: SafeArea(
+        child: LayoutBuilder(
+          builder: (context, c) => SingleChildScrollView(
+            padding: EdgeInsets.zero,
+            child: ConstrainedBox(
+              constraints: BoxConstraints(minHeight: c.maxHeight),
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 440),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: kRefPad),
+                    child: BuStaggerScope(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          const Align(alignment: AlignmentDirectional.centerEnd, child: _LangPill()),
+                          const SizedBox(height: 72),
+                          // Tek mesaj: iki satırlı başlık + tek satır açıklama + üç kısa satır.
+                          BuStaggerItem(
+                            index: 0,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Semantics(
+                                  header: true,
+                                  child: Text(l.welcomeHeadline,
+                                      style: tx.headlineLarge!.copyWith(color: t.ink, fontWeight: FontWeight.w700, height: 1.15)),
+                                ),
+                                const SizedBox(height: 16),
+                                Text(l.welcomeSub, style: tx.bodyLarge!.copyWith(color: t.mut, height: 1.5)),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 32),
+                          for (var i = 0; i < features.length; i++)
+                            BuStaggerItem(
+                              index: i + 1,
+                              // Yalnız bilgi (dokunulmaz): ikon/ok yok, solda küçük nokta.
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(vertical: 8),
+                                child: Row(
+                                  children: [
+                                    Container(width: 6, height: 6, decoration: BoxDecoration(color: t.ink, shape: BoxShape.circle)),
+                                    const SizedBox(width: 16),
+                                    Expanded(child: Text(features[i], style: tx.bodyLarge!.copyWith(color: t.ink))),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          const SizedBox(height: 64),
+                          BuStaggerItem(
+                            index: features.length + 1,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                RefButton(label: l.loginSubmit, onPressed: onLogin),
+                                const SizedBox(height: 8),
+                                RefButton(label: l.loginRegister, kind: RefButtonKind.ghost, onPressed: onRegister),
+                                const SizedBox(height: 8),
+                                _DomainNote(l.welcomeNote),
+                                const SizedBox(height: 16),
+                                Center(child: Text(l.profileVersion(appVersion), style: tx.bodySmall!.copyWith(color: t.mut))),
+                                const SizedBox(height: 24),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                ],
+                ),
               ),
             ),
           ),
-          const SizedBox(height: 12),
-        ],
-        const SizedBox(height: 4),
-        BuStaggerItem(index: features.length + 1, child: _DomainNote(l.welcomeNote)),
-        const SizedBox(height: 20),
-        BuStaggerItem(
-          index: features.length + 2,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              RefButton(label: l.loginSubmit, icon: buDirIcon(context, LucideIcons.arrowRight), onPressed: onLogin),
-              const SizedBox(height: 12),
-              RefButton(label: l.loginRegister, kind: RefButtonKind.secondary, onPressed: onRegister),
-              const SizedBox(height: 16),
-              Center(
-                child: Text(
-                  trUpper(l.profileVersion(appVersion)),
-                  style: tx.labelSmall!.copyWith(color: t.mut, letterSpacing: .8, fontWeight: FontWeight.w600),
-                ),
-              ),
-            ],
-          ),
         ),
-      ],
+      ),
     );
   }
 }
@@ -107,7 +119,7 @@ class _LangPill extends StatelessWidget {
       label: context.l10n.welcomeLanguage,
       child: Container(
         padding: const EdgeInsets.all(2),
-        decoration: BoxDecoration(color: t.sf2, borderRadius: BorderRadius.circular(999)),
+        decoration: const BoxDecoration(),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -126,12 +138,12 @@ class _LangPill extends StatelessWidget {
                       alignment: Alignment.center,
                       padding: const EdgeInsets.symmetric(horizontal: 8),
                       decoration: BoxDecoration(
-                        color: c == cur ? t.pr : Colors.transparent,
+                        color: c == cur ? t.soft : Colors.transparent,
                         borderRadius: BorderRadius.circular(999),
                       ),
                       child: Text(
                         c.toUpperCase(),
-                        style: tx.labelSmall!.copyWith(color: c == cur ? t.onPr : t.mut, fontWeight: FontWeight.w800),
+                        style: tx.labelMedium!.copyWith(color: c == cur ? t.pr : t.mut, fontWeight: c == cur ? FontWeight.w700 : FontWeight.w500),
                       ),
                     ),
                   ),
@@ -144,71 +156,7 @@ class _LangPill extends StatelessWidget {
   }
 }
 
-/// Koyu lacivert tanıtım kartı: marka + iki satırlı başlık + açıklama.
-class _Hero extends StatelessWidget {
-  const _Hero();
-
-  @override
-  Widget build(BuildContext context) {
-    final t = context.bu;
-    final l = context.l10n;
-    final tx = Theme.of(context).textTheme;
-    final dark = Theme.of(context).brightness == Brightness.dark;
-    final lines = l.welcomeHeadline.split('\n');
-    final accent = Color.lerp(t.pr, t.onMedia, .78)!;
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(28),
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: dark ? [t.sf3, t.sf] : [Color.lerp(t.ink, t.pr, .22)!, t.ink],
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              const RefBrandMark(size: 48),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('BÜ Kampüs', style: tx.titleLarge!.copyWith(color: t.onMedia, fontWeight: FontWeight.w800)),
-                    Text(l.p02BrandSub,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: tx.labelSmall!.copyWith(color: t.onMedia.withValues(alpha: .78), fontWeight: FontWeight.w600)),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 20),
-          Semantics(
-            header: true,
-            child: Text.rich(
-              TextSpan(
-                children: [
-                  TextSpan(text: lines.first),
-                  if (lines.length > 1) ...[const TextSpan(text: '\n'), TextSpan(text: lines.sublist(1).join(' '), style: TextStyle(color: accent))],
-                ],
-              ),
-              style: tx.headlineLarge!.copyWith(color: t.onMedia, fontWeight: FontWeight.w800, height: 1.12),
-            ),
-          ),
-          const SizedBox(height: 10),
-          Text(l.welcomeSub, style: tx.bodyMedium!.copyWith(color: t.onMedia.withValues(alpha: .8), height: 1.45)),
-        ],
-      ),
-    );
-  }
-}
-
-/// "Yalnızca okul e-postası (bingol.edu.tr) ile kayıt olunabilir." kartı; alan adı kalın kırmızı.
+/// "Yalnızca okul e-postası (bingol.edu.tr) ile kayıt olunabilir." tek sakin satır; alan adı kalın.
 class _DomainNote extends StatelessWidget {
   const _DomainNote(this.text);
 
@@ -220,32 +168,19 @@ class _DomainNote extends StatelessWidget {
     final tx = Theme.of(context).textTheme;
     const dom = 'bingol.edu.tr';
     final at = text.indexOf(dom);
-    final base = tx.bodyMedium!.copyWith(color: t.ink, height: 1.4);
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(color: t.tint(1).bg, borderRadius: BorderRadius.circular(20)),
-      child: Row(
-        children: [
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(color: t.sf, shape: BoxShape.circle),
-            child: Icon(LucideIcons.shieldCheck, size: 20, color: t.pr),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: at < 0
-                ? Text(text, style: base)
-                : Text.rich(
-                    TextSpan(style: base, children: [
-                      TextSpan(text: text.substring(0, at)),
-                      TextSpan(text: dom, style: TextStyle(color: t.pr, fontWeight: FontWeight.w800)),
-                      TextSpan(text: text.substring(at + dom.length)),
-                    ]),
-                  ),
-          ),
-        ],
-      ),
+    final base = tx.bodySmall!.copyWith(color: t.mut, height: 1.4);
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8),
+      child: at < 0
+          ? Text(text, textAlign: TextAlign.center, style: base)
+          : Text.rich(
+              TextSpan(style: base, children: [
+                TextSpan(text: text.substring(0, at)),
+                TextSpan(text: dom, style: TextStyle(color: t.ink, fontWeight: FontWeight.w700)),
+                TextSpan(text: text.substring(at + dom.length)),
+              ]),
+              textAlign: TextAlign.center,
+            ),
     );
   }
 }

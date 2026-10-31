@@ -137,7 +137,7 @@ class _LoginPageState extends State<LoginPage> {
     return RefPage(
       showBack: Navigator.canPop(context),
       children: [
-        // Yuva her zaman ağaçta (alt öğelerin durumu korunur).
+        // Yuva her zaman ağaçta (alt öğelerin durumu korunur). Stitch v3: kart/logo/ikon yok, düz zemin.
         ValueListenableBuilder<bool>(
           valueListenable: widget.session.replacedNotice,
           builder: (context, show, _) => AnimatedSize(
@@ -150,8 +150,7 @@ class _LoginPageState extends State<LoginPage> {
                     child: RefBanner(
                       l.loginReplacedNotice,
                       key: const ValueKey('replaced-notice'),
-                      tone: RefTone.info,
-                      icon: LucideIcons.smartphone,
+                      tone: RefTone.warn,
                       title: l.p02ReplacedTitle,
                       closeKey: const ValueKey('replaced-notice-close'),
                       onClose: widget.session.dismissReplacedNotice,
@@ -168,107 +167,82 @@ class _LoginPageState extends State<LoginPage> {
               ? const SizedBox(width: double.infinity)
               : Padding(
                   padding: const EdgeInsets.only(bottom: 16),
+                  // İki METİN düğmesi (altı çizgisiz), ikon yok.
                   child: RefBanner(
                     l.p02PendingBody,
                     tone: RefTone.warn,
-                    icon: LucideIcons.mailCheck,
                     title: l.p02PendingTitle,
                     actions: [
-                      RefButton(
-                        key: const ValueKey('pending-verify-banner'),
-                        label: l.loginCompleteVerification,
-                        kind: RefButtonKind.warn,
-                        icon: buDirIcon(context, LucideIcons.arrowRight),
-                        onPressed: () => _openVerify(_pending!.identifier),
+                      Wrap(
+                        spacing: 16,
+                        children: [
+                          RefLink(
+                            key: const ValueKey('pending-verify-banner'),
+                            label: l.loginCompleteVerification,
+                            color: t.onWarnSoft,
+                            compact: true,
+                            onPressed: () => _openVerify(_pending!.identifier),
+                          ),
+                          RefLink(label: l.authUseOtherAccount, color: t.onWarnSoft, compact: true, onPressed: _otherAccount),
+                        ],
                       ),
-                      Center(child: RefLink(label: l.authUseOtherAccount, color: t.onWarnSoft, onPressed: _otherAccount)),
                     ],
                   ),
                 ),
         ),
         BuStaggerItem(
           index: 0,
-          child: RefCard(
-            padding: const EdgeInsets.fromLTRB(20, 24, 20, 20),
-            child: Form(
-              key: _form,
-              child: AutofillGroup(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    // Klavye açılınca marka bloğu yumuşakça daralır (düzen sıçramaz, alanlar görünür kalır).
-                    AnimatedSize(
-                      duration: BuMotion.of(context, BuMotion.medium),
-                      curve: BuMotion.decelerate,
-                      alignment: Alignment.topCenter,
-                      child: keyboard
-                          ? const SizedBox(width: double.infinity)
-                          : Column(
-                              crossAxisAlignment: CrossAxisAlignment.stretch,
-                              children: [
-                                const Center(child: RefBrandMark(size: 64, badge: true)),
-                                const SizedBox(height: 10),
-                                Text(l.p02BrandSub,
-                                    textAlign: TextAlign.center,
-                                    style: tx.labelMedium!.copyWith(color: t.pr, fontWeight: FontWeight.w700)),
-                                const SizedBox(height: 14),
-                              ],
+          child: Form(
+            key: _form,
+            child: AutofillGroup(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Semantics(
+                    header: true,
+                    child: Text(l.loginWelcome, style: tx.headlineMedium!.copyWith(color: t.ink, fontWeight: FontWeight.w700)),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(l.loginSubtitle, style: tx.bodyLarge!.copyWith(color: t.mut)),
+                  const SizedBox(height: 32),
+                  RefIdentifierField(controller: _email, enabled: !_busy),
+                  const SizedBox(height: 24),
+                  RefPasswordField(
+                    controller: _password,
+                    enabled: !_busy,
+                    hint: l.loginPasswordRequired.replaceAll(RegExp(r'\.$'), ''),
+                    validator: (v) => (v == null || v.isEmpty) ? l.loginPasswordRequired : null,
+                    onSubmitted: _submit,
+                  ),
+                  Align(
+                    alignment: AlignmentDirectional.centerEnd,
+                    child: RefLink(label: l.loginForgotPassword, compact: true, onPressed: _busy ? null : _forgot),
+                  ),
+                  const SizedBox(height: 24),
+                  RefButton(
+                    label: l.loginSubmit,
+                    busy: _busy,
+                    busyLabel: l.p02LoginBusy,
+                    onPressed: _submit,
+                  ),
+                  AnimatedSize(
+                    duration: BuMotion.of(context, BuMotion.short),
+                    curve: BuMotion.decelerate,
+                    alignment: Alignment.topCenter,
+                    child: _error == null
+                        ? const SizedBox(width: double.infinity)
+                        : Padding(
+                            padding: const EdgeInsets.only(top: 16),
+                            // Yeni hatada metin hafifçe sarsılır (azalt açıkken sarsılmaz).
+                            child: AuthShake(
+                              trigger: _shake,
+                              child: _retry != null
+                                  ? RefBanner(_error!, key: ValueKey('login-error-$_error'), tone: RefTone.warn, sub: _retry)
+                                  : RefBanner(_error!, key: ValueKey('login-error-$_error')),
                             ),
-                    ),
-                    Semantics(
-                      header: true,
-                      child: Text(l.loginWelcome,
-                          textAlign: TextAlign.center, style: tx.headlineSmall!.copyWith(color: t.ink, fontWeight: FontWeight.w800)),
-                    ),
-                    const SizedBox(height: 6),
-                    Text(l.loginSubtitle, textAlign: TextAlign.center, style: tx.bodyMedium!.copyWith(color: t.mut)),
-                    const SizedBox(height: 24),
-                    RefIdentifierField(controller: _email, enabled: !_busy, onCard: true),
-                    const SizedBox(height: 18),
-                    RefPasswordField(
-                      controller: _password,
-                      onCard: true,
-                      enabled: !_busy,
-                      hint: l.loginPasswordRequired.replaceAll(RegExp(r'\.$'), ''),
-                      validator: (v) => (v == null || v.isEmpty) ? l.loginPasswordRequired : null,
-                      onSubmitted: _submit,
-                      labelAction: RefLink(label: l.loginForgotPassword, compact: true, onPressed: _busy ? null : _forgot),
-                    ),
-                    const SizedBox(height: 22),
-                    RefButton(
-                      label: l.loginSubmit,
-                      icon: buDirIcon(context, LucideIcons.arrowRight),
-                      busy: _busy,
-                      busyLabel: l.p02LoginBusy,
-                      onPressed: _submit,
-                    ),
-                    AnimatedSize(
-                      duration: BuMotion.of(context, BuMotion.short),
-                      curve: BuMotion.decelerate,
-                      alignment: Alignment.topCenter,
-                      child: _error == null
-                          ? const SizedBox(width: double.infinity)
-                          : Padding(
-                              padding: const EdgeInsets.only(top: 16),
-                              // Yeni hatada bant hafifçe sarsılır (azalt açıkken sarsılmaz).
-                              child: AuthShake(
-                                trigger: _shake,
-                                child: RefBanner(
-                                  _error!,
-                                  key: ValueKey('login-error-$_error'),
-                                  icon: _retry != null ? LucideIcons.triangleAlert : LucideIcons.circleAlert,
-                                  sub: _retry,
-                                  subIcon: LucideIcons.hourglass,
-                                  onClose: () => setState(() {
-                                    _error = null;
-                                    _retry = null;
-                                  }),
-                                ),
-                              ),
-                            ),
-                    ),
-                  ],
-                ),
+                          ),
+                  ),
+                ],
               ),
             ),
           ),
@@ -284,7 +258,7 @@ class _LoginPageState extends State<LoginPage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 40),
                       Center(
                         child: RefFooterPrompt(
                           prompt: l.loginNoAccount,
@@ -295,7 +269,7 @@ class _LoginPageState extends State<LoginPage> {
                         ),
                       ),
                       Center(
-                        child: Text(l.profileVersion(appVersion), style: tx.labelSmall!.copyWith(color: t.mut, fontWeight: FontWeight.w600)),
+                        child: Text(l.profileVersion(appVersion), style: tx.bodySmall!.copyWith(color: t.mut)),
                       ),
                     ],
                   ),

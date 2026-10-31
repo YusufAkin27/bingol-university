@@ -107,29 +107,40 @@ void main() {
       });
       await _pumpPage(tester, PermissionsPage(service: svc, onFinished: () {}));
       expect(find.text('Verildi'), findsNWidgets(3));
-      expect(find.text('Adım 3 / 3'), findsOneWidget);
+      expect(find.textContaining('Adım'), findsNothing, reason: 'Stitch v3: adım göstergesi yok');
       expect(find.text('Başla'), findsOneWidget);
       expect(find.text('Şimdi değil'), findsNothing);
     });
 
-    testWidgets('3 parcali adim ilerlemesi; Simdi degil karti atlar ve ilerletir', (tester) async {
+    testWidgets('adim gostergesi yok; izin verilince Devam gelir, ilk durumda Simdi degil sayfayi kapatir', (tester) async {
       final svc = _fake();
       var finished = 0;
       await _pumpPage(tester, PermissionsPage(service: svc, onFinished: () => finished++));
-      expect(find.text('Adım 1 / 3'), findsOneWidget);
-      expect(find.byKey(const ValueKey('perm-step-2')), findsOneWidget);
+      expect(find.textContaining('Adım'), findsNothing);
       expect(find.text('Kamera ve galeri'), findsOneWidget);
+      expect(find.text('Başla'), findsOneWidget);
+      expect(find.text('Şimdi değil'), findsOneWidget);
 
-      await tester.tap(find.text('Şimdi değil').first); // bildirim atlanir
+      await tester.tap(find.text('İzin ver').first); // bildirim istenir
       await settle(tester, const Duration(milliseconds: 300));
-      expect(find.text('Adım 2 / 3'), findsOneWidget);
-      expect(svc.requested, isEmpty);
-      expect(finished, 0);
-
+      expect(svc.requested, isNotEmpty);
+      expect(find.text('Devam'), findsOneWidget);
+      expect(find.text('Şimdi değil'), findsNothing);
       await tester.tap(find.text('Devam'));
       await tester.pump();
       expect(finished, 1);
       _noErrors(tester);
+    });
+
+    testWidgets('ilk durumda Simdi degil onFinished cagirir', (tester) async {
+      final svc = _fake();
+      var finished = 0;
+      await _pumpPage(tester, PermissionsPage(service: svc, onFinished: () => finished++));
+      await tester.ensureVisible(find.text('Şimdi değil'));
+      await tester.tap(find.text('Şimdi değil'));
+      await tester.pump();
+      expect(finished, 1);
+      expect(svc.requested, isEmpty);
     });
 
     testWidgets('kamera karti kamera iznini ister', (tester) async {

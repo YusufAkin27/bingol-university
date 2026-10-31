@@ -132,12 +132,6 @@ class _VerifyCodePageState extends State<VerifyCodePage> {
     final mail = widget.displayEmail ?? fullEmail(widget.email);
     return RefPage(
       children: [
-        Align(
-          alignment: AlignmentDirectional.centerStart,
-          child: RefIconTile(LucideIcons.mailCheck,
-              bg: t.soft, fg: t.pr, radius: 16),
-        ),
-        const SizedBox(height: 16),
         RefHeading(
             title: l.authVerifyEmailTitle,
             subtitle: l.authVerifySubtitle(mail),
@@ -146,86 +140,52 @@ class _VerifyCodePageState extends State<VerifyCodePage> {
           const SizedBox(height: 16),
           RefBanner(l.authUnverifiedNotice, tone: RefTone.info),
         ],
-        const SizedBox(height: 24),
-        RefCard(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              OtpCodeBoxes(
-                controller: _code,
-                enabled: !_busy,
-                hasError: _error != null,
-                success: _ok,
-                shakeTrigger: _shake,
-                onCompleted: _verify,
-              ),
-              AnimatedSize(
-                duration: BuMotion.of(context, BuMotion.short),
-                alignment: Alignment.topCenter,
-                child: _error != null
-                    ? Padding(
-                        padding: const EdgeInsets.only(top: 14),
-                        child: RefPill(_error!, key: ValueKey('e$_error')))
-                    : _info != null
-                        ? Padding(
-                            padding: const EdgeInsets.only(top: 14),
-                            child: RefPill(_info!, tone: RefTone.success))
-                        : const SizedBox(width: double.infinity),
-              ),
-              const SizedBox(height: 10),
-              Divider(height: 1, color: t.bd),
-              const SizedBox(height: 4),
-              Wrap(
-                alignment: WrapAlignment.spaceBetween,
-                crossAxisAlignment: WrapCrossAlignment.center,
-                children: [
-                  AuthResendRow(
-                    key: _resendKey,
-                    onResend: _busy ? () {} : _resend,
-                    waitingLabel: (s) => l.authResendIn('$s'),
-                    resendLabel: l.authResendCode,
-                  ),
-                  RefLink(
-                      label: l.authChangeEmail,
-                      compact: true,
-                      onPressed:
-                          _busy ? null : () => Navigator.maybePop(context)),
-                ],
-              ),
-            ],
-          ),
+        const SizedBox(height: 32),
+        OtpCodeBoxes(
+          controller: _code,
+          enabled: !_busy,
+          hasError: _error != null,
+          success: _ok,
+          shakeTrigger: _shake,
+          onCompleted: _verify,
+        ),
+        AnimatedSize(
+          duration: BuMotion.of(context, BuMotion.short),
+          alignment: Alignment.topCenter,
+          child: _error != null
+              ? Padding(padding: const EdgeInsets.only(top: 16), child: RefPill(_error!, key: ValueKey('e$_error')))
+              : _info != null
+                  ? Padding(padding: const EdgeInsets.only(top: 16), child: RefPill(_info!, tone: RefTone.success))
+                  : const SizedBox(width: double.infinity),
+        ),
+        const SizedBox(height: 16),
+        Wrap(
+          alignment: WrapAlignment.spaceBetween,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          children: [
+            AuthResendRow(
+              key: _resendKey,
+              onResend: _busy ? () {} : _resend,
+              waitingLabel: (s) => l.authResendIn('$s'),
+              resendLabel: l.authResendCode,
+            ),
+            RefLink(label: l.authChangeEmail, compact: true, onPressed: _busy ? null : () => Navigator.maybePop(context)),
+          ],
         ),
         if (_needsPassword) ...[
+          const SizedBox(height: 24),
+          Text(l.authVerifyPasswordNote, style: tx.bodySmall!.copyWith(color: t.mut, height: 1.45)),
           const SizedBox(height: 16),
-          RefCard(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Text(l.authVerifyPasswordNote,
-                    style: tx.bodySmall!.copyWith(color: t.mut, height: 1.45)),
-                const SizedBox(height: 12),
-                RefPasswordField(
-                  controller: _password,
-                  label: l.authVerifyPasswordLabel,
-                  onCard: true,
-                  enabled: !_busy,
-                  onSubmitted: _verify,
-                ),
-              ],
-            ),
+          RefPasswordField(
+            controller: _password,
+            label: l.authVerifyPasswordLabel,
+            enabled: !_busy,
+            onSubmitted: _verify,
           ),
         ],
-        const SizedBox(height: 16),
-        RefNote(l.authTrustCode,
-            icon: LucideIcons.lightbulb,
-            title: l.p02TipTitle,
-            iconTint: t.tint(1)),
         const SizedBox(height: 24),
         RefButton(
           label: l.authVerify,
-          icon: buDirIcon(context, LucideIcons.arrowRight),
           busy: _busy,
           onPressed: _verify,
         ),

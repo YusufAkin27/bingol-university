@@ -5,7 +5,7 @@ import '../../core/locale_controller.dart';
 import '../../core/permissions/ensure_permission.dart';
 import '../../core/permissions/permission_service.dart';
 import '../../widgets/bu.dart';
-import '../system/gate_views.dart' show GateArrowButton;
+import 'widgets/auth_ref.dart' show RefLink, kRefPad;
 
 /// "İlk giriş izinleri gösterildi" bayrağı. Cihaz başınadır (hesap değişse de tekrar etmez);
 /// Keychain/Keystore'da tutulur.
@@ -93,7 +93,6 @@ class PermissionsPage extends StatefulWidget {
 class _PermissionsPageState extends State<PermissionsPage> with WidgetsBindingObserver {
   final Map<AppPermission, PermState> _st = {};
   final Set<AppPermission> _asked = {};
-  final Set<AppPermission> _skipped = {};
   AppPermission? _busy;
 
   PermissionService get _svc => widget.service ?? PermissionService.instance;
@@ -147,8 +146,8 @@ class _PermissionsPageState extends State<PermissionsPage> with WidgetsBindingOb
     return s != null && !s.usable && (s.needsSettings || _asked.contains(p));
   }
 
-  /// Karar verilmiş: verildi, reddedildi ya da atlandı.
-  bool _answered(AppPermission p) => (_st[p]?.usable ?? false) || _denied(p) || _skipped.contains(p);
+  /// Karar verilmiş: verildi ya da reddedildi.
+  bool _answered(AppPermission p) => (_st[p]?.usable ?? false) || _denied(p);
 
   bool get _allGranted => _firstRun.every((p) => _st[p]?.usable ?? false);
 
@@ -158,68 +157,45 @@ class _PermissionsPageState extends State<PermissionsPage> with WidgetsBindingOb
     final tx = Theme.of(context).textTheme;
     final l = context.l10n;
     final answered = _firstRun.where(_answered).length;
-    final total = _firstRun.length;
-    final step = answered >= total ? total : answered + 1;
-    final stepText = l.sistemuiPermStep(step.toString(), total.toString());
     final start = answered == 0 || _allGranted;
+    // Stitch v3 "13/14 İzinler": adım çubuğu ve kart yok; düz satırlar + ince ayırıcı; altta tek birincil düğme.
     return Scaffold(
       backgroundColor: t.bg,
       body: SafeArea(
         child: ListView(
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+          padding: const EdgeInsets.fromLTRB(kRefPad, 24, kRefPad, 24),
           children: [
             Semantics(
-              container: true,
-              label: stepText,
-              excludeSemantics: true,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(stepText, style: tx.labelMedium!.copyWith(color: t.mut, fontWeight: FontWeight.w600)),
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      for (var i = 0; i < total; i++) ...[
-                        if (i > 0) const SizedBox(width: 6),
-                        Expanded(
-                          child: AnimatedContainer(
-                            key: ValueKey('perm-step-$i'),
-                            duration: BuMotion.of(context, BuMotion.medium),
-                            height: 5,
-                            decoration: BoxDecoration(color: i < step ? t.pr : t.bd, borderRadius: BorderRadius.circular(3)),
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 20),
-            Semantics(
               header: true,
-              child: Text(l.permPageTitle, style: tx.headlineMedium!.copyWith(color: t.ink, fontWeight: FontWeight.w800)),
+              child: Text(l.permPageTitle, style: tx.headlineMedium!.copyWith(color: t.ink, fontWeight: FontWeight.w700)),
             ),
             const SizedBox(height: 8),
-            Text(l.permPageIntro, style: tx.bodyLarge!.copyWith(color: t.mut, height: 1.6)),
-            const SizedBox(height: 20),
-            for (final p in _firstRun) ...[
-              _PermCard(
-                permission: p,
-                state: _st[p],
-                busy: _busy == p,
-                denied: _denied(p),
-                onAllow: () => _ask(p),
-                onSkip: () => setState(() => _skipped.add(p)),
+            Text(l.permPageIntro, style: tx.bodyLarge!.copyWith(color: t.mut, height: 1.5)),
+            const SizedBox(height: 24),
+            for (var i = 0; i < _firstRun.length; i++) ...[
+              if (i > 0) Divider(height: 1, color: t.bd),
+              _PermRow(
+                permission: _firstRun[i],
+                state: _st[_firstRun[i]],
+                busy: _busy == _firstRun[i],
+                denied: _denied(_firstRun[i]),
+                onAllow: () => _ask(_firstRun[i]),
                 onSettings: _settings,
               ),
-              const SizedBox(height: 16),
             ],
-            const SizedBox(height: 8),
-            if (start)
-              GateArrowButton(label: l.permStart, onPressed: widget.onFinished)
-            else
-              BuButton(label: l.permContinue, onPressed: widget.onFinished),
+            Divider(height: 1, color: t.bd),
+            const SizedBox(height: 32),
+            start ? BuButton(label: l.permStart, onPressed: widget.onFinished) : BuButton(label: l.permContinue, onPressed: widget.onFinished),
+            if (answered == 0) ...[
+              const SizedBox(height: 8),
+              Center(
+                child: TextButton(
+                  onPressed: widget.onFinished,
+                  style: TextButton.styleFrom(foregroundColor: t.mut, minimumSize: const Size(48, 48)),
+                  child: Text(l.permNotNow, style: tx.labelLarge!.copyWith(color: t.mut, fontWeight: FontWeight.w600)),
+                ),
+              ),
+            ],
           ],
         ),
       ),
@@ -227,14 +203,13 @@ class _PermissionsPageState extends State<PermissionsPage> with WidgetsBindingOb
   }
 }
 
-class _PermCard extends StatelessWidget {
-  const _PermCard({
+class _PermRow extends StatelessWidget {
+  const _PermRow({
     required this.permission,
     required this.state,
     required this.busy,
     required this.denied,
     required this.onAllow,
-    required this.onSkip,
     required this.onSettings,
   });
 
@@ -245,17 +220,16 @@ class _PermCard extends StatelessWidget {
   /// Reddedildi (sistem kalıcı reddetti ya da bu sayfada istem reddedildi).
   final bool denied;
   final VoidCallback onAllow;
-  final VoidCallback onSkip;
   final VoidCallback onSettings;
 
-  (String, IconData, String) _content(BuildContext context) {
+  (String, String) _content(BuildContext context) {
     final l = context.l10n;
     final info = permissionInfo(permission, context);
     return switch (permission) {
-      AppPermission.notifications => (info.title, info.icon, l.sistemuiPermNotifText),
-      AppPermission.contacts => (info.title, info.icon, l.sistemuiPermContactsText),
-      AppPermission.camera => (l.sistemuiPermCameraTitle, info.icon, l.sistemuiPermCameraText),
-      _ => (info.title, info.icon, info.rationale),
+      AppPermission.notifications => (info.title, l.sistemuiPermNotifText),
+      AppPermission.contacts => (info.title, l.sistemuiPermContactsText),
+      AppPermission.camera => (l.sistemuiPermCameraTitle, l.sistemuiPermCameraText),
+      _ => (info.title, info.rationale),
     };
   }
 
@@ -264,175 +238,65 @@ class _PermCard extends StatelessWidget {
     final t = context.bu;
     final tx = Theme.of(context).textTheme;
     final l = context.l10n;
-    final (title, icon, text) = _content(context);
+    final (title, text) = _content(context);
     final st = state;
     final granted = st != null && st.usable;
 
-    Widget? badge;
+    // Sağ üst: izin ver (outlined) / Verildi + onay (ok) / Reddedildi (danger).
+    final Widget trailing;
     if (granted) {
-      badge = _StatusPill(key: ValueKey('ok-${permission.name}'), color: t.ok, bg: t.okSoft, icon: Icons.check_circle, text: l.permGranted);
-    } else if (denied) {
-      badge = _StatusPill(color: t.onSoft, bg: t.soft, icon: Icons.error, text: l.permDenied);
-    }
-
-    final Widget? actions;
-    if (granted) {
-      actions = null;
-    } else if (denied) {
-      actions = Wrap(
-        key: ValueKey('perm-${permission.name}'),
-        spacing: 8,
-        runSpacing: 4,
+      trailing = Row(
+        key: ValueKey('ok-${permission.name}'),
+        mainAxisSize: MainAxisSize.min,
         children: [
-          _TonalPill(label: l.permRetry, icon: LucideIcons.rotateCw, onTap: busy ? null : onAllow),
-          BuButton(label: l.permOpenSettings, icon: LucideIcons.settings, kind: BuButtonKind.soft, compact: true, onPressed: onSettings),
+          ExcludeSemantics(child: Icon(LucideIcons.check, size: 18, color: t.ok)),
+          const SizedBox(width: 4),
+          Text(l.permGranted, style: tx.labelLarge!.copyWith(color: t.ok, fontWeight: FontWeight.w600)),
         ],
       );
+    } else if (denied) {
+      trailing = Text(l.permDenied, style: tx.labelLarge!.copyWith(color: t.danger, fontWeight: FontWeight.w600));
     } else {
-      actions = Row(
+      trailing = BuButton(
         key: ValueKey('ask-${permission.name}-$denied'),
-        mainAxisAlignment: MainAxisAlignment.end,
-        children: [
-          TextButton(
-            onPressed: onSkip,
-            style: TextButton.styleFrom(foregroundColor: t.mut, minimumSize: const Size(0, 48), padding: const EdgeInsets.symmetric(horizontal: 12)),
-            child: Text(l.permNotNow, style: tx.labelLarge!.copyWith(color: t.mut, fontWeight: FontWeight.w700)),
-          ),
-          const SizedBox(width: 4),
-          BuButton(label: l.permAllow, compact: true, busy: busy, onPressed: st == null ? null : onAllow),
-        ],
+        label: l.permAllow,
+        compact: true,
+        kind: BuButtonKind.outline,
+        busy: busy,
+        onPressed: st == null ? null : onAllow,
       );
     }
 
     return Semantics(
       container: true,
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(color: t.sf, borderRadius: BorderRadius.circular(20), boxShadow: BuElevation.of(context, 1)),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                ExcludeSemantics(
-                  child: Container(
-                    width: 48,
-                    height: 48,
-                    alignment: Alignment.center,
-                    decoration: BoxDecoration(color: granted ? t.sf2 : t.soft, borderRadius: BorderRadius.circular(14)),
-                    child: Icon(icon, size: 22, color: t.pr),
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Expanded(
-                            child: Padding(
-                              padding: const EdgeInsets.only(top: 2),
-                              child: Text(title, style: tx.titleLarge!.copyWith(color: t.ink, fontWeight: FontWeight.w700)),
-                            ),
-                          ),
-                          if (badge != null) ...[const SizedBox(width: 8), badge],
-                        ],
-                      ),
-                      const SizedBox(height: 4),
-                      Text(text, style: tx.bodySmall!.copyWith(color: t.mut, height: 1.45)),
-                    ],
-                  ),
-                ),
+                Expanded(child: Text(title, style: tx.titleMedium!.copyWith(color: t.ink, fontWeight: FontWeight.w600))),
+                const SizedBox(width: 12),
+                AnimatedSwitcher(duration: BuMotion.of(context, BuMotion.medium), child: trailing),
               ],
             ),
-            if (actions != null) ...[
-              const SizedBox(height: 8),
-              AnimatedSwitcher(
-                duration: BuMotion.of(context, BuMotion.medium),
-                child: Align(alignment: denied ? AlignmentDirectional.centerStart : AlignmentDirectional.centerEnd, child: actions),
-              ),
-            ],
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-/// Durum hapı: "Verildi" (yeşil) / "Reddedildi" (kırmızı ton), dolu daire simgeli.
-class _StatusPill extends StatelessWidget {
-  const _StatusPill({super.key, required this.color, required this.bg, required this.icon, required this.text});
-
-  final Color color;
-  final Color bg;
-  final IconData icon;
-  final String text;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-      decoration: BoxDecoration(color: bg, borderRadius: BuRadius.bPill),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          ExcludeSemantics(child: Icon(icon, size: 14, color: color)),
-          const SizedBox(width: 4),
-          Text(text, maxLines: 1, style: Theme.of(context).textTheme.labelSmall!.copyWith(color: color, fontWeight: FontWeight.w700)),
-        ],
-      ),
-    );
-  }
-}
-
-/// Gri tonal hap düğme ("Tekrar dene"): görsel 36 dp, dokunma hedefi 48 dp.
-class _TonalPill extends StatelessWidget {
-  const _TonalPill({required this.label, required this.icon, required this.onTap});
-
-  final String label;
-  final IconData icon;
-  final VoidCallback? onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = context.bu;
-    return Semantics(
-      button: true,
-      enabled: onTap != null,
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(minHeight: 48, minWidth: 48),
-        child: Center(
-          widthFactor: 1,
-          child: Material(
-            color: t.sf2,
-            shape: const StadiumBorder(),
-            child: InkWell(
-              customBorder: const StadiumBorder(),
-              onTap: onTap == null
-                  ? null
-                  : () {
-                      buHaptic(BuHaptic.selection);
-                      onTap!();
-                    },
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(minHeight: 36),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(icon, size: 14, color: t.ink),
-                      const SizedBox(width: 6),
-                      Text(label, style: Theme.of(context).textTheme.labelMedium!.copyWith(color: t.ink, fontWeight: FontWeight.w700)),
-                    ],
-                  ),
+            const SizedBox(height: 4),
+            Text(text, style: tx.bodyMedium!.copyWith(color: t.mut, height: 1.45)),
+            if (denied && !granted)
+              Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: Wrap(
+                  key: ValueKey('perm-${permission.name}'),
+                  spacing: 16,
+                  children: [
+                    RefLink(label: l.permRetry, muted: true, compact: true, onPressed: busy ? null : onAllow),
+                    RefLink(label: l.permOpenSettings, compact: true, onPressed: onSettings),
+                  ],
                 ),
               ),
-            ),
-          ),
+          ],
         ),
       ),
     );

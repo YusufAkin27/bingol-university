@@ -21,45 +21,51 @@ class ResetSuccessPage extends StatelessWidget {
       onPopInvokedWithResult: (didPop, _) {
         if (!didPop) _toLogin(context);
       },
-      child: RefPage(
-        onBack: () => _toLogin(context),
-        children: [
-          const SizedBox(height: 4),
-          RefCard(
-            padding: const EdgeInsets.fromLTRB(24, 32, 24, 24),
+      // Stitch v3 "12 Başarı": geri oku yok; ortada 56 dp okSoft daire + onay, alta sabit tek birincil düğme.
+      child: Scaffold(
+        backgroundColor: t.bg,
+        body: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: kRefPad),
             child: Column(
               children: [
-                Container(
-                  width: 112,
-                  height: 112,
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(color: t.okSoft, shape: BoxShape.circle),
-                  child: Container(
-                    width: 84,
-                    height: 84,
-                    decoration: BoxDecoration(
-                      color: t.ok,
-                      shape: BoxShape.circle,
-                      boxShadow: [BoxShadow(color: t.ok.withValues(alpha: .3), blurRadius: 18, offset: const Offset(0, 6), spreadRadius: -4)],
+                Expanded(
+                  child: Center(
+                    child: SingleChildScrollView(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Container(
+                            width: 56,
+                            height: 56,
+                            decoration: BoxDecoration(color: t.okSoft, shape: BoxShape.circle),
+                            child: Icon(LucideIcons.check, size: 28, color: t.ok),
+                          ),
+                          const SizedBox(height: 24),
+                          Semantics(
+                            header: true,
+                            liveRegion: true,
+                            child: Text(l.authResetDoneTitle,
+                                textAlign: TextAlign.center, style: tx.headlineMedium!.copyWith(color: t.ink, fontWeight: FontWeight.w700)),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(l.authResetDoneBody, textAlign: TextAlign.center, style: tx.bodyLarge!.copyWith(color: t.mut, height: 1.5)),
+                        ],
+                      ),
                     ),
-                    child: Icon(LucideIcons.check, size: 44, color: t.onMedia),
+                  ),
+                ),
+                Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 440),
+                    child: RefButton(label: l.authBackToLogin, onPressed: () => _toLogin(context)),
                   ),
                 ),
                 const SizedBox(height: 24),
-                Semantics(
-                  header: true,
-                  liveRegion: true,
-                  child: Text(l.authResetDoneTitle,
-                      textAlign: TextAlign.center, style: tx.headlineMedium!.copyWith(color: t.ink, fontWeight: FontWeight.w800)),
-                ),
-                const SizedBox(height: 10),
-                Text(l.authResetDoneBody, textAlign: TextAlign.center, style: tx.bodyLarge!.copyWith(color: t.mut, height: 1.5)),
-                const SizedBox(height: 28),
-                SizedBox(width: double.infinity, child: RefButton(label: l.authBackToLogin, onPressed: () => _toLogin(context))),
               ],
             ),
           ),
-        ],
+        ),
       ),
     );
   }

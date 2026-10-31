@@ -95,7 +95,7 @@ class AuthAcademicFields extends StatelessWidget {
                   ],
                 ),
               ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 24),
             _SelectCard(
               label: l.pickGrade,
               value: _gradeName(context),
@@ -129,50 +129,40 @@ class _SelectCard extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        Padding(
+          padding: const EdgeInsetsDirectional.only(bottom: 8),
+          child: Text(label, style: tx.labelLarge!.copyWith(color: hasError ? t.danger : t.ink, fontWeight: FontWeight.w500)),
+        ),
         Semantics(
           button: true,
           label: label,
           child: DecoratedBox(
             decoration: BoxDecoration(
               color: t.sf,
-              borderRadius: BorderRadius.circular(20),
-              boxShadow: BuElevation.of(context, 1),
-              border: hasError ? Border.all(color: t.danger.withValues(alpha: .6), width: 1.5) : null,
+              borderRadius: BuRadius.bControl,
+              border: Border.all(color: hasError ? t.danger : t.bdStrong, width: hasError ? 1.5 : 1),
             ),
             child: Material(
               type: MaterialType.transparency,
               child: InkWell(
-                borderRadius: BorderRadius.circular(20),
+                borderRadius: BuRadius.bControl,
                 onTap: onTap,
                 child: ConstrainedBox(
-                  constraints: const BoxConstraints(minHeight: 72),
+                  constraints: const BoxConstraints(minHeight: BuSize.field),
                   child: Padding(
-                    padding: const EdgeInsetsDirectional.fromSTEB(16, 12, 14, 12),
+                    padding: const EdgeInsetsDirectional.fromSTEB(16, 8, 12, 8),
                     child: Row(
                       children: [
                         Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(label, style: tx.bodySmall!.copyWith(color: hasError ? t.danger : t.mut, fontWeight: FontWeight.w500)),
-                              const SizedBox(height: 2),
-                              Text(
-                                has ? value! : placeholder,
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                                style: tx.bodyLarge!.copyWith(color: has ? t.ink : t.mut, fontWeight: has ? FontWeight.w600 : FontWeight.w400),
-                              ),
-                            ],
+                          child: Text(
+                            has ? value! : placeholder,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: tx.bodyLarge!.copyWith(color: has ? t.ink : t.mut, fontWeight: has ? FontWeight.w500 : FontWeight.w400),
                           ),
                         ),
                         const SizedBox(width: 8),
-                        Container(
-                          width: 36,
-                          height: 36,
-                          decoration: BoxDecoration(color: t.sf2, shape: BoxShape.circle),
-                          child: Icon(LucideIcons.chevronDown, size: 18, color: t.ink),
-                        ),
+                        Icon(LucideIcons.chevronDown, size: 20, color: t.mut),
                       ],
                     ),
                   ),
@@ -187,13 +177,7 @@ class _SelectCard extends StatelessWidget {
           child: hasError
               ? Padding(
                   padding: const EdgeInsetsDirectional.only(top: 8, start: 4),
-                  child: Row(
-                    children: [
-                      Icon(LucideIcons.circleAlert, size: 16, color: t.danger),
-                      const SizedBox(width: 8),
-                      Expanded(child: Text(error!, style: tx.bodyMedium!.copyWith(color: t.danger, fontWeight: FontWeight.w500))),
-                    ],
-                  ),
+                  child: Text(error!, style: tx.bodySmall!.copyWith(color: t.danger, fontWeight: FontWeight.w500)),
                 )
               : const SizedBox(width: double.infinity),
         ),

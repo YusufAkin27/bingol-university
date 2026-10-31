@@ -115,53 +115,39 @@ class _ResetCodePageState extends State<ResetCodePage> {
     return RefPage(
       children: [
         RefHeading(title: l.authEnterCode, subtitle: l.authCodeSentTo(mail)),
-        const SizedBox(height: 24),
-        RefCard(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              OtpCodeBoxes(
-                controller: _code,
-                enabled: !_busy,
-                hasError: _error != null,
-                success: _ok,
-                shakeTrigger: _shake,
-                onCompleted: _verify,
-              ),
-              AnimatedSize(
-                duration: BuMotion.of(context, BuMotion.short),
-                alignment: Alignment.topCenter,
-                child: _error != null
-                    ? Padding(
-                        padding: const EdgeInsets.only(top: 14),
-                        child: RefPill(_error!, key: ValueKey('e$_error')))
-                    : _info != null
-                        ? Padding(
-                            padding: const EdgeInsets.only(top: 14),
-                            child: RefPill(_info!, tone: RefTone.success))
-                        : const SizedBox(width: double.infinity),
-              ),
-              const SizedBox(height: 8),
-              Wrap(
-                alignment: WrapAlignment.spaceBetween,
-                crossAxisAlignment: WrapCrossAlignment.center,
-                children: [
-                  AuthResendRow(
-                    key: _resendKey,
-                    onResend: _busy ? () {} : _resend,
-                    waitingLabel: (s) => l.authResendIn('$s'),
-                    resendLabel: l.authResendCode,
-                  ),
-                  RefLink(
-                      label: l.authChangeEmail,
-                      onPressed:
-                          _busy ? null : () => Navigator.maybePop(context)),
-                ],
-              ),
-            ],
-          ),
+        const SizedBox(height: 32),
+        OtpCodeBoxes(
+          controller: _code,
+          enabled: !_busy,
+          hasError: _error != null,
+          success: _ok,
+          shakeTrigger: _shake,
+          onCompleted: _verify,
         ),
-        const SizedBox(height: 20),
+        AnimatedSize(
+          duration: BuMotion.of(context, BuMotion.short),
+          alignment: Alignment.topCenter,
+          child: _error != null
+              ? Padding(padding: const EdgeInsets.only(top: 16), child: RefPill(_error!, key: ValueKey('e$_error')))
+              : _info != null
+                  ? Padding(padding: const EdgeInsets.only(top: 16), child: RefPill(_info!, tone: RefTone.success))
+                  : const SizedBox(width: double.infinity),
+        ),
+        const SizedBox(height: 16),
+        Wrap(
+          alignment: WrapAlignment.spaceBetween,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          children: [
+            AuthResendRow(
+              key: _resendKey,
+              onResend: _busy ? () {} : _resend,
+              waitingLabel: (s) => l.authResendIn('$s'),
+              resendLabel: l.authResendCode,
+            ),
+            RefLink(label: l.authChangeEmail, compact: true, onPressed: _busy ? null : () => Navigator.maybePop(context)),
+          ],
+        ),
+        const SizedBox(height: 24),
         RefButton(label: l.authVerify, busy: _busy, onPressed: _verify),
       ],
     );

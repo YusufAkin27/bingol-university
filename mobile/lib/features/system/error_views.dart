@@ -40,11 +40,11 @@ class RenderErrorView extends StatelessWidget {
                 children: [
                   Center(
                     child: Container(
-                      width: 64,
-                      height: 64,
+                      width: 72,
+                      height: 72,
                       alignment: Alignment.center,
-                      decoration: BoxDecoration(color: t.sf2, borderRadius: BorderRadius.circular(16)),
-                      child: Icon(LucideIcons.triangleAlert, size: 28, color: t.mut),
+                      decoration: BoxDecoration(color: t.sf2, shape: BoxShape.circle),
+                      child: Icon(LucideIcons.triangleAlert, size: 48, color: t.ink),
                     ),
                   ),
                   const SizedBox(height: 24),
@@ -60,10 +60,10 @@ class RenderErrorView extends StatelessWidget {
                     label: l.commonRetry,
                     excludeSemantics: true,
                     child: Material(
-                      color: t.pr,
-                      borderRadius: BorderRadius.circular(16),
+                      color: t.sf,
+                      shape: RoundedRectangleBorder(borderRadius: BuRadius.bControl, side: BorderSide(color: t.bdStrong)),
                       child: InkWell(
-                        borderRadius: BorderRadius.circular(16),
+                        borderRadius: BuRadius.bControl,
                         onTap: onRetry ??
                             () {
                               final nav = rootNavigatorKey.currentState;
@@ -73,7 +73,7 @@ class RenderErrorView extends StatelessWidget {
                           constraints: const BoxConstraints(minHeight: 48),
                           child: Center(
                             child: Text(l.commonRetry,
-                                style: tx.titleMedium!.copyWith(color: t.onPr, fontWeight: FontWeight.w700, decoration: TextDecoration.none)),
+                                style: tx.titleMedium!.copyWith(color: t.ink, fontWeight: FontWeight.w700, decoration: TextDecoration.none)),
                           ),
                         ),
                       ),
@@ -109,7 +109,7 @@ class ConfigErrorView extends StatelessWidget {
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -117,17 +117,11 @@ class ConfigErrorView extends StatelessWidget {
                 ExcludeSemantics(
                   child: Center(
                     child: Container(
-                      width: 96,
-                      height: 96,
+                      width: 88,
+                      height: 88,
                       alignment: Alignment.center,
-                      decoration: BoxDecoration(color: t.soft.withValues(alpha: .5), shape: BoxShape.circle),
-                      child: Container(
-                        width: 80,
-                        height: 80,
-                        alignment: Alignment.center,
-                        decoration: BoxDecoration(color: t.soft, borderRadius: BorderRadius.circular(24)),
-                        child: Icon(LucideIcons.shieldAlert, size: 36, color: t.pr),
-                      ),
+                      decoration: BoxDecoration(color: t.soft, borderRadius: BuRadius.bXl),
+                      child: Icon(LucideIcons.shieldAlert, size: 40, color: t.pr),
                     ),
                   ),
                 ),
@@ -145,7 +139,7 @@ class ConfigErrorView extends StatelessWidget {
                 const SizedBox(height: 24),
                 Container(
                   padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(color: t.sf2, borderRadius: BorderRadius.circular(16), boxShadow: BuElevation.of(context, 1)),
+                  decoration: BoxDecoration(color: t.sf2, borderRadius: BuRadius.bMd),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [

@@ -18,7 +18,7 @@ import 'package:flutter_test/flutter_test.dart';
 import '../support/fake_app.dart';
 
 /// DA (mimar cilası): kimlik akışı + sistem durum ekranları. Davranış değişmedi; görünüm sözleşmeleri:
-/// OTP kutuları eşit genişlik + hata durumu, dört durum ekranı ortak 88 dp simge karosu, sözleşme listesinde
+/// OTP kutuları eşit genişlik + hata durumu, dört durum ekranı ortak 72 dp simge dairesi, sözleşme listesinde
 /// dokunma dalgası görünür (dolgu Material'de), karşılama dil seçici dokunma hedefi, aşamalı giriş sonunda görünür.
 void main() {
   setUpAll(() async {
@@ -48,7 +48,8 @@ void main() {
 
     testWidgets('altı kutu eşit genişlikte, hata yokken çerçevesiz', (tester) async {
       final d = await boxes(tester, error: false);
-      expect(d.where((x) => x.color == BuTokens.light.sf2).length, greaterThanOrEqualTo(4));
+      expect(d.where((x) => x.color == BuTokens.light.sf).length, greaterThanOrEqualTo(4));
+      expect((d.first.border! as Border).top.color, BuTokens.light.bdStrong);
     });
 
     for (final b in Brightness.values) {
@@ -57,11 +58,11 @@ void main() {
         final d = await boxes(tester, error: true, b: b);
         for (final x in d) {
           final border = x.border! as Border;
-          expect(border.top.color, tk.danger.withValues(alpha: .55));
+          expect(border.top.color, tk.danger);
           expect(border.top.width, 1.5);
         }
         final texts = tester.widgetList<Text>(find.descendant(of: find.byType(OtpCodeBoxes), matching: find.text('5')));
-        expect(texts.first.style?.color, tk.danger);
+        expect(texts.first.style?.color, tk.ink);
       });
     }
   });
@@ -74,14 +75,14 @@ void main() {
       'erişim engeli': () => AccessBlockedScreen(onRetry: () {}),
     };
     for (final e in screens.entries) {
-      testWidgets('${e.key}: ortak 88 dp simge karosu ve sonunda tam görünür', (tester) async {
+      testWidgets('${e.key}: ortak 72 dp simge dairesi ve sonunda tam görünür', (tester) async {
         useScreen(tester, kPhoneMedium);
         await tester.pumpWidget(buildApp(e.value()));
         // Aşamalı giriş bitince (<= ~700 ms) hiçbir öğe saydam kalmaz.
         await settle(tester, const Duration(milliseconds: 900));
-        final tile = find.byWidgetPredicate((w) => w is Container && w.constraints == const BoxConstraints.tightFor(width: 88, height: 88));
+        final tile = find.byWidgetPredicate((w) => w is Container && w.constraints == const BoxConstraints.tightFor(width: 72, height: 72));
         expect(tile, findsOneWidget);
-        expect(tester.getSize(tile), const Size(88, 88));
+        expect(tester.getSize(tile), const Size(72, 72));
         for (final f in tester.widgetList<FadeTransition>(find.byType(FadeTransition))) {
           expect(f.opacity.value, 1.0);
         }
@@ -108,7 +109,7 @@ void main() {
   });
 
   group('Sözleşme listesi', () {
-    testWidgets('satırların dokunma dalgası görünür Material üstünde (dolgu Material rengidir)', (tester) async {
+    testWidgets('satırlar kartsız; dokunma dalgası Scaffold zemininde görünür', (tester) async {
       useScreen(tester, kPhoneMedium);
       final b = FakeBackend()
         ..on('/legal', [
@@ -119,9 +120,8 @@ void main() {
       await tester.pumpWidget(buildApp(LegalListPage(session: s)));
       await settle(tester, const Duration(milliseconds: 800));
       expect(find.text('Kullanım Koşulları'), findsOneWidget);
-      final ink = find.byType(InkWell).first;
-      final m = tester.widget<Material>(find.ancestor(of: ink, matching: find.byType(Material)).first);
-      expect(m.color, BuTokens.light.sf, reason: 'InkWell dalgası, dolgusu olan Material üstünde çizilir');
+      expect(find.byType(InkWell), findsAtLeastNWidgets(2));
+      expect(find.byType(Divider), findsOneWidget);
       await unmount(tester);
     });
   });

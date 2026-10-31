@@ -192,32 +192,6 @@ class _RegisterPageState extends State<RegisterPage> {
         _ => c.l10n.authHintPassword,
       };
 
-  Widget _section(BuildContext context) {
-    final t = context.bu;
-    final l = context.l10n;
-    final tx = Theme.of(context).textTheme;
-    if (_step == 2) return const SizedBox.shrink();
-    final label = _step == 0 ? l.authSectionAcademic : l.authSectionPersonal;
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 16),
-      child: Row(
-        children: [
-          if (_step == 0)
-            Icon(LucideIcons.graduationCap, size: 18, color: t.pr)
-          else
-            Container(width: 8, height: 8, decoration: BoxDecoration(color: t.pr, shape: BoxShape.circle)),
-          const SizedBox(width: 10),
-          Flexible(
-            child: Text(
-              trUpper(label),
-              style: tx.labelMedium!.copyWith(color: t.mut, fontWeight: FontWeight.w800, letterSpacing: .6),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _stepBody(BuildContext context) {
     final l = context.l10n;
     final t = context.bu;
@@ -243,7 +217,7 @@ class _RegisterPageState extends State<RegisterPage> {
               }),
             ),
             const SizedBox(height: 20),
-            RefNote(l.authTrustAcademic, icon: LucideIcons.lightbulb, tone: RefTone.error),
+            RefNote(l.authTrustAcademic, icon: LucideIcons.info),
           ],
         );
       case 1:
@@ -270,7 +244,7 @@ class _RegisterPageState extends State<RegisterPage> {
               onSubmitted: _next,
             ),
             const SizedBox(height: 20),
-            RefNote(l.authTrustName, icon: LucideIcons.info, tone: RefTone.info),
+            RefNote(l.authTrustName, icon: LucideIcons.info),
           ],
         );
       default:
@@ -292,8 +266,6 @@ class _RegisterPageState extends State<RegisterPage> {
               valueListenable: _password,
               builder: (_, v, __) => AuthPasswordGuide(password: v.text),
             ),
-            const SizedBox(height: 20),
-            RefNote(l.authTrustPassword, icon: LucideIcons.shieldCheck),
             const SizedBox(height: 24),
             Text.rich(
               TextSpan(
@@ -326,6 +298,7 @@ class _RegisterPageState extends State<RegisterPage> {
         if (!didPop && !_busy) _goTo(_step - 1);
       },
       child: RefPage(
+        trailing: Text(l.authStepOf('${_step + 1}', '$_steps'), style: tx.labelLarge!.copyWith(color: t.mut, fontWeight: FontWeight.w500)),
         onBack: () {
           if (_step == 0) {
             Navigator.maybePop(context);
@@ -336,32 +309,11 @@ class _RegisterPageState extends State<RegisterPage> {
         children: [
           Semantics(
             label: l.authStepOf('${_step + 1}', '$_steps'),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Align(
-                  alignment: AlignmentDirectional.centerEnd,
-                  child: Text(l.authStepOf('${_step + 1}', '$_steps'),
-                      style: tx.labelMedium!.copyWith(color: t.pr, fontWeight: FontWeight.w800)),
-                ),
-                const SizedBox(height: 6),
-                ExcludeSemantics(child: AuthStepBar(step: _step, steps: _steps)),
-              ],
-            ),
+            child: ExcludeSemantics(child: AuthStepBar(step: _step, steps: _steps)),
           ),
           const SizedBox(height: 24),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(child: RefHeading(title: _title(context), subtitle: _hint(context))),
-              if (_step == 1) ...[
-                const SizedBox(width: 12),
-                RefIconTile(LucideIcons.contact, bg: t.tint(1).bg, fg: t.tint(1).fg, radius: 16),
-              ],
-            ],
-          ),
+          RefHeading(title: _title(context), subtitle: _hint(context)),
           const SizedBox(height: 24),
-          _section(context),
           // Hata bandı yumuşakça açılır; yeni hatada hafifçe sarsılır.
           AnimatedSize(
             duration: BuMotion.of(context, BuMotion.short),
@@ -396,7 +348,6 @@ class _RegisterPageState extends State<RegisterPage> {
             onPressed: _next,
             busy: _busy,
             label: last ? l.loginRegister : l.authNext,
-            icon: buDirIcon(context, LucideIcons.arrowRight),
           ),
           if (_step == 0 && !keyboard) ...[
             const SizedBox(height: 8),

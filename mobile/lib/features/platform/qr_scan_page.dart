@@ -210,8 +210,8 @@ class _QrScanPageState extends State<QrScanPage> with SingleTickerProviderStateM
                   constraints: BoxConstraints(minHeight: (c.maxHeight - (camH - 24)).clamp(0.0, double.infinity)),
                   child: Container(
                     width: double.infinity,
-                    padding: const EdgeInsets.fromLTRB(20, 20, 20, 24),
-                    decoration: BoxDecoration(color: t.sf, borderRadius: const BorderRadius.vertical(top: Radius.circular(24))),
+                    padding: const EdgeInsets.fromLTRB(20, 24, 20, 24),
+                    decoration: BoxDecoration(color: t.sf, borderRadius: BuRadius.topXl),
                     child: SafeArea(top: false, child: _panelBody(context, camera: true)),
                   ),
                 ),
@@ -355,7 +355,7 @@ class _QrScanPageState extends State<QrScanPage> with SingleTickerProviderStateM
     return SafeArea(
       child: SingleChildScrollView(
         keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-        padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+        padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -370,40 +370,16 @@ class _QrScanPageState extends State<QrScanPage> with SingleTickerProviderStateM
             const SizedBox(height: 8),
             ExcludeSemantics(
               child: Center(
-                child: SizedBox(
-                  width: 112,
-                  height: 112,
-                  child: Stack(
-                    clipBehavior: Clip.none,
-                    children: [
-                      Container(
-                        width: 112,
-                        height: 112,
-                        alignment: Alignment.center,
-                        decoration: BoxDecoration(color: t.soft, borderRadius: BuRadius.bXl),
-                        child: Container(
-                          width: 80,
-                          height: 80,
-                          alignment: Alignment.center,
-                          decoration: BoxDecoration(color: t.sf, borderRadius: BorderRadius.circular(20), boxShadow: BuElevation.of(context, 1)),
-                          child: Icon(LucideIcons.cameraOff, size: 34, color: t.pr),
-                        ),
-                      ),
-                      PositionedDirectional(
-                        top: -2,
-                        end: -4,
-                        child: Container(
-                          width: 18,
-                          height: 18,
-                          decoration: BoxDecoration(color: t.pr, shape: BoxShape.circle, border: Border.all(color: t.bg, width: 2)),
-                        ),
-                      ),
-                    ],
-                  ),
+                child: Container(
+                  width: 88,
+                  height: 88,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(color: t.soft, borderRadius: BuRadius.bXl),
+                  child: Icon(LucideIcons.cameraOff, size: 40, color: t.pr),
                 ),
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 24),
             Semantics(
               header: true,
               child: Text(l.p01PermDeniedTitle(cameraTitle),
@@ -416,17 +392,9 @@ class _QrScanPageState extends State<QrScanPage> with SingleTickerProviderStateM
             ),
             const SizedBox(height: 16),
             BuButton(label: l.qrGrantCamera, icon: LucideIcons.video, onPressed: _ensureCamera),
-            const SizedBox(height: 16),
-            ExcludeSemantics(
-              child: Center(child: Container(width: 40, height: 4, decoration: BoxDecoration(color: t.bd, borderRadius: BuRadius.bPill))),
-            ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 24),
             ..._feedback(context),
-            Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(color: t.sf, borderRadius: BorderRadius.circular(20), boxShadow: BuElevation.of(context, 1)),
-              child: _panelBody(context, camera: false),
-            ),
+            _panelBody(context, camera: false),
           ],
         ),
       ),
@@ -445,7 +413,7 @@ class _QrScanPageState extends State<QrScanPage> with SingleTickerProviderStateM
           liveRegion: true,
           child: Container(
             padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(color: t.soft, borderRadius: BorderRadius.circular(16), boxShadow: BuElevation.of(context, 1)),
+            decoration: BoxDecoration(color: t.soft, borderRadius: BuRadius.bMd),
             child: Row(
               children: [
                 ExcludeSemantics(child: Icon(Icons.error, size: 22, color: t.onSoft)),
@@ -481,46 +449,12 @@ class _QrScanPageState extends State<QrScanPage> with SingleTickerProviderStateM
     final t = context.bu;
     final tx = Theme.of(context).textTheme;
     final l = context.l10n;
-    final tint = t.tint(1);
     final err = _error;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         if (camera) ...[
           ..._feedback(context),
-          Container(
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(color: t.sf2, borderRadius: BorderRadius.circular(16)),
-            child: Row(
-              children: [
-                ExcludeSemantics(
-                  child: Container(
-                    width: 36,
-                    height: 36,
-                    alignment: Alignment.center,
-                    decoration: BoxDecoration(color: tint.bg, borderRadius: BorderRadius.circular(12)),
-                    child: Icon(LucideIcons.calendarClock, size: 18, color: tint.fg),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(child: Text(l.sistemuiQrNotice, style: tx.bodySmall!.copyWith(color: t.mut, height: 1.45))),
-              ],
-            ),
-          ),
-          const SizedBox(height: 18),
-          ExcludeSemantics(
-            child: Row(
-              children: [
-                Expanded(child: Container(height: 1, color: t.bd)),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 12),
-                  child: Text(l.sistemuiQrOr, style: tx.labelMedium!.copyWith(color: t.mut, fontWeight: FontWeight.w500)),
-                ),
-                Expanded(child: Container(height: 1, color: t.bd)),
-              ],
-            ),
-          ),
-          const SizedBox(height: 14),
         ],
         Padding(
           padding: const EdgeInsetsDirectional.only(start: 2, bottom: 8),
@@ -561,7 +495,7 @@ class _QrScanPageState extends State<QrScanPage> with SingleTickerProviderStateM
         if (camera)
           GateArrowButton(label: l.sistemuiQrSubmit, busy: _busy, onPressed: _success ? null : () => _finish(_manual.text))
         else
-          BuButton(label: l.qrConfirm, busy: _busy, onPressed: _success ? null : () => _finish(_manual.text)),
+          BuButton(label: l.qrConfirm, kind: BuButtonKind.soft, busy: _busy, onPressed: _success ? null : () => _finish(_manual.text)),
       ],
     );
   }
