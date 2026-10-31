@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:bu_kampus/core/theme.dart';
 import 'package:bu_kampus/features/profile/account_security_page.dart';
 import 'package:bu_kampus/features/profile/privacy_data_page.dart';
@@ -6,6 +8,7 @@ import 'package:bu_kampus/features/profile/profil2_my_data_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path_provider/path_provider.dart';
 
 import 'support/fake_app.dart';
 
@@ -113,58 +116,156 @@ void main() {
   });
 
   group('Verilerim', () {
-    testWidgets('KVKK verisi panoya konur ve süre sonunda panodan silinir', (tester) async {
-      useScreen(tester, kPhoneMedium);
-      String? clip;
+    // A4-08 (W1-I T-099): KVKK verisi PANOYA konmaz; dosya olarak sistem paylaşımına verilir, yaşam döngüsüyle silinir.
+    List<String> installFakes(WidgetTester tester, {bool deliverOk = true}) {
+      final log = <String>[];
       tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(SystemChannels.platform, (call) async {
-        if (call.method == 'Clipboard.setData') clip = (call.arguments as Map)['text'] as String?;
-        if (call.method == 'Clipboard.getData') return <String, dynamic>{'text': clip};
+        if (call.method.startsWith('Clipboard.')) log.add('CLIP:${call.method}');
         return null;
       });
-      addTearDown(() => tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(SystemChannels.platform, null));
-      final old = kExportClipboardTtl;
-      kExportClipboardTtl = const Duration(seconds: 5);
-      addTearDown(() => kExportClipboardTtl = old);
+      final oldDeliver = ExportShare.deliver;
+      final oldPurge = ExportShare.purge;
+      final oldTtl = kExportFileTtl;
+      ExportShare.deliver = (json, title) async {
+        log.add('deliver:${json.contains('"profile"')}');
+        return deliverOk;
+      };
+      ExportShare.purge = () async => log.add('purge');
+      addTearDown(() {
+        tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(SystemChannels.platform, null);
+        ExportShare.deliver = oldDeliver;
+        ExportShare.purge = oldPurge;
+        kExportFileTtl = oldTtl;
+      });
+      return log;
+    }
+
+    testWidgets('KVKK verisi panoya YAZILMAZ; paylaşıma verilir', (tester) async {
+      useScreen(tester, kPhoneMedium);
+      final log = installFakes(tester);
       final b = FakeBackend()..on('/users/me/export', {'profile': {'id': 1}});
       await tester.pumpWidget(buildApp(MyDataPage(session: makeSession(b)), size: kPhoneMedium));
       await settle(tester);
       await tester.tap(find.byKey(const ValueKey('my-data-download')));
       await settle(tester);
-      expect(clip, contains('"profile"'));
-      expect(find.textContaining('30 saniye'), findsOneWidget);
-      await tester.pump(const Duration(seconds: 6));
-      expect(clip, '');
+      expect(log, contains('deliver:true'));
+      expect(log.where((e) => e.startsWith('CLIP:')), isEmpty, reason: 'pano hiç kullanılmamalı');
+      expect(find.textContaining('panoya'), findsNothing);
       await unmount(tester);
     });
 
-    testWidgets('pano başka metne dönüştüyse silinmez', (tester) async {
+    testWidgets('paylaşımdan uygulamaya dönünce (resumed) dosya silinir', (tester) async {
       useScreen(tester, kPhoneMedium);
-      String? clip;
-      tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(SystemChannels.platform, (call) async {
-        if (call.method == 'Clipboard.setData') clip = (call.arguments as Map)['text'] as String?;
-        if (call.method == 'Clipboard.getData') return <String, dynamic>{'text': clip};
-        return null;
-      });
-      addTearDown(() => tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(SystemChannels.platform, null));
-      final old = kExportClipboardTtl;
-      kExportClipboardTtl = const Duration(seconds: 5);
-      addTearDown(() => kExportClipboardTtl = old);
+      final log = installFakes(tester);
+      final b = FakeBackend()..on('/users/me/export', {'profile': {'id': 1}});
+      await tester.pumpWidget(buildApp(MyDataPage(session: makeSession(b)), size: kPhoneMedium));
+      await settle(tester);
+      log.clear(); // initState temizliğini say
+      await tester.tap(find.byKey(const ValueKey('my-data-download')));
+      await settle(tester);
+      expect(log, ['deliver:true']);
+      // Yalnız resumed (arka plana hiç gitmeden): silinmez.
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+      await tester.pump();
+      expect(log, ['deliver:true']);
+      // Paylaşım sayfası/hedef uygulama öne geçti, sonra dönüldü.
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+      await tester.pump();
+      expect(log, ['deliver:true']);
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+      await tester.pump();
+      expect(log, ['deliver:true', 'purge']);
+      // İkinci resumed ek silme üretmez (dosya yok).
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+      await tester.pump();
+      expect(log, ['deliver:true', 'purge']);
+      await unmount(tester);
+    });
+
+    testWidgets('yaşam döngüsü olmasa da süre dolunca (kExportFileTtl) dosya silinir', (tester) async {
+      useScreen(tester, kPhoneMedium);
+      final log = installFakes(tester);
+      final b = FakeBackend()..on('/users/me/export', {'profile': {'id': 1}});
+      await tester.pumpWidget(buildApp(MyDataPage(session: makeSession(b)), size: kPhoneMedium));
+      await settle(tester);
+      kExportFileTtl = const Duration(seconds: 5);
+      log.clear();
+      await tester.tap(find.byKey(const ValueKey('my-data-download')));
+      await settle(tester);
+      expect(log, ['deliver:true']);
+      await tester.pump(const Duration(seconds: 6));
+      expect(log, ['deliver:true', 'purge']);
+      await unmount(tester);
+    });
+
+    testWidgets('sayfa kapanınca (dispose) dosya silinir', (tester) async {
+      useScreen(tester, kPhoneMedium);
+      final log = installFakes(tester);
       final b = FakeBackend()..on('/users/me/export', {'profile': {'id': 1}});
       await tester.pumpWidget(buildApp(MyDataPage(session: makeSession(b)), size: kPhoneMedium));
       await settle(tester);
       await tester.tap(find.byKey(const ValueKey('my-data-download')));
       await settle(tester);
-      clip = 'kullanici baska bir sey kopyaladi';
-      await tester.pump(const Duration(seconds: 6));
-      expect(clip, 'kullanici baska bir sey kopyaladi');
+      log.clear();
+      await tester.pumpWidget(const SizedBox());
+      expect(log, ['purge']);
+    });
+
+    testWidgets('paylaşım açılamazsa hata gösterilir, pano kullanılmaz', (tester) async {
+      useScreen(tester, kPhoneMedium);
+      final log = installFakes(tester, deliverOk: false);
+      final b = FakeBackend()..on('/users/me/export', {'profile': {'id': 1}});
+      await tester.pumpWidget(buildApp(MyDataPage(session: makeSession(b)), size: kPhoneMedium));
+      await settle(tester);
+      await tester.tap(find.byKey(const ValueKey('my-data-download')));
+      await settle(tester);
+      expect(find.textContaining('hazırlanamadı'), findsOneWidget);
+      expect(log.where((e) => e.startsWith('CLIP:')), isEmpty);
+      // Başarısız teslimde yaşam döngüsü silmesi kurulmadı: resumed ek 'purge' üretmez.
+      final before = log.where((e) => e == 'purge').length;
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+      await tester.pump();
+      expect(log.where((e) => e == 'purge').length, before);
       await unmount(tester);
+    });
+
+    test('ExportShare: dosya export/ altına yazılır, kanal çağrılır, purge dizini siler', () async {
+      TestWidgetsFlutterBinding.ensureInitialized();
+      final messenger = TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
+      final tmp = await Directory.systemTemp.createTemp('bu_export_test');
+      addTearDown(() async {
+        ExportShare.baseDir = getTemporaryDirectory;
+        messenger.setMockMethodCallHandler(ExportShare.channel, null);
+        if (await tmp.exists()) await tmp.delete(recursive: true);
+      });
+      ExportShare.baseDir = () async => tmp;
+      String? sharedPath;
+      messenger.setMockMethodCallHandler(ExportShare.channel, (call) async {
+        expect(call.method, 'shareFile');
+        sharedPath = (call.arguments as Map<Object?, Object?>)['path']! as String;
+        expect(File(sharedPath!).existsSync(), isTrue);
+        return true;
+      });
+      expect(await ExportShare.deliver('{"profile":{"id":1}}', 'Başlık'), isTrue);
+      expect(sharedPath, contains('${Platform.pathSeparator}export${Platform.pathSeparator}'));
+      expect(File(sharedPath!).readAsStringSync(), '{"profile":{"id":1}}');
+      await ExportShare.purge();
+      expect(Directory('${tmp.path}${Platform.pathSeparator}export').existsSync(), isFalse);
+      // Yerel kod yok (MissingPluginException) => false ve kalıntı dosya yok.
+      messenger.setMockMethodCallHandler(ExportShare.channel, null);
+      expect(await ExportShare.deliver('{}', 't'), isFalse);
+      expect(Directory('${tmp.path}${Platform.pathSeparator}export').existsSync(), isFalse);
     });
 
     testWidgets('indir düğmesi export çağırır', (tester) async {
       useScreen(tester, kPhoneMedium);
-      final old = kExportClipboardTtl;
-      kExportClipboardTtl = Duration.zero;
-      addTearDown(() => kExportClipboardTtl = old);
+      final old = kExportFileTtl;
+      kExportFileTtl = Duration.zero;
+      addTearDown(() => kExportFileTtl = old);
       final b = FakeBackend()..on('/users/me/export', {'profile': {'id': 1}});
       await tester.pumpWidget(buildApp(MyDataPage(session: makeSession(b)), size: kPhoneMedium));
       await settle(tester);

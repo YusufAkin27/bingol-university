@@ -42,7 +42,48 @@ final class BuNativeBridge: NSObject, FlutterPlugin, UNUserNotificationCenterDel
     shared = instance
     notify.setMethodCallHandler { call, result in instance.handleNotify(call, result) }
     badge.setMethodCallHandler { call, result in BuNativeBridge.handleBadge(call, result) }
+    // KVKK "verilerimi indir": JSON dosyası sistem paylaşım sayfasıyla verilir, pano kullanılmaz.
+    let share = FlutterMethodChannel(name: "bu_kampus/share", binaryMessenger: messenger)
+    share.setMethodCallHandler { call, result in BuNativeBridge.handleShare(call, result) }
     registrar.addApplicationDelegate(instance)
+  }
+
+  // MARK: - Dosya paylaşımı
+
+  /// `shareFile {path}`: yalnız önbellek altındaki `export/` dizinindeki dosya paylaşılır (başka yol reddedilir).
+  private static func handleShare(_ call: FlutterMethodCall, _ result: @escaping FlutterResult) {
+    guard call.method == "shareFile" else {
+      result(FlutterMethodNotImplemented)
+      return
+    }
+    guard let args = call.arguments as? [String: Any], let path = args["path"] as? String else {
+      result(FlutterError(code: "BAD_ARGS", message: "path", details: nil))
+      return
+    }
+    let url = URL(fileURLWithPath: path).standardizedFileURL
+    let okDir = url.deletingLastPathComponent().lastPathComponent == "export"
+    guard okDir, FileManager.default.fileExists(atPath: url.path) else {
+      result(FlutterError(code: "FORBIDDEN_PATH", message: "export dışı dosya", details: nil))
+      return
+    }
+    DispatchQueue.main.async {
+      var top = UIApplication.shared.connectedScenes
+        .compactMap { ($0 as? UIWindowScene)?.windows.first(where: { $0.isKeyWindow }) }
+        .first?.rootViewController
+      while let presented = top?.presentedViewController { top = presented }
+      guard let host = top else {
+        result(FlutterError(code: "NO_VIEW", message: nil, details: nil))
+        return
+      }
+      let sheet = UIActivityViewController(activityItems: [url], applicationActivities: nil)
+      // iPad: açılır pencere bir kaynağa bağlanmalı, yoksa çöker.
+      if let pop = sheet.popoverPresentationController {
+        pop.sourceView = host.view
+        pop.sourceRect = CGRect(x: host.view.bounds.midX, y: host.view.bounds.midY, width: 0, height: 0)
+        pop.permittedArrowDirections = []
+      }
+      host.present(sheet, animated: true) { result(true) }
+    }
   }
 
   // MARK: - Rozet

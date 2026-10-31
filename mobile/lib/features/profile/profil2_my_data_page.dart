@@ -1,8 +1,10 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:path_provider/path_provider.dart';
 
 import '../../core/api.dart';
 import '../../core/locale_controller.dart';
@@ -12,19 +14,56 @@ import 'legal_pages.dart';
 import 'profil2_delete_account_page.dart';
 import 'profil2_widgets.dart';
 
-/// Panoya konan KVKK verisi bu süre sonra (pano hâlâ aynı metni tutuyorsa) panodan silinir.
-/// Kişisel veri panoda kalmasın diye; paylaşım paketi (dosya/sheet) eklenene dek geçici çözümdür.
-Duration kExportClipboardTtl = const Duration(seconds: 30);
+/// Paylaşılan KVKK dosyasının yedek silme süresi. Asıl temizlik yaşam döngüsüyle yapılır (kullanıcı paylaşım
+/// sayfasından uygulamaya dönünce / sayfa kapanınca / sonraki açılışta); süre, hiçbiri olmazsa devreye giren sigortadır.
+Duration kExportFileTtl = const Duration(minutes: 10);
 
-void _clearClipboardLater(String text) {
-  Timer(kExportClipboardTtl, () async {
+/// KVKK dışa aktarma dosyasının tesliminin tek kapısı. Kişisel veri PANOYA KONMAZ (A4-08: pano diğer uygulamalarca
+/// okunabilir ve zamanlayıcıyla silme arka planda güvenilmezdir); veri önbellek altındaki `export/` dizinine yazılıp
+/// sistem paylaşım sayfasıyla (Android FileProvider, iOS UIActivityViewController) verilir.
+class ExportShare {
+  ExportShare._();
+
+  static const MethodChannel channel = MethodChannel('bu_kampus/share');
+  static const String dirName = 'export';
+
+  /// Test kancası: geçici dizin.
+  @visibleForTesting
+  static Future<Directory> Function() baseDir = getTemporaryDirectory;
+
+  /// Test kancası: JSON'u teslim eder; true = paylaşım sayfası açıldı.
+  static Future<bool> Function(String json, String title) deliver = _deliver;
+
+  /// Test kancası: `export/` dizinindeki dosyaları siler.
+  static Future<void> Function() purge = _purge;
+
+  static Future<Directory> _dir() async => Directory('${(await baseDir()).path}${Platform.pathSeparator}$dirName');
+
+  static Future<bool> _deliver(String json, String title) async {
     try {
-      final cur = await Clipboard.getData(Clipboard.kTextPlain);
-      if (cur?.text == text) await Clipboard.setData(const ClipboardData(text: ''));
+      final dir = await _dir();
+      await _purge();
+      await dir.create(recursive: true);
+      final stamp = DateTime.now().toUtc().toIso8601String().substring(0, 10);
+      final file = File('${dir.path}${Platform.pathSeparator}bu-kampus-verilerim-$stamp.json');
+      await file.writeAsString(json, flush: true);
+      final ok = await channel.invokeMethod<bool>('shareFile', {'path': file.path, 'title': title});
+      if (ok != true) await _purge();
+      return ok == true;
     } catch (_) {
-      // Pano okunamazsa sessizce geçilir.
+      await _purge(); // paylaşım açılamadıysa (eklenti yok / hata) dosya kalmasın
+      return false;
     }
-  });
+  }
+
+  static Future<void> _purge() async {
+    try {
+      final dir = await _dir();
+      if (await dir.exists()) await dir.delete(recursive: true);
+    } catch (_) {
+      // Silinemezse sessizce geçilir; sonraki açılış/sayfa tekrar dener.
+    }
+  }
 }
 
 /// Verilerim (Stitch 08-1/2): KVKK veri indirme (`GET /users/me/export`, günde 3), aydınlatma metni, hesap silme girişi.
@@ -37,24 +76,73 @@ class MyDataPage extends StatefulWidget {
   State<MyDataPage> createState() => _MyDataPageState();
 }
 
-class _MyDataPageState extends State<MyDataPage> {
+class _MyDataPageState extends State<MyDataPage> with WidgetsBindingObserver {
   bool _exporting = false;
 
   /// Günlük sınır aşıldı (429): düğme pasif, kırmızı kart gösterilir.
   String? _limitMessage;
+
+  /// Paylaşım sayfası açıldı, dosya henüz silinmedi.
+  bool _fileOut = false;
+
+  /// Paylaşım sayfası açıkken uygulama arka plana/inactive'e geçti; dönüşte (resumed) dosya silinir.
+  bool _leftApp = false;
+  Timer? _ttl;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    // Önceki oturumdan (süreç öldürüldü vb.) kalmış dışa aktarma dosyası varsa temizle.
+    unawaited(ExportShare.purge());
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _ttl?.cancel();
+    unawaited(ExportShare.purge());
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (!_fileOut) return;
+    if (state == AppLifecycleState.resumed) {
+      // Kullanıcı paylaşımı bitirip (ya da iptal edip) uygulamaya döndü: kişisel veri dosyası silinir.
+      if (_leftApp) _discardFile();
+    } else {
+      _leftApp = true;
+    }
+  }
+
+  void _discardFile() {
+    _ttl?.cancel();
+    _fileOut = false;
+    _leftApp = false;
+    unawaited(ExportShare.purge());
+  }
 
   void _push(Widget page) => Navigator.push(context, MaterialPageRoute(builder: (_) => page));
 
   Future<void> _export() async {
     if (_exporting || _limitMessage != null) return;
     setState(() => _exporting = true);
+    final title = context.l10n.profilePrefsDownloadData;
     try {
       final data = await widget.session.api.get('/users/me/export');
+      if (!mounted) return; // sayfa kapandı: dosya oluşturulmaz
       const enc = JsonEncoder.withIndent('  ');
       final text = enc.convert(data);
-      await Clipboard.setData(ClipboardData(text: text));
-      _clearClipboardLater(text);
-      if (mounted) BuToast.show(context, context.l10n.p19DataCopied30, kind: BuToastKind.success);
+      final ok = await ExportShare.deliver(text, title);
+      if (ok) {
+        _fileOut = true;
+        _leftApp = false;
+        _ttl?.cancel();
+        _ttl = Timer(kExportFileTtl, _discardFile);
+      } else if (mounted) {
+        BuToast.show(context, context.l10n.p32ExportShareFailed, kind: BuToastKind.error);
+      }
     } catch (e) {
       if (!mounted) return;
       if (e is ApiError && e.status == 429) {
