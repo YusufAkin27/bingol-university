@@ -7,6 +7,7 @@ import '../../widgets/bu_widgets.dart';
 import '../../widgets/common.dart';
 import 'profil_widgets.dart' show ProfilCard;
 import 'profily_widgets.dart';
+import '../../core/academic_catalog.dart';
 
 /// Engellenen kullanıcılar ve engeli kaldırma.
 class BlockedUsersPage extends StatefulWidget {
@@ -155,7 +156,9 @@ class _BlockedUsersPageState extends State<BlockedUsersPage> {
   Widget _row(BuildContext context, BuTokens t, Map<String, dynamic> u) {
     final id = ((u['id'] as num?)?.toInt() ?? -1);
     final name = (u['displayName'] as String?) ?? context.l10n.profilePrefsUser;
-    final dept = (u['department'] as String?)?.trim();
+    final dept = (u['department'] as String?)?.trim().isEmpty ?? true
+        ? null
+        : context.departmentName((u['department'] as String).trim(), faculty: u['faculty'] as String?);
     // Büyük yazıda ad sıkışıp kaybolmasın: düğme adın altına iner.
     final stacked = MediaQuery.textScalerOf(context).scale(10) > 13;
     final info = ProfilyTitleBlock(title: name, sub: (dept == null || dept.isEmpty) ? null : dept);

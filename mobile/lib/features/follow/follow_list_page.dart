@@ -8,6 +8,7 @@ import '../posts/social_models.dart';
 import '../profile/profily_widgets.dart';
 import '../profile/user_profile_page.dart';
 import 'follow_widgets.dart';
+import '../../core/academic_catalog.dart';
 
 /// Takipçiler / Takip edilenler listesi (imleçli).
 Future<void> openFollowList(BuildContext context, Session session,
@@ -160,7 +161,7 @@ class _FollowListPageState extends State<FollowListPage> {
     final q = _query.trim().toLowerCase();
     final shown = q.isEmpty
         ? st.items
-        : st.items.where((u) => '${u.displayName} ${u.department ?? ''}'.toLowerCase().contains(q)).toList();
+        : st.items.where((u) => '${u.displayName} ${u.department ?? ''} ${context.departmentName(u.department)}'.toLowerCase().contains(q)).toList();
 
     // Sekmeler ve arama her durumda görünür; durum (iskelet / hata / boş / liste) altında değişir.
     final Widget body;
@@ -275,7 +276,7 @@ class SocialUserTile extends StatelessWidget {
         child: Row(children: [
           BuAvatar(name: user.displayName, url: user.avatarUrl, size: 46, headers: postAuthHeaders(session)),
           const SizedBox(width: 12),
-          Expanded(child: ProfilyTitleBlock(title: user.displayName, sub: user.department)),
+          Expanded(child: ProfilyTitleBlock(title: user.displayName, sub: context.departmentName(user.department))),
           if (trailing != null)
             trailing!
           else if (!self)

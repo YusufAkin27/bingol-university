@@ -7,6 +7,7 @@ import '../follow/follow_suggestions.dart';
 import '../posts/post_models.dart';
 import '../posts/social_api.dart';
 import '../posts/social_models.dart';
+import '../../core/academic_catalog.dart';
 
 /// Keşfet: "Tanıyor Olabilirsin" yatay kart şeridi (`GET /users/me/follow-suggestions`). Akışın içine girer (ilk
 /// çizimi geciktirmesin diye istek yalnız şerit kurulunca atılır). Öneri yoksa ya da yüklenemezse bölüm görünmez.
@@ -180,7 +181,7 @@ class _SuggestionCardState extends State<_SuggestionCard> {
     final t = context.bu;
     final tt = Theme.of(context).textTheme;
     final u = widget.user;
-    final dept = (u.department ?? '').trim();
+    final dept = context.departmentName((u.department ?? '').trim());
     return _SuggestionSurface(
       child: Column(children: [
         BuAvatar(

@@ -80,7 +80,7 @@ class AuthAcademicFields extends StatelessWidget {
           children: [
             _SelectCard(
               label: l.pickDepartment,
-              value: department,
+              value: department == null ? null : catalog.departmentLabel(department, uiLocale(context), faculty: faculty),
               placeholder: loading ? l.pickLoading : l.pickSelectDepartment,
               error: departmentError,
               onTap: enabled ? () => _pickDepartment(context) : null,

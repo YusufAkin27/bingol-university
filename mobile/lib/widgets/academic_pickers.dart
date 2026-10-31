@@ -23,6 +23,13 @@ Future<AcademicDepartment?> showDepartmentPicker(
   );
 }
 
+/// Fakülte başlığı büyük harfle: Türkçe i/ı kuralı yalnız Türkçede; Arapçada büyük harf yoktur.
+String _facultyHeading(String lang, String label) => switch (lang) {
+      'tr' => trUpper(label),
+      'ar' => label,
+      _ => label.toUpperCase(),
+    };
+
 class DepartmentPickerPage extends StatefulWidget {
   const DepartmentPickerPage({super.key, required this.catalog, this.selectedFaculty, this.selected});
 
@@ -44,9 +51,9 @@ class _DepartmentPickerPageState extends State<DepartmentPickerPage> {
   }
 
   /// Aksan duyarsız süzülen bölümleri fakülte sırasını koruyarak gruplar.
-  List<(AcademicFaculty, List<AcademicDepartment>)> _groups() {
+  List<(AcademicFaculty, List<AcademicDepartment>)> _groups(Locale locale) {
     final out = <AcademicFaculty, List<AcademicDepartment>>{};
-    for (final d in widget.catalog.searchDepartments(_q.text)) {
+    for (final d in widget.catalog.searchDepartments(_q.text, locale: locale)) {
       out.putIfAbsent(d.faculty, () => []).add(d);
     }
     return [for (final e in out.entries) (e.key, e.value)];
@@ -57,13 +64,14 @@ class _DepartmentPickerPageState extends State<DepartmentPickerPage> {
     final t = context.bu;
     final l = context.l10n;
     final tx = Theme.of(context).textTheme;
+    final lang = uiLocale(context).languageCode;
     final sel = widget.selected == null ? null : foldTr(widget.selected!);
     final selF = widget.selectedFaculty == null ? null : foldTr(widget.selectedFaculty!);
     return ListenableBuilder(
       listenable: widget.catalog,
       builder: (context, _) {
         final failed = widget.catalog.state == CatalogState.error;
-        final groups = _groups();
+        final groups = _groups(uiLocale(context));
         return RefPage(
           children: [
             Semantics(
@@ -86,7 +94,7 @@ class _DepartmentPickerPageState extends State<DepartmentPickerPage> {
                         const SizedBox(width: 10),
                         Expanded(
                           child: Text(
-                            trUpper(g.$1.name),
+                            _facultyHeading(lang, g.$1.label(lang)),
                             style: tx.labelLarge!.copyWith(color: t.ink, fontWeight: FontWeight.w800, letterSpacing: .3),
                           ),
                         ),
@@ -98,7 +106,7 @@ class _DepartmentPickerPageState extends State<DepartmentPickerPage> {
                     for (var i = 0; i < g.$2.length; i++) ...[
                       if (i > 0) Divider(height: 1, color: t.bd),
                       _DeptRow(
-                        name: g.$2[i].name,
+                        name: g.$2[i].label(lang),
                         query: _q.text,
                         selected: sel == foldTr(g.$2[i].name) && (selF == null || selF == foldTr(g.$2[i].faculty.name)),
                         onTap: () => Navigator.pop(context, g.$2[i]),

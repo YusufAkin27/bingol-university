@@ -7,6 +7,7 @@ import '../posts/post_models.dart' show postAuthHeaders;
 import '../posts/social_api.dart';
 import '../posts/social_models.dart';
 import '../profile/user_profile_page.dart';
+import '../../core/academic_catalog.dart';
 
 /// Takip listeleri / öneriler (Stitch 48) ortak parçaları: sekme hapı, tek beyaz kart, kişi satırı,
 /// durum kartları, "Takip et / Takipte" düğmesi.
@@ -156,7 +157,7 @@ class FollowPersonRow extends StatelessWidget {
     final t = context.bu;
     final tx = Theme.of(context).textTheme;
     final l = context.l10n;
-    final dept = (user.department ?? '').trim();
+    final dept = context.departmentName((user.department ?? '').trim());
     final sub = [if (dept.isNotEmpty) dept, if ((classLabel ?? '').isNotEmpty) classLabel!].join(' · ');
     final self = user.id == session.userId;
 

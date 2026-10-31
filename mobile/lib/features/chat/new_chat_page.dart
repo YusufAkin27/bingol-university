@@ -10,6 +10,7 @@ import 'chat_detail_page.dart';
 import 'chat_new_parts.dart';
 import 'chatlist_widgets.dart';
 import 'contacts_match_page.dart';
+import '../../core/academic_catalog.dart';
 
 /// Yeni sohbet: kişi ara, bir kişi seç (birebir) ya da "Yeni grup" ile birden çok kişi seç (grup). Referans 23.
 class NewChatPage extends StatefulWidget {
@@ -425,7 +426,7 @@ class _NewChatPageState extends State<NewChatPage> {
 
   Widget _row(BuTokens t, Map<String, dynamic> u) {
     final on = _isSelected(u['id']);
-    final sub = (u['department'] ?? u['faculty'] ?? '').toString();
+    final sub = context.departmentOrFacultyName(u['department']?.toString(), u['faculty']?.toString());
     return NcPersonRow(
       name: u['displayName']?.toString() ?? '',
       sub: sub,

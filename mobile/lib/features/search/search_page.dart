@@ -15,6 +15,7 @@ import '../news/news_tile.dart' show newsLocalDate, newsMonthName;
 import '../posts/post_routes.dart';
 import '../profile/user_profile_page.dart';
 import 'recent_searches.dart';
+import '../../core/academic_catalog.dart';
 
 /// Genel arama: haber/duyuru, kulüp, etkinlik, gönderi ve kişi.
 class SearchPage extends StatefulWidget {
@@ -157,9 +158,12 @@ _Hit _hitFromSearch(Map h) => _Hit(
       endsAt: h['endsAt'] as String?,
     );
 
-_Hit _hitFromUser(Map u, AppLocalizations l) {
-  final sub = [u['faculty'], u['department'], if (u['classYear'] != null) l.searchClassYear('${u['classYear']}')]
-      .where((e) => e != null && '$e'.isNotEmpty)
+_Hit _hitFromUser(Map u, AppLocalizations l, BuildContext context) {
+  final sub = [
+    if (u['faculty'] != null) context.facultyName(u['faculty'].toString()),
+    if (u['department'] != null) context.departmentName(u['department'].toString(), faculty: u['faculty']?.toString()),
+    if (u['classYear'] != null) l.searchClassYear('${u['classYear']}')]
+      .where((e) => e.isNotEmpty)
       .join(' · ');
   return _Hit(
     type: 'USER',
@@ -308,7 +312,7 @@ class _SearchPageState extends State<SearchPage> {
       final users = (res[1] is Map ? res[1]['items'] : null) as List? ?? [];
       for (final u in users) {
         if (u is! Map || u['id'] == null) continue;
-        hits.add(_hitFromUser(u, l));
+        hits.add(_hitFromUser(u, l, context));
       }
       setState(() {
         _query = q;
@@ -352,7 +356,7 @@ class _SearchPageState extends State<SearchPage> {
           final r = await api.get('/users/search?q=$enc&size=$_pageSize$c');
           if (!mounted || seq != _seq) return;
           for (final u in (r is Map ? r['items'] : null) as List? ?? []) {
-            if (u is Map && u['id'] != null) fresh.add(_hitFromUser(u, l));
+            if (u is Map && u['id'] != null) fresh.add(_hitFromUser(u, l, context));
           }
           next = (r is Map ? r['nextCursor'] as num? : null)?.toInt();
           if (next == null || next > 200) {

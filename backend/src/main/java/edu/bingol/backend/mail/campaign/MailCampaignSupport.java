@@ -1,5 +1,6 @@
 package edu.bingol.backend.mail.campaign;
 
+import edu.bingol.backend.catalog.CatalogService;
 import edu.bingol.backend.i18n.Lang;
 import edu.bingol.backend.mail.UnsubscribeTokens;
 import java.time.Instant;
@@ -15,9 +16,11 @@ public class MailCampaignSupport {
 
     private final String publicUrl;
     private final ObjectProvider<UnsubscribeTokens> unsubscribe;
+    private final CatalogService catalog;
 
     public MailCampaignSupport(@Value("${app.support.track-base-url:http://localhost:8090}") String publicUrl,
-                               ObjectProvider<UnsubscribeTokens> unsubscribe) {
+                               ObjectProvider<UnsubscribeTokens> unsubscribe, CatalogService catalog) {
+        this.catalog = catalog;
         this.publicUrl = publicUrl.endsWith("/") ? publicUrl.substring(0, publicUrl.length() - 1) : publicUrl;
         this.unsubscribe = unsubscribe;
     }
@@ -28,8 +31,9 @@ public class MailCampaignSupport {
         Map<String, String> m = new LinkedHashMap<>();
         m.put("ad", nz(displayName));
         m.put("eposta", nz(email));
-        m.put("bolum", nz(department));
-        m.put("fakulte", nz(faculty));
+        // DB'deki kanonik Turkce ad alicinin dilinde gosterilir (katalogda yoksa aynen)
+        m.put("bolum", nz(catalog.departmentName(department, faculty, lang)));
+        m.put("fakulte", nz(catalog.facultyName(faculty, lang)));
         m.put("sinif", classYear == null ? "" : String.valueOf(classYear));
         m.put("uygulamaUrl", publicUrl);
         UnsubscribeTokens tokens = unsubscribe.getIfAvailable();

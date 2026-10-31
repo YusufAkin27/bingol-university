@@ -1,0 +1,779 @@
+F|muhendislik|Mühendislik Fakültesi
+D|muhendislik|bilgisayar-muhendisligi|Bilgisayar Mühendisliği
+D|muhendislik|elektrik-elektronik-muhendisligi|Elektrik-Elektronik Mühendisliği
+D|muhendislik|elektrik-muhendisligi|Elektrik Mühendisliği
+D|muhendislik|elektronik-ve-haberlesme-muhendisligi|Elektronik ve Haberleşme Mühendisliği
+D|muhendislik|makine-muhendisligi|Makine Mühendisliği
+D|muhendislik|insaat-muhendisligi|İnşaat Mühendisliği
+D|muhendislik|endustri-muhendisligi|Endüstri Mühendisliği
+D|muhendislik|yazilim-muhendisligi|Yazılım Mühendisliği
+D|muhendislik|kimya-muhendisligi|Kimya Mühendisliği
+D|muhendislik|gida-muhendisligi|Gıda Mühendisliği
+D|muhendislik|cevre-muhendisligi|Çevre Mühendisliği
+D|muhendislik|jeoloji-muhendisligi|Jeoloji Mühendisliği
+D|muhendislik|harita-muhendisligi|Harita Mühendisliği
+D|muhendislik|maden-muhendisligi|Maden Mühendisliği
+D|muhendislik|metalurji-ve-malzeme-muhendisligi|Metalurji ve Malzeme Mühendisliği
+D|muhendislik|malzeme-bilimi-ve-muhendisligi|Malzeme Bilimi ve Mühendisliği
+D|muhendislik|biyomedikal-muhendisligi|Biyomedikal Mühendisliği
+D|muhendislik|mekatronik-muhendisligi|Mekatronik Mühendisliği
+D|muhendislik|yapay-zeka-muhendisligi|Yapay Zeka Mühendisliği
+D|muhendislik|yapay-zeka-ve-veri-muhendisligi|Yapay Zeka ve Veri Mühendisliği
+D|muhendislik|veri-muhendisligi|Veri Mühendisliği
+D|muhendislik|enerji-sistemleri-muhendisligi|Enerji Sistemleri Mühendisliği
+D|muhendislik|havacilik-ve-uzay-muhendisligi|Havacılık ve Uzay Mühendisliği
+D|muhendislik|ucak-muhendisligi|Uçak Mühendisliği
+D|muhendislik|uzay-muhendisligi|Uzay Mühendisliği
+D|muhendislik|gemi-insaati-ve-gemi-makineleri-muhendisligi|Gemi İnşaatı ve Gemi Makineleri Mühendisliği
+D|muhendislik|gemi-ve-deniz-teknolojisi-muhendisligi|Gemi ve Deniz Teknolojisi Mühendisliği
+D|muhendislik|tekstil-muhendisligi|Tekstil Mühendisliği
+D|muhendislik|petrol-ve-dogal-gaz-muhendisligi|Petrol ve Doğal Gaz Mühendisliği
+D|muhendislik|jeofizik-muhendisligi|Jeofizik Mühendisliği
+D|muhendislik|otomotiv-muhendisligi|Otomotiv Mühendisliği
+D|muhendislik|optik-muhendisligi|Optik Mühendisliği
+D|muhendislik|nukleer-enerji-muhendisligi|Nükleer Enerji Mühendisliği
+D|muhendislik|biyomuhendislik|Biyomühendislik
+D|muhendislik|genetik-ve-biyomuhendislik|Genetik ve Biyomühendislik
+D|muhendislik|molekuler-biyoloji-ve-genetik-muhendisligi|Moleküler Biyoloji ve Genetik Mühendisliği
+D|muhendislik|orman-muhendisligi|Orman Mühendisliği
+D|muhendislik|orman-endustri-muhendisligi|Orman Endüstri Mühendisliği
+D|muhendislik|ziraat-muhendisligi|Ziraat Mühendisliği
+D|muhendislik|tarim-makineleri-muhendisligi|Tarım Makineleri Mühendisliği
+D|muhendislik|peyzaj-muhendisligi|Peyzaj Mühendisliği
+D|muhendislik|polimer-muhendisligi|Polimer Mühendisliği
+D|muhendislik|seramik-muhendisligi|Seramik Mühendisliği
+D|muhendislik|kontrol-ve-otomasyon-muhendisligi|Kontrol ve Otomasyon Mühendisliği
+D|muhendislik|telekomunikasyon-muhendisligi|Telekomünikasyon Mühendisliği
+D|muhendislik|bilisim-sistemleri-muhendisligi|Bilişim Sistemleri Mühendisliği
+D|muhendislik|siber-guvenlik-muhendisligi|Siber Güvenlik Mühendisliği
+D|muhendislik|robotik-ve-yapay-zeka-muhendisligi|Robotik ve Yapay Zeka Mühendisliği
+D|muhendislik|yonetim-bilisim-sistemleri|Yönetim Bilişim Sistemleri
+D|muhendislik|su-kaynaklari-muhendisligi|Su Kaynakları Mühendisliği
+D|muhendislik|jeodezi-ve-fotogrametri-muhendisligi|Jeodezi ve Fotogrametri Mühendisliği
+D|muhendislik|cevre-ve-doga-muhendisligi|Çevre ve Doğa Mühendisliği
+D|muhendislik|muhendislik-fizigi|Mühendislik Fiziği
+D|muhendislik|fizik-muhendisligi|Fizik Mühendisliği
+D|muhendislik|kimya-ve-surec-muhendisligi|Kimya ve Süreç Mühendisliği
+D|muhendislik|savunma-teknolojileri-muhendisligi|Savunma Teknolojileri Mühendisliği
+D|muhendislik|rayli-sistemler-muhendisligi|Raylı Sistemler Mühendisliği
+D|muhendislik|mimari-muhendislik|Mimari Mühendislik
+D|muhendislik|deniz-ulastirma-muhendisligi|Deniz Ulaştırma Mühendisliği
+D|muhendislik|biyosistem-muhendisligi|Biyosistem Mühendisliği
+D|muhendislik|gida-teknolojisi-muhendisligi|Gıda Teknolojisi Mühendisliği
+F|fen-edebiyat|Fen-Edebiyat Fakültesi
+D|fen-edebiyat|matematik|Matematik
+D|fen-edebiyat|fizik|Fizik
+D|fen-edebiyat|kimya|Kimya
+D|fen-edebiyat|biyoloji|Biyoloji
+D|fen-edebiyat|molekuler-biyoloji-ve-genetik|Moleküler Biyoloji ve Genetik
+D|fen-edebiyat|istatistik|İstatistik
+D|fen-edebiyat|matematik-ve-bilgisayar-bilimleri|Matematik ve Bilgisayar Bilimleri
+D|fen-edebiyat|biyokimya|Biyokimya
+D|fen-edebiyat|astronomi-ve-uzay-bilimleri|Astronomi ve Uzay Bilimleri
+D|fen-edebiyat|aktuerya-bilimleri|Aktüerya Bilimleri
+D|fen-edebiyat|turk-dili-ve-edebiyati|Türk Dili ve Edebiyatı
+D|fen-edebiyat|turkce-ve-sosyal-bilimler|Türkçe ve Sosyal Bilimler
+D|fen-edebiyat|tarih|Tarih
+D|fen-edebiyat|cografya|Coğrafya
+D|fen-edebiyat|felsefe|Felsefe
+D|fen-edebiyat|sosyoloji|Sosyoloji
+D|fen-edebiyat|psikoloji|Psikoloji
+D|fen-edebiyat|arkeoloji|Arkeoloji
+D|fen-edebiyat|sanat-tarihi|Sanat Tarihi
+D|fen-edebiyat|antropoloji|Antropoloji
+D|fen-edebiyat|bilgi-ve-belge-yonetimi|Bilgi ve Belge Yönetimi
+D|fen-edebiyat|eskicag-dilleri-ve-kulturleri|Eskiçağ Dilleri ve Kültürleri
+D|fen-edebiyat|egitim-bilimleri|Eğitim Bilimleri
+D|fen-edebiyat|ingiliz-dili-ve-edebiyati|İngiliz Dili ve Edebiyatı
+D|fen-edebiyat|alman-dili-ve-edebiyati|Alman Dili ve Edebiyatı
+D|fen-edebiyat|fransiz-dili-ve-edebiyati|Fransız Dili ve Edebiyatı
+D|fen-edebiyat|rus-dili-ve-edebiyati|Rus Dili ve Edebiyatı
+D|fen-edebiyat|arap-dili-ve-edebiyati|Arap Dili ve Edebiyatı
+D|fen-edebiyat|japon-dili-ve-edebiyati|Japon Dili ve Edebiyatı
+D|fen-edebiyat|cin-dili-ve-edebiyati|Çin Dili ve Edebiyatı
+D|fen-edebiyat|ispanyol-dili-ve-edebiyati|İspanyol Dili ve Edebiyatı
+D|fen-edebiyat|italyan-dili-ve-edebiyati|İtalyan Dili ve Edebiyatı
+D|fen-edebiyat|kore-dili-ve-edebiyati|Kore Dili ve Edebiyatı
+D|fen-edebiyat|fars-dili-ve-edebiyati|Fars Dili ve Edebiyatı
+D|fen-edebiyat|mutercim-tercumanlik|Mütercim-Tercümanlık
+D|fen-edebiyat|ingilizce-mutercim-ve-tercumanlik|İngilizce Mütercim ve Tercümanlık
+D|fen-edebiyat|almanca-mutercim-ve-tercumanlik|Almanca Mütercim ve Tercümanlık
+D|fen-edebiyat|fransizca-mutercim-ve-tercumanlik|Fransızca Mütercim ve Tercümanlık
+D|fen-edebiyat|rusca-mutercim-ve-tercumanlik|Rusça Mütercim ve Tercümanlık
+D|fen-edebiyat|arapca-mutercim-ve-tercumanlik|Arapça Mütercim ve Tercümanlık
+D|fen-edebiyat|dilbilimi|Dilbilimi
+D|fen-edebiyat|karsilastirmali-edebiyat|Karşılaştırmalı Edebiyat
+D|fen-edebiyat|halk-bilimi|Halk Bilimi
+D|fen-edebiyat|cagdas-turk-lehceleri-ve-edebiyatlari|Çağdaş Türk Lehçeleri ve Edebiyatları
+D|fen-edebiyat|dogu-dilleri-ve-edebiyatlari|Doğu Dilleri ve Edebiyatları
+D|fen-edebiyat|kurt-dili-ve-edebiyati|Kürt Dili ve Edebiyatı
+D|fen-edebiyat|sosyal-hizmet|Sosyal Hizmet
+D|fen-edebiyat|tarih-ve-kultur-calismalari|Tarih ve Kültür Çalışmaları
+D|fen-edebiyat|biyoteknoloji|Biyoteknoloji
+D|fen-edebiyat|jeoloji|Jeoloji
+D|fen-edebiyat|cevre-bilimleri|Çevre Bilimleri
+D|fen-edebiyat|molekuler-biyoloji|Moleküler Biyoloji
+D|fen-edebiyat|bitki-koruma|Bitki Koruma
+D|fen-edebiyat|yonetim-bilisim-sistemleri|Yönetim Bilişim Sistemleri
+D|fen-edebiyat|bilgisayar-bilimleri|Bilgisayar Bilimleri
+D|fen-edebiyat|veri-bilimi-ve-analitigi|Veri Bilimi ve Analitiği
+F|iibf|İktisadi ve İdari Bilimler Fakültesi
+D|iibf|isletme|İşletme
+D|iibf|iktisat|İktisat
+D|iibf|maliye|Maliye
+D|iibf|calisma-ekonomisi-ve-endustri-iliskileri|Çalışma Ekonomisi ve Endüstri İlişkileri
+D|iibf|siyaset-bilimi-ve-kamu-yonetimi|Siyaset Bilimi ve Kamu Yönetimi
+D|iibf|uluslararasi-iliskiler|Uluslararası İlişkiler
+D|iibf|ekonometri|Ekonometri
+D|iibf|bankacilik-ve-finans|Bankacılık ve Finans
+D|iibf|uluslararasi-ticaret-ve-finansman|Uluslararası Ticaret ve Finansman
+D|iibf|uluslararasi-ticaret-ve-lojistik|Uluslararası Ticaret ve Lojistik
+D|iibf|uluslararasi-girisimcilik|Uluslararası Girişimcilik
+D|iibf|yonetim-bilisim-sistemleri|Yönetim Bilişim Sistemleri
+D|iibf|kamu-yonetimi|Kamu Yönetimi
+D|iibf|siyaset-bilimi|Siyaset Bilimi
+D|iibf|saglik-yonetimi|Sağlık Yönetimi
+D|iibf|sigortacilik-ve-aktuerya-bilimleri|Sigortacılık ve Aktüerya Bilimleri
+D|iibf|muhasebe-ve-finans-yonetimi|Muhasebe ve Finans Yönetimi
+D|iibf|sosyal-hizmet|Sosyal Hizmet
+D|iibf|calisma-ekonomisi|Çalışma Ekonomisi
+D|iibf|lojistik-yonetimi|Lojistik Yönetimi
+D|iibf|turizm-isletmeciligi|Turizm İşletmeciliği
+D|iibf|uluslararasi-isletme|Uluslararası İşletme
+D|iibf|gumruk-isletme|Gümrük İşletme
+D|iibf|havacilik-yonetimi|Havacılık Yönetimi
+D|iibf|ekonomi-ve-finans|Ekonomi ve Finans
+D|iibf|finans-ve-bankacilik|Finans ve Bankacılık
+D|iibf|girisimcilik|Girişimcilik
+D|iibf|pazarlama|Pazarlama
+D|iibf|gayrimenkul-gelistirme-ve-yonetimi|Gayrimenkul Geliştirme ve Yönetimi
+D|iibf|siyaset-bilimi-ve-uluslararasi-iliskiler|Siyaset Bilimi ve Uluslararası İlişkiler
+D|iibf|uluslararasi-ticaret|Uluslararası Ticaret
+D|iibf|spor-yonetimi|Spor Yönetimi
+F|hukuk|Hukuk Fakültesi
+D|hukuk|hukuk|Hukuk
+F|tip|Tıp Fakültesi
+D|tip|tip|Tıp
+F|dis-hekimligi|Diş Hekimliği Fakültesi
+D|dis-hekimligi|dis-hekimligi|Diş Hekimliği
+F|eczacilik|Eczacılık Fakültesi
+D|eczacilik|eczacilik|Eczacılık
+F|veteriner|Veteriner Fakültesi
+D|veteriner|veterinerlik|Veterinerlik
+F|saglik-bilimleri|Sağlık Bilimleri Fakültesi
+D|saglik-bilimleri|hemsirelik|Hemşirelik
+D|saglik-bilimleri|ebelik|Ebelik
+D|saglik-bilimleri|fizyoterapi-ve-rehabilitasyon|Fizyoterapi ve Rehabilitasyon
+D|saglik-bilimleri|beslenme-ve-diyetetik|Beslenme ve Diyetetik
+D|saglik-bilimleri|saglik-yonetimi|Sağlık Yönetimi
+D|saglik-bilimleri|odyoloji|Odyoloji
+D|saglik-bilimleri|ergoterapi|Ergoterapi
+D|saglik-bilimleri|sosyal-hizmet|Sosyal Hizmet
+D|saglik-bilimleri|cocuk-gelisimi|Çocuk Gelişimi
+D|saglik-bilimleri|acil-yardim-ve-afet-yonetimi|Acil Yardım ve Afet Yönetimi
+D|saglik-bilimleri|dil-ve-konusma-terapisi|Dil ve Konuşma Terapisi
+D|saglik-bilimleri|ortez-ve-protez|Ortez ve Protez
+D|saglik-bilimleri|gerontoloji|Gerontoloji
+D|saglik-bilimleri|perfuzyon|Perfüzyon
+D|saglik-bilimleri|podoloji|Podoloji
+D|saglik-bilimleri|radyoterapi|Radyoterapi
+D|saglik-bilimleri|saglik-bilimleri|Sağlık Bilimleri
+D|saglik-bilimleri|is-sagligi-ve-guvenligi|İş Sağlığı ve Güvenliği
+D|saglik-bilimleri|saglik-kurumlari-isletmeciligi|Sağlık Kurumları İşletmeciliği
+D|saglik-bilimleri|psikososyal-rehabilitasyon|Psikososyal Rehabilitasyon
+D|saglik-bilimleri|odyoloji-ve-konusma-bozukluklari|Odyoloji ve Konuşma Bozuklukları
+D|saglik-bilimleri|tibbi-goruntuleme-teknikleri|Tıbbi Görüntüleme Teknikleri
+D|saglik-bilimleri|saglik-bakim-hizmetleri|Sağlık Bakım Hizmetleri
+D|saglik-bilimleri|acil-durum-ve-afet-yonetimi|Acil Durum ve Afet Yönetimi
+D|saglik-bilimleri|evde-bakim-hizmetleri|Evde Bakım Hizmetleri
+D|saglik-bilimleri|agiz-ve-dis-sagligi|Ağız ve Diş Sağlığı
+D|saglik-bilimleri|fizik-tedavi-ve-rehabilitasyon|Fizik Tedavi ve Rehabilitasyon
+F|egitim|Eğitim Fakültesi
+D|egitim|sinif-ogretmenligi|Sınıf Öğretmenliği
+D|egitim|okul-oncesi-ogretmenligi|Okul Öncesi Öğretmenliği
+D|egitim|turkce-ogretmenligi|Türkçe Öğretmenliği
+D|egitim|matematik-ogretmenligi|Matematik Öğretmenliği
+D|egitim|ilkogretim-matematik-ogretmenligi|İlköğretim Matematik Öğretmenliği
+D|egitim|fen-bilgisi-ogretmenligi|Fen Bilgisi Öğretmenliği
+D|egitim|ingilizce-ogretmenligi|İngilizce Öğretmenliği
+D|egitim|sosyal-bilgiler-ogretmenligi|Sosyal Bilgiler Öğretmenliği
+D|egitim|muzik-ogretmenligi|Müzik Öğretmenliği
+D|egitim|resim-is-ogretmenligi|Resim-İş Öğretmenliği
+D|egitim|gorsel-sanatlar-ogretmenligi|Görsel Sanatlar Öğretmenliği
+D|egitim|din-kulturu-ve-ahlak-bilgisi-ogretmenligi|Din Kültürü ve Ahlak Bilgisi Öğretmenliği
+D|egitim|rehberlik-ve-psikolojik-danismanlik|Rehberlik ve Psikolojik Danışmanlık
+D|egitim|ozel-egitim-ogretmenligi|Özel Eğitim Öğretmenliği
+D|egitim|zihin-engelliler-ogretmenligi|Zihin Engelliler Öğretmenliği
+D|egitim|isitme-engelliler-ogretmenligi|İşitme Engelliler Öğretmenliği
+D|egitim|gorme-engelliler-ogretmenligi|Görme Engelliler Öğretmenliği
+D|egitim|ustun-yetenekliler-ogretmenligi|Üstün Yetenekliler Öğretmenliği
+D|egitim|bilgisayar-ve-ogretim-teknolojileri-ogretmenligi|Bilgisayar ve Öğretim Teknolojileri Öğretmenliği
+D|egitim|fizik-ogretmenligi|Fizik Öğretmenliği
+D|egitim|kimya-ogretmenligi|Kimya Öğretmenliği
+D|egitim|biyoloji-ogretmenligi|Biyoloji Öğretmenliği
+D|egitim|tarih-ogretmenligi|Tarih Öğretmenliği
+D|egitim|cografya-ogretmenligi|Coğrafya Öğretmenliği
+D|egitim|turk-dili-ve-edebiyati-ogretmenligi|Türk Dili ve Edebiyatı Öğretmenliği
+D|egitim|almanca-ogretmenligi|Almanca Öğretmenliği
+D|egitim|fransizca-ogretmenligi|Fransızca Öğretmenliği
+D|egitim|arapca-ogretmenligi|Arapça Öğretmenliği
+D|egitim|rusca-ogretmenligi|Rusça Öğretmenliği
+D|egitim|japonca-ogretmenligi|Japonca Öğretmenliği
+D|egitim|beden-egitimi-ve-spor-ogretmenligi|Beden Eğitimi ve Spor Öğretmenliği
+D|egitim|matematik-ve-fen-bilimleri-egitimi|Matematik ve Fen Bilimleri Eğitimi
+D|egitim|teknoloji-ve-tasarim-ogretmenligi|Teknoloji ve Tasarım Öğretmenliği
+D|egitim|egitim-bilimleri|Eğitim Bilimleri
+D|egitim|egitimde-egitim-programlari-ve-ogretim|Eğitimde Eğitim Programları ve Öğretim
+D|egitim|egitim-yonetimi|Eğitim Yönetimi
+D|egitim|okul-oncesi-egitimi|Okul Öncesi Eğitimi
+D|egitim|ortaogretim-fen-bilimleri-ogretmenligi|Ortaöğretim Fen Bilimleri Öğretmenliği
+D|egitim|lise-matematik-ogretmenligi|Lise Matematik Öğretmenliği
+D|egitim|ortaogretim-matematik-ogretmenligi|Ortaöğretim Matematik Öğretmenliği
+D|egitim|felsefe-grubu-ogretmenligi|Felsefe Grubu Öğretmenliği
+D|egitim|ozel-yetenek-ogretmenligi|Özel Yetenek Öğretmenliği
+D|egitim|cocuk-gelisimi-ogretmenligi|Çocuk Gelişimi Öğretmenliği
+D|egitim|mesleki-egitim-ogretmenligi|Mesleki Eğitim Öğretmenliği
+D|egitim|kimya-teknolojisi-ogretmenligi|Kimya Teknolojisi Öğretmenliği
+D|egitim|elektrik-ogretmenligi|Elektrik Öğretmenliği
+D|egitim|bilgisayar-ogretmenligi|Bilgisayar Öğretmenliği
+D|egitim|guzel-sanatlar-egitimi|Güzel Sanatlar Eğitimi
+D|egitim|egitim-teknolojileri|Eğitim Teknolojileri
+F|ilahiyat|İlahiyat Fakültesi
+D|ilahiyat|ilahiyat|İlahiyat
+D|ilahiyat|ilahiyat-uzaktan-egitim|İlahiyat (Uzaktan Eğitim)
+D|ilahiyat|ilahiyat-arapca|İlahiyat (Arapça)
+D|ilahiyat|din-bilimleri|Din Bilimleri
+D|ilahiyat|islami-ilimler|İslami İlimler
+D|ilahiyat|temel-islam-bilimleri|Temel İslam Bilimleri
+D|ilahiyat|felsefe-ve-din-bilimleri|Felsefe ve Din Bilimleri
+D|ilahiyat|islam-tarihi-ve-sanatlari|İslam Tarihi ve Sanatları
+D|ilahiyat|din-egitimi|Din Eğitimi
+D|ilahiyat|din-sosyolojisi|Din Sosyolojisi
+D|ilahiyat|din-psikolojisi|Din Psikolojisi
+D|ilahiyat|kelam|Kelam
+D|ilahiyat|tefsir|Tefsir
+D|ilahiyat|hadis|Hadis
+D|ilahiyat|fikih|Fıkıh
+D|ilahiyat|tasavvuf|Tasavvuf
+D|ilahiyat|islam-hukuku|İslam Hukuku
+D|ilahiyat|dinler-tarihi|Dinler Tarihi
+D|ilahiyat|islam-felsefesi|İslam Felsefesi
+D|ilahiyat|arap-dili-ve-belagati|Arap Dili ve Belagatı
+F|mimarlik|Mimarlık Fakültesi
+D|mimarlik|mimarlik|Mimarlık
+D|mimarlik|sehir-ve-bolge-planlama|Şehir ve Bölge Planlama
+D|mimarlik|ic-mimarlik|İç Mimarlık
+D|mimarlik|ic-mimarlik-ve-cevre-tasarimi|İç Mimarlık ve Çevre Tasarımı
+D|mimarlik|peyzaj-mimarligi|Peyzaj Mimarlığı
+D|mimarlik|endustriyel-tasarim|Endüstriyel Tasarım
+D|mimarlik|endustri-urunleri-tasarimi|Endüstri Ürünleri Tasarımı
+D|mimarlik|mimari-restorasyon|Mimari Restorasyon
+D|mimarlik|kentsel-tasarim-ve-peyzaj-mimarligi|Kentsel Tasarım ve Peyzaj Mimarlığı
+D|mimarlik|mimari-tasarim|Mimari Tasarım
+D|mimarlik|cevre-tasarimi|Çevre Tasarımı
+F|guzel-sanatlar|Güzel Sanatlar ve Tasarım Fakültesi
+D|guzel-sanatlar|grafik-tasarim|Grafik Tasarım
+D|guzel-sanatlar|resim|Resim
+D|guzel-sanatlar|heykel|Heykel
+D|guzel-sanatlar|seramik-ve-cam-tasarimi|Seramik ve Cam Tasarımı
+D|guzel-sanatlar|seramik|Seramik
+D|guzel-sanatlar|moda-tasarimi|Moda Tasarımı
+D|guzel-sanatlar|tekstil-ve-moda-tasarimi|Tekstil ve Moda Tasarımı
+D|guzel-sanatlar|tekstil-tasarimi|Tekstil Tasarımı
+D|guzel-sanatlar|geleneksel-turk-el-sanatlari|Geleneksel Türk El Sanatları
+D|guzel-sanatlar|fotograf|Fotoğraf
+D|guzel-sanatlar|animasyon|Animasyon
+D|guzel-sanatlar|ic-mimarlik|İç Mimarlık
+D|guzel-sanatlar|endustriyel-tasarim|Endüstriyel Tasarım
+D|guzel-sanatlar|sinema-ve-televizyon|Sinema ve Televizyon
+D|guzel-sanatlar|sahne-sanatlari|Sahne Sanatları
+D|guzel-sanatlar|tiyatro|Tiyatro
+D|guzel-sanatlar|muzik|Müzik
+D|guzel-sanatlar|cam-tasarimi|Cam Tasarımı
+D|guzel-sanatlar|cini|Çini
+D|guzel-sanatlar|ahsap-tasarimi|Ahşap Tasarımı
+D|guzel-sanatlar|baski-sanatlari|Baskı Sanatları
+D|guzel-sanatlar|sanat-ve-tasarim|Sanat ve Tasarım
+D|guzel-sanatlar|sanat-yonetimi|Sanat Yönetimi
+D|guzel-sanatlar|oyun-tasarimi|Oyun Tasarımı
+D|guzel-sanatlar|dijital-oyun-tasarimi|Dijital Oyun Tasarımı
+D|guzel-sanatlar|gorsel-iletisim-tasarimi|Görsel İletişim Tasarımı
+D|guzel-sanatlar|gosteri-sanatlari|Gösteri Sanatları
+D|guzel-sanatlar|taki-ve-mucevher-tasarimi|Takı ve Mücevher Tasarımı
+D|guzel-sanatlar|geleneksel-turk-sanatlari|Geleneksel Türk Sanatları
+D|guzel-sanatlar|konservasyon-ve-restorasyon|Konservasyon ve Restorasyon
+D|guzel-sanatlar|sanat-tarihi-ve-elestiri|Sanat Tarihi ve Eleştiri
+D|guzel-sanatlar|sahne-tasarimi|Sahne Tasarımı
+D|guzel-sanatlar|kuyumculuk-ve-mucevher-tasarimi|Kuyumculuk ve Mücevher Tasarımı
+D|guzel-sanatlar|tasarim|Tasarım
+D|guzel-sanatlar|medya-ve-gorsel-sanatlar|Medya ve Görsel Sanatlar
+F|ziraat|Ziraat Fakültesi
+D|ziraat|bahce-bitkileri|Bahçe Bitkileri
+D|ziraat|tarla-bitkileri|Tarla Bitkileri
+D|ziraat|zootekni|Zootekni
+D|ziraat|toprak-bilimi-ve-bitki-besleme|Toprak Bilimi ve Bitki Besleme
+D|ziraat|bitki-koruma|Bitki Koruma
+D|ziraat|tarim-ekonomisi|Tarım Ekonomisi
+D|ziraat|tarimsal-yapilar-ve-sulama|Tarımsal Yapılar ve Sulama
+D|ziraat|tarim-makineleri-ve-teknolojileri-muhendisligi|Tarım Makineleri ve Teknolojileri Mühendisliği
+D|ziraat|gida-muhendisligi|Gıda Mühendisliği
+D|ziraat|peyzaj-mimarligi|Peyzaj Mimarlığı
+D|ziraat|sut-teknolojisi|Süt Teknolojisi
+D|ziraat|tarimsal-biyoteknoloji|Tarımsal Biyoteknoloji
+D|ziraat|tarim-ticareti-ve-isletmeciligi|Tarım Ticareti ve İşletmeciliği
+D|ziraat|tarimsal-genetik-muhendisligi|Tarımsal Genetik Mühendisliği
+D|ziraat|organik-tarim|Organik Tarım
+D|ziraat|su-urunleri-muhendisligi|Su Ürünleri Mühendisliği
+D|ziraat|ziraat-muhendisligi|Ziraat Mühendisliği
+D|ziraat|tohum-bilimi-ve-teknolojisi|Tohum Bilimi ve Teknolojisi
+D|ziraat|tarim-bilimleri-ve-teknolojileri|Tarım Bilimleri ve Teknolojileri
+D|ziraat|biyosistem-muhendisligi|Biyosistem Mühendisliği
+D|ziraat|hayvansal-uretim|Hayvansal Üretim
+D|ziraat|bitkisel-uretim|Bitkisel Üretim
+D|ziraat|tarimsal-yapilar-ve-sulama-muhendisligi|Tarımsal Yapılar ve Sulama Mühendisliği
+D|ziraat|tarim-makineleri|Tarım Makineleri
+D|ziraat|bitki-sagligi|Bitki Sağlığı
+F|orman|Orman Fakültesi
+D|orman|orman-muhendisligi|Orman Mühendisliği
+D|orman|orman-endustri-muhendisligi|Orman Endüstri Mühendisliği
+D|orman|agac-isleri-endustri-muhendisligi|Ağaç İşleri Endüstri Mühendisliği
+D|orman|peyzaj-mimarligi|Peyzaj Mimarlığı
+D|orman|yaban-hayati-ekolojisi-ve-yonetimi|Yaban Hayatı Ekolojisi ve Yönetimi
+D|orman|orman-urunleri-muhendisligi|Orman Ürünleri Mühendisliği
+D|orman|toprak-muhafaza-ve-havza-yonetimi|Toprak Muhafaza ve Havza Yönetimi
+D|orman|ormancilik-ve-doga-koruma|Ormancılık ve Doğa Koruma
+D|orman|ormancilik|Ormancılık
+F|su-urunleri|Su Ürünleri Fakültesi
+D|su-urunleri|su-urunleri-muhendisligi|Su Ürünleri Mühendisliği
+D|su-urunleri|su-urunleri-avlama-ve-isleme-teknolojisi|Su Ürünleri Avlama ve İşleme Teknolojisi
+D|su-urunleri|su-urunleri-yetistiriciligi|Su Ürünleri Yetiştiriciliği
+D|su-urunleri|deniz-bilimleri|Deniz Bilimleri
+D|su-urunleri|su-urunleri-temel-bilimleri|Su Ürünleri Temel Bilimleri
+D|su-urunleri|balikcilik-teknolojisi-muhendisligi|Balıkçılık Teknolojisi Mühendisliği
+D|su-urunleri|su-urunleri-yetistiricilik-muhendisligi|Su Ürünleri Yetiştiricilik Mühendisliği
+F|iletisim|İletişim Fakültesi
+D|iletisim|gazetecilik|Gazetecilik
+D|iletisim|halkla-iliskiler-ve-reklamcilik|Halkla İlişkiler ve Reklamcılık
+D|iletisim|halkla-iliskiler-ve-tanitim|Halkla İlişkiler ve Tanıtım
+D|iletisim|radyo-televizyon-ve-sinema|Radyo, Televizyon ve Sinema
+D|iletisim|yeni-medya-ve-iletisim|Yeni Medya ve İletişim
+D|iletisim|yeni-medya-ve-gazetecilik|Yeni Medya ve Gazetecilik
+D|iletisim|reklamcilik|Reklamcılık
+D|iletisim|gorsel-iletisim-tasarimi|Görsel İletişim Tasarımı
+D|iletisim|iletisim-ve-tasarim|İletişim ve Tasarım
+D|iletisim|bilisim-ve-iletisim|Bilişim ve İletişim
+D|iletisim|medya-ve-iletisim|Medya ve İletişim
+D|iletisim|sinema-ve-televizyon|Sinema ve Televizyon
+D|iletisim|medya-ve-gorsel-sanatlar|Medya ve Görsel Sanatlar
+D|iletisim|gazetecilik-ve-medya|Gazetecilik ve Medya
+D|iletisim|dijital-medya-ve-oyun-tasarimi|Dijital Medya ve Oyun Tasarımı
+D|iletisim|dijital-oyun-tasarimi|Dijital Oyun Tasarımı
+D|iletisim|iletisim-bilimleri|İletişim Bilimleri
+D|iletisim|kurumsal-iletisim|Kurumsal İletişim
+D|iletisim|cocuk-gelisimi|Çocuk Gelişimi
+D|iletisim|sosyal-medya-yonetimi|Sosyal Medya Yönetimi
+F|spor-bilimleri|Spor Bilimleri Fakültesi
+D|spor-bilimleri|antrenorluk-egitimi|Antrenörlük Eğitimi
+D|spor-bilimleri|spor-yoneticiligi|Spor Yöneticiliği
+D|spor-bilimleri|rekreasyon|Rekreasyon
+D|spor-bilimleri|beden-egitimi-ve-spor-ogretmenligi|Beden Eğitimi ve Spor Öğretmenliği
+D|spor-bilimleri|spor-bilimleri|Spor Bilimleri
+D|spor-bilimleri|engellilerde-spor-bilimleri|Engellilerde Spor Bilimleri
+D|spor-bilimleri|spor-saglik-bilimleri|Spor Sağlık Bilimleri
+D|spor-bilimleri|spor-teknolojisi|Spor Teknolojisi
+D|spor-bilimleri|spor-fizyoterapisi|Spor Fizyoterapisi
+D|spor-bilimleri|egzersiz-ve-spor-bilimleri|Egzersiz ve Spor Bilimleri
+D|spor-bilimleri|spor-medyasi|Spor Medyası
+D|spor-bilimleri|spor-ekonomisi|Spor Ekonomisi
+D|spor-bilimleri|spor-psikolojisi|Spor Psikolojisi
+D|spor-bilimleri|spor-hukuku|Spor Hukuku
+F|turizm|Turizm Fakültesi
+D|turizm|turizm-isletmeciligi|Turizm İşletmeciliği
+D|turizm|gastronomi-ve-mutfak-sanatlari|Gastronomi ve Mutfak Sanatları
+D|turizm|turizm-rehberligi|Turizm Rehberliği
+D|turizm|turist-rehberligi|Turist Rehberliği
+D|turizm|seyahat-isletmeciligi|Seyahat İşletmeciliği
+D|turizm|otelcilik|Otelcilik
+D|turizm|rekreasyon-yonetimi|Rekreasyon Yönetimi
+D|turizm|turizm-ve-otel-isletmeciligi|Turizm ve Otel İşletmeciliği
+D|turizm|konaklama-isletmeciligi|Konaklama İşletmeciliği
+D|turizm|yiyecek-ve-icecek-isletmeciligi|Yiyecek ve İçecek İşletmeciliği
+D|turizm|havayolu-isletmeciligi|Havayolu İşletmeciliği
+D|turizm|turizm-animasyonu|Turizm Animasyonu
+D|turizm|turizm-ve-seyahat-yonetimi|Turizm ve Seyahat Yönetimi
+D|turizm|kulturel-miras-ve-turizm|Kültürel Miras ve Turizm
+D|turizm|eglence-ve-etkinlik-yonetimi|Eğlence ve Etkinlik Yönetimi
+F|havacilik|Havacılık ve Uzay Bilimleri Fakültesi
+D|havacilik|pilotaj|Pilotaj
+D|havacilik|havacilik-yonetimi|Havacılık Yönetimi
+D|havacilik|hava-trafik-kontrolu|Hava Trafik Kontrolü
+D|havacilik|ucak-govde-motor-bakimi|Uçak Gövde-Motor Bakımı
+D|havacilik|ucak-elektrik-ve-elektronigi|Uçak Elektrik ve Elektroniği
+D|havacilik|havacilik-elektrik-ve-elektronigi|Havacılık Elektrik ve Elektroniği
+D|havacilik|ucak-bakim-ve-onarim|Uçak Bakım ve Onarım
+D|havacilik|havacilik-ve-uzay-muhendisligi|Havacılık ve Uzay Mühendisliği
+D|havacilik|ucak-muhendisligi|Uçak Mühendisliği
+D|havacilik|uzay-bilimleri-ve-teknolojileri|Uzay Bilimleri ve Teknolojileri
+D|havacilik|sivil-havacilik-yonetimi|Sivil Havacılık Yönetimi
+D|havacilik|havaalani-isletmeciligi|Havaalanı İşletmeciliği
+D|havacilik|havacilik-guvenligi|Havacılık Güvenliği
+D|havacilik|insansiz-hava-araci-teknolojileri|İnsansız Hava Aracı Teknolojileri
+D|havacilik|ucus-harekat-yonetimi|Uçuş Harekat Yönetimi
+D|havacilik|ucak-teknolojisi|Uçak Teknolojisi
+D|havacilik|havacilik-isletmeciligi|Havacılık İşletmeciliği
+D|havacilik|kabin-hizmetleri|Kabin Hizmetleri
+D|havacilik|havacilik-bilisim-sistemleri|Havacılık Bilişim Sistemleri
+F|denizcilik|Denizcilik Fakültesi
+D|denizcilik|gemi-insaati-ve-gemi-makineleri-muhendisligi|Gemi İnşaatı ve Gemi Makineleri Mühendisliği
+D|denizcilik|deniz-ulastirma-isletme-muhendisligi|Deniz Ulaştırma İşletme Mühendisliği
+D|denizcilik|gemi-makineleri-isletme-muhendisligi|Gemi Makineleri İşletme Mühendisliği
+D|denizcilik|denizcilik-isletmeleri-yonetimi|Denizcilik İşletmeleri Yönetimi
+D|denizcilik|deniz-ulastirma-ve-isletme-muhendisligi|Deniz Ulaştırma ve İşletme Mühendisliği
+D|denizcilik|gemi-makineleri-muhendisligi|Gemi Makineleri Mühendisliği
+D|denizcilik|deniz-ticareti-ve-yonetimi|Deniz Ticareti ve Yönetimi
+D|denizcilik|guverte-muhendisligi|Güverte Mühendisliği
+D|denizcilik|gemi-makineleri-ve-enerji-sistemleri|Gemi Makineleri ve Enerji Sistemleri
+D|denizcilik|denizcilik-ve-liman-isletmeciligi|Denizcilik ve Liman İşletmeciliği
+D|denizcilik|deniz-teknolojisi-muhendisligi|Deniz Teknolojisi Mühendisliği
+D|denizcilik|gemi-sistemleri-muhendisligi|Gemi Sistemleri Mühendisliği
+D|denizcilik|gemi-yapimi-ve-donatimi|Gemi Yapımı ve Donatımı
+D|denizcilik|gemi-ve-deniz-teknolojisi-muhendisligi|Gemi ve Deniz Teknolojisi Mühendisliği
+D|denizcilik|lojistik-ve-tasimacilik-yonetimi|Lojistik ve Taşımacılık Yönetimi
+D|denizcilik|liman-isletmeciligi|Liman İşletmeciliği
+D|denizcilik|denizcilik|Denizcilik
+D|denizcilik|gemi-sanayi-ve-tersane-yonetimi|Gemi Sanayi ve Tersane Yönetimi
+F|teknoloji|Teknoloji Fakültesi
+D|teknoloji|bilgisayar-muhendisligi|Bilgisayar Mühendisliği
+D|teknoloji|yazilim-muhendisligi|Yazılım Mühendisliği
+D|teknoloji|elektrik-elektronik-muhendisligi|Elektrik-Elektronik Mühendisliği
+D|teknoloji|makine-muhendisligi|Makine Mühendisliği
+D|teknoloji|insaat-muhendisligi|İnşaat Mühendisliği
+D|teknoloji|mekatronik-muhendisligi|Mekatronik Mühendisliği
+D|teknoloji|otomotiv-muhendisligi|Otomotiv Mühendisliği
+D|teknoloji|endustri-muhendisligi|Endüstri Mühendisliği
+D|teknoloji|metalurji-ve-malzeme-muhendisligi|Metalurji ve Malzeme Mühendisliği
+D|teknoloji|enerji-sistemleri-muhendisligi|Enerji Sistemleri Mühendisliği
+D|teknoloji|biyomedikal-muhendisligi|Biyomedikal Mühendisliği
+D|teknoloji|gida-muhendisligi|Gıda Mühendisliği
+D|teknoloji|tekstil-muhendisligi|Tekstil Mühendisliği
+D|teknoloji|kimya-muhendisligi|Kimya Mühendisliği
+D|teknoloji|mekatronik|Mekatronik
+D|teknoloji|otomotiv-teknolojisi|Otomotiv Teknolojisi
+D|teknoloji|elektronik-ve-otomasyon|Elektronik ve Otomasyon
+D|teknoloji|bilisim-sistemleri-ve-teknolojileri|Bilişim Sistemleri ve Teknolojileri
+D|teknoloji|ahsap-teknolojisi|Ahşap Teknolojisi
+D|teknoloji|seramik-teknolojisi|Seramik Teknolojisi
+D|teknoloji|makine-ve-imalat-teknolojisi|Makine ve İmalat Teknolojisi
+D|teknoloji|elektrik-ve-enerji-teknolojisi|Elektrik ve Enerji Teknolojisi
+D|teknoloji|elektronik-teknolojisi|Elektronik Teknolojisi
+D|teknoloji|metalurji-ve-malzeme-teknolojisi|Metalurji ve Malzeme Teknolojisi
+D|teknoloji|bilisim-teknolojileri-muhendisligi|Bilişim Teknolojileri Mühendisliği
+D|teknoloji|biyomuhendislik|Biyomühendislik
+D|teknoloji|enerji-muhendisligi|Enerji Mühendisliği
+D|teknoloji|cevre-muhendisligi|Çevre Mühendisliği
+D|teknoloji|imalat-muhendisligi|İmalat Mühendisliği
+D|teknoloji|yapay-zeka-muhendisligi|Yapay Zeka Mühendisliği
+D|teknoloji|matbaa-teknolojileri|Matbaa Teknolojileri
+D|teknoloji|tekstil-teknolojisi|Tekstil Teknolojisi
+D|teknoloji|elektronik-ve-haberlesme-muhendisligi|Elektronik ve Haberleşme Mühendisliği
+D|teknoloji|elektrik-muhendisligi|Elektrik Mühendisliği
+D|teknoloji|yenilenebilir-enerji-sistemleri|Yenilenebilir Enerji Sistemleri
+D|teknoloji|optik-muhendisligi|Optik Mühendisliği
+D|teknoloji|nukleer-enerji-muhendisligi|Nükleer Enerji Mühendisliği
+F|uygulamali-bilimler|Uygulamalı Bilimler Fakültesi
+D|uygulamali-bilimler|bankacilik-ve-sigortacilik|Bankacılık ve Sigortacılık
+D|uygulamali-bilimler|muhasebe-ve-finans-yonetimi|Muhasebe ve Finans Yönetimi
+D|uygulamali-bilimler|yonetim-bilisim-sistemleri|Yönetim Bilişim Sistemleri
+D|uygulamali-bilimler|uluslararasi-ticaret-ve-lojistik|Uluslararası Ticaret ve Lojistik
+D|uygulamali-bilimler|uluslararasi-ticaret-ve-finans|Uluslararası Ticaret ve Finans
+D|uygulamali-bilimler|turizm-isletmeciligi|Turizm İşletmeciliği
+D|uygulamali-bilimler|gastronomi-ve-mutfak-sanatlari|Gastronomi ve Mutfak Sanatları
+D|uygulamali-bilimler|finans-ve-bankacilik|Finans ve Bankacılık
+D|uygulamali-bilimler|isletme|İşletme
+D|uygulamali-bilimler|bilisim-sistemleri-ve-teknolojileri|Bilişim Sistemleri ve Teknolojileri
+D|uygulamali-bilimler|halkla-iliskiler-ve-reklamcilik|Halkla İlişkiler ve Reklamcılık
+D|uygulamali-bilimler|girisimcilik|Girişimcilik
+D|uygulamali-bilimler|gayrimenkul-gelistirme-ve-yonetimi|Gayrimenkul Geliştirme ve Yönetimi
+D|uygulamali-bilimler|lojistik-yonetimi|Lojistik Yönetimi
+D|uygulamali-bilimler|pazarlama|Pazarlama
+D|uygulamali-bilimler|saglik-yonetimi|Sağlık Yönetimi
+D|uygulamali-bilimler|spor-yoneticiligi|Spor Yöneticiliği
+D|uygulamali-bilimler|havacilik-yonetimi|Havacılık Yönetimi
+D|uygulamali-bilimler|yazilim-gelistirme|Yazılım Geliştirme
+D|uygulamali-bilimler|siber-guvenlik|Siber Güvenlik
+D|uygulamali-bilimler|tarim-isletmeciligi|Tarım İşletmeciliği
+D|uygulamali-bilimler|kamu-yonetimi|Kamu Yönetimi
+D|uygulamali-bilimler|sosyal-hizmet|Sosyal Hizmet
+D|uygulamali-bilimler|calisma-ekonomisi|Çalışma Ekonomisi
+D|uygulamali-bilimler|uluslararasi-ticaret|Uluslararası Ticaret
+D|uygulamali-bilimler|dijital-pazarlama|Dijital Pazarlama
+D|uygulamali-bilimler|elektronik-ticaret|Elektronik Ticaret
+D|uygulamali-bilimler|tedarik-zinciri-yonetimi|Tedarik Zinciri Yönetimi
+D|uygulamali-bilimler|is-sagligi-ve-guvenligi|İş Sağlığı ve Güvenliği
+D|uygulamali-bilimler|medya-ve-iletisim|Medya ve İletişim
+D|uygulamali-bilimler|veri-bilimi-ve-analitigi|Veri Bilimi ve Analitiği
+D|uygulamali-bilimler|yerel-yonetimler|Yerel Yönetimler
+D|uygulamali-bilimler|finans-teknolojileri|Finans Teknolojileri
+D|uygulamali-bilimler|maliye|Maliye
+D|uygulamali-bilimler|muhasebe-ve-denetim|Muhasebe ve Denetim
+F|devlet-konservatuvari|Devlet Konservatuvarı
+D|devlet-konservatuvari|muzik|Müzik
+D|devlet-konservatuvari|muzik-bilimleri|Müzik Bilimleri
+D|devlet-konservatuvari|turk-halk-muzigi|Türk Halk Müziği
+D|devlet-konservatuvari|turk-sanat-muzigi|Türk Sanat Müziği
+D|devlet-konservatuvari|klasik-bati-muzigi|Klasik Batı Müziği
+D|devlet-konservatuvari|piyano|Piyano
+D|devlet-konservatuvari|keman|Keman
+D|devlet-konservatuvari|viyolonsel|Viyolonsel
+D|devlet-konservatuvari|gitar|Gitar
+D|devlet-konservatuvari|san|Şan
+D|devlet-konservatuvari|bale|Bale
+D|devlet-konservatuvari|tiyatro|Tiyatro
+D|devlet-konservatuvari|sahne-sanatlari|Sahne Sanatları
+D|devlet-konservatuvari|muzikal-tiyatro|Müzikal Tiyatro
+D|devlet-konservatuvari|oyunculuk|Oyunculuk
+D|devlet-konservatuvari|dans|Dans
+D|devlet-konservatuvari|kompozisyon-ve-orkestra-sefligi|Kompozisyon ve Orkestra Şefliği
+D|devlet-konservatuvari|muzik-teknolojisi|Müzik Teknolojisi
+D|devlet-konservatuvari|geleneksel-turk-muzigi|Geleneksel Türk Müziği
+D|devlet-konservatuvari|opera|Opera
+D|devlet-konservatuvari|calgi|Çalgı
+D|devlet-konservatuvari|baglama|Bağlama
+D|devlet-konservatuvari|ud|Ud
+D|devlet-konservatuvari|kemence|Kemençe
+D|devlet-konservatuvari|kanun|Kanun
+D|devlet-konservatuvari|ney|Ney
+D|devlet-konservatuvari|armoni|Armoni
+D|devlet-konservatuvari|muzikoloji|Müzikoloji
+D|devlet-konservatuvari|caz-ve-populer-muzik|Caz ve Popüler Müzik
+D|devlet-konservatuvari|elektronik-muzik|Elektronik Müzik
+F|hemsirelik-yuksekokulu|Hemşirelik Yüksekokulu
+D|hemsirelik-yuksekokulu|hemsirelik|Hemşirelik
+D|hemsirelik-yuksekokulu|ebelik|Ebelik
+D|hemsirelik-yuksekokulu|saglik-bakim-hizmetleri|Sağlık Bakım Hizmetleri
+D|hemsirelik-yuksekokulu|acil-yardim-ve-afet-yonetimi|Acil Yardım ve Afet Yönetimi
+D|hemsirelik-yuksekokulu|saglik-yonetimi|Sağlık Yönetimi
+D|hemsirelik-yuksekokulu|sosyal-hizmet|Sosyal Hizmet
+F|meslek-yuksekokulu|Meslek Yüksekokulu
+D|meslek-yuksekokulu|bilgisayar-programciligi|Bilgisayar Programcılığı
+D|meslek-yuksekokulu|muhasebe-ve-vergi-uygulamalari|Muhasebe ve Vergi Uygulamaları
+D|meslek-yuksekokulu|elektrik|Elektrik
+D|meslek-yuksekokulu|elektronik-teknolojisi|Elektronik Teknolojisi
+D|meslek-yuksekokulu|elektronik-haberlesme-teknolojisi|Elektronik Haberleşme Teknolojisi
+D|meslek-yuksekokulu|laborant-ve-veteriner-saglik|Laborant ve Veteriner Sağlık
+D|meslek-yuksekokulu|tibbi-hizmetler-ve-teknikler|Tıbbi Hizmetler ve Teknikler
+D|meslek-yuksekokulu|adalet|Adalet
+D|meslek-yuksekokulu|buro-yonetimi-ve-yonetici-asistanligi|Büro Yönetimi ve Yönetici Asistanlığı
+D|meslek-yuksekokulu|buro-yonetimi|Büro Yönetimi
+D|meslek-yuksekokulu|is-sagligi-ve-guvenligi|İş Sağlığı ve Güvenliği
+D|meslek-yuksekokulu|ilk-ve-acil-yardim|İlk ve Acil Yardım
+D|meslek-yuksekokulu|agiz-ve-dis-sagligi|Ağız ve Diş Sağlığı
+D|meslek-yuksekokulu|cocuk-gelisimi|Çocuk Gelişimi
+D|meslek-yuksekokulu|ascilik|Aşçılık
+D|meslek-yuksekokulu|turizm-ve-otel-isletmeciligi|Turizm ve Otel İşletmeciliği
+D|meslek-yuksekokulu|web-tasarimi-ve-kodlama|Web Tasarımı ve Kodlama
+D|meslek-yuksekokulu|mekatronik|Mekatronik
+D|meslek-yuksekokulu|insaat-teknolojisi|İnşaat Teknolojisi
+D|meslek-yuksekokulu|harita-ve-kadastro|Harita ve Kadastro
+D|meslek-yuksekokulu|tarim|Tarım
+D|meslek-yuksekokulu|bitkisel-uretim|Bitkisel Üretim
+D|meslek-yuksekokulu|hayvansal-uretim|Hayvansal Üretim
+D|meslek-yuksekokulu|gida-teknolojisi|Gıda Teknolojisi
+D|meslek-yuksekokulu|radyoterapi|Radyoterapi
+D|meslek-yuksekokulu|tibbi-goruntuleme-teknikleri|Tıbbi Görüntüleme Teknikleri
+D|meslek-yuksekokulu|anestezi|Anestezi
+D|meslek-yuksekokulu|optisyenlik|Optisyenlik
+D|meslek-yuksekokulu|fizyoterapi|Fizyoterapi
+D|meslek-yuksekokulu|yasli-bakimi|Yaşlı Bakımı
+D|meslek-yuksekokulu|sosyal-hizmetler|Sosyal Hizmetler
+D|meslek-yuksekokulu|halkla-iliskiler-ve-tanitim|Halkla İlişkiler ve Tanıtım
+D|meslek-yuksekokulu|dis-ticaret|Dış Ticaret
+D|meslek-yuksekokulu|lojistik|Lojistik
+D|meslek-yuksekokulu|bankacilik-ve-sigortacilik|Bankacılık ve Sigortacılık
+D|meslek-yuksekokulu|emlak-yonetimi|Emlak Yönetimi
+D|meslek-yuksekokulu|spor-yonetimi|Spor Yönetimi
+D|meslek-yuksekokulu|makine|Makine
+D|meslek-yuksekokulu|makine-resim-ve-konstruksiyonu|Makine Resim ve Konstrüksiyonu
+D|meslek-yuksekokulu|otomotiv-teknolojisi|Otomotiv Teknolojisi
+D|meslek-yuksekokulu|bilgisayar-teknolojisi|Bilgisayar Teknolojisi
+D|meslek-yuksekokulu|bilgi-guvenligi-teknolojisi|Bilgi Güvenliği Teknolojisi
+D|meslek-yuksekokulu|bilgisayar-destekli-tasarim-ve-animasyon|Bilgisayar Destekli Tasarım ve Animasyon
+D|meslek-yuksekokulu|mobil-teknolojileri|Mobil Teknolojileri
+D|meslek-yuksekokulu|grafik-tasarimi|Grafik Tasarımı
+D|meslek-yuksekokulu|fotograf-ve-kameramanlik|Fotoğraf ve Kameramanlık
+D|meslek-yuksekokulu|radyo-ve-televizyon-programciligi|Radyo ve Televizyon Programcılığı
+D|meslek-yuksekokulu|medya-ve-iletisim|Medya ve İletişim
+D|meslek-yuksekokulu|gazetecilik|Gazetecilik
+D|meslek-yuksekokulu|isletme-yonetimi|İşletme Yönetimi
+D|meslek-yuksekokulu|pazarlama|Pazarlama
+D|meslek-yuksekokulu|perakende-satis-ve-magaza-yonetimi|Perakende Satış ve Mağaza Yönetimi
+D|meslek-yuksekokulu|e-ticaret-ve-pazarlama|E-Ticaret ve Pazarlama
+D|meslek-yuksekokulu|yerel-yonetimler|Yerel Yönetimler
+D|meslek-yuksekokulu|kamu-yonetimi|Kamu Yönetimi
+D|meslek-yuksekokulu|saglik-kurumlari-isletmeciligi|Sağlık Kurumları İşletmeciliği
+D|meslek-yuksekokulu|tibbi-dokumantasyon-ve-sekreterlik|Tıbbi Dokümantasyon ve Sekreterlik
+D|meslek-yuksekokulu|tibbi-laboratuvar-teknikleri|Tıbbi Laboratuvar Teknikleri
+D|meslek-yuksekokulu|patoloji-laboratuvar-teknikleri|Patoloji Laboratuvar Teknikleri
+D|meslek-yuksekokulu|ameliyathane-hizmetleri|Ameliyathane Hizmetleri
+D|meslek-yuksekokulu|diyaliz|Diyaliz
+D|meslek-yuksekokulu|elektronorofizyoloji|Elektronörofizyoloji
+D|meslek-yuksekokulu|cocuk-bakimi-ve-genclik-hizmetleri|Çocuk Bakımı ve Gençlik Hizmetleri
+D|meslek-yuksekokulu|engelli-bakimi-ve-rehabilitasyon|Engelli Bakımı ve Rehabilitasyon
+D|meslek-yuksekokulu|evde-hasta-bakimi|Evde Hasta Bakımı
+D|meslek-yuksekokulu|ortopedik-protez-ve-ortez|Ortopedik Protez ve Ortez
+D|meslek-yuksekokulu|odyometri|Odyometri
+D|meslek-yuksekokulu|podoloji|Podoloji
+D|meslek-yuksekokulu|tibbi-goruntuleme|Tıbbi Görüntüleme
+D|meslek-yuksekokulu|eczane-hizmetleri|Eczane Hizmetleri
+D|meslek-yuksekokulu|tibbi-aromatik-bitkiler|Tıbbi Aromatik Bitkiler
+D|meslek-yuksekokulu|veteriner-saglik|Veteriner Sağlık
+D|meslek-yuksekokulu|bahce-tarimi|Bahçe Tarımı
+D|meslek-yuksekokulu|tarim-makineleri|Tarım Makineleri
+D|meslek-yuksekokulu|organik-tarim|Organik Tarım
+D|meslek-yuksekokulu|bitki-koruma|Bitki Koruma
+D|meslek-yuksekokulu|peyzaj-ve-sus-bitkileri-yetistiriciligi|Peyzaj ve Süs Bitkileri Yetiştiriciliği
+D|meslek-yuksekokulu|su-urunleri-yetistiriciligi|Su Ürünleri Yetiştiriciliği
+D|meslek-yuksekokulu|toprak-muhafaza-ve-havza-yonetimi|Toprak Muhafaza ve Havza Yönetimi
+D|meslek-yuksekokulu|ormancilik-ve-orman-urunleri|Ormancılık ve Orman Ürünleri
+D|meslek-yuksekokulu|aricilik|Arıcılık
+D|meslek-yuksekokulu|sulama-teknolojisi|Sulama Teknolojisi
+D|meslek-yuksekokulu|tarimsal-isletmecilik|Tarımsal İşletmecilik
+D|meslek-yuksekokulu|seracilik|Seracılık
+D|meslek-yuksekokulu|gida-kalite-kontrolu-ve-analizi|Gıda Kalite Kontrolü ve Analizi
+D|meslek-yuksekokulu|sut-ve-urunleri-teknolojisi|Süt ve Ürünleri Teknolojisi
+D|meslek-yuksekokulu|beslenme-ve-diyetetik|Beslenme ve Diyetetik
+D|meslek-yuksekokulu|pastacilik-ve-ekmekcilik|Pastacılık ve Ekmekçilik
+D|meslek-yuksekokulu|yiyecek-icecek-hizmetleri|Yiyecek İçecek Hizmetleri
+D|meslek-yuksekokulu|seyahat-turizm-ve-eglence-hizmetleri|Seyahat Turizm ve Eğlence Hizmetleri
+D|meslek-yuksekokulu|otel-lokanta-ve-ikram-hizmetleri|Otel Lokanta ve İkram Hizmetleri
+D|meslek-yuksekokulu|rekreasyon|Rekreasyon
+D|meslek-yuksekokulu|turist-rehberligi|Turist Rehberliği
+D|meslek-yuksekokulu|havacilik-yonetimi|Havacılık Yönetimi
+D|meslek-yuksekokulu|sivil-havacilik-kabin-hizmetleri|Sivil Havacılık Kabin Hizmetleri
+D|meslek-yuksekokulu|hava-trafik-kontrol|Hava Trafik Kontrol
+D|meslek-yuksekokulu|ucak-teknolojisi|Uçak Teknolojisi
+D|meslek-yuksekokulu|ucak-bakim|Uçak Bakım
+D|meslek-yuksekokulu|havacilik-elektrik-ve-elektronigi|Havacılık Elektrik ve Elektroniği
+D|meslek-yuksekokulu|insansiz-hava-araci-teknolojisi-ve-operatorlugu|İnsansız Hava Aracı Teknolojisi ve Operatörlüğü
+D|meslek-yuksekokulu|denizcilik-isletmeleri|Denizcilik İşletmeleri
+D|meslek-yuksekokulu|gemi-insaati|Gemi İnşaatı
+D|meslek-yuksekokulu|liman-isletmeciligi|Liman İşletmeciliği
+D|meslek-yuksekokulu|lojistik-ve-tasimacilik|Lojistik ve Taşımacılık
+D|meslek-yuksekokulu|rayli-sistemler-isletmeciligi|Raylı Sistemler İşletmeciliği
+D|meslek-yuksekokulu|rayli-sistemler-teknolojisi|Raylı Sistemler Teknolojisi
+D|meslek-yuksekokulu|rayli-sistemler-elektrik-ve-elektronigi|Raylı Sistemler Elektrik ve Elektroniği
+D|meslek-yuksekokulu|demiryolu-yapim-isletme|Demiryolu Yapım İşletme
+D|meslek-yuksekokulu|karayolu-yapimi|Karayolu Yapımı
+D|meslek-yuksekokulu|yapi-denetimi|Yapı Denetimi
+D|meslek-yuksekokulu|yapi-tesisat-teknolojisi|Yapı Tesisat Teknolojisi
+D|meslek-yuksekokulu|iklimlendirme-ve-sogutma-teknolojisi|İklimlendirme ve Soğutma Teknolojisi
+D|meslek-yuksekokulu|isitma-ve-sogutma|Isıtma ve Soğutma
+D|meslek-yuksekokulu|dogalgaz-ve-tesisat-teknolojisi|Doğalgaz ve Tesisat Teknolojisi
+D|meslek-yuksekokulu|boya-teknolojisi|Boya Teknolojisi
+D|meslek-yuksekokulu|mimari-restorasyon|Mimari Restorasyon
+D|meslek-yuksekokulu|mimari-dekoratif-sanatlar|Mimari Dekoratif Sanatlar
+D|meslek-yuksekokulu|geleneksel-el-sanatlari|Geleneksel El Sanatları
+D|meslek-yuksekokulu|ic-mekan-tasarimi|İç Mekan Tasarımı
+D|meslek-yuksekokulu|dekoratif-sanatlar|Dekoratif Sanatlar
+D|meslek-yuksekokulu|seramik-cam-ve-cini|Seramik, Cam ve Çini
+D|meslek-yuksekokulu|taki-tasarimi|Takı Tasarımı
+D|meslek-yuksekokulu|kuyumculuk-ve-taki-tasarimi|Kuyumculuk ve Takı Tasarımı
+D|meslek-yuksekokulu|moda-tasarimi|Moda Tasarımı
+D|meslek-yuksekokulu|giyim-uretim-teknolojisi|Giyim Üretim Teknolojisi
+D|meslek-yuksekokulu|tekstil-teknolojisi|Tekstil Teknolojisi
+D|meslek-yuksekokulu|tekstil-kalite-kontrol|Tekstil Kalite Kontrol
+D|meslek-yuksekokulu|deri-teknolojisi|Deri Teknolojisi
+D|meslek-yuksekokulu|ayakkabi-tasarim-ve-uretimi|Ayakkabı Tasarım ve Üretimi
+D|meslek-yuksekokulu|matbaa|Matbaa
+D|meslek-yuksekokulu|basim-ve-yayim-teknolojileri|Basım ve Yayım Teknolojileri
+D|meslek-yuksekokulu|kutuphane-ve-dijital-arsiv|Kütüphane ve Dijital Arşiv
+D|meslek-yuksekokulu|arsiv-hizmetleri|Arşiv Hizmetleri
+D|meslek-yuksekokulu|mobilya-ve-dekorasyon|Mobilya ve Dekorasyon
+D|meslek-yuksekokulu|agac-isleri-endustri-muhendisligi|Ağaç İşleri Endüstri Mühendisliği
+D|meslek-yuksekokulu|ahsap-teknolojisi|Ahşap Teknolojisi
+D|meslek-yuksekokulu|kaynak-teknolojisi|Kaynak Teknolojisi
+D|meslek-yuksekokulu|metalurji|Metalurji
+D|meslek-yuksekokulu|makine-teknolojisi|Makine Teknolojisi
+D|meslek-yuksekokulu|makine-bakim-onarim|Makine Bakım Onarım
+D|meslek-yuksekokulu|endustriyel-otomasyon|Endüstriyel Otomasyon
+D|meslek-yuksekokulu|bilgisayarli-tasarim-ve-imalat|Bilgisayarlı Tasarım ve İmalat
+D|meslek-yuksekokulu|mekatronik-sistemler|Mekatronik Sistemler
+D|meslek-yuksekokulu|endustriyel-kalipcilik|Endüstriyel Kalıpçılık
+D|meslek-yuksekokulu|otomotiv-elektrik-ve-elektronigi|Otomotiv Elektrik ve Elektroniği
+D|meslek-yuksekokulu|hibrit-ve-elektrikli-tasitlar-teknolojisi|Hibrit ve Elektrikli Taşıtlar Teknolojisi
+D|meslek-yuksekokulu|agir-vasita-teknolojisi|Ağır Vasıta Teknolojisi
+D|meslek-yuksekokulu|is-makineleri-operatorlugu|İş Makineleri Operatörlüğü
+D|meslek-yuksekokulu|biyomedikal-cihaz-teknolojisi|Biyomedikal Cihaz Teknolojisi
+D|meslek-yuksekokulu|elektrik-enerjisi-uretim-iletim-ve-dagitimi|Elektrik Enerjisi Üretim, İletim ve Dağıtımı
+D|meslek-yuksekokulu|enerji-yonetimi|Enerji Yönetimi
+D|meslek-yuksekokulu|yenilenebilir-enerji-teknikerligi|Yenilenebilir Enerji Teknikerliği
+D|meslek-yuksekokulu|bina-enerji-yonetimi|Bina Enerji Yönetimi
+D|meslek-yuksekokulu|nukleer-teknoloji-ve-radyasyon-guvenligi|Nükleer Teknoloji ve Radyasyon Güvenliği
+D|meslek-yuksekokulu|maden-teknolojisi|Maden Teknolojisi
+D|meslek-yuksekokulu|madencilik|Madencilik
+D|meslek-yuksekokulu|petrol-ve-dogal-gaz-teknolojisi|Petrol ve Doğal Gaz Teknolojisi
+D|meslek-yuksekokulu|jeoloji-teknikerligi|Jeoloji Teknikerliği
+D|meslek-yuksekokulu|jeotermal-enerji-teknolojisi|Jeotermal Enerji Teknolojisi
+D|meslek-yuksekokulu|cevre-koruma-ve-kontrol|Çevre Koruma ve Kontrol
+D|meslek-yuksekokulu|cevre-sagligi|Çevre Sağlığı
+D|meslek-yuksekokulu|atik-yonetimi|Atık Yönetimi
+D|meslek-yuksekokulu|meteoroloji|Meteoroloji
+D|meslek-yuksekokulu|su-teknolojisi|Su Teknolojisi
+D|meslek-yuksekokulu|kimya-teknolojisi|Kimya Teknolojisi
+D|meslek-yuksekokulu|kimya-teknikerligi|Kimya Teknikerliği
+D|meslek-yuksekokulu|plastik-teknolojisi|Plastik Teknolojisi
+D|meslek-yuksekokulu|polimer-teknolojisi|Polimer Teknolojisi
+D|meslek-yuksekokulu|tibbi-urunler-ve-kozmetik|Tıbbi Ürünler ve Kozmetik
+D|meslek-yuksekokulu|kozmetik-teknolojisi|Kozmetik Teknolojisi
+D|meslek-yuksekokulu|eczacilik-hizmetleri|Eczacılık Hizmetleri
+D|meslek-yuksekokulu|guzellik-bakim-ve-sac-bakim-hizmetleri|Güzellik Bakım ve Saç Bakım Hizmetleri
+D|meslek-yuksekokulu|cilt-bakimi-ve-guzellik-hizmetleri|Cilt Bakımı ve Güzellik Hizmetleri
+D|meslek-yuksekokulu|sac-bakimi-ve-guzellik-hizmetleri|Saç Bakımı ve Güzellik Hizmetleri
+D|meslek-yuksekokulu|acil-durum-ve-afet-yonetimi|Acil Durum ve Afet Yönetimi
+D|meslek-yuksekokulu|itfaiyecilik-ve-yangin-guvenligi|İtfaiyecilik ve Yangın Güvenliği
+D|meslek-yuksekokulu|sivil-savunma-ve-itfaiyecilik|Sivil Savunma ve İtfaiyecilik
+D|meslek-yuksekokulu|sivil-hava-tasimaciligi-isletmeciligi|Sivil Hava Taşımacılığı İşletmeciliği
+D|meslek-yuksekokulu|kriminalistik|Kriminalistik
+D|meslek-yuksekokulu|guvenlik-ve-koruma|Güvenlik ve Koruma
+D|meslek-yuksekokulu|gumruk-isletme|Gümrük İşletme
+D|meslek-yuksekokulu|maliye|Maliye
+D|meslek-yuksekokulu|sosyal-guvenlik|Sosyal Güvenlik
+D|meslek-yuksekokulu|calisma-ekonomisi-ve-endustri-iliskileri|Çalışma Ekonomisi ve Endüstri İlişkileri
+D|meslek-yuksekokulu|insan-kaynaklari-yonetimi|İnsan Kaynakları Yönetimi
+D|meslek-yuksekokulu|halkla-iliskiler|Halkla İlişkiler
+D|meslek-yuksekokulu|reklamcilik|Reklamcılık
+D|meslek-yuksekokulu|sosyal-medya-yonetimi|Sosyal Medya Yönetimi
+D|meslek-yuksekokulu|siber-guvenlik|Siber Güvenlik
+D|meslek-yuksekokulu|yapay-zeka-teknolojileri|Yapay Zeka Teknolojileri
+D|meslek-yuksekokulu|veri-analitigi|Veri Analitiği
+D|meslek-yuksekokulu|bilisim-guvenligi-teknolojisi|Bilişim Güvenliği Teknolojisi
+D|meslek-yuksekokulu|oyun-gelistirme-ve-programlama|Oyun Geliştirme ve Programlama
+D|meslek-yuksekokulu|bilgisayar-destekli-tasarim|Bilgisayar Destekli Tasarım
+D|meslek-yuksekokulu|elektronik-ticaret|Elektronik Ticaret
+D|meslek-yuksekokulu|girisimcilik|Girişimcilik
+D|meslek-yuksekokulu|muhasebe|Muhasebe
+D|meslek-yuksekokulu|tapu-ve-kadastro|Tapu ve Kadastro
+D|meslek-yuksekokulu|harita-teknikerligi|Harita Teknikerliği
+D|meslek-yuksekokulu|cografi-bilgi-sistemleri|Coğrafi Bilgi Sistemleri
+D|meslek-yuksekokulu|yapi-ressamligi|Yapı Ressamlığı
+D|meslek-yuksekokulu|peyzaj-mimarligi-teknikerligi|Peyzaj Mimarlığı Teknikerliği
+D|meslek-yuksekokulu|park-ve-bahce-bitkileri|Park ve Bahçe Bitkileri
+D|meslek-yuksekokulu|antrenorluk|Antrenörlük
+D|meslek-yuksekokulu|sporda-beden-egitimi|Sporda Beden Eğitimi
+D|meslek-yuksekokulu|okul-oncesi-egitimi|Okul Öncesi Eğitimi
+D|meslek-yuksekokulu|ozel-gereksinimli-bireyler|Özel Gereksinimli Bireyler
+D|meslek-yuksekokulu|yasli-hizmetleri|Yaşlı Hizmetleri
+D|meslek-yuksekokulu|saglik-bakim-teknikerligi|Sağlık Bakım Teknikerliği
+D|meslek-yuksekokulu|hemsirelik-hizmetleri|Hemşirelik Hizmetleri
+D|meslek-yuksekokulu|tibbi-terapi|Tıbbi Terapi
+D|meslek-yuksekokulu|fizyoterapi-teknikerligi|Fizyoterapi Teknikerliği
+D|meslek-yuksekokulu|isitme-engelliler-isaret-dili|İşitme Engelliler İşaret Dili
+G|PREP|Hazırlık
+G|1|1. sınıf
+G|2|2. sınıf
+G|3|3. sınıf
+G|4|4. sınıf
+G|5|5. sınıf
+G|6|6. sınıf
+G|MASTER|Yüksek lisans
+G|PHD|Doktora

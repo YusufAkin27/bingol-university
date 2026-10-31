@@ -1,3135 +1,4675 @@
 {
- "version": 1,
+ "version": 2,
  "faculties": [
   {
    "id": "muhendislik",
    "name": "Mühendislik Fakültesi",
+   "nameEn": "Faculty of Engineering",
+   "nameAr": "كلية الهندسة",
    "departments": [
     {
      "id": "bilgisayar-muhendisligi",
-     "name": "Bilgisayar Mühendisliği"
+     "name": "Bilgisayar Mühendisliği",
+     "nameEn": "Computer Engineering",
+     "nameAr": "هندسة الحاسوب"
     },
     {
      "id": "elektrik-elektronik-muhendisligi",
-     "name": "Elektrik-Elektronik Mühendisliği"
+     "name": "Elektrik-Elektronik Mühendisliği",
+     "nameEn": "Electrical and Electronics Engineering",
+     "nameAr": "هندسة الكهرباء والإلكترونيات"
     },
     {
      "id": "elektrik-muhendisligi",
-     "name": "Elektrik Mühendisliği"
+     "name": "Elektrik Mühendisliği",
+     "nameEn": "Electrical Engineering",
+     "nameAr": "هندسة الكهرباء"
     },
     {
      "id": "elektronik-ve-haberlesme-muhendisligi",
-     "name": "Elektronik ve Haberleşme Mühendisliği"
+     "name": "Elektronik ve Haberleşme Mühendisliği",
+     "nameEn": "Electronics and Communication Engineering",
+     "nameAr": "هندسة الإلكترونيات والاتصالات"
     },
     {
      "id": "makine-muhendisligi",
-     "name": "Makine Mühendisliği"
+     "name": "Makine Mühendisliği",
+     "nameEn": "Mechanical Engineering",
+     "nameAr": "هندسة الميكانيك"
     },
     {
      "id": "insaat-muhendisligi",
-     "name": "İnşaat Mühendisliği"
+     "name": "İnşaat Mühendisliği",
+     "nameEn": "Civil Engineering",
+     "nameAr": "هندسة المدنية"
     },
     {
      "id": "endustri-muhendisligi",
-     "name": "Endüstri Mühendisliği"
+     "name": "Endüstri Mühendisliği",
+     "nameEn": "Industrial Engineering",
+     "nameAr": "هندسة الصناعة"
     },
     {
      "id": "yazilim-muhendisligi",
-     "name": "Yazılım Mühendisliği"
+     "name": "Yazılım Mühendisliği",
+     "nameEn": "Software Engineering",
+     "nameAr": "هندسة البرمجيات"
     },
     {
      "id": "kimya-muhendisligi",
-     "name": "Kimya Mühendisliği"
+     "name": "Kimya Mühendisliği",
+     "nameEn": "Chemical Engineering",
+     "nameAr": "هندسة الكيمياء"
     },
     {
      "id": "gida-muhendisligi",
-     "name": "Gıda Mühendisliği"
+     "name": "Gıda Mühendisliği",
+     "nameEn": "Food Engineering",
+     "nameAr": "هندسة الأغذية"
     },
     {
      "id": "cevre-muhendisligi",
-     "name": "Çevre Mühendisliği"
+     "name": "Çevre Mühendisliği",
+     "nameEn": "Environmental Engineering",
+     "nameAr": "هندسة البيئة"
     },
     {
      "id": "jeoloji-muhendisligi",
-     "name": "Jeoloji Mühendisliği"
+     "name": "Jeoloji Mühendisliği",
+     "nameEn": "Geological Engineering",
+     "nameAr": "هندسة الجيولوجيا"
     },
     {
      "id": "harita-muhendisligi",
-     "name": "Harita Mühendisliği"
+     "name": "Harita Mühendisliği",
+     "nameEn": "Geomatics Engineering",
+     "nameAr": "هندسة المساحة والخرائط"
     },
     {
      "id": "maden-muhendisligi",
-     "name": "Maden Mühendisliği"
+     "name": "Maden Mühendisliği",
+     "nameEn": "Mining Engineering",
+     "nameAr": "هندسة التعدين"
     },
     {
      "id": "metalurji-ve-malzeme-muhendisligi",
-     "name": "Metalurji ve Malzeme Mühendisliği"
+     "name": "Metalurji ve Malzeme Mühendisliği",
+     "nameEn": "Metallurgical and Materials Engineering",
+     "nameAr": "هندسة المعادن والمواد"
     },
     {
      "id": "malzeme-bilimi-ve-muhendisligi",
-     "name": "Malzeme Bilimi ve Mühendisliği"
+     "name": "Malzeme Bilimi ve Mühendisliği",
+     "nameEn": "Materials Science and Engineering",
+     "nameAr": "علوم المواد وهندستها"
     },
     {
      "id": "biyomedikal-muhendisligi",
-     "name": "Biyomedikal Mühendisliği"
+     "name": "Biyomedikal Mühendisliği",
+     "nameEn": "Biomedical Engineering",
+     "nameAr": "هندسة الطب الحيوي"
     },
     {
      "id": "mekatronik-muhendisligi",
-     "name": "Mekatronik Mühendisliği"
+     "name": "Mekatronik Mühendisliği",
+     "nameEn": "Mechatronics Engineering",
+     "nameAr": "هندسة الميكاترونيكس"
     },
     {
      "id": "yapay-zeka-muhendisligi",
-     "name": "Yapay Zeka Mühendisliği"
+     "name": "Yapay Zeka Mühendisliği",
+     "nameEn": "Artificial Intelligence Engineering",
+     "nameAr": "هندسة الذكاء الاصطناعي"
     },
     {
      "id": "yapay-zeka-ve-veri-muhendisligi",
-     "name": "Yapay Zeka ve Veri Mühendisliği"
+     "name": "Yapay Zeka ve Veri Mühendisliği",
+     "nameEn": "Artificial Intelligence and Data Engineering",
+     "nameAr": "هندسة الذكاء الاصطناعي والبيانات"
     },
     {
      "id": "veri-muhendisligi",
-     "name": "Veri Mühendisliği"
+     "name": "Veri Mühendisliği",
+     "nameEn": "Data Engineering",
+     "nameAr": "هندسة البيانات"
     },
     {
      "id": "enerji-sistemleri-muhendisligi",
-     "name": "Enerji Sistemleri Mühendisliği"
+     "name": "Enerji Sistemleri Mühendisliği",
+     "nameEn": "Energy Systems Engineering",
+     "nameAr": "هندسة نظم الطاقة"
     },
     {
      "id": "havacilik-ve-uzay-muhendisligi",
-     "name": "Havacılık ve Uzay Mühendisliği"
+     "name": "Havacılık ve Uzay Mühendisliği",
+     "nameEn": "Aerospace Engineering",
+     "nameAr": "هندسة الطيران والفضاء"
     },
     {
      "id": "ucak-muhendisligi",
-     "name": "Uçak Mühendisliği"
+     "name": "Uçak Mühendisliği",
+     "nameEn": "Aircraft Engineering",
+     "nameAr": "هندسة الطائرات"
     },
     {
      "id": "uzay-muhendisligi",
-     "name": "Uzay Mühendisliği"
+     "name": "Uzay Mühendisliği",
+     "nameEn": "Space Engineering",
+     "nameAr": "هندسة الفضاء"
     },
     {
      "id": "gemi-insaati-ve-gemi-makineleri-muhendisligi",
-     "name": "Gemi İnşaatı ve Gemi Makineleri Mühendisliği"
+     "name": "Gemi İnşaatı ve Gemi Makineleri Mühendisliği",
+     "nameEn": "Naval Architecture and Marine Engineering",
+     "nameAr": "هندسة بناء السفن وآلاتها"
     },
     {
      "id": "gemi-ve-deniz-teknolojisi-muhendisligi",
-     "name": "Gemi ve Deniz Teknolojisi Mühendisliği"
+     "name": "Gemi ve Deniz Teknolojisi Mühendisliği",
+     "nameEn": "Ship and Marine Technology Engineering",
+     "nameAr": "هندسة تقنية السفن والبحار"
     },
     {
      "id": "tekstil-muhendisligi",
-     "name": "Tekstil Mühendisliği"
+     "name": "Tekstil Mühendisliği",
+     "nameEn": "Textile Engineering",
+     "nameAr": "هندسة النسيج"
     },
     {
      "id": "petrol-ve-dogal-gaz-muhendisligi",
-     "name": "Petrol ve Doğal Gaz Mühendisliği"
+     "name": "Petrol ve Doğal Gaz Mühendisliği",
+     "nameEn": "Petroleum and Natural Gas Engineering",
+     "nameAr": "هندسة النفط والغاز الطبيعي"
     },
     {
      "id": "jeofizik-muhendisligi",
-     "name": "Jeofizik Mühendisliği"
+     "name": "Jeofizik Mühendisliği",
+     "nameEn": "Geophysical Engineering",
+     "nameAr": "هندسة الجيوفيزياء"
     },
     {
      "id": "otomotiv-muhendisligi",
-     "name": "Otomotiv Mühendisliği"
+     "name": "Otomotiv Mühendisliği",
+     "nameEn": "Automotive Engineering",
+     "nameAr": "هندسة السيارات"
     },
     {
      "id": "optik-muhendisligi",
-     "name": "Optik Mühendisliği"
+     "name": "Optik Mühendisliği",
+     "nameEn": "Optical Engineering",
+     "nameAr": "هندسة البصريات"
     },
     {
      "id": "nukleer-enerji-muhendisligi",
-     "name": "Nükleer Enerji Mühendisliği"
+     "name": "Nükleer Enerji Mühendisliği",
+     "nameEn": "Nuclear Energy Engineering",
+     "nameAr": "هندسة الطاقة النووية"
     },
     {
      "id": "biyomuhendislik",
-     "name": "Biyomühendislik"
+     "name": "Biyomühendislik",
+     "nameEn": "Bioengineering",
+     "nameAr": "الهندسة الحيوية"
     },
     {
      "id": "genetik-ve-biyomuhendislik",
-     "name": "Genetik ve Biyomühendislik"
+     "name": "Genetik ve Biyomühendislik",
+     "nameEn": "Genetics and Bioengineering",
+     "nameAr": "الوراثة والهندسة الحيوية"
     },
     {
      "id": "molekuler-biyoloji-ve-genetik-muhendisligi",
-     "name": "Moleküler Biyoloji ve Genetik Mühendisliği"
+     "name": "Moleküler Biyoloji ve Genetik Mühendisliği",
+     "nameEn": "Molecular Biology and Genetic Engineering",
+     "nameAr": "البيولوجيا الجزيئية والهندسة الوراثية"
     },
     {
      "id": "orman-muhendisligi",
-     "name": "Orman Mühendisliği"
+     "name": "Orman Mühendisliği",
+     "nameEn": "Forest Engineering",
+     "nameAr": "هندسة الغابات"
     },
     {
      "id": "orman-endustri-muhendisligi",
-     "name": "Orman Endüstri Mühendisliği"
+     "name": "Orman Endüstri Mühendisliği",
+     "nameEn": "Forest Industrial Engineering",
+     "nameAr": "هندسة الصناعات الحرجية"
     },
     {
      "id": "ziraat-muhendisligi",
-     "name": "Ziraat Mühendisliği"
+     "name": "Ziraat Mühendisliği",
+     "nameEn": "Agricultural Engineering",
+     "nameAr": "هندسة الزراعة"
     },
     {
      "id": "tarim-makineleri-muhendisligi",
-     "name": "Tarım Makineleri Mühendisliği"
+     "name": "Tarım Makineleri Mühendisliği",
+     "nameEn": "Agricultural Machinery Engineering",
+     "nameAr": "هندسة الآلات الزراعية"
     },
     {
      "id": "peyzaj-muhendisligi",
-     "name": "Peyzaj Mühendisliği"
+     "name": "Peyzaj Mühendisliği",
+     "nameEn": "Landscape Engineering",
+     "nameAr": "هندسة المناظر الطبيعية"
     },
     {
      "id": "polimer-muhendisligi",
-     "name": "Polimer Mühendisliği"
+     "name": "Polimer Mühendisliği",
+     "nameEn": "Polymer Engineering",
+     "nameAr": "هندسة البوليمر"
     },
     {
      "id": "seramik-muhendisligi",
-     "name": "Seramik Mühendisliği"
+     "name": "Seramik Mühendisliği",
+     "nameEn": "Ceramic Engineering",
+     "nameAr": "هندسة السيراميك"
     },
     {
      "id": "kontrol-ve-otomasyon-muhendisligi",
-     "name": "Kontrol ve Otomasyon Mühendisliği"
+     "name": "Kontrol ve Otomasyon Mühendisliği",
+     "nameEn": "Control and Automation Engineering",
+     "nameAr": "هندسة التحكم والأتمتة"
     },
     {
      "id": "telekomunikasyon-muhendisligi",
-     "name": "Telekomünikasyon Mühendisliği"
+     "name": "Telekomünikasyon Mühendisliği",
+     "nameEn": "Telecommunications Engineering",
+     "nameAr": "هندسة الاتصالات"
     },
     {
      "id": "bilisim-sistemleri-muhendisligi",
-     "name": "Bilişim Sistemleri Mühendisliği"
+     "name": "Bilişim Sistemleri Mühendisliği",
+     "nameEn": "Information Systems Engineering",
+     "nameAr": "هندسة نظم المعلومات"
     },
     {
      "id": "siber-guvenlik-muhendisligi",
-     "name": "Siber Güvenlik Mühendisliği"
+     "name": "Siber Güvenlik Mühendisliği",
+     "nameEn": "Cybersecurity Engineering",
+     "nameAr": "هندسة الأمن السيبراني"
     },
     {
      "id": "robotik-ve-yapay-zeka-muhendisligi",
-     "name": "Robotik ve Yapay Zeka Mühendisliği"
+     "name": "Robotik ve Yapay Zeka Mühendisliği",
+     "nameEn": "Robotics and Artificial Intelligence Engineering",
+     "nameAr": "هندسة الروبوتات والذكاء الاصطناعي"
     },
     {
      "id": "yonetim-bilisim-sistemleri",
-     "name": "Yönetim Bilişim Sistemleri"
+     "name": "Yönetim Bilişim Sistemleri",
+     "nameEn": "Management Information Systems",
+     "nameAr": "نظم المعلومات الإدارية"
     },
     {
      "id": "su-kaynaklari-muhendisligi",
-     "name": "Su Kaynakları Mühendisliği"
+     "name": "Su Kaynakları Mühendisliği",
+     "nameEn": "Water Resources Engineering",
+     "nameAr": "هندسة الموارد المائية"
     },
     {
      "id": "jeodezi-ve-fotogrametri-muhendisligi",
-     "name": "Jeodezi ve Fotogrametri Mühendisliği"
+     "name": "Jeodezi ve Fotogrametri Mühendisliği",
+     "nameEn": "Geodesy and Photogrammetry Engineering",
+     "nameAr": "هندسة الجيوديسيا والمساحة التصويرية"
     },
     {
      "id": "cevre-ve-doga-muhendisligi",
-     "name": "Çevre ve Doğa Mühendisliği"
+     "name": "Çevre ve Doğa Mühendisliği",
+     "nameEn": "Environmental and Nature Engineering",
+     "nameAr": "هندسة البيئة والطبيعة"
     },
     {
      "id": "muhendislik-fizigi",
-     "name": "Mühendislik Fiziği"
+     "name": "Mühendislik Fiziği",
+     "nameEn": "Engineering Physics",
+     "nameAr": "الفيزياء الهندسية"
     },
     {
      "id": "fizik-muhendisligi",
-     "name": "Fizik Mühendisliği"
+     "name": "Fizik Mühendisliği",
+     "nameEn": "Physics Engineering",
+     "nameAr": "هندسة الفيزياء"
     },
     {
      "id": "kimya-ve-surec-muhendisligi",
-     "name": "Kimya ve Süreç Mühendisliği"
+     "name": "Kimya ve Süreç Mühendisliği",
+     "nameEn": "Chemical and Process Engineering",
+     "nameAr": "هندسة الكيمياء والعمليات"
     },
     {
      "id": "savunma-teknolojileri-muhendisligi",
-     "name": "Savunma Teknolojileri Mühendisliği"
+     "name": "Savunma Teknolojileri Mühendisliği",
+     "nameEn": "Defense Technologies Engineering",
+     "nameAr": "هندسة التقنيات الدفاعية"
     },
     {
      "id": "rayli-sistemler-muhendisligi",
-     "name": "Raylı Sistemler Mühendisliği"
+     "name": "Raylı Sistemler Mühendisliği",
+     "nameEn": "Rail Systems Engineering",
+     "nameAr": "هندسة أنظمة السكك الحديدية"
     },
     {
      "id": "mimari-muhendislik",
-     "name": "Mimari Mühendislik"
+     "name": "Mimari Mühendislik",
+     "nameEn": "Architectural Engineering",
+     "nameAr": "الهندسة المعمارية"
     },
     {
      "id": "deniz-ulastirma-muhendisligi",
-     "name": "Deniz Ulaştırma Mühendisliği"
+     "name": "Deniz Ulaştırma Mühendisliği",
+     "nameEn": "Maritime Transportation Engineering",
+     "nameAr": "هندسة النقل البحري"
     },
     {
      "id": "biyosistem-muhendisligi",
-     "name": "Biyosistem Mühendisliği"
+     "name": "Biyosistem Mühendisliği",
+     "nameEn": "Biosystems Engineering",
+     "nameAr": "هندسة النظم الحيوية"
     },
     {
      "id": "gida-teknolojisi-muhendisligi",
-     "name": "Gıda Teknolojisi Mühendisliği"
+     "name": "Gıda Teknolojisi Mühendisliği",
+     "nameEn": "Food Technology Engineering",
+     "nameAr": "هندسة تقنية الأغذية"
     }
    ]
   },
   {
    "id": "fen-edebiyat",
    "name": "Fen-Edebiyat Fakültesi",
+   "nameEn": "Faculty of Arts and Sciences",
+   "nameAr": "كلية العلوم والآداب",
    "departments": [
     {
      "id": "matematik",
-     "name": "Matematik"
+     "name": "Matematik",
+     "nameEn": "Mathematics",
+     "nameAr": "الرياضيات"
     },
     {
      "id": "fizik",
-     "name": "Fizik"
+     "name": "Fizik",
+     "nameEn": "Physics",
+     "nameAr": "الفيزياء"
     },
     {
      "id": "kimya",
-     "name": "Kimya"
+     "name": "Kimya",
+     "nameEn": "Chemistry",
+     "nameAr": "الكيمياء"
     },
     {
      "id": "biyoloji",
-     "name": "Biyoloji"
+     "name": "Biyoloji",
+     "nameEn": "Biology",
+     "nameAr": "علم الأحياء"
     },
     {
      "id": "molekuler-biyoloji-ve-genetik",
-     "name": "Moleküler Biyoloji ve Genetik"
+     "name": "Moleküler Biyoloji ve Genetik",
+     "nameEn": "Molecular Biology and Genetics",
+     "nameAr": "البيولوجيا الجزيئية والوراثة"
     },
     {
      "id": "istatistik",
-     "name": "İstatistik"
+     "name": "İstatistik",
+     "nameEn": "Statistics",
+     "nameAr": "الإحصاء"
     },
     {
      "id": "matematik-ve-bilgisayar-bilimleri",
-     "name": "Matematik ve Bilgisayar Bilimleri"
+     "name": "Matematik ve Bilgisayar Bilimleri",
+     "nameEn": "Mathematics and Computer Sciences",
+     "nameAr": "الرياضيات وعلوم الحاسوب"
     },
     {
      "id": "biyokimya",
-     "name": "Biyokimya"
+     "name": "Biyokimya",
+     "nameEn": "Biochemistry",
+     "nameAr": "الكيمياء الحيوية"
     },
     {
      "id": "astronomi-ve-uzay-bilimleri",
-     "name": "Astronomi ve Uzay Bilimleri"
+     "name": "Astronomi ve Uzay Bilimleri",
+     "nameEn": "Astronomy and Space Sciences",
+     "nameAr": "علم الفلك وعلوم الفضاء"
     },
     {
      "id": "aktuerya-bilimleri",
-     "name": "Aktüerya Bilimleri"
+     "name": "Aktüerya Bilimleri",
+     "nameEn": "Actuarial Sciences",
+     "nameAr": "العلوم الاكتوارية"
     },
     {
      "id": "turk-dili-ve-edebiyati",
-     "name": "Türk Dili ve Edebiyatı"
+     "name": "Türk Dili ve Edebiyatı",
+     "nameEn": "Turkish Language and Literature",
+     "nameAr": "اللغة التركية وآدابها"
     },
     {
      "id": "turkce-ve-sosyal-bilimler",
-     "name": "Türkçe ve Sosyal Bilimler"
+     "name": "Türkçe ve Sosyal Bilimler",
+     "nameEn": "Turkish and Social Sciences",
+     "nameAr": "اللغة التركية والعلوم الاجتماعية"
     },
     {
      "id": "tarih",
-     "name": "Tarih"
+     "name": "Tarih",
+     "nameEn": "History",
+     "nameAr": "التاريخ"
     },
     {
      "id": "cografya",
-     "name": "Coğrafya"
+     "name": "Coğrafya",
+     "nameEn": "Geography",
+     "nameAr": "الجغرافيا"
     },
     {
      "id": "felsefe",
-     "name": "Felsefe"
+     "name": "Felsefe",
+     "nameEn": "Philosophy",
+     "nameAr": "الفلسفة"
     },
     {
      "id": "sosyoloji",
-     "name": "Sosyoloji"
+     "name": "Sosyoloji",
+     "nameEn": "Sociology",
+     "nameAr": "علم الاجتماع"
     },
     {
      "id": "psikoloji",
-     "name": "Psikoloji"
+     "name": "Psikoloji",
+     "nameEn": "Psychology",
+     "nameAr": "علم النفس"
     },
     {
      "id": "arkeoloji",
-     "name": "Arkeoloji"
+     "name": "Arkeoloji",
+     "nameEn": "Archaeology",
+     "nameAr": "علم الآثار"
     },
     {
      "id": "sanat-tarihi",
-     "name": "Sanat Tarihi"
+     "name": "Sanat Tarihi",
+     "nameEn": "Art History",
+     "nameAr": "تاريخ الفن"
     },
     {
      "id": "antropoloji",
-     "name": "Antropoloji"
+     "name": "Antropoloji",
+     "nameEn": "Anthropology",
+     "nameAr": "الأنثروبولوجيا"
     },
     {
      "id": "bilgi-ve-belge-yonetimi",
-     "name": "Bilgi ve Belge Yönetimi"
+     "name": "Bilgi ve Belge Yönetimi",
+     "nameEn": "Information and Records Management",
+     "nameAr": "إدارة المعلومات والوثائق"
     },
     {
      "id": "eskicag-dilleri-ve-kulturleri",
-     "name": "Eskiçağ Dilleri ve Kültürleri"
+     "name": "Eskiçağ Dilleri ve Kültürleri",
+     "nameEn": "Ancient Languages and Cultures",
+     "nameAr": "لغات العصور القديمة وثقافاتها"
     },
     {
      "id": "egitim-bilimleri",
-     "name": "Eğitim Bilimleri"
+     "name": "Eğitim Bilimleri",
+     "nameEn": "Educational Sciences",
+     "nameAr": "العلوم التربوية"
     },
     {
      "id": "ingiliz-dili-ve-edebiyati",
-     "name": "İngiliz Dili ve Edebiyatı"
+     "name": "İngiliz Dili ve Edebiyatı",
+     "nameEn": "English Language and Literature",
+     "nameAr": "اللغة الإنجليزية وآدابها"
     },
     {
      "id": "alman-dili-ve-edebiyati",
-     "name": "Alman Dili ve Edebiyatı"
+     "name": "Alman Dili ve Edebiyatı",
+     "nameEn": "German Language and Literature",
+     "nameAr": "اللغة الألمانية وآدابها"
     },
     {
      "id": "fransiz-dili-ve-edebiyati",
-     "name": "Fransız Dili ve Edebiyatı"
+     "name": "Fransız Dili ve Edebiyatı",
+     "nameEn": "French Language and Literature",
+     "nameAr": "اللغة الفرنسية وآدابها"
     },
     {
      "id": "rus-dili-ve-edebiyati",
-     "name": "Rus Dili ve Edebiyatı"
+     "name": "Rus Dili ve Edebiyatı",
+     "nameEn": "Russian Language and Literature",
+     "nameAr": "اللغة الروسية وآدابها"
     },
     {
      "id": "arap-dili-ve-edebiyati",
-     "name": "Arap Dili ve Edebiyatı"
+     "name": "Arap Dili ve Edebiyatı",
+     "nameEn": "Arabic Language and Literature",
+     "nameAr": "اللغة العربية وآدابها"
     },
     {
      "id": "japon-dili-ve-edebiyati",
-     "name": "Japon Dili ve Edebiyatı"
+     "name": "Japon Dili ve Edebiyatı",
+     "nameEn": "Japanese Language and Literature",
+     "nameAr": "اللغة اليابانية وآدابها"
     },
     {
      "id": "cin-dili-ve-edebiyati",
-     "name": "Çin Dili ve Edebiyatı"
+     "name": "Çin Dili ve Edebiyatı",
+     "nameEn": "Chinese Language and Literature",
+     "nameAr": "اللغة الصينية وآدابها"
     },
     {
      "id": "ispanyol-dili-ve-edebiyati",
-     "name": "İspanyol Dili ve Edebiyatı"
+     "name": "İspanyol Dili ve Edebiyatı",
+     "nameEn": "Spanish Language and Literature",
+     "nameAr": "اللغة الإسبانية وآدابها"
     },
     {
      "id": "italyan-dili-ve-edebiyati",
-     "name": "İtalyan Dili ve Edebiyatı"
+     "name": "İtalyan Dili ve Edebiyatı",
+     "nameEn": "Italian Language and Literature",
+     "nameAr": "اللغة الإيطالية وآدابها"
     },
     {
      "id": "kore-dili-ve-edebiyati",
-     "name": "Kore Dili ve Edebiyatı"
+     "name": "Kore Dili ve Edebiyatı",
+     "nameEn": "Korean Language and Literature",
+     "nameAr": "اللغة الكورية وآدابها"
     },
     {
      "id": "fars-dili-ve-edebiyati",
-     "name": "Fars Dili ve Edebiyatı"
+     "name": "Fars Dili ve Edebiyatı",
+     "nameEn": "Persian Language and Literature",
+     "nameAr": "اللغة الفارسية وآدابها"
     },
     {
      "id": "mutercim-tercumanlik",
-     "name": "Mütercim-Tercümanlık"
+     "name": "Mütercim-Tercümanlık",
+     "nameEn": "Translation and Interpreting",
+     "nameAr": "الترجمة التحريرية والفورية"
     },
     {
      "id": "ingilizce-mutercim-ve-tercumanlik",
-     "name": "İngilizce Mütercim ve Tercümanlık"
+     "name": "İngilizce Mütercim ve Tercümanlık",
+     "nameEn": "English Translation and Interpreting",
+     "nameAr": "الترجمة التحريرية والفورية (الإنجليزية)"
     },
     {
      "id": "almanca-mutercim-ve-tercumanlik",
-     "name": "Almanca Mütercim ve Tercümanlık"
+     "name": "Almanca Mütercim ve Tercümanlık",
+     "nameEn": "German Translation and Interpreting",
+     "nameAr": "الترجمة التحريرية والفورية (الألمانية)"
     },
     {
      "id": "fransizca-mutercim-ve-tercumanlik",
-     "name": "Fransızca Mütercim ve Tercümanlık"
+     "name": "Fransızca Mütercim ve Tercümanlık",
+     "nameEn": "French Translation and Interpreting",
+     "nameAr": "الترجمة التحريرية والفورية (الفرنسية)"
     },
     {
      "id": "rusca-mutercim-ve-tercumanlik",
-     "name": "Rusça Mütercim ve Tercümanlık"
+     "name": "Rusça Mütercim ve Tercümanlık",
+     "nameEn": "Russian Translation and Interpreting",
+     "nameAr": "الترجمة التحريرية والفورية (الروسية)"
     },
     {
      "id": "arapca-mutercim-ve-tercumanlik",
-     "name": "Arapça Mütercim ve Tercümanlık"
+     "name": "Arapça Mütercim ve Tercümanlık",
+     "nameEn": "Arabic Translation and Interpreting",
+     "nameAr": "الترجمة التحريرية والفورية (العربية)"
     },
     {
      "id": "dilbilimi",
-     "name": "Dilbilimi"
+     "name": "Dilbilimi",
+     "nameEn": "Linguistics",
+     "nameAr": "علم اللغة"
     },
     {
      "id": "karsilastirmali-edebiyat",
-     "name": "Karşılaştırmalı Edebiyat"
+     "name": "Karşılaştırmalı Edebiyat",
+     "nameEn": "Comparative Literature",
+     "nameAr": "الأدب المقارن"
     },
     {
      "id": "halk-bilimi",
-     "name": "Halk Bilimi"
+     "name": "Halk Bilimi",
+     "nameEn": "Folklore",
+     "nameAr": "الفولكلور"
     },
     {
      "id": "cagdas-turk-lehceleri-ve-edebiyatlari",
-     "name": "Çağdaş Türk Lehçeleri ve Edebiyatları"
+     "name": "Çağdaş Türk Lehçeleri ve Edebiyatları",
+     "nameEn": "Contemporary Turkic Dialects and Literatures",
+     "nameAr": "اللهجات التركية المعاصرة وآدابها"
     },
     {
      "id": "dogu-dilleri-ve-edebiyatlari",
-     "name": "Doğu Dilleri ve Edebiyatları"
+     "name": "Doğu Dilleri ve Edebiyatları",
+     "nameEn": "Oriental Languages and Literatures",
+     "nameAr": "اللغات الشرقية وآدابها"
     },
     {
      "id": "kurt-dili-ve-edebiyati",
-     "name": "Kürt Dili ve Edebiyatı"
+     "name": "Kürt Dili ve Edebiyatı",
+     "nameEn": "Kurdish Language and Literature",
+     "nameAr": "اللغة الكردية وآدابها"
     },
     {
      "id": "sosyal-hizmet",
-     "name": "Sosyal Hizmet"
+     "name": "Sosyal Hizmet",
+     "nameEn": "Social Work",
+     "nameAr": "الخدمة الاجتماعية"
     },
     {
      "id": "tarih-ve-kultur-calismalari",
-     "name": "Tarih ve Kültür Çalışmaları"
+     "name": "Tarih ve Kültür Çalışmaları",
+     "nameEn": "History and Cultural Studies",
+     "nameAr": "التاريخ والدراسات الثقافية"
     },
     {
      "id": "biyoteknoloji",
-     "name": "Biyoteknoloji"
+     "name": "Biyoteknoloji",
+     "nameEn": "Biotechnology",
+     "nameAr": "التقانة الحيوية"
     },
     {
      "id": "jeoloji",
-     "name": "Jeoloji"
+     "name": "Jeoloji",
+     "nameEn": "Geology",
+     "nameAr": "الجيولوجيا"
     },
     {
      "id": "cevre-bilimleri",
-     "name": "Çevre Bilimleri"
+     "name": "Çevre Bilimleri",
+     "nameEn": "Environmental Sciences",
+     "nameAr": "العلوم البيئية"
     },
     {
      "id": "molekuler-biyoloji",
-     "name": "Moleküler Biyoloji"
+     "name": "Moleküler Biyoloji",
+     "nameEn": "Molecular Biology",
+     "nameAr": "البيولوجيا الجزيئية"
     },
     {
      "id": "bitki-koruma",
-     "name": "Bitki Koruma"
+     "name": "Bitki Koruma",
+     "nameEn": "Plant Protection",
+     "nameAr": "وقاية النبات"
     },
     {
      "id": "yonetim-bilisim-sistemleri",
-     "name": "Yönetim Bilişim Sistemleri"
+     "name": "Yönetim Bilişim Sistemleri",
+     "nameEn": "Management Information Systems",
+     "nameAr": "نظم المعلومات الإدارية"
     },
     {
      "id": "bilgisayar-bilimleri",
-     "name": "Bilgisayar Bilimleri"
+     "name": "Bilgisayar Bilimleri",
+     "nameEn": "Computer Science",
+     "nameAr": "علوم الحاسوب"
     },
     {
      "id": "veri-bilimi-ve-analitigi",
-     "name": "Veri Bilimi ve Analitiği"
+     "name": "Veri Bilimi ve Analitiği",
+     "nameEn": "Data Science and Analytics",
+     "nameAr": "علم البيانات والتحليلات"
     }
    ]
   },
   {
    "id": "iibf",
    "name": "İktisadi ve İdari Bilimler Fakültesi",
+   "nameEn": "Faculty of Economics and Administrative Sciences",
+   "nameAr": "كلية العلوم الاقتصادية والإدارية",
    "departments": [
     {
      "id": "isletme",
-     "name": "İşletme"
+     "name": "İşletme",
+     "nameEn": "Business Administration",
+     "nameAr": "إدارة الأعمال"
     },
     {
      "id": "iktisat",
-     "name": "İktisat"
+     "name": "İktisat",
+     "nameEn": "Economics",
+     "nameAr": "الاقتصاد"
     },
     {
      "id": "maliye",
-     "name": "Maliye"
+     "name": "Maliye",
+     "nameEn": "Public Finance",
+     "nameAr": "المالية العامة"
     },
     {
      "id": "calisma-ekonomisi-ve-endustri-iliskileri",
-     "name": "Çalışma Ekonomisi ve Endüstri İlişkileri"
+     "name": "Çalışma Ekonomisi ve Endüstri İlişkileri",
+     "nameEn": "Labor Economics and Industrial Relations",
+     "nameAr": "اقتصاد العمل والعلاقات الصناعية"
     },
     {
      "id": "siyaset-bilimi-ve-kamu-yonetimi",
-     "name": "Siyaset Bilimi ve Kamu Yönetimi"
+     "name": "Siyaset Bilimi ve Kamu Yönetimi",
+     "nameEn": "Political Science and Public Administration",
+     "nameAr": "العلوم السياسية والإدارة العامة"
     },
     {
      "id": "uluslararasi-iliskiler",
-     "name": "Uluslararası İlişkiler"
+     "name": "Uluslararası İlişkiler",
+     "nameEn": "International Relations",
+     "nameAr": "العلاقات الدولية"
     },
     {
      "id": "ekonometri",
-     "name": "Ekonometri"
+     "name": "Ekonometri",
+     "nameEn": "Econometrics",
+     "nameAr": "الاقتصاد القياسي"
     },
     {
      "id": "bankacilik-ve-finans",
-     "name": "Bankacılık ve Finans"
+     "name": "Bankacılık ve Finans",
+     "nameEn": "Banking and Finance",
+     "nameAr": "المصارف والتمويل"
     },
     {
      "id": "uluslararasi-ticaret-ve-finansman",
-     "name": "Uluslararası Ticaret ve Finansman"
+     "name": "Uluslararası Ticaret ve Finansman",
+     "nameEn": "International Trade and Financing",
+     "nameAr": "التجارة الدولية والتمويل"
     },
     {
      "id": "uluslararasi-ticaret-ve-lojistik",
-     "name": "Uluslararası Ticaret ve Lojistik"
+     "name": "Uluslararası Ticaret ve Lojistik",
+     "nameEn": "International Trade and Logistics",
+     "nameAr": "التجارة الدولية واللوجستيات"
     },
     {
      "id": "uluslararasi-girisimcilik",
-     "name": "Uluslararası Girişimcilik"
+     "name": "Uluslararası Girişimcilik",
+     "nameEn": "International Entrepreneurship",
+     "nameAr": "ريادة الأعمال الدولية"
     },
     {
      "id": "yonetim-bilisim-sistemleri",
-     "name": "Yönetim Bilişim Sistemleri"
+     "name": "Yönetim Bilişim Sistemleri",
+     "nameEn": "Management Information Systems",
+     "nameAr": "نظم المعلومات الإدارية"
     },
     {
      "id": "kamu-yonetimi",
-     "name": "Kamu Yönetimi"
+     "name": "Kamu Yönetimi",
+     "nameEn": "Public Administration",
+     "nameAr": "الإدارة العامة"
     },
     {
      "id": "siyaset-bilimi",
-     "name": "Siyaset Bilimi"
+     "name": "Siyaset Bilimi",
+     "nameEn": "Political Science",
+     "nameAr": "العلوم السياسية"
     },
     {
      "id": "saglik-yonetimi",
-     "name": "Sağlık Yönetimi"
+     "name": "Sağlık Yönetimi",
+     "nameEn": "Health Management",
+     "nameAr": "الإدارة الصحية"
     },
     {
      "id": "sigortacilik-ve-aktuerya-bilimleri",
-     "name": "Sigortacılık ve Aktüerya Bilimleri"
+     "name": "Sigortacılık ve Aktüerya Bilimleri",
+     "nameEn": "Insurance and Actuarial Sciences",
+     "nameAr": "التأمين والعلوم الاكتوارية"
     },
     {
      "id": "muhasebe-ve-finans-yonetimi",
-     "name": "Muhasebe ve Finans Yönetimi"
+     "name": "Muhasebe ve Finans Yönetimi",
+     "nameEn": "Accounting and Finance Management",
+     "nameAr": "المحاسبة والإدارة المالية"
     },
     {
      "id": "sosyal-hizmet",
-     "name": "Sosyal Hizmet"
+     "name": "Sosyal Hizmet",
+     "nameEn": "Social Work",
+     "nameAr": "الخدمة الاجتماعية"
     },
     {
      "id": "calisma-ekonomisi",
-     "name": "Çalışma Ekonomisi"
+     "name": "Çalışma Ekonomisi",
+     "nameEn": "Labor Economics",
+     "nameAr": "اقتصاد العمل"
     },
     {
      "id": "lojistik-yonetimi",
-     "name": "Lojistik Yönetimi"
+     "name": "Lojistik Yönetimi",
+     "nameEn": "Logistics Management",
+     "nameAr": "إدارة اللوجستيات"
     },
     {
      "id": "turizm-isletmeciligi",
-     "name": "Turizm İşletmeciliği"
+     "name": "Turizm İşletmeciliği",
+     "nameEn": "Tourism Management",
+     "nameAr": "إدارة السياحة"
     },
     {
      "id": "uluslararasi-isletme",
-     "name": "Uluslararası İşletme"
+     "name": "Uluslararası İşletme",
+     "nameEn": "International Business",
+     "nameAr": "الأعمال الدولية"
     },
     {
      "id": "gumruk-isletme",
-     "name": "Gümrük İşletme"
+     "name": "Gümrük İşletme",
+     "nameEn": "Customs Management",
+     "nameAr": "إدارة الجمارك"
     },
     {
      "id": "havacilik-yonetimi",
-     "name": "Havacılık Yönetimi"
+     "name": "Havacılık Yönetimi",
+     "nameEn": "Aviation Management",
+     "nameAr": "إدارة الطيران"
     },
     {
      "id": "ekonomi-ve-finans",
-     "name": "Ekonomi ve Finans"
+     "name": "Ekonomi ve Finans",
+     "nameEn": "Economics and Finance",
+     "nameAr": "الاقتصاد والمالية"
     },
     {
      "id": "finans-ve-bankacilik",
-     "name": "Finans ve Bankacılık"
+     "name": "Finans ve Bankacılık",
+     "nameEn": "Finance and Banking",
+     "nameAr": "المالية والمصارف"
     },
     {
      "id": "girisimcilik",
-     "name": "Girişimcilik"
+     "name": "Girişimcilik",
+     "nameEn": "Entrepreneurship",
+     "nameAr": "ريادة الأعمال"
     },
     {
      "id": "pazarlama",
-     "name": "Pazarlama"
+     "name": "Pazarlama",
+     "nameEn": "Marketing",
+     "nameAr": "التسويق"
     },
     {
      "id": "gayrimenkul-gelistirme-ve-yonetimi",
-     "name": "Gayrimenkul Geliştirme ve Yönetimi"
+     "name": "Gayrimenkul Geliştirme ve Yönetimi",
+     "nameEn": "Real Estate Development and Management",
+     "nameAr": "تطوير العقارات وإدارتها"
     },
     {
      "id": "siyaset-bilimi-ve-uluslararasi-iliskiler",
-     "name": "Siyaset Bilimi ve Uluslararası İlişkiler"
+     "name": "Siyaset Bilimi ve Uluslararası İlişkiler",
+     "nameEn": "Political Science and International Relations",
+     "nameAr": "العلوم السياسية والعلاقات الدولية"
     },
     {
      "id": "uluslararasi-ticaret",
-     "name": "Uluslararası Ticaret"
+     "name": "Uluslararası Ticaret",
+     "nameEn": "International Trade",
+     "nameAr": "التجارة الدولية"
     },
     {
      "id": "spor-yonetimi",
-     "name": "Spor Yönetimi"
+     "name": "Spor Yönetimi",
+     "nameEn": "Sports Management",
+     "nameAr": "إدارة الرياضة"
     }
    ]
   },
   {
    "id": "hukuk",
    "name": "Hukuk Fakültesi",
+   "nameEn": "Faculty of Law",
+   "nameAr": "كلية الحقوق",
    "departments": [
     {
      "id": "hukuk",
-     "name": "Hukuk"
+     "name": "Hukuk",
+     "nameEn": "Law",
+     "nameAr": "القانون"
     }
    ]
   },
   {
    "id": "tip",
    "name": "Tıp Fakültesi",
+   "nameEn": "Faculty of Medicine",
+   "nameAr": "كلية الطب",
    "departments": [
     {
      "id": "tip",
-     "name": "Tıp"
+     "name": "Tıp",
+     "nameEn": "Medicine",
+     "nameAr": "الطب"
     }
    ]
   },
   {
    "id": "dis-hekimligi",
    "name": "Diş Hekimliği Fakültesi",
+   "nameEn": "Faculty of Dentistry",
+   "nameAr": "كلية طب الأسنان",
    "departments": [
     {
      "id": "dis-hekimligi",
-     "name": "Diş Hekimliği"
+     "name": "Diş Hekimliği",
+     "nameEn": "Dentistry",
+     "nameAr": "طب الأسنان"
     }
    ]
   },
   {
    "id": "eczacilik",
    "name": "Eczacılık Fakültesi",
+   "nameEn": "Faculty of Pharmacy",
+   "nameAr": "كلية الصيدلة",
    "departments": [
     {
      "id": "eczacilik",
-     "name": "Eczacılık"
+     "name": "Eczacılık",
+     "nameEn": "Pharmacy",
+     "nameAr": "الصيدلة"
     }
    ]
   },
   {
    "id": "veteriner",
    "name": "Veteriner Fakültesi",
+   "nameEn": "Faculty of Veterinary Medicine",
+   "nameAr": "كلية الطب البيطري",
    "departments": [
     {
      "id": "veterinerlik",
-     "name": "Veterinerlik"
+     "name": "Veterinerlik",
+     "nameEn": "Veterinary Medicine",
+     "nameAr": "الطب البيطري"
     }
    ]
   },
   {
    "id": "saglik-bilimleri",
    "name": "Sağlık Bilimleri Fakültesi",
+   "nameEn": "Faculty of Health Sciences",
+   "nameAr": "كلية العلوم الصحية",
    "departments": [
     {
      "id": "hemsirelik",
-     "name": "Hemşirelik"
+     "name": "Hemşirelik",
+     "nameEn": "Nursing",
+     "nameAr": "التمريض"
     },
     {
      "id": "ebelik",
-     "name": "Ebelik"
+     "name": "Ebelik",
+     "nameEn": "Midwifery",
+     "nameAr": "القبالة"
     },
     {
      "id": "fizyoterapi-ve-rehabilitasyon",
-     "name": "Fizyoterapi ve Rehabilitasyon"
+     "name": "Fizyoterapi ve Rehabilitasyon",
+     "nameEn": "Physiotherapy and Rehabilitation",
+     "nameAr": "العلاج الطبيعي والتأهيل"
     },
     {
      "id": "beslenme-ve-diyetetik",
-     "name": "Beslenme ve Diyetetik"
+     "name": "Beslenme ve Diyetetik",
+     "nameEn": "Nutrition and Dietetics",
+     "nameAr": "التغذية وعلم الحميات"
     },
     {
      "id": "saglik-yonetimi",
-     "name": "Sağlık Yönetimi"
+     "name": "Sağlık Yönetimi",
+     "nameEn": "Health Management",
+     "nameAr": "الإدارة الصحية"
     },
     {
      "id": "odyoloji",
-     "name": "Odyoloji"
+     "name": "Odyoloji",
+     "nameEn": "Audiology",
+     "nameAr": "علم السمعيات"
     },
     {
      "id": "ergoterapi",
-     "name": "Ergoterapi"
+     "name": "Ergoterapi",
+     "nameEn": "Occupational Therapy",
+     "nameAr": "العلاج الوظيفي"
     },
     {
      "id": "sosyal-hizmet",
-     "name": "Sosyal Hizmet"
+     "name": "Sosyal Hizmet",
+     "nameEn": "Social Work",
+     "nameAr": "الخدمة الاجتماعية"
     },
     {
      "id": "cocuk-gelisimi",
-     "name": "Çocuk Gelişimi"
+     "name": "Çocuk Gelişimi",
+     "nameEn": "Child Development",
+     "nameAr": "نمو الطفل"
     },
     {
      "id": "acil-yardim-ve-afet-yonetimi",
-     "name": "Acil Yardım ve Afet Yönetimi"
+     "name": "Acil Yardım ve Afet Yönetimi",
+     "nameEn": "Emergency Aid and Disaster Management",
+     "nameAr": "الإسعاف الطارئ وإدارة الكوارث"
     },
     {
      "id": "dil-ve-konusma-terapisi",
-     "name": "Dil ve Konuşma Terapisi"
+     "name": "Dil ve Konuşma Terapisi",
+     "nameEn": "Speech and Language Therapy",
+     "nameAr": "علاج اللغة والنطق"
     },
     {
      "id": "ortez-ve-protez",
-     "name": "Ortez ve Protez"
+     "name": "Ortez ve Protez",
+     "nameEn": "Orthotics and Prosthetics",
+     "nameAr": "تقويم العظام والأطراف الصناعية"
     },
     {
      "id": "gerontoloji",
-     "name": "Gerontoloji"
+     "name": "Gerontoloji",
+     "nameEn": "Gerontology",
+     "nameAr": "علم الشيخوخة"
     },
     {
      "id": "perfuzyon",
-     "name": "Perfüzyon"
+     "name": "Perfüzyon",
+     "nameEn": "Perfusion Technology",
+     "nameAr": "تقنية التروية"
     },
     {
      "id": "podoloji",
-     "name": "Podoloji"
+     "name": "Podoloji",
+     "nameEn": "Podiatry",
+     "nameAr": "طب القدم"
     },
     {
      "id": "radyoterapi",
-     "name": "Radyoterapi"
+     "name": "Radyoterapi",
+     "nameEn": "Radiotherapy",
+     "nameAr": "العلاج الإشعاعي"
     },
     {
      "id": "saglik-bilimleri",
-     "name": "Sağlık Bilimleri"
+     "name": "Sağlık Bilimleri",
+     "nameEn": "Health Sciences",
+     "nameAr": "العلوم الصحية"
     },
     {
      "id": "is-sagligi-ve-guvenligi",
-     "name": "İş Sağlığı ve Güvenliği"
+     "name": "İş Sağlığı ve Güvenliği",
+     "nameEn": "Occupational Health and Safety",
+     "nameAr": "الصحة والسلامة المهنية"
     },
     {
      "id": "saglik-kurumlari-isletmeciligi",
-     "name": "Sağlık Kurumları İşletmeciliği"
+     "name": "Sağlık Kurumları İşletmeciliği",
+     "nameEn": "Healthcare Institutions Management",
+     "nameAr": "إدارة المؤسسات الصحية"
     },
     {
      "id": "psikososyal-rehabilitasyon",
-     "name": "Psikososyal Rehabilitasyon"
+     "name": "Psikososyal Rehabilitasyon",
+     "nameEn": "Psychosocial Rehabilitation",
+     "nameAr": "التأهيل النفسي الاجتماعي"
     },
     {
      "id": "odyoloji-ve-konusma-bozukluklari",
-     "name": "Odyoloji ve Konuşma Bozuklukları"
+     "name": "Odyoloji ve Konuşma Bozuklukları",
+     "nameEn": "Audiology and Speech Disorders",
+     "nameAr": "السمعيات واضطرابات النطق"
     },
     {
      "id": "tibbi-goruntuleme-teknikleri",
-     "name": "Tıbbi Görüntüleme Teknikleri"
+     "name": "Tıbbi Görüntüleme Teknikleri",
+     "nameEn": "Medical Imaging Techniques",
+     "nameAr": "تقنيات التصوير الطبي"
     },
     {
      "id": "saglik-bakim-hizmetleri",
-     "name": "Sağlık Bakım Hizmetleri"
+     "name": "Sağlık Bakım Hizmetleri",
+     "nameEn": "Health Care Services",
+     "nameAr": "خدمات الرعاية الصحية"
     },
     {
      "id": "acil-durum-ve-afet-yonetimi",
-     "name": "Acil Durum ve Afet Yönetimi"
+     "name": "Acil Durum ve Afet Yönetimi",
+     "nameEn": "Emergency and Disaster Management",
+     "nameAr": "إدارة الطوارئ والكوارث"
     },
     {
      "id": "evde-bakim-hizmetleri",
-     "name": "Evde Bakım Hizmetleri"
+     "name": "Evde Bakım Hizmetleri",
+     "nameEn": "Home Care Services",
+     "nameAr": "خدمات الرعاية المنزلية"
     },
     {
      "id": "agiz-ve-dis-sagligi",
-     "name": "Ağız ve Diş Sağlığı"
+     "name": "Ağız ve Diş Sağlığı",
+     "nameEn": "Oral and Dental Health",
+     "nameAr": "صحة الفم والأسنان"
     },
     {
      "id": "fizik-tedavi-ve-rehabilitasyon",
-     "name": "Fizik Tedavi ve Rehabilitasyon"
+     "name": "Fizik Tedavi ve Rehabilitasyon",
+     "nameEn": "Physical Therapy and Rehabilitation",
+     "nameAr": "العلاج الطبيعي والتأهيل"
     }
    ]
   },
   {
    "id": "egitim",
    "name": "Eğitim Fakültesi",
+   "nameEn": "Faculty of Education",
+   "nameAr": "كلية التربية",
    "departments": [
     {
      "id": "sinif-ogretmenligi",
-     "name": "Sınıf Öğretmenliği"
+     "name": "Sınıf Öğretmenliği",
+     "nameEn": "Classroom Teaching",
+     "nameAr": "تدريس الصفوف الأولى"
     },
     {
      "id": "okul-oncesi-ogretmenligi",
-     "name": "Okul Öncesi Öğretmenliği"
+     "name": "Okul Öncesi Öğretmenliği",
+     "nameEn": "Preschool Teaching",
+     "nameAr": "تدريس مرحلة ما قبل المدرسة"
     },
     {
      "id": "turkce-ogretmenligi",
-     "name": "Türkçe Öğretmenliği"
+     "name": "Türkçe Öğretmenliği",
+     "nameEn": "Turkish Language Teaching",
+     "nameAr": "تدريس اللغة التركية"
     },
     {
      "id": "matematik-ogretmenligi",
-     "name": "Matematik Öğretmenliği"
+     "name": "Matematik Öğretmenliği",
+     "nameEn": "Mathematics Teaching",
+     "nameAr": "تدريس الرياضيات"
     },
     {
      "id": "ilkogretim-matematik-ogretmenligi",
-     "name": "İlköğretim Matematik Öğretmenliği"
+     "name": "İlköğretim Matematik Öğretmenliği",
+     "nameEn": "Elementary Mathematics Teaching",
+     "nameAr": "تدريس الرياضيات للمرحلة الابتدائية"
     },
     {
      "id": "fen-bilgisi-ogretmenligi",
-     "name": "Fen Bilgisi Öğretmenliği"
+     "name": "Fen Bilgisi Öğretmenliği",
+     "nameEn": "Science Teaching",
+     "nameAr": "تدريس العلوم"
     },
     {
      "id": "ingilizce-ogretmenligi",
-     "name": "İngilizce Öğretmenliği"
+     "name": "İngilizce Öğretmenliği",
+     "nameEn": "English Language Teaching",
+     "nameAr": "تدريس اللغة الإنجليزية"
     },
     {
      "id": "sosyal-bilgiler-ogretmenligi",
-     "name": "Sosyal Bilgiler Öğretmenliği"
+     "name": "Sosyal Bilgiler Öğretmenliği",
+     "nameEn": "Social Studies Teaching",
+     "nameAr": "تدريس الدراسات الاجتماعية"
     },
     {
      "id": "muzik-ogretmenligi",
-     "name": "Müzik Öğretmenliği"
+     "name": "Müzik Öğretmenliği",
+     "nameEn": "Music Teaching",
+     "nameAr": "تدريس الموسيقى"
     },
     {
      "id": "resim-is-ogretmenligi",
-     "name": "Resim-İş Öğretmenliği"
+     "name": "Resim-İş Öğretmenliği",
+     "nameEn": "Art Teaching",
+     "nameAr": "تدريس التربية الفنية"
     },
     {
      "id": "gorsel-sanatlar-ogretmenligi",
-     "name": "Görsel Sanatlar Öğretmenliği"
+     "name": "Görsel Sanatlar Öğretmenliği",
+     "nameEn": "Visual Arts Teaching",
+     "nameAr": "تدريس الفنون البصرية"
     },
     {
      "id": "din-kulturu-ve-ahlak-bilgisi-ogretmenligi",
-     "name": "Din Kültürü ve Ahlak Bilgisi Öğretmenliği"
+     "name": "Din Kültürü ve Ahlak Bilgisi Öğretmenliği",
+     "nameEn": "Religious Culture and Ethics Teaching",
+     "nameAr": "تدريس الثقافة الدينية والأخلاق"
     },
     {
      "id": "rehberlik-ve-psikolojik-danismanlik",
-     "name": "Rehberlik ve Psikolojik Danışmanlık"
+     "name": "Rehberlik ve Psikolojik Danışmanlık",
+     "nameEn": "Guidance and Psychological Counseling",
+     "nameAr": "الإرشاد والاستشارة النفسية"
     },
     {
      "id": "ozel-egitim-ogretmenligi",
-     "name": "Özel Eğitim Öğretmenliği"
+     "name": "Özel Eğitim Öğretmenliği",
+     "nameEn": "Special Education Teaching",
+     "nameAr": "تدريس التربية الخاصة"
     },
     {
      "id": "zihin-engelliler-ogretmenligi",
-     "name": "Zihin Engelliler Öğretmenliği"
+     "name": "Zihin Engelliler Öğretmenliği",
+     "nameEn": "Teaching the Intellectually Disabled",
+     "nameAr": "تدريس ذوي الإعاقة الذهنية"
     },
     {
      "id": "isitme-engelliler-ogretmenligi",
-     "name": "İşitme Engelliler Öğretmenliği"
+     "name": "İşitme Engelliler Öğretmenliği",
+     "nameEn": "Teaching the Hearing Impaired",
+     "nameAr": "تدريس ذوي الإعاقة السمعية"
     },
     {
      "id": "gorme-engelliler-ogretmenligi",
-     "name": "Görme Engelliler Öğretmenliği"
+     "name": "Görme Engelliler Öğretmenliği",
+     "nameEn": "Teaching the Visually Impaired",
+     "nameAr": "تدريس ذوي الإعاقة البصرية"
     },
     {
      "id": "ustun-yetenekliler-ogretmenligi",
-     "name": "Üstün Yetenekliler Öğretmenliği"
+     "name": "Üstün Yetenekliler Öğretmenliği",
+     "nameEn": "Gifted Education Teaching",
+     "nameAr": "تدريس الموهوبين"
     },
     {
      "id": "bilgisayar-ve-ogretim-teknolojileri-ogretmenligi",
-     "name": "Bilgisayar ve Öğretim Teknolojileri Öğretmenliği"
+     "name": "Bilgisayar ve Öğretim Teknolojileri Öğretmenliği",
+     "nameEn": "Computer and Instructional Technology Teaching",
+     "nameAr": "تدريس الحاسوب وتقنيات التعليم"
     },
     {
      "id": "fizik-ogretmenligi",
-     "name": "Fizik Öğretmenliği"
+     "name": "Fizik Öğretmenliği",
+     "nameEn": "Physics Teaching",
+     "nameAr": "تدريس الفيزياء"
     },
     {
      "id": "kimya-ogretmenligi",
-     "name": "Kimya Öğretmenliği"
+     "name": "Kimya Öğretmenliği",
+     "nameEn": "Chemistry Teaching",
+     "nameAr": "تدريس الكيمياء"
     },
     {
      "id": "biyoloji-ogretmenligi",
-     "name": "Biyoloji Öğretmenliği"
+     "name": "Biyoloji Öğretmenliği",
+     "nameEn": "Biology Teaching",
+     "nameAr": "تدريس الأحياء"
     },
     {
      "id": "tarih-ogretmenligi",
-     "name": "Tarih Öğretmenliği"
+     "name": "Tarih Öğretmenliği",
+     "nameEn": "History Teaching",
+     "nameAr": "تدريس التاريخ"
     },
     {
      "id": "cografya-ogretmenligi",
-     "name": "Coğrafya Öğretmenliği"
+     "name": "Coğrafya Öğretmenliği",
+     "nameEn": "Geography Teaching",
+     "nameAr": "تدريس الجغرافيا"
     },
     {
      "id": "turk-dili-ve-edebiyati-ogretmenligi",
-     "name": "Türk Dili ve Edebiyatı Öğretmenliği"
+     "name": "Türk Dili ve Edebiyatı Öğretmenliği",
+     "nameEn": "Turkish Language and Literature Teaching",
+     "nameAr": "تدريس اللغة التركية وآدابها"
     },
     {
      "id": "almanca-ogretmenligi",
-     "name": "Almanca Öğretmenliği"
+     "name": "Almanca Öğretmenliği",
+     "nameEn": "German Language Teaching",
+     "nameAr": "تدريس اللغة الألمانية"
     },
     {
      "id": "fransizca-ogretmenligi",
-     "name": "Fransızca Öğretmenliği"
+     "name": "Fransızca Öğretmenliği",
+     "nameEn": "French Language Teaching",
+     "nameAr": "تدريس اللغة الفرنسية"
     },
     {
      "id": "arapca-ogretmenligi",
-     "name": "Arapça Öğretmenliği"
+     "name": "Arapça Öğretmenliği",
+     "nameEn": "Arabic Language Teaching",
+     "nameAr": "تدريس اللغة العربية"
     },
     {
      "id": "rusca-ogretmenligi",
-     "name": "Rusça Öğretmenliği"
+     "name": "Rusça Öğretmenliği",
+     "nameEn": "Russian Language Teaching",
+     "nameAr": "تدريس اللغة الروسية"
     },
     {
      "id": "japonca-ogretmenligi",
-     "name": "Japonca Öğretmenliği"
+     "name": "Japonca Öğretmenliği",
+     "nameEn": "Japanese Language Teaching",
+     "nameAr": "تدريس اللغة اليابانية"
     },
     {
      "id": "beden-egitimi-ve-spor-ogretmenligi",
-     "name": "Beden Eğitimi ve Spor Öğretmenliği"
+     "name": "Beden Eğitimi ve Spor Öğretmenliği",
+     "nameEn": "Physical Education and Sports Teaching",
+     "nameAr": "تدريس التربية البدنية والرياضة"
     },
     {
      "id": "matematik-ve-fen-bilimleri-egitimi",
-     "name": "Matematik ve Fen Bilimleri Eğitimi"
+     "name": "Matematik ve Fen Bilimleri Eğitimi",
+     "nameEn": "Mathematics and Science Education",
+     "nameAr": "تعليم الرياضيات والعلوم"
     },
     {
      "id": "teknoloji-ve-tasarim-ogretmenligi",
-     "name": "Teknoloji ve Tasarım Öğretmenliği"
+     "name": "Teknoloji ve Tasarım Öğretmenliği",
+     "nameEn": "Technology and Design Teaching",
+     "nameAr": "تدريس التكنولوجيا والتصميم"
     },
     {
      "id": "egitim-bilimleri",
-     "name": "Eğitim Bilimleri"
+     "name": "Eğitim Bilimleri",
+     "nameEn": "Educational Sciences",
+     "nameAr": "العلوم التربوية"
     },
     {
      "id": "egitimde-egitim-programlari-ve-ogretim",
-     "name": "Eğitimde Eğitim Programları ve Öğretim"
+     "name": "Eğitimde Eğitim Programları ve Öğretim",
+     "nameEn": "Curriculum and Instruction in Education",
+     "nameAr": "المناهج وطرق التدريس"
     },
     {
      "id": "egitim-yonetimi",
-     "name": "Eğitim Yönetimi"
+     "name": "Eğitim Yönetimi",
+     "nameEn": "Educational Administration",
+     "nameAr": "الإدارة التربوية"
     },
     {
      "id": "okul-oncesi-egitimi",
-     "name": "Okul Öncesi Eğitimi"
+     "name": "Okul Öncesi Eğitimi",
+     "nameEn": "Preschool Education",
+     "nameAr": "التعليم قبل المدرسي"
     },
     {
      "id": "ortaogretim-fen-bilimleri-ogretmenligi",
-     "name": "Ortaöğretim Fen Bilimleri Öğretmenliği"
+     "name": "Ortaöğretim Fen Bilimleri Öğretmenliği",
+     "nameEn": "Secondary School Science Teaching",
+     "nameAr": "تدريس العلوم للمرحلة المتوسطة"
     },
     {
      "id": "lise-matematik-ogretmenligi",
-     "name": "Lise Matematik Öğretmenliği"
+     "name": "Lise Matematik Öğretmenliği",
+     "nameEn": "High School Mathematics Teaching",
+     "nameAr": "تدريس الرياضيات للمرحلة الثانوية"
     },
     {
      "id": "ortaogretim-matematik-ogretmenligi",
-     "name": "Ortaöğretim Matematik Öğretmenliği"
+     "name": "Ortaöğretim Matematik Öğretmenliği",
+     "nameEn": "Secondary School Mathematics Teaching",
+     "nameAr": "تدريس الرياضيات للمرحلة المتوسطة"
     },
     {
      "id": "felsefe-grubu-ogretmenligi",
-     "name": "Felsefe Grubu Öğretmenliği"
+     "name": "Felsefe Grubu Öğretmenliği",
+     "nameEn": "Philosophy Group Teaching",
+     "nameAr": "تدريس مجموعة الفلسفة"
     },
     {
      "id": "ozel-yetenek-ogretmenligi",
-     "name": "Özel Yetenek Öğretmenliği"
+     "name": "Özel Yetenek Öğretmenliği",
+     "nameEn": "Special Talent Teaching",
+     "nameAr": "تدريس المواهب الخاصة"
     },
     {
      "id": "cocuk-gelisimi-ogretmenligi",
-     "name": "Çocuk Gelişimi Öğretmenliği"
+     "name": "Çocuk Gelişimi Öğretmenliği",
+     "nameEn": "Child Development Teaching",
+     "nameAr": "تدريس نمو الطفل"
     },
     {
      "id": "mesleki-egitim-ogretmenligi",
-     "name": "Mesleki Eğitim Öğretmenliği"
+     "name": "Mesleki Eğitim Öğretmenliği",
+     "nameEn": "Vocational Education Teaching",
+     "nameAr": "تدريس التعليم المهني"
     },
     {
      "id": "kimya-teknolojisi-ogretmenligi",
-     "name": "Kimya Teknolojisi Öğretmenliği"
+     "name": "Kimya Teknolojisi Öğretmenliği",
+     "nameEn": "Chemistry Technology Teaching",
+     "nameAr": "تدريس تقنية الكيمياء"
     },
     {
      "id": "elektrik-ogretmenligi",
-     "name": "Elektrik Öğretmenliği"
+     "name": "Elektrik Öğretmenliği",
+     "nameEn": "Electrical Teaching",
+     "nameAr": "تدريس الكهرباء"
     },
     {
      "id": "bilgisayar-ogretmenligi",
-     "name": "Bilgisayar Öğretmenliği"
+     "name": "Bilgisayar Öğretmenliği",
+     "nameEn": "Computer Teaching",
+     "nameAr": "تدريس الحاسوب"
     },
     {
      "id": "guzel-sanatlar-egitimi",
-     "name": "Güzel Sanatlar Eğitimi"
+     "name": "Güzel Sanatlar Eğitimi",
+     "nameEn": "Fine Arts Education",
+     "nameAr": "تعليم الفنون الجميلة"
     },
     {
      "id": "egitim-teknolojileri",
-     "name": "Eğitim Teknolojileri"
+     "name": "Eğitim Teknolojileri",
+     "nameEn": "Educational Technologies",
+     "nameAr": "تقنيات التعليم"
     }
    ]
   },
   {
    "id": "ilahiyat",
    "name": "İlahiyat Fakültesi",
+   "nameEn": "Faculty of Theology",
+   "nameAr": "كلية الإلهيات",
    "departments": [
     {
      "id": "ilahiyat",
-     "name": "İlahiyat"
+     "name": "İlahiyat",
+     "nameEn": "Theology",
+     "nameAr": "الإلهيات"
     },
     {
      "id": "ilahiyat-uzaktan-egitim",
-     "name": "İlahiyat (Uzaktan Eğitim)"
+     "name": "İlahiyat (Uzaktan Eğitim)",
+     "nameEn": "Theology (Distance Education)",
+     "nameAr": "الإلهيات (التعليم عن بعد)"
     },
     {
      "id": "ilahiyat-arapca",
-     "name": "İlahiyat (Arapça)"
+     "name": "İlahiyat (Arapça)",
+     "nameEn": "Theology (Arabic)",
+     "nameAr": "الإلهيات (بالعربية)"
     },
     {
      "id": "din-bilimleri",
-     "name": "Din Bilimleri"
+     "name": "Din Bilimleri",
+     "nameEn": "Religious Studies",
+     "nameAr": "العلوم الدينية"
     },
     {
      "id": "islami-ilimler",
-     "name": "İslami İlimler"
+     "name": "İslami İlimler",
+     "nameEn": "Islamic Sciences",
+     "nameAr": "العلوم الإسلامية"
     },
     {
      "id": "temel-islam-bilimleri",
-     "name": "Temel İslam Bilimleri"
+     "name": "Temel İslam Bilimleri",
+     "nameEn": "Basic Islamic Sciences",
+     "nameAr": "العلوم الإسلامية الأساسية"
     },
     {
      "id": "felsefe-ve-din-bilimleri",
-     "name": "Felsefe ve Din Bilimleri"
+     "name": "Felsefe ve Din Bilimleri",
+     "nameEn": "Philosophy and Religious Studies",
+     "nameAr": "الفلسفة والعلوم الدينية"
     },
     {
      "id": "islam-tarihi-ve-sanatlari",
-     "name": "İslam Tarihi ve Sanatları"
+     "name": "İslam Tarihi ve Sanatları",
+     "nameEn": "Islamic History and Arts",
+     "nameAr": "التاريخ والفنون الإسلامية"
     },
     {
      "id": "din-egitimi",
-     "name": "Din Eğitimi"
+     "name": "Din Eğitimi",
+     "nameEn": "Religious Education",
+     "nameAr": "التربية الدينية"
     },
     {
      "id": "din-sosyolojisi",
-     "name": "Din Sosyolojisi"
+     "name": "Din Sosyolojisi",
+     "nameEn": "Sociology of Religion",
+     "nameAr": "علم اجتماع الدين"
     },
     {
      "id": "din-psikolojisi",
-     "name": "Din Psikolojisi"
+     "name": "Din Psikolojisi",
+     "nameEn": "Psychology of Religion",
+     "nameAr": "علم نفس الدين"
     },
     {
      "id": "kelam",
-     "name": "Kelam"
+     "name": "Kelam",
+     "nameEn": "Islamic Theology (Kalam)",
+     "nameAr": "علم الكلام"
     },
     {
      "id": "tefsir",
-     "name": "Tefsir"
+     "name": "Tefsir",
+     "nameEn": "Quranic Exegesis (Tafsir)",
+     "nameAr": "التفسير"
     },
     {
      "id": "hadis",
-     "name": "Hadis"
+     "name": "Hadis",
+     "nameEn": "Hadith",
+     "nameAr": "الحديث"
     },
     {
      "id": "fikih",
-     "name": "Fıkıh"
+     "name": "Fıkıh",
+     "nameEn": "Islamic Jurisprudence (Fiqh)",
+     "nameAr": "الفقه"
     },
     {
      "id": "tasavvuf",
-     "name": "Tasavvuf"
+     "name": "Tasavvuf",
+     "nameEn": "Islamic Mysticism (Sufism)",
+     "nameAr": "التصوف"
     },
     {
      "id": "islam-hukuku",
-     "name": "İslam Hukuku"
+     "name": "İslam Hukuku",
+     "nameEn": "Islamic Law",
+     "nameAr": "الفقه الإسلامي"
     },
     {
      "id": "dinler-tarihi",
-     "name": "Dinler Tarihi"
+     "name": "Dinler Tarihi",
+     "nameEn": "History of Religions",
+     "nameAr": "تاريخ الأديان"
     },
     {
      "id": "islam-felsefesi",
-     "name": "İslam Felsefesi"
+     "name": "İslam Felsefesi",
+     "nameEn": "Islamic Philosophy",
+     "nameAr": "الفلسفة الإسلامية"
     },
     {
      "id": "arap-dili-ve-belagati",
-     "name": "Arap Dili ve Belagatı"
+     "name": "Arap Dili ve Belagatı",
+     "nameEn": "Arabic Language and Rhetoric",
+     "nameAr": "اللغة العربية وبلاغتها"
     }
    ]
   },
   {
    "id": "mimarlik",
    "name": "Mimarlık Fakültesi",
+   "nameEn": "Faculty of Architecture",
+   "nameAr": "كلية العمارة",
    "departments": [
     {
      "id": "mimarlik",
-     "name": "Mimarlık"
+     "name": "Mimarlık",
+     "nameEn": "Architecture",
+     "nameAr": "العمارة"
     },
     {
      "id": "sehir-ve-bolge-planlama",
-     "name": "Şehir ve Bölge Planlama"
+     "name": "Şehir ve Bölge Planlama",
+     "nameEn": "Urban and Regional Planning",
+     "nameAr": "التخطيط العمراني والإقليمي"
     },
     {
      "id": "ic-mimarlik",
-     "name": "İç Mimarlık"
+     "name": "İç Mimarlık",
+     "nameEn": "Interior Architecture",
+     "nameAr": "العمارة الداخلية"
     },
     {
      "id": "ic-mimarlik-ve-cevre-tasarimi",
-     "name": "İç Mimarlık ve Çevre Tasarımı"
+     "name": "İç Mimarlık ve Çevre Tasarımı",
+     "nameEn": "Interior Architecture and Environmental Design",
+     "nameAr": "العمارة الداخلية والتصميم البيئي"
     },
     {
      "id": "peyzaj-mimarligi",
-     "name": "Peyzaj Mimarlığı"
+     "name": "Peyzaj Mimarlığı",
+     "nameEn": "Landscape Architecture",
+     "nameAr": "هندسة المناظر الطبيعية"
     },
     {
      "id": "endustriyel-tasarim",
-     "name": "Endüstriyel Tasarım"
+     "name": "Endüstriyel Tasarım",
+     "nameEn": "Industrial Design",
+     "nameAr": "التصميم الصناعي"
     },
     {
      "id": "endustri-urunleri-tasarimi",
-     "name": "Endüstri Ürünleri Tasarımı"
+     "name": "Endüstri Ürünleri Tasarımı",
+     "nameEn": "Industrial Product Design",
+     "nameAr": "تصميم المنتجات الصناعية"
     },
     {
      "id": "mimari-restorasyon",
-     "name": "Mimari Restorasyon"
+     "name": "Mimari Restorasyon",
+     "nameEn": "Architectural Restoration",
+     "nameAr": "الترميم المعماري"
     },
     {
      "id": "kentsel-tasarim-ve-peyzaj-mimarligi",
-     "name": "Kentsel Tasarım ve Peyzaj Mimarlığı"
+     "name": "Kentsel Tasarım ve Peyzaj Mimarlığı",
+     "nameEn": "Urban Design and Landscape Architecture",
+     "nameAr": "التصميم الحضري وهندسة المناظر الطبيعية"
     },
     {
      "id": "mimari-tasarim",
-     "name": "Mimari Tasarım"
+     "name": "Mimari Tasarım",
+     "nameEn": "Architectural Design",
+     "nameAr": "التصميم المعماري"
     },
     {
      "id": "cevre-tasarimi",
-     "name": "Çevre Tasarımı"
+     "name": "Çevre Tasarımı",
+     "nameEn": "Environmental Design",
+     "nameAr": "التصميم البيئي"
     }
    ]
   },
   {
    "id": "guzel-sanatlar",
    "name": "Güzel Sanatlar ve Tasarım Fakültesi",
+   "nameEn": "Faculty of Fine Arts and Design",
+   "nameAr": "كلية الفنون الجميلة والتصميم",
    "departments": [
     {
      "id": "grafik-tasarim",
-     "name": "Grafik Tasarım"
+     "name": "Grafik Tasarım",
+     "nameEn": "Graphic Design",
+     "nameAr": "التصميم الغرافيكي"
     },
     {
      "id": "resim",
-     "name": "Resim"
+     "name": "Resim",
+     "nameEn": "Painting",
+     "nameAr": "الرسم"
     },
     {
      "id": "heykel",
-     "name": "Heykel"
+     "name": "Heykel",
+     "nameEn": "Sculpture",
+     "nameAr": "النحت"
     },
     {
      "id": "seramik-ve-cam-tasarimi",
-     "name": "Seramik ve Cam Tasarımı"
+     "name": "Seramik ve Cam Tasarımı",
+     "nameEn": "Ceramic and Glass Design",
+     "nameAr": "تصميم السيراميك والزجاج"
     },
     {
      "id": "seramik",
-     "name": "Seramik"
+     "name": "Seramik",
+     "nameEn": "Ceramics",
+     "nameAr": "السيراميك"
     },
     {
      "id": "moda-tasarimi",
-     "name": "Moda Tasarımı"
+     "name": "Moda Tasarımı",
+     "nameEn": "Fashion Design",
+     "nameAr": "تصميم الأزياء"
     },
     {
      "id": "tekstil-ve-moda-tasarimi",
-     "name": "Tekstil ve Moda Tasarımı"
+     "name": "Tekstil ve Moda Tasarımı",
+     "nameEn": "Textile and Fashion Design",
+     "nameAr": "تصميم المنسوجات والأزياء"
     },
     {
      "id": "tekstil-tasarimi",
-     "name": "Tekstil Tasarımı"
+     "name": "Tekstil Tasarımı",
+     "nameEn": "Textile Design",
+     "nameAr": "تصميم المنسوجات"
     },
     {
      "id": "geleneksel-turk-el-sanatlari",
-     "name": "Geleneksel Türk El Sanatları"
+     "name": "Geleneksel Türk El Sanatları",
+     "nameEn": "Traditional Turkish Handicrafts",
+     "nameAr": "الحرف اليدوية التركية التقليدية"
     },
     {
      "id": "fotograf",
-     "name": "Fotoğraf"
+     "name": "Fotoğraf",
+     "nameEn": "Photography",
+     "nameAr": "التصوير الفوتوغرافي"
     },
     {
      "id": "animasyon",
-     "name": "Animasyon"
+     "name": "Animasyon",
+     "nameEn": "Animation",
+     "nameAr": "الرسوم المتحركة"
     },
     {
      "id": "ic-mimarlik",
-     "name": "İç Mimarlık"
+     "name": "İç Mimarlık",
+     "nameEn": "Interior Architecture",
+     "nameAr": "العمارة الداخلية"
     },
     {
      "id": "endustriyel-tasarim",
-     "name": "Endüstriyel Tasarım"
+     "name": "Endüstriyel Tasarım",
+     "nameEn": "Industrial Design",
+     "nameAr": "التصميم الصناعي"
     },
     {
      "id": "sinema-ve-televizyon",
-     "name": "Sinema ve Televizyon"
+     "name": "Sinema ve Televizyon",
+     "nameEn": "Cinema and Television",
+     "nameAr": "السينما والتلفزيون"
     },
     {
      "id": "sahne-sanatlari",
-     "name": "Sahne Sanatları"
+     "name": "Sahne Sanatları",
+     "nameEn": "Stage Arts",
+     "nameAr": "فنون المسرح"
     },
     {
      "id": "tiyatro",
-     "name": "Tiyatro"
+     "name": "Tiyatro",
+     "nameEn": "Theatre",
+     "nameAr": "المسرح"
     },
     {
      "id": "muzik",
-     "name": "Müzik"
+     "name": "Müzik",
+     "nameEn": "Music",
+     "nameAr": "الموسيقى"
     },
     {
      "id": "cam-tasarimi",
-     "name": "Cam Tasarımı"
+     "name": "Cam Tasarımı",
+     "nameEn": "Glass Design",
+     "nameAr": "تصميم الزجاج"
     },
     {
      "id": "cini",
-     "name": "Çini"
+     "name": "Çini",
+     "nameEn": "Tile Art (Çini)",
+     "nameAr": "فن الخزف التركي (تشيني)"
     },
     {
      "id": "ahsap-tasarimi",
-     "name": "Ahşap Tasarımı"
+     "name": "Ahşap Tasarımı",
+     "nameEn": "Wood Design",
+     "nameAr": "تصميم الخشب"
     },
     {
      "id": "baski-sanatlari",
-     "name": "Baskı Sanatları"
+     "name": "Baskı Sanatları",
+     "nameEn": "Printmaking",
+     "nameAr": "فنون الطباعة"
     },
     {
      "id": "sanat-ve-tasarim",
-     "name": "Sanat ve Tasarım"
+     "name": "Sanat ve Tasarım",
+     "nameEn": "Art and Design",
+     "nameAr": "الفن والتصميم"
     },
     {
      "id": "sanat-yonetimi",
-     "name": "Sanat Yönetimi"
+     "name": "Sanat Yönetimi",
+     "nameEn": "Arts Management",
+     "nameAr": "إدارة الفنون"
     },
     {
      "id": "oyun-tasarimi",
-     "name": "Oyun Tasarımı"
+     "name": "Oyun Tasarımı",
+     "nameEn": "Game Design",
+     "nameAr": "تصميم الألعاب"
     },
     {
      "id": "dijital-oyun-tasarimi",
-     "name": "Dijital Oyun Tasarımı"
+     "name": "Dijital Oyun Tasarımı",
+     "nameEn": "Digital Game Design",
+     "nameAr": "تصميم الألعاب الرقمية"
     },
     {
      "id": "gorsel-iletisim-tasarimi",
-     "name": "Görsel İletişim Tasarımı"
+     "name": "Görsel İletişim Tasarımı",
+     "nameEn": "Visual Communication Design",
+     "nameAr": "تصميم الاتصال البصري"
     },
     {
      "id": "gosteri-sanatlari",
-     "name": "Gösteri Sanatları"
+     "name": "Gösteri Sanatları",
+     "nameEn": "Performing Arts",
+     "nameAr": "فنون الأداء"
     },
     {
      "id": "taki-ve-mucevher-tasarimi",
-     "name": "Takı ve Mücevher Tasarımı"
+     "name": "Takı ve Mücevher Tasarımı",
+     "nameEn": "Accessory and Jewelry Design",
+     "nameAr": "تصميم الحلي والمجوهرات"
     },
     {
      "id": "geleneksel-turk-sanatlari",
-     "name": "Geleneksel Türk Sanatları"
+     "name": "Geleneksel Türk Sanatları",
+     "nameEn": "Traditional Turkish Arts",
+     "nameAr": "الفنون التركية التقليدية"
     },
     {
      "id": "konservasyon-ve-restorasyon",
-     "name": "Konservasyon ve Restorasyon"
+     "name": "Konservasyon ve Restorasyon",
+     "nameEn": "Conservation and Restoration",
+     "nameAr": "الصيانة والترميم"
     },
     {
      "id": "sanat-tarihi-ve-elestiri",
-     "name": "Sanat Tarihi ve Eleştiri"
+     "name": "Sanat Tarihi ve Eleştiri",
+     "nameEn": "Art History and Criticism",
+     "nameAr": "تاريخ الفن والنقد"
     },
     {
      "id": "sahne-tasarimi",
-     "name": "Sahne Tasarımı"
+     "name": "Sahne Tasarımı",
+     "nameEn": "Stage Design",
+     "nameAr": "تصميم المسرح"
     },
     {
      "id": "kuyumculuk-ve-mucevher-tasarimi",
-     "name": "Kuyumculuk ve Mücevher Tasarımı"
+     "name": "Kuyumculuk ve Mücevher Tasarımı",
+     "nameEn": "Jewelry Making and Jewelry Design",
+     "nameAr": "صياغة المجوهرات وتصميمها"
     },
     {
      "id": "tasarim",
-     "name": "Tasarım"
+     "name": "Tasarım",
+     "nameEn": "Design",
+     "nameAr": "التصميم"
     },
     {
      "id": "medya-ve-gorsel-sanatlar",
-     "name": "Medya ve Görsel Sanatlar"
+     "name": "Medya ve Görsel Sanatlar",
+     "nameEn": "Media and Visual Arts",
+     "nameAr": "الإعلام والفنون البصرية"
     }
    ]
   },
   {
    "id": "ziraat",
    "name": "Ziraat Fakültesi",
+   "nameEn": "Faculty of Agriculture",
+   "nameAr": "كلية الزراعة",
    "departments": [
     {
      "id": "bahce-bitkileri",
-     "name": "Bahçe Bitkileri"
+     "name": "Bahçe Bitkileri",
+     "nameEn": "Horticulture",
+     "nameAr": "البستنة"
     },
     {
      "id": "tarla-bitkileri",
-     "name": "Tarla Bitkileri"
+     "name": "Tarla Bitkileri",
+     "nameEn": "Field Crops",
+     "nameAr": "المحاصيل الحقلية"
     },
     {
      "id": "zootekni",
-     "name": "Zootekni"
+     "name": "Zootekni",
+     "nameEn": "Animal Science",
+     "nameAr": "علوم الحيوان"
     },
     {
      "id": "toprak-bilimi-ve-bitki-besleme",
-     "name": "Toprak Bilimi ve Bitki Besleme"
+     "name": "Toprak Bilimi ve Bitki Besleme",
+     "nameEn": "Soil Science and Plant Nutrition",
+     "nameAr": "علم التربة وتغذية النبات"
     },
     {
      "id": "bitki-koruma",
-     "name": "Bitki Koruma"
+     "name": "Bitki Koruma",
+     "nameEn": "Plant Protection",
+     "nameAr": "وقاية النبات"
     },
     {
      "id": "tarim-ekonomisi",
-     "name": "Tarım Ekonomisi"
+     "name": "Tarım Ekonomisi",
+     "nameEn": "Agricultural Economics",
+     "nameAr": "الاقتصاد الزراعي"
     },
     {
      "id": "tarimsal-yapilar-ve-sulama",
-     "name": "Tarımsal Yapılar ve Sulama"
+     "name": "Tarımsal Yapılar ve Sulama",
+     "nameEn": "Agricultural Structures and Irrigation",
+     "nameAr": "المنشآت الزراعية والري"
     },
     {
      "id": "tarim-makineleri-ve-teknolojileri-muhendisligi",
-     "name": "Tarım Makineleri ve Teknolojileri Mühendisliği"
+     "name": "Tarım Makineleri ve Teknolojileri Mühendisliği",
+     "nameEn": "Agricultural Machinery and Technologies Engineering",
+     "nameAr": "هندسة الآلات والتقنيات الزراعية"
     },
     {
      "id": "gida-muhendisligi",
-     "name": "Gıda Mühendisliği"
+     "name": "Gıda Mühendisliği",
+     "nameEn": "Food Engineering",
+     "nameAr": "هندسة الأغذية"
     },
     {
      "id": "peyzaj-mimarligi",
-     "name": "Peyzaj Mimarlığı"
+     "name": "Peyzaj Mimarlığı",
+     "nameEn": "Landscape Architecture",
+     "nameAr": "هندسة المناظر الطبيعية"
     },
     {
      "id": "sut-teknolojisi",
-     "name": "Süt Teknolojisi"
+     "name": "Süt Teknolojisi",
+     "nameEn": "Dairy Technology",
+     "nameAr": "تقنية الألبان"
     },
     {
      "id": "tarimsal-biyoteknoloji",
-     "name": "Tarımsal Biyoteknoloji"
+     "name": "Tarımsal Biyoteknoloji",
+     "nameEn": "Agricultural Biotechnology",
+     "nameAr": "التقانة الحيوية الزراعية"
     },
     {
      "id": "tarim-ticareti-ve-isletmeciligi",
-     "name": "Tarım Ticareti ve İşletmeciliği"
+     "name": "Tarım Ticareti ve İşletmeciliği",
+     "nameEn": "Agricultural Trade and Management",
+     "nameAr": "التجارة الزراعية وإدارتها"
     },
     {
      "id": "tarimsal-genetik-muhendisligi",
-     "name": "Tarımsal Genetik Mühendisliği"
+     "name": "Tarımsal Genetik Mühendisliği",
+     "nameEn": "Agricultural Genetic Engineering",
+     "nameAr": "الهندسة الوراثية الزراعية"
     },
     {
      "id": "organik-tarim",
-     "name": "Organik Tarım"
+     "name": "Organik Tarım",
+     "nameEn": "Organic Agriculture",
+     "nameAr": "الزراعة العضوية"
     },
     {
      "id": "su-urunleri-muhendisligi",
-     "name": "Su Ürünleri Mühendisliği"
+     "name": "Su Ürünleri Mühendisliği",
+     "nameEn": "Fisheries Engineering",
+     "nameAr": "هندسة الثروة السمكية"
     },
     {
      "id": "ziraat-muhendisligi",
-     "name": "Ziraat Mühendisliği"
+     "name": "Ziraat Mühendisliği",
+     "nameEn": "Agricultural Engineering",
+     "nameAr": "هندسة الزراعة"
     },
     {
      "id": "tohum-bilimi-ve-teknolojisi",
-     "name": "Tohum Bilimi ve Teknolojisi"
+     "name": "Tohum Bilimi ve Teknolojisi",
+     "nameEn": "Seed Science and Technology",
+     "nameAr": "علم البذور وتقنيتها"
     },
     {
      "id": "tarim-bilimleri-ve-teknolojileri",
-     "name": "Tarım Bilimleri ve Teknolojileri"
+     "name": "Tarım Bilimleri ve Teknolojileri",
+     "nameEn": "Agricultural Sciences and Technologies",
+     "nameAr": "العلوم والتقنيات الزراعية"
     },
     {
      "id": "biyosistem-muhendisligi",
-     "name": "Biyosistem Mühendisliği"
+     "name": "Biyosistem Mühendisliği",
+     "nameEn": "Biosystems Engineering",
+     "nameAr": "هندسة النظم الحيوية"
     },
     {
      "id": "hayvansal-uretim",
-     "name": "Hayvansal Üretim"
+     "name": "Hayvansal Üretim",
+     "nameEn": "Animal Production",
+     "nameAr": "الإنتاج الحيواني"
     },
     {
      "id": "bitkisel-uretim",
-     "name": "Bitkisel Üretim"
+     "name": "Bitkisel Üretim",
+     "nameEn": "Crop Production",
+     "nameAr": "الإنتاج النباتي"
     },
     {
      "id": "tarimsal-yapilar-ve-sulama-muhendisligi",
-     "name": "Tarımsal Yapılar ve Sulama Mühendisliği"
+     "name": "Tarımsal Yapılar ve Sulama Mühendisliği",
+     "nameEn": "Agricultural Structures and Irrigation Engineering",
+     "nameAr": "هندسة المنشآت الزراعية والري"
     },
     {
      "id": "tarim-makineleri",
-     "name": "Tarım Makineleri"
+     "name": "Tarım Makineleri",
+     "nameEn": "Agricultural Machinery",
+     "nameAr": "الآلات الزراعية"
     },
     {
      "id": "bitki-sagligi",
-     "name": "Bitki Sağlığı"
+     "name": "Bitki Sağlığı",
+     "nameEn": "Plant Health",
+     "nameAr": "صحة النبات"
     }
    ]
   },
   {
    "id": "orman",
    "name": "Orman Fakültesi",
+   "nameEn": "Faculty of Forestry",
+   "nameAr": "كلية الحراجة",
    "departments": [
     {
      "id": "orman-muhendisligi",
-     "name": "Orman Mühendisliği"
+     "name": "Orman Mühendisliği",
+     "nameEn": "Forest Engineering",
+     "nameAr": "هندسة الغابات"
     },
     {
      "id": "orman-endustri-muhendisligi",
-     "name": "Orman Endüstri Mühendisliği"
+     "name": "Orman Endüstri Mühendisliği",
+     "nameEn": "Forest Industrial Engineering",
+     "nameAr": "هندسة الصناعات الحرجية"
     },
     {
      "id": "agac-isleri-endustri-muhendisligi",
-     "name": "Ağaç İşleri Endüstri Mühendisliği"
+     "name": "Ağaç İşleri Endüstri Mühendisliği",
+     "nameEn": "Woodworking Industrial Engineering",
+     "nameAr": "هندسة الصناعات الخشبية"
     },
     {
      "id": "peyzaj-mimarligi",
-     "name": "Peyzaj Mimarlığı"
+     "name": "Peyzaj Mimarlığı",
+     "nameEn": "Landscape Architecture",
+     "nameAr": "هندسة المناظر الطبيعية"
     },
     {
      "id": "yaban-hayati-ekolojisi-ve-yonetimi",
-     "name": "Yaban Hayatı Ekolojisi ve Yönetimi"
+     "name": "Yaban Hayatı Ekolojisi ve Yönetimi",
+     "nameEn": "Wildlife Ecology and Management",
+     "nameAr": "بيئة الحياة البرية وإدارتها"
     },
     {
      "id": "orman-urunleri-muhendisligi",
-     "name": "Orman Ürünleri Mühendisliği"
+     "name": "Orman Ürünleri Mühendisliği",
+     "nameEn": "Forest Products Engineering",
+     "nameAr": "هندسة المنتجات الحرجية"
     },
     {
      "id": "toprak-muhafaza-ve-havza-yonetimi",
-     "name": "Toprak Muhafaza ve Havza Yönetimi"
+     "name": "Toprak Muhafaza ve Havza Yönetimi",
+     "nameEn": "Soil Conservation and Watershed Management",
+     "nameAr": "حفظ التربة وإدارة أحواض المياه"
     },
     {
      "id": "ormancilik-ve-doga-koruma",
-     "name": "Ormancılık ve Doğa Koruma"
+     "name": "Ormancılık ve Doğa Koruma",
+     "nameEn": "Forestry and Nature Conservation",
+     "nameAr": "الحراجة وحماية الطبيعة"
     },
     {
      "id": "ormancilik",
-     "name": "Ormancılık"
+     "name": "Ormancılık",
+     "nameEn": "Forestry",
+     "nameAr": "الحراجة"
     }
    ]
   },
   {
    "id": "su-urunleri",
    "name": "Su Ürünleri Fakültesi",
+   "nameEn": "Faculty of Fisheries",
+   "nameAr": "كلية الثروة السمكية",
    "departments": [
     {
      "id": "su-urunleri-muhendisligi",
-     "name": "Su Ürünleri Mühendisliği"
+     "name": "Su Ürünleri Mühendisliği",
+     "nameEn": "Fisheries Engineering",
+     "nameAr": "هندسة الثروة السمكية"
     },
     {
      "id": "su-urunleri-avlama-ve-isleme-teknolojisi",
-     "name": "Su Ürünleri Avlama ve İşleme Teknolojisi"
+     "name": "Su Ürünleri Avlama ve İşleme Teknolojisi",
+     "nameEn": "Fishing and Processing Technology",
+     "nameAr": "تقنية صيد الأسماك ومعالجتها"
     },
     {
      "id": "su-urunleri-yetistiriciligi",
-     "name": "Su Ürünleri Yetiştiriciliği"
+     "name": "Su Ürünleri Yetiştiriciliği",
+     "nameEn": "Aquaculture",
+     "nameAr": "الاستزراع المائي"
     },
     {
      "id": "deniz-bilimleri",
-     "name": "Deniz Bilimleri"
+     "name": "Deniz Bilimleri",
+     "nameEn": "Marine Sciences",
+     "nameAr": "علوم البحار"
     },
     {
      "id": "su-urunleri-temel-bilimleri",
-     "name": "Su Ürünleri Temel Bilimleri"
+     "name": "Su Ürünleri Temel Bilimleri",
+     "nameEn": "Basic Sciences of Fisheries",
+     "nameAr": "العلوم الأساسية للثروة السمكية"
     },
     {
      "id": "balikcilik-teknolojisi-muhendisligi",
-     "name": "Balıkçılık Teknolojisi Mühendisliği"
+     "name": "Balıkçılık Teknolojisi Mühendisliği",
+     "nameEn": "Fisheries Technology Engineering",
+     "nameAr": "هندسة تقنية الصيد"
     },
     {
      "id": "su-urunleri-yetistiricilik-muhendisligi",
-     "name": "Su Ürünleri Yetiştiricilik Mühendisliği"
+     "name": "Su Ürünleri Yetiştiricilik Mühendisliği",
+     "nameEn": "Aquaculture Engineering",
+     "nameAr": "هندسة الاستزراع المائي"
     }
    ]
   },
   {
    "id": "iletisim",
    "name": "İletişim Fakültesi",
+   "nameEn": "Faculty of Communication",
+   "nameAr": "كلية الاتصال",
    "departments": [
     {
      "id": "gazetecilik",
-     "name": "Gazetecilik"
+     "name": "Gazetecilik",
+     "nameEn": "Journalism",
+     "nameAr": "الصحافة"
     },
     {
      "id": "halkla-iliskiler-ve-reklamcilik",
-     "name": "Halkla İlişkiler ve Reklamcılık"
+     "name": "Halkla İlişkiler ve Reklamcılık",
+     "nameEn": "Public Relations and Advertising",
+     "nameAr": "العلاقات العامة والإعلان"
     },
     {
      "id": "halkla-iliskiler-ve-tanitim",
-     "name": "Halkla İlişkiler ve Tanıtım"
+     "name": "Halkla İlişkiler ve Tanıtım",
+     "nameEn": "Public Relations and Promotion",
+     "nameAr": "العلاقات العامة والترويج"
     },
     {
      "id": "radyo-televizyon-ve-sinema",
-     "name": "Radyo, Televizyon ve Sinema"
+     "name": "Radyo, Televizyon ve Sinema",
+     "nameEn": "Radio, Television and Cinema",
+     "nameAr": "الإذاعة والتلفزيون والسينما"
     },
     {
      "id": "yeni-medya-ve-iletisim",
-     "name": "Yeni Medya ve İletişim"
+     "name": "Yeni Medya ve İletişim",
+     "nameEn": "New Media and Communication",
+     "nameAr": "الإعلام الجديد والاتصال"
     },
     {
      "id": "yeni-medya-ve-gazetecilik",
-     "name": "Yeni Medya ve Gazetecilik"
+     "name": "Yeni Medya ve Gazetecilik",
+     "nameEn": "New Media and Journalism",
+     "nameAr": "الإعلام الجديد والصحافة"
     },
     {
      "id": "reklamcilik",
-     "name": "Reklamcılık"
+     "name": "Reklamcılık",
+     "nameEn": "Advertising",
+     "nameAr": "الإعلان"
     },
     {
      "id": "gorsel-iletisim-tasarimi",
-     "name": "Görsel İletişim Tasarımı"
+     "name": "Görsel İletişim Tasarımı",
+     "nameEn": "Visual Communication Design",
+     "nameAr": "تصميم الاتصال البصري"
     },
     {
      "id": "iletisim-ve-tasarim",
-     "name": "İletişim ve Tasarım"
+     "name": "İletişim ve Tasarım",
+     "nameEn": "Communication and Design",
+     "nameAr": "الاتصال والتصميم"
     },
     {
      "id": "bilisim-ve-iletisim",
-     "name": "Bilişim ve İletişim"
+     "name": "Bilişim ve İletişim",
+     "nameEn": "Informatics and Communication",
+     "nameAr": "المعلوماتية والاتصال"
     },
     {
      "id": "medya-ve-iletisim",
-     "name": "Medya ve İletişim"
+     "name": "Medya ve İletişim",
+     "nameEn": "Media and Communication",
+     "nameAr": "الإعلام والاتصال"
     },
     {
      "id": "sinema-ve-televizyon",
-     "name": "Sinema ve Televizyon"
+     "name": "Sinema ve Televizyon",
+     "nameEn": "Cinema and Television",
+     "nameAr": "السينما والتلفزيون"
     },
     {
      "id": "medya-ve-gorsel-sanatlar",
-     "name": "Medya ve Görsel Sanatlar"
+     "name": "Medya ve Görsel Sanatlar",
+     "nameEn": "Media and Visual Arts",
+     "nameAr": "الإعلام والفنون البصرية"
     },
     {
      "id": "gazetecilik-ve-medya",
-     "name": "Gazetecilik ve Medya"
+     "name": "Gazetecilik ve Medya",
+     "nameEn": "Journalism and Media",
+     "nameAr": "الصحافة والإعلام"
     },
     {
      "id": "dijital-medya-ve-oyun-tasarimi",
-     "name": "Dijital Medya ve Oyun Tasarımı"
+     "name": "Dijital Medya ve Oyun Tasarımı",
+     "nameEn": "Digital Media and Game Design",
+     "nameAr": "الوسائط الرقمية وتصميم الألعاب"
     },
     {
      "id": "dijital-oyun-tasarimi",
-     "name": "Dijital Oyun Tasarımı"
+     "name": "Dijital Oyun Tasarımı",
+     "nameEn": "Digital Game Design",
+     "nameAr": "تصميم الألعاب الرقمية"
     },
     {
      "id": "iletisim-bilimleri",
-     "name": "İletişim Bilimleri"
+     "name": "İletişim Bilimleri",
+     "nameEn": "Communication Sciences",
+     "nameAr": "علوم الاتصال"
     },
     {
      "id": "kurumsal-iletisim",
-     "name": "Kurumsal İletişim"
+     "name": "Kurumsal İletişim",
+     "nameEn": "Corporate Communication",
+     "nameAr": "الاتصال المؤسسي"
     },
     {
      "id": "cocuk-gelisimi",
-     "name": "Çocuk Gelişimi"
+     "name": "Çocuk Gelişimi",
+     "nameEn": "Child Development",
+     "nameAr": "نمو الطفل"
     },
     {
      "id": "sosyal-medya-yonetimi",
-     "name": "Sosyal Medya Yönetimi"
+     "name": "Sosyal Medya Yönetimi",
+     "nameEn": "Social Media Management",
+     "nameAr": "إدارة وسائل التواصل الاجتماعي"
     }
    ]
   },
   {
    "id": "spor-bilimleri",
    "name": "Spor Bilimleri Fakültesi",
+   "nameEn": "Faculty of Sport Sciences",
+   "nameAr": "كلية علوم الرياضة",
    "departments": [
     {
      "id": "antrenorluk-egitimi",
-     "name": "Antrenörlük Eğitimi"
+     "name": "Antrenörlük Eğitimi",
+     "nameEn": "Coaching Education",
+     "nameAr": "تعليم التدريب الرياضي"
     },
     {
      "id": "spor-yoneticiligi",
-     "name": "Spor Yöneticiliği"
+     "name": "Spor Yöneticiliği",
+     "nameEn": "Sports Administration",
+     "nameAr": "الإدارة الرياضية"
     },
     {
      "id": "rekreasyon",
-     "name": "Rekreasyon"
+     "name": "Rekreasyon",
+     "nameEn": "Recreation",
+     "nameAr": "الترفيه والاستجمام"
     },
     {
      "id": "beden-egitimi-ve-spor-ogretmenligi",
-     "name": "Beden Eğitimi ve Spor Öğretmenliği"
+     "name": "Beden Eğitimi ve Spor Öğretmenliği",
+     "nameEn": "Physical Education and Sports Teaching",
+     "nameAr": "تدريس التربية البدنية والرياضة"
     },
     {
      "id": "spor-bilimleri",
-     "name": "Spor Bilimleri"
+     "name": "Spor Bilimleri",
+     "nameEn": "Sport Sciences",
+     "nameAr": "علوم الرياضة"
     },
     {
      "id": "engellilerde-spor-bilimleri",
-     "name": "Engellilerde Spor Bilimleri"
+     "name": "Engellilerde Spor Bilimleri",
+     "nameEn": "Sport Sciences for the Disabled",
+     "nameAr": "علوم الرياضة لذوي الإعاقة"
     },
     {
      "id": "spor-saglik-bilimleri",
-     "name": "Spor Sağlık Bilimleri"
+     "name": "Spor Sağlık Bilimleri",
+     "nameEn": "Sports Health Sciences",
+     "nameAr": "علوم الصحة الرياضية"
     },
     {
      "id": "spor-teknolojisi",
-     "name": "Spor Teknolojisi"
+     "name": "Spor Teknolojisi",
+     "nameEn": "Sports Technology",
+     "nameAr": "التقنية الرياضية"
     },
     {
      "id": "spor-fizyoterapisi",
-     "name": "Spor Fizyoterapisi"
+     "name": "Spor Fizyoterapisi",
+     "nameEn": "Sports Physiotherapy",
+     "nameAr": "العلاج الطبيعي الرياضي"
     },
     {
      "id": "egzersiz-ve-spor-bilimleri",
-     "name": "Egzersiz ve Spor Bilimleri"
+     "name": "Egzersiz ve Spor Bilimleri",
+     "nameEn": "Exercise and Sport Sciences",
+     "nameAr": "علوم التمارين والرياضة"
     },
     {
      "id": "spor-medyasi",
-     "name": "Spor Medyası"
+     "name": "Spor Medyası",
+     "nameEn": "Sports Media",
+     "nameAr": "الإعلام الرياضي"
     },
     {
      "id": "spor-ekonomisi",
-     "name": "Spor Ekonomisi"
+     "name": "Spor Ekonomisi",
+     "nameEn": "Sports Economics",
+     "nameAr": "اقتصاد الرياضة"
     },
     {
      "id": "spor-psikolojisi",
-     "name": "Spor Psikolojisi"
+     "name": "Spor Psikolojisi",
+     "nameEn": "Sports Psychology",
+     "nameAr": "علم النفس الرياضي"
     },
     {
      "id": "spor-hukuku",
-     "name": "Spor Hukuku"
+     "name": "Spor Hukuku",
+     "nameEn": "Sports Law",
+     "nameAr": "القانون الرياضي"
     }
    ]
   },
   {
    "id": "turizm",
    "name": "Turizm Fakültesi",
+   "nameEn": "Faculty of Tourism",
+   "nameAr": "كلية السياحة",
    "departments": [
     {
      "id": "turizm-isletmeciligi",
-     "name": "Turizm İşletmeciliği"
+     "name": "Turizm İşletmeciliği",
+     "nameEn": "Tourism Management",
+     "nameAr": "إدارة السياحة"
     },
     {
      "id": "gastronomi-ve-mutfak-sanatlari",
-     "name": "Gastronomi ve Mutfak Sanatları"
+     "name": "Gastronomi ve Mutfak Sanatları",
+     "nameEn": "Gastronomy and Culinary Arts",
+     "nameAr": "علم الطهي وفنون المطبخ"
     },
     {
      "id": "turizm-rehberligi",
-     "name": "Turizm Rehberliği"
+     "name": "Turizm Rehberliği",
+     "nameEn": "Tourism Guidance",
+     "nameAr": "الإرشاد السياحي"
     },
     {
      "id": "turist-rehberligi",
-     "name": "Turist Rehberliği"
+     "name": "Turist Rehberliği",
+     "nameEn": "Tourist Guiding",
+     "nameAr": "الإرشاد السياحي"
     },
     {
      "id": "seyahat-isletmeciligi",
-     "name": "Seyahat İşletmeciliği"
+     "name": "Seyahat İşletmeciliği",
+     "nameEn": "Travel Management",
+     "nameAr": "إدارة السفر"
     },
     {
      "id": "otelcilik",
-     "name": "Otelcilik"
+     "name": "Otelcilik",
+     "nameEn": "Hotel Management",
+     "nameAr": "إدارة الفنادق"
     },
     {
      "id": "rekreasyon-yonetimi",
-     "name": "Rekreasyon Yönetimi"
+     "name": "Rekreasyon Yönetimi",
+     "nameEn": "Recreation Management",
+     "nameAr": "إدارة الترفيه والاستجمام"
     },
     {
      "id": "turizm-ve-otel-isletmeciligi",
-     "name": "Turizm ve Otel İşletmeciliği"
+     "name": "Turizm ve Otel İşletmeciliği",
+     "nameEn": "Tourism and Hotel Management",
+     "nameAr": "إدارة السياحة والفنادق"
     },
     {
      "id": "konaklama-isletmeciligi",
-     "name": "Konaklama İşletmeciliği"
+     "name": "Konaklama İşletmeciliği",
+     "nameEn": "Accommodation Management",
+     "nameAr": "إدارة الإقامة الفندقية"
     },
     {
      "id": "yiyecek-ve-icecek-isletmeciligi",
-     "name": "Yiyecek ve İçecek İşletmeciliği"
+     "name": "Yiyecek ve İçecek İşletmeciliği",
+     "nameEn": "Food and Beverage Management",
+     "nameAr": "إدارة الأغذية والمشروبات"
     },
     {
      "id": "havayolu-isletmeciligi",
-     "name": "Havayolu İşletmeciliği"
+     "name": "Havayolu İşletmeciliği",
+     "nameEn": "Airline Management",
+     "nameAr": "إدارة شركات الطيران"
     },
     {
      "id": "turizm-animasyonu",
-     "name": "Turizm Animasyonu"
+     "name": "Turizm Animasyonu",
+     "nameEn": "Tourism Animation",
+     "nameAr": "الترفيه السياحي"
     },
     {
      "id": "turizm-ve-seyahat-yonetimi",
-     "name": "Turizm ve Seyahat Yönetimi"
+     "name": "Turizm ve Seyahat Yönetimi",
+     "nameEn": "Tourism and Travel Management",
+     "nameAr": "إدارة السياحة والسفر"
     },
     {
      "id": "kulturel-miras-ve-turizm",
-     "name": "Kültürel Miras ve Turizm"
+     "name": "Kültürel Miras ve Turizm",
+     "nameEn": "Cultural Heritage and Tourism",
+     "nameAr": "التراث الثقافي والسياحة"
     },
     {
      "id": "eglence-ve-etkinlik-yonetimi",
-     "name": "Eğlence ve Etkinlik Yönetimi"
+     "name": "Eğlence ve Etkinlik Yönetimi",
+     "nameEn": "Entertainment and Event Management",
+     "nameAr": "إدارة الترفيه والفعاليات"
     }
    ]
   },
   {
    "id": "havacilik",
    "name": "Havacılık ve Uzay Bilimleri Fakültesi",
+   "nameEn": "Faculty of Aviation and Space Sciences",
+   "nameAr": "كلية علوم الطيران والفضاء",
    "departments": [
     {
      "id": "pilotaj",
-     "name": "Pilotaj"
+     "name": "Pilotaj",
+     "nameEn": "Piloting",
+     "nameAr": "قيادة الطائرات"
     },
     {
      "id": "havacilik-yonetimi",
-     "name": "Havacılık Yönetimi"
+     "name": "Havacılık Yönetimi",
+     "nameEn": "Aviation Management",
+     "nameAr": "إدارة الطيران"
     },
     {
      "id": "hava-trafik-kontrolu",
-     "name": "Hava Trafik Kontrolü"
+     "name": "Hava Trafik Kontrolü",
+     "nameEn": "Air Traffic Control",
+     "nameAr": "مراقبة الحركة الجوية"
     },
     {
      "id": "ucak-govde-motor-bakimi",
-     "name": "Uçak Gövde-Motor Bakımı"
+     "name": "Uçak Gövde-Motor Bakımı",
+     "nameEn": "Aircraft Airframe-Powerplant Maintenance",
+     "nameAr": "صيانة هيكل الطائرة ومحركها"
     },
     {
      "id": "ucak-elektrik-ve-elektronigi",
-     "name": "Uçak Elektrik ve Elektroniği"
+     "name": "Uçak Elektrik ve Elektroniği",
+     "nameEn": "Aircraft Electrical and Electronics",
+     "nameAr": "كهرباء الطائرات وإلكترونياتها"
     },
     {
      "id": "havacilik-elektrik-ve-elektronigi",
-     "name": "Havacılık Elektrik ve Elektroniği"
+     "name": "Havacılık Elektrik ve Elektroniği",
+     "nameEn": "Aviation Electrical and Electronics",
+     "nameAr": "الكهرباء والإلكترونيات في الطيران"
     },
     {
      "id": "ucak-bakim-ve-onarim",
-     "name": "Uçak Bakım ve Onarım"
+     "name": "Uçak Bakım ve Onarım",
+     "nameEn": "Aircraft Maintenance and Repair",
+     "nameAr": "صيانة الطائرات وإصلاحها"
     },
     {
      "id": "havacilik-ve-uzay-muhendisligi",
-     "name": "Havacılık ve Uzay Mühendisliği"
+     "name": "Havacılık ve Uzay Mühendisliği",
+     "nameEn": "Aerospace Engineering",
+     "nameAr": "هندسة الطيران والفضاء"
     },
     {
      "id": "ucak-muhendisligi",
-     "name": "Uçak Mühendisliği"
+     "name": "Uçak Mühendisliği",
+     "nameEn": "Aircraft Engineering",
+     "nameAr": "هندسة الطائرات"
     },
     {
      "id": "uzay-bilimleri-ve-teknolojileri",
-     "name": "Uzay Bilimleri ve Teknolojileri"
+     "name": "Uzay Bilimleri ve Teknolojileri",
+     "nameEn": "Space Sciences and Technologies",
+     "nameAr": "علوم الفضاء وتقنياته"
     },
     {
      "id": "sivil-havacilik-yonetimi",
-     "name": "Sivil Havacılık Yönetimi"
+     "name": "Sivil Havacılık Yönetimi",
+     "nameEn": "Civil Aviation Management",
+     "nameAr": "إدارة الطيران المدني"
     },
     {
      "id": "havaalani-isletmeciligi",
-     "name": "Havaalanı İşletmeciliği"
+     "name": "Havaalanı İşletmeciliği",
+     "nameEn": "Airport Management",
+     "nameAr": "إدارة المطارات"
     },
     {
      "id": "havacilik-guvenligi",
-     "name": "Havacılık Güvenliği"
+     "name": "Havacılık Güvenliği",
+     "nameEn": "Aviation Security",
+     "nameAr": "أمن الطيران"
     },
     {
      "id": "insansiz-hava-araci-teknolojileri",
-     "name": "İnsansız Hava Aracı Teknolojileri"
+     "name": "İnsansız Hava Aracı Teknolojileri",
+     "nameEn": "Unmanned Aerial Vehicle Technologies",
+     "nameAr": "تقنيات الطائرات المسيّرة"
     },
     {
      "id": "ucus-harekat-yonetimi",
-     "name": "Uçuş Harekat Yönetimi"
+     "name": "Uçuş Harekat Yönetimi",
+     "nameEn": "Flight Operations Management",
+     "nameAr": "إدارة عمليات الطيران"
     },
     {
      "id": "ucak-teknolojisi",
-     "name": "Uçak Teknolojisi"
+     "name": "Uçak Teknolojisi",
+     "nameEn": "Aircraft Technology",
+     "nameAr": "تقنية الطائرات"
     },
     {
      "id": "havacilik-isletmeciligi",
-     "name": "Havacılık İşletmeciliği"
+     "name": "Havacılık İşletmeciliği",
+     "nameEn": "Aviation Business Management",
+     "nameAr": "إدارة أعمال الطيران"
     },
     {
      "id": "kabin-hizmetleri",
-     "name": "Kabin Hizmetleri"
+     "name": "Kabin Hizmetleri",
+     "nameEn": "Cabin Services",
+     "nameAr": "خدمات المقصورة"
     },
     {
      "id": "havacilik-bilisim-sistemleri",
-     "name": "Havacılık Bilişim Sistemleri"
+     "name": "Havacılık Bilişim Sistemleri",
+     "nameEn": "Aviation Information Systems",
+     "nameAr": "نظم المعلومات الطيرانية"
     }
    ]
   },
   {
    "id": "denizcilik",
    "name": "Denizcilik Fakültesi",
+   "nameEn": "Faculty of Maritime Studies",
+   "nameAr": "كلية الدراسات البحرية",
    "departments": [
     {
      "id": "gemi-insaati-ve-gemi-makineleri-muhendisligi",
-     "name": "Gemi İnşaatı ve Gemi Makineleri Mühendisliği"
+     "name": "Gemi İnşaatı ve Gemi Makineleri Mühendisliği",
+     "nameEn": "Naval Architecture and Marine Engineering",
+     "nameAr": "هندسة بناء السفن وآلاتها"
     },
     {
      "id": "deniz-ulastirma-isletme-muhendisligi",
-     "name": "Deniz Ulaştırma İşletme Mühendisliği"
+     "name": "Deniz Ulaştırma İşletme Mühendisliği",
+     "nameEn": "Maritime Transportation Management Engineering",
+     "nameAr": "هندسة إدارة النقل البحري"
     },
     {
      "id": "gemi-makineleri-isletme-muhendisligi",
-     "name": "Gemi Makineleri İşletme Mühendisliği"
+     "name": "Gemi Makineleri İşletme Mühendisliği",
+     "nameEn": "Ship Machinery Operation Engineering",
+     "nameAr": "هندسة تشغيل آلات السفن"
     },
     {
      "id": "denizcilik-isletmeleri-yonetimi",
-     "name": "Denizcilik İşletmeleri Yönetimi"
+     "name": "Denizcilik İşletmeleri Yönetimi",
+     "nameEn": "Maritime Enterprise Management",
+     "nameAr": "إدارة المنشآت البحرية"
     },
     {
      "id": "deniz-ulastirma-ve-isletme-muhendisligi",
-     "name": "Deniz Ulaştırma ve İşletme Mühendisliği"
+     "name": "Deniz Ulaştırma ve İşletme Mühendisliği",
+     "nameEn": "Maritime Transportation and Management Engineering",
+     "nameAr": "هندسة النقل البحري والإدارة"
     },
     {
      "id": "gemi-makineleri-muhendisligi",
-     "name": "Gemi Makineleri Mühendisliği"
+     "name": "Gemi Makineleri Mühendisliği",
+     "nameEn": "Marine Machinery Engineering",
+     "nameAr": "هندسة آلات السفن"
     },
     {
      "id": "deniz-ticareti-ve-yonetimi",
-     "name": "Deniz Ticareti ve Yönetimi"
+     "name": "Deniz Ticareti ve Yönetimi",
+     "nameEn": "Maritime Trade and Management",
+     "nameAr": "التجارة البحرية وإدارتها"
     },
     {
      "id": "guverte-muhendisligi",
-     "name": "Güverte Mühendisliği"
+     "name": "Güverte Mühendisliği",
+     "nameEn": "Deck Engineering",
+     "nameAr": "هندسة سطح السفينة"
     },
     {
      "id": "gemi-makineleri-ve-enerji-sistemleri",
-     "name": "Gemi Makineleri ve Enerji Sistemleri"
+     "name": "Gemi Makineleri ve Enerji Sistemleri",
+     "nameEn": "Ship Machinery and Energy Systems",
+     "nameAr": "آلات السفن ونظم الطاقة"
     },
     {
      "id": "denizcilik-ve-liman-isletmeciligi",
-     "name": "Denizcilik ve Liman İşletmeciliği"
+     "name": "Denizcilik ve Liman İşletmeciliği",
+     "nameEn": "Maritime and Port Management",
+     "nameAr": "الملاحة البحرية وإدارة الموانئ"
     },
     {
      "id": "deniz-teknolojisi-muhendisligi",
-     "name": "Deniz Teknolojisi Mühendisliği"
+     "name": "Deniz Teknolojisi Mühendisliği",
+     "nameEn": "Marine Technology Engineering",
+     "nameAr": "هندسة التقنية البحرية"
     },
     {
      "id": "gemi-sistemleri-muhendisligi",
-     "name": "Gemi Sistemleri Mühendisliği"
+     "name": "Gemi Sistemleri Mühendisliği",
+     "nameEn": "Ship Systems Engineering",
+     "nameAr": "هندسة نظم السفن"
     },
     {
      "id": "gemi-yapimi-ve-donatimi",
-     "name": "Gemi Yapımı ve Donatımı"
+     "name": "Gemi Yapımı ve Donatımı",
+     "nameEn": "Shipbuilding and Outfitting",
+     "nameAr": "بناء السفن وتجهيزها"
     },
     {
      "id": "gemi-ve-deniz-teknolojisi-muhendisligi",
-     "name": "Gemi ve Deniz Teknolojisi Mühendisliği"
+     "name": "Gemi ve Deniz Teknolojisi Mühendisliği",
+     "nameEn": "Ship and Marine Technology Engineering",
+     "nameAr": "هندسة تقنية السفن والبحار"
     },
     {
      "id": "lojistik-ve-tasimacilik-yonetimi",
-     "name": "Lojistik ve Taşımacılık Yönetimi"
+     "name": "Lojistik ve Taşımacılık Yönetimi",
+     "nameEn": "Logistics and Transportation Management",
+     "nameAr": "إدارة اللوجستيات والنقل"
     },
     {
      "id": "liman-isletmeciligi",
-     "name": "Liman İşletmeciliği"
+     "name": "Liman İşletmeciliği",
+     "nameEn": "Port Management",
+     "nameAr": "إدارة الموانئ"
     },
     {
      "id": "denizcilik",
-     "name": "Denizcilik"
+     "name": "Denizcilik",
+     "nameEn": "Maritime Studies",
+     "nameAr": "الدراسات البحرية"
     },
     {
      "id": "gemi-sanayi-ve-tersane-yonetimi",
-     "name": "Gemi Sanayi ve Tersane Yönetimi"
+     "name": "Gemi Sanayi ve Tersane Yönetimi",
+     "nameEn": "Shipbuilding Industry and Shipyard Management",
+     "nameAr": "صناعة السفن وإدارة أحواض بنائها"
     }
    ]
   },
   {
    "id": "teknoloji",
    "name": "Teknoloji Fakültesi",
+   "nameEn": "Faculty of Technology",
+   "nameAr": "كلية التكنولوجيا",
    "departments": [
     {
      "id": "bilgisayar-muhendisligi",
-     "name": "Bilgisayar Mühendisliği"
+     "name": "Bilgisayar Mühendisliği",
+     "nameEn": "Computer Engineering",
+     "nameAr": "هندسة الحاسوب"
     },
     {
      "id": "yazilim-muhendisligi",
-     "name": "Yazılım Mühendisliği"
+     "name": "Yazılım Mühendisliği",
+     "nameEn": "Software Engineering",
+     "nameAr": "هندسة البرمجيات"
     },
     {
      "id": "elektrik-elektronik-muhendisligi",
-     "name": "Elektrik-Elektronik Mühendisliği"
+     "name": "Elektrik-Elektronik Mühendisliği",
+     "nameEn": "Electrical and Electronics Engineering",
+     "nameAr": "هندسة الكهرباء والإلكترونيات"
     },
     {
      "id": "makine-muhendisligi",
-     "name": "Makine Mühendisliği"
+     "name": "Makine Mühendisliği",
+     "nameEn": "Mechanical Engineering",
+     "nameAr": "هندسة الميكانيك"
     },
     {
      "id": "insaat-muhendisligi",
-     "name": "İnşaat Mühendisliği"
+     "name": "İnşaat Mühendisliği",
+     "nameEn": "Civil Engineering",
+     "nameAr": "هندسة المدنية"
     },
     {
      "id": "mekatronik-muhendisligi",
-     "name": "Mekatronik Mühendisliği"
+     "name": "Mekatronik Mühendisliği",
+     "nameEn": "Mechatronics Engineering",
+     "nameAr": "هندسة الميكاترونيكس"
     },
     {
      "id": "otomotiv-muhendisligi",
-     "name": "Otomotiv Mühendisliği"
+     "name": "Otomotiv Mühendisliği",
+     "nameEn": "Automotive Engineering",
+     "nameAr": "هندسة السيارات"
     },
     {
      "id": "endustri-muhendisligi",
-     "name": "Endüstri Mühendisliği"
+     "name": "Endüstri Mühendisliği",
+     "nameEn": "Industrial Engineering",
+     "nameAr": "هندسة الصناعة"
     },
     {
      "id": "metalurji-ve-malzeme-muhendisligi",
-     "name": "Metalurji ve Malzeme Mühendisliği"
+     "name": "Metalurji ve Malzeme Mühendisliği",
+     "nameEn": "Metallurgical and Materials Engineering",
+     "nameAr": "هندسة المعادن والمواد"
     },
     {
      "id": "enerji-sistemleri-muhendisligi",
-     "name": "Enerji Sistemleri Mühendisliği"
+     "name": "Enerji Sistemleri Mühendisliği",
+     "nameEn": "Energy Systems Engineering",
+     "nameAr": "هندسة نظم الطاقة"
     },
     {
      "id": "biyomedikal-muhendisligi",
-     "name": "Biyomedikal Mühendisliği"
+     "name": "Biyomedikal Mühendisliği",
+     "nameEn": "Biomedical Engineering",
+     "nameAr": "هندسة الطب الحيوي"
     },
     {
      "id": "gida-muhendisligi",
-     "name": "Gıda Mühendisliği"
+     "name": "Gıda Mühendisliği",
+     "nameEn": "Food Engineering",
+     "nameAr": "هندسة الأغذية"
     },
     {
      "id": "tekstil-muhendisligi",
-     "name": "Tekstil Mühendisliği"
+     "name": "Tekstil Mühendisliği",
+     "nameEn": "Textile Engineering",
+     "nameAr": "هندسة النسيج"
     },
     {
      "id": "kimya-muhendisligi",
-     "name": "Kimya Mühendisliği"
+     "name": "Kimya Mühendisliği",
+     "nameEn": "Chemical Engineering",
+     "nameAr": "هندسة الكيمياء"
     },
     {
      "id": "mekatronik",
-     "name": "Mekatronik"
+     "name": "Mekatronik",
+     "nameEn": "Mechatronics",
+     "nameAr": "الميكاترونيكس"
     },
     {
      "id": "otomotiv-teknolojisi",
-     "name": "Otomotiv Teknolojisi"
+     "name": "Otomotiv Teknolojisi",
+     "nameEn": "Automotive Technology",
+     "nameAr": "تقنية السيارات"
     },
     {
      "id": "elektronik-ve-otomasyon",
-     "name": "Elektronik ve Otomasyon"
+     "name": "Elektronik ve Otomasyon",
+     "nameEn": "Electronics and Automation",
+     "nameAr": "الإلكترونيات والأتمتة"
     },
     {
      "id": "bilisim-sistemleri-ve-teknolojileri",
-     "name": "Bilişim Sistemleri ve Teknolojileri"
+     "name": "Bilişim Sistemleri ve Teknolojileri",
+     "nameEn": "Information Systems and Technologies",
+     "nameAr": "نظم وتقنيات المعلومات"
     },
     {
      "id": "ahsap-teknolojisi",
-     "name": "Ahşap Teknolojisi"
+     "name": "Ahşap Teknolojisi",
+     "nameEn": "Wood Technology",
+     "nameAr": "تقنية الخشب"
     },
     {
      "id": "seramik-teknolojisi",
-     "name": "Seramik Teknolojisi"
+     "name": "Seramik Teknolojisi",
+     "nameEn": "Ceramic Technology",
+     "nameAr": "تقنية السيراميك"
     },
     {
      "id": "makine-ve-imalat-teknolojisi",
-     "name": "Makine ve İmalat Teknolojisi"
+     "name": "Makine ve İmalat Teknolojisi",
+     "nameEn": "Machinery and Manufacturing Technology",
+     "nameAr": "تقنية الآلات والتصنيع"
     },
     {
      "id": "elektrik-ve-enerji-teknolojisi",
-     "name": "Elektrik ve Enerji Teknolojisi"
+     "name": "Elektrik ve Enerji Teknolojisi",
+     "nameEn": "Electricity and Energy Technology",
+     "nameAr": "تقنية الكهرباء والطاقة"
     },
     {
      "id": "elektronik-teknolojisi",
-     "name": "Elektronik Teknolojisi"
+     "name": "Elektronik Teknolojisi",
+     "nameEn": "Electronics Technology",
+     "nameAr": "تقنية الإلكترونيات"
     },
     {
      "id": "metalurji-ve-malzeme-teknolojisi",
-     "name": "Metalurji ve Malzeme Teknolojisi"
+     "name": "Metalurji ve Malzeme Teknolojisi",
+     "nameEn": "Metallurgy and Materials Technology",
+     "nameAr": "تقنية المعادن والمواد"
     },
     {
      "id": "bilisim-teknolojileri-muhendisligi",
-     "name": "Bilişim Teknolojileri Mühendisliği"
+     "name": "Bilişim Teknolojileri Mühendisliği",
+     "nameEn": "Information Technologies Engineering",
+     "nameAr": "هندسة تقنيات المعلومات"
     },
     {
      "id": "biyomuhendislik",
-     "name": "Biyomühendislik"
+     "name": "Biyomühendislik",
+     "nameEn": "Bioengineering",
+     "nameAr": "الهندسة الحيوية"
     },
     {
      "id": "enerji-muhendisligi",
-     "name": "Enerji Mühendisliği"
+     "name": "Enerji Mühendisliği",
+     "nameEn": "Energy Engineering",
+     "nameAr": "هندسة الطاقة"
     },
     {
      "id": "cevre-muhendisligi",
-     "name": "Çevre Mühendisliği"
+     "name": "Çevre Mühendisliği",
+     "nameEn": "Environmental Engineering",
+     "nameAr": "هندسة البيئة"
     },
     {
      "id": "imalat-muhendisligi",
-     "name": "İmalat Mühendisliği"
+     "name": "İmalat Mühendisliği",
+     "nameEn": "Manufacturing Engineering",
+     "nameAr": "هندسة التصنيع"
     },
     {
      "id": "yapay-zeka-muhendisligi",
-     "name": "Yapay Zeka Mühendisliği"
+     "name": "Yapay Zeka Mühendisliği",
+     "nameEn": "Artificial Intelligence Engineering",
+     "nameAr": "هندسة الذكاء الاصطناعي"
     },
     {
      "id": "matbaa-teknolojileri",
-     "name": "Matbaa Teknolojileri"
+     "name": "Matbaa Teknolojileri",
+     "nameEn": "Printing Technologies",
+     "nameAr": "تقنيات الطباعة"
     },
     {
      "id": "tekstil-teknolojisi",
-     "name": "Tekstil Teknolojisi"
+     "name": "Tekstil Teknolojisi",
+     "nameEn": "Textile Technology",
+     "nameAr": "تقنية النسيج"
     },
     {
      "id": "elektronik-ve-haberlesme-muhendisligi",
-     "name": "Elektronik ve Haberleşme Mühendisliği"
+     "name": "Elektronik ve Haberleşme Mühendisliği",
+     "nameEn": "Electronics and Communication Engineering",
+     "nameAr": "هندسة الإلكترونيات والاتصالات"
     },
     {
      "id": "elektrik-muhendisligi",
-     "name": "Elektrik Mühendisliği"
+     "name": "Elektrik Mühendisliği",
+     "nameEn": "Electrical Engineering",
+     "nameAr": "هندسة الكهرباء"
     },
     {
      "id": "yenilenebilir-enerji-sistemleri",
-     "name": "Yenilenebilir Enerji Sistemleri"
+     "name": "Yenilenebilir Enerji Sistemleri",
+     "nameEn": "Renewable Energy Systems",
+     "nameAr": "نظم الطاقة المتجددة"
     },
     {
      "id": "optik-muhendisligi",
-     "name": "Optik Mühendisliği"
+     "name": "Optik Mühendisliği",
+     "nameEn": "Optical Engineering",
+     "nameAr": "هندسة البصريات"
     },
     {
      "id": "nukleer-enerji-muhendisligi",
-     "name": "Nükleer Enerji Mühendisliği"
+     "name": "Nükleer Enerji Mühendisliği",
+     "nameEn": "Nuclear Energy Engineering",
+     "nameAr": "هندسة الطاقة النووية"
     }
    ]
   },
   {
    "id": "uygulamali-bilimler",
    "name": "Uygulamalı Bilimler Fakültesi",
+   "nameEn": "Faculty of Applied Sciences",
+   "nameAr": "كلية العلوم التطبيقية",
    "departments": [
     {
      "id": "bankacilik-ve-sigortacilik",
-     "name": "Bankacılık ve Sigortacılık"
+     "name": "Bankacılık ve Sigortacılık",
+     "nameEn": "Banking and Insurance",
+     "nameAr": "المصارف والتأمين"
     },
     {
      "id": "muhasebe-ve-finans-yonetimi",
-     "name": "Muhasebe ve Finans Yönetimi"
+     "name": "Muhasebe ve Finans Yönetimi",
+     "nameEn": "Accounting and Finance Management",
+     "nameAr": "المحاسبة والإدارة المالية"
     },
     {
      "id": "yonetim-bilisim-sistemleri",
-     "name": "Yönetim Bilişim Sistemleri"
+     "name": "Yönetim Bilişim Sistemleri",
+     "nameEn": "Management Information Systems",
+     "nameAr": "نظم المعلومات الإدارية"
     },
     {
      "id": "uluslararasi-ticaret-ve-lojistik",
-     "name": "Uluslararası Ticaret ve Lojistik"
+     "name": "Uluslararası Ticaret ve Lojistik",
+     "nameEn": "International Trade and Logistics",
+     "nameAr": "التجارة الدولية واللوجستيات"
     },
     {
      "id": "uluslararasi-ticaret-ve-finans",
-     "name": "Uluslararası Ticaret ve Finans"
+     "name": "Uluslararası Ticaret ve Finans",
+     "nameEn": "International Trade and Finance",
+     "nameAr": "التجارة الدولية والتمويل"
     },
     {
      "id": "turizm-isletmeciligi",
-     "name": "Turizm İşletmeciliği"
+     "name": "Turizm İşletmeciliği",
+     "nameEn": "Tourism Management",
+     "nameAr": "إدارة السياحة"
     },
     {
      "id": "gastronomi-ve-mutfak-sanatlari",
-     "name": "Gastronomi ve Mutfak Sanatları"
+     "name": "Gastronomi ve Mutfak Sanatları",
+     "nameEn": "Gastronomy and Culinary Arts",
+     "nameAr": "علم الطهي وفنون المطبخ"
     },
     {
      "id": "finans-ve-bankacilik",
-     "name": "Finans ve Bankacılık"
+     "name": "Finans ve Bankacılık",
+     "nameEn": "Finance and Banking",
+     "nameAr": "المالية والمصارف"
     },
     {
      "id": "isletme",
-     "name": "İşletme"
+     "name": "İşletme",
+     "nameEn": "Business Administration",
+     "nameAr": "إدارة الأعمال"
     },
     {
      "id": "bilisim-sistemleri-ve-teknolojileri",
-     "name": "Bilişim Sistemleri ve Teknolojileri"
+     "name": "Bilişim Sistemleri ve Teknolojileri",
+     "nameEn": "Information Systems and Technologies",
+     "nameAr": "نظم وتقنيات المعلومات"
     },
     {
      "id": "halkla-iliskiler-ve-reklamcilik",
-     "name": "Halkla İlişkiler ve Reklamcılık"
+     "name": "Halkla İlişkiler ve Reklamcılık",
+     "nameEn": "Public Relations and Advertising",
+     "nameAr": "العلاقات العامة والإعلان"
     },
     {
      "id": "girisimcilik",
-     "name": "Girişimcilik"
+     "name": "Girişimcilik",
+     "nameEn": "Entrepreneurship",
+     "nameAr": "ريادة الأعمال"
     },
     {
      "id": "gayrimenkul-gelistirme-ve-yonetimi",
-     "name": "Gayrimenkul Geliştirme ve Yönetimi"
+     "name": "Gayrimenkul Geliştirme ve Yönetimi",
+     "nameEn": "Real Estate Development and Management",
+     "nameAr": "تطوير العقارات وإدارتها"
     },
     {
      "id": "lojistik-yonetimi",
-     "name": "Lojistik Yönetimi"
+     "name": "Lojistik Yönetimi",
+     "nameEn": "Logistics Management",
+     "nameAr": "إدارة اللوجستيات"
     },
     {
      "id": "pazarlama",
-     "name": "Pazarlama"
+     "name": "Pazarlama",
+     "nameEn": "Marketing",
+     "nameAr": "التسويق"
     },
     {
      "id": "saglik-yonetimi",
-     "name": "Sağlık Yönetimi"
+     "name": "Sağlık Yönetimi",
+     "nameEn": "Health Management",
+     "nameAr": "الإدارة الصحية"
     },
     {
      "id": "spor-yoneticiligi",
-     "name": "Spor Yöneticiliği"
+     "name": "Spor Yöneticiliği",
+     "nameEn": "Sports Administration",
+     "nameAr": "الإدارة الرياضية"
     },
     {
      "id": "havacilik-yonetimi",
-     "name": "Havacılık Yönetimi"
+     "name": "Havacılık Yönetimi",
+     "nameEn": "Aviation Management",
+     "nameAr": "إدارة الطيران"
     },
     {
      "id": "yazilim-gelistirme",
-     "name": "Yazılım Geliştirme"
+     "name": "Yazılım Geliştirme",
+     "nameEn": "Software Development",
+     "nameAr": "تطوير البرمجيات"
     },
     {
      "id": "siber-guvenlik",
-     "name": "Siber Güvenlik"
+     "name": "Siber Güvenlik",
+     "nameEn": "Cybersecurity",
+     "nameAr": "الأمن السيبراني"
     },
     {
      "id": "tarim-isletmeciligi",
-     "name": "Tarım İşletmeciliği"
+     "name": "Tarım İşletmeciliği",
+     "nameEn": "Farm Management",
+     "nameAr": "إدارة المزارع"
     },
     {
      "id": "kamu-yonetimi",
-     "name": "Kamu Yönetimi"
+     "name": "Kamu Yönetimi",
+     "nameEn": "Public Administration",
+     "nameAr": "الإدارة العامة"
     },
     {
      "id": "sosyal-hizmet",
-     "name": "Sosyal Hizmet"
+     "name": "Sosyal Hizmet",
+     "nameEn": "Social Work",
+     "nameAr": "الخدمة الاجتماعية"
     },
     {
      "id": "calisma-ekonomisi",
-     "name": "Çalışma Ekonomisi"
+     "name": "Çalışma Ekonomisi",
+     "nameEn": "Labor Economics",
+     "nameAr": "اقتصاد العمل"
     },
     {
      "id": "uluslararasi-ticaret",
-     "name": "Uluslararası Ticaret"
+     "name": "Uluslararası Ticaret",
+     "nameEn": "International Trade",
+     "nameAr": "التجارة الدولية"
     },
     {
      "id": "dijital-pazarlama",
-     "name": "Dijital Pazarlama"
+     "name": "Dijital Pazarlama",
+     "nameEn": "Digital Marketing",
+     "nameAr": "التسويق الرقمي"
     },
     {
      "id": "elektronik-ticaret",
-     "name": "Elektronik Ticaret"
+     "name": "Elektronik Ticaret",
+     "nameEn": "Electronic Commerce",
+     "nameAr": "التجارة الإلكترونية"
     },
     {
      "id": "tedarik-zinciri-yonetimi",
-     "name": "Tedarik Zinciri Yönetimi"
+     "name": "Tedarik Zinciri Yönetimi",
+     "nameEn": "Supply Chain Management",
+     "nameAr": "إدارة سلاسل الإمداد"
     },
     {
      "id": "is-sagligi-ve-guvenligi",
-     "name": "İş Sağlığı ve Güvenliği"
+     "name": "İş Sağlığı ve Güvenliği",
+     "nameEn": "Occupational Health and Safety",
+     "nameAr": "الصحة والسلامة المهنية"
     },
     {
      "id": "medya-ve-iletisim",
-     "name": "Medya ve İletişim"
+     "name": "Medya ve İletişim",
+     "nameEn": "Media and Communication",
+     "nameAr": "الإعلام والاتصال"
     },
     {
      "id": "veri-bilimi-ve-analitigi",
-     "name": "Veri Bilimi ve Analitiği"
+     "name": "Veri Bilimi ve Analitiği",
+     "nameEn": "Data Science and Analytics",
+     "nameAr": "علم البيانات والتحليلات"
     },
     {
      "id": "yerel-yonetimler",
-     "name": "Yerel Yönetimler"
+     "name": "Yerel Yönetimler",
+     "nameEn": "Local Governments",
+     "nameAr": "الإدارات المحلية"
     },
     {
      "id": "finans-teknolojileri",
-     "name": "Finans Teknolojileri"
+     "name": "Finans Teknolojileri",
+     "nameEn": "Financial Technologies",
+     "nameAr": "التقنيات المالية"
     },
     {
      "id": "maliye",
-     "name": "Maliye"
+     "name": "Maliye",
+     "nameEn": "Public Finance",
+     "nameAr": "المالية العامة"
     },
     {
      "id": "muhasebe-ve-denetim",
-     "name": "Muhasebe ve Denetim"
+     "name": "Muhasebe ve Denetim",
+     "nameEn": "Accounting and Auditing",
+     "nameAr": "المحاسبة والتدقيق"
     }
    ]
   },
   {
    "id": "devlet-konservatuvari",
    "name": "Devlet Konservatuvarı",
+   "nameEn": "State Conservatory",
+   "nameAr": "المعهد الموسيقي الحكومي",
    "departments": [
     {
      "id": "muzik",
-     "name": "Müzik"
+     "name": "Müzik",
+     "nameEn": "Music",
+     "nameAr": "الموسيقى"
     },
     {
      "id": "muzik-bilimleri",
-     "name": "Müzik Bilimleri"
+     "name": "Müzik Bilimleri",
+     "nameEn": "Music Sciences",
+     "nameAr": "العلوم الموسيقية"
     },
     {
      "id": "turk-halk-muzigi",
-     "name": "Türk Halk Müziği"
+     "name": "Türk Halk Müziği",
+     "nameEn": "Turkish Folk Music",
+     "nameAr": "الموسيقى الشعبية التركية"
     },
     {
      "id": "turk-sanat-muzigi",
-     "name": "Türk Sanat Müziği"
+     "name": "Türk Sanat Müziği",
+     "nameEn": "Turkish Art Music",
+     "nameAr": "الموسيقى الفنية التركية"
     },
     {
      "id": "klasik-bati-muzigi",
-     "name": "Klasik Batı Müziği"
+     "name": "Klasik Batı Müziği",
+     "nameEn": "Classical Western Music",
+     "nameAr": "الموسيقى الغربية الكلاسيكية"
     },
     {
      "id": "piyano",
-     "name": "Piyano"
+     "name": "Piyano",
+     "nameEn": "Piano",
+     "nameAr": "البيانو"
     },
     {
      "id": "keman",
-     "name": "Keman"
+     "name": "Keman",
+     "nameEn": "Violin",
+     "nameAr": "الكمان"
     },
     {
      "id": "viyolonsel",
-     "name": "Viyolonsel"
+     "name": "Viyolonsel",
+     "nameEn": "Cello",
+     "nameAr": "التشيلو"
     },
     {
      "id": "gitar",
-     "name": "Gitar"
+     "name": "Gitar",
+     "nameEn": "Guitar",
+     "nameAr": "الغيتار"
     },
     {
      "id": "san",
-     "name": "Şan"
+     "name": "Şan",
+     "nameEn": "Voice (Vocal Performance)",
+     "nameAr": "الغناء"
     },
     {
      "id": "bale",
-     "name": "Bale"
+     "name": "Bale",
+     "nameEn": "Ballet",
+     "nameAr": "الباليه"
     },
     {
      "id": "tiyatro",
-     "name": "Tiyatro"
+     "name": "Tiyatro",
+     "nameEn": "Theatre",
+     "nameAr": "المسرح"
     },
     {
      "id": "sahne-sanatlari",
-     "name": "Sahne Sanatları"
+     "name": "Sahne Sanatları",
+     "nameEn": "Stage Arts",
+     "nameAr": "فنون المسرح"
     },
     {
      "id": "muzikal-tiyatro",
-     "name": "Müzikal Tiyatro"
+     "name": "Müzikal Tiyatro",
+     "nameEn": "Musical Theatre",
+     "nameAr": "المسرح الغنائي"
     },
     {
      "id": "oyunculuk",
-     "name": "Oyunculuk"
+     "name": "Oyunculuk",
+     "nameEn": "Acting",
+     "nameAr": "التمثيل"
     },
     {
      "id": "dans",
-     "name": "Dans"
+     "name": "Dans",
+     "nameEn": "Dance",
+     "nameAr": "الرقص"
     },
     {
      "id": "kompozisyon-ve-orkestra-sefligi",
-     "name": "Kompozisyon ve Orkestra Şefliği"
+     "name": "Kompozisyon ve Orkestra Şefliği",
+     "nameEn": "Composition and Orchestra Conducting",
+     "nameAr": "التأليف الموسيقي وقيادة الأوركسترا"
     },
     {
      "id": "muzik-teknolojisi",
-     "name": "Müzik Teknolojisi"
+     "name": "Müzik Teknolojisi",
+     "nameEn": "Music Technology",
+     "nameAr": "تقنية الموسيقى"
     },
     {
      "id": "geleneksel-turk-muzigi",
-     "name": "Geleneksel Türk Müziği"
+     "name": "Geleneksel Türk Müziği",
+     "nameEn": "Traditional Turkish Music",
+     "nameAr": "الموسيقى التركية التقليدية"
     },
     {
      "id": "opera",
-     "name": "Opera"
+     "name": "Opera",
+     "nameEn": "Opera",
+     "nameAr": "الأوبرا"
     },
     {
      "id": "calgi",
-     "name": "Çalgı"
+     "name": "Çalgı",
+     "nameEn": "Musical Instruments",
+     "nameAr": "الآلات الموسيقية"
     },
     {
      "id": "baglama",
-     "name": "Bağlama"
+     "name": "Bağlama",
+     "nameEn": "Bağlama (Saz)",
+     "nameAr": "البغلمة (الساز)"
     },
     {
      "id": "ud",
-     "name": "Ud"
+     "name": "Ud",
+     "nameEn": "Oud",
+     "nameAr": "العود"
     },
     {
      "id": "kemence",
-     "name": "Kemençe"
+     "name": "Kemençe",
+     "nameEn": "Kemenche",
+     "nameAr": "الكمنجة"
     },
     {
      "id": "kanun",
-     "name": "Kanun"
+     "name": "Kanun",
+     "nameEn": "Qanun (Zither)",
+     "nameAr": "آلة القانون"
     },
     {
      "id": "ney",
-     "name": "Ney"
+     "name": "Ney",
+     "nameEn": "Ney (Reed Flute)",
+     "nameAr": "الناي"
     },
     {
      "id": "armoni",
-     "name": "Armoni"
+     "name": "Armoni",
+     "nameEn": "Harmony",
+     "nameAr": "الهارموني"
     },
     {
      "id": "muzikoloji",
-     "name": "Müzikoloji"
+     "name": "Müzikoloji",
+     "nameEn": "Musicology",
+     "nameAr": "علم الموسيقى"
     },
     {
      "id": "caz-ve-populer-muzik",
-     "name": "Caz ve Popüler Müzik"
+     "name": "Caz ve Popüler Müzik",
+     "nameEn": "Jazz and Popular Music",
+     "nameAr": "موسيقى الجاز والموسيقى الشعبية"
     },
     {
      "id": "elektronik-muzik",
-     "name": "Elektronik Müzik"
+     "name": "Elektronik Müzik",
+     "nameEn": "Electronic Music",
+     "nameAr": "الموسيقى الإلكترونية"
     }
    ]
   },
   {
    "id": "hemsirelik-yuksekokulu",
    "name": "Hemşirelik Yüksekokulu",
+   "nameEn": "School of Nursing",
+   "nameAr": "المدرسة العليا للتمريض",
    "departments": [
     {
      "id": "hemsirelik",
-     "name": "Hemşirelik"
+     "name": "Hemşirelik",
+     "nameEn": "Nursing",
+     "nameAr": "التمريض"
     },
     {
      "id": "ebelik",
-     "name": "Ebelik"
+     "name": "Ebelik",
+     "nameEn": "Midwifery",
+     "nameAr": "القبالة"
     },
     {
      "id": "saglik-bakim-hizmetleri",
-     "name": "Sağlık Bakım Hizmetleri"
+     "name": "Sağlık Bakım Hizmetleri",
+     "nameEn": "Health Care Services",
+     "nameAr": "خدمات الرعاية الصحية"
     },
     {
      "id": "acil-yardim-ve-afet-yonetimi",
-     "name": "Acil Yardım ve Afet Yönetimi"
+     "name": "Acil Yardım ve Afet Yönetimi",
+     "nameEn": "Emergency Aid and Disaster Management",
+     "nameAr": "الإسعاف الطارئ وإدارة الكوارث"
     },
     {
      "id": "saglik-yonetimi",
-     "name": "Sağlık Yönetimi"
+     "name": "Sağlık Yönetimi",
+     "nameEn": "Health Management",
+     "nameAr": "الإدارة الصحية"
     },
     {
      "id": "sosyal-hizmet",
-     "name": "Sosyal Hizmet"
+     "name": "Sosyal Hizmet",
+     "nameEn": "Social Work",
+     "nameAr": "الخدمة الاجتماعية"
     }
    ]
   },
   {
    "id": "meslek-yuksekokulu",
    "name": "Meslek Yüksekokulu",
+   "nameEn": "Vocational School",
+   "nameAr": "المدرسة المهنية العليا",
    "departments": [
     {
      "id": "bilgisayar-programciligi",
-     "name": "Bilgisayar Programcılığı"
+     "name": "Bilgisayar Programcılığı",
+     "nameEn": "Computer Programming",
+     "nameAr": "برمجة الحاسوب"
     },
     {
      "id": "muhasebe-ve-vergi-uygulamalari",
-     "name": "Muhasebe ve Vergi Uygulamaları"
+     "name": "Muhasebe ve Vergi Uygulamaları",
+     "nameEn": "Accounting and Tax Applications",
+     "nameAr": "المحاسبة والتطبيقات الضريبية"
     },
     {
      "id": "elektrik",
-     "name": "Elektrik"
+     "name": "Elektrik",
+     "nameEn": "Electricity",
+     "nameAr": "الكهرباء"
     },
     {
      "id": "elektronik-teknolojisi",
-     "name": "Elektronik Teknolojisi"
+     "name": "Elektronik Teknolojisi",
+     "nameEn": "Electronics Technology",
+     "nameAr": "تقنية الإلكترونيات"
     },
     {
      "id": "elektronik-haberlesme-teknolojisi",
-     "name": "Elektronik Haberleşme Teknolojisi"
+     "name": "Elektronik Haberleşme Teknolojisi",
+     "nameEn": "Electronic Communication Technology",
+     "nameAr": "تقنية الاتصالات الإلكترونية"
     },
     {
      "id": "laborant-ve-veteriner-saglik",
-     "name": "Laborant ve Veteriner Sağlık"
+     "name": "Laborant ve Veteriner Sağlık",
+     "nameEn": "Laboratory and Veterinary Health",
+     "nameAr": "المختبرات والصحة البيطرية"
     },
     {
      "id": "tibbi-hizmetler-ve-teknikler",
-     "name": "Tıbbi Hizmetler ve Teknikler"
+     "name": "Tıbbi Hizmetler ve Teknikler",
+     "nameEn": "Medical Services and Techniques",
+     "nameAr": "الخدمات والتقنيات الطبية"
     },
     {
      "id": "adalet",
-     "name": "Adalet"
+     "name": "Adalet",
+     "nameEn": "Justice",
+     "nameAr": "العدالة"
     },
     {
      "id": "buro-yonetimi-ve-yonetici-asistanligi",
-     "name": "Büro Yönetimi ve Yönetici Asistanlığı"
+     "name": "Büro Yönetimi ve Yönetici Asistanlığı",
+     "nameEn": "Office Management and Executive Assistance",
+     "nameAr": "إدارة المكاتب والمساعدة الإدارية"
     },
     {
      "id": "buro-yonetimi",
-     "name": "Büro Yönetimi"
+     "name": "Büro Yönetimi",
+     "nameEn": "Office Management",
+     "nameAr": "إدارة المكاتب"
     },
     {
      "id": "is-sagligi-ve-guvenligi",
-     "name": "İş Sağlığı ve Güvenliği"
+     "name": "İş Sağlığı ve Güvenliği",
+     "nameEn": "Occupational Health and Safety",
+     "nameAr": "الصحة والسلامة المهنية"
     },
     {
      "id": "ilk-ve-acil-yardim",
-     "name": "İlk ve Acil Yardım"
+     "name": "İlk ve Acil Yardım",
+     "nameEn": "First and Emergency Aid",
+     "nameAr": "الإسعافات الأولية والطوارئ"
     },
     {
      "id": "agiz-ve-dis-sagligi",
-     "name": "Ağız ve Diş Sağlığı"
+     "name": "Ağız ve Diş Sağlığı",
+     "nameEn": "Oral and Dental Health",
+     "nameAr": "صحة الفم والأسنان"
     },
     {
      "id": "cocuk-gelisimi",
-     "name": "Çocuk Gelişimi"
+     "name": "Çocuk Gelişimi",
+     "nameEn": "Child Development",
+     "nameAr": "نمو الطفل"
     },
     {
      "id": "ascilik",
-     "name": "Aşçılık"
+     "name": "Aşçılık",
+     "nameEn": "Cookery",
+     "nameAr": "فن الطبخ"
     },
     {
      "id": "turizm-ve-otel-isletmeciligi",
-     "name": "Turizm ve Otel İşletmeciliği"
+     "name": "Turizm ve Otel İşletmeciliği",
+     "nameEn": "Tourism and Hotel Management",
+     "nameAr": "إدارة السياحة والفنادق"
     },
     {
      "id": "web-tasarimi-ve-kodlama",
-     "name": "Web Tasarımı ve Kodlama"
+     "name": "Web Tasarımı ve Kodlama",
+     "nameEn": "Web Design and Coding",
+     "nameAr": "تصميم الويب والبرمجة"
     },
     {
      "id": "mekatronik",
-     "name": "Mekatronik"
+     "name": "Mekatronik",
+     "nameEn": "Mechatronics",
+     "nameAr": "الميكاترونيكس"
     },
     {
      "id": "insaat-teknolojisi",
-     "name": "İnşaat Teknolojisi"
+     "name": "İnşaat Teknolojisi",
+     "nameEn": "Construction Technology",
+     "nameAr": "تقنية البناء"
     },
     {
      "id": "harita-ve-kadastro",
-     "name": "Harita ve Kadastro"
+     "name": "Harita ve Kadastro",
+     "nameEn": "Mapping and Cadastre",
+     "nameAr": "الخرائط والمساحة العقارية"
     },
     {
      "id": "tarim",
-     "name": "Tarım"
+     "name": "Tarım",
+     "nameEn": "Agriculture",
+     "nameAr": "الزراعة"
     },
     {
      "id": "bitkisel-uretim",
-     "name": "Bitkisel Üretim"
+     "name": "Bitkisel Üretim",
+     "nameEn": "Crop Production",
+     "nameAr": "الإنتاج النباتي"
     },
     {
      "id": "hayvansal-uretim",
-     "name": "Hayvansal Üretim"
+     "name": "Hayvansal Üretim",
+     "nameEn": "Animal Production",
+     "nameAr": "الإنتاج الحيواني"
     },
     {
      "id": "gida-teknolojisi",
-     "name": "Gıda Teknolojisi"
+     "name": "Gıda Teknolojisi",
+     "nameEn": "Food Technology",
+     "nameAr": "تقنية الأغذية"
     },
     {
      "id": "radyoterapi",
-     "name": "Radyoterapi"
+     "name": "Radyoterapi",
+     "nameEn": "Radiotherapy",
+     "nameAr": "العلاج الإشعاعي"
     },
     {
      "id": "tibbi-goruntuleme-teknikleri",
-     "name": "Tıbbi Görüntüleme Teknikleri"
+     "name": "Tıbbi Görüntüleme Teknikleri",
+     "nameEn": "Medical Imaging Techniques",
+     "nameAr": "تقنيات التصوير الطبي"
     },
     {
      "id": "anestezi",
-     "name": "Anestezi"
+     "name": "Anestezi",
+     "nameEn": "Anesthesia",
+     "nameAr": "التخدير"
     },
     {
      "id": "optisyenlik",
-     "name": "Optisyenlik"
+     "name": "Optisyenlik",
+     "nameEn": "Opticianry",
+     "nameAr": "تقنية النظارات والبصريات"
     },
     {
      "id": "fizyoterapi",
-     "name": "Fizyoterapi"
+     "name": "Fizyoterapi",
+     "nameEn": "Physiotherapy",
+     "nameAr": "العلاج الطبيعي"
     },
     {
      "id": "yasli-bakimi",
-     "name": "Yaşlı Bakımı"
+     "name": "Yaşlı Bakımı",
+     "nameEn": "Elderly Care",
+     "nameAr": "رعاية المسنين"
     },
     {
      "id": "sosyal-hizmetler",
-     "name": "Sosyal Hizmetler"
+     "name": "Sosyal Hizmetler",
+     "nameEn": "Social Services",
+     "nameAr": "الخدمات الاجتماعية"
     },
     {
      "id": "halkla-iliskiler-ve-tanitim",
-     "name": "Halkla İlişkiler ve Tanıtım"
+     "name": "Halkla İlişkiler ve Tanıtım",
+     "nameEn": "Public Relations and Promotion",
+     "nameAr": "العلاقات العامة والترويج"
     },
     {
      "id": "dis-ticaret",
-     "name": "Dış Ticaret"
+     "name": "Dış Ticaret",
+     "nameEn": "Foreign Trade",
+     "nameAr": "التجارة الخارجية"
     },
     {
      "id": "lojistik",
-     "name": "Lojistik"
+     "name": "Lojistik",
+     "nameEn": "Logistics",
+     "nameAr": "اللوجستيات"
     },
     {
      "id": "bankacilik-ve-sigortacilik",
-     "name": "Bankacılık ve Sigortacılık"
+     "name": "Bankacılık ve Sigortacılık",
+     "nameEn": "Banking and Insurance",
+     "nameAr": "المصارف والتأمين"
     },
     {
      "id": "emlak-yonetimi",
-     "name": "Emlak Yönetimi"
+     "name": "Emlak Yönetimi",
+     "nameEn": "Real Estate Management",
+     "nameAr": "إدارة العقارات"
     },
     {
      "id": "spor-yonetimi",
-     "name": "Spor Yönetimi"
+     "name": "Spor Yönetimi",
+     "nameEn": "Sports Management",
+     "nameAr": "إدارة الرياضة"
     },
     {
      "id": "makine",
-     "name": "Makine"
+     "name": "Makine",
+     "nameEn": "Machinery",
+     "nameAr": "الآلات"
     },
     {
      "id": "makine-resim-ve-konstruksiyonu",
-     "name": "Makine Resim ve Konstrüksiyonu"
+     "name": "Makine Resim ve Konstrüksiyonu",
+     "nameEn": "Machine Drawing and Construction",
+     "nameAr": "الرسم الميكانيكي والإنشاءات"
     },
     {
      "id": "otomotiv-teknolojisi",
-     "name": "Otomotiv Teknolojisi"
+     "name": "Otomotiv Teknolojisi",
+     "nameEn": "Automotive Technology",
+     "nameAr": "تقنية السيارات"
     },
     {
      "id": "bilgisayar-teknolojisi",
-     "name": "Bilgisayar Teknolojisi"
+     "name": "Bilgisayar Teknolojisi",
+     "nameEn": "Computer Technology",
+     "nameAr": "تقنية الحاسوب"
     },
     {
      "id": "bilgi-guvenligi-teknolojisi",
-     "name": "Bilgi Güvenliği Teknolojisi"
+     "name": "Bilgi Güvenliği Teknolojisi",
+     "nameEn": "Information Security Technology",
+     "nameAr": "تقنية أمن المعلومات"
     },
     {
      "id": "bilgisayar-destekli-tasarim-ve-animasyon",
-     "name": "Bilgisayar Destekli Tasarım ve Animasyon"
+     "name": "Bilgisayar Destekli Tasarım ve Animasyon",
+     "nameEn": "Computer-Aided Design and Animation",
+     "nameAr": "التصميم والرسوم المتحركة بمساعدة الحاسوب"
     },
     {
      "id": "mobil-teknolojileri",
-     "name": "Mobil Teknolojileri"
+     "name": "Mobil Teknolojileri",
+     "nameEn": "Mobile Technologies",
+     "nameAr": "تقنيات الهاتف المحمول"
     },
     {
      "id": "grafik-tasarimi",
-     "name": "Grafik Tasarımı"
+     "name": "Grafik Tasarımı",
+     "nameEn": "Graphic Design",
+     "nameAr": "التصميم الغرافيكي"
     },
     {
      "id": "fotograf-ve-kameramanlik",
-     "name": "Fotoğraf ve Kameramanlık"
+     "name": "Fotoğraf ve Kameramanlık",
+     "nameEn": "Photography and Camera Operation",
+     "nameAr": "التصوير الفوتوغرافي وتشغيل الكاميرا"
     },
     {
      "id": "radyo-ve-televizyon-programciligi",
-     "name": "Radyo ve Televizyon Programcılığı"
+     "name": "Radyo ve Televizyon Programcılığı",
+     "nameEn": "Radio and Television Programming",
+     "nameAr": "برمجة الإذاعة والتلفزيون"
     },
     {
      "id": "medya-ve-iletisim",
-     "name": "Medya ve İletişim"
+     "name": "Medya ve İletişim",
+     "nameEn": "Media and Communication",
+     "nameAr": "الإعلام والاتصال"
     },
     {
      "id": "gazetecilik",
-     "name": "Gazetecilik"
+     "name": "Gazetecilik",
+     "nameEn": "Journalism",
+     "nameAr": "الصحافة"
     },
     {
      "id": "isletme-yonetimi",
-     "name": "İşletme Yönetimi"
+     "name": "İşletme Yönetimi",
+     "nameEn": "Business Management",
+     "nameAr": "إدارة الأعمال"
     },
     {
      "id": "pazarlama",
-     "name": "Pazarlama"
+     "name": "Pazarlama",
+     "nameEn": "Marketing",
+     "nameAr": "التسويق"
     },
     {
      "id": "perakende-satis-ve-magaza-yonetimi",
-     "name": "Perakende Satış ve Mağaza Yönetimi"
+     "name": "Perakende Satış ve Mağaza Yönetimi",
+     "nameEn": "Retail Sales and Store Management",
+     "nameAr": "البيع بالتجزئة وإدارة المتاجر"
     },
     {
      "id": "e-ticaret-ve-pazarlama",
-     "name": "E-Ticaret ve Pazarlama"
+     "name": "E-Ticaret ve Pazarlama",
+     "nameEn": "E-Commerce and Marketing",
+     "nameAr": "التجارة الإلكترونية والتسويق"
     },
     {
      "id": "yerel-yonetimler",
-     "name": "Yerel Yönetimler"
+     "name": "Yerel Yönetimler",
+     "nameEn": "Local Governments",
+     "nameAr": "الإدارات المحلية"
     },
     {
      "id": "kamu-yonetimi",
-     "name": "Kamu Yönetimi"
+     "name": "Kamu Yönetimi",
+     "nameEn": "Public Administration",
+     "nameAr": "الإدارة العامة"
     },
     {
      "id": "saglik-kurumlari-isletmeciligi",
-     "name": "Sağlık Kurumları İşletmeciliği"
+     "name": "Sağlık Kurumları İşletmeciliği",
+     "nameEn": "Healthcare Institutions Management",
+     "nameAr": "إدارة المؤسسات الصحية"
     },
     {
      "id": "tibbi-dokumantasyon-ve-sekreterlik",
-     "name": "Tıbbi Dokümantasyon ve Sekreterlik"
+     "name": "Tıbbi Dokümantasyon ve Sekreterlik",
+     "nameEn": "Medical Documentation and Secretarial Studies",
+     "nameAr": "التوثيق الطبي والسكرتارية"
     },
     {
      "id": "tibbi-laboratuvar-teknikleri",
-     "name": "Tıbbi Laboratuvar Teknikleri"
+     "name": "Tıbbi Laboratuvar Teknikleri",
+     "nameEn": "Medical Laboratory Techniques",
+     "nameAr": "تقنيات المختبرات الطبية"
     },
     {
      "id": "patoloji-laboratuvar-teknikleri",
-     "name": "Patoloji Laboratuvar Teknikleri"
+     "name": "Patoloji Laboratuvar Teknikleri",
+     "nameEn": "Pathology Laboratory Techniques",
+     "nameAr": "تقنيات مختبرات علم الأمراض"
     },
     {
      "id": "ameliyathane-hizmetleri",
-     "name": "Ameliyathane Hizmetleri"
+     "name": "Ameliyathane Hizmetleri",
+     "nameEn": "Operating Room Services",
+     "nameAr": "خدمات غرف العمليات"
     },
     {
      "id": "diyaliz",
-     "name": "Diyaliz"
+     "name": "Diyaliz",
+     "nameEn": "Dialysis",
+     "nameAr": "غسيل الكلى"
     },
     {
      "id": "elektronorofizyoloji",
-     "name": "Elektronörofizyoloji"
+     "name": "Elektronörofizyoloji",
+     "nameEn": "Electroneurophysiology",
+     "nameAr": "الفيزيولوجيا العصبية الكهربائية"
     },
     {
      "id": "cocuk-bakimi-ve-genclik-hizmetleri",
-     "name": "Çocuk Bakımı ve Gençlik Hizmetleri"
+     "name": "Çocuk Bakımı ve Gençlik Hizmetleri",
+     "nameEn": "Child Care and Youth Services",
+     "nameAr": "رعاية الأطفال وخدمات الشباب"
     },
     {
      "id": "engelli-bakimi-ve-rehabilitasyon",
-     "name": "Engelli Bakımı ve Rehabilitasyon"
+     "name": "Engelli Bakımı ve Rehabilitasyon",
+     "nameEn": "Disabled Care and Rehabilitation",
+     "nameAr": "رعاية ذوي الإعاقة وتأهيلهم"
     },
     {
      "id": "evde-hasta-bakimi",
-     "name": "Evde Hasta Bakımı"
+     "name": "Evde Hasta Bakımı",
+     "nameEn": "Home Patient Care",
+     "nameAr": "رعاية المرضى في المنزل"
     },
     {
      "id": "ortopedik-protez-ve-ortez",
-     "name": "Ortopedik Protez ve Ortez"
+     "name": "Ortopedik Protez ve Ortez",
+     "nameEn": "Orthopedic Prosthetics and Orthotics",
+     "nameAr": "الأطراف الصناعية والجبائر التقويمية"
     },
     {
      "id": "odyometri",
-     "name": "Odyometri"
+     "name": "Odyometri",
+     "nameEn": "Audiometry",
+     "nameAr": "قياس السمع"
     },
     {
      "id": "podoloji",
-     "name": "Podoloji"
+     "name": "Podoloji",
+     "nameEn": "Podiatry",
+     "nameAr": "طب القدم"
     },
     {
      "id": "tibbi-goruntuleme",
-     "name": "Tıbbi Görüntüleme"
+     "name": "Tıbbi Görüntüleme",
+     "nameEn": "Medical Imaging",
+     "nameAr": "التصوير الطبي"
     },
     {
      "id": "eczane-hizmetleri",
-     "name": "Eczane Hizmetleri"
+     "name": "Eczane Hizmetleri",
+     "nameEn": "Pharmacy Services",
+     "nameAr": "خدمات الصيدليات"
     },
     {
      "id": "tibbi-aromatik-bitkiler",
-     "name": "Tıbbi Aromatik Bitkiler"
+     "name": "Tıbbi Aromatik Bitkiler",
+     "nameEn": "Medicinal and Aromatic Plants",
+     "nameAr": "النباتات الطبية والعطرية"
     },
     {
      "id": "veteriner-saglik",
-     "name": "Veteriner Sağlık"
+     "name": "Veteriner Sağlık",
+     "nameEn": "Veterinary Health",
+     "nameAr": "الصحة البيطرية"
     },
     {
      "id": "bahce-tarimi",
-     "name": "Bahçe Tarımı"
+     "name": "Bahçe Tarımı",
+     "nameEn": "Horticultural Farming",
+     "nameAr": "الزراعة البستانية"
     },
     {
      "id": "tarim-makineleri",
-     "name": "Tarım Makineleri"
+     "name": "Tarım Makineleri",
+     "nameEn": "Agricultural Machinery",
+     "nameAr": "الآلات الزراعية"
     },
     {
      "id": "organik-tarim",
-     "name": "Organik Tarım"
+     "name": "Organik Tarım",
+     "nameEn": "Organic Agriculture",
+     "nameAr": "الزراعة العضوية"
     },
     {
      "id": "bitki-koruma",
-     "name": "Bitki Koruma"
+     "name": "Bitki Koruma",
+     "nameEn": "Plant Protection",
+     "nameAr": "وقاية النبات"
     },
     {
      "id": "peyzaj-ve-sus-bitkileri-yetistiriciligi",
-     "name": "Peyzaj ve Süs Bitkileri Yetiştiriciliği"
+     "name": "Peyzaj ve Süs Bitkileri Yetiştiriciliği",
+     "nameEn": "Landscaping and Ornamental Plant Cultivation",
+     "nameAr": "تنسيق الحدائق وزراعة النباتات الزينة"
     },
     {
      "id": "su-urunleri-yetistiriciligi",
-     "name": "Su Ürünleri Yetiştiriciliği"
+     "name": "Su Ürünleri Yetiştiriciliği",
+     "nameEn": "Aquaculture",
+     "nameAr": "الاستزراع المائي"
     },
     {
      "id": "toprak-muhafaza-ve-havza-yonetimi",
-     "name": "Toprak Muhafaza ve Havza Yönetimi"
+     "name": "Toprak Muhafaza ve Havza Yönetimi",
+     "nameEn": "Soil Conservation and Watershed Management",
+     "nameAr": "حفظ التربة وإدارة أحواض المياه"
     },
     {
      "id": "ormancilik-ve-orman-urunleri",
-     "name": "Ormancılık ve Orman Ürünleri"
+     "name": "Ormancılık ve Orman Ürünleri",
+     "nameEn": "Forestry and Forest Products",
+     "nameAr": "الحراجة والمنتجات الحرجية"
     },
     {
      "id": "aricilik",
-     "name": "Arıcılık"
+     "name": "Arıcılık",
+     "nameEn": "Beekeeping",
+     "nameAr": "تربية النحل"
     },
     {
      "id": "sulama-teknolojisi",
-     "name": "Sulama Teknolojisi"
+     "name": "Sulama Teknolojisi",
+     "nameEn": "Irrigation Technology",
+     "nameAr": "تقنية الري"
     },
     {
      "id": "tarimsal-isletmecilik",
-     "name": "Tarımsal İşletmecilik"
+     "name": "Tarımsal İşletmecilik",
+     "nameEn": "Agricultural Business Management",
+     "nameAr": "إدارة الأعمال الزراعية"
     },
     {
      "id": "seracilik",
-     "name": "Seracılık"
+     "name": "Seracılık",
+     "nameEn": "Greenhouse Cultivation",
+     "nameAr": "الزراعة في البيوت المحمية"
     },
     {
      "id": "gida-kalite-kontrolu-ve-analizi",
-     "name": "Gıda Kalite Kontrolü ve Analizi"
+     "name": "Gıda Kalite Kontrolü ve Analizi",
+     "nameEn": "Food Quality Control and Analysis",
+     "nameAr": "مراقبة جودة الأغذية وتحليلها"
     },
     {
      "id": "sut-ve-urunleri-teknolojisi",
-     "name": "Süt ve Ürünleri Teknolojisi"
+     "name": "Süt ve Ürünleri Teknolojisi",
+     "nameEn": "Milk and Dairy Products Technology",
+     "nameAr": "تقنية الحليب ومنتجاته"
     },
     {
      "id": "beslenme-ve-diyetetik",
-     "name": "Beslenme ve Diyetetik"
+     "name": "Beslenme ve Diyetetik",
+     "nameEn": "Nutrition and Dietetics",
+     "nameAr": "التغذية وعلم الحميات"
     },
     {
      "id": "pastacilik-ve-ekmekcilik",
-     "name": "Pastacılık ve Ekmekçilik"
+     "name": "Pastacılık ve Ekmekçilik",
+     "nameEn": "Pastry and Bakery",
+     "nameAr": "صناعة الحلويات والمخبوزات"
     },
     {
      "id": "yiyecek-icecek-hizmetleri",
-     "name": "Yiyecek İçecek Hizmetleri"
+     "name": "Yiyecek İçecek Hizmetleri",
+     "nameEn": "Food and Beverage Services",
+     "nameAr": "خدمات الأغذية والمشروبات"
     },
     {
      "id": "seyahat-turizm-ve-eglence-hizmetleri",
-     "name": "Seyahat Turizm ve Eğlence Hizmetleri"
+     "name": "Seyahat Turizm ve Eğlence Hizmetleri",
+     "nameEn": "Travel, Tourism and Entertainment Services",
+     "nameAr": "خدمات السفر والسياحة والترفيه"
     },
     {
      "id": "otel-lokanta-ve-ikram-hizmetleri",
-     "name": "Otel Lokanta ve İkram Hizmetleri"
+     "name": "Otel Lokanta ve İkram Hizmetleri",
+     "nameEn": "Hotel, Restaurant and Catering Services",
+     "nameAr": "خدمات الفنادق والمطاعم والضيافة"
     },
     {
      "id": "rekreasyon",
-     "name": "Rekreasyon"
+     "name": "Rekreasyon",
+     "nameEn": "Recreation",
+     "nameAr": "الترفيه والاستجمام"
     },
     {
      "id": "turist-rehberligi",
-     "name": "Turist Rehberliği"
+     "name": "Turist Rehberliği",
+     "nameEn": "Tourist Guiding",
+     "nameAr": "الإرشاد السياحي"
     },
     {
      "id": "havacilik-yonetimi",
-     "name": "Havacılık Yönetimi"
+     "name": "Havacılık Yönetimi",
+     "nameEn": "Aviation Management",
+     "nameAr": "إدارة الطيران"
     },
     {
      "id": "sivil-havacilik-kabin-hizmetleri",
-     "name": "Sivil Havacılık Kabin Hizmetleri"
+     "name": "Sivil Havacılık Kabin Hizmetleri",
+     "nameEn": "Civil Aviation Cabin Services",
+     "nameAr": "خدمات المقصورة في الطيران المدني"
     },
     {
      "id": "hava-trafik-kontrol",
-     "name": "Hava Trafik Kontrol"
+     "name": "Hava Trafik Kontrol",
+     "nameEn": "Air Traffic Control",
+     "nameAr": "مراقبة الحركة الجوية"
     },
     {
      "id": "ucak-teknolojisi",
-     "name": "Uçak Teknolojisi"
+     "name": "Uçak Teknolojisi",
+     "nameEn": "Aircraft Technology",
+     "nameAr": "تقنية الطائرات"
     },
     {
      "id": "ucak-bakim",
-     "name": "Uçak Bakım"
+     "name": "Uçak Bakım",
+     "nameEn": "Aircraft Maintenance",
+     "nameAr": "صيانة الطائرات"
     },
     {
      "id": "havacilik-elektrik-ve-elektronigi",
-     "name": "Havacılık Elektrik ve Elektroniği"
+     "name": "Havacılık Elektrik ve Elektroniği",
+     "nameEn": "Aviation Electrical and Electronics",
+     "nameAr": "الكهرباء والإلكترونيات في الطيران"
     },
     {
      "id": "insansiz-hava-araci-teknolojisi-ve-operatorlugu",
-     "name": "İnsansız Hava Aracı Teknolojisi ve Operatörlüğü"
+     "name": "İnsansız Hava Aracı Teknolojisi ve Operatörlüğü",
+     "nameEn": "Unmanned Aerial Vehicle Technology and Operation",
+     "nameAr": "تقنية الطائرات المسيّرة وتشغيلها"
     },
     {
      "id": "denizcilik-isletmeleri",
-     "name": "Denizcilik İşletmeleri"
+     "name": "Denizcilik İşletmeleri",
+     "nameEn": "Maritime Enterprises",
+     "nameAr": "المنشآت البحرية"
     },
     {
      "id": "gemi-insaati",
-     "name": "Gemi İnşaatı"
+     "name": "Gemi İnşaatı",
+     "nameEn": "Shipbuilding",
+     "nameAr": "بناء السفن"
     },
     {
      "id": "liman-isletmeciligi",
-     "name": "Liman İşletmeciliği"
+     "name": "Liman İşletmeciliği",
+     "nameEn": "Port Management",
+     "nameAr": "إدارة الموانئ"
     },
     {
      "id": "lojistik-ve-tasimacilik",
-     "name": "Lojistik ve Taşımacılık"
+     "name": "Lojistik ve Taşımacılık",
+     "nameEn": "Logistics and Transportation",
+     "nameAr": "اللوجستيات والنقل"
     },
     {
      "id": "rayli-sistemler-isletmeciligi",
-     "name": "Raylı Sistemler İşletmeciliği"
+     "name": "Raylı Sistemler İşletmeciliği",
+     "nameEn": "Rail Systems Management",
+     "nameAr": "إدارة أنظمة السكك الحديدية"
     },
     {
      "id": "rayli-sistemler-teknolojisi",
-     "name": "Raylı Sistemler Teknolojisi"
+     "name": "Raylı Sistemler Teknolojisi",
+     "nameEn": "Rail Systems Technology",
+     "nameAr": "تقنية أنظمة السكك الحديدية"
     },
     {
      "id": "rayli-sistemler-elektrik-ve-elektronigi",
-     "name": "Raylı Sistemler Elektrik ve Elektroniği"
+     "name": "Raylı Sistemler Elektrik ve Elektroniği",
+     "nameEn": "Rail Systems Electrical and Electronics",
+     "nameAr": "كهرباء وإلكترونيات أنظمة السكك الحديدية"
     },
     {
      "id": "demiryolu-yapim-isletme",
-     "name": "Demiryolu Yapım İşletme"
+     "name": "Demiryolu Yapım İşletme",
+     "nameEn": "Railway Construction and Operation",
+     "nameAr": "إنشاء السكك الحديدية وتشغيلها"
     },
     {
      "id": "karayolu-yapimi",
-     "name": "Karayolu Yapımı"
+     "name": "Karayolu Yapımı",
+     "nameEn": "Highway Construction",
+     "nameAr": "إنشاء الطرق"
     },
     {
      "id": "yapi-denetimi",
-     "name": "Yapı Denetimi"
+     "name": "Yapı Denetimi",
+     "nameEn": "Building Inspection",
+     "nameAr": "الرقابة على المباني"
     },
     {
      "id": "yapi-tesisat-teknolojisi",
-     "name": "Yapı Tesisat Teknolojisi"
+     "name": "Yapı Tesisat Teknolojisi",
+     "nameEn": "Building Installation Technology",
+     "nameAr": "تقنية تمديدات المباني"
     },
     {
      "id": "iklimlendirme-ve-sogutma-teknolojisi",
-     "name": "İklimlendirme ve Soğutma Teknolojisi"
+     "name": "İklimlendirme ve Soğutma Teknolojisi",
+     "nameEn": "Air Conditioning and Refrigeration Technology",
+     "nameAr": "تقنية التكييف والتبريد"
     },
     {
      "id": "isitma-ve-sogutma",
-     "name": "Isıtma ve Soğutma"
+     "name": "Isıtma ve Soğutma",
+     "nameEn": "Heating and Cooling",
+     "nameAr": "التدفئة والتبريد"
     },
     {
      "id": "dogalgaz-ve-tesisat-teknolojisi",
-     "name": "Doğalgaz ve Tesisat Teknolojisi"
+     "name": "Doğalgaz ve Tesisat Teknolojisi",
+     "nameEn": "Natural Gas and Installation Technology",
+     "nameAr": "تقنية الغاز الطبيعي والتمديدات"
     },
     {
      "id": "boya-teknolojisi",
-     "name": "Boya Teknolojisi"
+     "name": "Boya Teknolojisi",
+     "nameEn": "Paint Technology",
+     "nameAr": "تقنية الدهانات"
     },
     {
      "id": "mimari-restorasyon",
-     "name": "Mimari Restorasyon"
+     "name": "Mimari Restorasyon",
+     "nameEn": "Architectural Restoration",
+     "nameAr": "الترميم المعماري"
     },
     {
      "id": "mimari-dekoratif-sanatlar",
-     "name": "Mimari Dekoratif Sanatlar"
+     "name": "Mimari Dekoratif Sanatlar",
+     "nameEn": "Architectural Decorative Arts",
+     "nameAr": "الفنون الزخرفية المعمارية"
     },
     {
      "id": "geleneksel-el-sanatlari",
-     "name": "Geleneksel El Sanatları"
+     "name": "Geleneksel El Sanatları",
+     "nameEn": "Traditional Handicrafts",
+     "nameAr": "الحرف اليدوية التقليدية"
     },
     {
      "id": "ic-mekan-tasarimi",
-     "name": "İç Mekan Tasarımı"
+     "name": "İç Mekan Tasarımı",
+     "nameEn": "Interior Design",
+     "nameAr": "تصميم المساحات الداخلية"
     },
     {
      "id": "dekoratif-sanatlar",
-     "name": "Dekoratif Sanatlar"
+     "name": "Dekoratif Sanatlar",
+     "nameEn": "Decorative Arts",
+     "nameAr": "الفنون الزخرفية"
     },
     {
      "id": "seramik-cam-ve-cini",
-     "name": "Seramik, Cam ve Çini"
+     "name": "Seramik, Cam ve Çini",
+     "nameEn": "Ceramics, Glass and Tiles",
+     "nameAr": "السيراميك والزجاج والبلاط الخزفي"
     },
     {
      "id": "taki-tasarimi",
-     "name": "Takı Tasarımı"
+     "name": "Takı Tasarımı",
+     "nameEn": "Jewelry Design",
+     "nameAr": "تصميم الحلي"
     },
     {
      "id": "kuyumculuk-ve-taki-tasarimi",
-     "name": "Kuyumculuk ve Takı Tasarımı"
+     "name": "Kuyumculuk ve Takı Tasarımı",
+     "nameEn": "Jewelry Making and Accessory Design",
+     "nameAr": "صياغة المجوهرات وتصميم الحلي"
     },
     {
      "id": "moda-tasarimi",
-     "name": "Moda Tasarımı"
+     "name": "Moda Tasarımı",
+     "nameEn": "Fashion Design",
+     "nameAr": "تصميم الأزياء"
     },
     {
      "id": "giyim-uretim-teknolojisi",
-     "name": "Giyim Üretim Teknolojisi"
+     "name": "Giyim Üretim Teknolojisi",
+     "nameEn": "Garment Production Technology",
+     "nameAr": "تقنية إنتاج الملابس"
     },
     {
      "id": "tekstil-teknolojisi",
-     "name": "Tekstil Teknolojisi"
+     "name": "Tekstil Teknolojisi",
+     "nameEn": "Textile Technology",
+     "nameAr": "تقنية النسيج"
     },
     {
      "id": "tekstil-kalite-kontrol",
-     "name": "Tekstil Kalite Kontrol"
+     "name": "Tekstil Kalite Kontrol",
+     "nameEn": "Textile Quality Control",
+     "nameAr": "مراقبة جودة المنسوجات"
     },
     {
      "id": "deri-teknolojisi",
-     "name": "Deri Teknolojisi"
+     "name": "Deri Teknolojisi",
+     "nameEn": "Leather Technology",
+     "nameAr": "تقنية الجلود"
     },
     {
      "id": "ayakkabi-tasarim-ve-uretimi",
-     "name": "Ayakkabı Tasarım ve Üretimi"
+     "name": "Ayakkabı Tasarım ve Üretimi",
+     "nameEn": "Footwear Design and Production",
+     "nameAr": "تصميم الأحذية وإنتاجها"
     },
     {
      "id": "matbaa",
-     "name": "Matbaa"
+     "name": "Matbaa",
+     "nameEn": "Printing",
+     "nameAr": "الطباعة"
     },
     {
      "id": "basim-ve-yayim-teknolojileri",
-     "name": "Basım ve Yayım Teknolojileri"
+     "name": "Basım ve Yayım Teknolojileri",
+     "nameEn": "Printing and Publishing Technologies",
+     "nameAr": "تقنيات الطباعة والنشر"
     },
     {
      "id": "kutuphane-ve-dijital-arsiv",
-     "name": "Kütüphane ve Dijital Arşiv"
+     "name": "Kütüphane ve Dijital Arşiv",
+     "nameEn": "Library and Digital Archive",
+     "nameAr": "المكتبات والأرشيف الرقمي"
     },
     {
      "id": "arsiv-hizmetleri",
-     "name": "Arşiv Hizmetleri"
+     "name": "Arşiv Hizmetleri",
+     "nameEn": "Archive Services",
+     "nameAr": "خدمات الأرشيف"
     },
     {
      "id": "mobilya-ve-dekorasyon",
-     "name": "Mobilya ve Dekorasyon"
+     "name": "Mobilya ve Dekorasyon",
+     "nameEn": "Furniture and Decoration",
+     "nameAr": "الأثاث والديكور"
     },
     {
      "id": "agac-isleri-endustri-muhendisligi",
-     "name": "Ağaç İşleri Endüstri Mühendisliği"
+     "name": "Ağaç İşleri Endüstri Mühendisliği",
+     "nameEn": "Woodworking Industrial Engineering",
+     "nameAr": "هندسة الصناعات الخشبية"
     },
     {
      "id": "ahsap-teknolojisi",
-     "name": "Ahşap Teknolojisi"
+     "name": "Ahşap Teknolojisi",
+     "nameEn": "Wood Technology",
+     "nameAr": "تقنية الخشب"
     },
     {
      "id": "kaynak-teknolojisi",
-     "name": "Kaynak Teknolojisi"
+     "name": "Kaynak Teknolojisi",
+     "nameEn": "Welding Technology",
+     "nameAr": "تقنية اللحام"
     },
     {
      "id": "metalurji",
-     "name": "Metalurji"
+     "name": "Metalurji",
+     "nameEn": "Metallurgy",
+     "nameAr": "علم المعادن"
     },
     {
      "id": "makine-teknolojisi",
-     "name": "Makine Teknolojisi"
+     "name": "Makine Teknolojisi",
+     "nameEn": "Machinery Technology",
+     "nameAr": "تقنية الآلات"
     },
     {
      "id": "makine-bakim-onarim",
-     "name": "Makine Bakım Onarım"
+     "name": "Makine Bakım Onarım",
+     "nameEn": "Machine Maintenance and Repair",
+     "nameAr": "صيانة الآلات وإصلاحها"
     },
     {
      "id": "endustriyel-otomasyon",
-     "name": "Endüstriyel Otomasyon"
+     "name": "Endüstriyel Otomasyon",
+     "nameEn": "Industrial Automation",
+     "nameAr": "الأتمتة الصناعية"
     },
     {
      "id": "bilgisayarli-tasarim-ve-imalat",
-     "name": "Bilgisayarlı Tasarım ve İmalat"
+     "name": "Bilgisayarlı Tasarım ve İmalat",
+     "nameEn": "Computer-Aided Design and Manufacturing",
+     "nameAr": "التصميم والتصنيع بالحاسوب"
     },
     {
      "id": "mekatronik-sistemler",
-     "name": "Mekatronik Sistemler"
+     "name": "Mekatronik Sistemler",
+     "nameEn": "Mechatronic Systems",
+     "nameAr": "النظم الميكاترونية"
     },
     {
      "id": "endustriyel-kalipcilik",
-     "name": "Endüstriyel Kalıpçılık"
+     "name": "Endüstriyel Kalıpçılık",
+     "nameEn": "Industrial Mold Making",
+     "nameAr": "صناعة القوالب الصناعية"
     },
     {
      "id": "otomotiv-elektrik-ve-elektronigi",
-     "name": "Otomotiv Elektrik ve Elektroniği"
+     "name": "Otomotiv Elektrik ve Elektroniği",
+     "nameEn": "Automotive Electrical and Electronics",
+     "nameAr": "كهرباء السيارات وإلكترونياتها"
     },
     {
      "id": "hibrit-ve-elektrikli-tasitlar-teknolojisi",
-     "name": "Hibrit ve Elektrikli Taşıtlar Teknolojisi"
+     "name": "Hibrit ve Elektrikli Taşıtlar Teknolojisi",
+     "nameEn": "Hybrid and Electric Vehicles Technology",
+     "nameAr": "تقنية المركبات الهجينة والكهربائية"
     },
     {
      "id": "agir-vasita-teknolojisi",
-     "name": "Ağır Vasıta Teknolojisi"
+     "name": "Ağır Vasıta Teknolojisi",
+     "nameEn": "Heavy Vehicle Technology",
+     "nameAr": "تقنية المركبات الثقيلة"
     },
     {
      "id": "is-makineleri-operatorlugu",
-     "name": "İş Makineleri Operatörlüğü"
+     "name": "İş Makineleri Operatörlüğü",
+     "nameEn": "Construction Equipment Operation",
+     "nameAr": "تشغيل معدات الإنشاءات"
     },
     {
      "id": "biyomedikal-cihaz-teknolojisi",
-     "name": "Biyomedikal Cihaz Teknolojisi"
+     "name": "Biyomedikal Cihaz Teknolojisi",
+     "nameEn": "Biomedical Device Technology",
+     "nameAr": "تقنية الأجهزة الطبية الحيوية"
     },
     {
      "id": "elektrik-enerjisi-uretim-iletim-ve-dagitimi",
-     "name": "Elektrik Enerjisi Üretim, İletim ve Dağıtımı"
+     "name": "Elektrik Enerjisi Üretim, İletim ve Dağıtımı",
+     "nameEn": "Electrical Energy Generation, Transmission and Distribution",
+     "nameAr": "توليد الطاقة الكهربائية ونقلها وتوزيعها"
     },
     {
      "id": "enerji-yonetimi",
-     "name": "Enerji Yönetimi"
+     "name": "Enerji Yönetimi",
+     "nameEn": "Energy Management",
+     "nameAr": "إدارة الطاقة"
     },
     {
      "id": "yenilenebilir-enerji-teknikerligi",
-     "name": "Yenilenebilir Enerji Teknikerliği"
+     "name": "Yenilenebilir Enerji Teknikerliği",
+     "nameEn": "Renewable Energy Technician",
+     "nameAr": "فني الطاقة المتجددة"
     },
     {
      "id": "bina-enerji-yonetimi",
-     "name": "Bina Enerji Yönetimi"
+     "name": "Bina Enerji Yönetimi",
+     "nameEn": "Building Energy Management",
+     "nameAr": "إدارة طاقة المباني"
     },
     {
      "id": "nukleer-teknoloji-ve-radyasyon-guvenligi",
-     "name": "Nükleer Teknoloji ve Radyasyon Güvenliği"
+     "name": "Nükleer Teknoloji ve Radyasyon Güvenliği",
+     "nameEn": "Nuclear Technology and Radiation Safety",
+     "nameAr": "التقنية النووية والسلامة الإشعاعية"
     },
     {
      "id": "maden-teknolojisi",
-     "name": "Maden Teknolojisi"
+     "name": "Maden Teknolojisi",
+     "nameEn": "Mining Technology",
+     "nameAr": "تقنية التعدين"
     },
     {
      "id": "madencilik",
-     "name": "Madencilik"
+     "name": "Madencilik",
+     "nameEn": "Mining",
+     "nameAr": "التعدين"
     },
     {
      "id": "petrol-ve-dogal-gaz-teknolojisi",
-     "name": "Petrol ve Doğal Gaz Teknolojisi"
+     "name": "Petrol ve Doğal Gaz Teknolojisi",
+     "nameEn": "Petroleum and Natural Gas Technology",
+     "nameAr": "تقنية النفط والغاز الطبيعي"
     },
     {
      "id": "jeoloji-teknikerligi",
-     "name": "Jeoloji Teknikerliği"
+     "name": "Jeoloji Teknikerliği",
+     "nameEn": "Geology Technician",
+     "nameAr": "فني الجيولوجيا"
     },
     {
      "id": "jeotermal-enerji-teknolojisi",
-     "name": "Jeotermal Enerji Teknolojisi"
+     "name": "Jeotermal Enerji Teknolojisi",
+     "nameEn": "Geothermal Energy Technology",
+     "nameAr": "تقنية الطاقة الحرارية الأرضية"
     },
     {
      "id": "cevre-koruma-ve-kontrol",
-     "name": "Çevre Koruma ve Kontrol"
+     "name": "Çevre Koruma ve Kontrol",
+     "nameEn": "Environmental Protection and Control",
+     "nameAr": "حماية البيئة ومراقبتها"
     },
     {
      "id": "cevre-sagligi",
-     "name": "Çevre Sağlığı"
+     "name": "Çevre Sağlığı",
+     "nameEn": "Environmental Health",
+     "nameAr": "الصحة البيئية"
     },
     {
      "id": "atik-yonetimi",
-     "name": "Atık Yönetimi"
+     "name": "Atık Yönetimi",
+     "nameEn": "Waste Management",
+     "nameAr": "إدارة النفايات"
     },
     {
      "id": "meteoroloji",
-     "name": "Meteoroloji"
+     "name": "Meteoroloji",
+     "nameEn": "Meteorology",
+     "nameAr": "الأرصاد الجوية"
     },
     {
      "id": "su-teknolojisi",
-     "name": "Su Teknolojisi"
+     "name": "Su Teknolojisi",
+     "nameEn": "Water Technology",
+     "nameAr": "تقنية المياه"
     },
     {
      "id": "kimya-teknolojisi",
-     "name": "Kimya Teknolojisi"
+     "name": "Kimya Teknolojisi",
+     "nameEn": "Chemistry Technology",
+     "nameAr": "تقنية الكيمياء"
     },
     {
      "id": "kimya-teknikerligi",
-     "name": "Kimya Teknikerliği"
+     "name": "Kimya Teknikerliği",
+     "nameEn": "Chemistry Technician",
+     "nameAr": "فني الكيمياء"
     },
     {
      "id": "plastik-teknolojisi",
-     "name": "Plastik Teknolojisi"
+     "name": "Plastik Teknolojisi",
+     "nameEn": "Plastics Technology",
+     "nameAr": "تقنية البلاستيك"
     },
     {
      "id": "polimer-teknolojisi",
-     "name": "Polimer Teknolojisi"
+     "name": "Polimer Teknolojisi",
+     "nameEn": "Polymer Technology",
+     "nameAr": "تقنية البوليمر"
     },
     {
      "id": "tibbi-urunler-ve-kozmetik",
-     "name": "Tıbbi Ürünler ve Kozmetik"
+     "name": "Tıbbi Ürünler ve Kozmetik",
+     "nameEn": "Medical Products and Cosmetics",
+     "nameAr": "المنتجات الطبية ومستحضرات التجميل"
     },
     {
      "id": "kozmetik-teknolojisi",
-     "name": "Kozmetik Teknolojisi"
+     "name": "Kozmetik Teknolojisi",
+     "nameEn": "Cosmetics Technology",
+     "nameAr": "تقنية مستحضرات التجميل"
     },
     {
      "id": "eczacilik-hizmetleri",
-     "name": "Eczacılık Hizmetleri"
+     "name": "Eczacılık Hizmetleri",
+     "nameEn": "Pharmacy Services",
+     "nameAr": "خدمات الصيدلة"
     },
     {
      "id": "guzellik-bakim-ve-sac-bakim-hizmetleri",
-     "name": "Güzellik Bakım ve Saç Bakım Hizmetleri"
+     "name": "Güzellik Bakım ve Saç Bakım Hizmetleri",
+     "nameEn": "Beauty and Hair Care Services",
+     "nameAr": "خدمات التجميل والعناية بالشعر"
     },
     {
      "id": "cilt-bakimi-ve-guzellik-hizmetleri",
-     "name": "Cilt Bakımı ve Güzellik Hizmetleri"
+     "name": "Cilt Bakımı ve Güzellik Hizmetleri",
+     "nameEn": "Skin Care and Beauty Services",
+     "nameAr": "العناية بالبشرة وخدمات التجميل"
     },
     {
      "id": "sac-bakimi-ve-guzellik-hizmetleri",
-     "name": "Saç Bakımı ve Güzellik Hizmetleri"
+     "name": "Saç Bakımı ve Güzellik Hizmetleri",
+     "nameEn": "Hair Care and Beauty Services",
+     "nameAr": "العناية بالشعر وخدمات التجميل"
     },
     {
      "id": "acil-durum-ve-afet-yonetimi",
-     "name": "Acil Durum ve Afet Yönetimi"
+     "name": "Acil Durum ve Afet Yönetimi",
+     "nameEn": "Emergency and Disaster Management",
+     "nameAr": "إدارة الطوارئ والكوارث"
     },
     {
      "id": "itfaiyecilik-ve-yangin-guvenligi",
-     "name": "İtfaiyecilik ve Yangın Güvenliği"
+     "name": "İtfaiyecilik ve Yangın Güvenliği",
+     "nameEn": "Firefighting and Fire Safety",
+     "nameAr": "الإطفاء والسلامة من الحرائق"
     },
     {
      "id": "sivil-savunma-ve-itfaiyecilik",
-     "name": "Sivil Savunma ve İtfaiyecilik"
+     "name": "Sivil Savunma ve İtfaiyecilik",
+     "nameEn": "Civil Defense and Firefighting",
+     "nameAr": "الدفاع المدني وإطفاء الحرائق"
     },
     {
      "id": "sivil-hava-tasimaciligi-isletmeciligi",
-     "name": "Sivil Hava Taşımacılığı İşletmeciliği"
+     "name": "Sivil Hava Taşımacılığı İşletmeciliği",
+     "nameEn": "Civil Air Transport Management",
+     "nameAr": "إدارة النقل الجوي المدني"
     },
     {
      "id": "kriminalistik",
-     "name": "Kriminalistik"
+     "name": "Kriminalistik",
+     "nameEn": "Criminalistics",
+     "nameAr": "علم الأدلة الجنائية"
     },
     {
      "id": "guvenlik-ve-koruma",
-     "name": "Güvenlik ve Koruma"
+     "name": "Güvenlik ve Koruma",
+     "nameEn": "Security and Protection",
+     "nameAr": "الأمن والحماية"
     },
     {
      "id": "gumruk-isletme",
-     "name": "Gümrük İşletme"
+     "name": "Gümrük İşletme",
+     "nameEn": "Customs Management",
+     "nameAr": "إدارة الجمارك"
     },
     {
      "id": "maliye",
-     "name": "Maliye"
+     "name": "Maliye",
+     "nameEn": "Public Finance",
+     "nameAr": "المالية العامة"
     },
     {
      "id": "sosyal-guvenlik",
-     "name": "Sosyal Güvenlik"
+     "name": "Sosyal Güvenlik",
+     "nameEn": "Social Security",
+     "nameAr": "الضمان الاجتماعي"
     },
     {
      "id": "calisma-ekonomisi-ve-endustri-iliskileri",
-     "name": "Çalışma Ekonomisi ve Endüstri İlişkileri"
+     "name": "Çalışma Ekonomisi ve Endüstri İlişkileri",
+     "nameEn": "Labor Economics and Industrial Relations",
+     "nameAr": "اقتصاد العمل والعلاقات الصناعية"
     },
     {
      "id": "insan-kaynaklari-yonetimi",
-     "name": "İnsan Kaynakları Yönetimi"
+     "name": "İnsan Kaynakları Yönetimi",
+     "nameEn": "Human Resources Management",
+     "nameAr": "إدارة الموارد البشرية"
     },
     {
      "id": "halkla-iliskiler",
-     "name": "Halkla İlişkiler"
+     "name": "Halkla İlişkiler",
+     "nameEn": "Public Relations",
+     "nameAr": "العلاقات العامة"
     },
     {
      "id": "reklamcilik",
-     "name": "Reklamcılık"
+     "name": "Reklamcılık",
+     "nameEn": "Advertising",
+     "nameAr": "الإعلان"
     },
     {
      "id": "sosyal-medya-yonetimi",
-     "name": "Sosyal Medya Yönetimi"
+     "name": "Sosyal Medya Yönetimi",
+     "nameEn": "Social Media Management",
+     "nameAr": "إدارة وسائل التواصل الاجتماعي"
     },
     {
      "id": "siber-guvenlik",
-     "name": "Siber Güvenlik"
+     "name": "Siber Güvenlik",
+     "nameEn": "Cybersecurity",
+     "nameAr": "الأمن السيبراني"
     },
     {
      "id": "yapay-zeka-teknolojileri",
-     "name": "Yapay Zeka Teknolojileri"
+     "name": "Yapay Zeka Teknolojileri",
+     "nameEn": "Artificial Intelligence Technologies",
+     "nameAr": "تقنيات الذكاء الاصطناعي"
     },
     {
      "id": "veri-analitigi",
-     "name": "Veri Analitiği"
+     "name": "Veri Analitiği",
+     "nameEn": "Data Analytics",
+     "nameAr": "تحليلات البيانات"
     },
     {
      "id": "bilisim-guvenligi-teknolojisi",
-     "name": "Bilişim Güvenliği Teknolojisi"
+     "name": "Bilişim Güvenliği Teknolojisi",
+     "nameEn": "Information Security Technology",
+     "nameAr": "تقنية أمن المعلوماتية"
     },
     {
      "id": "oyun-gelistirme-ve-programlama",
-     "name": "Oyun Geliştirme ve Programlama"
+     "name": "Oyun Geliştirme ve Programlama",
+     "nameEn": "Game Development and Programming",
+     "nameAr": "تطوير الألعاب وبرمجتها"
     },
     {
      "id": "bilgisayar-destekli-tasarim",
-     "name": "Bilgisayar Destekli Tasarım"
+     "name": "Bilgisayar Destekli Tasarım",
+     "nameEn": "Computer-Aided Design",
+     "nameAr": "التصميم بمساعدة الحاسوب"
     },
     {
      "id": "elektronik-ticaret",
-     "name": "Elektronik Ticaret"
+     "name": "Elektronik Ticaret",
+     "nameEn": "Electronic Commerce",
+     "nameAr": "التجارة الإلكترونية"
     },
     {
      "id": "girisimcilik",
-     "name": "Girişimcilik"
+     "name": "Girişimcilik",
+     "nameEn": "Entrepreneurship",
+     "nameAr": "ريادة الأعمال"
     },
     {
      "id": "muhasebe",
-     "name": "Muhasebe"
+     "name": "Muhasebe",
+     "nameEn": "Accounting",
+     "nameAr": "المحاسبة"
     },
     {
      "id": "tapu-ve-kadastro",
-     "name": "Tapu ve Kadastro"
+     "name": "Tapu ve Kadastro",
+     "nameEn": "Land Registry and Cadastre",
+     "nameAr": "السجل العقاري والمساحة"
     },
     {
      "id": "harita-teknikerligi",
-     "name": "Harita Teknikerliği"
+     "name": "Harita Teknikerliği",
+     "nameEn": "Mapping Technician",
+     "nameAr": "فني الخرائط"
     },
     {
      "id": "cografi-bilgi-sistemleri",
-     "name": "Coğrafi Bilgi Sistemleri"
+     "name": "Coğrafi Bilgi Sistemleri",
+     "nameEn": "Geographic Information Systems",
+     "nameAr": "نظم المعلومات الجغرافية"
     },
     {
      "id": "yapi-ressamligi",
-     "name": "Yapı Ressamlığı"
+     "name": "Yapı Ressamlığı",
+     "nameEn": "Architectural Drafting",
+     "nameAr": "الرسم المعماري"
     },
     {
      "id": "peyzaj-mimarligi-teknikerligi",
-     "name": "Peyzaj Mimarlığı Teknikerliği"
+     "name": "Peyzaj Mimarlığı Teknikerliği",
+     "nameEn": "Landscape Architecture Technician",
+     "nameAr": "فني هندسة المناظر الطبيعية"
     },
     {
      "id": "park-ve-bahce-bitkileri",
-     "name": "Park ve Bahçe Bitkileri"
+     "name": "Park ve Bahçe Bitkileri",
+     "nameEn": "Park and Garden Plants",
+     "nameAr": "نباتات الحدائق والمتنزهات"
     },
     {
      "id": "antrenorluk",
-     "name": "Antrenörlük"
+     "name": "Antrenörlük",
+     "nameEn": "Coaching",
+     "nameAr": "التدريب الرياضي"
     },
     {
      "id": "sporda-beden-egitimi",
-     "name": "Sporda Beden Eğitimi"
+     "name": "Sporda Beden Eğitimi",
+     "nameEn": "Physical Education in Sports",
+     "nameAr": "التربية البدنية في الرياضة"
     },
     {
      "id": "okul-oncesi-egitimi",
-     "name": "Okul Öncesi Eğitimi"
+     "name": "Okul Öncesi Eğitimi",
+     "nameEn": "Preschool Education",
+     "nameAr": "التعليم قبل المدرسي"
     },
     {
      "id": "ozel-gereksinimli-bireyler",
-     "name": "Özel Gereksinimli Bireyler"
+     "name": "Özel Gereksinimli Bireyler",
+     "nameEn": "Individuals with Special Needs",
+     "nameAr": "الأفراد ذوو الاحتياجات الخاصة"
     },
     {
      "id": "yasli-hizmetleri",
-     "name": "Yaşlı Hizmetleri"
+     "name": "Yaşlı Hizmetleri",
+     "nameEn": "Elderly Services",
+     "nameAr": "خدمات المسنين"
     },
     {
      "id": "saglik-bakim-teknikerligi",
-     "name": "Sağlık Bakım Teknikerliği"
+     "name": "Sağlık Bakım Teknikerliği",
+     "nameEn": "Health Care Technician",
+     "nameAr": "فني الرعاية الصحية"
     },
     {
      "id": "hemsirelik-hizmetleri",
-     "name": "Hemşirelik Hizmetleri"
+     "name": "Hemşirelik Hizmetleri",
+     "nameEn": "Nursing Services",
+     "nameAr": "خدمات التمريض"
     },
     {
      "id": "tibbi-terapi",
-     "name": "Tıbbi Terapi"
+     "name": "Tıbbi Terapi",
+     "nameEn": "Medical Therapy",
+     "nameAr": "العلاج الطبي"
     },
     {
      "id": "fizyoterapi-teknikerligi",
-     "name": "Fizyoterapi Teknikerliği"
+     "name": "Fizyoterapi Teknikerliği",
+     "nameEn": "Physiotherapy Technician",
+     "nameAr": "فني العلاج الطبيعي"
     },
     {
      "id": "isitme-engelliler-isaret-dili",
-     "name": "İşitme Engelliler İşaret Dili"
+     "name": "İşitme Engelliler İşaret Dili",
+     "nameEn": "Sign Language for the Hearing Impaired",
+     "nameAr": "لغة الإشارة لذوي الإعاقة السمعية"
     }
    ]
   }
@@ -3137,39 +4677,57 @@
  "grades": [
   {
    "id": "PREP",
-   "name": "Hazırlık"
+   "name": "Hazırlık",
+   "nameEn": "Prep year",
+   "nameAr": "السنة التحضيرية"
   },
   {
    "id": "1",
-   "name": "1. sınıf"
+   "name": "1. sınıf",
+   "nameEn": "Year 1",
+   "nameAr": "السنة 1"
   },
   {
    "id": "2",
-   "name": "2. sınıf"
+   "name": "2. sınıf",
+   "nameEn": "Year 2",
+   "nameAr": "السنة 2"
   },
   {
    "id": "3",
-   "name": "3. sınıf"
+   "name": "3. sınıf",
+   "nameEn": "Year 3",
+   "nameAr": "السنة 3"
   },
   {
    "id": "4",
-   "name": "4. sınıf"
+   "name": "4. sınıf",
+   "nameEn": "Year 4",
+   "nameAr": "السنة 4"
   },
   {
    "id": "5",
-   "name": "5. sınıf"
+   "name": "5. sınıf",
+   "nameEn": "Year 5",
+   "nameAr": "السنة 5"
   },
   {
    "id": "6",
-   "name": "6. sınıf"
+   "name": "6. sınıf",
+   "nameEn": "Year 6",
+   "nameAr": "السنة 6"
   },
   {
    "id": "MASTER",
-   "name": "Yüksek lisans"
+   "name": "Yüksek lisans",
+   "nameEn": "Master’s",
+   "nameAr": "ماجستير"
   },
   {
    "id": "PHD",
-   "name": "Doktora"
+   "name": "Doktora",
+   "nameEn": "PhD",
+   "nameAr": "دكتوراه"
   }
  ]
 }

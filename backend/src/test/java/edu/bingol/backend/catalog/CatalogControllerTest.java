@@ -32,10 +32,17 @@ class CatalogControllerTest {
         mvc.perform(get("/api/catalog/academic"))
                 .andExpect(status().isOk())
                 .andExpect(header().string("Cache-Control", "max-age=86400, public"))
-                .andExpect(jsonPath("$.version").value(1))
+                .andExpect(jsonPath("$.version").value(2))
                 .andExpect(jsonPath("$.faculties[0].id").value("muhendislik"))
                 .andExpect(jsonPath("$.faculties[0].departments[0].name").value("Bilgisayar Mühendisliği"))
-                .andExpect(jsonPath("$.grades[0].id").value("PREP"));
+                .andExpect(jsonPath("$.faculties[0].name").value("Mühendislik Fakültesi"))
+                .andExpect(jsonPath("$.faculties[0].nameEn").value("Faculty of Engineering"))
+                .andExpect(jsonPath("$.faculties[0].nameAr").value("كلية الهندسة"))
+                .andExpect(jsonPath("$.faculties[0].departments[0].nameEn").value("Computer Engineering"))
+                .andExpect(jsonPath("$.faculties[0].departments[0].nameAr").value("هندسة الحاسوب"))
+                .andExpect(jsonPath("$.grades[0].id").value("PREP"))
+                .andExpect(jsonPath("$.grades[0].nameEn").value("Prep year"))
+                .andExpect(jsonPath("$.grades[1].nameAr").value("السنة 1"));
     }
 
     @Test
@@ -45,6 +52,8 @@ class CatalogControllerTest {
                 .andExpect(jsonPath("$.length()").value(30))
                 .andExpect(jsonPath("$[0].faculty").exists())
                 .andExpect(jsonPath("$[0].department").exists())
+                .andExpect(jsonPath("$[0].departmentEn").exists())
+                .andExpect(jsonPath("$[0].departmentAr").exists())
                 .andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
         assertTrue(json.contains("Mühendisli"));
         mvc.perform(get("/api/catalog/departments").param("q", "muh").param("limit", "999"))

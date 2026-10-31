@@ -1,29 +1,52 @@
-import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
 
 import '../l10n/app_localizations.dart';
+import 'locale_controller.dart' show L10nContext;
 import 'session.dart';
 
+/// Dile göre görünen ad: Türkçe [tr] kanoniktir (DB'de saklanan/eşleştirilen değer); çeviri yoksa Türkçeye düşer.
+String _pickName(String lang, String tr, String? en, String? ar) {
+  final v = switch (lang) {
+    'en' => en,
+    'ar' => ar,
+    _ => null,
+  };
+  return (v == null || v.trim().isEmpty) ? tr : v;
+}
+
 class AcademicDepartment {
-  const AcademicDepartment(this.id, this.name, this.faculty);
+  const AcademicDepartment(this.id, this.name, this.faculty, {this.nameEn, this.nameAr});
 
   final String id;
+
+  /// Kanonik Türkçe ad (API'ye gönderilen ve DB'de tutulan değer).
   final String name;
+  final String? nameEn, nameAr;
   final AcademicFaculty faculty;
+
+  /// [lang] = `tr` / `en` / `ar`; bilinmeyen dil ve eksik çeviri Türkçeye düşer.
+  String label(String lang) => _pickName(lang, name, nameEn, nameAr);
 }
 
 class AcademicFaculty {
-  AcademicFaculty(this.id, this.name);
+  AcademicFaculty(this.id, this.name, {this.nameEn, this.nameAr});
 
   final String id;
   final String name;
+  final String? nameEn, nameAr;
   final List<AcademicDepartment> departments = [];
+
+  String label(String lang) => _pickName(lang, name, nameEn, nameAr);
 }
 
 class AcademicGrade {
-  const AcademicGrade(this.id, this.name);
+  const AcademicGrade(this.id, this.name, {this.nameEn, this.nameAr});
 
   final String id;
   final String name;
+  final String? nameEn, nameAr;
+
+  String label(String lang) => _pickName(lang, name, nameEn, nameAr);
 }
 
 enum CatalogState { idle, loading, ready, error }
@@ -105,6 +128,8 @@ class AcademicCatalog extends ChangeNotifier {
   List<AcademicDepartment> departments = const [];
   List<AcademicGrade> grades = _defaultGrades;
   final _folded = <AcademicDepartment, String>{};
+  final _facByKey = <String, AcademicFaculty>{};
+  final _depByKey = <String, List<AcademicDepartment>>{};
 
   bool get ready => state == CatalogState.ready;
 
@@ -133,10 +158,12 @@ class AcademicCatalog extends ChangeNotifier {
     final ds = <AcademicDepartment>[];
     for (final f in (j['faculties'] as List? ?? const [])) {
       final fm = f as Map<String, dynamic>;
-      final fac = AcademicFaculty(fm['id'].toString(), fm['name'] as String);
+      final fac = AcademicFaculty(fm['id'].toString(), fm['name'] as String,
+          nameEn: fm['nameEn'] as String?, nameAr: fm['nameAr'] as String?);
       for (final d in (fm['departments'] as List? ?? const [])) {
         final dm = d as Map<String, dynamic>;
-        final dep = AcademicDepartment(dm['id'].toString(), dm['name'] as String, fac);
+        final dep = AcademicDepartment(dm['id'].toString(), dm['name'] as String, fac,
+            nameEn: dm['nameEn'] as String?, nameAr: dm['nameAr'] as String?);
         fac.departments.add(dep);
         ds.add(dep);
       }
@@ -144,7 +171,8 @@ class AcademicCatalog extends ChangeNotifier {
     }
     final gs = <AcademicGrade>[
       for (final g in (j['grades'] as List? ?? const []))
-        AcademicGrade((g as Map<String, dynamic>)['id'].toString(), g['name'] as String),
+        AcademicGrade((g as Map<String, dynamic>)['id'].toString(), g['name'] as String,
+            nameEn: g['nameEn'] as String?, nameAr: g['nameAr'] as String?),
     ];
     faculties = fs;
     departments = ds;
@@ -152,6 +180,13 @@ class AcademicCatalog extends ChangeNotifier {
     _folded
       ..clear()
       ..addEntries(ds.map((d) => MapEntry(d, foldTr(d.name))));
+    _facByKey
+      ..clear()
+      ..addEntries(fs.map((f) => MapEntry(foldTr(f.name), f)));
+    _depByKey.clear();
+    for (final d in ds) {
+      (_depByKey[foldTr(d.name)] ??= []).add(d);
+    }
   }
 
   AcademicFaculty? facultyByName(String? name) {
@@ -172,17 +207,55 @@ class AcademicCatalog extends ChangeNotifier {
     return null;
   }
 
-  List<AcademicFaculty> searchFaculties(String q) {
+  /// Fakülte araması: Türkçe kanonik ad ile (verilmişse) [locale] dilindeki ad birlikte aranır.
+  List<AcademicFaculty> searchFaculties(String q, {Locale? locale}) {
     final k = foldTr(q);
     if (k.isEmpty) return faculties;
-    return [for (final f in faculties) if (foldTr(f.name).contains(k)) f];
+    final lang = locale?.languageCode ?? 'tr';
+    return [
+      for (final f in faculties)
+        if (foldTr(f.name).contains(k) || (lang != 'tr' && foldTr(f.label(lang)).contains(k))) f
+    ];
   }
 
-  List<AcademicDepartment> searchDepartments(String q, {AcademicFaculty? faculty}) {
+  /// Bölüm araması: Türkçe kanonik ad ile (verilmişse) [locale] dilindeki ad birlikte aranır
+  /// (İngilizce/Arapça arayüzde hem "Computer" hem "Bilgisayar" bulur).
+  List<AcademicDepartment> searchDepartments(String q, {AcademicFaculty? faculty, Locale? locale}) {
     final k = foldTr(q);
     final src = faculty?.departments ?? departments;
     if (k.isEmpty) return src;
-    return [for (final d in src) if ((_folded[d] ?? foldTr(d.name)).contains(k)) d];
+    final lang = locale?.languageCode ?? 'tr';
+    return [
+      for (final d in src)
+        if ((_folded[d] ?? foldTr(d.name)).contains(k) || (lang != 'tr' && foldTr(d.label(lang)).contains(k))) d
+    ];
+  }
+
+  /// Kanonik Türkçe fakülte adının [locale] dilindeki görünen adı; katalog yüklenmediyse/bulunamazsa girdi aynen döner.
+  String facultyLabel(String? canonicalTr, Locale locale) {
+    if (canonicalTr == null || canonicalTr.isEmpty) return '';
+    if (locale.languageCode == 'tr') return canonicalTr;
+    return _facByKey[foldTr(canonicalTr)]?.label(locale.languageCode) ?? canonicalTr;
+  }
+
+  /// Kanonik Türkçe bölüm adının görünen adı. Aynı ad birden çok fakültede olabilir; [faculty] (kanonik) verilirse
+  /// o fakülteye öncelik verilir. Bulunamazsa girdi aynen döner.
+  String departmentLabel(String? canonicalTr, Locale locale, {String? faculty}) {
+    if (canonicalTr == null || canonicalTr.isEmpty) return '';
+    if (locale.languageCode == 'tr') return canonicalTr;
+    final list = _depByKey[foldTr(canonicalTr)];
+    if (list == null || list.isEmpty) return canonicalTr;
+    var pick = list.first;
+    if (faculty != null && faculty.isNotEmpty) {
+      final fk = foldTr(faculty);
+      for (final d in list) {
+        if (foldTr(d.faculty.name) == fk) {
+          pick = d;
+          break;
+        }
+      }
+    }
+    return pick.label(locale.languageCode);
   }
 
   /// Adı verilen sınıf kimliğinin etiketi (katalogdaki adla).
@@ -201,5 +274,76 @@ class AcademicCatalog extends ChangeNotifier {
       if (g.id == id) return g.name;
     }
     return label;
+  }
+}
+
+/// Katalog kapsamı: uygulamanın tepesinde durur; katalog yüklenince onu kullanan görünen-ad satırları yeniden çizilir.
+/// Oturum açılınca (uç herkese açık ve önbellekli) kataloğu bir kez yükler.
+class AcademicCatalogScope extends StatefulWidget {
+  const AcademicCatalogScope({super.key, required this.session, required this.child});
+
+  final Session session;
+  final Widget child;
+
+  @override
+  State<AcademicCatalogScope> createState() => _AcademicCatalogScopeState();
+}
+
+class _AcademicCatalogScopeState extends State<AcademicCatalogScope> {
+  late final AcademicCatalog _catalog = AcademicCatalog.of(widget.session);
+
+  @override
+  void initState() {
+    super.initState();
+    widget.session.addListener(_loadIfSignedIn);
+    // notifyListeners yapı sırasında çağrılmasın.
+    Future.microtask(_loadIfSignedIn);
+  }
+
+  /// Oturum açıkken kataloğu bir kez yükler (kayıt ekranı kendi yükler); hata olursa Türkçe kanonik metin gösterilir.
+  void _loadIfSignedIn() {
+    if (mounted && widget.session.state == SessionState.signedIn) _catalog.load();
+  }
+
+  @override
+  void dispose() {
+    widget.session.removeListener(_loadIfSignedIn);
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => _CatalogInherited(notifier: _catalog, child: widget.child);
+}
+
+class _CatalogInherited extends InheritedNotifier<AcademicCatalog> {
+  const _CatalogInherited({required AcademicCatalog super.notifier, required super.child});
+}
+
+/// Arayüz dili (`tr`/`en`/`ar`); yerelleştirme kapsamı yoksa Türkçe (testler ve ilk kare dahil).
+Locale uiLocale(BuildContext context) => Locale(context.l10n.localeName.split(RegExp('[_-]')).first);
+
+/// Bölüm/fakülte gösteren yerlerin kullandığı bağlam yardımcıları. Kanonik değer (Türkçe) DEĞİŞMEZ; yalnız gösterim
+/// dile göre çevrilir. Kapsam yoksa/katalog yüklenmediyse/ad bulunamazsa Türkçe kanonik metin döner.
+extension AcademicLabels on BuildContext {
+  AcademicCatalog? get _academicCatalog => dependOnInheritedWidgetOfExactType<_CatalogInherited>()?.notifier;
+
+  /// Kanonik Türkçe fakülte adının arayüz dilindeki adı.
+  String facultyName(String? canonicalTr) {
+    final c = _academicCatalog;
+    if (c == null) return canonicalTr ?? '';
+    return c.facultyLabel(canonicalTr, uiLocale(this));
+  }
+
+  /// Kanonik Türkçe bölüm adının arayüz dilindeki adı ([faculty]: kanonik fakülte adı, isteğe bağlı).
+  String departmentName(String? canonicalTr, {String? faculty}) {
+    final c = _academicCatalog;
+    if (c == null) return canonicalTr ?? '';
+    return c.departmentLabel(canonicalTr, uiLocale(this), faculty: faculty);
+  }
+
+  /// "Bölüm yoksa fakülte" gösteren alt satırlar için: bölüm varsa bölüm adı, yoksa fakülte adı.
+  String departmentOrFacultyName(String? department, String? faculty) {
+    final d = department?.trim() ?? '';
+    return d.isNotEmpty ? departmentName(d, faculty: faculty) : facultyName(faculty?.trim());
   }
 }

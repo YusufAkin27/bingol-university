@@ -5,6 +5,7 @@ import '../../core/session.dart';
 import '../../widgets/bu.dart';
 import 'etkinlik2_qr_page.dart';
 import 'etkinlik2_widgets.dart';
+import '../../core/academic_catalog.dart';
 
 enum _Filter { all, present, absent }
 
@@ -120,7 +121,7 @@ class _Etkinlik2AttendancePageState extends State<Etkinlik2AttendancePage> {
     final l = context.l10n;
     final parts = <String>[];
     final dep = r['department'] as String?;
-    if (dep != null && dep.isNotEmpty) parts.add(dep);
+    if (dep != null && dep.isNotEmpty) parts.add(context.departmentName(dep, faculty: r['faculty'] as String?));
     if ((widget.event['createdBy'] as num?)?.toInt() == _uid(r)) parts.add(l.etkinlik2Organizer);
     return parts.join(' · ');
   }

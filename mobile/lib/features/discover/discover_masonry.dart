@@ -12,6 +12,7 @@ import '../posts/post_api.dart';
 import '../posts/post_card.dart';
 import '../posts/post_models.dart';
 import '../posts/post_routes.dart';
+import '../../core/academic_catalog.dart';
 
 /// Keşfet akışına dışarıdan gönderi eklemek/yenilemek için (örn. oluşturma sonrası).
 class DiscoverFeedController {
@@ -494,7 +495,7 @@ class _DiscoverPostCardState extends State<DiscoverPostCard> {
     final l = context.l10n;
     final p = widget.post;
     final name = p.author.displayName;
-    final dept = (p.author.department ?? '').trim();
+    final dept = context.departmentName((p.author.department ?? '').trim());
     final time = postRelativeTime(context, p.createdAt);
     final text = (p.text ?? '').trim();
     final label = [if (text.isNotEmpty) text, name].join(', ');

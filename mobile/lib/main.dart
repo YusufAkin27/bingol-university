@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
+import 'core/academic_catalog.dart';
 import 'core/analytics.dart';
 import 'core/api.dart';
 import 'core/app_gate.dart';
@@ -211,7 +212,10 @@ class BingolApp extends StatelessWidget {
         theme: BuTheme.light(),
         darkTheme: BuTheme.dark(),
         themeMode: themeController.mode,
-        builder: (context, child) => AppGate(api: session.api, child: child),
+        builder: (context, child) => AcademicCatalogScope(
+          session: session,
+          child: AppGate(api: session.api, child: child),
+        ),
         home: ListenableBuilder(
           listenable: Listenable.merge([session, session.accessBlocked]),
           builder: (context, _) => session.accessBlocked.value

@@ -10,6 +10,7 @@ import 'academic_api.dart';
 import 'academic_models.dart';
 import 'academic_widgets.dart';
 import 'akad_widgets.dart';
+import '../../core/academic_catalog.dart';
 
 /// Akademik takvim (Stitch 45): ay kartı (noktalar, bugün, seçili gün), ayın önemli tarihleri ve sıradaki önemli tarihler.
 class AcademicCalendarPage extends StatefulWidget {
@@ -387,7 +388,7 @@ class _AcademicCalendarPageState extends State<AcademicCalendarPage> {
     final chip = AkadPill(kind, bg: dark ? t.ink : akadTint(context, color), fg: dark ? t.bg : akadOnTint(context, color), icon: _kindIcon(e.kind));
     final days = e.endDay.difference(e.startDay).inDays + 1;
     final span = days <= 1 ? (e.allDay ? l.p20AllDay : l.p20HalfDay) : (days >= 7 ? l.p20RangeWeeks((days / 7).round().toString()) : l.p20RangeDays(days.toString()));
-    final note = [if (e.scopeDepartment != null) e.scopeDepartment!, if (e.note != null) e.note!].join(' · ');
+    final note = [if (e.scopeDepartment != null) context.departmentName(e.scopeDepartment), if (e.note != null) e.note!].join(' · ');
     final w = e.startDay;
     final longDay = DateFormat('d MMMM y, EEEE', Localizations.localeOf(context).toString()).format(w);
     return Semantics(

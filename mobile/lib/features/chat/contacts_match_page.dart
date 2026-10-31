@@ -8,6 +8,7 @@ import '../../widgets/bu.dart';
 import '../profile/user_profile_page.dart';
 import 'chat_detail_page.dart';
 import 'chat_new_parts.dart';
+import '../../core/academic_catalog.dart';
 
 /// "Rehberden kişi bul" giriş kartı (yeni sohbet ekranı ve ayarlar).
 class ContactsEntryRow extends StatelessWidget {
@@ -110,10 +111,13 @@ class _ContactsMatchPageState extends State<ContactsMatchPage> {
     }
   }
 
+  /// Alt satır: bölüm (yoksa fakülte) arayüz dilinde; kanonik Türkçe değer değişmez.
+  String _subOf(ContactMatch m) => context.departmentOrFacultyName(m.department, m.faculty);
+
   List<ContactMatch> get _visible {
     final q = _q.trim().toLowerCase();
     if (q.isEmpty) return _all;
-    return _all.where((m) => m.displayName.toLowerCase().contains(q) || m.sub.toLowerCase().contains(q)).toList();
+    return _all.where((m) => m.displayName.toLowerCase().contains(q) || m.sub.toLowerCase().contains(q) || _subOf(m).toLowerCase().contains(q)).toList();
   }
 
   Future<void> _message(ContactMatch m) async {
@@ -294,7 +298,7 @@ class _ContactsMatchPageState extends State<ContactsMatchPage> {
   Widget _row(BuTokens t, ContactMatch m) {
     return NcPersonRow(
       name: m.displayName,
-      sub: m.sub,
+      sub: _subOf(m),
       avatarUrl: m.avatarUrl,
       onAvatarTap: () => openUserProfile(context, widget.session, userId: m.userId, name: m.displayName, avatarUrl: m.avatarUrl),
       trailing: NcPillButton(label: context.l10n.chatMiscMessage, soft: false, busy: _opening == m.userId, onTap: () => _message(m)),

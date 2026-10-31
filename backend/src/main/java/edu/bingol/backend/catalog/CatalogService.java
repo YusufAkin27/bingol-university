@@ -1,6 +1,7 @@
 package edu.bingol.backend.catalog;
 
 import edu.bingol.backend.common.ApiException;
+import edu.bingol.backend.i18n.Lang;
 import java.io.IOException;
 import java.io.InputStream;
 import java.text.Normalizer;
@@ -17,24 +18,65 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import tools.jackson.databind.json.JsonMapper;
 
-/** Akademik katalog (fakulte/bolum/sinif): acilista classpath JSON'undan yuklenir, bellekte tutulur. */
+/**
+ * Akademik katalog (fakulte/bolum/sinif): acilista classpath JSON'undan yuklenir, bellekte tutulur.
+ * Kanonik anahtar Turkce {@code name}'dir (DB'de saklanan/eslestirilen deger); {@code nameEn}/{@code nameAr}
+ * yalniz GOSTERIM icindir, eksikse Turkceye duser.
+ */
 @Service
 public class CatalogService {
 
     private static final Logger log = LoggerFactory.getLogger(CatalogService.class);
     static final String RESOURCE = "catalog/academic.json";
 
-    public record Department(String id, String name) {}
+    public record Department(String id, String name, String nameEn, String nameAr) {
+        public Department {
+            nameEn = orName(nameEn, name);
+            nameAr = orName(nameAr, name);
+        }
 
-    public record Faculty(String id, String name, List<Department> departments) {}
+        public String name(Lang lang) {
+            return pick(lang, name, nameEn, nameAr);
+        }
+    }
 
-    public record Grade(String id, String name) {}
+    public record Faculty(String id, String name, String nameEn, String nameAr, List<Department> departments) {
+        public Faculty {
+            nameEn = orName(nameEn, name);
+            nameAr = orName(nameAr, name);
+        }
+
+        public String name(Lang lang) {
+            return pick(lang, name, nameEn, nameAr);
+        }
+    }
+
+    public record Grade(String id, String name, String nameEn, String nameAr) {
+        public Grade {
+            nameEn = orName(nameEn, name);
+            nameAr = orName(nameAr, name);
+        }
+
+        public String name(Lang lang) {
+            return pick(lang, name, nameEn, nameAr);
+        }
+    }
 
     public record Catalog(int version, List<Faculty> faculties, List<Grade> grades) {}
 
-    public record DepartmentHit(String faculty, String department) {}
+    public record DepartmentHit(String faculty, String department, String facultyEn, String facultyAr,
+                                String departmentEn, String departmentAr) {}
 
-    private record Entry(String faculty, String department, String foldedDepartment, String foldedFaculty) {}
+    private record Entry(Faculty f, Department d, String foldedDepartment, String foldedFaculty,
+                         String foldedDeptEn, String foldedDeptAr, String foldedFacEn, String foldedFacAr) {}
+
+    private static String orName(String translated, String name) {
+        return translated == null || translated.isBlank() ? name : translated;
+    }
+
+    private static String pick(Lang lang, String tr, String en, String ar) {
+        return lang == Lang.EN ? en : lang == Lang.AR ? ar : tr;
+    }
 
     private final Catalog catalog;
     private final List<Entry> entries;
@@ -49,7 +91,8 @@ public class CatalogService {
         List<Entry> list = new ArrayList<>();
         for (Faculty f : catalog.faculties()) {
             for (Department d : f.departments()) {
-                list.add(new Entry(f.name(), d.name(), fold(d.name()), fold(f.name())));
+                list.add(new Entry(f, d, fold(d.name()), fold(f.name()), fold(d.nameEn()), fold(d.nameAr()),
+                        fold(f.nameEn()), fold(f.nameAr())));
             }
         }
         this.entries = List.copyOf(list);
@@ -67,6 +110,41 @@ public class CatalogService {
 
     public Catalog catalog() {
         return catalog;
+    }
+
+    /** Kanonik (Turkce) fakulte adinin istek dilindeki gosterim adi; katalogda yoksa girdi aynen doner. */
+    public String facultyName(String canonical, Lang lang) {
+        if (canonical == null || lang == null || lang == Lang.TR) {
+            return canonical;
+        }
+        for (Faculty f : catalog.faculties()) {
+            if (f.name().equals(canonical)) {
+                return f.name(lang);
+            }
+        }
+        return canonical;
+    }
+
+    /** Kanonik (Turkce) bolum adinin gosterim adi; fakulte verilirse yalniz onun bolumlerinde aranir. */
+    public String departmentName(String canonical, String canonicalFaculty, Lang lang) {
+        if (canonical == null || lang == null || lang == Lang.TR) {
+            return canonical;
+        }
+        String found = null;
+        for (Faculty f : catalog.faculties()) {
+            boolean sameFaculty = canonicalFaculty != null && f.name().equals(canonicalFaculty);
+            for (Department d : f.departments()) {
+                if (d.name().equals(canonical)) {
+                    if (sameFaculty) {
+                        return d.name(lang);
+                    }
+                    if (found == null) {
+                        found = d.name(lang);
+                    }
+                }
+            }
+        }
+        return found != null ? found : canonical;
     }
 
     public List<String> facultyNames() {
@@ -115,23 +193,36 @@ public class CatalogService {
                 .map(e -> new Object[]{e, score(e, needle)})
                 .filter(p -> (int) p[1] > 0)
                 .sorted(Comparator.comparingInt((Object[] p) -> -(int) p[1])
-                        .thenComparing(p -> ((Entry) p[0]).department()))
+                        .thenComparing(p -> ((Entry) p[0]).d().name()))
                 .limit(max)
-                .map(p -> new DepartmentHit(((Entry) p[0]).faculty(), ((Entry) p[0]).department()))
+                .map(p -> hit((Entry) p[0]))
                 .toList();
     }
 
+    private static DepartmentHit hit(Entry e) {
+        return new DepartmentHit(e.f().name(), e.d().name(), e.f().nameEn(), e.f().nameAr(), e.d().nameEn(),
+                e.d().nameAr());
+    }
+
+    /** Turkce, Ingilizce ve Arapca adlarin hepsinde arar; Turkce ad onceliklidir. */
     private static int score(Entry e, String needle) {
-        if (e.foldedDepartment().startsWith(needle)) {
+        int best = Math.max(deptScore(e.foldedDepartment(), needle),
+                Math.max(deptScore(e.foldedDeptEn(), needle), deptScore(e.foldedDeptAr(), needle)));
+        if (best > 0) {
+            return best;
+        }
+        return e.foldedFaculty().contains(needle) || e.foldedFacEn().contains(needle)
+                || e.foldedFacAr().contains(needle) ? 1 : 0;
+    }
+
+    private static int deptScore(String folded, String needle) {
+        if (folded.startsWith(needle)) {
             return 4;
         }
-        if (e.foldedDepartment().contains(" " + needle) || e.foldedDepartment().contains("-" + needle)) {
+        if (folded.contains(" " + needle) || folded.contains("-" + needle)) {
             return 3;
         }
-        if (e.foldedDepartment().contains(needle)) {
-            return 2;
-        }
-        return e.foldedFaculty().contains(needle) ? 1 : 0;
+        return folded.contains(needle) ? 2 : 0;
     }
 
     /** Turkce i/I/İ/ı esitlenir, aksanlar atilir, kucuk harfe cevrilir. */

@@ -8,6 +8,7 @@ import '../../widgets/common.dart';
 import '../posts/post_text_rules.dart';
 import 'club_detail_parts.dart';
 import 'kulup_widgets.dart';
+import '../../core/academic_catalog.dart';
 
 /// Kulüp detayı kartları (K7, referans 27-01, 28-02, 28-04): rol rozeti, gönderi kartı, üye satırı, yazma kutusu.
 
@@ -139,7 +140,7 @@ class _PinnedPill extends StatelessWidget {
 
 /// "Bölüm · N. sınıf" alt satırı: alanlar sunucuda yoksa (BACKEND-ISTEK) boş döner.
 String clubMemberSubtitle(BuildContext context, Map<String, dynamic> m) {
-  final dep = (m['department'] ?? m['faculty'] ?? '').toString().trim();
+  final dep = context.departmentOrFacultyName(m['department']?.toString(), m['faculty']?.toString());
   final y = (m['classYear'] as num?)?.toInt();
   return [if (dep.isNotEmpty) dep, if (y != null && y > 0) context.l10n.profileGradeYear('$y')].join(' · ');
 }

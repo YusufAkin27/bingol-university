@@ -9,12 +9,20 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import edu.bingol.backend.catalog.CatalogService.Department;
 import edu.bingol.backend.catalog.CatalogService.DepartmentHit;
 import edu.bingol.backend.catalog.CatalogService.Faculty;
+import edu.bingol.backend.catalog.CatalogService.Grade;
 import edu.bingol.backend.common.ApiException;
+import edu.bingol.backend.i18n.Lang;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.regex.Pattern;
 import org.junit.jupiter.api.Test;
+import org.springframework.core.io.ClassPathResource;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.json.JsonMapper;
 
 class CatalogServiceTest {
 
@@ -23,7 +31,7 @@ class CatalogServiceTest {
     @Test
     void schemaIsConsistent() {
         var c = svc.catalog();
-        assertEquals(1, c.version());
+        assertEquals(2, c.version());
         int total = 0;
         Set<String> facultyIds = new HashSet<>();
         Pattern slug = Pattern.compile("[a-z0-9]+(-[a-z0-9]+)*");
@@ -91,5 +99,88 @@ class CatalogServiceTest {
                 .anyMatch(h -> h.faculty().equals("Mühendislik Fakültesi")));
         assertTrue(svc.search("  ", 10).isEmpty());
         assertTrue(svc.search("zzzzqq", 10).isEmpty());
+    }
+
+    private static final Pattern ARABIC = Pattern.compile("[\u0600-\u06FF]");
+
+    /** Ham JSON'da (yedege dusmeden) her fakulte/bolum/sinifin EN ve AR adi dolu olmali. */
+    @Test
+    void everyEntryHasEnglishAndArabicNamesInTheRawJson() throws Exception {
+        JsonNode root;
+        try (InputStream in = new ClassPathResource(CatalogService.RESOURCE).getInputStream()) {
+            root = JsonMapper.builder().build().readTree(in);
+        }
+        int count = 0;
+        for (JsonNode f : root.get("faculties")) {
+            checkNames(f, f.get("id").asText());
+            count++;
+            for (JsonNode d : f.get("departments")) {
+                checkNames(d, f.get("id").asText() + "/" + d.get("id").asText());
+                count++;
+            }
+        }
+        for (JsonNode g : root.get("grades")) {
+            checkNames(g, "grade " + g.get("id").asText());
+            count++;
+        }
+        assertTrue(count > 700, "kayit sayisi: " + count);
+    }
+
+    private static void checkNames(JsonNode n, String where) {
+        String en = n.path("nameEn").asText("");
+        String ar = n.path("nameAr").asText("");
+        assertFalse(en.isBlank(), "nameEn bos: " + where);
+        assertFalse(ar.isBlank(), "nameAr bos: " + where);
+        assertFalse(ARABIC.matcher(en).find(), "nameEn Arapca harf iceriyor: " + where);
+        assertTrue(ARABIC.matcher(ar).find(), "nameAr Arapca harf icermiyor: " + where);
+    }
+
+    /** Kanonik Turkce adlar ve kimlikler (DB'de saklanan/eslestirilen anahtar) hic degismemeli. */
+    @Test
+    void canonicalTurkishNamesAreUnchanged() throws Exception {
+        List<String> expected;
+        try (InputStream in = new ClassPathResource("catalog/academic-canonical.txt").getInputStream()) {
+            expected = new String(in.readAllBytes(), StandardCharsets.UTF_8).lines().toList();
+        }
+        List<String> actual = new ArrayList<>();
+        for (Faculty f : svc.catalog().faculties()) {
+            actual.add("F|" + f.id() + "|" + f.name());
+            for (Department d : f.departments()) {
+                actual.add("D|" + f.id() + "|" + d.id() + "|" + d.name());
+            }
+        }
+        for (Grade g : svc.catalog().grades()) {
+            actual.add("G|" + g.id() + "|" + g.name());
+        }
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    void displayNamesFollowLanguageAndFallBackToCanonical() {
+        assertEquals("Mühendislik Fakültesi", svc.facultyName("Mühendislik Fakültesi", Lang.TR));
+        assertEquals("Faculty of Engineering", svc.facultyName("Mühendislik Fakültesi", Lang.EN));
+        assertEquals("كلية الهندسة", svc.facultyName("Mühendislik Fakültesi", Lang.AR));
+        assertEquals("Computer Engineering", svc.departmentName("Bilgisayar Mühendisliği", "Mühendislik Fakültesi", Lang.EN));
+        assertEquals("هندسة الحاسوب", svc.departmentName("Bilgisayar Mühendisliği", null, Lang.AR));
+        // katalogta olmayan / null deger aynen doner
+        assertEquals("Uydurma Bolum", svc.departmentName("Uydurma Bolum", null, Lang.EN));
+        assertEquals("Yok", svc.facultyName("Yok", Lang.AR));
+        assertEquals(null, svc.facultyName(null, Lang.EN));
+        // eksik ceviri Turkceye duser
+        Faculty f = new Faculty("x", "Deneme Fakültesi", null, " ", List.of(new Department("d", "Deneme Bölümü", "", null)));
+        assertEquals("Deneme Fakültesi", f.name(Lang.EN));
+        assertEquals("Deneme Fakültesi", f.name(Lang.AR));
+        assertEquals("Deneme Bölümü", f.departments().get(0).name(Lang.AR));
+        assertEquals("Hazırlık", new Grade("PREP", "Hazırlık", null, null).name(Lang.EN));
+    }
+
+    @Test
+    void searchMatchesEnglishAndArabicNamesToo() {
+        assertTrue(svc.search("computer engineering", 10).stream()
+                .anyMatch(h -> h.department().equals("Bilgisayar Mühendisliği")));
+        assertTrue(svc.search("هندسة الحاسوب", 10).stream()
+                .anyMatch(h -> h.department().equals("Bilgisayar Mühendisliği")
+                        && h.departmentEn().equals("Computer Engineering")));
+        assertTrue(svc.search("faculty of law", 30).stream().anyMatch(h -> h.faculty().equals("Hukuk Fakültesi")));
     }
 }

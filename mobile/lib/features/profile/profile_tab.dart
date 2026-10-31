@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../core/academic_catalog.dart' show gradeLabelL;
+import '../../core/academic_catalog.dart' show AcademicLabels, gradeLabelL;
 import '../../core/app_gate.dart' show appVersion;
 import '../../core/locale_controller.dart';
 import '../../core/session.dart';
@@ -468,8 +468,9 @@ class _ProfileHero extends StatelessWidget {
         : (year != null && year > 0
             ? context.l10n.profileGradeYear('$year')
             : '');
-    final dept = (profile['department'] as String?) ?? '';
-    final faculty = (profile['faculty'] as String?) ?? '';
+    final facultyCanon = (profile['faculty'] as String?) ?? '';
+    final dept = context.departmentName((profile['department'] as String?) ?? '', faculty: facultyCanon);
+    final faculty = context.facultyName(facultyCanon);
     final line1 = [dept, grade].where((s) => s.isNotEmpty).join(' • ');
     final email = (profile['email'] as String?) ?? '';
     final bio = (profile['bio'] as String?) ?? '';

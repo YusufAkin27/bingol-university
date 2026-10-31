@@ -7,6 +7,7 @@ import '../../widgets/bu.dart';
 import '../posts/post_models.dart' show postRelativeTime;
 import 'etkinlik2_settings_page.dart';
 import 'etkinlik2_widgets.dart';
+import '../../core/academic_catalog.dart';
 
 /// Katılım istekleri (organizatör): kontenjan sayacı, doluysa uyarı bandı, bekleyenler Onayla/Reddet,
 /// yanıtlananlar. Sayfa bir karar verildiyse `true` ile kapanır (detay yenilensin).
@@ -408,7 +409,7 @@ class _Etkinlik2RequestsPageState extends State<Etkinlik2RequestsPage> {
     final uid = _uid(a);
     final busy = _busy.contains(uid);
     final note = (a['note'] as String?)?.trim() ?? '';
-    final dep = (a['department'] as String?) ?? '';
+    final dep = context.departmentName((a['department'] as String?) ?? '', faculty: a['faculty'] as String?);
     final email = (a['email'] as String?) ?? '';
     final ago = postRelativeTime(context, (a['createdAt'] ?? a['appliedAt'] ?? a['requestedAt']) as String?);
     final full = _full;
@@ -511,7 +512,7 @@ class _Etkinlik2RequestsPageState extends State<Etkinlik2RequestsPage> {
     final l = context.l10n;
     final ok = a['status'] == 'ACCEPTED';
     final name = '${a['displayName'] ?? ''}';
-    final dep = (a['department'] as String?) ?? '';
+    final dep = context.departmentName((a['department'] as String?) ?? '', faculty: a['faculty'] as String?);
     return Container(
       constraints: const BoxConstraints(minHeight: 72),
       decoration: BoxDecoration(border: top ? Border(top: BorderSide(color: t.bd)) : null),

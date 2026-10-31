@@ -53,6 +53,16 @@ Kullanici adi aramasi mevcut `idx_perf_user_name_trgm` indeksini kullanir (sorgu
 `catalog` paketi: `GET /api/catalog/academic` (tum katalog, ETag + 1 gun onbellek) ve `GET /api/catalog/departments?q=&limit=` (bolum arama, en cok 30). Kaynak: `resources/catalog/academic.json`.
 `app_user.grade` (V200, VARCHAR 8: PREP, 1..6, MASTER, PHD). `ProfileView` ve `PATCH /api/users/me` `grade` icerir; `faculty`/`department`/`grade` yazilirken katalogla dogrulanir (400 `ACADEMIC_INVALID`), bos metin temizler. Mevcut serbest metin degerlere dokunulmaz. `POST /api/auth/register` ayni alanlari opsiyonel alir (bekleyen kayit `reg:<email>` icinde tasinir, hesap olusurken yazilir).
 
+### Katalog goruntu adlari: EN/AR (L10N-ENUM, katalog `version` 2)
+`academic.json` her fakulte/bolum/sinif icin `nameEn` ve `nameAr` tasir; Turkce `name` KANONIK anahtar olarak aynen kalir (DB'de saklanan ve
+eslestirilen deger: kullanici profili, duyuru/anket kapsami, kulup/etkinlik suzgecleri). Veri gocu yok, yalniz **gosterim** cevrilir.
+`GET /api/catalog/academic` yaniti `nameEn`/`nameAr` ekler (alan ekleme geriye uyumlu; eski istemciler yok sayar), `version` 1 -> 2.
+`GET /api/catalog/departments` isabetleri `facultyEn/facultyAr/departmentEn/departmentAr` ekler; arama TR + EN + AR adlarda aksan/buyuk-kucuk harf duyarsiz calisir.
+Eksik/bos ceviri `CatalogService` kayit kurucusunda Turkce `name`'e duser (guvenli yedek). Profil/kullanici/kulup/etkinlik yanitlari degismedi:
+istemci kanonik Turkce degeri katalog aramasiyla cevirir. Sunucu metinlerinde bolum/fakulte adi: kampanya e-postasi `{{bolum}}`/`{{fakulte}}`
+alicinin kayitli dilinde yazilir (`MailCampaignSupport`, `CatalogService.facultyName/departmentName`).
+Cevirilerin Arapca kismi anadil incelemesi ister; dogrulanacak adlar `docs/design/L10N_ENUM_ENVANTERI.md` bolum D.
+
 ## Rehber eslestirme (V240)
 `POST /api/users/contacts/match` `{"hashes":[sha256 hex...]}` (en cok 500, asim 400 `CONTACTS_TOO_MANY`; yinelenen/bozuk hash yok sayilir).
 Hash = rehberdeki e-postanin kirpilmis, kucuk harfe cevrilmis halinin SHA-256 hex'i. Yanit `{matches:[{hash,userId,displayName,avatarUrl,faculty,department}]}`.

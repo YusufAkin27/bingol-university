@@ -521,7 +521,9 @@ class _EditProfilePageState extends State<EditProfilePage> {
                             ),
                             _SelectBox(
                               key: const ValueKey('edit-department'),
-                              text: _department,
+                              text: _department == null
+                                  ? null
+                                  : _catalog.departmentLabel(_department, uiLocale(context), faculty: _faculty),
                               placeholder: loading ? l.pickLoading : l.pickSelectDepartment,
                               error: _departmentError,
                               onTap: _pickDepartment,

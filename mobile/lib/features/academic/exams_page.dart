@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-import '../../core/academic_catalog.dart' show gradeLabelL;
+import '../../core/academic_catalog.dart' show AcademicLabels, gradeLabelL;
 import '../../core/api.dart';
 import '../../core/locale_controller.dart';
 import '../../core/session.dart';
@@ -444,7 +444,7 @@ class _ExamsPageState extends State<ExamsPage> {
     final t = context.bu;
     final tx = Theme.of(context).textTheme;
     final w = istanbulWall(e.startsAt);
-    final who = [if (e.department != null) e.department!, if (e.grade != null) gradeLabelL(l, e.grade)].join(' · ');
+    final who = [if (e.department != null) context.departmentName(e.department), if (e.grade != null) gradeLabelL(l, e.grade)].join(' · ');
     final sub = [if (e.courseCode != null) e.courseCode!, if (who.isNotEmpty) who].join(' · ');
     final typeText = examTypeLabelL(l, e.type);
     final dateText = '${_longDate(w)} · ${hhmm(w.hour * 60 + w.minute)}';

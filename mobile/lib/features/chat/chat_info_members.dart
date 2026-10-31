@@ -11,6 +11,7 @@ import '../../core/session.dart';
 import '../../widgets/bu.dart';
 import 'chat_info_parts.dart';
 import 'chatlist_widgets.dart';
+import '../../core/academic_catalog.dart';
 
 bool isAdminRole(Map<String, dynamic> m) =>
     m['role'] == 'ADMIN' || m['role'] == 'OWNER';
@@ -18,8 +19,8 @@ bool isAdminRole(Map<String, dynamic> m) =>
 String _memberName(BuildContext context, Map<String, dynamic> m) =>
     (m['displayName'] as String?) ?? context.l10n.chatInfoUser;
 
-String _memberSub(Map<String, dynamic> m) =>
-    (m['department'] ?? m['faculty'] ?? '').toString().trim();
+String _memberSub(BuildContext context, Map<String, dynamic> m) => context.departmentOrFacultyName(
+    (m['department'] as String?)?.toString(), (m['faculty'] as String?)?.toString());
 
 /// Bilgi sayfasındaki üye önizleme satırı: 44 dp avatar, ad ("(Sen)"), bölüm, sağda "Yönetici" etiketi ya da
 /// (yöneticide, yönetici olmayan üyeler için) ⋮ menüsü.
@@ -44,7 +45,7 @@ class ChatMemberRow extends StatelessWidget {
     final me = (member['userId'] as num?)?.toInt() == selfId;
     var name = _memberName(context, member);
     if (me) name = '$name (${context.l10n.chatInfoYou})';
-    final sub = _memberSub(member);
+    final sub = _memberSub(context, member);
     final admin = isAdminRole(member);
     return InkWell(
       onTap: me ? null : onTap,
@@ -105,7 +106,7 @@ class ChatMemberListRow extends StatelessWidget {
     final t = context.bu;
     final me = (member['userId'] as num?)?.toInt() == selfId;
     final name = _memberName(context, member);
-    final sub = _memberSub(member);
+    final sub = _memberSub(context, member);
     final admin = isAdminRole(member);
     return InkWell(
       onTap: me ? null : onTap,

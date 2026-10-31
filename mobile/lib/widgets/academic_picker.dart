@@ -86,14 +86,16 @@ class AcademicFields extends StatelessWidget {
           children: [
             _FieldLabel(context.l10n.pickDepartment),
             _SelectBox(
-              text: department,
+              text: department == null
+                  ? null
+                  : catalog.departmentLabel(department, uiLocale(context), faculty: faculty),
               placeholder: loading ? context.l10n.pickLoading : context.l10n.pickSelectDepartment,
               error: departmentError != null,
               onTap: enabled ? () => _pickDepartment(context) : null,
             ),
             if (departmentError != null) _FieldError(departmentError!),
             // Fakülte seçilemez: bölümden otomatik gelir (dokunulamaz bilgi satırı).
-            if ((faculty ?? '').isNotEmpty) _FacultyInfo(faculty!),
+            if ((faculty ?? '').isNotEmpty) _FacultyInfo(catalog.facultyLabel(faculty, uiLocale(context))),
             if (failed) ...[
               const SizedBox(height: 8),
               Row(

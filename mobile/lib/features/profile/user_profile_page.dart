@@ -1,7 +1,7 @@
 // ignore_for_file: prefer_const_constructors, prefer_const_literals_to_create_immutables
 import 'package:flutter/material.dart';
 
-import '../../core/academic_catalog.dart' show gradeLabelL;
+import '../../core/academic_catalog.dart' show AcademicLabels, gradeLabelL;
 import '../../core/api.dart' show ApiError;
 import '../../core/cache/image_disk_cache.dart';
 import '../../core/locale_controller.dart';
@@ -412,11 +412,11 @@ class _UserProfilePageState extends State<UserProfilePage> {
     }
     if (_p == null) return _skeleton(t);
 
-    final dept = _s('department');
+    final dept = context.departmentName(_s('department'), faculty: _s('faculty'));
     final presence = _self ? null : _presenceText();
     final online = _presence?['online'] == true;
     final bio = _s('bio');
-    final faculty = _s('faculty');
+    final faculty = context.facultyName(_s('faculty'));
     final grade = _gradeText();
     final email = _s('email');
     final s = _stats;

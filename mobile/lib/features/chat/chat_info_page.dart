@@ -16,6 +16,7 @@ import 'chat_sheet_parts.dart';
 import 'chat_media_viewer.dart';
 import 'chatlist_widgets.dart';
 import 'sohbety_add_members.dart';
+import '../../core/academic_catalog.dart';
 
 /// Sohbet bilgisi (Stitch 24): birebir, kullanıcı grubu ve kulüp/etkinlik odası için tek kaydırmalı sayfa.
 ///
@@ -627,9 +628,8 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
   /// "Bölüm · 3. sınıf" (profilden); yoksa boş.
   String get _directSub {
     final p = _profile;
-    final dept = (p?['department'] ?? p?['faculty'] ?? _peer?['department'] ?? _peer?['faculty'] ?? '')
-        .toString()
-        .trim();
+    final dept = context.departmentOrFacultyName(
+        (p?['department'] ?? _peer?['department'])?.toString(), (p?['faculty'] ?? _peer?['faculty'])?.toString());
     final year = (p?['classYear'] as num?)?.toInt();
     return [
       if (dept.isNotEmpty) dept,

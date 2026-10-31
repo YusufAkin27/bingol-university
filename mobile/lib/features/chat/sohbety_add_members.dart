@@ -8,6 +8,7 @@ import '../../widgets/bu.dart';
 import 'chat_info_parts.dart';
 import 'chat_sheet_parts.dart';
 import 'chatlist_widgets.dart';
+import '../../core/academic_catalog.dart';
 
 /// Gruba üye ekleme seçici (Stitch 22-4): kişi ara (en az 2 karakter), çoklu seç, seçilenler çip olarak üstte.
 /// Dönüş: seçilen kullanıcı kimlikleri; vazgeçilirse null.
@@ -169,7 +170,7 @@ class _AddMembersSheetState extends State<AddMembersSheet> {
         final u = _results[i];
         final id = (u['id'] as num).toInt();
         final name = '${u['displayName'] ?? ''}';
-        final sub = (u['department'] ?? u['faculty'] ?? '').toString();
+        final sub = context.departmentOrFacultyName(u['department']?.toString(), u['faculty']?.toString());
         return Semantics(
           button: true,
           selected: _selected.containsKey(id),

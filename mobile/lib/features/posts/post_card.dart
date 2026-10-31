@@ -260,9 +260,8 @@ class _PostCardState extends State<PostCard> {
               DoubleTapLike(
                 onLike: _like.like,
                 onTap: widget.detail ? null : _open,
-                // Detayda fotoğraf ekran kenarlarına dayanır: köşe yuvarlağı ekran kenarında bozuk görünür.
-                radius: detail ? 0 : BuRadius.lg,
-                child: PostPhoto(session: widget.session, post: p, radius: detail ? 0 : BuRadius.lg),
+                radius: BuRadius.lg,
+                child: PostPhoto(session: widget.session, post: p),
               ),
             ],
             Padding(
