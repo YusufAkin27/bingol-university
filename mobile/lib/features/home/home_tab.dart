@@ -687,7 +687,7 @@ class _HomeTabState extends State<HomeTab> {
     final when = d == null
         ? null
         : hasTime
-            ? '${newsWeekdayName(context, d.weekday)} ${d.hour.toString().padLeft(2, '0')}:${d.minute.toString().padLeft(2, '0')}'
+            ? '${newsWeekdayName(context, d.weekday, short: true)} ${d.hour.toString().padLeft(2, '0')}:${d.minute.toString().padLeft(2, '0')}'
             : null;
     Widget? footer;
     if (!official) {

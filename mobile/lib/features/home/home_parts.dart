@@ -281,7 +281,7 @@ class HomeSectionHeader extends StatelessWidget {
               constraints: const BoxConstraints(minHeight: 48),
               child: Align(
                 alignment: AlignmentDirectional.centerStart,
-                child: Text(title, maxLines: 1, overflow: TextOverflow.ellipsis, style: BuType.title.copyWith(fontSize: 17, color: t.ink)),
+                child: Text(title, maxLines: 2, overflow: TextOverflow.ellipsis, style: BuType.title.copyWith(fontSize: 17, color: t.ink)),
               ),
             ),
           ),
@@ -305,7 +305,7 @@ class HomeSectionSlot extends StatelessWidget {
   Widget build(BuildContext context) {
     // "Animasyonları azalt": geçişsiz (sıfır süreli AnimatedSize yerleşim sırasında yeniden çizim tetikler).
     if (BuMotion.reduced(context)) return visible ? KeyedSubtree(key: const ValueKey('on'), child: builder()) : const SizedBox(width: double.infinity);
-    final d = BuMotion.medium;
+    const d = BuMotion.medium;
     return AnimatedSize(
       duration: d,
       curve: BuMotion.standard,
@@ -572,18 +572,13 @@ class HomeBrandHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.bu;
     final tx = Theme.of(context).textTheme;
-    return Row(children: [
-      Expanded(
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text('BÜ KAMPÜS', maxLines: 1, style: tx.labelSmall!.copyWith(fontWeight: FontWeight.w800, letterSpacing: 1.2, color: t.pr)),
-          if (hello != null)
-            Semantics(
-              header: true,
-              child: Text(hello!, maxLines: 2, overflow: TextOverflow.ellipsis, style: BuType.display.copyWith(fontSize: 24, letterSpacing: -.4, color: t.ink)),
-            ),
-        ]),
-      ),
-      const SizedBox(width: 8),
+    final helloStyle = BuType.display.copyWith(fontSize: 24, letterSpacing: -.4, color: t.ink);
+    final wordmark = Text('BÜ KAMPÜS', maxLines: 1, style: tx.labelSmall!.copyWith(fontWeight: FontWeight.w800, letterSpacing: 1.2, color: t.pr));
+    Widget helloText() => Semantics(
+          header: true,
+          child: Text(hello!, maxLines: 2, overflow: TextOverflow.ellipsis, style: helloStyle),
+        );
+    final actions = Row(mainAxisSize: MainAxisSize.min, children: [
       bell,
       const SizedBox(width: 4),
       Semantics(
@@ -597,6 +592,41 @@ class HomeBrandHeader extends StatelessWidget {
         ),
       ),
     ]);
+    return LayoutBuilder(builder: (context, c) {
+      // Selamlama yan yana sığmıyorsa (dar ekran / büyük yazı: kelime ortadan bölünecekse ya da 2 satırı aşarsa)
+      // simgeler üst satırda kalır, selamlama altta tam genişlikte yazılır.
+      var stacked = false;
+      if (hello != null) {
+        // Simge grubu: zil (+ düzenleme düğmesi) + avatar; ölçüm için sabit pay.
+        final avail = c.maxWidth - 8 - 48 * 3 - 4 * 2;
+        final scaler = MediaQuery.textScalerOf(context);
+        TextPainter tp(String text, int? lines) => TextPainter(
+              text: TextSpan(text: text, style: helloStyle),
+              textDirection: Directionality.of(context),
+              textScaler: scaler,
+              maxLines: lines,
+            )..layout(maxWidth: avail > 0 ? avail : 1);
+        final words = hello!.split(' ');
+        final widest = words.map((w) => (TextPainter(text: TextSpan(text: w, style: helloStyle), textDirection: Directionality.of(context), textScaler: scaler)..layout()).width).fold<double>(0, math.max);
+        stacked = avail <= 0 || widest > avail || tp(hello!, null).computeLineMetrics().length > 2;
+      }
+      if (stacked) {
+        return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+          Row(children: [Expanded(child: wordmark), actions]),
+          helloText(),
+        ]);
+      }
+      return Row(children: [
+        Expanded(
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            wordmark,
+            if (hello != null) helloText(),
+          ]),
+        ),
+        const SizedBox(width: 8),
+        actions,
+      ]);
+    });
   }
 }
 
