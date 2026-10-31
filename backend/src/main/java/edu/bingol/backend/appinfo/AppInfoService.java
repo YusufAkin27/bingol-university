@@ -20,7 +20,7 @@ public class AppInfoService {
 
     public static final String FACULTIES_KEY = "faculties";
 
-    private static final Pattern VERSION = Pattern.compile("\\d+(\\.\\d+){0,3}");
+    private static final Pattern VERSION = Pattern.compile("\\d{1,9}(\\.\\d{1,9}){0,3}"); // 9 hane: Long.parseLong tasmaz (QA: uzun surum 500 veriyordu)
     /** Tek e-posta adresi: bosluk, satir sonu, virgul/noktalivirgul ve < > yok. */
     private static final Pattern EMAIL = Pattern.compile("[A-Za-z0-9._%+-]{1,64}@[A-Za-z0-9.-]{1,190}\\.[A-Za-z]{2,24}");
     private static final Pattern PLATFORM = Pattern.compile("android|ios", Pattern.CASE_INSENSITIVE);

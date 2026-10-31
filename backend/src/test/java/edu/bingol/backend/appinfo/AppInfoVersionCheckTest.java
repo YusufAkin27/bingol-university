@@ -41,5 +41,8 @@ class AppInfoVersionCheckTest {
     void invalidPlatformOrVersionRejected() {
         assertEquals("INVALID_VERSION", assertThrows(ApiException.class, () -> service.checkVersion("web", "1.0")).code());
         assertEquals("INVALID_VERSION", assertThrows(ApiException.class, () -> service.checkVersion("ios", "x.y")).code());
+        // QA: tasan sayi (Long.parseLong) 500 degil 400 olmali
+        assertEquals("INVALID_VERSION", assertThrows(ApiException.class, () -> service.checkVersion("android", "9".repeat(40))).code());
+        assertEquals("INVALID_VERSION", assertThrows(ApiException.class, () -> service.checkVersion("android", "1.0." + "9".repeat(10))).code());
     }
 }

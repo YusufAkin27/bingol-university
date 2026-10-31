@@ -68,8 +68,13 @@ public interface ConversationMemberRepository extends JpaRepository<Conversation
     int unhideMember(@Param("cid") Long conversationId, @Param("uid") Long userId);
 
     /** Bekleyen mesaj istegi / grup daveti sayisi (T-026). */
-    @Query("SELECT COUNT(m) FROM ConversationMember m WHERE m.userId = :uid AND m.leftAt IS NULL "
-            + "AND m.requestState = edu.bingol.backend.messaging.ConversationMember.RequestState.PENDING")
+    @Query("SELECT COUNT(m) FROM ConversationMember m, Conversation c WHERE c.id = m.conversationId "
+            + "AND m.userId = :uid AND m.leftAt IS NULL "
+            + "AND m.requestState = edu.bingol.backend.messaging.ConversationMember.RequestState.PENDING "
+            // QA: engelledigim kisinin birebir istegi rozete girmez (ConversationRepository.requests ile ayni kural)
+            + "AND NOT (c.type = edu.bingol.backend.messaging.Conversation.Type.DIRECT AND EXISTS (SELECT 1 FROM "
+            + "ConversationMember o, edu.bingol.backend.moderation.UserBlock b WHERE o.conversationId = c.id "
+            + "AND o.userId <> :uid AND b.blockerId = :uid AND b.blockedId = o.userId))")
     long countPending(@Param("uid") Long userId);
 
     /** Iki kullanicinin ortak (ikisi de ayrilmamis VE ikisi de kabul etmis) bir konusmasi var mi (presence: karsilikli kabul). */

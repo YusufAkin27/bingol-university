@@ -199,3 +199,10 @@ Davranış ve API değişmez (yeni uç/hata kodu yok); değişen yalnız maliyet
 Sohbet mesajı (DM, grup, kulüp/etkinlik odası) artık `notification` tablosuna satır yazmaz; alıcıya yalnız push gider (`NotificationService.sendNewMessage*`). Bildirimler listesi/`unread-count`/rozet MESSAGE türünü saymaz. Sohbet okunmamışı kaynağı değişmedi (`ConversationPrefsService.unreadBadge`, konuşma listesi `unreadCount`). `MessageService` sohbet okununca `markConversationRead` çağrısı eski satırlar için zararsız kalır. Ayrıntı: `docs/changes/push.md` "FOLLOWREQ: sohbet mesajı artık bildirim kutusuna yazılmaz".
 
 Mesaj isteği (T-026) ile ilişki: "alıcı göndereni takip ediyor" bağlamı yalnız KABUL EDİLMİŞ takibe dayanır; gizli hesapta bekleyen takip isteği bağlam sayılmaz (bkz. `FollowRequestFlowTest.messageRequestContextCountsAcceptedFollowOnlyNotPendingRequest`).
+
+## QA-ADVERSARIAL: engelleyenin istek kutusu ve eşzamanlı istek sınırı
+
+- **Engelleyenin istek kutusu:** `ConversationRepository.requests` ve `ConversationMemberRepository.countPending`, kullanıcının ENGELLEDİĞİ kişiyle olan birebir bekleyen isteği listeden/rozetten dışlar (gölge engel: engellenen konuşmayı açar ve yazar, 201 görür, engelleyenin kutusuna düşmez). Grup davetlerinde engelleyen zaten sessizce atlanıyordu. Engel kalkarsa istek yeniden görünür.
+- **Eşzamanlı yanıtsız istek sınırı:** `MessageService.persist` (yalnız kabul edilmemiş konuşmada) konuşma satırını `lockById` ile kilitler ve 3 mesaj sınırını kilit içinde yeniden sayar; paralel gönderimle 3'ü aşmak artık 409 `MESSAGE_REQUEST_PENDING`.
+- **Sürüm kontrolü:** `GET /api/app/version` sürüm parçaları en çok 9 hane (`INVALID_VERSION` 400); 20+ haneli sürüm `Long.parseLong` taşmasıyla 500 veriyordu.
+- Duman: `scripts/smoke-qa-private.sh`.

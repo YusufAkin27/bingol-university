@@ -69,6 +69,10 @@ public interface ConversationRepository extends JpaRepository<Conversation, Long
     /** Bekleyen mesaj istekleri / grup davetleri (T-026), en yeni once; imlec = konusma kimligi (azalan). */
     @Query("SELECT c FROM Conversation c, ConversationMember m WHERE m.conversationId = c.id AND m.userId = :uid "
             + "AND m.leftAt IS NULL AND m.requestState = edu.bingol.backend.messaging.ConversationMember.RequestState.PENDING "
+            // QA: engelledigim kisinin birebir istegi benim istek kutuma/rozetime dusmez (golge engel)
+            + "AND NOT (c.type = edu.bingol.backend.messaging.Conversation.Type.DIRECT AND EXISTS (SELECT 1 FROM "
+            + "ConversationMember o, edu.bingol.backend.moderation.UserBlock b WHERE o.conversationId = c.id "
+            + "AND o.userId <> :uid AND b.blockerId = :uid AND b.blockedId = o.userId)) "
             + "AND c.id < :cursor ORDER BY c.id DESC")
     List<Conversation> requests(@Param("uid") Long userId, @Param("cursor") long cursor, Pageable pageable);
 }

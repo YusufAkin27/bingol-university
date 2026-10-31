@@ -117,6 +117,18 @@ class MessageRequestW2dTest {
         assertEquals(409, e.status().value());
     }
 
+    /** QA: eszamanli gonderimde on kontrol gecse bile kilit sonrasi yeniden sayim siniri asmayi engeller. */
+    @Test
+    void concurrentSendsCannotExceedTheUnansweredLimit() {
+        when(messages.countSentBy(CONV, ME)).thenReturn(2L, 3L); // on kontrol: 2 (gecer); kilit sonrasi: baska istek 3. yi yazmis
+
+        ApiException e = assertThrows(ApiException.class, () -> service.send(ME, CONV, "yaris", "race1"));
+
+        assertEquals("MESSAGE_REQUEST_PENDING", e.code());
+        verify(convs).lockById(CONV);
+        verify(messages, never()).saveAndFlush(any(Message.class));
+    }
+
     @Test
     void declinedPeerLooksTheSameToTheSender() {
         peer.setRequestState(ConversationMember.RequestState.DECLINED);

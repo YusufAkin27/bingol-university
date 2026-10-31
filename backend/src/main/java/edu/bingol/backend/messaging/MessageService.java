@@ -230,12 +230,10 @@ public class MessageService {
         }
         // T-026: kimse kabul etmediyse gonderen yanitsiz en fazla MAX_UNANSWERED mesaj yazabilir (istek spam'i yok);
         // golge engelli (bastirilmis) mesajlarda sinir uygulanmaz: sinir davranisi engeli ele vermesin.
-        if (!suppressed && active.size() > 1
-                && active.stream().noneMatch(a -> !a.getUserId().equals(senderId) && a.isAccepted())
-                && messages.countSentBy(conversationId, senderId) >= MAX_UNANSWERED) {
-            throw new ApiException(HttpStatus.CONFLICT, "MESSAGE_REQUEST_PENDING",
-                    "Karşı taraf isteğinizi kabul edene kadar daha fazla mesaj gönderemezsiniz.",
-                    String.valueOf(MAX_UNANSWERED));
+        final boolean unansweredGate = !suppressed && active.size() > 1
+                && active.stream().noneMatch(a -> !a.getUserId().equals(senderId) && a.isAccepted());
+        if (unansweredGate && messages.countSentBy(conversationId, senderId) >= MAX_UNANSWERED) {
+            throw pendingLimit();
         }
         // Ek dogrulamasi mesaj hakkini harcamadan once (baskasinin/kullanilmis/uygunsuz ek -> 400)
         List<Long> ids = hasMedia ? (viewOnce ? attachments.precheck(senderId, conversationId, attachmentIds, true)
@@ -252,7 +250,7 @@ public class MessageService {
         codec.seal(draft, body);
         Message saved;
         try {
-            saved = tx.execute(s -> persist(draft, ids, viewOnce));
+            saved = tx.execute(s -> persist(draft, ids, viewOnce, unansweredGate));
         } catch (DataIntegrityViolationException e) {
             // Ayni clientId ile eszamanli iki istek: kazanan kaydetti, digeri onu doner.
             Message existing = messages.findByConversationIdAndSenderIdAndClientId(conversationId, senderId, clientId)
@@ -274,7 +272,21 @@ public class MessageService {
     /** T-026: istek kabul edilmeden gonderenin yazabilecegi mesaj sayisi (RequestPolicy). */
     static final int MAX_UNANSWERED = 3;
 
-    private Message persist(Message draft, List<Long> attachmentIds, boolean viewOnce) {
+    private static ApiException pendingLimit() {
+        return new ApiException(HttpStatus.CONFLICT, "MESSAGE_REQUEST_PENDING",
+                "Karşı taraf isteğinizi kabul edene kadar daha fazla mesaj gönderemezsiniz.",
+                String.valueOf(MAX_UNANSWERED));
+    }
+
+    private Message persist(Message draft, List<Long> attachmentIds, boolean viewOnce, boolean unansweredGate) {
+        if (unansweredGate) {
+            // QA: yanitsiz istek sinirini eszamanli gonderimlere karsi seri hale getir (kilit + yeniden say);
+            // yalnizca kabul edilmemis konusmalarda kilitlenir, normal sohbet yolu etkilenmez.
+            convs.lockById(draft.getConversationId());
+            if (messages.countSentBy(draft.getConversationId(), draft.getSenderId()) >= MAX_UNANSWERED) {
+                throw pendingLimit();
+            }
+        }
         String plain = draft.getBody();
         Message m = messages.saveAndFlush(draft);
         if (!attachmentIds.isEmpty()) {
