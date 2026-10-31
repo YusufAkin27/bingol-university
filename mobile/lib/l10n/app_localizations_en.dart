@@ -9344,4 +9344,8 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get p64CropDone => 'Done';
+
+  @override
+  String get p64FeedOffline =>
+      'You are offline. Posts shown may be out of date.';
 }

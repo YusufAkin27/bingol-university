@@ -2916,5 +2916,6 @@
   "p51DescLabel": "Description",
   "p51DescHint": "Briefly describe your club's purpose and goals…",
   "p51AddJoinQuestion": "Add a join question",
-  "p64CropDone": "Done"
+  "p64CropDone": "Done",
+  "p64FeedOffline": "You are offline. Posts shown may be out of date."
 }

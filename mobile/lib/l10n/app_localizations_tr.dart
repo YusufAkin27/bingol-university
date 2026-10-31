@@ -9313,4 +9313,8 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get p64CropDone => 'Bitti';
+
+  @override
+  String get p64FeedOffline =>
+      'Çevrimdışısın. Gösterilen gönderiler eski olabilir.';
 }

@@ -4711,5 +4711,6 @@
   "p51DescLabel": "Açıklama",
   "p51DescHint": "Kulübünüzün amacını ve hedeflerini kısaca anlatın…",
   "p51AddJoinQuestion": "Katılma sorusu ekle",
-  "p64CropDone": "Bitti"
+  "p64CropDone": "Bitti",
+  "p64FeedOffline": "Çevrimdışısın. Gösterilen gönderiler eski olabilir."
 }

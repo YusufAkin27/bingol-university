@@ -16944,6 +16944,12 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Bitti'**
   String get p64CropDone;
+
+  /// No description provided for @p64FeedOffline.
+  ///
+  /// In tr, this message translates to:
+  /// **'Çevrimdışısın. Gösterilen gönderiler eski olabilir.'**
+  String get p64FeedOffline;
 }
 
 class _AppLocalizationsDelegate

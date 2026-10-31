@@ -9244,4 +9244,8 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get p64CropDone => 'تم';
+
+  @override
+  String get p64FeedOffline =>
+      'أنت غير متصل. قد تكون المنشورات المعروضة قديمة.';
 }
