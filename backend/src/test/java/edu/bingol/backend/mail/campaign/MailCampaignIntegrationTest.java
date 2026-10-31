@@ -40,7 +40,9 @@ import org.springframework.context.annotation.Import;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 /** Sablon yasam dongusu, hedef cozumleme, dagitim, tekrar korumasi, duraklat/iptal, saklama (H2, gercek bean'ler). */
-@SpringBootTest
+// Zamanlanmis dagitici (10 sn) testteki tick() ile yarisip kampanyayi once isleyebiliyordu (alici satirlari henuz yazilmamisken
+// sayim 0 cikiyordu, tam suite'te aralikli kirik); test dagiticiyi kendisi surer, zamanlayici fiilen kapatilir.
+@SpringBootTest(properties = "app.mail.campaign-poll-ms=3600000")
 @Import(MailCampaignIntegrationTest.GateConfig.class)
 class MailCampaignIntegrationTest {
 

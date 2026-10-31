@@ -10076,6 +10076,9 @@
           "acceptTerms" : {
             "type" : [ "boolean", "null" ]
           },
+          "adminPortal" : {
+            "type" : [ "boolean", "null" ]
+          },
           "department" : {
             "maxLength" : 120,
             "minLength" : 0,
