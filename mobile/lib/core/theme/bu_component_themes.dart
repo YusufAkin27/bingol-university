@@ -260,8 +260,8 @@ class BuComponentThemes {
     return InputDecorationTheme(
       filled: true,
       fillColor: t.sf,
-      constraints: const BoxConstraints(minHeight: BuSize.field),
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      // Min yükseklik temada VERİLMEZ (isCollapsed/özel yükseklikli alanlar bozulmasın); 15 + bodyLarge satırı ≈ 52 dp.
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
       border: border(t.bdStrong),
       enabledBorder: border(t.bdStrong),
       disabledBorder: border(t.bd),

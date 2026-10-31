@@ -65,8 +65,6 @@ void main() {
         // Alan kutusu: etiket (üstte) hariç, çerçeveli kapsayıcı 52 dp.
         final all = find.descendant(of: find.byKey(const ValueKey('f')), matching: find.byType(AnimatedContainer));
         final sizes = [for (var i = 0; i < all.evaluate().length; i++) t.getSize(all.at(i)).height];
-        // ignore: avoid_print
-        print('FIELD_SIZES $sizes');
         expect(sizes.first, closeTo(BuSize.field, 1.5), reason: '$sizes');
       });
 
