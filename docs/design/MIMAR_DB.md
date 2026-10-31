@@ -155,3 +155,32 @@ Metin: "Henüz içerik yok." -> "İçerik yok."; "Kaynak site şu an ulaşılam�
 - **Ağ**: gizli bölümün verisi hiç istenmez (menü, etkinlik, haber/duyuru, `GET /timetable`); bölüm sonradan açılınca o an istenir. Sıra değişimi veri yüklemesini bozmaz. Yeni uç yok.
 - **Boş durum**: bütün bölümler gizliyse "Ana sayfan boş" + "Bölüm ekle".
 - **Bekleyen**: Stitch tasarımı (ad0d7e6e0f4b592ff) gelince düzenleme sayfasının görünümü birebir uygulanacak; işlev hazır.
+
+
+---
+
+# Tur 3 (minimal): Haber ve Arama (P3-NEWS)
+
+Kapsam: `mobile/lib/features/news/**`, `mobile/lib/features/search/**`. Ölçüt: az öğe, güçlü hiyerarşi, tek vurgu (marka kırmızısı); yeni renk/istek/ARB anahtarı yok (yalnız mevcut anahtarların METNİ kısaldı, anahtar adları aynı).
+Önce/sonra PNG: `C:\bu_qa\shots\tasarim\p3\news\onceki|sonra\` (tr390 açık/koyu, tr320 x1.3, ar390; sahte veri, `test/redesign/p05_shots_test.dart`).
+
+| Ekran | Kaldırılanlar | Sadeleştirilenler | Renk (önce -> sonra) |
+|---|---|---|---|
+| Haber listesi (Haber/Duyuru/Etkinlik) | Satır kartı çerçevesi, sekme simgeleri (3), üstteki iki daire düğme çerçevesi (arama/favori), her satırda "bingol.edu.tr" kaynak adı, sayfalama "hap kartı", boş durum kartı + ikinci cümle, hata kartı (çift çerçeve) + kırmızı x rozeti + ikinci cümle | Satır: görsel 72 (köşe 12) + başlık (w600, 3 satıra kadar) + tek soluk tarih; satırlar arası 8 dp, çerçevesiz; basma geri bildirimi `BuPressable(.985)`; favori simgesi 20 dp, kaydedilmemişken soluk; bakım bandı metni kısaldı | kırmızı + soft-kırmızı karo + aqua + amber (tür başına) -> nötr + tek kırmızı (seçili sekme, kayıtlı favori) |
+| Haber satırı (favoriler ile ortak `NewsTile`) | Tür rozeti (renkli hap), tür başına karo rengi (aqua/amber), etkinlik karosundaki takvim simgesi | Tür adı (gerekirse) meta satırının başında düz metin: "Duyuru • 22 Ekim 2026"; görselsiz karo nötr (`sf2`); etkinlik karosu "18 / KAS" (tabular) | 4 -> 1 |
+| Haber detayı | İçerik kartı (kart içinde kart), kapaktaki tür rozeti, takvim simgeleri, "içeriğin tamamı" bilgi kutusu (içerik varken), iskeletteki avatar satırları, bağlantı hatası kutusu, hata ekranındaki ikinci cümle | Kartsız tek sütun; soluk meta satırı (tür • tarih • yalnız dış kaynakta site adı); başlık `headlineSmall` w700; gövde 17 sp / satır yüksekliği 1.65 / paragraf aralığı 16; geniş ekranda gövde en çok 640 dp; kapaksız ekranda geri/favori/paylaş yalnız simge (kapakta yarı saydam daire korunur); içerik yoksa tek soluk cümle, varsa yalnız "Kaynak sayfada aç"; bağlantı hatası düz kırmızı cümle | kırmızı + tür tonu + info + soft ~ 4 -> 1 (hata metni yalnız durum) |
+| Arama (başlangıç) | "bilgi" kutusu + simgesi, büyük harfli "SON ARAMALAR" ve harf aralığı, sarmalayıcı kart + ayırıcı çizgiler, geçmiş simgelerinin daire zeminleri, sekme çipleri (yazmadan önce) | Ekran = tek arama alanı + (son arama yoksa) tek cümle "En az 2 karakter yazın." ya da düz son arama satırları (48 dp, tek simge + metin); geri düğmesi çerçevesiz | 3 -> 2 (nötr + kırmızı "Temizle") |
+| Arama (sonuçlar, Tümü) | "6 SONUÇ "kamp" araması için" sayaç satırı, her tür için kart + ayırıcılar, büyük harfli grup başlıkları, tek sonuçta "Tümünü gör (1)", saat/saat-çalar/kalp/ok simgeleri, kulüp kategori hapı, tür başına 4 renkli simge karosu | Türe göre düz bölümler (başlık: Haber, Duyuru, Etkinlik, Kulüp, Kişi, Gönderi); bölüm başına en çok 4 satır, fazlası varsa "Tümünü gör (N)"; satır = görsel/avatar + başlık + tek soluk satır ("Kulüp • 48 üye • Üyesin"); bölümler arası 24 dp; sekme çipleri yalnız sonuçla görünür, seçilmemiş çip zeminsiz | 5 (mavi, slate, soft-kırmızı, kırmızı kalp/saat, kırmızı bağlantılar) -> 2 (nötr + kırmızı) |
+| Arama (tür sekmeleri: Haber/Etkinlik/Kulüp/Kişi/Gönderi) | Sayaç başlığı ("12 HABER BULUNDU"), kulüp kartı + "Üye ol"/"Üyesin" düğmeleri (aynı ekranda çoklu dolgulu düğme), kart + çerçeve (gönderi kartı) | Hepsi aynı düz satır; gönderi ızgarası çerçevesiz, 16 dp aralık, beğeni sayısı soluk + tabular | 4 -> 2 |
+| Arama (boş / hata / yükleniyor) | Boş: kart sarmalayıcı + ikinci cümle; hata: kart + simge karosu + ikinci cümle | Boş: illüstrasyon + "Sonuç bulunamadı."; hata: sakin simge + "Sonuçlar yüklenemedi" + tek "Yeniden dene" (`IcerikErrorCard`, haber listesiyle ortak) | 3 -> 1 |
+
+## Metin değişiklikleri (anahtar adı aynı)
+`searchPrompt` ("En az 2 karakter yazın."), `searchRecent` (büyük harf yok), `icerikGroup*` (büyük harf yok), `p05ListErrorTitle` ("Yüklenemedi"), `p05NewsErrorTitle` ("İçerik yüklenemedi"), `p05SearchErrorTitle` ("Sonuçlar yüklenemedi"), `icerikMaintenance` ("Kaynağa ulaşılamıyor; kayıtlı haberler gösteriliyor."), `newsFullContent` ("Tam metin kaynak sayfada."); en/ar karşılıkları da. Artık kullanılmayan ama bırakılan anahtarlar: `p05ListErrorBody`, `p05NewsErrorBody`, `p05SearchErrorBody`, `p05SearchNoResultsBody`, `p05NewsEmptyBody`, `searchResultCount`, `p05SearchCountFor`, `p05SearchFound*` (kaydetilmiş sayfada `p05ListErrorBody` hâlâ kullanılır).
+
+## Hareket
+Yeni ağır animasyon yok. Kullanılanlar: `BuPressable` (satır, gönderi kartı), sekme şeridi `AnimatedSize` (yazınca açılır), çip yazı rengi `AnimatedDefaultTextStyle`, mevcut `BuStagger*`, `BuFadeThrough`, `BuSwapIn`, favori `AnimatedSwitcher` pop'u korundu.
+
+## Doğrulama
+`flutter analyze` (news, search, testler): 0 sorun. Testler: `test/p63_news_search_test.dart` (yeni; rozet/kaynak tekrarı yok, kartsız detay, 640 dp gövde, soluk içerik cümlesi, sekmelerin gizli/görünür olması, bölüm başına 4 satır + Tümünü gör, tek cümle hata/boş, 320 dp x1.3 açık/koyu/RTL taşma), `icerik_test.dart` (bölüm başlıkları ve bakım metni yeni metne güncellendi), `pages_a_test`, `p49_motion_test`.
+Gerçek cihazda (Redmi 13C, iPhone) akıcılık ve emülatörde gerçek veriyle gezinti ölçülemedi/yapılmadı: emülatör gezintisi bu turda yapılmadı (Flutter kilidi saatlerce başka ajanlarda kaldı); ekran görüntüleri sahte veriyle üretildi.
+Ortak parça notları: `IcerikIconButton(plain:)`, `IcerikErrorCard(body opsiyonel)`, `IcerikListSkeleton` çerçevesiz satır hâline geldi (`features/news/icerik_parts.dart`, bu grubun dosyası; favoriler sayfası `profile/saved_news_page.dart` da aynı bileşenleri kullandığı için otomatik sadeleşti). `NewsFeaturedCard` kullanılmıyor (yalnız testler), kaldırılmadı.
