@@ -9,6 +9,7 @@ import 'package:bu_kampus/core/session.dart';
 import 'package:bu_kampus/core/theme.dart';
 import 'package:bu_kampus/features/chat/chat_detail_page.dart';
 import 'package:bu_kampus/features/chat/chat_tab.dart';
+import 'package:bu_kampus/features/chat/photo_autosave.dart';
 import 'package:bu_kampus/features/chat/view_once_viewer.dart';
 import 'package:bu_kampus/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
@@ -263,6 +264,52 @@ void main() {
       expect(be.count('GET $path'), 1);
       await unmount(tester);
     });
+  });
+
+  group('W1-G birlesimi: otomatik galeri kaydi yalniz birebir sohbette', () {
+    final t0 = DateTime.now();
+    late List<String> saved;
+    late PhotoAutoSave prev;
+    setUp(() {
+      prev = PhotoAutoSave.instance;
+      saved = [];
+      PhotoAutoSave.instance = PhotoAutoSave(
+        store: MemoryAutoSaveStore({'enabled': true, 'since': t0.subtract(const Duration(hours: 1)).millisecondsSinceEpoch}),
+        supported: true,
+        fetch: (u, h) async => Uint8List.fromList([1, 2, 3]),
+        put: (b, name) async => saved.add(name),
+      );
+    });
+    tearDown(() => PhotoAutoSave.instance = prev);
+
+    Map<String, dynamic> photoMsg(int id) => _msg(id, 11, '', extra: {
+          'createdAt': _iso(t0),
+          'attachments': [
+            {'id': 70 + id, 'kind': 'IMAGE', 'url': '/api/conversations/1/media/${70 + id}', 'contentType': 'image/jpeg', 'width': 10, 'height': 10},
+          ],
+        });
+
+    Future<void> recvIn(WidgetTester tester, Map<String, dynamic> conv) async {
+      final s = makeSession(_backend([]));
+      final rt = ChatRealtime(s);
+      await _pump(tester, _detail(s, rt: rt, conv: conv));
+      rt.debugEmitMessage(photoMsg(1));
+      await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 200)));
+      await settle(tester, const Duration(milliseconds: 300));
+      await unmount(tester);
+    }
+
+    testWidgets('birebir: gelen fotograf kaydedilir', (tester) async {
+      await recvIn(tester, _directConv);
+      expect(saved, ['bu_kampus_71']);
+    });
+
+    for (final type in ['GROUP', 'CLUB', 'EVENT']) {
+      testWidgets('$type: gelen fotograf kaydedilmez (direct=false)', (tester) async {
+        await recvIn(tester, {'id': 1, 'type': type, 'title': 'Oda'});
+        expect(saved, isEmpty);
+      });
+    }
   });
 
   group('T-095 tek soket', () {

@@ -978,7 +978,10 @@ class _ChatDetailPageState extends State<ChatDetailPage>
   Future<void> _autoSaveReceived(List<Map<String, dynamic>> incoming) async {
     try {
       final res = await PhotoAutoSave.instance.considerReceived(incoming,
-          headers: _authHeaders, isMine: (m) => _isMine(m) || m['_state'] != null, blocked: _blocked);
+          headers: _authHeaders,
+          isMine: (m) => _isMine(m) || m['_state'] != null,
+          blocked: _blocked,
+          direct: _direct); // yalnız birebir sohbet fotoğrafları galeriye kaydedilir
       if (res.contains(AutoSaveResult.denied)) await _autoSaveDenied();
     } catch (_) {}
   }
@@ -1222,7 +1225,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
           final img = u['image'] as PreparedImage?;
           final aid = (u['attId'] as num?)?.toInt();
           if (img == null || aid == null || sent.any((a) => (a['id'] as num?)?.toInt() == aid && a['viewOnce'] == true)) continue;
-          unawaited(PhotoAutoSave.instance.saveSent(aid, img.bytes).then((r) {
+          unawaited(PhotoAutoSave.instance.saveSent(aid, img.bytes, direct: _direct).then((r) {
             if (r == AutoSaveResult.denied) return _autoSaveDenied();
           }));
         }
