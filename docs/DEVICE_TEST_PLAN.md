@@ -107,6 +107,25 @@ Cihaz: ______ Android: ____ Uygulama sürümü/versionCode: ____ Sunucu: https:/
 
 **Yayın kararı:** T1-T6 ve T8 "Geçti" olmadan mağazaya gönderilmez. T7 FCM anahtarı yoksa "Atlandı" kabul; T9-T11 kaldıysa düzeltme planıyla gönderilebilir (not edin).
 
+## 3b. iOS ek maddeleri (TestFlight yapısı, gerçek iPhone; Android maddeleri yine geçerli)
+
+Ayrıntı ve gerekçe: [IOS_RELEASE.md](IOS_RELEASE.md) bölüm 6 ve 9. Simülatör APNs almaz: push maddeleri yalnız gerçek cihazda.
+
+| # | Adım | Beklenen |
+|---|---|---|
+| I1 | Çentik/Dynamic Island'lı modelde Ana Sayfa, Sohbet, Profil | Başlıklar çentiğin altında, alt gezinme ana ekran çubuğunu kapatmıyor |
+| I2 | Herhangi bir iç sayfada ekranın sol kenarından sağa kaydır | Önceki sayfaya dönülür (swipe-back); sohbet listesi/ana sekmelerde çıkış yapmaz |
+| I3 | Sohbette yazı alanına dokun | Klavye açılır, yazı alanı klavyenin üstünde kalır, son mesaj görünür |
+| I4 | Ayarlar > Ekran > Yazı Boyutu'nu en büyüğe al, Ana Sayfa/Kulüpler/Ders programı | Metin kesilmez, düğmeler erişilebilir |
+| I5 | İlk giriş izin sayfası: Bildirim, Rehber, Kamera | Her biri sistem penceresiyle (Türkçe açıklama metni) sorulur; reddedince "Ayarlar'ı aç" çalışır |
+| I6 | Sohbette galeri/kamera, QR yoklama, görseli kaydet | Fotoğraf seçici ve kamera açılır; kaydetme "yalnız ekleme" izniyle çalışır |
+| I7 | Giriş yap, Bildirimler'deki okunmamış sayısını not et, uygulamayı kapat; başka cihazdan mesaj/bildirim ürettir | Bildirim gelir (production APNs); dokunuş ilgili ekranı açar (arka plan ve kapalı) |
+| I8 | Bildirimleri okunmuş yap | Uygulama simgesindeki rozet sayısı düşer/kalkar |
+| I9 | Akademik > hatırlatma ayarlarını aç, 2-3 dakika sonrasına bir ders/sınav hatırlatması kur (test için) | Zamanında yerel bildirim görünür, dokunuş Akademik'e gider |
+| I10 | Uygulamayı sil, yeniden kur | Otomatik giriş YAPMAZ (giriş ekranı gelir) |
+| I11 | Sohbette galeriden 40 MB'tan büyük/uzun video seç | Anlaşılır "çok büyük" hatası (iOS'ta sıkıştırma yok: bilinen sınırlama) |
+| I12 | Ayarlar > Dil: Arapça | Sağdan sola düzen, izin pencereleri Arapça metinle |
+
 ## 4. Hata nasıl raporlanır
 
 Her hata için **tek bir kayıt** (GitHub issue ya da bir metin dosyası) açın; şunlar olmadan kayıt eksik sayılır:
