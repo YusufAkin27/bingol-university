@@ -155,7 +155,7 @@ Metinler Türkçe (varsayılan), İngilizce ve Arapça (`ios/Runner/{tr,en,ar}.l
 | Swift köprüsü derlemesi | **YAPILAMADI** | `swiftc -parse` temiz; sahte modüllerle `-typecheck` temiz; gerçek UIKit/Flutter/UserNotifications ile derlenmedi |
 | macOS CI hatları | YAZILDI, **ÇALIŞTIRILMADI** | `.github/workflows/ios-release.yml` ve `codemagic.yaml` YAML geçerli (`scripts/check-workflows.js`); `build-ipa.sh`, `upload-testflight.sh`, `prepare-ci.sh` `bash -n` temiz; fastlane Ruby'si denenmedi (Windows'ta ruby yok) |
 | Archive/İmza/IPA/TestFlight/App Store Connect | **YAPILAMADI** | macOS + Apple hesabı gerekir |
-| Cihazda: çentik/Dynamic Island, swipe-back, klavye, yazı ölçeği, izin akışı, push | **YAPILAMADI** | gerçek iPhone gerekir ([DEVICE_TEST_PLAN.md](DEVICE_TEST_PLAN.md)'e iOS satırı ekleyin) |
+| Cihazda: çentik/Dynamic Island, swipe-back, klavye, yazı ölçeği, izin akışı, push | **YAPILAMADI** | gerçek iPhone gerekir; adımlar [DEVICE_TEST_PLAN.md](DEVICE_TEST_PLAN.md) bölüm 3b (I1-I12) |
 | Mağaza metni, App Privacy, inceleme notu, ekran görüntüsü kılavuzu | YAZILDI | [ios-store/](ios-store/README.md) (tr/en/ar) |
 | Bundle id değişikliği | **YAPILMADI** (karar bekliyor) | K1 |
 
