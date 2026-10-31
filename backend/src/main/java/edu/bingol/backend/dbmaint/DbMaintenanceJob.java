@@ -46,6 +46,7 @@ public class DbMaintenanceJob {
     private final int analyticsRawDays;
     private final int activityDays;
     private final int crashDays;
+    private final int logDays;
 
     public DbMaintenanceJob(ChunkedDeleter deleter, NamedParameterJdbcTemplate jdbc, AnalyticsRollup rollup,
                             SchedulerLock lock, Clock clock,
@@ -59,7 +60,8 @@ public class DbMaintenanceJob {
                             @Value("${app.dbmaint.audit-long-days:730}") int auditLongDays,
                             @Value("${app.dbmaint.analytics-raw-days:45}") int analyticsRawDays,
                             @Value("${app.dbmaint.activity-daily-days:400}") int activityDays,
-                            @Value("${app.dbmaint.crash-days:30}") int crashDays) {
+                            @Value("${app.dbmaint.crash-days:30}") int crashDays,
+                            @Value("${app.dbmaint.log-days:90}") int logDays) {
         this.deleter = deleter;
         this.jdbc = jdbc;
         this.rollup = rollup;
@@ -76,6 +78,7 @@ public class DbMaintenanceJob {
         this.analyticsRawDays = analyticsRawDays;
         this.activityDays = activityDays;
         this.crashDays = crashDays;
+        this.logDays = logDays;
     }
 
     @Scheduled(cron = "${app.dbmaint.cron:0 0 3 * * *}", zone = "Europe/Istanbul")
@@ -107,6 +110,10 @@ public class DbMaintenanceJob {
         out.put("notification_cap", safe("notification_cap", this::notifCap));
         out.put("mail_sent", safe("mail_sent", () -> mailSent(now)));
         out.put("mail_dead", safe("mail_dead", () -> mailDead(now)));
+        out.put("mail_code_scrub", safe("mail_code_scrub", () -> mailCodeScrub(now)));
+        out.put("mail_orphan_address", safe("mail_orphan_address", () -> mailOrphanAddress(now)));
+        out.put("profanity_hit_log", safe("profanity_hit_log", () -> profanityHits(now)));
+        out.put("deleted_owner_rows", safe("deleted_owner_rows", this::deletedOwnerRows));
         out.put("admin_audit", safe("admin_audit", () -> adminAudit(now)));
         out.put("message_access_audit", safe("message_access_audit", () -> longAudit("message_access_audit", now)));
         out.put("club_audit", safe("club_audit", () -> longAudit("club_audit", now)));
@@ -181,6 +188,58 @@ public class DbMaintenanceJob {
         return mailDeadDays <= 0 ? 0 : deleter.deleteHeavy("mail_dead",
                 "DELETE FROM mail_outbox WHERE id IN (SELECT id FROM mail_outbox WHERE status = 'DEAD' AND created_at < :cutoff LIMIT :lim)",
                 Map.of("cutoff", cutoff(now, mailDeadDays)));
+    }
+
+    /**
+     * T-063 (A8-25): dogrulama/sifre sifirlama KODU gonderildikten (ya da olunce) sonra kuyrukta tutulmaz. Kod 10 dk
+     * gecerlidir; 1 saatten eski SENT/DEAD kod postalarinin degiskenleri '{}' yapilir (satir ve istatistik kalir).
+     */
+    private int mailCodeScrub(Instant now) {
+        return deleter.delete("mail_code_scrub",
+                "UPDATE mail_outbox SET vars_json = '{}' WHERE id IN (SELECT id FROM mail_outbox WHERE status IN ('SENT', 'DEAD') "
+                        + "AND template IN ('VERIFICATION_CODE', 'PASSWORD_RESET_CODE') AND vars_json <> '{}' "
+                        + "AND created_at < :cutoff LIMIT :lim)",
+                Map.of("cutoff", now.minus(Duration.ofHours(1)).atOffset(ZoneOffset.UTC)));
+    }
+
+    /** Kod kalintisi 03:00 gecesini beklemesin: her saat. Hata cagirana sizmaz. */
+    @Scheduled(cron = "${app.dbmaint.mail-code-scrub-cron:0 10 * * * *}", zone = "Europe/Istanbul")
+    public void hourlyMailCodeScrub() {
+        if (!enabled) {
+            return;
+        }
+        safe("mail_code_scrub", () -> mailCodeScrub(clock.instant()));
+    }
+
+    /**
+     * T-063 (A11-09c): hesap silmede adres eslesmeli silme ProfileService'ten gelir; bu gece isi guvenlik agidir:
+     * artik hicbir hesabin e-postasi OLMAYAN (silinmis kisiler dahil) adreslere giden, bir gunden eski SENT kuyruk
+     * satirlari silinir (DEAD satirlari operator incelemesi icin kalir; ACCOUNT_DELETED onay postasi muaf).
+     */
+    private int mailOrphanAddress(Instant now) {
+        return deleter.delete("mail_orphan_address",
+                "DELETE FROM mail_outbox WHERE id IN (SELECT m.id FROM mail_outbox m WHERE m.status = 'SENT' "
+                        + "AND m.template <> 'ACCOUNT_DELETED' AND m.to_address IS NOT NULL AND m.created_at < :cutoff "
+                        + "AND NOT EXISTS (SELECT 1 FROM app_user u WHERE u.email = LOWER(m.to_address)) LIMIT :lim)",
+                Map.of("cutoff", now.minus(Duration.ofDays(1)).atOffset(ZoneOffset.UTC)));
+    }
+
+    /** T-063 (A8-16): uygunsuz ifade isabet kayitlari `app.dbmaint.log-days` (90) gun; tablo yorumu ayni sureyi soyler. */
+    private int profanityHits(Instant now) {
+        return logDays <= 0 ? 0 : deleter.delete("profanity_hit_log",
+                "DELETE FROM profanity_hit_log WHERE id IN (SELECT id FROM profanity_hit_log WHERE at < :cutoff ORDER BY id LIMIT :lim)",
+                Map.of("cutoff", cutoff(now, logDays)));
+    }
+
+    /**
+     * T-063 (A11-09b): silinmis hesabin kapatilan/devredilemeyen kuluplerde kalan OWNER uyelik satiri kapatilir
+     * (aktif sahip gibi gorunmesin). Devir yapilan kulupte satir listener'da zaten silinmistir.
+     */
+    private int deletedOwnerRows() {
+        return deleter.delete("deleted_owner_rows",
+                "DELETE FROM community_member WHERE id IN (SELECT m.id FROM community_member m "
+                        + "JOIN app_user u ON u.id = m.user_id WHERE m.role = 'OWNER' AND u.status = 'DELETED' LIMIT :lim)",
+                Map.of());
     }
 
     private int adminAudit(Instant now) {

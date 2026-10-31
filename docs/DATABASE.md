@@ -215,6 +215,38 @@ Yalnız geliştirme/test veritabanı (koruma: `-v confirm=I_AM_DEV_ONLY` ve ≤5
 - Doluluk: `GET /api/admin/system/storage` (`StorageUsageService`): `pg_database_size`, `pg_total_relation_size` en büyük 15 tablo, uygulama diskleri `statfs`. Veritabanı sunucusu diski yalnız `app.storage.db-disk-path` (ölçülen) ya da `app.storage.db-disk-capacity-bytes` (hesaplanan) ile bilinir; yoksa UNKNOWN. Eşikler `app.observability.storage-warn-percent=80` / `storage-crit-percent=90`; `StorageAlertJob` 15 dk'da bir yöneticilere uygulama içi bildirim (e-posta yok).
 - Büyük silme sonrası `ANALYZE` otomatik; alanı işletim sistemine geri vermek için bakım penceresinde `VACUUM FULL <tablo>` (bölüm 10) çalıştırın.
 
+
+## 16. Hesap silme matrisi ve KVKK saklama kararları (W2-F, T-061/063/064)
+
+Kaynak: `profile/AccountDataPurger` (`DELETES`, `SCRUBS`, `HANDLED_ELSEWHERE`, gerekçeli `RETAINED`). **Kural:** kullanıcı kimliği tutan her sütunun hesap silme kararı bu sınıfta kayıtlıdır; `AccountDataPurgerCoverageTest` Flyway migration'larını tarar ve kararı olmayan yeni `user_id`/`*_by`/`app_user` FK sütununda KIRMIZI olur. Yeni kullanıcı sütunlu tablo = karar + bu matrise satır.
+
+| Karar | Tablo.sütun | Not |
+|---|---|---|
+| **Sil** | `device`, `push_outbox`, `poll_ballot`, `user_device_log`, `mail_campaign_recipient`, `notification`, `notification_pref`, `notification_subtype_pref`, `bookmark`, `feedback_vote`, `event_feedback`, `user_block` (iki yön), `club_join_answer`, `community_member` (OWNER/BANNED hariç) | Önceden vardı |
+| **Sil (yeni, T-063)** | `blocked_attempt_log.user_id` (IP + cihaz özeti), `profanity_hit_log.user_id`, `message_attachment_view.user_id`, `message_reaction.user_id`, `club_member_grant.user_id`, `conversation_add_ban` (`user_id` ve `adder_id`), `event_co_organizer.user_id` | İndeks `kvk9_attempt_user`, `kvk9_prf_hit_user` (V995) tam taramayı önler |
+| **Sil (adres eşleşmeli, yeni)** | `mail_outbox` (`to_address` = eski e-posta, küçük harf; `ACCOUNT_DELETED` hariç) | `AccountDataPurger.purge(userId, oldEmail)`; adres bilinmiyorsa gece güvenlik ağı: hesabı olmayan adreslere giden >1 gün eski SENT satırları silinir (`mail_orphan_address`) |
+| **Sil (kod kalıntısı, yeni)** | `mail_outbox.vars_json` içindeki doğrulama/sıfırlama kodu | `VERIFICATION_CODE`/`PASSWORD_RESET_CODE` SENT/DEAD satırlarında 1 saat sonra `vars_json='{}'` (saatlik `hourlyMailCodeScrub` + gece); satır istatistik için kalır |
+| **Sil (OWNER satırı, yeni)** | `community_member` OWNER satırı | Devir: `CommunityAccountListener`; kapatılan kulüpte kalan satır gece işiyle (`deleted_owner_rows`) silinir |
+| **Anonimleştir** | `poll_vote.user_id`→NULL, `poll.created_by`→NULL; metinleri temizlenenler: `feedback`, `support_ticket`, `support_message`, `moderation_appeal`, `report.note`, `event_application`, `event_certificate.holder_name` | Kullanıcı satırı anonim (`deleted-<id>@deleted.invalid`) |
+| **Başka bileşen** | `activity_daily`, `analytics_event` (ActivityTracker); `event_rsvp` (ProfileService); `tt_*`, `announcement_read` (AcademicAccountPurger); `post`/`post_like`/`post_media`/`user_follow*` (Post/SocialAccountPurger); `profile_privacy` (AvatarCleanups); `conversation_member` (odadan çıkış); `community.owner_id` (devir/kapatma) | |
+| **Yasal saklama / kayıt izi** | `legal_acceptance` (suresiz, ispat); `moderation_strike`, `suspend_recommendation` (ihlal geçmişi sıfırlanmasın); `message.sender_id`, `message_attachment.uploader_id`, `community_post.author_id`, `conversation.created_by` (başkalarının bağlamı; yazar anonim); `event_attendance` (anonim istatistik); `club_audit` ve `message_access_audit` (`target_user_id`, 730 gün; `message_access_audit` ekleme-yalnız tetikleyici); yönetici eylem sütunları (`admin_audit.admin_id` 365 gün vb.) | Tam liste ve gerekçe: `AccountDataPurger.RETAINED` |
+
+Saklama süresi değişiklikleri (W2-F):
+
+| Veri | Eski | Yeni | Ayar |
+|---|---|---|---|
+| Silinen ("herkes için") mesaj, düzenleme geçmişi | süresiz | **90 gün** (K-14) | `app.chat.deleted-retention-days` (`CHAT_DELETED_RETENTION_DAYS`) |
+| Mesaj düzenleme penceresi | sınırsız | **24 saat** (1440 dk, K-14); silme sınırsız | `app.chat.edit-window-minutes` |
+| Tek gösterimlik görsel baytları | 365 gün | **7 gün** (oluşturmadan; alıcı yalnız ilk 24 saatte açabilir) | `app.chat.media.view-once-retention-days` |
+| `profanity_hit_log` | silinmiyordu (yorum 90 gün diyordu) | **90 gün** | `app.dbmaint.log-days` (artık okunuyor) |
+| `blocked_attempt_log` | 90 gün (`AccessBanRetentionJob`) | değişmedi | `app.security.ban-log-retention-days` |
+| `mail_outbox` kod değişkenleri | SENT 7 / DEAD 30 gün düz | **1 saat** | `DbMaintenanceJob.mailCodeScrub` |
+
+`app_user.email_sha256` (tuzsuz SHA-256, rehber eşleştirme için; hesap silmede NULL): kalıcı kimlik özeti olarak aydınlatma metnine eklenmelidir (hukuk; `docs/legal/internal/01` bölüm 7). Rehber eşleştirme artık `profile_privacy.contacts_discoverable` (varsayılan KAPALI, V995) ile karşılıklıdır ve hesap başına günde 2000 aday ile sınırlıdır (`app.contacts.daily-candidate-cap`).
+
+**Silme defteri (A8-17):** `app.privacy.deletion-ledger-file` (`DELETION_LEDGER_FILE`) doluysa silinen hesap kimlikleri (`<id>\t<an>\t<hesap-oluşturma-saniyesi>`; e-posta/ad YOK) commit sonrası bu dosyaya eklenir. Dosya veritabanı/uploads yedeğinin DIŞINDA ayrı bir hacimde olmalıdır. Yedekten geri yüklemeden sonra `DeletionLedgerReapplier` (açılışta + her gece 03:50) defterdeki hesapları, hâlâ DELETED değilse ve oluşturma saniyesi eşleşiyorsa yeniden anonimleştirir (aynı kimliği sonradan alan başka hesap korunur). Bkz. `docs/BACKUP_RESTORE.md` bölüm 5 adım 7.
+
+
 ## 17. Moderasyon tablolari (W2-E, V990-V993, indeks oneki `mod9_`)
 
 | Tablo | Icerik | Saklama / hesap silme karari |
