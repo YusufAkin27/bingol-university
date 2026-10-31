@@ -44,7 +44,7 @@ void main() {
               size: size));
           await settle(tester);
           expect(find.text('Kariyer günleri'), findsOneWidget);
-          expect(find.text('Duyuru'), findsOneWidget);
+          expect(find.text('Duyuru'), findsNothing); // tur etiketi ekranda cizilmez (tur 3, minimal)
           await tester.scrollUntilVisible(find.text('Silmek için bildirimi sola kaydır'), 200, scrollable: find.byType(Scrollable).first);
           expect(find.text('Hepsi bu kadar'), findsOneWidget);
           expect(tester.takeException(), isNull);

@@ -294,7 +294,6 @@ void main() {
     Widget row(bool unread) => Scaffold(
           body: NotifRow(
             icon: LucideIcons.bell,
-            tone: NotifTone.blue,
             title: 'Baslik',
             typeLabel: 'Duyuru',
             time: '5 dk',

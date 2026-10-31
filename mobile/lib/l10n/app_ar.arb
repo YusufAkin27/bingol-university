@@ -2838,6 +2838,5 @@
   "p31ChatRemovedToast": "تمت إزالتك من هذه المحادثة.",
   "p30AutosaveConsentTitle": "حفظ الصور في المعرض؟",
   "p30AutosaveConsentBody": "تُحفظ الصور التي ترسلها وتستقبلها في المحادثات الفردية في معرض هاتفك (ألبوم BU Kampus). لا تُحفظ الصور ذات المشاهدة الواحدة. يمكنك إيقاف ذلك من هنا في أي وقت.",
-  "p30AutosaveConsentOk": "تشغيل",
-  "p65PermSkip": "تخطَّ"
+  "p30AutosaveConsentOk": "تشغيل"
 }

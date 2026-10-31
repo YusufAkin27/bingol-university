@@ -201,7 +201,7 @@ final kPageCases = <PageCase>[
     }),
     empty: (b) => b.on('/notifications', _page([])),
     marker: 'Okunmuş bildirim',
-    emptyMarker: 'Henüz bildiriminiz yok',
+    emptyMarker: 'Bildirim yok',
     failKeys: ['/notifications'],
     checkLoading: false, // iskelet (K3)
   ),

@@ -16,7 +16,7 @@ List<Map<String, dynamic>> _month() {
 }
 
 void main() {
-  testWidgets('Yemek kalori: satir kcal, eksikse en az N kcal, kalorisiz yemekte tire', (tester) async {
+  testWidgets('Yemek kalori: satir kcal, eksikse en az N kcal, kalorisiz yemekte hicbir sey yazilmaz', (tester) async {
     useScreen(tester, const Size(390, 844));
     final n = DateTime.now();
     final b = FakeBackend()
@@ -36,7 +36,8 @@ void main() {
     await settle(tester);
     expect(find.text('Kuru Fasulye'), findsOneWidget);
     expect(find.text('290 kcal'), findsOneWidget);
-    expect(find.text('-'), findsOneWidget);
+    expect(find.text('-'), findsNothing); // kalorisiz yemekte gurultu yok
+    expect(find.text('Tursu'), findsOneWidget);
     expect(find.text('En az 290 kcal'), findsOneWidget);
     expect(find.text('0 kcal'), findsNothing);
     await unmount(tester);

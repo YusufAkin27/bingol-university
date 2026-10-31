@@ -175,39 +175,37 @@ class _MenuDayStripState extends State<MenuDayStrip> {
   }
 }
 
-/// "BUGÜN · 29 EKİM" etiketi (bugünse takvim simgesi, değilse kırmızı nokta).
+/// "BUGÜN · 29 EKİM" etiketi: yalnız metin (simge/nokta yok), sakin başlık tonu.
 class MenuDayLabel extends StatelessWidget {
   const MenuDayLabel({super.key, required this.text, required this.today});
 
   final String text;
+
+  /// Bugünse etiket ana yazı renginde, değilse soluk (tek vurgu: gün şeridindeki seçili kapsül).
   final bool today;
 
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
     final tx = Theme.of(context).textTheme;
-    return Row(children: [
-      today
-          ? Icon(LucideIcons.calendar, size: 16, color: t.pr)
-          : Container(width: 8, height: 8, decoration: BoxDecoration(color: t.pr, shape: BoxShape.circle)),
-      const SizedBox(width: 8),
-      Expanded(
-        child: Semantics(
-          header: true,
-          child: Text(text, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.labelLarge!.copyWith(fontWeight: FontWeight.w800, color: t.ink, letterSpacing: .3)),
-        ),
-      ),
-    ]);
+    return Semantics(
+      header: true,
+      child: Text(text,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: tx.labelLarge!.copyWith(fontWeight: FontWeight.w700, color: today ? t.ink : t.mut, letterSpacing: .3)),
+    );
   }
 }
 
-/// Öğle yemeği kartı: başlık, fotoğraf (ya da sade yer tutucu), yemek + kalori satırları, toplam.
+/// Öğle yemeği kartı: başlık + saat, (varsa) fotoğraf, yemek adı + kalori satırları, günlük toplam.
+/// Fotoğrafsız günde süs yer tutucusu çizilmez; kalorisiz yemekte kalori yazılmaz.
 class MenuMealCard extends StatelessWidget {
   const MenuMealCard({super.key, required this.day, required this.photo, required this.time});
 
   final MenuDay day;
 
-  /// Hazır fotoğraf katmanı; yoksa ya da bozuksa null (yer tutucu çizilir).
+  /// Hazır fotoğraf katmanı; yoksa ya da bozuksa null (kart yalnız metin olur).
   final Widget? photo;
   final String time;
 
@@ -217,75 +215,42 @@ class MenuMealCard extends StatelessWidget {
     final tx = Theme.of(context).textTheme;
     final l = context.l10n;
     final hasPhoto = photo != null;
-    final timeRow = Row(mainAxisSize: MainAxisSize.min, children: [
-      Icon(LucideIcons.clock, size: 14, color: hasPhoto ? t.onMedia : t.mut),
-      const SizedBox(width: 6),
-      Text(time, style: tx.labelMedium!.copyWith(fontWeight: FontWeight.w700, color: hasPhoto ? t.onMedia : t.mut)),
-    ]);
     return BuCard(
-      radius: 20,
+      radius: BuRadius.lg,
       padding: EdgeInsets.zero,
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(19),
+        borderRadius: BorderRadius.circular(BuRadius.lg - 1),
         child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
           Padding(
-            padding: EdgeInsetsDirectional.fromSTEB(16, 16, 16, hasPhoto ? 12 : 4),
-            child: Semantics(
-              header: true,
-              child: Text(l.yemekLunch, style: tx.headlineSmall!.copyWith(fontWeight: FontWeight.w800, color: t.ink)),
-            ),
+            padding: EdgeInsetsDirectional.fromSTEB(16, 16, 16, hasPhoto ? 12 : 8),
+            child: Row(crossAxisAlignment: CrossAxisAlignment.baseline, textBaseline: TextBaseline.alphabetic, children: [
+              Expanded(
+                child: Semantics(
+                  header: true,
+                  child: Text(l.yemekLunch, style: tx.titleLarge!.copyWith(fontWeight: FontWeight.w800, color: t.ink)),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Text(time,
+                  maxLines: 1,
+                  style: tx.labelLarge!.copyWith(
+                      fontWeight: FontWeight.w600, color: t.mut, fontFeatures: const [FontFeature.tabularFigures()])),
+            ]),
           ),
           if (hasPhoto)
             Semantics(
               image: true,
               label: l.menuPhotoLabel,
-              child: AspectRatio(
-                aspectRatio: 16 / 9,
-                child: Stack(fit: StackFit.expand, children: [
-                  photo!,
-                  PositionedDirectional(
-                    start: 12,
-                    bottom: 12,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                      decoration: BoxDecoration(color: t.scrim.withValues(alpha: .62), borderRadius: BorderRadius.circular(BuRadius.pill)),
-                      child: timeRow,
-                    ),
-                  ),
-                ]),
-              ),
-            )
-          else ...[
-            Padding(padding: const EdgeInsetsDirectional.fromSTEB(16, 0, 16, 12), child: Align(alignment: AlignmentDirectional.centerStart, child: timeRow)),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: ExcludeSemantics(
-                child: Container(
-                  height: 116,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(BuRadius.md),
-                    gradient: LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [t.sf2, t.soft.withValues(alpha: .55)]),
-                  ),
-                  alignment: Alignment.center,
-                  child: Container(
-                    width: 56,
-                    height: 56,
-                    decoration: BoxDecoration(color: t.sf, borderRadius: BorderRadius.circular(BuRadius.md)),
-                    child: Icon(LucideIcons.utensils, size: 28, color: t.pr),
-                  ),
-                ),
-              ),
+              child: AspectRatio(aspectRatio: 16 / 9, child: photo!),
             ),
-          ],
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
             child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-              for (var i = 0; i < day.dishes.length; i++) ...[
-                if (i > 0) const SizedBox(height: 8),
-                _DishRow(dish: day.dishes[i]),
-              ],
+              for (final d in day.dishes) _DishRow(dish: d),
               if (day.totalKcal != null) ...[
-                const SizedBox(height: 16),
+                const SizedBox(height: 8),
+                Divider(height: 1, thickness: 1, color: t.bd),
+                const SizedBox(height: 12),
                 _TotalRow(total: day.totalKcal!, complete: day.kcalComplete),
               ],
             ]),
@@ -296,6 +261,7 @@ class MenuMealCard extends StatelessWidget {
   }
 }
 
+/// Yemek satırı: ad solda, (varsa) kalori sağda soluk ve tabular. Kalorisiz yemekte sağ taraf boştur.
 class _DishRow extends StatelessWidget {
   const _DishRow({required this.dish});
 
@@ -307,35 +273,22 @@ class _DishRow extends StatelessWidget {
     final tx = Theme.of(context).textTheme;
     final l = context.l10n;
     final kcal = dish.kcal;
-    return Container(
-      constraints: const BoxConstraints(minHeight: 44),
-      padding: const EdgeInsetsDirectional.fromSTEB(12, 10, 12, 10),
-      decoration: BoxDecoration(color: t.sf2, borderRadius: BorderRadius.circular(BuRadius.sm)),
-      child: Row(children: [
-        Container(width: 8, height: 8, decoration: BoxDecoration(color: t.pr, shape: BoxShape.circle)),
-        const SizedBox(width: 12),
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Row(crossAxisAlignment: CrossAxisAlignment.baseline, textBaseline: TextBaseline.alphabetic, children: [
         Expanded(child: Text(menuDishTitle(dish.name), style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w600, height: 1.3, color: t.ink))),
-        const SizedBox(width: 10),
-        if (kcal != null)
+        if (kcal != null) ...[
+          const SizedBox(width: 12),
           Text(l.p03MenuKcal('$kcal'),
               maxLines: 1,
-              style: tx.labelMedium!.copyWith(fontWeight: FontWeight.w700, color: t.ink, fontFeatures: const [FontFeature.tabularFigures()]))
-        else
-          Semantics(
-            label: l.p03MenuKcalNone,
-            excludeSemantics: true,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-              decoration: BoxDecoration(color: t.bd.withValues(alpha: .7), borderRadius: BorderRadius.circular(BuRadius.xs)),
-              child: Text('-', style: tx.labelMedium!.copyWith(fontWeight: FontWeight.w700, color: t.mut)),
-            ),
-          ),
+              style: tx.labelLarge!.copyWith(fontWeight: FontWeight.w600, color: t.mut, fontFeatures: const [FontFeature.tabularFigures()])),
+        ],
       ]),
     );
   }
 }
 
-/// Günlük toplam: tamamsa koyu şerit, eksikse "En az N kcal" + uyarı notu.
+/// Günlük toplam: tamamsa "Toplam  N kcal", eksikse "Toplam enerji  En az N kcal". Aynı sakin satır, renk yok.
 class _TotalRow extends StatelessWidget {
   const _TotalRow({required this.total, required this.complete});
 
@@ -347,53 +300,25 @@ class _TotalRow extends StatelessWidget {
     final t = context.bu;
     final tx = Theme.of(context).textTheme;
     final l = context.l10n;
-    if (complete) {
-      return Semantics(
-        container: true,
-        label: '${l.p03MenuTotal} ${l.p03MenuKcal('$total')}',
-        excludeSemantics: true,
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-          decoration: BoxDecoration(color: t.ink, borderRadius: BorderRadius.circular(BuRadius.md)),
-          child: Row(children: [
-            Icon(LucideIcons.flame, size: 18, color: t.bg),
-            const SizedBox(width: 10),
-            Expanded(child: Text(l.p03MenuTotal, style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w700, color: t.bg))),
-            // Toplam kalori gün değişince 0'dan sayarak oturur (animasyonları azalt açıkken anında).
-            BuCountUp(
-              key: ValueKey('menu-total-$total'),
-              value: total,
-              format: (v) => l.p03MenuKcal('$v'),
-              style: tx.titleLarge!.copyWith(fontWeight: FontWeight.w800, color: t.soft, fontFeatures: const [FontFeature.tabularFigures()]),
-            ),
-          ]),
-        ),
-      );
-    }
-    return Container(
-      padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
-      decoration: BoxDecoration(color: t.sf2, borderRadius: BorderRadius.circular(BuRadius.md)),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
-          Expanded(child: Text(l.p03MenuTotalEnergy, style: tx.labelLarge!.copyWith(fontWeight: FontWeight.w700, color: t.ink))),
-          const SizedBox(width: 8),
-          Flexible(
-              child: Text(l.p03MenuAtLeast('$total'),
-                  textAlign: TextAlign.end,
-                  style: tx.titleLarge!.copyWith(fontWeight: FontWeight.w800, color: t.pr, fontFeatures: const [FontFeature.tabularFigures()]))),
-        ]),
-        const SizedBox(height: 8),
-        Row(children: [
-          Icon(LucideIcons.info, size: 14, color: t.mut),
-          const SizedBox(width: 6),
-          Expanded(child: Text(l.p03MenuKcalMissing, style: tx.bodySmall!.copyWith(color: t.mut))),
-        ]),
+    final number = tx.titleLarge!.copyWith(fontWeight: FontWeight.w800, color: t.ink, fontFeatures: const [FontFeature.tabularFigures()]);
+    return Semantics(
+      container: true,
+      label: complete ? '${l.p03MenuTotal} ${l.p03MenuKcal('$total')}' : '${l.p03MenuTotalEnergy} ${l.p03MenuAtLeast('$total')}',
+      excludeSemantics: true,
+      child: Row(crossAxisAlignment: CrossAxisAlignment.baseline, textBaseline: TextBaseline.alphabetic, children: [
+        Expanded(child: Text(complete ? l.p03MenuTotal : l.p03MenuTotalEnergy, style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w600, color: t.mut))),
+        const SizedBox(width: 12),
+        if (complete)
+          // Toplam kalori gün değişince 0'dan sayarak oturur (animasyonları azalt açıkken anında).
+          BuCountUp(key: ValueKey('menu-total-$total'), value: total, format: (v) => l.p03MenuKcal('$v'), style: number)
+        else
+          Flexible(child: Text(l.p03MenuAtLeast('$total'), textAlign: TextAlign.end, style: number)),
       ]),
     );
   }
 }
 
-/// Liste yok / bakım kartı.
+/// Liste yok / bakım: tek cümle (+ bakımdaysa tek eylem), kart ve süs yok.
 class MenuEmptyCard extends StatelessWidget {
   const MenuEmptyCard({super.key, required this.maintenance, required this.onRetry});
 
@@ -405,41 +330,21 @@ class MenuEmptyCard extends StatelessWidget {
     final t = context.bu;
     final tx = Theme.of(context).textTheme;
     final l = context.l10n;
-    return BuCard(
-      radius: 20,
-      padding: const EdgeInsets.fromLTRB(20, 28, 20, 24),
-      child: SizedBox(
-        width: double.infinity,
-        child: Column(children: [
-          ExcludeSemantics(
-            child: Container(
-              width: 88,
-              height: 88,
-              decoration: BoxDecoration(color: t.soft, shape: BoxShape.circle),
-              child: Icon(LucideIcons.utensils, size: 38, color: t.onSoft),
-            ),
-          ),
-          const SizedBox(height: 20),
-          Semantics(
-            header: true,
-            child: Text(l.p03MenuNoList, textAlign: TextAlign.center, style: tx.headlineSmall!.copyWith(fontWeight: FontWeight.w800, color: t.ink)),
-          ),
-          if (maintenance) ...[
-            const SizedBox(height: 10),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              decoration: BoxDecoration(color: t.warnSoft, borderRadius: BorderRadius.circular(BuRadius.pill)),
-              child: Row(mainAxisSize: MainAxisSize.min, children: [
-                Container(width: 7, height: 7, decoration: BoxDecoration(color: t.warn, shape: BoxShape.circle)),
-                const SizedBox(width: 8),
-                Flexible(child: Text(l.p03MenuMaintenance, style: tx.labelMedium!.copyWith(fontWeight: FontWeight.w700, color: t.onWarnSoft))),
-              ]),
-            ),
-            const SizedBox(height: 20),
-            BuButton(label: l.commonRetry, icon: LucideIcons.refreshCw, onPressed: onRetry),
-          ],
-        ]),
-      ),
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 32),
+      child: Column(children: [
+        ExcludeSemantics(child: Icon(LucideIcons.utensils, size: 32, color: t.mut)),
+        const SizedBox(height: 16),
+        Semantics(
+          header: true,
+          child: Text(maintenance ? l.p03MenuMaintenance : l.p03MenuNoList,
+              textAlign: TextAlign.center, style: tx.titleMedium!.copyWith(fontWeight: FontWeight.w700, color: t.ink)),
+        ),
+        if (maintenance) ...[
+          const SizedBox(height: 16),
+          BuButton(label: l.commonRetry, compact: true, onPressed: onRetry),
+        ],
+      ]),
     );
   }
 }
@@ -471,24 +376,24 @@ class MenuSkeleton extends StatelessWidget {
                     const Expanded(child: BuSkeleton(height: 72, radius: BuRadius.md)),
                   ],
                 ]),
-                const SizedBox(height: 20),
+                const SizedBox(height: 24),
               ],
               const BuSkeleton(width: 140, height: 14),
-              const SizedBox(height: 14),
+              const SizedBox(height: 12),
               DecoratedBox(
-                decoration: BoxDecoration(color: t.sf, borderRadius: BorderRadius.circular(20), border: Border.all(color: t.bd)),
+                decoration: BoxDecoration(color: t.sf, borderRadius: BuRadius.bLg, border: Border.all(color: t.bd)),
                 child: const Padding(
                   padding: EdgeInsets.all(16),
                   child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                     BuSkeleton(width: 160, height: 22),
-                    SizedBox(height: 14),
+                    SizedBox(height: 16),
                     BuSkeleton(height: 170, radius: BuRadius.sm),
                     SizedBox(height: 16),
-                    BuSkeleton(height: 44, radius: BuRadius.sm),
-                    SizedBox(height: 8),
-                    BuSkeleton(height: 44, radius: BuRadius.sm),
-                    SizedBox(height: 8),
-                    BuSkeleton(height: 44, radius: BuRadius.sm),
+                    BuSkeleton(height: 20, radius: BuRadius.xs),
+                    SizedBox(height: 16),
+                    BuSkeleton(height: 20, radius: BuRadius.xs),
+                    SizedBox(height: 16),
+                    BuSkeleton(height: 20, radius: BuRadius.xs),
                   ]),
                 ),
               ),

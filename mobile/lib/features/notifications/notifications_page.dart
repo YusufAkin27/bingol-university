@@ -183,27 +183,6 @@ class _NotificationsPageState extends State<NotificationsPage> {
     return l.notifGroupOlder;
   }
 
-  /// Koyu (mürekkep) daire kullanan türler: etkinlik, duyuru, haber.
-  bool _strong(String? type) => type == 'NEWS' || type == 'EVENT' || type == 'ANNOUNCEMENT';
-
-  NotifTone _tone(String? type) {
-    switch (type) {
-      case 'POST_LIKE':
-        return NotifTone.red;
-      case 'COMMUNITY':
-        return NotifTone.blue;
-      case 'MESSAGE':
-      case 'POLL':
-      case 'POLL_CLOSED':
-      case 'POLL_NEW':
-      case 'POST_COMMENT':
-      case 'COMMENT_REPLY':
-        return NotifTone.blue;
-      default:
-        return NotifTone.slate;
-    }
-  }
-
   String _typeLabel(String? type) {
     final l = context.l10n;
     switch (type) {
@@ -275,7 +254,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
           _NotifFilterChip(
               key: const ValueKey('notif-seg-all'),
               label: l.bildirimFilterAll,
-              count: _items.length,
+              count: 0,
               selected: !_unreadOnly,
               onTap: () => setState(() => _unreadOnly = false)),
           _NotifFilterChip(
@@ -305,17 +284,11 @@ class _NotificationsPageState extends State<NotificationsPage> {
                 constraints: const BoxConstraints(minHeight: 48),
                 alignment: AlignmentDirectional.centerEnd,
                 padding: const EdgeInsets.symmetric(horizontal: 8),
-                child: Row(mainAxisSize: MainAxisSize.min, mainAxisAlignment: MainAxisAlignment.end, children: [
-                  Icon(LucideIcons.checkCheck, size: 16, color: t.pr),
-                  const SizedBox(width: 6),
-                  Flexible(
-                    child: Text(l.notifMarkAll,
-                        maxLines: bigText ? 2 : 1,
-                        textAlign: TextAlign.end,
-                        overflow: TextOverflow.ellipsis,
-                        style: Theme.of(context).textTheme.labelLarge!.copyWith(fontWeight: FontWeight.w700, color: t.pr)),
-                  ),
-                ]),
+                child: Text(l.notifMarkAll,
+                    maxLines: bigText ? 2 : 1,
+                    textAlign: TextAlign.end,
+                    overflow: TextOverflow.ellipsis,
+                    style: Theme.of(context).textTheme.labelLarge!.copyWith(fontWeight: FontWeight.w600, color: t.mut)),
               ),
             ),
           )
@@ -338,15 +311,11 @@ class _NotificationsPageState extends State<NotificationsPage> {
             physics: const AlwaysScrollableScrollPhysics(),
             padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
             children: [
-              BuCard(
-                radius: 20,
-                padding: const EdgeInsets.symmetric(vertical: 20),
-                child: BuEmptyState(
-                  illustration: unreadEmpty ? BuIllustration.check : BuIllustration.bell,
-                  title: unreadEmpty ? l.bildirimEmptyUnread : l.notifEmpty,
-                  message: unreadEmpty ? l.p03NotifUnreadEmptyBody : l.p03NotifEmptyBody,
-                  compact: true,
-                ),
+              BuEmptyState(
+                illustration: unreadEmpty ? BuIllustration.check : BuIllustration.bell,
+                title: unreadEmpty ? l.bildirimEmptyUnread : l.notifEmpty,
+                message: unreadEmpty ? l.p03NotifUnreadEmptyBody : l.p03NotifEmptyBody,
+                compact: true,
               ),
             ]),
       );
@@ -356,87 +325,44 @@ class _NotificationsPageState extends State<NotificationsPage> {
         children.add(Padding(padding: const EdgeInsets.fromLTRB(20, 8, 20, 4), child: _ErrorCard(onRetry: _load)));
       }
       String? last;
-      final groups = <String, int>{};
-      for (final n in shown) {
-        if (n['read'] != true) {
-          groups.update(_group(n['createdAt'] as String?), (v) => v + 1, ifAbsent: () => 1);
-        }
-      }
-      final today = l.notifGroupToday;
       final tx = Theme.of(context).textTheme;
       var row = 0;
       for (final n in shown) {
         final g = _group(n['createdAt'] as String?);
         if (g != last) {
           last = g;
-          final fresh = groups[g] ?? 0;
           children.add(Padding(
-            padding: const EdgeInsetsDirectional.fromSTEB(24, 20, 24, 8),
-            child: Row(children: [
-              Expanded(
-                child: Semantics(
-                  header: true,
-                  child: Text(g,
-                      style: tx.labelMedium!.copyWith(fontWeight: FontWeight.w700, letterSpacing: .5, color: t.mut)),
-                ),
-              ),
-              if (fresh > 0)
-                Text(l.p03NotifNewCount('$fresh'),
-                    style: tx.labelMedium!.copyWith(fontWeight: FontWeight.w600, color: g == today ? t.pr : t.mut)),
-            ]),
+            padding: const EdgeInsetsDirectional.fromSTEB(20, 24, 20, 8),
+            child: Semantics(
+              header: true,
+              child: Text(g, style: tx.labelMedium!.copyWith(fontWeight: FontWeight.w700, letterSpacing: .5, color: t.mut)),
+            ),
           ));
         }
         // İlk görünürde ilk 8 satır sırayla belirir; kaydırınca ya da süzünce yeniden oynamaz.
         children.add(Padding(
-            padding: const EdgeInsets.fromLTRB(20, 0, 20, 10), child: BuStaggerItem(index: row++, child: _tile(t, n))));
+            padding: const EdgeInsets.fromLTRB(20, 0, 20, 8), child: BuStaggerItem(index: row++, child: _tile(t, n))));
       }
       if (_more) {
         children.add(Padding(
-          padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
-          child: Container(
-            padding: const EdgeInsets.symmetric(vertical: 14),
-            decoration: BoxDecoration(color: t.sf2, borderRadius: BorderRadius.circular(BuRadius.md)),
-            child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-              SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: t.pr)),
-              const SizedBox(width: 10),
-              Flexible(
-                  child: Text(l.p03NotifLoadingMore,
-                      style: tx.labelLarge!.copyWith(fontWeight: FontWeight.w700, color: t.ink))),
-            ]),
+          padding: const EdgeInsets.only(top: 16),
+          child: Center(
+            child: Semantics(
+              label: l.p03NotifLoadingMore,
+              liveRegion: true,
+              child: SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: t.mut)),
+            ),
           ),
         ));
       } else if (_cursor == null) {
+        // Liste sonu: iki sakin satır (çizgi, simge, koyu hap yok).
+        final quiet = tx.labelMedium!.copyWith(fontWeight: FontWeight.w500, color: t.mut);
         children.add(Padding(
-          padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
+          padding: const EdgeInsets.fromLTRB(20, 24, 20, 0),
           child: Column(mainAxisSize: MainAxisSize.min, children: [
-            Row(children: [
-              Expanded(child: Divider(color: t.bd, height: 1)),
-              const SizedBox(width: 10),
-              Icon(LucideIcons.circleCheck, size: 16, color: t.mut),
-              const SizedBox(width: 6),
-              Flexible(
-                child: Text(l.bildirimAllCaughtUp,
-                    textAlign: TextAlign.center,
-                    style: tx.labelMedium!.copyWith(fontWeight: FontWeight.w600, color: t.mut)),
-              ),
-              const SizedBox(width: 10),
-              Expanded(child: Divider(color: t.bd, height: 1)),
-            ]),
-            const SizedBox(height: 16),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              decoration: BoxDecoration(
-                  color: t.ink.withValues(alpha: .92), borderRadius: BorderRadius.circular(BuRadius.pill)),
-              child: Row(mainAxisSize: MainAxisSize.min, children: [
-                Icon(LucideIcons.pointer, size: 16, color: t.bg),
-                const SizedBox(width: 10),
-                Flexible(
-                  child: Text(l.bildirimSwipeHint,
-                      textAlign: TextAlign.center,
-                      style: tx.labelLarge!.copyWith(fontWeight: FontWeight.w600, color: t.bg)),
-                ),
-              ]),
-            ),
+            Text(l.bildirimAllCaughtUp, textAlign: TextAlign.center, style: quiet.copyWith(fontWeight: FontWeight.w600)),
+            const SizedBox(height: 4),
+            Text(l.bildirimSwipeHint, textAlign: TextAlign.center, style: quiet),
           ]),
         ));
       }
@@ -493,7 +419,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
       background: Container(
         alignment: AlignmentDirectional.centerEnd,
         padding: const EdgeInsetsDirectional.only(end: 28),
-        decoration: BoxDecoration(color: t.danger, borderRadius: BorderRadius.circular(20)),
+        decoration: BoxDecoration(color: t.danger, borderRadius: BuRadius.bLg),
         child: Column(mainAxisSize: MainAxisSize.min, children: [
           Icon(LucideIcons.trash2, size: 22, color: t.onMedia),
           const SizedBox(height: 4),
@@ -503,8 +429,6 @@ class _NotificationsPageState extends State<NotificationsPage> {
       ),
       child: NotifRow(
         icon: _icon(type),
-        tone: _tone(type),
-        strong: _strong(type),
         title: (n['title'] as String?) ?? '',
         typeLabel: _typeLabel(type),
         body: (n['body'] as String?) ?? '',
@@ -517,7 +441,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
   }
 }
 
-/// Süzgeç hapı: seçili = mürekkep zemin, sayaç rozeti seçilide kırmızı daire.
+/// Süzgeç hapı: seçili = yumuşak vurgu zemini (BuChip stili); sayaç yalnız sıfırdan büyükse, sade rakam.
 class _NotifFilterChip extends StatelessWidget {
   const _NotifFilterChip(
       {super.key, required this.label, required this.count, required this.selected, required this.onTap});
@@ -531,42 +455,42 @@ class _NotifFilterChip extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.bu;
     final tx = Theme.of(context).textTheme;
-    // Sıfır sayaç kırmızı "uyarı" gibi görünmesin: yalnız seçili ve sayı > 0 iken vurgulu.
-    final lit = selected && count > 0;
+    final fg = selected ? t.onSoft : t.ink;
     return Semantics(
       button: true,
       selected: selected,
       child: BuPressable(
         onTap: onTap,
-        child: AnimatedContainer(
+        child: BuTouchTarget(
+          child: AnimatedContainer(
           duration: BuMotion.of(context, BuMotion.short),
-          constraints: const BoxConstraints(minHeight: 48),
-          padding: const EdgeInsets.symmetric(horizontal: 16),
+          constraints: const BoxConstraints(minHeight: BuSize.chip),
+          padding: const EdgeInsets.symmetric(horizontal: 14),
+          alignment: Alignment.center,
           decoration: BoxDecoration(
             color: selected ? t.soft : t.sf,
             borderRadius: BorderRadius.circular(BuRadius.pill),
             border: Border.all(color: selected ? t.selectedBorder : t.bd),
           ),
           child: Row(mainAxisSize: MainAxisSize.min, children: [
-            Text(label, style: tx.labelLarge!.copyWith(fontWeight: FontWeight.w700, color: selected ? t.onSoft : t.ink)),
-            const SizedBox(width: 8),
-            Container(
-              constraints: const BoxConstraints(minWidth: 22, minHeight: 22),
-              padding: const EdgeInsets.symmetric(horizontal: 6),
-              alignment: Alignment.center,
-              decoration:
-                  BoxDecoration(color: lit ? t.pr : t.sf2, borderRadius: BorderRadius.circular(BuRadius.pill)),
-              child: Text(count > 99 ? '99+' : '$count',
-                  style: tx.labelSmall!.copyWith(fontWeight: FontWeight.w700, color: lit ? t.onPr : t.mut)),
-            ),
+            Text(label, style: tx.labelLarge!.copyWith(fontWeight: FontWeight.w700, color: fg)),
+            if (count > 0) ...[
+              const SizedBox(width: 8),
+              Text(count > 99 ? '99+' : '$count',
+                  style: tx.labelLarge!.copyWith(
+                      fontWeight: FontWeight.w700,
+                      color: fg.withValues(alpha: .7),
+                      fontFeatures: const [FontFeature.tabularFigures()])),
+            ],
           ]),
+        ),
         ),
       ),
     );
   }
 }
 
-/// "Yüklenemedi, tekrar dene" kartı.
+/// Yükleme hatası: tek cümle + tek eylem.
 class _ErrorCard extends StatelessWidget {
   const _ErrorCard({required this.onRetry});
 
@@ -578,34 +502,18 @@ class _ErrorCard extends StatelessWidget {
     final tx = Theme.of(context).textTheme;
     final l = context.l10n;
     return BuCard(
-      radius: 20,
+      radius: BuRadius.lg,
       padding: const EdgeInsets.all(16),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
-          ExcludeSemantics(
-            child: Container(
-              width: 48,
-              height: 48,
-              decoration: BoxDecoration(color: t.soft, borderRadius: BorderRadius.circular(BuRadius.md)),
-              child: Icon(LucideIcons.wifiOff, size: 24, color: t.onSoft),
-            ),
+      child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
+        Expanded(
+          child: Semantics(
+            liveRegion: true,
+            child: Text(l.p03NotifLoadFailed,
+                style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w700, height: 1.3, color: t.ink)),
           ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Semantics(
-              liveRegion: true,
-              child: Text(l.p03NotifLoadFailed,
-                  style: tx.titleMedium!.copyWith(fontWeight: FontWeight.w800, height: 1.25, color: t.ink)),
-            ),
-          ),
-        ]),
-        const SizedBox(height: 10),
-        Text(l.p03NotifLoadFailedBody, style: tx.bodyMedium!.copyWith(color: t.mut, height: 1.4)),
-        const SizedBox(height: 14),
-        Align(
-          alignment: AlignmentDirectional.centerStart,
-          child: BuButton(label: l.commonRetry, icon: LucideIcons.refreshCw, compact: true, onPressed: onRetry),
         ),
+        const SizedBox(width: 12),
+        BuButton(label: l.commonRetry, compact: true, onPressed: onRetry),
       ]),
     );
   }

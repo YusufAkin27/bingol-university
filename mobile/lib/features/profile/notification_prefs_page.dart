@@ -114,18 +114,6 @@ const _subtypeGroups = <String, List<String>>{
   'communities': ['COMMUNITY_POST', 'COMMUNITY_ROLE', 'COMMUNITY_JOIN'],
 };
 
-IconData _prefIcon(String key) => switch (key) {
-      'news' => LucideIcons.newspaper,
-      'announcements' => LucideIcons.megaphone,
-      'events' => LucideIcons.calendarCheck,
-      'messages' => LucideIcons.messagesSquare,
-      'communities' => LucideIcons.users,
-      'polls' => LucideIcons.chartColumn,
-      'academicAnnouncements' => LucideIcons.graduationCap,
-      'messagePreview' => LucideIcons.eye,
-      _ => LucideIcons.bell,
-    };
-
 /// Sunucu bayrak/alt tür kodunun ekrandaki adı (istek diline göre).
 String _prefLabel(BuildContext context, String key) {
   final l = context.l10n;
@@ -326,15 +314,13 @@ class _NotificationPrefsGroupState extends State<NotificationPrefsGroup> with Wi
   Widget _helpLink() {
     final t = context.bu;
     final tx = Theme.of(context).textTheme;
-    return Padding(
-      padding: const EdgeInsets.only(top: 8),
-      child: Align(
-        alignment: AlignmentDirectional.centerStart,
-        child: TextButton.icon(
-          onPressed: _openPushHelp,
-          icon: Icon(LucideIcons.circleHelp, size: 18, color: t.pr),
-          label: Text(context.l10n.p21HelpLink, style: tx.labelLarge!.copyWith(fontWeight: FontWeight.w800, color: t.pr)),
-        ),
+    // Ikincil eylem: simgesiz, soluk metin bağlantısı (vurgu rengi yalnız anahtarlarda).
+    return Align(
+      alignment: AlignmentDirectional.centerStart,
+      child: TextButton(
+        onPressed: _openPushHelp,
+        style: TextButton.styleFrom(minimumSize: const Size(48, 48), padding: const EdgeInsets.symmetric(horizontal: 4)),
+        child: Text(context.l10n.p21HelpLink, style: tx.labelLarge!.copyWith(fontWeight: FontWeight.w600, color: t.mut)),
       ),
     );
   }
@@ -358,74 +344,82 @@ class _NotificationPrefsGroupState extends State<NotificationPrefsGroup> with Wi
     await _store.setQuiet(start: isStart ? _fmt(r) : null, end: isStart ? null : _fmt(r));
   }
 
-  Widget _card({required Widget child, Color? bar}) {
+  /// Tek yüzey: nötr zemin + çok hafif gölge (çerçeve yok), tek köşe yarıçapı.
+  Widget _card({required Widget child}) {
     final t = context.bu;
     return DecoratedBox(
-      decoration: BoxDecoration(color: t.sf, borderRadius: BorderRadius.circular(20), boxShadow: BuElevation.of(context, 1)),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(20),
-        child: Stack(children: [
-          Padding(padding: EdgeInsets.only(left: bar == null ? 0 : 5), child: child),
-          if (bar != null) PositionedDirectional(start: 0, top: 0, bottom: 0, width: 5, child: ColoredBox(color: bar)),
-        ]),
-      ),
+      decoration: BoxDecoration(color: t.sf, borderRadius: BuRadius.bLg, boxShadow: BuElevation.of(context, 1)),
+      child: ClipRRect(borderRadius: BuRadius.bLg, child: Material(type: MaterialType.transparency, child: child)),
     );
   }
 
-  Widget _label(String text, {double top = 20}) {
+  Widget _label(String text, {double top = 24}) {
     final t = context.bu;
     return Padding(
-      padding: EdgeInsetsDirectional.only(start: 6, top: top, bottom: 10),
+      padding: EdgeInsetsDirectional.only(start: 4, top: top, bottom: 8),
       child: Semantics(header: true, child: Text(akadUpper(context, text), style: Theme.of(context).textTheme.labelSmall!.copyWith(fontWeight: FontWeight.w700, letterSpacing: .6, color: t.mut))),
     );
   }
 
-  Widget _pushCard() {
-    final l = context.l10n;
+  /// Ortak tercih satırı: başlık (+ kısa açıklama) solda, kontrol sağda. Tüm kartlarda aynı iç boşluk
+  /// (16 / 12 dp) olduğundan anahtarlar tek sütunda hizalanır.
+  Widget _row({required String title, String? sub, required Widget trailing, VoidCallback? onTap, bool dim = false}) {
     final t = context.bu;
     final tx = Theme.of(context).textTheme;
+    return Opacity(
+      opacity: dim ? .5 : 1,
+      child: MergeSemantics(
+        child: InkWell(
+          onTap: onTap,
+          child: Container(
+            constraints: const BoxConstraints(minHeight: 56),
+            padding: const EdgeInsetsDirectional.fromSTEB(16, 8, 12, 8),
+            child: Row(children: [
+              Expanded(
+                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Text(title, style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w700, color: t.ink)),
+                  if (sub != null) Text(sub, style: tx.bodySmall!.copyWith(color: t.mut)),
+                ]),
+              ),
+              const SizedBox(width: 8),
+              trailing,
+            ]),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _chevron() => Icon(buDirIcon(context, LucideIcons.chevronRight), size: 20, color: context.bu.mut);
+
+  Widget _pushCard() {
+    final l = context.l10n;
     final on = _pushStatus == 'on';
     final loading = _pushStatus == '...';
-    final pill = AkadPill(on ? l.pushOn : l.profil1PillOff, bg: on ? t.sf2 : t.soft, fg: on ? t.ink : t.onSoft, dot: true);
     if (on || loading) {
       return _card(
-        child: Padding(
-          padding: const EdgeInsets.all(14),
-          child: Row(children: [
-            AkadIconTile(icon: LucideIcons.bellRing, bg: t.sf2, fg: t.ink, size: 48, radius: 14, iconSize: 22),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text(l.profil1PushTitle, style: tx.titleMedium!.copyWith(fontWeight: FontWeight.w800, color: t.ink)),
-                if (on) Text(l.profil1PushGranted, style: tx.bodySmall!.copyWith(color: t.mut)),
-              ]),
-            ),
-            if (on) ...[pill, const SizedBox(width: 6), Switch(value: true, onChanged: (_) => PermissionService.instance.openSettings())],
-          ]),
+        child: _row(
+          title: l.profil1PushTitle,
+          sub: on ? l.profil1PushGranted : null,
+          trailing: on ? Switch(value: true, onChanged: (_) => PermissionService.instance.openSettings()) : const SizedBox(height: 48),
         ),
       );
     }
-    final note = _pushStatus == 'notConfigured' ? l.pushNotConfigured : l.pushNotGranted;
+    // Kapalı: tek açıklama + tek eylem (durum rozeti, simge ve renkli kenar çubuğu yok).
+    final tx = Theme.of(context).textTheme;
+    final t = context.bu;
     return _card(
-      bar: t.pr,
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-          Row(children: [
-            Icon(LucideIcons.bellOff, size: 22, color: t.pr),
-            const SizedBox(width: 10),
-            Expanded(child: Text(l.profil1PushTitle, style: tx.titleMedium!.copyWith(fontWeight: FontWeight.w800, color: t.ink))),
-            pill,
-          ]),
-          const SizedBox(height: 6),
-          Text(l.pushOff, style: tx.bodySmall!.copyWith(color: t.mut)),
-          const SizedBox(height: 12),
+          Text(l.profil1PushTitle, style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w700, color: t.ink)),
+          const SizedBox(height: 2),
+          Text(_pushStatus == 'notConfigured' ? l.pushNotConfigured : l.pushOff, style: tx.bodySmall!.copyWith(color: t.mut)),
+          const SizedBox(height: 16),
           Align(
             alignment: AlignmentDirectional.centerStart,
-            child: BuButton(label: l.p20RemOpenSettings, icon: LucideIcons.settings, compact: true, onPressed: () => PermissionService.instance.openSettings()),
+            child: BuButton(label: l.p20RemOpenSettings, compact: true, onPressed: () => PermissionService.instance.openSettings()),
           ),
-          const SizedBox(height: 10),
-          Text(note, style: tx.labelSmall!.copyWith(fontWeight: FontWeight.w700, color: t.mut)),
         ]),
       ),
     );
@@ -444,34 +438,16 @@ class _NotificationPrefsGroupState extends State<NotificationPrefsGroup> with Wi
   }
 
   Widget _toggleRow(String key, {bool last = false}) {
-    final t = context.bu;
-    final tx = Theme.of(context).textTheme;
     final locked = _lockedByParent(key);
-    final sub = _dependencyNote(key) ?? _prefSub(context, key);
     final on = _store.prefs![key] == true;
     return Column(children: [
       // Pasif satır: soluk, dokunulamaz (anahtar da kapalı gibi tepki vermez).
-      Opacity(
-        opacity: locked ? .5 : 1,
-        child: MergeSemantics(
-          child: InkWell(
-            onTap: locked ? null : () => _store.set(key, !on),
-            child: Padding(
-              padding: const EdgeInsetsDirectional.fromSTEB(14, 10, 8, 10),
-              child: Row(children: [
-                AkadIconTile(icon: _prefIcon(key), bg: t.sf2, fg: t.mut, size: 40, radius: 12, iconSize: 20),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    Text(_prefLabel(context, key), style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w800, color: t.ink)),
-                    if (sub != null) Text(sub, style: tx.bodySmall!.copyWith(color: t.mut)),
-                  ]),
-                ),
-                Switch(value: on, onChanged: locked ? null : (v) => _store.set(key, v)),
-              ]),
-            ),
-          ),
-        ),
+      _row(
+        title: _prefLabel(context, key),
+        sub: _dependencyNote(key) ?? _prefSub(context, key),
+        onTap: locked ? null : () => _store.set(key, !on),
+        dim: locked,
+        trailing: Switch(value: on, onChanged: locked ? null : (v) => _store.set(key, v)),
       ),
       if (!last) const AkadDivider(),
     ]);
@@ -488,19 +464,18 @@ class _NotificationPrefsGroupState extends State<NotificationPrefsGroup> with Wi
         onTap: () => _pickTime(isStart),
         child: BuPressable(
           onTap: () => _pickTime(isStart),
-          child: Container(
-            constraints: const BoxConstraints(minHeight: 72),
-            padding: const EdgeInsets.symmetric(vertical: 10),
-            decoration: BoxDecoration(
-              color: t.sf,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: active ? t.pr : t.bd, width: active ? 2 : 1.5),
+          child: Opacity(
+            opacity: active ? 1 : .5,
+            child: Container(
+              constraints: const BoxConstraints(minHeight: 72),
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              decoration: BoxDecoration(color: t.sf2, borderRadius: BuRadius.bMd),
+              child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+                Text(akadUpper(context, label), style: tx.labelSmall!.copyWith(fontWeight: FontWeight.w700, letterSpacing: .6, color: t.mut)),
+                const SizedBox(height: 2),
+                Text(value, style: tx.titleLarge!.copyWith(fontWeight: FontWeight.w800, color: t.ink, fontFeatures: const [FontFeature.tabularFigures()])),
+              ]),
             ),
-            child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-              Text(akadUpper(context, label), style: tx.labelSmall!.copyWith(fontWeight: FontWeight.w800, letterSpacing: .6, color: active ? t.pr : t.mut)),
-              const SizedBox(height: 2),
-              Text(value, style: tx.titleLarge!.copyWith(fontWeight: FontWeight.w800, color: t.ink)),
-            ]),
           ),
         ),
       ),
@@ -522,39 +497,33 @@ class _NotificationPrefsGroupState extends State<NotificationPrefsGroup> with Wi
         ..add(_helpLink());
     }
     if (err != null && prefs == null) {
-      children.add(Padding(
-        padding: EdgeInsets.zero,
+      // Hata: tek cümle + tek eylem (tüm kart dokunulur).
+      children.add(_card(
         child: Semantics(
           button: true,
           container: true,
-          child: Material(
-            color: t.soft,
-            borderRadius: BorderRadius.circular(16),
-            child: InkWell(
-              borderRadius: BorderRadius.circular(16),
-              onTap: _store.load,
-              child: Padding(
-                padding: const EdgeInsets.all(14),
-                child: Row(children: [
-                  Icon(LucideIcons.circleAlert, size: 22, color: t.pr),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                      Text(l.p20PrefLoadFail, style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w800, color: t.onSoft)),
-                      Text(l.p20PrefTapRetry, style: tx.bodySmall!.copyWith(color: t.onSoft)),
-                    ]),
-                  ),
-                  Container(width: 40, height: 40, decoration: BoxDecoration(color: t.sf.withValues(alpha: .6), shape: BoxShape.circle), child: Icon(LucideIcons.rotateCw, size: 18, color: t.pr)),
-                ]),
-              ),
+          child: InkWell(
+            onTap: _store.load,
+            child: Padding(
+              padding: const EdgeInsetsDirectional.fromSTEB(16, 8, 12, 8),
+              child: Row(children: [
+                Expanded(
+                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    Text(l.p20PrefLoadFail, style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w700, color: t.ink)),
+                    Text(l.p20PrefTapRetry, style: tx.bodySmall!.copyWith(color: t.mut)),
+                  ]),
+                ),
+                const SizedBox(width: 8),
+                SizedBox(width: 48, height: 48, child: Icon(LucideIcons.rotateCw, size: 20, color: t.mut)),
+              ]),
             ),
           ),
         ),
       ));
     } else if (prefs == null) {
       children.add(Padding(
-        padding: EdgeInsets.only(top: widget.showPushCard ? 14 : 0),
-        child: Semantics(label: l.commonLoading, liveRegion: true, child: const BuSkeletonScope(child: BuSkeleton(height: 220, radius: 20))),
+        padding: EdgeInsets.only(top: widget.showPushCard ? 16 : 0),
+        child: Semantics(label: l.commonLoading, liveRegion: true, child: const BuSkeletonScope(child: BuSkeleton(height: 220, radius: BuRadius.lg))),
       ));
     } else {
       final optional = [for (final r in _optionalRows) if (prefs.containsKey(r)) r];
@@ -564,70 +533,46 @@ class _NotificationPrefsGroupState extends State<NotificationPrefsGroup> with Wi
       final quiet = _store.quiet;
       final quietOn = quiet?['enabled'] == true;
       children
-        ..add(_label(l.profil1WhatSection, top: widget.showPushCard ? 22 : 0))
+        ..add(_label(l.profil1WhatSection, top: widget.showPushCard ? 24 : 0))
         ..add(Opacity(
           opacity: widget.showPushCard && _pushStatus != 'on' && _pushStatus != '...' ? .5 : 1,
-          child: _card(child: Column(children: [for (var i = 0; i < rows.length; i++) _toggleRow(rows[i], last: i == rows.length - 1)])),
+          child: _card(
+            child: Column(children: [
+              for (var i = 0; i < rows.length; i++) _toggleRow(rows[i], last: !hasSubs && i == rows.length - 1),
+              // Ayrıntılı tercihler aynı grubun son satırı (ayrı kart yok).
+              if (hasSubs)
+                _row(
+                  title: l.profil1Detailed,
+                  sub: l.p20PrefDetailSub,
+                  trailing: _chevron(),
+                  onTap: () => Navigator.push<void>(context, MaterialPageRoute<void>(builder: (_) => _DetailedPrefsPage(store: _store))),
+                ),
+            ]),
+          ),
         ));
       // Kilit ekranında mesaj metni (KVKK: varsayılan kapalı; yalnız sunucu `messagePreview` gönderdiyse görünür).
       if (prefs.containsKey('messagePreview')) {
         children
-          ..add(const SizedBox(height: 14))
+          ..add(const SizedBox(height: 16))
           ..add(_card(child: _toggleRow('messagePreview', last: true)));
-      }
-      if (hasSubs) {
-        children
-          ..add(const SizedBox(height: 14))
-          ..add(_card(
-            child: Semantics(
-              button: true,
-              child: InkWell(
-                onTap: () => Navigator.push<void>(context, MaterialPageRoute<void>(builder: (_) => _DetailedPrefsPage(store: _store))),
-                child: Padding(
-                  padding: const EdgeInsets.all(14),
-                  child: Row(children: [
-                    AkadIconTile(icon: LucideIcons.slidersHorizontal, bg: t.soft, fg: t.pr, size: 40, radius: 12, iconSize: 20),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                        Text(l.profil1Detailed, style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w800, color: t.ink)),
-                        Text(l.p20PrefDetailSub, style: tx.bodySmall!.copyWith(color: t.mut)),
-                      ]),
-                    ),
-                    Icon(buDirIcon(context, LucideIcons.chevronRight), size: 20, color: t.mut),
-                  ]),
-                ),
-              ),
-            ),
-          ));
       }
       if (quiet != null) {
         children
           ..add(_label(l.profil1QuietTitle))
           ..add(_card(
             child: Column(children: [
-              InkWell(
+              _row(
+                title: l.profil1QuietToggle,
+                sub: l.profil1QuietSub,
                 onTap: () => _store.setQuiet(enabled: !quietOn),
-                child: Padding(
-                padding: const EdgeInsetsDirectional.fromSTEB(14, 10, 8, 4),
-                child: Row(children: [
-                  AkadIconTile(icon: LucideIcons.moon, bg: t.sf2, fg: t.mut, size: 40, radius: 12, iconSize: 20),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                      Text(l.profil1QuietToggle, style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w800, color: t.ink)),
-                      Text(l.profil1QuietSub, style: tx.bodySmall!.copyWith(color: t.mut)),
-                    ]),
-                  ),
-                  Switch(value: quietOn, onChanged: (v) => _store.setQuiet(enabled: v)),
-                ]),
-              )),
+                trailing: Switch(value: quietOn, onChanged: (v) => _store.setQuiet(enabled: v)),
+              ),
               Padding(
-                padding: const EdgeInsets.fromLTRB(14, 8, 14, 14),
+                padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
                 child: Row(children: [
                   _timeBox(label: l.profil1QuietStart, value: (quiet['start'] as String?) ?? '23:00', isStart: true, active: quietOn),
-                  const SizedBox(width: 10),
-                  _timeBox(label: l.profil1QuietEnd, value: (quiet['end'] as String?) ?? '07:00', isStart: false, active: false),
+                  const SizedBox(width: 8),
+                  _timeBox(label: l.profil1QuietEnd, value: (quiet['end'] as String?) ?? '07:00', isStart: false, active: quietOn),
                 ]),
               ),
             ]),
@@ -639,22 +584,11 @@ class _NotificationPrefsGroupState extends State<NotificationPrefsGroup> with Wi
       ..add(_card(
         child: Semantics(
           button: true,
-          child: InkWell(
+          child: _row(
+            title: l.profilePrefsReminders,
+            sub: _leadMin != null ? l.p20PrefRemSub(_leadMin.toString()) : null,
+            trailing: _chevron(),
             onTap: () => Navigator.push<void>(context, MaterialPageRoute<void>(builder: (_) => ReminderSettingsPage(session: widget.session))),
-            child: Padding(
-              padding: const EdgeInsets.all(14),
-              child: Row(children: [
-                AkadIconTile(icon: LucideIcons.alarmClock, bg: t.sf2, fg: t.ink, size: 40, radius: 12, iconSize: 20),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    Text(l.profilePrefsReminders, style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w800, color: t.ink)),
-                    if (_leadMin != null) Text(l.p20PrefRemSub(_leadMin.toString()), style: tx.bodySmall!.copyWith(color: t.mut)),
-                  ]),
-                ),
-                Icon(buDirIcon(context, LucideIcons.chevronRight), size: 20, color: t.mut),
-              ]),
-            ),
           ),
         ),
       ));
@@ -662,7 +596,8 @@ class _NotificationPrefsGroupState extends State<NotificationPrefsGroup> with Wi
   }
 }
 
-/// Ayrıntılı tercihler (Stitch 50-03): grup kartları, iç içe alt anahtarlar; üst kapalıyken alt anahtarlar pasif.
+/// Ayrıntılı tercihler (Stitch 50-03): ana bayrak başına bir kart; üstte ana anahtar, altında alt anahtarlar
+/// (üst kapalıyken soluk ve pasif).
 class _DetailedPrefsPage extends StatefulWidget {
   const _DetailedPrefsPage({required this.store});
 
@@ -691,65 +626,51 @@ class _DetailedPrefsPageState extends State<_DetailedPrefsPage> {
 
   Widget _group(String parent) {
     final t = context.bu;
-    final l = context.l10n;
     final tx = Theme.of(context).textTheme;
     final store = widget.store;
     final subs = store.subs;
     final kids = [for (final k in _subtypeGroups[parent]!) if (subs.containsKey(k)) k];
     if (kids.isEmpty) return const SizedBox.shrink();
     final on = store.prefs?[parent] == true;
-    final groupSub = switch (parent) {
-      'messages' => l.p20PrefMsgGroupSub,
-      'events' => l.p20PrefEventsGroupSub,
-      _ => l.p20PrefClubsGroupSub,
-    };
     return Padding(
-      padding: const EdgeInsets.only(bottom: 14),
+      padding: const EdgeInsets.only(bottom: 16),
       child: DecoratedBox(
-        decoration: BoxDecoration(color: t.sf, borderRadius: BorderRadius.circular(20), boxShadow: BuElevation.of(context, 1)),
-        child: Padding(
-          padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(color: t.sf, borderRadius: BuRadius.bLg, boxShadow: BuElevation.of(context, 1)),
+        child: ClipRRect(
+          borderRadius: BuRadius.bLg,
           child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-            Row(children: [
-              AkadIconTile(icon: _prefIcon(parent), bg: on ? t.ink : t.sf2, fg: on ? t.bg : t.mut, size: 40, radius: 12, iconSize: 20),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Wrap(spacing: 8, crossAxisAlignment: WrapCrossAlignment.center, children: [
-                    Text(_prefLabel(context, parent), style: tx.titleMedium!.copyWith(fontWeight: FontWeight.w800, color: t.ink)),
-                    if (!on) AkadPill(l.p20PrefOffTag, bg: t.sf2, fg: t.mut),
-                  ]),
-                  Text(groupSub, style: tx.bodySmall!.copyWith(color: t.mut)),
-                ]),
-              ),
-              Switch(value: on, onChanged: (v) => store.set(parent, v)),
-            ]),
-            const SizedBox(height: 8),
+            // Ana anahtar: grup başlığı.
             Container(
-              margin: const EdgeInsetsDirectional.only(start: 18),
-              padding: const EdgeInsetsDirectional.only(start: 12),
-              decoration: BoxDecoration(border: BorderDirectional(start: BorderSide(color: t.bd, width: 2))),
-              child: Column(children: [
-                for (final k in kids)
-                  Opacity(
-                    opacity: on ? 1 : .45,
-                    child: MergeSemantics(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 6),
-                        child: Row(children: [
-                          Expanded(
-                            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                              Text(_prefLabel(context, k), style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w800, color: t.ink)),
-                              Text(_subSub(context, k) ?? '', style: tx.bodySmall!.copyWith(color: t.mut)),
-                            ]),
-                          ),
-                          Switch(value: on && subs[k] == true, onChanged: on ? (v) => store.setSub(k, v) : null),
-                        ]),
-                      ),
-                    ),
-                  ),
+              constraints: const BoxConstraints(minHeight: 56),
+              padding: const EdgeInsetsDirectional.fromSTEB(16, 4, 12, 4),
+              child: Row(children: [
+                Expanded(child: Text(_prefLabel(context, parent), style: tx.titleMedium!.copyWith(fontWeight: FontWeight.w800, color: t.ink))),
+                const SizedBox(width: 8),
+                Switch(value: on, onChanged: (v) => store.set(parent, v)),
               ]),
             ),
+            for (final k in kids) ...[
+              const AkadDivider(),
+              Opacity(
+                opacity: on ? 1 : .45,
+                child: MergeSemantics(
+                  child: Container(
+                    constraints: const BoxConstraints(minHeight: 56),
+                    padding: const EdgeInsetsDirectional.fromSTEB(16, 8, 12, 8),
+                    child: Row(children: [
+                      Expanded(
+                        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                          Text(_prefLabel(context, k), style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w600, color: t.ink)),
+                          Text(_subSub(context, k) ?? '', style: tx.bodySmall!.copyWith(color: t.mut)),
+                        ]),
+                      ),
+                      const SizedBox(width: 8),
+                      Switch(value: on && subs[k] == true, onChanged: on ? (v) => store.setSub(k, v) : null),
+                    ]),
+                  ),
+                ),
+              ),
+            ],
           ]),
         ),
       ),
@@ -760,33 +681,14 @@ class _DetailedPrefsPageState extends State<_DetailedPrefsPage> {
   Widget build(BuildContext context) {
     final t = context.bu;
     final l = context.l10n;
-    final tx = Theme.of(context).textTheme;
     return Scaffold(
       backgroundColor: t.bg,
       body: Column(children: [
-        BuHeader(title: l.profil1Notifications, onBack: () => Navigator.pop(context)),
+        BuHeader(title: l.profil1Detailed, onBack: () => Navigator.pop(context)),
         Expanded(
           child: ListView(
             padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
-            children: [
-          Container(
-            padding: const EdgeInsets.all(14),
-            margin: const EdgeInsets.only(bottom: 14),
-            decoration: BoxDecoration(color: t.sf, borderRadius: BorderRadius.circular(20), boxShadow: BuElevation.of(context, 1)),
-            child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              AkadIconTile(icon: LucideIcons.slidersHorizontal, bg: t.soft, fg: t.pr, size: 40, radius: 12, iconSize: 20),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Text(l.profil1Detailed, style: tx.titleMedium!.copyWith(fontWeight: FontWeight.w800, color: t.ink)),
-                  const SizedBox(height: 2),
-                  Text(l.p20PrefDetailHead, style: tx.bodySmall!.copyWith(color: t.mut, height: 1.4)),
-                ]),
-              ),
-            ]),
-          ),
-          for (final g in _subtypeGroups.keys) _group(g),
-            ],
+            children: [for (final g in _subtypeGroups.keys) _group(g)],
           ),
         ),
       ]),
