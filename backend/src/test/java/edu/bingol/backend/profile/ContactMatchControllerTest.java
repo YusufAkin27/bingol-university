@@ -52,6 +52,18 @@ class ContactMatchControllerTest {
     }
 
     @Test
+    void discoverableDefaultsOffAndToggleIsRateLimited() {
+        when(service.isDiscoverable(7L)).thenReturn(false);
+        org.junit.jupiter.api.Assertions.assertFalse(controller.discoverable().enabled());
+
+        var res = controller.setDiscoverable(new ContactMatchDtos.DiscoverableRequest(true));
+
+        org.junit.jupiter.api.Assertions.assertTrue(res.enabled());
+        verify(limiter).check("contacts-discoverable:user:7", 20, Duration.ofHours(1));
+        verify(service).setDiscoverable(7L, true);
+    }
+
+    @Test
     void limitedCallNeverReachesService() {
         doThrow(new ApiException(HttpStatus.TOO_MANY_REQUESTS, "RATE_LIMITED", "x"))
                 .when(limiter).check(any(), anyInt(), any());

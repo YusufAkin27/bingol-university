@@ -14,4 +14,9 @@ public final class ContactMatchDtos {
                         String department) {}
 
     public record MatchResponse(List<Match> matches) {}
+
+    /** "Rehberden bulunabilirim" (varsayilan false). */
+    public record Discoverable(boolean enabled) {}
+
+    public record DiscoverableRequest(@NotNull Boolean enabled) {}
 }
