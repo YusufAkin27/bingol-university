@@ -113,7 +113,7 @@ const site = {
   'site.about.commit4': 'Usage statistics are aggregated, and analytics events are deleted after 180 days.',
   'site.about.whoTitle': 'Who we are',
   'site.about.whoText':
-    'The app is developed as a university project within Bingöl University.',
+    'BÜ Kampüs is an independent student app built for Bingöl University students and staff; it is not the university’s official app.',
   'site.about.whoContact': 'Contact details are entered by the app administrators.',
   'site.about.readPrivacy': 'Privacy policy and KVKK notice',
 

@@ -2,10 +2,11 @@
 import common from '../ar/common';
 import site from '../ar/site';
 import siteNew from '../ar/site-new';
+import siteV3 from '../ar/site-v3';
 import legal from '../ar/legal';
 import pages from '../ar/pages';
 import supportPublic from '../ar/support-public';
 import seo from '../ar/seo';
 import childSafety from '../ar/child-safety';
 
-export default { ...common, ...site, ...siteNew, ...legal, ...pages, ...supportPublic, ...seo, ...childSafety };
+export default { ...common, ...site, ...siteNew, ...siteV3, ...legal, ...pages, ...supportPublic, ...seo, ...childSafety };

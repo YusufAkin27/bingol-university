@@ -2,11 +2,11 @@ import { StoreButton } from '../pages/site/components/StoreButton';
 
 interface Props {
   store: 'android' | 'ios';
-  /** Mağaza bağlantısı; yoksa "Yakında" olarak pasif görünür. */
+  /** Mağaza bağlantısı; yoksa "Yakında" olarak pasif görünür (uydurma adres yazmayın). */
   href: string | null | undefined;
 }
 
-/** Alt bilgi (koyu zemin) için `StoreButton` ön ayarı. Tek mağaza düğmesi `StoreButton`'dır; ayrı bir görünüm yoktur. */
+/** Alt bilgi için `StoreButton` ön ayarı (kompakt, açıklama metni yalnız ekran okuyucuya). Tek mağaza düğmesi `StoreButton`'dır. */
 export function StoreBadge({ store, href }: Props) {
-  return <StoreButton store={store} href={href} onDark note={false} />;
+  return <StoreButton store={store} href={href} note={false} />;
 }

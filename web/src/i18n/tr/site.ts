@@ -13,7 +13,7 @@ const site = {
   'site.footer.rights': '© {year} BÜ Kampüs. Tüm hakları saklıdır.',
   'site.store.googlePlay': 'Google Play',
   'site.store.appStore': 'App Store',
-  'site.store.getItOn': 'Şuradan indirin',
+  'site.store.getItOn': 'Şuradan edinin',
   'site.store.downloadOn': 'Şuradan indirin',
   'site.store.soon': 'Yakında',
   'site.store.soonNote': 'Mağaza bağlantısı henüz yayınlanmadı. Yayınlandığında bu düğme çalışır hâle gelecek.',
@@ -110,7 +110,7 @@ const site = {
   'site.about.commit4': 'Kullanım istatistikleri toplulaştırılır; analitik olaylar 180 gün sonra silinir.',
   'site.about.whoTitle': 'Biz kimiz?',
   'site.about.whoText':
-    'Uygulama, Bingöl Üniversitesi bünyesinde bir üniversite projesi olarak geliştirilmektedir.',
+    'BÜ Kampüs, Bingöl Üniversitesi öğrencileri ve personeli için geliştirilen bağımsız bir öğrenci uygulamasıdır; üniversitenin resmî uygulaması değildir.',
   'site.about.whoContact': 'İletişim bilgileri uygulama yönetimi tarafından girilir.',
   'site.about.readPrivacy': 'Gizlilik politikası ve KVKK metni',
 

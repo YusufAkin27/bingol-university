@@ -1,0 +1,80 @@
+/* Mobil: tek sütun, önce metin sonra telefon. >=860: iki sütun; .flip ile sıra ters (RTL'de grid yönü kendiliğinden aynalanır). */
+.row {
+  display: grid;
+  gap: var(--space-6);
+  align-items: center;
+  grid-template-columns: minmax(0, 1fr);
+  padding-block: clamp(2.5rem, 7vw, 5rem);
+}
+.copy {
+  display: grid;
+  gap: var(--space-3);
+  justify-items: start;
+  max-width: 34rem;
+}
+.title {
+  font-size: clamp(1.5rem, 1.1rem + 1.6vw, 2.25rem);
+  line-height: 1.15;
+}
+.text {
+  font-size: var(--text-lg);
+  color: var(--text-muted);
+}
+.visual {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  /* telefon yan eğimi ve gölgesi için nefes payı */
+  padding-block: var(--space-2);
+}
+.visual::before {
+  content: '';
+  position: absolute;
+  inset: 6% 8%;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, color-mix(in srgb, var(--primary) 10%, transparent), transparent);
+  pointer-events: none;
+}
+.phones {
+  --phone-w: min(68vw, 250px);
+  position: relative;
+  display: grid;
+  justify-items: center;
+}
+.pair {
+  --phone-w: min(46vw, 200px);
+  grid-template-columns: auto auto;
+  gap: 0;
+  align-items: start;
+}
+/* çift telefonda arka telefon aşağıda ve hafif örtülü */
+.second {
+  order: 2;
+  margin-inline-start: calc(var(--phone-w) * -0.12);
+  margin-block-start: calc(var(--phone-w) * 0.22);
+  z-index: 0;
+}
+.first {
+  order: 1;
+  position: relative;
+  z-index: 1;
+}
+@media (min-width: 860px) {
+  .row {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: var(--space-8);
+  }
+  .flip .copy {
+    order: 2;
+    justify-self: start;
+  }
+  .flip .visual {
+    order: 1;
+  }
+  .phones {
+    --phone-w: 270px;
+  }
+  .pair {
+    --phone-w: 220px;
+  }
+}

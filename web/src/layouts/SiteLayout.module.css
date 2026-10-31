@@ -14,12 +14,14 @@
   color: #fff;
   font-weight: 700;
 }
+
+/* ---- Üst çubuk: yarı saydam, ince alt çizgi ---- */
 .header {
   position: sticky;
   top: 0;
   z-index: 50;
-  background: color-mix(in srgb, var(--surface) 92%, transparent);
-  backdrop-filter: blur(10px);
+  background: color-mix(in srgb, var(--bg) 88%, transparent);
+  backdrop-filter: saturate(1.4) blur(12px);
   border-block-end: 1px solid var(--border);
 }
 .bar {
@@ -38,20 +40,22 @@
 }
 .link {
   padding: var(--space-2) var(--space-3);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-pill);
   color: var(--text-muted);
   font-weight: 600;
   font-size: var(--text-sm);
   text-decoration: none;
+  transition:
+    color 0.15s var(--ease),
+    background-color 0.15s var(--ease);
 }
 .link:hover {
   color: var(--text);
   background: var(--surface-2);
 }
 .active {
-  color: var(--primary);
-  box-shadow: inset 0 -3px 0 var(--accent);
-  border-radius: 0;
+  color: var(--text);
+  background: var(--surface-2);
 }
 .cta {
   margin-inline-start: auto;
@@ -71,7 +75,6 @@
   outline: none;
 }
 
-/* Dar ekran: logo küçülür, boşluklar daralır; araç düğmeleri (dil, tema, hamburger) ekran içinde kalır */
 @media (max-width: 480px) {
   .bar {
     gap: var(--space-2);
@@ -81,6 +84,7 @@
   }
 }
 
+/* Mobil: gezinme, çubuğun altında açılan sade bir sayfa (büyük dokunma hedefleri, tam genişlik İndir) */
 @media (max-width: 1020px) {
   .burger {
     display: inline-grid;
@@ -92,74 +96,72 @@
     top: 100%;
     flex-direction: column;
     align-items: stretch;
+    gap: 0;
     margin: 0;
-    padding: var(--space-3) var(--space-4) var(--space-4);
-    background: var(--surface);
+    padding: var(--space-2) var(--space-4) var(--space-4);
+    background: var(--bg);
     border-block-end: 1px solid var(--border);
     box-shadow: var(--shadow-2);
   }
   .navOpen {
     display: flex;
+    animation: navIn 0.2s var(--ease);
   }
   .link {
-    padding: var(--space-3);
-  }
-  .active {
-    box-shadow: none;
-    background: var(--primary-soft);
-    border-radius: var(--radius-sm);
+    padding: var(--space-3) var(--space-2);
+    min-height: 48px;
+    display: flex;
+    align-items: center;
+    border-radius: var(--radius-md);
+    font-size: var(--text-base);
   }
   .cta {
-    margin: var(--space-2) 0 0;
+    margin: var(--space-3) 0 0;
+  }
+}
+@keyframes navIn {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .navOpen {
+    animation: none;
   }
 }
 
+/* ---- Alt bilgi: açık yüzey, ince üst çizgi ---- */
 .footer {
-  position: relative;
-  overflow: hidden;
-  background: var(--chrome);
-  color: #d9dce8;
+  background: var(--surface);
+  border-block-start: 1px solid var(--border);
+  color: var(--text-muted);
   padding-block: var(--space-7) var(--space-5);
 }
-.footerArt {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  color: #fff;
-  opacity: 0.18;
-  pointer-events: none;
+.footInner {
+  display: grid;
+  gap: var(--space-6);
 }
-/* Mobil: tek sütun (bağlantı grupları akordeon); >=640: 2 eşit sütun; >=1024: 4 eşit sütun.
-   Marka bloğu her zaman tam genişlikte üst satırdır, böylece "Yasal" gibi uzun gruplar daralmaz. */
-.footGrid {
-  position: relative;
+.footTop {
   display: grid;
   gap: var(--space-5);
   grid-template-columns: minmax(0, 1fr);
 }
-@media (min-width: 640px) {
-  .footGrid {
-    gap: var(--space-6) var(--space-5);
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+@media (min-width: 768px) {
+  .footTop {
+    grid-template-columns: minmax(0, 1.4fr) repeat(2, minmax(0, 1fr));
+    gap: var(--space-6);
   }
-}
-@media (min-width: 1024px) {
-  .footGrid {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-  }
-}
-.footBrand {
-  display: grid;
-  gap: var(--space-5);
-  align-content: start;
-  grid-column: 1 / -1;
-  min-width: 0;
 }
 .brandMain {
   display: grid;
   gap: var(--space-3);
-  max-width: 44ch;
+  align-content: start;
+  max-width: 40ch;
 }
 .brandCol {
   display: grid;
@@ -167,20 +169,65 @@
   align-content: start;
   min-width: 0;
 }
+.badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+.groups {
+  display: grid;
+  gap: 0;
+  grid-template-columns: minmax(0, 1fr);
+  padding-block-start: var(--space-5);
+  border-block-start: 1px solid var(--border);
+}
+@media (min-width: 640px) {
+  .groups {
+    gap: var(--space-5);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (min-width: 1024px) {
+  .groups {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+.footTitle {
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  font-weight: 700;
+  color: var(--text);
+  margin-block-end: var(--space-3);
+  letter-spacing: 0;
+}
 .brandCol .footTitle {
   margin-block-end: var(--space-1);
 }
-@media (min-width: 768px) {
-  .footBrand {
-    grid-template-columns: minmax(0, 1.4fr) repeat(2, minmax(0, 1fr));
-    gap: var(--space-6);
-    padding-block-end: var(--space-5);
-    border-block-end: 1px solid rgba(255, 255, 255, 0.14);
-  }
+.footList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
+}
+.footer a {
+  color: var(--text-muted);
+  text-decoration: none;
+}
+.footer a:hover {
+  color: var(--text);
+  text-decoration: underline;
+}
+/* mağaza rozetleri bağlantı rengini ezmesin */
+.footer a[class*='btn'],
+.footer a[class*='btn']:hover {
+  color: var(--badge-contrast);
+  text-decoration: none;
 }
 /* Mobil akordeon */
 .acc {
-  border-block-end: 1px solid rgba(255, 255, 255, 0.14);
+  border-block-end: 1px solid var(--border);
 }
 .accHead {
   margin: 0;
@@ -198,14 +245,11 @@
   padding: 0;
   background: none;
   border: 0;
-  color: #fff;
+  color: var(--text);
   font-weight: 700;
   font-size: var(--text-sm);
   text-align: start;
   cursor: pointer;
-}
-.accBtn:focus-visible {
-  outline-color: #fff;
 }
 .accChev {
   flex: none;
@@ -217,43 +261,20 @@
 .accPanel {
   padding-block-end: var(--space-3);
 }
-.footTitle {
-  font-family: var(--font-sans);
-  font-size: var(--text-sm);
-  font-weight: 700;
-  color: #fff;
-  margin-block-end: var(--space-3);
-  letter-spacing: 0;
-}
-.footList {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: grid;
-  gap: var(--space-2);
-  font-size: var(--text-sm);
-}
-.footer a {
-  color: #d9dce8;
-}
-.footer a:hover {
-  color: #fff;
-}
-.adminLink {
-  opacity: 0.8;
-}
-.badges {
-  display: grid;
-  gap: var(--space-3);
-  justify-items: start;
-}
 .copy {
-  position: relative;
-  margin-block-start: var(--space-6);
+  display: grid;
+  gap: var(--space-1);
   padding-block-start: var(--space-4);
-  border-block-start: 1px solid rgba(255, 255, 255, 0.14);
+  border-block-start: 1px solid var(--border);
   font-size: var(--text-xs);
-  color: #b3b8cc;
+  color: var(--text-muted);
+}
+@media (min-width: 768px) {
+  .copy {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--space-4);
+  }
 }
 
 /* Dokunma hedefleri >= 44px (mobil ve dokunmatik) */

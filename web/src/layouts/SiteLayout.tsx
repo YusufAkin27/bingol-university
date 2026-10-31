@@ -8,7 +8,7 @@ import { LanguageSwitcher } from '../components/LanguageSwitcher';
 import { Logo } from '../components/brand/Logo';
 import { StoreBadge } from '../components/StoreBadge';
 import { ThemeToggle } from '../components/ThemeToggle';
-import { ButtonLink, ContourBackdrop, Icon, IconButton } from '../components/ui';
+import { ButtonLink, Icon, IconButton } from '../components/ui';
 import { useI18n } from '../i18n/I18nProvider';
 import { useMediaQuery } from '../lib/useMediaQuery';
 import { paths } from '../paths';
@@ -51,9 +51,9 @@ function FootGroup({ title, accordion, children }: { title: string; accordion: b
 }
 
 /**
- * Herkese açık site kabuğu: atlama bağlantısı, banner, üst menü (dil + tema + mobil hamburger),
- * sayfa içeriği (ErrorBoundary ile korunur), sütunlu alt bilgi ve çerez bilgilendirme bandı.
- * Yönetim paneline giden hiçbir bağlantı burada bulunmaz.
+ * Herkese açık site kabuğu: atlama bağlantısı, banner, üst menü (logo, gezinme, dil, tema, İndir; mobilde sade menü),
+ * sayfa içeriği (ErrorBoundary ile korunur), minimal alt bilgi (marka, mağaza rozetleri, iletişim, bağlantı grupları,
+ * telif + bağımsızlık notu) ve çerez bilgilendirme bandı. Yönetim paneline giden hiçbir bağlantı burada bulunmaz.
  */
 export function SiteLayout() {
   const { t } = useI18n();
@@ -68,6 +68,16 @@ export function SiteLayout() {
     setOpen(false);
     window.scrollTo?.({ top: 0 });
   }, [location.pathname]);
+
+  // Mobil menü açıkken Escape ile kapanır
+  useEffect(() => {
+    if (!open) return undefined;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setOpen(false);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [open]);
 
   const data = info.data;
   const hasContact = !!(
@@ -97,7 +107,7 @@ export function SiteLayout() {
       )}
       <header className={styles.header}>
         <div className={`container ${styles.bar}`}>
-          <Logo to={paths.site.home} height={42} />
+          <Logo to={paths.site.home} height={36} />
           <nav
             id="site-nav"
             aria-label={t('site.nav.main')}
@@ -146,11 +156,10 @@ export function SiteLayout() {
       </main>
 
       <footer className={styles.footer}>
-        <ContourBackdrop className={styles.footerArt} />
-        <div className={`container ${styles.footGrid}`}>
-          <div className={styles.footBrand}>
+        <div className={`container ${styles.footInner}`}>
+          <div className={styles.footTop}>
             <div className={styles.brandMain}>
-              <Logo to={paths.site.home} tone="dark" height={40} />
+              <Logo to={paths.site.home} height={36} />
               <p>{t('site.footer.tagline')}</p>
             </div>
             <div className={styles.brandCol}>
@@ -208,20 +217,23 @@ export function SiteLayout() {
               </ul>
             </div>
           </div>
-          {SITE_GROUPS.map((g) => (
-            <FootGroup key={g.title} title={t(g.title)} accordion={compactFooter}>
-              <ul className={styles.footList}>
-                {g.links.map((l) => (
-                  <li key={l.to}>
-                    <Link to={l.to}>{t(l.label)}</Link>
-                  </li>
-                ))}
-              </ul>
-            </FootGroup>
-          ))}
-        </div>
-        <div className={`container ${styles.copy}`}>
-          {t('site.footer.rights', { year: new Date().getFullYear() })}
+          <div className={styles.groups}>
+            {SITE_GROUPS.map((g) => (
+              <FootGroup key={g.title} title={t(g.title)} accordion={compactFooter}>
+                <ul className={styles.footList}>
+                  {g.links.map((l) => (
+                    <li key={l.to}>
+                      <Link to={l.to}>{t(l.label)}</Link>
+                    </li>
+                  ))}
+                </ul>
+              </FootGroup>
+            ))}
+          </div>
+          <div className={styles.copy}>
+            <span>{t('site.footer.rights', { year: new Date().getFullYear() })}</span>
+            <span>{t('site.v3.footer.independent')}</span>
+          </div>
         </div>
       </footer>
       <CookieBanner />

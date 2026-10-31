@@ -1,0 +1,109 @@
+/*
+ * iPhone görünümlü cihaz çerçevesi. Her ölçü --w (telefon genişliği) oranıdır; boyut değişince çerçeve de orantılı kalır.
+ * Katmanlar: .phone (gölge + eğim) > .body (titanyum kenar) > .bezel (siyah çerçeve) > .screen (görsel); .island dinamik ada.
+ * RTL'de fiziksel yerleşim korunur (adası ortada, kenar düğmeleri iPhone'daki gibi sabit sol/sağ).
+ */
+.phone {
+  --w: var(--phone-w, 260px);
+  --rim: calc(var(--w) * 0.016);
+  --bz: calc(var(--w) * 0.024);
+  --r: calc(var(--w) * 0.15);
+  --tilt: 0deg;
+  position: relative;
+  flex: none;
+  width: var(--w);
+  max-width: 100%;
+  transform: rotate(var(--tilt));
+  /* gölge maskeden sonra uygulanır: kırpılmış (peek) telefonda da silüeti izler */
+  filter: drop-shadow(0 calc(var(--w) * 0.07) calc(var(--w) * 0.1) rgba(23, 30, 51, 0.2));
+}
+.body {
+  position: relative;
+  padding: var(--rim);
+  border-radius: var(--r);
+  /* doğal/siyah titanyum kenar: parlak iki şerit */
+  background: linear-gradient(135deg, #6b6c72 0%, #2d2e33 22%, #8b8c92 46%, #2a2b30 70%, #5c5d63 100%);
+}
+.bezel {
+  padding: var(--bz);
+  border-radius: calc(var(--r) - var(--rim));
+  background: #0a0b0f;
+}
+.screen {
+  overflow: hidden;
+  border-radius: calc(var(--r) - var(--rim) - var(--bz));
+  background: #f7f5f2;
+  line-height: 0;
+}
+.screen {
+  max-height: calc(var(--w) * var(--crop-h, 100));
+}
+.screen img {
+  display: block;
+  width: 100%;
+  height: auto;
+  user-select: none;
+}
+.island {
+  position: absolute;
+  top: calc(var(--rim) + var(--bz) + var(--w) * 0.028);
+  left: 50%;
+  width: calc(var(--w) * 0.28);
+  height: calc(var(--w) * 0.088);
+  transform: translateX(-50%);
+  border-radius: var(--radius-pill);
+  background: #000;
+  pointer-events: none;
+}
+/* Yan düğmeler: sol (eylem + ses), sağ (güç) */
+.phone::before,
+.phone::after {
+  content: '';
+  position: absolute;
+  width: max(2px, calc(var(--w) * 0.01));
+  border-radius: var(--radius-xs);
+  background: linear-gradient(90deg, #3a3b40, #8b8c92);
+}
+.phone::before {
+  left: calc(var(--w) * -0.008);
+  top: calc(var(--w) * 0.36);
+  height: calc(var(--w) * 0.26);
+  /* eylem düğmesi + iki ses düğmesi tek parçada (maske ile bölünür) */
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    #000 0 22%,
+    transparent 22% 34%,
+    #000 34% 66%,
+    transparent 66% 72%,
+    #000 72% 100%
+  );
+  mask-image: linear-gradient(to bottom, #000 0 22%, transparent 22% 34%, #000 34% 66%, transparent 66% 72%, #000 72% 100%);
+}
+.phone::after {
+  right: calc(var(--w) * -0.008);
+  top: calc(var(--w) * 0.5);
+  height: calc(var(--w) * 0.18);
+  background: linear-gradient(270deg, #3a3b40, #8b8c92);
+}
+
+/* Kırpılmış telefon: alt kenar yok, görüntü yumuşakça kaybolur */
+.peek .body {
+  padding-block-end: 0;
+  border-end-start-radius: 0;
+  border-end-end-radius: 0;
+  -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 22%), transparent 100%);
+  mask-image: linear-gradient(to bottom, #000 calc(100% - 22%), transparent 100%);
+}
+.peek .bezel {
+  padding-block-end: 0;
+  border-end-start-radius: 0;
+  border-end-end-radius: 0;
+}
+.peek .screen {
+  border-end-start-radius: 0;
+  border-end-end-radius: 0;
+}
+.peek::before,
+.peek::after {
+  display: none;
+}

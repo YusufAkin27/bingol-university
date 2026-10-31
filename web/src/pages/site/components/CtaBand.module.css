@@ -1,0 +1,33 @@
+.wrap {
+  padding-block: clamp(2.5rem, 7vw, 5rem);
+}
+.card {
+  position: relative;
+  overflow: hidden;
+  display: grid;
+  gap: var(--space-4);
+  justify-items: center;
+  text-align: center;
+  padding: clamp(2rem, 6vw, 4rem) var(--space-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background:
+    radial-gradient(60% 90% at 50% 0%, var(--primary-soft), transparent 70%),
+    var(--surface);
+}
+.title {
+  font-size: clamp(1.625rem, 1.15rem + 1.9vw, 2.5rem);
+  max-width: 20ch;
+}
+.text {
+  color: var(--text-muted);
+  font-size: var(--text-lg);
+  max-width: 44ch;
+}
+.badges {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-3);
+  margin-block-start: var(--space-2);
+}

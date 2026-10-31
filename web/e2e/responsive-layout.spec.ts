@@ -172,9 +172,9 @@ for (const lang of LANGS) {
     await h1.waitFor({ state: 'visible', timeout: 15_000 });
     await page.waitForTimeout(400);
     expect(await page.locator('h1').count()).toBe(1);
-    // ana CTA ilk ekranda
-    const cta = page.locator('main section').first().locator('a').first();
-    const b = (await cta.boundingBox())!;
+    // ana CTA (mağaza rozetleri) ilk ekranda: rozetler bağlantı yokken <button aria-disabled>, varken <a> olur
+    const badges = page.locator('main section').first().locator('[class*="btn"]');
+    const b = (await badges.last().boundingBox())!;
     expect(b.y + b.height, 'ana CTA ilk ekranın içinde').toBeLessThanOrEqual(740);
     // başlık: 3 satıra bölünmez (Arapçada da 2-3 satır sınırı yok; yalnız tr/en denetlenir)
     if (lang !== 'ar') {
@@ -184,23 +184,19 @@ for (const lang of LANGS) {
       });
       expect(lines, `başlık satır sayısı ${lines}`).toBeLessThanOrEqual(2);
     }
-    // ilk ekranda en çok bir (görünen) telefon: gizli (display:none) telefonlar sayılmaz
-    const visiblePhones = await page.evaluate(() => {
-      const vh = 740;
-      return Array.from(document.querySelectorAll('main [aria-hidden="true"][class*="phone"]')).filter((el) => {
-        const r = el.getBoundingClientRect();
-        return r.width > 0 && r.top < vh && r.bottom > 0;
-      }).length;
-    });
-    expect(visiblePhones).toBeLessThanOrEqual(1);
-    // telefonlar sıradağ silueti tarafından kesilmez: hero içindeki telefonun alt kenarı sıradağın üstünde
-    const gap = await page.evaluate(() => {
-      const phone = Array.from(document.querySelectorAll('main section:first-of-type [aria-hidden="true"][class*="phone"]')).filter(
-        (el) => el.getBoundingClientRect().width > 0,
-      )[0] as HTMLElement;
-      const ridge = document.querySelector('main section svg[class*="ridge"]') as SVGElement;
-      return ridge.getBoundingClientRect().top - phone.getBoundingClientRect().bottom;
-    });
-    expect(gap, `telefon-sıradağ boşluğu ${gap}`).toBeGreaterThanOrEqual(-1);
+    // hero telefonları (<img> içeren cihaz çerçeveleri) yatayda taşmaz ve yerleşim kutuları sabittir (width/height öznitelikleri)
+    const phones = await page.evaluate((vw) => {
+      return Array.from(document.querySelectorAll('main section:first-of-type img[width][height]'))
+        .filter((el) => (el as HTMLElement).getAttribute('alt'))
+        .map((el) => {
+          const r = el.getBoundingClientRect();
+          return { left: r.left, right: r.right, w: r.width, vw };
+        });
+    }, 360);
+    expect(phones.length, 'hero en çok iki telefon').toBeLessThanOrEqual(2);
+    for (const p of phones) {
+      expect(p.left, 'telefon sol kenarı ekran içinde').toBeGreaterThanOrEqual(-1);
+      expect(p.right, 'telefon sağ kenarı ekran içinde').toBeLessThanOrEqual(p.vw + 1);
+    }
   });
 }

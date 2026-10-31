@@ -1,51 +1,52 @@
 import { useId } from 'react';
-import { Icon } from '../../../components/ui';
 import { useI18n } from '../../../i18n/I18nProvider';
+import { AppleIcon, GooglePlayIcon } from './StoreIcons';
 import styles from './StoreButton.module.css';
 
 interface Props {
   store: 'android' | 'ios';
-  /** Mağaza bağlantısı; yoksa düğme "Yakında" durumundadır ve tıklanamaz. */
+  /**
+   * Mağaza bağlantısı (`useStoreLinks()`; sunucudaki store_url_android / store_url_ios ayarı).
+   * Boşsa rozet TIKLANAMAZ ve "Yakında" gösterir. Buraya ASLA uydurma/yer tutucu adres yazılmaz.
+   */
   href: string | null | undefined;
-  /** Koyu zemin (lacivert bölüm, alt bilgi) üzerinde kullanım. */
+  /** `solid` (varsayılan): koyu rozet; `outline`: yüzey zeminli, ince çerçeveli açık rozet. */
+  variant?: 'solid' | 'outline';
+  /** Eski ad: koyu zemin üzerinde beyaz rozet (`variant` yerine). */
   onDark?: boolean;
+  /** `lg` hero ve CTA için biraz büyük rozet. */
+  size?: 'md' | 'lg';
   /** "Henüz yayınlanmadı" açıklaması görünür olsun mu (varsayılan evet); kapalıyken yalnız ekran okuyucuya gider. */
   note?: boolean;
 }
 
 /**
- * Sitenin tek mağaza düğmesi (alt bilgi, ana sayfa, indirme ve özellikler sayfaları bunu kullanır).
+ * Sitenin TEK mağaza düğmesi: Google Play / App Store marka simgesi + "Şuradan edinin / Google Play" metni (tr/en/ar).
+ * Bağlantı varsa yeni sekmede açılan gerçek bir <a>; yoksa devre dışı <button aria-disabled> + "Yakında" etiketi.
+ * Alt bilgideki `StoreBadge` bunun ince bir ön ayarıdır.
  *
- * YAYIN ÖNCESİ NOT: Resmî Google Play / App Store rozet görselleri (marka kuralları gereği değiştirilmeden,
- * kendi indirme sayfalarından alınmış SVG) bu ortamda indirilemediği için rozet benzeri, nötr bir düğme çiziyoruz:
- * simge + "Yakında" / "Şuradan indirin" + mağaza adı. Mağaza bağlantıları yayınlandığında bu bileşenin gövdesi
- * resmî rozet SVG'siyle değiştirilmelidir (props ve çağıran sayfalar aynı kalır). Bkz. web/README.md "Mağaza rozetleri".
+ * NOT: Resmî rozet SVG'leri marka kuralları gereği kendi mağaza sayfalarından alınmalıdır; mağazalar yayınlanınca
+ * `body` bölümü onlarla değiştirilebilir (props ve çağıran sayfalar aynı kalır).
  */
-export function StoreButton({ store, href, onDark, note = true }: Props) {
+export function StoreButton({ store, href, variant = 'solid', onDark, size = 'md', note = true }: Props) {
   const { t } = useI18n();
   const noteId = useId();
-  const name = store === 'android' ? t('site.store.googlePlay') : t('site.store.appStore');
-  const top = href
-    ? store === 'android'
-      ? t('site.store.getItOn')
-      : t('site.store.downloadOn')
-    : t('site.store.soon');
+  const android = store === 'android';
+  const name = android ? t('site.store.googlePlay') : t('site.store.appStore');
+  const top = href ? (android ? t('site.store.getItOn') : t('site.store.downloadOn')) : t('site.store.soon');
+  const Glyph = android ? GooglePlayIcon : AppleIcon;
   const body = (
     <>
-      <Icon name={store === 'android' ? 'play' : 'apple'} size={28} className={styles.glyph} />
+      <Glyph className={styles.glyph} />
       <span className={styles.label}>
         <span className={styles.top}>{top}</span>
         <span className={styles.main}>{name}</span>
       </span>
     </>
   );
-  const cls = `${styles.btn} ${onDark ? styles.onDark : ''}`;
-  const noteText = href ? t('site.store.newTab') : t('site.store.soonNote');
-  const noteEl = (
-    <span id={noteId} className={href || !note ? 'sr-only' : `${styles.note} ${onDark ? styles.noteOnDark : ''}`}>
-      {noteText}
-    </span>
-  );
+  const kind = onDark ? styles.inverse : variant === 'outline' ? styles.outline : '';
+  const cls = [styles.btn, kind, size === 'lg' ? styles.lg : ''].filter(Boolean).join(' ');
+  const visibleNote = !href && note;
   return (
     <span className={styles.wrap}>
       {href ? (
@@ -57,7 +58,9 @@ export function StoreButton({ store, href, onDark, note = true }: Props) {
           {body}
         </button>
       )}
-      {noteEl}
+      <span id={noteId} className={visibleNote ? styles.note : 'sr-only'}>
+        {href ? t('site.store.newTab') : t('site.store.soonNote')}
+      </span>
     </span>
   );
 }
