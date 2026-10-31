@@ -4,6 +4,7 @@ import 'package:bu_kampus/features/discover/discover_masonry.dart';
 import 'package:bu_kampus/features/discover/discover_tab.dart';
 import 'package:bu_kampus/features/media_crop/crop_engine.dart';
 import 'package:bu_kampus/features/posts/user_posts_page.dart';
+import 'package:bu_kampus/widgets/bu.dart' show BuSkeleton;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:image/image.dart' as img;
@@ -33,7 +34,7 @@ void main() {
       expect(find.text('Henüz gönderi yok.'), findsOneWidget); // Stitch v3: baslik + soluk ikinci cumle
       expect(find.text('İlk gönderiyi sen paylaş!'), findsOneWidget);
       expect(find.byKey(const ValueKey('discoverEmptyCompose')), findsOneWidget);
-      expect(find.byType(DiscoverPostCard), findsNothing);
+      expect(find.byType(DiscoverPostBox), findsNothing);
       await tester.tap(find.byKey(const ValueKey('discoverEmptyCompose')));
       await settle(tester, const Duration(milliseconds: 600));
       expect(find.text('Yeni gönderi'), findsOneWidget);
@@ -63,14 +64,16 @@ void main() {
       noErr(tester);
     });
 
-    testWidgets('yukleniyor: iki sutun beyaz iskelet kartlari', (tester) async {
+    testWidgets('yukleniyor: iki sutun masonry iskelet kutulari (12 dp kenar, 179 dp sutun)', (tester) async {
       useScreen(tester, const Size(390, 844));
       final b = FakeBackend()..delay = const Duration(milliseconds: 300);
       fakePosts(b);
       await tester.pumpWidget(buildApp(discover(b)));
       await tester.pump(const Duration(milliseconds: 50));
-      final sk = tester.getTopLeft(find.descendant(of: find.byKey(const ValueKey('discoverSkeleton')), matching: find.byType(AspectRatio)).first);
-      expect(sk.dx, 20); // sayfa kenari 20 dp (baslikla ayni)
+      final blocks = find.descendant(of: find.byKey(const ValueKey('discoverSkeleton')), matching: find.byType(BuSkeleton));
+      final sk = tester.getTopLeft(blocks.first);
+      expect(sk.dx, 12); // kesfet2: yan kenar 12 dp
+      expect(tester.getSize(blocks.first).width, 179);
       expect(find.byType(DiscoverFeedSkeleton), findsOneWidget);
       await settle(tester, const Duration(milliseconds: 800));
       noErr(tester);
@@ -78,7 +81,7 @@ void main() {
   });
 
   group('kesfet kart menusu (referans 11)', () {
-    testWidgets('uzun basma ve ⋯: baskasinin gonderisinde Profili gor / Sikayet et / Engelle; kendininkinde Duzenle / Sil', (tester) async {
+    testWidgets('uzun basma (kutuda ⋯ yok): baskasinin gonderisinde Profili gor / Sikayet et / Engelle; kendininkinde Duzenle / Sil', (tester) async {
       useScreen(tester, const Size(390, 844));
       final b = FakeBackend();
       final fp = fakePosts(b, count: 4);
@@ -91,9 +94,10 @@ void main() {
       fp.posts[0]['author'] = {'id': 1, 'displayName': 'Elif Yıldız', 'avatarUrl': null, 'department': null};
       await tester.pumpWidget(buildApp(discover(b)));
       await settle(tester, const Duration(milliseconds: 600));
-      // Ilk kart benim: ⋯ ile Duzenle/Sil.
+      // Ilk kutu benim: kesfet2'de kutuda ⋯ dugmesi yok; uzun basma ile Duzenle/Sil.
       final first = find.byKey(const ValueKey('discover-post-1000'));
-      await tester.tap(find.descendant(of: first, matching: find.byKey(const ValueKey('post-menu-button'))));
+      expect(find.byKey(const ValueKey('post-menu-button')), findsNothing);
+      await tester.longPress(find.descendant(of: first, matching: find.byKey(const ValueKey('post-thumb-1000'))));
       await settle(tester, const Duration(milliseconds: 900));
       expect(find.byKey(const ValueKey('post-act-edit')), findsOneWidget);
       expect(find.byKey(const ValueKey('post-act-delete')), findsOneWidget);
@@ -104,7 +108,7 @@ void main() {
       final second = find.byKey(const ValueKey('discover-post-999'));
       await tester.ensureVisible(second);
       await tester.pump();
-      await tester.longPress(find.descendant(of: second, matching: find.byKey(const ValueKey('post-photo-999'))));
+      await tester.longPress(find.descendant(of: second, matching: find.byKey(const ValueKey('post-thumb-999'))));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 300));
       expect(find.byKey(const ValueKey('post-act-profile')), findsOneWidget);

@@ -27,18 +27,18 @@ void main() {
       await settle(tester, const Duration(milliseconds: 600));
       expect(b.requests.any((r) => r.contains('/feed') && r.contains('scope=top')), isTrue);
       expect(b.requests.any((r) => r.contains('/news')), isFalse);
-      expect(find.byType(DiscoverPostCard), findsWidgets);
+      expect(find.byType(DiscoverPostBox), findsWidgets);
       expect(find.text('Keşfet'), findsOneWidget);
       // Haber/kategori yok; yalniz Tumu + Populer cipleri.
       expect(find.text('Haberler'), findsNothing);
       expect(find.text('Tümü'), findsOneWidget);
       expect(find.text('Popüler'), findsOneWidget);
-      // Tek sutun: kartlar ayni sol kenarda (20 = sayfa kenari, baslikla ayni) ve tam genislikte.
+      // Iki sutun masonry (Stitch v3 kesfet2): kutular iki sol kenarda (12 ve 12+179+8) ve 179 dp genisliginde.
       final lefts = {
-        for (final e in tester.elementList(find.byType(DiscoverPostCard))) tester.getTopLeft(find.byWidget(e.widget)).dx.round()
+        for (final e in tester.elementList(find.byType(DiscoverPostBox))) tester.getTopLeft(find.byWidget(e.widget)).dx.round()
       };
-      expect(lefts, {20});
-      expect(tester.getSize(find.byType(DiscoverPostCard).first).width, 350);
+      expect(lefts, {12, 199});
+      expect(tester.getSize(find.byType(DiscoverPostBox).first).width, 179);
       // Yorum/kaydet/paylas yok.
       for (final i in [Icons.bookmark_border, Icons.mode_comment_outlined, Icons.send, Icons.share]) {
         expect(find.byIcon(i), findsNothing);
@@ -55,7 +55,7 @@ void main() {
       await tester.tap(find.byKey(const ValueKey('discoverChipPopular')));
       await settle(tester, const Duration(milliseconds: 600));
       expect(b.requests.any((r) => r.contains('/feed') && r.contains('scope=popular')), isTrue);
-      expect(find.byType(DiscoverPostCard), findsWidgets);
+      expect(find.byType(DiscoverPostBox), findsWidgets);
       noErr(tester);
     });
 
@@ -73,9 +73,10 @@ void main() {
       b.on('/users/31/follow', {'following': true, 'followerCount': 3});
       await tester.pumpWidget(buildApp(discover(b)));
       await settle(tester, const Duration(milliseconds: 600));
-      // Oneri seridi akisin icinde (3. gonderiden sonra); yalniz oraya kaydirilinca kurulur ve istek atar.
-      expect(find.text('Tanıyor Olabilirsin'), findsNothing);
-      expect(b.requests.any((r) => r.contains('follow-suggestions')), isFalse);
+      // Oneri seridi masonry'nin ilk 4 kutusundan sonra tam genislik araya girer (kesfet2 07); ilk ekrana yakin
+      // oldugundan hemen kurulur ve istegini atar.
+      expect(find.text('Tanıyor Olabilirsin'), findsOneWidget);
+      expect(b.requests.any((r) => r.contains('follow-suggestions')), isTrue);
       await tester.scrollUntilVisible(find.text('Tanıyor Olabilirsin'), 300, scrollable: find.byType(Scrollable).first);
       await settle(tester, const Duration(milliseconds: 600));
       expect(find.text('Tanıyor Olabilirsin'), findsOneWidget);
@@ -99,20 +100,21 @@ void main() {
       noErr(tester);
     });
 
-    testWidgets('kart: yazar adi + metin alt yazisi; gorselli gonderi 4:5 sabit oranli fotograf', (tester) async {
+    testWidgets('kutu: yalniz yazar adi (metin kutuda yok); gorselli gonderi 4:5 oranli kutu, kutuyu tam kaplar', (tester) async {
       useScreen(tester, const Size(390, 844));
       final b = FakeBackend();
       fakePosts(b);
       await tester.pumpWidget(buildApp(discover(b)));
       await settle(tester, const Duration(milliseconds: 600));
-      expect(find.textContaining('Gönderi 1000'), findsOneWidget);
+      // Stitch v3 kesfet2 A: gonderi metni yalniz gonderi sayfasinda; kutuda yazar adi + kalp/sayi.
+      expect(find.text('Gönderi 1000'), findsNothing);
       expect(find.textContaining('Ayşe Yılmaz'), findsWidgets);
-      final photo = find.byKey(const ValueKey('post-photo-999')); // i=1: gorselli
+      final photo = find.byKey(const ValueKey('post-thumb-999')); // i=1: gorselli (kucuk resim katmani)
       expect(photo, findsOneWidget);
       final card = tester.getSize(find.byKey(const ValueKey('discover-post-999')));
-      final ph = tester.getSize(find.ancestor(of: photo, matching: find.byType(AspectRatio)).first);
-      expect(ph.width, card.width); // Stitch v3: gorsel karti tam kaplar (ic bosluk yok)
-      expect((ph.width / ph.height - 4 / 5).abs(), lessThan(0.01));
+      expect(card.width, 179);
+      expect((card.height - 179 / .8).abs(), lessThan(1)); // 4:5 -> 224
+      expect(tester.getSize(photo), card); // gorsel kutuyu tam kaplar
       noErr(tester);
     });
 
@@ -127,8 +129,9 @@ void main() {
       int count() => int.parse((tester.widget(find.descendant(of: card, matching: find.byKey(const ValueKey('like-count')))) as Text).data!);
       final before = count();
       expect((tester.widget(find.descendant(of: card, matching: find.byKey(const ValueKey('like-count')))) as Text).data, matches(r'^\d+$')); // gorunur: yalniz rakam (hap icinde)
-      // 44 px dokunma alani.
-      expect(tester.getSize(like).height, greaterThanOrEqualTo(44));
+      // Kalp 20 dp; dokunma alani (kalp + sayi satirinin tamami) en az 44 dp yuksekliginde.
+      expect(tester.getSize(like).height, 20);
+      expect(tester.getSize(find.ancestor(of: like, matching: find.byType(GestureDetector)).first).height, greaterThanOrEqualTo(44));
       await tester.ensureVisible(like);
       await tester.pump();
       await tester.tap(like);
@@ -144,9 +147,10 @@ void main() {
       fakePosts(b);
       await tester.pumpWidget(buildApp(discover(b)));
       await settle(tester, const Duration(milliseconds: 600));
-      await tester.tap(find.textContaining('Gönderi 1000'));
+      await tester.tapAt(tester.getCenter(find.byKey(const ValueKey('discover-post-1000'))));
       await settle(tester, const Duration(milliseconds: 600));
       expect(find.byType(PostDetailPage), findsOneWidget);
+      expect(find.text('Gönderi 1000'), findsOneWidget); // metin gonderi sayfasinda gorunur
       Navigator.of(tester.element(find.byType(PostDetailPage))).pop();
       await settle(tester, const Duration(milliseconds: 400));
       noErr(tester);
@@ -180,7 +184,7 @@ void main() {
       expect(find.byKey(const ValueKey('discoverSkeleton')), findsOneWidget);
       await settle(tester, const Duration(milliseconds: 700));
       expect(find.byKey(const ValueKey('discoverSkeleton')), findsNothing);
-      expect(find.byType(DiscoverPostCard), findsWidgets);
+      expect(find.byType(DiscoverPostBox), findsWidgets);
       noErr(tester);
     });
 
@@ -190,7 +194,7 @@ void main() {
       fakePosts(b, empty: true);
       await tester.pumpWidget(buildApp(discover(b)));
       await settle(tester, const Duration(milliseconds: 600));
-      expect(find.byType(DiscoverPostCard), findsNothing);
+      expect(find.byType(DiscoverPostBox), findsNothing);
       expect(find.textContaining('Henüz gönderi yok'), findsOneWidget);
       await tester.pumpWidget(const SizedBox());
 
@@ -202,7 +206,7 @@ void main() {
       fp.failFeed = false;
       await tester.tap(find.text('Yeniden dene').first);
       await settle(tester, const Duration(milliseconds: 600));
-      expect(find.byType(DiscoverPostCard), findsWidgets);
+      expect(find.byType(DiscoverPostBox), findsWidgets);
       noErr(tester);
     });
 
@@ -235,7 +239,7 @@ void main() {
             if (rtl) page = Directionality(textDirection: TextDirection.rtl, child: page);
             await tester.pumpWidget(buildApp(page, brightness: br, size: size));
             await settle(tester, const Duration(milliseconds: 600));
-            expect(find.byType(DiscoverPostCard), findsWidgets);
+            expect(find.byType(DiscoverPostBox), findsWidgets);
             noErr(tester);
           });
         }
@@ -298,7 +302,7 @@ void main() {
       await tester.drag(find.byType(CustomScrollView).last, const Offset(0, -3000));
       await settle(tester, const Duration(milliseconds: 600));
       expect(seen.length, 2);
-      expect(find.byType(DiscoverPostCard), findsNWidgets(3));
+      expect(find.byType(DiscoverPostBox), findsNWidgets(3));
       noErr(tester);
     });
 
@@ -317,7 +321,7 @@ void main() {
       // 1) ilk sayfa, 2) bozuk imleç, 3) imlecsiz yeniden yukleme
       expect(seen.length, greaterThanOrEqualTo(3));
       expect(seen.last.queryParameters.containsKey('cursor'), isFalse);
-      expect(find.byType(DiscoverPostCard), findsNWidgets(2));
+      expect(find.byType(DiscoverPostBox), findsNWidgets(2));
       noErr(tester);
     });
 

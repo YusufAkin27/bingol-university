@@ -30,9 +30,9 @@ class LikeButton extends StatefulWidget {
     this.controller,
     this.countLabel,
     this.size,
-    this.onMedia = false,
     this.a11yCount,
     this.detail = false,
+    this.tile = false,
   });
 
   final Session session;
@@ -47,11 +47,13 @@ class LikeButton extends StatefulWidget {
   /// Kalp boyutu (varsayılan 26, kompaktta 22).
   final double? size;
 
-  /// Koyu görsel/gradyan üstünde: simge ve sayı `onMedia` rengiyle çizilir (beğenilince dolu beyaz kalp), 13 sp/600 tabular sayı.
-  final bool onMedia;
-
   /// Gönderi detayı (Stitch v3): beğenilmemiş kalp ink çizgi, sayı 15/600; beğenilince dolu `pr` kalp.
   final bool detail;
+
+  /// Keşfet kutusu (Stitch v3 kesfet2): fotoğraf üstünde, kutunun sağ altında SIKI satır: kalp ([size]) + 4 dp + sayı
+  /// (13/600 tabular `onMedia`); beğenilmiş kalp dolu beyaz. Görünür satır küçüktür, dokunma alanı en az 44 dp
+  /// yüksekliğinde (kutu içine taşar; satırın tamamı beğeni düğmesidir).
+  final bool tile;
 
   /// Yalnız ekran okuyucu için sayı metni (görünür sayı yalnız rakamsa): "284 beğeni".
   final String Function(int count)? a11yCount;
@@ -194,7 +196,7 @@ class _LikeButtonState extends State<LikeButton> with TickerProviderStateMixin {
     final tt = Theme.of(context).textTheme;
     final size = widget.size ?? (widget.compact ? 22.0 : 26.0);
     // Görsel üstü hapta beğeni kırmızı değil: dolu beyaz kalp (Stitch v3); normal yerde marka kırmızısı.
-    final color = widget.onMedia ? t.onMedia : (_liked ? t.pr : (widget.detail ? t.ink : t.mut));
+    final color = _liked ? t.pr : (widget.detail ? t.ink : t.mut);
     const box = 44.0;
     final scale = TweenSequence<double>([
       TweenSequenceItem(tween: Tween(begin: 1.0, end: 1.38).chain(CurveTween(curve: Curves.easeOut)), weight: 40),
@@ -232,12 +234,12 @@ class _LikeButtonState extends State<LikeButton> with TickerProviderStateMixin {
     );
 
     // Tabular rakamlar: sayı değişirken satır genişliği titremesin.
-    final style = (widget.onMedia
+    final style = (widget.tile
             ? tt.labelMedium?.copyWith(fontSize: 13, fontWeight: FontWeight.w600)
             : widget.detail
                 ? tt.titleSmall?.copyWith(fontSize: 15, fontWeight: FontWeight.w600)
                 : (widget.compact ? tt.titleSmall : tt.titleMedium))
-        ?.copyWith(color: widget.onMedia ? t.onMedia : t.ink, height: 1.2, fontFeatures: const [FontFeature.tabularFigures()]);
+        ?.copyWith(color: widget.tile ? t.onMedia : t.ink, height: 1.2, fontFeatures: const [FontFeature.tabularFigures()]);
     final countText = Text(_label(_count), key: const ValueKey('like-count'), maxLines: 1, style: style);
     final count = AnimatedBuilder(
       animation: _countAnim,
@@ -257,6 +259,8 @@ class _LikeButtonState extends State<LikeButton> with TickerProviderStateMixin {
         ]);
       },
     );
+
+    if (widget.tile) return _buildTile(context, count);
 
     return Row(mainAxisSize: MainAxisSize.min, children: [
       heart,
@@ -280,6 +284,47 @@ class _LikeButtonState extends State<LikeButton> with TickerProviderStateMixin {
           ),
         ),
     ]);
+  }
+
+  /// [LikeButton.tile] düzeni: kalp + sayı sıkı satırda; satırın tamamı 44 dp yüksekliğinde dokunma alanıdır.
+  Widget _buildTile(BuildContext context, Widget count) {
+    final t = context.bu;
+    final size = widget.size ?? 20.0;
+    final scale = TweenSequence<double>([
+      TweenSequenceItem(tween: Tween(begin: 1.0, end: 1.38).chain(CurveTween(curve: Curves.easeOut)), weight: 40),
+      TweenSequenceItem(tween: Tween(begin: 1.38, end: 1.0).chain(CurveTween(curve: Curves.easeInOut)), weight: 60),
+    ]).animate(_anim);
+    final icon = SizedBox(
+      key: const ValueKey('like-heart'),
+      width: size,
+      height: size,
+      child: AnimatedBuilder(
+        animation: _anim,
+        builder: (c, _) => Transform.scale(scale: scale.value, child: _HeartIcon(filled: _liked, color: t.onMedia, size: size)),
+      ),
+    );
+    return Semantics(
+      button: true,
+      label: _liked ? context.l10n.postViewUnlike : context.l10n.postViewLike,
+      value: widget.a11yCount?.call(_count),
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: _toggle,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minHeight: 44, minWidth: 44),
+          child: Padding(
+            padding: const EdgeInsetsDirectional.symmetric(horizontal: 6),
+            child: Row(mainAxisSize: MainAxisSize.min, mainAxisAlignment: MainAxisAlignment.center, children: [
+              icon,
+              if (_count > 0 || _countAnim.value < 1) ...[
+                const SizedBox(width: 4),
+                ExcludeSemantics(child: count),
+              ],
+            ]),
+          ),
+        ),
+      ),
+    );
   }
 }
 

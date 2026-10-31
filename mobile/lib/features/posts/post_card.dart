@@ -23,6 +23,7 @@ class PostPhoto extends StatelessWidget {
     this.radius = BuRadius.lg,
     this.aspectRatio = 4 / 5,
     this.progressive = false,
+    this.thumbOnly = false,
     this.heroTag,
   });
 
@@ -31,6 +32,10 @@ class PostPhoto extends StatelessWidget {
   final double radius;
   final double aspectRatio;
   final bool progressive;
+
+  /// Küçük kutu (Keşfet masonry): yalnız küçük resim (`thumbUrl`, yoksa tam boy) yüklenir; tam boy hiç indirilmez
+  /// (bellek ve veri tasarrufu). [progressive] yok sayılır.
+  final bool thumbOnly;
 
   /// Verilirse fotoğraf liste -> detay (ve detay -> tam ekran) geçişinde paylaşılan öğe (Hero) olarak uçar.
   /// Etiket aynı rota içinde benzersiz olmalı (kart + detay aynı etiketi, farklı rotalarda taşır).
@@ -55,6 +60,28 @@ class PostPhoto extends StatelessWidget {
           final w = c.maxWidth.isFinite ? c.maxWidth : 390.0;
           final px = (w * dpr).ceil().clamp(320, 1080);
           final fade = BuMotion.of(context, BuMotion.medium);
+          if (thumbOnly) {
+            final src = m.thumbUrl ?? m.url;
+            return Semantics(
+              image: true,
+              label: context.l10n.postComposePhoto,
+              child: ColoredBox(
+                color: t.sf2,
+                child: Image(
+                  image: persistentNetworkImage(src, headers: headers, cacheWidth: px),
+                  key: ValueKey(m.thumbUrl != null ? 'post-thumb-${post.id}' : 'post-photo-${post.id}'),
+                  fit: BoxFit.cover,
+                  width: double.infinity,
+                  height: double.infinity,
+                  gaplessPlayback: true,
+                  excludeFromSemantics: true,
+                  frameBuilder: (context, child, frame, sync) =>
+                      sync ? child : AnimatedOpacity(opacity: frame == null ? 0 : 1, duration: fade, curve: BuMotion.standard, child: child),
+                  errorBuilder: (_, __, ___) => Center(child: Icon(LucideIcons.image, color: t.mut)),
+                ),
+              ),
+            );
+          }
           return Semantics(
             image: true,
             label: context.l10n.postComposePhoto,
@@ -221,12 +248,12 @@ class _PostCardState extends State<PostCard> {
     final text = (p.text ?? '').trim();
     return Padding(
       key: _cardKey,
-      padding: const EdgeInsetsDirectional.only(bottom: BuSpace.lg),
+      padding: const EdgeInsetsDirectional.only(bottom: 14),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
-            padding: const EdgeInsetsDirectional.fromSTEB(BuSpace.page, BuSpace.sm, BuSpace.xs, BuSpace.sm),
+            padding: const EdgeInsetsDirectional.fromSTEB(BuSpace.page, 4, BuSpace.xs, 12),
             child: Row(children: [
               BuAvatar(name: p.author.displayName, url: p.author.avatarUrl, size: 40, headers: postAuthHeaders(widget.session)),
               BuGap.w12,
@@ -285,7 +312,7 @@ class _PostCardState extends State<PostCard> {
               ),
             ),
           Padding(
-            padding: const EdgeInsetsDirectional.fromSTEB(BuSpace.page, BuSpace.sm, BuSpace.page, 0),
+            padding: const EdgeInsetsDirectional.fromSTEB(BuSpace.page, 3, BuSpace.page, 0),
             child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
               LikeButton(session: widget.session, post: p, controller: _like, compact: true, size: 22, detail: true, onChanged: widget.onChanged),
               if (text.isNotEmpty) ...[

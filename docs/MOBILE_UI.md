@@ -28,7 +28,7 @@ Yeni ekran yalnızca kendi `features/<alan>/` klasöründe yazılır; ortak bile
 
 ## 3. Gezinme yapısı
 
-- `features/shell/app_shell.dart` alt sekmeli kabuktur. Sekmeler: **Ana Sayfa** (`HomeTab`), **Keşfet** (`DiscoverTab`), **Sohbet** (`ChatTab`), **Kulüpler** (`ClubsTab`), **Profil** (`ProfileTab`). Sekme dizinleri `AppTab` içindedir; Sohbet sekmesinde okunmamış rozeti gösterilir.
+- `features/shell/app_shell.dart` alt sekmeli kabuktur. Sekmeler: **Ana Sayfa** (`HomeTab`), **Keşfet** (`DiscoverTab`), **Sohbet** (`ChatTab`), **Kulüpler** (`ClubsTab`), **Profil** (`ProfileTab`). Sekme dizinleri `AppTab` içindedir; Sohbet sekmesinde okunmamış rozeti gösterilir. **Keşfet** iki sütun masonry'dir (`features/discover/masonry_layout.dart` paketsiz tembel `SliverGrid`; kutu `DiscoverPostBox`: foto + sol altta yazar, sağ altta beğeni, yalnız küçük resim yüklenir); kutuya dokununca gönderi sayfası (`PostDetailPage` + `PostStreamSeed`) o gönderiden başlayan aynı akışı dikey ve sonsuz kaydırmalı gösterir (ölçüler: `docs/design/BIREBIR_FEED.md` "Keşfet v2").
 - Diğer ekranlar sekme üstüne `Navigator.push` ile açılır (push sayfaları): haber/etkinlik/kulüp detayı, sohbet detayı, yeni sohbet, arama, bildirimler, yemek listesi, etkinlikler, kayıtlı haberler, profil düzenleme, ayarlar, destek, sözleşmeler, engellenenler vb.
 
 ## 4. API katmanı ve oturum kuralı

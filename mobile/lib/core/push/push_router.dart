@@ -89,7 +89,8 @@ class PushRouter {
         push(NewsDetailPage(session: s, item: <String, dynamic>{'id': id}));
         return true;
       case PushDest.post:
-        await openPostDetail(ctx, s, id!);
+        // Push/derin bağlantı: gönderi ilk sırada, altında akış sürer (alınamazsa yalnız o gönderi).
+        await openPostDetail(ctx, s, id!, stream: const PostStreamSeed.fresh());
         return true;
       case PushDest.poll:
         await openPollDetail(ctx, s, id!);

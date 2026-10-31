@@ -2,7 +2,7 @@ import 'package:bu_kampus/core/theme.dart';
 import 'package:bu_kampus/features/chat/bubble_entry.dart';
 import 'package:bu_kampus/features/chat/chat_tab.dart';
 import 'package:bu_kampus/features/chat/message_bubble.dart';
-import 'package:bu_kampus/features/discover/discover_masonry.dart' show DiscoverPostCard;
+import 'package:bu_kampus/features/discover/discover_masonry.dart' show DiscoverPostBox;
 import 'package:bu_kampus/features/discover/discover_tab.dart';
 import 'package:bu_kampus/features/posts/compose_post_page.dart';
 import 'package:bu_kampus/features/posts/post_detail_page.dart';
@@ -84,10 +84,10 @@ void main() {
       fakePosts(b);
       await tester.pumpWidget(buildApp(discover(b)));
       await settle(tester, const Duration(milliseconds: 400));
-      expect(find.byType(DiscoverPostCard), findsWidgets);
-      // Kademeli giris kapali: BuStaggerItem altinda kendi FadeTransition'i yok (cocuk dogrudan Padding).
+      expect(find.byType(DiscoverPostBox), findsWidgets);
+      // Kademeli giris kapali: BuStaggerItem altinda kendi FadeTransition'i yok (cocuk dogrudan masonry kutusu).
       final item = find.byType(BuStaggerItem).first;
-      expect(tester.widget<BuStaggerItem>(item).child, isA<Padding>());
+      expect(tester.widget<BuStaggerItem>(item).child, isA<DiscoverPostBox>());
       expect(find.descendant(of: item, matching: find.byType(SlideTransition)), findsNothing);
       noErr(tester);
     });
@@ -115,8 +115,8 @@ void main() {
       await settle(tester, const Duration(milliseconds: 700));
       expect(countTexts(card), findsOneWidget);
       expect(find.descendant(of: card, matching: find.byIcon(Icons.favorite)), findsOneWidget);
-      // Dokunma alani en az 44 dp.
-      expect(tester.getSize(like).height, greaterThanOrEqualTo(44));
+      // Kalp 20 dp; dokunma alani (kalp + sayi satirinin tamami) en az 44 dp yuksekliginde.
+      expect(tester.getSize(find.ancestor(of: like, matching: find.byType(GestureDetector)).first).height, greaterThanOrEqualTo(44));
       noErr(tester);
     });
 
@@ -138,11 +138,12 @@ void main() {
       noErr(tester);
     });
 
-    testWidgets('cift dokunus: buyuk kalp belirir, solar, bir kez beginir (PUT)', (tester) async {
+    testWidgets('cift dokunus (gonderi sayfasi): buyuk kalp belirir, solar, bir kez beginir (PUT)', (tester) async {
       useScreen(tester, const Size(390, 844));
       final b = FakeBackend();
       fakePosts(b);
-      await tester.pumpWidget(buildApp(discover(b)));
+      // Kesfet kutusunda cift dokunus yok (tek dokunus gecikmesiz gonderi sayfasini acar); gonderi sayfasinda var.
+      await tester.pumpWidget(buildApp(PostDetailPage(session: makeSession(b), postId: 999)));
       await settle(tester, const Duration(milliseconds: 1500));
       final photo = find.byKey(const ValueKey('post-photo-999'));
       await tester.ensureVisible(photo);
@@ -167,11 +168,10 @@ void main() {
       fakePosts(b);
       await tester.pumpWidget(buildApp(discover(b)));
       await settle(tester, const Duration(milliseconds: 1500));
-      final photo = find.byKey(const ValueKey('post-photo-999'));
+      final photo = find.byKey(const ValueKey('post-thumb-999'));
       await tester.ensureVisible(photo);
       await tester.pump();
       await tester.tap(photo, warnIfMissed: false);
-      await tester.pump(const Duration(milliseconds: 350)); // cift dokunus bekleme suresi
       await tester.pump(const Duration(milliseconds: 100));
       final heroes = find.byWidgetPredicate((w) => w is Hero && w.tag == 'discover-post-999', skipOffstage: false);
       expect(heroes, findsAtLeastNWidgets(2));

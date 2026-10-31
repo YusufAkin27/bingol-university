@@ -8,8 +8,9 @@ import '../search/search_page.dart';
 import 'discover_masonry.dart';
 import 'discover_suggestions.dart';
 
-/// Keşfet sekmesi: yalnız öğrenci gönderileri, tek sütun, fotoğraf öncelikli akış.
-/// Başlık + arama/gönderi paylaş simgeleri, Tümü/Popüler çipleri, akış (öneriler akışın 3. gönderisinden sonra).
+/// Keşfet sekmesi: yalnız öğrenci gönderileri, iki sütun masonry (blok blok) fotoğraf akışı.
+/// Başlık + arama/gönderi paylaş simgeleri, Tümü/Popüler çipleri, akış (öneriler masonry'nin ilk 4 kutusundan sonra tam
+/// genişlik bant olarak araya girer).
 class DiscoverTab extends StatefulWidget {
   const DiscoverTab({super.key, required this.session, required this.typeRequest});
 
@@ -26,6 +27,9 @@ class DiscoverTab extends StatefulWidget {
 class _DiscoverTabState extends State<DiscoverTab> {
   final _feedController = DiscoverFeedController();
   String _scope = 'top';
+
+  /// Öneri yok/yüklenemedi: bant hiç kurulmaz, masonry kesintisiz tek ızgara olur.
+  bool _noSuggestions = false;
 
   @override
   void initState() {
@@ -75,7 +79,13 @@ class _DiscoverTabState extends State<DiscoverTab> {
         scope: _scope,
         header: _header(context),
         onCompose: _compose,
-        inline: DiscoverSuggestions(session: widget.session),
+        inline: _noSuggestions
+            ? null
+            : DiscoverSuggestions(
+                session: widget.session,
+                onUnavailable: () {
+                  if (mounted && !_noSuggestions) setState(() => _noSuggestions = true);
+                }),
       ),
     );
   }
@@ -117,7 +127,9 @@ class _DiscoverTabState extends State<DiscoverTab> {
           ]),
         ),
         Padding(
-          padding: const EdgeInsets.fromLTRB(BuSpace.page, BuSpace.sm, BuSpace.page, BuSpace.lg),
+          // Stitch v3 kesfet2: çip satırı başlık satırının hemen altında; çipin 48 dp dokunma alanı görünür kutunun 7 dp
+          // dışına taşar, 4 dp ek boşlukla ilk kutu görünür çipin 12 dp altında başlar.
+          padding: const EdgeInsets.fromLTRB(BuSpace.page, 0, BuSpace.page, BuSpace.xs),
           child: Row(children: [
             BuChip(
                 key: const ValueKey('discoverChipAll'),

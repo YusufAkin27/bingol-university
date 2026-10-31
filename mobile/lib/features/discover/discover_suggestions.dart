@@ -13,9 +13,12 @@ import '../../core/academic_catalog.dart';
 /// Keşfet: "Tanıyor Olabilirsin" yatay kart şeridi (`GET /users/me/follow-suggestions`). Akışın içine girer (ilk
 /// çizimi geciktirmesin diye istek yalnız şerit kurulunca atılır). Öneri yoksa ya da yüklenemezse bölüm görünmez.
 class DiscoverSuggestions extends StatefulWidget {
-  const DiscoverSuggestions({super.key, required this.session});
+  const DiscoverSuggestions({super.key, required this.session, this.onUnavailable});
 
   final Session session;
+
+  /// Öneri yok ya da yüklenemedi (bölüm görünmez): masonry, bant için bölünmüş ızgarayı tek ızgaraya geri birleştirir.
+  final VoidCallback? onUnavailable;
 
   @override
   State<DiscoverSuggestions> createState() => _DiscoverSuggestionsState();
@@ -34,9 +37,13 @@ class _DiscoverSuggestionsState extends State<DiscoverSuggestions> {
   Future<void> _load() async {
     try {
       final r = await SocialApi(widget.session).followSuggestions(size: 10);
-      if (mounted) setState(() => _items = r);
+      if (!mounted) return;
+      setState(() => _items = r);
+      if (r.isEmpty) widget.onUnavailable?.call();
     } catch (_) {
-      if (mounted) setState(() => _failed = true);
+      if (!mounted) return;
+      setState(() => _failed = true);
+      widget.onUnavailable?.call();
     }
   }
 
@@ -49,12 +56,12 @@ class _DiscoverSuggestionsState extends State<DiscoverSuggestions> {
     if (_failed || (items != null && items.isEmpty)) return const SizedBox.shrink();
     return Padding(
       key: const ValueKey('discoverSuggestions'),
-      padding: const EdgeInsets.only(top: BuSpace.sm, bottom: BuSpace.xxxl),
+      padding: const EdgeInsets.only(bottom: 24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
-            padding: const EdgeInsetsDirectional.fromSTEB(BuSpace.page, 0, BuSpace.page, BuSpace.sm),
+            padding: const EdgeInsetsDirectional.fromSTEB(BuSpace.page, 0, BuSpace.page, 0),
             child: Row(children: [
               Expanded(
                 child: Text(l.p04SuggestTitle,
@@ -79,7 +86,7 @@ class _DiscoverSuggestionsState extends State<DiscoverSuggestions> {
             ]),
           ),
           SizedBox(
-            height: 172 * (MediaQuery.textScalerOf(context).scale(14) / 14).clamp(1.0, 1.6),
+            height: 148 * (MediaQuery.textScalerOf(context).scale(14) / 14).clamp(1.0, 1.6),
             child: items == null
                 ? const BuSkeletonScope(child: _SuggestionSkeletonRow())
                 : ListView.separated(

@@ -11,7 +11,7 @@ import 'package:bu_kampus/features/posts/post_detail_page.dart';
 import 'package:bu_kampus/features/posts/post_media_uploader.dart';
 import 'package:bu_kampus/features/posts/post_models.dart' show PostMedia;
 import 'package:bu_kampus/features/posts/user_posts_page.dart';
-import 'package:bu_kampus/widgets/bu.dart' show BuButton, LucideIcons;
+import 'package:bu_kampus/widgets/bu.dart' show BuButton, BuHero, LucideIcons;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -112,7 +112,7 @@ void main() {
       await settle(tester, const Duration(milliseconds: 1500));
       expect(find.byKey(const ValueKey('discoverOffline')), findsOneWidget);
       expect(find.text('Çevrimdışısın. Gösterilen gönderiler eski olabilir.'), findsOneWidget);
-      expect(find.byType(DiscoverPostCard), findsWidgets);
+      expect(find.byType(DiscoverPostBox), findsWidgets);
       final box = tester.widget<DecoratedBox>(find.descendant(of: find.byKey(const ValueKey('discoverOffline')), matching: find.byType(DecoratedBox)).first);
       expect((box.decoration as BoxDecoration).color, BuTokens.light.warnSoft);
       expect(find.descendant(of: find.byKey(const ValueKey('discoverOffline')), matching: find.byType(Icon)), findsNothing);
@@ -152,8 +152,8 @@ void main() {
     });
   });
 
-  group('Kesfet gorsel oncelikli kart (Stitch v3 yon A)', () {
-    testWidgets('gorsel karti tam kaplar, 24 dp kose, alt %28 gradyan, ad onMedia 15, hap 44, kart sarmalayici/golge yok, metin tek satir', (tester) async {
+  group('Kesfet masonry kutusu (Stitch v3 kesfet2 A; onceki tek sutun kart kalkti)', () {
+    testWidgets('kutu 179 dp, 4:5 -> 224 dp, 16 dp kose, alt %42 gradyan, ad onMedia 13, kalp 20 dp (dokunma 44), kart sarmalayici/golge yok', (tester) async {
       useScreen(tester, const Size(390, 844));
       final b = FakeBackend();
       fakePosts(b);
@@ -161,36 +161,37 @@ void main() {
       await settle(tester, const Duration(milliseconds: 1200));
       final card = find.byKey(const ValueKey('discover-post-999'));
       expect(card, findsOneWidget);
-      // Kenar 20 dp: kart genisligi 350.
-      expect(tester.getSize(card).width, 350);
+      // Kenar 12 dp, sutun arasi 8: kutu genisligi 179, 4:5 -> 224 dp.
+      expect(tester.getSize(card).width, 179);
+      expect(tester.getSize(card).height, closeTo(224, 1));
       final ratio = find.descendant(of: card, matching: find.byType(AspectRatio)).first;
       expect(tester.widget<AspectRatio>(ratio).aspectRatio, closeTo(.8, .001));
-      expect(tester.getSize(ratio).width, 350);
-      final clip = tester.widget<ClipRRect>(find.descendant(of: card, matching: find.byType(ClipRRect)).first);
-      expect(clip.borderRadius, BorderRadius.circular(24));
-      final grad = find.descendant(of: card, matching: find.byWidgetPredicate((w) => w is FractionallySizedBox && w.heightFactor == .28));
+      final hero = tester.widget<BuHero>(find.descendant(of: card, matching: find.byType(BuHero)));
+      expect(hero.radius, 16);
+      final grad = find.descendant(of: card, matching: find.byWidgetPredicate((w) => w is FractionallySizedBox && w.heightFactor == .42));
       expect(grad, findsOneWidget);
+      expect(shadowBoxes(tester, card), 0);
       // Beyaz kart yuzeyi yok: gorsel disinda sf dolgulu DecoratedBox bulunmaz.
       expect(find.descendant(of: card, matching: find.byWidgetPredicate((w) => w is DecoratedBox && w.decoration is BoxDecoration && (w.decoration as BoxDecoration).color == BuTokens.light.sf)), findsNothing);
       final heart = find.descendant(of: card, matching: find.byKey(const ValueKey('like-heart')));
-      expect(tester.getSize(heart).height, 44);
+      expect(tester.getSize(heart), const Size(20, 20));
       final name = tester.widget<Text>(find.descendant(of: card, matching: find.text('Ayşe Yılmaz')).first);
       expect(name.style?.color, BuTokens.light.onMedia);
-      expect(name.style?.fontSize, 15);
+      expect(name.style?.fontSize, 13);
+      expect(name.maxLines, 1);
       noErr(tester);
     });
 
-    testWidgets('gonderi metni gorselin altinda tek satir (ellipsis), 15 sp', (tester) async {
+    testWidgets('gonderi metni kutuda yok (yalniz gonderi sayfasinda); menu dugmesi kutuda yok', (tester) async {
       useScreen(tester, const Size(390, 844));
       final b = FakeBackend();
       final fp = fakePosts(b);
       fp.posts[1]['text'] = 'Yedi kelimelik bir metin burada yaziyor gercekten';
       await tester.pumpWidget(buildApp(DiscoverTab(session: makeSession(b), typeRequest: ValueNotifier<String?>(null))));
       await settle(tester, const Duration(milliseconds: 1200));
-      final t = tester.widget<Text>(find.descendant(of: find.byKey(const ValueKey('discover-post-999')), matching: find.byKey(const ValueKey('post-text'))));
-      expect(t.maxLines, 1);
-      expect(t.style?.fontSize, 15);
-      expect(t.overflow, TextOverflow.ellipsis);
+      expect(find.byKey(const ValueKey('post-text')), findsNothing);
+      expect(find.textContaining('Yedi kelimelik'), findsNothing);
+      expect(find.byKey(const ValueKey('post-menu-button')), findsNothing);
       noErr(tester);
     });
   });

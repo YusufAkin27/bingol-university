@@ -56,24 +56,39 @@ void main() {
       noErr(tester);
     });
 
-    testWidgets('fotograf: kucuk resim katmani + tam boy, cozumleme genisligi ekrana gore sinirli', (tester) async {
+    testWidgets('masonry kutusu yalniz kucuk resim yukler (tam boy yok); detay fotografi kucuk resim + tam boy', (tester) async {
       useScreen(tester, const Size(390, 844));
       final b = FakeBackend();
       fakePosts(b);
       await tester.pumpWidget(buildApp(discover(b)));
       await settle(tester, const Duration(milliseconds: 600));
-      final full = find.byKey(const ValueKey('post-photo-999'));
+      // Kesfet kutusu (179 dp): tam boy indirilmez, yalniz `thumbUrl` katmani vardir (bellek/veri tasarrufu).
+      expect(find.byKey(const ValueKey('post-photo-999')), findsNothing);
       final thumb = find.byKey(const ValueKey('post-thumb-999'));
-      expect(full, findsOneWidget);
       expect(thumb, findsOneWidget);
       int? decodeW(Finder f) {
         final img = tester.widget<Image>(f).image;
         return img is ResizeImage ? img.width : null;
       }
 
-      // 338 dp x dpr 1 (test) -> alt sinir 320; hicbir zaman 1080 px'i asmaz.
+      // 179 dp x dpr 1 (test) -> alt sinir 320; hicbir zaman 1080 px'i asmaz.
+      expect(decodeW(thumb)!, inInclusiveRange(320, 1080));
+      await tester.pumpWidget(const SizedBox());
+
+      // Gonderi sayfasi / detay fotografi (progressive): once kucuk resim, ustunde tam boy.
+      await tester.pumpWidget(buildApp(Scaffold(
+        body: PostPhoto(
+          session: makeSession(b),
+          post: Post.fromJson(samplePost(id: 999, media: [samplePostMedia(id: 9990)])),
+          progressive: true,
+        ),
+      )));
+      await tester.pump(const Duration(milliseconds: 100));
+      final full = find.byKey(const ValueKey('post-photo-999'));
+      expect(full, findsOneWidget);
+      expect(find.byKey(const ValueKey('post-thumb-999')), findsOneWidget);
       expect(decodeW(full)!, inInclusiveRange(320, 1080));
-      expect(decodeW(thumb)!, lessThanOrEqualTo(480));
+      expect(decodeW(find.byKey(const ValueKey('post-thumb-999')))!, lessThanOrEqualTo(480));
       noErr(tester);
     });
 
@@ -93,7 +108,7 @@ void main() {
       noErr(tester);
     });
 
-    testWidgets('oneri seridi 3. gonderiden sonra akisin icinde (once degil)', (tester) async {
+    testWidgets('oneri seridi masonry\'nin ilk 4 kutusundan sonra tam genislik, akisin icinde (once degil)', (tester) async {
       useScreen(tester, const Size(390, 844));
       final b = FakeBackend();
       fakePosts(b);
@@ -104,13 +119,17 @@ void main() {
       });
       await tester.pumpWidget(buildApp(discover(b)));
       await settle(tester, const Duration(milliseconds: 600));
-      await tester.scrollUntilVisible(find.text('Tanıyor Olabilirsin'), 300, scrollable: find.byType(Scrollable).first);
-      await settle(tester, const Duration(milliseconds: 600));
-      final y = tester.getTopLeft(find.byKey(const ValueKey('discoverSuggestions'))).dy;
-      // Akis sirasi: 1000, 999, 998, [oneriler], 997 ...: 4. gonderi seridin altinda, 3. gonderi ustunde ya da ekran disinda.
-      expect(tester.getTopLeft(find.byKey(const ValueKey('discover-post-997'))).dy, greaterThan(y));
-      expect(find.byKey(const ValueKey('discover-post-998')).evaluate().isEmpty ||
-          tester.getTopLeft(find.byKey(const ValueKey('discover-post-998'))).dy < y, isTrue);
+      final band = find.byKey(const ValueKey('discoverSuggestions'));
+      final y = tester.getTopLeft(band).dy;
+      // Akis sirasi: 1000, 999, 998, 997, [oneriler], 996 ...: ilk 4 kutu seridin ustunde (alt kenari seridin ustunde),
+      // 5. kutu seridin altinda (yeni bir izgara olarak surer). Serit kenardan kenara tam genislik.
+      for (final id in [1000, 999, 998, 997]) {
+        final r = tester.getRect(find.byKey(ValueKey('discover-post-$id')));
+        expect(r.bottom, lessThanOrEqualTo(y), reason: 'kutu $id');
+      }
+      final after = find.byKey(const ValueKey('discover-post-996'));
+      if (after.evaluate().isNotEmpty) expect(tester.getTopLeft(after).dy, greaterThan(tester.getBottomLeft(band).dy - 1));
+      expect(tester.getSize(band).width, 390);
       noErr(tester);
     });
 
@@ -142,10 +161,10 @@ void main() {
       await tester.pump(const Duration(milliseconds: 100));
       // Ag yaniti 2 sn sonra gelecek; liste yine de simdi gorunur (onbellekten), iskelet yok.
       expect(find.byKey(const ValueKey('discoverSkeleton')), findsNothing);
-      expect(find.byType(DiscoverPostCard), findsWidgets);
+      expect(find.byType(DiscoverPostBox), findsWidgets);
       await settle(tester, const Duration(seconds: 3));
       expect(b.requests.where((r) => r.contains('/feed')).length, greaterThan(before)); // arka planda dogrulandi
-      expect(find.byType(DiscoverPostCard), findsWidgets);
+      expect(find.byType(DiscoverPostBox), findsWidgets);
       noErr(tester);
     });
 
@@ -160,7 +179,7 @@ void main() {
       expect(find.byKey(const ValueKey('discoverSkeleton')), findsOneWidget);
       noErr(tester);
       await settle(tester, const Duration(milliseconds: 800));
-      expect(find.byType(DiscoverPostCard), findsWidgets);
+      expect(find.byType(DiscoverPostBox), findsWidgets);
       noErr(tester);
     });
   });
