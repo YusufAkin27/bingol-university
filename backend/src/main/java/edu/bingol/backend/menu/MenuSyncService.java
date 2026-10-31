@@ -59,16 +59,21 @@ public class MenuSyncService {
             }
             int changed = 0;
             for (MenuScraper.Day d : days) {
-                String items = String.join("\n", d.items());
-                MenuDay row = repo.findByMenuDate(d.date()).orElseGet(() -> {
-                    MenuDay m = new MenuDay();
-                    m.setMenuDate(d.date());
-                    return m;
-                });
-                if (!items.equals(row.getItems())) {
-                    row.setItems(items);
-                    repo.save(row);
-                    changed++;
+                // Tek gunun hatasi (uzun metin, kisit ihlali) tum senkronu bakima sokmasin: o gunu atla, devam et
+                try {
+                    String items = fit(String.join("\n", d.items()));
+                    MenuDay row = repo.findByMenuDate(d.date()).orElseGet(() -> {
+                        MenuDay m = new MenuDay();
+                        m.setMenuDate(d.date());
+                        return m;
+                    });
+                    if (!items.equals(row.getItems())) {
+                        row.setItems(items);
+                        repo.save(row);
+                        changed++;
+                    }
+                } catch (Exception e) {
+                    log.warn("Yemek gunu atlandi ({}): {}", d.date(), e.toString());
                 }
             }
             status.markOk(StatusService.MENU, null);
