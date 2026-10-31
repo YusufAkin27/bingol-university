@@ -6913,6 +6913,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get updateRequiredRecheck => 'تحقق مرة أخرى';
 
   @override
+  String get updateRequiredFromStore => 'يرجى التحديث من المتجر';
+
+  @override
   String get legalReacceptTitle => 'تم تحديث الاتفاقيات';
 
   @override

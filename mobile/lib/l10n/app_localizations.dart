@@ -12805,6 +12805,12 @@ abstract class AppLocalizations {
   /// **'Tekrar kontrol et'**
   String get updateRequiredRecheck;
 
+  /// No description provided for @updateRequiredFromStore.
+  ///
+  /// In tr, this message translates to:
+  /// **'Mağazadan güncelleyin'**
+  String get updateRequiredFromStore;
+
   /// No description provided for @legalReacceptTitle.
   ///
   /// In tr, this message translates to:

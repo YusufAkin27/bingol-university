@@ -26,11 +26,17 @@ int compareVersions(String a, String b) {
 }
 
 /// Yalnızca https adresler mağaza bağlantısı olarak kabul edilir.
-bool isSafeStoreUrl(String? u) {
-  if (u == null) return false;
-  final uri = Uri.tryParse(u);
-  return uri != null && uri.scheme == 'https' && uri.host.isNotEmpty;
-}
+bool isSafeStoreUrl(String? u) => isHttpsStoreUrl(u);
+
+/// Sunucu güncelleme metni üst sınırı (sunucu 280'e sınırlar; savunma amaçlı).
+const int kMaxUpdateMessage = 400;
+
+/// Öne dönüşte sürüm/bakım yoklaması en sık bu aralıkla yapılır (ağ hatasında sessiz, açılışta ayrıca yapılır).
+const Duration kResumeCheckGap = Duration(minutes: 15);
+
+/// Öne dönüşte yeniden kontrol gerekir mi: hiç kontrol yoksa ya da son kontrolden [gap] geçtiyse.
+bool shouldRecheckOnResume(DateTime? lastCheck, DateTime now, {Duration gap = kResumeCheckGap}) =>
+    lastCheck == null || now.difference(lastCheck) >= gap;
 
 enum GateKind { none, updateRequired, updateAvailable }
 
@@ -38,6 +44,8 @@ class GateDecision {
   const GateDecision({
     this.kind = GateKind.none,
     this.storeUrl,
+    this.marketUrl,
+    this.message,
     this.latest,
     this.maintenance = false,
     this.maintenanceMessage,
@@ -45,6 +53,12 @@ class GateDecision {
   });
   final GateKind kind;
   final String? storeUrl;
+
+  /// Doğrudan mağaza şeması (market:// / itms-apps://); önce denenir, olmazsa [storeUrl].
+  final String? marketUrl;
+
+  /// Yönetici güncelleme metni (istek dilinde); yoksa ekran varsayılan metni gösterir.
+  final String? message;
   final String? latest;
   final bool maintenance;
   final String? maintenanceMessage;
@@ -57,9 +71,19 @@ GateDecision decideGate(Map<String, dynamic>? version, Map<String, dynamic>? inf
   var kind = GateKind.none;
   String? latest;
   String? store;
+  String? market;
+  String? message;
   if (version != null) {
     latest = version['latestVersion'] as String?;
-    store = version['storeUrl'] as String?;
+    final su = version['storeUrl'];
+    store = su is String ? su : null;
+    final mu = version['marketUrl'];
+    market = mu is String ? mu : null;
+    final msg = version['message'];
+    if (msg is String && msg.trim().isNotEmpty) {
+      final m = msg.trim();
+      message = m.length > kMaxUpdateMessage ? m.substring(0, kMaxUpdateMessage) : m;
+    }
     if (version['updateRequired'] == true) {
       kind = GateKind.updateRequired;
     } else if (version['updateAvailable'] == true ||
@@ -68,12 +92,15 @@ GateDecision decideGate(Map<String, dynamic>? version, Map<String, dynamic>? inf
     }
   }
   if (!isSafeStoreUrl(store)) store = null;
+  if (!isSafeMarketUrl(market)) market = null;
   final m = info?['maintenance'];
   final maint = m is Map && m['enabled'] == true;
   String? nonEmpty(Object? v) => v is String && v.trim().isNotEmpty ? v.trim() : null;
   return GateDecision(
     kind: kind,
     storeUrl: store,
+    marketUrl: market,
+    message: message,
     latest: latest,
     maintenance: maint,
     maintenanceMessage: maint ? nonEmpty(m['message']) : null,
@@ -104,7 +131,6 @@ class AppGate extends StatefulWidget {
 }
 
 class _AppGateState extends State<AppGate> with WidgetsBindingObserver {
-  static const _minGap = Duration(minutes: 5);
   static const _noticeKey = 'update_notice_shown';
 
   GateDecision _d = const GateDecision();
@@ -138,8 +164,8 @@ class _AppGateState extends State<AppGate> with WidgetsBindingObserver {
   void didChangeAppLifecycleState(AppLifecycleState s) {
     if (s == AppLifecycleState.resumed) {
       widget.api.outbox?.nudge(); // bekleyen mesajlar hemen denenir
-      final last = _lastCheck;
-      if (last == null || DateTime.now().difference(last) >= _minGap) _check(force: true);
+      // Zorunlu güncelleme uygulama günlerce arka planda kalsa da devreye girsin: öne dönüşte (15 dk'da bir; kilit açıkken her dönüşte) tazelenir.
+      if (_d.kind == GateKind.updateRequired || shouldRecheckOnResume(_lastCheck, DateTime.now())) _check(force: true);
       Analytics.instance.appOpen();
     } else if (s == AppLifecycleState.paused) {
       Analytics.instance.flush();
@@ -202,7 +228,14 @@ class _AppGateState extends State<AppGate> with WidgetsBindingObserver {
   Widget build(BuildContext context) {
     final child = widget.child ?? const SizedBox.shrink();
     if (_d.kind == GateKind.updateRequired) {
-      return UpdateRequiredScreen(storeUrl: _d.storeUrl, latest: _d.latest, current: appVersion, onRetry: () => _check(force: true));
+      return UpdateRequiredScreen(
+        storeUrl: _d.storeUrl,
+        marketUrl: _d.marketUrl,
+        message: _d.message,
+        latest: _d.latest,
+        current: appVersion,
+        onRetry: () => _check(force: true),
+      );
     }
     final l = context.l10n;
     final strips = <Widget>[
@@ -244,6 +277,7 @@ class _AppGateState extends State<AppGate> with WidgetsBindingObserver {
             child: UpdateNotice(
               latest: _d.latest,
               storeUrl: _d.storeUrl,
+              marketUrl: _d.marketUrl,
               onClose: () => setState(() => _noticeVisible = false),
             ),
           ),

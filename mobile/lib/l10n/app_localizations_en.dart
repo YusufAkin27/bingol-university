@@ -6977,6 +6977,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get updateRequiredRecheck => 'Check again';
 
   @override
+  String get updateRequiredFromStore => 'Please update from the store';
+
+  @override
   String get legalReacceptTitle => 'Agreements updated';
 
   @override

@@ -4,12 +4,54 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../core/locale_controller.dart';
 import '../../widgets/bu.dart';
 
+/// Mağaza açıcı; testte sahte bir açıcıyla değiştirilir. Gerçek davranış: dış uygulamada açar, açamazsa false döner.
+typedef StoreLauncher = Future<bool> Function(Uri uri);
+
+Future<bool> _defaultLauncher(Uri uri) => launchUrl(uri, mode: LaunchMode.externalApplication);
+
+@visibleForTesting
+StoreLauncher storeLauncher = _defaultLauncher;
+
+/// Güvenli https mağaza bağlantısı mı (yalnız https ve ana makine dolu).
+bool isHttpsStoreUrl(String? u) {
+  if (u == null) return false;
+  final uri = Uri.tryParse(u);
+  return uri != null && uri.scheme == 'https' && uri.host.isNotEmpty;
+}
+
+/// Doğrudan mağaza şeması mı: Android `market://details?id=...`, iOS `itms-apps://apps.apple.com/...`.
+/// Başka hiçbir şemaya (http, javascript, intent, tel ...) izin verilmez.
+bool isSafeMarketUrl(String? u) {
+  if (u == null) return false;
+  final uri = Uri.tryParse(u);
+  if (uri == null) return false;
+  if (uri.scheme == 'market') return uri.host == 'details' && uri.queryParameters['id']?.isNotEmpty == true;
+  if (uri.scheme == 'itms-apps' || uri.scheme == 'itms-appss') return uri.host == 'apps.apple.com';
+  return false;
+}
+
+/// Güncelle düğmesinin gidebileceği en az bir güvenli adres var mı.
+bool hasStoreTarget({String? marketUrl, String? storeUrl}) => isSafeMarketUrl(marketUrl) || isHttpsStoreUrl(storeUrl);
+
+/// Mağazayı açar: önce doğrudan şema ([marketUrl]), açılamazsa https [storeUrl]. İkisi de yoksa/açılmazsa false
+/// (çağıran ölü düğme göstermemek için [hasStoreTarget] ile önceden kontrol eder).
+Future<bool> openStoreLinks({String? marketUrl, String? storeUrl}) async {
+  final targets = <Uri>[
+    if (isSafeMarketUrl(marketUrl)) Uri.parse(marketUrl!),
+    if (isHttpsStoreUrl(storeUrl)) Uri.parse(storeUrl!),
+  ];
+  for (final uri in targets) {
+    try {
+      if (await storeLauncher(uri)) return true;
+    } catch (_) {
+      // sıradaki adres denenir
+    }
+  }
+  return false;
+}
+
 Future<void> openStore(String? url) async {
-  final uri = url == null ? null : Uri.tryParse(url);
-  if (uri == null || uri.scheme != 'https' || uri.host.isEmpty) return;
-  try {
-    await launchUrl(uri, mode: LaunchMode.externalApplication);
-  } catch (_) {}
+  await openStoreLinks(storeUrl: url);
 }
 
 /// Tam ekran sistem durumlarının ortak iskeleti (04 grubu): üstte isteğe bağlı şerit, ortada içerik,
@@ -209,9 +251,15 @@ class _GateLink extends StatelessWidget {
 
 /// Kapatılamaz zorunlu güncelleme ekranı (04/2). [latest]/[current] çağıranlar için korunur; ekranda sürüm hapı yok (sade).
 class UpdateRequiredScreen extends StatelessWidget {
-  const UpdateRequiredScreen({super.key, required this.storeUrl, this.latest, this.current, this.onRetry});
+  const UpdateRequiredScreen({super.key, required this.storeUrl, this.marketUrl, this.message, this.latest, this.current, this.onRetry});
 
   final String? storeUrl;
+
+  /// Doğrudan mağaza şeması (market:// / itms-apps://); önce denenir, olmazsa [storeUrl].
+  final String? marketUrl;
+
+  /// Yönetici metni (sunucudan, istek dilinde); doluysa varsayılan açıklamanın yerine gösterilir.
+  final String? message;
 
   /// Gerekli (en yeni) sürüm.
   final String? latest;
@@ -226,7 +274,8 @@ class UpdateRequiredScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.bu;
     final l = context.l10n;
-    final canOpen = storeUrl != null && Uri.tryParse(storeUrl!)?.scheme == 'https';
+    final canOpen = hasStoreTarget(marketUrl: marketUrl, storeUrl: storeUrl);
+    final custom = message?.trim();
     return PopScope(
       canPop: false,
       child: Scaffold(
@@ -237,7 +286,18 @@ class UpdateRequiredScreen extends StatelessWidget {
             children: [
               const _GateIcon(icon: LucideIcons.download),
               const SizedBox(height: 24),
-              _GateText(title: l.updateRequiredTitle, body: l.updateRequiredBody),
+              _GateText(title: l.updateRequiredTitle, body: custom != null && custom.isNotEmpty ? custom : l.updateRequiredBody),
+              if (!canOpen) ...[
+                // Mağaza adresi yok: ölü düğme yerine ne yapılacağı söylenir.
+                const SizedBox(height: 16),
+                BuStaggerItem(
+                  index: 2,
+                  child: Text(l.updateRequiredFromStore,
+                      key: const ValueKey('update-from-store'),
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context).textTheme.labelLarge!.copyWith(color: t.ink, fontWeight: FontWeight.w700)),
+                ),
+              ],
               if (current != null) ...[
                 const SizedBox(height: 16),
                 // Kutusuz tek soluk satır; "gerekli sürüm" yalnız API verdiyse eklenir (uydurma yok).
@@ -250,7 +310,7 @@ class UpdateRequiredScreen extends StatelessWidget {
             ],
           ),
           actions: [
-            if (canOpen) BuButton(label: l.commonUpdate, onPressed: () => openStore(storeUrl)),
+            if (canOpen) BuButton(label: l.commonUpdate, onPressed: () => openStoreLinks(marketUrl: marketUrl, storeUrl: storeUrl)),
             if (onRetry != null)
               if (canOpen)
                 _GateLink(key: const ValueKey('update-recheck'), label: l.updateRequiredRecheck, icon: LucideIcons.refreshCw, onPressed: onRetry!)
@@ -535,10 +595,11 @@ class GateNoticeStrip extends StatelessWidget {
 
 /// Kapatılabilir "yeni sürüm var" alt bildirimi (05/3): yüzen kart; Güncelle + kapat.
 class UpdateNotice extends StatelessWidget {
-  const UpdateNotice({super.key, required this.latest, required this.storeUrl, required this.onClose});
+  const UpdateNotice({super.key, required this.latest, required this.storeUrl, this.marketUrl, required this.onClose});
 
   final String? latest;
   final String? storeUrl;
+  final String? marketUrl;
   final VoidCallback onClose;
 
   @override
@@ -546,7 +607,7 @@ class UpdateNotice extends StatelessWidget {
     final t = context.bu;
     final l = context.l10n;
     final tx = Theme.of(context).textTheme;
-    final canOpen = storeUrl != null && Uri.tryParse(storeUrl!)?.scheme == 'https';
+    final canOpen = hasStoreTarget(marketUrl: marketUrl, storeUrl: storeUrl);
     return Material(
       color: t.sf3,
       elevation: 6,
@@ -583,7 +644,7 @@ class UpdateNotice extends StatelessWidget {
             ),
             if (canOpen) ...[
               const SizedBox(width: 8),
-              BuButton(label: l.commonUpdate, compact: true, onPressed: () => openStore(storeUrl)),
+              BuButton(label: l.commonUpdate, compact: true, onPressed: () => openStoreLinks(marketUrl: marketUrl, storeUrl: storeUrl)),
             ],
             IconButton(
               tooltip: l.commonClose,

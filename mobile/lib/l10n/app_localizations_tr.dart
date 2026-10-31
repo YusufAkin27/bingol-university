@@ -6949,6 +6949,9 @@ class AppLocalizationsTr extends AppLocalizations {
   String get updateRequiredRecheck => 'Tekrar kontrol et';
 
   @override
+  String get updateRequiredFromStore => 'Mağazadan güncelleyin';
+
+  @override
   String get legalReacceptTitle => 'Sözleşmeler güncellendi';
 
   @override
