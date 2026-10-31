@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../core/cache/image_disk_cache.dart';
 import '../core/locale_controller.dart';
 import '../l10n/app_localizations.dart';
 import '../core/typography.dart';
@@ -211,14 +212,14 @@ class NewsThumb extends StatelessWidget {
     if (url == null || url!.isEmpty) return box;
     return ClipRRect(
       borderRadius: BorderRadius.circular(radius),
-      child: Image.network(
-        url!,
+      child: Image(
+        image: persistentNetworkImage(url!, cacheWidth: width.isFinite ? (width * MediaQuery.devicePixelRatioOf(context)).ceil() : 800),
         width: width,
         height: height,
-        cacheWidth: width.isFinite ? (width * MediaQuery.devicePixelRatioOf(context)).ceil() : 800,
         fit: BoxFit.cover,
+        gaplessPlayback: true,
         errorBuilder: (_, __, ___) => box,
-        loadingBuilder: (_, child, p) => p == null ? child : box,
+        frameBuilder: (_, child, frame, sync) => sync || frame != null ? child : box,
       ),
     );
   }

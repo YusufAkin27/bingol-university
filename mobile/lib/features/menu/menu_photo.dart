@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../core/cache/image_disk_cache.dart';
 import '../../core/theme.dart';
 
 /// Menü fotoğrafını yükler; hata olursa [builder] `photo == null` ile çağrılır
@@ -28,11 +29,13 @@ class _MenuPhotoGateState extends State<MenuPhotoGate> {
     final url = widget.url;
     if (url == null || _failedUrl == url) return widget.builder(context, null);
     final t = context.bu;
+    // Menü fotoğrafı da diske yazılır (günlük aynı görsel) ve ekran genişliğine göre küçültülerek çözülür.
+    final px = (MediaQuery.sizeOf(context).width * MediaQuery.devicePixelRatioOf(context)).ceil().clamp(1, 1400);
     final photo = Image(
-      image: MenuPhotoGate.debugProvider?.call(url) ?? NetworkImage(url),
+      image: MenuPhotoGate.debugProvider?.call(url) ?? persistentNetworkImage(url, cacheWidth: px),
       fit: BoxFit.cover,
       excludeFromSemantics: true,
-      loadingBuilder: (_, child, progress) => progress == null ? child : ColoredBox(color: t.soft),
+      frameBuilder: (_, child, frame, sync) => sync || frame != null ? child : ColoredBox(color: t.soft),
       errorBuilder: (_, __, ___) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (mounted && _failedUrl != url) setState(() => _failedUrl = url);

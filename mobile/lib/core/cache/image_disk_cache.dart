@@ -10,6 +10,10 @@ import 'package:path_provider/path_provider.dart';
 
 /// Ağ görsellerinin ham baytları için boyut sınırlı disk önbelleği (çevrimdışıyken görseller görünsün).
 ///
+/// - Ağdan indirme tek paylaşımlı [HttpClient] ile yapılır (keep-alive: aynı sunucuya her görsel için yeni TCP/TLS
+///   bağlantısı kurulmaz; sunucu başına en çok 6 eşzamanlı bağlantı, 15 sn boşta kalma süresi).
+/// - Baytlar ancak GÖRSEL olarak çözülebildiyse diske yazılır (captive portal HTML'i önbelleğe girmez); diskteki bozuk
+///   dosya silinir ve aynı yüklemede ağdan bir kez yeniden indirilir.
 /// - Dosya adı = URL'nin SHA-1'i; içerik yalnız görsel baytları (başlık/kimlik saklanmaz).
 /// - Toplam tavan [maxBytes] (varsayılan 150 MB): aşılınca en eski değişen dosyalar silinir. Budama zamanlayıcıyla
 ///   değil, açılışta bir kez ve her [_pruneEvery] yazmada yapılır (arka planda iş yok).
@@ -42,6 +46,7 @@ class ImageDiskCache {
   Directory? _dir;
   Future<void>? _init;
   int _writes = 0;
+  int _sincePrune = 0;
   Future<void>? _queue;
 
   static String keyOf(String url) => sha1.convert(utf8.encode(url)).toString();
@@ -83,7 +88,13 @@ class ImageDiskCache {
         if (bytes.isEmpty || bytes.length > maxFileBytes) return;
         final f = File('${_dir!.path}${Platform.pathSeparator}${keyOf(url)}');
         await f.writeAsBytes(bytes, flush: false);
-        if (++_writes % _pruneEvery == 0) await _prune();
+        _sincePrune += bytes.length;
+        // Tavan, yazılan bayt tavanın %10'unu geçince ya da her [_pruneEvery] yazmada uygulanır (39 büyük dosya
+        // tavanı sessizce aşamaz).
+        if (++_writes % _pruneEvery == 0 || _sincePrune >= maxBytes ~/ 10) {
+          _sincePrune = 0;
+          await _prune();
+        }
       }, null);
 
   Future<void> remove(String url) => _serial<void>(() async {
@@ -161,19 +172,35 @@ class DiskNetworkImage extends ImageProvider<DiskNetworkImage> {
 
   Future<ui.Codec> _load(DiskNetworkImage key, ImageDecoderCallback decode) async {
     final store = key.cache ?? ImageDiskCache.instance;
-    Uint8List? bytes = await store.read(key.url);
-    var fromNet = false;
-    if (bytes == null) {
-      bytes = await _download(key);
-      fromNet = true;
+    final cached = await store.read(key.url);
+    if (cached != null) {
+      try {
+        return await decode(await ui.ImmutableBuffer.fromUint8List(cached));
+      } catch (_) {
+        // Bozuk dosya diskte kalmasın; görsel bu seferde ağdan yeniden indirilir.
+        unawaited(store.remove(key.url));
+      }
     }
-    try {
-      return await decode(await ui.ImmutableBuffer.fromUint8List(bytes));
-    } catch (_) {
-      // Bozuk dosya diskte kalmasın.
-      if (!fromNet) unawaited(store.remove(key.url));
-      rethrow;
-    }
+    final bytes = await _download(key);
+    // Önce çöz, sonra yaz: görsel olmayan yanıt (portal HTML'i vb.) hata verir ve diske hiç yazılmaz.
+    final codec = await decode(await ui.ImmutableBuffer.fromUint8List(bytes));
+    unawaited(store.write(key.url, bytes));
+    return codec;
+  }
+
+  static HttpClient? _shared;
+  static HttpOverrides? _sharedFor;
+
+  /// Paylaşımlı istemci (keep-alive). Testler `HttpOverrides` değiştirirse yeniden kurulur.
+  static HttpClient get _client {
+    final current = HttpOverrides.current;
+    final c = _shared;
+    if (c != null && identical(_sharedFor, current)) return c;
+    _sharedFor = current;
+    return _shared = HttpClient()
+      ..connectionTimeout = const Duration(seconds: 15)
+      ..idleTimeout = const Duration(seconds: 15)
+      ..maxConnectionsPerHost = 6;
   }
 
   Future<Uint8List> _download(DiskNetworkImage key) async {
@@ -182,7 +209,7 @@ class DiskNetworkImage extends ImageProvider<DiskNetworkImage> {
       if (debugNetworkImageHttpClientProvider != null) client = debugNetworkImageHttpClientProvider!();
       return true;
     }());
-    client ??= HttpClient()..connectionTimeout = const Duration(seconds: 15);
+    client ??= _client;
     final resolved = Uri.base.resolve(key.url);
     final req = await client!.getUrl(resolved);
     key.headers?.forEach(req.headers.add);
@@ -193,7 +220,6 @@ class DiskNetworkImage extends ImageProvider<DiskNetworkImage> {
     }
     final bytes = await consolidateHttpClientResponseBytes(res);
     if (bytes.lengthInBytes == 0) throw Exception('NetworkImage is an empty file: $resolved');
-    unawaited((key.cache ?? ImageDiskCache.instance).write(key.url, bytes));
     return bytes;
   }
 

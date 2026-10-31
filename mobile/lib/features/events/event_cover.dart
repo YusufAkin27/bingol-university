@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../core/cache/image_disk_cache.dart';
 import '../../core/theme.dart';
 import '../../core/theme/bu_motion.dart';
 import '../../widgets/bu_widgets.dart';
@@ -30,10 +31,9 @@ class EventCoverImage extends StatelessWidget {
       return Image(image: dbg(url), fit: fit, width: double.infinity, height: double.infinity);
     }
     final fade = BuMotion.of(context, BuMotion.medium);
-    return Image.network(
-      url,
+    return Image(
+      image: persistentNetworkImage(url, cacheWidth: cacheWidth),
       fit: fit,
-      cacheWidth: cacheWidth,
       gaplessPlayback: true,
       excludeFromSemantics: true,
       width: double.infinity,

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../core/cache/image_disk_cache.dart';
 import '../../core/locale_controller.dart';
 import '../../core/session.dart';
 import '../../widgets/bu.dart';
@@ -37,11 +38,10 @@ class PostPhoto extends StatelessWidget {
           label: context.l10n.postComposePhoto,
           child: ColoredBox(
             color: t.sf2,
-            child: Image.network(
-              m.url,
+            // Disk destekli: Keşfet fotoğrafları ikinci açılışta ağdan değil diskten gelir (çıkışta silinir).
+            child: Image(
+              image: persistentNetworkImage(m.url, headers: postAuthHeaders(session), cacheWidth: 1000),
               key: ValueKey('post-photo-${post.id}'),
-              headers: postAuthHeaders(session),
-              cacheWidth: 1000,
               fit: BoxFit.cover,
               gaplessPlayback: true,
               errorBuilder: (_, __, ___) =>

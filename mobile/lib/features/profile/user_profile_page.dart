@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 import '../../core/academic_catalog.dart' show gradeLabelL;
 import '../../core/api.dart' show ApiError;
+import '../../core/cache/image_disk_cache.dart';
 import '../../core/locale_controller.dart';
 import '../../core/session.dart';
 import '../../widgets/bu.dart';
@@ -804,8 +805,8 @@ class _AvatarViewer extends StatelessWidget {
               child: SizedBox(
                 width: size,
                 height: size,
-                child: Image.network(url,
-                    headers: headers,
+                child: Image(
+                    image: persistentNetworkImage(url, headers: headers, cacheWidth: 1200),
                     fit: BoxFit.cover,
                     errorBuilder: (_, __, ___) => ColoredBox(
                         color: t.onMedia.withValues(alpha: .08), child: Center(child: Icon(LucideIcons.imageOff, color: t.onMedia.withValues(alpha: .54), size: 43)))),
