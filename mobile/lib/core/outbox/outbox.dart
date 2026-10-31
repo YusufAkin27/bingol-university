@@ -293,6 +293,7 @@ class Outbox extends ChangeNotifier {
   /// Ardışık 5xx hataları öğeyi yalnız mesaj bu süreden (oluşturulmadan itibaren) eskiyse kalıcı hataya çevirir:
   /// kısa bir deploy / yeniden başlatma kesintisi bekleyen mesajları "Gönderilemedi" yapmasın.
   final Duration serverFailWindow;
+  /// Üst sınır KOD NOKTASI sayısıdır (`runes.length`): sohbet sayacı ve sunucu da kod noktası sayar; emoji 2 UTF-16 birimi olsa da 1 sayılır.
   final int maxTextLength;
   final bool autoSchedule;
   OutboxSender? _sender;
@@ -316,6 +317,7 @@ class Outbox extends ChangeNotifier {
   /// Kuşak: [clear] her çağrıda artar; süren [drain] bu sayede eski oturumun kalan mesajlarını göndermez.
   int _epoch = 0;
   Future<void>? _saveTail;
+  Future<void>? _saveNext;
   ConnectivityService? _connectivity;
 
   /// Geri çekilme: 2 sn, 5 sn, 15 sn, 1 dk, sonra 5 dk.
@@ -567,7 +569,7 @@ class Outbox extends ChangeNotifier {
     int? replyToMessageId,
     bool viewOnce = false,
   }) async {
-    if (sources.isEmpty || contains(clientId) || text.length > maxTextLength) return false;
+    if (sources.isEmpty || contains(clientId) || text.runes.length > maxTextLength) return false;
     final written = <OutboxMedia>[];
     try {
       final d = await _ensureMediaDir();
@@ -633,11 +635,22 @@ class Outbox extends ChangeNotifier {
 
   Future<void> _saveNowQueued() {
     final prev = _saveTail;
+    // Bir yazma sürerken ve ardından zaten bekleyen bir yazma varsa yenisi onunla BİRLEŞİR: bekleyen yazma
+    // başladığında en güncel listeyi yazar (ardışık gönderimlerde N mesaj = N güvenli depo yazımı olmaz).
+    final waiting = _saveNext;
+    if (prev != null && waiting != null) return waiting;
     late Future<void> f;
     // Boştaysa yazma HEMEN (aynı senkron adımda) başlar; doluysa sıraya girer.
-    f = (prev == null ? _saveNow() : prev.then((_) => _saveNow())).whenComplete(() {
+    f = (prev == null
+            ? _saveNow()
+            : prev.then((_) {
+                _saveNext = null; // artık başladı: sonraki çağrılar yeni bir yazma planlar
+                return _saveNow();
+              }))
+        .whenComplete(() {
       if (identical(_saveTail, f)) _saveTail = null;
     });
+    if (prev != null) _saveNext = f;
     return _saveTail = f;
   }
 
@@ -667,7 +680,7 @@ class Outbox extends ChangeNotifier {
   }
 
   bool enqueue({required int conversationId, required String clientId, required String text, int? replyToMessageId}) {
-    if (text.length > maxTextLength || contains(clientId)) return false;
+    if (text.runes.length > maxTextLength || contains(clientId)) return false;
     _items.add(OutboxItem(
       clientId: clientId,
       conversationId: conversationId,

@@ -29,6 +29,19 @@ class _FlakyStore implements OutboxStore {
   Future<void> write(String? v) async => value = v;
 }
 
+class _CountingStore implements OutboxStore {
+  String? value;
+  int writes = 0;
+  @override
+  Future<String?> read() async => value;
+  @override
+  Future<void> write(String? v) async {
+    writes++;
+    await Future<void>.delayed(const Duration(milliseconds: 5)); // gercek depo gecikmesi
+    value = v;
+  }
+}
+
 class FailingStore implements OutboxStore {
   String? value;
   bool failWrites = false;
@@ -458,6 +471,51 @@ void main() {
     print('S1.13 clear sonrasi gonderilenler: $sent');
     expect(sent, ['x1'], reason: 'clear sonrasi eski hesabin x2 mesaji baska token ile gonderilmemeli');
     ob.dispose();
+  });
+
+  test('S1.18 emoji: sinir KOD NOKTASIdir; 1500 emojili metin (3000 UTF-16) cevrimdisi kuyruga alinir, 2001 alinmaz', () async {
+    final store = MemoryOutboxStore();
+    final ob = make(store: store);
+    final emoji1500 = '😀' * 1500;
+    expect(emoji1500.length, 3000);
+    expect(ob.enqueue(conversationId: 1, clientId: 'em1', text: emoji1500), isTrue);
+    expect(ob.enqueue(conversationId: 1, clientId: 'em2', text: '😀' * 2000), isTrue);
+    expect(ob.enqueue(conversationId: 1, clientId: 'em3', text: '😀' * 2001), isFalse);
+    expect(await ob.enqueueMedia(conversationId: 1, clientId: 'em4', text: '😀' * 1500, sources: [photo()]), isTrue);
+    expect(await ob.enqueueMedia(conversationId: 1, clientId: 'em5', text: '😀' * 2001, sources: [photo()]), isFalse);
+    await io();
+    final ob2 = make(store: store);
+    await ob2.load();
+    expect(ob2.items.map((e) => e.clientId), ['em1', 'em2', 'em4']);
+    expect(ob2.items.first.text, emoji1500);
+    ob.dispose();
+    ob2.dispose();
+  });
+
+  test('S1.19 yazma maliyeti: art arda 20 gonderim + ack silmeleri guvenli depoya 20+20 degil, birlesmis az sayida yazma yapar', () async {
+    final store = _CountingStore();
+    final ob = make(store: store);
+    for (var i = 0; i < 20; i++) {
+      ob.enqueue(conversationId: 1, clientId: 'w$i', text: 'm$i');
+    }
+    for (var i = 0; i < 20; i++) {
+      unawaited(ob.remove('w$i')); // WS ack
+    }
+    await io();
+    await io();
+    // ignore: avoid_print
+    print('S1.19 40 islem -> ${store.writes} depo yazimi');
+    expect(store.writes, lessThanOrEqualTo(4), reason: 'bekleyen yazmalar birlesmeli');
+    expect(store.value, isNull, reason: 'son durum: kuyruk bos -> depo bos');
+    // tek mesaj: enqueue = 1 yazma, ack = 1 yazma (iki yazim, N degil)
+    final s2 = _CountingStore();
+    final ob2 = make(store: s2);
+    ob2.enqueue(conversationId: 1, clientId: 'tek', text: 'x');
+    await io();
+    await ob2.remove('tek');
+    expect(s2.writes, 2);
+    ob.dispose();
+    ob2.dispose();
   });
 
   test('S1.16 502/503/504 ve Retry-After: mesaj Gonderilemedi OLMAZ, kuyruk durur (deploy kesintisi)', () async {
