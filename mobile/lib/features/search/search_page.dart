@@ -1,8 +1,6 @@
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import '../../core/api.dart';
 import '../../core/locale_controller.dart';
@@ -16,6 +14,7 @@ import '../news/news_detail_page.dart';
 import '../news/news_tile.dart' show newsLocalDate, newsMonthName;
 import '../posts/post_routes.dart';
 import '../profile/user_profile_page.dart';
+import 'recent_searches.dart';
 
 /// Genel arama: haber/duyuru, kulüp, etkinlik, gönderi ve kişi.
 class SearchPage extends StatefulWidget {
@@ -172,8 +171,6 @@ _Hit _hitFromUser(Map u, AppLocalizations l) {
 }
 
 class _SearchPageState extends State<SearchPage> {
-  static const _recentKey = 'recent_searches';
-  static const _storage = FlutterSecureStorage();
   static const _pageSize = 20;
 
   final _ctrl = TextEditingController();
@@ -210,27 +207,19 @@ class _SearchPageState extends State<SearchPage> {
   }
 
   Future<void> _loadRecent() async {
-    try {
-      final raw = await _storage.read(key: _recentKey);
-      if (raw == null) return;
-      final list = (jsonDecode(raw) as List).map((e) => e.toString()).take(8).toList();
-      if (mounted) setState(() => _recent = list);
-    } catch (_) {}
+    final list = await RecentSearches.load();
+    if (mounted && list.isNotEmpty) setState(() => _recent = list);
   }
 
   Future<void> _saveRecent(String q) async {
     final list = [q, ..._recent.where((e) => e.toLowerCase() != q.toLowerCase())].take(8).toList();
     if (mounted) setState(() => _recent = list);
-    try {
-      await _storage.write(key: _recentKey, value: jsonEncode(list));
-    } catch (_) {}
+    await RecentSearches.save(list);
   }
 
   Future<void> _clearRecent() async {
     setState(() => _recent = []);
-    try {
-      await _storage.delete(key: _recentKey);
-    } catch (_) {}
+    await RecentSearches.clear();
   }
 
   void _onChanged(String v) {
@@ -572,13 +561,11 @@ class _SearchPageState extends State<SearchPage> {
   Future<void> _removeRecent(int i) async {
     final list = [..._recent]..removeAt(i);
     setState(() => _recent = list);
-    try {
-      if (list.isEmpty) {
-        await _storage.delete(key: _recentKey);
-      } else {
-        await _storage.write(key: _recentKey, value: jsonEncode(list));
-      }
-    } catch (_) {}
+    if (list.isEmpty) {
+      await RecentSearches.clear();
+    } else {
+      await RecentSearches.save(list);
+    }
   }
 
   /// Tümü sekmesindeki grup başlığı ve etiketi.

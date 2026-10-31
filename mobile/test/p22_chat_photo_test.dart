@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:typed_data';
 import 'dart:ui' as ui;
 
@@ -171,11 +172,12 @@ void main() {
 
     late List<String> saved;
     late int fetches;
-    PhotoAutoSave make({MemoryAutoSaveStore? store, Object? putError}) {
+    /// Ayar AÇIK (kullanıcı rızayla açmış) ve `since`=t0 ile başlayan örnek. Varsayılan KAPALI davranışı ayrıca sınanır.
+    PhotoAutoSave make({MemoryAutoSaveStore? store, Object? putError, bool on = true}) {
       saved = [];
       fetches = 0;
       return PhotoAutoSave(
-        store: store ?? MemoryAutoSaveStore(),
+        store: store ?? MemoryAutoSaveStore(on ? {'enabled': true, 'since': t0.millisecondsSinceEpoch} : null),
         now: () => t0,
         supported: true,
         fetch: (u, h) async {
@@ -196,9 +198,9 @@ void main() {
         s.considerReceived(msgs, headers: const {}, isMine: (x) => x['senderId'] == 1, blocked: blocked);
 
     test('gelen fotograf kaydedilir; ayni ek ikinci kez kaydedilmez (kalici)', () async {
-      final store = MemoryAutoSaveStore();
+      final store = MemoryAutoSaveStore({'enabled': true, 'since': t0.millisecondsSinceEpoch});
       final s = make(store: store);
-      expect(await s.enabled(), isTrue); // varsayilan acik
+      expect(await s.enabled(), isTrue); // kullanici acmis
       expect(await recv(s, [m(1, [_att(10)])]), [AutoSaveResult.saved]);
       expect(saved, ['bu_kampus_10']);
       expect(await recv(s, [m(1, [_att(10)])]), isEmpty);
@@ -233,10 +235,74 @@ void main() {
       expect(saved, ['bu_kampus_22']); // eski mesaj (ayar oncesi) yigilmaz
     });
 
-    test('ilk kullanimda eski mesajlar kaydedilmez', () async {
+    test('acildiktan once gelen eski mesajlar kaydedilmez', () async {
       final s = make();
       await recv(s, [m(1, [_att(30)], at: before), m(2, [_att(31)], at: before)]);
       expect(saved, isEmpty);
+    });
+
+    // --- W1-G / T-091: varsayilan KAPALI, yalniz birebir, cikista temizlik ---
+    test('YENI KURULUM: ayar varsayilan KAPALI; hicbir sey kaydedilmez, indirilmez', () async {
+      final s = make(on: false);
+      expect(await s.enabled(), isFalse);
+      expect(await recv(s, [m(1, [_att(80)])]), isEmpty);
+      expect(await s.saveSent(81, Uint8List.fromList([9])), AutoSaveResult.skipped);
+      expect(saved, isEmpty);
+      expect(fetches, 0);
+    });
+
+    test('eski surumden kalan kayit (enabled anahtari yok) KAPALI sayilir; yalniz acikca acilmis (true) acik kalir', () async {
+      final legacy = make(store: MemoryAutoSaveStore({'saved': [1, 2], 'since': 5}));
+      expect(await legacy.enabled(), isFalse);
+      final optedIn = make(store: MemoryAutoSaveStore({'enabled': true, 'since': t0.millisecondsSinceEpoch}));
+      expect(await optedIn.enabled(), isTrue);
+      final optedOut = make(store: MemoryAutoSaveStore({'enabled': false}));
+      expect(await optedOut.enabled(), isFalse);
+    });
+
+    test('yalniz birebir sohbet: direct=false (grup/kulup/etkinlik odasi) kaydedilmez', () async {
+      final s = make();
+      expect(await s.considerReceived([m(1, [_att(90)])], headers: const {}, isMine: (x) => false, direct: false), isEmpty);
+      expect(await s.saveSent(91, Uint8List.fromList([9]), direct: false), AutoSaveResult.skipped);
+      expect(saved, isEmpty);
+      // varsayilan (eski cagri imzasi) birebir sayilir
+      expect(await recv(s, [m(2, [_att(92)])]), [AutoSaveResult.saved]);
+    });
+
+    test('reset(): ayar, kaydedilen ek kimlikleri ve bildirim bayragi silinir (cikis)', () async {
+      final store = MemoryAutoSaveStore();
+      final s = make(store: store);
+      await s.setEnabled(true);
+      expect(await recv(s, [m(1, [_att(95)])]), [AutoSaveResult.saved]);
+      await s.takeDeniedNotice();
+      expect(store.data['saved'], [95]);
+      await s.reset();
+      expect(store.data, isEmpty);
+      expect(await s.enabled(), isFalse);
+      // yeni kullanici: ayni ek yeniden kaydedilebilir (liste temiz) ama once ayar acilmali
+      await s.setEnabled(true);
+      expect(await recv(s, [m(1, [_att(95)])]), [AutoSaveResult.saved]);
+      expect(await s.takeDeniedNotice(), isTrue);
+    });
+
+    test('reset() ile yarisan kayit yeni kullanicinin kaydini kirletmez', () async {
+      final store = MemoryAutoSaveStore();
+      final gate = Completer<void>();
+      final s = PhotoAutoSave(
+          store: store,
+          now: () => t0,
+          supported: true,
+          fetch: (u, h) async => Uint8List.fromList([1]),
+          put: (b, n) async {
+            await gate.future; // galeriye yazma sürerken çıkış olur
+          });
+      await s.setEnabled(true);
+      final pending = recv(s, [m(1, [_att(97)])]);
+      await Future<void>.delayed(const Duration(milliseconds: 10));
+      await s.reset();
+      gate.complete();
+      await pending;
+      expect(store.data['saved'], isNull, reason: 'eski oturumun kaydi yeni kullanicinin dosyasina yazilmaz');
     });
 
     test('engelli sohbet ve kendi mesajlarim (gonderimde kaydedilir) atlanir', () async {
@@ -270,7 +336,7 @@ void main() {
     });
 
     test('indirme basarisiz: kaydedilmez, kayit isaretlenmez', () async {
-      final store = MemoryAutoSaveStore();
+      final store = MemoryAutoSaveStore({'enabled': true, 'since': t0.millisecondsSinceEpoch});
       final s = PhotoAutoSave(
           store: store, now: () => t0, supported: true, fetch: (u, h) async => null, put: (b, n) async => fail('cagrilmamali'));
       expect(await recv(s, [m(1, [_att(70)])]), [AutoSaveResult.failed]);

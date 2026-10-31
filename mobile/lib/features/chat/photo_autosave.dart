@@ -1,7 +1,9 @@
 // Sohbet fotoğraflarını otomatik galeriye kaydetme (p22): gönderilen ve alınan fotoğraflar "BU Kampus" albümüne gider.
 //
-// Kurallar: tek gösterimlik ASLA; video değil; silinen/yönetici kaldırdığı mesaj değil; engellenen sohbet değil;
+// Kurallar: VARSAYILAN KAPALI (kullanıcı Profil > Gizlilik ve veriler'den açıkça açar, rıza metniyle); yalnız birebir
+// sohbet; tek gösterimlik ASLA; video değil; silinen/yönetici kaldırdığı mesaj değil; engellenen sohbet değil;
 // ayar açıldıktan SONRA gelen/gönderilen (eski mesajlar yığılmaz); aynı ek iki kez kaydedilmez (ek kimliği bazlı).
+// Kullanıcıya özeldir: çıkışta [PhotoAutoSave.reset] ayarı ve kaydedilen ek kimliklerini siler.
 
 import 'dart:async';
 import 'dart:convert';
@@ -21,6 +23,9 @@ enum AutoSaveResult { saved, skipped, denied, failed }
 abstract class AutoSaveStore {
   Future<Map<String, dynamic>> load();
   Future<void> save(Map<String, dynamic> data);
+
+  /// Tüm kaydı siler (çıkış).
+  Future<void> clear();
 }
 
 class MemoryAutoSaveStore implements AutoSaveStore {
@@ -32,16 +37,30 @@ class MemoryAutoSaveStore implements AutoSaveStore {
 
   @override
   Future<void> save(Map<String, dynamic> d) async => data = {...d};
+
+  @override
+  Future<void> clear() async => data = {};
 }
 
 class FileAutoSaveStore implements AutoSaveStore {
+  FileAutoSaveStore({Future<Directory> Function()? dirProvider}) : _dirProvider = dirProvider ?? getApplicationSupportDirectory;
+
+  final Future<Directory> Function() _dirProvider;
   File? _file;
 
   Future<File> _f() async {
     final f = _file;
     if (f != null) return f;
-    final d = await getApplicationSupportDirectory();
+    final d = await _dirProvider();
     return _file = File('${d.path}${Platform.pathSeparator}photo_autosave.json');
+  }
+
+  @override
+  Future<void> clear() async {
+    try {
+      final f = await _f();
+      if (await f.exists()) await f.delete();
+    } catch (_) {}
   }
 
   @override
@@ -83,8 +102,8 @@ class PhotoAutoSave extends ChangeNotifier {
         _now = now ?? DateTime.now,
         _supported = supported ?? (Platform.isAndroid || Platform.isIOS);
 
-  /// Uygulama geneli örnek.
-  static final PhotoAutoSave instance = PhotoAutoSave();
+  /// Uygulama geneli örnek (testler dizini değiştirmek için atayabilir).
+  static PhotoAutoSave instance = PhotoAutoSave();
 
   /// Galeri albümü adı.
   static const album = 'BU Kampus';
@@ -100,10 +119,31 @@ class PhotoAutoSave extends ChangeNotifier {
   final Set<int> _busy = {};
   final Set<int> _failedThisSession = {};
 
-  Future<Map<String, dynamic>> _load() async => _data ??= await _store.load();
+  /// Kuşak: [reset] her çağrıda artar; sıfırlamadan önce başlamış işlemler sonucu yeni kullanıcının kaydına yazmaz.
+  int _gen = 0;
 
-  /// Ayar açık mı (varsayılan AÇIK).
-  Future<bool> enabled() async => (await _load())['enabled'] != false;
+  Future<Map<String, dynamic>> _load() async {
+    final d = _data;
+    if (d != null) return d;
+    final gen = _gen;
+    final loaded = await _store.load();
+    if (gen != _gen) return _data ??= {}; // sıfırlama yarıştı: eski dosya içeriği geri gelmesin
+    return _data ??= loaded;
+  }
+
+  /// Çıkış / hesap silme / oturum iptali: ayar, kaydedilen ek kimlikleri ve bildirim bayrakları (dosya + bellek) silinir.
+  Future<void> reset() async {
+    _gen++;
+    _data = {};
+    _busy.clear();
+    _failedThisSession.clear();
+    await _store.clear();
+    notifyListeners();
+  }
+
+  /// Ayar açık mı. VARSAYILAN KAPALI: açıkça açılmadıysa (kayıt yok, eski sürümden kalan "anahtarsız" kayıt dahil)
+  /// kapalı sayılır.
+  Future<bool> enabled() async => (await _load())['enabled'] == true;
 
   /// Ayarı değiştirir. Açılış anı kaydedilir: yalnız bundan SONRAKİ fotoğraflar kaydedilir.
   Future<void> setEnabled(bool v) async {
@@ -140,7 +180,8 @@ class PhotoAutoSave extends ChangeNotifier {
 
   bool _isSaved(Map<String, dynamic> d, int id) => (d['saved'] as List?)?.contains(id) ?? false;
 
-  Future<void> _mark(int id) async {
+  Future<void> _mark(int id, int gen) async {
+    if (gen != _gen) return; // oturum arada kapandı: yeni kullanıcının kaydı kirlenmesin
     final d = await _load();
     final list = ((d['saved'] as List?) ?? const []).cast<int>().toList()..add(id);
     if (list.length > _maxSaved) list.removeRange(0, list.length - _maxSaved);
@@ -158,12 +199,16 @@ class PhotoAutoSave extends ChangeNotifier {
   }
 
   /// Gönderen tarafı: yüklenen fotoğrafın yerel baytları (indirme yok). Tek gösterimlik çağrılmaz.
-  Future<AutoSaveResult> saveSent(int attId, Uint8List bytes) async {
-    if (!_supported || !await enabled()) return AutoSaveResult.skipped;
+  ///
+  /// [direct] false (grup / kulüp / etkinlik odası) ise kaydedilmez: otomatik kayıt yalnız birebir sohbetlerdedir.
+  /// Çağıranlar bu bilgiyi vermezse varsayılan true'dur (imza geriye uyumlu).
+  Future<AutoSaveResult> saveSent(int attId, Uint8List bytes, {bool direct = true}) async {
+    if (!_supported || !direct || !await enabled()) return AutoSaveResult.skipped;
+    final gen = _gen;
     if (_isSaved(await _load(), attId) || !_busy.add(attId)) return AutoSaveResult.skipped;
     try {
       await _put(bytes, 'bu_kampus_$attId');
-      await _mark(attId);
+      await _mark(attId, gen);
       return AutoSaveResult.saved;
     } catch (e) {
       return _classify(e);
@@ -179,9 +224,11 @@ class PhotoAutoSave extends ChangeNotifier {
     required Map<String, String> headers,
     required bool Function(Map<String, dynamic>) isMine,
     bool blocked = false,
+    bool direct = true,
   }) async {
     final out = <AutoSaveResult>[];
-    if (!_supported || blocked || !await enabled()) return out;
+    if (!_supported || blocked || !direct || !await enabled()) return out;
+    final gen = _gen;
     final since = await _since();
     for (final m in messages) {
       if (isMine(m) || m['id'] == null) continue;
@@ -199,7 +246,7 @@ class PhotoAutoSave extends ChangeNotifier {
             continue;
           }
           await _put(bytes, 'bu_kampus_$id');
-          await _mark(id);
+          await _mark(id, gen);
           out.add(AutoSaveResult.saved);
         } catch (e) {
           final r = _classify(e);

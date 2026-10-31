@@ -247,6 +247,13 @@ class SecureReminderStore implements ReminderStore {
       await const FlutterSecureStorage().write(key: _key, value: jsonEncode(s.toJson()));
     } catch (_) {}
   }
+
+  /// Çıkış: ayar kaydı silinir (kullanıcıya özel).
+  Future<void> clear() async {
+    try {
+      await const FlutterSecureStorage().delete(key: _key);
+    } catch (_) {}
+  }
 }
 
 class MemoryReminderStore implements ReminderStore {
@@ -258,6 +265,8 @@ class MemoryReminderStore implements ReminderStore {
 
   @override
   Future<void> save(ReminderSettings s) async => value = s;
+
+  Future<void> clear() async => value = const ReminderSettings();
 }
 
 /// Hatırlatmaları sunucudaki güncel ders/sınav verisiyle yeniden kurar. Hiçbir zaman exception sızdırmaz.
@@ -266,6 +275,24 @@ class ReminderService {
 
   static ReminderPlatform platform = const ChannelReminderPlatform();
   static ReminderStore store = const SecureReminderStore();
+
+  /// Çıkış / hesap değişimi: önceki kullanıcının ders hatırlatıcı ayarı silinir ve kurulu yerel hatırlatmalar
+  /// (alarmlar önceki kullanıcının ders/sınav programıdır) kaldırılır. Hata sızdırmaz.
+  static Future<void> clearUserData() async {
+    try {
+      await platform.replaceAll(const []);
+    } catch (_) {}
+    try {
+      final s = store;
+      if (s is SecureReminderStore) {
+        await s.clear();
+      } else if (s is MemoryReminderStore) {
+        await s.clear();
+      } else {
+        await s.save(const ReminderSettings());
+      }
+    } catch (_) {}
+  }
 
   /// Sunucudaki güncel ders/sınav verisinden plan üretir (ağ hatasında exception fırlatır).
   static Future<List<PlannedReminder>> build(AcademicApi api, {ReminderSettings? settings}) async {
