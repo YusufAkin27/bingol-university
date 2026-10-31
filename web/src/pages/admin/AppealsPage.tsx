@@ -21,6 +21,8 @@ import {
   Textarea,
   useToast,
 } from '../../components/ui';
+import { ReasonField } from '../../components/admin/guard/ReasonField';
+import { ADMIN_REASON_MIN, isReasonValid } from '../../components/admin/guard/match';
 import { useI18n } from '../../i18n/I18nProvider';
 import { usePageTitle } from '../../lib/hooks';
 import { paths } from '../../paths';
@@ -41,6 +43,8 @@ export default function AppealsPage() {
   const [status, setStatus] = useState<AppealStatus>('OPEN');
   const [deciding, setDeciding] = useState<{ appeal: AppealView; accept: boolean } | null>(null);
   const [note, setNote] = useState('');
+  // W1-B (T-013): karar islem gerekcesi ister (X-Admin-Reason); `note` kullaniciya giden istege bagli nottan ayridir.
+  const [why, setWhy] = useState('');
 
   const query = useInfiniteQuery({
     queryKey: [...qk.moderation.appeals(status), 'pages'],
@@ -51,12 +55,13 @@ export default function AppealsPage() {
   const items = query.data?.pages.flatMap((p) => p.items) ?? [];
 
   const decide = useMutation({
-    mutationFn: (v: { id: number; accept: boolean; note: string }) =>
-      moderationApi.decideAppeal(v.id, v.accept, v.note.trim()),
+    mutationFn: (v: { id: number; accept: boolean; note: string; why: string }) =>
+      moderationApi.decideAppeal(v.id, v.accept, v.note.trim(), { reason: v.why }),
     onSuccess: (_d, v) => {
       toast.success(t(v.accept ? 'admin.appeals.toast.accepted' : 'admin.appeals.toast.rejected'));
       setDeciding(null);
       setNote('');
+      setWhy('');
       void qc.invalidateQueries({ queryKey: qk.moderation.all });
     },
     onError: (e) => {
@@ -115,10 +120,16 @@ export default function AppealsPage() {
                   )}
                   {a.status === 'OPEN' && (
                     <div className={styles.actions}>
-                      <Button variant="secondary" onClick={() => setDeciding({ appeal: a, accept: false })}>
+                      <Button variant="secondary" onClick={() => {
+                          setWhy('');
+                          setDeciding({ appeal: a, accept: false });
+                        }}>
                         {t('admin.appeals.reject')}
                       </Button>
-                      <Button onClick={() => setDeciding({ appeal: a, accept: true })}>{t('admin.appeals.accept')}</Button>
+                      <Button onClick={() => {
+                          setWhy('');
+                          setDeciding({ appeal: a, accept: true });
+                        }}>{t('admin.appeals.accept')}</Button>
                     </div>
                   )}
                 </li>
@@ -146,8 +157,8 @@ export default function AppealsPage() {
             <Button
               variant={deciding?.accept ? 'primary' : 'danger'}
               loading={decide.isPending}
-              disabled={note.length > NOTE_MAX}
-              onClick={() => deciding && decide.mutate({ id: deciding.appeal.id, accept: deciding.accept, note })}
+              disabled={note.length > NOTE_MAX || !isReasonValid(why, ADMIN_REASON_MIN)}
+              onClick={() => deciding && decide.mutate({ id: deciding.appeal.id, accept: deciding.accept, note, why })}
             >
               {t(deciding?.accept ? 'admin.appeals.accept' : 'admin.appeals.reject')}
             </Button>
@@ -158,6 +169,14 @@ export default function AppealsPage() {
         <FormField label={t('admin.appeals.noteLabel')} hint={t('admin.appeals.noteHint', { max: NOTE_MAX })}>
           <Textarea rows={3} dir="auto" value={note} maxLength={NOTE_MAX + 50} onChange={(e) => setNote(e.target.value)} />
         </FormField>
+        <ReasonField
+          value={why}
+          onChange={setWhy}
+          minLength={ADMIN_REASON_MIN}
+          label={t('admin.wp02.actionReason.label')}
+          disabled={decide.isPending}
+          focusOnMount
+        />
       </Modal>
     </>
   );

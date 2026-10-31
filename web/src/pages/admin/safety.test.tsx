@@ -171,12 +171,17 @@ describe('İtirazlar ve askı önerileri', () => {
     expect(await screen.findByText('Fotoğrafım uygun')).toBeInTheDocument();
     await userEvent.click(screen.getByRole('button', { name: 'Kabul et' }));
     const dialog = await screen.findByRole('dialog');
-    await userEvent.type(within(dialog).getByRole('textbox'), 'inceledim');
-    await userEvent.click(within(dialog).getByRole('button', { name: 'Kabul et' }));
+    await userEvent.type(within(dialog).getByLabelText(/^Not/), 'inceledim');
+    // W1-B (T-013): karar işlem gerekçesi ister (>= 5 karakter); not kullanıcıya giden ayrı alandır
+    const confirm = within(dialog).getByRole('button', { name: 'Kabul et' });
+    expect(confirm).toBeDisabled();
+    await userEvent.type(within(dialog).getByLabelText(/^İşlem gerekçesi/), 'İnceleme tamam');
+    await userEvent.click(confirm);
     await waitFor(() => {
       const post = calls.find((c) => c.init.method === 'POST');
       expect(post?.url).toContain('/admin/moderation/appeals/9/decide');
       expect(JSON.parse(String(post?.init.body))).toEqual({ accept: true, note: 'inceledim' });
+      expect(decodeURIComponent((post?.init.headers as Record<string, string>)['X-Admin-Reason'])).toBe('İnceleme tamam');
     });
   });
 
@@ -301,6 +306,8 @@ describe('Ayarlar: etkinlikler grubu', () => {
     await userEvent.click(await screen.findByRole('tab', { name: /Etkinlikler/ }));
     await userEvent.click(await screen.findByRole('switch'));
     await userEvent.click(screen.getByTestId('save-events_require_approval'));
+    await userEvent.type(await screen.findByLabelText(/^Sebep/), 'Onay akışı açıldı');
+    await userEvent.click(screen.getByRole('button', { name: 'Değişikliği kaydet' }));
     await waitFor(() => {
       const put = calls.find((c) => c.init.method === 'PUT');
       expect(put?.url).toContain('/admin/settings/events_require_approval');

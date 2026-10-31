@@ -1,4 +1,5 @@
 import { api } from './client';
+import { guardHeaders, type GuardOpts } from './guard';
 import type {
   AppealStatus,
   AppealView,
@@ -15,8 +16,9 @@ export const listAppeals = (p: { status?: AppealStatus; cursor?: number | null; 
     cursor: p.cursor,
     size: p.size,
   });
-export const decideAppeal = (id: number, accept: boolean, note?: string) =>
-  api.post(`/admin/moderation/appeals/${id}/decide`, { accept, note: note || undefined });
+// W1-B (T-013): karar islem gerekcesi ister (>= 5 karakter, X-Admin-Reason); `note` kullaniciya giden istege bagli nottur.
+export const decideAppeal = (id: number, accept: boolean, note?: string, o?: GuardOpts) =>
+  api.post(`/admin/moderation/appeals/${id}/decide`, { accept, note: note || undefined }, guardHeaders(o));
 
 // Tekrarlayan ihlal sonucu askı önerileri
 export const listSuspendRecommendations = (

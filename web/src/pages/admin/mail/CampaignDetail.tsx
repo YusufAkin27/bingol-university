@@ -27,6 +27,8 @@ import {
   useToast,
   type Column,
 } from '../../../components/ui';
+import { ReasonField } from '../../../components/admin/guard/ReasonField';
+import { ADMIN_REASON_MIN, isReasonValid } from '../../../components/admin/guard/match';
 import { useI18n } from '../../../i18n/I18nProvider';
 import { usePageTitle } from '../../../lib/hooks';
 import { paths } from '../../../paths';
@@ -43,6 +45,9 @@ export function CampaignDetail({ id }: { id: number }) {
   const toast = useToast();
   const qc = useQueryClient();
   const [confirm, setConfirm] = useState<null | 'pause' | 'resume' | 'cancel'>(null);
+  // W1-B (T-013): iptal gerekce ister (X-Admin-Reason); duraklat/surdur istemez.
+  const [why, setWhy] = useState('');
+  const needsReason = confirm === 'cancel';
   const [rStatus, setRStatus] = useState<RecipientStatus | ''>('');
   const [rPage, setRPage] = useState(0);
 
@@ -65,7 +70,11 @@ export function CampaignDetail({ id }: { id: number }) {
 
   const act = useMutation({
     mutationFn: (a: 'pause' | 'resume' | 'cancel') =>
-      a === 'pause' ? pauseMailCampaign(id) : a === 'resume' ? resumeMailCampaign(id) : cancelMailCampaign(id),
+      a === 'pause'
+        ? pauseMailCampaign(id)
+        : a === 'resume'
+          ? resumeMailCampaign(id)
+          : cancelMailCampaign(id, { reason: why }),
     onSuccess: (v: MailCampaignView) => {
       qc.setQueryData(mailKeys.campaign(id), v);
       void qc.invalidateQueries({ queryKey: ['adminMail', 'campaigns'] });
@@ -128,7 +137,13 @@ export function CampaignDetail({ id }: { id: number }) {
             <CampaignStatusPill status={c.status} />
             {canPause && <Button variant="secondary" onClick={() => setConfirm('pause')}>{t('admin.mail.detail.pause')}</Button>}
             {canResume && <Button variant="secondary" onClick={() => setConfirm('resume')}>{t('admin.mail.detail.resume')}</Button>}
-            {canCancel && <Button variant="danger" onClick={() => setConfirm('cancel')}>{t('admin.mail.detail.cancel')}</Button>}
+            {canCancel && <Button
+              variant="danger"
+              onClick={() => {
+                setWhy('');
+                setConfirm('cancel');
+              }}
+            >{t('admin.mail.detail.cancel')}</Button>}
           </div>
         }
       />
@@ -262,7 +277,20 @@ export function CampaignDetail({ id }: { id: number }) {
         title={confirm ? t(`admin.mail.detail.confirm.${confirm}.title`) : ''}
         message={confirm ? t(`admin.mail.detail.confirm.${confirm}.msg`) : undefined}
         confirmLabel={confirm ? t(`admin.mail.detail.${confirm}`) : undefined}
-      />
+        confirmDisabled={needsReason && !isReasonValid(why, ADMIN_REASON_MIN)}
+        initialFocus={needsReason ? 'content' : undefined}
+      >
+        {needsReason && (
+          <ReasonField
+            value={why}
+            onChange={setWhy}
+            minLength={ADMIN_REASON_MIN}
+            label={t('admin.wp02.actionReason.label')}
+            disabled={act.isPending}
+            focusOnMount
+          />
+        )}
+      </ConfirmDialog>
     </div>
   );
 }

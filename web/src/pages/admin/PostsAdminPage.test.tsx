@@ -37,13 +37,19 @@ interface Call {
   method: string;
   url: string;
   body?: unknown;
+  headers?: Record<string, string>;
 }
 
 function setup(opts: { listError?: boolean } = {}) {
   const calls: Call[] = [];
   mockFetch((url, init) => {
     const method = init.method ?? 'GET';
-    calls.push({ method, url, body: init.body ? JSON.parse(String(init.body)) : undefined });
+    calls.push({
+      method,
+      url,
+      body: init.body ? JSON.parse(String(init.body)) : undefined,
+      headers: init.headers as Record<string, string> | undefined,
+    });
     if (url.includes('/admin/posts/media/')) return new Response(new Blob(['x']), { status: 200, headers: { 'Content-Type': 'image/jpeg' } });
     if (url.includes('/admin/posts/stats')) return jsonResponse(200, { ...counts, openReportedCount: 3, last24h: { ...counts, postCount: 4 } });
     if (/\/admin\/posts\/1\/(hide|unhide)/.test(url)) return jsonResponse(200, post(1, { hidden: url.endsWith('/hide') }));
@@ -138,25 +144,41 @@ describe('PostsAdminPage', () => {
     renderWithProviders(<PostsAdminPage />);
     const rows = await screen.findAllByTestId('post-row');
 
+    // W1-B (T-013): gizle / geri aç / sil gerekçe ister (>= 5 karakter) ve X-Admin-Reason başlığıyla gönderir
     await userEvent.click(within(rows[0]).getByRole('button', { name: 'Gizle' }));
-    await userEvent.type(await screen.findByLabelText('Gerekçe (isteğe bağlı)'), 'uygunsuz');
-    await userEvent.click(screen.getByTestId('hide-confirm'));
+    let dialog = await screen.findByRole('dialog');
+    const hideConfirm = within(dialog).getByRole('button', { name: 'Gizle' });
+    expect(hideConfirm).toBeDisabled(); // gerekçesiz gizlenmez
+    await userEvent.type(within(dialog).getByLabelText(/^Gerekçe/), 'abc');
+    expect(hideConfirm).toBeDisabled(); // 5 karakterden kısa
+    await userEvent.type(within(dialog).getByLabelText(/^Gerekçe/), 'de uygunsuz');
+    await userEvent.click(hideConfirm);
     await waitFor(() => {
       const c = calls.find((x) => x.method === 'POST' && x.url.includes('/admin/posts/1/hide'));
-      expect(c?.body).toEqual({ reason: 'uygunsuz' });
+      expect(c?.body).toEqual({ reason: 'abcde uygunsuz' });
+      expect(decodeURIComponent(c?.headers?.['X-Admin-Reason'] ?? '')).toBe('abcde uygunsuz');
     });
 
     await userEvent.click(within(rows[1]).getByRole('button', { name: 'Geri aç' }));
-    await waitFor(() => expect(calls.some((c) => c.url.includes('/admin/posts/2/unhide'))).toBe(true));
+    dialog = await screen.findByRole('dialog');
+    expect(calls.some((c) => c.url.includes('/admin/posts/2/unhide'))).toBe(false); // gerekçesiz geri açılmaz
+    expect(within(dialog).getByRole('button', { name: 'Geri aç' })).toBeDisabled();
+    await userEvent.type(within(dialog).getByLabelText(/^Gerekçe/), 'yanlış karar');
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Geri aç' }));
+    await waitFor(() => {
+      const c = calls.find((x) => x.url.includes('/admin/posts/2/unhide'));
+      expect(decodeURIComponent(c?.headers?.['X-Admin-Reason'] ?? '')).toBe('yanlış karar');
+    });
 
     await userEvent.click(within(rows[0]).getByRole('button', { name: 'Sil' }));
     expect(calls.some((c) => c.method === 'DELETE')).toBe(false); // onaysız silinmez
-    const dialog = await screen.findByRole('dialog');
-    await userEvent.type(within(dialog).getByLabelText('Gerekçe (isteğe bağlı)'), 'reklam');
-    await userEvent.click(within(dialog).getByTestId('delete-confirm'));
+    dialog = await screen.findByRole('alertdialog');
+    await userEvent.type(within(dialog).getByLabelText(/^Gerekçe/), 'reklam içerik');
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Sil' }));
     await waitFor(() => {
       const c = calls.find((x) => x.method === 'DELETE' && x.url.endsWith('/admin/posts/1'));
-      expect(c?.body).toEqual({ reason: 'reklam' });
+      expect(c?.body).toEqual({ reason: 'reklam içerik' });
+      expect(decodeURIComponent(c?.headers?.['X-Admin-Reason'] ?? '')).toBe('reklam içerik');
     });
   });
 

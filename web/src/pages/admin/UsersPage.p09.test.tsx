@@ -44,6 +44,50 @@ function server(bulkResult?: unknown) {
 
 afterEach(() => vi.unstubAllGlobals());
 
+describe('UsersPage (W1-C T-019): maskeli profilde arama', () => {
+  const me = (permissions: string[]) => ({
+    userId: 9,
+    email: 'v***@bingol.edu.tr',
+    displayName: 'İzleyici',
+    profile: permissions.includes('users.pii') ? 'FULL' : 'VIEWER',
+    pinned: false,
+    permissions,
+  });
+  function maskedServer(permissions: string[]) {
+    return mockFetch((url) => {
+      if (url.startsWith('/api/faculties')) return jsonResponse(200, []);
+      if (url.startsWith('/api/admin/rbac/me')) return jsonResponse(200, me(permissions));
+      if (url.startsWith('/api/admin/users')) {
+        return jsonResponse(200, { items: [{ ...row(1, 'Ayşe Bir'), email: 'a***@bingol.edu.tr' }], page: 0, totalPages: 1, totalItems: 1 });
+      }
+      return jsonResponse(404, { code: 'X', message: 'x' });
+    });
+  }
+
+  it('users.pii olmayan profilde 1-2 karakterlik arama istek atmaz ve nedenini söyler; maskeli e-posta aynen görünür', async () => {
+    const f = maskedServer(['users.read']);
+    renderWithProviders(<UsersPage />, { route: '/admin/users?q=ay' });
+    expect(await screen.findByTestId('masked-search-hint')).toHaveTextContent('en az 3 karakter');
+    await waitFor(() => expect(calls(f).some((c) => c.url.startsWith('/api/admin/rbac/me'))).toBe(true));
+    expect(calls(f).some((c) => c.url.startsWith('/api/admin/users') && c.url.includes('q='))).toBe(false);
+  });
+
+  it('3 karakter ve üstü aramada istek atılır; maskeli e-posta bozulmadan gösterilir', async () => {
+    const f = maskedServer(['users.read']);
+    renderWithProviders(<UsersPage />, { route: '/admin/users?q=ays' });
+    expect(await screen.findByText('a***@bingol.edu.tr')).toBeInTheDocument();
+    expect(screen.queryByTestId('masked-search-hint')).toBeNull();
+    expect(calls(f).some((c) => c.url.startsWith('/api/admin/users') && c.url.includes('q=ays'))).toBe(true);
+  });
+
+  it('users.pii izni olan profilde kısa arama engellenmez', async () => {
+    const f = maskedServer(['users.read', 'users.pii']);
+    renderWithProviders(<UsersPage />, { route: '/admin/users?q=ay' });
+    await waitFor(() => expect(calls(f).some((c) => c.url.startsWith('/api/admin/users') && c.url.includes('q=ay'))).toBe(true));
+    expect(screen.queryByTestId('masked-search-hint')).toBeNull();
+  });
+});
+
 describe('UsersPage (P09): toplu işlem ve gelişmiş süzgeç', () => {
   it('seçim yapılmadıkça toplu işlem çubuğu yoktur; seçilince 3 işlem görünür', async () => {
     server();

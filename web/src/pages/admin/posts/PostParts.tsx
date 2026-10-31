@@ -5,7 +5,9 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { adminPostsApi } from '../../../api';
 import type { AdminPostMedia, AdminPostRow } from '../../../api/adminPosts';
-import { Badge, Button, FormField, Input, Modal, Textarea, useToast } from '../../../components/ui';
+import { Badge, Button, FormField, Input, Modal, useToast } from '../../../components/ui';
+import { GuardedDialog } from '../../../components/admin/GuardedDialog';
+import { ADMIN_REASON_MIN } from '../../../components/admin/guard/match';
 import { useI18n } from '../../../i18n/I18nProvider';
 import { adminErrorMessage } from '../campaigns/shared';
 import { formatDuration } from '../chat/chatLogic';
@@ -58,44 +60,16 @@ export function usePostActions(onDeleted?: (id: number) => void) {
   const toast = useToast();
   const qc = useQueryClient();
   const [hideFor, setHideFor] = useState<AdminPostRow | null>(null);
+  const [unhideFor, setUnhideFor] = useState<AdminPostRow | null>(null);
   const [deleteFor, setDeleteFor] = useState<AdminPostRow | null>(null);
   const [editFor, setEditFor] = useState<AdminPostRow | null>(null);
-  const [reason, setReason] = useState('');
-  const [deleteReason, setDeleteReason] = useState('');
   const [text, setText] = useState('');
   const textError = postTextError(text);
   const refresh = () => void qc.invalidateQueries({ queryKey: ['adminPosts'] });
   const onError = (e: unknown) => toast.error(adminErrorMessage(i18n, e));
+  // Gizle / geri aç / sil: W1-B (T-013) gereği gerekçe (>= 5 karakter) zorunlu; GuardedDialog sebebi `X-Admin-Reason` ile yollar.
+  const keys = [['adminPosts']];
 
-  const hide = useMutation({
-    mutationFn: (p: { id: number; reason: string }) => adminPostsApi.hidePost(p.id, p.reason),
-    onSuccess: () => {
-      toast.success(t('admin.posts.hide.done'));
-      setHideFor(null);
-      setReason('');
-      refresh();
-    },
-    onError,
-  });
-  const unhide = useMutation({
-    mutationFn: (id: number) => adminPostsApi.unhidePost(id),
-    onSuccess: () => {
-      toast.success(t('admin.posts.unhide.done'));
-      refresh();
-    },
-    onError,
-  });
-  const del = useMutation({
-    mutationFn: (p: { id: number; reason: string }) => adminPostsApi.deletePost(p.id, p.reason),
-    onSuccess: (_d, p) => {
-      toast.success(t('admin.posts.delete.done'));
-      setDeleteFor(null);
-      setDeleteReason('');
-      onDeleted?.(p.id);
-      refresh();
-    },
-    onError,
-  });
   const edit = useMutation({
     mutationFn: (p: { id: number; text: string }) => adminPostsApi.editPost(p.id, p.text),
     onSuccess: () => {
@@ -108,60 +82,54 @@ export function usePostActions(onDeleted?: (id: number) => void) {
 
   const dialogs = (
     <>
-      <Modal
+      <GuardedDialog
         open={hideFor !== null}
         onClose={() => setHideFor(null)}
         title={t('admin.posts.hide.title')}
-        size="sm"
-        footer={
-          <>
-            <Button variant="secondary" onClick={() => setHideFor(null)}>
-              {t('common.cancel')}
-            </Button>
-            <Button
-              loading={hide.isPending}
-              onClick={() => hideFor && hide.mutate({ id: hideFor.id, reason })}
-              data-testid="hide-confirm"
-            >
-              {t('admin.posts.hide.confirm')}
-            </Button>
-          </>
-        }
-      >
-        <p>{t('admin.posts.hide.hint')}</p>
-        <FormField label={t('admin.posts.hide.reason')}>
-          <Textarea value={reason} maxLength={300} rows={3} onChange={(e) => setReason(e.target.value)} data-autofocus />
-        </FormField>
-      </Modal>
-      <Modal
+        message={t('admin.posts.hide.hint')}
+        irreversible={false}
+        confirmLabel={t('admin.posts.hide.confirm')}
+        requireReason
+        reasonMinLength={ADMIN_REASON_MIN}
+        reasonLabel={t('admin.posts.hide.reason')}
+        successMessage={t('admin.posts.hide.done')}
+        invalidateKeys={keys}
+        onConfirm={({ reason, idempotencyKey }) => adminPostsApi.hidePost(hideFor!.id, reason, { idempotencyKey })}
+      />
+      <GuardedDialog
+        open={unhideFor !== null}
+        onClose={() => setUnhideFor(null)}
+        title={t('admin.wp02.posts.unhide.title')}
+        message={t('admin.wp02.posts.unhide.hint')}
+        irreversible={false}
+        confirmLabel={t('admin.wp02.posts.unhide.confirm')}
+        requireReason
+        reasonMinLength={ADMIN_REASON_MIN}
+        reasonLabel={t('admin.posts.hide.reason')}
+        successMessage={t('admin.posts.unhide.done')}
+        invalidateKeys={keys}
+        onConfirm={({ reason, idempotencyKey }) => adminPostsApi.unhidePost(unhideFor!.id, reason, { idempotencyKey })}
+      />
+      <GuardedDialog
         open={deleteFor !== null}
         onClose={() => setDeleteFor(null)}
         title={t('admin.posts.delete.title')}
-        size="sm"
-        footer={
-          <>
-            <Button variant="secondary" onClick={() => setDeleteFor(null)}>
-              {t('common.cancel')}
-            </Button>
-            <Button
-              variant="danger"
-              loading={del.isPending}
-              onClick={() => deleteFor && del.mutate({ id: deleteFor.id, reason: deleteReason })}
-              data-testid="delete-confirm"
-            >
-              {t('admin.posts.delete.confirm')}
-            </Button>
-          </>
+        message={t('admin.posts.delete.message')}
+        extra={
+          (deleteFor?.openReportCount ?? 0) > 0 ? (
+            <p className={styles.reason}>{t('admin.posts.delete.reportsNote', { n: deleteFor?.openReportCount ?? 0 })}</p>
+          ) : null
         }
-      >
-        <p>{t('admin.posts.delete.message')}</p>
-        {(deleteFor?.openReportCount ?? 0) > 0 && (
-          <p className={styles.reason}>{t('admin.posts.delete.reportsNote', { n: deleteFor?.openReportCount ?? 0 })}</p>
-        )}
-        <FormField label={t('admin.posts.delete.reason')} hint={t('admin.posts.delete.reasonHint')}>
-          <Textarea value={deleteReason} maxLength={300} rows={3} onChange={(e) => setDeleteReason(e.target.value)} data-autofocus />
-        </FormField>
-      </Modal>
+        danger
+        confirmLabel={t('admin.posts.delete.confirm')}
+        requireReason
+        reasonMinLength={ADMIN_REASON_MIN}
+        reasonLabel={t('admin.posts.delete.reason')}
+        successMessage={t('admin.posts.delete.done')}
+        invalidateKeys={keys}
+        onSuccess={() => onDeleted?.(deleteFor!.id)}
+        onConfirm={({ reason, idempotencyKey }) => adminPostsApi.deletePost(deleteFor!.id, reason, { idempotencyKey })}
+      />
       <Modal
         open={editFor !== null}
         onClose={() => setEditFor(null)}
@@ -196,20 +164,15 @@ export function usePostActions(onDeleted?: (id: number) => void) {
 
   return {
     dialogs,
-    askHide: (p: AdminPostRow) => {
-      setReason('');
-      setHideFor(p);
-    },
-    askDelete: (p: AdminPostRow) => {
-      setDeleteReason('');
-      setDeleteFor(p);
-    },
+    askHide: (p: AdminPostRow) => setHideFor(p),
+    askDelete: (p: AdminPostRow) => setDeleteFor(p),
     askEdit: (p: AdminPostRow) => {
       setText(p.text ?? '');
       setEditFor(p);
     },
-    unhide: (p: AdminPostRow) => unhide.mutate(p.id),
-    busy: unhide.isPending,
+    // Geri açmak da gerekçe ister (W1-B T-013): düğme diyaloğu açar.
+    unhide: (p: AdminPostRow) => setUnhideFor(p),
+    busy: false,
   };
 }
 

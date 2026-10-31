@@ -22,11 +22,14 @@ import {
   ErrorState,
   Modal,
   PageHeader,
+  PermissionButton,
   SearchInput,
   Table,
   useToast,
   type Column,
 } from '../../components/ui';
+import { ReasonField } from '../../components/admin/guard/ReasonField';
+import { ADMIN_REASON_MIN, isReasonValid } from '../../components/admin/guard/match';
 import { useI18n } from '../../i18n/I18nProvider';
 import { errorMessage } from '../../lib/errors';
 import { usePageTitle } from '../../lib/hooks';
@@ -58,6 +61,9 @@ export default function PendingUsersPage() {
   const [q, setQ] = useState('');
   const [dialog, setDialog] = useState<Dialog>(null);
   const [busy, setBusy] = useState(false);
+  // W1-B (T-011): kodsuz doğrulama gerekçe ister (>= 5 karakter, X-Admin-Reason); izin users.verify (yalnız FULL).
+  const [reason, setReason] = useState('');
+  const reasonOk = isReasonValid(reason, ADMIN_REASON_MIN);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [cooldown, setCooldown] = useState<Record<string, number>>({});
   const [now, setNow] = useState(() => Date.now());
@@ -127,7 +133,7 @@ export default function PendingUsersPage() {
   }
 
   async function verifyOne(u: PendingUser): Promise<void> {
-    await verifyPending(u.email);
+    await verifyPending(u.email, { reason });
     removeFromCache(u.email);
   }
 
@@ -313,9 +319,16 @@ export default function PendingUsersPage() {
         const wait = Math.ceil(((cooldown[u.email] ?? 0) - now) / 1000);
         return (
           <div className={styles.rowActions}>
-            <Button size="sm" onClick={() => setDialog({ kind: 'verify', user: u })}>
+            <PermissionButton
+              permission="users.verify"
+              size="sm"
+              onClick={() => {
+                setReason('');
+                setDialog({ kind: 'verify', user: u });
+              }}
+            >
               {t('admin.pend.verify')}
-            </Button>
+            </PermissionButton>
             <Button size="sm" variant="secondary" disabled={wait > 0} onClick={() => void onResend(u)}>
               {wait > 0 ? t('admin.pend.resend.wait', { s: formatNumber(wait) }) : t('admin.pend.resend')}
             </Button>
@@ -344,7 +357,15 @@ export default function PendingUsersPage() {
         {selectedCount > 0 && (
           <div className={styles.bulk}>
             <span className={styles.muted}>{t('admin.pend.selected', { n: formatNumber(selectedCount) })}</span>
-            <Button onClick={() => setDialog({ kind: 'bulk' })}>{t('admin.pend.bulk.verify')}</Button>
+            <PermissionButton
+              permission="users.verify"
+              onClick={() => {
+                setReason('');
+                setDialog({ kind: 'bulk' });
+              }}
+            >
+              {t('admin.pend.bulk.verify')}
+            </PermissionButton>
             <PendingBulkCancel
               emails={rows.filter((u) => selected.has(u.email)).map((u) => u.email)}
               onDone={() => {
@@ -411,7 +432,11 @@ export default function PendingUsersPage() {
           </>
         }
         confirmLabel={t('admin.pend.verify')}
-      />
+        confirmDisabled={!reasonOk}
+        initialFocus="content"
+      >
+        <ReasonField value={reason} onChange={setReason} minLength={ADMIN_REASON_MIN} disabled={busy} focusOnMount />
+      </ConfirmDialog>
       <ConfirmDialog
         open={dialog?.kind === 'cancel'}
         onClose={() => setDialog(null)}
@@ -436,7 +461,7 @@ export default function PendingUsersPage() {
               <Button variant="secondary" disabled={!!bulk} onClick={closeBulk}>
                 {t('common.cancel')}
               </Button>
-              <Button loading={!!bulk?.running} onClick={() => void runBulk()} data-autofocus>
+              <Button loading={!!bulk?.running} disabled={!reasonOk} onClick={() => void runBulk()}>
                 {t('admin.pend.bulk.verify')}
               </Button>
             </>
@@ -444,7 +469,10 @@ export default function PendingUsersPage() {
         }
       >
         {!bulk ? (
-          <p>{t('admin.pend.bulk.message', { n: formatNumber(selectedCount) })}</p>
+          <>
+            <p>{t('admin.pend.bulk.message', { n: formatNumber(selectedCount) })}</p>
+            <ReasonField value={reason} onChange={setReason} minLength={ADMIN_REASON_MIN} focusOnMount />
+          </>
         ) : (
           <div aria-live="polite">
             <p className={styles.progress}>

@@ -3,6 +3,8 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useMemo, useState } from 'react';
 import { accessBanKeys, BAN_REASONS, bulkAdd, type BanReason, type BulkResult } from '../../../api/accessBans';
 import { Button, Card, ConfirmDialog, FormField, Input, Select, Textarea, useToast } from '../../../components/ui';
+import { ReasonField } from '../../../components/admin/guard/ReasonField';
+import { ADMIN_REASON_MIN, isReasonValid } from '../../../components/admin/guard/match';
 import { useI18n } from '../../../i18n/I18nProvider';
 import { adminErrorMessage, Callout } from '../campaigns/shared';
 import styles from './accessBans.module.css';
@@ -48,6 +50,9 @@ export function BulkTab() {
   const [text, setText] = useState('');
   const [reason, setReason] = useState<BanReason>('ABUSE');
   const [note, setNote] = useState('');
+  // W1-B (T-013): toplu engel de islem gerekcesi ister (X-Admin-Reason).
+  const [why, setWhy] = useState('');
+  const whyOk = isReasonValid(why, ADMIN_REASON_MIN);
   const [result, setResult] = useState<BulkResult | null>(null);
   const [forceAsk, setForceAsk] = useState(false);
 
@@ -57,7 +62,10 @@ export function BulkTab() {
 
   const run = useMutation({
     mutationFn: (force: boolean) =>
-      bulkAdd({ text: lines.join('\n'), reasonCode: reason, note: note.trim() || undefined, ...(force ? { force: true } : {}) }),
+      bulkAdd(
+        { text: lines.join('\n'), reasonCode: reason, note: note.trim() || undefined, ...(force ? { force: true } : {}) },
+        { reason: why },
+      ),
     onSuccess: (r) => {
       setResult(r);
       setForceAsk(false);
@@ -78,7 +86,7 @@ export function BulkTab() {
           noValidate
           onSubmit={(e) => {
             e.preventDefault();
-            if (lines.length > 0) run.mutate(false);
+            if (lines.length > 0 && whyOk) run.mutate(false);
           }}
         >
           <p className={styles.muted}>{t('admin.ab.bulk.intro')}</p>
@@ -112,8 +120,15 @@ export function BulkTab() {
               <Input value={note} maxLength={300} dir="auto" onChange={(e) => setNote(e.target.value)} />
             </FormField>
           </div>
+          <ReasonField
+            value={why}
+            onChange={setWhy}
+            minLength={ADMIN_REASON_MIN}
+            label={t('admin.wp02.actionReason.label')}
+            disabled={run.isPending}
+          />
           <div>
-            <Button type="submit" variant="danger" loading={run.isPending} disabled={lines.length === 0}>
+            <Button type="submit" variant="danger" loading={run.isPending} disabled={lines.length === 0 || !whyOk}>
               {t('admin.ab.bulk.submit')}
             </Button>
           </div>

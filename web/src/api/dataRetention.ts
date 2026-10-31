@@ -3,7 +3,7 @@
 // /purges[/{id}]; POST /admin/data-retention/exports (gzip CSV akışı), POST /admin/data-retention/purges.
 // Sözleşme: docs/ADMIN_API.md "Veri saklama (DS1)". UI gizlemesi güvenlik değildir: asıl denetim sunucudadır.
 import { api, apiBlobMeta } from './client';
-import { guardHeaders, type GuardOpts } from './guard';
+import { adminSeg, guardHeaders, type GuardOpts } from './guard';
 import type { SystemLevel } from './system';
 
 export type DiskSource = 'MEASURED' | 'COMPUTED' | 'UNKNOWN';
@@ -136,7 +136,7 @@ export const retentionKeys = {
 export const getStorage = () => api.get<StorageReport>('/admin/system/storage');
 export const getRetentionTables = () => api.get<RetentionTable[]>('/admin/data-retention/tables');
 export const getPurgePreview = (table: string, from: string, to: string) =>
-  api.get<PurgePreview>(`/admin/data-retention/tables/${encodeURIComponent(table)}/purge-preview`, {
+  api.get<PurgePreview>(`/admin/data-retention/tables/${adminSeg(table)}/purge-preview`, {
     from: from || undefined,
     to,
   });

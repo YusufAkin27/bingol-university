@@ -13,6 +13,7 @@ import {
 import { Card, PermissionButton, Select } from '../../../components/ui';
 import { GuardedDialog } from '../../../components/admin/GuardedDialog';
 import { useI18n } from '../../../i18n/I18nProvider';
+import { ADMIN_REASON_MIN } from '../../../components/admin/guard/match';
 import { Callout } from '../campaigns/shared';
 import styles from './users.module.css';
 
@@ -24,9 +25,6 @@ interface Props {
 }
 
 type Dialog = null | 'suspend' | 'unsuspend' | 'role' | 'delete' | 'verify' | 'reset' | 'revoke';
-
-/** Askı sebebi en az bu kadar karakter olmalı (önceki davranış: boş olamaz; kısa ama anlamlı sebepler kabul). */
-const SUSPEND_REASON_MIN = 3;
 
 /**
  * Askıya al / geri aç, rol değiştir, oturum kapat ve hesap sil işlemleri. Hepsi `GuardedDialog`dan geçer:
@@ -70,7 +68,7 @@ export function UserActions({ user, selfId, onDeleted }: Props) {
 
         {!user.emailVerified && (
           <div className={styles.actionRow}>
-            <PermissionButton permission="users.write" variant="primary" onClick={() => setDialog('verify')}>
+            <PermissionButton permission="users.verify" variant="primary" onClick={() => setDialog('verify')}>
               {t('admin.users.actions.verifyEmail')}
             </PermissionButton>
           </div>
@@ -133,7 +131,7 @@ export function UserActions({ user, selfId, onDeleted }: Props) {
         confirmLabel={t('admin.users.actions.suspend')}
         danger
         requireReason
-        reasonMinLength={SUSPEND_REASON_MIN}
+        reasonMinLength={ADMIN_REASON_MIN}
         reasonLabel={t('admin.users.actions.suspend.reason')}
         successMessage={t('admin.users.actions.suspend.done')}
         invalidateKeys={refreshKeys}
@@ -157,9 +155,11 @@ export function UserActions({ user, selfId, onDeleted }: Props) {
         title={t('admin.users.actions.verifyEmail')}
         message={t('admin.users.actions.verifyEmail.message', { name })}
         confirmLabel={t('admin.users.actions.verifyEmail')}
+        requireReason
+        reasonMinLength={ADMIN_REASON_MIN}
         successMessage={t('admin.users.actions.verifyEmail.done')}
         invalidateKeys={refreshKeys}
-        onConfirm={({ idempotencyKey }) => verifyUserEmail(user.id, { idempotencyKey })}
+        onConfirm={({ reason, idempotencyKey }) => verifyUserEmail(user.id, { reason, idempotencyKey })}
       />
 
       <GuardedDialog
@@ -168,8 +168,10 @@ export function UserActions({ user, selfId, onDeleted }: Props) {
         title={t('admin.users.actions.sendReset')}
         message={t('admin.users.actions.sendReset.message', { name })}
         confirmLabel={t('admin.users.actions.sendReset')}
+        requireReason
+        reasonMinLength={ADMIN_REASON_MIN}
         successMessage={t('admin.users.actions.sendReset.done')}
-        onConfirm={({ idempotencyKey }) => sendUserReset(user.id, { idempotencyKey })}
+        onConfirm={({ reason, idempotencyKey }) => sendUserReset(user.id, { reason, idempotencyKey })}
       />
 
       <GuardedDialog
@@ -181,7 +183,8 @@ export function UserActions({ user, selfId, onDeleted }: Props) {
         irreversible={false}
         confirmLabel={t('admin.users.actions.revoke')}
         danger
-        optionalReason
+        requireReason
+        reasonMinLength={ADMIN_REASON_MIN}
         successMessage={t('admin.users.actions.revoke.done')}
         onConfirm={({ reason, idempotencyKey }) => revokeUserSessions(user.id, { reason, idempotencyKey })}
       />

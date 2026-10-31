@@ -148,11 +148,21 @@ describe('Operasyon paneli', () => {
     await userEvent.clear(input);
     await userEvent.type(input, 'https://grafana.example.com');
     await userEvent.click(screen.getAllByRole('button', { name: 'Kaydet' })[1]);
+    // W1-B (T-013): ayar kaydı gerekçe diyaloğundan geçer
+    const dialog = await screen.findByRole('dialog');
+    const confirm = within(dialog).getByRole('button', { name: 'Kaydet' });
+    expect(confirm).toBeDisabled();
+    expect(calls.some((c) => c.init.method === 'PUT')).toBe(false);
+    await userEvent.type(within(dialog).getByRole('textbox'), 'İzleme paneli adresi güncellendi');
+    await userEvent.click(confirm);
     await waitFor(() =>
       expect(
         calls.some((c) => c.url.endsWith('/admin/settings/ops_grafana_url') && c.init.method === 'PUT'),
       ).toBe(true),
     );
+    const put = calls.find((c) => c.url.endsWith('/admin/settings/ops_grafana_url') && c.init.method === 'PUT');
+    const hdrs = put?.init.headers as Record<string, string>;
+    expect(decodeURIComponent(hdrs['X-Admin-Reason'])).toBe('İzleme paneli adresi güncellendi');
   });
 });
 

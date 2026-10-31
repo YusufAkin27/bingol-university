@@ -1,7 +1,7 @@
 // P09 kullanıcı derin yönetimi uçları (api/users.ts'in genişlemesi). Sözleşme: AdminUserExtrasController.
 // Yazma uçlarında sebep `X-Admin-Reason` başlığıyla gider (guardHeaders); KVKK dışa aktarma ayrıca `X-Admin-Confirm`.
 import { api, apiBlob } from './client';
-import { guardHeaders, type GuardOpts } from './guard';
+import { adminSeg, guardHeaders, type GuardOpts } from './guard';
 import type { Page } from './types';
 
 /** `qk.users.all` (['users']) ile başlar: kullanıcı işlemlerinde tek `invalidateQueries` hepsini tazeler. */
@@ -84,7 +84,7 @@ export const patchUserProfile = (id: number, body: ProfilePatchBody, o?: GuardOp
 
 export const getUserSessions = (id: number) => api.get<UserSessionList>(`/admin/users/${id}/sessions`);
 export const revokeUserSession = (id: number, sessionId: string, o?: GuardOpts) =>
-  api.del(`/admin/users/${id}/sessions/${encodeURIComponent(sessionId)}`, guardHeaders(o));
+  api.del(`/admin/users/${id}/sessions/${adminSeg(sessionId)}`, guardHeaders(o));
 
 export const getUserPushDevices = (id: number) => api.get<PushDevice[]>(`/admin/users/${id}/push-devices`);
 export const deleteUserPushDevice = (id: number, deviceId: number, o?: GuardOpts) =>

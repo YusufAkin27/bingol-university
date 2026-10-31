@@ -117,7 +117,7 @@ export default function CampaignComposePage() {
   const built = buildRequest(state, now, count);
 
   const send = useMutation({
-    mutationFn: () => createCampaign(built.request!),
+    mutationFn: (reason: string) => createCampaign(built.request!, { reason }),
     onSuccess: () => {
       sentRef.current = true;
       clearDraft();
@@ -523,7 +523,7 @@ export default function CampaignComposePage() {
         <SendDialog
           open
           onClose={() => setSendOpen(false)}
-          onSend={() => send.mutate()}
+          onSend={(reason) => send.mutate(reason)}
           sending={send.isPending}
           error={sendError}
           state={state}

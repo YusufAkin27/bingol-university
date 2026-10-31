@@ -17,7 +17,6 @@ import {
   Skeleton,
   Switch,
   Tabs,
-  useGuardedMutation,
   useUnsavedGuard,
   PermissionButton,
 } from '../../components/ui';
@@ -31,7 +30,6 @@ import { SettingDiff } from './settings/SettingDiff';
 import {
   compareVersions,
   GROUP_KEYS,
-  isCriticalSetting,
   isMinVersionKey,
   validateSetting,
   type SettingGroup,
@@ -61,7 +59,6 @@ export default function SettingsPage() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   // Kritik anahtarlar için onay penceresi: kaydedilecek anahtar + değer
   const [pending, setPending] = useState<{ key: string; value: string } | null>(null);
-  const [savingKey, setSavingKey] = useState<string | null>(null);
   const [bannerLang, setBannerLang] = useState<Lang>('tr');
 
   const q = useQuery({ queryKey: qk.settings.list(), queryFn: getSettings });
@@ -81,7 +78,6 @@ export default function SettingsPage() {
     void qc.invalidateQueries({ queryKey: qk.appInfo });
     if (key === 'faculties') void qc.invalidateQueries({ queryKey: qk.faculties });
   };
-  const savedText = (key: string) => t('admin.settings.saved', { name: i18n.td(`admin.settings.key.${key}`, key) });
   /** Hata metnini alanın altında da gösterir (toast'u çağıran tarafı üretir). */
   const failText = (key: string, e: unknown) => {
     const msg = adminErrorMessage(i18n, e);
@@ -89,27 +85,12 @@ export default function SettingsPage() {
     return msg;
   };
 
-  // Kritik olmayan anahtarlar doğrudan kaydedilir; çift tıklama/Enter senkron kilitle tek isteğe iner.
-  const saveG = useGuardedMutation<void, { key: string; value: string }>({
-    mutationFn: (v, { idempotencyKey }) => putSetting(v.key, v.value, { idempotencyKey }),
-    successMessage: (_d, v) => savedText(v.key),
-    onSuccess: (_d, v) => afterSaved(v.key),
-    onError: (e, v) => void failText(v.key, e),
-  });
-  const saveDirect = async (key: string, value: string) => {
-    setSavingKey(key);
-    try {
-      await saveG.run({ key, value });
-    } finally {
-      setSavingKey(null);
-    }
-  };
-
   const ctx: SettingsCtx = {
     server,
     edits,
     errors,
-    savingKey,
+    // Her kayıt gerekçe diyaloğundan geçer (W1-B T-013); düğme yükleniyor durumu diyalogda gösterilir.
+    savingKey: null,
     setEdit: (key, value) => {
       setEdits((e) => ({ ...e, [key]: value }));
       setErrors((x) => {
@@ -132,11 +113,8 @@ export default function SettingsPage() {
       const value = valueOf({ server, edits }, key).trim();
       if (validateSetting(key, value)) return;
       if (value === (server[key] ?? '')) return; // fark yok
-      if (isCriticalSetting(key)) {
-        setPending({ key, value });
-        return;
-      }
-      void saveDirect(key, value);
+      // W1-B (T-013): sunucu tüm ayar kayıtlarında gerekçe ister; fark önizlemesi + gerekçe diyaloğu her anahtarda açılır.
+      setPending({ key, value });
     },
   };
 

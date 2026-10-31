@@ -108,12 +108,15 @@ describe('kampanya oluşturucu', () => {
     const confirm = within(dialog).getByTestId('confirm-send');
     expect(confirm).toBeDisabled();
     await user.click(within(dialog).getByLabelText(/Tüm kullanıcılara/));
+    expect(confirm).toBeDisabled(); // W1-B (T-013): işlem gerekçesi de zorunlu
+    await user.type(within(dialog).getByLabelText(/^İşlem gerekçesi/), 'Dönem duyurusu');
     expect(confirm).toBeEnabled();
     await user.click(confirm);
     await waitFor(() =>
       expect(calls.some((c) => c.url.endsWith('/admin/push/campaigns') && c.init.method === 'POST')).toBe(true),
     );
     const post = calls.find((c) => c.url.endsWith('/admin/push/campaigns'));
+    expect(decodeURIComponent((post?.init.headers as Record<string, string>)['X-Admin-Reason'])).toBe('Dönem duyurusu');
     expect(JSON.parse(String(post?.init.body))).toMatchObject({
       type: 'ANNOUNCEMENT',
       audience: { type: 'ALL' },

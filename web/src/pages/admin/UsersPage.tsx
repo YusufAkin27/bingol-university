@@ -33,6 +33,7 @@ import {
 import { useI18n } from '../../i18n/I18nProvider';
 import { usePageTitle } from '../../lib/hooks';
 import { adminError, errorMessage } from '../../lib/errors';
+import { usePermissions } from '../../auth/permissions';
 import { paths } from '../../paths';
 import { DebouncedInput } from './users/DebouncedInput';
 import {
@@ -47,6 +48,9 @@ import {
 } from './users/filters';
 import deep from './users/deep.module.css';
 import styles from './users/users.module.css';
+
+/** Maskeli (users.pii olmayan) profillerde arama için en az karakter (sunucu: UserFilter.MASKED_Q_MIN). */
+const MASKED_SEARCH_MIN = 3;
 
 export default function UsersPage() {
   const i18n = useI18n();
@@ -67,11 +71,20 @@ export default function UsersPage() {
 
   const faculties = useQuery({ queryKey: qk.faculties, queryFn: getFaculties, staleTime: 5 * 60_000 });
 
+  // W1-C (T-019): users.pii olmayan profil (SUPPORT, EDITOR, VIEWER) yalnız görünen ada göre arar ve sunucu en az 3
+  // karakter ister (aksi halde 400); kısa sorguda istek atılmaz, kullanıcıya açıkça söylenir.
+  const perms = usePermissions();
+  const qLen = filters.q.trim().length;
+  const qShort = qLen > 0 && qLen < MASKED_SEARCH_MIN;
+  // İzinler henüz yüklenmediyse kısa sorgu beklemeye alınır (maskeli profile boşuna 400 gitmesin).
+  const qTooShort = qShort && perms.status === 'ready' && !perms.can('users.pii');
+  const qWaiting = qShort && perms.status === 'loading';
   const apiParams = { ...filtersToApi(filters), page: filters.page, size: PAGE_SIZE };
   const list = useQuery({
     queryKey: qk.users.list(apiParams),
     queryFn: () => listUsers(apiParams),
     placeholderData: keepPreviousData,
+    enabled: !qTooShort && !qWaiting,
   });
 
   // Süzgeç/sayfa değişince seçim sıfırlanır: görünmeyen satırlar üzerinde toplu işlem yapılmasın.
@@ -216,6 +229,11 @@ export default function UsersPage() {
             placeholder={t('admin.users.searchPlaceholder')}
             onSearch={(q) => update({ q })}
           />
+          {qTooShort && (
+            <p className={styles.hint} role="status" data-testid="masked-search-hint">
+              {t('admin.wp02.users.searchMasked', { n: MASKED_SEARCH_MIN })}
+            </p>
+          )}
         </div>
         {activeFilters > 0 && (
           <Button

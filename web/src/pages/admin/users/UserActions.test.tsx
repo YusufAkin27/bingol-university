@@ -63,13 +63,16 @@ describe('UserActions', () => {
     expect(calls(f)).toHaveLength(0);
 
     await user.type(within(dialog).getByRole('textbox'), 'Spam');
+    expect(confirm).toBeDisabled(); // W1-B: en az 5 karakter
+    await user.type(within(dialog).getByRole('textbox'), ' hesap');
     expect(confirm).toBeEnabled();
     await user.click(confirm);
     await waitFor(() => expect(calls(f)).toHaveLength(1));
     const c = calls(f)[0];
     expect(c.url).toBe('/api/admin/users/7/suspend');
     expect(c.init.method).toBe('POST');
-    expect(JSON.parse(String(c.init.body))).toEqual({ reason: 'Spam' });
+    expect(JSON.parse(String(c.init.body))).toEqual({ reason: 'Spam hesap' });
+    expect(decodeURIComponent(hdr(c, 'X-Admin-Reason'))).toBe('Spam hesap');
     expect(hdr(c, 'Idempotency-Key')).toBeTruthy();
     expect(await screen.findByText('Hesap askıya alındı.')).toBeInTheDocument();
   });
@@ -210,17 +213,63 @@ describe('UserActions', () => {
     expect(calls(f)).toHaveLength(1);
   });
 
-  it('oturum kapatma: onay ister, sebep isteğe bağlıdır (boş da gönderilir)', async () => {
+  it('oturum kapatma: gerekçe (>= 5 karakter) olmadan onay kapalıdır, istek gitmez', async () => {
     const f = mockFetch(() => jsonResponse(204));
     renderWithProviders(<UserActions user={base} selfId={1} />);
     const user = userEvent.setup();
     await user.click(screen.getByRole('button', { name: 'Oturumlarını kapat' }));
     expect(calls(f)).toHaveLength(0);
     const dialog = screen.getByRole('alertdialog');
-    await user.click(within(dialog).getByRole('button', { name: 'Oturumlarını kapat' }));
+    const confirm = within(dialog).getByRole('button', { name: 'Oturumlarını kapat' });
+    expect(confirm).toBeDisabled();
+    await user.type(within(dialog).getByRole('textbox'), 'abcd');
+    expect(confirm).toBeDisabled();
+    await user.click(confirm);
+    expect(calls(f)).toHaveLength(0);
+  });
+
+  it('şifre sıfırlama gönder: gerekçe zorunlu; başlıkta gider', async () => {
+    const f = mockFetch(() => jsonResponse(204));
+    renderWithProviders(<UserActions user={base} selfId={1} />);
+    const user = userEvent.setup();
+    await user.click(screen.getByRole('button', { name: 'Şifre sıfırlama e-postası gönder' }));
+    const dialog = screen.getByRole('dialog');
+    const confirm = within(dialog).getByRole('button', { name: 'Şifre sıfırlama e-postası gönder' });
+    expect(confirm).toBeDisabled();
+    await user.type(within(dialog).getByRole('textbox'), 'Kullanıcı şifresini unuttu');
+    await user.click(confirm);
     await waitFor(() => expect(calls(f)).toHaveLength(1));
-    expect(calls(f)[0].url).toBe('/api/admin/users/7/revoke-sessions');
-    expect(calls(f)[0].init.body).toBeUndefined();
+    expect(calls(f)[0].url).toBe('/api/admin/users/7/send-reset');
+    expect(decodeURIComponent(hdr(calls(f)[0], 'X-Admin-Reason'))).toBe('Kullanıcı şifresini unuttu');
+  });
+
+  it('e-postayı elle doğrula: gerekçe zorunlu; başlıkta gider; çok satırlı gerekçe tek satıra iner', async () => {
+    const f = mockFetch(() => jsonResponse(204));
+    renderWithProviders(<UserActions user={{ ...base, emailVerified: false }} selfId={1} />);
+    const user = userEvent.setup();
+    await user.click(screen.getByRole('button', { name: 'E-postayı elle doğrula' }));
+    const dialog = screen.getByRole('dialog');
+    const confirm = within(dialog).getByRole('button', { name: 'E-postayı elle doğrula' });
+    expect(confirm).toBeDisabled();
+    await user.type(within(dialog).getByRole('textbox'), 'Posta kutusu{Enter}erişilemiyor');
+    expect(confirm).toBeEnabled();
+    await user.click(confirm);
+    await waitFor(() => expect(calls(f)).toHaveLength(1));
+    expect(calls(f)[0].url).toBe('/api/admin/users/7/verify-email');
+    const sent = decodeURIComponent(hdr(calls(f)[0], 'X-Admin-Reason'));
+    expect(sent).toBe('Posta kutusu erişilemiyor');
+    expect(sent).not.toMatch(/[\r\n\t]/);
+  });
+
+  it('VERIFY_ADMIN_EMAIL_FORBIDDEN (409) anlaşılır Türkçe iletiyle gösterilir', async () => {
+    mockFetch(() => jsonResponse(409, { code: 'VERIFY_ADMIN_EMAIL_FORBIDDEN', message: 'x' }));
+    renderWithProviders(<UserActions user={{ ...base, emailVerified: false }} selfId={1} />);
+    const user = userEvent.setup();
+    await user.click(screen.getByRole('button', { name: 'E-postayı elle doğrula' }));
+    const dialog = screen.getByRole('dialog');
+    await user.type(within(dialog).getByRole('textbox'), 'Gerekçe yazıldı');
+    await user.click(within(dialog).getByRole('button', { name: 'E-postayı elle doğrula' }));
+    expect(await screen.findByText(/koda gerek kalmadan doğrulanamaz/)).toBeInTheDocument();
   });
 
   it('oturum kapatma: yazılan sebep başlıkta gider', async () => {

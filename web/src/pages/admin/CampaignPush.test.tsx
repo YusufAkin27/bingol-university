@@ -113,6 +113,7 @@ describe('bildirim gönderimi: oluşturucu', () => {
     await user.type(screen.getByLabelText('Metin', { exact: true }), 'Metin');
     await user.click(screen.getByTestId('send-button'));
     const dialog = await screen.findByRole('dialog');
+    await user.type(within(dialog).getByLabelText(/^İşlem gerekçesi/), 'Duyuru gönderimi');
     await user.click(within(dialog).getByTestId('confirm-send'));
     expect(await within(dialog).findAllByText(/İki dakika sonra yeniden deneyin/)).not.toHaveLength(0);
   });
@@ -178,6 +179,24 @@ describe('bildirim gönderimi: kampanya listesi', () => {
     await user.click(await within(dialog).findByRole('button', { name: 'Duraklat' }));
     await waitFor(() => expect(calls.some((c) => c.url.endsWith('/campaigns/7/pause') && c.init.method === 'POST')).toBe(true));
     expect(within(dialog).getByText(/Sessiz saatler toplu gönderimde uygulanmaz/)).toBeInTheDocument();
+  });
+
+  it('iptal: gerekçe zorunlu; X-Admin-Reason başlığıyla POST gider (W1-B)', async () => {
+    const calls = setupList('SCHEDULED');
+    const user = userEvent.setup();
+    await user.click(await screen.findByText('Kampanya başlığı'));
+    const drawer = await screen.findByRole('dialog');
+    await user.click(await within(drawer).findByRole('button', { name: 'Kampanyayı iptal et' }));
+    const confirmDlg = await screen.findByRole('dialog', { name: 'Kampanya iptal edilsin mi?' });
+    const confirm = within(confirmDlg).getByRole('button', { name: 'Kampanyayı iptal et' });
+    expect(confirm).toBeDisabled();
+    expect(calls.some((c) => c.url.endsWith('/campaigns/7/cancel'))).toBe(false);
+    await user.type(within(confirmDlg).getByLabelText(/^İşlem gerekçesi/), 'Hatalı içerik');
+    await user.click(confirm);
+    await waitFor(() => {
+      const c = calls.find((x) => x.url.endsWith('/campaigns/7/cancel') && x.init.method === 'POST');
+      expect(decodeURIComponent((c?.init.headers as Record<string, string>)['X-Admin-Reason'])).toBe('Hatalı içerik');
+    });
   });
 
   it('duraklatılmış kampanyada devam ettir görünür, duraklat görünmez', async () => {

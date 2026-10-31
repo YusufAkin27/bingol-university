@@ -2,6 +2,7 @@
 // Uçlar: /admin/pending-registrations* (backend: admin/AdminPendingRegistrationController, PendingRegistrationStore.Entry).
 // Kimlik e-posta ya da okul numarasıdır; yola kodlanarak yazılır.
 import { api } from './client';
+import { adminSeg, guardHeaders, type GuardOpts } from './guard';
 
 export interface PendingUser {
   email: string;
@@ -27,7 +28,7 @@ export interface VerifiedUser {
 }
 
 const BASE = '/admin/pending-registrations';
-const seg = (email: string) => encodeURIComponent(email);
+const seg = (email: string) => adminSeg(email);
 
 export async function listPending(p: { q?: string; cursor?: string | null; size?: number } = {}): Promise<PendingPage> {
   const r = await api.get<Partial<PendingPage>>(BASE, {
@@ -38,8 +39,12 @@ export async function listPending(p: { q?: string; cursor?: string | null; size?
   return { items: r.items ?? [], nextCursor: r.nextCursor ?? null };
 }
 
-/** Hesabı koda gerek kalmadan oluşturur (409 EMAIL_ALREADY_REGISTERED, 404 PENDING_REGISTRATION_NOT_FOUND). */
-export const verifyPending = (email: string) => api.post<VerifiedUser>(`${BASE}/${seg(email)}/verify`);
+/**
+ * Hesabı koda gerek kalmadan oluşturur (409 EMAIL_ALREADY_REGISTERED, 404 PENDING_REGISTRATION_NOT_FOUND,
+ * 409 VERIFY_ADMIN_EMAIL_FORBIDDEN). İzin `users.verify` (yalnız FULL); gerekçe >= 5 karakter (X-Admin-Reason).
+ */
+export const verifyPending = (email: string, o?: GuardOpts) =>
+  api.post<VerifiedUser>(`${BASE}/${seg(email)}/verify`, undefined, guardHeaders(o));
 /** 202; 429 RESEND_COOLDOWN. */
 export const resendPendingCode = (email: string) => api.post(`${BASE}/${seg(email)}/resend-code`);
 export const cancelPending = (email: string) => api.del(`${BASE}/${seg(email)}`);

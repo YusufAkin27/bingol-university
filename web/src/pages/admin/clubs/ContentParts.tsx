@@ -11,6 +11,7 @@ import {
   type ContentRow,
 } from '../../../api/adminCommunities';
 import { GuardedDialog } from '../../../components/admin/GuardedDialog';
+import { ADMIN_REASON_MIN } from '../../../components/admin/guard/match';
 import { useGuardedMutation } from '../../../components/admin/guard/useGuardedMutation';
 import { Avatar, Badge, Button, ErrorState, FormField, Modal, Spinner, StatusPill, Textarea } from '../../../components/ui';
 import { useI18n } from '../../../i18n/I18nProvider';
@@ -46,7 +47,8 @@ export function useContentActions() {
         consequence={t('admin.p06.content.hide.consequence')}
         irreversible={false}
         confirmLabel={t('admin.p06.content.hide')}
-        optionalReason
+        requireReason
+        reasonMinLength={ADMIN_REASON_MIN}
         reasonLabel={t('admin.p06.content.hide.reason')}
         successMessage={t('admin.p06.content.hide.done')}
         invalidateKeys={keys}
@@ -59,6 +61,8 @@ export function useContentActions() {
         message={t('admin.p06.content.unhide.message')}
         irreversible={false}
         confirmLabel={t('admin.p06.content.unhide')}
+        requireReason
+        reasonMinLength={ADMIN_REASON_MIN}
         successMessage={t('admin.p06.content.unhide.done')}
         invalidateKeys={keys}
         onConfirm={({ reason, idempotencyKey }) => unhideContent(row!.id, { reason, idempotencyKey })}

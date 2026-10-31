@@ -133,9 +133,16 @@ describe('kampanya sihirbazı', () => {
     await user.click(screen.getByRole('button', { name: 'İleri' })); // -> zamanlama
     await user.click(screen.getByRole('button', { name: 'İleri' })); // hemen -> onay
     expect(screen.getByText('Göndermeden önce kontrol edin')).toBeInTheDocument();
+    // W1-B (T-013): oluşturma + zamanlama işlem gerekçesi ister (>= 5 karakter)
+    expect(screen.getByRole('button', { name: 'Şimdi gönder' })).toBeDisabled();
+    await user.type(screen.getByLabelText(/^İşlem gerekçesi/), 'Bahar şenliği duyurusu');
     await user.click(screen.getByRole('button', { name: 'Şimdi gönder' }));
     await waitFor(() => expect(calls.some((c) => c.url.endsWith('/campaigns/5/schedule'))).toBe(true));
     const create = calls.find((c) => c.url.endsWith('/admin/mail/campaigns') && c.init.method === 'POST');
+    const why = (c: { init: RequestInit } | undefined) =>
+      decodeURIComponent((c?.init.headers as Record<string, string>)['X-Admin-Reason']);
+    expect(why(create)).toBe('Bahar şenliği duyurusu');
+    expect(why(calls.find((c) => c.url.endsWith('/campaigns/5/schedule')))).toBe('Bahar şenliği duyurusu');
     const body = JSON.parse(String(create?.init.body)) as { templateId: number; audience: unknown; requestKey: string; name: string };
     expect(body.templateId).toBe(7);
     expect(body.audience).toEqual({ type: 'ALL' });
@@ -177,6 +184,7 @@ describe('kampanya sihirbazı', () => {
     await toPreview(user);
     await user.click(await screen.findByRole('button', { name: 'İleri' }));
     await user.click(screen.getByRole('button', { name: 'İleri' }));
+    await user.type(screen.getByLabelText(/^İşlem gerekçesi/), 'Deneme gönderimi');
     await user.click(screen.getByRole('button', { name: 'Şimdi gönder' }));
     expect((await screen.findAllByText('Bu kitlede gönderilecek alıcı yok.')).length).toBeGreaterThan(0);
     await user.click(screen.getByRole('button', { name: 'Şimdi gönder' }));
@@ -212,6 +220,29 @@ describe('kampanya ayrıntısı', () => {
     await user.click(within(dlg).getByRole('button', { name: 'Duraklat' }));
     await waitFor(() => expect(calls.some((c) => c.url.endsWith('/campaigns/5/pause'))).toBe(true));
     expect((await screen.findAllByText('Duraklatıldı')).length).toBeGreaterThan(0);
+  });
+
+  it('iptal gerekçe ister (W1-B); duraklat/sürdür istemez', async () => {
+    const calls: { url: string; init: RequestInit }[] = [];
+    mockFetch((url, init) => {
+      calls.push({ url, init });
+      if (url.includes('/recipients')) return jsonResponse(200, { items: [], page: 0, totalPages: 0, totalItems: 0 });
+      if (url.endsWith('/campaigns/5/cancel')) return jsonResponse(200, campaign({ status: 'CANCELLED' }));
+      if (url.endsWith('/campaigns/5')) return jsonResponse(200, campaign());
+      return jsonResponse(404, { code: 'NOT_FOUND', message: 'x' });
+    });
+    const user = userEvent.setup();
+    renderPage('/admin/mail/campaigns/5');
+    await user.click(await screen.findByRole('button', { name: 'İptal et' }));
+    const dlg = await screen.findByRole('dialog');
+    const confirm = within(dlg).getByRole('button', { name: 'İptal et' });
+    expect(confirm).toBeDisabled();
+    await user.type(within(dlg).getByLabelText(/^İşlem gerekçesi/), 'Yanlış kitle seçildi');
+    await user.click(confirm);
+    await waitFor(() => {
+      const c = calls.find((x) => x.url.endsWith('/campaigns/5/cancel'));
+      expect(decodeURIComponent((c?.init.headers as Record<string, string>)['X-Admin-Reason'])).toBe('Yanlış kitle seçildi');
+    });
   });
 
   it('bitmiş kampanyada işlem düğmesi ve yenileme notu yoktur', async () => {

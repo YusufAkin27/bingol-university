@@ -123,3 +123,13 @@ ayrıca `role` ve `describedBy` kabul eder. Mevcut kullanımlar değişmez.
 Odak tuzağı ve Esc `useFocusTrap` ile; `aria-labelledby` + `aria-describedby` (mesaj + sonuç notu); yıkıcı
 eylemlerde `role="alertdialog"`; alan durumları `aria-live`/`role="alert"` ile duyurulur; kapanınca odak
 tetikleyiciye döner. Testler: `guard.test.tsx`.
+
+## W1-B sunucu sertleştirmesi (gerekçe, yol, süzgeç)
+
+- Sebep >= 5 karakter (`ADMIN_REASON_MIN`) ayar, kullanıcı (askı/engel/doğrulama/şifre sıfırlama/oturum), gönderi/haber,
+  kampanya, erişim engeli, itiraz kararı işlemlerinde zorunludur; sohbet içeriği açan uçlarda >= 20
+  (`CHAT_CONTENT_REASON_MIN`). `guardHeaders` kontrol karakterini (satır sonu, sekme) boşluğa çevirir
+  (`cleanReason`); `ReasonField` yazarken aynısını yapar. Sunucu aksi halde 400 `REASON_INVALID` verir.
+- `/api/admin/**` yoluna konan parça `adminSeg(değer)` ile kodlanır: yalnız `%40` (e-posta `@`) kabul edilir, `/` ya da
+  boşluk gibi `%xx` üreten değer istemcide 400 `ADMIN_PATH_INVALID` ile reddedilir (sunucu filtresiyle aynı kural).
+- Yeni izin `users.verify` (yalnız FULL): "E-postayı elle doğrula" ve bekleyen kaydı doğrulama düğmeleri bunu ister.

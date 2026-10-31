@@ -510,7 +510,7 @@ describe('ContentReviewPage', () => {
     await waitFor(() => expect(calls.some((c) => c.url.includes('sort=reports'))).toBe(true));
   });
 
-  it('gizleme sebep istege baglidir ve POST hide gider; geri al unhide cagirir', async () => {
+  it('gizleme ve geri alma gerekce ister; POST hide/unhide sebep basligiyla gider', async () => {
     const { calls } = setup();
     renderWithProviders(<ContentReviewPage />);
     const rows = await screen.findAllByTestId('content-row');
@@ -527,9 +527,13 @@ describe('ContentReviewPage', () => {
 
     await user.click(within(rows[1]).getByRole('button', { name: 'Geri al' }));
     const d2 = await screen.findByRole('dialog', { name: /yeniden gösterilsin/ });
+    // W1-B (T-013): geri açma da gerekçe ister
+    expect(within(d2).getByRole('button', { name: 'Geri al' })).toBeDisabled();
+    await user.type(within(d2).getByRole('textbox'), 'yanlis karar');
     await user.click(within(d2).getByRole('button', { name: 'Geri al' }));
     await waitFor(() => expect(writes(calls)).toHaveLength(2));
     expect(writes(calls)[1].url).toBe('/api/admin/community-posts/2/unhide');
+    expect(reasonOf(writes(calls)[1])).toBe('yanlis karar');
   });
 
   it('silme: sebep zorunlu + geri alinamaz uyarisi; DELETE sebep basligiyla gider', async () => {

@@ -17,6 +17,7 @@ export type Permission =
   | 'users.write'
   | 'users.role'
   | 'users.delete'
+  | 'users.verify'
   | 'users.export'
   | 'moderation.read'
   | 'moderation.write'

@@ -1,5 +1,5 @@
 import { api, apiBlob, apiFetch } from './client';
-import { guardHeaders } from './guard';
+import { cleanReason, guardHeaders } from './guard';
 import type {
   AdminChatConversationPage,
   AdminChatMessagePage,
@@ -11,13 +11,13 @@ import type {
 
 /** `X-Admin-Reason` başlığı: Türkçe/Arapça karakter için yüzde-kodlu gönderilir (sunucu çözer). */
 export function reasonHeaders(reason: string): { headers: Record<string, string> } {
-  return { headers: { 'X-Admin-Reason': encodeURIComponent(reason.trim()) } };
+  return { headers: { 'X-Admin-Reason': encodeURIComponent(cleanReason(reason)) } };
 }
 
 /**
  * Yalnızca JWT'li ADMIN. Her sayfa isteği sunucuda otomatik, değiştirilemez erişim denetim kaydına yazılır;
  * kayıt yazılamazsa içerik dönmez (503). Düz metin istemcide önbellekte kalır, depoya yazılmaz.
- * İçerik açan uçlar SEBEP ister (>= 10 karakter): `X-Admin-Reason` başlığı (yüzde-kodlu); eksikse 400 REASON_REQUIRED.
+ * İçerik açan uçlar SEBEP ister (>= 20 karakter): `X-Admin-Reason` başlığı (yüzde-kodlu); eksikse 400 REASON_REQUIRED.
  * Sebep her isteğe eklenir (sunucu durumsuzdur, sayfalama istekleri dahil).
  */
 export const listConversations = (userId: number, reason: string, cursor?: number | null, size = 20) =>

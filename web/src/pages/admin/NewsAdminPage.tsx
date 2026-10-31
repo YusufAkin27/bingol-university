@@ -27,6 +27,7 @@ import { useI18n } from '../../i18n/I18nProvider';
 import { errorMessage } from '../../lib/errors';
 import { usePageTitle } from '../../lib/hooks';
 import { GuardedDialog } from '../../components/admin/GuardedDialog';
+import { ADMIN_REASON_MIN } from '../../components/admin/guard/match';
 import { BULK_MAX, exportNewsCsv } from '../../api/adminBulk';
 import { NewsBulkBar } from './bulk/BulkBars';
 import { BulkCsvButton, useIdSelection } from './bulk/BulkParts';
@@ -281,7 +282,8 @@ export default function NewsAdminPage() {
         irreversible={false}
         confirmLabel={t(toggling?.hidden ? 'admin.news.hide' : 'admin.news.show')}
         danger={toggling?.hidden}
-        optionalReason
+        requireReason
+        reasonMinLength={ADMIN_REASON_MIN}
         invalidateKeys={[qk.news.all]}
         successMessage={t(toggling?.hidden ? 'admin.news.hiddenToast' : 'admin.news.shownToast')}
         onConfirm={({ reason, idempotencyKey }) =>

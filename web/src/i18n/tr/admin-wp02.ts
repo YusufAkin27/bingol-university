@@ -6,6 +6,30 @@ export default {
   'admin.wp02.err.rateLimitedWait':
     'Kısa sürede çok fazla işlem yaptınız. {n} saniye sonra yeniden deneyin.',
   'admin.wp02.err.REASON_REQUIRED': 'Bu işlem için yeterince uzun bir sebep yazmanız gerekir.',
+  // ---- W1-B (T-013/T-015/T-019): gerekce alanlari, sohbet akisi suzgeci, maskeli arama ----
+  'admin.wp02.actionReason.label': 'İşlem gerekçesi (denetim kaydına yazılır)',
+  'admin.wp02.posts.unhide.title': 'Gönderiyi geri aç',
+  'admin.wp02.posts.unhide.hint': 'Gönderi akışta yeniden görünür olur. İşlem, gerekçesiyle birlikte denetim kaydına yazılır.',
+  'admin.wp02.posts.unhide.confirm': 'Geri aç',
+  'admin.wp02.chatFeed.filterRequired.title': 'Önce bir süzgeç seçin',
+  'admin.wp02.chatFeed.filterRequired.text':
+    'Sohbet içeriği süzgeçsiz listelenemez. Yukarıdan bir kullanıcı seçin ya da sohbet kimliği girin; içerik ancak ondan sonra yüklenir.',
+  'admin.wp02.users.searchMasked':
+    'Yetki profiliniz e-posta göremez; arama yalnız görünen ada göre yapılır ve en az {n} karakter ister.',
+  'admin.wp02.err.REASON_INVALID':
+    'Sebep satır sonu, sekme gibi kontrol karakteri içeremez. Tek satırlık, açık bir sebep yazın.',
+  'admin.wp02.err.SETTING_INVALID':
+    'Ayar değeri geçersiz: e-posta ayarı tek ve geçerli bir adres, bağlantı ayarı boşluksuz ve https:// ile başlayan bir adres olmalıdır.',
+  'admin.wp02.err.FEED_FILTER_REQUIRED':
+    'Sohbet akışı süzgeçsiz açılamaz. Kullanıcı, gönderen ya da sohbet kimliğinden en az birini seçip yeniden deneyin.',
+  'admin.wp02.err.DECRYPT_BATCH_TOO_LARGE':
+    'Tek seferde çok fazla mesaj istendi. Süzgeci veya tarih aralığını daraltın.',
+  'admin.wp02.err.ADMIN_TARGET_FORBIDDEN':
+    'Yönetici hesapları üzerinde bu işlemi yalnız tam yetkili (FULL) yönetici yapabilir.',
+  'admin.wp02.err.VERIFY_ADMIN_EMAIL_FORBIDDEN':
+    'Yönetici (ADMIN_EMAILS) adresi koda gerek kalmadan doğrulanamaz; bu hesap yalnız e-postaya gelen kodla oluşturulur.',
+  'admin.wp02.err.ADMIN_PATH_INVALID':
+    'İstek adresi geçersiz karakter içeriyor (yönetici yollarında yalnız e-postadaki @ kodlanabilir). Girdiğiniz değeri kontrol edin.',
   'admin.wp02.err.REQUEST_IN_PROGRESS':
     'Aynı işlem zaten sürüyor. Bitmesini bekleyin; sonuç hazır olunca liste yenilenir.',
   'admin.wp02.err.IDEMPOTENCY_KEY_REUSED':
@@ -16,9 +40,9 @@ export default {
   // ---- Sohbet içeriği sebep diyaloğu ----
   'admin.wp02.reason.title': 'Bu özel yazışmaları neden görüntülüyorsunuz?',
   'admin.wp02.reason.message':
-    'Yazışmalar özeldir. Görüntülemeniz, yazdığınız sebeple birlikte denetim kaydına yazılır ve diğer yöneticilerce incelenebilir.',
+    'Yazışmalar özeldir. Görüntülemeniz, yazdığınız sebeple birlikte denetim kaydına yazılır ve diğer yöneticilerce incelenebilir. En az 20 karakterlik, tek satırlık açık bir sebep yazın.',
   'admin.wp02.reason.rejected':
-    'Sunucu sebebi kabul etmedi. En az 10 karakterlik açık bir sebep yazın.',
+    'Sunucu sebebi kabul etmedi. En az 20 karakterlik, tek satırlık açık bir sebep yazın.',
   'admin.wp02.reason.confirm': 'Görüntüle',
   'admin.wp02.reason.label': 'Görüntüleme sebebi',
   'admin.wp02.reason.gateTitle': 'Görüntülemek için sebep gerekli',

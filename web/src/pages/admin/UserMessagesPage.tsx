@@ -2,7 +2,7 @@
 // API: GET /api/admin/users/{id}/conversations?cursor&size ve .../conversations/{cid}/messages?before&size (api/adminChat.ts).
 // Kullanıcının tüm sohbetleri (silinmiş/ayrılmış/arşivli dahil) ve sohbetteki herkesin mesajları gelir; silinmiş mesajlar,
 // düzenleme geçmişi, gölge engelli (iletilmemiş) mesajlar ve tek gönderimlik ekler de görünür. Hiçbir şey gizlenmez.
-// Sohbet içeriği SEBEP ister (>= 10 karakter; ReasonGate sorar, her istekte `X-Admin-Reason` ile gider).
+// Sohbet içeriği SEBEP ister (>= 20 karakter; ReasonGate sorar, her istekte `X-Admin-Reason` ile gider).
 // Her sayfa isteği sunucuda otomatik denetim kaydı üretir; düz metin yalnızca önbellekte (gcTime 0) tutulur, depoya yazılmaz.
 // Mesajlar yeniden eskiye sayfalanır: en yeni 50 yüklenir, yukarı kaydırdıkça `before` imleciyle eskiler gelir.
 // `?m=` verilirse hedef mesaj bulunana dek eski sayfalar yüklenir, mesaja kaydırılır ve vurgulanır.

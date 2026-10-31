@@ -105,7 +105,8 @@ export function ReasonField({
         data-autofocus={focusOnMount ? true : undefined}
         aria-invalid={showError ? true : undefined}
         aria-describedby={[hintId, counterId, showError ? errId : null].filter(Boolean).join(' ')}
-        onChange={(e) => onChange(e.target.value)}
+        // Sunucu, sebep başlığında satır sonu/sekme gibi kontrol karakterini 400 REASON_INVALID sayar: yazarken boşluğa çevrilir.
+        onChange={(e) => onChange(e.target.value.replace(/[\r\n\t]+/g, ' '))}
         onBlur={() => setTouched(true)}
       />
       <div className={styles.reasonMeta}>

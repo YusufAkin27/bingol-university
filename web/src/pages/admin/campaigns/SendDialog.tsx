@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import type { CreateCampaignRequest } from '../../../api/types';
 import { Button, Checkbox, Modal } from '../../../components/ui';
+import { ReasonField } from '../../../components/admin/guard/ReasonField';
+import { ADMIN_REASON_MIN, isReasonValid } from '../../../components/admin/guard/match';
 import { useI18n } from '../../../i18n/I18nProvider';
 import { DetailList } from '../community/ReviewParts';
 import { useAudienceSummary, useTargetSummary } from './format';
@@ -21,7 +23,8 @@ export function SendDialog({
 }: {
   open: boolean;
   onClose: () => void;
-  onSend: () => void;
+  /** Girilen islem gerekcesiyle (>= 5 karakter) cagrilir. */
+  onSend: (reason: string) => void;
   sending: boolean;
   error: string | null;
   state: ComposeState;
@@ -34,7 +37,9 @@ export function SendDialog({
   const extra = needsExtraConfirm(state);
   const [okAll, setOkAll] = useState(false);
   const [okSystem, setOkSystem] = useState(false);
-  const ready = (!extra.all || okAll) && (!extra.system || okSystem);
+  // W1-B (T-013): kampanya olusturma/zamanlama gerekce ister (X-Admin-Reason).
+  const [reason, setReason] = useState('');
+  const ready = (!extra.all || okAll) && (!extra.system || okSystem) && isReasonValid(reason, ADMIN_REASON_MIN);
   const scheduled = state.scheduleMode === 'later' && request.scheduledAt;
   const langs = filledLangs(state.contents);
 
@@ -53,7 +58,7 @@ export function SendDialog({
             variant={extra.all || extra.system ? 'danger' : 'primary'}
             disabled={!ready}
             loading={sending}
-            onClick={onSend}
+            onClick={() => onSend(reason)}
             data-testid="confirm-send"
           >
             {t(scheduled ? 'admin.campaigns.send.confirmSchedule' : 'admin.campaigns.send.confirmNow')}
@@ -89,6 +94,13 @@ export function SendDialog({
         <Callout tone="warning" title={t('admin.campaigns.send.irreversible')}>
           {t(scheduled ? 'admin.campaigns.send.irreversibleScheduled' : 'admin.campaigns.send.irreversibleNow')}
         </Callout>
+        <ReasonField
+          value={reason}
+          onChange={setReason}
+          minLength={ADMIN_REASON_MIN}
+          label={t('admin.wp02.actionReason.label')}
+          disabled={sending}
+        />
         {extra.all && (
           <Checkbox
             checked={okAll}

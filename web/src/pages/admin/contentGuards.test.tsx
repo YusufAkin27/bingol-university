@@ -75,16 +75,22 @@ describe('Haber gizleme', () => {
     expect(patches(calls)).toHaveLength(1);
   });
 
-  it('sebep yazılmadan da gizlenebilir (sebep başlığı yok)', async () => {
+  it('haber gizleme gerekçe ister (W1-B T-013): gerekçesiz gönderilmez, başlıkta gider', async () => {
     const calls = newsSetup();
     renderWithProviders(<NewsAdminPage />);
     const user = userEvent.setup();
     await user.click(await screen.findByRole('button', { name: /^Gizle: Kayıtlar uzatıldı/ }));
     const dialog = await screen.findByRole('alertdialog');
-    await user.click(within(dialog).getByRole('button', { name: 'Gizle' }));
+    const confirm = within(dialog).getByRole('button', { name: 'Gizle' });
+    expect(confirm).toBeDisabled();
+    await user.type(within(dialog).getByRole('textbox'), 'abcd');
+    expect(confirm).toBeDisabled();
+    expect(patches(calls)).toHaveLength(0);
+    await user.type(within(dialog).getByRole('textbox'), 'e');
+    await user.click(confirm);
     await waitFor(() => expect(patches(calls)).toHaveLength(1));
     expect(JSON.parse(String(patches(calls)[0].init.body))).toEqual({ hidden: true });
-    expect(hdr(patches(calls)[0], 'X-Admin-Reason')).toBeUndefined();
+    expect(decodeURIComponent(hdr(patches(calls)[0], 'X-Admin-Reason') ?? '')).toBe('abcde');
   });
 });
 

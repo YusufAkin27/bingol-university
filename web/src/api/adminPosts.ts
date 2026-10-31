@@ -1,4 +1,5 @@
 import { api, apiFetch } from './client';
+import { cleanReason, guardHeaders, type GuardOpts } from './guard';
 
 /** Kesfet gonderileri yonetici moderasyonu (ADMIN). Yazma islemleri sunucuda denetim kaydina yazilir. */
 export interface AdminPostAuthor {
@@ -91,11 +92,17 @@ export const listPosts = (f: AdminPostFilters, cursor?: number | null, size = 20
   });
 export const postStats = () => api.get<AdminPostStats>('/admin/posts/stats');
 export const getPost = (id: number) => api.get<AdminPostDetail>(`/admin/posts/${id}`);
-export const hidePost = (id: number, reason?: string) =>
-  api.post<AdminPostRow>(`/admin/posts/${id}/hide`, { reason: reason?.trim() || null });
-export const unhidePost = (id: number) => api.post<AdminPostRow>(`/admin/posts/${id}/unhide`, {});
+// W1-B (T-013): gizle / göster / sil gerekçe ister (>= 5 karakter): `X-Admin-Reason` başlığı (+ gövdede `reason`).
+export const hidePost = (id: number, reason: string, o?: Pick<GuardOpts, 'idempotencyKey'>) =>
+  api.post<AdminPostRow>(`/admin/posts/${id}/hide`, { reason: cleanReason(reason) || null }, guardHeaders({ ...o, reason }));
+export const unhidePost = (id: number, reason: string, o?: Pick<GuardOpts, 'idempotencyKey'>) =>
+  api.post<AdminPostRow>(`/admin/posts/${id}/unhide`, { reason: cleanReason(reason) || null }, guardHeaders({ ...o, reason }));
 /** Metni duzenler (bos metin = temizle); yazara bildirim gider. */
 export const editPost = (id: number, text: string) => api.patch<AdminPostRow>(`/admin/posts/${id}`, { text });
 /** Siler; gerekce yazara bildirilir, acik sikayetler sonuclanir. */
-export const deletePost = (id: number, reason?: string) =>
-  apiFetch<void>(`/admin/posts/${id}`, { method: 'DELETE', body: { reason: reason?.trim() || null } });
+export const deletePost = (id: number, reason: string, o?: Pick<GuardOpts, 'idempotencyKey'>) =>
+  apiFetch<void>(`/admin/posts/${id}`, {
+    method: 'DELETE',
+    body: { reason: cleanReason(reason) || null },
+    ...guardHeaders({ ...o, reason }),
+  });

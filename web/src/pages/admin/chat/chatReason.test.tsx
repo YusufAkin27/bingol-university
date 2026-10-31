@@ -82,7 +82,10 @@ describe('Kullanıcı mesajları: sebep kapısı', () => {
     expect(confirm).toBeDisabled();
     expect(calls).toHaveLength(0);
 
-    await userEvent.type(within(dialog).getByRole('textbox'), ' ama artık yeterince uzun');
+    // W1-B (T-015): sohbet içeriği için en az 20 karakter
+    await userEvent.type(within(dialog).getByRole('textbox'), ' ama on dokuz');
+    expect(confirm).toBeDisabled(); // 'kısa ama on dokuz' = 17 karakter
+    await userEvent.type(within(dialog).getByRole('textbox'), ' karakter değil');
     expect(confirm).toBeEnabled();
   });
 
@@ -142,7 +145,7 @@ describe('Kullanıcı mesajları: sebep kapısı', () => {
     setChatReason(chatReasonKey.user(7), 'eski geçerli sebep metni');
     renderUserChat();
 
-    const alert = await screen.findByText('Sunucu sebebi kabul etmedi. En az 10 karakterlik açık bir sebep yazın.');
+    const alert = await screen.findByText('Sunucu sebebi kabul etmedi. En az 20 karakterlik, tek satırlık açık bir sebep yazın.');
     expect(alert).toBeInTheDocument();
     expect(getChatReason(chatReasonKey.user(7))).toBeNull();
 
@@ -151,7 +154,7 @@ describe('Kullanıcı mesajları: sebep kapısı', () => {
     await userEvent.click(within(dialog).getByRole('button', { name: 'Görüntüle' }));
     await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
     await waitFor(() => expect(calls.filter((c) => c.reason === encodeURIComponent('Hukuki talep dosya 12/2026')).length).toBeGreaterThan(0));
-    expect(screen.queryByText('Sunucu sebebi kabul etmedi. En az 10 karakterlik açık bir sebep yazın.')).toBeNull();
+    expect(screen.queryByText('Sunucu sebebi kabul etmedi. En az 20 karakterlik, tek satırlık açık bir sebep yazın.')).toBeNull();
   });
 
   it('"Sebebi değiştir" mevcut sebebi silip diyaloğu mevcut metinle açar', async () => {
@@ -186,6 +189,9 @@ describe('Sohbet akışı: sebep kapısı', () => {
     await userEvent.type(within(dialog).getByRole('textbox'), 'Rapor incelemesi #9 toplu bakış');
     await userEvent.click(within(dialog).getByRole('button', { name: 'Görüntüle' }));
 
+    // süzgeçsiz akış istenmez (FEED_FILTER_REQUIRED önlemi): sohbet no girilince içerik istenir
+    expect(calls.some((c) => c.url.includes('/chat-media?'))).toBe(false);
+    await userEvent.type(await screen.findByLabelText('Sohbet no'), '30');
     await waitFor(() => expect(calls.some((c) => c.url.includes('/chat-media?'))).toBe(true));
     expect(calls.find((c) => c.url.includes('/chat-media?'))?.reason).toBe(encodeURIComponent('Rapor incelemesi #9 toplu bakış'));
 

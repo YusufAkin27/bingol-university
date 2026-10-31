@@ -189,7 +189,7 @@ const m = {
   'admin.err.REASON_CODE_INVALID': 'Karar nedeni kodu geçersiz.',
   'admin.err.ALREADY_RESOLVED': 'Bu kayıt zaten karara bağlanmış. Liste yenilendi.',
   'admin.err.TARGET_NOT_REVERSIBLE': 'Bu içerik türü geri açılamaz; itiraz yalnızca bilgi içindir.',
-  'admin.err.DECRYPT_REASON_REQUIRED': 'Gerekçe en az 10 karakter olmalıdır.',
+  'admin.err.DECRYPT_REASON_REQUIRED': 'Gerekçe en az 20 karakter olmalıdır.',
   'admin.err.DECRYPT_RANGE_INVALID': 'Konuşma veya mesaj aralığı geçersiz.',
   'admin.err.DECRYPT_TOO_MANY': 'Tek istekte en çok 200 mesaj çözülebilir. Aralığı daraltın.',
   'admin.err.ADMIN_DECRYPT_DISABLED': 'Yönetici mesaj çözme kapalı.',

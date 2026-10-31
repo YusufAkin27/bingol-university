@@ -27,6 +27,8 @@ import {
   Skeleton,
   useToast,
 } from '../../../components/ui';
+import { ReasonField } from '../../../components/admin/guard/ReasonField';
+import { ADMIN_REASON_MIN, isReasonValid } from '../../../components/admin/guard/match';
 import { useI18n } from '../../../i18n/I18nProvider';
 import { paths } from '../../../paths';
 import { adminErrorMessage } from '../campaigns/shared';
@@ -45,23 +47,36 @@ function BlockDialog({ userId, action, onClose }: { userId: number; action: Acti
   const [ips, setIps] = useState(false);
   const [userBan, setUserBan] = useState(true);
   const [selfConfirm, setSelfConfirm] = useState(false);
+  // W1-B (T-013): cihaz/IP/kullanici engeli islem gerekcesi ister (X-Admin-Reason).
+  const [why, setWhy] = useState('');
+  const whyOk = isReasonValid(why, ADMIN_REASON_MIN);
 
   const run = useMutation({
     mutationFn: (force: boolean) => {
       const n = note.trim() || undefined;
       if (action.type === 'device') {
-        return createBan({
-          kind: 'DEVICE',
-          value: action.device.deviceHash,
-          reasonCode: reason,
-          note: n,
-          ...(force ? { force: true } : {}),
-        });
+        return createBan(
+          {
+            kind: 'DEVICE',
+            value: action.device.deviceHash,
+            reasonCode: reason,
+            note: n,
+            ...(force ? { force: true } : {}),
+          },
+          { reason: why },
+        );
       }
       if (action.type === 'ip') {
-        return createBan({ kind: 'IP', value: action.ip, reasonCode: reason, note: n, ...(force ? { force: true } : {}) });
+        return createBan(
+          { kind: 'IP', value: action.ip, reasonCode: reason, note: n, ...(force ? { force: true } : {}) },
+          { reason: why },
+        );
       }
-      return blockUserAccess(userId, { devices, ips, userBan, reasonCode: reason, note: n, ...(force ? { force: true } : {}) });
+      return blockUserAccess(
+        userId,
+        { devices, ips, userBan, reasonCode: reason, note: n, ...(force ? { force: true } : {}) },
+        { reason: why },
+      );
     },
     onSuccess: () => {
       toast.success(t('admin.ab.dev.toast'));
@@ -97,7 +112,7 @@ function BlockDialog({ userId, action, onClose }: { userId: number; action: Acti
             <Button variant="secondary" onClick={onClose}>
               {t('common.cancel')}
             </Button>
-            <Button variant="danger" loading={run.isPending} onClick={() => run.mutate(false)}>
+            <Button variant="danger" loading={run.isPending} disabled={!whyOk} onClick={() => run.mutate(false)}>
               {t('admin.ab.dev.dialog.submit')}
             </Button>
           </>
@@ -126,6 +141,13 @@ function BlockDialog({ userId, action, onClose }: { userId: number; action: Acti
           <FormField label={t('admin.ab.add.note')}>
             <Input value={note} maxLength={300} dir="auto" onChange={(e) => setNote(e.target.value)} />
           </FormField>
+          <ReasonField
+            value={why}
+            onChange={setWhy}
+            minLength={ADMIN_REASON_MIN}
+            label={t('admin.wp02.actionReason.label')}
+            disabled={run.isPending}
+          />
         </div>
       </Modal>
       <ConfirmDialog

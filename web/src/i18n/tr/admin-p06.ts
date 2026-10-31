@@ -269,7 +269,7 @@ export default {
   'admin.p06.content.hide.title': '{what} gizlensin mi?',
   'admin.p06.content.hide.message': 'İçerik kulüp akışından kalkar; silinmez.',
   'admin.p06.content.hide.consequence': 'Yazara bildirim gider. Geri alınabilir: istediğiniz zaman yeniden gösterebilirsiniz.',
-  'admin.p06.content.hide.reason': 'Gizleme sebebi (isteğe bağlı)',
+  'admin.p06.content.hide.reason': 'Gizleme sebebi',
   'admin.p06.content.hide.done': 'İçerik gizlendi.',
   'admin.p06.content.unhide': 'Geri al',
   'admin.p06.content.unhide.title': '{what} yeniden gösterilsin mi?',

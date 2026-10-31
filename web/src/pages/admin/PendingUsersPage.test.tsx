@@ -68,11 +68,51 @@ describe('Doğrulanmamış kullanıcılar sayfası', () => {
     await userEvent.click(screen.getAllByRole('button', { name: 'Doğrula' })[0]);
     expect(await screen.findByText(/e-posta kodu olmadan oluşturulacak/)).toBeInTheDocument();
     const dialog = screen.getByRole('dialog');
-    await userEvent.click(within(dialog).getByRole('button', { name: 'Doğrula' }));
+    // W1-B (T-011): kodsuz doğrulama gerekçe ister (>= 5 karakter)
+    const confirm = within(dialog).getByRole('button', { name: 'Doğrula' });
+    expect(confirm).toBeDisabled();
+    await userEvent.type(within(dialog).getByRole('textbox'), 'abcd');
+    expect(confirm).toBeDisabled();
+    expect(calls.some((c) => c.init.method === 'POST')).toBe(false);
+    await userEvent.type(within(dialog).getByRole('textbox'), 'e');
+    await userEvent.click(confirm);
     await waitFor(() =>
       expect(calls.some((c) => c.init.method === 'POST' && c.url.endsWith('/a%40bingol.edu.tr/verify'))).toBe(true),
     );
+    const post = calls.find((c) => c.init.method === 'POST' && c.url.endsWith('/verify'));
+    expect(decodeURIComponent((post?.init.headers as Record<string, string>)['X-Admin-Reason'])).toBe('abcde');
     await waitFor(() => expect(screen.queryByText('a@bingol.edu.tr')).not.toBeInTheDocument());
+  });
+
+  it('409 VERIFY_ADMIN_EMAIL_FORBIDDEN anlaşılır Türkçe iletiyle gösterilir', async () => {
+    setup(undefined, (url) =>
+      url.endsWith('/verify') ? jsonResponse(409, { code: 'VERIFY_ADMIN_EMAIL_FORBIDDEN', message: 'x' }) : undefined,
+    );
+    renderWithProviders(<PendingUsersPage />);
+    await screen.findByText('a@bingol.edu.tr');
+    await userEvent.click(screen.getAllByRole('button', { name: 'Doğrula' })[0]);
+    const dialog = screen.getByRole('dialog');
+    await userEvent.type(within(dialog).getByRole('textbox'), 'Yönetici adayı');
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Doğrula' }));
+    expect(await screen.findByText(/koda gerek kalmadan doğrulanamaz/)).toBeInTheDocument();
+  });
+
+  it('users.verify izni yoksa (FULL dışı profil) doğrula düğmeleri kapalıdır', async () => {
+    setup(undefined, (url) =>
+      url.endsWith('/admin/rbac/me')
+        ? jsonResponse(200, {
+            userId: 2,
+            email: 'm@bingol.edu.tr',
+            displayName: 'Moderatör',
+            profile: 'MODERATOR',
+            pinned: false,
+            permissions: ['users.read', 'users.pii', 'users.write'],
+          })
+        : undefined,
+    );
+    renderWithProviders(<PendingUsersPage />);
+    await screen.findByText('a@bingol.edu.tr');
+    await waitFor(() => expect(screen.getAllByRole('button', { name: 'Doğrula' })[0]).toBeDisabled());
   });
 
   it('409 durumunda bilgi verir ve satırı kaldırır', async () => {
@@ -82,6 +122,7 @@ describe('Doğrulanmamış kullanıcılar sayfası', () => {
     renderWithProviders(<PendingUsersPage />);
     await screen.findByText('a@bingol.edu.tr');
     await userEvent.click(screen.getAllByRole('button', { name: 'Doğrula' })[0]);
+    await userEvent.type(within(screen.getByRole('dialog')).getByRole('textbox'), 'Elle doğrulama');
     await userEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Doğrula' }));
     expect(await screen.findByText(/zaten kayıtlı/)).toBeInTheDocument();
     await waitFor(() => expect(screen.queryByText('a@bingol.edu.tr')).not.toBeInTheDocument());
@@ -129,7 +170,10 @@ describe('Doğrulanmamış kullanıcılar sayfası', () => {
     expect(screen.getByText('2 seçili')).toBeInTheDocument();
     await userEvent.click(screen.getByRole('button', { name: 'Seçilenleri doğrula' }));
     const dialog = screen.getByRole('dialog');
-    await userEvent.click(within(dialog).getByRole('button', { name: 'Seçilenleri doğrula' }));
+    const bulkGo = within(dialog).getByRole('button', { name: 'Seçilenleri doğrula' });
+    expect(bulkGo).toBeDisabled(); // gerekçe yok
+    await userEvent.type(within(dialog).getByRole('textbox'), 'Toplu elle doğrulama');
+    await userEvent.click(bulkGo);
     expect(await screen.findByText('1 doğrulandı, 1 hata.')).toBeInTheDocument();
     expect(calls.filter((c) => c.url.endsWith('/verify')).length).toBe(2);
   });

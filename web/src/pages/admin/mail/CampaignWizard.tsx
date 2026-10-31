@@ -26,6 +26,8 @@ import {
   Textarea,
   useToast,
 } from '../../../components/ui';
+import { ReasonField } from '../../../components/admin/guard/ReasonField';
+import { ADMIN_REASON_MIN, isReasonValid } from '../../../components/admin/guard/match';
 import { useI18n } from '../../../i18n/I18nProvider';
 import { usePageTitle } from '../../../lib/hooks';
 import { paths } from '../../../paths';
@@ -64,6 +66,9 @@ export function CampaignWizard() {
   const [mode, setMode] = useState<'now' | 'later'>('now');
   const [when, setWhen] = useState('');
   const [error, setError] = useState<string | null>(null);
+  // W1-B (T-013): kampanya olusturma + zamanlama gerekce ister (X-Admin-Reason).
+  const [why, setWhy] = useState('');
+  const whyOk = isReasonValid(why, ADMIN_REASON_MIN);
   // Çift gönderim koruması: form açılışında bir kez üretilir; aynı anahtarla tekrar POST aynı kampanyayı döndürür.
   const requestKey = useRef<string>(crypto.randomUUID());
   const created = useRef<MailCampaignView | null>(null);
@@ -93,15 +98,18 @@ export function CampaignWizard() {
     mutationFn: async () => {
       const iso = scheduleCheck && 'iso' in scheduleCheck ? scheduleCheck.iso : null;
       if (!created.current) {
-        created.current = await createMailCampaign({
-          name: name.trim(),
-          templateId: templateId as number,
-          audience,
-          scheduledAt: iso,
-          requestKey: requestKey.current,
-        });
+        created.current = await createMailCampaign(
+          {
+            name: name.trim(),
+            templateId: templateId as number,
+            audience,
+            scheduledAt: iso,
+            requestKey: requestKey.current,
+          },
+          { reason: why },
+        );
       }
-      return scheduleMailCampaign(created.current.id, iso);
+      return scheduleMailCampaign(created.current.id, iso, { reason: why });
     },
     onSuccess: (c) => {
       void qc.invalidateQueries({ queryKey: ['adminMail', 'campaigns'] });
@@ -305,6 +313,13 @@ export function CampaignWizard() {
               <dt>{t('admin.mail.confirm.when')}</dt>
               <dd>{mode === 'now' ? t('admin.mail.sched.now') : formatDateTime(when)}</dd>
             </dl>
+            <ReasonField
+              value={why}
+              onChange={setWhy}
+              minLength={ADMIN_REASON_MIN}
+              label={t('admin.wp02.actionReason.label')}
+              disabled={submit.isPending}
+            />
             {error && (
               <div role="alert">
                 <Callout tone="danger">{error}</Callout>
@@ -326,7 +341,7 @@ export function CampaignWizard() {
           <Button
             onClick={() => submit.mutate()}
             loading={submit.isPending}
-            disabled={!prev.data || prev.data.willSend === 0}
+            disabled={!prev.data || prev.data.willSend === 0 || !whyOk}
             leftIcon={<Icon name="mail" size={18} />}
           >
             {t(mode === 'now' ? 'admin.mail.wizard.sendNow' : 'admin.mail.wizard.scheduleIt')}

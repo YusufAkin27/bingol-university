@@ -2,6 +2,7 @@
 // Uçlar: /admin/access-bans*, /admin/users/{id}/devices, /admin/users/{id}/block-access (backend: accessban/AccessBanDtos).
 // Sunucu kayıtları burada arayüz tiplerine çevrilir (adapter); sayfalar ham sunucu şeklini bilmez.
 import { api, apiFetch } from './client';
+import { guardHeaders, type GuardOpts } from './guard';
 
 export type BanKind = 'IP' | 'CIDR' | 'DEVICE' | 'USER';
 export type BanReason = 'ABUSE' | 'SPAM' | 'FRAUD' | 'OTHER';
@@ -219,7 +220,8 @@ export async function getStats(): Promise<AccessBanStats> {
 }
 
 /** Yanıt gövdesi (BlockAccessResult) arayüzde kullanılmaz. */
-export const createBan = (b: CreateBanBody) => api.post<unknown>(BASE, b);
+// W1-B (T-013): engel ekleme / toplu ekleme / kullanıcı erişim engeli gerekçe ister (>= 5 karakter, X-Admin-Reason).
+export const createBan = (b: CreateBanBody, o?: GuardOpts) => api.post<unknown>(BASE, b, guardHeaders(o));
 
 /** `noExpiry: true` süresiz yapar; `expiresAt` yeni bitiş (gelecekte). */
 export const updateBan = (
@@ -228,8 +230,15 @@ export const updateBan = (
 ) => api.patch<unknown>(`${BASE}/${id}`, b);
 export const removeBan = (id: number) => api.del(`${BASE}/${id}`);
 
-export async function bulkAdd(b: { text: string; reasonCode: BanReason; note?: string; force?: boolean }): Promise<BulkResult> {
-  const r = await api.post<{ created: number; alreadyBanned: number; rejected?: SrvRejected[] }>(`${BASE}/bulk`, b);
+export async function bulkAdd(
+  b: { text: string; reasonCode: BanReason; note?: string; force?: boolean },
+  o?: GuardOpts,
+): Promise<BulkResult> {
+  const r = await api.post<{ created: number; alreadyBanned: number; rejected?: SrvRejected[] }>(
+    `${BASE}/bulk`,
+    b,
+    guardHeaders(o),
+  );
   return { added: r.created ?? 0, skipped: r.alreadyBanned ?? 0, invalid: r.rejected ?? [] };
 }
 
@@ -276,8 +285,8 @@ export async function listUserDevices(userId: number): Promise<UserDevicesInfo> 
     unidentifiedIps: (r.unidentifiedIps ?? []).map(toIp),
   };
 }
-export const blockUserAccess = (userId: number, b: BlockAccessBody) =>
-  api.post<unknown>(`/admin/users/${userId}/block-access`, b);
+export const blockUserAccess = (userId: number, b: BlockAccessBody, o?: GuardOpts) =>
+  api.post<unknown>(`/admin/users/${userId}/block-access`, b, guardHeaders(o));
 
 export const accessBanKeys = {
   all: ['access-bans'] as const,

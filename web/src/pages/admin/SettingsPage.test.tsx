@@ -27,6 +27,13 @@ const SERVER = {
   store_url_ios: '',
 };
 
+/** Her ayar kaydı gerekçe diyaloğu açar (W1-B T-013): gerekçeyi yazıp "Değişikliği kaydet"e basar. */
+async function saveWithReason(user: ReturnType<typeof userEvent.setup>, reason = 'Deneme gerekçesi') {
+  const box = await screen.findByLabelText(/^Sebep/);
+  await user.type(box, reason);
+  await user.click(screen.getByRole('button', { name: 'Değişikliği kaydet' }));
+}
+
 function setup() {
   const puts: { key: string; value: string }[] = [];
   const reasons: (string | undefined)[] = [];
@@ -58,6 +65,7 @@ describe('ayarlar sayfası', () => {
     expect(row).toHaveAttribute('data-dirty', 'true');
     expect(within(row).getByText('Kaydedilmemiş')).toBeInTheDocument();
     await user.click(within(row).getByRole('button', { name: 'Kaydet' }));
+    await saveWithReason(user);
     await waitFor(() => expect(puts).toEqual([{ key: 'app_name', value: 'Yeni ad' }]));
   });
 
@@ -98,6 +106,7 @@ describe('ayarlar sayfası', () => {
     await user.click(screen.getByRole('button', { name: 'Mühendislik Fakültesi sil' }));
     expect(screen.getByText('Kaydedilmemiş')).toBeInTheDocument();
     await user.click(screen.getByTestId('save-faculties'));
+    await saveWithReason(user);
     await waitFor(() => expect(puts).toEqual([{ key: 'faculties', value: 'Hukuk Fakültesi;Fen Fakültesi' }]));
   });
 
@@ -108,6 +117,7 @@ describe('ayarlar sayfası', () => {
     await user.click(screen.getByLabelText('Fakülte ekle'));
     await user.paste('Edebiyat;Hukuk;;Tıp');
     await user.click(screen.getByTestId('save-faculties'));
+    await saveWithReason(user);
     await waitFor(() =>
       expect(puts[0]).toEqual({ key: 'faculties', value: 'Mühendislik Fakültesi;Fen Fakültesi;Edebiyat;Hukuk;Tıp' }),
     );
@@ -182,15 +192,38 @@ describe('ayarlar sayfası', () => {
     expect(puts).toHaveLength(0);
   });
 
-  it('kritik olmayan anahtar (uygulama adı) onaysız doğrudan kaydedilir', async () => {
-    const { puts } = setup();
+  it('kritik olmayan anahtar (uygulama adı) da gerekçe ister: gerekçesiz kaydedilmez, başlık gider', async () => {
+    const { puts, reasons } = setup();
     const user = userEvent.setup();
     const field = await screen.findByLabelText('Uygulama adı');
     await user.clear(field);
     await user.type(field, 'X');
     await user.click(within(field.closest('[data-key]') as HTMLElement).getByRole('button', { name: 'Kaydet' }));
-    await waitFor(() => expect(puts).toHaveLength(1));
-    expect(screen.queryByRole('alertdialog')).toBeNull();
+    const dialog = await screen.findByRole('dialog');
+    const confirm = within(dialog).getByRole('button', { name: 'Değişikliği kaydet' });
+    expect(confirm).toBeDisabled(); // gerekçe yok
+    expect(puts).toHaveLength(0);
+    await user.type(within(dialog).getByRole('textbox'), 'abcd');
+    expect(confirm).toBeDisabled(); // 5 karakterden kısa
+    await user.type(within(dialog).getByRole('textbox'), 'e');
+    await user.click(confirm);
+    await waitFor(() => expect(puts).toEqual([{ key: 'app_name', value: 'X' }]));
+    expect(reasons).toEqual(['abcde']);
+  });
+
+  it('SETTING_INVALID (400) anlaşılır Türkçe iletiyle gösterilir', async () => {
+    mockFetch((url, init) => {
+      if (url.endsWith('/admin/settings') && (init.method ?? 'GET') === 'GET') return jsonResponse(200, SERVER);
+      if (init.method === 'PUT') return jsonResponse(400, { code: 'SETTING_INVALID', message: 'x' });
+      return jsonResponse(404, { code: 'NOT_FOUND', message: 'x' });
+    });
+    renderWithProviders(<SettingsPage />, { route: '/admin/settings' });
+    const user = userEvent.setup();
+    const field = await screen.findByLabelText('Uygulama adı');
+    await user.type(field, 'Z');
+    await user.click(within(field.closest('[data-key]') as HTMLElement).getByRole('button', { name: 'Kaydet' }));
+    await saveWithReason(user);
+    expect((await screen.findAllByText(/Ayar değeri geçersiz/)).length).toBeGreaterThan(0);
   });
 
   it('kaydet sürerken ikinci tıklama/Enter yeni istek göndermez (tek PUT)', async () => {
@@ -211,8 +244,12 @@ describe('ayarlar sayfası', () => {
     await user.type(field, 'Y');
     const save = within(field.closest('[data-key]') as HTMLElement).getByRole('button', { name: 'Kaydet' });
     await user.click(save);
-    await user.click(save);
-    await user.click(save);
+    const box = await screen.findByLabelText(/^Sebep/);
+    await user.type(box, 'Çift tıklama denemesi');
+    const confirm = screen.getByRole('button', { name: 'Değişikliği kaydet' });
+    await user.click(confirm);
+    await user.click(confirm);
+    await user.click(confirm);
     expect(puts).toBe(1);
     release(new Response(null, { status: 204 }));
     await waitFor(() => expect(screen.queryByText('Kaydedilmemiş')).toBeNull());

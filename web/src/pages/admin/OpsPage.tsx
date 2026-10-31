@@ -24,13 +24,13 @@ import {
   Skeleton,
   StatusPill,
   Tabs,
-  useGuardedMutation,
   useToast,
 } from '../../components/ui';
 import type { Tone } from '../../components/ui/Badge';
 import { useI18n, type I18n } from '../../i18n/I18nProvider';
 import { usePageTitle } from '../../lib/hooks';
 import { paths } from '../../paths';
+import { ADMIN_REASON_MIN } from '../../components/admin/guard/match';
 import { adminErrorMessage, Callout } from './campaigns/shared';
 import styles from './moderation/moderation.module.css';
 
@@ -399,13 +399,6 @@ function LinkRow({ i18n, k, label, saved }: { i18n: I18n; k: string; label: stri
   const value = edit ?? saved;
   const href = safeHttpsUrl(saved);
   const invalid = value.trim() !== '' && safeHttpsUrl(value) === null;
-  const m = useGuardedMutation<void, string>({
-    mutationFn: (v, { idempotencyKey }) => putSetting(k, v, { idempotencyKey }),
-    successMessage: t('admin.ops.links.saved'),
-    errorMessage: (e) => adminErrorMessage(i18n, e),
-    invalidateKeys: [qk.ops.part('settings')],
-    onSuccess: () => setEdit(null),
-  });
   return (
     <li className={styles.item}>
       <FormField label={label} error={invalid ? t('admin.ops.links.invalid') : undefined}>
@@ -418,14 +411,24 @@ function LinkRow({ i18n, k, label, saved }: { i18n: I18n; k: string; label: stri
         />
       </FormField>
       <div className={styles.itemHead}>
-        <Button
+        {/* W1-B (T-013): her ayar kaydı gerekçe ister. */}
+        <GuardedAction
           size="sm"
-          loading={m.isPending}
+          permission="settings.write"
           disabled={invalid || edit === null}
-          onClick={() => void m.run(value.trim())}
+          title={label}
+          message={value.trim() || t('admin.ops.links.unset')}
+          confirmLabel={t('admin.ops.links.save')}
+          requireReason
+          reasonMinLength={ADMIN_REASON_MIN}
+          successMessage={t('admin.ops.links.saved')}
+          errorMessage={(e) => adminErrorMessage(i18n, e)}
+          invalidateKeys={[qk.ops.part('settings')]}
+          onSuccess={() => setEdit(null)}
+          onConfirm={({ reason, idempotencyKey }) => putSetting(k, value.trim(), { reason, idempotencyKey })}
         >
           {t('admin.ops.links.save')}
-        </Button>
+        </GuardedAction>
         {href ? (
           <a href={href} target="_blank" rel="noopener noreferrer">
             {t('admin.ops.links.open')} <Icon name="external" size={14} aria-hidden="true" />

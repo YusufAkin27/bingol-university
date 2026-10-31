@@ -1,12 +1,12 @@
-// Sohbet içeriği görüntüleme sebebi (W-P02): özel yazışmaları açan her istek `X-Admin-Reason` ister (>= 10 karakter).
+// Sohbet içeriği görüntüleme sebebi (W-P02): özel yazışmaları açan her istek `X-Admin-Reason` ister (>= 20 karakter).
 // Sebep yalnız BELLEKTE tutulur (modül değişkeni: sayfa kapanınca/yenilenince silinir; depoya yazılmaz) ve hedef
 // (kullanıcı, akış, şikâyet) başına hatırlanır; sunucu 400 REASON_REQUIRED derse silinip yeniden istenir.
 import { useCallback, useEffect, useSyncExternalStore } from 'react';
 import { isApiError } from '../../../api/client';
-import { DEFAULT_REASON_MIN, REASON_MAX } from '../../../components/admin/guard/match';
+import { CHAT_CONTENT_REASON_MIN, REASON_MAX } from '../../../components/admin/guard/match';
 
 /** Sunucunun sohbet uçları için en az sebep uzunluğu (`message_access_audit.reason` kısıtı). */
-export const CHAT_REASON_MIN = DEFAULT_REASON_MIN;
+export const CHAT_REASON_MIN = CHAT_CONTENT_REASON_MIN;
 export const CHAT_REASON_MAX = REASON_MAX;
 
 /** Hedef anahtarları: aynı hedef için sebep yeniden sorulmaz. */

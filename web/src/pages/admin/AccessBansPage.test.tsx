@@ -65,6 +65,12 @@ function setup(extra: (url: string, init: RequestInit) => Response | undefined =
   return { calls, fn };
 }
 
+/** W1-B (T-013): engel işlemleri gerekçe ister; kutu doldurulmadan "Engelle" düğmesi kapalıdır. */
+async function typeWhy(scope: HTMLElement | typeof screen = screen, text = 'Test gerekçesi') {
+  const q = scope === screen ? screen : within(scope as HTMLElement);
+  await userEvent.type(q.getByLabelText(/^İşlem gerekçesi/), text);
+}
+
 describe('Erişim engelleri sayfası', () => {
   it('istatistik kartlarını ve engel tablosunu gösterir', async () => {
     setup();
@@ -148,6 +154,7 @@ describe('Erişim engelleri sayfası', () => {
     it('geçersiz IP gönderilmez, hata gösterilir', async () => {
       const { dlg, calls } = await open();
       await userEvent.type(within(dlg).getByLabelText(/Değer/), '999.1.1.1');
+      await typeWhy(dlg);
       await userEvent.click(within(dlg).getByRole('button', { name: 'Engelle' }));
       expect(await within(dlg).findByText('Geçerli bir IPv4 veya IPv6 adresi girin.')).toBeInTheDocument();
       expect(calls.some((c) => c.init.method === 'POST')).toBe(false);
@@ -157,6 +164,7 @@ describe('Erişim engelleri sayfası', () => {
       const { dlg, calls } = await open();
       await userEvent.selectOptions(within(dlg).getByLabelText('Engel türü'), 'CIDR');
       await userEvent.type(within(dlg).getByLabelText(/Değer/), '1.2.3.4');
+      await typeWhy(dlg);
       await userEvent.click(within(dlg).getByRole('button', { name: 'Engelle' }));
       expect(await within(dlg).findByText(/Geçerli bir CIDR/)).toBeInTheDocument();
       await userEvent.clear(within(dlg).getByLabelText(/Değer/));
@@ -172,6 +180,7 @@ describe('Erişim engelleri sayfası', () => {
       const { dlg } = await open();
       await userEvent.selectOptions(within(dlg).getByLabelText('Engel türü'), 'DEVICE');
       await userEvent.type(within(dlg).getByLabelText(/Değer/), 'kisa');
+      await typeWhy(dlg);
       await userEvent.click(within(dlg).getByRole('button', { name: 'Engelle' }));
       expect(await within(dlg).findByText(/8–128 karakter/, { selector: 'p[role="alert"]' })).toBeInTheDocument();
     });
@@ -184,6 +193,7 @@ describe('Erişim engelleri sayfası', () => {
       // /admin/users isteği 404 döner (setup'ta tanımsız) -> yeniden tanımlamak yerine yalnız kutuları sınarız
       await userEvent.click(within(dlg).getByLabelText('Son 30 gündeki IP adreslerini de engelle'));
       expect(within(dlg).getByRole('note')).toHaveTextContent('Paylaşılan ağlarda');
+      await typeWhy(dlg);
       await userEvent.click(within(dlg).getByRole('button', { name: 'Engelle' }));
       expect(await within(dlg).findByText('Bir kullanıcı seçin.')).toBeInTheDocument();
       expect(calls.some((c) => c.init.method === 'POST')).toBe(false);
@@ -205,6 +215,7 @@ describe('Erişim engelleri sayfası', () => {
       await userEvent.click(screen.getByRole('button', { name: 'Engel ekle' }));
       const dlg = await screen.findByRole('dialog');
       await userEvent.type(within(dlg).getByLabelText(/Değer/), '198.51.100.9');
+      await typeWhy(dlg);
       await userEvent.click(within(dlg).getByRole('button', { name: 'Engelle' }));
       const confirm = await screen.findByRole('dialog', { name: 'Bu sizin IP adresiniz' });
       await userEvent.click(within(confirm).getByRole('button', { name: 'Yine de engelle' }));
@@ -213,7 +224,23 @@ describe('Erişim engelleri sayfası', () => {
         expect(posts).toHaveLength(2);
         expect(JSON.parse(String(posts[0].init.body)).force).toBeUndefined();
         expect(JSON.parse(String(posts[1].init.body)).force).toBe(true);
+        // yeniden denemede de aynı gerekçe başlığı gider
+        for (const p of posts) {
+          expect(decodeURIComponent((p.init.headers as Record<string, string>)['X-Admin-Reason'])).toBe('Test gerekçesi');
+        }
       });
+    });
+
+    it('gerekçe (>= 5 karakter) yazılmadan Engelle düğmesi kapalıdır ve istek gitmez', async () => {
+      const { dlg, calls } = await open();
+      await userEvent.type(within(dlg).getByLabelText(/Değer/), '198.51.100.9');
+      const btn = within(dlg).getByRole('button', { name: 'Engelle' });
+      expect(btn).toBeDisabled();
+      await typeWhy(dlg, 'abcd');
+      expect(btn).toBeDisabled();
+      await typeWhy(dlg, 'e');
+      expect(btn).toBeEnabled();
+      expect(calls.some((c) => c.init.method === 'POST')).toBe(false);
     });
   });
 
@@ -226,6 +253,8 @@ describe('Erişim engelleri sayfası', () => {
     await userEvent.click(area);
     await userEvent.paste('1.1.1.1\n# yorum\n10.0.0.0/8\n999.1.1.1');
     expect(screen.getByText(/3 satır/)).toHaveTextContent('1 satır geçersiz görünüyor.');
+    expect(screen.getByRole('button', { name: 'Listeyi ekle' })).toBeDisabled(); // gerekçe yok
+    await typeWhy();
     await userEvent.click(screen.getByRole('button', { name: 'Listeyi ekle' }));
     expect(await screen.findByText('Eklenen: 2', { exact: false })).toBeInTheDocument();
     expect(screen.getByText('Atlanan: 1', { exact: false })).toBeInTheDocument();
@@ -307,9 +336,11 @@ describe('Kullanıcı cihazları bölümü', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Kullanıcıyı + cihazlarını engelle' }));
     const dlg = await screen.findByRole('dialog');
     await userEvent.click(within(dlg).getByLabelText('Son IP adreslerini de engelle'));
+    await typeWhy(dlg);
     await userEvent.click(within(dlg).getByRole('button', { name: 'Engelle' }));
     await waitFor(() => {
       const c = calls.find((x) => x.url.includes('/block-access'));
+      expect(decodeURIComponent((c?.init.headers as Record<string, string>)['X-Admin-Reason'])).toBe('Test gerekçesi');
       expect(c?.url).toMatch(/\/admin\/users\/7\/block-access$/);
       expect(JSON.parse(String(c?.init.body))).toEqual({ devices: true, ips: true, userBan: true, reasonCode: 'ABUSE' });
     });
@@ -330,6 +361,7 @@ describe('Kullanıcı cihazları bölümü', () => {
     await screen.findByText('198.51.100.20');
     await userEvent.click(screen.getAllByRole('button', { name: "IP'yi engelle" })[0]);
     const dlg = await screen.findByRole('dialog');
+    await typeWhy(dlg);
     await userEvent.click(within(dlg).getByRole('button', { name: 'Engelle' }));
     const confirm = await screen.findByRole('dialog', { name: 'Bu sizin IP adresiniz' });
     await userEvent.click(within(confirm).getByRole('button', { name: 'Yine de engelle' }));

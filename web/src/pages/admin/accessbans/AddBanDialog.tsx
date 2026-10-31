@@ -15,6 +15,8 @@ import {
   Select,
   useToast,
 } from '../../../components/ui';
+import { ReasonField } from '../../../components/admin/guard/ReasonField';
+import { ADMIN_REASON_MIN, isReasonValid } from '../../../components/admin/guard/match';
 import { useI18n } from '../../../i18n/I18nProvider';
 import { useDebouncedValue } from '../../../lib/hooks';
 import { adminErrorMessage } from '../campaigns/shared';
@@ -46,6 +48,9 @@ export function AddBanDialog({ open, onClose, initial }: Props) {
   const [alsoIps, setAlsoIps] = useState(false);
   const [touched, setTouched] = useState(false);
   const [selfConfirm, setSelfConfirm] = useState(false);
+  // W1-B (T-013): engel ekleme islem gerekcesi ister (X-Admin-Reason).
+  const [why, setWhy] = useState('');
+  const whyOk = isReasonValid(why, ADMIN_REASON_MIN);
 
   const term = useDebouncedValue(userQ.trim(), 300);
   const found = useQuery({
@@ -71,7 +76,7 @@ export function AddBanDialog({ open, onClose, initial }: Props) {
   }
 
   const create = useMutation({
-    mutationFn: (force: boolean) => createBan(body(force)),
+    mutationFn: (force: boolean) => createBan(body(force), { reason: why }),
     onSuccess: () => {
       toast.success(t('admin.ab.toast.added'));
       setSelfConfirm(false);
@@ -90,7 +95,7 @@ export function AddBanDialog({ open, onClose, initial }: Props) {
 
   function submit() {
     setTouched(true);
-    if (valueOk && dateOk) create.mutate(false);
+    if (valueOk && dateOk && whyOk) create.mutate(false);
   }
 
   function changeKind(k: BanKind) {
@@ -111,7 +116,7 @@ export function AddBanDialog({ open, onClose, initial }: Props) {
             <Button variant="secondary" onClick={onClose}>
               {t('common.cancel')}
             </Button>
-            <Button variant="danger" loading={create.isPending} onClick={submit}>
+            <Button variant="danger" loading={create.isPending} disabled={!whyOk} onClick={submit}>
               {t('admin.ab.add.submit')}
             </Button>
           </>
@@ -215,6 +220,14 @@ export function AddBanDialog({ open, onClose, initial }: Props) {
           <FormField label={t('admin.ab.add.note')}>
             <Input value={note} maxLength={300} dir="auto" onChange={(e) => setNote(e.target.value)} />
           </FormField>
+
+          <ReasonField
+            value={why}
+            onChange={setWhy}
+            minLength={ADMIN_REASON_MIN}
+            label={t('admin.wp02.actionReason.label')}
+            disabled={create.isPending}
+          />
 
           {kind === 'USER' && (
             <>

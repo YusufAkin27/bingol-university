@@ -4,6 +4,8 @@ import { cancelCampaign, getCampaign, pauseCampaign, resumeCampaign } from '../.
 import { qk } from '../../../api/queryKeys';
 import type { CampaignView, Lang } from '../../../api/types';
 import { Badge, ConfirmDialog, Drawer, Button, Skeleton, StatusPill, toneFor, useToast } from '../../../components/ui';
+import { ReasonField } from '../../../components/admin/guard/ReasonField';
+import { ADMIN_REASON_MIN, isReasonValid } from '../../../components/admin/guard/match';
 import { useI18n } from '../../../i18n/I18nProvider';
 import { DetailList } from '../community/ReviewParts';
 import listStyles from '../community/review.module.css';
@@ -21,6 +23,8 @@ export function CampaignDrawer({ id, seed, onClose }: { id: number | null; seed?
   const audienceSummary = useAudienceSummary();
   const targetSummary = useTargetSummary();
   const [confirmCancel, setConfirmCancel] = useState(false);
+  // W1-B (T-013): iptal gerekce ister (X-Admin-Reason).
+  const [cancelReason, setCancelReason] = useState('');
 
   const q = useQuery({
     queryKey: qk.campaigns.detail(id ?? 0),
@@ -33,7 +37,7 @@ export function CampaignDrawer({ id, seed, onClose }: { id: number | null; seed?
   const names = useAdminNames(c ? [c.createdBy] : []);
 
   const cancel = useMutation({
-    mutationFn: () => cancelCampaign(id ?? 0),
+    mutationFn: (reason: string) => cancelCampaign(id ?? 0, { reason }),
     onSuccess: () => {
       toast.success(t('admin.campaigns.toast.cancelled'));
       setConfirmCancel(false);
@@ -84,7 +88,13 @@ export function CampaignDrawer({ id, seed, onClose }: { id: number | null; seed?
                 </Button>
               )}
               {actions.cancel && (
-                <Button variant="danger" onClick={() => setConfirmCancel(true)}>
+                <Button
+                  variant="danger"
+                  onClick={() => {
+                    setCancelReason('');
+                    setConfirmCancel(true);
+                  }}
+                >
                   {t('admin.campaigns.cancel')}
                 </Button>
               )}
@@ -158,14 +168,25 @@ export function CampaignDrawer({ id, seed, onClose }: { id: number | null; seed?
       <ConfirmDialog
         open={confirmCancel}
         onClose={() => setConfirmCancel(false)}
-        onConfirm={() => cancel.mutate()}
+        onConfirm={() => cancel.mutate(cancelReason)}
         loading={cancel.isPending}
         danger
         title={t('admin.campaigns.cancel.title')}
         message={t('admin.campaigns.cancel.message')}
         confirmLabel={t('admin.campaigns.cancel')}
         cancelLabel={t('admin.campaigns.cancel.keep')}
-      />
+        confirmDisabled={!isReasonValid(cancelReason, ADMIN_REASON_MIN)}
+        initialFocus="content"
+      >
+        <ReasonField
+          value={cancelReason}
+          onChange={setCancelReason}
+          minLength={ADMIN_REASON_MIN}
+          label={t('admin.wp02.actionReason.label')}
+          disabled={cancel.isPending}
+          focusOnMount
+        />
+      </ConfirmDialog>
     </>
   );
 }

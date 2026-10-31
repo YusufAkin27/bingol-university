@@ -5,13 +5,13 @@
 import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
 import { adminChatApi, qk } from '../../api';
-import { PageHeader, StatCard, Tabs } from '../../components/ui';
+import { EmptyState, PageHeader, StatCard, Tabs } from '../../components/ui';
 import { useI18n } from '../../i18n/I18nProvider';
 import { usePageTitle } from '../../lib/hooks';
 import { chatReasonKey } from './chat/chatReason';
 import { ReasonGate } from './chat/ReasonGate';
 import { EMPTY_FILTERS, FeedFilters, MediaTab, MessagesTab, type FeedFilterState } from './chat/FeedParts';
-import { formatBytes } from './chat/chatLogic';
+import { formatBytes, parseId } from './chat/chatLogic';
 import styles from './chat/chat.module.css';
 
 export default function ChatFeedPage() {
@@ -21,6 +21,8 @@ export default function ChatFeedPage() {
   const [filters, setFilters] = useState<FeedFilterState>(EMPTY_FILTERS);
   const stats = useQuery({ queryKey: qk.adminChat.mediaStats(), queryFn: adminChatApi.chatMediaStats, staleTime: 60_000 });
   const s = stats.data;
+  // W1-B (T-015): sunucu süzgeçsiz akışı 400 FEED_FILTER_REQUIRED ile reddeder; süzgeç seçilmeden istek atılmaz.
+  const hasFilter = filters.user !== null || parseId(filters.conversationId || null) !== null;
   const n = (v: number | undefined) => (v === undefined ? '—' : formatNumber(v));
 
   return (
@@ -57,7 +59,14 @@ export default function ChatFeedPage() {
               ]}
             />
             <FeedFilters tab={tab} value={filters} onChange={setFilters} />
-            {tab === 'media' ? (
+            {!hasFilter ? (
+              <EmptyState
+                compact
+                icon="search"
+                title={t('admin.wp02.chatFeed.filterRequired.title')}
+                description={t('admin.wp02.chatFeed.filterRequired.text')}
+              />
+            ) : tab === 'media' ? (
               <MediaTab filters={filters} reason={reason} />
             ) : (
               <MessagesTab filters={filters} reason={reason} />

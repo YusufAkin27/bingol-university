@@ -85,6 +85,11 @@ function setup(opts: { mediaError?: boolean } = {}) {
   return calls;
 }
 
+/** W1-B (T-015): sunucu süzgeçsiz akışı reddeder; sayfa da süzgeç seçilmeden içerik istemez. Sohbet no ile süzgeç koyar. */
+async function pickConversation(id = '30') {
+  await userEvent.type(await screen.findByLabelText('Sohbet no'), id);
+}
+
 beforeEach(() => {
   // Sohbet içeriği sebep ister (W-P02): sebep kapısı geçilmiş sayılır; sebep akışı chatReason.test.tsx'te sınanır.
   setChatReason(chatReasonKey.feed(), 'Şikayet incelemesi (test)');
@@ -100,6 +105,7 @@ describe('Sohbet medyası ve mesajlar sayfası', () => {
   it('istatistik kartları ve medya ızgarası rozetlerle gelir; sonraki sayfa yüklenir', async () => {
     const calls = setup();
     renderWithProviders(<ChatFeedPage />);
+    await pickConversation();
     const grid = await screen.findByTestId('media-grid');
     expect(within(grid).getAllByTestId('viewonce-badge')).toHaveLength(1);
     expect(within(grid).getByText('Silindi')).toBeInTheDocument();
@@ -113,6 +119,7 @@ describe('Sohbet medyası ve mesajlar sayfası', () => {
   it('süzgeçler sorguya gider (tür, tek gönderimlik, silinmiş)', async () => {
     const calls = setup();
     renderWithProviders(<ChatFeedPage />);
+    await pickConversation();
     await screen.findByTestId('media-grid');
     await userEvent.selectOptions(screen.getByLabelText('Tür'), 'VIDEO');
     await userEvent.click(screen.getByRole('checkbox', { name: 'Tek gönderimlik' }));
@@ -125,6 +132,7 @@ describe('Sohbet medyası ve mesajlar sayfası', () => {
   it('lightbox açılır ve "Sohbette göster" bağlantısı mesaja gider', async () => {
     setup();
     renderWithProviders(<ChatFeedPage />);
+    await pickConversation();
     const grid = await screen.findByTestId('media-grid');
     await userEvent.click(within(grid).getAllByRole('button', { name: /Büyüt/ })[0]);
     const dialog = await screen.findByRole('dialog', { name: 'Medya görüntüleyici' });
@@ -136,6 +144,7 @@ describe('Sohbet medyası ve mesajlar sayfası', () => {
     setup();
     renderWithProviders(<ChatFeedPage />);
     await userEvent.click(await screen.findByRole('tab', { name: 'Mesajlar' }));
+    await pickConversation();
     const list = await screen.findByTestId('feed-list');
     expect(within(list).getAllByTestId('feed-row')).toHaveLength(2);
     expect(within(list).getByText('akis-900')).toBeInTheDocument();
@@ -144,9 +153,21 @@ describe('Sohbet medyası ve mesajlar sayfası', () => {
     expect(within(list).getAllByRole('link', { name: 'Sohbette göster' })[0]).toHaveAttribute('href', '/admin/users/7/messages?c=30&m=900');
   });
 
+  it('süzgeç seçilmeden içerik istenmez; kullanıcıya açıkça söylenir (FEED_FILTER_REQUIRED önlemi)', async () => {
+    const calls = setup();
+    renderWithProviders(<ChatFeedPage />);
+    expect(await screen.findByText('Önce bir süzgeç seçin')).toBeInTheDocument();
+    expect(screen.queryByTestId('media-grid')).toBeNull();
+    expect(calls.some((u) => u.includes('chat-media?') || u.includes('chat-messages'))).toBe(false);
+    await userEvent.click(screen.getByRole('tab', { name: 'Mesajlar' }));
+    expect(screen.getByText('Önce bir süzgeç seçin')).toBeInTheDocument();
+    expect(calls.some((u) => u.includes('chat-messages'))).toBe(false);
+  });
+
   it('hata durumunu gösterir', async () => {
     setup({ mediaError: true });
     renderWithProviders(<ChatFeedPage />);
+    await pickConversation();
     expect(await screen.findByRole('button', { name: /Tekrar dene|Yeniden dene/i })).toBeInTheDocument();
   });
 });

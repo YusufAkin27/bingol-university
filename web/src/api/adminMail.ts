@@ -3,6 +3,7 @@
  * Tipler bu dosyada tutulur (başka web ajanlarıyla types.ts çakışmasın diye).
  */
 import { api } from './client';
+import { guardHeaders, type GuardOpts } from './guard';
 import type { Page } from './types';
 
 const P = '/admin/mail';
@@ -200,11 +201,14 @@ export const listRecipients = (id: number, p: { status?: RecipientStatus; page?:
   api.get<Page<RecipientRow>>(`${P}/campaigns/${id}/recipients`, { ...p });
 export const previewAudience = (audience: MailAudience, templateId?: number) =>
   api.post<AudiencePreview>(`${P}/campaigns/audience/preview`, { audience, templateId });
-export const createMailCampaign = (r: CampaignRequest) => api.post<MailCampaignView>(`${P}/campaigns`, r);
+// W1-B (T-013): olusturma / zamanlama / iptal gerekce ister (>= 5 karakter, X-Admin-Reason).
+export const createMailCampaign = (r: CampaignRequest, o?: GuardOpts) =>
+  api.post<MailCampaignView>(`${P}/campaigns`, r, guardHeaders(o));
 export const updateMailCampaign = (id: number, r: CampaignRequest) =>
   api.put<MailCampaignView>(`${P}/campaigns/${id}`, r);
-export const scheduleMailCampaign = (id: number, scheduledAt?: string | null) =>
-  api.post<MailCampaignView>(`${P}/campaigns/${id}/schedule`, scheduledAt ? { scheduledAt } : {});
+export const scheduleMailCampaign = (id: number, scheduledAt?: string | null, o?: GuardOpts) =>
+  api.post<MailCampaignView>(`${P}/campaigns/${id}/schedule`, scheduledAt ? { scheduledAt } : {}, guardHeaders(o));
 export const pauseMailCampaign = (id: number) => api.post<MailCampaignView>(`${P}/campaigns/${id}/pause`);
 export const resumeMailCampaign = (id: number) => api.post<MailCampaignView>(`${P}/campaigns/${id}/resume`);
-export const cancelMailCampaign = (id: number) => api.post<MailCampaignView>(`${P}/campaigns/${id}/cancel`);
+export const cancelMailCampaign = (id: number, o?: GuardOpts) =>
+  api.post<MailCampaignView>(`${P}/campaigns/${id}/cancel`, undefined, guardHeaders(o));
