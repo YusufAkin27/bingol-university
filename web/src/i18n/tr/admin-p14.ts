@@ -41,6 +41,22 @@ export default {
   'admin.p14.code.SEND_ERROR': 'Gönderim sırasında beklenmeyen hata',
   'admin.p14.code.ADMIN_CANCELLED': 'Yönetici iptal etti',
   'admin.p14.code.UNKNOWN': 'Hata kodu kaydedilmemiş (eski kayıt)',
+  'admin.p14.dead.title': 'Vazgeçilen (DEAD) kayıtların hata kodu dağılımı',
+  'admin.p14.dead.note':
+    'En yeni {n} DEAD kaydın örneklemidir; toplam DEAD sayısı yukarıdaki kartta. Ayrıntı için aşağıda Durum = "Başarısız" süzgeciyle listeyi açın.',
+  'admin.p14.dead.empty': 'Vazgeçilmiş kayıt yok.',
+  'admin.p14.dead.col.code': 'Hata kodu',
+  'admin.p14.dead.col.meaning': 'Anlamı',
+  'admin.p14.dead.col.count': 'Kayıt',
+  'admin.p14.dead.caption': 'DEAD kayıtlar hata koduna göre',
+  'admin.p14.fcm.why.title': 'FCM neden kapalı?',
+  'admin.p14.fcm.why.NO_CREDENTIALS':
+    'Sunucuya Firebase kimlik bilgisi girilmemiş (FCM_CREDENTIALS_JSON ya da FCM_CREDENTIALS_FILE boş). Push gitmez; yalnız uygulama içi bildirim kutusu dolar. Kimlik girilince ek kod gerekmez.',
+  'admin.p14.fcm.why.INIT_FAILED':
+    'Kimlik bilgisi girilmiş ama Firebase başlatılamadı (dosya/JSON bozuk, proje yanlış ya da süresi dolmuş anahtar olabilir). Hata sınıfı: {detail}. Sunucu günlüğünde ayrıntı vardır.',
+  'admin.p14.fcm.why.INIT_FAILED.nodetail':
+    'Kimlik bilgisi girilmiş ama Firebase başlatılamadı (dosya/JSON bozuk, proje yanlış ya da süresi dolmuş anahtar olabilir). Sunucu günlüğünde ayrıntı vardır.',
+  'admin.p14.fcm.why.OTHER': 'Kapalı nedeni: {detail}',
 
   // sunucu hata kodları
   'admin.p14.err.PUSHADMIN_OUTBOX_NOT_FOUND': 'Kuyruk kaydı bulunamadı; süresi dolup silinmiş olabilir.',

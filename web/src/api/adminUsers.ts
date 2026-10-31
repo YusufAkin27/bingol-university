@@ -32,6 +32,11 @@ export interface PushDevice {
   tokenTail: string;
   createdAt: string | null;
   lastSeenAt: string | null;
+  /** Bu cihaza giden SON push'un kuyruk durumu (SENT/DEAD/FAILED/PENDING...); kuyruk kaydı yoksa null. */
+  lastPushStatus?: string | null;
+  /** Son push başarısızsa FCM/APNs hata kodu (UNREGISTERED, THIRD_PARTY_AUTH_ERROR...). */
+  lastPushErrorCode?: string | null;
+  lastPushAt?: string | null;
 }
 
 export interface UserNotification {

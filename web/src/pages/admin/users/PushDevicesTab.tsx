@@ -1,8 +1,10 @@
 import { useQuery } from '@tanstack/react-query';
 import { deleteUserPushDevice, getUserPushDevices, userDeepKeys } from '../../../api/adminUsers';
-import { Badge, EmptyState, ErrorState, GuardedAction, Skeleton } from '../../../components/ui';
+import { Badge, EmptyState, ErrorState, GuardedAction, Skeleton, StatusPill } from '../../../components/ui';
 import { useI18n } from '../../../i18n/I18nProvider';
 import { adminError } from '../../../lib/errors';
+import { codeKey, STATUS_TONE } from '../pushops/lib';
+import type { OutboxStatus } from '../../../api/adminPushOps';
 import styles from './deep.module.css';
 
 /** FCM cihaz kayıtları: token ASLA tam gösterilmez (son karakterler). Silme sebep + onay ister. */
@@ -33,9 +35,31 @@ export function PushDevicesTab({ userId }: { userId: number }) {
                 </span>
                 <span className={styles.rowMeta}>
                   {t('admin.p09.devices.lastSeen')}: {d.lastSeenAt ? formatDateTime(d.lastSeenAt) : '—'}
+                  {d.locale ? ` · ${t('admin.p09.devices.locale')}: ${d.locale}` : ''}
                 </span>
+                <span className={styles.rowMeta} data-testid="last-push">
+                  {t('admin.p09.devices.lastPush')}:{' '}
+                  {d.lastPushStatus ? (
+                    <>
+                      <StatusPill tone={STATUS_TONE[d.lastPushStatus as OutboxStatus] ?? 'neutral'}>
+                        {td(`admin.p14.status.${d.lastPushStatus}`, d.lastPushStatus)}
+                      </StatusPill>
+                      {d.lastPushAt ? ` · ${formatDateTime(d.lastPushAt)}` : ''}
+                    </>
+                  ) : (
+                    t('admin.p09.devices.lastPush.none')
+                  )}
+                </span>
+                {d.lastPushErrorCode && (
+                  <span className={styles.rowMeta} data-testid="last-push-error">
+                    <code className="ltr">{d.lastPushErrorCode}</code>
+                    {': '}
+                    {codeKey(d.lastPushErrorCode) ? td(codeKey(d.lastPushErrorCode)!, d.lastPushErrorCode) : t('admin.p09.devices.lastPush.unknownCode')}
+                  </span>
+                )}
               </div>
               <GuardedAction
+                permission="users.write"
                 size="sm"
                 variant="secondary"
                 danger

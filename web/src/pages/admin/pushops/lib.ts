@@ -33,7 +33,33 @@ export function codeKey(code: string | null | undefined): string | null {
   return code && KNOWN_CODES.has(code) ? `admin.p14.code.${code}` : null;
 }
 
-export const PLATFORM_ORDER = ['android', 'ios', 'web', 'other'] as const;
+/** DEAD (vazgeçilmiş) kayıtları hata koduna göre gruplar; çoktan aza, eşitlikte koda göre. Kodsuz kayıtlar UNKNOWN sayılır. */
+export function groupByErrorCode(rows: { errorCode: string | null }[]): { code: string; count: number }[] {
+  const m = new Map<string, number>();
+  for (const r of rows) {
+    const c = r.errorCode?.trim() || 'UNKNOWN';
+    m.set(c, (m.get(c) ?? 0) + 1);
+  }
+  return [...m.entries()]
+    .map(([code, count]) => ({ code, count }))
+    .sort((a, b) => b.count - a.count || a.code.localeCompare(b.code));
+}
+
+export type FcmOffKind = 'NO_CREDENTIALS' | 'INIT_FAILED' | 'OTHER';
+
+/**
+ * FCM kapalı nedeni (sunucu `error` alanı): NO_CREDENTIALS | INIT_FAILED:<hata sınıfı> | başka. Sınıf adı sır içermez;
+ * ham metin yine de gösterilir.
+ */
+export function fcmOffReason(error: string | null | undefined): { kind: FcmOffKind; detail: string | null } | null {
+  const e = error?.trim();
+  if (!e) return null;
+  if (e === 'NO_CREDENTIALS') return { kind: 'NO_CREDENTIALS', detail: null };
+  if (e.startsWith('INIT_FAILED')) return { kind: 'INIT_FAILED', detail: e.includes(':') ? e.slice(e.indexOf(':') + 1) : null };
+  return { kind: 'OTHER', detail: e };
+}
+
+export const PLATFORM_ORDER =['android', 'ios', 'web', 'other'] as const;
 
 /** 0..1 oranı "% 42" biçiminde yüzdeye çevirir; null ise null. */
 export function percent(r: number | null | undefined): number | null {
