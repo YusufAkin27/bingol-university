@@ -201,7 +201,7 @@ final kPageCases = <PageCase>[
     }),
     empty: (b) => b.on('/notifications', _page([])),
     marker: 'Okunmuş bildirim',
-    emptyMarker: 'Bildirim yok',
+    emptyMarker: 'Henüz bildiriminiz yok.',
     failKeys: ['/notifications'],
     checkLoading: false, // iskelet (K3)
   ),
@@ -455,7 +455,7 @@ void main() {
         await tester.pumpWidget(buildApp(SettingsPage(session: makeSession(b), themeController: ThemeController())));
         await settle(tester, const Duration(seconds: 2));
         expect(find.text('Ayarlar'), findsWidgets);
-        expect(find.text('E-postamı diğerlerine göster'), findsWidgets);
+        expect(find.text('Hata raporu gönder'), findsWidgets);
         noErr(tester);
         await unmount(tester);
       });

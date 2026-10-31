@@ -40,7 +40,9 @@ String menuDishTitle(String s) {
   return out.toString().replaceAll(' Ve ', ' ve ').replaceAll(' İle ', ' ile ');
 }
 
-/// Gün seçici: kaydırılabilir kısa gün kartları (hafta günü kısaltması + gün numarası).
+/// Gün seçici (Stitch v3): yatay kaydırılan 7+ günlük şerit. Her gün 42 dp genişliğinde, 48 dp yüksekliğinde
+/// bir hap: hafta kısaltması (12 sp/500, büyük harf, soluk) + gün numarası (16 sp/600). Seçili gün `soft`
+/// zeminli hap, metni `pr` (kısaltma 600, numara 700); diğerlerinin zemini yok. Dokunma alanı 46 x 48 dp.
 class MenuDayStrip extends StatefulWidget {
   const MenuDayStrip({super.key, required this.days, required this.selected, required this.onSelect});
 
@@ -53,14 +55,14 @@ class MenuDayStrip extends StatefulWidget {
 }
 
 class _MenuDayStripState extends State<MenuDayStrip> {
-  static const _gap = 8.0;
+  /// Yuva genişliği = hap 42 + aralık 4.
+  static const _slot = 46.0;
+  static const _pill = 42.0;
   static const _hPad = 20.0;
   final _ctrl = ScrollController();
   bool _jumped = false;
 
   static bool _same(DateTime a, DateTime b) => a.year == b.year && a.month == b.month && a.day == b.day;
-
-  double _itemWidth(double w) => ((w - 2 * _hPad - 4 * _gap) / 5).clamp(52.0, 120.0);
 
   @override
   void dispose() {
@@ -71,10 +73,8 @@ class _MenuDayStripState extends State<MenuDayStrip> {
   void _center(double w) {
     final idx = widget.days.indexWhere((d) => _same(d, widget.selected));
     if (idx < 0 || !_ctrl.hasClients) return;
-    final iw = _itemWidth(w);
-    final target = _hPad + idx * (iw + _gap) - (w - iw) / 2;
-    final max = _ctrl.position.maxScrollExtent;
-    final to = target.clamp(0.0, max);
+    final target = _hPad + idx * _slot - (w - _slot) / 2;
+    final to = target.clamp(0.0, _ctrl.position.maxScrollExtent);
     if (!_jumped) {
       _ctrl.jumpTo(to);
       _jumped = true;
@@ -96,73 +96,64 @@ class _MenuDayStripState extends State<MenuDayStrip> {
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
-    final tx = Theme.of(context).textTheme;
     final w = MediaQuery.sizeOf(context).width;
-    final iw = _itemWidth(w);
-    final now = DateTime.now();
     if (!_jumped) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) _center(w);
       });
     }
-    // Yazı ölçeği büyüdükçe kutu uzar; sabit yükseklik yerine ölçekle büyür.
+    // Yazı ölçeği büyüdükçe hap uzar; sabit yükseklik yerine ölçekle büyür.
     final scale = MediaQuery.textScalerOf(context).scale(10) / 10;
     return SizedBox(
-      height: 72 * scale.clamp(1.0, 1.4),
-      child: ListView.separated(
+      height: 48 * scale.clamp(1.0, 1.4),
+      child: ListView.builder(
         controller: _ctrl,
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: _hPad),
         itemCount: widget.days.length,
-        separatorBuilder: (_, __) => const SizedBox(width: _gap),
+        itemExtent: _slot,
         itemBuilder: (context, i) {
           final d = widget.days[i];
           final sel = _same(d, widget.selected);
-          final today = _same(d, now);
           final dayName = trUpper(newsWeekdayName(context, d.weekday, short: true));
-          return SizedBox(
-            width: iw,
-            child: Semantics(
-              button: true,
-              selected: sel,
-              label: '${newsWeekdayName(context, d.weekday)} ${d.day}',
-              excludeSemantics: true,
-              child: BuPressable(
-                key: ValueKey('yemek_day_${d.year}-${d.month}-${d.day}'),
-                onTap: () {
-                  if (!sel) buHaptic(BuHaptic.selection);
-                  widget.onSelect(d);
-                },
+          final dur = BuMotion.of(context, BuMotion.short);
+          return Semantics(
+            button: true,
+            selected: sel,
+            label: '${newsWeekdayName(context, d.weekday)} ${d.day}',
+            excludeSemantics: true,
+            child: BuPressable(
+              key: ValueKey('yemek_day_${d.year}-${d.month}-${d.day}'),
+              onTap: () {
+                if (!sel) buHaptic(BuHaptic.selection);
+                widget.onSelect(d);
+              },
+              child: Center(
                 child: AnimatedContainer(
-                  duration: BuMotion.of(context, BuMotion.short),
-                  decoration: BoxDecoration(
-                    color: sel ? t.soft : t.sf,
-                    borderRadius: BorderRadius.circular(BuRadius.md),
-                    border: Border.all(color: sel ? t.pr.withValues(alpha: .25) : t.bd),
-                  ),
+                  duration: dur,
+                  width: _pill,
+                  decoration: BoxDecoration(color: sel ? t.soft : t.soft.withValues(alpha: 0), borderRadius: BorderRadius.circular(BuRadius.pill)),
+                  padding: const EdgeInsets.symmetric(vertical: 6),
                   alignment: Alignment.center,
                   child: Column(mainAxisSize: MainAxisSize.min, children: [
-                    // Metin rengi de kapsül rengiyle birlikte yumuşakça değişir (150 ms).
+                    // Metin rengi de hapla birlikte yumuşakça değişir (150 ms).
                     AnimatedDefaultTextStyle(
-                      duration: BuMotion.of(context, BuMotion.short),
+                      duration: dur,
                       maxLines: 1,
-                      style: tx.labelSmall!.copyWith(fontWeight: FontWeight.w700, color: sel ? t.onSoft : t.mut),
+                      style: BuType.caption.copyWith(fontSize: 11.5, height: 1.2, fontWeight: sel ? FontWeight.w600 : FontWeight.w500, color: sel ? t.pr : t.mut),
                       child: Text(dayName),
                     ),
                     const SizedBox(height: 2),
                     AnimatedDefaultTextStyle(
-                      duration: BuMotion.of(context, BuMotion.short),
+                      duration: dur,
                       maxLines: 1,
-                      style: tx.titleLarge!.copyWith(
-                          fontWeight: FontWeight.w800,
-                          height: 1.15,
-                          color: sel ? t.onSoft : t.ink,
+                      style: BuType.caption.copyWith(
+                          fontSize: 15,
+                          height: 1.3,
+                          fontWeight: sel ? FontWeight.w700 : FontWeight.w600,
+                          color: sel ? t.pr : t.ink,
                           fontFeatures: const [FontFeature.tabularFigures()]),
                       child: Text('${d.day}'),
-                    ),
-                    SizedBox(
-                      height: 8,
-                      child: today ? Center(child: Container(width: 5, height: 5, decoration: BoxDecoration(color: sel ? t.onSoft : t.pr, shape: BoxShape.circle))) : null,
                     ),
                   ]),
                 ),
@@ -175,93 +166,62 @@ class _MenuDayStripState extends State<MenuDayStrip> {
   }
 }
 
-/// "BUGÜN · 29 EKİM" etiketi: yalnız metin (simge/nokta yok), sakin başlık tonu.
+/// "Bugün · 31 Ekim" etiketi: 14 sp, soluk, düz metin (büyük harf/simge yok).
 class MenuDayLabel extends StatelessWidget {
-  const MenuDayLabel({super.key, required this.text, required this.today});
+  const MenuDayLabel({super.key, required this.text});
 
   final String text;
-
-  /// Bugünse etiket ana yazı renginde, değilse soluk (tek vurgu: gün şeridindeki seçili kapsül).
-  final bool today;
 
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
-    final tx = Theme.of(context).textTheme;
     return Semantics(
       header: true,
-      child: Text(text,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: tx.labelLarge!.copyWith(fontWeight: FontWeight.w700, color: today ? t.ink : t.mut, letterSpacing: .3)),
+      child: Text(text, maxLines: 1, overflow: TextOverflow.ellipsis, style: BuType.caption.copyWith(fontSize: 13, height: 1.5, letterSpacing: .13, color: t.mut)),
     );
   }
 }
 
-/// Öğle yemeği kartı: başlık + saat, (varsa) fotoğraf, yemek adı + kalori satırları, günlük toplam.
-/// Fotoğrafsız günde süs yer tutucusu çizilmez; kalorisiz yemekte kalori yazılmaz.
+/// Öğle yemeği yüzeyi (Stitch v3): tek beyaz yüzey (1 dp `bd`, 16 köşe, iç 20 dp). Başlık 20 sp/600 solda,
+/// saat 14 sp soluk sağda; her yemek 1 dp çizgili satır (ad 16 sp, kcal 14 sp soluk; kcal yoksa "–");
+/// "Toplam enerji" satırı. Fotoğraf/yer tutucu yok.
 class MenuMealCard extends StatelessWidget {
-  const MenuMealCard({super.key, required this.day, required this.photo, required this.time});
+  const MenuMealCard({super.key, required this.day, required this.time});
 
   final MenuDay day;
-
-  /// Hazır fotoğraf katmanı; yoksa ya da bozuksa null (kart yalnız metin olur).
-  final Widget? photo;
   final String time;
 
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
-    final tx = Theme.of(context).textTheme;
     final l = context.l10n;
-    final hasPhoto = photo != null;
-    return BuCard(
-      radius: BuRadius.lg,
-      padding: EdgeInsets.zero,
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(BuRadius.lg - 1),
+    return DecoratedBox(
+      decoration: BoxDecoration(color: t.sf, borderRadius: BuRadius.bMd, border: Border.all(color: t.bd)),
+      child: Padding(
+        padding: const EdgeInsets.all(20),
         child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
           Padding(
-            padding: EdgeInsetsDirectional.fromSTEB(16, 16, 16, hasPhoto ? 12 : 8),
+            padding: const EdgeInsets.only(bottom: 14),
             child: Row(crossAxisAlignment: CrossAxisAlignment.baseline, textBaseline: TextBaseline.alphabetic, children: [
               Expanded(
                 child: Semantics(
                   header: true,
-                  child: Text(l.yemekLunch, style: tx.titleLarge!.copyWith(fontWeight: FontWeight.w800, color: t.ink)),
+                  child: Text(l.yemekLunch, style: BuType.caption.copyWith(fontSize: 17, height: 1.3, fontWeight: FontWeight.w600, color: t.ink)),
                 ),
               ),
               const SizedBox(width: 12),
-              Text(time,
-                  maxLines: 1,
-                  style: tx.labelLarge!.copyWith(
-                      fontWeight: FontWeight.w600, color: t.mut, fontFeatures: const [FontFeature.tabularFigures()])),
+              Text(time, maxLines: 1, style: BuType.caption.copyWith(fontSize: 14, height: 1.4, color: t.mut)),
             ]),
           ),
-          if (hasPhoto)
-            Semantics(
-              image: true,
-              label: l.menuPhotoLabel,
-              child: AspectRatio(aspectRatio: 16 / 9, child: photo!),
-            ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-            child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-              for (final d in day.dishes) _DishRow(dish: d),
-              if (day.totalKcal != null) ...[
-                const SizedBox(height: 8),
-                Divider(height: 1, thickness: 1, color: t.bd),
-                const SizedBox(height: 12),
-                _TotalRow(total: day.totalKcal!, complete: day.kcalComplete),
-              ],
-            ]),
-          ),
+          for (final d in day.dishes) _DishRow(dish: d),
+          if (day.totalKcal != null) _TotalRow(total: day.totalKcal!, complete: day.kcalComplete),
         ]),
       ),
     );
   }
 }
 
-/// Yemek satırı: ad solda, (varsa) kalori sağda soluk ve tabular. Kalorisiz yemekte sağ taraf boştur.
+/// Yemek satırı: üstte 1 dp çizgi, dikey 14 dp; ad solda 16 sp, kcal sağda 14 sp soluk ("–" = girilmemiş).
 class _DishRow extends StatelessWidget {
   const _DishRow({required this.dish});
 
@@ -270,25 +230,29 @@ class _DishRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
-    final tx = Theme.of(context).textTheme;
     final l = context.l10n;
     final kcal = dish.kcal;
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Row(crossAxisAlignment: CrossAxisAlignment.baseline, textBaseline: TextBaseline.alphabetic, children: [
-        Expanded(child: Text(menuDishTitle(dish.name), style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w600, height: 1.3, color: t.ink))),
-        if (kcal != null) ...[
+    return Container(
+      decoration: BoxDecoration(border: Border(top: BorderSide(color: t.bd))),
+      padding: const EdgeInsets.symmetric(vertical: 14),
+      child: Row(children: [
+          Expanded(child: Text(menuDishTitle(dish.name), style: BuType.caption.copyWith(fontSize: 14, height: 1.43, color: t.ink))),
           const SizedBox(width: 12),
-          Text(l.p03MenuKcal('$kcal'),
-              maxLines: 1,
-              style: tx.labelLarge!.copyWith(fontWeight: FontWeight.w600, color: t.mut, fontFeatures: const [FontFeature.tabularFigures()])),
-        ],
+          if (kcal != null)
+            Text(l.p03MenuKcal('$kcal'),
+                maxLines: 1, style: BuType.caption.copyWith(fontSize: 13, height: 1.4, color: t.mut))
+          else
+            Semantics(
+              label: l.p03MenuKcalNone,
+              excludeSemantics: true,
+              child: Text('–', style: BuType.caption.copyWith(fontSize: 13, height: 1.4, color: t.mut)),
+            ),
       ]),
     );
   }
 }
 
-/// Günlük toplam: tamamsa "Toplam  N kcal", eksikse "Toplam enerji  En az N kcal". Aynı sakin satır, renk yok.
+/// Günlük toplam: tamamsa "Toplam enerji  930 kcal"; eksikse "En az 550 kcal" + altında 12 sp not.
 class _TotalRow extends StatelessWidget {
   const _TotalRow({required this.total, required this.complete});
 
@@ -298,58 +262,89 @@ class _TotalRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
-    final tx = Theme.of(context).textTheme;
     final l = context.l10n;
-    final number = tx.titleLarge!.copyWith(fontWeight: FontWeight.w800, color: t.ink, fontFeatures: const [FontFeature.tabularFigures()]);
-    return Semantics(
-      container: true,
-      label: complete ? '${l.p03MenuTotal} ${l.p03MenuKcal('$total')}' : '${l.p03MenuTotalEnergy} ${l.p03MenuAtLeast('$total')}',
-      excludeSemantics: true,
-      child: Row(crossAxisAlignment: CrossAxisAlignment.baseline, textBaseline: TextBaseline.alphabetic, children: [
-        Expanded(child: Text(complete ? l.p03MenuTotal : l.p03MenuTotalEnergy, style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w600, color: t.mut))),
-        const SizedBox(width: 12),
-        if (complete)
-          // Toplam kalori gün değişince 0'dan sayarak oturur (animasyonları azalt açıkken anında).
-          BuCountUp(key: ValueKey('menu-total-$total'), value: total, format: (v) => l.p03MenuKcal('$v'), style: number)
-        else
-          Flexible(child: Text(l.p03MenuAtLeast('$total'), textAlign: TextAlign.end, style: number)),
-      ]),
+    final number = BuType.caption.copyWith(fontSize: 15, height: 1.3, fontWeight: FontWeight.w700, color: t.ink, fontFeatures: const [FontFeature.tabularFigures()]);
+    return Container(
+      decoration: BoxDecoration(border: Border(top: BorderSide(color: t.bd))),
+      padding: const EdgeInsets.only(top: 14),
+      child: Semantics(
+          container: true,
+          label: complete ? '${l.p03MenuTotalEnergy} ${l.p03MenuKcal('$total')}' : '${l.p03MenuTotalEnergy} ${l.p03MenuAtLeast('$total')}',
+          excludeSemantics: true,
+          child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+            Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.baseline,
+                textBaseline: TextBaseline.alphabetic,
+                children: [
+                  Flexible(child: Text(l.p03MenuTotalEnergy, style: BuType.caption.copyWith(fontSize: 14, height: 1.43, fontWeight: FontWeight.w500, color: t.ink))),
+                  const SizedBox(width: 12),
+                  if (complete)
+                    // Toplam kalori gün değişince 0'dan sayarak oturur (animasyonları azalt açıkken anında).
+                    BuCountUp(key: ValueKey('menu-total-$total'), value: total, format: (v) => l.p03MenuKcal('$v'), style: number)
+                  else
+                    Flexible(child: Text(l.p03MenuAtLeast('$total'), textAlign: TextAlign.end, style: number)),
+                ]),
+            if (!complete)
+              Padding(
+                padding: const EdgeInsets.only(top: 4),
+                child: Text(l.p03MenuKcalMissing, style: BuType.caption.copyWith(fontSize: 12, height: 1.4, color: t.mut)),
+              ),
+          ]),
+      ),
     );
   }
 }
 
-/// Liste yok / bakım: tek cümle (+ bakımdaysa tek eylem), kart ve süs yok.
-class MenuEmptyCard extends StatelessWidget {
-  const MenuEmptyCard({super.key, required this.maintenance, required this.onRetry});
+/// Bayat liste bandı (Stitch v3): `warnSoft` zemin, 1 dp ince amber çerçeve, 16 köşe, 13 sp `onWarnSoft` metin.
+class MenuStaleBanner extends StatelessWidget {
+  const MenuStaleBanner({super.key, required this.text});
 
-  final bool maintenance;
-  final VoidCallback onRetry;
+  final String text;
 
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
-    final tx = Theme.of(context).textTheme;
+    return Semantics(
+      liveRegion: true,
+      container: true,
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(color: t.warnSoft, borderRadius: BuRadius.bMd, border: Border.all(color: t.warn.withValues(alpha: .25))),
+        child: Text(text, style: BuType.caption.copyWith(fontSize: 13, height: 1.4, color: t.onWarnSoft)),
+      ),
+    );
+  }
+}
+
+/// Liste yok: ortada soluk tek cümle (16 sp); bakımdaysa altında 14 sp "Sistem bakımda." Simge/kart yok.
+class MenuEmptyCard extends StatelessWidget {
+  const MenuEmptyCard({super.key, required this.maintenance});
+
+  final bool maintenance;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.bu;
     final l = context.l10n;
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 32),
+      padding: const EdgeInsets.symmetric(vertical: 96),
       child: Column(children: [
-        ExcludeSemantics(child: Icon(LucideIcons.utensils, size: 32, color: t.mut)),
-        const SizedBox(height: 16),
         Semantics(
           header: true,
-          child: Text(maintenance ? l.p03MenuMaintenance : l.p03MenuNoList,
-              textAlign: TextAlign.center, style: tx.titleMedium!.copyWith(fontWeight: FontWeight.w700, color: t.ink)),
+          child: Text(l.p03MenuNoList, textAlign: TextAlign.center, style: BuType.caption.copyWith(fontSize: 16, height: 1.5, color: t.mut)),
         ),
         if (maintenance) ...[
-          const SizedBox(height: 16),
-          BuButton(label: l.commonRetry, compact: true, onPressed: onRetry),
+          const SizedBox(height: 4),
+          Text(l.p03MenuMaintenance, textAlign: TextAlign.center, style: BuType.caption.copyWith(fontSize: 14, height: 1.4, color: t.mut)),
         ],
       ]),
     );
   }
 }
 
-/// Yükleniyor iskeleti: gün seçici + öğle kartı.
+/// Yükleniyor iskeleti: gün şeridi + yemek yüzeyi.
 class MenuSkeleton extends StatelessWidget {
   const MenuSkeleton({super.key, this.strip = true});
 
@@ -367,33 +362,31 @@ class MenuSkeleton extends StatelessWidget {
         child: BuSkeletonScope(
           child: ListView(
             physics: const NeverScrollableScrollPhysics(),
-            padding: const EdgeInsets.fromLTRB(20, 14, 20, 24),
+            padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
             children: [
               if (strip) ...[
                 Row(children: [
-                  for (var i = 0; i < 5; i++) ...[
-                    if (i > 0) const SizedBox(width: 8),
-                    const Expanded(child: BuSkeleton(height: 72, radius: BuRadius.md)),
+                  for (var i = 0; i < 7; i++) ...[
+                    if (i > 0) const SizedBox(width: 4),
+                    const Expanded(child: BuSkeleton(height: 48, radius: BuRadius.pill)),
                   ],
                 ]),
-                const SizedBox(height: 24),
+                const SizedBox(height: 16),
               ],
-              const BuSkeleton(width: 140, height: 14),
-              const SizedBox(height: 12),
+              const BuSkeleton(width: 120, height: 14),
+              const SizedBox(height: 8),
               DecoratedBox(
-                decoration: BoxDecoration(color: t.sf, borderRadius: BuRadius.bLg, border: Border.all(color: t.bd)),
+                decoration: BoxDecoration(color: t.sf, borderRadius: BuRadius.bMd, border: Border.all(color: t.bd)),
                 child: const Padding(
-                  padding: EdgeInsets.all(16),
+                  padding: EdgeInsets.all(20),
                   child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                     BuSkeleton(width: 160, height: 22),
-                    SizedBox(height: 16),
-                    BuSkeleton(height: 170, radius: BuRadius.sm),
-                    SizedBox(height: 16),
-                    BuSkeleton(height: 20, radius: BuRadius.xs),
-                    SizedBox(height: 16),
-                    BuSkeleton(height: 20, radius: BuRadius.xs),
-                    SizedBox(height: 16),
-                    BuSkeleton(height: 20, radius: BuRadius.xs),
+                    SizedBox(height: 24),
+                    BuSkeleton(height: 18, radius: BuRadius.xs),
+                    SizedBox(height: 30),
+                    BuSkeleton(height: 18, radius: BuRadius.xs),
+                    SizedBox(height: 30),
+                    BuSkeleton(height: 18, radius: BuRadius.xs),
                   ]),
                 ),
               ),

@@ -2,13 +2,13 @@ import 'package:flutter/material.dart';
 
 import '../../widgets/bu.dart';
 
-/// Bildirim satırı (tur 3, minimal): solda tek tonlu (mavi) simge kutusu, yanında başlık + en çok iki satır gövde,
-/// sağ üstte kısa zaman. Okunmamışta simge kutusunun köşesinde tek vurgu noktası (marka kırmızısı) ve kalın başlık.
-/// Tür etiketi ekranda çizilmez; ekran okuyucu için anlamsal etikette yer alır.
+/// Bildirim satırı (Stitch v3): kart yok; satır sayfa zemininde, altında 1 dp `bd` çizgi. Solda 8 dp `pr`
+/// okunmamış noktası (okunmuşta yeri boş kalır, hizalama sabit), yanında: üstte tür etiketi + zaman (12 sp
+/// soluk), başlık (16 sp/600; gövdesizse 2 satır), gövde (14 sp soluk, tek satır). Dikey iç 14 dp, nokta
+/// ile metin arası 12 dp. Yatay 20 dp kenar boşluğu satırın dışındadır (çizgi 20 dp içeriden başlar).
 class NotifRow extends StatelessWidget {
   const NotifRow({
     super.key,
-    required this.icon,
     required this.title,
     required this.typeLabel,
     required this.time,
@@ -18,7 +18,6 @@ class NotifRow extends StatelessWidget {
     this.unreadLabel,
   });
 
-  final IconData icon;
   final String title, typeLabel, time, body;
   final bool unread;
   final VoidCallback onTap;
@@ -27,8 +26,7 @@ class NotifRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
-    final tx = Theme.of(context).textTheme;
-    const radius = BuRadius.bLg;
+    final small = BuType.caption.copyWith(fontSize: 12, height: 1.4, color: t.mut);
     return Semantics(
       button: true,
       // Okunmamış bilgisi + tür + zaman tek okuma: "Okunmamış, Duyuru, 5 dk".
@@ -36,95 +34,59 @@ class NotifRow extends StatelessWidget {
       // Basılı tutunca hafif küçülür (dokunmayı içerideki InkWell yakalar).
       child: BuPressable(
         scale: .985,
-        child: Container(
-          decoration: BoxDecoration(
-            color: t.sf,
-            borderRadius: radius,
-            border: Border.all(color: t.bd.withValues(alpha: .6)),
-          ),
+        child: DecoratedBox(
+          decoration: BoxDecoration(color: t.bg, border: Border(bottom: BorderSide(color: t.bd))),
           child: Material(
             type: MaterialType.transparency,
             child: InkWell(
-              borderRadius: radius,
               onTap: onTap,
               child: Padding(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.symmetric(vertical: 14),
                 child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  SizedBox(
-                    width: 48,
-                    height: 48,
-                    child: Stack(clipBehavior: Clip.none, children: [
-                      Container(
-                        width: 44,
-                        height: 44,
-                        margin: const EdgeInsets.only(top: 2, bottom: 2, left: 2, right: 2),
-                        decoration: BoxDecoration(color: t.infoSoft, borderRadius: BuRadius.bSm),
-                        child: Icon(icon, size: 22, color: t.onInfoSoft),
-                      ),
-                      // Okundu olunca nokta küçülerek solar (ağaçta kalır; yalnız transform + opaklık).
-                      PositionedDirectional(
-                        end: -2,
-                        top: -2,
-                        child: AnimatedScale(
-                          key: const ValueKey('notif-unread-dot'),
-                          scale: unread ? 1 : 0,
-                          duration: BuMotion.of(context, BuMotion.medium),
-                          curve: BuMotion.emphasizedDecelerate,
-                          child: AnimatedOpacity(
-                            opacity: unread ? 1 : 0,
-                            duration: BuMotion.of(context, BuMotion.short),
-                            child: Container(
-                              width: 12,
-                              height: 12,
-                              decoration: BoxDecoration(
-                                  color: t.pr, shape: BoxShape.circle, border: Border.all(color: t.sf, width: 2)),
-                            ),
-                          ),
+                  // Okunmamış noktası: okundu olunca küçülerek solar (yer korunur; yalnız transform + opaklık).
+                  Padding(
+                    padding: const EdgeInsets.only(top: 6),
+                    child: SizedBox(
+                      width: 8,
+                      height: 8,
+                      child: AnimatedScale(
+                        key: const ValueKey('notif-unread-dot'),
+                        scale: unread ? 1 : 0,
+                        duration: BuMotion.of(context, BuMotion.medium),
+                        curve: BuMotion.emphasizedDecelerate,
+                        child: AnimatedOpacity(
+                          opacity: unread ? 1 : 0,
+                          duration: BuMotion.of(context, BuMotion.short),
+                          child: DecoratedBox(decoration: BoxDecoration(color: t.pr, shape: BoxShape.circle)),
                         ),
                       ),
-                    ]),
+                    ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
-                    child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                            // Gövde yoksa başlık iki satıra kadar okunur (mesajın kendisi); gövde varsa tek satır.
-                            // Okundu olunca başlık yumuşakça hafifler (kalınlık + ton, 250 ms).
-                            Expanded(
-                              child: AnimatedDefaultTextStyle(
-                                duration: BuMotion.of(context, BuMotion.medium),
-                                maxLines: body.isEmpty ? 2 : 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: tx.titleMedium!.copyWith(
-                                    height: 1.25,
-                                    color: unread ? t.ink : Color.lerp(t.ink, t.mut, .3),
-                                    fontWeight: unread ? FontWeight.w800 : FontWeight.w600),
-                                child: Text(title, maxLines: body.isEmpty ? 2 : 1, overflow: TextOverflow.ellipsis),
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Padding(
-                              padding: const EdgeInsets.only(top: 2),
-                              child: Text(time,
-                                  maxLines: 1,
-                                  style: tx.labelMedium!.copyWith(
-                                      fontWeight: FontWeight.w500,
-                                      color: t.mut,
-                                      fontFeatures: const [FontFeature.tabularFigures()])),
-                            ),
-                          ]),
-                          if (body.isNotEmpty)
-                            Padding(
-                              padding: const EdgeInsets.only(top: 4),
-                              child: Text(body,
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: tx.bodyMedium!.copyWith(height: 1.4, color: t.mut)),
-                            ),
-                        ]),
+                    child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, mainAxisSize: MainAxisSize.min, children: [
+                      Row(crossAxisAlignment: CrossAxisAlignment.baseline, textBaseline: TextBaseline.alphabetic, children: [
+                        Expanded(child: Text(typeLabel, maxLines: 1, overflow: TextOverflow.ellipsis, style: small)),
+                        const SizedBox(width: 8),
+                        Text(time, maxLines: 1, style: small.copyWith(fontFeatures: const [FontFeature.tabularFigures()])),
+                      ]),
+                      const SizedBox(height: 2),
+                      // Gövde yoksa başlık iki satıra kadar okunur (mesajın kendisi); gövde varsa tek satır.
+                      // Okundu olunca başlık yumuşakça hafifler (ton, 250 ms).
+                      AnimatedDefaultTextStyle(
+                        duration: BuMotion.of(context, BuMotion.medium),
+                        maxLines: body.isEmpty ? 2 : 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: BuType.caption.copyWith(
+                            fontSize: 15, height: 1.4, fontWeight: FontWeight.w600, color: unread ? t.ink : Color.lerp(t.ink, t.mut, .3)),
+                        child: Text(title, maxLines: body.isEmpty ? 2 : 1, overflow: TextOverflow.ellipsis),
+                      ),
+                      if (body.isNotEmpty)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 2),
+                          child: Text(body, maxLines: 1, overflow: TextOverflow.ellipsis, style: BuType.caption.copyWith(fontSize: 14, height: 1.4, color: t.mut)),
+                        ),
+                    ]),
                   ),
                 ]),
               ),

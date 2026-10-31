@@ -273,7 +273,7 @@ void main() {
 
     testWidgets('toplam kalori 0dan sayarak oturur', (tester) async {
       useScreen(tester, const Size(390, 844));
-      await tester.pumpWidget(buildApp(Scaffold(body: SingleChildScrollView(child: MenuMealCard(day: full(), photo: null, time: '11:30')))));
+      await tester.pumpWidget(buildApp(Scaffold(body: SingleChildScrollView(child: MenuMealCard(day: full(), time: '11:30')))));
       await tester.pump();
       expect(find.text('450 kcal'), findsNothing);
       await tester.pump(const Duration(milliseconds: 600));
@@ -284,7 +284,7 @@ void main() {
     testWidgets('animasyonlari azalt: toplam aninda', (tester) async {
       useScreen(tester, const Size(390, 844));
       reduceMotion(tester);
-      await tester.pumpWidget(buildApp(Scaffold(body: SingleChildScrollView(child: MenuMealCard(day: full(), photo: null, time: '11:30')))));
+      await tester.pumpWidget(buildApp(Scaffold(body: SingleChildScrollView(child: MenuMealCard(day: full(), time: '11:30')))));
       await tester.pump();
       expect(find.text('450 kcal'), findsOneWidget);
     });
@@ -293,7 +293,6 @@ void main() {
   group('bildirim satiri', () {
     Widget row(bool unread) => Scaffold(
           body: NotifRow(
-            icon: LucideIcons.bell,
             title: 'Baslik',
             typeLabel: 'Duyuru',
             time: '5 dk',
@@ -309,10 +308,10 @@ void main() {
       useScreen(tester, const Size(390, 844));
       await tester.pumpWidget(buildApp(row(true)));
       await tester.pump(const Duration(milliseconds: 300));
-      expect(dot(tester), 12);
+      expect(dot(tester), 8);
       await tester.pumpWidget(buildApp(row(false)));
       await tester.pump(const Duration(milliseconds: 100));
-      expect(dot(tester), allOf(greaterThan(0), lessThan(12)));
+      expect(dot(tester), allOf(greaterThan(0), lessThan(8)));
       await tester.pump(const Duration(milliseconds: 400));
       expect(dot(tester), 0);
       expect(tester.takeException(), isNull);

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:firebase_core/firebase_core.dart';
@@ -10,8 +11,8 @@ import '../../core/push/push_health.dart';
 import '../../core/push/push_service.dart';
 import '../../core/session.dart';
 import '../../widgets/bu.dart';
+import '../academic/academic_api.dart';
 import '../academic/academic_widgets.dart';
-import '../academic/akad_widgets.dart';
 import '../academic/reminder_settings_page.dart';
 import '../academic/reminders.dart';
 import '../notifications/push_help_page.dart';
@@ -263,7 +264,7 @@ class NotificationPrefsGroup extends StatefulWidget {
 class _NotificationPrefsGroupState extends State<NotificationPrefsGroup> with WidgetsBindingObserver {
   late final _PrefsStore _store = _PrefsStore(widget.session)..addListener(_onChange);
   String _pushStatus = '...';
-  int? _leadMin;
+  ReminderSettings? _rem;
 
   void _onChange() {
     if (!mounted) return;
@@ -282,7 +283,7 @@ class _NotificationPrefsGroupState extends State<NotificationPrefsGroup> with Wi
     _store.load();
     _refreshPushStatus();
     ReminderService.store.load().then((v) {
-      if (mounted) setState(() => _leadMin = v.classLeadMin);
+      if (mounted) setState(() => _rem = v);
     }).catchError((_) {});
   }
 
@@ -313,80 +314,35 @@ class _NotificationPrefsGroupState extends State<NotificationPrefsGroup> with Wi
 
   Widget _helpLink() {
     final t = context.bu;
-    final tx = Theme.of(context).textTheme;
-    // Ikincil eylem: simgesiz, soluk metin bağlantısı (vurgu rengi yalnız anahtarlarda).
+    // İkincil eylem: simgesiz, soluk metin bağlantısı (vurgu rengi yalnız anahtarlarda).
     return Align(
       alignment: AlignmentDirectional.centerStart,
       child: TextButton(
         onPressed: _openPushHelp,
         style: TextButton.styleFrom(minimumSize: const Size(48, 48), padding: const EdgeInsets.symmetric(horizontal: 4)),
-        child: Text(context.l10n.p21HelpLink, style: tx.labelLarge!.copyWith(fontWeight: FontWeight.w600, color: t.mut)),
+        child: Text(context.l10n.p21HelpLink, style: BuType.caption.copyWith(fontSize: 13, fontWeight: FontWeight.w500, color: t.mut)),
       ),
     );
   }
 
-  static TimeOfDay _parse(String? s, TimeOfDay fallback) {
-    final m = RegExp(r'^(\d{2}):(\d{2})').firstMatch(s ?? '');
-    if (m == null) return fallback;
-    return TimeOfDay(hour: int.parse(m.group(1)!), minute: int.parse(m.group(2)!));
-  }
+  /// Tek yüzey (Stitch v3): beyaz zemin + 1 dp `bd` çerçeve, 16 köşe, gölge yok.
+  Widget _card({required Widget child}) => _PrefCard(child: child);
 
-  static String _fmt(TimeOfDay t) => '${t.hour.toString().padLeft(2, '0')}:${t.minute.toString().padLeft(2, '0')}';
-
-  Future<void> _pickTime(bool isStart) async {
-    final q = _store.quiet ?? const <String, dynamic>{};
-    final cur = isStart
-        ? _parse(q['start'] as String?, const TimeOfDay(hour: 23, minute: 0))
-        : _parse(q['end'] as String?, const TimeOfDay(hour: 7, minute: 0));
-    final m = await pickAcadTime(context, cur.hour * 60 + cur.minute, help: context.l10n.p20QuietPickHelp);
-    if (m == null || !mounted) return;
-    final r = TimeOfDay(hour: m ~/ 60, minute: m % 60);
-    await _store.setQuiet(start: isStart ? _fmt(r) : null, end: isStart ? null : _fmt(r));
-  }
-
-  /// Tek yüzey: nötr zemin + çok hafif gölge (çerçeve yok), tek köşe yarıçapı.
-  Widget _card({required Widget child}) {
-    final t = context.bu;
-    return DecoratedBox(
-      decoration: BoxDecoration(color: t.sf, borderRadius: BuRadius.bLg, boxShadow: BuElevation.of(context, 1)),
-      child: ClipRRect(borderRadius: BuRadius.bLg, child: Material(type: MaterialType.transparency, child: child)),
-    );
-  }
-
-  Widget _label(String text, {double top = 24}) {
+  /// Bölüm başlığı: 17 sp/600, büyük harf/simge yok.
+  Widget _section(String text, {double top = 24}) {
     final t = context.bu;
     return Padding(
-      padding: EdgeInsetsDirectional.only(start: 4, top: top, bottom: 8),
-      child: Semantics(header: true, child: Text(akadUpper(context, text), style: Theme.of(context).textTheme.labelSmall!.copyWith(fontWeight: FontWeight.w700, letterSpacing: .6, color: t.mut))),
+      padding: EdgeInsets.only(top: top, bottom: 12),
+      child: Semantics(header: true, child: Text(text, style: BuType.caption.copyWith(fontSize: 17, height: 1.3, fontWeight: FontWeight.w600, color: t.ink))),
     );
   }
 
-  /// Ortak tercih satırı: başlık (+ kısa açıklama) solda, kontrol sağda. Tüm kartlarda aynı iç boşluk
-  /// (16 / 12 dp) olduğundan anahtarlar tek sütunda hizalanır.
-  Widget _row({required String title, String? sub, required Widget trailing, VoidCallback? onTap, bool dim = false}) {
+  /// Küçük soluk etiket ("Bu cihazda"): 13 sp/500.
+  Widget _caption(String text) {
     final t = context.bu;
-    final tx = Theme.of(context).textTheme;
-    return Opacity(
-      opacity: dim ? .5 : 1,
-      child: MergeSemantics(
-        child: InkWell(
-          onTap: onTap,
-          child: Container(
-            constraints: const BoxConstraints(minHeight: 56),
-            padding: const EdgeInsetsDirectional.fromSTEB(16, 8, 12, 8),
-            child: Row(children: [
-              Expanded(
-                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Text(title, style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w700, color: t.ink)),
-                  if (sub != null) Text(sub, style: tx.bodySmall!.copyWith(color: t.mut)),
-                ]),
-              ),
-              const SizedBox(width: 8),
-              trailing,
-            ]),
-          ),
-        ),
-      ),
+    return Padding(
+      padding: const EdgeInsetsDirectional.only(start: 4, top: 24, bottom: 8),
+      child: Semantics(header: true, child: Text(text, style: BuType.caption.copyWith(fontSize: 13, height: 1.3, fontWeight: FontWeight.w500, color: t.mut))),
     );
   }
 
@@ -398,27 +354,30 @@ class _NotificationPrefsGroupState extends State<NotificationPrefsGroup> with Wi
     final loading = _pushStatus == '...';
     if (on || loading) {
       return _card(
-        child: _row(
+        child: _PrefRow(
           title: l.profil1PushTitle,
           sub: on ? l.profil1PushGranted : null,
-          trailing: on ? Switch(value: true, onChanged: (_) => PermissionService.instance.openSettings()) : const SizedBox(height: 48),
+          strong: true,
+          trailing: on ? _PrefSwitch(value: true, onChanged: (_) => PermissionService.instance.openSettings()) : const SizedBox(height: 28),
         ),
       );
     }
-    // Kapalı: tek açıklama + tek eylem (durum rozeti, simge ve renkli kenar çubuğu yok).
-    final tx = Theme.of(context).textTheme;
+    // Kapalı: tek açıklama + `pr` metin eylemi.
     final t = context.bu;
     return _card(
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-          Text(l.profil1PushTitle, style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w700, color: t.ink)),
+          Text(l.profil1PushTitle, style: BuType.caption.copyWith(fontSize: 16, height: 1.3, fontWeight: FontWeight.w600, color: t.ink)),
           const SizedBox(height: 2),
-          Text(_pushStatus == 'notConfigured' ? l.pushNotConfigured : l.pushOff, style: tx.bodySmall!.copyWith(color: t.mut)),
-          const SizedBox(height: 16),
+          Text(_pushStatus == 'notConfigured' ? l.pushNotConfigured : l.pushOff, style: BuType.caption.copyWith(fontSize: 13, height: 1.4, color: t.mut)),
           Align(
             alignment: AlignmentDirectional.centerStart,
-            child: BuButton(label: l.p20RemOpenSettings, compact: true, onPressed: () => PermissionService.instance.openSettings()),
+            child: TextButton(
+              onPressed: () => PermissionService.instance.openSettings(),
+              style: TextButton.styleFrom(minimumSize: const Size(48, 48), padding: EdgeInsets.zero),
+              child: Text(l.p20RemOpenSettings, style: BuType.caption.copyWith(fontSize: 14, fontWeight: FontWeight.w600, color: t.pr)),
+            ),
           ),
         ]),
       ),
@@ -440,53 +399,25 @@ class _NotificationPrefsGroupState extends State<NotificationPrefsGroup> with Wi
   Widget _toggleRow(String key, {bool last = false}) {
     final locked = _lockedByParent(key);
     final on = _store.prefs![key] == true;
+    // Anketler / Akademik duyurular tek satırdır (açıklama yok); yalnız bağımlılık notu çıkar.
+    final plain = key == 'polls' || key == 'academicAnnouncements';
     return Column(children: [
       // Pasif satır: soluk, dokunulamaz (anahtar da kapalı gibi tepki vermez).
-      _row(
+      _PrefRow(
         title: _prefLabel(context, key),
-        sub: _dependencyNote(key) ?? _prefSub(context, key),
+        sub: _dependencyNote(key) ?? (plain ? null : _prefSub(context, key)),
         onTap: locked ? null : () => _store.set(key, !on),
         dim: locked,
-        trailing: Switch(value: on, onChanged: locked ? null : (v) => _store.set(key, v)),
+        trailing: _PrefSwitch(value: on, onChanged: locked ? null : (v) => _store.set(key, v)),
       ),
-      if (!last) const AkadDivider(),
+      if (!last) const _PrefDivider(),
     ]);
-  }
-
-  Widget _timeBox({required String label, required String value, required bool isStart, required bool active}) {
-    final t = context.bu;
-    final tx = Theme.of(context).textTheme;
-    return Expanded(
-      child: Semantics(
-        button: true,
-        label: '$label $value',
-        excludeSemantics: true,
-        onTap: () => _pickTime(isStart),
-        child: BuPressable(
-          onTap: () => _pickTime(isStart),
-          child: Opacity(
-            opacity: active ? 1 : .5,
-            child: Container(
-              constraints: const BoxConstraints(minHeight: 72),
-              padding: const EdgeInsets.symmetric(vertical: 12),
-              decoration: BoxDecoration(color: t.sf2, borderRadius: BuRadius.bMd),
-              child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-                Text(akadUpper(context, label), style: tx.labelSmall!.copyWith(fontWeight: FontWeight.w700, letterSpacing: .6, color: t.mut)),
-                const SizedBox(height: 2),
-                Text(value, style: tx.titleLarge!.copyWith(fontWeight: FontWeight.w800, color: t.ink, fontFeatures: const [FontFeature.tabularFigures()])),
-              ]),
-            ),
-          ),
-        ),
-      ),
-    );
   }
 
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
     final l = context.l10n;
-    final tx = Theme.of(context).textTheme;
     final err = _store.error;
     final prefs = _store.prefs;
     final children = <Widget>[];
@@ -497,33 +428,18 @@ class _NotificationPrefsGroupState extends State<NotificationPrefsGroup> with Wi
         ..add(_helpLink());
     }
     if (err != null && prefs == null) {
-      // Hata: tek cümle + tek eylem (tüm kart dokunulur).
+      // Hata: tek cümle + tek eylem (tüm satır dokunulur).
       children.add(_card(
         child: Semantics(
           button: true,
           container: true,
-          child: InkWell(
-            onTap: _store.load,
-            child: Padding(
-              padding: const EdgeInsetsDirectional.fromSTEB(16, 8, 12, 8),
-              child: Row(children: [
-                Expanded(
-                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    Text(l.p20PrefLoadFail, style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w700, color: t.ink)),
-                    Text(l.p20PrefTapRetry, style: tx.bodySmall!.copyWith(color: t.mut)),
-                  ]),
-                ),
-                const SizedBox(width: 8),
-                SizedBox(width: 48, height: 48, child: Icon(LucideIcons.rotateCw, size: 20, color: t.mut)),
-              ]),
-            ),
-          ),
+          child: _PrefRow(title: l.p20PrefLoadFail, sub: l.p20PrefTapRetry, onTap: _store.load, trailing: Icon(LucideIcons.rotateCw, size: 20, color: t.mut)),
         ),
       ));
     } else if (prefs == null) {
       children.add(Padding(
         padding: EdgeInsets.only(top: widget.showPushCard ? 16 : 0),
-        child: Semantics(label: l.commonLoading, liveRegion: true, child: const BuSkeletonScope(child: BuSkeleton(height: 220, radius: BuRadius.lg))),
+        child: Semantics(label: l.commonLoading, liveRegion: true, child: const BuSkeletonScope(child: BuSkeleton(height: 220, radius: BuRadius.md))),
       ));
     } else {
       final optional = [for (final r in _optionalRows) if (prefs.containsKey(r)) r];
@@ -533,22 +449,10 @@ class _NotificationPrefsGroupState extends State<NotificationPrefsGroup> with Wi
       final quiet = _store.quiet;
       final quietOn = quiet?['enabled'] == true;
       children
-        ..add(_label(l.profil1WhatSection, top: widget.showPushCard ? 24 : 0))
+        ..add(_section(l.profil1WhatSection, top: widget.showPushCard ? 24 : 0))
         ..add(Opacity(
           opacity: widget.showPushCard && _pushStatus != 'on' && _pushStatus != '...' ? .5 : 1,
-          child: _card(
-            child: Column(children: [
-              for (var i = 0; i < rows.length; i++) _toggleRow(rows[i], last: !hasSubs && i == rows.length - 1),
-              // Ayrıntılı tercihler aynı grubun son satırı (ayrı kart yok).
-              if (hasSubs)
-                _row(
-                  title: l.profil1Detailed,
-                  sub: l.p20PrefDetailSub,
-                  trailing: _chevron(),
-                  onTap: () => Navigator.push<void>(context, MaterialPageRoute<void>(builder: (_) => _DetailedPrefsPage(store: _store))),
-                ),
-            ]),
-          ),
+          child: _card(child: Column(children: [for (var i = 0; i < rows.length; i++) _toggleRow(rows[i], last: i == rows.length - 1)])),
         ));
       // Kilit ekranında mesaj metni (KVKK: varsayılan kapalı; yalnız sunucu `messagePreview` gönderdiyse görünür).
       if (prefs.containsKey('messagePreview')) {
@@ -556,47 +460,186 @@ class _NotificationPrefsGroupState extends State<NotificationPrefsGroup> with Wi
           ..add(const SizedBox(height: 16))
           ..add(_card(child: _toggleRow('messagePreview', last: true)));
       }
-      if (quiet != null) {
+      if (hasSubs || quiet != null) {
         children
-          ..add(_label(l.profil1QuietTitle))
+          ..add(const SizedBox(height: 24))
           ..add(_card(
             child: Column(children: [
-              _row(
-                title: l.profil1QuietToggle,
-                sub: l.profil1QuietSub,
-                onTap: () => _store.setQuiet(enabled: !quietOn),
-                trailing: Switch(value: quietOn, onChanged: (v) => _store.setQuiet(enabled: v)),
-              ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
-                child: Row(children: [
-                  _timeBox(label: l.profil1QuietStart, value: (quiet['start'] as String?) ?? '23:00', isStart: true, active: quietOn),
-                  const SizedBox(width: 8),
-                  _timeBox(label: l.profil1QuietEnd, value: (quiet['end'] as String?) ?? '07:00', isStart: false, active: quietOn),
-                ]),
-              ),
+              if (hasSubs)
+                _PrefRow(
+                  title: l.profil1Detailed,
+                  trailing: _chevron(),
+                  onTap: () => Navigator.push<void>(context, MaterialPageRoute<void>(builder: (_) => _DetailedPrefsPage(store: _store))),
+                ),
+              if (hasSubs && quiet != null) const _PrefDivider(),
+              if (quiet != null)
+                _PrefRow(
+                  title: l.profil1QuietTitle,
+                  onTap: () => Navigator.push<void>(context, MaterialPageRoute<void>(builder: (_) => _QuietHoursPage(store: _store))),
+                  trailing: Row(mainAxisSize: MainAxisSize.min, children: [
+                    Text(quietOn ? '${(quiet['start'] as String?) ?? '23:00'} – ${(quiet['end'] as String?) ?? '07:00'}' : l.profil1PillOff,
+                        style: BuType.caption.copyWith(fontSize: 13, height: 1.4, color: t.mut, fontFeatures: const [FontFeature.tabularFigures()])),
+                    const SizedBox(width: 6),
+                    _chevron(),
+                  ]),
+                ),
             ]),
           ));
       }
     }
+    // "Bu cihazda": ders ve sınav hatırlatması anahtarı (yerel). Satıra dokunmak ayrıntı sayfasını açar.
+    final rem = _rem;
+    final remOn = rem != null && (rem.classEnabled || rem.examDayBefore);
     children
-      ..add(_label(l.profilePrefsOnThisDevice))
+      ..add(_caption(l.profilePrefsOnThisDevice))
       ..add(_card(
-        child: Semantics(
-          button: true,
-          child: _row(
-            title: l.profilePrefsReminders,
-            sub: _leadMin != null ? l.p20PrefRemSub(_leadMin.toString()) : null,
-            trailing: _chevron(),
-            onTap: () => Navigator.push<void>(context, MaterialPageRoute<void>(builder: (_) => ReminderSettingsPage(session: widget.session))),
-          ),
+        child: _PrefRow(
+          title: l.profilePrefsReminders,
+          onTap: () => Navigator.push<void>(context, MaterialPageRoute<void>(builder: (_) => ReminderSettingsPage(session: widget.session))),
+          trailing: _PrefSwitch(value: remOn, onChanged: rem == null ? null : _setReminders),
         ),
       ));
     return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: children);
   }
+
+  /// Ders + sınav hatırlatmalarını birlikte açar/kapatır (ayrıntı: Akademik > Hatırlatmalar sayfası).
+  void _setReminders(bool v) {
+    final cur = _rem;
+    if (cur == null) return;
+    final s = cur.copyWith(classEnabled: v, examDayBefore: v);
+    setState(() => _rem = s);
+    ReminderService.store.save(s);
+    unawaited(ReminderService.sync(AcademicApi(widget.session), settings: s));
+  }
 }
 
-/// Ayrıntılı tercihler (Stitch 50-03): ana bayrak başına bir kart; üstte ana anahtar, altında alt anahtarlar
+TimeOfDay _parseTime(String? s, TimeOfDay fallback) {
+  final m = RegExp(r'^(\d{2}):(\d{2})').firstMatch(s ?? '');
+  if (m == null) return fallback;
+  return TimeOfDay(hour: int.parse(m.group(1)!), minute: int.parse(m.group(2)!));
+}
+
+String _fmtTime(TimeOfDay t) => '${t.hour.toString().padLeft(2, '0')}:${t.minute.toString().padLeft(2, '0')}';
+
+Future<void> _pickQuietTime(BuildContext context, _PrefsStore store, bool isStart) async {
+  final q = store.quiet ?? const <String, dynamic>{};
+  final cur = isStart
+      ? _parseTime(q['start'] as String?, const TimeOfDay(hour: 23, minute: 0))
+      : _parseTime(q['end'] as String?, const TimeOfDay(hour: 7, minute: 0));
+  final m = await pickAcadTime(context, cur.hour * 60 + cur.minute, help: context.l10n.p20QuietPickHelp);
+  if (m == null) return;
+  final r = TimeOfDay(hour: m ~/ 60, minute: m % 60);
+  await store.setQuiet(start: isStart ? _fmtTime(r) : null, end: isStart ? null : _fmtTime(r));
+}
+
+/// Tercih yüzeyi: beyaz + 1 dp `bd` çerçeve, 16 köşe, gölge yok; içerik köşede kırpılır.
+class _PrefCard extends StatelessWidget {
+  const _PrefCard({required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.bu;
+    return DecoratedBox(
+      decoration: BoxDecoration(color: t.sf, borderRadius: BuRadius.bMd, border: Border.all(color: t.bd)),
+      child: ClipRRect(borderRadius: BorderRadius.circular(BuRadius.md - 1), child: Material(type: MaterialType.transparency, child: child)),
+    );
+  }
+}
+
+class _PrefDivider extends StatelessWidget {
+  const _PrefDivider();
+
+  @override
+  Widget build(BuildContext context) => Divider(height: 1, thickness: 1, color: context.bu.bd);
+}
+
+/// Ortak tercih satırı (iç 16 dp): başlık 15 sp/500 (+ 13 sp soluk açıklama) solda, kontrol sağda.
+class _PrefRow extends StatelessWidget {
+  const _PrefRow({required this.title, required this.trailing, this.sub, this.onTap, this.dim = false, this.strong = false});
+
+  final String title;
+  final String? sub;
+  final Widget trailing;
+  final VoidCallback? onTap;
+  final bool dim;
+
+  /// Üst "Anlık bildirimler" satırı: 16 sp/600.
+  final bool strong;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.bu;
+    return Opacity(
+      opacity: dim ? .5 : 1,
+      child: MergeSemantics(
+        child: InkWell(
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(minHeight: 28),
+              child: Row(children: [
+                Expanded(
+                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
+                    Text(title,
+                        style: BuType.caption.copyWith(
+                            fontSize: strong ? 16 : 15, height: 1.5, fontWeight: strong ? FontWeight.w600 : FontWeight.w500, color: t.ink)),
+                    if (sub != null) ...[
+                      const SizedBox(height: 2),
+                      Text(sub!, style: BuType.caption.copyWith(fontSize: 13, height: 1.5, color: t.mut)),
+                    ],
+                  ]),
+                ),
+                const SizedBox(width: 12),
+                trailing,
+              ]),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Anahtar (Stitch v3): 48 x 28 dp, 24 dp beyaz topuz; açık = `pr` iz, kapalı = `bd` iz (çerçevesiz).
+/// Malzeme `Switch` (erişilebilirlik/test aynı) küçültülerek çizilir.
+class _PrefSwitch extends StatelessWidget {
+  const _PrefSwitch({required this.value, required this.onChanged});
+
+  final bool value;
+  final ValueChanged<bool>? onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.bu;
+    final theme = Theme.of(context).copyWith(
+      switchTheme: SwitchThemeData(
+        thumbColor: WidgetStatePropertyAll(t.onPr),
+        trackColor: WidgetStateProperty.resolveWith((s) => s.contains(WidgetState.selected) ? t.pr : t.bd),
+        trackOutlineColor: WidgetStatePropertyAll(t.bd.withValues(alpha: 0)),
+        // Simge verilince Material 3 kapalı topuzu da 24 dp çizer (Stitch: iki durumda aynı topuz).
+        thumbIcon: const WidgetStatePropertyAll(Icon(null)),
+        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+      ),
+    );
+    return SizedBox(
+      width: 48,
+      height: 28,
+      child: OverflowBox(
+        maxWidth: 52,
+        maxHeight: 32,
+        child: Transform.scale(
+          scale: 48 / 52,
+          child: Theme(data: theme, child: Switch(value: value, onChanged: onChanged)),
+        ),
+      ),
+    );
+  }
+}
+
+/// Ayrıntılı tercihler: ana bayrak başına bir yüzey; üstte ana anahtar, altında 1 dp çizgili alt anahtarlar
 /// (üst kapalıyken soluk ve pasif).
 class _DetailedPrefsPage extends StatefulWidget {
   const _DetailedPrefsPage({required this.store});
@@ -625,8 +668,6 @@ class _DetailedPrefsPageState extends State<_DetailedPrefsPage> {
   }
 
   Widget _group(String parent) {
-    final t = context.bu;
-    final tx = Theme.of(context).textTheme;
     final store = widget.store;
     final subs = store.subs;
     final kids = [for (final k in _subtypeGroups[parent]!) if (subs.containsKey(k)) k];
@@ -634,45 +675,20 @@ class _DetailedPrefsPageState extends State<_DetailedPrefsPage> {
     final on = store.prefs?[parent] == true;
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
-      child: DecoratedBox(
-        decoration: BoxDecoration(color: t.sf, borderRadius: BuRadius.bLg, boxShadow: BuElevation.of(context, 1)),
-        child: ClipRRect(
-          borderRadius: BuRadius.bLg,
-          child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-            // Ana anahtar: grup başlığı.
-            Container(
-              constraints: const BoxConstraints(minHeight: 56),
-              padding: const EdgeInsetsDirectional.fromSTEB(16, 4, 12, 4),
-              child: Row(children: [
-                Expanded(child: Text(_prefLabel(context, parent), style: tx.titleMedium!.copyWith(fontWeight: FontWeight.w800, color: t.ink))),
-                const SizedBox(width: 8),
-                Switch(value: on, onChanged: (v) => store.set(parent, v)),
-              ]),
+      child: _PrefCard(
+        child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+          // Ana anahtar: grup başlığı.
+          _PrefRow(title: _prefLabel(context, parent), strong: true, trailing: _PrefSwitch(value: on, onChanged: (v) => store.set(parent, v))),
+          for (final k in kids) ...[
+            const _PrefDivider(),
+            _PrefRow(
+              title: _prefLabel(context, k),
+              sub: _subSub(context, k),
+              dim: !on,
+              trailing: _PrefSwitch(value: on && subs[k] == true, onChanged: on ? (v) => store.setSub(k, v) : null),
             ),
-            for (final k in kids) ...[
-              const AkadDivider(),
-              Opacity(
-                opacity: on ? 1 : .45,
-                child: MergeSemantics(
-                  child: Container(
-                    constraints: const BoxConstraints(minHeight: 56),
-                    padding: const EdgeInsetsDirectional.fromSTEB(16, 8, 12, 8),
-                    child: Row(children: [
-                      Expanded(
-                        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                          Text(_prefLabel(context, k), style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w600, color: t.ink)),
-                          Text(_subSub(context, k) ?? '', style: tx.bodySmall!.copyWith(color: t.mut)),
-                        ]),
-                      ),
-                      const SizedBox(width: 8),
-                      Switch(value: on && subs[k] == true, onChanged: on ? (v) => store.setSub(k, v) : null),
-                    ]),
-                  ),
-                ),
-              ),
-            ],
-          ]),
-        ),
+          ],
+        ]),
       ),
     );
   }
@@ -687,8 +703,82 @@ class _DetailedPrefsPageState extends State<_DetailedPrefsPage> {
         BuHeader(title: l.profil1Detailed, onBack: () => Navigator.pop(context)),
         Expanded(
           child: ListView(
-            padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
+            padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
             children: [for (final g in _subtypeGroups.keys) _group(g)],
+          ),
+        ),
+      ]),
+    );
+  }
+}
+
+/// Sessiz saatler sayfası: aç/kapat + başlangıç/bitiş saati (yerel saat seçici; istek biçimi değişmedi).
+class _QuietHoursPage extends StatefulWidget {
+  const _QuietHoursPage({required this.store});
+
+  final _PrefsStore store;
+
+  @override
+  State<_QuietHoursPage> createState() => _QuietHoursPageState();
+}
+
+class _QuietHoursPageState extends State<_QuietHoursPage> {
+  @override
+  void initState() {
+    super.initState();
+    widget.store.addListener(_rebuild);
+  }
+
+  @override
+  void dispose() {
+    widget.store.removeListener(_rebuild);
+    super.dispose();
+  }
+
+  void _rebuild() {
+    if (mounted) setState(() {});
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.bu;
+    final l = context.l10n;
+    final quiet = widget.store.quiet ?? const <String, dynamic>{};
+    final on = quiet['enabled'] == true;
+    final time = BuType.caption.copyWith(fontSize: 15, height: 1.3, color: t.mut, fontFeatures: const [FontFeature.tabularFigures()]);
+    Widget timeRow(String label, String value, bool isStart) => _PrefRow(
+          title: label,
+          dim: !on,
+          onTap: () => _pickQuietTime(context, widget.store, isStart),
+          trailing: Row(mainAxisSize: MainAxisSize.min, children: [
+            Text(value, style: time),
+            const SizedBox(width: 6),
+            Icon(buDirIcon(context, LucideIcons.chevronRight), size: 20, color: t.mut),
+          ]),
+        );
+    return Scaffold(
+      backgroundColor: t.bg,
+      body: Column(children: [
+        BuHeader(title: l.profil1QuietTitle, onBack: () => Navigator.pop(context)),
+        Expanded(
+          child: ListView(
+            padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
+            children: [
+              _PrefCard(
+                child: Column(children: [
+                  _PrefRow(
+                    title: l.profil1QuietToggle,
+                    sub: l.profil1QuietSub,
+                    onTap: () => widget.store.setQuiet(enabled: !on),
+                    trailing: _PrefSwitch(value: on, onChanged: (v) => widget.store.setQuiet(enabled: v)),
+                  ),
+                  const _PrefDivider(),
+                  timeRow(l.profil1QuietStart, (quiet['start'] as String?) ?? '23:00', true),
+                  const _PrefDivider(),
+                  timeRow(l.profil1QuietEnd, (quiet['end'] as String?) ?? '07:00', false),
+                ]),
+              ),
+            ],
           ),
         ),
       ]),

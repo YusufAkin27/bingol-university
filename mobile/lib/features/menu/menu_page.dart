@@ -8,7 +8,6 @@ import '../news/news_tile.dart' show newsMonthName, newsWeekdayName;
 import '../polls/poll_menu_card.dart';
 import 'menu_models.dart';
 import 'menu_parts.dart';
-import 'menu_photo.dart';
 
 String _monthParam(DateTime m) => '${m.year}-${m.month.toString().padLeft(2, '0')}';
 
@@ -25,7 +24,7 @@ class MenuPage extends StatefulWidget {
 
 class _MenuPageState extends State<MenuPage> {
   static const _hPad = 20.0;
-  static const _time = '11:30 – 14:00';
+  static const _time = '11:30–14:00';
 
   late DateTime _month;
   late DateTime _selected;
@@ -115,10 +114,10 @@ class _MenuPageState extends State<MenuPage> {
       body: Column(
         children: [
           BuHeader(title: context.l10n.menuTitle, onBack: () => Navigator.pop(context)),
-          if (_maintenance && !_loading)
+          if (_maintenance && !_loading && _menus.isNotEmpty)
             Padding(
-              padding: const EdgeInsets.fromLTRB(_hPad, 4, _hPad, 0),
-              child: StaleBanner(text: context.l10n.menuStale, icon: LucideIcons.triangleAlert),
+              padding: const EdgeInsets.fromLTRB(_hPad, 12, _hPad, 0),
+              child: MenuStaleBanner(text: context.l10n.menuStale),
             ),
           // İskelet -> içerik: yalnız opaklık geçişi (düzen kayması yok).
           Expanded(
@@ -127,7 +126,7 @@ class _MenuPageState extends State<MenuPage> {
               skeleton: const MenuSkeleton(),
               child: Column(children: [
                 Padding(
-                  padding: const EdgeInsets.only(top: 12),
+                  padding: const EdgeInsets.only(top: 20),
                   child: MenuDayStrip(days: _days, selected: _selected, onSelect: _select),
                 ),
                 Expanded(child: _body(t)),
@@ -147,14 +146,14 @@ class _MenuPageState extends State<MenuPage> {
     final d = _selected;
     final today = _isToday(d);
     final date = '${d.day} ${newsMonthName(context, d.month)}';
-    final label = trUpper(today ? '${l.yemekToday} · $date' : '${newsWeekdayName(context, d.weekday)} · $date');
+    final label = today ? '${l.yemekToday} · $date' : '${newsWeekdayName(context, d.weekday)} · $date';
     final day = _menus[d.day];
     final has = day != null && day.items.isNotEmpty;
     return RefreshIndicator(
       onRefresh: () => _load(silent: true),
       child: ListView(
         physics: const AlwaysScrollableScrollPhysics(),
-        padding: const EdgeInsets.fromLTRB(_hPad, 16, _hPad, 24),
+        padding: const EdgeInsets.fromLTRB(_hPad, 22, _hPad, 32),
         children: [
           // Gün değişince etiket + kart kısa süre solarak yer değiştirir (puanlama kartı yeniden kurulmaz).
           BuFadeThrough(
@@ -162,19 +161,13 @@ class _MenuPageState extends State<MenuPage> {
               key: ValueKey('menu-day-${d.year}-${d.month}-${d.day}'),
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                MenuDayLabel(text: label, today: today),
-                const SizedBox(height: 12),
-                if (has)
-                  MenuPhotoGate(
-                    url: day.imageUrl,
-                    builder: (context, photo) => MenuMealCard(day: day, photo: photo, time: _time),
-                  )
-                else
-                  MenuEmptyCard(maintenance: _maintenance, onRetry: _load),
+                MenuDayLabel(text: label),
+                const SizedBox(height: 8),
+                if (has) MenuMealCard(day: day, time: _time) else MenuEmptyCard(maintenance: _maintenance),
               ],
             ),
           ),
-          if (today) PollMenuCard(session: widget.session),
+          if (today && has) ...[const SizedBox(height: 24), PollMenuCard(session: widget.session)],
         ],
       ),
     );

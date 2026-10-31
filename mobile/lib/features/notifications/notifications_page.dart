@@ -7,7 +7,7 @@ import '../../core/session.dart';
 import '../../widgets/bu.dart';
 import '../../core/push/push_router.dart';
 import '../../core/push/push_targets.dart';
-import '../news/news_tile.dart' show newsLocalDate;
+import '../news/news_tile.dart' show newsLocalDate, newsMonthName;
 import 'notif_row.dart';
 
 /// Uygulama içi bildirim listesi (design/P-Notifications).
@@ -143,33 +143,6 @@ class _NotificationsPageState extends State<NotificationsPage> {
     await PushRouter.open(d);
   }
 
-  IconData _icon(String? type) {
-    switch (type) {
-      case 'NEWS':
-        return LucideIcons.newspaper;
-      case 'ANNOUNCEMENT':
-        return LucideIcons.megaphone;
-      case 'EVENT':
-        return LucideIcons.calendarDays;
-      case 'MESSAGE':
-        return LucideIcons.messageCircle;
-      case 'COMMUNITY':
-        return LucideIcons.users;
-      case 'POLL':
-      case 'POLL_CLOSED':
-      case 'POLL_NEW':
-        return LucideIcons.vote;
-      case 'POST_LIKE':
-        return LucideIcons.heart;
-      case 'POST_COMMENT':
-        return LucideIcons.messageSquare;
-      case 'COMMENT_REPLY':
-        return LucideIcons.reply;
-      default:
-        return LucideIcons.bell;
-    }
-  }
-
   String _group(String? iso) {
     final l = context.l10n;
     final d = iso == null ? null : DateTime.tryParse(iso)?.toLocal();
@@ -224,7 +197,8 @@ class _NotificationsPageState extends State<NotificationsPage> {
     if (days <= 0) return l.bildirimShortHour(diff.inHours.toString());
     if (days == 1) return l.bildirimYesterday;
     if (days < 7) return l.p03NotifShortDay(days.toString());
-    return newsLocalDate(context, iso);
+    // Aynı yıl: "22 Ekim"; daha eski: yıllı tam tarih.
+    return d.year == now.year ? '${d.day} ${newsMonthName(context, d.month)}' : newsLocalDate(context, iso);
   }
 
   Future<void> _delete(Map<String, dynamic> n) async {
@@ -245,25 +219,27 @@ class _NotificationsPageState extends State<NotificationsPage> {
 
   Widget _filters(BuTokens t) {
     final l = context.l10n;
-    final unread = _unread > 0 ? _unread : _s.badges.notifications.value;
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 12, 20, 4),
-      child: SizedBox(
-        width: double.infinity,
-        child: Wrap(spacing: 8, runSpacing: 8, alignment: WrapAlignment.start, children: [
-          _NotifFilterChip(
-              key: const ValueKey('notif-seg-all'),
-              label: l.bildirimFilterAll,
-              count: 0,
-              selected: !_unreadOnly,
-              onTap: () => setState(() => _unreadOnly = false)),
-          _NotifFilterChip(
-              key: const ValueKey('notif-seg-unread'),
-              label: l.bildirimFilterUnread,
-              count: unread,
-              selected: _unreadOnly,
-              onTap: () => setState(() => _unreadOnly = true)),
-        ]),
+    // Çipin 48 dp dokunma alanı görsel 34 dp'nin 7 dp üstüne taşar; görsel konumu Stitch ölçüsüne oturtmak için
+    // paint + hit-test 7 dp yukarı alınır (yer ayırma aynı kalır, alt boşluk buna göre).
+    return Transform.translate(
+      offset: const Offset(0, -7),
+      child: Align(
+        alignment: AlignmentDirectional.centerStart,
+        child: Padding(
+      padding: const EdgeInsets.fromLTRB(20, 0, 20, 15),
+      child: Wrap(spacing: 8, runSpacing: 8, children: [
+        _NotifFilterChip(
+            key: const ValueKey('notif-seg-all'),
+            label: l.bildirimFilterAll,
+            selected: !_unreadOnly,
+            onTap: () => setState(() => _unreadOnly = false)),
+        _NotifFilterChip(
+            key: const ValueKey('notif-seg-unread'),
+            label: l.bildirimFilterUnread,
+            selected: _unreadOnly,
+            onTap: () => setState(() => _unreadOnly = true)),
+      ]),
+      ),
       ),
     );
   }
@@ -272,23 +248,22 @@ class _NotificationsPageState extends State<NotificationsPage> {
   Widget build(BuildContext context) {
     final t = context.bu;
     final l = context.l10n;
-    // Büyük yazı ölçeğinde başlığı ezmesin diye düğme başlığın altına iner.
-    final bigText = MediaQuery.textScalerOf(context).scale(10) > 11.5 || MediaQuery.sizeOf(context).width < 430;
+    // Geniş ekranda "Tümünü okundu yap" başlık satırının sağında; dar ekran / büyük yazıda başlığın altında.
+    final bigText = MediaQuery.textScalerOf(context).scale(10) > 11.5 || MediaQuery.sizeOf(context).width < 380;
     final pill = _unread > 0 || _s.badges.notifications.value > 0
         ? ConstrainedBox(
-            // Dar ekran/büyük yazıda başlığı ezmesin: genişliğin sınırlı bölümü, metin kısalır.
-            constraints: BoxConstraints(maxWidth: MediaQuery.sizeOf(context).width * (bigText ? .9 : .6)),
+            // Başlığı ezmesin: genişliğin sınırlı bölümü, metin kısalır.
+            constraints: BoxConstraints(maxWidth: MediaQuery.sizeOf(context).width * (bigText ? .9 : .5)),
             child: BuPressable(
               onTap: _markAll,
               child: Container(
-                constraints: const BoxConstraints(minHeight: 48),
+                constraints: const BoxConstraints(minHeight: 44),
                 alignment: AlignmentDirectional.centerEnd,
-                padding: const EdgeInsets.symmetric(horizontal: 8),
                 child: Text(l.notifMarkAll,
                     maxLines: bigText ? 2 : 1,
                     textAlign: TextAlign.end,
                     overflow: TextOverflow.ellipsis,
-                    style: Theme.of(context).textTheme.labelLarge!.copyWith(fontWeight: FontWeight.w600, color: t.mut)),
+                    style: BuType.caption.copyWith(fontSize: 14, height: 1.3, fontWeight: FontWeight.w600, color: t.pr)),
               ),
             ),
           )
@@ -305,43 +280,47 @@ class _NotificationsPageState extends State<NotificationsPage> {
       );
     } else if (shown.isEmpty) {
       final unreadEmpty = _unreadOnly && _items.isNotEmpty;
+      // Boş: ortada soluk tek cümle (illüstrasyon yok).
       body = RefreshIndicator(
         onRefresh: () => _load(silent: true),
         child: ListView(
             physics: const AlwaysScrollableScrollPhysics(),
-            padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+            padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
             children: [
-              BuEmptyState(
-                illustration: unreadEmpty ? BuIllustration.check : BuIllustration.bell,
-                title: unreadEmpty ? l.bildirimEmptyUnread : l.notifEmpty,
-                message: unreadEmpty ? l.p03NotifUnreadEmptyBody : l.p03NotifEmptyBody,
-                compact: true,
+              SizedBox(
+                height: 360,
+                child: Center(
+                  child: Semantics(
+                    liveRegion: true,
+                    child: Text(unreadEmpty ? l.bildirimEmptyUnread : l.notifEmpty,
+                        textAlign: TextAlign.center, style: BuType.caption.copyWith(fontSize: 16, height: 1.5, color: t.mut)),
+                  ),
+                ),
               ),
             ]),
       );
     } else {
       final children = <Widget>[];
       if (failed) {
-        children.add(Padding(padding: const EdgeInsets.fromLTRB(20, 8, 20, 4), child: _ErrorCard(onRetry: _load)));
+        children.add(Padding(padding: const EdgeInsets.fromLTRB(20, 0, 20, 8), child: _ErrorCard(onRetry: _load)));
       }
       String? last;
-      final tx = Theme.of(context).textTheme;
       var row = 0;
       for (final n in shown) {
         final g = _group(n['createdAt'] as String?);
         if (g != last) {
           last = g;
           children.add(Padding(
-            padding: const EdgeInsetsDirectional.fromSTEB(20, 24, 20, 8),
+            padding: EdgeInsetsDirectional.fromSTEB(20, row == 0 ? 8 : 16, 20, 6),
             child: Semantics(
               header: true,
-              child: Text(g, style: tx.labelMedium!.copyWith(fontWeight: FontWeight.w700, letterSpacing: .5, color: t.mut)),
+              child: Text(trUpper(g), style: BuType.caption.copyWith(fontSize: 13, height: 1.3, fontWeight: FontWeight.w600, letterSpacing: .6, color: t.mut)),
             ),
           ));
         }
         // İlk görünürde ilk 8 satır sırayla belirir; kaydırınca ya da süzünce yeniden oynamaz.
         children.add(Padding(
-            padding: const EdgeInsets.fromLTRB(20, 0, 20, 8), child: BuStaggerItem(index: row++, child: _tile(t, n))));
+            padding: const EdgeInsets.symmetric(horizontal: 20), child: BuStaggerItem(index: row++, child: _tile(t, n))));
       }
       if (_more) {
         children.add(Padding(
@@ -355,15 +334,12 @@ class _NotificationsPageState extends State<NotificationsPage> {
           ),
         ));
       } else if (_cursor == null) {
-        // Liste sonu: iki sakin satır (çizgi, simge, koyu hap yok).
-        final quiet = tx.labelMedium!.copyWith(fontWeight: FontWeight.w500, color: t.mut);
+        // Liste sonu: tek sakin satır.
         children.add(Padding(
-          padding: const EdgeInsets.fromLTRB(20, 24, 20, 0),
-          child: Column(mainAxisSize: MainAxisSize.min, children: [
-            Text(l.bildirimAllCaughtUp, textAlign: TextAlign.center, style: quiet.copyWith(fontWeight: FontWeight.w600)),
-            const SizedBox(height: 4),
-            Text(l.bildirimSwipeHint, textAlign: TextAlign.center, style: quiet),
-          ]),
+          padding: const EdgeInsets.symmetric(vertical: 32),
+          child: Center(
+            child: Text(l.bildirimAllCaughtUp, textAlign: TextAlign.center, style: BuType.caption.copyWith(fontSize: 13, height: 1.4, color: t.mut)),
+          ),
         ));
       }
       body = RefreshIndicator(
@@ -372,7 +348,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
           child: ListView(
             controller: _scroll,
             physics: const AlwaysScrollableScrollPhysics(),
-            padding: EdgeInsets.fromLTRB(0, 0, 0, MediaQuery.of(context).padding.bottom + 24),
+            padding: EdgeInsets.fromLTRB(0, 0, 0, MediaQuery.of(context).padding.bottom),
             children: children,
           ),
         ),
@@ -408,7 +384,6 @@ class _NotificationsPageState extends State<NotificationsPage> {
   Widget _tile(BuTokens t, Map<String, dynamic> n) {
     final un = n['read'] != true;
     final type = n['type'] as String?;
-    final tx = Theme.of(context).textTheme;
     return Dismissible(
       key: ValueKey('notif-${n['id']}'),
       direction: DismissDirection.endToStart,
@@ -416,19 +391,14 @@ class _NotificationsPageState extends State<NotificationsPage> {
         buHaptic(BuHaptic.light);
         _delete(n);
       },
+      // Sola kaydırınca sağdan `danger` zeminli "Sil" levhası (köşe 0, satırın yüksekliğinde).
       background: Container(
+        color: t.danger,
         alignment: AlignmentDirectional.centerEnd,
-        padding: const EdgeInsetsDirectional.only(end: 28),
-        decoration: BoxDecoration(color: t.danger, borderRadius: BuRadius.bLg),
-        child: Column(mainAxisSize: MainAxisSize.min, children: [
-          Icon(LucideIcons.trash2, size: 22, color: t.onMedia),
-          const SizedBox(height: 4),
-          Text(context.l10n.bildirimDelete,
-              style: tx.labelMedium!.copyWith(fontWeight: FontWeight.w700, color: t.onMedia)),
-        ]),
+        padding: const EdgeInsetsDirectional.only(end: 24),
+        child: Text(context.l10n.bildirimDelete, style: BuType.caption.copyWith(fontSize: 14, fontWeight: FontWeight.w600, color: t.onMedia)),
       ),
       child: NotifRow(
-        icon: _icon(type),
         title: (n['title'] as String?) ?? '',
         typeLabel: _typeLabel(type),
         body: (n['body'] as String?) ?? '',
@@ -441,21 +411,18 @@ class _NotificationsPageState extends State<NotificationsPage> {
   }
 }
 
-/// Süzgeç hapı: seçili = yumuşak vurgu zemini (BuChip stili); sayaç yalnız sıfırdan büyükse, sade rakam.
+/// Süzgeç hapı (Stitch v3): seçili = `soft` zemin + `pr` metin (çerçevesiz); seçili değil = 1 dp `bd` çerçeve +
+/// ink metin. Görünür yükseklik 34 dp, dokunma alanı 48 dp; sayaç rozeti yok.
 class _NotifFilterChip extends StatelessWidget {
-  const _NotifFilterChip(
-      {super.key, required this.label, required this.count, required this.selected, required this.onTap});
+  const _NotifFilterChip({super.key, required this.label, required this.selected, required this.onTap});
 
   final String label;
-  final int count;
   final bool selected;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
-    final tx = Theme.of(context).textTheme;
-    final fg = selected ? t.onSoft : t.ink;
     return Semantics(
       button: true,
       selected: selected,
@@ -463,33 +430,23 @@ class _NotifFilterChip extends StatelessWidget {
         onTap: onTap,
         child: BuTouchTarget(
           child: AnimatedContainer(
-          duration: BuMotion.of(context, BuMotion.short),
-          constraints: const BoxConstraints(minHeight: BuSize.chip),
-          padding: const EdgeInsets.symmetric(horizontal: 14),
-          decoration: BoxDecoration(
-            color: selected ? t.soft : t.sf,
-            borderRadius: BorderRadius.circular(BuRadius.pill),
-            border: Border.all(color: selected ? t.selectedBorder : t.bd),
+            duration: BuMotion.of(context, BuMotion.short),
+            constraints: const BoxConstraints(minHeight: 34),
+            padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 5),
+            decoration: BoxDecoration(
+              color: selected ? t.soft : t.bg,
+              borderRadius: BorderRadius.circular(BuRadius.pill),
+              border: Border.all(color: selected ? t.soft : t.bd),
+            ),
+            child: Text(label, style: BuType.caption.copyWith(fontSize: 14, height: 1.3, fontWeight: FontWeight.w500, color: selected ? t.pr : t.ink)),
           ),
-          child: Row(mainAxisSize: MainAxisSize.min, children: [
-            Text(label, style: tx.labelLarge!.copyWith(fontWeight: FontWeight.w700, color: fg)),
-            if (count > 0) ...[
-              const SizedBox(width: 8),
-              Text(count > 99 ? '99+' : '$count',
-                  style: tx.labelLarge!.copyWith(
-                      fontWeight: FontWeight.w700,
-                      color: fg.withValues(alpha: .7),
-                      fontFeatures: const [FontFeature.tabularFigures()])),
-            ],
-          ]),
-        ),
         ),
       ),
     );
   }
 }
 
-/// Yükleme hatası: tek cümle + tek eylem.
+/// Yükleme hatası: soluk tek cümle + `pr` metin eylemi.
 class _ErrorCard extends StatelessWidget {
   const _ErrorCard({required this.onRetry});
 
@@ -498,21 +455,24 @@ class _ErrorCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
-    final tx = Theme.of(context).textTheme;
     final l = context.l10n;
-    return BuCard(
-      radius: BuRadius.lg,
-      padding: const EdgeInsets.all(16),
-      child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
-        Expanded(
-          child: Semantics(
-            liveRegion: true,
-            child: Text(l.p03NotifLoadFailed,
-                style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w700, height: 1.3, color: t.ink)),
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 48),
+      child: Column(mainAxisSize: MainAxisSize.min, children: [
+        Semantics(
+          liveRegion: true,
+          child: Text(l.p03NotifLoadFailed, textAlign: TextAlign.center, style: BuType.caption.copyWith(fontSize: 16, height: 1.5, color: t.mut)),
+        ),
+        const SizedBox(height: 8),
+        BuPressable(
+          onTap: onRetry,
+          child: Container(
+            constraints: const BoxConstraints(minHeight: 48, minWidth: 48),
+            alignment: Alignment.center,
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Text(l.commonRetry, style: BuType.caption.copyWith(fontSize: 14, fontWeight: FontWeight.w600, color: t.pr)),
           ),
         ),
-        const SizedBox(width: 12),
-        BuButton(label: l.commonRetry, compact: true, onPressed: onRetry),
       ]),
     );
   }

@@ -104,7 +104,7 @@ Future<void> _show(WidgetTester tester, Widget home, {String lang = 'tr', bool d
 void main() {
   setUpAll(loadTestFonts);
 
-  group('Yemek (sade)', () {
+  group('Yemek (Stitch v3)', () {
     const day = MenuDay(
       items: ['Mercimek', 'Pilav', 'Cacik'],
       dishes: [MenuDish('Mercimek', 150), MenuDish('Pilav', 300), MenuDish('Cacik')],
@@ -112,74 +112,86 @@ void main() {
       kcalComplete: false,
     );
 
-    testWidgets('fotografsiz kart: suslu yer tutucu, saat simgesi ve kalorisiz tire yok', (tester) async {
-      await _show(tester, const Scaffold(body: SingleChildScrollView(child: MenuMealCard(day: day, photo: null, time: '11:30 – 14:00'))));
+    testWidgets('yuzey: simge/yer tutucu yok, kalorisiz yemekte soluk tire, eksik toplam + not', (tester) async {
+      await _show(tester, const Scaffold(body: SingleChildScrollView(child: MenuMealCard(day: day, time: '11:30–14:00'))));
       expect(find.text('Öğle yemeği'), findsOneWidget);
-      expect(find.text('11:30 – 14:00'), findsOneWidget);
+      expect(find.text('11:30–14:00'), findsOneWidget);
       expect(find.byIcon(LucideIcons.utensils), findsNothing);
       expect(find.byIcon(LucideIcons.clock), findsNothing);
       expect(find.byIcon(LucideIcons.info), findsNothing);
       expect(find.byIcon(LucideIcons.flame), findsNothing);
-      expect(find.text('-'), findsNothing);
-      expect(find.text('Cacik'), findsOneWidget);
+      expect(find.text('–'), findsOneWidget);
       expect(find.text('150 kcal'), findsOneWidget);
+      expect(find.text('Toplam enerji'), findsOneWidget);
       expect(find.text('En az 450 kcal'), findsOneWidget);
-      // Kalorisiz yemekte "kcal" yalnız 2 satirda + toplamda gorunur.
-      expect(find.textContaining('kcal'), findsNWidgets(3));
+      expect(find.text('Bazı yemeklerin kalorisi girilmemiş.'), findsOneWidget);
       expect(tester.takeException(), isNull);
     });
 
-    testWidgets('toplam tamamsa koyu serit yok: Toplam satiri sakin metin', (tester) async {
+    testWidgets('toplam tamamsa tek satir, not yok, koyu serit yok', (tester) async {
       const full = MenuDay(items: ['Pilav'], dishes: [MenuDish('Pilav', 300)], totalKcal: 300, kcalComplete: true);
-      await _show(tester, const Scaffold(body: SingleChildScrollView(child: MenuMealCard(day: full, photo: null, time: '11:30'))));
-      expect(find.text('Toplam'), findsOneWidget);
+      await _show(tester, const Scaffold(body: SingleChildScrollView(child: MenuMealCard(day: full, time: '11:30–14:00'))));
+      expect(find.text('Toplam enerji'), findsOneWidget);
       expect(find.text('300 kcal'), findsNWidgets(2));
-      // Mürekkep (ink) dolgulu kutu yok.
+      expect(find.text('Bazı yemeklerin kalorisi girilmemiş.'), findsNothing);
       final ink = BuTokens.light.ink;
-      final filled = tester.widgetList<Container>(find.byType(Container)).where((c) {
-        final d = c.decoration;
-        return d is BoxDecoration && d.color == ink;
-      });
+      final filled = tester.widgetList<DecoratedBox>(find.byType(DecoratedBox)).where((c) => (c.decoration as BoxDecoration).color == ink);
       expect(filled, isEmpty);
     });
 
-    testWidgets('gun etiketi simgesiz, liste yoksa kart/hap yok ve tek cumle', (tester) async {
+    testWidgets('gun seridi: hap 42 x 48 dp, secili soft zemin + pr metin, digerlerinde zemin yok', (tester) async {
+      final n = DateTime.now();
+      final d0 = DateTime(n.year, n.month, n.day);
+      await _show(tester, Scaffold(body: MenuDayStrip(days: [for (var i = -2; i <= 4; i++) d0.add(Duration(days: i))], selected: d0, onSelect: (_) {})));
+      final key = ValueKey('yemek_day_${d0.year}-${d0.month}-${d0.day}');
+      final pill = find.descendant(of: find.byKey(key), matching: find.byType(AnimatedContainer));
+      expect(tester.getSize(pill).width, 42);
+      expect(tester.getSize(find.byKey(key)).height, greaterThanOrEqualTo(48));
+      expect((tester.widget<AnimatedContainer>(pill).decoration as BoxDecoration).color, BuTokens.light.soft);
+      final o = d0.add(const Duration(days: 1));
+      final other = find.descendant(of: find.byKey(ValueKey('yemek_day_${o.year}-${o.month}-${o.day}')), matching: find.byType(AnimatedContainer));
+      expect((tester.widget<AnimatedContainer>(other).decoration as BoxDecoration).color!.a, 0);
+    });
+
+    testWidgets('liste yoksa tek cumle, eylem/kart yok; bakimdaysa ikinci satir', (tester) async {
       final b = FakeBackend()..on('/menu', <Object>[]);
       await _show(tester, MenuPage(session: makeSession(b)));
       expect(find.text('Yemek listesi yok.'), findsOneWidget);
-      expect(find.byType(BuButton), findsNothing); // bakimda degilse eylem yok
-      expect(find.byIcon(LucideIcons.calendar), findsNothing);
+      expect(find.byType(BuButton), findsNothing);
+      expect(find.byIcon(LucideIcons.utensils), findsNothing);
       expect(tester.takeException(), isNull);
     });
 
-    testWidgets('bakimdaysa tek cumle + tek eylem', (tester) async {
-      final b = FakeBackend()
+    testWidgets('bakimdaysa ikinci satir "Sistem bakimda."', (tester) async {
+      final m = FakeBackend()
         ..on('/menu', <Object>[])
         ..on('/status', {'MENU': {'maintenance': true}});
+      await _show(tester, MenuPage(session: makeSession(m)));
+      expect(find.text('Yemek listesi yok.'), findsOneWidget);
+      expect(find.text('Sistem bakımda.'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('bayat: yemek varken amber bant', (tester) async {
+      final b = FakeBackend()
+        ..on('/menu', _month())
+        ..on('/status', {'MENU': {'maintenance': true}});
       await _show(tester, MenuPage(session: makeSession(b)));
-      expect(find.text('Sistem bakımda.'), findsWidgets);
-      expect(find.byType(BuButton), findsOneWidget);
+      expect(find.byType(MenuStaleBanner), findsOneWidget);
+      expect(find.text('Yemek listesi güncellenemedi; son bilinen liste gösteriliyor.'), findsOneWidget);
     });
   });
 
-  group('Bildirimler (sade)', () {
-    testWidgets('satir: tur etiketi ekranda yok, zaman var, tek nokta, tek simge tonu', (tester) async {
+  group('Bildirimler (Stitch v3)', () {
+    testWidgets('satir: karti/simgesi yok, tur etiketi + zaman + tek nokta, bd cizgisi', (tester) async {
       final b = FakeBackend()..on('/notifications', _notifs());
       await _show(tester, NotificationsPage(session: makeSession(b)));
-      expect(find.text('Duyuru'), findsNothing); // tur etiketi cizilmez (simge anlatir)
+      expect(find.text('Duyuru'), findsOneWidget);
       expect(find.text('Kariyer günleri yarın başlıyor'), findsOneWidget);
-      expect(find.byKey(const ValueKey('notif-unread-dot')), findsNWidgets(4)); // agacta kalir, okunanlar olceksiz
-      // Simge kutularinin hepsi ayni (bilgi) zeminde.
-      final infoSoft = BuTokens.light.infoSoft;
-      final tiles = tester.widgetList<Container>(find.byType(Container)).where((c) {
-        final d = c.decoration;
-        return d is BoxDecoration && d.color == infoSoft;
-      });
-      expect(tiles.length, 4);
+      expect(find.byKey(const ValueKey('notif-unread-dot')), findsNWidgets(4)); // ağaçta kalır, okunanlar ölçeksiz
+      expect(find.byIcon(LucideIcons.megaphone), findsNothing);
       expect(find.byIcon(LucideIcons.checkCheck), findsNothing);
-      expect(find.byIcon(LucideIcons.pointer), findsNothing);
-      expect(find.byIcon(LucideIcons.circleCheck), findsNothing);
-      // "N yeni" grup sayaci kalkti.
+      expect(find.byType(BuCard), findsNothing);
       expect(find.textContaining(' yeni'), findsNothing);
       expect(tester.takeException(), isNull);
     });
@@ -192,35 +204,50 @@ void main() {
       sem.dispose();
     });
 
-    testWidgets('filtre: Tumu sayacsiz, Okunmamis sayisi yalniz > 0', (tester) async {
+    testWidgets('cipler: Tumu secili = soft + pr metin, sayac rozeti yok, >= 48 dp dokunma', (tester) async {
       final b = FakeBackend()..on('/notifications', _notifs());
       await _show(tester, NotificationsPage(session: makeSession(b)));
-      final all = find.descendant(of: find.byKey(const ValueKey('notif-seg-all')), matching: find.byType(Text));
-      final unread = find.descendant(of: find.byKey(const ValueKey('notif-seg-unread')), matching: find.byType(Text));
-      expect(all, findsOneWidget);
-      expect(unread, findsNWidgets(2));
-      expect(tester.getSize(find.byKey(const ValueKey('notif-seg-all'))).height, greaterThanOrEqualTo(48));
+      final all = find.byKey(const ValueKey('notif-seg-all'));
+      final unread = find.byKey(const ValueKey('notif-seg-unread'));
+      expect(find.descendant(of: all, matching: find.byType(Text)), findsOneWidget);
+      expect(find.descendant(of: unread, matching: find.byType(Text)), findsOneWidget);
+      expect(tester.getSize(all).height, greaterThanOrEqualTo(48));
+      final box = tester.widget<AnimatedContainer>(find.descendant(of: all, matching: find.byType(AnimatedContainer)));
+      expect((box.decoration as BoxDecoration).color, BuTokens.light.soft);
+      expect(tester.getSize(find.descendant(of: all, matching: find.byType(AnimatedContainer))).height, closeTo(34, 3));
     });
 
-    testWidgets('hata: tek cumle + tek eylem', (tester) async {
+    testWidgets('hata: soluk tek cumle + pr "Yeniden dene"', (tester) async {
       final b = FakeBackend()..fail('/notifications', status: 500);
       await _show(tester, NotificationsPage(session: makeSession(b)));
       expect(find.text('Yüklenemedi, tekrar dene'), findsOneWidget);
-      expect(find.byType(BuButton), findsOneWidget);
+      expect(find.text('Yeniden dene'), findsOneWidget);
       expect(find.byIcon(LucideIcons.wifiOff), findsNothing);
     });
 
-    testWidgets('bos durum: kart icinde kart yok', (tester) async {
+    testWidgets('bos durum: kart/illustrasyon yok; Okunmamis cipinde ayri cumle', (tester) async {
       final b = FakeBackend()..on('/notifications', {'unreadCount': 0, 'nextCursor': null, 'items': <Object>[]});
       await _show(tester, NotificationsPage(session: makeSession(b)));
-      expect(find.text('Bildirim yok'), findsOneWidget);
+      expect(find.text('Henüz bildiriminiz yok.'), findsOneWidget);
       expect(find.byType(BuCard), findsNothing);
     });
 
-    testWidgets('NotifRow: dokunma alani >= 48 ve tek satir basligin zamani', (tester) async {
+    testWidgets('Okunmamis cipinde hepsi okunduysa ayri cumle', (tester) async {
+      final b2 = FakeBackend()..on('/notifications', _notifs());
+      await _show(tester, NotificationsPage(session: makeSession(b2)));
+      await tester.tap(find.byKey(const ValueKey('notif-seg-unread')));
+      await settle(tester);
+      await tester.drag(find.byKey(const ValueKey('notif-1')), const Offset(-500, 0));
+      await settle(tester);
+      await tester.drag(find.byKey(const ValueKey('notif-2')), const Offset(-500, 0));
+      await settle(tester);
+      expect(find.text('Okunmamış bildiriminiz yok.'), findsOneWidget);
+    });
+
+    testWidgets('NotifRow: yukseklik >= 48, zaman gorunur', (tester) async {
       useScreen(tester, kPhoneMedium);
       await tester.pumpWidget(buildApp(Scaffold(
-        body: NotifRow(icon: LucideIcons.bell, title: 'Baslik', typeLabel: 'Duyuru', time: '5 dk', unread: true, onTap: () {}),
+        body: NotifRow(title: 'Baslik', typeLabel: 'Duyuru', time: '5 dk', unread: true, onTap: () {}),
       )));
       await tester.pump(const Duration(milliseconds: 300));
       expect(tester.getSize(find.byType(NotifRow)).height, greaterThanOrEqualTo(48));
@@ -228,33 +255,51 @@ void main() {
     });
   });
 
-  group('Bildirim tercihleri (sade)', () {
+  group('Bildirim tercihleri (Stitch v3)', () {
     FakeBackend be() => FakeBackend()..on('/notifications/preferences', _prefs);
 
-    testWidgets('satirlarda simge karosu yok; anahtarlar tek sutunda hizali', (tester) async {
-      await _show(tester, NotificationPrefsPage(session: makeSession(be())), size: const Size(390, 1400));
+    testWidgets('satirlarda simge yok; anahtarlar 48 x 28 ve tek sutunda hizali', (tester) async {
+      await _show(tester, NotificationPrefsPage(session: makeSession(be())), size: const Size(390, 1500));
       expect(find.byIcon(LucideIcons.newspaper), findsNothing);
       expect(find.byIcon(LucideIcons.megaphone), findsNothing);
       expect(find.byIcon(LucideIcons.moon), findsNothing);
       expect(find.byIcon(LucideIcons.alarmClock), findsNothing);
-      final switches = [for (final e in find.byType(Switch).evaluate()) tester.getRect(find.byWidget(e.widget))];
-      expect(switches.length, greaterThan(5));
-      final right = switches.first.right;
-      for (final r in switches) {
-        expect((r.right - right).abs(), lessThan(.5), reason: 'tum anahtarlar ayni sag kenarda');
+      final boxes = [
+        for (final e in find.byType(Switch).evaluate())
+          tester.getRect(find.ancestor(of: find.byWidget(e.widget), matching: find.byType(SizedBox)).first)
+      ];
+      expect(boxes.length, greaterThan(5));
+      for (final r in boxes) {
+        expect(r.width, 48);
+        expect(r.height, 28);
+        expect((r.right - boxes.first.right).abs(), lessThan(.5));
       }
+      expect(find.text('23:00 – 07:00'), findsOneWidget);
+      expect(find.text('Ders ve sınav hatırlatmaları'), findsOneWidget);
       expect(tester.takeException(), isNull);
     });
 
-    testWidgets('ayrintili tercihler: baslik "Ayrıntılı tercihler", bilgi kutusu ve rozet yok, anahtar sirasi korunur', (tester) async {
-      await _show(tester, NotificationPrefsPage(session: makeSession(be())), size: const Size(390, 1400));
+    testWidgets('ayrintili tercihler: baslik "Ayrıntılı tercihler", bilgi kutusu yok, anahtar sirasi korunur', (tester) async {
+      await _show(tester, NotificationPrefsPage(session: makeSession(be())), size: const Size(390, 1500));
       await tester.tap(find.text('Ayrıntılı tercihler'));
       await settle(tester);
-      expect(find.text('Ayrıntılı tercihler'), findsOneWidget); // yalniz basliktaki (onceki sayfa asagida kalir)
+      expect(find.text('Ayrıntılı tercihler'), findsOneWidget);
       expect(find.byIcon(LucideIcons.slidersHorizontal), findsNothing);
       expect(find.text('Devre dışı'), findsNothing);
       expect(find.text('Kişisel mesajlar'), findsOneWidget);
       expect(find.byType(Switch), findsNWidgets(3 + 8)); // 3 ana anahtar + 8 alt anahtar
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('sessiz saatler: kendi sayfasi, acma + baslangic/bitis satirlari', (tester) async {
+      await _show(tester, NotificationPrefsPage(session: makeSession(be())), size: const Size(390, 1500));
+      await tester.tap(find.text('Sessiz saatler'));
+      await settle(tester);
+      expect(find.text('Sessiz saatleri aç'), findsOneWidget);
+      expect(find.text('Başlangıç'), findsOneWidget);
+      expect(find.text('23:00'), findsOneWidget);
+      expect(find.text('Bitiş'), findsOneWidget);
+      expect(find.text('07:00'), findsOneWidget);
       expect(tester.takeException(), isNull);
     });
   });
@@ -298,15 +343,24 @@ void main() {
         final be = FakeBackend()..on('/notifications/preferences', _prefs);
         await _show(tester, NotificationPrefsPage(session: makeSession(be)), lang: lang, dark: dark, scale: 1.3, size: const Size(320, 700));
         expect(tester.takeException(), isNull);
-        await tester.drag(find.byType(ListView).first, const Offset(0, -400));
-        await settle(tester, const Duration(milliseconds: 600));
-        expect(tester.takeException(), isNull);
         final l = lookupAppLocalizations(Locale(lang));
-        await tester.drag(find.byType(ListView).first, const Offset(0, 400));
-        await settle(tester, const Duration(milliseconds: 600));
-        await tester.ensureVisible(find.text(l.profil1Detailed));
+        await tester.scrollUntilVisible(find.text(l.profil1Detailed), 100, scrollable: find.byType(Scrollable).first);
+        expect(tester.takeException(), isNull);
         await tester.tap(find.text(l.profil1Detailed));
         await settle(tester);
+        expect(tester.takeException(), isNull);
+      });
+
+      testWidgets('tasma yok: Sessiz saatler sayfasi (320 x1.3, $tag)', (tester) async {
+        final be = FakeBackend()..on('/notifications/preferences', _prefs);
+        await _show(tester, NotificationPrefsPage(session: makeSession(be)), lang: lang, dark: dark, scale: 1.3, size: const Size(320, 700));
+        final l = lookupAppLocalizations(Locale(lang));
+        // Kaydırmalı liste tembel kurulur: satır ağaçta olsa da ekran dışında kalabilir; en alta kadar kaydır.
+        await tester.drag(find.byType(Scrollable).first, const Offset(0, -3000));
+        await settle(tester, const Duration(milliseconds: 600));
+        await tester.tap(find.text(l.profil1QuietTitle));
+        await settle(tester);
+        expect(find.text(l.profil1QuietToggle), findsOneWidget);
         expect(tester.takeException(), isNull);
       });
     }

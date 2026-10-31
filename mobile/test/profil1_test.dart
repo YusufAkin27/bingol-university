@@ -2,6 +2,7 @@ import 'package:bu_kampus/core/theme_controller.dart';
 import 'package:bu_kampus/features/profile/edit_profile_page.dart';
 import 'package:bu_kampus/features/profile/notification_prefs_page.dart';
 import 'package:bu_kampus/features/profile/profile_tab.dart';
+import 'package:bu_kampus/widgets/bu.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -67,13 +68,13 @@ void main() {
             size: kPhoneSmall));
         await settle(tester);
         expect(find.text('Düzenle'), findsOneWidget);
-        expect(find.text('Bilgisayar Mühendisliği • 3. sınıf'), findsOneWidget);
-        expect(find.text('Mühendislik Fakültesi'), findsOneWidget);
-        for (final s in ['Hesap ve güvenlik', 'Gizlilik ve engellenenler', 'Verilerim', 'Gönderilerim']) {
+        // Stitch v3: bölüm · sınıf tek satır; hesap/gizlilik/dil/tema/çıkış Ayarlar sayfasındadır.
+        expect(find.text('Bilgisayar Mühendisliği · 3. sınıf'), findsOneWidget);
+        for (final s in ['Gönderilerim', 'Kayıtlı haberler', 'Kulüplerim', 'Etkinliklerim', 'Önerilen kişiler']) {
           await tester.scrollUntilVisible(find.text(s), 200, scrollable: find.byType(Scrollable).first);
           expect(find.text(s), findsOneWidget);
         }
-        for (final s in ['Bildirim tercihleri', 'Dil', 'Tema', 'Destek', 'Sözleşmeler ve politikalar', 'Çıkış yap']) {
+        for (final s in ['Akademik', 'Bildirimler', 'Ayarlar', 'Yardım ve destek']) {
           await tester.scrollUntilVisible(find.text(s), 200, scrollable: find.byType(Scrollable).first);
           expect(find.text(s), findsOneWidget);
         }
@@ -89,11 +90,17 @@ void main() {
         await settle(tester);
         expect(find.text('Anlık bildirimler'), findsOneWidget);
         // Test yerelinde (en) büyük harf kuralı İngilizcedir.
-        expect(find.text('NELER BILDIRILSIN'), findsOneWidget);
+        expect(find.text('Neler bildirilsin'), findsOneWidget);
         await tester.drag(find.byType(ListView).first, const Offset(0, -300));
         await settle(tester, const Duration(milliseconds: 600));
+        // Stitch v3: sessiz saatler özet satırı; saatler kendi sayfasında.
+        expect(find.text('23:00 – 07:00'), findsOneWidget);
+        await tester.tap(find.text('Sessiz saatler'));
+        await settle(tester);
         expect(find.text('23:00'), findsOneWidget);
         expect(find.text('07:00'), findsOneWidget);
+        await tester.tap(find.byType(BuIconButton).first);
+        await settle(tester);
         await tester.tap(find.text('Ayrıntılı tercihler'));
         await settle(tester);
         await tester.drag(find.byType(ListView).first, const Offset(0, -300));
@@ -137,6 +144,8 @@ void main() {
     await settle(tester);
     await tester.drag(find.byType(ListView).first, const Offset(0, -500));
     await settle(tester, const Duration(milliseconds: 600));
+    await tester.tap(find.text('Sessiz saatler'));
+    await settle(tester);
     await tester.tap(find.text('Sessiz saatleri aç'));
     await settle(tester);
     expect(b.bodies['PUT /notifications/preferences'], {

@@ -103,7 +103,8 @@ void main() {
     expect(switchEnabled(tester, 'Anketler'), isTrue);
     expect(find.text('Duyurular kapalıyken bildirim gelmez'), findsNothing);
     expect(find.textContaining('anket bildirimleri gelmez'), findsNothing);
-    expect(find.text('Öğrenci ve personel anketleri'), findsOneWidget);
+    // Stitch v3: Anketler / Akademik duyurular tek satır; yalnız bağımlılık notu çıkar (yukarıda yok).
+    expect(find.text('Öğrenci ve personel anketleri'), findsNothing);
     await unmount(tester);
   });
 }
