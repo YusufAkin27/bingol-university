@@ -2782,7 +2782,6 @@
   "p18ClearSearch": "مسح البحث",
   "p18NavUnread": "{n} غير مقروءة",
   "@p18NavUnread": {"placeholders": {"n": {"type": "String"}}},
-  "p19DataCopied30": "تم نسخ بياناتك إلى الحافظة وستُمسح بعد 30 ثانية",
   "p19PushOffShort": "متوقف",
   "p19SaveFailedSub": "حدث خطأ في الاتصال.",
   "p19FormErrTitle": "هناك حقول تحتاج إلى تصحيح",
@@ -2824,5 +2823,17 @@
   "p21PreviewTitle": "معاينة الرسالة في الإشعار",
   "p21PreviewSub": "عند التفعيل يظهر بداية نص الرسالة في الإشعار وعلى شاشة القفل، ويمر النص عبر خوادم إشعارات Google/Apple. عند الإيقاف يظهر اسم المرسل فقط.",
   "p26PrefNeedsAnnouncements": "لن تصلك إشعارات عند إيقاف الإعلانات",
-  "p26PrefPollsNeedsParents": "لن تصلك إشعارات الاستطلاعات عند إيقاف الإعلانات أو الأندية"
+  "p26PrefPollsNeedsParents": "لن تصلك إشعارات الاستطلاعات عند إيقاف الإعلانات أو الأندية",
+  "p32ExportShareFailed": "تعذّر تجهيز بياناتك للمشاركة. يُرجى المحاولة مرة أخرى.",
+  "p31ChatPlaceholderBlocked": "رسالة مستخدم قمت بحظره مخفية",
+  "p31ChatPlaceholderUnreadable": "تعذّر عرض هذه الرسالة",
+  "p31ChatMsgTooLong": "يجب ألا تتجاوز الرسالة {max} حرفًا.",
+  "@p31ChatMsgTooLong": {
+    "placeholders": {
+      "max": {
+        "type": "String"
+      }
+    }
+  },
+  "p31ChatRemovedToast": "تمت إزالتك من هذه المحادثة."
 }

@@ -2782,7 +2782,6 @@
   "p18ClearSearch": "Clear search",
   "p18NavUnread": "{n} unread",
   "@p18NavUnread": {"placeholders": {"n": {"type": "String"}}},
-  "p19DataCopied30": "Your data was copied to the clipboard; it is cleared after 30 seconds",
   "p19PushOffShort": "Off",
   "p19SaveFailedSub": "A connection error occurred.",
   "p19FormErrTitle": "Some fields need fixing",
@@ -2824,5 +2823,17 @@
   "p21PreviewTitle": "Message preview in notifications",
   "p21PreviewSub": "When on, the start of the message shows in the notification and on the lock screen; the text passes through Google/Apple notification servers. When off, only the sender name is shown.",
   "p26PrefNeedsAnnouncements": "No notifications while Announcements is off",
-  "p26PrefPollsNeedsParents": "No poll notifications while Announcements or Clubs is off"
+  "p26PrefPollsNeedsParents": "No poll notifications while Announcements or Clubs is off",
+  "p32ExportShareFailed": "Your data could not be prepared for sharing. Please try again.",
+  "p31ChatPlaceholderBlocked": "Message from a user you blocked is hidden",
+  "p31ChatPlaceholderUnreadable": "This message cannot be displayed",
+  "p31ChatMsgTooLong": "A message can be at most {max} characters.",
+  "@p31ChatMsgTooLong": {
+    "placeholders": {
+      "max": {
+        "type": "String"
+      }
+    }
+  },
+  "p31ChatRemovedToast": "You were removed from this chat."
 }

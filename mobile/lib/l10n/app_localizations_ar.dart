@@ -8875,10 +8875,6 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get p19DataCopied30 =>
-      'تم نسخ بياناتك إلى الحافظة وستُمسح بعد 30 ثانية';
-
-  @override
   String get p19PushOffShort => 'متوقف';
 
   @override
@@ -9020,4 +9016,22 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get p26PrefPollsNeedsParents =>
       'لن تصلك إشعارات الاستطلاعات عند إيقاف الإعلانات أو الأندية';
+
+  @override
+  String get p32ExportShareFailed =>
+      'تعذّر تجهيز بياناتك للمشاركة. يُرجى المحاولة مرة أخرى.';
+
+  @override
+  String get p31ChatPlaceholderBlocked => 'رسالة مستخدم قمت بحظره مخفية';
+
+  @override
+  String get p31ChatPlaceholderUnreadable => 'تعذّر عرض هذه الرسالة';
+
+  @override
+  String p31ChatMsgTooLong(String max) {
+    return 'يجب ألا تتجاوز الرسالة $max حرفًا.';
+  }
+
+  @override
+  String get p31ChatRemovedToast => 'تمت إزالتك من هذه المحادثة.';
 }

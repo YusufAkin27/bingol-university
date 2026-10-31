@@ -8968,10 +8968,6 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get p19DataCopied30 =>
-      'Your data was copied to the clipboard; it is cleared after 30 seconds';
-
-  @override
   String get p19PushOffShort => 'Off';
 
   @override
@@ -9118,4 +9114,23 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get p26PrefPollsNeedsParents =>
       'No poll notifications while Announcements or Clubs is off';
+
+  @override
+  String get p32ExportShareFailed =>
+      'Your data could not be prepared for sharing. Please try again.';
+
+  @override
+  String get p31ChatPlaceholderBlocked =>
+      'Message from a user you blocked is hidden';
+
+  @override
+  String get p31ChatPlaceholderUnreadable => 'This message cannot be displayed';
+
+  @override
+  String p31ChatMsgTooLong(String max) {
+    return 'A message can be at most $max characters.';
+  }
+
+  @override
+  String get p31ChatRemovedToast => 'You were removed from this chat.';
 }

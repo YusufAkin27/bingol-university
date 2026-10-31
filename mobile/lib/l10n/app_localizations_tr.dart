@@ -8936,10 +8936,6 @@ class AppLocalizationsTr extends AppLocalizations {
   }
 
   @override
-  String get p19DataCopied30 =>
-      'Verileriniz panoya kopyalandı; 30 saniye sonra panodan silinir';
-
-  @override
   String get p19PushOffShort => 'Kapalı';
 
   @override
@@ -9084,4 +9080,23 @@ class AppLocalizationsTr extends AppLocalizations {
   @override
   String get p26PrefPollsNeedsParents =>
       'Duyurular veya Kulüpler kapalıysa ilgili anket bildirimleri gelmez';
+
+  @override
+  String get p32ExportShareFailed =>
+      'Verileriniz paylaşım için hazırlanamadı. Lütfen tekrar deneyin.';
+
+  @override
+  String get p31ChatPlaceholderBlocked =>
+      'Engellediğiniz kullanıcının mesajı gizlendi';
+
+  @override
+  String get p31ChatPlaceholderUnreadable => 'Bu mesaj görüntülenemiyor';
+
+  @override
+  String p31ChatMsgTooLong(String max) {
+    return 'Mesaj en fazla $max karakter olabilir.';
+  }
+
+  @override
+  String get p31ChatRemovedToast => 'Bu sohbetten çıkarıldınız.';
 }

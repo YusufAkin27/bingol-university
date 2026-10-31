@@ -367,7 +367,7 @@ abstract class AppLocalizations {
   /// No description provided for @settingsLogoutAllBody.
   ///
   /// In tr, this message translates to:
-  /// **'Hesabınız tüm cihazlarda kapatılacak ve yeniden giriş yapmanız gerekecek.'**
+  /// **'Tüm cihazlardaki oturumlarınız kapatılacak ve yeniden giriş yapmanız gerekecek.'**
   String get settingsLogoutAllBody;
 
   /// No description provided for @settingsLogoutAllConfirm.
@@ -16261,12 +16261,6 @@ abstract class AppLocalizations {
   /// **'{n} okunmamış'**
   String p18NavUnread(String n);
 
-  /// No description provided for @p19DataCopied30.
-  ///
-  /// In tr, this message translates to:
-  /// **'Verileriniz panoya kopyalandı; 30 saniye sonra panodan silinir'**
-  String get p19DataCopied30;
-
   /// No description provided for @p19PushOffShort.
   ///
   /// In tr, this message translates to:
@@ -16518,6 +16512,36 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Duyurular veya Kulüpler kapalıysa ilgili anket bildirimleri gelmez'**
   String get p26PrefPollsNeedsParents;
+
+  /// No description provided for @p32ExportShareFailed.
+  ///
+  /// In tr, this message translates to:
+  /// **'Verileriniz paylaşım için hazırlanamadı. Lütfen tekrar deneyin.'**
+  String get p32ExportShareFailed;
+
+  /// No description provided for @p31ChatPlaceholderBlocked.
+  ///
+  /// In tr, this message translates to:
+  /// **'Engellediğiniz kullanıcının mesajı gizlendi'**
+  String get p31ChatPlaceholderBlocked;
+
+  /// No description provided for @p31ChatPlaceholderUnreadable.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu mesaj görüntülenemiyor'**
+  String get p31ChatPlaceholderUnreadable;
+
+  /// No description provided for @p31ChatMsgTooLong.
+  ///
+  /// In tr, this message translates to:
+  /// **'Mesaj en fazla {max} karakter olabilir.'**
+  String p31ChatMsgTooLong(String max);
+
+  /// No description provided for @p31ChatRemovedToast.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu sohbetten çıkarıldınız.'**
+  String get p31ChatRemovedToast;
 }
 
 class _AppLocalizationsDelegate

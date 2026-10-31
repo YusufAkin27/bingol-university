@@ -4574,7 +4574,6 @@
   "p18ClearSearch": "Aramayı temizle",
   "p18NavUnread": "{n} okunmamış",
   "@p18NavUnread": {"placeholders": {"n": {"type": "String"}}},
-  "p19DataCopied30": "Verileriniz panoya kopyalandı; 30 saniye sonra panodan silinir",
   "p19PushOffShort": "Kapalı",
   "p19SaveFailedSub": "Bağlantı hatası oluştu.",
   "p19FormErrTitle": "Formda düzeltilmesi gereken alanlar var",
@@ -4616,5 +4615,17 @@
   "p21PreviewTitle": "Bildirimde mesaj önizlemesi",
   "p21PreviewSub": "Açıkken mesajın ilk kısmı bildirimde ve kilit ekranında görünür; metin Google/Apple bildirim sunucularından geçer. Kapalıyken yalnızca gönderen adı gösterilir.",
   "p26PrefNeedsAnnouncements": "Duyurular kapalıyken bildirim gelmez",
-  "p26PrefPollsNeedsParents": "Duyurular veya Kulüpler kapalıysa ilgili anket bildirimleri gelmez"
+  "p26PrefPollsNeedsParents": "Duyurular veya Kulüpler kapalıysa ilgili anket bildirimleri gelmez",
+  "p32ExportShareFailed": "Verileriniz paylaşım için hazırlanamadı. Lütfen tekrar deneyin.",
+  "p31ChatPlaceholderBlocked": "Engellediğiniz kullanıcının mesajı gizlendi",
+  "p31ChatPlaceholderUnreadable": "Bu mesaj görüntülenemiyor",
+  "p31ChatMsgTooLong": "Mesaj en fazla {max} karakter olabilir.",
+  "@p31ChatMsgTooLong": {
+    "placeholders": {
+      "max": {
+        "type": "String"
+      }
+    }
+  },
+  "p31ChatRemovedToast": "Bu sohbetten çıkarıldınız."
 }
