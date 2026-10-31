@@ -5885,7 +5885,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get anasayfaQuickAcademic => 'Academic';
 
   @override
-  String get gonderiTextHint => 'Add a short note (optional)';
+  String get gonderiTextHint => 'Write a few words…';
 
   @override
   String gonderiWordCount(String n, String max) {
@@ -5898,7 +5898,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get gonderiPickPhoto => 'Choose from gallery';
+  String get gonderiPickPhoto => 'Choose a photo';
 
   @override
   String get gonderiTakePhoto => 'Take a photo';
@@ -8794,11 +8794,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get p04PostsLoadFail => 'Could not load, try again';
 
   @override
-  String get p04FeedErrTitle => 'Could not reach the server';
+  String get p04FeedErrTitle => 'Could not load';
 
   @override
-  String get p04FeedErrBody =>
-      'Check your connection or browse the offline cache.';
+  String get p04FeedErrBody => 'Check your connection and try again.';
 
   @override
   String get p09ForwardDirect => 'Direct chat';

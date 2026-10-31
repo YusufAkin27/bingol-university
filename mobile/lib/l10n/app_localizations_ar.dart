@@ -5832,7 +5832,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get anasayfaQuickAcademic => 'الأكاديمي';
 
   @override
-  String get gonderiTextHint => 'أضف ملاحظة قصيرة (اختياري)';
+  String get gonderiTextHint => 'اكتب بضع كلمات…';
 
   @override
   String gonderiWordCount(String n, String max) {
@@ -5845,7 +5845,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get gonderiPickPhoto => 'اختر من المعرض';
+  String get gonderiPickPhoto => 'اختر صورة';
 
   @override
   String get gonderiTakePhoto => 'التقط صورة';
@@ -8700,11 +8700,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get p04PostsLoadFail => 'تعذّر التحميل، حاول مجددًا';
 
   @override
-  String get p04FeedErrTitle => 'تعذّر الوصول إلى الخادم';
+  String get p04FeedErrTitle => 'تعذّر التحميل';
 
   @override
-  String get p04FeedErrBody =>
-      'تحقق من اتصالك أو تصفّح الذاكرة المؤقتة دون اتصال.';
+  String get p04FeedErrBody => 'تحقق من اتصالك ثم حاول مجددًا.';
 
   @override
   String get p09ForwardDirect => 'محادثة فردية';

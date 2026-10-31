@@ -3154,7 +3154,7 @@
   "anasayfaMealLunch": "Bugünün yemeği · Öğle",
   "anasayfaAnnouncements": "Duyurular",
   "anasayfaQuickAcademic": "Akademik",
-  "gonderiTextHint": "Kısa bir not ekle (isteğe bağlı)",
+  "gonderiTextHint": "Birkaç kelime yaz…",
   "gonderiWordCount": "{n}/{max} kelime",
   "@gonderiWordCount": {
     "placeholders": {
@@ -3174,7 +3174,7 @@
       }
     }
   },
-  "gonderiPickPhoto": "Galeriden seç",
+  "gonderiPickPhoto": "Fotoğraf seç",
   "gonderiTakePhoto": "Fotoğraf çek",
   "gonderiPhotoRequired": "Paylaşmak için bir fotoğraf seç.",
   "gonderiPhotoHint": "Gönderi tek bir fotoğraftan oluşur.",
@@ -4503,8 +4503,8 @@
   "p13SugVoted": "Oyunu kaydettin",
   "p04PostsEmptyBody": "Paylaştığın fotoğraflar burada listelenir.",
   "p04PostsLoadFail": "Yüklenemedi, tekrar dene",
-  "p04FeedErrTitle": "Sunucuya ulaşılamadı",
-  "p04FeedErrBody": "Bağlantınızı kontrol edin veya çevrimdışı önbelleğe göz atın.",
+  "p04FeedErrTitle": "Yüklenemedi",
+  "p04FeedErrBody": "Bağlantını kontrol edip tekrar dene.",
   "p09ForwardDirect": "Bireysel sohbet",
   "p03HomeBrandSub": "Bağımsız öğrenci uygulaması",
   "p03HomeQuickTitle": "Hızlı Erişim",

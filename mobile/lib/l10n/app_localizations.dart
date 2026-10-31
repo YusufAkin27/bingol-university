@@ -10870,7 +10870,7 @@ abstract class AppLocalizations {
   /// No description provided for @gonderiTextHint.
   ///
   /// In tr, this message translates to:
-  /// **'Kısa bir not ekle (isteğe bağlı)'**
+  /// **'Birkaç kelime yaz…'**
   String get gonderiTextHint;
 
   /// No description provided for @gonderiWordCount.
@@ -10888,7 +10888,7 @@ abstract class AppLocalizations {
   /// No description provided for @gonderiPickPhoto.
   ///
   /// In tr, this message translates to:
-  /// **'Galeriden seç'**
+  /// **'Fotoğraf seç'**
   String get gonderiPickPhoto;
 
   /// No description provided for @gonderiTakePhoto.
@@ -15958,13 +15958,13 @@ abstract class AppLocalizations {
   /// No description provided for @p04FeedErrTitle.
   ///
   /// In tr, this message translates to:
-  /// **'Sunucuya ulaşılamadı'**
+  /// **'Yüklenemedi'**
   String get p04FeedErrTitle;
 
   /// No description provided for @p04FeedErrBody.
   ///
   /// In tr, this message translates to:
-  /// **'Bağlantınızı kontrol edin veya çevrimdışı önbelleğe göz atın.'**
+  /// **'Bağlantını kontrol edip tekrar dene.'**
   String get p04FeedErrBody;
 
   /// No description provided for @p09ForwardDirect.

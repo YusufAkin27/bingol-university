@@ -5859,7 +5859,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get anasayfaQuickAcademic => 'Akademik';
 
   @override
-  String get gonderiTextHint => 'Kısa bir not ekle (isteğe bağlı)';
+  String get gonderiTextHint => 'Birkaç kelime yaz…';
 
   @override
   String gonderiWordCount(String n, String max) {
@@ -5872,7 +5872,7 @@ class AppLocalizationsTr extends AppLocalizations {
   }
 
   @override
-  String get gonderiPickPhoto => 'Galeriden seç';
+  String get gonderiPickPhoto => 'Fotoğraf seç';
 
   @override
   String get gonderiTakePhoto => 'Fotoğraf çek';
@@ -8763,11 +8763,10 @@ class AppLocalizationsTr extends AppLocalizations {
   String get p04PostsLoadFail => 'Yüklenemedi, tekrar dene';
 
   @override
-  String get p04FeedErrTitle => 'Sunucuya ulaşılamadı';
+  String get p04FeedErrTitle => 'Yüklenemedi';
 
   @override
-  String get p04FeedErrBody =>
-      'Bağlantınızı kontrol edin veya çevrimdışı önbelleğe göz atın.';
+  String get p04FeedErrBody => 'Bağlantını kontrol edip tekrar dene.';
 
   @override
   String get p09ForwardDirect => 'Bireysel sohbet';
