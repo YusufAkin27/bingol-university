@@ -120,7 +120,45 @@ public class ProdSettingsValidator {
         if (!hasFcmCredentials(env)) {
             warnings.add("FCM kimlik bilgisi yok: push bildirimleri gonderilmez (uygulama ici bildirimler calisir)");
         }
+        validateOpsWarnings(env, warnings);
         return new Result(errors, warnings);
+    }
+
+    /**
+     * Isletme UYARILARI (hata DEGIL, acilis engellenmez): uzak yedek, ikinci FULL yonetici, Sentry. Hepsi docker-compose.prod.yml'in
+     * backend'e ilettigi degiskenlerden okunur (BACKUP_REMOTE yedek servisiyle ayni degerdir).
+     */
+    static void validateOpsWarnings(Environment env, List<String> warnings) {
+        // A8-01: yedekler yalniz sunucu diskindeyse disk/sunucu kaybi = tum yedeklerin kaybi (tek hata noktasi)
+        if (!notBlank(env, "BACKUP_REMOTE")) {
+            warnings.add("BACKUP_REMOTE bos: yedekler YALNIZ sunucu diskinde; sunucu/disk kaybi tum yedekleri de yok eder. "
+                    + "Farkli saglayicida sifreli (rclone crypt) uzak hedef verin (docs/BACKUP_RESTORE.md bolum 11)");
+        }
+        // A14-17: tek FULL yonetici varken iki kisi onayi (FULL ata/dusur) kilitlenir; panelden ikinci FULL yaratilamaz
+        if (countAddresses(env.getProperty("app.admin.emails", "")) < 2) {
+            warnings.add("ADMIN_EMAILS en az 2 adres icermeli: tek FULL yonetici iken iki kisi onayi gerektiren "
+                    + "islemler (FULL ata/dusur) kilitlenir (docs/DEPLOY.md)");
+        }
+        // K-31: Sentry kullanilmayacaksa DSN bos kalmali; kullanilacaksa AB bolgesi + send-default-pii=false + tedarikci listesi
+        if (notBlank(env, "sentry.dsn")) {
+            warnings.add("SENTRY_DSN dolu: hata verisi ucuncu tarafa gider; AB bolgesi, send-default-pii=false ve "
+                    + "tedarikci/KVKK listesi dogrulanmali (docs/DEPLOY.md), kullanilmayacaksa bos birakin");
+        }
+    }
+
+    /** Virgullu adres listesindeki bos olmayan, tekrarsiz girdi sayisi (buyuk/kucuk harf duyarsiz). */
+    static int countAddresses(String csv) {
+        if (csv == null || csv.isBlank()) {
+            return 0;
+        }
+        java.util.Set<String> seen = new java.util.HashSet<>();
+        for (String part : csv.split(",")) {
+            String v = part.trim().toLowerCase(java.util.Locale.ROOT);
+            if (!v.isEmpty()) {
+                seen.add(v);
+            }
+        }
+        return seen.size();
     }
 
     /** FCM kimligi: dosya yolu ya da JSON (app.fcm.credentials-json / FCM_CREDENTIALS_JSON); FcmConfig ile ayni kaynaklar. */

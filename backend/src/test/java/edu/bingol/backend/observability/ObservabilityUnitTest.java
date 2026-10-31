@@ -19,6 +19,12 @@ class ObservabilityUnitTest {
     private static final ObservabilityProperties DEFAULTS = new ObservabilityProperties(1, 20, 10, 30, 80, 90, 3, 6,
             1000, 120, 26, 32, true, "", 60, "", 80, 90);
 
+    @Test
+    void alertEmailSubjectUsesCorrectBrandSpelling() {
+        // A9-03 / T-124: konu satiri kullaniciya gorunur; dogru yazim "BÜ Kampüs"
+        assertThat(SystemAlertService.alertSubject("3")).isEqualTo("[BÜ Kampüs] Sistem uyarısı (CRIT): 3 gösterge");
+    }
+
     // ---- esik kiyasi ----
 
     @Test

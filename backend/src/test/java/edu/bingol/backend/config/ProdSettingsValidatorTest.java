@@ -19,7 +19,9 @@ class ProdSettingsValidatorTest {
                 .withProperty("spring.mail.host", "smtp.example.com")
                 .withProperty("spring.mail.properties.mail.smtp.starttls.required", "true")
                 .withProperty("app.mail.unsubscribe-base-url", "https://kampus.bingol.edu.tr")
-                .withProperty("app.fcm.credentials-file", "/run/secrets/fcm.json");
+                .withProperty("app.fcm.credentials-file", "/run/secrets/fcm.json")
+                .withProperty("BACKUP_REMOTE", "s3crypt:bu-yedek")
+                .withProperty("app.admin.emails", "a@bingol.edu.tr,b@bingol.edu.tr");
     }
 
     @Test
@@ -139,5 +141,40 @@ class ProdSettingsValidatorTest {
         var r = ProdSettingsValidator.validate(valid().withProperty("app.crypto.master-keys",
                 "k1:q3Zr8mT1vJw0bN5xYc2LdF7sHkP9aUeGiOtR4yVn6Xs="));
         assertTrue(r.errors().isEmpty(), r.errors().toString());
+    }
+
+    // ---- W1-J (T-136 / T-153 / K-31): isletme uyarilari - hata DEGIL, acilisi engellemez ----
+
+    @Test
+    void emptyBackupRemoteWarnsButDoesNotFail() {
+        var r = ProdSettingsValidator.validate(valid().withProperty("BACKUP_REMOTE", ""));
+        assertTrue(r.errors().isEmpty(), r.errors().toString());
+        assertTrue(r.warnings().stream().anyMatch(w -> w.contains("BACKUP_REMOTE")), r.warnings().toString());
+        // ayar hic yokken de uyarir; tam ayarli ortamda uyari yoktur
+        assertTrue(ProdSettingsValidator.validate(new MockEnvironment()).warnings().stream()
+                .anyMatch(w -> w.contains("BACKUP_REMOTE")));
+        var ok = ProdSettingsValidator.validate(valid());
+        assertFalse(ok.warnings().stream().anyMatch(w -> w.contains("BACKUP_REMOTE")), ok.warnings().toString());
+    }
+
+    @Test
+    void fewerThanTwoAdminEmailsWarn() {
+        for (String v : new String[] {"", "  ", "a@bingol.edu.tr", "a@bingol.edu.tr, A@bingol.edu.tr ,", ",,"}) {
+            var r = ProdSettingsValidator.validate(valid().withProperty("app.admin.emails", v));
+            assertTrue(r.errors().isEmpty(), r.errors().toString());
+            assertTrue(r.warnings().stream().anyMatch(w -> w.contains("ADMIN_EMAILS")), "deger: '" + v + "' " + r.warnings());
+        }
+        var two = ProdSettingsValidator.validate(valid().withProperty("app.admin.emails", "a@x.edu.tr, b@x.edu.tr"));
+        assertFalse(two.warnings().stream().anyMatch(w -> w.contains("ADMIN_EMAILS")), two.warnings().toString());
+    }
+
+    @Test
+    void sentryDsnWarnsOnlyWhenSet() {
+        var on = ProdSettingsValidator.validate(valid().withProperty("sentry.dsn", "https://k@o1.ingest.sentry.io/1"));
+        assertTrue(on.errors().isEmpty());
+        assertTrue(on.warnings().stream().anyMatch(w -> w.contains("SENTRY_DSN")), on.warnings().toString());
+        assertFalse(on.warnings().toString().contains("ingest.sentry.io"), "DSN degeri uyariya yazilmamali");
+        var off = ProdSettingsValidator.validate(valid());
+        assertFalse(off.warnings().stream().anyMatch(w -> w.contains("SENTRY_DSN")));
     }
 }

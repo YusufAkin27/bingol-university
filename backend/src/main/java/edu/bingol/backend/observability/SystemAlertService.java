@@ -108,13 +108,18 @@ public class SystemAlertService {
         }
         String to = props.alertEmail();
         if (to != null && !to.isBlank()) {
-            String subject = "[BU Kampus] Sistem uyarisi (CRIT): " + count + " gosterge";
+            String subject = alertSubject(count);
             String plain = "CRIT gostergeler: " + summary + "\nAyrinti: yonetim paneli > Sistem durumu.";
             boolean sent = mail.sendRich(to.trim(), subject, plain, "<p>" + escape(plain).replace("\n", "<br>") + "</p>", null);
             if (!sent) {
                 log.warn("Sistem uyari e-postasi gonderilemedi ({})", LogMasking.email(to));
             }
         }
+    }
+
+    /** Kullaniciya gorunen e-posta konusu: marka yazimi "BÜ Kampüs". */
+    static String alertSubject(String count) {
+        return "[BÜ Kampüs] Sistem uyarısı (CRIT): " + count + " gösterge";
     }
 
     private static String escape(String s) {

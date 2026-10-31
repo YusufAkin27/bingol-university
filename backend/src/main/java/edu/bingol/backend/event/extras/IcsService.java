@@ -18,6 +18,8 @@ import org.springframework.transaction.annotation.Transactional;
 public class IcsService {
 
     static final int MAX_EVENTS = 500;
+    /** Kullaniciya gorunen takvim adi (marka yazimi). */
+    static final String CALENDAR_NAME = "BÜ Kampüs";
 
     private final EventService events;
     private final EventIcsRepository repo;
@@ -39,6 +41,6 @@ public class IcsService {
         List<UserEvent> rows = repo.going(a.id(), now.minus(Duration.ofDays(30)), UserEvent.Status.ACTIVE,
                 EventRsvp.Status.GOING, Community.Status.ACTIVE, Community.Visibility.PUBLIC,
                 CommunityMember.Status.ACTIVE, PageRequest.of(0, MAX_EVENTS));
-        return IcsWriter.calendar("BU Kampus", rows, now);
+        return IcsWriter.calendar(CALENDAR_NAME, rows, now);
     }
 }
