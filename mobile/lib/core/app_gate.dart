@@ -124,7 +124,7 @@ class _AppGateState extends State<AppGate> with WidgetsBindingObserver {
 
   /// Çevrimdışından çıkıldı: bakım/sürüm bilgisi bir kez tazelenir (olay tabanlı, yoklama yok).
   void _onReconnect() {
-    if (mounted) _check();
+    if (mounted) _check(force: true);
   }
 
   @override
@@ -139,30 +139,31 @@ class _AppGateState extends State<AppGate> with WidgetsBindingObserver {
     if (s == AppLifecycleState.resumed) {
       widget.api.outbox?.nudge(); // bekleyen mesajlar hemen denenir
       final last = _lastCheck;
-      if (last == null || DateTime.now().difference(last) >= _minGap) _check();
+      if (last == null || DateTime.now().difference(last) >= _minGap) _check(force: true);
       Analytics.instance.appOpen();
     } else if (s == AppLifecycleState.paused) {
       Analytics.instance.flush();
     }
   }
 
-  Future<Map<String, dynamic>?> _getMap(String path) async {
+  Future<Map<String, dynamic>?> _getMap(String path, {bool force = false}) async {
     try {
-      final r = await widget.api.get(path);
+      final r = await widget.api.get(path, force: force);
       return r is Map<String, dynamic> ? r : null;
     } catch (e) {
       return null; // Ağ yoksa uygulama çalışmaya devam eder (sessizce).
     }
   }
 
-  Future<void> _check() async {
+  /// [force]: bağlantı dönüşü / öne gelişte taze pencere yok sayılır (ilk açılışta ana sayfayla paylaşılan yanıt yeterli).
+  Future<void> _check({bool force = false}) async {
     if (_checking) return;
     _checking = true;
     _lastCheck = DateTime.now();
     try {
       final r = await Future.wait([
-        _getMap('/app/version?platform=${DeviceIdentity.platform == 'ios' ? 'ios' : 'android'}&version=${Uri.encodeQueryComponent(appVersion)}'),
-        _getMap('/app/info'),
+        _getMap('/app/version?platform=${DeviceIdentity.platform == 'ios' ? 'ios' : 'android'}&version=${Uri.encodeQueryComponent(appVersion)}', force: force),
+        _getMap('/app/info', force: force),
       ]);
       // Ağ yokken zorunlu güncelleme kapısı kendiliğinden açılmasın: önceki karar korunur.
       if (r[0] == null && r[1] == null && _d.kind == GateKind.updateRequired) return;
@@ -201,7 +202,7 @@ class _AppGateState extends State<AppGate> with WidgetsBindingObserver {
   Widget build(BuildContext context) {
     final child = widget.child ?? const SizedBox.shrink();
     if (_d.kind == GateKind.updateRequired) {
-      return UpdateRequiredScreen(storeUrl: _d.storeUrl, latest: _d.latest, current: appVersion, onRetry: _check);
+      return UpdateRequiredScreen(storeUrl: _d.storeUrl, latest: _d.latest, current: appVersion, onRetry: () => _check(force: true));
     }
     final l = context.l10n;
     final strips = <Widget>[

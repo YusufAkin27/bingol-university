@@ -114,9 +114,9 @@ void main() {
   group('ApiClient dayaniklilik', () {
     ApiClient make(http.Client c) => ApiClient(client: c, retryDelay: Duration.zero);
 
-    test('gecersiz UTF-8 gövde istisna sızdırmaz', () async {
+    test('gecersiz UTF-8 gövde istisna sızdırmaz: JSON olmayan 2xx BAD_RESPONSE ApiError olur (W1-G T-086)', () async {
       final api = make(MockClient((r) async => http.Response.bytes([0xff, 0xfe, 0x7b], 200)));
-      expect(await api.get('/x'), isNull);
+      await expectLater(api.get('/x'), throwsA(isA<ApiError>().having((e) => e.code, 'code', 'BAD_RESPONSE')));
     });
 
     test('bozuk JSON hata gövdesi ApiError olur', () async {

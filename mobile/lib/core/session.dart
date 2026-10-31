@@ -14,6 +14,7 @@ import 'nav.dart';
 import 'pending_verification.dart';
 import '../features/legal/legal_reaccept.dart';
 import 'realtime/chat_realtime.dart';
+import 'secure_store.dart';
 
 enum SessionState { loading, signedOut, signedIn }
 
@@ -52,7 +53,7 @@ class Session extends ChangeNotifier {
   /// Bu cihazın FCM jetonu (PushService bağlar). Çıkış isteğine eklenir: erişim jetonu süresi dolmuş olsa bile
   /// sunucu cihaz kaydını siler ve çıkış yapan kullanıcının bildirimi telefonda kalmaz.
   String? Function()? pushToken;
-  final _storage = const FlutterSecureStorage();
+  final FlutterSecureStorage _storage = kDeviceSecureStorage;
 
   /// Başka cihazda giriş yapıldı bilgisi: giriş ekranında bir kez gösterilir, kapatılınca silinir.
   final replacedNotice = ValueNotifier<bool>(false);
@@ -89,14 +90,33 @@ class Session extends ChangeNotifier {
   /// ve profil düzenleme fotoğraf değişince günceller; çıkışta temizlenir. Null: fotoğraf yok (varsayılan görsel).
   final avatarUrl = ValueNotifier<String?>(null);
 
+  /// Çıkışta belirteçler silinemediyse bırakılan işaret (bkz. [_persistNow]): sonraki açılışta oturum AÇILMAZ.
+  static const _signedOutKey = 'signed_out';
+  bool _signedOutMarker = false;
+
+  /// Açılışta kayıtlı oturumu yükler. Belirteç varsa kabuk HEMEN açılır (state signedIn); `/auth/me` arka planda
+  /// yenilenir ve oturum yalnız KESİN yetki reddinde (401, geçersiz refresh, askı) kapanır. Böylece kötü ağda
+  /// splash `/auth/me` yanıtını beklemez.
   Future<void> restore() async {
     try {
-      final a = await _storage.read(key: 'access');
-      final r = await _storage.read(key: 'refresh');
-      if (a != null && r != null) {
-        api.tokens = Tokens(a, r);
+      final r = await Future.wait([
+        _storage.read(key: 'access'),
+        _storage.read(key: 'refresh'),
+        _storage.read(key: _signedOutKey),
+      ]);
+      final a = r[0], rf = r[1];
+      if (r[2] == '1') {
+        // Önceki çıkışta silme başarısız olmuştu: belirteçleri bir kez daha silmeyi dene, oturumsuz başla.
+        _signedOutMarker = true;
+        await _persistNow(null);
+        _set(SessionState.signedOut);
+        return;
+      }
+      if (a != null && rf != null) {
+        api.tokens = Tokens(a, rf);
         userId ??= jwtSubjectId(a); // çevrimdışı açılışta /auth/me gelmese de sohbet kendi mesajlarını doğru çizer
-        await _loadMe();
+        _set(SessionState.signedIn);
+        unawaited(_loadMe());
         return;
       }
     } catch (_) {
@@ -116,8 +136,9 @@ class Session extends ChangeNotifier {
       await _fetchMe();
       _set(SessionState.signedIn);
     } on ApiError catch (e) {
-      if (e.code == 'SESSION_REPLACED') {
-        // forceSignOut zaten başlatıldı (bilgi bandıyla giriş ekranına düşer).
+      if (e.code == 'SESSION_REPLACED' || e.code == 'SESSION_CHANGED') {
+        // forceSignOut zaten başlatıldı (bilgi bandıyla giriş ekranına düşer) ya da oturum bu arada kapandı/değişti:
+        // eski oturumun yanıtı durumu geri "açık" yapmasın.
         return;
       }
       if (e.isAuthRejected) {
@@ -160,7 +181,7 @@ class Session extends ChangeNotifier {
             await signOut(remote: false);
             return;
           }
-          if (e.code == 'SESSION_REPLACED') return;
+          if (e.code == 'SESSION_REPLACED' || e.code == 'SESSION_CHANGED') return;
         } catch (_) {}
       }
     } finally {
@@ -345,14 +366,52 @@ class Session extends ChangeNotifier {
     await _loadMe();
   }
 
-  Future<void> _persist(Tokens? t) async {
+  // Tembel: kurucu anında Future üretilmez (testlerde FakeAsync bölgesi ile runAsync bölgesi karışmasın).
+  Future<void>? _persistChain;
+
+  /// Belirteç yazma/silme işlemleri TEK sıraya dizilir: çıkıştaki silme, kendinden önce başlamış bir yenileme
+  /// yazmasının ardından çalışır (sıra bozulup çıkış yapılmış oturumun diske geri yazılması olmaz).
+  Future<void> _persist(Tokens? t) {
+    final prev = _persistChain;
+    late Future<void> f;
+    // Boştaysa yazma hemen başlar; doluysa öncekinin ardına eklenir.
+    f = (prev == null ? _persistNow(t) : prev.then((_) => _persistNow(t))).whenComplete(() {
+      if (identical(_persistChain, f)) _persistChain = null;
+    });
+    return _persistChain = f;
+  }
+
+  Future<void> _persistNow(Tokens? t) async {
+    if (t == null) {
+      // Silme başarısız olursa (Keychain/Keystore geçici hatası) kısa aralıklarla yeniden denenir; yine olmazsa
+      // "çıkış yapıldı" işareti bırakılır ve sonraki açılış kayıtlı belirteçle otomatik giriş YAPMAZ.
+      for (var attempt = 0; attempt < 3; attempt++) {
+        try {
+          await _storage.delete(key: 'access');
+          await _storage.delete(key: 'refresh');
+          if (_signedOutMarker) {
+            try {
+              await _storage.delete(key: _signedOutKey);
+            } catch (_) {}
+            _signedOutMarker = false;
+          }
+          return;
+        } catch (_) {
+          if (attempt < 2) await Future<void>.delayed(Duration(milliseconds: 150 * (attempt + 1)));
+        }
+      }
+      try {
+        await _storage.write(key: _signedOutKey, value: '1');
+        _signedOutMarker = true;
+      } catch (_) {}
+      return;
+    }
     try {
-      if (t == null) {
-        await _storage.delete(key: 'access');
-        await _storage.delete(key: 'refresh');
-      } else {
-        await _storage.write(key: 'access', value: t.access);
-        await _storage.write(key: 'refresh', value: t.refresh);
+      await _storage.write(key: 'access', value: t.access);
+      await _storage.write(key: 'refresh', value: t.refresh);
+      if (_signedOutMarker) {
+        await _storage.delete(key: _signedOutKey); // yeni giriş: eski çıkış işareti geçersiz
+        _signedOutMarker = false;
       }
     } catch (_) {
       // Depo yazılamazsa oturum yalnızca bellekte kalır.

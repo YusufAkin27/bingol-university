@@ -43,11 +43,15 @@ class CachePolicy {
   /// takvim/sınav, favori, profil) için TANIMSIZ: her açılışta doğrulanır.
   static const dailyFresh = Duration(minutes: 20);
 
+  /// Uygulama bilgisi (bakım bandı, duyuru): kısa pencere. Kapı bağlantı dönüşünde/öne gelişte `force` ile yeniler.
+  static const appInfoFresh = Duration(minutes: 2);
+
   static final List<(RegExp, Duration)> _fresh = [
     (RegExp(r'^/catalog/'), staticFresh),
     (RegExp(r'^/faq($|/)'), staticFresh),
     (RegExp(r'^/legal($|/(?!acceptance-status))'), staticFresh), // onay durumu canlı: her seferinde sorulur
     (RegExp(r'^/communities/categories$'), staticFresh),
+    (RegExp(r'^/app/info$'), appInfoFresh), // açılış kapısı ve ana sayfa aynı bilgiyi art arda çekmesin
     (RegExp(r'^/menu($|/)'), dailyFresh),
     (RegExp(r'^/news($|/)'), dailyFresh),
     (RegExp(r'^/events/(featured|calendar)$'), dailyFresh),

@@ -143,7 +143,22 @@ class ApiClient {
   final http.Client _http;
   String lang = 'tr';
 
-  Tokens? tokens;
+  Tokens? _tokens;
+
+  /// Oturum nesli: çıkış / ilk giriş (belirteç yok <-> var geçişi) her seferinde artar, belirteç YENİLEMEDE artmaz.
+  /// Her istek başlangıçta nesli yakalar; yanıt geldiğinde nesil değiştiyse (çıkış, hesap değişimi) yanıt önbelleğe
+  /// yazılmaz ve çağırana `SESSION_CHANGED` hatası döner (önceki kullanıcının verisi yeni hesaba sızmasın).
+  int _gen = 0;
+
+  /// Geçerli oturum nesli (testler ve yarış korumaları için).
+  int get sessionGen => _gen;
+
+  Tokens? get tokens => _tokens;
+  set tokens(Tokens? v) {
+    if ((v == null) != (_tokens == null)) _gen++;
+    _tokens = v;
+  }
+
   Future<void> Function(Tokens?)? onTokensChanged;
   void Function()? onSessionExpired;
 
@@ -270,13 +285,30 @@ class ApiClient {
   /// [force]: kullanıcı çekip yeniledi; taze önbellek süresi yok sayılıp ağdan doğrulanır (ETag/304 yine geçerli).
   Future<dynamic> get(String path, {bool force = false}) async => (await getResponse(path, force: force)).body;
 
+  /// Uçuştaki GET'ler (tek uçuş): aynı oturum nesli + dil + yol için eşzamanlı çağrılar tek ağ isteğini paylaşır
+  /// (açılışta kabuk ve ana sayfa aynı `/me/summary`'yi iki kez çekmesin). `force` ayrı istektir.
+  final _flightGets = <String, Future<ApiResponse>>{};
+
   /// Başlıklara da ihtiyaç duyan GET'ler için (sayfalama imleci vb.).
-  Future<ApiResponse> getResponse(String path, {bool force = false}) => _sendFull('GET', path, force: force);
+  Future<ApiResponse> getResponse(String path, {bool force = false}) {
+    if (force) return _sendFull('GET', path, force: true);
+    final key = '$_gen|${_cacheKey(path, _tokens != null)}';
+    final shared = _flightGets[key];
+    if (shared != null) return shared;
+    late Future<ApiResponse> f;
+    f = _sendFull('GET', path).whenComplete(() {
+      if (identical(_flightGets[key], f)) _flightGets.remove(key);
+    });
+    return _flightGets[key] = f;
+  }
 
   /// Yetkili ikili GET (ör. tek gösterimlik görsel). Önbelleğe ALINMAZ ve ağ hatasında YENİDEN DENENMEZ:
   /// ilk başarılı istek içeriği tüketebilir. Yalnız 401'de bir kez yenileyip tekrar dener (içerik henüz sunulmadı).
   /// 2xx dışında `{code,message}` gövdesinden [ApiError] fırlatır.
-  Future<List<int>> getBytes(String path, {bool retried = false}) async {
+  Future<List<int>> getBytes(String path, {bool retried = false, int? gen}) async {
+    await _deviceReady();
+    final g = gen ?? _gen;
+    _ensureGen(g);
     final req = http.Request('GET', Uri.parse('$apiBase$path'));
     _baseHeaders(req);
     req.headers['Accept'] = 'image/*, application/json';
@@ -286,10 +318,12 @@ class ApiClient {
     try {
       res = await _fetch(req);
     } catch (_) {
+      _ensureGen(g);
       connectivity.reportFailure();
       _hintNetwork(path);
       throw ApiError(0, 'NETWORK', '');
     }
+    _ensureGen(g); // çıkış / hesap değişimi sırasında dönen yanıt yeni oturuma verilmez
     if (_checkReplaced(res)) _decode(res); // ApiError(SESSION_REPLACED) fırlatır
     if (res.statusCode == 401 && t != null && !retried) {
       try {
@@ -298,7 +332,7 @@ class ApiClient {
         handleRefreshFailure(e);
         rethrow;
       }
-      return getBytes(path, retried: true);
+      return getBytes(path, retried: true, gen: g);
     }
     if (res.statusCode >= 200 && res.statusCode < 300) return res.bodyBytes;
     _decode(res); // hata gövdesinden ApiError fırlatır
@@ -317,8 +351,24 @@ class ApiClient {
   Future<dynamic> _send(String method, String path, {Object? body, bool auth = true}) async =>
       (await _sendFull(method, path, body: body, auth: auth)).body;
 
+  /// Oturum nesli [g]'den farklıysa (çıkış / hesap değişimi) isteği iptal eder: yanıt yeni oturuma verilmez.
+  void _ensureGen(int g) {
+    if (g != _gen) throw ApiError(0, 'SESSION_CHANGED', '');
+  }
+
+  /// Cihaz kimliği açılışta okunurken (main) ilk istek atılmasın; hazırsa hiç beklemez.
+  Future<void> _deviceReady() => DeviceIdentity.instance.isReady ? Future<void>.value() : DeviceIdentity.instance.ready;
+
   Future<ApiResponse> _sendFull(String method, String path,
-      {Object? body, bool auth = true, bool retried = false, bool retriedTransient = false, bool force = false}) async {
+      {Object? body,
+      bool auth = true,
+      bool retried = false,
+      bool retriedTransient = false,
+      bool force = false,
+      int? gen}) async {
+    if (!DeviceIdentity.instance.isReady) await DeviceIdentity.instance.ready;
+    final g = gen ?? _gen;
+    _ensureGen(g);
     final isGet = method == 'GET';
     final req = http.Request(method, Uri.parse('$apiBase$path'));
     _baseHeaders(req);
@@ -334,6 +384,7 @@ class ApiClient {
     final cacheKey = _cacheKey(path, authed);
     final diskTtl = isGet && diskCache != null ? CachePolicy.diskTtl(path) : null;
     final cached = isGet ? await _lookup(cacheKey, path) : null;
+    _ensureGen(g);
     // Taze önbellek: ağa hiç gidilmez (günlük/sabit veri her ekran açılışında yeniden çekilmesin).
     if (isGet && !force && cached != null && _isFresh(path, cached)) {
       _putMemory(cacheKey, cached); // LRU'da en yeni
@@ -349,10 +400,11 @@ class ApiClient {
       res = await _fetch(req, timeout: haveStale ? _staleTimeout : _timeout);
     } catch (e) {
       if (e is ApiError) rethrow; // örn. RESPONSE_TOO_LARGE: yeniden denemenin anlamı yok
+      _ensureGen(g);
       if (isGet && !retriedTransient && !haveStale) {
         await Future<void>.delayed(retryDelay);
         return _sendFull(method, path,
-            body: body, auth: auth, retried: retried, retriedTransient: true);
+            body: body, auth: auth, retried: retried, retriedTransient: true, gen: g);
       }
       connectivity.reportFailure();
       _hintNetwork(path);
@@ -360,11 +412,12 @@ class ApiClient {
       if (method == 'POST') outbox?.captureRequest(path, body);
       throw ApiError(0, 'NETWORK', '');
     }
-    connectivity.reportSuccess();
+    // Çıkış / hesap değişimi sırasında dönen yanıt: önbelleğe yazılmaz, yeni oturuma verilmez.
+    _ensureGen(g);
 
     if (isGet && !retriedTransient && (res.statusCode == 502 || res.statusCode == 503 || res.statusCode == 504)) {
       await Future<void>.delayed(retryDelay);
-      return _sendFull(method, path, body: body, auth: auth, retried: retried, retriedTransient: true);
+      return _sendFull(method, path, body: body, auth: auth, retried: retried, retriedTransient: true, gen: g);
     }
     if (haveStale && res.statusCode >= 500) return _staleResponse(cached);
 
@@ -377,10 +430,12 @@ class ApiClient {
         handleRefreshFailure(e);
         rethrow;
       }
-      return _sendFull(method, path, body: body, auth: auth, retried: true, retriedTransient: retriedTransient);
+      return _sendFull(method, path,
+          body: body, auth: auth, retried: true, retriedTransient: retriedTransient, gen: g);
     }
 
     if (isGet && res.statusCode == 304 && cached != null) {
+      connectivity.reportSuccess();
       // Sunucu "değişmedi" dedi: doğrulama anı tazelenir, en yeni kullanılan sona alınır.
       final fresh = _CacheEntry(cached.etag, cached.body, cached.headers,
           cachedAt: DateTime.now(), bytes: cached.bytes);
@@ -388,9 +443,18 @@ class ApiClient {
       if (diskTtl != null) unawaited(diskCache!.touch(cacheKey, diskTtl));
       return ApiResponse(cached.body, cached.headers);
     }
-    final decoded = res.statusCode == 200 && res.bodyBytes.length > isolateDecodeBytes
-        ? await _decodeLarge(res)
-        : _decode(res);
+    final dynamic decoded;
+    try {
+      decoded = res.statusCode == 200 && res.bodyBytes.length > isolateDecodeBytes
+          ? await _decodeLarge(res)
+          : _decode(res);
+    } on ApiError catch (e) {
+      // 4xx: sunucuya ulaşıldı (JSON hata gövdesi). Ağ geçidi / 5xx / portal HTML'i "çevrimiçi" sayılmaz.
+      if (e.status >= 400 && e.status < 500 && !_isHtml(res)) connectivity.reportSuccess();
+      rethrow;
+    }
+    _ensureGen(g); // büyük gövde ayrı izolatta çözülürken oturum değişmiş olabilir
+    connectivity.reportSuccess();
     if (!isGet && res.statusCode >= 200 && res.statusCode < 300) {
       _invalidatedAt[_segment(path)] = DateTime.now();
       if (method == 'POST' && RegExp(r'^/users/\d+/block$').hasMatch(path)) {
@@ -399,7 +463,8 @@ class ApiClient {
         }
       }
     }
-    if (isGet && res.statusCode == 200) {
+    // Boş (null) gövde önbelleğe yazılmaz: yalnız çözülmüş JSON saklanır.
+    if (isGet && res.statusCode == 200 && decoded != null) {
       final tag = res.headers['etag'];
       if (tag != null && tag.isNotEmpty) {
         _putMemory(cacheKey, _CacheEntry(tag, decoded, res.headers,
@@ -455,17 +520,27 @@ class ApiClient {
 
   static dynamic _parseJson(List<int> bytes) => jsonDecode(utf8.decode(bytes, allowMalformed: true));
 
+  /// Captive portal / proxy HTML sayfası (200 ile gelse de API yanıtı değildir).
+  static bool _isHtml(http.Response res) => (res.headers['content-type'] ?? '').toLowerCase().contains('text/html');
+
   dynamic _decode(http.Response res) {
     final text = utf8.decode(res.bodyBytes, allowMalformed: true);
+    final success = res.statusCode >= 200 && res.statusCode < 300;
     dynamic json;
+    var parsed = text.isEmpty;
     if (text.isNotEmpty) {
       try {
         json = jsonDecode(text);
+        parsed = true;
       } catch (_) {
         json = null;
       }
     }
-    if (res.statusCode >= 200 && res.statusCode < 300) return json;
+    if (success) {
+      // JSON olmayan 2xx gövde (captive portal, proxy, bozuk yanıt) başarı sayılmaz ve önbelleğe girmez.
+      if (!parsed || _isHtml(res)) throw ApiError(0, 'BAD_RESPONSE', '');
+      return json;
+    }
     final retryAfter = int.tryParse((res.headers['retry-after'] ?? '').trim());
     if (json is Map && json['code'] is String) {
       final code = json['code'] as String;
@@ -486,16 +561,26 @@ class ApiClient {
   /// Geçici yenileme hatasında ek deneme sayısı (kısa, artan gecikmeyle).
   static const _refreshRetries = 2;
 
-  /// Refresh token tek kullanımlıktır: eşzamanlı çağrılar aynı isteği paylaşır.
-  Future<Tokens> refresh() => _inflight ??= _doRefresh().whenComplete(() => _inflight = null);
+  /// Refresh token tek kullanımlıktır: eşzamanlı çağrılar aynı isteği paylaşır. Çıkış / hesap değişiminde uçuştaki
+  /// yenileme bırakılır (yeni oturum eskisine bağlanmaz).
+  Future<Tokens> refresh() {
+    final existing = _inflight;
+    if (existing != null) return existing;
+    late Future<Tokens> f;
+    f = _doRefresh().whenComplete(() {
+      if (identical(_inflight, f)) _inflight = null;
+    });
+    return _inflight = f;
+  }
 
   Future<Tokens> _doRefresh() async {
     final old = tokens?.refresh;
     if (old == null) throw ApiError(401, 'INVALID_REFRESH_TOKEN', '');
+    final g = _gen;
     dynamic res;
     for (var attempt = 0;; attempt++) {
       try {
-        res = await _sendRaw('/auth/refresh', {'refreshToken': old});
+        res = await _sendRaw('/auth/refresh', {'refreshToken': old}, gen: g);
         break;
       } on ApiError catch (e) {
         // Yalnız sunucu tarafı geçici hatalar (5xx/429/408) yeniden denenir; ağ hatası zaten
@@ -507,23 +592,30 @@ class ApiClient {
       }
     }
     final t = Tokens.fromJson(res);
+    // Yenileme sürerken çıkış / hesap değişimi olduysa sonuç atılır: çıkış yapılmış oturum geri yazılmaz.
+    _ensureGen(g);
+    if (_tokens == null) throw ApiError(0, 'SESSION_CHANGED', '');
     await setTokens(t); // önce yeni çifti yaz
     return t;
   }
 
-  Future<dynamic> _sendRaw(String path, Object body) => _send('POST', path, body: body, auth: false);
+  Future<dynamic> _sendRaw(String path, Object body, {int? gen}) async =>
+      (await _sendFull('POST', path, body: body, auth: false, gen: gen)).body;
 
   Future<void> setTokens(Tokens? t) async {
     // Kullanıcı değişimi/çıkışta önbellek sızmasın (yenilemede korunur).
-    if (t == null || tokens == null) {
+    if (t == null || _tokens == null) {
+      if (t != null || _tokens != null) _gen++; // gerçek oturum geçişi: uçuştaki istekler/yenilemeler yok sayılır
+      _inflight = null;
+      _flightGets.clear();
       clearCache(); // bellek + disk
       final ob = outbox;
       if (ob != null) unawaited(ob.clear()); // bekleyen mesajlar başka hesaba sızmasın
       for (final f in List.of(onUserDataCleared)) {
-        unawaited(f().catchError((Object _) {})); // mesaj kaydı, görsel önbelleği...
+        unawaited(f().catchError((Object _) {})); // mesaj kaydı, görsel önbelleği, arama geçmişi...
       }
     }
-    tokens = t;
+    _tokens = t;
     await onTokensChanged?.call(t);
   }
 }

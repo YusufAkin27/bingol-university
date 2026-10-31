@@ -15,6 +15,8 @@ import 'core/cache/disk_cache.dart';
 import 'core/cache/image_disk_cache.dart';
 import 'core/cache/message_cache.dart';
 import 'core/connectivity/connectivity_service.dart';
+import 'core/language_sync.dart';
+import 'core/user_data.dart';
 import 'core/crash/crash_reporter.dart';
 import 'core/outbox/outbox.dart';
 import 'core/outbox/outbox_uploader.dart';
@@ -108,9 +110,11 @@ Future<void> _bootstrap() async {
   // Push: Firebase + arka plan/kapalı işleyicisi oturumdan bağımsız, runApp'ten önce kaydedilir (bkz. PushService.prepare).
   unawaited(PushService.prepare());
   unawaited(ErrorLog.instance.init());
-  await CrashReporter.instance.init(); // ayar + bekleyen raporlar (hata fırlatmaz)
-  await DeviceIdentity.instance.load(); // hata fırlatmaz; ilk istekten önce cihaz kimliği hazır
-  await FreshInstallGuard.run(); // iOS: yeniden kurulumda Keychain'de kalan eski oturum jetonlarını siler (Session.restore'dan önce)
+  // Açılış okumaları (güvenli depo/dosya) SERİ değil PARALEL başlar. Cihaz kimliği runApp'i beklemez ama ApiClient
+  // kimlik hazır olmadan HİÇBİR istek atmaz (bkz. DeviceIdentity.ready); iOS yeniden-kurulum temizliği Session.restore'dan önce biter.
+  unawaited(DeviceIdentity.instance.load()); // hata fırlatmaz
+  final freshInstall = FreshInstallGuard.run(); // iOS: yeniden kurulumda Keychain'de kalan eski oturum/kuyruk kayıtlarını siler
+  final crashInit = CrashReporter.instance.init(); // ayar + bekleyen raporlar (hata fırlatmaz)
   final connectivity = ConnectivityService.instance;
   final api = ApiClient(diskCache: DiskCache(), connectivity: connectivity);
   final outbox = Outbox();
@@ -122,32 +126,33 @@ Future<void> _bootstrap() async {
   final session = Session(api);
   _wireOfflineStorage(api, outbox, session);
   final theme = ThemeController();
-  unawaited(theme.load());
   final localeCtl = LocaleController(onResolved: (c) => session.api.lang = c);
   LocaleController.current = localeCtl;
-  unawaited(localeCtl.load());
   Analytics.instance.attach(session);
   final push = PushService(session);
   final hooks = AppLifecycleHooks.instance;
   hooks.onSignedIn.add((_) => push.onSignedIn()); // restore sonrası oturum açıksa bir kez tetiklenir
   hooks.onSignedIn.add((_) => outbox.load()); // bekleyen mesajlar yüklenir ve gönderilir (oturum açıkken)
   hooks.onSignedOut.add((_) => push.onSignedOut());
-  // Sunucu profil dili uygulama diliyle eşitlenir (bildirim/e-posta dili).
-  hooks.onSignedIn.add((_) async {
-    try {
-      await session.api.patch('/users/me', {'language': localeCtl.locale.languageCode});
-    } catch (_) {}
-  });
+  // Sunucu profil dili (bildirim/e-posta dili) uygulama diliyle eşitlenir; yalnız DEĞİŞİNCE (her açılışta istek yok).
+  hooks.onSignedIn.add((_) => LanguageSync.sync(session.api, session.userId, localeCtl.locale.languageCode));
   session.beforeSignOut.add(push.onSignedOut); // cihaz kaydı, token geçerliyken silinir
   hooks.attach(session);
-  unawaited(session.restore());
+  // Oturum geri yüklemesi iOS temizliğinden sonra başlar ama runApp'i BEKLETMEZ (splash görünür).
+  unawaited(() async {
+    await freshInstall;
+    await session.restore();
+  }());
+  // Tema ve dil ilk karede doğru olsun (yanıp sönme yok): paralel yüklenir, runApp yalnız bunları bekler.
+  await Future.wait([theme.load(), localeCtl.load(), crashInit]);
   runApp(BingolApp(session: session, themeController: theme, push: push, localeController: localeCtl));
 }
 
 /// Çevrimdışı depolama bağları (hepsi olay tabanlı, yoklama yok):
 /// - bekleyen mesajlar: bağlantı geri gelince (ConnectivityService), STOMP yeniden bağlanınca ve uygulama öne gelince gider;
 /// - STOMP'tan gelen/giden mesajlar kaydı olan sohbetlere eklenir, herkes için silinenler kayıtta iskelete iner;
-/// - çıkış/hesap değişimi/silme: mesaj kaydı + görsel önbelleği silinir (ApiClient.setTokens(null));
+/// - çıkış/hesap değişimi/silme: mesaj kaydı, görsel önbelleği, arama geçmişi, otomatik kayıt ayarı, hatırlatıcılar silinir
+///   (ApiClient.setTokens(null) -> registerUserDataCleaners);
 /// - arka plana giderken geciktirilmiş yazımlar diske boşaltılır; çözümlenmiş görsel belleği tavanlanır.
 void _wireOfflineStorage(ApiClient api, Outbox outbox, Session session) {
   outbox.uploader = outboxUploaderFor(session);
@@ -164,9 +169,7 @@ void _wireOfflineStorage(ApiClient api, Outbox outbox, Session session) {
     });
     rt.deletedMessages.listen((e) => unawaited(MessageCache.instance.markGone(e.conversationId, e.messageId)));
   }
-  api.onUserDataCleared
-    ..add(MessageCache.instance.clear)
-    ..add(ImageDiskCache.instance.clear);
+  registerUserDataCleaners(api); // çıkışta kullanıcıya özel TÜM yerel depolar (bkz. core/user_data.dart)
   api.onBlockedUser.add(MessageCache.instance.clear);
   applyImageCacheLimits();
   CacheLifecycleFlusher([

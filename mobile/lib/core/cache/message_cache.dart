@@ -50,6 +50,10 @@ class MessageCache {
   final Set<int> _dirty = {};
   bool _listDirty = false;
   bool _cleared = false;
+
+  /// Kuşak: [clear] her çağrıda artar. Temizlemeden ÖNCE sıraya girmiş bir disk yüklemesi, bittiğinde kuşak
+  /// değiştiyse sonucunu bellekte saklamaz (çıkış yapan kullanıcının mesajları geri gelmesin).
+  int _gen = 0;
   Timer? _timer;
   // Tembel: kurucu anında Future üretilmez (testlerde setUp bölgesi ile FakeAsync bölgesi karışmasın).
   Future<void>? _queue;
@@ -127,11 +131,16 @@ class MessageCache {
   Future<List<Map<String, dynamic>>> readMessages(int cid) async {
     final mem = _mem[cid];
     if (mem != null) return [for (final m in mem) Map<String, dynamic>.from(m)];
+    final gen = _gen;
     final loaded = await _run<List<Map<String, dynamic>>?>(() => _loadConv(cid), null);
-    if (loaded == null) return const [];
+    if (loaded == null || gen != _gen) return const []; // temizleme yarıştı: eski veri bellekte kalmaz
     _mem.putIfAbsent(cid, () => loaded);
     return [for (final m in _mem[cid]!) Map<String, dynamic>.from(m)];
   }
+
+  /// Yazılan kayıt şeması sürümü. Okuma yalnız bu sürümü kabul eder; farklı sürüm / tip-bozuk kayıt silinir
+  /// (önbellek yalnız hızlandırıcıdır, ağdan yeniden dolar) — sohbet kalıcı olarak açılmaz hâle gelmesin.
+  static const schemaVersion = 1;
 
   Future<List<Map<String, dynamic>>?> _loadConv(int cid) async {
     final f = _file('c$cid.json');
@@ -139,11 +148,13 @@ class MessageCache {
     try {
       final j = jsonDecode(await f.readAsString());
       final raw = j is Map ? j['m'] : null;
-      if (raw is! List) return null;
-      return [
-        for (final e in raw)
-          if (e is Map) Map<String, dynamic>.from(e),
-      ];
+      if (j is! Map || j['v'] != schemaVersion || raw is! List) throw const FormatException('schema');
+      final out = <Map<String, dynamic>>[];
+      for (final e in raw) {
+        if (e is! Map || e['id'] is! num) throw const FormatException('message');
+        out.add(Map<String, dynamic>.from(e));
+      }
+      return out;
     } catch (_) {
       try {
         await f.delete();
@@ -176,39 +187,49 @@ class MessageCache {
   /// Gelen/gönderilen tek mesajı (STOMP) kaydı olan bir sohbete ekler/günceller. Kaydı olmayan sohbete
   /// dokunmaz (yalnız açılmış sohbetler saklanır).
   Future<void> upsertMessage(int cid, Map<String, dynamic> msg) async {
-    var cur = _mem[cid];
-    if (cur == null) {
-      final loaded = await _run<List<Map<String, dynamic>>?>(() => _loadConv(cid), null);
-      if (loaded == null) return;
-      cur = _mem.putIfAbsent(cid, () => loaded);
+    try {
+      var cur = _mem[cid];
+      if (cur == null) {
+        final gen = _gen;
+        final loaded = await _run<List<Map<String, dynamic>>?>(() => _loadConv(cid), null);
+        if (loaded == null || gen != _gen) return;
+        cur = _mem.putIfAbsent(cid, () => loaded);
+      }
+      _mem[cid] = _normalize([...cur, msg]);
+      _dirty.add(cid);
+      _schedule();
+    } catch (_) {
+      // Önbellek yalnız hızlandırıcıdır: beklenmeyen kayıt biçimi çağıranı (STOMP dinleyicisi) düşürmez.
     }
-    _mem[cid] = _normalize([...cur, msg]);
-    _dirty.add(cid);
-    _schedule();
   }
 
   /// Mesaj herkes için silindi/gizlendi: kayıttaki içerik hemen iskelete indirilir.
   Future<void> markGone(int cid, int messageId) async {
-    var cur = _mem[cid];
-    if (cur == null) {
-      final loaded = await _run<List<Map<String, dynamic>>?>(() => _loadConv(cid), null);
-      if (loaded == null) return;
-      cur = _mem.putIfAbsent(cid, () => loaded);
-    }
-    var changed = false;
-    final next = <Map<String, dynamic>>[];
-    for (final m in cur) {
-      if (_id(m) == messageId && m['deleted'] != true) {
-        changed = true;
-        next.add({'id': m['id'], 'conversationId': m['conversationId'], 'senderId': m['senderId'], 'createdAt': m['createdAt'], 'deleted': true, 'text': ''});
-      } else {
-        next.add(m);
+    try {
+      var cur = _mem[cid];
+      if (cur == null) {
+        final gen = _gen;
+        final loaded = await _run<List<Map<String, dynamic>>?>(() => _loadConv(cid), null);
+        if (loaded == null || gen != _gen) return;
+        cur = _mem.putIfAbsent(cid, () => loaded);
       }
+      var changed = false;
+      final next = <Map<String, dynamic>>[];
+      for (final m in cur) {
+        if (_id(m) == messageId && m['deleted'] != true) {
+          changed = true;
+          next.add({'id': m['id'], 'conversationId': m['conversationId'], 'senderId': m['senderId'], 'createdAt': m['createdAt'], 'deleted': true, 'text': ''});
+        } else {
+          next.add(m);
+        }
+      }
+      if (!changed) return;
+      _mem[cid] = next;
+      _dirty.add(cid);
+      _schedule();
+    } catch (_) {
+      // bkz. upsertMessage
     }
-    if (!changed) return;
-    _mem[cid] = next;
-    _dirty.add(cid);
-    _schedule();
   }
 
   /// Bir sohbetin kaydını siler (engelleme, ayrılma, sohbet silme).
@@ -226,6 +247,7 @@ class MessageCache {
   Future<List<Map<String, dynamic>>> readConversations() async {
     final mem = _list;
     if (mem != null) return [for (final m in mem) Map<String, dynamic>.from(m)];
+    final gen = _gen;
     final loaded = await _run<List<Map<String, dynamic>>?>(() async {
       final f = _file('list.json');
       if (!await f.exists()) return null;
@@ -241,7 +263,7 @@ class MessageCache {
         return null;
       }
     }, null);
-    if (loaded == null) return const [];
+    if (loaded == null || gen != _gen) return const []; // temizleme yarıştı
     _list ??= loaded;
     return [for (final m in _list!) Map<String, dynamic>.from(m)];
   }
@@ -351,6 +373,7 @@ class MessageCache {
   /// Çıkış/hesap silme/oturum iptali: bellek + disk tümüyle silinir.
   Future<void> clear() {
     _timer?.cancel();
+    _gen++;
     _cleared = true;
     _mem.clear();
     _list = null;

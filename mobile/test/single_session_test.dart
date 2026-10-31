@@ -167,6 +167,8 @@ void main() {
       await st.write(key: 'access', value: 'old');
       await st.write(key: 'refresh', value: 'oldr');
       await s.restore();
+      // Kabuk /auth/me beklemeden açılır (W1-G T-089): sunucu SESSION_REPLACED derse oturum arka planda kapanır.
+      await Future<void>.delayed(const Duration(milliseconds: 200));
     });
     await tester.pumpAndSettle();
     expect(s.state, SessionState.signedOut);

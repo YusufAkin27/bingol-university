@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import 'app_gate.dart' show appVersion;
+import 'secure_store.dart';
 
 /// Cihaz engeli için istemci kimliği. Ham değer yalnızca istek başlığında gider; sunucu HMAC'leyip saklar.
 /// Kimlik, ilk açılışta üretilen rastgele UUID'dir ve güvenli depoda (Keychain/Keystore) durur:
@@ -19,14 +20,29 @@ class DeviceIdentity {
 
   /// Testlerde kimliği doğrudan atamak için.
   @visibleForTesting
-  void debugSet(String? id) => _id = id;
+  void debugSet(String? id) {
+    _id = id;
+    if (id == null) _loading = null; // yeniden okunabilsin
+  }
 
   /// Hazır mı? (Hazır değilken başlıklar boş gider; istekler engellenmez.)
   String? get id => _id;
 
-  /// Uygulama açılışında bir kez çağrılır; hata fırlatmaz.
-  Future<void> load({FlutterSecureStorage storage = const FlutterSecureStorage()}) async {
-    if (_id != null) return;
+  Future<void>? _loading;
+
+  /// Kimlik okuması bitti mi? Okuma hiç başlatılmadıysa (testler) beklenecek bir şey yoktur: true.
+  bool get isReady => _id != null || _loading == null;
+
+  /// Başlatılmış okumanın bitişi; ApiClient ilk istekten önce bunu bekler (kimliksiz istek atılmasın).
+  Future<void> get ready => _loading ?? Future<void>.value();
+
+  /// Uygulama açılışında bir kez çağrılır; hata fırlatmaz. Eşzamanlı çağrılar aynı okumayı paylaşır.
+  Future<void> load({FlutterSecureStorage storage = kDeviceSecureStorage}) {
+    if (_id != null) return Future<void>.value();
+    return _loading ??= _load(storage);
+  }
+
+  Future<void> _load(FlutterSecureStorage storage) async {
     try {
       var v = await storage.read(key: _key);
       if (v == null || v.length < 16) {

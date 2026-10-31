@@ -156,6 +156,8 @@ void main() {
         ..fail('/auth/me', status: 401, code: 'TOKEN_EXPIRED')
         ..fail('/auth/refresh', status: 401, code: 'INVALID_REFRESH_TOKEN');
       final s = await restore(b);
+      // Kabuk /auth/me beklemeden açılır (W1-G T-089); KESİN ret arka planda oturumu kapatır.
+      await Future<void>.delayed(const Duration(milliseconds: 150));
       expect(s.state, SessionState.signedOut);
       expect(s.api.tokens, isNull);
     });
