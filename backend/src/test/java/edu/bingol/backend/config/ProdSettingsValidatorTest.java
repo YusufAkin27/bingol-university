@@ -21,7 +21,47 @@ class ProdSettingsValidatorTest {
                 .withProperty("app.mail.unsubscribe-base-url", "https://kampus.bingol.edu.tr")
                 .withProperty("app.fcm.credentials-file", "/run/secrets/fcm.json")
                 .withProperty("BACKUP_REMOTE", "s3crypt:bu-yedek")
-                .withProperty("app.admin.emails", "a@bingol.edu.tr,b@bingol.edu.tr");
+                .withProperty("app.admin.emails", "a@bingol.edu.tr,b@bingol.edu.tr")
+                // T-149/T-150: Redis parolasi ve DB rol ayrimi (bingol_app = yalniz DML, bingol_owner = Flyway)
+                .withProperty("spring.data.redis.password", "r4nd0m-redis-pass-9f3a2c71")
+                .withProperty("spring.datasource.username", "bingol_app")
+                .withProperty("spring.flyway.user", "bingol_owner");
+    }
+
+    @Test
+    void blankRedisPasswordWarnsByDefaultAndFailsWhenRequired() {
+        var warn = ProdSettingsValidator.validate(valid().withProperty("spring.data.redis.password", ""));
+        assertTrue(warn.errors().isEmpty(), warn.errors().toString());
+        assertTrue(warn.warnings().stream().anyMatch(w -> w.contains("REDIS_PASSWORD")), warn.warnings().toString());
+
+        var req = ProdSettingsValidator.validate(valid().withProperty("spring.data.redis.password", "")
+                .withProperty("app.security.require-redis-password", "true"));
+        assertTrue(req.errors().stream().anyMatch(e -> e.contains("REDIS_PASSWORD")), req.errors().toString());
+    }
+
+    @Test
+    void weakOrPlaceholderRedisPasswordIsRejectedAndValueNeverLogged() {
+        var shortPw = ProdSettingsValidator.validate(valid().withProperty("spring.data.redis.password", "abc123"));
+        assertTrue(shortPw.errors().stream().anyMatch(e -> e.contains("REDIS_PASSWORD")));
+        var ph = ProdSettingsValidator.validate(valid().withProperty("spring.data.redis.password", "change-me-change-me-change-me"));
+        assertTrue(ph.errors().stream().anyMatch(e -> e.contains("REDIS_PASSWORD")));
+        assertFalse(ph.errors().toString().contains("change-me-change-me"), "parola degeri hata metnine yazilmamali");
+        assertFalse(ProdSettingsValidator.validate(valid()).errors().toString().contains("r4nd0m-redis-pass"));
+    }
+
+    @Test
+    void sameDatabaseAccountForAppAndFlywayWarnsByDefaultAndFailsWhenRequired() {
+        var same = ProdSettingsValidator.validate(valid().withProperty("spring.flyway.user", "bingol_app"));
+        assertTrue(same.errors().isEmpty(), same.errors().toString());
+        assertTrue(same.warnings().stream().anyMatch(w -> w.contains("ayni PostgreSQL hesabini")), same.warnings().toString());
+
+        var unset = ProdSettingsValidator.validate(valid().withProperty("spring.flyway.user", ""));
+        assertTrue(unset.warnings().stream().anyMatch(w -> w.contains("ayni PostgreSQL hesabini")));
+
+        var req = ProdSettingsValidator.validate(valid().withProperty("spring.flyway.user", "bingol_app")
+                .withProperty("app.db.require-role-split", "true"));
+        assertTrue(req.errors().stream().anyMatch(e -> e.contains("ayni PostgreSQL hesabini")), req.errors().toString());
+        assertFalse(ProdSettingsValidator.validate(valid()).warnings().stream().anyMatch(w -> w.contains("ayni PostgreSQL")));
     }
 
     @Test
@@ -176,5 +216,15 @@ class ProdSettingsValidatorTest {
         assertFalse(on.warnings().toString().contains("ingest.sentry.io"), "DSN degeri uyariya yazilmamali");
         var off = ProdSettingsValidator.validate(valid());
         assertFalse(off.warnings().stream().anyMatch(w -> w.contains("SENTRY_DSN")));
+    }
+
+    /** T-065 (A8-20): DSN AB (Frankfurt) bolgesinde degilse yurt disi aktarim uyarisi; AB bolgesinde yok. */
+    @Test
+    void sentryDsnOutsideEuRegionWarnsAboutTransfer() {
+        var us = ProdSettingsValidator.validate(valid().withProperty("sentry.dsn", "https://k@o1.ingest.sentry.io/1"));
+        assertTrue(us.warnings().stream().anyMatch(w -> w.contains("AB (Frankfurt)")), us.warnings().toString());
+        var eu = ProdSettingsValidator.validate(valid().withProperty("sentry.dsn", "https://k@o1.ingest.de.sentry.io/1"));
+        assertFalse(eu.warnings().stream().anyMatch(w -> w.contains("AB (Frankfurt)")), eu.warnings().toString());
+        assertTrue(eu.errors().isEmpty());
     }
 }

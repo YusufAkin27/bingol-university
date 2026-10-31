@@ -117,11 +117,47 @@ public class ProdSettingsValidator {
             errors.add("DEVICE_HMAC_KEY verilirse en az 32 karakter olmali");
         }
 
+        validateInfraHardening(env, errors, warnings);
+
         if (!hasFcmCredentials(env)) {
             warnings.add("FCM kimlik bilgisi yok: push bildirimleri gonderilmez (uygulama ici bildirimler calisir)");
         }
         validateOpsWarnings(env, warnings);
         return new Result(errors, warnings);
+    }
+
+    /**
+     * T-149/T-150 (A8-12, A8-26): Redis parolasi ve veritabani rol ayrimi. Varsayilan olarak yalniz UYARI (mevcut
+     * dagitimlar acilmaya devam eder); {@code REQUIRE_REDIS_PASSWORD} / {@code REQUIRE_DB_ROLE_SPLIT} acikken HATA
+     * (K-28/K-31 onayi + staging sonrasi acilir). Parola degerleri hicbir zaman mesaja yazilmaz.
+     */
+    static void validateInfraHardening(Environment env, List<String> errors, List<String> warnings) {
+        String redisPw = env.getProperty("spring.data.redis.password", "");
+        boolean requireRedisPw = env.getProperty("app.security.require-redis-password", Boolean.class, false);
+        if (redisPw.isBlank()) {
+            String msg = "REDIS_PASSWORD bos: Redis parolasiz (internal ag disinda erisim/ele gecirme riski; refresh token ve "
+                    + "oturum durumu Redis'tedir). compose'ta `redis-server --requirepass` + REDIS_PASSWORD verin (docs/changes/ops.md T-150)";
+            if (requireRedisPw) {
+                errors.add(msg);
+            } else {
+                warnings.add(msg);
+            }
+        } else if (isPlaceholder(redisPw) || redisPw.length() < 16) {
+            errors.add("REDIS_PASSWORD en az 16 karakter ve yer tutucu olmayan rastgele bir deger olmali");
+        }
+        String appUser = env.getProperty("spring.datasource.username", "");
+        String flywayUser = env.getProperty("spring.flyway.user", "");
+        boolean sameAccount = flywayUser.isBlank() || flywayUser.equals(appUser);
+        if (sameAccount) {
+            String msg = "Uygulama ve Flyway ayni PostgreSQL hesabini kullaniyor (DB_USER" + (appUser.isBlank() ? "" : "=" + appUser)
+                    + "): sema degistirebilen/super kullanici ile calisma riski. bingol_owner (DDL) + bingol_app (yalniz DML) "
+                    + "ayrimi icin DB_OWNER_USER/DB_OWNER_PASSWORD verin (scripts/dbroles, docs/changes/ops.md T-149)";
+            if (env.getProperty("app.db.require-role-split", Boolean.class, false)) {
+                errors.add(msg);
+            } else {
+                warnings.add(msg);
+            }
+        }
     }
 
     /**
@@ -143,6 +179,12 @@ public class ProdSettingsValidator {
         if (notBlank(env, "sentry.dsn")) {
             warnings.add("SENTRY_DSN dolu: hata verisi ucuncu tarafa gider; AB bolgesi, send-default-pii=false ve "
                     + "tedarikci/KVKK listesi dogrulanmali (docs/DEPLOY.md), kullanilmayacaksa bos birakin");
+            // T-065 (A8-20): send-default-pii kodda SABIT false (ObservabilitySentry); burada AB disi bolge uyarisi
+            String dsn = env.getProperty("sentry.dsn", "").toLowerCase(java.util.Locale.ROOT);
+            if (!(dsn.contains(".de.sentry.io") || dsn.contains(".eu."))) {
+                warnings.add("SENTRY_DSN AB (Frankfurt) bolgesi gibi gorunmuyor (de.sentry.io); veri AB disina "
+                        + "gidiyorsa docs/legal/internal/05 yurt disi aktarim degerlendirmesine isleyin");
+            }
         }
     }
 

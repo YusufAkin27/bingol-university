@@ -68,3 +68,10 @@ updates:
     schedule:
       interval: weekly
     labels: [dependencies, docker]
+
+  # T-148: compose dosyalarindaki hizmet imajlari (caddy, postgres, redis). Etiket + ozet birlikte yukselir.
+  - package-ecosystem: docker-compose
+    directory: /
+    schedule:
+      interval: weekly
+    labels: [dependencies, docker]
