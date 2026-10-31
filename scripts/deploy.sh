@@ -509,7 +509,8 @@ if [ "\${DOBACKUP:-1}" = 1 ]; then
   BCID="\$(dc ps -q backup 2>/dev/null | head -1 || true)"
   if [ -n "\$BCID" ] && [ "\$(docker inspect -f '{{.State.Running}}' "\$BCID" 2>/dev/null || echo false)" = true ]; then
     rlog "dagitim oncesi yedek aliniyor (backup.sh; sifreli, dogrulamali)"
-    dc exec -T -u postgres backup /opt/backup/backup.sh || { rlog "YEDEK BASARISIZ: dagitim DURDURULDU, calisan surum degismedi (yalniz --skip-backup ile gecilir; onerilmez)"; exit 4; }
+    # </dev/null ZORUNLU: `bash -s` betigi stdin'den okur; exec -T stdin'i tuketirse kalan betik (derleme/baslatma) yutulur.
+    dc exec -T -u postgres backup /opt/backup/backup.sh </dev/null || { rlog "YEDEK BASARISIZ: dagitim DURDURULDU, calisan surum degismedi (yalniz --skip-backup ile gecilir; onerilmez)"; exit 4; }
     rlog "yedek tamam"
   else
     rlog "calisan yedek servisi yok (ilk kurulum?): dagitim oncesi yedek atlandi"
@@ -556,6 +557,13 @@ if [ "$DEPLOY_RC" != 0 ]; then
     4) die "dagitim oncesi YEDEK basarisiz: calisan surum degismedi. Yedek hatasini giderin (docker compose logs backup) ya da bilincli --skip-backup" 1;;
     *) die "dagitim basarisiz (varsa onceki surume donuldu); gunlukler: ssh $SSH_USER@$HOST 'cd $BASEDIR/current && docker compose -p bu -f docker-compose.prod.yml -f deploy/compose.bukampus.yml --env-file $BASEDIR/.env.prod logs --tail=100'" 1;;
   esac
+fi
+# Uzak betik stdin'den okunur: bir komut stdin'i tuketirse betik sessizce erken biter ve cikis kodu 0 doner.
+# Bu yuzden "tamam" demeden once sunucudaki AKTIF surumun hedef commit oldugu ayrica dogrulanir.
+if [ "$DRY" != 1 ]; then
+  ACTIVE="$(rsh "cat $BASEDIR/.current_release 2>/dev/null || true" </dev/null | tr -d '[:space:]')"
+  [ "$ACTIVE" = "$SHORT" ] || die "dagitim DOGRULANAMADI: sunucuda aktif surum '$ACTIVE', beklenen '$SHORT' (uzak betik erken bitmis olabilir; durum: ssh $SSH_USER@$HOST 'docker compose -p bu ps')" 1
+  log "dogrulandi: sunucuda aktif surum $ACTIVE"
 fi
 
 # =====================================================================================================
