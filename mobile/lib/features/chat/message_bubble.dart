@@ -139,8 +139,9 @@ class MessageBubble extends StatelessWidget {
     final reply = m['replyTo'] is Map ? Map<String, dynamic>.from(m['replyTo'] as Map) : null;
     // Silinen/gizlenen/yönetici kaldırması: sunucunun sabit Türkçe metni yerine uygulama dilinde yer tutucu.
     final text = (deleted || removed)
-        ? removedPlaceholder(context, serverText: m['text'] as String?, deleted: deleted, removed: removed)
-        : (m['text'] as String?) ?? '';
+        ? removedPlaceholder(context,
+            serverText: m['text'] as String?, deleted: deleted, removed: removed, kind: m['placeholderKind'])
+        : placeholderKindText(context, m['placeholderKind']) ?? (m['text'] as String?) ?? '';
     final maxW = MediaQuery.sizeOf(context).width * .78;
     final allAtts = (deleted || removed) ? const <Map<String, dynamic>>[] : _attachments(m);
     final localVideo = !deleted && !removed && m['_isVideo'] == true;
@@ -411,8 +412,9 @@ class MessageBubble extends StatelessWidget {
     final tx = Theme.of(context).textTheme;
     final bar = mine ? fg : (replyMine ? t.pr : t.ok);
     final raw = reply['deleted'] == true
-        ? removedPlaceholder(context, serverText: reply['text'] as String?, deleted: true, removed: true)
-        : (reply['text'] as String?) ?? '';
+        ? removedPlaceholder(context,
+            serverText: reply['text'] as String?, deleted: true, removed: true, kind: reply['placeholderKind'])
+        : placeholderKindText(context, reply['placeholderKind']) ?? (reply['text'] as String?) ?? '';
     final quoted = raw.isEmpty ? (reply['kind'] == 'VIDEO' ? context.l10n.chatMiscVideo : context.l10n.chatMiscPhoto) : raw;
     final box = Container(
       margin: const EdgeInsets.only(bottom: 6),

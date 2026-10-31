@@ -255,7 +255,7 @@ void main() {
       final be = FakeBackend()..network('/conversations/1/media/50');
       final s = makeSession(be);
       await tester.pumpWidget(buildApp(ViewOnceViewer(api: s.api, conversationId: 1, attachmentId: 50)));
-      await settle(tester, const Duration(milliseconds: 600));
+      await settle(tester, const Duration(milliseconds: 3000)); // BİR yeniden deneme (2,2 sn) sonrası hâlâ ağ yok
       expect(find.textContaining('yeniden açılamayabilir'), findsOneWidget);
       // Sunucu içeriği ilk istekte tükettiği için yeniden deneme sunulmaz (referans 26).
       expect(find.text('Yeniden dene'), findsNothing);

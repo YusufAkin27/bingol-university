@@ -118,6 +118,10 @@ class ChatDetailPage extends StatefulWidget {
   /// Testlerde sahte oynatıcı denetleyicisi.
   final VideoControllerFactory? videoControllerFactory;
 
+  /// Yalnız testler: kurulan balon sayısı (gereksiz yeniden kurulum denetimi, A5-04).
+  @visibleForTesting
+  static int debugBubbleBuilds = 0;
+
   @override
   State<ChatDetailPage> createState() => _ChatDetailPageState();
 }
@@ -140,7 +144,10 @@ class _ChatDetailPageState extends State<ChatDetailPage>
   final _scroll = ScrollController();
   final _focus = FocusNode();
 
-  late final ChatRealtime _rt = widget.realtime ?? ChatRealtime(widget.session);
+  /// Tek soket kuralı (T-095): enjekte edilen (test) ya da oturumun paylaşılan [Session.realtime]'ı. Kabuk başlatır/durdurur;
+  /// bu sayfa yalnız abone olur, ASLA dispose etmez ve (paylaşılanı) başlatmaz. Oturumda yoksa yedek olarak kendi örneği.
+  late final ChatRealtime _rt = widget.realtime ?? widget.session.realtime ?? (_ownRt = ChatRealtime(widget.session));
+  ChatRealtime? _ownRt;
   final _subs = <StreamSubscription<dynamic>>[];
   final _ackTimers = <String, Timer>{};
   final _image = ImageService();
@@ -389,6 +396,15 @@ class _ChatDetailPageState extends State<ChatDetailPage>
     }
   }
 
+  /// Bu sayfanın rotası: üstte başka sayfa varken (`!isCurrent`) arka plan yoklaması duraklatılır.
+  ModalRoute<dynamic>? _route;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _route = ModalRoute.of(context);
+  }
+
   @override
   void dispose() {
     if (_conv['id'] is num) ActiveConversation.instance.leave(_cid);
@@ -414,7 +430,8 @@ class _ChatDetailPageState extends State<ChatDetailPage>
     for (final s in _subs) {
       s.cancel();
     }
-    _rt.dispose();
+    // WS ack zamanlayıcıları artık Outbox'tadır (sayfadan bağımsız); yalnız yedek yoldakiler yukarıda iptal edilir.
+    _ownRt?.dispose();
     _peerRead.dispose();
     _typingNow.dispose();
     _input.removeListener(_onInput);
@@ -437,6 +454,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
 
   void _startTimer() {
     _timer?.cancel();
+    if (_leaving) return;
     _timer = Timer.periodic(_pollInterval, (_) => _poll());
   }
 
@@ -492,6 +510,11 @@ class _ChatDetailPageState extends State<ChatDetailPage>
       _startRealtime();
     } catch (e) {
       if (!mounted) return;
+      // Çıkarıldık/ayrıldık (404 CONVERSATION_NOT_FOUND): önbellekli açılış 404'ü yutmaz, sayfa kapanır.
+      if (_isGone(e)) {
+        _onRemovedFromConversation();
+        return;
+      }
       if (shownCached) {
         // Sunucuya ulaşılamadı: kayıtlı mesajlar sessizce kalır; bağlantı gelince poll/STOMP boşluğu kapatır.
         _startTimer();
@@ -502,6 +525,30 @@ class _ChatDetailPageState extends State<ChatDetailPage>
         _error = e;
         _loading = false;
       });
+    }
+  }
+
+  /// Sunucu bu konuşmayı artık tanımıyor: çıkarıldık, gruptan ayrıldık, kulüp/etkinlik odası kapandı ya da konuşma silindi.
+  static bool _isGone(Object e) => e is ApiError && e.status == 404 && e.code == 'CONVERSATION_NOT_FOUND';
+
+  bool _leaving = false;
+
+  /// `conversation-removed` olayı ya da 404 CONVERSATION_NOT_FOUND: yoklamayı durdurur, cihazdaki kaydı siler,
+  /// kullanıcıyı bilgilendirir ve sayfayı kapatır (liste yenilensin diye `true` ile). Birden çok çağrıda tek sefer çalışır.
+  void _onRemovedFromConversation() {
+    if (_leaving || !mounted) return;
+    _leaving = true;
+    _timer?.cancel();
+    _timer = null;
+    unawaited(MessageCache.instance.removeConversation(_cid));
+    widget.session.badges.conversationsDirty.value++;
+    BuToast.show(context, context.l10n.p31ChatRemovedToast, kind: BuToastKind.warning);
+    final route = _route;
+    if (route == null) return;
+    if (route.isCurrent) {
+      Navigator.of(context).pop(true);
+    } else {
+      Navigator.of(context).removeRoute(route); // üstte başka sayfa (bilgi/medya) açıkken sessizce sökülür
     }
   }
 
@@ -545,7 +592,9 @@ class _ChatDetailPageState extends State<ChatDetailPage>
     if (!_direct || pid == null) return;
     try {
       final p = await _api.get('/users/$pid/presence') as Map<String, dynamic>;
-      if (mounted) setState(() => _presence = p);
+      // Değişmediyse yeniden kurma: bu setState tüm balonları da kuruyordu (A5-04).
+      final same = _presence != null && _sameContent(_presence!, p);
+      if (mounted && !same) setState(() => _presence = p);
     } catch (_) {
       if (mounted && _presence != null) setState(() => _presence = null);
     }
@@ -597,61 +646,80 @@ class _ChatDetailPageState extends State<ChatDetailPage>
   /// Bağlıyken yalnız ~20 sn'de bir son sayfa tazelenir (düzenleme/silme/tepki olayları için);
   /// bağlı değilken her turda `after` ile yeni mesajlar çekilir.
   Future<void> _poll({bool force = false}) async {
-    if (_polling || _loading || _error != null || !mounted) return;
+    if (_polling || _loading || _error != null || !mounted || _leaving) return;
+    // Üstte başka sayfa (profil, medya, bilgi...) varken arka planda yoklama yapılmaz; geri dönünce sıradaki tur çalışır.
+    if (!force && _route != null && !_route!.isCurrent) return;
     _tick++;
     if (_rtOn && !force && _tick % 5 != 0) return;
     // Çevrimdışıyken her 4 sn'de ölü ağa vurma (pil): yaklaşık 30 sn'de bir dener; bağlantı gelince STOMP/öne gelme
     // `force` ile hemen tetikler.
     if (!force && !_api.connectivity.online && _tick % 8 != 0) return;
     _polling = true;
+    var added = false;
+    var changed = false;
     try {
-      var added = false;
-      if (!_rtOn || force) added = await _fetchAfter();
+      if (!_rtOn || force) {
+        final r = await _fetchAfter();
+        added = r.added > 0;
+        changed = r.changed;
+      }
       if (_tick % 5 == 0 || force) {
         final page = await _api.get('/conversations/$_cid/messages?size=30')
             as Map<String, dynamic>;
-        added = _mergeCount(_items(page)) > 0 || added;
+        final r = _mergeCount(_items(page));
+        added = r.added > 0 || added;
+        changed = r.changed || changed;
       }
       if (_tick % 8 == 0) _loadPresence();
       if (mounted) {
-        setState(() {});
         if (added) _markRead();
         _scheduleDelivered();
       }
-    } catch (_) {
-      // Ağ hatası: bir sonraki turda yeniden dene, oturumu kapatma.
+    } catch (e) {
+      // Ağ hatası: bir sonraki turda yeniden dene, oturumu kapatma. Çıkarıldıysak (404) sessiz ölü yoklama yerine kapan.
+      if (mounted && _isGone(e)) _onRemovedFromConversation();
     } finally {
       _polling = false;
+      // Yalnız listede görünür bir değişiklik olduysa yeniden kur (A5-04: her turda tüm balonlar kuruluyordu).
+      if (changed && mounted) setState(() {});
     }
   }
 
-  /// Son bilinen id'den sonrasını sayfa sayfa çeker (boşluk kapatma). Yeni mesaj geldiyse true.
-  Future<bool> _fetchAfter() async {
+  /// Son bilinen id'den sonrasını sayfa sayfa çeker (boşluk kapatma).
+  Future<({int added, bool changed})> _fetchAfter() async {
     final newest = _newestServerId;
     if (newest == null) {
       final page = await _api.get('/conversations/$_cid/messages?size=30')
           as Map<String, dynamic>;
-      return _mergeCount(_items(page)) > 0;
+      return _mergeCount(_items(page));
     }
-    var added = false;
+    var added = 0;
+    var changed = false;
     var cursor = newest;
     for (var i = 0; i < 5; i++) {
       final page =
           await _api.get('/conversations/$_cid/messages?after=$cursor&size=30')
               as Map<String, dynamic>;
-      added = _mergeCount(_items(page)) > 0 || added;
+      final r = _mergeCount(_items(page));
+      added += r.added;
+      changed = r.changed || changed;
       final next = (page['nextCursor'] as num?)?.toInt();
       if (next == null) break;
       cursor = next;
     }
-    return added;
+    return (added: added, changed: changed);
   }
 
   // ---------- Gerçek zamanlı ----------
 
   void _startRealtime() {
     if (_subs.isNotEmpty) return;
+    // Paylaşılan soket zaten bağlı olabilir: `connected` akışı yeniden yayın yapmaz, durumu buradan al.
+    _rtOn = _rt.isConnected;
     _subs.addAll([
+      _rt.removedConversations.listen((id) {
+        if (id == _cid) _onRemovedFromConversation();
+      }),
       _rt.messages.listen(_onRtMessage),
       _rt.readReceipts.listen((r) {
         if (r.conversationId == _cid && r.userId != _myId) {
@@ -691,6 +759,16 @@ class _ChatDetailPageState extends State<ChatDetailPage>
         }
         if (cid == null) return;
         _ackTimers.remove(cid)?.cancel();
+        // WS gönderimi reddedildi ama mesaj kalıcı kuyrukta: kırmızı hata yerine kuyruk hemen REST'ten dener ve gerçek
+        // sonucu (teslim ya da kalıcı hata) balona yansıtır.
+        final ob = _outbox;
+        if (ob != null && ob.contains(cid)) {
+          for (final m in _msgs) {
+            if (m['id'] == null && m['clientId'] == cid) m['_queued'] = true;
+          }
+          unawaited(ob.retry(cid));
+          return;
+        }
         final i =
             _msgs.indexWhere((m) => m['id'] == null && m['clientId'] == cid);
         if (i >= 0 && mounted) {
@@ -708,7 +786,8 @@ class _ChatDetailPageState extends State<ChatDetailPage>
       }),
       _rt.resync.listen((_) => _poll(force: true)),
     ]);
-    if (widget.connectRealtime) _rt.start();
+    // Paylaşılan soketi kabuk başlatır (start/stop yalnız orada); yalnız enjekte edilen/yedek örnek burada başlar.
+    if (widget.connectRealtime && (widget.realtime != null || _ownRt != null)) _rt.start();
   }
 
   void _onRtMessage(Map<String, dynamic> m) {
@@ -780,10 +859,10 @@ class _ChatDetailPageState extends State<ChatDetailPage>
   }
 
   /// Gelen mesajları listeye katar; yeni eklenen sayısını döndürür.
-  int _mergeCount(List<Map<String, dynamic>> incoming) {
+  ({int added, bool changed}) _mergeCount(List<Map<String, dynamic>> incoming) {
     final before = _msgs.length;
-    _merge(incoming);
-    return _msgs.length - before;
+    final changed = _merge(incoming);
+    return (added: _msgs.length - before, changed: changed);
   }
 
   /// Ekin "açıldı" bilgisini yerelde işler (gönderen baloncuğu "Açıldı" olur).
@@ -798,8 +877,11 @@ class _ChatDetailPageState extends State<ChatDetailPage>
     }
   }
 
-  void _merge(List<Map<String, dynamic>> incoming) {
+  /// Gelen mesajları listeye katar (id ya da clientId ile eşler). Listede görünür bir değişiklik olduysa true döner;
+  /// içeriği aynı olan sunucu mesajı (yoklama) listeye dokunmaz, böylece çağıran gereksiz `setState` yapmaz.
+  bool _merge(List<Map<String, dynamic>> incoming) {
     final newest = _newestServerId ?? 0;
+    var changed = false;
     for (final m in incoming) {
       final id = (m['id'] as num?)?.toInt();
       final cid = m['clientId'] as String?;
@@ -818,18 +900,78 @@ class _ChatDetailPageState extends State<ChatDetailPage>
         if (old['_bytes'] is Uint8List && old['_localItems'] is List && (old['_localItems'] as List).length < 2) {
           m['_ph'] = old['_bytes'];
         }
-        _msgs[idx] = m;
+        if (old['id'] != null && _sameContent(old, m)) continue;
+        changed = true;
+        if (_key(old) == _key(m)) {
+          _msgs[idx] = m;
+        } else {
+          // Yerel balon sunucu kimliğine kavuştu: sıralama anahtarı değişir.
+          _msgs.removeAt(idx);
+          _insertSorted(m);
+        }
       } else {
-        _msgs.add(m);
+        changed = true;
+        _insertSorted(m);
         // Aşağıda değilken gelen yeni (başkasının) mesajlar düğmedeki rozeti artırır.
         if (id != null && id > newest && !_isMine(m) && _showDown.value) {
           _newBelow.value++;
         }
       }
     }
-    _msgs.sort((a, b) => _key(b).compareTo(_key(a)));
-    _persist();
-    unawaited(_autoSaveReceived(incoming));
+    if (changed) {
+      _trimRowKeys();
+      _persist();
+      unawaited(_autoSaveReceived(incoming));
+    }
+    return changed;
+  }
+
+  /// Liste en yeni başta ve `_key`e göre azalan sıralıdır: ikili aramayla yerine ekler (her birleştirmede tam sıralama yok).
+  void _insertSorted(Map<String, dynamic> m) {
+    final k = _key(m);
+    var lo = 0;
+    var hi = _msgs.length;
+    while (lo < hi) {
+      final mid = (lo + hi) >> 1;
+      if (_key(_msgs[mid]) > k) {
+        lo = mid + 1;
+      } else {
+        hi = mid;
+      }
+    }
+    _msgs.insert(lo, m);
+  }
+
+  /// İki mesaj haritası yerel (`_` önekli) alanlar hariç aynı mı? (Yoklama aynı sunucu cevabını getirdiğinde balonu
+  /// yeniden kurmamak için.)
+  static bool _sameContent(Map<String, dynamic> a, Map<String, dynamic> b) {
+    bool eq(Object? x, Object? y) {
+      if (x is Map && y is Map) {
+        final kx = x.keys.where((k) => !(k is String && k.startsWith('_'))).toSet();
+        final ky = y.keys.where((k) => !(k is String && k.startsWith('_'))).toSet();
+        if (kx.length != ky.length || !kx.containsAll(ky)) return false;
+        for (final k in kx) {
+          if (!eq(x[k], y[k])) return false;
+        }
+        return true;
+      }
+      if (x is List && y is List) {
+        if (x.length != y.length) return false;
+        for (var i = 0; i < x.length; i++) {
+          if (!eq(x[i], y[i])) return false;
+        }
+        return true;
+      }
+      return x == y;
+    }
+
+    return eq(a, b);
+  }
+
+  /// Satır `GlobalKey`leri yalnız ekranda kurulu satırlar için tutulur (kaydırılıp geçilen binlerce mesaj anahtar sızdırmasın).
+  void _trimRowKeys() {
+    if (_rowKeys.length <= 64) return;
+    _rowKeys.removeWhere((_, k) => k.currentContext == null);
   }
 
   /// Gelen fotoğrafları (ayar açıksa) galeriye kaydeder; kendi mesajlarım gönderimde kaydedilir (bkz. [_sendRest]).
@@ -877,10 +1019,23 @@ class _ChatDetailPageState extends State<ChatDetailPage>
     }
   }
 
+  /// Mesaj uzunluğu tek ölçüyle sayılır: Unicode kod noktası (`runes.length`); sunucu da kod noktası sayar. UTF-16
+  /// `length` emojiyi 2 sayar, `characters.length` ise birleşik işaretleri 1 sayar: ikisi de sunucuyla uyuşmaz.
+  static int _len(String s) => s.runes.length;
+
+  /// Sınır aşıldıysa uyarı gösterir ve true döner.
+  bool _overLimit(String text) {
+    if (_len(text) <= _maxLen) return false;
+    if (mounted) {
+      BuToast.show(context, context.l10n.p31ChatMsgTooLong('$_maxLen'), kind: BuToastKind.warning);
+    }
+    return true;
+  }
+
   Future<void> _submit() async {
     final text = _input.text.trim();
     if (text.isEmpty) return;
-    if (text.length > _maxLen) return;
+    if (_overLimit(text)) return; // görünür uyarı verir (sessizce yutulmaz, A10-05)
     final editing = _editing;
     if (editing != null) {
       await _saveEdit(editing, text);
@@ -923,9 +1078,17 @@ class _ChatDetailPageState extends State<ChatDetailPage>
   Future<void> _transmit(Map<String, dynamic> local) async {
     final cid = local['clientId'] as String;
     final uploads = _uploadsOf(local);
+    // Konuşmada gerçekten bekleyen (çevrimdışı/yeniden denenen) kuyruk öğesi varsa yeni mesaj da kuyruğa girer:
+    // doğrudan gönderim araya girip sırayı bozmasın. WS ack bekleyen öğeler (ChatRealtime.isAwaitingAck) sayılmaz.
+    final backlog = _outbox?.items.any((e) =>
+            e.conversationId == _cid &&
+            e.status == OutboxStatus.pending &&
+            !_rt.isAwaitingAck(e.clientId)) ??
+        false;
     // Bağlantı yok: fotoğraf/video yerel kuyruğa alınır, bağlantı gelince kendiliğinden yüklenip gider.
     // Balon normal "gönderiliyor" görünür (bekliyor/kuyrukta metni yok).
-    if (uploads.isNotEmpty && !_api.connectivity.online && await _queueMedia(local)) return;
+    if (uploads.isNotEmpty && (!_api.connectivity.online || backlog) && await _queueMedia(local)) return;
+    if (uploads.isEmpty && backlog && _queueText(local)) return;
     try {
       for (final u in uploads) {
         if (u['attId'] != null) continue;
@@ -949,6 +1112,10 @@ class _ChatDetailPageState extends State<ChatDetailPage>
           local['replyToMessageId'] == null &&
           _rtOn &&
           _rt.sendMessage(_cid, local['text'] as String, cid)) {
+        // Ack gelene kadar kalıcı yedek: mesaj Outbox'a yazılır (ChatRealtime ack'te siler; sayfa kapansa, soket ölü
+        // olsa, uygulama ölse de REST ile gider). Zamanlayıcı sayfaya değil Outbox'a bağlıdır (A10-01/A15-02).
+        if (_queueText(local, hold: _ackWindow)) return;
+        // Outbox yok/reddetti (yalnız testler ya da çok uzun metin): sayfaya bağlı eski yedek.
         _ackTimers[cid]?.cancel();
         _ackTimers[cid] = Timer(const Duration(seconds: 8), () {
           _ackTimers.remove(cid);
@@ -962,6 +1129,29 @@ class _ChatDetailPageState extends State<ChatDetailPage>
     } catch (e) {
       _fail(local, e);
     }
+  }
+
+  /// WS ack penceresi: bu süre içinde ack gelmezse Outbox aynı clientId ile REST'ten dener (sunucu çift mesaj üretmez).
+  static const _ackWindow = Duration(seconds: 8);
+
+  /// Salt metin mesajını kalıcı kuyruğa (Outbox) alır; [hold] doluysa ilk deneme o kadar geciktirilir (WS ack penceresi).
+  /// Kuyruk yoksa/reddederse false (çağıran eski yola düşer).
+  bool _queueText(Map<String, dynamic> local, {Duration? hold}) {
+    final ob = _outbox;
+    if (ob == null) return false;
+    final cid = '${local['clientId']}';
+    final ok = ob.enqueue(
+      conversationId: _cid,
+      clientId: cid,
+      text: (local['text'] as String?) ?? '',
+      replyToMessageId: (local['replyToMessageId'] as num?)?.toInt(),
+    );
+    if (!ok) return false;
+    if (hold != null) {
+      ob.byClientId(cid)?.nextAttemptAt = DateTime.now().millisecondsSinceEpoch + hold.inMilliseconds;
+    }
+    local['_queued'] = true; // kuyruk kalıcı hatayı/teslimi balona yansıtır (_onOutboxChanged)
+    return true;
   }
 
   /// Hazırlanmış ekleri uygulama diskine kopyalayıp kalıcı gönderme kuyruğuna alır. Başarısızsa false.
@@ -1454,6 +1644,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
 
   Future<void> _saveEdit(Map<String, dynamic> target, String text) async {
     final id = (target['id'] as num).toInt();
+    if (_overLimit(text)) return;
     try {
       final res = await _api.patch('/messages/$id', {'text': text})
           as Map<String, dynamic>;
@@ -1688,8 +1879,11 @@ class _ChatDetailPageState extends State<ChatDetailPage>
         m['_uploads'] != null ||
         m['_isVideo'] == true ||
         m['_bytes'] != null;
-    final canDelete =
-        !failed && !deleted && (mine || (!_direct && _conv['admin'] == true));
+    // Başkasının mesajını silme: grup yöneticisi (`admin`) ya da kulüp/etkinlik odası moderatörü (`canModerate`, C1);
+    // alan eski sunucuda yoksa false.
+    final canDelete = !failed &&
+        !deleted &&
+        (mine || (!_direct && (_conv['admin'] == true || _conv['canModerate'] == true)));
 
     final l = context.l10n;
     final actions = <MessageAction>[
@@ -2611,7 +2805,21 @@ class _ChatDetailPageState extends State<ChatDetailPage>
     );
   }
 
+  /// Satırın kararlı kimliği: sunucu kimliği; yerel (henüz kimliksiz) balonda clientId. Yeni mesaj eklenince/liste
+  /// kayınca Flutter satırları konuma göre değil kimliğe göre eşler (durum ve alt ağaç korunur).
+  static String _rowId(Map<String, dynamic> m) {
+    // Kendi mesajım: clientId yerel balondan sunucu mesajına geçerken de aynı kalır (alt ağaç/önizleme korunur).
+    final c = m['clientId'];
+    if (c is String && c.isNotEmpty) return 'c$c';
+    final id = (m['id'] as num?)?.toInt();
+    return id != null ? 'm$id' : 'q${m['_seq']}';
+  }
+
   Widget _list(BuTokens t, int peerRead) {
+    // findChildIndexCallback için kimlik -> konum (yapı başına bir kez).
+    final indexOf = <String, int>{
+      for (var i = 0; i < _msgs.length; i++) _rowId(_msgs[i]): i,
+    };
     return GestureDetector(
         behavior: HitTestBehavior.translucent,
         excludeFromSemantics: true, // klavye kapatma jesti: ekran okuyucuya boş bir düğme olarak çıkmasın
@@ -2622,6 +2830,10 @@ class _ChatDetailPageState extends State<ChatDetailPage>
           keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
           padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
           itemCount: _msgs.length + 1,
+          findChildIndexCallback: (key) {
+            if (key is ValueKey<String>) return indexOf[key.value];
+            return null;
+          },
           itemBuilder: (c, i) {
             if (i == _msgs.length) {
               return _loadingMore
@@ -2643,7 +2855,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
             final row = Padding(
                 padding: EdgeInsets.only(top: tight ? 2 : 8),
                 child: _rowFor(t, m, i, peerRead));
-            return Column(children: [
+            return Column(key: ValueKey<String>(_rowId(m)), children: [
               if (newDay) _dayChip(t, _dayLabel(_time(m)!)),
               id == null
                   ? row
@@ -2724,6 +2936,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
 
   Widget _bubble(Map<String, dynamic> m, int peerRead,
       {bool first = true, bool last = true, bool preview = false}) {
+    if (!preview) ChatDetailPage.debugBubbleBuilds++;
     final mine = _isMine(m) || m['_state'] != null;
     final id = (m['id'] as num?)?.toInt();
     final reply = m['replyTo'] is Map ? m['replyTo'] as Map : null;
@@ -2946,8 +3159,9 @@ class _ChatDetailPageState extends State<ChatDetailPage>
   Widget _composerBody(BuTokens t) {
     final l = context.l10n;
     final tx = Theme.of(context).textTheme;
-    final len = _input.text.characters.length;
-    final canSend = _input.text.trim().isNotEmpty && len <= _maxLen;
+    final trimmed = _input.text.trim();
+    final len = _len(trimmed); // gönderilen metinle aynı ölçü (kod noktası, kırpılmış)
+    final canSend = trimmed.isNotEmpty && len <= _maxLen;
     final banner = _editing ?? _replyTo;
     final rtl = Directionality.of(context) == TextDirection.rtl;
     Widget sendIcon = Icon(

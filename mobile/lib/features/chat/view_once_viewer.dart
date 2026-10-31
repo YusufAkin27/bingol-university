@@ -60,8 +60,19 @@ class _ViewOnceViewerState extends State<ViewOnceViewer>
       _error = null;
     });
     try {
-      final bytes = await widget.api.getBytes(
-          '/conversations/${widget.conversationId}/media/${widget.attachmentId}');
+      final path = '/conversations/${widget.conversationId}/media/${widget.attachmentId}';
+      List<int> bytes;
+      try {
+        bytes = await widget.api.getBytes(path);
+      } on ApiError catch (e) {
+        // Ağ kopması: sunucu yanıt tamamen yazılmadan tüketmez ve aynı kullanıcıya 60 sn içinde yeniden verir (C4);
+        // bu yüzden BİR kez yeniden dene; sunucu 2 sn'den önce gelen yinelenen isteği 410 sayar, bu yüzden 2,2 sn bekle.
+        // Başka hata (403/410...) yeniden denenmez.
+        if (e.status != 0 || !mounted) rethrow;
+        await Future<void>.delayed(const Duration(milliseconds: 2200));
+        if (!mounted) return;
+        bytes = await widget.api.getBytes(path);
+      }
       _consume(); // istek başarılı: içerik tüketildi, görüntülenemese de "Açıldı" sayılır
       if (!mounted) return;
       setState(() {

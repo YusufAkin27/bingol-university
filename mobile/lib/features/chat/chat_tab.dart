@@ -50,7 +50,10 @@ class _ChatTabState extends State<ChatTab> {
   final _scroll = ScrollController();
   final _search = TextEditingController();
   final _items = <Map<String, dynamic>>[];
+  /// Tek soket kuralı (T-095): oturumun paylaşılan [Session.realtime]'ı (kabuk başlatır/durdurur; bu sekme yalnız abone
+  /// olur, dispose etmez). Oturumda yoksa yedek olarak kendi örneği.
   late final ChatRealtime _rt;
+  ChatRealtime? _ownRt;
   final _subs = <StreamSubscription<dynamic>>[];
   Timer? _badgeTimer;
   Timer? _reloadTimer;
@@ -71,8 +74,8 @@ class _ChatTabState extends State<ChatTab> {
     ChatlistAvatar.bindSession(widget.session);
     // Kulüpten ayrılma/silme gibi işlemler listeyi geçersiz kılar.
     widget.session.badges.conversationsDirty.addListener(_scheduleReload);
-    _rt = ChatRealtime(widget.session);
-    if (widget.connectRealtime) _rt.start();
+    _rt = widget.session.realtime ?? (_ownRt = ChatRealtime(widget.session));
+    if (widget.connectRealtime && _ownRt != null) _rt.start();
     _subs
       ..add(_rt.messages.listen(_onMessage))
       ..add(_rt.readReceipts.listen(_onRead))
@@ -89,7 +92,7 @@ class _ChatTabState extends State<ChatTab> {
     for (final s in _subs) {
       s.cancel();
     }
-    _rt.dispose();
+    _ownRt?.dispose();
     _scroll.dispose();
     _search.dispose();
     super.dispose();
@@ -991,6 +994,9 @@ class _ConversationRow extends StatelessWidget {
   /// (metin, ikon, tek gösterimlik mi): metin yoksa ekten türetilir (fotoğraf/video + süre).
   static (String, IconData?, bool) _preview(BuildContext context, Map last) {
     final l = context.l10n;
+    // Engelli gönderen / çözülemeyen mesaj: sunucunun Türkçe sabit metni yerine uygulama dilinde yer tutucu.
+    final byKind = placeholderKindText(context, last['placeholderKind']);
+    if (byKind != null) return (byKind, null, false);
     final text = (last['text'] as String?)?.trim() ?? '';
     if (text.isNotEmpty) {
       return (text.replaceAll(RegExp(r'\s+'), ' '), null, false);
