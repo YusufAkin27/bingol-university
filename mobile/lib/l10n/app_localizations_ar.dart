@@ -9446,4 +9446,30 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get p68SugEmpty => 'لا توجد اقتراحات بعد.';
+
+  @override
+  String get p51EvAttOpen => 'تسجيل الحضور مفتوح';
+
+  @override
+  String get p51EvScanQr => 'سجّل حضورك برمز QR';
+
+  @override
+  String get p51EvGoingYou => 'ستحضر';
+
+  @override
+  String get p51EvLblDate => 'التاريخ';
+
+  @override
+  String get p51EvLblTime => 'الوقت';
+
+  @override
+  String get p51EvLblPlace => 'المكان';
+
+  @override
+  String get p51EvLblAttendees => 'المشاركون';
+
+  @override
+  String p51EvPeople(String count) {
+    return '$count شخص';
+  }
 }

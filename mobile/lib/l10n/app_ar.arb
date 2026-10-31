@@ -2990,5 +2990,20 @@
   "p68SugSend": "أرسل اقتراحًا",
   "p68SugTop": "الأكثر تصويتًا",
   "p68SugNew": "الأحدث",
-  "p68SugEmpty": "لا توجد اقتراحات بعد."
+  "p68SugEmpty": "لا توجد اقتراحات بعد.",
+  "p51EvAttOpen": "تسجيل الحضور مفتوح",
+  "p51EvScanQr": "سجّل حضورك برمز QR",
+  "p51EvGoingYou": "ستحضر",
+  "p51EvLblDate": "التاريخ",
+  "p51EvLblTime": "الوقت",
+  "p51EvLblPlace": "المكان",
+  "p51EvLblAttendees": "المشاركون",
+  "p51EvPeople": "{count} شخص",
+  "@p51EvPeople": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  }
 }

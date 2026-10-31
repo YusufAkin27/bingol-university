@@ -17304,6 +17304,54 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Henüz öneri yok.'**
   String get p68SugEmpty;
+
+  /// No description provided for @p51EvAttOpen.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yoklama açık'**
+  String get p51EvAttOpen;
+
+  /// No description provided for @p51EvScanQr.
+  ///
+  /// In tr, this message translates to:
+  /// **'QR ile yoklama ver'**
+  String get p51EvScanQr;
+
+  /// No description provided for @p51EvGoingYou.
+  ///
+  /// In tr, this message translates to:
+  /// **'Katılıyorsun'**
+  String get p51EvGoingYou;
+
+  /// No description provided for @p51EvLblDate.
+  ///
+  /// In tr, this message translates to:
+  /// **'Tarih'**
+  String get p51EvLblDate;
+
+  /// No description provided for @p51EvLblTime.
+  ///
+  /// In tr, this message translates to:
+  /// **'Saat'**
+  String get p51EvLblTime;
+
+  /// No description provided for @p51EvLblPlace.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yer'**
+  String get p51EvLblPlace;
+
+  /// No description provided for @p51EvLblAttendees.
+  ///
+  /// In tr, this message translates to:
+  /// **'Katılımcı'**
+  String get p51EvLblAttendees;
+
+  /// No description provided for @p51EvPeople.
+  ///
+  /// In tr, this message translates to:
+  /// **'{count} kişi'**
+  String p51EvPeople(String count);
 }
 
 class _AppLocalizationsDelegate

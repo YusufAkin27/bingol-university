@@ -2990,5 +2990,20 @@
   "p68SugSend": "Send a suggestion",
   "p68SugTop": "Top voted",
   "p68SugNew": "New",
-  "p68SugEmpty": "No suggestions yet."
+  "p68SugEmpty": "No suggestions yet.",
+  "p51EvAttOpen": "Check-in is open",
+  "p51EvScanQr": "Check in with QR",
+  "p51EvGoingYou": "You are going",
+  "p51EvLblDate": "Date",
+  "p51EvLblTime": "Time",
+  "p51EvLblPlace": "Place",
+  "p51EvLblAttendees": "Attendees",
+  "p51EvPeople": "{count} people",
+  "@p51EvPeople": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  }
 }

@@ -9515,4 +9515,30 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get p68SugEmpty => 'Henüz öneri yok.';
+
+  @override
+  String get p51EvAttOpen => 'Yoklama açık';
+
+  @override
+  String get p51EvScanQr => 'QR ile yoklama ver';
+
+  @override
+  String get p51EvGoingYou => 'Katılıyorsun';
+
+  @override
+  String get p51EvLblDate => 'Tarih';
+
+  @override
+  String get p51EvLblTime => 'Saat';
+
+  @override
+  String get p51EvLblPlace => 'Yer';
+
+  @override
+  String get p51EvLblAttendees => 'Katılımcı';
+
+  @override
+  String p51EvPeople(String count) {
+    return '$count kişi';
+  }
 }

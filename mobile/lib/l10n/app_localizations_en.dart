@@ -9547,4 +9547,30 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get p68SugEmpty => 'No suggestions yet.';
+
+  @override
+  String get p51EvAttOpen => 'Check-in is open';
+
+  @override
+  String get p51EvScanQr => 'Check in with QR';
+
+  @override
+  String get p51EvGoingYou => 'You are going';
+
+  @override
+  String get p51EvLblDate => 'Date';
+
+  @override
+  String get p51EvLblTime => 'Time';
+
+  @override
+  String get p51EvLblPlace => 'Place';
+
+  @override
+  String get p51EvLblAttendees => 'Attendees';
+
+  @override
+  String p51EvPeople(String count) {
+    return '$count people';
+  }
 }

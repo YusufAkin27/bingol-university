@@ -4786,5 +4786,20 @@
   "p68SugSend": "Öneri gönder",
   "p68SugTop": "En çok oylanan",
   "p68SugNew": "Yeni",
-  "p68SugEmpty": "Henüz öneri yok."
+  "p68SugEmpty": "Henüz öneri yok.",
+  "p51EvAttOpen": "Yoklama açık",
+  "p51EvScanQr": "QR ile yoklama ver",
+  "p51EvGoingYou": "Katılıyorsun",
+  "p51EvLblDate": "Tarih",
+  "p51EvLblTime": "Saat",
+  "p51EvLblPlace": "Yer",
+  "p51EvLblAttendees": "Katılımcı",
+  "p51EvPeople": "{count} kişi",
+  "@p51EvPeople": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  }
 }
