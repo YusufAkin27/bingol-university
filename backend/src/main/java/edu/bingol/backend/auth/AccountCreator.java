@@ -26,8 +26,18 @@ public class AccountCreator {
         this.admin = admin;
     }
 
+    /** E-posta KODU dogrulamasiyla gelen kayit: ADMIN_EMAILS adresi yonetici (FULL) olur. */
     @Transactional
     public User create(String email, Pending p) {
+        return create(email, p, true);
+    }
+
+    /**
+     * `promoteAdmin=false`: e-posta sahipligi KODLA kanitlanmadan (yonetici elle dogrulama) acilan hesap ADMIN_EMAILS
+     * terfisi almaz (T-011); sabit FULL yonetici yalniz kodlu dogrulamayla olusur.
+     */
+    @Transactional
+    public User create(String email, Pending p, boolean promoteAdmin) {
         User user = users.findByEmail(email).orElseGet(User::new);
         user.setEmail(email);
         user.setPasswordHash(p.passwordHash());
@@ -37,7 +47,7 @@ public class AccountCreator {
         user.setDepartment(p.department());
         user.setGrade(p.grade());
         user.setEmailVerified(true);
-        if (user.getRole() != Role.ADMIN && admin.isAdminEmail(email)) {
+        if (promoteAdmin && user.getRole() != Role.ADMIN && admin.isAdminEmail(email)) {
             user.setRole(Role.ADMIN);
             user.setAdminProfile(edu.bingol.backend.admin.rbac.AdminProfile.FULL); // ADMIN_EMAILS hesabi her zaman FULL
         }
