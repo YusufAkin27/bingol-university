@@ -100,6 +100,7 @@ class AuthResendRowState extends State<AuthResendRow> {
               child: RefLink(
                 label: widget.resendLabel,
                 icon: LucideIcons.refreshCw,
+                compact: true,
                 onPressed: widget.onResend,
               ),
             ),
@@ -131,7 +132,9 @@ class AuthPasswordGuide extends StatelessWidget {
     final l = context.l10n;
     final tx = Theme.of(context).textTheme;
     final sc = score(password);
-    final color = sc >= 3 ? t.ok : t.danger;
+    // Zayıf = kırmızı, orta = kehribar (hata değil, uyarı), güçlü = yeşil.
+    final color = sc >= 3 ? t.ok : (sc == 2 ? t.warn : t.danger);
+    final labelColor = sc >= 3 ? t.ok : (sc == 2 ? t.onWarnSoft : t.danger);
     final label = sc <= 1 ? l.authPwWeak : (sc == 2 ? l.authPwFair : l.authPwStrong);
     final hasMix = RegExp(r'[A-Za-z]').hasMatch(password) && RegExp(r'\d').hasMatch(password);
     return Padding(
@@ -147,7 +150,7 @@ class AuthPasswordGuide extends StatelessWidget {
                 child: Text(
                   password.isEmpty ? '' : label,
                   key: ValueKey(password.isEmpty ? '' : label),
-                  style: tx.labelLarge!.copyWith(color: color, fontWeight: FontWeight.w800),
+                  style: tx.labelLarge!.copyWith(color: labelColor, fontWeight: FontWeight.w800),
                 ),
               ),
             ],

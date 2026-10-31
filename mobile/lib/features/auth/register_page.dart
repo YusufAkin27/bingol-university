@@ -34,6 +34,9 @@ class _RegisterPageState extends State<RegisterPage> {
   final _email = TextEditingController();
   final _password = TextEditingController();
   int _step = 0;
+
+  /// Son adım değişimi geri yönde mi (paylaşılan eksen geçişinin yönü).
+  bool _back = false;
   bool _busy = false;
   String? _error;
 
@@ -75,6 +78,7 @@ class _RegisterPageState extends State<RegisterPage> {
   bool get _academicOk => (_faculty ?? '').isNotEmpty && (_department ?? '').isNotEmpty && (_grade ?? '').isNotEmpty;
 
   void _goTo(int step) => setState(() {
+        _back = step < _step;
         _step = step;
         _error = null;
       });
@@ -138,6 +142,7 @@ class _RegisterPageState extends State<RegisterPage> {
         setState(() {
           _emailFieldError = errorText(e);
           _emailErrorFor = _email.text;
+          _back = _step > 1;
           _step = 1;
           _error = null;
         });
@@ -375,15 +380,17 @@ class _RegisterPageState extends State<RegisterPage> {
           Form(
             key: _form,
             child: AutofillGroup(
-              child: AnimatedSwitcher(
-                duration: const Duration(milliseconds: 220),
-                switchInCurve: Curves.easeOutCubic,
-                layoutBuilder: (cur, prev) => Stack(
-                  alignment: Alignment.topCenter,
-                  children: [...prev, if (cur != null) cur],
+              // Adım geçişi: ileri/geri yönde paylaşılan eksen (kayma + solma); yükseklik farkı yumuşakça kapanır.
+              child: AnimatedSize(
+                duration: BuMotion.of(context, BuMotion.medium),
+                curve: BuMotion.decelerate,
+                alignment: Alignment.topCenter,
+                child: BuSharedAxis(
+                  reverse: _back,
+                  duration: BuMotion.medium,
+                  distance: 24,
+                  child: KeyedSubtree(key: ValueKey(_step), child: _stepBody(context)),
                 ),
-                transitionBuilder: (child, anim) => FadeTransition(opacity: anim, child: child),
-                child: KeyedSubtree(key: ValueKey(_step), child: _stepBody(context)),
               ),
             ),
           ),

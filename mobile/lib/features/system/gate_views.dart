@@ -13,69 +13,74 @@ Future<void> openStore(String? url) async {
 }
 
 /// Tam ekran sistem durumlarının ortak iskeleti (04 grubu): üstte isteğe bağlı şerit, ortada içerik,
-/// altta düğmeler. [alignTop] true ise içerik ortalanmaz, üstten akar (bakım, erişim engeli).
-/// Sığmayan içerik (büyük yazı) kayar; düğmeler yerinde kalır.
+/// altta düğmeler. Dört durum ekranı da aynı düzeni kullanır (simge -> başlık -> metin -> düğme), böylece
+/// geçişlerde yer değiştirmez. Sığmayan içerik (büyük yazı) kayar; düğmeler yerinde kalır.
 class _GateLayout extends StatelessWidget {
-  const _GateLayout({this.top, required this.content, this.actions = const [], this.alignTop = false, this.horizontal = 24, this.actionsGap = 28});
+  const _GateLayout({this.top, required this.content, this.actions = const []});
 
   final Widget? top;
   final Widget content;
   final List<Widget> actions;
-  final bool alignTop;
-  final double horizontal;
 
-  /// Üstten akan düzende içerik ile düğme arası boşluk.
-  final double actionsGap;
+  static const double _horizontal = 24;
 
   @override
   Widget build(BuildContext context) {
-    final body = Padding(
-      padding: EdgeInsetsDirectional.fromSTEB(horizontal, 0, horizontal, 0),
-      child: alignTop
-          ? Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [content, if (actions.isNotEmpty) ...[SizedBox(height: actionsGap), ...actions]],
-            )
-          : content,
-    );
-    if (alignTop) {
-      return SafeArea(
-        child: SingleChildScrollView(
-          padding: EdgeInsets.only(top: top == null ? 32 : 0, bottom: 32),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              if (top != null) Padding(padding: const EdgeInsets.only(bottom: 44), child: top),
-              body,
-            ],
-          ),
-        ),
-      );
-    }
-    return SafeArea(
-      child: Column(
-        children: [
-          if (top != null) top!,
-          Expanded(
-            child: LayoutBuilder(
-              builder: (context, c) => SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                child: ConstrainedBox(
-                  constraints: BoxConstraints(minHeight: c.maxHeight - 32),
-                  child: Center(child: body),
+    // Giriş sırası: simge (0) -> başlık/metin (1) -> ek hap (2) -> eylemler (3). Kapsam her indeksi bir kez oynatır.
+    Widget action(Widget a) => BuStaggerItem(index: 3, child: a);
+    final body = Padding(padding: const EdgeInsetsDirectional.symmetric(horizontal: _horizontal), child: content);
+    return BuStaggerScope(
+      child: SafeArea(
+        child: Column(
+          children: [
+            if (top != null) top!,
+            Expanded(
+              child: LayoutBuilder(
+                builder: (context, c) => SingleChildScrollView(
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(minHeight: c.maxHeight - 32),
+                    child: Center(child: body),
+                  ),
                 ),
               ),
             ),
-          ),
-          if (actions.isNotEmpty)
-            Padding(
-              padding: EdgeInsetsDirectional.fromSTEB(horizontal, 8, horizontal, 48),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [for (var i = 0; i < actions.length; i++) ...[if (i > 0) const SizedBox(height: 12), actions[i]]],
+            if (actions.isNotEmpty)
+              Padding(
+                padding: const EdgeInsetsDirectional.fromSTEB(_horizontal, 8, _horizontal, 48),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [for (var i = 0; i < actions.length; i++) ...[if (i > 0) const SizedBox(height: 12), action(actions[i])]],
+                ),
               ),
-            ),
-        ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Tüm durum ekranlarının ortak simge karosu (88 dp, aynı köşe): [neutral] sakin gri (bakım, çevrimdışı),
+/// aksi halde marka tonu (güncelleme, erişim engeli). Dekoratiftir; ekran okuyucudan gizlenir.
+class _GateIcon extends StatelessWidget {
+  const _GateIcon({required this.icon, this.neutral = false});
+
+  final IconData icon;
+  final bool neutral;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.bu;
+    return BuStaggerItem(
+      index: 0,
+      child: ExcludeSemantics(
+        child: Container(
+          width: 88,
+          height: 88,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(color: neutral ? t.sf2 : t.soft, borderRadius: BuRadius.bXl),
+          child: Icon(icon, size: 40, color: neutral ? t.mut : t.pr),
+        ),
       ),
     );
   }
@@ -92,24 +97,27 @@ class _GateText extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.bu;
     final tx = Theme.of(context).textTheme;
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Semantics(
-          header: true,
-          child: Text(title,
-              textAlign: TextAlign.center,
-              style: tx.headlineMedium!.copyWith(color: t.ink, fontWeight: FontWeight.w800, letterSpacing: Directionality.of(context) == TextDirection.rtl ? 0 : -.3)),
-        ),
-        const SizedBox(height: 12),
-        ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 340),
-          child: Semantics(
-            liveRegion: true,
-            child: Text(body, textAlign: TextAlign.center, style: tx.bodyMedium!.copyWith(color: t.mut, height: 1.6)),
+    return BuStaggerItem(
+      index: 1,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Semantics(
+            header: true,
+            child: Text(title,
+                textAlign: TextAlign.center,
+                style: tx.headlineMedium!.copyWith(color: t.ink, fontWeight: FontWeight.w800, letterSpacing: Directionality.of(context) == TextDirection.rtl ? 0 : -.3)),
           ),
-        ),
-      ],
+          const SizedBox(height: 12),
+          ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 340),
+            child: Semantics(
+              liveRegion: true,
+              child: Text(body, textAlign: TextAlign.center, style: tx.bodyMedium!.copyWith(color: t.mut, height: 1.6)),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -193,20 +201,12 @@ class UpdateRequiredScreen extends StatelessWidget {
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              ExcludeSemantics(
-                child: Container(
-                  width: 96,
-                  height: 96,
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(color: t.soft, borderRadius: BuRadius.bXl),
-                  child: Icon(Icons.system_update, size: 44, color: t.pr),
-                ),
-              ),
+              const _GateIcon(icon: LucideIcons.smartphone),
               const SizedBox(height: 24),
               _GateText(title: l.updateRequiredTitle, body: l.updateRequiredBody),
               if (latest != null && current != null) ...[
                 const SizedBox(height: 24),
-                _VersionPill(text: l.sistemuiUpdateVersions(current!, latest!)),
+                BuStaggerItem(index: 2, child: _VersionPill(text: l.sistemuiUpdateVersions(current!, latest!))),
               ],
             ],
           ),
@@ -266,28 +266,11 @@ class MaintenanceScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: t.bg,
       body: _GateLayout(
-        alignTop: true,
-        horizontal: 16,
-        actionsGap: 48,
         top: GateNoticeStrip(icon: LucideIcons.info, text: l.sistemuiMaintBand, kind: GateNoticeKind.maintenance, plain: true),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            ExcludeSemantics(
-              child: Container(
-                width: 88,
-                height: 88,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(color: t.sf2, borderRadius: BorderRadius.circular(24)),
-                child: Container(
-                  width: 48,
-                  height: 48,
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(color: t.sf, shape: BoxShape.circle),
-                  child: Icon(LucideIcons.briefcase, size: 24, color: t.mut),
-                ),
-              ),
-            ),
+            const _GateIcon(icon: LucideIcons.wrench, neutral: true),
             const SizedBox(height: 24),
             _GateText(title: l.sistemuiMaintTitle, body: message ?? l.sistemuiMaintBody),
           ],
@@ -314,39 +297,7 @@ class OfflineScreen extends StatelessWidget {
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            ExcludeSemantics(
-              child: SizedBox(
-                width: 92,
-                height: 92,
-                child: Stack(
-                  clipBehavior: Clip.none,
-                  children: [
-                    Positioned(
-                      left: 0,
-                      top: 0,
-                      child: Container(
-                        width: 88,
-                        height: 88,
-                        alignment: Alignment.center,
-                        decoration: BoxDecoration(color: t.soft, borderRadius: BuRadius.bXl),
-                        child: Icon(LucideIcons.cloudOff, size: 42, color: t.pr),
-                      ),
-                    ),
-                    PositionedDirectional(
-                      end: 0,
-                      bottom: 0,
-                      child: Container(
-                        width: 24,
-                        height: 24,
-                        alignment: Alignment.center,
-                        decoration: BoxDecoration(color: t.sf, shape: BoxShape.circle, boxShadow: BuElevation.of(context, 1)),
-                        child: Container(width: 10, height: 10, decoration: BoxDecoration(color: t.pr, shape: BoxShape.circle)),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
+            const _GateIcon(icon: LucideIcons.cloudOff, neutral: true),
             const SizedBox(height: 24),
             _GateText(title: l.sistemuiOfflineTitle, body: l.sistemuiOfflineBody),
           ],
@@ -372,23 +323,14 @@ class AccessBlockedScreen extends StatelessWidget {
       child: Scaffold(
         backgroundColor: t.bg,
         body: _GateLayout(
-          alignTop: true,
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              ExcludeSemantics(
-                child: Container(
-                  width: 88,
-                  height: 88,
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(color: t.soft, borderRadius: BuRadius.bXl),
-                  child: Icon(LucideIcons.shieldX, size: 42, color: t.pr),
-                ),
-              ),
+              const _GateIcon(icon: LucideIcons.shieldX),
               const SizedBox(height: 24),
               _GateText(title: l.accessBlockedTitle, body: l.accessBlockedBody),
               const SizedBox(height: 24),
-              _CodePill(text: l.sistemuiBlockedCode),
+              BuStaggerItem(index: 2, child: _CodePill(text: l.sistemuiBlockedCode)),
             ],
           ),
           actions: [

@@ -184,90 +184,117 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                 ),
         ),
-        RefCard(
-          padding: const EdgeInsets.fromLTRB(20, 24, 20, 20),
-          child: Form(
-            key: _form,
-            child: AutofillGroup(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  if (!keyboard) ...[
-                    const Center(child: RefBrandMark(size: 64, badge: true)),
-                    const SizedBox(height: 10),
-                    Text(l.p02BrandSub,
-                        textAlign: TextAlign.center,
-                        style: tx.labelMedium!.copyWith(color: t.pr, fontWeight: FontWeight.w700)),
-                    const SizedBox(height: 14),
-                  ],
-                  Semantics(
-                    header: true,
-                    child: Text(l.loginWelcome,
-                        textAlign: TextAlign.center, style: tx.headlineSmall!.copyWith(color: t.ink, fontWeight: FontWeight.w800)),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(l.loginSubtitle, textAlign: TextAlign.center, style: tx.bodyMedium!.copyWith(color: t.mut)),
-                  const SizedBox(height: 24),
-                  RefIdentifierField(controller: _email, enabled: !_busy, onCard: true),
-                  const SizedBox(height: 18),
-                  RefPasswordField(
-                    controller: _password,
-                    onCard: true,
-                    enabled: !_busy,
-                    hint: l.loginPasswordRequired.replaceAll(RegExp(r'\.$'), ''),
-                    validator: (v) => (v == null || v.isEmpty) ? l.loginPasswordRequired : null,
-                    onSubmitted: _submit,
-                    labelAction: RefLink(label: l.loginForgotPassword, compact: true, onPressed: _busy ? null : _forgot),
-                  ),
-                  const SizedBox(height: 22),
-                  RefButton(
-                    label: l.loginSubmit,
-                    icon: buDirIcon(context, LucideIcons.arrowRight),
-                    busy: _busy,
-                    busyLabel: l.p02LoginBusy,
-                    onPressed: _submit,
-                  ),
-                  AnimatedSize(
-                    duration: const Duration(milliseconds: 220),
-                    curve: Curves.easeOutCubic,
-                    alignment: Alignment.topCenter,
-                    child: _error == null
-                        ? const SizedBox(width: double.infinity)
-                        : Padding(
-                            padding: const EdgeInsets.only(top: 16),
-                            child: RefBanner(
-                              _error!,
-                              key: ValueKey('login-error-$_error'),
-                              icon: _retry != null ? LucideIcons.triangleAlert : LucideIcons.circleAlert,
-                              sub: _retry,
-                              subIcon: LucideIcons.hourglass,
-                              onClose: () => setState(() {
-                                _error = null;
-                                _retry = null;
-                              }),
+        BuStaggerItem(
+          index: 0,
+          child: RefCard(
+            padding: const EdgeInsets.fromLTRB(20, 24, 20, 20),
+            child: Form(
+              key: _form,
+              child: AutofillGroup(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    // Klavye açılınca marka bloğu yumuşakça daralır (düzen sıçramaz, alanlar görünür kalır).
+                    AnimatedSize(
+                      duration: BuMotion.of(context, BuMotion.medium),
+                      curve: BuMotion.decelerate,
+                      alignment: Alignment.topCenter,
+                      child: keyboard
+                          ? const SizedBox(width: double.infinity)
+                          : Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                const Center(child: RefBrandMark(size: 64, badge: true)),
+                                const SizedBox(height: 10),
+                                Text(l.p02BrandSub,
+                                    textAlign: TextAlign.center,
+                                    style: tx.labelMedium!.copyWith(color: t.pr, fontWeight: FontWeight.w700)),
+                                const SizedBox(height: 14),
+                              ],
                             ),
-                          ),
-                  ),
-                ],
+                    ),
+                    Semantics(
+                      header: true,
+                      child: Text(l.loginWelcome,
+                          textAlign: TextAlign.center, style: tx.headlineSmall!.copyWith(color: t.ink, fontWeight: FontWeight.w800)),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(l.loginSubtitle, textAlign: TextAlign.center, style: tx.bodyMedium!.copyWith(color: t.mut)),
+                    const SizedBox(height: 24),
+                    RefIdentifierField(controller: _email, enabled: !_busy, onCard: true),
+                    const SizedBox(height: 18),
+                    RefPasswordField(
+                      controller: _password,
+                      onCard: true,
+                      enabled: !_busy,
+                      hint: l.loginPasswordRequired.replaceAll(RegExp(r'\.$'), ''),
+                      validator: (v) => (v == null || v.isEmpty) ? l.loginPasswordRequired : null,
+                      onSubmitted: _submit,
+                      labelAction: RefLink(label: l.loginForgotPassword, compact: true, onPressed: _busy ? null : _forgot),
+                    ),
+                    const SizedBox(height: 22),
+                    RefButton(
+                      label: l.loginSubmit,
+                      icon: buDirIcon(context, LucideIcons.arrowRight),
+                      busy: _busy,
+                      busyLabel: l.p02LoginBusy,
+                      onPressed: _submit,
+                    ),
+                    AnimatedSize(
+                      duration: const Duration(milliseconds: 220),
+                      curve: Curves.easeOutCubic,
+                      alignment: Alignment.topCenter,
+                      child: _error == null
+                          ? const SizedBox(width: double.infinity)
+                          : Padding(
+                              padding: const EdgeInsets.only(top: 16),
+                              child: RefBanner(
+                                _error!,
+                                key: ValueKey('login-error-$_error'),
+                                icon: _retry != null ? LucideIcons.triangleAlert : LucideIcons.circleAlert,
+                                sub: _retry,
+                                subIcon: LucideIcons.hourglass,
+                                onClose: () => setState(() {
+                                  _error = null;
+                                  _retry = null;
+                                }),
+                              ),
+                            ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
         ),
-        if (!keyboard) ...[
-          const SizedBox(height: 8),
-          Center(
-            child: RefFooterPrompt(
-              prompt: l.loginNoAccount,
-              action: l.loginRegister,
-              onPressed: _busy
-                  ? null
-                  : () => Navigator.push(context, MaterialPageRoute(builder: (_) => RegisterPage(session: widget.session))),
-            ),
-          ),
-          Center(
-            child: Text(l.profileVersion(appVersion), style: tx.labelSmall!.copyWith(color: t.mut, fontWeight: FontWeight.w600)),
-          ),
-        ],
+        AnimatedSize(
+          duration: BuMotion.of(context, BuMotion.medium),
+          curve: BuMotion.decelerate,
+          alignment: Alignment.topCenter,
+          child: keyboard
+              ? const SizedBox(width: double.infinity)
+              : BuStaggerItem(
+                  index: 1,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      const SizedBox(height: 8),
+                      Center(
+                        child: RefFooterPrompt(
+                          prompt: l.loginNoAccount,
+                          action: l.loginRegister,
+                          onPressed: _busy
+                              ? null
+                              : () => Navigator.push(context, MaterialPageRoute(builder: (_) => RegisterPage(session: widget.session))),
+                        ),
+                      ),
+                      Center(
+                        child: Text(l.profileVersion(appVersion), style: tx.labelSmall!.copyWith(color: t.mut, fontWeight: FontWeight.w600)),
+                      ),
+                    ],
+                  ),
+                ),
+        ),
       ],
     );
   }

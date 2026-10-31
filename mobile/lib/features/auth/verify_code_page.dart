@@ -179,6 +179,7 @@ class _VerifyCodePageState extends State<VerifyCodePage> {
                   ),
                   RefLink(
                       label: l.authChangeEmail,
+                      compact: true,
                       onPressed:
                           _busy ? null : () => Navigator.maybePop(context)),
                 ],

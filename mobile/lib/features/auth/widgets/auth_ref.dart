@@ -71,7 +71,8 @@ class RefPage extends StatelessWidget {
                 child: Center(
                   child: ConstrainedBox(
                     constraints: const BoxConstraints(maxWidth: 440),
-                    child: Column(crossAxisAlignment: crossAxisAlignment, children: children),
+                    // Ekran öğeleri [BuStaggerItem] ile sarılırsa kapsam her indeksi yalnız bir kez oynatır.
+                    child: BuStaggerScope(child: Column(crossAxisAlignment: crossAxisAlignment, children: children)),
                   ),
                 ),
               ),

@@ -112,27 +112,30 @@ class _OtpCodeBoxesState extends State<OtpCodeBoxes> {
                                 final active = focused && i == activeIndex;
                                 final ch = i < text.length ? text[i] : '';
                                 final filled = ch.isNotEmpty;
+                                // Yanlış kod: kutular alan hatasıyla aynı dilde (hafif kırmızı dolgu + ince çerçeve).
+                                final err = widget.hasError && widget.enabled;
                                 return Expanded(
-                                  child: Padding(
-                                    padding: EdgeInsetsDirectional.only(start: i == 0 ? 0 : 8),
-                                    child: AnimatedContainer(
-                                      duration: const Duration(milliseconds: 160),
-                                      curve: Curves.easeOut,
-                                      alignment: Alignment.center,
-                                      decoration: BoxDecoration(
-                                        color: active ? t.sf : t.sf2,
-                                        borderRadius: BorderRadius.circular(14),
-                                        boxShadow: active ? BuElevation.of(context, 2) : const [],
+                                  child: AnimatedContainer(
+                                    duration: BuMotion.of(context, BuMotion.short),
+                                    curve: Curves.easeOut,
+                                    alignment: Alignment.center,
+                                    decoration: BoxDecoration(
+                                      color: err ? Color.alphaBlend(t.danger.withValues(alpha: .09), t.sf2) : (active ? t.sf : t.sf2),
+                                      borderRadius: BorderRadius.circular(14),
+                                      border: Border.all(
+                                        color: err ? t.danger.withValues(alpha: .55) : (active ? t.pr : Colors.transparent),
+                                        width: err || active ? 1.5 : 0,
                                       ),
-                                      child: filled
-                                          ? Text(ch, style: tx.headlineSmall!.copyWith(color: t.ink, fontWeight: FontWeight.w800))
-                                          : (active
-                                              ? Container(width: 2, height: 24, decoration: BoxDecoration(color: t.pr, borderRadius: BorderRadius.circular(1)))
-                                              : null),
+                                      boxShadow: active && !err ? BuElevation.of(context, 2) : const [],
                                     ),
+                                    child: filled
+                                        ? Text(ch, style: tx.headlineSmall!.copyWith(color: err ? t.danger : t.ink, fontWeight: FontWeight.w800))
+                                        : (active
+                                            ? Container(width: 2, height: 24, decoration: BoxDecoration(color: t.pr, borderRadius: BorderRadius.circular(1)))
+                                            : null),
                                   ),
                                 );
-                              }),
+                              }).expand((w) => [w, const SizedBox(width: 8)]).toList()..removeLast(),
                             );
                           },
                         ),

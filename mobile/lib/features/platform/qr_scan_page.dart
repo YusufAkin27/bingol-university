@@ -202,8 +202,9 @@ class _QrScanPageState extends State<QrScanPage> with SingleTickerProviderStateM
               top: camH - 24,
               child: SingleChildScrollView(
                 keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-                child: Align(
-                  alignment: Alignment.topCenter,
+                // Panel kalan yüksekliği doldurur: uzun ekranlarda altta zemin renginde boşluk kalmaz.
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(minHeight: (c.maxHeight - (camH - 24)).clamp(0.0, double.infinity)),
                   child: Container(
                     width: double.infinity,
                     padding: const EdgeInsets.fromLTRB(20, 20, 20, 24),

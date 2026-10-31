@@ -47,7 +47,6 @@ class _LegalListPageState extends State<LegalListPage> {
   Widget build(BuildContext context) {
     final t = context.bu;
     final l = context.l10n;
-    final tx = Theme.of(context).textTheme;
     return Scaffold(
       backgroundColor: t.bg,
       body: Column(
@@ -56,71 +55,80 @@ class _LegalListPageState extends State<LegalListPage> {
           Expanded(
             child: FutureBuilder(
               future: _future,
-              builder: (context, snap) {
-                if (snap.connectionState != ConnectionState.done) return const LoadingView();
-                if (snap.hasError) {
-                  // Yüklenemedi: satır kartı + "Yeniden dene".
-                  return ListView(
-                    padding: const EdgeInsets.fromLTRB(16, 20, 16, 32),
-                    children: [
-                      _FailedRow(onRetry: _refresh),
-                    ],
-                  );
-                }
-                final docs = snap.data!;
-                if (docs.isEmpty) {
-                  return ListView(
-                    padding: const EdgeInsets.fromLTRB(16, 20, 16, 32),
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.fromLTRB(24, 40, 24, 40),
-                        decoration: BoxDecoration(color: t.sf, borderRadius: BorderRadius.circular(28), boxShadow: BuElevation.of(context, 1)),
-                        child: Column(
-                          children: [
-                            Container(
-                              width: 80,
-                              height: 80,
-                              decoration: BoxDecoration(color: t.sf2, borderRadius: BorderRadius.circular(24)),
-                              child: Icon(LucideIcons.fileX, size: 36, color: t.mut),
-                            ),
-                            const SizedBox(height: 20),
-                            Text(l.profileLegalEmpty,
-                                textAlign: TextAlign.center, style: tx.titleLarge!.copyWith(color: t.ink, fontWeight: FontWeight.w800)),
-                          ],
-                        ),
+              // Durum başına anahtarlı gövde: yükleniyor -> içerik geçişi yumuşak solmayla olur.
+              builder: (context, snap) => BuFadeThrough(child: _body(context, snap)),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _body(BuildContext context, AsyncSnapshot<List<Map<String, dynamic>>> snap) {
+    final t = context.bu;
+    final l = context.l10n;
+    final tx = Theme.of(context).textTheme;
+    if (snap.connectionState != ConnectionState.done) return const LoadingView(key: ValueKey('legal-loading'));
+    if (snap.hasError) {
+      // Yüklenemedi: satır kartı + "Yeniden dene".
+      return ListView(
+        key: const ValueKey('legal-error'),
+        padding: const EdgeInsets.fromLTRB(16, 20, 16, 32),
+        children: [_FailedRow(onRetry: _refresh)],
+      );
+    }
+    final docs = snap.data!;
+    if (docs.isEmpty) {
+      return ListView(
+        key: const ValueKey('legal-empty'),
+        padding: const EdgeInsets.fromLTRB(16, 20, 16, 32),
+        children: [
+          Container(
+            padding: const EdgeInsets.fromLTRB(24, 40, 24, 40),
+            decoration: BoxDecoration(color: t.sf, borderRadius: BorderRadius.circular(28), boxShadow: BuElevation.of(context, 1)),
+            child: Column(
+              children: [
+                Container(
+                  width: 80,
+                  height: 80,
+                  decoration: BoxDecoration(color: t.sf2, borderRadius: BorderRadius.circular(24)),
+                  child: Icon(LucideIcons.fileX, size: 36, color: t.mut),
+                ),
+                const SizedBox(height: 20),
+                Text(l.profileLegalEmpty, textAlign: TextAlign.center, style: tx.titleLarge!.copyWith(color: t.ink, fontWeight: FontWeight.w800)),
+              ],
+            ),
+          ),
+        ],
+      );
+    }
+    return RefreshIndicator(
+      key: const ValueKey('legal-list'),
+      onRefresh: _refresh,
+      child: ListView(
+        padding: const EdgeInsets.fromLTRB(16, 20, 16, 32),
+        children: [
+          // Dolgu Material'de: dokunma dalgası görünür (Container dolgusu dalgayı örterdi).
+          DecoratedBox(
+            decoration: BoxDecoration(borderRadius: BorderRadius.circular(28), boxShadow: BuElevation.of(context, 1)),
+            child: Material(
+              color: t.sf,
+              borderRadius: BorderRadius.circular(28),
+              clipBehavior: Clip.antiAlias,
+              child: Column(
+                children: [
+                  for (var i = 0; i < docs.length; i++) ...[
+                    if (i > 0) Divider(height: 1, indent: 20, endIndent: 20, color: t.bd),
+                    _DocRow(
+                      doc: docs[i],
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => LegalDocPage(session: widget.session, type: docs[i]['type'] as String)),
                       ),
-                    ],
-                  );
-                }
-                return RefreshIndicator(
-                  onRefresh: _refresh,
-                  child: ListView(
-                    padding: const EdgeInsets.fromLTRB(16, 20, 16, 32),
-                    children: [
-                      Container(
-                        decoration: BoxDecoration(color: t.sf, borderRadius: BorderRadius.circular(28), boxShadow: BuElevation.of(context, 1)),
-                        clipBehavior: Clip.antiAlias,
-                        child: Column(
-                          children: [
-                            for (var i = 0; i < docs.length; i++) ...[
-                              if (i > 0) Divider(height: 1, indent: 20, endIndent: 20, color: t.bd),
-                              _DocRow(
-                                doc: docs[i],
-                                onTap: () => Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) => LegalDocPage(session: widget.session, type: docs[i]['type'] as String),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                );
-              },
+                    ),
+                  ],
+                ],
+              ),
             ),
           ),
         ],
@@ -260,10 +268,12 @@ class _LegalDocPageState extends State<LegalDocPage> {
                 onBack: () => Navigator.pop(context),
               ),
               Expanded(
-                child: snap.connectionState != ConnectionState.done
-                    ? const LoadingView()
+                child: BuFadeThrough(
+                  child: snap.connectionState != ConnectionState.done
+                    ? const LoadingView(key: ValueKey('doc-loading'))
                     : snap.hasError
                         ? ListView(
+                            key: const ValueKey('doc-error'),
                             padding: const EdgeInsets.fromLTRB(16, 20, 16, 32),
                             children: [
                               _FailedRow(onRetry: () => setState(() {
@@ -272,6 +282,7 @@ class _LegalDocPageState extends State<LegalDocPage> {
                             ],
                           )
                         : ListView(
+                            key: const ValueKey('doc-ok'),
                             padding: const EdgeInsets.fromLTRB(16, 20, 16, 40),
                             children: [
                               Container(
@@ -286,6 +297,7 @@ class _LegalDocPageState extends State<LegalDocPage> {
                               ),
                             ],
                           ),
+                ),
               ),
             ],
           );
