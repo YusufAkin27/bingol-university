@@ -40,6 +40,7 @@ import edu.bingol.backend.messaging.dto.MessagingDtos.ViewedEvent;
 import edu.bingol.backend.messaging.ws.ChatEventBus;
 import edu.bingol.backend.media.Mp4Info;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.core.io.AbstractResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpRange;
 import org.springframework.data.domain.PageRequest;
@@ -564,35 +565,180 @@ public class MessageAttachmentService {
         }
     }
 
+    /** Acis talebi bu sureden eskiyse (cokmus/yarim kalmis) yeni acisa yer acilir. */
+    static final Duration VIEW_ONCE_CLAIM_LEASE = Duration.ofSeconds(30);
+    /** Ag kopmasi penceresi (C4): teslimden sonra bu sure icinde ayni kullanici BIR kez yeniden acabilir. */
+    static final Duration VIEW_ONCE_REOPEN_WINDOW = Duration.ofSeconds(60);
+    /** Yeniden acis teslimden en az bu kadar sonra: ayni anda gelen yinelenen/on-getirme istekleri tek gosterimi bozmaz. */
+    static final Duration VIEW_ONCE_REOPEN_MIN_GAP = Duration.ofSeconds(2);
+
     /**
-     * Tek gosterimlik acis: gonderen 403; ikinci ve sonraki acis 410. Baytlar once okunur (okunamazsa kayit
-     * tuketilmez); (attachment_id, user_id) birincil anahtari eszamanli ikinci istegi eler. Birebirde (ya da tum
-     * alicilar acinca) baytlar silinir; yalniz goruntuleme kaydi kalir.
+     * Tek gosterimlik acis (T-033, C4): gonderen 403; ikinci ve sonraki acis 410. Iki asamali tuketim:
+     * <ol>
+     *   <li>acis basinda (attachment_id, user_id) birincil anahtarli TALEP satiri alinir (eszamanli ikinci istegi eler);
+     *       talep "goruldu" sayilmaz ve gondericiye olay gitmez;</li>
+     *   <li>govde istemciye TAMAMEN yazilinca (akis sonuna okundu) talep teslim edilmis olur: goruldu bilgisi, olay ve
+     *       (saklama kapaliysa) bayt silme o zaman calisir; yazim yarim kalirsa talep birakilir ve kullanici yeniden acar;</li>
+     *   <li>teslimden 2-60 sn sonra ayni kullanici BIR kez daha acabilir (govde ulasmadiysa kalici kayip olmasin).</li>
+     * </ol>
+     * HEAD ve Range istekleri reddedilir (on-getirme/saglik sorgusu gorseli tuketmesin). Baytlar once okunur
+     * (okunamazsa kayit tuketilmez).
      */
     private ResponseEntity<Resource> openViewOnce(Long userId, MessageAttachment a) {
+        rejectNonFullGet();
         if (a.getUploaderId().equals(userId)) {
             throw new ApiException(HttpStatus.FORBIDDEN, "MEDIA_VIEW_ONCE_OWN", "Tek gösterimlik görselinizi açamazsınız.");
         }
-        // Baytlar yonetici icin saklansa da alici erisimi kapanir: silinmis, zaten acilmis ya da kullanici suresi (24 sa) dolmus
-        if (a.getPurgedAt() != null || viewsRepo.existsByAttachmentIdAndUserId(a.getId(), userId)
-                || userAccessExpired(a)) {
+        // Baytlar yonetici icin saklansa da alici erisimi kapanir: silinmis ya da kullanici suresi (24 sa) dolmus
+        if (a.getPurgedAt() != null || userAccessExpired(a)) {
+            throw expired();
+        }
+        Instant now = Instant.now();
+        MessageAttachmentView prev = viewsRepo.findById(new MessageAttachmentView.Key(a.getId(), userId)).orElse(null);
+        if (prev != null && prev.getDeliveredAt() == null) {
+            if (prev.getViewedAt().isAfter(now.minus(VIEW_ONCE_CLAIM_LEASE))) {
+                throw expired(); // ayni anda baska bir acis suruyor
+            }
+            viewsRepo.releaseClaim(a.getId(), userId); // eskimis talep (cokmus acis): yeniden alinabilir
+            prev = null;
+        }
+        boolean reopen = prev != null;
+        if (reopen && prev.getReopenedAt() != null) {
             throw expired();
         }
         ResponseEntity<Resource> res = store.serve(BUCKET, a.getStorageKey());
         if (res.getStatusCode().isError()) {
             throw expired(); // bayt yok (silinmis)
         }
-        try {
-            viewsRepo.saveAndFlush(new MessageAttachmentView(a.getId(), userId));
-        } catch (DataIntegrityViolationException e) {
-            throw expired(); // eszamanli ikinci istek
+        if (reopen) {
+            if (viewsRepo.claimReopen(a.getId(), userId, now, now.minus(VIEW_ONCE_REOPEN_WINDOW),
+                    now.minus(VIEW_ONCE_REOPEN_MIN_GAP)) == 0) {
+                throw expired(); // pencere disinda ya da hak baska istekte
+            }
+        } else {
+            try {
+                viewsRepo.saveAndFlush(new MessageAttachmentView(a.getId(), userId));
+            } catch (DataIntegrityViolationException e) {
+                throw expired(); // eszamanli ikinci istek
+            }
         }
-        afterViewed(a, userId);
         HttpHeaders h = new HttpHeaders();
         h.putAll(res.getHeaders());
         h.set(HttpHeaders.CACHE_CONTROL, CacheControl.noStore().cachePrivate().getHeaderValue());
         h.set(HttpHeaders.CONTENT_DISPOSITION, "inline");
-        return ResponseEntity.status(res.getStatusCode()).headers(h).body(res.getBody());
+        Resource body = new DeliveryTrackedResource(res.getBody(), delivered -> {
+            if (reopen) {
+                return; // yeniden acista durum degismez
+            }
+            try {
+                if (delivered) {
+                    if (viewsRepo.markDelivered(a.getId(), userId, Instant.now()) > 0) {
+                        afterViewed(a, userId);
+                    }
+                } else {
+                    viewsRepo.releaseClaim(a.getId(), userId); // yazim yarim kaldi: tuketilmedi
+                }
+            } catch (RuntimeException e) {
+                log.warn("Tek gosterimlik acis kapanisi basarisiz (ek {}): {}", a.getId(), e.toString());
+            }
+        });
+        return ResponseEntity.status(res.getStatusCode()).headers(h).body(body);
+    }
+
+    /** HEAD ve Range tek gosterimlik gorseli tuketmemeli/parcalamamali: istek baglami yoksa (birim test) atlanir. */
+    private static void rejectNonFullGet() {
+        if (org.springframework.web.context.request.RequestContextHolder.getRequestAttributes()
+                instanceof org.springframework.web.context.request.ServletRequestAttributes sra) {
+            if ("HEAD".equalsIgnoreCase(sra.getRequest().getMethod())) {
+                throw new ApiException(HttpStatus.METHOD_NOT_ALLOWED, "MEDIA_VIEW_ONCE_METHOD",
+                        "Tek gösterimlik görsel yalnızca tam GET ile açılır.");
+            }
+            if (sra.getRequest().getHeader(HttpHeaders.RANGE) != null) {
+                throw new ApiException(HttpStatus.REQUESTED_RANGE_NOT_SATISFIABLE, "MEDIA_VIEW_ONCE_METHOD",
+                        "Tek gösterimlik görsel yalnızca tam GET ile açılır.");
+            }
+        }
+    }
+
+    /**
+     * Govdeyi sararak akisin SONUNA okunup okunmadigini izler (Spring govdeyi yazarken akisi sonuna kadar okur ve
+     * kapatir): kapanista delivered = yazim tamamlandi. Istemci kopmasi yazimi IOException ile keser ve akis
+     * sonuna ulasmadan kapanir.
+     */
+    static final class DeliveryTrackedResource extends AbstractResource {
+        private final Resource delegate;
+        private final java.util.function.Consumer<Boolean> onClose;
+
+        DeliveryTrackedResource(Resource delegate, java.util.function.Consumer<Boolean> onClose) {
+            this.delegate = delegate;
+            this.onClose = onClose;
+        }
+
+        @Override
+        public String getDescription() {
+            return "view-once";
+        }
+
+        @Override
+        public long contentLength() throws java.io.IOException {
+            return delegate.contentLength(); // akisi okutmadan
+        }
+
+        @Override
+        public boolean exists() {
+            return true;
+        }
+
+        @Override
+        public java.io.InputStream getInputStream() throws java.io.IOException {
+            java.io.InputStream in = delegate.getInputStream();
+            return new java.io.FilterInputStream(in) {
+                private boolean eof;
+                private boolean closed;
+
+                @Override
+                public int read() throws java.io.IOException {
+                    int b = super.read();
+                    if (b < 0) {
+                        eof = true;
+                    }
+                    return b;
+                }
+
+                @Override
+                public int read(byte[] buf, int off, int len) throws java.io.IOException {
+                    int n = super.read(buf, off, len);
+                    if (n < 0) {
+                        eof = true;
+                    }
+                    return n;
+                }
+
+                @Override
+                public long transferTo(java.io.OutputStream out) throws java.io.IOException {
+                    byte[] buf = new byte[8192];
+                    long total = 0;
+                    int n;
+                    while ((n = read(buf, 0, buf.length)) >= 0) {
+                        out.write(buf, 0, n);
+                        total += n;
+                    }
+                    return total;
+                }
+
+                @Override
+                public void close() throws java.io.IOException {
+                    try {
+                        super.close();
+                    } finally {
+                        if (!closed) {
+                            closed = true;
+                            onClose.accept(eof);
+                        }
+                    }
+                }
+            };
+        }
     }
 
     /** Gondericiye "viewed" olayi; tum alicilar actiysa baytlar silinir. Hata acisi bozmaz. */
@@ -601,7 +747,7 @@ public class MessageAttachmentService {
             long recipients = members.findByConversationIdAndLeftAtIsNullOrderByJoinedAtAscIdAsc(a.getConversationId())
                     .stream().filter(m -> !m.getUserId().equals(a.getUploaderId())).count();
             // Saklama acikken (varsayilan) baytlar yonetici onizlemesi icin KALIR; yalniz retention=0 ise hemen silinir
-            if (viewOnceRetentionDays <= 0 && viewsRepo.countByAttachmentId(a.getId()) >= recipients) {
+            if (viewOnceRetentionDays <= 0 && viewsRepo.countByAttachmentIdAndDeliveredAtIsNotNull(a.getId()) >= recipients) {
                 purge(a);
             }
             if (bus != null) {

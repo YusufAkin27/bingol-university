@@ -3,6 +3,7 @@ package edu.bingol.backend.messaging;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -445,6 +446,118 @@ class MessageActionServiceTest {
         when(reactions.remove(MSG, ME)).thenReturn(0);
         service.unreact(ME, MSG);
         verify(bus, never()).publish(anyString(), anyCollection(), any());
+    }
+
+    // --- T-030: katilim oncesi mesajin olayi sonradan katilana gitmez ---
+
+    private ConversationMember joined(Long uid, Instant at) {
+        ConversationMember m = ConversationMember.of(CONV, uid, ConversationMember.Role.MEMBER);
+        m.setJoinedAt(at);
+        return m;
+    }
+
+    @SuppressWarnings("unchecked")
+    private java.util.Collection<Long> lastRecipients() {
+        ArgumentCaptor<java.util.Collection<Long>> to = ArgumentCaptor.forClass(java.util.Collection.class);
+        verify(bus, org.mockito.Mockito.atLeastOnce()).publish(eq("message-events"), to.capture(), any());
+        return to.getValue();
+    }
+
+    @Test
+    void groupLateJoinerGetsNoEditedEventForPreJoinMessageButEarlyMembersDo() {
+        conv.setType(Conversation.Type.GROUP);
+        Instant old = Instant.now().minus(Duration.ofDays(1));
+        ConversationMember author = joined(ME, old);
+        when(members.findByConversationIdAndUserIdAndLeftAtIsNull(CONV, ME)).thenReturn(Optional.of(author));
+        when(members.findByConversationIdAndLeftAtIsNullOrderByJoinedAtAscIdAsc(CONV)).thenReturn(List.of(
+                author, joined(3L, old), joined(PEER, Instant.now()))); // PEER mesajdan SONRA katildi
+
+        service.edit(ME, MSG, "yeni metin");
+
+        java.util.Collection<Long> to = lastRecipients();
+        assertTrue(to.contains(ME) && to.contains(3L));
+        assertFalse(to.contains(PEER), "katilim oncesi mesajin duzenlenmis metni sonradan katilana gitmemeli");
+    }
+
+    @Test
+    void groupLateJoinerGetsNoReactionOrDeletedEventEither() {
+        conv.setType(Conversation.Type.GROUP);
+        Instant old = Instant.now().minus(Duration.ofDays(1));
+        ConversationMember author = joined(ME, old);
+        ConversationMember early = joined(3L, old);
+        when(members.findByConversationIdAndUserIdAndLeftAtIsNull(CONV, ME)).thenReturn(Optional.of(author));
+        when(members.findByConversationIdAndUserIdAndLeftAtIsNull(CONV, 3L)).thenReturn(Optional.of(early));
+        when(members.findByConversationIdAndLeftAtIsNullOrderByJoinedAtAscIdAsc(CONV)).thenReturn(List.of(
+                author, early, joined(PEER, Instant.now())));
+
+        service.react(3L, MSG, THUMBS);
+        assertFalse(lastRecipients().contains(PEER));
+        org.mockito.Mockito.clearInvocations(bus);
+
+        service.delete(ME, MSG);
+        assertFalse(lastRecipients().contains(PEER));
+        assertTrue(lastRecipients().contains(3L));
+    }
+
+    @Test
+    void directRecipientsAreUnaffectedByJoinTime() {
+        // birebirde katilim zamani suzgeci yok (iki uye de mesaji gorur)
+        service.edit(ME, MSG, "yeni metin");
+
+        assertTrue(lastRecipients().containsAll(List.of(ME, PEER)));
+    }
+
+    @Test
+    void memberWhoClearedChatDoesNotGetEventsForClearedMessages() {
+        conv.setType(Conversation.Type.GROUP);
+        Instant old = Instant.now().minus(Duration.ofDays(1));
+        ConversationMember author = joined(ME, old);
+        ConversationMember cleared = joined(PEER, old);
+        cleared.setClearedUpToMessageId(MSG); // "sohbeti sil": MSG ve oncesi gizli
+        when(members.findByConversationIdAndUserIdAndLeftAtIsNull(CONV, ME)).thenReturn(Optional.of(author));
+        when(members.findByConversationIdAndLeftAtIsNullOrderByJoinedAtAscIdAsc(CONV)).thenReturn(List.of(author, cleared));
+
+        service.edit(ME, MSG, "yeni metin");
+
+        assertFalse(lastRecipients().contains(PEER));
+    }
+
+    // --- T-028: golge engel: engellenen tarafin duzenleme/tepkisi yazilmaz, hata da vermez ---
+
+    @Test
+    void editByBlockedSenderIsSilentlyNotPersisted() {
+        when(blocks.hasBlocked(PEER, ME)).thenReturn(true); // PEER, ME'yi engellemis
+
+        MessageView v = service.edit(ME, MSG, "gizli duzenleme"); // hata yok
+
+        assertNotNull(v);
+        verify(codec, never()).seal(any(Message.class), anyString());
+        verify(messages, never()).applyEdit(anyLong(), any(), any(), any(), any());
+        verify(bus, never()).publish(anyString(), anyCollection(), any());
+    }
+
+    @Test
+    void reactionByBlockedUserIsSilentlyNotPersisted() {
+        when(blocks.hasBlocked(PEER, ME)).thenReturn(true);
+
+        ReactionSummary s = service.react(ME, MSG, THUMBS);
+
+        assertEquals(THUMBS, s.myReaction()); // istemci kendi tepkisini goruyor
+        verify(reactions, never()).upsert(anyLong(), anyLong(), anyString(), any());
+        verify(bus, never()).publish(anyString(), anyCollection(), any());
+        assertNull(service.unreact(ME, MSG).myReaction());
+        verify(reactions, never()).remove(anyLong(), anyLong());
+    }
+
+    @Test
+    void blockerOwnEditsStillWork() {
+        when(blocks.hasBlocked(ME, PEER)).thenReturn(true); // ME engelleyen
+        when(blocks.hiddenFrom(ME)).thenReturn(Set.of(PEER));
+
+        service.edit(ME, MSG, "yeni metin");
+
+        verify(messages).applyEdit(eq(MSG), any(), any(), any(), any());
+        assertFalse(lastRecipients().contains(PEER)); // engelli tarafa olay gitmez
     }
 
     @Test

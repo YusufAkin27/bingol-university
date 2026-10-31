@@ -114,10 +114,14 @@ public class MessageViewAssembler {
                             : p.isDeleted() ? MessagingDtos.DELETED_TEXT : MessagingDtos.REMOVED_TEXT, true);
         }
         if (blockedSenders.contains(p.getSenderId()) && !p.getSenderId().equals(viewerId)) {
-            return new ReplyPreview(p.getId(), p.getSenderId(), MessagingDtos.BLOCKED_TEXT, false);
+            return new ReplyPreview(p.getId(), p.getSenderId(), MessagingDtos.BLOCKED_TEXT, false,
+                    MessagingDtos.PLACEHOLDER_BLOCKED);
         }
         String body = p.getBody();
-        return new ReplyPreview(p.getId(), p.getSenderId(), body == null ? MessagingDtos.UNREADABLE_TEXT : truncate(body), false);
+        return body == null
+                ? new ReplyPreview(p.getId(), p.getSenderId(), MessagingDtos.UNREADABLE_TEXT, false,
+                        MessagingDtos.PLACEHOLDER_UNREADABLE)
+                : new ReplyPreview(p.getId(), p.getSenderId(), truncate(body), false);
     }
 
     static String truncate(String s) {

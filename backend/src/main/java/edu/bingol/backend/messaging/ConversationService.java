@@ -36,6 +36,14 @@ import org.springframework.transaction.annotation.Transactional;
 public class ConversationService {
 
     public static final int MAX_MEMBERS = 50;
+    private static final java.util.EnumSet<edu.bingol.backend.profile.privacy.AvatarVisibility.Field> PROFILE_FIELDS =
+            java.util.EnumSet.of(edu.bingol.backend.profile.privacy.AvatarVisibility.Field.AVATAR,
+                    edu.bingol.backend.profile.privacy.AvatarVisibility.Field.DEPARTMENT,
+                    edu.bingol.backend.profile.privacy.AvatarVisibility.Field.CLASS_YEAR);
+    /** T-025: kullanici basina gunde acilabilecek YENI birebir konusma (yeni karsi taraf) ve yeni grup sayisi (eskiden 30). */
+    static final int NEW_CONVERSATIONS_PER_DAY = 10;
+    /** T-025: grup uye ekleme cagrisi gunluk tavani. */
+    static final int ADD_MEMBER_CALLS_PER_DAY = 30;
 
     /** `created` false ise birebir konusma zaten vardi. */
     public record Opened(ConversationView conversation, boolean created) {}
@@ -94,6 +102,30 @@ public class ConversationService {
         this.presence = presence;
     }
 
+    /** T-025: cikan/cikarilan uyeyi onu ekleyen kisinin yeniden eklemesini engelleyen kayitlar (yoksa kontrol yok). */
+    private ConversationAddBanRepository addBans;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setAddBans(ConversationAddBanRepository addBans) {
+        this.addBans = addBans;
+    }
+
+    /** T-025: yeni karsi taraf / grup sayisi gunluk siniri (yoksa uygulanmaz). */
+    private edu.bingol.backend.common.RateLimiter limiter;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setLimiter(edu.bingol.backend.common.RateLimiter limiter) {
+        this.limiter = limiter;
+    }
+
+    /** C1: kulup/etkinlik odasi moderasyon yetkisi (yoksa odada canModerate=false). */
+    private edu.bingol.backend.messaging.room.RoomModeration roomModeration;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setRoomModeration(edu.bingol.backend.messaging.room.RoomModeration roomModeration) {
+        this.roomModeration = roomModeration;
+    }
+
     @org.springframework.beans.factory.annotation.Autowired(required = false)
     void setReceipts(ReceiptService receipts) {
         this.receipts = receipts;
@@ -128,6 +160,8 @@ public class ConversationService {
         boolean created = convs.insertDirect(key, me, Instant.now()) == 1;
         Conversation c = convs.findByDirectKey(key).orElseThrow();
         if (created) {
+            // Yeni karsi taraf: gunluk sinir (islem geri alinir; mevcut konusmayi yeniden acmak sayilmaz)
+            limitDaily("conv:newpeer:", me);
             members.save(ConversationMember.of(c.getId(), me, ConversationMember.Role.MEMBER));
             members.save(ConversationMember.of(c.getId(), otherId, ConversationMember.Role.MEMBER));
         }
@@ -150,7 +184,8 @@ public class ConversationService {
             throw groupFull();
         }
         requireMessageable(ids);
-        requireNotBlocked(me, ids);
+        Set<Long> addable = addable(me, ids);
+        limitDaily("conv:newgroup:", me);
 
         Conversation c = new Conversation();
         c.setType(Conversation.Type.GROUP);
@@ -158,8 +193,10 @@ public class ConversationService {
         c.setCreatedBy(me);
         c = convs.save(c);
         members.save(ConversationMember.of(c.getId(), me, ConversationMember.Role.ADMIN));
-        for (Long id : ids) {
-            members.save(ConversationMember.of(c.getId(), id, ConversationMember.Role.MEMBER));
+        for (Long id : addable) {
+            ConversationMember m = ConversationMember.of(c.getId(), id, ConversationMember.Role.MEMBER);
+            m.setAddedBy(me);
+            members.save(m);
         }
         return views(me, List.of(c)).get(0);
     }
@@ -195,20 +232,22 @@ public class ConversationService {
         Set<Long> hidden = blocks.hiddenFrom(me); // engel iliskisi olanin avatari gorunmez
         Set<Long> deptOk = Set.of();
         Set<Long> yearOk = Set.of();
+        Set<Long> avatarOk = Set.of(); // T-027: gizlilik karari yoksa avatar GONDERILMEZ (fail-closed)
         if (visibility != null && !byId.isEmpty()) {
-            var vis = visibility.visibleOwners(me, byId.keySet(), java.util.EnumSet.of(
-                    edu.bingol.backend.profile.privacy.AvatarVisibility.Field.DEPARTMENT,
-                    edu.bingol.backend.profile.privacy.AvatarVisibility.Field.CLASS_YEAR));
+            var vis = visibility.visibleOwners(me, byId.keySet(), PROFILE_FIELDS);
             deptOk = vis.get(edu.bingol.backend.profile.privacy.AvatarVisibility.Field.DEPARTMENT);
             yearOk = vis.get(edu.bingol.backend.profile.privacy.AvatarVisibility.Field.CLASS_YEAR);
+            avatarOk = vis.get(edu.bingol.backend.profile.privacy.AvatarVisibility.Field.AVATAR);
         }
         final Set<Long> deptVisible = deptOk;
         final Set<Long> yearVisible = yearOk;
+        final Set<Long> avatarVisible = avatarOk;
         List<MemberView> list = active.stream().filter(m -> byId.containsKey(m.getUserId()))
                 .map(m -> {
                     Long uid = m.getUserId();
                     boolean shown = !hidden.contains(uid);
-                    return new MemberView(uid, byId.get(uid).getDisplayName(), shown ? byId.get(uid).getAvatarUrl() : null,
+                    return new MemberView(uid, byId.get(uid).getDisplayName(),
+                            shown && avatarVisible.contains(uid) ? byId.get(uid).getAvatarUrl() : null,
                             m.getRole().name(), shown && deptVisible.contains(uid) ? byId.get(uid).getDepartment() : null,
                             shown && yearVisible.contains(uid) ? byId.get(uid).getClassYear() : null);
                 }).toList();
@@ -281,14 +320,17 @@ public class ConversationService {
             throw new ApiException(HttpStatus.BAD_REQUEST, "VALIDATION_ERROR", "Eklenecek üye yok.");
         }
         requireMessageable(ids);
-        requireNotBlocked(me, ids);
+        limitDaily("conv:addmem:", me, ADD_MEMBER_CALLS_PER_DAY);
+        // Beni engelleyenler ve cikisindan sonra beni yeniden eklememe yasagi olanlar SESSIZCE atlanir (T-025/T-028)
+        ids = addable(me, ids);
 
         long current = members.countByConversationIdAndLeftAtIsNull(id);
-        long adding = ids.stream().filter(uid -> members.findByConversationIdAndUserIdAndLeftAtIsNull(id, uid).isEmpty()).count();
+        final Set<Long> toAdd = ids;
+        long adding = toAdd.stream().filter(uid -> members.findByConversationIdAndUserIdAndLeftAtIsNull(id, uid).isEmpty()).count();
         if (current + adding > MAX_MEMBERS) {
             throw groupFull();
         }
-        for (Long uid : ids) {
+        for (Long uid : toAdd) {
             ConversationMember m = members.findByConversationIdAndUserId(id, uid).orElse(null);
             if (m == null) {
                 m = ConversationMember.of(id, uid, ConversationMember.Role.MEMBER);
@@ -300,6 +342,7 @@ public class ConversationService {
                 m.setJoinedAt(Instant.now());
                 m.setRole(ConversationMember.Role.MEMBER);
             }
+            m.setAddedBy(me);
             m.setHiddenAt(null); // sohbeti silmis olsa da yeniden eklenince listede gorunur
             m.setLastReadMessageId(c.getLastMessageId() == null ? 0L : c.getLastMessageId());
             m.setLastDeliveredMessageId(m.getLastReadMessageId());
@@ -320,6 +363,8 @@ public class ConversationService {
                 .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "MEMBER_NOT_FOUND", "Üye bulunamadı."));
         target.setLeftAt(Instant.now());
         members.save(target);
+        recordAddBan(target, id);
+        notifyRemoved(id, List.of(targetId)); // C3: cikarilan uyenin istemcisi sohbeti kapatsin
     }
 
     /** Gruptan ayril. Yonetici ayrilirsa en eski uye yonetici olur. */
@@ -333,6 +378,8 @@ public class ConversationService {
         }
         self.setLeftAt(Instant.now());
         members.save(self);
+        recordAddBan(self, id);
+        notifyRemoved(id, List.of(me)); // C3: kullanicinin diger cihazlari da sohbeti kapatsin
         if (self.isAdmin()) {
             List<ConversationMember> rest = members.findByConversationIdAndLeftAtIsNullOrderByJoinedAtAscIdAsc(id);
             if (!rest.isEmpty() && rest.stream().noneMatch(ConversationMember::isAdmin)) {
@@ -383,10 +430,49 @@ public class ConversationService {
         }
     }
 
-    private void requireNotBlocked(Long me, Collection<Long> ids) {
+    /**
+     * Gruba eklenebilecekler. GOLGE ENGEL (T-028): ben engellediysem bilgilendirici 403 BLOCKED; beni engelleyen kisi
+     * SESSIZCE atlanir (hata yok: engellenen taraf engellendigini ogrenmez). Cikis sonrasi yeniden ekleme yasagi olanlar
+     * (T-025) da sessizce atlanir.
+     */
+    private Set<Long> addable(Long me, Collection<Long> ids) {
         Set<Long> related = blocks.hiddenFrom(me);
-        if (ids.stream().anyMatch(related::contains)) {
-            throw new ApiException(HttpStatus.FORBIDDEN, "BLOCKED", "Engel ilişkisi olan kullanıcı eklenemez.");
+        Set<Long> out = new LinkedHashSet<>();
+        for (Long id : ids) {
+            if (related.contains(id)) {
+                if (blocks.hasBlocked(me, id)) {
+                    throw new ApiException(HttpStatus.FORBIDDEN, "BLOCKED", "Engel ilişkisi olan kullanıcı eklenemez.");
+                }
+                continue;
+            }
+            out.add(id);
+        }
+        if (addBans != null && !out.isEmpty()) {
+            out.removeAll(addBans.bannedUsers(me, out));
+        }
+        return out;
+    }
+
+    /** Gunluk sinir (RateLimiter yoksa uygulanmaz); asinca 429. */
+    private void limitDaily(String prefix, Long me) {
+        limitDaily(prefix, me, NEW_CONVERSATIONS_PER_DAY);
+    }
+
+    private void limitDaily(String prefix, Long me, int max) {
+        if (limiter != null) {
+            limiter.check(prefix + me, max, java.time.Duration.ofDays(1));
+        }
+    }
+
+    /** Cikan/cikarilan uyeyi onu ekleyen kisinin tekrar eklemesini engeller (T-025). */
+    private void recordAddBan(ConversationMember leaver, Long conversationId) {
+        Long adder = leaver.getAddedBy();
+        if (addBans == null || adder == null || adder.equals(leaver.getUserId())) {
+            return;
+        }
+        ConversationAddBan.Key key = new ConversationAddBan.Key(leaver.getUserId(), adder);
+        if (!addBans.existsById(key)) {
+            addBans.save(new ConversationAddBan(leaver.getUserId(), adder, conversationId));
         }
     }
 
@@ -409,7 +495,7 @@ public class ConversationService {
         if (bus == null) {
             return;
         }
-        Runnable send = () -> {
+        afterCommit(() -> {
             try {
                 List<Long> ids = members.findByConversationIdAndLeftAtIsNullOrderByJoinedAtAscIdAsc(c.getId()).stream()
                         .map(ConversationMember::getUserId).toList();
@@ -418,7 +504,29 @@ public class ConversationService {
             } catch (RuntimeException e) {
                 // teslim hatasi islemi bozmaz
             }
-        };
+        });
+    }
+
+    /**
+     * C3: cikarilan/ayrilan kullanicilarin `/user/queue/message-events` kuyruguna conversation-removed (commit SONRASI).
+     * Istemci konusmayi listeden ve acik ekrandan kaldirir; teslim hatasi islemi bozmaz.
+     */
+    private void notifyRemoved(Long conversationId, Collection<Long> userIds) {
+        if (bus == null || userIds.isEmpty()) {
+            return;
+        }
+        List<Long> to = List.copyOf(userIds);
+        afterCommit(() -> {
+            try {
+                bus.publish("message-events", to, new edu.bingol.backend.messaging.dto.MessagingDtos.ConversationRemovedEvent(
+                        "conversation-removed", conversationId, Instant.now().toString()));
+            } catch (RuntimeException e) {
+                // teslim hatasi islemi bozmaz; istemci listeyi yenileyince konusma zaten gelmez
+            }
+        });
+    }
+
+    private static void afterCommit(Runnable send) {
         if (org.springframework.transaction.support.TransactionSynchronizationManager.isSynchronizationActive()) {
             org.springframework.transaction.support.TransactionSynchronizationManager.registerSynchronization(
                     new org.springframework.transaction.support.TransactionSynchronization() {
@@ -456,19 +564,21 @@ public class ConversationService {
                 .map(c -> peerOf(membersBy.getOrDefault(c.getId(), List.of()), me)).filter(java.util.Objects::nonNull).toList();
         Map<Long, User> peers = users.findAllById(peerIds).stream().collect(Collectors.toMap(User::getId, Function.identity()));
         // Birebir karsi tarafin cevrimici durumu: tek toplu okuma (N+1 yok); Redis yoksa bos kume
-        Set<Long> onlinePeers = presence == null ? Set.of() : presence.onlineAmong(peerIds);
+        // (T-025: gizlilik/engel/birebir karsilikliligi kurallari presence ucuyla ayni)
+        Set<Long> onlinePeers = presence == null ? Set.of() : presence.onlineVisibleTo(me, peerIds);
         // Birebir karsi tarafin bolum/sinifi: tek gizlilik sorgusu (alan kapaliysa gonderilmez)
         Set<Long> deptOk = Set.of();
         Set<Long> yearOk = Set.of();
+        Set<Long> avatarOk = Set.of(); // T-027: gizlilik karari yoksa avatar GONDERILMEZ (fail-closed)
         if (visibility != null && !peerIds.isEmpty()) {
-            var vis = visibility.visibleOwners(me, peerIds, java.util.EnumSet.of(
-                    edu.bingol.backend.profile.privacy.AvatarVisibility.Field.DEPARTMENT,
-                    edu.bingol.backend.profile.privacy.AvatarVisibility.Field.CLASS_YEAR));
+            var vis = visibility.visibleOwners(me, peerIds, PROFILE_FIELDS);
             deptOk = vis.get(edu.bingol.backend.profile.privacy.AvatarVisibility.Field.DEPARTMENT);
             yearOk = vis.get(edu.bingol.backend.profile.privacy.AvatarVisibility.Field.CLASS_YEAR);
+            avatarOk = vis.get(edu.bingol.backend.profile.privacy.AvatarVisibility.Field.AVATAR);
         }
         final Set<Long> deptVisible = deptOk;
         final Set<Long> yearVisible = yearOk;
+        final Set<Long> avatarVisible = avatarOk;
         // Golge engel: goruntuleyene gorunur son mesaj (bastirilmis mesajlar alicida yok sayilir)
         Map<Long, Long> keyBy = new HashMap<>();
         for (Conversation c : page) {
@@ -513,7 +623,9 @@ public class ConversationService {
             Long peerId = direct ? peerOf(ms, me) : null;
             UserSummary peer = peerId == null || !peers.containsKey(peerId) ? null
                     : related.contains(peerId) ? new UserSummary(peerId, peers.get(peerId).getDisplayName(), null) // engel: avatar yok
-                    : UserSummary.of(peers.get(peerId)).withOnline(onlinePeers.contains(peerId)).withProfile(
+                    : UserSummary.of(peers.get(peerId)).withAvatar(
+                            avatarVisible.contains(peerId) ? peers.get(peerId).getAvatarUrl() : null)
+                    .withOnline(onlinePeers.contains(peerId)).withProfile(
                             deptVisible.contains(peerId) ? peers.get(peerId).getDepartment() : null,
                             yearVisible.contains(peerId) ? peers.get(peerId).getClassYear() : null);
             Message last = keyBy.get(c.getId()) == null ? null : lastMessages.get(keyBy.get(c.getId()));
@@ -535,11 +647,16 @@ public class ConversationService {
             boolean club = room != null && room.getKind() == edu.bingol.backend.messaging.room.RoomKind.COMMUNITY;
             boolean event = room != null && room.getKind() == edu.bingol.backend.messaging.room.RoomKind.EVENT;
             String type = club ? "CLUB" : event ? "EVENT" : c.getType().name();
+            // Golge engel (T-028): `blocked` yalniz ENGELLEYEN tarafta true; engellenen taraf bunu goremez
+            boolean iBlockedPeer = direct && peerId != null && related.contains(peerId) && blocks.hasBlocked(me, peerId);
+            // C1: oda moderatoru/organizatoru ya da grup yoneticisi baskasinin mesajini silebilir; birebirde yok
+            boolean canModerate = !direct && (room != null
+                    ? roomModeration != null && roomModeration.canModerate(c.getId(), me) : admin);
             return new ConversationView(c.getId(), type, c.getTitle(), peer, ms.size(), admin, lastView,
-                    unread.getOrDefault(c.getId(), 0L), direct && peerId != null && related.contains(peerId),
+                    unread.getOrDefault(c.getId(), 0L), iBlockedPeer,
                     c.getCreatedAt().toString(), muted, muted ? mine.getMutedUntil().toString() : null,
                     mine != null && mine.getArchivedAt() != null, mine != null && mine.isMutedForever(),
-                    club ? room.getRefId() : null, event ? room.getRefId() : null, c.getAvatarUrl());
+                    club ? room.getRefId() : null, event ? room.getRefId() : null, c.getAvatarUrl(), canModerate);
         }).toList();
     }
 

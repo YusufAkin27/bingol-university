@@ -1,5 +1,6 @@
 package edu.bingol.backend.moderation;
 
+import edu.bingol.backend.common.ApiException;
 import edu.bingol.backend.common.CurrentUser;
 import edu.bingol.backend.common.SlicePaging;
 import edu.bingol.backend.user.User;
@@ -37,7 +38,12 @@ public class BlockController {
     @PostMapping("/{id}/block")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void block(@PathVariable Long id) {
-        blocks.block(CurrentUser.id(), id);
+        Long me = CurrentUser.id();
+        // Kendini engelleme 400 olarak servis katmaninda kalir; silinmis/askidaki/olmayan hedef 404 (gereksiz satir yok)
+        if (!me.equals(id) && users.findById(id).filter(User::isActive).isEmpty()) {
+            throw new ApiException(HttpStatus.NOT_FOUND, "USER_NOT_FOUND", "Kullanıcı bulunamadı.");
+        }
+        blocks.block(me, id);
     }
 
     @DeleteMapping("/{id}/block")

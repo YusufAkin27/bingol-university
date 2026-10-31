@@ -53,6 +53,20 @@ class ConversationShadowTest {
         when(members.findByConversationIdInAndLeftAtIsNull(org.mockito.ArgumentMatchers.any()))
                 .thenReturn(List.of(me, other));
         when(users.findAllById(org.mockito.ArgumentMatchers.any())).thenReturn(List.of(user(1L), user(2L)));
+        // T-027: gizlilik karari olmadan avatar gonderilmez; bu test sinifinda herkes gorunur
+        edu.bingol.backend.profile.privacy.AvatarVisibility visibility =
+                mock(edu.bingol.backend.profile.privacy.AvatarVisibility.class);
+        when(visibility.visibleOwners(org.mockito.ArgumentMatchers.anyLong(), org.mockito.ArgumentMatchers.anyCollection(),
+                org.mockito.ArgumentMatchers.anyCollection())).thenAnswer(inv -> {
+                    java.util.Map<edu.bingol.backend.profile.privacy.AvatarVisibility.Field, Set<Long>> out =
+                            new java.util.EnumMap<>(edu.bingol.backend.profile.privacy.AvatarVisibility.Field.class);
+                    for (Object f : (java.util.Collection<?>) inv.getArgument(2)) {
+                        out.put((edu.bingol.backend.profile.privacy.AvatarVisibility.Field) f,
+                                new java.util.HashSet<>((java.util.Collection<Long>) inv.getArgument(1)));
+                    }
+                    return out;
+                });
+        service.setVisibility(visibility);
     }
 
     @Test
@@ -71,15 +85,18 @@ class ConversationShadowTest {
     void directPeerOnlineFlagComesFromBulkPresenceAndIsHiddenWhenBlocked() {
         edu.bingol.backend.messaging.ws.PresenceService presence = mock(edu.bingol.backend.messaging.ws.PresenceService.class);
         service.setPresence(presence);
-        when(presence.onlineAmong(org.mockito.ArgumentMatchers.anyCollection())).thenReturn(Set.of(2L));
+        when(presence.onlineVisibleTo(org.mockito.ArgumentMatchers.eq(1L), org.mockito.ArgumentMatchers.anyCollection()))
+                .thenReturn(Set.of(2L));
         when(blocks.hiddenFrom(1L)).thenReturn(Set.of());
 
         assertEquals(Boolean.TRUE, service.detail(1L, 5L).conversation().peer().online());
 
-        when(presence.onlineAmong(org.mockito.ArgumentMatchers.anyCollection())).thenReturn(Set.of());
+        when(presence.onlineVisibleTo(org.mockito.ArgumentMatchers.eq(1L), org.mockito.ArgumentMatchers.anyCollection()))
+                .thenReturn(Set.of());
         assertEquals(Boolean.FALSE, service.detail(1L, 5L).conversation().peer().online());
 
-        when(presence.onlineAmong(org.mockito.ArgumentMatchers.anyCollection())).thenReturn(Set.of(2L));
+        when(presence.onlineVisibleTo(org.mockito.ArgumentMatchers.eq(1L), org.mockito.ArgumentMatchers.anyCollection()))
+                .thenReturn(Set.of(2L));
         when(blocks.hiddenFrom(1L)).thenReturn(Set.of(2L));
         assertNull(service.detail(1L, 5L).conversation().peer().online()); // engelli: durum sizmaz
     }

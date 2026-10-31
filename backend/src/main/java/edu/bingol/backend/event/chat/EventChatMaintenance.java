@@ -48,8 +48,9 @@ public class EventChatMaintenance {
             for (Long id : toClose) {
                 rooms.closeRoom(RoomKind.EVENT, id);
             }
-            int removed = jdbc.update("""
-                    UPDATE conversation_member m SET left_at = now()
+            // T-031: dusen uyelere conversation-removed olayi gidebilsin diye once secilir, sonra id ile kapatilir
+            List<Map<String, Object>> leaving = jdbc.queryForList("""
+                    SELECT m.id AS mid, m.conversation_id AS cid, m.user_id AS uid FROM conversation_member m
                     WHERE m.left_at IS NULL AND EXISTS (
                       SELECT 1 FROM chat_room_link l JOIN user_event e ON e.id = l.ref_id
                       WHERE l.kind = 'EVENT' AND l.closed = FALSE AND l.conversation_id = m.conversation_id
@@ -60,6 +61,19 @@ public class EventChatMaintenance {
                         AND NOT EXISTS (SELECT 1 FROM community_member cm WHERE cm.community_id = e.community_id
                                         AND cm.user_id = m.user_id AND cm.status = 'ACTIVE' AND cm.role <> 'MEMBER'))
                     """);
+            int removed = 0;
+            Map<Long, List<Long>> byRoom = new java.util.LinkedHashMap<>();
+            for (Map<String, Object> row : leaving) {
+                // her satir kosullu kapatilir: arada kendisi ayrilmis/yeniden girmis olabilir (left_at IS NULL korumasi)
+                int n = jdbc.update("UPDATE conversation_member SET left_at = now() WHERE id = ? AND left_at IS NULL",
+                        ((Number) row.get("mid")).longValue());
+                if (n > 0) {
+                    removed++;
+                    byRoom.computeIfAbsent(((Number) row.get("cid")).longValue(), k -> new java.util.ArrayList<>())
+                            .add(((Number) row.get("uid")).longValue());
+                }
+            }
+            byRoom.forEach(rooms::announceRemoved);
             List<Map<String, Object>> missing = jdbc.queryForList("""
                     SELECT l.ref_id AS ref, o.uid AS uid FROM chat_room_link l
                     JOIN (SELECT id AS eid, created_by AS uid FROM user_event

@@ -9,6 +9,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyCollection;
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -69,7 +70,8 @@ class ViewOnceAttachmentTest {
     Path dir;
 
     final Map<Long, MessageAttachment> db = new HashMap<>();
-    final Set<String> viewed = new HashSet<>();
+    /** (ek:kullanici) -> acis satiri (talep + teslim bilgisi). */
+    final Map<String, MessageAttachmentView> viewed = new HashMap<>();
     final AtomicLong seq = new AtomicLong(100);
     final MessageAttachmentRepository repo = mock(MessageAttachmentRepository.class);
     final MessageAttachmentViewRepository viewsRepo = mock(MessageAttachmentViewRepository.class);
@@ -112,21 +114,53 @@ class ViewOnceAttachmentTest {
         when(repo.findByMessageIdIn(anyCollection())).thenAnswer(inv -> db.values().stream()
                 .filter(a -> a.getMessageId() != null && ((java.util.Collection<Long>) inv.getArgument(0))
                         .contains(a.getMessageId())).toList());
-        when(viewsRepo.existsByAttachmentIdAndUserId(anyLong(), anyLong())).thenAnswer(
-                inv -> viewed.contains(inv.getArgument(0) + ":" + inv.getArgument(1)));
+        when(viewsRepo.findById(any(MessageAttachmentView.Key.class))).thenAnswer(inv -> {
+            MessageAttachmentView.Key k = inv.getArgument(0);
+            return Optional.ofNullable(viewed.get(k.getAttachmentId() + ":" + k.getUserId()));
+        });
         when(viewsRepo.saveAndFlush(any(MessageAttachmentView.class))).thenAnswer(inv -> {
             MessageAttachmentView v = inv.getArgument(0);
-            if (!viewed.add(v.getAttachmentId() + ":" + v.getUserId())) {
+            if (viewed.putIfAbsent(v.getAttachmentId() + ":" + v.getUserId(), v) != null) {
                 throw new DataIntegrityViolationException("dup");
             }
             return v;
         });
-        when(viewsRepo.countByAttachmentId(anyLong())).thenAnswer(inv -> viewed.stream()
-                .filter(k -> k.startsWith(inv.getArgument(0) + ":")).count());
+        when(viewsRepo.markDelivered(anyLong(), anyLong(), any())).thenAnswer(inv -> {
+            MessageAttachmentView v = viewed.get(inv.getArgument(0) + ":" + inv.getArgument(1));
+            if (v == null || v.getDeliveredAt() != null) {
+                return 0;
+            }
+            v.setDeliveredAt(inv.getArgument(2));
+            return 1;
+        });
+        when(viewsRepo.releaseClaim(anyLong(), anyLong())).thenAnswer(inv -> {
+            String k = inv.getArgument(0) + ":" + inv.getArgument(1);
+            MessageAttachmentView v = viewed.get(k);
+            if (v == null || v.getDeliveredAt() != null) {
+                return 0;
+            }
+            viewed.remove(k);
+            return 1;
+        });
+        when(viewsRepo.claimReopen(anyLong(), anyLong(), any(), any(), any())).thenAnswer(inv -> {
+            MessageAttachmentView v = viewed.get(inv.getArgument(0) + ":" + inv.getArgument(1));
+            java.time.Instant from = inv.getArgument(3);
+            java.time.Instant to = inv.getArgument(4);
+            if (v == null || v.getReopenedAt() != null || v.getDeliveredAt() == null
+                    || v.getDeliveredAt().isBefore(from) || v.getDeliveredAt().isAfter(to)) {
+                return 0;
+            }
+            v.setReopenedAt(inv.getArgument(2));
+            return 1;
+        });
+        when(viewsRepo.countByAttachmentIdAndDeliveredAtIsNotNull(anyLong())).thenAnswer(inv -> viewed.entrySet().stream()
+                .filter(e -> e.getKey().startsWith(inv.getArgument(0) + ":") && e.getValue().getDeliveredAt() != null)
+                .count());
         when(viewsRepo.viewedBy(anyLong(), anyCollection())).thenAnswer(inv -> {
             List<Long> out = new ArrayList<>();
             for (Long id : (java.util.Collection<Long>) inv.getArgument(1)) {
-                if (viewed.contains(id + ":" + inv.getArgument(0))) {
+                MessageAttachmentView v = viewed.get(id + ":" + inv.getArgument(0));
+                if (v != null && v.getDeliveredAt() != null) {
                     out.add(id);
                 }
             }
@@ -135,7 +169,8 @@ class ViewOnceAttachmentTest {
         when(viewsRepo.viewedByAnyone(anyCollection())).thenAnswer(inv -> {
             List<Long> out = new ArrayList<>();
             for (Long id : (java.util.Collection<Long>) inv.getArgument(0)) {
-                if (viewed.stream().anyMatch(k -> k.startsWith(id + ":"))) {
+                if (viewed.entrySet().stream().anyMatch(
+                        e -> e.getKey().startsWith(id + ":") && e.getValue().getDeliveredAt() != null)) {
                     out.add(id);
                 }
             }
@@ -189,6 +224,24 @@ class ViewOnceAttachmentTest {
         return assertThrows(ApiException.class, e);
     }
 
+    /** Spring'in govdeyi yazmasi gibi: akisi sonuna kadar okur ve kapatir (teslim tamamlandi). */
+    static byte[] deliver(org.springframework.http.ResponseEntity<org.springframework.core.io.Resource> r) throws Exception {
+        try (java.io.InputStream in = r.getBody().getInputStream()) {
+            return in.transferTo(java.io.OutputStream.nullOutputStream()) >= 0 ? new byte[0] : null;
+        }
+    }
+
+    /** Istemci kopmasi: yarisina kadar okunur, sonuna ulasmadan kapanir. */
+    static void abort(org.springframework.http.ResponseEntity<org.springframework.core.io.Resource> r) throws Exception {
+        try (java.io.InputStream in = r.getBody().getInputStream()) {
+            in.read(new byte[16]);
+        }
+    }
+
+    org.springframework.http.ResponseEntity<org.springframework.core.io.Resource> open(MessageAttachment a, Long who) {
+        return service.stream(who, CONV, a.getId(), false);
+    }
+
     @Test
     void recipientOpensOnceThenGets410ButBytesAreRetainedForAdmin() throws Exception {
         MessageAttachment a = viewOnce();
@@ -199,6 +252,7 @@ class ViewOnceAttachmentTest {
         String cc = resp.getHeaders().getCacheControl();
         assertTrue(cc.contains("no-store") && cc.contains("private"), cc);
         assertEquals("inline", resp.getHeaders().getFirst("Content-Disposition"));
+        deliver(resp);
         ApiException second = fail(() -> service.stream(PEER, CONV, a.getId(), false));
         assertEquals(HttpStatus.GONE, second.status());
         assertEquals("MEDIA_VIEW_ONCE_EXPIRED", second.code());
@@ -216,7 +270,7 @@ class ViewOnceAttachmentTest {
         service.setViewOnceRetentionDays(0);
         MessageAttachment a = viewOnce();
 
-        service.stream(PEER, CONV, a.getId(), false);
+        deliver(service.stream(PEER, CONV, a.getId(), false));
 
         assertNotNull(a.getPurgedAt());
         assertNull(store.read(MessageAttachmentService.BUCKET, a.getStorageKey()));
@@ -239,7 +293,9 @@ class ViewOnceAttachmentTest {
     void openPublishesViewedEventToSender() throws Exception {
         MessageAttachment a = viewOnce();
 
-        service.stream(PEER, CONV, a.getId(), false);
+        var resp = service.stream(PEER, CONV, a.getId(), false);
+        verify(bus, org.mockito.Mockito.never()).publish(anyString(), anyCollection(), any()); // teslimden ONCE olay yok
+        deliver(resp);
 
         ArgumentCaptor<Object> ev = ArgumentCaptor.forClass(Object.class);
         verify(bus).publish(eq("message-events"), eq(List.of(ME)), ev.capture());
@@ -257,9 +313,9 @@ class ViewOnceAttachmentTest {
         conv.setType(Conversation.Type.GROUP);
         active.add(ConversationMember.of(CONV, THIRD, ConversationMember.Role.MEMBER)); // bayt silinmez
         MessageAttachment a = viewOnce();
-        service.stream(PEER, CONV, a.getId(), false);
-        // yarisan istek exists denetiminden gecti ama insert birincil anahtara takilir
-        when(viewsRepo.existsByAttachmentIdAndUserId(anyLong(), anyLong())).thenReturn(false);
+        deliver(service.stream(PEER, CONV, a.getId(), false));
+        // yarisan istek satiri henuz goremedi ama insert birincil anahtara takilir
+        when(viewsRepo.findById(any(MessageAttachmentView.Key.class))).thenReturn(Optional.empty());
 
         ApiException e = fail(() -> service.stream(PEER, CONV, a.getId(), false));
 
@@ -274,7 +330,7 @@ class ViewOnceAttachmentTest {
 
         assertEquals(HttpStatus.FORBIDDEN, e.status());
         assertEquals("MEDIA_VIEW_ONCE_OWN", e.code());
-        assertFalse(viewed.contains(a.getId() + ":" + ME));
+        assertFalse(viewed.containsKey(a.getId() + ":" + ME));
     }
 
     @Test
@@ -302,7 +358,7 @@ class ViewOnceAttachmentTest {
         assertNull(recipient.thumbUrl());
         assertFalse(recipient.viewed());
 
-        service.stream(PEER, CONV, a.getId(), false);
+        deliver(service.stream(PEER, CONV, a.getId(), false));
 
         AttachmentView sender2 = service.viewsFor(ME, List.of(mid)).get(mid).get(0);
         AttachmentView recipient2 = service.viewsFor(PEER, List.of(mid)).get(mid).get(0);
@@ -318,7 +374,7 @@ class ViewOnceAttachmentTest {
         active.add(ConversationMember.of(CONV, THIRD, ConversationMember.Role.MEMBER));
         MessageAttachment a = viewOnce();
 
-        service.stream(PEER, CONV, a.getId(), false);
+        deliver(service.stream(PEER, CONV, a.getId(), false));
         assertNull(a.getPurgedAt()); // THIRD henuz acmadi
         AttachmentView seen = service.viewsFor(ME, List.of(a.getMessageId())).get(a.getMessageId()).get(0);
         assertTrue(seen.viewed()); // gonderen: en az bir alici acti
@@ -344,6 +400,136 @@ class ViewOnceAttachmentTest {
 
         assertEquals(HttpStatus.NOT_FOUND, fail(() -> service.stream(99L, CONV, a.getId(), false)).status());
         verify(viewsRepo, org.mockito.Mockito.never()).saveAndFlush(any(MessageAttachmentView.class));
+    }
+
+    // ---- T-033 / C4: iki asamali tuketim ----
+
+    @Test
+    void claimIsNotCountedAsViewedUntilBodyIsFullyWritten() throws Exception {
+        MessageAttachment a = viewOnce();
+
+        var resp = open(a, PEER); // govde henuz yazilmadi: talep var, goruldu yok
+
+        assertFalse(service.viewsFor(ME, List.of(a.getMessageId())).get(a.getMessageId()).get(0).viewed());
+        assertFalse(service.viewsFor(PEER, List.of(a.getMessageId())).get(a.getMessageId()).get(0).viewed());
+        // devam eden acis varken ikinci (es zamanli) acis 410
+        assertEquals("MEDIA_VIEW_ONCE_EXPIRED", fail(() -> open(a, PEER)).code());
+
+        deliver(resp);
+
+        assertTrue(service.viewsFor(ME, List.of(a.getMessageId())).get(a.getMessageId()).get(0).viewed());
+        assertTrue(service.viewsFor(PEER, List.of(a.getMessageId())).get(a.getMessageId()).get(0).viewed());
+    }
+
+    @Test
+    void sixConcurrentOpensYieldExactlyOne200() throws Exception {
+        MessageAttachment a = viewOnce();
+        int ok = 0;
+        List<org.springframework.http.ResponseEntity<org.springframework.core.io.Resource>> opened = new ArrayList<>();
+        for (int i = 0; i < 6; i++) { // hepsi govde yazimi bitmeden gelir
+            try {
+                opened.add(open(a, PEER));
+                ok++;
+            } catch (ApiException e) {
+                assertEquals(HttpStatus.GONE, e.status());
+            }
+        }
+        assertEquals(1, ok);
+        deliver(opened.get(0));
+        // teslimden hemen sonra (2 sn dolmadan) gelen yinelenen istek de 410: yeniden acis penceresi en az 2 sn sonra
+        assertEquals("MEDIA_VIEW_ONCE_EXPIRED", fail(() -> open(a, PEER)).code());
+    }
+
+    @Test
+    void interruptedWriteDoesNotConsumeAndUserCanReopenImmediately() throws Exception {
+        MessageAttachment a = viewOnce();
+
+        abort(open(a, PEER)); // ag kopmasi: akis sonuna ulasmadan kapandi
+
+        assertFalse(viewed.containsKey(a.getId() + ":" + PEER)); // talep birakildi
+        assertTrue(service.viewsFor(ME, List.of(a.getMessageId())).get(a.getMessageId()).get(0).viewed() == false);
+        verify(bus, org.mockito.Mockito.never()).publish(anyString(), anyCollection(), any());
+        deliver(open(a, PEER)); // yeniden acis calisir
+        assertTrue(viewed.get(a.getId() + ":" + PEER).getDeliveredAt() != null);
+        verify(bus).publish(eq("message-events"), eq(List.of(ME)), any(ViewedEvent.class));
+    }
+
+    @Test
+    void staleClaimOfCrashedOpenIsReclaimedAfterLease() throws Exception {
+        MessageAttachment a = viewOnce();
+        open(a, PEER); // govde hic okunmadi/kapatilmadi (cokme)
+        viewed.get(a.getId() + ":" + PEER).setViewedAt(Instant.now().minus(Duration.ofSeconds(31)));
+
+        deliver(open(a, PEER));
+
+        assertTrue(viewed.get(a.getId() + ":" + PEER).getDeliveredAt() != null);
+    }
+
+    @Test
+    void deliveredViewCanBeReopenedOnceWithinWindowAfterMinGap() throws Exception {
+        MessageAttachment a = viewOnce();
+        deliver(open(a, PEER));
+        MessageAttachmentView v = viewed.get(a.getId() + ":" + PEER);
+        // cok erken (2 sn dolmadi): 410
+        assertEquals("MEDIA_VIEW_ONCE_EXPIRED", fail(() -> open(a, PEER)).code());
+
+        v.setDeliveredAt(Instant.now().minusSeconds(5)); // 5 sn once teslim edildi (govde kullaniciya ulasmadi varsayimi)
+        var again = open(a, PEER);
+        assertEquals(HttpStatus.OK, again.getStatusCode());
+        deliver(again);
+        verify(bus, org.mockito.Mockito.times(1)).publish(eq("message-events"), eq(List.of(ME)), any(ViewedEvent.class)); // olay tekrarlanmaz
+
+        // yalniz BIR yeniden acis
+        assertEquals("MEDIA_VIEW_ONCE_EXPIRED", fail(() -> open(a, PEER)).code());
+    }
+
+    @Test
+    void reopenIsRefusedAfterWindowAndForOtherUsers() throws Exception {
+        MessageAttachment a = viewOnce();
+        deliver(open(a, PEER));
+        viewed.get(a.getId() + ":" + PEER).setDeliveredAt(Instant.now().minusSeconds(61));
+
+        assertEquals("MEDIA_VIEW_ONCE_EXPIRED", fail(() -> open(a, PEER)).code());
+        // PEER'in acisi THIRD'u ilgilendirmez: kendi hakki var
+        deliver(open(a, THIRD));
+    }
+
+    @Test
+    void headAndRangeRequestsAreRejectedWithoutConsuming() throws Exception {
+        MessageAttachment a = viewOnce();
+        try {
+            org.springframework.mock.web.MockHttpServletRequest head = new org.springframework.mock.web.MockHttpServletRequest("HEAD", "/x");
+            org.springframework.web.context.request.RequestContextHolder.setRequestAttributes(
+                    new org.springframework.web.context.request.ServletRequestAttributes(head));
+            ApiException h = fail(() -> open(a, PEER));
+            assertEquals(HttpStatus.METHOD_NOT_ALLOWED, h.status());
+            assertEquals("MEDIA_VIEW_ONCE_METHOD", h.code());
+
+            org.springframework.mock.web.MockHttpServletRequest range = new org.springframework.mock.web.MockHttpServletRequest("GET", "/x");
+            range.addHeader("Range", "bytes=0-10");
+            org.springframework.web.context.request.RequestContextHolder.setRequestAttributes(
+                    new org.springframework.web.context.request.ServletRequestAttributes(range));
+            ApiException r = fail(() -> open(a, PEER));
+            assertEquals(HttpStatus.REQUESTED_RANGE_NOT_SATISFIABLE, r.status());
+            assertTrue(viewed.isEmpty()); // hicbiri tuketmedi
+
+            org.springframework.web.context.request.RequestContextHolder.setRequestAttributes(
+                    new org.springframework.web.context.request.ServletRequestAttributes(
+                            new org.springframework.mock.web.MockHttpServletRequest("GET", "/x")));
+            deliver(open(a, PEER)); // duz GET calisir
+        } finally {
+            org.springframework.web.context.request.RequestContextHolder.resetRequestAttributes();
+        }
+    }
+
+    @Test
+    void contentLengthDoesNotReadTheStream() throws Exception {
+        MessageAttachment a = viewOnce();
+        var resp = open(a, PEER);
+
+        assertTrue(resp.getBody().contentLength() > 0);
+        assertTrue(viewed.get(a.getId() + ":" + PEER).getDeliveredAt() == null); // olcu almak teslim sayilmaz
+        deliver(resp);
     }
 
     @Test

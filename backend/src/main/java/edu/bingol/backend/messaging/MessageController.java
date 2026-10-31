@@ -36,6 +36,8 @@ import org.springframework.web.bind.annotation.RestController;
 public class MessageController {
 
     static final int HISTORY_PER_MINUTE = 120;
+    /** T-025: cevrimici/son gorulme sorgusu kullanici basina dakikada (id tarama/izleme sinirlanir). */
+    static final int PRESENCE_PER_MINUTE = 60;
 
     private final MessageService messages;
     private final MessageActionService actions;
@@ -133,9 +135,14 @@ public class MessageController {
         return Map.of("id", messages.report(uid, id, r));
     }
 
-    /** Yalnizca ortak konusmasi olan (ve engel iliskisi olmayan) kullanicilar gorur; aksi halde 404. */
+    /**
+     * Yalnizca ortak konusmasi olan kullanicilar gorur; ortak konusma yoksa 404. Engel iliskisi, hedefin gizlilik ayari
+     * ve karsilik gormemis birebir konusmada sabit "cevrimdisi" doner (200; engel ayrimi sizdirilmaz).
+     */
     @GetMapping("/users/{id}/presence")
     public PresenceView presence(@PathVariable Long id) {
-        return presence.view(CurrentUser.id(), id);
+        Long uid = CurrentUser.id();
+        limiter.check("presence:" + uid, PRESENCE_PER_MINUTE, Duration.ofMinutes(1));
+        return presence.view(uid, id);
     }
 }

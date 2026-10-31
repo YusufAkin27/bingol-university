@@ -30,8 +30,15 @@ public class MessageAttachmentView {
     @Column(name = "user_id")
     private Long userId;
 
+    /** Acis TALEBI zamani (T-033: govde yazilmaya baslarken alinir; yazim bitene kadar deliveredAt bos kalir). */
     @Column(nullable = false)
     private Instant viewedAt = Instant.now();
+
+    /** Govde istemciye TAMAMEN yazildiginda dolar; bos satir = devam eden ya da yarim kalan acis (gorulmus sayilmaz). */
+    private Instant deliveredAt;
+
+    /** Teslimden sonraki tek yeniden acis (ag kopmasi penceresi) kullanildiysa dolar. */
+    private Instant reopenedAt;
 
     public MessageAttachmentView(Long attachmentId, Long userId) {
         this.attachmentId = attachmentId;

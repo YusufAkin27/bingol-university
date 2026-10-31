@@ -123,11 +123,14 @@ public class MessageActionService {
                     "Mesaj yalnızca gönderildikten sonraki " + editWindow.toMinutes() + " dakika içinde düzenlenebilir.",
                     String.valueOf(editWindow.toMinutes()));
         }
-        requireDirectNotBlocked(a.conversation, userId);
-
         codec.open(m);
         if (body.equals(m.getBody()) && m.getBodyCiphertext() != null) {
             return assembler.assemble(userId, List.of(m), Set.of(), a.since).get(0); // degisiklik yok: kayit yazilmaz
+        }
+        // Golge engel (T-028): karsi tarafca engellenen gonderenin duzenlemesi hata vermez ama YAZILMAZ; engelleyenin
+        // gecmisinde duzenlenmis metin gorunmez, engellenen taraf da engellendigini ogrenmez.
+        if (blockedByPeer(a.conversation, userId)) {
+            return assembler.assemble(userId, List.of(m), Set.of(), a.since).get(0);
         }
         codec.seal(m, body); // yeni nonce + gerekirse guncel DEK surumu; AAD (gonderen+clientId) ayni kalir
         messages.archiveRevision(m.getId()); // onceki sifreli surum duzenleme gecmisine (yonetici goruntuleyici)
@@ -140,7 +143,7 @@ public class MessageActionService {
         // Olaya gonderenin gorunumu gider: tek gosterimlik ekler (url'siz) alicilari yaniltmasin diye olaydan cikarilir
         MessageView evView = view.withExtras(null, List.of(), null)
                 .withAttachments(view.attachments().stream().filter(x -> !x.viewOnce()).toList());
-        publish(m.getConversationId(), userId,
+        publish(a, userId,
                 new MessageEvent("edited", m.getConversationId(), m.getId(), userId, evView,
                         null, null, now.toString()));
         return view;
@@ -179,7 +182,7 @@ public class MessageActionService {
         reactions.removeAll(m.getId());
         // Ekler SILINMEZ: kullanici erisimi kapanir (MessageAttachmentService.accessible mesaj silinmisse bos doner,
         // goruntu meta verisi de donmez); bayt yonetici onizlemesi icin saklanir (T24).
-        publish(m.getConversationId(), userId, new MessageEvent("deleted", m.getConversationId(), m.getId(), userId,
+        publish(a, userId, new MessageEvent("deleted", m.getConversationId(), m.getId(), userId,
                 null, null, null, now.toString()));
     }
 
@@ -191,12 +194,19 @@ public class MessageActionService {
             throw new ApiException(HttpStatus.BAD_REQUEST, "REACTION_NOT_ALLOWED", "Bu tepki kullanılamaz.");
         }
         Access a = reactable(userId, messageId);
+        if (blockedByPeer(a.conversation, userId)) { // golge engel: yazilmaz, olay yok, hata yok
+            ReactionSummary s = summary(messageId, userId);
+            return new ReactionSummary(messageId, s.reactions(), e);
+        }
         reactions.upsert(messageId, userId, e, Instant.now());
         return afterReaction(a, userId, e);
     }
 
     public ReactionSummary unreact(Long userId, Long messageId) {
         Access a = reactable(userId, messageId);
+        if (blockedByPeer(a.conversation, userId)) {
+            return new ReactionSummary(messageId, summary(messageId, userId).reactions(), null);
+        }
         if (reactions.remove(messageId, userId) == 0) {
             return summary(messageId, userId); // zaten yoktu: olay yayilmaz
         }
@@ -208,13 +218,12 @@ public class MessageActionService {
         if (a.message.isDeleted() || a.message.isHidden()) {
             throw new ApiException(HttpStatus.NOT_FOUND, "MESSAGE_NOT_FOUND", "Mesaj bulunamadı.");
         }
-        requireDirectNotBlocked(a.conversation, userId);
         return a;
     }
 
     private ReactionSummary afterReaction(Access a, Long userId, String emoji) {
         ReactionSummary s = summary(a.message.getId(), userId);
-        publish(a.message.getConversationId(), userId, new MessageEvent("reaction", a.message.getConversationId(),
+        publish(a, userId, new MessageEvent("reaction", a.message.getConversationId(),
                 a.message.getId(), userId, null, emoji, s.reactions(), Instant.now().toString()));
         return s;
     }
@@ -251,14 +260,17 @@ public class MessageActionService {
         return new Access(m, conv, me, since);
     }
 
-    private void requireDirectNotBlocked(Conversation conv, Long userId) {
+    /**
+     * Birebirde karsi taraf cagirani ENGELLEMIS mi (golge engel). Engelleyen kendi eylemlerinde etkilenmez; engellenen
+     * taraf icin eylemler sessizce yazilmaz (hata kodu/alan farki birakilmaz).
+     */
+    private boolean blockedByPeer(Conversation conv, Long userId) {
         if (conv.getType() != Conversation.Type.DIRECT) {
-            return;
+            return false;
         }
-        boolean blocked = members.findByConversationIdAndLeftAtIsNullOrderByJoinedAtAscIdAsc(conv.getId()).stream()
+        return members.findByConversationIdAndLeftAtIsNullOrderByJoinedAtAscIdAsc(conv.getId()).stream()
                 .map(ConversationMember::getUserId).filter(id -> !id.equals(userId))
-                .anyMatch(peer -> blocks.isBlocked(userId, peer));
-        // Golge engel: engel iliskisinde duzenleme/silme/tepki hata vermez (olaylar karsi tarafa zaten gitmez)
+                .anyMatch(peer -> blocks.hasBlocked(peer, userId));
     }
 
     /** Gecis donemindeki eski duz metin sutunu varsa temizler (tombstone/duzenleme sonrasi duz metin kalmasin). */
@@ -268,12 +280,22 @@ public class MessageActionService {
         }
     }
 
-    /** Aktif uyelere (eylemi yapanin diger cihazlari dahil); engel iliskisi olanlara gitmez. */
-    private void publish(Long conversationId, Long actorId, MessageEvent event) {
+    /**
+     * Aktif uyelere (eylemi yapanin diger cihazlari dahil); engel iliskisi olanlara gitmez. GRUPTA katilma oncesi
+     * mesajlarin olayi (duzenlenmis metin, tepki) sonradan katilanlara ve "sohbeti sil" ile temizleyenlere gitmez (T-030):
+     * gecmis uclari ile ayni kural.
+     */
+    private void publish(Access a, Long actorId, MessageEvent event) {
         try {
             Set<Long> related = blocks.hiddenFrom(actorId);
-            List<Long> recipients = members.findByConversationIdAndLeftAtIsNullOrderByJoinedAtAscIdAsc(conversationId).stream()
-                    .map(ConversationMember::getUserId).filter(id -> id.equals(actorId) || !related.contains(id)).toList();
+            boolean group = a.conversation.getType() == Conversation.Type.GROUP;
+            Instant created = a.message.getCreatedAt();
+            long msgId = a.message.getId();
+            List<Long> recipients = members.findByConversationIdAndLeftAtIsNullOrderByJoinedAtAscIdAsc(a.conversation.getId()).stream()
+                    .filter(m -> m.getUserId().equals(actorId) || (!related.contains(m.getUserId())
+                            && !(group && created != null && created.isBefore(m.getJoinedAt()))
+                            && msgId > m.getClearedUpToMessageId()))
+                    .map(ConversationMember::getUserId).toList();
             bus.publish("message-events", recipients, event);
         } catch (RuntimeException e) {
             log.warn("Mesaj olayi yayinlanamadi (mesaj {}): {}", event.messageId(), e.toString());

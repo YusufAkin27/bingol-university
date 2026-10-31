@@ -39,6 +39,9 @@ public class ConversationMember {
     @Column(nullable = false)
     private Instant joinedAt = Instant.now();
 
+    /** Uyeyi gruba ekleyen kullanici (T-025: cikan/cikarilan uyeyi ayni kisi yeniden ekleyemez); kurucu/eski kayit null. */
+    private Long addedBy;
+
     /** Doluysa uye ayrildi/cikarildi: erisim yok. */
     private Instant leftAt;
 

@@ -101,9 +101,10 @@ class ConversationServiceTest {
     }
 
     @Test
-    void groupCannotIncludeBlockedUser() {
+    void groupCannotIncludeUserIBlocked() {
         when(users.findAllById(any())).thenReturn(List.of(user(2L), user(3L)));
         when(blocks.hiddenFrom(1L)).thenReturn(Set.of(3L));
+        when(blocks.hasBlocked(1L, 3L)).thenReturn(true); // ben engelledim: bilgilendirici hata
 
         assertEquals("BLOCKED", assertThrows(ApiException.class, () -> service.createGroup(1L, "Grup", List.of(2L, 3L))).code());
     }

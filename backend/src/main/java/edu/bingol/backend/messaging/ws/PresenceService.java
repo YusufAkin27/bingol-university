@@ -10,6 +10,9 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import edu.bingol.backend.profile.privacy.Audience;
+import edu.bingol.backend.profile.privacy.ProfilePrivacy;
+import edu.bingol.backend.profile.privacy.ProfilePrivacyRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -22,7 +25,14 @@ import org.springframework.stereotype.Service;
 /**
  * Cevrimici durumu. `presence:<id>` anahtari kisa TTL'lidir; her sunucu kendi bagli kullanicilari icin
  * anahtari periyodik yeniler (sunucu cokerse anahtar kendiliginden duser). `lastseen:<id>` son gorulme zamanidir.
- * Gizlilik: yalnizca ortak (aktif) konusmasi olan ve engel iliskisi olmayan kullanicilar birbirinin durumunu gorur.
+ * Gizlilik: yalnizca ortak (aktif) konusmasi olan kullanicilar birbirinin durumunu gorur (T-025); ek olarak:
+ * <ul>
+ *   <li>yalniz birebir konusmayi paylasiyorsak karsi taraf o konusmada en az bir mesaj yazmis olmali (istenmeden acilan
+ *       DM ile izleme yok);</li>
+ *   <li>hedefin {@code presenceAudience} ayari ONLY_ME ise durum gorunmez (varsayilan SHARED_CONTEXT);</li>
+ *   <li>engel iliskisi (iki yonde) ya da gorunmezlik: 404 DEGIL, sabit "cevrimdisi, son gorulme yok" doner; boylece
+ *       engellenen taraf engellendigini ogrenemez (T-028).</li>
+ * </ul>
  */
 @Service
 public class PresenceService {
@@ -52,6 +62,33 @@ public class PresenceService {
         this.members = members;
         this.blocks = blocks;
     }
+
+    /** Hedefin gorunurluk ayari (setter enjeksiyonu; yoksa varsayilan SHARED_CONTEXT davranisi). */
+    private ProfilePrivacyRepository privacy;
+    /** Ortak baglam + birebir karsilikliligi (setter enjeksiyonu; yoksa yalniz {@code shareConversation}). */
+    private org.springframework.jdbc.core.JdbcTemplate jdbc;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setPrivacy(ProfilePrivacyRepository privacy) {
+        this.privacy = privacy;
+    }
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setJdbc(org.springframework.jdbc.core.JdbcTemplate jdbc) {
+        this.jdbc = jdbc;
+    }
+
+    /** Sabit yanit: engelli/gizli hedefte gercek durum sizmaz. */
+    static final PresenceView HIDDEN = new PresenceView(false, null);
+
+    private static final String SHARED_CONTEXT_SQL = """
+            SELECT COUNT(*) FROM conversation_member a
+              JOIN conversation_member b ON a.conversation_id = b.conversation_id
+              JOIN conversation c ON c.id = a.conversation_id
+             WHERE a.user_id = ? AND b.user_id = ? AND a.left_at IS NULL AND b.left_at IS NULL
+               AND (c.type <> 'DIRECT' OR EXISTS (
+                     SELECT 1 FROM message m WHERE m.conversation_id = c.id AND m.sender_id = ?))
+            """;
 
     public void markOnline(Long userId) {
         try {
@@ -100,11 +137,21 @@ public class PresenceService {
         }
     }
 
-    /** Ortak konusmasi yoksa ya da engel varsa 404 (kullanici varligi sizdirilmaz). */
+    /**
+     * Ortak (aktif) konusmasi yoksa 404 (kullanici varligi sizdirilmaz). Engel iliskisi, hedefin gizlilik ayari ya da
+     * birebir karsilikliligi saglanmadiysa sabit "cevrimdisi" doner (200; engel/gizlilik ayrimi yapilamaz).
+     */
     public PresenceView view(Long viewerId, Long targetId) {
-        if (!viewerId.equals(targetId)
-                && (!members.shareConversation(viewerId, targetId) || blocks.isBlocked(viewerId, targetId))) {
-            throw new ApiException(HttpStatus.NOT_FOUND, "USER_NOT_FOUND", "Kullanıcı bulunamadı.");
+        if (!viewerId.equals(targetId)) {
+            if (!sharesContext(viewerId, targetId)) {
+                if (!members.shareConversation(viewerId, targetId)) {
+                    throw new ApiException(HttpStatus.NOT_FOUND, "USER_NOT_FOUND", "Kullanıcı bulunamadı.");
+                }
+                return HIDDEN; // yalniz istenmemis birebir: karsi taraf yazmadi
+            }
+            if (blocks.isBlocked(viewerId, targetId) || !audienceAllows(targetId)) {
+                return HIDDEN;
+            }
         }
         boolean online = isOnline(targetId);
         String lastSeen = null;
@@ -117,6 +164,81 @@ public class PresenceService {
             // Redis yoksa son gorulme bilinmez
         }
         return new PresenceView(online, online ? null : lastSeen);
+    }
+
+    /**
+     * Toplu: {@code targetIds} icinden durumu {@code viewerId}'e acik olanlar (view() ile ayni kurallar; sohbet listesi
+     * "cevrimici" noktasi icin tek sorgu + tek ayar sorgusu).
+     */
+    public Set<Long> visibleAmong(Long viewerId, Collection<Long> targetIds) {
+        Set<Long> ok = new HashSet<>(targetIds);
+        ok.remove(viewerId);
+        if (ok.isEmpty()) {
+            return ok;
+        }
+        if (jdbc != null) {
+            try {
+                String in = String.join(",", java.util.Collections.nCopies(ok.size(), "?"));
+                List<Object> args = new java.util.ArrayList<>();
+                args.add(viewerId);
+                args.addAll(ok);
+                String sql = """
+                        SELECT DISTINCT b.user_id FROM conversation_member a
+                          JOIN conversation_member b ON a.conversation_id = b.conversation_id
+                          JOIN conversation c ON c.id = a.conversation_id
+                         WHERE a.user_id = ? AND b.user_id IN (%s) AND a.left_at IS NULL AND b.left_at IS NULL
+                           AND (c.type <> 'DIRECT' OR EXISTS (
+                                 SELECT 1 FROM message m WHERE m.conversation_id = c.id AND m.sender_id = b.user_id))
+                        """.formatted(in);
+                ok = new HashSet<>(jdbc.queryForList(sql, Long.class, args.toArray()));
+            } catch (RuntimeException e) {
+                log.warn("Presence toplu baglam sorgusu basarisiz: {}", e.toString());
+                return Set.of(); // fail-closed
+            }
+        } else {
+            ok.removeIf(id -> !members.shareConversation(viewerId, id));
+        }
+        ok.removeAll(blocks.hiddenFrom(viewerId));
+        if (privacy != null && !ok.isEmpty()) {
+            for (ProfilePrivacy p : privacy.findByUserIdIn(ok)) {
+                if (p.getPresenceAudience() == Audience.ONLY_ME) {
+                    ok.remove(p.getUserId());
+                }
+            }
+        }
+        return ok;
+    }
+
+    /** Toplu: durumu {@code viewerId}'e acik olanlardan cevrimici olanlar (acik olmayan = cevrimdisi sayilir). */
+    public Set<Long> onlineVisibleTo(Long viewerId, Collection<Long> targetIds) {
+        if (targetIds.isEmpty()) {
+            return Set.of();
+        }
+        Set<Long> visible = visibleAmong(viewerId, targetIds);
+        return visible.isEmpty() ? Set.of() : onlineAmong(visible);
+    }
+
+    /** Ortak konusma var ve (yalniz birebirse) hedef orada konusmus mu. SQL yoksa eski kural. */
+    private boolean sharesContext(Long viewerId, Long targetId) {
+        if (jdbc == null) {
+            return members.shareConversation(viewerId, targetId);
+        }
+        try {
+            Integer n = jdbc.queryForObject(SHARED_CONTEXT_SQL, Integer.class, viewerId, targetId, targetId);
+            return n != null && n > 0;
+        } catch (RuntimeException e) {
+            log.warn("Presence baglam sorgusu basarisiz: {}", e.toString());
+            return false; // fail-closed
+        }
+    }
+
+    private boolean audienceAllows(Long targetId) {
+        if (privacy == null) {
+            return true;
+        }
+        ProfilePrivacy p = privacy.findById(targetId).orElse(null);
+        Audience a = p == null ? Audience.SHARED_CONTEXT : p.getPresenceAudience();
+        return a != Audience.ONLY_ME; // viewer zaten ortak konusmayi paylasiyor: SHARED_CONTEXT ve EVERYONE gorur
     }
 
     /** Kullanici bu sohbeti su an goruntuluyor (TTL'li). Goruntuleme on planda olmayi da ima eder. */

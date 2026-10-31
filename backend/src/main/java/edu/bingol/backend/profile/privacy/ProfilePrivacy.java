@@ -39,6 +39,14 @@ public class ProfilePrivacy {
     @Column(nullable = false, length = 16)
     private Audience classYearAudience = Audience.EVERYONE;
 
+    /**
+     * Cevrimici/son gorulme (T-025, V930). Varsayilan SHARED_CONTEXT (guvenli); ONLY_ME durumu hic gostermez.
+     * Kullanici arayuzu/ucu (PrivacyService/PrivacyDtos) W2-D ile eklenecek.
+     */
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 16)
+    private Audience presenceAudience = Audience.SHARED_CONTEXT;
+
     /** Moderasyon avatari gizledi (USER_AVATAR raporu). */
     private boolean avatarHidden;
 

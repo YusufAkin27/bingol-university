@@ -79,8 +79,16 @@ public final class MessagingDtos {
             this(id, displayName, avatarUrl, null, null, null);
         }
 
+        /**
+         * Avatar GONDERILMEZ (fail-closed, T-027): gizlilik/moderasyon karari {@code AvatarVisibility} ile verildikten sonra
+         * {@link #withAvatar(String)} ile eklenir.
+         */
         public static UserSummary of(User u) {
-            return new UserSummary(u.getId(), u.getDisplayName(), u.getAvatarUrl(), null, null, null);
+            return new UserSummary(u.getId(), u.getDisplayName(), null, null, null, null);
+        }
+
+        public UserSummary withAvatar(String url) {
+            return new UserSummary(id, displayName, url, online, department, classYear);
         }
 
         public UserSummary withOnline(boolean value) {
@@ -92,8 +100,20 @@ public final class MessagingDtos {
         }
     }
 
-    /** Yanitlanan mesajin kisa, cozulmus onizlemesi; `deleted` true ise silinmis/kaldirilmis (metin sabit aciklama). */
-    public record ReplyPreview(Long id, Long senderId, String text, boolean deleted) {}
+    /** Sohbet yer tutucusu turleri (C2): istemci metni kendi dilinde gosterir; `text` eski surumler icin Turkce kalir. */
+    public static final String PLACEHOLDER_BLOCKED = "BLOCKED";
+    public static final String PLACEHOLDER_UNREADABLE = "UNREADABLE";
+
+    /**
+     * Yanitlanan mesajin kisa, cozulmus onizlemesi; `deleted` true ise silinmis/kaldirilmis (metin sabit aciklama).
+     * `placeholderKind`: metin bir yer tutucuysa BLOCKED | UNREADABLE (yoksa gonderilmez).
+     */
+    public record ReplyPreview(Long id, Long senderId, String text, boolean deleted,
+                               @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL) String placeholderKind) {
+        public ReplyPreview(Long id, Long senderId, String text, boolean deleted) {
+            this(id, senderId, text, deleted, null);
+        }
+    }
 
     public record ReactionCount(String emoji, long count) {}
 
@@ -106,7 +126,20 @@ public final class MessagingDtos {
                               boolean edited, String editedAt, boolean deleted, List<ReactionCount> reactions,
                               String myReaction, List<AttachmentView> attachments,
                               String status,
-                              @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL) String senderName) {
+                              @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL) String senderName,
+                              @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL) String placeholderKind) {
+        /**
+         * `placeholderKind` (C2): `text` bir yer tutucuysa BLOCKED (engelli gonderen) | UNREADABLE (cozulemeyen govde),
+         * yoksa gonderilmez. Istemci kind'a gore kendi dilinde metin gosterir; `text` eski surumler icin Turkce kalir.
+         */
+        public MessageView(Long id, Long conversationId, Long senderId, String clientId, String text,
+                           boolean removed, String createdAt, Long replyToMessageId, ReplyPreview replyTo,
+                           boolean edited, String editedAt, boolean deleted, List<ReactionCount> reactions,
+                           String myReaction, List<AttachmentView> attachments, String status, String senderName) {
+            this(id, conversationId, senderId, clientId, text, removed, createdAt, replyToMessageId, replyTo, edited,
+                    editedAt, deleted, reactions, myReaction, attachments, status, senderName, null);
+        }
+
         /** `senderName` yalniz konusma listesi onizlemesinde (grup/kulup/etkinlik) dolar; diger yerlerde gonderilmez. */
         public MessageView(Long id, Long conversationId, Long senderId, String clientId, String text,
                            boolean removed, String createdAt, Long replyToMessageId, ReplyPreview replyTo,
@@ -135,19 +168,19 @@ public final class MessagingDtos {
         /** Makbuz durumu (SENT | DELIVERED | READ); yalniz istek sahibinin kendi mesajlarinda dolu. */
         public MessageView withStatus(String s) {
             return new MessageView(id, conversationId, senderId, clientId, text, removed, createdAt, replyToMessageId,
-                    replyTo, edited, editedAt, deleted, reactions, myReaction, attachments, s, senderName);
+                    replyTo, edited, editedAt, deleted, reactions, myReaction, attachments, s, senderName, placeholderKind);
         }
 
         public MessageView withSenderName(String name) {
             return new MessageView(id, conversationId, senderId, clientId, text, removed, createdAt, replyToMessageId,
-                    replyTo, edited, editedAt, deleted, reactions, myReaction, attachments, status, name);
+                    replyTo, edited, editedAt, deleted, reactions, myReaction, attachments, status, name, placeholderKind);
         }
 
         /** T8: gorsel ekleri ekler (gizlenen/silinen/engelli mesajda ek gosterilmez). */
         public MessageView withAttachments(List<AttachmentView> list) {
             return removed || list == null ? this : new MessageView(id, conversationId, senderId, clientId, text,
                     removed, createdAt, replyToMessageId, replyTo, edited, editedAt, deleted, reactions, myReaction,
-                    List.copyOf(list), status, senderName);
+                    List.copyOf(list), status, senderName, placeholderKind);
         }
 
         public static MessageView of(Message m) {
@@ -161,16 +194,17 @@ public final class MessagingDtos {
             boolean removed = gone || senderBlocked || unreadable;
             String text = m.isAdminRemoved() ? ADMIN_REMOVED_TEXT : m.isHidden() ? REMOVED_TEXT : m.isDeleted() ? DELETED_TEXT : senderBlocked ? BLOCKED_TEXT
                     : unreadable ? UNREADABLE_TEXT : m.getBody();
+            String kind = gone ? null : senderBlocked ? PLACEHOLDER_BLOCKED : unreadable ? PLACEHOLDER_UNREADABLE : null;
             return new MessageView(m.getId(), m.getConversationId(), m.getSenderId(), m.getClientId(), text,
                     removed, m.getCreatedAt().toString(), m.isDeleted() ? null : m.getReplyToMessageId(), null,
                     m.getEditedAt() != null && !m.isDeleted(),
                     m.getEditedAt() == null || m.isDeleted() ? null : m.getEditedAt().toString(), m.isDeleted(),
-                    List.of(), null);
+                    List.of(), null, List.of(), null, null, kind);
         }
 
         public MessageView withExtras(ReplyPreview reply, List<ReactionCount> counts, String mine) {
             return new MessageView(id, conversationId, senderId, clientId, text, removed, createdAt, replyToMessageId,
-                    reply, edited, editedAt, deleted, counts, mine, attachments, status, senderName);
+                    reply, edited, editedAt, deleted, counts, mine, attachments, status, senderName, placeholderKind);
         }
 
         public MessageView withoutReplyPreview() {
@@ -215,10 +249,16 @@ public final class MessagingDtos {
     /** `total`: sessize alinmamis konusmalardaki toplam okunmamis (rozet sayisi); `mutedTotal`: sessizdekiler. */
     public record UnreadSummary(long total, long mutedTotal, List<UnreadItem> conversations) {}
 
+    /**
+     * `blocked`: yalniz ENGELLEYEN tarafta true (golge engel: engellenen taraf bunu ogrenmez).
+     * `canModerate` (C1): cagiranin bu konusmada BASKASININ mesajini silme yetkisi (grup yoneticisi ya da kulup/etkinlik
+     * odasi moderatoru/organizatoru); birebirde false.
+     */
     public record ConversationView(Long id, String type, String title, UserSummary peer, int memberCount,
                                    boolean admin, MessageView lastMessage, long unreadCount, boolean blocked,
                                    String createdAt, boolean muted, String mutedUntil, boolean archived,
-                                   boolean mutedForever, Long communityId, Long eventId, String avatarUrl) {}
+                                   boolean mutedForever, Long communityId, Long eventId, String avatarUrl,
+                                   boolean canModerate) {}
 
     /** `department`/`classYear`: profil gizlilik ayari bakana izin veriyorsa (yoksa gonderilmez). */
     public record MemberView(Long userId, String displayName, String avatarUrl, String role,

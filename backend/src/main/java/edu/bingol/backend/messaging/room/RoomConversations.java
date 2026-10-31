@@ -145,6 +145,14 @@ public class RoomConversations {
         return true;
     }
 
+    /**
+     * Toplu bakim gibi dogrudan SQL ile uyelik dusen akislar icin: ayni conversation-removed olayini yayinlar (C3).
+     * Commit sonrasi (islem varsa) ya da hemen gonderilir; hata sizdirmaz.
+     */
+    public void announceRemoved(Long conversationId, Collection<Long> userIds) {
+        notifyRemoved(conversationId, userIds);
+    }
+
     /** Ayrilan/cikarilan kullanicilarin istemcisi konusmayi listeden dusursun (`/user/queue/message-events`). */
     private void notifyRemoved(Long conversationId, Collection<Long> userIds) {
         if (bus == null || userIds.isEmpty()) {
