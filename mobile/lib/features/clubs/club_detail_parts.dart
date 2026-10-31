@@ -152,9 +152,14 @@ class ClubCoverSpace extends StatelessWidget {
                   child: Stack(
                     fit: StackFit.expand,
                     children: [
-                      cover == null
-                          ? CalmCover(seed: seed, icon: LucideIcons.users, iconAlignment: const AlignmentDirectional(.62, -.2))
-                          : BuImage(url, width: double.infinity, height: coverH, maxDecodeWidth: 1200),
+                      // Paralaks: kapak kaydırmanın %60'ı hızında çıkar (aşağı kaydırma payı kadar öteleme; yalnız transform).
+                      // Üst kenar ekran dışında kaldığı için boşluk görünmez; aşırı kaydırmada (p>1 yok) öteleme 0.
+                      Transform.translate(
+                        offset: Offset(0, BuMotion.reduced(context) ? 0 : (maxH - c.maxHeight).clamp(0.0, maxH) * .4),
+                        child: cover == null
+                            ? CalmCover(seed: seed, icon: LucideIcons.users, iconAlignment: const AlignmentDirectional(.62, -.2))
+                            : BuImage(url, width: double.infinity, height: coverH, maxDecodeWidth: 1200),
+                      ),
                       if (cover != null)
                         Positioned(
                           left: 0,

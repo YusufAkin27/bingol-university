@@ -34,6 +34,7 @@ class _TimetablePageState extends State<TimetablePage> {
   bool _loading = true;
   int? _semesterId;
   int _day = istanbulWall(academicClock()).weekday;
+  int _dayDir = 1; // gün şeridi geçişinin yönü: içerik o yöne kayar
   Timer? _tick;
 
   @override
@@ -201,13 +202,30 @@ class _TimetablePageState extends State<TimetablePage> {
     final todayView = _day == nowWall.weekday;
     final dayName = acadDayName(l, _day);
     final left = todayView ? list.where((s) => s.status != SlotStatus.past).length : 0;
+    final hasOngoing = list.any((s) => s.status == SlotStatus.ongoing);
+    final firstUpcoming = list.indexWhere((s) => s.status == SlotStatus.upcoming);
+    final nowTime = '${nowWall.hour.toString().padLeft(2, '0')}:${nowWall.minute.toString().padLeft(2, '0')}';
     return [
       _pad(TtTopRow(name: sem?.name ?? l.acadTimePickSemester, onPickSemester: _pickSemester, onExport: _export)),
       const SizedBox(height: 14),
-      TtDayPills(selected: _day, todayWeekday: nowWall.weekday, onSelect: (d) => setState(() => _day = d)),
+      TtDayPills(
+        selected: _day,
+        todayWeekday: nowWall.weekday,
+        onSelect: (d) => setState(() {
+          _dayDir = d >= _day ? 1 : -1;
+          _day = d;
+        }),
+      ),
       const SizedBox(height: 14),
       ..._nowAndNext(data, nowWall),
       const SizedBox(height: 22),
+      // Gün değişince günlük akış yatay kayarak yer değiştirir (ileri gün: sola, geri: sağa).
+      BuSharedAxis(
+        reverse: _dayDir < 0,
+        distance: 24,
+        child: KeyedSubtree(
+          key: ValueKey<int>(_day),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
       _pad(AkadTitle(l.p17DailyFlow,
           chip: dayName,
           trailing: list.isEmpty
@@ -221,7 +239,9 @@ class _TimetablePageState extends State<TimetablePage> {
       if (list.isNotEmpty)
         _pad(BuStaggerScope(
           child: Column(children: [
-            for (var i = 0; i < list.length; i++)
+            for (var i = 0; i < list.length; i++) ...[
+              // "Şimdi" çizgisi: ders sürmüyorsa ilk yaklaşan dersin hemen üstünde (geçmiş / gelecek ayrımı).
+              if (todayView && !hasOngoing && i == firstUpcoming) TtNowLine(time: nowTime),
               BuStaggerItem(
                 index: i,
                 child: Padding(
@@ -229,8 +249,12 @@ class _TimetablePageState extends State<TimetablePage> {
                   child: TtSlotCard(slot: list[i], todayView: todayView, onTap: () => _openForm(course: list[i].course)),
                 ),
               ),
+            ],
           ]),
         )),
+          ]),
+        ),
+      ),
       if (todayView && list.isNotEmpty) ...[
         const SizedBox(height: 14),
         _pad(left > 0

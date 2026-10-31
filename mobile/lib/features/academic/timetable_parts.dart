@@ -181,7 +181,19 @@ class TtNowCard extends StatelessWidget {
           Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
             Expanded(child: Text(name, maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.titleLarge!.copyWith(fontWeight: FontWeight.w800, color: t.ink))),
             const SizedBox(width: 8),
-            Text(l.acadCountdownMinutes(minutesLeft.toString()), style: tx.labelLarge!.copyWith(fontWeight: FontWeight.w700, color: t.pr)),
+            // Kalan dakika her dakika değişir: eski değer yukarı kayıp solar, yenisi alttan gelir (yalnız opacity/transform).
+            AnimatedSwitcher(
+              duration: BuMotion.of(context, BuMotion.medium),
+              switchInCurve: BuMotion.emphasizedDecelerate,
+              switchOutCurve: BuMotion.emphasizedAccelerate,
+              transitionBuilder: (c, a) => FadeTransition(
+                opacity: a,
+                child: SlideTransition(position: Tween(begin: const Offset(0, .5), end: Offset.zero).animate(a), child: c),
+              ),
+              child: Text(l.acadCountdownMinutes(minutesLeft.toString()),
+                  key: ValueKey<int>(minutesLeft),
+                  style: tx.labelLarge!.copyWith(fontWeight: FontWeight.w700, color: t.pr, fontFeatures: const [FontFeature.tabularFigures()])),
+            ),
           ]),
           const SizedBox(height: 10),
           ClipRRect(
@@ -266,9 +278,8 @@ class TtSlotCard extends StatelessWidget {
             // Gelecek derste "Bekliyor" gürültüsü yok: saat ve ders adı yeterli, durum yalnız süren/biten derste.
             SlotStatus.upcoming => null,
           };
-    final tint = courseColor(c.color);
-    // Sol çubuk dersin kendi rengi: akışta dersler bir bakışta ayrışır; süren ders marka rengiyle öne çıkar.
-    final bar = ongoing ? t.pr : (past ? t.bd : akadOnTint(context, tint));
+    // Sol çubuk nötr: süren ders marka rengiyle öne çıkar, geçmiş soluk (ekranda tek vurgu rengi).
+    final bar = ongoing ? t.pr : (past ? t.bd : t.mut.withValues(alpha: .45));
     final semantic =
         '${l.acadTimeSlotSemantic(c.name, acadDayName(l, s.session.dayOfWeek.clamp(1, 7)), s.session.start, s.session.end)}${s.session.room != null ? ', ${s.session.room}' : ''}${status != null ? ', $status' : ''}';
     final timePillBg = ongoing ? t.soft : t.sf2;
@@ -296,7 +307,7 @@ class TtSlotCard extends StatelessWidget {
                       if (status != null)
                         AkadPill(status, bg: ongoing ? t.soft : t.sf2, fg: ongoing ? t.onSoft : t.mut, dot: ongoing)
                       else if (c.code != null)
-                        AkadPill(c.code!, bg: akadTint(context, tint), fg: akadOnTint(context, tint)),
+                        AkadPill(c.code!, bg: t.sf2, fg: t.mut),
                       const Spacer(),
                       AkadPill('${s.session.start} - ${s.session.end}', bg: timePillBg, fg: timePillFg),
                     ]),
@@ -352,7 +363,6 @@ class TtCourseTile extends StatelessWidget {
     final t = context.bu;
     final tx = Theme.of(context).textTheme;
     final l = context.l10n;
-    final color = courseColor(course.color);
     var mins = 0;
     for (final s in course.sessions) {
       final d = s.endMin - s.startMin;
@@ -370,12 +380,47 @@ class TtCourseTile extends StatelessWidget {
         onTap: onTap,
         padding: const EdgeInsets.all(14),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          if (course.code != null) AkadPill(course.code!, bg: akadTint(context, color), fg: akadOnTint(context, color)) else const SizedBox(height: 24),
+          if (course.code != null) AkadPill(course.code!, bg: t.sf2, fg: t.mut) else const SizedBox(height: 24),
           const SizedBox(height: 14),
           Text(course.name, maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.titleMedium!.copyWith(fontWeight: FontWeight.w800, color: t.ink)),
           const SizedBox(height: 2),
           Text(mins == 0 ? l.acadTimeNoSessions : l.p17HoursPerWeek(hoursText), style: tx.bodySmall!.copyWith(color: t.mut)),
         ]),
+      ),
+    );
+  }
+}
+
+/// "Şimdi" çizgisi: günlük akışta geçmiş ve yaklaşan dersler arasına konur (nokta + ince çizgi + saat hapı).
+/// Bir kez solarak ve çizgi soldan sağa uzayarak belirir; sürekli hareket yoktur.
+class TtNowLine extends StatelessWidget {
+  const TtNowLine({super.key, required this.time});
+
+  /// Şimdiki saat, `HH:mm`.
+  final String time;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.bu;
+    final l = context.l10n;
+    return Semantics(
+      container: true,
+      label: '${l.acadTimeStatusNow} $time',
+      excludeSemantics: true,
+      child: TweenAnimationBuilder<double>(
+        tween: Tween(begin: 0, end: 1),
+        duration: BuMotion.of(context, BuMotion.long),
+        curve: BuMotion.emphasizedDecelerate,
+        builder: (_, v, child) => Opacity(opacity: v, child: child),
+        child: Padding(
+          padding: const EdgeInsets.only(bottom: 12),
+          child: Row(children: [
+            Container(width: 8, height: 8, decoration: BoxDecoration(color: t.pr, shape: BoxShape.circle)),
+            Expanded(child: Container(height: 1.5, color: t.pr.withValues(alpha: .35))),
+            const SizedBox(width: 8),
+            AkadPill('${l.acadTimeStatusNow} $time', bg: t.soft, fg: t.onSoft),
+          ]),
+        ),
       ),
     );
   }

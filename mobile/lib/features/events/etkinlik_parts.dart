@@ -23,11 +23,8 @@ class EtkinlikDateTile extends StatelessWidget {
     final t = context.bu;
     final tx = Theme.of(context).textTheme;
     final ar = Localizations.localeOf(context).languageCode == 'ar';
-    final tint = t.tint(switch (tone) {
-      EtkinlikTone.red => BuTintId.amber,
-      EtkinlikTone.blue => BuTintId.blue,
-      EtkinlikTone.green => BuTintId.aqua,
-    });
+    // Tek ton: yumuşak marka zemini (kategori başına farklı renk yok); [tone] yalnız eski çağrılar için durur.
+    final tint = (bg: t.soft, fg: t.onSoft);
     return ExcludeSemantics(
       child: ClipRRect(
         borderRadius: BuRadius.bMd,
@@ -155,7 +152,7 @@ class EtkinlikDateBlock extends StatelessWidget {
     final ar = Localizations.localeOf(context).languageCode == 'ar';
     final (bg, dayFg, monFg) = switch (tone) {
       EtkinlikBlockTone.brand => (t.soft, t.onSoft, t.onSoft),
-      EtkinlikBlockTone.blue => (t.infoSoft, t.ink, t.info),
+      EtkinlikBlockTone.blue => (t.sf2, t.ink, t.mut),
       EtkinlikBlockTone.grey => (t.mut.withValues(alpha: .12), t.mut, t.mut),
     };
     return ExcludeSemantics(

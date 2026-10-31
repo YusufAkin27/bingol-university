@@ -29,6 +29,7 @@ class _AcademicCalendarPageState extends State<AcademicCalendarPage> {
     return DateTime.utc(w.year, w.month);
   }();
   DateTime? _selected;
+  int _monthDir = 1; // ay geçişi yönü (+1 ileri / -1 geri)
   List<AcademicEvent> _events = [];
   List<AcademicEvent> _next = [];
   String? _semester; // dönem adı (Sıradaki önemli tarihler başlığının sağında)
@@ -73,6 +74,7 @@ class _AcademicCalendarPageState extends State<AcademicCalendarPage> {
 
   void _shift(int by) {
     setState(() {
+      _monthDir = by >= 0 ? 1 : -1;
       _month = DateTime.utc(_month.year, _month.month + by);
       _selected = null;
       _events = [];
@@ -142,8 +144,15 @@ class _AcademicCalendarPageState extends State<AcademicCalendarPage> {
               child: Semantics(
                 header: true,
                 liveRegion: true,
-                child: Text('${monthNameL(l, _month.month)} ${_month.year}',
-                    maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.titleLarge!.copyWith(fontWeight: FontWeight.w800, color: t.ink)),
+                child: BuFadeThrough(
+                  duration: BuMotion.short,
+                  child: Align(
+                    key: ValueKey('${_month.year}-${_month.month}'),
+                    alignment: AlignmentDirectional.centerStart,
+                    child: Text('${monthNameL(l, _month.month)} ${_month.year}',
+                        maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.titleLarge!.copyWith(fontWeight: FontWeight.w800, color: t.ink)),
+                  ),
+                ),
               ),
             ),
             _navButton(t, LucideIcons.chevronLeft, l.acadCalPrev, () => _shift(-1)),
@@ -176,10 +185,20 @@ class _AcademicCalendarPageState extends State<AcademicCalendarPage> {
           ),
       ]),
       const SizedBox(height: 6),
-      for (var r = 0; r < rows; r++)
-        Row(children: [
-          for (var c = 0; c < 7; c++) Expanded(child: _cell(t, DateTime.utc(_month.year, _month.month, r * 7 + c - lead + 1), today, c >= 5)),
-        ]),
+      // Ay değişince ızgara yatay kayarak yer değiştirir (RTL'de aynalanır).
+      BuSharedAxis(
+        reverse: _monthDir < 0,
+        distance: 24,
+        child: KeyedSubtree(
+          key: ValueKey('grid-${_month.year}-${_month.month}'),
+          child: Column(children: [
+            for (var r = 0; r < rows; r++)
+              Row(children: [
+                for (var c = 0; c < 7; c++) Expanded(child: _cell(t, DateTime.utc(_month.year, _month.month, r * 7 + c - lead + 1), today, c >= 5)),
+              ]),
+          ]),
+        ),
+      ),
     ]);
   }
 
@@ -206,28 +225,47 @@ class _AcademicCalendarPageState extends State<AcademicCalendarPage> {
       label: '${date.day} ${monthNameL(l, date.month)}${isToday ? ', ${l.acadCalToday}' : ''}${has ? ', ${l.acadCalEventCount(evs.length.toString())}' : ''}',
       excludeSemantics: true,
       onTap: tap,
-      child: InkWell(
+      child: BuPressable(
+        scale: .94,
+        child: InkWell(
         borderRadius: BorderRadius.circular(16),
-        onTap: inMonth ? tap : null,
+        onTap: inMonth
+            ? () {
+                buHaptic(BuHaptic.selection);
+                tap();
+              }
+            : null,
         child: SizedBox(
           height: 56,
           child: Center(
-            child: Container(
+            child: AnimatedContainer(
+          duration: BuMotion.of(context, BuMotion.short),
+          curve: BuMotion.standard,
           width: 46,
           height: 52,
-          decoration: BoxDecoration(color: bg, shape: bg == null ? BoxShape.rectangle : BoxShape.rectangle, borderRadius: BorderRadius.circular(23)),
+          decoration: BoxDecoration(color: bg ?? Colors.transparent, borderRadius: BorderRadius.circular(23)),
           child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
             MediaQuery.withClampedTextScaling(
               maxScaleFactor: 1.2,
-              child: Text('${date.day}', style: tx.titleSmall!.copyWith(fontWeight: sel || isToday || has ? FontWeight.w800 : FontWeight.w500, color: fg)),
+              child: AnimatedDefaultTextStyle(
+                duration: BuMotion.of(context, BuMotion.short),
+                style: tx.titleSmall!.copyWith(fontWeight: sel || isToday || has ? FontWeight.w800 : FontWeight.w500, color: fg),
+                child: Text('${date.day}'),
+              ),
             ),
             const SizedBox(height: 3),
-            Container(width: 5, height: 5, decoration: BoxDecoration(color: has ? ((sel || isToday) ? t.soft : t.pr) : Colors.transparent, shape: BoxShape.circle)),
+            // Önemli gün noktası: belirirken 0 -> 1 ölçeklenir.
+            AnimatedScale(
+              scale: has ? 1 : 0,
+              duration: BuMotion.of(context, BuMotion.short),
+              curve: BuMotion.emphasizedDecelerate,
+              child: Container(width: 5, height: 5, decoration: BoxDecoration(color: (sel || isToday) ? t.soft : t.pr, shape: BoxShape.circle)),
+            ),
           ]),
             ),
           ),
         ),
-      ),
+      )),
     );
   }
 

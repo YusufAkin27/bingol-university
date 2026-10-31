@@ -214,7 +214,13 @@ class _SupportTicketPageState extends State<SupportTicketPage> {
     return [
       Padding(
         padding: const EdgeInsetsDirectional.only(end: 8),
-        child: Center(child: SupportStatusPill(st, dot: true)),
+        child: Center(
+          // Durum değişince (Açık -> Yanıtlandı -> Kapalı) hap solarak yer değiştirir.
+          child: BuFadeThrough(
+            duration: BuMotion.short,
+            child: KeyedSubtree(key: ValueKey<String?>(st), child: SupportStatusPill(st, dot: true)),
+          ),
+        ),
       ),
       if (!closed)
         PopupMenuButton<String>(

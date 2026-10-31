@@ -180,7 +180,10 @@ class _ClubsTabState extends State<ClubsTab> {
           c['memberCount'] = ((c['memberCount'] as num?) ?? 0).toInt() + 1;
         }
       });
-      if (st == 'ACTIVE') _loadMine();
+      if (st == 'ACTIVE') {
+        buHaptic(BuHaptic.light);
+        _loadMine();
+      }
     } catch (e) {
       if (mounted) _toast(errorText(e));
     } finally {
@@ -193,7 +196,11 @@ class _ClubsTabState extends State<ClubsTab> {
       context,
       MaterialPageRoute(
         builder: (_) => ClubDetailPage(
-            session: widget.session, communityId: ((c['id'] as num?)?.toInt() ?? -1)),
+          session: widget.session,
+          communityId: ((c['id'] as num?)?.toInt() ?? -1),
+          previewName: (c['name'] ?? '').toString(),
+          previewLogoUrl: c['logoUrl'] as String?,
+        ),
       ),
     );
     if (mounted) {
@@ -329,8 +336,18 @@ class _ClubsTabState extends State<ClubsTab> {
   }
 
   Widget _body() {
+    // İskelet -> içerik solarak; Keşfet <-> Kulüplerim geçişinde içerik "fade through" ile yer değiştirir.
+    return BuSwapIn(
+      loading: _loading,
+      skeleton: const BuSkeletonList(variant: BuSkeletonVariant.row, itemCount: 6),
+      child: BuFadeThrough(
+        child: KeyedSubtree(key: ValueKey<int>(_seg), child: _content()),
+      ),
+    );
+  }
+
+  Widget _content() {
     final l = context.l10n;
-    if (_loading) return const BuSkeletonList(variant: BuSkeletonVariant.row, itemCount: 6);
     if (_error != null && _items.isEmpty) {
       return ErrorView(error: _error!, onRetry: _reload);
     }
@@ -359,8 +376,10 @@ class _ClubsTabState extends State<ClubsTab> {
     }
     return RefreshIndicator(
       onRefresh: _refresh,
-      child: ListView.builder(
-        controller: _scroll,
+      // Ilk 8 kart sirayla belirir; yenileme/kaydirma geri gelen kartlar tekrar oynamaz (BuStaggerScope).
+      child: BuStaggeredList(
+        // Yalniz Kesfet listesi sayfalar; gecis sirasinda iki liste bir arada kalabilir, denetleyici tek listede.
+        controller: mine ? null : _scroll,
         physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.only(top: 14, bottom: kNavInset),
         itemCount: list.length + (_more && !mine ? 1 : 0),

@@ -507,13 +507,8 @@ String eventKindLabelL(AppLocalizations l, String k) => switch (k) {
     };
 
 Color eventKindColor(String k) => switch (k) {
-      'DONEM_BASLANGIC' => courseColor('blue'),
-      'DERS_KAYIT' => courseColor('green'),
-      'VIZE' => courseColor('red'),
-      'FINAL' => courseColor('blue'),
-      'BUT' => courseColor('amber'),
-      'TATIL' => courseColor('teal'),
-      'RESMI_TATIL' => courseColor('teal'),
+      // Tek vurgu: sınavlar (vize/final/büt) vurgulu, geri kalan her şey nötr. Tür simgeyle/etiketle ayrışır.
+      'VIZE' || 'FINAL' || 'BUT' => courseColor('red'),
       _ => courseColor('gray'),
     };
 

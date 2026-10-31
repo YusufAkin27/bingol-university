@@ -24,3 +24,30 @@ kalsın; kulüp/etkinlik kapağı artık kullanmıyor, dokümandaki "etkinlik/ku
 
 Notlar: Duyuru kapsamı (W1-F: "Tümü" yalnız kapsamsız duyurular) için ekran metinlerine dokunulmadı; davranış
 değişmedi.
+
+---
+
+## Tur 2: ince detay + animasyon (P2-DD)
+
+Kural: yalniz transform/opacity, 150-400 ms, surekli dongu yok, kaydirirken yok, "animasyonlari azalt" acikken aninda.
+Renk (yonetici karari): ekranda en cok 2 vurgu rengi (marka + en cok bir ikincil); kategori basina renk kalkti, durum
+renkleri (ok/uyari/hata) kaldi; amber yalniz uyari.
+
+| Ekran | Eklenen animasyon / detay | Dosya |
+|---|---|---|
+| Kulupler listesi | Kesfet <-> Kuluplerim icerigi `BuFadeThrough`; iskelet -> icerik `BuSwapIn`; ilk 8 kart `BuStaggeredList` (yenilemede tekrar yok); kart `BuPressable` (basinca 0.985) | clubs_tab.dart, clubs_widgets.dart |
+| "Katil" dugmesi | Durum degisince (Katil -> Uyesin / Istek gonderildi) dugme `BuFadeThrough` + `BuPop`; Uyesin'de onay simgesi; katilinca hafif titresim; yukleniyor = BuButton.busy | clubs_widgets.dart, clubs_tab.dart |
+| Kulup karti -> detay | Logo `BuHero` (etiket `bu-hero-club-<id>`, kose 18 -> daire), detayda iskelet asamasinda da varis noktasi + listeden gelen ad/logo (`previewName/previewLogoUrl`) ile gercek logo ucar | club_detail_page.dart |
+| Kulup detayi | Kapak paralaks (kaydirmanin %60'i hizinda; yalniz transform); baslik cubugu belirmesi ve sekme gostergesi (BuSegmented) zaten vardi | club_detail_parts.dart |
+| Etkinlik takvimi | Ay gecisi `BuSharedAxis` (ileri/geri yone gore yatay); gun secimi dolu daire 0.6 -> 1 olcek + solma; etkinlik noktasi 0 -> 1 olcek; gun yazisi renk gecisi | events_page.dart |
+| Etkinlik detayi | Eylem cubugu durum gecisi (`BuFadeThrough`); yoklama blogu gecisi; "geldi" onay dairesi yaylanarak belirir | event_detail_page.dart |
+| CalmCover | Simge tek seferlik solma + %90 -> %100 (daireler statik); tek sakin ton (soft/onSoft) | calm_cover.dart |
+| Anket | Yuzde sayaci `BuCountUp` (tabular rakam); secenek dokunusunda `selectionClick`; yildiz = marka rengi (amber yalniz uyari) | poll_parts.dart, poll_detail_page.dart, anket_style.dart |
+| Destek | SSS oku 180 derece doner + renk gecisi, cevap solarak acilir; talep karti `BuPressable`; talep durum hapi gecisi | support_page.dart, support_ticket_page.dart |
+| Akademik: ders programi | Gun degisince akis `BuSharedAxis`; "Simdi" cizgisi (gecmis/yaklasan arasi, tek seferlik belirme); kalan dakika sayaci kayarak degisir; sol cubuk ve kod hapi notr | timetable_page.dart, timetable_parts.dart |
+| Akademik: takvim | Ay gecisi `BuSharedAxis` + baslik `BuFadeThrough`; gun hucresi renk/yazi gecisi, `BuPressable`, nokta olcekle belirir | academic_calendar_page.dart |
+| Akademik: sinavlar | Sekme icerigi `BuSharedAxis` | exams_page.dart |
+| Renk sadelestirme | Anket kapsam rozetleri, etkinlik tarih karosu, CalmCover, akademik takvim tur renkleri (yalniz vize/final/but vurgulu), ders cubugu/kodu: tek notr + tek vurgu; "ilgileniyorum" ve "kayit kapali" amber degil notr | ilgili dosyalar |
+
+Uygulanmayanlar / gerekce: (1) Etkinlik karti -> detay kapak Hero: liste kartlarinda kapak gorseli yok (tarih blogu var), uydurma ucus anlamsiz. (2) Ders gun seridinde kayan tek hap: hap genislikleri degisken ("bugun" etiketi), olcum gerektirir; mevcut renk/cerceve gecisi + icerik kaymasi yeterli. (3) Sinav sayaci pill gecisi: sayac yalniz yenilemede degisir. (4) QR yoklama tarama sayfasi `platform/` altinda (kapsam disi); ogrencinin "yoklama alindi" blogu animasyonlandi.
+Ortak dosya onerisi: `BuSegmented` kayan hap zaten var; sinavlar sekmesi icin ayni bilesenin "soft" varyanti istenirse M0.

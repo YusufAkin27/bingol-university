@@ -442,13 +442,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
     return Scaffold(
       backgroundColor: t.bg,
       body: body,
-      bottomNavigationBar: (!_loading &&
-              _ev != null &&
-              !eventIsCancelled(_ev!) &&
-              !eventIsPendingReview(_ev!) &&
-              !eventIsRejected(_ev!))
-          ? _actionBar()
-          : null,
+      bottomNavigationBar: _barOrNull(),
     );
   }
 
@@ -499,6 +493,17 @@ class _EventDetailPageState extends State<EventDetailPage> {
             value: 'report',
             child: Row(children: [Icon(LucideIcons.flag, size: 18, color: t.danger), const SizedBox(width: 12), Text(l.eventFormReportEvent)])),
       ],
+    );
+  }
+
+  /// Eylem çubuğu; durum (katıldı / ilgileniyor / hiçbiri) değişince solarak yer değiştirir.
+  Widget? _barOrNull() {
+    if (_loading || _ev == null || eventIsCancelled(_ev!) || eventIsPendingReview(_ev!) || eventIsRejected(_ev!)) return null;
+    final bar = _actionBar();
+    if (bar == null) return null;
+    return BuFadeThrough(
+      duration: BuMotion.short,
+      child: KeyedSubtree(key: ValueKey<String>('bar-${_rsvp ?? '-'}-$_approval'), child: bar),
     );
   }
 
@@ -733,7 +738,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
         EventStatusTag(_approval ? l.etkinlik2ApprovedTag : l.eventFormInMine, tone: EventTone.ok, icon: LucideIcons.circleCheck),
         EventStatusTag(l.eventFormGoingLabel, tone: EventTone.neutral, icon: LucideIcons.checkCheck),
       ],
-      if (!cancelled && rsvp == 'INTERESTED') EventStatusTag(l.p15StatusInterested, tone: EventTone.warn, icon: LucideIcons.circleCheck),
+      if (!cancelled && rsvp == 'INTERESTED') EventStatusTag(l.p15StatusInterested, tone: EventTone.neutral, icon: LucideIcons.circleCheck),
       if (!cancelled && closed) EventStatusTag(l.eventFormRegsClosed, tone: EventTone.neutral, icon: LucideIcons.lock),
       if (!cancelled && !closed && !full && !_approval && rsvp == null && cap != null)
         EventStatusTag(l.etkinlik2RegOpenSlots('${cap - going}'), tone: EventTone.brand, icon: LucideIcons.zap),
@@ -890,7 +895,8 @@ class _EventDetailPageState extends State<EventDetailPage> {
       ],
       if (rsvp == 'GOING' && !cancelled) ...[
         const SizedBox(height: 12),
-        _attendanceBlock(),
+        // Yoklama durumu değişince (yoklama aç/kapalı -> geldi) blok solarak yer değiştirir.
+        BuFadeThrough(duration: BuMotion.short, child: _attendanceBlock()),
       ],
       if (!cancelled) ...[
         const SizedBox(height: 12),
@@ -1036,11 +1042,18 @@ class _EventDetailPageState extends State<EventDetailPage> {
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(color: t.okSoft, borderRadius: BorderRadius.circular(20)),
         child: Row(children: [
-          Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(color: t.ok, shape: BoxShape.circle),
-            child: Icon(LucideIcons.check, size: 24, color: t.onPr),
+          // Başarı onayı: yeşil daire 0.5 -> 1 ölçekle yaylanarak belirir, onay işareti ardından solar (tek seferlik).
+          TweenAnimationBuilder<double>(
+            tween: Tween(begin: 0, end: 1),
+            duration: BuMotion.of(context, BuMotion.long),
+            curve: Curves.easeOutBack,
+            builder: (_, v, child) => Transform.scale(scale: .5 + .5 * v, child: Opacity(opacity: v.clamp(0.0, 1.0), child: child)),
+            child: Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(color: t.ok, shape: BoxShape.circle),
+              child: Icon(LucideIcons.check, size: 24, color: t.onPr),
+            ),
           ),
           const SizedBox(width: 12),
           Expanded(

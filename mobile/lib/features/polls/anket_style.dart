@@ -10,21 +10,20 @@ class AnketTone {
   final Color bg;
   final Color fg;
 
-  static AnketTone _of(BuildContext c, int i) {
-    final t = c.bu.tint(i);
-    return AnketTone(t.bg, t.fg);
+  // Kapsam (Genel / Kulüp / Yemek) rengi artık ayrışmaz: hepsi nötr; tür simgeyle ve etiketle anlatılır
+  // (ekranda tek vurgu rengi: marka).
+  static AnketTone _neutral(BuildContext c) {
+    final t = c.bu;
+    return AnketTone(t.sf2, t.mut);
   }
 
-  static AnketTone general(BuildContext c) => _of(c, 1);
-  static AnketTone club(BuildContext c) => _of(c, BuTintId.aqua);
-  static AnketTone meal(BuildContext c) => _of(c, BuTintId.green);
+  static AnketTone general(BuildContext c) => _neutral(c);
+  static AnketTone club(BuildContext c) => _neutral(c);
+  static AnketTone meal(BuildContext c) => _neutral(c);
 }
 
-/// Yıldız ve puan dağılımı rengi: kehribar tonun doygun hâli (her iki temada altın görünür), belirteçten türetilir.
-Color anketGoldOf(BuildContext c) {
-  final hsl = HSLColor.fromColor(c.bu.tint(3).fg);
-  return hsl.withSaturation(.86).withLightness(.5).toColor();
-}
+/// Yıldız ve puan dağılımı rengi: marka rengi (amber yalnız uyarıdır; ekranda tek vurgu).
+Color anketGoldOf(BuildContext c) => c.bu.pr;
 
 /// Uyarı kutusu renkleri (Oyunuz gizli notu): `warn` ailesi.
 ({Color bg, Color bd, Color fg}) anketNoteColors(BuildContext c) {

@@ -157,8 +157,12 @@ class ClubsRowCard extends StatelessWidget {
     final status = (club['myStatus'] as String?) ?? 'NONE';
     final id = ((club['id'] as num?)?.toInt() ?? 0);
 
-    final avatar = ClubsLogo(
-        name: name, id: id, url: club['logoUrl'] as String?, size: 56);
+    // Liste -> detay: logo uçarak büyür (BuHero; detaydaki aynı etiket). Köşe 18 -> daire yumuşak geçer.
+    final avatar = BuHero(
+      tag: BuHero.tagOf('club', id),
+      radius: 18,
+      child: ClubsLogo(name: name, id: id, url: club['logoUrl'] as String?, size: 56),
+    );
     final titles = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
@@ -174,11 +178,20 @@ class ClubsRowCard extends StatelessWidget {
             style: Theme.of(context).textTheme.bodyMedium!.copyWith(color: t.mut)),
       ],
     );
-    final button = _button(context, status);
+    // Durum değişince (Katıl -> Üyesin / İstek gönderildi) düğme solarak yer değiştirir, küçük "pop" ile onaylanır.
+    final button = BuPop(
+      trigger: status,
+      child: BuFadeThrough(
+        duration: BuMotion.short,
+        child: KeyedSubtree(key: ValueKey<String>(status), child: _button(context, status)),
+      ),
+    );
     final big = MediaQuery.textScalerOf(context).scale(10) > 12 ||
         (MediaQuery.sizeOf(context).width < 360 && status != 'NONE');
 
-    return Container(
+    return BuPressable(
+      scale: .985,
+      child: Container(
       decoration: BoxDecoration(
         color: t.sf,
         borderRadius: BorderRadius.circular(20),
@@ -225,7 +238,7 @@ class ClubsRowCard extends StatelessWidget {
           ),
         ),
       ),
-    );
+    ));
   }
 
   Widget _button(BuildContext context, String status) {
@@ -234,6 +247,7 @@ class ClubsRowCard extends StatelessWidget {
       case 'ACTIVE':
         return BuButton(
             label: l.clubMgmtYouAreMember,
+            icon: LucideIcons.check,
             kind: BuButtonKind.soft,
             compact: true,
             onPressed: onOpen);

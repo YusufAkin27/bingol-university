@@ -20,13 +20,18 @@ import 'club_ref_widgets.dart';
 import 'club_join_flow.dart';
 import 'club_members_page.dart';
 import 'club_requests_page.dart';
+import 'clubs_widgets.dart' show ClubsLogo;
 
 /// Kulüp detayı: kapak, üyelik, sohbet, gönderiler / etkinlikler / üyeler / anketler.
 class ClubDetailPage extends StatefulWidget {
-  const ClubDetailPage({super.key, required this.session, required this.communityId, this.imageService});
+  const ClubDetailPage({super.key, required this.session, required this.communityId, this.imageService, this.previewName, this.previewLogoUrl});
 
   final Session session;
   final int communityId;
+
+  /// Listeden gelen ad/logo: veri yüklenene kadar iskelet logosu yerine gerçek logo görünür (logo uçuşu için).
+  final String? previewName;
+  final String? previewLogoUrl;
 
   /// Testlerde galeri seçicisini taklit etmek için.
   @visibleForTesting
@@ -537,7 +542,7 @@ class _ClubDetailPageState extends State<ClubDetailPage> {
                 }),
       );
     }
-    if (_club == null) return const _DetailSkeleton();
+    if (_club == null) return _DetailSkeleton(heroId: widget.communityId, previewName: widget.previewName, previewLogoUrl: widget.previewLogoUrl);
     return Scaffold(
       backgroundColor: t.bg,
       resizeToAvoidBottomInset: true,
@@ -632,6 +637,28 @@ class _ClubDetailPageState extends State<ClubDetailPage> {
     final tint = t.tint((c['id'] as num?)?.toInt() ?? widget.communityId);
     final tx = Theme.of(context).textTheme;
     final logo = fileUrl(c['logoUrl']?.toString());
+    final id = (c['id'] as num?)?.toInt() ?? widget.communityId;
+    // Listedeki logo ile aynı etiket: kulüp kartından detaya logo uçarak büyür (BuHero; köşe yumuşak geçer).
+    final Widget face = BuHero(
+      tag: BuHero.tagOf('club', id),
+      radius: 40,
+      child: logo != null
+          ? BuImage(c['logoUrl']?.toString(), width: 80, height: 80, placeholderIcon: LucideIcons.users)
+          : ColoredBox(
+              color: tint.bg,
+              child: ExcludeSemantics(
+                child: Center(
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Padding(
+                      padding: const EdgeInsets.all(6),
+                      child: Text(initialsOf(c['name']?.toString()), style: tx.headlineMedium!.copyWith(color: tint.fg, fontWeight: FontWeight.w800)),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+    );
     return Container(
       width: 88,
       height: 88,
@@ -642,17 +669,7 @@ class _ClubDetailPageState extends State<ClubDetailPage> {
         border: Border.all(color: t.bg, width: 4),
         boxShadow: BuElevation.of(context, 1),
       ),
-      child: logo != null
-          ? ClipOval(child: BuImage(c['logoUrl']?.toString(), width: 80, height: 80, placeholderIcon: LucideIcons.users))
-          : ExcludeSemantics(
-              child: FittedBox(
-                fit: BoxFit.scaleDown,
-                child: Padding(
-                  padding: const EdgeInsets.all(6),
-                  child: Text(initialsOf(c['name']?.toString()), style: tx.headlineMedium!.copyWith(color: tint.fg, fontWeight: FontWeight.w800)),
-                ),
-              ),
-            ),
+      child: ClipOval(child: SizedBox(width: 80, height: 80, child: face)),
     );
   }
 
@@ -892,7 +909,13 @@ class _ClubDetailPageState extends State<ClubDetailPage> {
 
 /// Yükleniyor görünümü: kapak + logo + metin + sekme + kart iskeleti (dönen çember yok).
 class _DetailSkeleton extends StatelessWidget {
-  const _DetailSkeleton();
+  const _DetailSkeleton({required this.heroId, this.previewName, this.previewLogoUrl});
+
+  final String? previewName;
+  final String? previewLogoUrl;
+
+  /// Listeden gelen logo uçuşunun varış noktası (veri gelene kadar iskelet daire).
+  final int heroId;
 
   @override
   Widget build(BuildContext context) {
@@ -916,7 +939,7 @@ class _DetailSkeleton extends StatelessWidget {
                       borderRadius: const BorderRadius.vertical(bottom: Radius.circular(BuRadius.xl)),
                       child: BuSkeleton(height: top + _coverH, radius: 0),
                     ),
-                    const Padding(
+                    Padding(
                       padding: BuSpace.pageH,
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -925,20 +948,20 @@ class _DetailSkeleton extends StatelessWidget {
                             height: 56,
                             child: Stack(
                               clipBehavior: Clip.none,
-                              children: [PositionedDirectional(start: 0, top: -44, child: _SkeletonLogo())],
+                              children: [PositionedDirectional(start: 0, top: -44, child: _SkeletonLogo(heroId: heroId, name: previewName, url: previewLogoUrl))],
                             ),
                           ),
-                          BuSkeleton.line(width: 200, height: 24),
+                          const BuSkeleton.line(width: 200, height: 24),
                           BuGap.h8,
-                          BuSkeleton.line(width: 150),
+                          const BuSkeleton.line(width: 150),
                           BuGap.h16,
-                          BuSkeleton.line(),
+                          const BuSkeleton.line(),
                           BuGap.h8,
-                          BuSkeleton.line(width: 260),
+                          const BuSkeleton.line(width: 260),
                           BuGap.h20,
-                          BuSkeleton(height: 54, radius: BuRadius.md),
+                          const BuSkeleton(height: 54, radius: BuRadius.md),
                           BuGap.h20,
-                          BuSkeleton(height: 52, radius: 26),
+                          const BuSkeleton(height: 52, radius: 26),
                         ],
                       ),
                     ),
@@ -1034,7 +1057,11 @@ class _StatusPill extends StatelessWidget {
 
 /// Yükleniyor logosu: sayfa zemini halkalı daire (kapağa gömülü görünür, düz kesilmez).
 class _SkeletonLogo extends StatelessWidget {
-  const _SkeletonLogo();
+  const _SkeletonLogo({required this.heroId, this.name, this.url});
+
+  final int heroId;
+  final String? name;
+  final String? url;
 
   @override
   Widget build(BuildContext context) => Container(
@@ -1042,6 +1069,10 @@ class _SkeletonLogo extends StatelessWidget {
         height: 88,
         padding: const EdgeInsets.all(4),
         decoration: BoxDecoration(color: context.bu.bg, shape: BoxShape.circle),
-        child: const BuSkeleton.circle(80),
+        child: BuHero(
+          tag: BuHero.tagOf('club', heroId),
+          radius: 40,
+          child: name == null ? const BuSkeleton.circle(80) : ClubsLogo(name: name!, id: heroId, url: url, size: 80, round: true),
+        ),
       );
 }

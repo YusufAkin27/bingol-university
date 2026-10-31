@@ -889,7 +889,7 @@ class _ClosedResultRow extends StatelessWidget {
         ]),
       ),
       const SizedBox(width: 8),
-      Text('%$pct', style: tx.titleMedium!.copyWith(color: winner ? t.pr : t.ink, fontWeight: FontWeight.w800)),
+      BuCountUp(value: pct, format: pollPercentText, style: tx.titleMedium!.copyWith(color: winner ? t.pr : t.ink, fontWeight: FontWeight.w800, fontFeatures: const [FontFeature.tabularFigures()])),
     ]);
     final content = Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       name,
@@ -945,7 +945,7 @@ class _OpenResultRow extends StatelessWidget {
               ]),
             ),
             const SizedBox(width: 8),
-            Text('%$pct', style: tx.titleMedium!.copyWith(color: mine ? t.pr : t.ink, fontWeight: FontWeight.w800)),
+            BuCountUp(value: pct, format: pollPercentText, style: tx.titleMedium!.copyWith(color: mine ? t.pr : t.ink, fontWeight: FontWeight.w800, fontFeatures: const [FontFeature.tabularFigures()])),
           ]),
           const SizedBox(height: 8),
           _ResultBar(fraction: percent / 100, color: mine ? t.pr : t.mut.withValues(alpha: .45), height: 10),
@@ -1070,7 +1070,10 @@ class _OptionTile extends StatelessWidget {
             type: MaterialType.transparency,
             child: InkWell(
               borderRadius: BuRadius.bMd,
-              onTap: onTap,
+              onTap: () {
+                buHaptic(BuHaptic.selection);
+                onTap();
+              },
               child: ConstrainedBox(
                 constraints: BoxConstraints(minHeight: ranked ? 64 : 60),
                 child: Padding(

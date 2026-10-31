@@ -5,6 +5,9 @@ import '../../widgets/bu.dart';
 import 'anket_style.dart';
 import 'poll_models.dart';
 
+/// Yüzde metni (sayaç animasyonunun biçimleyicisi): `%48`.
+String pollPercentText(int v) => '%$v';
+
 /// 1-5 yıldız seçici. [value] null ise boş; [onChanged] null ise salt okunur.
 /// Dokunulabilir yıldız en az 48 dp hedef; seçilen yıldız hafifçe büyüyüp titreşir (hareket azaltılmışsa yalnız renk).
 class StarRating extends StatelessWidget {
@@ -109,7 +112,7 @@ class ResultBar extends StatelessWidget {
               ]),
             ),
             const SizedBox(width: 12),
-            Text('%$pct', style: tx.titleMedium!.copyWith(color: mine ? t.pr : t.ink, fontWeight: FontWeight.w800)),
+            BuCountUp(value: pct, format: pollPercentText, style: tx.titleMedium!.copyWith(color: mine ? t.pr : t.ink, fontWeight: FontWeight.w800, fontFeatures: const [FontFeature.tabularFigures()])),
           ]),
           const SizedBox(height: 8),
           ClipRRect(

@@ -128,7 +128,15 @@ class _ExamsPageState extends State<ExamsPage> {
             _segment(),
             if (!mine) ...[const SizedBox(height: 10), _scopeChips()],
             const SizedBox(height: 14),
-            ...(mine ? _mineBody() : _officialBody()),
+            // Sekme değişince içerik yatay kayarak yer değiştirir (Sınavlarım <- -> Resmi program).
+            BuSharedAxis(
+              reverse: mine,
+              distance: 24,
+              child: KeyedSubtree(
+                key: ValueKey<int>(_tab),
+                child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: mine ? _mineBody() : _officialBody()),
+              ),
+            ),
           ],
         ),
       ),

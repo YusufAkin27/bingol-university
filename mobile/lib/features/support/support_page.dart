@@ -383,7 +383,17 @@ class _FaqTile extends StatelessWidget {
                 child: Row(children: [
                   Expanded(child: Text(question, style: tx.titleSmall!.copyWith(color: t.ink, fontWeight: FontWeight.w800, height: 1.35))),
                   const SizedBox(width: 12),
-                  Icon(open ? LucideIcons.chevronUp : LucideIcons.chevronDown, size: 20, color: open ? t.pr : t.mut),
+                  // Ok tek simge: açılınca 180 derece döner (yalnız transform), rengi markaya geçer.
+                  AnimatedRotation(
+                    turns: open ? .5 : 0,
+                    duration: d,
+                    curve: BuMotion.emphasized,
+                    child: TweenAnimationBuilder<Color?>(
+                      tween: ColorTween(end: open ? t.pr : t.mut),
+                      duration: d,
+                      builder: (_, c, __) => Icon(LucideIcons.chevronDown, size: 20, color: c),
+                    ),
+                  ),
                 ]),
               ),
             ),
@@ -396,7 +406,14 @@ class _FaqTile extends StatelessWidget {
           child: open
               ? Padding(
                   padding: const EdgeInsetsDirectional.fromSTEB(16, 0, 16, 16),
-                  child: Text(answer, style: tx.bodyMedium!.copyWith(color: t.mut, height: 1.55)),
+                  // Yükseklik açılırken cevap solarak belirir (açılışta bir kez).
+                  child: TweenAnimationBuilder<double>(
+                    tween: Tween(begin: 0, end: 1),
+                    duration: d,
+                    curve: BuMotion.standard,
+                    builder: (_, v, child) => Opacity(opacity: v, child: child),
+                    child: Text(answer, style: tx.bodyMedium!.copyWith(color: t.mut, height: 1.55)),
+                  ),
                 )
               : const SizedBox(width: double.infinity),
         ),
@@ -423,7 +440,9 @@ class _TicketTile extends StatelessWidget {
       label: '${ticket['subject'] ?? ''}, ${supportTicketStatusStyle(context, status).label}, $date',
       excludeSemantics: true,
       onTap: onTap,
-      child: Material(
+      child: BuPressable(
+        scale: .985,
+        child: Material(
         color: t.sf2,
         borderRadius: BuRadius.bMd,
         child: InkWell(
@@ -450,6 +469,7 @@ class _TicketTile extends StatelessWidget {
               ]),
             ]),
           ),
+        ),
         ),
       ),
     );

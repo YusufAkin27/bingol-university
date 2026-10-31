@@ -67,7 +67,7 @@ void main() {
             .first
             .decoration as BoxDecoration;
         final colors = (deco.gradient as LinearGradient).colors;
-        expect(colors.first, tokens.tint(seed).bg, reason: 'seed=$seed dark=$dark');
+        expect(colors.first, tokens.soft, reason: 'tek sakin ton (kategori rengi yok) seed=$seed dark=$dark');
         expect(colors, isNot(contains(tokens.h1)));
       }
     }

@@ -46,7 +46,7 @@ class _ArtPainter extends CustomPainter {
     canvas.drawCircle(const Offset(60, 62), 36, _fill(t.soft.withValues(alpha: .55)));
     canvas.drawCircle(const Offset(16, 32), 3.2, _fill(t.tint(1).fg.withValues(alpha: .55)));
     canvas.drawCircle(const Offset(104, 22), 2.6, _fill(t.pr.withValues(alpha: .6)));
-    canvas.drawCircle(const Offset(108, 94), 3, _fill(t.tint(3).fg.withValues(alpha: .5)));
+    canvas.drawCircle(const Offset(108, 94), 3, _fill(t.tint(1).fg.withValues(alpha: .5)));
     switch (kind) {
       case AnketArt.ballot:
         _ballot(canvas);
@@ -98,7 +98,7 @@ class _ArtPainter extends CustomPainter {
       ..lineTo(108, 58)
       ..lineTo(90, 76)
       ..close();
-    c.drawPath(pen, _fill(t.tint(3).bg));
+    c.drawPath(pen, _fill(t.tint(1).bg));
     c.drawPath(pen, _line(t.ink, 2.2));
     final tip = Path()
       ..moveTo(84, 70)
@@ -114,8 +114,8 @@ class _ArtPainter extends CustomPainter {
     final bars = [
       (36.0, 26.0, t.tint(1).fg.withValues(alpha: .55)),
       (52.0, 46.0, t.pr),
-      (68.0, 34.0, t.tint(2).fg.withValues(alpha: .6)),
-      (84.0, 18.0, t.tint(3).fg.withValues(alpha: .6)),
+      (68.0, 34.0, t.tint(1).fg.withValues(alpha: .6)),
+      (84.0, 18.0, t.tint(1).fg.withValues(alpha: .6)),
     ];
     for (final b in bars) {
       final r = RRect.fromRectAndRadius(Rect.fromLTWH(b.$1 - 5, 82 - b.$2, 10, b.$2), const Radius.circular(3));
@@ -127,7 +127,7 @@ class _ArtPainter extends CustomPainter {
 
   // Ampul: öneri/fikir.
   void _idea(Canvas c) {
-    c.drawCircle(const Offset(60, 52), 24, _fill(t.tint(3).bg));
+    c.drawCircle(const Offset(60, 52), 24, _fill(t.tint(1).bg));
     c.drawCircle(const Offset(60, 52), 24, _line(t.ink));
     final base = RRect.fromRectAndRadius(const Rect.fromLTWH(50, 74, 20, 14), const Radius.circular(4));
     _card(c, base, fill: t.sf2);

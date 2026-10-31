@@ -76,6 +76,7 @@ class _EventsPageState extends State<EventsPage> {
   int _sub = 0; // Etkinliklerim: 0 Yaklaşan, 1 Geçmiş
   late final DateTime _today;
   late DateTime _month; // ayın 1'i
+  int _monthDir = 1; // ay geçişinin yönü (+1 ileri, -1 geri): ızgara kayma yönü
   DateTime? _selected;
   bool? _canCreate; // kulüp yöneticisi mi (Oluşturduklarım boş durumunda kart seçimi)
 
@@ -323,6 +324,7 @@ class _EventsPageState extends State<EventsPage> {
 
   Future<void> _goMonth(int delta) async {
     setState(() {
+      _monthDir = delta >= 0 ? 1 : -1;
       _month = DateTime(_month.year, _month.month + delta);
       _selected = null;
     });
@@ -334,6 +336,8 @@ class _EventsPageState extends State<EventsPage> {
   void _goToday() {
     buHaptic(BuHaptic.selection);
     setState(() {
+      final to = DateTime(_today.year, _today.month);
+      _monthDir = to.isBefore(_month) ? -1 : 1;
       _month = DateTime(_today.year, _today.month);
       _selected = null;
     });
@@ -343,6 +347,7 @@ class _EventsPageState extends State<EventsPage> {
   void _pickDay(DateTime d) {
     final sameMonth = d.year == _month.year && d.month == _month.month;
     setState(() {
+      if (!sameMonth) _monthDir = DateTime(d.year, d.month).isBefore(_month) ? -1 : 1;
       _selected = (_selected == d) ? null : d;
       _month = DateTime(d.year, d.month);
     });
@@ -883,10 +888,20 @@ class _EventsPageState extends State<EventsPage> {
               ),
             ),
         ]),
-        for (var r = 0; r < rows; r++)
-          Row(children: [
-            for (var c = 0; c < 7; c++) Expanded(child: _dayCell(DateTime(gridStart.year, gridStart.month, gridStart.day + r * 7 + c), busy)),
-          ]),
+        // Ay değişince ızgara yatay kayarak yer değiştirir (ileri: sola, geri: sağa; RTL'de aynalanır).
+        BuSharedAxis(
+          reverse: _monthDir < 0,
+          distance: 24,
+          child: KeyedSubtree(
+            key: ValueKey('grid-${_ym(_month)}'),
+            child: Column(children: [
+              for (var r = 0; r < rows; r++)
+                Row(children: [
+                  for (var c = 0; c < 7; c++) Expanded(child: _dayCell(DateTime(gridStart.year, gridStart.month, gridStart.day + r * 7 + c), busy)),
+                ]),
+            ]),
+          ),
+        ),
       ]),
     );
   }
@@ -912,27 +927,48 @@ class _EventsPageState extends State<EventsPage> {
           child: SizedBox(
             height: 48,
             child: Center(
-              child: AnimatedContainer(
-                duration: BuMotion.of(context, BuMotion.short),
+              child: SizedBox(
                 width: 38,
                 height: 38,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: on ? t.pr : (today ? t.soft : Colors.transparent),
-                ),
                 child: Stack(alignment: Alignment.center, children: [
-                  Text('${d.day}',
-                      maxLines: 1,
-                      style: tx.bodyMedium!.copyWith(color: on ? fg : (today ? t.onSoft : fg), fontWeight: on || today ? FontWeight.w800 : FontWeight.w500)),
-                  if (dot)
-                    PositionedDirectional(
-                      bottom: 3,
+                  // Bugün: yumuşak halka (sabit); seçili gün: dolu daire 0.6 -> 1 ölçekle büyüyerek ve solarak belirir.
+                  if (today && !on)
+                    DecoratedBox(
+                      decoration: BoxDecoration(shape: BoxShape.circle, color: t.soft),
+                      child: const SizedBox.expand(),
+                    ),
+                  AnimatedScale(
+                    scale: on ? 1 : .6,
+                    duration: BuMotion.of(context, BuMotion.short),
+                    curve: BuMotion.emphasizedDecelerate,
+                    child: AnimatedOpacity(
+                      opacity: on ? 1 : 0,
+                      duration: BuMotion.of(context, BuMotion.short),
+                      child: DecoratedBox(
+                        decoration: BoxDecoration(shape: BoxShape.circle, color: t.pr),
+                        child: const SizedBox.expand(),
+                      ),
+                    ),
+                  ),
+                  AnimatedDefaultTextStyle(
+                    duration: BuMotion.of(context, BuMotion.short),
+                    style: tx.bodyMedium!.copyWith(color: on ? fg : (today ? t.onSoft : fg), fontWeight: on || today ? FontWeight.w800 : FontWeight.w500),
+                    child: Text('${d.day}', maxLines: 1),
+                  ),
+                  // Etkinlik noktası: veri gelince 0 -> 1 ölçekle belirir.
+                  PositionedDirectional(
+                    bottom: 3,
+                    child: AnimatedScale(
+                      scale: dot ? 1 : 0,
+                      duration: BuMotion.of(context, BuMotion.short),
+                      curve: BuMotion.emphasizedDecelerate,
                       child: Container(
                         width: 4,
                         height: 4,
                         decoration: BoxDecoration(shape: BoxShape.circle, color: on ? t.onPr : t.pr),
                       ),
                     ),
+                  ),
                 ]),
               ),
             ),
@@ -1342,7 +1378,7 @@ class _EventsPageState extends State<EventsPage> {
       pill = EventStatusTag(l.eventListCancelled, tone: EventTone.danger);
     } else if (!past) {
       pill = my == 'INTERESTED'
-          ? EventStatusTag(l.eventListInterested, tone: EventTone.warn, icon: LucideIcons.star)
+          ? EventStatusTag(l.eventListInterested, tone: EventTone.neutral, icon: LucideIcons.star)
           : EventStatusTag(l.p14StatusGoing, tone: EventTone.brand, dot: true);
     }
 
@@ -1484,7 +1520,7 @@ class _EventsPageState extends State<EventsPage> {
     } else if (rejected) {
       status = EventStatusTag(l.evcStatusRejected, tone: EventTone.danger, icon: LucideIcons.circleAlert);
     } else if (closed) {
-      status = EventStatusTag(l.eventListRegClosedTag, tone: EventTone.warn, icon: LucideIcons.lock);
+      status = EventStatusTag(l.eventListRegClosedTag, tone: EventTone.neutral, icon: LucideIcons.lock);
     } else {
       status = EventStatusTag(l.eventListOpen, dot: true);
     }
