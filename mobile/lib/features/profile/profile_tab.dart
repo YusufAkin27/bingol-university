@@ -25,8 +25,9 @@ import 'saved_news_page.dart';
 
 const _langNames = {'tr': 'Türkçe', 'en': 'English', 'ar': 'العربية'};
 
-/// Profil sekmesi (P18): vitrin başlığı (avatar, ad, bölüm, biyografi, düzenle), takip karoları, kulüp/etkinlik/kayıtlı
-/// istatistik karoları ve gruplu ayar kartları. İlk yüklemede iskelet, çekerek yenile, aşamalı giriş.
+/// Profil sekmesi (P18, tur 3 sadeleşmesi): profil kartı (avatar, ad, bölüm, e-posta), TEK satır/TEK yüzey sayaç şeridi
+/// (Takipçi · Takip · Kulüp · Etkinlik) ve aynı yüzey ailesinden, tek nötr simge tonlu gruplu listeler; en sonda sakin
+/// çıkış düğmesi. İlk yüklemede iskelet, çekerek yenile, aşamalı giriş.
 class ProfileTab extends StatefulWidget {
   const ProfileTab(
       {super.key,
@@ -221,6 +222,17 @@ class _ProfileTabState extends State<ProfileTab> {
     final l = context.l10n;
     final t = context.bu;
     final uid = widget.session.userId;
+    int? n(String? v) => int.tryParse(v ?? '');
+    final extraCells = [
+      StatCell(
+          label: l.p18CounterClubs,
+          value: n(_clubs),
+          onTap: () => _go(MyClubsPage(session: widget.session))),
+      StatCell(
+          label: l.p18CounterEvents,
+          value: n(_events),
+          onTap: () => _go(MyEventsPage(session: widget.session))),
+    ];
     return BuStaggerScope(
       child: ListView(
         physics: const AlwaysScrollableScrollPhysics(),
@@ -228,60 +240,39 @@ class _ProfileTabState extends State<ProfileTab> {
             EdgeInsetsDirectional.fromSTEB(20, top + 12, 20, kNavInset + 24),
         children: [
           BuStaggerItem(index: 0, child: _TitleRow(onEdit: () => _edit(p))),
-          const SizedBox(height: 12),
+          const SizedBox(height: 16),
           BuStaggerItem(index: 0, child: _ProfileHero(profile: p)),
-          if (uid != null) ...[
-            const SizedBox(height: 12),
-            BuStaggerItem(
-              index: 1,
-              child: FollowSummary(
-                  session: widget.session,
-                  userId: uid,
-                  name: widget.session.displayName),
-            ),
-          ],
-          const SizedBox(height: 12),
-          // Referanstaki iki sayaç: Kulüp Üyeliği / Etkinlik Katılımı.
+          const SizedBox(height: 16),
+          // Takipçi · Takip · Kulüp · Etkinlik: tek yüzey, tek satır.
           BuStaggerItem(
-            index: 2,
-            child: _StatRow(
-              tiles: [
-                _StatTile(
-                  accent: true,
-                  count: _clubs,
-                  label: l.p18CounterClubs,
-                  onTap: () => _go(MyClubsPage(session: widget.session)),
-                ),
-                _StatTile(
-                  accent: false,
-                  count: _events,
-                  label: l.p18CounterEvents,
-                  onTap: () => _go(MyEventsPage(session: widget.session)),
-                ),
-              ],
-            ),
+            index: 1,
+            child: uid != null
+                ? FollowSummary(
+                    session: widget.session,
+                    userId: uid,
+                    name: widget.session.displayName,
+                    extraCells: extraCells,
+                  )
+                : StatStrip(cells: extraCells),
           ),
           BuStaggerItem(
-            index: 3,
+            index: 2,
             child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-              ProfilSection(l.profil1SecContent),
+              ProfilSection(l.profil1SecContent, top: 24),
               ProfilCard(children: [
                 ProfilRow(
                   icon: LucideIcons.newspaper,
-                  tint: t.tint(BuTintId.blue),
                   label: l.profileMyPosts,
                   onTap: () => _go(UserPostsPage(session: widget.session)),
                 ),
                 ProfilRow(
                   icon: LucideIcons.bookmark,
-                  tint: t.tint(BuTintId.blue),
                   label: l.profileSaved,
                   value: _saved,
                   onTap: () => _go(SavedNewsPage(session: widget.session)),
                 ),
                 ProfilRow(
                   icon: LucideIcons.userPlus,
-                  tint: t.tint(BuTintId.blue),
                   label: l.profileSuggested,
                   onTap: () => _go(FollowSuggestionsPage(session: widget.session)),
                 ),
@@ -289,9 +280,9 @@ class _ProfileTabState extends State<ProfileTab> {
             ]),
           ),
           BuStaggerItem(
-            index: 4,
+            index: 3,
             child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-              ProfilSection(l.p18SecPrefs),
+              ProfilSection(l.p18SecPrefs, top: 24),
               ListenableBuilder(
                 listenable: Listenable.merge([widget.themeController, if (_lc != null) _lc!]),
                 builder: (context, _) {
@@ -302,32 +293,27 @@ class _ProfileTabState extends State<ProfileTab> {
                   return ProfilCard(children: [
                     ProfilRow(
                       icon: LucideIcons.graduationCap,
-                      tint: t.tint(BuTintId.blue),
                       label: l10n.profileAcademic,
                       onTap: () => _go(AcademicHubPage(session: widget.session)),
                     ),
                     ProfilRow(
                       icon: LucideIcons.bell,
-                      tint: t.tint(BuTintId.blue),
                       label: l10n.profil1Notifications,
                       onTap: () => _go(NotificationPrefsPage(session: widget.session)),
                     ),
                     ProfilRow(
                       icon: LucideIcons.contact,
-                      tint: t.tint(BuTintId.blue),
                       label: l10n.settingsFindContacts,
                       onTap: () => _go(ContactsMatchPage(session: widget.session)),
                     ),
                     ProfilRow(
                       icon: LucideIcons.globe,
-                      tint: t.tint(BuTintId.blue),
                       label: l10n.settingsLanguage,
                       value: langName,
                       onTap: lc != null ? _pickLang : null,
                     ),
                     ProfilRow(
                       icon: LucideIcons.moon,
-                      tint: t.tint(BuTintId.blue),
                       label: l10n.profil1Theme,
                       value: _modeName(_modeId()),
                       onTap: _pickTheme,
@@ -338,25 +324,22 @@ class _ProfileTabState extends State<ProfileTab> {
             ]),
           ),
           BuStaggerItem(
-            index: 5,
+            index: 4,
             child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-              ProfilSection(l.p18SecAccount),
+              ProfilSection(l.p18SecAccount, top: 24),
               ProfilCard(children: [
                 ProfilRow(
                   icon: LucideIcons.keyRound,
-                  tint: t.tint(BuTintId.blue),
                   label: l.profil1AccountSecurity,
                   onTap: () => _go(AccountSecurityPage(session: widget.session)),
                 ),
                 ProfilRow(
                   icon: LucideIcons.lock,
-                  tint: t.tint(BuTintId.blue),
                   label: l.profil1PrivacyBlocked,
                   onTap: () => _go(PrivacyDataPage(session: widget.session)),
                 ),
                 ProfilRow(
                   icon: LucideIcons.download,
-                  tint: t.tint(BuTintId.blue),
                   label: l.profil1MyData,
                   onTap: () => _go(MyDataPage(session: widget.session)),
                 ),
@@ -364,31 +347,29 @@ class _ProfileTabState extends State<ProfileTab> {
             ]),
           ),
           BuStaggerItem(
-            index: 6,
+            index: 5,
             child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-              ProfilSection(l.p18SecAbout),
+              ProfilSection(l.p18SecAbout, top: 24),
               ProfilCard(children: [
                 ProfilRow(
                   icon: LucideIcons.circleQuestionMark,
-                  tint: t.tint(BuTintId.blue),
                   label: l.profil1Support,
                   onTap: () => _go(SupportPage(session: widget.session)),
                 ),
                 ProfilRow(
                   icon: LucideIcons.fileText,
-                  tint: t.tint(BuTintId.blue),
                   label: l.profil1Legal,
                   onTap: () => _go(LegalListPage(session: widget.session)),
                 ),
-                ProfilRow(
-                  icon: LucideIcons.info,
-                  tint: t.tint(BuTintId.blue),
-                  label: l.settingsVersion(appVersion),
-                  chevron: false,
-                ),
               ]),
-              const SizedBox(height: 14),
+              // Listenin sonunda sakin ve net: çıkış, altında soluk sürüm satırı.
+              const SizedBox(height: 24),
               _SignOutButton(label: l.profileSignOut, onTap: _confirmSignOut),
+              const SizedBox(height: 16),
+              Center(
+                child: Text(l.settingsVersion(appVersion),
+                    style: Theme.of(context).textTheme.bodySmall!.copyWith(color: t.mut)),
+              ),
             ]),
           ),
         ],
@@ -450,7 +431,8 @@ class _TitleRow extends StatelessWidget {
   }
 }
 
-/// Profil kartı (beyaz): ortada avatar (kırmızı halka), ad, "Bölüm • Sınıf", fakülte, e-posta ve biyografi.
+/// Profil kartı: ortada avatar, ad, "Bölüm • Sınıf", fakülte, e-posta ve (varsa) kısa biyografi. Tek ton (nötr);
+/// süs yok (kırmızı halka, mavi satır, e-posta simgesi kalktı).
 class _ProfileHero extends StatelessWidget {
   const _ProfileHero({required this.profile});
 
@@ -475,18 +457,10 @@ class _ProfileHero extends StatelessWidget {
     final email = (profile['email'] as String?) ?? '';
     final bio = (profile['bio'] as String?) ?? '';
     return BuCard(
-      padding: const EdgeInsets.fromLTRB(20, 22, 20, 20),
-      radius: 24,
+      padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
       child: Column(mainAxisSize: MainAxisSize.min, children: [
-        Container(
-          padding: const EdgeInsets.all(3),
-          decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              border: Border.all(color: t.pr, width: 2)),
-          child: BuAvatar(
-              name: name, url: profile['avatarUrl'] as String?, size: 84),
-        ),
-        const SizedBox(height: 14),
+        BuAvatar(name: name, url: profile['avatarUrl'] as String?, size: 76),
+        const SizedBox(height: 16),
         Text(name ?? '',
             textAlign: TextAlign.center,
             maxLines: 3,
@@ -498,7 +472,7 @@ class _ProfileHero extends StatelessWidget {
           Text(line1,
               textAlign: TextAlign.center,
               style: tx.bodyMedium!
-                  .copyWith(color: t.tint(1).fg, fontWeight: FontWeight.w600)),
+                  .copyWith(color: t.ink, fontWeight: FontWeight.w600)),
         ],
         if (faculty.isNotEmpty) ...[
           const SizedBox(height: 2),
@@ -508,24 +482,17 @@ class _ProfileHero extends StatelessWidget {
         ],
         if (email.isNotEmpty) ...[
           const SizedBox(height: 8),
-          Row(mainAxisSize: MainAxisSize.min, children: [
-            ExcludeSemantics(
-                child: Icon(LucideIcons.atSign, size: 14, color: t.mut)),
-            const SizedBox(width: 4),
-            Flexible(
-              child: Text(email,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: tx.bodySmall!
-                      .copyWith(color: t.ink, fontWeight: FontWeight.w500)),
-            ),
-          ]),
+          Text(email,
+              textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: tx.bodySmall!.copyWith(color: t.mut)),
         ],
         if (bio.isNotEmpty) ...[
           const SizedBox(height: 12),
           Text(bio,
               textAlign: TextAlign.center,
-              maxLines: 4,
+              maxLines: 3,
               overflow: TextOverflow.ellipsis,
               style: tx.bodyMedium!.copyWith(height: 1.45, color: t.mut)),
         ],
@@ -534,7 +501,7 @@ class _ProfileHero extends StatelessWidget {
   }
 }
 
-/// Gri, tam genişlik "Çıkış yap" hapı.
+/// Sakin, tam genişlik "Çıkış yap" hapı: soluk yüzey, simgesiz, vurgu rengi yok (dikkat çekmez ama net).
 class _SignOutButton extends StatelessWidget {
   const _SignOutButton({required this.label, required this.onTap});
 
@@ -546,111 +513,29 @@ class _SignOutButton extends StatelessWidget {
     final t = context.bu;
     return BuPressable(
       onTap: onTap,
+      haptic: BuHaptic.selection,
       semanticLabel: label,
       child: Container(
         key: const ValueKey('profile-signout'),
-        constraints: const BoxConstraints(minHeight: 52),
+        constraints: const BoxConstraints(minHeight: BuSize.button),
+        padding: const EdgeInsets.symmetric(horizontal: 20),
         decoration: BoxDecoration(color: t.sf2, borderRadius: BuRadius.bPill),
         alignment: Alignment.center,
         child: ExcludeSemantics(
-          child: Row(mainAxisSize: MainAxisSize.min, children: [
-            Icon(LucideIcons.logOut, size: 18, color: t.ink),
-            const SizedBox(width: 8),
-            Flexible(
-              child: Text(label,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: Theme.of(context)
-                      .textTheme
-                      .titleSmall!
-                      .copyWith(color: t.ink, fontWeight: FontWeight.w700)),
-            ),
-          ]),
+          child: Text(label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: Theme.of(context)
+                  .textTheme
+                  .titleSmall!
+                  .copyWith(color: t.ink, fontWeight: FontWeight.w700)),
         ),
       ),
     );
   }
 }
 
-/// Sayaç karoları: yan yana; büyük yazı ölçeğinde (etiket küçük puntoya inmesin diye) alt alta.
-class _StatRow extends StatelessWidget {
-  const _StatRow({required this.tiles});
-
-  final List<Widget> tiles;
-
-  @override
-  Widget build(BuildContext context) {
-    final big = MediaQuery.textScalerOf(context).scale(10) > 12;
-    if (big) {
-      return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        for (var i = 0; i < tiles.length; i++) ...[if (i > 0) const SizedBox(height: 10), tiles[i]],
-      ]);
-    }
-    return IntrinsicHeight(
-      child: Row(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        for (var i = 0; i < tiles.length; i++) ...[
-          if (i > 0) const SizedBox(width: 10),
-          Expanded(child: tiles[i]),
-        ],
-      ]),
-    );
-  }
-}
-
-/// İstatistik karosu: büyük sayı (ilki marka renginde) + etiket; dokununca ilgili liste.
-class _StatTile extends StatelessWidget {
-  const _StatTile(
-      {required this.accent,
-      required this.count,
-      required this.label,
-      required this.onTap});
-
-  final bool accent;
-  final String? count;
-  final String label;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = context.bu;
-    final tx = Theme.of(context).textTheme;
-    return Semantics(
-      button: true,
-      label: count == null ? label : '$count $label',
-      excludeSemantics: true,
-      child: BuCard(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
-        radius: 18,
-        onTap: () {
-          buHaptic(BuHaptic.selection);
-          onTap();
-        },
-        child: Column(mainAxisSize: MainAxisSize.min, children: [
-          // Sayı ilk görününce 0'dan sayarak oturur (animasyonları azalt açıkken anında); sayısal değilse düz metin.
-          if (int.tryParse(count ?? '') case final n?)
-            BuCountUp(
-              value: n,
-              style: tx.headlineSmall!.copyWith(
-                  color: accent ? t.pr : t.ink, fontWeight: FontWeight.w800, fontFeatures: const [FontFeature.tabularFigures()]),
-            )
-          else
-            Text(count ?? '–',
-                maxLines: 1,
-                style: tx.headlineSmall!.copyWith(
-                    color: accent ? t.pr : t.ink, fontWeight: FontWeight.w800, fontFeatures: const [FontFeature.tabularFigures()])),
-          const SizedBox(height: 4),
-          FittedBox(
-            fit: BoxFit.scaleDown,
-            child: Text(label,
-                maxLines: 1, style: tx.labelMedium!.copyWith(color: t.mut)),
-          ),
-        ]),
-      ),
-    );
-  }
-}
-
-/// İlk yükleme iskeleti: profil kartı + karolar + gruplu satırlar (gerçek düzenle aynı ölçüler, sayfa zıplamaz).
+/// İlk yükleme iskeleti: profil kartı + sayaç şeridi + gruplu satırlar (gerçek düzenle aynı ölçüler, sayfa zıplamaz).
 /// [error] doluysa üstte kırmızı hata kartı ("Yüklenemedi, tekrar dene" + "Yeniden dene") görünür.
 class _ProfileSkeleton extends StatelessWidget {
   const _ProfileSkeleton({required this.top, this.error, this.onRetry});
@@ -682,11 +567,10 @@ class _ProfileSkeleton extends StatelessWidget {
     final skeleton = BuSkeletonScope(
       child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
         const BuCard(
-          padding: EdgeInsets.fromLTRB(20, 22, 20, 20),
-          radius: 24,
+          padding: EdgeInsets.fromLTRB(20, 24, 20, 20),
           child: Column(children: [
-            BuSkeleton.circle(90),
-            SizedBox(height: 14),
+            BuSkeleton.circle(84),
+            SizedBox(height: 16),
             BuSkeleton.line(width: 160, height: 18),
             SizedBox(height: 10),
             BuSkeleton.line(width: 200),
@@ -694,27 +578,15 @@ class _ProfileSkeleton extends StatelessWidget {
             BuSkeleton.line(width: 120, height: 10),
           ]),
         ),
-        const SizedBox(height: 12),
-        const Row(children: [
-          Expanded(child: BuSkeleton(height: 60, radius: 18)),
-          SizedBox(width: 12),
-          Expanded(child: BuSkeleton(height: 60, radius: 18)),
-        ]),
-        const SizedBox(height: 12),
-        const Row(children: [
-          Expanded(child: BuSkeleton(height: 76, radius: 18)),
-          SizedBox(width: 10),
-          Expanded(child: BuSkeleton(height: 76, radius: 18)),
-          SizedBox(width: 10),
-          Expanded(child: BuSkeleton(height: 76, radius: 18)),
-        ]),
+        const SizedBox(height: 16),
+        const BuSkeleton(height: 72, radius: 20),
         const SizedBox(height: 24),
         const BuSkeleton.line(width: 110, height: 12),
-        const SizedBox(height: 10),
-        group(2),
+        const SizedBox(height: 8),
+        group(3),
         const SizedBox(height: 24),
         const BuSkeleton.line(width: 80, height: 12),
-        const SizedBox(height: 10),
+        const SizedBox(height: 8),
         group(3),
       ]),
     );
@@ -769,7 +641,7 @@ class _ProfileSkeleton extends StatelessWidget {
                     onPressed: onRetry),
               ]),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 16),
           ],
           skeleton,
         ]),

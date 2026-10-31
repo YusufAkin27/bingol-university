@@ -462,7 +462,7 @@ class _Etkinlik2QrPageState extends State<Etkinlik2QrPage> {
             haptic: BuHaptic.selection,
             scale: .98,
             child: Container(
-              constraints: const BoxConstraints(minHeight: 52),
+              constraints: const BoxConstraints(minHeight: BuSize.button),
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
               decoration: BoxDecoration(color: t.soft, borderRadius: BorderRadius.circular(BuRadius.md)),
               child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [

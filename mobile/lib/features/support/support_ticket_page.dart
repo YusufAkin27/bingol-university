@@ -137,7 +137,7 @@ class _SupportTicketPageState extends State<SupportTicketPage> {
                   borderRadius: BuRadius.bMd,
                   onTap: () => Navigator.of(ctx).pop(false),
                   child: ConstrainedBox(
-                    constraints: const BoxConstraints(minHeight: 52),
+                    constraints: const BoxConstraints(minHeight: BuSize.button),
                     child: Center(child: Text(l.supportCancel, style: tx.titleMedium!.copyWith(color: t.ink, fontWeight: FontWeight.w700))),
                   ),
                 ),
@@ -416,7 +416,7 @@ class _SupportTicketPageState extends State<SupportTicketPage> {
         IconButton.filled(
           tooltip: context.l10n.supportSend,
           onPressed: _sending ? null : _send,
-          style: IconButton.styleFrom(minimumSize: const Size(54, 54), fixedSize: const Size(54, 54), foregroundColor: t.onPr, backgroundColor: t.pr),
+          style: IconButton.styleFrom(minimumSize: const Size(BuSize.button, BuSize.button), fixedSize: const Size(BuSize.button, BuSize.button), foregroundColor: t.onPr, backgroundColor: t.pr),
           icon: _sending
               ? SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2.4, color: t.onPr))
               : const Icon(LucideIcons.send, size: 22),

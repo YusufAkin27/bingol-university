@@ -531,7 +531,7 @@ Widget _boldBody(BuildContext c, String body, String? bold, TextAlign align) {
 
 /// Pencere düğmesi (tek tanım): ikincil zeminli ya da [destructive] dolu kırmızı; [onTap] null ise pasif.
 class ChatDialogButton extends StatelessWidget {
-  const ChatDialogButton({super.key, required this.label, required this.onTap, this.icon, this.destructive = false, this.minHeight = 50});
+  const ChatDialogButton({super.key, required this.label, required this.onTap, this.icon, this.destructive = false, this.minHeight = BuSize.button});
 
   final String label;
   final VoidCallback? onTap;

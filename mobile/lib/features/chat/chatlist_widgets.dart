@@ -10,10 +10,13 @@ import '../../widgets/bu.dart';
 
 /// "Yeni sohbet" kırmızı yuvarlak düğme (44 dp görünür / 48 dp dokunma alanı, yumuşak kırmızı gölge).
 class ChatlistNewButton extends StatelessWidget {
-  const ChatlistNewButton({super.key, required this.tooltip, required this.onTap});
+  const ChatlistNewButton({super.key, required this.tooltip, required this.onTap, this.quiet = false});
 
   final String tooltip;
   final VoidCallback onTap;
+
+  /// true: yumuşak zemin (ekranda başka birincil eylem varken, ör. boş durumdaki "Yeni sohbet" düğmesi).
+  final bool quiet;
 
   @override
   Widget build(BuildContext context) {
@@ -26,20 +29,17 @@ class ChatlistNewButton extends StatelessWidget {
         child: BuPressable(
           onTap: onTap,
           haptic: BuHaptic.light,
-          // 48 dp dokunma alanı, 44 dp görünür daire (diğer sekme başlıklarındaki BuIconButton ile aynı).
+          // 48 dp dokunma alanı, 40 dp görünür daire (+ eylemi); tek birincil eylem, gölgesiz.
           child: SizedBox(
             width: 48,
             height: 48,
             child: Center(
-              child: Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  color: t.pr,
-                  shape: BoxShape.circle,
-                  boxShadow: [BoxShadow(color: t.pr.withValues(alpha: .38), blurRadius: 16, offset: const Offset(0, 8), spreadRadius: -6)],
-                ),
-                child: Icon(LucideIcons.plus, size: 20, color: t.onPr),
+              child: AnimatedContainer(
+                duration: BuMotion.of(context, BuMotion.short),
+                width: BuSize.iconBtn,
+                height: BuSize.iconBtn,
+                decoration: BoxDecoration(color: quiet ? t.soft : t.pr, shape: BoxShape.circle),
+                child: Icon(LucideIcons.plus, size: 20, color: quiet ? t.onSoft : t.onPr),
               ),
             ),
           ),
@@ -49,7 +49,7 @@ class ChatlistNewButton extends StatelessWidget {
   }
 }
 
-/// Beyaz yuvarlak simge düğmesi (Arşiv): 48 dp dokunma alanı, ince çizgi.
+/// Sakin yuvarlak simge düğmesi (Arşiv): 48 dp dokunma alanı, nötr zemin, çerçevesiz.
 class ChatlistRoundButton extends StatelessWidget {
   const ChatlistRoundButton({super.key, required this.icon, required this.tooltip, required this.onTap});
 
@@ -72,9 +72,9 @@ class ChatlistRoundButton extends StatelessWidget {
             height: 48,
             child: Center(
               child: Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(color: t.sf, shape: BoxShape.circle, border: Border.all(color: t.bd)),
+                width: BuSize.iconBtn,
+                height: BuSize.iconBtn,
+                decoration: BoxDecoration(color: t.sf2, shape: BoxShape.circle),
                 child: Icon(icon, size: 20, color: t.ink),
               ),
             ),
@@ -98,11 +98,11 @@ class ChatlistSearch extends StatelessWidget {
     final t = context.bu;
     final tx = Theme.of(context).textTheme;
     return Container(
-      height: 52,
-      padding: const EdgeInsetsDirectional.only(start: 16, end: 8),
+      height: BuSize.search,
+      padding: const EdgeInsetsDirectional.only(start: 16, end: 4),
       decoration: BoxDecoration(
         color: t.sf,
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BuRadius.bMd,
         border: Border.all(color: t.bd),
       ),
       child: Row(
@@ -175,7 +175,11 @@ class ChatlistAvatar extends StatelessWidget {
     this.badgeAtTop = false,
     this.circle = false,
     this.headers,
+    this.heroTag,
   });
+
+  /// Liste -> konuşma geçişinde paylaşılan avatar uçuşu etiketi (`chat-avatar-<id>`); null: Hero yok.
+  final Object? heroTag;
 
   /// Yetkili (`/api/...`) avatar adresleri için istek başlıkları. Verilmezse `/api/` adreslerinde oturumun
   /// Bearer başlığı kendiliğinden eklenir ([authHeadersFor]); `/files/...` herkese açık adreslerde başlık gitmez.
@@ -262,12 +266,13 @@ class ChatlistAvatar extends StatelessWidget {
         ),
       );
     }
-    if (!online && badge == null) return base;
+    final Widget shown = heroTag == null ? base : BuHero(tag: heroTag!, radius: radius, child: base);
+    if (!online && badge == null) return shown;
     return SizedBox(
       width: size,
       height: size,
       child: Stack(clipBehavior: Clip.none, children: [
-        base,
+        shown,
         if (badge != null)
           PositionedDirectional(
             start: badgeAtTop ? -4 : null,
@@ -278,11 +283,11 @@ class ChatlistAvatar extends StatelessWidget {
               width: 22,
               height: 22,
               decoration: BoxDecoration(
-                color: badgeAtTop ? BuTokens.light.ink : t.ok,
+                color: t.sf2, // tür işareti nötr (renk vurgusu yok)
                 shape: BoxShape.circle,
-                border: Border.all(color: t.sf, width: 2),
+                border: Border.all(color: t.bg, width: 2),
               ),
-              child: Icon(badge, size: 11, color: BuTokens.light.onPr),
+              child: Icon(badge, size: 11, color: t.ink),
             ),
           ),
         if (online)
@@ -292,7 +297,7 @@ class ChatlistAvatar extends StatelessWidget {
             child: Container(
               width: 16,
               height: 16,
-              decoration: BoxDecoration(color: t.ok, shape: BoxShape.circle, border: Border.all(color: t.sf, width: 2.5)),
+              decoration: BoxDecoration(color: t.ok, shape: BoxShape.circle, border: Border.all(color: t.bg, width: 2.5)),
             ),
           ),
       ]),

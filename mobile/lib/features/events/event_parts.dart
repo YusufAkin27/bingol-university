@@ -188,7 +188,7 @@ class _EventConfirmDialog extends StatelessWidget {
               borderRadius: BorderRadius.circular(BuRadius.md),
               onTap: () => Navigator.pop(context, result),
               child: Container(
-                constraints: const BoxConstraints(minHeight: 52),
+                constraints: const BoxConstraints(minHeight: BuSize.button),
                 alignment: Alignment.center,
                 child: Text(label, style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w700, color: fg)),
               ),

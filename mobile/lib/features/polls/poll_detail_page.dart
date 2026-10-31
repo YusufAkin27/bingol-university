@@ -484,7 +484,7 @@ class _PollDetailPageState extends State<PollDetailPage> {
               borderRadius: BuRadius.bMd,
               onTap: _busy ? null : () => setState(() => _editing = true),
               child: ConstrainedBox(
-                constraints: const BoxConstraints(minHeight: 54),
+                constraints: const BoxConstraints(minHeight: BuSize.button),
                 child: Center(
                   child: Row(mainAxisSize: MainAxisSize.min, children: [
                     Icon(LucideIcons.refreshCw, size: 18, color: t.bg),

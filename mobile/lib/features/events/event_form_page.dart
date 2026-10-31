@@ -1718,7 +1718,7 @@ class _SubmittedDialog extends StatelessWidget {
               onTap: () => Navigator.pop(context),
               haptic: BuHaptic.light,
               child: Container(
-                constraints: const BoxConstraints(minHeight: 54),
+                constraints: const BoxConstraints(minHeight: BuSize.button),
                 alignment: Alignment.center,
                 decoration: BoxDecoration(color: t.ink, borderRadius: BorderRadius.circular(BuRadius.md)),
                 child: Text(l.evcOk, style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w700, color: t.bg)),

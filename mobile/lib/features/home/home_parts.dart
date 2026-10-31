@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+import 'dart:ui' show FontFeature;
 
 import 'package:flutter/material.dart';
 
@@ -25,19 +26,19 @@ class HomeSearchBox extends StatelessWidget {
         scale: .985,
         child: Material(
           color: t.sf,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16), side: BorderSide(color: t.bd)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(BuRadius.md), side: BorderSide(color: t.bd)),
           child: InkWell(
-            customBorder: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            customBorder: RoundedRectangleBorder(borderRadius: BorderRadius.circular(BuRadius.md)),
             onTap: onTap,
             child: ConstrainedBox(
-              constraints: const BoxConstraints(minHeight: 52),
+              constraints: const BoxConstraints(minHeight: BuSize.button),
               child: Padding(
                 padding: const EdgeInsetsDirectional.symmetric(horizontal: 16, vertical: 8),
                 child: Row(children: [
                   Icon(LucideIcons.search, size: 18, color: t.mut),
                   const SizedBox(width: 10),
                   Expanded(
-                    child: Text(hint, maxLines: 1, overflow: TextOverflow.ellipsis, style: BuType.body.copyWith(fontSize: 14, color: t.mut)),
+                    child: Text(hint, maxLines: 1, overflow: TextOverflow.ellipsis, style: BuType.body.copyWith(color: t.mut)),
                   ),
                 ]),
               ),
@@ -49,7 +50,7 @@ class HomeSearchBox extends StatelessWidget {
   }
 }
 
-/// Hızlı erişim karosu tonları: tema belirteçlerinden (açık/koyu kendiliğinden).
+/// Hızlı erişim karosu tonları: tema belirteçlerinden (açık/koyu kendiliğinden). Ana Sayfa yalnız `blue` kullanır.
 enum HomeTone {
   red,
   green,
@@ -67,7 +68,7 @@ enum HomeTone {
       };
 }
 
-/// Hızlı erişim karosu: beyaz kart, tonlu ikon karosu + etiket (referans 00).
+/// Hızlı erişim karosu: çerçevesiz; yumuşak tonlu simge karosu + etiket (kart içinde kart yok).
 class HomeQuickTile extends StatelessWidget {
   const HomeQuickTile({super.key, required this.icon, required this.label, required this.tone, required this.onTap});
 
@@ -94,15 +95,14 @@ class HomeQuickTile extends StatelessWidget {
         onTap: onTap,
         child: BuPressable(
           onTap: onTap,
-          child: Container(
-            padding: const EdgeInsets.fromLTRB(4, 12, 4, 10),
-            decoration: BoxDecoration(color: t.sf, borderRadius: BorderRadius.circular(20), border: Border.all(color: t.bd)),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 4),
             child: Column(mainAxisSize: MainAxisSize.min, children: [
               Container(
                 width: 44,
                 height: 44,
-                decoration: BoxDecoration(color: tn.bg, borderRadius: BorderRadius.circular(14)),
-                child: Icon(icon, size: 22, color: tn.fg),
+                decoration: BoxDecoration(color: tn.bg, borderRadius: BorderRadius.circular(BuRadius.md)),
+                child: Icon(icon, size: 20, color: tn.fg),
               ),
               const SizedBox(height: 8),
               SizedBox(
@@ -142,8 +142,8 @@ class HomeQuickGrid extends StatefulWidget {
 }
 
 class _HomeQuickGridState extends State<HomeQuickGrid> with SingleTickerProviderStateMixin {
-  // 6 dp: 5 karoda her karoya ~1.6 dp ek iç genişlik ("Timetable" gibi uzun etiket kenara yapışmasın).
-  static const _gap = 6.0;
+  // 4 dp: çerçevesiz karolarda etiketler komşuya yapışmasın diye karo içi 2 + 2 dp ek boşluk da var.
+  static const _gap = 4.0;
   static const _totalMs = 490; // 120 ms bekleme (blok girişiyle çakışmasın) + 4x30 ms + 250 ms
 
   List<Widget> get tiles => widget.tiles;
@@ -199,7 +199,7 @@ class _HomeQuickGridState extends State<HomeQuickGrid> with SingleTickerProvider
         }
       }
       final n = tiles.length;
-      final inner = (c.maxWidth - _gap * (n - 1)) / n - 8; // karo yatay iç boşluğu 4 + 4
+      final inner = (c.maxWidth - _gap * (n - 1)) / n - 4; // karo yatay iç boşluğu 2 + 2
       final cols = longest <= inner ? n : 3;
       final rows = <Widget>[];
       for (var start = 0; start < n; start += cols) {
@@ -216,177 +216,221 @@ class _HomeQuickGridState extends State<HomeQuickGrid> with SingleTickerProvider
   }
 }
 
-/// "Bugünün yemeği · Öğle" kartı. [photo] verilirse fotoğraf arka plan + koyu degrade + beyaz metin;
-/// yoksa kırmızı kart.
-class HomeMealCard extends StatelessWidget {
-  const HomeMealCard({
-    super.key,
-    required this.title,
-    required this.time,
-    required this.text,
-    required this.onTap,
-    this.photo,
-    this.photoLabel,
-  });
+/// Sakin metin düğmesi: yazı (+ isteğe bağlı küçük ok), dolgu/çerçeve yok; dokunma alanı >= 48 dp.
+class _TextLink extends StatelessWidget {
+  const _TextLink({required this.label, required this.onTap, required this.color, this.chevron = false});
 
-  final String title;
-  final String time;
-  final String text;
-  final VoidCallback onTap;
-  final Widget? photo;
-  final String? photoLabel;
+  final String label;
+  final VoidCallback? onTap;
+  final Color color;
+  final bool chevron;
 
   @override
   Widget build(BuildContext context) {
-    final t = context.bu;
-    final onPhoto = photo != null;
-    final fg = onPhoto ? t.onMedia : t.onPr;
-    final head = Row(children: [
-      Expanded(
-        child: Text(title,
-            maxLines: 2,
-            style: BuType.label.copyWith(fontSize: 12, fontWeight: onPhoto ? FontWeight.w700 : FontWeight.w600, color: fg.withValues(alpha: onPhoto ? 1 : .9))),
-      ),
-      const SizedBox(width: 8),
-      Text(time,
-          style: BuType.label.copyWith(fontSize: 12, fontWeight: onPhoto ? FontWeight.w600 : FontWeight.w400, color: fg.withValues(alpha: onPhoto ? 1 : .9))),
-    ]);
-    final body = Text(text,
-        maxLines: 4,
-        overflow: TextOverflow.ellipsis,
-        style: BuType.title.copyWith(fontSize: 18, height: 1.3, color: fg));
-    final content = Padding(
-      padding: EdgeInsetsDirectional.fromSTEB(16, onPhoto ? 14 : 16, 16, onPhoto ? 14 : 16),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [head, SizedBox(height: onPhoto ? 6 : 8), body],
-      ),
-    );
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [BoxShadow(color: t.pr.withValues(alpha: onPhoto ? .55 : .7), blurRadius: 26, spreadRadius: -14, offset: const Offset(0, 14))],
-      ),
-      child: Material(
-        color: t.pr,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: BorderSide(color: t.pr)),
-        clipBehavior: Clip.antiAlias,
-        child: InkWell(
-          onTap: onTap,
-          child: !onPhoto
-              ? content
-              : Stack(children: [
-                  Positioned.fill(child: Semantics(image: true, label: photoLabel, child: photo)),
-                  Positioned.fill(
-                    child: DecoratedBox(
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                          stops: const [0, .4, .75, 1],
-                          colors: [t.scrim.withValues(alpha: 0), t.scrim.withValues(alpha: .4), t.scrim.withValues(alpha: .8), t.scrim.withValues(alpha: .95)],
-                        ),
-                      ),
-                    ),
-                  ),
-                  ConstrainedBox(
-                    constraints: const BoxConstraints(minHeight: 176),
-                    child: Align(alignment: AlignmentDirectional.bottomStart, child: content),
-                  ),
-                ]),
+    final link = Semantics(
+      button: true,
+      excludeSemantics: true,
+      label: label,
+      onTap: onTap,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(BuRadius.xs),
+        onTap: onTap,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minHeight: 48, minWidth: 48),
+          child: Center(
+            widthFactor: 1,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 6),
+              child: Row(mainAxisSize: MainAxisSize.min, children: [
+                Flexible(child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, style: BuType.label.copyWith(color: color))),
+                if (chevron) ...[
+                  const SizedBox(width: 2),
+                  Icon(buDirIcon(context, LucideIcons.chevronRight), size: 16, color: color),
+                ],
+              ]),
+            ),
+          ),
         ),
       ),
     );
+    return onTap == null ? Opacity(opacity: .5, child: link) : link;
   }
 }
 
-/// "Duyurular" gibi bölüm başlığı (17/800) + sağda "Tümü".
+/// Bölüm başlığı (17/800) + sağda sakin "Tümü" metin düğmesi (soluk renk + küçük ok).
 class HomeSectionHeader extends StatelessWidget {
-  const HomeSectionHeader({super.key, required this.title, required this.action, required this.onAction});
+  const HomeSectionHeader({super.key, required this.title, required this.action, required this.onAction, this.onLongPress});
 
   final String title;
   final String action;
   final VoidCallback onAction;
+
+  /// Başlığa uzun basma: "Ana sayfayı düzenle" (düzenleme alt sayfasını açar).
+  final VoidCallback? onLongPress;
 
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
     return Row(children: [
       Expanded(
-        child: Semantics(header: true, child: Text(title, maxLines: 1, overflow: TextOverflow.ellipsis, style: BuType.title.copyWith(fontSize: 17, color: t.ink))),
-      ),
-      InkWell(
-        borderRadius: BorderRadius.circular(8),
-        onTap: onAction,
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(minHeight: 44, minWidth: 44),
-          child: Center(
-            widthFactor: 1,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 4),
-              child: Text(action, style: BuType.label.copyWith(fontSize: 13, fontWeight: FontWeight.w700, color: t.pr)),
-            ),
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onLongPress: onLongPress,
+          child: Semantics(
+            header: true,
+            onLongPress: onLongPress,
+            child: Text(title, maxLines: 1, overflow: TextOverflow.ellipsis, style: BuType.title.copyWith(fontSize: 17, color: t.ink)),
           ),
         ),
       ),
+      _TextLink(label: action, onTap: onAction, color: t.mut, chevron: true),
     ]);
   }
 }
 
-/// Duyuru satırı: küçük üst satır (tür · tarih) + kalın başlık.
-class HomeAnnouncementCard extends StatelessWidget {
-  const HomeAnnouncementCard({super.key, required this.meta, required this.title, required this.onTap});
+/// Bir Ana Sayfa bölümünün yuvası: görünürken içeriği kurar; gizlenince/eklenince yükseklik + solma geçişi
+/// (`AnimatedSize` + `AnimatedSwitcher`, "animasyonları azalt" açıkken anında). Gizliyken [builder] ÇAĞRILMAZ:
+/// bölümün alt ağacı (ve tembel veri isteği) hiç kurulmaz.
+class HomeSectionSlot extends StatelessWidget {
+  const HomeSectionSlot({super.key, required this.visible, required this.builder});
 
-  final String meta;
-  final String title;
-  final VoidCallback onTap;
+  final bool visible;
+  final Widget Function() builder;
 
   @override
   Widget build(BuildContext context) {
-    final t = context.bu;
-    return DecoratedBox(
-      decoration: BoxDecoration(borderRadius: BorderRadius.circular(20), boxShadow: BuElevation.of(context, 1)),
-      child: Material(
-        color: t.sf,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: BorderSide(color: t.bd)),
-        clipBehavior: Clip.antiAlias,
-        child: InkWell(
-          onTap: onTap,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                SizedBox(
-                  width: double.infinity,
-                  child: Text(meta, maxLines: 1, overflow: TextOverflow.ellipsis, style: BuType.caption.copyWith(fontSize: 12, color: t.mut)),
-                ),
-                const SizedBox(height: 4),
-                Text(title, maxLines: 3, overflow: TextOverflow.ellipsis, style: BuType.heading.copyWith(fontSize: 15, fontWeight: FontWeight.w700, height: 1.35, color: t.ink)),
-              ],
-            ),
-          ),
+    final d = BuMotion.of(context, BuMotion.medium);
+    return AnimatedSize(
+      duration: d,
+      curve: BuMotion.standard,
+      alignment: Alignment.topCenter,
+      child: AnimatedSwitcher(
+        duration: d,
+        switchInCurve: BuMotion.standard,
+        switchOutCurve: BuMotion.standard,
+        layoutBuilder: (current, previous) => Stack(
+          alignment: Alignment.topCenter,
+          children: [...previous, if (current != null) current],
         ),
+        child: visible
+            ? KeyedSubtree(key: const ValueKey('on'), child: builder())
+            : const SizedBox(key: ValueKey('off'), width: double.infinity),
       ),
     );
   }
 }
 
-/// Ana Sayfa yükleniyor iskeleti: marka çubuğu, selamlama, arama, vitrin kartı, hızlı erişim, haber, etkinlik.
+/// Bütün bölümler gizliyken sakin boş durum: tek cümle + "Bölüm ekle".
+class HomeEmptyHome extends StatelessWidget {
+  const HomeEmptyHome({super.key, required this.title, required this.actionLabel, required this.onAction});
+
+  final String title;
+  final String actionLabel;
+  final VoidCallback onAction;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.bu;
+    return BuCard(
+      radius: BuRadius.lg,
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 28),
+      child: SizedBox(
+        width: double.infinity,
+        child: Column(children: [
+          ExcludeSemantics(child: Icon(LucideIcons.layoutDashboard, size: 28, color: t.mut)),
+          const SizedBox(height: 12),
+          Semantics(header: true, child: Text(title, textAlign: TextAlign.center, style: BuType.heading.copyWith(color: t.ink))),
+          const SizedBox(height: 16),
+          BuButton(label: actionLabel, kind: BuButtonKind.soft, compact: true, icon: LucideIcons.plus, onPressed: onAction),
+        ]),
+      ),
+    );
+  }
+}
+
+/// Duyurular (en çok 3): tek yüzeyde başlık + tarih satırları; ayırıcı çizgi yok, boşlukla ayrılır.
+class HomeAnnouncementList extends StatelessWidget {
+  const HomeAnnouncementList({super.key, required this.items});
+
+  final List<({String title, String date, VoidCallback onTap})> items;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.bu;
+    return BuCard(
+      radius: BuRadius.lg,
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        for (final it in items)
+          InkWell(
+            onTap: it.onTap,
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(minHeight: 56),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Text(it.title, maxLines: 2, overflow: TextOverflow.ellipsis, style: BuType.heading.copyWith(fontSize: 15, fontWeight: FontWeight.w700, color: t.ink)),
+                  const SizedBox(height: 2),
+                  Text(it.date, maxLines: 1, overflow: TextOverflow.ellipsis, style: BuType.label.copyWith(fontWeight: FontWeight.w400, color: t.mut)),
+                ]),
+              ),
+            ),
+          ),
+      ]),
+    );
+  }
+}
+
+/// Bugünkü dersler (en çok 3 satır): saat aralığı (tabular) + ders adı + derslik; süren ders marka renginde.
+class HomeClassList extends StatelessWidget {
+  const HomeClassList({super.key, required this.rows, required this.onTap});
+
+  final List<({String time, String title, String place, bool now})> rows;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.bu;
+    return BuCard(
+      radius: BuRadius.lg,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      onTap: onTap,
+      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        for (final r in rows)
+          ConstrainedBox(
+            constraints: const BoxConstraints(minHeight: 48),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 6),
+              child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
+                SizedBox(
+                  width: 96,
+                  child: Text(r.time,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: BuType.label.copyWith(fontWeight: FontWeight.w700, color: r.now ? t.pr : t.mut, fontFeatures: const [FontFeature.tabularFigures()])),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    Text(r.title, maxLines: 1, overflow: TextOverflow.ellipsis, style: BuType.heading.copyWith(fontSize: 15, fontWeight: FontWeight.w700, color: t.ink)),
+                    if (r.place.isNotEmpty) Text(r.place, maxLines: 1, overflow: TextOverflow.ellipsis, style: BuType.label.copyWith(fontWeight: FontWeight.w400, color: t.mut)),
+                  ]),
+                ),
+              ]),
+            ),
+          ),
+      ]),
+    );
+  }
+}
+
+/// Ana Sayfa yükleniyor iskeleti: üst çubuk, arama, vitrin kartı, hızlı erişim, haber, etkinlik.
 class HomeSkeleton extends StatelessWidget {
   const HomeSkeleton({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final t = context.bu;
     final top = MediaQuery.paddingOf(context).top;
-    Widget card({required Widget child, EdgeInsetsGeometry padding = const EdgeInsets.all(16)}) => Container(
-          width: double.infinity,
-          padding: padding,
-          decoration: BoxDecoration(color: t.sf, borderRadius: BorderRadius.circular(20), border: Border.all(color: t.bd)),
-          child: child,
-        );
     return Semantics(
       container: true,
       liveRegion: true,
@@ -398,42 +442,32 @@ class HomeSkeleton extends StatelessWidget {
             padding: EdgeInsets.fromLTRB(20, top + 12, 20, kNavInset),
             children: [
               const Row(children: [
-                BuSkeleton(width: 44, height: 44, radius: 14),
-                SizedBox(width: 12),
                 Expanded(
                   child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    BuSkeleton(width: 90, height: 10),
+                    BuSkeleton(width: 80, height: 10),
                     SizedBox(height: 8),
-                    BuSkeleton(width: 170, height: 12),
+                    BuSkeleton(width: 170, height: 22, radius: 11),
                   ]),
                 ),
-                BuSkeleton.circle(44),
-                SizedBox(width: 6),
+                BuSkeleton.circle(40),
+                SizedBox(width: 8),
                 BuSkeleton.circle(40),
               ]),
-              const SizedBox(height: 18),
-              const BuSkeleton(width: 80, height: 12),
-              const SizedBox(height: 8),
-              const BuSkeleton(width: 190, height: 24, radius: 12),
-              const SizedBox(height: 14),
-              card(
-                child: const Row(children: [BuSkeleton.circle(20), SizedBox(width: 12), Expanded(child: BuSkeleton(height: 12))]),
-              ),
-              const SizedBox(height: 18),
-              const BuSkeleton(height: 270, radius: 28),
-              const SizedBox(height: 22),
-              const BuSkeleton(width: 100, height: 14),
-              const SizedBox(height: 12),
+              const SizedBox(height: 16),
+              const BuSkeleton(height: 52, radius: BuRadius.md),
+              const SizedBox(height: 16),
+              const BuSkeleton(height: 190, radius: BuRadius.lg),
+              const SizedBox(height: 24),
               Row(children: [
                 for (var i = 0; i < 5; i++) ...[
                   if (i > 0) const SizedBox(width: 8),
-                  const Expanded(child: BuSkeleton(height: 92, radius: 20)),
+                  const Expanded(child: BuSkeleton(height: 84, radius: BuRadius.md)),
                 ],
               ]),
               const SizedBox(height: 24),
               const Row(children: [BuSkeleton(width: 150, height: 16), Spacer(), BuSkeleton(width: 40, height: 12)]),
               const SizedBox(height: 12),
-              const BuSkeleton(height: 240, radius: 24),
+              const BuSkeleton(height: 228, radius: BuRadius.lg),
             ],
           ),
         ),
@@ -442,118 +476,63 @@ class HomeSkeleton extends StatelessWidget {
   }
 }
 
-/// Ana Sayfa boş durum kartı: başlık (+ isteğe bağlı alt başlık), içeride açık zeminli kutuda simge + metin (+ düğme).
+/// Ana Sayfa boş/hata durumu: tek satır (soluk simge + tek cümle); isteğe bağlı metin düğmesi ya da dokunma oku.
 class HomeEmptyCard extends StatelessWidget {
   const HomeEmptyCard({
     super.key,
-    required this.title,
-    this.subtitle,
     required this.icon,
     required this.headline,
-    required this.body,
     this.actionLabel,
     this.onAction,
-    this.trailingIcon,
     this.onTap,
-    this.compact = false,
+    this.live = false,
   });
 
-  /// true: tek satırlık kompakt kart (simge + başlık + alt metin); başlık/alt başlık satırı ve iç kutu yok.
-  final bool compact;
-
-  final String title;
-  final String? subtitle;
   final IconData icon;
   final String headline;
-  final String body;
+
+  /// Verilirse sağda sakin metin düğmesi ("Tekrar dene" gibi); [onAction] null ise soluk.
   final String? actionLabel;
   final VoidCallback? onAction;
-  final IconData? trailingIcon;
+
+  /// Satırın tamamı dokunulabilirse (ok görünür).
   final VoidCallback? onTap;
+
+  /// Hata cümlesi ekran okuyucuya canlı bölge olarak duyurulsun.
+  final bool live;
 
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
-    final tx = Theme.of(context).textTheme;
-    if (compact) {
-      // Boş menü gibi "bugün yok" durumları ~180 dp'lik kart yerine tek satırda söylenir.
-      return BuCard(
-        radius: 20,
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        onTap: onTap,
+    Widget text = Text(headline, maxLines: 2, overflow: TextOverflow.ellipsis, style: BuType.body.copyWith(color: t.mut));
+    if (live) text = Semantics(liveRegion: true, child: text);
+    return BuCard(
+      radius: BuRadius.lg,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      onTap: onTap,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(minHeight: 48),
         child: SizedBox(
           width: double.infinity,
           child: Row(children: [
-            ExcludeSemantics(
-              child: Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(color: t.sf2, shape: BoxShape.circle),
-                child: Icon(icon, size: 22, color: t.mut),
-              ),
-            ),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Semantics(header: true, child: Text(headline, style: tx.titleMedium!.copyWith(fontWeight: FontWeight.w800, color: t.ink))),
-                const SizedBox(height: 2),
-                Text(body, style: tx.bodySmall!.copyWith(color: t.mut, height: 1.35)),
-              ]),
-            ),
-            if (onTap != null) ...[
+            ExcludeSemantics(child: Icon(icon, size: 20, color: t.mut)),
+            const SizedBox(width: 12),
+            Expanded(child: text),
+            if (actionLabel != null) ...[
+              const SizedBox(width: 8),
+              _TextLink(label: actionLabel!, onTap: onAction, color: t.pr),
+            ] else if (onTap != null) ...[
               const SizedBox(width: 8),
               ExcludeSemantics(child: Icon(buDirIcon(context, LucideIcons.chevronRight), size: 20, color: t.mut)),
             ],
           ]),
         ),
-      );
-    }
-    return BuCard(
-      radius: 20,
-      padding: const EdgeInsets.all(18),
-      onTap: onTap,
-      child: SizedBox(
-        width: double.infinity,
-        child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-          Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Expanded(
-              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Semantics(header: true, child: Text(title, style: tx.titleLarge!.copyWith(fontWeight: FontWeight.w800, color: t.ink))),
-                if (subtitle != null) Text(subtitle!, style: tx.bodySmall!.copyWith(color: t.mut)),
-              ]),
-            ),
-            if (trailingIcon != null) ExcludeSemantics(child: Icon(trailingIcon, size: 20, color: t.mut)),
-          ]),
-          const SizedBox(height: 14),
-          Container(
-            padding: const EdgeInsets.fromLTRB(16, 22, 16, 22),
-            decoration: BoxDecoration(color: t.sf2, borderRadius: BorderRadius.circular(BuRadius.md)),
-            child: Column(children: [
-              ExcludeSemantics(
-                child: Container(
-                  width: 56,
-                  height: 56,
-                  decoration: BoxDecoration(color: t.bd.withValues(alpha: .7), shape: BoxShape.circle),
-                  child: Icon(icon, size: 26, color: t.mut),
-                ),
-              ),
-              const SizedBox(height: 12),
-              Text(headline, textAlign: TextAlign.center, style: tx.titleMedium!.copyWith(fontWeight: FontWeight.w800, color: t.ink)),
-              const SizedBox(height: 4),
-              Text(body, textAlign: TextAlign.center, style: tx.bodySmall!.copyWith(color: t.mut, height: 1.4)),
-              if (actionLabel != null) ...[
-                const SizedBox(height: 14),
-                BuButton(label: actionLabel!, kind: BuButtonKind.soft, compact: true, icon: LucideIcons.arrowRight, onPressed: onAction),
-              ],
-            ]),
-          ),
-        ]),
       ),
     );
   }
 }
 
-/// Duyurular alanı durum kartı: "Henüz içerik yok." satırı ve (hata varsa) kırmızı "yeniden dene" satırı.
+/// Duyurular alanı durum satırı: boşsa tek cümle; hata varsa hata cümlesi + "Yeniden dene" metin düğmesi.
 class HomeNewsStateCard extends StatelessWidget {
   const HomeNewsStateCard({super.key, required this.emptyText, this.errorText, this.retryLabel, this.onRetry});
 
@@ -564,73 +543,41 @@ class HomeNewsStateCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final t = context.bu;
-    final tx = Theme.of(context).textTheme;
-    return BuCard(
-      radius: 20,
-      padding: const EdgeInsets.all(16),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        Row(children: [
-          ExcludeSemantics(
-            child: Container(
-              width: 44,
-              height: 44,
-              decoration: BoxDecoration(color: t.sf2, borderRadius: BorderRadius.circular(BuRadius.sm)),
-              child: Icon(LucideIcons.inbox, size: 22, color: t.mut),
-            ),
-          ),
-          const SizedBox(width: 14),
-          Expanded(child: Text(emptyText, style: tx.bodyLarge!.copyWith(color: t.mut))),
-        ]),
-        if (errorText != null) ...[
-          const SizedBox(height: 14),
-          Container(
-            padding: const EdgeInsetsDirectional.fromSTEB(14, 8, 8, 8),
-            decoration: BoxDecoration(color: t.soft, borderRadius: BorderRadius.circular(BuRadius.md)),
-            child: Row(children: [
-              ExcludeSemantics(child: Icon(LucideIcons.cloudOff, size: 18, color: t.onSoft)),
-              const SizedBox(width: 10),
-              Expanded(child: Semantics(liveRegion: true, child: Text(errorText!, style: tx.bodyMedium!.copyWith(color: t.onSoft)))),
-              const SizedBox(width: 8),
-              BuButton(label: retryLabel ?? '', kind: BuButtonKind.outline, compact: true, icon: LucideIcons.refreshCw, onPressed: onRetry),
-            ]),
-          ),
-        ],
-      ]),
-    );
+    if (errorText != null) {
+      return HomeEmptyCard(icon: LucideIcons.cloudOff, headline: errorText!, actionLabel: retryLabel ?? '', onAction: onRetry, live: true);
+    }
+    return HomeEmptyCard(icon: LucideIcons.inbox, headline: emptyText);
   }
 }
 
-/// Üst marka çubuğu (referans 00): açık kırmızı logo karosu + "BÜ KAMPÜS" + alt başlık; sağda zil ve profil avatarı.
+/// Üst çubuk: "BÜ KAMPÜS" yazısı + selamlama (tek blok); sağda zil ve profil avatarı. Logo karosu ve alt başlık yok.
 class HomeBrandHeader extends StatelessWidget {
-  const HomeBrandHeader({super.key, required this.bell, required this.displayName, required this.onProfile, required this.profileLabel});
+  const HomeBrandHeader({super.key, required this.bell, required this.displayName, required this.onProfile, required this.profileLabel, this.hello});
 
   final Widget bell;
   final String? displayName;
   final VoidCallback onProfile;
   final String profileLabel;
 
+  /// "Merhaba, Ayşe"; null ise yalnız marka yazısı görünür.
+  final String? hello;
+
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
     final tx = Theme.of(context).textTheme;
-    final l = context.l10n;
     return Row(children: [
-      ExcludeSemantics(
-        child: Container(
-          width: 44,
-          height: 44,
-          decoration: BoxDecoration(color: t.soft, borderRadius: BorderRadius.circular(BuRadius.sm), border: Border.all(color: t.pr.withValues(alpha: .25))),
-          child: Icon(LucideIcons.graduationCap, size: 22, color: t.pr),
-        ),
-      ),
-      const SizedBox(width: 12),
       Expanded(
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Text('BÜ KAMPÜS', maxLines: 1, style: tx.labelSmall!.copyWith(fontWeight: FontWeight.w800, letterSpacing: 1.2, color: t.pr)),
-          Text(l.p03HomeBrandSub, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.bodySmall!.copyWith(color: t.mut)),
+          if (hello != null)
+            Semantics(
+              header: true,
+              child: Text(hello!, maxLines: 2, overflow: TextOverflow.ellipsis, style: BuType.display.copyWith(fontSize: 24, letterSpacing: -.4, color: t.ink)),
+            ),
         ]),
       ),
+      const SizedBox(width: 8),
       bell,
       const SizedBox(width: 4),
       Semantics(
@@ -638,8 +585,7 @@ class HomeBrandHeader extends StatelessWidget {
         label: profileLabel,
         excludeSemantics: true,
         onTap: onProfile,
-        child: GestureDetector(
-          behavior: HitTestBehavior.opaque,
+        child: BuPressable(
           onTap: onProfile,
           child: SizedBox(width: 48, height: 48, child: Center(child: BuAvatar(name: displayName, size: 40))),
         ),
@@ -648,8 +594,8 @@ class HomeBrandHeader extends StatelessWidget {
   }
 }
 
-/// "Günün Yemek Menüsü" vitrin kartı: kırmızı gradyan (ya da menü fotoğrafı), çeşit rozeti, saat hapı,
-/// yemek adları (kalori yok), "Menü Detayı". Dokunma menü sayfasını açar.
+/// "Günün Yemek Menüsü" vitrin kartı (Ana Sayfa'nın tek dolgulu yüzeyi): kırmızı gradyan (ya da menü fotoğrafı),
+/// başlık, tek satır künye (çeşit sayısı · saat), en çok 3 yemek adı ve düz "Menü Detayı" bağlantısı.
 class HomeMealHero extends StatelessWidget {
   const HomeMealHero({
     super.key,
@@ -679,6 +625,34 @@ class HomeMealHero extends StatelessWidget {
     final fg = t.onMedia;
     final shown = dishes.take(3).toList();
     final extra = dishes.length - shown.length;
+    final content = Padding(
+      padding: const EdgeInsets.fromLTRB(20, 18, 20, 8),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        Text('$chip · $time', maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.labelMedium!.copyWith(fontWeight: FontWeight.w600, color: fg.withValues(alpha: .88))),
+        const SizedBox(height: 4),
+        Text(title, maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.headlineSmall!.copyWith(fontWeight: FontWeight.w800, color: fg)),
+        const SizedBox(height: 12),
+        for (var i = 0; i < shown.length; i++) ...[
+          if (i > 0) const SizedBox(height: 4),
+          Text(shown[i], maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w600, color: fg)),
+        ],
+        if (extra > 0) ...[
+          const SizedBox(height: 4),
+          Text('+$extra', style: tx.labelMedium!.copyWith(fontWeight: FontWeight.w700, color: fg.withValues(alpha: .85))),
+        ],
+        Align(
+          alignment: AlignmentDirectional.centerEnd,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(minHeight: 44),
+            child: Row(mainAxisSize: MainAxisSize.min, children: [
+              Text(detailLabel, style: tx.labelLarge!.copyWith(fontWeight: FontWeight.w700, color: fg)),
+              const SizedBox(width: 4),
+              Icon(buDirIcon(context, LucideIcons.chevronRight), size: 18, color: fg),
+            ]),
+          ),
+        ),
+      ]),
+    );
     return Semantics(
       button: true,
       label: [if (photo != null && photoLabel != null) photoLabel!, title, chip, dishes.join(', ')].join('. '),
@@ -687,7 +661,7 @@ class HomeMealHero extends StatelessWidget {
       child: BuPressable(
         scale: .98,
         child: ClipRRect(
-          borderRadius: BorderRadius.circular(28),
+          borderRadius: BorderRadius.circular(BuRadius.lg),
           child: Stack(children: [
             Positioned.fill(
               child: photo != null
@@ -710,63 +684,7 @@ class HomeMealHero extends StatelessWidget {
               type: MaterialType.transparency,
               child: InkWell(
                 onTap: onTap,
-                child: Padding(
-                  padding: const EdgeInsets.all(18),
-                  child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-                    // Rozet + saat aynı satırda (dar/büyük yazıda alt satıra sarar); başlık tam genişlikte okunur.
-                    Wrap(spacing: 8, runSpacing: 8, crossAxisAlignment: WrapCrossAlignment.center, children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                        decoration: BoxDecoration(color: fg.withValues(alpha: .2), borderRadius: BorderRadius.circular(BuRadius.pill)),
-                        child: Row(mainAxisSize: MainAxisSize.min, children: [
-                          Container(width: 7, height: 7, decoration: BoxDecoration(color: fg, shape: BoxShape.circle)),
-                          const SizedBox(width: 8),
-                          Flexible(child: Text(chip, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.labelMedium!.copyWith(fontWeight: FontWeight.w800, color: fg))),
-                        ]),
-                      ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                        decoration: BoxDecoration(color: fg.withValues(alpha: .2), borderRadius: BorderRadius.circular(BuRadius.pill)),
-                        child: Text(time, maxLines: 1, style: tx.labelMedium!.copyWith(fontWeight: FontWeight.w700, color: fg)),
-                      ),
-                    ]),
-                    const SizedBox(height: 12),
-                    Text(title, maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.headlineSmall!.copyWith(fontWeight: FontWeight.w800, color: fg)),
-                    const SizedBox(height: 14),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                      decoration: BoxDecoration(color: fg.withValues(alpha: .14), borderRadius: BorderRadius.circular(BuRadius.md)),
-                      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-                        for (var i = 0; i < shown.length; i++) ...[
-                          if (i > 0) const SizedBox(height: 10),
-                          Row(children: [
-                            Container(width: 6, height: 6, decoration: BoxDecoration(color: fg, shape: BoxShape.circle)),
-                            const SizedBox(width: 12),
-                            Expanded(child: Text(shown[i], maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w700, color: fg))),
-                          ]),
-                        ],
-                        if (extra > 0) ...[
-                          const SizedBox(height: 8),
-                          Text('+$extra', style: tx.labelMedium!.copyWith(fontWeight: FontWeight.w700, color: fg.withValues(alpha: .85))),
-                        ],
-                      ]),
-                    ),
-                    const SizedBox(height: 14),
-                    Align(
-                      alignment: AlignmentDirectional.centerEnd,
-                      child: Container(
-                        constraints: const BoxConstraints(minHeight: 44),
-                        padding: const EdgeInsetsDirectional.fromSTEB(18, 8, 12, 8),
-                        decoration: BoxDecoration(color: fg.withValues(alpha: .2), borderRadius: BorderRadius.circular(BuRadius.pill)),
-                        child: Row(mainAxisSize: MainAxisSize.min, children: [
-                          Text(detailLabel, style: tx.labelLarge!.copyWith(fontWeight: FontWeight.w800, color: fg)),
-                          const SizedBox(width: 6),
-                          Icon(buDirIcon(context, LucideIcons.chevronRight), size: 18, color: fg),
-                        ]),
-                      ),
-                    ),
-                  ]),
-                ),
+                child: photo != null ? ConstrainedBox(constraints: const BoxConstraints(minHeight: 200), child: Align(alignment: AlignmentDirectional.bottomStart, child: content)) : content,
               ),
             ),
           ]),
@@ -776,12 +694,11 @@ class HomeMealHero extends StatelessWidget {
   }
 }
 
-/// Öne çıkan haber kartı (yatay kaydırma): üstte görsel + tür etiketi, altta başlık ve tarih + ok.
+/// Öne çıkan haber kartı (yatay kaydırma): görsel, başlık, tarih. Tür etiketi, ok ve gradyan yok.
 class HomeNewsCard extends StatelessWidget {
   const HomeNewsCard({
     super.key,
     required this.title,
-    required this.tag,
     required this.dateText,
     required this.imageUrl,
     required this.onTap,
@@ -789,10 +706,21 @@ class HomeNewsCard extends StatelessWidget {
     this.heroId,
   });
 
+  /// Görsel yüksekliği.
+  static const imageHeight = 140.0;
+
+  /// Metin bölümü (başlık 2 satır + tarih + iç boşluklar) 1x ölçekte; şerit yüksekliği için.
+  static const _titleBox = 39.0; // 15 sp x 1,3 x 2 satır
+  static const _dateBox = 17.0;
+  static const _fixed = 12 + 6 + 14.0; // üst boşluk + başlık/tarih arası + alt boşluk
+  static const _maxScale = 1.5;
+
+  /// Kartın (çerçeve dahil) yüksekliği; [scale] sistem yazı ölçeği (en çok 1,5 hesaba katılır).
+  static double heightFor(double scale) => imageHeight + _fixed + (_titleBox + _dateBox) * scale.clamp(1.0, _maxScale) + 2;
+
   /// Verilirse görsel, haber detayının kapağına paylaşılan geçişle (Hero) uçar.
   final int? heroId;
   final String title;
-  final String tag;
   final String dateText;
   final String? imageUrl;
   final VoidCallback onTap;
@@ -801,61 +729,48 @@ class HomeNewsCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
-    final tx = Theme.of(context).textTheme;
     final hasImg = imageUrl != null && imageUrl!.isNotEmpty;
-    return SizedBox(
-      width: width,
-      child: BuCard(
-        radius: 24,
-        padding: EdgeInsets.zero,
-        onTap: onTap,
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(23),
-          child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-            SizedBox(
-              height: 150,
-              child: Stack(fit: StackFit.expand, children: [
-                if (hasImg)
-                  heroId == null
-                      ? BuImage(imageUrl, width: double.infinity, height: 150, maxDecodeWidth: 700)
-                      : newsHero(
-                          id: heroId!,
-                          radius: 23,
-                          child: BuImage(imageUrl, width: double.infinity, height: 150, maxDecodeWidth: 700),
-                        )
-                else
-                  DecoratedBox(
-                    decoration: BoxDecoration(gradient: t.hero),
-                    child: Icon(LucideIcons.newspaper, size: 56, color: t.onMedia.withValues(alpha: .3)),
-                  ),
-                PositionedDirectional(
-                  start: 12,
-                  top: 12,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
-                    decoration: BoxDecoration(color: t.sf.withValues(alpha: .92), borderRadius: BorderRadius.circular(BuRadius.pill)),
-                    child: Text(tag, style: tx.labelMedium!.copyWith(fontWeight: FontWeight.w700, color: t.pr)),
-                  ),
-                ),
-              ]),
-            ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
-              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+    return MediaQuery.withClampedTextScaling(
+      maxScaleFactor: _maxScale,
+      child: Builder(builder: (context) {
+        final scaler = MediaQuery.textScalerOf(context);
+        return SizedBox(
+          width: width,
+          child: BuCard(
+            radius: BuRadius.lg,
+            padding: EdgeInsets.zero,
+            onTap: onTap,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(BuRadius.lg - 1),
+              child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
                 SizedBox(
-                  height: 52,
-                  child: Text(title, maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.titleMedium!.copyWith(fontWeight: FontWeight.w800, height: 1.25, color: t.ink)),
+                  height: imageHeight,
+                  child: hasImg
+                      ? (heroId == null
+                          ? BuImage(imageUrl, width: double.infinity, height: imageHeight, maxDecodeWidth: 700)
+                          : newsHero(
+                              id: heroId!,
+                              radius: BuRadius.lg - 1,
+                              child: BuImage(imageUrl, width: double.infinity, height: imageHeight, maxDecodeWidth: 700),
+                            ))
+                      : ColoredBox(color: t.sf2, child: Center(child: Icon(LucideIcons.newspaper, size: 40, color: t.mut.withValues(alpha: .6)))),
                 ),
-                const SizedBox(height: 10),
-                Row(children: [
-                  Expanded(child: Text(dateText, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.bodySmall!.copyWith(color: t.mut))),
-                  Icon(buDirIcon(context, LucideIcons.arrowRight), size: 18, color: t.pr),
-                ]),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 14),
+                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    SizedBox(
+                      height: scaler.scale(_titleBox),
+                      child: Text(title, maxLines: 2, overflow: TextOverflow.ellipsis, style: BuType.heading.copyWith(fontSize: 15, fontWeight: FontWeight.w700, height: 1.3, color: t.ink)),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(dateText, maxLines: 1, overflow: TextOverflow.ellipsis, style: BuType.label.copyWith(fontWeight: FontWeight.w400, color: t.mut)),
+                  ]),
+                ),
               ]),
             ),
-          ]),
-        ),
-      ),
+          ),
+        );
+      }),
     );
   }
 }
@@ -898,7 +813,7 @@ class HomeAvatarStack extends StatelessWidget {
   }
 }
 
-/// "Yaklaşan Etkinlik" kartı: düzenleyen şeridi, tarih karosu, başlık, konum, katılımcılar + eylem düğmesi.
+/// "Yaklaşan Etkinlik" kartı: tarih karosu, (varsa) düzenleyen satırı, başlık, konum, katılımcılar + eylem düğmesi.
 class HomeEventCard extends StatelessWidget {
   const HomeEventCard({
     super.key,
@@ -928,29 +843,18 @@ class HomeEventCard extends StatelessWidget {
     final t = context.bu;
     final tx = Theme.of(context).textTheme;
     return BuCard(
-      radius: 24,
+      radius: BuRadius.lg,
       padding: const EdgeInsets.all(16),
       onTap: onTap,
       child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        if (host != null)
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-            decoration: BoxDecoration(color: t.soft.withValues(alpha: .6), borderRadius: BorderRadius.circular(BuRadius.sm)),
-            child: Row(children: [
-              Icon(LucideIcons.users, size: 16, color: t.pr),
-              const SizedBox(width: 8),
-              Expanded(child: Text(host!, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.labelLarge!.copyWith(fontWeight: FontWeight.w700, color: t.onSoft))),
-            ]),
-          ),
-        if (host != null) const SizedBox(height: 14),
         Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
           if (month != null && day != null) ...[
             Container(
-              width: 76,
+              width: 68,
               padding: const EdgeInsets.symmetric(vertical: 10),
               decoration: BoxDecoration(color: t.soft, borderRadius: BorderRadius.circular(BuRadius.md)),
               child: Column(children: [
-                Text(month!, maxLines: 1, style: tx.labelMedium!.copyWith(fontWeight: FontWeight.w800, color: t.onSoft)),
+                Text(month!, maxLines: 1, style: tx.labelMedium!.copyWith(fontWeight: FontWeight.w700, color: t.onSoft)),
                 Text(day!, maxLines: 1, style: tx.headlineMedium!.copyWith(fontWeight: FontWeight.w800, height: 1.1, color: t.pr)),
                 if (whenLine != null) Text(whenLine!, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.labelSmall!.copyWith(color: t.onSoft)),
               ]),
@@ -959,11 +863,15 @@ class HomeEventCard extends StatelessWidget {
           ],
           Expanded(
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              if (host != null) ...[
+                Text(host!, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.labelMedium!.copyWith(fontWeight: FontWeight.w600, color: t.mut)),
+                const SizedBox(height: 2),
+              ],
               Text(title, maxLines: 3, overflow: TextOverflow.ellipsis, style: tx.titleLarge!.copyWith(fontWeight: FontWeight.w800, height: 1.2, color: t.ink)),
               if (location != null && location!.isNotEmpty) ...[
                 const SizedBox(height: 8),
                 Row(children: [
-                  Icon(LucideIcons.mapPin, size: 15, color: t.pr),
+                  Icon(LucideIcons.mapPin, size: 15, color: t.mut),
                   const SizedBox(width: 6),
                   Expanded(child: Text(location!, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.bodySmall!.copyWith(color: t.mut))),
                 ]),

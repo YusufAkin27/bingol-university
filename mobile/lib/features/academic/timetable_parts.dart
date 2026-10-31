@@ -519,7 +519,7 @@ class TtNoCourseCard extends StatelessWidget {
         Text(l.p17NoCourseBody, textAlign: TextAlign.center, style: tx.bodyMedium!.copyWith(color: t.mut)),
         const SizedBox(height: 20),
         FilledButton.icon(
-          style: FilledButton.styleFrom(backgroundColor: t.ink, foregroundColor: t.bg, minimumSize: const Size(0, 54)),
+          style: FilledButton.styleFrom(backgroundColor: t.ink, foregroundColor: t.bg, minimumSize: const Size(0, BuSize.button)),
           onPressed: onAdd,
           icon: const Icon(LucideIcons.bookPlus, size: 18),
           label: Text(l.acadTimeAddFirst),

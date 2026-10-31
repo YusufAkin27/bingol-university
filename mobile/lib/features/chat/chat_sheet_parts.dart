@@ -487,7 +487,7 @@ Future<PhotoSource?> showChatPhotoSheet(
             ),
           ),
         const SizedBox(height: 16),
-        ChatDialogButton(label: l.chatInfoCancel, minHeight: 54, onTap: () => Navigator.pop(c)),
+        ChatDialogButton(label: l.chatInfoCancel, minHeight: BuSize.button, onTap: () => Navigator.pop(c)),
       ]);
     },
   );

@@ -302,7 +302,7 @@ class _PollFormPageState extends State<PollFormPage> {
                                   borderRadius: BuRadius.bSm,
                                   onTap: _addOption,
                                   child: ConstrainedBox(
-                                    constraints: const BoxConstraints(minHeight: 52),
+                                    constraints: const BoxConstraints(minHeight: BuSize.button),
                                     child: Center(
                                       child: Row(mainAxisSize: MainAxisSize.min, children: [
                                         ExcludeSemantics(child: Icon(LucideIcons.circlePlus, size: 20, color: t.pr)),

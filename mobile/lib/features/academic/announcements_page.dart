@@ -341,10 +341,11 @@ class _TabChip extends StatelessWidget {
           onTap: onTap,
           haptic: BuHaptic.selection,
           scale: .96,
-          child: AnimatedContainer(
+          child: BuTouchTarget(
+            child: AnimatedContainer(
             duration: BuMotion.of(context, BuMotion.short),
-            constraints: const BoxConstraints(minHeight: 48),
-            padding: const EdgeInsets.symmetric(horizontal: 18),
+            constraints: const BoxConstraints(minHeight: BuSize.chip),
+            padding: const EdgeInsets.symmetric(horizontal: 14),
             decoration: ShapeDecoration(color: selected ? t.soft : t.sf2, shape: StadiumBorder(side: selected ? BorderSide(color: t.selectedBorder) : BorderSide.none)),
             child: MediaQuery.withClampedTextScaling(
               maxScaleFactor: 1.3,
@@ -363,6 +364,7 @@ class _TabChip extends StatelessWidget {
                   ),
                 ],
               ]),
+            ),
             ),
           ),
         ),

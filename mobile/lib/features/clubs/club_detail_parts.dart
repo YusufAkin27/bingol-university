@@ -23,7 +23,7 @@ class ClubRoundButton extends StatelessWidget {
     this.onCover = false,
     this.filled = false,
     this.plain = false,
-    this.size = 44,
+    this.size = BuSize.iconBtn,
   });
 
   final IconData icon;

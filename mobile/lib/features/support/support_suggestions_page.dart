@@ -171,7 +171,7 @@ class _SuggestionsPageState extends State<SuggestionsPage> {
                         borderRadius: BuRadius.bMd,
                         onTap: () => _load(reset: true),
                         child: ConstrainedBox(
-                          constraints: const BoxConstraints(minHeight: 52),
+                          constraints: const BoxConstraints(minHeight: BuSize.button),
                           child: Center(
                             child: Row(mainAxisSize: MainAxisSize.min, children: [
                               Icon(LucideIcons.refreshCw, size: 18, color: t.bg),
@@ -232,7 +232,7 @@ class _SuggestionsPageState extends State<SuggestionsPage> {
                           borderRadius: BuRadius.bMd,
                           onTap: _add,
                           child: ConstrainedBox(
-                            constraints: const BoxConstraints(minHeight: 54),
+                            constraints: const BoxConstraints(minHeight: BuSize.button),
                             child: Center(
                               child: Row(mainAxisSize: MainAxisSize.min, children: [
                                 Icon(LucideIcons.plus, size: 18, color: t.onPr),

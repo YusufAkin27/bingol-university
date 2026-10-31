@@ -183,7 +183,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
               FilledButton.icon(
                 key: const ValueKey('discard-keep'),
                 onPressed: () => Navigator.pop(ctx, false),
-                style: FilledButton.styleFrom(backgroundColor: t.ink, foregroundColor: t.bg, minimumSize: const Size(0, 52)),
+                style: FilledButton.styleFrom(backgroundColor: t.ink, foregroundColor: t.bg, minimumSize: const Size(0, BuSize.button)),
                 icon: const Icon(LucideIcons.pencil, size: 18),
                 label: Text(l.profileKeepEditing),
               ),
@@ -191,7 +191,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
               FilledButton.icon(
                 key: const ValueKey('discard-exit'),
                 onPressed: () => Navigator.pop(ctx, true),
-                style: FilledButton.styleFrom(backgroundColor: t.sf2, foregroundColor: t.danger, minimumSize: const Size(0, 52)),
+                style: FilledButton.styleFrom(backgroundColor: t.sf2, foregroundColor: t.danger, minimumSize: const Size(0, BuSize.button)),
                 icon: const Icon(LucideIcons.trash2, size: 18),
                 label: Text(l.profileDiscardExit),
               ),
@@ -480,10 +480,9 @@ class _EditProfilePageState extends State<EditProfilePage> {
                   if (_error != null) ...[P2NoticeCard(lines: [_error!]), const SizedBox(height: 12)],
                   _avatar(context),
                   const SizedBox(height: 12),
-                  BuCard(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-                      P2FieldLabel(l.profileFullName, icon: LucideIcons.user),
+                  // Tek sütun, kart yok: alan başına tek etiket (tur 3).
+                  Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+                      P2FieldLabel(l.profileFullName),
                       _TextBox(
                         key: const ValueKey('edit-name'),
                         controller: _name,
@@ -495,7 +494,6 @@ class _EditProfilePageState extends State<EditProfilePage> {
                       const SizedBox(height: 16),
                       P2FieldLabel(
                         l.profileAbout,
-                        icon: LucideIcons.fileText,
                         trailing: Text('${_bio.text.characters.length}/$_bioMax',
                             style: tx.labelMedium!.copyWith(fontWeight: FontWeight.w600, color: t.mut)),
                       ),
@@ -508,17 +506,13 @@ class _EditProfilePageState extends State<EditProfilePage> {
                         hint: l.profileBioHint,
                         onChanged: (_) => setState(() {}),
                       ),
-                      const SizedBox(height: 20),
-                      P2Heading(l.p19AcademicInfo, icon: LucideIcons.graduationCap),
+                      const SizedBox(height: 16),
                       ListenableBuilder(
                         listenable: _catalog,
                         builder: (context, _) {
                           final loading = _catalog.state == CatalogState.loading || _catalog.state == CatalogState.idle;
                           return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-                            Padding(
-                              padding: const EdgeInsetsDirectional.only(start: 2, bottom: 6),
-                              child: Text(l.pickDepartment, style: tx.labelMedium!.copyWith(fontWeight: FontWeight.w600, color: t.mut)),
-                            ),
+                            P2FieldLabel(l.pickDepartment),
                             _SelectBox(
                               key: const ValueKey('edit-department'),
                               text: _department == null
@@ -528,11 +522,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
                               error: _departmentError,
                               onTap: _pickDepartment,
                             ),
-                            const SizedBox(height: 12),
-                            Padding(
-                              padding: const EdgeInsetsDirectional.only(start: 2, bottom: 6),
-                              child: Text(l.pickGrade, style: tx.labelMedium!.copyWith(fontWeight: FontWeight.w600, color: t.mut)),
-                            ),
+                            const SizedBox(height: 16),
+                            P2FieldLabel(l.pickGrade),
                             _SelectBox(
                               key: const ValueKey('edit-grade'),
                               text: _gradeName(context),
@@ -542,16 +533,12 @@ class _EditProfilePageState extends State<EditProfilePage> {
                           ]);
                         },
                       ),
-                    ]),
-                  ),
-                  const SizedBox(height: 12),
-                  BuCard(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+                  ]),
+                  const SizedBox(height: 16),
+                  Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
                       P2FieldLabel(
                         l.profil1CorpEmail,
-                        icon: LucideIcons.shieldCheck,
-                        trailing: P2Pill(text: l.profil2SecVerified, icon: LucideIcons.lock),
+                        trailing: P2Pill(text: l.profil2SecVerified),
                       ),
                       Semantics(
                         label: '${l.profil1CorpEmail}: $email',
@@ -561,10 +548,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
                           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                           decoration: BoxDecoration(color: t.sf2, borderRadius: BuRadius.bMd),
                           child: Row(children: [
-                            Icon(LucideIcons.mail, size: 18, color: t.mut),
-                            const SizedBox(width: 10),
                             Expanded(
-                              child: Text(email, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.bodyLarge!.copyWith(color: t.ink)),
+                              child: Text(email, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.bodyLarge!.copyWith(color: t.mut)),
                             ),
                           ]),
                         ),
@@ -594,18 +579,16 @@ class _EditProfilePageState extends State<EditProfilePage> {
                           ),
                         ),
                       ),
-                    ]),
-                  ),
+                  ]),
                 ],
               ),
             ),
             Container(
-              decoration: BoxDecoration(color: t.sf, border: Border(top: BorderSide(color: t.bd))),
+              decoration: BoxDecoration(color: t.bg, border: Border(top: BorderSide(color: t.bd))),
               padding: EdgeInsets.fromLTRB(20, 12, 20, 12 + MediaQuery.paddingOf(context).bottom),
               child: BuButton(
                 key: const ValueKey('edit-save'),
                 label: l.profileSave,
-                icon: LucideIcons.save,
                 busy: _busy,
                 onPressed: (_busy || _uploading) ? null : _save,
               ),

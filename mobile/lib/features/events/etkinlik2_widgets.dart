@@ -513,7 +513,7 @@ class Et2GhostButton extends StatelessWidget {
                     onPressed!();
                   },
             child: Container(
-              constraints: const BoxConstraints(minHeight: 52),
+              constraints: const BoxConstraints(minHeight: BuSize.button),
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               child: Row(mainAxisAlignment: MainAxisAlignment.center, mainAxisSize: MainAxisSize.min, children: [
                 if (busy)
@@ -609,8 +609,8 @@ class Et2CircleButton extends StatelessWidget {
           height: 48,
           child: Center(
             child: Container(
-              width: 44,
-              height: 44,
+              width: BuSize.iconBtn,
+              height: BuSize.iconBtn,
               decoration: BoxDecoration(
                 color: t.sf,
                 shape: BoxShape.circle,

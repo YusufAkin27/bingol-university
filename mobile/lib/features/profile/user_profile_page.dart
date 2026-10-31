@@ -423,7 +423,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
     final stat = _blocked ? '—' : null;
     final avatarHidden = _self && _p?['avatarHidden'] == true;
     return ListView(
-      padding: EdgeInsets.fromLTRB(16, 4, 16, MediaQuery.of(context).padding.bottom + 32),
+      padding: EdgeInsets.fromLTRB(20, 8, 20, MediaQuery.of(context).padding.bottom + 32),
       children: [
         if (_blocked && !_self) ...[
           Container(
@@ -469,11 +469,8 @@ class _UserProfilePageState extends State<UserProfilePage> {
             if (presence != null && !_blocked) ...[
               const SizedBox(height: 4),
               Row(mainAxisSize: MainAxisSize.min, children: [
-                if (online)
-                  Container(width: 7, height: 7, decoration: BoxDecoration(color: t.ok, shape: BoxShape.circle))
-                else
-                  Icon(LucideIcons.clock, size: 14, color: t.mut),
-                const SizedBox(width: 6),
+                // Çevrimiçi durumu avatardaki yeşil noktayla gösterilir (metinde ikinci nokta yok); son görülmede saat simgesi.
+                if (!online) ...[Icon(LucideIcons.clock, size: 14, color: t.mut), const SizedBox(width: 6)],
                 Flexible(child: Text(presence, style: tx.labelLarge!.copyWith(fontWeight: FontWeight.w600, color: t.mut))),
               ]),
             ],
@@ -486,15 +483,18 @@ class _UserProfilePageState extends State<UserProfilePage> {
                   icon: s.followedByMe ? LucideIcons.arrowLeftRight : LucideIcons.userPlus),
             ],
             const SizedBox(height: 16),
-            Container(
-              padding: const EdgeInsets.symmetric(vertical: 10),
-              decoration: BoxDecoration(color: t.sf2, borderRadius: BorderRadius.circular(16)),
-              child: Row(children: [
+            // Sayaçlar: kart içinde kutu yok; yalnız ince çizgilerle ayrılmış tek satır.
+            Divider(height: 1, thickness: 1, color: t.bd),
+            IntrinsicHeight(
+              child: Row(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
                 Expanded(child: _stat(t, stat ?? _postCount ?? '0', l.icerikStatPosts)),
+                VerticalDivider(width: 1, thickness: 1, indent: 10, endIndent: 10, color: t.bd),
                 Expanded(child: _stat(t, stat ?? (s == null ? '0' : '${s.followers}'), l.icerikStatFollowers, followers: _blocked ? null : true)),
+                VerticalDivider(width: 1, thickness: 1, indent: 10, endIndent: 10, color: t.bd),
                 Expanded(child: _stat(t, stat ?? (s == null ? '0' : '${s.following}'), l.icerikStatFollowing, followers: _blocked ? null : false)),
               ]),
             ),
+            Divider(height: 1, thickness: 1, color: t.bd),
             const SizedBox(height: 14),
             _actions(t, s),
           ]),
@@ -552,7 +552,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
         Expanded(child: BuButton(label: l.profileUnblock, icon: LucideIcons.lockOpen, kind: BuButtonKind.outline, busy: _busyBlock, onPressed: _toggleBlock)),
         const SizedBox(width: 10),
         IconButton(
-          constraints: const BoxConstraints(minWidth: 54, minHeight: 54),
+          constraints: const BoxConstraints(minWidth: 54, minHeight: BuSize.button),
           tooltip: l.icerikUserMenu,
           style: IconButton.styleFrom(backgroundColor: t.sf2, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16))),
           icon: Icon(LucideIcons.ellipsis, size: 20, color: t.ink),
@@ -570,7 +570,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
                   key: const ValueKey('followButton'),
                   label: l.followButtonFollowing,
                   icon: LucideIcons.check,
-                  height: 54,
+                  height: BuSize.button,
                   busy: _busyFollow,
                   onPressed: _toggleFollow,
                 )
@@ -589,7 +589,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
           key: const ValueKey('profile-message'),
           label: l.icerikMessageSend,
           icon: LucideIcons.messageSquare,
-          height: 54,
+          height: BuSize.button,
           busy: _busyMsg,
           onPressed: _message,
         ),
@@ -600,11 +600,11 @@ class _UserProfilePageState extends State<UserProfilePage> {
   Widget _stat(BuTokens t, String n, String label, {bool? followers}) {
     final tx = Theme.of(context).textTheme;
     final child = Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 4),
+      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
       child: Column(mainAxisSize: MainAxisSize.min, children: [
         Text(n,
             key: followers == null ? null : ValueKey(followers ? 'followerCount' : 'followingCount'),
-            style: tx.titleLarge!.copyWith(fontWeight: FontWeight.w800, color: t.ink)),
+            style: tx.titleLarge!.copyWith(fontWeight: FontWeight.w800, color: t.ink, fontFeatures: const [FontFeature.tabularFigures()])),
         Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.bodySmall!.copyWith(color: t.mut)),
       ]),
     );
@@ -639,17 +639,13 @@ class _UserProfilePageState extends State<UserProfilePage> {
     if (rows.isEmpty && bio.isEmpty) return const SizedBox.shrink();
     return _card(
       child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        Row(children: [
-          Icon(lockedAll ? LucideIcons.graduationCap : LucideIcons.idCard, size: 20, color: t.pr),
-          const SizedBox(width: 10),
-          Expanded(child: Semantics(header: true, child: Text(lockedAll ? l.p20AcademicInfo : l.profileAboutShort, style: tx.titleMedium!.copyWith(fontWeight: FontWeight.w800, color: t.ink)))),
-        ]),
+        Semantics(header: true, child: Text(lockedAll ? l.p20AcademicInfo : l.profileAboutShort, style: tx.titleMedium!.copyWith(fontWeight: FontWeight.w800, color: t.ink))),
         if (bio.isNotEmpty && !lockedAll) ...[
           const SizedBox(height: 10),
           Text(bio, style: tx.bodyMedium!.copyWith(color: t.mut, height: 1.45)),
         ],
         if (rows.isNotEmpty) const SizedBox(height: 12),
-        for (var i = 0; i < rows.length; i++) ...[if (i > 0) const SizedBox(height: 8), rows[i]],
+        for (var i = 0; i < rows.length; i++) ...[if (i > 0) const SizedBox(height: 12), rows[i]],
         if (lockedAll) ...[
           const SizedBox(height: 16),
           Text(akadUpper(context, l.profileAboutShort), style: tx.labelSmall!.copyWith(fontWeight: FontWeight.w700, color: t.mut)),
@@ -671,6 +667,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
     );
   }
 
+  /// Akademik bilgi satırı: kutu/simge karosu yok; küçük soluk etiket + değer. Gizli alan: etiket + kilit + "Gizli".
   Widget _tile(BuTokens t, IconData icon, String label, String value) {
     final tx = Theme.of(context).textTheme;
     final hidden = value.isEmpty;
@@ -678,26 +675,17 @@ class _UserProfilePageState extends State<UserProfilePage> {
       container: true,
       label: hidden ? '$label: ${context.l10n.icerikHidden}' : '$label: $value',
       excludeSemantics: true,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-        decoration: BoxDecoration(color: t.sf2, borderRadius: BorderRadius.circular(14)),
-        child: Row(children: [
-          if (hidden) Icon(icon, size: 20, color: t.mut) else AkadIconTile(icon: icon, bg: t.sf, fg: t.ink, size: 36, radius: 10, iconSize: 18),
-          const SizedBox(width: 12),
-          if (hidden) ...[
-            Expanded(child: Text(label, style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w600, color: t.mut))),
-            Icon(LucideIcons.lock, size: 14, color: t.mut),
-            const SizedBox(width: 4),
-            Text(context.l10n.icerikHidden, style: tx.labelMedium!.copyWith(fontWeight: FontWeight.w700, color: t.mut)),
-          ] else
-            Expanded(
-              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text(label, style: tx.labelSmall!.copyWith(color: t.mut)),
-                Text(value, maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w800, color: t.ink)),
-              ]),
-            ),
-        ]),
-      ),
+      child: hidden
+          ? Row(children: [
+              Expanded(child: Text(label, style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w600, color: t.mut))),
+              Icon(LucideIcons.lock, size: 14, color: t.mut),
+              const SizedBox(width: 4),
+              Text(context.l10n.icerikHidden, style: tx.labelMedium!.copyWith(fontWeight: FontWeight.w700, color: t.mut)),
+            ])
+          : Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text(label, style: tx.labelMedium!.copyWith(color: t.mut)),
+              Text(value, maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w700, color: t.ink)),
+            ]),
     );
   }
 
@@ -708,7 +696,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
       child: BuSkeletonScope(
         child: SingleChildScrollView(
           physics: const NeverScrollableScrollPhysics(),
-          padding: const EdgeInsets.fromLTRB(16, 4, 16, 32),
+          padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
           child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
             _card(
               child: Column(children: [

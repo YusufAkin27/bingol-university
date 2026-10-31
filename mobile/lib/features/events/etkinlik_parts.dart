@@ -225,9 +225,9 @@ class EtkinlikActionButton extends StatelessWidget {
         haptic: primary ? BuHaptic.light : BuHaptic.selection,
         scale: .97,
         child: Container(
-          constraints: BoxConstraints(minHeight: big ? 54 : 48),
+          constraints: BoxConstraints(minHeight: BuSize.button),
           padding: const EdgeInsets.symmetric(horizontal: 12),
-          decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(big ? 16 : 14), border: selected ? Border.all(color: t.pr, width: 1.5) : null),
+          decoration: BoxDecoration(color: bg, borderRadius: BuRadius.bControl, border: selected ? Border.all(color: t.pr, width: 1.5) : null),
           child: Row(mainAxisAlignment: MainAxisAlignment.center, mainAxisSize: MainAxisSize.min, children: [
             if (busy)
               SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: fg))
@@ -308,8 +308,8 @@ class EtkinlikSubChips extends StatelessWidget {
                 widthFactor: 1,
                 child: AnimatedContainer(
                   duration: BuMotion.of(context, BuMotion.short),
-                  height: 38,
-                  padding: const EdgeInsets.symmetric(horizontal: 18),
+                  height: BuSize.chip + 2,
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
                   alignment: Alignment.center,
                   decoration: BoxDecoration(
                     color: i == selected ? t.soft : t.sf,
@@ -348,7 +348,7 @@ class EtkinlikInkButton extends StatelessWidget {
         onTap: onTap,
         haptic: BuHaptic.light,
         child: Container(
-          constraints: const BoxConstraints(minHeight: 54),
+          constraints: const BoxConstraints(minHeight: BuSize.button),
           padding: const EdgeInsets.symmetric(horizontal: 20),
           decoration: BoxDecoration(color: t.ink, borderRadius: BorderRadius.circular(BuRadius.md)),
           child: Row(mainAxisAlignment: MainAxisAlignment.center, mainAxisSize: MainAxisSize.min, children: [

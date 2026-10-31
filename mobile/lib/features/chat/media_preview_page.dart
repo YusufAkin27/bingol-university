@@ -438,7 +438,7 @@ class _MediaPreviewPageState extends State<MediaPreviewPage> {
           onTap: _send,
           haptic: BuHaptic.light,
           child: Container(
-            height: 52,
+            height: BuSize.button,
             alignment: Alignment.center,
             decoration: BoxDecoration(
               color: _pr,
