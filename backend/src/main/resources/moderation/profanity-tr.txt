@@ -47,6 +47,8 @@ amcığ
 amcuk
 aminako
 aminakod
+# T-023: noktali ı ile yazilan bicim (ı ile i ayri tutulur)
+amınako
 =aminakoyim
 =aminakoyum
 =aminakodum

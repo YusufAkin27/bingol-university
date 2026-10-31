@@ -7,6 +7,10 @@
 =fuk
 =fuq
 =fcuk
+# T-023: harf degistirme turevleri (phuk Phuket ile cakisir: yalniz tam eslesme)
+fvck
+phuck
+=phuk
 =stfu
 *shit
 =bullshit

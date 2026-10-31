@@ -12,6 +12,8 @@ kasım
 # --- Meşru Türkçe sözcükler ---
 sikke
 sikkeler
+# Hindistan eyaleti: cift harf sikistirmasi ile "sikim" kokune dusuyordu (T-023)
+sikkim
 sıkıntı
 sıkış
 sıkıştır

@@ -60,6 +60,18 @@ final class ProfanityText {
             case 0x442: case 0x3C4: return 't';
             case 0x43D: return 'h';
             case 0x432: return 'b';
+            // T-023: ek es goruntulu harfler (Kiril/Yunan/Ermeni-benzeri): ѕ і ј ԁ ѵ ԛ ԝ ф φ ν υ β χ ς
+            case 0x455: case 0x3C2: return 's';
+            case 0x458: return 'j';
+            case 0x501: return 'd';
+            case 0x475: case 0x3BD: return 'v';
+            case 0x51B: return 'q';
+            case 0x51D: return 'w';
+            case 0x444: case 0x3C6: return 'f';
+            case 0x3C5: return 'u';
+            case 0x3B2: return 'b';
+            case 0x3C7: return 'x';
+            case 0x251: return 'a';   // Latin alfa
             default:
         }
         if (c >= 0x660 && c <= 0x669) return '0' + (c - 0x660);   // Arapca-Hint rakamlar

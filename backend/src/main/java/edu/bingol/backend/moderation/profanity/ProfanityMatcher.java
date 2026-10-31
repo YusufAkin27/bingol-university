@@ -26,6 +26,8 @@ public final class ProfanityMatcher {
     private static final int MAX_CHARS = 50_000;
     private static final int MAX_SUFFIX = 7;
     private static final int MAX_ALLOW_SUFFIX = 4;
+    /** Izin satirinin gevsek (ı->i) bicimi icin en az uzunluk (T-023). */
+    private static final int LOOSE_ALLOW_MIN = 7;
     private static final String[] AR_PREFIXES = {"وال", "فال", "بال", "كال", "لل", "ال", "و", "ف", "ب", "ل", "ك"};
     private static final String[] AR_SUFFIXES = {"ات", "ين", "ون", "ان", "ها", "هم", "كم", "نا", "ك", "ي", "ه"};
 
@@ -152,7 +154,11 @@ public final class ProfanityMatcher {
         if (f.isEmpty() || f.indexOf(' ') >= 0) return;
         String strict = ProfanityText.v1(f);
         allow.add(strict);
-        allow.add(ProfanityText.v1(f.replace('ı', 'i'))); // gevsek bicim yalnizca tam eslesme: "sıkı" -> "siki", "sikin" muaf olmasin
+        // Gevsek (ı->i) bicim yalnizca tam eslesme VE yalnizca uzun sozcuklerde ("sıkıntı" -> "sikinti"). Kisa/orta
+        // sozcukte ("sıkı", "sıkış", "sıkıcı") ASCII bicim gercek kufurle cakisir (siki, sikis): T-023, izin vermeyiz.
+        if (strict.length() >= LOOSE_ALLOW_MIN) {
+            allow.add(ProfanityText.v1(f.replace('ı', 'i')));
+        }
         allowPrefix.add(strict);
     }
 
@@ -170,6 +176,16 @@ public final class ProfanityMatcher {
     private static String prefixHit(Map<String, String> map, String t) {
         if (map.isEmpty()) return null;
         for (int k = Math.max(4, t.length() - MAX_SUFFIX); k <= t.length(); k++) {
+            String hit = map.get(t.substring(0, k));
+            if (hit != null) return hit;
+        }
+        return null;
+    }
+
+    /** Yalnizca kok uzunlugu {@code minLen}'i asan eslesmeler (ilk sozcuk tek basina zaten kontrol edilir). */
+    private static String prefixHitBeyond(Map<String, String> map, String t, int minLen) {
+        if (map.isEmpty()) return null;
+        for (int k = Math.max(Math.max(minLen + 1, 4), t.length() - MAX_SUFFIX); k <= t.length(); k++) {
             String hit = map.get(t.substring(0, k));
             if (hit != null) return hit;
         }
@@ -224,7 +240,27 @@ public final class ProfanityMatcher {
         return h;
     }
 
-    /** Metni sozcuklere ayirir (cikarimlar: URL/e-posta atlanir; ayirici ile bolunmus sozcuk birlestirilir). */
+    private static final java.util.regex.Pattern LINK_SPLIT = java.util.regex.Pattern.compile("[@/\\:?&=#]+");
+
+    /** Tek bosluksuz parcayi sozcuklere ayirir; ayirici ile bolunmus sozcuk birlestirilmis bicimiyle de eklenir. */
+    private static void addChunk(String chunk, List<String> tokens, List<String> extra) {
+        String f = ProfanityText.leet(ProfanityText.fold(chunk));
+        int before = tokens.size();
+        int p = 0;
+        while (p < f.length()) {
+            while (p < f.length() && !Character.isLetter(f.charAt(p))) p++;
+            int s = p;
+            while (p < f.length() && Character.isLetter(f.charAt(p))) p++;
+            if (p > s) tokens.add(f.substring(s, p));
+        }
+        if (tokens.size() - before > 1) {
+            StringBuilder c = new StringBuilder();
+            for (int k = before; k < tokens.size(); k++) c.append(tokens.get(k));
+            if (c.length() >= 3) extra.add(c.toString());
+        }
+    }
+
+    /** Metni sozcuklere ayirir (baglanti/e-posta dahil; ayirici ile bolunmus sozcuk birlestirilir). */
     private static void tokenize(String text, List<String> tokens, List<String> extra) {
         int n = Math.min(text.length(), MAX_CHARS);
         int i = 0;
@@ -234,20 +270,14 @@ public final class ProfanityMatcher {
             while (i < n && !Character.isWhitespace(text.charAt(i))) i++;
             if (i == start) continue;
             String chunk = text.substring(start, i);
-            if (isLinkLike(chunk)) continue;
-            String f = ProfanityText.leet(ProfanityText.fold(chunk));
-            int before = tokens.size();
-            int p = 0;
-            while (p < f.length()) {
-                while (p < f.length() && !Character.isLetter(f.charAt(p))) p++;
-                int s = p;
-                while (p < f.length() && Character.isLetter(f.charAt(p))) p++;
-                if (p > s) tokens.add(f.substring(s, p));
-            }
-            if (tokens.size() - before > 1) {
-                StringBuilder c = new StringBuilder();
-                for (int k = before; k < tokens.size(); k++) c.append(tokens.get(k));
-                if (c.length() >= 3) extra.add(c.toString());
+            if (isLinkLike(chunk)) {
+                // T-022: baglanti/e-posta bicimi atlatma yolu degil; yapisal ayiricilardan (@ / : ? & = #) bolunur,
+                // her parca (alan adi/yol/yerel kisim) ayni eslestirmeden gecer
+                for (String piece : LINK_SPLIT.split(chunk)) {
+                    if (!piece.isEmpty()) addChunk(piece, tokens, extra);
+                }
+            } else {
+                addChunk(chunk, tokens, extra);
             }
         }
         // tek harflik seri ("s i k t i r"): 3+ ise birlestir
@@ -310,6 +340,14 @@ public final class ProfanityMatcher {
             if (p.length() < 5) continue;
             String h = whole1.get(ProfanityText.v1(p));
             if (h == null) h = whole2.get(ProfanityText.v2(p));
+            if (h != null) hits.add(h);
+        }
+        // iki sozcuk birlesimi + ek ("amina koydum"): birlesimi, ILK sozcugu asan bir kok (prefix) yakalar
+        for (int k = 0; k + 1 < tokens.size(); k++) {
+            String a = ProfanityText.v1(tokens.get(k));
+            String b = tokens.get(k + 1);
+            if (a.length() < 3 || a.length() > 6 || b.length() > 12) continue;
+            String h = prefixHitBeyond(prefix1, a + ProfanityText.v1(b), a.length());
             if (h != null) hits.add(h);
         }
         if (!phrases.isEmpty()) {
