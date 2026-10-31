@@ -195,7 +195,12 @@ public class AuthController {
 
     @PostMapping("/logout")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void logout(@Valid @RequestBody LogoutRequest r) {
+    public void logout(@Valid @RequestBody LogoutRequest r, HttpServletRequest http) {
+        // Kimliksiz uc (T-060): IP basina genis (kampus NAT'i), ayni jeton icin dar tavan
+        limiter.check("logout:ip:" + clientIp.limitKey(http), 600, Duration.ofHours(1));
+        if (r.refreshToken() != null) {
+            limiter.check("logout:tok:" + edu.bingol.backend.common.Hashing.sha256(r.refreshToken()), 20, Duration.ofHours(1));
+        }
         auth.logout(r.refreshToken(), r.fcmToken());
     }
 

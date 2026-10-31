@@ -25,7 +25,7 @@ class BlockControllerTargetTest {
 
     private final BlockService blocks = mock(BlockService.class);
     private final UserRepository users = mock(UserRepository.class);
-    private final BlockController controller = new BlockController(blocks, users);
+    private final BlockController controller = new BlockController(blocks, users, mock(edu.bingol.backend.common.RateLimiter.class));
 
     @BeforeEach
     void login() {

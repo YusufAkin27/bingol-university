@@ -28,6 +28,8 @@ import org.springframework.web.multipart.MultipartFile;
 public class ProfileController {
 
     static final int DAILY_SEARCH_QUOTA = 500;
+    /** Baska kullanicinin profilini gorme gunluk tavani (T-060). */
+    static final int DAILY_VIEW_QUOTA = 2000;
 
     private final ProfileService profiles;
     private final RateLimiter limiter;
@@ -54,7 +56,9 @@ public class ProfileController {
 
     @PatchMapping("/users/me")
     public ProfileView update(@Valid @RequestBody UpdateProfileRequest r) {
-        return ProfileView.of(profiles.update(CurrentUser.id(), r));
+        Long uid = CurrentUser.id();
+        limiter.check("profile:update:" + uid, 10, Duration.ofHours(1)); // T-060
+        return ProfileView.of(profiles.update(uid, r));
     }
 
     /** multipart alani "file"; jpg/png/webp kabul, 512 px JPEG/PNG'ye yeniden kodlanir (app.media.avatar.*). */
@@ -93,7 +97,11 @@ public class ProfileController {
 
     @GetMapping("/users/{id}")
     public PublicProfile get(@PathVariable Long id) {
-        return profiles.publicProfile(CurrentUser.id(), id);
+        Long uid = CurrentUser.id();
+        // Kimlik taramasi ile kullanici dizini cekmeyi pahalilastirir (arama kotasini atlatmasin; T-060)
+        limiter.check("user-view:user:" + uid, 120, Duration.ofMinutes(1));
+        limiter.check("user-view-day:user:" + uid, DAILY_VIEW_QUOTA, Duration.ofDays(1));
+        return profiles.publicProfile(uid, id);
     }
 
     /** Herkese acik fakulte listesi (yonetici `faculties` ayarindan; bos olabilir). */

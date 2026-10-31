@@ -2,9 +2,11 @@ package edu.bingol.backend.moderation;
 
 import edu.bingol.backend.common.ApiException;
 import edu.bingol.backend.common.CurrentUser;
+import edu.bingol.backend.common.RateLimiter;
 import edu.bingol.backend.common.SlicePaging;
 import edu.bingol.backend.user.User;
 import edu.bingol.backend.user.UserRepository;
+import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -29,16 +31,20 @@ public class BlockController {
 
     private final BlockService blocks;
     private final UserRepository users;
+    private final RateLimiter limiter;
 
-    public BlockController(BlockService blocks, UserRepository users) {
+    public BlockController(BlockService blocks, UserRepository users, RateLimiter limiter) {
         this.blocks = blocks;
         this.users = users;
+        this.limiter = limiter;
     }
 
     @PostMapping("/{id}/block")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void block(@PathVariable Long id) {
         Long me = CurrentUser.id();
+        // Kimlik taramasi (404/204 farki) ve engel-kaldir dongusu icin saatlik tavan (T-060)
+        limiter.check("block:user:" + me, 60, Duration.ofHours(1));
         // Kendini engelleme 400 olarak servis katmaninda kalir; silinmis/askidaki/olmayan hedef 404 (gereksiz satir yok)
         if (!me.equals(id) && users.findById(id).filter(User::isActive).isEmpty()) {
             throw new ApiException(HttpStatus.NOT_FOUND, "USER_NOT_FOUND", "Kullanıcı bulunamadı.");
@@ -49,7 +55,9 @@ public class BlockController {
     @DeleteMapping("/{id}/block")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void unblock(@PathVariable Long id) {
-        blocks.unblock(CurrentUser.id(), id);
+        Long me = CurrentUser.id();
+        limiter.check("block:user:" + me, 60, Duration.ofHours(1));
+        blocks.unblock(me, id);
     }
 
     /** Engellenenler, yeniden eskiye; devam varsa X-Next-Cursor basligi (?cursor=&limit=, en cok 50). */

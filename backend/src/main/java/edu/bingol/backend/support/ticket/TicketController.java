@@ -66,7 +66,9 @@ public class TicketController {
     @PostMapping("/support/tickets/{id}/close")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void close(@PathVariable Long id) {
-        tickets.userClose(CurrentUser.id(), id);
+        Long uid = CurrentUser.id();
+        limiter.check("ticket:close:" + uid, 30, Duration.ofHours(1)); // T-060
+        tickets.userClose(uid, id);
     }
 
     // --- yonetici (JWT ile giren ADMIN; yanit yazari olarak kimligi gerekir) ---

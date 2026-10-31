@@ -31,7 +31,7 @@ public final class LegalDtos {
 
     public record ConsentItem(@NotNull LegalType type, @NotNull Integer version) {}
 
-    public record AcceptRequest(@NotEmpty @Valid List<ConsentItem> items) {}
+    public record AcceptRequest(@NotEmpty @Size(max = 10) @Valid List<ConsentItem> items) {}
 
     public record AcceptanceView(LegalType type, int version, String acceptedAt) {}
 

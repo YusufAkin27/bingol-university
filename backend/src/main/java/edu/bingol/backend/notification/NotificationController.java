@@ -74,7 +74,9 @@ public class NotificationController {
                                  @RequestParam(defaultValue = "20") int size,
                                  @RequestParam(required = false) String type,
                                  @RequestParam(defaultValue = "false") boolean unread) {
-        return inbox.list(CurrentUser.id(), cursor, size, type, unread);
+        Long uid = CurrentUser.id();
+        limiter.check("notif-list:" + uid, 120, MINUTE); // T-060
+        return inbox.list(uid, cursor, size, type, unread);
     }
 
     /** Hafif sayac (rozet icin sik cagrilabilir). */

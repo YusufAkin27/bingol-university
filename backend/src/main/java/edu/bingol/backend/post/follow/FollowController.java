@@ -31,6 +31,7 @@ public class FollowController {
     public FollowResult follow(@PathVariable Long id) {
         Long uid = CurrentUser.id();
         limiter.check("follow:" + uid, 60, Duration.ofMinutes(1));
+        limiter.check("follow-day:" + uid, 500, Duration.ofDays(1)); // toplu takip/bildirim istismari (T-060)
         return service.follow(uid, id);
     }
 

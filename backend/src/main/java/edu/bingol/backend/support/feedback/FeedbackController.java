@@ -70,7 +70,9 @@ public class FeedbackController {
     @DeleteMapping("/suggestions/{id}/vote")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void unvote(@PathVariable Long id) {
-        feedback.unvote(CurrentUser.id(), id);
+        Long uid = CurrentUser.id();
+        limiter.check("vote:user:" + uid, 60, Duration.ofHours(1)); // oy verme ile ayni kova (T-060)
+        feedback.unvote(uid, id);
     }
 
     // --- yonetici ---

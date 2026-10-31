@@ -48,13 +48,17 @@ public class BookmarkController {
     @GetMapping
     public CursorPage<BookmarkView> list(@RequestParam(required = false) Long cursor,
                                          @RequestParam(defaultValue = "20") int size) {
-        return bookmarks.list(CurrentUser.id(), cursor, size);
+        Long uid = CurrentUser.id();
+        limiter.check("bookmark:read:" + uid, 120, Duration.ofMinutes(1)); // T-060
+        return bookmarks.list(uid, cursor, size);
     }
 
     /** Liste ekranlarinda yildiz durumunu isaretlemek icin kayitli haber id'leri (en fazla 1000). */
     @GetMapping("/news/ids")
     public NewsIds ids() {
-        return new NewsIds(bookmarks.newsIds(CurrentUser.id()));
+        Long uid = CurrentUser.id();
+        limiter.check("bookmark:read:" + uid, 120, Duration.ofMinutes(1)); // T-060
+        return new NewsIds(bookmarks.newsIds(uid));
     }
 
     public record NewsIds(List<Long> ids) {}

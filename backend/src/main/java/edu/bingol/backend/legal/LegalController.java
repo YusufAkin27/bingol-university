@@ -2,6 +2,7 @@ package edu.bingol.backend.legal;
 
 import edu.bingol.backend.common.ApiException;
 import edu.bingol.backend.common.CurrentUser;
+import edu.bingol.backend.common.RateLimiter;
 import edu.bingol.backend.i18n.Lang;
 import edu.bingol.backend.legal.LegalDtos.AcceptRequest;
 import edu.bingol.backend.legal.LegalDtos.AcceptanceView;
@@ -10,6 +11,7 @@ import edu.bingol.backend.legal.LegalDtos.LegalSummary;
 import edu.bingol.backend.legal.LegalDtos.PendingConsent;
 import edu.bingol.backend.legal.LegalDtos.PublishRequest;
 import jakarta.validation.Valid;
+import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import org.springframework.context.i18n.LocaleContextHolder;
@@ -32,10 +34,12 @@ public class LegalController {
 
     private final LegalService legal;
     private final boolean enforceReaccept;
+    private final RateLimiter limiter;
 
-    public LegalController(LegalService legal,
+    public LegalController(LegalService legal, RateLimiter limiter,
                            @org.springframework.beans.factory.annotation.Value("${app.legal.enforce-reaccept:false}") boolean enforceReaccept) {
         this.legal = legal;
+        this.limiter = limiter;
         this.enforceReaccept = enforceReaccept;
     }
 
@@ -89,7 +93,9 @@ public class LegalController {
     @PostMapping({"/legal/consents", "/legal/accept"})
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void accept(@Valid @RequestBody AcceptRequest r) {
-        legal.accept(CurrentUser.id(), r.items());
+        Long uid = CurrentUser.id();
+        limiter.check("legal:accept:" + uid, 20, Duration.ofHours(1)); // her kalem DB sorgusu (T-060)
+        legal.accept(uid, r.items());
     }
 
     public record RequiredItem(LegalType type, int version) {}

@@ -1,0 +1,41 @@
+# RateLimitCoverageTest baseline (T-060). Yazma ucu govdesinde limiter yok; limit servis katmaninda uygulaniyor ya da sahibi baska is akisi.
+# Liste yalnizca KUCULUR: yeni uc eklerken controller'da limiter.check cagirin; kapsanan/kalkan uc listeden silinmeli.
+# Format: Sinif#metod (alfabetik).
+AcademicController#markRead
+AcademicController#readAll
+ConversationController#accept
+ConversationController#addMembers
+ConversationController#decline
+ConversationController#delete
+ConversationController#leave
+ConversationController#removeMember
+ConversationController#rename
+EventAdmissionController#accept
+EventAdmissionController#reject
+EventAdmissionController#waitlist
+EventChatController#closed
+EventChatController#join
+EventChatController#leave
+EventChatController#open
+EventController#coverLegacy
+MessageController#read
+MessageController#send
+MessageMediaController#upload
+PollController#close
+PollController#delete
+PollController#update
+PostMediaController#upload
+PublicSupportController#reply
+PublicSupportController#submit
+PublicSupportController#track
+PublicSupportController#verify
+TimetableController#create
+TimetableController#createExam
+TimetableController#createSemester
+TimetableController#delete
+TimetableController#deleteExam
+TimetableController#deleteSemester
+TimetableController#fromOfficial
+TimetableController#update
+TimetableController#updateExam
+TimetableController#updateSemester
