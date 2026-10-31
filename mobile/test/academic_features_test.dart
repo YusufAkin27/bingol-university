@@ -159,15 +159,15 @@ void main() {
       expect(f.courses.length, 2);
       await tester.pumpWidget(buildApp(TimetablePage(session: makeSession(b)), size: kPhoneMedium));
       await settle(tester);
-      expect(find.textContaining('SIRADAK'), findsOneWidget);
-      expect(find.text('1 sa sonra'), findsOneWidget);
-      expect(find.text('Derslik B-204'), findsOneWidget);
+      expect(find.text('Son oturum'), findsOneWidget); // gunun tek dersi
+      expect(find.text('BIL201 · Derslik B-204'), findsOneWidget);
       expect(find.text('Dr. Ayşe Yılmaz'), findsWidgets);
       expect(find.text('2026-2027 Güz'), findsOneWidget);
       // Çarşamba sekmesi
       await tester.tap(find.text('Çar'));
       await tester.pump();
-      expect(find.text('13:00 - 14:50'), findsOneWidget);
+      expect(find.text('13:00'), findsOneWidget);
+      expect(find.text('14:50'), findsOneWidget);
       // Salı: ders yok
       await tester.tap(find.text('Sal'));
       await tester.pump();
@@ -268,7 +268,7 @@ void main() {
       final f = fakeAcademic(b)..addCourse('Fizik', 1, '09:00', '10:50');
       await tester.pumpWidget(buildApp(TimetablePage(session: makeSession(b)), size: kPhoneMedium));
       await settle(tester);
-      await tester.tap(find.text('Fizik').at(1)); // sıradaki ders kartı değil, gün akışındaki kart
+      await tester.tap(find.text('Fizik').first); // gün akışındaki satır
       await settle(tester);
       await tester.tap(find.byTooltip('Dersi sil'));
       await settle(tester);
@@ -333,7 +333,7 @@ void main() {
       await settle(tester);
       expect(find.text('Veri Yapıları Vize'), findsOneWidget);
       expect(find.text('2 gün kaldı'), findsOneWidget);
-      await tester.tap(find.text('Resmi program'));
+      await tester.tap(find.text('Okul programı'));
       await settle(tester);
       expect(find.text('Fizik Final'), findsOneWidget);
       expect(find.textContaining('Profilinde bölüm bilgisi yok'), findsOneWidget);
@@ -375,11 +375,12 @@ void main() {
       fakeAcademic(b);
       await tester.pumpWidget(buildApp(ExamsPage(session: makeSession(b)), size: kPhoneMedium));
       await settle(tester);
-      expect(find.textContaining('Kişisel sınav eklemedin'), findsOneWidget);
+      expect(find.text('Henüz sınav eklemedin.'), findsOneWidget);
       await tester.tap(find.text('Sınav ekle'));
       await settle(tester);
       await tester.enterText(find.byType(TextField).first, 'Quiz 1');
-      await tester.tap(find.text('Sınavı ekle'));
+      await tester.ensureVisible(find.text('Kaydet'));
+      await tester.tap(find.text('Kaydet'));
       await settle(tester);
       expect(find.text('Sınav tarihini seç.'), findsOneWidget); // tarih zorunlu
       await unmount(tester);
@@ -491,7 +492,7 @@ void main() {
       expect(store.value.classLeadMin, 30);
       expect(platform.last.first.at, DateTime.utc(2026, 11, 2, 6, 30)); // 10:00 - 30 dk (Istanbul) = 06:30Z
       // Sinav kartinda yalniz 1 gun onceki yerel anahtar var; 2 saat onceki satir sunucu push'u (anahtar degil).
-      await tester.tap(find.byType(Switch).last);
+      await tester.tap(find.byType(Switch).first); // Sinav hatirlatmasi (1 gun once)
       await settle(tester);
       expect(store.value.examDayBefore, false);
       await unmount(tester);
@@ -504,9 +505,9 @@ void main() {
       await tester.pumpWidget(buildApp(ReminderSettingsPage(session: makeSession(b)), size: kPhoneMedium));
       await settle(tester);
       expect(find.text('1 saat önce'), findsNothing);
-      final row = find.textContaining('2 saat önce');
+      final row = find.text('Sınavdan 2 saat önce (bildirim)');
       await tester.ensureVisible(row.first);
-      expect(row, findsWidgets);
+      expect(row, findsOneWidget);
       // Bu satirda anahtar yok: ders anahtari + 1 gun onceki sinav anahtari = 2 Switch.
       expect(find.byType(Switch), findsNWidgets(2));
       await tester.tap(row.first);

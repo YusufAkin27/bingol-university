@@ -1,3 +1,4 @@
+import 'package:bu_kampus/features/academic/acad_ref_widgets.dart' show AcadDot;
 import 'package:bu_kampus/features/academic/academic_api.dart';
 import 'package:bu_kampus/features/academic/academic_calendar_page.dart';
 import 'package:bu_kampus/features/academic/academic_models.dart';
@@ -149,9 +150,10 @@ void main() {
     final b = _backend();
     await tester.pumpWidget(_app(TimetablePage(session: makeSession(b)), size: kPhoneMedium));
     await settle(tester);
-    expect(find.text('Pzt, bugün'), findsOneWidget); // secili gun hapi
+    expect(find.text('Pzt'), findsOneWidget); // gun seridi (secili gun soft hap)
+    expect(find.text('2'), findsOneWidget); // bugunun tarihi
     expect(find.text(isolateIcs('Takvime aktar (.ics)')), findsOneWidget);
-    expect(find.text('Ders ekle'), findsOneWidget); // yuzen dugme
+    expect(find.byTooltip('Ders ekle'), findsOneWidget); // ust satirdaki "+" 
     await unmount(tester);
   });
 
@@ -160,8 +162,7 @@ void main() {
     final b = _backend();
     await tester.pumpWidget(_app(ExamsPage(session: makeSession(b)), size: kPhoneMedium));
     await settle(tester);
-    expect(find.text('Yaklaşan'), findsOneWidget);
-    expect(find.text('Geçmiş'), findsOneWidget);
+    expect(find.text('Geçmiş'), findsOneWidget); // gecmis bolumu etiketi (yaklasanlar etiketsiz, Stitch v3)
     expect(find.text('Geçti'), findsOneWidget);
     expect(find.text('2 gün kaldı'), findsOneWidget);
     await unmount(tester);
@@ -173,7 +174,7 @@ void main() {
     await tester.pumpWidget(_app(AnnouncementsPage(session: makeSession(b)), size: kPhoneMedium));
     await settle(tester);
     expect(find.text('Sabitlenmiş'), findsWidgets);
-    expect(find.text('Okunmamış'), findsWidgets);
+    expect(find.byType(AcadDot), findsNWidgets(3)); // okunmamis satirlarda `pr` nokta (rozet yok)
     await unmount(tester);
   });
 }

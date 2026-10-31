@@ -287,12 +287,12 @@ void main() {
       return b;
     }
 
-    testWidgets('simdi cizgisi gecmis ve yaklasan dersin arasinda; kod hapi notr', (tester) async {
+    testWidgets('simdi cizgisi gecmis ve yaklasan dersin arasinda', (tester) async {
       useScreen(tester, kPhoneMedium);
       await tester.pumpWidget(p00App(TimetablePage(session: makeSession(be())), lang: 'tr', dark: false, scale: 1, scaffold: false));
       await tester.pump(const Duration(milliseconds: 900));
       expect(find.byType(TtNowLine), findsOneWidget);
-      expect(find.text('Şu an 10:00'), findsOneWidget);
+      expect(find.text('Şimdi · 10:00'), findsOneWidget);
       final yTop = tester.getTopLeft(find.byType(TtNowLine)).dy;
       final slots = find.byType(TtSlotCard);
       expect(slots, findsNWidgets(2));

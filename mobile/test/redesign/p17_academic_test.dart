@@ -107,10 +107,9 @@ void main() {
       addTearDown(tester.view.reset);
       await tester.pumpWidget(p00App(TimetablePage(session: makeSession(_full())), scaffold: false));
       await settle(tester);
-      expect(find.text('Pzt, bugün'), findsOneWidget);
+      expect(find.text('Pzt'), findsOneWidget);
       await tester.tap(find.text('Çar'));
       await settle(tester, const Duration(milliseconds: 600));
-      expect(find.textContaining('Çarşamba'), findsOneWidget);
       expect(find.text('Kimya'), findsWidgets);
       await tester.tap(find.text('Sal'));
       await settle(tester, const Duration(milliseconds: 600));
@@ -147,14 +146,17 @@ void main() {
       addTearDown(tester.view.reset);
       await tester.pumpWidget(p00App(ExamFormPage(session: makeSession(FakeBackend())), scaffold: false));
       await settle(tester);
-      await tester.scrollUntilVisible(find.text('Sınavı ekle'), 300, scrollable: find.byType(Scrollable).first);
-      await tester.tap(find.text('Sınavı ekle'));
+      await tester.scrollUntilVisible(find.text('Kaydet'), 300, scrollable: find.byType(Scrollable).first);
+      await tester.tap(find.text('Kaydet'));
       await settle(tester, const Duration(milliseconds: 500));
-      expect(find.text('Sınav başlığı gerekli.'), findsOneWidget);
+      // Stitch v3: hatalar alanlarin altinda satir ici (ustte hata seridi yok)
+      expect(find.text('Sınav adı gerekli.'), findsOneWidget);
+      expect(find.text('Sınav tarihini seç.'), findsOneWidget);
       await tester.enterText(find.byType(TextField).first, 'Quiz');
-      await tester.scrollUntilVisible(find.text('Sınavı ekle'), 300, scrollable: find.byType(Scrollable).first);
-      await tester.tap(find.text('Sınavı ekle'));
+      await tester.scrollUntilVisible(find.text('Kaydet'), 300, scrollable: find.byType(Scrollable).first);
+      await tester.tap(find.text('Kaydet'));
       await settle(tester, const Duration(milliseconds: 500));
+      expect(find.text('Sınav adı gerekli.'), findsNothing);
       expect(find.text('Sınav tarihini seç.'), findsOneWidget);
       await tester.pumpWidget(const SizedBox.shrink());
       await tester.pump(const Duration(seconds: 1));
@@ -193,11 +195,11 @@ void main() {
       await tester.pumpWidget(p00App(ExamsPage(session: makeSession(_full())), scaffold: false));
       await settle(tester);
       expect(find.text('Veri Yapıları Vize'), findsOneWidget);
-      expect(find.text('Sınav ekle'), findsOneWidget); // yuzen dugme
-      await tester.tap(find.text('Resmi program'));
+      expect(find.byTooltip('Sınav ekle'), findsOneWidget); // basliktaki "+"
+      await tester.tap(find.text('Okul programı'));
       await settle(tester, const Duration(milliseconds: 600));
       expect(find.text('Fizik Final'), findsOneWidget);
-      expect(find.text('Sınav ekle'), findsNothing);
+      expect(find.byTooltip('Sınav ekle'), findsNothing);
       await tester.pumpWidget(const SizedBox.shrink());
       await tester.pump(const Duration(seconds: 1));
     });
@@ -208,7 +210,7 @@ void main() {
       addTearDown(tester.view.reset);
       await tester.pumpWidget(p00App(TimetablePage(session: makeSession(_full())), scaffold: false, disableAnimations: true));
       await settle(tester);
-      expect(find.text('Pzt, bugün'), findsOneWidget);
+      expect(find.text('Pzt'), findsOneWidget);
       expect(tester.takeException(), isNull);
       await tester.pumpWidget(const SizedBox.shrink());
       await tester.pump(const Duration(seconds: 1));
