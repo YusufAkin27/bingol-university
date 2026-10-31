@@ -11,6 +11,7 @@ import '../../widgets/bu.dart';
 import '../clubs/clubs_tab.dart';
 import '../media_crop/media_crop.dart';
 import 'etkinlik2_widgets.dart';
+import '../clubs/clubs_widgets.dart' show ClubPageHeader, ClubsLogo, DashedRRectPainter;
 import 'event_cover.dart';
 import 'event_detail_page.dart';
 import 'event_parts.dart';
@@ -135,7 +136,6 @@ class _EventFormPageState extends State<EventFormPage> {
   List<Map<String, dynamic>>? _clubs; // etkinlik açabileceğim kulüpler (oluşturmada açılışta yüklenir)
   Object? _clubsError;
   bool _clubInstant = true; // seçili kulüpte etkinlik hemen yayınlanır mı
-  String? _clubRole;
   String? _clubLogo;
   bool _submitted = false; // kaydet denendi: alan hataları görünür
   String? _errCode; // sunucu hata kodu (şerit başlığı için)
@@ -549,7 +549,6 @@ class _EventFormPageState extends State<EventFormPage> {
     _clubId = (c['id'] as num?)?.toInt();
     _clubName = c['name'] as String?;
     _clubInstant = eventClubPublishMode(c) == true;
-    _clubRole = c['myRole'] as String?;
     _clubLogo = c['logoUrl'] as String?;
     _error = null;
     _errCode = null;
@@ -582,77 +581,67 @@ class _EventFormPageState extends State<EventFormPage> {
     final t = context.bu;
     final tx = Theme.of(context).textTheme;
     final l = context.l10n;
-    return BuPageScaffold(
-      title: l.eventFormNewTitle,
-      large: false,
-      slivers: [
-        SliverPadding(
-          padding: const EdgeInsetsDirectional.fromSTEB(16, 8, 16, 0),
-          sliver: SliverToBoxAdapter(
-            child: BuCard(
-              padding: const EdgeInsets.fromLTRB(20, 24, 20, 20),
-              radius: 28,
-              child: Column(children: [
-                const BuIllustrationView(BuIllustration.lock, size: 150),
-                const SizedBox(height: 12),
-                Text(l.evcEmptyTitle, textAlign: TextAlign.center, style: tx.headlineSmall!.copyWith(fontWeight: FontWeight.w800, color: t.ink)),
+    // Stitch v3 06: yalnız geri oku; ortada kalın başlık, muted açıklama, tek marka düğmesi. İllüstrasyon/kart yok.
+    return Scaffold(
+      backgroundColor: t.bg,
+      body: Column(children: [
+        const ClubPageHeader(title: ''),
+        Expanded(
+          child: Center(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(56, 0, 56, 40),
+              child: Column(mainAxisSize: MainAxisSize.min, children: [
+                Text(l.evcEmptyTitle, textAlign: TextAlign.center, style: tx.titleLarge!.copyWith(fontWeight: FontWeight.w700, color: t.ink, height: 1.3)),
                 const SizedBox(height: 10),
-                Text(l.evcEmptyBody, textAlign: TextAlign.center, style: tx.bodyMedium!.copyWith(height: 1.5, color: t.mut)),
-                const SizedBox(height: 22),
-                BuButton(label: l.evcBrowseClubs, icon: LucideIcons.compass, onPressed: _browseClubs),
-                const SizedBox(height: 4),
-                BuButton(label: l.p15RefreshPerms, icon: LucideIcons.refreshCw, kind: BuButtonKind.text, onPressed: _loadClubs),
+                Text(l.p51EvClubOnly, textAlign: TextAlign.center, style: tx.bodyMedium!.copyWith(height: 1.5, color: t.mut)),
+                const SizedBox(height: 28),
+                BuButton(label: l.evcBrowseClubs, onPressed: _browseClubs),
+                TextButton(
+                  style: TextButton.styleFrom(foregroundColor: t.pr, minimumSize: const Size(48, 48)),
+                  onPressed: _loadClubs,
+                  child: Text(l.p15RefreshPerms, style: tx.bodyMedium!.copyWith(color: t.pr, fontWeight: FontWeight.w600)),
+                ),
               ]),
             ),
           ),
         ),
-      ],
-    );
-  }
-
-  Widget _label(String s, {String? trailing, bool required = false}) {
-    final t = context.bu;
-    final tx = Theme.of(context).textTheme;
-    return Padding(
-      padding: const EdgeInsetsDirectional.only(start: 4, end: 4, top: 18, bottom: 8),
-      child: Row(children: [
-        Expanded(child: Text(s, style: tx.labelLarge!.copyWith(fontWeight: FontWeight.w700, color: t.mut))),
-        if (trailing != null) Text(trailing, style: tx.labelMedium!.copyWith(color: t.mut)),
-        if (required) Text('*', style: tx.titleMedium!.copyWith(fontWeight: FontWeight.w700, color: t.danger)),
       ]),
     );
   }
 
-  /// Alanın altındaki kırmızı doğrulama satırı (simge + metin).
+  /// Alan etiketi: 13 sp muted/600 (Stitch v3); zorunlu alanlar yıldız yerine hata metniyle anlatılır.
+  Widget _label(String s, {String? trailing}) {
+    final t = context.bu;
+    final tx = Theme.of(context).textTheme;
+    return Padding(
+      padding: const EdgeInsetsDirectional.only(top: 20, bottom: 8),
+      child: Row(children: [
+        Expanded(child: Text(s, style: tx.labelLarge!.copyWith(fontSize: 13, fontWeight: FontWeight.w600, color: t.mut))),
+        if (trailing != null) Text(trailing, style: tx.labelMedium!.copyWith(color: t.mut)),
+      ]),
+    );
+  }
+
+  /// Alanın altındaki doğrulama satırı: simgesiz, `danger` 12.5 sp.
   Widget _fieldError(String text, {Key? key, IconData icon = LucideIcons.info}) {
     final t = context.bu;
     final tx = Theme.of(context).textTheme;
     return Padding(
       key: key,
-      padding: const EdgeInsetsDirectional.only(start: 4, top: 6),
-      child: Semantics(
-        liveRegion: true,
-        child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Padding(
-            padding: const EdgeInsets.only(top: 1),
-            child: ExcludeSemantics(child: Icon(icon, size: 15, color: t.danger)),
-          ),
-          const SizedBox(width: 6),
-          Expanded(child: Text(text, style: tx.labelMedium!.copyWith(fontWeight: FontWeight.w500, color: t.danger))),
-        ]),
-      ),
+      padding: const EdgeInsetsDirectional.only(top: 6),
+      child: Semantics(liveRegion: true, child: Text(text, style: tx.bodySmall!.copyWith(fontWeight: FontWeight.w500, color: t.danger))),
     );
   }
 
-  /// Metin alanı kutusu: beyaz kart, hata varsa kırmızı ton.
+  /// Metin alanı kutusu: beyaz, 1 dp `bdStrong`, 16 dp köşe; hatada 1.5 dp `danger` çerçeve (dolgu beyaz kalır).
   Widget _box({required Widget child, bool error = false, EdgeInsetsGeometry? padding}) {
     final t = context.bu;
     return Container(
       padding: padding ?? const EdgeInsets.symmetric(horizontal: 16),
       decoration: BoxDecoration(
-        color: error ? t.danger.withValues(alpha: .08) : t.sf,
-        borderRadius: BorderRadius.circular(BuRadius.md),
-        border: Border.all(color: error ? t.danger.withValues(alpha: .5) : t.bd),
+        color: t.sf,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: error ? t.danger : t.bdStrong, width: error ? 1.5 : 1),
       ),
       child: child,
     );
@@ -677,7 +666,7 @@ class _EventFormPageState extends State<EventFormPage> {
     );
   }
 
-  /// Sunucu hatası şeridi (kapatılabilir): yetki / kulüp pasif / diğer.
+  /// Sunucu hatası şeridi (kapatılabilir): yetki / kulüp pasif / diğer. Simgesiz, düz renkli not.
   Widget _serverBanner() {
     final t = context.bu;
     final tx = Theme.of(context).textTheme;
@@ -686,34 +675,20 @@ class _EventFormPageState extends State<EventFormPage> {
     final inactive = _errCode == 'COMMUNITY_NOT_ACTIVE';
     final title = forbidden ? l.p15ErrForbiddenTitle : (inactive ? l.p15ErrInactiveTitle : null);
     final danger = !inactive;
-    final fg = danger ? t.danger : t.ink;
     return Semantics(
       container: true,
       liveRegion: true,
       child: Container(
         key: const ValueKey('evc-server-error'),
-        padding: const EdgeInsetsDirectional.fromSTEB(12, 12, 4, 12),
-        decoration: BoxDecoration(
-          color: danger ? t.danger.withValues(alpha: .12) : t.sf,
-          borderRadius: BorderRadius.circular(20),
-          border: danger ? null : Border.all(color: t.bd),
-        ),
-        child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          ExcludeSemantics(
-            child: Container(
-              width: 36,
-              height: 36,
-              decoration: BoxDecoration(color: (danger ? t.danger : t.pr).withValues(alpha: .14), shape: BoxShape.circle),
-              child: Icon(inactive ? LucideIcons.circlePause : LucideIcons.shieldAlert, size: 20, color: danger ? t.danger : t.pr),
-            ),
-          ),
-          const SizedBox(width: 12),
+        padding: const EdgeInsetsDirectional.fromSTEB(16, 8, 4, 8),
+        decoration: BoxDecoration(color: danger ? t.danger.withValues(alpha: .1) : t.warnSoft, borderRadius: BorderRadius.circular(16)),
+        child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
           Expanded(
             child: Padding(
-              padding: const EdgeInsets.only(top: 2),
+              padding: const EdgeInsets.symmetric(vertical: 6),
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                if (title != null) Text(title, style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w700, color: fg)),
-                Text(_error!, style: tx.bodySmall!.copyWith(height: 1.4, color: danger ? t.danger : t.mut)),
+                if (title != null) Text(title, style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w700, color: danger ? t.danger : t.onWarnSoft)),
+                Text(_error!, style: tx.bodySmall!.copyWith(height: 1.4, color: danger ? t.danger : t.onWarnSoft)),
               ]),
             ),
           ),
@@ -741,108 +716,58 @@ class _EventFormPageState extends State<EventFormPage> {
       liveRegion: true,
       child: Container(
         key: const ValueKey('evc-error-summary'),
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(color: t.danger.withValues(alpha: .12), borderRadius: BorderRadius.circular(20)),
-        child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          ExcludeSemantics(
-            child: Container(
-              width: 32,
-              height: 32,
-              decoration: BoxDecoration(color: t.danger, shape: BoxShape.circle),
-              child: Icon(LucideIcons.info, size: 18, color: t.onPr),
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(l.p15ErrBannerTitle('$n'), style: tx.titleMedium!.copyWith(fontWeight: FontWeight.w700, color: t.danger)),
-              const SizedBox(height: 2),
-              Text(l.p15ErrBannerBody, style: tx.bodySmall!.copyWith(height: 1.4, color: t.mut)),
-            ]),
-          ),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: BoxDecoration(color: t.danger.withValues(alpha: .1), borderRadius: BorderRadius.circular(16)),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text(l.p15ErrBannerTitle('$n'), style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w700, color: t.danger)),
+          const SizedBox(height: 2),
+          Text(l.p15ErrBannerBody, style: tx.bodySmall!.copyWith(height: 1.4, color: t.danger)),
         ]),
       ),
     );
   }
 
+  /// "Kulüp" seçici (Stitch v3): beyaz alan, baş harf dairesi + ad + chevron; altında amber/soft not (ikonsuz).
   Widget _clubSection() {
     final t = context.bu;
     final tx = Theme.of(context).textTheme;
     final l = context.l10n;
     final canPick = !_editing && (_clubs?.isNotEmpty ?? false);
     final err = _submitted ? _clubFieldErr : null;
-    final tint = t.tint(_clubId ?? 0);
-    final roleLabel = switch (_clubRole) {
-      'OWNER' || 'ADMIN' => l.clubRoleOwner,
-      'MODERATOR' => l.clubRoleModerator,
-      'MEMBER' => l.profilyardRoleMember,
-      _ => null,
-    };
-    final logo = fileUrl(_clubLogo);
-    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+    return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
       _label(l.evcLabelClub),
       Semantics(
         button: canPick,
         label: '${l.evcLabelClub}: ${_clubName ?? l.etkinlik2ClubSheetTitle}',
         excludeSemantics: true,
         onTap: _busy || !canPick ? null : _chooseClub,
-        child: BuCard(
-          key: const ValueKey('et2-club-field'),
-          radius: 20,
-          color: err != null ? t.danger.withValues(alpha: .08) : null,
-          padding: const EdgeInsets.all(12),
-          onTap: _busy || !canPick ? null : _chooseClub,
-          child: Row(children: [
-            SizedBox(
-              width: 56,
-              height: 56,
-              child: Stack(clipBehavior: Clip.none, children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(BuRadius.md),
-                  child: SizedBox(
-                    width: 56,
-                    height: 56,
-                    child: logo != null
-                        ? BuImage(logo, width: 56, height: 56, placeholderIcon: LucideIcons.users)
-                        : ColoredBox(color: tint.bg, child: Icon(LucideIcons.users, size: 26, color: tint.fg)),
+        child: BuPressable(
+          scale: .99,
+          enabled: canPick && !_busy,
+          child: Material(
+            key: const ValueKey('et2-club-field'),
+            color: t.sf,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16), side: BorderSide(color: err != null ? t.danger : t.bdStrong, width: err != null ? 1.5 : 1)),
+            clipBehavior: Clip.antiAlias,
+            child: InkWell(
+              onTap: _busy || !canPick ? null : _chooseClub,
+              child: Container(
+                constraints: const BoxConstraints(minHeight: 56),
+                padding: const EdgeInsetsDirectional.fromSTEB(12, 8, 16, 8),
+                child: Row(children: [
+                  ClubsLogo(name: _clubName ?? '?', id: _clubId ?? 0, url: _clubLogo, size: 32),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(_clubName ?? l.etkinlik2ClubSheetTitle,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: tx.titleMedium!.copyWith(fontWeight: FontWeight.w600, color: _clubName == null ? t.mut : t.ink)),
                   ),
-                ),
-                if (_clubInstant && _clubId != null)
-                  PositionedDirectional(
-                    end: -4,
-                    bottom: -4,
-                    child: ExcludeSemantics(
-                      child: Container(
-                        width: 22,
-                        height: 22,
-                        decoration: BoxDecoration(color: t.pr, shape: BoxShape.circle, border: Border.all(color: t.sf, width: 2)),
-                        child: Icon(LucideIcons.badgeCheck, size: 12, color: t.onPr),
-                      ),
-                    ),
-                  ),
-              ]),
+                  if (canPick) Icon(buDirIcon(context, LucideIcons.chevronRight), size: 20, color: t.mut),
+                ]),
+              ),
             ),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Row(children: [
-                Flexible(
-                  child: Text(_clubName ?? l.etkinlik2ClubSheetTitle,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: tx.titleMedium!.copyWith(fontWeight: FontWeight.w700, color: err != null ? t.danger : (_clubName == null ? t.mut : t.ink))),
-                ),
-                if (roleLabel != null && !_editing) ...[
-                  const SizedBox(width: 8),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                    decoration: BoxDecoration(color: t.tint(1).bg, borderRadius: BorderRadius.circular(BuRadius.pill)),
-                    child: Text(roleLabel, style: tx.labelSmall!.copyWith(fontWeight: FontWeight.w700, color: t.tint(1).fg)),
-                  ),
-                ],
-              ]),
-            ),
-            if (canPick) Icon(buDirIcon(context, LucideIcons.chevronRight), size: 20, color: t.mut),
-          ]),
+          ),
         ),
       ),
       if (err != null) _fieldError(err),
@@ -850,46 +775,22 @@ class _EventFormPageState extends State<EventFormPage> {
         Container(
           key: const ValueKey('evc-club-info'),
           margin: const EdgeInsets.only(top: 10),
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-          decoration: BoxDecoration(color: _clubInstant ? t.soft : t.warnSoft, borderRadius: BorderRadius.circular(BuRadius.md)),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          decoration: BoxDecoration(color: _clubInstant ? t.soft : t.warnSoft, borderRadius: BorderRadius.circular(16)),
           child: Row(children: [
-            ExcludeSemantics(
-              child: Icon(_clubInstant ? LucideIcons.zap : LucideIcons.clock, size: 16, color: _clubInstant ? t.pr : t.onWarnSoft),
-            ),
-            const SizedBox(width: 8),
-            Flexible(
-              child: Text(_clubInstant ? l.evcInfoInstant : l.evcInfoReview,
-                  style: tx.labelLarge!.copyWith(fontWeight: FontWeight.w700, color: _clubInstant ? t.onSoft : t.onWarnSoft)),
-            ),
-            if (_clubInstant)
-              Flexible(
-                flex: 0,
-                child: Text(' • ${l.p15PublishRoleActive}', maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.labelMedium!.copyWith(color: t.onSoft.withValues(alpha: .8))),
-              ),
+            Flexible(child: Text(_clubInstant ? l.evcInfoInstant : l.evcInfoReview, style: tx.bodyMedium!.copyWith(fontWeight: FontWeight.w500, color: _clubInstant ? t.onSoft : t.onWarnSoft))),
+            if (_clubInstant) Flexible(flex: 0, child: Text(' • ${l.p15PublishRoleActive}', maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.bodySmall!.copyWith(color: t.onSoft.withValues(alpha: .8)))),
           ]),
         ),
     ]);
   }
 
+  /// Bölüm: etiket + içerik (kartsız).
   Widget _section(IconData icon, String title, Widget child) {
-    final t = context.bu;
-    final tx = Theme.of(context).textTheme;
-    return Padding(
-      padding: const EdgeInsets.only(top: 12),
-      child: BuCard(
-        padding: const EdgeInsets.fromLTRB(16, 14, 16, 8),
-        radius: 20,
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Row(children: [
-            ExcludeSemantics(child: Icon(icon, size: 20, color: t.pr)),
-            const SizedBox(width: 8),
-            Expanded(child: Semantics(header: true, child: Text(title, style: tx.titleMedium!.copyWith(fontWeight: FontWeight.w700, color: t.ink)))),
-          ]),
-          const SizedBox(height: 6),
-          child,
-        ]),
-      ),
-    );
+    return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+      Semantics(header: true, child: _label(title)),
+      child,
+    ]);
   }
 
   Widget _dateSection(AppLocalizations l) {
@@ -977,45 +878,27 @@ class _EventFormPageState extends State<EventFormPage> {
     ]);
   }
 
+  /// "Katılım Türü": Herkes katılabilir | İstek ile (segment); altında muted ipucu.
   Widget _policySection(AppLocalizations l) {
     final t = context.bu;
     final tx = Theme.of(context).textTheme;
     final approval = _policy == 'APPROVAL';
-    return Padding(
-      padding: const EdgeInsets.only(top: 12),
-      child: BuCard(
-        padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
-        radius: 20,
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Row(children: [
-            ExcludeSemantics(child: Icon(LucideIcons.userCheck, size: 20, color: t.pr)),
-            const SizedBox(width: 8),
-            Expanded(child: Text(l.etkinlik2SettingsPolicy, style: tx.titleMedium!.copyWith(fontWeight: FontWeight.w700, color: t.ink))),
-          ]),
-          const SizedBox(height: 12),
-          Et2Segment<String>(
-            value: _policy,
-            enabled: !_busy,
-            options: [('OPEN', l.etkinlik2PolicyOpen), ('APPROVAL', l.etkinlik2PolicyApproval)],
-            icons: const [LucideIcons.globe, LucideIcons.shieldCheck],
-            onChanged: (v) => setState(() => _policy = v),
-          ),
-          Padding(
-            padding: const EdgeInsets.only(top: 10),
-            child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Padding(
-                padding: const EdgeInsets.only(top: 1),
-                child: ExcludeSemantics(child: Icon(LucideIcons.info, size: 15, color: t.mut)),
-              ),
-              const SizedBox(width: 8),
-              Expanded(child: Text(approval ? l.etkinlik2PolicyApprovalHint : l.p16PolicyOpenHint, style: tx.bodySmall!.copyWith(height: 1.4, color: t.mut))),
-            ]),
-          ),
-        ]),
+    return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+      _label(l.etkinlik2SettingsPolicy),
+      Et2Segment<String>(
+        value: _policy,
+        enabled: !_busy,
+        options: [('OPEN', l.etkinlik2PolicyOpen), ('APPROVAL', l.etkinlik2PolicyApproval)],
+        onChanged: (v) => setState(() => _policy = v),
       ),
-    );
+      Padding(
+        padding: const EdgeInsets.only(top: 8),
+        child: Text(approval ? l.etkinlik2PolicyApprovalHint : l.p16PolicyOpenHint, style: tx.bodySmall!.copyWith(height: 1.4, color: t.mut)),
+      ),
+    ]);
   }
 
+  /// Kapak: kesik çizgili (1 dp `bdStrong`) 140 dp beyaz alan + "Kapak fotoğrafı ekle"; doluyken 16:9 önizleme.
   Widget _coverSection() {
     final t = context.bu;
     final tx = Theme.of(context).textTheme;
@@ -1023,7 +906,7 @@ class _EventFormPageState extends State<EventFormPage> {
     final Uint8List? bytes = _picked?.bytes;
     final existing = _removeCover ? null : _existingCover;
     final has = bytes != null || existing != null;
-    final radius = BorderRadius.circular(20);
+    final radius = BorderRadius.circular(16);
     if (!has) {
       return Semantics(
         button: true,
@@ -1034,25 +917,15 @@ class _EventFormPageState extends State<EventFormPage> {
           onTap: _busy ? null : _chooseCover,
           haptic: BuHaptic.selection,
           scale: .985,
-          child: Container(
-            width: double.infinity,
-            constraints: const BoxConstraints(minHeight: 170),
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
-            decoration: BoxDecoration(color: t.sf, borderRadius: radius, border: Border.all(color: t.bd)),
-            child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-              ExcludeSemantics(
-                child: Container(
-                  width: 60,
-                  height: 60,
-                  decoration: BoxDecoration(color: t.soft, shape: BoxShape.circle),
-                  child: Icon(LucideIcons.imagePlus, size: 26, color: t.pr),
-                ),
-              ),
-              const SizedBox(height: 12),
-              Text(l.eventFormAddCover, textAlign: TextAlign.center, style: tx.titleMedium!.copyWith(fontWeight: FontWeight.w700, color: t.ink)),
-              const SizedBox(height: 4),
-              Text(l.p15CoverHint, textAlign: TextAlign.center, style: tx.bodySmall!.copyWith(color: t.mut)),
-            ]),
+          child: CustomPaint(
+            foregroundPainter: DashedRRectPainter(color: t.bdStrong, radius: 16),
+            child: Container(
+              width: double.infinity,
+              height: 140,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(color: t.sf, borderRadius: radius),
+              child: Text(l.eventFormAddCover, textAlign: TextAlign.center, style: tx.bodyLarge!.copyWith(color: t.mut)),
+            ),
           ),
         ),
       );
@@ -1087,11 +960,7 @@ class _EventFormPageState extends State<EventFormPage> {
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                         decoration: BoxDecoration(color: t.sf.withValues(alpha: .95), borderRadius: BorderRadius.circular(BuRadius.pill)),
-                        child: Row(mainAxisSize: MainAxisSize.min, children: [
-                          Icon(LucideIcons.camera, size: 16, color: t.pr),
-                          const SizedBox(width: 6),
-                          Text(l.p15CoverChange, style: tx.labelLarge!.copyWith(fontWeight: FontWeight.w700, color: t.ink)),
-                        ]),
+                        child: Text(l.p15CoverChange, style: tx.labelLarge!.copyWith(fontWeight: FontWeight.w700, color: t.ink)),
                       ),
                     ),
                   ),
@@ -1136,50 +1005,40 @@ class _EventFormPageState extends State<EventFormPage> {
     final descErr = _descErr;
     final capErr = _submitted ? _capErr : null;
     final descLen = _desc.text.length;
-    // Uzun form: BuPageScaffold'un sliver grubu alan odağında "görünür kıl"ı iletmediğinden
-    // (klavye açılınca alt alanlar gizlenir) burada düz CustomScrollView + SliverAppBar kullanılır.
     return Scaffold(
       backgroundColor: t.bg,
-      body: CustomScrollView(
-      physics: const AlwaysScrollableScrollPhysics(),
-      keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-      slivers: [
-        SliverAppBar(
-          pinned: true,
-          title: Text(_editing ? l.eventFormEditTitle : l.eventFormNewTitle),
-          backgroundColor: t.bg,
-          scrolledUnderElevation: 0,
-        ),
-        SliverToBoxAdapter(
-          child: Padding(
-            padding: const EdgeInsetsDirectional.fromSTEB(16, 8, 16, 0),
+      body: Column(children: [
+        ClubPageHeader(title: _editing ? l.eventFormEditTitle : l.eventFormNewTitle),
+        Expanded(
+          child: SingleChildScrollView(
+            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+            padding: const EdgeInsetsDirectional.fromSTEB(20, 0, 20, 32),
             child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-            if (_error != null) ...[_serverBanner(), const SizedBox(height: 8)],
-            if (_submitted && errors.isNotEmpty) ...[_errorSummary(errors.length), const SizedBox(height: 4)],
-            _clubSection(),
-            _label(l.p15CoverSheetTitle, trailing: l.p15CoverOptional),
-            _coverSection(),
-            _label(l.eventFormFieldTitle, required: true),
-            _box(
-              error: titleErr != null,
-              child: TextField(
-                key: const ValueKey('evc-title'),
-                controller: _title,
-                maxLength: _titleMax,
-                enabled: !_busy,
-                textCapitalization: TextCapitalization.sentences,
-                style: tx.bodyLarge!.copyWith(color: t.ink),
-                onChanged: (_) => setState(() {}),
-                decoration: _bare(l.eventFormTitleHint),
+              if (_error != null) ...[const SizedBox(height: 8), _serverBanner()],
+              if (_submitted && errors.isNotEmpty) ...[const SizedBox(height: 8), _errorSummary(errors.length)],
+              _clubSection(),
+              _label(l.p15CoverSheetTitle),
+              _coverSection(),
+              _label(l.eventFormFieldTitle),
+              _box(
+                error: titleErr != null,
+                child: TextField(
+                  key: const ValueKey('evc-title'),
+                  controller: _title,
+                  maxLength: _titleMax,
+                  enabled: !_busy,
+                  textCapitalization: TextCapitalization.sentences,
+                  style: tx.bodyLarge!.copyWith(color: t.ink),
+                  onChanged: (_) => setState(() {}),
+                  decoration: _bare(l.eventFormTitleHint),
+                ),
               ),
-            ),
-            if (titleErr != null) _fieldError(titleErr, icon: LucideIcons.triangleAlert),
-            _label(l.eventFormFieldDesc),
-            _box(
-              error: descErr != null,
-              padding: const EdgeInsets.fromLTRB(16, 4, 16, 10),
-              child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-                TextField(
+              if (titleErr != null) _fieldError(titleErr),
+              _label(l.eventFormFieldDesc),
+              _box(
+                error: descErr != null,
+                padding: const EdgeInsets.fromLTRB(16, 4, 16, 4),
+                child: TextField(
                   key: const ValueKey('evc-desc'),
                   controller: _desc,
                   maxLength: _descMax + 200, // aşımda yazılabilir; sayaç kızarır, gönderme kapanır
@@ -1191,100 +1050,79 @@ class _EventFormPageState extends State<EventFormPage> {
                   style: tx.bodyLarge!.copyWith(color: t.ink),
                   decoration: _bare(l.eventFormDescHint),
                 ),
-                Align(
-                  alignment: AlignmentDirectional.centerEnd,
+              ),
+              if (descErr != null) _fieldError(descErr),
+              Align(
+                alignment: AlignmentDirectional.centerEnd,
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 6),
                   child: Text(l.evdDescCounter('$descLen', '$_descMax'),
                       key: const ValueKey('evd-desc-counter'),
-                      style: tx.labelMedium!.copyWith(fontWeight: descErr != null ? FontWeight.w700 : FontWeight.w500, color: descErr != null ? t.danger : t.mut)),
+                      style: tx.bodySmall!.copyWith(fontWeight: descErr != null ? FontWeight.w700 : FontWeight.w400, color: descErr != null ? t.danger : t.mut)),
                 ),
-              ]),
-            ),
-            if (descErr != null) _fieldError(descErr, icon: LucideIcons.listX),
-            _dateSection(l),
-            _label(l.eventFormPlace),
-            _box(
-              child: TextField(
-                key: const ValueKey('evc-place'),
-                controller: _place,
-                focusNode: _placeFocus,
-                maxLines: 1,
-                maxLength: 200,
-                enabled: !_busy,
-                style: tx.bodyLarge!.copyWith(color: t.ink),
-                decoration: _bare(l.eventFormPlaceHint, icon: Icon(LucideIcons.mapPin, size: 20, color: t.pr)),
               ),
-            ),
-            _label(l.eventFormCapacityLabel),
-            _box(
-              error: capErr != null,
-              child: TextField(
-                key: const ValueKey('evc-cap'),
-                controller: _cap,
-                enabled: !_busy,
-                keyboardType: TextInputType.number,
-                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                style: tx.bodyLarge!.copyWith(color: t.ink),
-                onChanged: (_) => setState(() {}),
-                decoration: _bare(l.eventFormCapHint),
-              ),
-            ),
-            if (capErr != null) _fieldError(capErr, icon: LucideIcons.circleMinus),
-            _policySection(l),
-            const SizedBox(height: 12),
-            BuCard(
-              padding: const EdgeInsets.all(16),
-              radius: 20,
-              child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                const Et2IconBox(LucideIcons.messagesSquare, size: 44),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    Text(l.etkinlik2ChatAutoTitle, style: tx.titleMedium!.copyWith(fontWeight: FontWeight.w700, color: t.ink)),
-                    const SizedBox(height: 2),
-                    Text(l.etkinlik2ChatAutoBody, style: tx.bodySmall!.copyWith(height: 1.4, color: t.mut)),
-                  ]),
+              _dateSection(l),
+              _label(l.eventFormPlace),
+              _box(
+                child: TextField(
+                  key: const ValueKey('evc-place'),
+                  controller: _place,
+                  focusNode: _placeFocus,
+                  maxLines: 1,
+                  maxLength: 200,
+                  enabled: !_busy,
+                  style: tx.bodyLarge!.copyWith(color: t.ink),
+                  decoration: _bare(l.eventFormPlaceHint),
                 ),
-              ]),
-            ),
-            if (locked) ...[
-              const SizedBox(height: 12),
-              Container(
-                padding: const EdgeInsets.all(14),
-                decoration: BoxDecoration(color: t.sf2, borderRadius: BorderRadius.circular(BuRadius.md)),
-                child: Row(children: [
-                  ExcludeSemantics(child: Icon(LucideIcons.lightbulb, size: 20, color: t.mut)),
-                  const SizedBox(width: 12),
-                  Expanded(child: Text(l.p15ErrHint, style: tx.bodySmall!.copyWith(height: 1.4, color: t.mut))),
-                ]),
               ),
-            ],
-            const SizedBox(height: 16),
-            BuButton(
-              key: const ValueKey('evc-submit'),
-              label: _editing ? l.eventFormSave : l.eventFormCreate,
-              icon: locked ? LucideIcons.lock : (_editing ? LucideIcons.save : LucideIcons.circlePlus),
-              busy: _busy,
-              onPressed: (_busy || locked) ? null : _save,
-            ),
-            if (locked)
+              _label(l.eventFormCapacityLabel),
+              _box(
+                error: capErr != null,
+                child: TextField(
+                  key: const ValueKey('evc-cap'),
+                  controller: _cap,
+                  enabled: !_busy,
+                  keyboardType: TextInputType.number,
+                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                  style: tx.bodyLarge!.copyWith(color: t.ink),
+                  onChanged: (_) => setState(() {}),
+                  decoration: _bare(l.eventFormCapHint),
+                ),
+              ),
+              if (capErr != null) _fieldError(capErr),
+              _policySection(l),
               Padding(
-                padding: const EdgeInsets.only(top: 10),
-                child: Text(l.p15ErrLocked('${errors.length}'), textAlign: TextAlign.center, style: tx.bodySmall!.copyWith(color: t.mut)),
+                padding: const EdgeInsets.only(top: 16),
+                child: Text('${l.etkinlik2ChatAutoTitle} · ${l.etkinlik2ChatAutoBody}', style: tx.bodySmall!.copyWith(height: 1.4, color: t.mut)),
               ),
-          ]),
+              if (locked)
+                Padding(
+                  padding: const EdgeInsets.only(top: 12),
+                  child: Text(l.p15ErrHint, style: tx.bodySmall!.copyWith(height: 1.4, color: t.mut)),
+                ),
+              const SizedBox(height: 24),
+              BuButton(
+                key: const ValueKey('evc-submit'),
+                label: _editing ? l.eventFormSave : l.eventFormCreate,
+                busy: _busy,
+                onPressed: (_busy || locked) ? null : _save,
+              ),
+              if (locked)
+                Padding(
+                  padding: const EdgeInsets.only(top: 10),
+                  child: Text(l.p15ErrLocked('${errors.length}'), textAlign: TextAlign.center, style: tx.bodySmall!.copyWith(color: t.mut)),
+                ),
+            ]),
           ),
         ),
-        const SliverToBoxAdapter(child: SizedBox(height: 32)),
-      ],
-      ),
+      ]),
     );
   }
 }
 
 enum _ChipTone { neutral, brand, soft }
 
-/// Hızlı seçim çipi. Seçiliyken tek "seçili" stili (BuChip ile aynı): yumuşak zemin + yazı + ince marka çerçevesi + onay.
-/// soft = eylem çipi ("Tarih seç"): çerçeveli nötr, seçili görünümüyle karışmaz. 48 dp dokunma alanı, 36 dp görsel.
+/// Hızlı seçim çipi: ortak [BuChip] (34 dp görünür, 48 dp dokunma; seçili = yumuşak zemin + marka). [tone] eski çağrılar içindir.
 class _Chip extends StatelessWidget {
   const _Chip({required this.label, required this.selected, required this.onTap, this.icon, this.tone = _ChipTone.neutral});
 
@@ -1296,61 +1134,10 @@ class _Chip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final t = context.bu;
-    final tx = Theme.of(context).textTheme;
     final enabled = onTap != null;
-    final Color bg;
-    final Color fg;
-    final Color border;
-    if (tone == _ChipTone.soft) {
-      bg = t.sf;
-      fg = t.ink;
-      border = t.bdStrong;
-    } else if (selected) {
-      bg = t.soft;
-      fg = t.onSoft;
-      border = t.selectedBorder;
-    } else {
-      bg = t.sf2;
-      fg = t.ink;
-      border = t.sf2;
-    }
-    final lead = (selected && tone != _ChipTone.soft) ? LucideIcons.check : icon;
-    return Semantics(
-      button: true,
-      selected: selected,
-      enabled: enabled,
-      label: label,
-      excludeSemantics: true,
-      onTap: onTap,
-      child: BuPressable(
-        onTap: onTap,
-        enabled: enabled,
-        haptic: BuHaptic.selection,
-        scale: .96,
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(minHeight: 48, minWidth: 48),
-          child: Center(
-            widthFactor: 1,
-            child: Container(
-              height: 36,
-              padding: const EdgeInsets.symmetric(horizontal: 14),
-              decoration: BoxDecoration(
-                  color: enabled ? bg : bg.withValues(alpha: .5),
-                  borderRadius: BorderRadius.circular(BuRadius.pill),
-                  border: Border.all(color: border)),
-              child: Row(mainAxisSize: MainAxisSize.min, children: [
-                if (lead != null) ...[Icon(lead, size: 14, color: enabled ? fg : fg.withValues(alpha: .5)), const SizedBox(width: 6)],
-                Flexible(
-                    child: Text(label,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: tx.labelLarge!.copyWith(fontWeight: FontWeight.w700, color: enabled ? fg : t.mut.withValues(alpha: .6)))),
-              ]),
-            ),
-          ),
-        ),
-      ),
+    return Opacity(
+      opacity: enabled ? 1 : .5,
+      child: IgnorePointer(ignoring: !enabled, child: BuChip(label: label, selected: selected, onTap: onTap ?? () {}, icon: tone == _ChipTone.soft ? icon : null)),
     );
   }
 }

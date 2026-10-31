@@ -58,8 +58,9 @@ class Et2Segment<T> extends StatelessWidget {
       constraints: const BoxConstraints(minHeight: 56),
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
-        color: t.sf2,
-        borderRadius: BorderRadius.circular(BuRadius.md),
+        color: t.sf,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: t.bdStrong),
       ),
       child: Stack(children: [
         if (n > 0 && sel >= 0)
@@ -72,11 +73,7 @@ class Et2Segment<T> extends StatelessWidget {
                 widthFactor: 1 / n,
                 heightFactor: 1,
                 child: DecoratedBox(
-                  decoration: BoxDecoration(
-                    color: t.sf,
-                    borderRadius: BorderRadius.circular(BuRadius.md - 4),
-                    boxShadow: [BoxShadow(color: t.shadow.withValues(alpha: .12), blurRadius: 8, offset: const Offset(0, 2))],
-                  ),
+                  decoration: BoxDecoration(color: t.soft, borderRadius: BorderRadius.circular(12)),
                 ),
               ),
             ),
@@ -116,7 +113,7 @@ class Et2Segment<T> extends StatelessWidget {
                           overflow: TextOverflow.ellipsis,
                           style: tx.labelLarge!.copyWith(
                             fontWeight: FontWeight.w700,
-                            color: i == sel ? t.ink : (enabled ? t.mut : t.mut.withValues(alpha: .6)),
+                            color: i == sel ? t.onSoft : (enabled ? t.ink : t.mut.withValues(alpha: .6)),
                           ),
                           child: Text(options[i].$2, maxLines: 2, overflow: TextOverflow.ellipsis, textAlign: TextAlign.center),
                         ),

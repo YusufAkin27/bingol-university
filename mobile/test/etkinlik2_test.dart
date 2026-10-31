@@ -228,15 +228,14 @@ void main() {
     final be = requestsBe();
     await _pump(tester, Etkinlik2RequestsPage(session: makeSession(be), event: _ev(policy: 'APPROVAL', manage: true, capacity: 14)));
     expect(find.byKey(const ValueKey('et2-full-banner')), findsNothing);
-    expect(find.text('Bekleyen istekler'), findsOneWidget);
-    expect(find.text('2'), findsOneWidget); // bekleyen sayısı rozeti
-    expect(find.text('Onaylandı'), findsOneWidget);
-    expect(find.text('Reddedildi'), findsOneWidget);
+    expect(find.text('Bekleyen 2'), findsOneWidget); // sekme + sayı
+    expect(find.text('Onaylanan 1'), findsOneWidget);
+    expect(find.text('Reddedilen 1'), findsOneWidget);
     expect(find.text('5 yer kaldı'), findsOneWidget);
     await tester.tap(find.byKey(const ValueKey('et2-approve-21')));
     await settle(tester, const Duration(milliseconds: 400));
     expect(be.requests, contains('POST /events/5/requests/21/approve'));
-    expect(find.text('1'), findsOneWidget); // kalan bekleyen rozeti
+    expect(find.text('Bekleyen 1'), findsOneWidget); // kalan bekleyen
     await tester.tap(find.byKey(const ValueKey('et2-reject-22')));
     await settle(tester, const Duration(milliseconds: 400));
     expect(be.requests, contains('POST /events/5/requests/22/reject'));
@@ -249,11 +248,10 @@ void main() {
     final be = requestsBe(full: true);
     await _pump(tester, Etkinlik2RequestsPage(session: makeSession(be), event: _ev(policy: 'APPROVAL', manage: true, capacity: 14, going: 14)));
     expect(find.byKey(const ValueKey('et2-full-banner')), findsOneWidget);
-    expect(find.text('Kontenjan yetersiz olduğu için onaylanamaz'), findsWidgets);
     await tester.tap(find.byKey(const ValueKey('et2-approve-21')), warnIfMissed: false);
     await settle(tester, const Duration(milliseconds: 400));
     expect(be.requests.where((r) => r.contains('/approve')), isEmpty);
-    expect(find.text('Bekleyen istekler'), findsOneWidget);
+    expect(find.text('Bekleyen 2'), findsOneWidget);
     _noErr(tester);
     await unmount(tester);
   });
@@ -264,7 +262,7 @@ void main() {
     await _pump(tester, Etkinlik2RequestsPage(session: makeSession(be), event: _ev(policy: 'APPROVAL', manage: true, capacity: 14)));
     await tester.tap(find.byKey(const ValueKey('et2-approve-21')));
     await settle(tester, const Duration(milliseconds: 400));
-    expect(find.text('2'), findsOneWidget); // hâlâ 2 bekleyen
+    expect(find.text('Bekleyen 2'), findsOneWidget); // hâlâ 2 bekleyen
     expect(find.text('Kontenjan dolu.'), findsOneWidget);
     _noErr(tester);
     await unmount(tester);
@@ -316,7 +314,7 @@ void main() {
   testWidgets('yoklama listesi: filtre ve elle yoklama anahtari PUT yapar, hatada geri alinir', (tester) async {
     final be = _be(_ev(manage: true));
     await _pump(tester, Etkinlik2AttendancePage(session: makeSession(be), event: _ev(manage: true)));
-    expect(find.text('2 / 3 kişi geldi'), findsOneWidget);
+    expect(find.text('2 geldi · 1 gelmedi'), findsOneWidget);
     expect(find.text('Can Demir'), findsOneWidget);
     await tester.tap(find.byKey(const ValueKey('et2-filter-absent')));
     await tester.pump();
@@ -325,13 +323,13 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('et2-mark-12')));
     await settle(tester, const Duration(milliseconds: 300));
     expect(be.bodies['PUT /events/5/attendance/12'], {'present': true});
-    expect(find.text('3 / 3 kişi geldi'), findsOneWidget);
+    expect(find.text('3 geldi · 0 gelmedi'), findsOneWidget);
     be.fail('/events/5/attendance/11', status: 500);
     await tester.tap(find.text('Hepsi'));
     await tester.pump();
     await tester.tap(find.byKey(const ValueKey('et2-mark-11')));
     await settle(tester, const Duration(milliseconds: 300));
-    expect(find.text('3 / 3 kişi geldi'), findsOneWidget); // geri alındı: Ayşe hâlâ geldi
+    expect(find.text('3 geldi · 0 gelmedi'), findsOneWidget); // geri alındı: Ayşe hâlâ geldi
     _noErr(tester);
     await unmount(tester);
   });

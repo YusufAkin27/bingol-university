@@ -352,7 +352,7 @@ void main() {
       await tester.pumpWidget(buildApp(EventsPage(session: makeSession(b))));
       await settle(tester, const Duration(seconds: 1));
       expect(find.byType(EventCoverImage), findsNothing);
-      expect(find.byType(EtkinlikDateBlock), findsOneWidget);
+      expect(find.byWidgetPredicate((w) => w.key is ValueKey && '${(w.key as ValueKey).value}'.startsWith('ev-card-')), findsOneWidget);
       await unmount(tester);
     });
 

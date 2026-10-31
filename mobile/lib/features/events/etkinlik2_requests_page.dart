@@ -4,7 +4,7 @@ import '../../core/api.dart';
 import '../../core/locale_controller.dart';
 import '../../core/session.dart';
 import '../../widgets/bu.dart';
-import '../posts/post_models.dart' show postRelativeTime;
+import '../clubs/clubs_widgets.dart' show ClubPageHeader, ClubTextTabs, ClubsLogo;
 import 'etkinlik2_settings_page.dart';
 import 'etkinlik2_widgets.dart';
 import '../../core/academic_catalog.dart';
@@ -151,78 +151,77 @@ class _Etkinlik2RequestsPageState extends State<Etkinlik2RequestsPage> {
     }
   }
 
+  int _tab = 0; // 0 Bekleyen, 1 Onaylanan, 2 Reddedilen
+
   @override
   Widget build(BuildContext context) {
+    final t = context.bu;
     final l = context.l10n;
-    final state = _loading ? BuViewState.loading : BuViewState.ready;
     final showError = _error != null;
+    final approved = _answered.where((a) => a['status'] == 'ACCEPTED').toList();
+    final rejected = _answered.where((a) => a['status'] == 'REJECTED').toList();
+    final list = switch (_tab) { 0 => _pending, 1 => approved, _ => rejected };
     return PopScope<Object?>(
       canPop: false,
       onPopInvokedWithResult: (didPop, _) {
         if (!didPop) Navigator.pop(context, _changed);
       },
-      child: BuStaggerScope(
-        child: BuPageScaffold(
-          title: l.etkinlik2ManageRequests,
-          large: false,
-          state: state,
-          onRefresh: () => _load(silent: true),
-          loading: const _RequestsSkeleton(),
-          bottomInset: 32,
-          slivers: [
-            SliverPadding(
-              padding: const EdgeInsetsDirectional.fromSTEB(16, 8, 16, 0),
-              sliver: SliverList.list(children: [
-                // Kontenjan dolduysa üstteki uyarı kartı sayacın yerini alır (referans).
-                if (!(_full && !showError)) _quotaCard(context),
-                if (showError) ...[
-                  const SizedBox(height: 12),
-                  Et2ErrorRow(
-                    key: const ValueKey('et2-req-error'),
-                    title: l.p16ReqErrTitle,
-                    sub: errorText(_error!),
-                    retryLabel: l.commonRetry,
-                    onRetry: _load,
+      child: Scaffold(
+        backgroundColor: t.bg,
+        body: Column(children: [
+          ClubPageHeader(title: l.p51EvReqTitle),
+          Expanded(
+            child: BuSwapIn(
+              loading: _loading,
+              skeleton: const SingleChildScrollView(primary: false, physics: NeverScrollableScrollPhysics(), child: _RequestsSkeleton()),
+              child: RefreshIndicator(
+                onRefresh: () => _load(silent: true),
+                child: BuStaggerScope(
+                  child: ListView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    padding: const EdgeInsets.only(bottom: 32),
+                    children: [
+                      _quotaLine(context),
+                      const SizedBox(height: 16),
+                      ClubTextTabs(
+                        labels: [
+                          '${l.p51EvTabPending} ${_pending.length}',
+                          '${l.p51EvTabApproved} ${approved.length}',
+                          '${l.p51EvTabRejected} ${rejected.length}',
+                        ],
+                        index: _tab,
+                        hairlineInset: 20,
+                        onChanged: (i) => setState(() => _tab = i),
+                      ),
+                      if (showError)
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+                          child: Et2ErrorRow(
+                            key: const ValueKey('et2-req-error'),
+                            title: l.p16ReqErrTitle,
+                            sub: errorText(_error!),
+                            retryLabel: l.commonRetry,
+                            onRetry: _load,
+                          ),
+                        )
+                      else ...[
+                        if (list.isEmpty) _empty(context),
+                        for (var i = 0; i < list.length; i++)
+                          BuStaggerItem(index: i, child: _tab == 0 ? _pendingRow(context, list[i]) : _answeredRow(context, list[i])),
+                        if (_tab == 0 && _pendingNext != null)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 12),
+                            child: Center(child: BuButton(label: l.eventFormShowMore, kind: BuButtonKind.soft, compact: true, busy: _more, onPressed: _loadMore)),
+                          ),
+                        if (_cap != null) _quotaNote(context),
+                      ],
+                    ],
                   ),
-                ] else ...[
-                  if (_full) _fullBanner(context),
-                  if (_pending.isNotEmpty) Et2SectionTitle(l.p16ReqPendingTitle, count: _pending.length),
-                  if (_pending.isEmpty) _empty(context),
-                ],
-              ]),
-            ),
-            if (!showError && _pending.isNotEmpty)
-              SliverPadding(
-                padding: const EdgeInsetsDirectional.symmetric(horizontal: 16),
-                sliver: SliverList.separated(
-                  itemCount: _pending.length,
-                  separatorBuilder: (_, __) => const SizedBox(height: 12),
-                  itemBuilder: (c, i) => BuStaggerItem(index: i, child: _pendingCard(c, _pending[i])),
                 ),
               ),
-            SliverPadding(
-              padding: const EdgeInsetsDirectional.fromSTEB(16, 0, 16, 0),
-              sliver: SliverList.list(children: [
-                if (!showError && _pendingNext != null) ...[
-                  const SizedBox(height: 12),
-                  Center(
-                    child: BuButton(
-                        label: l.eventFormShowMore, kind: BuButtonKind.soft, compact: true, busy: _more, onPressed: _loadMore),
-                  ),
-                ],
-                if (!showError && _answered.isNotEmpty) ...[
-                  Et2SectionTitle(l.etkinlik2ReqAnsweredHeader, count: _answered.length, soft: false),
-                  BuCard(
-                    padding: EdgeInsets.zero,
-                    child: Column(children: [
-                      for (var i = 0; i < _answered.length; i++) _answeredRow(context, _answered[i], top: i > 0),
-                    ]),
-                  ),
-                ],
-              ]),
             ),
-          ],
-        ),
+          ),
+        ]),
       ),
     );
   }
@@ -246,133 +245,64 @@ class _Etkinlik2RequestsPageState extends State<Etkinlik2RequestsPage> {
     }
   }
 
-  Widget _quotaCard(BuildContext context) {
+  /// "Kontenjan 40 · 31 onaylı" + sağda "9 boş yer" (nokta) ve ince marka çubuğu; sınırsızsa yalnız metin.
+  Widget _quotaLine(BuildContext context) {
     final t = context.bu;
     final tx = Theme.of(context).textTheme;
     final l = context.l10n;
     final cap = _cap;
     final going = _going ?? 0;
-    final caption = Text(l.p16ReqQuotaStatus.toUpperCase(),
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-        style: tx.labelSmall!.copyWith(
-            fontWeight: FontWeight.w600,
-            color: t.mut,
-            letterSpacing: Localizations.localeOf(context).languageCode == 'ar' ? 0 : .6));
-    return BuCard(
-      padding: const EdgeInsets.all(16),
-      radius: 20,
+    if (cap == null) {
+      return Padding(
+        padding: const EdgeInsets.fromLTRB(20, 4, 20, 0),
+        child: Text('${l.etkinlik2Unlimited} · ${l.p51EvQuotaGoing('$going')}', key: const ValueKey('et2-quota'), style: tx.bodyMedium!.copyWith(fontWeight: FontWeight.w600, color: t.mut)),
+      );
+    }
+    final left = (cap - going).clamp(0, cap);
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 4, 20, 0),
       child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
-          cap == null ? const Et2IconBox(LucideIcons.users, size: 40) : Et2IconBox(LucideIcons.armchair, size: 40, tint: t.tint(1)),
-          const SizedBox(width: 12),
+        Row(children: [
           Expanded(
-            child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
-              caption,
-              Text(cap == null ? l.p16ReqUnlimitedTitle : l.etkinlik2ReqSlotsLeft('${(cap - going).clamp(0, cap)}'),
-                  key: const ValueKey('et2-quota'),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: tx.titleLarge!.copyWith(fontWeight: FontWeight.w700, color: t.ink)),
-            ]),
+            child: Directionality(
+              textDirection: Directionality.of(context),
+              child: Text(l.p51EvQuota('$cap', '$going'), key: const ValueKey('et2-quota'), style: tx.bodyMedium!.copyWith(fontWeight: FontWeight.w600, color: t.mut)),
+            ),
           ),
-          const SizedBox(width: 8),
-          if (cap == null)
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              decoration: BoxDecoration(color: t.sf2, borderRadius: BorderRadius.circular(BuRadius.pill)),
-              child: Row(mainAxisSize: MainAxisSize.min, children: [
-                Icon(LucideIcons.infinity, size: 16, color: t.pr),
-                const SizedBox(width: 6),
-                Text(l.etkinlik2Unlimited, style: tx.labelMedium!.copyWith(fontWeight: FontWeight.w700, color: t.ink)),
-              ]),
-            )
-          else
-            Column(crossAxisAlignment: CrossAxisAlignment.end, mainAxisSize: MainAxisSize.min, children: [
-              // Sayı çifti her dilde soldan sağa okunur (Arapçada "9 / 14" ters dizilmesin).
-              Directionality(
-                textDirection: TextDirection.ltr,
-                child: Text('$going / $cap', style: tx.titleMedium!.copyWith(fontWeight: FontWeight.w700, color: t.pr)),
-              ),
-              Text(l.p16ReqRegistered, style: tx.bodySmall!.copyWith(color: t.mut)),
-            ]),
+          ExcludeSemantics(child: Container(width: 8, height: 8, decoration: BoxDecoration(color: left == 0 ? t.danger : t.pr, shape: BoxShape.circle))),
+          const SizedBox(width: 6),
+          Text(l.etkinlik2ReqSlotsLeft('$left'), style: tx.bodySmall!.copyWith(color: t.mut)),
         ]),
-        if (cap != null) ...[
-          const SizedBox(height: 14),
-          Et2Progress(fraction: cap == 0 ? 1 : going / cap, color: t.pr),
-        ],
+        const SizedBox(height: 8),
+        Et2Progress(fraction: cap == 0 ? 1 : going / cap, height: 6),
       ]),
     );
   }
 
-  Widget _fullBanner(BuildContext context) {
+  /// Amber not (ikonsuz): dolunca "Kontenjanı artır" bağlantısıyla.
+  Widget _quotaNote(BuildContext context) {
     final t = context.bu;
     final tx = Theme.of(context).textTheme;
     final l = context.l10n;
-    return Semantics(
-      container: true,
-      liveRegion: true,
-      child: Container(
-        key: const ValueKey('et2-full-banner'),
-        padding: const EdgeInsets.fromLTRB(14, 12, 14, 4),
-        decoration: BoxDecoration(color: t.danger.withValues(alpha: .12), borderRadius: BorderRadius.circular(20)),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Row(children: [
-            ExcludeSemantics(
-              child: Container(
-                width: 28,
-                height: 28,
-                decoration: BoxDecoration(color: t.danger, shape: BoxShape.circle),
-                child: Icon(LucideIcons.info, size: 16, color: t.onPr),
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
+      child: Semantics(
+        container: true,
+        liveRegion: _full,
+        child: Container(
+          key: _full ? const ValueKey('et2-full-banner') : null,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          decoration: BoxDecoration(color: t.warnSoft, borderRadius: BorderRadius.circular(16)),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text(_full ? l.p16ReqFullBody : l.p51EvQuotaNote, style: tx.bodyMedium!.copyWith(height: 1.4, color: t.onWarnSoft, fontWeight: FontWeight.w500)),
+            if (_full)
+              TextButton(
+                style: TextButton.styleFrom(foregroundColor: t.pr, minimumSize: const Size(48, 48), padding: EdgeInsets.zero, alignment: AlignmentDirectional.centerStart),
+                onPressed: _raiseQuota,
+                child: Text(l.p16ReqRaiseQuota, style: tx.bodyLarge!.copyWith(color: t.pr, fontWeight: FontWeight.w700)),
               ),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Text(l.p16ReqFullTitle,
-                  maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.titleMedium!.copyWith(fontWeight: FontWeight.w700, color: t.danger)),
-            ),
-            const SizedBox(width: 8),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
-              decoration: BoxDecoration(color: t.danger, borderRadius: BorderRadius.circular(BuRadius.pill)),
-              child: Directionality(
-                textDirection: TextDirection.ltr,
-                child: Text(l.p16ReqFullPeople('${_going ?? 0}', '${_cap ?? 0}'),
-                    style: tx.labelSmall!.copyWith(fontWeight: FontWeight.w700, color: t.onPr)),
-              ),
-            ),
           ]),
-          const SizedBox(height: 6),
-          Padding(
-            padding: const EdgeInsetsDirectional.only(start: 38),
-            child: Text(l.p16ReqFullBody, style: tx.bodyMedium!.copyWith(height: 1.4, color: t.ink)),
-          ),
-          Align(
-            alignment: AlignmentDirectional.centerStart,
-            child: Padding(
-              padding: const EdgeInsetsDirectional.only(start: 28),
-              child: Semantics(
-                button: true,
-                label: l.p16ReqRaiseQuota,
-                excludeSemantics: true,
-                onTap: _raiseQuota,
-                child: BuPressable(
-                  onTap: _raiseQuota,
-                  haptic: BuHaptic.selection,
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(minHeight: 48, minWidth: 48),
-                    child: Row(mainAxisSize: MainAxisSize.min, children: [
-                      const SizedBox(width: 10),
-                      Text(l.p16ReqRaiseQuota, style: tx.labelLarge!.copyWith(fontWeight: FontWeight.w700, color: t.danger)),
-                      const SizedBox(width: 6),
-                      Icon(buDirIcon(context, LucideIcons.arrowRight), size: 16, color: t.danger),
-                    ]),
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ]),
+        ),
       ),
     );
   }
@@ -382,26 +312,29 @@ class _Etkinlik2RequestsPageState extends State<Etkinlik2RequestsPage> {
     final t = context.bu;
     final tx = Theme.of(context).textTheme;
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 36, 16, 0),
-      child: Column(children: [
-        const BuIllustrationView(BuIllustration.check, size: 140),
-        const SizedBox(height: 12),
-        Text(l.etkinlik2ReqNone, textAlign: TextAlign.center, style: tx.titleLarge!.copyWith(fontWeight: FontWeight.w700, color: t.ink)),
-        const SizedBox(height: 6),
-        Text(l.p16ReqEmptyBody, textAlign: TextAlign.center, style: tx.bodyMedium!.copyWith(height: 1.45, color: t.mut)),
-        const SizedBox(height: 20),
-        Et2GreyButton(
+      padding: const EdgeInsets.fromLTRB(20, 24, 20, 0),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Text(l.etkinlik2ReqNone, style: tx.titleMedium!.copyWith(fontSize: 17, fontWeight: FontWeight.w600, color: t.ink)),
+        const SizedBox(height: 4),
+        Text(l.p16ReqEmptyBody, style: tx.bodyMedium!.copyWith(height: 1.45, color: t.mut)),
+        TextButton(
           key: const ValueKey('et2-req-back'),
-          label: l.p16ReqBackToEvent,
-          icon: buDirIcon(context, LucideIcons.arrowLeft),
-          compact: true,
+          style: TextButton.styleFrom(foregroundColor: t.pr, minimumSize: const Size(48, 48), padding: EdgeInsets.zero),
           onPressed: () => Navigator.pop(context, _changed),
+          child: Text(l.p16ReqBackToEvent, style: tx.bodyLarge!.copyWith(color: t.pr, fontWeight: FontWeight.w600)),
         ),
       ]),
     );
   }
 
-  Widget _pendingCard(BuildContext context, Map<String, dynamic> a) {
+  String _depClass(Map<String, dynamic> a) {
+    final dep = context.departmentName((a['department'] as String?) ?? '', faculty: a['faculty'] as String?);
+    final y = (a['classYear'] as num?)?.toInt();
+    return [if (dep.isNotEmpty) dep, if (y != null && y > 0) context.l10n.profileGradeYear('$y')].join(' · ');
+  }
+
+  /// Bekleyen başvuru satırı (kartsız): baş harf dairesi, ad, muted bölüm · sınıf (tek satır), sağda muted "Reddet" + marka "Onayla".
+  Widget _pendingRow(BuildContext context, Map<String, dynamic> a) {
     final t = context.bu;
     final tx = Theme.of(context).textTheme;
     final l = context.l10n;
@@ -409,255 +342,116 @@ class _Etkinlik2RequestsPageState extends State<Etkinlik2RequestsPage> {
     final uid = _uid(a);
     final busy = _busy.contains(uid);
     final note = (a['note'] as String?)?.trim() ?? '';
-    final dep = context.departmentName((a['department'] as String?) ?? '', faculty: a['faculty'] as String?);
-    final email = (a['email'] as String?) ?? '';
-    final ago = postRelativeTime(context, (a['createdAt'] ?? a['appliedAt'] ?? a['requestedAt']) as String?);
+    final sub = _depClass(a);
     final full = _full;
-    return BuCard(
-      key: ValueKey('et2-req-$uid'),
-      padding: const EdgeInsets.all(16),
-      radius: 20,
-      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Et2Initials(name: name, url: fileUrl(a['avatarUrl'] as String?), size: 48, seed: uid),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
-              Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Expanded(
-                  child: Text(name,
-                      maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.titleMedium!.copyWith(fontWeight: FontWeight.w700, color: t.ink)),
+    Widget action(Key key, String label, String sem, Color color, VoidCallback? onTap) => Semantics(
+          button: true,
+          enabled: onTap != null,
+          label: sem,
+          excludeSemantics: true,
+          onTap: onTap,
+          child: BuPressable(
+            key: key,
+            onTap: onTap,
+            haptic: BuHaptic.selection,
+            enabled: onTap != null,
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(minHeight: 48, minWidth: 48),
+              child: Center(
+                widthFactor: 1,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  child: Text(label, style: tx.bodyMedium!.copyWith(fontWeight: FontWeight.w600, color: onTap == null ? color.withValues(alpha: .4) : color)),
                 ),
-                if (ago.isNotEmpty) ...[
-                  const SizedBox(width: 8),
-                  Text(ago, style: tx.labelSmall!.copyWith(color: t.mut)),
-                ],
-              ]),
-              if (dep.isNotEmpty) Text(dep, maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.bodySmall!.copyWith(color: t.mut)),
-              if (email.isNotEmpty)
+              ),
+            ),
+          ),
+        );
+    return Container(
+      key: ValueKey('et2-req-$uid'),
+      margin: const EdgeInsets.symmetric(horizontal: 20),
+      padding: const EdgeInsetsDirectional.fromSTEB(0, 8, 0, 8),
+      decoration: BoxDecoration(border: Border(bottom: BorderSide(color: t.bd))),
+      child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
+        ClubsLogo(name: name, id: uid, url: fileUrl(a['avatarUrl'] as String?), size: 40),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 6),
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
+              Text(name, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.titleMedium!.copyWith(fontWeight: FontWeight.w500, color: t.ink)),
+              if (sub.isNotEmpty) Text(sub, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.bodySmall!.copyWith(color: t.mut, fontSize: 13)),
+              if (note.isNotEmpty)
                 Padding(
                   padding: const EdgeInsets.only(top: 2),
-                  child: Row(children: [
-                    ExcludeSemantics(child: Icon(LucideIcons.mail, size: 13, color: t.mut)),
-                    const SizedBox(width: 5),
-                    Expanded(child: Text(email, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.bodySmall!.copyWith(color: t.mut))),
-                  ]),
+                  child: Text('"$note"', maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.bodySmall!.copyWith(color: t.mut, fontStyle: FontStyle.italic)),
                 ),
             ]),
           ),
-        ]),
-        if (note.isNotEmpty) ...[
-          const SizedBox(height: 12),
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(color: t.sf2, borderRadius: BorderRadius.circular(BuRadius.sm)),
-            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Row(children: [
-                ExcludeSemantics(child: Icon(LucideIcons.messageSquare, size: 13, color: t.mut)),
-                const SizedBox(width: 6),
-                Expanded(
-                  child: Text(l.p16ReqNoteLabel,
-                      maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.labelSmall!.copyWith(fontWeight: FontWeight.w600, color: t.mut)),
-                ),
-              ]),
-              const SizedBox(height: 4),
-              Text('"$note"', style: tx.bodyMedium!.copyWith(color: t.ink, height: 1.4)),
-            ]),
-          ),
-        ],
-        const SizedBox(height: 12),
-        Row(children: [
-          Expanded(
-            child: _DecisionButton(
-              key: ValueKey('et2-reject-$uid'),
-              label: l.etkinlik2Reject,
-              sem: l.etkinlik2RejectSem(name),
-              icon: LucideIcons.x,
-              primary: false,
-              onTap: busy ? null : () => _decide(a, false),
-            ),
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: _DecisionButton(
-              key: ValueKey('et2-approve-$uid'),
-              label: l.etkinlik2Approve,
-              sem: l.etkinlik2ApproveSem(name),
-              icon: LucideIcons.check,
-              primary: true,
-              busy: busy,
-              onTap: (busy || full) ? null : () => _decide(a, true),
-            ),
-          ),
-        ]),
-        if (full)
-          Padding(
-            padding: const EdgeInsets.only(top: 8),
-            child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-              ExcludeSemantics(child: Icon(LucideIcons.lock, size: 13, color: t.danger)),
-              const SizedBox(width: 6),
-              Flexible(
-                child: Text(l.p16ReqCantApprove,
-                    textAlign: TextAlign.center, style: tx.labelSmall!.copyWith(fontWeight: FontWeight.w600, color: t.danger)),
-              ),
-            ]),
-          ),
+        ),
+        action(ValueKey('et2-reject-$uid'), l.etkinlik2Reject, l.etkinlik2RejectSem(name), t.mut, busy ? null : () => _decide(a, false)),
+        action(ValueKey('et2-approve-$uid'), l.etkinlik2Approve, l.etkinlik2ApproveSem(name), t.pr, (busy || full) ? null : () => _decide(a, true)),
       ]),
     );
   }
 
-  Widget _answeredRow(BuildContext context, Map<String, dynamic> a, {required bool top}) {
+  Widget _answeredRow(BuildContext context, Map<String, dynamic> a) {
     final t = context.bu;
     final tx = Theme.of(context).textTheme;
     final l = context.l10n;
     final ok = a['status'] == 'ACCEPTED';
     final name = '${a['displayName'] ?? ''}';
-    final dep = context.departmentName((a['department'] as String?) ?? '', faculty: a['faculty'] as String?);
+    final sub = _depClass(a);
     return Container(
-      constraints: const BoxConstraints(minHeight: 72),
-      decoration: BoxDecoration(border: top ? Border(top: BorderSide(color: t.bd)) : null),
-      padding: const EdgeInsetsDirectional.fromSTEB(16, 12, 16, 12),
+      constraints: const BoxConstraints(minHeight: 64),
+      margin: const EdgeInsets.symmetric(horizontal: 20),
+      decoration: BoxDecoration(border: Border(bottom: BorderSide(color: t.bd))),
+      padding: const EdgeInsetsDirectional.fromSTEB(0, 12, 0, 12),
       child: Row(children: [
-        Et2Initials(name: name, url: fileUrl(a['avatarUrl'] as String?), size: 44, seed: _uid(a) + 1),
+        ClubsLogo(name: name, id: _uid(a), url: fileUrl(a['avatarUrl'] as String?), size: 40),
         const SizedBox(width: 12),
         Expanded(
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
-            Text(name, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w700, color: t.ink)),
-            if (dep.isNotEmpty) Text(dep, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.bodySmall!.copyWith(color: t.mut)),
+            Text(name, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.titleMedium!.copyWith(fontWeight: FontWeight.w500, color: t.ink)),
+            if (sub.isNotEmpty) Text(sub, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.bodySmall!.copyWith(color: t.mut, fontSize: 13)),
           ]),
         ),
         const SizedBox(width: 8),
-        ok
-            ? Et2Tag(l.etkinlik2ApprovedTag, dark: true, icon: LucideIcons.circleCheck)
-            : Et2Tag(l.etkinlik2RejectedTag, danger: true, icon: LucideIcons.circleX),
+        Text(ok ? l.etkinlik2ApprovedTag : l.etkinlik2RejectedTag, style: tx.bodySmall!.copyWith(fontSize: 13, fontWeight: FontWeight.w600, color: ok ? t.ok : t.danger)),
       ]),
     );
   }
 }
 
-/// Onayla / Reddet düğmesi: 48 dp; birincil dolu (marka), ikincil sönük dolu. [onTap] null ise (kontenjan dolu) soluk.
-class _DecisionButton extends StatelessWidget {
-  const _DecisionButton({
-    super.key,
-    required this.label,
-    required this.sem,
-    required this.icon,
-    required this.primary,
-    required this.onTap,
-    this.busy = false,
-  });
-
-  final String label;
-  final String sem;
-  final IconData icon;
-  final bool primary;
-  final bool busy;
-  final VoidCallback? onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = context.bu;
-    final tx = Theme.of(context).textTheme;
-    final off = onTap == null && !busy;
-    final bg = primary ? (off ? t.pr.withValues(alpha: .16) : t.pr) : t.sf2;
-    final fg = primary ? (off ? t.mut.withValues(alpha: .7) : t.onPr) : t.ink;
-    final radius = BorderRadius.circular(BuRadius.md);
-    return Semantics(
-      button: true,
-      enabled: onTap != null,
-      label: sem,
-      excludeSemantics: true,
-      onTap: onTap,
-      child: BuPressable(
-        scale: .97,
-        enabled: onTap != null,
-        child: Material(
-          color: bg,
-          shape: RoundedRectangleBorder(borderRadius: radius),
-          child: InkWell(
-            borderRadius: radius,
-            onTap: onTap == null
-                ? null
-                : () {
-                    buHaptic(primary ? BuHaptic.medium : BuHaptic.selection);
-                    onTap!();
-                  },
-            child: Container(
-              constraints: const BoxConstraints(minHeight: 48),
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-              child: Row(mainAxisAlignment: MainAxisAlignment.center, mainAxisSize: MainAxisSize.min, children: [
-                if (busy)
-                  SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: fg))
-                else
-                  Icon(icon, size: 18, color: fg),
-                const SizedBox(width: 6),
-                Flexible(
-                  child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.labelLarge!.copyWith(fontWeight: FontWeight.w700, color: fg)),
-                ),
-              ]),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// İstekler sayfası iskeleti: kontenjan kartı + iki başvuru kartı.
+/// İstekler sayfası iskeleti: kontenjan satırı + satır iskeletleri.
 class _RequestsSkeleton extends StatelessWidget {
   const _RequestsSkeleton();
 
   @override
   Widget build(BuildContext context) {
-    final t = context.bu;
-    Widget card(Widget child) => Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(color: t.sf, borderRadius: BorderRadius.circular(20), border: Border.all(color: t.bd)),
-          child: child,
-        );
     return BuSkeletonScope(
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+        padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
         child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-          card(const Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-            Row(children: [
-              BuSkeleton(width: 40, height: 40, radius: 12),
-              SizedBox(width: 12),
-              Expanded(
-                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  BuSkeleton.line(width: 90, height: 10),
-                  SizedBox(height: 8),
-                  BuSkeleton.line(width: 130, height: 18),
-                ]),
-              ),
-              BuSkeleton.line(width: 56, height: 18),
-            ]),
-            SizedBox(height: 16),
-            BuSkeleton(height: 8, radius: 4),
-          ])),
-          const SizedBox(height: 28),
-          for (var i = 0; i < 2; i++) ...[
-            card(const Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-              Row(children: [
-                BuSkeleton(width: 48, height: 48, radius: 16),
+          const BuSkeleton.line(width: 180, height: 14),
+          const SizedBox(height: 10),
+          const BuSkeleton(height: 6, radius: 3),
+          const SizedBox(height: 32),
+          for (var i = 0; i < 3; i++)
+            const Padding(
+              padding: EdgeInsets.only(bottom: 20),
+              child: Row(children: [
+                BuSkeleton.circle(40),
                 SizedBox(width: 12),
                 Expanded(
                   child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                     BuSkeleton.line(width: 130),
                     SizedBox(height: 8),
-                    BuSkeleton.line(width: 180),
+                    BuSkeleton.line(width: 180, height: 10),
                   ]),
                 ),
               ]),
-              SizedBox(height: 14),
-              Row(children: [
-                Expanded(child: BuSkeleton(height: 48, radius: 16)),
-                SizedBox(width: 10),
-                Expanded(child: BuSkeleton(height: 48, radius: 16)),
-              ]),
-            ])),
-            const SizedBox(height: 12),
-          ],
+            ),
         ]),
       ),
     );

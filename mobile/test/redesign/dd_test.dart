@@ -106,7 +106,7 @@ void main() {
     addTearDown(tester.view.reset);
     await tester.pumpWidget(p00App(EventDetailPage(session: makeSession(_eventBe()), eventId: 5), lang: 'tr', dark: false, scale: 1, scaffold: false));
     await tester.pump(const Duration(milliseconds: 900));
-    expect(find.byType(CalmCover), findsOneWidget);
+    expect(find.text('MK'), findsOneWidget); // duz kapak: silik baş harf filigranı (Müzik Kulübü)
   });
 
   testWidgets('oneri oy dugmesi dikey: sayi gorunur, dokununca tetiklenir, 48 dp alt sinir', (tester) async {

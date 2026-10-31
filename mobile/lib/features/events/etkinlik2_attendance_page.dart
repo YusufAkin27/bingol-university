@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../core/locale_controller.dart';
 import '../../core/session.dart';
 import '../../widgets/bu.dart';
+import '../clubs/clubs_widgets.dart' show ClubPageHeader, ClubsLogo;
 import 'etkinlik2_qr_page.dart';
 import 'etkinlik2_widgets.dart';
 import '../../core/academic_catalog.dart';
@@ -130,228 +131,141 @@ class _Etkinlik2AttendancePageState extends State<Etkinlik2AttendancePage> {
   Widget build(BuildContext context) {
     final l = context.l10n;
     final t = context.bu;
-    final hasData = _rows.isNotEmpty;
-    final state = _loading
-        ? BuViewState.loading
-        : (_error == null && !hasData)
-            ? BuViewState.empty
-            : BuViewState.ready;
-    final shown = _shown;
-    return BuStaggerScope(
-      child: BuPageScaffold(
-        title: l.p16AttTitle,
-        large: false,
-        state: state,
-        onRefresh: () => _load(silent: true),
-        loading: const _AttendanceSkeleton(),
-        empty: BuEmptyState(
-          illustration: BuIllustration.club,
-          title: l.etkinlik2AttendanceEmpty,
-          message: l.p16AttEmptyBody,
-        ),
-        bottomInset: 24,
-        bottomBar: state == BuViewState.loading
-            ? null
-            : DecoratedBox(
-                decoration: BoxDecoration(color: t.bg),
-                child: SafeArea(
-                  top: false,
-                  child: Padding(
-                    padding: const EdgeInsetsDirectional.fromSTEB(16, 8, 16, 12),
-                    child: BuButton(
-                      key: const ValueKey('et2-show-qr'),
-                      label: l.etkinlik2ShowQrSem,
-                      icon: LucideIcons.qrCode,
-                      onPressed: _showQr,
-                    ),
-                  ),
-                ),
-              ),
-        slivers: [
-          SliverPadding(
-            padding: const EdgeInsetsDirectional.fromSTEB(16, 8, 16, 0),
-            sliver: SliverList.list(children: [
-              if (hasData) _summary(context),
-              if (_error != null) ...[
-                if (hasData) const SizedBox(height: 12),
-                Et2ErrorRow(
-                  key: const ValueKey('et2-att-error'),
-                  title: l.etkinlik2MarkFailed,
-                  sub: errorText(_error!),
-                  retryLabel: l.commonRetry,
-                  onRetry: _load,
-                ),
-              ],
-              if (hasData) ...[
-                const SizedBox(height: 14),
-                _filters(context),
-                const SizedBox(height: 14),
-              ],
-            ]),
-          ),
-          if (hasData && shown.isEmpty)
-            SliverPadding(
-              padding: const EdgeInsetsDirectional.symmetric(horizontal: 16),
-              sliver: SliverToBoxAdapter(
-                child: BuCard(
-                  padding: const EdgeInsets.symmetric(vertical: 8),
-                  radius: 20,
-                  child: BuEmptyState(
-                    compact: true,
-                    illustration: BuIllustration.search,
-                    title: l.etkinlik2AttendanceEmpty,
-                    message: l.p16AttFilterEmptyBody,
-                  ),
-                ),
-              ),
-            )
-          else if (hasData)
-            SliverPadding(
-              padding: const EdgeInsetsDirectional.symmetric(horizontal: 16),
-              sliver: SliverList.separated(
-                itemCount: shown.length,
-                separatorBuilder: (_, __) => const SizedBox(height: 8),
-                itemBuilder: (c, i) => BuStaggerItem(index: i, child: _row(c, shown[i])),
-              ),
-            ),
-        ],
-      ),
-    );
-  }
-
-  Widget _summary(BuildContext context) {
-    final t = context.bu;
     final tx = Theme.of(context).textTheme;
-    final l = context.l10n;
+    final hasData = _rows.isNotEmpty;
+    final shown = _shown;
     final total = _rows.length;
     final present = _rows.where((r) => r['present'] == true).length;
-    final frac = total == 0 ? 0.0 : present / total;
-    Widget stat(String label, int n, Color dot) => Expanded(
-          child: Container(
-            constraints: const BoxConstraints(minHeight: 44),
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            decoration: BoxDecoration(color: t.sf2, borderRadius: BorderRadius.circular(BuRadius.sm)),
+    final Widget body;
+    if (_error != null && !hasData) {
+      body = Padding(
+        padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+        child: Et2ErrorRow(key: const ValueKey('et2-att-error'), title: l.etkinlik2MarkFailed, sub: errorText(_error!), retryLabel: l.commonRetry, onRetry: _load),
+      );
+    } else if (!hasData) {
+      body = Padding(
+        key: const ValueKey('et2-att-empty'),
+        padding: const EdgeInsets.fromLTRB(20, 24, 20, 0),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text(l.etkinlik2AttendanceEmpty, style: tx.titleMedium!.copyWith(fontSize: 17, fontWeight: FontWeight.w600, color: t.ink)),
+          const SizedBox(height: 4),
+          Text(l.p16AttEmptyBody, style: tx.bodyMedium!.copyWith(color: t.mut, height: 1.4)),
+        ]),
+      );
+    } else {
+      body = BuStaggerScope(
+        child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 4, 20, 0),
             child: Row(children: [
-              ExcludeSemantics(child: Container(width: 8, height: 8, decoration: BoxDecoration(color: dot, shape: BoxShape.circle))),
-              const SizedBox(width: 8),
-              Expanded(child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.labelMedium!.copyWith(color: t.mut))),
-              const SizedBox(width: 6),
-              Text('$n', style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w800, color: t.ink)),
+              Expanded(
+                child: Text(l.p51EvPresentAbsent('$present', '${total - present}'),
+                    key: const ValueKey('et2-att-summary'), style: tx.bodyMedium!.copyWith(fontWeight: FontWeight.w600, color: t.mut)),
+              ),
+              Text(l.p51EvTotalPeople('$total'), style: tx.bodySmall!.copyWith(color: t.mut)),
             ]),
           ),
-        );
-    return BuCard(
-      padding: const EdgeInsets.all(16),
-      radius: 20,
-      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        Row(children: [
-          const Et2IconBox(LucideIcons.userCheck, size: 44),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(l.etkinlik2PresentOf('$present', '$total'),
-                key: const ValueKey('et2-att-summary'),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: tx.titleLarge!.copyWith(fontWeight: FontWeight.w700, color: t.ink)),
+          if (_error != null)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
+              child: Et2ErrorRow(key: const ValueKey('et2-att-error'), title: l.etkinlik2MarkFailed, sub: errorText(_error!), retryLabel: l.commonRetry, onRetry: _load),
+            ),
+          _filters(context),
+          if (shown.isEmpty)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+              child: Text(l.p16AttFilterEmptyBody, style: tx.bodyMedium!.copyWith(color: t.mut, height: 1.4)),
+            ),
+          for (var i = 0; i < shown.length; i++) BuStaggerItem(index: i, child: _row(context, shown[i])),
+          Align(
+            alignment: AlignmentDirectional.centerStart,
+            child: Padding(
+              padding: const EdgeInsetsDirectional.only(start: 12, top: 8),
+              child: TextButton(
+                key: const ValueKey('et2-show-qr'),
+                style: TextButton.styleFrom(foregroundColor: t.pr, minimumSize: const Size(48, 48)),
+                onPressed: _showQr,
+                child: Text(l.etkinlik2ShowQrSem, style: tx.bodyLarge!.copyWith(color: t.pr, fontWeight: FontWeight.w600)),
+              ),
+            ),
           ),
         ]),
-        const SizedBox(height: 14),
-        Et2Progress(fraction: frac, height: 8),
-        const SizedBox(height: 14),
-        Row(children: [
-          stat(l.etkinlik2FilterPresent, present, t.pr),
-          const SizedBox(width: 10),
-          stat(l.etkinlik2FilterAbsent, total - present, t.pr.withValues(alpha: .3)),
-        ]),
+      );
+    }
+    return Scaffold(
+      backgroundColor: t.bg,
+      body: Column(children: [
+        ClubPageHeader(title: l.etkinlik2AttendanceLabel),
+        Expanded(
+          child: BuSwapIn(
+            loading: _loading,
+            skeleton: const SingleChildScrollView(primary: false, physics: NeverScrollableScrollPhysics(), child: _AttendanceSkeleton()),
+            child: RefreshIndicator(
+              onRefresh: () => _load(silent: true),
+              child: ListView(physics: const AlwaysScrollableScrollPhysics(), padding: const EdgeInsets.only(bottom: 32), children: [body]),
+            ),
+          ),
+        ),
       ]),
     );
   }
 
-  /// Süzgeç çipleri: seçili olan koyu mürekkep dolgulu hap, yanında sayı.
+  /// Süzgeç çipleri (Hepsi | Geldi | Gelmedi): ortak çip biçimi, yatay kayar.
   Widget _filters(BuildContext context) {
     final l = context.l10n;
-    final total = _rows.length;
-    final present = _rows.where((r) => r['present'] == true).length;
-    final items = <(_Filter, String, int, String)>[
-      (_Filter.all, l.etkinlik2FilterAll, total, 'et2-filter-all'),
-      (_Filter.present, l.etkinlik2FilterPresent, present, 'et2-filter-present'),
-      (_Filter.absent, l.etkinlik2FilterAbsent, total - present, 'et2-filter-absent'),
+    final items = <(_Filter, String, String)>[
+      (_Filter.all, l.etkinlik2FilterAll, 'et2-filter-all'),
+      (_Filter.present, l.etkinlik2FilterPresent, 'et2-filter-present'),
+      (_Filter.absent, l.etkinlik2FilterAbsent, 'et2-filter-absent'),
     ];
-    return SizedBox(
-      height: 48,
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        clipBehavior: Clip.none,
-        itemCount: items.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 8),
-        itemBuilder: (c, i) {
-          final it = items[i];
-          return _FilterChip(
-            key: ValueKey(it.$4),
-            label: it.$2,
-            count: it.$3,
-            selected: _filter == it.$1,
-            onTap: () => setState(() => _filter = it.$1),
-          );
-        },
+    return Padding(
+      padding: const EdgeInsets.only(top: 6),
+      child: SizedBox(
+        height: 48,
+        child: ListView.separated(
+          scrollDirection: Axis.horizontal,
+          padding: const EdgeInsetsDirectional.symmetric(horizontal: 20),
+          itemCount: items.length,
+          separatorBuilder: (_, __) => const SizedBox(width: 8),
+          itemBuilder: (c, i) => BuChip(key: ValueKey(items[i].$3), label: items[i].$2, selected: _filter == items[i].$1, onTap: () => setState(() => _filter = items[i].$1)),
+        ),
       ),
     );
   }
 
+  /// Yoklama satırı (kartsız): baş harf dairesi, ad, muted "15:12 · QR" / "Gelmedi", sağda anahtar (açık = marka).
   Widget _row(BuildContext context, Map<String, dynamic> r) {
     final t = context.bu;
     final tx = Theme.of(context).textTheme;
     final l = context.l10n;
     final name = '${r['displayName'] ?? ''}';
-    final sub = _sub(r);
+    final extra = _sub(r);
     final present = r['present'] == true;
     final method = r['method'];
     final uid = _uid(r);
-    final (tagLabel, tagIcon, tagBlue) = !present
-        ? (l.p16AttWaiting, LucideIcons.clock, false)
-        : method == 'QR'
-            ? (l.etkinlik2MethodQr, LucideIcons.qrCode, false)
-            : (l.etkinlik2MethodManual, LucideIcons.userCheck, true);
-    final tag = t.tint(1);
-    return BuCard(
+    final at = DateTime.tryParse('${r['checkedInAt'] ?? r['presentAt'] ?? ''}')?.toLocal();
+    String two(int n) => n.toString().padLeft(2, '0');
+    final how = !present
+        ? '— · ${l.etkinlik2FilterAbsent}'
+        : [if (at != null) '${two(at.hour)}:${two(at.minute)}', if (method == 'QR') l.etkinlik2MethodQr else l.etkinlik2MethodManual].join(' · ');
+    final sub = [how, if (extra.isNotEmpty) extra].join(' · ');
+    return Container(
       key: ValueKey('et2-att-$uid'),
-      padding: const EdgeInsetsDirectional.fromSTEB(14, 10, 6, 10),
-      radius: 20,
+      margin: const EdgeInsets.symmetric(horizontal: 20),
+      padding: const EdgeInsetsDirectional.fromSTEB(0, 10, 0, 10),
+      decoration: BoxDecoration(border: Border(bottom: BorderSide(color: t.bd))),
       child: Row(children: [
-        Et2Initials(
-          name: name,
-          size: 48,
-          tint: present ? BuTint(t.soft, t.onSoft) : BuTint(t.sf2, t.mut),
-          url: null,
-        ),
+        ClubsLogo(name: name, id: uid, size: 40),
         const SizedBox(width: 12),
         Expanded(
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
-            Row(children: [
-              Flexible(
-                child: Text(name,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w700, color: present ? t.ink : t.mut)),
-              ),
-              const SizedBox(width: 6),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                decoration: BoxDecoration(color: tagBlue ? tag.bg : t.mut.withValues(alpha: .12), borderRadius: BorderRadius.circular(BuRadius.pill)),
-                child: Row(mainAxisSize: MainAxisSize.min, children: [
-                  ExcludeSemantics(child: Icon(tagIcon, size: 12, color: tagBlue ? tag.fg : t.mut)),
-                  const SizedBox(width: 4),
-                  Text(tagLabel, style: tx.labelSmall!.copyWith(fontWeight: FontWeight.w600, color: tagBlue ? tag.fg : t.mut)),
-                ]),
-              ),
-            ]),
-            if (sub.isNotEmpty)
-              Text(sub, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.bodySmall!.copyWith(color: t.mut)),
+            Text(name, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.titleMedium!.copyWith(fontWeight: FontWeight.w500, color: present ? t.ink : t.mut)),
+            Text(sub, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.bodySmall!.copyWith(color: t.mut, fontSize: 13)),
           ]),
         ),
         Et2Toggle(
           key: ValueKey('et2-mark-$uid'),
-          thumbCheck: true,
+          thumbCheck: false,
           value: present,
           label: l.etkinlik2MarkSem(name),
           onChanged: _busy.contains(uid) ? null : (v) => _mark(r, v),
@@ -361,112 +275,34 @@ class _Etkinlik2AttendancePageState extends State<Etkinlik2AttendancePage> {
   }
 }
 
-/// Süzgeç çipi: etiket + sayı rozeti; seçiliyken koyu dolgu.
-class _FilterChip extends StatelessWidget {
-  const _FilterChip({super.key, required this.label, required this.count, required this.selected, required this.onTap});
-
-  final String label;
-  final int count;
-  final bool selected;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = context.bu;
-    final tx = Theme.of(context).textTheme;
-    final bg = selected ? t.soft : t.sf;
-    final fg = selected ? t.onSoft : t.mut;
-    return Semantics(
-      button: true,
-      selected: selected,
-      label: '$label, $count',
-      excludeSemantics: true,
-      onTap: onTap,
-      child: BuPressable(
-        onTap: onTap,
-        haptic: BuHaptic.selection,
-        scale: .96,
-        child: AnimatedContainer(
-          duration: BuMotion.of(context, BuMotion.short),
-          constraints: const BoxConstraints(minHeight: 48, minWidth: 48),
-          padding: const EdgeInsets.symmetric(horizontal: 6),
-          alignment: Alignment.center,
-          child: AnimatedContainer(
-            duration: BuMotion.of(context, BuMotion.short),
-            padding: const EdgeInsetsDirectional.fromSTEB(14, 8, 8, 8),
-            decoration: BoxDecoration(
-              color: bg,
-              borderRadius: BorderRadius.circular(BuRadius.pill),
-              border: Border.all(color: selected ? t.selectedBorder : t.bd),
-            ),
-            child: Row(mainAxisSize: MainAxisSize.min, children: [
-              Text(label, style: tx.labelLarge!.copyWith(fontWeight: FontWeight.w700, color: fg)),
-              const SizedBox(width: 8),
-              Container(
-                constraints: const BoxConstraints(minWidth: 24),
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
-                decoration: BoxDecoration(
-                  color: selected ? t.pr.withValues(alpha: .14) : t.sf2,
-                  borderRadius: BorderRadius.circular(BuRadius.pill),
-                ),
-                child: Text('$count', textAlign: TextAlign.center, style: tx.labelSmall!.copyWith(fontWeight: FontWeight.w700, color: fg)),
-              ),
-            ]),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// Yoklama sayfası iskeleti: özet kartı + çipler + satır kartları.
+/// Yoklama iskeleti (kartsız): özet satırı + satırlar.
 class _AttendanceSkeleton extends StatelessWidget {
   const _AttendanceSkeleton();
 
   @override
   Widget build(BuildContext context) {
-    final t = context.bu;
-    Widget card(Widget child) => Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(color: t.sf, borderRadius: BorderRadius.circular(20), border: Border.all(color: t.bd)),
-          child: child,
-        );
     return BuSkeletonScope(
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+        padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
         child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-          card(const Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-            Row(children: [BuSkeleton(width: 44, height: 44, radius: 14), SizedBox(width: 12), BuSkeleton.line(width: 150, height: 20)]),
-            SizedBox(height: 14),
-            BuSkeleton(height: 8, radius: 4),
-            SizedBox(height: 14),
-            Row(children: [Expanded(child: BuSkeleton(height: 44, radius: 12)), SizedBox(width: 10), Expanded(child: BuSkeleton(height: 44, radius: 12))]),
-          ])),
-          const SizedBox(height: 14),
-          const Row(children: [
-            BuSkeleton(width: 84, height: 40, radius: BuRadius.pill),
-            SizedBox(width: 8),
-            BuSkeleton(width: 84, height: 40, radius: BuRadius.pill),
-            SizedBox(width: 8),
-            BuSkeleton(width: 96, height: 40, radius: BuRadius.pill),
-          ]),
-          const SizedBox(height: 14),
-          for (var i = 0; i < 4; i++) ...[
-            card(const Row(children: [
-              BuSkeleton(width: 48, height: 48, radius: 16),
-              SizedBox(width: 12),
-              Expanded(
-                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  BuSkeleton.line(width: 120),
-                  SizedBox(height: 8),
-                  BuSkeleton.line(width: 170),
-                ]),
-              ),
-              SizedBox(width: 12),
-              BuSkeleton(width: 52, height: 32, radius: 16),
-            ])),
-            const SizedBox(height: 8),
-          ],
+          const BuSkeleton.line(width: 180, height: 14),
+          const SizedBox(height: 20),
+          for (var i = 0; i < 4; i++)
+            const Padding(
+              padding: EdgeInsets.only(bottom: 20),
+              child: Row(children: [
+                BuSkeleton.circle(40),
+                SizedBox(width: 12),
+                Expanded(
+                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    BuSkeleton.line(width: 130),
+                    SizedBox(height: 8),
+                    BuSkeleton.line(width: 90, height: 10),
+                  ]),
+                ),
+                BuSkeleton(width: 48, height: 28, radius: 14),
+              ]),
+            ),
         ]),
       ),
     );

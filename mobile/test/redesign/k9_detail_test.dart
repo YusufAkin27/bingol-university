@@ -1,3 +1,5 @@
+import 'package:bu_kampus/features/clubs/clubs_widgets.dart';
+import 'package:bu_kampus/widgets/bu.dart';
 import 'package:bu_kampus/features/events/etkinlik_parts.dart';
 import 'package:bu_kampus/features/events/event_detail_page.dart';
 import 'package:flutter/material.dart';
@@ -90,8 +92,8 @@ void main() {
       final b = _be(_ev());
       b.on('/events/5/rsvp', {'myRsvp': 'GOING', 'goingCount': 35, 'capacity': 50});
       await _show(tester, b);
-      expect(tester.widget<EtkinlikActionButton>(find.byKey(const ValueKey('detail-join'))).onTap, isNotNull);
-      expect(tester.widget<EtkinlikActionButton>(find.byKey(const ValueKey('detail-interested'))).onTap, isNotNull);
+      expect(tester.widget<BuButton>(find.byKey(const ValueKey('detail-join'))).onPressed, isNotNull);
+      expect(tester.widget<ClubOutlineButton>(find.descendant(of: find.byKey(const ValueKey('detail-interested')), matching: find.byType(ClubOutlineButton))).onPressed, isNotNull);
       await tester.tap(find.byKey(const ValueKey('detail-join')));
       await tester.pump(const Duration(milliseconds: 500));
       expect(b.bodies['PUT /events/5/rsvp'], {'status': 'GOING'});
@@ -101,8 +103,8 @@ void main() {
 
     testWidgets('kontenjan dolu: yalniz Ilgileniyorum aktif, Katil pasif', (tester) async {
       await _show(tester, _be(_ev(going: 50)));
-      expect(tester.widget<EtkinlikActionButton>(find.byKey(const ValueKey('detail-join'))).onTap, isNull);
-      expect(tester.widget<EtkinlikActionButton>(find.byKey(const ValueKey('detail-interested'))).onTap, isNotNull);
+      expect(tester.widget<BuButton>(find.byKey(const ValueKey('detail-join'))).onPressed, isNull);
+      expect(tester.widget<ClubOutlineButton>(find.descendant(of: find.byKey(const ValueKey('detail-interested')), matching: find.byType(ClubOutlineButton))).onPressed, isNotNull);
       expect(find.text('Kontenjan doldu; yine de ilgilendiğini belirtebilirsin.'), findsOneWidget);
       await tester.pumpWidget(const SizedBox.shrink());
       await tester.pump(const Duration(seconds: 1));

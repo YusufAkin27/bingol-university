@@ -6,6 +6,7 @@ import '../../l10n/app_localizations.dart';
 import '../../widgets/bu.dart';
 import 'club_actions.dart';
 import 'club_categories.dart';
+import 'club_detail_parts.dart' show ClubBarIcon;
 
 // Kulüpler: Stitch v3 (docs/design/BIREBIR_KULUP.md). Kartsız satır + ince ayraç, 48 dp daire logo, 36 dp çerçeveli
 // "Katıl", metin sekmeleri (2 dp marka alt çizgisi). Renk yalnız belirteçlerden; gölge/gradyan yok.
@@ -62,12 +63,15 @@ class ClubsLogo extends StatelessWidget {
 /// Metin sekmeleri: seçili = marka metni + 2 dp marka alt çizgisi; altta tam genişlik ince ayraç. Dolu hap yok.
 /// Dar ekranda/büyük yazıda yatay kayar. Yükseklik 44 dp; her sekme en az 48 dp geniş dokunma alanı.
 class ClubTextTabs extends StatelessWidget {
-  const ClubTextTabs({super.key, required this.labels, required this.index, required this.onChanged, this.padding = const EdgeInsetsDirectional.symmetric(horizontal: 20)});
+  const ClubTextTabs({super.key, required this.labels, required this.index, required this.onChanged, this.padding = const EdgeInsetsDirectional.symmetric(horizontal: 20), this.hairlineInset = 0});
 
   final List<String> labels;
   final int index;
   final ValueChanged<int> onChanged;
   final EdgeInsetsGeometry padding;
+
+  /// Alt ayracın iki yandan içeri payı (varsayılan 0: tam genişlik).
+  final double hairlineInset;
 
   static const double height = 42;
 
@@ -77,7 +81,7 @@ class ClubTextTabs extends StatelessWidget {
     final tx = Theme.of(context).textTheme;
     return Stack(
       children: [
-        PositionedDirectional(start: 0, end: 0, bottom: 0, child: Container(height: 1, color: t.bd)),
+        PositionedDirectional(start: hairlineInset, end: hairlineInset, bottom: 0, child: Container(height: 1, color: t.bd)),
         SizedBox(
           height: height,
           child: ListView.separated(
@@ -134,6 +138,68 @@ class ClubTextTabs extends StatelessWidget {
       ],
     );
   }
+}
+
+/// Alt sayfa başlığı (Stitch v3): durum çubuğu altında 56 dp satır; geri oku (40 dp) + 18/600 başlık; ayraç yok.
+class ClubPageHeader extends StatelessWidget {
+  const ClubPageHeader({super.key, required this.title, this.actions = const [], this.divider = false});
+
+  final String title;
+  final List<Widget> actions;
+  final bool divider;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.bu;
+    final top = MediaQuery.paddingOf(context).top;
+    return Container(
+      padding: EdgeInsetsDirectional.only(top: top, start: 8, end: 12),
+      decoration: divider ? BoxDecoration(border: Border(bottom: BorderSide(color: t.bd))) : null,
+      child: SizedBox(
+        height: 56,
+        child: Row(children: [
+          ClubBarIcon(icon: LucideIcons.arrowLeft, tooltip: context.l10n.commonBack, onTap: () => Navigator.maybePop(context), width: 48),
+          Expanded(
+            child: Semantics(
+              header: true,
+              child: Text(title, maxLines: 1, overflow: TextOverflow.ellipsis, style: BuType.title.copyWith(color: t.ink, fontWeight: FontWeight.w600)),
+            ),
+          ),
+          ...actions,
+        ]),
+      ),
+    );
+  }
+}
+
+/// Kesik çizgili yuvarlatılmış dikdörtgen/daire çerçeve (yükleme alanları): 1 dp, 4 dp çizgi + 4 dp boşluk.
+/// `CustomPaint.foregroundPainter` ile kullanın (çocuğun üstüne çizilir).
+class DashedRRectPainter extends CustomPainter {
+  DashedRRectPainter({required this.color, required this.radius, this.circle = false});
+
+  final Color color;
+  final double radius;
+  final bool circle;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1;
+    final rect = (Offset.zero & size).deflate(.5);
+    final path = Path()..addRRect(RRect.fromRectAndRadius(rect, Radius.circular(circle ? size.shortestSide : radius)));
+    for (final m in path.computeMetrics()) {
+      var d = 0.0;
+      while (d < m.length) {
+        canvas.drawPath(m.extractPath(d, d + 4), paint);
+        d += 8;
+      }
+    }
+  }
+
+  @override
+  bool shouldRepaint(DashedRRectPainter old) => old.color != color || old.radius != radius || old.circle != circle;
 }
 
 /// Bölüm etiketi (YÖNETTİKLERİM): 12-13 sp muted/600, harf aralıklı; üstte 24 dp boşluk.

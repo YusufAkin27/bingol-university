@@ -101,7 +101,7 @@ void main() {
       });
       await p00Matrix(tester, () => Etkinlik2AttendancePage(session: makeSession(_be(emptyAtt: true)), event: _ev()),
           scaffold: false, widths: const [320], check: (t, lang, dark, scale) async {
-        expect(find.byType(BuEmptyState), findsOneWidget);
+        expect(find.byKey(const ValueKey('et2-att-empty')), findsOneWidget);
       });
     });
 
@@ -161,7 +161,7 @@ void main() {
       addTearDown(tester.view.reset);
       await tester.pumpWidget(p00App(Etkinlik2QrPage(session: makeSession(_be()), event: _ev()), scaffold: false));
       await tester.pump(const Duration(milliseconds: 600));
-      await tester.tap(find.text('Kopyala'));
+      await tester.tap(find.byKey(const ValueKey('et2-manual-code')));
       await tester.pump(const Duration(milliseconds: 300));
       expect(clip, '5.123.abcdef');
       expect(find.text('Kod kopyalandı'), findsOneWidget);

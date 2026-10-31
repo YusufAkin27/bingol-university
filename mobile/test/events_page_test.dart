@@ -1,3 +1,5 @@
+import 'package:bu_kampus/features/clubs/clubs_widgets.dart';
+import 'package:bu_kampus/widgets/bu.dart';
 import 'package:bu_kampus/features/events/event_detail_page.dart';
 import 'package:bu_kampus/features/events/events_page.dart';
 import 'package:bu_kampus/features/home/home_tab.dart';
@@ -92,7 +94,7 @@ void main() {
       expect(find.text('Etkinliklerim'), findsOneWidget);
       expect(find.text('Oluşturduklarım'), findsOneWidget);
       expect(find.byTooltip('Etkinlik oluştur'), findsOneWidget);
-      expect(find.byWidgetPredicate((w) => w is SliverPersistentHeader && w.pinned), findsOneWidget);
+      expect(find.byType(ClubTextTabs), findsOneWidget); // metin sekmeleri (Stitch v3)
       expect(tester.takeException(), isNull);
       await unmount(tester);
     });
@@ -111,11 +113,10 @@ void main() {
       await _tapText(tester, 'Katıl');
       expect(b.requests, contains('PUT /events/5/rsvp'));
       expect((b.bodies['PUT /events/5/rsvp'] as Map)['status'], 'GOING');
-      expect(find.text('Etkinliklerimde'), findsOneWidget);
+      expect(find.text('Katılıyorsun'), findsOneWidget); // satir ici durum metni (tiklanmaz, geri almaz)
       expect(find.text('Etkinliklerime eklendi'), findsOneWidget);
-      expect(find.text('Katılıyorsun'), findsNothing);
-      // Cipe dokunmak geri almaz; Etkinliklerim sekmesini acar.
-      await _tapText(tester, 'Etkinliklerimde');
+      // Etkinliklerim sekmesini ac.
+      await _tapText(tester, 'Etkinliklerim');
       expect(b.requests.any((r) => r.startsWith('DELETE')), isFalse);
       expect(find.text('Geçmiş'), findsOneWidget); // alt cipler
       expect(find.text('Katıldığım etkinlik'), findsOneWidget);
@@ -138,7 +139,7 @@ void main() {
       await _open(tester, b);
       await _tapText(tester, 'Katıl');
       expect(find.text('Bu etkinliğin kayıtları kapalı.'), findsOneWidget);
-      expect(find.text('Etkinliklerimde'), findsNothing);
+      expect(find.text('Katılıyorsun'), findsNothing);
       expect(find.text('Kayıt kapalı'), findsOneWidget);
       await unmount(tester);
     });
@@ -181,8 +182,6 @@ void main() {
       await _tapText(tester, 'Oluşturduklarım');
       expect(find.text('Benim etkinliğim'), findsOneWidget);
       expect(find.text('Açık'), findsOneWidget);
-      expect(find.byType(EventAvatarStack), findsOneWidget);
-      expect(find.text('Katılımcılar'), findsOneWidget);
 
       await _menu(tester);
       await tester.tap(find.text('Kayıtları kapat'));
@@ -296,9 +295,8 @@ void main() {
     testWidgets('katilmis: "Etkinliklerimde" cipi geri almaz; Katilimi yonet onayla DELETE', (tester) async {
       final b = backend(rsvp: 'GOING');
       await openDetail(tester, b);
-      expect(find.text('Etkinliklerimde'), findsWidgets);
-      expect(find.text('Katılıyorsun'), findsNothing);
-      // Etkinliklerimde hapı bilgi amaçlıdır; ayrılmak alttaki sabit "Katılımdan ayrıl" düğmesiyle, onayla yapılır.
+      expect(find.text('Katılıyorsun'), findsOneWidget); // alt çubukta durum metni
+      // Ayrılmak alttaki sabit "Katılımdan ayrıl" düğmesiyle, onayla yapılır.
       await tester.tap(find.byKey(const ValueKey('detail-leave')));
       await settle(tester, const Duration(milliseconds: 400));
       expect(b.requests.any((r) => r.startsWith('DELETE')), isFalse); // onay bekler
@@ -313,8 +311,8 @@ void main() {
       await openDetail(tester, b);
       expect(find.text('Kayıtlar kapalı'), findsWidgets);
       // Kayıtlar kapalıyken iki düğme de pasif (tek "Kayıtlar kapandı" düğmesi yok).
-      expect(tester.widget<EtkinlikActionButton>(find.byKey(const ValueKey('detail-join'))).onTap, isNull);
-      expect(tester.widget<EtkinlikActionButton>(find.byKey(const ValueKey('detail-interested'))).onTap, isNull);
+      expect(tester.widget<BuButton>(find.byKey(const ValueKey('detail-join'))).onPressed, isNull);
+      expect(tester.widget<ClubOutlineButton>(find.descendant(of: find.byKey(const ValueKey('detail-interested')), matching: find.byType(ClubOutlineButton))).onPressed, isNull);
       final b2 = backend()
         ..fail('/events/5/rsvp', status: 409, code: 'EVENT_REGISTRATION_CLOSED', message: 'Bu etkinliğin kayıtları kapalı.');
       await unmount(tester);
