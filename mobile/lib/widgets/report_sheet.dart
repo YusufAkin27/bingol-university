@@ -265,7 +265,7 @@ class _SheetBodyState extends State<_SheetBody> {
           borderRadius: BorderRadius.circular(16),
           onTap: _busy ? null : () => setState(() => _reason = code),
           child: ConstrainedBox(
-            constraints: const BoxConstraints(minHeight: 52),
+            constraints: const BoxConstraints(minHeight: BuSize.row),
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 14),
               child: Row(children: [

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../core/theme.dart';
+import '../core/theme/bu_shape.dart';
+import '../core/theme/bu_sizes.dart';
 import '../core/typography.dart';
 
 /// Sistem ekranları (izin, bakım, güncelleme, hata, QR) için ortak yapı taşları.
@@ -48,8 +50,8 @@ class SistemButton extends StatelessWidget {
     required this.label,
     required this.onPressed,
     this.kind = SistemButtonKind.primary,
-    this.height = 54,
-    this.radius = 18,
+    this.height = BuSize.button,
+    this.radius = BuRadius.control,
     this.busy = false,
     this.fontSize,
   });
@@ -67,8 +69,8 @@ class SistemButton extends StatelessWidget {
     final t = context.bu;
     final primary = kind == SistemButtonKind.primary;
     final fg = primary ? t.onPr : (kind == SistemButtonKind.link ? t.mut : t.ink);
-    final style = (primary ? BuType.heading : BuType.bodyStrong)
-        .copyWith(color: fg, fontWeight: FontWeight.w700, fontSize: fontSize);
+    final style = (primary ? BuType.body.copyWith(fontSize: BuScale.bodyLarge) : BuType.bodyStrong)
+        .copyWith(color: fg, fontWeight: FontWeight.w600, fontSize: fontSize);
     final enabled = onPressed != null && !busy;
     final deco = BoxDecoration(
       color: primary ? t.pr : Colors.transparent,
@@ -94,7 +96,7 @@ class SistemButton extends StatelessWidget {
               borderRadius: BorderRadius.circular(radius),
               onTap: enabled ? onPressed : null,
               child: ConstrainedBox(
-                constraints: BoxConstraints(minHeight: height, minWidth: 44),
+                constraints: BoxConstraints(minHeight: height, minWidth: BuSize.touch),
                 child: Center(
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),

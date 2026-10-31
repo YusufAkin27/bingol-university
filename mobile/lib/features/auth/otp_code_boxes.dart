@@ -65,29 +65,6 @@ class _OtpCodeBoxesState extends State<OtpCodeBoxes> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        ListenableBuilder(
-          listenable: widget.controller,
-          builder: (context, _) => Row(
-            children: [
-              Expanded(
-                child: Text(context.l10n.authRestCodeLabel, style: tx.labelLarge!.copyWith(color: t.ink, fontWeight: FontWeight.w700)),
-              ),
-              if (widget.showPaste && widget.enabled && widget.controller.text.length < 6)
-                TextButton.icon(
-                  onPressed: _paste,
-                  style: TextButton.styleFrom(
-                    foregroundColor: t.pr,
-                    minimumSize: const Size(48, 40),
-                    padding: const EdgeInsets.symmetric(horizontal: 6),
-                    tapTargetSize: MaterialTapTargetSize.padded,
-                  ),
-                  icon: Icon(LucideIcons.clipboardPaste, size: 18, color: t.pr),
-                  label: Text(context.l10n.authPaste, style: tx.labelLarge!.copyWith(color: t.pr, fontWeight: FontWeight.w700)),
-                ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 6),
         Semantics(
           label: context.l10n.authRestCodeLabel,
           textField: true,
@@ -101,7 +78,7 @@ class _OtpCodeBoxesState extends State<OtpCodeBoxes> {
               child: AuthShake(
                 trigger: widget.shakeTrigger,
                 child: SizedBox(
-                  height: 52,
+                  height: BuSize.field,
                   child: Stack(
                     children: [
                       Positioned.fill(
@@ -128,20 +105,19 @@ class _OtpCodeBoxesState extends State<OtpCodeBoxes> {
                                     curve: Curves.easeOut,
                                     alignment: Alignment.center,
                                     decoration: BoxDecoration(
-                                      color: ok ? t.okSoft : (err ? Color.alphaBlend(t.danger.withValues(alpha: .09), t.sf2) : (active ? t.sf : t.sf2)),
-                                      borderRadius: BorderRadius.circular(14),
+                                      color: ok ? t.okSoft : t.sf,
+                                      borderRadius: BuRadius.bSm,
                                       border: Border.all(
-                                        color: ok ? t.ok : (err ? t.danger.withValues(alpha: .55) : (active ? t.pr : Colors.transparent)),
-                                        width: ok || err || active ? 1.5 : 0,
+                                        color: ok ? t.ok : (err ? t.danger : (active ? t.pr : t.bdStrong)),
+                                        width: ok || err || active ? 1.5 : 1,
                                       ),
-                                      boxShadow: active && !err ? BuElevation.of(context, 2) : const [],
                                     ),
                                     // Yeni rakam küçükten yerine oturur (yaylanma); silinince solar.
                                     child: filled
                                         ? _OtpDigit(
                                             key: ValueKey('otp-digit-$i-$ch'),
                                             ch: ch,
-                                            style: tx.headlineSmall!.copyWith(color: ok ? t.onOkSoft : (err ? t.danger : t.ink), fontWeight: FontWeight.w800, fontFeatures: const [FontFeature.tabularFigures()]),
+                                            style: tx.headlineSmall!.copyWith(color: ok ? t.onOkSoft : t.ink, fontWeight: FontWeight.w600, fontFeatures: const [FontFeature.tabularFigures()]),
                                           )
                                         : (active
                                             ? Container(width: 2, height: 24, decoration: BoxDecoration(color: t.pr, borderRadius: BorderRadius.circular(1)))
@@ -189,6 +165,24 @@ class _OtpCodeBoxesState extends State<OtpCodeBoxes> {
                 ),
               ),
             ),
+          ),
+        ),
+        ListenableBuilder(
+          listenable: widget.controller,
+          builder: (context, _) => Align(
+            alignment: AlignmentDirectional.centerEnd,
+            child: widget.showPaste && widget.enabled && widget.controller.text.length < 6
+                ? TextButton(
+                    onPressed: _paste,
+                    style: TextButton.styleFrom(
+                      foregroundColor: t.pr,
+                      minimumSize: const Size(48, 40),
+                      padding: const EdgeInsets.symmetric(horizontal: 6),
+                      tapTargetSize: MaterialTapTargetSize.padded,
+                    ),
+                    child: Text(context.l10n.authPaste, style: tx.labelLarge!.copyWith(color: t.pr, fontWeight: FontWeight.w600)),
+                  )
+                : const SizedBox(height: 40),
           ),
         ),
       ],

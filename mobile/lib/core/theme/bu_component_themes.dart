@@ -3,6 +3,7 @@ import 'package:flutter/services.dart' show SystemUiOverlayStyle;
 
 import '../theme.dart';
 import 'bu_shape.dart';
+import 'bu_sizes.dart';
 
 /// Material 3 bileşen temaları (marka belirteçleriyle). Yalnız `BuThemeBuilder` kullanır.
 ///
@@ -15,17 +16,18 @@ class BuComponentThemes {
   final ColorScheme cs;
   final TextTheme tx;
 
-  TextStyle get _label => tx.labelLarge!.copyWith(fontWeight: FontWeight.w700);
+  TextStyle get _label => tx.labelLarge!.copyWith(fontWeight: FontWeight.w600);
   TextStyle get _body => tx.bodyMedium!;
   RoundedRectangleBorder get _md => BuRadius.rect(BuRadius.md);
+  RoundedRectangleBorder get _ctl => BuRadius.rect(BuRadius.control);
 
   // --- Düğmeler -----------------------------------------------------------------------------------------
 
-  /// Tam genişlik 54 dp (mevcut ekranlarla uyumlu); satır içi düğmede `minimumSize: Size(0, 48)` verin.
+  /// Tam genişlik [BuSize.button] (48 dp, Stitch oranı); satır içi düğmede `minimumSize: Size(0, 48)` verin.
   FilledButtonThemeData get filledButton => FilledButtonThemeData(
         style: FilledButton.styleFrom(
-          minimumSize: const Size.fromHeight(54),
-          shape: _md,
+          minimumSize: const Size.fromHeight(BuSize.button),
+          shape: _ctl,
           textStyle: _label,
           elevation: 0,
         ),
@@ -34,8 +36,8 @@ class BuComponentThemes {
   OutlinedButtonThemeData get outlinedButton => OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
           foregroundColor: t.ink,
-          minimumSize: const Size.fromHeight(54),
-          shape: _md,
+          minimumSize: const Size.fromHeight(BuSize.button),
+          shape: _ctl,
           side: BorderSide(color: t.bdStrong, width: 1.2),
           textStyle: _label,
         ),
@@ -52,8 +54,8 @@ class BuComponentThemes {
 
   ElevatedButtonThemeData get elevatedButton => ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          minimumSize: const Size.fromHeight(54),
-          shape: _md,
+          minimumSize: const Size.fromHeight(BuSize.button),
+          shape: _ctl,
           textStyle: _label,
           elevation: 1,
           shadowColor: t.shadow,
@@ -63,7 +65,7 @@ class BuComponentThemes {
       );
 
   IconButtonThemeData get iconButton => IconButtonThemeData(
-        style: IconButton.styleFrom(iconSize: 21.6, minimumSize: const Size(48, 48)),
+        style: IconButton.styleFrom(iconSize: 20, minimumSize: const Size(BuSize.touch, BuSize.touch)),
       );
 
   SegmentedButtonThemeData get segmented => SegmentedButtonThemeData(
@@ -85,16 +87,16 @@ class BuComponentThemes {
         highlightElevation: 3,
         focusElevation: 3,
         hoverElevation: 3,
-        shape: BuRadius.rect(BuRadius.lg),
+        shape: BuRadius.rect(BuRadius.md),
         extendedTextStyle: _label,
-        sizeConstraints: const BoxConstraints.tightFor(width: 56, height: 56),
+        sizeConstraints: const BoxConstraints.tightFor(width: BuSize.fab, height: BuSize.fab),
       );
 
   // --- Gezinme ------------------------------------------------------------------------------------------
 
   /// M3 NavigationBar: hap gösterge (marka tonu), etiket her zaman görünür.
   NavigationBarThemeData get navigationBar => NavigationBarThemeData(
-        height: 68,
+        height: BuSize.nav,
         backgroundColor: t.sf3,
         surfaceTintColor: Colors.transparent,
         shadowColor: t.shadow,
@@ -122,8 +124,9 @@ class BuComponentThemes {
 
   /// Küçük başlıkta (collapsed) `titleLarge`; büyük başlıkta `SliverAppBar.large` `headlineMedium` kullanır.
   AppBarTheme get appBar => AppBarTheme(
-        iconTheme: IconThemeData(size: 21.6, color: t.ink),
-        actionsIconTheme: IconThemeData(size: 21.6, color: t.ink),
+        toolbarHeight: BuSize.appBar,
+        iconTheme: IconThemeData(size: 20, color: t.ink),
+        actionsIconTheme: IconThemeData(size: 20, color: t.ink),
         backgroundColor: t.bg,
         foregroundColor: t.ink,
         surfaceTintColor: Colors.transparent,
@@ -253,11 +256,12 @@ class BuComponentThemes {
   /// Dolgulu + çerçeveli alan; odakta 2 dp marka halkası. Kapsayıcı yarıçap 16.
   InputDecorationTheme get input {
     OutlineInputBorder border(Color c, [double w = 1.2]) =>
-        OutlineInputBorder(borderRadius: BuRadius.bMd, borderSide: BorderSide(color: c, width: w));
+        OutlineInputBorder(borderRadius: BuRadius.bControl, borderSide: BorderSide(color: c, width: w));
     return InputDecorationTheme(
       filled: true,
       fillColor: t.sf,
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+      constraints: const BoxConstraints(minHeight: BuSize.field),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       border: border(t.bdStrong),
       enabledBorder: border(t.bdStrong),
       disabledBorder: border(t.bd),
@@ -285,7 +289,7 @@ class BuComponentThemes {
         backgroundColor: WidgetStatePropertyAll(t.sf),
         surfaceTintColor: const WidgetStatePropertyAll(Colors.transparent),
         shadowColor: WidgetStatePropertyAll(t.shadow),
-        constraints: const BoxConstraints(minHeight: 52),
+        constraints: const BoxConstraints(minHeight: BuSize.search),
         padding: const WidgetStatePropertyAll(EdgeInsetsDirectional.symmetric(horizontal: 16)),
         shape: WidgetStatePropertyAll(StadiumBorder(side: BorderSide(color: t.bdStrong, width: 1.2))),
         textStyle: WidgetStatePropertyAll(tx.bodyLarge!.copyWith(color: t.ink)),
@@ -379,7 +383,7 @@ class BuComponentThemes {
         secondaryLabelStyle: tx.labelLarge!.copyWith(color: t.onSoft),
         iconTheme: IconThemeData(size: 18, color: t.mut),
         showCheckmark: false,
-        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
         elevation: 0,
         pressElevation: 0,
       );
@@ -387,7 +391,7 @@ class BuComponentThemes {
   ListTileThemeData get listTile => ListTileThemeData(
         contentPadding: const EdgeInsetsDirectional.symmetric(horizontal: 16),
         minVerticalPadding: 8,
-        minTileHeight: 56,
+        minTileHeight: BuSize.row,
         horizontalTitleGap: 14,
         minLeadingWidth: 24,
         iconColor: t.mut,

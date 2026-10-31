@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../core/academic_catalog.dart';
 import '../core/locale_controller.dart';
 import '../core/theme.dart';
+import '../core/theme/bu_sizes.dart';
 import '../core/typography.dart';
 import 'academic_pickers.dart';
 import 'bu_widgets.dart';
@@ -169,7 +170,7 @@ class _SelectBox extends StatelessWidget {
           borderRadius: BorderRadius.circular(14),
           onTap: onTap,
           child: Container(
-            constraints: const BoxConstraints(minHeight: 54),
+            constraints: const BoxConstraints(minHeight: BuSize.field),
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(14),

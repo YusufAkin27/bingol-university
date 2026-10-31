@@ -4,10 +4,10 @@ import 'package:flutter/painting.dart';
 /// buradan alır; iki paralel ölçek yoktur. En küçük metin 11.5 sp'dir (`caption`); bunun altına inen stil tanımlanmaz.
 abstract final class BuScale {
   /// Büyük sayfa başlığı (giriş ekranı, profil adı).
-  static const double display = 24;
+  static const double display = 22;
 
   /// Sayfa/AppBar başlığı.
-  static const double title = 19;
+  static const double title = 18;
 
   /// Bölüm başlığı, kart başlığı.
   static const double heading = 16;
@@ -33,10 +33,10 @@ abstract final class BuType {
   static const family = 'Inter';
 
   /// Büyük sayfa başlığı (giriş ekranı, profil adı).
-  static const display = TextStyle(fontFamily: family, fontSize: BuScale.display, fontWeight: FontWeight.w800, height: 1.2);
+  static const display = TextStyle(fontFamily: family, fontSize: BuScale.display, fontWeight: FontWeight.w700, height: 1.25);
 
   /// Sayfa/AppBar başlığı.
-  static const title = TextStyle(fontFamily: family, fontSize: BuScale.title, fontWeight: FontWeight.w800, height: 1.25);
+  static const title = TextStyle(fontFamily: family, fontSize: BuScale.title, fontWeight: FontWeight.w700, height: 1.3);
 
   /// Bölüm başlığı, kart başlığı.
   static const heading = TextStyle(fontFamily: family, fontSize: BuScale.heading, fontWeight: FontWeight.w700, height: 1.3);

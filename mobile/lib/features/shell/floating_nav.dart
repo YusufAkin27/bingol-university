@@ -7,6 +7,7 @@ import '../../core/locale_controller.dart';
 import '../../core/motion/bu_count_up.dart' show BuPop;
 import '../../core/theme.dart';
 import '../../core/theme/bu_motion.dart';
+import '../../core/theme/bu_sizes.dart';
 import '../../widgets/bu_list.dart' show BuCountBadge;
 import '../../widgets/bu_pressable.dart' show BuHaptic, BuPressable, buHaptic;
 import '../chat/chatlist_widgets.dart' show ChatlistAvatar;
@@ -42,13 +43,13 @@ class FloatingNav extends StatelessWidget {
   final String? avatarName;
 
   /// Çubuğun nominal içerik yüksekliği (yazı ölçeği 1).
-  static const double height = 68;
+  static const double height = BuSize.nav;
 
   /// Çubuğun kenarlardan ve alttan dış boşluğu.
-  static const double gap = 16;
+  static const double gap = BuSize.navGap;
 
-  static const double _iconSlot = 32; // gösterge + simge alanı yüksekliği
-  static const double _avatar = 24; // avatar çapı (halka dışı)
+  static const double _iconSlot = 28; // gösterge + simge alanı yüksekliği
+  static const double _avatar = 22; // avatar çapı (halka dışı)
 
   static const _outline = [
     Icons.home_outlined,
@@ -88,12 +89,12 @@ class FloatingNav extends StatelessWidget {
     final scale =
         MediaQuery.textScalerOf(context).clamp(maxScaleFactor: 1.15).scale(1);
     final labelSlot = 16 * scale;
-    final barHeight = _iconSlot + 2 + labelSlot + 18; // ölçek 1: 68
+    final barHeight = _iconSlot + 2 + labelSlot + 18; // ölçek 1: 64 (BuSize.nav)
     final topPad = (barHeight - (_iconSlot + 2 + labelSlot)) / 2;
     final shape =
-        RoundedSuperellipseBorder(borderRadius: BorderRadius.circular(30));
+        RoundedSuperellipseBorder(borderRadius: BorderRadius.circular(28));
     final edge = RoundedSuperellipseBorder(
-      borderRadius: BorderRadius.circular(30),
+      borderRadius: BorderRadius.circular(28),
       side: BorderSide(
           color: dark
               ? context.bu.onMedia.withValues(alpha: .10)
@@ -253,7 +254,7 @@ class _OutsideShadow extends CustomPainter {
 
 const _chatIndex = 2; // AppTab.chat (döngüsel içe aktarmayı önlemek için)
 
-/// Tek sekme: simge (ya da Profil'de avatar) + etiket; tüm hücre dokunma alanıdır (en az 57 x 68 dp).
+/// Tek sekme: simge (ya da Profil'de avatar) + etiket; tüm hücre dokunma alanıdır (en az 57 x 64 dp).
 class _NavItem extends StatelessWidget {
   const _NavItem({
     super.key,
@@ -359,7 +360,7 @@ class _NavItem extends StatelessWidget {
       child: AnimatedSwitcher(
         duration: BuMotion.of(context, BuMotion.short),
         child: Icon(selected ? filled : outline,
-            key: ValueKey(selected), size: 24, color: color),
+            key: ValueKey(selected), size: 22, color: color),
       ),
     );
   }
@@ -375,8 +376,8 @@ class _NavItem extends StatelessWidget {
     return AnimatedContainer(
       duration: dur,
       curve: BuMotion.decelerate,
-      width: 30,
-      height: 30,
+      width: 28,
+      height: 28,
       alignment: Alignment.center,
       decoration: BoxDecoration(
         shape: BoxShape.circle,

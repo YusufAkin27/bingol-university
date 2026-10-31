@@ -9,6 +9,7 @@ import '../core/theme.dart';
 import '../core/theme/bu_elevation.dart';
 import '../core/theme/bu_motion.dart';
 import '../core/theme/bu_shape.dart';
+import '../core/theme/bu_sizes.dart';
 import '../core/typography.dart';
 import 'bu_default_avatar.dart';
 import 'bu_pressable.dart';
@@ -52,7 +53,7 @@ class BuHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.bu;
     return Padding(
-      padding: EdgeInsetsDirectional.fromSTEB(20, MediaQuery.of(context).padding.top + 12, 20, 0),
+      padding: EdgeInsetsDirectional.fromSTEB(20, MediaQuery.of(context).padding.top + 8, 20, 0),
       child: Row(
         children: [
           if (onBack != null) ...[
@@ -115,7 +116,7 @@ IconData buDirIcon(BuildContext context, IconData icon) {
 }
 
 /// Yuvarlak, çizgili ikon düğmesi (üst başlıkta). [filled] true ise kırmızı dolgulu.
-/// Görsel boyut [size] (44); dokunma alanı en az 48x48 dp. Basılınca hafifçe küçülür.
+/// Görsel boyut [size] ([BuSize.iconBtn] = 40); dokunma alanı en az 48x48 dp. Basılınca hafifçe küçülür.
 class BuIconButton extends StatelessWidget {
   const BuIconButton({
     super.key,
@@ -124,7 +125,7 @@ class BuIconButton extends StatelessWidget {
     this.tooltip,
     this.filled = false,
     this.badge = false,
-    this.size = 44,
+    this.size = BuSize.iconBtn,
   });
 
   final IconData icon;
@@ -137,7 +138,7 @@ class BuIconButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
-    final hit = size < 48 ? 48.0 : size;
+    final hit = size < BuSize.touch ? BuSize.touch : size;
     final visual = Material(
       color: filled ? t.pr : t.sf,
       shape: CircleBorder(side: filled ? BorderSide.none : BorderSide(color: t.bd)),
@@ -150,7 +151,7 @@ class BuIconButton extends StatelessWidget {
           child: Stack(
             alignment: Alignment.center,
             children: [
-              Icon(buDirIcon(context, icon), size: size * .45, color: filled ? t.onPr : t.ink),
+              Icon(buDirIcon(context, icon), size: size * .5, color: filled ? t.onPr : t.ink),
               if (badge)
                 PositionedDirectional(
                   top: size * .2,
@@ -175,7 +176,7 @@ class BuIconButton extends StatelessWidget {
         width: hit,
         height: hit,
         child: Center(
-          // Görsel 44 dp; çevresindeki boşluk da basılabilir (dış GestureDetector, anlamsal ikinci düğme yok).
+          // Görsel 40 dp; çevresindeki boşluk da basılabilir (dış GestureDetector, anlamsal ikinci düğme yok).
           child: BuPressable(
             scale: .92,
             enabled: onTap != null,
@@ -285,7 +286,7 @@ class BuCard extends StatelessWidget {
   }
 }
 
-/// Yatay filtre çipi (seçili: marka tonu + kalın yazı). 44 dp dokunma alanı, hap şekli.
+/// Yatay filtre çipi (seçili: marka tonu + kalın yazı). Görünür [BuSize.chip] (34) dp, dokunma alanı 48 dp, hap şekli.
 class BuChip extends StatelessWidget {
   const BuChip({super.key, required this.label, this.selected = false, this.onTap, this.icon});
 
@@ -300,7 +301,7 @@ class BuChip extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.bu;
     final fg = selected ? t.onSoft : t.mut;
-    // Görünür çip 34 dp; dokunma alanı 48 dp (dış GestureDetector boşluğu da yakalar).
+    // Görünür çip 34 dp ([BuSize.chip]); dokunma alanı 48 dp (dış GestureDetector boşluğu da yakalar).
     return Semantics(
       button: true,
       selected: selected,
@@ -313,7 +314,7 @@ class BuChip extends StatelessWidget {
                 onTap!();
               },
         child: ConstrainedBox(
-          constraints: const BoxConstraints(minHeight: 48),
+          constraints: const BoxConstraints(minHeight: BuSize.touch),
           child: Center(
             widthFactor: 1,
             child: BuPressable(
@@ -337,7 +338,7 @@ class BuChip extends StatelessWidget {
                           onTap!();
                         },
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 9),
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
                     // Çip yüksekliği sabit satır alanına sığsın: yazı ölçeği 1.5 ile sınırlı.
                     child: MediaQuery.withClampedTextScaling(
                       maxScaleFactor: 1.5,
@@ -517,7 +518,7 @@ class BuButton extends StatelessWidget {
       BuButtonKind.text => (Colors.transparent, t.pr, BorderSide.none),
       BuButtonKind.danger => (cs.error, cs.onError, BorderSide.none),
     };
-    final h = compact ? 36.0 : 54.0;
+    final h = compact ? BuSize.buttonCompact : BuSize.button;
     final tx = Theme.of(context).textTheme;
     final content = ExcludeSemantics(
       // Yükleniyorken etiket dıştaki Semantics'ten okunur (solan etiket çift okunmasın).
@@ -536,11 +537,11 @@ class BuButton extends StatelessWidget {
               key: const ValueKey('label'),
               mainAxisSize: MainAxisSize.min,
               children: [
-                if (icon != null) ...[Icon(icon, size: compact ? 13.5 : 18, color: fg), const SizedBox(width: 6)],
+                if (icon != null) ...[Icon(icon, size: compact ? 14 : 16, color: fg), const SizedBox(width: 6)],
                 Flexible(
                   child: Text(label,
                       textAlign: TextAlign.center,
-                      style: (compact ? tx.labelMedium! : tx.titleMedium!).copyWith(color: fg, fontWeight: FontWeight.w700)),
+                      style: (compact ? tx.labelMedium! : tx.bodyLarge!).copyWith(color: fg, fontWeight: FontWeight.w600, height: 1.25)),
                 ),
               ],
             ),
@@ -548,7 +549,7 @@ class BuButton extends StatelessWidget {
     );
     final shape = compact
         ? StadiumBorder(side: side)
-        : RoundedRectangleBorder(borderRadius: BuRadius.bMd, side: side);
+        : RoundedRectangleBorder(borderRadius: BuRadius.bControl, side: side);
     final disabled = onPressed == null;
     final tap = busy || disabled
         ? null
@@ -561,7 +562,7 @@ class BuButton extends StatelessWidget {
       color: disabled ? bg.withValues(alpha: .5) : bg,
       shape: shape,
       child: InkWell(
-        customBorder: compact ? const StadiumBorder() : const RoundedRectangleBorder(borderRadius: BuRadius.bMd),
+        customBorder: compact ? const StadiumBorder() : const RoundedRectangleBorder(borderRadius: BuRadius.bControl),
         onTap: tap,
         // Container(alignment) sınırlı yükseklikte (altta gezinme çubuğu, kaydırılabilir olmayan gövde)
         // tüm yüksekliği kaplar: ortalamayı heightFactor:1 ile yapıp yüksekliği içeriğe bağlıyoruz.
@@ -577,10 +578,10 @@ class BuButton extends StatelessWidget {
     final pressable = BuPressable(scale: .98, enabled: tap != null, child: btn);
     Widget sem(Widget c) => Semantics(button: true, enabled: !disabled && !busy, label: busy ? label : null, child: c);
     if (!compact) return SizedBox(width: double.infinity, child: sem(pressable));
-    // Görsel hap 36 dp kalır; dokunma hedefi 48 dp (kenar boşlukları da basılabilir, anlamsal ikinci düğme yok).
+    // Görsel hap 34 dp ([BuSize.buttonCompact]) kalır; dokunma hedefi 48 dp (kenar boşlukları da basılabilir, anlamsal ikinci düğme yok).
     return sem(
       ConstrainedBox(
-        constraints: const BoxConstraints(minHeight: 48, minWidth: 48),
+        constraints: const BoxConstraints(minHeight: BuSize.touch, minWidth: BuSize.touch),
         child: Stack(
           alignment: Alignment.center,
           children: [
@@ -612,9 +613,8 @@ class BuSegmented extends StatelessWidget {
     final thumb = dark ? Color.alphaBlend(t.ink.withValues(alpha: .16), t.sf2) : t.sf;
     final x = n < 2 ? 0.0 : -1 + 2 * index.clamp(0, n - 1) / (n - 1);
     return Container(
-      constraints: const BoxConstraints(minHeight: 52),
-      padding: const EdgeInsets.all(4),
-      decoration: BoxDecoration(color: t.sf2, borderRadius: BorderRadius.circular(26)),
+      constraints: const BoxConstraints(minHeight: BuSize.touch),
+      decoration: BoxDecoration(color: t.sf2, borderRadius: BorderRadius.circular(BuSize.touch / 2)),
       child: Stack(
         children: [
           if (n > 0)
@@ -626,11 +626,15 @@ class BuSegmented extends StatelessWidget {
                 child: FractionallySizedBox(
                   widthFactor: 1 / n,
                   heightFactor: 1,
-                  child: DecoratedBox(
-                    decoration: BoxDecoration(
-                      color: thumb,
-                      borderRadius: BorderRadius.circular(22),
-                      boxShadow: dark ? null : [BoxShadow(color: t.shadow.withValues(alpha: .12), blurRadius: 3, offset: const Offset(0, 1))],
+                  // Parça 2 dp içeriden: öğeler 48 dp dokunma alanını tam kaplar (boşluk parçanın kenar payıdır).
+                  child: Padding(
+                    padding: const EdgeInsets.all(2),
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        color: thumb,
+                        borderRadius: BorderRadius.circular(22),
+                        boxShadow: dark ? null : [BoxShadow(color: t.shadow.withValues(alpha: .12), blurRadius: 3, offset: const Offset(0, 1))],
+                      ),
                     ),
                   ),
                 ),
@@ -651,7 +655,7 @@ class BuSegmented extends StatelessWidget {
                       },
                       child: Container(
                         alignment: Alignment.center,
-                        constraints: const BoxConstraints(minHeight: 44),
+                        constraints: const BoxConstraints(minHeight: BuSize.touch),
                         padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
                         // Tek satır; dar/büyük yazıda küçülür (kelime ortadan bölünmez).
                         child: FittedBox(
@@ -730,11 +734,11 @@ class _BuSearchFieldState extends State<BuSearchField> {
     final focused = _focus.hasFocus && !widget.readOnly;
     return AnimatedContainer(
       duration: BuMotion.of(context, BuMotion.short),
-      height: 50,
+      height: BuSize.search,
       padding: const EdgeInsetsDirectional.only(start: 16, end: 4),
       decoration: BoxDecoration(
         color: t.sf,
-        borderRadius: BorderRadius.circular(25),
+        borderRadius: BorderRadius.circular(BuSize.search / 2),
         border: Border.all(color: focused ? t.pr : t.bd, width: focused ? 2 : 1),
       ),
       child: Row(
@@ -796,7 +800,7 @@ class BuSectionTitle extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.bu;
     return Padding(
-      padding: padding ?? const EdgeInsetsDirectional.fromSTEB(20, 22, 20, 10),
+      padding: padding ?? const EdgeInsetsDirectional.fromSTEB(20, 18, 20, 6),
       child: Row(
         children: [
           Expanded(
@@ -887,16 +891,16 @@ class BuMenuRow extends StatelessWidget {
     return InkWell(
       onTap: onTap,
       child: Container(
-        constraints: const BoxConstraints(minHeight: 56),
+        constraints: const BoxConstraints(minHeight: BuSize.row),
         padding: const EdgeInsetsDirectional.symmetric(horizontal: 16, vertical: 8),
         child: Row(
           children: [
             ExcludeSemantics(
               child: Container(
-                width: 34,
-                height: 34,
+                width: 32,
+                height: 32,
                 decoration: BoxDecoration(color: danger ? cs.errorContainer : t.soft, borderRadius: BuRadius.bSm),
-                child: Icon(icon, size: 18, color: danger ? t.danger : t.pr),
+                child: Icon(icon, size: 17, color: danger ? t.danger : t.pr),
               ),
             ),
             const SizedBox(width: 14),
@@ -956,8 +960,8 @@ class BuMark extends StatelessWidget {
       SvgPicture.asset('assets/branding/mark_white.svg', height: height, width: height, semanticsLabel: 'BÜ Kampüs');
 }
 
-/// Kaydırılabilir sayfa gövdesi altına yüzen gezinme payı (88 px) bırakmak için.
-const double kNavInset = 100;
+/// Kaydırılabilir sayfa gövdesi altına yüzen gezinme payı ([BuSize.navInset] = 96 dp) bırakmak için.
+const double kNavInset = BuSize.navInset;
 
 /// Kırmızı hero rengi (tema bağımsız logo vb. için).
 const Color kBrandRed = BuColors.red600;

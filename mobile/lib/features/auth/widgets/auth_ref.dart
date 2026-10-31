@@ -10,8 +10,10 @@ import 'auth_motion.dart';
 /// Kimlik akışı (Stitch 01/02/03) ortak yapı taşları: düz zemin, beyaz yuvarlak kartlar, üstte etiketli alanlar.
 /// Renkler yalnız `context.bu`; yazı `textTheme`. Eski AuthShell/AuthTextField (hareketli sahne) başka paketlerin
 /// ekranlarında kullanıldığı için olduğu gibi durur.
-const double kRefPad = 16;
-const double kRefFieldH = 56;
+const double kRefPad = 20;
+/// Alan yüksekliği ve düğme yüksekliği BuSize'dan gelir (alan 52, düğme 48 dp).
+const double kRefFieldH = BuSize.field;
+const double kRefButtonH = BuSize.button;
 
 /// Ekran iskeleti: yalnız geri oku olan üst çubuk + kaydırılan gövde.
 class RefPage extends StatelessWidget {
@@ -41,7 +43,7 @@ class RefPage extends StatelessWidget {
         child: Column(
           children: [
             SizedBox(
-              height: 56,
+              height: BuSize.appBar,
               child: Padding(
                 padding: const EdgeInsetsDirectional.symmetric(horizontal: 8),
                 child: Row(
@@ -120,7 +122,7 @@ class RefHeading extends StatelessWidget {
       children: [
         Semantics(
           header: true,
-          child: Text(title, textAlign: align, style: tx.headlineMedium!.copyWith(color: t.ink, fontWeight: FontWeight.w800, height: 1.2)),
+          child: Text(title, textAlign: align, style: tx.headlineMedium!.copyWith(color: t.ink, fontSize: BuScale.display - 2, fontWeight: FontWeight.w700, height: 1.2)),
         ),
         if (sub != null) Padding(padding: const EdgeInsets.only(top: 8), child: sub),
       ],
@@ -130,7 +132,7 @@ class RefHeading extends StatelessWidget {
 
 /// Başlık üstündeki yuvarlak köşeli simge karosu.
 class RefIconTile extends StatelessWidget {
-  const RefIconTile(this.icon, {super.key, this.size = 56, this.bg, this.fg, this.radius = 18});
+  const RefIconTile(this.icon, {super.key, this.size = 48, this.bg, this.fg, this.radius = 16});
 
   final IconData icon;
   final double size;
@@ -211,34 +213,40 @@ class RefBanner extends StatelessWidget {
     final t = context.bu;
     final tx = Theme.of(context).textTheme;
     final cs = Theme.of(context).colorScheme;
-    final (bg, fg, ic) = switch (tone) {
-      RefTone.error => (cs.errorContainer, t.danger, LucideIcons.circleAlert),
-      RefTone.warn => (t.warnSoft, t.onWarnSoft, LucideIcons.triangleAlert),
-      RefTone.info => (t.tint(1).bg, t.ink, LucideIcons.info),
-      RefTone.success => (t.okSoft, t.ok, LucideIcons.circleCheck),
-      RefTone.neutral => (t.sf2, t.ink, LucideIcons.info),
+    final (bg, fg) = switch (tone) {
+      RefTone.error => (cs.errorContainer, t.danger),
+      RefTone.warn => (t.warnSoft, t.onWarnSoft),
+      RefTone.info => (t.tint(1).bg, t.ink),
+      RefTone.success => (t.okSoft, t.ok),
+      RefTone.neutral => (t.sf2, t.ink),
     };
-    final accent = switch (tone) {
-      RefTone.warn => t.warn,
-      RefTone.info => t.tint(1).fg,
-      _ => fg,
-    };
+    // Sade hata (başlıksız, eylemsiz, kapatılamaz): kutusuz, simgesiz tek danger metin (+ soluk ikinci satır).
+    if (tone == RefTone.error && title == null && actions.isEmpty && onClose == null) {
+      return Semantics(
+        liveRegion: true,
+        container: true,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(text, style: tx.bodyMedium!.copyWith(color: t.danger, height: 1.4, fontWeight: FontWeight.w500)),
+            if (sub != null)
+              Padding(
+                padding: const EdgeInsets.only(top: 4),
+                child: Text(sub!, style: tx.bodySmall!.copyWith(color: t.mut)),
+              ),
+          ],
+        ),
+      );
+    }
     return Semantics(
       liveRegion: true,
       container: true,
       child: Container(
-        padding: const EdgeInsetsDirectional.fromSTEB(14, 14, 10, 14),
-        decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(20)),
+        padding: const EdgeInsetsDirectional.fromSTEB(16, 12, 8, 12),
+        decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(16)),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(
-              width: 36,
-              height: 36,
-              decoration: BoxDecoration(shape: BoxShape.circle, color: accent.withValues(alpha: .14)),
-              child: Icon(icon ?? ic, color: accent, size: 19),
-            ),
-            const SizedBox(width: 12),
             Expanded(
               child: Padding(
                 padding: const EdgeInsets.symmetric(vertical: 2),
@@ -255,7 +263,6 @@ class RefBanner extends StatelessWidget {
                         padding: const EdgeInsets.only(top: 4),
                         child: Row(
                           children: [
-                            if (subIcon != null) ...[Icon(subIcon, size: 14, color: fg), const SizedBox(width: 6)],
                             Flexible(child: Text(sub!, style: tx.bodySmall!.copyWith(color: fg, fontWeight: FontWeight.w500))),
                           ],
                         ),
@@ -281,7 +288,8 @@ class RefBanner extends StatelessWidget {
   }
 }
 
-/// Kısa bilgi kartı: yuvarlak simge + metin (ör. "Bölümünüz ... kullanılır.").
+/// Kısa, sakin bilgi satırı: kutu/zemin yok; küçük soluk simge + ikincil metin (kalıcı olmayan bilgi kutusu yerine).
+/// [tone]/[iconTint] eski çağrılar için kabul edilir, görünümü değiştirmez.
 class RefNote extends StatelessWidget {
   const RefNote(this.text, {super.key, this.icon = LucideIcons.info, this.tone = RefTone.neutral, this.title, this.iconTint});
 
@@ -289,54 +297,37 @@ class RefNote extends StatelessWidget {
   final IconData icon;
   final RefTone tone;
   final String? title;
-
-  /// Simge dairesi için kategori rengi (verilmezse tonun rengi).
   final BuTint? iconTint;
 
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
     final tx = Theme.of(context).textTheme;
-    var (bg, iconBg, iconFg) = switch (tone) {
-      RefTone.error => (t.soft.withValues(alpha: .55), t.soft, t.pr),
-      RefTone.info => (t.tint(1).bg, t.sf, t.tint(1).fg),
-      _ => (t.sf2, t.sf, t.mut),
-    };
-    if (iconTint != null) {
-      iconBg = iconTint!.bg;
-      iconFg = iconTint!.fg;
-    }
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(20)),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Container(
-            width: 36,
-            height: 36,
-            decoration: BoxDecoration(color: iconBg, shape: BoxShape.circle),
-            child: Icon(icon, size: 18, color: iconFg),
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(top: 2),
+          child: ExcludeSemantics(child: Icon(icon, size: 16, color: t.mut)),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (title != null) Text(title!, style: tx.bodySmall!.copyWith(color: t.ink, fontWeight: FontWeight.w700)),
+              Text(text, style: tx.bodySmall!.copyWith(color: t.mut, height: 1.45)),
+            ],
           ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                if (title != null) Text(title!, style: tx.titleSmall!.copyWith(color: t.ink, fontWeight: FontWeight.w700)),
-                Text(text, style: tx.bodyMedium!.copyWith(color: t.mut, height: 1.45)),
-              ],
-            ),
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }
 
-enum RefButtonKind { primary, secondary, warn, danger, soft }
+enum RefButtonKind { primary, secondary, warn, danger, soft, ghost }
 
-/// Ana eylem: 56 dp, 20 dp yuvarlak; etiket + sonda ok; yüklenirken çember + [busyLabel].
+/// Ana eylem: 48 dp ([BuSize.button]), 14 dp yuvarlak; etiket + sonda ok; yüklenirken çember + [busyLabel].
 class RefButton extends StatelessWidget {
   const RefButton({
     super.key,
@@ -366,12 +357,13 @@ class RefButton extends StatelessWidget {
       RefButtonKind.secondary => (t.sf, t.ink),
       RefButtonKind.danger => (Theme.of(context).colorScheme.error, Theme.of(context).colorScheme.onError),
       RefButtonKind.soft => (t.tint(1).bg, t.tint(1).fg),
+      RefButtonKind.ghost => (Colors.transparent, t.ink),
     };
     final disabled = onPressed == null && !busy;
     final faded = busy || disabled;
-    final fill = kind == RefButtonKind.secondary ? bg : (faded ? bg.withValues(alpha: busy ? .5 : .45) : bg);
+    final fill = (kind == RefButtonKind.secondary || kind == RefButtonKind.ghost) ? bg : (faded ? bg.withValues(alpha: busy ? .5 : .45) : bg);
     final shape = RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(20),
+      borderRadius: BuRadius.bControl,
       side: kind == RefButtonKind.secondary ? BorderSide(color: t.bd) : BorderSide.none,
     );
     final content = busy
@@ -382,7 +374,7 @@ class RefButton extends StatelessWidget {
               SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2.4, color: fg)),
               if (busyLabel != null) ...[
                 const SizedBox(width: 12),
-                Flexible(child: Text(busyLabel!, style: tx.titleMedium!.copyWith(color: fg, fontWeight: FontWeight.w700))),
+                Flexible(child: Text(busyLabel!, style: tx.bodyLarge!.copyWith(color: fg, fontWeight: FontWeight.w600))),
               ],
             ],
           )
@@ -393,9 +385,9 @@ class RefButton extends StatelessWidget {
               Flexible(
                 child: Text(label,
                     textAlign: TextAlign.center,
-                    style: tx.titleMedium!.copyWith(color: disabled && kind == RefButtonKind.secondary ? t.mut : fg, fontWeight: FontWeight.w700)),
+                    style: tx.bodyLarge!.copyWith(color: disabled && (kind == RefButtonKind.secondary || kind == RefButtonKind.ghost) ? t.mut : fg, fontWeight: FontWeight.w600)),
               ),
-              if (icon != null) ...[const SizedBox(width: 8), Icon(icon, size: 20, color: fg)],
+              if (icon != null) ...[const SizedBox(width: 8), Icon(icon, size: 18, color: fg)],
             ],
           );
     final tap = busy || disabled
@@ -413,7 +405,7 @@ class RefButton extends StatelessWidget {
         enabled: tap != null,
         child: DecoratedBox(
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BuRadius.bControl,
             boxShadow: kind == RefButtonKind.primary && !faded && !dark
                 ? [BoxShadow(color: t.pr.withValues(alpha: .28), blurRadius: 16, offset: const Offset(0, 6), spreadRadius: -4)]
                 : const [],
@@ -425,9 +417,9 @@ class RefButton extends StatelessWidget {
               customBorder: shape,
               onTap: tap,
               child: ConstrainedBox(
-                constraints: const BoxConstraints(minHeight: kRefFieldH),
+                constraints: const BoxConstraints(minHeight: kRefButtonH),
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
                   // Etiket <-> çember yumuşak geçer (150 ms; azalt açıkken anında).
                   child: Center(
                     heightFactor: 1,
@@ -653,16 +645,14 @@ class _RefTextFieldState extends State<RefTextField> {
     final tx = Theme.of(context).textTheme;
     final err = widget.forceError ?? _error;
     final hasError = err != null;
-    final fill = hasError
-        ? Color.alphaBlend(t.danger.withValues(alpha: .09), widget.onCard ? t.sf2 : t.sf)
-        : (widget.onCard ? t.sf2 : t.sf);
+    // Stitch v3: alan her durumda beyaz (hatada pembe dolgu yok); çerçeve: normal bdStrong, odak pr, hata danger.
+    final fill = t.sf;
     final borderColor = hasError
-        ? t.danger.withValues(alpha: .55)
+        ? t.danger
         : _focused
             ? t.pr
-            : (widget.onCard ? Colors.transparent : t.bd);
-    final iconColor = hasError ? t.danger : (_focused ? t.pr : t.mut);
-    final textStyle = tx.bodyLarge!.copyWith(color: hasError ? t.danger : t.ink, fontWeight: FontWeight.w500);
+            : t.bdStrong;
+        final textStyle = tx.bodyLarge!.copyWith(color: t.ink, fontWeight: FontWeight.w500);
     final input = TextFormField(
       key: _key,
       controller: widget.controller,
@@ -712,7 +702,7 @@ class _RefTextFieldState extends State<RefTextField> {
             child: Row(
               children: [
                 Expanded(
-                  child: Text(widget.label, style: tx.labelLarge!.copyWith(color: t.ink, fontWeight: FontWeight.w700)),
+                  child: Text(widget.label, style: tx.labelLarge!.copyWith(color: t.ink, fontWeight: FontWeight.w500)),
                 ),
                 if (widget.labelAction != null) widget.labelAction!,
               ],
@@ -722,17 +712,17 @@ class _RefTextFieldState extends State<RefTextField> {
           trigger: _shake,
           child: AnimatedContainer(
             duration: BuMotion.of(context, BuMotion.short),
-            constraints: BoxConstraints(minHeight: widget.innerLabel ? 68 : kRefFieldH),
-            padding: const EdgeInsetsDirectional.fromSTEB(16, 8, 12, 8),
+            constraints: BoxConstraints(minHeight: widget.innerLabel ? 60 : kRefFieldH),
+            padding: EdgeInsetsDirectional.fromSTEB(16, widget.innerLabel ? 6 : 0, 12, widget.innerLabel ? 6 : 0),
             decoration: BoxDecoration(
               color: fill,
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BuRadius.bControl,
               border: Border.all(color: borderColor, width: _focused || hasError ? 1.5 : 1),
             ),
             child: Row(
               children: [
                 if (widget.icon != null) ...[
-                  Icon(widget.icon, size: 22, color: iconColor),
+                  Icon(widget.icon, size: 20, color: hasError ? t.danger : (_focused ? t.pr : t.mut)),
                   const SizedBox(width: 12),
                 ],
                 Expanded(
@@ -750,14 +740,7 @@ class _RefTextFieldState extends State<RefTextField> {
                 ),
                 if (chip != null) ...[
                   const SizedBox(width: 8),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
-                    decoration: BoxDecoration(
-                      color: widget.onCard && !hasError ? t.sf : (hasError ? t.sf : t.sf2),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Text(chip, style: tx.labelMedium!.copyWith(color: t.mut, fontWeight: FontWeight.w700)),
-                  ),
+                  Text(chip, style: tx.bodyLarge!.copyWith(color: t.mut)),
                 ],
                 if (widget.trailing != null) widget.trailing!,
               ],
@@ -778,19 +761,12 @@ class _RefTextFieldState extends State<RefTextField> {
                   builder: (context, v, child) => Opacity(opacity: v, child: child),
                   child: Padding(
                     padding: const EdgeInsetsDirectional.only(top: 8, start: 4),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Padding(padding: const EdgeInsets.only(top: 1), child: Icon(LucideIcons.circleAlert, size: 16, color: t.danger)),
-                        const SizedBox(width: 8),
-                        Expanded(child: Text(err, style: tx.bodyMedium!.copyWith(color: t.danger, fontWeight: FontWeight.w500, height: 1.3))),
-                      ],
-                    ),
+                    child: Text(err, style: tx.bodySmall!.copyWith(color: t.danger, fontWeight: FontWeight.w500, height: 1.3)),
                   ),
                 )
               : const SizedBox(width: double.infinity),
         ),
-        if (widget.helper != null)
+        if (widget.helper != null && !hasError)
           Padding(
             padding: const EdgeInsetsDirectional.only(top: 8, start: 4),
             child: Text(widget.helper!, style: tx.bodySmall!.copyWith(color: t.mut)),
@@ -817,7 +793,7 @@ class RefPasswordField extends StatefulWidget {
     this.onCard = false,
     this.forceError,
     this.labelAction,
-    this.showIcon = true,
+    this.showIcon = false,
   });
 
   final TextEditingController controller;
@@ -913,7 +889,6 @@ class RefIdentifierField extends StatelessWidget {
         controller: controller,
         label: label ?? context.l10n.authIdHint,
         helper: helper ? context.l10n.authIdHelper : null,
-        icon: LucideIcons.atSign,
         enabled: enabled,
         onCard: onCard,
         forceError: forceError,
@@ -929,7 +904,7 @@ class RefIdentifierField extends StatelessWidget {
   }
 }
 
-/// Kart içi tek satırlık durum hapı (kod hatalı, yeni kod gönderildi gibi).
+/// Tek satırlık sade durum metni (kod hatalı, yeni kod gönderildi gibi): kutu ve simge yok; hata danger, başarı ink.
 class RefPill extends StatelessWidget {
   const RefPill(this.text, {super.key, this.tone = RefTone.error});
 
@@ -940,26 +915,15 @@ class RefPill extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.bu;
     final tx = Theme.of(context).textTheme;
-    final cs = Theme.of(context).colorScheme;
-    final (bg, fg, ic) = switch (tone) {
-      RefTone.success => (t.okSoft, t.ok, LucideIcons.circleCheck),
-      RefTone.warn => (t.warnSoft, t.onWarnSoft, LucideIcons.triangleAlert),
-      _ => (cs.errorContainer, t.danger, LucideIcons.circleAlert),
+    final color = switch (tone) {
+      RefTone.success => t.ink,
+      RefTone.warn => t.onWarnSoft,
+      _ => t.danger,
     };
     return Semantics(
       liveRegion: true,
       container: true,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
-        decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(14)),
-        child: Row(
-          children: [
-            Icon(ic, size: 18, color: fg),
-            const SizedBox(width: 10),
-            Expanded(child: Text(text, style: tx.bodyMedium!.copyWith(color: fg, fontWeight: FontWeight.w600, height: 1.3))),
-          ],
-        ),
-      ),
+      child: Text(text, style: tx.bodyMedium!.copyWith(color: color, fontWeight: FontWeight.w500, height: 1.3)),
     );
   }
 }

@@ -212,7 +212,7 @@ void main() {
       await t.pumpAndSettle();
       await t.tap(find.text('Kategori 2'));
       expect(got, 2);
-      expect(t.getSize(find.byType(BuChipRow)).height, 52);
+      expect(t.getSize(find.byType(BuChipRow)).height, 48);
     });
 
     testWidgets('RTL ve reduce-motion: kaydirma anında', (t) async {

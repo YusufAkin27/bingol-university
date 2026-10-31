@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../core/theme.dart';
 import '../core/theme/bu_motion.dart';
 import '../core/theme/bu_shape.dart';
+import '../core/theme/bu_sizes.dart';
 import 'bu_widgets.dart';
 
 /// Bölüm başlığı: sol başlık (`titleMedium`) + sağda isteğe bağlı "Tümü" eylemi. Ekran okuyucuda başlık olarak okunur.
@@ -291,7 +292,7 @@ class BuSettingsTile extends StatelessWidget {
 }
 
 /// Yatay kaydırılan çip satırı (filtre/kategori). [selected] seçili indeks; [onSelected] indeks döner.
-/// RTL'de sağdan başlar. Yüksekliği 52 dp'ye sabit (çipin 44 dp dokunma alanı + boşluk).
+/// RTL'de sağdan başlar. Yüksekliği 48 dp'ye sabit (çipin 34 dp görünür kutusu + 48 dp dokunma alanı).
 ///
 /// Seçili çip her zaman görünür kalır (seçim değişince / ilk açılışta yumuşakça ortalanır); içerik taşıyorsa
 /// kaydırılabilir yönün kenarında ~24 dp solma ipucu çıkar (1.3x yazıda son çip kesik görünse de devam ettiği anlaşılır).
@@ -389,7 +390,7 @@ class _BuChipRowState extends State<BuChipRow> {
     final solid = context.bu.bg;
     final clear = solid.withValues(alpha: 0);
     Widget row = SizedBox(
-      height: 52,
+      height: BuSize.touch,
       child: SingleChildScrollView(
         controller: _scroll,
         scrollDirection: Axis.horizontal,
