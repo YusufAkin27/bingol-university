@@ -1,12 +1,16 @@
 // "Bize ulaşın" formu (T27). Akış: form -> e-postaya kod -> kod doğrulama -> talep numarası + durum bağlantısı.
 // API: POST /api/public/support/tickets, POST /api/public/support/tickets/verify (api/publicSupport.ts).
 import { useMutation } from '@tanstack/react-query';
-import { useRef, useState, type FormEvent } from 'react';
+import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { Link } from '../../../components/LocalizedLink';
 import {
+  DEFAULT_MIN_FILL_SECONDS,
   MESSAGE_MAX,
   MESSAGE_MIN,
   NAME_MAX,
+  formTokenStale,
+  getPublicFormToken,
+  msUntilFillAllowed,
   submitPublicTicket,
   validatePublicForm,
   verifyPublicTicket,
@@ -25,12 +29,21 @@ import styles from './PublicSupportForm.module.css';
 const CATEGORIES: TicketCategory[] = ['ACCOUNT', 'TECHNICAL', 'CONTENT', 'OTHER'];
 type Step = 'form' | 'code' | 'done';
 
+interface HeldToken {
+  token: string;
+  issuedAt: number;
+  minFillSeconds: number;
+}
+
 export const trackPath = (token: string) => `/support/track?token=${encodeURIComponent(token)}`;
 
 export function PublicSupportForm() {
   const i18n = useI18n();
   const { t } = i18n;
   const openedAt = useRef(Date.now());
+  // Sunucu imzalı form jetonu (T-062): formu açarken alınır, gönderimde `formToken` ile yollanır
+  const held = useRef<HeldToken | null>(null);
+  const loading = useRef<Promise<HeldToken> | null>(null);
   const [step, setStep] = useState<Step>('form');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -43,17 +56,47 @@ export function PublicSupportForm() {
   const [minutes, setMinutes] = useState(10);
   const [result, setResult] = useState<PublicSupportVerified | null>(null);
 
+  /** Geçerli jeton; yoksa/eskiyse sunucudan yenisini alır (aynı anda tek istek). */
+  function ensureToken(): Promise<HeldToken> {
+    const cur = held.current;
+    if (cur && !formTokenStale(cur.issuedAt, Date.now())) return Promise.resolve(cur);
+    if (!loading.current) {
+      loading.current = getPublicFormToken()
+        .then((r) => {
+          const h = { token: r.formToken, issuedAt: Date.now(), minFillSeconds: r.minFillSeconds ?? DEFAULT_MIN_FILL_SECONDS };
+          held.current = h;
+          return h;
+        })
+        .finally(() => {
+          loading.current = null;
+        });
+    }
+    return loading.current;
+  }
+  // formu açar açmaz jeton alınır (hata sessizdir; gönderimde yeniden denenir ve hata o zaman gösterilir)
+  useEffect(() => {
+    void ensureToken().catch(() => undefined);
+  }, []);
+
   const send = useMutation({
-    mutationFn: () =>
-      submitPublicTicket({
+    mutationFn: async () => {
+      const h = await ensureToken();
+      // çok hızlı gönderimi sunucu sessizce düşürür: gerekirse asgari doldurma süresi tamamlanana dek bekle
+      const wait = msUntilFillAllowed(h.issuedAt, h.minFillSeconds, Date.now());
+      if (wait > 0) await new Promise((res) => setTimeout(res, wait));
+      return submitPublicTicket({
         name: name.trim(),
         email: email.trim(),
         category,
         message: message.trim(),
         website,
         elapsedMs: Date.now() - openedAt.current,
-      }),
+        formToken: h.token,
+      });
+    },
     onSuccess: (r) => {
+      held.current = null; // jeton başına en çok 3 gönderim: sonraki gönderim yeni jeton alır
+      void ensureToken().catch(() => undefined);
       setMinutes(r.expiresInMinutes);
       setCode('');
       setCodeError(null);
@@ -91,6 +134,8 @@ export function PublicSupportForm() {
     setErrors({});
     setResult(null);
     openedAt.current = Date.now();
+    held.current = null;
+    void ensureToken().catch(() => undefined);
     send.reset();
     verify.reset();
     setStep('form');

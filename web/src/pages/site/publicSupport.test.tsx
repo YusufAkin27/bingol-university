@@ -3,7 +3,12 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { AuthProvider } from '../../auth/AuthProvider';
 import { dictionaries } from '../../i18n/all';
 import { isoDate } from '../../lib/date';
-import { validatePublicForm } from '../../api/publicSupport';
+import {
+  FORM_TOKEN_MAX_AGE_MS,
+  formTokenStale,
+  msUntilFillAllowed,
+  validatePublicForm,
+} from '../../api/publicSupport';
 import { resetCookieChoice } from '../../lib/cookieConsent';
 import { AppRoutes } from '../../routes';
 import { jsonResponse, mockFetch } from '../../test/fetchMock';
@@ -99,7 +104,12 @@ describe('herkese açık destek formu', () => {
 
   it('geçersiz formu göndermez; geçerli form kod adımına, doğru kod durum bağlantısına götürür', async () => {
     const calls: { url: string; body: Record<string, unknown> }[] = [];
+    let tokens = 0;
     mockFetch((url, init) => {
+      if (url.endsWith('/public/support/form-token')) {
+        tokens += 1;
+        return jsonResponse(200, { formToken: `v1.tok-${tokens}`, minFillSeconds: 0 });
+      }
       if (url.includes('/public/support/')) {
         calls.push({ url, body: JSON.parse(String(init.body)) as Record<string, unknown> });
         if (url.endsWith('/tickets')) return jsonResponse(202, { status: 'CODE_SENT', expiresInMinutes: 10 });
@@ -121,6 +131,8 @@ describe('herkese açık destek formu', () => {
     expect(await screen.findByText('E-postanızı doğrulayın')).toBeInTheDocument();
     expect(calls[0].body).toMatchObject({ name: 'Ali Veli', email: 'ali@example.com', category: 'TECHNICAL', website: '' });
     expect(typeof calls[0].body.elapsedMs).toBe('number');
+    // T-062: form açılırken alınan imzalı jeton gönderimde formToken olarak gider
+    expect(calls[0].body.formToken).toBe('v1.tok-1');
 
     fireEvent.change(screen.getByLabelText(/Doğrulama kodu/), { target: { value: '12' } });
     fireEvent.click(screen.getByRole('button', { name: 'Doğrula ve gönder' }));
@@ -145,6 +157,95 @@ describe('herkese açık destek formu', () => {
     fireEvent.change(screen.getByLabelText(/Mesajınız/), { target: { value: 'Yeterince uzun bir mesaj yazıyorum' } });
     fireEvent.click(screen.getByRole('button', { name: 'Doğrulama kodu gönder' }));
     expect(await screen.findByRole('alert')).toBeInTheDocument();
+  });
+});
+
+describe('form jetonu (T-062)', () => {
+  it('jeton yoksa ya da 100 dk üstündeyse yenilenir; hızlı gönderim için kalan bekleme hesaplanır', () => {
+    const now = 1_000_000_000;
+    expect(formTokenStale(null, now)).toBe(true);
+    expect(formTokenStale(now - 1000, now)).toBe(false);
+    expect(formTokenStale(now - FORM_TOKEN_MAX_AGE_MS, now)).toBe(true);
+    expect(FORM_TOKEN_MAX_AGE_MS).toBeLessThan(2 * 60 * 60 * 1000);
+    expect(msUntilFillAllowed(now, 3, now)).toBe(3250);
+    expect(msUntilFillAllowed(now - 1000, 3, now)).toBe(2250);
+    expect(msUntilFillAllowed(now - 10_000, 3, now)).toBe(0);
+    expect(msUntilFillAllowed(now, 0, now)).toBe(250);
+  });
+
+  it('form açılırken GET form-token çağrılır ve jeton gönderime eklenir (jeton olmadan gönderilmez)', async () => {
+    const seen: string[] = [];
+    let posted: Record<string, unknown> | null = null;
+    mockFetch((url, init) => {
+      seen.push(url);
+      if (url.endsWith('/public/support/form-token')) return jsonResponse(200, { formToken: 'v1.abc.def.sig', minFillSeconds: 0 });
+      if (url.endsWith('/public/support/tickets')) {
+        posted = JSON.parse(String(init.body)) as Record<string, unknown>;
+        return jsonResponse(202, { status: 'CODE_SENT', expiresInMinutes: 10 });
+      }
+      return jsonResponse(200, info);
+    });
+    renderAt('/contact');
+    await waitFor(() => expect(seen.some((u) => u.endsWith('/public/support/form-token'))).toBe(true));
+    fireEvent.change(await screen.findByLabelText(/Ad soyad/), { target: { value: 'Ali' } });
+    fireEvent.change(screen.getByLabelText(/E-posta/), { target: { value: 'ali@example.com' } });
+    fireEvent.change(screen.getByLabelText(/Mesajınız/), { target: { value: 'Yeterince uzun bir mesaj yazıyorum' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Doğrulama kodu gönder' }));
+    expect(await screen.findByText('E-postanızı doğrulayın')).toBeInTheDocument();
+    expect(posted).toMatchObject({ formToken: 'v1.abc.def.sig' });
+  });
+
+  it('açılıştaki jeton isteği başarısızsa gönderimde yeniden denenir; yine olmazsa gönderim yapılmaz ve hata gösterilir', async () => {
+    let ticketPosts = 0;
+    let tokenCalls = 0;
+    mockFetch((url) => {
+      if (url.endsWith('/public/support/form-token')) {
+        tokenCalls += 1;
+        return jsonResponse(500, { code: 'SERVER_ERROR', message: 'x' });
+      }
+      if (url.endsWith('/public/support/tickets')) {
+        ticketPosts += 1;
+        return jsonResponse(202, { status: 'CODE_SENT', expiresInMinutes: 10 });
+      }
+      return jsonResponse(200, info);
+    });
+    renderAt('/contact');
+    fireEvent.change(await screen.findByLabelText(/Ad soyad/), { target: { value: 'Ali' } });
+    fireEvent.change(screen.getByLabelText(/E-posta/), { target: { value: 'ali@example.com' } });
+    fireEvent.change(screen.getByLabelText(/Mesajınız/), { target: { value: 'Yeterince uzun bir mesaj yazıyorum' } });
+    await waitFor(() => expect(tokenCalls).toBeGreaterThanOrEqual(1));
+    const before = tokenCalls;
+    fireEvent.click(screen.getByRole('button', { name: 'Doğrulama kodu gönder' }));
+    expect(await screen.findByRole('alert')).toBeInTheDocument();
+    expect(tokenCalls).toBeGreaterThan(before);
+    expect(ticketPosts).toBe(0);
+  });
+
+  it('kod adımından geri dönüp yeniden gönderince YENİ jeton alınır (jeton başına en çok 3 gönderim)', async () => {
+    const posts: Record<string, unknown>[] = [];
+    let n = 0;
+    mockFetch((url, init) => {
+      if (url.endsWith('/public/support/form-token')) {
+        n += 1;
+        return jsonResponse(200, { formToken: `v1.t${n}`, minFillSeconds: 0 });
+      }
+      if (url.endsWith('/public/support/tickets')) {
+        posts.push(JSON.parse(String(init.body)) as Record<string, unknown>);
+        return jsonResponse(202, { status: 'CODE_SENT', expiresInMinutes: 10 });
+      }
+      return jsonResponse(200, info);
+    });
+    renderAt('/contact');
+    fireEvent.change(await screen.findByLabelText(/Ad soyad/), { target: { value: 'Ali' } });
+    fireEvent.change(screen.getByLabelText(/E-posta/), { target: { value: 'ali@example.com' } });
+    fireEvent.change(screen.getByLabelText(/Mesajınız/), { target: { value: 'Yeterince uzun bir mesaj yazıyorum' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Doğrulama kodu gönder' }));
+    await screen.findByText('E-postanızı doğrulayın');
+    fireEvent.click(screen.getByRole('button', { name: 'Bilgileri düzenle' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Doğrulama kodu gönder' }));
+    await waitFor(() => expect(posts).toHaveLength(2));
+    expect(posts[0].formToken).toBe('v1.t1');
+    expect(posts[1].formToken).not.toBe('v1.t1');
   });
 });
 

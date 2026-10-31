@@ -91,7 +91,8 @@ test.describe('Backendsiz kritik yollar', () => {
     await expect(page.getByText('Sorunlu gonderi metni')).toBeVisible();
     await page.getByTestId('post-row').getByRole('button', { name: 'Gizle' }).click();
     await page.getByRole('dialog').getByRole('textbox').fill('Spam icerik');
-    await page.getByTestId('hide-confirm').click();
+    // 8e83b8fe (WEB-GEREKCE) onay duğmesini GuardedDialog'a taşıdı; data-testid kalktı: erişilebilir ada göre tıkla
+    await page.getByRole('dialog').getByRole('button', { name: 'Gizle', exact: true }).click();
     await expect.poll(() => hideBody?.reason).toBe('Spam icerik');
   });
 
