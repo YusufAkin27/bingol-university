@@ -93,7 +93,7 @@ public final class AdminGuardPolicy {
 
     /** Kritik ayar anahtarlari (tam ad ya da onek). */
     private static final List<String> CRITICAL_SETTING_PREFIXES = List.of(
-            "maintenance_mode", "min_version_", "store_url_", "legal.", "legal_", "support_email");
+            "maintenance_mode", "min_version_", "store_url_", "store_package_", "apple_app_id_", "legal.", "legal_", "support_email");
 
     private AdminGuardPolicy() {}
 

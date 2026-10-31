@@ -437,14 +437,18 @@ Uygulama açılışında (ve öne her gelişte, en çok birkaç dakikada bir) ki
 
 ```http
 GET /api/app/version?platform=android&version=1.0.3      # platform: android | ios; version: 1.2.3.4 biçimi (sayılar+nokta)
-→ {"updateRequired":false,"updateAvailable":true,"latestVersion":"1.1.0","storeUrl":"https://play.google.com/..."}
+→ {"updateRequired":false,"updateAvailable":true,"latestVersion":"1.1.0","storeUrl":"https://play.google.com/store/apps/details?id=tr.com.bukampus.app",
+   "message":"Önemli bir düzeltme yayınlandı.","marketUrl":"market://details?id=tr.com.bukampus.app"}
+# storeUrl: yöneticinin yazdığı adres; boşsa Android için paket adından, iOS için Apple kimliğinden TÜRETİLİR (iOS kimliği yoksa null)
+# marketUrl: Android market://details?id=..., iOS itms-apps://apps.apple.com/app/id... (yoksa null)
+# message: Accept-Language dilinde yönetici metni (boşsa null)
 GET /api/app/info
 → {"appName":"Bingöl Üniversitesi","website":"https://www.bingol.edu.tr","contactEmail":null,"supportEmail":null,"phone":null,"address":null,
    "social":{"instagram":null,"twitter":null,"youtube":null},"banner":null,
    "maintenance":{"enabled":false,"message":"Sistem bakımda. Lütfen daha sonra tekrar deneyin."},"languages":["tr","en","ar"]}
 ```
 Karar akışı:
-1. `updateRequired=true` → **zorunlu güncelleme** ekranı (kapatılamaz), `storeUrl`'ye yönlendir. API çağrılarına devam etmeyin.
+1. `updateRequired=true` → **zorunlu güncelleme** ekranı (kapatılamaz). "Güncelle": önce `marketUrl` (yalnız `market://` / `itms-apps://` şemaları, dış uygulama olarak), açılmazsa `storeUrl` (https); ikisi de `null` ise düğme yerine "Mağazadan güncelleyin" yazısı (ölü düğme yok). `message` doluysa varsayılan açıklamanın yerine gösterin. Kontrol anı: açılış + öne dönüş (en çok 15 dk'da bir; kilit açıkken her dönüşte); ağ yoksa kilitlemeyin (fail-open). API çağrılarına devam etmeyin.
 2. `updateAvailable=true` → kapatılabilir "yeni sürüm var" iletisi.
 3. `maintenance.enabled=true` → uygulama genelinde bakım bandı/ekranı (`maintenance.message` dilde gelir); **sunucu bu modda istekleri reddetmez**, yalnızca bayrak yükseltir: yazma işlemlerini kapatıp okumayı serbest bırakmak ürün kararıdır. `banner` doluysa duyuru bandı gösterin.
 4. `GET /api/status` → `{"NEWS":{"maintenance":false,"lastSuccessAt":"...","lastAttemptAt":"...","message":null},"MENU":{...}}`: haber/menü kaynağı ulaşılamıyorsa `maintenance=true`, **eski veri sunulmaya devam eder**; listenin üstünde "veriler güncel olmayabilir" uyarısı gösterin, hata ekranı değil.

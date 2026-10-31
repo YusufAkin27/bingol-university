@@ -40,7 +40,7 @@ public class AppInfoController {
     /** GET /api/app/version?platform=ANDROID&version=1.0.3 */
     @GetMapping("/app/version")
     public VersionCheck version(@RequestParam String platform, @RequestParam String version) {
-        return service.checkVersion(platform, version);
+        return service.checkVersion(platform, version, Lang.of(LocaleContextHolder.getLocale()));
     }
 
     @GetMapping("/admin/settings")

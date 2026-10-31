@@ -129,6 +129,7 @@ public final class AdminPermissionPolicy {
         one(Set.of("POST"), "/api/admin/legal/" + ID, LEGAL_PUBLISH);
         area("/api/admin/legal(/.*)?", LEGAL_READ, LEGAL_PUBLISH);
         area("/api/admin/settings(/.*)?", SETTINGS_READ, SETTINGS_WRITE);
+        area("/api/admin/app-versions(/.*)?", SETTINGS_READ, SETTINGS_WRITE);
     }
 
     private AdminPermissionPolicy() {}

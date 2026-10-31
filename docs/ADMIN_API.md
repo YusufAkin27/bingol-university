@@ -975,3 +975,28 @@ Mobil uygulamanın anonim hata/çökme raporları KENDİ sunucumuzda toplanır (
 | `DELETE /api/admin/crashes/{id}` | Grubu ve tüm raporlarını siler; gerekçe zorunlu (`X-Admin-Reason`); 204. Aynı hata gelirse yeni grup olarak doğar. |
 
 Hata kodları (tr/en/ar `ops*.properties`): `CRASH_NOT_FOUND`, `CRASH_STATUS_INVALID`, `CRASH_FILTER_INVALID`. Web: `/admin/crashes` (Sistem grubu, `system.read`). Duman: `scripts/smoke-crash-reports.sh`.
+
+## Uygulama güncelleme zorlama (UPDATEGATE, V1030)
+
+Yönetici "bu sürümün altındakiler güncellemeden kullanamasın" diyebilir; mobil "Güncelle" düğmesi Play Store / App Store'u açar. Ayarlar `app_setting`'te durur (V1030 yeni anahtarları tohumlar: `INSERT ... SELECT ... WHERE NOT EXISTS`, H2/PostgreSQL uyumlu).
+
+**Ayarlar** (`PUT /api/admin/settings/{key}`; kritik anahtarlar gerekçe ister): `min_version_android|ios` (altı ZORUNLU), `latest_version_android|ios` (altı yalnız öneri), `store_url_android|ios` (yalnız https; boşsa aşağıdaki türetme). YENİ: `update_message_tr|en|ar` (güncelleme ekranı metni, <=280 karakter; `< > &`, `://`, `www.`, `javascript:` ve kontrol karakteri reddedilir -> 400 `SETTING_INVALID`; boş = istemci varsayılanı, seçili dil boşsa tr), `store_package_android` (varsayılan `tr.com.bukampus.app`; geçersiz paket adı reddedilir), `apple_app_id_ios` (yalnız rakam, 5-15 hane; boş olabilir). `store_package_` ve `apple_app_id_` anahtarları gerekçe ister (`AdminGuardPolicy`).
+
+**Herkese açık `GET /api/app/version?platform=&version=`** (geriye uyumlu EK alanlar): `{updateRequired, updateAvailable, latestVersion, storeUrl, message, marketUrl}`.
+- `storeUrl`: yöneticinin yazdığı adres; boşsa Android için `https://play.google.com/store/apps/details?id=<paket>`, iOS için `apple_app_id_ios` doluysa `https://apps.apple.com/app/id<id>`; iOS kimliği yoksa `null` (uydurma adres yok: mobil düğmeyi göstermez).
+- `marketUrl`: Android `market://details?id=<paket>`, iOS `itms-apps://apps.apple.com/app/id<id>` (kimlik yoksa `null`); mobil önce bunu dener, açılmazsa `storeUrl`.
+- `message`: `Accept-Language` dilinde `update_message_*` (boşsa tr, o da boşsa `null`).
+- Sunucu okuma önbelleği `appinfo` ad alanıdır; ayar/zorlama yazması `AppSetting` varlık olayı + açık çağrıyla onu geçersiz kılar: zorlama sonrası kontrol ANINDA yeni sonucu verir (testli).
+
+**Yönetici uçları** (izin: okuma `settings.read` — FULL, VIEWER; yazma `settings.write` — FULL; `AdminPermissionPolicy` `app-versions`):
+
+| Uç | Açıklama |
+|---|---|
+| `GET /api/admin/app-versions` | Sürüm dağılımı: `{distribution:[{platform,version,devices}], platforms:[{platform,minVersion,latestVersion,state,total,unknownVersion,belowMin,belowLatest}], total, belowMin, belowLatest, source, sourceNote, windowDays}`. `version` null = sürüm bilinmiyor; `state` FORCE (min > 1.0.0), SOFT (latest > min), OFF. Hız sınırı 60/dk. |
+| `POST /api/admin/app-versions/enforce` | Gövde `{platform: android veya ios, mode: FORCE, SOFT veya OFF, version?, reason?}`; **gerekçe zorunlu** (>= 5 karakter, `X-Admin-Reason` ya da gövde `reason`; yoksa 400 `REASON_REQUIRED`); saatte 20; `AuditInterceptor` ile denetlenir (hedef `APP_VERSION`, özet: kip + eski/yeni min/latest). Atomik tek işlem: FORCE `latest=min=version` (version < mevcut latest ise 400 `VERSION_BELOW_LATEST`), SOFT yalnız `latest=version` (min DEĞİŞMEZ; version < min ise 400 `VERSION_BELOW_MIN`), OFF `min=1.0.0` (V5 tohum değeri; latest değişmez, sürüm istemez). Geçersiz platform/sürüm 400 `INVALID_VERSION`. Yanıt: `{platform,mode,state,minVersion,latestVersion,previousMin,previousLatest,affectedDevices,platformDevices,source,sourceNote}`; `affectedDevices` FORCE'ta zorunlu güncelleme ekranını, SOFT'ta öneriyi görecek cihaz sayısı (OFF'ta 0; sayım hata verirse null, ayar yine yazılmıştır). |
+
+**Sayım kaynağı ve sınırı (`source=USER_DEVICE_LOG`):** `user_device_log` (accessban, V280): giriş yapmış kullanıcının cihaz+sürüm kaydı (mobil her istekte `X-App-Version` ve `X-Device-Id` gönderir). Her (kullanıcı, cihaz) çifti için SON görülen satır, son 30 günde (`windowDays`) sayılır; sürüm eki (`2.0.4+20004`) atılır, aynı sayısal sürüm tek satırda toplanır; sürümü gelmeyenler `version=null` ("bilinmiyor", altında sayılmaz). SAYILMAYANLAR: hiç giriş yapmamış cihazlar, 30 gündür açılmamış cihazlar, web istekleri; bir kişinin iki cihazı iki sayılır. Push cihaz kaydı kaynak ALINMADI (bildirim izni vermeyen cihaz eksik kalırdı). Sayı yaklaşıktır; arayüz bunu kaynak notuyla gösterir. Sorgu `statement_timeout` altındadır; PostgreSQL'de pencere fonksiyonu `ROW_NUMBER() OVER (PARTITION BY user_id, device_hash ...)` kullanır (H2'de testli, canlı PostgreSQL'de DOĞRULANMADI).
+
+**Web:** `/admin/app-versions` ("Uygulama güncelleme", Sistem grubu, `settings.read`): platform kartı (durum rozeti "Zorunlu güncelleme AÇIK / Yalnız öneri / Kapalı", yayındaki ve zorunlu en düşük sürüm, sürüm dağılımı tablosu, "bu sürümün altında: N cihaz"), "Yeni sürümü yayınla" sihirbazı (sürüm + kip + etki önizlemesi + uyarılar, sonra gerekçe; FORCE için "ZORLA" yazdırılır), "Güncelleme ekranını önizle" (telefon çerçevesi, TR/EN/AR). Mağaza bağlantısı, paket adı, Apple kimliği ve üç dilli metin alanları Ayarlar > Mağaza ve sürümler'dedir. Uyarılar: min > latest, mağaza bağlantısı/iOS kimliği yokken FORCE ("düğme çalışmaz"; iOS henüz mağazada değilse zorlama önerilmez), girilen sürümün hiçbir cihazda olmaması. Duman: `scripts/smoke-app-version.sh` (koşulamadı).
+
+Yeni hata kodları (tr/en/ar `ops*.properties`): `VERSION_BELOW_LATEST`, `VERSION_BELOW_MIN`.

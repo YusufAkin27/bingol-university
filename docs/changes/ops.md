@@ -248,3 +248,11 @@ API sekli DEGISMEZ. Docker yok: PostgreSQL'e ozel parcalar (rol betikleri) DOGRU
 ## W2-D: yemek senkronu (T-050)
 
 - `MenuSyncService.sync` her günün yemek metnini `fit()` ile 1000 karaktere satır sınırında kırpar ve **gün başına try/catch** yapar: tek günün hatası (uzun metin, kısıt ihlali) tüm senkronu bozup bakım moduna sokmaz; hatalı gün atlanır, diğer günler yazılır, durum `OK` kalır.
+
+## UPDATEGATE: yönetim panelinden zorunlu uygulama güncelleme (V1030)
+
+- **Backend (`appinfo`):** `GET /api/app/version` yanıtına geriye uyumlu `message` (istek dilinde) ve `marketUrl` eklendi; `storeUrl` yönetici boşsa Android için paket adından, iOS için Apple kimliğinden TÜRETİLİR (kimlik yoksa `null`, uydurma adres yok). Yeni ayarlar (V1030, `INSERT ... SELECT ... WHERE NOT EXISTS`): `update_message_tr|en|ar`, `store_package_android`, `apple_app_id_ios`. Yeni yönetici uçları `GET /api/admin/app-versions` (sürüm dağılımı) ve `POST /api/admin/app-versions/enforce` (FORCE/SOFT/OFF; gerekçeli, denetimli, atomik, anında etkili). Sözleşme: `docs/ADMIN_API.md` "Uygulama güncelleme zorlama (UPDATEGATE)".
+- **Dağılım kaynağı:** `user_device_log` (giriş yapmış kullanıcıların son 30 gün cihaz+sürüm kaydı). Hiç giriş yapmamış / 30 gündür açılmamış cihazlar sayılmaz; sayı yaklaşıktır ve arayüzde kaynak notuyla gösterilir.
+- **Mobil (`app_gate.dart`, `gate_views.dart`):** "Güncelle" önce `marketUrl` (`market://` / `itms-apps://`; yalnız bu şemalar kabul edilir), açılmazsa https `storeUrl`; ikisi de yoksa ölü düğme yerine "Mağazadan güncelleyin" yazısı. Sunucu `message` doluysa varsayılan açıklamanın yerine tek paragraf. Kontrol anı: açılış + öne dönüş (en çok 15 dk'da bir; zorunlu güncelleme ekranı açıkken HER dönüşte) + bağlantı geri gelince; ağ hatası sessiz, çevrimdışıyken kilitlenmez (fail-open). Yeni ARB anahtarı `updateRequiredFromStore` (tr/en/ar).
+- **Web:** `/admin/app-versions` sayfası + Ayarlar > Mağaza ve sürümler'de paket adı / Apple kimliği / üç dilli güncelleme metni alanları.
+- **Dağıtım sırası:** önce backend (V1030 + yeni uçlar; eski mobil yeni alanları yok sayar), sonra web, sonra mobil sürümü. Eski uygulamalar `storeUrl` (artık türetilmiş) ile zaten Play Store'a gider.
