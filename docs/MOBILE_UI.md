@@ -59,6 +59,34 @@ Kullanıcı kararı: çevrimdışıyken **pasif bilgi şeritleri YOK** ("İntern
 - **Mesaj kaydı** (`core/cache/message_cache.dart`): sohbet başına son 20 mesaj (`c<id>.json`) + sohbet listesi ilk 50 satır (`list.json`), toplam 50 sohbet / 3 MB. Yazma 1,5 sn geciktirilir ve toplanır; arka plana giderken boşaltılır (`CacheLifecycleFlusher`). Sohbet açılışı: önce kayıt (anlık), sonra ağ sayfası ile birleşir (id/clientId tekilleştirme; düzenlenen/silinen sunucudan). Tek gösterimlik ekin URL'si/içeriği hiç yazılmaz; silinen/kaldırılan mesaj iskelet olarak yazılır; engelleme/ayrılma/silmede sohbet kaydı silinir; okunmamış sayacı kayda yazılmaz. Dosyalar uygulama sandbox'ındadır, ayrıca şifrelenmez (bkz. `docs/design/SORULAR.md` M1).
 - **Sessiz gönderme kuyruğu** (`core/outbox/`): metin ve fotoğraf/video mesajı çevrimdışıyken normal "gönderiliyor" (saat) görünür; ekler `outbox_media/` altına kopyalanır (200 MB tavan). Tetikleyiciler: bağlantı geri gelince, STOMP yeniden bağlanınca, uygulama öne gelince, geri çekilme zamanlayıcısı. Aynı `clientId` ile gönderildiği için çift mesaj olmaz. Kalıcı hata (4xx, 5 sunucu hatası, 24 sa) → balonda "Gönderilemedi · Yeniden dene". Testler: `test/m1_*.dart`.
 
+#### Oturum nesli, kuyruk ve önbellek sağlamlığı (W1-G, 2026-10-31)
+
+- **Oturum nesli** (`ApiClient.sessionGen`): çıkış ve ilk giriş (belirteç yok <-> var) her seferinde artar, belirteç yenilemede artmaz. Her istek başlangıçta nesli yakalar; yanıt geldiğinde nesil değiştiyse yanıt önbelleğe YAZILMAZ ve çağırana `ApiError(0, 'SESSION_CHANGED')` döner. `_doRefresh` sonucu da nesil değiştiyse atılır (çıkış yapılmış oturum geri yazılmaz). `SESSION_CHANGED` `status == 0` olduğundan ekranlarda ağ hatası gibi görünür; çıkış sırasında zaten ekran kapanır. `Session._persist` belirteç yazma/silmeyi TEK Future zincirine alır; silme başarısızsa 3 kez yeniden dener, yine olmazsa `signed_out` işareti bırakır (sonraki açılış otomatik giriş yapmaz). `Outbox.clear` ve `MessageCache.clear` kendi kuşak sayaçlarına sahiptir: süren drain eski hesabın kalan mesajlarını göndermez, temizlemeyle yarışan disk yüklemesi eski veriyi belleğe geri koymaz.
+- **Tek uçuşlu GET**: aynı oturum nesli + dil + yol için eşzamanlı GET'ler tek ağ isteğini paylaşır (`force` ayrı istektir). `/app/info` 2 dk taze (açılış kapısı ile ana sayfa aynı bilgiyi çekmez); kapı bağlantı dönüşünde/öne gelişte `force` ile yeniler.
+- **JSON olmayan 2xx** (captive portal, proxy HTML'i) `ApiError(0, 'BAD_RESPONSE')` olur: önbelleğe/diske yazılmaz, bağlantı "çevrimiçi" sayılmaz. 502/503/504 ve 5xx yanıtları `reportSuccess` çağırmaz.
+- **Kuyruk (`Outbox`)**: depo OKUNAMAZSA (Keychain/Keystore geçici hatası) hiçbir şey silinmez/yazılmaz, yükleme sonra yeniden denenir; JSON BOZUKSA ham değer `outbox_v1_corrupt` anahtarına yedeklenir ve tam kayıtlar tek tek kurtarılır; artık medya dosyaları yalnız başarılı+bozulmamış yüklemeden sonra süpürülür. 502/503/504 ve `Retry-After`'lı 5xx ağ yokluğu gibi ele alınır (kuyruk durur, mesaj "Gönderilemedi" olmaz); gerçek 5xx beş kez VE mesaj 30 dk'dan eskiyse kalıcı hata. Mesaj kaydı (`MessageCache`) şema sürümü (`v == 1`) ve her öğede `id is num` doğrular, aksi halde dosyayı siler; `upsertMessage`/`markGone` hata sızdırmaz.
+- **Açılış**: `main` cihaz kimliği, iOS yeniden-kurulum temizliği, çökme raporlayıcı, tema ve dil okumalarını PARALEL başlatır; `ApiClient` cihaz kimliği hazır olmadan HİÇBİR istek atmaz (`DeviceIdentity.ready`). Belirteç varsa `Session.restore` kabuğu HEMEN açar (state `signedIn`), `/auth/me` arka planda yenilenir; oturum yalnız kesin yetki reddinde kapanır. Profil dili (`PATCH /users/me`) yalnız değişince gönderilir (`LanguageSync`).
+- **Görseller**: `DiskNetworkImage` tek paylaşımlı `HttpClient` kullanır (keep-alive, sunucu başına 6 bağlantı, 15 sn boşta); baytlar yalnız görsel olarak çözülebildiyse diske yazılır; tavan yazılan baytın %10'unda ya da her 40 yazmada uygulanır. Keşfet gönderi fotoğrafı, etkinlik kapağı, haber küçük resmi, menü fotoğrafı ve profil fotoğrafı görüntüleyicisi `persistentNetworkImage` ile diske yazılır (menü fotoğrafı ekran genişliğine göre küçültülerek çözülür).
+- **Galeriye otomatik kaydetme** (`PhotoAutoSave`): VARSAYILAN KAPALI (açıkça açılmadıysa, eski sürümden kalan anahtarsız kayıt dahil, kapalı sayılır); anahtar CANLI Profil > Gizlilik ve veriler sayfasındadır (açarken rıza metni); yalnız birebir sohbet (`direct` parametresi, varsayılan true — grup/kulüp/etkinlik odası çağıranı `direct: false` geçmelidir); çıkışta ayar ve kaydedilen ek kimlikleri silinir.
+
+#### Çıkış temizliği envanteri
+
+Çıkış / hesap silme / oturum iptali / başka cihazda giriş: `ApiClient.setTokens(null)` (nesil artar) belirteçleri, ETag/disk önbelleğini, kuyruğu ve `registerUserDataCleaners` (`core/user_data.dart`) kancalarını çalıştırır. **Kural: kullanıcıya özel veri tutan her yeni yerel depo bu kayıt noktasına bir temizleyici ekler ve `test/a15/a15_cache_test.dart` S2.9/S2.9b envanterine girer.**
+
+| Depo | Konum | Çıkışta |
+|---|---|---|
+| Oturum belirteçleri `access`/`refresh` | güvenli depo | silinir (`Session._persist`, 3 deneme + `signed_out` işareti) |
+| Bekleyen mesaj kuyruğu `outbox_v1` (+ `outbox_v1_corrupt`) ve `outbox_media/` | güvenli depo + dosya | silinir (`Outbox.clear`); iOS yeniden kurulumda da silinir (`FreshInstallGuard`) |
+| ETag/JSON önbelleği `api_cache` | dosya | silinir |
+| Mesaj kaydı `msg_cache` | dosya | silinir |
+| Görsel önbelleği `img_cache` | dosya | silinir |
+| Arama geçmişi `recent_searches` | güvenli depo | silinir (`RecentSearches.clear`) |
+| Galeriye otomatik kayıt `photo_autosave.json` (ayar + kaydedilen ek kimlikleri) | dosya + bellek | silinir (`PhotoAutoSave.reset`) |
+| Ders hatırlatıcı ayarı `academic_reminders` + kurulu yerel hatırlatmalar | güvenli depo + OS alarmları | silinir (`ReminderService.clearUserData`) |
+| Son eşitlenen profil dili `synced_language` | güvenli depo | silinir (`LanguageSync.clear`) |
+| Sözleşme "sonra" işareti `legal_later` | güvenli depo | silinir |
+| Cihaza özel: `device_id`, `welcome_seen`, `perms_onboarded`, `theme_mode`, `app_language`, `crash_reports_enabled`, `update_notice_shown`, `pending_verification` | güvenli depo | KALIR (hesaptan bağımsız) |
+
 ## 5. Gerçek zamanlı özellikler ve cihaz yetenekleri
 
 - **Gerçek zamanlı sohbet:** `core/realtime/` (`stomp_client.dart`, `stomp_frame.dart`, `chat_realtime.dart`) ham WebSocket üzerinden STOMP konuşur (`web_socket_channel`). CONNECT'te Bearer gönderilir; mesaj/okundu/yazıyor/mesaj-olayı/hata kuyruklarına abone olunur, kopmada üstel geri çekilmeyle yeniden bağlanır ve boşluk `?after=` ile kapatılır. Sohbet ekranı yanıt, düzenleme, silme, tepki, sessize alma/arşiv ve okunmamış rozetini destekler (`features/chat/`). Sözleşme: [MOBILE_API_GUIDE.md](MOBILE_API_GUIDE.md) bölüm 4.
