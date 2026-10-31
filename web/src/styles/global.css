@@ -126,6 +126,11 @@ textarea {
   color: #fff;
 }
 
+/* Tanım listesi değerleri (e-posta, yol, kod) dar ekranda taşmasın */
+dd {
+  overflow-wrap: anywhere;
+}
+
 .sr-only {
   position: absolute;
   width: 1px;

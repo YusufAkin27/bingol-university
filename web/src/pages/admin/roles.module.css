@@ -1,5 +1,6 @@
 .stack {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--space-4);
 }
 .muted {
@@ -22,6 +23,9 @@
   gap: var(--space-3);
 }
 .scroll {
+  /* position: relative: sr-only (mutlak konumlu) hücre metinleri kaydırma kabında kırpılsın, sayfa taşmasın (A3-02) */
+  position: relative;
+  min-width: 0;
   overflow-x: auto;
 }
 .matrix {

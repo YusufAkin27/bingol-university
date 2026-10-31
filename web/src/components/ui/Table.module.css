@@ -8,6 +8,9 @@
   overflow: hidden;
 }
 .scroll {
+  /* position: relative -> mutlak konumlu çocuklar (sr-only) kaydırma kabında kırpılır; yoksa sayfa yatay taşar (A3-01) */
+  position: relative;
+  min-width: 0;
   overflow: auto;
   /* dikey sınır: başlık (sticky) bu kutuda yapışır; kısa tablolar sınıra ulaşmaz */
   max-height: max(22rem, calc(100vh - 14rem));

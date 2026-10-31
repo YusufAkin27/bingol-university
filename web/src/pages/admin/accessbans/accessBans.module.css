@@ -1,12 +1,17 @@
 .stack {
   display: grid;
+  /* tek sütun kapsayıcıdan geniş olamaz: min-content taşmasını önler (A3-02) */
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--space-4);
   margin-block-start: var(--space-4);
 }
 .stats {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 9rem), 1fr));
   gap: var(--space-3);
+}
+.stats > * {
+  min-width: 0;
 }
 .filters {
   display: grid;
