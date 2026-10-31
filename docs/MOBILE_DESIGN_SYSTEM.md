@@ -202,6 +202,19 @@ BuImage(String? url, {double? width, double? height, BoxFit fit = cover, double 
 - **BuImage:** ağ görselleri için `Image.network` yerine (decode boyutu = düzen genişliği × DPR, yer tutucu, fade-in, hata yedeği).
 - Sayfa geçişleri `ThemeData.pageTransitionsTheme` ile gelir (Android: tahmini geri + M3 fade-forwards, iOS: Cupertino kenar kaydırma; "animasyonları azalt" açıkken anlık). Rota için `MaterialPageRoute` yeterlidir.
 
+#### Hareket (BuMotion) - D1 ortak hareket sistemi
+
+Jetonlar `BuMotion` (150/250/400 ms, eğriler `standard`/`emphasizedDecelerate` giriş/`emphasizedAccelerate` çıkış), aşamalı giriş `BuStaggerItem`/`BuStaggeredList`, geçiş `BuFadeThrough`/`BuSharedAxis`, basma `BuPressable` (0.97) yukarıda. D1 eklemeleri `core/motion/` altındadır ve `widgets/bu.dart` ile gelir:
+
+```dart
+BuSwapIn(loading: !loaded, skeleton: const MySkeleton(), child: liste)      // iskelet -> içerik: yalnız opacity, boyut değişmez
+BuCountUp(value: n, style: tx.titleLarge)                                    // ilk görünümde 0'dan sayar; okuyucu son değeri okur
+BuPop(trigger: liked, child: heartIcon)                                      // trigger değişince bir kez 1 -> 1.18 -> 1 (ilk karede oynamaz)
+showModalBottomSheet(sheetAnimationStyle: BuMotionStyles.sheet(context), ...) // BuSheet/BuDialog/BuToast bunu zaten kullanır
+```
+
+Kurallar: "animasyonları azalt" (`MediaQuery.disableAnimations`) açıkken tüm bu bileşenler anlık çalışır (süre 0; `BuMotion.of`); yalnız `transform`/`opacity` canlandırın; uzun/sonsuz animasyonlu listede `RepaintBoundary` ile ayırın. Uygulama içi ayrı bir "hareketi azalt" anahtarı yoktur; yalnız sistem ayarı dikkate alınır.
+
 ### 6.6 Tema bileşenleri (M3'ü doğrudan kullanın, ek stil gerekmez)
 
 `FilledButton`/`.tonal`/`OutlinedButton`/`TextButton` (tema **tam genişlik 54 dp**; satır içinde `minimumSize: Size(0, 48)` verin), `IconButton(.filled/.filledTonal)`, `NavigationBar` (hap gösterge = `soft`), `AppBar`/`SliverAppBar(.large)`, `Card`, `FilterChip/ChoiceChip/InputChip/ActionChip` (hap, seçili `soft`), `TextField` (dolu + çerçeveli, odak 2 dp `pr`), `SearchBar/SearchAnchor`, `SegmentedButton`, `BottomSheet`, `AlertDialog`, `SnackBar`, `ListTile`, `Switch/Checkbox/Radio/Slider`, `Linear/CircularProgressIndicator`, `Badge`, `Divider`, `Tooltip`, `PopupMenu`, `TabBar`, `ExpansionTile`, `FloatingActionButton`, `showDatePicker/showTimePicker`. Hepsi `lib/core/theme/bu_component_themes.dart` içinde.

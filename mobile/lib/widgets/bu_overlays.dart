@@ -1,10 +1,17 @@
 import 'package:flutter/material.dart';
 
 import '../core/locale_controller.dart';
+import '../core/motion/bu_motion_styles.dart';
 import '../core/theme.dart';
+import '../core/theme/bu_motion.dart';
 import '../core/theme/bu_shape.dart';
 import 'bu_pressable.dart';
 import 'bu_widgets.dart';
+
+// Ortak hareket eklemeleri (D1) tasarım sistemi tek içe aktarmasıyla (`widgets/bu.dart` -> bu_overlays) gelir.
+export '../core/motion/bu_count_up.dart';
+export '../core/motion/bu_motion_styles.dart';
+export '../core/motion/bu_swap_in.dart';
 
 /// Alt sayfa çerçevesi: sürükleme tutamacı (`BuSheet.show` ekler), isteğe bağlı başlık/alt başlık, kaydırılabilir gövde,
 /// sabit alt eylem alanı, klavye ve güvenli alan payı. Hazır çerçeve: elle `Container + Column` ile alt sayfa çizmeyin.
@@ -37,7 +44,7 @@ class BuBottomSheet extends StatelessWidget {
     final mq = MediaQuery.of(context);
     final body = Padding(padding: padding, child: child);
     return AnimatedPadding(
-      duration: const Duration(milliseconds: 120),
+      duration: BuMotion.of(context, const Duration(milliseconds: 120)),
       padding: EdgeInsets.only(bottom: mq.viewInsets.bottom),
       child: SafeArea(
         top: false,
@@ -98,6 +105,7 @@ abstract final class BuSheet {
       isScrollControlled: true,
       useSafeArea: true,
       showDragHandle: true,
+      sheetAnimationStyle: BuMotionStyles.sheet(context),
       isDismissible: isDismissible,
       enableDrag: enableDrag,
       useRootNavigator: useRootNavigator,
@@ -272,7 +280,11 @@ class BuDialog extends StatelessWidget {
 
   /// Özel diyalog göster.
   static Future<T?> show<T>(BuildContext context, {required WidgetBuilder builder, bool barrierDismissible = true}) =>
-      showDialog<T>(context: context, barrierDismissible: barrierDismissible, builder: builder);
+      showDialog<T>(
+          context: context,
+          barrierDismissible: barrierDismissible,
+          animationStyle: BuMotionStyles.dialog(context),
+          builder: builder);
 
   /// Evet/Hayır onayı: `true` = onaylandı.
   static Future<bool> confirm(
@@ -287,6 +299,7 @@ class BuDialog extends StatelessWidget {
     final l = context.l10n;
     final r = await showDialog<bool>(
       context: context,
+      animationStyle: BuMotionStyles.dialog(context),
       builder: (ctx) => BuDialog(
         title: title,
         message: message,
@@ -309,6 +322,7 @@ class BuDialog extends StatelessWidget {
   static Future<void> info(BuildContext context, {required String title, String? message, required String okLabel, IconData? icon}) =>
       showDialog<void>(
         context: context,
+        animationStyle: BuMotionStyles.dialog(context),
         builder: (ctx) => BuDialog(
           title: title,
           message: message,
@@ -344,6 +358,7 @@ abstract final class BuToast {
     messenger
       ..hideCurrentSnackBar()
       ..showSnackBar(
+        snackBarAnimationStyle: BuMotionStyles.toast(context),
         SnackBar(
           duration: duration,
           content: Semantics(

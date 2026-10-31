@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart' show ValueListenable;
 import 'package:flutter/material.dart';
 
 import '../../core/locale_controller.dart';
+import '../../core/motion/bu_count_up.dart' show BuPop;
 import '../../core/theme.dart';
 import '../../core/theme/bu_motion.dart';
 import '../../widgets/bu_list.dart' show BuCountBadge;
@@ -418,7 +419,7 @@ class _NavItem extends StatelessWidget {
                   duration: BuMotion.of(context, BuMotion.medium),
                   curve: Curves.easeOutBack,
                   child: n > 0
-                      ? BuCountBadge(n, key: const ValueKey('nav-badge'))
+                      ? BuPop(trigger: n, child: BuCountBadge(n, key: const ValueKey('nav-badge')))
                       : const SizedBox.shrink(),
                 ),
               );
