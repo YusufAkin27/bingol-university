@@ -186,7 +186,7 @@ class _PostPhotoViewerState extends State<PostPhotoViewer> with TickerProviderSt
                       width: 48,
                       height: 48,
                       // Stitch v3 03: saf siyah zemin, tek beyaz 24 dp "x" (48 dp hedef), zemin dairesi yok.
-                      child: Center(child: Icon(LucideIcons.x, size: 24, color: t.onMedia)),
+                      child: Center(child: Icon(BuIcons.x, size: 24, color: t.onMedia)),
                     ),
                   ),
                 ),

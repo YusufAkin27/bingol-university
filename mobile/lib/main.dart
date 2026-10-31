@@ -19,6 +19,7 @@ import 'core/connectivity/connectivity_service.dart';
 import 'core/language_sync.dart';
 import 'core/user_data.dart';
 import 'core/crash/crash_reporter.dart';
+import 'core/icons/bu_icon_licenses.dart';
 import 'core/outbox/outbox.dart';
 import 'core/outbox/outbox_uploader.dart';
 import 'core/locale_controller.dart';
@@ -99,6 +100,7 @@ Future<void> main() async {
 
 Future<void> _bootstrap() async {
   WidgetsFlutterBinding.ensureInitialized();
+  registerBuIconLicenses(); // BuIcons glifleri Hugeicons (MIT): lisans sayfasında görünür
   if (!apiConfigValid()) {
     runApp(const ConfigErrorApp());
     return;

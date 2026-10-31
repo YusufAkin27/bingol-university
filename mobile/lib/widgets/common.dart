@@ -6,8 +6,8 @@ import '../l10n/app_localizations.dart';
 import '../core/typography.dart';
 import 'bu_illustrations.dart';
 import 'bu_state.dart';
-import 'bu_widgets.dart' show LucideIcons;
 import 'sistem_widgets.dart';
+import '../core/icons/bu_icons.dart';
 
 /// 2026-10-26 -> 26.10.2026
 String fmtDate(String? iso) {
@@ -93,20 +93,20 @@ class EmptyView extends StatelessWidget {
   final VoidCallback? onAction;
 
   static final Map<IconData, BuIllustration> _art = {
-    LucideIcons.messageCircle: BuIllustration.message,
-    LucideIcons.messageSquare: BuIllustration.message,
-    LucideIcons.search: BuIllustration.search,
-    LucideIcons.calendar: BuIllustration.calendar,
-    LucideIcons.calendarDays: BuIllustration.calendar,
-    LucideIcons.users: BuIllustration.club,
-    LucideIcons.bell: BuIllustration.bell,
-    LucideIcons.bellOff: BuIllustration.bell,
-    LucideIcons.heart: BuIllustration.heart,
-    LucideIcons.bookmark: BuIllustration.heart,
-    LucideIcons.image: BuIllustration.image,
-    LucideIcons.fileText: BuIllustration.document,
-    LucideIcons.wifiOff: BuIllustration.wifiOff,
-    LucideIcons.lock: BuIllustration.lock,
+    BuIcons.messageCircle: BuIllustration.message,
+    BuIcons.messageSquare: BuIllustration.message,
+    BuIcons.search: BuIllustration.search,
+    BuIcons.calendar: BuIllustration.calendar,
+    BuIcons.calendarDays: BuIllustration.calendar,
+    BuIcons.users: BuIllustration.club,
+    BuIcons.bell: BuIllustration.bell,
+    BuIcons.bellOff: BuIllustration.bell,
+    BuIcons.heart: BuIllustration.heart,
+    BuIcons.bookmark: BuIllustration.heart,
+    BuIcons.image: BuIllustration.image,
+    BuIcons.fileText: BuIllustration.document,
+    BuIcons.wifiOff: BuIllustration.wifiOff,
+    BuIcons.lock: BuIllustration.lock,
   };
 
   @override
@@ -121,7 +121,7 @@ class EmptyView extends StatelessWidget {
 
 /// Kaynak site bakımdaysa listenin üstünde gösterilen uyarı (hata ekranı değil: eski veri sunulur).
 class StaleBanner extends StatelessWidget {
-  const StaleBanner({super.key, required this.text, this.icon = Icons.construction});
+  const StaleBanner({super.key, required this.text, this.icon = BuIcons.wrench});
 
   final String text;
   final IconData icon;
@@ -207,7 +207,7 @@ class NewsThumb extends StatelessWidget {
         color: cs.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(radius),
       ),
-      child: Icon(Icons.image_outlined, color: cs.onSurfaceVariant),
+      child: Icon(BuIcons.image, color: cs.onSurfaceVariant),
     );
     if (url == null || url!.isEmpty) return box;
     return ClipRRect(

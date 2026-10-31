@@ -99,21 +99,21 @@ _Tab _tabOf(String type) {
 IconData _iconOf(String type) {
   switch (type) {
     case 'ANNOUNCEMENT':
-      return LucideIcons.megaphone;
+      return BuIcons.megaphone;
     default:
       break;
   }
   switch (_tabOf(type)) {
     case _Tab.news:
-      return LucideIcons.newspaper;
+      return BuIcons.newspaper;
     case _Tab.club:
-      return LucideIcons.users;
+      return BuIcons.users;
     case _Tab.event:
-      return LucideIcons.calendar;
+      return BuIcons.calendar;
     case _Tab.post:
-      return LucideIcons.image;
+      return BuIcons.image;
     default:
-      return LucideIcons.user;
+      return BuIcons.user;
   }
 }
 
@@ -447,7 +447,7 @@ class _SearchPageState extends State<SearchPage> {
           Padding(
             padding: EdgeInsetsDirectional.fromSTEB(12, MediaQuery.paddingOf(context).top + 12, 16, 0),
             child: Row(children: [
-              IcerikIconButton(icon: buDirIcon(context, LucideIcons.arrowLeft), label: l.authBack, onTap: () => Navigator.pop(context)),
+              IcerikIconButton(icon: buDirIcon(context, BuIcons.arrowLeft), label: l.authBack, onTap: () => Navigator.pop(context)),
               const SizedBox(width: 6),
               Expanded(child: _SearchBox(hint: l.searchHint, controller: _ctrl, onChanged: _onChanged, onSubmitted: _submit)),
             ]),
@@ -508,7 +508,7 @@ class _SearchPageState extends State<SearchPage> {
                       constraints: const BoxConstraints(minHeight: 56),
                       child: Row(children: [
                         const SizedBox(width: 4),
-                        Icon(LucideIcons.clock, size: 18, color: t.mut),
+                        Icon(BuIcons.clock, size: 18, color: t.mut),
                         const SizedBox(width: 12),
                         Expanded(
                           child: Text(_recent[i],
@@ -537,7 +537,7 @@ class _SearchPageState extends State<SearchPage> {
                           alignment: AlignmentDirectional.centerEnd,
                           child: Padding(
                             padding: const EdgeInsetsDirectional.only(end: 10),
-                            child: Icon(LucideIcons.x, size: 16, color: t.mut),
+                            child: Icon(BuIcons.x, size: 16, color: t.mut),
                           ),
                         ),
                       ),
@@ -680,13 +680,13 @@ class _SearchPageState extends State<SearchPage> {
         TextButton.icon(
           style: TextButton.styleFrom(minimumSize: const Size(48, 48), padding: const EdgeInsets.symmetric(horizontal: 4)),
           onPressed: onRetry,
-          icon: Icon(LucideIcons.refreshCw, size: 16, color: t.pr),
+          icon: Icon(BuIcons.refreshCw, size: 16, color: t.pr),
           label: Text(l.commonRetry, style: tx.bodyMedium!.copyWith(fontSize: 14, fontWeight: FontWeight.w500, color: t.pr)),
         ),
       ]),
       if (limited) ...[
         const SizedBox(height: 4),
-        IcerikNotice(text: l.searchTooMany, icon: LucideIcons.clock),
+        IcerikNotice(text: l.searchTooMany, icon: BuIcons.clock),
         const SizedBox(height: 16),
         const _RowsSkeleton(),
       ],
@@ -834,7 +834,7 @@ class _SearchPageState extends State<SearchPage> {
       );
 
   Widget _chevron(BuTokens t) =>
-      ExcludeSemantics(child: Icon(buDirIcon(context, LucideIcons.chevronRight), size: 20, color: t.mut));
+      ExcludeSemantics(child: Icon(buDirIcon(context, BuIcons.chevronRight), size: 20, color: t.mut));
 
   /// Tek sonuç satırı (kartsız): türüne göre görünüm; eşleşen metin vurgulu.
   Widget _row(BuTokens t, _Hit h) {
@@ -893,7 +893,7 @@ class _SearchPageState extends State<SearchPage> {
         }
         titleLines = 1;
       case _Tab.post:
-        leading = IcerikThumb(url: h.imageUrl, size: 56, radius: BuRadius.xs, fallbackIcon: LucideIcons.image);
+        leading = IcerikThumb(url: h.imageUrl, size: 56, radius: BuRadius.xs, fallbackIcon: BuIcons.image);
         trailing = _chevron(t);
         titleLines = 1;
       case _Tab.person:
@@ -925,7 +925,7 @@ class _SearchPageState extends State<SearchPage> {
                 Padding(
                   padding: const EdgeInsets.only(top: 4),
                   child: Row(children: [
-                    Icon(LucideIcons.heart, size: 16, color: t.mut),
+                    Icon(BuIcons.heart, size: 16, color: t.mut),
                     const SizedBox(width: 6),
                     Text('${h.likes}', style: mut.copyWith(fontFeatures: const [FontFeature.tabularFigures()])),
                   ]),
@@ -968,7 +968,7 @@ class _ClubPill extends StatelessWidget {
         border: member ? Border.all(color: t.bd) : null,
       ),
       child: Row(mainAxisSize: MainAxisSize.min, children: [
-        if (member) ...[Icon(LucideIcons.check, size: 14, color: t.ink), const SizedBox(width: 4)],
+        if (member) ...[Icon(BuIcons.check, size: 14, color: t.ink), const SizedBox(width: 4)],
         Text(text, maxLines: 1, style: style),
       ]),
     );
@@ -1051,7 +1051,7 @@ class _SearchBoxState extends State<_SearchBox> {
         border: Border.all(color: focused ? t.pr : t.bd, width: focused ? 1.5 : 1),
       ),
       child: Row(children: [
-        Icon(LucideIcons.search, size: 18, color: t.mut),
+        Icon(BuIcons.search, size: 18, color: t.mut),
         const SizedBox(width: 8),
         Expanded(
           child: TextField(
@@ -1090,7 +1090,7 @@ class _SearchBoxState extends State<_SearchBox> {
                     height: 24,
                     alignment: Alignment.center,
                     decoration: BoxDecoration(color: t.sf2, shape: BoxShape.circle),
-                    child: Icon(LucideIcons.x, size: 14, color: t.mut),
+                    child: Icon(BuIcons.x, size: 14, color: t.mut),
                   ),
                 ),
         ),

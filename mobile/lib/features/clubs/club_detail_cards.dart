@@ -19,7 +19,7 @@ Widget? clubRoleBadge(BuildContext context, String? role) {
   final blue = context.bu.tint(1);
   return switch (role) {
     'OWNER' || 'ADMIN' => KulupRoleBadge(l.clubRoleOwner),
-    'MODERATOR' => KulupRoleBadge(l.clubRoleModerator, icon: LucideIcons.shield, bg: blue.bg, fg: blue.fg),
+    'MODERATOR' => KulupRoleBadge(l.clubRoleModerator, icon: BuIcons.shield, bg: blue.bg, fg: blue.fg),
     _ => null,
   };
 }
@@ -74,7 +74,7 @@ class ClubPostCard extends StatelessWidget {
               ),
               if (pinned) ...[const SizedBox(width: 6), _PinnedPill(label: context.l10n.clubPinned)],
               if (onMenu != null)
-                ClubRoundButton(icon: LucideIcons.ellipsis, tooltip: context.l10n.clubPostActions, onTap: onMenu, plain: true, size: 40)
+                ClubRoundButton(icon: BuIcons.ellipsis, tooltip: context.l10n.clubPostActions, onTap: onMenu, plain: true, size: 40)
               else
                 const SizedBox(width: 8),
             ],
@@ -92,7 +92,7 @@ class ClubPostCard extends StatelessWidget {
               padding: const EdgeInsetsDirectional.only(end: 8),
               child: AspectRatio(
                 aspectRatio: 16 / 10,
-                child: BuImage(p['imageUrl']?.toString(), width: double.infinity, height: double.infinity, radius: BuRadius.md, placeholderIcon: LucideIcons.image),
+                child: BuImage(p['imageUrl']?.toString(), width: double.infinity, height: double.infinity, radius: BuRadius.md, placeholderIcon: BuIcons.image),
               ),
             ),
           ],
@@ -102,7 +102,7 @@ class ClubPostCard extends StatelessWidget {
               padding: const EdgeInsetsDirectional.only(end: 8),
               child: Row(
                 children: [
-                  ExcludeSemantics(child: Icon(LucideIcons.heart, size: 20, color: p['liked'] == true ? t.pr : t.mut)),
+                  ExcludeSemantics(child: Icon(BuIcons.heart, size: 20, color: p['liked'] == true ? t.pr : t.mut)),
                   const SizedBox(width: 8),
                   Text(context.l10n.p11LikeCount('$likes'), style: tx.labelLarge!.copyWith(color: t.mut, fontWeight: FontWeight.w700)),
                 ],
@@ -129,7 +129,7 @@ class _PinnedPill extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          ExcludeSemantics(child: Icon(LucideIcons.pin, size: 12, color: t.onSoft)),
+          ExcludeSemantics(child: Icon(BuIcons.pin, size: 14, color: t.onSoft)),
           const SizedBox(width: 4),
           Text(label, style: Theme.of(context).textTheme.labelMedium!.copyWith(color: t.onSoft, fontWeight: FontWeight.w700)),
         ],
@@ -232,7 +232,7 @@ class ClubRoleAvatar extends StatelessWidget {
                   shape: BoxShape.circle,
                   border: Border.all(color: ring ?? t.sf, width: 2),
                 ),
-                child: Icon(owner ? LucideIcons.star : LucideIcons.shield, size: 11, color: owner ? t.onPr : t.bg),
+                child: Icon(owner ? BuIcons.star : BuIcons.shield, size: 11, color: owner ? t.onPr : t.bg),
               ),
             ),
         ],
@@ -302,7 +302,7 @@ class ClubComposer extends StatelessWidget {
                   ),
                   Padding(
                     padding: const EdgeInsets.all(4),
-                    child: ClubRoundButton(icon: LucideIcons.x, tooltip: l10n.clubRemoveImage, onTap: onRemoveImage, onCover: true, size: 36),
+                    child: ClubRoundButton(icon: BuIcons.x, tooltip: l10n.clubRemoveImage, onTap: onRemoveImage, onCover: true, size: 36),
                   ),
                 ],
               ),
@@ -348,7 +348,7 @@ class ClubComposer extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Flexible(child: _TonalPill(label: l10n.clubAddImage, icon: LucideIcons.imagePlus, onTap: sending ? null : onPickImage)),
+              Flexible(child: _TonalPill(label: l10n.clubAddImage, icon: BuIcons.imagePlus, onTap: sending ? null : onPickImage)),
               const SizedBox(width: 12),
               BuButton(label: l10n.clubShare, compact: true, busy: sending, onPressed: canSend ? onSend : null),
             ],

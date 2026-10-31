@@ -79,8 +79,8 @@ void main() {
       final hairlines = tester.widgetList<Container>(find.byType(Container)).where((c) => c.color == bu.bd && c.constraints?.maxHeight == 1);
       expect(hairlines.length, 2);
       // Tür simgesi (megafon/takvim rozeti) avatarda yok; tür yalnız nötr etiketle söylenir.
-      expect(find.byIcon(LucideIcons.megaphone), findsNothing);
-      expect(find.byIcon(LucideIcons.calendar), findsNothing);
+      expect(find.byIcon(BuIcons.megaphone), findsNothing);
+      expect(find.byIcon(BuIcons.calendar), findsNothing);
       expect(find.text('Kulüp'), findsOneWidget);
       // Okunmamış başlık 700, okunmuş 600; okunmamış saat marka renginde.
       final unreadTitle = tester.widget<Text>(find.text('Mehmet Kaya'));
@@ -104,7 +104,7 @@ void main() {
       await settle(tester, const Duration(seconds: 1));
       // Başlık "+" düz çizgi ikon (daire/dolgu yok): içinde dolgulu kutu yok.
       expect(find.descendant(of: find.byType(ChatlistNewButton), matching: find.byType(AnimatedContainer)), findsNothing);
-      expect(find.descendant(of: find.byType(ChatlistNewButton), matching: find.byIcon(LucideIcons.plus)), findsOneWidget);
+      expect(find.descendant(of: find.byType(ChatlistNewButton), matching: find.byIcon(BuIcons.plus)), findsOneWidget);
       expect(find.byType(BuEmptyState), findsOneWidget);
       expect(tester.widget<BuEmptyState>(find.byType(BuEmptyState)).message, isNull);
       expect(tester.takeException(), isNull);
@@ -121,8 +121,8 @@ void main() {
       expect(chip.left, closeTo(16, 1));
       expect(tester.getTopLeft(find.byType(ChatlistAvatar).first).dx, 16);
       // "+" merkezi 356, arşiv merkezi 316 (referans).
-      expect(tester.getCenter(find.byIcon(LucideIcons.plus).first).dx, closeTo(356, 1));
-      expect(tester.getCenter(find.byIcon(LucideIcons.archive).first).dx, closeTo(316, 1));
+      expect(tester.getCenter(find.byIcon(BuIcons.plus).first).dx, closeTo(356, 1));
+      expect(tester.getCenter(find.byIcon(BuIcons.archive).first).dx, closeTo(316, 1));
     });
 
     testWidgets('dolu listede + düğmesi düz ikon, 48 dp dokunma alanı; arama 52 dp', (tester) async {
@@ -167,7 +167,7 @@ void main() {
         return d is BoxDecoration && d.border != null;
       });
       expect(boxes, isEmpty);
-      expect(find.byIcon(LucideIcons.info), findsNothing, reason: 'bilgi satırı simgesi kalktı');
+      expect(find.byIcon(BuIcons.info), findsNothing, reason: 'bilgi satırı simgesi kalktı');
       expect(bu.sf2, isNotNull);
       expect(tester.takeException(), isNull);
     });

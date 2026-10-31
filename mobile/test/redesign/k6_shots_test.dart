@@ -73,7 +73,7 @@ Map<String, dynamic> _direct(String name, {int pid = 11, bool blocked = false}) 
     };
 
 Future<void> _tapMenu(WidgetTester t, String item) async {
-  await t.tap(find.byIcon(LucideIcons.ellipsisVertical));
+  await t.tap(find.byIcon(BuIcons.ellipsisVertical));
   await settle(t, const Duration(milliseconds: 500));
   await t.tap(find.text(item));
   await settle(t, const Duration(milliseconds: 500));
@@ -221,13 +221,13 @@ final _menuScenarios = <_Sc>[
   _Sc('21_04_sohbet_menusu_kulup', _clubConv, members: _clubMembers, msgs: [
     _m(1, 11, 'Selam!', _today(14, 10)),
   ], after: (t) async {
-    await t.tap(find.byIcon(LucideIcons.ellipsisVertical));
+    await t.tap(find.byIcon(BuIcons.ellipsisVertical));
     await settle(t, const Duration(milliseconds: 600));
   }),
   _Sc('21_04b_sohbet_menusu_birebir', _direct('Ahmet Yılmaz'), msgs: [
     _m(1, 11, 'Selam!', _today(14, 10)),
   ], after: (t) async {
-    await t.tap(find.byIcon(LucideIcons.ellipsisVertical));
+    await t.tap(find.byIcon(BuIcons.ellipsisVertical));
     await settle(t, const Duration(milliseconds: 600));
   }),
   _Sc('21_05_silme_onayi', _direct('Ahmet Yılmaz'), msgs: [
@@ -240,13 +240,13 @@ final _menuScenarios = <_Sc>[
       members: _clubMembers,
       msgs: [_m(1, 11, 'Selam!', _today(14, 10))],
       after: (t) async {
-        await t.tap(find.byIcon(LucideIcons.ellipsisVertical));
+        await t.tap(find.byIcon(BuIcons.ellipsisVertical));
         await settle(t, const Duration(milliseconds: 500));
         await t.tap(find.byKey(const ValueKey('menu-leave')));
         await settle(t, const Duration(milliseconds: 500));
       }),
   _Sc('21_07_uyeler', _clubConv, members: _clubMembers, msgs: [_m(1, 11, 'Selam!', _today(14, 10))], after: (t) async {
-    await t.tap(find.byIcon(LucideIcons.ellipsisVertical));
+    await t.tap(find.byIcon(BuIcons.ellipsisVertical));
     await settle(t, const Duration(milliseconds: 500));
     await t.tap(find.byKey(const ValueKey('menu-members')));
     await settle(t, const Duration(milliseconds: 600));

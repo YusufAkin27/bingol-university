@@ -245,7 +245,7 @@ class ProfilyNote extends StatelessWidget {
       child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Padding(
           padding: const EdgeInsets.only(top: 2),
-          child: ExcludeSemantics(child: Icon(LucideIcons.info, size: 16, color: t.mut)),
+          child: ExcludeSemantics(child: Icon(BuIcons.info, size: 16, color: t.mut)),
         ),
         const SizedBox(width: 10),
         Expanded(child: Text(text, style: Theme.of(context).textTheme.bodyMedium!.copyWith(height: 1.45, color: t.mut))),

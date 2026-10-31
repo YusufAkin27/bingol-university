@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:lucide_icons_flutter/lucide_icons.dart';
-
 import '../core/api.dart';
 import '../core/cache/image_disk_cache.dart';
 import '../core/locale_controller.dart';
@@ -13,6 +11,7 @@ import '../core/theme/bu_sizes.dart';
 import '../core/typography.dart';
 import 'bu_default_avatar.dart';
 import 'bu_pressable.dart';
+import '../core/icons/bu_icons.dart';
 
 export 'package:lucide_icons_flutter/lucide_icons.dart' show LucideIcons;
 
@@ -57,7 +56,7 @@ class BuHeader extends StatelessWidget {
       child: Row(
         children: [
           if (onBack != null) ...[
-            BuIconButton(icon: LucideIcons.arrowLeft, onTap: onBack, tooltip: context.l10n.commonBack),
+            BuIconButton(icon: BuIcons.arrowLeft, onTap: onBack, tooltip: context.l10n.commonBack),
             const SizedBox(width: 12),
           ],
           Expanded(
@@ -108,10 +107,10 @@ class BuHeader extends StatelessWidget {
 /// Yön belirten simgeyi (ok/ayraç) sağdan sola düzende aynalar; diğer simgelere dokunmaz.
 IconData buDirIcon(BuildContext context, IconData icon) {
   if (Directionality.of(context) != TextDirection.rtl) return icon;
-  if (icon == LucideIcons.arrowLeft) return LucideIcons.arrowRight;
-  if (icon == LucideIcons.arrowRight) return LucideIcons.arrowLeft;
-  if (icon == LucideIcons.chevronLeft) return LucideIcons.chevronRight;
-  if (icon == LucideIcons.chevronRight) return LucideIcons.chevronLeft;
+  if (icon == BuIcons.arrowLeft) return BuIcons.arrowRight;
+  if (icon == BuIcons.arrowRight) return BuIcons.arrowLeft;
+  if (icon == BuIcons.chevronLeft) return BuIcons.chevronRight;
+  if (icon == BuIcons.chevronRight) return BuIcons.chevronLeft;
   return icon;
 }
 
@@ -743,7 +742,7 @@ class _BuSearchFieldState extends State<BuSearchField> {
       ),
       child: Row(
         children: [
-          Icon(LucideIcons.search, size: 18, color: focused ? t.pr : t.mut),
+          Icon(BuIcons.search, size: 18, color: focused ? t.pr : t.mut),
           const SizedBox(width: 10),
           Expanded(
             child: TextField(
@@ -778,7 +777,7 @@ class _BuSearchFieldState extends State<BuSearchField> {
                         _c.clear();
                         widget.onChanged?.call('');
                       },
-                      icon: Icon(LucideIcons.circleX, size: 18, color: t.mut),
+                      icon: Icon(BuIcons.circleX, size: 18, color: t.mut),
                     ),
             ),
         ],
@@ -914,7 +913,7 @@ class BuMenuRow extends StatelessWidget {
             SizedBox(
               width: 16,
               child: (showChevron && !danger)
-                  ? ExcludeSemantics(child: Icon(buDirIcon(context, LucideIcons.chevronRight), size: 16, color: t.mut))
+                  ? ExcludeSemantics(child: Icon(buDirIcon(context, BuIcons.chevronRight), size: 16, color: t.mut))
                   : null,
             ),
           ],

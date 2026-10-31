@@ -342,7 +342,7 @@ class _FaqTile extends StatelessWidget {
                     turns: open ? .5 : 0,
                     duration: d,
                     curve: BuMotion.emphasized,
-                    child: Icon(LucideIcons.chevronDown, size: 20, color: t.mut),
+                    child: Icon(BuIcons.chevronDown, size: 20, color: t.mut),
                   ),
                 ]),
               ),

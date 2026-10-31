@@ -146,7 +146,7 @@ Future<bool> confirmEventDialog(
       cancelLabel: c.l10n.eventListDismiss,
       danger: danger,
       centered: centered,
-      icon: icon ?? (danger ? LucideIcons.triangleAlert : LucideIcons.circleHelp),
+      icon: icon ?? (danger ? BuIcons.triangleAlert : BuIcons.circleHelp),
     ),
   );
   return r == true;
@@ -241,7 +241,7 @@ class EventJoinedChip extends StatelessWidget {
       alignment: Alignment.center,
       decoration: ShapeDecoration(color: t.okSoft, shape: const StadiumBorder()),
       child: Row(mainAxisSize: MainAxisSize.min, children: [
-        Icon(LucideIcons.calendarCheck, size: large ? 19 : 15, color: t.ok),
+        Icon(BuIcons.calendarCheck, size: large ? 19 : 15, color: t.ok),
         const SizedBox(width: 8),
         Flexible(
           child: Text(label ?? context.l10n.eventListInMine,
@@ -360,7 +360,7 @@ class EventAvatarStack extends StatelessWidget {
       excludeSemantics: true,
       child: Row(mainAxisSize: MainAxisSize.min, children: [
         if (shown.isEmpty)
-          Icon(LucideIcons.users, size: 15, color: t.mut)
+          Icon(BuIcons.users, size: 15, color: t.mut)
         else
           SizedBox(
             height: size,

@@ -68,7 +68,7 @@ class HomeSearchBox extends StatelessWidget {
               child: Padding(
                 padding: const EdgeInsetsDirectional.symmetric(horizontal: 16, vertical: 8),
                 child: Row(children: [
-                  Icon(LucideIcons.search, size: 16, color: t.mut),
+                  Icon(BuIcons.search, size: 16, color: t.mut),
                   const SizedBox(width: 12),
                   Expanded(child: Text(hint, maxLines: 1, overflow: TextOverflow.ellipsis, style: BuType.body.copyWith(fontSize: 15, color: t.mut))),
                 ]),
@@ -703,9 +703,9 @@ class HomeNewsStateCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (errorText != null) {
-      return HomeEmptyCard(icon: LucideIcons.cloudOff, headline: errorText!, actionLabel: retryLabel ?? '', onAction: onRetry, live: true);
+      return HomeEmptyCard(icon: BuIcons.cloudOff, headline: errorText!, actionLabel: retryLabel ?? '', onAction: onRetry, live: true);
     }
-    return HomeEmptyCard(icon: LucideIcons.inbox, headline: emptyText);
+    return HomeEmptyCard(icon: BuIcons.inbox, headline: emptyText);
   }
 }
 
@@ -794,7 +794,7 @@ class HomeNewsCard extends StatelessWidget {
         final scaler = MediaQuery.textScalerOf(context);
         Widget image = hasImg
             ? BuImage(imageUrl, width: double.infinity, height: imageHeight, maxDecodeWidth: 600)
-            : ColoredBox(color: t.sf2, child: Center(child: Icon(LucideIcons.image, size: 28, color: t.mut.withValues(alpha: .5))));
+            : ColoredBox(color: t.sf2, child: Center(child: Icon(BuIcons.image, size: 28, color: t.mut.withValues(alpha: .5))));
         if (hasImg && heroId != null) image = newsHero(id: heroId!, radius: 10, child: image);
         return SizedBox(
           width: width,

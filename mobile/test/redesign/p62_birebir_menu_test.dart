@@ -15,6 +15,8 @@ import '../support/fake_app.dart';
 /// baslik dairesinin ustune gore goreli verilir). Cikti: `flutter test ... --reporter expanded` ile okunur
 /// ve docs/design/BIREBIR_MENU.md tablosuna yazilir.
 final _fails = <String>[];
+// Her testten once temizlenir: bir testin basarisizligi sonrakini de kirmasin.
+void _resetFails() => _fails.clear();
 
 void _row(String name, double ref, double impl, {double tol = 2}) {
   final d = impl - ref;
@@ -40,6 +42,7 @@ Future<void> _mount(WidgetTester tester, Widget home) async {
 }
 
 void main() {
+  setUp(_resetFails);
   setUpAll(loadTestFonts);
 
   testWidgets('Yemek (10_yemek_light) olculeri', (tester) async {
@@ -97,6 +100,7 @@ void main() {
   });
 
   testWidgets('Bildirimler (13_bildirimler_light) olculeri', (tester) async {
+    // Ayni gun grubunda kalmali ("3 saat once" gece yarisindan sonra onceki gune dusup grup basligi ekliyor: adim olcusu bozuluyordu).
     final now = DateTime.now();
     final be = FakeBackend()
       ..on('/notifications', {
@@ -104,7 +108,7 @@ void main() {
         'nextCursor': null,
         'items': [
           {'id': 1, 'type': 'ANNOUNCEMENT', 'title': 'Ders ekleme-bırakma tarihleri duyuruldu', 'body': 'Güz dönemi ders ekleme ve bırakma işlemleri başladı.', 'read': false, 'createdAt': now.toIso8601String()},
-          {'id': 2, 'type': 'EVENT', 'title': 'Kariyer Günleri yarın başlıyor', 'body': 'Konferans salonunda düzenlenecek oturum detayları.', 'read': false, 'createdAt': now.subtract(const Duration(hours: 3)).toIso8601String()},
+          {'id': 2, 'type': 'EVENT', 'title': 'Kariyer Günleri yarın başlıyor', 'body': 'Konferans salonunda düzenlenecek oturum detayları.', 'read': false, 'createdAt': now.subtract(const Duration(seconds: 20)).toIso8601String()},
           {'id': 3, 'type': 'COMMUNITY', 'title': 'Müzik Kulübü isteğiniz onaylandı', 'body': 'Kulüp etkinliklerine artık katılabilirsiniz.', 'read': true, 'createdAt': now.subtract(const Duration(days: 1)).toIso8601String()},
         ],
       });

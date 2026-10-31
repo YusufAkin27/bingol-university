@@ -53,7 +53,7 @@ void main() {
       expect(find.textContaining('Anlık bildirimler'), findsNothing);
       expect(find.textContaining('Günlük kalori'), findsNothing);
       expect(find.byType(RefCard), findsNothing);
-      expect(find.byIcon(LucideIcons.shieldCheck), findsNothing);
+      expect(find.byIcon(BuIcons.shieldCheck), findsNothing);
       // Kayıt notu tek sakin satır olarak durur.
       expect(find.textContaining('bingol.edu.tr', findRichText: true), findsOneWidget);
       await unmount(tester);
@@ -169,7 +169,7 @@ void main() {
       final s = makeSession(b, signedIn: false);
       await tester.pumpWidget(buildApp(LegalListPage(session: s)));
       await settle(tester, const Duration(milliseconds: 800));
-      for (final ic in [LucideIcons.gavel, LucideIcons.shield, LucideIcons.lockKeyhole]) {
+      for (final ic in [LucideIcons.gavel, BuIcons.shield, BuIcons.lockKeyhole]) {
         expect(find.byIcon(ic), findsNothing);
       }
       expect(find.byType(Divider), findsNWidgets(2));

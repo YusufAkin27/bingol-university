@@ -173,7 +173,7 @@ class _FollowStateButtonState extends State<FollowStateButton> {
         return AkadTonalButton(
           key: widget.tapKey,
           label: label,
-          icon: LucideIcons.check,
+          icon: BuIcons.check,
           height: widget.compact ? BuSize.buttonCompact : BuSize.button,
           onPressed: _tap,
         );
@@ -181,7 +181,7 @@ class _FollowStateButtonState extends State<FollowStateButton> {
         return BuButton(
           key: widget.tapKey,
           label: label,
-          icon: LucideIcons.clock,
+          icon: BuIcons.clock,
           kind: BuButtonKind.outline,
           compact: widget.compact,
           onPressed: _tap,
@@ -190,7 +190,7 @@ class _FollowStateButtonState extends State<FollowStateButton> {
         return BuButton(
           key: widget.tapKey,
           label: label,
-          icon: LucideIcons.userPlus,
+          icon: BuIcons.userPlus,
           compact: widget.compact,
           onPressed: _tap,
         );
@@ -244,7 +244,7 @@ class _FollowStateButtonState extends State<FollowStateButton> {
     final t = context.bu;
     final on = _state == FollowState.none;
     final req = _state == FollowState.requested;
-    final icon = req ? LucideIcons.clock : (on ? LucideIcons.userPlus : LucideIcons.userCheck);
+    final icon = req ? BuIcons.clock : (on ? BuIcons.userPlus : BuIcons.userCheck);
     return AnimatedContainer(
       key: widget.tapKey,
       duration: BuMotion.of(context, BuMotion.short),

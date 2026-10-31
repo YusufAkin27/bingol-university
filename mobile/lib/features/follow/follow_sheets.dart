@@ -14,7 +14,7 @@ Future<bool> confirmUnfollow(BuildContext context, {required bool isPrivate}) {
     message: isPrivate ? l.frqUnfollowBodyPrivate : l.frqUnfollowBody,
     confirmLabel: l.frqUnfollowConfirm,
     destructive: true,
-    icon: LucideIcons.userMinus,
+    icon: BuIcons.userMinus,
   );
 }
 
@@ -26,7 +26,7 @@ Future<bool> confirmCancelRequest(BuildContext context) {
     title: l.frqCancelReqTitle,
     message: l.frqCancelReqBody,
     confirmLabel: l.frqCancelReqConfirm,
-    icon: LucideIcons.clock,
+    icon: BuIcons.clock,
   );
 }
 
@@ -38,6 +38,6 @@ Future<bool> confirmPrivateOff(BuildContext context) {
     title: l.frqPrivateOffTitle,
     message: l.frqPrivateOffBody,
     confirmLabel: l.frqPrivateOffConfirm,
-    icon: LucideIcons.lockOpen,
+    icon: BuIcons.lockOpen,
   );
 }

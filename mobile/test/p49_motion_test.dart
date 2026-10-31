@@ -84,7 +84,7 @@ void main() {
             labels: const ['Haberler', 'Yemek', 'Etkinlikler', 'Anketler', 'Program'],
             tiles: [
               for (final s in ['Haberler', 'Yemek', 'Etkinlikler', 'Anketler', 'Program'])
-                HomeQuickTile(icon: LucideIcons.newspaper, label: s, onTap: () {}),
+                HomeQuickTile(icon: BuIcons.newspaper, label: s, onTap: () {}),
             ],
           ),
         );

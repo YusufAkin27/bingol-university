@@ -182,7 +182,7 @@ class _LegalReacceptPageState extends State<LegalReacceptPage> {
                       width: 64,
                       height: 64,
                       decoration: BoxDecoration(color: t.soft, shape: BoxShape.circle),
-                      child: Icon(LucideIcons.triangleAlert, size: 30, color: t.pr),
+                      child: Icon(BuIcons.triangleAlert, size: 30, color: t.pr),
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -198,7 +198,7 @@ class _LegalReacceptPageState extends State<LegalReacceptPage> {
                   RefButton(
                     label: l.legalReacceptDeleteAccount,
                     kind: RefButtonKind.danger,
-                    icon: LucideIcons.trash2,
+                    icon: BuIcons.trash2,
                     onPressed: () {
                       Navigator.pop(sheet);
                       Navigator.push(context, MaterialPageRoute(builder: (_) => DeleteAccountPage(session: widget.session)));
@@ -208,7 +208,7 @@ class _LegalReacceptPageState extends State<LegalReacceptPage> {
                   RefButton(
                     label: l.legalReacceptSignOut,
                     kind: RefButtonKind.secondary,
-                    icon: LucideIcons.logOut,
+                    icon: BuIcons.logOut,
                     onPressed: () {
                       Navigator.pop(sheet);
                       widget.session.signOut();
@@ -268,7 +268,7 @@ class _LegalReacceptPageState extends State<LegalReacceptPage> {
           const SizedBox(height: 16),
           RefButton(
             label: l.legalReacceptAccept,
-            icon: LucideIcons.circleCheck,
+            icon: BuIcons.circleCheck,
             busy: _busy,
             onPressed: (_busy || !_ack) ? null : _accept,
           ),
@@ -316,7 +316,7 @@ class _DocRow extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 8),
-                Icon(buDirIcon(context, LucideIcons.chevronRight), size: 20, color: t.mut),
+                Icon(buDirIcon(context, BuIcons.chevronRight), size: 20, color: t.mut),
               ],
             ),
           ),
@@ -366,7 +366,7 @@ class _AckCard extends StatelessWidget {
                       borderRadius: BorderRadius.circular(8),
                       color: value ? t.pr : t.sf2,
                     ),
-                    child: value ? Icon(LucideIcons.check, size: 18, color: t.onPr) : null,
+                    child: value ? Icon(BuIcons.check, size: 18, color: t.onPr) : null,
                   ),
                   const SizedBox(width: 14),
                   Expanded(child: Text(label, style: tx.bodyLarge!.copyWith(color: t.ink, height: 1.4))),

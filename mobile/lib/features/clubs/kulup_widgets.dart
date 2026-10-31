@@ -102,7 +102,7 @@ class KulupDots extends StatelessWidget {
   final Color? color;
 
   @override
-  Widget build(BuildContext context) => Icon(LucideIcons.ellipsis, size: size, color: color ?? context.bu.mut);
+  Widget build(BuildContext context) => Icon(BuIcons.ellipsis, size: size, color: color ?? context.bu.mut);
 }
 
 /// Girdi alanı süsü: tema (`inputDecorationTheme`: dolu + çerçeveli, odakta 2 dp marka rengi) kullanılır.

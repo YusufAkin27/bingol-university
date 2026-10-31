@@ -90,7 +90,7 @@ class _PollMenuCardState extends State<PollMenuCard> {
                   Row(children: [
                     Expanded(child: title),
                     const SizedBox(width: 8),
-                    ExcludeSemantics(child: Icon(LucideIcons.circleCheck, size: 24, color: t.pr)),
+                    ExcludeSemantics(child: Icon(BuIcons.circleCheck, size: 24, color: t.pr)),
                   ]),
                   const SizedBox(height: 8),
                   FittedBox(fit: BoxFit.scaleDown, alignment: AlignmentDirectional.centerStart, child: stars),
@@ -105,7 +105,7 @@ class _PollMenuCardState extends State<PollMenuCard> {
                 ])
               // Henüz puan yok: ortalanmış simge, başlık, ipucu ve boş yıldızlar.
               : Column(children: [
-                  AnketRoundIcon(LucideIcons.thumbsUp, size: 44, bg: t.soft, fg: t.pr),
+                  AnketRoundIcon(BuIcons.thumbsUp, size: 44, bg: t.soft, fg: t.pr),
                   const SizedBox(height: 12),
                   Center(child: title),
                   const SizedBox(height: 4),

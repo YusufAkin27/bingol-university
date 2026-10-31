@@ -102,7 +102,7 @@ class _JoinQuestionsSheetState extends State<_JoinQuestionsSheet> {
               ),
             ),
             const SizedBox(width: 12),
-            const ClubIconBox(icon: LucideIcons.lock, size: 40, circle: true),
+            const ClubIconBox(icon: BuIcons.lock, size: 40, circle: true),
           ],
         ),
         const SizedBox(height: 16),
@@ -142,7 +142,7 @@ class _JoinQuestionsSheetState extends State<_JoinQuestionsSheet> {
           decoration: BoxDecoration(color: t.sf2, borderRadius: BorderRadius.circular(BuRadius.md)),
           child: Row(
             children: [
-              ExcludeSemantics(child: Icon(LucideIcons.info, size: 18, color: t.mut)),
+              ExcludeSemantics(child: Icon(BuIcons.info, size: 18, color: t.mut)),
               const SizedBox(width: 10),
               Expanded(child: Text(l10n.p12JoinNote, style: tx.bodySmall!.copyWith(color: t.mut, height: 1.35))),
             ],
@@ -153,7 +153,7 @@ class _JoinQuestionsSheetState extends State<_JoinQuestionsSheet> {
           children: [
             Expanded(flex: 10, child: ClubBtn(label: l10n.clubMgmtCancel, onPressed: () => Navigator.pop(context))),
             const SizedBox(width: 12),
-            Expanded(flex: 14, child: ClubBtn(label: l10n.clubMgmtSendRequest, icon: LucideIcons.send, kind: ClubBtnKind.primary, onPressed: _submit)),
+            Expanded(flex: 14, child: ClubBtn(label: l10n.clubMgmtSendRequest, icon: BuIcons.send, kind: ClubBtnKind.primary, onPressed: _submit)),
           ],
         ),
         const SizedBox(height: 8),

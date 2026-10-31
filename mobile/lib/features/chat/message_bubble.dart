@@ -207,7 +207,7 @@ class MessageBubble extends StatelessWidget {
       return Row(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
         Padding(
           padding: const EdgeInsetsDirectional.only(end: 6, top: 3),
-          child: Icon(adminRemoved ? LucideIcons.shieldAlert : LucideIcons.ban, size: 15, color: fg),
+          child: Icon(adminRemoved ? BuIcons.shieldAlert : BuIcons.ban, size: 15, color: fg),
         ),
         Flexible(child: inner),
       ]);
@@ -394,7 +394,7 @@ class MessageBubble extends StatelessWidget {
               child: Padding(
                 padding: const EdgeInsets.symmetric(vertical: 8),
                 child: Row(mainAxisSize: MainAxisSize.min, children: [
-                  Icon(LucideIcons.refreshCw, size: 13, color: t.danger),
+                  Icon(BuIcons.refreshCw, size: 14, color: t.danger),
                   const SizedBox(width: 4),
                   Flexible(
                     child: Text(context.l10n.chatMiscSendFailedRetry((m['_error'] as String?) ?? context.l10n.chatMiscSendFailed),
@@ -521,10 +521,10 @@ class _Tick extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final icon = switch (status) {
-      'pending' => LucideIcons.clock,
-      'failed' => LucideIcons.circleAlert,
-      'SENT' => LucideIcons.check,
-      _ => LucideIcons.checkCheck,
+      'pending' => BuIcons.clock,
+      'failed' => BuIcons.circleAlert,
+      'SENT' => BuIcons.check,
+      _ => BuIcons.checkCheck,
     };
     final label = switch (status) {
       'pending' => context.l10n.chatMiscStatusSending,
@@ -607,12 +607,12 @@ class _LocalMedia extends StatelessWidget {
     Widget spinner() {
       final p = progress;
       if (p == null) {
-        return ChatdRing(key: const ValueKey('uploadProgress'), icon: LucideIcons.arrowUp, arc: t.pr, semantics: context.l10n.chatMiscStatusSending);
+        return ChatdRing(key: const ValueKey('uploadProgress'), icon: BuIcons.arrowUp, arc: t.pr, semantics: context.l10n.chatMiscStatusSending);
       }
       return ValueListenableBuilder<double>(
           valueListenable: p,
           builder: (c, v, _) => ChatdRing(
-              key: const ValueKey('uploadProgress'), value: v > 0 && v < 1 ? v : null, icon: LucideIcons.arrowUp, arc: t.pr, semantics: context.l10n.chatMiscStatusSending));
+              key: const ValueKey('uploadProgress'), value: v > 0 && v < 1 ? v : null, icon: BuIcons.arrowUp, arc: t.pr, semantics: context.l10n.chatMiscStatusSending));
     }
 
     // Yükleme etiketi: ilerleme biliniyorsa yüzde ("%65"), yoksa "Gönderiliyor…".
@@ -693,7 +693,7 @@ class _LocalGrid extends StatelessWidget {
               ),
             ),
         ]),
-        if (uploading) const ChatdRing(key: ValueKey('uploadProgress'), icon: LucideIcons.arrowUp),
+        if (uploading) const ChatdRing(key: ValueKey('uploadProgress'), icon: BuIcons.arrowUp),
       ]),
     );
   }
@@ -762,7 +762,7 @@ class _AttachmentImage extends StatelessWidget {
         excludeSemantics: true,
         child: box(ColoredBox(
           color: t.sf2,
-          child: Center(child: Icon(LucideIcons.imageOff, color: t.mut)),
+          child: Center(child: Icon(BuIcons.imageOff, color: t.mut)),
         )),
       );
     }
@@ -820,7 +820,7 @@ class _AttachmentImage extends StatelessWidget {
               errorBuilder: (c, e, s) => withOverlay(ColoredBox(
                 color: t.sf2,
                 // Videoda oynat simgesi zaten ortada: kırık görsel simgesi onunla üst üste binmesin.
-                child: video ? null : Center(child: Icon(LucideIcons.imageOff, color: t.mut)),
+                child: video ? null : Center(child: Icon(BuIcons.imageOff, color: t.mut)),
               )),
             ),
           if (video && more == 0) ...[
@@ -874,7 +874,7 @@ class _ChatImageViewerState extends State<ChatImageViewer> {
             visible: _bars,
             child: ChatdTopBar(
               child: Row(children: [
-                ChatdRoundButton(icon: LucideIcons.x, tooltip: context.l10n.chatMiscClose, onPressed: () => Navigator.pop(context)),
+                ChatdRoundButton(icon: BuIcons.x, tooltip: context.l10n.chatMiscClose, onPressed: () => Navigator.pop(context)),
               ]),
             ),
           ),
@@ -965,7 +965,7 @@ class _SwipeReplyState extends State<_SwipeReply> with SingleTickerProviderState
                   width: 32,
                   height: 32,
                   decoration: BoxDecoration(color: (_armed ? t.soft : t.sf2).withValues(alpha: k), shape: BoxShape.circle),
-                  child: Icon(LucideIcons.reply, size: 15, color: (_armed ? t.onSoft : t.mut).withValues(alpha: k)),
+                  child: Icon(BuIcons.reply, size: 15, color: (_armed ? t.onSoft : t.mut).withValues(alpha: k)),
                 ),
               ),
             ),
@@ -1017,7 +1017,7 @@ class ViewOnceCard extends StatelessWidget {
             Expanded(
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
                 Row(children: [
-                  Icon(LucideIcons.camera, size: 14, color: t.onMedia.withValues(alpha: .85)),
+                  Icon(BuIcons.camera, size: 14, color: t.onMedia.withValues(alpha: .85)),
                   const SizedBox(width: 6),
                   Expanded(child: Text(l.chatMiscOnceTapToOpen, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.labelLarge!.copyWith(color: t.onMedia, fontWeight: FontWeight.w700))),
                 ]),
@@ -1034,7 +1034,7 @@ class ViewOnceCard extends StatelessWidget {
               decoration: BoxDecoration(color: t.pr, borderRadius: BuRadius.bPill),
               alignment: Alignment.center,
               child: Row(mainAxisSize: MainAxisSize.min, children: [
-                Icon(LucideIcons.eye, size: 16, color: t.onPr),
+                Icon(BuIcons.eye, size: 16, color: t.onPr),
                 const SizedBox(width: 8),
                 Text(l.chatdOnceView, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.labelLarge!.copyWith(color: t.onPr, fontWeight: FontWeight.w800)),
               ]),

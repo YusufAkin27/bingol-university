@@ -4,11 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import '../features/system/gate_views.dart';
-import '../widgets/bu_widgets.dart' show LucideIcons, kNavInset;
+import '../widgets/bu_widgets.dart' show kNavInset;
 import 'locale_controller.dart';
 import 'analytics.dart';
 import 'api.dart';
 import 'device_identity.dart';
+import 'icons/bu_icons.dart';
 
 const appVersion = String.fromEnvironment('APP_VERSION', defaultValue: '2.0.4');
 
@@ -241,13 +242,13 @@ class _AppGateState extends State<AppGate> with WidgetsBindingObserver {
     final strips = <Widget>[
       if (_d.maintenance)
         GateNoticeStrip(
-          icon: LucideIcons.wrench,
+          icon: BuIcons.wrench,
           text: _d.maintenanceMessage ?? l.sistemuiMaintBand,
           kind: GateNoticeKind.maintenance,
         ),
       if (_d.banner != null && _d.banner != _dismissedBanner)
         GateNoticeStrip(
-          icon: LucideIcons.megaphone,
+          icon: BuIcons.megaphone,
           text: _d.banner!,
           kind: GateNoticeKind.announcement,
           onClose: () => setState(() => _dismissedBanner = _d.banner),

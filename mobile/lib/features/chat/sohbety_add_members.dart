@@ -147,7 +147,7 @@ class _AddMembersSheetState extends State<AddMembersSheet> {
       const SizedBox(height: 8),
       BuButton(
         label: n == 0 ? l.sohbetyAddMember : l.sohbetyAddCount(n.toString()),
-        icon: LucideIcons.userPlus,
+        icon: BuIcons.userPlus,
         onPressed: n == 0 ? null : () => Navigator.pop(context, _selected.keys.toList()),
       ),
     ]);
@@ -233,7 +233,7 @@ class _SelectedChip extends StatelessWidget {
                 child: Text(name, maxLines: 1, overflow: TextOverflow.ellipsis, style: chatInfoLabel14(context, color: t.onSoft)),
               ),
               const SizedBox(width: 6),
-              Icon(LucideIcons.x, size: 16, color: t.onSoft),
+              Icon(BuIcons.x, size: 16, color: t.onSoft),
             ]),
           ),
         ),

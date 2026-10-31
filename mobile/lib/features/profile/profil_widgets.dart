@@ -62,7 +62,7 @@ class ProfilTopBar extends StatelessWidget {
             onTap: back,
             child: IconButton(
               constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
-              icon: Icon(buDirIcon(context, LucideIcons.arrowLeft), size: 24, color: t.ink),
+              icon: Icon(buDirIcon(context, BuIcons.arrowLeft), size: 24, color: t.ink),
               onPressed: back,
             ),
           ),
@@ -184,7 +184,7 @@ class ProfilFlatRow extends StatelessWidget {
               child: (chevron && !danger && onTap != null)
                   ? Align(
                       alignment: AlignmentDirectional.centerEnd,
-                      child: ExcludeSemantics(child: Icon(buDirIcon(context, LucideIcons.chevronRight), size: 20, color: t.mut)),
+                      child: ExcludeSemantics(child: Icon(buDirIcon(context, BuIcons.chevronRight), size: 20, color: t.mut)),
                     )
                   : null,
             ),
@@ -368,7 +368,7 @@ class ProfilRow extends StatelessWidget {
             SizedBox(
               width: 20,
               child: (chevron && !danger && onTap != null)
-                  ? ExcludeSemantics(child: Icon(buDirIcon(context, LucideIcons.chevronRight), size: 20, color: t.mut))
+                  ? ExcludeSemantics(child: Icon(buDirIcon(context, BuIcons.chevronRight), size: 20, color: t.mut))
                   : null,
             ),
           ],
@@ -450,7 +450,7 @@ Future<String?> showProfilChoiceSheet(
           BuListTile(
             title: o.$2,
             selected: o.$1 == selected,
-            trailing: o.$1 == selected ? Icon(LucideIcons.check, color: ctx.bu.pr) : null,
+            trailing: o.$1 == selected ? Icon(BuIcons.check, color: ctx.bu.pr) : null,
             onTap: () {
               buHaptic(BuHaptic.selection);
               Navigator.pop(ctx, o.$1);

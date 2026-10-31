@@ -34,8 +34,8 @@ Future<bool> openCreateClub(BuildContext context, Session session) async {
     await showDialog<void>(
       context: context,
       builder: (c) => ClubDialogCard(
-        icon: LucideIcons.clock,
-        badge: LucideIcons.check,
+        icon: BuIcons.clock,
+        badge: BuIcons.check,
         title: l.clubMgmtPendingTitle,
         message: l.clubMgmtPendingBody,
         boldName: l.profilePrefsMyClubs,
@@ -407,7 +407,7 @@ class _ClubFormPageState extends State<ClubFormPage> {
                 : Icon(icon, size: 20, color: on ? t.pr : t.mut),
             selected: on,
             trailing:
-                on ? Icon(LucideIcons.check, size: 18, color: t.pr) : null,
+                on ? Icon(BuIcons.check, size: 18, color: t.pr) : null,
             onTap: () => Navigator.of(c).pop(value),
           );
         }
@@ -462,7 +462,7 @@ class _ClubFormPageState extends State<ClubFormPage> {
                 height: 55,
                 child: Row(
                   children: [
-                    ClubBarIcon(icon: LucideIcons.arrowLeft, tooltip: l10n.commonBack, onTap: _back),
+                    ClubBarIcon(icon: BuIcons.arrowLeft, tooltip: l10n.commonBack, onTap: _back),
                     const SizedBox(width: 6),
                     Expanded(
                       child: Semantics(
@@ -485,7 +485,7 @@ class _ClubFormPageState extends State<ClubFormPage> {
                   children: [
                     if (_partial) ...[
                       ClubNoteCard(
-                        icon: LucideIcons.triangleAlert,
+                        icon: BuIcons.triangleAlert,
                         title: l10n.p12PartialTitle,
                         body: l10n.clubMgmtSavedWithWarning,
                         tone: ClubNoteTone.soft,
@@ -493,7 +493,7 @@ class _ClubFormPageState extends State<ClubFormPage> {
                           alignment: AlignmentDirectional.centerEnd,
                           child: BuButton(
                               label: l10n.commonRetry,
-                              icon: LucideIcons.refreshCw,
+                              icon: BuIcons.refreshCw,
                               kind: BuButtonKind.outline,
                               compact: true,
                               busy: _busy,
@@ -637,7 +637,7 @@ class _ClubFormPageState extends State<ClubFormPage> {
                       overflow: TextOverflow.ellipsis,
                       style: tx.bodyLarge!.copyWith(color: catName == null ? t.mut : t.ink, fontWeight: FontWeight.w400)),
                 ),
-                ExcludeSemantics(child: Icon(LucideIcons.chevronDown, size: 20, color: t.ink)),
+                ExcludeSemantics(child: Icon(BuIcons.chevronDown, size: 20, color: t.ink)),
               ],
             ),
           ),
@@ -662,7 +662,7 @@ class _ClubFormPageState extends State<ClubFormPage> {
             decoration: clubFill(context,
                 hint: l10n.p12QuestionPlaceholder,
                 suffixIcon: ClubBarIcon(
-                  icon: LucideIcons.trash2,
+                  icon: BuIcons.trash2,
                   tooltip: l10n.clubMgmtRemoveQuestion,
                   color: t.mut,
                   onTap: () => setState(() => _questions.removeAt(i).dispose()),
@@ -743,7 +743,7 @@ class _ClubFormPageState extends State<ClubFormPage> {
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                Icon(LucideIcons.camera, size: 15, color: t.onMedia),
+                                Icon(BuIcons.camera, size: 15, color: t.onMedia),
                                 const SizedBox(width: 6),
                                 Text(l10n.clubMgmtChangeCover, style: tx.labelMedium!.copyWith(color: t.onMedia, fontWeight: FontWeight.w700)),
                               ],
@@ -761,7 +761,7 @@ class _ClubFormPageState extends State<ClubFormPage> {
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          ExcludeSemantics(child: Icon(LucideIcons.image, size: 24, color: t.mut)),
+                          ExcludeSemantics(child: Icon(BuIcons.image, size: 24, color: t.mut)),
                           const SizedBox(height: 8),
                           Text(l10n.eventFormAddCover, textAlign: TextAlign.center, style: tx.bodyMedium!.copyWith(color: t.mut)),
                         ],
@@ -805,7 +805,7 @@ class _ClubFormPageState extends State<ClubFormPage> {
                         )
                       : CustomPaint(
                           foregroundPainter: _DashedRRect(color: t.bdStrong, radius: 48, circle: true),
-                          child: Center(child: Icon(LucideIcons.imagePlus, size: 20, color: t.mut)),
+                          child: Center(child: Icon(BuIcons.imagePlus, size: 20, color: t.mut)),
                         ),
                 ),
                 const SizedBox(width: 16),

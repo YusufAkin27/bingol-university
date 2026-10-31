@@ -528,7 +528,7 @@ class _ClubDetailPageState extends State<ClubDetailPage> {
                 padding: const EdgeInsets.all(20),
                 children: [
                   ClubNoteCard(
-                    icon: LucideIcons.circlePause,
+                    icon: BuIcons.circlePause,
                     title: l10n.clubUnavailable,
                     body: l10n.p11UnavailableBody,
                     badge: l10n.p11UnderReview,
@@ -603,7 +603,7 @@ class _ClubDetailPageState extends State<ClubDetailPage> {
           // Stitch v3: yalnız geri oku ve üç nokta; dairesel plaka yok. Simge ortası kenardan 36 dp.
           leading: Padding(
             padding: const EdgeInsetsDirectional.only(start: 12),
-            child: ClubBarIcon(icon: LucideIcons.arrowLeft, tooltip: l10n.clubBack, onTap: () => Navigator.maybePop(context), color: fg),
+            child: ClubBarIcon(icon: BuIcons.arrowLeft, tooltip: l10n.clubBack, onTap: () => Navigator.maybePop(context), color: fg),
           ),
           title: AnimatedSwitcher(
             duration: BuMotion.of(context, BuMotion.short),
@@ -615,7 +615,7 @@ class _ClubDetailPageState extends State<ClubDetailPage> {
             Padding(
               padding: const EdgeInsetsDirectional.only(end: 12),
               child: Builder(
-                builder: (anchor) => ClubBarIcon(icon: LucideIcons.ellipsisVertical, tooltip: l10n.clubOptions, onTap: () => _openMenu(anchor), color: fg),
+                builder: (anchor) => ClubBarIcon(icon: BuIcons.ellipsisVertical, tooltip: l10n.clubOptions, onTap: () => _openMenu(anchor), color: fg),
               ),
             ),
           ],
@@ -671,11 +671,11 @@ class _ClubDetailPageState extends State<ClubDetailPage> {
             ),
           if (_isPending) ...[
             const SizedBox(height: 12),
-            ClubNoteCard(icon: LucideIcons.mailCheck, title: l10n.p11PendingInfoTitle, body: l10n.p11PendingInfoBody),
+            ClubNoteCard(icon: BuIcons.mailCheck, title: l10n.p11PendingInfoTitle, body: l10n.p11PendingInfoBody),
           ],
           if (_status == 'BANNED') ...[
             const SizedBox(height: 12),
-            ClubNoteCard(icon: LucideIcons.userX, title: l10n.p11BannedTitle, body: l10n.p11BannedBody, tone: ClubNoteTone.soft),
+            ClubNoteCard(icon: BuIcons.userX, title: l10n.p11BannedTitle, body: l10n.p11BannedBody, tone: ClubNoteTone.soft),
           ],
           if (_isManager && _requests.items.isNotEmpty) ...[
             const SizedBox(height: 16),
@@ -737,10 +737,10 @@ class _ClubDetailPageState extends State<ClubDetailPage> {
     final l10n = context.l10n;
     if (_locked) {
       final (icon, title, body) = _status == 'BANNED'
-          ? (LucideIcons.eyeOff, l10n.p11LockBannedTitle, l10n.p11LockBannedBody)
+          ? (BuIcons.eyeOff, l10n.p11LockBannedTitle, l10n.p11LockBannedBody)
           : _isPending
-              ? (LucideIcons.lock, l10n.p11LockMembersTitle, l10n.p11LockMembersBody)
-              : (LucideIcons.lock, l10n.p11LockPrivateTitle, l10n.p11LockPrivateBody);
+              ? (BuIcons.lock, l10n.p11LockMembersTitle, l10n.p11LockMembersBody)
+              : (BuIcons.lock, l10n.p11LockPrivateTitle, l10n.p11LockPrivateBody);
       return [
         SliverToBoxAdapter(
           child: Padding(padding: _pad, child: ClubLockCard(icon: icon, title: title, body: body)),
@@ -915,7 +915,7 @@ class _DetailSkeleton extends StatelessWidget {
           PositionedDirectional(
             start: 12,
             top: top + 4,
-            child: ClubBarIcon(icon: LucideIcons.arrowLeft, tooltip: context.l10n.clubBack, onTap: () => Navigator.maybePop(context)),
+            child: ClubBarIcon(icon: BuIcons.arrowLeft, tooltip: context.l10n.clubBack, onTap: () => Navigator.maybePop(context)),
           ),
         ],
       ),

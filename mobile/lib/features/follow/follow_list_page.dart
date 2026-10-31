@@ -174,7 +174,7 @@ class _FollowListPageState extends State<FollowListPage> {
     } else if (st.error != null && st.items.isEmpty) {
       body = FollowStatusCard(
         error: true,
-        icon: LucideIcons.wifiOff,
+        icon: BuIcons.wifiOff,
         title: l.p18FollowErrorTitle,
         message: errorText(st.error!),
         onRetry: () => _load(_tab),
@@ -182,23 +182,23 @@ class _FollowListPageState extends State<FollowListPage> {
     } else if (st.items.isEmpty && st.locked) {
       body = FollowStatusCard(
         key: const ValueKey('follow-list-locked'),
-        icon: LucideIcons.lock,
+        icon: BuIcons.lock,
         title: l.frqLockedTitle,
         message: l.frqLockedBody,
       );
     } else if (st.items.isEmpty) {
       body = FollowStatusCard(
-        icon: _tab == 0 ? LucideIcons.users : LucideIcons.userPlus,
+        icon: _tab == 0 ? BuIcons.users : BuIcons.userPlus,
         title: _tab == 0 ? l.followersEmpty : l.followingEmpty,
         message: _tab == 0 ? l.p18FollowersEmptyBody : l.p18FollowingEmptyBody,
       );
     } else if (shown.isEmpty) {
       body = FollowStatusCard(
-        icon: LucideIcons.userSearch,
+        icon: BuIcons.userSearch,
         title: l.profilyardFollowNoMatch,
         message: l.p18FollowNoMatchBody,
         actionLabel: l.p18ClearSearch,
-        actionIcon: LucideIcons.delete,
+        actionIcon: BuIcons.delete,
         onAction: () => setState(() {
           _search.clear();
           _query = '';

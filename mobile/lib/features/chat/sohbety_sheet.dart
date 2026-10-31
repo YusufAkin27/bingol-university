@@ -73,7 +73,7 @@ class SohbetySheetFrame extends StatelessWidget {
               ),
               BuGap.w8,
               BuIconButton(
-                  icon: LucideIcons.x, tooltip: context.l10n.chatMiscClose, onTap: () => Navigator.maybePop(context)),
+                  icon: BuIcons.x, tooltip: context.l10n.chatMiscClose, onTap: () => Navigator.maybePop(context)),
             ]),
           ),
           Padding(padding: const EdgeInsets.fromLTRB(16, 0, 16, 8), child: search),

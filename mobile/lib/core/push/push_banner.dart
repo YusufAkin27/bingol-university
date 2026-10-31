@@ -41,27 +41,27 @@ IconData bannerIcon(Map<String, dynamic> data) {
   switch (resolvePushTarget(data).dest) {
     case PushDest.conversation:
     case PushDest.chatList:
-      return LucideIcons.messageCircle;
+      return BuIcons.messageCircle;
     case PushDest.event:
-      return LucideIcons.calendarDays;
+      return BuIcons.calendarDays;
     case PushDest.community:
-      return LucideIcons.users;
+      return BuIcons.users;
     case PushDest.news:
     case PushDest.deptAnnouncement:
-      return LucideIcons.megaphone;
+      return BuIcons.megaphone;
     case PushDest.post:
-      return '${data['type'] ?? ''}'.toUpperCase() == 'POST_LIKE' ? LucideIcons.heart : LucideIcons.image;
+      return '${data['type'] ?? ''}'.toUpperCase() == 'POST_LIKE' ? BuIcons.heart : BuIcons.image;
     case PushDest.poll:
-      return LucideIcons.clipboardList;
+      return BuIcons.clipboardList;
     case PushDest.user:
-      return LucideIcons.user;
+      return BuIcons.user;
     case PushDest.followRequests:
-      return LucideIcons.userPlus;
+      return BuIcons.userPlus;
     case PushDest.timetable:
     case PushDest.exams:
-      return LucideIcons.graduationCap;
+      return BuIcons.graduationCap;
     default:
-      return LucideIcons.bell;
+      return BuIcons.bell;
   }
 }
 
@@ -197,7 +197,7 @@ class _BannerCard extends StatelessWidget {
                                     height: 18,
                                     alignment: Alignment.center,
                                     decoration: BoxDecoration(color: t.pr, shape: BoxShape.circle, border: Border.all(color: t.sf3, width: 2)),
-                                    child: Icon(LucideIcons.messageCircle, size: 9, color: t.onPr),
+                                    child: Icon(BuIcons.messageCircle, size: 9, color: t.onPr),
                                   ),
                                 ),
                               ],
@@ -242,7 +242,7 @@ class _BannerCard extends StatelessWidget {
                     tooltip: l.commonClose,
                     visualDensity: VisualDensity.compact,
                     constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
-                    icon: Icon(LucideIcons.x, size: 18, color: t.mut),
+                    icon: Icon(BuIcons.x, size: 18, color: t.mut),
                     onPressed: onClose,
                   ),
                 ],

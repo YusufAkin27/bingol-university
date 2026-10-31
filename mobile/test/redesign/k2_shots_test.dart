@@ -96,9 +96,9 @@ final _scenes = <_Scene>[
     '07_serit_bakim_duyuru',
     () => Builder(
       builder: (c) => _home(top: [
-        GateNoticeStrip(icon: LucideIcons.wrench, text: c.l10n.sistemuiMaintBand, kind: GateNoticeKind.maintenance),
+        GateNoticeStrip(icon: BuIcons.wrench, text: c.l10n.sistemuiMaintBand, kind: GateNoticeKind.maintenance),
         GateNoticeStrip(
-          icon: LucideIcons.megaphone,
+          icon: BuIcons.megaphone,
           text: _lang == 'ar'
               ? 'ستُجرى صيانة مجدولة غدًا من الساعة 10:00 إلى 12:00.'
               : (_lang == 'en' ? 'Planned maintenance tomorrow between 10:00 and 12:00.' : 'Yarın 10.00-12.00 arası planlı bakım yapılacaktır.'),
@@ -179,7 +179,7 @@ final _scenes = <_Scene>[
     after: (t) async {
       await t.enterText(find.byType(TextField), 'K7M4QX');
       await t.pump();
-      final submit = find.byIcon(LucideIcons.arrowRight);
+      final submit = find.byIcon(BuIcons.arrowRight);
       await t.tap(submit.last, warnIfMissed: false);
       await t.pump(const Duration(milliseconds: 300));
     },

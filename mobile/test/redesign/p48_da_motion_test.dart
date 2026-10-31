@@ -168,7 +168,7 @@ void main() {
 
   group('Durum ekranlari: nefes', () {
     double iconScale(WidgetTester tester) {
-      final f = find.ancestor(of: find.byIcon(LucideIcons.wrench), matching: find.byType(ScaleTransition));
+      final f = find.ancestor(of: find.byIcon(BuIcons.wrench), matching: find.byType(ScaleTransition));
       // StaggerItem'in kendi ScaleTransition'i yoktur; yalnizca nefes ScaleTransition'i.
       return tester.widget<ScaleTransition>(f.first).scale.value;
     }
@@ -195,7 +195,7 @@ void main() {
       useScreen(tester, kPhoneMedium);
       await tester.pumpWidget(reduce(buildApp(MaintenanceScreen(onRetry: () {}))));
       await tester.pump(const Duration(milliseconds: 500));
-      expect(find.ancestor(of: find.byIcon(LucideIcons.wrench), matching: find.byType(ScaleTransition)), findsNothing);
+      expect(find.ancestor(of: find.byIcon(BuIcons.wrench), matching: find.byType(ScaleTransition)), findsNothing);
       await unmount(tester);
     });
 
@@ -203,7 +203,7 @@ void main() {
       useScreen(tester, kPhoneMedium);
       await tester.pumpWidget(buildApp(const UpdateRequiredScreen(storeUrl: 'https://example.com', latest: '1.1.0', current: '1.0.2')));
       await tester.pump(const Duration(milliseconds: 900));
-      expect(find.ancestor(of: find.byIcon(LucideIcons.smartphone), matching: find.byType(ScaleTransition)), findsNothing);
+      expect(find.ancestor(of: find.byIcon(BuIcons.smartphone), matching: find.byType(ScaleTransition)), findsNothing);
       await unmount(tester);
     });
   });

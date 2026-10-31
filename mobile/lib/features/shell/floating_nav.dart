@@ -11,6 +11,7 @@ import '../../core/theme/bu_sizes.dart';
 import '../../widgets/bu_list.dart' show BuCountBadge;
 import '../../widgets/bu_pressable.dart' show BuHaptic, BuPressable, buHaptic;
 import '../chat/chatlist_widgets.dart' show ChatlistAvatar;
+import '../../core/icons/bu_icons.dart';
 
 /// Yüzen "cam" alt gezinme (N4): kenarlardan ve alttan boşluklu, süper-elips köşeli, hafif bulanık-saydam yüzey.
 /// Seçili sekmenin simgesinin arkasında marka renginde yumuşak bir gösterge KAYAR (250 ms easeOutCubic); seçili
@@ -51,17 +52,12 @@ class FloatingNav extends StatelessWidget {
   static const double _iconSlot = 28; // gösterge + simge alanı yüksekliği
   static const double _avatar = 22; // avatar çapı (halka dışı)
 
+  // Etkin sekme: ayni cizgi glif + renk (t.pr) + yumusak hap zemin (t.soft); dolu glif kullanilmaz.
   static const _outline = [
-    Icons.home_outlined,
-    Icons.explore_outlined,
-    Icons.chat_bubble_outline_rounded,
-    Icons.people_outline_rounded,
-  ];
-  static const _filled = [
-    Icons.home_rounded,
-    Icons.explore_rounded,
-    Icons.chat_bubble_rounded,
-    Icons.people_rounded,
+    BuIcons.home,
+    BuIcons.discover,
+    BuIcons.chat,
+    BuIcons.users,
   ];
 
   static List<String> _labels(BuildContext context) {
@@ -135,7 +131,6 @@ class FloatingNav extends StatelessWidget {
               onChanged(i);
             },
             outline: i < 4 ? _outline[i] : null,
-            filled: i < 4 ? _filled[i] : null,
             badge: i == _chatIndex ? chatBadge : null,
             avatarUrl: i == 4 ? avatarUrl : null,
             avatarName: avatarName,
@@ -266,7 +261,6 @@ class _NavItem extends StatelessWidget {
     required this.labelSlot,
     required this.onTap,
     this.outline,
-    this.filled,
     this.badge,
     this.avatarUrl,
     this.avatarName,
@@ -280,7 +274,6 @@ class _NavItem extends StatelessWidget {
   final double labelSlot;
   final VoidCallback onTap;
   final IconData? outline;
-  final IconData? filled;
   final ValueNotifier<int>? badge;
   final ValueListenable<String?>? avatarUrl;
   final String? avatarName;
@@ -359,7 +352,7 @@ class _NavItem extends StatelessWidget {
       curve: BuMotion.emphasizedDecelerate,
       child: AnimatedSwitcher(
         duration: BuMotion.of(context, BuMotion.short),
-        child: Icon(selected ? filled : outline,
+        child: Icon(outline,
             key: ValueKey(selected), size: 22, color: color),
       ),
     );

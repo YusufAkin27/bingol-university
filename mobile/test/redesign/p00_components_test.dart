@@ -19,7 +19,7 @@ void main() {
         t,
         () => _scroll([
           for (final k in BuButtonKind.values) ...[
-            BuButton(label: 'Devam et uzun bir etiket metni burada', kind: k, icon: LucideIcons.arrowRight, onPressed: () {}),
+            BuButton(label: 'Devam et uzun bir etiket metni burada', kind: k, icon: BuIcons.arrowRight, onPressed: () {}),
             const SizedBox(height: 8),
             Wrap(children: [BuButton(label: 'Katıl', kind: k, compact: true, onPressed: () {})]),
             const SizedBox(height: 8),
@@ -56,7 +56,7 @@ void main() {
         BuButton(label: 'Tam genişlik', onPressed: () {}),
         Row(children: [
           BuButton(label: 'Kompakt', compact: true, onPressed: () {}),
-          BuIconButton(icon: LucideIcons.heart, onTap: () {}, tooltip: 'Beğen'),
+          BuIconButton(icon: BuIcons.heart, onTap: () {}, tooltip: 'Beğen'),
           BuChip(label: 'Haber', onTap: () {}),
         ]),
         BuSectionHeader('Başlık', action: 'Tümü', onAction: () {}),
@@ -123,8 +123,8 @@ void main() {
           const SizedBox(height: 8),
           BuSearchField(hint: 'Ara', controller: TextEditingController(text: 'kampüs')),
           BuGroup(dividerIndent: 64, children: [
-            BuMenuRow(icon: LucideIcons.user, label: 'Profil', onTap: () {}),
-            BuMenuRow(icon: LucideIcons.logOut, label: 'Çıkış', danger: true, onTap: () {}),
+            BuMenuRow(icon: BuIcons.user, label: 'Profil', onTap: () {}),
+            BuMenuRow(icon: BuIcons.logOut, label: 'Çıkış', danger: true, onTap: () {}),
           ]),
         ]),
       );
@@ -161,11 +161,11 @@ void main() {
       final c = TextEditingController();
       String? last;
       await t.pumpWidget(p00App(Padding(padding: const EdgeInsets.all(16), child: BuSearchField(controller: c, onChanged: (v) => last = v))));
-      expect(find.byIcon(LucideIcons.circleX), findsNothing);
+      expect(find.byIcon(BuIcons.circleX), findsNothing);
       await t.enterText(find.byType(TextField), 'abc');
       await t.pump();
-      expect(find.byIcon(LucideIcons.circleX), findsOneWidget);
-      await t.tap(find.byIcon(LucideIcons.circleX));
+      expect(find.byIcon(BuIcons.circleX), findsOneWidget);
+      await t.tap(find.byIcon(BuIcons.circleX));
       await t.pump();
       expect(c.text, '');
       expect(last, '');
@@ -176,7 +176,7 @@ void main() {
       await t.pumpWidget(p00App(BuSearchField(readOnly: true, onTap: () => n++)));
       await t.tap(find.byType(TextField));
       expect(n, 1);
-      expect(find.byIcon(LucideIcons.circleX), findsNothing);
+      expect(find.byIcon(BuIcons.circleX), findsNothing);
     });
   });
 
@@ -195,10 +195,10 @@ void main() {
               onTap: () {},
             ),
             BuListTile(title: 'Seçili', selected: true, showChevron: true, onTap: () {}),
-            BuSettingsTile(icon: LucideIcons.globe, title: 'Dil', value: 'Türkçe', onTap: () {}),
-            const BuSettingsTile(icon: LucideIcons.bell, title: 'Bildirimler', subtitle: 'Yeni mesaj ve duyurular için anlık bildirim gönder', trailing: BuCountBadge(2)),
-            BuSettingsTile.toggle(icon: LucideIcons.bell, title: 'Bildirimler', subtitle: 'Yeni mesaj ve duyurular', value: true, onChanged: (_) {}),
-            BuSettingsTile(icon: LucideIcons.logOut, title: 'Çıkış yap', danger: true, onTap: () {}),
+            BuSettingsTile(icon: BuIcons.globe, title: 'Dil', value: 'Türkçe', onTap: () {}),
+            const BuSettingsTile(icon: BuIcons.bell, title: 'Bildirimler', subtitle: 'Yeni mesaj ve duyurular için anlık bildirim gönder', trailing: BuCountBadge(2)),
+            BuSettingsTile.toggle(icon: BuIcons.bell, title: 'Bildirimler', subtitle: 'Yeni mesaj ve duyurular', value: true, onChanged: (_) {}),
+            BuSettingsTile(icon: BuIcons.logOut, title: 'Çıkış yap', danger: true, onTap: () {}),
           ]),
           const Wrap(spacing: 8, children: [
             BuCountBadge(7),
@@ -215,7 +215,7 @@ void main() {
       final h = t.ensureSemantics();
       var v = false;
       await t.pumpWidget(p00App(StatefulBuilder(
-        builder: (c, set) => BuSettingsTile.toggle(icon: LucideIcons.bell, title: 'Bildirim', value: v, onChanged: (x) => set(() => v = x)),
+        builder: (c, set) => BuSettingsTile.toggle(icon: BuIcons.bell, title: 'Bildirim', value: v, onChanged: (x) => set(() => v = x)),
       )));
       await t.tap(find.text('Bildirim'));
       await t.pump();
@@ -253,7 +253,7 @@ void main() {
 
     testWidgets('BuEmptyState kompakt + ikonlu varyant ve eylem çağrısı', (t) async {
       var n = 0;
-      await t.pumpWidget(p00App(SizedBox(height: 300, child: BuEmptyState(compact: true, icon: LucideIcons.bell, title: 'Boş', actionLabel: 'Git', onAction: () => n++))));
+      await t.pumpWidget(p00App(SizedBox(height: 300, child: BuEmptyState(compact: true, icon: BuIcons.bell, title: 'Boş', actionLabel: 'Git', onAction: () => n++))));
       await t.pump(const Duration(milliseconds: 500));
       await t.tap(find.text('Git'));
       expect(n, 1);
@@ -508,7 +508,7 @@ void main() {
 
     testWidgets('BuDialog.confirm: onay true, vazgeç false (3 dilde etiketler)', (t) async {
       bool? r;
-      await t.pumpWidget(host((c) async => r = await BuDialog.confirm(c, title: 'Çıkış yapılsın mı?', message: 'Oturum kapanacak.', confirmLabel: 'Çıkış', destructive: true, icon: LucideIcons.logOut)));
+      await t.pumpWidget(host((c) async => r = await BuDialog.confirm(c, title: 'Çıkış yapılsın mı?', message: 'Oturum kapanacak.', confirmLabel: 'Çıkış', destructive: true, icon: BuIcons.logOut)));
       await t.tap(find.text('aç'));
       await t.pumpAndSettle();
       expect(find.text('Vazgeç'), findsOneWidget);
@@ -642,7 +642,7 @@ void main() {
     testWidgets('BuImage: url yoksa yer tutucu, hata yedeği, cacheWidth düzen x DPR', (t) async {
       await p00Matrix(t, () => const Column(children: [BuImage(null, width: 100, height: 60, radius: 12), BuImage('/files/x.png', width: 100, height: 60, radius: 12)]), widths: const [320]);
       await t.pumpWidget(p00App(const BuImage(null, width: 80, height: 80)));
-      expect(find.byIcon(LucideIcons.image), findsOneWidget);
+      expect(find.byIcon(BuIcons.image), findsOneWidget);
     });
 
     testWidgets('ErrorView/EmptyView artık BuErrorState/BuEmptyState sarmalayıcısı; imza ve metinler aynı', (t) async {
@@ -652,12 +652,12 @@ void main() {
       expect(find.byType(BuErrorState), findsOneWidget);
       await t.tap(find.text('Yeniden dene'));
       expect(n, 1);
-      await t.pumpWidget(p00App(EmptyView(icon: LucideIcons.messageCircle, title: 'Başlık', text: 'Açıklama', actionLabel: 'Git', onAction: () => n++)));
+      await t.pumpWidget(p00App(EmptyView(icon: BuIcons.messageCircle, title: 'Başlık', text: 'Açıklama', actionLabel: 'Git', onAction: () => n++)));
       await t.pump(const Duration(milliseconds: 500));
       expect(find.byType(BuEmptyState), findsOneWidget);
       expect(find.text('Başlık'), findsOneWidget);
       expect(find.text('Açıklama'), findsOneWidget);
-      await t.pumpWidget(p00App(const EmptyView(icon: LucideIcons.bell, text: 'Sadece metin')));
+      await t.pumpWidget(p00App(const EmptyView(icon: BuIcons.bell, text: 'Sadece metin')));
       await t.pump(const Duration(milliseconds: 500));
       expect(find.text('Sadece metin'), findsOneWidget);
     });

@@ -288,7 +288,7 @@ class _ClubsTabState extends State<ClubsTab> {
                   child: SizedBox(
                     width: 44,
                     height: 48,
-                    child: Icon(_searching ? LucideIcons.x : LucideIcons.search, size: 22, color: t.mut),
+                    child: Icon(_searching ? BuIcons.x : BuIcons.search, size: 22, color: t.mut),
                   ),
                 ),
                 TextButton(

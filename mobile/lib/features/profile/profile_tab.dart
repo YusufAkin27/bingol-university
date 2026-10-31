@@ -442,7 +442,7 @@ class _ProfileSkeleton extends StatelessWidget {
                   decoration: BoxDecoration(
                       color: t.danger.withValues(alpha: .14),
                       shape: BoxShape.circle),
-                  child: Icon(LucideIcons.wifiOff, size: 20, color: t.danger),
+                  child: Icon(BuIcons.wifiOff, size: 20, color: t.danger),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -466,7 +466,7 @@ class _ProfileSkeleton extends StatelessWidget {
                 const SizedBox(width: 10),
                 BuButton(
                     label: l.profileRetry,
-                    icon: LucideIcons.refreshCw,
+                    icon: BuIcons.refreshCw,
                     compact: true,
                     onPressed: onRetry),
               ]),

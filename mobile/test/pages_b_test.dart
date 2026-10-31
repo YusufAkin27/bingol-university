@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:bu_kampus/core/api.dart';
 import 'package:bu_kampus/core/session.dart';
 import 'package:bu_kampus/widgets/bu_skeleton.dart' show BuSkeleton;
-import 'package:bu_kampus/widgets/bu_widgets.dart' show LucideIcons;
 import 'package:bu_kampus/features/chat/chat_detail_page.dart';
 import 'package:bu_kampus/features/chat/chat_tab.dart';
 import 'package:bu_kampus/features/chat/chatlist_widgets.dart';
@@ -18,6 +17,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'support/fake_app.dart';
+import 'package:bu_kampus/core/icons/bu_icons.dart';
 
 // ---------------------------------------------------------------- örnek veri
 
@@ -337,11 +337,11 @@ void main() {
           'nextCursor': null,
         });
       await _pump(tester, build(makeSession(be)), size: kPhoneMedium);
-      expect(find.byIcon(LucideIcons.check), findsOneWidget);
-      expect(find.byIcon(LucideIcons.checkCheck), findsNWidgets(2));
-      final read = tester.widget<Icon>(find.byIcon(LucideIcons.checkCheck).last);
+      expect(find.byIcon(BuIcons.check), findsOneWidget);
+      expect(find.byIcon(BuIcons.checkCheck), findsNWidgets(2));
+      final read = tester.widget<Icon>(find.byIcon(BuIcons.checkCheck).last);
       // Okundu tiki de nötr (P2/P3: marka vurgusu yalnız okunmamış rozetinde): iki çift tik aynı sakin renk.
-      expect(read.color, equals(tester.widget<Icon>(find.byIcon(LucideIcons.checkCheck).first).color));
+      expect(read.color, equals(tester.widget<Icon>(find.byIcon(BuIcons.checkCheck).first).color));
       // Tüm sohbet avatarları 52 dp; fotoğrafsızlar varsayılan görselli, fotoğraflılar tam daire BuAvatar.
       final avatars = tester.widgetList<ChatlistAvatar>(find.byType(ChatlistAvatar));
       expect(avatars, isNotEmpty);
@@ -438,7 +438,7 @@ void main() {
       await settle(tester, const Duration(milliseconds: 400));
       expect(be.requests, contains('PUT /conversations/1/mute'));
       expect(be.bodies['PUT /conversations/1/mute'], {'durationMinutes': 480});
-      expect(find.byIcon(LucideIcons.bellOff), findsWidgets);
+      expect(find.byIcon(BuIcons.bellOff), findsWidgets);
       // Sohbet 3 zaten sessiz: Sesi aç.
       await longPress(tester, 'Robotik Kulübü');
       expect(find.byKey(const ValueKey('act-mute')), findsNothing);

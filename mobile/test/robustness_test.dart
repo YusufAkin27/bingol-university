@@ -27,7 +27,6 @@ import 'package:bu_kampus/features/support/support_suggestions_page.dart';
 import 'package:bu_kampus/features/system/gate_views.dart';
 import 'dart:ui' show PlatformDispatcher;
 
-import 'package:lucide_icons_flutter/lucide_icons.dart' show LucideIcons;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -35,6 +34,7 @@ import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 
 import 'support/fake_app.dart';
+import 'package:bu_kampus/core/icons/bu_icons.dart';
 
 /// Sunucu şeması beklenmedik biçimde değiştiğinde (ya da araya giren bir vekil HTML/boş gövde döndüğünde)
 /// ana sayfalar çökmemeli: hata ekranına ya da boş duruma düşmeli (`takeException` null).
@@ -301,7 +301,7 @@ void main() {
       expect(handled, isTrue);
       expect(fallback.runtimeType.toString(), 'RenderErrorView');
       await tester.pumpWidget(MaterialApp(home: fallback));
-      expect(find.byIcon(LucideIcons.triangleAlert), findsOneWidget);
+      expect(find.byIcon(BuIcons.triangleAlert), findsOneWidget);
       // Ağaçta yerelleştirme yok: metin cihaz dilinden gelir, bu yüzden tek dokunulabilir eylem (yeniden dene) sayılır.
       expect(find.byType(InkWell), findsOneWidget);
     });

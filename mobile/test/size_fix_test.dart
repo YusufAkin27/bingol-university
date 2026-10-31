@@ -72,7 +72,7 @@ void main() {
           padding: const EdgeInsets.all(20),
           child: Column(children: [
             Row(children: [BuChip(key: const ValueKey('chip'), label: 'Tümü', selected: true, onTap: () {})]),
-            Row(children: [BuIconButton(key: const ValueKey('ib'), icon: LucideIcons.heart, onTap: () {}, tooltip: 'Beğen')]),
+            Row(children: [BuIconButton(key: const ValueKey('ib'), icon: BuIcons.heart, onTap: () {}, tooltip: 'Beğen')]),
             BuSegmented(items: const ['Keşfet', 'Kulüplerim'], index: 0, onChanged: (_) {}),
           ]),
         )));
@@ -96,7 +96,7 @@ void main() {
             BuButton(label: 'Tam genişlik', onPressed: () {}),
             Row(children: [
               BuButton(label: 'Kompakt', compact: true, onPressed: () {}),
-              BuIconButton(icon: LucideIcons.heart, onTap: () {}, tooltip: 'Beğen'),
+              BuIconButton(icon: BuIcons.heart, onTap: () {}, tooltip: 'Beğen'),
               BuChip(label: 'Haber', onTap: () {}),
             ]),
             BuSegmented(items: const ['Keşfet', 'Kulüplerim'], index: 0, onChanged: (_) {}),
@@ -118,9 +118,9 @@ void main() {
       () => SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-          BuButton(label: 'Devam et uzun bir etiket metni burada', icon: LucideIcons.arrowRight, onPressed: () {}),
+          BuButton(label: 'Devam et uzun bir etiket metni burada', icon: BuIcons.arrowRight, onPressed: () {}),
           const SizedBox(height: 8),
-          RefButton(label: 'Devam et uzun bir etiket metni burada', icon: LucideIcons.arrowRight, onPressed: () {}),
+          RefButton(label: 'Devam et uzun bir etiket metni burada', icon: BuIcons.arrowRight, onPressed: () {}),
           const SizedBox(height: 8),
           RefTextField(controller: c, label: 'E-posta', hint: 'ad.soyad@bingol.edu.tr'),
           const SizedBox(height: 8),

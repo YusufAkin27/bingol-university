@@ -198,13 +198,13 @@ Widget _boardButtons() => Builder(builder: (context) {
         _Sec(
           'BuButton',
           Column(children: [
-            BuButton(label: s('Devam et', 'Continue', 'متابعة'), icon: LucideIcons.arrowRight, onPressed: () {}),
+            BuButton(label: s('Devam et', 'Continue', 'متابعة'), icon: BuIcons.arrowRight, onPressed: () {}),
             const SizedBox(height: 8),
             BuButton(label: s('Tonal', 'Tonal', 'تونال'), kind: BuButtonKind.soft, onPressed: () {}),
             const SizedBox(height: 8),
             BuButton(label: s('Çerçeveli', 'Outlined', 'محدد'), kind: BuButtonKind.outline, onPressed: () {}),
             const SizedBox(height: 8),
-            BuButton(label: s('Hesabı sil', 'Delete account', 'حذف الحساب'), kind: BuButtonKind.danger, icon: LucideIcons.trash2, onPressed: () {}),
+            BuButton(label: s('Hesabı sil', 'Delete account', 'حذف الحساب'), kind: BuButtonKind.danger, icon: BuIcons.trash2, onPressed: () {}),
             const SizedBox(height: 8),
             BuButton(label: s('Gönderiliyor', 'Sending', 'جارٍ الإرسال'), busy: true, onPressed: () {}),
             const SizedBox(height: 8),
@@ -225,10 +225,10 @@ Widget _boardButtons() => Builder(builder: (context) {
             FilledButton.tonal(style: FilledButton.styleFrom(minimumSize: const Size(0, 44)), onPressed: () {}, child: const Text('Tonal')),
             OutlinedButton(style: OutlinedButton.styleFrom(minimumSize: const Size(0, 44)), onPressed: () {}, child: const Text('Outlined')),
             TextButton(onPressed: () {}, child: const Text('Text')),
-            IconButton(onPressed: () {}, icon: const Icon(LucideIcons.heart)),
-            IconButton.filledTonal(onPressed: () {}, icon: const Icon(LucideIcons.share2)),
-            FloatingActionButton.small(onPressed: () {}, child: const Icon(LucideIcons.plus)),
-            FloatingActionButton.extended(onPressed: () {}, icon: const Icon(LucideIcons.plus), label: Text(s('Yeni', 'New', 'جديد'))),
+            IconButton(onPressed: () {}, icon: const Icon(BuIcons.heart)),
+            IconButton.filledTonal(onPressed: () {}, icon: const Icon(BuIcons.share2)),
+            FloatingActionButton.small(onPressed: () {}, child: const Icon(BuIcons.plus)),
+            FloatingActionButton.extended(onPressed: () {}, icon: const Icon(BuIcons.plus), label: Text(s('Yeni', 'New', 'جديد'))),
           ]),
         ),
         _Sec(
@@ -261,7 +261,7 @@ Widget _boardButtons() => Builder(builder: (context) {
               FilterChip(label: Text(s('Filtre', 'Filter', 'تصفية')), selected: false, onSelected: (_) {}),
               ChoiceChip(label: Text(s('Seçim', 'Choice', 'خيار')), selected: true, onSelected: (_) {}),
               InputChip(label: Text(s('Etiket', 'Tag', 'وسم')), onDeleted: () {}),
-              ActionChip(avatar: const Icon(LucideIcons.calendar, size: 16), label: Text(s('Takvime ekle', 'Add to calendar', 'أضف للتقويم')), onPressed: () {}),
+              ActionChip(avatar: const Icon(BuIcons.calendar, size: 16), label: Text(s('Takvime ekle', 'Add to calendar', 'أضف للتقويم')), onPressed: () {}),
             ]),
           ]),
         ),
@@ -284,12 +284,12 @@ Widget _boardInputs() => Builder(builder: (context) {
             const SizedBox(height: 10),
             TextField(
               controller: TextEditingController(text: 'abc'),
-              decoration: InputDecoration(labelText: s('Şifre', 'Password', 'كلمة المرور'), errorText: s('En az 8 karakter olmalı', 'At least 8 characters', 'ثمانية أحرف على الأقل'), suffixIcon: const Icon(LucideIcons.eye)),
+              decoration: InputDecoration(labelText: s('Şifre', 'Password', 'كلمة المرور'), errorText: s('En az 8 karakter olmalı', 'At least 8 characters', 'ثمانية أحرف على الأقل'), suffixIcon: const Icon(BuIcons.eye)),
             ),
             const SizedBox(height: 10),
             BuSearchField(hint: s('Haber, kulüp, kişi ara', 'Search news, clubs, people', 'ابحث عن أخبار ونوادٍ وأشخاص'), controller: TextEditingController(text: s('kampüs', 'campus', 'الحرم'))),
             const SizedBox(height: 10),
-            SearchBar(hintText: s('M3 SearchBar', 'M3 SearchBar', 'شريط بحث M3'), leading: const Icon(LucideIcons.search)),
+            SearchBar(hintText: s('M3 SearchBar', 'M3 SearchBar', 'شريط بحث M3'), leading: const Icon(BuIcons.search)),
           ]),
         ),
         _Sec(
@@ -316,7 +316,7 @@ Widget _boardInputs() => Builder(builder: (context) {
             Row(children: [
               const CircularProgressIndicator(value: .7),
               const SizedBox(width: 16),
-              Badge(label: const Text('3'), child: Icon(LucideIcons.bell, color: t.ink)),
+              Badge(label: const Text('3'), child: Icon(BuIcons.bell, color: t.ink)),
               const SizedBox(width: 16),
               const Badge(),
             ]),
@@ -344,10 +344,10 @@ Widget _boardInputs() => Builder(builder: (context) {
               onDestinationSelected: (_) {},
               destinations: [
                 NavigationDestination(icon: const Icon(LucideIcons.house), label: s('Ana Sayfa', 'Home', 'الرئيسية')),
-                NavigationDestination(icon: const Icon(LucideIcons.compass), label: s('Keşfet', 'Explore', 'استكشاف')),
-                NavigationDestination(icon: const Badge(label: Text('2'), child: Icon(LucideIcons.messageCircle)), label: s('Sohbet', 'Chat', 'محادثة')),
-                NavigationDestination(icon: const Icon(LucideIcons.users), label: s('Kulüpler', 'Clubs', 'النوادي')),
-                NavigationDestination(icon: const Icon(LucideIcons.user), label: s('Profil', 'Profile', 'الملف')),
+                NavigationDestination(icon: const Icon(BuIcons.compass), label: s('Keşfet', 'Explore', 'استكشاف')),
+                NavigationDestination(icon: const Badge(label: Text('2'), child: Icon(BuIcons.messageCircle)), label: s('Sohbet', 'Chat', 'محادثة')),
+                NavigationDestination(icon: const Icon(BuIcons.users), label: s('Kulüpler', 'Clubs', 'النوادي')),
+                NavigationDestination(icon: const Icon(BuIcons.user), label: s('Profil', 'Profile', 'الملف')),
               ],
             ),
           ),
@@ -383,10 +383,10 @@ Widget _boardCards() => Builder(builder: (context) {
         _Sec(
           s('Ayar listesi', 'Settings list', 'قائمة الإعدادات'),
           BuGroup(dividerIndent: 66, children: [
-            BuSettingsTile(icon: LucideIcons.user, title: s('Profili düzenle', 'Edit profile', 'تعديل الملف'), onTap: () {}),
-            BuSettingsTile(icon: LucideIcons.globe, title: s('Dil', 'Language', 'اللغة'), value: s('Türkçe', 'English', 'العربية'), tint: t.tint(1), onTap: () {}),
-            BuSettingsTile.toggle(icon: LucideIcons.bell, title: s('Bildirimler', 'Notifications', 'الإشعارات'), subtitle: s('Yeni mesaj ve duyurular', 'New messages and notices', 'رسائل وإعلانات جديدة'), value: true, onChanged: (_) {}, tint: t.tint(3)),
-            BuSettingsTile(icon: LucideIcons.logOut, title: s('Çıkış yap', 'Sign out', 'تسجيل الخروج'), danger: true, onTap: () {}),
+            BuSettingsTile(icon: BuIcons.user, title: s('Profili düzenle', 'Edit profile', 'تعديل الملف'), onTap: () {}),
+            BuSettingsTile(icon: BuIcons.globe, title: s('Dil', 'Language', 'اللغة'), value: s('Türkçe', 'English', 'العربية'), tint: t.tint(1), onTap: () {}),
+            BuSettingsTile.toggle(icon: BuIcons.bell, title: s('Bildirimler', 'Notifications', 'الإشعارات'), subtitle: s('Yeni mesaj ve duyurular', 'New messages and notices', 'رسائل وإعلانات جديدة'), value: true, onChanged: (_) {}, tint: t.tint(3)),
+            BuSettingsTile(icon: BuIcons.logOut, title: s('Çıkış yap', 'Sign out', 'تسجيل الخروج'), danger: true, onTap: () {}),
           ]),
         ),
         _Sec(
@@ -407,7 +407,7 @@ Widget _boardCards() => Builder(builder: (context) {
               selected: true,
               onTap: () {},
             ),
-            BuMenuRow(icon: LucideIcons.bookmark, label: s('Kaydedilenler', 'Saved', 'المحفوظات'), onTap: () {}),
+            BuMenuRow(icon: BuIcons.bookmark, label: s('Kaydedilenler', 'Saved', 'المحفوظات'), onTap: () {}),
           ]),
         ),
         _Sec(
@@ -514,7 +514,7 @@ Widget _scaffoldReady({bool scrolled = false}) => Builder(builder: (context) {
       return BuPageScaffold(
         title: s('Haberler', 'News', 'الأخبار'),
         onRefresh: () async {},
-        actions: [IconButton(onPressed: () {}, icon: const Icon(LucideIcons.search))],
+        actions: [IconButton(onPressed: () {}, icon: const Icon(BuIcons.search))],
         banner: const BuOfflineBanner(),
         controller: scrolled ? ScrollController(initialScrollOffset: 220) : null,
         bottomInset: 24,
@@ -533,7 +533,7 @@ Widget _scaffoldReady({bool scrolled = false}) => Builder(builder: (context) {
                     width: 56,
                     height: 56,
                     decoration: BoxDecoration(color: t.tint(i).bg, borderRadius: BorderRadius.circular(14)),
-                    child: Icon(LucideIcons.newspaper, color: t.tint(i).fg),
+                    child: Icon(BuIcons.newspaper, color: t.tint(i).fg),
                   ),
                   const SizedBox(width: 14),
                   Expanded(
@@ -577,10 +577,10 @@ Widget _overlayHost() => Builder(builder: (context) {
         ]),
         bottomNavigationBar: NavigationBar(selectedIndex: 4, destinations: [
           NavigationDestination(icon: const Icon(LucideIcons.house), label: s('Ana Sayfa', 'Home', 'الرئيسية')),
-          NavigationDestination(icon: const Icon(LucideIcons.compass), label: s('Keşfet', 'Explore', 'استكشاف')),
-          NavigationDestination(icon: const Icon(LucideIcons.messageCircle), label: s('Sohbet', 'Chat', 'محادثة')),
-          NavigationDestination(icon: const Icon(LucideIcons.users), label: s('Kulüpler', 'Clubs', 'النوادي')),
-          NavigationDestination(icon: const Icon(LucideIcons.user), label: s('Profil', 'Profile', 'الملف')),
+          NavigationDestination(icon: const Icon(BuIcons.compass), label: s('Keşfet', 'Explore', 'استكشاف')),
+          NavigationDestination(icon: const Icon(BuIcons.messageCircle), label: s('Sohbet', 'Chat', 'محادثة')),
+          NavigationDestination(icon: const Icon(BuIcons.users), label: s('Kulüpler', 'Clubs', 'النوادي')),
+          NavigationDestination(icon: const Icon(BuIcons.user), label: s('Profil', 'Profile', 'الملف')),
         ]),
       );
     });
@@ -606,7 +606,7 @@ final _boards = <_Board>[
         message: s('Bu cihazdaki oturumun kapanacak.', 'Your session on this device will end.', 'ستنتهي جلستك على هذا الجهاز.'),
         confirmLabel: s('Çıkış yap', 'Sign out', 'خروج'),
         destructive: true,
-        icon: LucideIcons.logOut);
+        icon: BuIcons.logOut);
   }),
   _Board('14_onay_sayfasi', _overlayHost, height: 844, after: (t) async {
     BuConfirmSheet.show(_ctx(t),
@@ -621,9 +621,9 @@ final _boards = <_Board>[
         subtitle: s('Listeyi nasıl sıralayalım?', 'How should we sort the list?', 'كيف نرتب القائمة؟'),
         actions: [BuButton(label: s('Uygula', 'Apply', 'تطبيق'), onPressed: () {})],
         builder: (c) => Column(children: [
-              BuListTile(leading: const Icon(LucideIcons.clock), title: s('En yeni', 'Newest', 'الأحدث'), selected: true, onTap: () {}),
+              BuListTile(leading: const Icon(BuIcons.clock), title: s('En yeni', 'Newest', 'الأحدث'), selected: true, onTap: () {}),
               BuListTile(leading: const Icon(LucideIcons.flame), title: s('En popüler', 'Most popular', 'الأكثر شعبية'), onTap: () {}),
-              BuListTile(leading: const Icon(LucideIcons.calendar), title: s('Tarihe göre', 'By date', 'حسب التاريخ'), onTap: () {}),
+              BuListTile(leading: const Icon(BuIcons.calendar), title: s('Tarihe göre', 'By date', 'حسب التاريخ'), onTap: () {}),
             ]));
   }),
   _Board('16_toast', _overlayHost, height: 844, after: (t) async {

@@ -131,7 +131,7 @@ class _DocRow extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 8),
-              Icon(buDirIcon(context, LucideIcons.chevronRight), size: 20, color: t.mut),
+              Icon(buDirIcon(context, BuIcons.chevronRight), size: 20, color: t.mut),
             ],
           ),
         ),

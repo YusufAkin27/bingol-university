@@ -623,7 +623,7 @@ class _EventFormPageState extends State<EventFormPage> {
   }
 
   /// Alanın altındaki doğrulama satırı: simgesiz, `danger` 12.5 sp.
-  Widget _fieldError(String text, {Key? key, IconData icon = LucideIcons.info}) {
+  Widget _fieldError(String text, {Key? key, IconData icon = BuIcons.info}) {
     final t = context.bu;
     final tx = Theme.of(context).textTheme;
     return Padding(
@@ -699,7 +699,7 @@ class _EventFormPageState extends State<EventFormPage> {
             onTap: () => setState(() => _error = null),
             child: BuPressable(
               onTap: () => setState(() => _error = null),
-              child: SizedBox(width: 44, height: 44, child: Icon(LucideIcons.x, size: 18, color: t.mut)),
+              child: SizedBox(width: 44, height: 44, child: Icon(BuIcons.x, size: 18, color: t.mut)),
             ),
           ),
         ]),
@@ -763,7 +763,7 @@ class _EventFormPageState extends State<EventFormPage> {
                         overflow: TextOverflow.ellipsis,
                         style: tx.titleMedium!.copyWith(fontWeight: FontWeight.w600, color: _clubName == null ? t.mut : t.ink)),
                   ),
-                  if (canPick) Icon(buDirIcon(context, LucideIcons.chevronRight), size: 20, color: t.mut),
+                  if (canPick) Icon(buDirIcon(context, BuIcons.chevronRight), size: 20, color: t.mut),
                 ]),
               ),
             ),
@@ -821,7 +821,7 @@ class _EventFormPageState extends State<EventFormPage> {
       // Seçili tarih/saat özeti ekran okuyucu içindir (görsel karşılığı çipler).
       Semantics(key: const ValueKey('evd-summary'), label: _summary, child: const SizedBox.shrink()),
       _section(
-        LucideIcons.calendarDays,
+        BuIcons.calendarDays,
         l.evdLabelDate,
         Wrap(spacing: 8, children: [
           for (var i = 0; i < dayChips.length; i++)
@@ -830,13 +830,13 @@ class _EventFormPageState extends State<EventFormPage> {
             label: presetDate ? l.evdChipPickDate : _shortDate(_start),
             tone: _ChipTone.soft,
             selected: !presetDate,
-            icon: LucideIcons.calendarPlus,
+            icon: BuIcons.calendarPlus,
             onTap: locked ? null : _pickStartDate,
           ),
         ]),
       ),
       _section(
-        LucideIcons.clock,
+        BuIcons.clock,
         l.evdLabelTime,
         Wrap(spacing: 8, children: [
           for (final h in hours)
@@ -847,17 +847,17 @@ class _EventFormPageState extends State<EventFormPage> {
               // Bugünse geçmiş saat seçilemez.
               onTap: (locked || DateTime(sd.year, sd.month, sd.day, h.$1, h.$2).isBefore(_now())) ? null : () => _setStartTime(h.$1, h.$2),
             ),
-          _Chip(label: presetTime ? l.evdChipCustomTime : _hm(_start), tone: _ChipTone.brand, selected: !presetTime, icon: LucideIcons.alarmClock, onTap: locked ? null : _pickCustomTime),
+          _Chip(label: presetTime ? l.evdChipCustomTime : _hm(_start), tone: _ChipTone.brand, selected: !presetTime, icon: BuIcons.alarmClock, onTap: locked ? null : _pickCustomTime),
         ]),
       ),
       _section(
-        LucideIcons.chartPie,
+        BuIcons.chartPie,
         l.evdLabelDuration,
         Wrap(spacing: 8, children: [
           _Chip(label: l.evdDur1h, selected: dur == const Duration(hours: 1), onTap: locked ? null : () => _setDuration(const Duration(hours: 1))),
           _Chip(label: l.evdDur2h, selected: dur == const Duration(hours: 2), onTap: locked ? null : () => _setDuration(const Duration(hours: 2))),
           _Chip(label: l.evdDurHalfDay, selected: dur == const Duration(hours: 4), onTap: locked ? null : () => _setDuration(const Duration(hours: 4))),
-          _Chip(label: customEnd ? _endLabel : l.evdChipCustomEnd, selected: customEnd, icon: LucideIcons.calendarDays, onTap: locked ? null : _pickEnd),
+          _Chip(label: customEnd ? _endLabel : l.evdChipCustomEnd, selected: customEnd, icon: BuIcons.calendarDays, onTap: locked ? null : _pickEnd),
         ]),
       ),
       if (_endAdjusted && err == null)
@@ -866,7 +866,7 @@ class _EventFormPageState extends State<EventFormPage> {
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
           decoration: BoxDecoration(color: t.warnSoft, borderRadius: BorderRadius.circular(BuRadius.md)),
           child: Row(children: [
-            ExcludeSemantics(child: Icon(LucideIcons.wandSparkles, size: 18, color: t.onWarnSoft)),
+            ExcludeSemantics(child: Icon(BuIcons.wandSparkles, size: 18, color: t.onWarnSoft)),
             const SizedBox(width: 10),
             Expanded(
               child: Text(l.evdEndAdjusted,
@@ -874,7 +874,7 @@ class _EventFormPageState extends State<EventFormPage> {
             ),
           ]),
         ),
-      if (err != null) _fieldError(err, key: const ValueKey('evd-error'), icon: LucideIcons.calendarX),
+      if (err != null) _fieldError(err, key: const ValueKey('evd-error'), icon: BuIcons.calendarX),
     ]);
   }
 
@@ -1197,7 +1197,7 @@ class _ClubPickerSheetState extends State<_ClubPickerSheet> {
                       width: 40,
                       height: 40,
                       decoration: BoxDecoration(color: t.sf2, shape: BoxShape.circle),
-                      child: Icon(LucideIcons.x, size: 18, color: t.ink),
+                      child: Icon(BuIcons.x, size: 18, color: t.ink),
                     ),
                   ),
                 ),
@@ -1217,7 +1217,7 @@ class _ClubPickerSheetState extends State<_ClubPickerSheet> {
               decoration: InputDecoration(
                 hintText: l.p15PickerSearch,
                 hintStyle: tx.bodyLarge!.copyWith(color: t.mut),
-                icon: Icon(LucideIcons.search, size: 20, color: t.mut),
+                icon: Icon(BuIcons.search, size: 20, color: t.mut),
                 filled: false,
                 isDense: true,
                 border: InputBorder.none,
@@ -1246,7 +1246,7 @@ class _ClubPickerSheetState extends State<_ClubPickerSheet> {
                 child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
                   Padding(
                     padding: const EdgeInsets.only(top: 1),
-                    child: ExcludeSemantics(child: Icon(LucideIcons.info, size: 16, color: t.mut)),
+                    child: ExcludeSemantics(child: Icon(BuIcons.info, size: 16, color: t.mut)),
                   ),
                   const SizedBox(width: 10),
                   Expanded(
@@ -1304,8 +1304,8 @@ class _ClubPickerSheetState extends State<_ClubPickerSheet> {
                   width: 52,
                   height: 52,
                   child: logo != null
-                      ? BuImage(logo, width: 52, height: 52, placeholderIcon: LucideIcons.users)
-                      : ColoredBox(color: tint.bg, child: Icon(LucideIcons.users, size: 24, color: tint.fg)),
+                      ? BuImage(logo, width: 52, height: 52, placeholderIcon: BuIcons.users)
+                      : ColoredBox(color: tint.bg, child: Icon(BuIcons.users, size: 24, color: tint.fg)),
                 ),
               ),
               const SizedBox(width: 12),
@@ -1332,7 +1332,7 @@ class _ClubPickerSheetState extends State<_ClubPickerSheet> {
                 width: 28,
                 height: 28,
                 decoration: BoxDecoration(color: sel ? t.pr : t.sf2, shape: BoxShape.circle),
-                child: sel ? Icon(LucideIcons.check, size: 16, color: t.onPr) : null,
+                child: sel ? Icon(BuIcons.check, size: 16, color: t.onPr) : null,
               ),
             ]),
           ),
@@ -1385,7 +1385,7 @@ class _CoverSheet extends StatelessWidget {
                   ]),
                 ),
                 const SizedBox(width: 8),
-                Icon(danger ? LucideIcons.trash2 : buDirIcon(context, LucideIcons.chevronRight), size: 18, color: danger ? t.danger : t.mut),
+                Icon(danger ? BuIcons.trash2 : buDirIcon(context, BuIcons.chevronRight), size: 18, color: danger ? t.danger : t.mut),
               ]),
             ),
           ),
@@ -1407,15 +1407,15 @@ class _CoverSheet extends StatelessWidget {
               onTap: () => Navigator.pop(context),
               child: BuPressable(
                 onTap: () => Navigator.pop(context),
-                child: SizedBox(width: 48, height: 48, child: Icon(LucideIcons.x, size: 20, color: t.mut)),
+                child: SizedBox(width: 48, height: 48, child: Icon(BuIcons.x, size: 20, color: t.mut)),
               ),
             ),
           ]),
         ),
-        row(LucideIcons.images, l.eventFormPickGallery, l.p15CoverGallerySub, () => Navigator.pop(context, ImageSource.gallery)),
-        row(LucideIcons.camera, l.eventFormTakePhoto, l.p15CoverCameraSub, () => Navigator.pop(context, ImageSource.camera)),
+        row(BuIcons.images, l.eventFormPickGallery, l.p15CoverGallerySub, () => Navigator.pop(context, ImageSource.gallery)),
+        row(BuIcons.camera, l.eventFormTakePhoto, l.p15CoverCameraSub, () => Navigator.pop(context, ImageSource.camera)),
         if (canRemove)
-          row(LucideIcons.trash2, l.eventFormRemoveCover, l.p15CoverRemoveSub, () => Navigator.pop(context, _removeToken),
+          row(BuIcons.trash2, l.eventFormRemoveCover, l.p15CoverRemoveSub, () => Navigator.pop(context, _removeToken),
               danger: true, key: const ValueKey('evc-cover-remove')),
       ]),
     );
@@ -1476,7 +1476,7 @@ class _SubmittedDialog extends StatelessWidget {
                   width: 72,
                   height: 72,
                   decoration: BoxDecoration(color: t.ink, shape: BoxShape.circle, boxShadow: [BoxShadow(color: t.pr.withValues(alpha: .18), blurRadius: 0, spreadRadius: 6)]),
-                  child: Icon(LucideIcons.check, size: 34, color: t.bg),
+                  child: Icon(BuIcons.check, size: 34, color: t.bg),
                 ),
                 PositionedDirectional(
                   end: 2,
@@ -1485,7 +1485,7 @@ class _SubmittedDialog extends StatelessWidget {
                     width: 30,
                     height: 30,
                     decoration: BoxDecoration(color: t.pr, shape: BoxShape.circle, border: Border.all(color: t.sf3, width: 3)),
-                    child: Icon(LucideIcons.clock, size: 15, color: t.onPr),
+                    child: Icon(BuIcons.clock, size: 15, color: t.onPr),
                   ),
                 ),
               ]),

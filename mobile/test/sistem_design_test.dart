@@ -3,13 +3,13 @@ import 'package:bu_kampus/core/permissions/permission_service.dart';
 import 'package:bu_kampus/features/auth/permissions_page.dart';
 import 'package:bu_kampus/features/platform/qr_scan_page.dart';
 import 'package:bu_kampus/features/system/gate_views.dart';
-import 'package:bu_kampus/widgets/bu_widgets.dart';
 import 'package:bu_kampus/widgets/common.dart';
 import 'package:bu_kampus/widgets/report_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'support/fake_app.dart';
+import 'package:bu_kampus/core/icons/bu_icons.dart';
 
 void _noErr(WidgetTester t) {
   final e = t.takeException();
@@ -40,9 +40,9 @@ void main() {
     'Offline': () => OfflineScreen(onRetry: () {}),
     'ErrorView net': () => Scaffold(body: ErrorView(error: ApiError(0, 'NETWORK', ''), onRetry: () {})),
     'ErrorView genel': () => Scaffold(body: ErrorView(error: ApiError(500, 'X', ''), onRetry: () {})),
-    'EmptyView': () => const Scaffold(body: EmptyView(icon: LucideIcons.bell, text: 'Yeni bildirimler burada görünecek.', title: 'Bildirim yok')),
+    'EmptyView': () => const Scaffold(body: EmptyView(icon: BuIcons.bell, text: 'Yeni bildirimler burada görünecek.', title: 'Bildirim yok')),
     'EmptyView eylemli': () => Scaffold(
-        body: EmptyView(icon: LucideIcons.messageSquare, text: 'Birini bulup ilk mesajı gönderin.', title: 'Henüz sohbet yok', actionLabel: 'Yeni sohbet', onAction: () {})),
+        body: EmptyView(icon: BuIcons.messageSquare, text: 'Birini bulup ilk mesajı gönderin.', title: 'Henüz sohbet yok', actionLabel: 'Yeni sohbet', onAction: () {})),
     'StaleBanner': () => const Scaffold(body: Padding(padding: EdgeInsets.all(20), child: StaleBanner(text: 'Bazı özellikler geçici olarak kullanılamayabilir.'))),
     'QrScanPage': () => QrScanPage(permissionService: FakePermissionService(initial: {AppPermission.camera: PermState.granted}), scannerBuilder: (_) => const ColoredBox(color: Colors.black)),
     'QrScanPage izin yok': () => QrScanPage(permissionService: FakePermissionService(initial: {AppPermission.camera: PermState.permanentlyDenied}), scannerBuilder: (_) => const SizedBox()),
@@ -109,7 +109,7 @@ void main() {
 
     testWidgets('EmptyView eylem dugmesi', (tester) async {
       var n = 0;
-      await _pump(tester, Scaffold(body: EmptyView(icon: LucideIcons.bell, text: 'a', title: 'b', actionLabel: 'Yeni sohbet', onAction: () => n++)));
+      await _pump(tester, Scaffold(body: EmptyView(icon: BuIcons.bell, text: 'a', title: 'b', actionLabel: 'Yeni sohbet', onAction: () => n++)));
       await tester.tap(find.text('Yeni sohbet'));
       expect(n, 1);
     });

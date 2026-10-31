@@ -127,7 +127,7 @@ class _AccountSecurityPageState extends State<AccountSecurityPage> {
       confirmLabel: l.settingsLogoutAllConfirm,
       cancelLabel: l.commonCancel,
       destructive: true,
-      icon: LucideIcons.logOut,
+      icon: BuIcons.logOut,
     );
     if (!ok || !mounted) return;
     setState(() => _loggingOut = true);
@@ -174,7 +174,7 @@ class _AccountSecurityPageState extends State<AccountSecurityPage> {
                           style: tx.bodyLarge!.copyWith(fontSize: 16, fontWeight: FontWeight.w600, color: t.ink)),
                       const SizedBox(height: 6),
                       Row(children: [
-                        ExcludeSemantics(child: Icon(LucideIcons.lock, size: 16, color: t.mut)),
+                        ExcludeSemantics(child: Icon(BuIcons.lock, size: 16, color: t.mut)),
                         const SizedBox(width: 6),
                         Flexible(
                           child: Text('${l.profil2SecVerified} · ${l.profil2SecEmailFixed}',
@@ -328,7 +328,7 @@ class _PwFieldState extends State<_PwField> {
           focusedBorder: b(widget.bad ? t.danger : t.pr, 2),
           suffixIcon: IconButton(
             tooltip: _hidden ? l.authShowPassword : l.authHidePassword,
-            icon: Icon(_hidden ? LucideIcons.eye : LucideIcons.eyeOff, size: 20, color: widget.bad ? t.danger : t.mut),
+            icon: Icon(_hidden ? BuIcons.eye : BuIcons.eyeOff, size: 20, color: widget.bad ? t.danger : t.mut),
             onPressed: () => setState(() => _hidden = !_hidden),
           ),
         ),

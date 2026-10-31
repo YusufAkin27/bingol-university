@@ -25,6 +25,7 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../support/fake_app.dart';
 import '../support/store_shots_images.dart';
+import 'package:bu_kampus/core/icons/bu_icons.dart';
 
 /// Paket 18 ekran goruntuleri: kabuk (gezinme), Profil sekmesi, takip listesi/onerileri, kullanici gonderileri.
 ///
@@ -154,7 +155,7 @@ final _shots = <_Shot>[
   _Shot('03_gezinme_rozet_99', (b, s) => _navDemo(1, 150)),
   _Shot('04_kabuk_profil', (b, s) => AppShell(session: s, themeController: ThemeController()), setup: _base,
       after: (t) async {
-    await t.tap(find.byIcon(LucideIcons.user).first);
+    await t.tap(find.byIcon(BuIcons.user).first);
     await t.pump();
     await t.pump(const Duration(milliseconds: 600));
   }),
@@ -172,9 +173,9 @@ final _shots = <_Shot>[
     b.fail('/users/me', status: 500, code: 'SERVER_ERROR', message: 'Sunucu hatası');
   }),
   _Shot('09_profil_cikis_onayi', (b, s) => ProfileTab(session: s, themeController: ThemeController()),
-      setup: _base, after: (t) async => _tap(t, LucideIcons.logOut)),
+      setup: _base, after: (t) async => _tap(t, BuIcons.logOut)),
   _Shot('10_profil_dil_secici', (b, s) => ProfileTab(session: s, themeController: ThemeController()),
-      setup: _base, after: (t) async => _tap(t, LucideIcons.globe)),
+      setup: _base, after: (t) async => _tap(t, BuIcons.globe)),
   _Shot('11_profil_tema_secici', (b, s) => ProfileTab(session: s, themeController: ThemeController()),
       setup: _base, after: (t) async => _tap(t, LucideIcons.moon)),
   // ---- Kullanici gonderileri
@@ -240,7 +241,7 @@ final _shots = <_Shot>[
         session: s,
         title: _s('Sayfalı liste', 'Paged list', 'قائمة'),
         path: '/demo/items',
-        emptyIcon: LucideIcons.users,
+        emptyIcon: BuIcons.users,
         emptyText: _s('Henüz bir şey yok.', 'Nothing yet.', 'لا شيء بعد.'),
         itemBuilder: (c, m) => Card(child: ListTile(title: Text('${m['name']}'))),
       ), setup: (b) {
@@ -253,7 +254,7 @@ final _shots = <_Shot>[
         session: s,
         title: _s('Sayfalı liste', 'Paged list', 'قائمة'),
         path: '/demo/items',
-        emptyIcon: LucideIcons.users,
+        emptyIcon: BuIcons.users,
         emptyText: _s('Henüz bir şey yok.', 'Nothing yet.', 'لا شيء بعد.'),
         itemBuilder: (c, m) => const SizedBox(),
       ), setup: (b) => b.on('/demo/items*', {'items': <Object>[], 'nextCursor': null})),

@@ -99,7 +99,7 @@ class ChatInfoBar extends StatelessWidget {
             child: IconButton(
               tooltip: context.l10n.commonBack,
               onPressed: () => Navigator.maybePop(context),
-              icon: Icon(buDirIcon(context, LucideIcons.arrowLeft), size: 24, color: t.ink),
+              icon: Icon(buDirIcon(context, BuIcons.arrowLeft), size: 24, color: t.ink),
             ),
           ),
           const SizedBox(width: 4),
@@ -234,7 +234,7 @@ class ChatInfoRow extends StatelessWidget {
               ],
               if (chevron) ...[
                 const SizedBox(width: 6),
-                ExcludeSemantics(child: Icon(buDirIcon(context, LucideIcons.chevronRight), size: 20, color: chevronDanger ? t.danger : t.mut)),
+                ExcludeSemantics(child: Icon(buDirIcon(context, BuIcons.chevronRight), size: 20, color: chevronDanger ? t.danger : t.mut)),
               ],
             ]),
           ),

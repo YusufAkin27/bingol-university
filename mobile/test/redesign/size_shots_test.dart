@@ -29,8 +29,8 @@ void main() {
           padding: EdgeInsets.zero,
           children: [
             BuHeader(title: 'Kulüpler', actions: [
-              BuIconButton(icon: LucideIcons.search, onTap: () {}, tooltip: 'Ara'),
-              BuIconButton(icon: LucideIcons.plus, onTap: () {}, filled: true, tooltip: 'Yeni'),
+              BuIconButton(icon: BuIcons.search, onTap: () {}, tooltip: 'Ara'),
+              BuIconButton(icon: BuIcons.plus, onTap: () {}, filled: true, tooltip: 'Yeni'),
             ]),
             const SizedBox(height: 12),
             Padding(
@@ -45,8 +45,8 @@ void main() {
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: BuGroup(dividerIndent: 64, children: [
                 BuMenuRow(icon: LucideIcons.key, label: 'Hesap ve güvenlik', onTap: () {}),
-                BuMenuRow(icon: LucideIcons.lock, label: 'Gizlilik ve engellenenler', onTap: () {}),
-                BuMenuRow(icon: LucideIcons.download, label: 'Verilerim', onTap: () {}),
+                BuMenuRow(icon: BuIcons.lock, label: 'Gizlilik ve engellenenler', onTap: () {}),
+                BuMenuRow(icon: BuIcons.download, label: 'Verilerim', onTap: () {}),
               ]),
             ),
             const SizedBox(height: 16),
@@ -73,7 +73,7 @@ void main() {
       const SizedBox(height: 24),
       RefTextField(controller: mail, label: 'E-posta', hint: 'ad.soyad@bingol.edu.tr', icon: LucideIcons.mail),
       const SizedBox(height: 16),
-      RefTextField(controller: pass, label: 'Şifre', hint: '••••••••', icon: LucideIcons.lock),
+      RefTextField(controller: pass, label: 'Şifre', hint: '••••••••', icon: BuIcons.lock),
       const SizedBox(height: 24),
       RefButton(label: 'Giriş yap', onPressed: () {}),
       const SizedBox(height: 8),

@@ -133,7 +133,7 @@ class _SavedNewsPageState extends State<SavedNewsPage> {
                   child: Align(
                     alignment: AlignmentDirectional.centerStart,
                     child: IcerikIconButton(
-                        icon: buDirIcon(context, LucideIcons.arrowLeft), label: l.commonBack, shadow: true, onTap: () => Navigator.maybePop(context)),
+                        icon: buDirIcon(context, BuIcons.arrowLeft), label: l.commonBack, shadow: true, onTap: () => Navigator.maybePop(context)),
                   ),
                 ),
               ),

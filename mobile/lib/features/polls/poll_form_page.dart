@@ -228,7 +228,7 @@ class _PollFormPageState extends State<PollFormPage> {
                                       ? IconButton(
                                           tooltip: l.pollRemoveOption,
                                           constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
-                                          icon: Icon(LucideIcons.x, size: 20, color: t.mut),
+                                          icon: Icon(BuIcons.x, size: 20, color: t.mut),
                                           onPressed: () => _removeOption(i),
                                         )
                                       : null,

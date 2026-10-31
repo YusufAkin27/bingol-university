@@ -98,7 +98,7 @@ class _CourseFormPageState extends State<CourseFormPage> {
           padding: const EdgeInsets.all(24),
           child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
             Row(children: [
-              AkadIconTile(icon: LucideIcons.triangleAlert, bg: t.soft, fg: t.pr, size: 44, radius: 22, iconSize: 20),
+              AkadIconTile(icon: BuIcons.triangleAlert, bg: t.soft, fg: t.pr, size: 44, radius: 22, iconSize: 20),
               const SizedBox(width: 12),
               Expanded(child: Semantics(header: true, child: Text(l.acadTimeConflictTitle, style: tx.titleLarge!.copyWith(fontWeight: FontWeight.w800, color: t.ink)))),
             ]),
@@ -115,7 +115,7 @@ class _CourseFormPageState extends State<CourseFormPage> {
                     Text(c.course.name, style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w800, color: t.ink)),
                     const SizedBox(height: 4),
                     Row(children: [
-                      Icon(LucideIcons.clock, size: 14, color: t.mut),
+                      Icon(BuIcons.clock, size: 14, color: t.mut),
                       const SizedBox(width: 6),
                       Expanded(child: Text('${acadDayShort(l, c.session.dayOfWeek.clamp(1, 7))} ${c.session.start}-${c.session.end}', style: tx.bodySmall!.copyWith(color: t.mut))),
                     ]),
@@ -123,7 +123,7 @@ class _CourseFormPageState extends State<CourseFormPage> {
                       Padding(
                         padding: const EdgeInsets.only(top: 2),
                         child: Row(children: [
-                          Icon(LucideIcons.mapPin, size: 14, color: t.mut),
+                          Icon(BuIcons.mapPin, size: 14, color: t.mut),
                           const SizedBox(width: 6),
                           Expanded(child: Text(c.session.room!, style: tx.bodySmall!.copyWith(color: t.mut))),
                         ]),
@@ -224,7 +224,7 @@ class _CourseFormPageState extends State<CourseFormPage> {
     return AcademicScaffold(
       title: _editing ? l.acadTimeEditCourse : l.acadTimeNewCourse,
       actions: [
-        if (_editing) BuIconButton(icon: LucideIcons.trash2, tooltip: l.acadTimeDeleteCourse, onTap: _busy ? null : _delete),
+        if (_editing) BuIconButton(icon: BuIcons.trash2, tooltip: l.acadTimeDeleteCourse, onTap: _busy ? null : _delete),
       ],
       child: ListView(
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
@@ -240,14 +240,14 @@ class _CourseFormPageState extends State<CourseFormPage> {
                 capitalization: TextCapitalization.words,
                 hint: l.acadTimeNameHint,
                 error: _nameError,
-                icon: LucideIcons.bookOpen,
+                icon: BuIcons.bookOpen,
                 onChanged: (_) {
                   if (_nameError != null) setState(() => _nameError = null);
                 },
               ),
               const SizedBox(height: 16),
               AkadTextField(
-                  label: l.acadTimeCourseCode, controller: _code, maxLength: 20, capitalization: TextCapitalization.characters, hint: 'BIL201', icon: LucideIcons.hash),
+                  label: l.acadTimeCourseCode, controller: _code, maxLength: 20, capitalization: TextCapitalization.characters, hint: 'BIL201', icon: BuIcons.hash),
               const SizedBox(height: 16),
               AkadTextField(
                 label: l.acadTimeInstructor,
@@ -255,7 +255,7 @@ class _CourseFormPageState extends State<CourseFormPage> {
                 maxLength: 120,
                 capitalization: TextCapitalization.words,
                 hint: l.acadTimeInstructorHint,
-                icon: LucideIcons.idCard,
+                icon: BuIcons.idCard,
               ),
               const SizedBox(height: 16),
               AkadFieldLabel(l.acadTimeColor,
@@ -266,7 +266,7 @@ class _CourseFormPageState extends State<CourseFormPage> {
               Row(children: [for (final k in courseColorKeys) Expanded(child: _swatch(t, k))]),
               const SizedBox(height: 4),
               Row(children: [
-                Icon(LucideIcons.info, size: 14, color: t.mut),
+                Icon(BuIcons.info, size: 14, color: t.mut),
                 const SizedBox(width: 6),
                 Expanded(child: Text(l.acadTimeColorAuto, style: tx.bodySmall!.copyWith(color: t.mut))),
               ]),
@@ -292,7 +292,7 @@ class _CourseFormPageState extends State<CourseFormPage> {
               child: Semantics(
                 liveRegion: true,
                 child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Padding(padding: const EdgeInsets.only(top: 2), child: Icon(LucideIcons.circleAlert, size: 16, color: t.danger)),
+                  Padding(padding: const EdgeInsets.only(top: 2), child: Icon(BuIcons.circleAlert, size: 16, color: t.danger)),
                   const SizedBox(width: 8),
                   Expanded(child: Text(l.acadTimeOwnConflict, style: tx.bodySmall!.copyWith(color: t.danger))),
                 ]),
@@ -310,7 +310,7 @@ class _CourseFormPageState extends State<CourseFormPage> {
                 }),
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                 child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                  Icon(LucideIcons.circlePlus, size: 20, color: t.mut),
+                  Icon(BuIcons.circlePlus, size: 20, color: t.mut),
                   const SizedBox(width: 8),
                   Flexible(child: Text(l.acadTimeAddSession, style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w700, color: t.mut))),
                 ]),
@@ -328,13 +328,13 @@ class _CourseFormPageState extends State<CourseFormPage> {
               maxLines: 5,
               capitalization: TextCapitalization.sentences,
               hint: l.acadTimeNoteHint,
-              icon: LucideIcons.textAlignStart,
+              icon: BuIcons.textAlignStart,
             ),
           ),
           const SizedBox(height: 24),
           BuButton(
             label: _editing ? l.acadTimeSave : l.acadTimeAddCourseBtn,
-            icon: LucideIcons.circleCheck,
+            icon: BuIcons.circleCheck,
             busy: _busy,
             onPressed: _busy ? null : () => _save(),
           ),
@@ -361,7 +361,7 @@ class _CourseFormPageState extends State<CourseFormPage> {
           decoration: BoxDecoration(color: t.soft, borderRadius: BuRadius.bLg),
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Row(children: [
-              Icon(LucideIcons.circleAlert, size: 18, color: t.onSoft),
+              Icon(BuIcons.circleAlert, size: 18, color: t.onSoft),
               const SizedBox(width: 8),
               Expanded(child: Text(l.p17CheckFields, style: tx.labelLarge!.copyWith(fontWeight: FontWeight.w800, color: t.onSoft))),
             ]),
@@ -416,7 +416,7 @@ class _CourseFormPageState extends State<CourseFormPage> {
                 child: AnimatedScale(
                   scale: sel ? 1 : 0,
                   duration: BuMotion.of(context, BuMotion.short),
-                  child: Icon(LucideIcons.check, size: 15, color: t.onMedia),
+                  child: Icon(BuIcons.check, size: 15, color: t.onMedia),
                 ),
               ),
             ),
@@ -445,7 +445,7 @@ class _CourseFormPageState extends State<CourseFormPage> {
                 _sessions.removeAt(i).room.dispose();
                 _endErrors.clear();
               }),
-              icon: const Icon(LucideIcons.trash2, size: 16),
+              icon: const Icon(BuIcons.trash2, size: 16),
               label: Text(l.acadTimeRemoveSession, style: tx.labelMedium!.copyWith(fontWeight: FontWeight.w700, color: t.danger)),
             ),
         ]),
@@ -467,8 +467,8 @@ class _CourseFormPageState extends State<CourseFormPage> {
         Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Expanded(
             child: AkadPicker(
-              icon: LucideIcons.clock,
-              leading: LucideIcons.clock,
+              icon: BuIcons.clock,
+              leading: BuIcons.clock,
               bold: true,
               compact: true,
               label: l.acadTimeStartTime,
@@ -489,8 +489,8 @@ class _CourseFormPageState extends State<CourseFormPage> {
           const SizedBox(width: 10),
           Expanded(
             child: AkadPicker(
-              icon: LucideIcons.clock,
-              leading: LucideIcons.clock,
+              icon: BuIcons.clock,
+              leading: BuIcons.clock,
               bold: true,
               compact: true,
               error: endBad,
@@ -514,14 +514,14 @@ class _CourseFormPageState extends State<CourseFormPage> {
             child: Semantics(
               liveRegion: true,
               child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Padding(padding: const EdgeInsets.only(top: 2), child: Icon(LucideIcons.circleAlert, size: 14, color: t.danger)),
+                Padding(padding: const EdgeInsets.only(top: 2), child: Icon(BuIcons.circleAlert, size: 14, color: t.danger)),
                 const SizedBox(width: 6),
                 Expanded(child: Text(l.acadTimeEndAfterStart, style: tx.bodySmall!.copyWith(color: t.danger))),
               ]),
             ),
           ),
         const SizedBox(height: 14),
-        AkadTextField(label: l.acadFormRoom, controller: s.room, maxLength: 60, hint: l.acadTimeRoomHint, icon: LucideIcons.doorOpen),
+        AkadTextField(label: l.acadFormRoom, controller: s.room, maxLength: 60, hint: l.acadTimeRoomHint, icon: BuIcons.doorOpen),
       ]),
     );
   }

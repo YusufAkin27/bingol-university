@@ -70,7 +70,7 @@ class ChatdDuration extends StatelessWidget {
     final t = context.bu;
     return ChatdPill(
       child: Row(mainAxisSize: MainAxisSize.min, children: [
-        Icon(LucideIcons.video, size: 12, color: t.onMedia),
+        Icon(BuIcons.video, size: 14, color: t.onMedia),
         const SizedBox(width: 4),
         Text(formatMediaDuration(ms), textDirection: TextDirection.ltr),
       ]),
@@ -95,7 +95,7 @@ class ChatdPlay extends StatelessWidget {
       child: Padding(
         // Üçgenin optik merkezi geometrik merkezden biraz sağdadır; ortalamak için hafif içeri.
         padding: EdgeInsetsDirectional.only(start: size * .04),
-        child: Icon(Icons.play_arrow_rounded, size: size * .6, color: t.scrim),
+        child: Icon(BuIcons.playFilled, size: size * .6, color: t.scrim),
       ),
     );
   }
@@ -166,7 +166,7 @@ class ChatdSkeleton extends StatelessWidget {
           final big = showLabel && h >= 90;
           return Stack(alignment: Alignment.center, children: [
             BuSkeleton(width: w, height: h, radius: 0),
-            if (!big) Icon(LucideIcons.image, size: h < 70 ? 18 : 26, color: t.mut.withValues(alpha: .7)),
+            if (!big) Icon(BuIcons.image, size: h < 70 ? 18 : 26, color: t.mut.withValues(alpha: .7)),
             if (big)
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -175,7 +175,7 @@ class ChatdSkeleton extends StatelessWidget {
                     width: 44,
                     height: 44,
                     decoration: BoxDecoration(color: t.sf, shape: BoxShape.circle, border: Border.all(color: t.bd)),
-                    child: Icon(LucideIcons.image, size: 20, color: t.mut),
+                    child: Icon(BuIcons.image, size: 20, color: t.mut),
                   ),
                   const SizedBox(height: 10),
                   Text(label, textAlign: TextAlign.center, style: Theme.of(context).textTheme.titleSmall!.copyWith(color: t.ink, fontWeight: FontWeight.w700)),

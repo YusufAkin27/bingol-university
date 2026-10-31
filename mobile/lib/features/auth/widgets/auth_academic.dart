@@ -162,7 +162,7 @@ class _SelectCard extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(width: 8),
-                        Icon(LucideIcons.chevronDown, size: 20, color: t.mut),
+                        Icon(BuIcons.chevronDown, size: 20, color: t.mut),
                       ],
                     ),
                   ),

@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../support/fake_app.dart';
+import 'package:bu_kampus/core/icons/bu_icons.dart';
 
 // KESFET2-MB: SARTNAME (C:\bu_design\stitch\v3_kesfet2) ve PNG referanslarindan okunan olculer, uygulama +-2 dp.
 // Referans PNG 780x1688 (390x844 dp @2x); "ref" degerleri PNG'den piksel/2 ile olculmustur (SARTNAME'de olanlar SARTNAME'den).
@@ -128,7 +129,7 @@ void main() {
     final authorTap = tester.getSize(find.byKey(const ValueKey('discover-author-499')));
     row('Yazar dokunma yüksekliği (≥44)', 44, authorTap.height < 44 ? authorTap.height : 44);
     // Beğenilmiş: dolu beyaz kalp
-    expect(find.descendant(of: box(1), matching: find.byIcon(Icons.favorite)), findsOneWidget);
+    expect(find.descendant(of: box(1), matching: find.byIcon(BuIcons.heartFilled)), findsOneWidget);
     noErr(tester);
   });
 

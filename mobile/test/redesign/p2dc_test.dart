@@ -8,11 +8,12 @@ import 'package:bu_kampus/features/posts/compose_post_page.dart';
 import 'package:bu_kampus/features/posts/post_detail_page.dart';
 import 'package:bu_kampus/features/posts/post_models.dart' show Post;
 import 'package:bu_kampus/features/posts/post_photo_viewer.dart';
-import 'package:bu_kampus/widgets/bu.dart' show BuPop, BuStaggerItem, LucideIcons;
+import 'package:bu_kampus/widgets/bu.dart' show BuPop, BuStaggerItem;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../support/fake_app.dart';
+import 'package:bu_kampus/core/icons/bu_icons.dart';
 
 // P2-DC: Keşfet / gönderi / sohbet ince detay + animasyon testleri.
 // Her animasyon için: başlangıç/bitiş, "animasyonları azalt"ta anında, tekrar oynamama, semantik/dokunma bozulmaması.
@@ -114,7 +115,7 @@ void main() {
       expect(countTexts(card), findsNWidgets(2), reason: 'eski sayi solarken yenisi geliyor');
       await settle(tester, const Duration(milliseconds: 700));
       expect(countTexts(card), findsOneWidget);
-      expect(find.descendant(of: card, matching: find.byIcon(Icons.favorite)), findsOneWidget);
+      expect(find.descendant(of: card, matching: find.byIcon(BuIcons.heartFilled)), findsOneWidget);
       // Kalp 20 dp; dokunma alani (kalp + sayi satirinin tamami) en az 44 dp yuksekliginde.
       expect(tester.getSize(find.ancestor(of: like, matching: find.byType(GestureDetector)).first).height, greaterThanOrEqualTo(44));
       noErr(tester);
@@ -387,14 +388,14 @@ void main() {
       useScreen(tester, const Size(390, 844));
       await tester.pumpWidget(bubble(msg(9, 'Durum', age: const Duration(hours: 1), status: 'SENT')));
       await tester.pump(const Duration(milliseconds: 400));
-      expect(find.byIcon(LucideIcons.check), findsOneWidget);
+      expect(find.byIcon(BuIcons.check), findsOneWidget);
       await tester.pumpWidget(bubble(msg(9, 'Durum', age: const Duration(hours: 1), status: 'DELIVERED')));
       await tester.pump(const Duration(milliseconds: 60));
-      expect(find.byIcon(LucideIcons.check), findsOneWidget);
-      expect(find.byIcon(LucideIcons.checkCheck), findsOneWidget);
+      expect(find.byIcon(BuIcons.check), findsOneWidget);
+      expect(find.byIcon(BuIcons.checkCheck), findsOneWidget);
       await tester.pump(const Duration(milliseconds: 400));
-      expect(find.byIcon(LucideIcons.check), findsNothing);
-      expect(find.byIcon(LucideIcons.checkCheck), findsOneWidget);
+      expect(find.byIcon(BuIcons.check), findsNothing);
+      expect(find.byIcon(BuIcons.checkCheck), findsOneWidget);
       noErr(tester);
     });
   });

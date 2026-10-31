@@ -166,7 +166,7 @@ class _ClubRequestsPageState extends State<ClubRequestsPage> {
                 padding: const EdgeInsetsDirectional.fromSTEB(20, 4, 20, 8),
                 child: BuButton(
                   label: l.clubMgmtMoreRequests,
-                  icon: LucideIcons.history,
+                  icon: BuIcons.history,
                   kind: BuButtonKind.soft,
                   onPressed: _loading ? null : () => _load(),
                 ),
@@ -297,7 +297,7 @@ class _RequestTileState extends State<_RequestTile> with SingleTickerProviderSta
                             children: [
                               Padding(
                                 padding: const EdgeInsets.only(top: 1),
-                                child: ExcludeSemantics(child: Icon(LucideIcons.circleHelp, size: 14, color: t.mut)),
+                                child: ExcludeSemantics(child: Icon(BuIcons.circleHelp, size: 14, color: t.mut)),
                               ),
                               const SizedBox(width: 6),
                               Expanded(child: Text((answers[i]['question'] ?? '').toString(), style: tx.labelMedium!.copyWith(color: t.mut, fontWeight: FontWeight.w700))),
@@ -312,12 +312,12 @@ class _RequestTileState extends State<_RequestTile> with SingleTickerProviderSta
                 const SizedBox(height: 16),
                 Row(
                   children: [
-                    Expanded(child: ClubBtn(label: l.clubMgmtReject, icon: LucideIcons.x, onPressed: off ? null : widget.onReject)),
+                    Expanded(child: ClubBtn(label: l.clubMgmtReject, icon: BuIcons.x, onPressed: off ? null : widget.onReject)),
                     const SizedBox(width: 12),
                     Expanded(
                       child: ClubBtn(
                         kind: ClubBtnKind.primary,
-                        icon: LucideIcons.check,
+                        icon: BuIcons.check,
                         busy: widget.busy,
                         label: widget.busy ? l.kulupdetayApproving : l.clubMgmtApprove,
                         onPressed: off ? null : widget.onApprove,

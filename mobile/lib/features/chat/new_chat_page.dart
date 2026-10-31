@@ -247,7 +247,7 @@ class _NewChatPageState extends State<NewChatPage> {
                 if (showActions) ...[
                   NcActionCard(
                     cardKey: const ValueKey('new-group'),
-                    tile: NcTile(icon: LucideIcons.userPlus, bg: t.sf2, fg: t.pr),
+                    tile: NcTile(icon: BuIcons.userPlus, bg: t.sf2, fg: t.pr),
                     title: l.sohbetyNewGroup,
                     subtitle: l.sohbetyNewGroupSub,
                     onTap: () => setState(() {
@@ -310,7 +310,7 @@ class _NewChatPageState extends State<NewChatPage> {
               child: Text(name, maxLines: 1, overflow: TextOverflow.ellipsis, style: Theme.of(context).textTheme.labelLarge!.copyWith(color: t.ink, fontWeight: FontWeight.w700)),
             ),
             const SizedBox(width: 6),
-            Icon(LucideIcons.x, size: 14, color: t.mut),
+            Icon(BuIcons.x, size: 14, color: t.mut),
           ]),
         ),
       ),
@@ -353,7 +353,7 @@ class _NewChatPageState extends State<NewChatPage> {
         ),
         if (_createError != null) ...[
           const SizedBox(height: 12),
-          NcNote(noteKey: const ValueKey('create-error'), icon: LucideIcons.circleAlert, text: _createError!),
+          NcNote(noteKey: const ValueKey('create-error'), icon: BuIcons.circleAlert, text: _createError!),
         ],
       ]),
     );

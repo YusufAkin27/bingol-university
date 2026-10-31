@@ -183,7 +183,7 @@ class _MyEventsPageState extends State<MyEventsPage> {
       message: request ? l.etkinlik2WithdrawMessage : l.eventListLeaveMsg,
       confirmLabel: request ? l.etkinlik2Withdraw : l.eventListLeave,
       danger: true,
-      icon: LucideIcons.calendarX,
+      icon: BuIcons.calendarX,
     );
     if (!ok || !mounted) return;
     try {
@@ -245,13 +245,13 @@ class _MyEventsPageState extends State<MyEventsPage> {
               if (f.items.isEmpty)
                 _tab == 0
                     ? EtkinlikEmptyCard(
-                        icon: LucideIcons.calendarX,
+                        icon: BuIcons.calendarX,
                         title: l.profilyardEventsEmptyTitle,
                         body: l.profilyardEventsEmptyBody,
-                        action: BuButton(label: l.eventListDiscover, icon: LucideIcons.compass, onPressed: _discover),
+                        action: BuButton(label: l.eventListDiscover, icon: BuIcons.compass, onPressed: _discover),
                       )
                     : EtkinlikEmptyCard(
-                        icon: LucideIcons.calendarPlus,
+                        icon: BuIcons.calendarPlus,
                         title: l.eventListEmptyCreated,
                         body: l.p14EmptyCreatedBody2,
                       ),
@@ -279,18 +279,18 @@ class _MyEventsPageState extends State<MyEventsPage> {
   Widget? _tag(Map<String, dynamic> e) {
     final l = context.l10n;
     if (e['status'] == 'CANCELLED') {
-      return EventStatusTag(l.eventListCancelled, tone: EventTone.danger, icon: LucideIcons.calendarX);
+      return EventStatusTag(l.eventListCancelled, tone: EventTone.danger, icon: BuIcons.calendarX);
     }
     if (_tab == 1) {
       final n = [e['pendingRequestCount'], e['pendingRequests'], e['pendingCount']].whereType<num>().firstOrNull?.toInt();
       return (n != null && n > 0)
-          ? EventStatusTag(l.profilyardEventPendingCount('$n'), tone: EventTone.warn, icon: LucideIcons.userPlus)
+          ? EventStatusTag(l.profilyardEventPendingCount('$n'), tone: EventTone.warn, icon: BuIcons.userPlus)
           : null;
     }
     return switch (e['myRsvp']) {
       'GOING' => _GoingPill(l.profilyardEventGoing),
-      'INTERESTED' => EventStatusTag(l.profilyardEventInterested, tone: EventTone.brand, icon: LucideIcons.star),
-      'REQUESTED' || 'PENDING' => EventStatusTag(l.profilyardEventRequested, tone: EventTone.neutral, icon: LucideIcons.hourglass),
+      'INTERESTED' => EventStatusTag(l.profilyardEventInterested, tone: EventTone.brand, icon: BuIcons.star),
+      'REQUESTED' || 'PENDING' => EventStatusTag(l.profilyardEventRequested, tone: EventTone.neutral, icon: BuIcons.hourglass),
       _ => null,
     };
   }
@@ -314,8 +314,8 @@ class _MyEventsPageState extends State<MyEventsPage> {
     final canLeave = _tab == 0 && !past && (my == 'GOING' || my == 'INTERESTED');
 
     final meta = <Widget>[
-      if (time.isNotEmpty) _line(LucideIcons.clock, time),
-      if (place != null && place.isNotEmpty) _line(LucideIcons.mapPin, place),
+      if (time.isNotEmpty) _line(BuIcons.clock, time),
+      if (place != null && place.isNotEmpty) _line(BuIcons.mapPin, place),
     ];
 
     return BuCard(
@@ -330,7 +330,7 @@ class _MyEventsPageState extends State<MyEventsPage> {
                   width: 48,
                   height: 48,
                   decoration: BoxDecoration(color: t.sf2, borderRadius: BorderRadius.circular(14)),
-                  child: Icon(LucideIcons.calendar, size: 22, color: t.mut),
+                  child: Icon(BuIcons.calendar, size: 22, color: t.mut),
                 )
               : EtkinlikDateBlock(
                   month: eventMonthShortOf(context, start.month),
@@ -344,7 +344,7 @@ class _MyEventsPageState extends State<MyEventsPage> {
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 if (org != null && org.isNotEmpty)
                   Row(mainAxisSize: MainAxisSize.min, children: [
-                    ExcludeSemantics(child: Icon(LucideIcons.users, size: 13, color: past ? t.mut : t.pr)),
+                    ExcludeSemantics(child: Icon(BuIcons.users, size: 14, color: past ? t.mut : t.pr)),
                     const SizedBox(width: 6),
                     Flexible(
                       child: Text(org,
@@ -368,13 +368,13 @@ class _MyEventsPageState extends State<MyEventsPage> {
           if (canLeave)
             PopupMenuButton<String>(
               tooltip: l.eventListOptions,
-              icon: Icon(LucideIcons.ellipsisVertical, size: 20, color: t.ink),
+              icon: Icon(BuIcons.ellipsisVertical, size: 20, color: t.ink),
               onSelected: (_) => _withdraw(e, request: false),
               itemBuilder: (_) => [
                 PopupMenuItem(
                     value: 'leave',
                     child: Row(children: [
-                      Icon(LucideIcons.logOut, size: 18, color: t.danger),
+                      Icon(BuIcons.logOut, size: 18, color: t.danger),
                       const SizedBox(width: 10),
                       Text(l.eventListLeaveTitle),
                     ])),
@@ -410,7 +410,7 @@ class _MyEventsPageState extends State<MyEventsPage> {
                     end: 12,
                     bottom: 10,
                     child: Row(children: [
-                      Icon(LucideIcons.clock, size: 14, color: t.onMedia),
+                      Icon(BuIcons.clock, size: 14, color: t.onMedia),
                       const SizedBox(width: 6),
                       Flexible(
                         child: Text(

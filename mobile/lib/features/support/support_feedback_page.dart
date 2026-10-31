@@ -177,7 +177,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
                                 liveRegion: true,
                                 container: true,
                                 child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                                  Padding(padding: const EdgeInsets.only(top: 2), child: Icon(LucideIcons.circleAlert, size: 18, color: t.danger)),
+                                  Padding(padding: const EdgeInsets.only(top: 2), child: Icon(BuIcons.circleAlert, size: 18, color: t.danger)),
                                   const SizedBox(width: 8),
                                   Expanded(child: Text(_formError!, style: tx.bodyMedium!.copyWith(color: t.danger, height: 1.4))),
                                 ]),
@@ -185,7 +185,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
                             ),
                     ),
                     const SizedBox(height: 16),
-                    BuButton(label: l.supportSend, icon: LucideIcons.send, busy: _busy, onPressed: _submit),
+                    BuButton(label: l.supportSend, icon: BuIcons.send, busy: _busy, onPressed: _submit),
                   ]),
                 ),
               ),
@@ -239,7 +239,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
         SliverToBoxAdapter(
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: SupportEmptyCard(icon: LucideIcons.info, title: l.supportNoFeedback, body: l.p13FeedbackEmptyHint),
+            child: SupportEmptyCard(icon: BuIcons.info, title: l.supportNoFeedback, body: l.p13FeedbackEmptyHint),
           ),
         ),
       ];
@@ -271,7 +271,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
                         : Row(mainAxisSize: MainAxisSize.min, children: [
                             Text(l.supportMore, style: Theme.of(context).textTheme.titleSmall!.copyWith(color: t.ink, fontWeight: FontWeight.w800)),
                             const SizedBox(width: 6),
-                            Icon(LucideIcons.chevronDown, size: 18, color: t.ink),
+                            Icon(BuIcons.chevronDown, size: 18, color: t.ink),
                           ]),
                   ),
                 ),
@@ -319,7 +319,7 @@ class _FeedbackTile extends StatelessWidget {
           Text('${item['subject'] ?? ''}', style: tx.titleMedium!.copyWith(color: t.ink, fontWeight: FontWeight.w800, height: 1.35)),
           const SizedBox(height: 10),
           Row(children: [
-            Icon(LucideIcons.calendar, size: 15, color: t.mut),
+            Icon(BuIcons.calendar, size: 15, color: t.mut),
             const SizedBox(width: 8),
             Text(date, style: tx.bodySmall!.copyWith(color: t.mut)),
           ]),

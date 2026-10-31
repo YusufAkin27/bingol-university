@@ -318,7 +318,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
                         AkadIconTile(icon: icon, bg: danger ? t.pr : t.sf, fg: danger ? t.onPr : t.ink, size: 40, radius: 12, iconSize: 20),
                         const SizedBox(width: 14),
                         Expanded(child: Text(label, style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w800, color: danger ? t.onSoft : t.ink))),
-                        Icon(buDirIcon(context, LucideIcons.chevronRight), size: 18, color: danger ? t.pr : t.mut),
+                        Icon(buDirIcon(context, BuIcons.chevronRight), size: 18, color: danger ? t.pr : t.mut),
                       ]),
                     ),
                   ),
@@ -339,14 +339,14 @@ class _UserProfilePageState extends State<UserProfilePage> {
                 constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
                 tooltip: l.commonCancel,
                 style: IconButton.styleFrom(backgroundColor: t.sf2),
-                icon: Icon(LucideIcons.x, size: 18, color: t.ink),
+                icon: Icon(BuIcons.x, size: 18, color: t.ink),
                 onPressed: () => Navigator.pop(c),
               ),
             ]),
           ),
-          item(const ValueKey('profile-menu-block'), _blocked ? LucideIcons.lockOpen : LucideIcons.ban, _blocked ? l.profileUnblock : l.profileBlock, _toggleBlock,
+          item(const ValueKey('profile-menu-block'), _blocked ? BuIcons.lockOpen : BuIcons.ban, _blocked ? l.profileUnblock : l.profileBlock, _toggleBlock,
               danger: true),
-          item(const ValueKey('profile-menu-report'), LucideIcons.flag, l.profileReportUser, _report),
+          item(const ValueKey('profile-menu-report'), BuIcons.flag, l.profileReportUser, _report),
         ]);
       },
     );
@@ -370,7 +370,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
                 IconButton(
                   constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
                   tooltip: l.commonBack,
-                  icon: Icon(buDirIcon(context, LucideIcons.chevronLeft), size: 26, color: t.ink),
+                  icon: Icon(buDirIcon(context, BuIcons.chevronLeft), size: 26, color: t.ink),
                   onPressed: () => Navigator.maybePop(context),
                 ),
                 // Stitch v3: üstte başlık yok (geri + sağda "...").
@@ -380,7 +380,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
                     key: const ValueKey('profile-more'),
                     constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
                     tooltip: l.icerikUserMenu,
-                    icon: Icon(LucideIcons.ellipsis, size: 22, color: t.ink),
+                    icon: Icon(BuIcons.ellipsis, size: 22, color: t.ink),
                     onPressed: _p == null ? null : _openMenu,
                   ),
               ]),
@@ -407,7 +407,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
               child: Padding(
                 padding: const EdgeInsets.all(32),
                 child: Column(mainAxisSize: MainAxisSize.min, children: [
-                  Icon(LucideIcons.userX, size: 36, color: t.mut),
+                  Icon(BuIcons.userX, size: 36, color: t.mut),
                   const SizedBox(height: 12),
                   Text(l.profileNotFound, textAlign: TextAlign.center, style: tx.titleMedium!.copyWith(fontWeight: FontWeight.w800, color: t.ink)),
                   const SizedBox(height: 16),
@@ -438,7 +438,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(color: t.soft, borderRadius: BorderRadius.circular(16)),
             child: Row(children: [
-              Icon(LucideIcons.shieldBan, size: 20, color: t.onSoft),
+              Icon(BuIcons.shieldBan, size: 20, color: t.onSoft),
               const SizedBox(width: 12),
               Expanded(child: Text(l.profileBlocked, style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w800, color: t.onSoft))),
             ]),
@@ -460,7 +460,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
                       width: 32,
                       height: 32,
                       decoration: BoxDecoration(color: t.pr, shape: BoxShape.circle, border: Border.all(color: t.sf, width: 3)),
-                      child: Icon(LucideIcons.ban, size: 16, color: t.onPr),
+                      child: Icon(BuIcons.ban, size: 16, color: t.onPr),
                     ),
                   ),
               ]),
@@ -481,7 +481,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
                 if (online)
                   Container(width: 8, height: 8, decoration: BoxDecoration(color: t.ok, shape: BoxShape.circle))
                 else
-                  Icon(LucideIcons.clock, size: 14, color: t.mut),
+                  Icon(BuIcons.clock, size: 14, color: t.mut),
                 const SizedBox(width: 8),
                 Flexible(child: Text(presence, style: tx.labelLarge!.copyWith(fontSize: 13, fontWeight: FontWeight.w400, color: t.mut))),
               ]),
@@ -492,7 +492,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
                   key: const ValueKey('followRelationPill'),
                   bg: s.followedByMe ? t.tint(1).bg : t.soft,
                   fg: s.followedByMe ? t.tint(1).fg : t.onSoft,
-                  icon: s.followedByMe ? LucideIcons.arrowLeftRight : LucideIcons.userPlus),
+                  icon: s.followedByMe ? BuIcons.arrowLeftRight : BuIcons.userPlus),
             ],
             const SizedBox(height: 16),
             // Sayaçlar: kart içinde kutu yok; yalnız ince çizgilerle ayrılmış tek satır.
@@ -517,7 +517,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(color: t.soft, borderRadius: BorderRadius.circular(20)),
             child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Container(width: 32, height: 32, decoration: BoxDecoration(color: t.pr, shape: BoxShape.circle), child: Icon(LucideIcons.info, size: 18, color: t.onPr)),
+              Container(width: 32, height: 32, decoration: BoxDecoration(color: t.pr, shape: BoxShape.circle), child: Icon(BuIcons.info, size: 18, color: t.onPr)),
               const SizedBox(width: 12),
               Expanded(child: Text(l.p20AvatarHidden, style: tx.bodyMedium!.copyWith(color: t.onSoft))),
             ]),
@@ -548,16 +548,16 @@ class _UserProfilePageState extends State<UserProfilePage> {
 
   Widget _actions(BuTokens t, FollowStats? s) {
     final l = context.l10n;
-    if (_self) return BuButton(label: l.profileEditTitle, icon: LucideIcons.squarePen, onPressed: _edit);
+    if (_self) return BuButton(label: l.profileEditTitle, icon: BuIcons.squarePen, onPressed: _edit);
     if (_blocked) {
       return Row(children: [
-        Expanded(child: BuButton(label: l.profileUnblock, icon: LucideIcons.lockOpen, kind: BuButtonKind.outline, busy: _busyBlock, onPressed: _toggleBlock)),
+        Expanded(child: BuButton(label: l.profileUnblock, icon: BuIcons.lockOpen, kind: BuButtonKind.outline, busy: _busyBlock, onPressed: _toggleBlock)),
         const SizedBox(width: 10),
         IconButton(
           constraints: const BoxConstraints(minWidth: 54, minHeight: BuSize.button),
           tooltip: l.icerikUserMenu,
           style: IconButton.styleFrom(backgroundColor: t.sf2, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16))),
-          icon: Icon(LucideIcons.ellipsis, size: 20, color: t.ink),
+          icon: Icon(BuIcons.ellipsis, size: 20, color: t.ink),
           onPressed: _openMenu,
         ),
       ]);
@@ -579,7 +579,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
         child: BuButton(
           key: const ValueKey('profile-message'),
           label: l.icerikMessageSend,
-          icon: LucideIcons.messageSquare,
+          icon: BuIcons.messageSquare,
           kind: BuButtonKind.outline,
           busy: _busyMsg,
           onPressed: _message,
@@ -622,10 +622,10 @@ class _UserProfilePageState extends State<UserProfilePage> {
     final lockedAll = !_self && !anyVisible;
     // Başkasının profilinde boş (gizlilik ya da boş) akademik alanlar kilit ikonlu "Gizli" görünür.
     final rows = <Widget>[
-      if (faculty.isNotEmpty || !_self) _tile(t, LucideIcons.landmark, l.profileFaculty, faculty),
-      if (dept.isNotEmpty || !_self) _tile(t, LucideIcons.bookOpen, l.profileDepartment, dept),
-      if (grade.isNotEmpty || !_self) _tile(t, LucideIcons.graduationCap, lockedAll ? l.p20GradeLevel : l.profileGrade, grade),
-      if (email.isNotEmpty) _tile(t, LucideIcons.atSign, l.profileEmail, email),
+      if (faculty.isNotEmpty || !_self) _tile(t, BuIcons.landmark, l.profileFaculty, faculty),
+      if (dept.isNotEmpty || !_self) _tile(t, BuIcons.bookOpen, l.profileDepartment, dept),
+      if (grade.isNotEmpty || !_self) _tile(t, BuIcons.graduationCap, lockedAll ? l.p20GradeLevel : l.profileGrade, grade),
+      if (email.isNotEmpty) _tile(t, BuIcons.atSign, l.profileEmail, email),
     ];
     if (rows.isEmpty && bio.isEmpty) return const SizedBox.shrink();
     return _card(
@@ -645,7 +645,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(color: t.sf2, borderRadius: BorderRadius.circular(14)),
             child: Row(children: [
-              Icon(LucideIcons.textAlignStart, size: 18, color: t.mut),
+              Icon(BuIcons.textAlignStart, size: 18, color: t.mut),
               const SizedBox(width: 10),
               Expanded(
                 child: Text(bio.isEmpty ? l.p20AboutNoBio : bio,
@@ -669,7 +669,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
       child: hidden
           ? Row(children: [
               Expanded(child: Text(label, style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w600, color: t.mut))),
-              Icon(LucideIcons.lock, size: 14, color: t.mut),
+              Icon(BuIcons.lock, size: 14, color: t.mut),
               const SizedBox(width: 4),
               Text(context.l10n.icerikHidden, style: tx.labelMedium!.copyWith(fontWeight: FontWeight.w700, color: t.mut)),
             ])
@@ -693,7 +693,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
               child: Column(children: [
                 Stack(alignment: Alignment.center, children: [
                   const BuSkeleton.circle(96),
-                  Icon(LucideIcons.user, size: 28, color: t.mut.withValues(alpha: .5)),
+                  Icon(BuIcons.user, size: 28, color: t.mut.withValues(alpha: .5)),
                 ]),
                 const SizedBox(height: 14),
                 const BuSkeleton(width: 160, height: 18, radius: 9),
@@ -788,7 +788,7 @@ class _AvatarViewer extends StatelessWidget {
                     image: persistentNetworkImage(url, headers: headers, cacheWidth: 1200),
                     fit: BoxFit.cover,
                     errorBuilder: (_, __, ___) => ColoredBox(
-                        color: t.onMedia.withValues(alpha: .08), child: Center(child: Icon(LucideIcons.imageOff, color: t.onMedia.withValues(alpha: .54), size: 43)))),
+                        color: t.onMedia.withValues(alpha: .08), child: Center(child: Icon(BuIcons.imageOff, color: t.onMedia.withValues(alpha: .54), size: 43)))),
               ),
             ),
           ),
@@ -800,7 +800,7 @@ class _AvatarViewer extends StatelessWidget {
             constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
             tooltip: context.l10n.commonCancel,
             style: IconButton.styleFrom(backgroundColor: t.onMedia.withValues(alpha: .16)),
-            icon: Icon(LucideIcons.x, size: 22, color: t.onMedia),
+            icon: Icon(BuIcons.x, size: 22, color: t.onMedia),
             onPressed: () => Navigator.maybePop(context),
           ),
         ),

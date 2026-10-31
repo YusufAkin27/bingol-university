@@ -14,6 +14,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'support/fake_app.dart';
+import 'package:bu_kampus/core/icons/bu_icons.dart';
 
 void noErr(WidgetTester tester) {
   final e = tester.takeException();
@@ -201,7 +202,7 @@ void main() {
       expect(find.text('Kisa bir not'), findsOneWidget);
       expect(find.byKey(const ValueKey('like-heart')), findsOneWidget);
       expect(find.byType(TextField), findsNothing); // yorum yazma alani yok
-      expect(find.byIcon(Icons.bookmark), findsNothing);
+      expect(find.byIcon(BuIcons.bookmarkFilled), findsNothing);
       expect(b.requests.any((r) => r.contains('/comments')), isFalse);
       noErr(tester);
     });

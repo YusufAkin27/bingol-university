@@ -5,6 +5,7 @@ import '../core/theme/bu_motion.dart';
 import '../core/theme/bu_shape.dart';
 import '../core/theme/bu_sizes.dart';
 import 'bu_widgets.dart';
+import '../core/icons/bu_icons.dart';
 
 /// Bölüm başlığı: sol başlık (`titleMedium`) + sağda isteğe bağlı "Tümü" eylemi. Ekran okuyucuda başlık olarak okunur.
 class BuSectionHeader extends StatelessWidget {
@@ -156,7 +157,7 @@ class BuListTile extends StatelessWidget {
                 if (showChevron)
                   Padding(
                     padding: const EdgeInsetsDirectional.only(start: 8),
-                    child: ExcludeSemantics(child: Icon(buDirIcon(context, LucideIcons.chevronRight), size: 18, color: t.mut)),
+                    child: ExcludeSemantics(child: Icon(buDirIcon(context, BuIcons.chevronRight), size: 18, color: t.mut)),
                   ),
               ],
             ),
@@ -271,7 +272,7 @@ class BuSettingsTile extends StatelessWidget {
             ] else if (onTap != null && !danger && trailing == null)
               Padding(
                 padding: const EdgeInsetsDirectional.only(start: 8),
-                child: ExcludeSemantics(child: Icon(buDirIcon(context, LucideIcons.chevronRight), size: 18, color: t.mut)),
+                child: ExcludeSemantics(child: Icon(buDirIcon(context, BuIcons.chevronRight), size: 18, color: t.mut)),
               ),
           ],
         ),

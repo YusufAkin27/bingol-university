@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import '../support/fake_app.dart';
 import 'p00_support.dart';
+import 'package:bu_kampus/core/icons/bu_icons.dart';
 
 /// UI-K4: gonderi karti (referans grup 17) davranis ve durum testleri.
 void main() {
@@ -30,8 +31,8 @@ void main() {
     expect((photo.width / photo.height - 0.8).abs(), lessThan(0.01));
     expect(find.byKey(const ValueKey('like-heart')), findsOneWidget);
     expect(find.byKey(const ValueKey('post-edited')), findsOneWidget);
-    expect(find.byIcon(Icons.favorite_border), findsOneWidget);
-    for (final i in [Icons.bookmark_border, Icons.bookmark, Icons.mode_comment_outlined, Icons.send, Icons.share]) {
+    expect(find.byIcon(BuIcons.heart), findsOneWidget);
+    for (final i in [Icons.bookmark_border, BuIcons.bookmarkFilled, Icons.mode_comment_outlined, Icons.send, Icons.share]) {
       expect(find.byIcon(i), findsNothing);
     }
     expect(find.byType(TextField), findsNothing);
@@ -51,7 +52,7 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('like-heart')));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 120));
-    expect(find.byIcon(Icons.favorite), findsOneWidget);
+    expect(find.byIcon(BuIcons.heartFilled), findsOneWidget);
     expect(find.text('127'), findsOneWidget); // eski sayi solarken
     expect((tester.widget(find.byKey(const ValueKey('like-count'))) as Text).data, '128');
     await tester.pump(const Duration(seconds: 1));
@@ -86,7 +87,7 @@ void main() {
     await tester.pump(const Duration(milliseconds: 400));
     expect(find.text('Beğeni kaydedilemedi'), findsOneWidget);
     expect(find.text('Tekrar dene'), findsOneWidget);
-    expect(find.byIcon(Icons.favorite_border), findsOneWidget);
+    expect(find.byIcon(BuIcons.heart), findsOneWidget);
     expect((tester.widget(find.byKey(const ValueKey('like-count'))) as Text).data, '127');
     await tester.pump(const Duration(seconds: 6));
   });

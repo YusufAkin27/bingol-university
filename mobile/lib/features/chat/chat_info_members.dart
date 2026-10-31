@@ -69,13 +69,13 @@ class ChatMemberRow extends StatelessWidget {
               const SizedBox(width: 4),
               PopupMenuButton<int>(
                 tooltip: context.l10n.p09MemberOptions,
-                icon: Icon(LucideIcons.ellipsisVertical, size: 20, color: t.mut),
+                icon: Icon(BuIcons.ellipsisVertical, size: 20, color: t.mut),
                 onSelected: (_) => onRemove!(),
                 itemBuilder: (c) => [
                   PopupMenuItem<int>(
                     value: 1,
                     child: Row(children: [
-                      Icon(LucideIcons.userMinus, size: 18, color: t.danger),
+                      Icon(BuIcons.userMinus, size: 18, color: t.danger),
                       const SizedBox(width: 12),
                       Text(context.l10n.chatInfoRemoveFromGroup, style: chatInfoLabel14(context, color: t.danger)),
                     ]),
@@ -133,7 +133,7 @@ class ChatMemberListRow extends StatelessWidget {
             ),
             if (admin) ...[
               const SizedBox(width: 8),
-              ExcludeSemantics(child: Icon(LucideIcons.shield, size: 20, color: t.mut.withValues(alpha: .55))),
+              ExcludeSemantics(child: Icon(BuIcons.shield, size: 20, color: t.mut.withValues(alpha: .55))),
             ] else if (onRemove != null) ...[
               const SizedBox(width: 8),
               _RemoveButton(onTap: onRemove!, compact: MediaQuery.textScalerOf(context).scale(1) > 1.15),
@@ -181,7 +181,7 @@ class _RemoveButton extends StatelessWidget {
                 padding: EdgeInsets.symmetric(horizontal: compact ? 0 : 12, vertical: 6),
                 decoration: BoxDecoration(color: t.soft, borderRadius: BuRadius.bSm),
                 child: Row(mainAxisSize: MainAxisSize.min, mainAxisAlignment: MainAxisAlignment.center, children: [
-                  Icon(LucideIcons.userMinus, size: compact ? 20 : 16, color: t.onSoft),
+                  Icon(BuIcons.userMinus, size: compact ? 20 : 16, color: t.onSoft),
                   if (!compact) const SizedBox(width: 4),
                   if (!compact) Flexible(child: Text(label, maxLines: 2, overflow: TextOverflow.ellipsis, style: chatInfoLabel14(context, color: t.onSoft).copyWith(fontWeight: FontWeight.w500))),
                 ]),
@@ -332,7 +332,7 @@ class _ChatMembersPageState extends State<ChatMembersPage> {
           Container(
             color: t.bg,
             padding: EdgeInsets.fromLTRB(kChatInfoMargin, 8, kChatInfoMargin, MediaQuery.paddingOf(context).bottom + 12),
-            child: BuButton(label: context.l10n.sohbetyAddMember, icon: LucideIcons.userPlus, onPressed: _add),
+            child: BuButton(label: context.l10n.sohbetyAddMember, icon: BuIcons.userPlus, onPressed: _add),
           ),
       ]),
     );
@@ -356,7 +356,7 @@ class _SearchBox extends StatelessWidget {
       decoration: BoxDecoration(color: t.sf, borderRadius: BuRadius.bMd, boxShadow: BuElevation.of(context, 1)),
       padding: const EdgeInsetsDirectional.only(start: 16, end: 4),
       child: Row(children: [
-        ExcludeSemantics(child: Icon(LucideIcons.search, size: 20, color: t.mut)),
+        ExcludeSemantics(child: Icon(BuIcons.search, size: 20, color: t.mut)),
         const SizedBox(width: 12),
         Expanded(
           child: TextField(
@@ -387,7 +387,7 @@ class _SearchBox extends StatelessWidget {
                     controller.clear();
                     onChanged('');
                   },
-                  icon: Icon(LucideIcons.x, size: 18, color: t.mut),
+                  icon: Icon(BuIcons.x, size: 18, color: t.mut),
                 ),
         ),
       ]),
@@ -441,7 +441,7 @@ class _MembersError extends StatelessWidget {
           width: 40,
           height: 40,
           decoration: BoxDecoration(color: t.danger.withValues(alpha: .1), borderRadius: BuRadius.bSm),
-          child: Icon(LucideIcons.circleAlert, size: 22, color: t.danger),
+          child: Icon(BuIcons.circleAlert, size: 22, color: t.danger),
         ),
         const SizedBox(width: 12),
         Expanded(child: Text(context.l10n.p09MembersLoadFailed, style: chatInfoLabel14(context, color: onErr))),
@@ -461,7 +461,7 @@ class _MembersError extends StatelessWidget {
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 14),
                     child: Row(mainAxisSize: MainAxisSize.min, children: [
-                      Icon(LucideIcons.refreshCw, size: 16, color: t.bg),
+                      Icon(BuIcons.refreshCw, size: 16, color: t.bg),
                       const SizedBox(width: 4),
                       Text(context.l10n.commonRetry, style: chatInfoLabel12(context, color: t.bg)),
                     ]),

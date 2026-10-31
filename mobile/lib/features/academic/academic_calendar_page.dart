@@ -175,7 +175,7 @@ class _AcademicCalendarPageState extends State<AcademicCalendarPage> {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 14),
       child: Row(children: [
-        _navButton(t, LucideIcons.chevronLeft, l.acadCalPrev, () => _shift(-1)),
+        _navButton(t, BuIcons.chevronLeft, l.acadCalPrev, () => _shift(-1)),
         Expanded(
           child: Semantics(
             header: true,
@@ -197,7 +197,7 @@ class _AcademicCalendarPageState extends State<AcademicCalendarPage> {
                     children: [
                       Flexible(child: Text(title, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.titleLarge!.copyWith(fontWeight: FontWeight.w700, color: t.ink))),
                       const SizedBox(width: 4),
-                      Icon(LucideIcons.chevronDown, size: 16, color: t.ink),
+                      Icon(BuIcons.chevronDown, size: 16, color: t.ink),
                     ],
                   ),
                 ),
@@ -205,7 +205,7 @@ class _AcademicCalendarPageState extends State<AcademicCalendarPage> {
             ),
           ),
         ),
-        _navButton(t, LucideIcons.chevronRight, l.acadCalNext, () => _shift(1)),
+        _navButton(t, BuIcons.chevronRight, l.acadCalNext, () => _shift(1)),
       ]),
     );
   }
@@ -408,7 +408,7 @@ class _AcademicCalendarPageState extends State<AcademicCalendarPage> {
           ]),
         ),
         const SizedBox(width: 8),
-        ExcludeSemantics(child: Icon(buDirIcon(context, LucideIcons.chevronRight), size: 18, color: t.mut)),
+        ExcludeSemantics(child: Icon(buDirIcon(context, BuIcons.chevronRight), size: 18, color: t.mut)),
       ]),
     );
   }

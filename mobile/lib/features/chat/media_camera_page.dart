@@ -288,7 +288,7 @@ class _MediaCameraPageState extends State<MediaCameraPage> with WidgetsBindingOb
                     )
                   : Center(
                       child: ExcludeSemantics(
-                        child: Icon(LucideIcons.camera, size: 44, color: t.onMedia.withValues(alpha: .35)),
+                        child: Icon(BuIcons.camera, size: 44, color: t.onMedia.withValues(alpha: .35)),
                       ),
                     ),
         ),

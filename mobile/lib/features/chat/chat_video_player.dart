@@ -127,9 +127,9 @@ class _ChatVideoPlayerPageState extends State<ChatVideoPlayerPage> {
           child: ChatdTopBar(
             padding: const EdgeInsetsDirectional.fromSTEB(12, 4, 12, 12),
             child: Row(children: [
-              ChatdRoundButton(icon: LucideIcons.x, tooltip: l.chatMiscClose, onPressed: () => Navigator.pop(context)),
+              ChatdRoundButton(icon: BuIcons.x, tooltip: l.chatMiscClose, onPressed: () => Navigator.pop(context)),
               const Spacer(),
-              if (widget.onSave != null) ChatdRoundButton(icon: LucideIcons.download, tooltip: l.chatMiscDownload, busy: _saving, onPressed: _save),
+              if (widget.onSave != null) ChatdRoundButton(icon: BuIcons.download, tooltip: l.chatMiscDownload, busy: _saving, onPressed: _save),
             ]),
           ),
         ),
@@ -153,7 +153,7 @@ class _ChatVideoPlayerPageState extends State<ChatVideoPlayerPage> {
     final tx = Theme.of(context).textTheme;
     if (_loading) {
       return Center(
-        child: ChatdRing(icon: LucideIcons.play, semantics: l.chatMiscPlayVideo),
+        child: ChatdRing(icon: BuIcons.play, semantics: l.chatMiscPlayVideo),
       );
     }
     final c = _c;
@@ -176,7 +176,7 @@ class _ChatVideoPlayerPageState extends State<ChatVideoPlayerPage> {
                     width: 56,
                     height: 56,
                     decoration: BoxDecoration(color: t.pr, shape: BoxShape.circle),
-                    child: Icon(LucideIcons.videoOff, size: 26, color: t.onPr),
+                    child: Icon(BuIcons.videoOff, size: 26, color: t.onPr),
                   ),
                 ),
                 const SizedBox(height: 22),
@@ -187,7 +187,7 @@ class _ChatVideoPlayerPageState extends State<ChatVideoPlayerPage> {
                 const SizedBox(height: 20),
                 ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: 260),
-                  child: BuButton(label: l.chatMiscRetry, icon: LucideIcons.refreshCw, onPressed: _init),
+                  child: BuButton(label: l.chatMiscRetry, icon: BuIcons.refreshCw, onPressed: _init),
                 ),
               ]),
             ),
@@ -224,7 +224,7 @@ class _ChatVideoPlayerPageState extends State<ChatVideoPlayerPage> {
                     : Center(child: AspectRatio(aspectRatio: ar, child: VideoPlayer(c))),
               ),
             ),
-            if (v.isBuffering) const ChatdRing(icon: LucideIcons.play),
+            if (v.isBuffering) const ChatdRing(icon: BuIcons.play),
             // Orta düğme her zaman görünür: oynarken "duraklat", duraklayınca "oynat" (referans 26).
             Semantics(
               key: ValueKey(playing ? 'videoPauseIcon' : 'videoPlayIcon'),
@@ -233,7 +233,7 @@ class _ChatVideoPlayerPageState extends State<ChatVideoPlayerPage> {
                 width: 80,
                 height: 80,
                 decoration: BoxDecoration(shape: BoxShape.circle, color: Color.alphaBlend(t.onMedia.withValues(alpha: .18), t.scrim).withValues(alpha: .82)),
-                child: Icon(playing ? Icons.pause_rounded : Icons.play_arrow_rounded, size: 44, color: t.onMedia),
+                child: Icon(playing ? BuIcons.pauseFilled : BuIcons.playFilled, size: 44, color: t.onMedia),
               ),
             ),
           ]);

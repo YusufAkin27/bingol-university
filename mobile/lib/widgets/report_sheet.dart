@@ -29,11 +29,11 @@ abstract final class ReportSheet {
       };
 
   static IconData reasonIcon(String code) => switch (code) {
-        'SPAM' => LucideIcons.megaphone,
-        'HARASSMENT' => LucideIcons.shieldAlert,
-        'INAPPROPRIATE' => LucideIcons.eyeOff,
-        'IMPERSONATION' => LucideIcons.idCard,
-        _ => LucideIcons.ellipsis,
+        'SPAM' => BuIcons.megaphone,
+        'HARASSMENT' => BuIcons.shieldAlert,
+        'INAPPROPRIATE' => BuIcons.eyeOff,
+        'IMPERSONATION' => BuIcons.idCard,
+        _ => BuIcons.ellipsis,
       };
 
   static Future<void> show(
@@ -75,7 +75,7 @@ abstract final class ReportSheet {
                 width: 48,
                 height: 48,
                 decoration: BoxDecoration(color: t.soft, shape: BoxShape.circle),
-                child: ExcludeSemantics(child: Icon(LucideIcons.ban, size: 22, color: t.pr)),
+                child: ExcludeSemantics(child: Icon(BuIcons.ban, size: 22, color: t.pr)),
               ),
               const SizedBox(height: 16),
               Semantics(header: true, child: Text(l.profileBlockTitle, style: tx.titleLarge!.copyWith(fontWeight: FontWeight.w800, color: t.ink))),
@@ -86,7 +86,7 @@ abstract final class ReportSheet {
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(color: t.sf2, borderRadius: BuRadius.bMd),
                 child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Padding(padding: const EdgeInsets.only(top: 1), child: Icon(LucideIcons.info, size: 16, color: t.mut)),
+                  Padding(padding: const EdgeInsets.only(top: 1), child: Icon(BuIcons.info, size: 16, color: t.mut)),
                   const SizedBox(width: 10),
                   Expanded(child: Text(l.p20BlockInfo, style: tx.bodySmall!.copyWith(color: t.mut, height: 1.4))),
                 ]),
@@ -189,7 +189,7 @@ class _SheetBodyState extends State<_SheetBody> {
                 constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
                 tooltip: l.commonCancel,
                 style: IconButton.styleFrom(backgroundColor: t.sf2),
-                icon: Icon(LucideIcons.x, size: 18, color: t.ink),
+                icon: Icon(BuIcons.x, size: 18, color: t.ink),
                 onPressed: _busy ? null : () => Navigator.pop(context),
               ),
             ]),
@@ -240,7 +240,7 @@ class _SheetBodyState extends State<_SheetBody> {
                 child: Text(_error!, style: tx.bodySmall!.copyWith(color: t.danger)),
               ),
             const SizedBox(height: 14),
-            BuButton(label: l.reportSend, icon: LucideIcons.send, busy: _busy, onPressed: (_busy || _reason == null) ? null : _submit),
+            BuButton(label: l.reportSend, icon: BuIcons.send, busy: _busy, onPressed: (_busy || _reason == null) ? null : _submit),
           ],
         ),
       ),

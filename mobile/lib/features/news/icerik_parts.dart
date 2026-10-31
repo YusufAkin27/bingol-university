@@ -151,7 +151,7 @@ class IcerikThumb extends StatelessWidget {
     required this.size,
     this.radius = 16,
     this.headers,
-    this.fallbackIcon = LucideIcons.image,
+    this.fallbackIcon = BuIcons.image,
     this.tint,
   });
 
@@ -236,7 +236,7 @@ class IcerikHeader extends StatelessWidget {
       padding: EdgeInsetsDirectional.fromSTEB(20, MediaQuery.paddingOf(context).top + 8, 20, 0),
       child: Row(children: [
         IcerikIconButton(
-            icon: buDirIcon(context, LucideIcons.arrowLeft),
+            icon: buDirIcon(context, BuIcons.arrowLeft),
             label: backLabel,
             shadow: true,
             onTap: () => Navigator.maybePop(context)),
@@ -363,7 +363,7 @@ class IcerikTabs extends StatelessWidget {
 /// Bakım / bilgi bandı (haber kaynağı ulaşılamıyor vb.): `warnSoft` zemin, 12 köşe, 13 sp metin, isteğe bağlı
 /// ikinci soluk satır ([sub], örn. "Son güncelleme: 14:32"); canlı bölge.
 class IcerikNotice extends StatelessWidget {
-  const IcerikNotice({super.key, required this.text, this.icon = LucideIcons.circleAlert, this.sub});
+  const IcerikNotice({super.key, required this.text, this.icon = BuIcons.circleAlert, this.sub});
 
   final String text;
   final IconData icon;

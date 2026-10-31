@@ -11,11 +11,12 @@ import 'package:bu_kampus/features/posts/post_detail_page.dart';
 import 'package:bu_kampus/features/posts/post_media_uploader.dart';
 import 'package:bu_kampus/features/posts/post_models.dart' show PostMedia;
 import 'package:bu_kampus/features/posts/user_posts_page.dart';
-import 'package:bu_kampus/widgets/bu.dart' show BuButton, BuHero, LucideIcons;
+import 'package:bu_kampus/widgets/bu.dart' show BuButton, BuHero;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../support/fake_app.dart';
+import 'package:bu_kampus/core/icons/bu_icons.dart';
 
 // P3-FEED: Keşfet + gönderi minimal tasarım testleri (kaldırılanlar, tek vurgu, 320 dp x1.3 taşma).
 
@@ -91,7 +92,7 @@ void main() {
       expect(find.text('Yüklenemedi'), findsOneWidget);
       expect(find.text('Bağlantını kontrol edip tekrar dene.'), findsOneWidget);
       expect(shadowBoxes(tester, find.byKey(const ValueKey('discoverError'))), 0);
-      expect(find.byIcon(LucideIcons.refreshCw), findsNothing);
+      expect(find.byIcon(BuIcons.refreshCw), findsNothing);
       expect(find.descendant(of: find.byKey(const ValueKey('discoverError')), matching: find.byType(Icon)), findsNothing);
       expect(tester.getSize(find.byKey(const ValueKey('discoverRetry'))).height, greaterThanOrEqualTo(48));
       await tester.tap(find.byKey(const ValueKey('discoverRetry')));
@@ -213,7 +214,7 @@ void main() {
       // Stitch v3 01: tek birincil + metin dugmesi Kamera; baska oge yok.
       expect(find.byType(BuButton), findsOneWidget);
       expect(find.byKey(const ValueKey('composeCamera')), findsOneWidget);
-      expect(find.byIcon(LucideIcons.camera), findsNothing);
+      expect(find.byIcon(BuIcons.camera), findsNothing);
       await tester.tap(find.byKey(const ValueKey('composeGallery')));
       // Stitch v3 02: Fotoğraf seç -> iki satırlık kaynak sayfası
       await settle(tester, const Duration(milliseconds: 900));
@@ -418,7 +419,7 @@ void main() {
       await tester.tap(find.byKey(const ValueKey('post-act-delete')));
       await settle(tester, const Duration(milliseconds: 600));
       expect(find.text('Gönderi silinsin mi?'), findsOneWidget);
-      expect(find.byIcon(LucideIcons.trash2), findsNothing);
+      expect(find.byIcon(BuIcons.trash2), findsNothing);
       expect(tester.getSize(find.byKey(const ValueKey('post-dialog-confirm'))).height, greaterThanOrEqualTo(48));
       noErr(tester);
     });

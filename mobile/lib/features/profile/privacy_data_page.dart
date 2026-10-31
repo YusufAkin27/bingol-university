@@ -58,7 +58,7 @@ class _PrivacyDataPageState extends State<PrivacyDataPage> {
         title: l.p30AutosaveConsentTitle,
         message: l.p30AutosaveConsentBody,
         confirmLabel: l.p30AutosaveConsentOk,
-        icon: LucideIcons.imageDown,
+        icon: BuIcons.imageDown,
       );
       if (!ok || !mounted) return;
     }
@@ -86,7 +86,7 @@ class _PrivacyDataPageState extends State<PrivacyDataPage> {
           width: 36,
           height: 36,
           decoration: BoxDecoration(color: t.danger.withValues(alpha: .25), shape: BoxShape.circle),
-          child: Icon(LucideIcons.triangleAlert, size: 18, color: t.danger),
+          child: Icon(BuIcons.triangleAlert, size: 18, color: t.danger),
         ),
         const SizedBox(width: 12),
         Expanded(
@@ -102,13 +102,13 @@ class _PrivacyDataPageState extends State<PrivacyDataPage> {
             m.hideCurrentSnackBar();
             retry();
           },
-          icon: const Icon(LucideIcons.refreshCw, size: 16),
+          icon: const Icon(BuIcons.refreshCw, size: 16),
           label: Text(l.profileRetry),
         ),
         IconButton(
           tooltip: l.commonClose,
           onPressed: m.hideCurrentSnackBar,
-          icon: Icon(LucideIcons.x, size: 18, color: t.bg.withValues(alpha: .8)),
+          icon: Icon(BuIcons.x, size: 18, color: t.bg.withValues(alpha: .8)),
         ),
       ]),
     ));
@@ -275,7 +275,7 @@ class _PrivacyDataPageState extends State<PrivacyDataPage> {
               child: P2NoticeCard(
                 key: const ValueKey('privacy-avatar-moderated'),
                 lines: [l.profil2AvatarModerated],
-                icon: LucideIcons.triangleAlert,
+                icon: BuIcons.triangleAlert,
                 compact: true,
               ),
             ),

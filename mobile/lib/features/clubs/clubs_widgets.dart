@@ -158,7 +158,7 @@ class ClubPageHeader extends StatelessWidget {
       child: SizedBox(
         height: 56,
         child: Row(children: [
-          ClubBarIcon(icon: LucideIcons.arrowLeft, tooltip: context.l10n.commonBack, onTap: () => Navigator.maybePop(context), width: 48),
+          ClubBarIcon(icon: BuIcons.arrowLeft, tooltip: context.l10n.commonBack, onTap: () => Navigator.maybePop(context), width: 48),
           Expanded(
             child: Semantics(
               header: true,
@@ -326,7 +326,7 @@ class ClubsRowCard extends StatelessWidget {
     switch (status) {
       case 'ACTIVE':
         return Row(mainAxisSize: MainAxisSize.min, children: [
-          ExcludeSemantics(child: Icon(LucideIcons.check, size: 16, color: t.ok)),
+          ExcludeSemantics(child: Icon(BuIcons.check, size: 16, color: t.ok)),
           const SizedBox(width: 4),
           Flexible(child: text(l.clubMgmtYouAreMember)),
         ]);

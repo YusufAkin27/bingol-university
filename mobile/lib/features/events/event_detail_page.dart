@@ -231,7 +231,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
       message: withdraw ? l.etkinlik2WithdrawMessage : l.eventFormLeaveMessage,
       confirmLabel: withdraw ? l.etkinlik2Withdraw : l.eventFormLeaveConfirm,
       danger: true,
-      icon: withdraw ? LucideIcons.undo2 : LucideIcons.calendarX,
+      icon: withdraw ? BuIcons.undo2 : BuIcons.calendarX,
     );
     if (!ok || !mounted) return;
     setState(() => _rsvpBusy = true);
@@ -411,7 +411,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
     } else if (_ev == null && _error is ApiError && (_error as ApiError).status == 404) {
       body = Column(children: [
         BuHeader(title: l.eventFormEventTitle, onBack: () => Navigator.pop(context)),
-        Expanded(child: EmptyView(icon: LucideIcons.calendarX, text: l.eventFormNotFound)),
+        Expanded(child: EmptyView(icon: BuIcons.calendarX, text: l.eventFormNotFound)),
       ]);
     } else if (_ev == null) {
       body = ErrorView(error: _error ?? 'hata', onRetry: _load);
@@ -454,19 +454,19 @@ class _EventDetailPageState extends State<EventDetailPage> {
     if (_manage && !eventIsCancelled(ev)) {
       return PopupMenuButton<String>(
         tooltip: l.eventFormManage,
-        icon: Icon(LucideIcons.ellipsisVertical, color: t.ink),
+        icon: Icon(BuIcons.ellipsisVertical, color: t.ink),
         onSelected: _manageAction,
         itemBuilder: (_) => [
           PopupMenuItem(
               value: 'edit',
-              child: Row(children: [Icon(LucideIcons.pencil, size: 18, color: t.ink), const SizedBox(width: 12), Text(l.eventFormEdit)])),
+              child: Row(children: [Icon(BuIcons.pencil, size: 18, color: t.ink), const SizedBox(width: 12), Text(l.eventFormEdit)])),
           PopupMenuItem(
               value: 'settings',
-              child: Row(children: [Icon(LucideIcons.settings, size: 18, color: t.ink), const SizedBox(width: 12), Text(l.etkinlik2ManageSettings)])),
+              child: Row(children: [Icon(BuIcons.settings, size: 18, color: t.ink), const SizedBox(width: 12), Text(l.etkinlik2ManageSettings)])),
           PopupMenuItem(
               value: closed ? 'reopen' : 'close',
               child: Row(children: [
-                Icon(closed ? LucideIcons.lockOpen : LucideIcons.lock, size: 18, color: t.ink),
+                Icon(closed ? BuIcons.lockOpen : BuIcons.lock, size: 18, color: t.ink),
                 const SizedBox(width: 12),
                 Text(closed ? l.eventFormReopenRegs : l.eventFormCloseRegs),
               ])),
@@ -474,7 +474,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
           PopupMenuItem(
               value: 'cancel',
               child: Row(children: [
-                Icon(LucideIcons.trash2, size: 18, color: t.danger),
+                Icon(BuIcons.trash2, size: 18, color: t.danger),
                 const SizedBox(width: 12),
                 Text(l.eventFormCancelAction, style: TextStyle(color: t.danger, fontWeight: FontWeight.w700)),
               ])),
@@ -484,12 +484,12 @@ class _EventDetailPageState extends State<EventDetailPage> {
     if (_manage) return const SizedBox.shrink();
     return PopupMenuButton<String>(
       tooltip: l.eventFormReport,
-      icon: Icon(LucideIcons.ellipsisVertical, color: t.ink),
+      icon: Icon(BuIcons.ellipsisVertical, color: t.ink),
       onSelected: (_) => _report(),
       itemBuilder: (_) => [
         PopupMenuItem(
             value: 'report',
-            child: Row(children: [Icon(LucideIcons.flag, size: 18, color: t.danger), const SizedBox(width: 12), Text(l.eventFormReportEvent)])),
+            child: Row(children: [Icon(BuIcons.flag, size: 18, color: t.danger), const SizedBox(width: 12), Text(l.eventFormReportEvent)])),
       ],
     );
   }
@@ -552,7 +552,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
               child: Row(children: [
                 Flexible(child: Text(l.p51EvGoingYou, style: tx.bodyMedium!.copyWith(color: t.mut))),
                 const SizedBox(width: 4),
-                ExcludeSemantics(child: Icon(LucideIcons.check, size: 16, color: t.ok)),
+                ExcludeSemantics(child: Icon(BuIcons.check, size: 16, color: t.ok)),
               ]),
             ),
             const SizedBox(width: 12),
@@ -621,7 +621,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
                 width: 44,
                 height: 44,
                 decoration: BoxDecoration(color: t.warn.withValues(alpha: .18), shape: BoxShape.circle),
-                child: Icon(LucideIcons.hourglass, size: 22, color: t.onWarnSoft),
+                child: Icon(BuIcons.hourglass, size: 22, color: t.onWarnSoft),
               ),
             ),
             const SizedBox(width: 12),
@@ -652,7 +652,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
                 width: 44,
                 height: 44,
                 decoration: BoxDecoration(color: t.danger, shape: BoxShape.circle),
-                child: Icon(LucideIcons.x, size: 22, color: t.onPr),
+                child: Icon(BuIcons.x, size: 22, color: t.onPr),
               ),
             ),
             const SizedBox(width: 12),
@@ -754,9 +754,9 @@ class _EventDetailPageState extends State<EventDetailPage> {
         ],
         if (cancelled) Positioned.fill(child: ColoredBox(color: t.scrim.withValues(alpha: .4))),
         if (!cancelled && closed)
-          PositionedDirectional(start: 12, top: 12, child: _OverlayChip(label: l.eventFormRegsClosed, icon: LucideIcons.lock))
+          PositionedDirectional(start: 12, top: 12, child: _OverlayChip(label: l.eventFormRegsClosed, icon: BuIcons.lock))
         else if (!cancelled && full)
-          PositionedDirectional(start: 12, top: 12, child: _OverlayChip(label: l.eventFormCapacityFull, icon: LucideIcons.ban, danger: true)),
+          PositionedDirectional(start: 12, top: 12, child: _OverlayChip(label: l.eventFormCapacityFull, icon: BuIcons.ban, danger: true)),
       ]),
     );
 
@@ -851,7 +851,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
       if (!cancelled) _pad(_chatRow(member: member), top: 4),
       if (desc != null && desc.trim().isNotEmpty) _pad(Text(desc, style: tx.titleMedium!.copyWith(height: 1.6, color: t.ink, fontWeight: FontWeight.w400)), top: 24),
       if (_approval && rsvp == 'GOING' && !cancelled)
-        _pad(Et2GreyButton(key: const ValueKey('detail-leave-approval'), label: l.eventFormLeaveTitle, icon: LucideIcons.calendarX, onPressed: _rsvpBusy ? null : _leave), top: 16),
+        _pad(Et2GreyButton(key: const ValueKey('detail-leave-approval'), label: l.eventFormLeaveTitle, icon: BuIcons.calendarX, onPressed: _rsvpBusy ? null : _leave), top: 16),
       const SizedBox(height: 24),
     ];
   }
@@ -883,7 +883,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
               else if (_chatBusy)
                 const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
               else
-                Icon(buDirIcon(context, LucideIcons.chevronRight), size: 20, color: t.mut),
+                Icon(buDirIcon(context, BuIcons.chevronRight), size: 20, color: t.mut),
             ]),
           ),
         ),
@@ -949,7 +949,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
                   : IconButton(
                       key: const ValueKey('detail-code-clear'),
                       tooltip: l.p15ClearField,
-                      icon: Icon(LucideIcons.x, size: 18, color: t.mut),
+                      icon: Icon(BuIcons.x, size: 18, color: t.mut),
                       onPressed: () {
                         _codeCtl.clear();
                         if (_codeError != null) setState(() => _codeError = null);
@@ -983,7 +983,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
         padding: const EdgeInsets.all(16),
         child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
           Row(children: [
-            Et2IconBox(LucideIcons.userCheck, size: 40, tint: t.tint(1)),
+            Et2IconBox(BuIcons.userCheck, size: 40, tint: t.tint(1)),
             const SizedBox(width: 12),
             Expanded(
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -999,7 +999,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
           EtkinlikActionButton(
             key: const ValueKey('detail-open-qr'),
             label: l.eventFormCheckInCode,
-            icon: LucideIcons.qrCode,
+            icon: BuIcons.qrCode,
             onTap: _openQr,
           ),
         ]),
@@ -1018,7 +1018,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
           ),
           if (_approval)
             Et2NavRow(
-              icon: LucideIcons.userCheck,
+              icon: BuIcons.userCheck,
               title: l.etkinlik2ManageRequests,
               sub: pending == 0 ? l.etkinlik2ManageNoPending : l.etkinlik2ManagePending('$pending'),
               badge: pending > 0 ? l.etkinlik2ManagePending('$pending') : null,
@@ -1026,14 +1026,14 @@ class _EventDetailPageState extends State<EventDetailPage> {
             ),
           Et2NavRow(
             top: _approval,
-            icon: LucideIcons.clipboardCheck,
+            icon: BuIcons.clipboardCheck,
             title: l.etkinlik2ManageAttendance,
             sub: total == 0 ? l.eventFormNoAttendance : l.eventFormAttendanceCount('$present', '$total'),
             onTap: _openAttendance,
           ),
           Et2NavRow(
             top: true,
-            icon: LucideIcons.settings,
+            icon: BuIcons.settings,
             title: l.etkinlik2ManageSettings,
             sub: l.p15SettingsSub,
             onTap: _openSettings,

@@ -4,6 +4,7 @@ import 'package:flutter/services.dart' show SystemUiOverlayStyle;
 import '../theme.dart';
 import 'bu_shape.dart';
 import 'bu_sizes.dart';
+import '../icons/bu_icons.dart';
 
 /// Material 3 bileşen temaları (marka belirteçleriyle). Yalnız `BuThemeBuilder` kullanır.
 ///
@@ -77,7 +78,7 @@ class BuComponentThemes {
           backgroundColor: WidgetStateProperty.resolveWith((s) => s.contains(WidgetState.selected) ? t.soft : t.sf),
           foregroundColor: WidgetStateProperty.resolveWith((s) => s.contains(WidgetState.selected) ? t.onSoft : t.ink),
         ),
-        selectedIcon: const Icon(Icons.check_rounded, size: 18),
+        selectedIcon: const Icon(BuIcons.check, size: 18),
       );
 
   FloatingActionButtonThemeData get fab => FloatingActionButtonThemeData(

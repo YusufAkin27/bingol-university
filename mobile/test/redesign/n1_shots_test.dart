@@ -26,10 +26,9 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:lucide_icons_flutter/lucide_icons.dart';
-
 import '../support/fake_app.dart';
 import '../support/store_shots_images.dart';
+import 'package:bu_kampus/core/icons/bu_icons.dart';
 
 /// N1 ekran goruntuleri: Stitch 48 (takip, profil duzenle), 49 (ayarlar, hesap, gizlilik), 08 (verilerim, hesap sil).
 ///
@@ -208,7 +207,7 @@ final _shots = <_Shot>[
   }, leaveLoading: true),
   _Shot('12_degisiklikleri_at', (b, s) => EditProfilePage(session: s, profile: _profile()), after: (t) async {
     await _enter(t, find.byKey(const ValueKey('edit-name')), 'Elif Yıldız Demir');
-    await t.tap(find.byIcon(LucideIcons.arrowLeft).first);
+    await t.tap(find.byIcon(BuIcons.arrowLeft).first);
     await t.pump(const Duration(milliseconds: 500));
   }),
   // ---- 49: ayarlar

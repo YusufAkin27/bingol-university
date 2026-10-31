@@ -105,12 +105,12 @@ Widget _membersPage(FakeBackend be, {List<Map<String, dynamic>>? members, bool a
               final l = ctx.l10n;
               final name = m['displayName'] as String;
               return showChatInfoConfirm(ctx,
-                  icon: LucideIcons.userMinus,
+                  icon: BuIcons.userMinus,
                   title: l.chatInfoRemoveMemberTitle,
                   body: l.chatInfoRemoveMemberBody(name),
                   bold: name,
                   confirmLabel: l.chatInfoRemove,
-                  confirmIcon: LucideIcons.trash2,
+                  confirmIcon: BuIcons.trash2,
                   cancelLabel: l.chatInfoCancel);
             }
           : null,
@@ -197,22 +197,22 @@ final _scenarios = <_Sc>[
   _Sc('12_ayril', 844, (be) => _Opener((c) {
         final l = c.l10n;
         showChatInfoConfirm(c,
-            icon: LucideIcons.logOut,
+            icon: BuIcons.logOut,
             title: l.chatInfoLeaveTitle,
             body: l.chatInfoLeaveBody,
             confirmLabel: l.chatInfoLeave,
-            confirmIcon: LucideIcons.logOut,
+            confirmIcon: BuIcons.logOut,
             layout: ChatConfirmLayout.iconBeside,
             cancelLabel: l.chatInfoCancel);
       })),
   _Sc('12b_sil', 844, (be) => _Opener((c) {
         final l = c.l10n;
         showChatInfoConfirm(c,
-            icon: LucideIcons.trash2,
+            icon: BuIcons.trash2,
             title: l.chatInfoDeleteConvTitle,
             body: l.chatInfoDeleteConvDirect,
             confirmLabel: l.chatInfoDelete,
-            confirmIcon: LucideIcons.trash2,
+            confirmIcon: BuIcons.trash2,
             layout: ChatConfirmLayout.iconAbove,
             cancelLabel: l.chatInfoCancel);
       })),

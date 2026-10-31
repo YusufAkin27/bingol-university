@@ -55,7 +55,7 @@ class _FollowRequestsEntryState extends State<FollowRequestsEntry> {
       padding: const EdgeInsets.only(bottom: 12),
       child: RequestsEntryRow(
         key: const ValueKey('follow-requests-entry'),
-        icon: LucideIcons.userPlus,
+        icon: BuIcons.userPlus,
         label: context.l10n.frqReqRow('$_count'),
         onTap: _open,
       ),

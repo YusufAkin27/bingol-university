@@ -425,9 +425,9 @@ class _HomeTabState extends State<HomeTab> {
       if (banner != null && (banner['text'] ?? banner['message']) is String && ((banner['text'] ?? banner['message']) as String).isNotEmpty)
         InkWell(
           onTap: () => _openUrl(banner['url'] is String ? banner['url'] as String : null),
-          child: StaleBanner(text: (banner['text'] ?? banner['message']) as String, icon: LucideIcons.megaphone),
+          child: StaleBanner(text: (banner['text'] ?? banner['message']) as String, icon: BuIcons.megaphone),
         ),
-      if (_newsStale) StaleBanner(text: l.homeSourceUnreachable, icon: LucideIcons.triangleAlert),
+      if (_newsStale) StaleBanner(text: l.homeSourceUnreachable, icon: BuIcons.triangleAlert),
     ];
     // Kademeli giriş yalnız ilk ekrandaki blokta (ilk 4); aşağıdakiler kaydırırken animasyonlanmaz. Yalnız görünür bölümler sayılır.
     var slot = 0;
@@ -597,11 +597,11 @@ class _HomeTabState extends State<HomeTab> {
         greeting: _greeting(context),
         hello: name.isEmpty ? l.anasayfaHelloNoName : l.anasayfaHello(name),
         actions: [
-          BuIconButton(icon: LucideIcons.pencil, tooltip: l.p60EditHome, onTap: _editLayout),
+          BuIconButton(icon: BuIcons.pencil, tooltip: l.p60EditHome, onTap: _editLayout),
           ValueListenableBuilder<int>(
             valueListenable: _s.badges.notifications,
             builder: (_, n, __) => BuIconButton(
-              icon: LucideIcons.bell,
+              icon: BuIcons.bell,
               badge: n > 0,
               tooltip: l.notifTitle,
               onTap: () => _push(NotificationsPage(session: _s)),
@@ -626,7 +626,7 @@ class _HomeTabState extends State<HomeTab> {
     final e = _event;
     if (e == null && _eventFailed) {
       return HomeEmptyCard(
-        icon: LucideIcons.cloudOff,
+        icon: BuIcons.cloudOff,
         headline: l.homeEventLoadFailedTitle,
         actionLabel: l.commonRetryShort,
         onAction: _eventRetrying ? null : _retryFeatured,
@@ -635,7 +635,7 @@ class _HomeTabState extends State<HomeTab> {
     }
     if (e == null) {
       return HomeEmptyCard(
-        icon: LucideIcons.calendarClock,
+        icon: BuIcons.calendarClock,
         headline: l.homeNoUpcoming,
         actionLabel: l.homeBrowseEvents,
         onAction: () => _push(EventsPage(session: _s)),

@@ -1700,7 +1700,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
     final l = context.l10n;
     final ok = await _confirm(
         l.chatDetailDeleteTitle, l.chatDetailDeleteBody, l.chatDetailDelete,
-        icon: LucideIcons.trash2);
+        icon: BuIcons.trash2);
     if (!ok) return;
     try {
       await _api.delete('/messages/${(m['id'] as num).toInt()}');
@@ -1925,26 +1925,26 @@ class _ChatDetailPageState extends State<ChatDetailPage>
     final l = context.l10n;
     final actions = <MessageAction>[
       if (failed) ...[
-        MessageAction('retry', l.chatDetailResend, LucideIcons.rotateCw),
-        MessageAction('drop', l.chatDetailDelete, LucideIcons.trash2,
+        MessageAction('retry', l.chatDetailResend, BuIcons.rotateCw),
+        MessageAction('drop', l.chatDetailDelete, BuIcons.trash2,
             danger: true),
       ] else ...[
         if (!deleted)
-          MessageAction('reply', l.chatDetailReply, LucideIcons.reply),
+          MessageAction('reply', l.chatDetailReply, BuIcons.reply),
         if (!deleted && hasText)
-          MessageAction('copy', l.chatDetailCopy, LucideIcons.copy),
+          MessageAction('copy', l.chatDetailCopy, BuIcons.copy),
         if (!deleted && hasText && !hasAtt)
-          MessageAction('forward', l.chatDetailForward, LucideIcons.forward),
+          MessageAction('forward', l.chatDetailForward, BuIcons.forward),
         if (!deleted && mine && hasText)
-          MessageAction('edit', l.chatDetailEdit, LucideIcons.pencil),
+          MessageAction('edit', l.chatDetailEdit, BuIcons.pencil),
         if (canDelete)
           MessageAction(
               'delete',
               mine ? l.chatDetailDeleteForAll : l.chatDetailDeleteMessage,
-              LucideIcons.trash2,
+              BuIcons.trash2,
               danger: true),
         if (!deleted && !mine)
-          MessageAction('report', l.chatDetailReport, LucideIcons.flag,
+          MessageAction('report', l.chatDetailReport, BuIcons.flag,
               danger: true),
       ],
     ];
@@ -2153,14 +2153,14 @@ class _ChatDetailPageState extends State<ChatDetailPage>
               width: 36,
               height: 36,
               decoration: BoxDecoration(color: t.sf, shape: BoxShape.circle),
-              child: Icon(LucideIcons.arrowUpRight, size: 18, color: t.ink),
+              child: Icon(BuIcons.arrowUpRight, size: 18, color: t.ink),
             )
           else
             ExcludeSemantics(
               child: Icon(
                   danger
-                      ? buDirIcon(c, LucideIcons.arrowRight)
-                      : buDirIcon(c, LucideIcons.chevronRight),
+                      ? buDirIcon(c, BuIcons.arrowRight)
+                      : buDirIcon(c, BuIcons.chevronRight),
                   size: danger ? 18 : 16,
                   color: danger ? t.danger.withValues(alpha: .7) : t.mut),
             ),
@@ -2183,30 +2183,30 @@ class _ChatDetailPageState extends State<ChatDetailPage>
         type: MaterialType.transparency,
         child: Column(mainAxisSize: MainAxisSize.min, children: [
           _menuRow(c,
-              icon: LucideIcons.search,
+              icon: BuIcons.search,
               label: l.chatDetailSearchInChat,
               id: 'search'),
           if (!_direct)
             _menuRow(c,
-                icon: LucideIcons.users,
+                icon: BuIcons.users,
                 label: l.chatDetailMembers,
                 id: 'members'),
           _menuRow(c,
-              icon: LucideIcons.image, label: l.chatDetailMedia, id: 'media'),
+              icon: BuIcons.image, label: l.chatDetailMedia, id: 'media'),
           if (_roomPage)
             _menuRow(c,
-                icon: _type == 'CLUB' ? LucideIcons.star : LucideIcons.calendar,
+                icon: _type == 'CLUB' ? BuIcons.star : BuIcons.calendar,
                 label: _type == 'CLUB'
                     ? l.chatDetailClubPage
                     : l.chatDetailEventPage,
                 id: 'room',
                 card: true),
           _menuRow(c,
-              icon: LucideIcons.settings,
+              icon: BuIcons.settings,
               label: l.chatDetailSettings,
               id: 'settings'),
           _menuRow(c,
-              icon: LucideIcons.info, label: l.chatDetailChatInfo, id: 'about'),
+              icon: BuIcons.info, label: l.chatDetailChatInfo, id: 'about'),
           if (_direct || !_room)
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 8),
@@ -2214,19 +2214,19 @@ class _ChatDetailPageState extends State<ChatDetailPage>
             ),
           if (!_direct && !_room)
             _menuRow(c,
-                icon: LucideIcons.logOut,
+                icon: BuIcons.logOut,
                 label: l.chatDetailLeaveChat,
                 id: 'leave',
                 danger: true),
           if (_direct)
             _menuRow(c,
-                icon: LucideIcons.ban,
+                icon: BuIcons.ban,
                 label: _blocked ? l.chatDetailUnblock : l.chatDetailBlock,
                 id: _blocked ? 'unblock' : 'block',
                 danger: !_blocked),
           if (_direct)
             _menuRow(c,
-                icon: LucideIcons.flag,
+                icon: BuIcons.flag,
                 label: l.chatDetailReportUser,
                 id: 'report',
                 danger: true),
@@ -2250,7 +2250,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
         case 'leave':
           final ok = await _confirm(l.chatDetailLeaveTitle,
               l.chatDetailLeaveBody, l.chatDetailLeave,
-              icon: LucideIcons.logOut);
+              icon: BuIcons.logOut);
           if (!ok) return;
           await _api.post('/conversations/$_cid/leave');
           unawaited(MessageCache.instance.removeConversation(_cid));
@@ -2259,7 +2259,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
           if (pid == null) return;
           final ok = await _confirm(l.chatDetailBlockTitle,
               l.chatDetailBlockBody, l.chatDetailBlock,
-              icon: LucideIcons.ban);
+              icon: BuIcons.ban);
           if (!ok) return;
           await _api.post('/users/$pid/block');
           unawaited(MessageCache.instance.removeConversation(_cid)); // engellenen kişiyle mesaj kaydı cihazda kalmaz
@@ -2399,7 +2399,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
                     child: SizedBox(
                       width: 48,
                       height: 48,
-                      child: Icon(buDirIcon(context, LucideIcons.arrowLeft),
+                      child: Icon(buDirIcon(context, BuIcons.arrowLeft),
                           size: 24, color: t.ink),
                     ),
                   ),
@@ -2479,7 +2479,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
                     child: SizedBox(
                       width: 48,
                       height: 48,
-                      child: Icon(LucideIcons.ellipsis,
+                      child: Icon(BuIcons.ellipsis,
                           size: 24, color: t.ink),
                     ),
                   ),
@@ -2544,8 +2544,8 @@ class _ChatDetailPageState extends State<ChatDetailPage>
                 const SizedBox(width: 6),
                 Icon(
                     _type == 'CLUB'
-                        ? LucideIcons.arrowUpRight
-                        : buDirIcon(context, LucideIcons.arrowRight),
+                        ? BuIcons.arrowUpRight
+                        : buDirIcon(context, BuIcons.arrowRight),
                     size: 14,
                     color: t.onSoft),
               ]),
@@ -2605,7 +2605,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
               decoration:
                   BoxDecoration(color: t.sf2, borderRadius: BuRadius.bMd),
               child: Row(children: [
-                Icon(LucideIcons.search, size: 20, color: t.pr),
+                Icon(BuIcons.search, size: 20, color: t.pr),
                 const SizedBox(width: 12),
                 Expanded(
                   child: TextField(
@@ -2645,7 +2645,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
                         child: SizedBox(
                           width: 48,
                           height: 48,
-                          child: Icon(LucideIcons.x, size: 18, color: t.mut),
+                          child: Icon(BuIcons.x, size: 18, color: t.mut),
                         ),
                       ),
                     ),
@@ -2671,9 +2671,9 @@ class _ChatDetailPageState extends State<ChatDetailPage>
                             color: t.onPr, fontWeight: FontWeight.w700)),
                   ),
                   const SizedBox(width: 4),
-                  navButton(LucideIcons.chevronUp, l.chatDetailPrevMatch,
+                  navButton(BuIcons.chevronUp, l.chatDetailPrevMatch,
                       () => _stepMatch(1)),
-                  navButton(LucideIcons.chevronDown, l.chatDetailNextMatch,
+                  navButton(BuIcons.chevronDown, l.chatDetailNextMatch,
                       () => _stepMatch(-1)),
                   const Spacer(),
                 ] else
@@ -2712,7 +2712,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
                       decoration: BoxDecoration(
                           color: t.sf2, borderRadius: BuRadius.bPill),
                       child: Row(mainAxisSize: MainAxisSize.min, children: [
-                        Icon(LucideIcons.history, size: 16, color: t.pr),
+                        Icon(BuIcons.history, size: 16, color: t.pr),
                         const SizedBox(width: 8),
                         Flexible(
                           child: Text(l.chatDetailSearchOlder,
@@ -2825,7 +2825,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
                     shape: BoxShape.circle,
                     border: Border.all(color: t.bd),
                   ),
-                  child: Icon(LucideIcons.chevronDown, size: 20, color: t.ink),
+                  child: Icon(BuIcons.chevronDown, size: 20, color: t.ink),
                 ),
                 if (n > 0)
                   PositionedDirectional(
@@ -3046,7 +3046,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
       decoration: BoxDecoration(color: t.sf, border: Border(top: BorderSide(color: t.bd))),
       padding: EdgeInsets.fromLTRB(16, 14, 16, 14 + MediaQuery.of(context).padding.bottom),
       child: Row(children: [
-        Icon(LucideIcons.lock, size: 18, color: t.mut),
+        Icon(BuIcons.lock, size: 18, color: t.mut),
         const SizedBox(width: 10),
         Expanded(
           child: Semantics(
@@ -3137,7 +3137,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
                   turns: _attachOpen ? .125 : 0,
                   duration: BuMotion.of(context, BuMotion.short),
                   curve: Curves.easeOutCubic,
-                  child: Icon(LucideIcons.plus, size: 24, color: t.ink),
+                  child: Icon(BuIcons.plus, size: 24, color: t.ink),
                 ),
               ),
             ),
@@ -3169,7 +3169,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(children: [
-                  Icon(editing ? LucideIcons.pencil : LucideIcons.reply,
+                  Icon(editing ? BuIcons.pencil : BuIcons.reply,
                       size: 14, color: t.mut),
                   const SizedBox(width: 6),
                   Expanded(
@@ -3194,7 +3194,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
         IconButton(
           constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
           tooltip: context.l10n.chatDetailNevermind,
-          icon: Icon(LucideIcons.x, size: 20, color: t.ink),
+          icon: Icon(BuIcons.x, size: 20, color: t.ink),
           onPressed: () => setState(() {
             if (_editing != null) _input.clear();
             _editing = null;
@@ -3214,7 +3214,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
     final banner = _editing ?? _replyTo;
     // Yukarı ok: yönsüz simge (RTL'de çevirmeye gerek yok).
     final Widget sendIcon = Icon(
-        _editing != null ? LucideIcons.check : LucideIcons.arrowUp,
+        _editing != null ? BuIcons.check : BuIcons.arrowUp,
         size: 24,
         color: canSend ? t.onPr : t.mut);
     return Container(

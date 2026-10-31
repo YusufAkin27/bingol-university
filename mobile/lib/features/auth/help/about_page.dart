@@ -74,7 +74,7 @@ class _AboutPageState extends State<AboutPage> {
                       child: Row(
                         children: [
                           Expanded(child: Text(r.$1, style: tx.titleMedium!.copyWith(color: t.ink, fontWeight: FontWeight.w500))),
-                          Icon(buDirIcon(context, LucideIcons.chevronRight), size: 20, color: t.mut),
+                          Icon(buDirIcon(context, BuIcons.chevronRight), size: 20, color: t.mut),
                         ],
                       ),
                     ),

@@ -341,7 +341,7 @@ class _HeartIcon extends StatelessWidget {
     return TweenAnimationBuilder<Color?>(
       tween: ColorTween(end: color),
       duration: BuMotion.of(context, BuMotion.short),
-      builder: (context, c, _) => Icon(filled ? Icons.favorite : Icons.favorite_border, size: size, color: c ?? color),
+      builder: (context, c, _) => Icon(filled ? BuIcons.heartFilled : BuIcons.heart, size: size, color: c ?? color),
     );
   }
 }
@@ -458,7 +458,7 @@ class _DoubleTapLikeState extends State<DoubleTapLike> with SingleTickerProvider
                         opacity: opacity.value.clamp(0, 1),
                         child: Transform.scale(
                           scale: scale.value,
-                          child: Icon(Icons.favorite,
+                          child: Icon(BuIcons.heartFilled,
                               key: const ValueKey('double-tap-heart'),
                               size: 88,
                               color: t.onMedia),

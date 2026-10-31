@@ -25,7 +25,7 @@ Future<bool> confirmDialog(
   final r = await showDialog<bool>(
     context: context,
     builder: (ctx) => ClubDialogCard(
-      icon: icon ?? (danger ? LucideIcons.logOut : LucideIcons.circleHelp),
+      icon: icon ?? (danger ? BuIcons.logOut : BuIcons.circleHelp),
       title: title,
       message: message,
       boldName: boldName,
@@ -61,10 +61,10 @@ Future<bool> leaveClubFlow(
     await showDialog<void>(
       context: context,
       builder: (ctx) => ClubDialogCard(
-        icon: LucideIcons.shieldAlert,
+        icon: BuIcons.shieldAlert,
         title: l10n.clubCannotLeaveTitle,
         message: ownerInfo,
-        badge: LucideIcons.info,
+        badge: BuIcons.info,
         actions: [ClubBtn(label: l10n.clubOk, kind: ClubBtnKind.ink, onPressed: () => Navigator.of(ctx).pop())],
       ),
     );
@@ -76,7 +76,7 @@ Future<bool> leaveClubFlow(
     message: l10n.clubLeaveMessage(clubName.isEmpty ? l10n.clubThisClub : clubName),
     confirmLabel: l10n.clubLeaveConfirm,
     danger: true,
-    icon: LucideIcons.logOut,
+    icon: BuIcons.logOut,
   );
   if (!ok || !context.mounted) return false;
   void toast(String m) {

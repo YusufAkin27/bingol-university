@@ -249,7 +249,7 @@ class _PermRow extends StatelessWidget {
         key: ValueKey('ok-${permission.name}'),
         mainAxisSize: MainAxisSize.min,
         children: [
-          ExcludeSemantics(child: Icon(LucideIcons.check, size: 18, color: t.ok)),
+          ExcludeSemantics(child: Icon(BuIcons.check, size: 18, color: t.ok)),
           const SizedBox(width: 4),
           Text(l.permGranted, style: tx.labelLarge!.copyWith(color: t.ok, fontWeight: FontWeight.w600)),
         ],

@@ -70,7 +70,7 @@ class _FollowSuggestionsListState extends State<FollowSuggestionsList> {
     if (_error != null && items == null) {
       child = FollowStatusCard(
         error: true,
-        icon: LucideIcons.wifiOff,
+        icon: BuIcons.wifiOff,
         title: l.p18FollowErrorTitle,
         message: errorText(_error!),
         onRetry: _load,
@@ -79,7 +79,7 @@ class _FollowSuggestionsListState extends State<FollowSuggestionsList> {
       child = FollowSkeletonCard(count: widget.shrink ? 2 : 3);
     } else if (items.isEmpty) {
       child = FollowStatusCard(
-        icon: LucideIcons.userSearch,
+        icon: BuIcons.userSearch,
         title: l.followSuggestionsEmpty,
         message: l.followFeedHint,
       );

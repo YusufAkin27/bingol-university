@@ -70,7 +70,7 @@ class AcadhubNavRow extends StatelessWidget {
           ]),
         ),
         const SizedBox(width: 12),
-        ExcludeSemantics(child: Icon(buDirIcon(context, LucideIcons.chevronRight), size: 20, color: t.mut)),
+        ExcludeSemantics(child: Icon(buDirIcon(context, BuIcons.chevronRight), size: 20, color: t.mut)),
       ]),
     );
   }

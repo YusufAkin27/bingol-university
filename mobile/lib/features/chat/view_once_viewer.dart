@@ -37,7 +37,7 @@ class _ViewOnceViewerState extends State<ViewOnceViewer>
     with WidgetsBindingObserver {
   MemoryImage? _image;
   String? _error;
-  IconData _errorIcon = LucideIcons.circleAlert;
+  IconData _errorIcon = BuIcons.circleAlert;
   bool _loading = true;
   bool _consumed = false;
 
@@ -85,10 +85,10 @@ class _ViewOnceViewerState extends State<ViewOnceViewer>
       setState(() {
         _loading = false;
         _errorIcon = switch (e.status) {
-          410 => LucideIcons.eyeOff,
-          403 => LucideIcons.lock,
-          0 => LucideIcons.wifiOff,
-          _ => LucideIcons.circleAlert,
+          410 => BuIcons.eyeOff,
+          403 => BuIcons.lock,
+          0 => BuIcons.wifiOff,
+          _ => BuIcons.circleAlert,
         };
         _error = switch (e.status) {
           410 => context.l10n.chatMiscOnceGone,
@@ -146,7 +146,7 @@ class _ViewOnceViewerState extends State<ViewOnceViewer>
             child: SizedBox(
               height: 48,
               child: Row(children: [
-                ChatdRoundButton(icon: LucideIcons.x, tooltip: l.chatMiscClose, onPressed: () => Navigator.of(context).maybePop()),
+                ChatdRoundButton(icon: BuIcons.x, tooltip: l.chatMiscClose, onPressed: () => Navigator.of(context).maybePop()),
                 const Spacer(),
                 // "Tek gösterimlik" hapı: koyu kırmızı zemin, kesikli "1" simgesi (Stitch'teki "!" yerine).
                 ChatdBarPill(
@@ -168,7 +168,7 @@ class _ViewOnceViewerState extends State<ViewOnceViewer>
     final l = context.l10n;
     final bottom = MediaQuery.paddingOf(context).bottom + 20;
     if (_loading) {
-      return Center(child: ChatdRing(icon: LucideIcons.image, semantics: l.chatdPhotoLoading));
+      return Center(child: ChatdRing(icon: BuIcons.image, semantics: l.chatdPhotoLoading));
     }
     final err = _error;
     if (err != null) {
@@ -194,7 +194,7 @@ class _ViewOnceViewerState extends State<ViewOnceViewer>
               frameBuilder: (c, child, frame, sync) => sync
                   ? child
                   : AnimatedOpacity(opacity: frame == null ? 0 : 1, duration: BuMotion.of(c, BuMotion.medium), curve: BuMotion.decelerate, child: child),
-              errorBuilder: (c, e, s) => ChatdMediaMessage(icon: LucideIcons.imageOff, text: l.chatMiscOnceShowFailed),
+              errorBuilder: (c, e, s) => ChatdMediaMessage(icon: BuIcons.imageOff, text: l.chatMiscOnceShowFailed),
             ),
           ),
         ),

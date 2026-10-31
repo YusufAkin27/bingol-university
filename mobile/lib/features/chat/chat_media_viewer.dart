@@ -241,12 +241,12 @@ class _ChatMediaViewerState extends State<ChatMediaViewer> {
                 child: Stack(alignment: Alignment.center, children: [
                   Align(
                     alignment: AlignmentDirectional.centerStart,
-                    child: ChatdRoundButton(icon: LucideIcons.x, tooltip: l.chatMiscClose, onPressed: () => Navigator.pop(context)),
+                    child: ChatdRoundButton(icon: BuIcons.x, tooltip: l.chatMiscClose, onPressed: () => Navigator.pop(context)),
                   ),
-                  ChatdBarPill(icon: it.isVideo ? null : LucideIcons.image, label: '${_index + 1} / $n'),
+                  ChatdBarPill(icon: it.isVideo ? null : BuIcons.image, label: '${_index + 1} / $n'),
                   Align(
                     alignment: AlignmentDirectional.centerEnd,
-                    child: ChatdBarPill(icon: LucideIcons.download, label: l.chatMiscDownload, busy: _saving, onTap: _save),
+                    child: ChatdBarPill(icon: BuIcons.download, label: l.chatMiscDownload, busy: _saving, onTap: _save),
                   ),
                 ]),
               ),
@@ -318,7 +318,7 @@ class _VideoPosterPage extends StatelessWidget {
                 bottom: 14,
                 end: 14,
                 child: ChatdBarPill(
-                  iconWidget: Icon(LucideIcons.video, size: 14, color: t.pr),
+                  iconWidget: Icon(BuIcons.video, size: 14, color: t.pr),
                   label: formatMediaDuration(item.durationMs!),
                   color: t.scrim.withValues(alpha: .7),
                 ),

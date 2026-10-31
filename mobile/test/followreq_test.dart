@@ -13,10 +13,9 @@ import 'package:bu_kampus/features/profile/user_profile_page.dart';
 import 'package:bu_kampus/core/theme_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:lucide_icons_flutter/lucide_icons.dart';
-
 import 'redesign/p00_support.dart';
 import 'support/fake_app.dart';
+import 'package:bu_kampus/core/icons/bu_icons.dart';
 
 /// FOLLOWREQ-MB: gizli hesap, üç durumlu takip düğmesi, kilitli profil, takip istekleri ekranı, girişler, push yönlendirme.
 
@@ -308,7 +307,7 @@ void main() {
       expect(find.text('Mert Kaya'), findsOneWidget);
       expect(find.text('Bu hesap gizli'), findsOneWidget);
       expect(find.text('Gönderilerini görmek için takip isteği gönder.'), findsOneWidget);
-      expect(find.descendant(of: find.byKey(const ValueKey('locked-profile-block')), matching: find.byIcon(LucideIcons.lock)), findsOneWidget);
+      expect(find.descendant(of: find.byKey(const ValueKey('locked-profile-block')), matching: find.byIcon(BuIcons.lock)), findsOneWidget);
       expect(find.text('–'), findsNWidgets(3)); // gönderi, takipçi, takip sayıları gizli
       expect(find.byKey(const ValueKey('followerCount')), findsNothing);
       expect(find.text('Merhaba'), findsOneWidget); // bio görünür
@@ -596,8 +595,8 @@ void main() {
       expect(t.id, 31);
       // bozuk yük hâlâ Bildirimler'e düşer
       expect(resolvePushTarget({'targetType': 'FOLLOW_REQUESTS_X'}).dest, PushDest.notifications);
-      expect(bannerIcon({'targetType': 'FOLLOW_REQUESTS'}), LucideIcons.userPlus);
-      expect(bannerIcon({'targetType': 'USER', 'targetId': 3}), LucideIcons.user);
+      expect(bannerIcon({'targetType': 'FOLLOW_REQUESTS'}), BuIcons.userPlus);
+      expect(bannerIcon({'targetType': 'USER', 'targetId': 3}), BuIcons.user);
     });
   });
 

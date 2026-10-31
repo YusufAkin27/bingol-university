@@ -169,7 +169,7 @@ class _AnnouncementsPageState extends State<AnnouncementsPage> {
     final l = context.l10n;
     return AcademicScaffold(
       title: l.acadAnnTitle,
-      actions: [if (unread > 0) BuIconButton(icon: LucideIcons.checkCheck, tooltip: l.acadAnnReadAll, onTap: _readAll)],
+      actions: [if (unread > 0) BuIconButton(icon: BuIcons.checkCheck, tooltip: l.acadAnnReadAll, onTap: _readAll)],
       child: Column(children: [
         const SizedBox(height: 2),
         AcadTabs(labels: [l.acadMyDept, l.acadAll], index: _mine ? 0 : 1, onChanged: (i) => _setMine(i == 0)),
@@ -236,7 +236,7 @@ class _AnnouncementsPageState extends State<AnnouncementsPage> {
         if (a.pinned)
           Flexible(flex: 0, child: Padding(padding: const EdgeInsets.only(top: 4), child: Text(l.acadAnnPinned, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.bodySmall!.copyWith(fontSize: 12, color: t.mut))))
         else
-          Padding(padding: const EdgeInsets.only(top: 3), child: ExcludeSemantics(child: Icon(buDirIcon(context, LucideIcons.chevronRight), size: 18, color: t.mut.withValues(alpha: .6)))),
+          Padding(padding: const EdgeInsets.only(top: 3), child: ExcludeSemantics(child: Icon(buDirIcon(context, BuIcons.chevronRight), size: 18, color: t.mut.withValues(alpha: .6)))),
       ]),
     );
   }

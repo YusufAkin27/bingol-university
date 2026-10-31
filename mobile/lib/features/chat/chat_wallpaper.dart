@@ -138,22 +138,22 @@ class ChatWallpaper extends StatefulWidget {
 
   /// Kare dokuda yer alan ikonlar: ızgara + hafif kayma, hiçbiri kenara taşmaz (kesintisiz döşenir).
   static final List<_Glyph> _glyphs = [
-    const _Glyph(LucideIcons.bookOpen, 40, 34, 26, -12),
-    const _Glyph(LucideIcons.coffee, 135, 52, 24, 10),
-    const _Glyph(LucideIcons.lightbulb, 225, 30, 24, 14),
-    const _Glyph(LucideIcons.music, 318, 56, 24, -8),
-    const _Glyph(LucideIcons.graduationCap, 60, 128, 28, 8),
-    const _Glyph(LucideIcons.messageCircle, 160, 140, 24, -14),
-    const _Glyph(LucideIcons.pencil, 262, 118, 24, 22),
-    const _Glyph(LucideIcons.calendar, 330, 150, 22, -10),
-    const _Glyph(LucideIcons.notebookPen, 30, 222, 26, 12),
-    const _Glyph(LucideIcons.volleyball, 118, 230, 26, -6),
-    const _Glyph(LucideIcons.laptop, 210, 214, 26, 6),
-    const _Glyph(LucideIcons.trophy, 302, 240, 24, -14),
-    const _Glyph(LucideIcons.atom, 70, 318, 26, -8),
-    const _Glyph(LucideIcons.backpack, 160, 326, 24, 12),
-    const _Glyph(LucideIcons.palette, 250, 312, 24, -10),
-    const _Glyph(LucideIcons.library, 335, 330, 22, 8),
+    const _Glyph(BuIcons.bookOpen, 40, 34, 26, -12),
+    const _Glyph(BuIcons.coffee, 135, 52, 24, 10),
+    const _Glyph(BuIcons.lightbulb, 225, 30, 24, 14),
+    const _Glyph(BuIcons.music, 318, 56, 24, -8),
+    const _Glyph(BuIcons.graduationCap, 60, 128, 28, 8),
+    const _Glyph(BuIcons.messageCircle, 160, 140, 24, -14),
+    const _Glyph(BuIcons.pencil, 262, 118, 24, 22),
+    const _Glyph(BuIcons.calendar, 330, 150, 22, -10),
+    const _Glyph(BuIcons.notebookPen, 30, 222, 26, 12),
+    const _Glyph(BuIcons.volleyball, 118, 230, 26, -6),
+    const _Glyph(BuIcons.laptop, 210, 214, 26, 6),
+    const _Glyph(BuIcons.trophy, 302, 240, 24, -14),
+    const _Glyph(BuIcons.atom, 70, 318, 26, -8),
+    const _Glyph(BuIcons.backpack, 160, 326, 24, 12),
+    const _Glyph(BuIcons.palette, 250, 312, 24, -10),
+    const _Glyph(BuIcons.library, 335, 330, 22, 8),
   ];
 
   /// Desen opaklığı (ink jetonu üstüne): açık temada %4.5-11, koyu temada %4-9.

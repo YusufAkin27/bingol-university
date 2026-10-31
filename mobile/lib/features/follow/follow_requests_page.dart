@@ -155,7 +155,7 @@ class _FollowRequestsPageState extends State<FollowRequestsPage> {
     } else if (_error != null && _items.isEmpty) {
       body = FollowStatusCard(
         error: true,
-        icon: LucideIcons.wifiOff,
+        icon: BuIcons.wifiOff,
         title: l.p18FollowErrorTitle,
         message: errorText(_error!),
         onRetry: _load,
@@ -163,7 +163,7 @@ class _FollowRequestsPageState extends State<FollowRequestsPage> {
     } else if (_items.isEmpty) {
       body = FollowStatusCard(
         key: const ValueKey('follow-requests-empty'),
-        icon: LucideIcons.userPlus,
+        icon: BuIcons.userPlus,
         title: l.frqReqEmpty,
       );
     } else {

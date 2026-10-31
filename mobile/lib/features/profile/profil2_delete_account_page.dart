@@ -202,14 +202,14 @@ class _DeleteConfirmSheetState extends State<DeleteConfirmSheet> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Row(children: [
-          const P2IconTile(icon: LucideIcons.trash2, danger: true, size: 44),
+          const P2IconTile(icon: BuIcons.trash2, danger: true, size: 44),
           const SizedBox(width: 12),
           Expanded(
             child: Semantics(header: true, child: Text(l.profil2DelConfirmTitle, style: tx.titleLarge!.copyWith(fontWeight: FontWeight.w800, color: t.ink))),
           ),
           IconButton(
             tooltip: l.commonClose,
-            icon: Icon(LucideIcons.x, color: t.mut),
+            icon: Icon(BuIcons.x, color: t.mut),
             onPressed: _busy ? null : () => Navigator.pop(context, false),
           ),
         ]),
@@ -246,7 +246,7 @@ class _DeleteConfirmSheetState extends State<DeleteConfirmSheet> {
             disabledBorder: b(t.sf2, 0),
             suffixIcon: IconButton(
               tooltip: _hidden ? l.authShowPassword : l.authHidePassword,
-              icon: Icon(_hidden ? LucideIcons.eye : LucideIcons.eyeOff, size: 20, color: hasError ? t.danger : t.mut),
+              icon: Icon(_hidden ? BuIcons.eye : BuIcons.eyeOff, size: 20, color: hasError ? t.danger : t.mut),
               onPressed: () => setState(() => _hidden = !_hidden),
             ),
           ),
@@ -257,7 +257,7 @@ class _DeleteConfirmSheetState extends State<DeleteConfirmSheet> {
             child: Semantics(
               liveRegion: true,
               child: Row(children: [
-                Icon(LucideIcons.circleAlert, size: 14, color: t.danger),
+                Icon(BuIcons.circleAlert, size: 14, color: t.danger),
                 const SizedBox(width: 6),
                 Expanded(
                   child: Text(_error!, key: const ValueKey('delete-error'), style: tx.labelMedium!.copyWith(fontWeight: FontWeight.w600, color: t.danger)),
@@ -269,7 +269,7 @@ class _DeleteConfirmSheetState extends State<DeleteConfirmSheet> {
         BuButton(
           key: const ValueKey('delete-submit'),
           label: l.profilePrefsDeleteMyAccount,
-          icon: LucideIcons.trash2,
+          icon: BuIcons.trash2,
           kind: BuButtonKind.danger,
           busy: _busy,
           onPressed: _busy ? null : _submit,

@@ -12,7 +12,6 @@ import 'package:bu_kampus/features/events/etkinlik2_requests_page.dart';
 import 'package:bu_kampus/features/events/etkinlik2_settings_page.dart';
 import 'package:bu_kampus/core/theme.dart';
 import 'package:bu_kampus/l10n/app_localizations.dart';
-import 'package:bu_kampus/widgets/bu.dart' show LucideIcons;
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
@@ -21,6 +20,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import '../support/fake_app.dart';
 import 'p10_images.dart';
+import 'package:bu_kampus/core/icons/bu_icons.dart';
 
 /// K9 (Paket 15 form + Paket 16) (etkinlik organizator araclari + QR) ekran goruntuleri: tum durum varyantlari.
 ///
@@ -384,7 +384,7 @@ final _formScenes = <_Scene>[
     EventCoverImage.debugProvider = (_) => _coverImg;
     return _formBe([]);
   }, (b) => EventFormPage(session: makeSession(b), event: _editEv(), now: _formNow), height: 900, after: (t) async {
-    await t.tap(find.byIcon(LucideIcons.camera));
+    await t.tap(find.byIcon(BuIcons.camera));
     await t.pump(const Duration(milliseconds: 700));
   }),
   _Scene('40h_duzenle', () {

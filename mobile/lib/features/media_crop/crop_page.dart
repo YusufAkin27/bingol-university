@@ -133,7 +133,7 @@ class _CropPageState extends State<CropPage> {
                 key: const ValueKey('cropClose'),
                 tooltip: l.postComposeClose,
                 onPressed: () => Navigator.of(context).pop(),
-                icon: Icon(LucideIcons.x, size: 24, color: d.ink),
+                icon: Icon(BuIcons.x, size: 24, color: d.ink),
               ),
             ),
           ),
@@ -284,7 +284,7 @@ class _TopBar extends StatelessWidget {
           key: const ValueKey('cropClose'),
           tooltip: context.l10n.postComposeClose,
           onPressed: onClose,
-          icon: Icon(LucideIcons.x, color: d.ink),
+          icon: Icon(BuIcons.x, color: d.ink),
         ),
         Expanded(
           child: Text(title,
@@ -310,7 +310,7 @@ class _Failed extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.all(32),
         child: Column(mainAxisSize: MainAxisSize.min, children: [
-          Icon(LucideIcons.imageOff, size: 36, color: d.mut),
+          Icon(BuIcons.imageOff, size: 36, color: d.mut),
           const SizedBox(height: 12),
           Text(context.l10n.p04CropError,
               key: const ValueKey('cropError'),
@@ -368,7 +368,7 @@ class _ActionBar extends StatelessWidget {
               child: BuButton(
                 key: const ValueKey('cropSave'),
                 label: crop ? l.p04CropCrop : l.postComposeSave,
-                icon: crop ? LucideIcons.crop : LucideIcons.check,
+                icon: crop ? BuIcons.crop : BuIcons.check,
                 busy: busy,
                 onPressed: busy ? null : onSave,
               ),
@@ -488,7 +488,7 @@ class _Stage extends StatelessWidget {
                           child: Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                             child: Row(mainAxisSize: MainAxisSize.min, children: [
-                              Icon(LucideIcons.hand, size: 14, color: d.onMedia),
+                              Icon(BuIcons.hand, size: 14, color: d.onMedia),
                               const SizedBox(width: 6),
                               Text(l.p04CropHint, style: Theme.of(context).textTheme.labelSmall?.copyWith(color: d.onMedia, fontWeight: FontWeight.w600)),
                             ]),
@@ -612,9 +612,9 @@ class _Controls extends StatelessWidget {
         );
     return Column(children: [
       Row(children: [
-        tool(const ValueKey('cropRotate'), LucideIcons.rotateCw, l.p04CropRotate, c.rotate),
-        tool(const ValueKey('cropCenter'), LucideIcons.focus, l.p04CropCenter, c.center, enabled: c.offset != Offset.zero),
-        tool(const ValueKey('cropReset'), LucideIcons.rotateCcw, l.p04CropReset, c.reset, enabled: c.isDirty, accent: c.isDirty),
+        tool(const ValueKey('cropRotate'), BuIcons.rotateCw, l.p04CropRotate, c.rotate),
+        tool(const ValueKey('cropCenter'), BuIcons.focus, l.p04CropCenter, c.center, enabled: c.offset != Offset.zero),
+        tool(const ValueKey('cropReset'), BuIcons.rotateCcw, l.p04CropReset, c.reset, enabled: c.isDirty, accent: c.isDirty),
       ]),
       const SizedBox(height: 8),
       DecoratedBox(
@@ -632,7 +632,7 @@ class _Controls extends StatelessWidget {
               IconButton(
                 tooltip: l.p04CropScale,
                 onPressed: () => c.setZoom(c.zoom - .25),
-                icon: Icon(LucideIcons.minus, size: 18, color: t.mut),
+                icon: Icon(BuIcons.minus, size: 18, color: t.mut),
               ),
               Expanded(
                 child: Slider(key: const ValueKey('cropZoom'), value: c.zoom, min: 1, max: CropController.maxZoom, onChanged: c.setZoom),
@@ -640,7 +640,7 @@ class _Controls extends StatelessWidget {
               IconButton(
                 tooltip: l.p04CropScale,
                 onPressed: () => c.setZoom(c.zoom + .25),
-                icon: Icon(LucideIcons.plus, size: 18, color: t.mut),
+                icon: Icon(BuIcons.plus, size: 18, color: t.mut),
               ),
             ]),
           ]),
@@ -742,7 +742,7 @@ class _Previews extends StatelessWidget {
                       child: Text(spec.previewName ?? '',
                           maxLines: 1, overflow: TextOverflow.ellipsis, style: tt.labelLarge?.copyWith(color: t.ink, fontWeight: FontWeight.w700)),
                     ),
-                    Icon(Icons.more_horiz, size: 18, color: t.ink),
+                    Icon(BuIcons.ellipsis, size: 18, color: t.ink),
                   ]),
                 ),
                 AspectRatio(aspectRatio: 4 / 5, key: const ValueKey('cropPreviewFeed'), child: _FrameView(controller: controller, bytes: bytes)),
@@ -750,7 +750,7 @@ class _Previews extends StatelessWidget {
                   padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
                   child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                     Row(children: [
-                      Icon(Icons.favorite_border, size: 20, color: t.mut),
+                      Icon(BuIcons.heart, size: 20, color: t.mut),
                       const SizedBox(width: 6),
                       Text('0', style: tt.labelLarge?.copyWith(color: t.ink, fontWeight: FontWeight.w700)),
                     ]),
@@ -771,7 +771,7 @@ class _Previews extends StatelessWidget {
               ]),
             ),
           ),
-          if (spec.allowChange) link(const ValueKey('cropChange'), LucideIcons.repeat, l.gonderiChangePhoto, () => onOutcome(const CropOutcome.change())),
+          if (spec.allowChange) link(const ValueKey('cropChange'), BuIcons.repeat, l.gonderiChangePhoto, () => onOutcome(const CropOutcome.change())),
         ]);
       case CropKind.logo:
         return DecoratedBox(
@@ -837,7 +837,7 @@ class _Previews extends StatelessWidget {
                         child: Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                           child: Row(mainAxisSize: MainAxisSize.min, children: [
-                            Icon(LucideIcons.calendar, size: 14, color: t.pr),
+                            Icon(BuIcons.calendar, size: 14, color: t.pr),
                             const SizedBox(width: 6),
                             Text(spec.previewDate!, style: tt.labelMedium?.copyWith(color: t.ink, fontWeight: FontWeight.w700)),
                           ]),
@@ -851,7 +851,7 @@ class _Previews extends StatelessWidget {
                     child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
                       if ((spec.previewSubtitle ?? '').isNotEmpty)
                         Row(mainAxisSize: MainAxisSize.min, children: [
-                          Icon(LucideIcons.users, size: 14, color: t.onMedia),
+                          Icon(BuIcons.users, size: 14, color: t.onMedia),
                           const SizedBox(width: 6),
                           Flexible(child: Text(spec.previewSubtitle!, maxLines: 1, overflow: TextOverflow.ellipsis, style: tt.labelMedium?.copyWith(color: t.onMedia))),
                         ]),
@@ -867,7 +867,7 @@ class _Previews extends StatelessWidget {
             ),
           ),
           if (spec.allowRemove)
-            link(const ValueKey('cropRemove'), LucideIcons.trash2, l.p04CropRemoveCover, () => onOutcome(const CropOutcome.removed()),
+            link(const ValueKey('cropRemove'), BuIcons.trash2, l.p04CropRemoveCover, () => onOutcome(const CropOutcome.removed()),
                 color: t.danger),
         ]);
     }

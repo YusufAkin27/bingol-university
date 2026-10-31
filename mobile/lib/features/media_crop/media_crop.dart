@@ -79,7 +79,7 @@ Future<PhotoSource?> showPhotoSourceSheet(BuildContext context, {bool removable 
                 const SizedBox(width: 14),
                 Expanded(
                     child: Text(label, style: tt.titleSmall?.copyWith(color: danger ? t.danger : t.ink, fontWeight: FontWeight.w700))),
-                Icon(danger ? LucideIcons.x : LucideIcons.chevronRight, size: 18, color: danger ? t.danger : t.mut),
+                Icon(danger ? BuIcons.x : BuIcons.chevronRight, size: 18, color: danger ? t.danger : t.mut),
               ]),
             ),
           );
@@ -95,18 +95,18 @@ Future<PhotoSource?> showPhotoSourceSheet(BuildContext context, {bool removable 
                 key: const ValueKey('photoSrcClose'),
                 customBorder: const CircleBorder(),
                 onTap: () => Navigator.pop(ctx),
-                child: SizedBox.square(dimension: 44, child: Icon(LucideIcons.x, size: 20, color: t.ink)),
+                child: SizedBox.square(dimension: 44, child: Icon(BuIcons.x, size: 20, color: t.ink)),
               ),
             ),
           ),
         ]),
         const SizedBox(height: 8),
-        row(const ValueKey('photoSrcGallery'), LucideIcons.images, l.p04SrcGallery, PhotoSource.gallery),
+        row(const ValueKey('photoSrcGallery'), BuIcons.images, l.p04SrcGallery, PhotoSource.gallery),
         Divider(height: 1, color: t.bd),
-        row(const ValueKey('photoSrcCamera'), LucideIcons.camera, l.p04SrcCamera, PhotoSource.camera),
+        row(const ValueKey('photoSrcCamera'), BuIcons.camera, l.p04SrcCamera, PhotoSource.camera),
         if (removable) ...[
           Divider(height: 1, color: t.bd),
-          row(const ValueKey('photoSrcRemove'), LucideIcons.trash2, l.p04SrcRemove, PhotoSource.remove, danger: true),
+          row(const ValueKey('photoSrcRemove'), BuIcons.trash2, l.p04SrcRemove, PhotoSource.remove, danger: true),
         ],
         if (error != null)
           Padding(
@@ -117,7 +117,7 @@ Future<PhotoSource?> showPhotoSourceSheet(BuildContext context, {bool removable 
               child: Padding(
                 padding: const EdgeInsets.all(14),
                 child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Icon(LucideIcons.circleAlert, size: 20, color: t.danger),
+                  Icon(BuIcons.circleAlert, size: 20, color: t.danger),
                   const SizedBox(width: 10),
                   Expanded(
                     child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -157,9 +157,9 @@ Future<PhotoSource?> _showSimpleSourceSheet(BuildContext context) {
             ),
           );
       return Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        row(const ValueKey('photoSrcGallery'), LucideIcons.images, l.p04SrcGallery, PhotoSource.gallery),
+        row(const ValueKey('photoSrcGallery'), BuIcons.images, l.p04SrcGallery, PhotoSource.gallery),
         Divider(height: 1, color: t.bd),
-        row(const ValueKey('photoSrcCamera'), LucideIcons.camera, l.p04SrcCamera, PhotoSource.camera),
+        row(const ValueKey('photoSrcCamera'), BuIcons.camera, l.p04SrcCamera, PhotoSource.camera),
       ]);
     },
   );

@@ -4,6 +4,7 @@ import '../core/theme.dart';
 import '../core/theme/bu_shape.dart';
 import '../core/theme/bu_sizes.dart';
 import '../core/typography.dart';
+import '../core/icons/bu_icons.dart';
 
 /// Sistem ekranları (izin, bakım, güncelleme, hata, QR) için ortak yapı taşları.
 /// Tasarım: Sm1-Sm8, Et3b. Renkler `context.bu`; tasarımdaki sabit tonlar burada.
@@ -192,7 +193,7 @@ class SistemStatusView extends StatelessWidget {
 
 /// Bakım bandı (Sm4): sıcak sarı yuvarlak şerit.
 class MaintenanceBand extends StatelessWidget {
-  const MaintenanceBand({super.key, required this.text, this.icon = Icons.info_outline, this.margin = EdgeInsets.zero});
+  const MaintenanceBand({super.key, required this.text, this.icon = BuIcons.info, this.margin = EdgeInsets.zero});
 
   final String text;
   final IconData icon;

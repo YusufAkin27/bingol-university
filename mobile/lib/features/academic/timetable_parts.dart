@@ -79,7 +79,7 @@ class TtTopRow extends StatelessWidget {
                         child: Row(mainAxisSize: MainAxisSize.min, children: [
                           Flexible(child: Text(semester, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.labelMedium!.copyWith(fontSize: 13, fontWeight: FontWeight.w500, color: t.ink))),
                           const SizedBox(width: 6),
-                          ExcludeSemantics(child: Icon(LucideIcons.chevronDown, size: 16, color: t.ink)),
+                          ExcludeSemantics(child: Icon(BuIcons.chevronDown, size: 16, color: t.ink)),
                         ]),
                       ),
                     ),
@@ -107,7 +107,7 @@ class TtTopRow extends StatelessWidget {
                     alignment: Alignment.topCenter,
                     child: Padding(
                       padding: const EdgeInsets.only(top: 7),
-                      child: Container(width: 30, height: 30, decoration: BoxDecoration(color: t.soft, shape: BoxShape.circle), child: Icon(Icons.add, size: 22, color: t.pr)),
+                      child: Container(width: 30, height: 30, decoration: BoxDecoration(color: t.soft, shape: BoxShape.circle), child: Icon(BuIcons.plus, size: 22, color: t.pr)),
                     ),
                   ),
                 ),
@@ -332,7 +332,7 @@ class TtSummary extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
       child: Row(children: [
-        ExcludeSemantics(child: Icon(LucideIcons.circleCheck, size: 16, color: t.mut)),
+        ExcludeSemantics(child: Icon(BuIcons.circleCheck, size: 16, color: t.mut)),
         const SizedBox(width: 8),
         Expanded(child: Text(text, maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.bodySmall!.copyWith(fontSize: 13, color: t.ink.withValues(alpha: .8)))),
         const SizedBox(width: 8),

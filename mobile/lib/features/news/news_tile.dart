@@ -14,9 +14,9 @@ BuTint? newsTypeTint(BuTokens t, String? type) => switch (type) {
 
 /// Tür simgesi (görseli olmayan haberin karosu ve rozet).
 IconData newsTypeIcon(String? type) => switch (type) {
-      'DUYURU' || 'ANNOUNCEMENT' => LucideIcons.megaphone,
-      'ETKINLIK' || 'EVENT' => LucideIcons.calendar,
-      _ => LucideIcons.newspaper,
+      'DUYURU' || 'ANNOUNCEMENT' => BuIcons.megaphone,
+      'ETKINLIK' || 'EVENT' => BuIcons.calendar,
+      _ => BuIcons.newspaper,
     };
 
 /// Sunucudan gelen sabit tür kodunun ekranda görünen adı (dile göre).
@@ -316,7 +316,7 @@ class _SaveIcon extends StatelessWidget {
     final label = saved ? context.l10n.newsSaveRemove : context.l10n.newsSaveAdd;
     final fg = overlay ? (saved ? t.pr : t.onMedia) : (saved ? t.pr : t.ink);
     final icon = Icon(
-      saved ? Icons.bookmark : LucideIcons.bookmark,
+      saved ? BuIcons.bookmarkFilled : BuIcons.bookmark,
       key: ValueKey(saved),
       size: 20,
       color: fg,

@@ -359,7 +359,7 @@ void main() {
       expect(find.text('128 üye'), findsOneWidget);
       expect(find.text('Kulüp sayfasını aç'), findsOneWidget);
       expect(find.text('Bilgisayar Müh.'), findsOneWidget);
-      expect(find.byIcon(LucideIcons.users), findsWidgets);
+      expect(find.byIcon(BuIcons.users), findsWidgets);
       await unmount(tester);
     });
   });

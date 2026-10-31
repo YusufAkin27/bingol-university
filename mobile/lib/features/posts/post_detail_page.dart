@@ -340,7 +340,7 @@ class _BackButton extends StatelessWidget {
                   child: const SizedBox(width: 40, height: 40),
                 ),
               ),
-              ExcludeSemantics(child: Icon(buDirIcon(context, LucideIcons.arrowLeft), size: 24, color: t.ink)),
+              ExcludeSemantics(child: Icon(buDirIcon(context, BuIcons.arrowLeft), size: 24, color: t.ink)),
             ]),
           ),
         ),

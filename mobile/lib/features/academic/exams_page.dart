@@ -151,7 +151,7 @@ class _ExamsPageState extends State<ExamsPage> {
                           onTap: () => _openForm(),
                           haptic: BuHaptic.selection,
                           scale: .94,
-                          child: SizedBox(width: 48, height: 48, child: Center(child: Icon(LucideIcons.plus, size: 18, color: t.pr))),
+                          child: SizedBox(width: 48, height: 48, child: Center(child: Icon(BuIcons.plus, size: 18, color: t.pr))),
                         ),
                       ),
                     ),

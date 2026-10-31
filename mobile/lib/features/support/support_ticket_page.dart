@@ -327,7 +327,7 @@ class _SupportTicketPageState extends State<SupportTicketPage> {
             ),
             icon: _sending
                 ? SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2.2, color: t.onPr))
-                : const Icon(LucideIcons.arrowUp, size: 22),
+                : const Icon(BuIcons.arrowUp, size: 22),
           ),
         ]),
       ),

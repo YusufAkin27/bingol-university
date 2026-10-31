@@ -28,12 +28,12 @@ Future<void> showPostActions(
   final mine = post.mine || post.author.id == session.userId;
   final l = context.l10n;
   final actions = <PostMenuAction>[
-    if (post.canEdit) PostMenuAction('edit', l.postComposeEdit, LucideIcons.squarePen),
-    if (post.canDelete) PostMenuAction('delete', l.postComposeDelete, LucideIcons.trash2, danger: true),
+    if (post.canEdit) PostMenuAction('edit', l.postComposeEdit, BuIcons.squarePen),
+    if (post.canDelete) PostMenuAction('delete', l.postComposeDelete, BuIcons.trash2, danger: true),
     if (!mine) ...[
-      PostMenuAction('profile', l.postComposeViewProfile, LucideIcons.user),
-      PostMenuAction('report', l.postComposeReport, LucideIcons.flag),
-      PostMenuAction('block', l.postComposeBlockUser, LucideIcons.ban, danger: true),
+      PostMenuAction('profile', l.postComposeViewProfile, BuIcons.user),
+      PostMenuAction('report', l.postComposeReport, BuIcons.flag),
+      PostMenuAction('block', l.postComposeBlockUser, BuIcons.ban, danger: true),
     ],
   ];
   if (actions.isEmpty) return;
@@ -366,7 +366,7 @@ class PostMenuButton extends StatelessWidget {
             tooltip: context.l10n.postComposeMore,
             padding: EdgeInsets.zero,
             constraints: const BoxConstraints.tightFor(width: 48, height: 48),
-            icon: Icon(Icons.more_horiz, size: 24, color: active ? t.onSoft : t.ink),
+            icon: Icon(BuIcons.ellipsis, size: 24, color: active ? t.onSoft : t.ink),
             onPressed: () => showPostActions(context,
                 session: session,
                 post: post,

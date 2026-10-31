@@ -102,7 +102,7 @@ class _MyClubsPageState extends State<MyClubsPage> {
         title: context.l10n.profilePrefsWithdrawTitle,
         message: context.l10n.profilePrefsWithdrawBody,
         confirmLabel: context.l10n.profilePrefsWithdrawConfirm,
-        icon: LucideIcons.undo2);
+        icon: BuIcons.undo2);
     if (!ok || !mounted) return;
     try {
       await widget.session.api.delete('/communities/${_id(c)}/membership');
@@ -193,13 +193,13 @@ class _MyClubsPageState extends State<MyClubsPage> {
             ),
             Divider(height: 16, color: t.bd),
             if (manager) ...[
-              ClubSheetRow(icon: LucideIcons.pencil, title: l.profilePrefsManageEdit, onTap: () => pick('edit')),
-              ClubSheetRow(icon: LucideIcons.userPlus, title: l.profilePrefsManageRequests, onTap: () => pick('requests')),
-              ClubSheetRow(icon: LucideIcons.users, title: l.profilePrefsManageMembers, onTap: () => pick('members')),
+              ClubSheetRow(icon: BuIcons.pencil, title: l.profilePrefsManageEdit, onTap: () => pick('edit')),
+              ClubSheetRow(icon: BuIcons.userPlus, title: l.profilePrefsManageRequests, onTap: () => pick('requests')),
+              ClubSheetRow(icon: BuIcons.users, title: l.profilePrefsManageMembers, onTap: () => pick('members')),
             ],
-            ClubSheetRow(icon: LucideIcons.squareArrowOutUpRight, title: l.profilePrefsOpen, onTap: () => pick('open')),
+            ClubSheetRow(icon: BuIcons.squareArrowOutUpRight, title: l.profilePrefsOpen, onTap: () => pick('open')),
             Divider(height: 16, color: t.bd),
-            ClubSheetRow(icon: LucideIcons.logOut, title: l.profilePrefsLeaveClub, danger: true, onTap: () => pick('leave')),
+            ClubSheetRow(icon: BuIcons.logOut, title: l.profilePrefsLeaveClub, danger: true, onTap: () => pick('leave')),
             const SizedBox(height: 8),
           ],
         );
@@ -256,9 +256,9 @@ class _MyClubsPageState extends State<MyClubsPage> {
                     Text(l.profilyardClubsEmptyBody,
                         textAlign: TextAlign.center, style: Theme.of(context).textTheme.bodyMedium!.copyWith(color: t.mut, height: 1.45)),
                     const SizedBox(height: 28),
-                    BuButton(label: l.profilyardClubsDiscover, icon: LucideIcons.compass, onPressed: _discover),
+                    BuButton(label: l.profilyardClubsDiscover, icon: BuIcons.compass, onPressed: _discover),
                     const SizedBox(height: 12),
-                    BuButton(label: l.profilePrefsCreateClub, icon: LucideIcons.plus, kind: BuButtonKind.soft, onPressed: _create),
+                    BuButton(label: l.profilePrefsCreateClub, icon: BuIcons.plus, kind: BuButtonKind.soft, onPressed: _create),
                   ],
                 ),
               ),
@@ -310,7 +310,7 @@ class _MyClubsPageState extends State<MyClubsPage> {
             actions: [
               Padding(
                 padding: const EdgeInsetsDirectional.only(end: 16),
-                child: BuButton(label: l.profilePrefsCreateClub, icon: LucideIcons.plus, kind: BuButtonKind.soft, compact: true, onPressed: _create),
+                child: BuButton(label: l.profilePrefsCreateClub, icon: BuIcons.plus, kind: BuButtonKind.soft, compact: true, onPressed: _create),
               ),
             ],
           ),
@@ -345,12 +345,12 @@ class _MyClubsPageState extends State<MyClubsPage> {
                   runSpacing: 6,
                   crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
-                    _Pill(label: l.profilyardRoleOwner, icon: LucideIcons.shield, ink: true),
-                    if (inReview) _Pill(label: l.profilePrefsAwaitingPublish, icon: LucideIcons.clock, warn: true),
+                    _Pill(label: l.profilyardRoleOwner, icon: BuIcons.shield, ink: true),
+                    if (inReview) _Pill(label: l.profilePrefsAwaitingPublish, icon: BuIcons.clock, warn: true),
                     if (members != null || cat.isNotEmpty)
                       Row(mainAxisSize: MainAxisSize.min, children: [
                         if (members != null) ...[
-                          ExcludeSemantics(child: Icon(LucideIcons.users, size: 14, color: t.mut)),
+                          ExcludeSemantics(child: Icon(BuIcons.users, size: 14, color: t.mut)),
                           const SizedBox(width: 4),
                           Text(l.profilePrefsMembersCount('$members'), style: tx.bodySmall!.copyWith(color: t.mut)),
                         ],
@@ -361,7 +361,7 @@ class _MyClubsPageState extends State<MyClubsPage> {
             ),
           ),
           const SizedBox(width: 8),
-          BuButton(label: l.profilePrefsManage, icon: LucideIcons.slidersHorizontal, compact: true, onPressed: () => _options(c)),
+          BuButton(label: l.profilePrefsManage, icon: BuIcons.slidersHorizontal, compact: true, onPressed: () => _options(c)),
         ],
       ),
     );
@@ -398,14 +398,14 @@ class _MyClubsPageState extends State<MyClubsPage> {
                     runSpacing: 4,
                     crossAxisAlignment: WrapCrossAlignment.center,
                     children: [
-                      _Pill(label: roleLabel, icon: mod ? LucideIcons.shield : null),
+                      _Pill(label: roleLabel, icon: mod ? BuIcons.shield : null),
                       if (members != null) Text(l.profilePrefsMembersCount('$members'), style: tx.bodySmall!.copyWith(color: t.mut)),
                     ],
                   ),
                 ],
               ),
             ),
-            ExcludeSemantics(child: Icon(buDirIcon(context, LucideIcons.chevronRight), size: 20, color: t.mut)),
+            ExcludeSemantics(child: Icon(buDirIcon(context, BuIcons.chevronRight), size: 20, color: t.mut)),
           ],
         ),
       ),
@@ -467,7 +467,7 @@ class _MyClubsPageState extends State<MyClubsPage> {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(LucideIcons.undo2, size: 16, color: t.pr),
+                          Icon(BuIcons.undo2, size: 16, color: t.pr),
                           const SizedBox(width: 6),
                           Text(l.profilePrefsWithdrawTitle, style: tx.labelLarge!.copyWith(color: t.pr, fontWeight: FontWeight.w800)),
                         ],

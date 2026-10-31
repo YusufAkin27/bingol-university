@@ -4,6 +4,7 @@ import '../core/cache/image_disk_cache.dart';
 import '../core/theme.dart';
 import '../core/theme/bu_motion.dart';
 import 'bu_widgets.dart';
+import '../core/icons/bu_icons.dart';
 
 /// Ağ görseli: çözümleme boyutu = düzen genişliği x DPR (tam çözünürlük belleğe açılmaz), yer tutucu renk,
 /// yüklenince yumuşak belirme, hata yedeği. `/files/...` göreli yolları tam adrese çevrilir.
@@ -18,7 +19,7 @@ class BuImage extends StatelessWidget {
     this.radius = 0,
     this.headers,
     this.semanticLabel,
-    this.placeholderIcon = LucideIcons.image,
+    this.placeholderIcon = BuIcons.image,
     this.maxDecodeWidth = 1600,
   });
 

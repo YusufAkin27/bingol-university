@@ -316,7 +316,7 @@ class VotePill extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(LucideIcons.arrowUp, size: 20, color: voted ? t.pr : t.ink),
+                      Icon(BuIcons.arrowUp, size: 20, color: voted ? t.pr : t.ink),
                       SizedBox(width: vertical ? 0 : 8, height: vertical ? 2 : 0),
                       AnimatedSwitcher(
                         duration: d,
@@ -404,7 +404,7 @@ class _SuggestionDetailPageState extends State<SuggestionDetailPage> {
                               width: 56,
                               height: 56,
                               decoration: BoxDecoration(color: voted ? t.pr : t.sf, shape: BoxShape.circle),
-                              child: Icon(LucideIcons.arrowUp, size: 24, color: voted ? t.onPr : t.ink),
+                              child: Icon(BuIcons.arrowUp, size: 24, color: voted ? t.onPr : t.ink),
                             ),
                             const SizedBox(width: 16),
                             Expanded(
@@ -414,7 +414,7 @@ class _SuggestionDetailPageState extends State<SuggestionDetailPage> {
                                     style: tx.labelMedium!.copyWith(color: voted ? t.pr : t.mut, fontWeight: FontWeight.w700)),
                               ]),
                             ),
-                            if (voted) Icon(LucideIcons.circleCheck, size: 24, color: t.pr),
+                            if (voted) Icon(BuIcons.circleCheck, size: 24, color: t.pr),
                           ]),
                         ),
                       ),
@@ -422,7 +422,7 @@ class _SuggestionDetailPageState extends State<SuggestionDetailPage> {
                   ),
                   const SizedBox(height: 14),
                   Row(children: [
-                    ExcludeSemantics(child: Icon(LucideIcons.info, size: 16, color: t.pr)),
+                    ExcludeSemantics(child: Icon(BuIcons.info, size: 16, color: t.pr)),
                     const SizedBox(width: 8),
                     Expanded(child: Text(l.p13SugApprovalNote, style: tx.labelMedium!.copyWith(color: t.mut, height: 1.4))),
                   ]),

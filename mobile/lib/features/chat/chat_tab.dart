@@ -406,11 +406,11 @@ class _ChatTabState extends State<ChatTab> {
     // Silme onayı (referans 22-2): üstte simge, ortalı başlık ve gövde, yan yana iki düğme.
     final ok = await showChatInfoConfirm(
       context,
-      icon: LucideIcons.trash2,
+      icon: BuIcons.trash2,
       title: l.chatInfoDeleteConvTitle,
       body: group ? l.chatInfoDeleteConvGroup : l.chatInfoDeleteConvDirect,
       confirmLabel: l.chatInfoDelete,
-      confirmIcon: LucideIcons.trash2,
+      confirmIcon: BuIcons.trash2,
       cancelLabel: l.chatInfoCancel,
       layout: ChatConfirmLayout.iconAbove,
     );
@@ -534,7 +534,7 @@ class _ChatTabState extends State<ChatTab> {
                           Transform.translate(
                             offset: Offset(Directionality.of(context) == TextDirection.rtl ? -8 : 8, 0),
                             child: ChatlistRoundButton(
-                                icon: LucideIcons.archive, tooltip: context.l10n.chatMiscArchive, onTap: () => _setArchiveView(true)),
+                                icon: BuIcons.archive, tooltip: context.l10n.chatMiscArchive, onTap: () => _setArchiveView(true)),
                           ),
                           ChatlistNewButton(tooltip: context.l10n.chatMiscNewChat, onTap: _openNew),
                         ],
@@ -657,7 +657,7 @@ class _ChatTabState extends State<ChatTab> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(_archived ? LucideIcons.archiveRestore : LucideIcons.archive, size: 22, color: t.ink),
+                    Icon(_archived ? BuIcons.archiveRestore : BuIcons.archive, size: 22, color: t.ink),
                     const SizedBox(height: 4),
                     Text(_archived ? context.l10n.chatMiscUnarchiveAction : context.l10n.chatMiscArchiveAction,
                         maxLines: 1,
@@ -874,9 +874,9 @@ class _ConversationRow extends StatelessWidget {
     }
 
     final tick = switch (status) {
-      'SENT' => (LucideIcons.check, t.mut),
-      'DELIVERED' => (LucideIcons.checkCheck, t.mut),
-      'READ' => (LucideIcons.checkCheck, t.mut), // okundu: çift tik yeter; marka vurgusu yalnız okunmamış rozetinde
+      'SENT' => (BuIcons.check, t.mut),
+      'DELIVERED' => (BuIcons.checkCheck, t.mut),
+      'READ' => (BuIcons.checkCheck, t.mut), // okundu: çift tik yeter; marka vurgusu yalnız okunmamış rozetinde
       _ => null,
     };
     final bodyColor = hot ? t.ink : t.mut;
@@ -941,7 +941,7 @@ class _ConversationRow extends StatelessWidget {
                               ),
                               const SizedBox(width: 8),
                               if (muted) ...[
-                                Icon(LucideIcons.bellOff, size: 13, color: t.mut),
+                                Icon(BuIcons.bellOff, size: 14, color: t.mut),
                                 const SizedBox(width: 4),
                               ],
                               Text(_stamp(context, when),
@@ -960,7 +960,7 @@ class _ConversationRow extends StatelessWidget {
                                   const SizedBox(width: 6),
                                 ],
                                 if (removedMsg) ...[
-                                  Icon(LucideIcons.ban, size: 15, color: t.mut),
+                                  Icon(BuIcons.ban, size: 15, color: t.mut),
                                   const SizedBox(width: 6),
                                 ] else if (once) ...[
                                   OnceBadge(color: t.pr, dashed: true, size: 18),
@@ -1046,9 +1046,9 @@ class _ConversationRow extends StatelessWidget {
       if (isVideoAttachment(first)) {
         final ms = first['durationMs'];
         final label = ms is num && ms > 0 ? '${l.chatMiscVideo} ${formatMediaDuration(ms.toInt())}' : l.chatMiscVideo;
-        return (label, LucideIcons.video, false);
+        return (label, BuIcons.video, false);
       }
-      return (l.chatMiscPhoto, LucideIcons.camera, false);
+      return (l.chatMiscPhoto, BuIcons.camera, false);
     }
     return ('', null, false);
   }

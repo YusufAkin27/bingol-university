@@ -194,7 +194,7 @@ class _NewsDetailPageState extends State<NewsDetailPage> {
                     leading: Padding(
                       padding: const EdgeInsetsDirectional.only(start: 16),
                       child: IcerikIconButton(
-                          icon: buDirIcon(context, LucideIcons.arrowLeft),
+                          icon: buDirIcon(context, BuIcons.arrowLeft),
                           label: l.commonBack,
                           overlay: overlay,
                           onTap: () => Navigator.pop(context)),
@@ -224,7 +224,7 @@ class _NewsDetailPageState extends State<NewsDetailPage> {
                     actions: [
                       IcerikIconButton(
                         key: const ValueKey('news-save'),
-                        icon: _saved ? Icons.bookmark : LucideIcons.bookmark,
+                        icon: _saved ? BuIcons.bookmarkFilled : BuIcons.bookmark,
                         label: _saved ? l.newsSaveRemove : l.newsSaveAdd,
                         on: _saved,
                         toggled: _saved,
@@ -233,7 +233,7 @@ class _NewsDetailPageState extends State<NewsDetailPage> {
                       ),
                       IcerikIconButton(
                           key: const ValueKey('news-share'),
-                          icon: LucideIcons.share2,
+                          icon: BuIcons.share2,
                           label: l.icerikShare,
                           overlay: overlay,
                           onTap: () => _share(url)),

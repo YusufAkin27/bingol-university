@@ -117,7 +117,7 @@ class _ApplySheetState extends State<_ApplySheet> {
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
             decoration: BoxDecoration(color: t.danger.withValues(alpha: .12), borderRadius: BorderRadius.circular(BuRadius.sm)),
             child: Row(children: [
-              Icon(LucideIcons.circleAlert, size: 18, color: t.danger),
+              Icon(BuIcons.circleAlert, size: 18, color: t.danger),
               const SizedBox(width: 8),
               Expanded(child: Text(_error!, style: tx.bodyMedium!.copyWith(fontWeight: FontWeight.w600, color: t.danger))),
             ]),

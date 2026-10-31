@@ -8,6 +8,7 @@ import '../core/theme/bu_motion.dart';
 import '../core/theme/bu_shape.dart';
 import 'bu_illustrations.dart';
 import 'bu_widgets.dart';
+import '../core/icons/bu_icons.dart';
 
 /// Sınırlı yükseklikte ortalar, sığmazsa (320 dp + büyük yazı) kaydırır; sınırsızda (ListView içinde) düz ortalar
 /// ve içerik küçük (compact) çizilir ([builder]'a sınırsız yükseklik (infinity) verilir; küçük kutuda içerik sıkılaşır).
@@ -221,7 +222,7 @@ class BuErrorState extends StatelessWidget {
                     width: 220,
                     child: BuButton(
                         label: l.commonRetry,
-                        icon: LucideIcons.refreshCw,
+                        icon: BuIcons.refreshCw,
                         onPressed: onRetry),
                   ),
                 ],
@@ -276,7 +277,7 @@ class BuOfflineBanner extends StatelessWidget {
                 Padding(
                   padding: const EdgeInsets.only(top: 2),
                   child: ExcludeSemantics(
-                      child: Icon(LucideIcons.wifiOff,
+                      child: Icon(BuIcons.wifiOff,
                           size: 18, color: t.onWarnSoft)),
                 ),
                 const SizedBox(width: 12),

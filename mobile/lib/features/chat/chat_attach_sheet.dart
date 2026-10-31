@@ -122,9 +122,9 @@ class _ChatAttachSheetState extends State<ChatAttachSheet> {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Row(children: [
-              Expanded(child: _Tile(key: const ValueKey('attachGallery'), icon: LucideIcons.images, label: l.chatMiscGallery, onTap: () => Navigator.pop(context, const ChatAttachGallery()))),
+              Expanded(child: _Tile(key: const ValueKey('attachGallery'), icon: BuIcons.images, label: l.chatMiscGallery, onTap: () => Navigator.pop(context, const ChatAttachGallery()))),
               const SizedBox(width: 12),
-              Expanded(child: _Tile(key: const ValueKey('attachCamera'), icon: LucideIcons.camera, label: l.chatMiscCamera, onTap: () => Navigator.pop(context, const ChatAttachCamera()))),
+              Expanded(child: _Tile(key: const ValueKey('attachCamera'), icon: BuIcons.camera, label: l.chatMiscCamera, onTap: () => Navigator.pop(context, const ChatAttachCamera()))),
             ]),
           ),
           const SizedBox(height: 16),
@@ -163,7 +163,7 @@ class _ChatAttachSheetState extends State<ChatAttachSheet> {
             child: ConstrainedBox(
               constraints: const BoxConstraints(minHeight: BuSize.row),
               child: Row(children: [
-                Icon(LucideIcons.image, size: 22, color: t.mut),
+                Icon(BuIcons.image, size: 22, color: t.mut),
                 const SizedBox(width: 12),
                 Expanded(child: Text(l.p67AttachAllowPhotos, style: tx.bodyLarge!.copyWith(color: t.ink))),
                 Text(l.p67AttachGrant, style: tx.bodyMedium!.copyWith(color: t.pr, fontWeight: FontWeight.w600)),

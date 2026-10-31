@@ -180,7 +180,7 @@ class _QrScanPageState extends State<QrScanPage> with SingleTickerProviderStateM
                   child: Row(
                     children: [
                       _RoundGlassButton(
-                        icon: buDirIcon(context, LucideIcons.arrowLeft),
+                        icon: buDirIcon(context, BuIcons.arrowLeft),
                         tooltip: MaterialLocalizations.of(context).backButtonTooltip,
                         onTap: () => Navigator.of(context).maybePop(),
                       ),
@@ -336,7 +336,7 @@ class _QrScanPageState extends State<QrScanPage> with SingleTickerProviderStateM
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            ExcludeSemantics(child: Icon(LucideIcons.cameraOff, size: 30, color: t.onMedia.withValues(alpha: .7))),
+            ExcludeSemantics(child: Icon(BuIcons.cameraOff, size: 30, color: t.onMedia.withValues(alpha: .7))),
             const SizedBox(height: 10),
             Text(note, textAlign: TextAlign.center, style: Theme.of(context).textTheme.bodyMedium!.copyWith(color: t.onMedia, height: 1.4)),
           ],
@@ -362,7 +362,7 @@ class _QrScanPageState extends State<QrScanPage> with SingleTickerProviderStateM
             Align(
               alignment: AlignmentDirectional.centerStart,
               child: IconButton(
-                icon: Icon(buDirIcon(context, LucideIcons.arrowLeft), color: t.ink),
+                icon: Icon(buDirIcon(context, BuIcons.arrowLeft), color: t.ink),
                 tooltip: MaterialLocalizations.of(context).backButtonTooltip,
                 onPressed: () => Navigator.of(context).maybePop(),
               ),
@@ -375,7 +375,7 @@ class _QrScanPageState extends State<QrScanPage> with SingleTickerProviderStateM
                   height: 88,
                   alignment: Alignment.center,
                   decoration: BoxDecoration(color: t.soft, borderRadius: BuRadius.bXl),
-                  child: Icon(LucideIcons.cameraOff, size: 40, color: t.pr),
+                  child: Icon(BuIcons.cameraOff, size: 40, color: t.pr),
                 ),
               ),
             ),
@@ -391,7 +391,7 @@ class _QrScanPageState extends State<QrScanPage> with SingleTickerProviderStateM
               child: Text(l.qrCameraDenied, textAlign: TextAlign.center, style: tx.bodyMedium!.copyWith(color: t.mut, height: 1.5)),
             ),
             const SizedBox(height: 16),
-            BuButton(label: l.qrGrantCamera, icon: LucideIcons.video, onPressed: _ensureCamera),
+            BuButton(label: l.qrGrantCamera, icon: BuIcons.video, onPressed: _ensureCamera),
             const SizedBox(height: 24),
             ..._feedback(context),
             _panelBody(context, camera: false),
@@ -416,7 +416,7 @@ class _QrScanPageState extends State<QrScanPage> with SingleTickerProviderStateM
             decoration: BoxDecoration(color: t.soft, borderRadius: BuRadius.bMd),
             child: Row(
               children: [
-                ExcludeSemantics(child: Icon(Icons.error, size: 22, color: t.onSoft)),
+                ExcludeSemantics(child: Icon(BuIcons.circleAlertFilled, size: 22, color: t.onSoft)),
                 const SizedBox(width: 10),
                 Expanded(child: Text(_error!, style: tx.bodyMedium!.copyWith(color: t.onSoft, fontWeight: FontWeight.w600))),
               ],
@@ -433,7 +433,7 @@ class _QrScanPageState extends State<QrScanPage> with SingleTickerProviderStateM
             decoration: BoxDecoration(color: t.sf3, borderRadius: BorderRadius.circular(16), boxShadow: BuElevation.of(context, 2)),
             child: Row(
               children: [
-                ExcludeSemantics(child: Icon(Icons.check_circle, size: 24, color: t.ok)),
+                ExcludeSemantics(child: Icon(BuIcons.circleCheckFilled, size: 24, color: t.ok)),
                 const SizedBox(width: 10),
                 Expanded(child: Text(context.l10n.p01QrAttended, style: tx.bodyMedium!.copyWith(color: t.ink, fontWeight: FontWeight.w600))),
               ],
@@ -473,7 +473,7 @@ class _QrScanPageState extends State<QrScanPage> with SingleTickerProviderStateM
             filled: true,
             fillColor: err != null ? t.soft : t.sf2,
             contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-            suffixIcon: camera ? null : Icon(LucideIcons.keyboard, size: 20, color: t.mut),
+            suffixIcon: camera ? null : Icon(BuIcons.keyboard, size: 20, color: t.mut),
             border: const OutlineInputBorder(borderRadius: BuRadius.bMd, borderSide: BorderSide.none),
             enabledBorder: const OutlineInputBorder(borderRadius: BuRadius.bMd, borderSide: BorderSide.none),
             disabledBorder: const OutlineInputBorder(borderRadius: BuRadius.bMd, borderSide: BorderSide.none),
@@ -485,7 +485,7 @@ class _QrScanPageState extends State<QrScanPage> with SingleTickerProviderStateM
             padding: const EdgeInsetsDirectional.only(start: 4, top: 8),
             child: Row(
               children: [
-                ExcludeSemantics(child: Icon(LucideIcons.circleX, size: 14, color: t.danger)),
+                ExcludeSemantics(child: Icon(BuIcons.circleX, size: 14, color: t.danger)),
                 const SizedBox(width: 6),
                 Expanded(child: Text(err, style: tx.labelMedium!.copyWith(color: t.danger, fontWeight: FontWeight.w500))),
               ],
@@ -572,7 +572,7 @@ class _TorchPill extends StatelessWidget {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(on ? LucideIcons.flashlightOff : LucideIcons.flashlight, size: 16, color: t.onMedia),
+                  Icon(on ? BuIcons.flashlightOff : BuIcons.flashlight, size: 16, color: t.onMedia),
                   const SizedBox(width: 6),
                   Text(label, style: Theme.of(context).textTheme.labelMedium!.copyWith(color: t.onMedia, fontWeight: FontWeight.w700)),
                 ],
@@ -665,7 +665,7 @@ class _FrameLock extends StatelessWidget {
                 width: 64,
                 height: 64,
                 decoration: BoxDecoration(color: ok, shape: BoxShape.circle),
-                child: Icon(LucideIcons.check, size: 32, color: onOk),
+                child: Icon(BuIcons.check, size: 32, color: onOk),
               ),
             ),
           ),

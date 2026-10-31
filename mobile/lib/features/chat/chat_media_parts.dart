@@ -368,7 +368,7 @@ class _ChatZoomImageState extends State<ChatZoomImage> with SingleTickerProvider
     return Stack(alignment: Alignment.center, fit: StackFit.expand, children: [
       if (thumb != null && thumb != widget.url)
         Image.network(chatMediaUrl(thumb), headers: widget.headers, fit: BoxFit.contain, cacheWidth: 600, gaplessPlayback: true, errorBuilder: (c, e, s) => const SizedBox.shrink()),
-      Center(child: ChatdRing(value: (p == null || total == null) ? null : p.cumulativeBytesLoaded / total, icon: LucideIcons.image, semantics: context.l10n.chatdPhotoLoading)),
+      Center(child: ChatdRing(value: (p == null || total == null) ? null : p.cumulativeBytesLoaded / total, icon: BuIcons.image, semantics: context.l10n.chatdPhotoLoading)),
     ]);
   }
 
@@ -401,7 +401,7 @@ class _ChatZoomImageState extends State<ChatZoomImage> with SingleTickerProvider
                       ),
             loadingBuilder: (c, child, p) => p == null ? child : _loading(p),
             errorBuilder: (c, e, s) => ChatdMediaMessage(
-              icon: LucideIcons.imageOff,
+              icon: BuIcons.imageOff,
               text: l.chatMiscImageLoadFailed,
               actionLabel: l.chatMiscRetry,
               onAction: () => setState(() => _attempt++),

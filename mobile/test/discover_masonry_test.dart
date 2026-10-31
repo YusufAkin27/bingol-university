@@ -1,4 +1,3 @@
-import 'package:bu_kampus/widgets/bu.dart' show LucideIcons;
 import 'package:bu_kampus/features/discover/discover_masonry.dart';
 import 'package:bu_kampus/features/discover/discover_tab.dart';
 import 'package:bu_kampus/features/posts/post_detail_page.dart';
@@ -6,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'support/fake_app.dart';
+import 'package:bu_kampus/core/icons/bu_icons.dart';
 
 void noErr(WidgetTester tester) {
   final e = tester.takeException();
@@ -169,7 +169,7 @@ void main() {
       expect(find.byTooltip('Gönderi oluştur'), findsOneWidget);
       // Anketler Ana Sayfa Hizli Erisim'e tasindi: Kesfet'te anket dugmesi yok.
       expect(find.byTooltip('Anketler'), findsNothing);
-      expect(find.byIcon(LucideIcons.vote), findsNothing);
+      expect(find.byIcon(BuIcons.vote), findsNothing);
       r.value = 'DUYURU';
       expect(r.value, isNull);
       noErr(tester);

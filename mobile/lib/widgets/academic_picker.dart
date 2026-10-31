@@ -6,7 +6,7 @@ import '../core/theme.dart';
 import '../core/theme/bu_sizes.dart';
 import '../core/typography.dart';
 import 'academic_pickers.dart';
-import 'bu_widgets.dart';
+import '../core/icons/bu_icons.dart';
 
 /// Fakülte, bölüm ve sınıf seçimi. Fakülte/bölüm adları serbest metin olabilir (katalogda olmayan eski kayıtlar
 /// olduğu gibi gösterilir). Değişiklikler [onChanged] ile bildirilir; durum üst widget'ta tutulur.
@@ -187,7 +187,7 @@ class _SelectBox extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 8),
-                Icon(LucideIcons.chevronDown, size: 16, color: t.mut),
+                Icon(BuIcons.chevronDown, size: 16, color: t.mut),
               ],
             ),
           ),
@@ -209,7 +209,7 @@ class _FacultyInfo extends StatelessWidget {
       padding: const EdgeInsets.only(top: 8, left: 4, right: 4),
       child: Row(
         children: [
-          Icon(LucideIcons.building2, size: 12.5, color: t.mut),
+          Icon(BuIcons.building2, size: 14, color: t.mut),
           const SizedBox(width: 6),
           Expanded(child: Text(name, style: BuType.caption.copyWith(color: t.mut))),
         ],

@@ -23,10 +23,17 @@ void _ok(WidgetTester tester) {
   if (e != null) fail('$e');
 }
 
-FakeBackend _news({bool maintenance = false, bool images = true}) => FakeBackend()
+/// Bugunun tarihi + sabit saat: "Son guncelleme" yalniz saat olarak gorunur (tarih bugun degilse "31 Ekim 14:32" biciminde).
+String _todayAt1432() {
+  final n = DateTime.now();
+  String two(int v) => v.toString().padLeft(2, '0');
+  return '${n.year}-${two(n.month)}-${two(n.day)}T14:32:00';
+}
+
+FakeBackend _news({bool maintenance = false, bool images = true, String? lastSuccessAt}) => FakeBackend()
   ..on('/news', newsPage([for (var i = 1; i <= 4; i++) newsItem(i, title: 'Kampüs genelinde ulaşım düzenlemesi yapıldı $i', imageUrl: images ? 'https://img.invalid/n$i.jpg' : null)]))
   ..on('/status', {
-    'NEWS': {'maintenance': maintenance, 'lastSuccessAt': '2026-10-31T14:32:00'},
+    'NEWS': {'maintenance': maintenance, 'lastSuccessAt': lastSuccessAt ?? _todayAt1432()},
     'MENU': {'maintenance': false},
   })
   ..on('/bookmarks/news/ids', {'ids': []});
@@ -101,13 +108,21 @@ void main() {
       await unmount(tester);
     });
 
+    testWidgets('bakım bandı: son güncelleme başka günse "31 Ekim 14:32" biçiminde (gün + ay + saat)', (tester) async {
+      useScreen(tester, kPhoneMedium);
+      await tester.pumpWidget(buildApp(NewsListPage(session: makeSession(_news(maintenance: true, lastSuccessAt: '2020-10-31T14:32:00'))), size: kPhoneMedium));
+      await settle(tester);
+      expect(find.text('Son güncelleme: 31 Ekim 14:32'), findsOneWidget);
+      await unmount(tester);
+    });
+
     testWidgets('hata: soluk tek cümle + marka metin düğmesi (simge yok)', (tester) async {
       useScreen(tester, kPhoneMedium);
       await tester.pumpWidget(buildApp(NewsListPage(session: makeSession(_news()..fail('/news'))), size: kPhoneMedium));
       await settle(tester, const Duration(seconds: 3));
       expect(find.text('Yüklenemedi, tekrar dene'), findsOneWidget);
       expect(find.text('Yeniden dene'), findsOneWidget);
-      expect(find.byIcon(LucideIcons.cloudOff), findsNothing);
+      expect(find.byIcon(BuIcons.cloudOff), findsNothing);
       await unmount(tester);
     });
 
@@ -169,8 +184,8 @@ void main() {
       await settle(tester);
       expect(find.text('ETKİNLİK'), findsOneWidget);
       expect(find.text('Etkinlik tarihi: 14 Kasım 2026'), findsOneWidget);
-      expect(find.byIcon(LucideIcons.calendar), findsNothing);
-      expect(find.byIcon(LucideIcons.info), findsNothing);
+      expect(find.byIcon(BuIcons.calendar), findsNothing);
+      expect(find.byIcon(BuIcons.info), findsNothing);
       expect(find.byType(BuCard), findsNothing);
       _ok(tester);
       await unmount(tester);
@@ -259,7 +274,7 @@ void main() {
       expect(find.text('Tümü'), findsOneWidget);
       expect(find.text('Gönderi'), findsOneWidget);
       expect(find.textContaining('en az 2 karakter yazın'), findsOneWidget);
-      expect(find.byIcon(LucideIcons.info), findsNothing);
+      expect(find.byIcon(BuIcons.info), findsNothing);
       _ok(tester);
       await unmount(tester);
     });

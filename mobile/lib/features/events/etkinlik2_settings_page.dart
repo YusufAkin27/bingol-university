@@ -208,7 +208,7 @@ class _Etkinlik2SettingsPageState extends State<Etkinlik2SettingsPage> {
                   child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
                     Padding(
                       padding: const EdgeInsets.only(top: 2),
-                      child: ExcludeSemantics(child: Icon(LucideIcons.circleAlert, size: 18, color: t.danger)),
+                      child: ExcludeSemantics(child: Icon(BuIcons.circleAlert, size: 18, color: t.danger)),
                     ),
                     const SizedBox(width: 8),
                     Expanded(child: Text(_error!, style: tx.bodyMedium!.copyWith(color: t.danger, fontWeight: FontWeight.w600))),
@@ -218,7 +218,7 @@ class _Etkinlik2SettingsPageState extends State<Etkinlik2SettingsPage> {
             BuButton(
               key: const ValueKey('et2-settings-save'),
               label: l.eventFormSave,
-              icon: LucideIcons.save,
+              icon: BuIcons.save,
               busy: _busy,
               onPressed: _busy ? null : _save,
             ),
@@ -239,7 +239,7 @@ class _Etkinlik2SettingsPageState extends State<Etkinlik2SettingsPage> {
                       height: 64,
                       child: cover != null
                           ? EventCoverImage(url: cover, cacheWidth: 200)
-                          : ColoredBox(color: t.soft, child: Icon(LucideIcons.calendarDays, size: 28, color: t.pr)),
+                          : ColoredBox(color: t.soft, child: Icon(BuIcons.calendarDays, size: 28, color: t.pr)),
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -249,7 +249,7 @@ class _Etkinlik2SettingsPageState extends State<Etkinlik2SettingsPage> {
                           maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.titleMedium!.copyWith(fontWeight: FontWeight.w700, color: t.ink)),
                       const SizedBox(height: 4),
                       Row(children: [
-                        ExcludeSemantics(child: Icon(LucideIcons.users, size: 14, color: t.mut)),
+                        ExcludeSemantics(child: Icon(BuIcons.users, size: 14, color: t.mut)),
                         const SizedBox(width: 6),
                         Expanded(child: Text(l.p16SetApproved('$_going'), maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.bodySmall!.copyWith(color: t.mut))),
                       ]),
@@ -262,7 +262,7 @@ class _Etkinlik2SettingsPageState extends State<Etkinlik2SettingsPage> {
                 selected: !approval,
                 title: l.etkinlik2PolicyOpen,
                 sub: l.p16SetOpenSub,
-                icon: LucideIcons.globe,
+                icon: BuIcons.globe,
                 keyName: 'et2-policy-open',
                 onTap: () => setState(() => _policy = 'OPEN'),
               ),
@@ -271,7 +271,7 @@ class _Etkinlik2SettingsPageState extends State<Etkinlik2SettingsPage> {
                 selected: approval,
                 title: l.etkinlik2PolicyApprovalTag,
                 sub: l.p16SetApprovalSub,
-                icon: LucideIcons.shieldCheck,
+                icon: BuIcons.shieldCheck,
                 keyName: 'et2-policy-approval',
                 onTap: () => setState(() => _policy = 'APPROVAL'),
               ),
@@ -317,9 +317,9 @@ class _Etkinlik2SettingsPageState extends State<Etkinlik2SettingsPage> {
                           ),
                         ),
                       ),
-                      _StepButton(icon: LucideIcons.minus, label: l.p16SetCapDec, onTap: _busy ? null : () => _bump(-1)),
+                      _StepButton(icon: BuIcons.minus, label: l.p16SetCapDec, onTap: _busy ? null : () => _bump(-1)),
                       const SizedBox(width: 2),
-                      _StepButton(icon: LucideIcons.plus, label: l.p16SetCapInc, onTap: _busy ? null : () => _bump(1)),
+                      _StepButton(icon: BuIcons.plus, label: l.p16SetCapInc, onTap: _busy ? null : () => _bump(1)),
                     ]),
                   ),
                   if (capErr != null) ...[
@@ -336,7 +336,7 @@ class _Etkinlik2SettingsPageState extends State<Etkinlik2SettingsPage> {
                               width: 20,
                               height: 20,
                               decoration: BoxDecoration(color: t.danger, shape: BoxShape.circle),
-                              child: Icon(LucideIcons.info, size: 13, color: t.onPr),
+                              child: Icon(BuIcons.info, size: 14, color: t.onPr),
                             ),
                           ),
                           const SizedBox(width: 8),
@@ -357,7 +357,7 @@ class _Etkinlik2SettingsPageState extends State<Etkinlik2SettingsPage> {
                 radius: 20,
                 child: Column(children: [
                   _switchRow(
-                    icon: LucideIcons.userCheck,
+                    icon: BuIcons.userCheck,
                     title: l.etkinlik2SettingsRegOpen,
                     sub: l.etkinlik2SettingsRegHint,
                     value: _regOpen,
@@ -366,7 +366,7 @@ class _Etkinlik2SettingsPageState extends State<Etkinlik2SettingsPage> {
                   ),
                   Divider(height: 1, color: t.bd),
                   _switchRow(
-                    icon: LucideIcons.messageSquare,
+                    icon: BuIcons.messageSquare,
                     title: l.etkinlik2SettingsChatOpen,
                     sub: l.etkinlik2SettingsChatHint,
                     value: _chatOpen,
@@ -391,7 +391,7 @@ class _Etkinlik2SettingsPageState extends State<Etkinlik2SettingsPage> {
                         width: 40,
                         height: 40,
                         decoration: BoxDecoration(color: t.danger.withValues(alpha: .12), borderRadius: BorderRadius.circular(BuRadius.xs + 4)),
-                        child: Icon(LucideIcons.triangleAlert, size: 22, color: t.danger),
+                        child: Icon(BuIcons.triangleAlert, size: 22, color: t.danger),
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -579,7 +579,7 @@ class _CancelDialog extends StatelessWidget {
               width: 56,
               height: 56,
               decoration: BoxDecoration(color: t.danger.withValues(alpha: .12), shape: BoxShape.circle),
-              child: Icon(LucideIcons.triangleAlert, size: 28, color: t.danger),
+              child: Icon(BuIcons.triangleAlert, size: 28, color: t.danger),
             ),
           ),
           const SizedBox(height: 14),
@@ -605,7 +605,7 @@ class _CancelDialog extends StatelessWidget {
               child: BuButton(
                 key: const ValueKey('et2-cancel-yes'),
                 label: confirmLabel,
-                icon: LucideIcons.trash2,
+                icon: BuIcons.trash2,
                 kind: BuButtonKind.danger,
                 onPressed: () => Navigator.pop(context, true),
               ),

@@ -217,7 +217,7 @@ class _RegisterPageState extends State<RegisterPage> {
               }),
             ),
             const SizedBox(height: 20),
-            RefNote(l.authTrustAcademic, icon: LucideIcons.info),
+            RefNote(l.authTrustAcademic, icon: BuIcons.info),
           ],
         );
       case 1:
@@ -227,7 +227,7 @@ class _RegisterPageState extends State<RegisterPage> {
             RefTextField(
               controller: _name,
               label: l.authNameHint,
-              icon: LucideIcons.user,
+              icon: BuIcons.user,
               textCapitalization: TextCapitalization.words,
               autofillHints: const [AutofillHints.name],
               maxLength: 80,
@@ -245,7 +245,7 @@ class _RegisterPageState extends State<RegisterPage> {
               onSubmitted: _next,
             ),
             const SizedBox(height: 20),
-            RefNote(l.authTrustName, icon: LucideIcons.info),
+            RefNote(l.authTrustName, icon: BuIcons.info),
           ],
         );
       default:

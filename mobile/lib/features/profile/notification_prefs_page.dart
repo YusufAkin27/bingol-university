@@ -346,7 +346,7 @@ class _NotificationPrefsGroupState extends State<NotificationPrefsGroup> with Wi
     );
   }
 
-  Widget _chevron() => Icon(buDirIcon(context, LucideIcons.chevronRight), size: 20, color: context.bu.mut);
+  Widget _chevron() => Icon(buDirIcon(context, BuIcons.chevronRight), size: 20, color: context.bu.mut);
 
   Widget _pushCard() {
     final l = context.l10n;
@@ -433,7 +433,7 @@ class _NotificationPrefsGroupState extends State<NotificationPrefsGroup> with Wi
         child: Semantics(
           button: true,
           container: true,
-          child: _PrefRow(title: l.p20PrefLoadFail, sub: l.p20PrefTapRetry, onTap: _store.load, trailing: Icon(LucideIcons.rotateCw, size: 20, color: t.mut)),
+          child: _PrefRow(title: l.p20PrefLoadFail, sub: l.p20PrefTapRetry, onTap: _store.load, trailing: Icon(BuIcons.rotateCw, size: 20, color: t.mut)),
         ),
       ));
     } else if (prefs == null) {
@@ -753,7 +753,7 @@ class _QuietHoursPageState extends State<_QuietHoursPage> {
           trailing: Row(mainAxisSize: MainAxisSize.min, children: [
             Text(value, style: time),
             const SizedBox(width: 6),
-            Icon(buDirIcon(context, LucideIcons.chevronRight), size: 20, color: t.mut),
+            Icon(buDirIcon(context, BuIcons.chevronRight), size: 20, color: t.mut),
           ]),
         );
     return Scaffold(

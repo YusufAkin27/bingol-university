@@ -116,9 +116,9 @@ void main() {
       await _show(tester, const Scaffold(body: SingleChildScrollView(child: MenuMealCard(day: day, time: '11:30–14:00'))));
       expect(find.text('Öğle yemeği'), findsOneWidget);
       expect(find.text('11:30–14:00'), findsOneWidget);
-      expect(find.byIcon(LucideIcons.utensils), findsNothing);
-      expect(find.byIcon(LucideIcons.clock), findsNothing);
-      expect(find.byIcon(LucideIcons.info), findsNothing);
+      expect(find.byIcon(BuIcons.utensils), findsNothing);
+      expect(find.byIcon(BuIcons.clock), findsNothing);
+      expect(find.byIcon(BuIcons.info), findsNothing);
       expect(find.byIcon(LucideIcons.flame), findsNothing);
       expect(find.text('–'), findsOneWidget);
       expect(find.text('150 kcal'), findsOneWidget);
@@ -158,7 +158,7 @@ void main() {
       await _show(tester, MenuPage(session: makeSession(b)));
       expect(find.text('Yemek listesi yok.'), findsOneWidget);
       expect(find.byType(BuButton), findsNothing);
-      expect(find.byIcon(LucideIcons.utensils), findsNothing);
+      expect(find.byIcon(BuIcons.utensils), findsNothing);
       expect(tester.takeException(), isNull);
     });
 
@@ -191,8 +191,8 @@ void main() {
       // Ağaçta kalır, okunanlar ölçeksiz. Eski MESSAGE satırı (id 4) istemcide gizlenir: 3 satır.
       expect(find.byKey(const ValueKey('notif-unread-dot')), findsNWidgets(3));
       expect(find.text('Mehmet Kaya mesaj gönderdi'), findsNothing);
-      expect(find.byIcon(LucideIcons.megaphone), findsNothing);
-      expect(find.byIcon(LucideIcons.checkCheck), findsNothing);
+      expect(find.byIcon(BuIcons.megaphone), findsNothing);
+      expect(find.byIcon(BuIcons.checkCheck), findsNothing);
       expect(find.byType(BuCard), findsNothing);
       expect(find.textContaining(' yeni'), findsNothing);
       expect(tester.takeException(), isNull);
@@ -224,7 +224,7 @@ void main() {
       await _show(tester, NotificationsPage(session: makeSession(b)));
       expect(find.text('Yüklenemedi, tekrar dene'), findsOneWidget);
       expect(find.text('Yeniden dene'), findsOneWidget);
-      expect(find.byIcon(LucideIcons.wifiOff), findsNothing);
+      expect(find.byIcon(BuIcons.wifiOff), findsNothing);
     });
 
     testWidgets('bos durum: kart/illustrasyon yok; Okunmamis cipinde ayri cumle', (tester) async {
@@ -262,10 +262,10 @@ void main() {
 
     testWidgets('satirlarda simge yok; anahtarlar 48 x 28 ve tek sutunda hizali', (tester) async {
       await _show(tester, NotificationPrefsPage(session: makeSession(be())), size: const Size(390, 1500));
-      expect(find.byIcon(LucideIcons.newspaper), findsNothing);
-      expect(find.byIcon(LucideIcons.megaphone), findsNothing);
+      expect(find.byIcon(BuIcons.newspaper), findsNothing);
+      expect(find.byIcon(BuIcons.megaphone), findsNothing);
       expect(find.byIcon(LucideIcons.moon), findsNothing);
-      expect(find.byIcon(LucideIcons.alarmClock), findsNothing);
+      expect(find.byIcon(BuIcons.alarmClock), findsNothing);
       final boxes = [
         for (final e in find.byType(Switch).evaluate())
           tester.getRect(find.ancestor(of: find.byWidget(e.widget), matching: find.byType(SizedBox)).first)
@@ -286,7 +286,7 @@ void main() {
       await tester.tap(find.text('Ayrıntılı tercihler'));
       await settle(tester);
       expect(find.text('Ayrıntılı tercihler'), findsOneWidget);
-      expect(find.byIcon(LucideIcons.slidersHorizontal), findsNothing);
+      expect(find.byIcon(BuIcons.slidersHorizontal), findsNothing);
       expect(find.text('Devre dışı'), findsNothing);
       expect(find.text('Kişisel mesajlar'), findsOneWidget);
       expect(find.byType(Switch), findsNWidgets(3 + 8)); // 3 ana anahtar + 8 alt anahtar

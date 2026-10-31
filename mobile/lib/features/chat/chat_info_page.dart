@@ -294,11 +294,11 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
   Future<void> _leave() async {
     final l = context.l10n;
     if (!await showChatInfoConfirm(context,
-        icon: LucideIcons.logOut,
+        icon: BuIcons.logOut,
         title: l.chatInfoLeaveTitle,
         body: l.chatInfoLeaveBody,
         confirmLabel: l.chatInfoLeave,
-        confirmIcon: LucideIcons.logOut,
+        confirmIcon: BuIcons.logOut,
         layout: ChatConfirmLayout.iconBeside,
         cancelLabel: l.chatInfoCancel)) {
       return;
@@ -324,7 +324,7 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
         _toast(l.chatInfoUnblocked);
       } else {
         if (!await showChatInfoConfirm(context,
-            icon: LucideIcons.ban,
+            icon: BuIcons.ban,
             title: l.chatInfoBlockTitle,
             body: l.chatInfoBlockBody,
             confirmLabel: l.chatInfoBlock,
@@ -353,12 +353,12 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
     final l = context.l10n;
     final name = (m['displayName'] as String?) ?? l.chatInfoUser;
     if (!await showChatInfoConfirm(context,
-        icon: LucideIcons.userMinus,
+        icon: BuIcons.userMinus,
         title: l.chatInfoRemoveMemberTitle,
         body: l.chatInfoRemoveMemberBody(name),
         bold: name,
         confirmLabel: l.chatInfoRemove,
-        confirmIcon: LucideIcons.trash2,
+        confirmIcon: BuIcons.trash2,
         cancelLabel: l.chatInfoCancel)) {
       return false;
     }
@@ -549,17 +549,17 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
     return ChatInfoQuickRow(dense: dense, actions: [
       ChatInfoQuickAction(
           dense: dense,
-          icon: LucideIcons.search,
+          icon: BuIcons.search,
           label: l.chatInfoSearch,
           onTap: () => Navigator.pop(context, 'search')),
       ChatInfoQuickAction(
           dense: dense,
-          icon: _muted ? LucideIcons.bell : LucideIcons.bellOff,
+          icon: _muted ? BuIcons.bell : BuIcons.bellOff,
           label: _muted ? l.chatInfoUnmute : l.chatInfoMute,
           onTap: _toggleMute),
       ChatInfoQuickAction(
           dense: dense,
-          icon: archived ? LucideIcons.archiveRestore : LucideIcons.archive,
+          icon: archived ? BuIcons.archiveRestore : BuIcons.archive,
           label: archived ? l.chatInfoUnarchive : l.chatInfoArchive,
           onTap: _toggleArchive),
     ]);
@@ -608,7 +608,7 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
                         color: t.danger,
                         shape: BoxShape.circle,
                         boxShadow: BuElevation.of(context, 2)),
-                    child: Icon(LucideIcons.camera, size: 18, color: t.onPr),
+                    child: Icon(BuIcons.camera, size: 18, color: t.onPr),
                   ),
                 ),
               ),
@@ -661,11 +661,11 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
       ChatInfoRows(children: [
         if (_peerId != null)
           ChatInfoRow(
-              icon: LucideIcons.idCard,
+              icon: BuIcons.idCard,
               label: l.chatInfoViewProfile,
               onTap: () => _openProfile({'userId': _peerId, 'displayName': _title, 'avatarUrl': _peer?['avatarUrl']})),
         ChatInfoRow(
-            icon: _muted ? LucideIcons.bellOff : LucideIcons.bell,
+            icon: _muted ? BuIcons.bellOff : BuIcons.bell,
             label: l.chatInfoMuteNotifications,
             // Kısa "Açık" sağda, uzun "Sessiz · 8 saat sonra açılır" alt satırda.
             value: _muted ? null : _muteStatus(),
@@ -676,12 +676,12 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
       const SizedBox(height: 24),
       ChatInfoRows(children: [
         ChatInfoRow(
-            icon: LucideIcons.ban,
+            icon: BuIcons.ban,
             label: _blocked ? l.chatInfoUnblock : l.chatInfoBlock,
             danger: true,
             chevron: false,
             onTap: _toggleBlock),
-        ChatInfoRow(icon: LucideIcons.octagonAlert, label: l.chatInfoReportUser, danger: true, chevron: false, onTap: _report),
+        ChatInfoRow(icon: BuIcons.octagonAlert, label: l.chatInfoReportUser, danger: true, chevron: false, onTap: _report),
       ]),
     ];
   }
@@ -711,7 +711,7 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
                   tooltip: l.chatInfoEditName,
                   padding: EdgeInsets.zero,
                   onPressed: _rename,
-                  icon: Icon(LucideIcons.pencil, size: 20, color: t.mut),
+                  icon: Icon(BuIcons.pencil, size: 20, color: t.mut),
                 ),
               ),
           ]),
@@ -729,7 +729,7 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
           ChatInfoCard(
             child: ChatInfoRow(
               key: const ValueKey('info-add-member'),
-              icon: LucideIcons.userPlus,
+              icon: BuIcons.userPlus,
               label: l.sohbetyAddMember,
               soft: true,
               dotSize: 44,
@@ -745,7 +745,7 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
           ChatInfoCard(
             padding: const EdgeInsets.all(4),
             child: ChatInfoRow(
-              icon: LucideIcons.logOut,
+              icon: BuIcons.logOut,
               label: l.chatInfoLeaveChat,
               danger: true,
               chevronDanger: true,
@@ -798,7 +798,7 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
                   width: 80,
                   height: 80,
                   decoration: BoxDecoration(color: club ? t.ink : t.pr, borderRadius: BuRadius.bMd),
-                  child: Icon(club ? LucideIcons.users : LucideIcons.calendarDays, size: 40, color: club ? t.bg : t.onPr),
+                  child: Icon(club ? BuIcons.users : BuIcons.calendarDays, size: 40, color: club ? t.bg : t.onPr),
                 ),
         ),
         if (!club && _closed)
@@ -808,7 +808,7 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
             child: Container(
               padding: const EdgeInsets.all(4),
               decoration: BoxDecoration(color: t.sf, shape: BoxShape.circle, boxShadow: BuElevation.of(context, 1)),
-              child: Icon(LucideIcons.lock, size: 14, color: t.mut),
+              child: Icon(BuIcons.lock, size: 14, color: t.mut),
             ),
           ),
       ]),
@@ -840,7 +840,7 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
                 width: 40,
                 height: 40,
                 decoration: BoxDecoration(color: t.bd, borderRadius: BuRadius.bXs),
-                child: Icon(LucideIcons.lockKeyhole, size: 22, color: t.ink),
+                child: Icon(BuIcons.lockKeyhole, size: 22, color: t.ink),
               ),
               const SizedBox(width: 16),
               Expanded(
@@ -878,7 +878,7 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
                 width: 36,
                 height: 36,
                 decoration: BoxDecoration(color: t.sf, borderRadius: BuRadius.bXs),
-                child: Icon(club ? LucideIcons.users : LucideIcons.calendarDays, size: 20, color: club ? t.ink : t.pr),
+                child: Icon(club ? BuIcons.users : BuIcons.calendarDays, size: 20, color: club ? t.ink : t.pr),
               ),
               const SizedBox(width: 16),
               Expanded(
@@ -887,7 +887,7 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
                   if (club) Text(l.p09ClubPageSub, style: chatInfoBody12(context)),
                 ]),
               ),
-              Icon(buDirIcon(context, LucideIcons.chevronRight), size: 20, color: t.mut),
+              Icon(buDirIcon(context, BuIcons.chevronRight), size: 20, color: t.mut),
             ]),
           ),
         ),

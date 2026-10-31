@@ -57,7 +57,7 @@ class StarRating extends StatelessWidget {
                   scale: value == i && onChanged != null ? 1.16 : 1,
                   duration: d,
                   curve: Curves.easeOutBack,
-                  child: Icon((value ?? 0) >= i ? Icons.star_rounded : Icons.star_outline_rounded,
+                  child: Icon((value ?? 0) >= i ? BuIcons.starFilled : BuIcons.star,
                       size: size + 4,
                       color: (value ?? 0) >= i ? gold : (inactiveColor ?? t.mut.withValues(alpha: .5))),
                 ),
@@ -146,7 +146,7 @@ class ResultBar extends StatelessWidget {
                 Expanded(
                   child: mine
                       ? Row(children: [
-                          ExcludeSemantics(child: Icon(Icons.check_circle_rounded, size: 14, color: t.pr)),
+                          ExcludeSemantics(child: Icon(BuIcons.circleCheckFilled, size: 14, color: t.pr)),
                           const SizedBox(width: 4),
                           Flexible(child: Text(l.p68MyVote, maxLines: 1, overflow: TextOverflow.ellipsis, style: small.copyWith(color: t.pr, fontWeight: FontWeight.w500))),
                         ])
@@ -166,17 +166,17 @@ class ResultBar extends StatelessWidget {
 ({String label, AnketTone tone, IconData icon}) pollScopeOf(BuildContext context, Poll p) {
   final l = context.l10n;
   return switch (p.scope.toUpperCase()) {
-    'COMMUNITY' => (label: l.anketScopeClub, tone: AnketTone.club(context), icon: LucideIcons.users),
-    'MENU' => (label: l.anketScopeMenu, tone: AnketTone.meal(context), icon: LucideIcons.utensils),
-    _ => (label: l.anketScopeGlobal, tone: AnketTone.general(context), icon: LucideIcons.landmark),
+    'COMMUNITY' => (label: l.anketScopeClub, tone: AnketTone.club(context), icon: BuIcons.users),
+    'MENU' => (label: l.anketScopeMenu, tone: AnketTone.meal(context), icon: BuIcons.utensils),
+    _ => (label: l.anketScopeGlobal, tone: AnketTone.general(context), icon: BuIcons.landmark),
   };
 }
 
 IconData pollTypeIcon(PollType t) => switch (t) {
-      PollType.single => LucideIcons.circleDot,
-      PollType.multi => LucideIcons.listChecks,
-      PollType.rating => LucideIcons.star,
-      PollType.ranked => LucideIcons.listOrdered,
+      PollType.single => BuIcons.circleDot,
+      PollType.multi => BuIcons.listChecks,
+      PollType.rating => BuIcons.star,
+      PollType.ranked => BuIcons.listOrdered,
     };
 
 /// Kalan süre; bitiş yoksa/geçmişse null.
@@ -254,7 +254,7 @@ class PollCard extends StatelessWidget {
                 const SizedBox(height: 4),
                 if (votedMark)
                   Row(mainAxisSize: MainAxisSize.min, children: [
-                    ExcludeSemantics(child: Icon(LucideIcons.circleCheck, size: 16, color: t.ok)),
+                    ExcludeSemantics(child: Icon(BuIcons.circleCheck, size: 16, color: t.ok)),
                     const SizedBox(width: 4),
                     Text(l.pollVotedBadge, maxLines: 1, style: small.copyWith(color: t.ok, fontWeight: FontWeight.w600)),
                   ]),

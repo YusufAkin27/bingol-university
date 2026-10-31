@@ -61,7 +61,7 @@ class MessageRequestsEntry extends StatelessWidget {
       padding: const EdgeInsets.only(top: 4),
       child: RequestsEntryRow(
         key: const ValueKey('message-requests-entry'),
-        icon: LucideIcons.inbox,
+        icon: BuIcons.inbox,
         label: context.l10n.frqMsgReqRow('$count'),
         onTap: onTap,
       ),
@@ -167,7 +167,7 @@ class _MessageRequestsPageState extends State<MessageRequestsPage> {
         message: l.frqMsgReqDeclineGroupBody,
         confirmLabel: l.frqMsgReqDeclineGroupConfirm,
         destructive: true,
-        icon: LucideIcons.logOut,
+        icon: BuIcons.logOut,
       );
       if (!ok || !mounted) return;
     }
@@ -213,7 +213,7 @@ class _MessageRequestsPageState extends State<MessageRequestsPage> {
     } else if (_error != null && _items.isEmpty) {
       body = FollowStatusCard(
         error: true,
-        icon: LucideIcons.wifiOff,
+        icon: BuIcons.wifiOff,
         title: l.p18FollowErrorTitle,
         message: errorText(_error!),
         onRetry: _load,
@@ -221,7 +221,7 @@ class _MessageRequestsPageState extends State<MessageRequestsPage> {
     } else if (_items.isEmpty) {
       body = FollowStatusCard(
         key: const ValueKey('message-requests-empty'),
-        icon: LucideIcons.inbox,
+        icon: BuIcons.inbox,
         title: l.frqMsgReqEmpty,
       );
     } else {

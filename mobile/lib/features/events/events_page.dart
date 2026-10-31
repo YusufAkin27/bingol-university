@@ -483,7 +483,7 @@ class _EventsPageState extends State<EventsPage> {
       message: context.l10n.eventListLeaveMsg,
       confirmLabel: context.l10n.eventListLeave,
       danger: true,
-      icon: LucideIcons.calendarX,
+      icon: BuIcons.calendarX,
     );
     if (!ok || !mounted) return;
     try {
@@ -528,7 +528,7 @@ class _EventsPageState extends State<EventsPage> {
             message: context.l10n.eventListCancelMsg,
             confirmLabel: context.l10n.eventListCancelConfirm,
             danger: true,
-            icon: LucideIcons.triangleAlert,
+            icon: BuIcons.triangleAlert,
             centered: true,
           );
           if (!ok || !mounted) return;
@@ -698,7 +698,7 @@ class _EventsPageState extends State<EventsPage> {
       padding: EdgeInsetsDirectional.fromSTEB(canPop ? 12 : 20, top, 12, 0),
       child: Row(children: [
         if (canPop) ...[
-          ClubBarIcon(icon: LucideIcons.arrowLeft, tooltip: l.commonBack, onTap: () => Navigator.maybePop(context), width: 40),
+          ClubBarIcon(icon: BuIcons.arrowLeft, tooltip: l.commonBack, onTap: () => Navigator.maybePop(context), width: 40),
           const SizedBox(width: 5),
         ],
         Expanded(
@@ -717,7 +717,7 @@ class _EventsPageState extends State<EventsPage> {
           },
           child: Text(l.eventListCheckin, style: tx.bodyLarge!.copyWith(color: t.pr, fontWeight: FontWeight.w600)),
         ),
-        ClubBarIcon(key: const ValueKey('events-create'), icon: LucideIcons.plus, tooltip: l.eventListCreate, onTap: _create, width: 44),
+        ClubBarIcon(key: const ValueKey('events-create'), icon: BuIcons.plus, tooltip: l.eventListCreate, onTap: _create, width: 44),
       ]),
     );
   }
@@ -872,13 +872,13 @@ class _EventsPageState extends State<EventsPage> {
                 child: Text(l.p14Today, style: tx.bodyLarge!.copyWith(color: t.pr, fontWeight: FontWeight.w600)),
               ),
             ClubBarIcon(
-              icon: LucideIcons.chevronLeft,
+              icon: BuIcons.chevronLeft,
               tooltip: l.eventListPrevMonth,
               width: 36,
               color: t.ink,
               onTap: _month.isBefore(DateTime(_today.year - 1, _today.month)) ? null : () => _goMonth(-1),
             ),
-            ClubBarIcon(icon: LucideIcons.chevronRight, tooltip: l.eventListNextMonth, width: 36, color: t.ink, onTap: () => _goMonth(1)),
+            ClubBarIcon(icon: BuIcons.chevronRight, tooltip: l.eventListNextMonth, width: 36, color: t.ink, onTap: () => _goMonth(1)),
           ]),
         ),
         Padding(
@@ -1197,12 +1197,12 @@ class _EventsPageState extends State<EventsPage> {
     Widget goingText() => Row(mainAxisSize: MainAxisSize.min, children: [
           Flexible(child: statusText(l.p51EvGoingYou)),
           const SizedBox(width: 4),
-          ExcludeSemantics(child: Icon(LucideIcons.check, size: 16, color: t.mut)),
+          ExcludeSemantics(child: Icon(BuIcons.check, size: 16, color: t.mut)),
         ]);
     Widget menu(List<PopupMenuEntry<String>> Function() items, void Function(String) onSel) => PopupMenuButton<String>(
           tooltip: l.eventListOptions,
           padding: EdgeInsets.zero,
-          icon: Icon(LucideIcons.ellipsisVertical, size: 22, color: t.mut),
+          icon: Icon(BuIcons.ellipsisVertical, size: 22, color: t.mut),
           onSelected: onSel,
           itemBuilder: (_) => items(),
         );
@@ -1211,7 +1211,7 @@ class _EventsPageState extends State<EventsPage> {
     switch (mode) {
       case _Mode.discover:
         if (official) {
-          trailing = Icon(buDirIcon(context, LucideIcons.chevronRight), size: 18, color: t.mut);
+          trailing = Icon(buDirIcon(context, BuIcons.chevronRight), size: 18, color: t.mut);
         } else if (cancelled) {
           trailing = statusText(l.eventListCancelled, color: t.danger, w: FontWeight.w600);
         } else if (my == 'GOING') {
@@ -1234,7 +1234,7 @@ class _EventsPageState extends State<EventsPage> {
                   () => [
                     PopupMenuItem(
                         value: 'leave',
-                        child: Row(children: [Icon(LucideIcons.logOut, size: 18, color: t.danger), const SizedBox(width: 10), Text(l.eventListLeaveTitle)])),
+                        child: Row(children: [Icon(BuIcons.logOut, size: 18, color: t.danger), const SizedBox(width: 10), Text(l.eventListLeaveTitle)])),
                   ],
                   (_) => _leave(ev),
                 ),
@@ -1265,11 +1265,11 @@ class _EventsPageState extends State<EventsPage> {
               () => [
                 PopupMenuItem(
                     value: 'edit',
-                    child: Row(children: [Icon(LucideIcons.pencil, size: 18, color: t.ink), const SizedBox(width: 12), Text(l.eventListEdit)])),
+                    child: Row(children: [Icon(BuIcons.pencil, size: 18, color: t.ink), const SizedBox(width: 12), Text(l.eventListEdit)])),
                 PopupMenuItem(
                     value: closed ? 'reopen' : 'close',
                     child: Row(children: [
-                      Icon(closed ? LucideIcons.lockOpen : LucideIcons.lock, size: 18, color: t.ink),
+                      Icon(closed ? BuIcons.lockOpen : BuIcons.lock, size: 18, color: t.ink),
                       const SizedBox(width: 12),
                       Text(closed ? l.eventListReopen : l.eventListClose),
                     ])),
@@ -1277,7 +1277,7 @@ class _EventsPageState extends State<EventsPage> {
                 PopupMenuItem(
                     value: 'cancel',
                     child: Row(children: [
-                      Icon(LucideIcons.circleX, size: 18, color: t.danger),
+                      Icon(BuIcons.circleX, size: 18, color: t.danger),
                       const SizedBox(width: 12),
                       Text(l.eventListCancelConfirm, style: TextStyle(color: t.danger, fontWeight: FontWeight.w600)),
                     ])),

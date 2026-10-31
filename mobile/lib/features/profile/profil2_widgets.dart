@@ -137,7 +137,7 @@ class P2Pill extends StatelessWidget {
 
 /// Kırmızı zeminli hata kartı: simge + bir ya da birden çok satır. [bullets] true: satırlar madde işaretli.
 class P2NoticeCard extends StatelessWidget {
-  const P2NoticeCard({super.key, required this.lines, this.title, this.icon = LucideIcons.circleAlert, this.bullets = false, this.compact = false});
+  const P2NoticeCard({super.key, required this.lines, this.title, this.icon = BuIcons.circleAlert, this.bullets = false, this.compact = false});
 
   final List<String> lines;
   final String? title;
@@ -316,7 +316,7 @@ class P2LinkRow extends StatelessWidget {
               Text(value!, style: tx.bodyMedium!.copyWith(fontWeight: FontWeight.w600, color: t.mut)),
             ],
             const SizedBox(width: 8),
-            ExcludeSemantics(child: Icon(buDirIcon(context, LucideIcons.chevronRight), size: 18, color: danger ? t.danger : t.mut)),
+            ExcludeSemantics(child: Icon(buDirIcon(context, BuIcons.chevronRight), size: 18, color: danger ? t.danger : t.mut)),
           ]),
         ),
       ),

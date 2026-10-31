@@ -5,7 +5,6 @@ import 'dart:io';
 import 'dart:ui' as ui;
 
 import 'package:bu_kampus/core/theme.dart';
-import 'package:bu_kampus/widgets/bu.dart' show LucideIcons;
 import 'package:bu_kampus/features/support/support_feedback_page.dart';
 import 'package:bu_kampus/features/support/support_new_ticket_page.dart';
 import 'package:bu_kampus/features/support/support_suggestions_page.dart';
@@ -19,6 +18,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../support/fake_app.dart';
+import 'package:bu_kampus/core/icons/bu_icons.dart';
 
 /// K8 Destek (tasarim 34) ekran goruntusu panosu. Varsayilan `flutter test` ile CALISMAZ.
 ///
@@ -151,7 +151,7 @@ final _shots = <_Shot>[
   _Shot('34-06_kapat_diyalog', (b) => _thread(b), (b) => SupportTicketPage(session: makeSession(b), ticketId: 5), h: 844, act: (t) async {
     await t.tap(find.byType(PopupMenuButton<String>));
     await settle(t, const Duration(milliseconds: 900));
-    await t.tap(find.descendant(of: find.byType(PopupMenuItem<String>), matching: find.byIcon(LucideIcons.lock)).first, warnIfMissed: false);
+    await t.tap(find.descendant(of: find.byType(PopupMenuItem<String>), matching: find.byIcon(BuIcons.lock)).first, warnIfMissed: false);
     await t.pump(const Duration(milliseconds: 600));
   }),
   _Shot('34-07_menu_acik', (b) => _thread(b), (b) => SupportTicketPage(session: makeSession(b), ticketId: 5), h: 844, act: (t) async {

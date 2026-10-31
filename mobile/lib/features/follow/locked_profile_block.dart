@@ -32,7 +32,7 @@ class LockedProfileBlock extends StatelessWidget {
                 width: 56,
                 height: 56,
                 decoration: BoxDecoration(color: t.soft, shape: BoxShape.circle),
-                child: Icon(LucideIcons.lock, size: 26, color: t.onSoft),
+                child: Icon(BuIcons.lock, size: 26, color: t.onSoft),
               ),
               const SizedBox(height: 14),
               Text(l.frqLockedTitle,

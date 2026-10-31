@@ -14,6 +14,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'support/fake_app.dart';
+import 'package:bu_kampus/core/icons/bu_icons.dart';
 
 // KESFET2-MB: Stitch v3 kesfet2 A (masonry Kesfet + kaydirmali gonderi sayfasi) davranis testleri.
 // Olculer: redesign/kesfet2_birebir_test.dart.
@@ -310,19 +311,19 @@ void main() {
       await settle(tester, const Duration(milliseconds: 800));
       String count(int id) => tester.widget<Text>(find.descendant(of: box(id), matching: find.byKey(const ValueKey('like-count')))).data!;
       expect(count(1000), '10');
-      expect(find.descendant(of: box(1000), matching: find.byIcon(Icons.favorite_border)), findsOneWidget);
+      expect(find.descendant(of: box(1000), matching: find.byIcon(BuIcons.heart)), findsOneWidget);
       await tester.tap(find.descendant(of: box(1000), matching: find.byKey(const ValueKey('like-heart'))));
       await tester.pump(const Duration(milliseconds: 60));
       expect(count(1000), '11'); // iyimser
-      expect(find.descendant(of: box(1000), matching: find.byIcon(Icons.favorite)), findsOneWidget);
+      expect(find.descendant(of: box(1000), matching: find.byIcon(BuIcons.heartFilled)), findsOneWidget);
       await settle(tester, const Duration(milliseconds: 900));
       expect(count(1000), '10'); // hata: geri alindi
-      expect(find.descendant(of: box(1000), matching: find.byIcon(Icons.favorite_border)), findsOneWidget);
+      expect(find.descendant(of: box(1000), matching: find.byIcon(BuIcons.heart)), findsOneWidget);
       expect(find.text('Beğeni kaydedilemedi'), findsOneWidget);
       // Basarili beğeni: dolu beyaz kalp (onMedia), pr kirmizi degil.
       await tester.tap(find.descendant(of: box(999), matching: find.byKey(const ValueKey('like-heart'))));
       await settle(tester, const Duration(milliseconds: 900));
-      final icon = tester.widget<Icon>(find.descendant(of: box(999), matching: find.byIcon(Icons.favorite)));
+      final icon = tester.widget<Icon>(find.descendant(of: box(999), matching: find.byIcon(BuIcons.heartFilled)));
       expect(icon.color, BuTokens.light.onMedia);
       expect(icon.color, isNot(BuTokens.light.pr));
       noErr(tester);

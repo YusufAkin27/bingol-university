@@ -104,7 +104,7 @@ class _SemesterSheetState extends State<SemesterSheet> {
       Padding(
         padding: const EdgeInsetsDirectional.fromSTEB(16, 8, 16, 8),
         child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-          if (!_loading && _error == null) BuButton(label: l.acadTimeAddSemester, icon: LucideIcons.circlePlus, busy: _busy, onPressed: _create),
+          if (!_loading && _error == null) BuButton(label: l.acadTimeAddSemester, icon: BuIcons.circlePlus, busy: _busy, onPressed: _create),
           const SizedBox(height: 4),
           TextButton(
               style: TextButton.styleFrom(foregroundColor: t.ink, minimumSize: const Size(48, 48)),
@@ -212,7 +212,7 @@ class _SemesterSheetState extends State<SemesterSheet> {
                   width: 32,
                   height: 32,
                   decoration: BoxDecoration(color: active ? t.pr : t.sf2, shape: BoxShape.circle),
-                  child: Icon(active ? LucideIcons.check : LucideIcons.history, size: 16, color: active ? t.onPr : t.mut),
+                  child: Icon(active ? BuIcons.check : BuIcons.history, size: 16, color: active ? t.onPr : t.mut),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -235,8 +235,8 @@ class _SemesterSheetState extends State<SemesterSheet> {
               alignment: s.current ? WrapAlignment.end : WrapAlignment.spaceBetween,
               runAlignment: WrapAlignment.end,
               children: [
-                if (!s.current) _action(t, icon: LucideIcons.star, label: l.acadTimeMakeCurrent, onTap: _busy ? null : () => _run(() => widget.api.makeCurrent(s.id))),
-                _action(t, icon: LucideIcons.trash2, label: l.acadTimeDeleteSemester, danger: true, onTap: _busy
+                if (!s.current) _action(t, icon: BuIcons.star, label: l.acadTimeMakeCurrent, onTap: _busy ? null : () => _run(() => widget.api.makeCurrent(s.id))),
+                _action(t, icon: BuIcons.trash2, label: l.acadTimeDeleteSemester, danger: true, onTap: _busy
                     ? null
                     : () async {
                         final ok = await confirmDialog(context,
@@ -266,7 +266,7 @@ class _SemesterSheetState extends State<SemesterSheet> {
               width: 32,
               height: 32,
               decoration: BoxDecoration(color: t.soft, shape: BoxShape.circle),
-              child: Icon(LucideIcons.graduationCap, size: 16, color: t.onSoft),
+              child: Icon(BuIcons.graduationCap, size: 16, color: t.onSoft),
             ),
             const SizedBox(width: 12),
             Expanded(child: Text(l.acadTimeOfficial(name), style: tx.titleMedium!.copyWith(fontWeight: FontWeight.w800, color: t.ink))),
@@ -278,7 +278,7 @@ class _SemesterSheetState extends State<SemesterSheet> {
           padding: const EdgeInsetsDirectional.fromSTEB(6, 0, 6, 4),
           child: Align(
             alignment: AlignmentDirectional.centerStart,
-            child: _action(t, icon: LucideIcons.arrowLeftRight, label: l.acadTimeMakeCurrent, onTap: _busy ? null : () => _run(widget.api.semesterFromOfficial)),
+            child: _action(t, icon: BuIcons.arrowLeftRight, label: l.acadTimeMakeCurrent, onTap: _busy ? null : () => _run(widget.api.semesterFromOfficial)),
           ),
         ),
       ]),
@@ -339,7 +339,7 @@ class _NewSemesterDialogState extends State<_NewSemesterDialog> {
         padding: const EdgeInsets.all(24),
         child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
           Row(children: [
-            AkadIconTile(icon: LucideIcons.calendarDays, bg: t.soft, fg: t.pr, size: 44, radius: 14, iconSize: 20),
+            AkadIconTile(icon: BuIcons.calendarDays, bg: t.soft, fg: t.pr, size: 44, radius: 14, iconSize: 20),
             const SizedBox(width: 12),
             Expanded(child: Semantics(header: true, child: Text(l.acadTimeNewSemester, style: tx.titleLarge!.copyWith(fontWeight: FontWeight.w800, color: t.ink)))),
           ]),
@@ -350,11 +350,11 @@ class _NewSemesterDialogState extends State<_NewSemesterDialog> {
             maxLength: 60,
             hint: l.acadTimeSemesterHint,
             capitalization: TextCapitalization.words,
-            trailingIcon: LucideIcons.calendar,
+            trailingIcon: BuIcons.calendar,
           ),
           const SizedBox(height: 14),
           AkadPicker(
-            icon: _start == null ? LucideIcons.calendar : LucideIcons.calendarCheck,
+            icon: _start == null ? BuIcons.calendar : BuIcons.calendarCheck,
             iconColor: t.pr,
             label: l.acadTimeStartDate,
             hint: l.acadSelect,
@@ -366,7 +366,7 @@ class _NewSemesterDialogState extends State<_NewSemesterDialog> {
           ),
           const SizedBox(height: 14),
           AkadPicker(
-            icon: _end == null ? LucideIcons.calendar : LucideIcons.calendarCheck,
+            icon: _end == null ? BuIcons.calendar : BuIcons.calendarCheck,
             iconColor: t.pr,
             label: l.acadTimeEndDate,
             hint: l.acadSelect,

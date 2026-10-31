@@ -53,8 +53,11 @@ def collect(root):
         for dp, dn, fn in os.walk(base):
             dn[:] = [d for d in dn if d not in SKIP_DIRS]
             for f in fn:
-                if f.endswith(".dart"):
-                    files.append(os.path.join(dp, f))
+                full = os.path.join(dp, f)
+                norm = full.replace("\\", "/")
+                # BuIcons'un kendi dosyalari ve testi Lucide'e BILEREK baglidir; yeniden yazilirsa kendine isaret eder
+                if f.endswith(".dart") and "/core/icons/" not in norm and not norm.endswith("/bu_icons_test.dart"):
+                    files.append(full)
     return sorted(files)
 
 
@@ -136,7 +139,7 @@ def main():
         # import duzenleme: widgets/bu.dart (2. fazda BuIcons'u da ihrac edecek) varsa import gerekmez
         norm = path.replace("\\", "/")
         if "bu_icons.dart" not in new_text and "BuIcons." in new_text and not norm.endswith("/core/icons/bu_icons.dart"):
-            if re.search(r"import\s+'[^']*widgets/bu\.dart'", new_text):
+            if re.search(r"import\s+'(?:[^']*/)?bu\.dart'", new_text):
                 via_bu += 1
             else:
                 idx = [m.end() for m in re.finditer(r"^import\s+[^\n]*\n", new_text, re.M)]

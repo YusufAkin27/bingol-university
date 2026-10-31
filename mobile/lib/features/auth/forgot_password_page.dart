@@ -127,7 +127,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                   child: _expired
                       ? Padding(
                           padding: const EdgeInsets.only(bottom: 16),
-                          child: RefBanner(l.authSessionExpired, tone: RefTone.error, icon: LucideIcons.timerOff, boldText: true),
+                          child: RefBanner(l.authSessionExpired, tone: RefTone.error, icon: BuIcons.timerOff, boldText: true),
                         )
                       : const SizedBox(width: double.infinity),
                 ),
@@ -150,8 +150,8 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                             _error!,
                             key: ValueKey('forgot-error-$_error'),
                             icon: _network
-                                ? LucideIcons.cloudOff
-                                : (_retry != null ? LucideIcons.hourglass : LucideIcons.circleAlert),
+                                ? BuIcons.cloudOff
+                                : (_retry != null ? BuIcons.hourglass : BuIcons.circleAlert),
                             sub: _retry,
                           ),
                         ),

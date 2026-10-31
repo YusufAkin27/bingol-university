@@ -19,6 +19,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import '../support/fake_app.dart';
 import 'p00_support.dart';
+import 'package:bu_kampus/core/icons/bu_icons.dart';
 
 /// Tur 3 (P3-PROFILE, minimal): Profil sekmesi tek sayac seridi, tek notr simge tonu, sakin cikis; duzenleme tek sutun;
 /// takip satiri duzeni; tum profil ekranlari 3 dil x acik/koyu x 1.3 x 320 matrisinde tasmasiz.
@@ -147,8 +148,8 @@ void main() {
       for (final s in ['Gönderilerim', 'Kayıtlı haberler', 'Kulüplerim', 'Etkinliklerim', 'Önerilen kişiler']) {
         expect(find.text(s), findsOneWidget, reason: s);
       }
-      expect(find.byIcon(LucideIcons.newspaper), findsNothing);
-      expect(find.byIcon(LucideIcons.bell), findsNothing);
+      expect(find.byIcon(BuIcons.newspaper), findsNothing);
+      expect(find.byIcon(BuIcons.bell), findsNothing);
       final rows = find.byType(ProfilRow);
       expect(rows, findsNWidgets(9));
       for (var i = 0; i < 9; i++) {
@@ -208,7 +209,7 @@ void main() {
       expect(find.text('Bölüm'), findsOneWidget);
       expect(find.text('Sınıf'), findsOneWidget);
       expect(find.byIcon(LucideIcons.mail), findsNothing);
-      expect(find.byIcon(LucideIcons.save), findsNothing);
+      expect(find.byIcon(BuIcons.save), findsNothing);
       expect(find.text('Kaydet'), findsOneWidget);
       expect(tester.takeException(), isNull);
       await unmount(tester);
@@ -224,9 +225,9 @@ void main() {
         'grade': '3',
         'bio': 'x',
       }), size: kPhoneLarge);
-      expect(find.byIcon(LucideIcons.camera), findsNothing);
+      expect(find.byIcon(BuIcons.camera), findsNothing);
       expect(tester.getSize(find.byKey(const ValueKey('avatar-camera'))).width, 96);
-      expect(find.byIcon(LucideIcons.lock), findsOneWidget);
+      expect(find.byIcon(BuIcons.lock), findsOneWidget);
       expect(find.byType(ProfilTopBar), findsOneWidget);
       await unmount(tester);
     });
@@ -254,7 +255,7 @@ void main() {
       final b = _backend()..on('/users/me/blocks*', <Object>[]);
       await _open(tester, BlockedUsersPage(session: makeSession(b)), size: kPhoneLarge);
       expect(find.text('Kimseyi engellemedin'), findsOneWidget);
-      expect(find.byIcon(LucideIcons.ban), findsNothing);
+      expect(find.byIcon(BuIcons.ban), findsNothing);
       await unmount(tester);
     });
   });

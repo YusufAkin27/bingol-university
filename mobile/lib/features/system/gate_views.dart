@@ -214,7 +214,7 @@ class GateArrowButton extends StatelessWidget {
       textDirection: ambient == TextDirection.rtl ? TextDirection.ltr : TextDirection.rtl,
       child: BuButton(
         label: label,
-        icon: ambient == TextDirection.rtl ? LucideIcons.arrowLeft : LucideIcons.arrowRight,
+        icon: ambient == TextDirection.rtl ? BuIcons.arrowLeft : BuIcons.arrowRight,
         busy: busy,
         onPressed: onPressed,
       ),
@@ -284,7 +284,7 @@ class UpdateRequiredScreen extends StatelessWidget {
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const _GateIcon(icon: LucideIcons.download),
+              const _GateIcon(icon: BuIcons.download),
               const SizedBox(height: 24),
               _GateText(title: l.updateRequiredTitle, body: custom != null && custom.isNotEmpty ? custom : l.updateRequiredBody),
               if (!canOpen) ...[
@@ -313,7 +313,7 @@ class UpdateRequiredScreen extends StatelessWidget {
             if (canOpen) BuButton(label: l.commonUpdate, onPressed: () => openStoreLinks(marketUrl: marketUrl, storeUrl: storeUrl)),
             if (onRetry != null)
               if (canOpen)
-                _GateLink(key: const ValueKey('update-recheck'), label: l.updateRequiredRecheck, icon: LucideIcons.refreshCw, onPressed: onRetry!)
+                _GateLink(key: const ValueKey('update-recheck'), label: l.updateRequiredRecheck, icon: BuIcons.refreshCw, onPressed: onRetry!)
               else
                 BuButton(key: const ValueKey('update-recheck'), label: l.updateRequiredRecheck, kind: BuButtonKind.outline, onPressed: onRetry),
           ],
@@ -342,7 +342,7 @@ class MaintenanceScreen extends StatelessWidget {
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const _GateIcon(icon: LucideIcons.wrench, breathe: true),
+            const _GateIcon(icon: BuIcons.wrench, breathe: true),
             const SizedBox(height: 24),
             _GateText(title: l.sistemuiMaintTitle, body: message ?? l.sistemuiMaintBody),
           ],
@@ -369,7 +369,7 @@ class OfflineScreen extends StatelessWidget {
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const _GateIcon(icon: LucideIcons.cloudOff, breathe: true),
+            const _GateIcon(icon: BuIcons.cloudOff, breathe: true),
             const SizedBox(height: 24),
             _GateText(title: l.sistemuiOfflineTitle, body: l.sistemuiOfflineBody),
           ],
@@ -398,7 +398,7 @@ class AccessBlockedScreen extends StatelessWidget {
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const _GateIcon(icon: LucideIcons.shieldX, danger: true),
+              const _GateIcon(icon: BuIcons.shieldX, danger: true),
               const SizedBox(height: 24),
               _GateText(title: l.accessBlockedTitle, body: l.accessBlockedBody),
               const SizedBox(height: 16),
@@ -578,12 +578,12 @@ class GateNoticeStrip extends StatelessWidget {
               tooltip: context.l10n.commonClose,
               onPressed: onClose,
               constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
-              icon: Icon(LucideIcons.x, size: 18, color: fg),
+              icon: Icon(BuIcons.x, size: 18, color: fg),
             )
           else if (maint)
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 10),
-              child: ExcludeSemantics(child: Icon(LucideIcons.info, size: 16, color: fg)),
+              child: ExcludeSemantics(child: Icon(BuIcons.info, size: 16, color: fg)),
             )
           else
             const SizedBox(width: 10),
@@ -623,7 +623,7 @@ class UpdateNotice extends StatelessWidget {
                 height: 40,
                 alignment: Alignment.center,
                 decoration: BoxDecoration(color: t.soft, shape: BoxShape.circle),
-                child: Icon(LucideIcons.download, size: 18, color: t.pr),
+                child: Icon(BuIcons.download, size: 18, color: t.pr),
               ),
             ),
             const SizedBox(width: 12),
@@ -648,7 +648,7 @@ class UpdateNotice extends StatelessWidget {
             ],
             IconButton(
               tooltip: l.commonClose,
-              icon: Icon(LucideIcons.x, size: 18, color: t.mut),
+              icon: Icon(BuIcons.x, size: 18, color: t.mut),
               onPressed: onClose,
             ),
           ],

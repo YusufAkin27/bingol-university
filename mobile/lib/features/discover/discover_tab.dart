@@ -111,14 +111,14 @@ class _DiscoverTabState extends State<DiscoverTab> {
             ),
             BuIconButton(
               key: const ValueKey('discoverSearch'),
-              icon: LucideIcons.search,
+              icon: BuIcons.search,
               tooltip: l.discoverSearch,
               size: 44,
               onTap: _openSearch,
             ),
             BuGap.w8,
             BuIconButton(
-              icon: LucideIcons.plus,
+              icon: BuIcons.plus,
               tooltip: l.discoverCompose,
               filled: true,
               size: 44,

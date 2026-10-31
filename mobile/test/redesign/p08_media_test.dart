@@ -10,6 +10,7 @@ import 'package:video_player_platform_interface/video_player_platform_interface.
 
 import '../support/fake_app.dart';
 import 'p00_support.dart';
+import 'package:bu_kampus/core/icons/bu_icons.dart';
 
 // P8: mesaj balonu + medya görüntüleyiciler: 3 dil x açık/koyu x yazı 1.0/1.3 x 320/390 dp'de taşma yok,
 // durumlar (hata/yükleniyor/tüketildi) ve yeni etkileşimler (çift dokunuş yakınlaştırma, şerit, çubuk gizleme).
@@ -245,7 +246,7 @@ void main() {
       scaffold: false,
       widths: const [320, 390],
       check: (t, lang, dark, scale) async {
-        expect(find.byIcon(Icons.play_arrow_rounded), findsNothing);
+        expect(find.byIcon(BuIcons.playFilled), findsNothing);
       },
     );
   });

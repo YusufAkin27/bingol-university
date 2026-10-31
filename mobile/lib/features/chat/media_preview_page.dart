@@ -161,7 +161,7 @@ class _MediaPreviewPageState extends State<MediaPreviewPage> {
                       width: 40,
                       height: 40,
                       decoration: BoxDecoration(color: t.scrim.withValues(alpha: .6), shape: BoxShape.circle),
-                      child: Icon(LucideIcons.x, size: 20, color: t.onMedia),
+                      child: Icon(BuIcons.x, size: 20, color: t.onMedia),
                     ),
                   ),
                 ),
@@ -238,7 +238,7 @@ class _MediaPreviewPageState extends State<MediaPreviewPage> {
           child: s.data == null
               ? Center(
                   key: const ValueKey('loading'),
-                  child: Icon(p.isVideo ? LucideIcons.video : LucideIcons.image, size: 36, color: t.onMedia.withValues(alpha: .4)),
+                  child: Icon(p.isVideo ? BuIcons.video : BuIcons.image, size: 36, color: t.onMedia.withValues(alpha: .4)),
                 )
               : Stack(key: const ValueKey('ready'), alignment: Alignment.center, fit: StackFit.expand, children: [
                   Image.memory(s.data!, fit: BoxFit.cover, gaplessPlayback: true, cacheWidth: 1080),
@@ -248,7 +248,7 @@ class _MediaPreviewPageState extends State<MediaPreviewPage> {
                         width: 64,
                         height: 64,
                         decoration: BoxDecoration(color: t.scrim.withValues(alpha: .55), shape: BoxShape.circle),
-                        child: Icon(LucideIcons.play, color: t.onMedia, size: 26),
+                        child: Icon(BuIcons.play, color: t.onMedia, size: 26),
                       ),
                     ),
                 ]),
@@ -290,7 +290,7 @@ class _MediaPreviewPageState extends State<MediaPreviewPage> {
                       padding: const EdgeInsetsDirectional.fromSTEB(14, 0, 2, 0),
                       decoration: BoxDecoration(color: t.scrim.withValues(alpha: .95), borderRadius: BuRadius.bPill),
                       child: Row(mainAxisSize: MainAxisSize.min, children: [
-                        ExcludeSemantics(child: Icon(LucideIcons.info, size: 16, color: _pr)),
+                        ExcludeSemantics(child: Icon(BuIcons.info, size: 16, color: _pr)),
                         BuGap.w8,
                         Flexible(
                           child: Padding(
@@ -307,7 +307,7 @@ class _MediaPreviewPageState extends State<MediaPreviewPage> {
                             key: const ValueKey('previewNoteClose'),
                             onTap: _hideNote,
                             child: SizedBox(
-                                width: 48, height: 40, child: Icon(LucideIcons.x, size: 16, color: t.onMedia.withValues(alpha: .7))),
+                                width: 48, height: 40, child: Icon(BuIcons.x, size: 16, color: t.onMedia.withValues(alpha: .7))),
                           ),
                         ),
                       ]),
@@ -371,7 +371,7 @@ class _MediaPreviewPageState extends State<MediaPreviewPage> {
       decoration: BoxDecoration(color: t.onMedia.withValues(alpha: .95), borderRadius: BorderRadius.circular(24)),
       alignment: Alignment.center,
       child: Row(children: [
-        ExcludeSemantics(child: Icon(LucideIcons.messageSquareText, size: 18, color: t.scrim.withValues(alpha: .6))),
+        ExcludeSemantics(child: Icon(BuIcons.messageSquareText, size: 18, color: t.scrim.withValues(alpha: .6))),
         BuGap.w8,
         Expanded(
           child: TextField(
@@ -453,7 +453,7 @@ class _MediaPreviewPageState extends State<MediaPreviewPage> {
                     style: tx.labelLarge!.copyWith(color: _onPr, fontWeight: FontWeight.w600, letterSpacing: .3)),
               ),
               BuGap.w8,
-              Transform.flip(flipX: rtl, child: Icon(LucideIcons.send, size: 20, color: _onPr)),
+              Transform.flip(flipX: rtl, child: Icon(BuIcons.send, size: 20, color: _onPr)),
             ]),
           ),
         ),

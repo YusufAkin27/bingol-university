@@ -321,7 +321,7 @@ class AnketMarkFlat extends StatelessWidget {
           curve: Curves.easeOutBack,
           child: Center(
             child: square
-                ? Icon(Icons.check_rounded, size: size - 4, color: t.onPr)
+                ? Icon(BuIcons.check, size: size - 4, color: t.onPr)
                 : DecoratedBox(decoration: BoxDecoration(color: t.onPr, shape: BoxShape.circle), child: SizedBox(width: size * .4, height: size * .4)),
           ),
         ),

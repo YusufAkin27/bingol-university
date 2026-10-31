@@ -264,7 +264,7 @@ class _MediaPickerPageState extends State<MediaPickerPage> {
               child: BuPressable(
                 key: const ValueKey('pickerClose'),
                 onTap: () => Navigator.pop(context),
-                child: SizedBox(width: 48, height: 48, child: Icon(LucideIcons.x, size: 24, color: t.ink)),
+                child: SizedBox(width: 48, height: 48, child: Icon(BuIcons.x, size: 24, color: t.ink)),
               ),
             ),
           ),
@@ -323,7 +323,7 @@ class _MediaPickerPageState extends State<MediaPickerPage> {
         ),
         if (multi) ...[
           BuGap.w6,
-          Icon(LucideIcons.chevronDown, size: 18, color: t.ink),
+          Icon(BuIcons.chevronDown, size: 18, color: t.ink),
         ],
       ]),
     );
@@ -406,7 +406,7 @@ class _MediaPickerPageState extends State<MediaPickerPage> {
               border: Border.all(color: t.bd.withValues(alpha: .7)),
             ),
             child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              ExcludeSemantics(child: Padding(padding: const EdgeInsets.only(top: 2), child: Icon(LucideIcons.info, size: 20, color: t.mut))),
+              ExcludeSemantics(child: Padding(padding: const EdgeInsets.only(top: 2), child: Icon(BuIcons.info, size: 20, color: t.mut))),
               BuGap.w8,
               Expanded(
                 child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -423,7 +423,7 @@ class _MediaPickerPageState extends State<MediaPickerPage> {
               child: _ActionPill(
                 key: const ValueKey('limitedMore'),
                 label: l.chatMiscSelectMore,
-                icon: LucideIcons.imagePlus,
+                icon: BuIcons.imagePlus,
                 bg: t.sf2,
                 fg: t.ink,
                 onTap: _manageLimited,
@@ -434,7 +434,7 @@ class _MediaPickerPageState extends State<MediaPickerPage> {
               child: _ActionPill(
                 key: const ValueKey('limitedSettings'),
                 label: l.chatMiscSettings,
-                icon: LucideIcons.settings,
+                icon: BuIcons.settings,
                 bg: t.soft,
                 fg: t.onSoft,
                 onTap: () => widget.library.openSettings(),
@@ -468,7 +468,7 @@ class _MediaPickerPageState extends State<MediaPickerPage> {
                   alignment: Alignment.center,
                   decoration: BoxDecoration(color: t.soft, shape: BoxShape.circle),
                   child: Stack(clipBehavior: Clip.none, alignment: Alignment.center, children: [
-                    Icon(LucideIcons.images, size: 44, color: t.pr),
+                    Icon(BuIcons.images, size: 44, color: t.pr),
                     PositionedDirectional(
                       bottom: -8,
                       end: -14,
@@ -476,7 +476,7 @@ class _MediaPickerPageState extends State<MediaPickerPage> {
                         width: 32,
                         height: 32,
                         decoration: BoxDecoration(color: t.nav, shape: BoxShape.circle, boxShadow: BuElevation.of(context, 2)),
-                        child: Icon(LucideIcons.lock, size: 18, color: t.soft),
+                        child: Icon(BuIcons.lock, size: 18, color: t.soft),
                       ),
                     ),
                   ]),
@@ -495,7 +495,7 @@ class _MediaPickerPageState extends State<MediaPickerPage> {
             BuButton(
               key: const ValueKey('galleryOpenSettings'),
               label: l.chatMiscOpenSettings,
-              icon: LucideIcons.settings,
+              icon: BuIcons.settings,
               onPressed: () => widget.library.openSettings(),
             ),
           ]),
@@ -531,7 +531,7 @@ class _MediaPickerPageState extends State<MediaPickerPage> {
           alignment: Alignment.center,
           padding: const EdgeInsets.all(4),
           child: Column(mainAxisSize: MainAxisSize.min, children: [
-            Icon(LucideIcons.camera, size: 28, color: t.ink),
+            Icon(BuIcons.camera, size: 28, color: t.ink),
             BuGap.h4,
             Text(context.l10n.chatMiscCamera,
                 maxLines: 1,
@@ -653,7 +653,7 @@ class _GalleryTileState extends State<_GalleryTile> {
                   ),
                   child: widget.multi
                       ? Text('$order', style: tx.labelSmall!.copyWith(color: t.onPr, fontWeight: FontWeight.w700, height: 1, fontFeatures: const [FontFeature.tabularFigures()]))
-                      : Icon(LucideIcons.check, size: 14, color: t.onPr),
+                      : Icon(BuIcons.check, size: 14, color: t.onPr),
                 ),
               ),
               if (g.isVideo)
@@ -664,7 +664,7 @@ class _GalleryTileState extends State<_GalleryTile> {
                     padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                     decoration: BoxDecoration(color: t.scrim.withValues(alpha: .65), borderRadius: BorderRadius.circular(6)),
                     child: Row(mainAxisSize: MainAxisSize.min, children: [
-                      Icon(LucideIcons.play, size: 10, color: t.onMedia),
+                      Icon(BuIcons.play, size: 10, color: t.onMedia),
                       const SizedBox(width: 2),
                       Text(formatMediaDuration(g.durationMs),
                           style: tx.labelSmall!.copyWith(color: t.onMedia, fontWeight: FontWeight.w700, height: 1.2)),
@@ -779,9 +779,9 @@ class _AlbumRowState extends State<_AlbumRow> {
   /// Bilinen sistem albümlerine küçük rozet (ad eşleşmesi; bilinmeyende rozet yok).
   IconData? _badge(String name) {
     final n = name.toLowerCase();
-    if (n.contains('camera') || n.contains('kamera') || n == 'dcim') return LucideIcons.camera;
-    if (n.contains('screenshot') || n.contains('ekran')) return LucideIcons.smartphone;
-    if (n.contains('download') || n.contains('indirilen')) return LucideIcons.download;
+    if (n.contains('camera') || n.contains('kamera') || n == 'dcim') return BuIcons.camera;
+    if (n.contains('screenshot') || n.contains('ekran')) return BuIcons.smartphone;
+    if (n.contains('download') || n.contains('indirilen')) return BuIcons.download;
     return null;
   }
 
@@ -817,7 +817,7 @@ class _AlbumRowState extends State<_AlbumRow> {
                   FutureBuilder<Uint8List?>(
                     future: _cover,
                     builder: (c, s) => s.data == null
-                        ? Icon(LucideIcons.image, size: 24, color: t.mut)
+                        ? Icon(BuIcons.image, size: 24, color: t.mut)
                         : Image.memory(s.data!, fit: BoxFit.cover, gaplessPlayback: true, cacheWidth: 192),
                   ),
                   if (badge != null)
@@ -863,7 +863,7 @@ class _AlbumRowState extends State<_AlbumRow> {
                 width: 32,
                 height: 32,
                 decoration: BoxDecoration(color: t.pr, shape: BoxShape.circle),
-                child: Icon(LucideIcons.check, size: 20, color: t.onPr),
+                child: Icon(BuIcons.check, size: 20, color: t.onPr),
               )
             else
               const SizedBox(width: 32, height: 32),

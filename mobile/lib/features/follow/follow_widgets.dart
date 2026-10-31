@@ -163,15 +163,15 @@ class FollowPersonRow extends StatelessWidget {
       case FollowRelation.followsYou:
         status = _statusLine(context, const SizedBox.shrink(), l.profilyardFollowsYou, t.mut);
       case FollowRelation.mutual:
-        status = _statusLine(context, Icon(LucideIcons.repeat2, size: 13, color: t.mut), l.profilyardFollowMutual, t.mut);
+        status = _statusLine(context, Icon(BuIcons.repeat2, size: 14, color: t.mut), l.profilyardFollowMutual, t.mut);
       case FollowRelation.following:
-        status = _statusLine(context, Icon(LucideIcons.check, size: 13, color: t.mut), l.profilyardFollowingYou, t.mut);
+        status = _statusLine(context, Icon(BuIcons.check, size: 14, color: t.mut), l.profilyardFollowingYou, t.mut);
       case FollowRelation.none:
         status = null;
     }
     if (reason != null && reason!.isNotEmpty) {
       status = Row(children: [
-        Icon(LucideIcons.users, size: 13, color: t.mut),
+        Icon(BuIcons.users, size: 14, color: t.mut),
         const SizedBox(width: 5),
         Expanded(
           child: Text(reason!,
@@ -316,7 +316,7 @@ class FollowStatusCard extends StatelessWidget {
           ),
           if (onRetry != null) ...[
             const SizedBox(width: 10),
-            BuButton(label: context.l10n.profileRetry, icon: LucideIcons.refreshCw, compact: true, onPressed: onRetry),
+            BuButton(label: context.l10n.profileRetry, icon: BuIcons.refreshCw, compact: true, onPressed: onRetry),
           ],
         ]),
       );

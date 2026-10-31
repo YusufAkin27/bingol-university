@@ -16,10 +16,10 @@ Map<String, String> supportTicketCategories(AppLocalizations l) => {
 
 /// Talep kategorisi simgeleri (form çipleri ve liste).
 const Map<String, IconData> supportTicketCategoryIcons = {
-  'ACCOUNT': LucideIcons.user,
-  'TECHNICAL': LucideIcons.wrench,
-  'CONTENT': LucideIcons.fileText,
-  'OTHER': LucideIcons.ellipsis,
+  'ACCOUNT': BuIcons.user,
+  'TECHNICAL': BuIcons.wrench,
+  'CONTENT': BuIcons.fileText,
+  'OTHER': BuIcons.ellipsis,
 };
 
 Map<String, String> supportFeedbackCategories(AppLocalizations l) => {
@@ -43,9 +43,9 @@ Map<String, String> supportFeedbackStatuses(AppLocalizations l) => {
   final t = context.bu;
   final l = context.l10n;
   return switch (status) {
-    'ANSWERED' => (icon: LucideIcons.circleCheck, bg: t.tint(1).bg, fg: t.tint(1).fg, label: l.supportStatusAnswered),
-    'CLOSED' => (icon: LucideIcons.lock, bg: t.bd, fg: t.mut, label: l.supportStatusClosed),
-    _ => (icon: LucideIcons.messageCircle, bg: t.soft, fg: t.onSoft, label: l.supportStatusOpen),
+    'ANSWERED' => (icon: BuIcons.circleCheck, bg: t.tint(1).bg, fg: t.tint(1).fg, label: l.supportStatusAnswered),
+    'CLOSED' => (icon: BuIcons.lock, bg: t.bd, fg: t.mut, label: l.supportStatusClosed),
+    _ => (icon: BuIcons.messageCircle, bg: t.soft, fg: t.onSoft, label: l.supportStatusOpen),
   };
 }
 
@@ -97,15 +97,15 @@ class SupportFeedbackPill extends StatelessWidget {
     final cs = Theme.of(context).colorScheme;
     switch (status) {
       case 'DONE':
-        return dark ? AnketPill(label, bg: t.ink, fg: t.bg, small: true) : AnketPill(label, bg: t.okSoft, fg: t.ok, icon: LucideIcons.circleCheck, small: true);
+        return dark ? AnketPill(label, bg: t.ink, fg: t.bg, small: true) : AnketPill(label, bg: t.okSoft, fg: t.ok, icon: BuIcons.circleCheck, small: true);
       case 'PLANNED':
         return dark
             ? AnketPill(label, bg: t.mut, fg: t.bg, small: true)
-            : AnketPill(label, bg: t.tint(1).bg, fg: t.tint(1).fg, icon: LucideIcons.calendarCheck, small: true);
+            : AnketPill(label, bg: t.tint(1).bg, fg: t.tint(1).fg, icon: BuIcons.calendarCheck, small: true);
       case 'IN_REVIEW':
         return dark
             ? AnketPill(label, bg: t.tint(1).bg, fg: t.tint(1).fg, small: true)
-            : AnketPill(label, bg: t.sf2, fg: t.ink, icon: LucideIcons.search, small: true);
+            : AnketPill(label, bg: t.sf2, fg: t.ink, icon: BuIcons.search, small: true);
       case 'REJECTED':
         return AnketPill(label, bg: dark ? t.sf2 : cs.errorContainer, fg: dark ? t.mut : t.danger, small: true);
       default:
@@ -262,7 +262,7 @@ class SupportCategoryChips extends StatelessWidget {
                 child: Padding(
                   padding: const EdgeInsetsDirectional.symmetric(horizontal: 12),
                   child: Row(mainAxisSize: MainAxisSize.min, children: [
-                    if (e.key == value) ...[Icon(LucideIcons.check, size: 15, color: t.onSoft), const SizedBox(width: 4)],
+                    if (e.key == value) ...[Icon(BuIcons.check, size: 15, color: t.onSoft), const SizedBox(width: 4)],
                     Text(e.value, style: tx.labelMedium!.copyWith(color: e.key == value ? t.onSoft : t.ink, fontWeight: FontWeight.w800)),
                   ]),
                 ),
@@ -291,7 +291,7 @@ class SupportErrorNote extends StatelessWidget {
         padding: const EdgeInsetsDirectional.fromSTEB(12, 12, 14, 12),
         decoration: BoxDecoration(color: cs.errorContainer, borderRadius: BuRadius.bMd),
         child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Padding(padding: const EdgeInsets.only(top: 1), child: Icon(LucideIcons.circleAlert, size: 18, color: t.danger)),
+          Padding(padding: const EdgeInsets.only(top: 1), child: Icon(BuIcons.circleAlert, size: 18, color: t.danger)),
           const SizedBox(width: 10),
           Expanded(child: Text(text, style: Theme.of(context).textTheme.bodyMedium!.copyWith(color: cs.onErrorContainer, height: 1.4))),
         ]),
@@ -331,7 +331,7 @@ class SupportStaffReply extends StatelessWidget {
       ),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(children: [
-          Icon(LucideIcons.headset, size: 14, color: t.onSoft),
+          Icon(BuIcons.headset, size: 14, color: t.onSoft),
           const SizedBox(width: 6),
           Text(context.l10n.supportStaff, style: tx.labelMedium!.copyWith(color: t.onSoft, fontWeight: FontWeight.w700)),
         ]),
@@ -485,7 +485,7 @@ class SupportLoadError extends StatelessWidget {
             width: 44,
             height: 44,
             decoration: BoxDecoration(color: t.danger.withValues(alpha: .14), borderRadius: BorderRadius.circular(14)),
-            child: ExcludeSemantics(child: Icon(LucideIcons.circleAlert, size: 22, color: t.danger)),
+            child: ExcludeSemantics(child: Icon(BuIcons.circleAlert, size: 22, color: t.danger)),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -507,7 +507,7 @@ class SupportLoadError extends StatelessWidget {
                 child: Padding(
                   padding: const EdgeInsetsDirectional.symmetric(horizontal: 14),
                   child: Row(mainAxisSize: MainAxisSize.min, children: [
-                    Icon(LucideIcons.refreshCw, size: 16, color: t.danger),
+                    Icon(BuIcons.refreshCw, size: 16, color: t.danger),
                     const SizedBox(width: 6),
                     Text(retryLabel, style: tx.labelLarge!.copyWith(color: t.danger, fontWeight: FontWeight.w800)),
                   ]),

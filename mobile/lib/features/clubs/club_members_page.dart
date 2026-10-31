@@ -105,8 +105,8 @@ class _ClubMembersPageState extends State<ClubMembersPage> {
       danger: true,
       leading: true,
       boldName: name,
-      icon: ban ? LucideIcons.ban : LucideIcons.userMinus,
-      confirmIcon: ban ? LucideIcons.ban : LucideIcons.userMinus,
+      icon: ban ? BuIcons.ban : BuIcons.userMinus,
+      confirmIcon: ban ? BuIcons.ban : BuIcons.userMinus,
     );
     if (!ok || !mounted) return;
     try {
@@ -180,17 +180,17 @@ class _ClubMembersPageState extends State<ClubMembersPage> {
                       ],
                     ),
                   ),
-                  ClubRoundButton(icon: LucideIcons.x, tooltip: l.commonClose, onTap: () => Navigator.of(c).pop(), size: 40),
+                  ClubRoundButton(icon: BuIcons.x, tooltip: l.commonClose, onTap: () => Navigator.of(c).pop(), size: 40),
                 ],
               ),
             ),
             if (_isOwner)
               if (role == 'MEMBER')
-                ClubSheetRow(icon: LucideIcons.shieldCheck, title: l.clubMgmtMakeModerator, onTap: () => pick('mod'))
+                ClubSheetRow(icon: BuIcons.shieldCheck, title: l.clubMgmtMakeModerator, onTap: () => pick('mod'))
               else
-                ClubSheetRow(icon: LucideIcons.user, title: l.clubMgmtMakeMember, onTap: () => pick('member')),
-            ClubSheetRow(icon: LucideIcons.userMinus, title: l.clubMgmtRemoveFromClub, onTap: () => pick('remove')),
-            ClubSheetRow(icon: LucideIcons.ban, title: l.clubMgmtBan, danger: true, onTap: () => pick('ban')),
+                ClubSheetRow(icon: BuIcons.user, title: l.clubMgmtMakeMember, onTap: () => pick('member')),
+            ClubSheetRow(icon: BuIcons.userMinus, title: l.clubMgmtRemoveFromClub, onTap: () => pick('remove')),
+            ClubSheetRow(icon: BuIcons.ban, title: l.clubMgmtBan, danger: true, onTap: () => pick('ban')),
             const SizedBox(height: 8),
           ],
         );
@@ -260,12 +260,12 @@ class _ClubMembersPageState extends State<ClubMembersPage> {
                   hint: l.clubMgmtSearchMember,
                   fill: t.sf,
                   pad: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                  prefixIcon: Icon(LucideIcons.search, size: 20, color: t.mut),
+                  prefixIcon: Icon(BuIcons.search, size: 20, color: t.mut),
                   suffixIcon: _query.isEmpty
                       ? null
                       : IconButton(
                           tooltip: l.p11ClearSearch,
-                          icon: Icon(LucideIcons.circleX, size: 20, color: t.mut),
+                          icon: Icon(BuIcons.circleX, size: 20, color: t.mut),
                           onPressed: () => setState(() {
                             _query = '';
                             _search.clear();
@@ -321,7 +321,7 @@ class _ClubMembersPageState extends State<ClubMembersPage> {
       member: m,
       nameFallback: context.l10n.clubMgmtUser,
       trailing: canAct
-          ? ClubRoundButton(icon: LucideIcons.ellipsis, tooltip: context.l10n.clubMgmtMemberActions, onTap: () => _openActions(m), plain: true)
+          ? ClubRoundButton(icon: BuIcons.ellipsis, tooltip: context.l10n.clubMgmtMemberActions, onTap: () => _openActions(m), plain: true)
           : null,
     );
   }

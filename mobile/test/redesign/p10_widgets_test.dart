@@ -140,7 +140,7 @@ void main() {
             const SohbetyCard(children: [
               SohbetyRow(
                 child: Row(children: [
-                  SohbetyTile(icon: LucideIcons.image),
+                  SohbetyTile(icon: BuIcons.image),
                   SizedBox(width: 12),
                   Expanded(child: SohbetyTexts(title: 'Ali Veli', sub: 'Bilgisayar Mühendisliği')),
                   SohbetyCheck(on: true),

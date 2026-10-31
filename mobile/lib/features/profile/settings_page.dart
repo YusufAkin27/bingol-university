@@ -78,7 +78,7 @@ class _SettingsPageState extends State<SettingsPage> {
       confirmLabel: l.settingsLogoutAllConfirm,
       cancelLabel: l.commonCancel,
       destructive: true,
-      icon: LucideIcons.logOut,
+      icon: BuIcons.logOut,
     );
     if (!ok) return;
     try {
@@ -101,7 +101,7 @@ class _SettingsPageState extends State<SettingsPage> {
       confirmLabel: l.profileSignOut,
       cancelLabel: l.profileCancel,
       destructive: true,
-      icon: LucideIcons.logOut,
+      icon: BuIcons.logOut,
     );
     if (!ok) return;
     await widget.session.signOut();
@@ -200,7 +200,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   onTap: () => Navigator.maybePop(context),
                   child: IconButton(
                     constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
-                    icon: Icon(buDirIcon(context, LucideIcons.arrowLeft), size: 24, color: t.ink),
+                    icon: Icon(buDirIcon(context, BuIcons.arrowLeft), size: 24, color: t.ink),
                     onPressed: () => Navigator.maybePop(context),
                   ),
                 ),

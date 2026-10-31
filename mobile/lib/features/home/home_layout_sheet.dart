@@ -32,17 +32,17 @@ String homeShortcutLabel(AppLocalizations l, HomeShortcut s, {bool picker = fals
     };
 
 IconData homeShortcutIcon(HomeShortcut s) => switch (s) {
-      HomeShortcut.news => LucideIcons.newspaper,
-      HomeShortcut.menu => LucideIcons.utensils,
-      HomeShortcut.events => LucideIcons.calendar,
-      HomeShortcut.polls => LucideIcons.vote,
-      HomeShortcut.schedule => LucideIcons.graduationCap,
-      HomeShortcut.clubs => LucideIcons.users,
-      HomeShortcut.chat => LucideIcons.messageCircle,
-      HomeShortcut.support => LucideIcons.headset,
-      HomeShortcut.search => LucideIcons.search,
-      HomeShortcut.notifications => LucideIcons.bell,
-      HomeShortcut.bookmarks => LucideIcons.bookmark,
+      HomeShortcut.news => BuIcons.newspaper,
+      HomeShortcut.menu => BuIcons.utensils,
+      HomeShortcut.events => BuIcons.calendar,
+      HomeShortcut.polls => BuIcons.vote,
+      HomeShortcut.schedule => BuIcons.graduationCap,
+      HomeShortcut.clubs => BuIcons.users,
+      HomeShortcut.chat => BuIcons.messageCircle,
+      HomeShortcut.support => BuIcons.headset,
+      HomeShortcut.search => BuIcons.search,
+      HomeShortcut.notifications => BuIcons.bell,
+      HomeShortcut.bookmarks => BuIcons.bookmark,
     };
 
 /// "Ana sayfayı düzenle" tam sayfası (alt gezinme yok): bölümleri tutamaçtan sürükleyerek ya da yukarı/aşağı
@@ -294,7 +294,7 @@ class _SectionRow extends StatelessWidget {
           child: Row(mainAxisSize: MainAxisSize.min, children: [
             Flexible(child: Text(l.p60Shortcuts, maxLines: 1, overflow: TextOverflow.ellipsis, style: BuType.label.copyWith(fontSize: 12, fontWeight: FontWeight.w400, color: t.mut))),
             const SizedBox(width: 2),
-            Icon(buDirIcon(context, LucideIcons.chevronRight), size: 14, color: t.mut),
+            Icon(buDirIcon(context, BuIcons.chevronRight), size: 14, color: t.mut),
           ]),
         ),
     ]);
@@ -313,7 +313,7 @@ class _SectionRow extends StatelessWidget {
                 index: index,
                 child: Semantics(
                   label: name,
-                  child: SizedBox(width: 40, height: BuSize.touch, child: Center(child: Icon(LucideIcons.gripVertical, size: 16, color: dragging ? t.pr : t.mut))),
+                  child: SizedBox(width: 40, height: BuSize.touch, child: Center(child: Icon(BuIcons.gripVertical, size: 16, color: dragging ? t.pr : t.mut))),
                 ),
               ),
               Expanded(
@@ -331,8 +331,8 @@ class _SectionRow extends StatelessWidget {
                       : label,
                 ),
               ),
-              _GhostButton(icon: LucideIcons.chevronUp, tooltip: l.p60MoveUp(name), onTap: canUp ? () => onMove(-1) : null),
-              _GhostButton(icon: LucideIcons.chevronDown, tooltip: l.p60MoveDown(name), onTap: canDown ? () => onMove(1) : null),
+              _GhostButton(icon: BuIcons.chevronUp, tooltip: l.p60MoveUp(name), onTap: canUp ? () => onMove(-1) : null),
+              _GhostButton(icon: BuIcons.chevronDown, tooltip: l.p60MoveDown(name), onTap: canDown ? () => onMove(1) : null),
               const SizedBox(width: 4),
               // Stitch: 44 x 24 anahtar (Flutter anahtarı 52 x 32; .85 ölçekle 44 x 27).
               Semantics(label: name, child: Transform.scale(scale: .85, child: Switch(value: visible, onChanged: onVisible))),
@@ -403,7 +403,7 @@ class _ShortcutEditor extends StatelessWidget {
                       child: Row(children: [
                         ReorderableDragStartListener(
                           index: i,
-                          child: Semantics(label: name, child: SizedBox(width: 44, height: BuSize.touch, child: Center(child: Icon(LucideIcons.gripVertical, size: 20, color: t.mut)))),
+                          child: Semantics(label: name, child: SizedBox(width: 44, height: BuSize.touch, child: Center(child: Icon(BuIcons.gripVertical, size: 20, color: t.mut)))),
                         ),
                         SizedBox(width: 24, child: Text('${i + 1}', style: BuType.body.copyWith(fontSize: 13, fontWeight: FontWeight.w700, color: t.mut, fontFeatures: const [FontFeature.tabularFigures()]))),
                         const SizedBox(width: 8),
@@ -467,7 +467,7 @@ class _ShortcutEditor extends StatelessWidget {
                                     borderRadius: BorderRadius.circular(6),
                                     border: Border.all(color: on ? t.pr : t.bdStrong, width: 1.5),
                                   ),
-                                  child: on ? Icon(LucideIcons.check, size: 14, color: t.onPr) : null,
+                                  child: on ? Icon(BuIcons.check, size: 14, color: t.onPr) : null,
                                 ),
                               ]),
                             ),
@@ -506,7 +506,7 @@ class _GhostRemove extends StatelessWidget {
         child: InkResponse(
           onTap: onTap,
           radius: 24,
-          child: SizedBox(width: BuSize.touch, height: BuSize.touch, child: Center(child: Icon(LucideIcons.x, size: 20, color: onTap == null ? t.mut.withValues(alpha: .4) : t.mut))),
+          child: SizedBox(width: BuSize.touch, height: BuSize.touch, child: Center(child: Icon(BuIcons.x, size: 20, color: onTap == null ? t.mut.withValues(alpha: .4) : t.mut))),
         ),
       ),
     );

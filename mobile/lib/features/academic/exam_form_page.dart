@@ -154,7 +154,7 @@ class _ExamFormPageState extends State<ExamFormPage> {
     return AcademicScaffold(
       title: _editing ? l.acadFormEdit : l.acadExamsAdd,
       actions: [
-        if (_editing) BuIconButton(icon: LucideIcons.trash2, tooltip: l.acadFormDeleteTitle, onTap: _busy ? null : _delete),
+        if (_editing) BuIconButton(icon: BuIcons.trash2, tooltip: l.acadFormDeleteTitle, onTap: _busy ? null : _delete),
       ],
       child: ListView(
         padding: const EdgeInsets.fromLTRB(20, 1, 20, 32),
@@ -174,7 +174,7 @@ class _ExamFormPageState extends State<ExamFormPage> {
           if (widget.courses.isNotEmpty) ...[
             AcadPicker(
               label: l.akademik2Course,
-              trailing: LucideIcons.chevronDown,
+              trailing: BuIcons.chevronDown,
               value: course == null ? null : _courseLabel(course),
               hint: l.p69PickCourse,
               onTap: _pickCourse,
@@ -191,7 +191,7 @@ class _ExamFormPageState extends State<ExamFormPage> {
           const SizedBox(height: 8),
           AcadPicker(
             label: l.p69DateLabel,
-            trailing: LucideIcons.calendar,
+            trailing: BuIcons.calendar,
             hint: l.acadFormPickDate,
             value: _day == null ? null : fmtWallDateL(l, _day!),
             error: _dateErr,
@@ -212,7 +212,7 @@ class _ExamFormPageState extends State<ExamFormPage> {
             Expanded(
               child: AcadPicker(
                 label: l.p69TimeLabel,
-                trailing: LucideIcons.clock,
+                trailing: BuIcons.clock,
                 value: hhmm(_start),
                 onTap: () async {
                   final m = await _pickTime(_start, l.acadFormStartTime);
@@ -229,7 +229,7 @@ class _ExamFormPageState extends State<ExamFormPage> {
             Expanded(
               child: AcadPicker(
                 label: l.acadFormEndHint,
-                trailing: LucideIcons.clock,
+                trailing: BuIcons.clock,
                 hint: l.acadSelect,
                 value: _end == null ? null : hhmm(_end!),
                 error: _endErr,

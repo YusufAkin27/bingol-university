@@ -155,7 +155,7 @@ class _ForwardSheetState extends State<ForwardSheet> {
           label: _selected.isEmpty
               ? l.chatMiscSend
               : l.chatMiscSendCount(_selected.length.toString()),
-          icon: LucideIcons.share2,
+          icon: BuIcons.share2,
           onPressed: _selected.isEmpty
               ? null
               : () => Navigator.pop(context, List<int>.from(_selected)),
@@ -251,9 +251,9 @@ class _ConvAvatar extends StatelessWidget {
     final t = context.bu;
     final tint = t.tint(((conv['id'] as num?)?.toInt() ?? 0));
     final icon = switch (type) {
-      'EVENT' => LucideIcons.calendarDays,
-      'CLUB' => LucideIcons.graduationCap,
-      _ => LucideIcons.users,
+      'EVENT' => BuIcons.calendarDays,
+      'CLUB' => BuIcons.graduationCap,
+      _ => BuIcons.users,
     };
     return ExcludeSemantics(
       child: Container(

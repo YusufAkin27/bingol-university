@@ -120,7 +120,7 @@ void main() {
     expect(find.byKey(const ValueKey('replyBar')), findsOneWidget);
     expect(find.descendant(of: find.byKey(const ValueKey('replyBar')), matching: find.text('Yarın sınav kaçta?')), findsOneWidget);
     expect(find.descendant(of: find.byKey(const ValueKey('replyBar')), matching: find.text('Ali Veli')), findsOneWidget);
-    await t.tap(find.descendant(of: find.byKey(const ValueKey('replyBar')), matching: find.byIcon(LucideIcons.x)));
+    await t.tap(find.descendant(of: find.byKey(const ValueKey('replyBar')), matching: find.byIcon(BuIcons.x)));
     await settle(t, const Duration(milliseconds: 300));
     expect(find.byKey(const ValueKey('replyBar')), findsNothing);
 
@@ -131,7 +131,7 @@ void main() {
     expect(find.byKey(const ValueKey('editBar')), findsOneWidget);
     expect(find.text('Mesaj düzenleniyor'), findsOneWidget);
     expect(find.byKey(const ValueKey('attachButton')), findsNothing);
-    expect(find.descendant(of: find.byKey(const ValueKey('sendButton')), matching: find.byIcon(LucideIcons.check)), findsOneWidget);
+    expect(find.descendant(of: find.byKey(const ValueKey('sendButton')), matching: find.byIcon(BuIcons.check)), findsOneWidget);
     await unmount(t);
     _ok(t);
   });

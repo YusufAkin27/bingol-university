@@ -35,7 +35,7 @@ class ChatlistNewButton extends StatelessWidget {
             height: 48,
             child: Center(
               // Stitch v3 liste: daire/çerçeve yok, 24 dp çizgi ikon (tek birincil eylem sayfadaki boş durum düğmesidir).
-              child: Icon(LucideIcons.plus, size: 24, color: t.ink),
+              child: Icon(BuIcons.plus, size: 24, color: t.ink),
             ),
           ),
         ),
@@ -96,7 +96,7 @@ class ChatlistSearch extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Icon(LucideIcons.search, size: 18, color: t.mut),
+          Icon(BuIcons.search, size: 18, color: t.mut),
           const SizedBox(width: 10),
           Expanded(
             child: TextField(
@@ -127,7 +127,7 @@ class ChatlistSearch extends StatelessWidget {
                         controller!.clear();
                         onChanged('');
                       },
-                      icon: Icon(LucideIcons.x, size: 16, color: t.mut),
+                      icon: Icon(BuIcons.x, size: 16, color: t.mut),
                     ),
             ),
         ],

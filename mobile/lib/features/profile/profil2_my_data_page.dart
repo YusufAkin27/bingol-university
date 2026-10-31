@@ -190,7 +190,7 @@ class _MyDataPageState extends State<MyDataPage> with WidgetsBindingObserver {
                       Padding(
                         padding: const EdgeInsets.symmetric(vertical: 9),
                         child: Row(children: [
-                          ExcludeSemantics(child: Icon(LucideIcons.check, size: 18, color: _limitMessage == null ? t.ink : t.mut)),
+                          ExcludeSemantics(child: Icon(BuIcons.check, size: 18, color: _limitMessage == null ? t.ink : t.mut)),
                           const SizedBox(width: 16),
                           Expanded(child: Text(s, style: tx.bodyLarge!.copyWith(fontSize: 15, color: t.ink))),
                         ]),

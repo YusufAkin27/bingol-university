@@ -4,12 +4,12 @@ import 'package:bu_kampus/core/outbox/outbox.dart';
 import 'package:bu_kampus/core/session.dart';
 import 'package:bu_kampus/features/chat/chat_detail_page.dart';
 import 'package:bu_kampus/features/menu/menu_page.dart';
-import 'package:bu_kampus/widgets/bu_widgets.dart' show LucideIcons;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'support/fake_app.dart';
 import 'support/fake_media.dart';
+import 'package:bu_kampus/core/icons/bu_icons.dart';
 
 FakeBackend _backend() => FakeBackend()
   ..on('/conversations/1/messages?size=30', {'items': <Object>[], 'nextCursor': null})
@@ -75,14 +75,14 @@ void main() {
     expect(find.text('selam kuyruk'), findsOneWidget);
     expect(ob.pendingCount, 1);
     expectNoQueueNotices();
-    expect(find.byIcon(LucideIcons.clock), findsOneWidget); // balonda normal gonderiliyor gostergesi
+    expect(find.byIcon(BuIcons.clock), findsOneWidget); // balonda normal gonderiliyor gostergesi
     expect(find.text('Gönderilemedi'), findsNothing);
     expect(find.textContaining('Yeniden'), findsNothing);
 
     deliver = true;
     await ob.retry(ob.items.single.clientId);
     await settle(tester, const Duration(milliseconds: 600));
-    expect(find.byIcon(LucideIcons.clock), findsNothing); // teslim: gosterge kalkti, tik oldu
+    expect(find.byIcon(BuIcons.clock), findsNothing); // teslim: gosterge kalkti, tik oldu
     expectNoQueueNotices();
     expect(find.text('selam kuyruk'), findsOneWidget); // çift balon yok
     expect(ob.items, isEmpty);
@@ -108,13 +108,13 @@ void main() {
     await settle(tester, const Duration(milliseconds: 600));
     await _type(tester, 'hatali');
     expectNoQueueNotices();
-    expect(find.byIcon(LucideIcons.clock), findsOneWidget);
+    expect(find.byIcon(BuIcons.clock), findsOneWidget);
 
     mode = 'bad';
     await ob.retry(ob.items.single.clientId);
     await settle(tester, const Duration(milliseconds: 600));
     expect(ob.failedCount, 1);
-    expect(find.byIcon(LucideIcons.clock), findsNothing);
+    expect(find.byIcon(BuIcons.clock), findsNothing);
     expect(find.textContaining('Yeniden'), findsOneWidget); // YALNIZ kalici hatada Gonderilemedi + Yeniden dene
 
     mode = 'ok';
@@ -137,7 +137,7 @@ void main() {
     await settle(tester, const Duration(milliseconds: 600));
     expect(find.text('eski bekleyen'), findsOneWidget);
     expectNoQueueNotices();
-    expect(find.byIcon(LucideIcons.clock), findsOneWidget);
+    expect(find.byIcon(BuIcons.clock), findsOneWidget);
     await tester.pumpWidget(const SizedBox());
     ob.dispose();
   });

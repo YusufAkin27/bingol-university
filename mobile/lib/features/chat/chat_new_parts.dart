@@ -25,7 +25,7 @@ class NcHeader extends StatelessWidget {
           IconButton(
             tooltip: MaterialLocalizations.of(context).backButtonTooltip,
             onPressed: onBack,
-            icon: Icon(buDirIcon(context, LucideIcons.arrowLeft), color: t.ink),
+            icon: Icon(buDirIcon(context, BuIcons.arrowLeft), color: t.ink),
             style: IconButton.styleFrom(minimumSize: const Size(48, 48)),
           ),
           const SizedBox(width: 4),
@@ -122,7 +122,7 @@ class NcActionCard extends StatelessWidget {
               ]),
             ),
             const SizedBox(width: 8),
-            trailing ?? Icon(buDirIcon(context, LucideIcons.chevronRight), size: 18, color: t.mut),
+            trailing ?? Icon(buDirIcon(context, BuIcons.chevronRight), size: 18, color: t.mut),
           ]),
         ),
       ),
@@ -240,7 +240,7 @@ class NcCheck extends StatelessWidget {
       width: 28,
       height: 28,
       decoration: BoxDecoration(color: on ? t.pr : t.sf2, shape: BoxShape.circle),
-      child: on ? Icon(LucideIcons.check, size: 16, color: t.onPr) : null,
+      child: on ? Icon(BuIcons.check, size: 16, color: t.onPr) : null,
     );
   }
 }

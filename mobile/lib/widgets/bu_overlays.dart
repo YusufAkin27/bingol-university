@@ -7,6 +7,7 @@ import '../core/theme/bu_motion.dart';
 import '../core/theme/bu_shape.dart';
 import 'bu_pressable.dart';
 import 'bu_widgets.dart';
+import '../core/icons/bu_icons.dart';
 
 // Ortak hareket eklemeleri (D1) tasarım sistemi tek içe aktarmasıyla (`widgets/bu.dart` -> bu_overlays) gelir.
 export '../core/motion/bu_count_up.dart';
@@ -153,7 +154,7 @@ abstract final class BuConfirmSheet {
                     color: destructive ? Theme.of(ctx).colorScheme.errorContainer : t.soft,
                     borderRadius: BuRadius.bXl,
                   ),
-                  child: Icon(icon ?? (destructive ? LucideIcons.trash2 : LucideIcons.circleHelp), size: 28, color: accent),
+                  child: Icon(icon ?? (destructive ? BuIcons.trash2 : BuIcons.circleHelp), size: 28, color: accent),
                 ),
               ),
             ),
@@ -350,10 +351,10 @@ abstract final class BuToast {
     // Koyu zeminli (ters yüzey) kutuda okunacak ton: açık temada koyu paletin renkleri, koyu temada açık paletin renkleri.
     final inv = Theme.of(context).brightness == Brightness.light ? BuTokens.dark : BuTokens.light;
     final (icon, color) = switch (kind) {
-      BuToastKind.info => (LucideIcons.info, inv.mut),
-      BuToastKind.success => (LucideIcons.circleCheck, inv.ok),
-      BuToastKind.error => (LucideIcons.circleAlert, inv.danger),
-      BuToastKind.warning => (LucideIcons.triangleAlert, inv.warn),
+      BuToastKind.info => (BuIcons.info, inv.mut),
+      BuToastKind.success => (BuIcons.circleCheck, inv.ok),
+      BuToastKind.error => (BuIcons.circleAlert, inv.danger),
+      BuToastKind.warning => (BuIcons.triangleAlert, inv.warn),
     };
     messenger
       ..hideCurrentSnackBar()

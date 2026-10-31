@@ -592,7 +592,7 @@ class _OptionTile extends StatelessWidget {
                           decoration: BoxDecoration(color: on ? t.pr : t.sf2, shape: BoxShape.circle),
                           child: on
                               ? Text('${rank ?? ''}', style: tx.titleSmall!.copyWith(color: t.onPr, fontWeight: FontWeight.w700))
-                              : Icon(LucideIcons.plus, size: 16, color: t.mut),
+                              : Icon(BuIcons.plus, size: 16, color: t.mut),
                         )
                       else
                         AnketMarkFlat(on: on, square: square),

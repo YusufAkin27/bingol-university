@@ -178,7 +178,7 @@ class ChatInfoThumb extends StatelessWidget {
                 fit: BoxFit.cover,
                 cacheWidth: 360,
                 gaplessPlayback: true,
-                errorBuilder: (c, e, s) => Center(child: Icon(LucideIcons.imageOff, color: t.mut)),
+                errorBuilder: (c, e, s) => Center(child: Icon(BuIcons.imageOff, color: t.mut)),
               ),
               if (video) ...[
                 ColoredBox(color: t.scrim.withValues(alpha: .2)),
@@ -187,7 +187,7 @@ class ChatInfoThumb extends StatelessWidget {
                     width: 32,
                     height: 32,
                     decoration: BoxDecoration(color: t.scrim.withValues(alpha: .6), shape: BoxShape.circle),
-                    child: Icon(Icons.play_arrow_rounded, size: 22, color: t.onMedia),
+                    child: Icon(BuIcons.playFilled, size: 22, color: t.onMedia),
                   ),
                 ),
                 if (durationMs != null)
@@ -253,7 +253,7 @@ class _MediaLoadingCard extends StatelessWidget {
               Expanded(
                   child: AspectRatio(
                       aspectRatio: 1,
-                      child: _SkeletonTile(icon: i == 1 ? LucideIcons.circlePlay : LucideIcons.image))),
+                      child: _SkeletonTile(icon: i == 1 ? BuIcons.circlePlay : BuIcons.image))),
             ],
           ]),
         ),
@@ -289,7 +289,7 @@ class _MediaEmptyCard extends StatelessWidget {
           width: 64,
           height: 64,
           decoration: BoxDecoration(color: t.sf2, shape: BoxShape.circle),
-          child: Icon(LucideIcons.images, size: 32, color: t.mut),
+          child: Icon(BuIcons.images, size: 32, color: t.mut),
         ),
         const SizedBox(height: 12),
         Text(context.l10n.chatInfoNoMedia, textAlign: TextAlign.center, style: chatInfoTitle16(context)),
@@ -314,7 +314,7 @@ class _MediaErrorCard extends StatelessWidget {
           width: 64,
           height: 64,
           decoration: BoxDecoration(color: t.danger.withValues(alpha: .12), shape: BoxShape.circle),
-          child: Icon(LucideIcons.cloudOff, size: 32, color: t.danger),
+          child: Icon(BuIcons.cloudOff, size: 32, color: t.danger),
         ),
         const SizedBox(height: 12),
         Text(context.l10n.p09MediaErrorTitle, textAlign: TextAlign.center, style: chatInfoTitle16(context)),
@@ -335,7 +335,7 @@ class _MediaErrorCard extends StatelessWidget {
               child: ConstrainedBox(
                 constraints: const BoxConstraints(minHeight: 48),
                 child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                  Icon(LucideIcons.refreshCw, size: 18, color: t.bg),
+                  Icon(BuIcons.refreshCw, size: 18, color: t.bg),
                   const SizedBox(width: 8),
                   Flexible(child: Text(context.l10n.chatInfoRetry, style: chatInfoLabel14(context, color: t.bg))),
                 ]),
@@ -414,7 +414,7 @@ class _ChatMediaGridPageState extends State<ChatMediaGridPage> {
         child: Center(
           child: BuButton(
             label: context.l10n.chatInfoRetry,
-            icon: LucideIcons.refreshCw,
+            icon: BuIcons.refreshCw,
             kind: BuButtonKind.outline,
             compact: true,
             onPressed: () => _f.load(),

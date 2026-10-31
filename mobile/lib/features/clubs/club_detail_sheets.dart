@@ -19,15 +19,15 @@ Future<String?> showClubMenu(
   final l = anchor.l10n;
   return showClubDropdown(anchor, [
     if (isManager) ...[
-      ClubMenuEntry('edit', LucideIcons.pencilLine, l.clubEdit),
-      ClubMenuEntry('requests', LucideIcons.userPlus, l.clubRequests, count: pendingCount),
-      ClubMenuEntry('members', LucideIcons.userCog, l.clubManageMembers),
-      ClubMenuEntry('event', LucideIcons.calendarPlus, l.eventListCreate),
-      ClubMenuEntry('cover', LucideIcons.imagePlus, l.clubChangeCover),
+      ClubMenuEntry('edit', BuIcons.pencilLine, l.clubEdit),
+      ClubMenuEntry('requests', BuIcons.userPlus, l.clubRequests, count: pendingCount),
+      ClubMenuEntry('members', BuIcons.userCog, l.clubManageMembers),
+      ClubMenuEntry('event', BuIcons.calendarPlus, l.eventListCreate),
+      ClubMenuEntry('cover', BuIcons.imagePlus, l.clubChangeCover),
     ],
-    if (isOwner) ClubMenuEntry('delete', LucideIcons.trash2, l.clubDeleteClub, danger: true, dividerBefore: true),
-    if (!isOwner) ClubMenuEntry('report', LucideIcons.flag, l.clubReportClub, danger: true, dividerBefore: isManager),
-    if (isMember) ClubMenuEntry('leave', LucideIcons.logOut, l.clubLeave, danger: true),
+    if (isOwner) ClubMenuEntry('delete', BuIcons.trash2, l.clubDeleteClub, danger: true, dividerBefore: true),
+    if (!isOwner) ClubMenuEntry('report', BuIcons.flag, l.clubReportClub, danger: true, dividerBefore: isManager),
+    if (isMember) ClubMenuEntry('leave', BuIcons.logOut, l.clubLeave, danger: true),
   ]);
 }
 
@@ -51,7 +51,7 @@ Future<String?> showPostMenuSheet(
         children: [
           if (canPin)
             ClubSheetRow(
-              icon: pinned ? LucideIcons.pinOff : LucideIcons.pin,
+              icon: pinned ? BuIcons.pinOff : BuIcons.pin,
               title: pinned ? l.clubUnpin : l.clubPin,
               subtitle: pinned ? l.p11PostUnpinSub : l.p11PostPinSub,
               circle: true,
@@ -60,7 +60,7 @@ Future<String?> showPostMenuSheet(
             ),
           if (canDelete)
             ClubSheetRow(
-              icon: LucideIcons.trash2,
+              icon: BuIcons.trash2,
               title: l.clubDelete,
               subtitle: l.p11PostDeleteSub,
               circle: true,
@@ -70,7 +70,7 @@ Future<String?> showPostMenuSheet(
             ),
           if (canReport)
             ClubSheetRow(
-              icon: LucideIcons.flag,
+              icon: BuIcons.flag,
               title: l.clubReport,
               subtitle: l.p11PostReportSub,
               circle: true,
@@ -93,8 +93,8 @@ Future<bool> confirmDeletePost(BuildContext context) => confirmDialog(
       message: context.l10n.clubDeletePostMessage,
       confirmLabel: context.l10n.clubDelete,
       danger: true,
-      icon: LucideIcons.trash2,
-      confirmIcon: LucideIcons.trash2,
+      icon: BuIcons.trash2,
+      confirmIcon: BuIcons.trash2,
     );
 
 /// Kulübü silmeden önce son onay (A28): uyarı + kulüp adını yazma. `true` = silinsin.
@@ -129,7 +129,7 @@ class _ClubDeleteDialogState extends State<ClubDeleteDialog> {
     final promptStyle = tx.bodyMedium!.copyWith(color: t.ink, height: 1.4);
     final at = prompt.lastIndexOf(widget.name);
     return ClubDialogCard(
-      icon: LucideIcons.trash2,
+      icon: BuIcons.trash2,
       title: l.clubDeleteClub,
       message: l.clubDeleteBody,
       content: Column(
@@ -168,7 +168,7 @@ class _ClubDeleteDialogState extends State<ClubDeleteDialog> {
         ClubBtn(label: l.clubCancel, onPressed: () => Navigator.pop(context, false)),
         ClubBtn(
           label: l.clubDelete,
-          icon: LucideIcons.trash2,
+          icon: BuIcons.trash2,
           kind: ClubBtnKind.danger,
           onPressed: match ? () => Navigator.pop(context, true) : null,
         ),

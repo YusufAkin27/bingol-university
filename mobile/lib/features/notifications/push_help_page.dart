@@ -126,7 +126,7 @@ class _PushHelpPageState extends State<PushHelpPage> with WidgetsBindingObserver
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(color: good ? t.okSoft : t.warnSoft, borderRadius: BuRadius.bLg),
       child: Row(children: [
-        Icon(good ? LucideIcons.circleCheck : LucideIcons.triangleAlert, size: 26, color: good ? t.ok : t.onWarnSoft),
+        Icon(good ? BuIcons.circleCheck : BuIcons.triangleAlert, size: 26, color: good ? t.ok : t.onWarnSoft),
         const SizedBox(width: 12),
         Expanded(
           child: Text(
@@ -142,7 +142,7 @@ class _PushHelpPageState extends State<PushHelpPage> with WidgetsBindingObserver
   Widget _row({required bool? ok, required String title, required String body, (String, FutureOr<Object?> Function())? action, bool busy = false}) {
     final t = context.bu;
     final tx = Theme.of(context).textTheme;
-    final icon = ok == null ? LucideIcons.info : (ok ? LucideIcons.circleCheck : LucideIcons.circleAlert);
+    final icon = ok == null ? BuIcons.info : (ok ? BuIcons.circleCheck : BuIcons.circleAlert);
     final color = ok == null ? t.mut : (ok ? t.ok : t.pr);
     return AkadCard(
       child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [

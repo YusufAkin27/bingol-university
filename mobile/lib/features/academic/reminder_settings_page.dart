@@ -180,7 +180,7 @@ class _ReminderSettingsPageState extends State<ReminderSettingsPage> with Widget
             ]),
           ),
           const SizedBox(width: 12),
-          ExcludeSemantics(child: Icon(buDirIcon(context, LucideIcons.chevronRight), size: 18, color: t.mut)),
+          ExcludeSemantics(child: Icon(buDirIcon(context, BuIcons.chevronRight), size: 18, color: t.mut)),
         ]),
       );
 }

@@ -378,11 +378,11 @@ final _boards = <_Board>[
     await t.longPress(find.text('Zeynep Demir'));
   }),
   _Board('L04_arsiv', () => _tab(_listBackend()), after: (t) async {
-    await t.tap(find.byIcon(LucideIcons.archive).first);
+    await t.tap(find.byIcon(BuIcons.archive).first);
     await settle(t, const Duration(milliseconds: 800));
   }),
   _Board('L04b_arsiv_bos', () => _tab(_listBackend(archived: [])), after: (t) async {
-    await t.tap(find.byIcon(LucideIcons.archive).first);
+    await t.tap(find.byIcon(BuIcons.archive).first);
     await settle(t, const Duration(milliseconds: 800));
   }),
   _Board('L05_bos', () => _tab(_listBackend(items: [])), height: 844),

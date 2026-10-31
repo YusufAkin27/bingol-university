@@ -77,7 +77,7 @@ class PostPhoto extends StatelessWidget {
                   excludeFromSemantics: true,
                   frameBuilder: (context, child, frame, sync) =>
                       sync ? child : AnimatedOpacity(opacity: frame == null ? 0 : 1, duration: fade, curve: BuMotion.standard, child: child),
-                  errorBuilder: (_, __, ___) => Center(child: Icon(LucideIcons.image, color: t.mut)),
+                  errorBuilder: (_, __, ___) => Center(child: Icon(BuIcons.image, color: t.mut)),
                 ),
               ),
             );
@@ -116,7 +116,7 @@ class PostPhoto extends StatelessWidget {
                           child: child,
                         ),
                   errorBuilder: (_, __, ___) =>
-                      thumb != null ? const SizedBox.shrink() : Center(child: Icon(LucideIcons.image, color: t.mut)),
+                      thumb != null ? const SizedBox.shrink() : Center(child: Icon(BuIcons.image, color: t.mut)),
                 ),
               ]),
             ),

@@ -79,7 +79,7 @@ class _AkadHeader extends StatelessWidget {
             IconButton(
               constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
               tooltip: context.l10n.commonBack,
-              icon: Icon(buDirIcon(context, LucideIcons.arrowLeft), size: 24, color: t.ink),
+              icon: Icon(buDirIcon(context, BuIcons.arrowLeft), size: 24, color: t.ink),
               onPressed: () => Navigator.maybePop(context),
             ),
             const SizedBox(width: 4),
@@ -202,7 +202,7 @@ Future<bool> confirmDialog(BuildContext context, {required String title, require
       message: text,
       confirmLabel: action,
       cancelLabel: context.l10n.acadCancel,
-      icon: icon ?? LucideIcons.triangleAlert,
+      icon: icon ?? BuIcons.triangleAlert,
     );
   }
   final r = await BuDialog.show<bool>(
@@ -223,7 +223,7 @@ Future<bool> confirmDialog(BuildContext context, {required String title, require
                 width: 56,
                 height: 56,
                 decoration: BoxDecoration(color: t.soft, shape: BoxShape.circle),
-                child: ExcludeSemantics(child: Icon(icon ?? LucideIcons.trash2, size: 24, color: t.pr)),
+                child: ExcludeSemantics(child: Icon(icon ?? BuIcons.trash2, size: 24, color: t.pr)),
               ),
             ),
             const SizedBox(height: 14),
@@ -234,7 +234,7 @@ Future<bool> confirmDialog(BuildContext context, {required String title, require
             Row(children: [
               Expanded(child: AkadTonalButton(label: ctx.l10n.acadCancel, onPressed: () => Navigator.pop(ctx, false))),
               const SizedBox(width: 10),
-              Expanded(child: BuButton(label: action, icon: LucideIcons.trash2, onPressed: () => Navigator.pop(ctx, true))),
+              Expanded(child: BuButton(label: action, icon: BuIcons.trash2, onPressed: () => Navigator.pop(ctx, true))),
             ]),
           ]),
         ),

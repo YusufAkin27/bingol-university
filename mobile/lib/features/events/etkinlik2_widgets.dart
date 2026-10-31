@@ -161,7 +161,7 @@ class Et2Toggle extends StatelessWidget {
             onChanged: onChanged == null ? null : flip,
             materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
             thumbIcon: thumbCheck
-                ? WidgetStateProperty.resolveWith((st) => st.contains(WidgetState.selected) ? Icon(LucideIcons.check, color: context.bu.pr) : null)
+                ? WidgetStateProperty.resolveWith((st) => st.contains(WidgetState.selected) ? Icon(BuIcons.check, color: context.bu.pr) : null)
                 : null,
           ),
         ),
@@ -451,7 +451,7 @@ class Et2NavRow extends StatelessWidget {
                 ),
               ],
               const SizedBox(width: 6),
-              Icon(buDirIcon(context, LucideIcons.chevronRight), size: 18, color: t.mut),
+              Icon(buDirIcon(context, BuIcons.chevronRight), size: 18, color: t.mut),
             ]),
           ),
         ),
@@ -648,7 +648,7 @@ class Et2EventStrip extends StatelessWidget {
         border: Border.all(color: t.bd),
       ),
       child: Row(children: [
-        const Et2IconBox(LucideIcons.calendarDays, size: 40),
+        const Et2IconBox(BuIcons.calendarDays, size: 40),
         const SizedBox(width: 12),
         Expanded(
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
@@ -719,7 +719,7 @@ class Et2ErrorRow extends StatelessWidget {
               width: 36,
               height: 36,
               decoration: BoxDecoration(color: t.danger.withValues(alpha: .14), shape: BoxShape.circle),
-              child: Icon(LucideIcons.circleAlert, size: 20, color: t.danger),
+              child: Icon(BuIcons.circleAlert, size: 20, color: t.danger),
             ),
           ),
           const SizedBox(width: 10),
@@ -750,7 +750,7 @@ class Et2ErrorRow extends StatelessWidget {
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                     decoration: BoxDecoration(color: t.sf, borderRadius: BorderRadius.circular(BuRadius.pill)),
                     child: Row(mainAxisSize: MainAxisSize.min, children: [
-                      Icon(LucideIcons.refreshCw, size: 14, color: t.danger),
+                      Icon(BuIcons.refreshCw, size: 14, color: t.danger),
                       const SizedBox(width: 6),
                       Flexible(child: Text(retryLabel ?? '', maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.labelMedium!.copyWith(fontWeight: FontWeight.w700, color: t.danger))),
                     ]),

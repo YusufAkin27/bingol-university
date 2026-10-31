@@ -241,7 +241,7 @@ class _NewsListPageState extends State<NewsListPage> {
             child: Row(children: [
               if (Navigator.canPop(context))
                 IcerikIconButton(
-                    icon: buDirIcon(context, LucideIcons.arrowLeft), label: l.commonBack, shadow: true, onTap: () => Navigator.maybePop(context)),
+                    icon: buDirIcon(context, BuIcons.arrowLeft), label: l.commonBack, shadow: true, onTap: () => Navigator.maybePop(context)),
               if (Navigator.canPop(context)) const SizedBox(width: 4),
               Expanded(
                 child: Semantics(
@@ -253,9 +253,9 @@ class _NewsListPageState extends State<NewsListPage> {
                 ),
               ),
               IcerikIconButton(
-                  key: const ValueKey('news-search'), icon: LucideIcons.search, label: l.commonSearchHint, shadow: true, onTap: _openSearch),
+                  key: const ValueKey('news-search'), icon: BuIcons.search, label: l.commonSearchHint, shadow: true, onTap: _openSearch),
               IcerikIconButton(
-                  key: const ValueKey('news-favorites'), icon: LucideIcons.bookmark, label: l.icerikFavorites, shadow: true, onTap: _openFavorites),
+                  key: const ValueKey('news-favorites'), icon: BuIcons.bookmark, label: l.icerikFavorites, shadow: true, onTap: _openFavorites),
             ]),
           ),
           Padding(
@@ -285,7 +285,7 @@ class _NewsListPageState extends State<NewsListPage> {
                       SliverToBoxAdapter(
                         child: Padding(
                           padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
-                          child: IcerikNotice(text: l.icerikMaintenance, icon: LucideIcons.refreshCw, sub: _lastUpdateText()),
+                          child: IcerikNotice(text: l.icerikMaintenance, icon: BuIcons.refreshCw, sub: _lastUpdateText()),
                         ),
                       ),
                     ..._slivers(),

@@ -1,7 +1,7 @@
 import 'package:flutter/widgets.dart';
 
 import '../../core/api.dart';
-import '../../widgets/bu_widgets.dart' show LucideIcons;
+import '../../core/icons/bu_icons.dart';
 
 /// Kulüp kategorisi (GET /communities/categories): `key` süzme/gönderme değeri,
 /// `name` sunucunun istek diline çevirdiği görünen ad. Bilinmeyen alanlar yok sayılır.
@@ -53,26 +53,26 @@ class ClubCategory {
     switch (icon.toLowerCase()) {
       case 'sports':
       case 'sport':
-        return LucideIcons.trophy;
+        return BuIcons.trophy;
       case 'music':
-        return LucideIcons.music;
+        return BuIcons.music;
       case 'art':
       case 'arts':
-        return LucideIcons.palette;
+        return BuIcons.palette;
       case 'tech':
       case 'technology':
-        return LucideIcons.cpu;
+        return BuIcons.cpu;
       case 'science':
       case 'education':
-        return LucideIcons.bookOpen;
+        return BuIcons.bookOpen;
       case 'social':
-        return LucideIcons.users;
+        return BuIcons.users;
       case 'health':
-        return LucideIcons.heart;
+        return BuIcons.heart;
       case 'culture':
-        return LucideIcons.globe;
+        return BuIcons.globe;
       default:
-        return LucideIcons.tag;
+        return BuIcons.tag;
     }
   }
 }

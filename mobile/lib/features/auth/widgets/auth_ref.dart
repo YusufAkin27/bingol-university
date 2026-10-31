@@ -56,7 +56,7 @@ class RefPage extends StatelessWidget {
                         onTap: onBack ?? () => Navigator.maybePop(context),
                         child: IconButton(
                           constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
-                          icon: Icon(buDirIcon(context, LucideIcons.arrowLeft), color: t.ink, size: 24),
+                          icon: Icon(buDirIcon(context, BuIcons.arrowLeft), color: t.ink, size: 24),
                           onPressed: onBack ?? () => Navigator.maybePop(context),
                         ),
                       ),
@@ -278,7 +278,7 @@ class RefBanner extends StatelessWidget {
                 tooltip: context.l10n.commonClose,
                 visualDensity: VisualDensity.compact,
                 constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
-                icon: Icon(LucideIcons.x, size: 18, color: fg),
+                icon: Icon(BuIcons.x, size: 18, color: fg),
                 onPressed: onClose,
               ),
           ],
@@ -291,7 +291,7 @@ class RefBanner extends StatelessWidget {
 /// Kısa, sakin bilgi satırı: kutu/zemin yok; küçük soluk simge + ikincil metin (kalıcı olmayan bilgi kutusu yerine).
 /// [tone]/[iconTint] eski çağrılar için kabul edilir, görünümü değiştirmez.
 class RefNote extends StatelessWidget {
-  const RefNote(this.text, {super.key, this.icon = LucideIcons.info, this.tone = RefTone.neutral, this.title, this.iconTint});
+  const RefNote(this.text, {super.key, this.icon = BuIcons.info, this.tone = RefTone.neutral, this.title, this.iconTint});
 
   final String text;
   final IconData icon;
@@ -833,7 +833,7 @@ class _RefPasswordFieldState extends State<RefPasswordField> {
       controller: widget.controller,
       label: widget.label ?? context.l10n.authPasswordLabel,
       hint: widget.hint,
-      icon: widget.showIcon ? LucideIcons.lock : null,
+      icon: widget.showIcon ? BuIcons.lock : null,
       obscureText: _hidden,
       autocorrect: false,
       validator: widget.validator,
@@ -851,7 +851,7 @@ class _RefPasswordFieldState extends State<RefPasswordField> {
         tooltip: _hidden ? context.l10n.authShowPassword : context.l10n.authHidePassword,
         constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
         padding: EdgeInsets.zero,
-        icon: Icon(_hidden ? LucideIcons.eye : LucideIcons.eyeOff, size: 22, color: t.mut),
+        icon: Icon(_hidden ? BuIcons.eye : BuIcons.eyeOff, size: 22, color: t.mut),
         onPressed: () {
           authHaptic(AuthHaptic.tap);
           setState(() => _hidden = !_hidden);
@@ -982,7 +982,7 @@ class RefBrandMark extends StatelessWidget {
                   width: size * .36,
                   height: size * .36,
                   decoration: BoxDecoration(color: t.sf, shape: BoxShape.circle, boxShadow: BuElevation.of(context, 1)),
-                  child: Icon(LucideIcons.graduationCap, size: size * .2, color: t.pr),
+                  child: Icon(BuIcons.graduationCap, size: size * .2, color: t.pr),
                 ),
               ),
           ],

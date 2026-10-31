@@ -38,19 +38,19 @@ Future<String?> showConversationMenu(
         ),
         _ActionRow(
           id: muted ? 'unmute' : 'mute',
-          icon: muted ? LucideIcons.bell : LucideIcons.bellOff,
+          icon: muted ? BuIcons.bell : BuIcons.bellOff,
           label: muted ? l.chatInfoUnmute : l.chatInfoMute,
           onTap: () => Navigator.pop(c, muted ? 'unmute' : 'mute'),
         ),
         _ActionRow(
           id: archived ? 'unarchive' : 'archive',
-          icon: LucideIcons.archive,
+          icon: BuIcons.archive,
           label: archived ? l.chatInfoUnarchive : l.chatInfoArchive,
           onTap: () => Navigator.pop(c, archived ? 'unarchive' : 'archive'),
         ),
         if (canDelete) ...[
           Divider(height: 16, color: t.bd),
-          _ActionRow(id: 'delete', icon: LucideIcons.trash2, label: l.p06MenuDeleteChat, danger: true, onTap: () => Navigator.pop(c, 'delete')),
+          _ActionRow(id: 'delete', icon: BuIcons.trash2, label: l.p06MenuDeleteChat, danger: true, onTap: () => Navigator.pop(c, 'delete')),
         ],
       ]);
     },
@@ -90,7 +90,7 @@ class _ActionRow extends StatelessWidget {
           ),
           const SizedBox(width: 14),
           Expanded(child: Text(label, style: tx.titleSmall!.copyWith(color: color, fontWeight: FontWeight.w600))),
-          if (!danger) Icon(buDirIcon(context, LucideIcons.chevronRight), size: 18, color: t.mut),
+          if (!danger) Icon(buDirIcon(context, BuIcons.chevronRight), size: 18, color: t.mut),
         ]),
       ),
     );

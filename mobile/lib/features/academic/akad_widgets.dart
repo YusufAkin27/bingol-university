@@ -381,7 +381,7 @@ class AkadTextField extends StatelessWidget {
                 ),
           prefixIconConstraints: const BoxConstraints(minWidth: 0, minHeight: 0),
           suffixIcon: error != null
-              ? Icon(LucideIcons.circleAlert, size: 18, color: t.danger)
+              ? Icon(BuIcons.circleAlert, size: 18, color: t.danger)
               : (trailingIcon == null ? null : Padding(padding: const EdgeInsetsDirectional.only(end: 14), child: Icon(trailingIcon, size: 18, color: t.pr))),
         ),
       ),
@@ -662,7 +662,7 @@ class AkadStaleStrip extends StatelessWidget {
         color: t.warnSoft,
         padding: const EdgeInsetsDirectional.fromSTEB(20, 10, 20, 10),
         child: Row(children: [
-          ExcludeSemantics(child: Icon(LucideIcons.cloudOff, size: 16, color: t.onWarnSoft)),
+          ExcludeSemantics(child: Icon(BuIcons.cloudOff, size: 16, color: t.onWarnSoft)),
           const SizedBox(width: 10),
           Expanded(child: Text(text, style: Theme.of(context).textTheme.labelLarge!.copyWith(fontWeight: FontWeight.w700, color: t.onWarnSoft))),
         ]),
@@ -673,7 +673,7 @@ class AkadStaleStrip extends StatelessWidget {
 
 /// Kehribar bilgi kartı (bakım notu): simge karosu + metin.
 class AkadNoticeCard extends StatelessWidget {
-  const AkadNoticeCard({super.key, required this.text, this.icon = LucideIcons.wrench});
+  const AkadNoticeCard({super.key, required this.text, this.icon = BuIcons.wrench});
 
   final String text;
   final IconData icon;
@@ -725,7 +725,7 @@ class AkadErrorCard extends StatelessWidget {
               width: 40,
               height: 40,
               decoration: BoxDecoration(color: t.soft, shape: BoxShape.circle),
-              child: ExcludeSemantics(child: Icon(LucideIcons.circleAlert, size: 20, color: t.onSoft)),
+              child: ExcludeSemantics(child: Icon(BuIcons.circleAlert, size: 20, color: t.onSoft)),
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -738,7 +738,7 @@ class AkadErrorCard extends StatelessWidget {
           const SizedBox(height: 14),
           Align(
             alignment: AlignmentDirectional.centerEnd,
-            child: BuButton(label: retryLabel, icon: LucideIcons.rotateCw, compact: true, onPressed: onRetry),
+            child: BuButton(label: retryLabel, icon: BuIcons.rotateCw, compact: true, onPressed: onRetry),
           ),
         ]),
       ),

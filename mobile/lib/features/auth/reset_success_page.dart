@@ -39,7 +39,7 @@ class ResetSuccessPage extends StatelessWidget {
                             width: 56,
                             height: 56,
                             decoration: BoxDecoration(color: t.okSoft, shape: BoxShape.circle),
-                            child: Icon(LucideIcons.check, size: 28, color: t.ok),
+                            child: Icon(BuIcons.check, size: 28, color: t.ok),
                           ),
                           const SizedBox(height: 24),
                           Semantics(

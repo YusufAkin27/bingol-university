@@ -173,7 +173,7 @@ class ClubSheetRow extends StatelessWidget {
               if (trailing != null) ...[const SizedBox(width: 8), trailing!],
               if (showChevron) ...[
                 const SizedBox(width: 8),
-                ExcludeSemantics(child: Icon(buDirIcon(context, LucideIcons.chevronRight), size: 18, color: danger ? t.pr : t.mut)),
+                ExcludeSemantics(child: Icon(buDirIcon(context, BuIcons.chevronRight), size: 18, color: danger ? t.pr : t.mut)),
               ],
             ],
           ),
@@ -365,7 +365,7 @@ Future<String?> showClubDropdown(BuildContext anchor, List<ClubMenuEntry> entrie
 
 /// Ortalanmış kilit/boş içerik kartı (özel kulüp, bekleyen istek, yasak).
 class ClubLockCard extends StatelessWidget {
-  const ClubLockCard({super.key, required this.icon, required this.title, required this.body, this.badge = LucideIcons.shield});
+  const ClubLockCard({super.key, required this.icon, required this.title, required this.body, this.badge = BuIcons.shield});
 
   final IconData icon;
   final String title;

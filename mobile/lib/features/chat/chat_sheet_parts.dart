@@ -30,7 +30,7 @@ class ChatSheetCheck extends StatelessWidget {
           color: on ? t.pr : (filledOff ? t.sf2 : Colors.transparent),
           border: on || filledOff ? null : Border.all(color: t.bdStrong, width: 2),
         ),
-        child: on ? Icon(Icons.check_rounded, size: 16, color: t.onPr) : null,
+        child: on ? Icon(BuIcons.check, size: 16, color: t.onPr) : null,
       ),
     );
   }
@@ -93,7 +93,7 @@ class ChatSheetHeader extends StatelessWidget {
                 width: 40,
                 height: 40,
                 decoration: BoxDecoration(color: t.sf2, shape: BoxShape.circle),
-                child: Icon(LucideIcons.x, size: 20, color: t.ink),
+                child: Icon(BuIcons.x, size: 20, color: t.ink),
               ),
             ),
           ),
@@ -121,7 +121,7 @@ class ChatSheetSearch extends StatelessWidget {
       padding: const EdgeInsetsDirectional.symmetric(horizontal: 16),
       decoration: BoxDecoration(color: t.sf2, borderRadius: BuRadius.bMd),
       child: Row(children: [
-        ExcludeSemantics(child: Icon(LucideIcons.search, size: 20, color: t.mut)),
+        ExcludeSemantics(child: Icon(BuIcons.search, size: 20, color: t.mut)),
         const SizedBox(width: 12),
         Expanded(
           child: TextField(
@@ -160,7 +160,7 @@ class ChatSheetHint extends StatelessWidget {
     final t = context.bu;
     final c = warn ? t.danger : t.mut;
     return Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Padding(padding: const EdgeInsets.only(top: 2), child: Icon(LucideIcons.info, size: 14, color: c)),
+      Padding(padding: const EdgeInsets.only(top: 2), child: Icon(BuIcons.info, size: 14, color: c)),
       const SizedBox(width: 6),
       Expanded(child: Text(text, style: chatInfoBody12(context, color: c))),
     ]);
@@ -214,7 +214,7 @@ Future<String?> showChatMuteSheet(BuildContext context, {required String chatNam
 
           return Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
             Row(children: [
-              Icon(LucideIcons.bellOff, size: 20, color: t.danger),
+              Icon(BuIcons.bellOff, size: 20, color: t.danger),
               const SizedBox(width: 8),
               Expanded(
                 child: Semantics(
@@ -227,11 +227,11 @@ Future<String?> showChatMuteSheet(BuildContext context, {required String chatNam
             const SizedBox(height: 4),
             Text(chatName, maxLines: 1, overflow: TextOverflow.ellipsis, style: chatInfoBody14(c)),
             const SizedBox(height: 16),
-            row('480', LucideIcons.clock, l.chatInfoMute8h),
-            row('10080', LucideIcons.calendarDays, l.chatInfoMute1w),
-            row('forever', LucideIcons.bellOff, l.chatInfoMuteForever),
+            row('480', BuIcons.clock, l.chatInfoMute8h),
+            row('10080', BuIcons.calendarDays, l.chatInfoMute1w),
+            row('forever', BuIcons.bellOff, l.chatInfoMuteForever),
             const SizedBox(height: 20),
-            BuButton(label: l.chatInfoMute, icon: LucideIcons.bellRing, onPressed: () => Navigator.pop(c, pick)),
+            BuButton(label: l.chatInfoMute, icon: BuIcons.bellRing, onPressed: () => Navigator.pop(c, pick)),
             const SizedBox(height: 4),
             TextButton(
               onPressed: () => Navigator.pop(c),
@@ -301,7 +301,7 @@ class _RenameDialogState extends State<_RenameDialog> {
                     width: 32,
                     height: 32,
                     decoration: BoxDecoration(color: t.soft, shape: BoxShape.circle),
-                    child: Icon(LucideIcons.pencil, size: 16, color: t.onSoft),
+                    child: Icon(BuIcons.pencil, size: 16, color: t.onSoft),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
@@ -320,7 +320,7 @@ class _RenameDialogState extends State<_RenameDialog> {
                         width: 32,
                         height: 32,
                         decoration: BoxDecoration(color: t.sf2, shape: BoxShape.circle),
-                        child: Icon(LucideIcons.x, size: 18, color: t.ink),
+                        child: Icon(BuIcons.x, size: 18, color: t.ink),
                       ),
                     ),
                   ),
@@ -354,7 +354,7 @@ class _RenameDialogState extends State<_RenameDialog> {
                         IconButton(
                           tooltip: l.commonClose,
                           onPressed: _ctl.clear,
-                          icon: Icon(LucideIcons.circleX, size: 20, color: t.mut),
+                          icon: Icon(BuIcons.circleX, size: 20, color: t.mut),
                         ),
                     ]),
                     Padding(
@@ -368,7 +368,7 @@ class _RenameDialogState extends State<_RenameDialog> {
                   Padding(
                     padding: const EdgeInsets.only(top: 8),
                     child: Row(children: [
-                      Icon(LucideIcons.circleAlert, size: 14, color: t.danger),
+                      Icon(BuIcons.circleAlert, size: 14, color: t.danger),
                       const SizedBox(width: 6),
                       Expanded(child: Text(l.chatMiscGroupNameRequired, style: chatInfoLabel12(context, color: t.danger).copyWith(fontWeight: FontWeight.w400))),
                     ]),
@@ -380,7 +380,7 @@ class _RenameDialogState extends State<_RenameDialog> {
                   Flexible(
                       child: ChatDialogButton(
                           label: l.chatInfoSave,
-                          icon: LucideIcons.check,
+                          icon: BuIcons.check,
                           destructive: true,
                           minHeight: 48,
                           onTap: v.isEmpty ? null : () => Navigator.pop(context, v))),
@@ -435,7 +435,7 @@ Future<PhotoSource?> showChatPhotoSheet(
                     ),
                     const SizedBox(width: 16),
                     Expanded(child: Text(label, style: chatInfoTitle16(c, color: danger ? t.danger : t.ink).copyWith(fontWeight: FontWeight.w500))),
-                    Icon(buDirIcon(c, LucideIcons.chevronRight), size: 20, color: danger ? t.danger : t.mut),
+                    Icon(buDirIcon(c, BuIcons.chevronRight), size: 20, color: danger ? t.danger : t.mut),
                   ]),
                 ),
               ),
@@ -455,7 +455,7 @@ Future<PhotoSource?> showChatPhotoSheet(
                 width: 48,
                 height: 48,
                 decoration: BoxDecoration(color: t.scrim.withValues(alpha: .35), shape: BoxShape.circle),
-                child: Icon(LucideIcons.camera, size: 20, color: t.onMedia),
+                child: Icon(BuIcons.camera, size: 20, color: t.onMedia),
               ),
             ]),
           ),
@@ -469,9 +469,9 @@ Future<PhotoSource?> showChatPhotoSheet(
           ),
         ]),
         const SizedBox(height: 12),
-        row(const ValueKey('photoSrcGallery'), LucideIcons.images, l.chatInfoPickGallery, PhotoSource.gallery),
-        row(const ValueKey('photoSrcCamera'), LucideIcons.camera, l.p04SrcCamera, PhotoSource.camera),
-        if (removable) row(const ValueKey('photoSrcRemove'), LucideIcons.trash2, l.chatInfoRemovePhoto, PhotoSource.remove, danger: true),
+        row(const ValueKey('photoSrcGallery'), BuIcons.images, l.chatInfoPickGallery, PhotoSource.gallery),
+        row(const ValueKey('photoSrcCamera'), BuIcons.camera, l.p04SrcCamera, PhotoSource.camera),
+        if (removable) row(const ValueKey('photoSrcRemove'), BuIcons.trash2, l.chatInfoRemovePhoto, PhotoSource.remove, danger: true),
         if (error != null)
           Padding(
             padding: const EdgeInsets.only(top: 12),
@@ -480,7 +480,7 @@ Future<PhotoSource?> showChatPhotoSheet(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(color: t.sf2, borderRadius: BuRadius.bMd),
               child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Padding(padding: const EdgeInsets.only(top: 2), child: Icon(LucideIcons.circleAlert, size: 16, color: t.danger)),
+                Padding(padding: const EdgeInsets.only(top: 2), child: Icon(BuIcons.circleAlert, size: 16, color: t.danger)),
                 const SizedBox(width: 12),
                 Expanded(child: Text(error, style: chatInfoBody14(c, color: t.ink))),
               ]),

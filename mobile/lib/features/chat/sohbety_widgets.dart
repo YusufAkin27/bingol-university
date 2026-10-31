@@ -38,7 +38,7 @@ class SohbetyHeader extends StatelessWidget {
     return Padding(
       padding: EdgeInsetsDirectional.fromSTEB(16, MediaQuery.paddingOf(context).top + 12, 16, 12),
       child: Row(children: [
-        BuIconButton(icon: LucideIcons.arrowLeft, onTap: onBack, tooltip: context.l10n.commonBack),
+        BuIconButton(icon: BuIcons.arrowLeft, onTap: onBack, tooltip: context.l10n.commonBack),
         BuGap.w12,
         Expanded(
           child: Semantics(
@@ -225,7 +225,7 @@ class _SohbetyFieldState extends State<SohbetyField> {
           border: Border.all(color: _focus ? t.pr : t.bd, width: _focus ? 2 : 1),
         ),
         child: Row(children: [
-          Icon(LucideIcons.search, size: widget.height > 50 ? 20 : 18, color: _focus ? t.pr : t.mut),
+          Icon(BuIcons.search, size: widget.height > 50 ? 20 : 18, color: _focus ? t.pr : t.mut),
           BuGap.w12,
           Expanded(
             child: TextField(
@@ -343,7 +343,7 @@ class SohbetyCheck extends StatelessWidget {
           child: AnimatedOpacity(
             opacity: on ? 1 : 0,
             duration: BuMotion.of(context, BuMotion.short),
-            child: Icon(LucideIcons.check, size: 16, color: t.onPr),
+            child: Icon(BuIcons.check, size: 16, color: t.onPr),
           ),
         ),
       ),
@@ -536,7 +536,7 @@ class SohbetyCameraChrome extends StatelessWidget {
                     alignment: AlignmentDirectional.centerStart,
                     child: _round(context,
                         key: const ValueKey('cameraClose'),
-                        icon: LucideIcons.x,
+                        icon: BuIcons.x,
                         label: closeLabel,
                         onTap: onClose),
                   ),
@@ -545,7 +545,7 @@ class SohbetyCameraChrome extends StatelessWidget {
                     alignment: AlignmentDirectional.centerEnd,
                     child: _round(context,
                         key: const ValueKey('cameraFlash'),
-                        icon: flash == SohbetyFlashMode.off ? LucideIcons.zapOff : LucideIcons.zap,
+                        icon: flash == SohbetyFlashMode.off ? BuIcons.zapOff : BuIcons.zap,
                         label: flashLabel,
                         toggled: flash != SohbetyFlashMode.off,
                         onTap: onFlash,
@@ -670,7 +670,7 @@ class SohbetyCameraChrome extends StatelessWidget {
                   padding: const EdgeInsetsDirectional.only(start: 20),
                   child: _round(context,
                       key: const ValueKey('cameraFlip'),
-                      icon: LucideIcons.switchCamera,
+                      icon: BuIcons.switchCamera,
                       label: flipLabel,
                       onTap: onFlip),
                 ),
@@ -799,7 +799,7 @@ class SohbetyVideoPrepareCard extends StatelessWidget {
                     strokeCap: StrokeCap.round,
                   ),
                 ),
-                ExcludeSemantics(child: Icon(LucideIcons.clapperboard, size: 26, color: t.ink)),
+                ExcludeSemantics(child: Icon(BuIcons.clapperboard, size: 26, color: t.ink)),
               ]),
             ),
           ),
@@ -850,9 +850,9 @@ class SohbetyNoticeCard extends StatelessWidget {
     final bg = info ? t.nav : t.soft;
     final fg = info ? t.onNav : t.onSoft;
     final icon = switch (kind) {
-      SohbetyNoticeKind.warning => LucideIcons.triangleAlert,
-      SohbetyNoticeKind.error => LucideIcons.circleAlert,
-      SohbetyNoticeKind.info => LucideIcons.info,
+      SohbetyNoticeKind.warning => BuIcons.triangleAlert,
+      SohbetyNoticeKind.error => BuIcons.circleAlert,
+      SohbetyNoticeKind.info => BuIcons.info,
     };
     return Semantics(
       liveRegion: true,
@@ -883,7 +883,7 @@ class SohbetyNoticeCard extends StatelessWidget {
                 child: SizedBox(
                   width: 48,
                   height: 48,
-                  child: Icon(LucideIcons.x, size: 18, color: fg.withValues(alpha: .6)),
+                  child: Icon(BuIcons.x, size: 18, color: fg.withValues(alpha: .6)),
                 ),
               ),
             ),

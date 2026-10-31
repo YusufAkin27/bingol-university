@@ -57,9 +57,9 @@ void main() {
       final h = tester.ensureSemantics();
       await _pump(tester, _page());
       expect(find.byKey(const ValueKey('attachButton')), findsOneWidget);
-      expect(find.byIcon(LucideIcons.camera), findsNothing);
+      expect(find.byIcon(BuIcons.camera), findsNothing);
       expect(find.byIcon(LucideIcons.paperclip), findsNothing);
-      expect(find.byIcon(LucideIcons.plus), findsOneWidget);
+      expect(find.byIcon(BuIcons.plus), findsOneWidget);
       expect(tester.getSize(find.byKey(const ValueKey('attachButton'))), const Size(48, 48));
       expect(find.bySemanticsLabel('Ekle'), findsOneWidget);
       await expectLater(tester, meetsGuideline(androidTapTargetGuideline));
@@ -72,7 +72,7 @@ void main() {
       await _pump(tester, _page());
       final bu = tester.element(find.byType(ChatDetailPage)).bu;
       expect(find.byKey(const ValueKey('sendButton')), findsNothing);
-      expect(find.byIcon(LucideIcons.arrowUp), findsNothing);
+      expect(find.byIcon(BuIcons.arrowUp), findsNothing);
       await tester.enterText(find.byKey(const ValueKey('composerField')), 'selam');
       await tester.pump();
       // Ara kare: ölçek/solma sürerken düğme vardır ve dokunulabilir (başlangıç ölçeği 0.6).
@@ -80,8 +80,8 @@ void main() {
       await tester.pump(const Duration(milliseconds: 250));
       final box = tester.widget<Container>(find.descendant(of: find.byKey(const ValueKey('sendButton')), matching: find.byType(Container)).last);
       expect((box.decoration as BoxDecoration).color, bu.pr);
-      expect(find.byIcon(LucideIcons.arrowUp), findsOneWidget);
-      expect(find.byIcon(LucideIcons.send), findsNothing);
+      expect(find.byIcon(BuIcons.arrowUp), findsOneWidget);
+      expect(find.byIcon(BuIcons.send), findsNothing);
       expect(find.bySemanticsLabel('Gönder'), findsOneWidget);
       await tester.enterText(find.byKey(const ValueKey('composerField')), '');
       await tester.pump();
@@ -229,7 +229,7 @@ void main() {
       await openPicker(tester, max: 1);
       await tester.tap(find.byKey(const ValueKey('galleryTile_p1')));
       await tester.pump(const Duration(milliseconds: 300));
-      expect(find.descendant(of: find.byKey(const ValueKey('galleryTile_p1')), matching: find.byIcon(LucideIcons.check)), findsOneWidget);
+      expect(find.descendant(of: find.byKey(const ValueKey('galleryTile_p1')), matching: find.byIcon(BuIcons.check)), findsOneWidget);
       expect(find.descendant(of: find.byKey(const ValueKey('galleryTile_p1')), matching: find.text('1')), findsNothing);
     });
 

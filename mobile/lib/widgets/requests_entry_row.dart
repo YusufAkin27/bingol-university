@@ -50,7 +50,7 @@ class RequestsEntryRow extends StatelessWidget {
                           style: tx.bodyLarge!.copyWith(fontSize: 16, fontWeight: FontWeight.w600, color: t.ink)),
                     ),
                     const SizedBox(width: 8),
-                    Icon(buDirIcon(context, LucideIcons.chevronRight), size: 20, color: t.mut),
+                    Icon(buDirIcon(context, BuIcons.chevronRight), size: 20, color: t.mut),
                   ]),
                 ),
               ),

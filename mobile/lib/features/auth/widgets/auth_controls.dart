@@ -83,7 +83,7 @@ class AuthResendRowState extends State<AuthResendRow> {
               key: const ValueKey('wait'),
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(LucideIcons.clock, size: 20, color: t.mut),
+                Icon(BuIcons.clock, size: 20, color: t.mut),
                 const SizedBox(width: 8),
                 Flexible(
                   child: Padding(
@@ -99,7 +99,7 @@ class AuthResendRowState extends State<AuthResendRow> {
               widthFactor: 1,
               child: RefLink(
                 label: widget.resendLabel,
-                icon: LucideIcons.refreshCw,
+                icon: BuIcons.refreshCw,
                 compact: true,
                 onPressed: widget.onResend,
               ),
@@ -229,7 +229,7 @@ class _AuthRuleState extends State<AuthRule> {
                 scale: ok ? 1 : 0,
                 duration: BuMotion.of(context, BuMotion.medium),
                 curve: Curves.easeOutBack,
-                child: Icon(LucideIcons.check, size: 18, color: t.ink),
+                child: Icon(BuIcons.check, size: 18, color: t.ink),
               ),
             ],
           ),

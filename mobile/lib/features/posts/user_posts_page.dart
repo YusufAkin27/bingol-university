@@ -216,7 +216,7 @@ class _GridTile extends StatelessWidget {
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(8, 18, 8, 8),
                   child: Row(children: [
-                    Icon(Icons.favorite, size: 14, color: t.pr),
+                    Icon(BuIcons.heartFilled, size: 14, color: t.pr),
                     const SizedBox(width: 4),
                     Flexible(
                       child: Text('${post.likeCount}',
@@ -259,7 +259,7 @@ class _EmptyCard extends StatelessWidget {
               width: 72,
               height: 72,
               decoration: BoxDecoration(color: t.sf2, shape: BoxShape.circle),
-              child: Icon(LucideIcons.camera, size: 28, color: t.mut),
+              child: Icon(BuIcons.camera, size: 28, color: t.mut),
             ),
             BuGap.h16,
             Text(l.postViewNoPosts, textAlign: TextAlign.center, style: tt.titleMedium?.copyWith(color: t.ink, fontWeight: FontWeight.w600)),
@@ -299,7 +299,7 @@ class _ErrorRow extends StatelessWidget {
             key: const ValueKey('userPostsRetry'),
             customBorder: const CircleBorder(),
             onTap: onRetry,
-            child: SizedBox.square(dimension: 48, child: Icon(LucideIcons.refreshCw, size: 20, color: t.ink)),
+            child: SizedBox.square(dimension: 48, child: Icon(BuIcons.refreshCw, size: 20, color: t.ink)),
           ),
         ),
       ]),

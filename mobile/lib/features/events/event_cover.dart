@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../../core/cache/image_disk_cache.dart';
 import '../../core/theme.dart';
 import '../../core/theme/bu_motion.dart';
-import '../../widgets/bu_widgets.dart';
+import '../../core/icons/bu_icons.dart';
 
 /// Etkinlik kapağı: ağdan yükler (küçültülmüş çözümleme), yüklenirken/hatada yumuşak yer tutucu gösterir,
 /// yüklenince solarak belirir. [url] boşsa hiçbir şey çizmez; çağıran kendi yer tutucusunu kullanır.
@@ -24,7 +24,7 @@ class EventCoverImage extends StatelessWidget {
     final t = context.bu;
     Widget holder() => ColoredBox(
           color: t.soft,
-          child: Center(child: Icon(LucideIcons.image, size: 26, color: t.onSoft.withValues(alpha: .6))),
+          child: Center(child: Icon(BuIcons.image, size: 26, color: t.onSoft.withValues(alpha: .6))),
         );
     final dbg = debugProvider;
     if (dbg != null) {

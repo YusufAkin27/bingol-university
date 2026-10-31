@@ -270,7 +270,7 @@ class EtkinlikDetailLink extends StatelessWidget {
             Text(label, style: Theme.of(context).textTheme.labelLarge!.copyWith(fontWeight: FontWeight.w700, color: muted ? t.mut : t.pr)),
             if (!muted) ...[
               const SizedBox(width: 4),
-              Icon(buDirIcon(context, LucideIcons.chevronRight), size: 16, color: t.pr),
+              Icon(buDirIcon(context, BuIcons.chevronRight), size: 16, color: t.pr),
             ],
           ]),
         ),

@@ -253,7 +253,7 @@ class _ComposePostPageState extends State<ComposePostPage> {
           IconButton(
             key: const ValueKey('composeClose'),
             tooltip: context.l10n.postComposeClose,
-            icon: Icon(LucideIcons.x, size: 24, color: t.ink),
+            icon: Icon(BuIcons.x, size: 24, color: t.ink),
             onPressed: _publishing ? null : _close,
           ),
           Expanded(
@@ -327,16 +327,16 @@ class _ComposePostPageState extends State<ComposePostPage> {
             aspectRatio: 4 / 5,
             child: Stack(fit: StackFit.expand, children: [
               ColoredBox(color: t.sf2),
-              Image.memory(bytes, fit: BoxFit.cover, gaplessPlayback: true, errorBuilder: (_, __, ___) => Center(child: Icon(LucideIcons.image, color: t.mut))),
+              Image.memory(bytes, fit: BoxFit.cover, gaplessPlayback: true, errorBuilder: (_, __, ___) => Center(child: Icon(BuIcons.image, color: t.mut))),
               if (!_publishing)
                 PositionedDirectional(
                   start: 12,
                   end: 12,
                   bottom: 12,
                   child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-                    Flexible(child: _pill(const ValueKey('composeChange'), LucideIcons.images, context.l10n.gonderiChangePhoto, () => _pick(ImageSource.gallery))),
+                    Flexible(child: _pill(const ValueKey('composeChange'), BuIcons.images, context.l10n.gonderiChangePhoto, () => _pick(ImageSource.gallery))),
                     const SizedBox(width: 8),
-                    Flexible(child: _pill(const ValueKey('composeRecrop'), LucideIcons.crop, context.l10n.p04Recrop, _recrop)),
+                    Flexible(child: _pill(const ValueKey('composeRecrop'), BuIcons.crop, context.l10n.p04Recrop, _recrop)),
                   ]),
                 ),
               if (_publishing)
@@ -480,7 +480,7 @@ class _ComposePostPageState extends State<ComposePostPage> {
         );
     final items = <Widget>[
       if (!_textOk)
-        row(LucideIcons.circleAlert,
+        row(BuIcons.circleAlert,
             Text(l.gonderiWordLimit(kPostMaxWords.toString()),
                 key: const ValueKey('composeLimitWarn'), style: tt.labelLarge?.copyWith(color: t.danger, fontWeight: FontWeight.w700)),
             color: t.danger),
@@ -493,7 +493,7 @@ class _ComposePostPageState extends State<ComposePostPage> {
             child: Padding(
               padding: const EdgeInsets.all(14),
               child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Icon(LucideIcons.triangleAlert, size: 20, color: t.ink),
+                Icon(BuIcons.triangleAlert, size: 20, color: t.ink),
                 const SizedBox(width: 10),
                 Expanded(
                   child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -508,14 +508,14 @@ class _ComposePostPageState extends State<ComposePostPage> {
         ),
       if (_err == _Err.rate)
         row(
-            LucideIcons.hourglass,
+            BuIcons.hourglass,
             Row(children: [
               Expanded(child: Text(_errText, key: const ValueKey('composeError'), style: tt.bodyMedium?.copyWith(color: t.ink))),
               if (_wait > 0) Text('${_wait}s', key: const ValueKey('composeWait'), style: tt.labelLarge?.copyWith(color: t.ink, fontWeight: FontWeight.w700)),
             ])),
       if (_err == _Err.network)
         row(
-            LucideIcons.wifiOff,
+            BuIcons.wifiOff,
             Row(children: [
               Expanded(child: Text(_errText, key: const ValueKey('composeError'), style: tt.bodyMedium?.copyWith(color: t.ink))),
               GestureDetector(
@@ -533,7 +533,7 @@ class _ComposePostPageState extends State<ComposePostPage> {
               ),
             ])),
       if (_err == _Err.generic)
-        row(LucideIcons.circleAlert, Text(_errText, key: const ValueKey('composeError'), style: tt.labelLarge?.copyWith(color: t.danger)),
+        row(BuIcons.circleAlert, Text(_errText, key: const ValueKey('composeError'), style: tt.labelLarge?.copyWith(color: t.danger)),
             color: t.danger),
     ];
     return [for (final w in items) _Appear(child: w)];

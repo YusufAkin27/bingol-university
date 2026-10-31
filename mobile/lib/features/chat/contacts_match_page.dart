@@ -24,7 +24,7 @@ class ContactsEntryRow extends StatelessWidget {
       padding: padding,
       child: NcActionCard(
         cardKey: const ValueKey('contacts-entry'),
-        tile: NcTile(icon: LucideIcons.contact, bg: t.sf2, fg: t.ink),
+        tile: NcTile(icon: BuIcons.contact, bg: t.sf2, fg: t.ink),
         title: context.l10n.chatMiscContactsFind,
         subtitle: context.l10n.chatMiscContactsSubtitle,
         onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => ContactsMatchPage(session: session))),
@@ -168,7 +168,7 @@ class _ContactsMatchPageState extends State<ContactsMatchPage> {
             child: Row(children: [
               Expanded(child: Text(l.p06LoadFailedTitle, style: Theme.of(context).textTheme.titleSmall!.copyWith(color: t.ink, fontWeight: FontWeight.w600))),
               const SizedBox(width: 8),
-              BuButton(label: l.chatMiscRetry, icon: LucideIcons.refreshCw, kind: BuButtonKind.soft, compact: true, onPressed: _load),
+              BuButton(label: l.chatMiscRetry, icon: BuIcons.refreshCw, kind: BuButtonKind.soft, compact: true, onPressed: _load),
             ]),
           ),
           if (_error != null) ...[
@@ -179,16 +179,16 @@ class _ContactsMatchPageState extends State<ContactsMatchPage> {
       case _Phase.needPermission:
         return _scroll([
           NcStateCard(
-            icon: LucideIcons.fileSearch,
+            icon: BuIcons.fileSearch,
             title: l.chatMiscContactsPermTitle,
             text: l.chatMiscContactsPermText,
             children: [
               const SizedBox(height: 20),
-              NcNote(icon: LucideIcons.lock, text: l.p23PrivacyShort),
+              NcNote(icon: BuIcons.lock, text: l.p23PrivacyShort),
               const SizedBox(height: 16),
-              BuButton(label: l.chatMiscContactsPermAction, icon: LucideIcons.userCheck, onPressed: _load),
+              BuButton(label: l.chatMiscContactsPermAction, icon: BuIcons.userCheck, onPressed: _load),
               const SizedBox(height: 10),
-              BuButton(label: l.chatMiscOpenSettings, icon: LucideIcons.settings, kind: BuButtonKind.outline, onPressed: () => (widget.permissions ?? PermissionService.instance).openSettings()),
+              BuButton(label: l.chatMiscOpenSettings, icon: BuIcons.settings, kind: BuButtonKind.outline, onPressed: () => (widget.permissions ?? PermissionService.instance).openSettings()),
             ],
           ),
         ]);
@@ -203,17 +203,17 @@ class _ContactsMatchPageState extends State<ContactsMatchPage> {
         const SizedBox(height: 16),
       ],
       if (_truncated) ...[
-        NcNote(icon: LucideIcons.info, warn: true, text: l.chatMiscContactsTruncated),
+        NcNote(icon: BuIcons.info, warn: true, text: l.chatMiscContactsTruncated),
         const SizedBox(height: 12),
       ],
       if (_openError != null) ...[
-        NcNote(icon: LucideIcons.circleAlert, text: _openError!),
+        NcNote(icon: BuIcons.circleAlert, text: _openError!),
         const SizedBox(height: 12),
       ],
       if (_all.isEmpty)
-        NcStateCard(icon: LucideIcons.userSearch, title: l.chatMiscContactsNoneTitle, text: l.p23NoneText)
+        NcStateCard(icon: BuIcons.userSearch, title: l.chatMiscContactsNoneTitle, text: l.p23NoneText)
       else if (list.isEmpty && searching)
-        NcStateCard(icon: LucideIcons.userSearch, title: l.chatMiscContactsNoSearchMatch)
+        NcStateCard(icon: BuIcons.userSearch, title: l.chatMiscContactsNoSearchMatch)
       else ...[
         NcLabel(trUpper(l.chatMiscContactsCount(list.length.toString()))),
         for (final m in list) _row(t, m),
@@ -238,7 +238,7 @@ class _ContactsMatchPageState extends State<ContactsMatchPage> {
       decoration: InputDecoration(
         hintText: context.l10n.chatMiscContactsSearchHint,
         hintStyle: tx.bodyLarge!.copyWith(color: t.mut),
-        prefixIcon: Icon(LucideIcons.search, size: 18, color: t.mut),
+        prefixIcon: Icon(BuIcons.search, size: 18, color: t.mut),
         suffixIcon: _q.isEmpty
             ? null
             : IconButton(
@@ -247,7 +247,7 @@ class _ContactsMatchPageState extends State<ContactsMatchPage> {
                   _search.clear();
                   setState(() => _q = '');
                 },
-                icon: Icon(LucideIcons.x, size: 16, color: t.mut)),
+                icon: Icon(BuIcons.x, size: 16, color: t.mut)),
         isDense: true,
         filled: true,
         fillColor: t.sf2,
@@ -302,7 +302,7 @@ class _PrivacyNote extends StatelessWidget {
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(color: t.sf2, borderRadius: BorderRadius.circular(16)),
       child: Row(children: [
-        Container(width: 36, height: 36, decoration: BoxDecoration(color: t.sf, shape: BoxShape.circle), child: Icon(LucideIcons.lock, size: 16, color: t.mut)),
+        Container(width: 36, height: 36, decoration: BoxDecoration(color: t.sf, shape: BoxShape.circle), child: Icon(BuIcons.lock, size: 16, color: t.mut)),
         const SizedBox(width: 12),
         Expanded(child: Text(context.l10n.chatMiscContactsPrivacy, style: Theme.of(context).textTheme.bodySmall!.copyWith(color: t.mut, height: 1.4))),
       ]),

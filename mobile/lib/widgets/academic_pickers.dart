@@ -90,7 +90,7 @@ class _DepartmentPickerPageState extends State<DepartmentPickerPage> {
                   children: [
                     Row(
                       children: [
-                        Icon(LucideIcons.building2, size: 20, color: t.pr),
+                        Icon(BuIcons.building2, size: 20, color: t.pr),
                         const SizedBox(width: 10),
                         Expanded(
                           child: Text(
@@ -117,10 +117,10 @@ class _DepartmentPickerPageState extends State<DepartmentPickerPage> {
               ),
               const SizedBox(height: 12),
             ],
-            if (groups.isEmpty && !failed) _InfoRow(icon: LucideIcons.searchX, text: l.pickNoResults),
+            if (groups.isEmpty && !failed) _InfoRow(icon: BuIcons.searchX, text: l.pickNoResults),
             if (failed)
               _InfoRow(
-                icon: LucideIcons.refreshCcw,
+                icon: BuIcons.refreshCcw,
                 text: l.pickListFailed,
                 action: l.pickRetry,
                 onAction: widget.catalog.retry,
@@ -202,7 +202,7 @@ class _Radio extends StatelessWidget {
         color: selected ? t.pr : Colors.transparent,
         border: selected ? null : Border.all(color: t.bd, width: 1.6),
       ),
-      child: selected ? Icon(LucideIcons.check, size: 15, color: t.onPr) : null,
+      child: selected ? Icon(BuIcons.check, size: 15, color: t.onPr) : null,
     );
   }
 }
@@ -287,7 +287,7 @@ Future<String?> showGradeSheet(BuildContext context, {required List<AcademicGrad
                       tooltip: l.commonClose,
                       style: IconButton.styleFrom(backgroundColor: t.sf2),
                       constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
-                      icon: Icon(LucideIcons.x, size: 20, color: t.ink),
+                      icon: Icon(BuIcons.x, size: 20, color: t.ink),
                       onPressed: () => Navigator.maybePop(ctx),
                     ),
                   ],

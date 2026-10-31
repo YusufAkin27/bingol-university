@@ -1,9 +1,8 @@
 import 'package:bu_kampus/features/profile/profil_widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:lucide_icons_flutter/lucide_icons.dart';
-
 import 'support/fake_app.dart';
+import 'package:bu_kampus/core/icons/bu_icons.dart';
 
 /// Profil satırları: sabit yükseklik, tek satır, ok aynı konumda (320 dp, büyük yazı, RTL).
 void main() {
@@ -24,9 +23,9 @@ void main() {
         Widget page = Scaffold(
           body: SingleChildScrollView(
             child: ProfilCard(children: [
-              for (final l in labels) ProfilRow(icon: LucideIcons.bookmark, label: l, onTap: () {}),
-              const ProfilRow(icon: LucideIcons.globe, label: 'Dil', value: 'Türkçe çok uzun değer', chevron: false),
-              ProfilRow(icon: LucideIcons.user, label: 'Alt yazılı satır', sub: 'Uzun bir alt yazı metni '
+              for (final l in labels) ProfilRow(icon: BuIcons.bookmark, label: l, onTap: () {}),
+              const ProfilRow(icon: BuIcons.globe, label: 'Dil', value: 'Türkçe çok uzun değer', chevron: false),
+              ProfilRow(icon: BuIcons.user, label: 'Alt yazılı satır', sub: 'Uzun bir alt yazı metni '
                   'burada ikinci satıra düşmemeli', onTap: () {}),
             ]),
           ),

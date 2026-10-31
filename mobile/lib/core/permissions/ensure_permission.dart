@@ -20,11 +20,11 @@ PermissionInfo permissionInfo(AppPermission p, [BuildContext? context]) {
   final l = context?.l10n ?? lookupAppLocalizations(const Locale('tr'));
   return switch (p) {
     AppPermission.notifications =>
-      PermissionInfo(l.permNotificationsTitle, LucideIcons.bell, l.permNotificationsText),
-    AppPermission.contacts => PermissionInfo(l.permContactsTitle, LucideIcons.contact, l.permContactsText),
-    AppPermission.camera => PermissionInfo(l.permCameraTitle, LucideIcons.camera, l.permCameraText),
-    AppPermission.microphone => PermissionInfo(l.permMicrophoneTitle, LucideIcons.mic, l.permMicrophoneText),
-    AppPermission.photos => PermissionInfo(l.permPhotosTitle, LucideIcons.image, l.permPhotosText),
+      PermissionInfo(l.permNotificationsTitle, BuIcons.bell, l.permNotificationsText),
+    AppPermission.contacts => PermissionInfo(l.permContactsTitle, BuIcons.contact, l.permContactsText),
+    AppPermission.camera => PermissionInfo(l.permCameraTitle, BuIcons.camera, l.permCameraText),
+    AppPermission.microphone => PermissionInfo(l.permMicrophoneTitle, BuIcons.mic, l.permMicrophoneText),
+    AppPermission.photos => PermissionInfo(l.permPhotosTitle, BuIcons.image, l.permPhotosText),
   };
 }
 
@@ -77,7 +77,7 @@ Future<void> _showSettingsSheet(BuildContext context, PermissionService svc, Per
     text: l.permDeniedText(info.title),
     boldPath: true,
     primary: l.permOpenSettings,
-    primaryIcon: LucideIcons.settings,
+    primaryIcon: BuIcons.settings,
     secondary: l.permClose,
   );
   if (open == true) await svc.openSettings();
@@ -85,8 +85,8 @@ Future<void> _showSettingsSheet(BuildContext context, PermissionService svc, Per
 
 /// Reddedilen izin için kesik çizgili/kapalı simge (kamera, mikrofon); diğerlerinde olağan simge.
 IconData _deniedIcon(PermissionInfo info) {
-  if (info.icon == LucideIcons.camera) return LucideIcons.cameraOff;
-  if (info.icon == LucideIcons.mic) return LucideIcons.micOff;
+  if (info.icon == BuIcons.camera) return BuIcons.cameraOff;
+  if (info.icon == BuIcons.mic) return BuIcons.micOff;
   return info.icon;
 }
 

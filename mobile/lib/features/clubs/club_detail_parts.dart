@@ -365,7 +365,7 @@ class ClubEventCard extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 4),
               decoration: BoxDecoration(color: tint.bg, borderRadius: BuRadius.bMd),
               child: d == null
-                  ? Icon(LucideIcons.calendar, color: tint.fg, size: 24)
+                  ? Icon(BuIcons.calendar, color: tint.fg, size: 24)
                   : Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
@@ -389,14 +389,14 @@ class ClubEventCard extends StatelessWidget {
                 Text((e['title'] ?? '').toString(),
                     maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.titleSmall!.copyWith(color: t.ink)),
                 const SizedBox(height: 6),
-                _MetaLine(icon: LucideIcons.clock, text: when),
-                if (place.isNotEmpty) ...[const SizedBox(height: 2), _MetaLine(icon: LucideIcons.mapPin, text: place)],
+                _MetaLine(icon: BuIcons.clock, text: when),
+                if (place.isNotEmpty) ...[const SizedBox(height: 2), _MetaLine(icon: BuIcons.mapPin, text: place)],
               ],
             ),
           ),
           if (onTap != null) ...[
             const SizedBox(width: 8),
-            ExcludeSemantics(child: Icon(buDirIcon(context, LucideIcons.chevronRight), size: 18, color: t.mut)),
+            ExcludeSemantics(child: Icon(buDirIcon(context, BuIcons.chevronRight), size: 18, color: t.mut)),
           ],
         ],
       ),
@@ -461,7 +461,7 @@ class ClubRequestsBanner extends StatelessWidget {
                   children: [
                     Expanded(child: Text(text, maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.titleSmall!.copyWith(color: t.onWarnSoft, fontWeight: FontWeight.w600))),
                     const SizedBox(width: 8),
-                    ExcludeSemantics(child: Icon(buDirIcon(context, LucideIcons.chevronRight), size: 20, color: t.onWarnSoft)),
+                    ExcludeSemantics(child: Icon(buDirIcon(context, BuIcons.chevronRight), size: 20, color: t.onWarnSoft)),
                   ],
                 ),
               ),
@@ -536,7 +536,7 @@ class ClubMemberRow extends StatelessWidget {
               ],
             ),
           ),
-          if (onMenu != null) ClubBarIcon(icon: LucideIcons.ellipsisVertical, tooltip: l.clubMgmtMemberActions, onTap: onMenu, color: t.ink, width: 40),
+          if (onMenu != null) ClubBarIcon(icon: BuIcons.ellipsisVertical, tooltip: l.clubMgmtMemberActions, onTap: onMenu, color: t.ink, width: 40),
         ],
       ),
     );

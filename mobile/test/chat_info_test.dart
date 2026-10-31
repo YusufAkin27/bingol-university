@@ -650,7 +650,7 @@ void main() {
     expect(find.text('Bu sohbet kapalı'), findsOneWidget);
     expect(find.text('Yeni mesaj gönderilemez'), findsOneWidget);
     expect(find.text('Etkinlik sayfasını aç'), findsOneWidget);
-    expect(find.byIcon(LucideIcons.lock), findsOneWidget);
+    expect(find.byIcon(BuIcons.lock), findsOneWidget);
     await unmount(tester);
   });
 

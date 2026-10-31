@@ -6,11 +6,12 @@ import 'package:bu_kampus/features/polls/poll_list_page.dart';
 import 'package:bu_kampus/features/search/search_page.dart';
 import 'package:bu_kampus/features/posts/post_card.dart';
 import 'package:bu_kampus/features/posts/post_models.dart';
-import 'package:bu_kampus/widgets/bu.dart' show BuChip, LucideIcons;
+import 'package:bu_kampus/widgets/bu.dart' show BuChip;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'support/fake_app.dart';
+import 'package:bu_kampus/core/icons/bu_icons.dart';
 
 /// D2: Keşfet sadeleşmesi (anket girişi yok, 4:5 sabit oran, küçük resim + tam boy, öneri şeridi akış içinde,
 /// önbellekten anında ilk çizim) ve Anketler girişinin Ana Sayfa Hızlı Erişim'e taşınması.
@@ -37,7 +38,7 @@ void main() {
       expect(find.byTooltip('Gönderi oluştur'), findsOneWidget);
       expect(find.byType(BuChip), findsNWidgets(2));
       expect(find.byTooltip('Anketler'), findsNothing);
-      expect(find.byIcon(LucideIcons.vote), findsNothing);
+      expect(find.byIcon(BuIcons.vote), findsNothing);
       expect(find.text('Anketler'), findsNothing);
       expect(find.text('Öğrenci Akışı'), findsNothing);
       expect(find.textContaining('nabzını'), findsNothing); // uzun alt baslik kalkti
