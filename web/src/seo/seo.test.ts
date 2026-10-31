@@ -286,7 +286,8 @@ describe('önrender çıktısı', () => {
       expect(body, file).not.toContain('{{');
       if (!file.endsWith('.html')) continue;
       expect(body.match(/<title>/g)?.length, file).toBe(1);
-      expect(body.match(/rel="canonical"/g)?.length, file).toBe(1);
+      // 404.html bilerek canonical taşımaz (noindex; bkz. notFound.test.ts)
+      expect(body.match(/rel="canonical"/g)?.length ?? 0, file).toBe(file === '404.html' ? 0 : 1);
       expect(body.match(/<noscript>/g)?.length, file).toBe(1);
       expect(body.match(/<html /g)?.length, file).toBe(1);
       expect(body, file).toContain(SEO_START);

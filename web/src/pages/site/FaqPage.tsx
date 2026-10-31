@@ -31,6 +31,13 @@ export default function FaqPage() {
       <PageHero title={t('site.faq.title')} lead={t('site.faq.lead')} />
       <section className={`${shared.section} ${shared.sectionTop}`}>
         <div className={`container ${styles.wrap}`}>
+          {/* Statik bölüm ÜSTTE: API'den gelen dinamik liste (iskelet -> veri) sayfanın altında büyür, üstündeki içerik kaymaz (CLS, A3-11) */}
+          <section className={styles.group} aria-labelledby="faq-new-title" data-testid="faq-new">
+            <h2 id="faq-new-title" className={shared.h3}>
+              {t('site.faq.new.title')}
+            </h2>
+            <FaqAccordion items={buildNewFaq(t)} />
+          </section>
           {faq.isLoading && (
             <div className={styles.skeletons} role="status" aria-label={t('common.loading')}>
               {[0, 1, 2, 3, 4].map((i) => (
@@ -111,12 +118,6 @@ export default function FaqPage() {
               </aside>
             </>
           )}
-          <section className={styles.group} aria-labelledby="faq-new-title" data-testid="faq-new">
-            <h2 id="faq-new-title" className={shared.h3}>
-              {t('site.faq.new.title')}
-            </h2>
-            <FaqAccordion items={buildNewFaq(t)} />
-          </section>
         </div>
       </section>
     </>

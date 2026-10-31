@@ -2,7 +2,7 @@
 // API: GET /api/legal (herkese açık; her tür için güncel sürüm, başlık, yayın tarihi).
 import { useQuery } from '@tanstack/react-query';
 import { Link } from '../../components/LocalizedLink';
-import { listLegal } from '../../api/legal';
+import { LEGAL_TYPES, listLegal } from '../../api/legal';
 import { qk } from '../../api/queryKeys';
 import { ErrorState, Icon, Skeleton } from '../../components/ui';
 import { useI18n } from '../../i18n/I18nProvider';
@@ -24,10 +24,15 @@ export default function LegalListPage() {
       <PageHero title={t('legal.list.title')} lead={t('legal.list.lead')} />
       <section className={`${shared.section} ${shared.sectionTop}`}>
         <div className={`container ${styles.wrap}`}>
+          {/* Bildirim listenin ÜSTÜNDE: liste (iskelet -> veri) altta büyür, bildirim kaymaz (CLS, A3-11) */}
+          <div className={styles.notice}>
+            <AdminAccessNotice />
+          </div>
           {list.isLoading && (
             <div role="status" aria-label={t('common.loading')} className={styles.sk}>
-              {[0, 1, 2, 3].map((i) => (
-                <Skeleton key={i} height="4.5rem" radius="12px" />
+              {/* satır sayısı/yüksekliği gerçek listeye yakın tutulur: altındaki bildirim kaymasın (CLS, A3-11) */}
+              {Array.from({ length: LEGAL_TYPES.length + 1 }, (_, i) => (
+                <Skeleton key={i} height="5.2rem" radius="12px" />
               ))}
             </div>
           )}
@@ -76,7 +81,6 @@ export default function LegalListPage() {
               </li>
             </ul>
           )}
-          <AdminAccessNotice />
         </div>
       </section>
     </>

@@ -131,6 +131,14 @@ for (const lang of ['tr', 'en', 'ar']) {
     for (const n of need) if (!h.includes(n)) fail(`${f} içinde yok: ${n}`);
   }
 }
+// 404.html: nginx error_page ile bilinmeyen site yollarında sunulur (soft 404 olmasın); noindex + h1 + açıklama şart
+const notFoundFile = join(dist, '404.html');
+if (!existsSync(notFoundFile)) fail('eksik: dist/404.html');
+const notFoundHtml = readFileSync(notFoundFile, 'utf8');
+for (const n of ['name="robots" content="noindex', 'name="description"', '<noscript>', '<h1>']) {
+  if (!notFoundHtml.includes(n)) fail(`404.html içinde yok: ${n}`);
+}
+if (/rel="canonical"/.test(notFoundHtml)) fail('404.html canonical içermemeli');
 const robots = readFileSync(join(dist, 'robots.txt'), 'utf8');
 if (!robots.includes(`Sitemap: ${resolvedOrigin}/sitemap.xml`) || !robots.includes('Disallow: /admin')) {
   fail('robots.txt eksik');

@@ -192,6 +192,36 @@ export function applyTemplate(
     .replace(ROOT_DIV, () => `<div id="root">${renderNoscript(meta, lang)}</div>`);
 }
 
+const NL = String.fromCharCode(10);
+
+/**
+ * 404 sayfası (`dist/404.html`): nginx `error_page 404` ile bilinmeyen site yollarında HTTP 404 ile sunulur (soft 404 olmasın).
+ * Aynı SPA kabuğudur (istemci yönlendirici NotFoundPage'i çizer); head'de noindex + açıklama, noscript'te her dilde h1 bulunur.
+ * Canonical/hreflang YOKTUR (sayfa dizine girmemeli).
+ */
+export function render404(template: string): string {
+  const start = template.indexOf(SEO_START);
+  const end = template.indexOf(SEO_END);
+  if (start < 0 || end < start) throw new Error(`Şablonda ${SEO_START} ... ${SEO_END} işaretleri yok`);
+  if (!ROOT_DIV.test(template)) throw new Error(`Şablonda <div id="root"> yok`);
+  const t = tr('tr');
+  const title = `${t('site.notFound.title')} · ${t('common.appName')}`;
+  const head = [
+    `<title>${esc(title)}</title>`,
+    `<meta name="robots" content="noindex, nofollow" data-pre="1" />`,
+    `<meta name="description" content="${esc(t('site.notFound.hint'))}" data-pre="1" />`,
+  ];
+  const langs = LANGS.map((l) => {
+    const tl = tr(l.code);
+    return `<section lang="${l.code}" dir="${dirOf(l.code)}"><h1>${esc(tl('site.notFound.title'))}</h1><p>${esc(tl('site.notFound.hint'))}</p><p><a href="/${l.code}">${esc(tl('site.notFound.home'))}</a></p></section>`;
+  }).join(NL);
+  const noscript = `<noscript><main style="max-width:48rem;margin:0 auto;padding:1.5rem 1rem;font:16px/1.6 system-ui,sans-serif">${NL}${langs}${NL}</main></noscript>`;
+  const headBlock = `${SEO_START}${NL}    ${head.join(`${NL}    `)}${NL}    ${SEO_END}`;
+  return (template.slice(0, start) + headBlock + template.slice(end + SEO_END.length))
+    .replace(/<html[^>]*>/, '<html lang="tr" dir="ltr">')
+    .replace(ROOT_DIV, () => `<div id="root">${noscript}</div>`);
+}
+
 /** `/privacy` + `tr` → `tr/privacy/index.html`. */
 export function pageFile(lang: Lang, path: string): string {
   return `${lang}${path === '/' ? '' : path}/index.html`;
@@ -243,6 +273,7 @@ export function prerender(opts: {
   // Kök: dil seçimi istemcide yapılır (kayıtlı dil / tarayıcı dili); JS'siz botlar Türkçe ana sayfa üstverisini görür
   const home = ROUTE_META.find((r) => r.home)!;
   files.set('index.html', applyTemplate(opts.template, home, 'tr', origin, opts.hints));
+  files.set('404.html', render404(opts.template));
   files.set('sitemap.xml', buildSitemap(origin, opts.buildDate));
   files.set('robots.txt', buildRobots(origin));
   return { files, pageCount: LANGS.length * ROUTE_META.length };

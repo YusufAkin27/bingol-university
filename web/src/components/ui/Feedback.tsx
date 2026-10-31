@@ -41,17 +41,20 @@ interface StateProps {
   icon?: IconName;
   action?: ReactNode;
   compact?: boolean;
+  /** Başlık düzeyi (varsayılan 2). Sayfanın tek içeriği durumsa (404) 1 verin. */
+  headingLevel?: 1 | 2;
 }
 
 /** Boş durum: ne olduğunu söyler, bir sonraki adımı gösterir. */
-export function EmptyState({ title, description, icon = 'info', action, compact }: StateProps) {
+export function EmptyState({ title, description, icon = 'info', action, compact, headingLevel = 2 }: StateProps) {
   const { t } = useI18n();
+  const Heading = headingLevel === 1 ? 'h1' : 'h2';
   return (
     <div className={`${styles.state} ${compact ? styles.compact : ''}`}>
       <span className={styles.stateIcon} aria-hidden="true">
         <Icon name={icon} size={24} />
       </span>
-      <h2 className={styles.stateTitle}>{title ?? t('common.state.emptyTitle')}</h2>
+      <Heading className={styles.stateTitle}>{title ?? t('common.state.emptyTitle')}</Heading>
       <p className={styles.stateText}>{description ?? t('common.state.emptyHint')}</p>
       {action}
     </div>

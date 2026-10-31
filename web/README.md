@@ -107,6 +107,18 @@ Backend'siz kritik yol testleri (`e2e/mocked-critical.spec.ts`: yönetici giriş
 küfür listesi; tüm `/api` istekleri `page.route` ile taklit edilir): `npm run e2e:mock` (ilk kez `npm run e2e:install`).
 Yavaş makinede `npm run build && npx vite preview --port 4180` açıp `E2E_BASE_URL=http://localhost:4180 npm run e2e:mock` daha hızlıdır.
 
+Backend'siz panel/site taramaları (W2-K; `e2e/mockPanel.ts` profil izinleriyle `/api` taklidi, backend kaynağı gerekir):
+`e2e/w2k-overflow.spec.ts` (1280/768/390 px yatay taşma), `e2e/w2k-rbac.spec.ts` (MODERATOR/EDITOR/SUPPORT/VIEWER menü
+gezintisi: profilin iznine sahip olmadığı `/api/admin` uçlarına istek atılmamalı; `AdminPermissionPolicy` kaynağı
+`src/test/rbacPolicy.ts` ile okunur), `e2e/w2k-cls.spec.ts` (SSS/Hukuki metinler CLS < 0,1). Menü izni (`adminNav` `perm`)
+ile backend politikasının uyumu `src/layouts/navPolicy.test.ts` ile denetlenir: yeni menü öğesine `NAV_ENDPOINT` tablosunda
+sayfanın ilk okuma ucu da yazılır.
+
+Site 404 davranışı: `scripts/prerender.mjs` `dist/404.html` üretir (noindex + h1 + açıklama); `nginx.conf` dil önekli
+bilinmeyen yollar için HTTP 404 döner (`error_page 404 /404.html`). Haber kimliği, hukuki metin türü ve `/support/track`
+özel kurallarla kabuk (200) alır; **yeni dinamik site rotası eklenirse nginx'e de özel kural eklenmelidir**
+(`src/seo/notFound.test.ts` statik rotaları ve kural sırasını denetler).
+
 OpenAPI tipleri: `npm run gen:api` (`docs/openapi.json` -> `src/api/generated/schema.d.ts`); tip güvenli örnek
 modüller `src/api/typed/*` (bkz. `docs/MOBILE_CODEGEN.md`).
 

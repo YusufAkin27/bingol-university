@@ -17,11 +17,12 @@ export default function NotFoundPage() {
 function NotFound() {
   const { t } = useI18n();
   const wrap = useHeadingFocus<HTMLDivElement>();
-  usePageMeta({ title: t('site.notFound.title'), noindex: true });
+  usePageMeta({ title: t('site.notFound.title'), description: t('site.notFound.hint'), noindex: true });
   return (
     <div ref={wrap} tabIndex={-1} className="container" style={{ paddingBlock: 'var(--space-8)', outline: 'none' }}>
       <EmptyState
         icon="search"
+        headingLevel={1}
         title={t('site.notFound.title')}
         description={t('site.notFound.hint')}
         action={<ButtonLink to={paths.site.home}>{t('site.notFound.home')}</ButtonLink>}
