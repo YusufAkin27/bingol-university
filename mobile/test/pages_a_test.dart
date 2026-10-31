@@ -558,7 +558,7 @@ void main() {
       await tester.pumpWidget(buildApp(home()));
       await settle(tester, const Duration(seconds: 1));
       expect(find.text('Yaklaşan etkinlik yok'), findsOneWidget);
-      expect(find.text('Henüz içerik yok.'), findsOneWidget);
+      expect(find.text('İçerik yok.'), findsOneWidget);
       expect(b.count('/me/communities'), 0); // uyelik yoksa istenmez
       noErr(tester);
     });

@@ -861,7 +861,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String acadTimeRemExamHour(String room) {
-    return 'Starts in 1 hour$room';
+    return 'Starts in 2 hours$room';
   }
 
   @override
@@ -1168,7 +1168,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get acadTimeDayBefore => '1 day before';
 
   @override
-  String get acadTimeHourBefore => '1 hour before';
+  String get acadTimeHourBefore => '2 hours before exam (notification)';
 
   @override
   String get authRestEnterCode => 'Enter the 6-digit code.';
@@ -3427,7 +3427,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get homeSourceUnreachable =>
-      'The source site is currently unreachable; data may be out of date.';
+      'Source site unreachable; data may be outdated.';
 
   @override
   String get homeSearchHint => 'Search news, clubs, events';
@@ -3445,7 +3445,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeContentLoadFailed => 'Could not load content.';
 
   @override
-  String get homeNoContent => 'No content yet.';
+  String get homeNoContent => 'No content.';
 
   @override
   String get homeMyProfile => 'My profile';
@@ -3543,7 +3543,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get newsLinkOpenFailed => 'Could not open the link.';
 
   @override
-  String get newsFullContent => 'Open the source page to read the full text.';
+  String get newsFullContent => 'The full text is on the source page.';
 
   @override
   String get newsOpenSource => 'Open on source site';
@@ -3714,7 +3714,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get notifMarkAll => 'Mark all as read';
 
   @override
-  String get notifEmpty => 'No notifications yet';
+  String get notifEmpty => 'No notifications';
 
   @override
   String get notifUnread => 'Unread notification';
@@ -3773,11 +3773,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get searchClear => 'Clear search';
 
   @override
-  String get searchPrompt =>
-      'Type at least 2 characters to search news, announcements, clubs, events or people.';
+  String get searchPrompt => 'Type at least 2 characters.';
 
   @override
-  String get searchRecent => 'RECENT SEARCHES';
+  String get searchRecent => 'Recent searches';
 
   @override
   String get searchClearRecent => 'Clear';
@@ -6065,8 +6064,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get icerikFavorites => 'Favorite news';
 
   @override
-  String get icerikMaintenance =>
-      'The news source is unreachable right now. Showing the latest saved news.';
+  String get icerikMaintenance => 'Source unreachable; showing saved news.';
 
   @override
   String get icerikOpenSource => 'Open on source site';
@@ -6096,22 +6094,22 @@ class AppLocalizationsEn extends AppLocalizations {
   String get icerikSearchTabs => 'Result type';
 
   @override
-  String get icerikGroupNews => 'NEWS';
+  String get icerikGroupNews => 'News';
 
   @override
-  String get icerikGroupAnnouncement => 'ANNOUNCEMENT';
+  String get icerikGroupAnnouncement => 'Announcements';
 
   @override
-  String get icerikGroupEvent => 'EVENT';
+  String get icerikGroupEvent => 'Events';
 
   @override
-  String get icerikGroupClub => 'CLUB';
+  String get icerikGroupClub => 'Clubs';
 
   @override
-  String get icerikGroupPerson => 'PEOPLE';
+  String get icerikGroupPerson => 'People';
 
   @override
-  String get icerikGroupPost => 'POSTS';
+  String get icerikGroupPost => 'Posts';
 
   @override
   String get kulupdetayRequestsTitle => 'Join requests';
@@ -7561,12 +7559,10 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get p03NotifEmptyBody =>
-      'Club announcements, events and message notifications will be listed here.';
+  String get p03NotifEmptyBody => 'Club, event and message alerts appear here.';
 
   @override
-  String get p03NotifUnreadEmptyBody =>
-      'Great! You have read all new notifications. You will be notified instantly when new announcements arrive.';
+  String get p03NotifUnreadEmptyBody => 'You are all caught up.';
 
   @override
   String get p03NotifLoadFailed => 'Could not load, try again';
@@ -7592,7 +7588,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get p05NewsOpenSource => 'Open source page';
 
   @override
-  String get p05NewsErrorTitle => 'Something went wrong';
+  String get p05NewsErrorTitle => 'Could not load the content';
 
   @override
   String get p05NewsErrorBody =>
@@ -8345,7 +8341,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get p05SearchErrorTitle => 'Could not load';
+  String get p05SearchErrorTitle => 'Could not load results';
 
   @override
   String get p05SearchErrorBody =>
@@ -8634,7 +8630,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'You can save news you like by tapping the bookmark icon.';
 
   @override
-  String get p05ListErrorTitle => 'Could not load, try again';
+  String get p05ListErrorTitle => 'Could not load';
 
   @override
   String get p05ListErrorBody =>
@@ -8772,7 +8768,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get p20RemDaySub => 'Remind one day before the exam';
 
   @override
-  String get p20RemHourSub => 'Notify one hour before the exam';
+  String get p20RemHourSub =>
+      'Sent by the server, even when the app is closed; follows the Academic announcements setting';
 
   @override
   String get p13SugSortTop => 'Most voted';
@@ -8954,10 +8951,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get p18SecAbout => 'About & support';
 
   @override
-  String get p18CounterClubs => 'Club memberships';
+  String get p18CounterClubs => 'Clubs';
 
   @override
-  String get p18CounterEvents => 'Event participation';
+  String get p18CounterEvents => 'Events';
 
   @override
   String get p18ClearSearch => 'Clear search';

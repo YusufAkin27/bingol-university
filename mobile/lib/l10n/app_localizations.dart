@@ -1683,7 +1683,7 @@ abstract class AppLocalizations {
   /// No description provided for @acadTimeRemExamHour.
   ///
   /// In tr, this message translates to:
-  /// **'1 saat sonra başlıyor{room}'**
+  /// **'2 saat sonra başlıyor{room}'**
   String acadTimeRemExamHour(String room);
 
   /// No description provided for @acadTimeExportNone.
@@ -2206,7 +2206,7 @@ abstract class AppLocalizations {
   /// No description provided for @acadTimeHourBefore.
   ///
   /// In tr, this message translates to:
-  /// **'1 saat önce'**
+  /// **'Sınavdan 2 saat önce (bildirim)'**
   String get acadTimeHourBefore;
 
   /// No description provided for @authRestEnterCode.
@@ -6388,7 +6388,7 @@ abstract class AppLocalizations {
   /// No description provided for @homeSourceUnreachable.
   ///
   /// In tr, this message translates to:
-  /// **'Kaynak site şu an ulaşılamıyor; veriler güncel olmayabilir.'**
+  /// **'Kaynak siteye ulaşılamıyor; veriler eski olabilir.'**
   String get homeSourceUnreachable;
 
   /// No description provided for @homeSearchHint.
@@ -6424,7 +6424,7 @@ abstract class AppLocalizations {
   /// No description provided for @homeNoContent.
   ///
   /// In tr, this message translates to:
-  /// **'Henüz içerik yok.'**
+  /// **'İçerik yok.'**
   String get homeNoContent;
 
   /// No description provided for @homeMyProfile.
@@ -6604,7 +6604,7 @@ abstract class AppLocalizations {
   /// No description provided for @newsFullContent.
   ///
   /// In tr, this message translates to:
-  /// **'İçeriğin tamamı için kaynak sayfayı açın.'**
+  /// **'Tam metin kaynak sayfada.'**
   String get newsFullContent;
 
   /// No description provided for @newsOpenSource.
@@ -6934,7 +6934,7 @@ abstract class AppLocalizations {
   /// No description provided for @notifEmpty.
   ///
   /// In tr, this message translates to:
-  /// **'Henüz bildiriminiz yok'**
+  /// **'Bildirim yok'**
   String get notifEmpty;
 
   /// No description provided for @notifUnread.
@@ -7036,13 +7036,13 @@ abstract class AppLocalizations {
   /// No description provided for @searchPrompt.
   ///
   /// In tr, this message translates to:
-  /// **'Haber, duyuru, kulüp, etkinlik veya kişi aramak için en az 2 karakter yazın.'**
+  /// **'En az 2 karakter yazın.'**
   String get searchPrompt;
 
   /// No description provided for @searchRecent.
   ///
   /// In tr, this message translates to:
-  /// **'SON ARAMALAR'**
+  /// **'Son aramalar'**
   String get searchRecent;
 
   /// No description provided for @searchClearRecent.
@@ -11206,7 +11206,7 @@ abstract class AppLocalizations {
   /// No description provided for @icerikMaintenance.
   ///
   /// In tr, this message translates to:
-  /// **'Haber kaynağına şu an ulaşılamıyor. Son kaydedilen haberler gösteriliyor.'**
+  /// **'Kaynağa ulaşılamıyor; kayıtlı haberler gösteriliyor.'**
   String get icerikMaintenance;
 
   /// No description provided for @icerikOpenSource.
@@ -11260,37 +11260,37 @@ abstract class AppLocalizations {
   /// No description provided for @icerikGroupNews.
   ///
   /// In tr, this message translates to:
-  /// **'HABER'**
+  /// **'Haber'**
   String get icerikGroupNews;
 
   /// No description provided for @icerikGroupAnnouncement.
   ///
   /// In tr, this message translates to:
-  /// **'DUYURU'**
+  /// **'Duyuru'**
   String get icerikGroupAnnouncement;
 
   /// No description provided for @icerikGroupEvent.
   ///
   /// In tr, this message translates to:
-  /// **'ETKİNLİK'**
+  /// **'Etkinlik'**
   String get icerikGroupEvent;
 
   /// No description provided for @icerikGroupClub.
   ///
   /// In tr, this message translates to:
-  /// **'KULÜP'**
+  /// **'Kulüp'**
   String get icerikGroupClub;
 
   /// No description provided for @icerikGroupPerson.
   ///
   /// In tr, this message translates to:
-  /// **'KİŞİ'**
+  /// **'Kişi'**
   String get icerikGroupPerson;
 
   /// No description provided for @icerikGroupPost.
   ///
   /// In tr, this message translates to:
-  /// **'GÖNDERİ'**
+  /// **'Gönderi'**
   String get icerikGroupPost;
 
   /// No description provided for @kulupdetayRequestsTitle.
@@ -13810,13 +13810,13 @@ abstract class AppLocalizations {
   /// No description provided for @p03NotifEmptyBody.
   ///
   /// In tr, this message translates to:
-  /// **'Kulüp duyuruları, etkinlikler ve mesaj bildirimleriniz burada listelenir.'**
+  /// **'Kulüp, etkinlik ve mesaj bildirimleri burada görünür.'**
   String get p03NotifEmptyBody;
 
   /// No description provided for @p03NotifUnreadEmptyBody.
   ///
   /// In tr, this message translates to:
-  /// **'Harika! Tüm yeni bildirimleri okudunuz. Güncel duyurular geldikçe anında bilgilendirileceksiniz.'**
+  /// **'Hepsini okudun.'**
   String get p03NotifUnreadEmptyBody;
 
   /// No description provided for @p03NotifLoadFailed.
@@ -13864,7 +13864,7 @@ abstract class AppLocalizations {
   /// No description provided for @p05NewsErrorTitle.
   ///
   /// In tr, this message translates to:
-  /// **'Bir şeyler ters gitti'**
+  /// **'İçerik yüklenemedi'**
   String get p05NewsErrorTitle;
 
   /// No description provided for @p05NewsErrorBody.
@@ -15142,7 +15142,7 @@ abstract class AppLocalizations {
   /// No description provided for @p05SearchErrorTitle.
   ///
   /// In tr, this message translates to:
-  /// **'Yüklenemedi'**
+  /// **'Sonuçlar yüklenemedi'**
   String get p05SearchErrorTitle;
 
   /// No description provided for @p05SearchErrorBody.
@@ -15658,7 +15658,7 @@ abstract class AppLocalizations {
   /// No description provided for @p05ListErrorTitle.
   ///
   /// In tr, this message translates to:
-  /// **'Yüklenemedi, tekrar dene'**
+  /// **'Yüklenemedi'**
   String get p05ListErrorTitle;
 
   /// No description provided for @p05ListErrorBody.
@@ -15910,7 +15910,7 @@ abstract class AppLocalizations {
   /// No description provided for @p20RemHourSub.
   ///
   /// In tr, this message translates to:
-  /// **'Sınav saatinden bir saat önce bildir'**
+  /// **'Uygulama kapalıyken de gelir; Akademik duyuru tercihine bağlıdır'**
   String get p20RemHourSub;
 
   /// No description provided for @p13SugSortTop.
@@ -16240,13 +16240,13 @@ abstract class AppLocalizations {
   /// No description provided for @p18CounterClubs.
   ///
   /// In tr, this message translates to:
-  /// **'Kulüp Üyeliği'**
+  /// **'Kulüp'**
   String get p18CounterClubs;
 
   /// No description provided for @p18CounterEvents.
   ///
   /// In tr, this message translates to:
-  /// **'Etkinlik Katılımı'**
+  /// **'Etkinlik'**
   String get p18CounterEvents;
 
   /// No description provided for @p18ClearSearch.

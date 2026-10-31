@@ -861,7 +861,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String acadTimeRemExamHour(String room) {
-    return 'يبدأ بعد ساعة$room';
+    return 'يبدأ بعد ساعتين$room';
   }
 
   @override
@@ -1166,7 +1166,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get acadTimeDayBefore => 'قبل يوم';
 
   @override
-  String get acadTimeHourBefore => 'قبل ساعة';
+  String get acadTimeHourBefore => 'قبل الاختبار بساعتين (إشعار)';
 
   @override
   String get authRestEnterCode => 'أدخل الرمز المكون من 6 أرقام.';
@@ -3395,7 +3395,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get homeSourceUnreachable =>
-      'الموقع المصدر غير متاح حاليًا، وقد تكون البيانات غير محدثة.';
+      'الموقع المصدر غير متاح، وقد تكون البيانات قديمة.';
 
   @override
   String get homeSearchHint => 'ابحث عن أخبار أو أندية أو فعاليات';
@@ -3413,7 +3413,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get homeContentLoadFailed => 'تعذر تحميل المحتوى.';
 
   @override
-  String get homeNoContent => 'لا يوجد محتوى بعد.';
+  String get homeNoContent => 'لا يوجد محتوى.';
 
   @override
   String get homeMyProfile => 'ملفي الشخصي';
@@ -3511,8 +3511,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get newsLinkOpenFailed => 'تعذر فتح الرابط.';
 
   @override
-  String get newsFullContent =>
-      'افتح الصفحة المصدر للاطلاع على المحتوى كاملًا.';
+  String get newsFullContent => 'النص الكامل في الصفحة المصدر.';
 
   @override
   String get newsOpenSource => 'فتح في الصفحة المصدر';
@@ -3681,7 +3680,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get notifMarkAll => 'تحديد الكل كمقروء';
 
   @override
-  String get notifEmpty => 'لا توجد إشعارات بعد';
+  String get notifEmpty => 'لا توجد إشعارات';
 
   @override
   String get notifUnread => 'إشعار غير مقروء';
@@ -3741,8 +3740,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get searchClear => 'مسح البحث';
 
   @override
-  String get searchPrompt =>
-      'اكتب حرفين على الأقل للبحث عن أخبار أو إعلانات أو أندية أو فعاليات أو أشخاص.';
+  String get searchPrompt => 'اكتب حرفين على الأقل.';
 
   @override
   String get searchRecent => 'عمليات البحث الأخيرة';
@@ -6014,7 +6012,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get icerikMaintenance =>
-      'تعذر الوصول إلى مصدر الأخبار حاليًا. يتم عرض آخر الأخبار المحفوظة.';
+      'تعذر الوصول إلى المصدر؛ يتم عرض الأخبار المحفوظة.';
 
   @override
   String get icerikOpenSource => 'فتح في الموقع المصدر';
@@ -7489,11 +7487,10 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get p03NotifEmptyBody =>
-      'ستظهر هنا إشعارات إعلانات الأندية والفعاليات والرسائل.';
+      'تظهر هنا إشعارات الأندية والفعاليات والرسائل.';
 
   @override
-  String get p03NotifUnreadEmptyBody =>
-      'رائع! لقد قرأت جميع الإشعارات الجديدة. ستصلك التنبيهات فور صدور إعلانات جديدة.';
+  String get p03NotifUnreadEmptyBody => 'لقد قرأت كل شيء.';
 
   @override
   String get p03NotifLoadFailed => 'تعذّر التحميل، حاول مرة أخرى';
@@ -7517,7 +7514,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get p05NewsOpenSource => 'فتح صفحة المصدر';
 
   @override
-  String get p05NewsErrorTitle => 'حدث خطأ ما';
+  String get p05NewsErrorTitle => 'تعذّر تحميل المحتوى';
 
   @override
   String get p05NewsErrorBody =>
@@ -8258,7 +8255,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get p05SearchErrorTitle => 'تعذّر التحميل';
+  String get p05SearchErrorTitle => 'تعذّر تحميل النتائج';
 
   @override
   String get p05SearchErrorBody => 'حدث خطأ في الاتصال أثناء جلب نتائج البحث.';
@@ -8543,7 +8540,7 @@ class AppLocalizationsAr extends AppLocalizations {
       'يمكنك حفظ الأخبار التي تعجبك بالنقر على أيقونة العلامة.';
 
   @override
-  String get p05ListErrorTitle => 'تعذّر التحميل، حاول مرة أخرى';
+  String get p05ListErrorTitle => 'تعذّر التحميل';
 
   @override
   String get p05ListErrorBody =>
@@ -8678,7 +8675,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get p20RemDaySub => 'تذكير قبل الاختبار بيوم';
 
   @override
-  String get p20RemHourSub => 'إشعار قبل الاختبار بساعة';
+  String get p20RemHourSub =>
+      'يصل من الخادم حتى لو كان التطبيق مغلقًا؛ ويتبع إعداد الإعلانات الأكاديمية';
 
   @override
   String get p13SugSortTop => 'الأكثر تصويتًا';
@@ -8859,10 +8857,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get p18SecAbout => 'حول والدعم';
 
   @override
-  String get p18CounterClubs => 'عضويات الأندية';
+  String get p18CounterClubs => 'الأندية';
 
   @override
-  String get p18CounterEvents => 'المشاركة في الفعاليات';
+  String get p18CounterEvents => 'الفعاليات';
 
   @override
   String get p18ClearSearch => 'مسح البحث';

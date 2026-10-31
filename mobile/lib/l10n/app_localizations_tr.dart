@@ -861,7 +861,7 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String acadTimeRemExamHour(String room) {
-    return '1 saat sonra başlıyor$room';
+    return '2 saat sonra başlıyor$room';
   }
 
   @override
@@ -1166,7 +1166,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get acadTimeDayBefore => '1 gün önce';
 
   @override
-  String get acadTimeHourBefore => '1 saat önce';
+  String get acadTimeHourBefore => 'Sınavdan 2 saat önce (bildirim)';
 
   @override
   String get authRestEnterCode => '6 haneli kodu girin.';
@@ -3412,7 +3412,7 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get homeSourceUnreachable =>
-      'Kaynak site şu an ulaşılamıyor; veriler güncel olmayabilir.';
+      'Kaynak siteye ulaşılamıyor; veriler eski olabilir.';
 
   @override
   String get homeSearchHint => 'Haber, kulüp, etkinlik ara';
@@ -3430,7 +3430,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get homeContentLoadFailed => 'İçerik yüklenemedi.';
 
   @override
-  String get homeNoContent => 'Henüz içerik yok.';
+  String get homeNoContent => 'İçerik yok.';
 
   @override
   String get homeMyProfile => 'Profilim';
@@ -3528,7 +3528,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get newsLinkOpenFailed => 'Bağlantı açılamadı.';
 
   @override
-  String get newsFullContent => 'İçeriğin tamamı için kaynak sayfayı açın.';
+  String get newsFullContent => 'Tam metin kaynak sayfada.';
 
   @override
   String get newsOpenSource => 'Kaynak sayfada aç';
@@ -3698,7 +3698,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get notifMarkAll => 'Tümünü okundu yap';
 
   @override
-  String get notifEmpty => 'Henüz bildiriminiz yok';
+  String get notifEmpty => 'Bildirim yok';
 
   @override
   String get notifUnread => 'Okunmamış bildirim';
@@ -3757,11 +3757,10 @@ class AppLocalizationsTr extends AppLocalizations {
   String get searchClear => 'Aramayı temizle';
 
   @override
-  String get searchPrompt =>
-      'Haber, duyuru, kulüp, etkinlik veya kişi aramak için en az 2 karakter yazın.';
+  String get searchPrompt => 'En az 2 karakter yazın.';
 
   @override
-  String get searchRecent => 'SON ARAMALAR';
+  String get searchRecent => 'Son aramalar';
 
   @override
   String get searchClearRecent => 'Temizle';
@@ -6040,7 +6039,7 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get icerikMaintenance =>
-      'Haber kaynağına şu an ulaşılamıyor. Son kaydedilen haberler gösteriliyor.';
+      'Kaynağa ulaşılamıyor; kayıtlı haberler gösteriliyor.';
 
   @override
   String get icerikOpenSource => 'Kaynak sitede aç';
@@ -6070,22 +6069,22 @@ class AppLocalizationsTr extends AppLocalizations {
   String get icerikSearchTabs => 'Sonuç türü';
 
   @override
-  String get icerikGroupNews => 'HABER';
+  String get icerikGroupNews => 'Haber';
 
   @override
-  String get icerikGroupAnnouncement => 'DUYURU';
+  String get icerikGroupAnnouncement => 'Duyuru';
 
   @override
-  String get icerikGroupEvent => 'ETKİNLİK';
+  String get icerikGroupEvent => 'Etkinlik';
 
   @override
-  String get icerikGroupClub => 'KULÜP';
+  String get icerikGroupClub => 'Kulüp';
 
   @override
-  String get icerikGroupPerson => 'KİŞİ';
+  String get icerikGroupPerson => 'Kişi';
 
   @override
-  String get icerikGroupPost => 'GÖNDERİ';
+  String get icerikGroupPost => 'Gönderi';
 
   @override
   String get kulupdetayRequestsTitle => 'Katılma istekleri';
@@ -7525,11 +7524,10 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get p03NotifEmptyBody =>
-      'Kulüp duyuruları, etkinlikler ve mesaj bildirimleriniz burada listelenir.';
+      'Kulüp, etkinlik ve mesaj bildirimleri burada görünür.';
 
   @override
-  String get p03NotifUnreadEmptyBody =>
-      'Harika! Tüm yeni bildirimleri okudunuz. Güncel duyurular geldikçe anında bilgilendirileceksiniz.';
+  String get p03NotifUnreadEmptyBody => 'Hepsini okudun.';
 
   @override
   String get p03NotifLoadFailed => 'Yüklenemedi, tekrar dene';
@@ -7554,7 +7552,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get p05NewsOpenSource => 'Kaynak sayfada aç';
 
   @override
-  String get p05NewsErrorTitle => 'Bir şeyler ters gitti';
+  String get p05NewsErrorTitle => 'İçerik yüklenemedi';
 
   @override
   String get p05NewsErrorBody =>
@@ -8310,7 +8308,7 @@ class AppLocalizationsTr extends AppLocalizations {
   }
 
   @override
-  String get p05SearchErrorTitle => 'Yüklenemedi';
+  String get p05SearchErrorTitle => 'Sonuçlar yüklenemedi';
 
   @override
   String get p05SearchErrorBody =>
@@ -8600,7 +8598,7 @@ class AppLocalizationsTr extends AppLocalizations {
       'Beğendiğiniz haberleri yer imi simgesine dokunarak kaydedebilirsiniz.';
 
   @override
-  String get p05ListErrorTitle => 'Yüklenemedi, tekrar dene';
+  String get p05ListErrorTitle => 'Yüklenemedi';
 
   @override
   String get p05ListErrorBody =>
@@ -8739,7 +8737,8 @@ class AppLocalizationsTr extends AppLocalizations {
   String get p20RemDaySub => 'Sınavdan bir gün önce hatırlat';
 
   @override
-  String get p20RemHourSub => 'Sınav saatinden bir saat önce bildir';
+  String get p20RemHourSub =>
+      'Uygulama kapalıyken de gelir; Akademik duyuru tercihine bağlıdır';
 
   @override
   String get p13SugSortTop => 'En çok oy';
@@ -8922,10 +8921,10 @@ class AppLocalizationsTr extends AppLocalizations {
   String get p18SecAbout => 'Hakkında & Destek';
 
   @override
-  String get p18CounterClubs => 'Kulüp Üyeliği';
+  String get p18CounterClubs => 'Kulüp';
 
   @override
-  String get p18CounterEvents => 'Etkinlik Katılımı';
+  String get p18CounterEvents => 'Etkinlik';
 
   @override
   String get p18ClearSearch => 'Aramayı temizle';
