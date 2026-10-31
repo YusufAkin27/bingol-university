@@ -14,7 +14,13 @@ import org.springframework.stereotype.Service;
 @Service
 public class NotificationInboxService {
 
-    private static final List<NotificationType> ALL_TYPES = Arrays.asList(NotificationType.values());
+    /** Kutuda gosterilen turler: MESSAGE haric hepsi (mesajlar yalniz push ile gelir). */
+    private static final List<NotificationType> ALL_TYPES = Arrays.stream(NotificationType.values())
+            .filter(t -> t != NotificationType.MESSAGE).toList();
+
+    private static boolean isMessageType(String type) {
+        return type != null && "MESSAGE".equalsIgnoreCase(type.trim());
+    }
 
     private final NotificationRepository notifications;
 
@@ -24,14 +30,18 @@ public class NotificationInboxService {
 
     public NotificationPage list(Long userId, Long cursor, int size, String type, boolean unreadOnly) {
         int s = CursorPage.clampSize(size);
+        if (isMessageType(type)) {
+            // Sohbet mesaji kutuda yok (yalniz push): gecerli tur ama bos liste
+            return new NotificationPage(List.of(), null, notifications.countUnreadInbox(userId));
+        }
         List<Notification> rows = notifications.pageFiltered(userId, cursor, types(type), unreadOnly,
                 PageRequest.of(0, s + 1));
         CursorPage<NotificationView> page = CursorPage.of(rows, s, Notification::getId, NotificationView::of);
-        return new NotificationPage(page.items(), page.nextCursor(), notifications.countByUserIdAndReadAtIsNull(userId));
+        return new NotificationPage(page.items(), page.nextCursor(), notifications.countUnreadInbox(userId));
     }
 
     public long unreadCount(Long userId) {
-        return notifications.countByUserIdAndReadAtIsNull(userId);
+        return notifications.countUnreadInbox(userId);
     }
 
     public void markRead(Long userId, List<Long> ids, boolean all) {
@@ -57,6 +67,9 @@ public class NotificationInboxService {
 
     /** type verilirse yalnizca o tur; readOnly=true ise yalnizca okunmuslar. */
     public int deleteAll(Long userId, String type, boolean readOnly) {
+        if (isMessageType(type)) {
+            return 0;
+        }
         return notifications.deleteForUser(userId, types(type), readOnly);
     }
 

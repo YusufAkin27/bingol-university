@@ -1,5 +1,7 @@
 package edu.bingol.backend.post.follow;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import edu.bingol.backend.common.ApiException;
 import edu.bingol.backend.moderation.BlockService;
 import edu.bingol.backend.post.PostCursor;
@@ -16,7 +18,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 import org.springframework.beans.factory.ObjectProvider;
-import org.springframework.dao.DuplicateKeyException;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -32,7 +33,12 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 @Service
 public class FollowService {
 
-    public record FollowResult(boolean following, long followerCount) {}
+    /** followState: FOLLOWING | REQUESTED | NONE (gizli hesapta istek: following=false, REQUESTED). */
+    public record FollowResult(boolean following, long followerCount, String followState) {
+        public FollowResult(boolean following, long followerCount) {
+            this(following, followerCount, following ? PrivateAccountGate.FOLLOWING : PrivateAccountGate.NONE);
+        }
+    }
 
     public record Stats(long followerCount, long followingCount, boolean followedByMe, boolean followsMe) {
         public Stats(long followerCount, long followingCount, boolean followedByMe) {
@@ -40,9 +46,20 @@ public class FollowService {
         }
     }
 
-    /** classYear: profil gizlilik ayarina gore (bakana kapaliysa null). */
+    /**
+     * classYear: profil gizlilik ayarina gore (bakana kapaliysa null). isPrivate/followState/locked: gizli hesap
+     * iliskisi (bkz. PrivateAccountGate); bilinmiyorsa null (JSON'a yazilmaz).
+     */
     public record UserItem(Long id, String displayName, String avatarUrl, String department, boolean followedByMe,
-                           boolean followsMe, Short classYear) {
+                           boolean followsMe, Short classYear,
+                           @JsonProperty("isPrivate") @JsonInclude(JsonInclude.Include.NON_NULL) Boolean isPrivate,
+                           @JsonInclude(JsonInclude.Include.NON_NULL) String followState,
+                           @JsonInclude(JsonInclude.Include.NON_NULL) Boolean locked) {
+        public UserItem(Long id, String displayName, String avatarUrl, String department, boolean followedByMe,
+                        boolean followsMe, Short classYear) {
+            this(id, displayName, avatarUrl, department, followedByMe, followsMe, classYear, null, null, null);
+        }
+
         public UserItem(Long id, String displayName, String avatarUrl, String department, boolean followedByMe,
                         boolean followsMe) {
             this(id, displayName, avatarUrl, department, followedByMe, followsMe, null);
@@ -53,10 +70,24 @@ public class FollowService {
         }
     }
 
-    public record UserPage(List<UserItem> items, String nextCursor) {}
+    /** locked=true: liste bakana kapali (gizli hesap, kabul edilmis takipci degil) ve bos doner. */
+    public record UserPage(List<UserItem> items, String nextCursor,
+                           @JsonInclude(JsonInclude.Include.NON_NULL) Boolean locked) {
+        public UserPage(List<UserItem> items, String nextCursor) {
+            this(items, nextCursor, null);
+        }
+    }
 
     public record Suggestion(Long id, String displayName, String avatarUrl, String department, String reason,
-                             Short classYear) {
+                             Short classYear,
+                             @JsonProperty("isPrivate") @JsonInclude(JsonInclude.Include.NON_NULL) Boolean isPrivate,
+                             @JsonInclude(JsonInclude.Include.NON_NULL) String followState,
+                             @JsonInclude(JsonInclude.Include.NON_NULL) Boolean locked) {
+        public Suggestion(Long id, String displayName, String avatarUrl, String department, String reason,
+                          Short classYear) {
+            this(id, displayName, avatarUrl, department, reason, classYear, null, null, null);
+        }
+
         public Suggestion(Long id, String displayName, String avatarUrl, String department, String reason) {
             this(id, displayName, avatarUrl, department, reason, null);
         }
@@ -77,10 +108,26 @@ public class FollowService {
         this.blocks = blocks;
         this.profiles = profiles;
         this.notifier = notifier;
+        this.writer = new FollowWriter(jdbc);
+    }
+
+    private final FollowWriter writer;
+    /** Gizli hesap kapisi ve istekler (setter: kurucu imzasi degismesin; yoksa tum hesaplar herkese acik sayilir). */
+    private PrivateAccountGate gate;
+    private FollowRequestService requests;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setPrivateAccounts(PrivateAccountGate gate, FollowRequestService requests) {
+        this.gate = gate;
+        this.requests = requests;
     }
 
     // ---------------------------------------------------------------- takip et / birak
 
+    /**
+     * Herkese acik hesap: aninda FOLLOWING. Gizli hesap ve takipci degilse: takip ISTEGI (REQUESTED; tekrar cagri
+     * idempotent). Zaten takipciyse FOLLOWING.
+     */
     @Transactional
     public FollowResult follow(Long me, Long target) {
         if (me.equals(target)) {
@@ -95,14 +142,16 @@ public class FollowService {
         if (blocks.isBlocked(me, target)) {
             return new FollowResult(true, 0);
         }
-        int n = jdbc.update("INSERT INTO user_follow (follower_id, followee_id, created_at) SELECT ?, ?, CURRENT_TIMESTAMP "
-                + "WHERE NOT EXISTS (SELECT 1 FROM user_follow WHERE follower_id = ? AND followee_id = ?)",
-                me, target, me, target);
-        if (n > 0) {
-            ensureStats(me);
-            ensureStats(target);
-            jdbc.update("UPDATE user_follow_stats SET following_count = following_count + 1 WHERE user_id = ?", me);
-            jdbc.update("UPDATE user_follow_stats SET follower_count = follower_count + 1 WHERE user_id = ?", target);
+        // Gizli hesap: kabul edilmis takipci degilse istek (gercek takip YOK, "yeni takipci" bildirimi YOK)
+        if (gate != null && requests != null && gate.isPrivate(target)
+                && !follows.existsById(new edu.bingol.backend.post.social.PairId(me, target))) {
+            requests.request(me, target);
+            return new FollowResult(false, 0, PrivateAccountGate.REQUESTED);
+        }
+        if (writer.create(me, target)) {
+            if (requests != null) {
+                requests.withdraw(me, target); // hesap araya acildiysa eski istek kalintisi
+            }
             afterCommit(() -> {
                 PostNotifier pn = notifier.getIfAvailable();
                 if (pn != null) {
@@ -113,25 +162,19 @@ public class FollowService {
         return new FollowResult(true, followerCount(target));
     }
 
+    /**
+     * Takibi birakir ve/veya bekleyen istegi geri ceker (ikisi de yoksa no-op). Gizli hesaptan cikan kisi tekrar
+     * takip icin yeniden istek gondermelidir. Cevap followState=NONE.
+     */
     @Transactional
     public FollowResult unfollow(Long me, Long target) {
-        int n = jdbc.update("DELETE FROM user_follow WHERE follower_id = ? AND followee_id = ?", me, target);
-        if (n > 0) {
-            jdbc.update("UPDATE user_follow_stats SET following_count = CASE WHEN following_count > 0 "
-                    + "THEN following_count - 1 ELSE 0 END WHERE user_id = ?", me);
-            jdbc.update("UPDATE user_follow_stats SET follower_count = CASE WHEN follower_count > 0 "
-                    + "THEN follower_count - 1 ELSE 0 END WHERE user_id = ?", target);
+        writer.remove(me, target);
+        if (requests != null) {
+            requests.withdraw(me, target);
         }
-        return new FollowResult(false, followerCount(target));
-    }
-
-    private void ensureStats(Long uid) {
-        try {
-            jdbc.update("INSERT INTO user_follow_stats (user_id, follower_count, following_count) SELECT ?, 0, 0 "
-                    + "WHERE NOT EXISTS (SELECT 1 FROM user_follow_stats WHERE user_id = ?)", uid, uid);
-        } catch (DuplicateKeyException ignored) {
-            // es zamanli ilk takip: satir baska islemce acildi
-        }
+        // Gizli hesapta artik takipci degil: sayac sizdirilmaz
+        long count = gate != null && gate.isPrivate(target) && !me.equals(target) ? 0 : followerCount(target);
+        return new FollowResult(false, count);
     }
 
     // ---------------------------------------------------------------- sayaclar
@@ -173,6 +216,10 @@ public class FollowService {
         if (t == null || !t.isActive() || (!viewer.equals(target) && blocks.isBlocked(viewer, target))) {
             return new UserPage(List.of(), null);
         }
+        // Gizli hesap: kabul edilmis takipci/sahibi degilse liste bos + locked=true (403 degil)
+        if (gate != null && !gate.canSeeContent(viewer, target)) {
+            return new UserPage(List.of(), null, true);
+        }
         PostCursor c = PostCursor.decode(cursor, 'L');
         PageRequest pr = PageRequest.of(0, n + 1);
         List<UserFollow> rows;
@@ -189,7 +236,7 @@ public class FollowService {
         List<Long> ids = items.stream().map(other).toList();
         String next = more ? PostCursor.latest(items.get(items.size() - 1).getCreatedAt(),
                 other.apply(items.get(items.size() - 1))) : null;
-        return new UserPage(userItems(viewer, ids), next);
+        return new UserPage(userItems(viewer, ids), next, gate == null ? null : Boolean.FALSE);
     }
 
     private List<UserItem> userItems(Long viewer, List<Long> ids) {
@@ -200,13 +247,17 @@ public class FollowService {
         profiles.mapAll(viewer, users.findAllById(ids)).forEach(p -> byId.put(p.id(), p));
         Set<Long> mine = new HashSet<>(follows.followedAmong(viewer, ids));
         Set<Long> theirs = new HashSet<>(follows.followingMeAmong(viewer, ids));
+        Map<Long, PrivateAccountGate.Relation> rel = gate == null ? Map.of() : gate.relations(viewer, ids);
         List<UserItem> out = new ArrayList<>();
         for (Long id : ids) {
             PublicProfile p = byId.get(id);
             if (p != null) {
                 boolean self = id.equals(viewer);
+                PrivateAccountGate.Relation r = rel.get(id);
                 out.add(new UserItem(p.id(), p.displayName(), p.avatarUrl(), p.department(),
-                        !self && mine.contains(id), !self && theirs.contains(id), p.classYear()));
+                        !self && mine.contains(id), !self && theirs.contains(id), p.classYear(),
+                        r == null ? null : r.isPrivate(), r == null ? null : r.followState(),
+                        r == null ? null : r.locked()));
             }
         }
         return out;
@@ -268,13 +319,17 @@ public class FollowService {
         List<Long> ids = kept.stream().map(r -> (Long) r[0]).toList();
         Map<Long, PublicProfile> byId = new HashMap<>();
         profiles.mapAll(me, users.findAllById(ids)).forEach(p -> byId.put(p.id(), p));
+        Map<Long, PrivateAccountGate.Relation> rel = gate == null ? Map.of() : gate.relations(me, ids);
         List<Suggestion> out = new ArrayList<>();
         for (Object[] r : kept) {
             PublicProfile p = byId.get((Long) r[0]);
             if (p == null || !reasonVisible((String) r[1], p)) {
                 continue;
             }
-            out.add(new Suggestion(p.id(), p.displayName(), p.avatarUrl(), p.department(), (String) r[1], p.classYear()));
+            PrivateAccountGate.Relation rl = rel.get(p.id());
+            out.add(new Suggestion(p.id(), p.displayName(), p.avatarUrl(), p.department(), (String) r[1], p.classYear(),
+                    rl == null ? null : rl.isPrivate(), rl == null ? null : rl.followState(),
+                    rl == null ? null : rl.locked()));
             if (out.size() >= n) {
                 break;
             }

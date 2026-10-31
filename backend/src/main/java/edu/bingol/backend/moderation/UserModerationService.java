@@ -35,6 +35,14 @@ public class UserModerationService {
         this.sessions = sessions;
     }
 
+    /** Askiya alinan hesabin bekleyen takip istekleri (gonderdigi/aldigi) temizlenir (istege bagli). */
+    private edu.bingol.backend.post.follow.FollowRequestService followRequests;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setFollowRequests(edu.bingol.backend.post.follow.FollowRequestService followRequests) {
+        this.followRequests = followRequests;
+    }
+
     @Transactional
     public void suspend(Long userId, String reason) {
         User u = find(userId);
@@ -44,6 +52,9 @@ public class UserModerationService {
         u.setStatus(UserStatus.SUSPENDED);
         u.setSuspendedReason(reason);
         users.save(u);
+        if (followRequests != null) {
+            followRequests.purgeUser(userId);
+        }
         // Redis isareti ve oturum iptali COMMIT SONRASI (T-009): islem geri alinirsa kullanici yanlisla kilitlenmez.
         AfterCommit.run(() -> {
             redis.opsForValue().set(JwtAuthFilter.SUSPENDED_KEY_PREFIX + userId, "1");

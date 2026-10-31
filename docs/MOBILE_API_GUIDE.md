@@ -829,3 +829,44 @@ Hepsi **geriye uyumlu eklemedir** (alan silme/yeniden adlandırma yok; migration
 - **Etkinlik sohbet erişimi:** `GET /api/events/{id}` (yalnız detay) yanıtında `chatAccess`: `LOCKED` (etkinlik yayında değil, sohbet süresi bitti, oda kapalı ya da kurulmamış ve yönetici değilsiniz), `OPEN` (odaya girebilirsiniz: katılımcı, düzenleyen, kulüp yetkilisi), `MEMBERS` (etkinliğe katılınca açılır). Liste uçlarında alan yok.
 - **Bildirim tercihleri (V880):** `GET|PUT /api/notifications/preferences` yanıt/istek gövdesine iki boolean: `polls` ("Anketler") ve `academicAnnouncements` ("Akademik duyurular"); varsayılan `true`, `PUT`ta verilmeyen (null) alan değişmez (eski istemciler etkilenmez). Gönderim koşulu **ana tür bayrağı VE kendi bayrağı**dır: genel anket `announcements` + `polls`, kulüp anketi `communities` + `polls`, bölüm duyurusu `announcements` + `academicAnnouncements` ister (yani ana bayrak kapalıyken kendi bayrağı açık olsa da bildirim gitmez; arayüzde bu satırlar ana bayrak kapalıyken pasif gösterilmelidir). Varsayılan `true` olduğundan mevcut kullanıcıların davranışı değişmez. `subtypes` haritasında da `POLL` ve `ACADEMIC_ANNOUNCEMENT` anahtarları görünür ve aynı bayrağı yansıtır (alt tur anahtarıyla yazmak da aynı sütunu günceller).
 - **Profil `blockedByMe`:** `GET /api/users/{id}` yanıtında (yalnız başkasının profilinde) `blockedByMe: true|false` = istek sahibi bu kullanıcıyı engellemiş mi. Karşı tarafın beni engellemesi sızdırılmaz (o durumda da `false`, profil gölge engel kuralıyla boş gelir). Kendi profilimde alan yoktur. Çok sayıda engel olsa da doğrudur (`/users/me/blocks` sayfalamasına bağlı değil).
+
+
+## Gizli hesap ve takip isteği (FOLLOWREQ)
+
+**Kural (Instagram gibi):** takip isteği YALNIZ gizli hesaplar içindir. Herkese açık hesap istek almaz, doğrudan takip edilir. Varsayılan herkese açıktır; mevcut tüm hesaplar açık kalır.
+
+**Hesap türü:** `GET /api/users/me/privacy` yanıtına `privateAccount` (boolean) eklendi. Değiştirmek için `PUT` (ya da `PATCH`, ikisi aynı işi yapar) `/api/users/me/privacy` gövdesi `{"privateAccount": true}`; verilmeyen alanlar değişmez. Hız sınırı: saatte en çok 10 GERÇEK değişiklik + dakikada 3 (aynı değeri tekrar göndermek hak harcamaz); aşılınca 429 + `Retry-After`.
+
+**Takip uçları (yollar değişmedi):** `POST /api/users/{id}/follow` ve `DELETE /api/users/{id}/follow` yanıtı `{following, followerCount, followState}` olur; `followState`: `FOLLOWING | REQUESTED | NONE`.
+- Hedef herkese açık: anında `FOLLOWING` (`following=true`).
+- Hedef gizli ve takipçi değilsen: istek oluşur, `followState=REQUESTED`, `following=false`, `followerCount=0` (gizli hesapta sayaç sızdırılmaz). Tekrar çağrı idempotenttir (`REQUESTED`; ikinci satır ve ek hız hakkı yok).
+- `DELETE`: takipçiysen takibi bırakır, bekleyen isteğin varsa geri çeker; her iki durumda da `followState=NONE`. Gizli hesaptan çıkan kişi tekrar takip için yeniden istek göndermelidir.
+- Kendini takip: 400 `FOLLOW_SELF`. Engel ilişkisi: beni engelleyen için gölge engel (200, istek oluşmaz), benim engellediğim için 404 `USER_NOT_FOUND` (mevcut davranış).
+- Sınırlar: kullanıcı başına en çok 200 bekleyen giden istek (aşılırsa 422 `FOLLOW_REQUEST_LIMIT`); aynı hedefe 24 saatte en çok 3 yeni istek (red sonrası kötüye kullanım freni; aşılırsa 429).
+
+**Kullanıcı profili / listeler:** `GET /api/users/{id}` (ve kullanıcı arama `GET /api/users/search` satırları, takipçi/takip listesi satırları, takip önerileri) şu alanları taşır: `isPrivate` (boolean), `followState` (`NONE | REQUESTED | FOLLOWING | SELF`), `locked` (boolean: hesap gizli ve sen ne sahibi ne KABUL EDİLMİŞ takipçisisin; bekleyen istek kilidi açmaz). Alanlar yalnız ilgili uçlarda dolar, diğer DTO'larda hiç yazılmaz (JSON'da yok).
+- `locked=true` iken `GET /api/users/{id}`: profil kabuğu (ad, avatar, bölüm vb. kendi gizlilik ayarlarına göre) görünür, `followerCount`/`followingCount` **null**'dır (gizlenir). Mobil kilit göstermeli, gönderi ızgarasını ve listeleri çizmemeli.
+- `GET /api/users/{id}/followers`, `/following`: `locked=true` iken `{items:[], nextCursor:null, locked:true}` (403 değil). Görünürse `locked:false`.
+- `GET /api/users/{id}/posts`: aynı şekilde `{items:[], nextCursor:null, locked:true}`; görünürse `locked:false`.
+- Gizli hesap sahibinin GÖNDERİLERİ Keşfet (`top|latest|popular|following|department`), arama (`type=POSTS`), beğeni/beğenenler, rapor ve fotoğraf (`/api/posts/media/{id}`) uçlarında yalnız sahibine ve kabul edilmiş takipçilerine görünür. `GET /api/posts/{id}` takipçi olmayana 404 `POST_NOT_FOUND` verir (var olduğu sızdırılmaz). Kullanıcının kendisi arama ve önerilerde bulunur (kabuk).
+
+**Gelen istekler (hedef = gizli hesap sahibi):**
+- `GET /api/users/me/follow-requests?cursor=&size=30` -> `{items:[{userId, displayName, avatarUrl, department, requestedAt}], nextCursor}` (en yeni önce; `nextCursor` sayısal istek kimliği, sonraki istekte `cursor=`). Engelli ve pasif hesaplar listelenmez.
+- `GET /api/users/me/follow-requests/count` -> `{count}` (rozet için).
+- `POST /api/users/me/follow-requests/{userId}/accept`: gerçek takip oluşur, istek silinir, istek sahibine `FOLLOW_ACCEPTED` bildirimi. Idempotent. **Yanıt 200 `{count}`** (kalan bekleyen istek sayısı; 204 değil).
+- `POST /api/users/me/follow-requests/{userId}/decline`: istek sessizce silinir (bildirim YOK). Idempotent, yanıt 200 `{count}`.
+- Gizli -> herkese açık geçişte bekleyen TÜM istekler otomatik kabul edilir (parçalı; çok büyük birikim birkaç dakika içinde arka plan işiyle tamamlanır; toplu bildirim gönderilmez). Herkese açık -> gizli geçişte mevcut takipçiler kalır.
+- Bekleyen istekler 90 gün sonra silinir. Hesap silme/askıda istekler temizlenir.
+
+**Bildirimler** (alıcının dilinde, push dahil):
+
+| Tür (`type`/`subtype`) | Alıcı | Metin (tr) | Push `targetType` / `targetId` | `collapseKey` |
+|---|---|---|---|---|
+| `FOLLOW_REQUEST` | hedef (gizli hesap) | "<ad> seni takip etmek istiyor" | `FOLLOW_REQUESTS` / istek sahibinin id'si | `followreq:<istekSahibiId>` |
+| `FOLLOW_ACCEPTED` | istek sahibi | "<ad> takip isteğini kabul etti" | `USER` / kabul edenin id'si | `followacc:<kabulEdenId>` |
+
+Gizli hesapta "yeni takipçi" (`USER_FOLLOW`) bildirimi gitmez (istek anında `FOLLOW_REQUEST` gider; kabulde karşı tarafa `FOLLOW_ACCEPTED`). Her ikisi de `communities` bildirim bayrağına bağlıdır.
+
+**Mesaj isteği ile ilişki:** ilk DM'de "alıcı göndereni takip ediyor" bağlamı yalnız KABUL EDİLMİŞ takibe dayanır; bekleyen istek bağlam sayılmaz.
+
+Hata kodu (3 dilde çeviri var): 422 `FOLLOW_REQUEST_LIMIT`. Ayrıntı: `docs/changes/post.md` ve `docs/changes/profile.md` (FOLLOWREQ).

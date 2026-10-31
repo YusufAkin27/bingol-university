@@ -112,7 +112,46 @@ public class ProfileService {
         // Kendi e-postam showEmail ayarindan bagimsiz gorunur
         view = self ? withEmail(view, u.getEmail()) : view;
         view = withFollow(view, viewerId, targetId);
+        view = withRelation(view, viewerId, targetId);
         return self ? view : view.withBlockedByMe(false);
+    }
+
+    /** Gizli hesap kapisi (post.follow; yoksa alanlar eklenmez). */
+    private edu.bingol.backend.post.follow.PrivateAccountGate gate;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setGate(edu.bingol.backend.post.follow.PrivateAccountGate gate) {
+        this.gate = gate;
+    }
+
+    /** isPrivate / followState / locked (locked iken sayaclar gizlenir). Hata profil yanitini bozmaz. */
+    private PublicProfile withRelation(PublicProfile p, Long viewerId, Long targetId) {
+        if (gate == null) {
+            return p;
+        }
+        try {
+            edu.bingol.backend.post.follow.PrivateAccountGate.Relation r = gate.relation(viewerId, targetId);
+            return r == null ? p : p.withRelation(r.isPrivate(), r.followState(), r.locked());
+        } catch (RuntimeException e) {
+            return p;
+        }
+    }
+
+    /** Arama satirlari icin toplu iliski (tek turda en cok 3 sorgu). */
+    private List<PublicProfile> withRelations(Long viewerId, List<PublicProfile> rows) {
+        if (gate == null || rows.isEmpty()) {
+            return rows;
+        }
+        try {
+            java.util.Map<Long, edu.bingol.backend.post.follow.PrivateAccountGate.Relation> rel =
+                    gate.relations(viewerId, rows.stream().map(PublicProfile::id).toList());
+            return rows.stream().map(p -> {
+                edu.bingol.backend.post.follow.PrivateAccountGate.Relation r = rel.get(p.id());
+                return r == null ? p : p.withRelation(r.isPrivate(), r.followState(), r.locked());
+            }).toList();
+        } catch (RuntimeException e) {
+            return rows;
+        }
     }
 
     private static PublicProfile withEmail(PublicProfile p, String email) {
@@ -260,7 +299,8 @@ public class ProfileService {
         List<User> rows = users.searchByName(escapeLike(query), excluded, limit + 1, offset);
         boolean more = rows.size() > limit && offset + limit <= MAX_SEARCH_OFFSET;
         List<User> page = rows.size() > limit ? rows.subList(0, limit) : rows;
-        return new UserSearchResult(mapper.mapAll(viewerId, page), more ? (long) offset + limit : null);
+        return new UserSearchResult(withRelations(viewerId, mapper.mapAll(viewerId, page)),
+                more ? (long) offset + limit : null);
     }
 
     /** Imlec = atlanacak kayit sayisi; ust sinir toplu taramayi (kullanici dizinini dokmeyi) zorlastirir. */

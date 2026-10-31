@@ -232,9 +232,11 @@ public class NotificationService {
             Lang lang = e.getKey();
             String stored = i18n.msg("notif.message.new", lang);
             List<Long> langIds = e.getValue().stream().map(MessageTarget::userId).toList();
-            Map<Long, NotificationBatchWriter.Row> rows = batchWriter.upsertUnread(langIds, NotificationType.MESSAGE,
-                    sub == null ? null : sub.name(), key, truncate(title, 200), truncate(stored, 500), storedData,
-                    increment, now); // 1 ifade
+            // Mesajlar uygulama ici bildirim kutusuna YAZILMAZ (yalniz push): satir yerine sentetik sayac
+            Map<Long, NotificationBatchWriter.Row> rows = new java.util.HashMap<>();
+            for (MessageTarget t : e.getValue()) {
+                rows.put(t.userId(), new NotificationBatchWriter.Row(0L, Math.max(1, increment)));
+            }
             for (MessageTarget t : e.getValue()) {
                 NotificationBatchWriter.Row row = rows.get(t.userId());
                 if (row == null || !t.push() || !pushOn) {
@@ -261,8 +263,10 @@ public class NotificationService {
         if (tokens.isEmpty()) {
             return;
         }
+        // Rozet = bildirim kutusu okunmamisi (MESSAGE haric) + bu sohbet icin 1 (parca basina 1 sorgu; alici basina
+        // sohbet okunmamisi sayimi pahali olurdu: tam sayiyi istemci acilista /api/me/summary ile duzeltir)
         Map<Long, Long> badges = new java.util.HashMap<>();
-        for (Object[] r : notifications.unreadCountsOf(tokens.keySet())) { // 1 sorgu (yalniz token'i olanlar)
+        for (Object[] r : notifications.unreadCountsOf(tokens.keySet())) {
             badges.put((Long) r[0], (Long) r[1]);
         }
         for (PushCandidate c : candidates) {
@@ -286,7 +290,7 @@ public class NotificationService {
                 pushData.putAll(extra);
             }
             push(toks, title, pBody, NotificationType.MESSAGE, sub, pushData, count, key,
-                    (int) (long) badges.getOrDefault(uid, 0L));
+                    (int) (badges.getOrDefault(uid, 0L) + 1));
         }
     }
 
@@ -317,7 +321,11 @@ public class NotificationService {
             String json = toJson(data);
             String storedData = json != null && json.length() > 1000 ? null : json;
             int count;
-            if (key != null && batchWriter != null && batchWriter.supported()) {
+            if (type == NotificationType.MESSAGE) {
+                // Sohbet mesaji uygulama ici bildirim kutusuna YAZILMAZ (kutu takip istegi vb. icindir); yalniz push.
+                // Birlestirme push tarafinda collapseKey ile yapilir; "N yeni mesaj" sayaci artik tutulmaz (tek mesaj).
+                count = 1;
+            } else if (key != null && batchWriter != null && batchWriter.supported()) {
                 // PostgreSQL: tek ifadelik yaz-ya-da-guncelle (kismi benzersiz indeks V940); eszamanli iki istek
                 // yinelenen satir uretmez ve cagiranin islemini bozacak bir benzersizlik hatasi dogmaz.
                 NotificationBatchWriter.Row row = batchWriter.upsertUnread(List.of(userId), type,
@@ -347,8 +355,8 @@ public class NotificationService {
                 count = n.getGroupCount();
             }
 
-            if (!push) {
-                return; // alici uygulamada: yalnizca uygulama ici kayit
+            if (!push || type == NotificationType.MESSAGE && !dispatcher.enabled()) {
+                return; // alici uygulamada ya da FCM kapali (mesaj icin baska kayit yok)
             }
             if (type != NotificationType.SYSTEM && QuietHours.isQuiet(pref, Instant.now())) {
                 return; // sessiz saat: yalnizca uygulama ici kayit (SYSTEM = hesap guvenligi sessiz saati asar)
@@ -381,7 +389,7 @@ public class NotificationService {
                 }
             }
             List<String> tokens = devices.findByUserId(userId).stream().map(Device::getFcmToken).toList();
-            int badge = (int) notifications.countByUserIdAndReadAtIsNull(userId);
+            int badge = (int) badgeOf(userId);
             Map<String, String> pushData = data;
             if (pushExtra != null && !pushExtra.isEmpty()) {
                 pushData = new java.util.HashMap<>(data == null ? Map.of() : data);
@@ -390,6 +398,28 @@ public class NotificationService {
             push(tokens, pTitle, pBody, type, subtype, pushData, count, key, badge);
         } catch (RuntimeException e) {
             log.warn("Bildirim gonderilemedi (kullanici {}): {}", userId, e.toString());
+        }
+    }
+
+    /** Sohbet okunmamis kaynagi (istege bagli: yoksa rozet yalniz bildirim kutusundan gelir). */
+    private org.springframework.beans.factory.ObjectProvider<edu.bingol.backend.messaging.ConversationPrefsService> chatBadge;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setChatBadge(org.springframework.beans.factory.ObjectProvider<edu.bingol.backend.messaging.ConversationPrefsService> chatBadge) {
+        this.chatBadge = chatBadge;
+    }
+
+    /**
+     * Push rozeti = bildirim kutusu okunmamisi (MESSAGE haric) + sohbet okunmamisi (sessize alinmamis konusmalar,
+     * `/api/me/summary` unreadMessages ile ayni kaynak). Mesajlar artik kutuya yazilmadigi icin sohbet payi buradan gelir.
+     */
+    private long badgeOf(Long userId) {
+        long inbox = notifications.countUnreadInbox(userId);
+        try {
+            edu.bingol.backend.messaging.ConversationPrefsService c = chatBadge == null ? null : chatBadge.getIfAvailable();
+            return c == null ? inbox : inbox + c.unreadBadge(userId);
+        } catch (RuntimeException e) {
+            return inbox; // rozet hesabi push gonderimini asla bozmaz
         }
     }
 
@@ -515,7 +545,8 @@ public class NotificationService {
             case ANNOUNCEMENT -> p.isAnnouncements();
             case EVENT -> p.isEvents();
             case MESSAGE -> p.isMessages();
-            case COMMUNITY, POST_LIKE, POST_COMMENT, COMMENT_REPLY, POST_MENTION, USER_FOLLOW -> p.isCommunities();
+            case COMMUNITY, POST_LIKE, POST_COMMENT, COMMENT_REPLY, POST_MENTION, USER_FOLLOW, FOLLOW_REQUEST,
+                 FOLLOW_ACCEPTED -> p.isCommunities();
             case SYSTEM -> true;
         };
     }

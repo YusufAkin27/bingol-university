@@ -13,18 +13,28 @@ import org.springframework.transaction.annotation.Transactional;
 
 public interface NotificationRepository extends JpaRepository<Notification, Long> {
 
-    @Query("SELECT n FROM Notification n WHERE n.userId = :uid AND (:cursor IS NULL OR n.id < :cursor) ORDER BY n.id DESC")
+    @Query("SELECT n FROM Notification n WHERE n.userId = :uid AND n.type <> edu.bingol.backend.notification.NotificationType.MESSAGE "
+            + "AND (:cursor IS NULL OR n.id < :cursor) ORDER BY n.id DESC")
     List<Notification> page(@Param("uid") Long userId, @Param("cursor") Long cursor, Pageable pageable);
 
     /** Tur ve okunmamis filtreli liste; "tum turler" icin types'a tum turler verilir. */
     @Query("""
             SELECT n FROM Notification n WHERE n.userId = :uid AND (:cursor IS NULL OR n.id < :cursor)
-              AND n.type IN :types AND (:unreadOnly = FALSE OR n.readAt IS NULL) ORDER BY n.id DESC""")
+              AND n.type IN :types AND n.type <> edu.bingol.backend.notification.NotificationType.MESSAGE
+              AND (:unreadOnly = FALSE OR n.readAt IS NULL) ORDER BY n.id DESC""")
     List<Notification> pageFiltered(@Param("uid") Long userId, @Param("cursor") Long cursor,
                                     @Param("types") Collection<NotificationType> types,
                                     @Param("unreadOnly") boolean unreadOnly, Pageable pageable);
 
     long countByUserIdAndReadAtIsNull(Long userId);
+
+    /**
+     * Gelen kutusu okunmamis sayisi: sohbet mesaji (MESSAGE) kutuda gosterilmez/sayilmaz (eski MESSAGE satirlari gece
+     * isiyle silinir). Liste, rozet ve unread-count TEK bu tanima bagli.
+     */
+    @Query("SELECT COUNT(n) FROM Notification n WHERE n.userId = :uid AND n.readAt IS NULL "
+            + "AND n.type <> edu.bingol.backend.notification.NotificationType.MESSAGE")
+    long countUnreadInbox(@Param("uid") Long userId);
 
     Optional<Notification> findByIdAndUserId(Long id, Long userId);
 
@@ -48,7 +58,7 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
 
     /** Kullanici basina okunmamis bildirim sayisi (rozet): [userId, adet]; sifir olanlar donmez. */
     @Query("SELECT n.userId, COUNT(n) FROM Notification n WHERE n.userId IN :ids AND n.readAt IS NULL "
-            + "GROUP BY n.userId")
+            + "AND n.type <> edu.bingol.backend.notification.NotificationType.MESSAGE GROUP BY n.userId")
     List<Object[]> unreadCountsOf(@Param("ids") Collection<Long> userIds);
 
     @Transactional
@@ -68,7 +78,8 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
 
     @Transactional
     @Modifying
-    @Query("UPDATE Notification n SET n.readAt = :now WHERE n.userId = :uid AND n.readAt IS NULL")
+    @Query("UPDATE Notification n SET n.readAt = :now WHERE n.userId = :uid AND n.readAt IS NULL "
+            + "AND n.type <> edu.bingol.backend.notification.NotificationType.MESSAGE")
     int markAllReadAt(@Param("uid") Long userId, @Param("now") Instant now);
 
     default int markAllRead(Long userId) {

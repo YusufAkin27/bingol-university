@@ -31,9 +31,19 @@ public final class PostDtos {
     public record UpdatePostRequest(@Size(max = 1000) String text) {}
 
     /** Akis sayfasi: nextCursor opak metin (null = son sayfa). */
-    public record FeedPage(List<PostView> items, String nextCursor, String hint) {
+    public record FeedPage(List<PostView> items, String nextCursor, String hint,
+                           @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL) Boolean locked) {
+        public FeedPage(List<PostView> items, String nextCursor, String hint) {
+            this(items, nextCursor, hint, null);
+        }
+
         public FeedPage(List<PostView> items, String nextCursor) {
-            this(items, nextCursor, null);
+            this(items, nextCursor, null, null);
+        }
+
+        /** Gizli hesabin gonderi listesi bakana kapali: bos + locked=true (403 degil). */
+        public static FeedPage lockedPage() {
+            return new FeedPage(List.of(), null, null, true);
         }
     }
 }

@@ -192,3 +192,10 @@ Davranış ve API değişmez (yeni uç/hata kodu yok); değişen yalnız maliyet
 - **Presence:** `ConversationMemberRepository.shareConversation` artık yalnız iki tarafın da ACCEPTED olduğu ortak konuşmayı sayar (karşılıklı kabul). Gizlilik ucu: `GET/PATCH /api/users/me/privacy` içinde `presence` (EVERYONE | SHARED_CONTEXT | ONLY_ME, varsayılan SHARED_CONTEXT; `ProfilePrivacy.presenceAudience`).
 - Yeni hata kodları: `MESSAGE_REQUEST_PENDING`, `REQUEST_NOT_PENDING` (tr/en/ar). Mobil "İstekler" sekmesi W2-I; eski duman betikleri (grup davetli akışlar) güncellenmelidir: `scripts/smoke-message-requests.sh` yeni akışı kapsar (koşturulmadı).
 - **Sohbet videosu (T-038):** yüklenen MP4'te `udta`, `meta`, `uuid`, `XMP_`, `©xyz` kutuları (GPS, cihaz/model, yazılım) **silinmeden** etkisizleştirilir (`Mp4Info.stripMetadata`: tür `free`, içerik sıfır); kutu boyutları ve chunk ofsetleri değişmez, oynatma etkilenmez. Yeniden kodlama (ffmpeg) yapılmaz; transcode çekirdeği (`VideoTranscoder`) korunur (K-10 b).
+
+
+## FOLLOWREQ: mesaj bildirimi yalnız push (bildirim kutusunda yok)
+
+Sohbet mesajı (DM, grup, kulüp/etkinlik odası) artık `notification` tablosuna satır yazmaz; alıcıya yalnız push gider (`NotificationService.sendNewMessage*`). Bildirimler listesi/`unread-count`/rozet MESSAGE türünü saymaz. Sohbet okunmamışı kaynağı değişmedi (`ConversationPrefsService.unreadBadge`, konuşma listesi `unreadCount`). `MessageService` sohbet okununca `markConversationRead` çağrısı eski satırlar için zararsız kalır. Ayrıntı: `docs/changes/push.md` "FOLLOWREQ: sohbet mesajı artık bildirim kutusuna yazılmaz".
+
+Mesaj isteği (T-026) ile ilişki: "alıcı göndereni takip ediyor" bağlamı yalnız KABUL EDİLMİŞ takibe dayanır; gizli hesapta bekleyen takip isteği bağlam sayılmaz (bkz. `FollowRequestFlowTest.messageRequestContextCountsAcceptedFollowOnlyNotPendingRequest`).

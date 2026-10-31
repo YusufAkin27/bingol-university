@@ -53,6 +53,12 @@ public class ProfilePrivacy {
      */
     private boolean contactsDiscoverable;
 
+    /**
+     * Gizli hesap (V1020): gonderiler/listeler yalniz kabul edilmis takipcilere; takip ISTEGI ile takip edilir.
+     * Varsayilan KAPALI (herkese acik). Gecis kurallari: post.follow.FollowRequestService.
+     */
+    private boolean privateAccount;
+
     /** Moderasyon avatari gizledi (USER_AVATAR raporu). */
     private boolean avatarHidden;
 

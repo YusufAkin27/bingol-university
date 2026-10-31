@@ -142,7 +142,9 @@ class ExtraExportersTest {
             Map.entry("message_reaction", "messageReactions"),
             Map.entry("conversation_member", "conversationMemberships"),
             Map.entry("club_member_grant", "clubPermissions"),
-            Map.entry("display_name_history", "displayNameHistory"));
+            Map.entry("display_name_history", "displayNameHistory"),
+            // FOLLOWREQ: gonderdigim bekleyen takip istekleri (gelenler baskalarinin verisi, dahil degil)
+            Map.entry("follow_request", "followRequests"));
 
     /** Bilincli muaf: gecici push kuyrugu ve gizli oy secmen kaydi (kimlik-oy baglantisi tutulmaz, disari verilemez). */
     private static final Set<String> EXEMPT = Set.of("push_outbox", "poll_ballot",

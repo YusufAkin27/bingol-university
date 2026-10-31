@@ -59,10 +59,9 @@ class PushLifecycleDbTest {
     @Test
     void markConversationReadClosesOnlyThatConversationsUnreadRow() {
         User u = user(Instant.now());
-        service.send(u.getId(), NotificationType.MESSAGE, NotificationSubtype.MESSAGE_DIRECT, "conv:77", "Ali", "Yeni mesaj",
-                java.util.Map.of("conversationId", "77"));
-        service.send(u.getId(), NotificationType.MESSAGE, NotificationSubtype.MESSAGE_DIRECT, "conv:78", "Veli", "Yeni mesaj",
-                java.util.Map.of("conversationId", "78"));
+        // Eski surumlerden kalmis MESSAGE satirlari (artik yazilmiyor; gece isi siler): okundu isareti hala calisir
+        legacyMessageRow(u, "conv:77");
+        legacyMessageRow(u, "conv:78");
         assertEquals(2, notifications.countByUserIdAndReadAtIsNull(u.getId()));
 
         service.markConversationRead(u.getId(), 77L);
@@ -72,19 +71,27 @@ class PushLifecycleDbTest {
         assertTrue(notifications.findFirstByUserIdAndCollapseKeyAndReadAtIsNullOrderByIdDesc(u.getId(), "conv:78").isPresent());
     }
 
+    private void legacyMessageRow(User u, String key) {
+        Notification n = new Notification();
+        n.setUserId(u.getId());
+        n.setType(NotificationType.MESSAGE);
+        n.setSubtype("MESSAGE_DIRECT");
+        n.setCollapseKey(key);
+        n.setTitle("Ali");
+        n.setBody("Yeni mesaj");
+        notifications.saveAndFlush(n);
+    }
+
     @Test
-    void afterReadingTheNextMessageStartsAFreshCounter() {
+    void newMessagesNeverCreateInboxRowsEvenAfterReading() {
         User u = user(Instant.now());
         service.send(u.getId(), NotificationType.MESSAGE, NotificationSubtype.MESSAGE_DIRECT, "conv:90", "Ali", "Yeni mesaj", null);
         service.send(u.getId(), NotificationType.MESSAGE, NotificationSubtype.MESSAGE_DIRECT, "conv:90", "Ali", "Yeni mesaj", null);
-        assertEquals(2, notifications.findFirstByUserIdAndCollapseKeyAndReadAtIsNullOrderByIdDesc(u.getId(), "conv:90")
-                .orElseThrow().getGroupCount());
-
         service.markConversationRead(u.getId(), 90L);
         service.send(u.getId(), NotificationType.MESSAGE, NotificationSubtype.MESSAGE_DIRECT, "conv:90", "Ali", "Yeni mesaj", null);
 
-        assertEquals(1, notifications.findFirstByUserIdAndCollapseKeyAndReadAtIsNullOrderByIdDesc(u.getId(), "conv:90")
-                .orElseThrow().getGroupCount());
+        assertTrue(notifications.findTop500ByUserIdOrderByIdDesc(u.getId()).isEmpty(), "mesaj yalniz push: kutu satiri yok");
+        assertEquals(0, notifications.countUnreadInbox(u.getId()));
     }
 
     @Test

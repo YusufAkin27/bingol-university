@@ -52,6 +52,14 @@ public class PostService {
         this.rankRepo = rankRepo;
     }
 
+    /** Gizli hesap kapisi (setter: kurucu imzasi degismesin; yoksa tum hesaplar herkese acik sayilir). */
+    private edu.bingol.backend.post.follow.PrivateAccountGate gate;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setGate(edu.bingol.backend.post.follow.PrivateAccountGate gate) {
+        this.gate = gate;
+    }
+
     public PostService(PostRepository posts, UserRepository users, UserBlockRepository blocks,
                        PostViewAssembler assembler, ContentGuard guard, ObjectProvider<PostMediaBinder> binders,
                        ApplicationEventPublisher events) {
@@ -242,11 +250,16 @@ public class PostService {
     @Transactional(readOnly = true)
     public FeedPage byAuthor(Long viewer, Long authorId, String cursor, int size) {
         int n = clamp(size);
+        // Gizli hesap: kabul edilmis takipci/sahibi degilse bos liste + locked=true (403 degil)
+        if (gate != null && !gate.canSeeContent(viewer, authorId)) {
+            return FeedPage.lockedPage();
+        }
         PostCursor c = PostCursor.decode(cursor, 'L');
         List<Post> rows = c == null
                 ? posts.byAuthorFirst(authorId, viewer, PageRequest.of(0, n + 1))
                 : posts.byAuthorAfter(authorId, viewer, c.at(), c.id(), PageRequest.of(0, n + 1));
-        return page(viewer, rows, n, p -> PostCursor.latest(p.getCreatedAt(), p.getId()));
+        FeedPage out = page(viewer, rows, n, p -> PostCursor.latest(p.getCreatedAt(), p.getId()));
+        return gate == null ? out : new FeedPage(out.items(), out.nextCursor(), out.hint(), Boolean.FALSE);
     }
 
     /** Diğer modüllerin (beğeni, yorum, rapor) kullanacağı: görünür değilse 404. */
@@ -259,6 +272,10 @@ public class PostService {
         boolean authorActive = users.findById(p.getAuthorId())
                 .map(u -> u.getStatus() == UserStatus.ACTIVE).orElse(false);
         if (!authorActive || (!p.getAuthorId().equals(viewer) && blocks.existsBetween(viewer, p.getAuthorId()))) {
+            throw notFound();
+        }
+        // Gizli hesap sahibinin gonderisi takipci olmayana "bulunamadi" (var oldugunu da sizdirmaz)
+        if (gate != null && !gate.canSeeContent(viewer, p.getAuthorId())) {
             throw notFound();
         }
         return p;

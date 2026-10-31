@@ -4070,7 +4070,7 @@
       "CountView" : {
         "properties" : {
           "count" : {
-            "format" : "int64",
+            "format" : "int32",
             "type" : [ "integer", "null" ]
           }
         }
@@ -4302,7 +4302,7 @@
             "$ref" : "#/components/schemas/Content"
           },
           "type" : {
-            "enum" : [ "NEWS", "ANNOUNCEMENT", "EVENT", "MESSAGE", "COMMUNITY", "SYSTEM", "POST_LIKE", "POST_COMMENT", "COMMENT_REPLY", "POST_MENTION", "USER_FOLLOW" ],
+            "enum" : [ "NEWS", "ANNOUNCEMENT", "EVENT", "MESSAGE", "COMMUNITY", "SYSTEM", "POST_LIKE", "POST_COMMENT", "COMMENT_REPLY", "POST_MENTION", "USER_FOLLOW", "FOLLOW_REQUEST", "FOLLOW_ACCEPTED" ],
             "type" : [ "string", "null" ]
           }
         },
@@ -4803,6 +4803,20 @@
           "items" : {
             "items" : {
               "$ref" : "#/components/schemas/MessageView"
+            },
+            "type" : "array"
+          },
+          "nextCursor" : {
+            "format" : "int64",
+            "type" : [ "integer", "null" ]
+          }
+        }
+      },
+      "CursorPageRequestItem" : {
+        "properties" : {
+          "items" : {
+            "items" : {
+              "$ref" : "#/components/schemas/RequestItem"
             },
             "type" : "array"
           },
@@ -5919,6 +5933,9 @@
             },
             "type" : "array"
           },
+          "locked" : {
+            "type" : [ "boolean", "null" ]
+          },
           "nextCursor" : {
             "type" : [ "string", "null" ]
           }
@@ -6041,6 +6058,9 @@
       },
       "FollowResult" : {
         "properties" : {
+          "followState" : {
+            "type" : [ "string", "null" ]
+          },
           "followerCount" : {
             "format" : "int64",
             "type" : [ "integer", "null" ]
@@ -8009,7 +8029,7 @@
             "type" : [ "string", "null" ]
           },
           "type" : {
-            "enum" : [ "NEWS", "ANNOUNCEMENT", "EVENT", "MESSAGE", "COMMUNITY", "SYSTEM", "POST_LIKE", "POST_COMMENT", "COMMENT_REPLY", "POST_MENTION", "USER_FOLLOW" ],
+            "enum" : [ "NEWS", "ANNOUNCEMENT", "EVENT", "MESSAGE", "COMMUNITY", "SYSTEM", "POST_LIKE", "POST_COMMENT", "COMMENT_REPLY", "POST_MENTION", "USER_FOLLOW", "FOLLOW_REQUEST", "FOLLOW_ACCEPTED" ],
             "type" : [ "string", "null" ]
           }
         }
@@ -9236,7 +9256,7 @@
             "$ref" : "#/components/schemas/Audience"
           },
           "type" : {
-            "enum" : [ "NEWS", "ANNOUNCEMENT", "EVENT", "MESSAGE", "COMMUNITY", "SYSTEM", "POST_LIKE", "POST_COMMENT", "COMMENT_REPLY", "POST_MENTION", "USER_FOLLOW" ],
+            "enum" : [ "NEWS", "ANNOUNCEMENT", "EVENT", "MESSAGE", "COMMUNITY", "SYSTEM", "POST_LIKE", "POST_COMMENT", "COMMENT_REPLY", "POST_MENTION", "USER_FOLLOW", "FOLLOW_REQUEST", "FOLLOW_ACCEPTED" ],
             "type" : [ "string", "null" ]
           }
         },
@@ -9298,6 +9318,9 @@
           "presence" : {
             "enum" : [ "EVERYONE", "SHARED_CONTEXT", "ONLY_ME" ],
             "type" : [ "string", "null" ]
+          },
+          "privateAccount" : {
+            "type" : [ "boolean", "null" ]
           }
         }
       },
@@ -9462,6 +9485,9 @@
           "faculty" : {
             "type" : [ "string", "null" ]
           },
+          "followState" : {
+            "type" : [ "string", "null" ]
+          },
           "followedByMe" : {
             "type" : [ "boolean", "null" ]
           },
@@ -9479,6 +9505,12 @@
           "id" : {
             "format" : "int64",
             "type" : [ "integer", "null" ]
+          },
+          "isPrivate" : {
+            "type" : [ "boolean", "null" ]
+          },
+          "locked" : {
+            "type" : [ "boolean", "null" ]
           }
         }
       },
@@ -10722,6 +10754,26 @@
           }
         }
       },
+      "RequestItem" : {
+        "properties" : {
+          "avatarUrl" : {
+            "type" : [ "string", "null" ]
+          },
+          "department" : {
+            "type" : [ "string", "null" ]
+          },
+          "displayName" : {
+            "type" : [ "string", "null" ]
+          },
+          "requestedAt" : {
+            "type" : [ "string", "null" ]
+          },
+          "userId" : {
+            "format" : "int64",
+            "type" : [ "integer", "null" ]
+          }
+        }
+      },
       "Requeued" : {
         "properties" : {
           "requeued" : {
@@ -11152,7 +11204,7 @@
             "$ref" : "#/components/schemas/Content"
           },
           "type" : {
-            "enum" : [ "NEWS", "ANNOUNCEMENT", "EVENT", "MESSAGE", "COMMUNITY", "SYSTEM", "POST_LIKE", "POST_COMMENT", "COMMENT_REPLY", "POST_MENTION", "USER_FOLLOW" ],
+            "enum" : [ "NEWS", "ANNOUNCEMENT", "EVENT", "MESSAGE", "COMMUNITY", "SYSTEM", "POST_LIKE", "POST_COMMENT", "COMMENT_REPLY", "POST_MENTION", "USER_FOLLOW", "FOLLOW_REQUEST", "FOLLOW_ACCEPTED" ],
             "type" : [ "string", "null" ]
           }
         },
@@ -11584,9 +11636,18 @@
           "displayName" : {
             "type" : [ "string", "null" ]
           },
+          "followState" : {
+            "type" : [ "string", "null" ]
+          },
           "id" : {
             "format" : "int64",
             "type" : [ "integer", "null" ]
+          },
+          "isPrivate" : {
+            "type" : [ "boolean", "null" ]
+          },
+          "locked" : {
+            "type" : [ "boolean", "null" ]
           },
           "reason" : {
             "type" : [ "string", "null" ]
@@ -12619,6 +12680,9 @@
           "presence" : {
             "enum" : [ "EVERYONE", "SHARED_CONTEXT", "ONLY_ME" ],
             "type" : [ "string", "null" ]
+          },
+          "privateAccount" : {
+            "type" : [ "boolean", "null" ]
           }
         }
       },
@@ -12790,6 +12854,9 @@
           "displayName" : {
             "type" : [ "string", "null" ]
           },
+          "followState" : {
+            "type" : [ "string", "null" ]
+          },
           "followedByMe" : {
             "type" : [ "boolean", "null" ]
           },
@@ -12799,6 +12866,12 @@
           "id" : {
             "format" : "int64",
             "type" : [ "integer", "null" ]
+          },
+          "isPrivate" : {
+            "type" : [ "boolean", "null" ]
+          },
+          "locked" : {
+            "type" : [ "boolean", "null" ]
           }
         }
       },
@@ -12809,6 +12882,9 @@
               "$ref" : "#/components/schemas/UserItem"
             },
             "type" : "array"
+          },
+          "locked" : {
+            "type" : [ "boolean", "null" ]
           },
           "nextCursor" : {
             "type" : [ "string", "null" ]
@@ -16695,7 +16771,7 @@
     },
     "/api/admin/audit" : {
       "get" : {
-        "operationId" : "list_26",
+        "operationId" : "list_27",
         "parameters" : [ {
           "in" : "query",
           "name" : "adminId",
@@ -17365,7 +17441,7 @@
     },
     "/api/admin/communities" : {
       "get" : {
-        "operationId" : "list_25",
+        "operationId" : "list_26",
         "parameters" : [ {
           "in" : "query",
           "name" : "status",
@@ -17753,7 +17829,7 @@
         "tags" : [ "club-admin-controller" ]
       },
       "patch" : {
-        "operationId" : "update_11",
+        "operationId" : "update_12",
         "parameters" : [ {
           "in" : "path",
           "name" : "id",
@@ -19388,7 +19464,7 @@
         "tags" : [ "community-category-admin-controller" ]
       },
       "put" : {
-        "operationId" : "update_3",
+        "operationId" : "update_5",
         "parameters" : [ {
           "in" : "path",
           "name" : "id",
@@ -19552,7 +19628,7 @@
     },
     "/api/admin/community-posts" : {
       "get" : {
-        "operationId" : "list_24",
+        "operationId" : "list_25",
         "parameters" : [ {
           "in" : "query",
           "name" : "communityId",
@@ -20471,7 +20547,7 @@
     },
     "/api/admin/crashes" : {
       "get" : {
-        "operationId" : "list_23",
+        "operationId" : "list_24",
         "parameters" : [ {
           "in" : "query",
           "name" : "status",
@@ -21486,7 +21562,7 @@
     },
     "/api/admin/events" : {
       "get" : {
-        "operationId" : "list_22",
+        "operationId" : "list_23",
         "parameters" : [ {
           "in" : "query",
           "name" : "status",
@@ -22306,7 +22382,7 @@
     },
     "/api/admin/events/{id}/applications/{userId}/accept" : {
       "post" : {
-        "operationId" : "accept_5",
+        "operationId" : "accept_6",
         "parameters" : [ {
           "in" : "path",
           "name" : "id",
@@ -23924,7 +24000,7 @@
         "tags" : [ "faq-controller" ]
       },
       "put" : {
-        "operationId" : "update_2",
+        "operationId" : "update_4",
         "parameters" : [ {
           "in" : "path",
           "name" : "id",
@@ -24611,7 +24687,7 @@
     },
     "/api/admin/mail/campaigns/{id}" : {
       "get" : {
-        "operationId" : "get_1",
+        "operationId" : "get_2",
         "parameters" : [ {
           "in" : "path",
           "name" : "id",
@@ -24671,7 +24747,7 @@
         "tags" : [ "mail-campaign-admin-controller" ]
       },
       "put" : {
-        "operationId" : "update_1",
+        "operationId" : "update_3",
         "parameters" : [ {
           "in" : "path",
           "name" : "id",
@@ -26283,7 +26359,7 @@
         "tags" : [ "mail-template-admin-controller" ]
       },
       "get" : {
-        "operationId" : "get",
+        "operationId" : "get_1",
         "parameters" : [ {
           "in" : "path",
           "name" : "id",
@@ -26343,7 +26419,7 @@
         "tags" : [ "mail-template-admin-controller" ]
       },
       "put" : {
-        "operationId" : "update",
+        "operationId" : "update_2",
         "parameters" : [ {
           "in" : "path",
           "name" : "id",
@@ -26980,7 +27056,7 @@
     },
     "/api/admin/menu" : {
       "get" : {
-        "operationId" : "list_21",
+        "operationId" : "list_22",
         "parameters" : [ {
           "in" : "query",
           "name" : "from",
@@ -28907,7 +28983,7 @@
     },
     "/api/admin/moderation/suspend-recommendations/{id}/accept" : {
       "post" : {
-        "operationId" : "accept_4",
+        "operationId" : "accept_5",
         "parameters" : [ {
           "in" : "path",
           "name" : "id",
@@ -29037,7 +29113,7 @@
     },
     "/api/admin/news" : {
       "get" : {
-        "operationId" : "list_20",
+        "operationId" : "list_21",
         "parameters" : [ {
           "in" : "query",
           "name" : "q",
@@ -29685,7 +29761,7 @@
     },
     "/api/admin/pending-registrations" : {
       "get" : {
-        "operationId" : "list_19",
+        "operationId" : "list_20",
         "parameters" : [ {
           "in" : "query",
           "name" : "cursor",
@@ -30088,7 +30164,7 @@
     },
     "/api/admin/polls" : {
       "get" : {
-        "operationId" : "list_18",
+        "operationId" : "list_19",
         "parameters" : [ {
           "in" : "query",
           "name" : "status",
@@ -30639,7 +30715,7 @@
     },
     "/api/admin/posts" : {
       "get" : {
-        "operationId" : "list_17",
+        "operationId" : "list_18",
         "parameters" : [ {
           "in" : "query",
           "name" : "cursor",
@@ -32684,7 +32760,7 @@
     },
     "/api/admin/push/outbox" : {
       "get" : {
-        "operationId" : "list_16",
+        "operationId" : "list_17",
         "parameters" : [ {
           "in" : "query",
           "name" : "status",
@@ -36168,7 +36244,7 @@
     },
     "/api/admin/users" : {
       "get" : {
-        "operationId" : "list_15",
+        "operationId" : "list_16",
         "parameters" : [ {
           "in" : "query",
           "name" : "q",
@@ -39202,7 +39278,7 @@
     },
     "/api/bookmarks" : {
       "get" : {
-        "operationId" : "list_14",
+        "operationId" : "list_15",
         "parameters" : [ {
           "in" : "query",
           "name" : "cursor",
@@ -39914,7 +39990,7 @@
         "tags" : [ "community-controller" ]
       },
       "patch" : {
-        "operationId" : "update_10",
+        "operationId" : "update_11",
         "parameters" : [ {
           "in" : "path",
           "name" : "id",
@@ -43518,7 +43594,7 @@
     },
     "/api/conversations/{id}/accept" : {
       "post" : {
-        "operationId" : "accept_3",
+        "operationId" : "accept_4",
         "parameters" : [ {
           "in" : "path",
           "name" : "id",
@@ -43832,7 +43908,7 @@
     },
     "/api/conversations/{id}/decline" : {
       "post" : {
-        "operationId" : "decline",
+        "operationId" : "decline_1",
         "parameters" : [ {
           "in" : "path",
           "name" : "id",
@@ -45310,7 +45386,7 @@
         "tags" : [ "event-controller" ]
       },
       "patch" : {
-        "operationId" : "update_9",
+        "operationId" : "update_10",
         "parameters" : [ {
           "in" : "path",
           "name" : "id",
@@ -45938,7 +46014,7 @@
     },
     "/api/events/{id}/applications/{appId}/accept" : {
       "post" : {
-        "operationId" : "accept_2",
+        "operationId" : "accept_3",
         "parameters" : [ {
           "in" : "path",
           "name" : "id",
@@ -46682,7 +46758,7 @@
     },
     "/api/events/{id}/chat-room" : {
       "get" : {
-        "operationId" : "get_2",
+        "operationId" : "get_3",
         "parameters" : [ {
           "in" : "path",
           "name" : "id",
@@ -48596,7 +48672,7 @@
     },
     "/api/faq" : {
       "get" : {
-        "operationId" : "list_13",
+        "operationId" : "list_14",
         "responses" : {
           "200" : {
             "content" : {
@@ -48850,7 +48926,7 @@
     },
     "/api/legal" : {
       "get" : {
-        "operationId" : "list_12",
+        "operationId" : "list_13",
         "responses" : {
           "200" : {
             "content" : {
@@ -48882,7 +48958,7 @@
     },
     "/api/legal/accept" : {
       "post" : {
-        "operationId" : "accept",
+        "operationId" : "accept_1",
         "requestBody" : {
           "content" : {
             "application/json" : {
@@ -48965,7 +49041,7 @@
     },
     "/api/legal/consents" : {
       "post" : {
-        "operationId" : "accept_1",
+        "operationId" : "accept_2",
         "requestBody" : {
           "content" : {
             "application/json" : {
@@ -49890,7 +49966,7 @@
     },
     "/api/news" : {
       "get" : {
-        "operationId" : "list_11",
+        "operationId" : "list_12",
         "parameters" : [ {
           "in" : "query",
           "name" : "type",
@@ -50055,7 +50131,7 @@
         "tags" : [ "notification-controller" ]
       },
       "get" : {
-        "operationId" : "list_10",
+        "operationId" : "list_11",
         "parameters" : [ {
           "in" : "query",
           "name" : "cursor",
@@ -50696,7 +50772,7 @@
         "tags" : [ "poll-controller" ]
       },
       "patch" : {
-        "operationId" : "update_8",
+        "operationId" : "update_9",
         "parameters" : [ {
           "in" : "path",
           "name" : "id",
@@ -51418,7 +51494,7 @@
         "tags" : [ "post-controller" ]
       },
       "patch" : {
-        "operationId" : "update_7",
+        "operationId" : "update_8",
         "parameters" : [ {
           "in" : "path",
           "name" : "id",
@@ -52806,7 +52882,7 @@
         "tags" : [ "timetable-controller" ]
       },
       "patch" : {
-        "operationId" : "update_6",
+        "operationId" : "update_7",
         "parameters" : [ {
           "in" : "path",
           "name" : "id",
@@ -53948,7 +54024,7 @@
         "tags" : [ "profile-controller" ]
       },
       "patch" : {
-        "operationId" : "update_4",
+        "operationId" : "update_6",
         "requestBody" : {
           "content" : {
             "application/json" : {
@@ -54267,6 +54343,226 @@
         "tags" : [ "data-export-controller" ]
       }
     },
+    "/api/users/me/follow-requests" : {
+      "get" : {
+        "operationId" : "list_10",
+        "parameters" : [ {
+          "in" : "query",
+          "name" : "cursor",
+          "required" : false,
+          "schema" : {
+            "format" : "int64",
+            "type" : "integer"
+          }
+        }, {
+          "in" : "query",
+          "name" : "size",
+          "required" : false,
+          "schema" : {
+            "default" : 30,
+            "format" : "int32",
+            "type" : "integer"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CursorPageRequestItem"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Dogrulama / is kurali hatasi (code alanina bakin)"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Token yok/gecersiz/suresi dolmus"
+          }
+        },
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ],
+        "tags" : [ "follow-request-controller" ]
+      }
+    },
+    "/api/users/me/follow-requests/count" : {
+      "get" : {
+        "operationId" : "count",
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CountView"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Dogrulama / is kurali hatasi (code alanina bakin)"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Token yok/gecersiz/suresi dolmus"
+          }
+        },
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ],
+        "tags" : [ "follow-request-controller" ]
+      }
+    },
+    "/api/users/me/follow-requests/{userId}/accept" : {
+      "post" : {
+        "operationId" : "accept",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "userId",
+          "required" : true,
+          "schema" : {
+            "format" : "int64",
+            "type" : "integer"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CountView"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Dogrulama / is kurali hatasi (code alanina bakin)"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Token yok/gecersiz/suresi dolmus"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "RATE_LIMITED: istek siniri asildi"
+          }
+        },
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ],
+        "tags" : [ "follow-request-controller" ]
+      }
+    },
+    "/api/users/me/follow-requests/{userId}/decline" : {
+      "post" : {
+        "operationId" : "decline",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "userId",
+          "required" : true,
+          "schema" : {
+            "format" : "int64",
+            "type" : "integer"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CountView"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Dogrulama / is kurali hatasi (code alanina bakin)"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Token yok/gecersiz/suresi dolmus"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "RATE_LIMITED: istek siniri asildi"
+          }
+        },
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ],
+        "tags" : [ "follow-request-controller" ]
+      }
+    },
     "/api/users/me/follow-suggestions" : {
       "get" : {
         "operationId" : "suggestions",
@@ -54323,7 +54619,7 @@
     },
     "/api/users/me/privacy" : {
       "get" : {
-        "operationId" : "get_3",
+        "operationId" : "get",
         "responses" : {
           "200" : {
             "content" : {
@@ -54362,7 +54658,66 @@
         "tags" : [ "privacy-controller" ]
       },
       "patch" : {
-        "operationId" : "update_5",
+        "operationId" : "update_1",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/UpdatePrivacyRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PrivacyView"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Dogrulama / is kurali hatasi (code alanina bakin)"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Token yok/gecersiz/suresi dolmus"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "RATE_LIMITED: istek siniri asildi"
+          }
+        },
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ],
+        "tags" : [ "privacy-controller" ]
+      },
+      "put" : {
+        "operationId" : "update",
         "requestBody" : {
           "content" : {
             "application/json" : {

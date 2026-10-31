@@ -8,7 +8,9 @@ public enum NotificationType {
     // tek tek kapatmak icin alt tur (NotificationSubtype POST_LIKE...) kullanilir.
     POST_LIKE("communities"), POST_COMMENT("communities"), COMMENT_REPLY("communities"),
     // Sosyal (etiket, takip): yine "communities" bayragi; alt tur ile ayri kapatilir
-    POST_MENTION("communities"), USER_FOLLOW("communities");
+    POST_MENTION("communities"), USER_FOLLOW("communities"),
+    // Gizli hesap takip istegi (hedefe) ve kabul (istek sahibine): "communities" bayragini paylasir
+    FOLLOW_REQUEST("communities"), FOLLOW_ACCEPTED("communities");
 
     private final String prefColumn;
 

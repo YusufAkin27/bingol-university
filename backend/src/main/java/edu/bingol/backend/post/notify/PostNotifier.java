@@ -105,6 +105,49 @@ public class PostNotifier {
         }
     }
 
+    /**
+     * Gizli hesaba takip istegi: hedefe. collapseKey followreq:&lt;istekci&gt; (ayni kisiden tekrar istek ayni satiri
+     * gunceller), push targetType FOLLOW_REQUESTS (istek kutusunu acar).
+     */
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void onFollowRequest(Long requesterId, Long targetId) {
+        try {
+            if (!shouldNotify(requesterId, targetId)) {
+                return;
+            }
+            Lang lang = i18n.langOf(targetId);
+            Map<String, String> d = new LinkedHashMap<>();
+            d.put("target", "FOLLOW_REQUESTS");
+            d.put("value", String.valueOf(requesterId));
+            d.put("userId", String.valueOf(requesterId));
+            notifications.send(targetId, NotificationType.FOLLOW_REQUEST, NotificationSubtype.FOLLOW_REQUEST,
+                    "followreq:" + requesterId, i18n.msg("notif.follow.request.title", lang),
+                    i18n.msg("notif.follow.request.body", lang, actorName(requesterId)), d);
+        } catch (RuntimeException e) {
+            log.warn("Takip istegi bildirimi gonderilemedi (kullanici {}): {}", targetId, e.toString());
+        }
+    }
+
+    /** Istek kabul edildi: istek sahibine. Push targetType USER, targetId = kabul eden. */
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void onFollowAccepted(Long accepterId, Long requesterId) {
+        try {
+            if (!shouldNotify(accepterId, requesterId)) {
+                return;
+            }
+            Lang lang = i18n.langOf(requesterId);
+            Map<String, String> d = new LinkedHashMap<>();
+            d.put("target", "USER");
+            d.put("value", String.valueOf(accepterId));
+            d.put("userId", String.valueOf(accepterId));
+            notifications.send(requesterId, NotificationType.FOLLOW_ACCEPTED, NotificationSubtype.FOLLOW_ACCEPTED,
+                    "followacc:" + accepterId, i18n.msg("notif.follow.accepted.title", lang),
+                    i18n.msg("notif.follow.accepted.body", lang, actorName(accepterId)), d);
+        } catch (RuntimeException e) {
+            log.warn("Takip kabul bildirimi gonderilemedi (kullanici {}): {}", requesterId, e.toString());
+        }
+    }
+
     private boolean shouldNotify(Long actorId, Long recipientId) {
         return recipientId != null && actorId != null && !Objects.equals(actorId, recipientId)
                 && !blocks.isBlocked(actorId, recipientId);

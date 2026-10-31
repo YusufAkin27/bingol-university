@@ -27,4 +27,12 @@ public class SocialExporters {
             return Map.of("following", following, "followers", followers);
         });
     }
+
+    /** KVKK: GONDERDIGIM bekleyen takip istekleri (gelenler baskalarinin verisidir, dahil degil). */
+    @Bean
+    DataExporter followRequestsExporter(JdbcTemplate jdbc) {
+        return DataExporter.of("followRequests", uid -> Map.of("sentPending", jdbc.queryForList(
+                "SELECT target_id AS \"userId\", CAST(created_at AS varchar) AS \"requestedAt\" FROM follow_request "
+                        + "WHERE requester_id = ? ORDER BY created_at DESC LIMIT " + MAX_ROWS, uid)));
+    }
 }

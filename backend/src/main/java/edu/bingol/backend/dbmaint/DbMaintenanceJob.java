@@ -30,6 +30,9 @@ public class DbMaintenanceJob {
 
     private static final Logger log = LoggerFactory.getLogger(DbMaintenanceJob.class);
 
+    /** Bekleyen takip istegi saklama suresi (gun). */
+    static final int FOLLOW_REQUEST_DAYS = 90;
+
     private final ChunkedDeleter deleter;
     private final NamedParameterJdbcTemplate jdbc;
     private final AnalyticsRollup rollup;
@@ -107,6 +110,7 @@ public class DbMaintenanceJob {
         out.put("activity_daily", safe("activity_daily", () -> activityDaily()));
         out.put("notification_read", safe("notification_read", () -> notifRead(now)));
         out.put("notification_unread", safe("notification_unread", () -> notifUnread(now)));
+        out.put("notification_message", safe("notification_message", this::notifMessageRows));
         out.put("notification_cap", safe("notification_cap", this::notifCap));
         out.put("mail_sent", safe("mail_sent", () -> mailSent(now)));
         out.put("mail_dead", safe("mail_dead", () -> mailDead(now)));
@@ -117,6 +121,7 @@ public class DbMaintenanceJob {
         out.put("admin_audit", safe("admin_audit", () -> adminAudit(now)));
         out.put("message_access_audit", safe("message_access_audit", () -> longAudit("message_access_audit", now)));
         out.put("club_audit", safe("club_audit", () -> longAudit("club_audit", now)));
+        out.put("follow_request", safe("follow_request", () -> followRequests(now)));
         out.put("crash_event", safe("crash_event", () -> crashEvents(now)));
         out.put("crash_group", safe("crash_group", () -> crashGroups(now)));
         log.info("dbmaint tamam: {}", out);
@@ -142,6 +147,13 @@ public class DbMaintenanceJob {
                 Map.of("cutoff", cutoff(now, analyticsRawDays)));
     }
 
+    /** Bekleyen takip istekleri 90 gun sonra silinir (cevaplanmayan istek sonsuza dek birikmez). */
+    private int followRequests(Instant now) {
+        return deleter.delete("follow_request",
+                "DELETE FROM follow_request WHERE id IN (SELECT id FROM follow_request WHERE created_at < :cutoff LIMIT :lim)",
+                Map.of("cutoff", cutoff(now, FOLLOW_REQUEST_DAYS)));
+    }
+
     /** Gunluk acilis sayaci: raporlar en cok 366 gun sorgular; 400 gunden eskisi gereksiz. */
     private int activityDaily() {
         return activityDays <= 0 ? 0 : deleter.delete("activity_daily",
@@ -159,6 +171,13 @@ public class DbMaintenanceJob {
         return notifUnreadDays <= 0 ? 0 : deleter.deleteHeavy("notification_unread",
                 "DELETE FROM notification WHERE id IN (SELECT id FROM notification WHERE read_at IS NULL AND created_at < :cutoff LIMIT :lim)",
                 Map.of("cutoff", cutoff(now, notifUnreadDays)));
+    }
+
+    /** Mesaj bildirim satirlari artik yazilmaz/gosterilmez (yalniz push); eskileri parcali silinir. */
+    private int notifMessageRows() {
+        return deleter.deleteHeavy("notification_message",
+                "DELETE FROM notification WHERE id IN (SELECT id FROM notification WHERE type = 'MESSAGE' LIMIT :lim)",
+                Map.of());
     }
 
     /** Kullanici basina en yeni N bildirim kalir. Yalniz siniri asan kullanicilar taranir (idx_notification_user). */

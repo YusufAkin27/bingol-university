@@ -36,7 +36,31 @@ public final class ProfileDtos {
     public record PublicProfile(Long id, String displayName, String faculty, String department, Short classYear,
                                 String bio, String avatarUrl, String email, Long followerCount, Long followingCount,
                                 Boolean followedByMe, Boolean followsMe,
-                                @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL) Boolean blockedByMe) {
+                                @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL) Boolean blockedByMe,
+                                @com.fasterxml.jackson.annotation.JsonProperty("isPrivate") @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL) Boolean isPrivate,
+                                @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL) String followState,
+                                @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL) Boolean locked) {
+        /**
+         * 13 alanli kurucu (gizli hesap alanlari yok): isPrivate/followState/locked yalniz profil ve arama ucunda
+         * doldurulur (withRelation); digerlerinde JSON'a yazilmaz.
+         */
+        public PublicProfile(Long id, String displayName, String faculty, String department, Short classYear,
+                             String bio, String avatarUrl, String email, Long followerCount, Long followingCount,
+                             Boolean followedByMe, Boolean followsMe, Boolean blockedByMe) {
+            this(id, displayName, faculty, department, classYear, bio, avatarUrl, email, followerCount,
+                    followingCount, followedByMe, followsMe, blockedByMe, null, null, null);
+        }
+
+        /**
+         * Gizli hesap iliskisi: isPrivate, followState (NONE | REQUESTED | FOLLOWING | SELF), locked (gizli ve bakan
+         * sahibi/kabul edilmis takipcisi degil). locked iken takipci/takip sayaclari gizlenir (null).
+         */
+        public PublicProfile withRelation(boolean isPrivate, String followState, boolean locked) {
+            return new PublicProfile(id, displayName, faculty, department, classYear, bio, avatarUrl, email,
+                    locked ? null : followerCount, locked ? null : followingCount, followedByMe, followsMe,
+                    blockedByMe, isPrivate, followState, locked);
+        }
+
         /** 12 alanli kurucu (blockedByMe yok): yalniz GET /users/{id} doldurur. */
         public PublicProfile(Long id, String displayName, String faculty, String department, Short classYear,
                              String bio, String avatarUrl, String email, Long followerCount, Long followingCount,
@@ -48,7 +72,7 @@ public final class ProfileDtos {
         /** Istek sahibi bu kullaniciyi engellemis mi (yalniz baskasinin profilinde, oturumlu istekte). */
         public PublicProfile withBlockedByMe(boolean blocked) {
             return new PublicProfile(id, displayName, faculty, department, classYear, bio, avatarUrl, email,
-                    followerCount, followingCount, followedByMe, followsMe, blocked);
+                    followerCount, followingCount, followedByMe, followsMe, blocked, isPrivate, followState, locked);
         }
 
         /** Takip alanlari olmadan (yalniz profil ucu doldurur; digerlerinde null). */
@@ -67,7 +91,7 @@ public final class ProfileDtos {
 
         public PublicProfile withFollow(long followers, long following, boolean followedByMe, boolean followsMe) {
             return new PublicProfile(id, displayName, faculty, department, classYear, bio, avatarUrl, email, followers,
-                    following, followedByMe, followsMe, blockedByMe);
+                    following, followedByMe, followsMe, blockedByMe, isPrivate, followState, locked);
         }
 
         public PublicProfile withFollow(long followers, long following, boolean followedByMe) {

@@ -34,6 +34,10 @@ public class PostSearchProvider implements SearchProvider {
             + "AND (to_tsvector('turkish', p.body) @@ websearch_to_tsquery('turkish', ?) OR p.body ILIKE ?) "
             + "AND NOT EXISTS (SELECT 1 FROM user_block b WHERE (b.blocker_id = ? AND b.blocked_id = p.author_id) "
             + "OR (b.blocker_id = p.author_id AND b.blocked_id = ?)) "
+            // Gizli hesap (V1020): gonderi metni yalniz yazara ve kabul edilmis takipcilere aranabilir
+            + "AND (p.author_id = ? OR NOT EXISTS (SELECT 1 FROM profile_privacy pp WHERE pp.user_id = p.author_id "
+            + "AND pp.private_account = TRUE) OR EXISTS (SELECT 1 FROM user_follow uf WHERE uf.follower_id = ? "
+            + "AND uf.followee_id = p.author_id)) "
             + "ORDER BY ts_rank(to_tsvector('turkish', p.body), websearch_to_tsquery('turkish', ?)) DESC, p.id DESC "
             + "LIMIT ? OFFSET ?";
 
@@ -61,7 +65,7 @@ public class PostSearchProvider implements SearchProvider {
             return new SearchHit(SearchType.POSTS, rs.getLong("id"), rs.getString("display_name"),
                     snippet(rs.getString("body")), mediaId == null ? null : "/api/posts/media/" + mediaId + "?thumb=true",
                     rs.getString("created"), null, null, null, (long) rs.getInt("like_count"));
-        }, q, SearchQuery.likePattern(q), viewer, viewer, q, Math.max(1, limit), Math.max(0, offset));
+        }, q, SearchQuery.likePattern(q), viewer, viewer, viewer, viewer, q, Math.max(1, limit), Math.max(0, offset));
     }
 
     static String snippet(String body) {

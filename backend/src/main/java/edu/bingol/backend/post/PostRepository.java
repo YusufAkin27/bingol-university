@@ -14,7 +14,12 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     String VISIBLE = "p.deletedAt IS NULL AND p.hiddenAt IS NULL "
             + "AND EXISTS (SELECT 1 FROM User u WHERE u.id = p.authorId AND u.status = edu.bingol.backend.user.UserStatus.ACTIVE) "
             + "AND NOT EXISTS (SELECT 1 FROM UserBlock b WHERE (b.blockerId = :viewer AND b.blockedId = p.authorId) "
-            + "OR (b.blockerId = p.authorId AND b.blockedId = :viewer)) ";
+            + "OR (b.blockerId = p.authorId AND b.blockedId = :viewer)) "
+            // Gizli hesap (V1020): gonderi yalniz yazarin kendisine ve KABUL EDILMIS takipcilerine gorunur. Satiri olmayan
+            // yazar herkese aciktir (NOT EXISTS ... = TRUE); bekleyen istek (follow_request) gorunurluk vermez.
+            + "AND (p.authorId = :viewer OR NOT EXISTS (SELECT 1 FROM ProfilePrivacy pp WHERE pp.userId = p.authorId "
+            + "AND pp.privateAccount = TRUE) OR EXISTS (SELECT 1 FROM UserFollow uf WHERE uf.id.a = :viewer "
+            + "AND uf.id.b = p.authorId)) ";
 
     /** Sade Kesfet: yalniz gorunur FOTOGRAFI olan gonderiler akista listelenir (video-only/metin-only eskiler gizli; veri silinmez). */
     String PHOTO = "AND EXISTS (SELECT 1 FROM PostMedia pm WHERE pm.postId = p.id AND pm.kind = 'IMAGE' AND pm.hiddenAt IS NULL) ";

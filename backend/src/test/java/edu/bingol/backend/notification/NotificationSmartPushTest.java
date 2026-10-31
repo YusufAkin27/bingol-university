@@ -78,22 +78,24 @@ class NotificationSmartPushTest {
         assertEquals("chat", m.data().get("channelId"));
         assertEquals("CONVERSATION", m.data().get("targetType"));
         assertEquals("5", m.data().get("targetId"));
-        // alt tur birebir/grup tercihleri icin saklanir (push yukunde subtype yok: gonderim anindaki NotificationSubtype)
-        verify(notifications).save(org.mockito.ArgumentMatchers.argThat(
-                (Notification n) -> "MESSAGE_DIRECT".equals(n.getSubtype())));
+        // mesaj bildirim kutusuna yazilmaz; alt tur yalniz push yukunde ve tercih denetiminde kullanilir
+        verify(notifications, never()).save(any(Notification.class));
+        assertEquals("MESSAGE_DIRECT", m.data().get("subtype"));
     }
 
     @Test
-    void secondMessageInsideWindowIsSilentButSavedInInbox() {
+    void secondMessageInsideWindowIsSilentAndNeverSavedInInbox() {
         svc.sendNewMessage(1L, "Ali", null, CONV);
         svc.sendNewMessage(1L, "Ali", null, CONV);
 
         assertEquals(1, fcm.messages().size()); // ikinci push pencerede bastirildi
-        verify(notifications, times(2)).save(any(Notification.class)); // kutu yine yazildi
+        verify(notifications, never()).save(any(Notification.class)); // mesaj kutuya hic yazilmaz
     }
 
     @Test
-    void afterWindowPushSummarizesCountInRecipientLanguage() {
+    void messagePushBodyIsAlwaysSingleMessageBecauseInboxCounterIsGone() {
+        // Eskiden kutudaki okunmamis satir sayaci "3 yeni mesaj" govdesini uretirdi; satir artik yazilmadigindan
+        // push tek mesaj govdesiyle gider (FCM collapseKey onceki bildirimi degistirir).
         Notification existing = new Notification();
         existing.setGroupCount(2);
         when(notifications.findFirstByUserIdAndCollapseKeyAndReadAtIsNullOrderByIdDesc(1L, "conv:5"))
@@ -102,16 +104,17 @@ class NotificationSmartPushTest {
 
         svc.sendNewMessage(1L, "Ali", null, CONV);
 
-        assertEquals("3 yeni mesaj", fcm.messages().get(0).body());
-        assertEquals("Ali", fcm.messages().get(0).title()); // baslikta sayi eki yok
-        assertEquals("3", fcm.messages().get(0).data().get("count"));
+        assertEquals("Yeni mesaj", fcm.messages().get(0).body());
+        assertEquals("Ali", fcm.messages().get(0).title());
+        assertNull(fcm.messages().get(0).data().get("count"));
+        assertEquals(2, existing.getGroupCount(), "eski satira dokunulmaz");
     }
 
     @Test
-    void foregroundRecipientGetsInboxRowButNoPush() {
+    void foregroundRecipientGetsNeitherInboxRowNorPush() {
         svc.sendNewMessage(1L, "Ali", null, CONV, false);
 
-        verify(notifications).save(any(Notification.class));
+        verify(notifications, never()).save(any(Notification.class)); // mesaj kutuya yazilmaz
         assertTrue(fcm.messages().isEmpty());
     }
 
@@ -184,7 +187,7 @@ class NotificationSmartPushTest {
         svc.sendNewMessage(1L, "Ali", null, CONV);
         svc.send(1L, NotificationType.ANNOUNCEMENT, "T", "B", Map.of());
         assertTrue(fcm.messages().isEmpty());
-        verify(notifications, times(2)).save(any(Notification.class)); // kutu dolu
+        verify(notifications, times(1)).save(any(Notification.class)); // kutu: yalniz duyuru (mesaj yazilmaz)
 
         svc.send(1L, NotificationType.SYSTEM, "Guvenlik", "B", Map.of());
         assertEquals(1, fcm.messages().size());
@@ -217,7 +220,7 @@ class NotificationSmartPushTest {
 
     @Test
     void payloadCarriesTagBadgeTtlAndNoCollapseSideEffects() {
-        when(notifications.countByUserIdAndReadAtIsNull(1L)).thenReturn(4L);
+        when(notifications.countUnreadInbox(1L)).thenReturn(4L);
 
         svc.sendNewMessage(1L, "Ali", null, CONV, true, Map.of("senderName", "Ali"));
 

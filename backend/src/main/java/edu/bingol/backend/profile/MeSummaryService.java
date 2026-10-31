@@ -21,7 +21,7 @@ public class MeSummaryService {
                  WHERE r.user_id = ? AND r.status = 'GOING' AND e.status = 'ACTIVE'
                    AND e.ends_at > CURRENT_TIMESTAMP),
               (SELECT COUNT(*) FROM bookmark WHERE user_id = ?),
-              (SELECT COUNT(*) FROM notification WHERE user_id = ? AND read_at IS NULL)
+              (SELECT COUNT(*) FROM notification WHERE user_id = ? AND read_at IS NULL AND type <> 'MESSAGE')
             """;
 
     private final JdbcTemplate jdbc;

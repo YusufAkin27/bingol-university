@@ -65,7 +65,10 @@ public class AccountDataPurger {
             "DELETE FROM event_co_organizer WHERE user_id = ?",
             // W2-E tablolari: gorunen ad gecmisi (eski/yeni ad = kisisel veri) ve acik raporlu hesap silme bekletmesi
             "DELETE FROM display_name_history WHERE user_id = ?",
-            "DELETE FROM account_delete_hold WHERE user_id = ?");
+            "DELETE FROM account_delete_hold WHERE user_id = ?",
+            // FOLLOWREQ: bekleyen takip istekleri (gonderdigim ve aldigim; iki sutun da kisi kimligi)
+            "DELETE FROM follow_request WHERE requester_id = ?",
+            "DELETE FROM follow_request WHERE target_id = ?");
 
     /** Serbest metinler temizlenir, satir (ve kimlik baglantisi) kalir; kullanici satiri anonimlestirildi. */
     public static final List<String> SCRUBS = List.of(

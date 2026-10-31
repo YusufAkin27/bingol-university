@@ -56,7 +56,17 @@ public final class PostReportHandlers {
                 return false;
             }
             Long author = r.get(0);
-            return viewerId == null || author.equals(viewerId) || !blocks.isBlocked(viewerId, author);
+            if (viewerId == null || author.equals(viewerId)) {
+                return true;
+            }
+            if (blocks.isBlocked(viewerId, author)) {
+                return false;
+            }
+            // Gizli hesap (V1020): gormedigi gonderi raporlanamaz (var oldugu sizdirilmaz)
+            Integer hidden = jdbc.queryForObject("SELECT COUNT(*) FROM profile_privacy pp WHERE pp.user_id = ? "
+                    + "AND pp.private_account = TRUE AND NOT EXISTS (SELECT 1 FROM user_follow uf "
+                    + "WHERE uf.follower_id = ? AND uf.followee_id = pp.user_id)", Integer.class, author, viewerId);
+            return hidden == null || hidden == 0;
         }
 
         @Override

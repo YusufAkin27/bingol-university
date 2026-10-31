@@ -73,7 +73,7 @@ class PushDeliveryTest {
 
     @Test
     void badgeIsUnreadCountAndPlatformFieldsAreSet() {
-        when(notifications.countByUserIdAndReadAtIsNull(1L)).thenReturn(7L);
+        when(notifications.countUnreadInbox(1L)).thenReturn(7L); // kutu okunmamisi (MESSAGE haric)
 
         svc.send(1L, NotificationType.MESSAGE, "Ali", "Merhaba", Map.of("conversationId", "9"));
 

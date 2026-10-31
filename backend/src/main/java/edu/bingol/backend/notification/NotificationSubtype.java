@@ -13,6 +13,7 @@ public enum NotificationSubtype {
     POST_LIKE(NotificationType.POST_LIKE), POST_COMMENT(NotificationType.POST_COMMENT),
     COMMENT_REPLY(NotificationType.COMMENT_REPLY),
     POST_MENTION(NotificationType.POST_MENTION), USER_FOLLOW(NotificationType.USER_FOLLOW),
+    FOLLOW_REQUEST(NotificationType.FOLLOW_REQUEST), FOLLOW_ACCEPTED(NotificationType.FOLLOW_ACCEPTED),
     // Kendi bayragi olanlar (notification_pref.polls / academic_announcements, V880): ana tur bayragindan bagimsizdir
     POLL(NotificationType.ANNOUNCEMENT), ACADEMIC_ANNOUNCEMENT(NotificationType.ANNOUNCEMENT),
     // Sinav hatirlatmasi (sinavdan 2 sa once): "Akademik duyurular" bayragini (academic_announcements) paylasir;

@@ -603,7 +603,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["list_26"];
+        get: operations["list_27"];
         put?: never;
         post?: never;
         delete?: never;
@@ -699,7 +699,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["list_25"];
+        get: operations["list_26"];
         put?: never;
         post?: never;
         delete?: never;
@@ -737,7 +737,7 @@ export interface paths {
         delete: operations["delete_13"];
         options?: never;
         head?: never;
-        patch: operations["update_11"];
+        patch: operations["update_12"];
         trace?: never;
     };
     "/api/admin/communities/{id}/approve": {
@@ -1020,7 +1020,7 @@ export interface paths {
             cookie?: never;
         };
         get?: never;
-        put: operations["update_3"];
+        put: operations["update_5"];
         post?: never;
         delete: operations["delete_2"];
         options?: never;
@@ -1051,7 +1051,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["list_24"];
+        get: operations["list_25"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1195,7 +1195,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["list_23"];
+        get: operations["list_24"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1387,7 +1387,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["list_22"];
+        get: operations["list_23"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1517,7 +1517,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["accept_5"];
+        post: operations["accept_6"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1820,7 +1820,7 @@ export interface paths {
             cookie?: never;
         };
         get?: never;
-        put: operations["update_2"];
+        put: operations["update_4"];
         post?: never;
         delete: operations["delete_1"];
         options?: never;
@@ -1947,8 +1947,8 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["get_1"];
-        put: operations["update_1"];
+        get: operations["get_2"];
+        put: operations["update_3"];
         post?: never;
         delete?: never;
         options?: never;
@@ -2219,8 +2219,8 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["get"];
-        put: operations["update"];
+        get: operations["get_1"];
+        put: operations["update_2"];
         post?: never;
         delete: operations["delete"];
         options?: never;
@@ -2363,7 +2363,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["list_21"];
+        get: operations["list_22"];
         put?: never;
         post?: never;
         delete?: never;
@@ -2701,7 +2701,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["accept_4"];
+        post: operations["accept_5"];
         delete?: never;
         options?: never;
         head?: never;
@@ -2731,7 +2731,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["list_20"];
+        get: operations["list_21"];
         put?: never;
         post?: never;
         delete?: never;
@@ -2891,7 +2891,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["list_19"];
+        get: operations["list_20"];
         put?: never;
         post?: never;
         delete?: never;
@@ -2987,7 +2987,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["list_18"];
+        get: operations["list_19"];
         put?: never;
         post?: never;
         delete?: never;
@@ -3099,7 +3099,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["list_17"];
+        get: operations["list_18"];
         put?: never;
         post?: never;
         delete?: never;
@@ -3499,7 +3499,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["list_16"];
+        get: operations["list_17"];
         put?: never;
         post?: never;
         delete?: never;
@@ -4235,7 +4235,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["list_15"];
+        get: operations["list_16"];
         put?: never;
         post?: never;
         delete?: never;
@@ -4955,7 +4955,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["list_14"];
+        get: operations["list_15"];
         put?: never;
         post?: never;
         delete?: never;
@@ -5121,7 +5121,7 @@ export interface paths {
         delete: operations["delete_9"];
         options?: never;
         head?: never;
-        patch: operations["update_10"];
+        patch: operations["update_11"];
         trace?: never;
     };
     "/api/communities/{id}/announcements": {
@@ -5805,7 +5805,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["accept_3"];
+        post: operations["accept_4"];
         delete?: never;
         options?: never;
         head?: never;
@@ -5853,7 +5853,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["decline"];
+        post: operations["decline_1"];
         delete?: never;
         options?: never;
         head?: never;
@@ -6145,7 +6145,7 @@ export interface paths {
         delete: operations["delete_7"];
         options?: never;
         head?: never;
-        patch: operations["update_9"];
+        patch: operations["update_10"];
         trace?: never;
     };
     "/api/events/{id}/admission": {
@@ -6253,7 +6253,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["accept_2"];
+        post: operations["accept_3"];
         delete?: never;
         options?: never;
         head?: never;
@@ -6443,7 +6443,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["get_2"];
+        get: operations["get_3"];
         put?: never;
         post: operations["open"];
         delete?: never;
@@ -6827,7 +6827,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["list_13"];
+        get: operations["list_14"];
         put?: never;
         post?: never;
         delete?: never;
@@ -6907,7 +6907,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["list_12"];
+        get: operations["list_13"];
         put?: never;
         post?: never;
         delete?: never;
@@ -6925,7 +6925,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["accept"];
+        post: operations["accept_1"];
         delete?: never;
         options?: never;
         head?: never;
@@ -6957,7 +6957,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["accept_1"];
+        post: operations["accept_2"];
         delete?: never;
         options?: never;
         head?: never;
@@ -7211,7 +7211,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["list_11"];
+        get: operations["list_12"];
         put?: never;
         post?: never;
         delete?: never;
@@ -7243,7 +7243,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["list_10"];
+        get: operations["list_11"];
         put?: never;
         post?: never;
         delete: operations["deleteAll"];
@@ -7377,7 +7377,7 @@ export interface paths {
         delete: operations["delete_5"];
         options?: never;
         head?: never;
-        patch: operations["update_8"];
+        patch: operations["update_9"];
         trace?: never;
     };
     "/api/polls/{id}/close": {
@@ -7505,7 +7505,7 @@ export interface paths {
         delete: operations["delete_4"];
         options?: never;
         head?: never;
-        patch: operations["update_7"];
+        patch: operations["update_8"];
         trace?: never;
     };
     "/api/posts/{id}/like": {
@@ -7809,7 +7809,7 @@ export interface paths {
         delete: operations["delete_3"];
         options?: never;
         head?: never;
-        patch: operations["update_6"];
+        patch: operations["update_7"];
         trace?: never;
     };
     "/api/timetable/exams": {
@@ -8033,7 +8033,7 @@ export interface paths {
         delete: operations["deleteAccount"];
         options?: never;
         head?: never;
-        patch: operations["update_4"];
+        patch: operations["update_6"];
         trace?: never;
     };
     "/api/users/me/avatar": {
@@ -8100,6 +8100,70 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/users/me/follow-requests": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["list_10"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/users/me/follow-requests/count": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["count"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/users/me/follow-requests/{userId}/accept": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["accept"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/users/me/follow-requests/{userId}/decline": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["decline"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/users/me/follow-suggestions": {
         parameters: {
             query?: never;
@@ -8123,13 +8187,13 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["get_3"];
-        put?: never;
+        get: operations["get"];
+        put: operations["update"];
         post?: never;
         delete?: never;
         options?: never;
         head?: never;
-        patch: operations["update_5"];
+        patch: operations["update_1"];
         trace?: never;
     };
     "/api/users/search": {
@@ -9887,7 +9951,7 @@ export interface components {
             unreadCount?: number | null;
         };
         CountView: {
-            /** Format: int64 */
+            /** Format: int32 */
             count?: number | null;
         };
         Counters: {
@@ -9980,7 +10044,7 @@ export interface components {
             target?: components["schemas"]["Target"] | null;
             tr: components["schemas"]["Content"];
             /** @enum {string|null} */
-            type?: "NEWS" | "ANNOUNCEMENT" | "EVENT" | "MESSAGE" | "COMMUNITY" | "SYSTEM" | "POST_LIKE" | "POST_COMMENT" | "COMMENT_REPLY" | "POST_MENTION" | "USER_FOLLOW" | null;
+            type?: "NEWS" | "ANNOUNCEMENT" | "EVENT" | "MESSAGE" | "COMMUNITY" | "SYSTEM" | "POST_LIKE" | "POST_COMMENT" | "COMMENT_REPLY" | "POST_MENTION" | "USER_FOLLOW" | "FOLLOW_REQUEST" | "FOLLOW_ACCEPTED" | null;
         };
         CreateCommunityRequest: {
             category?: string | null;
@@ -10152,6 +10216,11 @@ export interface components {
         };
         CursorPageMessageView: {
             items?: components["schemas"]["MessageView"][];
+            /** Format: int64 */
+            nextCursor?: number | null;
+        };
+        CursorPageRequestItem: {
+            items?: components["schemas"]["RequestItem"][];
             /** Format: int64 */
             nextCursor?: number | null;
         };
@@ -10557,6 +10626,7 @@ export interface components {
         FeedPage: {
             hint?: string | null;
             items?: components["schemas"]["PostDtosPostView"][];
+            locked?: boolean | null;
             nextCursor?: string | null;
         };
         FeedbackInfo: {
@@ -10603,6 +10673,7 @@ export interface components {
             role?: "USER" | "ADMIN" | null;
         };
         FollowResult: {
+            followState?: string | null;
             /** Format: int64 */
             followerCount?: number | null;
             following?: boolean | null;
@@ -11360,7 +11431,7 @@ export interface components {
             subtype?: string | null;
             title?: string | null;
             /** @enum {string|null} */
-            type?: "NEWS" | "ANNOUNCEMENT" | "EVENT" | "MESSAGE" | "COMMUNITY" | "SYSTEM" | "POST_LIKE" | "POST_COMMENT" | "COMMENT_REPLY" | "POST_MENTION" | "USER_FOLLOW" | null;
+            type?: "NEWS" | "ANNOUNCEMENT" | "EVENT" | "MESSAGE" | "COMMUNITY" | "SYSTEM" | "POST_LIKE" | "POST_COMMENT" | "COMMENT_REPLY" | "POST_MENTION" | "USER_FOLLOW" | "FOLLOW_REQUEST" | "FOLLOW_ACCEPTED" | null;
         };
         OfficialExamView: {
             courseCode?: string | null;
@@ -11828,7 +11899,7 @@ export interface components {
         PreviewRequest: {
             audience: components["schemas"]["Audience"];
             /** @enum {string|null} */
-            type?: "NEWS" | "ANNOUNCEMENT" | "EVENT" | "MESSAGE" | "COMMUNITY" | "SYSTEM" | "POST_LIKE" | "POST_COMMENT" | "COMMENT_REPLY" | "POST_MENTION" | "USER_FOLLOW" | null;
+            type?: "NEWS" | "ANNOUNCEMENT" | "EVENT" | "MESSAGE" | "COMMUNITY" | "SYSTEM" | "POST_LIKE" | "POST_COMMENT" | "COMMENT_REPLY" | "POST_MENTION" | "USER_FOLLOW" | "FOLLOW_REQUEST" | "FOLLOW_ACCEPTED" | null;
         };
         PreviewView: {
             fallback?: boolean | null;
@@ -11855,6 +11926,7 @@ export interface components {
             faculty?: "EVERYONE" | "SHARED_CONTEXT" | "ONLY_ME" | null;
             /** @enum {string|null} */
             presence?: "EVERYONE" | "SHARED_CONTEXT" | "ONLY_ME" | null;
+            privateAccount?: boolean | null;
         };
         ProfilePatch: {
             clearAvatar?: boolean | null;
@@ -11918,6 +11990,7 @@ export interface components {
             displayName?: string | null;
             email?: string | null;
             faculty?: string | null;
+            followState?: string | null;
             followedByMe?: boolean | null;
             /** Format: int64 */
             followerCount?: number | null;
@@ -11926,6 +11999,8 @@ export interface components {
             followsMe?: boolean | null;
             /** Format: int64 */
             id?: number | null;
+            isPrivate?: boolean | null;
+            locked?: boolean | null;
         };
         PublishRequest: {
             ar?: components["schemas"]["Translation"] | null;
@@ -12393,6 +12468,14 @@ export interface components {
             /** Format: int64 */
             waitlisted?: number | null;
         };
+        RequestItem: {
+            avatarUrl?: string | null;
+            department?: string | null;
+            displayName?: string | null;
+            requestedAt?: string | null;
+            /** Format: int64 */
+            userId?: number | null;
+        };
         Requeued: {
             /** Format: int32 */
             requeued?: number | null;
@@ -12551,7 +12634,7 @@ export interface components {
             target?: components["schemas"]["Target"] | null;
             tr: components["schemas"]["Content"];
             /** @enum {string|null} */
-            type?: "NEWS" | "ANNOUNCEMENT" | "EVENT" | "MESSAGE" | "COMMUNITY" | "SYSTEM" | "POST_LIKE" | "POST_COMMENT" | "COMMENT_REPLY" | "POST_MENTION" | "USER_FOLLOW" | null;
+            type?: "NEWS" | "ANNOUNCEMENT" | "EVENT" | "MESSAGE" | "COMMUNITY" | "SYSTEM" | "POST_LIKE" | "POST_COMMENT" | "COMMENT_REPLY" | "POST_MENTION" | "USER_FOLLOW" | "FOLLOW_REQUEST" | "FOLLOW_ACCEPTED" | null;
         };
         SeriesItem: {
             /** Format: date-time */
@@ -12714,8 +12797,11 @@ export interface components {
             classYear?: number | null;
             department?: string | null;
             displayName?: string | null;
+            followState?: string | null;
             /** Format: int64 */
             id?: number | null;
+            isPrivate?: boolean | null;
+            locked?: boolean | null;
             reason?: string | null;
         };
         SuggestionPage: {
@@ -13117,6 +13203,7 @@ export interface components {
             faculty?: "EVERYONE" | "SHARED_CONTEXT" | "ONLY_ME" | null;
             /** @enum {string|null} */
             presence?: "EVERYONE" | "SHARED_CONTEXT" | "ONLY_ME" | null;
+            privateAccount?: boolean | null;
         };
         UpdateProfileRequest: {
             bio?: string | null;
@@ -13175,13 +13262,17 @@ export interface components {
             classYear?: number | null;
             department?: string | null;
             displayName?: string | null;
+            followState?: string | null;
             followedByMe?: boolean | null;
             followsMe?: boolean | null;
             /** Format: int64 */
             id?: number | null;
+            isPrivate?: boolean | null;
+            locked?: boolean | null;
         };
         UserPage: {
             items?: components["schemas"]["UserItem"][];
+            locked?: boolean | null;
             nextCursor?: string | null;
         };
         UserSearchResult: {
@@ -16037,7 +16128,7 @@ export interface operations {
             };
         };
     };
-    list_26: {
+    list_27: {
         parameters: {
             query?: {
                 adminId?: number;
@@ -16369,7 +16460,7 @@ export interface operations {
             };
         };
     };
-    list_25: {
+    list_26: {
         parameters: {
             query?: {
                 status?: "PENDING_REVIEW" | "ACTIVE" | "REJECTED" | "HIDDEN" | "DELETED";
@@ -16593,7 +16684,7 @@ export interface operations {
             };
         };
     };
-    update_11: {
+    update_12: {
         parameters: {
             query?: never;
             header?: never;
@@ -17759,7 +17850,7 @@ export interface operations {
             };
         };
     };
-    update_3: {
+    update_5: {
         parameters: {
             query?: never;
             header?: never;
@@ -17939,7 +18030,7 @@ export interface operations {
             };
         };
     };
-    list_24: {
+    list_25: {
         parameters: {
             query?: {
                 communityId?: number;
@@ -18585,7 +18676,7 @@ export interface operations {
             };
         };
     };
-    list_23: {
+    list_24: {
         parameters: {
             query?: {
                 status?: string;
@@ -19376,7 +19467,7 @@ export interface operations {
             };
         };
     };
-    list_22: {
+    list_23: {
         parameters: {
             query?: {
                 status?: string;
@@ -19930,7 +20021,7 @@ export interface operations {
             };
         };
     };
-    accept_5: {
+    accept_6: {
         parameters: {
             query?: never;
             header?: never;
@@ -21088,7 +21179,7 @@ export interface operations {
             };
         };
     };
-    update_2: {
+    update_4: {
         parameters: {
             query?: never;
             header?: never;
@@ -21652,7 +21743,7 @@ export interface operations {
             };
         };
     };
-    get_1: {
+    get_2: {
         parameters: {
             query?: never;
             header?: never;
@@ -21701,7 +21792,7 @@ export interface operations {
             };
         };
     };
-    update_1: {
+    update_3: {
         parameters: {
             query?: never;
             header?: never;
@@ -22825,7 +22916,7 @@ export interface operations {
             };
         };
     };
-    get: {
+    get_1: {
         parameters: {
             query?: never;
             header?: never;
@@ -22874,7 +22965,7 @@ export interface operations {
             };
         };
     };
-    update: {
+    update_2: {
         parameters: {
             query?: never;
             header?: never;
@@ -23428,7 +23519,7 @@ export interface operations {
             };
         };
     };
-    list_21: {
+    list_22: {
         parameters: {
             query?: {
                 from?: string;
@@ -24863,7 +24954,7 @@ export interface operations {
             };
         };
     };
-    accept_4: {
+    accept_5: {
         parameters: {
             query?: never;
             header?: never;
@@ -24975,7 +25066,7 @@ export interface operations {
             };
         };
     };
-    list_20: {
+    list_21: {
         parameters: {
             query?: {
                 q?: string;
@@ -25490,7 +25581,7 @@ export interface operations {
             };
         };
     };
-    list_19: {
+    list_20: {
         parameters: {
             query?: {
                 cursor?: string;
@@ -25818,7 +25909,7 @@ export interface operations {
             };
         };
     };
-    list_18: {
+    list_19: {
         parameters: {
             query?: {
                 status?: string;
@@ -26248,7 +26339,7 @@ export interface operations {
             };
         };
     };
-    list_17: {
+    list_18: {
         parameters: {
             query?: {
                 cursor?: number;
@@ -27841,7 +27932,7 @@ export interface operations {
             };
         };
     };
-    list_16: {
+    list_17: {
         parameters: {
             query?: {
                 status?: string;
@@ -30538,7 +30629,7 @@ export interface operations {
             };
         };
     };
-    list_15: {
+    list_16: {
         parameters: {
             query?: {
                 q?: string;
@@ -32877,7 +32968,7 @@ export interface operations {
             };
         };
     };
-    list_14: {
+    list_15: {
         parameters: {
             query?: {
                 cursor?: number;
@@ -33459,7 +33550,7 @@ export interface operations {
             };
         };
     };
-    update_10: {
+    update_11: {
         parameters: {
             query?: never;
             header?: never;
@@ -36162,7 +36253,7 @@ export interface operations {
             };
         };
     };
-    accept_3: {
+    accept_4: {
         parameters: {
             query?: never;
             header?: never;
@@ -36416,7 +36507,7 @@ export interface operations {
             };
         };
     };
-    decline: {
+    decline_1: {
         parameters: {
             query?: never;
             header?: never;
@@ -37607,7 +37698,7 @@ export interface operations {
             };
         };
     };
-    update_9: {
+    update_10: {
         parameters: {
             query?: never;
             header?: never;
@@ -38085,7 +38176,7 @@ export interface operations {
             };
         };
     };
-    accept_2: {
+    accept_3: {
         parameters: {
             query?: never;
             header?: never;
@@ -38639,7 +38730,7 @@ export interface operations {
             };
         };
     };
-    get_2: {
+    get_3: {
         parameters: {
             query?: never;
             header?: never;
@@ -40133,7 +40224,7 @@ export interface operations {
             };
         };
     };
-    list_13: {
+    list_14: {
         parameters: {
             query?: never;
             header?: never;
@@ -40329,7 +40420,7 @@ export interface operations {
             };
         };
     };
-    list_12: {
+    list_13: {
         parameters: {
             query?: never;
             header?: never;
@@ -40358,7 +40449,7 @@ export interface operations {
             };
         };
     };
-    accept: {
+    accept_1: {
         parameters: {
             query?: never;
             header?: never;
@@ -40436,7 +40527,7 @@ export interface operations {
             };
         };
     };
-    accept_1: {
+    accept_2: {
         parameters: {
             query?: never;
             header?: never;
@@ -41180,7 +41271,7 @@ export interface operations {
             };
         };
     };
-    list_11: {
+    list_12: {
         parameters: {
             query?: {
                 type?: string;
@@ -41245,7 +41336,7 @@ export interface operations {
             };
         };
     };
-    list_10: {
+    list_11: {
         parameters: {
             query?: {
                 cursor?: number;
@@ -41826,7 +41917,7 @@ export interface operations {
             };
         };
     };
-    update_8: {
+    update_9: {
         parameters: {
             query?: never;
             header?: never;
@@ -42397,7 +42488,7 @@ export interface operations {
             };
         };
     };
-    update_7: {
+    update_8: {
         parameters: {
             query?: never;
             header?: never;
@@ -43514,7 +43605,7 @@ export interface operations {
             };
         };
     };
-    update_6: {
+    update_7: {
         parameters: {
             query?: never;
             header?: never;
@@ -44473,7 +44564,7 @@ export interface operations {
             };
         };
     };
-    update_4: {
+    update_6: {
         parameters: {
             query?: never;
             header?: never;
@@ -44744,6 +44835,183 @@ export interface operations {
             };
         };
     };
+    list_10: {
+        parameters: {
+            query?: {
+                cursor?: number;
+                size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["CursorPageRequestItem"];
+                };
+            };
+            /** @description Dogrulama / is kurali hatasi (code alanina bakin) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Token yok/gecersiz/suresi dolmus */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    count: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["CountView"];
+                };
+            };
+            /** @description Dogrulama / is kurali hatasi (code alanina bakin) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Token yok/gecersiz/suresi dolmus */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    accept: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                userId: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["CountView"];
+                };
+            };
+            /** @description Dogrulama / is kurali hatasi (code alanina bakin) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Token yok/gecersiz/suresi dolmus */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description RATE_LIMITED: istek siniri asildi */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    decline: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                userId: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["CountView"];
+                };
+            };
+            /** @description Dogrulama / is kurali hatasi (code alanina bakin) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Token yok/gecersiz/suresi dolmus */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description RATE_LIMITED: istek siniri asildi */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
     suggestions: {
         parameters: {
             query?: {
@@ -44784,7 +45052,7 @@ export interface operations {
             };
         };
     };
-    get_3: {
+    get: {
         parameters: {
             query?: never;
             header?: never;
@@ -44822,7 +45090,58 @@ export interface operations {
             };
         };
     };
-    update_5: {
+    update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdatePrivacyRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["PrivacyView"];
+                };
+            };
+            /** @description Dogrulama / is kurali hatasi (code alanina bakin) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Token yok/gecersiz/suresi dolmus */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description RATE_LIMITED: istek siniri asildi */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    update_1: {
         parameters: {
             query?: never;
             header?: never;

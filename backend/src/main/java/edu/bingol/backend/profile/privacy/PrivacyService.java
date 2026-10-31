@@ -10,6 +10,14 @@ public class PrivacyService {
 
     private final ProfilePrivacyRepository repo;
 
+    /** Gizli -> acik gecisinde bekleyen isteklerin otomatik kabulu (istege bagli: birim testlerinde yok). */
+    private edu.bingol.backend.post.follow.FollowRequestService requests;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setRequests(edu.bingol.backend.post.follow.FollowRequestService requests) {
+        this.requests = requests;
+    }
+
     public PrivacyService(ProfilePrivacyRepository repo) {
         this.repo = repo;
     }
@@ -36,11 +44,20 @@ public class PrivacyService {
         if (r.classYear() != null) {
             p.setClassYearAudience(r.classYear());
         }
+        boolean wasPrivate = p.isPrivateAccount();
+        if (r.privateAccount() != null) {
+            p.setPrivateAccount(r.privateAccount());
+        }
         if (r.presence() != null) {
             p.setPresenceAudience(r.presence());
         }
         p.setUpdatedAt(Instant.now());
-        return repo.save(p);
+        ProfilePrivacy saved = repo.save(p);
+        if (wasPrivate && !saved.isPrivateAccount() && requests != null) {
+            // Gizli -> acik: bekleyen TUM istekler otomatik kabul (parcali; COMMIT sonrasi, tek islem buyumesin)
+            edu.bingol.backend.common.AfterCommit.run(() -> requests.onBecamePublic(userId));
+        }
+        return saved;
     }
 
     /** Moderasyon bayragi (USER_AVATAR "gizle"); kullanici ayarlarina dokunmaz. */

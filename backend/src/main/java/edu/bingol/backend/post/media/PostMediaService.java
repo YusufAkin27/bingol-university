@@ -383,6 +383,14 @@ public class PostMediaService implements PostMediaLookup, PostMediaBinder {
 
     // ------------------------------------------------------------------ yetkili sunum
 
+    /** Gizli hesap kapisi (setter: kurucu imzasi degismesin; yoksa tum hesaplar herkese acik sayilir). */
+    private edu.bingol.backend.post.follow.PrivateAccountGate gate;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setGate(edu.bingol.backend.post.follow.PrivateAccountGate gate) {
+        this.gate = gate;
+    }
+
     /** Erisebilir ise medya; degilse bos. Hicbir durumda neden sizdirmaz. */
     @Transactional(readOnly = true)
     public Optional<PostMedia> accessible(Long viewerId, Long mediaId) {
@@ -401,6 +409,10 @@ public class PostMediaService implements PostMediaLookup, PostMediaBinder {
             return Optional.empty();
         }
         if (!p.getAuthorId().equals(viewerId) && blocks.hiddenFrom(viewerId).contains(p.getAuthorId())) {
+            return Optional.empty();
+        }
+        // Gizli hesabin fotografi yalniz sahibine ve kabul edilmis takipcilerine (URL tahmin edilse de 404)
+        if (gate != null && !p.getAuthorId().equals(viewerId) && !gate.canSeeContent(viewerId, p.getAuthorId())) {
             return Optional.empty();
         }
         return Optional.of(m);

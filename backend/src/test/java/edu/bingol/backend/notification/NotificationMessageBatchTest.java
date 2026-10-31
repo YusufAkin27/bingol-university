@@ -128,12 +128,12 @@ class NotificationMessageBatchTest {
 
         svc.sendNewMessageBatch(all, "Grup - Ali", null, false, GROUP, 1);
 
-        // 600 alici = 250 + 250 + 100 -> 3 parca; her parca: 1 aktiflik/dil + 1 tercih + 1 alt tur + 1 yazim
+        // 600 alici = 250 + 250 + 100 -> 3 parca; her parca: 1 aktiflik/dil + 1 tercih + 1 alt tur sorgusu.
+        // Mesajlar bildirim kutusuna YAZILMAZ (yalniz push): kutu yazimi (upsertUnread) hic yok.
         verify(guard, times(3)).receivable(anyCollection());
         verify(prefs, times(3)).findAllById(any());
         verify(notifications, times(3)).subtypeDisabledAmong(anyCollection(), eq("MESSAGE_GROUP"));
-        verify(writer, times(3)).upsertUnread(anyCollection(), eq(NotificationType.MESSAGE), eq("MESSAGE_GROUP"),
-                eq("conv:5"), eq("Grup - Ali"), eq("Yeni mesaj"), any(), eq(1), any());
+        verify(writer, never()).upsertUnread(anyCollection(), any(), any(), any(), anyString(), any(), any(), anyInt(), any());
         // eski alici-basina yollar KULLANILMAZ
         verify(prefs, never()).findById(anyLong());
         verify(guard, never()).canReceive(anyLong());
@@ -165,17 +165,14 @@ class NotificationMessageBatchTest {
         svc.sendNewMessageBatch(List.of(target(1, true), target(2, true), target(3, true), target(4, true),
                 target(5, true), target(6, false), target(7, true)), "Ali", null, false, GROUP, 1);
 
-        // Satir yazilanlar: 1, 5, 6 (TR) ve 7 (EN, kendi dilinde govde)
-        ArgumentCaptor<java.util.Collection<Long>> tr = ArgumentCaptor.forClass(java.util.Collection.class);
-        verify(writer).upsertUnread(tr.capture(), any(), any(), any(), anyString(), eq("Yeni mesaj"), any(), anyInt(), any());
-        assertEquals(Set.of(1L, 5L, 6L), Set.copyOf(tr.getValue()));
-        ArgumentCaptor<java.util.Collection<Long>> en = ArgumentCaptor.forClass(java.util.Collection.class);
-        verify(writer).upsertUnread(en.capture(), any(), any(), any(), anyString(), eq("New message"), any(), anyInt(), any());
-        assertEquals(Set.of(7L), Set.copyOf(en.getValue()));
+        // Kutu satiri HIC yazilmaz (mesajlar yalniz push)
+        verify(writer, never()).upsertUnread(anyCollection(), any(), any(), any(), anyString(), any(), any(), anyInt(), any());
 
-        // Push yalniz 1 ve 7: 2/3/4 elendi, 5 sessiz saat, 6 push=false
+        // Push yalniz 1 (TR) ve 7 (EN, kendi dilinde govde): 2/3/4 elendi, 5 sessiz saat, 6 push=false
         List<String> pushed = fcm.messages().stream().flatMap(m -> m.data().values().stream()).toList();
         assertEquals(2, fcm.messages().size(), pushed::toString);
+        assertEquals(Set.of("Yeni mesaj", "New message"),
+                fcm.messages().stream().map(PushMessage::body).collect(java.util.stream.Collectors.toSet()));
     }
 
     @Test
@@ -185,7 +182,8 @@ class NotificationMessageBatchTest {
 
         svc.sendNewMessageBatch(List.of(target(1, true)), "Ali", null, false, GROUP, 3);
 
-        verify(writer).upsertUnread(anyCollection(), any(), any(), any(), anyString(), any(), any(), eq(3), any());
+        // birlestirilmis dagitimda sayac artik satirdan degil `increment`ten gelir (kutu satiri yok)
+        verify(writer, never()).upsertUnread(anyCollection(), any(), any(), any(), anyString(), any(), any(), anyInt(), any());
         PushMessage m = fcm.messages().get(0);
         assertEquals("3 yeni mesaj", m.body());
         assertEquals("3", m.data().get("count"));
@@ -220,20 +218,18 @@ class NotificationMessageBatchTest {
 
         svc.sendNewMessageBatch(List.of(target(1, false), target(2, false)), "Ali", null, false, GROUP, 1);
 
-        verify(notifications, times(2)).save(any(Notification.class));
+        verify(notifications, never()).save(any(Notification.class)); // mesaj kutuya yazilmaz
         verify(writer, never()).upsertUnread(anyCollection(), any(), any(), any(), anyString(), any(), any(), anyInt(), any());
         verify(guard, never()).receivable(anyCollection());
     }
 
     @Test
-    void dataIsStoredWithoutPushExtras() {
+    void pushExtrasAndMessageDataNeverReachInboxStorage() {
         svc.sendNewMessageBatch(List.of(new MessageTarget(1L, false, Map.of("senderAvatarUrl", "/files/a.png"))), "Ali",
                 null, false, GROUP, 1);
 
-        ArgumentCaptor<String> data = ArgumentCaptor.forClass(String.class);
-        verify(writer).upsertUnread(anyCollection(), any(), any(), any(), anyString(), any(), data.capture(), anyInt(),
+        verify(writer, never()).upsertUnread(anyCollection(), any(), any(), any(), anyString(), any(), any(), anyInt(),
                 any(Instant.class));
-        assertTrue(!data.getValue().contains("senderAvatarUrl"), data.getValue());
-        verify(writer, never()).upsertUnread(anyCollection(), any(), any(), isNull(), anyString(), any(), any(), anyInt(), any());
+        verify(notifications, never()).save(any(Notification.class));
     }
 }

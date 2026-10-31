@@ -66,12 +66,11 @@ class NotificationServiceTest {
     @Test
     void newMessageNotificationNeverStoresPreviewText() {
         when(i18n.msg("notif.message.new", Lang.TR)).thenReturn("Yeni mesaj");
-        org.mockito.ArgumentCaptor<Notification> saved = org.mockito.ArgumentCaptor.forClass(Notification.class);
 
         svc.sendNewMessage(1L, "Ali", "cok gizli onizleme", Map.of("conversationId", "5", "messageId", "9"));
 
-        verify(notifications).save(saved.capture());
-        assertEquals("Yeni mesaj", saved.getValue().getBody()); // tabloda metin yok
+        // Mesaj bildirim kutusuna HIC yazilmaz (yalniz push): tabloda ne metin ne satir var
+        verify(notifications, never()).save(any(Notification.class));
         assertEquals("cok gizli onizleme", fcm.last().body()); // yalniz push govdesinde
         assertEquals("Ali", fcm.last().title());
     }
@@ -143,21 +142,34 @@ class NotificationServiceTest {
 
     @Test
     void collapsesUnreadWithSameKeyAndCountsUp() {
+        // Birlestirme/sayac davranisi mesaj DISINDAki turler icin korunur (mesajlar artik kutuya yazilmaz)
         Notification existing = new Notification();
         existing.setUserId(1L);
-        existing.setType(NotificationType.MESSAGE);
+        existing.setType(NotificationType.COMMUNITY);
         existing.setGroupCount(2);
-        when(notifications.findFirstByUserIdAndCollapseKeyAndReadAtIsNullOrderByIdDesc(1L, "conv:5"))
+        when(notifications.findFirstByUserIdAndCollapseKeyAndReadAtIsNullOrderByIdDesc(1L, "community:5"))
                 .thenReturn(Optional.of(existing));
 
-        svc.send(1L, NotificationType.MESSAGE, NotificationSubtype.MESSAGE_DIRECT, "conv:5", "Ali", "selam", null);
+        svc.send(1L, NotificationType.COMMUNITY, NotificationSubtype.COMMUNITY_POST, "community:5", "Kulup", "yeni duyuru",
+                null);
 
         assertEquals(3, existing.getGroupCount());
-        assertEquals("selam", existing.getBody());
+        assertEquals("yeni duyuru", existing.getBody());
         FakeFcmSender.Sent s = fcm.last();
-        assertEquals("conv:5", s.collapseKey());
+        assertEquals("community:5", s.collapseKey());
         assertEquals("3", s.data().get("count"));
-        assertEquals("Ali", s.title()); // mesajlarda baslik sabit, govde "N yeni mesaj" (mock i18n bos doner)
+        assertEquals("Kulup (3)", s.title());
+    }
+
+    @Test
+    void messageWithSameKeyNeverTouchesInboxRowAndKeepsPushCollapseKey() {
+        svc.send(1L, NotificationType.MESSAGE, NotificationSubtype.MESSAGE_DIRECT, "conv:5", "Ali", "selam", null);
+
+        verify(notifications, never()).save(any(Notification.class));
+        verify(notifications, never()).findFirstByUserIdAndCollapseKeyAndReadAtIsNullOrderByIdDesc(anyLong(), anyString());
+        FakeFcmSender.Sent s = fcm.last();
+        assertEquals("conv:5", s.collapseKey()); // push birlestirme anahtari ayni
+        assertNull(s.data().get("count")); // tek mesaj: kutu sayaci yok
     }
 
     @Test

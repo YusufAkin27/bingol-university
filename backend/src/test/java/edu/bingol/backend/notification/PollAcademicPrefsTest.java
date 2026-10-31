@@ -125,9 +125,8 @@ class PollAcademicPrefsTest {
         User u = user();
         notifications.sendNewMessage(u.getId(), "Ali", null, Map.of("conversationId", "7", "messageId", "1",
                 "conversationType", "DIRECT"), true, Map.of("senderAvatarUrl", "/files/avatars/x.jpg"));
-        String data = jdbc.queryForObject("SELECT data FROM notification WHERE user_id = ?", String.class, u.getId());
-        assertTrue(data.contains("conversationId"));
-        assertFalse(data.contains("senderAvatarUrl"));
-        assertFalse(data.contains("/files/avatars"));
+        // Mesaj bildirim kutusuna hic yazilmaz (yalniz push): push-only ekstralar (avatar) de depolanmaz
+        Integer rows = jdbc.queryForObject("SELECT COUNT(*) FROM notification WHERE user_id = ?", Integer.class, u.getId());
+        assertEquals(0, rows);
     }
 }

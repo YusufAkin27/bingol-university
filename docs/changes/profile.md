@@ -113,3 +113,11 @@ silinmis (anonimlestirilmis) hesapta NULL. `ProfileView`/KVKK dis aktarimi bu su
 - **`/api/users/me/privacy`:** `presence` alanı (EVERYONE | SHARED_CONTEXT | ONLY_ME, varsayılan SHARED_CONTEXT) PATCH ve GET'te; çevrimiçi/son görülme kuralları `docs/changes/messaging.md`.
 - **Metin sınırları kod noktasıyla (T-055, K-32):** `PATCH /api/users/me` içinde `displayName` (80), `faculty`/`department` (120), `bio` (300) **kod noktası** sayılır (mesaj ve mobil sayaçla aynı; 300 emoji bio kabul, 301 ret). Aşım `400 PROFILE_FIELD_TOO_LONG` (tr/en/ar, `{0}` = sınır). DTO'daki `@Size` yalnız kaba üst sınırdır (UTF-16 ikiye katı). Akademik tutarlılık: fakülte değişince eski bölüm yeni fakülteye ait değilse temizlenir; `grade` verilirse `classYear` ondan türetilir (PREP=0, 1..6, yüksek lisans/doktora=null; çakışan `classYear` `400 ACADEMIC_INVALID`); yalnız `classYear` verilirse `grade` ondan türetilir.
 - **`/files/**` (T-054, KISMEN):** özel kulüp gönderi görselleri hâlâ herkese açık URL ile sunulur (UUID'li, tahmin edilemez; `MediaUrlSigner` ile imzalı sunuma geçiş bu dalgada YAPILMADI, risk notu: URL sızarsa süresiz erişilir). Yanıtlara `X-Robots-Tag: noindex, noimageindex` ve `Referrer-Policy: no-referrer` eklendi.
+
+
+## FOLLOWREQ: gizli hesap ayarı ve profil alanları
+
+- **`/api/users/me/privacy`:** `privateAccount` (boolean, varsayılan `false`) GET'te döner; `PUT` ve `PATCH` ikisi de kabul edilir. Değişiklik hız sınırı: saatte 10 gerçek değişiklik (`profile-private-flip:user:<id>`) + dakikada 3. Gizli -> açık geçişte bekleyen tüm takip istekleri otomatik kabul edilir (`PrivacyService` -> `FollowRequestService.onBecamePublic`, COMMIT sonrası).
+- **`PublicProfile`:** `isPrivate`, `followState` (`NONE|REQUESTED|FOLLOWING|SELF`), `locked` (NON_NULL: yalnız `GET /api/users/{id}` ve `GET /api/users/search` satırlarında dolu). `locked=true` iken `followerCount/followingCount` null.
+- **Gizlilik dışa aktarımı:** `profilePrivacy` bölümü `privateAccount` içerir.
+- Ayrıntı ve uçlar: `docs/MOBILE_API_GUIDE.md` "Gizli hesap ve takip isteği (FOLLOWREQ)"; kod notları `docs/changes/post.md`.

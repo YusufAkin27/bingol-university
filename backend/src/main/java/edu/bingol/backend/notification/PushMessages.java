@@ -60,7 +60,7 @@ final class PushMessages {
         }
         return switch (type) {
             case MESSAGE, SYSTEM -> 7 * 86_400;
-            case POST_LIKE, POST_COMMENT, COMMENT_REPLY, POST_MENTION, USER_FOLLOW, EVENT -> 86_400;
+            case POST_LIKE, POST_COMMENT, COMMENT_REPLY, POST_MENTION, USER_FOLLOW, FOLLOW_REQUEST, FOLLOW_ACCEPTED, EVENT -> 86_400;
             case NEWS, ANNOUNCEMENT, COMMUNITY -> 3 * 86_400;
         };
     }
@@ -74,7 +74,8 @@ final class PushMessages {
         return switch (type) {
             case MESSAGE -> CHANNEL_CHAT;
             case EVENT -> CHANNEL_EVENT;
-            case POST_LIKE, POST_COMMENT, COMMENT_REPLY, POST_MENTION, USER_FOLLOW -> CHANNEL_SOCIAL;
+            case POST_LIKE, POST_COMMENT, COMMENT_REPLY, POST_MENTION, USER_FOLLOW, FOLLOW_REQUEST, FOLLOW_ACCEPTED ->
+                    CHANNEL_SOCIAL;
             case NEWS, ANNOUNCEMENT, COMMUNITY, SYSTEM -> CHANNEL_ANNOUNCEMENT;
         };
     }
