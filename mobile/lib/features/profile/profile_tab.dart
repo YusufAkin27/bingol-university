@@ -7,6 +7,7 @@ import '../../core/session.dart';
 import '../../core/theme_controller.dart';
 import '../../widgets/bu.dart';
 import '../academic/academic_hub_page.dart';
+import '../chat/chat_background_settings_page.dart';
 import '../chat/contacts_match_page.dart';
 import '../follow/follow_suggestions.dart';
 import '../follow/follow_summary.dart';
@@ -300,6 +301,11 @@ class _ProfileTabState extends State<ProfileTab> {
                       icon: LucideIcons.bell,
                       label: l10n.profil1Notifications,
                       onTap: () => _go(NotificationPrefsPage(session: widget.session)),
+                    ),
+                    ProfilRow(
+                      icon: LucideIcons.messageCircle,
+                      label: l10n.p67SettingsChats,
+                      onTap: () => _go(const ChatBackgroundSettingsPage()),
                     ),
                     ProfilRow(
                       icon: LucideIcons.contact,

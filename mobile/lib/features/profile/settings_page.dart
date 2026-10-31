@@ -9,6 +9,7 @@ import '../../core/push/push_service.dart';
 import '../../core/session.dart';
 import '../../core/theme_controller.dart';
 import '../../widgets/bu.dart';
+import '../chat/chat_background_settings_page.dart';
 import '../chat/contacts_match_page.dart';
 import '../chat/photo_autosave.dart';
 import '../support/support_page.dart';
@@ -196,6 +197,16 @@ class _SettingsPageState extends State<SettingsPage> {
                     value: langName,
                     tint: blue,
                     onTap: _lc != null ? _pickLang : null,
+                  ),
+                ]),
+                const SizedBox(height: 12),
+                BuGroup(dividerIndent: 66, children: [
+                  BuSettingsTile(
+                    key: const ValueKey('settings-chats'),
+                    icon: LucideIcons.messageCircle,
+                    title: l.p67SettingsChats,
+                    tint: blue,
+                    onTap: () => _push(const ChatBackgroundSettingsPage()),
                   ),
                 ]),
                 P2SectionLabel(l.settingsSectionNotifications, top: 18),

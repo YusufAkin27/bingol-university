@@ -103,7 +103,9 @@ Kapsam: `features/profile/**` (Profil sekmesi, başkasının profili, düzenleme
 
 Ortak parçalar (dokunulmadı): `BuSettingsTile` nötr ton için çağıran tarafta `profilNeutralTint(context)` (profil2_widgets.dart) ile beslenir; `BuCard`, `BuPressable`, `BuCountUp` kullanıldı. Yeni animasyon eklenmedi; sayaç şeridi hücreleri `BuPressable` (ölçek .96 + hafif titreşim) ve `BuCountUp`.
 
-Doğrulama: `mobile/test/redesign/p3_profile_test.dart` (tek şerit/tek satır/4 hücre, tek kart, büyük yazıda 2 x 2, hücre -> takipçi listesi, takip sayıları yoksa yalnız Kulüp/Etkinlik, çıkış simgesiz ve en sonda, simge tonu tek, düzenleme kartsız tek etiket, takip düğmesi stil geçişi, 9 ekran x 3 dil x açık/koyu x 1.0/1.3 x 320/390 taşma matrisi). Mevcut `profil1/profil2/profilyard/user_profile/p18/icerik` testleri değişmeden geçer.
+Doğrulama: `mobile/test/redesign/p3_profile_test.dart` (tek şerit/tek satır/4 hücre, tek kart, büyük yazıda 2 x 2, hücre -> takipçi listesi, takip sayıları yoksa yalnız Kulüp/Etkinlik, çıkış simgesiz ve en sonda, simge tonu tek, düzenleme kartsız tek etiket, takip düğmesi stil geçişi, 9 ekran x 3 dil x açık/koyu x 1.0/1.3 x 320/390 taşma matrisi). Mevcut `profil1/profil2/profilyard/user_profile/p18/db_redesign/pages_c` testleri değişmeden geçer (`icerik_test` Haber/Arama grubundaki 25 hata Haber/Arama ajanlarının alanı; profil kodunu etkilemez). Analyze: `lib/features/profile` + `lib/features/follow` 0 sorun.
+Ek: Profil sekmesi "Uygulama tercihleri" listesine ve Ayarlar sayfasına "Sohbetler" satırı (`p67SettingsChats` -> `ChatBackgroundSettingsPage`, CHAT ajanının sayfası) eklendi.
+Stitch v3 BİREBİR protokolü (BIREBIR_PROFIL.md): Stitch'ten Profil/Ayarlar "KATEGORİ TAMAM" referansı henüz gelmediği için uygulanmadı.
 Önce/sonra görüntüler: `C:\bu_qa\shots\tasarim\p3\profile\onceki|sonra\` (test_shots: `mobile/test/redesign/p3_profile_shots_test.dart`; `STORE_SHOTS_OUT=... P3P_LANG=tr|ar P3P_MODES=light,dark,x13`).
 Gerçek cihazda (Redmi 13C, iPhone) akıcılık ve emülatörde gerçek veriyle gezi bu turda yapılamadı (emülatör kilidi/ağır makine); yalnızca widget testi + sahte veri ekran görüntüleri.
 
