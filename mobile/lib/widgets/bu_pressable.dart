@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 import '../core/haptics.dart';
 import '../core/theme/bu_motion.dart';
+import '../core/theme/bu_sizes.dart';
 
 /// Dokunma geri bildirimi türü.
 enum BuHaptic { none, selection, light, medium }
@@ -20,6 +21,21 @@ void buHaptic([BuHaptic kind = BuHaptic.selection]) {
     case BuHaptic.medium:
       BuHaptics.medium();
   }
+}
+
+/// Görünür kutu küçükken (çip 34, düğme 34 dp) dokunma alanını en az [BuSize.touch] (48 dp) yapar; görünür kutuyu
+/// ortalar, çevresindeki boşluk da basılabilir (BuPressable/GestureDetector dış kutunun tamamını yakalar).
+class BuTouchTarget extends StatelessWidget {
+  const BuTouchTarget({super.key, required this.child, this.minSize = BuSize.touch});
+
+  final Widget child;
+  final double minSize;
+
+  @override
+  Widget build(BuildContext context) => ConstrainedBox(
+        constraints: BoxConstraints(minHeight: minSize, minWidth: minSize),
+        child: Center(widthFactor: 1, child: child),
+      );
 }
 
 /// Basılı tutunca hafifçe küçülen (0.97) ve hafifçe solan (opaklık ~0.92) dokunma sarmalayıcısı. İki kullanım:

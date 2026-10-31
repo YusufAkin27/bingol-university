@@ -8,4 +8,5 @@ export '../typography.dart';
 export 'bu_elevation.dart';
 export 'bu_motion.dart';
 export 'bu_shape.dart';
+export 'bu_sizes.dart';
 export 'bu_space.dart';

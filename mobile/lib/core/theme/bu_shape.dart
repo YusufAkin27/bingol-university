@@ -6,6 +6,9 @@ abstract final class BuRadius {
   static const double xs = 8;
   static const double sm = 12;
   static const double md = 16;
+
+  /// Düğme ve giriş alanı köşesi (Stitch rounded-xl ~12-14; 48 dp düğmede 16 fazla yuvarlak görünür).
+  static const double control = 14;
   static const double lg = 20;
   static const double xl = 28;
   static const double pill = 999;
@@ -13,6 +16,7 @@ abstract final class BuRadius {
   static const BorderRadius bXs = BorderRadius.all(Radius.circular(xs));
   static const BorderRadius bSm = BorderRadius.all(Radius.circular(sm));
   static const BorderRadius bMd = BorderRadius.all(Radius.circular(md));
+  static const BorderRadius bControl = BorderRadius.all(Radius.circular(control));
   static const BorderRadius bLg = BorderRadius.all(Radius.circular(lg));
   static const BorderRadius bXl = BorderRadius.all(Radius.circular(xl));
   static const BorderRadius bPill = BorderRadius.all(Radius.circular(pill));
