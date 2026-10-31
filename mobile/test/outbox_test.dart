@@ -111,8 +111,19 @@ void main() {
     expect(ob.items, isEmpty);
   });
 
-  test('5xx en fazla 5 kez denenir, sonra failed', () async {
+  test('503 (ag gecidi/bakim) kalici hata OLMAZ: ag yoklugu gibi bekler (W1-G T-088)', () async {
     final ob = make(sender: (i) async => throw ApiError(503, 'DOWN', ''));
+    ob.enqueue(conversationId: 1, clientId: 'a', text: 'x');
+    for (var i = 0; i < 20; i++) {
+      due();
+      await ob.drain();
+    }
+    expect(ob.items.single.status, OutboxStatus.pending);
+    expect(ob.items.single.serverFails, 0);
+  });
+
+  test('gercek 5xx: en az 5 kez denenir VE mesaj 30 dk eskiyse failed', () async {
+    final ob = make(sender: (i) async => throw ApiError(500, 'DOWN', ''));
     ob.enqueue(conversationId: 1, clientId: 'a', text: 'x');
     for (var i = 0; i < 8; i++) {
       due();

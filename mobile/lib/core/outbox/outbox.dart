@@ -3,12 +3,12 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:path_provider/path_provider.dart';
 
 import '../api.dart';
 import '../closed_conversations.dart';
 import '../connectivity/connectivity_service.dart';
+import '../secure_store.dart';
 
 enum OutboxStatus { pending, failed }
 
@@ -187,31 +187,56 @@ abstract class OutboxStore {
   Future<void> write(String? value);
 }
 
-class MemoryOutboxStore implements OutboxStore {
+/// Bozuk (ayrıştırılamayan) ham kuyruk verisini ayrı bir yere taşıyabilen depolar. [Outbox.load] bozuk JSON
+/// bulursa ham değeri buraya yazar (silmez), geçerli kayıtları tek tek kurtarır. Mevcut [OutboxStore]
+/// uygulamalarını bozmamak için ayrı arayüzdür.
+abstract interface class CorruptBackupStore {
+  Future<void> writeCorrupt(String raw);
+  Future<void> clearCorrupt();
+}
+
+class MemoryOutboxStore implements OutboxStore, CorruptBackupStore {
   String? value;
+
+  /// Son bozuk ham değer (yedek).
+  String? corrupt;
   @override
   Future<String?> read() async => value;
   @override
   Future<void> write(String? v) async => value = v;
+  @override
+  Future<void> writeCorrupt(String raw) async => corrupt = raw;
+  @override
+  Future<void> clearCorrupt() async => corrupt = null;
 }
 
 /// Platformun şifreli deposu (iOS Keychain / Android Keystore): bekleyen mesaj metni düz dosyada durmaz.
-class SecureOutboxStore implements OutboxStore {
+/// iOS'ta kayıtlar bu cihaza özeldir ve ilk kilit açılışından sonra okunur (yedekle başka cihaza taşınmaz).
+class SecureOutboxStore implements OutboxStore, CorruptBackupStore {
   const SecureOutboxStore();
-  static const _key = 'outbox_v1';
-  static const _s = FlutterSecureStorage();
+  static const key = 'outbox_v1';
+
+  /// Bozuk ham kuyruk verisinin yedeği.
+  static const corruptKey = 'outbox_v1_corrupt';
+  static const _s = kDeviceSecureStorage;
 
   @override
-  Future<String?> read() => _s.read(key: _key);
+  Future<String?> read() => _s.read(key: key);
 
   @override
   Future<void> write(String? value) async {
     if (value == null) {
-      await _s.delete(key: _key);
+      await _s.delete(key: key);
     } else {
-      await _s.write(key: _key, value: value);
+      await _s.write(key: key, value: value);
     }
   }
+
+  @override
+  Future<void> writeCorrupt(String raw) => _s.write(key: corruptKey, value: raw);
+
+  @override
+  Future<void> clearCorrupt() => _s.delete(key: corruptKey);
 }
 
 typedef OutboxSender = Future<Object?> Function(OutboxItem item);
@@ -237,6 +262,7 @@ class Outbox extends ChangeNotifier {
     this.maxAge = const Duration(hours: 24),
     this.dropAfter = const Duration(days: 7),
     this.maxServerFails = 5,
+    this.serverFailWindow = const Duration(minutes: 30),
     this.maxTextLength = 2000,
     this.maxMediaBytes = 200 * 1024 * 1024,
     Future<Directory> Function()? mediaDirProvider,
@@ -263,6 +289,10 @@ class Outbox extends ChangeNotifier {
   final int maxMediaBytes;
   final Future<Directory> Function() _mediaDirProvider;
   final int maxServerFails;
+
+  /// Ardışık 5xx hataları öğeyi yalnız mesaj bu süreden (oluşturulmadan itibaren) eskiyse kalıcı hataya çevirir:
+  /// kısa bir deploy / yeniden başlatma kesintisi bekleyen mesajları "Gönderilemedi" yapmasın.
+  final Duration serverFailWindow;
   final int maxTextLength;
   final bool autoSchedule;
   OutboxSender? _sender;
@@ -276,6 +306,16 @@ class Outbox extends ChangeNotifier {
   Timer? _timer;
   bool _draining = false;
   bool _loaded = false;
+
+  /// Depo okuması başarısız oldu (yazma, okunamayan eski kuyruğun üstüne yazılmasın diye askıda).
+  bool _readFailed = false;
+  Future<void>? _loading;
+  Timer? _loadRetry;
+  int _loadFails = 0;
+
+  /// Kuşak: [clear] her çağrıda artar; süren [drain] bu sayede eski oturumun kalan mesajlarını göndermez.
+  int _epoch = 0;
+  Future<void>? _saveTail;
   ConnectivityService? _connectivity;
 
   /// Geri çekilme: 2 sn, 5 sn, 15 sn, 1 dk, sonra 5 dk.
@@ -316,6 +356,7 @@ class Outbox extends ChangeNotifier {
     for (final e in _items) {
       if (e.status == OutboxStatus.pending) e.nextAttemptAt = 0;
     }
+    if (!_loaded && _readFailed) unawaited(load()); // depo daha önce okunamadı: bu fırsatta yeniden dene
     return drain();
   }
 
@@ -323,33 +364,116 @@ class Outbox extends ChangeNotifier {
     for (final e in _items) {
       if (e.status == OutboxStatus.pending) e.nextAttemptAt = 0;
     }
+    if (!_loaded && _readFailed) unawaited(load());
     unawaited(drain());
   }
 
   /// Diskten yükler (açılışta bir kez); eski öğeleri atar.
-  Future<void> load() async {
-    if (_loaded) return;
-    _loaded = true;
+  ///
+  /// - Depo OKUNAMAZSA (Keystore/Keychain geçici hatası) hiçbir şey silinmez ve yazılmaz: `_loaded` false kalır,
+  ///   yükleme sonra yeniden denenir ([nudge], bağlantı dönüşü, zamanlayıcı).
+  /// - JSON BOZUKSA ham değer yedek anahtara taşınır ([CorruptBackupStore]) ve tam kayıtlar tek tek kurtarılır.
+  /// - Artık medya dosyaları yalnızca başarılı ve bozulmamış bir yüklemeden sonra süpürülür.
+  Future<void> load() {
+    if (_loaded) return Future<void>.value();
+    return _loading ??= _doLoad().whenComplete(() => _loading = null);
+  }
+
+  Future<void> _doLoad() async {
+    final epoch = _epoch;
+    String? raw;
     try {
-      final raw = await _store.read();
-      if (raw != null && raw.isNotEmpty) {
+      raw = await _store.read();
+    } catch (_) {
+      _readFailed = true;
+      _scheduleLoadRetry();
+      return;
+    }
+    if (epoch != _epoch) return; // yükleme sürerken oturum kapandı (clear): eski kuyruk geri gelmesin
+    var corrupt = false;
+    if (raw != null && raw.isNotEmpty) {
+      List<dynamic> records = const [];
+      try {
         final j = jsonDecode(raw);
         if (j is List) {
-          for (final e in j) {
-            final it = OutboxItem.fromJson(e);
-            if (it != null && !contains(it.clientId)) _items.add(it);
-          }
+          records = j;
+        } else {
+          corrupt = true;
+        }
+      } catch (_) {
+        corrupt = true;
+        records = salvageRecords(raw);
+      }
+      if (corrupt) {
+        final s = _store;
+        if (s is CorruptBackupStore) {
+          try {
+            await (s as CorruptBackupStore).writeCorrupt(raw);
+          } catch (_) {}
         }
       }
-    } catch (_) {
-      _items.clear();
+      for (final e in records) {
+        final it = OutboxItem.fromJson(e);
+        if (it != null && !contains(it.clientId)) _items.add(it);
+      }
     }
+    _loaded = true;
+    _readFailed = false;
+    _loadFails = 0;
+    _loadRetry?.cancel();
     _items.sort((a, b) => a.createdAt.compareTo(b.createdAt));
     _prune();
-    await _save();
-    unawaited(_sweepOrphanFiles());
+    await _saveNow();
+    if (!corrupt) unawaited(_sweepOrphanFiles());
     notifyListeners();
     unawaited(drain());
+  }
+
+  void _scheduleLoadRetry() {
+    if (!autoSchedule) return;
+    _loadRetry?.cancel();
+    _loadFails++;
+    const steps = [5, 30, 120, 600];
+    final sec = steps[(_loadFails - 1).clamp(0, steps.length - 1)];
+    _loadRetry = Timer(Duration(seconds: sec), () => unawaited(load()));
+  }
+
+  /// Kesik/bozuk bir JSON dizisinden TAM üst düzey nesneleri tek tek kurtarır (ayrıştırılabilenler döner).
+  @visibleForTesting
+  static List<dynamic> salvageRecords(String raw) {
+    final out = <dynamic>[];
+    var depth = 0;
+    var inStr = false;
+    var esc = false;
+    var start = -1;
+    for (var i = 0; i < raw.length; i++) {
+      final ch = raw.codeUnitAt(i);
+      if (inStr) {
+        if (esc) {
+          esc = false;
+        } else if (ch == 0x5C) {
+          esc = true;
+        } else if (ch == 0x22) {
+          inStr = false;
+        }
+        continue;
+      }
+      if (ch == 0x22) {
+        inStr = true;
+      } else if (ch == 0x7B) {
+        if (depth == 0) start = i;
+        depth++;
+      } else if (ch == 0x7D && depth > 0) {
+        depth--;
+        if (depth == 0 && start >= 0) {
+          try {
+            out.add(jsonDecode(raw.substring(start, i + 1)));
+          } catch (_) {}
+          start = -1;
+        }
+      }
+    }
+    return out;
   }
 
   void _prune() {
@@ -499,7 +623,26 @@ class Outbox extends ChangeNotifier {
     return true;
   }
 
+  /// Yazmalar tek sıraya dizilir ve her yazma çalıştığı anki EN GÜNCEL listeyi yazar: eski bir anlık görüntü
+  /// sonradan bitip yenisinin üstüne yazamaz. Yükleme sürüyorsa onu bekler (okunmamış kuyruğun üstüne yazılmasın).
   Future<void> _save() async {
+    final l = _loading;
+    if (l != null) await l;
+    return _saveNowQueued();
+  }
+
+  Future<void> _saveNowQueued() {
+    final prev = _saveTail;
+    late Future<void> f;
+    // Boştaysa yazma HEMEN (aynı senkron adımda) başlar; doluysa sıraya girer.
+    f = (prev == null ? _saveNow() : prev.then((_) => _saveNow())).whenComplete(() {
+      if (identical(_saveTail, f)) _saveTail = null;
+    });
+    return _saveTail = f;
+  }
+
+  Future<void> _saveNow() async {
+    if (_readFailed) return; // okunamayan eski kuyruğun üstüne yazma
     try {
       await _store.write(_items.isEmpty ? null : jsonEncode([for (final e in _items) e.toJson()]));
     } catch (_) {}
@@ -564,12 +707,24 @@ class Outbox extends ChangeNotifier {
   /// Oturum kapanışı/hesap silme: bütün bekleyen mesajlar silinir.
   Future<void> clear() async {
     _timer?.cancel();
+    _loadRetry?.cancel();
+    _epoch++; // süren drain / yükleme eski oturumun mesajlarını artık göndermez / geri getirmez
     final old = List.of(_items);
     _items.clear();
     for (final e in old) {
       _deleteFiles(e);
     }
-    await _save();
+    // Yetkili silme: okunamamış olsa bile depo boşaltılır; bozuk-ham yedek de silinir.
+    _loaded = true;
+    _readFailed = false;
+    _loading = null;
+    await _saveNowQueued();
+    final s = _store;
+    if (s is CorruptBackupStore) {
+      try {
+        await (s as CorruptBackupStore).clearCorrupt();
+      } catch (_) {}
+    }
     notifyListeners();
     unawaited(_sweepOrphanFiles());
   }
@@ -579,6 +734,7 @@ class Outbox extends ChangeNotifier {
     final send = _sender;
     if (send == null || _draining) return;
     _draining = true;
+    final epoch = _epoch;
     try {
       final failedBefore = failedCount;
       _prune(); // 24 saati geçenler kalıcı hata olur
@@ -588,6 +744,8 @@ class Outbox extends ChangeNotifier {
       }
       final blocked = <int>{}; // sırası bozulmasın: sorunlu konuşmanın sonraki mesajları beklesin
       for (final it in List.of(_items)) {
+        if (epoch != _epoch) break; // oturum kapandı (clear): eski hesabın kalan mesajları gönderilmez
+        if (!_items.any((x) => x.clientId == it.clientId)) continue; // iptal edildi / silindi
         if (it.status != OutboxStatus.pending || blocked.contains(it.conversationId)) continue;
         if (it.nextAttemptAt > _now().millisecondsSinceEpoch) {
           blocked.add(it.conversationId);
@@ -665,9 +823,19 @@ class Outbox extends ChangeNotifier {
       it.nextAttemptAt = now + wait.inMilliseconds;
       return e.status == 401; // 401: oturum yenilenemedi; oturum kapanışı kuyruğu zaten temizler
     }
+    // Ağ geçidi / bakım yanıtları (502, 503, 504 ya da Retry-After'lı 5xx): sunucu o an ulaşılamaz demektir
+    // (deploy, yeniden başlatma). Ağ yokluğu gibi ele alınır: mesaj "Gönderilemedi"ye düşmez, kuyruk durur.
+    if (e.status == 502 || e.status == 503 || e.status == 504 || (e.status >= 500 && e.retryAfter != null)) {
+      final wait = e.retryAfter != null ? Duration(seconds: e.retryAfter!) : Duration.zero;
+      final step = backoff(it.attempts);
+      it.nextAttemptAt = now + (wait > step ? wait : step).inMilliseconds;
+      return true;
+    }
     if (e.status >= 500) {
+      // Gerçek sunucu hatası (500...): beş ardışık hata VE mesaj yeterince eskiyse (varsayılan 30 dk) kalıcı hata.
       it.serverFails++;
-      if (it.serverFails >= maxServerFails) {
+      final old = now - it.createdAt >= serverFailWindow.inMilliseconds;
+      if (it.serverFails >= maxServerFails && old) {
         it.status = OutboxStatus.failed;
         it.errorCode = e.code;
       } else {
