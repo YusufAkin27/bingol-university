@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+import 'dart:ui' as ui;
 
 import 'package:bu_kampus/core/theme.dart';
 import 'package:bu_kampus/features/chat/chat_background_settings_page.dart';
@@ -6,6 +7,7 @@ import 'package:bu_kampus/features/chat/chat_detail_page.dart';
 import 'package:bu_kampus/features/chat/chat_wallpaper.dart';
 import 'package:bu_kampus/widgets/bu.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -141,6 +143,36 @@ void main() {
       expect(ChatBgStyle.soft.isAsset, isFalse);
       expect(ChatBgStyle.strong.isAsset, isFalse);
       expect(ChatBgStyle.pattern.isAsset, isTrue);
+    });
+  });
+
+  group('varlık dosyaları', () {
+    for (final dark in [false, true]) {
+      testWidgets('wp_a_${dark ? 'dark' : 'light'}.png pakette var, <= 250 KB, 1170x2532 çözülür', (tester) async {
+        await tester.runAsync(() async {
+          final data = await rootBundle.load(chatWallpaperAssetPath(ChatBgStyle.pattern, dark: dark));
+          expect(data.lengthInBytes, lessThanOrEqualTo(250 * 1024));
+          final codec = await ui.instantiateImageCodec(data.buffer.asUint8List());
+          final frame = await codec.getNextFrame();
+          expect(frame.image.width, 1170);
+          expect(frame.image.height, 2532);
+          frame.image.dispose();
+        });
+      });
+    }
+
+    testWidgets('varsayılan stil Desen = asset duvar kağıdı: ağaçta, görünür (opaklık 1), kaydırmada sabit', (tester) async {
+      await tester.runAsync(() => ChatBackgroundPrefs.instance.ensureLoaded());
+      await pumpWall(tester, style: ChatBgStyle.pattern);
+      for (var i = 0; i < 6; i++) {
+        await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 120)));
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+      expect(find.byKey(const ValueKey('chatWallpaperAsset')), findsOneWidget);
+      // Katman ayrı RepaintBoundary içinde, tüm yüzeyi kaplar ve dokunmayı yakalamaz.
+      expect(find.descendant(of: find.byKey(const ValueKey('chatWallpaper')), matching: find.byType(IgnorePointer)), findsWidgets);
+      expect(tester.getSize(find.byKey(const ValueKey('chatWallpaper'))), const Size(390, 844));
+      expect(tester.takeException(), isNull);
     });
   });
 

@@ -287,6 +287,7 @@ class _ThumbState extends State<_Thumb> {
                         fit: BoxFit.cover,
                         gaplessPlayback: true,
                         cacheWidth: 200,
+                        errorBuilder: (c, e, st) => const SizedBox.shrink(), // çözülemeyen küçük resim: düz zemin kalır
                         frameBuilder: (c, child, frame, sync) => sync ? child : AnimatedOpacity(opacity: frame == null ? 0 : 1, duration: BuMotion.of(c, BuMotion.medium), child: child)),
               ),
             ]),

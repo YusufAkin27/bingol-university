@@ -96,12 +96,18 @@ void main() {
     ('konusma', _conversation, 844, null),
     ('ayarlar', () => const ChatBackgroundSettingsPage(), 844, null),
     ('giris_yazarken', _conversation, 844, (t) async {
-      await t.enterText(find.byKey(const ValueKey('composerField')), 'Yarın sınavdan önce notları birlikte gözden geçirelim mi? Kütüphane 3. katta saat 10.00'da buluşabiliriz.');
+      await t.enterText(find.byKey(const ValueKey('composerField')), 'Yarın sınavdan önce notları birlikte gözden geçirelim mi? Kütüphane 3. katta saat 10.00 gibi buluşabiliriz.');
+      await t.pump();
+      await t.pump(const Duration(milliseconds: 400));
       await t.pump(const Duration(milliseconds: 400));
     }),
     ('arti_menusu', _conversation, 844, (t) async {
       await t.tap(find.byKey(const ValueKey('attachButton')));
-      await t.pump(const Duration(milliseconds: 800));
+      await t.pump();
+      for (var i = 0; i < 6; i++) {
+        await t.pump(const Duration(milliseconds: 200));
+        await t.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 60)));
+      }
     }),
   ];
   for (final dark in [false, true]) {
@@ -122,7 +128,11 @@ void main() {
           addTearDown(tester.view.reset);
           final key = GlobalKey();
           await tester.pumpWidget(_app(b.$2(), dark, key, lang, scale));
-          await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 100)));
+          // Varlık duvar kağıdı gerçek asenkron çözülür: ara ara gerçek zaman bekle.
+          for (var i = 0; i < 8; i++) {
+            await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 150)));
+            await tester.pump(const Duration(milliseconds: 120));
+          }
           await settle(tester, const Duration(seconds: 1));
           await tester.pump(const Duration(milliseconds: 400));
           if (b.$4 != null) await b.$4!(tester);

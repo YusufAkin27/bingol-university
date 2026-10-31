@@ -2384,7 +2384,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
         SizedBox(
-          height: BuSize.appBar,
+          height: 64,
           child: Padding(
             padding: const EdgeInsetsDirectional.only(start: 12, end: 12),
             child: Row(children: [
