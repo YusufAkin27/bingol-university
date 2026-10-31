@@ -80,13 +80,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsTitle => 'Settings';
 
   @override
-  String get settingsSectionAppearance => 'APPEARANCE';
+  String get settingsSectionAppearance => 'Appearance';
 
   @override
-  String get settingsSectionNotifications => 'NOTIFICATIONS';
+  String get settingsSectionNotifications => 'Notifications';
 
   @override
-  String get settingsSectionPrivacy => 'PRIVACY AND ACCOUNT';
+  String get settingsSectionPrivacy => 'Privacy and account';
 
   @override
   String get themeSystem => 'System';
@@ -3543,7 +3543,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get newsLinkOpenFailed => 'Could not open the link.';
 
   @override
-  String get newsFullContent => 'The full text is on the source page.';
+  String get newsFullContent => 'Open the source page to read the full text.';
 
   @override
   String get newsOpenSource => 'Open on source site';
@@ -3714,7 +3714,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get notifMarkAll => 'Mark all as read';
 
   @override
-  String get notifEmpty => 'No notifications';
+  String get notifEmpty => 'No notifications yet.';
 
   @override
   String get notifUnread => 'Unread notification';
@@ -3773,7 +3773,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get searchClear => 'Clear search';
 
   @override
-  String get searchPrompt => 'Type at least 2 characters.';
+  String get searchPrompt =>
+      'Type at least 2 characters to search news, announcements, clubs, events or people.';
 
   @override
   String get searchRecent => 'Recent searches';
@@ -3786,7 +3787,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String searchResultCount(String count) {
-    return '$count RESULTS';
+    return '$count results';
   }
 
   @override
@@ -4844,7 +4845,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profileSuggested => 'Suggested people';
 
   @override
-  String get profileSaved => 'Saved';
+  String get profileSaved => 'Saved news';
 
   @override
   String get profileAcademic => 'Academic';
@@ -5437,7 +5438,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get bildirimFilterUnread => 'Unread';
 
   @override
-  String get bildirimEmptyUnread => 'No unread notifications';
+  String get bildirimEmptyUnread => 'You have no unread notifications.';
 
   @override
   String get bildirimAllCaughtUp => 'You are all caught up';
@@ -5742,7 +5743,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profil1Theme => 'Theme';
 
   @override
-  String get profil1Support => 'Support';
+  String get profil1Support => 'Help and support';
 
   @override
   String get profil1Legal => 'Agreements and policies';
@@ -6019,13 +6020,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get icerikHidden => 'Hidden';
 
   @override
-  String get icerikStatPosts => 'posts';
+  String get icerikStatPosts => 'Posts';
 
   @override
-  String get icerikStatFollowers => 'followers';
+  String get icerikStatFollowers => 'Followers';
 
   @override
-  String get icerikStatFollowing => 'following';
+  String get icerikStatFollowing => 'Following';
 
   @override
   String get icerikMessageSend => 'Send message';
@@ -6064,7 +6065,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get icerikFavorites => 'Favorite news';
 
   @override
-  String get icerikMaintenance => 'Source unreachable; showing saved news.';
+  String get icerikMaintenance =>
+      'The news source is unreachable right now. Showing the latest saved news.';
 
   @override
   String get icerikOpenSource => 'Open on source site';
@@ -6094,22 +6096,22 @@ class AppLocalizationsEn extends AppLocalizations {
   String get icerikSearchTabs => 'Result type';
 
   @override
-  String get icerikGroupNews => 'News';
+  String get icerikGroupNews => 'NEWS';
 
   @override
-  String get icerikGroupAnnouncement => 'Announcements';
+  String get icerikGroupAnnouncement => 'ANNOUNCEMENT';
 
   @override
-  String get icerikGroupEvent => 'Events';
+  String get icerikGroupEvent => 'EVENT';
 
   @override
-  String get icerikGroupClub => 'Clubs';
+  String get icerikGroupClub => 'CLUB';
 
   @override
-  String get icerikGroupPerson => 'People';
+  String get icerikGroupPerson => 'PEOPLE';
 
   @override
-  String get icerikGroupPost => 'Posts';
+  String get icerikGroupPost => 'POSTS';
 
   @override
   String get kulupdetayRequestsTitle => 'Join requests';
@@ -7132,8 +7134,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get p05SearchIdleTitle => 'Search the campus';
 
   @override
-  String get p05SearchNoResultsBody =>
-      'Try a different word or check the spelling.';
+  String get p05SearchNoResultsBody => 'Try a different word.';
 
   @override
   String get p05Source => 'Source';
@@ -7542,7 +7543,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get p03MenuKcalMissing => 'Calories are missing for some dishes';
+  String get p03MenuKcalMissing => 'Calories are missing for some dishes.';
 
   @override
   String get p03MenuKcalNone => 'No calorie info';
@@ -8341,7 +8342,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get p05SearchErrorTitle => 'Could not load results';
+  String get p05SearchErrorTitle => 'Could not load';
 
   @override
   String get p05SearchErrorBody =>
@@ -8617,7 +8618,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Closes your other open phone and browser sessions.';
 
   @override
-  String get p05NewsLoadingMore => 'Loading older news...';
+  String get p05NewsLoadingMore => 'Loading';
 
   @override
   String get p05SavedDiscover => 'Explore News';
@@ -8627,10 +8628,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get p05SavedEmptyBody2 =>
-      'You can save news you like by tapping the bookmark icon.';
+      'Use the bookmark on a news page to add items here.';
 
   @override
-  String get p05ListErrorTitle => 'Could not load';
+  String get p05ListErrorTitle => 'Could not load, try again';
 
   @override
   String get p05ListErrorBody =>
@@ -9674,4 +9675,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get p60ShortScheduleFull => 'Timetable';
+
+  @override
+  String p63NewsLastUpdate(String when) {
+    return 'Last updated: $when';
+  }
 }

@@ -6604,7 +6604,7 @@ abstract class AppLocalizations {
   /// No description provided for @newsFullContent.
   ///
   /// In tr, this message translates to:
-  /// **'Tam metin kaynak sayfada.'**
+  /// **'İçeriğin tamamı için kaynak sayfayı açın.'**
   String get newsFullContent;
 
   /// No description provided for @newsOpenSource.
@@ -6934,7 +6934,7 @@ abstract class AppLocalizations {
   /// No description provided for @notifEmpty.
   ///
   /// In tr, this message translates to:
-  /// **'Bildirim yok'**
+  /// **'Henüz bildiriminiz yok.'**
   String get notifEmpty;
 
   /// No description provided for @notifUnread.
@@ -7036,7 +7036,7 @@ abstract class AppLocalizations {
   /// No description provided for @searchPrompt.
   ///
   /// In tr, this message translates to:
-  /// **'En az 2 karakter yazın.'**
+  /// **'Haber, duyuru, kulüp, etkinlik veya kişi aramak için en az 2 karakter yazın.'**
   String get searchPrompt;
 
   /// No description provided for @searchRecent.
@@ -7060,7 +7060,7 @@ abstract class AppLocalizations {
   /// No description provided for @searchResultCount.
   ///
   /// In tr, this message translates to:
-  /// **'{count} SONUÇ'**
+  /// **'{count} sonuç'**
   String searchResultCount(String count);
 
   /// No description provided for @searchTooMany.
@@ -10036,7 +10036,7 @@ abstract class AppLocalizations {
   /// No description provided for @bildirimEmptyUnread.
   ///
   /// In tr, this message translates to:
-  /// **'Okunmamış bildirimin yok'**
+  /// **'Okunmamış bildiriminiz yok.'**
   String get bildirimEmptyUnread;
 
   /// No description provided for @bildirimAllCaughtUp.
@@ -11206,7 +11206,7 @@ abstract class AppLocalizations {
   /// No description provided for @icerikMaintenance.
   ///
   /// In tr, this message translates to:
-  /// **'Kaynağa ulaşılamıyor; kayıtlı haberler gösteriliyor.'**
+  /// **'Haber kaynağına şu an ulaşılamıyor. Son kaydedilen haberler gösteriliyor.'**
   String get icerikMaintenance;
 
   /// No description provided for @icerikOpenSource.
@@ -11260,37 +11260,37 @@ abstract class AppLocalizations {
   /// No description provided for @icerikGroupNews.
   ///
   /// In tr, this message translates to:
-  /// **'Haber'**
+  /// **'HABER'**
   String get icerikGroupNews;
 
   /// No description provided for @icerikGroupAnnouncement.
   ///
   /// In tr, this message translates to:
-  /// **'Duyuru'**
+  /// **'DUYURU'**
   String get icerikGroupAnnouncement;
 
   /// No description provided for @icerikGroupEvent.
   ///
   /// In tr, this message translates to:
-  /// **'Etkinlik'**
+  /// **'ETKİNLİK'**
   String get icerikGroupEvent;
 
   /// No description provided for @icerikGroupClub.
   ///
   /// In tr, this message translates to:
-  /// **'Kulüp'**
+  /// **'KULÜP'**
   String get icerikGroupClub;
 
   /// No description provided for @icerikGroupPerson.
   ///
   /// In tr, this message translates to:
-  /// **'Kişi'**
+  /// **'KİŞİ'**
   String get icerikGroupPerson;
 
   /// No description provided for @icerikGroupPost.
   ///
   /// In tr, this message translates to:
-  /// **'Gönderi'**
+  /// **'GÖNDERİ'**
   String get icerikGroupPost;
 
   /// No description provided for @kulupdetayRequestsTitle.
@@ -13078,7 +13078,7 @@ abstract class AppLocalizations {
   /// No description provided for @p05SearchNoResultsBody.
   ///
   /// In tr, this message translates to:
-  /// **'Farklı bir kelime deneyin veya yazımı kontrol edin.'**
+  /// **'Farklı bir kelime deneyin.'**
   String get p05SearchNoResultsBody;
 
   /// No description provided for @p05Source.
@@ -13780,7 +13780,7 @@ abstract class AppLocalizations {
   /// No description provided for @p03MenuKcalMissing.
   ///
   /// In tr, this message translates to:
-  /// **'Bazı yemeklerin kalorisi girilmemiş'**
+  /// **'Bazı yemeklerin kalorisi girilmemiş.'**
   String get p03MenuKcalMissing;
 
   /// No description provided for @p03MenuKcalNone.
@@ -15142,7 +15142,7 @@ abstract class AppLocalizations {
   /// No description provided for @p05SearchErrorTitle.
   ///
   /// In tr, this message translates to:
-  /// **'Sonuçlar yüklenemedi'**
+  /// **'Yüklenemedi'**
   String get p05SearchErrorTitle;
 
   /// No description provided for @p05SearchErrorBody.
@@ -15634,7 +15634,7 @@ abstract class AppLocalizations {
   /// No description provided for @p05NewsLoadingMore.
   ///
   /// In tr, this message translates to:
-  /// **'Daha eski haberler yükleniyor...'**
+  /// **'Yükleniyor'**
   String get p05NewsLoadingMore;
 
   /// No description provided for @p05SavedDiscover.
@@ -15652,13 +15652,13 @@ abstract class AppLocalizations {
   /// No description provided for @p05SavedEmptyBody2.
   ///
   /// In tr, this message translates to:
-  /// **'Beğendiğiniz haberleri yer imi simgesine dokunarak kaydedebilirsiniz.'**
+  /// **'Haber detayındaki işaretle haberleri buraya ekleyebilirsiniz.'**
   String get p05SavedEmptyBody2;
 
   /// No description provided for @p05ListErrorTitle.
   ///
   /// In tr, this message translates to:
-  /// **'Yüklenemedi'**
+  /// **'Yüklenemedi, tekrar dene'**
   String get p05ListErrorTitle;
 
   /// No description provided for @p05ListErrorBody.
@@ -17520,6 +17520,12 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Ders programı'**
   String get p60ShortScheduleFull;
+
+  /// No description provided for @p63NewsLastUpdate.
+  ///
+  /// In tr, this message translates to:
+  /// **'Son güncelleme: {when}'**
+  String p63NewsLastUpdate(String when);
 }
 
 class _AppLocalizationsDelegate

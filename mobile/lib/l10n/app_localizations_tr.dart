@@ -80,13 +80,13 @@ class AppLocalizationsTr extends AppLocalizations {
   String get settingsTitle => 'Ayarlar';
 
   @override
-  String get settingsSectionAppearance => 'GÖRÜNÜM';
+  String get settingsSectionAppearance => 'Görünüm';
 
   @override
-  String get settingsSectionNotifications => 'BİLDİRİMLER';
+  String get settingsSectionNotifications => 'Bildirimler';
 
   @override
-  String get settingsSectionPrivacy => 'GİZLİLİK VE HESAP';
+  String get settingsSectionPrivacy => 'Gizlilik ve hesap';
 
   @override
   String get themeSystem => 'Sistem';
@@ -3528,7 +3528,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get newsLinkOpenFailed => 'Bağlantı açılamadı.';
 
   @override
-  String get newsFullContent => 'Tam metin kaynak sayfada.';
+  String get newsFullContent => 'İçeriğin tamamı için kaynak sayfayı açın.';
 
   @override
   String get newsOpenSource => 'Kaynak sayfada aç';
@@ -3698,7 +3698,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get notifMarkAll => 'Tümünü okundu yap';
 
   @override
-  String get notifEmpty => 'Bildirim yok';
+  String get notifEmpty => 'Henüz bildiriminiz yok.';
 
   @override
   String get notifUnread => 'Okunmamış bildirim';
@@ -3757,7 +3757,8 @@ class AppLocalizationsTr extends AppLocalizations {
   String get searchClear => 'Aramayı temizle';
 
   @override
-  String get searchPrompt => 'En az 2 karakter yazın.';
+  String get searchPrompt =>
+      'Haber, duyuru, kulüp, etkinlik veya kişi aramak için en az 2 karakter yazın.';
 
   @override
   String get searchRecent => 'Son aramalar';
@@ -3770,7 +3771,7 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String searchResultCount(String count) {
-    return '$count SONUÇ';
+    return '$count sonuç';
   }
 
   @override
@@ -4822,7 +4823,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get profileSuggested => 'Önerilen kişiler';
 
   @override
-  String get profileSaved => 'Kaydedilenler';
+  String get profileSaved => 'Kayıtlı haberler';
 
   @override
   String get profileAcademic => 'Akademik';
@@ -5413,7 +5414,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get bildirimFilterUnread => 'Okunmamış';
 
   @override
-  String get bildirimEmptyUnread => 'Okunmamış bildirimin yok';
+  String get bildirimEmptyUnread => 'Okunmamış bildiriminiz yok.';
 
   @override
   String get bildirimAllCaughtUp => 'Hepsi bu kadar';
@@ -5689,7 +5690,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get profil2SecSessions => 'Oturumlar';
 
   @override
-  String get profil1SecContent => 'İçeriklerim';
+  String get profil1SecContent => 'İçeriğim';
 
   @override
   String get profil1SecAccount => 'Hesap';
@@ -5716,7 +5717,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get profil1Theme => 'Tema';
 
   @override
-  String get profil1Support => 'Destek';
+  String get profil1Support => 'Yardım ve destek';
 
   @override
   String get profil1Legal => 'Sözleşmeler ve politikalar';
@@ -5993,13 +5994,13 @@ class AppLocalizationsTr extends AppLocalizations {
   String get icerikHidden => 'Gizli';
 
   @override
-  String get icerikStatPosts => 'gönderi';
+  String get icerikStatPosts => 'Gönderi';
 
   @override
-  String get icerikStatFollowers => 'takipçi';
+  String get icerikStatFollowers => 'Takipçi';
 
   @override
-  String get icerikStatFollowing => 'takip';
+  String get icerikStatFollowing => 'Takip';
 
   @override
   String get icerikMessageSend => 'Mesaj gönder';
@@ -6039,7 +6040,7 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get icerikMaintenance =>
-      'Kaynağa ulaşılamıyor; kayıtlı haberler gösteriliyor.';
+      'Haber kaynağına şu an ulaşılamıyor. Son kaydedilen haberler gösteriliyor.';
 
   @override
   String get icerikOpenSource => 'Kaynak sitede aç';
@@ -6069,22 +6070,22 @@ class AppLocalizationsTr extends AppLocalizations {
   String get icerikSearchTabs => 'Sonuç türü';
 
   @override
-  String get icerikGroupNews => 'Haber';
+  String get icerikGroupNews => 'HABER';
 
   @override
-  String get icerikGroupAnnouncement => 'Duyuru';
+  String get icerikGroupAnnouncement => 'DUYURU';
 
   @override
-  String get icerikGroupEvent => 'Etkinlik';
+  String get icerikGroupEvent => 'ETKİNLİK';
 
   @override
-  String get icerikGroupClub => 'Kulüp';
+  String get icerikGroupClub => 'KULÜP';
 
   @override
-  String get icerikGroupPerson => 'Kişi';
+  String get icerikGroupPerson => 'KİŞİ';
 
   @override
-  String get icerikGroupPost => 'Gönderi';
+  String get icerikGroupPost => 'GÖNDERİ';
 
   @override
   String get kulupdetayRequestsTitle => 'Katılma istekleri';
@@ -7101,8 +7102,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get p05SearchIdleTitle => 'Kampüste ara';
 
   @override
-  String get p05SearchNoResultsBody =>
-      'Farklı bir kelime deneyin veya yazımı kontrol edin.';
+  String get p05SearchNoResultsBody => 'Farklı bir kelime deneyin.';
 
   @override
   String get p05Source => 'Kaynak';
@@ -7506,7 +7506,7 @@ class AppLocalizationsTr extends AppLocalizations {
   }
 
   @override
-  String get p03MenuKcalMissing => 'Bazı yemeklerin kalorisi girilmemiş';
+  String get p03MenuKcalMissing => 'Bazı yemeklerin kalorisi girilmemiş.';
 
   @override
   String get p03MenuKcalNone => 'Kalori girilmemiş';
@@ -8308,7 +8308,7 @@ class AppLocalizationsTr extends AppLocalizations {
   }
 
   @override
-  String get p05SearchErrorTitle => 'Sonuçlar yüklenemedi';
+  String get p05SearchErrorTitle => 'Yüklenemedi';
 
   @override
   String get p05SearchErrorBody =>
@@ -8585,7 +8585,7 @@ class AppLocalizationsTr extends AppLocalizations {
       'Diğer açık telefon ve tarayıcı oturumlarını kapatır.';
 
   @override
-  String get p05NewsLoadingMore => 'Daha eski haberler yükleniyor...';
+  String get p05NewsLoadingMore => 'Yükleniyor';
 
   @override
   String get p05SavedDiscover => 'Haberleri Keşfet';
@@ -8595,10 +8595,10 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get p05SavedEmptyBody2 =>
-      'Beğendiğiniz haberleri yer imi simgesine dokunarak kaydedebilirsiniz.';
+      'Haber detayındaki işaretle haberleri buraya ekleyebilirsiniz.';
 
   @override
-  String get p05ListErrorTitle => 'Yüklenemedi';
+  String get p05ListErrorTitle => 'Yüklenemedi, tekrar dene';
 
   @override
   String get p05ListErrorBody =>
@@ -9641,4 +9641,9 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get p60ShortScheduleFull => 'Ders programı';
+
+  @override
+  String p63NewsLastUpdate(String when) {
+    return 'Son güncelleme: $when';
+  }
 }

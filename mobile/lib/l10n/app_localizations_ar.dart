@@ -3511,7 +3511,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get newsLinkOpenFailed => 'تعذر فتح الرابط.';
 
   @override
-  String get newsFullContent => 'النص الكامل في الصفحة المصدر.';
+  String get newsFullContent =>
+      'افتح الصفحة المصدر للاطلاع على المحتوى كاملًا.';
 
   @override
   String get newsOpenSource => 'فتح في الصفحة المصدر';
@@ -3680,7 +3681,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get notifMarkAll => 'تحديد الكل كمقروء';
 
   @override
-  String get notifEmpty => 'لا توجد إشعارات';
+  String get notifEmpty => 'لا توجد إشعارات بعد.';
 
   @override
   String get notifUnread => 'إشعار غير مقروء';
@@ -3740,7 +3741,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get searchClear => 'مسح البحث';
 
   @override
-  String get searchPrompt => 'اكتب حرفين على الأقل.';
+  String get searchPrompt =>
+      'اكتب حرفين على الأقل للبحث عن أخبار أو إعلانات أو أندية أو فعاليات أو أشخاص.';
 
   @override
   String get searchRecent => 'عمليات البحث الأخيرة';
@@ -4799,7 +4801,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get profileSuggested => 'أشخاص مقترحون';
 
   @override
-  String get profileSaved => 'المحفوظات';
+  String get profileSaved => 'الأخبار المحفوظة';
 
   @override
   String get profileAcademic => 'الأكاديمي';
@@ -5388,7 +5390,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get bildirimFilterUnread => 'غير المقروءة';
 
   @override
-  String get bildirimEmptyUnread => 'لا توجد إشعارات غير مقروءة';
+  String get bildirimEmptyUnread => 'لا توجد إشعارات غير مقروءة.';
 
   @override
   String get bildirimAllCaughtUp => 'هذا كل شيء';
@@ -5689,7 +5691,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get profil1Theme => 'المظهر';
 
   @override
-  String get profil1Support => 'الدعم';
+  String get profil1Support => 'المساعدة والدعم';
 
   @override
   String get profil1Legal => 'الاتفاقيات والسياسات';
@@ -6012,7 +6014,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get icerikMaintenance =>
-      'تعذر الوصول إلى المصدر؛ يتم عرض الأخبار المحفوظة.';
+      'تعذر الوصول إلى مصدر الأخبار حاليًا. يتم عرض آخر الأخبار المحفوظة.';
 
   @override
   String get icerikOpenSource => 'فتح في الموقع المصدر';
@@ -7062,7 +7064,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get p05SearchIdleTitle => 'ابحث في الحرم الجامعي';
 
   @override
-  String get p05SearchNoResultsBody => 'جرّب كلمة مختلفة أو تحقق من الإملاء.';
+  String get p05SearchNoResultsBody => 'جرّب كلمة مختلفة.';
 
   @override
   String get p05Source => 'المصدر';
@@ -7469,7 +7471,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get p03MenuKcalMissing => 'لم تُدخل السعرات الحرارية لبعض الأطباق';
+  String get p03MenuKcalMissing => 'لم تُدخل السعرات الحرارية لبعض الأطباق.';
 
   @override
   String get p03MenuKcalNone => 'لا توجد سعرات';
@@ -8255,7 +8257,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get p05SearchErrorTitle => 'تعذّر تحميل النتائج';
+  String get p05SearchErrorTitle => 'تعذّر التحميل';
 
   @override
   String get p05SearchErrorBody => 'حدث خطأ في الاتصال أثناء جلب نتائج البحث.';
@@ -8527,7 +8529,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get p19LogoutAllSub => 'يغلق جلسات الهاتف والمتصفح الأخرى المفتوحة.';
 
   @override
-  String get p05NewsLoadingMore => 'جارٍ تحميل أخبار أقدم...';
+  String get p05NewsLoadingMore => 'جارٍ التحميل';
 
   @override
   String get p05SavedDiscover => 'استكشف الأخبار';
@@ -8537,10 +8539,10 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get p05SavedEmptyBody2 =>
-      'يمكنك حفظ الأخبار التي تعجبك بالنقر على أيقونة العلامة.';
+      'استخدم علامة الحفظ في صفحة الخبر لإضافة الأخبار هنا.';
 
   @override
-  String get p05ListErrorTitle => 'تعذّر التحميل';
+  String get p05ListErrorTitle => 'تعذّر التحميل، حاول مرة أخرى';
 
   @override
   String get p05ListErrorBody =>
@@ -9570,4 +9572,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get p60ShortScheduleFull => 'جدول الدروس';
+
+  @override
+  String p63NewsLastUpdate(String when) {
+    return 'آخر تحديث: $when';
+  }
 }
