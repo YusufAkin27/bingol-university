@@ -76,6 +76,25 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
     @Query("UPDATE Notification n SET n.readAt = :now WHERE n.userId = :uid AND n.readAt IS NULL AND n.collapseKey = :key")
     int markReadByCollapseKey(@Param("uid") Long userId, @Param("key") String collapseKey, @Param("now") Instant now);
 
+    /** Tur + birlesme anahtari ile eslesen okunmamis satirlari okundu yapar (takip istegi artik gecersiz). */
+    @Transactional
+    @Modifying
+    @Query("UPDATE Notification n SET n.readAt = :now WHERE n.userId = :uid AND n.readAt IS NULL "
+            + "AND n.type = :type AND n.collapseKey = :key")
+    int markReadByTypeAndCollapseKey(@Param("uid") Long userId, @Param("type") NotificationType type,
+                                     @Param("key") String collapseKey, @Param("now") Instant now);
+
+    /**
+     * Tur + anahtar oneki (LIKE; {@code pattern} onceden kacirilmis, kacis karakteri {@code \}) ile eslesen okunmamis
+     * satirlari okundu yapar. Gizli->acik toplu otomatik kabulde TEK sorgu.
+     */
+    @Transactional
+    @Modifying
+    @Query("UPDATE Notification n SET n.readAt = :now WHERE n.userId = :uid AND n.readAt IS NULL "
+            + "AND n.type = :type AND n.collapseKey LIKE :pattern ESCAPE '\\'")
+    int markReadByTypeAndCollapseKeyLike(@Param("uid") Long userId, @Param("type") NotificationType type,
+                                         @Param("pattern") String pattern, @Param("now") Instant now);
+
     @Transactional
     @Modifying
     @Query("UPDATE Notification n SET n.readAt = :now WHERE n.userId = :uid AND n.readAt IS NULL "

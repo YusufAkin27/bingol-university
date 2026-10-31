@@ -5,6 +5,8 @@ import edu.bingol.backend.common.ApiException;
 import edu.bingol.backend.common.CursorPage;
 import edu.bingol.backend.common.RateLimiter;
 import edu.bingol.backend.moderation.BlockService;
+import edu.bingol.backend.notification.NotificationRepository;
+import edu.bingol.backend.notification.NotificationType;
 import edu.bingol.backend.post.notify.PostNotifier;
 import edu.bingol.backend.profile.dto.ProfileDtos.PublicProfile;
 import edu.bingol.backend.profile.privacy.PublicProfileMapper;
@@ -33,6 +35,8 @@ import org.springframework.transaction.support.TransactionTemplate;
  * hedefe 24 saatte en çok {@value #PER_TARGET_PER_DAY} istek (429; red sonrası kötüye kullanım freni); kabulde gerçek takip
  * yazılır, istek silinir, istek sahibine FOLLOW_ACCEPTED bildirimi; red sessizdir. Gizli → açık geçişte bekleyen TÜM
  * istekler parçalı otomatik kabul edilir (bildirimsiz). Hesap silme/askıda istekler temizlenir.
+ * İstek sonuçlandığında (kabul/red/geri çekme/otomatik kabul/engel/askı) hedefin kutusundaki FOLLOW_REQUEST bildirimi
+ * SİLİNMEZ, OKUNDU işaretlenir (zil rozeti ve unread-count düşer).
  */
 @Service
 public class FollowRequestService {
@@ -59,10 +63,14 @@ public class FollowRequestService {
     private final RateLimiter limiter;
     private final ObjectProvider<PostNotifier> notifier;
     private final TransactionTemplate tx;
+    private final NotificationRepository notifications;
+
+    /** Bildirim birleşme anahtarı öneki (PostNotifier.onFollowRequest ile aynı). */
+    static final String REQUEST_KEY_PREFIX = "followreq:";
 
     public FollowRequestService(JdbcTemplate jdbc, FollowWriter writer, UserRepository users, BlockService blocks,
                                 PublicProfileMapper profiles, RateLimiter limiter, ObjectProvider<PostNotifier> notifier,
-                                PlatformTransactionManager tm) {
+                                PlatformTransactionManager tm, NotificationRepository notifications) {
         this.jdbc = jdbc;
         this.writer = writer;
         this.users = users;
@@ -70,6 +78,7 @@ public class FollowRequestService {
         this.profiles = profiles;
         this.limiter = limiter;
         this.notifier = notifier;
+        this.notifications = notifications;
         this.tx = new TransactionTemplate(tm);
         // afterCommit icinden de cagrilir: o noktada dis islem bitmistir, yazimlar YENI islemde olmali
         this.tx.setPropagationBehavior(org.springframework.transaction.TransactionDefinition.PROPAGATION_REQUIRES_NEW);
@@ -120,7 +129,9 @@ public class FollowRequestService {
     /** İsteği geri çeker (idempotent). @return silindi mi */
     @Transactional
     public boolean withdraw(Long me, Long target) {
-        return jdbc.update("DELETE FROM follow_request WHERE requester_id = ? AND target_id = ?", me, target) > 0;
+        boolean removed = jdbc.update("DELETE FROM follow_request WHERE requester_id = ? AND target_id = ?", me, target) > 0;
+        markRequestNotificationRead(target, me);
+        return removed;
     }
 
     // ---------------------------------------------------------------- hedef (gelen) tarafı
@@ -167,7 +178,9 @@ public class FollowRequestService {
      */
     @Transactional
     public int accept(Long me, Long requesterId) {
-        if (acceptOne(requesterId, me)) {
+        boolean followed = acceptOne(requesterId, me);
+        markRequestNotificationRead(me, requesterId);
+        if (followed) {
             AfterCommit.run(() -> {
                 PostNotifier pn = notifier.getIfAvailable();
                 if (pn != null) {
@@ -182,6 +195,7 @@ public class FollowRequestService {
     @Transactional
     public int decline(Long me, Long requesterId) {
         jdbc.update("DELETE FROM follow_request WHERE requester_id = ? AND target_id = ?", requesterId, me);
+        markRequestNotificationRead(me, requesterId);
         return count(me);
     }
 
@@ -223,6 +237,13 @@ public class FollowRequestService {
             });
             accepted += done == null ? 0 : done;
         }
+        // hedef artik herkese acik: bekleyen istek bildirimlerinin hepsi gecersiz (tek sorgu)
+        // (afterCommit icinden de cagrilir: YENI islemde, yoksa tamamlanmis dis islemin kaynagina baglanip hata verir)
+        try {
+            tx.executeWithoutResult(st -> markAllRequestNotificationsRead(target));
+        } catch (RuntimeException e) {
+            log.warn("Takip istegi bildirimleri okundu isaretlenemedi (kullanici {}): {}", target, e.toString());
+        }
         return accepted;
     }
 
@@ -253,7 +274,14 @@ public class FollowRequestService {
     /** Hesap silme/askı: kullanıcının gönderdiği ve aldığı tüm bekleyen istekler silinir. */
     @Transactional
     public void purgeUser(Long uid) {
+        // gonderdigi isteklerin hedeflerindeki bildirimler (silmeden once hedefler okunur; en cok MAX_PENDING_OUT)
+        List<Long> targets = jdbc.queryForList("SELECT target_id FROM follow_request WHERE requester_id = ?",
+                Long.class, uid);
         jdbc.update("DELETE FROM follow_request WHERE requester_id = ? OR target_id = ?", uid, uid);
+        for (Long t : targets) {
+            markRequestNotificationRead(t, uid);
+        }
+        markAllRequestNotificationsRead(uid);
     }
 
     /** İki taraf arasındaki bekleyen istekler (engelleme). */
@@ -261,5 +289,34 @@ public class FollowRequestService {
     public void dropBetween(Long a, Long b) {
         jdbc.update("DELETE FROM follow_request WHERE (requester_id = ? AND target_id = ?) "
                 + "OR (requester_id = ? AND target_id = ?)", a, b, b, a);
+        markRequestNotificationRead(a, b);
+        markRequestNotificationRead(b, a);
+    }
+
+    // ---------------------------------------------------------------- bildirim kutusu
+
+    /** Hedefin kutusundaki, bu istek sahibine ait okunmamış FOLLOW_REQUEST bildirimini okundu yapar (en iyi çaba). */
+    private void markRequestNotificationRead(Long target, Long requesterId) {
+        try {
+            notifications.markReadByTypeAndCollapseKey(target, NotificationType.FOLLOW_REQUEST,
+                    REQUEST_KEY_PREFIX + requesterId, Instant.now());
+        } catch (RuntimeException e) {
+            log.warn("Takip istegi bildirimi okundu isaretlenemedi (kullanici {}): {}", target, e.toString());
+        }
+    }
+
+    /** Hedefin tüm okunmamış FOLLOW_REQUEST bildirimlerini tek sorguyla okundu yapar (en iyi çaba). */
+    private void markAllRequestNotificationsRead(Long target) {
+        try {
+            notifications.markReadByTypeAndCollapseKeyLike(target, NotificationType.FOLLOW_REQUEST,
+                    escapeLike(REQUEST_KEY_PREFIX) + "%", Instant.now());
+        } catch (RuntimeException e) {
+            log.warn("Takip istegi bildirimleri okundu isaretlenemedi (kullanici {}): {}", target, e.toString());
+        }
+    }
+
+    /** LIKE kacisi: {@code \}, {@code %}, {@code _}. */
+    static String escapeLike(String s) {
+        return s.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_");
     }
 }
