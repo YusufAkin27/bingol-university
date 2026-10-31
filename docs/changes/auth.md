@@ -126,3 +126,61 @@ Davranis:
 ## Sifre sifirlama yanit metni (W1-J, T-123)
 
 `POST /api/auth/forgot-password` 202 govdesindeki `msg.forgot.sent` (tr) artik e-postaya KOD gittigini soyler: "Hesap uygunsa e-posta adresinize şifre sıfırlama kodu gönderildi." (eskiden "bağlantı" diyordu; e-postaya bir bağlantı değil 6 haneli kod gider). Yalniz metin; alan/kod degismedi. en/ar zaten "code" diyordu.
+
+## W1-A: kimlik, oturum, hesap yasam dongusu, hata zarfi (T-001..T-009, 2026-10-31)
+
+Kapsam: `docs/audit/prompts/W1-A-kimlik-oturum.md`. Yeni Flyway migration YOK (V900-V909 kullanilmadi).
+
+### Kayit: gorunen ad ve e-posta (T-001)
+- `AuthService.register`, kod e-postasi GONDERILMEDEN once `DisplayNamePolicy.normalize` calistirir (gorunmez karakter, bidi, `<script>`, `@`, emoji siniri, karisik yazi, ayrilmis/taklit adlar: `RESERVED_DISPLAY_NAME`, bicim: `INVALID_DISPLAY_NAME`). `ADMIN_EMAILS` adresleri yalniz "ayrilmis ad" kisitindan muaf, bicim kurallarindan degil. Bekleyen kayda NORMALLESTIRILMIS ad yazilir.
+- `DisplayNamePolicy`'ye baglanti/alan adi benzeri ad reddi eklendi (`bit.ly`, `www.x`, `http...`; yaygin TLD listesi): profil adi guncellemesi de ayni kuraldan gecer.
+- Kayit e-postasi yerel kismi: `%` ve bas/son/ardisik nokta YASAK (`a%evil.com@bingol.edu.tr`, `a..b@...` -> 400 `EMAIL_DOMAIN_NOT_ALLOWED`). Mevcut hesaplar etkilenmez (yalniz kayit).
+- Mevcut ihlalli adlar icin YALNIZ OKUMA rapor (silme yok), PostgreSQL:
+  ```sql
+  -- gorunmez/bidi/sifir genislikli karakter iceren adlar
+  SELECT id, email, display_name FROM app_user
+   WHERE status <> 'DELETED' AND display_name ~ '[​-‏‪-‮⁠-⁤﻿<>@/]';
+  -- baglanti benzeri / taklit adaylari
+  SELECT id, email, display_name FROM app_user
+   WHERE status <> 'DELETED' AND (display_name ~* '(www\.|https?|\.(com|net|org|ly|gl|me|io|co)(\s|$))'
+      OR lower(display_name) ~ '(rektor|rektör|yonetici|yönetici|admin|destek|bukampus|support)');
+  ```
+
+### Parola politikasi (T-005, K-09 varsayilani)
+- `auth/PasswordPolicy`: en az **10** karakter (yonetici hesaplari **12**; `app.auth.password-min-length`, `app.auth.password-min-length-admin`), `auth/common-passwords.txt` (yaygin parola + kok kelime listesi; sondaki rakam/yil/sembol atilarak kok kelimeye de bakilir: `Galatasaray1905`, `Sifre1234567`), tek karakter tekrari / rakam dizisi / klavye yurumesi, e-posta kullanici adi + okul numarasi + gorunen ad sozcukleri (>= 4 harf, Turkce karakter katlanir). Karakter sinifi zorunlulugu YOK.
+- Uygulandigi uclar: `POST /api/auth/register`, `POST /api/auth/reset-password`, `POST /api/auth/change-password`. Hata: `400 PASSWORD_TOO_WEAK` (tr/en/ar, `{0}` = en az uzunluk). `giris` politikaya BAGLI DEGIL (eski parolalar girebilir). DTO'lardaki `@Size(min = 8)` kaldirildi (kisa parola da `PASSWORD_TOO_WEAK` olur); `max = 72` ve 72 BAYT siniri (`PASSWORD_TOO_LONG`) aynen.
+- Yaygin parola listesi (~27 bin satir) elle derlenmis kok kelime + ek kaliplarindan URETILDI (dis kaynak/rockyou kullanilmadi); ilk 10k hedefi asildi ama gercek sizinti listesi degildir. Gerekirse `backend/src/main/resources/auth/common-passwords.txt` ek satirlarla buyutulebilir (kucuk harf, aksansiz).
+- **ETKI (smoke/e2e):** `Sifre1234` gibi 9 karakterlik test parolalari artik reddedilir. Yeni betik parolasi: `Zk7-Qmv-Lpx92w` (14 karakter, listede degil). Diger betikler tasinana kadar `APP_AUTH_PASSWORD_MIN_LENGTH`/yaygin liste engeline takilirlar (bkz. W1-A teslim raporu).
+- `reset-password`: yeni parola mevcutla ayni olamaz (`422 PASSWORD_UNCHANGED`); zayif/ayni parola reddi sifirlama anahtarini TUKETMEZ (`VerificationService.checkResetToken`); basarili sifirlamada "sifren degisti" guvenlik e-postasi gider.
+
+### Yonetici kendini silemez (T-002)
+- `DELETE /api/users/me`: rol ADMIN ya da `ADMIN_EMAILS` adresi ise `409 ADMIN_CANNOT_SELF_DELETE` (once baska bir yonetici panelden rolu dusurmeli). Parola yanlissa `403 WRONG_PASSWORD` onceliklidir.
+- Anonimlestirme (hesap silme ve panelden silme): `role=USER`, `adminProfile=null`; `suspended:<id>` isareti ve `sessions.revokeAll(id)` (refresh kumesi `rtu:<id>` temizlenir) **commit sonrasi** (`common/AfterCommit`).
+
+### Redis devre kesici (T-003)
+- `common/RedisBreaker`: ilk Redis baglanti/zaman asimi hatasinda 5 sn (`app.redis.breaker-ms` / `REDIS_BREAKER_MS`) acilir. Aciksa Redis'e gitmeden: `JwtAuthFilter` kimlik KOYMAZ ve kimlik isteyen uc `503 REDIS_UNAVAILABLE` + `Retry-After` alir (fail-closed: askiya alinmis/oturumu iptal edilmis kullanici Redis yokken gecmez); `RateLimiter.check` dogrudan `RedisUnavailableException` (503) atar; `ActivityTracker.touch` atlar. Herkese acik uclar (haber/menu/durum) Redis'siz 200 doner (Bearer ile gelseler de).
+- Komut/baglanti zaman asimi her profilde `500ms`/`1s` (`REDIS_TIMEOUT`, `REDIS_CONNECT_TIMEOUT`); `application-prod.properties`'teki 2 sn degerleri kaldirildi.
+- `BasicAuthThrottleFilter`: 429 yalniz `RateLimitedException`; devre kesici 503'u fail-closed dalina duser.
+
+### Standart hata zarfi (T-004)
+- Her hata `{code,message,traceId}` + `Content-Language` + `Vary: Accept-Language`: `ApiExceptionHandler` artik `ErrorResponse` (404 `NOT_FOUND`, 405 `METHOD_NOT_ALLOWED` + `Allow`, 406 `NOT_ACCEPTABLE`, 415 `UNSUPPORTED_MEDIA_TYPE`...) ve yakalanmamis istisnalar (500 `INTERNAL_ERROR`, ayrinti yalniz log'da) icin zarf uretir; Spring Security istisnalari guvenlik zincirine birakilir. `ApiErrorController` (yeni, `/error`) konteyner `sendError` yonlendirmelerini (guvenlik 403'u, Tomcat) ayni zarfa cevirir; Boot'un HTML `BasicErrorController`'i devre disi.
+- `ApiAuthenticationEntryPoint` TEK giris noktasi (`/api/admin/**` dahil). `WWW-Authenticate: Basic` YALNIZ: Basic acik + `/api/admin/**` + `Authorization` basligi HIC yok + Accept `application/json` degil + `Sec-Fetch-Dest` yok/`document`. Bozuk/suresi dolmus Bearer ya da fetch/XHR (yonetim paneli) asla Basic penceresi acmaz.
+
+### Kilit DoS ve kod kilidi (T-006)
+- `LoginThrottle`: hesap geneli tavan (`lgf:e:*`, 60) YALNIZ hesapla daha once basarili giris yapmamis ("bilinmeyen") istemciler icin. Basarili giris `lgf:ok:<ozet>:<d|i>:<cihaz|IP>` isaretini 30 gun birakir; tanidik istemci tavana takilmaz ve hatalari tavani doldurmaz (kendi cift sayaci 10 aynen gecerli). Sahte cihaz kimligiyle hedefli kilitleme hesabin gercek sahibini kilitlemez.
+- `VerificationService.issue`: kapsamli `ns:sc:<email>:<ip>:att|lock` sayac/kilitleri `ns:scopes:<email>` kumesi uzerinden yeni kodla sifirlanir (5 yanlis + yeni kod + dogru kod = basarili). Saatlik toplam tavan (60) yeni kodla sifirlanmaz (tahmin butcesi korunur).
+
+### Refresh idempotansi (T-007)
+- `AuthService.refresh` basarida `rtnext:<eski ozet>` kaydi yazar (45 sn): yeni token cifti **AES-GCM, anahtar = SHA-256(eski token)** ile sifreli (Redis'te yeni refresh token acik metin olmaz). Ayni eski token tekrar sunulursa (yanit kayboldu) ve yeni refresh hala gecerliyse AYNI cift doner, oturumlar kapanmaz. Yeni cift bu arada kullanilmis/iptal edilmisse replay yok; tolerans (10 sn) otesindeki yeniden kullanim yine tum oturumlari kapatir (calinti).
+- Mobil taraf: T-084 (W1-G).
+
+### Oturum iptalinde FCM cihaz kaydi (T-008)
+- `SessionDeviceCleaner.onSessionsRevoked`: `client == null && !newLogin` (logout-all, sifre degisimi/sifirlama, askiya alma) olayinda kullanicinin TUM cihaz kayitlari silinir (kilit ekraninda bildirim surmesin). Etkin cihaz giris/yeni token sonrasi `POST /api/devices` ile kendini yeniden kaydetmelidir (sifre DEGISIMINDE istek yapan cihaz da dahil).
+
+### Kimlik kucukleri (T-009)
+- `refresh`: askidaki hesap `403 ACCOUNT_SUSPENDED` (eskiden iptal mezar tasi nedeniyle yaniltici `SESSION_REPLACED`); `RefreshTokenService.revokedOwner`.
+- `UserModerationService.unsuspend`: yalniz ASKIDAKI hesapta calisir (silinmis hesabin `suspended:` isareti silinmez, aktif hesaba "yeniden acildi" bildirimi gitmez); `suspend` Redis isareti + `revokeAll` commit sonrasi.
+- Dogrulama/sifirlama kodu ozeti `HMAC-SHA256(app.auth.code-pepper, e-posta:kod)`; pepper varsayilan `jwt.secret`. UYARI: `JWT_SECRET` degisirse o an bekleyen (10 dk) kodlar gecersiz olur.
+
+### Yeni hata kodlari (auth*.properties, tr/en/ar)
+`PASSWORD_TOO_WEAK`, `ADMIN_CANNOT_SELF_DELETE`, `REDIS_UNAVAILABLE`, `INTERNAL_ERROR`, `METHOD_NOT_ALLOWED`, `NOT_ACCEPTABLE`, `UNSUPPORTED_MEDIA_TYPE`.
