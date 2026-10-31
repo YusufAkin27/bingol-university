@@ -58,7 +58,7 @@
   "settingsSupport": "Destek ve SSS",
   "settingsLogoutAll": "Tüm cihazlardan çıkış yap",
   "settingsLogoutAllTitle": "Tüm cihazlardan çıkış",
-  "settingsLogoutAllBody": "Hesabınız tüm cihazlarda kapatılacak ve yeniden giriş yapmanız gerekecek.",
+  "settingsLogoutAllBody": "Tüm cihazlardaki oturumlarınız kapatılacak ve yeniden giriş yapmanız gerekecek.",
   "settingsLogoutAllConfirm": "Çıkış yap",
   "settingsVersion": "BÜ Kampüs · Sürüm {version}",
   "@settingsVersion": {

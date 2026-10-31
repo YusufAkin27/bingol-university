@@ -149,7 +149,7 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get settingsLogoutAllBody =>
-      'Hesabınız tüm cihazlarda kapatılacak ve yeniden giriş yapmanız gerekecek.';
+      'Tüm cihazlardaki oturumlarınız kapatılacak ve yeniden giriş yapmanız gerekecek.';
 
   @override
   String get settingsLogoutAllConfirm => 'Çıkış yap';

@@ -472,7 +472,7 @@ class HomeNewsStateCard extends StatelessWidget {
   }
 }
 
-/// Üst marka çubuğu (referans 00): açık kırmızı logo karosu + "BU KAMPÜS" + alt başlık; sağda zil ve profil avatarı.
+/// Üst marka çubuğu (referans 00): açık kırmızı logo karosu + "BÜ KAMPÜS" + alt başlık; sağda zil ve profil avatarı.
 class HomeBrandHeader extends StatelessWidget {
   const HomeBrandHeader({super.key, required this.bell, required this.displayName, required this.onProfile, required this.profileLabel});
 
@@ -498,7 +498,7 @@ class HomeBrandHeader extends StatelessWidget {
       const SizedBox(width: 12),
       Expanded(
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text('BU KAMPÜS', maxLines: 1, style: tx.labelSmall!.copyWith(fontWeight: FontWeight.w800, letterSpacing: 1.2, color: t.pr)),
+          Text('BÜ KAMPÜS', maxLines: 1, style: tx.labelSmall!.copyWith(fontWeight: FontWeight.w800, letterSpacing: 1.2, color: t.pr)),
           Text(l.p03HomeBrandSub, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.bodySmall!.copyWith(color: t.mut)),
         ]),
       ),

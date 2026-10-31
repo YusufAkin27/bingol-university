@@ -163,7 +163,7 @@ class _Hero extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('BU Kampüs', style: tx.titleLarge!.copyWith(color: t.onMedia, fontWeight: FontWeight.w800)),
+                    Text('BÜ Kampüs', style: tx.titleLarge!.copyWith(color: t.onMedia, fontWeight: FontWeight.w800)),
                     Text(l.p02BrandSub,
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,

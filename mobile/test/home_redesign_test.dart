@@ -43,7 +43,7 @@ void main() {
             });
           await tester.pumpWidget(buildApp(home(b), brightness: dark ? Brightness.dark : Brightness.light));
           await settle(tester, const Duration(seconds: 2));
-          expect(find.text('BU KAMPÜS'), findsOneWidget);
+          expect(find.text('BÜ KAMPÜS'), findsOneWidget);
           expect(find.text('Bağımsız öğrenci uygulaması'), findsOneWidget);
           expect(find.text('Hızlı Erişim'), findsOneWidget);
           expect(find.text('Yemek'), findsOneWidget);

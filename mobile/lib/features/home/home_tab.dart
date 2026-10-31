@@ -418,7 +418,7 @@ class _HomeTabState extends State<HomeTab> {
     );
   }
 
-  /// Marka çubuğu (logo + BU KAMPÜS + zil + profil) ve selamlama.
+  /// Marka çubuğu (logo + BÜ KAMPÜS + zil + profil) ve selamlama.
   Widget _header(BuildContext context, {bool afterBanner = false}) {
     final t = context.bu;
     final l = context.l10n;
