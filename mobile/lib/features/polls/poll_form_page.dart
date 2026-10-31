@@ -174,7 +174,7 @@ class _PollFormPageState extends State<PollFormPage> {
       bottomInset: 32,
       slivers: [
         SliverPadding(
-          padding: const EdgeInsetsDirectional.fromSTEB(kAnketPad, 17, kAnketPad, 0),
+          padding: const EdgeInsetsDirectional.fromSTEB(kAnketPad, 16.5, kAnketPad, 0),
           sliver: SliverList(
             delegate: SliverChildListDelegate([
               AnketFieldLabel(l.pollFieldTitle),
@@ -186,7 +186,7 @@ class _PollFormPageState extends State<PollFormPage> {
                 style: field,
                 decoration: anketFieldDeco(context, hint: l.pollTitleHint),
               ),
-              AnketFieldLabel(l.pollFieldDesc, top: 26),
+              AnketFieldLabel(l.pollFieldDesc, top: 25),
               TextField(
                 controller: _desc,
                 minLines: 3,
@@ -194,7 +194,7 @@ class _PollFormPageState extends State<PollFormPage> {
                 maxLength: 1000,
                 textCapitalization: TextCapitalization.sentences,
                 style: field,
-                decoration: anketFieldDeco(context, hint: l.pollDescHint, pad: const EdgeInsetsDirectional.symmetric(horizontal: 16, vertical: 13)),
+                decoration: anketFieldDeco(context, hint: l.pollDescHint, pad: const EdgeInsetsDirectional.symmetric(horizontal: 16, vertical: 12.5)),
               ),
               AnketFieldLabel(l.p68FormKind, top: 26, bottom: 0),
               _TypeSegment(
@@ -208,7 +208,7 @@ class _PollFormPageState extends State<PollFormPage> {
                 child: _type == PollType.rating
                     ? const SizedBox(width: double.infinity)
                     : Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-                        AnketFieldLabel(l.p68OptionsLabel, top: 26, trailing: '${_opts.length} / $_maxOptions'),
+                        AnketFieldLabel(l.p68OptionsLabel, top: 22, bottom: 8, trailing: '${_opts.length} / $_maxOptions'),
                         for (var i = 0; i < _opts.length; i++)
                           _Appear(
                             key: ObjectKey(_opts[i]),
@@ -236,7 +236,9 @@ class _PollFormPageState extends State<PollFormPage> {
                               ),
                             ),
                           ),
-                        Row(children: [
+                        Transform.translate(
+                          offset: const Offset(0, -3.5), // 48 dp dokunma satırı referanstaki satıra hizalanır
+                          child: Row(children: [
                           Expanded(
                             child: optErr
                                 ? Semantics(
@@ -253,10 +255,10 @@ class _PollFormPageState extends State<PollFormPage> {
                               onPressed: _addOption,
                               child: Text('+ ${l.pollAddOption}', style: tx.titleSmall!.copyWith(color: t.pr, fontWeight: FontWeight.w700)),
                             ),
-                        ]),
+                        ])),
                       ]),
               ),
-              AnketFieldLabel(l.pollFieldEnd, top: 13, bottom: 1.5),
+              AnketFieldLabel(l.pollFieldEnd, top: 9.5, bottom: 1.5),
               Wrap(spacing: 8, children: [
                 for (final days in const [1, 3, 7])
                   _EndChip(
@@ -273,7 +275,7 @@ class _PollFormPageState extends State<PollFormPage> {
                   onTap: _pickEnd,
                 ),
               ]),
-              AnketFieldLabel(l.anketVisTitle, top: 22),
+              AnketFieldLabel(l.anketVisTitle, top: 19),
               for (final o in visOptions)
                 _RadioRow(label: o.$2, sub: o.$3, selected: _showResults == o.$1, onTap: () => setState(() => _showResults = o.$1)),
               const SizedBox(height: 25),
