@@ -85,6 +85,7 @@ void main() {
     testWidgets('bos gonderim dogrulama hatasi gosterir, istek atmaz', (tester) async {
       final b = newB();
       await tester.pumpWidget(buildApp(LoginPage(session: makeSession(b, signedIn: false))));
+      await tester.pump(const Duration(milliseconds: 700)); // giriş animasyonu (Stitch v3 aşamalı giriş) bitmeden dokunma isabet etmez
       await tester.tap(find.text('Giriş yap'));
       await tester.pump();
       expect(find.text('Okul numaranızı veya e-posta adresinizi girin.'), findsOneWidget);
@@ -98,6 +99,7 @@ void main() {
       await tester.pumpWidget(buildApp(LoginPage(session: makeSession(b, signedIn: false))));
       await tester.enterText(find.byType(TextFormField).at(0), 'ayse@bingol.edu.tr');
       await tester.enterText(find.byType(TextFormField).at(1), 'Sifre1234');
+      await tester.pump(const Duration(milliseconds: 700)); // giriş animasyonu (Stitch v3 aşamalı giriş) bitmeden dokunma isabet etmez
       await tester.tap(find.text('Giriş yap'));
       await settle(tester, const Duration(milliseconds: 300));
       expect(find.text('E-posta veya şifre hatalı.'), findsOneWidget);
@@ -110,6 +112,7 @@ void main() {
       await tester.pumpWidget(buildApp(LoginPage(session: makeSession(b, signedIn: false))));
       await tester.enterText(find.byType(TextFormField).at(0), 'ayse@bingol.edu.tr');
       await tester.enterText(find.byType(TextFormField).at(1), 'Sifre1234');
+      await tester.pump(const Duration(milliseconds: 700)); // giriş animasyonu (Stitch v3 aşamalı giriş) bitmeden dokunma isabet etmez
       await tester.tap(find.text('Giriş yap'));
       await settle(tester, const Duration(milliseconds: 300));
       expect(find.textContaining('Sunucuya ulaşılamadı'), findsOneWidget);
@@ -121,6 +124,7 @@ void main() {
       await tester.pumpWidget(buildApp(LoginPage(session: makeSession(b, signedIn: false))));
       await tester.enterText(find.byType(TextFormField).at(0), 'ayse@bingol.edu.tr');
       await tester.enterText(find.byType(TextFormField).at(1), 'Sifre1234');
+      await tester.pump(const Duration(milliseconds: 700)); // giriş animasyonu (Stitch v3 aşamalı giriş) bitmeden dokunma isabet etmez
       await tester.tap(find.text('Giriş yap'));
       await settle(tester, const Duration(milliseconds: 500));
       expect(find.text('E-postanızı doğrulayın'), findsOneWidget);

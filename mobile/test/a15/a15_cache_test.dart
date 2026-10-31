@@ -30,6 +30,16 @@ const _t106 = 'T-106 / W2-G: ApiClient ORTA paketi (yanit tavani, yazma/GET yari
 Map<String, dynamic> msg(int id, {String text = 'm', Map<String, dynamic>? extra}) =>
     {'id': id, 'conversationId': 5, 'senderId': 2, 'text': '$text$id', 'createdAt': '2026-10-30T10:00:00Z', ...?extra};
 
+/// Sabit bekleme yerine kosul bekler: yuklu makinede (disk onbellegi gercek IO) 20 ms yetmeyebilir;
+/// "istek havada" varsayimi kosul saglanana dek (en cok 5 sn) beklenerek kesinlestirilir.
+Future<void> waitUntil(bool Function() cond, {String what = 'kosul'}) async {
+  final sw = Stopwatch()..start();
+  while (!cond()) {
+    if (sw.elapsed > const Duration(seconds: 5)) fail('zaman asimi: $what');
+    await Future<void>.delayed(const Duration(milliseconds: 5));
+  }
+}
+
 void main() {
   late Directory root;
   setUp(() async {
@@ -356,7 +366,7 @@ void main() {
       final (s, _, _) = await world(client);
       await s.api.setTokens(Tokens(_jwt(1), 'rA'));
       final inflight = s.api.get('/events'); // A'nin istegi havada
-      await Future<void>.delayed(const Duration(milliseconds: 20));
+      await waitUntil(() => n >= 1, what: 'A istegi aga cikti');
       await s.signOut(remote: false);
       await s.api.setTokens(Tokens(_jwt(2), 'rB')); // B giris
       gate.complete();
@@ -380,7 +390,7 @@ void main() {
       final (s, _, _) = await world(client);
       await s.api.setTokens(Tokens(_jwt(1), 'rA'));
       final inflight = s.api.get('/events');
-      await Future<void>.delayed(const Duration(milliseconds: 20));
+      await waitUntil(() => n >= 1, what: 'A istegi aga cikti');
       await s.signOut(remote: false);
       gate.complete();
       await expectLater(inflight, throwsA(isA<ApiError>().having((e) => e.code, 'code', 'SESSION_CHANGED')));
@@ -412,8 +422,10 @@ void main() {
 
     test('S5.x REFRESH yarisi: cikis sirasinda suren refresh sonucu belirtecleri GERI YAZAR (cikis yapilmis oturum hortlar)', () async {
       final gate = Completer<void>();
+      var refreshCalls = 0;
       final client = MockClient((r) async {
         if (r.url.path.endsWith('/auth/refresh')) {
+          refreshCalls++;
           await gate.future;
           return http.Response(jsonEncode({'accessToken': _jwt(1), 'refreshToken': 'r2'}), 200);
         }
@@ -423,7 +435,7 @@ void main() {
       s.api.tokens = Tokens(_jwt(1), 'r1');
       s.state = SessionState.signedIn;
       final rf = s.api.refresh();
-      await Future<void>.delayed(const Duration(milliseconds: 20));
+      await waitUntil(() => refreshCalls >= 1, what: 'refresh istegi aga cikti');
       await s.signOut(remote: false);
       expect(s.api.tokens, isNull);
       gate.complete();
@@ -455,6 +467,9 @@ void main() {
       await api.get('/news', force: true);
       expect(n, 2);
       await api.post('/events/1/rsvp', {});
+      // Gecersizleme ile sonraki yanit ayni saat adiminda kalirsa (Windows ~1-15 ms cozunurluk) kayit "taze" sayilmaz;
+      // saat cozunurlugunden bagimsiz olmasi icin yazmadan sonra kisa bekleme.
+      await Future<void>.delayed(const Duration(milliseconds: 30));
       await api.get('/events');
       await api.get('/events');
       expect(n, 4); // news, news(force), post, events

@@ -300,7 +300,8 @@ void main() {
   });
 
   group('Erişilebilirlik: kontrast ve dokunma hedefi (L34, L35)', () {
-    testWidgets('AuthPasswordGuide: durum rengi AA belirteçlerini kullanır (danger / onWarnSoft / ok)', (tester) async {
+    testWidgets('AuthPasswordGuide: güç etiketi renkle değil sözcükle anlatılır; etiket ink belirtecidir ve AA kontrastı sağlar', (tester) async {
+      // Stitch v3: zayıf/orta/güçlü için kırmızı/amber/yeşil kullanılmaz; etiket ink rengindedir.
       Future<Color?> labelColor(String pw, Brightness br) async {
         await tester.pumpWidget(buildApp(Scaffold(body: AuthPasswordGuide(password: pw)), brightness: br));
         await tester.pumpAndSettle(); // AnimatedTheme geçişi
@@ -308,20 +309,23 @@ void main() {
         return tester.widget<Text>(label).style?.color;
       }
 
-      expect(await labelColor('abc', Brightness.light), BuTokens.light.danger);
-      // Orta güç hata değil uyarıdır: kehribar tonunun okunur (onWarnSoft) rengi; zayıf kırmızı kalır.
-      expect(await labelColor('abcdefg1', Brightness.light), BuTokens.light.onWarnSoft);
-      expect(await labelColor('abcdefg1', Brightness.dark), BuTokens.dark.onWarnSoft);
       double ratio(Color a, Color b) {
         final l1 = a.computeLuminance(), l2 = b.computeLuminance();
         return (l1 > l2 ? l1 + .05 : l2 + .05) / (l1 > l2 ? l2 + .05 : l1 + .05);
       }
 
+      for (final (br, tk) in [(Brightness.light, BuTokens.light), (Brightness.dark, BuTokens.dark)]) {
+        for (final pw in ['abc', 'abcdefg1', 'Abcdefghijk1!']) {
+          final c = await labelColor(pw, br);
+          expect(c, tk.ink, reason: '$pw / ${br.name}: etiket rengi ink olmalı');
+          expect(c, isNot(tk.danger));
+          expect(c, isNot(tk.ok));
+        }
+        expect(ratio(tk.ink, tk.bg), greaterThanOrEqualTo(4.5));
+      }
+      // Uyarı bandı metin belirteci (RefBanner warn) hâlâ AA kontrastlı olmalı.
       expect(ratio(BuTokens.light.onWarnSoft, BuTokens.light.bg), greaterThanOrEqualTo(4.5));
       expect(ratio(BuTokens.dark.onWarnSoft, BuTokens.dark.bg), greaterThanOrEqualTo(4.5));
-      expect(await labelColor('abc', Brightness.dark), BuTokens.dark.danger);
-      expect(await labelColor('Abcdefghijk1!', Brightness.light), BuTokens.light.ok);
-      expect(await labelColor('Abcdefghijk1!', Brightness.dark), BuTokens.dark.ok);
     });
 
     for (final rtl in [false, true]) {

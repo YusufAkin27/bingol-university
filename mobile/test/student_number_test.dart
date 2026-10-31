@@ -16,6 +16,7 @@ Finder _suffix() => find.text('@bingol.edu.tr');
 Future<void> _fillLogin(WidgetTester tester, String id, String pw) async {
   await tester.enterText(find.byType(TextFormField).at(0), id);
   await tester.enterText(find.byType(TextFormField).at(1), pw);
+  await tester.pump(const Duration(milliseconds: 700)); // aşamalı giriş animasyonu bitmeden dokunma isabet etmez
   await tester.tap(find.text('Giriş yap'));
 }
 
