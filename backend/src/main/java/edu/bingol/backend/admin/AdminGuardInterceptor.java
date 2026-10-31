@@ -40,7 +40,11 @@ public class AdminGuardInterceptor implements HandlerInterceptor {
     @Override
     public boolean preHandle(HttpServletRequest req, HttpServletResponse res, Object handler) {
         String method = req.getMethod();
-        String path = req.getRequestURI();
+        String path = AdminPaths.of(req);
+        if (AuditContext.of(req).reasonInvalid()) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "REASON_INVALID",
+                    "Gerekçe satır sonu veya kontrol karakteri içeremez.");
+        }
         if (AdminGuardPolicy.isWrite(method)) {
             String actor = actorKey();
             limiter.check("admw:" + actor, writePerMinute, Duration.ofMinutes(1));

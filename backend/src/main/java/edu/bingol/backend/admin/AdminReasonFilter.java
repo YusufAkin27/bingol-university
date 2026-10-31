@@ -38,7 +38,7 @@ public class AdminReasonFilter extends OncePerRequestFilter {
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest req) {
-        return !req.getRequestURI().startsWith("/api/admin/");
+        return !AdminPaths.isAdmin(AdminPaths.of(req));
     }
 
     @Override
@@ -51,6 +51,8 @@ public class AdminReasonFilter extends OncePerRequestFilter {
         if (reason == null && ("GET".equals(method) || "HEAD".equals(method))) {
             reason = req.getParameter("reason");
         }
+        // Baslik/sorgu kaynakli gerekce satir sonu icermemeli (baslik/log enjeksiyonu); govde metni serbest (cok satirli yazi)
+        boolean invalid = hasControlChars(reason);
         if (reason == null && AdminGuardPolicy.isWrite(method) && isJson(req)) {
             long len = req.getContentLengthLong();
             if (len > 0 && len <= MAX_BODY) {
@@ -60,7 +62,21 @@ public class AdminReasonFilter extends OncePerRequestFilter {
             }
         }
         data.reason(reason);
+        data.reasonInvalid(invalid);
         chain.doFilter(next, res);
+    }
+
+    /** Kontrol karakteri (satir sonu, sekme, NUL...) iceren gerekce basliga/denetim satirina enjekte edilebilir (T-013). */
+    static boolean hasControlChars(String s) {
+        if (s == null) {
+            return false;
+        }
+        for (int i = 0; i < s.length(); i++) {
+            if (Character.isISOControl(s.charAt(i))) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /** Baslik degeri: yuzde-kodlu gelirse (HTTP basliklari ASCII) UTF-8 olarak cozulur. */

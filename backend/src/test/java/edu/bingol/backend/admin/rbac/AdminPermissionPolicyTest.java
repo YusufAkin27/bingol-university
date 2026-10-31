@@ -33,7 +33,9 @@ class AdminPermissionPolicyTest {
                     r("POST", "/api/admin/legal/terms"), r("PUT", "/api/admin/settings/banner_text"),
                     r("POST", "/api/admin/push/campaigns"), r("POST", "/api/admin/crypto/rewrap"),
                     r("PUT", "/api/admin/rbac/users/3/profile"), r("GET", "/api/admin/yeni-bilinmeyen-modul"),
-                    r("POST", "/api/admin/ops/mail-outbox/retry-dead"), r("GET", "/api/admin/audit"));
+                    r("POST", "/api/admin/ops/mail-outbox/retry-dead"), r("GET", "/api/admin/audit"),
+                    r("POST", "/api/admin/users/3/verify-email"),
+                    r("POST", "/api/admin/pending-registrations/a@bingol.edu.tr/verify"));
             case MODERATOR -> List.of(r("GET", "/api/admin/users"), r("GET", "/api/admin/users/3/sessions"),
                     r("POST", "/api/admin/users/3/suspend"), r("PATCH", "/api/admin/users/3/profile"),
                     r("GET", "/api/admin/reports"), r("GET", "/api/admin/reports/3"), r("POST", "/api/admin/reports/3/resolve"),
@@ -72,6 +74,8 @@ class AdminPermissionPolicyTest {
                     r("GET", "/api/admin/audit"), r("POST", "/api/admin/news/bulk"),
                     r("PUT", "/api/admin/rbac/users/3/profile"), r("GET", "/api/admin/rbac/admins"),
                     r("POST", "/api/admin/crypto/rewrap"), r("GET", "/api/admin/users/export.csv"),
+                    r("POST", "/api/admin/users/3/verify-email"), r("HEAD", "/api/admin/users/export.csv"),
+                    r("POST", "/api/admin/pending-registrations/a@bingol.edu.tr/verify"),
                     r("POST", "/api/admin/support/tickets/3/notes"), r("GET", "/api/admin/yeni-bilinmeyen-modul"));
             case SUPPORT -> List.of(r("PATCH", "/api/admin/users/3/profile"), r("POST", "/api/admin/users/3/suspend"),
                     r("GET", "/api/admin/users/3/sessions"), r("GET", "/api/admin/reports"),
@@ -129,7 +133,8 @@ class AdminPermissionPolicyTest {
     void sensitivePermissionsAreFullOnly() {
         for (String perm : List.of(PermissionMatrix.USERS_ROLE, PermissionMatrix.USERS_DELETE,
                 PermissionMatrix.LEGAL_PUBLISH, PermissionMatrix.SETTINGS_WRITE, PermissionMatrix.COMMS_SEND,
-                PermissionMatrix.SYSTEM_WRITE, PermissionMatrix.RBAC_MANAGE, PermissionMatrix.USERS_EXPORT)) {
+                PermissionMatrix.SYSTEM_WRITE, PermissionMatrix.RBAC_MANAGE, PermissionMatrix.USERS_EXPORT,
+                PermissionMatrix.USERS_VERIFY)) {
             for (AdminProfile p : AdminProfile.values()) {
                 assertThat(PermissionMatrix.allows(p, perm)).as(p + " " + perm).isEqualTo(p == AdminProfile.FULL);
             }

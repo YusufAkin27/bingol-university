@@ -27,7 +27,8 @@ public class AuditAccessDeniedHandler implements AccessDeniedHandler {
     @Override
     public void handle(HttpServletRequest req, HttpServletResponse res, AccessDeniedException e)
             throws IOException, ServletException {
-        if (req.getRequestURI().startsWith("/api/admin/") && AuditRecorder.shouldAudit(req.getMethod(), req.getRequestURI())) {
+        String path = AdminPaths.of(req);
+        if (path.startsWith("/api/admin/") && AuditRecorder.shouldAudit(req.getMethod(), path)) {
             recorder.record(req, SecurityContextHolder.getContext().getAuthentication(), HttpServletResponse.SC_FORBIDDEN);
         }
         delegate.handle(req, res, e);

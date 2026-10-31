@@ -187,7 +187,7 @@ public class RbacService {
     // --- ic yardimcilar ---
 
     /** FULL'i dusurmek ya da FULL yapmak iki kisi onayi ister. */
-    static boolean needsApproval(AdminProfile current, AdminProfile to) {
+    public static boolean needsApproval(AdminProfile current, AdminProfile to) {
         return current == AdminProfile.FULL || to == AdminProfile.FULL;
     }
 

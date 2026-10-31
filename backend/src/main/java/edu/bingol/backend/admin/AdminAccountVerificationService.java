@@ -7,7 +7,9 @@ import edu.bingol.backend.auth.token.PendingRegistrationStore.Pending;
 import edu.bingol.backend.auth.token.SessionService;
 import edu.bingol.backend.auth.token.VerificationService;
 import edu.bingol.backend.common.ApiException;
+import edu.bingol.backend.config.AdminProperties;
 import edu.bingol.backend.i18n.Lang;
+import edu.bingol.backend.observability.LogMasking;
 import edu.bingol.backend.user.User;
 import edu.bingol.backend.user.UserRepository;
 import edu.bingol.backend.user.UserStatus;
@@ -32,23 +34,28 @@ public class AdminAccountVerificationService {
     private final VerificationService verification;
     private final UserRepository users;
     private final SessionService sessions;
+    private final AdminProperties adminProperties;
 
     public AdminAccountVerificationService(PendingRegistrationStore pending, AccountCreator accounts,
                                            VerificationService verification, UserRepository users,
-                                           SessionService sessions) {
+                                           SessionService sessions, AdminProperties adminProperties) {
         this.pending = pending;
         this.accounts = accounts;
         this.verification = verification;
         this.users = users;
         this.sessions = sessions;
+        this.adminProperties = adminProperties;
     }
 
     /**
-     * Bekleyen kaydi kod istemeden hesaba cevirir (AccountCreator: emailVerified=true + sozlesme onayi).
+     * Bekleyen kaydi kod istemeden hesaba cevirir (AccountCreator: emailVerified=true + sozlesme onayi). Bu, e-posta
+     * sahipligi KANITLANMADAN hesap acmaktir: yalniz `users.verify` (FULL) + gerekce ile ve ADMIN_EMAILS adresi
+     * degilse (sabit FULL yonetici kod dogrulamasiyla acilir) yapilir (T-011).
      * Zaten dogrulanmis hesap varsa ya da benzersizlik ihlali olursa bekleyen kayit silinir, 409 doner.
      */
     public User verifyPending(String rawEmail, Long actorId) {
         String email = LoginIdentifier.normalize(rawEmail);
+        requireNotAdminEmail(email);
         Pending p = pending.find(email);
         if (p == null) {
             throw notFoundPending();
@@ -60,14 +67,15 @@ public class AdminAccountVerificationService {
         }
         User user;
         try {
-            user = accounts.create(email, p);
+            user = accounts.create(email, p, false); // kodsuz dogrulama: ADMIN_EMAILS terfisi YOK (T-011)
         } catch (DataIntegrityViolationException e) {
             pending.delete(email);
             throw alreadyRegistered();
         }
         pending.delete(email);
         verification.clearVerify(email);
-        log.info("ADMIN_VERIFY pending admin={} email={} userId={}", actorId, email, user.getId());
+        AuditContext.target("USER", user.getId()).summary("e-posta kodu ATLANDI: bekleyen kayit elle dogrulandi");
+        log.info("ADMIN_VERIFY pending admin={} email={} userId={}", actorId, LogMasking.email(email), user.getId());
         return user;
     }
 
@@ -86,12 +94,22 @@ public class AdminAccountVerificationService {
     public User verifyUser(Long id, Long actorId) {
         User u = find(id);
         if (!u.isEmailVerified()) {
+            requireNotAdminEmail(u.getEmail());
             u.setEmailVerified(true);
             u = users.save(u);
             verification.clearVerify(u.getEmail());
+            AuditContext.target("USER", id).summary("e-posta kodu ATLANDI: hesap elle dogrulandi");
             log.info("ADMIN_VERIFY user admin={} userId={}", actorId, id);
         }
         return u;
+    }
+
+    /** ADMIN_EMAILS adresi kodsuz dogrulanamaz: sabit FULL yonetici olurdu (T-011). */
+    private void requireNotAdminEmail(String email) {
+        if (adminProperties != null && email != null && adminProperties.isAdminEmail(email)) {
+            throw new ApiException(HttpStatus.CONFLICT, "VERIFY_ADMIN_EMAIL_FORBIDDEN",
+                    "Bu e-posta ADMIN_EMAILS listesinde; yönetici hesapları yalnızca e-posta kodu ile doğrulanır.");
+        }
     }
 
     /** Kullaniciya sifre sifirlama kodu e-postasi gonderir (dogrulanmamis hesap icin once verify-email gerekir). */
@@ -109,9 +127,12 @@ public class AdminAccountVerificationService {
         sessions.revokeAll(find(id).getId());
     }
 
+    /** Silinmemis hedef + hiyerarsi (T-014): yonetici hesabina yalniz FULL mudahale eder. */
     private User find(Long id) {
-        return users.findById(id).filter(u -> u.getStatus() != UserStatus.DELETED)
+        User u = users.findById(id).filter(x -> x.getStatus() != UserStatus.DELETED)
                 .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "USER_NOT_FOUND", "Kullanıcı bulunamadı."));
+        AdminHierarchy.requireManageable(u);
+        return u;
     }
 
     private static ApiException notFoundPending() {

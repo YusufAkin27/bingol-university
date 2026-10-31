@@ -29,8 +29,8 @@ class AdminBulkPolicyTest {
             assertEquals(0, AdminGuardPolicy.reasonMin("GET", p), p);
             assertFalse(AdminGuardPolicy.destructive("GET", p), p);
         }
-        // mevcut tekil uclar degismedi
-        assertEquals(0, AdminGuardPolicy.reasonMin("PATCH", "/api/admin/news/5"));
+        // mevcut tekil uclar degismedi (haber gizleme/duzenleme hariç: T-013 ile gerekce ister)
+        assertEquals(5, AdminGuardPolicy.reasonMin("PATCH", "/api/admin/news/5"));
         assertEquals(0, AdminGuardPolicy.reasonMin("POST", "/api/admin/sync"));
         assertEquals(0, AdminGuardPolicy.reasonMin("POST", "/api/admin/sources/status"));
     }

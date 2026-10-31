@@ -160,6 +160,49 @@ class AuditRecorderTest {
         assertEquals("3", cap.getValue().targetId());
     }
 
+    /** T-016: reddedilen istekte denetleyicinin onceden koydugu basari ozeti yazilmaz; sonuc kodu yazilir. */
+    @Test
+    void failedRequestNeverCarriesSuccessSummary() {
+        MockHttpServletRequest req = new MockHttpServletRequest("DELETE", "/api/admin/users/1");
+        AuditContext.of(req).summary("hesap anonimlestirildi").reason("deneme sebebi");
+        var auth = new UsernamePasswordAuthenticationToken(5L, null, List.of(new SimpleGrantedAuthority("ROLE_ADMIN")));
+
+        recorder.record(req, auth, 400);
+
+        var cap = org.mockito.ArgumentCaptor.forClass(AuditRepository.Details.class);
+        verify(repo).insert(any(), any(), any(), any(), anyInt(), any(), cap.capture());
+        assertEquals("BASARISIZ: HTTP 400", cap.getValue().summary());
+        assertEquals("deneme sebebi", cap.getValue().reason());
+    }
+
+    @Test
+    void successfulRequestKeepsItsSummary() {
+        MockHttpServletRequest req = new MockHttpServletRequest("DELETE", "/api/admin/users/1");
+        AuditContext.of(req).summary("hesap anonimlestirildi");
+
+        recorder.record(req, null, 204);
+
+        var cap = org.mockito.ArgumentCaptor.forClass(AuditRepository.Details.class);
+        verify(repo).insert(any(), any(), any(), any(), anyInt(), any(), cap.capture());
+        assertEquals("hesap anonimlestirildi", cap.getValue().summary());
+    }
+
+    /** T-016: users.pii ile eslenen ve diger kisisel veri okuyan GET uclarinin tamami denetlenir. */
+    @Test
+    void personalDataReadsAreAudited() {
+        for (String p : List.of("/api/admin/users/3/sessions", "/api/admin/users/3/push-devices",
+                "/api/admin/users/3/devices", "/api/admin/users/3/strikes", "/api/admin/pending-registrations",
+                "/api/admin/pending-registrations/a@bingol.edu.tr", "/api/admin/support/tickets",
+                "/api/admin/support/tickets/9", "/api/admin/mail/outbox", "/api/admin/mail/outbox/4")) {
+            assertTrue(AuditRecorder.shouldAudit("GET", p), p);
+            assertTrue(AuditRecorder.shouldAudit("HEAD", p), "HEAD " + p);
+        }
+        // genel liste/okuma uclari kayit seline yol acmasin
+        assertFalse(AuditRecorder.shouldAudit("GET", "/api/admin/users"));
+        assertFalse(AuditRecorder.shouldAudit("GET", "/api/admin/support/faq"));
+        assertFalse(AuditRecorder.shouldAudit("OPTIONS", "/api/admin/users/3/sessions"));
+    }
+
     static class Reads {
         @AuditRead
         public void detail() {}

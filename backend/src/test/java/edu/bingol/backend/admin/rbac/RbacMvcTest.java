@@ -257,4 +257,80 @@ class RbacMvcTest {
         assertEquals(Role.ADMIN, after.getRole());
         assertEquals(AdminProfile.VIEWER, after.getAdminProfile());
     }
+
+    // --- W1-B (T-010/T-011/T-012/T-014): HTTP katmaninda ---
+
+    private static java.net.URI raw(String path) {
+        return java.net.URI.create(path); // ham (yuzde-kodlu) yol: MockMvc yolu yeniden kodlamaz
+    }
+
+    @Test
+    void percentEncodedSegmentsCannotBypassPermissionsOverHttp() throws Exception {
+        User viewer = admin("kodluv", AdminProfile.VIEWER);
+        User mod = admin("kodlum", AdminProfile.MODERATOR);
+
+        for (String p : List.of("/api/admin/users/1/%63onversations", "/api/admin/users/%65xport.csv",
+                "/api/admin/users/1/%64evices", "/api/admin/users/1/%73essions", "/api/admin/pending-registrations/%65xport.csv")) {
+            MockHttpServletResponse r = as(viewer, get(raw(p)));
+            assertEquals(403, r.getStatus(), p + " " + r.getContentAsString());
+            assertEquals("ADMIN_PERMISSION_DENIED", json(r).get("code").asText(), p);
+        }
+        MockHttpServletResponse role = as(mod, org.springframework.test.web.servlet.request.MockMvcRequestBuilders
+                .patch(raw("/api/admin/users/1/%72ole")).contentType("application/json").content("{\"role\":\"USER\"}"));
+        assertEquals(403, role.getStatus(), role.getContentAsString());
+        assertEquals("ADMIN_PERMISSION_DENIED", json(role).get("code").asText());
+        // kontrol: MODERATOR kodlu sohbet yolunda da yetkilidir (kodlama yetkiyi ne artirir ne azaltir)
+        assertNotEquals(403, as(mod, get(raw("/api/admin/users/1/%63onversations"))).getStatus());
+        // HEAD, GET kurallariyla degerlendirilir
+        assertEquals(403, as(viewer, org.springframework.test.web.servlet.request.MockMvcRequestBuilders
+                .head("/api/admin/users/1/conversations")).getStatus());
+    }
+
+    @Test
+    void moderatorCannotTouchFullAdminAccountsAndCannotVerifyEmails() throws Exception {
+        User mod = admin("hiyermod", AdminProfile.MODERATOR);
+        User full = admin("hiyerfull", AdminProfile.FULL);
+        long id = full.getId();
+
+        for (var b : List.of(post("/api/admin/users/" + id + "/revoke-sessions"), post("/api/admin/users/" + id + "/send-reset"),
+                org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch("/api/admin/users/" + id + "/profile")
+                        .contentType("application/json").content("{\"clearBio\":true,\"reason\":\"hiyerarsi denemesi\"}"))) {
+            MockHttpServletResponse r = as(mod, b);
+            assertEquals(403, r.getStatus(), r.getContentAsString());
+            assertEquals("ADMIN_TARGET_FORBIDDEN", json(r).get("code").asText());
+        }
+        // users.verify yalniz FULL: MODERATOR izin katmaninda reddedilir
+        MockHttpServletResponse v = as(mod, post("/api/admin/users/" + id + "/verify-email"));
+        assertEquals(403, v.getStatus());
+        assertEquals("ADMIN_PERMISSION_DENIED", json(v).get("code").asText());
+        assertTrue(json(v).get("message").asText().contains("users.verify"), json(v).toString());
+        MockHttpServletResponse pv = as(mod, post("/api/admin/pending-registrations/x@bingol.edu.tr/verify"));
+        assertEquals(403, pv.getStatus());
+        assertEquals("ADMIN_PERMISSION_DENIED", json(pv).get("code").asText());
+    }
+
+    @Test
+    void demotingOrDeletingAFullAdminNeedsTwoPersonApproval() throws Exception {
+        User actor = admin("rolfull", AdminProfile.FULL);
+        User target = admin("rolhedef", AdminProfile.FULL);
+
+        MockHttpServletResponse role = as(actor, org.springframework.test.web.servlet.request.MockMvcRequestBuilders
+                .patch("/api/admin/users/" + target.getId() + "/role").contentType("application/json")
+                .content("{\"role\":\"USER\"}"));
+        assertEquals(409, role.getStatus(), role.getContentAsString());
+        assertEquals("RBAC_APPROVAL_REQUIRED", json(role).get("code").asText());
+
+        MockHttpServletResponse del = as(actor, org.springframework.test.web.servlet.request.MockMvcRequestBuilders
+                .delete("/api/admin/users/" + target.getId()));
+        assertEquals(409, del.getStatus(), del.getContentAsString());
+        assertEquals("RBAC_APPROVAL_REQUIRED", json(del).get("code").asText());
+        assertEquals(Role.ADMIN, users.findById(target.getId()).orElseThrow().getRole());
+
+        // FULL olmayan yonetici dogrudan dusurulebilir
+        User viewerTarget = admin("rolviewer", AdminProfile.VIEWER);
+        MockHttpServletResponse ok = as(actor, org.springframework.test.web.servlet.request.MockMvcRequestBuilders
+                .patch("/api/admin/users/" + viewerTarget.getId() + "/role").contentType("application/json")
+                .content("{\"role\":\"USER\"}"));
+        assertEquals(204, ok.getStatus(), ok.getContentAsString());
+    }
 }

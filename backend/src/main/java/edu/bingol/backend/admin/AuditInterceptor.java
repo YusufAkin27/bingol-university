@@ -19,7 +19,7 @@ public class AuditInterceptor implements HandlerInterceptor {
 
     @Override
     public void afterCompletion(HttpServletRequest req, HttpServletResponse res, Object handler, Exception ex) {
-        if (!AuditRecorder.shouldAudit(req.getMethod(), req.getRequestURI()) && !auditedRead(handler)) {
+        if (!AuditRecorder.shouldAudit(req.getMethod(), AdminPaths.of(req)) && !auditedRead(handler)) {
             return;
         }
         // Yakalanmamis hata durumunda yanit kodu henuz 200 gorunebilir

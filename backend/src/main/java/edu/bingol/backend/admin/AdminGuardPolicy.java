@@ -79,6 +79,18 @@ public final class AdminGuardPolicy {
     /** DS1 veri saklama: disa aktarma (kisisel veri cikarir) ve onayli silme (POST); ikisi de gerekce ister. */
     private static final Pattern RETENTION_POST = Pattern.compile("^/api/admin/data-retention/(exports|purges)$");
 
+    /** T-013: icerik moderasyonu (gonderi gizle/geri goster, gonderi kalici silme, haber gizleme/duzenleme). */
+    private static final Pattern POST_HIDE = Pattern.compile("^/api/admin/(posts|community-posts)/[^/]+/(hide|unhide)$");
+    private static final Pattern POST_DELETE = Pattern.compile("^/api/admin/posts/[^/]+$");
+    private static final Pattern NEWS_ITEM = Pattern.compile("^/api/admin/news/[^/]+$");
+    /** T-013: kullaniciyi askiya alma / erisimini engelleme (POST). */
+    private static final Pattern USER_SUSPEND = Pattern.compile("^/api/admin/users/[^/]+/(suspend|block-access)$");
+    /** T-011: bekleyen kaydi e-posta kodu olmadan dogrulama (POST). */
+    private static final Pattern PENDING_VERIFY = Pattern.compile("^/api/admin/pending-registrations/[^/]+/verify$");
+    /** T-013: erisim engeli olusturma, itiraz karari, kampanya olusturma/zamanlama/iptal, anahtar yeniden sarma (POST). */
+    private static final Pattern SENSITIVE_POST = Pattern.compile("^/api/admin/(access-bans|moderation/appeals/[^/]+/decide"
+            + "|(push|mail)/campaigns(/[^/]+/(schedule|cancel))?|crypto/rewrap)$");
+
     /** Kritik ayar anahtarlari (tam ad ya da onek). */
     private static final List<String> CRITICAL_SETTING_PREFIXES = List.of(
             "maintenance_mode", "min_version_", "store_url_", "legal.", "legal_", "support_email");
@@ -111,6 +123,19 @@ public final class AdminGuardPolicy {
                 || ("DELETE".equals(method) && MAIL_OPS_DELETE.matcher(path).matches());
     }
 
+    /** T-013: gonderi gizle/geri goster/sil ve haber gizleme/duzenleme (sebep ister). */
+    static boolean contentModeration(String method, String path) {
+        return ("POST".equals(method) && POST_HIDE.matcher(path).matches())
+                || ("DELETE".equals(method) && POST_DELETE.matcher(path).matches())
+                || ("PATCH".equals(method) && NEWS_ITEM.matcher(path).matches());
+    }
+
+    /** T-011/T-013: hesap islemleri (e-posta dogrulama, sifirlama, oturum kapatma) ve kullanici askiya alma/erisim engeli (POST). */
+    static boolean accountOps(String method, String path) {
+        return "POST".equals(method)
+                && (USER_ACCOUNT_OPS.matcher(path).matches() || USER_SUSPEND.matcher(path).matches());
+    }
+
     public static boolean isWrite(String method) {
         return "POST".equals(method) || "PUT".equals(method) || "PATCH".equals(method) || "DELETE".equals(method);
     }
@@ -138,11 +163,9 @@ public final class AdminGuardPolicy {
         if ("POST".equals(method) && LEGAL_PUBLISH.matcher(path).matches()) {
             return DEFAULT_MIN_REASON;
         }
-        if ("PUT".equals(method)) {
-            var m = SETTING.matcher(path);
-            if (m.matches() && criticalSetting(m.group(1))) {
-                return DEFAULT_MIN_REASON;
-            }
+        // T-013: TUM ayar yazimlari gerekce ister (kritik olmayan ayar da herkese acik metni/davranisi degistirir)
+        if ("PUT".equals(method) && SETTING.matcher(path).matches()) {
+            return DEFAULT_MIN_REASON;
         }
         if ("POST".equals(method) && BULK.matcher(path).matches()) {
             return DEFAULT_MIN_REASON;
@@ -174,6 +197,12 @@ public final class AdminGuardPolicy {
             return DEFAULT_MIN_REASON;
         }
         if ("POST".equals(method) && RETENTION_POST.matcher(path).matches()) {
+            return DEFAULT_MIN_REASON;
+        }
+        if (contentModeration(method, path) || accountOps(method, path)) {
+            return DEFAULT_MIN_REASON;
+        }
+        if ("POST".equals(method) && (SENSITIVE_POST.matcher(path).matches() || PENDING_VERIFY.matcher(path).matches())) {
             return DEFAULT_MIN_REASON;
         }
         return 0;

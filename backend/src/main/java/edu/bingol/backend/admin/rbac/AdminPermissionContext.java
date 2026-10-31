@@ -22,7 +22,7 @@ public record AdminPermissionContext(AdminProfile profile, boolean pinned) {
         return PermissionMatrix.allows(profile, perm);
     }
 
-    static void put(HttpServletRequest req, AdminPermissionContext ctx) {
+    public static void put(HttpServletRequest req, AdminPermissionContext ctx) {
         req.setAttribute(ATTR, ctx);
     }
 

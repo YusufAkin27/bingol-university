@@ -56,10 +56,34 @@ class AdminGuardTest {
         assertEquals(5, AdminGuardPolicy.reasonMin("POST", "/api/admin/access-bans/bulk"));
     }
 
+    /** T-011/T-013: gerekce ve yikici sinir kapsami (onceden gerekcesiz kalan uclar). */
+    @Test
+    void previouslyUnguardedEndpointsNowNeedReason() {
+        for (String[] r : new String[][] {
+                {"PUT", "/api/admin/settings/banner_text"}, {"PUT", "/api/admin/settings/contact_email"},
+                {"POST", "/api/admin/users/3/verify-email"}, {"POST", "/api/admin/users/3/send-reset"},
+                {"POST", "/api/admin/users/3/revoke-sessions"}, {"POST", "/api/admin/users/3/suspend"},
+                {"POST", "/api/admin/users/3/block-access"},
+                {"POST", "/api/admin/pending-registrations/a@bingol.edu.tr/verify"},
+                {"POST", "/api/admin/posts/3/hide"}, {"POST", "/api/admin/posts/3/unhide"},
+                {"POST", "/api/admin/community-posts/3/hide"}, {"DELETE", "/api/admin/posts/3"},
+                {"PATCH", "/api/admin/news/3"}, {"POST", "/api/admin/access-bans"},
+                {"POST", "/api/admin/push/campaigns"}, {"POST", "/api/admin/push/campaigns/3/cancel"},
+                {"POST", "/api/admin/mail/campaigns"}, {"POST", "/api/admin/mail/campaigns/3/schedule"},
+                {"POST", "/api/admin/mail/campaigns/3/cancel"}, {"POST", "/api/admin/crypto/rewrap"},
+                {"POST", "/api/admin/moderation/appeals/3/decide"}}) {
+            assertEquals(5, AdminGuardPolicy.reasonMin(r[0], r[1]), r[0] + " " + r[1]);
+            assertTrue(AdminGuardPolicy.destructive(r[0], r[1]), r[0] + " " + r[1] + " yikici sayilmali");
+        }
+        // okuma, test gonderimi ve kitle onizlemesi gerekce istemez
+        assertEquals(0, AdminGuardPolicy.reasonMin("GET", "/api/admin/posts/3"));
+        assertEquals(0, AdminGuardPolicy.reasonMin("POST", "/api/admin/push/campaigns/test"));
+        assertEquals(0, AdminGuardPolicy.reasonMin("POST", "/api/admin/mail/campaigns/audience/preview"));
+        assertEquals(0, AdminGuardPolicy.reasonMin("PATCH", "/api/admin/posts/3"));
+    }
+
     @Test
     void ordinaryOperationsDoNotNeedReason() {
-        assertEquals(0, AdminGuardPolicy.reasonMin("PUT", "/api/admin/settings/banner_text"));
-        assertEquals(0, AdminGuardPolicy.reasonMin("POST", "/api/admin/users/3/verify-email"));
         assertEquals(0, AdminGuardPolicy.reasonMin("GET", "/api/admin/users/3"));
         assertEquals(0, AdminGuardPolicy.reasonMin("DELETE", "/api/admin/faq/1"));
         assertEquals(0, AdminGuardPolicy.reasonMin("GET", "/api/admin/legal/terms/versions"));

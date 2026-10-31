@@ -39,7 +39,8 @@ class UserExtrasGuardPolicyTest {
     void existingRulesAreUntouched() {
         assertEquals(5, AdminGuardPolicy.reasonMin("PATCH", "/api/admin/users/7/role"));
         assertEquals(5, AdminGuardPolicy.reasonMin("DELETE", "/api/admin/users/7"));
-        assertEquals(0, AdminGuardPolicy.reasonMin("POST", "/api/admin/users/7/revoke-sessions"));
+        // T-013: oturum kapatma/sifirlama/dogrulama artik gerekce ister (5) ve yikici sayilir
+        assertEquals(5, AdminGuardPolicy.reasonMin("POST", "/api/admin/users/7/revoke-sessions"));
         assertTrue(AdminGuardPolicy.destructive("POST", "/api/admin/users/7/revoke-sessions"));
         assertEquals(0, AdminGuardPolicy.reasonMin("PATCH", "/api/admin/users/7/other"));
     }

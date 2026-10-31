@@ -46,7 +46,7 @@ public class AdminUserProfileService {
         if (!wantAvatar && !wantBio && !wantName) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "PROFILE_PATCH_EMPTY", "Değiştirilecek alan belirtilmedi.");
         }
-        User u = Targets.active(users, targetId);
+        User u = Targets.manageable(users, targetId);
 
         // Once dogrulama (hicbir alan yarim kalmasin): ad gecersizse 400 ve hicbir sey degismez.
         String newName = wantName ? DisplayNamePolicy.normalize(p.displayName(), u.getRole() == Role.ADMIN) : null;

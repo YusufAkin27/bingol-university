@@ -59,6 +59,9 @@ public final class AdminPermissionPolicy {
         // --- kullanicilar ---
         one(Set.of("GET"), "/api/admin/users/export[.]csv", USERS_EXPORT);
         one(Set.of("POST"), "/api/admin/users/" + ID + "/export", USERS_EXPORT);
+        // T-011: e-posta sahipligini kanitlamadan hesap acma/dogrulama yalniz FULL (users.write sahibi MODERATOR yapamaz)
+        one(Set.of("POST"), "/api/admin/users/" + ID + "/verify-email", USERS_VERIFY);
+        one(Set.of("POST"), "/api/admin/pending-registrations/" + ID + "/verify", USERS_VERIFY);
         one(Set.of("PATCH"), "/api/admin/users/" + ID + "/role", USERS_ROLE);
         one(Set.of("DELETE"), "/api/admin/users/" + ID, USERS_DELETE);
         one(Set.of("GET"), "/api/admin/users/" + ID + "/(sessions|push-devices|devices)", USERS_PII);
@@ -136,6 +139,10 @@ public final class AdminPermissionPolicy {
             return Optional.empty();
         }
         String m = method.toUpperCase(java.util.Locale.ROOT);
+        // HEAD, GET isleyicisine gider (Spring): izin de GET kurallariyla degerlendirilir (T-010/A1-37)
+        if (m.equals("HEAD")) {
+            m = "GET";
+        }
         String p = normalize(path);
         for (Rule r : RULES) {
             if (r.matches(m, p)) {

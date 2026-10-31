@@ -70,7 +70,7 @@ public class AdminUserSessionService {
 
     /** Tek oturumu (refresh token'i) sonlandirir; bulunamazsa 404. */
     public void revoke(Long userId, String sessionId) {
-        Targets.existing(users, userId);
+        edu.bingol.backend.admin.AdminHierarchy.requireManageable(Targets.existing(users, userId));
         if (sessionId == null || !SESSION_ID.matcher(sessionId).matches()) {
             throw notFound();
         }

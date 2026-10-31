@@ -1,5 +1,6 @@
 package edu.bingol.backend.admin.rbac;
 
+import edu.bingol.backend.admin.AdminPaths;
 import edu.bingol.backend.common.ApiException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -33,7 +34,7 @@ public class AdminPermissionInterceptor implements HandlerInterceptor {
         AdminProfileResolver.Resolved r = resolver.resolve(auth, req);
         AdminPermissionContext ctx = new AdminPermissionContext(r.profile(), r.pinned());
         AdminPermissionContext.put(req, ctx);
-        String need = AdminPermissionPolicy.required(method, req.getRequestURI());
+        String need = AdminPermissionPolicy.required(method, AdminPaths.of(req));
         if (!ctx.can(need)) {
             throw new ApiException(HttpStatus.FORBIDDEN, "ADMIN_PERMISSION_DENIED",
                     "Bu işlem için yetkiniz yok (gereken izin: " + need + ").", need);

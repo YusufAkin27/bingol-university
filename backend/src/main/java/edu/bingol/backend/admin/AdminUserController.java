@@ -120,15 +120,17 @@ public class AdminUserController {
     @PatchMapping("/users/{id}/role")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void role(@PathVariable Long id, @Valid @RequestBody RoleRequest r, Authentication auth) {
-        AuditContext.target("USER", id).summary("rol -> " + r.role());
+        AuditContext.target("USER", id);
         service.changeRole(actorId(auth), id, r.role());
+        AuditContext.summary("rol -> " + r.role()); // yalniz basarida (T-016)
     }
 
     @DeleteMapping("/users/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(@PathVariable Long id, Authentication auth) {
-        AuditContext.target("USER", id).summary("hesap anonimlestirildi");
+        AuditContext.target("USER", id);
         service.delete(actorId(auth), id);
+        AuditContext.summary("hesap anonimlestirildi"); // yalniz basarida (T-016)
     }
 
     /** E-postasi dogrulanmamis satiri elle dogrular (idempotent). */

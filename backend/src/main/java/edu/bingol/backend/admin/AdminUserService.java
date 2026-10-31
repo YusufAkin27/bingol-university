@@ -36,6 +36,7 @@ public class AdminUserService {
     private final Clock clock;
     private edu.bingol.backend.auth.token.SessionService sessions;
     private edu.bingol.backend.config.AdminProperties adminProperties;
+    private edu.bingol.backend.admin.rbac.AdminProfileResolver profileResolver;
 
     public AdminUserService(AdminUserRepository repo, UserRepository users, ProfileService profiles,
                             StringRedisTemplate redis, JwtService jwt, Clock clock) {
@@ -57,6 +58,32 @@ public class AdminUserService {
     @org.springframework.beans.factory.annotation.Autowired(required = false)
     void setAdminProperties(edu.bingol.backend.config.AdminProperties adminProperties) {
         this.adminProperties = adminProperties;
+    }
+
+    /** Etkin yonetici profili cozumleyici (istege bagli: yalniz birim testlerinde yok). */
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setProfileResolver(edu.bingol.backend.admin.rbac.AdminProfileResolver profileResolver) {
+        this.profileResolver = profileResolver;
+    }
+
+    /**
+     * Hedef FULL yonetici ise rol dusurme/silme iki kisi onayi ister (T-012): RBAC akisi (profil onerisi + ikinci FULL
+     * onayi) once FULL'u dusurur, sonra rol/silme tek basina yapilabilir. Son FULL hicbir kosulda dusurulemez/silinemez.
+     */
+    private void requireNoFullTarget(User u) {
+        if (profileResolver == null || u.getRole() != Role.ADMIN) {
+            return;
+        }
+        edu.bingol.backend.admin.rbac.AdminProfile cur = profileResolver.effective(u);
+        if (edu.bingol.backend.admin.rbac.RbacService.needsApproval(cur,
+                edu.bingol.backend.admin.rbac.AdminProfile.VIEWER)) {
+            users.lockAdminIds();
+            if (users.countFullAdmins() <= 1) {
+                throw new ApiException(HttpStatus.CONFLICT, "RBAC_LAST_FULL", "Son FULL yönetici düşürülemez.");
+            }
+            throw new ApiException(HttpStatus.CONFLICT, "RBAC_APPROVAL_REQUIRED",
+                    "FULL yöneticiyi düşürmek veya birini FULL yapmak iki kişi onayı ister (öneri oluşturun).");
+        }
     }
 
     /**
@@ -122,6 +149,7 @@ public class AdminUserService {
             requireNotPinned(u);
         }
         if (u.getRole() == Role.ADMIN) {
+            requireNoFullTarget(u);
             requireAnotherAdmin();
         }
         u.setRole(role);
@@ -140,6 +168,7 @@ public class AdminUserService {
         User u = find(targetId);
         requireNotPinned(u);
         if (u.getRole() == Role.ADMIN) {
+            requireNoFullTarget(u);
             requireAnotherAdmin();
         }
         profiles.anonymizeAccount(targetId);

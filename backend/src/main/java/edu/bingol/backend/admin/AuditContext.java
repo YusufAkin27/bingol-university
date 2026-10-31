@@ -28,6 +28,7 @@ public final class AuditContext {
         private volatile String targetId;
         private volatile String reason;
         private volatile String summary;
+        private volatile boolean reasonInvalid;
 
         public Data target(String type, Object id) {
             this.targetType = clip(type, 32);
@@ -49,6 +50,16 @@ public final class AuditContext {
                 this.summary = clip(v, MAX_SUMMARY);
             }
             return this;
+        }
+
+        /** Gerekce metni kontrol karakteri (CR/LF/sekme...) iceriyordu: guvenlik duvari 400 REASON_INVALID verir (T-013). */
+        public Data reasonInvalid(boolean v) {
+            this.reasonInvalid = v;
+            return this;
+        }
+
+        public boolean reasonInvalid() {
+            return reasonInvalid;
         }
 
         public String targetType() {

@@ -235,4 +235,71 @@ class AdminUserServiceTest {
         service.changeRole(1L, 4L, Role.ADMIN); // yukseltmek serbest
         assertEquals(Role.ADMIN, pinnedUser.getRole());
     }
+
+    // --- T-012: FULL hedef iki kisi onayi + son FULL korumasi ---
+
+    private edu.bingol.backend.admin.rbac.AdminProfileResolver resolverWith(User target, edu.bingol.backend.admin.rbac.AdminProfile p) {
+        var resolver = mock(edu.bingol.backend.admin.rbac.AdminProfileResolver.class);
+        when(resolver.effective(target)).thenReturn(p);
+        service.setProfileResolver(resolver);
+        return resolver;
+    }
+
+    @Test
+    void demotingAFullAdminNeedsTwoPersonApproval() {
+        user(1L, Role.ADMIN);
+        User target = user(2L, Role.ADMIN);
+        resolverWith(target, edu.bingol.backend.admin.rbac.AdminProfile.FULL);
+        when(users.countByRoleAndStatus(Role.ADMIN, UserStatus.ACTIVE)).thenReturn(3L);
+        when(users.countFullAdmins()).thenReturn(2L);
+
+        ApiException e = assertThrows(ApiException.class, () -> service.changeRole(1L, 2L, Role.USER));
+
+        assertEquals("RBAC_APPROVAL_REQUIRED", e.code());
+        assertEquals(409, e.status().value());
+        assertEquals(Role.ADMIN, target.getRole());
+        verify(users, never()).save(any());
+    }
+
+    @Test
+    void lastFullAdminCannotBeDemotedOrDeleted() {
+        user(1L, Role.ADMIN);
+        User target = user(2L, Role.ADMIN);
+        resolverWith(target, edu.bingol.backend.admin.rbac.AdminProfile.FULL);
+        when(users.countFullAdmins()).thenReturn(1L);
+
+        assertEquals("RBAC_LAST_FULL",
+                assertThrows(ApiException.class, () -> service.changeRole(1L, 2L, Role.USER)).code());
+        assertEquals("RBAC_LAST_FULL", assertThrows(ApiException.class, () -> service.delete(1L, 2L)).code());
+        verify(profiles, never()).anonymizeAccount(any());
+    }
+
+    @Test
+    void deletingAFullAdminNeedsApprovalToo() {
+        user(1L, Role.ADMIN);
+        User target = user(2L, Role.ADMIN);
+        resolverWith(target, edu.bingol.backend.admin.rbac.AdminProfile.FULL);
+        when(users.countFullAdmins()).thenReturn(2L);
+
+        ApiException e = assertThrows(ApiException.class, () -> service.delete(1L, 2L));
+
+        assertEquals("RBAC_APPROVAL_REQUIRED", e.code());
+        verify(profiles, never()).anonymizeAccount(any());
+    }
+
+    @Test
+    void nonFullAdminTargetCanBeDemotedAndDeletedDirectly() {
+        user(1L, Role.ADMIN);
+        User target = user(2L, Role.ADMIN);
+        resolverWith(target, edu.bingol.backend.admin.rbac.AdminProfile.VIEWER);
+        when(users.countByRoleAndStatus(Role.ADMIN, UserStatus.ACTIVE)).thenReturn(3L);
+
+        service.changeRole(1L, 2L, Role.USER);
+        assertEquals(Role.USER, target.getRole());
+
+        User t2 = user(3L, Role.ADMIN);
+        resolverWith(t2, edu.bingol.backend.admin.rbac.AdminProfile.MODERATOR);
+        service.delete(1L, 3L);
+        verify(profiles).anonymizeAccount(3L);
+    }
 }

@@ -58,7 +58,7 @@ public class AdminPushDeviceService {
     /** Cihaz kaydini siler (kullanici bir sonraki acilista yeniden kaydeder). Baska kullanicinin cihazi 404. */
     @Transactional
     public void delete(Long userId, Long deviceId) {
-        Targets.existing(users, userId);
+        edu.bingol.backend.admin.AdminHierarchy.requireManageable(Targets.existing(users, userId));
         Device d = devices.findById(deviceId).filter(x -> userId.equals(x.getUserId()))
                 .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "PUSH_DEVICE_NOT_FOUND",
                         "Cihaz kaydı bulunamadı."));

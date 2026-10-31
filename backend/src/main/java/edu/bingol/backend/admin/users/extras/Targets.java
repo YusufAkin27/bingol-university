@@ -25,6 +25,13 @@ final class Targets {
         return users.findById(id).filter(u -> u.getStatus() != UserStatus.DELETED).orElseThrow(Targets::notFound);
     }
 
+    /** Silinmemis hesap + hiyerarsi (T-014): hedef yonetici ise yalniz FULL mudahale eder; yazma uclari icin. */
+    static User manageable(UserRepository users, Long id) {
+        User u = active(users, id);
+        edu.bingol.backend.admin.AdminHierarchy.requireManageable(u);
+        return u;
+    }
+
     /** Sebep en az `min` karakter degilse 400 REASON_REQUIRED; kirpilmis sebebi doner. */
     static String reason(String reason, int min) {
         String r = reason == null ? "" : reason.strip();
