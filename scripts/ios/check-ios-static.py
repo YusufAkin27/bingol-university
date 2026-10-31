@@ -258,6 +258,26 @@ def check_google_plist(bundle):
         (ok if k in d else bad)(f'GoogleService-Info.plist {k} ' + ('var' if k in d else 'EKSIK'))
 
 
+CANONICAL_BUNDLE = 'tr.com.bukampus.app'  # kullanici karari 2026-10-31 (Android applicationId ile ayni)
+
+
+def check_bundle_consistency(bundle):
+    """Bundle id tek kaynakta tutarli mi: pbxproj, fastlane Appfile, codemagic.yaml; eski id hicbir yerde kalmamali."""
+    (ok if bundle == CANONICAL_BUNDLE else bad)(f'Bundle id {bundle} == {CANONICAL_BUNDLE}')
+    rels = ['mobile/ios/fastlane/Appfile', 'codemagic.yaml', 'mobile/ios/Runner.xcodeproj/project.pbxproj',
+            '.github/workflows/ios-release.yml', 'mobile/ios/fastlane/Fastfile']
+    old = 'edu.bingol.' + 'buKampus'
+    for rel in rels:
+        p = os.path.join(ROOT, rel)
+        if os.path.isfile(p) and old in read(p):
+            bad(f'{rel}: eski bundle id ({old}) kalmis')
+    for rel, needle in (('mobile/ios/fastlane/Appfile', 'app_identifier("%s")' % bundle),
+                        ('codemagic.yaml', 'bundle_identifier: %s' % bundle)):
+        p = os.path.join(ROOT, rel)
+        if os.path.isfile(p):
+            (ok if needle in read(p) else bad)(f'{rel}: bundle id {bundle}' + ('' if needle in read(p) else ' ile UYUSMUYOR'))
+
+
 def check_ci_files():
     try:
         import yaml  # type: ignore
@@ -285,6 +305,7 @@ def main():
     bundle = check_pbxproj()
     check_icons()
     check_google_plist(bundle)
+    check_bundle_consistency(bundle)
     check_ci_files()
     print(f'\nOzet: {len(errors)} hata, {len(warnings)} uyari')
     sys.exit(1 if errors else 0)

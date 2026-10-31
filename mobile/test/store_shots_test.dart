@@ -15,6 +15,7 @@ import 'package:bu_kampus/features/menu/menu_page.dart';
 import 'package:bu_kampus/features/polls/poll_detail_page.dart';
 import 'package:bu_kampus/features/shell/app_shell.dart';
 import 'package:bu_kampus/l10n/app_localizations.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -32,11 +33,15 @@ import 'support/store_shots_images.dart';
 /// Veri tamamen uydurmadır (gerçek kişi/e-posta/fotoğraf yok); görseller `store_shots_images.dart` ile üretilir.
 
 // Tuval: mantıksal 405x720 @ 2.6667 = 1080x1920. Uygulama ekranı 360x600 (960x1600 piksel).
-const _canvas = Size(405, 720);
-const _screen = Size(345, 636); // çerçeve (çıktıda 960x1696 piksel)
-const _appSize = Size(392, 723); // uygulamanın gördüğü mantıksal telefon boyutu; çerçeveye küçültülür
-const _headerH = 66.0;
-const _dpr = 1080 / 405;
+// `STORE_SHOTS_IOS=1` (IOS2): Apple 6.9" iPhone için 440x956 @ 3 = 1320x2868; iOS platformu, Dynamic Island + 34 dp home indicator.
+final _ios = Platform.environment['STORE_SHOTS_IOS'] == '1';
+final _canvas = _ios ? const Size(440, 956) : const Size(405, 720);
+final _screen = _ios ? const Size(390, 846) : const Size(345, 636); // çerçeve (Play çıktıda 960x1696 piksel)
+final _appSize = _ios ? const Size(393, 852) : const Size(392, 723); // uygulamanın gördüğü mantıksal telefon boyutu; çerçeveye küçültülür
+final _headerH = _ios ? 92.0 : 66.0;
+final _dpr = _ios ? 3.0 : 1080 / 405;
+final _topInset = _ios ? 54.0 : 30.0;
+final _bottomInset = _ios ? 34.0 : 8.0;
 
 class _Shot {
   const _Shot(this.file, this.titleTr, this.titleEn, this.build, {this.dark = false, this.tab, this.after});
@@ -381,22 +386,37 @@ class _StatusBar extends StatelessWidget {
       left: 0,
       right: 0,
       top: 0,
-      height: 28,
+      height: _ios ? 54 : 28,
       child: IgnorePointer(
         child: ColoredBox(
           color: bg,
-          child: Padding(
-          padding: const EdgeInsets.fromLTRB(22, 6, 18, 0),
-          child: Row(children: [
-            Text('9:41', style: TextStyle(fontFamily: 'Inter', fontSize: 12.5, fontWeight: FontWeight.w700, color: color)),
-            const Spacer(),
-            Icon(LucideIcons.signal, size: 13, color: color),
-            const SizedBox(width: 5),
-            Icon(LucideIcons.wifi, size: 13, color: color),
-            const SizedBox(width: 5),
-            Icon(LucideIcons.batteryFull, size: 16, color: color),
+          child: Stack(children: [
+            if (_ios)
+              const Positioned(
+                top: 11,
+                left: 0,
+                right: 0,
+                child: Center(
+                  child: SizedBox(
+                    width: 112,
+                    height: 32,
+                    child: DecoratedBox(decoration: BoxDecoration(color: Colors.black, borderRadius: BorderRadius.all(Radius.circular(16)))),
+                  ),
+                ),
+              ),
+            Padding(
+              padding: _ios ? const EdgeInsets.fromLTRB(34, 18, 28, 0) : const EdgeInsets.fromLTRB(22, 6, 18, 0),
+              child: Row(children: [
+                Text('9:41', style: TextStyle(fontFamily: 'Inter', fontSize: _ios ? 15 : 12.5, fontWeight: FontWeight.w700, color: color)),
+                const Spacer(),
+                Icon(LucideIcons.signal, size: 13, color: color),
+                const SizedBox(width: 5),
+                Icon(LucideIcons.wifi, size: 13, color: color),
+                const SizedBox(width: 5),
+                Icon(LucideIcons.batteryFull, size: 16, color: color),
+              ]),
+            ),
           ]),
-          ),
         ),
       ),
     );
@@ -505,8 +525,8 @@ Widget _appFor(Widget home, String lang, bool dark) {
       data: MediaQuery.of(context).copyWith(
         size: _appSize,
         devicePixelRatio: _dpr,
-        padding: const EdgeInsets.only(top: 30, bottom: 8),
-        viewPadding: const EdgeInsets.only(top: 30, bottom: 8),
+        padding: EdgeInsets.only(top: _topInset, bottom: _bottomInset),
+        viewPadding: EdgeInsets.only(top: _topInset, bottom: _bottomInset),
         textScaler: TextScaler.noScaling,
       ),
       child: child!,
@@ -536,6 +556,7 @@ void main() {
     for (final shot in _shots) {
       if (only.isNotEmpty && !only.any((o) => shot.file.startsWith(o))) continue;
       testWidgets('mağaza görseli ${shot.file}_$lang', skip: skip != null, (tester) async {
+        if (_ios) debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
         debugNetworkImageHttpClientProvider = () => StoreImageHttpClient();
         addTearDown(() => debugNetworkImageHttpClientProvider = null);
         tester.view.devicePixelRatio = _dpr;
@@ -579,6 +600,7 @@ void main() {
         await unmount(tester);
         // Boyama hata ayıklama değişkeni test sonu denetiminden ÖNCE sıfırlanmalı (addTearDown geç kalır).
         debugNetworkImageHttpClientProvider = null;
+        debugDefaultTargetPlatformOverride = null;
       });
     }
   }

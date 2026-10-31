@@ -23,13 +23,31 @@ platform :ios do
     asc_key
     produce(
       app_identifier: CredentialsManager::AppfileConfig.try_fetch_value(:app_identifier),
-      app_name: "BU Kampus",
+      # Magaza adi: "BÜ Kampüs" (30 karakter sinirinda). Ad doluysa IOS_APP_NAME ile degistirin (docs/IOS_RELEASE.md K3).
+      app_name: ENV["IOS_APP_NAME"] || "BÜ Kampüs",
       language: "turkish",
       app_version: "1.0",
       sku: "bu-kampus-ios",
       enable_services: { push_notification: "on" },
       skip_itc: false
     )
+  end
+
+  desc "TestFlight'taki son yapi numarasi + 1 hesaplar (build number cakismasi onlemi); sonuc dosyaya yazilir"
+  lane :next_build do |options|
+    asc_key
+    base = options[:base].to_i
+    version = options[:version].to_s
+    latest = latest_testflight_build_number(
+      app_identifier: CredentialsManager::AppfileConfig.try_fetch_value(:app_identifier),
+      version: version.empty? ? nil : version,
+      initial_build_number: base - 1
+    )
+    nxt = [base, latest.to_i + 1].max
+    out = File.expand_path("../../build/ios-release/next_build_number.txt", __dir__)
+    FileUtils.mkdir_p(File.dirname(out))
+    File.write(out, nxt.to_s)
+    UI.success("Sonraki yapi numarasi: #{nxt} (TestFlight son: #{latest}, taban: #{base})")
   end
 
   desc "Hazir IPA'yi TestFlight'a yukler (IPA once scripts/ios/build-ipa.sh ile uretilir)"

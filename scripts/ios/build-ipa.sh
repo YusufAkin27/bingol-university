@@ -9,7 +9,7 @@
 #   IOS_API_ISSUER_ID        Issuer ID (UUID)
 #   IOS_API_KEY_P8_BASE64    AuthKey_<KEYID>.p8 dosyasinin base64'u
 # Istege bagli:
-#   API_BASE (varsayilan https://bukampus.com.tr), APP_VERSION (varsayilan pubspec surum adi),
+#   IOS_BUILD_NUMBER (CFBundleVersion; varsayilan pubspec +N), API_BASE (varsayilan https://bukampus.com.tr), APP_VERSION (varsayilan pubspec surum adi),
 #   OUT_DIR (varsayilan mobile/build/ios-release, gitignored), SKIP_FLUTTER_TEST yok (testler ayri is akisinda kosar)
 # Cikti: $OUT_DIR/ipa/*.ipa, $OUT_DIR/symbols (--split-debug-info; SAKLAYIN: cokme izleri icin), $OUT_DIR/Runner.xcarchive
 set -euo pipefail
@@ -30,6 +30,12 @@ case "$API_BASE" in https://*) ;; *) echo "HATA: API_BASE https olmali: $API_BAS
 VERSION_LINE="$(grep -E '^version:' "$MOBILE/pubspec.yaml" | head -1 | sed 's/version:[[:space:]]*//')"
 BUILD_NAME="${VERSION_LINE%%+*}"
 BUILD_NUMBER="${VERSION_LINE##*+}"
+# TestFlight ayni surum icin ayni CFBundleVersion'i iki kez KABUL ETMEZ. CI, "next-build-number" adimiyla
+# IOS_BUILD_NUMBER verir (TestFlight'taki son numara + 1); verilmezse pubspec numarasi kullanilir.
+if [ -n "${IOS_BUILD_NUMBER:-}" ]; then
+  case "$IOS_BUILD_NUMBER" in *[!0-9]*|"") echo "HATA: IOS_BUILD_NUMBER sayi olmali: $IOS_BUILD_NUMBER" >&2; exit 1 ;; esac
+  BUILD_NUMBER="$IOS_BUILD_NUMBER"
+fi
 APP_VERSION="${APP_VERSION:-$BUILD_NAME}"
 echo "Surum: $BUILD_NAME ($BUILD_NUMBER)"
 

@@ -1,6 +1,6 @@
 # Mağaza paketi (Apple App Store / TestFlight)
 
-Bu klasör App Store Connect'e girilecek metin ve cevapları hazır tutar. **Hiçbiri henüz Connect'e girilmedi** (Apple Developer hesabı gerekir). Rehber ve kontrol listesi: [../IOS_RELEASE.md](../IOS_RELEASE.md). Google Play karşılığı: [../store/README.md](../store/README.md). Değişmez ilkeler Play ile aynıdır (resmî olmayan beyanı, üniversite logosu/adı başlıkta yok, form = gizlilik politikası).
+Bu klasör App Store Connect'e girilecek metin ve cevapları hazır tutar. **Hiçbiri henüz Connect'e girilmedi** (Apple Developer hesabı hazır; bundle id `tr.com.bukampus.app`, sıralı yapılacaklar: [../IOS_RELEASE.md](../IOS_RELEASE.md) bölüm 0). Rehber ve kontrol listesi: [../IOS_RELEASE.md](../IOS_RELEASE.md). Google Play karşılığı: [../store/README.md](../store/README.md). Değişmez ilkeler Play ile aynıdır (resmî olmayan beyanı, üniversite logosu/adı başlıkta yok, form = gizlilik politikası).
 
 | Dosya | İçerik |
 |---|---|

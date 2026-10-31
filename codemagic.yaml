@@ -3,6 +3,8 @@
 # Codemagic kurulumu: (1) Teams > Integrations > Developer Portal: App Store Connect API anahtari ekleyin
 #   (ad: bu_kampus_asc  <- asagidaki integrations.app_store_connect ile ayni olmali); (2) Environment variables
 #   grubu "bu_ios" olusturun: IOS_GOOGLE_SERVICE_INFO_PLIST_BASE64 (Secure), API_BASE (https://bukampus.com.tr);
+#   APP_STORE_APPLE_ID (App Store Connect > Uygulama > Genel Bilgi > Apple ID, sayi) ekleyin: yapi numarasi
+#   TestFlight'taki son numara + 1 olur (yoksa pubspec +N ile Codemagic kosu sayaci toplanir).
 #   (3) Code signing identities'e gerek yok: ios_signing App Store Connect API anahtariyla profili/sertifikayi otomatik uretir.
 workflows:
   ios-release:
@@ -19,10 +21,10 @@ workflows:
       xcode: latest
       cocoapods: default
       vars:
-        BUNDLE_ID: "edu.bingol.buKampus"   # KULLANICI KARARI: scripts/ios/set-bundle-id.sh ile birlikte degisir
+        BUNDLE_ID: "tr.com.bukampus.app"   # KULLANICI KARARI (2026-10-31), Android applicationId ile ayni
       ios_signing:
         distribution_type: app_store
-        bundle_identifier: edu.bingol.buKampus
+        bundle_identifier: tr.com.bukampus.app
     triggering:
       events: []   # yalniz elle (Codemagic arayuzu veya API)
     scripts:
@@ -34,11 +36,20 @@ workflows:
           bash ../scripts/ios/prepare-ci.sh
       - name: Flutter bagimliliklari
         script: flutter pub get
-      - name: Surum numarasi (pubspec ile ayni; CFBundleVersion = +N)
+      - name: Surum numarasi (CFBundleShortVersionString = pubspec; CFBundleVersion TestFlight cakismasiz)
         script: |
           VERSION_LINE="$(grep -E '^version:' pubspec.yaml | head -1 | sed 's/version:[[:space:]]*//')"
-          echo "BUILD_NAME=${VERSION_LINE%%+*}" >> $CM_ENV
-          echo "BUILD_NUMBER=${VERSION_LINE##*+}" >> $CM_ENV
+          NAME="${VERSION_LINE%%+*}"
+          BASE="${VERSION_LINE##*+}"
+          NUM=""
+          if [ -n "${APP_STORE_APPLE_ID:-}" ]; then
+            LAST="$(app-store-connect get-latest-testflight-build-number "$APP_STORE_APPLE_ID" 2>/dev/null | tr -dc '0-9' || true)"
+            if [ -n "$LAST" ]; then NUM=$((LAST + 1)); fi
+          fi
+          if [ -z "$NUM" ] || [ "$NUM" -lt "$BASE" ]; then NUM=$((BASE + ${PROJECT_BUILD_NUMBER:-0})); fi
+          echo "BUILD_NAME=$NAME" >> $CM_ENV
+          echo "BUILD_NUMBER=$NUM" >> $CM_ENV
+          echo "Surum $NAME ($NUM)"
       - name: Xcode projesine imza profillerini uygula
         script: xcode-project use-profiles
       - name: IPA
