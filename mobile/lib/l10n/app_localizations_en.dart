@@ -9626,4 +9626,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String p69WeeksAgo(String n) {
     return '$n weeks ago';
   }
+
+  @override
+  String get p51EvAttList => 'Check-in list';
+
+  @override
+  String get p51EvClubOnly => 'Events are created on behalf of clubs.';
 }

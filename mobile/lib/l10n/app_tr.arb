@@ -4850,5 +4850,7 @@
   "p68TypeRanked": "Sıralı",
   "p69SchoolSchedule": "Okul programı",
   "p69WeeksAgo": "{n} hafta önce",
-  "@p69WeeksAgo": {"placeholders": {"n": {"type": "String"}}}
+  "@p69WeeksAgo": {"placeholders": {"n": {"type": "String"}}},
+  "p51EvAttList": "Yoklama listesi",
+  "p51EvClubOnly": "Etkinlikler kulüpler adına açılır."
 }

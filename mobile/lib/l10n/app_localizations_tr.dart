@@ -9593,4 +9593,10 @@ class AppLocalizationsTr extends AppLocalizations {
   String p69WeeksAgo(String n) {
     return '$n hafta önce';
   }
+
+  @override
+  String get p51EvAttList => 'Yoklama listesi';
+
+  @override
+  String get p51EvClubOnly => 'Etkinlikler kulüpler adına açılır.';
 }

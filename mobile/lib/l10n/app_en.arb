@@ -3054,5 +3054,7 @@
   "p68TypeRanked": "Ranked",
   "p69SchoolSchedule": "School schedule",
   "p69WeeksAgo": "{n} weeks ago",
-  "@p69WeeksAgo": {"placeholders": {"n": {"type": "String"}}}
+  "@p69WeeksAgo": {"placeholders": {"n": {"type": "String"}}},
+  "p51EvAttList": "Check-in list",
+  "p51EvClubOnly": "Events are created on behalf of clubs."
 }

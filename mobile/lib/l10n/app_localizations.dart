@@ -17436,6 +17436,18 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'{n} hafta önce'**
   String p69WeeksAgo(String n);
+
+  /// No description provided for @p51EvAttList.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yoklama listesi'**
+  String get p51EvAttList;
+
+  /// No description provided for @p51EvClubOnly.
+  ///
+  /// In tr, this message translates to:
+  /// **'Etkinlikler kulüpler adına açılır.'**
+  String get p51EvClubOnly;
 }
 
 class _AppLocalizationsDelegate

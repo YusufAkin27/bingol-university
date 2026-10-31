@@ -3054,5 +3054,7 @@
   "p68TypeRanked": "مرتّب",
   "p69SchoolSchedule": "جدول الكلية",
   "p69WeeksAgo": "منذ {n} أسابيع",
-  "@p69WeeksAgo": {"placeholders": {"n": {"type": "String"}}}
+  "@p69WeeksAgo": {"placeholders": {"n": {"type": "String"}}},
+  "p51EvAttList": "قائمة الحضور",
+  "p51EvClubOnly": "تُنشأ الفعاليات باسم الأندية."
 }

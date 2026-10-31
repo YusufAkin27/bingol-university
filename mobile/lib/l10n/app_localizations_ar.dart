@@ -9524,4 +9524,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String p69WeeksAgo(String n) {
     return 'منذ $n أسابيع';
   }
+
+  @override
+  String get p51EvAttList => 'قائمة الحضور';
+
+  @override
+  String get p51EvClubOnly => 'تُنشأ الفعاليات باسم الأندية.';
 }
