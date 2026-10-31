@@ -21,6 +21,8 @@ public class AppInfoService {
     public static final String FACULTIES_KEY = "faculties";
 
     private static final Pattern VERSION = Pattern.compile("\\d+(\\.\\d+){0,3}");
+    /** Tek e-posta adresi: bosluk, satir sonu, virgul/noktalivirgul ve < > yok. */
+    private static final Pattern EMAIL = Pattern.compile("[A-Za-z0-9._%+-]{1,64}@[A-Za-z0-9.-]{1,190}\\.[A-Za-z]{2,24}");
     private static final Pattern PLATFORM = Pattern.compile("android|ios", Pattern.CASE_INSENSITIVE);
 
     public record Banner(String text, String url) {}
@@ -114,10 +116,7 @@ public class AppInfoService {
         if (key.equals("maintenance_mode") && !v.equals("true") && !v.equals("false")) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "VALIDATION_ERROR", "Değer true veya false olmalıdır.");
         }
-        if ((key.startsWith("store_url_") || key.equals("banner_url") || key.equals("website")) && !v.isEmpty()
-                && !v.startsWith("https://")) {
-            throw new ApiException(HttpStatus.BAD_REQUEST, "VALIDATION_ERROR", "Bağlantı https:// ile başlamalıdır.");
-        }
+        validateContactAndLinks(key, v);
         if (key.equals(FACULTIES_KEY)) {
             // Her fakulte <=120 karakter, tekrarsiz; toplam <=1000 karakter
             List<String> list = splitFaculties(v);
@@ -132,6 +131,51 @@ public class AppInfoService {
         setting.setValue(v);
         setting.setUpdatedAt(Instant.now());
         repo.save(setting);
+    }
+
+    /**
+     * E-posta ve baglanti ayarlari (T-017): e-posta anahtarlari (`support_email`, `contact_email`, `*.email`) gecerli tek
+     * adres olmali ve satir sonu/bosluk icermemeli (Reply-To baslik enjeksiyonu); baglanti anahtarlari (`store_url_*`,
+     * `banner_url`, `website`, `instagram`, `twitter`, `youtube`) `https://` ile baslamali ve kontrol/bosluk karakteri icermemeli.
+     * Bos deger serbest (ayar temizleme). Gecersiz = 400 SETTING_INVALID.
+     */
+    static void validateContactAndLinks(String key, String v) {
+        if (v.isEmpty()) {
+            return;
+        }
+        if (isEmailKey(key)) {
+            if (!EMAIL.matcher(v).matches()) {
+                throw settingInvalid(key);
+            }
+        } else if (isLinkKey(key)) {
+            if (!v.startsWith("https://") || v.length() < 9 || hasWhitespaceOrControl(v) || v.indexOf('<') >= 0
+                    || v.indexOf('>') >= 0 || v.indexOf('"') >= 0) {
+                throw settingInvalid(key);
+            }
+        }
+    }
+
+    static boolean isEmailKey(String key) {
+        return key.equals("support_email") || key.equals("contact_email") || key.endsWith("_email") || key.endsWith(".email");
+    }
+
+    static boolean isLinkKey(String key) {
+        return key.startsWith("store_url_") || key.equals("banner_url") || key.equals("website")
+                || key.equals("instagram") || key.equals("twitter") || key.equals("youtube");
+    }
+
+    private static boolean hasWhitespaceOrControl(String s) {
+        for (int i = 0; i < s.length(); i++) {
+            char c = s.charAt(i);
+            if (Character.isISOControl(c) || Character.isWhitespace(c)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static ApiException settingInvalid(String key) {
+        return new ApiException(HttpStatus.BAD_REQUEST, "SETTING_INVALID", "Ayar değeri geçersiz: " + key + ".", key);
     }
 
     // --- yardimcilar ---
