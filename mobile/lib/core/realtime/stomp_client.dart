@@ -35,6 +35,9 @@ class StompClient {
     required this.accessToken,
     required this.refreshToken,
     this.heartbeat = const Duration(seconds: 10),
+    this.backoffUnit = const Duration(seconds: 1),
+    this.stableAfter = const Duration(seconds: 30),
+    this.maxAuthFailures = 3,
   });
 
   final String url;
@@ -47,6 +50,16 @@ class StompClient {
   final Future<String?> Function() refreshToken;
   final Duration heartbeat;
 
+  /// Geri çekilme birimi (1, 2, 4... katı, en çok 30 birim); testlerde küçültülür.
+  final Duration backoffUnit;
+
+  /// Bağlantı bu süre kopmadan kalırsa "kararlı" sayılır ve geri çekilme/yetki hatası sayaçları sıfırlanır.
+  /// CONNECTED almak tek başına yetmez: sunucu bağlanıp hemen kapatıyorsa (döngü) geri çekilme büyümeye devam eder.
+  final Duration stableAfter;
+
+  /// Art arda bu kadar UNAUTHORIZED/TOKEN_EXPIRED sonrası oturum bitmiş sayılır ([StompFatal.sessionExpired]).
+  final int maxAuthFailures;
+
   final _stateCtl = StreamController<StompState>.broadcast();
   final _fatalCtl = StreamController<StompFatal>.broadcast();
   final _subs = <String, StompSubscription>{};
@@ -58,6 +71,8 @@ class StompClient {
   Timer? _sendBeat, _recvWatch, _reconnectTimer, _refreshTimer, _connectTimeout;
   DateTime _lastRecv = DateTime.now();
   int _attempt = 0;
+  int _authFailures = 0;
+  DateTime? _connectedAt;
   int _subSeq = 0;
   bool _wanted = false;
   int _gen = 0; // eski bağlantının geç gelen olaylarını yok saymak için
@@ -72,6 +87,7 @@ class StompClient {
     if (_wanted) return;
     _wanted = true;
     _attempt = 0;
+    _authFailures = 0;
     _open();
   }
 
@@ -204,7 +220,8 @@ class StompClient {
   }
 
   void _onConnected(int gen, StompFrame f) {
-    _attempt = 0;
+    // `_attempt` burada SIFIRLANMAZ: yalnız [stableAfter] kopmadan kalan bağlantı sıfırlar (bkz. _teardown).
+    _connectedAt = DateTime.now();
     _setState(StompState.connected);
     for (final s in _subs.values) {
       _sendSubscribe(s);
@@ -263,12 +280,20 @@ class StompClient {
         _wanted = false;
         _fatalCtl.add(StompFatal.forbidden);
       case 'UNAUTHORIZED' || 'TOKEN_EXPIRED':
+        // Taze token de reddediliyorsa (rol/şifre değişimi, saat kayması) döngüye girme: üstel geri çekilme +
+        // art arda [maxAuthFailures] reddte oturum bitti say (A15-09: 3 sn'de 191 bağlantı + 190 refresh).
+        if (++_authFailures >= maxAuthFailures) {
+          _wanted = false;
+          _fatalCtl.add(StompFatal.sessionExpired);
+          return;
+        }
         try {
           await refreshToken();
-          if (_wanted) _open();
         } catch (e) {
           await _failed(e);
+          return;
         }
+        _scheduleReconnect();
       default:
         _scheduleReconnect();
     }
@@ -284,10 +309,10 @@ class StompClient {
   void _scheduleReconnect() {
     if (!_wanted) return;
     _reconnectTimer?.cancel();
-    final secs = min(30, 1 << min(_attempt, 5));
+    final units = min(30, 1 << min(_attempt, 5));
     _attempt++;
     final jitter = 0.8 + _rand.nextDouble() * 0.4; // +-%20
-    _reconnectTimer = Timer(Duration(milliseconds: (secs * 1000 * jitter).round()), _open);
+    _reconnectTimer = Timer(Duration(microseconds: (units * backoffUnit.inMicroseconds * jitter).round()), _open);
   }
 
   /// Ağ geri geldiğinde beklemeden hemen dene.
@@ -299,6 +324,13 @@ class StompClient {
 
   void _teardown({bool send = false}) {
     _gen++;
+    // Yeterince uzun yaşayan bağlantı kararlıdır: sonraki kopmada geri çekilme baştan başlar.
+    final at = _connectedAt;
+    _connectedAt = null;
+    if (at != null && DateTime.now().difference(at) >= stableAfter) {
+      _attempt = 0;
+      _authFailures = 0;
+    }
     _reconnectTimer?.cancel();
     _sendBeat?.cancel();
     _recvWatch?.cancel();
