@@ -7,6 +7,9 @@
 #   LOG_DIR=./smoke-logs ./scripts/smoke-all.sh                  # betik ciktilarinin yazilacagi klasor
 # Onkosul: calisan yigin (docker compose up -d), MAIL_ENABLED=false (dogrulama kodu log'dan okunur),
 #   ADMIN_EMAILS=$ADMIN_EMAIL ve ADMIN_PASSWORD (.env ile ayni), LEGAL_ENFORCE_REACCEPT=false.
+#   Ek (PGVERIFY): smoke-admin-rbac icin ADMIN_EMAILS ikinci bir yonetici (boss2@bingol.edu.tr) de icermeli; yonetici yazma siniri
+#   (varsayilan 60/dk) yuzunden uzun betikler 429 verirse APP_ADMIN_WRITE_PER_MINUTE=1000 ve APP_ADMIN_DESTRUCTIVE_PER_HOUR=1000 verin.
+#   Betikler tekrar calistirilabilir ama smoke-admin-retention ayni tabloda ikinci kosuda makbuz durumu yuzunden basarisiz olabilir.
 # Betikler "docker compose logs backend" ve "docker compose exec -T redis|postgres ..." kullanir: repo kokunden
 #   (ya da compose projesinin bulundugu dizinden) calistirin; farkli bir yigin icin FLUSH_CMD ile ezin.
 # Cikis kodu: herhangi bir betik basarisizsa 1 (cikis kodu 2 = ATLANDI sayilir, basarisizlik degildir), aksi 0.

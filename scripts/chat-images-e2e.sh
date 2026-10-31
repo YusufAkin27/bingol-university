@@ -29,13 +29,13 @@ win() { cygpath -m "$1" 2>/dev/null || echo "$1"; }
 sha() { if command -v sha256sum >/dev/null 2>&1; then sha256sum "$1" | cut -d' ' -f1; else node -e "console.log(require('crypto').createHash('sha256').update(require('fs').readFileSync(process.argv[1])).digest('hex'))" "$(win "$1")"; fi; }
 
 register() {
-  curl -s -o /dev/null -X POST -H "$H" $A/auth/register -d "{\"email\":\"$1\",\"password\":\"Sifre1234\",\"displayName\":\"$2\",\"acceptTerms\":true}"
+  curl -s -o /dev/null -X POST -H "$H" $A/auth/register -d "{\"email\":\"$1\",\"password\":\"Zk7-Qmv-Lpx92w\",\"displayName\":\"$2\",\"acceptTerms\":true}"
   sleep 1
   local c t
   c=$(docker compose logs backend 2>&1 | grep "$1 icin" | grep -o 'kodu: [0-9]*' | tail -1 | cut -d' ' -f2)
-  t=$(curl -s -X POST -H "$H" $A/auth/verify-email -d "{\"email\":\"$1\",\"code\":\"$c\",\"password\":\"Sifre1234\"}" | grep -o '"accessToken":"[^"]*' | cut -d'"' -f4)
+  t=$(curl -s -X POST -H "$H" $A/auth/verify-email -d "{\"email\":\"$1\",\"code\":\"$c\",\"password\":\"Zk7-Qmv-Lpx92w\"}" | grep -o '"accessToken":"[^"]*' | cut -d'"' -f4)
   if [ -z "$t" ]; then
-    t=$(curl -s -X POST -H "$H" $A/auth/login -d "{\"email\":\"$1\",\"password\":\"Sifre1234\"}" | grep -o '"accessToken":"[^"]*' | cut -d'"' -f4)
+    t=$(curl -s -X POST -H "$H" $A/auth/login -d "{\"email\":\"$1\",\"password\":\"Zk7-Qmv-Lpx92w\"}" | grep -o '"accessToken":"[^"]*' | cut -d'"' -f4)
   fi
   echo "$t"
 }
@@ -224,7 +224,7 @@ check "yeni yukleme (T4)" 201 "$(up "$T4" $GID unique-e.png image/png)"
 EA=$(attid)
 check "mesaj (T4)" 201 "$(send "$T4" $GID "" g-img2 "[$EA]")"
 check "uye silinmeden once gorur" 200 "$(code -H "$AUTH2" $A/conversations/$GID/media/$EA)"
-check "hesap sil" 204 "$(code -X DELETE -H "$H" -H "Authorization: Bearer $T4" $A/users/me -d '{"password":"Sifre1234"}')"
+check "hesap sil" 204 "$(code -X DELETE -H "$H" -H "Authorization: Bearer $T4" $A/users/me -d '{"password":"Zk7-Qmv-Lpx92w"}')"
 check "silinen kullanicinin gorseli kalkti" 404 "$(code -H "$AUTH2" $A/conversations/$GID/media/$EA)"
 
 echo

@@ -2,7 +2,7 @@
 # Yonetici dogrulama duman testi: kayit -> yonetici bekleyen kaydi kodsuz dogrular -> kullanici giris yapar.
 # Kullanim: BASE=http://localhost:8080 ADMIN_EMAIL=boss@bingol.edu.tr ADMIN_PASSWORD=... ./scripts/smoke-admin-verify.sh
 # Onkosul: compose'ta MAIL_ENABLED=false, ADMIN_EMAILS=$ADMIN_EMAIL, hesap ADMIN_EMAIL daha once dogrulanmis olmali
-# (sifresi ADMIN_ACCOUNT_PASSWORD / ADMIN_PASSWORD / Sifre1234 degerlerinden biri).
+# (sifresi ADMIN_ACCOUNT_PASSWORD / ADMIN_PASSWORD / Zk7-Qmv-Lpx92w degerlerinden biri).
 set -u
 BASE=${BASE:-http://localhost:8080}
 A=$BASE/api
@@ -27,9 +27,9 @@ EMAIL="$NUM@bingol.edu.tr"
 
 echo "== yonetici girisi"
 # Yonetici HESABININ sifresi (ADMIN_ACCOUNT_PASSWORD) ile Basic "admin" sifresi (ADMIN_PASSWORD) farkli olabilir; diger
-# duman betikleri yonetici hesabini "Sifre1234" ile acar. Sirayla denenir; ilk 200 gecerlidir.
+# duman betikleri yonetici hesabini "Zk7-Qmv-Lpx92w" ile acar. Sirayla denenir; ilk 200 gecerlidir.
 LOGIN_CODE=000
-for PW in "${ADMIN_ACCOUNT_PASSWORD:-}" "$ADMIN_PASSWORD" "Sifre1234"; do
+for PW in "${ADMIN_ACCOUNT_PASSWORD:-}" "$ADMIN_PASSWORD" "Zk7-Qmv-Lpx92w"; do
   [ -n "$PW" ] || continue
   printf '{"email":"%s","password":"%s"}' "$ADMIN_EMAIL" "$PW" > "$TMP/login.json"
   LOGIN_CODE=$(post /auth/login "$TMP/login.json")
@@ -41,9 +41,9 @@ TA=$(grep -o '"accessToken":"[^"]*' "$TMP/out" | cut -d'"' -f4)
 AAD="Authorization: Bearer $TA"
 
 echo "== kayit (bekleyen)"
-printf '{"email":"%s","password":"Sifre1234","displayName":"Smoke Dogrula","acceptTerms":true,"language":"tr"}' "$NUM" > "$TMP/reg.json"
+printf '{"email":"%s","password":"Zk7-Qmv-Lpx92w","displayName":"Smoke Dogrula","acceptTerms":true,"language":"tr"}' "$EMAIL" > "$TMP/reg.json"
 check "register" 202 "$(post /auth/register "$TMP/reg.json")"
-printf '{"email":"%s","password":"Sifre1234"}' "$NUM" > "$TMP/ulogin.json"
+printf '{"email":"%s","password":"Zk7-Qmv-Lpx92w"}' "$NUM" > "$TMP/ulogin.json"
 check "dogrulanmadan giris 403" 403 "$(post /auth/login "$TMP/ulogin.json")"
 
 echo "== yonetici listesi (q) ve dogrulama"
@@ -62,7 +62,6 @@ UID_=$(curl -s -H "$AAD" "$A/admin/users?q=$NUM" | grep -o '"id":[0-9]*' | head 
 check "send-reset 204" 204 "$(post "/admin/users/$UID_/send-reset" "$TMP/empty.json" "$AAD")"
 check "revoke-sessions 204" 204 "$(post "/admin/users/$UID_/revoke-sessions" "$TMP/empty.json" "$AAD")"
 check "verify-email gerekcesiz 400" 400 "$(curl -s -o /dev/null -w '%{http_code}' -X POST -H "$H" -H "$AAD" "$A/admin/users/$UID_/verify-email" --data-binary @"$TMP/empty.json")"
-$1
 echo "== temizlik"
 curl -s -o /dev/null -X DELETE -H "$AAD" -H "$RS" "$A/admin/users/$UID_"
 [ $FAIL -eq 0 ] && echo "TAMAM" || { echo "HATA VAR"; exit 1; }

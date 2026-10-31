@@ -35,8 +35,12 @@ public interface DeviceRepository extends JpaRepository<Device, Long> {
             + "(SELECT 1 FROM User u WHERE u.id = d.userId AND u.lastSeenAt >= :cutoff)")
     int deleteStale(@Param("cutoff") java.time.Instant cutoff);
 
-    /** Tek cihaz kurali: yeni mobil giriste kullanicinin onceki cihaz kayitlari silinir. */
-    @Transactional
+    /**
+     * Tek cihaz kurali: yeni mobil giriste kullanicinin onceki cihaz kayitlari silinir. REQUIRES_NEW: olay, cagiran
+     * islemin COMMIT sonrasi geri cagirisinda ({@code AfterCommit}: askiya alma, sifre degisimi) yayinlanabilir; orada
+     * REQUIRED, bitmis islemi "katilir" ve sorgu 'No active transaction' ile dusuyordu (cihaz kaydi silinmiyordu).
+     */
+    @Transactional(propagation = org.springframework.transaction.annotation.Propagation.REQUIRES_NEW)
     @Modifying
     @Query("DELETE FROM Device d WHERE d.userId = :userId")
     int deleteAllByUser(@Param("userId") Long userId);

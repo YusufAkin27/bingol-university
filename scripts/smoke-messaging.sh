@@ -16,15 +16,15 @@ code() { curl -s -o /dev/null -w '%{http_code}' "$@"; }
 idof() { grep -o '"id":[0-9]*' | head -1 | cut -d: -f2; }
 
 register() { # email ad -> access token
-  curl -s -o /dev/null -X POST -H "$H" $A/auth/register -d "{\"email\":\"$1\",\"password\":\"Sifre1234\",\"displayName\":\"$2\",\"acceptTerms\":true}"
+  curl -s -o /dev/null -X POST -H "$H" $A/auth/register -d "{\"email\":\"$1\",\"password\":\"Zk7-Qmv-Lpx92w\",\"displayName\":\"$2\",\"acceptTerms\":true}"
   sleep 1
   local c
   c=$(docker compose logs backend 2>&1 | grep "$1 icin" | grep -o 'kodu: [0-9]*' | tail -1 | cut -d' ' -f2)
   local t
-  t=$(curl -s -X POST -H "$H" $A/auth/verify-email -d "{\"email\":\"$1\",\"code\":\"$c\",\"password\":\"Sifre1234\"}" |
+  t=$(curl -s -X POST -H "$H" $A/auth/verify-email -d "{\"email\":\"$1\",\"code\":\"$c\",\"password\":\"Zk7-Qmv-Lpx92w\"}" |
     grep -o '"accessToken":"[^"]*' | cut -d'"' -f4)
   # Hesap daha once olusturulmussa (ornegin smoke.sh calistiysa) giris yap
-  [ -n "$t" ] || t=$(curl -s -X POST -H "$H" $A/auth/login -d "{\"email\":\"$1\",\"password\":\"Sifre1234\"}" |
+  [ -n "$t" ] || t=$(curl -s -X POST -H "$H" $A/auth/login -d "{\"email\":\"$1\",\"password\":\"Zk7-Qmv-Lpx92w\"}" |
     grep -o '"accessToken":"[^"]*' | cut -d'"' -f4)
   echo "$t"
 }
@@ -140,15 +140,16 @@ check "cikarilan gecmisi goremez 404" 404 "$(code -H "$AUTH3" $A/conversations/$
 check "cikarilani ayni kisi yeniden ekleyemez: hata yok" 200 "$(code -X POST -H "$H" -H "$AUTH1" $A/conversations/$GID/members -d "{\"userIds\":[$ID3]}")"
 check "yeniden eklenmedi: gecmis 404" 404 "$(code -H "$AUTH3" $A/conversations/$GID/messages)"
 # ikinci grup: sonradan eklenen uye (yasak yok) eski mesaji gormez; yonetici devri
-GR2=$(curl -s -w ' %{http_code}' -X POST -H "$H" -H "$AUTH1" $A/conversations -d "{\"title\":\"Ikinci Grup\",\"memberIds\":[$ID2]}")
+# T-025: Ali, Can'i ilk grupta cikardigi icin Can'i yeniden ekleyemez; ikinci grubu Ayse kurar ve Can'i o ekler
+GR2=$(curl -s -w ' %{http_code}' -X POST -H "$H" -H "$AUTH2" $A/conversations -d "{\"title\":\"Ikinci Grup\",\"memberIds\":[$ID1]}")
 check "ikinci grup 201" 201 "${GR2##* }"
 GID2=$(echo "$GR2" | idof)
-check "ikinci grupta mesaj" 201 "$(code -X POST -H "$H" -H "$AUTH2" $A/conversations/$GID2/messages -d '{"text":"grup2 mesaji","clientId":"g2-1"}')"
-check "uye ekle" 200 "$(code -X POST -H "$H" -H "$AUTH1" $A/conversations/$GID2/members -d "{\"userIds\":[$ID3]}")"
+check "ikinci grupta mesaj" 201 "$(code -X POST -H "$H" -H "$AUTH1" $A/conversations/$GID2/messages -d '{"text":"grup2 mesaji","clientId":"g2-1"}')"
+check "uye ekle" 200 "$(code -X POST -H "$H" -H "$AUTH2" $A/conversations/$GID2/members -d "{\"userIds\":[$ID3]}")"
 check "yeni uye eski mesaji gormez" 0 "$(curl -s -H "$AUTH3" $A/conversations/$GID2/messages | grep -c 'grup2 mesaji')"
-check "ayril 204" 204 "$(code -X POST -H "$AUTH1" $A/conversations/$GID2/leave)"
-check "ayrilan erisemez 404" 404 "$(code -H "$AUTH1" $A/conversations/$GID2/messages)"
-check "yonetici devri: Ayse artik yonetici" 204 "$(code -X DELETE -H "$AUTH2" $A/conversations/$GID2/members/$ID3)"
+check "ayril 204" 204 "$(code -X POST -H "$AUTH2" $A/conversations/$GID2/leave)"
+check "ayrilan erisemez 404" 404 "$(code -H "$AUTH2" $A/conversations/$GID2/messages)"
+check "yonetici devri: Ali artik yonetici" 204 "$(code -X DELETE -H "$AUTH1" $A/conversations/$GID2/members/$ID3)"
 check "birebirde ayrilma 400" 400 "$(code -X POST -H "$AUTH2" $A/conversations/$CID/leave)"
 
 echo "== rapor ve moderasyon"

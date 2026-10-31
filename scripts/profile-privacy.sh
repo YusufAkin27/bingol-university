@@ -7,7 +7,7 @@ BASE=${BASE:-http://localhost:8080}
 A=$BASE/api
 H='Content-Type: application/json'
 SFX=$(date +%s)
-PASS=Sifre1234
+PASS=Zk7-Qmv-Lpx92w
 FAIL=0
 ok() { echo "OK   $1"; }
 bad() { echo "FAIL $1"; FAIL=1; }
@@ -33,7 +33,8 @@ TC=$(mk "pp-c-$SFX@bingol.edu.tr" "Carol Friend")
 IA=$(id_of "$TA"); IB=$(id_of "$TB"); IC=$(id_of "$TC")
 
 # Profil doldur (avatar yuklemesi T1'in isi: avatarUrl bu betikte test edilmez, alanlar edilir)
-api "$TA" -X PATCH $A/users/me -d '{"bio":"gizli bio","department":"Bilgisayar","classYear":3}' >/dev/null
+# Fakulte/bolum akademik katalogla dogrulanir (ACADEMIC_INVALID): katalog yazimi \u kacisiyla gonderilir
+api "$TA" -X PATCH $A/users/me -d '{"bio":"gizli bio","faculty":"M\u00fchendislik Fak\u00fcltesi","department":"Bilgisayar M\u00fchendisli\u011fi","classYear":3}' >/dev/null
 
 # 1) Varsayilan: herkes gorur
 has "default bio gorunur" "gizli bio" "$(api "$TB" $A/users/$IA)"
@@ -49,7 +50,10 @@ has "sahibi kendi bio'sunu gorur" "gizli bio" "$(api "$TA" $A/users/me)"
 hasnot "arama sonucunda da gizli" "gizli bio" "$(api "$TB" "$A/users/search?q=Alice")"
 
 # 3) ortak sohbet -> SHARED_CONTEXT alanlari acilir
-api "$TC" -X POST $A/conversations -d "{\"userId\":$IA}" >/dev/null
+CV=$(api "$TC" -X POST $A/conversations -d "{\"userId\":$IA}" | grep -o '"id":[0-9]*' | head -1 | cut -d: -f2)
+# Kabul edilmemis mesaj istegi (PENDING) ortak baglam SAYILMAZ: baglam yalniz sahibi istegi kabul edince olusur
+hasnot "bekleyen istek baglam saymaz" "Bilgisayar" "$(api "$TC" $A/users/$IA)"
+api "$TA" -X POST $A/conversations/$CV/accept >/dev/null
 has "ortak sohbetle bolum gorunur" "Bilgisayar" "$(api "$TC" $A/users/$IA)"
 hasnot "ortak sohbetle ONLY_ME hala gizli" "gizli bio" "$(api "$TC" $A/users/$IA)"
 

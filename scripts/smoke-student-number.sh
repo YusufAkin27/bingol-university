@@ -22,8 +22,11 @@ status() { echo "$1" | tail -1; }
 body()   { echo "$1" | head -n -1; }
 
 echo "== kayit (okul numarasi: $NUM)"
-R=$(post /auth/register "{\"email\":\"$NUM\",\"password\":\"Zk7-Qmv-Lpx92w\",\"displayName\":\"Numara Test\",\"acceptTerms\":true,\"language\":\"tr\"}")
+R=$(post /auth/register "{\"email\":\"$MAIL\",\"password\":\"Zk7-Qmv-Lpx92w\",\"displayName\":\"Numara Test\",\"acceptTerms\":true,\"language\":\"tr\"}")
 check register 202 "$(status "$R")"
+# Kayit yalniz tam e-posta ile (EMAIL_FULL_REQUIRED); numara yalniz giris/dogrulama kimligi olarak kullanilir
+R=$(post /auth/register "{\"email\":\"$NUM\",\"password\":\"Zk7-Qmv-Lpx92w\",\"displayName\":\"Numara Test\",\"acceptTerms\":true}")
+check register-number-only 400 "$(status "$R")"
 
 echo "== dogrulanmamis: dogru sifre -> EMAIL_NOT_VERIFIED, yanlis sifre -> INVALID_CREDENTIALS"
 R=$(post /auth/login "{\"email\":\"$NUM\",\"password\":\"Zk7-Qmv-Lpx92w\",\"client\":\"mobile\"}")
@@ -53,7 +56,7 @@ R=$(post /auth/login "{\"email\":\"$NUM\",\"password\":\"Zk7-Qmv-Lpx92w\",\"clie
 check login-number 200 "$(status "$R")"
 R=$(post /auth/login "{\"email\":\"$MAIL\",\"password\":\"Zk7-Qmv-Lpx92w\",\"client\":\"web\"}")
 check login-email 200 "$(status "$R")"
-R=$(post /auth/register "{\"email\":\"$NUM\",\"password\":\"Zk7-Qmv-Lpx92w\",\"displayName\":\"Numara Test\",\"acceptTerms\":true}")
+R=$(post /auth/register "{\"email\":\"$MAIL\",\"password\":\"Zk7-Qmv-Lpx92w\",\"displayName\":\"Numara Test\",\"acceptTerms\":true}")
 check register-again 409 "$(status "$R")"
 
 [ "$FAIL" = 0 ] && echo "TAMAM" || { echo "HATA VAR"; exit 1; }

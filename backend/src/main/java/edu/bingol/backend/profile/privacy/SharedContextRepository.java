@@ -9,7 +9,7 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 /**
- * "Ortak baglam" sorgulari: iki kullanicinin ayni kulupte (ACTIVE), ayni sohbette (ayrilmamis) veya ayni
+ * "Ortak baglam" sorgulari: iki kullanicinin ayni kulupte (ACTIVE), ayni sohbette (ayrilmamis ve her iki taraf mesaj istegini kabul etmis: PENDING/DECLINED baglam saymaz) veya ayni
  * etkinlige GOING olmasi (INTERESTED ortak baglam saymaz: tek tikla baglam uretilemez, T-053). Diger modullerin depolarina bagimli olmamak icin duz SQL (yalnizca okuma).
  * Not: PostgreSQL ve H2 ortak SQL'i kullanir; testlerde Mockito ile taklit edilir.
  */
@@ -25,6 +25,7 @@ public class SharedContextRepository {
               SELECT b.user_id FROM conversation_member a JOIN conversation_member b
                 ON a.conversation_id = b.conversation_id
                WHERE a.user_id = :viewer AND a.left_at IS NULL AND b.left_at IS NULL AND b.user_id IN (:owners)
+                 AND a.request_state = 'ACCEPTED' AND b.request_state = 'ACCEPTED'
               UNION
               SELECT b.user_id FROM event_rsvp a JOIN event_rsvp b ON a.event_id = b.event_id
                WHERE a.user_id = :viewer AND a.status = 'GOING' AND b.status = 'GOING' AND b.user_id IN (:owners)
@@ -41,6 +42,7 @@ public class SharedContextRepository {
               SELECT a.user_id FROM conversation_member a JOIN conversation_member b
                 ON a.conversation_id = b.conversation_id
                WHERE b.user_id = :owner AND a.left_at IS NULL AND b.left_at IS NULL AND a.user_id IN (:viewers)
+                 AND a.request_state = 'ACCEPTED' AND b.request_state = 'ACCEPTED'
               UNION
               SELECT a.user_id FROM event_rsvp a JOIN event_rsvp b ON a.event_id = b.event_id
                WHERE b.user_id = :owner AND a.status = 'GOING' AND b.status = 'GOING' AND a.user_id IN (:viewers)

@@ -86,6 +86,7 @@ public class PresenceService {
               JOIN conversation_member b ON a.conversation_id = b.conversation_id
               JOIN conversation c ON c.id = a.conversation_id
              WHERE a.user_id = ? AND b.user_id = ? AND a.left_at IS NULL AND b.left_at IS NULL
+               AND a.request_state = 'ACCEPTED' AND b.request_state = 'ACCEPTED'
                AND (c.type <> 'DIRECT' OR EXISTS (
                      SELECT 1 FROM message m WHERE m.conversation_id = c.id AND m.sender_id = ?))
             """;
@@ -187,6 +188,7 @@ public class PresenceService {
                           JOIN conversation_member b ON a.conversation_id = b.conversation_id
                           JOIN conversation c ON c.id = a.conversation_id
                          WHERE a.user_id = ? AND b.user_id IN (%s) AND a.left_at IS NULL AND b.left_at IS NULL
+                           AND a.request_state = 'ACCEPTED' AND b.request_state = 'ACCEPTED'
                            AND (c.type <> 'DIRECT' OR EXISTS (
                                  SELECT 1 FROM message m WHERE m.conversation_id = c.id AND m.sender_id = b.user_id))
                         """.formatted(in);

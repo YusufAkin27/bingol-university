@@ -40,14 +40,14 @@ idof() { grep -o '"id":[0-9]*' | head -1 | cut -d: -f2; }
 field() { grep -o "\"$1\":\"[^\"]*" | head -1 | cut -d'"' -f4; }
 
 register() { # email ad
-  curl -s -o /dev/null -X POST -H "$H" $A/auth/register -d "{\"email\":\"$1\",\"password\":\"Sifre1234\",\"displayName\":\"$2\",\"acceptTerms\":true}"
+  curl -s -o /dev/null -X POST -H "$H" $A/auth/register -d "{\"email\":\"$1\",\"password\":\"Zk7-Qmv-Lpx92w\",\"displayName\":\"$2\",\"acceptTerms\":true}"
   sleep 1
   local c tok
   c=$(docker compose logs backend 2>&1 | grep "$1 icin" | grep -o 'kodu: [0-9]*' | tail -1 | cut -d' ' -f2)
-  tok=$(curl -s -X POST -H "$H" $A/auth/verify-email -d "{\"email\":\"$1\",\"code\":\"$c\",\"password\":\"Sifre1234\"}" |
+  tok=$(curl -s -X POST -H "$H" $A/auth/verify-email -d "{\"email\":\"$1\",\"code\":\"$c\",\"password\":\"Zk7-Qmv-Lpx92w\"}" |
     grep -o '"accessToken":"[^"]*' | cut -d'"' -f4)
   if [ -z "$tok" ]; then # hesap onceden varsa giris yap
-    tok=$(curl -s -X POST -H "$H" $A/auth/login -d "{\"email\":\"$1\",\"password\":\"Sifre1234\"}" |
+    tok=$(curl -s -X POST -H "$H" $A/auth/login -d "{\"email\":\"$1\",\"password\":\"Zk7-Qmv-Lpx92w\"}" |
       grep -o '"accessToken":"[^"]*' | cut -d'"' -f4)
   fi
   echo "$tok"
@@ -286,6 +286,8 @@ step "elle isaretle: yok yaz" 204 PUT /events/$EV/attendance/$ID4 "$T2" '{"prese
 step "listede yok + MANUAL" 200 GET /events/$EV/attendance "$T2"
 contains "MANUAL" '"method":"MANUAL"' "$BODY"
 step "RSVP'siz kullaniciya elle yoklama yazilamaz 404 (T-044)" 404 PUT /events/$EV/attendance/$ID3 "$T2" '{"present":true}'
+# Kapasite 2: GOING olan T2 ve T4 yeri doldurur; RSVP zorunlulugu (T-044) icin T2 vazgecip T3'e yer acar
+step "T2 GOING vazgec (yer acilir)" 204 DELETE /events/$EV/rsvp "$T2"
 step "T3 katilacagim (kapidan gelen once kayit olur)" 200 PUT /events/$EV/rsvp "$T3" '{"status":"GOING"}'
 step "QR ile gelmemis (T3) elle ekle" 204 PUT /events/$EV/attendance/$ID3 "$T2" '{"present":true}'
 step "toplu isaretle" 200 POST /events/$EV/attendance/bulk "$T2" "{\"entries\":[{\"userId\":$ID4,\"present\":true},{\"userId\":$ID3,\"present\":false}]}"
@@ -321,6 +323,8 @@ step "benim etkinliklerim (duzenledigim)" 200 GET "/me/events?mode=organizing" "
 contains "duzenledigim" "Hackathon $SFX" "$BODY"
 
 echo "== iptal / silme"
+# T3 elle yoklama icin GOING yapildi; "yabanci" kontrolunun anlami icin RSVP geri cekilir
+step "T3 RSVP geri cek" 204 DELETE /events/$EV/rsvp "$T3"
 step "yabanci silemez 403" 403 DELETE /events/$EV "$T3"
 step "organizator siler" 204 DELETE /events/$EV "$T2"
 step "silinen etkinlik yabancida 404" 404 GET /events/$EV "$T3"

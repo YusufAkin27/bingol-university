@@ -21,16 +21,16 @@ code() { curl -s -o /dev/null -w '%{http_code}' "$@"; }
 idof() { grep -o '"id":[0-9]*' | head -1 | cut -d: -f2; }
 
 login() {
-  curl -s -X POST -H "$H" $A/auth/login -d "{\"email\":\"$1\",\"password\":\"Sifre1234\"}" |
+  curl -s -X POST -H "$H" $A/auth/login -d "{\"email\":\"$1\",\"password\":\"Zk7-Qmv-Lpx92w\"}" |
     grep -o '"accessToken":"[^"]*' | cut -d'"' -f4
 }
 
 register() {
-  curl -s -o /dev/null -X POST -H "$H" $A/auth/register -d "{\"email\":\"$1\",\"password\":\"Sifre1234\",\"displayName\":\"$2\",\"acceptTerms\":true,\"language\":\"tr\"}"
+  curl -s -o /dev/null -X POST -H "$H" $A/auth/register -d "{\"email\":\"$1\",\"password\":\"Zk7-Qmv-Lpx92w\",\"displayName\":\"$2\",\"acceptTerms\":true,\"language\":\"tr\"}"
   sleep 1
   local c t
   c=$(docker compose logs backend 2>&1 | grep "$1 icin" | grep -o 'kodu: [0-9]*' | tail -1 | cut -d' ' -f2)
-  t=$(curl -s -X POST -H "$H" $A/auth/verify-email -d "{\"email\":\"$1\",\"code\":\"$c\",\"password\":\"Sifre1234\"}" |
+  t=$(curl -s -X POST -H "$H" $A/auth/verify-email -d "{\"email\":\"$1\",\"code\":\"$c\",\"password\":\"Zk7-Qmv-Lpx92w\"}" |
     grep -o '"accessToken":"[^"]*' | cut -d'"' -f4)
   if [ -z "$t" ]; then t=$(login "$1"); fi
   echo "$t"
@@ -44,8 +44,8 @@ R='X-Admin-Reason: duman testi sebebi'
 echo "== kullanicilar"
 TB=$(register "$ADMIN_EMAIL" "Yonetici Bir")
 TB2=$(register "$ADMIN_EMAIL2" "Yonetici Iki")
-TM=$(register "$EM" "Rbac Moderator")
-TS=$(register "$ES" "Rbac Destek")
+TM=$(register "$EM" "Rbac Denetci")
+TS=$(register "$ES" "Rbac Yardimci")
 TE=$(register "$EE" "Rbac Editor")
 TV=$(register "$EV" "Rbac Izleyici")
 TU=$(register "$EU" "Rbac Normal")
@@ -122,7 +122,7 @@ has "MOD kullanici e-postasi maskesiz" "$EV" "$(curl -s -H "$M" "$A/admin/users?
 
 echo "== SUPPORT: destek acik, kullanici e-postasi MASKELI; sohbet/rapor/oturum kapali"
 check "SUP users" 200 "$(code -H "$S" $A/admin/users)"
-SL=$(curl -s -H "$S" "$A/admin/users?q=rbacview$SFX")
+SL=$(curl -s -H "$S" "$A/admin/users?q=Rbac%20Izleyici")
 has "SUP e-posta maskeli" "r***@bingol.edu.tr" "$SL"
 hasnt "SUP tam e-posta yok" "$EV" "$SL"
 check "SUP destek talepleri" 200 "$(code -H "$S" $A/admin/support/tickets)"
@@ -145,7 +145,7 @@ check "EDITOR bilinmeyen modul (varsayilan: yalniz FULL)" 404 "$(code -H "$B" $A
 
 echo "== VIEWER: her sey salt okunur; e-posta maskeli; yazma ve sohbet kapali"
 check "VIEWER users" 200 "$(code -H "$V" $A/admin/users)"
-VL=$(curl -s -H "$V" "$A/admin/users?q=rbacview$SFX")
+VL=$(curl -s -H "$V" "$A/admin/users?q=Rbac%20Izleyici")
 hasnt "VIEWER tam e-posta yok" "$EV" "$VL"
 check "VIEWER audit" 200 "$(code -H "$V" $A/admin/audit)"
 check "VIEWER ops" 200 "$(code -H "$V" $A/admin/ops/health)"

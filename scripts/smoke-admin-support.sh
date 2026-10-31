@@ -17,14 +17,14 @@ code() { curl -s -o /dev/null -w '%{http_code}' "$@"; }
 idof() { grep -o '"id":[0-9]*' | head -1 | cut -d: -f2; }
 
 register() {
-  curl -s -o /dev/null -X POST -H "$H" $A/auth/register -d "{\"email\":\"$1\",\"password\":\"Sifre1234\",\"displayName\":\"$2\",\"acceptTerms\":true,\"language\":\"tr\"}"
+  curl -s -o /dev/null -X POST -H "$H" $A/auth/register -d "{\"email\":\"$1\",\"password\":\"Zk7-Qmv-Lpx92w\",\"displayName\":\"$2\",\"acceptTerms\":true,\"language\":\"tr\"}"
   sleep 1
   local c t
   c=$(docker compose logs backend 2>&1 | grep "$1 icin" | grep -o 'kodu: [0-9]*' | tail -1 | cut -d' ' -f2)
-  t=$(curl -s -X POST -H "$H" $A/auth/verify-email -d "{\"email\":\"$1\",\"code\":\"$c\",\"password\":\"Sifre1234\"}" |
+  t=$(curl -s -X POST -H "$H" $A/auth/verify-email -d "{\"email\":\"$1\",\"code\":\"$c\",\"password\":\"Zk7-Qmv-Lpx92w\"}" |
     grep -o '"accessToken":"[^"]*' | cut -d'"' -f4)
   if [ -z "$t" ]; then
-    t=$(curl -s -X POST -H "$H" $A/auth/login -d "{\"email\":\"$1\",\"password\":\"Sifre1234\"}" |
+    t=$(curl -s -X POST -H "$H" $A/auth/login -d "{\"email\":\"$1\",\"password\":\"Zk7-Qmv-Lpx92w\"}" |
       grep -o '"accessToken":"[^"]*' | cut -d'"' -f4)
   fi
   echo "$t"
@@ -35,7 +35,7 @@ UE="smksup$SFX@bingol.edu.tr"; UE2="smksup2x$SFX@bingol.edu.tr"
 SECRET="GIZLI-IC-NOT-$SFX"
 echo "== hazirlik"
 TA=$(register "$ADMIN_EMAIL" "Yonetici")
-TU=$(register "$UE" "Smoke Destek"); TU2=$(register "$UE2" "Smoke Destek Iki")
+TU=$(register "$UE" "Smoke Yardim"); TU2=$(register "$UE2" "Smoke Yardim Iki")
 [ -n "$TA" ] && [ -n "$TU" ] && [ -n "$TU2" ] || { echo "token alinamadi (ADMIN_EMAILS ayarli mi?)"; exit 1; }
 AD="Authorization: Bearer $TA"; US="Authorization: Bearer $TU"; US2="Authorization: Bearer $TU2"
 ADMIN_ID=$(curl -s -H "$AD" $A/admin/me | idof)
@@ -83,13 +83,13 @@ echo "== maskeleme (T-018): SUPPORT/VIEWER maskeli e-posta gorur, FULL tam adres
 # yardimci personel hesaplari: rol ADMIN yapilir (VIEWER baslar), SUPPORT atanir; ikincisi VIEWER kalir
 RS="X-Admin-Reason: smoke maskeleme"
 SE="smksupm$SFX@bingol.edu.tr"; VE="smksupv$SFX@bingol.edu.tr"
-TSU=$(register "$SE" "Smoke Destek Personeli"); TVW=$(register "$VE" "Smoke Izleyici")
+TSU=$(register "$SE" "Smoke Yardim Personeli"); TVW=$(register "$VE" "Smoke Izleyici")
 USID=$(curl -s -H "Authorization: Bearer $TSU" $A/users/me | idof); UVID=$(curl -s -H "Authorization: Bearer $TVW" $A/users/me | idof)
 check "SUPPORT adayi ADMIN" 204 "$(code -X PATCH -H "$H" -H "$AD" -H "$RS" $A/admin/users/$USID/role -d '{"role":"ADMIN"}')"
 check "VIEWER adayi ADMIN" 204 "$(code -X PATCH -H "$H" -H "$AD" -H "$RS" $A/admin/users/$UVID/role -d '{"role":"ADMIN"}')"
 check "SUPPORT ata" 204 "$(code -X PUT -H "$H" -H "$AD" $A/admin/rbac/users/$USID/profile -d '{"profile":"SUPPORT","reason":"duman testi atamasi"}')"
-TSU=$(curl -s -X POST -H "$H" $A/auth/login -d "{\"email\":\"$SE\",\"password\":\"Sifre1234\"}" | grep -o '"accessToken":"[^"]*' | cut -d'"' -f4)
-TVW=$(curl -s -X POST -H "$H" $A/auth/login -d "{\"email\":\"$VE\",\"password\":\"Sifre1234\"}" | grep -o '"accessToken":"[^"]*' | cut -d'"' -f4)
+TSU=$(curl -s -X POST -H "$H" $A/auth/login -d "{\"email\":\"$SE\",\"password\":\"Zk7-Qmv-Lpx92w\"}" | grep -o '"accessToken":"[^"]*' | cut -d'"' -f4)
+TVW=$(curl -s -X POST -H "$H" $A/auth/login -d "{\"email\":\"$VE\",\"password\":\"Zk7-Qmv-Lpx92w\"}" | grep -o '"accessToken":"[^"]*' | cut -d'"' -f4)
 SU="Authorization: Bearer $TSU"; VW="Authorization: Bearer $TVW"
 T2=$(curl -s -X POST -H "$H" -H "$US" $A/support/tickets -d "{\"category\":\"TECHNICAL\",\"subject\":\"Maske talep $SFX\",\"message\":\"Maske mesaj\"}")
 TID2=$(echo "$T2" | idof)

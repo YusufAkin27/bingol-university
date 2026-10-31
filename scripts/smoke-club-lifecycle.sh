@@ -30,13 +30,13 @@ idof() { grep -o '"id":[0-9]*' | head -1 | cut -d: -f2; }
 iso() { date -u -d "$1" +%Y-%m-%dT%H:%M:%SZ; }
 
 register() { # email ad
-  curl -s -o /dev/null -X POST -H "$H" $A/auth/register -d "{\"email\":\"$1\",\"password\":\"Sifre1234\",\"displayName\":\"$2\",\"acceptTerms\":true}"
+  curl -s -o /dev/null -X POST -H "$H" $A/auth/register -d "{\"email\":\"$1\",\"password\":\"Zk7-Qmv-Lpx92w\",\"displayName\":\"$2\",\"acceptTerms\":true}"
   sleep 1
   local c tok
   c=$(docker compose logs backend 2>&1 | grep "$1 icin" | grep -o 'kodu: [0-9]*' | tail -1 | cut -d' ' -f2)
-  tok=$(curl -s -X POST -H "$H" $A/auth/verify-email -d "{\"email\":\"$1\",\"code\":\"$c\",\"password\":\"Sifre1234\"}" | grep -o '"accessToken":"[^"]*' | cut -d'"' -f4)
+  tok=$(curl -s -X POST -H "$H" $A/auth/verify-email -d "{\"email\":\"$1\",\"code\":\"$c\",\"password\":\"Zk7-Qmv-Lpx92w\"}" | grep -o '"accessToken":"[^"]*' | cut -d'"' -f4)
   if [ -z "$tok" ]; then
-    tok=$(curl -s -X POST -H "$H" $A/auth/login -d "{\"email\":\"$1\",\"password\":\"Sifre1234\"}" | grep -o '"accessToken":"[^"]*' | cut -d'"' -f4)
+    tok=$(curl -s -X POST -H "$H" $A/auth/login -d "{\"email\":\"$1\",\"password\":\"Zk7-Qmv-Lpx92w\"}" | grep -o '"accessToken":"[^"]*' | cut -d'"' -f4)
   fi
   echo "$tok"
 }
@@ -145,8 +145,10 @@ contains "CANCELLED" "CANCELLED" "$BODY"
 echo "== kulupten cikarilan olusturan etkinligi yonetemez (T-041)"
 step "T2 moderator yapildi" 204 PUT /communities/$CID/members/$ID2/role "$T1" '{"role":"MODERATOR"}'
 call POST /events "$T2" "{\"title\":\"Moderator Etkinligi $SFX\",\"startsAt\":\"$S\",\"endsAt\":\"$E\",\"communityId\":$CID}"
-check "moderator etkinlik acar" 201 "$CODE"
+# MANAGE_EVENTS izinli sade uye (MODERATOR) etkinligi onaya gonderir (202 PENDING_REVIEW); yonetici onaylayana kadar listeler 404
+check "moderator etkinlik acar (onay bekler)" 202 "$CODE"
 EV3=$(printf '%s' "$BODY" | idof)
+check "yonetici etkinligi onaylar" 204 "$(curl -s -o /dev/null -w '%{http_code}' -u "admin:${ADMIN_PASSWORD:-}" -X POST -H 'X-Admin-Reason: smoke onay testi' $A/admin/events/$EV3/approve)"
 step "olusturan katilimci listesini gorur" 200 GET /events/$EV3/attendees "$T2"
 step "yabanci ortak organizator ekleyemez" 403 POST /events/$EV3/co-organizers "$T3" "{\"userId\":$ID2}"
 step "sahip kulup disi kisiyi ortak organizator yapamaz" 409 POST /events/$EV3/co-organizers "$T1" "{\"userId\":$ID_OUT}"

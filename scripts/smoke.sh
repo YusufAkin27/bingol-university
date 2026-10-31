@@ -99,11 +99,11 @@ check "% yerel kisim 400" 400 "$(reg_code "a%evil.com@bingol.edu.tr" "Zk7-Qmv-Lp
 check "ardisik nokta 400" 400 "$(reg_code "a..b$SFX@bingol.edu.tr" "Zk7-Qmv-Lpx92w" "Ali Veli")"
 
 echo "== hata zarfi (W1-A: T-004)"
-BODY=$(curl -s -X DELETE -H "$AUTH2" $A/news)
-check "DELETE /api/news 405" 405 "$(code -X DELETE -H "$AUTH2" $A/news)"
+BODY=$(curl -s -X DELETE -H "$AUTH1" $A/news)
+check "DELETE /api/news 405" 405 "$(code -X DELETE -H "$AUTH1" $A/news)"
 case "$BODY" in *'"code":"METHOD_NOT_ALLOWED"'*) check "405 govde code" 1 1;; *) check "405 govde code ($BODY)" 1 0;; esac
-BODY=$(curl -s -H "$AUTH2" $A/yok-boyle-bir-uc)
-check "bilinmeyen yol 404" 404 "$(code -H "$AUTH2" $A/yok-boyle-bir-uc)"
+BODY=$(curl -s -H "$AUTH1" $A/yok-boyle-bir-uc)
+check "bilinmeyen yol 404" 404 "$(code -H "$AUTH1" $A/yok-boyle-bir-uc)"
 case "$BODY" in *'"code":"NOT_FOUND"'*) check "404 govde code" 1 1;; *) check "404 govde code ($BODY)" 1 0;; esac
 HDRS=$(curl -s -D - -o /dev/null -H "Authorization: Bearer bozuk.token.degeri" $A/admin/users)
 check "bozuk Bearer admin 401" 401 "$(code -H "Authorization: Bearer bozuk.token.degeri" $A/admin/users)"

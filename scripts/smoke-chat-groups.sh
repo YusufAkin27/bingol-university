@@ -26,13 +26,13 @@ call() {
 step() { local name=$1 exp=$2; shift 2; call "$@"; check "$name" "$exp" "$CODE"; }
 idof() { grep -o '"id":[0-9]*' | head -1 | cut -d: -f2; }
 register() {
-  curl -s -o /dev/null -X POST -H "$H" $A/auth/register -d "{\"email\":\"$1\",\"password\":\"Sifre1234\",\"displayName\":\"$2\",\"acceptTerms\":true}"
+  curl -s -o /dev/null -X POST -H "$H" $A/auth/register -d "{\"email\":\"$1\",\"password\":\"Zk7-Qmv-Lpx92w\",\"displayName\":\"$2\",\"acceptTerms\":true}"
   sleep 1
   local c tok
   c=$(docker compose logs backend 2>&1 | grep "$1 icin" | grep -o 'kodu: [0-9]*' | tail -1 | cut -d' ' -f2)
-  tok=$(curl -s -X POST -H "$H" $A/auth/verify-email -d "{\"email\":\"$1\",\"code\":\"$c\",\"password\":\"Sifre1234\"}" | grep -o '"accessToken":"[^"]*' | cut -d'"' -f4)
+  tok=$(curl -s -X POST -H "$H" $A/auth/verify-email -d "{\"email\":\"$1\",\"code\":\"$c\",\"password\":\"Zk7-Qmv-Lpx92w\"}" | grep -o '"accessToken":"[^"]*' | cut -d'"' -f4)
   if [ -z "$tok" ]; then
-    tok=$(curl -s -X POST -H "$H" $A/auth/login -d "{\"email\":\"$1\",\"password\":\"Sifre1234\"}" | grep -o '"accessToken":"[^"]*' | cut -d'"' -f4)
+    tok=$(curl -s -X POST -H "$H" $A/auth/login -d "{\"email\":\"$1\",\"password\":\"Zk7-Qmv-Lpx92w\"}" | grep -o '"accessToken":"[^"]*' | cut -d'"' -f4)
   fi
   echo "$tok"
 }
@@ -84,7 +84,7 @@ if [ "$CODE" = "202" ]; then check "etkinlik olustur (onay bekler)" 202 "$CODE";
 EV=$(printf '%s' "$BODY" | idof)
 if [ "$CODE" = "202" ]; then step "admin onayla" 204 POST /admin/events/$EV/approve "$TA"; fi
 step "RSVP'siz yabanci 403" 403 GET /events/$EV/chat "$T3"
-step "T3 ilgileniyor" 200 PUT /events/$EV/rsvp "$T3" '{"status":"INTERESTED"}'
+step "T3 katiliyor" 200 PUT /events/$EV/rsvp "$T3" '{"status":"GOING"}'
 step "RSVP'li sohbeti alir" 200 GET /events/$EV/chat "$T3"
 contains "tur EVENT" '"type":"EVENT"' "$BODY"
 contains "eventId dolu" "\"eventId\":$EV" "$BODY"

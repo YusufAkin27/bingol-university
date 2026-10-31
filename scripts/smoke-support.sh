@@ -18,15 +18,15 @@ idof() { grep -o '"id":[0-9]*' | head -1 | cut -d: -f2; }
 
 # kayit + dogrulama -> access token. 3. arguman dil (tr|en|ar)
 register() {
-  curl -s -o /dev/null -X POST -H "$H" $A/auth/register -d "{\"email\":\"$1\",\"password\":\"Sifre1234\",\"displayName\":\"$2\",\"acceptTerms\":true,\"language\":\"${3:-tr}\"}"
+  curl -s -o /dev/null -X POST -H "$H" $A/auth/register -d "{\"email\":\"$1\",\"password\":\"Zk7-Qmv-Lpx92w\",\"displayName\":\"$2\",\"acceptTerms\":true,\"language\":\"${3:-tr}\"}"
   sleep 1
   local c t
   c=$(docker compose logs backend 2>&1 | grep "$1 icin" | grep -o 'kodu: [0-9]*' | tail -1 | cut -d' ' -f2)
-  t=$(curl -s -X POST -H "$H" $A/auth/verify-email -d "{\"email\":\"$1\",\"code\":\"$c\",\"password\":\"Sifre1234\"}" |
+  t=$(curl -s -X POST -H "$H" $A/auth/verify-email -d "{\"email\":\"$1\",\"code\":\"$c\",\"password\":\"Zk7-Qmv-Lpx92w\"}" |
     grep -o '"accessToken":"[^"]*' | cut -d'"' -f4)
   # Hesap onceden kayitliysa (ornek: onceki betik) giris yap
   if [ -z "$t" ]; then
-    t=$(curl -s -X POST -H "$H" $A/auth/login -d "{\"email\":\"$1\",\"password\":\"Sifre1234\"}" |
+    t=$(curl -s -X POST -H "$H" $A/auth/login -d "{\"email\":\"$1\",\"password\":\"Zk7-Qmv-Lpx92w\"}" |
       grep -o '"accessToken":"[^"]*' | cut -d'"' -f4)
   fi
   echo "$t"
@@ -51,11 +51,11 @@ has "hata EN (en-US)" "Incorrect email" "$(curl -s -X POST -H "$H" -H 'Accept-La
 has "hata AR" "$(printf '\xd8\xa7\xd9\x84\xd8\xa8\xd8\xb1\xd9\x8a\xd8\xaf')" "$(curl -s -X POST -H "$H" -H 'Accept-Language: ar' $A/auth/login -d "$BAD")"
 has "desteklenmeyen dil TR'ye duser" "E-posta veya" "$(curl -s -X POST -H "$H" -H 'Accept-Language: fr' $A/auth/login -d "$BAD")"
 has "kod makine okunur kalir (EN)" '"code":"INVALID_CREDENTIALS"' "$(curl -s -X POST -H "$H" -H 'Accept-Language: en' $A/auth/login -d "$BAD")"
-NOTERMS="{\"email\":\"x$SFX@bingol.edu.tr\",\"password\":\"Sifre1234\",\"displayName\":\"X\",\"acceptTerms\":false}"
+NOTERMS="{\"email\":\"x$SFX@bingol.edu.tr\",\"password\":\"Zk7-Qmv-Lpx92w\",\"displayName\":\"Xx\",\"acceptTerms\":false}"
 check "sozlesme kabulsuz kayit" 400 "$(code -X POST -H "$H" $A/auth/register -d "$NOTERMS")"
 has "sozlesme hatasi EN" "agreements" "$(curl -s -X POST -H "$H" -H 'Accept-Language: en' $A/auth/register -d "$NOTERMS")"
-has "kayit mesaji EN" "verification code has been sent" "$(curl -s -X POST -H "$H" -H 'Accept-Language: en' $A/auth/register -d "{\"email\":\"y$SFX@bingol.edu.tr\",\"password\":\"Sifre1234\",\"displayName\":\"Y\",\"acceptTerms\":true}")"
-has "domain hatasi EN" "bingol.edu.tr" "$(curl -s -X POST -H "$H" -H 'Accept-Language: en' $A/auth/register -d "{\"email\":\"a@gmail.com\",\"password\":\"Sifre1234\",\"displayName\":\"Y\",\"acceptTerms\":true}")"
+has "kayit mesaji EN" "verification code has been sent" "$(curl -s -X POST -H "$H" -H 'Accept-Language: en' $A/auth/register -d "{\"email\":\"y$SFX@bingol.edu.tr\",\"password\":\"Zk7-Qmv-Lpx92w\",\"displayName\":\"Yy\",\"acceptTerms\":true}")"
+has "domain hatasi EN" "bingol.edu.tr" "$(curl -s -X POST -H "$H" -H 'Accept-Language: en' $A/auth/register -d "{\"email\":\"a@gmail.com\",\"password\":\"Zk7-Qmv-Lpx92w\",\"displayName\":\"Yy\",\"acceptTerms\":true}")"
 check "gecersiz dil degeri" 400 "$(code -X PATCH -H "$H" -H "$ATR" $A/users/me -d '{"language":"fr"}')"
 has "profil dili" '"language":"en"' "$(curl -s -H "$AEN" $A/users/me)"
 
