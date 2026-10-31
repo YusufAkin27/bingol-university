@@ -91,8 +91,25 @@
 		reverse_proxy web:80
 	}
 
+	# Erisim gunlugu (A8-23): sorgu dizisindeki TOKEN/KOD degerleri gunluge YAZILMAZ (destek takip baglantisi /support/track?token=...,
+	# sifre/dogrulama kodu gibi parametreler); yol ve diger parametreler kalir. Saklama: Docker json-file donusu (compose: 5 x 10 MB);
+	# sure trafige baglidir, SABIT GUN VAADI YOKTUR (docs/DEPLOY.md "Erisim gunlugu"). IP adresi gunlukte durur: gizlilik metniyle esleyin.
 	log {
 		output stdout
-		format json
+		format filter {
+			wrap json
+			fields {
+				request>uri query {
+					replace token REDACTED
+					replace code REDACTED
+					replace password REDACTED
+					replace key REDACTED
+					replace secret REDACTED
+				}
+				request>headers>Authorization replace REDACTED
+				request>headers>Cookie delete
+				resp_headers>Set-Cookie delete
+			}
+		}
 	}
 }

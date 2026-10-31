@@ -63,16 +63,16 @@ Durum işaretleri: `[ ]` yapılmadı, `[x]` yapıldı. **Sizin yapmanız gereken
 2. [ ] **SSH anahtarı:** yerelde `ssh-keygen -t ed25519`; `ssh-copy-id root@<ip>`; anahtarla girişi **ayrı bir oturumda** deneyin. Bu doğrulanmadan parola girişini kapatmayın.
 3. [ ] **Sunucu hazırlığı** (tek betik, tekrar çalıştırılabilir): `git clone <repo> /opt/bu && cd /opt/bu && sudo bash scripts/deploy/bootstrap-server.sh --deploy-user bu` yapar: Docker (resmî depo + Compose eklentisi), **UFW** (yalnız 22, 80, 443/tcp+udp), **fail2ban** (sshd), **otomatik güvenlik güncellemesi** (`unattended-upgrades`, otomatik yeniden başlatma KAPALI), saat dilimi `Europe/Istanbul`, **2 GB swap** (`vm.swappiness=10`), Docker log döndürme.
 4. [ ] SSH sertleştirme: `/etc/ssh/sshd_config` içinde `PasswordAuthentication no`, `PermitRootLogin no`; `systemctl reload ssh`. `chown -R bu:bu /opt/bu`; bundan sonra `su - bu`.
-5. [ ] **Sırlar:** `bash scripts/ops/gen-secrets.sh` -> `.env.prod` (izin 600). Elle doldurun: `DOMAIN=bukampus.com.tr`, `ACME_EMAIL`, `CORS_ORIGINS=https://bukampus.com.tr`, `PUBLIC_WEB_URL=https://bukampus.com.tr`, `ADMIN_EMAILS`, `MAIL_*` (Aşama 2), `BACKUP_AGE_RECIPIENT`. **`.env.prod` ve `CRYPTO_MASTER_KEYS` bu adımda şifre yöneticisine + çevrimdışı kasaya kopyalanır** ([KEY_MANAGEMENT.md](KEY_MANAGEMENT.md)); yedeğe girmez, kaybı şifreli mesajların kalıcı kaybıdır.
-6. [ ] **Yedek anahtarları:** çevrimdışı makinede `age-keygen -o kurtarma.age.key` (özel anahtar sunucuya KONMAZ, parola yöneticisi + kasa) ve doğrulama anahtarı; genel anahtarlar `.env.prod`'a; `BACKUP_REMOTE` (ikinci sağlayıcıda rclone hedefi) şiddetle önerilir ([BACKUP_RESTORE.md](BACKUP_RESTORE.md) bölüm 2).
+5. [ ] **Sırlar:** `bash scripts/ops/gen-secrets.sh` -> `.env.prod` (izin 600). Elle doldurun: `DOMAIN=bukampus.com.tr`, `ACME_EMAIL`, `CORS_ORIGINS=https://bukampus.com.tr`, `PUBLIC_WEB_URL=https://bukampus.com.tr`, `ADMIN_EMAILS` (**en az 2 adres**: tek FULL yöneticide iki kişi onayı kilitlenir, K-31), `MAIL_*` (Aşama 2; **prod `MAIL_ENABLED=false` ile açılmaz**), `BACKUP_AGE_RECIPIENT`. **`.env.prod` ve `CRYPTO_MASTER_KEYS` bu adımda şifre yöneticisine + çevrimdışı kasaya kopyalanır** ([KEY_MANAGEMENT.md](KEY_MANAGEMENT.md)); yedeğe girmez, kaybı şifreli mesajların kalıcı kaybıdır.
+6. [ ] **Yedek anahtarları:** çevrimdışı makinede `age-keygen -o kurtarma.age.key` (özel anahtar sunucuya KONMAZ, parola yöneticisi + kasa) ve doğrulama anahtarı; genel anahtarlar `.env.prod`'a; **`BACKUP_REMOTE` (farklı sağlayıcıda/bölgede rclone crypt hedefi) canlıdan önce ZORUNLUDUR** (boşsa yedekler yalnız VPS diskindedir; backend açılışta uyarır) ve `BACKUP_WEBHOOK_URL` doldurulur ([BACKUP_RESTORE.md](BACKUP_RESTORE.md) bölüm 2 ve 11). Anahtar emaneti: `CRYPTO_MASTER_KEYS` ve age özel anahtarı **iki ayrı dosya, iki ayrı yer**; "fiilen okundu" testi [RUNBOOK.md](RUNBOOK.md) bölüm 12 tatbikat günlüğüne işlenir (H-02).
 7. [ ] **FCM (isteğe bağlı, sonra):** [PUSH_SETUP.md](PUSH_SETUP.md); boşsa yalnız uygulama içi bildirim.
-8. [ ] **İlk dağıtım:** `bash scripts/deploy/update.sh --first` (derler, başlatır, sağlık bekler). Sonra `curl -I https://bukampus.com.tr/` (200 + geçerli sertifika), `https://bukampus.com.tr/api/status`, `https://bukampus.com.tr/actuator/health` **404** olmalı.
+8. [ ] **İlk dağıtım:** yerelden `bash scripts/deploy.sh --dry-run`, ardından `bash scripts/deploy.sh` (Brevo bilgisi yoksa baştan reddeder; `.env.prod` üretir, derler, başlatır, soğuk açılışı 262-465 sn bekler, ısıtır; sunucu içinde elle çalışılacaksa alternatif `scripts/deploy/update.sh --first`). Sonra `curl -I https://bukampus.com.tr/` (200 + geçerli sertifika), `https://bukampus.com.tr/api/status`, `https://bukampus.com.tr/actuator/health` **404** olmalı.
 9. [ ] **Isıtma + duman:** `BASE=https://bukampus.com.tr bash scripts/warmup.sh`, ardından `BASE=https://bukampus.com.tr bash scripts/staging-smoke.sh` ([DEPLOY.md](DEPLOY.md) 14.2).
 10. [ ] **İlk yönetici:** `ADMIN_EMAILS`'teki adresle kayıt + doğrulama; panel `https://bukampus.com.tr/admin`. Kayıt kodu e-postası gerçekten gelmeli (Aşama 2 tamam).
 11. [ ] **İLK YEDEK ve geri yükleme:** `exec -u postgres backup /opt/backup/backup.sh --dry-run`, sonra elle bir yedek, **uzak kopyada göründüğünü** doğrulayın, `verify-restore.sh --latest` geçsin. İlk canlı verinin üzerine yazmadan önce **staging'de `restore-live.sh`** deneyin ([BACKUP_RESTORE.md](BACKUP_RESTORE.md) bölüm 10: yerel tatbikat betiği `scripts/restore-drill.sh`).
 12. [ ] **Güvenlik duvarı doğrulaması** (dışarıdan, kendi bilgisayarınızdan): yalnız 22/80/443 açık olmalı (`nmap -Pn <ip>` ya da çevrimiçi port tarayıcı); 5432/6379/8080 kapalı. (UFW Docker yayınlarını engellemez; compose zaten yalnız Caddy'yi yayınlar: [DEPLOY.md](DEPLOY.md) A4.)
-13. [ ] **İzleme:** Uptime Kuma ya da benzeri dış izleyici (`/api/status` + TLS süresi) ve yönetici paneli > Sistem ([DEPLOY.md](DEPLOY.md) "Sistem durumu..." bölümü).
-14. [ ] **Tatbikat:** staging'de `update.sh` + `rollback.sh`; saat/uyarı zincirini (yedek başarısız -> bildirim) bir kez bozarak deneyin.
+13. [ ] **HARİCİ İZLEME (ZORUNLU, H-03):** uygulama içi uyarı sunucu/backend çökünce ulaşmaz; bu yüzden **sunucudan bağımsız** bir makine/hizmette: (a) UptimeRobot ya da başka makinedeki Uptime Kuma ile `https://bukampus.com.tr/api/status` monitörü (1-2 dk), (b) TLS sertifika süresi monitörü, (c) Healthchecks.io ölü adam anahtarı: her başarılı yedekte ping, 2-3 saat gelmezse e-posta. Ayrıca yönetici paneli > Sistem ([DEPLOY.md](DEPLOY.md) "Harici izleme" ve "Sistem durumu..." bölümleri).
+14. [ ] **Tatbikat:** staging'de `update.sh` + `rollback.sh` (üretimde `deploy.sh --rollback`); saat/uyarı zincirini (yedek başarısız -> bildirim) bir kez bozarak deneyin.
 
 ### Caddy / TLS / ortam değişkeni özeti
 
@@ -83,7 +83,9 @@ Durum işaretleri: `[ ]` yapılmadı, `[x]` yapıldı. **Sizin yapmanız gereken
 | `CORS_ORIGINS` | `https://bukampus.com.tr` | `*` ve `localhost` kabul edilmez; web paneli ve site aynı kökende; mobil CORS'tan etkilenmez |
 | `PUBLIC_WEB_URL` | `https://bukampus.com.tr` | Destek takip bağlantıları, abonelik bağlantıları ve e-posta içindeki adresler; **https ve herkese açık** olmalı |
 | `MAIL_FROM` / `MAIL_REPLY_TO` | `noreply@bukampus.online` / `ysufakin23@gmail.com` | Aşama 2 |
-| `LEGAL_ENFORCE_REACCEPT` | **false** (varsayılan) | Yalnız mobil sürüm yayınlandıktan SONRA ([DEPLOY.md](DEPLOY.md) 14.4) |
+| `LEGAL_ENFORCE_REACCEPT` | **false** (varsayılan) | Yalnız mobil sürüm yayınlandıktan SONRA ([DEPLOY.md](DEPLOY.md) 14.4); `.env.prod`'a yazmak yeter (compose iletir) |
+| `BACKUP_REMOTE` / `BACKUP_WEBHOOK_URL` | **dolu** (rclone crypt uzak hedefi / webhook) | Boşsa yedek yalnız VPS diskindedir; backend açılışta uyarır |
+| `ADMIN_EMAILS` | **>= 2 adres** | Tek FULL yöneticide iki kişi onayı kilitlenir (K-31) |
 | TLS | Let's Encrypt (HTTP-01, 80 açık) | HSTS `deploy/Caddyfile` içinde; sertifika yenileme otomatik |
 
 ## Aşama 4. Mobil sürüm ve mağaza
@@ -100,7 +102,7 @@ Durum işaretleri: `[ ]` yapılmadı, `[x]` yapıldı. **Sizin yapmanız gereken
 
 | SİZ (hesap/ödeme/kimlik/sır) | Hazır (repoda) |
 |---|---|
-| Cloudflare, Brevo, Play Console, Firebase hesapları; VPS satın alma | Betikler: `bootstrap-server.sh`, `update.sh`, `rollback.sh`, `restore-live.sh`, `restore-drill.sh`, `warmup.sh`, `staging-smoke.sh` |
+| Cloudflare, Brevo, Play Console, Firebase hesapları; VPS satın alma | Betikler: `bootstrap-server.sh`, `deploy.sh` (üretim), `update.sh`, `rollback.sh`, `restore-live.sh`, `restore-drill.sh`, `warmup.sh`, `staging-smoke.sh` |
 | Upload keystore, age kurtarma anahtarı, `.env.prod`, `CRYPTO_MASTER_KEYS` saklama | Belgeler: bu liste, DEPLOY 14, BACKUP_RESTORE 10, DEVICE_TEST_PLAN, store/ |
 | Avukat görüşü, VERBİS/KEP kararı, üniversite izni | Sözleşme metinleri (taslak), `LEGAL_NOTES.md` soru listesi |
 | Gerçek cihaz testi, ekran görüntüleri, FCM anahtarı | Test planı, çekim yönergesi, push kodu |

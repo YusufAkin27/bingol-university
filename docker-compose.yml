@@ -138,6 +138,21 @@ services:
       CRYPTO_ACTIVE_KEY_ID: ${CRYPTO_ACTIVE_KEY_ID:-}
       CRYPTO_REQUIRE_KEYS: ${CRYPTO_REQUIRE_KEYS:-false}
       CRYPTO_ADMIN_DECRYPT_ENABLED: ${CRYPTO_ADMIN_DECRYPT_ENABLED:-true}
+      # `VAR:` (degersiz) = .env'de TANIMLIYSA iletilir, degilse hic iletilmez (uygulamanin varsayilani gecerli; bos dize gecmez).
+      # Smoke betikleri LEGAL_ENFORCE_REACCEPT=false ister. Tam liste: docker-compose.prod.yml backend.environment (T-144).
+      LEGAL_ENFORCE_REACCEPT:
+      ADMIN_BASIC_ENABLED:
+      DEVICE_HMAC_KEY:
+      BAN_ALLOWLIST:
+      BAN_CACHE_TTL_SECONDS:
+      BAN_LOG_RETENTION_DAYS:
+      BLOCK_ANONYMIZERS:
+      DB_POOL_MAX:
+      DB_POOL_MIN_IDLE:
+      OBS_ALERT_ENABLED:
+      OBS_ALERT_EMAIL:
+      APP_MAIL_ALLOW_LOG_ONLY:
+      SENTRY_DSN:
     volumes:
       - uploads:/data/uploads
     healthcheck:

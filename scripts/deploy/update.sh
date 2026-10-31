@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 # Uretim guncellemesi: (yedek) -> kod/imaj cek -> yeniden baslat -> saglik kontrolu -> basarisizsa onceki surume don.
+# NOT: URETIMDE dogru yol yerelden `scripts/deploy.sh`'tir (docs/DEPLOY.md bolum 0); bu betik sunucu icinde elle/staging icindir.
 # Kullanim: bash scripts/deploy/update.sh [--first] [--ref <git-etiket/dal>] [--no-backup] [--env-file .env.prod]
+#   Ortam: HEALTH_WAIT_BACKEND (sn, varsayilan 600) backend saglik bekleme suresi.
 #   Staging: COMPOSE_FILES="-f docker-compose.prod.yml -f docker-compose.staging.yml" PROJECT=bu-staging ENV_FILE=.env.staging
 # Geri alma durumu scripts/deploy/rollback.sh ile paylasilir: .deploy/previous_ref ve .deploy/previous_images
 set -Eeuo pipefail
@@ -8,6 +10,10 @@ cd "$(dirname "${BASH_SOURCE[0]}")/../.."
 
 ENV_FILE="${ENV_FILE:-.env.prod}"
 PROJECT="${PROJECT:-bu}"
+# Soguk acilis (Flyway + Hibernate dogrulama) 262-465 sn surebilir: eski 240 sn bekleme yetmezdi. docker-compose.prod.yml
+# healthcheck start_period (BACKEND_START_PERIOD, 360s) ile birlikte ayarlayin.
+HEALTH_WAIT_BACKEND="${HEALTH_WAIT_BACKEND:-600}"
+case "$HEALTH_WAIT_BACKEND" in ''|*[!0-9]*) echo "HEALTH_WAIT_BACKEND yalniz rakam (saniye) olmali" >&2; exit 2;; esac
 COMPOSE_FILES="${COMPOSE_FILES:--f docker-compose.prod.yml}"
 REF=""; FIRST=0; BACKUP=1
 while [ $# -gt 0 ]; do
@@ -81,7 +87,7 @@ log "surum: ${PREV_REF:0:8} -> ${NEW_REF:0:8}"
 
 # --- saglik ---
 OK=1
-wait_healthy backend 240 || { log "backend saglikli olmadi"; OK=0; }
+wait_healthy backend "$HEALTH_WAIT_BACKEND" || { log "backend saglikli olmadi (${HEALTH_WAIT_BACKEND} sn)"; OK=0; }
 if [ "$OK" = 1 ]; then
   sleep 5
   wait_healthy caddy 60 || { log "caddy saglikli degil"; OK=0; }

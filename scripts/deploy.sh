@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
-# BU Kampus: yerelden tek komutla VDS'e dagitim (kod aktar -> .env.prod yoksa uret -> derle -> baslat -> saglik -> geri alma -> isitma).
-# Kullanim:  scripts/deploy.sh [--dry-run] [--no-build] [--rollback] [--ip-test] [--ref <git-ref>] [--skip-warmup] [--skip-cleanup]
+# BU Kampus: yerelden tek komutla VDS'e dagitim (kod aktar -> .env.prod yoksa uret -> yedek -> derle -> baslat -> saglik -> geri alma -> isitma).
+# URETIMDE TEK DOGRU YOL BUDUR (scripts/deploy/update.sh sunucu icinde elle guncelleme icindir; bkz. docs/DEPLOY.md bolum 0).
+# Kullanim:  scripts/deploy.sh [--dry-run] [--no-build] [--rollback] [--ip-test] [--ref <git-ref>] [--skip-warmup] [--skip-cleanup] [--skip-backup]
 #   --dry-run      Sunucuya DOKUNMAZ; adimlari ve komutlari yazdirir (yerel salt-okur kontroller calisir).
 #   --no-build     Imaj derlemez; mevcut yerel imajlarla `up -d` (yeni surum aktarilir ama derlenmez).
 #   --rollback     Onceki surume doner (onceki imajlar :previous etiketli + onceki surum dizini).
@@ -10,27 +11,36 @@
 #   --skip-warmup  scripts/warmup.sh calistirma.
 #   --skip-cleanup Basarili dagitimdan sonra disk temizligi kurulumunu/calistirmasini (scripts/ops/install-cleanup.sh) atlar.
 #                  Temizlik hatasi dagitimi BASARISIZ saymaz (yalniz uyari). Ayrinti: docs/DEPLOY_SCRIPT.md "Disk temizligi".
+#   --skip-backup  Derlemeden ONCE alinan sifreli yedegi atlar (ONERILMEZ: Flyway geri sarilmaz). Varsayilan: calisan surum
+#                  varsa yedek ZORUNLUDUR, yedek basarisizsa dagitim DURUR (sunucuya yeni imaj kurulmaz).
 # Ortam: SKIP_TESTS=1 yerel kapilari (web lint/typecheck/test/build/check:bundle) atlar.
+#   HEALTH_WAIT_BACKEND (sn, varsayilan 600): backend saglik bekleme suresi; acilis 262-465 sn surebilir (Flyway + Hibernate).
 # Yapilandirma: repo kokunde GITIGNORED `.deploy.env` (asla commit etme, loga yazma):
 #   DEPLOY_HOST, DEPLOY_USER (sudo'lu hesap; varsayilan deploy), DEPLOY_DOMAIN,
 #   DEPLOY_ACME_EMAIL (ilk .env.prod uretiminde ZORUNLU: Let's Encrypt bildirim adresi; varsayilan yok),
 #   istege bagli: DEPLOY_KEY (varsayilan ~/.ssh/bu_deploy_ed25519), DEPLOY_ADMIN_EMAILS,
-#   DEPLOY_MAIL_USER / DEPLOY_MAIL_PASSWORD (Brevo SMTP; yoksa MAIL_ENABLED=false baslar), DEPLOY_WWW (1 varsayilan),
+#   DEPLOY_MAIL_USER / DEPLOY_MAIL_PASSWORD (Brevo SMTP; ZORUNLU: prod MAIL_ENABLED=false ile ACILMAZ, bilgi yoksa dagitim
+#   baslamadan REDDEDILIR; yalniz bilincli log-only icin DEPLOY_ALLOW_LOG_ONLY=1 -> APP_MAIL_ALLOW_LOG_ONLY=true),
+#   DEPLOY_MAIL_ON_SERVER=1 (yalniz --dry-run: sunucudaki .env.prod'da SMTP bilgisi zaten var, yerelde yok), DEPLOY_WWW (1 varsayilan),
 #   DEPLOY_MAIL_FROM, DEPLOY_MAIL_REPLY_TO, DEPLOY_MAIL_FROM_NAME (gorunen ad; varsayilan "BU Kampus" + Turkce karakterler),
 #   DEPLOY_ADMIN_PATH (gizli yonetim yolu; web imajina VITE_ADMIN_PATH olarak derlenir),
-#   DEPLOY_STORAGE_DB_DISK_CAPACITY_BYTES (varsayilan 48 GiB), DEPLOY_STORAGE_RESERVED_BYTES (varsayilan 10 GiB).
+#   DEPLOY_STORAGE_DB_DISK_CAPACITY_BYTES (varsayilan 48 GiB), DEPLOY_STORAGE_RESERVED_BYTES (varsayilan 10 GiB),
+#   DEPLOY_BACKUP_REMOTE (rclone crypt uzak yedek hedefi; bos = yedekler YALNIZ sunucu diskinde, UYARI verilir),
+#   DEPLOY_BACKUP_WEBHOOK_URL (yedek hata bildirimi; bos = UYARI).
 # .env.prod ANAHTAR SENKRONU: yukaridaki DEPLOY_* degerleri sunucudaki .env.prod'a YALNIZ anahtar yoksa/bossa ya da
 #   sablon (YER_TUTUCU/example) degerindeyse yazilir; elle degistirilmis deger ASLA ezilmez. ADMIN_PASSWORD ve
 #   ADMIN_BASIC_ENABLED'e dokunulmaz (uretimde Basic yonetici girisi kapali kalir).
 #   Parola ile giris DESTEKLENMEZ (sunucuda parola girisi kapali): anahtar kullanilir.
 # Sunucu duzeni: /opt/bukampus/{releases/<sha>,current,.env.prod}  /opt/bukampus-data/{backup-metrics,secrets}
-# Sirlar: .env.prod YOKSA sunucuda uretilir (izin 600) ve yerel kopya .deploy/generated-secrets.txt (600) yazilir; VARSA ASLA ezilmez.
+# Sirlar: .env.prod YOKSA sunucuda uretilir (izin 600); yerel kopyalar AYRI dosyalardir (600): .deploy/generated-secrets.txt
+#   (DB/JWT/ADMIN/CRYPTO/DEVICE sirlari) ve .deploy/backup-age-private.key (age OZEL anahtari: yedek cozmek icin). Ikisini AYRI
+#   yerlere emanet edin (docs/KEY_MANAGEMENT.md; RUNBOOK tatbikat sablonu). .env.prod VARSA ASLA ezilmez.
 # Cikis kodu: 0 tamam; 1 dagitim/saglik basarisiz (otomatik geri alma denendi); 2 kullanim/yapilandirma hatasi.
 set -euo pipefail
 cd "$(dirname "${BASH_SOURCE[0]}")/.."
 ROOT="$(pwd)"
 
-DRY=0; NOBUILD=0; ROLLBACK=0; IPTEST=0; REF="HEAD"; WARMUP=1; CLEANUP=1
+DRY=0; NOBUILD=0; ROLLBACK=0; IPTEST=0; REF="HEAD"; WARMUP=1; CLEANUP=1; BACKUP=1
 while [ $# -gt 0 ]; do
   case "$1" in
     --dry-run) DRY=1; shift;;
@@ -40,14 +50,15 @@ while [ $# -gt 0 ]; do
     --ref) REF="${2:?--ref deger ister}"; shift 2;;
     --skip-warmup) WARMUP=0; shift;;
     --skip-cleanup) CLEANUP=0; shift;;
-    -h|--help) sed -n '2,23p' "$0"; exit 0;;
+    --skip-backup) BACKUP=0; shift;;
+    -h|--help) awk 'NR==1{next} /^#/{sub(/^# ?/,""); print; next} {exit}' "$0"; exit 0;;
     *) echo "bilinmeyen arguman: $1" >&2; exit 2;;
   esac
 done
 
 log()  { printf '%s [deploy] %s\n' "$(date '+%F %T')" "$*"; }
 warn() { printf '%s [deploy] UYARI: %s\n' "$(date '+%F %T')" "$*" >&2; }
-die()  { printf '%s [deploy] HATA: %s\n' "$(date '+%F %T')" "$*" >&2; exit "${2:-2}"; }
+die()  { printf '%s [deploy] HATA: %s\n' "$(date '+%F %T')" "$1" >&2; exit "${2:-2}"; }
 plan() { printf '    [dry-run] %s\n' "$*"; }
 
 # --- yapilandirma (.deploy.env: tirnakli degerleri kabuk kendisi cozer; HICBIR YERDE yazdirilmaz) ---
@@ -83,6 +94,10 @@ rsh() {
 BASEDIR=/opt/bukampus
 DATADIR=/opt/bukampus-data
 PROJECT=bu
+# Backend saglik bekleme suresi (sn): acilis (Flyway + Hibernate dogrulama) 262-465 sn surebilir; bu, compose healthcheck
+# start_period (BACKEND_START_PERIOD) ile uyumlu olmali.
+HEALTH_WAIT_BACKEND="${HEALTH_WAIT_BACKEND:-600}"
+case "$HEALTH_WAIT_BACKEND" in ''|*[!0-9]*) die "HEALTH_WAIT_BACKEND yalniz rakam (saniye) olmali" 2;; esac
 
 # Mutasyon yapan her sunucu islemi bu sarmalayicidan gecer: dry-run'da yalniz aciklama basilir.
 remote() { # remote "<aciklama>" <ssh argumanlari...>  (stdin korunur)
@@ -152,7 +167,7 @@ do_rollback() {
       if docker image inspect "$base:previous" >/dev/null 2>&1; then docker tag "$base:previous" "$img"; fi;; esac
   done
   dc up -d --no-build --remove-orphans
-  if wait_healthy backend 300; then
+  if wait_healthy backend "${HW_BACKEND:-600}"; then
     ln -sfn "releases/$prev" "$BASEDIR/current"
     cp "$BASEDIR/.current_release" "$BASEDIR/.failed_release" 2>/dev/null || true
     echo "$prev" > "$BASEDIR/.current_release"
@@ -165,11 +180,49 @@ do_rollback() {
 if [ "$ROLLBACK" = 1 ]; then
   log "GERI ALMA istendi"
   remote "onceki surume don (imajlar :previous, dizin .previous_release)" \
-    "env HOST_IP='$HOST' DOM='$DOMAIN' IPTEST='$IPTEST' bash -s" <<EOF || die "geri alma basarisiz; elle mudahale: ssh $SSH_USER@$HOST, $BASEDIR/releases/*" 1
+    "env HOST_IP='$HOST' DOM='$DOMAIN' IPTEST='$IPTEST' HW_BACKEND='$HEALTH_WAIT_BACKEND' bash -s" <<EOF || die "geri alma basarisiz; elle mudahale: ssh $SSH_USER@$HOST, $BASEDIR/releases/*" 1
 $REMOTE_COMMON
 do_rollback
 EOF
   log "bitti"; exit 0
+fi
+
+# =====================================================================================================
+# 0) e-posta on kosulu (T-145): prod profilinde MAIL_ENABLED=false backend'i BASLATMAZ (ProdSettingsValidator; allow-log-only
+#    bilincli verilmedikce). Brevo bilgisi yoksa dagitim HICBIR sey aktarilmadan reddedilir (eskiden: build + otomatik geri alma).
+# =====================================================================================================
+HAVE_LOCAL_MAIL=0; [ -n "${DEPLOY_MAIL_USER:-}" ] && [ -n "${DEPLOY_MAIL_PASSWORD:-}" ] && HAVE_LOCAL_MAIL=1
+ALLOW_LOG_ONLY=0; [ "${DEPLOY_ALLOW_LOG_ONLY:-0}" = 1 ] && ALLOW_LOG_ONLY=1
+MAIL_HINT="DEPLOY_MAIL_USER ve DEPLOY_MAIL_PASSWORD (Brevo SMTP; docs/MAIL_DELIVERABILITY.md bolum 9) .deploy.env'e yazilmali. Dogrulama kodlarini log'a yazdirmak BILINCLI istenirse DEPLOY_ALLOW_LOG_ONLY=1 (onerilmez)"
+if [ "$HAVE_LOCAL_MAIL" = 1 ]; then
+  log "0/7 e-posta on kosulu: Brevo SMTP bilgisi mevcut (DEPLOY_MAIL_USER/PASSWORD)"
+elif [ "$ALLOW_LOG_ONLY" = 1 ]; then
+  warn "0/7 DEPLOY_ALLOW_LOG_ONLY=1: e-posta GONDERILMEZ, dogrulama/sifre sifirlama kodlari backend log'una yazilir (APP_MAIL_ALLOW_LOG_ONLY=true). Gercek kullanici yok iken gecicidir"
+elif [ "$DRY" = 1 ]; then
+  if [ "${DEPLOY_MAIL_ON_SERVER:-0}" = 1 ]; then
+    plan "0/7 e-posta: yerelde SMTP bilgisi yok; DEPLOY_MAIL_ON_SERVER=1 -> sunucudaki .env.prod'da gercek SMTP bilgisi oldugu varsayildi (gercek calistirmada sunucuda DOGRULANIR)"
+  else
+    die "0/7 REDDEDILDI: MAIL bilgisi yok. Prod profilinde MAIL_ENABLED=false backend'i BASLATMAZ. $MAIL_HINT. (Sunucudaki .env.prod'da SMTP bilgisi zaten varsa dry-run icin DEPLOY_MAIL_ON_SERVER=1.)" 2
+  fi
+else
+  # sunucudaki .env.prod: yoksa (ilk kurulum) ya da SMTP/allow-log-only yoksa dagitim baslamadan reddedilir
+  MAILSTATE="$(rsh "bash -s" 2>/dev/null <<'REMOTE' | tail -1
+F=/opt/bukampus/.env.prod
+[ -f "$F" ] || { echo NOENV; exit 0; }
+get() { tr -d '\r' < "$F" | awk -v k="$1" 'index($0,k"=")==1 {sub(/^[^=]*=/,""); v=$0} END{gsub(/^["\047]|["\047]$/,"",v); print v}'; }
+u="$(get MAIL_USERNAME)"; p="$(get MAIL_PASSWORD)"
+if [ "$(get APP_MAIL_ALLOW_LOG_ONLY)" = true ]; then echo LOGONLY
+elif [ "$(get MAIL_ENABLED)" = true ] && [ -n "$u" ] && [ -n "$p" ] && ! printf '%s%s' "$u" "$p" | grep -q YER_TUTUCU; then echo OK
+else echo BAD; fi
+REMOTE
+)" || MAILSTATE=UNKNOWN
+  case "$MAILSTATE" in
+    OK) log "0/7 e-posta on kosulu: sunucudaki .env.prod'da SMTP etkin";;
+    LOGONLY) warn "0/7 sunucuda APP_MAIL_ALLOW_LOG_ONLY=true: e-posta gonderilmez, kodlar log'a yazilir";;
+    NOENV) die "0/7 REDDEDILDI: ilk kurulumda MAIL bilgisi yok (.env.prod uretilecek ama prod MAIL_ENABLED=false ile acilmaz). $MAIL_HINT" 2;;
+    BAD) die "0/7 REDDEDILDI: sunucudaki .env.prod'da MAIL_ENABLED=true + gercek MAIL_USERNAME/MAIL_PASSWORD yok (ya da sablon degerinde); prod acilmaz. $MAIL_HINT" 2;;
+    *) warn "0/7 sunucudaki e-posta durumu okunamadi ($MAILSTATE); 3b adimi .env.prod'u derlemeden once yeniden denetler";;
+  esac
 fi
 
 # =====================================================================================================
@@ -240,16 +293,18 @@ if [ "$HAVE_ENV" = 1 ]; then
   log ".env.prod mevcut: DEGISTIRILMEDI"
 else
   [ "$DRY" = 1 ] && [ -z "$ACME_EMAIL" ] && warn "DEPLOY_ACME_EMAIL tanimli degil: ilk .env.prod uretiminde dagitim DURUR (gercek bir adres gerekir)"
-  [ "$DRY" = 1 ] && plan "sunucu: $BASEDIR/.env.prod YOKSA: gen-secrets.sh ile uretilir (DB/JWT/ADMIN/CRYPTO/DEVICE sirlari, izin 600), DOMAIN=$DOMAIN, CORS/PUBLIC_WEB_URL=https://$DOMAIN, WWW_DOMAIN, BACKUP_METRICS_DIR, age yedek anahtar cifti (ozel anahtar yerel .deploy/'a alinip sunucudan SILINIR)"
+  [ "$DRY" = 1 ] && plan "sunucu: $BASEDIR/.env.prod YOKSA: gen-secrets.sh ile uretilir (DB/JWT/ADMIN/CRYPTO/DEVICE sirlari, izin 600), DOMAIN=$DOMAIN, CORS/PUBLIC_WEB_URL=https://$DOMAIN, WWW_DOMAIN, BACKUP_METRICS_DIR, age yedek anahtar cifti (ozel anahtar yerel .deploy/backup-age-private.key'e, uygulama sirlari .deploy/generated-secrets.txt'e AYRI dosyalar olarak alinir; ozel anahtar yerel kopya dogrulaninca sunucudan SILINIR)"
   if [ "$DRY" = 0 ]; then
     [ -n "$ACME_EMAIL" ] || die "DEPLOY_ACME_EMAIL gerekli (.deploy.env): Let's Encrypt bildirimleri icin gercek bir e-posta adresi; ilk .env.prod uretimi icin zorunlu" 2
     mkdir -p .deploy; umask 077
     WWW_DOMAIN_VAL="www.$DOMAIN"; [ "${DEPLOY_WWW:-1}" = 1 ] || WWW_DOMAIN_VAL="http://www.invalid.test"
-    MAIL_ON=false; [ -n "${DEPLOY_MAIL_USER:-}" ] && [ -n "${DEPLOY_MAIL_PASSWORD:-}" ] && MAIL_ON=true
+    MAIL_ON=false; [ "$HAVE_LOCAL_MAIL" = 1 ] && MAIL_ON=true
+    # MAIL_ON=false buraya ancak DEPLOY_ALLOW_LOG_ONLY=1 ile gelir (0/7 aksi halde reddetti); prod bayragi bilincli yazilir
+    if [ "$MAIL_ON" != true ] && [ "$ALLOW_LOG_ONLY" != 1 ]; then die "MAIL bilgisi yok: .env.prod uretilmedi (0/7 on kosulu). $MAIL_HINT" 2; fi
     # DEPLOY_MAIL_PASSWORD gövdede (stdin) tasinir; komut satirinda GORUNMEZ
     {
-      printf 'DOMAIN_V=%q\nACME_V=%q\nWWW_V=%q\nADMIN_V=%q\nMAIL_ON=%q\nMAIL_USER_V=%q\nMAIL_PASS_V=%q\n' \
-        "$DOMAIN" "$ACME_EMAIL" "$WWW_DOMAIN_VAL" "${DEPLOY_ADMIN_EMAILS:-}" "$MAIL_ON" "${DEPLOY_MAIL_USER:-}" "${DEPLOY_MAIL_PASSWORD:-}"
+      printf 'DOMAIN_V=%q\nACME_V=%q\nWWW_V=%q\nADMIN_V=%q\nMAIL_ON=%q\nMAIL_USER_V=%q\nMAIL_PASS_V=%q\nLOGONLY_V=%q\n' \
+        "$DOMAIN" "$ACME_EMAIL" "$WWW_DOMAIN_VAL" "${DEPLOY_ADMIN_EMAILS:-}" "$MAIL_ON" "${DEPLOY_MAIL_USER:-}" "${DEPLOY_MAIL_PASSWORD:-}" "$ALLOW_LOG_ONLY"
       cat <<'REMOTE'
 set -euo pipefail
 BASEDIR=/opt/bukampus; DATADIR=/opt/bukampus-data
@@ -269,6 +324,8 @@ setv BACKUP_METRICS_DIR "$DATADIR/backup-metrics"
 [ -n "$ADMIN_V" ] && setv ADMIN_EMAILS "$ADMIN_V"
 setv MAIL_ENABLED "$MAIL_ON"
 if [ "$MAIL_ON" = true ]; then setv MAIL_USERNAME "$MAIL_USER_V"; setv MAIL_PASSWORD "$MAIL_PASS_V"; fi
+# Brevo bilgisi yokken yalniz BILINCLI log-only: prod MAIL_ENABLED=false'u bu bayrak olmadan reddeder (ProdSettingsValidator)
+if [ "$MAIL_ON" != true ] && [ "$LOGONLY_V" = 1 ]; then setv APP_MAIL_ALLOW_LOG_ONLY true; fi
 # Yedek sifreleme anahtar cifti: genel anahtar .env.prod'a, OZEL anahtar yerele alinip sunucudan silinir
 umask 077
 age-keygen -o "$DATADIR/secrets/backup.age.key" 2>/dev/null
@@ -283,17 +340,30 @@ REMOTE
     rm -f .deploy/.env-gen.sh
     if printf '%s' "$OUT" | grep -q GENERATED; then
       log ".env.prod URETILDI (sunucuda, izin 600)"
+      # T-137: age OZEL anahtari (yedek cozme) ile CRYPTO/uygulama sirlari AYRI dosyalara yazilir; boylece biri sizsa/kaybolsa
+      # digeri ayni yerde durmaz ve iki ayri emanete gonderilebilir (ayni dosya = tek hata noktasi).
       {
         echo "# Uretim: $(date '+%F %T') - $HOST - BU DOSYAYI GUVENLI YERE YEDEKLEYIN (sifre yoneticisi + cevrimdisi kasa). Commit etmeyin."
+        echo "# age OZEL anahtari BU DOSYADA DEGIL: .deploy/backup-age-private.key (AYRI bir emanete verin; ikisini ayni yerde saklamayin)."
         rsh "grep -E '^(DB_PASSWORD|JWT_SECRET|ADMIN_PASSWORD|CRYPTO_MASTER_KEYS|CRYPTO_ACTIVE_KEY_ID|DEVICE_HMAC_KEY|BACKUP_AGE_RECIPIENT)=' $BASEDIR/.env.prod"
-        echo "# --- age OZEL anahtari (yedek cozmek icin; sunucudan silindi) ---"
-        rsh "cat $DATADIR/secrets/backup.age.key"
       } > .deploy/generated-secrets.txt
       chmod 600 .deploy/generated-secrets.txt 2>/dev/null || true
-      rsh "shred -u $DATADIR/secrets/backup.age.key 2>/dev/null || rm -f $DATADIR/secrets/backup.age.key"
-      log "yerel sir kopyasi: .deploy/generated-secrets.txt (gitignored). Sunucudaki ozel age anahtari SILINDI."
-      [ "$MAIL_ON" = true ] || warn "MAIL_ENABLED=false: e-posta gonderilmez, dogrulama kodlari backend log'una yazilir. Brevo bilgileriyle .env.prod'u guncelleyin (docs/MAIL_DELIVERABILITY.md bolum 9)"
-      [ -n "${DEPLOY_ADMIN_EMAILS:-}" ] || warn "ADMIN_EMAILS sablon degerinde (admin@example.edu.tr): .env.prod icinde gercek yonetici e-postasini girin"
+      {
+        echo "# age OZEL anahtari (yedek cozmek icin). CRYPTO_MASTER_KEYS'ten AYRI saklayin. Sunucudan silindi. Commit etmeyin."
+        rsh "cat $DATADIR/secrets/backup.age.key"
+      } > .deploy/backup-age-private.key
+      chmod 600 .deploy/backup-age-private.key 2>/dev/null || true
+      # Yerel kopya dogrulanmadan sunucudaki tek kopya SILINMEZ
+      if grep -q '^AGE-SECRET-KEY-' .deploy/backup-age-private.key && grep -q '^CRYPTO_MASTER_KEYS=' .deploy/generated-secrets.txt; then
+        rsh "shred -u $DATADIR/secrets/backup.age.key 2>/dev/null || rm -f $DATADIR/secrets/backup.age.key"
+        log "yerel kopyalar (AYRI dosyalar, 600): .deploy/generated-secrets.txt ve .deploy/backup-age-private.key (gitignored). Sunucudaki ozel age anahtari SILINDI."
+      else
+        warn "yerel sir kopyalari EKSIK gorunuyor; sunucudaki $DATADIR/secrets/backup.age.key SILINMEDI. Elle kopyalayip dogrulayin"
+      fi
+      if [ "$MAIL_ON" != true ]; then
+        warn "DEPLOY_ALLOW_LOG_ONLY=1: APP_MAIL_ALLOW_LOG_ONLY=true yazildi; e-posta gonderilmez, dogrulama kodlari backend log'una yazilir. Brevo bilgileriyle .env.prod'u guncelleyip bayragi kaldirin (docs/MAIL_DELIVERABILITY.md bolum 9)"
+      fi
+      [ -n "${DEPLOY_ADMIN_EMAILS:-}" ] || warn "ADMIN_EMAILS sablon degerinde (admin@example.edu.tr): .env.prod icinde gercek yonetici e-postalarini girin (EN AZ 2 adres)"
     fi
   fi
 fi
@@ -319,6 +389,13 @@ if [ "$DRY" = 1 ]; then
   plan "    MAIL_FROM=$(mask_state "${DEPLOY_MAIL_FROM:-}") MAIL_REPLY_TO=$(mask_state "${DEPLOY_MAIL_REPLY_TO:-}") MAIL_FROM_NAME=$(mask_state "${DEPLOY_MAIL_FROM_NAME:-BU Kampus}")"
   plan "    ADMIN_PATH=$(mask_state "$ADMIN_PATH_V") (web imajina VITE_ADMIN_PATH olarak derlenir) ADMIN_EMAILS=$(mask_state "${DEPLOY_ADMIN_EMAILS:-}")"
   plan "    MAIL_USERNAME=$(mask_state "${DEPLOY_MAIL_USER:-}") MAIL_PASSWORD=$(mask_state "${DEPLOY_MAIL_PASSWORD:-}")"
+  plan "    BACKUP_REMOTE=$(mask_state "${DEPLOY_BACKUP_REMOTE:-}") BACKUP_WEBHOOK_URL=$(mask_state "${DEPLOY_BACKUP_WEBHOOK_URL:-}")"
+  [ -n "${DEPLOY_BACKUP_REMOTE:-}" ] || warn "DEPLOY_BACKUP_REMOTE yok: sunucudaki .env.prod'da da BACKUP_REMOTE bossa yedekler YALNIZ sunucu diskinde kalir (disk/sunucu kaybi = tum yedekler). rclone crypt hedefi verin (docs/BACKUP_RESTORE.md bolum 11, H-01)"
+  [ -n "${DEPLOY_BACKUP_WEBHOOK_URL:-}" ] || warn "DEPLOY_BACKUP_WEBHOOK_URL yok: yedek hatasi yalniz log/metrik ile fark edilir (harici izleme: docs/LAUNCH_CHECKLIST.md)"
+  if [ -n "${DEPLOY_ADMIN_EMAILS:-}" ]; then
+    [ "$(printf '%s' "${DEPLOY_ADMIN_EMAILS}" | tr ',' '\n' | sed 's/^ *//;s/ *$//' | grep -c .)" -ge 2 ] \
+      || warn "DEPLOY_ADMIN_EMAILS tek adres: en az 2 FULL yonetici onerilir (iki kisi onayi tek yoneticide kilitlenir; K-31)"
+  fi
   plan "    STORAGE_DB_DISK_CAPACITY_BYTES=$STORAGE_CAP_V STORAGE_RESERVED_BYTES=$STORAGE_RES_V"
   plan "    ADMIN_BASIC_ENABLED yazilmaz/degistirilmez (uretimde kapali); ADMIN_PASSWORD'e dokunulmaz"
 else
@@ -328,6 +405,7 @@ else
       "${DEPLOY_MAIL_FROM:-}" "${DEPLOY_MAIL_REPLY_TO:-}" "${DEPLOY_MAIL_FROM_NAME:-BÜ Kampüs}" "$ADMIN_PATH_V" "${DEPLOY_ADMIN_EMAILS:-}"
     printf 'V_MAIL_USER=%q\nV_MAIL_PASS=%q\nV_STORAGE_CAP=%q\nV_STORAGE_RES=%q\n' \
       "${DEPLOY_MAIL_USER:-}" "${DEPLOY_MAIL_PASSWORD:-}" "$STORAGE_CAP_V" "$STORAGE_RES_V"
+    printf 'V_BACKUP_REMOTE=%q\nV_BACKUP_WEBHOOK=%q\n' "${DEPLOY_BACKUP_REMOTE:-}" "${DEPLOY_BACKUP_WEBHOOK_URL:-}"
     cat <<'REMOTE'
 set -euo pipefail
 ENVF=/opt/bukampus/.env.prod
@@ -370,14 +448,30 @@ fi
 cur="$(getv STORAGE_DB_DISK_CAPACITY_BYTES)"
 case "$cur" in ""|0) putv STORAGE_DB_DISK_CAPACITY_BYTES "$V_STORAGE_CAP"; WROTE="$WROTE STORAGE_DB_DISK_CAPACITY_BYTES";; esac
 sync_miss STORAGE_RESERVED_BYTES "$V_STORAGE_RES"
+sync_miss BACKUP_REMOTE "$V_BACKUP_REMOTE"
+sync_miss BACKUP_WEBHOOK_URL "$V_BACKUP_WEBHOOK"
 echo "ENVSYNC: yazilan anahtarlar:${WROTE:- (yok; her sey zaten ayarli)}"
 if [ "$(getv ADMIN_BASIC_ENABLED)" = true ]; then echo "ENVSYNC-UYARI: ADMIN_BASIC_ENABLED=true (uretimde kapali olmali; elle degistirin)"; fi
+# --- dagitim oncesi uyarilar/engeller (guncel .env.prod uzerinden) ---
+if [ -z "$(getv BACKUP_REMOTE)" ]; then echo "ENVSYNC-UYARI: BACKUP_REMOTE bos: yedekler YALNIZ sunucu diskinde (disk/sunucu kaybi = tum yedekler). Farkli saglayicida rclone crypt hedefi verin (docs/BACKUP_RESTORE.md bolum 11)"; fi
+if [ -z "$(getv BACKUP_WEBHOOK_URL)" ]; then echo "ENVSYNC-UYARI: BACKUP_WEBHOOK_URL bos: yedek hatasi yalniz log/metrik ile fark edilir"; fi
+admins="$(getv ADMIN_EMAILS | tr ',' '\n' | sed 's/^ *//;s/ *$//' | grep -c . || true)"
+if [ "${admins:-0}" -lt 2 ]; then echo "ENVSYNC-UYARI: ADMIN_EMAILS $admins adres: en az 2 FULL yonetici onerilir (iki kisi onayi tek yoneticide kilitlenir)"; fi
+mu="$(getv MAIL_USERNAME)"; mp="$(getv MAIL_PASSWORD)"
+if [ "$(getv APP_MAIL_ALLOW_LOG_ONLY)" = true ]; then echo "ENVSYNC-MAIL: LOGONLY"
+elif [ "$(getv MAIL_ENABLED)" = true ] && [ -n "$mu" ] && [ -n "$mp" ] && ! printf '%s%s' "$mu" "$mp" | grep -q YER_TUTUCU; then echo "ENVSYNC-MAIL: OK"
+else echo "ENVSYNC-MAIL: BAD"; fi
 exit 0
 REMOTE
   } > .deploy/.env-sync.sh
   OUT="$(rsh "bash -s" < .deploy/.env-sync.sh)" || { rm -f .deploy/.env-sync.sh; die ".env.prod anahtar senkronu basarisiz" 1; }
   rm -f .deploy/.env-sync.sh
-  printf '%s\n' "$OUT" | grep '^ENVSYNC' | while IFS= read -r l; do log "$l"; done
+  printf '%s\n' "$OUT" | grep '^ENVSYNC-UYARI' | while IFS= read -r l; do warn "${l#ENVSYNC-UYARI: }"; done
+  printf '%s\n' "$OUT" | grep '^ENVSYNC' | grep -v '^ENVSYNC-UYARI' | while IFS= read -r l; do log "$l"; done
+  # T-145: derlemeden/baslatmadan ONCE yetkili denetim (sunucudaki guncel .env.prod): prod MAIL_ENABLED=false ile acilmaz
+  if printf '%s' "$OUT" | grep -q 'ENVSYNC-MAIL: BAD'; then
+    die "REDDEDILDI: sunucudaki .env.prod'da MAIL_ENABLED=true + gercek MAIL_USERNAME/MAIL_PASSWORD yok (ya da sablon degerinde) ve APP_MAIL_ALLOW_LOG_ONLY=true degil: prod backend ACILMAZ. $MAIL_HINT" 2
+  fi
   if printf '%s' "$OUT" | grep -q 'yazilan anahtarlar:.*ADMIN_PATH'; then
     log "ADMIN_PATH degisti: web imaji yeniden derlenecek (--no-build ile calistirmayin)"
   fi
@@ -386,15 +480,43 @@ fi
 # =====================================================================================================
 # 4) derle + baslat (onceki imajlar :previous), 5) saglik + otomatik geri alma
 # =====================================================================================================
-log "4/7 derleme ve baslatma$([ "$NOBUILD" = 1 ] && echo ' (--no-build)')"
+log "4/7 yedek, derleme ve baslatma$([ "$NOBUILD" = 1 ] && echo ' (--no-build)')"
+if [ "$DRY" = 1 ]; then
+  plan "sunucu: bekleyen Flyway migration karsilastirmasi (yeni surum - calisan surum) ve UYARI (Flyway geri sarilmaz)"
+  if [ "$BACKUP" = 1 ]; then plan "sunucu: dagitim oncesi sifreli yedek: compose exec -u postgres backup /opt/backup/backup.sh (calisan yedek servisi varsa); BASARISIZSA dagitim DURUR, hicbir sey degismez"
+  else plan "sunucu: --skip-backup: dagitim oncesi yedek ATLANIR (onerilmez)"; fi
+  plan "sunucu: backend saglik bekleme ${HEALTH_WAIT_BACKEND} sn (HEALTH_WAIT_BACKEND)"
+fi
 log "5/7 saglik bekleme (/actuator/health konteyner icinden; Caddy uca-uc)"
 DEPLOY_RC=0
 remote "docker compose build + up -d; saglik; basarisizsa otomatik geri alma" \
-  "env HOST_IP='$HOST' DOM='$DOMAIN' IPTEST='$IPTEST' NOBUILD='$NOBUILD' REL='$SHORT' bash -s" <<EOF || DEPLOY_RC=$?
+  "env HOST_IP='$HOST' DOM='$DOMAIN' IPTEST='$IPTEST' NOBUILD='$NOBUILD' REL='$SHORT' DOBACKUP='$BACKUP' HW_BACKEND='$HEALTH_WAIT_BACKEND' bash -s" <<EOF || DEPLOY_RC=$?
 $REMOTE_COMMON
 cd "\$BASEDIR/releases/\$REL"
 dc config -q || { rlog "compose yapilandirmasi gecersiz (eksik degisken?)"; exit 3; }
 CUR="\$(cat "\$BASEDIR/.current_release" 2>/dev/null || true)"
+# bekleyen Flyway migration'lari: yeni surumde olup calisan surumde olmayanlar (Flyway geri SARILMAZ)
+if [ -n "\$CUR" ] && [ -d "\$BASEDIR/releases/\$CUR" ]; then
+  MIG=backend/src/main/resources/db/migration
+  NEWM="\$(comm -13 <(ls -1 "\$BASEDIR/releases/\$CUR/\$MIG" 2>/dev/null | sort) <(ls -1 "\$MIG" 2>/dev/null | sort) | tr '\n' ' ')"
+  if [ -n "\$NEWM" ]; then
+    rlog "UYARI: \$(printf '%s' "\$NEWM" | wc -w) yeni Flyway migration uygulanacak: \$NEWM"
+    rlog "UYARI: Flyway geri SARILMAZ; otomatik geri alma eski imaji YENI semayla baslatir (migration'lar geriye uyumlu olmali, docs/DEPLOY.md bolum 8)"
+  fi
+fi
+# T-146: dagitim oncesi sifreli yedek; basarisizsa HICBIR sey degismeden DUR (yedek, Flyway sonrasi tek geri donus yoludur)
+if [ "\${DOBACKUP:-1}" = 1 ]; then
+  BCID="\$(dc ps -q backup 2>/dev/null | head -1 || true)"
+  if [ -n "\$BCID" ] && [ "\$(docker inspect -f '{{.State.Running}}' "\$BCID" 2>/dev/null || echo false)" = true ]; then
+    rlog "dagitim oncesi yedek aliniyor (backup.sh; sifreli, dogrulamali)"
+    dc exec -T -u postgres backup /opt/backup/backup.sh || { rlog "YEDEK BASARISIZ: dagitim DURDURULDU, calisan surum degismedi (yalniz --skip-backup ile gecilir; onerilmez)"; exit 4; }
+    rlog "yedek tamam"
+  else
+    rlog "calisan yedek servisi yok (ilk kurulum?): dagitim oncesi yedek atlandi"
+  fi
+else
+  rlog "UYARI: --skip-backup: dagitim oncesi yedek ALINMADI"
+fi
 # onceki imajlari :previous etiketle (yalniz yerel derlenen :local imajlar)
 for img in \$(dc config --images 2>/dev/null | sort -u); do
   case "\$img" in *:local) docker image inspect "\$img" >/dev/null 2>&1 && docker tag "\$img" "\${img%:local}:previous";; esac
@@ -403,7 +525,7 @@ if [ -n "\$CUR" ] && [ "\$CUR" != "\$REL" ]; then echo "\$CUR" > "\$BASEDIR/.pre
 if [ "\$NOBUILD" != 1 ]; then rlog "imajlar derleniyor (ilk derleme 5-15 dk surebilir)"; dc build; fi
 dc up -d --remove-orphans
 OK=1
-wait_healthy backend 360 || { rlog "backend saglikli olmadi"; OK=0; }
+wait_healthy backend "\${HW_BACKEND:-600}" || { rlog "backend saglikli olmadi (\${HW_BACKEND:-600} sn)"; OK=0; }
 if [ "\$OK" = 1 ]; then wait_healthy caddy 90 || { rlog "caddy saglikli degil"; OK=0; }; fi
 if [ "\$OK" = 1 ]; then
   sleep 3
@@ -431,6 +553,7 @@ if [ "$DEPLOY_RC" != 0 ]; then
   case "$DEPLOY_RC" in
     2) die "dagitim basarisiz VE geri alma basarisiz: elle mudahale gerekli (ssh $SSH_USER@$HOST; $BASEDIR/releases)" 1;;
     3) die "compose yapilandirma hatasi (.env.prod eksik degisken?)" 1;;
+    4) die "dagitim oncesi YEDEK basarisiz: calisan surum degismedi. Yedek hatasini giderin (docker compose logs backup) ya da bilincli --skip-backup" 1;;
     *) die "dagitim basarisiz (varsa onceki surume donuldu); gunlukler: ssh $SSH_USER@$HOST 'cd $BASEDIR/current && docker compose -p bu -f docker-compose.prod.yml -f deploy/compose.bukampus.yml --env-file $BASEDIR/.env.prod logs --tail=100'" 1;;
   esac
 fi

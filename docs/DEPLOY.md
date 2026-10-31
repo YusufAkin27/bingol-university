@@ -2,20 +2,36 @@
 
 Bu belge BÜ Kampüs yığınını tek sunucuda Docker Compose ile üretime almayı anlatır.
 
-> **Önerilen yol (V2): `docker-compose.prod.yml`** = Caddy (otomatik HTTPS) + web (nginx, yalnız statik/SPA) + backend + postgres + redis + backup. Bölüm 0 hızlı kurulumu, bölüm 10-12 CDN, staging ve yedek/izleme bağlantılarını anlatır. Geliştirme için kök `docker-compose.yml` değişmedi. Aşağıdaki bölüm 1-9 genel bilgi olarak geçerlidir (proxy olarak Caddy yerine nginx/Traefik/LB kullanılacaksa onlar yol gösterir).
+> **Önerilen yol (V2): `docker-compose.prod.yml`** = Caddy (otomatik HTTPS) + web (nginx, yalnız statik/SPA) + backend + postgres + redis + backup. Bölüm 0 hızlı kurulumu, bölüm 10-12 CDN, staging ve yedek/izleme bağlantılarını anlatır. **Üretimdeki fiilî dağıtım yolu yerelden `scripts/deploy.sh`'tır** (bölüm 0 ve 14.2); `scripts/deploy/update.sh` aynı işi sunucunun İÇİNDE elle yapan alternatif yoldur (staging için de kullanılır). Geliştirme için kök `docker-compose.yml` değişmedi. Aşağıdaki bölüm 1-9 genel bilgi olarak geçerlidir (proxy olarak Caddy yerine nginx/Traefik/LB kullanılacaksa onlar yol gösterir).
 
 ## 0. Hızlı kurulum (docker-compose.prod.yml)
 
+**Üretim (tek komut, yerelden):** `scripts/deploy.sh` kodu `git archive` ile sunucuya aktarır, `.env.prod` yoksa üretir (varsa ASLA ezmez), **dağıtım öncesi şifreli yedek alır**, imajları derler, başlatır, sağlığı bekler, başarısızsa önceki sürüme döner ve soğuk JVM'i ısıtır. Yapılandırma yerelde gitignored `.deploy.env` dosyasındadır (host, kullanıcı, alan adı, ACME e-postası, Brevo SMTP...): tam liste `bash scripts/deploy.sh -h` ve [DEPLOY_SCRIPT.md](DEPLOY_SCRIPT.md).
+
 ```bash
-# 1) Sunucu hazırlığı (Ubuntu 22.04/24.04, root): docker, ufw (22/80/443), fail2ban, otomatik güvenlik güncellemesi
+# 0) (bir kez) sunucu hazırlığı, root: docker, ufw (22/80/443), fail2ban, otomatik güvenlik güncellemesi
 sudo bash scripts/deploy/bootstrap-server.sh --deploy-user bu
-# 2) Sırlar (ekrana yazmaz, dosya izni 600) ve düzenleme
+# 1) HER dağıtımdan önce: sunucuya DOKUNMAYAN deneme (adımları, uyarıları ve reddedilecek eksikleri yazar)
+bash scripts/deploy.sh --dry-run
+# 2) dağıtım (varsayılan: HEAD). Bayraklar:
+bash scripts/deploy.sh [--ref <git-ref>] [--no-build] [--ip-test] [--skip-warmup] [--skip-cleanup] [--skip-backup]
+# 3) geri alma (önceki imajlar :previous + önceki sürüm dizini)
+bash scripts/deploy.sh --rollback
+```
+
+- `--ref` dağıtılacak commit (yalnız COMMIT'LENMİŞ dosyalar gider); `--ip-test` alan adı/DNS hazır değilken yalnız HTTP; `--no-build` imaj derlemez; `--skip-backup` dağıtım öncesi yedeği atlar (**önerilmez**: Flyway geri sarılmaz); `--skip-warmup`/`--skip-cleanup` ısıtma ve disk temizliği kurulumunu atlar.
+- **Reddedilen durumlar (sunucuya bir şey kurulmadan, çıkış kodu 2):** Brevo SMTP bilgisi (`DEPLOY_MAIL_USER`/`DEPLOY_MAIL_PASSWORD`) yok ve `DEPLOY_ALLOW_LOG_ONLY=1` verilmemiş (prod `MAIL_ENABLED=false` ile **açılmaz**, bölüm 2); ilk kurulumda `DEPLOY_ACME_EMAIL` yok. Sunucudaki mevcut `.env.prod` da denetlenir (SMTP etkin değil ve log-only değilse reddedilir).
+- **Dağıtım öncesi yedek:** çalışan `backup` servisi varsa `backup.sh` koşar; **başarısızsa dağıtım DURUR** (çıkış kodu 1, çalışan sürüm değişmez). Bekleyen Flyway migration'ları (yeni sürümde olup çalışanda olmayanlar) günlüğe UYARI olarak yazılır: Flyway geri sarılmaz, otomatik geri alma eski imajı YENİ şemayla başlatır (migration'lar geriye uyumlu yazılır, bölüm 8/14.3).
+- **Sağlık bekleme:** soğuk açılış (Flyway + Hibernate doğrulama) **262-465 sn** sürebilir. `HEALTH_WAIT_BACKEND` (sn, varsayılan **600**) `deploy.sh`'ın backend bekleme süresidir; compose healthcheck `start_period` varsayılanı `BACKEND_START_PERIOD=360s`'dir (bu süre içindeki başarısız yoklamalar sayılmaz; kısa olursa `docker compose up -d` bağımlı Caddy için backend'i "unhealthy" sayıp hata verebilirdi). İkisini birlikte ayarlayın.
+- **Sır kopyaları:** `.env.prod` ilk kez üretilirse yerelde **iki AYRI dosya** (izin 600, gitignored) yazılır: `.deploy/generated-secrets.txt` (DB/JWT/ADMIN/CRYPTO/DEVICE sırları) ve `.deploy/backup-age-private.key` (yedek age ÖZEL anahtarı; yerel kopya doğrulanınca sunucudan silinir). İkisini **farklı** emanet yerlerine verin; "fiilen okundu" testi ve tatbikat günlüğü: [RUNBOOK.md](RUNBOOK.md) bölüm 12, [KEY_MANAGEMENT.md](KEY_MANAGEMENT.md).
+
+**Sunucu içinde elle (alternatif / staging):**
+
+```bash
 bash scripts/ops/gen-secrets.sh                 # .env.prod taslağı: DB/JWT/ADMIN/CRYPTO/DEVICE sırları üretilir
-$EDITOR .env.prod                               # DOMAIN, ACME_EMAIL, CORS_ORIGINS, PUBLIC_WEB_URL, MAIL_*, BACKUP_AGE_RECIPIENT...
-# 3) DNS A/AAAA kaydı sunucuyu göstersin; 80/443 açık. İlk dağıtım:
-bash scripts/deploy/update.sh --first
-# 4) Sonraki güncellemeler (yedek -> çek -> derle -> yeniden başlat -> sağlık -> başarısızsa otomatik geri al):
-bash scripts/deploy/update.sh [--ref v1.5.0]
+$EDITOR .env.prod                               # DOMAIN, ACME_EMAIL, CORS_ORIGINS, PUBLIC_WEB_URL, MAIL_*, BACKUP_AGE_RECIPIENT, BACKUP_REMOTE...
+bash scripts/deploy/update.sh --first           # ilk kurulum
+bash scripts/deploy/update.sh [--ref v1.5.0]    # sonraki: yedek -> çek -> derle -> yeniden başlat -> sağlık -> başarısızsa geri al
 bash scripts/deploy/rollback.sh                 # elle geri alma
 ```
 
@@ -67,7 +83,7 @@ docker compose up -d --build
 curl -f localhost:8080/actuator/health
 ```
 
-`prod` profilinde `ProdSettingsValidator` eksik/güvensiz ayarı anlaşılır bir hatayla bildirir ve uygulama **başlamaz** (sır değeri log'a yazılmaz; yalnızca ayar adı). Kontrol edilenler: `DB_PASSWORD` (boş / `bingol` olamaz), `JWT_SECRET` (>= 32 karakter, `dev-only` içeremez), `ADMIN_PASSWORD`, `CORS_ORIGINS` (zorunlu, `*` olamaz), `MAIL_HOST` (`MAIL_ENABLED=true` iken). Uyarı olarak: `MAIL_ENABLED=false` (kodlar log'a yazılır), FCM yok (push gitmez), `localhost` CORS kökeni. Ek olarak mesaj şifreleme ana anahtarları prod'da zorunludur (`CRYPTO_MASTER_KEYS`, bkz. [ENCRYPTION.md](ENCRYPTION.md)).
+`prod` profilinde `ProdSettingsValidator` eksik/güvensiz ayarı anlaşılır bir hatayla bildirir ve uygulama **başlamaz** (sır değeri log'a yazılmaz; yalnızca ayar adı). Kontrol edilenler (**HATA, uygulama açılmaz**): `DB_PASSWORD` (boş / `bingol` olamaz), `JWT_SECRET` (>= 32 karakter, `dev-only` içeremez), `ADMIN_PASSWORD`, `CORS_ORIGINS` (zorunlu, `*` olamaz), `MAIL_HOST` (`MAIL_ENABLED=true` iken) ve **`MAIL_ENABLED=false`: prod'da `APP_MAIL_ALLOW_LOG_ONLY=true` bilinçli verilmedikçe uygulama BAŞLAMAZ** (log-only yalnız gerçek kullanıcı yokken geçici; kodlar log'a yazılır). Yalnız **UYARI** olanlar (açılışı engellemez): FCM yok (push gitmez), `localhost` CORS kökeni, **`BACKUP_REMOTE` boş** (yedekler yalnız sunucu diskinde), **`ADMIN_EMAILS` 2'den az adres** (tek FULL yönetici: iki kişi onayı kilitlenir, K-31), **`SENTRY_DSN` dolu** (hata verisi üçüncü tarafa gider; AB bölgesi + `send-default-pii=false` + tedarikçi listesi doğrulayın, kullanılmayacaksa boş bırakın). Ek olarak mesaj şifreleme ana anahtarları prod'da zorunludur (`CRYPTO_MASTER_KEYS`, bkz. [ENCRYPTION.md](ENCRYPTION.md)).
 
 ## 3. Ortam değişkenleri
 
@@ -78,15 +94,23 @@ curl -f localhost:8080/actuator/health
 | `DB_URL`, `DB_USER` | hayır | Compose içinde sabit; harici DB için ezin |
 | `JWT_SECRET` | evet | >= 32 karakter rastgele (`openssl rand -base64 36`); değişirse tüm oturumlar düşer |
 | `ADMIN_PASSWORD` | evet | `/api/admin/**` Basic auth şifresi |
-| `ADMIN_EMAILS` | önerilir | Virgüllü; bu adresler ADMIN rolü alır |
+| `ADMIN_EMAILS` | önerilir (**en az 2 adres**) | Virgüllü; bu adresler ADMIN (FULL) rolü alır. Tek adresle iki kişi onayı gerektiren işlemler (FULL ata/düşür) kilitlenir; panelden ikinci FULL yaratılamaz. Validator 2'den azsa uyarır |
 | `CORS_ORIGINS` | evet | Virgüllü https kökenleri (panel/web adresi) |
 | `CRYPTO_MASTER_KEYS`, `CRYPTO_ACTIVE_KEY_ID` | evet | Mesaj şifreleme ana anahtarları (`id:base64(32 bayt)`); kaybı = mesaj kaybı, yedekleyin |
-| `MAIL_ENABLED`, `MAIL_HOST`, `MAIL_PORT`, `MAIL_USERNAME`, `MAIL_PASSWORD`, `MAIL_FROM` | `MAIL_ENABLED=true` önerilir | Doğrulama kodu e-postası; kapalıyken kod log'a yazılır. **Üretim kararı: Brevo ücretsiz SMTP, gönderen alan adı `bukampus.online` (site `bukampus.com.tr`), gönderici `noreply@bukampus.online`, destek adresi `ysufakin23@gmail.com` (hazır değerler ve DNS adımları: MAIL_DELIVERABILITY.md bölüm 9; günlük kota için `MAIL_DAILY_LIMIT=300`).** Spam'e düşmemek için ek ayarlar (`MAIL_REPLY_TO`, `MAIL_REQUIRE_TLS`, `MAIL_MAX_PER_MINUTE`, SPF/DKIM/DMARC): [MAIL_DELIVERABILITY.md](MAIL_DELIVERABILITY.md) |
-| `FCM_CREDENTIALS_FILE` | hayır | Konteyner içindeki Firebase servis hesabı JSON yolu (secret olarak mount edin); boşsa push kapalı |
+| `MAIL_ENABLED`, `MAIL_HOST`, `MAIL_PORT`, `MAIL_USERNAME`, `MAIL_PASSWORD`, `MAIL_FROM` | **prod'da `MAIL_ENABLED=true` ZORUNLU** | Doğrulama/şifre sıfırlama kodu e-postası; `MAIL_ENABLED=false` prod'da `APP_MAIL_ALLOW_LOG_ONLY=true` olmadan uygulamayı BAŞLATMAZ (yerelde kod log'a yazılır). **Üretim kararı: Brevo ücretsiz SMTP, gönderen alan adı `bukampus.online` (site `bukampus.com.tr`), gönderici `noreply@bukampus.online`, destek adresi `ysufakin23@gmail.com` (hazır değerler ve DNS adımları: MAIL_DELIVERABILITY.md bölüm 9; günlük kota için `MAIL_DAILY_LIMIT=300`).** Spam'e düşmemek için ek ayarlar (`MAIL_REPLY_TO`, `MAIL_REQUIRE_TLS`, `MAIL_MAX_PER_MINUTE`, SPF/DKIM/DMARC): [MAIL_DELIVERABILITY.md](MAIL_DELIVERABILITY.md) |
+| `FCM_CREDENTIALS_JSON` | hayır (push için) | Firebase servis hesabı anahtarı, ham JSON ya da base64, tek satır (prod için önerilen yol); boşsa push kapalı |
+| `FCM_CREDENTIALS_FILE` | hayır | Konteyner içindeki JSON yolu. Prod compose bir dosya bağlamadığından, bir compose bindirmesiyle `volumes` eklemediyseniz ETKİSİZDİR; `FCM_CREDENTIALS_JSON` tercih edin |
+| `APP_MAIL_ALLOW_LOG_ONLY` | hayır | `true` = `MAIL_ENABLED=false` prod'da açılabilir, kodlar log'a yazılır. Yalnız bilinçli/geçici (`deploy.sh` için `DEPLOY_ALLOW_LOG_ONLY=1`); önerilmez |
+| `BACKUP_REMOTE`, `BACKUP_WEBHOOK_URL` | **canlıdan önce doldurun** | rclone crypt uzak yedek hedefi ve hata bildirimi. Boşsa yedekler yalnız sunucu diskindedir (backend açılışta uyarır). Bölüm 12, [BACKUP_RESTORE.md](BACKUP_RESTORE.md) bölüm 11 |
+| `LEGAL_ENFORCE_REACCEPT` | hayır (varsayılan `false`) | Yalnız mobil sürüm mağazada yaygınlaşınca `true` (bölüm 14.4). Compose'tan iletilir |
+| `ADMIN_BASIC_ENABLED` | hayır (prod'da `false`) | Yönetici Basic auth; açıkken `ADMIN_PASSWORD` >= 12 karakter |
+| `SENTRY_DSN` | hayır | Boş = kapalı (önerilen). Doluysa validator uyarır (AB bölgesi, `send-default-pii=false`, tedarikçi listesi, K-31) |
+| `MAIL_SSL`, `MAIL_UNSUBSCRIBE_KEY`, `CACHE_ENABLED` | hayır | 465 portu için SSL; abonelikten çıkış bağlantısı imza anahtarı (boş = `JWT_SECRET`'ten); sunucu okuma önbelleği acil kapatma |
+| `BACKEND_START_PERIOD`, `HEALTH_WAIT_BACKEND` | hayır | Compose healthcheck `start_period` (360s) ve `deploy.sh`/`update.sh` backend bekleme süresi (600 sn). Soğuk açılış 262-465 sn |
 | `PUBLIC_WEB_URL` | önerilir | Herkese açık web adresi (destek takip bağlantıları) |
 | `STORAGE_DIR` | hayır | Compose'ta `/data/uploads` (volume) |
 | `INITIAL_FILL` | hayır | Boş tablolarda ilk haber/menü doldurma |
-| `DB_POOL_MAX`, `DB_POOL_MIN_IDLE` | hayır | Hikari havuzu (varsayılan 20 / 5) |
+| `DB_POOL_MAX`, `DB_POOL_MIN_IDLE` | hayır | Hikari havuzu (varsayılan 30 / 5) |
 | `MULTIPART_MAX_FILE`, `MULTIPART_MAX_REQUEST` | hayır | Yükleme sınırları (5MB / 6MB) |
 | `BACKEND_MEM_LIMIT`, `BACKEND_CPUS`, `POSTGRES_MEM_LIMIT`, `REDIS_MEM_LIMIT` | hayır | Konteyner kaynak limitleri (1g / 2 / 1g / 256m) |
 | `JAVA_TOOL_OPTIONS` | hayır | Ek JVM bayrakları (imaj varsayılanı: `-XX:MaxRAMPercentage=75`) |
@@ -97,6 +121,8 @@ curl -f localhost:8080/actuator/health
 | `BAN_CACHE_TTL_SECONDS`, `BAN_LOG_RETENTION_DAYS` | hayır | Engel önbelleği yenileme (20 sn) ve cihaz/deneme günlüğü saklama (90 gün) |
 
 Diğer modüllerin ayarları (`app.media.*`, `app.chat.*`, `NOTIFICATION_RETENTION_DAYS` vb.) `application.properties` içinde ortam değişkeni karşılığıyla listelidir.
+
+> **Hangi değişken konteynere geçer?** Üretimde backend'e **yalnız `docker-compose.prod.yml`'in `backend.environment` bölümünde listelenen** değişkenler iletilir (`.env.prod`'a yazmak tek başına yetmez). Listedeki `AD:` (değersiz) satırlar `.env.prod`'da TANIMLIYSA iletilir, tanımsızsa hiç iletilmez (uygulamanın varsayılanı geçerli kalır; **boş dize YAZMAYIN**: Spring boş değeri varsayılanın üstüne yazar, bir ayarı silmek için satırı yorumlayın). `application*.properties`'teki her ortam değişkeni için compose'ta satır olması `bash scripts/ci/compose-env-check.sh` ile denetlenir; yeni bir `${AD:...}` eklerken compose'a da `AD:` satırı ekleyin. Kök `docker-compose.yml` (yerel geliştirme) daha küçük bir alt kümeyi iletir. Tam ek-ayar şablonu: `.env.prod.example` sonundaki "EK AYARLAR".
 
 ## 4. Yedekleme
 
@@ -220,7 +246,7 @@ ENV_FILE=.env.staging PROJECT=bu-staging COMPOSE_FILES="-f docker-compose.prod.y
 
 ## 12. Yedekleme, izleme ve olay müdahalesi bağlantıları
 
-- Yedek servisi (`backup`) **her saat** şifreli (age) `pg_dump` + uploads (fotoğraflar dahil) yedeği alır, **en yeni 3 tutulur**, haftalık geri yükleme doğrulaması yapar: [BACKUP.md](BACKUP.md) (politika/kararlar), [BACKUP_RESTORE.md](BACKUP_RESTORE.md). Bölüm 4'teki elle komutlar yedek servisi varken gerekmez.
+- Yedek servisi (`backup`) **her saat** şifreli (age) `pg_dump` + uploads (fotoğraflar dahil) yedeği alır; **yerelde dizin başına en yeni N geçerli yedek tutulur: saatlik 7, haftalık 4, aylık 3** (`BACKUP_KEEP_DAILY/WEEKLY/MONTHLY`; yerel disk payı için [BACKUP_RESTORE.md](BACKUP_RESTORE.md)). **Yerel saklama uzak kopyanın yerini TUTMAZ:** `BACKUP_REMOTE` (farklı sağlayıcıda rclone crypt) canlıdan önce doldurulmalıdır. Haftalık geri yükleme doğrulaması da yapılır: [BACKUP.md](BACKUP.md) (politika/kararlar), [BACKUP_RESTORE.md](BACKUP_RESTORE.md). Bölüm 4'teki elle komutlar yedek servisi varken gerekmez.
 - Anahtarlar/sırlar: [KEY_MANAGEMENT.md](KEY_MANAGEMENT.md). Olay müdahalesi: [RUNBOOK.md](RUNBOOK.md).
 - İzleme: `monitoring/` (Prometheus/Grafana/Alertmanager); yedek metriği `backup_last_success_timestamp_seconds` `monitoring/textfile/backup.prom` üzerinden gelir (aynı dosya `http://backup:9199/backup.prom` ile de sunulur, bkz. OBSERVABILITY.md sonu). İzleme yığınını `-f monitoring/docker-compose.monitoring.yml` ile ekleyin.
 
@@ -241,6 +267,16 @@ ENV_FILE=.env.staging PROJECT=bu-staging COMPOSE_FILES="-f docker-compose.prod.y
 11. **Güncelleme:** `bash scripts/deploy/update.sh [--ref vX.Y.Z]` (önce yedek, çek, derle, başlat, sağlık; başarısızsa otomatik geri alma). **Geri alma:** `bash scripts/deploy/rollback.sh`; şema değişikliği olan sürümde yedekten geri yükleme gerekir (bölüm 8).
 12. **Proxy doğrulaması (Caddy, `deploy/Caddyfile`):** `/files/**` ve `/api/**` backend'e gider, gövde sınırı `CADDY_MAX_BODY` (55 MB; Spring 45 MB), WebSocket `/ws` otomatik yükseltilir ve tamponlanmaz (okuma 180 sn), `X-Forwarded-For` Caddy tarafından `{client_ip}` olarak yazılır (istemci başlığı ezilir) ve backend yalnız `TRUSTED_PROXIES` ağından gelene güvenir (CLAUDE.md rate limit notu karşılandı). Yüklemeler `uploads` volume'unda (`STORAGE_DIR=/data/uploads`) kalır ve saatlik yedeğe dahildir.
 
+## Harici izleme (ZORUNLU: canlıdan önce kurulur)
+
+Uygulama içi uyarılar (`SystemAlertService`, yönetici bildirimi/e-postası) yalnız backend AYAKTAYKEN çalışır; **sunucu ya da backend çöktüğünde hiçbir uyarı gitmez**. Bu yüzden sunucudan **bağımsız ayrı bir makinede/hizmette** şu üç kontrol canlıdan önce kurulmalıdır (insan eylemi H-03; yayın listesi [LAUNCH_CHECKLIST.md](LAUNCH_CHECKLIST.md)):
+
+1. **Erişilebilirlik:** UptimeRobot (ücretsiz, harici) ya da başka bir makinedeki Uptime Kuma ile `https://<alan>/api/status` (200) için 1-2 dk'lık HTTP(s) monitörü; bildirim kanalı e-posta/Telegram.
+2. **TLS süresi:** aynı araçta sertifika sona erme monitörü (Let's Encrypt yenilenemezse süre dolmadan haber verir).
+3. **Yedek ölü adam anahtarı (dead-man switch):** Healthchecks.io (ya da eşdeğeri) kontrol URL'sine her BAŞARILI yedek sonrası ping atılacak şekilde bağlayın; ping 2-3 saat gelmezse harici hizmet e-posta atar. Böylece yedek servisi sessizce durduğunda ya da sunucu kapandığında fark edilir.
+
+`monitoring/` (Prometheus/Grafana/Alertmanager) `deploy.sh` ile kurulmaz ve aynı sunucuda çalışırsa sunucu çökünce o da susar; harici izlemenin yerine geçmez.
+
 ## Sistem durumu, Prometheus ve Uptime Kuma önerisi (VPS)
 
 - **Yönetici paneli:** `/admin/system` (API: `GET /api/admin/system/overview`). 30 sn'de bir yenilenir; CRIT'e geçişte yöneticilere uygulama içi bildirim gider, `OBS_ALERT_EMAIL` doluysa e-posta da denenir. Eşikler `app.observability.*` (bkz. ADMIN_API.md).
@@ -253,6 +289,7 @@ ENV_FILE=.env.staging PROJECT=bu-staging COMPOSE_FILES="-f docker-compose.prod.y
 - **Compose birleştirme YASAK:** `docker compose -f docker-compose.yml -f docker-compose.prod.yml` backend:8080 ve web:8090'ı internete düz HTTP yayınlar. Üretim/staging/izleme komutları yalnız `docker-compose.prod.yml` (+ `docker-compose.staging.yml`, `monitoring/docker-compose.monitoring.yml`) kullanır; prod dosyası ayrıca `ports: !reset []` ile bu portları sıfırlar (Compose >= 2.24). `scripts/deploy/update.sh` kök dosya içeren `COMPOSE_FILES`'ı reddeder; CI `scripts/ci/compose-ports-check.sh` ile yalnız Caddy 80/443'ün açık kaldığını doğrular. (`ufw` Docker yayınlarını engellemez.)
 - **İzleme bindirmesi ve Caddy sağlık denetimi:** bindirme `MANAGEMENT_PORT=8081` verince Caddy `BACKEND_HEALTH_PORT=8081` ile sağlığı o porttan yoklar; aksi halde 8080'de `/actuator/health` 404 döner ve tüm site 503 olurdu. Ayrıntı: [OBSERVABILITY.md](OBSERVABILITY.md).
 - **İstek gövdesi sınırları (Caddy):** yalnız yükleme yolları (`/api/posts/media`, `/api/users/me/avatar`, `/api/communities/{id}/cover|logo|posts/upload`, `/api/events/{id}/cover`, `/api/conversations/{id}/avatar|media`, `/api/admin/menu/{date}/image`) `CADDY_MAX_BODY` (55 MB) alır; `/api/admin/*` 2 MB; diğer `/api/*`, `/files/*`, `/ws` 128 KB (aşarsa 413). **Yeni bir multipart yükleme ucu eklenirse `deploy/Caddyfile` içindeki `@upload` düzenli ifadesine de eklenmelidir.** `read_header 10s` (slowloris). `X-Forwarded-For` güven modeli değişmedi.
+- **Erişim günlüğü (Caddy):** `deploy/Caddyfile` günlüğü sorgu dizisindeki `token`, `code`, `password`, `key`, `secret` değerlerini `REDACTED` yazar (ör. `/support/track?token=...` destek takip bağlantısı günlüğe düşmez); `Authorization`/`Cookie`/`Set-Cookie` başlıkları günlüğe yazılmaz. IP adresi, yol ve durum günlükte durur. **Saklama süresi gün olarak tanımlı değildir:** Caddy stdout'a yazar, Docker `json-file` sürücüsü 10 MB x 5 dosyada döndürür (süre trafiğe bağlıdır; yoğun günlerde birkaç gün). Gizlilik/KVKK metni "erişim günlükleri sınırlı süre ve boyutta tutulur" şeklinde yazılmalı; sabit bir gün sözü verilecekse harici günlük toplayıcı gerekir. Kenarda (Caddy) hız sınırı/WAF YOKTUR: hız sınırı uygulamadadır (Redis); Cloudflare proxy + rate limiting önerisi karar bekliyor (K-29, öneri: Cloudflare). Web CSP `connect-src` ve nginx başlıkları `web/nginx-security.conf`'tadır (web iş akışının dosyası).
 - **Yedek servisi tek kullanıcı (postgres, uid 70):** elle komutlar `exec -u postgres backup ...`; `update.sh` böyle çağırır. Betikler root çağrılsa bile kendilerini postgres'e geçirir. supercronic mutlak yolla (`/usr/local/bin/supercronic`) başlatılır: PID 1 iken yolsuz ad ENOENT verir ve zamanlayıcı hiç başlamazdı. supercronic imajda SHA-256 ile doğrulanır.
 - **CI:** `backend-postgres` işi gerçek PostgreSQL 16 + Redis ile Flyway zinciri + `ddl-auto=validate` kapısıdır (`scripts/ci/flyway-validate.sh`, `SMOKE=1` ile `smoke.sh`/`smoke-support.sh` bilgilendirme amaçlı). `deploy-staging.yml` girdileri doğrular, değerleri SSH stdin'i ile geçirir (komut satırında token/etiket yok) ve otomatik yolda değişmez `sha-<head_sha>` etiketini dağıtır. Staging artık `-p bu-staging -f docker-compose.prod.yml -f docker-compose.staging.yml --env-file .env.staging` kullanır; `vars.STAGING_HEALTH_URL` isteğe bağlıdır (varsayılan sağlık denetimi konteyner `healthy` durumudur, host portu yoktur). Üçüncü taraf action'lar tam commit SHA'sına sabitlidir (`# vX.Y.Z` yorumu); yükseltirken SHA'yı etiketten yeniden çözün.
 
@@ -261,17 +298,20 @@ ENV_FILE=.env.staging PROJECT=bu-staging COMPOSE_FILES="-f docker-compose.prod.y
 Bölüm 0, 8 ve 13 "nasıl"ı anlatır; bu bölüm **ne zaman ve hangi sırayla** sorusunu ve geri alma planını sabitler. Yayın öncesi tüm liste: [LAUNCH_CHECKLIST.md](LAUNCH_CHECKLIST.md).
 
 ### 14.1 Ne zaman dağıtılır
-- **Düşük trafik penceresi: 01:15-02:45 (Europe/Istanbul).** Gerekçe: 00:00 haber/duyuru senkronu biter, 03:00'te `DbMaintenanceJob` (parçalı silme, yoğun I/O), 04:00 cihaz token temizliği, 04:30 haftalık yedek doğrulaması (pazar) başlar. Saatlik yedek `:05`'te çalışır; `update.sh` zaten kendi öncesi yedeğini alır, yine de `:00-:10` arasına denk getirmeyin (yedek kilidi çakışır).
+- **Düşük trafik penceresi: 01:15-02:45 (Europe/Istanbul).** Gerekçe: 00:00 haber/duyuru senkronu biter, 03:00'te `DbMaintenanceJob` (parçalı silme, yoğun I/O), 04:00 cihaz token temizliği, 04:30 haftalık yedek doğrulaması (pazar) başlar. Saatlik yedek `:05`'te çalışır; `deploy.sh`/`update.sh` zaten kendi öncesi yedeğini alır, yine de `:00-:10` arasına denk getirmeyin (yedek kilidi çakışır).
 - Cuma akşamı, sınav/kayıt haftası ve etkinlik duyurusu (kampanya push/e-posta) hemen öncesi dağıtım yapmayın; dağıttıktan sonra en az 30 dk izleyebileceğiniz bir zaman seçin.
 - Mobil sürümle birlikte çıkan sunucu değişikliği: **önce sunucu** (geriye uyumlu), sonra mobil (bölüm 14.4 ve 14.5).
 
 ### 14.2 Dağıtım sırası ve soğuk JVM ısıtma
-Soğuk JVM'de ilk dakikalar 10-20 kat yavaştır (JIT, Hikari havuzu, Hibernate/Jackson önbellekleri; bkz. [PERFORMANCE.md](PERFORMANCE.md)). `update.sh` sağlık geçince Caddy trafiği hemen yönlendirir; ısıtma yapılmazsa ilk kullanıcılar yavaş yanıt ve zaman aşımı görür. Sıra:
+Soğuk JVM'de ilk dakikalar 10-20 kat yavaştır (JIT, Hikari havuzu, Hibernate/Jackson önbellekleri; bkz. [PERFORMANCE.md](PERFORMANCE.md)). Sağlık geçince Caddy trafiği hemen yönlendirir; ısıtma yapılmazsa ilk kullanıcılar yavaş yanıt ve zaman aşımı görür. `deploy.sh` ısıtmayı kendisi çağırır (DNS hazırsa; `--skip-warmup` ile atlanır); elle çalıştırma gerekirse adım 2. Sıra:
 
 ```bash
 # 0) (önerilir) kullanıcıya bakım bandı: yönetici paneli > Ayarlar ya da API (bölüm 14.6)
-# 1) dağıtım (önce yedek alır, derler, başlatır, sağlık bekler, başarısızsa kendiliğinden geri alır)
-bash scripts/deploy/update.sh --ref vX.Y.Z
+# 1) dağıtım, yerelden: önce `--dry-run`; sonra gerçek çalıştırma (e-posta ön kontrolü, dağıtım öncesi yedek, derle, başlat,
+#    sağlık bekle (HEALTH_WAIT_BACKEND), başarısızsa kendiliğinden geri al, ısıt)
+bash scripts/deploy.sh --dry-run
+bash scripts/deploy.sh [--ref <git-ref>]
+#    (sunucu içinde elle çalışılıyorsa: bash scripts/deploy/update.sh --ref vX.Y.Z)
 # 2) SOĞUK JVM ISITMA: ~300 hafif salt-okur istek (veri değiştirmez); hata oranı > %2 ise çıkış kodu 1
 BASE=https://<alan> bash scripts/warmup.sh
 #    oturumlu uçlar da ısınsın istenirse: TOKEN=<test hesabı access JWT> BASE=... bash scripts/warmup.sh
@@ -305,10 +345,10 @@ Karar sırası, **hızlıdan yavaşa**:
 
 | Durum | Eylem | Süre | Veri etkisi |
 |---|---|---|---|
-| `update.sh` sağlık denetimi başarısız | Kendiliğinden `rollback.sh --auto` (önceki git ref + `bu-backend:previous` imajı) | ~2-5 dk | Yok |
-| Dağıtım geçti, sonradan sorun (5xx, yavaşlık), **şema değişmedi** | `bash scripts/deploy/rollback.sh` (ya da `--ref <önceki-etiket>`); ardından `scripts/warmup.sh` | ~5 dk | Yok |
+| `deploy.sh` / `update.sh` sağlık denetimi başarısız | Kendiliğinden geri alma (`deploy.sh`: önceki sürüm dizini + `:previous` imajlar; `update.sh`: `rollback.sh --auto`) | ~2-5 dk | Yok |
+| Dağıtım geçti, sonradan sorun (5xx, yavaşlık), **şema değişmedi** | `bash scripts/deploy.sh --rollback` (sunucu içinde: `bash scripts/deploy/rollback.sh`); ardından `scripts/warmup.sh` | ~5 dk | Yok |
 | Sorunlu sürümde **migration vardı** | Önce kodu geri alın (`rollback.sh`): migration'lar "ekle-kullan-kaldır" ile **geriye uyumlu** yazıldığından önceki kod yeni şemada genelde çalışır. Çalışmıyorsa (kolon düştü, tür değişti) sonraki satır | ~5-10 dk | Yok |
-| Veri bozuldu / geriye uyumsuz migration | **Dağıtım öncesi yedekten** geri yükleme: `bash scripts/backup/restore-live.sh <yedek> <kurtarma.age.key>` ([BACKUP_RESTORE.md](BACKUP_RESTORE.md) bölüm 9-10; `update.sh` dağıtımdan hemen önce yedek aldığı için yedek damgası dağıtım saatidir). O yedekten sonra yazılan veri kaybolur | BACKUP_RESTORE.md "ölçülen süre" | Yedekten sonraki yazmalar kaybolur |
+| Veri bozuldu / geriye uyumsuz migration | **Dağıtım öncesi yedekten** geri yükleme: `bash scripts/backup/restore-live.sh <yedek> <kurtarma.age.key>` ([BACKUP_RESTORE.md](BACKUP_RESTORE.md) bölüm 9-10; `deploy.sh`/`update.sh` dağıtımdan hemen önce yedek aldığı için yedek damgası dağıtım saatidir). O yedekten sonra yazılan veri kaybolur | BACKUP_RESTORE.md "ölçülen süre" | Yedekten sonraki yazmalar kaybolur |
 | Sorun mobil sürümde | Play Console'da **aşamalı yayını durdurun** / önceki sürüme dönün; sunucu N-1 ve N-2 mobil sürümlerle uyumlu kalmalıdır. Kapı kullanıcıları bozuk sürüme zorluyorsa `min_version_android`'i düşürün | dakikalar | Yok |
 | Sorunun kaynağı belirsiz | Bakım bandını açın (14.6), `docker compose ... logs --tail=300 backend`, [RUNBOOK.md](RUNBOOK.md) bölüm 1 | | |
 

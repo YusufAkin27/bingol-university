@@ -105,11 +105,12 @@ Belirti: meşru kullanıcı `ACCESS_BLOCKED` alıyor (kampüs NAT'ı, ortak IP, 
 ## 10. Geri alma (bozuk dağıtım)
 
 ```bash
-bash scripts/deploy/rollback.sh          # onaylı; önceki sürüme döner (update.sh kaydı: .deploy/previous_ref)
+bash scripts/deploy.sh --rollback        # ÜRETİM (yerelden): önceki sürüm dizini + :previous imajlar
+bash scripts/deploy/rollback.sh          # sunucu içinde elle; onaylı (update.sh kaydı: .deploy/previous_ref)
 bash scripts/deploy/rollback.sh --ref v1.4.2
 ```
 
-- `update.sh` başarısız sağlık kontrolünde **kendiliğinden** geri alır.
+- `deploy.sh` ve `update.sh` başarısız sağlık kontrolünde **kendiliğinden** geri alır; ikisi de dağıtımdan ÖNCE şifreli yedek alır (başarısızsa dağıtım hiç başlamaz).
 - **Flyway geri sarılmaz.** Eklemeli (geriye uyumlu) migration'larda kod geri alınınca çalışır. Veri/şema uyumsuzsa: yedekten geri yükleme (BACKUP_RESTORE).
 - Geri alma sonrası: sağlık, giriş, bir mesaj, bir video; olayı kaydedin; hatalı sürümü etiketleyin.
 
@@ -127,6 +128,12 @@ Düzeltici/önleyici: ____  Sahip/Tarih: ____
 **Tatbikat günlüğü** (yedek geri yükleme, anahtar kurtarma):
 
 | Tarih | Tür | Süre | Bulgu | Yapan |
+|---|---|---|---|---|
+| | | | | |
+
+**Anahtar emanet doğrulama günlüğü** (T-137 / H-02; değer YAZILMAZ). `CRYPTO_MASTER_KEYS` ve yedek age ÖZEL anahtarı `deploy.sh` tarafından yerelde **iki ayrı dosyaya** yazılır (`.deploy/generated-secrets.txt`, `.deploy/backup-age-private.key`); her biri **farklı** iki bağımsız yere (şifre yöneticisi + çevrimdışı kasa) taşınır ve emanet **fiilen okunarak** doğrulanır. Doğrulama: (a) emanetten anahtarı yeni bir makineye elle aktarın; (b) age için `age -d -i <anahtar> <bir yedeğin db.dump.age>` bir yedeği açsın (`scripts/backup/verify-restore.sh`); (c) `CRYPTO_MASTER_KEYS` için staging'de bu anahtarla bir mesajın şifresi çözülsün. Her emanet/yer için bir satır; yılda en az 1 kez ve her anahtar değişiminde tekrarlayın.
+
+| Tarih | Sır (CRYPTO / age) | Emanet yeri (1 / 2) | "Fiilen okundu" testi (nasıl, sonuç) | Yapan / ikinci kişi |
 |---|---|---|---|---|
 | | | | | |
 

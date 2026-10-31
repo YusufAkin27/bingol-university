@@ -176,6 +176,177 @@ services:
       SWAGGER_UI_ENABLED: "false"
       TZ: Europe/Istanbul
       JAVA_TOOL_OPTIONS: ${JAVA_TOOL_OPTIONS:-}
+      # ------------------------------------------------------------------------------------------------
+      # .env.prod'dan GECEN ek ayarlar (T-144). `VAR:` (degersiz) = .env.prod/ortamda TANIMLIYSA konteynere iletilir,
+      # TANIMSIZSA hic iletilmez (uygulamanin kendi varsayilani gecerli kalir; bos dize iletilmez). Yalniz burada
+      # listelenen degiskenler iletilir: yeni ayar = buraya satir (scripts/ci/compose-env-check.sh denetler).
+      # ------------------------------------------------------------------------------------------------
+      # Yonetim, oturum, sozlesme (ProdSettingsValidator/LegalReacceptFilter bunlari okur)
+      ADMIN_BASIC_ENABLED:
+      ACTUATOR_EXPOSURE:
+      MANAGEMENT_PORT:
+      OPENAPI_DOCS_ENABLED:
+      AUTH_VERIFY_REQUIRES_PASSWORD:
+      LEGAL_ENFORCE_REACCEPT:
+      MAX_DEVICES_PER_USER:
+      # Erisim engelleri (accessban)
+      BAN_CACHE_TTL_SECONDS:
+      BAN_LOG_RETENTION_DAYS:
+      BLOCK_ANONYMIZERS:
+      # Veritabani havuzu ve zaman asimlari (docs/DATABASE.md)
+      DB_POOL_MAX:
+      DB_POOL_MIN_IDLE:
+      DB_CONNECTION_TIMEOUT_MS:
+      DB_CONNECT_TIMEOUT_S:
+      DB_SOCKET_TIMEOUT_S:
+      DB_STATEMENT_TIMEOUT_MS:
+      DB_LOCK_TIMEOUT_MS:
+      DB_IDLE_TX_TIMEOUT_MS:
+      DB_LEAK_DETECTION_MS:
+      # Redis zaman asimlari ve devre kesici (host/port compose'ta sabit: redis:6379)
+      REDIS_TIMEOUT:
+      REDIS_CONNECT_TIMEOUT:
+      REDIS_BREAKER_MS:
+      # Sunucu okuma onbellegi (CACHE_ENABLED yukarida)
+      CACHE_REDIS_ENABLED:
+      CACHE_L1_MAX_ENTRIES:
+      CACHE_L1_TTL:
+      CACHE_SHORT_TTL:
+      CACHE_DAILY_TTL:
+      CACHE_STABLE_TTL:
+      CACHE_STALE_TTL:
+      CACHE_NEGATIVE_TTL:
+      CACHE_MAX_ENTRY_BYTES:
+      # HTTP govde sinirlari, hiz sinirlari, parola ozeti
+      HTTP_MAX_BODY_BYTES:
+      HTTP_MAX_ADMIN_BODY_BYTES:
+      HTTP_MAX_UPLOAD_BODY_BYTES:
+      RATELIMIT_MAX_NEW_KEYS_PER_HOUR:
+      RATELIMIT_OVERFLOW_MULTIPLIER:
+      WS_MAX_FRAMES_PER_SECOND:
+      METRICS_MAX_URI_TAGS:
+      PASSWORD_HASH_CONCURRENCY:
+      PASSWORD_HASH_MAX_QUEUE:
+      PASSWORD_HASH_WAIT_MS:
+      RL_LOGIN_IP_MAX:
+      RL_LOGIN_IP_FAIL_MAX:
+      RL_LOGIN_EMAIL_FAIL_MAX:
+      RL_LOGIN_EMAIL_IP_FAIL_MAX:
+      RL_LOGIN_PAIR_FAIL_MAX:
+      RL_LOGIN_DEVICE_FAIL_MAX:
+      RL_REFRESH_IP_MAX:
+      RL_REFRESH_INVALID_IP_MAX:
+      RL_REFRESH_USER_MAX:
+      RL_RESET_IP_MAX:
+      RL_VERIFY_IP_MAX:
+      RL_CHPW_IP_MAX:
+      RL_CODE_IP_MAX:
+      RL_CODE_DEVICE_MAX:
+      # E-posta ek ayarlari; APP_MAIL_ALLOW_LOG_ONLY=true yalniz BILINCLI (MAIL_ENABLED=false prod'da bu olmadan acilmaz)
+      APP_MAIL_ALLOW_LOG_ONLY:
+      MAIL_MAX_CODES_PER_EMAIL_PER_DAY:
+      MAIL_MAX_CODE_REQUESTS_PER_IP_PER_DAY:
+      MAIL_PUBLIC_CODE_SHARE:
+      MAIL_RESET_CODE_SHARE:
+      # Push (FCM_CREDENTIALS_FILE: konteyner ICINDEKI yol; prod'da FCM_CREDENTIALS_JSON onerilir) ve kalici kuyruk
+      FCM_CREDENTIALS_FILE:
+      PUSH_MESSAGE_PREVIEW:
+      PUSH_OUTBOX_ENABLED:
+      PUSH_OUTBOX_POLL_MS:
+      PUSH_OUTBOX_BATCH:
+      PUSH_OUTBOX_MAX_ATTEMPTS:
+      PUSH_OUTBOX_MAX_AGE_HOURS:
+      PUSH_OUTBOX_HOLD_WHEN_DISABLED:
+      # Sohbet
+      CHAT_EDIT_WINDOW_MINUTES:
+      CHAT_DELETE_WINDOW_MINUTES:
+      CHAT_DELETED_RETENTION_DAYS:
+      CHAT_VIEW_ONCE_RETENTION_DAYS:
+      CHAT_REACTIONS:
+      CHAT_ROOM_MAX_MEMBERS:
+      CHAT_ROOM_PURGE_MS:
+      CHAT_EVENT_ROOM_AUTO:
+      CHAT_EVENT_ROOM_CLOSE_DAYS:
+      CHAT_MEDIA_CLEANUP_CRON:
+      CHAT_MEDIA_LINK_TTL:
+      CHAT_MEDIA_MAX_PER_MESSAGE:
+      CHAT_MEDIA_PENDING_MAX:
+      CHAT_MEDIA_PER_DAY:
+      CHAT_MEDIA_PER_MINUTE:
+      CHAT_MEDIA_UNCLAIMED_HOURS:
+      CHAT_VIDEO_DAILY_LIMIT:
+      CHAT_VIDEO_MAX_BYTES:
+      CHAT_VIDEO_MAX_SECONDS:
+      CHAT_VIDEO_MAX_TOTAL_BYTES:
+      # Medya hatti (docs/MEDIA_PIPELINE.md; MEDIA_TRANSCODE_ENABLED/WORKERS/CDN_* yukarida)
+      MEDIA_CONCURRENCY:
+      MEDIA_MAX_PIXELS:
+      MEDIA_MAX_CONCURRENT_UPLOADS:
+      MEDIA_MAX_UPLOADS_PER_DAY:
+      MEDIA_MAX_BYTES_PER_DAY:
+      MEDIA_USER_WAIT_MS:
+      MEDIA_THUMB_DIMENSION:
+      MEDIA_CDN_TTL:
+      MEDIA_TRANSCODE_TEMP_DIR:
+      MEDIA_TRANSCODE_THREADS:
+      MEDIA_TRANSCODE_TIMEOUT:
+      MEDIA_AVATAR_JPEG_QUALITY:
+      MEDIA_AVATAR_MAX_DIMENSION:
+      MEDIA_AVATAR_MAX_STORED_BYTES:
+      MEDIA_AVATAR_MAX_UPLOAD_BYTES:
+      MEDIA_CHAT_JPEG_QUALITY:
+      MEDIA_CHAT_MAX_DIMENSION:
+      MEDIA_CHAT_MAX_STORED_BYTES:
+      MEDIA_CHAT_MAX_UPLOAD_BYTES:
+      MEDIA_COVER_JPEG_QUALITY:
+      MEDIA_COVER_MAX_DIMENSION:
+      MEDIA_COVER_MAX_STORED_BYTES:
+      MEDIA_COVER_MAX_UPLOAD_BYTES:
+      MEDIA_POST_JPEG_QUALITY:
+      MEDIA_POST_MAX_DIMENSION:
+      MEDIA_POST_MAX_STORED_BYTES:
+      MEDIA_POST_MAX_UPLOAD_BYTES:
+      POST_MEDIA_DELETED_RETENTION_DAYS:
+      POST_MEDIA_PENDING_MAX:
+      POST_MEDIA_UNATTACHED_HOURS:
+      POST_MEDIA_UPLOADS_PER_HOUR:
+      POST_VIDEO_MAX_BYTES:
+      POST_VIDEO_MAX_SECONDS:
+      # Veri saklama, bakim isleri, icerik filtresi (docs/DATABASE.md)
+      DBMAINT_ENABLED:
+      DBMAINT_CRON:
+      DBMAINT_CHUNK_SIZE:
+      DBMAINT_CHUNK_PAUSE_MS:
+      DBMAINT_MAX_CHUNKS:
+      DBMAINT_LOG_DAYS:
+      DBMAINT_ACTIVITY_DAYS:
+      DBMAINT_ADMIN_AUDIT_DAYS:
+      DBMAINT_AUDIT_LONG_DAYS:
+      DBMAINT_MAIL_SENT_DAYS:
+      DBMAINT_MAIL_DEAD_DAYS:
+      DBMAINT_NOTIFICATION_CAP:
+      NOTIFICATION_RETENTION_DAYS:
+      NOTIFICATION_UNREAD_RETENTION_DAYS:
+      ANALYTICS_RAW_DAYS:
+      ANALYTICS_MAX_EVENTS_PER_DAY:
+      PUBLIC_TICKET_RETENTION_DAYS:
+      POLL_CLOSE_CRON:
+      PROFANITY_ENABLED:
+      PROFANITY_MODE:
+      PROFANITY_CACHE_TTL_SECONDS:
+      # Gozlemlenebilirlik: yonetici uyari e-postasi/esikleri, depolama denetimi, Sentry (SENTRY_DSN yukarida; kullanmayacaksaniz bos)
+      OBS_ALERT_ENABLED:
+      OBS_ALERT_EMAIL:
+      OBS_STORAGE_CHECK_MS:
+      SENTRY_ENVIRONMENT:
+      SENTRY_RELEASE:
+      SENTRY_TRACES_SAMPLE_RATE:
+      # Sifreleme ek ayarlari (CRYPTO_MASTER_KEYS yukarida)
+      CRYPTO_MASTER_KEYS_FILE:
+      CRYPTO_MIGRATE_MESSAGES:
+      CRYPTO_NULL_PLAINTEXT:
+      # Yedek hedefi: yedek servisiyle AYNI deger; ProdSettingsValidator bos ise uyarir (sir degil, rclone uzak adi)
+      BACKUP_REMOTE:
     volumes:
       - uploads:/data/uploads
       # Yedek durumu (docs/OBSERVABILITY.md): backup servisinin yazdigi backup.prom, GET /api/admin/ops/backup-status icin RO
@@ -186,7 +357,9 @@ services:
       interval: 15s
       timeout: 5s
       retries: 10
-      start_period: 60s
+      # Soguk acilis (Flyway + Hibernate dogrulama) 262-465 sn surebilir: start_period icindeki basarisiz yoklamalar sayilmaz;
+      # kisa olursa `docker compose up -d` bagimlilik (caddy) icin 'unhealthy' sayip HATA verir. deploy.sh HEALTH_WAIT_BACKEND ile uyumlu.
+      start_period: ${BACKEND_START_PERIOD:-360s}
 
   postgres:
     image: postgres:16-alpine
@@ -297,7 +470,7 @@ services:
       timeout: 3s
       retries: 10
 
-  # Zamanlanmış yedek (SAATLİK, en yeni 3 tutulur) + haftalık otomatik geri yükleme doğrulaması. docs/BACKUP_RESTORE.md
+  # Zamanlanmış yedek (SAATLİK; yerelde en yeni 7 + haftalık 4 + aylık 3, uzak kopya BACKUP_REMOTE) + haftalık otomatik geri yükleme doğrulaması. docs/BACKUP_RESTORE.md
   backup:
     build: ./scripts/backup
     restart: unless-stopped
@@ -325,9 +498,11 @@ services:
       BACKUP_AGE_RECIPIENT: ${BACKUP_AGE_RECIPIENT:?BACKUP_AGE_RECIPIENT gerekli (age GENEL anahtari; ozel anahtar sunucuda olmaz)}
       BACKUP_REMOTE: ${BACKUP_REMOTE:-}
       BACKUP_WEBHOOK_URL: ${BACKUP_WEBHOOK_URL:-}
-      BACKUP_KEEP_DAILY: ${BACKUP_KEEP_DAILY:-3}      # saatlik yedek, en yeni 3 (3 saatlik pencere)
-      BACKUP_KEEP_WEEKLY: ${BACKUP_KEEP_WEEKLY:-0}
-      BACKUP_KEEP_MONTHLY: ${BACKUP_KEEP_MONTHLY:-0}
+      # YEREL saklama (dizin basina "en yeni N gecerli yedek"): saatlik 7, haftalik 4, aylik 3 (A8-01). Uzak kopya (BACKUP_REMOTE)
+      # ayri ve ZORUNLUDUR: bos ise yedekler yalniz bu sunucunun diskindedir (backend acilista uyarir). Disk payi: docs/BACKUP_RESTORE.md.
+      BACKUP_KEEP_DAILY: ${BACKUP_KEEP_DAILY:-7}
+      BACKUP_KEEP_WEEKLY: ${BACKUP_KEEP_WEEKLY:-4}
+      BACKUP_KEEP_MONTHLY: ${BACKUP_KEEP_MONTHLY:-3}
       # Durum JSON'u backend ile PAYLASILAN dizinde (${BACKUP_METRICS_DIR} = backend'de /backup-status, salt okunur); last-failure.json ayni dizinde
       BACKUP_STATUS_FILE: /var/backups/metrics/last-success.json
       BACKUP_CRON: ${BACKUP_CRON:-5 * * * *}

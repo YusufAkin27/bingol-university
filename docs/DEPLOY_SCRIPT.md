@@ -1,6 +1,6 @@
 # deploy.sh: yerelden VDS'e dağıtım (bukampus.com.tr)
 
-`scripts/deploy.sh` yerel makineden SSH ile tek komutta dağıtır. Sunucu tarafı (`scripts/deploy/update.sh`) depoyu `git pull` ile çeken, sunucuda git erişimi gerektiren yoldur; `deploy.sh` ise özel depoya sunucudan erişim gerekmesin diye kodu `git archive | ssh tar` ile aktarır. İkisi birlikte kullanılmaz: sunucu düzeni `deploy.sh` içindir.
+`scripts/deploy.sh` yerel makineden SSH ile tek komutta dağıtır ve **üretimin tek doğru dağıtım yoludur** ([DEPLOY.md](DEPLOY.md) bölüm 0). Sunucu tarafı (`scripts/deploy/update.sh`) depoyu `git pull` ile çeken, sunucuda git erişimi gerektiren alternatif yoldur (staging); `deploy.sh` ise özel depoya sunucudan erişim gerekmesin diye kodu `git archive | ssh tar` ile aktarır. İkisi birlikte kullanılmaz: sunucu düzeni `deploy.sh` içindir.
 
 ## Sunucu (DEP1 ile hazırlandı)
 
@@ -16,22 +16,31 @@
 # repo kokunde .deploy.env (gitignored): DEPLOY_HOST, DEPLOY_USER=deploy, DEPLOY_DOMAIN
 # istege bagli: DEPLOY_KEY, DEPLOY_ACME_EMAIL, DEPLOY_ADMIN_EMAILS, DEPLOY_MAIL_USER, DEPLOY_MAIL_PASSWORD,
 #   DEPLOY_MAIL_FROM, DEPLOY_MAIL_REPLY_TO, DEPLOY_MAIL_FROM_NAME, DEPLOY_ADMIN_PATH,
-#   DEPLOY_STORAGE_DB_DISK_CAPACITY_BYTES, DEPLOY_STORAGE_RESERVED_BYTES
+#   DEPLOY_STORAGE_DB_DISK_CAPACITY_BYTES, DEPLOY_STORAGE_RESERVED_BYTES,
+#   DEPLOY_BACKUP_REMOTE, DEPLOY_BACKUP_WEBHOOK_URL, DEPLOY_ALLOW_LOG_ONLY, DEPLOY_MAIL_ON_SERVER
 scripts/deploy.sh --dry-run          # sunucuya dokunmadan adimlari yazdirir
 scripts/deploy.sh --ip-test          # DNS hazir degilken: yalniz HTTP, http://<IP>/ uzerinden test
 scripts/deploy.sh                    # gercek dagitim (HTTPS, DNS hazir olmali)
+scripts/deploy.sh --ref <git-ref>    # HEAD yerine belirli commit/etiket (yalniz commit'lenmis dosyalar gider)
 scripts/deploy.sh --no-build         # derlemeden mevcut imajlarla baslat
+scripts/deploy.sh --skip-backup      # dagitim oncesi yedegi atla (ONERILMEZ)
+scripts/deploy.sh --skip-warmup      # scripts/warmup.sh calistirma
+scripts/deploy.sh --skip-cleanup     # disk temizligi kurulumunu/calistirmasini atla
 scripts/deploy.sh --rollback         # onceki surume don
+scripts/deploy.sh -h                 # tam yardim (basliktaki tum bayrak ve DEPLOY_* anahtarlari)
 SKIP_TESTS=1 scripts/deploy.sh       # yerel web kapilarini atla
+HEALTH_WAIT_BACKEND=900 scripts/deploy.sh   # backend saglik bekleme suresi (sn, varsayilan 600)
 ```
 
-Adımlar: (1) yerel kapılar (git durumu uyarısı; `web`: lint, typecheck, test, build, `check:bundle`), (2) `git archive` ile yalnız **commit'lenmiş** kodu `releases/<sha>`'ya aktarma (`mobile/` ve `brand/` hariç), (3) sunucuda `.env.prod` yoksa üretme (varsa asla ezilmez) ve ardından **anahtar senkronu** (aşağıda), (4) önceki imajları `:previous` etiketleyip `docker compose build` + `up -d`, (5) `backend` ve `caddy` sağlık bekleme, başarısızsa otomatik geri alma, (6) `scripts/warmup.sh`, (7) özet.
+Adımlar: (0) **e-posta ön koşulu** (aşağıda; bilgi yoksa HİÇBİR şey aktarılmadan reddedilir), (1) yerel kapılar (git durumu uyarısı; `web`: lint, typecheck, test, build, `check:bundle`), (2) `git archive` ile yalnız **commit'lenmiş** kodu `releases/<sha>`'ya aktarma (`mobile/` ve `brand/` hariç), (3) sunucuda `.env.prod` yoksa üretme (varsa asla ezilmez) ve ardından **anahtar senkronu** (aşağıda; uyarılar ve e-posta denetimi), (4) **bekleyen Flyway migration uyarısı + dağıtım öncesi şifreli yedek (başarısızsa DUR)**, sonra önceki imajları `:previous` etiketleyip `docker compose build` + `up -d`, (5) `backend` ve `caddy` sağlık bekleme (`HEALTH_WAIT_BACKEND`, varsayılan 600 sn; soğuk açılış 262-465 sn), başarısızsa otomatik geri alma, (6) `scripts/warmup.sh`, (7) özet.
+
+Çıkış kodları: 0 tamam; 1 dağıtım/sağlık/**yedek** başarısız; 2 kullanım/yapılandırma hatası (ör. e-posta bilgisi yok). `-h` çıktısı betiğin başlık yorumunun tamamıdır.
 
 ## Sırlar
 
-`.env.prod` ilk kez üretilirken (`scripts/ops/gen-secrets.sh`) `DB_PASSWORD`, `JWT_SECRET`, `ADMIN_PASSWORD`, `CRYPTO_MASTER_KEYS`/`CRYPTO_ACTIVE_KEY_ID`, `DEVICE_HMAC_KEY` rastgele oluşur. Sunucuda izin 600'dür. Yerel kopya `.deploy/generated-secrets.txt` (gitignored) dosyasına yazılır: **şifre yöneticisine ve çevrimdışı kasaya taşıyın**; `CRYPTO_MASTER_KEYS` kaybı şifreli verinin kaybıdır. Yedek şifreleme için sunucuda bir `age` anahtar çifti üretilir: genel anahtar `BACKUP_AGE_RECIPIENT`'e yazılır, **özel anahtar yerel dosyaya alınıp sunucudan silinir**.
+`.env.prod` ilk kez üretilirken (`scripts/ops/gen-secrets.sh`) `DB_PASSWORD`, `JWT_SECRET`, `ADMIN_PASSWORD`, `CRYPTO_MASTER_KEYS`/`CRYPTO_ACTIVE_KEY_ID`, `DEVICE_HMAC_KEY` rastgele oluşur. Sunucuda izin 600'dür. Yerelde **iki AYRI dosya** yazılır (gitignored, izin 600): `.deploy/generated-secrets.txt` (uygulama sırları + `CRYPTO_MASTER_KEYS`) ve `.deploy/backup-age-private.key` (yedek **age ÖZEL anahtarı**). **İkisini şifre yöneticisine ve çevrimdışı kasaya, FARKLI emanet yerlerine taşıyın** (tek yerde ikisi birden = tek hata noktası); `CRYPTO_MASTER_KEYS` kaybı şifreli verinin kaybıdır, age özel anahtarı olmadan yedekler açılamaz. Yedek şifreleme için sunucuda bir `age` anahtar çifti üretilir: genel anahtar `BACKUP_AGE_RECIPIENT`'e yazılır; özel anahtar **yerel kopya doğrulanınca** (`AGE-SECRET-KEY-` satırı var) sunucudan silinir, doğrulanamazsa silinmez ve uyarı verilir. Emanet düzeni ve tatbikat günlüğü: [KEY_MANAGEMENT.md](KEY_MANAGEMENT.md), [RUNBOOK.md](RUNBOOK.md) bölüm 12.
 
-`DEPLOY_MAIL_USER/DEPLOY_MAIL_PASSWORD` verilmezse `MAIL_ENABLED=false` başlar (doğrulama kodları backend günlüğüne yazılır; yalnız ön test için). Brevo bilgileri sonradan `.env.prod`'a girilir ve `docker compose ... up -d backend` ile uygulanır.
+**E-posta ön koşulu (prod'da zorunlu).** `MAIL_ENABLED=false` ile prod profili **BAŞLAMAZ** (`ProdSettingsValidator`; bilinçli `APP_MAIL_ALLOW_LOG_ONLY=true` verilmedikçe). Bu yüzden `deploy.sh` Brevo bilgisi (`DEPLOY_MAIL_USER` + `DEPLOY_MAIL_PASSWORD`) yoksa dağıtımı **baştan reddeder** (adım 0, çıkış 2; eskiden derleme + otomatik geri alma yaşanırdı). Gerçek çalıştırmada yerelde bilgi yoksa sunucudaki `.env.prod` denetlenir (SMTP etkin değilse ya da ilk kurulumsa reddedilir); `--dry-run` sunucuya bakmadığından yerel bilgi ya da `DEPLOY_MAIL_ON_SERVER=1` ister. Yalnız **bilinçli ve geçici** log-only için `DEPLOY_ALLOW_LOG_ONLY=1`: yeni `.env.prod`'a `MAIL_ENABLED=false` + `APP_MAIL_ALLOW_LOG_ONLY=true` yazılır (kodlar backend günlüğüne düşer, e-posta GİTMEZ; gerçek kullanıcıya açmadan önce kaldırın). Brevo bilgileri sonradan `.env.prod`'a girilirse `docker compose ... up -d backend` ile uygulanır.
 
 ## SSH hız sınırı ve ACME e-postası
 
@@ -51,6 +60,8 @@ Her dağıtımda (`.env.prod` yeni üretilmiş ya da var olsa da) `.deploy.env` 
 | `DEPLOY_ADMIN_PATH` | `ADMIN_PATH` | yoksa/boşsa; biçim doğrulanır (`/` ile başlar, ayrılmış yollarla çakışmaz) |
 | `DEPLOY_STORAGE_DB_DISK_CAPACITY_BYTES` (varsayılan `51539607552` = 48 GiB) | `STORAGE_DB_DISK_CAPACITY_BYTES` | yoksa/boş/0 ise |
 | `DEPLOY_STORAGE_RESERVED_BYTES` (varsayılan `10737418240` = 10 GiB) | `STORAGE_RESERVED_BYTES` | yoksa/boşsa |
+| `DEPLOY_BACKUP_REMOTE` | `BACKUP_REMOTE` | yoksa/boşsa; boş kalırsa UYARI (yedekler yalnız sunucu diskinde) |
+| `DEPLOY_BACKUP_WEBHOOK_URL` | `BACKUP_WEBHOOK_URL` | yoksa/boşsa; boş kalırsa UYARI |
 
 Depolama değerleri DS1 doluluk uyarısı içindir (`GET /api/admin/system/storage`): VDS diski 48 GB olduğundan yüzde `DB + yüklemeler + yedek + reserved` / kapasite olarak hesaplanır; `reserved` işletim sistemi, Docker imajları ve günlükler payıdır.
 
@@ -60,13 +71,13 @@ Yönetici Basic auth (`ADMIN_BASIC_ENABLED`) üretimde **kapalıdır**; betik bu
 
 ## İlk dağıtımdan sonra yapmanız gerekenler
 
-1. **Üretilen sırları yedekleyin.** Betik `.env.prod`'u sunucuda üretir ve yerel kopyayı `.deploy/generated-secrets.txt` (gitignored, izin 600) dosyasına yazar: `DB_PASSWORD`, `JWT_SECRET`, `ADMIN_PASSWORD`, `CRYPTO_MASTER_KEYS` (+ `CRYPTO_ACTIVE_KEY_ID`), `DEVICE_HMAC_KEY`, `BACKUP_AGE_RECIPIENT` ve yedek **age özel anahtarı** (sunucudan silinir). Dosyanın tamamını şifre yöneticisine **ve** çevrimdışı kasaya taşıyın, ardından yerel kopyayı güvenle silin. `CRYPTO_MASTER_KEYS` kaybı şifreli mesaj/video verisinin geri dönüşsüz kaybıdır; age özel anahtarı olmadan yedekler açılamaz. Ayrıntı: [KEY_MANAGEMENT.md](KEY_MANAGEMENT.md).
+1. **Üretilen sırları yedekleyin.** Betik `.env.prod`'u sunucuda üretir ve yerel kopyaları iki ayrı dosyaya yazar (gitignored, izin 600): `.deploy/generated-secrets.txt` (`DB_PASSWORD`, `JWT_SECRET`, `ADMIN_PASSWORD`, `CRYPTO_MASTER_KEYS` + `CRYPTO_ACTIVE_KEY_ID`, `DEVICE_HMAC_KEY`, `BACKUP_AGE_RECIPIENT`) ve `.deploy/backup-age-private.key` (yedek **age özel anahtarı**, sunucudan silinir). İki dosyayı şifre yöneticisine **ve** çevrimdışı kasaya, **farklı yerlere** taşıyın; her emanetin "fiilen okundu" testini yapın ve RUNBOOK bölüm 12'deki tatbikat günlüğüne işleyin; ardından yerel kopyaları güvenle silin. `CRYPTO_MASTER_KEYS` kaybı şifreli mesaj/video verisinin geri dönüşsüz kaybıdır; age özel anahtarı olmadan yedekler açılamaz. Ayrıntı: [KEY_MANAGEMENT.md](KEY_MANAGEMENT.md).
 2. **Yönetici hesabını kaydedin.** `ADMIN_EMAILS` içindeki adres (`DEPLOY_ADMIN_EMAILS`, ör. `ysufakin23@gmail.com`) `bingol.edu.tr` olmak zorunda değildir; sunucu yalnız bu adreslere alan adı kısıtını atlatır:
    1. Tarayıcıda `https://bukampus.com.tr/<ADMIN_PATH değeriniz>/register` adresini açın (`ADMIN_PATH` ayarlı değilse `/admin/register`; giriş sayfasındaki "Yönetici hesabı oluşturun" bağlantısı da aynı yere gider).
    2. Ad soyad, `DEPLOY_ADMIN_EMAILS` adresi, en az 8 karakterli bir şifre girin, metinleri kabul edin.
-   3. O adrese gelen 6 haneli kodu girin (10 dk geçerli; gelmezse "Kodu yeniden gönder"). Mail ayarı kapalıysa (`MAIL_ENABLED=false`) kod backend günlüğündedir: `docker compose -p bu ... logs backend`.
+   3. O adrese gelen 6 haneli kodu girin (10 dk geçerli; gelmezse "Kodu yeniden gönder"). Yalnız bilinçli log-only kuruluysa (`APP_MAIL_ALLOW_LOG_ONLY=true`) kod backend günlüğündedir: `docker compose -p bu ... logs backend`.
    4. Doğrulama sonrası otomatik giriş yapılır; rol ADMIN (profil FULL) olur ve panel açılır. Sonraki girişler `<ADMIN_PATH değeriniz>/login` üzerindendir. Bu şifre yalnızca sizin belirlediğiniz şifredir; `.env.prod`'daki `ADMIN_PASSWORD` yönetici hesabının şifresi **değildir** (Basic yöntemi üretimde kapalıdır).
-3. Başka bir adresle kayıt olursanız (listede yoksa) sunucu okul dışı alan adını reddeder; listede olmayan bir `bingol.edu.tr` hesabı doğrulanır ama panelde "yetkiniz yok" görür. Yeni yönetici eklemek için `.env.prod` `ADMIN_EMAILS` değerini güncelleyip backend'i yeniden başlatın (ya da panelden mevcut bir yönetici rolü verir).
+3. Başka bir adresle kayıt olursanız (listede yoksa) sunucu okul dışı alan adını reddeder; listede olmayan bir `bingol.edu.tr` hesabı doğrulanır ama panelde "yetkiniz yok" görür. Yeni yönetici eklemek için `.env.prod` `ADMIN_EMAILS` değerini güncelleyip backend'i yeniden başlatın (ya da panelden mevcut bir yönetici rolü verir). **`ADMIN_EMAILS`'e en az 2 adres yazın (K-31):** tek FULL yöneticiyle iki kişi onayı gerektiren işlemler (FULL ata/düşür) kilitlenir ve panelden ikinci FULL yaratılamaz; `DEPLOY_ADMIN_EMAILS` tek adresse `deploy.sh`, `.env.prod`'da 2'den az adres varsa backend uyarır.
 4. DNS/Brevo adımları (SPF, DKIM, DMARC) için [MAIL_DELIVERABILITY.md](MAIL_DELIVERABILITY.md) bölüm 9. Maillerde görünen gönderen adı `BÜ Kampüs`'tür; Gmail'deki yuvarlak profil resmi BIMI olmadan değişmez.
 
 ## Caddy ve www

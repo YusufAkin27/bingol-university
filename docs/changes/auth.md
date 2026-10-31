@@ -122,3 +122,7 @@ Davranis:
 
 ## Basic auth yonetici ve /api/admin/ops (RL1)
 `AdminOpsController` hiz siniri anahtari icin `CurrentUser.id()` istiyordu; Basic auth yoneticisinde (kayitli kullanici yok, principal `Long` degil) bu 401 `UNAUTHORIZED` veriyordu. Artik anahtar `actorKey()`: JWT yoneticisinde kullanici id'si, Basic yoneticide sabit `basic` (`admin:ops:basic`). Yetki degismedi (`/api/admin/**` yalniz ADMIN; Basic prod'da kapali; RBAC'ta Basic = FULL); denetimde aktor `basic-admin`.
+
+## Sifre sifirlama yanit metni (W1-J, T-123)
+
+`POST /api/auth/forgot-password` 202 govdesindeki `msg.forgot.sent` (tr) artik e-postaya KOD gittigini soyler: "Hesap uygunsa e-posta adresinize şifre sıfırlama kodu gönderildi." (eskiden "bağlantı" diyordu; e-postaya bir bağlantı değil 6 haneli kod gider). Yalniz metin; alan/kod degismedi. en/ar zaten "code" diyordu.
