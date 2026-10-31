@@ -106,7 +106,7 @@ void main() {
     addTearDown(tester.view.reset);
     await tester.pumpWidget(p00App(EventDetailPage(session: makeSession(_eventBe()), eventId: 5), lang: 'tr', dark: false, scale: 1, scaffold: false));
     await tester.pump(const Duration(milliseconds: 900));
-    expect(find.text('MK'), findsOneWidget); // duz kapak: silik baş harf filigranı (Müzik Kulübü)
+    expect(find.byType(CalmCover), findsOneWidget);
   });
 
   testWidgets('oneri oy dugmesi dikey: sayi gorunur, dokununca tetiklenir, 48 dp alt sinir', (tester) async {
@@ -150,7 +150,8 @@ void main() {
       await tester.pump(const Duration(milliseconds: 900));
       expect(find.text('Bekliyor'), findsNothing);
       expect(find.text('Veri Yapıları'), findsWidgets);
-      expect(find.text('09:00 - 10:50'), findsOneWidget);
+      expect(find.text('09:00'), findsOneWidget);
+      expect(find.text('10:50'), findsOneWidget);
     });
   });
 }
