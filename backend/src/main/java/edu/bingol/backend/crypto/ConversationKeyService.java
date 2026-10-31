@@ -167,7 +167,7 @@ public class ConversationKeyService {
                     }
                 } catch (CryptoException e) {
                     failed++;
-                    metrics.failure("rewrap_" + e.reason().name().toLowerCase());
+                    metrics.failure("rewrap_" + e.reason().name().toLowerCase(java.util.Locale.ROOT));
                     log.warn("DEK yeniden sarilamadi: konusma={} surum={} neden={}",
                             s.conversationId(), s.version(), e.reason());
                 }

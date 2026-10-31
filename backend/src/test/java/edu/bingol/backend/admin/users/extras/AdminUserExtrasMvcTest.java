@@ -89,7 +89,7 @@ class AdminUserExtrasMvcTest {
 
     private User user(String name, Role role, UserStatus status, String faculty) {
         User u = new User();
-        u.setEmail(name.toLowerCase().replaceAll("[^a-z]+", ".") + "." + UUID.randomUUID().toString().substring(0, 8) + "@bingol.edu.tr");
+        u.setEmail(name.toLowerCase(java.util.Locale.ROOT).replaceAll("[^a-z]+", ".") + "." + UUID.randomUUID().toString().substring(0, 8) + "@bingol.edu.tr");
         u.setPasswordHash("x");
         u.setDisplayName(name);
         u.setEmailVerified(true);

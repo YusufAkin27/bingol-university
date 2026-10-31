@@ -33,7 +33,7 @@ class ProfanityMatcherLinkAndLooseTest {
         assertTrue(blocked(OROSPU + "@x.y"));
         assertTrue(blocked(OROSPU + "@x.y gelin"));
         assertTrue(blocked(SIKTIR + "@a.b gidin"));
-        assertTrue(blocked("selam " + OROSPU.toUpperCase() + "@Example.COM"));
+        assertTrue(blocked("selam " + OROSPU.toUpperCase(java.util.Locale.ROOT) + "@Example.COM"));
     }
 
     @Test

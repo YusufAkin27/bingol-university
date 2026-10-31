@@ -370,6 +370,8 @@ public class ProfileService {
         if (nameHistory != null) {
             nameHistory.deleteByUser(u.getId());
         }
+        // Eski adres anonimlestirmeden ONCE alinir: mail kuyrugunda adresle eslesen bekleyen kayitlar silinir (W2-F)
+        String oldEmail = u.getEmail();
         String oldAvatar = u.getAvatarUrl();
         avatarCleanups.run(u.getId(), oldAvatar); // T11: gorsel referanslari + gizlilik satiri (KVKK)
         u.setEmail("deleted-" + u.getId() + "@deleted.invalid");
@@ -392,7 +394,7 @@ public class ProfileService {
         // KVKK: kullanim izleri (gunluk acilis, olaylar) de silinir
         activity.purgeUser(u.getId());
         // KVKK: cihaz/FCM, bildirim kutusu ve tercihleri, kayitli haberler, kulup yanitlari, uyelikler
-        purger.purge(u.getId());
+        purger.purge(u.getId(), oldEmail);
         // Silinen kullanicinin RSVP'leri kapasiteden yer tutmasin
         List<Long> freedEvents = new java.util.ArrayList<>();
         for (EventRsvp r : rsvps.findByUserId(u.getId())) {

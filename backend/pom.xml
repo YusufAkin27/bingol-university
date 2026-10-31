@@ -29,6 +29,8 @@
 	<properties>
 		<java.version>17</java.version>
 		<sentry.version>8.62.0</sentry.version>
+		<!-- JaCoCo kapaliyken (-Djacoco.skip) @{argLine} bos kalsin diye varsayilan -->
+		<argLine></argLine>
 		<sonar.coverage.jacoco.xmlReportPaths>target/site/jacoco/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
 	</properties>
 	<dependencies>
@@ -202,6 +204,14 @@
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<configuration>
+					<!-- Testler gelistirici makinesinin yerelinden bagimsiz olsun: tr_TR'de LOWER('I') = dotless i (H2, Spring harita anahtarlari) -->
+					<argLine>@{argLine} -Duser.language=en -Duser.country=US</argLine>
+				</configuration>
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>

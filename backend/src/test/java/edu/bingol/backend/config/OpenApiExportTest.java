@@ -69,7 +69,7 @@ class OpenApiExportTest {
     private static List<String> operations(JsonNode doc) {
         List<String> ops = new ArrayList<>();
         doc.path("paths").fields().forEachRemaining(p -> p.getValue().fieldNames().forEachRemaining(m -> {
-            if (METHODS.contains(m)) ops.add(m.toUpperCase() + " " + p.getKey());
+            if (METHODS.contains(m)) ops.add(m.toUpperCase(java.util.Locale.ROOT) + " " + p.getKey());
         }));
         Collections.sort(ops);
         return ops;

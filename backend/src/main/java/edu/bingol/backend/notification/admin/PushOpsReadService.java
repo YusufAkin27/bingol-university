@@ -58,7 +58,8 @@ public class PushOpsReadService {
         for (String p : List.of("android", "ios", "web", "other")) {
             byPlatform.put(p, 0L);
         }
-        for (Object[] r : em.createQuery("SELECT LOWER(d.platform), COUNT(d) FROM Device d GROUP BY LOWER(d.platform)",
+        // Kucultme veritabaninda DEGIL Java'da (Locale.ROOT): tr_TR yerelli DB/JVM'de LOWER('ANDROID') = 'androıd' olurdu
+        for (Object[] r : em.createQuery("SELECT d.platform, COUNT(d) FROM Device d GROUP BY d.platform",
                 Object[].class).getResultList()) {
             String key = r[0] == null ? "other" : String.valueOf(r[0]).toLowerCase(Locale.ROOT);
             if (!PLATFORMS.contains(key)) {

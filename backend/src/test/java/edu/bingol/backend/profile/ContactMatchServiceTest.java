@@ -196,7 +196,7 @@ class ContactMatchServiceTest {
         when(users.findContactMatches(any(), any())).thenReturn(List.of());
         String a = h("a@bingol.edu.tr");
 
-        service.match(1L, List.of(a, a, a.toUpperCase(), "zzz", ""));
+        service.match(1L, List.of(a, a, a.toUpperCase(java.util.Locale.ROOT), "zzz", ""));
 
         @SuppressWarnings("unchecked")
         ArgumentCaptor<Collection<String>> hs = ArgumentCaptor.forClass(Collection.class);

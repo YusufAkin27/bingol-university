@@ -154,7 +154,7 @@ class AdminPiiLeakTest {
     }
 
     private User admin(AdminProfile p) {
-        return user("adm." + p.name().toLowerCase() + "." + UUID.randomUUID().toString().substring(0, 8)
+        return user("adm." + p.name().toLowerCase(java.util.Locale.ROOT) + "." + UUID.randomUUID().toString().substring(0, 8)
                 + "@bingol.edu.tr", "Yonetici " + p, edu.bingol.backend.user.Role.ADMIN, p);
     }
 

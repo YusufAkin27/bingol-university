@@ -71,7 +71,7 @@ class ContentGuardApplyTest {
         assertEquals(HttpStatus.UNPROCESSABLE_ENTITY, e.status());
         assertEquals("CONTENT_PROFANITY", e.code());
         assertEquals("name", e.field());
-        assertFalse(e.getMessage().toLowerCase().contains(w));
+        assertFalse(e.getMessage().toLowerCase(java.util.Locale.ROOT).contains(w));
         verify(hits).record("CLUB", "name", 7L, "BLOCK");
     }
 

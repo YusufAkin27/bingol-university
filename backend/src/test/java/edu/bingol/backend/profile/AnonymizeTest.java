@@ -40,6 +40,7 @@ class AnonymizeTest {
         AccountDataPurger purger = mock(AccountDataPurger.class);
         User u = new User();
         u.setId(5L);
+        u.setEmail("Ali.Veli@bingol.edu.tr");
         when(users.findById(5L)).thenReturn(Optional.of(u));
         EventRsvp going = new EventRsvp();
         going.setEventId(9L);
@@ -54,7 +55,7 @@ class AnonymizeTest {
                 mock(AvatarCleanups.class), rsvps, events, redis, purger, null);
         s.anonymizeAccount(5L);
 
-        verify(purger).purge(5L);
+        verify(purger).purge(5L, "Ali.Veli@bingol.edu.tr"); // eski adres anonimlestirmeden ONCE alinir (W2-F)
         verify(ops).set("suspended:5", "1");
         verify(events).decrementGoing(9L);
         verify(events, never()).decrementGoing(10L);

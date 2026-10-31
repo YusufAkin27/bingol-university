@@ -66,7 +66,7 @@ class ClubAdminReasonTest {
 
     private User user(String name) {
         User u = new User();
-        u.setEmail(name.toLowerCase() + "." + UUID.randomUUID().toString().substring(0, 8) + "@bingol.edu.tr");
+        u.setEmail(name.toLowerCase(java.util.Locale.ROOT) + "." + UUID.randomUUID().toString().substring(0, 8) + "@bingol.edu.tr");
         u.setPasswordHash("x");
         u.setDisplayName(name);
         u.setEmailVerified(true);
@@ -124,7 +124,7 @@ class ClubAdminReasonTest {
     }
 
     @Test
-    void postDeletionRequiresReasonButHideAndEditDoNot() throws Exception {
+    void postDeletionAndHideRequireReasonButEditDoesNot() throws Exception {
         User owner = user("Gonderi Sebep");
         Community c = club(owner);
         CommunityPost p = new CommunityPost();
@@ -136,7 +136,9 @@ class ClubAdminReasonTest {
 
         assertEquals("REASON_REQUIRED", code(call(delete(base))));
         assertFalse(posts.findById(p.getId()).orElseThrow().isDeleted());
-        assertEquals(200, call(post(base + "/hide").contentType("application/json").content("{}")).getStatus());
+        // T-013 (W1-B): gizleme de gerekce ister; gerekcesiz reddedilir ve gonderi gizlenmez
+        assertEquals("REASON_REQUIRED", code(call(post(base + "/hide").contentType("application/json").content("{}"))));
+        assertEquals(200, call(post(base + "/hide").contentType("application/json").content("{\"reason\":\"gecerli sebep\"}")).getStatus());
         assertEquals(200, call(patch(base).contentType("application/json").content("{\"text\":\"Yeni\"}")).getStatus());
         assertEquals(200, call(delete(base).contentType("application/json").content("{\"reason\":\"gecerli sebep\"}")).getStatus());
         assertTrue(posts.findById(p.getId()).orElseThrow().isDeleted());
@@ -154,7 +156,10 @@ class ClubAdminReasonTest {
         assertFalse(AdminGuardPolicy.destructive("PATCH", "/api/admin/communities/5"));
         assertFalse(AdminGuardPolicy.destructive("GET", "/api/admin/communities/5"));
         assertFalse(AdminGuardPolicy.destructive("POST", "/api/admin/communities/5/approve"));
-        assertFalse(AdminGuardPolicy.destructive("POST", "/api/admin/community-posts/5/hide"));
-        assertEquals(0, AdminGuardPolicy.reasonMin("POST", "/api/admin/community-posts/5/unhide"));
+        // T-013 (W1-B): gonderi gizle/geri goster artik gerekce ister (icerik moderasyonu); duzenleme (PATCH) ve okuma ister degil
+        assertTrue(AdminGuardPolicy.destructive("POST", "/api/admin/community-posts/5/hide"));
+        assertEquals(AdminGuardPolicy.DEFAULT_MIN_REASON, AdminGuardPolicy.reasonMin("POST", "/api/admin/community-posts/5/unhide"));
+        assertEquals(0, AdminGuardPolicy.reasonMin("PATCH", "/api/admin/community-posts/5"));
+        assertEquals(0, AdminGuardPolicy.reasonMin("GET", "/api/admin/community-posts/5"));
     }
 }

@@ -14,7 +14,7 @@ class MailTemplateSanitizerTest {
                 + "<iframe src=\"https://x.test\"></iframe><form action=\"https://x.test\"><input name=a></form>"
                 + "<img src=\"https://cdn.test/a.png\" onerror=\"evil()\">");
         assertThat(html).contains("Merhaba").contains("<img");
-        assertThat(html.toLowerCase()).doesNotContain("script").doesNotContain("alert(1)").doesNotContain("iframe")
+        assertThat(html.toLowerCase(java.util.Locale.ROOT)).doesNotContain("script").doesNotContain("alert(1)").doesNotContain("iframe")
                 .doesNotContain("<form").doesNotContain("<input").doesNotContain("onclick").doesNotContain("onerror");
     }
 

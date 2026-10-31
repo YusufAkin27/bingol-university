@@ -211,7 +211,7 @@ class StrikeAppealBlocklistTest {
     @Test
     void blocklistNormalizesCaseAndRejectsMalformed() {
         when(hashRepo.existsById(HASH)).thenReturn(true);
-        assertTrue(blocklist.isBlocked(HASH.toUpperCase()));
+        assertTrue(blocklist.isBlocked(HASH.toUpperCase(java.util.Locale.ROOT)));
         assertFalse(blocklist.isBlocked("zz"));
         assertFalse(blocklist.isBlocked(null));
         ApiException e = assertThrows(ApiException.class, () -> blocklist.add("abc", null, 1L));

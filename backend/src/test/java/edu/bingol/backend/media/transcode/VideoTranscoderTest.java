@@ -11,6 +11,7 @@ import java.nio.file.Path;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -122,7 +123,7 @@ class VideoTranscoderTest {
         ProcessRunner.Output o = new ProcessRunner.Default().run(List.of(java, "-version"), Duration.ofSeconds(30));
         assertEquals(0, o.exitCode());
         assertFalse(o.timedOut());
-        assertTrue(o.text().toLowerCase().contains("version"));
+        assertTrue(o.text().toLowerCase(Locale.ROOT).contains("version"));
 
         Path src = dir.resolve("Sleep.java");
         Files.writeString(src, "public class Sleep { public static void main(String[] a) throws Exception { Thread.sleep(60000); } }");

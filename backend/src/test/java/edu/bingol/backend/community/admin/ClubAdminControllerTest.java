@@ -112,7 +112,7 @@ class ClubAdminControllerTest {
 
     private User user(String name) {
         User u = new User();
-        u.setEmail(name.toLowerCase().replace(' ', '.') + "." + tag() + "@bingol.edu.tr");
+        u.setEmail(name.toLowerCase(java.util.Locale.ROOT).replace(' ', '.') + "." + tag() + "@bingol.edu.tr");
         u.setPasswordHash("x");
         u.setDisplayName(name);
         u.setEmailVerified(true);

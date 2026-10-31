@@ -268,7 +268,7 @@ class MailCampaignIntegrationTest {
         assertEquals(1, byIds.unmatched());
 
         AudiencePreview byMail = campaigns.previewAudience(new AudiencePreviewRequest(new AudienceRequest(
-                MailCampaign.AudienceType.EMAILS, null, null, List.of(a.getEmail().toUpperCase(), " " + a.getEmail() + " ",
+                MailCampaign.AudienceType.EMAILS, null, null, List.of(a.getEmail().toUpperCase(java.util.Locale.ROOT), " " + a.getEmail() + " ",
                 "kayitsiz@bingol.edu.tr", "bozuk-adres", suspended.getEmail())), null));
         assertEquals(2, byMail.total());
         assertEquals(1, byMail.willSend());

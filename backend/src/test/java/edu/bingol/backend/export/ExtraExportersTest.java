@@ -137,10 +137,24 @@ class ExtraExportersTest {
             Map.entry("moderation_appeal", "moderation"),
             Map.entry("report", "moderation"),
             Map.entry("event_application", "eventApplications"),
-            Map.entry("event_certificate", "eventExtras"));
+            Map.entry("event_certificate", "eventExtras"),
+            // W2-E/W2-F (T-063): sonradan eklenen silme kapsami; bolumu olanlar baglandi, digerleri EXEMPT'te gerekceli
+            Map.entry("message_reaction", "messageReactions"),
+            Map.entry("conversation_member", "conversationMemberships"),
+            Map.entry("club_member_grant", "clubPermissions"),
+            Map.entry("display_name_history", "displayNameHistory"));
 
     /** Bilincli muaf: gecici push kuyrugu ve gizli oy secmen kaydi (kimlik-oy baglantisi tutulmaz, disari verilemez). */
-    private static final Set<String> EXEMPT = Set.of("push_outbox", "poll_ballot");
+    private static final Set<String> EXEMPT = Set.of("push_outbox", "poll_ballot",
+            // W2-F (T-063) gerekceli muaflar: kisiye ait olmayan/surec durumu/guvenlik kaydi; erisim hakki kapsaminda
+            // sunulmaz (KVKK m.28 guvenlik istisnasi degerlendirmesi hukuk incelemesine bekler, bkz. DATABASE.md 226)
+            "blocked_attempt_log",      // erisim engeli deneme gunlugu (IP + cihaz ozeti), 90 gun, guvenlik kaydi
+            "profanity_hit_log",        // uygunsuz ifade isabeti: kelime SAKLANMAZ, yalniz alan/varlik, 90 gun
+            "message_attachment_view",  // tek gosterimlik goruntuleme alindisi (gonderen gizliligi icin)
+            "conversation_add_ban",     // grup yeniden ekleme yasagi: baska kullanicinin tercihini ifsa eder
+            "event_co_organizer",       // ortak organizator atamasi: etkinlik sahibinin verisi (createdEvents'te)
+            "mail_outbox",              // gecici e-posta kuyrugu (30 gun), adresle eslesen bekleyen kayitlar silinir
+            "account_delete_hold");     // 7 gunluk silme bekletmesi: surec durumu, kisisel icerik yok
 
     private static Set<String> purgedTables() {
         Pattern p = Pattern.compile("(?:DELETE FROM|UPDATE)\\s+([a-z_]+)");

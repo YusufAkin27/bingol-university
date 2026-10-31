@@ -125,7 +125,7 @@ class AdminSelfDeleteTest {
         InOrder order = inOrder(ops, sessions);
         order.verify(ops).set("suspended:3", "1");
         order.verify(sessions).revokeAll(3L);
-        verify(purger).purge(3L);
+        verify(purger).purge(3L, "ogr@bingol.edu.tr"); // eski adres anonimlestirmeden ONCE alinir (W2-F)
     }
 
     @Test

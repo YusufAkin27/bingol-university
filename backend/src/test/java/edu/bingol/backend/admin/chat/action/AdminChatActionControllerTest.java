@@ -92,7 +92,7 @@ class AdminChatActionControllerTest {
 
     private User user(String name) {
         User u = new User();
-        u.setEmail(name.toLowerCase() + "." + UUID.randomUUID().toString().substring(0, 8) + "@bingol.edu.tr");
+        u.setEmail(name.toLowerCase(java.util.Locale.ROOT) + "." + UUID.randomUUID().toString().substring(0, 8) + "@bingol.edu.tr");
         u.setPasswordHash("x");
         u.setDisplayName(name);
         u.setEmailVerified(true);

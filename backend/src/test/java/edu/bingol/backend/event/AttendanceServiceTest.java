@@ -190,6 +190,21 @@ class AttendanceServiceTest {
         u.setId(id);
         u.setDisplayName("Kisi " + id);
         when(communities.usersById(List.of(id))).thenReturn(Map.of(id, u));
+        // W1-F: elle yoklama yalniz kaydi olan ya da GOING (katiliyorum) olan kullanici icin yazilir
+        when(rsvps.findByEventIdAndUserId(5L, id))
+                .thenReturn(Optional.of(new EventRsvp(5L, id, EventRsvp.Status.GOING)));
+    }
+
+    @Test
+    void manualMarkOfNonGoingUserWithoutRecordFails() {
+        User u = new User();
+        u.setId(8L);
+        when(communities.usersById(List.of(8L))).thenReturn(Map.of(8L, u));
+        when(attendance.findByEventIdAndUserId(5L, 8L)).thenReturn(Optional.empty());
+        when(rsvps.findByEventIdAndUserId(5L, 8L)).thenReturn(Optional.empty());
+
+        assertEquals("USER_NOT_FOUND", error(() -> svc.mark(organizer, 5L, 8L, true, start)).code());
+        verify(attendance, never()).saveAndFlush(any());
     }
 
     @Test

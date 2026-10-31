@@ -163,7 +163,9 @@ class LegalMigrationV820FileTest {
         assertThat(prop(props, "app.dbmaint.audit-long-days")).isEqualTo("730");
         assertThat(prop(props, "app.security.ban-log-retention-days")).isEqualTo("90");
         assertThat(prop(props, "app.support.public-ticket-retention-days")).isEqualTo("365");
-        assertThat(prop(props, "app.chat.media.view-once-retention-days")).isEqualTo("365");
+        // K-14 / T-064 (W2-F): varsayilan 365 -> 7 gune indirildi (kisaltma). Yayindaki metin (V820/docs/legal: "365 gun,
+        // ayarlanabilir") ust sinir olarak dogru kalir; metin yeni surumde 7 gune cekilmelidir (hukuki surum islemi, bekliyor).
+        assertThat(prop(props, "app.chat.media.view-once-retention-days")).isEqualTo("7");
         assertThat(prop(props, "app.chat.event-room-close-days")).isEqualTo("7");
         assertThat(prop(props, "app.chat.media.max-attachments-per-message")).isEqualTo("10");
         assertThat(prop(props, "app.chat.media.video-max-seconds")).isEqualTo("60");
@@ -173,7 +175,9 @@ class LegalMigrationV820FileTest {
         assertThat(prop(props, "app.post.media.unattached-hours")).isEqualTo("24");
         assertThat(props).contains("jwt.access-ttl-minutes=15").contains("jwt.refresh-ttl-days=30");
         assertThat(PostDtos.MAX_WORDS).isEqualTo(7);
-        assertThat(AdminDecryptService.MIN_REASON).isEqualTo(10);
+        // T-015 (W1-B): mesaj cozme gerekcesi 10 -> 20 karaktere cikarildi (sikilastirma); yayindaki metnin "en az 10 karakter"
+        // beyani sohbet mudahalesi icin dogru kalir, cozme icin alt sinir olarak gecerlidir (metin yeni surumde guncellenmeli).
+        assertThat(AdminDecryptService.MIN_REASON).isEqualTo(20);
         assertThat(AdminGuardPolicy.CHAT_MIN_REASON).isEqualTo(10);
         assertThat(AdminConversationExportService.MIN_REASON).isEqualTo(20);
         String mod = src("moderation/ModerationProperties.java");

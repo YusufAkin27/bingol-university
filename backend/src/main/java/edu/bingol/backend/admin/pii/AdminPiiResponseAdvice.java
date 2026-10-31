@@ -45,7 +45,9 @@ public class AdminPiiResponseAdvice implements ResponseBodyAdvice<Object> {
         }
         try {
             Object plain = mapper.convertValue(body, Object.class);
-            return PiiScrubber.scrub(plain);
+            // JsonNode doner: duz Map/List denetleyicinin bildirdigi genel turle (ornegin List<Dto>) serilestirilmeye
+            // calisilir ve ClassCastException verir (RetentionMvcTest); JsonNode tur eslesmesinden bagimsizdir.
+            return mapper.valueToTree(PiiScrubber.scrub(plain));
         } catch (RuntimeException e) {
             // fail-closed: temizlenemeyen yanit maskesiz gitmesin
             throw new IllegalStateException("Yonetici yaniti kisisel veri temizligi basarisiz", e);

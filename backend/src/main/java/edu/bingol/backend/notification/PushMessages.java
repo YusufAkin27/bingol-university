@@ -100,6 +100,6 @@ final class PushMessages {
         if (payload.containsKey("examId")) {
             return "academic"; // sinav hatirlatmalari tek baslik altinda
         }
-        return type.name().toLowerCase();
+        return type.name().toLowerCase(java.util.Locale.ROOT);
     }
 }

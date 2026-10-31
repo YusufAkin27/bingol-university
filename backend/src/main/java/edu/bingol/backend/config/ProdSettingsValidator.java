@@ -60,7 +60,7 @@ public class ProdSettingsValidator {
         String jwt = env.getProperty("jwt.secret", "");
         if (jwt.length() < 32) {
             errors.add("JWT_SECRET zorunlu ve en az 32 karakter olmali");
-        } else if (jwt.toLowerCase().contains(DEV_JWT_MARKER)) {
+        } else if (jwt.toLowerCase(java.util.Locale.ROOT).contains(DEV_JWT_MARKER)) {
             errors.add("JWT_SECRET gelistirme varsayilani (dev-only...) olamaz; rastgele bir anahtar uretin");
         } else if (isPlaceholder(jwt)) {
             errors.add("JWT_SECRET ornek/yer tutucu deger olamaz (.env.example); rastgele bir anahtar uretin");

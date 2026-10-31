@@ -56,7 +56,10 @@ class PollAdminControllerTest {
     }
 
     private MockHttpServletResponse call(MockHttpServletRequestBuilder b) throws Exception {
-        return mvc.perform(b.with(authentication(admin()))).andReturn().getResponse();
+        // T-040 (W1-F): kullanici API'sinde yonetici mudahalesi izin ister; JwtAuthFilter'in yazdigi yonetici profili
+        // (FULL) istek niteligi olarak verilir. Profilsiz ROLE_ADMIN kapali basarisiz olur (bkz. adminWithoutProfile...).
+        return mvc.perform(b.requestAttr(edu.bingol.backend.auth.jwt.JwtAuthFilter.ADMIN_PROFILE_ATTR, "FULL")
+                .with(authentication(admin()))).andReturn().getResponse();
     }
 
     private JsonNode createGlobal(String title, boolean draft) throws Exception {
@@ -65,6 +68,17 @@ class PollAdminControllerTest {
         MockHttpServletResponse r = call(post("/api/polls").contentType("application/json").content(body));
         assertEquals(201, r.getStatus(), r.getContentAsString());
         return OM.readTree(r.getContentAsString());
+    }
+
+    @Test
+    void adminWithoutProfileClaimCannotCreateGlobalPoll() throws Exception {
+        // T-040: profil talebi yoksa (eski token) izin kumesi bos: kullanici API'sinde yonetici mudahalesi reddedilir
+        String body = "{\"title\":\"Profilsiz\",\"scope\":\"GLOBAL\",\"type\":\"SINGLE\",\"options\":[\"Evet\",\"Hayir\"],"
+                + "\"anonymous\":true,\"showResults\":\"ALWAYS\",\"draft\":true}";
+        MockHttpServletResponse r = mvc.perform(post("/api/polls").contentType("application/json").content(body)
+                .with(authentication(admin()))).andReturn().getResponse();
+        assertEquals(403, r.getStatus());
+        assertTrue(r.getContentAsString().contains("POLL_FORBIDDEN"));
     }
 
     @Test

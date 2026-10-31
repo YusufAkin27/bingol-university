@@ -165,7 +165,7 @@ class PostTopFeedTest {
         assertEquals("POST_CURSOR_INVALID",
                 assertThrows(ApiException.class, () -> service.feed(viewer.getId(), "top", latest, 5)).code());
         assertTrue(java.util.Arrays.stream(PostView.class.getRecordComponents())
-                .noneMatch(c -> c.getName().toLowerCase().contains("rank")));
+                .noneMatch(c -> c.getName().toLowerCase(java.util.Locale.ROOT).contains("rank")));
     }
 
     @Test

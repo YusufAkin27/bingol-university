@@ -80,6 +80,7 @@ class AttendanceQaTest {
         u.setDisplayName("Kisi " + id);
         u.setStatus(st);
         when(communities.usersById(List.of(id))).thenReturn(Map.of(id, u));
+        going(id); // W1-F: elle yoklama yalniz kaydi olan ya da GOING kullanici icin; durum kontrolu once yapilir
     }
 
     // ---- QR: pencere siniri tam olarak dahil ----
@@ -248,6 +249,9 @@ class AttendanceQaTest {
         u.setDisplayName("Ali\nVeli,\"X\"");
         u.setDepartment("+SUM(1)");
         when(communities.usersById(any())).thenReturn(Map.of(1L, u));
+        // T-044: bolum artik yalniz sahibinin gizlilik ayari izin veriyorsa profileExtras'tan gelir (User.department degil)
+        when(communities.profileExtras(any(), any(), any()))
+                .thenReturn(Map.of(1L, new edu.bingol.backend.community.CommunityService.ProfileExtra("+SUM(1)", null)));
 
         String csv = svc.csv(organizer, 5L);
 

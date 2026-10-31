@@ -183,7 +183,7 @@ class MailOpsAdminHttpTest {
 
         // ayni adres (buyuk harf farki) -> 409
         assertEquals("MAILOPS_SUPPRESSION_EXISTS", code(run(post("/api/admin/mail/suppressions")
-                .contentType("application/json").content(payload.replace(mail, mail.toUpperCase())))));
+                .contentType("application/json").content(payload.replace(mail, mail.toUpperCase(java.util.Locale.ROOT))))));
         assertEquals(409, run(post("/api/admin/mail/suppressions").contentType("application/json").content(payload))
                 .getResponse().getStatus());
         // gecersiz adres, gecersiz sebep, kisa not
@@ -214,7 +214,7 @@ class MailOpsAdminHttpTest {
         assertFalse(text.contains(stranger), "liste tam adres icermemeli");
 
         // tam adresle arama (ozete cevrilir)
-        JsonNode byKnown = json(run(get("/api/admin/mail/suppressions").param("q", known.toUpperCase())), 200);
+        JsonNode byKnown = json(run(get("/api/admin/mail/suppressions").param("q", known.toUpperCase(java.util.Locale.ROOT))), 200);
         assertEquals(1, byKnown.get("total").asInt());
         assertEquals("k***@bingol.edu.tr", byKnown.get("items").get(0).get("emailMasked").asText());
         assertEquals("UNSUBSCRIBED", byKnown.get("items").get(0).get("reason").asText());
@@ -276,7 +276,7 @@ class MailOpsAdminHttpTest {
     @Test
     void removingUserOptOutNeedsConfirmAndLongReason() throws Exception {
         for (SuppressionReason sr : new SuppressionReason[] {SuppressionReason.UNSUBSCRIBED, SuppressionReason.COMPLAINT}) {
-            String mail = email("cikti." + sr.name().toLowerCase());
+            String mail = email("cikti." + sr.name().toLowerCase(java.util.Locale.ROOT));
             suppression.suppress(mail, sr);
             long id = suppressionRepo.findByEmailHash(MailSuppressionService.hash(mail)).orElseThrow().getId();
 
@@ -389,7 +389,7 @@ class MailOpsAdminHttpTest {
         MailOutbox b = row("baska@" + domain, MailTemplate.ANNOUNCEMENT, MailStatus.DEAD, "{}", Instant.now());
 
         assertEquals(2, json(run(get("/api/admin/mail/outbox").param("q", "@" + domain)), 200).get("total").asInt());
-        assertEquals(1, json(run(get("/api/admin/mail/outbox").param("q", to.toUpperCase())), 200).get("total").asInt());
+        assertEquals(1, json(run(get("/api/admin/mail/outbox").param("q", to.toUpperCase(java.util.Locale.ROOT))), 200).get("total").asInt());
         assertEquals(1, json(run(get("/api/admin/mail/outbox").param("q", String.valueOf(a.getId()))), 200)
                 .get("total").asInt());
         assertEquals(1, json(run(get("/api/admin/mail/outbox").param("q", "@" + domain).param("status", "DEAD")), 200)

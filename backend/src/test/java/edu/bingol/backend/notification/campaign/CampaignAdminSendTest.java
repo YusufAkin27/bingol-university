@@ -66,7 +66,7 @@ class CampaignAdminSendTest {
         User admin = user("F", "tr");
         User a = user("F", "tr");
         User b = user("F", "en");
-        String list = a.getEmail().toUpperCase() + "\n" + b.getEmail() + ", " + a.getEmail() + " " + b.getId()
+        String list = a.getEmail().toUpperCase(java.util.Locale.ROOT) + "\n" + b.getEmail() + ", " + a.getEmail() + " " + b.getId()
                 + " yok@bingol.edu.tr bozuk";
         AudiencePreview p = service.preview(admin.getId(), new Audience(PushCampaign.AudienceType.EMAILS, list), null);
         assertEquals(2, p.count()); // e-posta + numara + tekrar -> tekil 2 kisi

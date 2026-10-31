@@ -253,7 +253,15 @@ class EventAdminOpsServiceTest {
         assertTrue(r1.present());
         assertFalse(r1.certificateExists());
         ops.mark(ADMIN, e.getId(), veli.getId(), false);
-        ops.mark(ADMIN, e.getId(), kapidan.getId(), true); // RSVP'siz, kapidan (OPEN etkinlik)
+        // W1-F: RSVP'siz ve kaydi olmayan kullanici elle isaretlenemez; kapidan gelen QR ile kayit olusturur (kapi kaydi)
+        assertEquals("USER_NOT_FOUND", fail(() -> ops.mark(ADMIN, e.getId(), kapidan.getId(), true)).code());
+        EventAttendance gate = new EventAttendance();
+        gate.setEventId(e.getId());
+        gate.setUserId(kapidan.getId());
+        gate.setPresent(true);
+        gate.setMethod(EventAttendance.Method.QR);
+        gate.setMarkedBy(kapidan.getId());
+        attendance.saveAndFlush(gate); // RSVP'siz, kapidan (OPEN etkinlik)
 
         AdminAttendanceView v = ops.attendance(e.getId());
         assertEquals(4, v.rows().size());

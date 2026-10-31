@@ -65,13 +65,14 @@ public class LocalFileStorage implements FileStorage {
         if (!target.startsWith(dir)) {
             throw new IllegalArgumentException("gecersiz dosya adi");
         }
+        Path tmp = null;
         try {
             Files.createDirectories(dir);
             if (Files.isRegularFile(target)) {
-                Files.setLastModifiedTime(target, FileTime.fromMillis(System.currentTimeMillis()));
+                touch(target);
                 return false;
             }
-            Path tmp = dir.resolve(".tmp-" + UUID.randomUUID());
+            tmp = dir.resolve(".tmp-" + UUID.randomUUID());
             Files.write(tmp, data);
             try {
                 Files.move(tmp, target, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
@@ -80,9 +81,30 @@ public class LocalFileStorage implements FileStorage {
             }
             return true;
         } catch (IOException e) {
+            // Ayni icerik (icerik-adreslemeli ad) eszamanli baska istekte yazildiysa basarili sayilir: Windows'ta acik/yeni
+            // tasinmis hedefin ustune tasima AccessDenied verebilir; Linux'ta rename her zaman basarilidir.
+            if (tmp != null && Files.isRegularFile(target)) {
+                try {
+                    if (Files.size(target) == data.length) {
+                        Files.deleteIfExists(tmp);
+                        return false;
+                    }
+                } catch (IOException ignored) {
+                    // asagida hata olarak doner
+                }
+            }
             log.error("Dosya kaydedilemedi: {}", e.toString());
             throw new ApiException(HttpStatus.SERVICE_UNAVAILABLE, "STORAGE_UNAVAILABLE",
                     "Dosya şu anda kaydedilemiyor.");
+        }
+    }
+
+    /** mtime yenileme en iyi gayrettir (yetim temizleyici tazelik icin); yarisan okuyucu varken basarisiz olabilir. */
+    private static void touch(Path target) {
+        try {
+            Files.setLastModifiedTime(target, FileTime.fromMillis(System.currentTimeMillis()));
+        } catch (IOException ignored) {
+            // dosya zaten var; tazelik yenilenemedi
         }
     }
 

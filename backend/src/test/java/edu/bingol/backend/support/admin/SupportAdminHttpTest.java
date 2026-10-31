@@ -135,7 +135,7 @@ class SupportAdminHttpTest {
 
     private User user(String name, Role role) {
         User u = new User();
-        u.setEmail(name.toLowerCase().replace(' ', '.') + "." + tag() + "@bingol.edu.tr");
+        u.setEmail(name.toLowerCase(java.util.Locale.ROOT).replace(' ', '.') + "." + tag() + "@bingol.edu.tr");
         u.setPasswordHash("x");
         u.setDisplayName(name);
         u.setEmailVerified(true);

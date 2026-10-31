@@ -46,7 +46,7 @@ public interface ProcessRunner {
         }
 
         private static java.io.File nullFile() {
-            return new java.io.File(System.getProperty("os.name", "").toLowerCase().contains("win") ? "NUL" : "/dev/null");
+            return new java.io.File(System.getProperty("os.name", "").toLowerCase(java.util.Locale.ROOT).contains("win") ? "NUL" : "/dev/null");
         }
 
         private static void drain(InputStream in, StringBuilder sb) {

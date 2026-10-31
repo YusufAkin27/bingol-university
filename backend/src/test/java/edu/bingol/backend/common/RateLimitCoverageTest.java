@@ -54,7 +54,7 @@ class RateLimitCoverageTest {
                 continue;
             }
             String cls = f.getFileName().toString().replace(".java", "");
-            if (cls.toLowerCase().contains("admin")) {
+            if (cls.toLowerCase(java.util.Locale.ROOT).contains("admin")) {
                 continue;
             }
             Matcher cm = Pattern.compile("@RequestMapping\\(([^)]*)\\)").matcher(s);

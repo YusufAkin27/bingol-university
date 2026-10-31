@@ -19,7 +19,7 @@ public final class FcmErrors {
         }
         return switch (code) {
             case UNREGISTERED, SENDER_ID_MISMATCH -> Kind.INVALID_TOKEN;
-            case INVALID_ARGUMENT -> message != null && message.toLowerCase().contains("token")
+            case INVALID_ARGUMENT -> message != null && message.toLowerCase(java.util.Locale.ROOT).contains("token")
                     ? Kind.INVALID_TOKEN : Kind.PERMANENT;
             case UNAVAILABLE, INTERNAL, QUOTA_EXCEEDED -> Kind.RETRYABLE;
             default -> Kind.PERMANENT;

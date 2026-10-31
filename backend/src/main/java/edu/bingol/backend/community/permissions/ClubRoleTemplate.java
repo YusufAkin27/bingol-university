@@ -54,7 +54,7 @@ public enum ClubRoleTemplate {
 
     public static Optional<ClubRoleTemplate> parse(String s) {
         try {
-            return s == null ? Optional.empty() : Optional.of(valueOf(s.trim().toUpperCase()));
+            return s == null ? Optional.empty() : Optional.of(valueOf(s.trim().toUpperCase(java.util.Locale.ROOT)));
         } catch (IllegalArgumentException e) {
             return Optional.empty();
         }

@@ -281,7 +281,7 @@ class EventModerationTest {
         inClub.setCommunityId(c.getId());
         events.saveAndFlush(inClub);
         UserEvent withPlace = event("Baslik B", user("Baska"), UserEvent.Status.ACTIVE);
-        withPlace.setLocation("Salon " + t.toUpperCase());
+        withPlace.setLocation("Salon " + t.toUpperCase(java.util.Locale.ROOT));
         events.saveAndFlush(withPlace);
 
         List<Long> ids = moderation.list("ALL", t, null, false, null, null, null, null, 50).items().stream()

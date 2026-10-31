@@ -108,7 +108,7 @@ class ModerationAdminHttpTest {
 
     private User user(String name) {
         User u = new User();
-        u.setEmail(name.toLowerCase().replace(' ', '.') + "." + tag() + "@bingol.edu.tr");
+        u.setEmail(name.toLowerCase(java.util.Locale.ROOT).replace(' ', '.') + "." + tag() + "@bingol.edu.tr");
         u.setPasswordHash("x");
         u.setDisplayName(name);
         u.setEmailVerified(true);
@@ -283,9 +283,9 @@ class ModerationAdminHttpTest {
 
     @Test
     void templateCrudStaysConsistentWithLegacyEndpoint() throws Exception {
-        String c = "T" + tag().toUpperCase();
+        String c = "T" + tag().toUpperCase(java.util.Locale.ROOT);
         MvcResult created = run(post("/api/admin/moderation/reason-templates").contentType("application/json")
-                .content("{\"code\":\"" + c.toLowerCase() + "\",\"textTr\":\"Kural ihlali\",\"textEn\":\"Rule violation\"}"));
+                .content("{\"code\":\"" + c.toLowerCase(java.util.Locale.ROOT) + "\",\"textTr\":\"Kural ihlali\",\"textEn\":\"Rule violation\"}"));
         JsonNode t = json(created, 201);
         long id = t.get("id").asLong();
         assertEquals(c, t.get("code").asText(), "kod buyuk harfe cevrilir");

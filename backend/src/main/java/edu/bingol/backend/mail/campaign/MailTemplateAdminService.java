@@ -92,7 +92,7 @@ public class MailTemplateAdminService {
         }
         if (q != null && !q.isBlank()) {
             where.append(" AND LOWER(name) LIKE :q ESCAPE '\\'");
-            params.addValue("q", "%" + UserFilter.escapeLike(q.trim().toLowerCase()) + "%");
+            params.addValue("q", "%" + UserFilter.escapeLike(q.trim().toLowerCase(java.util.Locale.ROOT)) + "%");
         }
         Long total = jdbc.queryForObject("SELECT COUNT(*) FROM mail_template_custom" + where, params, Long.class);
         params.addValue("lim", s).addValue("off", (long) p * s);

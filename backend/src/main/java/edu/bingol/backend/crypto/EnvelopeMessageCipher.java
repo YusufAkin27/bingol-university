@@ -36,7 +36,7 @@ public class EnvelopeMessageCipher implements MessageCipher {
             return crypto.open(dek, Aad.of(PURPOSE, conversationId, contextBytes), sealed.nonce(), sealed.ciphertext());
         } catch (CryptoException e) {
             // Icerik/anahtar yazilmaz; yalnizca konusma ve neden.
-            metrics.failure("decrypt_" + e.reason().name().toLowerCase());
+            metrics.failure("decrypt_" + e.reason().name().toLowerCase(java.util.Locale.ROOT));
             log.warn("Mesaj cozulemedi: konusma={} surum={} neden={}", conversationId, sealed.keyVersion(), e.reason());
             throw e;
         }

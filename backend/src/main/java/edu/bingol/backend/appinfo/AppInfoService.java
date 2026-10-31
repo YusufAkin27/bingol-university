@@ -79,7 +79,7 @@ public class AppInfoService {
                 || !VERSION.matcher(version).matches()) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "INVALID_VERSION", "Geçersiz sürüm numarası.");
         }
-        String p = platform.toLowerCase();
+        String p = platform.toLowerCase(java.util.Locale.ROOT);
         Map<String, String> s = publicSettings();
         String min = s.getOrDefault("min_version_" + p, "0");
         String latest = s.getOrDefault("latest_version_" + p, min);

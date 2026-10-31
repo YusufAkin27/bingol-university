@@ -179,7 +179,7 @@ public final class MailTemplateSanitizer {
         }
         Matcher m = STYLE_URL.matcher(style);
         while (m.find()) {
-            if (!m.group(2).trim().toLowerCase().startsWith("https://")) {
+            if (!m.group(2).trim().toLowerCase(java.util.Locale.ROOT).startsWith("https://")) {
                 return false;
             }
         }
