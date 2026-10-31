@@ -30,9 +30,12 @@ final class PushMessages {
         Map<String, String> data = new java.util.LinkedHashMap<>(payload);
         data.put("channelId", channel);
         data.put("threadId", thread);
-        // `tag`: Android'de ayni etiketli bildirim yenisiyle degisir (sohbet basina tek bildirim); istemci yerel
-        // bildirim kurarsa ayni etiketi kullanmalidir.
-        data.put("tag", collapseKey != null ? collapseKey : thread);
+        // `tag`: Android'de ayni etiketli bildirim yenisiyle degisir; yalniz birlesmesi istenen yerde (collapseKey) konur.
+        // Tur/thread adi ASLA etiket olmaz (farkli duyurular tepside birbirini siler, A13-01). Istemci yerel bildirim
+        // kurarsa ayni etiketi kullanmalidir.
+        if (collapseKey != null) {
+            data.put("tag", collapseKey);
+        }
         if (collapseKey != null) {
             data.put("collapseKey", collapseKey);
         }

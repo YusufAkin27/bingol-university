@@ -28,7 +28,8 @@ public class FcmConfig {
                                @Value("${app.fcm.credentials-file:}") String file) {
         try (InputStream in = open(json, file)) {
             if (in == null) {
-                log.info("FCM kimlik bilgisi yok: push devre disi, uygulama ici bildirimler calisir");
+                log.warn("FCM kimlik bilgisi yok (NO_CREDENTIALS): push devre disi, yalniz uygulama ici bildirimler calisir;"
+                        + " uretimde beklenmiyorsa FCM_CREDENTIALS_JSON/FILE girin (GET /api/admin/push/fcm/status)");
                 return new LoggingFcmSender();
             }
             return new FirebaseFcmSender(in);

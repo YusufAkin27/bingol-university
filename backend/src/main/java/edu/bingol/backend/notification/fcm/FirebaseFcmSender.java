@@ -174,12 +174,13 @@ public class FirebaseFcmSender implements FcmSender {
         if (m.channelId() != null) {
             n.setChannelId(m.channelId());
         }
-        // `tag`: ayni sohbetin yeni bildirimi eskisinin yerine gecer (cihazda). FCM `collapse_key` KASITLI gonderilmez:
+        // `tag`: Android'de ayni etiketli bildirim tepside yenisiyle DEGISIR. Yalniz birlesmesi istenen yerde konur
+        // (collapseKey: conv:<id>, follow:, postlike:, commpost:, exam:...). Digerlerinde (haber, duyuru, anket, sistem)
+        // etiket YOKTUR: sistem her bildirime ayri satir verir; tur/thread adi etiket yapilirsa farkli duyurular
+        // birbirini siler (A13-01). threadId yalniz iOS gruplamasi icindir. FCM `collapse_key` KASITLI gonderilmez:
         // cevrimdisi cihazda >4 farkli anahtar tanimsiz davranis uretir ve mesaj dusurebilir.
         if (m.collapseKey() != null) {
             n.setTag(m.collapseKey());
-        } else if (m.threadId() != null) {
-            n.setTag(m.threadId());
         }
         if (m.badge() != null && m.badge() >= 0) {
             n.setNotificationCount(m.badge()); // baslatici rozeti (destekleyen Android'lerde)

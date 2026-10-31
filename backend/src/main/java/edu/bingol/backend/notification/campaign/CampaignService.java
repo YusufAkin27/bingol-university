@@ -55,13 +55,16 @@ public class CampaignService {
     private final AudienceResolver resolver;
     private final NotificationPrefRepository prefs;
     private final NotificationService notifications;
+    private final CampaignCreateGuard createGuard;
 
     public CampaignService(PushCampaignRepository campaigns, AudienceResolver resolver,
-                           NotificationPrefRepository prefs, NotificationService notifications) {
+                           NotificationPrefRepository prefs, NotificationService notifications,
+                           CampaignCreateGuard createGuard) {
         this.campaigns = campaigns;
         this.resolver = resolver;
         this.prefs = prefs;
         this.notifications = notifications;
+        this.createGuard = createGuard;
     }
 
     public PushCampaign create(Long adminId, CreateCampaignRequest r) {
@@ -91,35 +94,55 @@ public class CampaignService {
         }
         String titleTr = r.tr().title().trim();
         String bodyTr = r.tr().body().trim();
-        if (source == PushCampaign.Source.CAMPAIGN && campaigns.countRecentDuplicates(adminId, titleTr, bodyTr,
-                audienceType, audienceValue == null ? "" : audienceValue, now.minus(DUPLICATE_WINDOW)) > 0) {
-            throw new ApiException(HttpStatus.CONFLICT, "CAMPAIGN_DUPLICATE",
-                    "Aynı içerik ve kitleyle bir kampanya az önce oluşturuldu.");
-        }
-
-        PushCampaign c = new PushCampaign();
-        c.setCreatedBy(adminId);
-        c.setSource(source);
-        c.setType(type);
-        c.setAudienceType(audienceType);
-        c.setAudienceValue(audienceValue);
-        c.setTitleTr(titleTr);
-        c.setBodyTr(bodyTr);
-        if (r.en() != null) {
-            c.setTitleEn(r.en().title().trim());
-            c.setBodyEn(r.en().body().trim());
-        }
-        if (r.ar() != null) {
-            c.setTitleAr(r.ar().title().trim());
-            c.setBodyAr(r.ar().body().trim());
-        }
+        // Dogrulamalar (https vb.) tekrar kontrolunden ONCE: gecersiz istek 400 alir, 409 ile maskelenmez (A14-09)
         if (r.target() != null) {
             validateTarget(r.target());
-            c.setTargetType(r.target().type());
-            c.setTargetValue(blankToNull(r.target().value()));
         }
-        c.setScheduledAt(when);
-        return campaigns.save(c);
+        // Ayni icerik+kitle icin sayma+kayit ATOMIK: eszamanli ikinci istek kilidi alamaz -> 409 (iki kampanya olusmaz)
+        CampaignCreateGuard.Lock lock = null;
+        if (source == PushCampaign.Source.CAMPAIGN) {
+            lock = createGuard.tryAcquire(adminId, titleTr, bodyTr, audienceType, audienceValue);
+            if (lock == null) {
+                throw duplicate();
+            }
+        }
+        try {
+            if (source == PushCampaign.Source.CAMPAIGN && campaigns.countRecentDuplicates(adminId, titleTr, bodyTr,
+                    audienceType, audienceValue == null ? "" : audienceValue, now.minus(DUPLICATE_WINDOW)) > 0) {
+                throw duplicate();
+            }
+            PushCampaign c = new PushCampaign();
+            c.setCreatedBy(adminId);
+            c.setSource(source);
+            c.setType(type);
+            c.setAudienceType(audienceType);
+            c.setAudienceValue(audienceValue);
+            c.setTitleTr(titleTr);
+            c.setBodyTr(bodyTr);
+            if (r.en() != null) {
+                c.setTitleEn(r.en().title().trim());
+                c.setBodyEn(r.en().body().trim());
+            }
+            if (r.ar() != null) {
+                c.setTitleAr(r.ar().title().trim());
+                c.setBodyAr(r.ar().body().trim());
+            }
+            if (r.target() != null) {
+                c.setTargetType(r.target().type());
+                c.setTargetValue(blankToNull(r.target().value()));
+            }
+            c.setScheduledAt(when);
+            return campaigns.save(c);
+        } finally {
+            if (lock != null) {
+                lock.close();
+            }
+        }
+    }
+
+    private static ApiException duplicate() {
+        return new ApiException(HttpStatus.CONFLICT, "CAMPAIGN_DUPLICATE",
+                "Aynı içerik ve kitleyle bir kampanya az önce oluşturuldu.");
     }
 
     /** Test gonderimi: icerik yalnizca yoneticinin kendisine, hemen gider (kampanya listesinde TEST olarak gorunur). */

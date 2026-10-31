@@ -30,6 +30,14 @@ public class ModerationNotifier {
         this.templates = templates;
     }
 
+    /** MESSAGE hedefinde mesajin sohbet kimligini bulmak icin (yoksa MESSAGE yuku sohbet bilgisiz gider). */
+    private edu.bingol.backend.messaging.MessageRepository messages;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setMessages(edu.bingol.backend.messaging.MessageRepository messages) {
+        this.messages = messages;
+    }
+
     /** Karar nedeni sablonunun alici dilindeki metni; yoksa null. */
     public String reasonText(Long userId, String reasonCode) {
         if (templates != null) {
@@ -101,8 +109,32 @@ public class ModerationNotifier {
         }
     }
 
-    private static Map<String, String> data(ReportTargetType type, Long targetId) {
+    /**
+     * Bildirim yuku. MESSAGE hedefinde `targetId` MESAJ kimligidir; mobil bunu sohbet kimligi sanip yanlis sohbeti
+     * aciyordu (A13-05). Bu yuzden sohbet kimligi bulunursa `conversationId` (+ `messageId`) eklenir: PushPayload
+     * hedefi CONVERSATION/<sohbet> olarak uretir. Sohbet bulunamazsa (mesaj yok) hedef hic gonderilmez: bildirim
+     * listesi acilir.
+     */
+    private Map<String, String> data(ReportTargetType type, Long targetId) {
+        if (type == ReportTargetType.MESSAGE) {
+            Long conv = conversationOf(targetId);
+            if (conv == null) {
+                return Map.of();
+            }
+            return Map.of("conversationId", String.valueOf(conv), "messageId", String.valueOf(targetId));
+        }
         return Map.of("targetType", type.name(), "targetId", String.valueOf(targetId));
+    }
+
+    private Long conversationOf(Long messageId) {
+        if (messages == null || messageId == null) {
+            return null;
+        }
+        try {
+            return messages.findById(messageId).map(edu.bingol.backend.messaging.Message::getConversationId).orElse(null);
+        } catch (RuntimeException e) {
+            return null; // bildirim hedefi yardimcidir; arama hatasi bildirimi engellemez
+        }
     }
 
     /** Test/diger modullerin kullanabilmesi icin dil çözümü. */

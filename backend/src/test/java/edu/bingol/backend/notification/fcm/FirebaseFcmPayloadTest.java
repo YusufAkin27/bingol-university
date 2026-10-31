@@ -28,7 +28,8 @@ class FirebaseFcmPayloadTest {
 
         assertThat(field(c, "collapseKey")).isNull(); // >4 anahtar cevrimdisi cihazda mesaj dusurur
         assertThat(String.valueOf(field(c, "ttl"))).isEqualTo("604800s");
-        assertThat(String.valueOf(field(c, "priority"))).contains("high");
+        // SDK enum adini kucuk harfe cevirir; tr yerelinde "hIgh" -> yerelden bagimsiz karsilastir
+        assertThat(String.valueOf(field(c, "priority")).toUpperCase(java.util.Locale.ROOT)).contains("HIGH");
         Object n = field(c, "notification");
         assertThat(field(n, "tag")).isEqualTo("conv:5");
         assertThat(field(n, "channelId")).isEqualTo("chat");
@@ -43,7 +44,24 @@ class FirebaseFcmPayloadTest {
 
         assertThat(field(c, "ttl")).isNull();
         assertThat(String.valueOf(field(c, "priority"))).contains("normal");
-        assertThat(field(field(c, "notification"), "tag")).isEqualTo("news"); // collapseKey yoksa thread etiketi
+        // collapseKey yoksa etiket YOK: tur/thread adi etiket olursa farkli duyurular tepside birbirini siler (A13-01)
+        assertThat(field(field(c, "notification"), "tag")).isNull();
+    }
+
+    @Test
+    void androidSystemConversationNotificationDoesNotShareChatTag() throws Exception {
+        // SYSTEM sohbet bildirimi (kapatildi/kaldirildi) conversationId tasir -> thread "conv:5"; mesaj bildirimini silmemeli
+        PushMessage m = new PushMessage("T", "B", Map.of(), null, "conv:5", "announcement", "SYSTEM", null, true, 604_800);
+
+        assertThat(field(field(FirebaseFcmSender.android(m), "notification"), "tag")).isNull();
+    }
+
+    @Test
+    void androidKeepsTagOnlyForIntendedMergeKeys() throws Exception {
+        for (String key : new String[] {"conv:5", "follow:7", "postlike:9", "commpost:3"}) {
+            PushMessage m = new PushMessage("T", "B", Map.of(), key, "thread", "social", "POST_LIKE", null, false, 86_400);
+            assertThat(field(field(FirebaseFcmSender.android(m), "notification"), "tag")).isEqualTo(key);
+        }
     }
 
     @SuppressWarnings("unchecked")

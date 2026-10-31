@@ -241,4 +241,58 @@ class CampaignAdminSendTest {
         assertTrue(page.items().stream().anyMatch(v -> v.id().equals(c.getId())));
         assertTrue(page.items().stream().allMatch(v -> v.status() == PushCampaign.Status.CANCELLED));
     }
+    // ---- W2-C / A14-09: eszamanli ayni kampanya -> tam 1 basari + 1 CAMPAIGN_DUPLICATE; https dogrulamasi once ----
+
+    @Test
+    void concurrentIdenticalCampaignsCreateExactlyOne() throws Exception {
+        User admin = user("F", "tr");
+        user("F", "tr");
+        CreateCampaignRequest r = req(new Audience(PushCampaign.AudienceType.ALL, null), "Cift " + UUID.randomUUID());
+        int n = 6;
+        java.util.concurrent.ExecutorService pool = java.util.concurrent.Executors.newFixedThreadPool(n);
+        java.util.concurrent.CountDownLatch start = new java.util.concurrent.CountDownLatch(1);
+        java.util.List<java.util.concurrent.Future<String>> res = new java.util.ArrayList<>();
+        for (int i = 0; i < n; i++) {
+            res.add(pool.submit(() -> {
+                start.await();
+                try {
+                    service.create(admin.getId(), r);
+                    return "OK";
+                } catch (ApiException e) {
+                    return e.code();
+                }
+            }));
+        }
+        start.countDown();
+        int ok = 0;
+        int dup = 0;
+        for (var f : res) {
+            String v = f.get(30, java.util.concurrent.TimeUnit.SECONDS);
+            if (v.equals("OK")) {
+                ok++;
+            } else if (v.equals("CAMPAIGN_DUPLICATE")) {
+                dup++;
+            }
+        }
+        pool.shutdownNow();
+        assertEquals(1, ok);
+        assertEquals(n - 1, dup);
+        assertEquals(1L, jdbc.queryForObject("SELECT count(*) FROM push_campaign WHERE created_by = ?", Long.class,
+                admin.getId()));
+    }
+
+    @Test
+    void invalidHttpTargetIsRejectedBeforeDuplicateCheck() {
+        User admin = user("F", "tr");
+        user("F", "tr");
+        String title = "Url " + UUID.randomUUID();
+        service.create(admin.getId(), req(new Audience(PushCampaign.AudienceType.ALL, null), title));
+        CreateCampaignRequest bad = new CreateCampaignRequest(NotificationType.ANNOUNCEMENT,
+                new Audience(PushCampaign.AudienceType.ALL, null), new Content(title, "Govde"), null, null,
+                new Target(PushCampaign.TargetType.URL, "http://x.example"), null);
+
+        ApiException e = assertThrows(ApiException.class, () -> service.create(admin.getId(), bad));
+
+        assertEquals("VALIDATION_ERROR", e.code()); // 409 (duplicate) ile maskelenmez
+    }
 }
