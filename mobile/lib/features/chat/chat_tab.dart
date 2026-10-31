@@ -813,7 +813,7 @@ class _ConversationRow extends StatelessWidget {
       'EVENT' => l.chatMiscTagEvent,
       _ => null
     };
-    final tagTint = type == 'CLUB' ? t.tint(0) : t.tint(1);
+    final tagTint = type == 'CLUB' ? t.tint(BuTintId.green) : t.tint(BuTintId.blue);
     final isDirect = type == 'DIRECT';
     final avatarUrl = isDirect ? (peer is Map ? peer['avatarUrl'] as String? : null) : conversation['avatarUrl'] as String?;
     // `online` yalnız sunucu alanı gelirse çizilir (BACKEND-ISTEK: ConversationView.peer.online).

@@ -19,8 +19,8 @@ void main() {
   test('kritik token değerleri', () {
     final l = BuTheme.light().extension<BuTokens>()!;
     final d = BuTheme.dark().extension<BuTokens>()!;
-    expect(l.pr, const Color(0xFFC62A20));
-    expect(d.pr, const Color(0xFFFF6A5F));
+    expect(l.pr, const Color(0xFFC0392B)); // RENK-1: sakinleştirilmiş marka kırmızısı
+    expect(d.pr, const Color(0xFFF0766A));
     expect(BuTheme.light().colorScheme.primary, l.pr);
     expect(BuTheme.dark().colorScheme.primary, d.pr);
   });

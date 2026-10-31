@@ -212,15 +212,16 @@ class _Chip extends StatelessWidget {
               duration: BuMotion.of(context, BuMotion.short),
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
               decoration: BoxDecoration(
-                color: selected ? t.pr : t.sf,
+                color: selected ? t.soft : t.sf,
                 borderRadius: BorderRadius.circular(BuRadius.pill),
+                border: selected ? Border.all(color: t.selectedBorder) : null,
                 boxShadow: selected ? const [] : BuElevation.of(context, 1),
               ),
               child: Text(label,
                   style: Theme.of(context)
                       .textTheme
                       .labelMedium
-                      ?.copyWith(color: selected ? t.onPr : t.ink, fontWeight: FontWeight.w600)),
+                      ?.copyWith(color: selected ? t.onSoft : t.ink, fontWeight: FontWeight.w600)),
             ),
           ),
         ),

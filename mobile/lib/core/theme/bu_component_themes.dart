@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show SystemUiOverlayStyle;
 
 import '../theme.dart';
 import 'bu_shape.dart';
@@ -35,7 +36,7 @@ class BuComponentThemes {
           foregroundColor: t.ink,
           minimumSize: const Size.fromHeight(54),
           shape: _md,
-          side: BorderSide(color: t.bd, width: 1.2),
+          side: BorderSide(color: t.bdStrong, width: 1.2),
           textStyle: _label,
         ),
       );
@@ -132,6 +133,13 @@ class BuComponentThemes {
         centerTitle: false,
         titleSpacing: 16,
         titleTextStyle: tx.titleLarge!.copyWith(color: t.ink),
+        // Durum çubuğu: zemin temaya göre açık/koyu; ikon kontrastı Android (statusBarIconBrightness) ve iOS
+        // (statusBarBrightness = zeminin parlaklığı) için ayrı ayrı verilir, iki platformda aynı görünür.
+        systemOverlayStyle: SystemUiOverlayStyle(
+          statusBarColor: Colors.transparent,
+          statusBarIconBrightness: cs.brightness == Brightness.dark ? Brightness.light : Brightness.dark,
+          statusBarBrightness: cs.brightness,
+        ),
       );
 
   TabBarThemeData get tabBar => TabBarThemeData(
@@ -250,9 +258,9 @@ class BuComponentThemes {
       filled: true,
       fillColor: t.sf,
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-      border: border(t.bd),
-      enabledBorder: border(t.bd),
-      disabledBorder: border(t.bd.withValues(alpha: .6)),
+      border: border(t.bdStrong),
+      enabledBorder: border(t.bdStrong),
+      disabledBorder: border(t.bd),
       focusedBorder: border(t.pr, 2),
       errorBorder: border(t.danger),
       focusedErrorBorder: border(t.danger, 2),
@@ -279,7 +287,7 @@ class BuComponentThemes {
         shadowColor: WidgetStatePropertyAll(t.shadow),
         constraints: const BoxConstraints(minHeight: 52),
         padding: const WidgetStatePropertyAll(EdgeInsetsDirectional.symmetric(horizontal: 16)),
-        shape: WidgetStatePropertyAll(StadiumBorder(side: BorderSide(color: t.bd, width: 1.2))),
+        shape: WidgetStatePropertyAll(StadiumBorder(side: BorderSide(color: t.bdStrong, width: 1.2))),
         textStyle: WidgetStatePropertyAll(tx.bodyLarge!.copyWith(color: t.ink)),
         hintStyle: WidgetStatePropertyAll(tx.bodyLarge!.copyWith(color: t.mut)),
       );

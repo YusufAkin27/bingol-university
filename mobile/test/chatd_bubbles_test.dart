@@ -1,3 +1,4 @@
+import 'package:bu_kampus/core/theme.dart';
 import 'package:bu_kampus/features/chat/chat_detail_page.dart';
 import 'package:bu_kampus/features/chat/message_bubble.dart';
 import 'package:flutter/material.dart';
@@ -128,7 +129,7 @@ void main() {
       return box.color;
     }
 
-    expect(colorOf('İyiyim, sen?'), const Color(0xFFC62A20));
+    expect(colorOf('İyiyim, sen?'), BuTokens.light.pr); // giden balon = marka eylem kırmızısı (RENK-1: #C0392B)
     expect(colorOf('Merhaba, nasılsın?'), const Color(0xFFFFFFFF));
     await unmount(tester);
   });

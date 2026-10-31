@@ -334,7 +334,7 @@ class SohbetyCheck extends StatelessWidget {
         decoration: BoxDecoration(
           shape: BoxShape.circle,
           color: on ? t.pr : t.pr.withValues(alpha: 0),
-          border: Border.all(color: on ? t.pr : t.bd, width: 2),
+          border: Border.all(color: on ? t.pr : t.bdStrong, width: 2),
         ),
         child: AnimatedScale(
           scale: on ? 1 : .4,

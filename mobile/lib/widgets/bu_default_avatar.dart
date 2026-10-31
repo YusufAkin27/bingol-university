@@ -47,7 +47,9 @@ class BuDefaultAvatar extends StatelessWidget {
   }
 }
 
-/// Üst renk, alt renk (gradyan) ve siluet rengi. Tümü marka paletinden türetilmiştir.
+/// Üst renk, alt renk (gradyan) ve siluet rengi. Tümü uygulama paletinin ailelerindendir (marka, lacivert, mavi,
+/// su mavisi, yeşil, kum); mor/pembe yok (RENK-1). Painter bağlamsız olduğundan değerler burada sabittir ve
+/// `test/redesign/renk_paleti_test.dart` ile palet ailelerine uyum denetlenir.
 class _Palette {
   const _Palette(this.top, this.bottom, this.glow);
   final Color top;
@@ -56,14 +58,14 @@ class _Palette {
 }
 
 const _palettes = <_Palette>[
-  _Palette(Color(0xFFFF9A8C), Color(0xFFD9332A),
-      Color(0xFFFFD2CB)), // marka kırmızısı
+  _Palette(Color(0xFFF2A094), Color(0xFFC0392B),
+      Color(0xFFFBE0DC)), // marka kırmızısı (sakin)
   _Palette(Color(0xFF4A5C94), Color(0xFF171E33), Color(0xFF9FB0E6)), // lacivert
   _Palette(
-      Color(0xFFE8C9A0), Color(0xFFB9855A), Color(0xFFFFEFD9)), // krem / kum
-  _Palette(Color(0xFF6FCBC0), Color(0xFF1D7A82), Color(0xFFC6F3EC)), // turkuaz
-  _Palette(Color(0xFFA99BEA), Color(0xFF5A44B5), Color(0xFFDDD5FF)), // mor
-  _Palette(Color(0xFF86B8F7), Color(0xFF2B63C2), Color(0xFFD3E5FF)), // mavi
+      Color(0xFFDCD3C4), Color(0xFF8C8172), Color(0xFFF3EEE6)), // kum (nötr)
+  _Palette(Color(0xFF6CC3D6), Color(0xFF0B6E86), Color(0xFFCDEEF5)), // su mavisi
+  _Palette(Color(0xFF7FCBA3), Color(0xFF1E7A50), Color(0xFFD2F0E1)), // yeşil
+  _Palette(Color(0xFF7FA8E6), Color(0xFF1F4E96), Color(0xFFD3E3FA)), // mavi
 ];
 
 class _AvatarPainter extends CustomPainter {

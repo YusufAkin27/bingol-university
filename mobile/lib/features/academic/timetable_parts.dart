@@ -116,7 +116,7 @@ class _TtDayPillsState extends State<TtDayPills> {
               final today = widget.todayWeekday == d;
               final short = acadDayShort(l, d);
               final label = sel && today ? l.acadTimeDayToday(short) : short;
-              final fg = sel ? t.bg : t.ink;
+              final fg = sel ? t.onSoft : t.ink;
               return Semantics(
                 button: true,
                 selected: sel,
@@ -132,7 +132,7 @@ class _TtDayPillsState extends State<TtDayPills> {
                     constraints: const BoxConstraints(minHeight: 48, minWidth: 48),
                     padding: const EdgeInsets.symmetric(horizontal: 18),
                     alignment: Alignment.center,
-                    decoration: ShapeDecoration(color: sel ? t.ink : t.sf, shape: StadiumBorder(side: BorderSide(color: sel ? t.ink : t.bd.withValues(alpha: .6)))),
+                    decoration: ShapeDecoration(color: sel ? t.soft : t.sf, shape: StadiumBorder(side: BorderSide(color: sel ? t.selectedBorder : t.bd))),
                     child: MediaQuery.withClampedTextScaling(
                       maxScaleFactor: 1.3,
                       child: Row(mainAxisSize: MainAxisSize.min, children: [

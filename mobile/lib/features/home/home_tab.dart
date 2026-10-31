@@ -567,11 +567,11 @@ class _HomeTabState extends State<HomeTab> {
     final l = context.l10n;
     final t = context.bu;
     final items = <(IconData, String, HomeTone, VoidCallback)>[
-      (LucideIcons.newspaper, l.icerikNewsTitle, HomeTone.red, () => _push(NewsListPage(session: _s))),
-      (LucideIcons.utensils, l.homeQuickFood, HomeTone.amber, () => _push(MenuPage(session: _s))),
-      (LucideIcons.calendar, l.p03HomeQuickEvents, HomeTone.blue, () => _push(EventsPage(session: _s))),
-      (LucideIcons.users, l.navClubs, HomeTone.green, () => widget.onOpenTab(AppTab.clubs)),
-      (LucideIcons.graduationCap, l.p03HomeQuickSchedule, HomeTone.red, () => _push(AcademicHubPage(session: _s))),
+      (LucideIcons.newspaper, l.icerikNewsTitle, HomeTone.blue, () => _push(NewsListPage(session: _s))),
+      (LucideIcons.utensils, l.homeQuickFood, HomeTone.green, () => _push(MenuPage(session: _s))),
+      (LucideIcons.calendar, l.p03HomeQuickEvents, HomeTone.aqua, () => _push(EventsPage(session: _s))),
+      (LucideIcons.users, l.navClubs, HomeTone.aqua, () => widget.onOpenTab(AppTab.clubs)),
+      (LucideIcons.graduationCap, l.p03HomeQuickSchedule, HomeTone.blue, () => _push(AcademicHubPage(session: _s))),
     ];
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       Padding(

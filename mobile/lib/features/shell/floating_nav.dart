@@ -95,7 +95,7 @@ class FloatingNav extends StatelessWidget {
       borderRadius: BorderRadius.circular(30),
       side: BorderSide(
           color: dark
-              ? Colors.white.withValues(alpha: .10)
+              ? context.bu.onMedia.withValues(alpha: .10)
               : t.bd.withValues(alpha: .9)),
     );
     // Cam: açık temada beyaz, koyu temada tonlu yüzey; ~%90 opak + arkadaki içeriğin bulanıklaştırılması.
@@ -103,7 +103,7 @@ class FloatingNav extends StatelessWidget {
     final shadows = dark
         ? [
             BoxShadow(
-                color: Colors.black.withValues(alpha: .38),
+                color: context.bu.scrim.withValues(alpha: .38),
                 blurRadius: 26,
                 offset: const Offset(0, 10))
           ]

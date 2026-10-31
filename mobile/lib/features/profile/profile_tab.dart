@@ -268,19 +268,20 @@ class _ProfileTabState extends State<ProfileTab> {
               ProfilCard(children: [
                 ProfilRow(
                   icon: LucideIcons.newspaper,
+                  tint: t.tint(BuTintId.blue),
                   label: l.profileMyPosts,
                   onTap: () => _go(UserPostsPage(session: widget.session)),
                 ),
                 ProfilRow(
                   icon: LucideIcons.bookmark,
-                  tint: t.tint(4),
+                  tint: t.tint(BuTintId.blue),
                   label: l.profileSaved,
                   value: _saved,
                   onTap: () => _go(SavedNewsPage(session: widget.session)),
                 ),
                 ProfilRow(
                   icon: LucideIcons.userPlus,
-                  tint: t.tint(4),
+                  tint: t.tint(BuTintId.blue),
                   label: l.profileSuggested,
                   onTap: () => _go(FollowSuggestionsPage(session: widget.session)),
                 ),
@@ -301,31 +302,32 @@ class _ProfileTabState extends State<ProfileTab> {
                   return ProfilCard(children: [
                     ProfilRow(
                       icon: LucideIcons.graduationCap,
-                      tint: t.tint(2),
+                      tint: t.tint(BuTintId.blue),
                       label: l10n.profileAcademic,
                       onTap: () => _go(AcademicHubPage(session: widget.session)),
                     ),
                     ProfilRow(
                       icon: LucideIcons.bell,
+                      tint: t.tint(BuTintId.blue),
                       label: l10n.profil1Notifications,
                       onTap: () => _go(NotificationPrefsPage(session: widget.session)),
                     ),
                     ProfilRow(
                       icon: LucideIcons.contact,
-                      tint: t.tint(4),
+                      tint: t.tint(BuTintId.blue),
                       label: l10n.settingsFindContacts,
                       onTap: () => _go(ContactsMatchPage(session: widget.session)),
                     ),
                     ProfilRow(
                       icon: LucideIcons.globe,
-                      tint: t.tint(1),
+                      tint: t.tint(BuTintId.blue),
                       label: l10n.settingsLanguage,
                       value: langName,
                       onTap: lc != null ? _pickLang : null,
                     ),
                     ProfilRow(
                       icon: LucideIcons.moon,
-                      tint: t.tint(5),
+                      tint: t.tint(BuTintId.slate),
                       label: l10n.profil1Theme,
                       value: _modeName(_modeId()),
                       onTap: _pickTheme,
@@ -342,19 +344,19 @@ class _ProfileTabState extends State<ProfileTab> {
               ProfilCard(children: [
                 ProfilRow(
                   icon: LucideIcons.keyRound,
-                  tint: t.tint(3),
+                  tint: t.tint(BuTintId.blue),
                   label: l.profil1AccountSecurity,
                   onTap: () => _go(AccountSecurityPage(session: widget.session)),
                 ),
                 ProfilRow(
                   icon: LucideIcons.lock,
-                  tint: t.tint(1),
+                  tint: t.tint(BuTintId.blue),
                   label: l.profil1PrivacyBlocked,
                   onTap: () => _go(PrivacyDataPage(session: widget.session)),
                 ),
                 ProfilRow(
                   icon: LucideIcons.download,
-                  tint: t.tint(5),
+                  tint: t.tint(BuTintId.slate),
                   label: l.profil1MyData,
                   onTap: () => _go(MyDataPage(session: widget.session)),
                 ),
@@ -368,19 +370,19 @@ class _ProfileTabState extends State<ProfileTab> {
               ProfilCard(children: [
                 ProfilRow(
                   icon: LucideIcons.circleQuestionMark,
-                  tint: t.tint(1),
+                  tint: t.tint(BuTintId.blue),
                   label: l.profil1Support,
                   onTap: () => _go(SupportPage(session: widget.session)),
                 ),
                 ProfilRow(
                   icon: LucideIcons.fileText,
-                  tint: t.tint(5),
+                  tint: t.tint(BuTintId.slate),
                   label: l.profil1Legal,
                   onTap: () => _go(LegalListPage(session: widget.session)),
                 ),
                 ProfilRow(
                   icon: LucideIcons.info,
-                  tint: t.tint(1),
+                  tint: t.tint(BuTintId.blue),
                   label: l.settingsVersion(appVersion),
                   chevron: false,
                 ),

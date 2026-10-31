@@ -232,10 +232,10 @@ class _ReminderSettingsPageState extends State<ReminderSettingsPage> with Widget
           duration: BuMotion.of(context, BuMotion.short),
           constraints: const BoxConstraints(minHeight: 48),
           alignment: Alignment.center,
-          decoration: ShapeDecoration(color: sel ? t.ink : t.sf2, shape: const StadiumBorder()),
+          decoration: ShapeDecoration(color: sel ? t.soft : t.sf2, shape: StadiumBorder(side: sel ? BorderSide(color: t.selectedBorder) : BorderSide.none)),
           child: MediaQuery.withClampedTextScaling(
             maxScaleFactor: 1.3,
-            child: FittedBox(fit: BoxFit.scaleDown, child: Text(label, maxLines: 1, style: tx.labelLarge!.copyWith(fontWeight: FontWeight.w800, color: sel ? t.bg : t.ink))),
+            child: FittedBox(fit: BoxFit.scaleDown, child: Text(label, maxLines: 1, style: tx.labelLarge!.copyWith(fontWeight: FontWeight.w800, color: sel ? t.onSoft : t.ink))),
           ),
         ),
       ),

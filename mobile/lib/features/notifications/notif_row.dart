@@ -7,15 +7,19 @@ enum NotifTone {
   red,
   blue,
   green,
-  amber;
+  amber,
+  aqua,
+  slate;
 
   BuTint tint(BuildContext c) {
     final t = c.bu;
     return switch (this) {
-      NotifTone.red => BuTint(t.soft, t.onSoft),
-      NotifTone.blue => t.tint(0),
-      NotifTone.green => t.tint(1),
-      NotifTone.amber => t.tint(2),
+      NotifTone.red => t.tint(BuTintId.brand),
+      NotifTone.blue => t.tint(BuTintId.blue),
+      NotifTone.green => t.tint(BuTintId.green),
+      NotifTone.amber => t.tint(BuTintId.amber),
+      NotifTone.aqua => t.tint(BuTintId.aqua),
+      NotifTone.slate => t.tint(BuTintId.slate),
     };
   }
 

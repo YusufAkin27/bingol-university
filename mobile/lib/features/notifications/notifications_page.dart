@@ -188,9 +188,10 @@ class _NotificationsPageState extends State<NotificationsPage> {
 
   NotifTone _tone(String? type) {
     switch (type) {
-      case 'COMMUNITY':
       case 'POST_LIKE':
         return NotifTone.red;
+      case 'COMMUNITY':
+        return NotifTone.aqua;
       case 'MESSAGE':
       case 'POLL':
       case 'POLL_CLOSED':
@@ -199,7 +200,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
       case 'COMMENT_REPLY':
         return NotifTone.blue;
       default:
-        return NotifTone.amber;
+        return NotifTone.slate;
     }
   }
 
@@ -528,12 +529,12 @@ class _NotifFilterChip extends StatelessWidget {
           constraints: const BoxConstraints(minHeight: 48),
           padding: const EdgeInsets.symmetric(horizontal: 16),
           decoration: BoxDecoration(
-            color: selected ? t.ink : t.sf,
+            color: selected ? t.soft : t.sf,
             borderRadius: BorderRadius.circular(BuRadius.pill),
-            border: Border.all(color: selected ? t.ink : t.bd),
+            border: Border.all(color: selected ? t.selectedBorder : t.bd),
           ),
           child: Row(mainAxisSize: MainAxisSize.min, children: [
-            Text(label, style: tx.labelLarge!.copyWith(fontWeight: FontWeight.w700, color: selected ? t.bg : t.ink)),
+            Text(label, style: tx.labelLarge!.copyWith(fontWeight: FontWeight.w700, color: selected ? t.onSoft : t.ink)),
             const SizedBox(width: 8),
             Container(
               constraints: const BoxConstraints(minWidth: 22, minHeight: 22),

@@ -15,7 +15,7 @@ enum ProfilyTone { green, amber, violet, red, mute }
   return switch (tone) {
     ProfilyTone.green => (t.okSoft, t.ok),
     ProfilyTone.amber => (t.warnSoft, t.onWarnSoft),
-    ProfilyTone.violet => (t.tint(4).bg, t.tint(4).fg),
+    ProfilyTone.violet => (t.aquaSoft, t.onAquaSoft), // eski ad; renk artık su mavisi
     ProfilyTone.red => (t.soft, t.onSoft),
     ProfilyTone.mute => (t.sf2, t.mut),
   };

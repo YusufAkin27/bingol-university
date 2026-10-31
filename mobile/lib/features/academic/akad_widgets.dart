@@ -67,7 +67,7 @@ class AkadChip extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.bu;
     final tx = Theme.of(context).textTheme;
-    final fg = selected ? t.bg : t.ink;
+    final fg = selected ? t.onSoft : t.ink;
     void tap() {
       buHaptic(BuHaptic.selection);
       onTap?.call();
@@ -100,8 +100,8 @@ class AkadChip extends StatelessWidget {
             duration: BuMotion.of(context, BuMotion.short),
             curve: BuMotion.standard,
             decoration: ShapeDecoration(
-              color: selected ? t.ink : t.sf,
-              shape: StadiumBorder(side: BorderSide(color: selected ? t.ink : t.bd)),
+              color: selected ? t.soft : t.sf,
+              shape: StadiumBorder(side: BorderSide(color: selected ? t.selectedBorder : t.bd)),
             ),
             child: Material(
               type: MaterialType.transparency,

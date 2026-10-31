@@ -253,7 +253,7 @@ class _MediaCameraPageState extends State<MediaCameraPage> with WidgetsBindingOb
     final t = context.bu;
     final tx = Theme.of(context).textTheme;
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: t.scrim,
       body: Stack(children: [
         Positioned.fill(
           child: _denied

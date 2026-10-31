@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart' show NoDefaultCupertinoThemeData;
 import 'package:flutter/material.dart';
 
 import '../theme.dart';
@@ -62,6 +63,14 @@ abstract final class BuThemeBuilder {
       datePickerTheme: c.datePicker,
       timePickerTheme: c.timePicker,
       textSelectionTheme: c.textSelection,
+      // Cupertino bileşenleri (iOS) aynı belirteçleri kullanır: ayrı bir renk seti yok.
+      cupertinoOverrideTheme: NoDefaultCupertinoThemeData(
+        brightness: b,
+        primaryColor: t.pr,
+        primaryContrastingColor: t.onPr,
+        scaffoldBackgroundColor: t.bg,
+        barBackgroundColor: t.sf3,
+      ),
       // InkSparkle (shader) yerine InkRipple: düşük sınıf cihazda ilk dokunuş takılması olmaz.
       splashFactory: InkRipple.splashFactory,
       applyElevationOverlayColor: false,

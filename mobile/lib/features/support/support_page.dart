@@ -321,8 +321,8 @@ class _FaqChips extends StatelessWidget {
             excludeSemantics: true,
             onTap: () => onSelected(i),
             child: Material(
-              color: i == selected ? t.ink : t.sf,
-              borderRadius: BuRadius.bPill,
+              color: i == selected ? t.soft : t.sf,
+              shape: StadiumBorder(side: BorderSide(color: i == selected ? t.selectedBorder : t.bd)),
               child: InkWell(
                 borderRadius: BuRadius.bPill,
                 onTap: () {
@@ -335,7 +335,7 @@ class _FaqChips extends StatelessWidget {
                     padding: const EdgeInsetsDirectional.symmetric(horizontal: 18),
                     child: Center(
                       widthFactor: 1,
-                      child: Text(labels[i], style: tx.labelLarge!.copyWith(color: i == selected ? t.bg : t.ink, fontWeight: FontWeight.w800)),
+                      child: Text(labels[i], style: tx.labelLarge!.copyWith(color: i == selected ? t.onSoft : t.ink, fontWeight: FontWeight.w800)),
                     ),
                   ),
                 ),

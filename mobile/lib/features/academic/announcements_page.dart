@@ -325,7 +325,7 @@ class _TabChip extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.bu;
     final tx = Theme.of(context).textTheme;
-    final fg = selected ? t.bg : t.mut;
+    final fg = selected ? t.onSoft : t.mut;
     return Flexible(
       child: Semantics(
         button: true,
@@ -341,7 +341,7 @@ class _TabChip extends StatelessWidget {
             duration: BuMotion.of(context, BuMotion.short),
             constraints: const BoxConstraints(minHeight: 48),
             padding: const EdgeInsets.symmetric(horizontal: 18),
-            decoration: ShapeDecoration(color: selected ? t.ink : t.sf2, shape: const StadiumBorder()),
+            decoration: ShapeDecoration(color: selected ? t.soft : t.sf2, shape: StadiumBorder(side: selected ? BorderSide(color: t.selectedBorder) : BorderSide.none)),
             child: MediaQuery.withClampedTextScaling(
               maxScaleFactor: 1.3,
               child: Row(mainAxisSize: MainAxisSize.min, children: [

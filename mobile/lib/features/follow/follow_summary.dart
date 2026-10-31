@@ -60,8 +60,8 @@ class _FollowSummaryState extends State<FollowSummary> {
             child: Container(
               width: 36,
               height: 36,
-              decoration: BoxDecoration(color: t.tint(followers ? 0 : 1).bg, shape: BoxShape.circle),
-              child: Icon(followers ? LucideIcons.users : LucideIcons.userCheck, size: 18, color: t.tint(followers ? 0 : 1).fg),
+              decoration: BoxDecoration(color: t.tint(followers ? BuTintId.aqua : BuTintId.blue).bg, shape: BoxShape.circle),
+              child: Icon(followers ? LucideIcons.users : LucideIcons.userCheck, size: 18, color: t.tint(followers ? BuTintId.aqua : BuTintId.blue).fg),
             ),
           ),
           const SizedBox(width: 12),

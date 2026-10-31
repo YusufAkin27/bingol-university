@@ -175,9 +175,9 @@ class _ExamsPageState extends State<ExamsPage> {
               duration: BuMotion.of(context, BuMotion.short),
               constraints: const BoxConstraints(minHeight: 48),
               alignment: Alignment.center,
-              decoration: BoxDecoration(color: sel ? t.ink : Colors.transparent, borderRadius: BuRadius.bPill),
+              decoration: BoxDecoration(color: sel ? t.soft : Colors.transparent, borderRadius: BuRadius.bPill, border: sel ? Border.all(color: t.selectedBorder) : null),
               child: Text(label,
-                  maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w800, color: sel ? t.bg : t.mut)),
+                  maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w800, color: sel ? t.onSoft : t.mut)),
             ),
           ),
         ),
@@ -280,7 +280,7 @@ class _ExamsPageState extends State<ExamsPage> {
     final t = context.bu;
     return switch (type) {
       'VIZE' => (t.soft, t.onSoft),
-      'FINAL' => (t.tint(4).bg, t.tint(4).fg),
+      'FINAL' => (t.tint(BuTintId.aqua).bg, t.tint(BuTintId.aqua).fg),
       'BUT' => (t.tint(3).bg, t.tint(3).fg),
       'QUIZ' => (t.tint(1).bg, t.tint(1).fg),
       _ => (t.sf2, t.mut),

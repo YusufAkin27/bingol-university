@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../../widgets/bu.dart';
 
-/// Tasarımdaki sabit ton paleti (kırmızı / mavi / yeşil) — tarih karosu rengi.
+/// Tarih karosu ton paleti. Adlar eski tasarımdan kalmadır; renkler `BuTintId` tablosuna bağlıdır:
+/// red -> amber, blue -> mavi, green -> su mavisi (marka kırmızısı yalnız eylem/seçili durumdadır).
 enum EtkinlikTone { red, blue, green }
 
 EtkinlikTone etkinlikToneOf(int id) =>
@@ -22,11 +23,10 @@ class EtkinlikDateTile extends StatelessWidget {
     final t = context.bu;
     final tx = Theme.of(context).textTheme;
     final ar = Localizations.localeOf(context).languageCode == 'ar';
-    // Palet sırası: 0 kırmızı (marka), 1 mavi, 2 yeşil.
     final tint = t.tint(switch (tone) {
-      EtkinlikTone.red => 0,
-      EtkinlikTone.blue => 1,
-      EtkinlikTone.green => 2,
+      EtkinlikTone.red => BuTintId.amber,
+      EtkinlikTone.blue => BuTintId.blue,
+      EtkinlikTone.green => BuTintId.aqua,
     });
     return ExcludeSemantics(
       child: ClipRRect(
@@ -155,7 +155,7 @@ class EtkinlikDateBlock extends StatelessWidget {
     final ar = Localizations.localeOf(context).languageCode == 'ar';
     final (bg, dayFg, monFg) = switch (tone) {
       EtkinlikBlockTone.brand => (t.soft, t.onSoft, t.onSoft),
-      EtkinlikBlockTone.blue => (t.tint(1).bg, t.ink, t.pr),
+      EtkinlikBlockTone.blue => (t.infoSoft, t.ink, t.info),
       EtkinlikBlockTone.grey => (t.mut.withValues(alpha: .12), t.mut, t.mut),
     };
     return ExcludeSemantics(
@@ -315,11 +315,11 @@ class EtkinlikSubChips extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(horizontal: 18),
                   alignment: Alignment.center,
                   decoration: BoxDecoration(
-                    color: i == selected ? t.ink : t.sf,
+                    color: i == selected ? t.soft : t.sf,
                     borderRadius: BorderRadius.circular(BuRadius.pill),
-                    border: Border.all(color: i == selected ? t.ink : t.bd),
+                    border: Border.all(color: i == selected ? t.selectedBorder : t.bd),
                   ),
-                  child: Text(labels[i], style: tx.labelLarge!.copyWith(fontWeight: FontWeight.w700, color: i == selected ? t.bg : t.mut)),
+                  child: Text(labels[i], style: tx.labelLarge!.copyWith(fontWeight: FontWeight.w700, color: i == selected ? t.onSoft : t.mut)),
                 ),
               ),
             ),

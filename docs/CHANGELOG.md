@@ -4,6 +4,12 @@
 
 Ayrıntılı modül notları: `docs/changes/*.md`. Mobil API rehberi: [MOBILE_API_GUIDE.md](MOBILE_API_GUIDE.md).
 
+### Mobil renk sistemi sadeleştirmesi (RENK-1)
+
+- **Tek palet:** sakin marka kırmızısı (`pr` #C0392B, simge #F73B2E ile uyumlu) + dört anlam ailesi (koyu mavi `info`, su mavisi `aqua`, yeşil `ok`, amber `warn`) + `danger` (hata, markadan ayrı ton) + sıcak-nötr yüzeyler (açık kırık beyaz #F7F5F2, koyu yumuşak kömür #171819). Mor/pembe/turkuaz/çivit/sarı-turuncu kaldırıldı; `tints` 6 çift korunur ama dört aileye eşlenir (`BuTintId`). Yeni belirteçler: `info*`, `aqua*`, `onOkSoft`, `dangerSoft`, `bdStrong`, `selectedBorder`.
+- **Erişilebilirlik (A6-02/03/16):** kontrol çerçevesi (`bdStrong`) tüm yüzeylere karşı >= 3:1; seçilmemiş seçim halkası aynı; seçili çip/segment için tek stil (`soft` + `onSoft` + `selectedBorder`) ve seçili sohbet seçim dairesine onay işareti.
+- **Kod:** ekranlardaki sihirli renkler belirteçlere taşındı (`Color(0x..)`/`Colors.*` yalnız avatar painter, ders renk tabanı, sabit gölge); ders renk seçicisi 10 -> 6 renk (eski sunucu anahtarları en yakın aileye eşlenir); varsayılan avatar paleti yeni ailelerden; durum çubuğu ve Cupertino teması açıkça belirteçlere bağlandı. Test: `test/redesign/renk_paleti_test.dart` (AA kontrast, aile tutarlılığı, `lib/` taraması). Ayrıntı: [design/RENK_ENVANTERI.md](design/RENK_ENVANTERI.md), [MOBILE_DESIGN_SYSTEM.md](MOBILE_DESIGN_SYSTEM.md) bölüm 3. Web (`tokens.css`) bu paleti henüz almadı.
+
 ### iOS yayın hazırlığı (IOS1)
 
 - **Belgeler:** [IOS_RELEASE.md](IOS_RELEASE.md) (Apple Developer hesabı açıldığında adım adım, kararlar K1-K9, kullanıcıdan gerekenler, red riskleri, yapılanlar/yapılamayanlar tablosu), mağaza paketi [ios-store/](ios-store/README.md) (tr/en/ar metin, App Privacy, inceleme notu, ekran görüntüsü kılavuzu), [MOBILE_PUSH.md](MOBILE_PUSH.md) "iOS doğrulama".

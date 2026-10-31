@@ -27,9 +27,10 @@ class ChatSheetCheck extends StatelessWidget {
         height: 24,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          color: on ? t.danger : (filledOff ? t.sf2 : Colors.transparent),
-          border: on || filledOff ? null : Border.all(color: t.bd, width: 2),
+          color: on ? t.pr : (filledOff ? t.sf2 : Colors.transparent),
+          border: on || filledOff ? null : Border.all(color: t.bdStrong, width: 2),
         ),
+        child: on ? Icon(Icons.check_rounded, size: 16, color: t.onPr) : null,
       ),
     );
   }

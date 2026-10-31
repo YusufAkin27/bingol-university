@@ -10,11 +10,11 @@ import '../../widgets/simple_markdown.dart';
 (IconData, BuTint) _legalLook(BuildContext context, String type) {
   final t = context.bu;
   return switch (type) {
-    'TERMS' => (LucideIcons.gavel, t.tint(0)),
-    'PRIVACY' => (LucideIcons.shield, t.tint(1)),
-    'KVKK' => (LucideIcons.lockKeyhole, t.tint(0)),
-    'COMMUNITY_RULES' => (LucideIcons.users, t.tint(1)),
-    _ => (LucideIcons.fileText, t.tint(1)),
+    'TERMS' => (LucideIcons.gavel, t.tint(BuTintId.blue)),
+    'PRIVACY' => (LucideIcons.shield, t.tint(BuTintId.aqua)),
+    'KVKK' => (LucideIcons.lockKeyhole, t.tint(BuTintId.aqua)),
+    'COMMUNITY_RULES' => (LucideIcons.users, t.tint(BuTintId.green)),
+    _ => (LucideIcons.fileText, t.tint(BuTintId.slate)),
   };
 }
 

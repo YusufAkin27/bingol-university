@@ -111,15 +111,15 @@ IconData _iconOf(String type) {
   }
 }
 
-/// Sonuç türüne göre simge karosu tonu (haber marka tonu, diğerleri kategori renkleri).
+/// Sonuç türüne göre simge karosu tonu (haber/duyuru mavi ailesi, etkinlik amber, kulüp yeşil, gönderi/kişi nötr).
 BuTint _tintOf(BuTokens t, String type) {
-  if (type == 'ANNOUNCEMENT') return t.tint(3);
+  if (type == 'ANNOUNCEMENT') return t.tint(BuTintId.aqua);
   return switch (_tabOf(type)) {
-    _Tab.news => BuTint(t.soft, t.onSoft),
-    _Tab.club => t.tint(1),
-    _Tab.event => t.tint(2),
-    _Tab.post => t.tint(4),
-    _ => t.tint(5),
+    _Tab.news => t.tint(BuTintId.blue),
+    _Tab.club => t.tint(BuTintId.green),
+    _Tab.event => t.tint(BuTintId.amber),
+    _Tab.post => t.tint(BuTintId.aqua),
+    _ => t.tint(BuTintId.slate),
   };
 }
 
@@ -1083,12 +1083,12 @@ class _TabChipsState extends State<_TabChips> {
                   padding: const EdgeInsets.symmetric(horizontal: 18),
                   alignment: Alignment.center,
                   decoration: BoxDecoration(
-                    color: i == widget.selected ? t.ink : t.sf,
+                    color: i == widget.selected ? t.soft : t.sf,
                     borderRadius: BorderRadius.circular(BuRadius.pill),
-                    border: Border.all(color: i == widget.selected ? t.ink : t.bd),
+                    border: Border.all(color: i == widget.selected ? t.selectedBorder : t.bd),
                   ),
                   child: Text(widget.labels[i],
-                      style: tx.labelLarge!.copyWith(fontWeight: FontWeight.w700, color: i == widget.selected ? t.bg : t.ink)),
+                      style: tx.labelLarge!.copyWith(fontWeight: FontWeight.w700, color: i == widget.selected ? t.onSoft : t.ink)),
                 ),
               ),
             ),

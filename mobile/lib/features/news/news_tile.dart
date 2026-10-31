@@ -5,10 +5,10 @@ import '../../widgets/bu.dart';
 import '../../widgets/common.dart';
 import 'icerik_parts.dart';
 
-/// Tür rozeti tonu: haber marka tonu (null), duyuru kehribar, etkinlik yeşil.
+/// Tür rozeti tonu: haber koyu mavi (null = varsayılan), duyuru su mavisi, etkinlik amber (tarihli/hatırlatma).
 BuTint? newsTypeTint(BuTokens t, String? type) => switch (type) {
-      'DUYURU' || 'ANNOUNCEMENT' => t.tint(3),
-      'ETKINLIK' || 'EVENT' => t.tint(2),
+      'DUYURU' || 'ANNOUNCEMENT' => t.tint(BuTintId.aqua),
+      'ETKINLIK' || 'EVENT' => t.tint(BuTintId.amber),
       _ => null,
     };
 

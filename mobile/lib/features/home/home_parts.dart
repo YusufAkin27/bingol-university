@@ -50,13 +50,16 @@ enum HomeTone {
   red,
   green,
   blue,
-  amber;
+  amber,
+  aqua;
 
+  /// Ad = ailenin adı (kırmızı marka, yeşil, mavi, amber, su mavisi); değerler `BuTintId` tablosundan gelir.
   BuTint tint(BuTokens t) => switch (this) {
-        HomeTone.red => BuTint(t.soft, t.onSoft),
-        HomeTone.green => t.tint(1),
-        HomeTone.blue => t.tint(0),
-        HomeTone.amber => t.tint(2),
+        HomeTone.red => t.tint(BuTintId.brand),
+        HomeTone.green => t.tint(BuTintId.green),
+        HomeTone.blue => t.tint(BuTintId.blue),
+        HomeTone.amber => t.tint(BuTintId.amber),
+        HomeTone.aqua => t.tint(BuTintId.aqua),
       };
 }
 

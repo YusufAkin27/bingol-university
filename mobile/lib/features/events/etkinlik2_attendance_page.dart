@@ -373,8 +373,8 @@ class _FilterChip extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.bu;
     final tx = Theme.of(context).textTheme;
-    final bg = selected ? t.ink : t.sf;
-    final fg = selected ? t.bg : t.mut;
+    final bg = selected ? t.soft : t.sf;
+    final fg = selected ? t.onSoft : t.mut;
     return Semantics(
       button: true,
       selected: selected,
@@ -396,7 +396,7 @@ class _FilterChip extends StatelessWidget {
             decoration: BoxDecoration(
               color: bg,
               borderRadius: BorderRadius.circular(BuRadius.pill),
-              border: Border.all(color: selected ? t.ink : t.bd),
+              border: Border.all(color: selected ? t.selectedBorder : t.bd),
             ),
             child: Row(mainAxisSize: MainAxisSize.min, children: [
               Text(label, style: tx.labelLarge!.copyWith(fontWeight: FontWeight.w700, color: fg)),
@@ -405,7 +405,7 @@ class _FilterChip extends StatelessWidget {
                 constraints: const BoxConstraints(minWidth: 24),
                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
                 decoration: BoxDecoration(
-                  color: selected ? t.bg.withValues(alpha: .2) : t.sf2,
+                  color: selected ? t.pr.withValues(alpha: .14) : t.sf2,
                   borderRadius: BorderRadius.circular(BuRadius.pill),
                 ),
                 child: Text('$count', textAlign: TextAlign.center, style: tx.labelSmall!.copyWith(fontWeight: FontWeight.w700, color: fg)),

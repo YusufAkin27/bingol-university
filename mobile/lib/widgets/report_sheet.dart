@@ -299,7 +299,7 @@ class _Radio extends StatelessWidget {
       decoration: BoxDecoration(
         color: t.sf,
         shape: BoxShape.circle,
-        border: Border.all(color: selected ? t.pr : t.bd, width: 2),
+        border: Border.all(color: selected ? t.pr : t.bdStrong, width: 2),
       ),
       child: selected ? Container(width: 10, height: 10, decoration: BoxDecoration(color: t.pr, shape: BoxShape.circle)) : null,
     );

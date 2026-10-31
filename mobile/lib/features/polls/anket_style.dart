@@ -4,7 +4,7 @@ import '../../widgets/bu.dart';
 
 // Anket ekranları (An1-An4) ortak görsel parçaları. Renkler yalnız belirteçlerden (context.bu), yazı TextTheme'den.
 
-/// Kapsam tonu (zemin + yazı): Genel mavi, Kulüp yeşil, Yemek kehribar (`BuTokens.tint`).
+/// Kapsam tonu (zemin + yazı): Genel mavi, Kulüp su mavisi, Yemek yeşil (`BuTokens.tint`).
 class AnketTone {
   const AnketTone(this.bg, this.fg);
   final Color bg;
@@ -16,8 +16,8 @@ class AnketTone {
   }
 
   static AnketTone general(BuildContext c) => _of(c, 1);
-  static AnketTone club(BuildContext c) => _of(c, 2);
-  static AnketTone meal(BuildContext c) => _of(c, 3);
+  static AnketTone club(BuildContext c) => _of(c, BuTintId.aqua);
+  static AnketTone meal(BuildContext c) => _of(c, BuTintId.green);
 }
 
 /// Yıldız ve puan dağılımı rengi: kehribar tonun doygun hâli (her iki temada altın görünür), belirteçten türetilir.

@@ -94,19 +94,18 @@ String dayShortL(AppLocalizations l, int weekday) => switch (weekday) {
     };
 
 /// Ders rengi anahtarları (sunucu ile aynı).
-const courseColorKeys = ['red', 'orange', 'amber', 'green', 'teal', 'blue', 'indigo', 'purple', 'pink', 'gray'];
+/// Seçicide gösterilen 6 renk (palet: mavi, su mavisi, yeşil, amber, kırmızı, nötr). Sunucu eski anahtarları
+/// (orange/indigo/purple/pink) hâlâ saklayabilir; [courseColor] bunları en yakın aileye eşler.
+const courseColorKeys = ['blue', 'teal', 'green', 'amber', 'red', 'gray'];
 
+/// Ders rengi tabanı: tema duyarsız ana tonlar (akadTint açık/koyu zemini bunlardan türetir; hepsi AA).
 Color courseColor(String? key) => switch (key) {
-      'red' => const Color(0xFFC62A20),
-      'orange' => const Color(0xFFB84F08),
-      'amber' => const Color(0xFFE5A400),
-      'green' => const Color(0xFF1F7A4A),
-      'teal' => const Color(0xFF0F6B66),
-      'blue' => const Color(0xFF2F4FA8),
-      'indigo' => const Color(0xFF5B5BD6),
-      'purple' => const Color(0xFF5B3FA0),
-      'pink' => const Color(0xFFD6409F),
-      _ => const Color(0xFF7C8591),
+      'red' || 'pink' => const Color(0xFFBC3A2D),
+      'amber' || 'orange' => const Color(0xFF9A5700),
+      'green' => const Color(0xFF1E7A50),
+      'teal' => const Color(0xFF0B6E86),
+      'blue' || 'indigo' => const Color(0xFF1F4E96),
+      _ => const Color(0xFF5C5A56),
     };
 
 String colorLabel(String key) => switch (key) {
@@ -512,8 +511,8 @@ Color eventKindColor(String k) => switch (k) {
       'DERS_KAYIT' => courseColor('green'),
       'VIZE' => courseColor('red'),
       'FINAL' => courseColor('blue'),
-      'BUT' => courseColor('purple'),
-      'TATIL' => courseColor('orange'),
+      'BUT' => courseColor('amber'),
+      'TATIL' => courseColor('teal'),
       'RESMI_TATIL' => courseColor('teal'),
       _ => courseColor('gray'),
     };
