@@ -88,7 +88,7 @@ class _DeleteAccountPageState extends State<DeleteAccountPage> {
                 ]),
                 const SizedBox(height: 14),
                 Material(
-                  color: t.tint(1).bg,
+                  color: t.sf2,
                   borderRadius: BuRadius.bMd,
                   child: InkWell(
                     key: const ValueKey('delete-backup-link'),
@@ -104,12 +104,12 @@ class _DeleteAccountPageState extends State<DeleteAccountPage> {
                               width: 36,
                               height: 36,
                               decoration: BoxDecoration(color: t.sf, shape: BoxShape.circle),
-                              child: Icon(LucideIcons.circleArrowDown, size: 18, color: t.tint(1).fg),
+                              child: Icon(LucideIcons.circleArrowDown, size: 18, color: t.ink),
                             ),
                           ),
                           const SizedBox(width: 12),
                           Expanded(
-                            child: Text(l.profil2DelBackupHint, style: tx.bodyMedium!.copyWith(fontWeight: FontWeight.w600, color: t.tint(1).fg, height: 1.35)),
+                            child: Text(l.profil2DelBackupHint, style: tx.bodyMedium!.copyWith(fontWeight: FontWeight.w600, color: t.ink, height: 1.35)),
                           ),
                         ]),
                       ),
@@ -148,7 +148,6 @@ class _DeleteAccountPageState extends State<DeleteAccountPage> {
                 BuButton(
                   key: const ValueKey('delete-continue'),
                   label: l.profil2Continue,
-                  icon: LucideIcons.squareX,
                   kind: BuButtonKind.danger,
                   onPressed: _ack ? _continue : null,
                 ),

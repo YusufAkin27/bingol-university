@@ -5,6 +5,12 @@ import '../../widgets/bu.dart';
 /// Profil düzenle / Ayarlar / Hesap / Gizlilik / Verilerim / Hesabı sil (Stitch 48, 49, 08) ortak küçük bileşenleri.
 /// Renk yalnız `context.bu` ve ColorScheme üzerinden gelir.
 
+/// Listelerde tek nötr simge tonu ([BuSettingsTile.tint] için): sf2 zemin + mürekkep simge. Tur 3: mavi/marka tonları kalktı.
+BuTint profilNeutralTint(BuildContext context) {
+  final t = context.bu;
+  return BuTint(t.sf2, t.ink);
+}
+
 /// Bölüm başlığı: küçük, kalın, soluk, büyük harf ("GÖRÜNÜM").
 class P2SectionLabel extends StatelessWidget {
   const P2SectionLabel(this.text, {super.key, this.top = 0});

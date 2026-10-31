@@ -176,7 +176,7 @@ class _SettingsPageState extends State<SettingsPage> {
       'notGranted' => l.pushNotGranted,
       _ => l.p19PushOffShort,
     };
-    final blue = t.tint(1);
+    final blue = profilNeutralTint(context);
     return Scaffold(
       backgroundColor: t.bg,
       body: Column(

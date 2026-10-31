@@ -163,7 +163,7 @@ class _AccountSecurityPageState extends State<AccountSecurityPage> {
                   padding: const EdgeInsets.all(16),
                   child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                     Row(children: [
-                      P2IconTile(icon: LucideIcons.atSign, tint: t.tint(1), size: 44),
+                      const P2IconTile(icon: LucideIcons.atSign, neutral: true, size: 44),
                       const SizedBox(width: 12),
                       Expanded(
                         child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [

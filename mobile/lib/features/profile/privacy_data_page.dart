@@ -24,14 +24,6 @@ class PrivacyDataPage extends StatefulWidget {
 
 class _PrivacyDataPageState extends State<PrivacyDataPage> {
   static const _fields = ['avatar', 'bio', 'faculty', 'department', 'classYear'];
-  static const _icons = {
-    'avatar': LucideIcons.circleUser,
-    'bio': LucideIcons.fileText,
-    'faculty': LucideIcons.landmark,
-    'department': LucideIcons.graduationCap,
-    'classYear': LucideIcons.columns3,
-  };
-
   final Map<String, String> _vis = {for (final f in _fields) f: 'EVERYONE'};
   final Set<String> _saving = {};
   bool _showEmail = false;
@@ -229,16 +221,11 @@ class _PrivacyDataPageState extends State<PrivacyDataPage> {
                 key: ValueKey('privacy-row-$f'),
                 padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
                 child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-                  Row(children: [
-                    P2IconTile(icon: _icons[f]!, tint: t.tint(1)),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Text(labels[f]!,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w800, color: t.ink)),
-                    ),
-                  ]),
+                  // Alan başına tek etiket (simge karosu kalktı).
+                  Text(labels[f]!,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w800, color: t.ink)),
                   const SizedBox(height: 10),
                   P2Segment3(
                     key: ValueKey('privacy-select-$f'),
@@ -286,7 +273,7 @@ class _PrivacyDataPageState extends State<PrivacyDataPage> {
               title: l.profil2ShowEmail,
               subtitle: l.profil2ShowEmailSub,
               value: _showEmail,
-              tint: t.tint(1),
+              tint: profilNeutralTint(context),
               onChanged: _setEmail,
             ),
           ]),
@@ -298,7 +285,7 @@ class _PrivacyDataPageState extends State<PrivacyDataPage> {
               title: l.p22SaveGalleryTitle,
               subtitle: l.p22SaveGalleryDesc,
               value: _saveGallery,
-              tint: t.tint(1),
+              tint: profilNeutralTint(context),
               onChanged: _setSaveGallery,
             ),
           ]),
@@ -312,13 +299,13 @@ class _PrivacyDataPageState extends State<PrivacyDataPage> {
               icon: LucideIcons.ban,
               title: l.profil2BlockedSection,
               value: _blockedCount,
-              tint: t.tint(1),
+              tint: profilNeutralTint(context),
               onTap: () => _push(BlockedUsersPage(session: widget.session)),
             ),
             BuSettingsTile(
               icon: LucideIcons.download,
               title: l.profil2MyDataRow,
-              tint: t.tint(1),
+              tint: profilNeutralTint(context),
               onTap: () => _push(MyDataPage(session: widget.session)),
             ),
           ]),

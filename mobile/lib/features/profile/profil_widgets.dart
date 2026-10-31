@@ -60,7 +60,7 @@ class ProfilSection extends StatelessWidget {
   }
 }
 
-/// 36x36 yuvarlatılmış simge karosu: varsayılan marka tonu, [tint] ile kategori tonu, [danger] ile hata tonu.
+/// 36x36 yuvarlatılmış simge karosu: varsayılan NÖTR (tur 3: listelerde tek simge tonu), [tint] ile verilen ton, [danger] ile hata tonu.
 class ProfilIconTile extends StatelessWidget {
   const ProfilIconTile({super.key, required this.icon, this.color, this.tint, this.danger = false});
 
@@ -74,8 +74,8 @@ class ProfilIconTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
-    final bg = danger ? Theme.of(context).colorScheme.errorContainer : (tint?.bg ?? t.soft);
-    final fg = color ?? (danger ? t.danger : (tint?.fg ?? t.pr));
+    final bg = danger ? Theme.of(context).colorScheme.errorContainer : (tint?.bg ?? t.sf2);
+    final fg = color ?? (danger ? t.danger : (tint?.fg ?? t.ink));
     return Container(
       width: 36,
       height: 36,

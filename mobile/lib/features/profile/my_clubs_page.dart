@@ -559,7 +559,8 @@ class _ClubLogo extends StatelessWidget {
     final t = context.bu;
     final name = (club['name'] ?? '').toString();
     final url = (club['logoUrl'] ?? club['coverUrl'])?.toString();
-    final tint = t.tint((club['id'] as num?)?.toInt() ?? name.length);
+    // Kategori/kimlik başına renk yok: tek nötr ton.
+    final tint = BuTint(t.sf2, t.ink);
     if (fileUrl(url) != null) {
       return ClipRRect(borderRadius: BorderRadius.circular(size * .3), child: BuImage(url, width: size, height: size));
     }

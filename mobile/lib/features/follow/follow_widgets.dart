@@ -73,9 +73,9 @@ class FollowTabs extends StatelessWidget {
               const SizedBox(width: 6),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 1),
-                decoration: BoxDecoration(color: sel ? t.pr : t.bd, borderRadius: BuRadius.bPill),
+                decoration: BoxDecoration(color: sel ? t.soft : t.bd, borderRadius: BuRadius.bPill),
                 child: Text('$n',
-                    style: tx.labelMedium!.copyWith(fontWeight: FontWeight.w700, color: sel ? t.onPr : t.ink)),
+                    style: tx.labelMedium!.copyWith(fontWeight: FontWeight.w700, color: sel ? t.onSoft : t.ink)),
               ),
             ],
           ]),
@@ -164,8 +164,7 @@ class FollowPersonRow extends StatelessWidget {
     Widget? status;
     switch (relation) {
       case FollowRelation.followsYou:
-        status = _statusLine(context, Container(width: 6, height: 6, decoration: BoxDecoration(color: t.pr, shape: BoxShape.circle)),
-            l.profilyardFollowsYou, t.pr);
+        status = _statusLine(context, const SizedBox.shrink(), l.profilyardFollowsYou, t.mut);
       case FollowRelation.mutual:
         status = _statusLine(context, Icon(LucideIcons.repeat2, size: 13, color: t.mut), l.profilyardFollowMutual, t.mut);
       case FollowRelation.following:
@@ -175,13 +174,13 @@ class FollowPersonRow extends StatelessWidget {
     }
     if (reason != null && reason!.isNotEmpty) {
       status = Row(children: [
-        Icon(LucideIcons.users, size: 13, color: t.pr),
+        Icon(LucideIcons.users, size: 13, color: t.mut),
         const SizedBox(width: 5),
         Expanded(
           child: Text(reason!,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: tx.labelMedium!.copyWith(fontWeight: FontWeight.w600, color: t.pr)),
+              style: tx.labelMedium!.copyWith(fontWeight: FontWeight.w600, color: t.mut)),
         ),
       ]);
     }
@@ -226,8 +225,7 @@ class FollowPersonRow extends StatelessWidget {
   }
 
   Widget _statusLine(BuildContext context, Widget lead, String text, Color color) => Row(children: [
-        ExcludeSemantics(child: lead),
-        const SizedBox(width: 6),
+        if (lead is! SizedBox) ...[ExcludeSemantics(child: lead), const SizedBox(width: 6)],
         Expanded(
           child: Text(text,
               maxLines: 1,
@@ -237,7 +235,7 @@ class FollowPersonRow extends StatelessWidget {
       ]);
 }
 
-/// "Takip et" (dolu marka) / "Takipte" (gri) hap düğmesi; iyimser günceller, hata olursa geri alır.
+/// "Takip et" (soluk marka zemini; listede dolgulu kırmızı düğme yığılmaz) / "Takipte" (çizgili, sakin) düğmesi; iyimser günceller, hata olursa geri alır.
 class FollowRowButton extends StatefulWidget {
   const FollowRowButton({super.key, required this.session, required this.userId, required this.followed, this.onChanged});
 
@@ -297,7 +295,10 @@ class _FollowRowButtonState extends State<FollowRowButton> {
         key: const ValueKey('followButton'),
         duration: BuMotion.of(context, BuMotion.short),
         curve: BuMotion.standard,
-        decoration: BoxDecoration(color: on ? t.pr : t.sf2, borderRadius: BorderRadius.circular(BuRadius.sm + 2)),
+        decoration: BoxDecoration(
+            color: on ? t.soft : Colors.transparent,
+            border: Border.all(color: on ? Colors.transparent : t.bd),
+            borderRadius: BorderRadius.circular(BuRadius.sm + 2)),
         child: InkWell(
           borderRadius: BorderRadius.circular(BuRadius.sm + 2),
           onTap: _busy ? null : _toggle,
@@ -313,7 +314,7 @@ class _FollowRowButtonState extends State<FollowRowButton> {
                     style: Theme.of(context)
                         .textTheme
                         .labelLarge!
-                        .copyWith(fontWeight: FontWeight.w700, color: on ? t.onPr : t.ink)),
+                        .copyWith(fontWeight: FontWeight.w700, color: on ? t.onSoft : t.mut)),
               ),
             ),
           ),
@@ -416,9 +417,9 @@ class FollowSkeletonCard extends StatelessWidget {
   Widget build(BuildContext context) => BuSkeletonScope(
         child: FollowCard(children: [
           for (var i = 0; i < count; i++)
-            Padding(
-              padding: const EdgeInsetsDirectional.fromSTEB(16, 14, 16, 14),
-              child: const Row(children: [
+            const Padding(
+              padding: EdgeInsetsDirectional.fromSTEB(16, 14, 16, 14),
+              child: Row(children: [
                 BuSkeleton.circle(48),
                 SizedBox(width: 12),
                 Expanded(

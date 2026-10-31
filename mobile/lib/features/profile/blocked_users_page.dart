@@ -135,8 +135,11 @@ class _BlockedUsersPageState extends State<BlockedUsersPage> {
           physics: const AlwaysScrollableScrollPhysics(),
           padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
           children: [
-            ProfilyNote(text: l.profilyardBlockedNote),
-            const SizedBox(height: 14),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 4),
+              child: Text(l.profilyardBlockedNote, style: Theme.of(context).textTheme.bodyMedium!.copyWith(color: t.mut, height: 1.45)),
+            ),
+            const SizedBox(height: 16),
             ProfilCard(children: [for (final u in _items!) _row(context, t, u)]),
             if (_more)
               const Padding(padding: EdgeInsets.all(16), child: Center(child: CircularProgressIndicator())),

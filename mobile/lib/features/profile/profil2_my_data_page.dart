@@ -180,16 +180,11 @@ class _MyDataPageState extends State<MyDataPage> with WidgetsBindingObserver {
                   padding: const EdgeInsets.symmetric(horizontal: 4),
                   child: Text(l.profil2DataIntro, style: tx.bodyMedium!.copyWith(color: t.mut, height: 1.5)),
                 ),
-                const SizedBox(height: 14),
-                BuCard(
-                  padding: const EdgeInsets.all(16),
-                  child: Row(children: [
-                    const P2IconTile(icon: LucideIcons.braces, neutral: true, size: 48),
-                    const SizedBox(width: 14),
-                    Expanded(
-                      child: Text(l.profil2DataFileSub, style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w800, color: t.ink)),
-                    ),
-                  ]),
+                const SizedBox(height: 4),
+                // Biçim bilgisi tek soluk satır (kutu + simge karosu kalktı).
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                  child: Text(l.profil2DataFileSub, style: tx.bodyMedium!.copyWith(fontWeight: FontWeight.w700, color: t.ink)),
                 ),
                 P2Heading(l.profil2DataContents, top: 20),
                 BuCard(
@@ -202,8 +197,8 @@ class _MyDataPageState extends State<MyDataPage> with WidgetsBindingObserver {
                           Container(
                             width: 28,
                             height: 28,
-                            decoration: BoxDecoration(color: _limitMessage == null ? t.soft : t.sf2, shape: BoxShape.circle),
-                            child: Icon(LucideIcons.check, size: 15, color: _limitMessage == null ? t.pr : t.mut),
+                            decoration: BoxDecoration(color: t.sf2, shape: BoxShape.circle),
+                            child: Icon(LucideIcons.check, size: 15, color: _limitMessage == null ? t.ink : t.mut),
                           ),
                           const SizedBox(width: 12),
                           Expanded(child: Text(s, style: tx.bodyLarge!.copyWith(fontWeight: FontWeight.w600, color: t.ink))),
@@ -256,7 +251,7 @@ class _MyDataPageState extends State<MyDataPage> with WidgetsBindingObserver {
                   BuSettingsTile(
                     icon: LucideIcons.shieldUser,
                     title: l.profil2DataKvkk,
-                    tint: t.tint(1),
+                    tint: profilNeutralTint(context),
                     onTap: () => _push(LegalListPage(session: widget.session)),
                   ),
                   BuSettingsTile(
