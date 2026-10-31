@@ -2434,7 +2434,7 @@ abstract class AppLocalizations {
   /// No description provided for @chatDetailOnline.
   ///
   /// In tr, this message translates to:
-  /// **'Çevrimiçi'**
+  /// **'çevrimiçi'**
   String get chatDetailOnline;
 
   /// No description provided for @chatDetailLastSeenToday.
@@ -16968,6 +16968,30 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Varsayılana dön'**
   String get p67ChatBgReset;
+
+  /// No description provided for @p67PickerLimit.
+  ///
+  /// In tr, this message translates to:
+  /// **'En fazla {max} öğe seçebilirsiniz.'**
+  String p67PickerLimit(String max);
+
+  /// No description provided for @p51EvEmptyDayBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Başka bir gün seç ya da kulüplere göz at.'**
+  String get p51EvEmptyDayBody;
+
+  /// No description provided for @p51EvBrowseAll.
+  ///
+  /// In tr, this message translates to:
+  /// **'Tüm kulüpleri keşfet'**
+  String get p51EvBrowseAll;
+
+  /// No description provided for @p51EvOffline.
+  ///
+  /// In tr, this message translates to:
+  /// **'Çevrimdışısın. Kayıtlı etkinlikler gösteriliyor.'**
+  String get p51EvOffline;
 }
 
 class _AppLocalizationsDelegate

@@ -769,7 +769,7 @@
   "chatDetailMonth10": "Ekim",
   "chatDetailMonth11": "Kasım",
   "chatDetailMonth12": "Aralık",
-  "chatDetailOnline": "Çevrimiçi",
+  "chatDetailOnline": "çevrimiçi",
   "chatDetailLastSeenToday": "Son görülme: bugün {time}",
   "@chatDetailLastSeenToday": {
     "placeholders": {
@@ -4715,5 +4715,16 @@
   "p64FeedOffline": "Çevrimdışısın. Gösterilen gönderiler eski olabilir.",
   "p67ChatBgDensity": "Yoğunluk",
   "p67ChatBgApply": "Uygula",
-  "p67ChatBgReset": "Varsayılana dön"
+  "p67ChatBgReset": "Varsayılana dön",
+  "p67PickerLimit": "En fazla {max} öğe seçebilirsiniz.",
+  "@p67PickerLimit": {
+    "placeholders": {
+      "max": {
+        "type": "String"
+      }
+    }
+  },
+  "p51EvEmptyDayBody": "Başka bir gün seç ya da kulüplere göz at.",
+  "p51EvBrowseAll": "Tüm kulüpleri keşfet",
+  "p51EvOffline": "Çevrimdışısın. Kayıtlı etkinlikler gösteriliyor."
 }

@@ -388,7 +388,7 @@
   "chatDetailMonth10": "October",
   "chatDetailMonth11": "November",
   "chatDetailMonth12": "December",
-  "chatDetailOnline": "Online",
+  "chatDetailOnline": "online",
   "chatDetailLastSeenToday": "Last seen today at {time}",
   "chatDetailLastSeenYesterday": "Last seen yesterday at {time}",
   "chatDetailLastSeenOn": "Last seen {date}",
@@ -2920,5 +2920,16 @@
   "p64FeedOffline": "You are offline. Posts shown may be out of date.",
   "p67ChatBgDensity": "Density",
   "p67ChatBgApply": "Apply",
-  "p67ChatBgReset": "Reset to default"
+  "p67ChatBgReset": "Reset to default",
+  "p67PickerLimit": "You can select up to {max} items.",
+  "@p67PickerLimit": {
+    "placeholders": {
+      "max": {
+        "type": "String"
+      }
+    }
+  },
+  "p51EvEmptyDayBody": "Pick another day or browse clubs.",
+  "p51EvBrowseAll": "Explore all clubs",
+  "p51EvOffline": "You are offline. Showing saved events."
 }

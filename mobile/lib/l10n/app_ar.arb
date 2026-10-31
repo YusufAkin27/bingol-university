@@ -2920,5 +2920,16 @@
   "p64FeedOffline": "أنت غير متصل. قد تكون المنشورات المعروضة قديمة.",
   "p67ChatBgDensity": "الكثافة",
   "p67ChatBgApply": "تطبيق",
-  "p67ChatBgReset": "العودة إلى الافتراضي"
+  "p67ChatBgReset": "العودة إلى الافتراضي",
+  "p67PickerLimit": "يمكنك اختيار {max} عناصر كحد أقصى.",
+  "@p67PickerLimit": {
+    "placeholders": {
+      "max": {
+        "type": "String"
+      }
+    }
+  },
+  "p51EvEmptyDayBody": "اختر يومًا آخر أو تصفّح الأندية.",
+  "p51EvBrowseAll": "استكشف كل الأندية",
+  "p51EvOffline": "أنت غير متصل. تُعرض الفعاليات المحفوظة."
 }

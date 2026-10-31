@@ -9257,4 +9257,18 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get p67ChatBgReset => 'العودة إلى الافتراضي';
+
+  @override
+  String p67PickerLimit(String max) {
+    return 'يمكنك اختيار $max عناصر كحد أقصى.';
+  }
+
+  @override
+  String get p51EvEmptyDayBody => 'اختر يومًا آخر أو تصفّح الأندية.';
+
+  @override
+  String get p51EvBrowseAll => 'استكشف كل الأندية';
+
+  @override
+  String get p51EvOffline => 'أنت غير متصل. تُعرض الفعاليات المحفوظة.';
 }

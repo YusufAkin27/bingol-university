@@ -1290,7 +1290,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chatDetailMonth12 => 'December';
 
   @override
-  String get chatDetailOnline => 'Online';
+  String get chatDetailOnline => 'online';
 
   @override
   String chatDetailLastSeenToday(String time) {
@@ -9357,4 +9357,18 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get p67ChatBgReset => 'Reset to default';
+
+  @override
+  String p67PickerLimit(String max) {
+    return 'You can select up to $max items.';
+  }
+
+  @override
+  String get p51EvEmptyDayBody => 'Pick another day or browse clubs.';
+
+  @override
+  String get p51EvBrowseAll => 'Explore all clubs';
+
+  @override
+  String get p51EvOffline => 'You are offline. Showing saved events.';
 }

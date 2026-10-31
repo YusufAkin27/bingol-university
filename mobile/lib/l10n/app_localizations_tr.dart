@@ -1286,7 +1286,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get chatDetailMonth12 => 'Aralık';
 
   @override
-  String get chatDetailOnline => 'Çevrimiçi';
+  String get chatDetailOnline => 'çevrimiçi';
 
   @override
   String chatDetailLastSeenToday(String time) {
@@ -9326,4 +9326,18 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get p67ChatBgReset => 'Varsayılana dön';
+
+  @override
+  String p67PickerLimit(String max) {
+    return 'En fazla $max öğe seçebilirsiniz.';
+  }
+
+  @override
+  String get p51EvEmptyDayBody => 'Başka bir gün seç ya da kulüplere göz at.';
+
+  @override
+  String get p51EvBrowseAll => 'Tüm kulüpleri keşfet';
+
+  @override
+  String get p51EvOffline => 'Çevrimdışısın. Kayıtlı etkinlikler gösteriliyor.';
 }
