@@ -568,9 +568,8 @@ class PollServiceTest {
         assertEquals("bilgisayar muhendisligi", p.audience().department());
 
         assertTrue(service.get(member(match), p.id()).canVote());
-        PollView blocked = service.get(member(other), p.id());
-        assertFalse(blocked.canVote());
-        assertEquals("NOT_ELIGIBLE", blocked.voteBlockedReason());
+        // T-046 (W1-F): hedef kitle disindaki kullaniciya anket ID ile de gorunmez (404)
+        assertEquals("POLL_NOT_FOUND", fails(() -> service.get(member(other), p.id())).code());
         assertEquals("POLL_NOT_ELIGIBLE", fails(() -> voteService.vote(member(other), p.id(), pick(optionId(p, 0)))).code());
         assertEquals("POLL_NOT_ELIGIBLE", fails(() -> voteService.vote(member(noProfile), p.id(), pick(optionId(p, 0)))).code());
         assertTrue(ids(service.list(member(match), "open", null, 50)).contains(p.id()));
