@@ -22,6 +22,7 @@ import 'core/crash/crash_reporter.dart';
 import 'core/outbox/outbox.dart';
 import 'core/outbox/outbox_uploader.dart';
 import 'core/locale_controller.dart';
+import 'core/motion/bu_scroll_behavior.dart';
 import 'l10n/app_localizations.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'core/device_identity.dart';
@@ -212,6 +213,7 @@ class BingolApp extends StatelessWidget {
         theme: BuTheme.light(),
         darkTheme: BuTheme.dark(),
         themeMode: themeController.mode,
+        scrollBehavior: const BuScrollBehavior(),
         builder: (context, child) => AcademicCatalogScope(
           session: session,
           child: AppGate(api: session.api, child: child),

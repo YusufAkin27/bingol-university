@@ -519,19 +519,33 @@ class BuButton extends StatelessWidget {
     };
     final h = compact ? 36.0 : 54.0;
     final tx = Theme.of(context).textTheme;
-    final content = busy
-        ? SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2.4, color: fg))
-        : Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (icon != null) ...[Icon(icon, size: compact ? 13.5 : 18, color: fg), const SizedBox(width: 6)],
-              Flexible(
-                child: Text(label,
-                    textAlign: TextAlign.center,
-                    style: (compact ? tx.labelMedium! : tx.titleMedium!).copyWith(color: fg, fontWeight: FontWeight.w700)),
-              ),
-            ],
-          );
+    final content = ExcludeSemantics(
+      // Yükleniyorken etiket dıştaki Semantics'ten okunur (solan etiket çift okunmasın).
+      excluding: busy,
+      child: AnimatedSwitcher(
+      duration: BuMotion.of(context, BuMotion.short),
+      switchInCurve: BuMotion.standard,
+      switchOutCurve: BuMotion.standard,
+      transitionBuilder: (child, anim) => FadeTransition(
+        opacity: anim,
+        child: ScaleTransition(scale: Tween(begin: .9, end: 1.0).animate(anim), child: child),
+      ),
+      child: busy
+          ? SizedBox(key: const ValueKey('busy'), width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2.4, color: fg))
+          : Row(
+              key: const ValueKey('label'),
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (icon != null) ...[Icon(icon, size: compact ? 13.5 : 18, color: fg), const SizedBox(width: 6)],
+                Flexible(
+                  child: Text(label,
+                      textAlign: TextAlign.center,
+                      style: (compact ? tx.labelMedium! : tx.titleMedium!).copyWith(color: fg, fontWeight: FontWeight.w700)),
+                ),
+              ],
+            ),
+      ),
+    );
     final shape = compact
         ? StadiumBorder(side: side)
         : RoundedRectangleBorder(borderRadius: BuRadius.bMd, side: side);
@@ -543,6 +557,7 @@ class BuButton extends StatelessWidget {
             onPressed!();
           };
     final btn = Material(
+      animationDuration: BuMotion.of(context, BuMotion.short),
       color: disabled ? bg.withValues(alpha: .5) : bg,
       shape: shape,
       child: InkWell(

@@ -234,4 +234,70 @@ void main() {
       expect(sc.position.pixels, greaterThan(100));
     });
   });
+
+  group('BuButton busy gecisi', () {
+    testWidgets('etiket -> cember 150 ms fade, genislik (tam genislik) sabit; azalt: aninda', (t) async {
+      Widget b(bool busy) => host(SizedBox(width: 300, child: BuButton(label: 'Gonder', busy: busy, onPressed: () {})));
+      await t.pumpWidget(b(false));
+      final w0 = t.getSize(find.byType(BuButton)).width;
+      await t.pumpWidget(b(true));
+      await t.pump(const Duration(milliseconds: 60));
+      expect(find.text('Gonder'), findsOneWidget);
+      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+      expect(t.getSize(find.byType(BuButton)).width, w0);
+      await t.pump(const Duration(milliseconds: 200));
+      expect(find.text('Gonder'), findsNothing);
+      expect(t.getSize(find.byType(BuButton)).width, w0);
+      expect(find.bySemanticsLabel('Gonder'), findsWidgets);
+    });
+
+    testWidgets('azalt: etiket aninda gider', (t) async {
+      await t.pumpWidget(host(BuButton(label: 'Gonder', onPressed: () {}), reduce: true));
+      await t.pumpWidget(host(BuButton(label: 'Gonder', busy: true, onPressed: () {}), reduce: true));
+      await t.pump();
+      expect(find.text('Gonder'), findsNothing);
+    });
+  });
+
+  group('BuNumberStyle / BuScrollBehavior / BuRefreshIndicator', () {
+    test('tabular rakam bir kez eklenir, mevcut ozellikler korunur', () {
+      final s = const TextStyle(fontSize: 14).tabular;
+      expect(s.fontFeatures!.length, 1);
+      expect(s.tabular.fontFeatures!.length, 1);
+      expect(const TextStyle(fontFeatures: [FontFeature.slashedZero()]).tabular.fontFeatures!.length, 2);
+    });
+
+    testWidgets('kaydirma fizigi platforma gore', (t) async {
+      late BuildContext ctx;
+      for (final p in [TargetPlatform.android, TargetPlatform.iOS]) {
+        await t.pumpWidget(MaterialApp(
+          scrollBehavior: const BuScrollBehavior(),
+          theme: BuTheme.light().copyWith(platform: p),
+          home: Builder(builder: (c) {
+            ctx = c;
+            return const SizedBox();
+          }),
+        ));
+        await t.pumpAndSettle();
+        final phys = const BuScrollBehavior().getScrollPhysics(ctx);
+        expect(phys, p == TargetPlatform.iOS ? isA<BouncingScrollPhysics>() : isA<ClampingScrollPhysics>());
+      }
+    });
+
+    testWidgets('yenile: asagi cekip birakinca onRefresh calisir', (t) async {
+      var n = 0;
+      await t.pumpWidget(host(SizedBox(
+        height: 400,
+        child: BuRefreshIndicator(
+          onRefresh: () async => n++,
+          child: ListView(physics: const AlwaysScrollableScrollPhysics(), children: const [SizedBox(height: 100, child: Text('a'))]),
+        ),
+      )));
+      await t.fling(find.text('a'), const Offset(0, 300), 1000);
+      await t.pump();
+      await t.pump(const Duration(seconds: 1));
+      await t.pumpAndSettle();
+      expect(n, 1);
+    });
+  });
 }

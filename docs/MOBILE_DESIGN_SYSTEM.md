@@ -223,6 +223,13 @@ BuPressable(scale: .97, pressedOpacity: .92, onTap: ..)                  // bas�
 BuChipRow(labels: l, selected: i, onSelected: f)                          // seçili çip görünür kalır, taşan uçta 24 dp solma ipucu
 ```
 
+```dart
+BuRefreshIndicator(onRefresh: _load, child: liste)        // RefreshIndicator yerine: renk BuTokens, eşikte hafif titreşim
+Text('12:45', style: BuType.title.tabular)                 // sayılar için tabular rakam (BuNumberStyle.of(style))
+MaterialApp(scrollBehavior: const BuScrollBehavior())      // Android Clamping + M3 stretch, iOS Bouncing (main.dart'ta kurulu)
+BuButton(busy: true)                                        // etiket <-> çember 150 ms fade/ölçek; tam genişlikte genişlik sabit
+```
+
 Hero kuralları: etiket sayfada benzersiz (`BuHero.tagOf(tür, kimlik)`), iki uçta çocuk sınırı dolduran görsel olsun, `radius` her uçta kendi köşe değeri; `transitionOnUserGestures` varsayılan kapalı (Android tahmini geri ile çakışmasın).
 
 Kurallar: "animasyonları azalt" (`MediaQuery.disableAnimations`) açıkken tüm bu bileşenler anlık çalışır (süre 0; `BuMotion.of`); yalnız `transform`/`opacity` canlandırın; uzun/sonsuz animasyonlu listede `RepaintBoundary` ile ayırın. Uygulama içi ayrı bir "hareketi azalt" anahtarı yoktur; yalnız sistem ayarı dikkate alınır.
