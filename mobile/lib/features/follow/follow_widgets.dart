@@ -4,9 +4,9 @@ import '../../core/locale_controller.dart';
 import '../../core/session.dart';
 import '../../widgets/bu.dart';
 import '../posts/post_models.dart' show postAuthHeaders;
-import '../posts/social_api.dart';
 import '../posts/social_models.dart';
 import '../profile/user_profile_page.dart';
+import 'follow_button.dart';
 import '../../core/academic_catalog.dart';
 
 /// Takip listeleri / öneriler (Stitch 48) ortak parçaları: sekme hapı, tek beyaz kart, kişi satırı,
@@ -210,10 +210,10 @@ class FollowPersonRow extends StatelessWidget {
                 if (status != null) Padding(padding: const EdgeInsets.only(top: 3), child: status),
               ]),
             ),
-            if (showButton && !self)
+            if (showButton && !self && user.followState != FollowState.self)
               Padding(
                 padding: const EdgeInsetsDirectional.only(start: 10),
-                child: FollowRowButton(session: session, userId: user.id, followed: user.followedByMe),
+                child: FollowRowButton(session: session, userId: user.id, state: user.followState, isPrivate: user.isPrivate),
               ),
           ]),
         ),
@@ -232,93 +232,35 @@ class FollowPersonRow extends StatelessWidget {
       ]);
 }
 
-/// "Takip et" (soluk marka zemini; listede dolgulu kırmızı düğme yığılmaz) / "Takipte" (çizgili, sakin) düğmesi; iyimser günceller, hata olursa geri alır.
-class FollowRowButton extends StatefulWidget {
-  const FollowRowButton({super.key, required this.session, required this.userId, required this.followed, this.onChanged});
+/// Liste satırı takip düğmesi: üç durumlu ([FollowStateButton], görünüm `row`). Eski çağrılar `followed` verir;
+/// `state` verilirse o geçerlidir (gizli hesapta "İstek gönderildi").
+class FollowRowButton extends StatelessWidget {
+  const FollowRowButton({
+    super.key,
+    required this.session,
+    required this.userId,
+    this.followed = false,
+    this.state,
+    this.isPrivate = false,
+    this.onChanged,
+  });
 
   final Session session;
   final int userId;
   final bool followed;
+  final FollowState? state;
+  final bool isPrivate;
   final ValueChanged<bool>? onChanged;
 
   @override
-  State<FollowRowButton> createState() => _FollowRowButtonState();
-}
-
-class _FollowRowButtonState extends State<FollowRowButton> {
-  late bool _followed = widget.followed;
-  bool _busy = false;
-
-  @override
-  void didUpdateWidget(FollowRowButton old) {
-    super.didUpdateWidget(old);
-    if (old.followed != widget.followed && !_busy) _followed = widget.followed;
-  }
-
-  Future<void> _toggle() async {
-    if (_busy) return;
-    final want = !_followed;
-    buHaptic(want ? BuHaptic.light : BuHaptic.selection);
-    setState(() {
-      _busy = true;
-      _followed = want;
-    });
-    widget.onChanged?.call(want);
-    final api = SocialApi(widget.session);
-    try {
-      await (want ? api.follow(widget.userId) : api.unfollow(widget.userId));
-    } catch (e) {
-      if (mounted) {
-        setState(() => _followed = !want);
-        BuToast.show(context, errorText(e), kind: BuToastKind.error);
-      }
-      widget.onChanged?.call(!want);
-    } finally {
-      if (mounted) setState(() => _busy = false);
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final t = context.bu;
-    final l = context.l10n;
-    final on = !_followed;
-    final r = BorderRadius.circular(BuRadius.pill);
-    return Semantics(
-      button: true,
-      toggled: _followed,
-      label: _followed ? l.followButtonUnfollow : l.followButtonFollow,
-      excludeSemantics: true,
-      child: BuPressable(
-        onTap: _busy ? null : _toggle,
-        child: ConstrainedBox(
-          key: const ValueKey('followButton'),
-          constraints: const BoxConstraints(minHeight: 48, minWidth: 76),
-          child: Center(
-            widthFactor: 1,
-            // 36 dp görünür hap, 48 dp dokunma alanı.
-            child: AnimatedContainer(
-              duration: BuMotion.of(context, BuMotion.short),
-              curve: BuMotion.standard,
-              height: 36,
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                // Takip et: çizgili (bdStrong); Takipte: tonal sf2. Dolgulu kırmızı düğme yok.
-                color: on ? Colors.transparent : t.sf2,
-                border: Border.all(color: on ? t.bdStrong : Colors.transparent),
-                borderRadius: r,
-              ),
-              child: Text(_followed ? l.followButtonFollowing : l.followButtonFollow,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: Theme.of(context).textTheme.labelLarge!.copyWith(fontSize: 14, fontWeight: FontWeight.w600, color: t.ink)),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
+  Widget build(BuildContext context) => FollowStateButton(
+        session: session,
+        userId: userId,
+        state: state ?? (followed ? FollowState.following : FollowState.none),
+        isPrivate: isPrivate,
+        look: FollowLook.row,
+        onChanged: onChanged,
+      );
 }
 
 /// Boş / hata kartı: dairesel simge, başlık, açıklama (+ "Yeniden dene").

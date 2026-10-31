@@ -15,6 +15,7 @@ import 'chat_sheet_parts.dart' show showChatMuteSheet;
 import 'chatlist_widgets.dart';
 import 'conversation_actions.dart';
 import 'message_bubble.dart' show OnceBadge;
+import 'message_requests_page.dart';
 import 'message_placeholder.dart';
 import 'new_chat_page.dart';
 
@@ -65,6 +66,9 @@ class _ChatTabState extends State<ChatTab> {
   Object? _error;
   int _seq = 0;
   final _removing = <int>{};
+
+  /// Bekleyen mesaj isteği sayısı (`/conversations/requests/count`); satır yalnız > 0 iken görünür.
+  int _msgReq = 0;
 
   @override
   void initState() {
@@ -138,6 +142,7 @@ class _ChatTabState extends State<ChatTab> {
       });
       _persistList();
       _refreshBadge();
+      _loadMsgReq();
     } catch (e) {
       if (!mounted || my != _seq) return;
       setState(() {
@@ -184,6 +189,23 @@ class _ChatTabState extends State<ChatTab> {
     ];
     final next = map['nextCursor'];
     return (list, next is num ? next.toInt() : null);
+  }
+
+  /// Mesaj isteği sayısı; alınamazsa satır gizli kalır (sohbet listesi etkilenmez).
+  Future<void> _loadMsgReq() async {
+    if (_archived) return;
+    try {
+      final n = await MessageRequestsApi(widget.session).count();
+      if (mounted && n != null && n != _msgReq) setState(() => _msgReq = n);
+    } catch (_) {}
+  }
+
+  Future<void> _openMsgRequests() async {
+    await Navigator.push(context, MaterialPageRoute(builder: (_) => MessageRequestsPage(session: widget.session)));
+    if (mounted) {
+      _loadMsgReq();
+      _load(silent: true);
+    }
   }
 
   // ---- rozet ----
@@ -531,6 +553,8 @@ class _ChatTabState extends State<ChatTab> {
                 onSelect: (i) => setState(() => _filter = i),
               ),
             ),
+            if (!_archived && _msgReq > 0)
+              SliverToBoxAdapter(child: MessageRequestsEntry(count: _msgReq, onTap: _openMsgRequests)),
             ..._bodySlivers(t),
           ],
         ),

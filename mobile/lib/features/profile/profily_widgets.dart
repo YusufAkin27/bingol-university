@@ -3,7 +3,8 @@ import 'package:flutter/material.dart';
 import '../../core/locale_controller.dart';
 import '../../core/session.dart';
 import '../../widgets/bu.dart';
-import '../posts/social_api.dart';
+import '../follow/follow_button.dart';
+import '../posts/social_models.dart';
 
 /// Profil alt sayfaları (Pa1-Pa5) ortak bileşenleri: renkler `context.bu` belirteçleri ve M3 yazı ölçeği.
 
@@ -196,107 +197,34 @@ class ProfilyPrimaryButton extends StatelessWidget {
   Widget build(BuildContext context) => BuButton(label: label, icon: icon, busy: busy, onPressed: onPressed);
 }
 
-/// Takip et / Takiptesin düğmesi. İyimser günceller; hata olursa geri alır. "Takip et" dolu marka, "Takiptesin" tonal.
-class ProfilyFollowButton extends StatefulWidget {
-  const ProfilyFollowButton({super.key, required this.session, required this.userId, required this.followed, this.onChanged});
+/// Takip et / İstek gönderildi / Takiptesin hapı: üç durumlu ([FollowStateButton], görünüm `pill`).
+class ProfilyFollowButton extends StatelessWidget {
+  const ProfilyFollowButton({
+    super.key,
+    required this.session,
+    required this.userId,
+    this.followed = false,
+    this.state,
+    this.isPrivate = false,
+    this.onChanged,
+  });
 
   final Session session;
   final int userId;
   final bool followed;
+  final FollowState? state;
+  final bool isPrivate;
   final ValueChanged<bool>? onChanged;
 
   @override
-  State<ProfilyFollowButton> createState() => _ProfilyFollowButtonState();
-}
-
-class _ProfilyFollowButtonState extends State<ProfilyFollowButton> {
-  late bool _followed = widget.followed;
-  bool _busy = false;
-
-  @override
-  void didUpdateWidget(ProfilyFollowButton old) {
-    super.didUpdateWidget(old);
-    if (old.followed != widget.followed && !_busy) _followed = widget.followed;
-  }
-
-  Future<void> _toggle() async {
-    if (_busy) return;
-    final want = !_followed;
-    buHaptic(want ? BuHaptic.light : BuHaptic.selection);
-    setState(() {
-      _busy = true;
-      _followed = want;
-    });
-    widget.onChanged?.call(want);
-    final api = SocialApi(widget.session);
-    try {
-      await (want ? api.follow(widget.userId) : api.unfollow(widget.userId));
-    } catch (e) {
-      if (mounted) {
-        setState(() => _followed = !want);
-        BuToast.show(context, errorText(e), kind: BuToastKind.error);
-      }
-      widget.onChanged?.call(!want);
-    } finally {
-      if (mounted) setState(() => _busy = false);
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final t = context.bu;
-    final on = !_followed; // "Takip et" dolu marka; "Takiptesin" tonal
-    return Semantics(
-      button: true,
-      toggled: _followed,
-      label: _followed ? context.l10n.followButtonUnfollow : context.l10n.followButtonFollow,
-      excludeSemantics: true,
-      child: AnimatedContainer(
-        key: const ValueKey('followButton'),
-        duration: BuMotion.of(context, BuMotion.short),
-        curve: BuMotion.standard,
-        decoration: ShapeDecoration(
-          color: on ? t.pr : t.sf2,
-          shape: StadiumBorder(side: on ? BorderSide.none : BorderSide(color: t.bd)),
-        ),
-        child: InkWell(
-          customBorder: const StadiumBorder(),
-          onTap: _busy ? null : _toggle,
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(minHeight: 44, minWidth: 96),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 14),
-              child: Center(
-                widthFactor: 1,
-                child: AnimatedSwitcher(
-                  duration: BuMotion.of(context, BuMotion.short),
-                  child: Row(
-                    key: ValueKey(_followed),
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(_followed ? LucideIcons.userCheck : LucideIcons.userPlus, size: 16, color: on ? t.onPr : t.ink),
-                      const SizedBox(width: 6),
-                      Flexible(
-                        child: Text(
-                          _followed ? context.l10n.profilyardFollowingYou : context.l10n.followButtonFollow,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: Theme.of(context)
-                              .textTheme
-                              .labelLarge!
-                              .copyWith(fontWeight: FontWeight.w700, color: on ? t.onPr : t.ink),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
+  Widget build(BuildContext context) => FollowStateButton(
+        session: session,
+        userId: userId,
+        state: state ?? (followed ? FollowState.following : FollowState.none),
+        isPrivate: isPrivate,
+        look: FollowLook.pill,
+        onChanged: onChanged,
+      );
 }
 
 /// Düz renkli açıklama kutusu (Pa1 üstündeki not).

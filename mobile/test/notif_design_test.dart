@@ -1,3 +1,4 @@
+import 'package:bu_kampus/core/push/push_targets.dart';
 import 'package:bu_kampus/features/academic/academic_hub_page.dart';
 import 'package:bu_kampus/features/notifications/notifications_page.dart';
 import 'package:flutter/material.dart';
@@ -53,6 +54,37 @@ void main() {
       }
     }
   }
+
+  testWidgets('eski MESSAGE satırı (sunucu/önbellek) Bildirimler ekranında gizlenir; diğer türler kalır', (tester) async {
+    useScreen(tester, kPhoneMedium);
+    final be = FakeBackend()
+      ..on('/notifications', {
+        'unreadCount': 1,
+        'nextCursor': null,
+        'items': [
+          {'id': 1, 'type': 'MESSAGE', 'title': 'Mehmet Kaya mesaj gönderdi', 'read': false, 'createdAt': DateTime.now().toIso8601String()},
+          {'id': 2, 'type': 'FOLLOW_REQUEST', 'title': 'Yeni takip isteği', 'read': false, 'createdAt': DateTime.now().toIso8601String()},
+          {'id': 3, 'type': 'EVENT', 'title': 'Kariyer günleri', 'read': true, 'createdAt': DateTime.now().toIso8601String()},
+        ],
+      });
+    await tester.pumpWidget(buildApp(NotificationsPage(session: makeSession(be))));
+    await settle(tester);
+    expect(find.text('Mehmet Kaya mesaj gönderdi'), findsNothing);
+    expect(find.text('Yeni takip isteği'), findsOneWidget);
+    expect(find.text('Kariyer günleri'), findsOneWidget);
+    // Okunmamış süzgeci de mesaj satırını göstermez (yalnız takip isteği kalır).
+    await tester.tap(find.byKey(const ValueKey('notif-seg-unread')));
+    await settle(tester);
+    expect(find.text('Mehmet Kaya mesaj gönderdi'), findsNothing);
+    expect(find.text('Yeni takip isteği'), findsOneWidget);
+    await unmount(tester);
+  });
+
+  test('mesaj pushu hâlâ ilgili sohbeti açar (yönlendirme değişmedi)', () {
+    expect(resolvePushTarget({'type': 'MESSAGE', 'conversationId': '4'}), const PushTarget(PushDest.conversation, id: 4));
+    expect(resolvePushTarget({'targetType': 'MESSAGE', 'targetId': '7'}), const PushTarget(PushDest.conversation, id: 7));
+    expect(resolvePushTarget({'targetType': 'CONVERSATION', 'targetId': '9'}), const PushTarget(PushDest.conversation, id: 9));
+  });
 
   testWidgets('bildirimler: okunmamış filtresi ve sola kaydırarak silme', (tester) async {
     useScreen(tester, kPhoneMedium);

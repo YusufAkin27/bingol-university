@@ -4967,7 +4967,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get profilePrefsNotifCommunities => 'الأندية';
 
   @override
-  String get profilePrefsNotifMessages => 'الرسائل';
+  String get profilePrefsNotifMessages => 'إشعارات الرسائل (دفع)';
 
   @override
   String get profilePrefsNotifPolls => 'الاستطلاعات';
@@ -5440,9 +5440,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get bildirimTypeEvent => 'فعالية';
-
-  @override
-  String get bildirimTypeMessage => 'محادثة';
 
   @override
   String get bildirimTypeCommunity => 'نادٍ';
@@ -9590,4 +9587,129 @@ class AppLocalizationsAr extends AppLocalizations {
   String p63NewsLastUpdate(String when) {
     return 'آخر تحديث: $when';
   }
+
+  @override
+  String get frqPrivateTitle => 'حساب خاص';
+
+  @override
+  String get frqPrivateSub =>
+      'في الحساب الخاص لا يرى منشوراتك وقائمة متابعيك إلا من توافق عليهم. يبقى متابعوك الحاليون.';
+
+  @override
+  String get frqPrivateOffTitle => 'جعل الحساب عامًا؟';
+
+  @override
+  String get frqPrivateOffBody =>
+      'تُقبل طلبات المتابعة المعلّقة تلقائيًا. سيتمكن الجميع من رؤية منشوراتك وقائمة متابعيك.';
+
+  @override
+  String get frqPrivateOffConfirm => 'جعله عامًا';
+
+  @override
+  String get frqFollowRequested => 'تم إرسال الطلب';
+
+  @override
+  String get frqSemRequested => 'تم إرسال طلب المتابعة. المس لسحبه';
+
+  @override
+  String get frqUnfollowTitle => 'إلغاء المتابعة؟';
+
+  @override
+  String get frqUnfollowBody => 'لن تتابع هذا الشخص بعد الآن.';
+
+  @override
+  String get frqUnfollowBodyPrivate =>
+      'هذا الحساب خاص. إذا ألغيت المتابعة فعليك إرسال طلب جديد.';
+
+  @override
+  String get frqUnfollowConfirm => 'إلغاء المتابعة';
+
+  @override
+  String get frqCancelReqTitle => 'سحب الطلب؟';
+
+  @override
+  String get frqCancelReqBody =>
+      'سيتم سحب طلب المتابعة. يمكنك إرساله مجددًا لاحقًا.';
+
+  @override
+  String get frqCancelReqConfirm => 'سحب الطلب';
+
+  @override
+  String get frqLockedTitle => 'هذا الحساب خاص';
+
+  @override
+  String get frqLockedBody => 'أرسل طلب متابعة لترى منشوراته.';
+
+  @override
+  String get frqLockedBodyRequested =>
+      'ستتمكن من رؤية منشوراته عند الموافقة على طلبك.';
+
+  @override
+  String get frqReqTitle => 'طلبات المتابعة';
+
+  @override
+  String frqReqRow(String n) {
+    return 'طلبات المتابعة ($n)';
+  }
+
+  @override
+  String frqReqPending(String n) {
+    return 'الطلبات المعلّقة ($n)';
+  }
+
+  @override
+  String get frqReqAccept => 'قبول';
+
+  @override
+  String get frqReqDecline => 'حذف';
+
+  @override
+  String frqReqAcceptSem(String name) {
+    return 'قبول طلب $name';
+  }
+
+  @override
+  String frqReqDeclineSem(String name) {
+    return 'حذف طلب $name';
+  }
+
+  @override
+  String get frqReqEmpty => 'لا توجد طلبات متابعة معلّقة.';
+
+  @override
+  String get frqNotifTypeFollow => 'متابعة';
+
+  @override
+  String frqMsgReqRow(String n) {
+    return 'طلبات الرسائل ($n)';
+  }
+
+  @override
+  String get frqMsgReqTitle => 'طلبات الرسائل';
+
+  @override
+  String get frqMsgReqInfo =>
+      'تظهر هنا رسائل الأشخاص الذين لا تتابعهم ولا يشاركونك نادياً أو فعالية. حتى تقبل الطلب لا يرى المرسل ما إذا قرأت رسائله. عند الرد يُقبل الطلب تلقائيًا.';
+
+  @override
+  String get frqMsgReqAccept => 'قبول';
+
+  @override
+  String get frqMsgReqDecline => 'حذف';
+
+  @override
+  String get frqMsgReqGroupInvite => 'دعوة إلى مجموعة';
+
+  @override
+  String get frqMsgReqEmpty => 'لا توجد طلبات رسائل معلّقة.';
+
+  @override
+  String get frqMsgReqDeclineGroupTitle => 'حذف دعوة المجموعة؟';
+
+  @override
+  String get frqMsgReqDeclineGroupBody =>
+      'ستغادر المجموعة ولن يتمكن الشخص الذي أضافك من إضافتك مرة أخرى.';
+
+  @override
+  String get frqMsgReqDeclineGroupConfirm => 'حذف الدعوة';
 }

@@ -55,6 +55,8 @@ IconData bannerIcon(Map<String, dynamic> data) {
       return LucideIcons.clipboardList;
     case PushDest.user:
       return LucideIcons.user;
+    case PushDest.followRequests:
+      return LucideIcons.userPlus;
     case PushDest.timetable:
     case PushDest.exams:
       return LucideIcons.graduationCap;

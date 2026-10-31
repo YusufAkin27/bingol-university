@@ -7,6 +7,7 @@ import '../../core/session.dart';
 import '../../widgets/bu.dart';
 import '../../core/push/push_router.dart';
 import '../../core/push/push_targets.dart';
+import '../follow/follow_requests_entry.dart';
 import '../news/news_tile.dart' show newsLocalDate, newsMonthName;
 import 'notif_row.dart';
 
@@ -29,6 +30,9 @@ class _NotificationsPageState extends State<NotificationsPage> {
   bool _unreadOnly = false;
   Object? _error;
 
+  /// Yenilemede artar: üstteki "Takip istekleri" satırı sayısını yeniden yükler.
+  int _reqRefresh = 0;
+
   Session get _s => widget.session;
 
   @override
@@ -50,13 +54,14 @@ class _NotificationsPageState extends State<NotificationsPage> {
 
   Future<void> _load({bool silent = false}) async {
     if (!silent) setState(() => _loading = _items.isEmpty);
+    if (silent) _reqRefresh++;
     try {
       final r = await _s.api.get('/notifications') as Map<String, dynamic>;
       if (!mounted) return;
       setState(() {
         _items
           ..clear()
-          ..addAll(((r['items'] as List?) ?? []).cast<Map<String, dynamic>>());
+          ..addAll(_inbox(r['items']));
         _cursor = (r['nextCursor'] as num?)?.toInt();
         _error = null;
         _loading = false;
@@ -79,7 +84,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
       final r = await _s.api.get('/notifications?cursor=$_cursor') as Map<String, dynamic>;
       if (!mounted) return;
       setState(() {
-        _items.addAll(((r['items'] as List?) ?? []).cast<Map<String, dynamic>>());
+        _items.addAll(_inbox(r['items']));
         _cursor = (r['nextCursor'] as num?)?.toInt();
         _more = false;
       });
@@ -87,6 +92,13 @@ class _NotificationsPageState extends State<NotificationsPage> {
       if (mounted) setState(() => _more = false);
     }
   }
+
+  /// Sohbet mesajları Bildirimler'e düşmez (sohbet kendi sekmesindedir; push yine gider ve sohbeti açar). Sunucu
+  /// artık `MESSAGE` döndürmez; eski sürüm/önbellekten gelen satır istemcide de gizlenir.
+  static List<Map<String, dynamic>> _inbox(Object? items) => [
+        for (final e in (items as List?) ?? const [])
+          if (e is Map<String, dynamic> && '${e['type'] ?? ''}'.toUpperCase() != 'MESSAGE') e,
+      ];
 
   int get _unread => _items.where((n) => n['read'] != true).length;
 
@@ -165,8 +177,6 @@ class _NotificationsPageState extends State<NotificationsPage> {
         return l.bildirimTypeAnnouncement;
       case 'EVENT':
         return l.bildirimTypeEvent;
-      case 'MESSAGE':
-        return l.bildirimTypeMessage;
       case 'COMMUNITY':
         return l.bildirimTypeCommunity;
       case 'POLL':
@@ -177,6 +187,10 @@ class _NotificationsPageState extends State<NotificationsPage> {
       case 'POST_COMMENT':
       case 'COMMENT_REPLY':
         return l.bildirimTypePost;
+      case 'FOLLOW':
+      case 'FOLLOW_REQUEST':
+      case 'FOLLOW_ACCEPTED':
+        return l.frqNotifTypeFollow;
       default:
         return l.bildirimTypeOther;
     }
@@ -375,6 +389,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
             padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
             child: Align(alignment: AlignmentDirectional.centerEnd, child: pill),
           ),
+        FollowRequestsEntry(session: _s, refresh: _reqRefresh),
         if (!_loading) _filters(t),
         Expanded(child: body),
       ]),

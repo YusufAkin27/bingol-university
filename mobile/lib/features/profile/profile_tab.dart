@@ -6,6 +6,8 @@ import '../../core/session.dart';
 import '../../core/theme_controller.dart';
 import '../../widgets/bu.dart';
 import '../academic/academic_hub_page.dart';
+import '../follow/follow_requests_api.dart';
+import '../follow/follow_requests_page.dart';
 import '../follow/follow_suggestions.dart';
 import '../follow/follow_summary.dart';
 import '../posts/post_api.dart';
@@ -46,6 +48,9 @@ class _ProfileTabState extends State<ProfileTab> {
   int _gen = 0;
   // İstatistikler: null = yüklenmedi / alınamadı.
   String? _clubs, _events, _saved, _posts;
+
+  /// Bekleyen takip isteği sayısı (satır yalnız > 0 iken görünür).
+  int _followReq = 0;
 
   @override
   void initState() {
@@ -89,6 +94,7 @@ class _ProfileTabState extends State<ProfileTab> {
         _events = '${(r['events'] as num?)?.toInt() ?? 0}';
         _saved = '${(r['bookmarks'] as num?)?.toInt() ?? 0}';
       });
+      _loadFollowRequests();
       // Gönderi sayısı: mevcut kendi-gönderilerim ucunun toplamı (yeni uç yok); alınamazsa "–" kalır.
       try {
         final pr = await PostApi(widget.session).minePosts(size: 1);
@@ -97,6 +103,14 @@ class _ProfileTabState extends State<ProfileTab> {
     } catch (_) {
       // Sayılar alınamazsa gösterilmez; sayfa çalışmaya devam eder.
     }
+  }
+
+  /// Bekleyen takip isteği sayısı; alınamazsa satır gizli kalır.
+  Future<void> _loadFollowRequests() async {
+    try {
+      final n = await FollowRequestsApi(widget.session).count();
+      if (mounted && n != null && n != _followReq) setState(() => _followReq = n);
+    } catch (_) {}
   }
 
   Future<void> _go(Widget page) async {
@@ -185,6 +199,14 @@ class _ProfileTabState extends State<ProfileTab> {
             child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
               ProfilSection(l.profil1SecContent, top: 24),
               ProfilCard(children: [
+                // Takip istekleri (yalnız bekleyen varken): sayı satırın sağında metin, rozet yok.
+                if (_followReq > 0)
+                  ProfilRow(
+                    key: const ValueKey('profile-follow-requests'),
+                    label: l.frqReqTitle,
+                    value: '$_followReq',
+                    onTap: () => _go(FollowRequestsPage(session: widget.session)),
+                  ),
                 ProfilRow(
                   label: l.profileMyPosts,
                   onTap: () => _go(UserPostsPage(session: widget.session)),

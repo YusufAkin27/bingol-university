@@ -6,6 +6,7 @@ import '../../features/academic/timetable_page.dart';
 import '../../features/chat/chat_detail_page.dart';
 import '../../features/clubs/club_detail_page.dart';
 import '../../features/events/event_detail_page.dart';
+import '../../features/follow/follow_requests_page.dart';
 import '../../features/news/news_detail_page.dart';
 import '../../features/notifications/notifications_page.dart';
 import '../../features/polls/poll_routes.dart';
@@ -95,6 +96,9 @@ class PushRouter {
         return true;
       case PushDest.user:
         await openUserProfile(ctx, s, userId: id!);
+        return true;
+      case PushDest.followRequests:
+        push(FollowRequestsPage(session: s));
         return true;
       case PushDest.deptAnnouncement:
         push(AnnouncementDetailPage(session: s, id: id!));

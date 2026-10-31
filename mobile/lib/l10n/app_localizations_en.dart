@@ -5012,7 +5012,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profilePrefsNotifCommunities => 'Clubs';
 
   @override
-  String get profilePrefsNotifMessages => 'Messages';
+  String get profilePrefsNotifMessages => 'Message notifications (push)';
 
   @override
   String get profilePrefsNotifPolls => 'Polls';
@@ -5488,9 +5488,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get bildirimTypeEvent => 'Event';
-
-  @override
-  String get bildirimTypeMessage => 'Chat';
 
   @override
   String get bildirimTypeCommunity => 'Club';
@@ -9693,4 +9690,129 @@ class AppLocalizationsEn extends AppLocalizations {
   String p63NewsLastUpdate(String when) {
     return 'Last updated: $when';
   }
+
+  @override
+  String get frqPrivateTitle => 'Private account';
+
+  @override
+  String get frqPrivateSub =>
+      'With a private account, only people you approve can see your posts and follower list. Your current followers stay.';
+
+  @override
+  String get frqPrivateOffTitle => 'Make account public?';
+
+  @override
+  String get frqPrivateOffBody =>
+      'Pending follow requests are accepted automatically. Everyone can see your posts and follower list.';
+
+  @override
+  String get frqPrivateOffConfirm => 'Make public';
+
+  @override
+  String get frqFollowRequested => 'Request sent';
+
+  @override
+  String get frqSemRequested => 'Follow request sent. Tap to withdraw';
+
+  @override
+  String get frqUnfollowTitle => 'Unfollow?';
+
+  @override
+  String get frqUnfollowBody => 'You will no longer follow this person.';
+
+  @override
+  String get frqUnfollowBodyPrivate =>
+      'This account is private. If you unfollow, you will need to send a new request.';
+
+  @override
+  String get frqUnfollowConfirm => 'Unfollow';
+
+  @override
+  String get frqCancelReqTitle => 'Withdraw request?';
+
+  @override
+  String get frqCancelReqBody =>
+      'Your follow request will be withdrawn. You can send it again later.';
+
+  @override
+  String get frqCancelReqConfirm => 'Withdraw request';
+
+  @override
+  String get frqLockedTitle => 'This account is private';
+
+  @override
+  String get frqLockedBody => 'Send a follow request to see their posts.';
+
+  @override
+  String get frqLockedBodyRequested =>
+      'You can see their posts once your request is approved.';
+
+  @override
+  String get frqReqTitle => 'Follow requests';
+
+  @override
+  String frqReqRow(String n) {
+    return 'Follow requests ($n)';
+  }
+
+  @override
+  String frqReqPending(String n) {
+    return 'Pending requests ($n)';
+  }
+
+  @override
+  String get frqReqAccept => 'Approve';
+
+  @override
+  String get frqReqDecline => 'Delete';
+
+  @override
+  String frqReqAcceptSem(String name) {
+    return 'Approve request from $name';
+  }
+
+  @override
+  String frqReqDeclineSem(String name) {
+    return 'Delete request from $name';
+  }
+
+  @override
+  String get frqReqEmpty => 'No pending follow requests.';
+
+  @override
+  String get frqNotifTypeFollow => 'Follow';
+
+  @override
+  String frqMsgReqRow(String n) {
+    return 'Message requests ($n)';
+  }
+
+  @override
+  String get frqMsgReqTitle => 'Message requests';
+
+  @override
+  String get frqMsgReqInfo =>
+      'Messages from people you do not follow and who share no club or event with you appear here. Until you accept, the sender cannot see whether you have read their messages. Replying accepts the request automatically.';
+
+  @override
+  String get frqMsgReqAccept => 'Accept';
+
+  @override
+  String get frqMsgReqDecline => 'Delete';
+
+  @override
+  String get frqMsgReqGroupInvite => 'Group invite';
+
+  @override
+  String get frqMsgReqEmpty => 'No pending message requests.';
+
+  @override
+  String get frqMsgReqDeclineGroupTitle => 'Delete group invite?';
+
+  @override
+  String get frqMsgReqDeclineGroupBody =>
+      'You will leave the group and the person who added you cannot add you again.';
+
+  @override
+  String get frqMsgReqDeclineGroupConfirm => 'Delete invite';
 }

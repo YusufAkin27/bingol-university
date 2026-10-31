@@ -9232,7 +9232,7 @@ abstract class AppLocalizations {
   /// No description provided for @profilePrefsNotifMessages.
   ///
   /// In tr, this message translates to:
-  /// **'Mesajlar'**
+  /// **'Mesaj bildirimleri (push)'**
   String get profilePrefsNotifMessages;
 
   /// No description provided for @profilePrefsNotifPolls.
@@ -10122,12 +10122,6 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Etkinlik'**
   String get bildirimTypeEvent;
-
-  /// No description provided for @bildirimTypeMessage.
-  ///
-  /// In tr, this message translates to:
-  /// **'Sohbet'**
-  String get bildirimTypeMessage;
 
   /// No description provided for @bildirimTypeCommunity.
   ///
@@ -17550,6 +17544,222 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Son güncelleme: {when}'**
   String p63NewsLastUpdate(String when);
+
+  /// No description provided for @frqPrivateTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Gizli hesap'**
+  String get frqPrivateTitle;
+
+  /// No description provided for @frqPrivateSub.
+  ///
+  /// In tr, this message translates to:
+  /// **'Gizli hesapta yalnız onayladığın kişiler gönderilerini ve takipçi listeni görür. Mevcut takipçilerin kalır.'**
+  String get frqPrivateSub;
+
+  /// No description provided for @frqPrivateOffTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Hesap herkese açılsın mı?'**
+  String get frqPrivateOffTitle;
+
+  /// No description provided for @frqPrivateOffBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bekleyen takip istekleri otomatik kabul edilir. Gönderilerini ve takipçi listeni herkes görebilir.'**
+  String get frqPrivateOffBody;
+
+  /// No description provided for @frqPrivateOffConfirm.
+  ///
+  /// In tr, this message translates to:
+  /// **'Herkese aç'**
+  String get frqPrivateOffConfirm;
+
+  /// No description provided for @frqFollowRequested.
+  ///
+  /// In tr, this message translates to:
+  /// **'İstek gönderildi'**
+  String get frqFollowRequested;
+
+  /// No description provided for @frqSemRequested.
+  ///
+  /// In tr, this message translates to:
+  /// **'Takip isteği gönderildi. Geri çekmek için dokun'**
+  String get frqSemRequested;
+
+  /// No description provided for @frqUnfollowTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Takibi bırak?'**
+  String get frqUnfollowTitle;
+
+  /// No description provided for @frqUnfollowBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu kişiyi artık takip etmeyeceksin.'**
+  String get frqUnfollowBody;
+
+  /// No description provided for @frqUnfollowBodyPrivate.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu hesap gizli. Takibi bırakırsan yeniden istek göndermen gerekir.'**
+  String get frqUnfollowBodyPrivate;
+
+  /// No description provided for @frqUnfollowConfirm.
+  ///
+  /// In tr, this message translates to:
+  /// **'Takibi bırak'**
+  String get frqUnfollowConfirm;
+
+  /// No description provided for @frqCancelReqTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'İsteği geri çek?'**
+  String get frqCancelReqTitle;
+
+  /// No description provided for @frqCancelReqBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Takip isteğin geri çekilir. İstersen daha sonra yeniden gönderebilirsin.'**
+  String get frqCancelReqBody;
+
+  /// No description provided for @frqCancelReqConfirm.
+  ///
+  /// In tr, this message translates to:
+  /// **'İsteği geri çek'**
+  String get frqCancelReqConfirm;
+
+  /// No description provided for @frqLockedTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu hesap gizli'**
+  String get frqLockedTitle;
+
+  /// No description provided for @frqLockedBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Gönderilerini görmek için takip isteği gönder.'**
+  String get frqLockedBody;
+
+  /// No description provided for @frqLockedBodyRequested.
+  ///
+  /// In tr, this message translates to:
+  /// **'İsteğin onaylanınca gönderileri görebilirsin.'**
+  String get frqLockedBodyRequested;
+
+  /// No description provided for @frqReqTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Takip istekleri'**
+  String get frqReqTitle;
+
+  /// No description provided for @frqReqRow.
+  ///
+  /// In tr, this message translates to:
+  /// **'Takip istekleri ({n})'**
+  String frqReqRow(String n);
+
+  /// No description provided for @frqReqPending.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bekleyen istekler ({n})'**
+  String frqReqPending(String n);
+
+  /// No description provided for @frqReqAccept.
+  ///
+  /// In tr, this message translates to:
+  /// **'Onayla'**
+  String get frqReqAccept;
+
+  /// No description provided for @frqReqDecline.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sil'**
+  String get frqReqDecline;
+
+  /// No description provided for @frqReqAcceptSem.
+  ///
+  /// In tr, this message translates to:
+  /// **'{name} isteğini onayla'**
+  String frqReqAcceptSem(String name);
+
+  /// No description provided for @frqReqDeclineSem.
+  ///
+  /// In tr, this message translates to:
+  /// **'{name} isteğini sil'**
+  String frqReqDeclineSem(String name);
+
+  /// No description provided for @frqReqEmpty.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bekleyen takip isteği yok.'**
+  String get frqReqEmpty;
+
+  /// No description provided for @frqNotifTypeFollow.
+  ///
+  /// In tr, this message translates to:
+  /// **'Takip'**
+  String get frqNotifTypeFollow;
+
+  /// No description provided for @frqMsgReqRow.
+  ///
+  /// In tr, this message translates to:
+  /// **'Mesaj istekleri ({n})'**
+  String frqMsgReqRow(String n);
+
+  /// No description provided for @frqMsgReqTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Mesaj istekleri'**
+  String get frqMsgReqTitle;
+
+  /// No description provided for @frqMsgReqInfo.
+  ///
+  /// In tr, this message translates to:
+  /// **'Seninle ortak kulübü ya da etkinliği olmayan, takip etmediğin kişilerden gelen mesajlar burada görünür. Kabul edene kadar gönderen mesajlarının okunup okunmadığını görmez. Yanıt yazarsan istek otomatik kabul edilir.'**
+  String get frqMsgReqInfo;
+
+  /// No description provided for @frqMsgReqAccept.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kabul et'**
+  String get frqMsgReqAccept;
+
+  /// No description provided for @frqMsgReqDecline.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sil'**
+  String get frqMsgReqDecline;
+
+  /// No description provided for @frqMsgReqGroupInvite.
+  ///
+  /// In tr, this message translates to:
+  /// **'Grup daveti'**
+  String get frqMsgReqGroupInvite;
+
+  /// No description provided for @frqMsgReqEmpty.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bekleyen mesaj isteği yok.'**
+  String get frqMsgReqEmpty;
+
+  /// No description provided for @frqMsgReqDeclineGroupTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Grup daveti silinsin mi?'**
+  String get frqMsgReqDeclineGroupTitle;
+
+  /// No description provided for @frqMsgReqDeclineGroupBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Gruptan ayrılırsın ve seni ekleyen kişi bir daha ekleyemez.'**
+  String get frqMsgReqDeclineGroupBody;
+
+  /// No description provided for @frqMsgReqDeclineGroupConfirm.
+  ///
+  /// In tr, this message translates to:
+  /// **'Daveti sil'**
+  String get frqMsgReqDeclineGroupConfirm;
 }
 
 class _AppLocalizationsDelegate

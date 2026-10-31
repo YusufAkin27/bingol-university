@@ -4989,7 +4989,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get profilePrefsNotifCommunities => 'Topluluklar';
 
   @override
-  String get profilePrefsNotifMessages => 'Mesajlar';
+  String get profilePrefsNotifMessages => 'Mesaj bildirimleri (push)';
 
   @override
   String get profilePrefsNotifPolls => 'Anketler';
@@ -5464,9 +5464,6 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get bildirimTypeEvent => 'Etkinlik';
-
-  @override
-  String get bildirimTypeMessage => 'Sohbet';
 
   @override
   String get bildirimTypeCommunity => 'Kulüp';
@@ -9659,4 +9656,130 @@ class AppLocalizationsTr extends AppLocalizations {
   String p63NewsLastUpdate(String when) {
     return 'Son güncelleme: $when';
   }
+
+  @override
+  String get frqPrivateTitle => 'Gizli hesap';
+
+  @override
+  String get frqPrivateSub =>
+      'Gizli hesapta yalnız onayladığın kişiler gönderilerini ve takipçi listeni görür. Mevcut takipçilerin kalır.';
+
+  @override
+  String get frqPrivateOffTitle => 'Hesap herkese açılsın mı?';
+
+  @override
+  String get frqPrivateOffBody =>
+      'Bekleyen takip istekleri otomatik kabul edilir. Gönderilerini ve takipçi listeni herkes görebilir.';
+
+  @override
+  String get frqPrivateOffConfirm => 'Herkese aç';
+
+  @override
+  String get frqFollowRequested => 'İstek gönderildi';
+
+  @override
+  String get frqSemRequested =>
+      'Takip isteği gönderildi. Geri çekmek için dokun';
+
+  @override
+  String get frqUnfollowTitle => 'Takibi bırak?';
+
+  @override
+  String get frqUnfollowBody => 'Bu kişiyi artık takip etmeyeceksin.';
+
+  @override
+  String get frqUnfollowBodyPrivate =>
+      'Bu hesap gizli. Takibi bırakırsan yeniden istek göndermen gerekir.';
+
+  @override
+  String get frqUnfollowConfirm => 'Takibi bırak';
+
+  @override
+  String get frqCancelReqTitle => 'İsteği geri çek?';
+
+  @override
+  String get frqCancelReqBody =>
+      'Takip isteğin geri çekilir. İstersen daha sonra yeniden gönderebilirsin.';
+
+  @override
+  String get frqCancelReqConfirm => 'İsteği geri çek';
+
+  @override
+  String get frqLockedTitle => 'Bu hesap gizli';
+
+  @override
+  String get frqLockedBody => 'Gönderilerini görmek için takip isteği gönder.';
+
+  @override
+  String get frqLockedBodyRequested =>
+      'İsteğin onaylanınca gönderileri görebilirsin.';
+
+  @override
+  String get frqReqTitle => 'Takip istekleri';
+
+  @override
+  String frqReqRow(String n) {
+    return 'Takip istekleri ($n)';
+  }
+
+  @override
+  String frqReqPending(String n) {
+    return 'Bekleyen istekler ($n)';
+  }
+
+  @override
+  String get frqReqAccept => 'Onayla';
+
+  @override
+  String get frqReqDecline => 'Sil';
+
+  @override
+  String frqReqAcceptSem(String name) {
+    return '$name isteğini onayla';
+  }
+
+  @override
+  String frqReqDeclineSem(String name) {
+    return '$name isteğini sil';
+  }
+
+  @override
+  String get frqReqEmpty => 'Bekleyen takip isteği yok.';
+
+  @override
+  String get frqNotifTypeFollow => 'Takip';
+
+  @override
+  String frqMsgReqRow(String n) {
+    return 'Mesaj istekleri ($n)';
+  }
+
+  @override
+  String get frqMsgReqTitle => 'Mesaj istekleri';
+
+  @override
+  String get frqMsgReqInfo =>
+      'Seninle ortak kulübü ya da etkinliği olmayan, takip etmediğin kişilerden gelen mesajlar burada görünür. Kabul edene kadar gönderen mesajlarının okunup okunmadığını görmez. Yanıt yazarsan istek otomatik kabul edilir.';
+
+  @override
+  String get frqMsgReqAccept => 'Kabul et';
+
+  @override
+  String get frqMsgReqDecline => 'Sil';
+
+  @override
+  String get frqMsgReqGroupInvite => 'Grup daveti';
+
+  @override
+  String get frqMsgReqEmpty => 'Bekleyen mesaj isteği yok.';
+
+  @override
+  String get frqMsgReqDeclineGroupTitle => 'Grup daveti silinsin mi?';
+
+  @override
+  String get frqMsgReqDeclineGroupBody =>
+      'Gruptan ayrılırsın ve seni ekleyen kişi bir daha ekleyemez.';
+
+  @override
+  String get frqMsgReqDeclineGroupConfirm => 'Daveti sil';
 }

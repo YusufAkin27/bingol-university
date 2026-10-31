@@ -16,27 +16,34 @@ class IconBadge {
   final MethodChannel _ch;
   final bool _ios;
   ValueListenable<int>? _source;
+  ValueListenable<int>? _extra;
   int? _last;
 
-  /// Kaynağı dinlemeye başlar ve güncel değeri hemen yansıtır (eski push rozeti düzeltilsin).
-  void attach(ValueListenable<int> source) {
+  /// Kaynağı dinlemeye başlar ve güncel değeri hemen yansıtır (eski push rozeti düzeltilsin). [extra] verilirse simge
+  /// rozeti ikisinin TOPLAMIDIR: sunucu push rozeti = bildirim kutusu okunmamışı + sohbet okunmamışı (mesajlar artık
+  /// bildirim kutusuna yazılmaz), istemci de aynı toplamı gösterir.
+  void attach(ValueListenable<int> source, {ValueListenable<int>? extra}) {
     if (!_ios) return;
     detach(clear: false);
     _source = source;
+    _extra = extra;
     source.addListener(_onChange);
+    extra?.addListener(_onChange);
     _onChange();
   }
 
   /// Dinlemeyi bırakır; [clear] ise rozeti sıfırlar (çıkışta başka kullanıcının sayısı kalmasın).
   void detach({bool clear = true}) {
     _source?.removeListener(_onChange);
+    _extra?.removeListener(_onChange);
     _source = null;
+    _extra = null;
     if (clear) unawaited(set(0));
   }
 
   void _onChange() {
     final v = _source?.value;
-    if (v != null) unawaited(set(v));
+    if (v != null) unawaited(set(v + (_extra?.value ?? 0)));
   }
 
   /// Rozeti ayarlar (tekrarlayan aynı değer gönderilmez).

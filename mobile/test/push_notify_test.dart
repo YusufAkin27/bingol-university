@@ -274,6 +274,8 @@ void main() {
         });
       await tester.pumpWidget(buildApp(NotificationPrefsPage(session: makeSession(b))));
       await tester.pumpAndSettle();
+      // Mesaj anahtarı PUSH anlamındadır: uygulama içi listede mesaj gösterilmediği yanlış ima edilmez.
+      expect(find.text('Mesaj bildirimleri (push)'), findsOneWidget);
       expect(find.text('Kişisel mesajlar'), findsNothing); // ayrıntılı tercihler ayrı sayfada
       expect(find.text('Anketler'), findsOneWidget);
       expect(find.text('Akademik duyurular'), findsNothing); // sunucu göndermedi

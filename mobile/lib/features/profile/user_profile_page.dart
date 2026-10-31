@@ -11,7 +11,9 @@ import '../../widgets/common.dart';
 import '../../widgets/report_sheet.dart';
 import '../academic/akad_widgets.dart';
 import '../chat/chat_detail_page.dart';
+import '../follow/follow_button.dart';
 import '../follow/follow_list_page.dart';
+import '../follow/locked_profile_block.dart';
 import '../posts/social_api.dart';
 import '../posts/social_models.dart';
 import 'edit_profile_page.dart';
@@ -69,7 +71,6 @@ class _UserProfilePageState extends State<UserProfilePage> {
   bool _blocked = false;
   bool _busyMsg = false;
   bool _busyBlock = false;
-  bool _busyFollow = false;
   FollowStats? _stats;
   String? _postCount;
 
@@ -88,26 +89,31 @@ class _UserProfilePageState extends State<UserProfilePage> {
     } catch (_) {}
   }
 
-  Future<void> _toggleFollow() async {
-    if (_busyFollow) return;
+  /// Gizli hesap mı (profil yanıtı `isPrivate`; takip yanıtlarından da gelir).
+  bool get _isPrivate => _stats?.isPrivate ?? (_p?['isPrivate'] == true);
+
+  /// Gizli hesap ve ben takipçi/kendisi değilim: gönderiler ve listeler kilitli (`locked`).
+  bool get _isLocked => !_self && (_stats?.locked ?? (_p?['locked'] == true));
+
+  /// [FollowStateButton] geri çağrısı: durum tek kaynaktır; sayaç ve kilit ondan türetilir.
+  /// İyimser adımda `r == null`; sunucu yanıtında kesin sayı gelir. Kilit açılınca (gizli hesap isteği kabul etmiş)
+  /// profil yeniden yüklenir ki gönderi ızgarası gelsin.
+  void _onFollowState(FollowState st, FollowResult? r) {
     final s = _stats ?? const FollowStats();
-    final want = !s.followedByMe;
-    final api = SocialApi(widget.session);
+    final delta = (st == FollowState.following ? 1 : 0) - (s.followState == FollowState.following ? 1 : 0);
+    final wasLocked = _isLocked;
+    final priv = _isPrivate;
     setState(() {
-      _busyFollow = true;
-      _stats = s.copyWith(followedByMe: want, followers: (s.followers + (want ? 1 : -1)).clamp(0, 1 << 30));
+      _stats = FollowStats(
+        followers: (r?.followerCount ?? (s.followers + delta)).clamp(0, 1 << 30),
+        following: s.following,
+        followState: st,
+        followsMe: s.followsMe,
+        isPrivate: priv,
+        locked: priv && st != FollowState.following,
+      );
     });
-    try {
-      final res = await (want ? api.follow(widget.userId) : api.unfollow(widget.userId));
-      // Sunucunun kesin takipçi sayısı iyimser tahminin yerini alır.
-      final c = res.followerCount;
-      if (mounted && c != null) setState(() => _stats = (_stats ?? s).copyWith(followers: c));
-    } catch (e) {
-      if (mounted) setState(() => _stats = s);
-      _toast(errorText(e), kind: BuToastKind.error);
-    } finally {
-      if (mounted) setState(() => _busyFollow = false);
-    }
+    if (wasLocked && st == FollowState.following && r != null) _load();
   }
 
   Future<void> _load() async {
@@ -118,7 +124,8 @@ class _UserProfilePageState extends State<UserProfilePage> {
       if (!mounted) return;
       final m = Map<String, dynamic>.from(r as Map);
       // Başkasının profil yanıtı takip alanlarını taşır: ikinci istek gerekmez.
-      final hasStats = !_self && m['followerCount'] != null;
+      // Kilitli (gizli) profilde sayaçlar null gelir ama `followState`/`locked` vardır: yine ikinci istek gerekmez.
+      final hasStats = !_self && (m['followerCount'] != null || m['followState'] is String);
       setState(() {
         _p = m;
         if (hasStats) _stats = FollowStats.fromJson(m);
@@ -420,7 +427,8 @@ class _UserProfilePageState extends State<UserProfilePage> {
     final grade = _gradeText();
     final email = _s('email');
     final s = _stats;
-    final stat = _blocked ? '—' : null;
+    final locked = _isLocked;
+    final stat = _blocked ? '—' : (locked ? '–' : null);
     final avatarHidden = _self && _p?['avatarHidden'] == true;
     return ListView(
       padding: EdgeInsets.fromLTRB(20, 8, 20, MediaQuery.of(context).padding.bottom + 32),
@@ -493,9 +501,9 @@ class _UserProfilePageState extends State<UserProfilePage> {
               child: Row(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
                 Expanded(child: _stat(t, stat ?? _postCount ?? '0', l.icerikStatPosts)),
                 VerticalDivider(width: 1, thickness: 1, indent: 10, endIndent: 10, color: t.bd),
-                Expanded(child: _stat(t, stat ?? (s == null ? '0' : '${s.followers}'), l.icerikStatFollowers, followers: _blocked ? null : true)),
+                Expanded(child: _stat(t, stat ?? (s == null ? '0' : '${s.followers}'), l.icerikStatFollowers, followers: _blocked || locked ? null : true)),
                 VerticalDivider(width: 1, thickness: 1, indent: 10, endIndent: 10, color: t.bd),
-                Expanded(child: _stat(t, stat ?? (s == null ? '0' : '${s.following}'), l.icerikStatFollowing, followers: _blocked ? null : false)),
+                Expanded(child: _stat(t, stat ?? (s == null ? '0' : '${s.following}'), l.icerikStatFollowing, followers: _blocked || locked ? null : false)),
               ]),
             ),
             Divider(height: 1, thickness: 1, color: t.bd),
@@ -518,14 +526,17 @@ class _UserProfilePageState extends State<UserProfilePage> {
         if (!_blocked) ...[
           const SizedBox(height: 14),
           _infoCard(t, bio: bio, faculty: faculty, dept: dept, grade: grade, email: email),
-          IcerikUserPostsGrid(
-            session: widget.session,
-            userId: widget.userId,
-            name: _name,
-            onCount: (c) {
-              if (mounted) setState(() => _postCount = c);
-            },
-          ),
+          if (locked)
+            LockedProfileBlock(requested: _stats?.followState == FollowState.requested)
+          else
+            IcerikUserPostsGrid(
+              session: widget.session,
+              userId: widget.userId,
+              name: _name,
+              onCount: (c) {
+                if (mounted) setState(() => _postCount = c);
+              },
+            ),
         ],
       ],
     );
@@ -551,27 +562,16 @@ class _UserProfilePageState extends State<UserProfilePage> {
         ),
       ]);
     }
-    final following = s?.followedByMe ?? false;
     return Row(children: [
       Expanded(
-        child: Semantics(
-          toggled: following,
-          child: following
-              ? AkadTonalButton(
-                  key: const ValueKey('followButton'),
-                  label: l.followButtonFollowing,
-                  icon: LucideIcons.check,
-                  height: BuSize.button,
-                  busy: _busyFollow,
-                  onPressed: _toggleFollow,
-                )
-              : BuButton(
-                  key: const ValueKey('followButton'),
-                  label: l.followButtonFollow,
-                  icon: LucideIcons.userPlus,
-                  busy: _busyFollow,
-                  onPressed: _toggleFollow,
-                ),
+        child: FollowStateButton(
+          session: widget.session,
+          userId: widget.userId,
+          state: s?.followState ?? FollowState.none,
+          isPrivate: _isPrivate,
+          look: FollowLook.block,
+          compact: false,
+          onState: _onFollowState,
         ),
       ),
       const SizedBox(width: 10),

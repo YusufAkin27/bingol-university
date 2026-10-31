@@ -72,3 +72,18 @@ Kaynak: `C:\bu_design\stitch\v3_feed\SARTNAME.md` KATEGORİ 4/5, PNG'ler `profil
 ## Doğrulama
 
 `flutter analyze lib/features/profile lib/features/follow`: 0 sorun. Testler (320 dp x1.3, 3 dil, açık/koyu matrisi dahil): `test/redesign/p3_profile_test.dart`, `profil1/2/yard`, `user_profile`, `p18`, `pages_c`, `visual_c`, `l10n`, `crash_reporter`, `back_navigation`. Gerçek cihaz/emülatör gezisi yapılmadı.
+
+## Gizli hesap ve takip istekleri (FOLLOWREQ-MB, Stitch referansı YOK)
+
+Referans PNG yok; ölçüler kardeş ekranlardan alındı (takipçi satırı 64 dp / avatar 44, hap düğme 36 dp görünür + 48 dp dokunma, ayar satırı 56 dp). Yeni renk/ikon sistemi yok (`context.bu`, Lucide).
+
+| Öğe | Ölçü |
+|---|---|
+| Takip düğmesi (liste) | 36 dp hap: Takip et = çizgili `bdStrong`; İstek gönderildi = çizgili `bd` + `mut` metin; Takiptesin = tonal `sf2`. En çok ekran genişliğinin yarısı (uzun etiket adı ezmez) |
+| Takip düğmesi (profil) | 48 dp tam genişlik: Takip et = birincil; İstek gönderildi = çizgili (saat simgesi); Takiptesin = tonal (tik) |
+| Kilitli profil bloğu | `sf` kart, köşe 24; 56 dp `soft` daire içinde kilit; "Bu hesap gizli" titleMedium/800; tek cümle bodyMedium `mut`. Sayılar "–" |
+| Takip istekleri satırı | min 64 dp, avatar 44; Onayla = birincil compact (34 görünür/48 dokunma), Sil = çizgili compact; dar ekranda düğmeler adın altında iki eşit sütun |
+| Giriş satırı (Bildirimler / Sohbet) | 56 dp, solda 40 dp `soft` daire + simge, 16/600 etiket, yön oku, altta 1 dp `bd` |
+| Gizli hesap anahtarı | `ProfilFlatToggle` (56+ dp), Gizlilik ve veriler üstünde kendi grubunda; açıklama 12 sp `mut` |
+
+Kaynak: `mobile/test/followreq_test.dart` ekran görüntüleri `C:\bu_qa\shots\followreq\`.

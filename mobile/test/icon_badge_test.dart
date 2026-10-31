@@ -46,6 +46,24 @@ void main() {
     expect(sent.last, 0);
   });
 
+  test('iOS: ek kaynak (sohbet) varsa simge rozeti kutu + sohbet toplamidir', () async {
+    final inbox = ValueNotifier<int>(2);
+    final chat = ValueNotifier<int>(3);
+    final b = IconBadge(channel: ch, isIOS: true);
+    b.attach(inbox, extra: chat);
+    await Future<void>.delayed(Duration.zero);
+    expect(sent, [5]);
+    chat.value = 0;
+    inbox.value = 1;
+    await Future<void>.delayed(Duration.zero);
+    expect(sent.last, 1);
+    b.detach();
+    await Future<void>.delayed(Duration.zero);
+    chat.value = 7; // ayrildiktan sonra dinlenmez
+    await Future<void>.delayed(Duration.zero);
+    expect(sent.last, 0);
+  });
+
   test('Android/diger platformda kanal cagrilmaz', () async {
     final src = ValueNotifier<int>(4);
     final b = IconBadge(channel: ch, isIOS: false);

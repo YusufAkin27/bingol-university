@@ -193,7 +193,7 @@ class PushService with WidgetsBindingObserver {
     PushRouter.session = session;
     unawaited(_attachReminderTaps());
     unawaited(_syncChannelNames()); // FCM'den bağımsız: kanal adları/açıklamaları kullanıcının dilinde
-    _iconBadge.attach(session.badges.notifications); // iOS: push'un bıraktığı eski rozet düzeltilir, okununca düşer
+    _iconBadge.attach(session.badges.notifications, extra: session.badges.chat); // iOS: push'un bıraktığı eski rozet düzeltilir, okununca düşer (kutu + sohbet toplamı)
     if (!await _ensureInit()) return;
     try {
       final fm = FirebaseMessaging.instance;

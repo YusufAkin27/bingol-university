@@ -163,10 +163,12 @@ class _FollowSummaryState extends State<FollowSummary> {
           child: FollowButton(
             session: widget.session,
             userId: widget.userId,
-            followed: s.followedByMe,
+            state: s.followState,
+            isPrivate: s.isPrivate,
             compact: false,
-            onChanged: (v) => setState(() =>
-                _stats = s.copyWith(followedByMe: v, followers: (s.followers + (v ? 1 : -1)).clamp(0, 1 << 30))),
+            onChanged: (v) => setState(() => _stats = s.copyWith(
+                followState: v ? FollowState.following : FollowState.none,
+                followers: (s.followers + (v ? 1 : -1)).clamp(0, 1 << 30))),
           ),
         ),
     ]);

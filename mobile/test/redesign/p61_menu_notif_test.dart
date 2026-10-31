@@ -188,7 +188,9 @@ void main() {
       await _show(tester, NotificationsPage(session: makeSession(b)));
       expect(find.text('Duyuru'), findsOneWidget);
       expect(find.text('Kariyer günleri yarın başlıyor'), findsOneWidget);
-      expect(find.byKey(const ValueKey('notif-unread-dot')), findsNWidgets(4)); // ağaçta kalır, okunanlar ölçeksiz
+      // Ağaçta kalır, okunanlar ölçeksiz. Eski MESSAGE satırı (id 4) istemcide gizlenir: 3 satır.
+      expect(find.byKey(const ValueKey('notif-unread-dot')), findsNWidgets(3));
+      expect(find.text('Mehmet Kaya mesaj gönderdi'), findsNothing);
       expect(find.byIcon(LucideIcons.megaphone), findsNothing);
       expect(find.byIcon(LucideIcons.checkCheck), findsNothing);
       expect(find.byType(BuCard), findsNothing);

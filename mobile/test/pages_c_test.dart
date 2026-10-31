@@ -196,7 +196,7 @@ final kPageCases = <PageCase>[
           'createdAt': DateTime.now().toIso8601String(),
           'data': '{"newsId": 3}',
         },
-        {'id': 2, 'type': 'MESSAGE', 'title': 'Okunmuş bildirim', 'read': true, 'createdAt': '2020-01-01T10:00:00'},
+        {'id': 2, 'type': 'EVENT', 'title': 'Okunmuş bildirim', 'read': true, 'createdAt': '2020-01-01T10:00:00'},
       ],
     }),
     empty: (b) => b.on('/notifications', _page([])),

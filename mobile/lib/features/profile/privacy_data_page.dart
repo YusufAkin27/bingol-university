@@ -4,6 +4,7 @@ import '../../core/locale_controller.dart';
 import '../../core/session.dart';
 import '../../widgets/bu.dart';
 import '../chat/photo_autosave.dart';
+import '../follow/follow_sheets.dart';
 import 'blocked_users_page.dart';
 import 'profil2_my_data_page.dart';
 import 'profil2_widgets.dart';
@@ -28,6 +29,9 @@ class _PrivacyDataPageState extends State<PrivacyDataPage> {
   final Map<String, String> _vis = {for (final f in _fields) f: 'EVERYONE'};
   final Set<String> _saving = {};
   bool _showEmail = false;
+
+  /// Gizli hesap (`privateAccount`): gönderiler ve takipçi listesi yalnız onaylı takipçilere görünür.
+  bool _private = false;
 
   /// Sohbet fotoğraflarını galeriye otomatik kaydet (cihazda saklanır; varsayılan KAPALI, rıza ile açılır).
   bool _saveGallery = false;
@@ -122,6 +126,7 @@ class _PrivacyDataPageState extends State<PrivacyDataPage> {
           if (v is String && kPrivacyValues.contains(v)) _vis[f] = v;
         }
         _avatarHidden = r['avatarHiddenByModeration'] == true;
+        _private = r['privateAccount'] == true;
       }
       try {
         final me = await widget.session.api.get('/users/me');
@@ -165,6 +170,24 @@ class _PrivacyDataPageState extends State<PrivacyDataPage> {
       _saveFailed(() => _setVis(field, value));
     } finally {
       if (mounted) setState(() => _saving.remove(field));
+    }
+  }
+
+  /// Açarken onay yok; kapatırken bekleyen isteklerin otomatik kabul edileceği bilgisi (onay sayfası) gösterilir.
+  /// Hata olursa eski değere dönülür ve "Tekrar dene" sunulur.
+  Future<void> _setPrivate(bool v) async {
+    if (!v) {
+      final ok = await confirmPrivateOff(context);
+      if (!ok || !mounted) return;
+    }
+    final old = _private;
+    setState(() => _private = v);
+    try {
+      await widget.session.api.patch('/users/me/privacy', {'privateAccount': v});
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _private = old);
+      _saveFailed(() => _setPrivate(v));
     }
   }
 
@@ -215,6 +238,16 @@ class _PrivacyDataPageState extends State<PrivacyDataPage> {
             padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
             child: Text(l.profil2PrivacyIntro, style: tx.bodyLarge!.copyWith(fontSize: 15, color: t.mut, height: 1.4)),
           ),
+          ProfilFlatGroup(children: [
+            ProfilFlatToggle(
+              key: const ValueKey('privacy-private-switch'),
+              label: l.frqPrivateTitle,
+              sub: l.frqPrivateSub,
+              value: _private,
+              onChanged: _setPrivate,
+            ),
+          ]),
+          const SizedBox(height: 12),
           ProfilFlatGroup(children: [
             for (final f in _fields)
               Padding(

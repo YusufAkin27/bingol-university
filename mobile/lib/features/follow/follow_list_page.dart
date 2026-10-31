@@ -40,6 +40,9 @@ class _Tab {
   bool loading = false;
   bool loaded = false;
   bool more = false;
+
+  /// Gizli hesap ve ben takipçi değilim: sunucu liste yerine `locked: true` ve boş sayfa döner.
+  bool locked = false;
   Object? error;
   int gen = 0;
 }
@@ -76,6 +79,7 @@ class _FollowListPageState extends State<FollowListPage> {
     final q = 'size=30${cursor == null ? '' : '&cursor=${Uri.encodeQueryComponent(cursor)}'}';
     final res = await widget.session.api.get('/users/${widget.userId}/$path?$q');
     final page = PostPage.parse(res, SocialUser.fromJson);
+    st.locked = res is Map && res['locked'] == true;
     // `followsMe` / `classYear` henüz her sürümde yok: yalnız alan varsa ve türü uygunsa kaydedilir.
     if (res is Map && res['items'] is List) {
       for (final e in (res['items'] as List).whereType<Map>()) {
@@ -174,6 +178,13 @@ class _FollowListPageState extends State<FollowListPage> {
         title: l.p18FollowErrorTitle,
         message: errorText(st.error!),
         onRetry: () => _load(_tab),
+      );
+    } else if (st.items.isEmpty && st.locked) {
+      body = FollowStatusCard(
+        key: const ValueKey('follow-list-locked'),
+        icon: LucideIcons.lock,
+        title: l.frqLockedTitle,
+        message: l.frqLockedBody,
       );
     } else if (st.items.isEmpty) {
       body = FollowStatusCard(
@@ -282,7 +293,7 @@ class SocialUserTile extends StatelessWidget {
           else if (!self)
             Padding(
               padding: const EdgeInsetsDirectional.only(start: 8),
-              child: ProfilyFollowButton(session: session, userId: user.id, followed: user.followedByMe),
+              child: ProfilyFollowButton(session: session, userId: user.id, state: user.followState, isPrivate: user.isPrivate),
             ),
         ]),
       ),

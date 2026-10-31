@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../core/locale_controller.dart';
 import '../../core/session.dart';
 import '../../widgets/bu.dart';
+import '../follow/follow_button.dart';
 import '../follow/follow_suggestions.dart';
 import '../posts/post_models.dart';
 import '../posts/social_api.dart';
@@ -131,51 +132,22 @@ class _SuggestionSurface extends StatelessWidget {
   Widget build(BuildContext context) => SizedBox(width: 104, child: child);
 }
 
-class _SuggestionCard extends StatefulWidget {
+class _SuggestionCard extends StatelessWidget {
   const _SuggestionCard({required this.session, required this.user});
 
   final Session session;
   final SocialUser user;
 
   @override
-  State<_SuggestionCard> createState() => _SuggestionCardState();
-}
-
-class _SuggestionCardState extends State<_SuggestionCard> {
-  late bool _followed = widget.user.followedByMe;
-  bool _busy = false;
-
-  Future<void> _toggle() async {
-    if (_busy) return;
-    final want = !_followed;
-    setState(() {
-      _busy = true;
-      _followed = want;
-    });
-    buHaptic(want ? BuHaptic.light : BuHaptic.selection);
-    final api = SocialApi(widget.session);
-    try {
-      await (want ? api.follow(widget.user.id) : api.unfollow(widget.user.id));
-    } catch (e) {
-      if (mounted) {
-        setState(() => _followed = !want);
-        BuToast.show(context, errorText(e), kind: BuToastKind.error);
-      }
-    } finally {
-      if (mounted) setState(() => _busy = false);
-    }
-  }
-
-  @override
   Widget build(BuildContext context) {
     final t = context.bu;
     final tt = Theme.of(context).textTheme;
-    final u = widget.user;
+    final u = user;
     final dept = context.departmentName((u.department ?? '').trim());
     return _SuggestionSurface(
       child: Column(children: [
         BuAvatar(
-            name: u.displayName, url: u.avatarUrl, size: 56, headers: postAuthHeaders(widget.session)),
+            name: u.displayName, url: u.avatarUrl, size: 56, headers: postAuthHeaders(session)),
         BuGap.h8,
         Text(u.displayName,
             maxLines: 1,
@@ -188,36 +160,13 @@ class _SuggestionCardState extends State<_SuggestionCard> {
             textAlign: TextAlign.center,
             style: tt.labelSmall?.copyWith(color: t.mut, fontSize: 12)),
         const Spacer(),
-        Semantics(
-          button: true,
-          toggled: _followed,
-          label: _followed ? context.l10n.followButtonUnfollow : context.l10n.followButtonFollow,
-          excludeSemantics: true,
-          child: GestureDetector(
-            key: ValueKey('discover-follow-${u.id}'),
-            behavior: HitTestBehavior.opaque,
-            onTap: _busy ? null : _toggle,
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(minHeight: 44),
-              child: Center(
-                child: AnimatedContainer(
-                  duration: BuMotion.of(context, BuMotion.short),
-                  curve: BuMotion.standard,
-                  width: double.infinity,
-                  height: 36,
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(BuRadius.pill),
-                    border: Border.all(color: _followed ? t.bd : t.bdStrong),
-                  ),
-                  child: Text(_followed ? context.l10n.p04FollowingState : context.l10n.p04FollowAction,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: tt.labelMedium?.copyWith(color: _followed ? t.mut : t.ink, fontSize: 13, fontWeight: FontWeight.w600)),
-                ),
-              ),
-            ),
-          ),
+        FollowStateButton(
+          session: session,
+          userId: u.id,
+          state: u.followState,
+          isPrivate: u.isPrivate,
+          look: FollowLook.chip,
+          tapKey: ValueKey('discover-follow-${u.id}'),
         ),
       ]),
     );

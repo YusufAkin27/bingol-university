@@ -9,10 +9,12 @@ import '../../l10n/app_localizations.dart';
 import '../../widgets/bu.dart';
 import '../clubs/club_detail_page.dart';
 import '../events/event_detail_page.dart';
+import '../follow/follow_widgets.dart' show FollowRowButton;
 import '../news/icerik_parts.dart';
 import '../news/news_detail_page.dart';
 import '../news/news_tile.dart' show newsLocalDate, newsMonthName;
 import '../posts/post_routes.dart';
+import '../posts/social_models.dart' show FollowState, followStateOf;
 import '../profile/user_profile_page.dart';
 import 'recent_searches.dart';
 import '../../core/academic_catalog.dart';
@@ -41,6 +43,8 @@ class _Hit {
     this.myStatus,
     this.likes,
     this.endsAt,
+    this.followState,
+    this.isPrivate = false,
   });
 
   final String type; // NEWS, ANNOUNCEMENT, EVENT_OFFICIAL, COMMUNITY, EVENT, POSTS, USER
@@ -56,6 +60,8 @@ class _Hit {
   final String? myStatus; // kulüp: ACTIVE (üye) | NONE/PENDING (değil)
   final int? likes; // gönderi beğeni sayısı
   final String? endsAt; // etkinlik bitişi (saat aralığı için)
+  final FollowState? followState; // kişi: sunucu `followState` verdiyse (yoksa takip düğmesi çizilmez)
+  final bool isPrivate; // kişi: gizli hesap
 }
 
 enum _Tab { all, news, club, event, post, person }
@@ -159,6 +165,8 @@ _Hit _hitFromUser(Map u, AppLocalizations l, BuildContext context) {
     title: '${u['displayName'] ?? l.searchUserDefault}',
     snippet: sub.isEmpty ? null : sub,
     imageUrl: u['avatarUrl'] as String?,
+    followState: u['followState'] is String ? followStateOf(u['followState']) : null,
+    isPrivate: u['isPrivate'] == true,
   );
 }
 
@@ -892,7 +900,11 @@ class _SearchPageState extends State<SearchPage> {
       case _Tab.all:
         leading = hasImg ? BuAvatar(name: h.title, url: h.imageUrl, size: 44) : _initialsCircle(t, h.title, 2);
         sub = snip;
-        trailing = _chevron(t);
+        final fs = h.followState;
+        // Kişi satırında takip düğmesi (sunucu `followState` verdiyse; kendi satırında yok): 3 durumlu.
+        trailing = h.type == 'USER' && fs != null && fs != FollowState.self && h.id != widget.session.userId
+            ? FollowRowButton(session: widget.session, userId: h.id, state: fs, isPrivate: h.isPrivate)
+            : _chevron(t);
         titleLines = 1;
     }
     // Gönderi satırında başlık yerine gönderi metni öne çıkar; altında kalp + beğeni sayısı.

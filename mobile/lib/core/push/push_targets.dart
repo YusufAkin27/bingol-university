@@ -16,6 +16,9 @@ enum PushDest {
   post,
   poll,
   user,
+
+  /// Gelen takip istekleri ekranı (`FOLLOW_REQUESTS`; GİZLİ hesap istek aldı). Kimliksiz geçerlidir.
+  followRequests,
   deptAnnouncement,
   timetable,
   exams,
@@ -109,6 +112,9 @@ PushDest? _destOf(String t) {
     case 'USER_FOLLOW':
     case 'FOLLOW':
       return PushDest.user;
+    case 'FOLLOW_REQUESTS':
+    case 'FOLLOW_REQUEST':
+      return PushDest.followRequests;
     case 'STORY':
       // Hikâyeler kaldırıldı: eski bildirim sahibinin profiline gider.
       return PushDest.user;
@@ -172,6 +178,8 @@ PushTarget resolvePushTarget(Map<String, dynamic>? data) {
       case PushDest.timetable:
       case PushDest.exams:
         return PushTarget(dest, id: value); // kimliksiz de geçerli: ilgili listeyi açar
+      case PushDest.followRequests:
+        return PushTarget(dest); // kimlik yok: istekler ekranı
       case PushDest.post:
         if (value != null) return PushTarget(dest, id: value, commentId: commentId);
       default:

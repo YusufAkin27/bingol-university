@@ -130,19 +130,19 @@ void main() {
       await tester.pumpWidget(buildApp(AppShell(session: makeSession(b), themeController: ThemeController())));
       await settle(tester, const Duration(seconds: 1));
       // Profil ve Kulupler sekmeleri henuz kurulmadi. Kabuk yalniz alt gezinme avatari icin TEK sessiz GET /users/me atar.
-      expect(b.requests.where((r) => r.contains('GET /users/me')).length, 1, reason: b.requests.join('\n'));
+      expect(b.requests.where((r) => r == 'GET /users/me').length, 1, reason: b.requests.join('\n'));
       expect(find.byType(ProfileTab), findsNothing);
       await tester.tap(find.text('Profil'));
       await settle(tester, const Duration(seconds: 1));
       expect(find.byType(ProfileTab), findsOneWidget);
-      expect(b.requests.where((r) => r.contains('GET /users/me')).length, 2);
-      final n = b.requests.where((r) => r.contains('GET /users/me')).length;
+      expect(b.requests.where((r) => r == 'GET /users/me').length, 2);
+      final n = b.requests.where((r) => r == 'GET /users/me').length;
       // Ana sayfaya don, tekrar profil: yeniden kurulmaz (istek sayisi artmaz).
       await tester.tap(find.text('Ana Sayfa'));
       await settle(tester, const Duration(milliseconds: 600));
       await tester.tap(find.text('Profil'));
       await settle(tester, const Duration(milliseconds: 600));
-      expect(b.requests.where((r) => r.contains('GET /users/me')).length, n);
+      expect(b.requests.where((r) => r == 'GET /users/me').length, n);
       expect(tester.takeException(), isNull);
       await unmount(tester);
     });

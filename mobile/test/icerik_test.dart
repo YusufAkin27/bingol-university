@@ -279,7 +279,7 @@ void main() {
       expect(fe.count('POST /users/2/follow'), 1);
       expect(fe.count('PUT '), 0);
       expect(fe.count('follow-stats'), 0);
-      expect(find.text('Takipte'), findsOneWidget);
+      expect(find.text('Takiptesin'), findsOneWidget);
       expect(tester.widget<Text>(find.byKey(const ValueKey('followerCount'))).data, '6');
       // Karşı taraf da beni takip ediyor: takipleşme rozeti.
       expect(find.byKey(const ValueKey('followRelationPill')), findsOneWidget);
@@ -297,6 +297,10 @@ void main() {
       await settle(tester, const Duration(milliseconds: 800));
       expect(find.text('Takipleşiyorsunuz'), findsOneWidget);
       await tester.tap(find.byKey(const ValueKey('followButton')));
+      await settle(tester);
+      // Takibi bırakmak onay sheeti ister (FOLLOWREQ-MB); onaylanınca DELETE gider.
+      expect(fe.count('DELETE /users/2/follow'), 0);
+      await tester.tap(find.text('Takibi bırak'));
       await settle(tester);
       expect(fe.count('DELETE /users/2/follow'), 1);
       expect(tester.widget<Text>(find.byKey(const ValueKey('followerCount'))).data, '4');
