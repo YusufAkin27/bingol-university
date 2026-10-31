@@ -20,6 +20,10 @@ public class AccountCreator {
     private final LegalService legal;
     private final AdminProperties admin;
 
+    /** Ihlal defteri (istege bagli: defter olmadan kurulan testler icin). */
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private edu.bingol.backend.moderation.ViolationLedgerService ledger;
+
     public AccountCreator(UserRepository users, LegalService legal, AdminProperties admin) {
         this.users = users;
         this.legal = legal;
@@ -51,8 +55,13 @@ public class AccountCreator {
             user.setRole(Role.ADMIN);
             user.setAdminProfile(edu.bingol.backend.admin.rbac.AdminProfile.FULL); // ADMIN_EMAILS hesabi her zaman FULL
         }
+        boolean fresh = user.getId() == null;
         user = users.saveAndFlush(user);
         legal.recordSignupConsent(user.getId());
+        // Silinip ayni e-postayla yeniden kayit: ihlal defterindeki strike'lar devralinir (T-058)
+        if (fresh && ledger != null) {
+            ledger.inheritOnRegister(user.getId(), email);
+        }
         return user;
     }
 }

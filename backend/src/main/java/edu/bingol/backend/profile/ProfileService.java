@@ -144,6 +144,10 @@ public class ProfileService {
         if (r.displayName() != null) {
             String newName = DisplayNamePolicy.normalize(r.displayName(), u.getRole() == Role.ADMIN);
             ContentGuard.changed(guard, Entity.PROFILE, "displayName", id, u.getDisplayName(), newName);
+            if (!newName.equals(u.getDisplayName())) {
+                requireNameCooldown(u);
+                recordNameChange(u, newName);
+            }
             u.setDisplayName(newName);
         }
         // Akademik alanlar yazilirken katalogla dogrulanir; eski serbest metin degerlere dokunulmaz
@@ -256,6 +260,10 @@ public class ProfileService {
             throw new ApiException(HttpStatus.CONFLICT, "ADMIN_CANNOT_SELF_DELETE",
                     "Yönetici hesabı kendi kendini silemez; önce başka bir yönetici rolünüzü kaldırmalıdır.");
         }
+        // Hakkinda acik sikayet varsa silme 7 gun bekler (T-058): sikayet yaptirimdan kacmak icin silme kullanilamaz.
+        if (ledger != null) {
+            ledger.requireDeletionAllowed(u.getId());
+        }
         anonymize(u);
     }
 
@@ -274,6 +282,50 @@ public class ProfileService {
         this.sessions = sessions;
     }
 
+    /** Gorunen ad gecmisi (T-060, istege bagli: birim testlerinde yok). */
+    private DisplayNameChangeRepository nameHistory;
+    /** Ihlal defteri + silme bekletmesi (T-058, istege bagli). */
+    private edu.bingol.backend.moderation.ViolationLedgerService ledger;
+    /** Iki gorunen ad degisimi arasindaki en kisa sure (gun); 0 = sinirsiz. */
+    @org.springframework.beans.factory.annotation.Value("${app.profile.display-name-cooldown-days:7}")
+    private int nameCooldownDays = 7;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setNameHistory(DisplayNameChangeRepository nameHistory) {
+        this.nameHistory = nameHistory;
+    }
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setLedger(edu.bingol.backend.moderation.ViolationLedgerService ledger) {
+        this.ledger = ledger;
+    }
+
+    /** Raporlanan kisinin adi surekli degisip iz kaybettirmesin: son degisimden bu yana N gun gecmeli. */
+    private void requireNameCooldown(User u) {
+        if (nameHistory == null || nameCooldownDays <= 0) {
+            return;
+        }
+        nameHistory.findFirstByUserIdOrderByChangedAtDesc(u.getId()).ifPresent(last -> {
+            Instant next = last.getChangedAt().plus(java.time.Duration.ofDays(nameCooldownDays));
+            if (next.isAfter(Instant.now())) {
+                throw new ApiException(HttpStatus.TOO_MANY_REQUESTS, "DISPLAY_NAME_COOLDOWN",
+                        "Görünen adınızı " + nameCooldownDays + " günde bir değiştirebilirsiniz.",
+                        String.valueOf(nameCooldownDays));
+            }
+        });
+    }
+
+    private void recordNameChange(User u, String newName) {
+        if (nameHistory == null) {
+            return;
+        }
+        DisplayNameChange c = new DisplayNameChange();
+        c.setUserId(u.getId());
+        c.setOldName(u.getDisplayName());
+        c.setNewName(newName);
+        nameHistory.save(c);
+    }
+
     /** Parolasiz anonimlestirme: yonetici silme akisi da ayni mantigi kullanir (parola kontrolu cagirana aittir). */
     @Transactional
     public void anonymizeAccount(Long id) {
@@ -281,6 +333,13 @@ public class ProfileService {
     }
 
     private void anonymize(User u) {
+        // Ihlal defteri (T-058): e-posta degismeden ONCE ozet + strike sayisi; ad gecmisi silinir (KVKK)
+        if (ledger != null) {
+            ledger.recordOnDeletion(u.getId(), u.getEmail(), u.getStatus());
+        }
+        if (nameHistory != null) {
+            nameHistory.deleteByUser(u.getId());
+        }
         String oldAvatar = u.getAvatarUrl();
         avatarCleanups.run(u.getId(), oldAvatar); // T11: gorsel referanslari + gizlilik satiri (KVKK)
         u.setEmail("deleted-" + u.getId() + "@deleted.invalid");

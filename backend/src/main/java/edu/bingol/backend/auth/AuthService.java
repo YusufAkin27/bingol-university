@@ -70,6 +70,10 @@ public class AuthService {
     @Autowired(required = false)
     private edu.bingol.backend.mail.MailService mail;
 
+    /** Ihlal defteri (istege bagli: defter olmadan kurulan testler icin). */
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private edu.bingol.backend.moderation.ViolationLedgerService violationLedger;
+
     /** Herkese acik gorunen ad denetimi (istege bagli: guard'siz kurulan testler icin). */
     @org.springframework.beans.factory.annotation.Autowired(required = false)
     private ContentGuard contentGuard;
@@ -160,6 +164,10 @@ public class AuthService {
         String de = blankToNull(department);
         String gr = blankToNull(grade);
         catalog.requireValid(fa, de, gr);
+        // Askiya alinmisken silinen hesabin adresi yeniden kayit olamaz (ihlal defteri, T-058); genel 403
+        if (violationLedger != null) {
+            violationLedger.requireNotBanned(email);
+        }
         verification.requireMailQuota();
         User user = users.findByEmail(email).orElse(null);
         if (user != null && user.isEmailVerified()) {

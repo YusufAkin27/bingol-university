@@ -47,4 +47,8 @@ public class ModerationStrike {
 
     @Column(length = 300)
     private String forgivenReason;
+
+    /** Ihlal defterinden devralindi (T-058): silinip ayni e-postayla yeniden kayit olan hesabin onceki ihlali. */
+    @Column(nullable = false)
+    private boolean inherited;
 }

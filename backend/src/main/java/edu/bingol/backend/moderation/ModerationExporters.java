@@ -1,6 +1,7 @@
 package edu.bingol.backend.moderation;
 
 import edu.bingol.backend.export.DataExporter;
+import edu.bingol.backend.profile.DisplayNameChangeRepository;
 import java.util.List;
 import java.util.Map;
 import org.springframework.context.annotation.Bean;
@@ -22,5 +23,14 @@ public class ModerationExporters {
                                 "targetId", a.getTargetId(), "message", a.getMessage(),
                                 "status", a.getStatus().name(), "createdAt", a.getCreatedAt().toString()))
                         .toList()));
+    }
+
+    /** T-060: gorunen ad degisim gecmisi (kullanicinin kendi verisi). */
+    @Bean
+    DataExporter displayNameHistoryExporter(DisplayNameChangeRepository history) {
+        return DataExporter.of("displayNameHistory", uid -> history.findTop50ByUserIdOrderByChangedAtDesc(uid).stream()
+                .map(c -> Map.<String, Object>of("oldName", c.getOldName(), "newName", c.getNewName(),
+                        "changedAt", c.getChangedAt().toString()))
+                .toList());
     }
 }
