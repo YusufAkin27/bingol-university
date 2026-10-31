@@ -12,7 +12,7 @@ import '../../core/session.dart';
 import '../../widgets/bu.dart';
 import 'legal_pages.dart';
 import 'profil2_delete_account_page.dart';
-import 'profil2_widgets.dart';
+import 'profil_widgets.dart';
 
 /// Paylaşılan KVKK dosyasının yedek silme süresi. Asıl temizlik yaşam döngüsüyle yapılır (kullanıcı paylaşım
 /// sayfasından uygulamaya dönünce / sayfa kapanınca / sonraki açılışta); süre, hiçbiri olmazsa devreye giren sigortadır.
@@ -167,102 +167,78 @@ class _MyDataPageState extends State<MyDataPage> with WidgetsBindingObserver {
       l.profil2DataItemSaved,
       l.profil2DataItemSupport,
     ];
+    // Stitch v3: kartsız; giriş mut 15, etiket 13/500, onay işaretli satırlar, 12 sp açıklama, "Verilerimi indir" pr dolu 48,
+    // altta zemin üstünde KVKK satırı ve "Hesabımı sil" (danger metin).
     return Scaffold(
       backgroundColor: t.bg,
       body: Column(
         children: [
-          BuHeader(title: l.profil2DataTitle, onBack: () => Navigator.pop(context)),
+          ProfilTopBar(title: l.profil2DataTitle),
           Expanded(
             child: ListView(
-              padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
+              padding: const EdgeInsets.only(bottom: 32),
               children: [
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 4),
-                  child: Text(l.profil2DataIntro, style: tx.bodyMedium!.copyWith(color: t.mut, height: 1.5)),
+                  padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
+                  child: Text(l.profil2DataIntro, style: tx.bodyLarge!.copyWith(fontSize: 15, color: t.mut, height: 1.45)),
                 ),
-                const SizedBox(height: 4),
-                // Biçim bilgisi tek soluk satır (kutu + simge karosu kalktı).
+                ProfilFlatSection(l.profil2DataContents, top: 24, upper: true),
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 4),
-                  child: Text(l.profil2DataFileSub, style: tx.bodyMedium!.copyWith(fontWeight: FontWeight.w700, color: t.ink)),
-                ),
-                P2Heading(l.profil2DataContents, top: 20),
-                BuCard(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
                   child: Column(children: [
                     for (final s in items)
                       Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        padding: const EdgeInsets.symmetric(vertical: 9),
                         child: Row(children: [
-                          Container(
-                            width: 28,
-                            height: 28,
-                            decoration: BoxDecoration(color: t.sf2, shape: BoxShape.circle),
-                            child: Icon(LucideIcons.check, size: 15, color: _limitMessage == null ? t.ink : t.mut),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(child: Text(s, style: tx.bodyLarge!.copyWith(fontWeight: FontWeight.w600, color: t.ink))),
+                          ExcludeSemantics(child: Icon(LucideIcons.check, size: 18, color: _limitMessage == null ? t.ink : t.mut)),
+                          const SizedBox(width: 16),
+                          Expanded(child: Text(s, style: tx.bodyLarge!.copyWith(fontSize: 15, color: t.ink))),
                         ]),
                       ),
                   ]),
                 ),
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(4, 14, 4, 14),
-                  child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    if (_limitMessage != null) ...[
-                      Padding(
-                        padding: const EdgeInsets.only(top: 2),
-                        child: ExcludeSemantics(child: Icon(LucideIcons.info, size: 15, color: t.mut)),
-                      ),
-                      const SizedBox(width: 8),
-                    ],
-                    Expanded(child: Text(l.profil2DataLimit, style: tx.bodySmall!.copyWith(color: t.mut, height: 1.4))),
+                  padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
+                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    Text(l.profil2DataFileSub, style: tx.bodySmall!.copyWith(fontSize: 12, color: t.mut, height: 1.4)),
+                    Text(l.profil2DataLimit, style: tx.bodySmall!.copyWith(fontSize: 12, color: t.mut, height: 1.4)),
                   ]),
                 ),
-                BuButton(
-                  key: const ValueKey('my-data-download'),
-                  label: l.profilePrefsDownloadData,
-                  icon: LucideIcons.download,
-                  busy: _exporting,
-                  onPressed: (_exporting || _limitMessage != null) ? null : _export,
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: BuButton(
+                    key: const ValueKey('my-data-download'),
+                    label: l.profilePrefsDownloadData,
+                    busy: _exporting,
+                    onPressed: (_exporting || _limitMessage != null) ? null : _export,
+                  ),
                 ),
-                if (_limitMessage != null) ...[
-                  const SizedBox(height: 14),
-                  Semantics(
-                    liveRegion: true,
-                    container: true,
-                    child: Container(
-                      key: const ValueKey('my-data-limit'),
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(color: Theme.of(context).colorScheme.errorContainer, borderRadius: BuRadius.bMd),
-                      child: Row(children: [
-                        const P2IconTile(icon: LucideIcons.circleAlert, danger: true, size: 44),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Text(_limitMessage!,
-                              style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w800, color: Theme.of(context).colorScheme.onErrorContainer)),
-                        ),
-                      ]),
+                if (_limitMessage != null)
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
+                    child: Semantics(
+                      liveRegion: true,
+                      container: true,
+                      child: Text(_limitMessage!,
+                          key: const ValueKey('my-data-limit'),
+                          style: tx.bodySmall!.copyWith(fontSize: 13, color: t.danger)),
                     ),
                   ),
-                ],
-                P2Heading(l.profil2DataOther, top: 20),
-                BuGroup(dividerIndent: 66, children: [
-                  BuSettingsTile(
-                    icon: LucideIcons.shieldUser,
-                    title: l.profil2DataKvkk,
-                    tint: profilNeutralTint(context),
+                const SizedBox(height: 32),
+                Divider(height: 1, thickness: 1, color: t.bd),
+                ProfilFlatGroup(color: Colors.transparent, children: [
+                  ProfilFlatRow(
+                    label: l.profil2DataKvkk,
                     onTap: () => _push(LegalListPage(session: widget.session)),
                   ),
-                  BuSettingsTile(
+                  ProfilFlatRow(
                     key: const ValueKey('my-data-delete-row'),
-                    icon: LucideIcons.trash2,
-                    title: l.profilePrefsDeleteMyAccount,
+                    label: l.profilePrefsDeleteMyAccount,
                     danger: true,
-                    trailing: ExcludeSemantics(child: Icon(buDirIcon(context, LucideIcons.chevronRight), size: 18, color: t.danger)),
                     onTap: () => _push(DeleteAccountPage(session: widget.session)),
                   ),
                 ]),
+                Divider(height: 1, thickness: 1, color: t.bd),
               ],
             ),
           ),

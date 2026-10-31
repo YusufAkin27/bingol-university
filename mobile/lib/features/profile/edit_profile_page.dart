@@ -9,6 +9,7 @@ import '../../widgets/academic_pickers.dart';
 import '../../widgets/bu.dart';
 import '../media_crop/media_crop.dart';
 import 'profil2_widgets.dart';
+import 'profil_widgets.dart' show ProfilTopBar;
 
 /// Profili düzenle (Stitch 48-4/5/6): avatar + "Fotoğrafı değiştir", ad soyad, hakkımda, bölüm/sınıf,
 /// salt okunur kurumsal e-posta, e-posta anahtarı, sabit "Kaydet". Çıkarken kaydedilmemiş değişiklik sorulur.
@@ -210,60 +211,40 @@ class _EditProfilePageState extends State<EditProfilePage> {
     final t = context.bu;
     final l = context.l10n;
     final tx = Theme.of(context).textTheme;
+    // Stitch v3: 96 dp avatar (rozet/halka yok); dokununca fotoğraf seçimi; altta "Fotoğrafı değiştir" metin bağlantısı.
     return Column(children: [
-      SizedBox(
-        width: 104,
-        height: 104,
-        child: Stack(clipBehavior: Clip.none, children: [
-          PositionedDirectional(
-            start: 4,
-            top: 4,
-            child: Container(
-              width: 96,
-              height: 96,
-              decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: t.sf, width: 3)),
-              child: ClipOval(
-                child: Stack(fit: StackFit.expand, children: [
-                  BuAvatar(name: _name.text, url: _avatarUrl, size: 90),
-                  if (_uploading)
-                    ColoredBox(
-                      color: t.scrim.withValues(alpha: .6),
-                      child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-                        SizedBox(
-                          width: 30,
-                          height: 30,
-                          child: CircularProgressIndicator(strokeWidth: 3, color: t.onMedia),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(l.profileUploading,
-                            maxLines: 1,
-                            style: Theme.of(context).textTheme.labelSmall!.copyWith(color: t.onMedia, fontWeight: FontWeight.w700)),
-                      ]),
-                    ),
-                ]),
-              ),
+      Semantics(
+        button: true,
+        label: l.profileChangePhotoSemantic,
+        excludeSemantics: true,
+        child: GestureDetector(
+          key: const ValueKey('avatar-camera'),
+          onTap: _pickAvatar,
+          child: SizedBox(
+            width: 96,
+            height: 96,
+            child: ClipOval(
+              child: Stack(fit: StackFit.expand, children: [
+                BuAvatar(name: _name.text, url: _avatarUrl, size: 96),
+                if (_uploading)
+                  ColoredBox(
+                    color: t.scrim.withValues(alpha: .6),
+                    child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+                      SizedBox(
+                        width: 28,
+                        height: 28,
+                        child: CircularProgressIndicator(strokeWidth: 3, color: t.onMedia),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(l.profileUploading,
+                          maxLines: 1,
+                          style: Theme.of(context).textTheme.labelMedium!.copyWith(fontSize: 13, color: t.onMedia, fontWeight: FontWeight.w600)),
+                    ]),
+                  ),
+              ]),
             ),
           ),
-          PositionedDirectional(
-            end: 0,
-            bottom: 0,
-            child: Semantics(
-              button: true,
-              label: l.profileChangePhotoSemantic,
-              excludeSemantics: true,
-              child: GestureDetector(
-                key: const ValueKey('avatar-camera'),
-                onTap: _pickAvatar,
-                child: Container(
-                  width: 36,
-                  height: 36,
-                  decoration: BoxDecoration(shape: BoxShape.circle, color: t.pr, border: Border.all(color: t.bg, width: 3)),
-                  child: Icon(LucideIcons.camera, size: 16, color: t.onPr),
-                ),
-              ),
-            ),
-          ),
-        ]),
+        ),
       ),
       if (_uploading || _photoError != null)
         Padding(
@@ -292,7 +273,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
             constraints: const BoxConstraints(minHeight: 48, minWidth: 48),
             child: Center(
               widthFactor: 1,
-              child: Text(l.profileChangePhoto, style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w800, color: t.pr)),
+              child: Text(l.profileChangePhoto, style: tx.labelLarge!.copyWith(fontSize: 13, fontWeight: FontWeight.w600, color: t.pr)),
             ),
           ),
         ),
@@ -462,7 +443,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
         backgroundColor: t.bg,
         body: Column(
           children: [
-            BuHeader(title: l.profileEditTitle, onBack: () => Navigator.maybePop(context)),
+            ProfilTopBar(title: l.profileEditTitle),
             Expanded(
               child: ListView(
                 padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
@@ -494,8 +475,11 @@ class _EditProfilePageState extends State<EditProfilePage> {
                       const SizedBox(height: 16),
                       P2FieldLabel(
                         l.profileAbout,
-                        trailing: Text('${_bio.text.characters.length}/$_bioMax',
-                            style: tx.labelMedium!.copyWith(fontWeight: FontWeight.w600, color: t.mut)),
+                        // Sayaç yalnız sınıra yaklaşınca görünür (Stitch v3 normal durumda göstermez).
+                        trailing: _bio.text.characters.length >= _bioMax * .8
+                            ? Text('${_bio.text.characters.length}/$_bioMax',
+                                style: tx.labelMedium!.copyWith(fontSize: 13, fontWeight: FontWeight.w400, color: t.mut))
+                            : null,
                       ),
                       _TextBox(
                         key: const ValueKey('edit-bio'),
@@ -536,10 +520,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                   ]),
                   const SizedBox(height: 16),
                   Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-                      P2FieldLabel(
-                        l.profil1CorpEmail,
-                        trailing: P2Pill(text: l.profil2SecVerified),
-                      ),
+                      P2FieldLabel(l.profil1CorpEmail),
                       Semantics(
                         label: '${l.profil1CorpEmail}: $email',
                         excludeSemantics: true,
@@ -549,8 +530,10 @@ class _EditProfilePageState extends State<EditProfilePage> {
                           decoration: BoxDecoration(color: t.sf2, borderRadius: BuRadius.bMd),
                           child: Row(children: [
                             Expanded(
-                              child: Text(email, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.bodyLarge!.copyWith(color: t.mut)),
+                              child: Text(email, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.bodyLarge!.copyWith(color: t.ink)),
                             ),
+                            const SizedBox(width: 8),
+                            ExcludeSemantics(child: Icon(LucideIcons.lock, size: 18, color: t.mut)),
                           ]),
                         ),
                       ),
@@ -563,11 +546,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                             padding: const EdgeInsets.symmetric(vertical: 4),
                             child: Row(children: [
                               Expanded(
-                                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                                  Text(l.profileShowEmail, style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w700, color: t.ink)),
-                                  const SizedBox(height: 2),
-                                  Text(l.p19ShowEmailDesc, style: tx.bodySmall!.copyWith(color: t.mut)),
-                                ]),
+                                child: Text(l.profileShowEmail, style: tx.bodyLarge!.copyWith(fontSize: 16, color: t.ink)),
                               ),
                               const SizedBox(width: 12),
                               Switch(
@@ -584,8 +563,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
               ),
             ),
             Container(
-              decoration: BoxDecoration(color: t.bg, border: Border(top: BorderSide(color: t.bd))),
-              padding: EdgeInsets.fromLTRB(20, 12, 20, 12 + MediaQuery.paddingOf(context).bottom),
+              color: t.bg,
+              padding: EdgeInsets.fromLTRB(20, 12, 20, 20 + MediaQuery.paddingOf(context).bottom),
               child: BuButton(
                 key: const ValueKey('edit-save'),
                 label: l.profileSave,
@@ -600,14 +579,19 @@ class _EditProfilePageState extends State<EditProfilePage> {
   }
 }
 
-/// Fotoğraf hatası: kırmızı zeminli tek satır.
+/// Fotoğraf hatası: avatarın altında ortalı tek danger metin (13 sp).
 class P2PhotoError extends StatelessWidget {
   const P2PhotoError(this.text, {super.key});
 
   final String text;
 
   @override
-  Widget build(BuildContext context) => P2NoticeCard(lines: [text], compact: true, icon: LucideIcons.imageOff);
+  Widget build(BuildContext context) => Semantics(
+        liveRegion: true,
+        child: Text(text,
+            textAlign: TextAlign.center,
+            style: Theme.of(context).textTheme.labelLarge!.copyWith(fontSize: 13, fontWeight: FontWeight.w400, color: context.bu.danger)),
+      );
 }
 
 /// Dolgulu (sf2) metin kutusu: odakta marka çerçevesi, hatada kırmızı çerçeve + uyarı simgesi + altında hata satırı.
@@ -656,12 +640,11 @@ class _TextBox extends StatelessWidget {
           hintStyle: tx.bodyLarge!.copyWith(color: t.mut),
           counterText: '',
           filled: true,
-          fillColor: hasError ? Theme.of(context).colorScheme.errorContainer.withValues(alpha: .45) : t.sf2,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-          border: b(t.sf2),
-          enabledBorder: hasError ? b(t.danger, 1.5) : b(t.sf2),
+          fillColor: t.sf,
+          contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: minLines == null ? 14 : 16),
+          border: b(t.sf),
+          enabledBorder: hasError ? b(t.danger, 1.5) : b(t.sf),
           focusedBorder: b(hasError ? t.danger : t.pr, 2),
-          suffixIcon: hasError ? Icon(LucideIcons.circleAlert, size: 18, color: t.danger) : null,
         ),
       ),
       if (hasError)
@@ -669,11 +652,7 @@ class _TextBox extends StatelessWidget {
           padding: const EdgeInsetsDirectional.only(start: 4, top: 6),
           child: Semantics(
             liveRegion: true,
-            child: Row(children: [
-              Icon(LucideIcons.circleAlert, size: 14, color: t.danger),
-              const SizedBox(width: 6),
-              Expanded(child: Text(error!, style: tx.labelMedium!.copyWith(fontWeight: FontWeight.w600, color: t.danger))),
-            ]),
+            child: Text(error!, style: tx.labelMedium!.copyWith(fontSize: 12, fontWeight: FontWeight.w400, color: t.danger)),
           ),
         ),
     ]);
@@ -699,7 +678,7 @@ class _SelectBox extends StatelessWidget {
       Semantics(
         button: true,
         child: Material(
-          color: hasError ? Theme.of(context).colorScheme.errorContainer.withValues(alpha: .45) : t.sf2,
+          color: t.sf,
           borderRadius: BuRadius.bMd,
           child: InkWell(
             borderRadius: BuRadius.bMd,
@@ -719,7 +698,6 @@ class _SelectBox extends StatelessWidget {
                       style: tx.bodyLarge!.copyWith(color: has ? t.ink : t.mut)),
                 ),
                 const SizedBox(width: 8),
-                if (hasError) ...[Icon(LucideIcons.circleAlert, size: 18, color: t.danger), const SizedBox(width: 8)],
                 Icon(LucideIcons.chevronDown, size: 18, color: t.mut),
               ]),
             ),
@@ -731,11 +709,7 @@ class _SelectBox extends StatelessWidget {
           padding: const EdgeInsetsDirectional.only(start: 4, top: 6),
           child: Semantics(
             liveRegion: true,
-            child: Row(children: [
-              Icon(LucideIcons.circleAlert, size: 14, color: t.danger),
-              const SizedBox(width: 6),
-              Expanded(child: Text(error!, style: tx.labelMedium!.copyWith(fontWeight: FontWeight.w600, color: t.danger))),
-            ]),
+            child: Text(error!, style: tx.labelMedium!.copyWith(fontSize: 12, fontWeight: FontWeight.w400, color: t.danger)),
           ),
         ),
     ]);

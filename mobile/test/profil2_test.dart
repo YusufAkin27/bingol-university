@@ -379,7 +379,7 @@ void main() {
       await tester.ensureVisible(find.byKey(const ValueKey('sec-submit')));
       await tester.tap(find.byKey(const ValueKey('sec-submit')));
       await settle(tester);
-      expect(find.text('•  Şifreler eşleşmiyor.'), findsOneWidget);
+      expect(find.text('Şifreler eşleşmiyor.'), findsOneWidget);
       expect(b.count('POST /auth/change-password'), 0);
       await unmount(tester);
     });
@@ -408,7 +408,7 @@ void main() {
       await tester.tap(find.byKey(const ValueKey('sec-submit')));
       await settle(tester);
       expect(find.byKey(const ValueKey('sec-errors')), findsOneWidget);
-      expect(find.text('•  Mevcut şifre hatalı.'), findsOneWidget);
+      expect(find.text('Mevcut şifre hatalı.'), findsOneWidget);
       await unmount(tester);
     });
 

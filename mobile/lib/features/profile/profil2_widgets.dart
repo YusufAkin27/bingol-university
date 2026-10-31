@@ -204,7 +204,7 @@ class P2FieldLabel extends StatelessWidget {
           child: Text(text,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: Theme.of(context).textTheme.labelLarge!.copyWith(fontWeight: FontWeight.w700, color: t.ink)),
+              style: Theme.of(context).textTheme.labelLarge!.copyWith(fontSize: 13, fontWeight: FontWeight.w500, color: t.mut)),
         ),
         if (trailing != null) trailing!,
       ]),
@@ -228,13 +228,16 @@ class P2Segment3 extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.bu;
     final tx = Theme.of(context).textTheme;
+    // Stitch v3: 36 dp sf2 yuva, seçili parça soft zemin + onSoft + selectedBorder; her parça 48 dp dokunma alanı.
     return Semantics(
       container: true,
       label: label,
-      child: Container(
-        padding: const EdgeInsets.all(4),
-        decoration: BoxDecoration(color: t.sf2, borderRadius: BorderRadius.circular(BuRadius.sm + 2)),
-        child: Row(children: [
+      child: Stack(alignment: Alignment.center, children: [
+        Container(
+          height: 36,
+          decoration: BoxDecoration(color: t.sf2, borderRadius: BorderRadius.circular(BuRadius.sm)),
+        ),
+        Row(children: [
           for (var i = 0; i < labels.length; i++)
             Expanded(
               child: Semantics(
@@ -246,27 +249,34 @@ class P2Segment3 extends StatelessWidget {
                 child: GestureDetector(
                   behavior: HitTestBehavior.opaque,
                   onTap: enabled ? () => onChanged(i) : null,
-                  child: AnimatedContainer(
-                    duration: BuMotion.of(context, BuMotion.short),
-                    curve: BuMotion.standard,
-                    constraints: const BoxConstraints(minHeight: 40),
-                    padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: i == index ? t.ink : Colors.transparent,
-                      borderRadius: BorderRadius.circular(BuRadius.sm),
+                  child: SizedBox(
+                    height: 48,
+                    child: Padding(
+                      padding: const EdgeInsets.all(2),
+                      child: AnimatedContainer(
+                        duration: BuMotion.of(context, BuMotion.short),
+                        curve: BuMotion.standard,
+                        margin: const EdgeInsets.symmetric(vertical: 4),
+                        decoration: BoxDecoration(
+                          color: i == index ? t.soft : Colors.transparent,
+                          border: Border.all(color: i == index ? t.selectedBorder : Colors.transparent),
+                          borderRadius: BorderRadius.circular(BuRadius.sm - 2),
+                        ),
+                        alignment: Alignment.center,
+                        child: Text(labels[i],
+                            maxLines: 2,
+                            textAlign: TextAlign.center,
+                            overflow: TextOverflow.ellipsis,
+                            style: tx.labelMedium!.copyWith(
+                                fontSize: 13, fontWeight: i == index ? FontWeight.w600 : FontWeight.w400, color: i == index ? t.onSoft : t.mut)),
+                      ),
                     ),
-                    alignment: Alignment.center,
-                    child: Text(labels[i],
-                        maxLines: 2,
-                        textAlign: TextAlign.center,
-                        overflow: TextOverflow.ellipsis,
-                        style: tx.labelMedium!.copyWith(fontWeight: FontWeight.w700, color: i == index ? t.bg : t.mut)),
                   ),
                 ),
               ),
             ),
         ]),
-      ),
+      ]),
     );
   }
 }

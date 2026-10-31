@@ -5,6 +5,7 @@ import '../../core/locale_controller.dart';
 import '../../core/session.dart';
 import '../../widgets/bu.dart';
 import 'profil2_my_data_page.dart';
+import 'profil_widgets.dart' show ProfilFlatSection, ProfilTopBar;
 import 'profil2_widgets.dart';
 
 /// Hesabı sil (Stitch 08-3): uyarı kartı, "Neler olur", yedek ipucu, onay kutusu; "Devam et" şifre alt sayfasını açar.
@@ -37,19 +38,21 @@ class _DeleteAccountPageState extends State<DeleteAccountPage> {
     final l = context.l10n;
     final tx = Theme.of(context).textTheme;
     final cs = Theme.of(context).colorScheme;
-    final items = <(IconData, String)>[
-      (LucideIcons.userX, l.profil2DelItem1),
-      (LucideIcons.bellOff, l.profil2DelItem2),
-      (LucideIcons.users, l.profil2DelItem3),
-      (LucideIcons.shieldUser, l.profil2DelItemClubOwner),
-      (LucideIcons.fileX, l.profil2DelItemUsage),
-      (LucideIcons.logOut, l.profil2DelItem4),
+    final items = <String>[
+      l.profil2DelItem1,
+      l.profil2DelItem2,
+      l.profil2DelItem3,
+      l.profil2DelItemClubOwner,
+      l.profil2DelItemUsage,
+      l.profil2DelItem4,
     ];
+    // Stitch v3: dangerSoft not (ikonsuz), "Neler olur" + madde noktalı satırlar, mut ipucu, onay kutusu, "Devam et"
+    // (danger dolu; onaysız %40 opak), "Vazgeç" metin düğmesi.
     return Scaffold(
       backgroundColor: t.bg,
       body: Column(
         children: [
-          BuHeader(title: l.profilePrefsDeleteAccountTitle, onBack: () => Navigator.pop(context)),
+          ProfilTopBar(title: l.profilePrefsDeleteAccountTitle),
           Expanded(
             child: ListView(
               padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
@@ -57,106 +60,79 @@ class _DeleteAccountPageState extends State<DeleteAccountPage> {
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(color: cs.errorContainer, borderRadius: BuRadius.bMd),
-                  child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    Container(
-                      width: 44,
-                      height: 44,
-                      decoration: BoxDecoration(color: t.danger.withValues(alpha: .16), shape: BoxShape.circle),
-                      child: Icon(LucideIcons.triangleAlert, size: 22, color: t.danger),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                        Text(l.profil2DelWarnLead, style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w800, color: cs.onErrorContainer)),
-                        const SizedBox(height: 2),
-                        Text(l.profil2DelWarnBody, style: tx.bodyMedium!.copyWith(color: cs.onErrorContainer, height: 1.4)),
-                      ]),
-                    ),
+                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    Text(l.profil2DelWarnLead, style: tx.titleSmall!.copyWith(fontSize: 16, fontWeight: FontWeight.w700, color: t.danger)),
+                    const SizedBox(height: 2),
+                    Text(l.profil2DelWarnBody, style: tx.bodyMedium!.copyWith(fontSize: 14, color: t.danger, height: 1.4)),
                   ]),
                 ),
-                P2Heading(l.profil2DelWhatHappens, top: 20),
-                BuGroup(dividerIndent: 64, children: [
-                  for (final it in items)
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                      child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
-                        P2IconTile(icon: it.$1, neutral: true),
-                        const SizedBox(width: 14),
-                        Expanded(child: Text(it.$2, style: tx.bodyMedium!.copyWith(color: t.ink, height: 1.4))),
-                      ]),
-                    ),
-                ]),
-                const SizedBox(height: 14),
-                Material(
-                  color: t.sf2,
-                  borderRadius: BuRadius.bMd,
-                  child: InkWell(
-                    key: const ValueKey('delete-backup-link'),
-                    borderRadius: BuRadius.bMd,
-                    onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => MyDataPage(session: widget.session))),
-                    child: ConstrainedBox(
-                      constraints: const BoxConstraints(minHeight: 56),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                        child: Row(children: [
-                          ExcludeSemantics(
-                            child: Container(
-                              width: 36,
-                              height: 36,
-                              decoration: BoxDecoration(color: t.sf, shape: BoxShape.circle),
-                              child: Icon(LucideIcons.circleArrowDown, size: 18, color: t.ink),
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Text(l.profil2DelBackupHint, style: tx.bodyMedium!.copyWith(fontWeight: FontWeight.w600, color: t.ink, height: 1.35)),
-                          ),
-                        ]),
+                ProfilFlatSection(l.profil2DelWhatHappens, top: 24, upper: true, horizontal: 0),
+                for (final it in items)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 6),
+                    child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                      Padding(
+                        padding: const EdgeInsets.only(top: 9, left: 4, right: 14),
+                        child: Container(width: 6, height: 6, decoration: BoxDecoration(color: t.mut, shape: BoxShape.circle)),
                       ),
+                      Expanded(child: Text(it, style: tx.bodyLarge!.copyWith(fontSize: 16, fontWeight: FontWeight.w600, color: t.ink, height: 1.35))),
+                    ]),
+                  ),
+                const SizedBox(height: 8),
+                InkWell(
+                  key: const ValueKey('delete-backup-link'),
+                  borderRadius: BuRadius.bXs,
+                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => MyDataPage(session: widget.session))),
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(minHeight: 48),
+                    child: Align(
+                      alignment: AlignmentDirectional.centerStart,
+                      child: Text(l.profil2DelBackupHint, style: tx.bodyMedium!.copyWith(fontSize: 14, color: t.mut, height: 1.35)),
                     ),
                   ),
                 ),
-                const SizedBox(height: 14),
-                BuCard(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-                  child: Semantics(
-                    container: true,
-                    checked: _ack,
-                    child: InkWell(
-                      key: const ValueKey('delete-ack'),
-                      borderRadius: BuRadius.bSm,
-                      onTap: () => setState(() => _ack = !_ack),
-                      child: Row(children: [
-                        SizedBox(
-                          width: 48,
-                          height: 48,
-                          child: ExcludeSemantics(
-                            child: Checkbox(value: _ack, onChanged: (v) => setState(() => _ack = v == true)),
-                          ),
+                Divider(height: 24, thickness: 1, color: t.bd),
+                Semantics(
+                  container: true,
+                  checked: _ack,
+                  child: InkWell(
+                    key: const ValueKey('delete-ack'),
+                    borderRadius: BuRadius.bSm,
+                    onTap: () => setState(() => _ack = !_ack),
+                    child: Row(children: [
+                      SizedBox(
+                        width: 48,
+                        height: 48,
+                        child: ExcludeSemantics(
+                          child: Checkbox(value: _ack, onChanged: (v) => setState(() => _ack = v == true)),
                         ),
-                        Expanded(
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 8),
-                            child: Text(l.profil2DelAck, style: tx.bodyMedium!.copyWith(fontWeight: FontWeight.w700, color: t.ink, height: 1.35)),
-                          ),
+                      ),
+                      Expanded(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 8),
+                          child: Text(l.profil2DelAck, style: tx.bodyLarge!.copyWith(fontSize: 15, color: t.ink, height: 1.35)),
                         ),
-                      ]),
-                    ),
+                      ),
+                    ]),
                   ),
                 ),
-                const SizedBox(height: 20),
-                BuButton(
-                  key: const ValueKey('delete-continue'),
-                  label: l.profil2Continue,
-                  kind: BuButtonKind.danger,
-                  onPressed: _ack ? _continue : null,
+                const SizedBox(height: 12),
+                AnimatedOpacity(
+                  duration: BuMotion.of(context, BuMotion.short),
+                  opacity: _ack ? 1 : .4,
+                  child: BuButton(
+                    key: const ValueKey('delete-continue'),
+                    label: l.profil2Continue,
+                    kind: BuButtonKind.danger,
+                    onPressed: _ack ? _continue : null,
+                  ),
                 ),
                 const SizedBox(height: 4),
                 TextButton(
                   key: const ValueKey('delete-cancel'),
-                  style: TextButton.styleFrom(foregroundColor: t.mut, minimumSize: const Size(double.infinity, 48)),
+                  style: TextButton.styleFrom(foregroundColor: t.ink, minimumSize: const Size(double.infinity, 48)),
                   onPressed: () => Navigator.pop(context),
-                  child: Text(l.profileCancel),
+                  child: Text(l.profileCancel, style: tx.labelLarge!.copyWith(fontSize: 15, fontWeight: FontWeight.w600)),
                 ),
               ],
             ),

@@ -9,7 +9,7 @@ import 'package:bu_kampus/features/profile/privacy_data_page.dart';
 import 'package:bu_kampus/features/profile/profil2_delete_account_page.dart';
 import 'package:bu_kampus/features/profile/profil2_my_data_page.dart';
 import 'package:bu_kampus/features/profile/profile_tab.dart';
-import 'package:bu_kampus/features/profile/profil_widgets.dart' show ProfilRow;
+import 'package:bu_kampus/features/profile/profil_widgets.dart' show ProfilRow, ProfilTopBar;
 import 'package:bu_kampus/features/profile/settings_page.dart';
 import 'package:bu_kampus/core/theme.dart';
 import 'package:bu_kampus/features/profile/user_profile_page.dart';
@@ -211,6 +211,50 @@ void main() {
       expect(find.byIcon(LucideIcons.save), findsNothing);
       expect(find.text('Kaydet'), findsOneWidget);
       expect(tester.takeException(), isNull);
+      await unmount(tester);
+    });
+  });
+
+  group('Alt sayfalar (Stitch v3 birebir)', () {
+    testWidgets('Profili duzenle: rozetsiz 96 dp avatar, e-posta kilit simgesi', (tester) async {
+      await _open(tester, EditProfilePage(session: makeSession(_backend()), profile: const {
+        'displayName': 'Ayşe Kaya',
+        'email': 'ayse@bingol.edu.tr',
+        'department': 'Bilgisayar Mühendisliği',
+        'grade': '3',
+        'bio': 'x',
+      }), size: kPhoneLarge);
+      expect(find.byIcon(LucideIcons.camera), findsNothing);
+      expect(tester.getSize(find.byKey(const ValueKey('avatar-camera'))).width, 96);
+      expect(find.byIcon(LucideIcons.lock), findsOneWidget);
+      expect(find.byType(ProfilTopBar), findsOneWidget);
+      await unmount(tester);
+    });
+
+    testWidgets('Gizlilik: tam genislik satirlar, segment 48 dp dokunma, ust cubuk duz', (tester) async {
+      await _open(tester, PrivacyDataPage(session: makeSession(_backend())), size: kPhoneLarge);
+      expect(find.byType(ProfilTopBar), findsOneWidget);
+      expect(tester.getSize(find.byKey(const ValueKey('privacy-select-avatar'))).height, greaterThanOrEqualTo(48));
+      final row = tester.getSize(find.byKey(const ValueKey('privacy-row-avatar')));
+      expect(row.width, kPhoneLarge.width); // kartsiz, tam genislik
+      await unmount(tester);
+    });
+
+    testWidgets('Hesabi sil: Devam et onaysiz %40 opak, onayla tam opak', (tester) async {
+      await _open(tester, DeleteAccountPage(session: makeSession(_backend())), size: kPhoneLarge);
+      double opacity() => tester.widget<AnimatedOpacity>(find.ancestor(of: find.byKey(const ValueKey('delete-continue')), matching: find.byType(AnimatedOpacity)).first).opacity;
+      expect(opacity(), .4);
+      await tester.tap(find.byKey(const ValueKey('delete-ack')));
+      await tester.pump(const Duration(milliseconds: 300));
+      expect(opacity(), 1);
+      await unmount(tester);
+    });
+
+    testWidgets('Engellenenler: bos durumda illustrasyon yok, baslik 18/600', (tester) async {
+      final b = _backend()..on('/users/me/blocks*', <Object>[]);
+      await _open(tester, BlockedUsersPage(session: makeSession(b)), size: kPhoneLarge);
+      expect(find.text('Kimseyi engellemedin'), findsOneWidget);
+      expect(find.byIcon(LucideIcons.ban), findsNothing);
       await unmount(tester);
     });
   });

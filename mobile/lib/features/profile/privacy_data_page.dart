@@ -7,6 +7,7 @@ import '../chat/photo_autosave.dart';
 import 'blocked_users_page.dart';
 import 'profil2_my_data_page.dart';
 import 'profil2_widgets.dart';
+import 'profil_widgets.dart';
 
 /// Gizlilik değerleri (sunucu sözleşmesi: EVERYONE | SHARED_CONTEXT | ONLY_ME).
 const kPrivacyValues = ['EVERYONE', 'SHARED_CONTEXT', 'ONLY_ME'];
@@ -206,27 +207,25 @@ class _PrivacyDataPageState extends State<PrivacyDataPage> {
         'department': l.profil2FieldDepartment,
         'classYear': l.profil2FieldClassYear,
       };
+      // Stitch v3: tam genişlik beyaz satırlar; alan etiketi 16 ink + 36 dp üçlü seçici; giriş ve yardım metni zeminde.
       body = ListView(
-        padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
+        padding: const EdgeInsets.only(bottom: 32),
         children: [
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 4),
-            child: Text(l.profil2PrivacyIntro, style: tx.bodyMedium!.copyWith(color: t.mut, height: 1.45)),
+            padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
+            child: Text(l.profil2PrivacyIntro, style: tx.bodyLarge!.copyWith(fontSize: 15, color: t.mut, height: 1.4)),
           ),
-          const SizedBox(height: 16),
-          P2SectionLabel(l.profil2VisibilitySection),
-          BuGroup(children: [
+          ProfilFlatGroup(children: [
             for (final f in _fields)
               Padding(
                 key: ValueKey('privacy-row-$f'),
-                padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+                padding: const EdgeInsets.fromLTRB(20, 16, 20, 12),
                 child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-                  // Alan başına tek etiket (simge karosu kalktı).
                   Text(labels[f]!,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
-                      style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w800, color: t.ink)),
-                  const SizedBox(height: 10),
+                      style: tx.bodyLarge!.copyWith(fontSize: 16, color: t.ink)),
+                  const SizedBox(height: 4),
                   P2Segment3(
                     key: ValueKey('privacy-select-$f'),
                     label: labels[f],
@@ -237,78 +236,55 @@ class _PrivacyDataPageState extends State<PrivacyDataPage> {
                 ]),
               ),
           ]),
-          if (_avatarHidden) ...[
-            const SizedBox(height: 12),
-            P2NoticeCard(
-              key: const ValueKey('privacy-avatar-moderated'),
-              lines: [l.profil2AvatarModerated],
-              icon: LucideIcons.triangleAlert,
-              compact: true,
+          if (_avatarHidden)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
+              child: P2NoticeCard(
+                key: const ValueKey('privacy-avatar-moderated'),
+                lines: [l.profil2AvatarModerated],
+                icon: LucideIcons.triangleAlert,
+                compact: true,
+              ),
             ),
-          ],
           Padding(
-            padding: const EdgeInsets.fromLTRB(4, 12, 4, 0),
-            child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Padding(
-                padding: const EdgeInsets.only(top: 2),
-                child: ExcludeSemantics(child: Icon(LucideIcons.info, size: 16, color: t.mut)),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text.rich(
-                  TextSpan(children: [
-                    TextSpan(text: '${l.profil2SharedHintLead} ', style: TextStyle(color: t.ink, fontWeight: FontWeight.w700)),
-                    TextSpan(text: l.profil2SharedHintBody),
-                  ]),
-                  style: tx.bodySmall!.copyWith(color: t.mut, height: 1.45),
-                ),
-              ),
-            ]),
+            padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
+            child: Text.rich(
+              TextSpan(children: [
+                TextSpan(text: '${l.profil2SharedHintLead} '),
+                TextSpan(text: l.profil2SharedHintBody),
+              ]),
+              style: tx.bodySmall!.copyWith(fontSize: 12, color: t.mut, height: 1.4),
+            ),
           ),
-          const SizedBox(height: 16),
-          BuGroup(children: [
-            BuSettingsTile.toggle(
+          ProfilFlatGroup(children: [
+            ProfilFlatToggle(
               key: const ValueKey('privacy-email-switch'),
-              icon: LucideIcons.atSign,
-              title: l.profil2ShowEmail,
-              subtitle: l.profil2ShowEmailSub,
+              label: l.profil2ShowEmail,
+              sub: l.profil2ShowEmailSub,
               value: _showEmail,
-              tint: profilNeutralTint(context),
               onChanged: _setEmail,
             ),
-          ]),
-          const SizedBox(height: 16),
-          BuGroup(children: [
-            BuSettingsTile.toggle(
+            ProfilFlatToggle(
               key: const ValueKey('privacy-save-gallery-switch'),
-              icon: LucideIcons.imageDown,
-              title: l.p22SaveGalleryTitle,
-              subtitle: l.p22SaveGalleryDesc,
+              label: l.p22SaveGalleryTitle,
+              sub: l.p22SaveGalleryDesc,
               value: _saveGallery,
-              tint: profilNeutralTint(context),
               onChanged: _setSaveGallery,
             ),
-          ]),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(6, 8, 6, 0),
-            child: Text(l.p22SaveGalleryCloud, key: const ValueKey('privacy-save-gallery-note'), style: tx.bodySmall!.copyWith(color: t.mut)),
-          ),
-          P2SectionLabel(l.profil2BlockedSection, top: 20),
-          BuGroup(dividerIndent: 66, children: [
-            BuSettingsTile(
-              icon: LucideIcons.ban,
-              title: l.profil2BlockedSection,
+            ProfilFlatRow(
+              label: l.profil2BlockedSection,
               value: _blockedCount,
-              tint: profilNeutralTint(context),
               onTap: () => _push(BlockedUsersPage(session: widget.session)),
             ),
-            BuSettingsTile(
-              icon: LucideIcons.download,
-              title: l.profil2MyDataRow,
-              tint: profilNeutralTint(context),
+            ProfilFlatRow(
+              label: l.profil2MyDataRow,
               onTap: () => _push(MyDataPage(session: widget.session)),
             ),
           ]),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
+            child: Text(l.p22SaveGalleryCloud, key: const ValueKey('privacy-save-gallery-note'), style: tx.bodySmall!.copyWith(fontSize: 12, color: t.mut)),
+          ),
         ],
       );
     }
@@ -316,7 +292,7 @@ class _PrivacyDataPageState extends State<PrivacyDataPage> {
       backgroundColor: t.bg,
       body: Column(
         children: [
-          BuHeader(title: l.profil2PrivacyTitle, onBack: () => Navigator.pop(context)),
+          ProfilTopBar(title: l.profil2PrivacyTitle),
           Expanded(child: body),
         ],
       ),

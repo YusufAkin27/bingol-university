@@ -285,7 +285,7 @@ void main() {
       testWidgets('p3p $name', skip: skip != null, (tester) async {
         debugNetworkImageHttpClientProvider = () => StoreImageHttpClient();
         tester.view.devicePixelRatio = _dpr;
-        tester.view.physicalSize = Size(390 * _dpr, shot.height * _dpr);
+        tester.view.physicalSize = Size(390 * _dpr, (double.tryParse(Platform.environment['P3P_H'] ?? '') ?? shot.height) * _dpr);
         tester.view.padding = const FakeViewPadding(top: 28 * _dpr, bottom: 16 * _dpr);
         tester.view.viewPadding = const FakeViewPadding(top: 28 * _dpr, bottom: 16 * _dpr);
         addTearDown(tester.view.reset);

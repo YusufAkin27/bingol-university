@@ -4,7 +4,7 @@ import '../../core/api.dart';
 import '../../core/locale_controller.dart';
 import '../../core/session.dart';
 import '../../widgets/bu.dart';
-import 'profil2_widgets.dart';
+import 'profil_widgets.dart';
 
 /// Şifre güncelleme çağrısı: `POST /auth/change-password {currentPassword,newPassword}`.
 /// Yanıt biçimi kesinleşene dek iki durum desteklenir: 204/boş gövde ya da yeni token çifti
@@ -153,40 +153,41 @@ class _AccountSecurityPageState extends State<AccountSecurityPage> {
       backgroundColor: t.bg,
       body: Column(
         children: [
-          BuHeader(title: l.profil2SecTitle, onBack: () => Navigator.pop(context)),
+          ProfilTopBar(title: l.profil2SecTitle),
           Expanded(
             child: ListView(
               keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-              padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
+              padding: const EdgeInsets.only(bottom: 32),
               children: [
-                BuCard(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    Row(children: [
-                      const P2IconTile(icon: LucideIcons.atSign, neutral: true, size: 44),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
-                          Text(trUpper(l.profileEmail),
-                              style: tx.labelSmall!.copyWith(fontWeight: FontWeight.w700, letterSpacing: .6, color: t.mut)),
-                          Text(email,
-                              key: const ValueKey('sec-email'),
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                              style: tx.titleMedium!.copyWith(fontWeight: FontWeight.w800, color: t.ink)),
-                        ]),
-                      ),
+                // Stitch v3: e-posta bloğu tam genişlik beyaz; etiket 13 mut, değer 16/600 ink, altında kilit + durum 12 mut.
+                ColoredBox(
+                  color: t.sf,
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 14, 20, 16),
+                    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                      Text(l.profileEmail, style: tx.labelLarge!.copyWith(fontSize: 13, fontWeight: FontWeight.w400, color: t.mut)),
+                      const SizedBox(height: 2),
+                      Text(email,
+                          key: const ValueKey('sec-email'),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: tx.bodyLarge!.copyWith(fontSize: 16, fontWeight: FontWeight.w600, color: t.ink)),
+                      const SizedBox(height: 6),
+                      Row(children: [
+                        ExcludeSemantics(child: Icon(LucideIcons.lock, size: 16, color: t.mut)),
+                        const SizedBox(width: 6),
+                        Flexible(
+                          child: Text('${l.profil2SecVerified} · ${l.profil2SecEmailFixed}',
+                              style: tx.bodySmall!.copyWith(fontSize: 12, color: t.mut)),
+                        ),
+                      ]),
                     ]),
-                    const SizedBox(height: 12),
-                    Wrap(spacing: 8, runSpacing: 8, children: [
-                      P2Pill(text: l.profil2SecVerified, tone: P2PillTone.ok, icon: LucideIcons.circleCheck),
-                      P2Pill(text: l.profil2SecEmailFixed, icon: LucideIcons.lock),
-                    ]),
-                  ]),
+                  ),
                 ),
-                P2Heading(l.profil2SecPwSection, top: 20),
-                BuCard(
-                  padding: const EdgeInsets.all(16),
+                Divider(height: 1, thickness: 1, color: t.bd),
+                ProfilFlatSection(l.profil2SecPwSection, top: 24, upper: true),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
                   child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
                     _PwField(
                       key: const ValueKey('sec-current'),
@@ -197,7 +198,7 @@ class _AccountSecurityPageState extends State<AccountSecurityPage> {
                       action: TextInputAction.next,
                       hints: const [AutofillHints.password],
                     ),
-                    const SizedBox(height: 14),
+                    const SizedBox(height: 16),
                     _PwField(
                       key: const ValueKey('sec-new'),
                       label: l.profil2SecNewLabel,
@@ -207,7 +208,9 @@ class _AccountSecurityPageState extends State<AccountSecurityPage> {
                       action: TextInputAction.next,
                       hints: const [AutofillHints.newPassword],
                     ),
-                    const SizedBox(height: 14),
+                    const SizedBox(height: 8),
+                    Text(l.profil2SecPwRule, style: tx.bodySmall!.copyWith(fontSize: 12, color: t.mut, height: 1.4)),
+                    const SizedBox(height: 16),
                     _PwField(
                       key: const ValueKey('sec-repeat'),
                       label: l.profil2SecRepeatLabel,
@@ -217,13 +220,25 @@ class _AccountSecurityPageState extends State<AccountSecurityPage> {
                       hints: const [AutofillHints.newPassword],
                       onSubmitted: _submit,
                     ),
-                    const SizedBox(height: 12),
-                    Text(l.profil2SecPwRule, style: tx.bodySmall!.copyWith(color: t.mut, height: 1.4)),
+                    // Hata satırları: ikonsuz danger 12 sp (Stitch v3).
                     if (_errors.isNotEmpty) ...[
-                      const SizedBox(height: 14),
-                      P2NoticeCard(key: const ValueKey('sec-errors'), lines: _errors, bullets: true),
+                      const SizedBox(height: 8),
+                      Semantics(
+                        liveRegion: true,
+                        child: Column(
+                          key: const ValueKey('sec-errors'),
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            for (final e in _errors)
+                              Padding(
+                                padding: const EdgeInsets.only(bottom: 2),
+                                child: Text(e, style: tx.bodySmall!.copyWith(fontSize: 12, color: t.danger)),
+                              ),
+                          ],
+                        ),
+                      ),
                     ],
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 24),
                     BuButton(
                       key: const ValueKey('sec-submit'),
                       label: l.profil2SecPwButton,
@@ -232,17 +247,15 @@ class _AccountSecurityPageState extends State<AccountSecurityPage> {
                     ),
                   ]),
                 ),
-                P2Heading(l.profil2SecSessions, top: 20),
-                BuGroup(children: [
-                  BuSettingsTile(
+                const SizedBox(height: 24),
+                Divider(height: 1, thickness: 1, color: t.bd),
+                ProfilFlatSection(l.profil2SecSessions, top: 24, upper: true),
+                ProfilFlatGroup(children: [
+                  ProfilFlatRow(
                     key: const ValueKey('sec-logout-all'),
-                    icon: LucideIcons.logOut,
-                    title: l.settingsLogoutAll,
-                    subtitle: l.p19LogoutAllSub,
+                    label: l.settingsLogoutAll,
                     danger: true,
-                    trailing: _loggingOut
-                        ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
-                        : ExcludeSemantics(child: Icon(buDirIcon(context, LucideIcons.chevronRight), size: 18, color: t.mut)),
+                    trailing: _loggingOut ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2)) : null,
                     onTap: _loggingOut ? null : _logoutAll,
                   ),
                 ]),
@@ -293,7 +306,7 @@ class _PwFieldState extends State<_PwField> {
     return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
       Padding(
         padding: const EdgeInsetsDirectional.only(start: 2, bottom: 6),
-        child: Text(widget.label, style: tx.labelMedium!.copyWith(fontWeight: FontWeight.w600, color: t.mut)),
+        child: Text(widget.label, style: tx.bodyLarge!.copyWith(fontSize: 16, color: t.ink)),
       ),
       TextField(
         controller: widget.controller,
@@ -308,14 +321,14 @@ class _PwFieldState extends State<_PwField> {
           hintText: widget.hint,
           hintStyle: tx.bodyLarge!.copyWith(color: t.mut),
           filled: true,
-          fillColor: t.sf2,
+          fillColor: t.sf,
           contentPadding: const EdgeInsetsDirectional.fromSTEB(16, 14, 4, 14),
-          border: b(t.sf2, 0),
-          enabledBorder: widget.bad ? b(t.danger, 1.5) : b(t.sf2, 0),
+          border: b(t.sf, 0),
+          enabledBorder: widget.bad ? b(t.danger, 1.5) : b(t.sf, 0),
           focusedBorder: b(widget.bad ? t.danger : t.pr, 2),
           suffixIcon: IconButton(
             tooltip: _hidden ? l.authShowPassword : l.authHidePassword,
-            icon: Icon(_hidden ? LucideIcons.eye : LucideIcons.eyeOff, size: 20, color: t.mut),
+            icon: Icon(_hidden ? LucideIcons.eye : LucideIcons.eyeOff, size: 20, color: widget.bad ? t.danger : t.mut),
             onPressed: () => setState(() => _hidden = !_hidden),
           ),
         ),

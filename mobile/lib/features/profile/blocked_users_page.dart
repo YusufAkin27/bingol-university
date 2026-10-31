@@ -5,7 +5,7 @@ import '../../core/session.dart';
 import '../../core/theme.dart';
 import '../../widgets/bu_widgets.dart';
 import '../../widgets/common.dart';
-import 'profil_widgets.dart' show ProfilCard;
+import 'profil_widgets.dart' show ProfilFlatGroup, ProfilTopBar;
 import 'profily_widgets.dart';
 import '../../core/academic_catalog.dart';
 
@@ -104,6 +104,7 @@ class _BlockedUsersPageState extends State<BlockedUsersPage> {
   Widget build(BuildContext context) {
     final t = context.bu;
     final l = context.l10n;
+    final tx = Theme.of(context).textTheme;
     Widget body;
     if (_error != null && _items == null) {
       body = ErrorView(error: _error!, onRetry: () {
@@ -113,17 +114,21 @@ class _BlockedUsersPageState extends State<BlockedUsersPage> {
     } else if (_items == null) {
       body = const LoadingView();
     } else if (_items!.isEmpty) {
+      // Stitch v3: illüstrasyonsuz; ortada başlık 18/600 + mut 15.
       body = RefreshIndicator(
         onRefresh: _load,
         child: ListView(
           physics: const AlwaysScrollableScrollPhysics(),
-          padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
+          padding: const EdgeInsets.fromLTRB(32, 96, 32, 32),
           children: [
-            ProfilyEmptyCard(
-              icon: LucideIcons.ban,
-              title: l.profilyardBlockedEmptyTitle,
-              body: l.profilyardBlockedEmptyBody,
+            Semantics(
+              header: true,
+              child: Text(l.profilyardBlockedEmptyTitle,
+                  textAlign: TextAlign.center, style: tx.titleLarge!.copyWith(fontSize: 18, fontWeight: FontWeight.w600, color: t.ink)),
             ),
+            const SizedBox(height: 8),
+            Text(l.profilyardBlockedEmptyBody,
+                textAlign: TextAlign.center, style: tx.bodyLarge!.copyWith(fontSize: 15, color: t.mut, height: 1.4)),
           ],
         ),
       );
@@ -133,14 +138,13 @@ class _BlockedUsersPageState extends State<BlockedUsersPage> {
         child: ListView(
           controller: _scroll,
           physics: const AlwaysScrollableScrollPhysics(),
-          padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
+          padding: const EdgeInsets.only(bottom: 32),
           children: [
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 4),
-              child: Text(l.profilyardBlockedNote, style: Theme.of(context).textTheme.bodyMedium!.copyWith(color: t.mut, height: 1.45)),
+              padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
+              child: Text(l.profilyardBlockedNote, style: tx.bodyMedium!.copyWith(fontSize: 13, color: t.mut, height: 1.45)),
             ),
-            const SizedBox(height: 16),
-            ProfilCard(children: [for (final u in _items!) _row(context, t, u)]),
+            ProfilFlatGroup(children: [for (final u in _items!) _row(context, t, u)]),
             if (_more)
               const Padding(padding: EdgeInsets.all(16), child: Center(child: CircularProgressIndicator())),
           ],
@@ -150,7 +154,7 @@ class _BlockedUsersPageState extends State<BlockedUsersPage> {
     return Scaffold(
       backgroundColor: t.bg,
       body: Column(children: [
-        BuHeader(title: l.profilePrefsBlockedTitle, onBack: () => Navigator.pop(context)),
+        ProfilTopBar(title: l.profilePrefsBlockedTitle),
         Expanded(child: body),
       ]),
     );
@@ -197,6 +201,7 @@ class _BlockedUsersPageState extends State<BlockedUsersPage> {
     final avatar = BuAvatar(name: u['displayName'] as String?, url: u['avatarUrl'] as String?, size: 44);
     return ProfilyRow(
       minHeight: 64,
+      padding: const EdgeInsetsDirectional.fromSTEB(20, 10, 20, 10),
       child: stacked
           ? Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Row(children: [avatar, const SizedBox(width: 12), Expanded(child: info)]),

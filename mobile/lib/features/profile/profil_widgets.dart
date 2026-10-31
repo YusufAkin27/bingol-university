@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../core/locale_controller.dart';
 import '../../widgets/bu.dart';
 import 'notification_prefs_page.dart' show PrefSwitch;
 
@@ -33,6 +34,204 @@ class ProfilCard extends StatelessWidget {
       ),
     );
     return margin == null ? card : Padding(padding: margin!, child: card);
+  }
+}
+
+/// Stitch v3 üst çubuğu: 56 dp, düz geri oku (48 dp dokunma) + başlık 18/600, çizgisiz. Ekran okuyucuda "Geri".
+class ProfilTopBar extends StatelessWidget {
+  const ProfilTopBar({super.key, required this.title, this.onBack, this.trailing});
+
+  final String title;
+  final VoidCallback? onBack;
+  final Widget? trailing;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.bu;
+    final l = context.l10n;
+    void back() => onBack != null ? onBack!() : Navigator.maybePop(context);
+    return Padding(
+      padding: EdgeInsetsDirectional.fromSTEB(4, MediaQuery.paddingOf(context).top, 8, 0),
+      child: SizedBox(
+        height: 56,
+        child: Row(children: [
+          Semantics(
+            button: true,
+            label: l.commonBack,
+            excludeSemantics: true,
+            onTap: back,
+            child: IconButton(
+              constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
+              icon: Icon(buDirIcon(context, LucideIcons.arrowLeft), size: 24, color: t.ink),
+              onPressed: back,
+            ),
+          ),
+          const SizedBox(width: 4),
+          Expanded(
+            child: Semantics(
+              header: true,
+              child: Text(title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.titleLarge!.copyWith(fontSize: 18, fontWeight: FontWeight.w600, color: t.ink)),
+            ),
+          ),
+          if (trailing != null) trailing!,
+        ]),
+      ),
+    );
+  }
+}
+
+/// Stitch v3 düz bölüm etiketi: 13/500 mut, büyük harf değil; üstte [top] dp boşluk.
+class ProfilFlatSection extends StatelessWidget {
+  const ProfilFlatSection(this.text, {super.key, this.top = 24, this.upper = false, this.horizontal = 20});
+
+  final String text;
+  final double top;
+
+  /// Alt sayfa etiketleri (Şifreyi güncelle, Oturumlar, Dosyada neler var, Neler olur) referansta büyük harftir.
+  final bool upper;
+
+  /// Yatay iç boşluk (listenin kendi 20 dp kenarı varsa 0).
+  final double horizontal;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.bu;
+    final lang = Localizations.localeOf(context).languageCode;
+    final shown = !upper || lang == 'ar' ? text : (lang == 'en' ? text.toUpperCase() : trUpper(text));
+    return Padding(
+      padding: EdgeInsetsDirectional.fromSTEB(horizontal, top, horizontal, 8),
+      child: Semantics(
+        header: true,
+        child: Text(shown,
+            style: Theme.of(context)
+                .textTheme
+                .labelLarge!
+                .copyWith(fontSize: 13, fontWeight: upper ? FontWeight.w600 : FontWeight.w500, letterSpacing: upper && lang != 'ar' ? .4 : 0, color: t.mut)),
+      ),
+    );
+  }
+}
+
+/// Tam genişlik satır grubu: [color] (varsayılan sf) zemin, satırlar arasında 1 dp bd ayırıcı.
+class ProfilFlatGroup extends StatelessWidget {
+  const ProfilFlatGroup({super.key, required this.children, this.color});
+
+  final List<Widget> children;
+  final Color? color;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.bu;
+    return ColoredBox(
+      color: color ?? t.sf,
+      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        for (var i = 0; i < children.length; i++) ...[
+          if (i > 0) Divider(height: 1, thickness: 1, color: t.bd),
+          children[i],
+        ],
+      ]),
+    );
+  }
+}
+
+/// 56 dp düz satır: etiket 16 ink, sağda değer 15 mut + chevron 20 mut. [danger]: etiket danger (chevron yok).
+class ProfilFlatRow extends StatelessWidget {
+  const ProfilFlatRow({super.key, required this.label, this.value, this.onTap, this.danger = false, this.chevron = true, this.trailing});
+
+  final String label;
+  final String? value;
+  final VoidCallback? onTap;
+  final bool danger;
+  final bool chevron;
+  final Widget? trailing;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.bu;
+    final tx = Theme.of(context).textTheme;
+    return InkWell(
+      onTap: onTap == null
+          ? null
+          : () {
+              buHaptic(BuHaptic.selection);
+              onTap!();
+            },
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(minHeight: 56),
+        child: Padding(
+          padding: const EdgeInsetsDirectional.fromSTEB(20, 8, 16, 8),
+          child: Row(children: [
+            Expanded(
+              child: Text(label,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: tx.bodyLarge!.copyWith(
+                      fontSize: 16, color: danger ? t.danger : t.ink, fontWeight: danger ? FontWeight.w600 : FontWeight.w400)),
+            ),
+            if (value != null && value!.isNotEmpty) ...[
+              const SizedBox(width: 8),
+              ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 140),
+                child: Text(value!, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.bodyMedium!.copyWith(fontSize: 15, color: t.mut)),
+              ),
+            ],
+            if (trailing != null) ...[const SizedBox(width: 8), trailing!],
+            SizedBox(
+              width: 28,
+              child: (chevron && !danger && onTap != null)
+                  ? Align(
+                      alignment: AlignmentDirectional.centerEnd,
+                      child: ExcludeSemantics(child: Icon(buDirIcon(context, LucideIcons.chevronRight), size: 20, color: t.mut)),
+                    )
+                  : null,
+            ),
+          ]),
+        ),
+      ),
+    );
+  }
+}
+
+/// Anahtarlı düz satır: 56 dp (açıklamalıysa daha uzun), M3 standart anahtar; satırın tamamı dokunulabilir.
+class ProfilFlatToggle extends StatelessWidget {
+  const ProfilFlatToggle({super.key, required this.label, required this.value, required this.onChanged, this.sub});
+
+  final String label;
+  final String? sub;
+  final bool value;
+  final ValueChanged<bool>? onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.bu;
+    final tx = Theme.of(context).textTheme;
+    return MergeSemantics(
+      child: Semantics(
+        toggled: value,
+        child: InkWell(
+          onTap: onChanged == null ? null : () => onChanged!(!value),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(minHeight: 56),
+            child: Padding(
+              padding: const EdgeInsetsDirectional.fromSTEB(20, 10, 20, 10),
+              child: Row(children: [
+                Expanded(
+                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
+                    Text(label, style: tx.bodyLarge!.copyWith(fontSize: 16, color: t.ink)),
+                    if (sub != null) Text(sub!, style: tx.bodySmall!.copyWith(fontSize: 12, color: t.mut, height: 1.35)),
+                  ]),
+                ),
+                const SizedBox(width: 12),
+                ExcludeSemantics(child: Switch(value: value, onChanged: onChanged)),
+              ]),
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }
 
