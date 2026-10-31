@@ -385,37 +385,3 @@ class EventAvatarStack extends StatelessWidget {
     );
   }
 }
-
-/// Kapak yoksa marka renkli degrade (yumuşak daireler + takvim işareti).
-class EventCoverFallback extends StatelessWidget {
-  const EventCoverFallback({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    final t = context.bu;
-    return DecoratedBox(
-      decoration: BoxDecoration(gradient: t.hero),
-      child: Stack(children: [
-        PositionedDirectional(
-          end: -30,
-          top: -40,
-          child: Container(
-            width: 140,
-            height: 140,
-            decoration: BoxDecoration(shape: BoxShape.circle, color: t.onMedia.withValues(alpha: .12)),
-          ),
-        ),
-        PositionedDirectional(
-          start: -24,
-          bottom: -44,
-          child: Container(
-            width: 110,
-            height: 110,
-            decoration: BoxDecoration(shape: BoxShape.circle, color: t.onMedia.withValues(alpha: .08)),
-          ),
-        ),
-        Center(child: Icon(LucideIcons.calendarDays, size: 36, color: t.onMedia.withValues(alpha: .35))),
-      ]),
-    );
-  }
-}

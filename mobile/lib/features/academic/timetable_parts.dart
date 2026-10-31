@@ -263,15 +263,17 @@ class TtSlotCard extends StatelessWidget {
         : switch (s.status) {
             SlotStatus.ongoing => l.acadTimeStatusNow,
             SlotStatus.past => l.acadTimeStatusDone,
-            SlotStatus.upcoming => l.p17SlotWaiting,
+            // Gelecek derste "Bekliyor" gürültüsü yok: saat ve ders adı yeterli, durum yalnız süren/biten derste.
+            SlotStatus.upcoming => null,
           };
-    final bar = ongoing ? t.pr : (past ? t.bd : t.ink.withValues(alpha: .75));
+    final tint = courseColor(c.color);
+    // Sol çubuk dersin kendi rengi: akışta dersler bir bakışta ayrışır; süren ders marka rengiyle öne çıkar.
+    final bar = ongoing ? t.pr : (past ? t.bd : akadOnTint(context, tint));
     final semantic =
         '${l.acadTimeSlotSemantic(c.name, acadDayName(l, s.session.dayOfWeek.clamp(1, 7)), s.session.start, s.session.end)}${s.session.room != null ? ', ${s.session.room}' : ''}${status != null ? ', $status' : ''}';
     final timePillBg = ongoing ? t.soft : t.sf2;
     final timePillFg = ongoing ? t.onSoft : (past ? t.mut : t.ink);
     final room = s.session.room;
-    final tint = courseColor(c.color);
     return Semantics(
       container: true,
       button: true,

@@ -9,6 +9,7 @@ import 'package:bu_kampus/features/support/support_new_ticket_page.dart';
 import 'package:bu_kampus/features/support/support_page.dart';
 import 'package:bu_kampus/features/support/support_suggestions_page.dart';
 import 'package:bu_kampus/features/support/support_ticket_page.dart';
+import 'package:bu_kampus/l10n/app_localizations.dart';
 import 'package:bu_kampus/widgets/bu.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -96,7 +97,13 @@ void main() {
         f.polls.add(samplePoll(id: 1, title: 'Uzun baslik ' * 8, anonymous: true, optionCount: 6, myOptionIds: [101]));
         f.others[1] = {101: 14, 102: 9, 103: 4};
         return PollDetailPage(session: makeSession(b), pollId: 1);
-      }, scaffold: false, settleMs: 900, check: (t, l, d, s) async => expect(find.textContaining(' · '), findsNWidgets(6)));
+      }, scaffold: false, settleMs: 900, check: (t, l, d, s) async {
+        // Yuzde zaten sag ustte; alt satir yalniz oy sayisi (yuzde tekrar edilmez).
+        final loc = lookupAppLocalizations(Locale(l));
+        final votes = RegExp('^${RegExp.escape(loc.pollVotes('0')).replaceFirst('0', r'\d+')}\$');
+        expect(find.byWidgetPredicate((w) => w is Text && w.data != null && votes.hasMatch(w.data!)), findsNWidgets(6), reason: l);
+        expect(find.textContaining(' · '), findsNothing);
+      });
     });
 
     testWidgets('detay: puanlama oylama ve sonuc', (t) async {

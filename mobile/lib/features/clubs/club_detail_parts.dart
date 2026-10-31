@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../core/locale_controller.dart';
 import '../../widgets/bu.dart';
 import '../../widgets/common.dart';
+import '../events/calm_cover.dart';
 
 export 'club_detail_cards.dart';
 
@@ -152,13 +153,7 @@ class ClubCoverSpace extends StatelessWidget {
                     fit: StackFit.expand,
                     children: [
                       cover == null
-                          ? ExcludeSemantics(
-                              child: BuGradientHero(
-                                radius: 0,
-                                pattern: seed.isEven ? BuHeroPattern.rings : BuHeroPattern.waves,
-                                child: const SizedBox.expand(),
-                              ),
-                            )
+                          ? CalmCover(seed: seed, icon: LucideIcons.users, iconAlignment: const AlignmentDirectional(.62, -.2))
                           : BuImage(url, width: double.infinity, height: coverH, maxDecodeWidth: 1200),
                       if (cover != null)
                         Positioned(

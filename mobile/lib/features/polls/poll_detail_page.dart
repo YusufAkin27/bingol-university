@@ -950,7 +950,7 @@ class _OpenResultRow extends StatelessWidget {
           const SizedBox(height: 8),
           _ResultBar(fraction: percent / 100, color: mine ? t.pr : t.mut.withValues(alpha: .45), height: 10),
           const SizedBox(height: 6),
-          Text('%$pct · ${l.pollVotes('$votes')}', style: tx.labelMedium!.copyWith(color: t.mut)),
+          Text(l.pollVotes('$votes'), style: tx.labelMedium!.copyWith(color: t.mut)),
         ]),
       ),
     );

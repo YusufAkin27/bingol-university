@@ -1283,8 +1283,8 @@ class _EventFormPageState extends State<EventFormPage> {
 
 enum _ChipTone { neutral, brand, soft }
 
-/// Hızlı seçim çipi. Seçiliyken: neutral = koyu mürekkep + onay, brand = marka kırmızısı + onay,
-/// soft = yumuşak kırmızı (her zaman). 48 dp dokunma alanı, 36 dp görsel.
+/// Hızlı seçim çipi. Seçiliyken tek "seçili" stili (BuChip ile aynı): yumuşak zemin + yazı + ince marka çerçevesi + onay.
+/// soft = eylem çipi ("Tarih seç"): çerçeveli nötr, seçili görünümüyle karışmaz. 48 dp dokunma alanı, 36 dp görsel.
 class _Chip extends StatelessWidget {
   const _Chip({required this.label, required this.selected, required this.onTap, this.icon, this.tone = _ChipTone.neutral});
 
@@ -1301,15 +1301,19 @@ class _Chip extends StatelessWidget {
     final enabled = onTap != null;
     final Color bg;
     final Color fg;
+    final Color border;
     if (tone == _ChipTone.soft) {
+      bg = t.sf;
+      fg = t.ink;
+      border = t.bdStrong;
+    } else if (selected) {
       bg = t.soft;
       fg = t.onSoft;
-    } else if (selected) {
-      bg = tone == _ChipTone.brand ? t.pr : t.ink;
-      fg = tone == _ChipTone.brand ? t.onPr : t.bg;
+      border = t.selectedBorder;
     } else {
       bg = t.sf2;
       fg = t.ink;
+      border = t.sf2;
     }
     final lead = (selected && tone != _ChipTone.soft) ? LucideIcons.check : icon;
     return Semantics(
@@ -1331,7 +1335,10 @@ class _Chip extends StatelessWidget {
             child: Container(
               height: 36,
               padding: const EdgeInsets.symmetric(horizontal: 14),
-              decoration: BoxDecoration(color: enabled ? bg : bg.withValues(alpha: .5), borderRadius: BorderRadius.circular(BuRadius.pill)),
+              decoration: BoxDecoration(
+                  color: enabled ? bg : bg.withValues(alpha: .5),
+                  borderRadius: BorderRadius.circular(BuRadius.pill),
+                  border: Border.all(color: border)),
               child: Row(mainAxisSize: MainAxisSize.min, children: [
                 if (lead != null) ...[Icon(lead, size: 14, color: enabled ? fg : fg.withValues(alpha: .5)), const SizedBox(width: 6)],
                 Flexible(

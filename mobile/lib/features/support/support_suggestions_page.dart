@@ -227,7 +227,7 @@ class _SuggestionsPageState extends State<SuggestionsPage> {
                       excludeSemantics: true,
                       onTap: _add,
                       child: Ink(
-                        decoration: BoxDecoration(gradient: t.hero, borderRadius: BuRadius.bMd),
+                        decoration: BoxDecoration(color: t.pr, borderRadius: BuRadius.bMd),
                         child: InkWell(
                           borderRadius: BuRadius.bMd,
                           onTap: _add,
@@ -235,9 +235,9 @@ class _SuggestionsPageState extends State<SuggestionsPage> {
                             constraints: const BoxConstraints(minHeight: 54),
                             child: Center(
                               child: Row(mainAxisSize: MainAxisSize.min, children: [
-                                Icon(LucideIcons.plus, size: 18, color: t.onMedia),
+                                Icon(LucideIcons.plus, size: 18, color: t.onPr),
                                 const SizedBox(width: 8),
-                                Text(l.p13SugAdd, style: Theme.of(context).textTheme.titleMedium!.copyWith(color: t.onMedia, fontWeight: FontWeight.w800)),
+                                Text(l.p13SugAdd, style: Theme.of(context).textTheme.titleMedium!.copyWith(color: t.onPr, fontWeight: FontWeight.w800)),
                               ]),
                             ),
                           ),
@@ -383,7 +383,7 @@ class _SortTabs extends StatelessWidget {
   }
 }
 
-/// Öneri kartı: durum hapı + zaman, başlık, metin, sağ altta oy hapı.
+/// Öneri kartı: durum hapı + zaman, başlık, metin, sağda dikey oy düğmesi.
 class _SuggestionTile extends StatelessWidget {
   const _SuggestionTile({required this.item, required this.onVote, required this.onOpen});
 
@@ -419,11 +419,18 @@ class _SuggestionTile extends StatelessWidget {
               ),
           ]),
           const SizedBox(height: 12),
-          Text('${item['subject'] ?? ''}', style: tx.titleMedium!.copyWith(color: t.ink, fontWeight: FontWeight.w800, height: 1.35)),
-          const SizedBox(height: 6),
-          Text('${item['message'] ?? ''}', maxLines: 3, overflow: TextOverflow.ellipsis, style: tx.bodyMedium!.copyWith(height: 1.45, color: t.mut)),
-          const SizedBox(height: 12),
-          Align(alignment: AlignmentDirectional.centerEnd, child: VotePill(count: count, voted: voted, onTap: onVote)),
+          // Oy düğmesi başlığın yanında dikey durur: kart alt satırı boşa gitmez, başlık-metin okunaklı kalır.
+          Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Expanded(
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Text('${item['subject'] ?? ''}', style: tx.titleMedium!.copyWith(color: t.ink, fontWeight: FontWeight.w800, height: 1.35)),
+                const SizedBox(height: 6),
+                Text('${item['message'] ?? ''}', maxLines: 3, overflow: TextOverflow.ellipsis, style: tx.bodyMedium!.copyWith(height: 1.45, color: t.mut)),
+              ]),
+            ),
+            const SizedBox(width: 12),
+            VotePill(count: count, voted: voted, onTap: onVote, vertical: true),
+          ]),
         ]),
       ),
     );
@@ -432,8 +439,10 @@ class _SuggestionTile extends StatelessWidget {
 
 /// Oy hapı: yukarı ok + sayı; oy verilince dolu marka rengi, aksi halde gri.
 class VotePill extends StatelessWidget {
-  const VotePill({super.key, required this.count, required this.voted, required this.onTap});
+  const VotePill({super.key, required this.count, required this.voted, required this.onTap, this.vertical = false});
 
+  /// Dikey: ok üstte, sayı altta (liste kartında sağ kenar).
+  final bool vertical;
   final int count;
   final bool voted;
   final VoidCallback onTap;
@@ -462,18 +471,23 @@ class VotePill extends StatelessWidget {
               borderRadius: BorderRadius.circular(16),
               onTap: onTap,
               child: ConstrainedBox(
-                constraints: const BoxConstraints(minHeight: 48, minWidth: 80),
+                constraints: BoxConstraints(minHeight: vertical ? 64 : 48, minWidth: vertical ? 56 : 80),
                 child: Padding(
-                  padding: const EdgeInsetsDirectional.symmetric(horizontal: 16),
-                  child: Row(mainAxisSize: MainAxisSize.min, mainAxisAlignment: MainAxisAlignment.center, children: [
-                    Icon(LucideIcons.arrowUp, size: 18, color: fg),
-                    const SizedBox(width: 8),
-                    AnimatedSwitcher(
-                      duration: d,
-                      transitionBuilder: (c, a) => FadeTransition(opacity: a, child: ScaleTransition(scale: Tween(begin: .8, end: 1.0).animate(a), child: c)),
-                      child: Text('$count', key: ValueKey(count), style: tx.titleSmall!.copyWith(color: fg, fontWeight: FontWeight.w800)),
-                    ),
-                  ]),
+                  padding: EdgeInsetsDirectional.symmetric(horizontal: vertical ? 10 : 16, vertical: vertical ? 8 : 0),
+                  child: Flex(
+                    direction: vertical ? Axis.vertical : Axis.horizontal,
+                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(LucideIcons.arrowUp, size: 18, color: fg),
+                      SizedBox(width: vertical ? 0 : 8, height: vertical ? 2 : 0),
+                      AnimatedSwitcher(
+                        duration: d,
+                        transitionBuilder: (c, a) => FadeTransition(opacity: a, child: ScaleTransition(scale: Tween(begin: .8, end: 1.0).animate(a), child: c)),
+                        child: Text('$count', key: ValueKey(count), style: tx.titleSmall!.copyWith(color: fg, fontWeight: FontWeight.w800)),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),

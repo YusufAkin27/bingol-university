@@ -12,6 +12,7 @@ import '../chat/chat_detail_page.dart';
 import '../../widgets/report_sheet.dart';
 import '../clubs/club_detail_page.dart';
 import '../platform/qr_scan_page.dart';
+import 'calm_cover.dart';
 import 'etkinlik2_apply_sheet.dart';
 import 'etkinlik2_attendance_page.dart';
 import 'etkinlik2_qr_page.dart';
@@ -743,7 +744,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
       child: AspectRatio(
         aspectRatio: 16 / 9,
         child: Stack(fit: StackFit.expand, children: [
-          if (cover != null) EventCoverImage(url: cover, cacheWidth: 1000) else const EventCoverFallback(),
+          if (cover != null) EventCoverImage(url: cover, cacheWidth: 1000) else CalmCover(seed: (ev['communityId'] as num?)?.toInt() ?? (ev['id'] as num?)?.toInt() ?? 0, icon: LucideIcons.calendarDays),
           if (cancelled) Positioned.fill(child: ColoredBox(color: t.scrim.withValues(alpha: .4))),
           if (!cancelled && closed)
             PositionedDirectional(
