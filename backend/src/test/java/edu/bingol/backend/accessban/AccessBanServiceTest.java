@@ -204,6 +204,23 @@ class AccessBanServiceTest {
         assertEquals(1L, visibleBans.get(), "oturum iptali ban satiri commit olmadan calisti");
     }
 
+    /** PostgreSQL dalinda aralik sorgusu hata verirse savepoint'e donulur, islem (ban kaydi) kurtulur, uygulama-ici yol kullanilir. */
+    @Test
+    void rangeQueryFailureOnThePostgresBranchFallsBackWithoutAbortingTheTransaction() throws Exception {
+        java.lang.reflect.Field f = AccessBanService.class.getDeclaredField("postgres");
+        f.setAccessible(true);
+        f.set(service, Boolean.TRUE); // H2'de `CAST(ip AS inet)` gecersiz: SQL hata verir
+        User a = user("a", Role.USER);
+        log(a.getId(), "-", "198.51.100.10", Instant.now());
+
+        BlockAccessResult r = new org.springframework.transaction.support.TransactionTemplate(txm).execute(
+                s -> service.create(adminUser.getId(), req("CIDR", "198.51.100.0/24"), admin));
+
+        assertEquals(1, r.sessionsClosedUsers());
+        verify(sessions).revokeAll(a.getId());
+        assertEquals(1, bans.count(), "ban kaydi kaybolmadi");
+    }
+
     @Test
     void closingMoreThanOneChunkContinuesInTheBackgroundAndSaysSo() {
         int total = AccessBanService.CLOSE_CHUNK + 80;

@@ -584,16 +584,37 @@ public class AccessBanService {
     /** PostgreSQL: `ip::inet <<= ANY(aralik dizisi)`; sonuca tavan {@link #CLOSE_MAX_USERS}+1 (fazlasi uyariyla bildirilir). */
     private Set<Long> usersInRangeSql(List<IpRanges.Range> ranges, Instant since) {
         String[] cidrs = ranges.stream().map(IpRanges.Range::canonical).toArray(String[]::new);
-        List<Long> ids = jdbc.query(con -> {
-            java.sql.PreparedStatement ps = con.prepareStatement(
+        // Savepoint: sorgu hata verirse PostgreSQL acik islemi "aborted" yapar; savepoint'e donmek islemi (ban kaydi
+        // dahil) kurtarir ve cagiran uygulama-ici yola dusebilir.
+        return jdbc.execute((java.sql.Connection con) -> {
+            java.sql.Savepoint sp = con.getAutoCommit() ? null : con.setSavepoint();
+            Set<Long> out = new LinkedHashSet<>();
+            try (java.sql.PreparedStatement ps = con.prepareStatement(
                     "SELECT DISTINCT user_id FROM user_device_log WHERE last_seen_at >= ? "
-                            + "AND CAST(ip AS inet) <<= ANY (CAST(? AS inet[])) LIMIT ?");
-            ps.setTimestamp(1, Timestamp.from(since));
-            ps.setArray(2, con.createArrayOf("text", cidrs));
-            ps.setInt(3, CLOSE_MAX_USERS + 1);
-            return ps;
-        }, (rs, i) -> rs.getLong(1));
-        return new LinkedHashSet<>(ids);
+                            + "AND CAST(ip AS inet) <<= ANY (CAST(? AS inet[])) LIMIT ?")) {
+                ps.setTimestamp(1, Timestamp.from(since));
+                ps.setArray(2, con.createArrayOf("text", cidrs));
+                ps.setInt(3, CLOSE_MAX_USERS + 1);
+                try (java.sql.ResultSet rs = ps.executeQuery()) {
+                    while (rs.next()) {
+                        out.add(rs.getLong(1));
+                    }
+                }
+            } catch (java.sql.SQLException e) {
+                if (sp != null) {
+                    con.rollback(sp);
+                }
+                throw e;
+            }
+            if (sp != null) {
+                try {
+                    con.releaseSavepoint(sp);
+                } catch (java.sql.SQLException ignored) {
+                    // savepoint serbest birakilamasa da islem surer
+                }
+            }
+            return out;
+        });
     }
 
     private volatile Boolean postgres;
