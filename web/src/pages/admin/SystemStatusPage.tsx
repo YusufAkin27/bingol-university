@@ -1,6 +1,8 @@
 // SAYFA: Sistem durumu (/admin/system) — "Her şey yolunda mı?" kahramanı + gruplu, katlanır gösterge bölümleri + gönderilemeyen kayıtlar.
 // API: GET /api/admin/system/overview; GET/POST /api/admin/system/dead-letters/{mail|push}[/retry|/delete] (api/system.ts).
 // Sayfa görünürken 30 sn'de bir otomatik yenilenir. Durum yalnız renkle değil simge + metinle de gösterilir.
+// Üstte yalnız İyi/Dikkat/Acil trafik ışığı + tek cümle + dört ana gösterge + sağlık çizelgesi + görev şeridi (sistem1);
+// ham gösterge listesi "Teknik ayrıntılar" katlanır bölümündedir (sorun varsa açık gelir).
 // Sorunlu göstergeler her grubun başında dolgun kart, normal olanlar tek satır; sorunlu grup açık, tamamen normal grup kapalı gelir.
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
@@ -13,7 +15,10 @@ import { adminErrorMessage } from './campaigns/shared';
 import { DeadLetters } from './systemstatus/DeadLetters';
 import { CompactRow, IndicatorCard, LEVEL_ICON } from './systemstatus/IndicatorViews';
 import { LEVEL_ORDER, isRing } from './systemstatus/indicators';
-import { StatusHero } from './systemstatus/StatusHero';
+import { countsText, StatusHero } from './systemstatus/StatusHero';
+import { s1 } from './sistem1/dict';
+import { HealthTimeline, JobLanes, KeyGauges, useHealthHistory } from './sistem1/SystemPanels';
+import sx from './sistem1/sistem1.module.css';
 import styles from './systemstatus/systemstatus.module.css';
 
 const POLL_MS = 30_000;
@@ -114,6 +119,9 @@ export default function SystemStatusPage() {
 
   const data = q.data;
   const entries: Entry[] = data ? Object.entries(data.indicators) : [];
+  const history = useHealthHistory(q.dataUpdatedAt, data ? levelOf(data.overall) : null);
+  const t1 = s1(i18n);
+  const anyProblem = entries.some(([, v]) => levelOf(v.status) !== 'OK');
 
   return (
     <>
@@ -147,21 +155,34 @@ export default function SystemStatusPage() {
         ) : (
           <>
             <StatusHero i18n={i18n} overall={levelOf(data.overall)} entries={entries} />
-            {GROUPS.map((g) => {
-              const items = entries.filter(([k]) => groupOf(k) === g);
-              if (items.length === 0) return null;
-              const hasProblem = items.some(([, v]) => levelOf(v.status) !== 'OK');
-              return (
-                <GroupSection
-                  key={g}
-                  i18n={i18n}
-                  group={g}
-                  items={items}
-                  open={chosen[g] ?? hasProblem}
-                  onToggle={(next) => setChosen((c) => (c[g] === next ? c : { ...c, [g]: next }))}
-                />
-              );
-            })}
+            <KeyGauges i18n={i18n} entries={entries} />
+            <HealthTimeline i18n={i18n} history={history} />
+            <JobLanes i18n={i18n} entries={entries} />
+            <details className={sx.tech} open={anyProblem || undefined} data-search-anchor="technical-details">
+              <summary className={sx.techSummary}>
+                <Icon name="chevronDown" size={16} aria-hidden="true" />
+                {t1('admin.s1.tech.title', { n: String(entries.length) })}
+              </summary>
+              <div className={sx.techBody}>
+                <p className={styles.muted}>{t1('admin.s1.tech.hint')}</p>
+                <p className={styles.muted}>{countsText(i18n, entries)}</p>
+                {GROUPS.map((g) => {
+                  const items = entries.filter(([k]) => groupOf(k) === g);
+                  if (items.length === 0) return null;
+                  const hasProblem = items.some(([, v]) => levelOf(v.status) !== 'OK');
+                  return (
+                    <GroupSection
+                      key={g}
+                      i18n={i18n}
+                      group={g}
+                      items={items}
+                      open={chosen[g] ?? hasProblem}
+                      onToggle={(next) => setChosen((c) => (c[g] === next ? c : { ...c, [g]: next }))}
+                    />
+                  );
+                })}
+              </div>
+            </details>
           </>
         )}
         {!q.isError && <DeadLetters i18n={i18n} />}

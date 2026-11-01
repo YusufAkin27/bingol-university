@@ -14,6 +14,9 @@ import { HistoryPanel } from './dataretention/HistoryPanel';
 import { PurgeDialog } from './dataretention/PurgeDialog';
 import { StorageCards } from './dataretention/StorageCards';
 import { TablesPanel } from './dataretention/TablesPanel';
+import { s1 } from './sistem1/dict';
+import { GrowthPanel, StorageOverview } from './sistem1/StorageInsights';
+import sx from './sistem1/sistem1.module.css';
 import styles from './dataretention/DataRetention.module.css';
 
 const POLL_MS = 60_000;
@@ -25,7 +28,8 @@ interface PurgeTarget {
 }
 
 export default function DataRetentionPage() {
-  const { t, formatNumber, formatDateTime } = useI18n();
+  const i18n = useI18n();
+  const { t, formatNumber, formatDateTime } = i18n;
   usePageTitle(t('admin.ds1.title'));
   const [exporting, setExporting] = useState<RetentionTable | null>(null);
   const [purging, setPurging] = useState<PurgeTarget | null>(null);
@@ -60,7 +64,11 @@ export default function DataRetentionPage() {
                   </span>
                 </Callout>
               )}
-              <StorageCards report={r} />
+              <StorageOverview report={r} />
+              <details className={sx.numbers} open={isStorageAlert(r) || undefined} data-search-anchor="storage-details">
+                <summary>{s1(i18n)('admin.s1.storage.details')}</summary>
+                <StorageCards report={r} />
+              </details>
               <p className={styles.muted}>{t('admin.ds1.storage.updated', { time: formatDateTime(r.generatedAt) })}</p>
               <div>
                 <Button size="sm" variant="ghost" onClick={() => void storage.refetch()}>
@@ -71,6 +79,7 @@ export default function DataRetentionPage() {
           )}
         </Card>
 
+        <GrowthPanel />
         <TablesPanel onExport={setExporting} onPurge={(table) => setPurging({ table })} />
         <HistoryPanel />
       </div>

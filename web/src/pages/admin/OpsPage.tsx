@@ -6,7 +6,7 @@
 // Sayfa görünürken 30 sn'de bir otomatik yenilenir.
 import { useQuery, useQueryClient, type UseQueryResult } from '@tanstack/react-query';
 import { useState, type ReactNode } from 'react';
-import { SearchAnchor } from '../../search/anchor';
+import { SearchAnchor, useSearchReveal } from '../../search/anchor';
 import { useUrlTab } from '../../search/useUrlTab';
 import { Link } from 'react-router-dom';
 import { isApiError } from '../../api/client';
@@ -24,6 +24,7 @@ import {
   Input,
   Insight,
   PageHeader,
+  ProgressRing,
   Skeleton,
   StatusPill,
   Tabs,
@@ -36,12 +37,28 @@ import { paths } from '../../paths';
 import { ADMIN_REASON_MIN } from '../../components/admin/guard/match';
 import { adminErrorMessage, Callout } from './campaigns/shared';
 import { formatMinutes } from './systemstatus/indicators';
+import { s1 } from './sistem1/dict';
+import { queueSegments, summarizeOps, zoneScale } from './sistem1/logic';
+import { OpsSummary } from './sistem1/OpsSummary';
+import { StackedBar, ZoneGauge } from './sistem1/Visuals';
+import sx from './sistem1/sistem1.module.css';
 import styles from './moderation/moderation.module.css';
 
 const POLL_MS = 30_000;
 const STALE_BACKUP_MS = 48 * 3600 * 1000;
 type TabId = 'health' | 'queues' | 'backup' | 'release' | 'links';
 const TABS: TabId[] = ['health', 'queues', 'backup', 'release', 'links'];
+
+/** Arama anchor'ı -> o kartın bulunduğu sekme (kart görünür olsun diye sekme açılır). */
+const TAB_OF_ANCHOR: Record<string, TabId> = {
+  'ops-components': 'health',
+  'ops-sources': 'health',
+  'ops-mail-queue': 'queues',
+  'ops-push-queue': 'queues',
+  'ops-transcode': 'queues',
+  'ops-release': 'release',
+  'ops-links': 'links',
+};
 
 const TONE: Record<OpsLevel, Tone> = { UP: 'success', WARN: 'warning', DOWN: 'danger', UNKNOWN: 'neutral' };
 
@@ -139,8 +156,19 @@ function ComponentDetails({
   if (!details) return null;
   const { total, free, error } = details;
   const sentence: string[] = [];
+  let ring: ReactNode = null;
   if (typeof total === 'number' && typeof free === 'number' && total > 0) {
     const usedPct = Math.round(((total - free) / total) * 100);
+    ring = (
+      <ProgressRing
+        value={usedPct}
+        label={s1(i18n)('admin.s1.ops.diskRing')}
+        center={i18n.t('admin.system.unit.percent', { n: i18n.formatNumber(usedPct) })}
+        tone={usedPct >= 90 ? 'danger' : usedPct >= 80 ? 'warning' : 'success'}
+        size={80}
+        thickness={9}
+      />
+    );
     sentence.push(
       i18n.t('admin.v2n.ops.disk', {
         free: formatBytes(i18n, free),
@@ -156,6 +184,7 @@ function ComponentDetails({
   if (!raw) return null;
   return (
     <>
+      {ring}
       {sentence.map((x) => (
         <p key={x}>{x}</p>
       ))}
@@ -173,7 +202,7 @@ function HealthTab({ i18n }: { i18n: I18n }) {
   const sources = useOpsQuery('sources', getSyncStatus);
   return (
     <div className={styles.stack}>
-      <Card title={t('admin.ops.health.components')}>
+      <Card title={t('admin.ops.health.components')} data-search-anchor="ops-components">
         <Panel i18n={i18n} q={health}>
           {(h) => (
             <>
@@ -196,7 +225,7 @@ function HealthTab({ i18n }: { i18n: I18n }) {
           )}
         </Panel>
       </Card>
-      <Card title={t('admin.ops.health.sources')}>
+      <Card title={t('admin.ops.health.sources')} data-search-anchor="ops-sources">
         <Panel i18n={i18n} q={sources}>
           {(s) => (
             <ul className={styles.rowList}>
@@ -286,6 +315,36 @@ function QueueSentence({
   return <Insight tone={dead > 0 ? 'warn' : 'good'} parts={text} />;
 }
 
+/** Sira durumunu tek yigilmis cubukla gosterir (sifirlar atilir); sayilar "Ayrintili sayilar" altindadir. */
+function QueueBar({
+  i18n,
+  parts,
+}: {
+  i18n: I18n;
+  parts: [string, number | undefined, 'info' | 'neutral' | 'warning' | 'danger'][];
+}) {
+  const segs = queueSegments(parts.map(([key, count, tone]) => ({ key, count, tone })));
+  const t = s1(i18n);
+  if (segs.length === 0) return null;
+  return (
+    <StackedBar
+      segments={segs}
+      label={t('admin.s1.ops.queueBar')}
+      legend={(sg) => `${i18n.td(`admin.ops.q.${sg.key}`, sg.key)}: ${i18n.formatNumber(sg.count)}`}
+    />
+  );
+}
+
+/** Ham sayilar: ust bolumde cumle + cubuk yeterli; ayrinti isteyen acar. */
+function Numbers({ i18n, children }: { i18n: I18n; children: ReactNode }) {
+  return (
+    <details className={sx.numbers}>
+      <summary>{s1(i18n)('admin.s1.ops.numbers')}</summary>
+      {children}
+    </details>
+  );
+}
+
 function QueuesTab({ i18n }: { i18n: I18n }) {
   const { t, formatNumber: n } = i18n;
   const mail = useOpsQuery('mail', opsApi.getMailStats);
@@ -293,11 +352,13 @@ function QueuesTab({ i18n }: { i18n: I18n }) {
   const tc = useOpsQuery('transcode', opsApi.getTranscodeStats);
   return (
     <div className={styles.stack}>
-      <Card title={t('admin.ops.q.mail')}>
+      <Card title={t('admin.ops.q.mail')} data-search-anchor="ops-mail-queue">
         <Panel i18n={i18n} q={mail}>
           {(s) => (
             <>
               <QueueSentence i18n={i18n} pending={s.pending} dead={s.dead} sent={s.sentLast24h} />
+              <QueueBar i18n={i18n} parts={[['pending', s.pending, 'info'], ['sending', s.sending, 'neutral'], ['dead', s.dead, 'danger']]} />
+              <Numbers i18n={i18n}>
               <dl className={styles.statGrid}>
                 <Stat label={t('admin.ops.q.pending')} value={n(s.pending)} />
                 {s.sending !== undefined && <Stat label={t('admin.ops.q.sending')} value={n(s.sending)} />}
@@ -307,12 +368,13 @@ function QueuesTab({ i18n }: { i18n: I18n }) {
                 )}
                 <Stat label={t('admin.ops.q.oldest')} value={ageText(i18n, s.oldestPendingAgeSeconds)} />
               </dl>
+              </Numbers>
               {s.dead > 0 && <RetryButton i18n={i18n} run={opsApi.retryMailDead} invalidate="mail" count={s.dead} />}
             </>
           )}
         </Panel>
       </Card>
-      <Card title={t('admin.ops.q.push')}>
+      <Card title={t('admin.ops.q.push')} data-search-anchor="ops-push-queue">
         <Panel i18n={i18n} q={push}>
           {(s) => (
             <>
@@ -322,6 +384,8 @@ function QueuesTab({ i18n }: { i18n: I18n }) {
                 </Callout>
               )}
               <QueueSentence i18n={i18n} pending={s.pending} dead={s.dead} sent={s.sentLast24h} />
+              <QueueBar i18n={i18n} parts={[['pending', s.pending, 'info'], ['sending', s.sending, 'neutral'], ['failed', s.failed, 'warning'], ['dead', s.dead, 'danger']]} />
+              <Numbers i18n={i18n}>
               <dl className={styles.statGrid}>
                 <Stat label={t('admin.ops.q.pending')} value={n(s.pending)} />
                 <Stat label={t('admin.ops.q.sending')} value={n(s.sending)} />
@@ -330,12 +394,13 @@ function QueuesTab({ i18n }: { i18n: I18n }) {
                 <Stat label={t('admin.ops.q.sent24h')} value={n(s.sentLast24h)} />
                 <Stat label={t('admin.ops.q.oldest')} value={ageText(i18n, s.oldestPendingAgeSeconds)} />
               </dl>
+              </Numbers>
               {s.dead > 0 && <RetryButton i18n={i18n} run={opsApi.retryPushDead} invalidate="push" count={s.dead} />}
             </>
           )}
         </Panel>
       </Card>
-      <Card title={t('admin.ops.q.transcode')}>
+      <Card title={t('admin.ops.q.transcode')} data-search-anchor="ops-transcode">
         <Panel i18n={i18n} q={tc}>
           {(s) => (
             <>
@@ -344,6 +409,8 @@ function QueuesTab({ i18n }: { i18n: I18n }) {
                   {t('admin.p03.ops.transcodeDisabled')}
                 </Callout>
               )}
+              <QueueBar i18n={i18n} parts={[['pending', s.pending, 'info'], ['processing', s.processing, 'neutral'], ['failed', s.failed, 'danger']]} />
+              <Numbers i18n={i18n}>
               <dl className={styles.statGrid}>
                 <Stat label={t('admin.ops.q.pending')} value={n(s.pending)} />
                 {s.processing !== undefined && (
@@ -354,6 +421,7 @@ function QueuesTab({ i18n }: { i18n: I18n }) {
                   <Stat label={t('admin.ops.q.done24h')} value={n(s.doneLast24h)} />
                 )}
               </dl>
+              </Numbers>
               <Updated i18n={i18n} at={tc.dataUpdatedAt} />
             </>
           )}
@@ -375,8 +443,23 @@ function BackupTab({ i18n }: { i18n: I18n }) {
             const last = b.lastSuccessAt ? new Date(b.lastSuccessAt).getTime() : null;
             const stale = last === null || Date.now() - last > STALE_BACKUP_MS;
             const level = levelOf(b.status);
+            const hours = last === null ? null : Math.max(0, (Date.now() - last) / 3_600_000);
+            const t1 = s1(i18n);
             return (
               <>
+                {hours !== null && (
+                  <>
+                    <Insight
+                      tone={hours > 48 ? 'bad' : hours > 24 ? 'warn' : 'good'}
+                      parts={t1('admin.s1.ops.backupAgo', { h: i18n.formatNumber(Math.floor(hours)) })}
+                    />
+                    <ZoneGauge
+                      scale={zoneScale(hours, 24, 48)}
+                      level={hours > 48 ? 'CRIT' : hours > 24 ? 'WARN' : 'OK'}
+                      label={t1('admin.s1.ops.backupGauge', { h: i18n.formatNumber(Math.floor(hours)) })}
+                    />
+                  </>
+                )}
                 {stale && (
                   <Callout tone="warning" role="status">
                     {t(last === null ? 'admin.ops.backup.never' : 'admin.ops.backup.stale')}
@@ -418,7 +501,7 @@ function ReleaseTab({ i18n }: { i18n: I18n }) {
   const dash = (v: string | undefined) => (v && v.trim() ? v : '—');
   return (
     <div className={styles.stack}>
-      <Card title={t('admin.ops.tab.release')}>
+      <Card title={t('admin.ops.tab.release')} data-search-anchor="ops-release">
         <Panel i18n={i18n} q={q}>
           {(s) => {
             const on = (s.maintenance_mode ?? '').toLowerCase() === 'true';
@@ -515,7 +598,7 @@ function LinksTab({ i18n }: { i18n: I18n }) {
   const q = useOpsQuery('settings', getSettings);
   return (
     <div className={styles.stack}>
-      <Card title={i18n.t('admin.ops.tab.links')}>
+      <Card title={i18n.t('admin.ops.tab.links')} data-search-anchor="ops-links">
         <p className={styles.muted}>{i18n.t('admin.ops.links.intro')}</p>
         <Panel i18n={i18n} q={q}>
           {(s) => (
@@ -537,6 +620,22 @@ export default function OpsPage() {
   usePageTitle(t('admin.ops.title'));
   const qc = useQueryClient();
   const [tab, setTab] = useUrlTab<TabId>(TABS, 'health'); // ?tab=queues: arama derin bağlantısı sekmeyi açar
+  useSearchReveal((anchor) => {
+    const target = TAB_OF_ANCHOR[anchor];
+    if (target) setTab(target);
+  });
+  // Üst özet: sekmelerle aynı sorgu anahtarlarını paylaşır (ek istek yok; uç yoksa o parça özete girmez)
+  const health = useOpsQuery('health', opsApi.getHealth);
+  const mailQ = useOpsQuery('mail', opsApi.getMailStats);
+  const pushQ = useOpsQuery('push', opsApi.getPushStats);
+  const backupQ = useOpsQuery('backup', opsApi.getBackupStatus);
+  const summary = summarizeOps({
+    healthStatus: health.data?.status ?? null,
+    mailDead: mailQ.data?.dead ?? null,
+    pushDead: pushQ.data?.dead ?? null,
+    backup: backupQ.data ? { status: backupQ.data.status, lastSuccessAt: backupQ.data.lastSuccessAt } : null,
+    now: Date.now(),
+  });
   const tabs = TABS.map((id) => ({ id, label: t(`admin.ops.tab.${id}` as 'admin.ops.tab.health') }));
 
   return (
@@ -558,6 +657,7 @@ export default function OpsPage() {
         {t('admin.ops.auto')} · {t('admin.v2n.ops.systemLink')}{' '}
         <Link to={paths.admin.system}>{t('admin.v2n.ops.systemLinkText')}</Link>
       </p>
+      {(health.isSuccess || mailQ.isSuccess || pushQ.isSuccess || backupQ.isSuccess) && <OpsSummary i18n={i18n} summary={summary} />}
       <Tabs tabs={tabs} value={tab} onChange={(id) => setTab(id as TabId)} label={t('admin.ops.tabs')}>
         {tab === 'health' && (
           <SearchAnchor id="tab-health">
