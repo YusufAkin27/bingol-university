@@ -218,6 +218,9 @@ public class AcademicController {
     @GetMapping("/admin/announcements/audience-count")
     public CountView audienceCount(@RequestParam(required = false) String department, @RequestParam(required = false) String faculty,
                                    @RequestParam(required = false) String grade) {
+        // Secim her degistiginde cagrilir ve kullanici tablosunu sayar: kendi (daha siki) hiz siniri
+        Long adminId = admin();
+        limiter.check("acd:audcount:" + (adminId != null ? adminId : "basic"), 60, Duration.ofMinutes(1));
         return new CountView(announcements.audienceCount(department, faculty, grade));
     }
 
