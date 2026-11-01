@@ -20,9 +20,10 @@
   background: var(--surface-3);
   color: var(--text-muted);
 }
+/* "primary" rozet bilgi tonudur: marka kırmızısı hata ile karışır ("Sürüm 3", "Sahip", "Sabit" hata gibi okunuyordu) */
 .primary {
-  background: var(--primary-soft);
-  color: var(--primary);
+  background: var(--info-soft);
+  color: var(--info);
 }
 .success {
   background: var(--success-soft);

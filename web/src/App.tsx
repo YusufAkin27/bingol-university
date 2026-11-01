@@ -17,8 +17,10 @@ export function makeQueryClient() {
       queries: {
         staleTime: 30_000,
         refetchOnWindowFocus: false,
-        // 4xx istemci hatası tekrar denemekle düzelmez
-        retry: (count, err) => count < 2 && !(isApiError(err) && err.status >= 400 && err.status < 500),
+        // 4xx istemci hatası tekrar denemekle düzelmez. Tek kısa yeniden deneme: iki deneme + üstel bekleme hata
+        // iskeletini 5-7 sn ekranda tutuyordu (kullanıcı "donmuş" sanıyordu).
+        retry: (count, err) => count < 1 && !(isApiError(err) && err.status >= 400 && err.status < 500),
+        retryDelay: 800,
       },
     },
   });

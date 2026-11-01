@@ -26,3 +26,26 @@
 .bar :focus-visible {
   outline-color: #fff;
 }
+
+/* Koyu çubuk üzerinde "Seçimi temizle": açık temada koyu yazı koyu zeminde görünmezdi (1.00:1); beyaz yazı + çerçeve */
+.bar .clear {
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.55);
+}
+.bar .clear:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.16);
+  color: #fff;
+}
+@media (max-width: 639.98px) {
+  .bar {
+    gap: var(--space-2);
+    padding: var(--space-2) var(--space-3);
+  }
+  .actions {
+    flex: 1 1 100%;
+    margin-inline-start: 0;
+  }
+  .actions > * {
+    flex: 1 1 auto;
+  }
+}

@@ -21,7 +21,7 @@ export function BulkBar({ count, onClear, children }: Props) {
         {t('admin.table.selected', { count })}
       </span>
       <div className={styles.actions}>{children}</div>
-      <Button size="sm" variant="ghost" onClick={onClear}>
+      <Button size="sm" variant="ghost" className={styles.clear} onClick={onClear}>
         {t('admin.table.clearSelection')}
       </Button>
     </div>

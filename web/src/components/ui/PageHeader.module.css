@@ -17,6 +17,7 @@
 .desc {
   color: var(--text-muted);
   max-width: 62ch;
+  overflow-wrap: anywhere;
 }
 .actions {
   display: flex;
@@ -49,6 +50,13 @@
   .title {
     font-size: var(--text-xl);
     overflow-wrap: anywhere;
+  }
+  .desc {
+    font-size: var(--text-sm);
+    max-width: none;
+  }
+  .crumbs ol {
+    row-gap: 0;
   }
   .actions > * {
     flex: 1 1 auto;

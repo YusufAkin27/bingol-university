@@ -46,22 +46,39 @@
   animation-name: slide-in-rtl;
 }
 .head {
+  flex: none; /* gövde uzasa da başlık ve kapat düğmesi her zaman görünür */
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: var(--space-3);
+  min-width: 0;
   padding: var(--space-4) var(--space-5);
   border-block-end: 1px solid var(--border);
 }
+.head > button {
+  flex: none; /* uzun başlık kapatma düğmesini ekran dışına itmesin */
+}
 .title {
+  min-width: 0;
   font-size: var(--text-lg);
+  overflow-wrap: anywhere;
 }
 .body {
+  flex: 1 1 auto;
+  min-width: 0;
   padding: var(--space-5);
   overflow-y: auto;
+  overflow-x: auto;
+  /* uzun e-posta/ad/yol kapsayıcıyı taşırmaz */
+  overflow-wrap: anywhere;
+}
+.body > * {
+  min-width: 0;
 }
 .foot {
+  flex: none;
   display: flex;
+  flex-wrap: wrap;
   justify-content: flex-end;
   gap: var(--space-2);
   padding: var(--space-4) var(--space-5);
@@ -88,5 +105,40 @@
   from {
     transform: translateX(-24px);
     opacity: 0;
+  }
+}
+
+/* Telefon: pencereler tam genişlik (alt sayfa); çekmece tüm ekranı kaplar; eylem düğmeleri satırı doldurur */
+@media (max-width: 639.98px) {
+  .scrim {
+    padding: 0;
+    align-items: end;
+  }
+  .panel {
+    min-width: 0;
+  }
+  .modal {
+    max-width: none;
+    max-height: 92vh;
+    max-height: 92dvh;
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    border-block-end: 0;
+  }
+  .drawer {
+    inset-inline: 0;
+    width: 100%;
+    max-width: none;
+  }
+  .head {
+    padding: var(--space-3) var(--space-4);
+  }
+  .body {
+    padding: var(--space-4);
+  }
+  .foot {
+    padding: var(--space-3) var(--space-4) calc(var(--space-3) + env(safe-area-inset-bottom, 0px));
+  }
+  .foot > * {
+    flex: 1 1 auto;
   }
 }

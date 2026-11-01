@@ -2,6 +2,9 @@ import { useEffect, useRef, type KeyboardEvent, type ReactNode } from 'react';
 import { useI18n } from '../../i18n/I18nProvider';
 import { Icon } from './Icon';
 import { EmptyState, ErrorState, Skeleton } from './Feedback';
+import { DataCards } from './ResponsiveTable';
+import { useIsNarrow } from './useIsNarrow';
+import { useScrollEdges } from './useScrollEdges';
 import styles from './Table.module.css';
 
 /** Dar ekranda kart görünümü (ResponsiveTable) için isteğe bağlı ipuçları; Table bunları yok sayar. */
@@ -55,6 +58,11 @@ export interface TableProps<T> {
   onSelectionChange?: (next: Set<string | number>) => void;
   /** Daha geniş satır aralığı (varsayılan: yoğun). */
   comfortable?: boolean;
+  /**
+   * Telefonda (<640 px) görünüm: `scroll` (varsayılan) yana kaydırılan tablo (kenar gölgesi + "yana kaydırın" ipucu);
+   * `cards` satırları kart yığınına çevirir (sütun `card` ipuçlarıyla; bkz. ResponsiveTable).
+   */
+  mobile?: 'scroll' | 'cards';
 }
 
 /** Başlıktaki "tümünü seç" kutusu: kısmi seçimde karışık (indeterminate) durumdadır. */
@@ -74,14 +82,16 @@ function SelectAll({
     if (ref.current) ref.current.indeterminate = partial;
   }, [partial]);
   return (
-    <input
-      ref={ref}
-      type="checkbox"
-      className={styles.check}
-      aria-label={label}
-      checked={checked}
-      onChange={onChange}
-    />
+    <label className={styles.pick}>
+      <input
+        ref={ref}
+        type="checkbox"
+        className={styles.check}
+        aria-label={label}
+        checked={checked}
+        onChange={onChange}
+      />
+    </label>
   );
 }
 
@@ -101,8 +111,13 @@ export function Table<T>({
   selectedKeys,
   onSelectionChange,
   comfortable,
+  mobile = 'scroll',
 }: TableProps<T>) {
   const { t } = useI18n();
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const narrow = useIsNarrow(640);
+  const asCards = mobile === 'cards' && narrow;
+  const { edges, onScroll } = useScrollEdges(scrollRef, `${asCards}|${!!error}|${!!loading}|${rows?.length ?? -1}`);
   const selectable = !!selectedKeys && !!onSelectionChange;
   const keys = rows?.map(rowKey) ?? [];
   const selectedCount = keys.filter((k) => selectedKeys?.has(k)).length;
@@ -136,6 +151,27 @@ export function Table<T>({
     }
   }
 
+  if (asCards) {
+    return (
+      <DataCards
+        columns={columns}
+        rows={rows}
+        rowKey={rowKey}
+        loading={loading}
+        skeletonRows={Math.min(skeletonRows, 3)}
+        empty={empty}
+        sort={sort}
+        onSortChange={onSortChange}
+        onRowClick={onRowClick}
+        caption={caption}
+        error={error}
+        onRetry={onRetry}
+        selectedKeys={selectedKeys}
+        onSelectionChange={onSelectionChange}
+      />
+    );
+  }
+
   if (error && !loading) {
     return (
       <div className={styles.wrap}>
@@ -148,7 +184,15 @@ export function Table<T>({
 
   return (
     <div className={`${styles.wrap} ${comfortable ? styles.comfortable : ''}`}>
-      <div className={styles.scroll} tabIndex={0} role={caption ? 'region' : undefined} aria-label={caption}>
+      <div className={styles.frame} data-start={edges.start} data-end={edges.end}>
+      <div
+        ref={scrollRef}
+        className={styles.scroll}
+        tabIndex={0}
+        role={caption ? 'region' : undefined}
+        aria-label={caption}
+        onScroll={onScroll}
+      >
         <table className={styles.table}>
           {caption && <caption className="sr-only">{caption}</caption>}
           <thead>
@@ -233,13 +277,15 @@ export function Table<T>({
                   >
                     {selectable && (
                       <td className={styles.selectCell} onClick={(e) => e.stopPropagation()}>
-                        <input
-                          type="checkbox"
-                          className={styles.check}
-                          aria-label={t('admin.table.selectRow')}
-                          checked={picked}
-                          onChange={() => toggleRow(k)}
-                        />
+                        <label className={styles.pick}>
+                          <input
+                            type="checkbox"
+                            className={styles.check}
+                            aria-label={t('admin.table.selectRow')}
+                            checked={picked}
+                            onChange={() => toggleRow(k)}
+                          />
+                        </label>
                       </td>
                     )}
                     {columns.map((c) => (
@@ -252,6 +298,14 @@ export function Table<T>({
               })}
           </tbody>
         </table>
+      </div>
+      <span className={`${styles.shade} ${styles.shadeStart}`} aria-hidden="true" />
+      <span className={`${styles.shade} ${styles.shadeEnd}`} aria-hidden="true" />
+      {edges.end && !edges.scrolled && (
+        <p className={styles.scrollHint} aria-hidden="true">
+          {t('admin.kit.scroll.hint')}
+        </p>
+      )}
       </div>
       {isEmpty &&
         (empty ?? (

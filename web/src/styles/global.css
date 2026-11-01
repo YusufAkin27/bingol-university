@@ -101,6 +101,10 @@ a {
 a:hover {
   color: var(--accent);
 }
+/* yönetim panelinde sınıfsız bağlantının üzerine gelince kırmızıya dönmez (kırmızı = tehlike) */
+html[data-area='admin'] a:where(:not([class])):hover {
+  color: var(--text);
+}
 
 img,
 svg {
@@ -154,6 +158,11 @@ dd {
   border-radius: var(--radius-sm);
   transform: translateY(-200%);
 }
+.skip-link {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+}
 .skip-link:focus {
   transform: none;
   color: var(--primary-contrast);
@@ -169,6 +178,42 @@ dd {
   .container {
     padding-inline: var(--space-6);
   }
+}
+
+/* Uzun e-posta/ad/yol/kimlik metni kapsayıcıdan taşmasın (flex/grid çocuğu için min-width:0 ile birlikte) */
+.wrap-any {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.min-w-0 {
+  min-width: 0;
+}
+
+/*
+ * Dokunmatik ekran/telefon: yalın onay kutusu, radyo ve tarih girdileri >= 44 px hedefe yaklaşır (:where -> özgüllük 0, bileşen
+ * sınıfları üstün gelir). Masaüstü (fare) yoğunluğu değişmez.
+ */
+@media (hover: none), (pointer: coarse), (max-width: 639.98px) {
+  :where(input[type='checkbox'], input[type='radio']) {
+    inline-size: 24px;
+    block-size: 24px;
+  }
+  :where(
+      input[type='date'],
+      input[type='datetime-local'],
+      input[type='time'],
+      input[type='month'],
+      input[type='week'],
+      input[type='number'],
+      input[type='file']
+    ) {
+    min-block-size: 44px;
+  }
+}
+
+/* Grafik açıklaması (Recharts Legend) metni seri renginde değil okunur renkte: açık temada 2,98:1 kontrast sorunu */
+.recharts-legend-item-text {
+  color: var(--text) !important;
 }
 
 /* Sayılar, alan adları, e-postalar, URL'ler her zaman soldan sağa okunur (Arapça cümle içinde bile) */

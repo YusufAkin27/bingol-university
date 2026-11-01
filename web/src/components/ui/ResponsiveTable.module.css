@@ -23,8 +23,9 @@
   border-radius: var(--radius-lg);
 }
 .card[data-selected] {
-  background: var(--primary-soft);
-  border-color: var(--primary);
+  /* seçili kart nötr-mavi vurgu: kırmızı çerçeve hata gibi okunuyordu */
+  background: var(--select-bg);
+  border-color: var(--select-border);
 }
 .clickable {
   cursor: pointer;
@@ -57,10 +58,10 @@
   cursor: pointer;
 }
 .pick input {
-  inline-size: 20px;
-  block-size: 20px;
+  inline-size: 24px;
+  block-size: 24px;
   margin: 0;
-  accent-color: var(--primary);
+  accent-color: var(--info);
 }
 .meta {
   display: grid;
@@ -88,7 +89,7 @@
   display: flex;
   align-items: center;
   min-block-size: 44px;
-  color: var(--primary);
+  color: var(--link);
   font-size: var(--text-sm);
   font-weight: 600;
   cursor: pointer;

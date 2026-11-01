@@ -1,5 +1,6 @@
-import { useId, useRef, type KeyboardEvent, type ReactNode } from 'react';
+import { useEffect, useId, useRef, type KeyboardEvent, type ReactNode } from 'react';
 import { useI18n } from '../../i18n/I18nProvider';
+import { useScrollEdges } from './useScrollEdges';
 import styles from './Tabs.module.css';
 
 export interface TabItem {
@@ -22,6 +23,20 @@ export function Tabs({ tabs, value, onChange, label, children }: TabsProps) {
   const { dir } = useI18n();
   const uid = useId();
   const listRef = useRef<HTMLDivElement>(null);
+  const { edges, onScroll } = useScrollEdges(listRef, tabs.length);
+
+  // Çubuk taşıyorsa seçili sekmeyi görünür alana kaydır (kesik "Reddedi…" sekmesi kalmasın); sayfa dikey kaymaz
+  useEffect(() => {
+    const list = listRef.current;
+    if (!list || list.scrollWidth <= list.clientWidth) return;
+    const el = Array.from(list.children).find((c) => c.getAttribute('data-tab') === value);
+    if (!el) return;
+    const lr = list.getBoundingClientRect();
+    const er = el.getBoundingClientRect();
+    const pad = 24;
+    if (er.left < lr.left + pad) list.scrollLeft += er.left - lr.left - pad;
+    else if (er.right > lr.right - pad) list.scrollLeft += er.right - lr.right + pad;
+  }, [value, tabs.length]);
 
   function onKeyDown(e: KeyboardEvent<HTMLDivElement>) {
     const enabled = tabs.filter((t) => !t.disabled);
@@ -45,7 +60,15 @@ export function Tabs({ tabs, value, onChange, label, children }: TabsProps) {
 
   return (
     <div>
-      <div ref={listRef} role="tablist" aria-label={label} className={styles.list} onKeyDown={onKeyDown}>
+      <div className={styles.bar} data-start={edges.start} data-end={edges.end}>
+      <div
+        ref={listRef}
+        role="tablist"
+        aria-label={label}
+        className={styles.list}
+        onKeyDown={onKeyDown}
+        onScroll={onScroll}
+      >
         {tabs.map((t) => {
           const selected = t.id === value;
           return (
@@ -66,6 +89,9 @@ export function Tabs({ tabs, value, onChange, label, children }: TabsProps) {
             </button>
           );
         })}
+      </div>
+      <span className={`${styles.shade} ${styles.shadeStart}`} aria-hidden="true" />
+      <span className={`${styles.shade} ${styles.shadeEnd}`} aria-hidden="true" />
       </div>
       {children !== undefined && (
         <div

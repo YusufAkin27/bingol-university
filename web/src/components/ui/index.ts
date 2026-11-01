@@ -24,6 +24,8 @@ export * from '../admin/guard';
 // Görsel kit (yönetim paneli): recharts GEREKTİRMEYEN bileşenler; grafik çerçevesi için components/charts
 export * from './StatTile';
 export * from './ProgressRing';
+export * from './ProgressBar';
+export * from './useScrollEdges';
 export * from './RankedBars';
 export * from './ChartLegend';
 export * from './StatusDot';

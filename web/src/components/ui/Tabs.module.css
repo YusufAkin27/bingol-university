@@ -1,3 +1,8 @@
+.bar {
+  position: relative;
+  min-width: 0;
+  max-width: 100%;
+}
 .list {
   display: flex;
   max-width: 100%;
@@ -6,6 +11,7 @@
   border-block-end: 1px solid var(--border);
   overflow-x: auto;
   scrollbar-width: thin;
+  -webkit-overflow-scrolling: touch;
 }
 .tab {
   position: relative;
@@ -28,7 +34,7 @@
   cursor: not-allowed;
 }
 .active {
-  color: var(--primary);
+  color: var(--text);
 }
 .active::after {
   content: '';
@@ -37,11 +43,45 @@
   inset-block-end: -1px;
   height: 3px;
   border-radius: var(--radius-xs) var(--radius-xs) 0 0;
-  background: var(--accent);
+  background: var(--primary);
 }
 .panel {
   padding-block-start: var(--space-5);
 }
 .panel:focus-visible {
   outline-offset: 4px;
+}
+
+/* taşan çubukta kenar gölgesi: kaydırılabildiği belli olur */
+.shade {
+  position: absolute;
+  inset-block: 0;
+  inline-size: 28px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.2s var(--ease);
+}
+.shadeStart {
+  inset-inline-start: 0;
+  background: linear-gradient(to right, color-mix(in srgb, var(--text) 16%, transparent), transparent);
+}
+.shadeEnd {
+  inset-inline-end: 0;
+  background: linear-gradient(to left, color-mix(in srgb, var(--text) 16%, transparent), transparent);
+}
+:global([dir='rtl']) .shadeStart {
+  background: linear-gradient(to left, color-mix(in srgb, var(--text) 16%, transparent), transparent);
+}
+:global([dir='rtl']) .shadeEnd {
+  background: linear-gradient(to right, color-mix(in srgb, var(--text) 16%, transparent), transparent);
+}
+.bar[data-start='true'] .shadeStart,
+.bar[data-end='true'] .shadeEnd {
+  opacity: 1;
+}
+
+@media (hover: none), (pointer: coarse), (max-width: 639.98px) {
+  .tab {
+    min-height: 44px;
+  }
 }

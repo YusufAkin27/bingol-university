@@ -32,8 +32,10 @@
   border-radius: var(--radius-lg);
   padding: var(--space-4) var(--space-5);
   display: grid;
+  align-content: start; /* yan yana kartlarda etiket üstte, değer hemen altında (değerler hizasız kalmaz) */
   gap: var(--space-2);
   min-width: 0;
+  overflow: hidden;
 }
 .statTitle {
   font-size: var(--text-sm);
@@ -42,11 +44,15 @@
 }
 .statRow {
   display: flex;
+  flex-wrap: wrap;
   align-items: flex-end;
   justify-content: space-between;
-  gap: var(--space-3);
+  gap: var(--space-2) var(--space-3);
+  min-width: 0;
 }
 .statValue {
+  min-width: 0;
+  overflow-wrap: anywhere;
   font-family: var(--font-display);
   font-size: var(--text-2xl);
   font-weight: 700;
@@ -54,8 +60,17 @@
   font-variant-numeric: tabular-nums;
 }
 .spark {
-  flex: none;
-  max-width: 40%;
+  flex: 0 1 96px;
+  min-width: 48px;
+  max-width: 100%;
+  height: 32px;
+}
+/* dar kart/telefon: eğri kartın dışına taşmasın, kendi satırında tam genişlikte çizilir */
+@media (max-width: 480px) {
+  .spark {
+    flex: 1 1 100%;
+    width: 100%;
+  }
 }
 .change {
   display: inline-flex;

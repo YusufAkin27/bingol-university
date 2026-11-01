@@ -15,6 +15,7 @@ import type * as MenuSearch from '../search/menu';
 import type { MenuMatch } from '../search/menu';
 import { adminNav, locateNav, navMatches } from './adminNav';
 import { StorageBanner } from '../pages/admin/dataretention/StorageBanner';
+import { DismissibleBand, MaintenanceBand } from './ShellBands';
 import { UserMenu } from './UserMenu';
 import styles from './AdminLayout.module.css';
 
@@ -91,6 +92,11 @@ export function AdminLayout() {
   const [groupState, setGroupState] = useState<Record<string, boolean>>(readGroups);
   const info = useAppInfo();
   const asideRef = useRef<HTMLElement>(null);
+  // Yönetim alanı işareti: bağlantı rengi (tehlike kırmızısından ayrı) ve diyaloglar gibi portal içeriği de kapsansın
+  useEffect(() => {
+    document.documentElement.setAttribute('data-area', 'admin');
+    return () => document.documentElement.removeAttribute('data-area');
+  }, []);
   useSearchAnchorFocus(); // arama sonucu derin bağlantısı (#anchor): kaydır + vurgula
   const [menuSearch, setMenuSearch] = useState<MenuSearchModule | null>(null);
 
@@ -409,16 +415,14 @@ export function AdminLayout() {
           </div>
         </header>
 
-        {maintenance?.enabled && (
-          <div className={styles.maintenance} role="status">
-            <Icon name="alert" size={18} />
-            <strong>{t('admin.layout.maintenance')}</strong>
-            {maintenance.message && <span>{maintenance.message}</span>}
-          </div>
-        )}
+        {maintenance?.enabled && <MaintenanceBand message={maintenance.message} />}
 
-        {/* DS1: depolama %80+ iken kalıcı uyarı (Veri saklama sayfasının kendi uyarısı olduğundan orada gizli) */}
-        {location.pathname !== paths.admin.dataRetention && <StorageBanner />}
+        {/* DS1: depolama %80+ iken kalıcı uyarı (Veri saklama sayfasının kendi uyarısı olduğundan orada gizli); WARN kapatılabilir */}
+        {location.pathname !== paths.admin.dataRetention && (
+          <DismissibleBand>
+            <StorageBanner />
+          </DismissibleBand>
+        )}
 
         <main id="admin-main" className={styles.main} tabIndex={-1}>
           <Suspense

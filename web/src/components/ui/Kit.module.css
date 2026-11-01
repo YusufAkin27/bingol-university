@@ -24,13 +24,14 @@
   display: inline-block;
   inline-size: 10px;
   block-size: 2px;
-  border-radius: 1px;
+  border-radius: var(--radius-xs);
   background: currentColor;
 }
 
 /* ---------- StatTile ---------- */
 .tile {
   display: grid;
+  align-content: start; /* satır yüksekliği eşitlense de etiket üstte, değer hemen altında kalır */
   gap: var(--space-2);
   min-width: 0;
   padding: var(--space-4) var(--space-5);
@@ -54,8 +55,8 @@
   inline-size: 28px;
   block-size: 28px;
   border-radius: var(--radius-sm);
-  background: var(--primary-soft);
-  color: var(--primary);
+  background: var(--info-soft);
+  color: var(--info);
 }
 .tileLabel {
   min-width: 0;
@@ -63,6 +64,7 @@
 }
 .tileBody {
   display: flex;
+  flex-wrap: wrap;
   align-items: flex-end;
   justify-content: space-between;
   gap: var(--space-3);
@@ -93,7 +95,8 @@
   font-weight: 500;
 }
 .tileSpark {
-  flex: none;
+  flex: 0 1 96px;
+  min-inline-size: 48px;
   max-inline-size: 40%;
   color: var(--chart-1);
 }
@@ -184,7 +187,7 @@
   color: var(--text-muted);
 }
 .strokeprimary {
-  stroke: var(--primary);
+  stroke: var(--info);
 }
 .strokesuccess {
   stroke: var(--success);
@@ -234,8 +237,8 @@
   font-variant-numeric: tabular-nums;
 }
 .rankTop {
-  background: var(--primary-soft);
-  color: var(--primary);
+  background: var(--info-soft);
+  color: var(--info);
 }
 .rankLabel {
   grid-area: label;
@@ -289,14 +292,14 @@
   padding-inline: var(--space-3);
   border: 0;
   background: none;
-  color: var(--primary);
+  color: var(--link);
   font-weight: 600;
   font-size: var(--text-sm);
   cursor: pointer;
   border-radius: var(--radius-sm);
 }
 .moreBtn:hover {
-  background: var(--primary-soft);
+  background: var(--surface-2);
 }
 .stateBox {
   display: grid;
@@ -313,6 +316,7 @@
 
 /* ---------- ChartLegend ---------- */
 .legend {
+  color: var(--text); /* metin seri renginde değil okunur renkte */
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-2) var(--space-4);
@@ -331,7 +335,7 @@
   flex: none;
   inline-size: 16px;
   block-size: 16px;
-  border-radius: 4px;
+  border-radius: var(--radius-xs);
   border: 2px solid var(--swatch);
   background-color: var(--swatch);
 }
@@ -395,7 +399,8 @@
   color: var(--info);
 }
 .statusPrimary {
-  color: var(--primary);
+  /* "öne çıkan": kırmızı değil (hata gibi okunur), bilgi tonu */
+  color: var(--info);
 }
 .statusNeutral {
   color: var(--text-muted);
@@ -413,7 +418,7 @@
   background: var(--info-soft);
 }
 .statusPrimary .statusIcon {
-  background: var(--primary-soft);
+  background: var(--info-soft);
 }
 .statusNeutral .statusIcon {
   background: var(--surface-3);
@@ -494,4 +499,49 @@
 }
 .partBold {
   font-weight: 700;
+}
+
+/* ---------- ProgressBar ---------- */
+.bar {
+  display: grid;
+  gap: var(--space-1);
+  min-width: 0;
+}
+.barHead {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-3);
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+.barPercent {
+  font-variant-numeric: tabular-nums;
+  color: var(--text-muted);
+}
+.barTrack {
+  block-size: 10px;
+  border-radius: var(--radius-pill);
+  background: var(--surface-3);
+  overflow: hidden;
+}
+.barFill {
+  block-size: 100%;
+  min-inline-size: 3px;
+  border-radius: var(--radius-pill);
+  transition: inline-size 0.5s var(--ease);
+}
+.barinfo {
+  background: var(--info);
+}
+.barsuccess {
+  background: var(--success);
+}
+.barwarning {
+  background: var(--warning);
+}
+.bardanger {
+  background: var(--danger);
+}
+.barneutral {
+  background: var(--chart-axis);
 }

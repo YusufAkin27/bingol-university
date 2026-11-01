@@ -5,6 +5,10 @@
 .frame :global(.recharts-wrapper) {
   font-family: var(--font-sans);
 }
+/* Açıklama (legend) metni serinin renginde değil okunur renkte; renk yalnız işaret kutusunda (kontrast 2,98:1 idi) */
+.frame :global(.recharts-legend-item-text) {
+  color: var(--text) !important;
+}
 .empty {
   display: grid;
   place-items: center;

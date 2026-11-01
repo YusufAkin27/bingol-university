@@ -37,7 +37,8 @@
   color: var(--text-faint);
 }
 .control:hover:not(:disabled) {
-  border-color: var(--primary);
+  /* kırmızı değil: kırmızı kenarlık hata gibi okunur */
+  border-color: var(--text-muted);
 }
 .control:focus-visible {
   outline: 3px solid var(--focus);
@@ -153,6 +154,35 @@
 .switch:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+/* Dokunmatik/telefon: onay kutusu 24 px, tüm etiket satırı >= 44 px dokunma alanı; anahtar satırı 44 px */
+@media (hover: none), (pointer: coarse), (max-width: 639.98px) {
+  .check {
+    align-items: center;
+    min-block-size: 44px;
+    gap: var(--space-3);
+  }
+  .checkInput {
+    inline-size: 24px;
+    block-size: 24px;
+    margin: 0;
+  }
+  .checkInput:checked::after {
+    inline-size: 12px;
+    block-size: 6px;
+  }
+  .switchRow {
+    min-block-size: 44px;
+  }
+  /* görünmez büyütülmüş dokunma alanı (görünen anahtar 46x26 kalır) */
+  .switch::before {
+    content: '';
+    position: absolute;
+    inset: -10px -4px;
+  }
+  .pwBtn {
+    inline-size: 40px;
+  }
 }
 .thumb {
   position: absolute;

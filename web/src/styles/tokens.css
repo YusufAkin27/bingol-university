@@ -52,7 +52,13 @@
   --info: #1d5fa8;
   --info-soft: #dcebfa;
 
-  /* Grafik paleti (renk körlüğüne dayanıklı sıra) */
+  /* Seçili öğe vurgusu: kırmızı yalnız tehlike/marka içindir; seçim nötr-mavi (açık/koyu temada --info ve --surface değişince birlikte değişir) */
+  --select-bg: color-mix(in srgb, var(--info) 10%, var(--surface));
+  --select-border: color-mix(in srgb, var(--info) 55%, var(--surface));
+  /* Tehlike eylemi çerçevesi: birincil (marka kırmızısı) ile aynı renk ailesinde olduğundan ayrıca simge ve çerçeve ile ayrışır */
+  --danger-line: color-mix(in srgb, var(--danger) 70%, var(--surface));
+
+  /* Grafik paleti (renk körlüğüne dayanıklı sıra; sıra ve anlam iki temada AYNI: 1 mavi, 2 mercan, 3 turkuaz...) */
   --chart-1: #2a4f8c;
   --chart-2: #d53e35;
   --chart-3: #1f8a8a;
@@ -150,8 +156,8 @@
     --danger-soft: #3b1816;
     --info: #85bdf5;
     --info-soft: #12293f;
-    --chart-1: #ff6a5f;
-    --chart-2: #7fa6e8;
+    --chart-1: #7fa6e8;
+    --chart-2: #ff6a5f;
     --chart-3: #52c0c0;
     --chart-4: #e0b04a;
     --chart-5: #b79ae0;
@@ -203,8 +209,8 @@
   --danger-soft: #3b1816;
   --info: #85bdf5;
   --info-soft: #12293f;
-  --chart-1: #ff6a5f;
-  --chart-2: #7fa6e8;
+  --chart-1: #7fa6e8;
+  --chart-2: #ff6a5f;
   --chart-3: #52c0c0;
   --chart-4: #e0b04a;
   --chart-5: #b79ae0;
@@ -223,4 +229,12 @@
     sans-serif;
   --font-display: var(--font-sans);
   --leading-body: 1.75;
+}
+
+/*
+ * Yönetim paneli (AdminLayout <html data-area="admin"> koyar): bağlantı rengi marka/tehlike kırmızısı DEĞİL, bilgi mavisidir.
+ * Kırmızı bağlantı hata/riskli eylemle karışıyordu. Seçici özgüllüğü temalardan yüksektir.
+ */
+html[data-area='admin'] {
+  --link: var(--info);
 }

@@ -5,6 +5,18 @@ export default {
   'admin.kit.state.empty': 'Henüz veri yok.',
   'admin.kit.state.emptyChart': 'Bu aralıkta gösterilecek veri yok.',
 
+  'admin.kit.error.subject': '{subject} yüklenemedi',
+  'admin.kit.error.network': 'İnternet bağlantınızı kontrol edin, sonra tekrar deneyin.',
+  'admin.kit.error.forbidden': 'Bu bölümü görmek için yetkiniz yok. Gerekirse bir yöneticiden izin isteyin.',
+  'admin.kit.error.notFound': 'Kayıt bulunamadı; silinmiş ya da taşınmış olabilir.',
+  'admin.kit.error.rate': 'Kısa sürede çok istek yapıldı. Biraz bekleyip tekrar deneyin.',
+  'admin.kit.error.server': 'Sunucu şu an yanıt vermiyor. Birkaç saniye sonra tekrar deneyin; sürerse Sistem durumu sayfasına bakın.',
+  'admin.kit.error.generic': 'Beklenmeyen bir sorun oldu. Tekrar deneyin.',
+
+  'admin.layout.bandDismiss': 'Uyarıyı bu oturumda gizle',
+  'admin.layout.bandMore': 'Tamamını göster',
+  'admin.layout.bandLess': 'Kısalt',
+
   'admin.kit.delta.up': '{compare} %{value} fazla',
   'admin.kit.delta.down': '{compare} %{value} az',
   'admin.kit.delta.same': '{compare} aynı',

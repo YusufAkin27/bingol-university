@@ -7,6 +7,10 @@
   border-radius: var(--radius-lg);
   overflow: hidden;
 }
+.frame {
+  position: relative;
+  min-width: 0;
+}
 .scroll {
   /* position: relative -> mutlak konumlu çocuklar (sr-only) kaydırma kabında kırpılır; yoksa sayfa yatay taşar (A3-01) */
   position: relative;
@@ -48,7 +52,7 @@
   border-block-end: 0;
 }
 .table tbody tr[data-selected] td {
-  background: var(--primary-soft);
+  background: var(--select-bg);
 }
 .start {
   text-align: start;
@@ -67,15 +71,21 @@
   width: 18px;
   height: 18px;
   margin: 0;
-  accent-color: var(--primary);
+  accent-color: var(--info);
   cursor: pointer;
   vertical-align: middle;
+}
+/* Onay kutusu etiketi: dokunmatikte 44x44 dokunma alanı (görünen kutu 24 px) */
+.pick {
+  display: inline-grid;
+  place-items: center;
+  cursor: pointer;
 }
 .clickable {
   cursor: pointer;
 }
 .clickable:hover td {
-  background: var(--primary-soft);
+  background: var(--surface-2);
 }
 .clickable:focus-visible {
   outline-offset: -3px;
@@ -107,4 +117,103 @@
 .sortActive {
   opacity: 1;
   color: var(--primary);
+}
+
+/* ---- kenar gölgesi + kaydırma ipucu (yana kaydırılabildiğini gösterir) ---- */
+.shade {
+  position: absolute;
+  inset-block: 0;
+  inline-size: 24px;
+  z-index: 2;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.2s var(--ease);
+}
+.shadeStart {
+  inset-inline-start: 0;
+  background: linear-gradient(to right, color-mix(in srgb, var(--text) 18%, transparent), transparent);
+}
+.shadeEnd {
+  inset-inline-end: 0;
+  background: linear-gradient(to left, color-mix(in srgb, var(--text) 18%, transparent), transparent);
+}
+:global([dir='rtl']) .shadeStart {
+  background: linear-gradient(to left, color-mix(in srgb, var(--text) 18%, transparent), transparent);
+}
+:global([dir='rtl']) .shadeEnd {
+  background: linear-gradient(to right, color-mix(in srgb, var(--text) 18%, transparent), transparent);
+}
+.frame[data-start='true'] .shadeStart,
+.frame[data-end='true'] .shadeEnd {
+  opacity: 1;
+}
+.scrollHint {
+  display: none;
+  position: absolute;
+  inset-block-end: var(--space-2);
+  inset-inline: 0;
+  z-index: 3;
+  width: max-content;
+  max-width: calc(100% - var(--space-4));
+  margin-inline: auto;
+  padding: 2px var(--space-3);
+  border-radius: var(--radius-pill);
+  background: var(--chrome);
+  color: #fff;
+  font-size: var(--text-xs);
+  text-align: center;
+  pointer-events: none;
+  opacity: 0.92;
+}
+
+/* ---- dokunmatik ekran / telefon ---- */
+@media (hover: none), (pointer: coarse), (max-width: 639.98px) {
+  .check {
+    width: 24px;
+    height: 24px;
+  }
+  .pick {
+    min-inline-size: 44px;
+    min-block-size: 44px;
+    margin: calc(var(--space-2) * -1);
+  }
+  .sortBtn {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  .scrollHint {
+    display: block;
+  }
+  /* tıklanabilir satır ve sıkışık hücre: >= 44 px satır yüksekliği */
+  .table td,
+  .table th {
+    height: 44px;
+  }
+}
+@media (max-width: 639.98px) {
+  /* telefonda iç içe dikey kaydırma yok: sayfa kayar, tablo yalnız yana kayar */
+  .scroll {
+    max-height: none;
+    overflow-y: visible;
+    overflow-x: auto;
+  }
+  /* başlık sarılır (tek satıra zorlanmaz), sütun üç harfe ezilmez */
+  .table th {
+    white-space: normal;
+    position: static;
+    min-inline-size: 5.5rem;
+    overflow-wrap: normal;
+    hyphens: manual;
+  }
+  .table td {
+    min-inline-size: 5.5rem;
+  }
+  .table td.selectCell,
+  .table th.selectCell {
+    min-inline-size: 0;
+  }
+  /* uzun e-posta/ad/yol kırılabilsin */
+  .table td {
+    overflow-wrap: anywhere;
+  }
 }

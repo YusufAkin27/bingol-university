@@ -61,8 +61,9 @@
   width: 52px;
   height: 52px;
   border-radius: var(--radius-pill);
-  background: var(--primary-soft);
-  color: var(--primary);
+  /* boş durum bilgi tonunda: kırmızı yalnız hata (.error) içindir */
+  background: var(--info-soft);
+  color: var(--info);
 }
 .error .stateIcon {
   background: var(--danger-soft);
@@ -74,4 +75,32 @@
 .stateText {
   color: var(--text-muted);
   font-size: var(--text-sm);
+}
+
+/* tek satırlık hata: simge + cümle + tekrar dene (çok kartlı sayfalarda ekranı doldurmaz) */
+.inlineError {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-3);
+  min-width: 0;
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--danger-line);
+  border-radius: var(--radius-md);
+  background: var(--danger-soft);
+  color: var(--text);
+  font-size: var(--text-sm);
+}
+.inlineIcon {
+  flex: none;
+  display: inline-grid;
+  color: var(--danger);
+}
+.inlineText {
+  flex: 1 1 14rem;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.inlineText strong {
+  font-weight: 700;
 }

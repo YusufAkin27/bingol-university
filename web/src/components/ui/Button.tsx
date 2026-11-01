@@ -3,7 +3,8 @@ import type { LinkProps } from 'react-router-dom';
 import { Link } from '../LocalizedLink';
 import styles from './Button.module.css';
 
-export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger' | 'accent';
+/** danger: dolu kırmızı (onay diyaloğu); dangerOutline: liste satırındaki rutin sil/kaldır eylemi (çerçeveli). */
+export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger' | 'dangerOutline' | 'accent';
 export type ButtonSize = 'sm' | 'md' | 'lg';
 
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
