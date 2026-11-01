@@ -46,6 +46,9 @@ public class ConversationService {
     /** T-025: grup uye ekleme cagrisi gunluk tavani. */
     static final int ADD_MEMBER_CALLS_PER_DAY = 30;
 
+    /** Konusma listesinde uyelerinin TUMU yuklenen en buyuk konusma (ustundekiler icin yalniz sayi + kendi satirim). */
+    static final int FULL_MEMBER_LOAD_MAX = 20;
+
     /** `created` false ise birebir konusma zaten vardi. */
     public record Opened(ConversationView conversation, boolean created) {}
 
@@ -652,8 +655,22 @@ public class ConversationService {
             return List.of();
         }
         List<Long> ids = page.stream().map(Conversation::getId).toList();
-        Map<Long, List<ConversationMember>> membersBy = members.findByConversationIdInAndLeftAtIsNull(ids).stream()
-                .collect(Collectors.groupingBy(ConversationMember::getConversationId));
+        // FIX-P03 (A02#3): buyuk gruplarda/odalarda (>20 uye) tum uyeleri yuklemeyiz: yalniz uye sayisi (tek GROUP BY)
+        // ve KENDI satirim gerekir. 500 uyeli 50 oda = 25.000 satir/istek idi.
+        Map<Long, Integer> counts = new HashMap<>();
+        for (Object[] row : members.activeCounts(ids)) {
+            counts.put((Long) row[0], ((Number) row[1]).intValue());
+        }
+        List<Long> smallIds = ids.stream().filter(id -> counts.getOrDefault(id, 0) <= FULL_MEMBER_LOAD_MAX).toList();
+        List<Long> bigIds = ids.stream().filter(id -> counts.getOrDefault(id, 0) > FULL_MEMBER_LOAD_MAX).toList();
+        Map<Long, List<ConversationMember>> fullBy = smallIds.isEmpty() ? new HashMap<>()
+                : new HashMap<>(members.findByConversationIdInAndLeftAtIsNull(smallIds).stream()
+                        .collect(Collectors.groupingBy(ConversationMember::getConversationId)));
+        Map<Long, List<ConversationMember>> membersBy = new HashMap<>(fullBy);
+        if (!bigIds.isEmpty()) {
+            members.findMine(me, bigIds).forEach(m -> membersBy.computeIfAbsent(m.getConversationId(),
+                    k -> new java.util.ArrayList<>()).add(m));
+        }
         List<Long> peerIds = page.stream().filter(c -> c.getType() == Conversation.Type.DIRECT)
                 .map(c -> peerOf(membersBy.getOrDefault(c.getId(), List.of()), me)).filter(java.util.Objects::nonNull).toList();
         Map<Long, User> peers = users.findAllById(peerIds).stream().collect(Collectors.toMap(User::getId, Function.identity()));
@@ -685,7 +702,7 @@ public class ConversationService {
         Map<Long, List<AttachmentView>> lastAtt = attachments == null ? Map.of() : attachments.viewsFor(me, lastMessages.keySet());
         Set<Long> related = blocks.hiddenFrom(me);
         // Son mesajim ise makbuz durumu: uyeler zaten yuklu, ek sorgu yalniz askidaki kullanici denetimi
-        Map<Long, String> lastStatus = receipts == null ? Map.of() : receipts.statuses(me, lastMessages.values(), membersBy,
+        Map<Long, String> lastStatus = receipts == null ? Map.of() : receipts.statuses(me, lastMessages.values(), fullBy,
                 page.stream().collect(Collectors.toMap(Conversation::getId, c -> c.getType() == Conversation.Type.DIRECT)));
         // Grup/kulup/etkinlik onizlemesi icin son mesaji gonderenlerin adlari: tek toplu yukleme
         Set<Long> directIds = page.stream().filter(c -> c.getType() == Conversation.Type.DIRECT).map(Conversation::getId)
@@ -745,8 +762,9 @@ public class ConversationService {
             boolean iBlockedPeer = direct && peerId != null && related.contains(peerId) && blocks.hasBlocked(me, peerId);
             // C1: oda moderatoru/organizatoru ya da grup yoneticisi baskasinin mesajini silebilir; birebirde yok
             boolean canModerate = !direct && (room != null
-                    ? roomModeration != null && roomModeration.canModerate(c.getId(), me) : admin);
-            return new ConversationView(c.getId(), type, c.getTitle(), peer, ms.size(), admin, lastView,
+                    ? roomModeration != null && roomModeration.canModerate(room, me) : admin);
+            return new ConversationView(c.getId(), type, c.getTitle(), peer, counts.getOrDefault(c.getId(), ms.size()),
+                    admin, lastView,
                     unread.getOrDefault(c.getId(), 0L), iBlockedPeer,
                     c.getCreatedAt().toString(), muted, muted ? mine.getMutedUntil().toString() : null,
                     mine != null && mine.getArchivedAt() != null, mine != null && mine.isMutedForever(),

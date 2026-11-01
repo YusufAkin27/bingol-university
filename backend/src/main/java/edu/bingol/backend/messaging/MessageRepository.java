@@ -52,16 +52,25 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
     Long minSuppressedId(@Param("cid") Long conversationId, @Param("owner") Long owner, @Param("from") Long from,
                          @Param("to") Long to);
 
+    /** Konusma basina okunmamis sayim tavani (FIX-P03, K3): sunucu en cok bu kadar sayar, istemci "99+" gosterir. */
+    int UNREAD_COUNT_CAP = 100;
+
     /**
-     * Konusma basina okunmamis sayisi: [conversationId, adet]. TEK tanim (liste satiri ve rozet ayni sorguyu kullanir):
-     * ayrilmamis uyelik, katilma sonrasi, okunmamis, kendi/gizlenen/silinen ve `excluded` (engel iliskisi) gonderenler haric.
-     * `excluded` bos olmamali (cagiran -1 gibi bir yer tutucu ekler).
+     * Konusma basina okunmamis sayisi: [conversationId, adet] (adet en cok {@link #UNREAD_COUNT_CAP}; 0 olanlar donmez).
+     * TEK tanim (liste satiri ve rozet ayni sorguyu kullanir): ayrilmamis uyelik, katilma sonrasi, okunmamis,
+     * kendi/gizlenen/silinen ve `excluded` (engel iliskisi) gonderenler haric. `excluded` bos olmamali (cagiran -1 gibi
+     * bir yer tutucu ekler). Sayim LIMIT'li alt sorguyla kesilir: yuzlerce okunmamis mesajli odada tum satirlar taranmaz
+     * (PostgreSQL'e ozel; bkz. V1090 kapsayici kismi indeks ve scripts/smoke-messaging.sh).
      */
-    @Query("SELECT m.conversationId, COUNT(m) FROM Message m, ConversationMember cm "
-            + "WHERE cm.conversationId = m.conversationId AND cm.userId = :uid AND cm.leftAt IS NULL "
-            + "AND m.conversationId IN :cids AND m.createdAt >= cm.joinedAt "
-            + "AND m.id > cm.lastReadMessageId AND m.id > cm.clearedUpToMessageId AND m.suppressed = false AND m.senderId <> :uid AND m.senderId NOT IN :excluded "
-            + "AND m.hiddenAt IS NULL AND m.deletedAt IS NULL GROUP BY m.conversationId")
+    @Query(value = "SELECT t.conversation_id, t.cnt FROM ("
+            + "SELECT cm.conversation_id AS conversation_id, (SELECT COUNT(*) FROM ("
+            + "SELECT 1 FROM message m WHERE m.conversation_id = cm.conversation_id "
+            + "AND m.id > GREATEST(cm.last_read_message_id, cm.cleared_up_to_message_id) "
+            + "AND m.created_at >= cm.joined_at AND m.suppressed = false AND m.sender_id <> :uid "
+            + "AND m.sender_id NOT IN (:excluded) AND m.hidden_at IS NULL AND m.deleted_at IS NULL "
+            + "LIMIT 100) c) AS cnt "
+            + "FROM conversation_member cm WHERE cm.user_id = :uid AND cm.left_at IS NULL "
+            + "AND cm.conversation_id IN (:cids)) t WHERE t.cnt > 0", nativeQuery = true)
     List<Object[]> unreadCounts(@Param("uid") Long userId, @Param("cids") Collection<Long> conversationIds,
                                 @Param("excluded") Collection<Long> excludedSenders);
 

@@ -18,8 +18,13 @@ public class RoomModeration {
     /** Oda degilse ya da kapali/yetkisiz ise false. */
     public boolean canModerate(Long conversationId, Long userId) {
         return links.findByConversationId(conversationId)
-                .map(l -> authorizers.stream()
-                        .anyMatch(a -> a.kind() == l.getKind() && a.canModerate(l.getRefId(), userId)))
+                .map(l -> canModerate(l, userId))
                 .orElse(false);
+    }
+
+    /** Baglanti zaten yukluyse (konusma listesi) satir basina ek baglanti sorgusu atilmaz (FIX-P03, A02#8). */
+    public boolean canModerate(ChatRoomLink link, Long userId) {
+        return authorizers.stream()
+                .anyMatch(a -> a.kind() == link.getKind() && a.canModerate(link.getRefId(), userId));
     }
 }

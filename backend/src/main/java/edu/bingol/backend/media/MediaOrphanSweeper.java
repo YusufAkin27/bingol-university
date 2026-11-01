@@ -40,6 +40,8 @@ public class MediaOrphanSweeper {
     public int sweepOnce() {
         int deleted = 0;
         Instant cutoff = Instant.now().minus(media.orphanMinAge());
+        // Referans kumesi turun basinda bir kez okunur (dosya basina 7 sorgu yerine kaynak basina 1 sorgu)
+        java.util.function.Predicate<String> referenced = media.referenceChecker();
         for (String folder : props.sweepFolders()) {
             Path dir = storage.resolveFile(folder, "");
             if (dir == null || !Files.isDirectory(dir)) {
@@ -48,7 +50,7 @@ public class MediaOrphanSweeper {
             try (DirectoryStream<Path> files = Files.newDirectoryStream(dir)) {
                 for (Path f : files) {
                     try {
-                        deleted += sweepFile(folder, f, cutoff);
+                        deleted += sweepFile(folder, f, cutoff, referenced);
                     } catch (IOException | RuntimeException e) {
                         log.warn("Temizlik atlandi {}: {}", f, e.toString());
                     }
@@ -60,7 +62,8 @@ public class MediaOrphanSweeper {
         return deleted;
     }
 
-    private int sweepFile(String folder, Path f, Instant cutoff) throws IOException {
+    private int sweepFile(String folder, Path f, Instant cutoff, java.util.function.Predicate<String> referenced)
+            throws IOException {
         if (!Files.isRegularFile(f) || Files.getLastModifiedTime(f).toInstant().isAfter(cutoff)) {
             return 0;
         }
@@ -79,7 +82,7 @@ public class MediaOrphanSweeper {
             return main != null && !Files.exists(main) && Files.deleteIfExists(f) ? 1 : 0;
         }
         String url = "/files/" + folder + "/" + name;
-        if (media.isReferenced(url)) {
+        if (referenced.test(url)) {
             return 0;
         }
         int n = Files.deleteIfExists(f) ? 1 : 0;

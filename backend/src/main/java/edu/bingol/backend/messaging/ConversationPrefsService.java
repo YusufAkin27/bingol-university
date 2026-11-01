@@ -108,14 +108,14 @@ public class ConversationPrefsService {
         }
         ConversationMember m = require(conversationId, userId);
         m.setMutedUntil(Instant.now().plus(always ? FOREVER : Duration.ofMinutes(durationMinutes)));
-        members.save(m);
+        members.updateMute(conversationId, userId, m.getMutedUntil());
         return view(userId, conversationId);
     }
 
     public ConversationView unmute(Long userId, Long conversationId) {
         ConversationMember m = require(conversationId, userId);
         m.setMutedUntil(null);
-        members.save(m);
+        members.updateMute(conversationId, userId, null);
         return view(userId, conversationId);
     }
 
@@ -123,7 +123,7 @@ public class ConversationPrefsService {
         ConversationMember m = require(conversationId, userId);
         m.setArchivedAt(Instant.now());
         m.setArchiveSticky(keepArchived);
-        members.save(m);
+        members.updateArchive(conversationId, userId, m.getArchivedAt(), keepArchived);
         return view(userId, conversationId);
     }
 
@@ -131,12 +131,13 @@ public class ConversationPrefsService {
         ConversationMember m = require(conversationId, userId);
         m.setArchivedAt(null);
         m.setArchiveSticky(false);
-        members.save(m);
+        members.updateArchive(conversationId, userId, null, false);
         return view(userId, conversationId);
     }
 
     private ConversationView view(Long userId, Long conversationId) {
-        return conversations.detail(userId, conversationId).conversation();
+        // FIX-P03 (A02#7): hafif tekil gorunum (detail() tum uyeleri + kullanicilari + gizlilik kararlarini yukluyordu)
+        return conversations.view(userId, conversationId);
     }
 
     private ConversationMember require(Long conversationId, Long userId) {

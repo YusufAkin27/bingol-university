@@ -50,6 +50,8 @@ public class MessageService {
     /** DB sorgularindan ONCE uygulanan kaba kullanici siniri (tekrarli clientId dahil tum gonderim denemeleri). */
     static final int COARSE_SEND_PER_MINUTE = 120;
     static final int COARSE_READ_PER_MINUTE = 180;
+    /** Kulup/etkinlik odasi basina toplam gonderim siniri (dakikada); kullanici basina 30/dk ayrica gecerli. */
+    static final int ROOM_SEND_PER_MINUTE = 120;
     private static final int PUSH_PREVIEW = 100;
     static final int READ_PER_WINDOW = 20;
     static final Duration READ_WINDOW = Duration.ofSeconds(10);
@@ -115,6 +117,14 @@ public class MessageService {
     @Autowired(required = false)
     void setReceipts(ReceiptService receipts) {
         this.receipts = receipts;
+    }
+
+    /** K2: makbuz / yaziyor kapsami ve oda yavas modu (setter enjeksiyonu; yoksa her konusmada acik). */
+    private ReceiptPolicy policy;
+
+    @Autowired(required = false)
+    void setPolicy(ReceiptPolicy policy) {
+        this.policy = policy;
     }
 
     /** Push yukundeki gonderen avatari icin profil gizlilik karari (yoksa avatar gonderilmez). */
@@ -214,10 +224,9 @@ public class MessageService {
         }
         List<ConversationMember> active = members.findByConversationIdAndLeftAtIsNullOrderByJoinedAtAscIdAsc(conversationId);
         // T-026: bekleyen / reddetmis alici yanit yazarsa istegi kabul etmis olur (yazmak rizadir)
-        if (!sender.isAccepted()) {
-            sender.setRequestState(ConversationMember.RequestState.ACCEPTED);
-            members.save(sender);
-        }
+        // FIX-P03 (A02#13): kabul, mesajla AYNI transaction'da (persist) yazilir; dogrulama / limit hatasinda istek
+        // kabul edilmis kalmaz.
+        final ConversationMember acceptSender = sender.isAccepted() ? null : sender;
         boolean suppressed = false;
         if (conv.getType() == Conversation.Type.DIRECT) {
             Long peerId = active.stream().map(ConversationMember::getUserId).filter(id -> !id.equals(senderId))
@@ -239,6 +248,10 @@ public class MessageService {
         List<Long> ids = hasMedia ? (viewOnce ? attachments.precheck(senderId, conversationId, attachmentIds, true)
                 : attachments.precheck(senderId, conversationId, attachmentIds)) : List.of();
         limiter.check("msg:user:" + senderId, RATE_PER_MINUTE, Duration.ofMinutes(1));
+        // FIX-P03 (A02#6): oda basina yavas mod; 500 uyeli odada kullanici basina 30/dk = 15.000 mesaj/dk olmasin
+        if (policy != null && conv.getType() == Conversation.Type.GROUP && policy.isRoom(conversationId)) {
+            limiter.check("msg:room:" + conversationId, ROOM_SEND_PER_MINUTE, Duration.ofMinutes(1));
+        }
 
         // Sifreleme transaction DISINDA: DB'ye yalnizca sifreli govde yazilir (docs/ENCRYPTION.md).
         Message draft = new Message();
@@ -250,7 +263,7 @@ public class MessageService {
         codec.seal(draft, body);
         Message saved;
         try {
-            saved = tx.execute(s -> persist(draft, ids, viewOnce, unansweredGate));
+            saved = tx.execute(s -> persist(draft, ids, viewOnce, unansweredGate, acceptSender));
         } catch (DataIntegrityViolationException e) {
             // Ayni clientId ile eszamanli iki istek: kazanan kaydetti, digeri onu doner.
             Message existing = messages.findByConversationIdAndSenderIdAndClientId(conversationId, senderId, clientId)
@@ -278,7 +291,8 @@ public class MessageService {
                 String.valueOf(MAX_UNANSWERED));
     }
 
-    private Message persist(Message draft, List<Long> attachmentIds, boolean viewOnce, boolean unansweredGate) {
+    private Message persist(Message draft, List<Long> attachmentIds, boolean viewOnce, boolean unansweredGate,
+                            ConversationMember acceptSender) {
         if (unansweredGate) {
             // QA: yanitsiz istek sinirini eszamanli gonderimlere karsi seri hale getir (kilit + yeniden say);
             // yalnizca kabul edilmemis konusmalarda kilitlenir, normal sohbet yolu etkilenmez.
@@ -289,6 +303,11 @@ public class MessageService {
         }
         String plain = draft.getBody();
         Message m = messages.saveAndFlush(draft);
+        if (acceptSender != null) {
+            // T-026: bekleyen / reddetmis alici yanit yazarsa istegi kabul etmis olur (yazmak rizadir)
+            acceptSender.setRequestState(ConversationMember.RequestState.ACCEPTED);
+            members.save(acceptSender);
+        }
         if (!attachmentIds.isEmpty()) {
             // Ayni transaction: baska mesaja/kullaniciya ait ya da kullanilmis ek varsa istisna -> mesaj da geri alinir
             if (viewOnce) {
@@ -550,8 +569,11 @@ public class MessageService {
         long oldRead = me.getLastReadMessageId();
         long oldDelivered = me.getLastDeliveredMessageId();
         if (members.advanceRead(conversationId, userId, lastMessageId) > 0) {
-            bus.publish("read-receipts", othersOf(conversationId, userId, true),
-                    new ReadReceipt(conversationId, userId, lastMessageId));
+            // K2: oda / buyuk grupta okundu bilgisi yayinlanmaz (uyeleri yuklemek ve N alicili olay yok)
+            if (policy == null || policy.tracked(conv)) {
+                bus.publish("read-receipts", othersOf(conversationId, userId, true),
+                        new ReadReceipt(conversationId, userId, lastMessageId));
+            }
             // Yeni akis: mesaj sahibine /user/queue/message-events {type:"receipt", kind:"read"} (okuma iletildiyi de ilerletir)
             if (receipts != null) {
                 receipts.onRead(userId, conversationId, oldRead, oldDelivered, lastMessageId);
@@ -578,6 +600,9 @@ public class MessageService {
             limiter.check("typing:" + userId + ":" + conversationId, 1, Duration.ofSeconds(2));
         } catch (ApiException e) {
             return;
+        }
+        if (policy != null && !policy.tracked(conversationId)) {
+            return; // K2: oda / buyuk grupta "yaziyor" bilgisi yok
         }
         bus.publish("typing", othersOf(conversationId, userId, true), new TypingEvent(conversationId, userId));
     }

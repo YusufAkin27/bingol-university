@@ -45,6 +45,13 @@ public class ReceiptService {
     private final UserRepository users;
     private final BlockService blocks;
     private final ChatEventBus bus;
+    /** K2: oda / buyuk grupta makbuz tutulmaz (setter enjeksiyonu: yapici imzasi degismesin; yoksa her yerde tutulur). */
+    private ReceiptPolicy policy;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setPolicy(ReceiptPolicy policy) {
+        this.policy = policy;
+    }
 
     public ReceiptService(ConversationMemberRepository members, ConversationRepository convs, MessageRepository messages,
                           UserRepository users, BlockService blocks, ChatEventBus bus) {
@@ -87,10 +94,26 @@ public class ReceiptService {
             return Map.of();
         }
         Set<Long> cids = mine.stream().map(Message::getConversationId).collect(Collectors.toSet());
-        Map<Long, List<ConversationMember>> by = membersBy;
-        if (by == null) {
-            by = members.findByConversationIdInAndLeftAtIsNull(cids).stream()
-                    .collect(Collectors.groupingBy(ConversationMember::getConversationId));
+        Map<Long, List<ConversationMember>> by = new HashMap<>(membersBy == null ? Map.of() : membersBy);
+        if (policy != null) {
+            // K2: oda ve buyuk gruplarda durum hesaplanmaz (uyeleri/kullanicilari yuklemek bile yok)
+            Map<Long, Integer> known = new HashMap<>();
+            by.forEach((cid, ms) -> known.put(cid, ms.size()));
+            Set<Long> keep = policy.trackable(cids, known);
+            cids = new HashSet<>(cids);
+            cids.retainAll(keep);
+            by.keySet().retainAll(keep);
+            Set<Long> keepCids = cids;
+            mine = mine.stream().filter(m -> keepCids.contains(m.getConversationId())).toList();
+            if (mine.isEmpty()) {
+                return Map.of();
+            }
+        }
+        Set<Long> missing = new HashSet<>(cids);
+        missing.removeAll(by.keySet());
+        if (!missing.isEmpty()) {
+            by.putAll(members.findByConversationIdInAndLeftAtIsNull(missing).stream()
+                    .collect(Collectors.groupingBy(ConversationMember::getConversationId)));
         }
         Set<Long> excluded = new HashSet<>(blocks.hiddenFrom(viewerId));
         Set<Long> candidateIds = new HashSet<>();
@@ -170,6 +193,9 @@ public class ReceiptService {
 
     /** (from, to] araligi icin mesaj sahiplerine olay. Engel iliskisi olanlara gitmez. */
     private void publish(Conversation conv, Long actor, String kind, long from, long to) {
+        if (conv.getType() != Conversation.Type.DIRECT && policy != null && !policy.tracked(conv)) {
+            return; // K2: oda / buyuk grup: uyeleri yuklemeden cik (yalniz uyenin kendi imleci ilerler)
+        }
         List<ConversationMember> active = members
                 .findByConversationIdAndLeftAtIsNullOrderByJoinedAtAscIdAsc(conv.getId()).stream()
                 .filter(ConversationMember::isAccepted).toList(); // T-026: bekleyen uyelere makbuz gitmez

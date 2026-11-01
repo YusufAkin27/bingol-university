@@ -96,11 +96,15 @@ public class ChatEventBus implements MessageListener {
     @Override
     public void onMessage(Message message, byte[] pattern) {
         try {
-            String json = busCipher.open(new String(message.getBody(), StandardCharsets.UTF_8));
-            deliverLocal(mapper.readValue(json, Envelope.class));
+            deliverLocal(decode(new String(message.getBody(), StandardCharsets.UTF_8)));
         } catch (RuntimeException e) {
             log.warn("Gecersiz sohbet olayi atlandi: {}", e.toString());
         }
+    }
+
+    /** Kanaldan gelen sifreli cerceveyi cozer ve zarfa cevirir (gecersizse RuntimeException). */
+    Envelope decode(String sealed) {
+        return mapper.readValue(busCipher.open(sealed), Envelope.class);
     }
 
     /** Yalniz BU sunucuda acik oturumu olan alicilar icin (askiya alinanlar MGET ile elenir) teslim eder. */

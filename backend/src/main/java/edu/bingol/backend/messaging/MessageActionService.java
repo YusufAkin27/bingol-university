@@ -78,6 +78,18 @@ public class MessageActionService {
         this.allowedReactions = set;
     }
 
+    /** Mesaj basina duzenleme ust siniri (duzenleme gecmisi tablosu sinirsiz buyumesin). */
+    static final int MAX_EDITS = 10;
+
+    /** Duzenleme adimlari icin tek transaction (setter enjeksiyonu; yoksa dogrudan calisir: elle kurulan testler). */
+    private org.springframework.transaction.support.TransactionOperations tx =
+            org.springframework.transaction.support.TransactionOperations.withoutTransaction();
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setTxManager(org.springframework.transaction.PlatformTransactionManager tm) {
+        this.tx = new org.springframework.transaction.support.TransactionTemplate(tm);
+    }
+
     /** Kulup/etkinlik odasi moderasyonu (setter enjeksiyonu; yoksa yalnizca grup yoneticisi yetkilidir). */
     private RoomModeration roomModeration;
 
@@ -132,9 +144,23 @@ public class MessageActionService {
         if (blockedByPeer(a.conversation, userId)) {
             return assembler.assemble(userId, List.of(m), Set.of(), a.since).get(0);
         }
+        // FIX-P03 (A02#14): mesaj basina en cok MAX_EDITS duzenleme (duzenleme gecmisi satirlari sinirsiz buyumesin)
+        Long edits = jdbc.queryForObject("SELECT COUNT(*) FROM message_revision WHERE message_id = ?", Long.class, m.getId());
+        if (edits != null && edits >= MAX_EDITS) {
+            throw new ApiException(HttpStatus.CONFLICT, "MESSAGE_EDIT_LIMIT",
+                    "Bu mesaj en fazla " + MAX_EDITS + " kez düzenlenebilir.", String.valueOf(MAX_EDITS));
+        }
         codec.seal(m, body); // yeni nonce + gerekirse guncel DEK surumu; AAD (gonderen+clientId) ayni kalir
-        messages.archiveRevision(m.getId()); // onceki sifreli surum duzenleme gecmisine (yonetici goruntuleyici)
-        if (messages.applyEdit(m.getId(), m.getBodyCiphertext(), m.getBodyNonce(), m.getKeyVersion(), now) == 0) {
+        // Arsivleme + yazma TEK transaction: eszamanli iki duzenleme ayni surumu iki kez arsivleyemez / biri kaybolmaz
+        Integer applied = tx.execute(s -> {
+            messages.archiveRevision(m.getId()); // onceki sifreli surum duzenleme gecmisine (yonetici goruntuleyici)
+            int n = messages.applyEdit(m.getId(), m.getBodyCiphertext(), m.getBodyNonce(), m.getKeyVersion(), now);
+            if (n == 0) {
+                s.setRollbackOnly(); // yazilamadiysa arsiv satiri da geri alinir
+            }
+            return n;
+        });
+        if (applied == null || applied == 0) {
             throw new ApiException(HttpStatus.CONFLICT, "MESSAGE_NOT_EDITABLE", "Bu mesaj düzenlenemez.");
         }
         clearLegacyPlaintext(m.getId());

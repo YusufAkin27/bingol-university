@@ -2,7 +2,9 @@ package edu.bingol.backend.media;
 
 import edu.bingol.backend.config.MediaProperties;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.regex.Pattern;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,6 +37,26 @@ public class ColumnMediaReferenceSource implements MediaReferenceSource {
                 log.warn("Gecersiz medya referans sutunu yok sayildi: {}", c);
             }
         }
+    }
+
+    /**
+     * Tum sutunlar icin {@code SELECT DISTINCT} (sutun basina 1 sorgu, dosya sayisindan bagimsiz). Eskiden dosya basina
+     * 7 {@code COUNT(*)} (indekssiz tam tablo taramasi) atiliyordu. Herhangi bir sorgu basarisizsa null: tarama dosya
+     * basina denetime duser ve o da emin olamazsa dosyayi SILMEZ.
+     */
+    @Override
+    public Set<String> snapshot() {
+        Set<String> out = new HashSet<>();
+        for (String[] c : columns) {
+            try {
+                out.addAll(jdbc.queryForList("SELECT DISTINCT " + c[1] + " FROM " + c[0] + " WHERE " + c[1] + " IS NOT NULL",
+                        String.class));
+            } catch (RuntimeException e) {
+                log.warn("Medya referans anlik goruntusu alinamadi {}.{}: {}", c[0], c[1], e.toString());
+                return null;
+            }
+        }
+        return out;
     }
 
     @Override
