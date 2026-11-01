@@ -10,7 +10,7 @@ import { useInfiniteQuery } from '@tanstack/react-query';
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { adminChatApi, qk } from '../../api';
-import { Avatar, Badge, Button, EmptyState, ErrorState, Input, PageHeader, Skeleton } from '../../components/ui';
+import { Avatar, Badge, Button, EmptyState, ErrorState, Input, Insight, PageHeader, Skeleton, StatusDot } from '../../components/ui';
 import { useI18n } from '../../i18n/I18nProvider';
 import { usePageTitle } from '../../lib/hooks';
 import { paths } from '../../paths';
@@ -34,6 +34,8 @@ import {
   restoredScrollTop,
   shouldLoadOlder,
 } from './chat/chatLogic';
+import { it } from './users/insan';
+import insan from './users/insan.module.css';
 import styles from './chat/chat.module.css';
 import { adminErrorMessage } from './campaigns/shared';
 
@@ -54,6 +56,7 @@ export default function UserMessagesPage() {
 function UserMessagesView({ userId, reason }: { userId: number; reason: string }) {
   const i18n = useI18n();
   const { t, formatDate, formatNumber } = i18n;
+  const ti = it(i18n);
   const [search, setSearch] = useSearchParams();
   const convId = parseId(search.get('c'));
   const mParam = parseId(search.get('m'));
@@ -71,6 +74,9 @@ function UserMessagesView({ userId, reason }: { userId: number; reason: string }
     refetchOnWindowFocus: false,
   });
   const convItems = useMemo(() => convs.data?.pages.flatMap((p) => p.items) ?? [], [convs.data]);
+  const directCount = convItems.filter((c) => c.type === 'DIRECT').length;
+  const groupCount = convItems.length - directCount;
+  const flaggedCount = convItems.filter((c) => conversationBadges(c).length > 0).length;
   const userName = convs.data?.pages[0]?.user.displayName ?? `#${userId}`;
   const visibleConvs = useMemo(
     () => filterConversations(convItems, filter, (c) => conversationName(c, t('admin.chat.unknownUser'), t('admin.chat.group'))),
@@ -172,8 +178,37 @@ function UserMessagesView({ userId, reason }: { userId: number; reason: string }
       <p className={styles.auditNote} data-testid="audit-note">
         {t('admin.chat.auditNote')}
       </p>
+      {convItems.length > 0 && (
+        <section className={insan.section} aria-label={ti('admin.insan.msg.summary')} data-search-anchor="msg-summary">
+          <Insight
+            tone={flaggedCount > 0 ? 'warn' : 'info'}
+            parts={`${ti('admin.insan.msg.sentence', {
+              n: formatNumber(convItems.length),
+              direct: formatNumber(directCount),
+              group: formatNumber(groupCount),
+            })}${flaggedCount > 0 ? ` ${ti('admin.insan.msg.flags', { flagged: formatNumber(flaggedCount) })}` : ''}`}
+          />
+          <div className={insan.stack} role="img" aria-label={ti('admin.insan.msg.summary')}>
+            {directCount > 0 && <span className={insan.stackSeg} data-tone="info" style={{ flexGrow: directCount }} />}
+            {groupCount > 0 && <span className={insan.stackSeg} data-tone="success" style={{ flexGrow: groupCount }} />}
+          </div>
+          <ul className={insan.legend}>
+            <li>
+              <StatusDot tone="info" announceTone={false}>
+                {ti('admin.insan.msg.type.direct')}: <strong>{formatNumber(directCount)}</strong>
+              </StatusDot>
+            </li>
+            <li>
+              <StatusDot tone="success" announceTone={false}>
+                {ti('admin.insan.msg.type.group')}: <strong>{formatNumber(groupCount)}</strong>
+              </StatusDot>
+            </li>
+          </ul>
+          {convs.hasNextPage && <p className={insan.note}>{ti('admin.insan.msg.more')}</p>}
+        </section>
+      )}
       <div className={styles.layout} data-open={convId !== null ? 'true' : 'false'}>
-        <section className={`${styles.panel} ${styles.listPanel}`} aria-label={t('admin.chat.conversations')}>
+        <section className={`${styles.panel} ${styles.listPanel}`} aria-label={t('admin.chat.conversations')} data-search-anchor="msg-conversations">
           <div className={styles.panelHead}>
             <strong>{t('admin.chat.conversations')}</strong>
             {convItems.length > 0 && <span className={styles.muted}>{formatNumber(convItems.length)}</span>}
@@ -253,7 +288,7 @@ function UserMessagesView({ userId, reason }: { userId: number; reason: string }
           )}
         </section>
 
-        <section className={`${styles.panel} ${styles.chatPanel}`} aria-label={t('admin.chat.messages')}>
+        <section className={`${styles.panel} ${styles.chatPanel}`} aria-label={t('admin.chat.messages')} data-search-anchor="msg-messages">
           {convId === null ? (
             <EmptyState compact icon="message" title={t('admin.chat.pick')} description=" " />
           ) : msgs.isError ? (

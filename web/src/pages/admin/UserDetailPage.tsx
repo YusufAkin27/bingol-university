@@ -42,6 +42,8 @@ import { UserActions } from './users/UserActions';
 import { UserDeepTabs } from './users/UserDeepTabs';
 import { UserExtras } from './users/UserExtras';
 import { UserTwoFactor } from './users/UserTwoFactor';
+import { UserRiskCard } from './users/UserRiskCard';
+import { UserTimeline } from './users/UserTimeline';
 import styles from './users/users.module.css';
 
 const TAB_IDS = ['overview', 'activity', 'support', 'security', 'manage'] as const;
@@ -55,6 +57,9 @@ const TAB_OF_ANCHOR: Record<string, TabId> = {
   'ud-prefs': 'overview',
   'ud-messages-link': 'overview',
   'ud-consents': 'overview',
+  'ud-risk': 'overview',
+  'ud-timeline': 'overview',
+  'ud-twofactor': 'security',
   'ud-communities': 'activity',
   'ud-events-created': 'activity',
   'ud-events-attending': 'activity',
@@ -253,6 +258,7 @@ export default function UserDetailPage() {
         <div className={styles.pageStack}>
           {tab === 'overview' && (
             <>
+              <UserRiskCard user={u} onGoto={(target) => setTab(target)} />
               <Card title={t('admin.users.detail.profile')}>
                 <dl className={styles.facts}>
                   <div>
@@ -346,9 +352,9 @@ export default function UserDetailPage() {
                   </ul>
                 )}
               </Card>
+              <UserTimeline user={u} />
             </>
           )}
-          <UserTwoFactor user={u} isSelf={me?.id === u.id} />
 
           {tab === 'activity' && (
             <>
@@ -367,6 +373,9 @@ export default function UserDetailPage() {
           {tab === 'security' && (
             <>
               <p className={styles.hint}>{t('admin.v2p.ud.securityHint')}</p>
+              <div data-search-anchor="ud-twofactor">
+                <UserTwoFactor user={u} isSelf={me?.id === u.id} />
+              </div>
               <Card title={t('admin.users.detail.devices')} data-search-anchor="ud-devices">
                 {u.deviceCount === 0 ? (
                   <p className={styles.hint}>{t('admin.users.detail.noDevices')}</p>

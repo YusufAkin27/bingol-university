@@ -99,9 +99,10 @@ describe('TwoFactorPage', () => {
         : jsonResponse(500, { code: 'SERVER_ERROR', message: 'x' }),
     );
     renderWithProviders(<TwoFactorPage />);
-    const alert = await screen.findByRole('alert');
+    // tablo ve eğilim grafiği aynı uçtan beslenir: ikisi de kendi hata kutusunu gösterir
+    const alerts = await screen.findAllByRole('alert');
     await waitFor(() =>
-      expect(within(alert).getByRole('button', { name: /Tekrar dene|Yeniden dene/ })).toBeInTheDocument(),
+      expect(within(alerts[0]).getByRole('button', { name: /Tekrar dene|Yeniden dene/ })).toBeInTheDocument(),
     );
   });
 });

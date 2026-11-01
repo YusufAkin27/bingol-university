@@ -2,7 +2,7 @@
 // API: GET /api/admin/two-factor/summary, GET /api/admin/two-factor/users?page&size&q (api/twoFactor.ts; izin users.read).
 //      E-posta sunucuda maskelenir (PermissionAwareMasking). Satır, kullanıcı ayrıntısına bağlanır.
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
-import { useState } from 'react';
+import { lazy, Suspense, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { qk } from '../../api/queryKeys';
 import type { TwoFactorUserRow } from '../../api/types';
@@ -15,6 +15,7 @@ import {
   Insight,
   PageHeader,
   Pagination,
+  ProgressRing,
   ResponsiveTable,
   SearchInput,
   StatTile,
@@ -25,6 +26,11 @@ import { errorMessage } from '../../lib/errors';
 import { usePageTitle } from '../../lib/hooks';
 import { paths } from '../../paths';
 import { gt } from './twofactor/dict';
+import { it } from './users/insan';
+import insan from './users/insan.module.css';
+
+// Eğilim grafiği ayrı parçada (recharts); iskelet sabit yükseklikte (CLS).
+const TwoFactorTrend = lazy(() => import('./twofactor/TwoFactorTrend'));
 import people from './people/people.module.css';
 import styles from './users/users.module.css';
 
@@ -33,6 +39,7 @@ const PAGE_SIZE = 20;
 export default function TwoFactorPage() {
   const i18n = useI18n();
   const t = gt(i18n);
+  const ti = it(i18n);
   const { td, formatNumber, formatDateTime } = i18n;
   usePageTitle(t('admin.twoFactor.title'));
   const [q, setQ] = useState('');
@@ -130,35 +137,56 @@ export default function TwoFactorPage() {
               : t('admin.twoFactor.loading')
           }
         />
-        <div className={people.tiles}>
-          <StatTile
-            label={t('admin.twoFactor.sum.enabled')}
-            value={s?.enabledCount}
-            unit={t('admin.twoFactor.unit.person')}
-            icon="shield"
-            loading={summary.isLoading}
-          />
-          <StatTile
-            label={t('admin.twoFactor.sum.percent')}
-            value={s ? `%${formatNumber(Math.round(s.enabledPercent * 10) / 10)}` : undefined}
-            caption={s ? t('admin.twoFactor.sum.percentHint', { n: formatNumber(s.totalActiveUsers) }) : undefined}
-            loading={summary.isLoading}
-          />
-          <StatTile
-            label={t('admin.twoFactor.sum.last7')}
-            value={s?.enabledLast7Days}
-            unit={t('admin.twoFactor.unit.person')}
-            loading={summary.isLoading}
-          />
-          <StatTile
-            label={t('admin.twoFactor.sum.devices')}
-            value={s?.trustedDeviceTotal}
-            unit={t('admin.twoFactor.unit.device')}
-            icon="smartphone"
-            loading={summary.isLoading}
-          />
+        <div className={insan.tfTop}>
+          <div className={insan.ringCard} data-search-anchor="twofactor-ring">
+            <ProgressRing
+              value={s?.enabledPercent}
+              max={100}
+              size={140}
+              thickness={12}
+              tone={s ? (s.enabledPercent >= 50 ? 'success' : s.enabledPercent >= 15 ? 'info' : 'warning') : 'info'}
+              label={ti('admin.insan.tf.ring.label')}
+              loading={summary.isLoading}
+            />
+            {s && s.enabledPercent < 15 && <p className={insan.note}>{ti('admin.insan.tf.low')}</p>}
+          </div>
+          <div className={people.tiles}>
+            <StatTile
+              label={t('admin.twoFactor.sum.enabled')}
+              value={s?.enabledCount}
+              unit={t('admin.twoFactor.unit.person')}
+              icon="shield"
+              caption={s ? t('admin.twoFactor.sum.percentHint', { n: formatNumber(s.totalActiveUsers) }) : undefined}
+              loading={summary.isLoading}
+            />
+            <StatTile
+              label={t('admin.twoFactor.sum.last7')}
+              value={s?.enabledLast7Days}
+              unit={t('admin.twoFactor.unit.person')}
+              loading={summary.isLoading}
+            />
+            <StatTile
+              label={t('admin.twoFactor.sum.devices')}
+              value={s?.trustedDeviceTotal}
+              unit={t('admin.twoFactor.unit.device')}
+              icon="smartphone"
+              caption={
+                s && s.enabledCount > 0
+                  ? ti('admin.insan.tf.devices.sentence', {
+                      n: formatNumber(Math.round((s.trustedDeviceTotal / s.enabledCount) * 10) / 10),
+                    })
+                  : undefined
+              }
+              loading={summary.isLoading}
+            />
+          </div>
         </div>
       </section>
+      <div data-search-anchor="twofactor-trend" style={{ marginBlockEnd: 'var(--space-4)' }}>
+        <Suspense fallback={<div className={insan.chartsSkeleton} aria-hidden="true" />}>
+          <TwoFactorTrend />
+        </Suspense>
+      </div>
       {summary.isError && (
         <ErrorState
           compact
