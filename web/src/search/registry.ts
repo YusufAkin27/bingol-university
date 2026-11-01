@@ -9,6 +9,7 @@ import { entries as moderation } from './index/moderation';
 import { entries as notifications } from './index/notifications';
 import { entries as overview } from './index/overview';
 import { entries as people } from './index/people';
+import { entries as shell } from './index/shell';
 import { entries as support } from './index/support';
 import { entries as system } from './index/system';
 import type { SearchEntry } from './types';
@@ -23,4 +24,5 @@ export const registeredEntries: SearchEntry[] = [
   ...content,
   ...notifications,
   ...system,
+  ...shell,
 ];

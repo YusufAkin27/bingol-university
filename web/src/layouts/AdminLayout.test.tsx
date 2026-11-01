@@ -7,6 +7,7 @@ import { setTokens } from '../auth/tokens';
 import { AppRoutes } from '../routes';
 import { jsonResponse, mockFetch } from '../test/fetchMock';
 import { renderWithProviders } from '../test/utils';
+import { resetPageMemory } from './pageMemory';
 
 const info = {
   appName: 'BÜ Kampüs',
@@ -56,13 +57,19 @@ function open(route = '/admin/users', lang: 'tr' | 'en' = 'tr') {
   );
 }
 
-const usersHeading = () => screen.findByRole('heading', { level: 1, name: 'Kullanıcılar' });
+// ilk açılışta sayfa parçası soğuk derlenir (yavaş makinede 5 sn'yi aşabilir)
+const usersHeading = () => screen.findByRole('heading', { level: 1, name: 'Kullanıcılar' }, { timeout: 20_000 });
 
-beforeEach(() => setViewport(1280));
+beforeEach(() => {
+  setViewport(1280);
+  window.localStorage.removeItem('bu.admin.pages.fav');
+  window.localStorage.removeItem('bu.admin.pages.recent');
+  resetPageMemory();
+});
 afterEach(() => vi.unstubAllGlobals());
 
 describe('yönetim kabuğu', () => {
-  it('landmark, atlama bağlantısı, kırıntı ve etkin menü öğesi var; dil seçici yok', async () => {
+  it('landmark, atlama bağlantısı, kırıntı ve etkin menü öğesi var; dil seçici yok', { timeout: 30_000 }, async () => {
     open();
     await usersHeading();
     expect(screen.getByRole('link', { name: 'İçeriğe geç' })).toHaveAttribute('href', '#admin-main');
@@ -107,7 +114,7 @@ describe('yönetim kabuğu', () => {
     expect(within(menu).getAllByRole('link').length).toBeGreaterThan(5);
   });
 
-  it('menü süzgeci sayfa içi ayarları da bulur: "bakım modu" → Ayarlar altında alan kısayolu', async () => {
+  it('menü süzgeci sayfa içi ayarları da bulur: "bakım modu" → Ayarlar altında alan kısayolu', { timeout: 40_000 }, async () => {
     const user = userEvent.setup();
     open();
     await usersHeading();
@@ -120,6 +127,7 @@ describe('yönetim kabuğu', () => {
           .getAllByRole('link')
           .some((l) => l.getAttribute('href') === '/admin/settings#maintenance_mode'),
       ).toBe(true),
+      { timeout: 15_000 },
     );
     expect(within(menu).getByRole('link', { name: 'Ayarlar' })).toBeInTheDocument();
     const deep = within(menu)
@@ -139,6 +147,63 @@ describe('yönetim kabuğu', () => {
     const input = await screen.findByRole('combobox', { name: /Panelde sayfa, ayar ya da işlem ara/ });
     await user.type(input, 'bakim modu');
     expect(within(screen.getByRole('listbox')).getAllByRole('option')[0]).toHaveTextContent('Bakım modu');
+  });
+
+  it('"?" yardım penceresini açar: kısayollar ve arama ipuçları; Esc kapatır', async () => {
+    const user = userEvent.setup();
+    open();
+    await usersHeading();
+    await user.keyboard('?');
+    const dlg = await screen.findByRole('dialog', { name: 'Yardım ve kısayollar' });
+    expect(within(dlg).getByText('Panelde ara')).toBeInTheDocument();
+    expect(within(dlg).getByText(/meaj/)).toBeInTheDocument();
+    expect(within(dlg).getAllByText('Kullanıcılar').length).toBeGreaterThan(0); // g u
+    await user.keyboard('{Escape}');
+    await waitFor(() => expect(screen.queryByRole('dialog', { name: 'Yardım ve kısayollar' })).toBeNull());
+  });
+
+  it('"g" sonra harf sayfaya götürür; yazı alanındayken çalışmaz', { timeout: 30_000 }, async () => {
+    const user = userEvent.setup();
+    open();
+    await usersHeading();
+    await user.keyboard('gr');
+    expect(await screen.findByRole('heading', { level: 1, name: 'Raporlar' }, { timeout: 20_000 })).toBeInTheDocument();
+    // menü süzgecine yazarken "g" + "d" kısayol sayılmaz
+    const box = screen.getByRole('searchbox', { name: 'Menüde ara' });
+    await user.click(box);
+    await user.keyboard('gd');
+    expect(box).toHaveValue('gd');
+    expect(screen.getByRole('heading', { level: 1, name: 'Raporlar' })).toBeInTheDocument();
+  });
+
+  it('"/" aramayı açar', async () => {
+    const user = userEvent.setup();
+    open();
+    await usersHeading();
+    await user.keyboard('/');
+    expect(await screen.findByRole('combobox', { name: /Panelde sayfa, ayar ya da işlem ara/ })).toBeInTheDocument();
+  });
+
+  it('yıldız sayfayı sık kullanılanlara ekler: menüde grup, Ctrl+K boş ekranında görünür; f kısayolu da çalışır', async () => {
+    const user = userEvent.setup();
+    open();
+    await usersHeading();
+    const star = screen.getByRole('button', { name: 'Sık kullanılanlara ekle' });
+    expect(star).toHaveAttribute('aria-pressed', 'false');
+    await user.click(star);
+    expect(screen.getByRole('button', { name: 'Sık kullanılanlardan çıkar' })).toHaveAttribute('aria-pressed', 'true');
+    const fav = screen.getByTestId('nav-favorites');
+    expect(within(fav).getByRole('link', { name: 'Kullanıcılar' })).toBeInTheDocument();
+    expect(JSON.parse(window.localStorage.getItem('bu.admin.pages.fav') ?? '[]')).toEqual(['users']);
+
+    await user.keyboard('{Control>}k{/Control}');
+    const list = await screen.findByRole('listbox');
+    expect(within(list).getByText('Sık kullandığınız sayfalar')).toBeInTheDocument();
+    expect(within(list).getByRole('option', { name: 'Kullanıcılar' })).toBeInTheDocument();
+    await user.keyboard('{Escape}');
+
+    await user.keyboard('f');
+    expect(screen.queryByTestId('nav-favorites')).toBeNull();
   });
 
   it('grup başlığı menü bölümünü açıp kapatır (aria-expanded)', async () => {
