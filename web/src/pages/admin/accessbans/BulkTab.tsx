@@ -90,7 +90,7 @@ export function BulkTab() {
             if (lines.length > 0 && whyOk) run.mutate(false);
           }}
         >
-          <p className={styles.muted}>{t('admin.ab.bulk.intro')}</p>
+          <p className={styles.muted} data-search-anchor="tab-bulk">{t('admin.ab.bulk.intro')}</p>
           <p className={styles.warn} data-search-anchor="ab-bulk-warn">
             {t('admin.v2p.ab.campusWarn')}
           </p>

@@ -36,7 +36,7 @@ export function AttentionPanel({ overview }: { overview: UseQueryResult<Analytic
       ].filter((i) => i.n > 0)
     : [];
   return (
-    <Card title={t('admin.dashboard.attention.title')} data-testid="attention-panel">
+    <Card title={t('admin.dashboard.attention.title')} data-testid="attention-panel" data-search-anchor="dash-attention">
       {overview.isError ? (
         <ErrorState compact description={errorMessage(i18n, overview.error)} onRetry={() => void overview.refetch()} />
       ) : !o ? (
@@ -74,7 +74,7 @@ export function SourcesPanel() {
   const q = useQuery({ queryKey: qk.settings.sync(), queryFn: getSyncStatus, refetchInterval: 60_000 });
   const names = ['NEWS', 'MENU'];
   return (
-    <Card title={t('admin.dashboard.sources.title')} data-testid="sources-panel">
+    <Card title={t('admin.dashboard.sources.title')} data-testid="sources-panel" data-search-anchor="dash-sources">
       {q.isError ? (
         <ErrorState compact description={errorMessage(i18n, q.error)} onRetry={() => void q.refetch()} />
       ) : !q.data ? (

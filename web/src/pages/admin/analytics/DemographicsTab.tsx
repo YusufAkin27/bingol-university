@@ -54,7 +54,7 @@ export default function DemographicsTab({
 
   return (
     <div className={styles.panel}>
-      <div className={styles.dims} role="group" aria-label={t('admin.analytics.demo.dimension')}>
+      <div className={styles.dims} data-search-anchor="anl-demo-dims" role="group" aria-label={t('admin.analytics.demo.dimension')}>
         {DIMENSIONS.map((d) => (
           <Button
             key={d}

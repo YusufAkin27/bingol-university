@@ -7,6 +7,7 @@ import type { BreakdownDimension } from '../../api/types';
 import { DateRangePicker, Icon, PageHeader, Tabs, type DateRangeValue } from '../../components/ui';
 import { useI18n } from '../../i18n/I18nProvider';
 import { lastDays } from '../../lib/date';
+import { useSearchReveal } from '../../search/anchor';
 import { usePageTitle } from '../../lib/hooks';
 import styles from './analytics/analytics.module.css';
 import DemographicsTab from './analytics/DemographicsTab';
@@ -18,6 +19,15 @@ import { DIMENSIONS, parseTab, TABS, type TabId } from './analytics/transform';
 
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 const RANGE_TABS: TabId[] = ['overview', 'growth', 'engagement'];
+const TAB_OF_ANCHOR: Record<string, TabId> = {
+  'anl-today': 'overview',
+  'anl-compare': 'growth',
+  'anl-funnel': 'engagement',
+  'anl-events': 'engagement',
+  'anl-screens': 'engagement',
+  'anl-retention': 'retention',
+  'anl-demo-dims': 'demographics',
+};
 
 export default function AnalyticsPage() {
   const { t } = useI18n();
@@ -43,6 +53,12 @@ export default function AnalyticsPage() {
     }
     setSp(next, { replace: true });
   };
+
+  // arama derin bağlantısı: anchor hangi sekmedeyse o sekme açılır (aynı sekmeyi tekrar atamak etkisizdir)
+  useSearchReveal((anchor) => {
+    const target = TAB_OF_ANCHOR[anchor];
+    if (target && target !== tab) patch({ tab: target });
+  });
 
   const range: DateRangeValue = { from, to };
   const showRange = RANGE_TABS.includes(tab);

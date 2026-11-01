@@ -2,9 +2,8 @@
 // API: GET /api/admin/moderation/suspend-recommendations?status=OPEN&cursor=&size= ,
 //      POST /api/admin/moderation/suspend-recommendations/{id}/accept (kullanıcıyı askıya alır) | /dismiss (api/moderation.ts).
 // Öneri, kısa sürede tekrarlanan ihlallerden (strike) otomatik üretilir; karar yöneticiye aittir.
-import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
 import { moderationApi, qk } from '../../api';
 import type { SuspendRecommendation } from '../../api/types';
 import {
@@ -13,17 +12,21 @@ import {
   ConfirmDialog,
   EmptyState,
   ErrorState,
+  Insight,
   LoadMore,
   PageHeader,
   Skeleton,
   Tabs,
+  useKitFormat,
   useToast,
 } from '../../components/ui';
 import { useI18n } from '../../i18n/I18nProvider';
 import { usePageTitle } from '../../lib/hooks';
-import { paths } from '../../paths';
 import { adminErrorMessage } from './campaigns/shared';
+import { UserLabel } from './people/UserLabel';
+import people from './people/people.module.css';
 import styles from './moderation/moderation.module.css';
+
 
 type Status = SuspendRecommendation['status'];
 const STATUSES: Status[] = ['OPEN', 'ACCEPTED', 'DISMISSED'];
@@ -36,6 +39,8 @@ export default function SuspendRecommendationsPage() {
   const qc = useQueryClient();
   const [status, setStatus] = useState<Status>('OPEN');
   const [accepting, setAccepting] = useState<SuspendRecommendation | null>(null);
+  const [dismissing, setDismissing] = useState<SuspendRecommendation | null>(null);
+  const kit = useKitFormat();
 
   const query = useInfiniteQuery({
     queryKey: [...qk.moderation.recommendations(status), 'pages'],
@@ -44,6 +49,14 @@ export default function SuspendRecommendationsPage() {
     getNextPageParam: (p) => p.nextCursor ?? undefined,
   });
   const items = query.data?.pages.flatMap((p) => p.items) ?? [];
+  // Sekmede "Açık (3)": açık önerilerin sayısı (ilk sayfa; sonrası varsa 50+ olabilir)
+  const openCount = useQuery({
+    queryKey: [...qk.moderation.recommendations('OPEN'), 'count'],
+    queryFn: () => moderationApi.listSuspendRecommendations({ status: 'OPEN', size: 50 }),
+    retry: false,
+  });
+  const openN = openCount.data?.items.length;
+  const maxStrikes = items.reduce((m, r) => Math.max(m, r.strikeCount), 0);
 
   const onError = (e: unknown) => {
     toast.error(adminErrorMessage(i18n, e));
@@ -64,6 +77,7 @@ export default function SuspendRecommendationsPage() {
     mutationFn: (r: SuspendRecommendation) => moderationApi.dismissRecommendation(r.id),
     onSuccess: () => {
       toast.success(t('admin.suspend.toast.dismissed'));
+      setDismissing(null);
       void qc.invalidateQueries({ queryKey: qk.moderation.all });
     },
     onError,
@@ -72,12 +86,29 @@ export default function SuspendRecommendationsPage() {
   return (
     <>
       <PageHeader title={t('admin.suspend.title')} />
-      <Tabs
-        label={t('admin.suspend.tabs')}
-        value={status}
-        onChange={(id) => setStatus(id as Status)}
-        tabs={STATUSES.map((s) => ({ id: s, label: t(`admin.suspend.status.${s}`) }))}
-      />
+      <p className={people.hint} style={{ marginBlockEnd: 'var(--space-3)' }} data-search-anchor="sus-explain">
+        {t('admin.v2p.sus.explain')}
+      </p>
+      {status === 'OPEN' && items.length > 0 && (
+        <Insight
+          tone="warn"
+          parts={t('admin.v2p.sus.sentence', { n: formatNumber(items.length), max: formatNumber(maxStrikes) })}
+        />
+      )}
+      <div data-search-anchor="sus-tabs">
+        <Tabs
+          label={t('admin.suspend.tabs')}
+          value={status}
+          onChange={(id) => setStatus(id as Status)}
+          tabs={STATUSES.map((s) => ({
+            id: s,
+            label:
+              s === 'OPEN' && openN !== undefined
+                ? t('admin.v2p.sus.tabCount', { label: t(`admin.suspend.status.${s}`), n: formatNumber(openN) })
+                : t(`admin.suspend.status.${s}`),
+          }))}
+        />
+      </div>
       <div className={styles.stack}>
         {query.isError ? (
           <ErrorState description={adminErrorMessage(i18n, query.error)} onRetry={() => void query.refetch()} />
@@ -91,17 +122,26 @@ export default function SuspendRecommendationsPage() {
               {items.map((r) => (
                 <li key={r.id} className={styles.item}>
                   <div className={styles.itemHead}>
-                    <Link to={paths.admin.user(r.userId)}>{t('admin.suspend.user', { id: r.userId })}</Link>
-                    <Badge tone="danger">{t('admin.suspend.strikes', { n: formatNumber(r.strikeCount) })}</Badge>
+                    <UserLabel userId={r.userId} fallback={t('admin.suspend.user', { id: r.userId })} />
                     <span className={styles.spacer} />
-                    <span className={styles.muted}>{formatDateTime(r.createdAt)}</span>
+                    <span className={styles.muted} title={formatDateTime(r.createdAt)}>
+                      {t('admin.v2p.sus.waiting', { when: kit.relative(r.createdAt) })}
+                    </span>
                   </div>
+                  <p className={people.strikes}>
+                    <span className={people.dots} role="img" aria-label={t('admin.suspend.strikes', { n: formatNumber(r.strikeCount) })}>
+                      {Array.from({ length: Math.max(5, r.strikeCount) }, (_, i) => (
+                        <span key={i} className={i < r.strikeCount ? people.dotOn : people.dotOff} />
+                      ))}
+                    </span>
+                    <Badge tone="danger">{t('admin.suspend.strikes', { n: formatNumber(r.strikeCount) })}</Badge>
+                  </p>
                   {r.status === 'OPEN' && (
                     <div className={styles.actions}>
                       <Button
                         variant="secondary"
                         loading={dismiss.isPending && dismiss.variables?.id === r.id}
-                        onClick={() => dismiss.mutate(r)}
+                        onClick={() => setDismissing(r)}
                       >
                         {t('admin.suspend.dismiss')}
                       </Button>
@@ -122,13 +162,22 @@ export default function SuspendRecommendationsPage() {
         )}
       </div>
       <ConfirmDialog
+        open={!!dismissing}
+        onClose={() => setDismissing(null)}
+        onConfirm={() => dismissing && dismiss.mutate(dismissing)}
+        loading={dismiss.isPending}
+        title={t('admin.v2p.sus.dismissTitle')}
+        message={t('admin.v2p.sus.dismissBody')}
+        confirmLabel={t('admin.suspend.dismiss')}
+      />
+      <ConfirmDialog
         open={!!accepting}
         onClose={() => setAccepting(null)}
         onConfirm={() => accepting && accept.mutate(accepting)}
         loading={accept.isPending}
         danger
         title={t('admin.suspend.confirmTitle')}
-        message={t('admin.suspend.confirmBody', { id: accepting?.userId ?? '' })}
+        message={`${t('admin.suspend.confirmBody', { id: accepting?.userId ?? '' })} ${t('admin.v2p.sus.acceptConsequence')}`}
         confirmLabel={t('admin.suspend.accept')}
       />
     </>

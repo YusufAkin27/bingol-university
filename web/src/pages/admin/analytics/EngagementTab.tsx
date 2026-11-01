@@ -77,7 +77,7 @@ export default function EngagementTab({ range }: { range: DateRange }) {
           return (
             <>
               <div className={styles.grid2}>
-                <Card title={t('admin.analytics.funnel.title')}>
+                <Card title={t('admin.analytics.funnel.title')} data-search-anchor="anl-funnel">
                   <p className={styles.muted} style={{ marginBlockEnd: 'var(--space-3)' }}>
                     {t('admin.analytics.funnel.note')}
                   </p>
@@ -106,7 +106,7 @@ export default function EngagementTab({ range }: { range: DateRange }) {
                   )}
                 </Card>
 
-                <Card title={t('admin.analytics.engagement.topEvents')}>
+                <Card title={t('admin.analytics.engagement.topEvents')} data-search-anchor="anl-events">
                   <Table
                     caption={t('admin.analytics.engagement.topEvents')}
                     columns={eventCols}
@@ -139,7 +139,7 @@ export default function EngagementTab({ range }: { range: DateRange }) {
                 />
               </ChartCard>
 
-              <Card title={t('admin.analytics.engagement.screens')}>
+              <Card title={t('admin.analytics.engagement.screens')} data-search-anchor="anl-screens">
                 {d.screens.length === 0 ? (
                   <EmptyState compact icon="chart" title={t('admin.analytics.engagement.noEvents')} description=" " />
                 ) : (

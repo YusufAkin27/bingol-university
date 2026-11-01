@@ -67,7 +67,9 @@ export function AnonymizersTab() {
 
   return (
     <div className={styles.stack}>
-      <Callout tone="info">{t('admin.ab.anon.info')}</Callout>
+      <div data-search-anchor="tab-anon">
+        <Callout tone="info">{t('admin.ab.anon.info')}</Callout>
+      </div>
       <p className={styles.muted}>{t('admin.v2p.ab.anonPlain')}</p>
 
       <Card title={t('admin.ab.anon.setting')}>
@@ -83,7 +85,7 @@ export function AnonymizersTab() {
         )}
       </Card>
 
-      <Card title={t('admin.ab.anon.upload')}>
+      <Card title={t('admin.ab.anon.upload')} data-search-anchor="ab-anon-upload">
         <form
           noValidate
           className={styles.form}

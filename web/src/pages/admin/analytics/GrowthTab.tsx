@@ -83,7 +83,7 @@ export default function GrowthTab({ range }: { range: DateRange }) {
       </div>
 
       <div className={styles.grid2}>
-        <Card title={t('admin.analytics.growth.compare')}>
+        <Card title={t('admin.analytics.growth.compare')} data-search-anchor="anl-compare">
           <Async query={regs60} height={140} title={t('admin.analytics.growth.compare')}>
             {(d) => {
               const counts = d.points.map((p) => p.count);

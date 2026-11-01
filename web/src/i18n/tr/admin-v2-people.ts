@@ -185,6 +185,24 @@ export default {
   'admin.v2p.anl.screen.settings': 'Ayarlar',
   'admin.v2p.anl.screen.support': 'Destek',
 
+  // ---- Askı önerileri / İtirazlar ----
+  'admin.v2p.mod.memberFor': 'üyelik: {when}',
+  'admin.v2p.sus.explain':
+    'Kısa sürede çok ihlal yapan kullanıcılar için sistem askıya alma önerir. Askıya alırsanız kişi giriş yapamaz; yoksayarsanız öneri kapanır ve hesap olduğu gibi kalır.',
+  'admin.v2p.sus.sentence': '{n} kişi için karar bekleniyor; en çok ihlal sayısı {max}.',
+  'admin.v2p.sus.tabCount': '{label} ({n})',
+  'admin.v2p.sus.waiting': '{when} önerildi',
+  'admin.v2p.sus.dismissTitle': 'Öneriyi yoksay',
+  'admin.v2p.sus.dismissBody':
+    'Öneri kapanır ve hesap askıya alınmaz. Kişi yeni ihlal yaparsa sistem tekrar öneri üretebilir. Devam edilsin mi?',
+  'admin.v2p.sus.acceptConsequence': 'Kişi hemen giriş yapamaz hale gelir; askıyı kullanıcı sayfasından kaldırabilirsiniz.',
+  'admin.v2p.apl.explain':
+    'Kullanıcı, gizlenen ya da silinen bir içeriğin yanlış olduğunu düşünüyorsa itiraz eder. Kabul ederseniz içerik geri açılır; reddederseniz gizli kalır.',
+  'admin.v2p.apl.sentence': '{n} itiraz cevap bekliyor.',
+  'admin.v2p.apl.about': 'İtiraz edilen: {type}.',
+  'admin.v2p.apl.seeHidden': 'Gizlenen içeriklere git',
+  'admin.v2p.apl.outcomes': 'Kabul: içerik geri açılır · Reddet: içerik gizli kalır',
+
   // ---- Ham değerlerin Türkçesi ----
   'admin.v2p.enum.communityRole.OWNER': 'Sahip',
   'admin.v2p.enum.communityRole.ADMIN': 'Yönetici',
