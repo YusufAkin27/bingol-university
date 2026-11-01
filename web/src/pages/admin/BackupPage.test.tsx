@@ -5,7 +5,15 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { agoParts, driveState, freshness, isEndpointMissing } from './backup/lib';
 import { ApiError } from '../../api/client';
 import type { BackupStatus } from '../../api/backup';
-import { allGuideKeys, GUIDE_STEPS, RCLONE_AUTH_CMD, RCLONE_CONF_TEMPLATE } from './backup/guide';
+import {
+  allGuideKeys,
+  ENV_LOCAL_KEEP,
+  ENV_VARS,
+  GUIDE_STEPS,
+  RCLONE_AUTH_CMD,
+  RCLONE_AUTH_CMD_BUILTIN,
+  RCLONE_CONF_TEMPLATE,
+} from './backup/guide';
 import tr from '../../i18n/tr/admin-gd1';
 import { jsonResponse, mockFetch } from '../../test/fetchMock';
 import { renderWithProviders } from '../../test/utils';
@@ -34,8 +42,8 @@ const base = (over: Partial<BackupStatus> = {}): BackupStatus => ({
   },
   lastSuccessAt: iso(30 * 60_000),
   lastStatus: 'OK',
-  schedule: { cron: '5 * * * *', verifyCron: '30 4 * * 0' },
-  retention: { localDaily: 7, localWeekly: 4, localMonthly: 3, remoteDaily: 24, remoteWeekly: 8, remoteMonthly: 6 },
+  schedule: { cron: '5 * * * *', verifyCron: '30 4 * * 0', remoteCron: '35 3 * * *' },
+  retention: { localDaily: 7, localWeekly: 4, localMonthly: 3, remoteDaily: 7, remoteWeekly: 4, remoteMonthly: 6 },
   ...over,
 });
 
@@ -55,7 +63,9 @@ describe('Yedekleme sayfası durum kartları', () => {
     expect(within(screen.getByTestId('gd-local')).getByText('14 yedek')).toBeInTheDocument();
     expect(within(screen.getByTestId('gd-local')).getByText('3 GB')).toBeInTheDocument();
     expect(within(screen.getByTestId('gd-remote')).getByText('21 yedek')).toBeInTheDocument();
-    expect(within(screen.getByTestId('gd-retention')).getByText(/Saatlik 24 · haftalık 8 · aylık 6/)).toBeInTheDocument();
+    expect(within(screen.getByTestId('gd-retention')).getByText(/Saatlik 7 · haftalık 4 · aylık 3/)).toBeInTheDocument();
+    expect(within(screen.getByTestId('gd-retention')).getByText(/Günlük 7 · haftalık 4 · aylık 6/)).toBeInTheDocument();
+    expect(within(screen.getByTestId('gd-last')).getByText('Drive’a yükleme (günde 1): 35 3 * * *')).toBeInTheDocument();
     expect(screen.queryByText('Yedekler yalnız sunucu diskinde', { selector: 'p' })).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: /^0\. Neden ve özet/ })).toHaveAttribute('aria-expanded', 'false');
     expect(screen.getByText('Google Drive bağlı görünüyor. Rehber yalnız başvuru içindir.')).toBeInTheDocument();
@@ -120,8 +130,8 @@ describe('Kurulum rehberi', () => {
     renderWithProviders(<BackupPage />);
     await screen.findByText(/Durum bilgisi henüz alınamıyor/);
     // 0. adım açık; 2. adımı aç ve kopyala
-    await user.click(screen.getByRole('button', { name: /^2\. Google hesabınıza izin verin/ }));
-    await user.click(screen.getByRole('button', { name: 'Komutu kopyala: İzin komutu' }));
+    await user.click(screen.getByRole('button', { name: /^3\. Google hesabınıza izin verin/ }));
+    await user.click(screen.getByRole('button', { name: 'Komutu kopyala: İzin komutu (kendi istemci kimliğinizle)' }));
     expect(writeText).toHaveBeenCalledWith(RCLONE_AUTH_CMD);
     await waitFor(() => expect(screen.getAllByText('Kopyalandı').length).toBeGreaterThan(0));
   });
@@ -131,7 +141,7 @@ describe('Kurulum rehberi', () => {
     const user = userEvent.setup();
     renderWithProviders(<BackupPage />);
     await screen.findByText(/Durum bilgisi henüz alınamıyor/);
-    const step3 = screen.getByRole('button', { name: /^3\. Sunucuda rclone\.conf/ });
+    const step3 = screen.getByRole('button', { name: /^4\. Sunucuda rclone\.conf/ });
     expect(step3).toHaveAttribute('aria-expanded', 'false');
     await user.click(step3);
     expect(step3).toHaveAttribute('aria-expanded', 'true');
@@ -162,6 +172,35 @@ describe('Kurulum rehberi', () => {
     await screen.findByText(/Durum bilgisi henüz alınamıyor/);
     expect(screen.queryAllByRole('textbox')).toHaveLength(0);
     expect(document.querySelectorAll('input, textarea')).toHaveLength(0);
+  });
+});
+
+describe('backend BackupReport uyumu', () => {
+  // observability/BackupReport.java ile birebir JSON: remote kapalıyken alanlar null, schedule.remoteCron null.
+  const closed = {
+    local: { count: 5, bytes: 1048576, oldestAt: '2026-10-30T09:05:00Z' },
+    remote: { configured: false, kind: null, name: null, lastSuccessAt: null, lastVerifiedAt: null, lastError: null, bytes: null, count: null },
+    lastSuccessAt: iso(10 * 60_000),
+    lastStatus: 'OK',
+    schedule: { cron: '5 * * * *', verifyCron: null, remoteCron: null },
+    retention: { localDaily: 7, localWeekly: 4, localMonthly: 3, remoteDaily: null, remoteWeekly: null, remoteMonthly: null },
+  };
+  it('uzak kapalı + remoteCron null: Kurulmadı, çökme yok, yükleme zamanlaması satırı yok, saklamada tire', async () => {
+    setup(() => jsonResponse(200, closed));
+    renderWithProviders(<BackupPage />);
+    const drive = await screen.findByTestId('gd-drive');
+    expect(within(drive).getByText('Kurulmadı')).toBeInTheDocument();
+    expect(within(screen.getByTestId('gd-last')).queryByText(/Drive’a yükleme/)).not.toBeInTheDocument();
+    expect(within(screen.getByTestId('gd-retention')).getByText(/Günlük — · haftalık — · aylık —/)).toBeInTheDocument();
+  });
+  it('lastStatus FAILED ve remoteCron dolu', async () => {
+    setup(() =>
+      jsonResponse(200, { ...closed, lastStatus: 'FAILED', schedule: { cron: '5 * * * *', verifyCron: '30 4 * * 0', remoteCron: '35 3 * * *' } }),
+    );
+    renderWithProviders(<BackupPage />);
+    const last = await screen.findByTestId('gd-last');
+    expect(within(last).getByText('Son deneme başarısız')).toBeInTheDocument();
+    expect(within(last).getByText('Drive’a yükleme (günde 1): 35 3 * * *')).toBeInTheDocument();
   });
 });
 
@@ -216,6 +255,68 @@ describe('i18n ve komutlar', () => {
       .join('\n');
     expect(all).not.toMatch(/refresh_token|access_token|AGE-SECRET-KEY|PRIVATE KEY/i);
     expect(RCLONE_CONF_TEMPLATE).toContain('<');
-    expect(RCLONE_AUTH_CMD).toContain('eyJzY29wZSI6ImRyaXZlLmZpbGUifQ');
+    expect(RCLONE_AUTH_CMD).toContain('--drive-scope drive.file');
+    expect(RCLONE_AUTH_CMD_BUILTIN).toBe('rclone authorize "drive" --drive-scope drive.file');
+  });
+
+  // Rehber docs/BACKUP_GDRIVE.md ile ve backend gerçeğiyle tutarlı kalmalı (ajan raporuna göre elle uyarlanan yerler).
+  const allCode = () =>
+    GUIDE_STEPS.flatMap((s) => s.items)
+      .map((i) => (i.kind === 'code' ? i.code : ''))
+      .join('\n');
+  const allText = () => Object.values(tr as Record<string, string>).join('\n');
+
+  it('rclone.conf izni: elle chown/chmod 400 YOK (konteyner postgres + 0600 yapar); kalıcı dizin ve RCLONE_CONF_DIR var', () => {
+    expect(allCode()).not.toMatch(/chown 70:70|chmod 400/);
+    expect(allCode()).toContain('/opt/bukampus-data/rclone/rclone.conf');
+    expect(ENV_VARS).toContain('RCLONE_CONF_DIR=/opt/bukampus-data/rclone');
+    expect(allText()).toMatch(/0600/);
+    expect(allText()).not.toMatch(/salt okunur bağlanır/);
+  });
+
+  it('ortam değişkeni adları backend/compose ile aynı', () => {
+    for (const k of [
+      'BACKUP_REMOTE=gdrive:BU-Kampus-Yedek',
+      'BACKUP_REMOTE_SCHEDULE=daily',
+      'BACKUP_REMOTE_KEEP_DAILY=',
+      'BACKUP_REMOTE_KEEP_WEEKLY=',
+      'BACKUP_REMOTE_KEEP_MONTHLY=',
+    ]) {
+      expect(ENV_VARS).toContain(k);
+    }
+    expect(ENV_LOCAL_KEEP).toContain('BACKUP_KEEP_DAILY=');
+    expect(ENV_LOCAL_KEEP).toContain('BACKUP_KEEP_WEEKLY=');
+    expect(ENV_LOCAL_KEEP).toContain('BACKUP_KEEP_MONTHLY=');
+    expect(allCode()).toContain('BACKUP_LOCAL_KEEP_WHEN_REMOTE_OK=2');
+  });
+
+  it('komutlar: remote-sync --dry-run + gerçek yükleme, prune önce kuru sonra --apply, .env.prod /opt/bukampus altında', () => {
+    const c = allCode();
+    expect(c).toContain('/opt/backup/remote-sync.sh --dry-run');
+    expect(c).toMatch(/\/opt\/backup\/remote-sync\.sh\n/);
+    const dry = c.indexOf('prune-local-after-remote.sh --keep 2\n');
+    const apply = c.indexOf('prune-local-after-remote.sh --keep 2 --apply');
+    expect(dry).toBeGreaterThan(-1);
+    expect(apply).toBeGreaterThan(dry);
+    expect(c).toContain('--env-file /opt/bukampus/.env.prod');
+    expect(c).toContain('deploy/compose.bukampus.yml');
+    expect(c).not.toMatch(/cd \/opt\/bukampus\/current\nnano \.env\.prod/);
+  });
+
+  it('OAuth: kendi client_id önerisi, drive.file, "In production" uyarısı (Testing = 7 gün) ve RPO notu', () => {
+    expect(RCLONE_AUTH_CMD).toContain('--drive-client-id');
+    expect(RCLONE_CONF_TEMPLATE).toContain('scope = drive.file');
+    expect(RCLONE_CONF_TEMPLATE).toContain('client_id = <CLIENT_ID>');
+    const d = tr as Record<string, string>;
+    expect(d['admin.gd1.warn.testing']).toMatch(/In production/);
+    expect(d['admin.gd1.warn.testing']).toMatch(/7 gün/);
+    expect(d['admin.gd1.step.why.rpo']).toMatch(/GÜNDE 1/);
+    expect(d['admin.gd1.step.why.rpo']).toMatch(/24 saat/);
+  });
+
+  it('rehberde "client" adımı authorize adımından önce gelir', () => {
+    const ids = GUIDE_STEPS.map((s) => s.id);
+    expect(ids.indexOf('client')).toBeGreaterThan(-1);
+    expect(ids.indexOf('client')).toBeLessThan(ids.indexOf('authorize'));
   });
 });

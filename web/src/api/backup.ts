@@ -1,5 +1,5 @@
 // Yedekleme durumu (GD1): GET /api/admin/system/backup (izin: system.read). Sözleşme (backend ayrı dalda yazılır):
-// tarihler ISO UTC, bilinmeyen alan null. Uç henüz yoksa (404/501) sayfa kurulum rehberini yine gösterir.
+// tarihler ISO UTC, bilinmeyen alan null (backend: observability/BackupReport.java ile birebir). Uç yoksa (404/501) sayfa rehberi yine gösterir.
 // Sayfa hiçbir sır toplamaz: yalnız durum okur.
 import { api } from './client';
 
@@ -35,7 +35,8 @@ export interface BackupStatus {
   remote: BackupRemote | null;
   lastSuccessAt: string | null;
   lastStatus: string | null;
-  schedule: { cron: string | null; verifyCron: string | null } | null;
+  /** cron: yerel saatlik yedek; verifyCron: geri yükleme doğrulaması; remoteCron: Drive'a günlük yükleme (uzak kapalıysa null). */
+  schedule: { cron: string | null; verifyCron: string | null; remoteCron?: string | null } | null;
   retention: BackupRetention | null;
 }
 

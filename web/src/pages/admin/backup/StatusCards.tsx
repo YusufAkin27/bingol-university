@@ -24,9 +24,9 @@ export function agoText(i18n: I18n, iso: string | null | undefined, now: number)
   return gt(i18n)(`admin.gd1.ago.${p.unit}`, { n: i18n.formatNumber(p.n) });
 }
 
-function retentionLine(i18n: I18n, d: number | null, w: number | null, m: number | null): string {
+function retentionLine(i18n: I18n, d: number | null, w: number | null, m: number | null, remote = false): string {
   const f = (n: number | null) => (n === null || n === undefined ? '—' : i18n.formatNumber(n));
-  return gt(i18n)('admin.gd1.retention.line', { d: f(d), w: f(w), m: f(m) });
+  return gt(i18n)(remote ? 'admin.gd1.retention.lineRemote' : 'admin.gd1.retention.line', { d: f(d), w: f(w), m: f(m) });
 }
 
 function Card({
@@ -89,6 +89,9 @@ export function StatusCards({ i18n, status, now }: { i18n: I18n; status: BackupS
         {status?.schedule?.verifyCron && (
           <p className={styles.muted}>{t('admin.gd1.card.last.verify', { cron: status.schedule.verifyCron })}</p>
         )}
+        {status?.schedule?.remoteCron && (
+          <p className={styles.muted}>{t('admin.gd1.card.last.remoteCron', { cron: status.schedule.remoteCron })}</p>
+        )}
       </Card>
 
       <Card tone={DRIVE_TONE[drive]} label={t('admin.gd1.card.drive')} testId="gd-drive">
@@ -132,7 +135,7 @@ export function StatusCards({ i18n, status, now }: { i18n: I18n; status: BackupS
               <strong>{t('admin.gd1.retention.local')}:</strong> {retentionLine(i18n, ret.localDaily, ret.localWeekly, ret.localMonthly)}
             </p>
             <p className={styles.line}>
-              <strong>{t('admin.gd1.retention.remote')}:</strong> {retentionLine(i18n, ret.remoteDaily, ret.remoteWeekly, ret.remoteMonthly)}
+              <strong>{t('admin.gd1.retention.remote')}:</strong> {retentionLine(i18n, ret.remoteDaily, ret.remoteWeekly, ret.remoteMonthly, true)}
             </p>
           </>
         ) : (

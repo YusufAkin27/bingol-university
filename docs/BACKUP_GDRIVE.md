@@ -21,12 +21,16 @@ başarısızsa    ->  09:35, 15:35, 21:35'te yeniden dener (yalnız son başarı
 - **Sonuç (RPO):** Drive kopyası en kötü durumda **~24 saat** geridir; son saatler yalnızca sunucu diskindedir. Daha sık yükleme isterseniz `BACKUP_REMOTE_CRON`'u artırın (kotayı hesaplayın, bölüm 1).
 - Uzak saklama **tek dizinde, kopya oluşturmadan** (GFS): son 7 gün + son 4 hafta + son 6 ay; her hafta/ay için o dönemin **en yeni** yedeği tutulur. Dönemler birbirine biner (bugünün yedeği hem günlük hem haftalık sayılır), bu yüzden Drive'da en çok ~15 klasör bulunur.
 
+> **Yol ve komut kuralları (bu belgede hep aynı).** Sunucuda: kod `/opt/bukampus/current` (sembolik bağ, her dağıtımda yeni `releases/<sha>`), ortam dosyası `/opt/bukampus/.env.prod`, kalıcı veri `/opt/bukampus-data`. Her `docker compose` komutu `cd /opt/bukampus/current` içinden ve şu kısayolla çalışır:
+> `DC="docker compose -p bu -f docker-compose.prod.yml -f deploy/compose.bukampus.yml --env-file /opt/bukampus/.env.prod"`.
+> Yedek betikleri konteynerde `/opt/backup/` altındadır ve `$DC exec -u postgres backup /opt/backup/<betik>` ile çalıştırılır.
+
 ## 1. Kota hesabı (başlamadan önce)
 
 Drive'a giden her klasör = DB dökümü + `uploads` arşivi (şifreli, sıkıştırılmış). Tahmini boyut **S** için:
 
 ```bash
-DC="docker compose -p bu -f docker-compose.prod.yml --env-file .env.prod"
+DC="docker compose -p bu -f docker-compose.prod.yml -f deploy/compose.bukampus.yml --env-file /opt/bukampus/.env.prod"
 $DC exec backup cat /var/backups/metrics/last-success.json     # "sizeBytes" = bir yedeğin boyutu (bayt)
 ```
 
@@ -43,7 +47,7 @@ $DC exec backup cat /var/backups/metrics/last-success.json     # "sizeBytes" = b
 ## 2. Hangi Google hesabı?
 
 - Mümkünse **kuruma ait, tek bir kişiye bağlı olmayan** bir Google hesabı (ör. `yedek@...`) kullanın; kişisel hesap işten ayrılınca yedek de gider. `bingol.edu.tr` Workspace hesabı kullanılacaksa kuruluşun Drive kotasını ve dış uygulama (OAuth) iznini BT yöneticisine sorun.
-- Hesapta **iki adımlı doğrulama** açık olsun. Parola değişse bile rclone'un yenileme belirteci genelde geçerli kalır; hesaba bağlı **uygulama izni iptal edilirse** (bölüm 8) veya hesap kilitlenirse yeniden yetkilendirme gerekir.
+- Hesapta **iki adımlı doğrulama** açık olsun. Parola değişse bile rclone'un yenileme belirteci genelde geçerli kalır; hesaba bağlı **uygulama izni iptal edilirse** (bölüm 11) veya hesap kilitlenirse yeniden yetkilendirme gerekir.
 - **Servis hesabı (service account) KULLANMAYIN.** Servis hesabının kendi Drive kotası yoktur (0 bayt); dosyayı kendi adına yükleyemez (`storageQuotaExceeded`). Yalnızca Google Workspace'te bir **Paylaşılan Drive (Shared Drive)** içinde, hesabın üye yapıldığı durumda çalışır. Bu kurulumda kişisel/kurumsal hesap + OAuth kullanılır.
 
 ## 3. (Önerilir) Kendi OAuth istemci kimliğiniz (client_id)
@@ -83,7 +87,15 @@ Paste the following into your remote machine --->
 
 ## 5. Sunucuya `rclone.conf` yerleştirme
 
-Sunucuda depo dizininde (`/srv/bu` gibi) `deploy/rclone/rclone.conf` dosyasını oluşturun:
+**Kalıcı konum.** Her dağıtım kodu yeni bir `releases/<sha>` dizinine açar; `deploy/rclone` (depo içi) yeni sürümde **boş** gelir ve belirteç kaybolur. Bu yüzden dosyayı depo dışında, kalıcı veri dizininde tutun ve compose'a `RCLONE_CONF_DIR` ile bildirin (bölüm 6):
+
+```bash
+ssh -i ~/.ssh/bu_deploy_ed25519 deploy@<SUNUCU_ADRESI>
+sudo install -d -m 700 /opt/bukampus-data/rclone
+sudo nano /opt/bukampus-data/rclone/rclone.conf        # aşağıdaki içeriği yapıştırın
+```
+
+`rclone.conf` içeriği:
 
 ```ini
 [gdrive]
@@ -94,35 +106,40 @@ scope = drive.file
 token = {"access_token":"ya29....","token_type":"Bearer","refresh_token":"1//0g....","expiry":"2026-11-01T12:00:00.000000+03:00"}
 ```
 
-```bash
-# bilgisayarınızdan (dosyayı yazdıktan sonra) — ya da sunucuda doğrudan editörle oluşturun
-scp rclone.conf sunucu:/srv/bu/deploy/rclone/rclone.conf
-ssh sunucu 'chmod 600 /srv/bu/deploy/rclone/rclone.conf'
-```
-
-- **Dosya izni 0600.** `backup` konteyneri açılışta dosyayı `postgres` (uid 70) sahipliğine alıp 0600 yapar; başka kullanıcı okuyamaz. **Dosya git'e girmez** (`.gitignore`: `deploy/rclone/rclone.conf`); `git status` ile doğrulayın. Bir kopyasını parola yöneticinizde de saklayın (sunucu kaybında yeniden yetkilendirmek zorunda kalmazsınız; bu zorunlu değildir, `rclone authorize` ile yeniden alınabilir).
-- **Neden yazılabilir bağlanıyor?** Google'ın erişim belirteci ~1 saatte biter; rclone yenisini aldığında `rclone.conf`'a **geri yazar**. Dizin salt okunur (`:ro`) bağlıysa her çalışmada `Failed to save new token` hatası oluşur (rclone belleğindeki belirteçle devam etse de, yenileme belirteci döndürülürse kaybolur). Bu yüzden `docker-compose.prod.yml` artık `./deploy/rclone:/config/rclone` dizinini **yazılabilir** bağlar. Yenilenen belirteç dosyada kalır, konteyner yeniden başlasa bile korunur. Güvenlik: yalnızca bu tek dizin (başka sunucu yolu değil) bağlıdır; dosya 0600; konteynerde `cap_drop: ALL`.
+- **İzin/sahiplik elle ayarlanmaz (`chown 70:70` + `chmod 400` YAPMAYIN).** `backup` konteyneri her açılışta dizini ve dosyayı `postgres` (uid 70) sahipliğine alır, dizini 0700, dosyayı **0600** yapar; başka kullanıcı okuyamaz. Dosya salt okunur (0400) olursa rclone yenilenen belirteci yazamaz. Sonuç: dosyayı daha sonra düzenlemek için `sudo` gerekir (`sudo nano ...`); düzenledikten sonra sonraki çalışma yeni dosyayı okur, sahiplik bir sonraki `docker compose up -d backup` ile düzelir.
+- **Dosya git'e girmez** (`.gitignore`: `deploy/rclone/rclone.conf`; kalıcı dizin zaten depo dışındadır). Bir kopyasını parola yöneticinizde de saklayın (zorunlu değil: `rclone authorize` ile yeniden alınabilir).
+- **Neden yazılabilir bağlanıyor?** Google'ın erişim belirteci ~1 saatte biter; rclone yenisini aldığında `rclone.conf`'a **geri yazar**. Dizin salt okunur (`:ro`) bağlıysa her çalışmada `Failed to save new token` hatası oluşur. Bu yüzden `docker-compose.prod.yml` dizini (`${RCLONE_CONF_DIR:-./deploy/rclone}:/config/rclone`) **yazılabilir** bağlar. Yenilenen belirteç dosyada kalır, konteyner yeniden başlasa bile korunur. Güvenlik: yalnızca bu tek dizin bağlıdır; dosya 0600; konteynerde `cap_drop: ALL`.
 - Yapılandırmayı parolayla şifrelemek isterseniz `rclone config` ile parola koyup `.env.prod`'a `RCLONE_CONFIG_PASS=...` yazın.
 
 ## 6. `.env.prod` ve yeniden başlatma
 
 ```bash
-# .env.prod
-BACKUP_REMOTE=gdrive:BU-Kampus-Yedek        # rclone uzak adı : Drive'daki klasör adı (rclone oluşturur)
-# isteğe bağlı (varsayılanlar aşağıdadır)
-# BACKUP_REMOTE_KEEP_DAILY=7
-# BACKUP_REMOTE_KEEP_WEEKLY=4
-# BACKUP_REMOTE_KEEP_MONTHLY=6
-# BACKUP_REMOTE_CRON=35 3 * * *             # günlük yükleme saati (Europe/Istanbul)
-# BACKUP_REMOTE_BWLIMIT=8M                  # bant sınırı (bos = sinirsiz)
+nano /opt/bukampus/.env.prod
 ```
 
 ```bash
-DC="docker compose -p bu -f docker-compose.prod.yml --env-file .env.prod"
+# .env.prod
+RCLONE_CONF_DIR=/opt/bukampus-data/rclone     # rclone.conf'un kalıcı dizini (bölüm 5)
+BACKUP_REMOTE=gdrive:BU-Kampus-Yedek          # rclone uzak adı : Drive'daki klasör adı (rclone oluşturur)
+# isteğe bağlı (varsayılanlar aşağıdadır)
+# BACKUP_REMOTE_SCHEDULE=daily                # daily = günde 1 yükleme (varsayılan); each = her saat (önerilmez)
+# BACKUP_REMOTE_KEEP_DAILY=7
+# BACKUP_REMOTE_KEEP_WEEKLY=4
+# BACKUP_REMOTE_KEEP_MONTHLY=6
+# BACKUP_REMOTE_CRON=35 3 * * *               # günlük yükleme saati (Europe/Istanbul)
+# BACKUP_REMOTE_BWLIMIT=8M                    # bant sınırı (bos = sinirsiz)
+# BACKUP_LOCAL_KEEP_WHEN_REMOTE_OK=2          # bölüm 8
+```
+
+Yerel (sunucudaki saatlik) yedeklerin saklaması ayrıdır: `BACKUP_KEEP_DAILY/WEEKLY/MONTHLY` (varsayılan 7/4/3; bölüm 8). Uzak saklama `BACKUP_REMOTE_KEEP_*` ile ayarlanır.
+
+```bash
+cd /opt/bukampus/current
+DC="docker compose -p bu -f docker-compose.prod.yml -f deploy/compose.bukampus.yml --env-file /opt/bukampus/.env.prod"
 $DC up -d --build backup backend      # backup: yeni imaj (jq + yeni betikler); backend: BACKUP_REMOTE uyarısını kaldırır
 ```
 
-`docker compose ... up` ortam değişkenleri değiştiği için `backup` ve `backend` konteynerlerini yeniden oluşturur; kısa kesinti yalnız bu ikisindedir.
+`docker compose ... up` ortam değişkenleri değiştiği için `backup` ve `backend` konteynerlerini yeniden oluşturur; kısa kesinti yalnız bu ikisindedir. Sonraki dağıtımlar (`scripts/deploy.sh`) `.env.prod`'u ezmez; `RCLONE_CONF_DIR` ve `BACKUP_REMOTE` korunur.
 
 ## 7. İlk deneme ve doğrulama
 

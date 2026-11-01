@@ -536,7 +536,9 @@ services:
       - ${BACKUP_METRICS_DIR:-./monitoring/textfile}:/var/backups/metrics
       # YAZILABILIR (:ro DEGIL): Google Drive OAuth erisim belirteci ~1 saatte biter; rclone yenisini rclone.conf'a geri yazar.
       # Salt okunur olursa her calismada "Failed to save new token" hatasi olur. entrypoint dizini postgres'e verir, dosyayi 0600 yapar.
-      - ./deploy/rclone:/config/rclone
+      # Her surum YENI dizine acilir (releases/<sha>): ./deploy/rclone yeni surumde bos olur. Kalici konum icin .env.prod'a
+      # RCLONE_CONF_DIR=/opt/bukampus-data/rclone yazin (docs/BACKUP_GDRIVE.md bolum 5); varsayilan yalniz yerel kullanim icindir.
+      - ${RCLONE_CONF_DIR:-./deploy/rclone}:/config/rclone
       - ./deploy/backup-keys:/run/backup:ro   # verify.key (yalniz DOGRULAMA ozel anahtari; bkz. docs/BACKUP_RESTORE.md)
     logging: *logging
     healthcheck:
