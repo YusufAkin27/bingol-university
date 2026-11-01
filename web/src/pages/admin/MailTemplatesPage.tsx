@@ -82,12 +82,12 @@ function TemplateList() {
         title={t('admin.mail.templates.title')}
         description={t('admin.mail.templates.intro')}
         actions={
-          <ButtonLink to={`${paths.admin.mailTemplates}/new`} leftIcon={<Icon name="plus" size={18} />}>
+          <ButtonLink to={`${paths.admin.mailTemplates}/new`} leftIcon={<Icon name="plus" size={18} />} data-search-anchor="new-template">
             {t('admin.mail.templates.new')}
           </ButtonLink>
         }
       />
-      <div className={styles.toolbar}>
+      <div className={styles.toolbar} data-search-anchor="template-filters">
         <div className={styles.toolbarSearch}>
           <SearchInput
             label={t('common.search')}

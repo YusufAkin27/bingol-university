@@ -1,0 +1,368 @@
+import type { SearchEntry } from '../types';
+
+/**
+ * Arama girdileri (NOTIF): Bildirimler + Sistem grubunun sayfaları (Ayarlar, Uygulama güncelleme ve Sistem durumu
+ * `system.ts` içindedir). Her girdinin anchor'ı sayfa kaynağında `data-search-anchor` / `SearchAnchor` ile durur.
+ * Sekmeli sayfalarda `tab-<değer>` anchor'ı sekmeyi açar (useUrlTab).
+ */
+export const notifications: SearchEntry[] = [
+  // ---- Push kampanyaları ----
+  {
+    id: 'campaigns.status-tabs',
+    kind: 'field',
+    page: 'campaigns',
+    title: 'Kampanya durumu süzgeci',
+    anchor: 'status-tabs',
+    keywords: ['gönderilen bildirimler', 'zamanlanan', 'başarısız kampanya', 'duraklatılan', 'iptal edilen', 'gönderiliyor'],
+    description: 'Kampanyaları zamanlandı, gönderiliyor, gönderildi, iptal ya da başarısız diye süz.',
+  },
+  {
+    id: 'campaigns.new-action',
+    kind: 'action',
+    page: 'campaigns',
+    title: 'Yeni kampanya',
+    anchor: 'new-campaign',
+    keywords: ['bildirim oluştur', 'bildirim yaz', 'push gönder', 'duyuru gönder', 'toplu bildirim'],
+    description: 'Telefonlara gidecek yeni bir bildirim hazırla.',
+    perm: 'comms.write',
+  },
+
+  // ---- Mail şablonları ----
+  {
+    id: 'mailTemplates.new',
+    kind: 'action',
+    page: 'mailTemplates',
+    title: 'Yeni şablon',
+    anchor: 'new-template',
+    keywords: ['e-posta şablonu oluştur', 'mail metni yaz', 'yeni mail şablonu', 'şablon ekle'],
+    description: 'Gönderilecek e-postaların hazır metnini oluştur.',
+    perm: 'comms.write',
+  },
+  {
+    id: 'mailTemplates.filters',
+    kind: 'field',
+    page: 'mailTemplates',
+    title: 'Şablon ara ve süz',
+    anchor: 'template-filters',
+    keywords: ['taslak şablonlar', 'yayındaki şablonlar', 'arşivlenen şablonlar', 'şablon adı ara'],
+    description: 'Şablonları adına ve durumuna (taslak, yayında, arşiv) göre bul.',
+  },
+
+  // ---- Mail kampanyaları ----
+  {
+    id: 'mailCampaigns.new',
+    kind: 'action',
+    page: 'mailCampaigns',
+    title: 'Yeni kampanya (e-posta)',
+    anchor: 'new-mail-campaign',
+    keywords: ['toplu e-posta gönder', 'duyuru maili', 'herkese mail', 'mail kampanyası oluştur'],
+    description: 'Seçtiğin kişilere toplu e-posta göndermek için sihirbazı aç.',
+    perm: 'comms.write',
+  },
+
+  // ---- Mail kuyruğu ----
+  {
+    id: 'mailQueue.quota',
+    kind: 'section',
+    page: 'mailQueue',
+    title: 'Günlük gönderim kotası',
+    anchor: 'quota',
+    keywords: ['mail limiti', 'kaç mail kaldı', 'kota doldu', 'günlük e-posta hakkı', 'posta sınırı', 'mail gitmiyor'],
+    description: 'Bugün kaç e-posta gönderildi, kaç hak kaldı ve son günlerin gidişi.',
+  },
+  {
+    id: 'mailQueue.quota-details',
+    kind: 'section',
+    page: 'mailQueue',
+    title: 'Kota ayrıntıları',
+    anchor: 'quota-details',
+    keywords: ['duyuru hakkı', 'rezerv', 'sıfırlama saati', 'üyeliksiz kod hakkı', 'dünkü gönderim'],
+    description: 'Duyuru için kalan hak, sıfırlama saati ve üyeliksiz kişilere verilen kod hakkı.',
+  },
+  {
+    id: 'mailQueue.search',
+    kind: 'field',
+    page: 'mailQueue',
+    title: 'E-posta, alan adı ya da kayıt no ara',
+    anchor: 'filter-search',
+    keywords: ['alıcı ara', 'mail kaydı bul', 'gönderilmeyen mail bul'],
+    description: 'Tam e-posta adresi, @alan.adı ya da kayıt numarasıyla posta bul.',
+  },
+  {
+    id: 'mailQueue.filters',
+    kind: 'field',
+    page: 'mailQueue',
+    title: 'Süzgeçler (durum, şablon, tür, tarih)',
+    anchor: 'filters',
+    keywords: ['gönderilemeyen mailler', 'vazgeçilen', 'bekleyen mailler', 'tarih aralığı', 'atlanan mailler'],
+    description: 'Postaları durumuna, şablonuna, türüne ve tarihine göre süz.',
+  },
+
+  // ---- Mail engel listesi ----
+  {
+    id: 'mailSuppressions.add',
+    kind: 'action',
+    page: 'mailSuppressions',
+    title: 'Adres ekle',
+    anchor: 'add-address',
+    keywords: ['mail engelle', 'adrese mail gönderme', 'engel listesine ekle', 'bastırma listesi'],
+    description: 'Bir e-posta adresine bundan sonra mail gönderilmesin.',
+    perm: 'system.write',
+  },
+  {
+    id: 'mailSuppressions.filters',
+    kind: 'field',
+    page: 'mailSuppressions',
+    title: 'Engel listesi süzgeçleri',
+    anchor: 'filters',
+    keywords: ['abonelikten çıkanlar', 'şikâyet eden', 'teslim hatası', 'elle eklenenler'],
+    description: 'Adresleri sebebine (teslim hatası, abonelikten çıktı, şikâyet, elle eklendi) göre süz.',
+  },
+
+  // ---- Push altyapısı ----
+  {
+    id: 'pushOps.fcm',
+    kind: 'section',
+    page: 'pushOps',
+    title: 'Bağlantı durumu (Firebase)',
+    anchor: 'tab-fcm',
+    keywords: ['bildirim gitmiyor', 'firebase', 'fcm', 'push neden kapalı', 'apns', 'ios bildirim', 'bağlantıyı doğrula'],
+    description: 'Telefonlara bildirim ileten servisin açık olup olmadığı ve nedeni.',
+  },
+  {
+    id: 'pushOps.queue',
+    kind: 'section',
+    page: 'pushOps',
+    title: 'Sıradaki bildirimler',
+    anchor: 'tab-queue',
+    keywords: ['bildirim kuyruğu', 'bekleyen bildirimler', 'gönderilemeyen bildirimler', 'tekrar dene', 'vazgeçilen'],
+    description: 'Gitmeyi bekleyen ve gönderilemeyen bildirimler; tekrar denenir ya da iptal edilir.',
+  },
+  {
+    id: 'pushOps.devices',
+    kind: 'section',
+    page: 'pushOps',
+    title: 'Cihazlar',
+    anchor: 'tab-devices',
+    keywords: ['kaç telefon', 'android ios dağılımı', 'uygulama sürümleri', 'kullanılmayan cihaz', 'token'],
+    description: 'Bildirim alabilen telefonların sayısı, platform ve sürüm dağılımı.',
+  },
+  {
+    id: 'pushOps.stats',
+    kind: 'section',
+    page: 'pushOps',
+    title: 'İstatistik',
+    anchor: 'tab-stats',
+    keywords: ['okunma oranı', 'kaç bildirim gitti', 'bildirim istatistikleri', 'son 14 gün'],
+    description: 'Son günlerde kaç bildirim gitti ve kaçı açıldı.',
+  },
+];
+
+export const systemPages: SearchEntry[] = [
+  // ---- Kaynak durumu ----
+  {
+    id: 'sources.rule',
+    kind: 'section',
+    page: 'sources',
+    title: 'Kaynak sitelere nasıl istek atılır?',
+    anchor: 'sources-rule',
+    keywords: ['scraper kuralı', 'haber çekme sınırı', 'saatte kaç kez', 'kaynak site'],
+    description: 'Kaynak siteye yalnızca zamanlanmış görev ve elle tetikleme istek atar; saatlik sınır vardır.',
+  },
+  {
+    id: 'sources.news',
+    kind: 'section',
+    page: 'sources',
+    title: 'Haber, duyuru ve etkinlik kaynağı',
+    anchor: 'source-news',
+    keywords: ['haberler güncellenmiyor', 'şimdi senkronize et', 'haber çek', 'son başarılı senkron', 'kaynak bakımda'],
+    description: 'Üniversite sitesinden haberlerin en son ne zaman çekildiği; elle yenileme.',
+  },
+  {
+    id: 'sources.menu',
+    kind: 'section',
+    page: 'sources',
+    title: 'Yemek listesi kaynağı',
+    anchor: 'source-menu',
+    keywords: ['yemek listesi güncellenmiyor', 'yemekhane', 'menü senkronu', 'kaç gün kayıtlı'],
+    description: 'Yemek listesinin kaç gün için kayıtlı olduğu ve en son ne zaman çekildiği.',
+  },
+
+  // ---- Operasyon ----
+  {
+    id: 'ops.health',
+    kind: 'section',
+    page: 'ops',
+    title: 'Sağlık',
+    anchor: 'tab-health',
+    keywords: ['veritabanı çalışıyor mu', 'disk boş yer', 'sunucu sağlığı', 'kaynak sistemler'],
+    description: 'Veritabanı, önbellek, e-posta sunucusu ve disk gibi parçaların durumu.',
+  },
+  {
+    id: 'ops.queues',
+    kind: 'section',
+    page: 'ops',
+    title: 'Kuyruklar',
+    anchor: 'tab-queues',
+    keywords: ['gönderilemeyenleri tekrar dene', 'mail sırası', 'bildirim sırası', 'video küçültme', 'medya dönüştürme'],
+    description: 'E-posta, bildirim ve video işleme sıraları; gönderilemeyenleri tekrar dene.',
+  },
+  {
+    id: 'ops.backup',
+    kind: 'section',
+    page: 'ops',
+    title: 'Yedekleme',
+    anchor: 'tab-backup',
+    keywords: ['son yedek ne zaman', 'yedek alındı mı', 'yedek boyutu', 'veri yedeği'],
+    description: 'Son başarılı yedeğin zamanı ve boyutu.',
+  },
+  {
+    id: 'ops.release',
+    kind: 'section',
+    page: 'ops',
+    title: 'Sürüm ve bakım',
+    anchor: 'tab-release',
+    keywords: ['site bakımda mı', 'en düşük sürüm', 'güncel sürüm', 'zorunlu güncelleme özeti'],
+    description: 'Site bakımda mı ve uygulamanın en düşük ile güncel sürümleri.',
+  },
+  {
+    id: 'ops.links',
+    kind: 'section',
+    page: 'ops',
+    title: 'Dış bağlantılar',
+    anchor: 'tab-links',
+    keywords: ['sentry', 'grafana', 'hata izleme adresi', 'metrik paneli'],
+    description: 'Hata izleme (Sentry) ve metrik (Grafana) panellerinin adresleri.',
+  },
+
+  // ---- Çökme raporları ----
+  {
+    id: 'crashes.filters',
+    kind: 'field',
+    page: 'crashes',
+    title: 'Çökme süzgeçleri',
+    anchor: 'filters',
+    keywords: ['uygulama çöktü', 'yeni hatalar', 'çözüldü olarak işaretle', 'android çökmeleri', 'ios çökmeleri', 'sürüme göre hata'],
+    description: 'Çökmeleri hata metnine, duruma (yeni, incelemede, çözüldü), platforma ve sürüme göre bul.',
+  },
+
+  // ---- Veri saklama ----
+  {
+    id: 'dataRetention.storage',
+    kind: 'section',
+    page: 'dataRetention',
+    title: 'Depolama doluluğu',
+    anchor: 'storage',
+    keywords: ['disk dolu', 'yer aç', 'veritabanı boyutu', 'en büyük tablolar', 'disk doluluk yüzdesi'],
+    description: 'Veritabanı ve dosya disklerinin ne kadarı dolu.',
+  },
+  {
+    id: 'dataRetention.tables',
+    kind: 'section',
+    page: 'dataRetention',
+    title: 'Yer kaplayan kayıtlar (eskileri temizlenebilir)',
+    anchor: 'tables',
+    keywords: ['eski kayıtları sil', 'log temizliği', 'dışa aktar', 'temizle', 'kayıt yedeği al'],
+    description: 'Şişen kayıt tabloları; eski kayıtları dışa aktarıp temizleyebilirsin.',
+  },
+  {
+    id: 'dataRetention.history',
+    kind: 'section',
+    page: 'dataRetention',
+    title: 'Geçmiş',
+    anchor: 'history',
+    keywords: ['yedek dosyası kayıtları', 'silme geçmişi', 'ne zaman temizlendi', 'makbuz'],
+    description: 'Yapılan dışa aktarmaların ve silmelerin geçmişi.',
+  },
+
+  // ---- Roller ve izinler ----
+  {
+    id: 'roles.me',
+    kind: 'section',
+    page: 'roles',
+    title: 'Benim yetkilerim',
+    anchor: 'roles-me',
+    keywords: ['neden düğme pasif', 'yetkim var mı', 'salt okunur', 'profilim'],
+    description: 'Senin yönetici profilin ve yapabildiklerin.',
+  },
+  {
+    id: 'roles.admins',
+    kind: 'section',
+    page: 'roles',
+    title: 'Yöneticiler',
+    anchor: 'roles-admins',
+    keywords: ['yetki ver', 'yönetici profili değiştir', 'kim yönetici', 'tam yetkili yap'],
+    description: 'Yöneticilerin listesi ve profilleri.',
+    perm: 'rbac.manage',
+  },
+  {
+    id: 'roles.matrix',
+    kind: 'section',
+    page: 'roles',
+    title: 'İzin matrisi',
+    anchor: 'roles-matrix',
+    keywords: ['kim ne yapabilir', 'moderatör yetkileri', 'izin tablosu', 'destek yetkileri'],
+    description: 'Her profilin hangi işlemleri yapabildiği tek tabloda.',
+  },
+
+  // ---- Denetim kaydı ----
+  {
+    id: 'audit.filters',
+    kind: 'field',
+    page: 'audit',
+    title: 'Denetim süzgeçleri',
+    anchor: 'filters',
+    keywords: ['kim ne yaptı', 'işlem geçmişi', 'reddedilen işlemler', 'yönetici işlemleri', 'tarihe göre işlem'],
+    description: 'İşlemleri kimin yaptığına, türüne, sonucuna ve tarihine göre süz.',
+  },
+  {
+    id: 'audit.export-csv',
+    kind: 'action',
+    page: 'audit',
+    title: 'CSV dışa aktar',
+    anchor: 'export-csv',
+    keywords: ['denetim kaydını indir', 'log indir', 'excel'],
+    description: 'Süzülmüş denetim kayıtlarını tablo dosyası olarak indir.',
+  },
+
+  // ---- Mesaj erişimi ----
+  {
+    id: 'messageAccess.filters',
+    kind: 'field',
+    page: 'messageAccess',
+    title: 'Mesaj erişim süzgeçleri',
+    anchor: 'filters',
+    keywords: ['özel yazışmaya kim baktı', 'sohbet görüntüleme kaydı', 'gerekçesiz erişim', 'mesaj okuma kaydı'],
+    description: 'Yazışmalara kimin, ne zaman ve neden eriştiğini süz.',
+  },
+
+  // ---- Şifreleme ----
+  {
+    id: 'crypto.status',
+    kind: 'section',
+    page: 'crypto',
+    title: 'Şifreleme durumu',
+    anchor: 'crypto-status',
+    keywords: ['mesajlar korunuyor mu', 'anahtar yenileme', 'eski anahtar', 'geliştirme anahtarı', 'kripto'],
+    description: 'Mesajların hangi anahtarla korunduğu ve yenileme gerekip gerekmediği.',
+  },
+  {
+    id: 'crypto.open',
+    kind: 'section',
+    page: 'crypto',
+    title: 'Kullanıcı mesajlarını görüntüle (her görüntüleme kayda alınır)',
+    anchor: 'crypto-open',
+    keywords: ['kullanıcının yazışmaları', 'sohbet oku', 'şikâyet için mesaj bak', 'mesaj incele'],
+    description: 'Bir kullanıcıyı arayıp konuşmalarını görüntüle; her işlem denetim kaydına yazılır.',
+    perm: 'chat.read',
+  },
+  {
+    id: 'settings.now-strip',
+    kind: 'section',
+    page: 'settings',
+    title: 'Şu an',
+    anchor: 'now-strip',
+    keywords: ['bakım açık mı', 'bant açık mı', 'zorunlu güncelleme var mı', 'özet durum'],
+    description: 'Site bakımda mı, duyuru bandı açık mı, zorunlu güncelleme var mı: hepsinin şu anki durumu.',
+  },
+];

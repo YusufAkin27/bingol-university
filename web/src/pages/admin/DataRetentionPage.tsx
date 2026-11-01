@@ -41,7 +41,7 @@ export default function DataRetentionPage() {
     <>
       <PageHeader title={t('admin.ds1.title')} description={t('admin.ds1.desc')} />
       <div className={styles.page}>
-        <Card title={t('admin.ds1.storage.title')}>
+        <Card title={t('admin.ds1.storage.title')} data-search-anchor="storage">
           {storage.isLoading && <Skeleton height={120} />}
           {storage.isError && (
             <ErrorState title={t('admin.ds1.storage.error')} onRetry={() => void storage.refetch()} />

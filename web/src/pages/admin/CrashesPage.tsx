@@ -136,7 +136,7 @@ export default function CrashesPage() {
         </div>
       )}
 
-      <div className={styles.filters} role="search" aria-label={t('admin.cr1.filters')}>
+      <div className={styles.filters} role="search" aria-label={t('admin.cr1.filters')} data-search-anchor="filters">
         <div>
           <SearchInput
             label={t('admin.cr1.filter.q')}

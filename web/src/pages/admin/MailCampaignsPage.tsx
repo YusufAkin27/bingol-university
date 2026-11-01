@@ -24,7 +24,7 @@ import { usePageTitle } from '../../lib/hooks';
 import { paths } from '../../paths';
 import { CampaignDetail } from './mail/CampaignDetail';
 import { CampaignWizard } from './mail/CampaignWizard';
-import { CampaignStatusPill, ProgressBar } from './mail/MailParts';
+import { CampaignStatusPill, ProgressBar, progressToneOf } from './mail/MailParts';
 import { isCampaignLive, mailErrorMessage } from './mail/mailLogic';
 import styles from './mail/mail.module.css';
 
@@ -72,7 +72,7 @@ function CampaignList() {
       width: '220px',
       render: (c) => (
         <div>
-          <ProgressBar percent={c.counters.progressPercent} label={`${c.name}: ${t('admin.mail.detail.progress')}`} />
+          <ProgressBar percent={c.counters.progressPercent} label={`${c.name}: ${t('admin.mail.detail.progress')}`} tone={progressToneOf(c.status)} />
           <span className={styles.muted}>
             {formatNumber(c.counters.queued)} / {formatNumber(c.counters.target)}
           </span>
@@ -102,7 +102,7 @@ function CampaignList() {
         title={t('admin.mail.campaigns.title')}
         description={t('admin.mail.campaigns.intro')}
         actions={
-          <ButtonLink to={`${paths.admin.mailCampaigns}/new`} leftIcon={<Icon name="plus" size={18} />}>
+          <ButtonLink to={`${paths.admin.mailCampaigns}/new`} leftIcon={<Icon name="plus" size={18} />} data-search-anchor="new-mail-campaign">
             {t('admin.mail.campaigns.new')}
           </ButtonLink>
         }

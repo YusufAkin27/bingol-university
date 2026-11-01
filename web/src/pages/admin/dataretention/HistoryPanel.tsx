@@ -2,7 +2,7 @@
 // "Makbuzsuz" rozetiyle öne çıkar.
 import { useQuery } from '@tanstack/react-query';
 import { getPurges, getReceipts, retentionKeys, type Purge, type Receipt } from '../../../api/dataRetention';
-import { Badge, Card, Table, Tabs, type Column, type Tone } from '../../../components/ui';
+import { Badge, Card, ResponsiveTable, Tabs, type Column, type Tone } from '../../../components/ui';
 import { useI18n } from '../../../i18n/I18nProvider';
 import { useUrlTab } from '../../../search/useUrlTab';
 import { formatBytes } from './format';
@@ -21,9 +21,9 @@ export function HistoryPanel() {
   const purges = useQuery({ queryKey: retentionKeys.purges, queryFn: getPurges, staleTime: 15_000 });
 
   const receiptCols: Column<Receipt>[] = [
-    { key: 'id', header: t('admin.ds1.history.col.id'), render: (r) => `#${r.id}` },
-    { key: 'table', header: t('admin.ds1.history.col.table'), render: (r) => <span className={styles.mono}>{r.table}</span> },
-    { key: 'range', header: t('admin.ds1.history.col.range'), render: (r) => `${r.from} → ${r.to}` },
+    { key: 'id', header: t('admin.ds1.history.col.id'), card: { priority: 3 }, render: (r) => `#${r.id}` },
+    { key: 'table', header: t('admin.ds1.history.col.table'), card: { priority: 1 }, render: (r) => <span className={styles.mono}>{r.table}</span> },
+    { key: 'range', header: t('admin.ds1.history.col.range'), card: { priority: 2 }, render: (r) => `${r.from} → ${r.to}` },
     { key: 'rows', header: t('admin.ds1.history.col.rows'), align: 'end', render: (r) => formatNumber(r.rowCount) },
     { key: 'size', header: t('admin.ds1.history.col.size'), align: 'end', render: (r) => formatBytes(r.byteCount) },
     {
@@ -41,9 +41,9 @@ export function HistoryPanel() {
   ];
 
   const purgeCols: Column<Purge>[] = [
-    { key: 'id', header: t('admin.ds1.history.col.id'), render: (r) => `#${r.id}` },
-    { key: 'table', header: t('admin.ds1.history.col.table'), render: (r) => <span className={styles.mono}>{r.table}</span> },
-    { key: 'range', header: t('admin.ds1.history.col.range'), render: (r) => `${r.from} → ${r.to}` },
+    { key: 'id', header: t('admin.ds1.history.col.id'), card: { priority: 3 }, render: (r) => `#${r.id}` },
+    { key: 'table', header: t('admin.ds1.history.col.table'), card: { priority: 1 }, render: (r) => <span className={styles.mono}>{r.table}</span> },
+    { key: 'range', header: t('admin.ds1.history.col.range'), card: { priority: 2 }, render: (r) => `${r.from} → ${r.to}` },
     {
       key: 'rows',
       header: t('admin.ds1.history.col.rows'),
@@ -70,7 +70,7 @@ export function HistoryPanel() {
   ];
 
   return (
-    <Card title={t('admin.ds1.history.title')}>
+    <Card title={t('admin.ds1.history.title')} data-search-anchor="history">
       <Tabs
         label={t('admin.ds1.history.tabs')}
         value={tab}
@@ -82,7 +82,7 @@ export function HistoryPanel() {
       >
         <div className={styles.tableScroll}>
           {tab === 'receipts' ? (
-            <Table<Receipt>
+            <ResponsiveTable<Receipt>
               columns={receiptCols}
               rows={receipts.data}
               rowKey={(r) => r.id}
@@ -93,7 +93,7 @@ export function HistoryPanel() {
               caption={t('admin.ds1.history.tab.receipts')}
             />
           ) : (
-            <Table<Purge>
+            <ResponsiveTable<Purge>
               columns={purgeCols}
               rows={purges.data}
               rowKey={(r) => r.id}

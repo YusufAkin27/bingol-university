@@ -1,5 +1,6 @@
 import { paths } from '../../paths';
 import type { SearchEntry } from '../types';
+import { notifications } from './notifsysPages';
 
 /**
  * Arama girdileri: Bildirimler grubu (campaigns, mailTemplates, mailCampaigns, mailQueue, mailSuppressions, pushOps).
@@ -7,6 +8,7 @@ import type { SearchEntry } from '../types';
  * Menü sayfalarının kendisi (`page`) otomatik üretilir; burada tekrar yazmayın.
  */
 export const entries: SearchEntry[] = [
+  ...notifications,
   // Menüde olmayan alt sayfa: `path` ile açıkça verilir
   {
     id: 'campaigns.new',

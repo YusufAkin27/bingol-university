@@ -73,7 +73,7 @@ export default function RolesPage() {
 
   // --- Ben kartı ---
   const meCard = (
-    <Card title={t('admin.p16.me.title')} data-testid="roles-me">
+    <Card title={t('admin.p16.me.title')} data-testid="roles-me" data-search-anchor="roles-me">
       {!me ? (
         perms.status === 'loading' ? (
           <Skeleton height="4rem" width="100%" />
@@ -97,7 +97,7 @@ export default function RolesPage() {
 
   // --- Matris ---
   const matrixCard = (
-    <Card title={t('admin.p16.matrix.title')} padded={false}>
+    <Card title={t('admin.p16.matrix.title')} padded={false} data-search-anchor="roles-matrix">
       {matrix.isError ? (
         <ErrorState description={err(matrix.error)} onRetry={() => void matrix.refetch()} />
       ) : !matrix.data ? (
@@ -175,7 +175,7 @@ export default function RolesPage() {
   ];
 
   const adminsCard = (
-    <Card title={t('admin.p16.admins.title')} padded={false} data-testid="roles-admins">
+    <Card title={t('admin.p16.admins.title')} padded={false} data-testid="roles-admins" data-search-anchor="roles-admins">
       {!canManage ? (
         <p className={styles.pad}>{t('admin.p16.admins.noManage')}</p>
       ) : admins.isError ? (

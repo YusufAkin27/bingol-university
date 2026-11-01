@@ -47,7 +47,7 @@ export default {
   'admin.ds1.storage.error': 'Depolama doluluğu okunamadı.',
 
   // tablo listesi
-  'admin.ds1.tables.title': 'Şişebilen log tabloları',
+  'admin.ds1.tables.title': 'Yer kaplayan kayıtlar (eskileri temizlenebilir)',
   'admin.ds1.tables.intro':
     'Yalnız log ve kuyruk tabloları listelenir; kullanıcı verisi, mesaj ve sözleşme onayları buradan asla silinemez. Satır sayısı tahmindir.',
   'admin.ds1.tables.col.table': 'Tablo',
@@ -142,7 +142,7 @@ export default {
 
   // geçmiş
   'admin.ds1.history.title': 'Geçmiş',
-  'admin.ds1.history.tab.receipts': 'Dışa aktarma makbuzları',
+  'admin.ds1.history.tab.receipts': 'Yedek dosyası kayıtları',
   'admin.ds1.history.tab.purges': 'Silme geçmişi',
   'admin.ds1.history.tabs': 'Geçmiş sekmeleri',
   'admin.ds1.history.col.id': 'No',

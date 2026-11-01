@@ -40,12 +40,12 @@ export default {
     'Yeniden onay istenecek: tüm etkin kullanıcılar yeni sürümü onaylamak zorunda kalacak. Kullanıcı sayısı yüklenemedi.',
   'admin.p05.legal.impactNoReaccept': 'Yeniden onay istenmeyecek; mevcut onaylar geçerli kalır.',
 
-  'admin.p05.ops.retryTitle': 'Ölü kayıtlar yeniden denensin mi?',
+  'admin.p05.ops.retryTitle': 'Gönderilemeyenler tekrar denensin mi?',
   'admin.p05.ops.retryMessage':
-    'Kalıcı olarak başarısız sayılan kayıtlar kuyruğa geri alınır ve yeniden gönderilmeye çalışılır.',
+    'Defalarca denenip vazgeçilen kayıtlar sıraya geri alınır ve tekrar gönderilmeye çalışılır.',
   'admin.p05.ops.retryConsequence':
     'Gönderim yeniden başlar; eski kayıtlar için alıcılara geç de olsa e-posta veya bildirim gidebilir.',
-  'admin.p05.ops.noun': 'ölü kayıt',
+  'admin.p05.ops.noun': 'gönderilemeyen kayıt',
 
   'admin.p05.news.hideTitle': 'Haber gizlensin mi?',
   'admin.p05.news.showTitle': 'Haber yeniden gösterilsin mi?',

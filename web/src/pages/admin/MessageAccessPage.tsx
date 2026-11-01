@@ -145,7 +145,7 @@ export default function MessageAccessPage() {
         description={t('admin.wp02.access.subtitle')}
         actions={<Link to={paths.admin.audit}>{t('admin.wp02.access.back')}</Link>}
       />
-      <div className={styles.filters} role="group" aria-label={t('admin.wp02.access.filters.label')}>
+      <div className={styles.filters} role="group" aria-label={t('admin.wp02.access.filters.label')} data-search-anchor="filters">
         <div className={styles.bar}>
           <div className={styles.search}>
             <SearchInput

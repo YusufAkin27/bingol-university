@@ -1,4 +1,5 @@
 import type { SearchEntry } from '../types';
+import { systemPages } from './notifsysPages';
 
 /**
  * Arama girdileri: Sistem grubu. Bu dosya DOLU ÖRNEKTİR: kalıbı kopyalayın (kılavuz: ../README.md).
@@ -350,4 +351,4 @@ const systemStatus: SearchEntry[] = [
   },
 ];
 
-export const entries: SearchEntry[] = [...settings, ...appVersions, ...systemStatus];
+export const entries: SearchEntry[] = [...settings, ...appVersions, ...systemStatus, ...systemPages];

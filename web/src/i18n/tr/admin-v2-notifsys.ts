@@ -126,4 +126,57 @@ export default {
   'admin.v2n.sys.dead.more': 'Tamamını göster',
   'admin.v2n.sys.dead.less': 'Kısalt',
   'admin.v2n.sys.dead.confirmTitle': 'Seçilen kayıtlar silinsin mi?',
+  // ---- Operasyon ----
+  'admin.v2n.ops.systemLink': 'Genel sağlık özeti için',
+  'admin.v2n.ops.systemLinkText': 'Sistem durumu sayfasına bakın.',
+  'admin.v2n.ops.techDetail': 'Teknik ayrıntı',
+  'admin.v2n.ops.disk': 'Diskte {free} boş yer var (toplam {total}, %{percent} dolu).',
+  'admin.v2n.ops.compError': 'Hata: {error}',
+  'admin.v2n.ops.comp.db': 'Veritabanı',
+  'admin.v2n.ops.comp.redis': 'Hızlı önbellek (Redis)',
+  'admin.v2n.ops.comp.mail': 'E-posta sunucusu',
+  'admin.v2n.ops.comp.diskSpace': 'Disk alanı',
+  'admin.v2n.ops.comp.ping': 'Uygulama',
+  'admin.v2n.ops.comp.mailQueue': 'E-posta sırası',
+  'admin.v2n.ops.comp.pushQueue': 'Bildirim sırası',
+  'admin.v2n.ops.comp.fcm': 'Bildirim servisi (Firebase)',
+  'admin.v2n.ops.q.summary': '{pending} kayıt sırada bekliyor, {dead} tanesi gönderilemedi; son 24 saatte {sent} kayıt gitti.',
+  'admin.v2n.ops.q.summaryNoSent': '{pending} kayıt sırada bekliyor, {dead} tanesi gönderilemedi.',
+  // ---- Mail kuyruğu ----
+  'admin.v2n.mq.summary': 'Bugün {limit} e-postanın {used} tanesini kullandınız (%{p}). {remaining} e-posta hakkınız kaldı; duyurular için {ann}.',
+  'admin.v2n.mq.showDetails': 'Ayrıntıları göster',
+  'admin.v2n.mq.history': 'Son günlerde gönderilen e-posta (günlük hak {limit})',
+  'admin.v2n.mq.filters': 'Süzgeçler ({n})',
+  'admin.v2n.mq.errMore': 'Tamamını göster',
+  'admin.v2n.mq.errLess': 'Kısalt',
+  'admin.v2n.mq.attemptsN': '{n}. deneme',
+
+  // ---- Mail ortak ----
+  'admin.v2n.mail.langMissing': '{l} yok',
+
+  // ---- Ayarlar ----
+  'admin.v2n.set.on': 'Açık',
+  'admin.v2n.set.off': 'Kapalı',
+  'admin.v2n.set.now.title': 'Şu an',
+  'admin.v2n.set.now.maintenance': 'Bakım modu',
+  'admin.v2n.set.now.banner': 'Duyuru bandı',
+  'admin.v2n.set.now.bannerOn': 'Açık: {text}',
+  'admin.v2n.set.now.update': 'Zorunlu güncelleme',
+  'admin.v2n.set.now.updForce': '{v} altı zorunlu',
+  'admin.v2n.set.now.updSuggest': 'yalnız öneri',
+  'admin.v2n.set.now.updOff': 'kapalı',
+  'admin.v2n.set.now.events': 'Etkinlikler yönetici onayı istiyor',
+  'admin.v2n.set.dirty': '{n} değişiklik henüz kaydedilmedi. Her alanın kendi Kaydet düğmesiyle kaydedin.',
+  'admin.v2n.set.revertAll': 'Hepsini geri al',
+
+  // ---- Denetim kaydı ----
+  'admin.v2n.audit.filters': 'Süzgeçler ({n})',
+  'admin.v2n.audit.summaryOk': 'Toplam {total} işlem kaydı var. Bu sayfadaki {n} işlemin hiçbiri reddedilmedi.',
+  'admin.v2n.audit.summaryDenied': 'Toplam {total} işlem kaydı var. Bu sayfadaki {n} işlemin {denied} tanesi reddedildi (yetkisiz deneme).',
+
+  // ---- Şifreleme ----
+  'admin.v2n.crypto.ok': 'Mesajlar korunuyor: tüm kayıtlar güncel şifreleme anahtarıyla saklanıyor. Yapmanız gereken bir şey yok.',
+  'admin.v2n.crypto.old': 'Mesajlar korunuyor. {old} kayıt hâlâ eski anahtarla saklanıyor; bunları güncel anahtara ({active}) geçirmek gerekir. Bunu sunucu yöneticisi yapar.',
+  'admin.v2n.crypto.devKey': 'Dikkat: mesajlar yalnızca denemeler için olan geliştirme anahtarıyla korunuyor. Gerçek kullanıma geçmeden önce gerçek anahtar tanımlanmalı.',
+  'admin.v2n.crypto.split': '{current} kayıt güncel anahtarla, {old} kayıt eski anahtarla korunuyor.',
 } as const;

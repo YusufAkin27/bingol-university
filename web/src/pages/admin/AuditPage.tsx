@@ -16,11 +16,13 @@ import {
   EmptyState,
   ErrorState,
   Icon,
+  Insight,
   PageHeader,
   Pagination,
+  ResponsiveTable,
   StatusPill,
-  Table,
   useGuardedMutation,
+  useIsNarrow,
   type Column,
 } from '../../components/ui';
 import { useI18n } from '../../i18n/I18nProvider';
@@ -54,6 +56,8 @@ export default function AuditPage() {
   const [resetKey, setResetKey] = useState(0);
   const [openRow, setOpenRow] = useState<AuditRowV2 | null>(null);
   const [csvOpen, setCsvOpen] = useState(false);
+  const narrow = useIsNarrow();
+  const [panelOpen, setPanelOpen] = useState<boolean | null>(null);
 
   // Aynı anda biten iki gecikmeli alan (metin + hedef kimliği) birbirini ezmesin: en güncel süzgeç ref'te tutulur.
   const latest = useRef(f);
@@ -88,11 +92,13 @@ export default function AuditPage() {
     {
       key: 'at',
       header: t('admin.audit.col.time'),
+      card: { priority: 3 },
       render: (r) => <span className={styles.nowrap}>{formatDateTime(r.at)}</span>,
     },
     {
       key: 'admin',
       header: t('admin.audit.col.admin'),
+      card: { priority: 2 },
       render: (r) =>
         r.adminId === null && r.adminEmail === 'basic-admin' ? (
           <span title={t('admin.wp02.audit.basicAdmin')}>
@@ -107,6 +113,7 @@ export default function AuditPage() {
     {
       key: 'action',
       header: t('admin.wp02.audit.col.action'),
+      card: { priority: 1 },
       render: (r) => {
         const a = describeAction(td, r.method, r.path);
         return (
@@ -168,6 +175,7 @@ export default function AuditPage() {
     {
       key: 'status',
       header: t('admin.audit.col.status'),
+      card: { priority: 2 },
       render: (r) =>
         isDenied(r.status) ? (
           <span className={styles.denied}>
@@ -209,6 +217,9 @@ export default function AuditPage() {
   ];
 
   const data = list.data;
+  const shown = data?.items ?? [];
+  const deniedCount = shown.filter((r) => isDenied(r.status)).length;
+  const activeFilters = [f.adminId !== undefined, f.method, f.status, f.q, f.from, f.to, f.targetType, f.targetId].filter(Boolean).length;
   return (
     <div>
       <PageHeader
@@ -217,21 +228,39 @@ export default function AuditPage() {
         actions={
           <>
             <Link to={paths.admin.auditMessageAccess}>{t('admin.wp02.audit.messageAccessLink')}</Link>
-            <Button variant="secondary" leftIcon={<Icon name="download" size={16} />} onClick={() => setCsvOpen(true)}>
+            <Button variant="secondary" leftIcon={<Icon name="download" size={16} />} onClick={() => setCsvOpen(true)} data-search-anchor="export-csv">
               {t('admin.wp02.audit.exportCsv')}
             </Button>
           </>
         }
       />
-      <AuditFilterBar
-        value={f}
-        onChange={update}
-        resetKey={resetKey}
-        onReset={() => {
-          setResetKey((k) => k + 1);
-          setSp(filtersToParams(EMPTY_AUDIT_FILTERS), { replace: true });
-        }}
-      />
+      {data && shown.length > 0 && (
+        <Insight
+          tone={deniedCount > 0 ? 'warn' : 'good'}
+          parts={t(deniedCount > 0 ? 'admin.v2n.audit.summaryDenied' : 'admin.v2n.audit.summaryOk', {
+            total: formatNumber(data.totalItems),
+            n: formatNumber(shown.length),
+            denied: formatNumber(deniedCount),
+          })}
+        />
+      )}
+      <details
+        className={styles.filterPanel}
+        open={panelOpen ?? !narrow}
+        onToggle={(e) => setPanelOpen((e.currentTarget as HTMLDetailsElement).open)}
+        data-search-anchor="filters"
+      >
+        <summary>{t('admin.v2n.audit.filters', { n: activeFilters })}</summary>
+        <AuditFilterBar
+          value={f}
+          onChange={update}
+          resetKey={resetKey}
+          onReset={() => {
+            setResetKey((k) => k + 1);
+            setSp(filtersToParams(EMPTY_AUDIT_FILTERS), { replace: true });
+          }}
+        />
+      </details>
 
       {list.isError && !data ? (
         <ErrorState
@@ -241,7 +270,7 @@ export default function AuditPage() {
         />
       ) : (
         <div className={styles.card}>
-          <Table
+          <ResponsiveTable
             caption={t('admin.audit.title')}
             columns={columns}
             rows={data?.items}

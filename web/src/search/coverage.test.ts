@@ -23,7 +23,7 @@ const dirname = (p: string): string => p.slice(0, Math.max(p.lastIndexOf('/'), p
 /** Sonraki dalgada sayfa ajanları doldurur ve bu liste BOŞALIR. Menü öğe kimlikleri. */
 const BEKLENEN_EKSIKLER: string[] = adminNav
   .flatMap((g) => g.items.map((i) => i.id))
-  .filter((id) => !['settings', 'appVersions', 'system'].includes(id));
+  .filter((id) => !['settings', 'appVersions', 'system', 'campaigns', 'mailTemplates', 'mailCampaigns', 'mailQueue', 'mailSuppressions', 'pushOps', 'sources', 'ops', 'crashes', 'dataRetention', 'roles', 'audit', 'messageAccess', 'crypto'].includes(id));
 
 function walk(dir: string, out: string[] = []): string[] {
   for (const name of readdirSync(dir)) {

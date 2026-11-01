@@ -28,6 +28,7 @@ import { useUrlTab } from '../../search/useUrlTab';
 import { adminErrorMessage, Callout } from './campaigns/shared';
 import { AppVersionsLink } from './appVersions/SettingsLink';
 import { EventSettings } from './settings/EventSettings';
+import { DirtyBar, NowStrip } from './settings/NowStrip';
 import { FacultyEditor } from './settings/FacultyEditor';
 import { SettingDiff } from './settings/SettingDiff';
 import {
@@ -150,7 +151,8 @@ export default function SettingsPage() {
   };
 
   // kaydedilmemiş değişiklik varken sayfadan çıkışı uyar
-  const anyDirty = Object.keys(edits).some((k) => isDirty({ server, edits }, k));
+  const dirtyKeys = Object.keys(edits).filter((k) => isDirty({ server, edits }, k));
+  const anyDirty = dirtyKeys.length > 0;
   const unsaved = useUnsavedGuard(anyDirty);
 
   const groupDirty = (g: SettingGroup) => GROUP_KEYS[g].some((k) => isDirty({ server, edits }, k));
@@ -190,6 +192,8 @@ export default function SettingsPage() {
           <Skeleton width="100%" height="5rem" />
         </div>
       ) : (
+        <>
+        <NowStrip server={server} onGo={setGroup} />
         <div className={styles.panel}>
           {group === 'general' && (
             <>
@@ -416,6 +420,8 @@ export default function SettingsPage() {
             </Card>
           )}
         </div>
+        <DirtyBar count={dirtyKeys.length} onRevertAll={() => dirtyKeys.forEach((k) => ctx.revert(k))} />
+        </>
       )}
 
       {unsaved.dialog}

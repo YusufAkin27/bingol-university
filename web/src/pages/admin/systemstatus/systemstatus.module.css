@@ -333,6 +333,9 @@
 .stackSeg[data-tone='danger'] {
   background: var(--danger);
 }
+.stackSeg[data-tone='warning'] {
+  background: var(--warning);
+}
 .stackSeg[data-tone='info'] {
   background: var(--info);
 }

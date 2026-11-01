@@ -6,6 +6,7 @@
 // Sayfa görünürken 30 sn'de bir otomatik yenilenir.
 import { useQuery, useQueryClient, type UseQueryResult } from '@tanstack/react-query';
 import { useState, type ReactNode } from 'react';
+import { SearchAnchor } from '../../search/anchor';
 import { useUrlTab } from '../../search/useUrlTab';
 import { Link } from 'react-router-dom';
 import { isApiError } from '../../api/client';
@@ -21,6 +22,7 @@ import {
   GuardedAction,
   Icon,
   Input,
+  Insight,
   PageHeader,
   Skeleton,
   StatusPill,
@@ -33,6 +35,7 @@ import { usePageTitle } from '../../lib/hooks';
 import { paths } from '../../paths';
 import { ADMIN_REASON_MIN } from '../../components/admin/guard/match';
 import { adminErrorMessage, Callout } from './campaigns/shared';
+import { formatMinutes } from './systemstatus/indicators';
 import styles from './moderation/moderation.module.css';
 
 const POLL_MS = 30_000;
@@ -111,6 +114,59 @@ function Stat({ label, value, warn }: { label: string; value: ReactNode; warn?: 
 }
 
 // ---------- Sağlık ----------
+/** Bayt sayısını "4,7 GB" gibi okunur yazar. */
+function formatBytes(i18n: I18n, n: number): string {
+  const units = ['B', 'KB', 'MB', 'GB', 'TB'];
+  let v = n;
+  let i = 0;
+  while (v >= 1024 && i < units.length - 1) {
+    v /= 1024;
+    i += 1;
+  }
+  return `${i18n.formatNumber(v, { maximumFractionDigits: i === 0 ? 0 : 1 })} ${units[i]}`;
+}
+
+/** Bileşen ayrıntısı: disk için cümle, hata için kısa metin; geri kalan ham anahtarlar "Teknik ayrıntı" altında. */
+function ComponentDetails({
+  i18n,
+  name,
+  details,
+}: {
+  i18n: I18n;
+  name: string;
+  details: Record<string, string | number | boolean | null> | undefined;
+}) {
+  if (!details) return null;
+  const { total, free, error } = details;
+  const sentence: string[] = [];
+  if (typeof total === 'number' && typeof free === 'number' && total > 0) {
+    const usedPct = Math.round(((total - free) / total) * 100);
+    sentence.push(
+      i18n.t('admin.v2n.ops.disk', {
+        free: formatBytes(i18n, free),
+        total: formatBytes(i18n, total),
+        percent: i18n.formatNumber(usedPct),
+      }),
+    );
+  }
+  if (typeof error === 'string' && error) sentence.push(i18n.t('admin.v2n.ops.compError', { error }));
+  const raw = Object.entries(details)
+    .map(([k, v]) => `${k}=${String(v)}`)
+    .join(' · ');
+  if (!raw) return null;
+  return (
+    <>
+      {sentence.map((x) => (
+        <p key={x}>{x}</p>
+      ))}
+      <details data-testid={`tech-${name}`}>
+        <summary className={styles.muted}>{i18n.t('admin.v2n.ops.techDetail')}</summary>
+        <p className={styles.mono}>{raw}</p>
+      </details>
+    </>
+  );
+}
+
 function HealthTab({ i18n }: { i18n: I18n }) {
   const { t, formatDateTime } = i18n;
   const health = useOpsQuery('health', opsApi.getHealth);
@@ -128,16 +184,10 @@ function HealthTab({ i18n }: { i18n: I18n }) {
                 {Object.entries(h.components ?? {}).map(([name, c]) => (
                   <li key={name} className={styles.item}>
                     <div className={styles.itemHead}>
-                      <strong className="ltr">{name}</strong>
+                      <strong>{i18n.td(`admin.v2n.ops.comp.${name}`, name)}</strong>
                       <Level i18n={i18n} status={c.status} />
                     </div>
-                    {c.details && (
-                      <p className={styles.mono}>
-                        {Object.entries(c.details)
-                          .map(([k, v]) => `${k}=${String(v)}`)
-                          .join(' · ')}
-                      </p>
-                    )}
+                    <ComponentDetails i18n={i18n} name={name} details={c.details} />
                   </li>
                 ))}
               </ul>
@@ -212,9 +262,28 @@ function RetryButton({
 }
 
 function ageText(i18n: I18n, s: number | null | undefined): string {
-  return s === null || s === undefined
-    ? i18n.t('admin.ops.q.none')
-    : i18n.t('admin.ops.q.oldestAge', { n: i18n.formatNumber(s) });
+  if (s === null || s === undefined) return i18n.t('admin.ops.q.none');
+  return s <= 0 ? i18n.t('admin.v2n.sys.noWaiting') : formatMinutes(i18n, Math.max(1, Math.round(s / 60)));
+}
+
+/** Sıra özeti: tek cümle (kaç bekliyor, kaç gönderilemedi, son 24 saatte kaç gitti). */
+function QueueSentence({
+  i18n,
+  pending,
+  dead,
+  sent,
+}: {
+  i18n: I18n;
+  pending: number;
+  dead: number;
+  sent?: number;
+}) {
+  const f = i18n.formatNumber;
+  const text =
+    sent === undefined
+      ? i18n.t('admin.v2n.ops.q.summaryNoSent', { pending: f(pending), dead: f(dead) })
+      : i18n.t('admin.v2n.ops.q.summary', { pending: f(pending), dead: f(dead), sent: f(sent) });
+  return <Insight tone={dead > 0 ? 'warn' : 'good'} parts={text} />;
 }
 
 function QueuesTab({ i18n }: { i18n: I18n }) {
@@ -228,6 +297,7 @@ function QueuesTab({ i18n }: { i18n: I18n }) {
         <Panel i18n={i18n} q={mail}>
           {(s) => (
             <>
+              <QueueSentence i18n={i18n} pending={s.pending} dead={s.dead} sent={s.sentLast24h} />
               <dl className={styles.statGrid}>
                 <Stat label={t('admin.ops.q.pending')} value={n(s.pending)} />
                 {s.sending !== undefined && <Stat label={t('admin.ops.q.sending')} value={n(s.sending)} />}
@@ -238,7 +308,6 @@ function QueuesTab({ i18n }: { i18n: I18n }) {
                 <Stat label={t('admin.ops.q.oldest')} value={ageText(i18n, s.oldestPendingAgeSeconds)} />
               </dl>
               {s.dead > 0 && <RetryButton i18n={i18n} run={opsApi.retryMailDead} invalidate="mail" count={s.dead} />}
-              <Updated i18n={i18n} at={mail.dataUpdatedAt} />
             </>
           )}
         </Panel>
@@ -252,6 +321,7 @@ function QueuesTab({ i18n }: { i18n: I18n }) {
                   {t('admin.ops.q.disabled')}
                 </Callout>
               )}
+              <QueueSentence i18n={i18n} pending={s.pending} dead={s.dead} sent={s.sentLast24h} />
               <dl className={styles.statGrid}>
                 <Stat label={t('admin.ops.q.pending')} value={n(s.pending)} />
                 <Stat label={t('admin.ops.q.sending')} value={n(s.sending)} />
@@ -261,7 +331,6 @@ function QueuesTab({ i18n }: { i18n: I18n }) {
                 <Stat label={t('admin.ops.q.oldest')} value={ageText(i18n, s.oldestPendingAgeSeconds)} />
               </dl>
               {s.dead > 0 && <RetryButton i18n={i18n} run={opsApi.retryPushDead} invalidate="push" count={s.dead} />}
-              <Updated i18n={i18n} at={push.dataUpdatedAt} />
             </>
           )}
         </Panel>
@@ -296,7 +365,7 @@ function QueuesTab({ i18n }: { i18n: I18n }) {
 
 // ---------- Yedekleme ----------
 function BackupTab({ i18n }: { i18n: I18n }) {
-  const { t, formatDateTime, formatNumber } = i18n;
+  const { t, formatDateTime } = i18n;
   const q = useOpsQuery('backup', opsApi.getBackupStatus);
   return (
     <div className={styles.stack}>
@@ -327,7 +396,7 @@ function BackupTab({ i18n }: { i18n: I18n }) {
                   {typeof b.sizeBytes === 'number' && (
                     <Stat
                       label={t('admin.ops.backup.size')}
-                      value={`${formatNumber(Math.round(b.sizeBytes / 1048576))} MB`}
+                      value={formatBytes(i18n, b.sizeBytes)}
                     />
                   )}
                 </dl>
@@ -486,14 +555,35 @@ export default function OpsPage() {
         }
       />
       <p className={styles.muted} role="status">
-        {t('admin.ops.auto')}
+        {t('admin.ops.auto')} · {t('admin.v2n.ops.systemLink')}{' '}
+        <Link to={paths.admin.system}>{t('admin.v2n.ops.systemLinkText')}</Link>
       </p>
       <Tabs tabs={tabs} value={tab} onChange={(id) => setTab(id as TabId)} label={t('admin.ops.tabs')}>
-        {tab === 'health' && <HealthTab i18n={i18n} />}
-        {tab === 'queues' && <QueuesTab i18n={i18n} />}
-        {tab === 'backup' && <BackupTab i18n={i18n} />}
-        {tab === 'release' && <ReleaseTab i18n={i18n} />}
-        {tab === 'links' && <LinksTab i18n={i18n} />}
+        {tab === 'health' && (
+          <SearchAnchor id="tab-health">
+            <HealthTab i18n={i18n} />
+          </SearchAnchor>
+        )}
+        {tab === 'queues' && (
+          <SearchAnchor id="tab-queues">
+            <QueuesTab i18n={i18n} />
+          </SearchAnchor>
+        )}
+        {tab === 'backup' && (
+          <SearchAnchor id="tab-backup">
+            <BackupTab i18n={i18n} />
+          </SearchAnchor>
+        )}
+        {tab === 'release' && (
+          <SearchAnchor id="tab-release">
+            <ReleaseTab i18n={i18n} />
+          </SearchAnchor>
+        )}
+        {tab === 'links' && (
+          <SearchAnchor id="tab-links">
+            <LinksTab i18n={i18n} />
+          </SearchAnchor>
+        )}
       </Tabs>
     </>
   );

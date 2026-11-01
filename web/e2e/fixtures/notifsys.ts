@@ -71,6 +71,28 @@ export async function stubNotifsys(page: Page, scenario: Scenario = 'full', call
       if (p === '/admin/me') return json(r, { id: 1, email: 'boss@bingol.edu.tr', displayName: 'Yonetici', role: 'ADMIN' });
       if (p === '/admin/rbac/me')
         return json(r, { userId: 1, email: 'boss@bingol.edu.tr', displayName: 'Yonetici', profile: 'FULL', pinned: true, permissions: PERMS });
+      if (p === '/admin/mail/quota')
+        return json(r, {
+          mailEnabled: true, enabled: true, limit: 500, reserve: 50, announcementCap: 100, used: 410, remaining: 90,
+          announcementRemaining: 40, percent: 82, level: 'WARN', resetHourUtc: 0, dayStart: '2026-11-01T00:00:00Z',
+          nextReset: '2026-11-02T00:00:00Z', publicCodeUsed: 33, publicCodeCapRegistration: 100, publicCodeCapReset: 100,
+          maxCodesPerEmailPerDay: 5, maxCodeRequestsPerIpPerDay: 20,
+          history: [{ date: '2026-10-31', used: 120 }, { date: '2026-10-30', used: 300 }, { date: '2026-10-29', used: 480 }, { date: '2026-10-28', used: 90 }, { date: '2026-10-27', used: 60 }, { date: '2026-10-26', used: 30 }],
+          historyNote: '', queue: { pending: 12, failed: 2, dead: 3, skipped: 0, oldestPendingAt: '2026-11-01T09:15:00Z' },
+        });
+      if (p === '/admin/mail/outbox')
+        return json(r, { items: [
+          { id: 1, status: 'DEAD', template: 'VERIFICATION_CODE', category: 'TRANSACTIONAL', toMasked: 'a***@bingol.edu.tr', lang: 'tr', attempts: 6, nextAttemptAt: null, createdAt: '2026-10-31T10:00:00Z', sentAt: null, lastError: LONG_ERR, retryable: true, cancellable: false },
+          { id: 2, status: 'PENDING', template: 'PASSWORD_RESET_CODE', category: 'TRANSACTIONAL', toMasked: 'b***@bingol.edu.tr', lang: 'tr', attempts: 0, nextAttemptAt: '2026-11-01T10:05:00Z', createdAt: '2026-11-01T10:00:00Z', sentAt: null, lastError: null, retryable: false, cancellable: true },
+        ], page: 0, size: 20, total: 2, totalPages: 1, totalItems: 2 });
+      if (p === '/admin/settings')
+        return json(r, { app_name: 'BU Kampus', maintenance_mode: 'false', banner_text_tr: 'Final haftası: kütüphane 24 saat açık', min_version_android: '2.0.3', latest_version_android: '2.0.5', events_require_approval: 'true' });
+      if (p === '/admin/audit')
+        return json(r, { items: [
+          { id: 1, adminId: 1, adminEmail: 'boss@bingol.edu.tr', method: 'PUT', path: '/api/admin/settings/maintenance_mode', status: 200, at: '2026-11-01T09:30:00Z', ip: '10.0.0.1', targetType: 'SETTING', targetId: 'maintenance_mode', reason: 'Planlı bakım', summary: 'Ayar değiştirildi', requestId: 'req-1' },
+          { id: 2, adminId: 1, adminEmail: 'mod@bingol.edu.tr', method: 'POST', path: '/api/admin/academic/exams/9/publish-with-a-very-long-segment-name', status: 403, at: '2026-11-01T09:31:00Z', ip: '10.0.0.2' },
+        ], page: 0, size: 20, total: 2, totalPages: 1, totalItems: 2 });
+      if (p === '/admin/rbac/admins') return json(r, []);
       if (p === '/admin/system/overview') {
         if (scenario === 'error') return json(r, { code: 'INTERNAL', message: 'x' }, 500);
         return json(r, scenario === 'empty' ? OVERVIEW_OK : OVERVIEW_FULL);

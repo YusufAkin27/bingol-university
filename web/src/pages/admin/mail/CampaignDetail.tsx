@@ -33,7 +33,7 @@ import { useI18n } from '../../../i18n/I18nProvider';
 import { usePageTitle } from '../../../lib/hooks';
 import { paths } from '../../../paths';
 import { Callout } from '../campaigns/shared';
-import { CampaignStatusPill, ProgressBar } from './MailParts';
+import { CampaignStatusPill, ProgressBar, progressToneOf } from './MailParts';
 import { isCampaignLive, mailErrorMessage } from './mailLogic';
 import styles from './mail.module.css';
 
@@ -161,7 +161,7 @@ export function CampaignDetail({ id }: { id: number }) {
           </div>
         )}
         <Card>
-          <ProgressBar percent={k.progressPercent} label={t('admin.mail.detail.progress')} />
+          <ProgressBar percent={k.progressPercent} label={t('admin.mail.detail.progress')} tone={progressToneOf(c.status)} />
           <div className={styles.stats} style={{ marginBlockStart: 'var(--space-4)' }}>
             {stat(t('admin.mail.detail.target'), k.target)}
             {stat(t('admin.mail.detail.pending'), k.pending)}

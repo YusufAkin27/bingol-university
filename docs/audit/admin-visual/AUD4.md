@@ -587,3 +587,38 @@ Sıra = (kullanıcı etkisi × bulgu ağırlığı) / iş büyüklüğü; her ad
 - Çekim betikleri: `…/scratchpad/aud4/run.mjs`, `run2.mjs`, `mock.mjs`, `analyze.mjs` (repoya konmadı).
 - Ham ölçüm dosyaları: `…/scratchpad/aud4/r_{full,empty,error}_{390,wide}.json`.
 - Donmuş kaynak kopyası: `C:\bu_qa\aud4_snap2\web` (HEAD e9f171b6).
+
+
+---
+
+# UYGULAMA DURUMU (NOTIF, dalga 2) — 2026-11-01
+
+Etiket NOTIF. Ekran görüntüleri (sonra): `C:\bu_qa\shots\adminvisual\after\NOTIF\` (Sistem durumu 390/1280 açık, Mail kuyruğu 390/1280, Ayarlar 390, Denetim 390). Fixture: `web/e2e/fixtures/notifsys.ts` (backendsiz /api taklidi; node ile de çalışır).
+
+| Madde | Durum | Not |
+|---|---|---|
+| 12.1 trafik ışığı kahramanı | KAPANDI | `systemstatus/StatusHero.tsx`: renk + simge + cümle ("Her şey yolunda" / "Dikkat: N şey" / "Sorun var: N şey"), backend `message` cümleleriyle sorun listesi, "Göster" düğmesi ilgili karta kaydırır |
+| 12.2 ham anahtar / birimsiz değer | KAPANDI | `mail.dailyQuota`, `storage`, `jobs.storage-alert` adları; `unitOf` yüzde; bilinmeyen anahtar "Diğer gösterge", `*.error` "Bu bölüm okunamadı" |
+| 12.3 nesne değerleri | KAPANDI | kampanya sayıları tek cümle + yığılmış çubuk; bildirim servisi cümlesi |
+| 12.4 jargon / açıklama | KAPANDI | her göstergeye tek cümle, sade adlar |
+| 12.5 25 kart -> gruplu katlanır | KAPANDI | 3 `<details>` grup; sorunlu grup açık, normaller tek satır |
+| 12.6 eşikli çubuk, doluluk halkası | KAPANDI | `Meter` + `ProgressRing` (disk, depolama, e-posta hakkı) |
+| 12.7 ölü kayıtlar kart | KAPANDI | `ResponsiveTable`, 2 satır hata kırpma + "Tamamını göster"; "Gönderilemeyen kayıtlar" |
+| 12.8 disk/depolama tekrarı | KISMEN | ikisi ayrı ad ve açıklamayla halka; "Veri saklama sayfasına git" bağlantısı eklendi |
+| 12.9 iskelet | KAPANDI | 4 parçalı iskelet; hata tek kutu |
+| 14.2/14.3/14.5 Operasyon | KAPANDI | disk cümlesi + "Teknik ayrıntı" katlanır, bileşen adları sade, saniye -> dk, "Gönderilemeyenleri tekrar dene", kuyruk özet cümlesi, Sistem durumu bağlantısı, tekrarlanan "Son güncelleme" kaldırıldı |
+| 14.1 Sistem + Operasyon birleştirme | KALDI | ürün kararı; yalnız bağlantı ve ortak terimler yapıldı |
+| 9.1-9.5 Mail kuyruğu | KAPANDI | süzgeçler katlanır ("Süzgeçler (N)"), kart görünümü, hata 2 satır kırpma, kota cümlesi + 6 günlük sütunlar + ayrıntılar katlanır, "Gönderilemedi (vazgeçildi)" tek terim |
+| 9.7 onay kutusu 44 px | ORTAK | `Checkbox` ortak dosyada (SHARED) |
+| 8.1 / G9 ilerleme çubuğu rengi | KAPANDI | `ProgressBar tone` (devam eden mavi, biten yeşil, duran sarı, hata kırmızı) |
+| 7.2 üstü çizili dil çipi | KAPANDI | "AR yok" metni |
+| 16.1/16.2 Veri saklama | KAPANDI | telefonda kart + Dışa aktar/Temizle görünür, "Yer kaplayan kayıtlar", "Yedek dosyası kayıtları" |
+| 16.3 en büyük tablolar çubuğu | KALDI | |
+| 20.1/20.2 Denetim | KAPANDI | süzgeçler katlanır, kartta "ne yapıldı" başlıkta, özet cümlesi (reddedilen sayısı) |
+| 18.1-18.3 Ayarlar | KISMEN | "Şu an" şeridi (bakım, bant, zorunlu güncelleme, etkinlik onayı), kaydedilmemiş değişiklik çubuğu + "Hepsini geri al", onay penceresinde "Kapalı -> Açık". Her alanın kendi Kaydet düğmesi KALDI (sunucu sözleşmesi aynı kaldı); boş sebep hatası `GuardedDialog` ortak dosyasında, raporlandı |
+| 22.1/22.3 Şifreleme | KISMEN | tek cümle durum + güncel/eski anahtar çubuğu, sade adlar, başlık "Şifreleme". 22.2 (mesaj okuma aracını ayırma) KALDI |
+| G12 sekme URL'de | SEARCH | useUrlTab ile yapıldı; Push altyapısı da `useUrlTab`'a geçirildi, sekme içerikleri `tab-*` anchor |
+| Arama dizini | KAPANDI | `search/index/notifsysPages.ts` (+ `notifications.ts`, `system.ts` içine eklendi); anchor'lar: kampanya, şablon, mail kampanyası, kuyruk, engel listesi, push sekmeleri, kaynaklar, operasyon sekmeleri, çökme, veri saklama, roller, denetim, mesaj erişimi, şifreleme, ayarlar "Şu an" |
+| 5-6, 10, 11, 13, 15, 17, 19, 21 (kart görünümü, jargon, görselleştirme) | KALDI | zaman yetmedi: Push kampanyaları, Yeni kampanya, Mail engel listesi, Push altyapısı, Kaynaklar, Çökme, Uygulama güncelleme, Roller, Mesaj erişimi için yalnız arama anchor'ları eklendi |
+
+Backend gerekir: sistem göstergeleri geçmişi (sparkline), kampanya durum sayaçları, denetim günlük sayıları.

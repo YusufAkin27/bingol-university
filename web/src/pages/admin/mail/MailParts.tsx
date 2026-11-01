@@ -45,7 +45,7 @@ export function LangBadges({ languages }: { languages: MailLang[] }) {
         return (
           <Badge key={l} tone={has ? 'primary' : 'neutral'}>
             <span className={has ? undefined : styles.langOff} title={t(has ? 'admin.mail.lang.has' : 'admin.mail.lang.missing')}>
-              {l.toUpperCase()}
+              {has ? l.toUpperCase() : t('admin.v2n.mail.langMissing', { l: l.toUpperCase() })}
               <span className="sr-only"> {t(has ? 'admin.mail.lang.has' : 'admin.mail.lang.missing')}</span>
             </span>
           </Badge>
@@ -55,10 +55,21 @@ export function LangBadges({ languages }: { languages: MailLang[] }) {
   );
 }
 
-export function ProgressBar({ percent, label }: { percent: number; label: string }) {
+export type ProgressTone = 'info' | 'success' | 'warning' | 'danger' | 'neutral';
+
+/** Kampanya durumundan çubuk rengi: devam eden mavi, biten yeşil, duran sarı, hata kırmızı (kırmızı hata demektir). */
+export function progressToneOf(status: string | undefined): ProgressTone {
+  if (status === 'DONE') return 'success';
+  if (status === 'FAILED') return 'danger';
+  if (status === 'PAUSED') return 'warning';
+  if (status === 'SENDING') return 'info';
+  return 'neutral';
+}
+
+export function ProgressBar({ percent, label, tone = 'info' }: { percent: number; label: string; tone?: ProgressTone }) {
   const p = Math.max(0, Math.min(100, Math.round(percent)));
   return (
-    <div className={styles.progress}>
+    <div className={styles.progress} data-tone={tone}>
       <div
         className={styles.progressTrack}
         role="progressbar"

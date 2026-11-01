@@ -127,13 +127,13 @@ export default function MailSuppressionPage() {
         actions={
           <>
             <CsvButton fetcher={() => exportSuppressionsCsv(filters)} filename="mail-bastirma.csv" />
-            <Button leftIcon={<Icon name="plus" size={16} />} onClick={() => setAdding(true)}>
+            <Button leftIcon={<Icon name="plus" size={16} />} onClick={() => setAdding(true)} data-search-anchor="add-address">
               {t('admin.p13.supp.add')}
             </Button>
           </>
         }
       />
-      <div className={styles.filters} role="search" aria-label={t('admin.p13.filters')}>
+      <div className={styles.filters} role="search" aria-label={t('admin.p13.filters')} data-search-anchor="filters">
         <div className={styles.searchField}>
           <SearchInput label={t('admin.p13.filter.q')} placeholder={t('admin.p13.supp.filter.qPlaceholder')} onSearch={(q) => set({ q })} />
           <span className={styles.muted}>{t('admin.p13.supp.filter.qHint')}</span>

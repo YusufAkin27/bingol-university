@@ -36,7 +36,8 @@ import {
   SearchInput,
   Select,
   StatusPill,
-  Table,
+  ResponsiveTable,
+  useIsNarrow,
   type Column,
 } from '../../components/ui';
 import { useI18n } from '../../i18n/I18nProvider';
@@ -56,6 +57,23 @@ interface Filters {
   from: string;
   to: string;
 }
+/** Uzun hata metni: 2 satır + "Tamamını göster". */
+function ErrorCell({ text }: { text: string | null }) {
+  const { t } = useI18n();
+  const [open, setOpen] = useState(false);
+  if (!text) return <span className={styles.muted}>—</span>;
+  const long = text.length > 60;
+  return (
+    <span className={styles.errorWrap}>
+      <span className={open || !long ? styles.errorFull : styles.error}>{text}</span>
+      {long && (
+        <button type="button" className={styles.linkBtn} aria-expanded={open} onClick={() => setOpen((v) => !v)}>
+          {t(open ? 'admin.v2n.mq.errLess' : 'admin.v2n.mq.errMore')}
+        </button>
+      )}
+    </span>
+  );
+}
 const EMPTY: Filters = { status: '', template: '', category: '', q: '', from: '', to: '' };
 
 export default function MailQueuePage() {
@@ -67,6 +85,9 @@ export default function MailQueuePage() {
   const [openId, setOpenId] = useState<number | null>(null);
   const [selected, setSelected] = useState<Set<string | number>>(new Set());
   const [bulkResult, setBulkResult] = useState<BulkResult | null>(null);
+  const narrow = useIsNarrow();
+  const [panelOpen, setPanelOpen] = useState<boolean | null>(null);
+  const activeFilters = [filters.status, filters.template, filters.category, filters.from, filters.to].filter(Boolean).length;
   const set = (patch: Partial<Filters>) => {
     setFilters((f) => ({ ...f, ...patch }));
     setPage(0);
@@ -84,10 +105,11 @@ export default function MailQueuePage() {
     (data?.items ?? []).filter((r) => selected.has(r.id) && (action === 'RETRY' ? r.retryable : r.cancellable)).map((r) => r.id);
 
   const columns: Column<OutboxRow>[] = [
-    { key: 'id', header: t('admin.p13.queue.col.id'), render: (r) => <span className="ltr">#{r.id}</span> },
+    { key: 'id', header: t('admin.p13.queue.col.id'), card: { priority: 3 }, render: (r) => <span className="ltr">#{r.id}</span> },
     {
       key: 'to',
       header: t('admin.p13.queue.col.to'),
+      card: { priority: 1 },
       render: (r) => (
         <span className={styles.cellStack}>
           <span className="ltr">{r.toMasked}</span>
@@ -98,6 +120,7 @@ export default function MailQueuePage() {
     {
       key: 'template',
       header: t('admin.p13.queue.col.template'),
+      card: { priority: 2 },
       render: (r) => (
         <span className={styles.cellStack}>
           <span>{t(`admin.p13.tpl.${r.template}`)}</span>
@@ -108,6 +131,7 @@ export default function MailQueuePage() {
     {
       key: 'status',
       header: t('admin.p13.queue.col.status'),
+      card: { priority: 2 },
       render: (r) => (
         <span className={styles.cellStack}>
           <StatusPill tone={statusTone(r.status)}>{t(`admin.p13.status.${r.status}`)}</StatusPill>
@@ -130,12 +154,13 @@ export default function MailQueuePage() {
     {
       key: 'error',
       header: t('admin.p13.queue.col.error'),
-      render: (r) => (r.lastError ? <span className={styles.error}>{r.lastError}</span> : <span className={styles.muted}>—</span>),
+      render: (r) => <ErrorCell text={r.lastError} />,
     },
     {
       key: 'actions',
       header: t('admin.p13.col.actions'),
       align: 'end',
+      card: { actions: true },
       render: (r) => (
         <Button size="sm" variant="secondary" onClick={() => setOpenId(r.id)}>
           {t('admin.p13.queue.detail.open')}
@@ -157,11 +182,19 @@ export default function MailQueuePage() {
       <PageHeader title={t('admin.p13.queue.title')} description={t('admin.p13.queue.desc')} />
       <MailQuotaCard />
 
-      <div className={styles.filters} role="search" aria-label={t('admin.p13.filters')}>
-        <div className={styles.searchField}>
+      <div role="search" aria-label={t('admin.p13.filters')}>
+        <div className={`${styles.searchField} ${styles.searchRow}`} data-search-anchor="filter-search">
           <SearchInput label={t('admin.p13.filter.q')} placeholder={t('admin.p13.queue.filter.qPlaceholder')} onSearch={(q) => set({ q })} />
           <span className={styles.muted}>{t('admin.p13.queue.filter.qHint')}</span>
         </div>
+        <details
+          className={styles.filterPanel}
+          open={panelOpen ?? !narrow}
+          onToggle={(e) => setPanelOpen((e.currentTarget as HTMLDetailsElement).open)}
+          data-search-anchor="filters"
+        >
+          <summary>{t('admin.v2n.mq.filters', { n: activeFilters })}</summary>
+          <div className={styles.filters}>
         <FormField label={t('admin.p13.filter.status')}>
           <Select value={filters.status} onChange={(e) => set({ status: e.target.value as OutboxStatus | '' })}>
             <option value="">{t('admin.p13.filter.all')}</option>
@@ -195,6 +228,8 @@ export default function MailQueuePage() {
         <FormField label={t('admin.p13.filter.to')}>
           <Input type="date" value={filters.to} min={filters.from || undefined} onChange={(e) => set({ to: e.target.value })} />
         </FormField>
+          </div>
+        </details>
       </div>
 
       {bulkResult && <BulkResultNotice res={bulkResult} onClose={() => setBulkResult(null)} />}
@@ -208,7 +243,7 @@ export default function MailQueuePage() {
         <ErrorState onRetry={() => void query.refetch()} description={adminError(i18n, query.error, ...ERR_SCOPES)} />
       ) : (
         <>
-          <Table
+          <ResponsiveTable
             caption={t('admin.p13.queue.list')}
             columns={columns}
             rows={data?.items}
@@ -368,7 +403,7 @@ function OutboxDrawer({ id, onClose }: { id: number; onClose: () => void }) {
               </>
             )}
             <dt>{t('admin.p13.queue.col.error')}</dt>
-            <dd className={styles.error}>{d.lastError ?? '—'}</dd>
+            <dd className={styles.errorFull}>{d.lastError ?? '—'}</dd>
           </dl>
 
           <h3>{t('admin.p13.queue.detail.timeline')}</h3>

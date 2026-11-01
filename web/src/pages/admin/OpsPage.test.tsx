@@ -62,8 +62,8 @@ describe('Operasyon paneli', () => {
   it('sağlık bileşenlerini ve bakımdaki kaynakları gösterir', async () => {
     setup();
     renderWithProviders(<OpsPage />);
-    expect(await screen.findByText('pushQueue')).toBeInTheDocument();
-    expect(screen.getByText('mailQueue')).toBeInTheDocument();
+    expect(await screen.findByText('Bildirim sırası')).toBeInTheDocument();
+    expect(screen.getByText('E-posta sırası')).toBeInTheDocument();
     expect(await screen.findByText('Bakımda')).toBeInTheDocument();
   });
 
@@ -74,11 +74,11 @@ describe('Operasyon paneli', () => {
     expect(await screen.findByText('120')).toBeInTheDocument();
     expect((await screen.findAllByText('Veri yok')).length).toBeGreaterThan(0);
     // Onaysız istek gitmez: önce etkilenen kayıt sayısını gösteren onay penceresi açılır
-    await userEvent.click(screen.getByRole('button', { name: 'Ölüleri yeniden dene' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Gönderilemeyenleri tekrar dene' }));
     const dialog = await screen.findByRole('dialog');
-    expect(dialog).toHaveTextContent('4 ölü kayıt etkilenecek');
+    expect(dialog).toHaveTextContent('4 gönderilemeyen kayıt etkilenecek');
     expect(calls.some((c) => c.url.endsWith('/admin/push/outbox/retry-dead'))).toBe(false);
-    await userEvent.click(within(dialog).getByRole('button', { name: 'Ölüleri yeniden dene' }));
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Gönderilemeyenleri tekrar dene' }));
     await waitFor(() =>
       expect(
         calls.some((c) => c.url.endsWith('/admin/push/outbox/retry-dead') && c.init.method === 'POST'),
@@ -107,9 +107,9 @@ describe('Operasyon paneli', () => {
     });
     renderWithProviders(<OpsPage />);
     await userEvent.click(await screen.findByRole('tab', { name: 'Kuyruklar' }));
-    await userEvent.click(await screen.findByRole('button', { name: 'Ölüleri yeniden dene' }));
+    await userEvent.click(await screen.findByRole('button', { name: 'Gönderilemeyenleri tekrar dene' }));
     const dialog = await screen.findByRole('dialog');
-    const confirm = within(dialog).getByRole('button', { name: 'Ölüleri yeniden dene' });
+    const confirm = within(dialog).getByRole('button', { name: 'Gönderilemeyenleri tekrar dene' });
     expect(confirm).toBeDisabled();
     await userEvent.type(within(dialog).getByRole('textbox'), '12');
     expect(confirm).toBeDisabled();
@@ -128,7 +128,7 @@ describe('Operasyon paneli', () => {
     renderWithProviders(<OpsPage />);
     await userEvent.click(await screen.findByRole('tab', { name: 'Kuyruklar' }));
     expect(await screen.findByText(/Video dönüştürme kapalı/)).toBeInTheDocument();
-    expect(screen.getByText('Medya dönüştürme')).toBeInTheDocument();
+    expect(screen.getByText(/^Medya dönüştürme/)).toBeInTheDocument();
   });
 
   it('yedekleme ucu yoksa zarifçe "Veri yok" gösterir', async () => {

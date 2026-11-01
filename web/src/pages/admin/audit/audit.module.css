@@ -134,3 +134,15 @@
   gap: var(--space-3);
   margin-block-start: var(--space-1);
 }
+
+/* NOTIF: katlanır süzgeç paneli */
+.filterPanel {
+  margin-block-end: var(--space-3);
+}
+.filterPanel > summary {
+  display: flex;
+  align-items: center;
+  min-block-size: 2.75rem;
+  font-weight: 700;
+  cursor: pointer;
+}

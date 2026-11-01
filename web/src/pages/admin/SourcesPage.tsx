@@ -92,7 +92,7 @@ export default function SourcesPage() {
   return (
     <>
       <PageHeader title={t('admin.p15.sources.title')} description={t('admin.p15.sources.intro')} />
-      <div className={styles.notice} role="note">
+      <div className={styles.notice} role="note" data-search-anchor="sources-rule">
         <p>{t('admin.p15.sources.rule')}</p>
         <p>{t('admin.p15.sources.limit', { n: perHour })}</p>
       </div>
@@ -102,7 +102,7 @@ export default function SourcesPage() {
         <Skeleton height="10rem" width="100%" />
       ) : (
         <div className={styles.cards}>
-          <Card className={styles.card} data-source="NEWS">
+          <Card className={styles.card} data-source="NEWS" data-search-anchor="source-news">
             {head(n, t('admin.p15.sources.news'))}
             <dl className={styles.facts}>
               <dt>{t('admin.p15.sources.lastSuccess')}</dt>
@@ -129,7 +129,7 @@ export default function SourcesPage() {
             </dl>
             <div className={styles.actionsRow}>{syncButton('NEWS')}</div>
           </Card>
-          <Card className={styles.card} data-source="MENU">
+          <Card className={styles.card} data-source="MENU" data-search-anchor="source-menu">
             {head(m, t('admin.p15.sources.menu'))}
             <dl className={styles.facts}>
               <dt>{t('admin.p15.sources.lastSuccess')}</dt>

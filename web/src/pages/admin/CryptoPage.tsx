@@ -5,12 +5,43 @@ import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { cryptoApi, qk, usersApi } from '../../api';
-import { Badge, Card, EmptyState, ErrorState, FormField, Input, PageHeader, Skeleton } from '../../components/ui';
+import { Badge, Card, EmptyState, ErrorState, FormField, Input, Insight, PageHeader, Skeleton } from '../../components/ui';
 import { useI18n } from '../../i18n/I18nProvider';
 import { useDebouncedValue, usePageTitle } from '../../lib/hooks';
 import { paths } from '../../paths';
+import type { CryptoStatus } from '../../api/types';
 import { adminErrorMessage, Callout } from './campaigns/shared';
 import styles from './moderation/moderation.module.css';
+import sysStyles from './systemstatus/systemstatus.module.css';
+
+/** Tek cümlelik durum + güncel/eski anahtar oranı (yığılmış çubuk). */
+function CryptoSummary({ i18n, data }: { i18n: ReturnType<typeof useI18n>; data: CryptoStatus }) {
+  const total = Object.values(data.dekCountsByMasterKey).reduce((s, n) => s + n, 0);
+  const current = data.dekCountsByMasterKey[data.activeKeyId] ?? 0;
+  const old = total - current;
+  const f = i18n.formatNumber;
+  const text = data.devKey
+    ? i18n.t('admin.v2n.crypto.devKey')
+    : old > 0
+      ? i18n.t('admin.v2n.crypto.old', { old: f(old), active: data.activeKeyId })
+      : i18n.t('admin.v2n.crypto.ok');
+  return (
+    <>
+      <Insight tone={data.devKey ? 'bad' : old > 0 ? 'warn' : 'good'} parts={text} />
+      {total > 0 && (
+        <>
+          <div className={sysStyles.stacked} aria-hidden="true">
+            {current > 0 && <span className={sysStyles.stackSeg} data-tone="success" style={{ flexGrow: current }} />}
+            {old > 0 && <span className={sysStyles.stackSeg} data-tone="warning" style={{ flexGrow: old }} />}
+          </div>
+          <p className={styles.muted}>
+            {i18n.t('admin.v2n.crypto.split', { current: f(current), old: f(old) })}
+          </p>
+        </>
+      )}
+    </>
+  );
+}
 
 export default function CryptoPage() {
   const i18n = useI18n();
@@ -31,13 +62,14 @@ export default function CryptoPage() {
     <>
       <PageHeader title={t('admin.crypto.title')} />
       <div className={styles.stack}>
-        <Card title={t('admin.crypto.status.title')}>
+        <Card title={t('admin.crypto.status.title')} data-search-anchor="crypto-status">
           {status.isError ? (
             <ErrorState compact description={adminErrorMessage(i18n, status.error)} onRetry={() => void status.refetch()} />
           ) : status.isLoading || !status.data ? (
             <Skeleton height="6rem" width="100%" />
           ) : (
             <>
+              <CryptoSummary i18n={i18n} data={status.data} />
               <dl className={styles.statGrid}>
                 <div>
                   <dt className={styles.muted}>{t('admin.crypto.status.active')}</dt>
@@ -77,7 +109,7 @@ export default function CryptoPage() {
           )}
         </Card>
 
-        <Card title={t('admin.crypto.open.title')}>
+        <Card title={t('admin.crypto.open.title')} data-search-anchor="crypto-open">
           <p className={styles.muted}>{t('admin.crypto.open.hint')}</p>
           {disabled && (
             <Callout tone="warning" role="status">

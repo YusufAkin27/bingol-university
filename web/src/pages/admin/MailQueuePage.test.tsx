@@ -113,7 +113,7 @@ describe('kuyruk listesi', () => {
     renderWithProviders(<MailQueuePage />);
     expect((await screen.findAllByText('a***@bingol.edu.tr')).length).toBe(2);
     const table = within(screen.getByRole('table'));
-    expect(table.getByText('Başarısız (ölü)')).toBeInTheDocument();
+    expect(table.getByText('Gönderilemedi (vazgeçildi)')).toBeInTheDocument();
     expect(table.getByText('Gönderildi')).toBeInTheDocument();
     expect(table.getAllByText('Hesap silindi').length).toBe(2);
     expect(screen.queryByText(/varsJson/)).toBeNull();
@@ -138,7 +138,7 @@ describe('ayrıntı çekmecesi', () => {
     const drawer = await screen.findByRole('dialog');
     expect(await within(drawer).findByText(/gizlilik gereği gösterilmez/)).toBeInTheDocument();
     expect(within(drawer).getByText('Kuyruğa alındı')).toBeInTheDocument();
-    expect(within(drawer).getByText('Denemeler tükendi (ölü)')).toBeInTheDocument();
+    expect(within(drawer).getByText('Denemeler tükendi, vazgeçildi')).toBeInTheDocument();
     await user.click(within(drawer).getByRole('button', { name: 'Yeniden dene' }));
     const dialog = await topDialog();
     const confirm = within(dialog).getByRole('button', { name: 'Yeniden dene' });

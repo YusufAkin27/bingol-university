@@ -2,7 +2,8 @@
 // API: GET /api/admin/push/fcm/status, POST .../fcm/validate; GET /api/admin/push/outbox (+ /{id}, POST /{id}/retry, /{id}/cancel,
 //      /bulk), GET /api/admin/push/outbox/stats; GET /api/admin/push/devices/summary; GET /api/admin/notifications/stats
 //      (api/adminPushOps.ts). Hiçbir uç push yükü, ham token ya da tam kullanıcı kimliği döndürmez.
-import { useSearchParams } from 'react-router-dom';
+import { SearchAnchor } from '../../search/anchor';
+import { useUrlTab } from '../../search/useUrlTab';
 import { PageHeader, Tabs } from '../../components/ui';
 import { useI18n } from '../../i18n/I18nProvider';
 import { usePageTitle } from '../../lib/hooks';
@@ -17,9 +18,7 @@ const TABS: TabId[] = ['fcm', 'queue', 'devices', 'stats'];
 export default function PushOpsPage() {
   const { t } = useI18n();
   usePageTitle(t('admin.p14.title'));
-  const [sp, setSp] = useSearchParams();
-  const raw = sp.get('tab');
-  const tab: TabId = TABS.includes(raw as TabId) ? (raw as TabId) : 'fcm';
+  const [tab, setTab] = useUrlTab<TabId>(TABS, 'fcm'); // ?tab=queue: arama derin bağlantısı sekmeyi açar
 
   return (
     <>
@@ -27,13 +26,29 @@ export default function PushOpsPage() {
       <Tabs
         label={t('admin.p14.tabs')}
         value={tab}
-        onChange={(id) => setSp({ tab: id }, { replace: true })}
+        onChange={(id) => setTab(id as TabId)}
         tabs={TABS.map((id) => ({ id, label: t(`admin.p14.tab.${id}`) }))}
       >
-        {tab === 'fcm' && <FcmTab />}
-        {tab === 'queue' && <QueueTab />}
-        {tab === 'devices' && <DevicesTab />}
-        {tab === 'stats' && <StatsTab />}
+        {tab === 'fcm' && (
+          <SearchAnchor id="tab-fcm">
+            <FcmTab />
+          </SearchAnchor>
+        )}
+        {tab === 'queue' && (
+          <SearchAnchor id="tab-queue">
+            <QueueTab />
+          </SearchAnchor>
+        )}
+        {tab === 'devices' && (
+          <SearchAnchor id="tab-devices">
+            <DevicesTab />
+          </SearchAnchor>
+        )}
+        {tab === 'stats' && (
+          <SearchAnchor id="tab-stats">
+            <StatsTab />
+          </SearchAnchor>
+        )}
       </Tabs>
     </>
   );

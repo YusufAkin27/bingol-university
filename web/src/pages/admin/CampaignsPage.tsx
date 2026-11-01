@@ -113,12 +113,12 @@ export default function CampaignsPage() {
         title={t('admin.campaigns.title')}
        
         actions={
-          <ButtonLink to={paths.admin.campaignNew} leftIcon={<Icon name="plus" size={18} />}>
+          <ButtonLink to={paths.admin.campaignNew} leftIcon={<Icon name="plus" size={18} />} data-search-anchor="new-campaign">
             {t('admin.campaigns.new')}
           </ButtonLink>
         }
       />
-      <div className={styles.statusTabs}>
+      <div className={styles.statusTabs} data-search-anchor="status-tabs">
         <Tabs
           label={t('admin.campaigns.filter.status')}
           value={status ?? 'ALL'}

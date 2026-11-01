@@ -8,8 +8,7 @@
   gap: var(--space-1);
 }
 .langOff {
-  opacity: 0.55;
-  text-decoration: line-through;
+  opacity: 0.7;
 }
 .progress {
   display: flex;
@@ -26,9 +25,21 @@
 }
 .progressFill {
   block-size: 100%;
-  background: var(--primary);
+  background: var(--info);
   border-radius: var(--radius-pill);
   transition: inline-size 0.3s var(--ease);
+}
+.progress[data-tone='success'] .progressFill {
+  background: var(--success);
+}
+.progress[data-tone='warning'] .progressFill {
+  background: var(--warning);
+}
+.progress[data-tone='danger'] .progressFill {
+  background: var(--danger);
+}
+.progress[data-tone='neutral'] .progressFill {
+  background: var(--text-faint);
 }
 .progressText {
   font-size: var(--text-xs);

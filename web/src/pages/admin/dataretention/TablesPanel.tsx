@@ -2,7 +2,7 @@
 // İşlem düğmeleri izne göre gizlenir (data.retention.export / .purge); asıl denetim sunucudadır.
 import { useQuery } from '@tanstack/react-query';
 import { getRetentionTables, retentionKeys, type RetentionTable } from '../../../api/dataRetention';
-import { Badge, Button, Card, Table, type Column } from '../../../components/ui';
+import { Badge, Button, Card, ResponsiveTable, type Column } from '../../../components/ui';
 import { useCan } from '../../../auth/permissions';
 import { useI18n } from '../../../i18n/I18nProvider';
 import { formatBytes } from './format';
@@ -24,6 +24,7 @@ export function TablesPanel({
     {
       key: 'name',
       header: t('admin.ds1.tables.col.table'),
+      card: { priority: 1 },
       render: (r) => (
         <div className={styles.tableCell}>
           <strong>{r.label}</strong>
@@ -39,13 +40,15 @@ export function TablesPanel({
     {
       key: 'rows',
       header: t('admin.ds1.tables.col.rows'),
+      card: { priority: 2 },
       align: 'end',
       render: (r) => (r.estimatedRows === null ? t('admin.ds1.tables.unknown') : formatNumber(r.estimatedRows)),
     },
-    { key: 'size', header: t('admin.ds1.tables.col.size'), align: 'end', render: (r) => formatBytes(r.sizeBytes) },
+    { key: 'size', header: t('admin.ds1.tables.col.size'), card: { priority: 2 }, align: 'end', render: (r) => formatBytes(r.sizeBytes) },
     {
       key: 'oldest',
       header: t('admin.ds1.tables.col.oldest'),
+      card: { priority: 3 },
       render: (r) => (r.oldestAt ? formatDate(r.oldestAt) : t('admin.ds1.tables.unknown')),
     },
     {
@@ -58,6 +61,7 @@ export function TablesPanel({
     columns.push({
       key: 'actions',
       header: t('admin.ds1.tables.col.actions'),
+      card: { actions: true },
       render: (r) => (
         <div className={styles.rowActions}>
           {canExport && (
@@ -76,7 +80,7 @@ export function TablesPanel({
   }
 
   return (
-    <Card title={t('admin.ds1.tables.title')}>
+    <Card title={t('admin.ds1.tables.title')} data-search-anchor="tables">
       <p className={styles.muted}>{t('admin.ds1.tables.intro')}</p>
       {!canExport && !canPurge && (
         <p className={styles.readOnly} data-testid="readonly-note">
@@ -84,7 +88,7 @@ export function TablesPanel({
         </p>
       )}
       <div className={styles.tableScroll}>
-        <Table<RetentionTable>
+        <ResponsiveTable<RetentionTable>
           columns={columns}
           rows={q.data}
           rowKey={(r) => r.name}
