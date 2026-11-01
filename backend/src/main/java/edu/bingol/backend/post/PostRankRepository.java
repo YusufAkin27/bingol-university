@@ -32,6 +32,14 @@ public interface PostRankRepository extends Repository<Post, Long> {
     @Query("SELECT l.id.postId, COUNT(l) FROM PostLike l WHERE l.id.postId IN :ids AND l.createdAt >= :since GROUP BY l.id.postId")
     List<Object[]> recentLikes(@Param("ids") Collection<Long> postIds, @Param("since") Instant since);
 
+    /**
+     * Verilen tarihten beri TÜM gönderilerin beğeni sayıları: [postId, count]. Puan turu başına bir kez okunur (parti
+     * başına {@code IN} + PK taraması yerine tek GROUP BY; pst1121_like_created indeksi). Sonuç, son 24 saatte
+     * beğenilen gönderi sayısıyla sınırlıdır.
+     */
+    @Query("SELECT l.id.postId, COUNT(l) FROM PostLike l WHERE l.createdAt >= :since GROUP BY l.id.postId")
+    List<Object[]> recentLikesSince(@Param("since") Instant since);
+
     /** Gönderi başına açık şikâyet: [targetId, count]. */
     @Query("SELECT r.targetId, COUNT(r) FROM Report r WHERE r.targetType = edu.bingol.backend.moderation.ReportTargetType.FEED_POST "
             + "AND r.status = edu.bingol.backend.moderation.Report.Status.OPEN AND r.targetId IN :ids GROUP BY r.targetId")
