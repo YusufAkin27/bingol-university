@@ -83,6 +83,11 @@ export interface CompareSentenceInput {
   /** Eylem: "girdi", "yazıldı". */
   verb: string;
   goodWhen?: GoodWhen;
+  /**
+   * Şimdiki değer HENÜZ BİTMEMİŞ bir döneme (bugün) aittir: "şu ana kadar" denir, önceki dönem "tüm gün" diye yazılır ve
+   * yüzde fark/iyi-kötü yargısı üretilmez (sabah 09:00'da bugünü dünün tamamıyla kıyaslayıp kırmızı yanmasın).
+   */
+  partial?: boolean;
 }
 
 /**
@@ -91,13 +96,21 @@ export interface CompareSentenceInput {
  */
 export function compareSentence(
   ctx: FormatCtx,
-  { nowLabel, current, thenLabel, previous, unit, verb, goodWhen = 'up' }: CompareSentenceInput,
+  { nowLabel, current, thenLabel, previous, unit, verb, goodWhen = 'up', partial = false }: CompareSentenceInput,
 ): { parts: InsightPart[]; tone: InsightTone } {
   const { t, formatNumber } = ctx;
-  const head: InsightPart[] = [`${nowLabel} `, { text: `${formatNumber(current)} ${unit}` }, ` ${verb}`];
+  const sofar = partial ? `${t('admin.kit.insight.sofar')} ` : '';
+  const head: InsightPart[] = [`${nowLabel} ${sofar}`, { text: `${formatNumber(current)} ${unit}` }, ` ${verb}`];
   if (previous === null || previous === undefined) return { parts: head, tone: 'info' };
   if (previous === 0) {
     return { parts: [...head, ', ', t('admin.kit.insight.noPrevious', { then: thenLabel })], tone: 'info' };
+  }
+  if (partial) {
+    // Gün bitmedi: yüzde fark ve iyi/kötü tonu yok, yalnız düz karşılaştırma
+    return {
+      parts: [...head, ', ', t('admin.kit.insight.wasWhole', { then: thenLabel, previous: formatNumber(previous) })],
+      tone: 'info',
+    };
   }
   const change = percentChange(current, previous) ?? 0;
   const rounded = Math.round(Math.abs(change));

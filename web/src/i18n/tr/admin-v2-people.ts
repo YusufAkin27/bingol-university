@@ -111,6 +111,7 @@ export default {
   'admin.v2p.dash.waitingSentence': '{n} iş sizi bekliyor: şikâyet, destek talebi ya da onay. Aşağıdaki listeden açabilirsiniz.',
   'admin.v2p.dash.waitingNone': 'Bekleyen iş yok. Her şey yolunda.',
   'admin.v2p.dash.fromYesterday': 'dünden',
+  'admin.v2p.dash.fromYesterdayWhole': 'dünün tamamına göre',
   'admin.v2p.dash.unit.task': 'iş',
   'admin.v2p.dash.unit.message': 'mesaj',
   'admin.v2p.dash.tile.entered': 'Bugün giren kişi',

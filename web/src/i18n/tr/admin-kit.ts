@@ -83,5 +83,7 @@ export default {
   'admin.kit.insight.less': '%{value} az',
   'admin.kit.insight.same': 'aynı',
   'admin.kit.insight.noPrevious': '{then} hiç yoktu',
+  'admin.kit.insight.sofar': 'şu ana kadar',
+  'admin.kit.insight.wasWhole': '{then} tüm gün {previous} idi',
   'admin.kit.insight.was': '{then} {previous} idi: ',
 } as const;

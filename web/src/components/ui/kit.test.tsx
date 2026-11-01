@@ -327,6 +327,28 @@ describe('Insight', () => {
     expect(r.tone).toBe('good');
   });
 
+  it('karşılaştırma: bugünün kısmi verisi "şu ana kadar" der, yüzde ve kırmızı/yeşil ton üretmez (sabah ve akşam)', () => {
+    const join = (parts: ReturnType<typeof compareSentence>['parts']) =>
+      parts.map((p) => (typeof p === 'string' ? p : p.text)).join('');
+    const base = { nowLabel: 'Bugün', thenLabel: 'dün', unit: 'kişi', verb: 'girdi', partial: true };
+    // sabah: 12 kişi, dün tüm gün 98 (tam karşılaştırmada %88 az, kırmızı olurdu)
+    const morning = compareSentence(ctx, { ...base, current: 12, previous: 98 });
+    expect(join(morning.parts)).toBe('Bugün şu ana kadar 12 kişi girdi, dün tüm gün 98 idi');
+    expect(morning.tone).toBe('info');
+    expect(join(morning.parts)).not.toContain('%');
+    expect(morning.parts.some((p) => typeof p !== 'string' && p.tone)).toBe(false);
+    // akşam: sayı dünü geçse de gün bitmediği için yargı yok
+    const evening = compareSentence(ctx, { ...base, current: 140, previous: 98 });
+    expect(join(evening.parts)).toBe('Bugün şu ana kadar 140 kişi girdi, dün tüm gün 98 idi');
+    expect(evening.tone).toBe('info');
+    expect(join(compareSentence(ctx, { ...base, current: 5, previous: null }).parts)).toBe(
+      'Bugün şu ana kadar 5 kişi girdi',
+    );
+    expect(join(compareSentence(ctx, { ...base, current: 5, previous: 0 }).parts)).toBe(
+      'Bugün şu ana kadar 5 kişi girdi, dün hiç yoktu',
+    );
+  });
+
   it('karşılaştırma: düşüş kötü, goodWhen=down ise iyi; önceki 0 ya da yok', () => {
     const base = { nowLabel: 'Bugün', thenLabel: 'dün', unit: 'rapor', verb: 'geldi' };
     const join = (parts: ReturnType<typeof compareSentence>['parts']) =>

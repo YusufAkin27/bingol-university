@@ -1,5 +1,5 @@
 import { screen, waitFor, within } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { jsonResponse, mockFetch } from '../../test/fetchMock';
 import { renderWithProviders } from '../../test/utils';
 import DashboardPage from './DashboardPage';
@@ -21,6 +21,34 @@ const overview = {
   bookmarks: 7,
   devices: { android: 8, ios: 2, web: 0 },
 };
+
+describe('DashboardPage: bugünün kısmi verisi', () => {
+  afterEach(() => vi.useRealTimers());
+
+  it('sabah 09:00 İstanbul: bugün dünün tamamıyla kıyaslanır, nötr tonda ve "şu ana kadar" diye yazılır', async () => {
+    // 2026-11-02 06:00 UTC = 09:00 İstanbul; dün = 2026-11-01
+    vi.useFakeTimers({ toFake: ['Date'], now: new Date('2026-11-02T06:00:00Z') });
+    mockFetch((url) => {
+      if (url.includes('/analytics/overview')) {
+        return jsonResponse(200, { ...overview, activeUsers: { dau: 12, wau: 200, mau: 500 } });
+      }
+      if (url.includes('/analytics/registrations')) return jsonResponse(200, { points: [] });
+      if (url.includes('/analytics/active-users')) {
+        return jsonResponse(200, { points: [{ date: '2026-11-01', dau: 98 }], wau: 0, mau: 0 });
+      }
+      return jsonResponse(200, { items: [], NEWS: {}, MENU: {}, points: [] });
+    });
+    renderWithProviders(<DashboardPage />, { route: '/admin' });
+    const hero = await screen.findByText(/şu ana kadar/);
+    const insight = hero.closest('p')!;
+    expect(insight).toHaveTextContent('Bugün şu ana kadar 12 kişi girdi, dün tüm gün 98 idi');
+    expect(insight).toHaveAttribute('data-tone', 'info');
+    expect(insight.textContent).not.toContain('%');
+    // sayı kutusundaki fark rozeti de kırmızı/yeşil yargı taşımaz
+    await waitFor(() => expect(document.querySelectorAll('[data-dir][data-good]').length).toBe(0));
+    expect(screen.getAllByText(/dünün tamamına göre/).length).toBeGreaterThan(0);
+  }, 30_000);
+});
 
 describe('DashboardPage', () => {
   it('bir kart hata verse de diğerleri çalışır ve dikkat paneli bağlantı verir', async () => {

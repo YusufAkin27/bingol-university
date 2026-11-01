@@ -21,7 +21,7 @@ import {
 } from '../../components/ui';
 import { useI18n } from '../../i18n/I18nProvider';
 import { errorMessage } from '../../lib/errors';
-import { isoDate, lastDays } from '../../lib/date';
+import { istanbulYesterday, lastDaysIstanbul } from '../../lib/date';
 import { usePageTitle } from '../../lib/hooks';
 import styles from './dashboard/dashboard.module.css';
 import { ModerationCounters } from './dashboard/ModerationCounters';
@@ -36,12 +36,9 @@ export default function DashboardPage() {
   const perms = usePermissions();
   const sentence = useCompareSentence();
 
-  const range = useMemo(() => lastDays(30), []);
-  const yesterday = useMemo(() => {
-    const d = new Date();
-    d.setDate(d.getDate() - 1);
-    return isoDate(d);
-  }, []);
+  const range = useMemo(() => lastDaysIstanbul(30), []);
+  // Dün, panelin iş günü olan Europe/Istanbul gününe göre (tarayıcı saat diliminden bağımsız)
+  const yesterday = useMemo(() => istanbulYesterday(), []);
   const overview = useQuery({ queryKey: qk.analytics.overview(), queryFn: getOverview });
   const registrations = useQuery({
     queryKey: qk.analytics.registrations(range),
@@ -79,6 +76,7 @@ export default function DashboardPage() {
           previous: yDau,
           unit: t('admin.v2p.unit.person'),
           verb: t('admin.v2p.dash.verbEntered'),
+          partial: true, // bugün henüz bitmedi: dünün tamamıyla kıyas nötr ve "şu ana kadar" diye yazılır
         })
     : null;
 
@@ -109,7 +107,8 @@ export default function DashboardPage() {
               unit={t('admin.v2p.unit.person')}
               icon="users"
               change={dau !== undefined ? percentChange(dau, yDau) : null}
-              compareLabel={t('admin.v2p.dash.fromYesterday')}
+              goodWhen="neutral"
+              compareLabel={t('admin.v2p.dash.fromYesterdayWhole')}
               spark={dauSpark}
               caption={t('admin.v2p.dash.tile.enteredHint')}
               loading={loading}
@@ -120,7 +119,8 @@ export default function DashboardPage() {
               unit={t('admin.v2p.unit.person')}
               icon="plus"
               change={newToday !== undefined ? percentChange(newToday, yNew) : null}
-              compareLabel={t('admin.v2p.dash.fromYesterday')}
+              goodWhen="neutral"
+              compareLabel={t('admin.v2p.dash.fromYesterdayWhole')}
               spark={regSpark}
               caption={t('admin.v2p.dash.tile.newHint')}
               loading={loading}
@@ -131,7 +131,8 @@ export default function DashboardPage() {
               unit={t('admin.v2p.unit.person')}
               icon="home"
               change={returning !== undefined ? percentChange(returning, yReturning) : null}
-              compareLabel={t('admin.v2p.dash.fromYesterday')}
+              goodWhen="neutral"
+              compareLabel={t('admin.v2p.dash.fromYesterdayWhole')}
               caption={t('admin.v2p.dash.tile.returningHint')}
               loading={loading}
             />
@@ -200,14 +201,57 @@ export default function DashboardPage() {
         <details className={styles.more} data-search-anchor="dash-details">
           <summary>{t('admin.v2p.dash.details')}</summary>
           <div className={styles.kpis}>
-            <StatTile label={t('admin.dashboard.kpi.suspended')} value={o.suspendedUsers} unit={t('admin.v2p.unit.person')} goodWhen="down" />
-            <StatTile label={t('admin.dashboard.kpi.new7')} value={o.newUsers.last7d} unit={t('admin.v2p.unit.person')} />
-            <StatTile label={t('admin.dashboard.kpi.new30')} value={o.newUsers.last30d} unit={t('admin.v2p.unit.person')} spark={regSpark} />
-            <StatTile label={t('admin.v2p.dash.kpi.week')} value={o.activeUsers.wau} unit={t('admin.v2p.unit.person')} />
-            <StatTile label={t('admin.v2p.dash.kpi.month')} value={o.activeUsers.mau} unit={t('admin.v2p.unit.person')} />
-            <StatTile label={t('admin.dashboard.kpi.messages')} value={o.messages.total} unit={t('admin.v2p.dash.unit.message')} caption={t('admin.dashboard.kpi.messages24', { n: formatNumber(o.messages.last24h) })} />
-            <StatTile label={t('admin.dashboard.kpi.communities')} value={o.communities.active} caption={o.communities.pending > 0 ? t('admin.dashboard.kpi.communitiesPending', { n: formatNumber(o.communities.pending) }) : undefined} />
-            <StatTile label={t('admin.dashboard.kpi.events')} value={o.events.upcoming} caption={o.events.pending > 0 ? t('admin.dashboard.kpi.eventsPending', { n: formatNumber(o.events.pending) }) : undefined} />
+            <StatTile
+              label={t('admin.dashboard.kpi.suspended')}
+              value={o.suspendedUsers}
+              unit={t('admin.v2p.unit.person')}
+              goodWhen="down"
+            />
+            <StatTile
+              label={t('admin.dashboard.kpi.new7')}
+              value={o.newUsers.last7d}
+              unit={t('admin.v2p.unit.person')}
+            />
+            <StatTile
+              label={t('admin.dashboard.kpi.new30')}
+              value={o.newUsers.last30d}
+              unit={t('admin.v2p.unit.person')}
+              spark={regSpark}
+            />
+            <StatTile
+              label={t('admin.v2p.dash.kpi.week')}
+              value={o.activeUsers.wau}
+              unit={t('admin.v2p.unit.person')}
+            />
+            <StatTile
+              label={t('admin.v2p.dash.kpi.month')}
+              value={o.activeUsers.mau}
+              unit={t('admin.v2p.unit.person')}
+            />
+            <StatTile
+              label={t('admin.dashboard.kpi.messages')}
+              value={o.messages.total}
+              unit={t('admin.v2p.dash.unit.message')}
+              caption={t('admin.dashboard.kpi.messages24', { n: formatNumber(o.messages.last24h) })}
+            />
+            <StatTile
+              label={t('admin.dashboard.kpi.communities')}
+              value={o.communities.active}
+              caption={
+                o.communities.pending > 0
+                  ? t('admin.dashboard.kpi.communitiesPending', { n: formatNumber(o.communities.pending) })
+                  : undefined
+              }
+            />
+            <StatTile
+              label={t('admin.dashboard.kpi.events')}
+              value={o.events.upcoming}
+              caption={
+                o.events.pending > 0
+                  ? t('admin.dashboard.kpi.eventsPending', { n: formatNumber(o.events.pending) })
+                  : undefined
+              }
+            />
             <StatTile label={t('admin.dashboard.kpi.bookmarks')} value={o.bookmarks} />
             <StatTile label={t('admin.dashboard.kpi.push')} value={o.pushCampaignsSent30d} />
             <StatTile label={t('admin.dashboard.kpi.openReports')} value={o.openReports} goodWhen="down" />

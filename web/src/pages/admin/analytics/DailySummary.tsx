@@ -7,21 +7,24 @@ import { getActiveUsers, getOverview, getRegistrations } from '../../../api/anal
 import { qk } from '../../../api/queryKeys';
 import { Insight, StatTile, percentChange, useCompareSentence } from '../../../components/ui';
 import { useI18n } from '../../../i18n/I18nProvider';
-import { isoDate, lastDays } from '../../../lib/date';
+import { istanbulYesterday, lastDaysIstanbul } from '../../../lib/date';
 import styles from './analytics.module.css';
 
 export function DailySummary() {
   const { t } = useI18n();
   const sentence = useCompareSentence();
-  const range = useMemo(() => lastDays(30), []);
-  const yesterday = useMemo(() => {
-    const d = new Date();
-    d.setDate(d.getDate() - 1);
-    return isoDate(d);
-  }, []);
+  const range = useMemo(() => lastDaysIstanbul(30), []);
+  // Dün, panelin iş günü olan Europe/Istanbul gününe göre (tarayıcı saat diliminden bağımsız)
+  const yesterday = useMemo(() => istanbulYesterday(), []);
   const overview = useQuery({ queryKey: qk.analytics.overview(), queryFn: getOverview });
-  const active = useQuery({ queryKey: qk.analytics.activeUsers(range), queryFn: () => getActiveUsers(range) });
-  const regs = useQuery({ queryKey: qk.analytics.registrations(range), queryFn: () => getRegistrations(range) });
+  const active = useQuery({
+    queryKey: qk.analytics.activeUsers(range),
+    queryFn: () => getActiveUsers(range),
+  });
+  const regs = useQuery({
+    queryKey: qk.analytics.registrations(range),
+    queryFn: () => getRegistrations(range),
+  });
 
   const o = overview.data;
   if (overview.isError || (!overview.isLoading && !o)) return null; // sayfadaki kartlar kendi hatasını gösterir
@@ -40,6 +43,7 @@ export function DailySummary() {
           previous: yDau,
           unit: t('admin.v2p.unit.person'),
           verb: t('admin.v2p.dash.verbEntered'),
+          partial: true, // bugün henüz bitmedi: dünün tamamıyla kıyas nötr ve "şu ana kadar" diye yazılır
         })
       : null;
 
@@ -53,7 +57,8 @@ export function DailySummary() {
           unit={t('admin.v2p.unit.person')}
           icon="users"
           change={dau !== undefined ? percentChange(dau, yDau) : null}
-          compareLabel={t('admin.v2p.dash.fromYesterday')}
+          goodWhen="neutral"
+          compareLabel={t('admin.v2p.dash.fromYesterdayWhole')}
           spark={active.data?.points.map((p) => p.dau)}
           loading={overview.isLoading}
         />
@@ -63,7 +68,8 @@ export function DailySummary() {
           unit={t('admin.v2p.unit.person')}
           icon="plus"
           change={fresh !== undefined ? percentChange(fresh, yNew) : null}
-          compareLabel={t('admin.v2p.dash.fromYesterday')}
+          goodWhen="neutral"
+          compareLabel={t('admin.v2p.dash.fromYesterdayWhole')}
           spark={regs.data?.points.map((p) => p.count)}
           loading={overview.isLoading}
         />
@@ -73,7 +79,8 @@ export function DailySummary() {
           unit={t('admin.v2p.unit.person')}
           icon="home"
           change={back !== undefined ? percentChange(back, yBack) : null}
-          compareLabel={t('admin.v2p.dash.fromYesterday')}
+          goodWhen="neutral"
+          compareLabel={t('admin.v2p.dash.fromYesterdayWhole')}
           caption={t('admin.v2p.dash.tile.returningHint')}
           loading={overview.isLoading}
         />
