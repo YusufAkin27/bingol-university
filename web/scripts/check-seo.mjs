@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 // Teknik SEO sağlık denetimi (dist/ üzerinde; bağımlılıksız). Genel ve katıdır: sayfa içi meta/JSON-LD (2. iş),
 // performans ipuçları (3. iş) ve tarayıcı yüzeyi (robots, sitemap, yönlendirme, 404) birlikte doğrulanır.
 //
@@ -450,7 +449,9 @@ export function runChecks({ dist, origin, adminPath = '', today = new Date().toI
     for (const url of byCanonical.keys()) {
       if (!inSitemap.has(url)) err(`sitemap ${url}`, "indekslenebilir sayfa sitemap'te yok", 'sitemap');
     }
-    if (lastmods.length >= 10 && new Set(lastmods).size === 1) {
+    // Tümü BUGÜNÜN tarihiyse site genelinde içerik bugün değişmiştir (ör. tüm başlıklar/açıklamalar yenilendi): meşru.
+    // Eski bir tarihte tek tip kalması ya da çözücünün yok sayılması şüphelidir.
+    if (lastmods.length >= 10 && new Set(lastmods).size === 1 && lastmods[0] !== today) {
       warn('sitemap.xml', `tüm lastmod değerleri aynı (${lastmods[0]}): sayfa başına gerçek değişim tarihi kullanılmalı (seo-lastmod.json)`, 'lastmod');
     }
   }

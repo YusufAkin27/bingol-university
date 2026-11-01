@@ -6,7 +6,7 @@ Dosya haritası:
 
 | Dosya | Görevi |
 |---|---|
-| `web/src/seo/crawl.ts` | `buildRobots`, `buildSitemap`, Türkçe-only kuralı (`isTurkishOnly`), içerik özeti (`contentHash`) |
+| `web/src/seo/crawl.ts` | `buildRobots`, `buildSitemap` (diller `routeMeta.localizedLangs`), içerik özeti (`contentHash`) |
 | `web/src/seo/prerender.ts` | sayfa başına head/noscript (2. iş); burada yalnız `routeSignature` ve sitemap/robots çağrıları |
 | `web/scripts/prerender.mjs` | derleme sonrası dosya yazımı, `seo-lastmod.json`, nginx üretilen parça, doğrulama |
 | `web/seo-lastmod.json` | sayfa başına gerçek `lastmod` kaydı (depoda tutulur) |
@@ -74,7 +74,7 @@ Gerekçe notları:
 ## 4. sitemap.xml
 
 ### 4.1 İçerik
-`buildSitemap` (crawl.ts). 67 URL (27 rota × 3 dil − hukuki belgelerin en/ar'ı = 14). Her `<url>`: mutlak https `loc`, `lastmod`, `xhtml:link` hreflang (`tr`, `en`, `ar`, `x-default`; kendine dahil, karşılıklı), `changefreq`/`priority` (Google yok sayar, zararsız). `noindex` sayfalar (404, destek izleme, haber ayrıntısı, yönetim) yoktur.
+`buildSitemap` (crawl.ts). 78 URL (27 rota × 3 dil − haberin en/ar'ı − açık rızanın ar'ı = 78; bölüm 4.3). Her `<url>`: mutlak https `loc`, `lastmod`, `xhtml:link` hreflang (`tr`, `en`, `ar`, `x-default`; kendine dahil, karşılıklı), `changefreq`/`priority` (Google yok sayar, zararsız). `noindex` sayfalar (404, destek izleme, haber ayrıntısı, yönetim) yoktur.
 
 ### 4.2 `lastmod`: sayfa başına gerçek tarih
 `web/seo-lastmod.json`: `"<rota>:<dil>" → { hash, lastmod }`. Her derlemede sayfanın **içerik imzası** (başlık, açıklama, JSON-LD, noscript metni; hash'li varlık adları ve modulepreload HARİÇ) hesaplanır:
@@ -84,11 +84,11 @@ Gerekçe notları:
 **Kural: sayfa metnini/başlığını/açıklamasını değiştiren commit'te `npm run build` çalıştırıp güncellenen `web/seo-lastmod.json`'u da commit edin.** (Docker derlemesi dosyayı depodan okur, konteyner içinde yazılanı atar; commit edilmezse o dağıtımda değişen sayfalar yine "bugün" alır ama sonraki dağıtımda tekrar bugün alır: tarih ilerler, yanlış-eski olmaz.) İlk tohum: sayfa bileşeninin son git değişiklik tarihi. `SEO_LASTMOD_WRITE=0` dosyayı yazmaz (salt okunur CI).
 `/menu` ve `/news` için asıl `lastmod`'u gece yenilemesi verinin değiştiği güne çeker (bölüm 6).
 
-### 4.3 Yanlış dilli sayfalar (Türkçe-only kuralı)
-Hukuki belgeler (`/privacy`, `/terms`, `/legal/kvkk`, `…/community-rules`, `…/explicit-consent`, `…/content-removal`, `…/retention`) arka uçtan gelir ve EN/AR çevirisi yoktur: en/ar sürümü Türkçe metin gösterir. Kural (tek kaynak `isTurkishOnly`, crawl.ts; aynısı `check-seo.mjs` `TR_ONLY_PATH_RE`, eşitliği `crawl.test.ts` doğrular):
-- **sitemap**: yalnız `tr` URL'si; alternatifler `tr` + `x-default` (en/ar adresi ve alternatifi YOK) — **uygulandı**.
-- **sayfa head'i** (2. iş): `tr` sayfasının hreflang'ı en/ar listelememeli; en/ar sürümü `noindex` ya da `canonical → /tr/...` olmalı. **Bu birleştirilene dek `check:seo` bunları `tr-only` UYARISI olarak gösterir** (şu an 42 `tr-only` uyarısı). Birleştirmeden sonra `npm run check:seo:strict` temiz olmalıdır; uyarılar kalırsa kural head'e uygulanmamıştır.
-- Haber ayrıntısı sitemap'e hiç girmez (noindex).
+### 4.3 Yanlış dilli sayfalar (kısmi yerelleşme kuralı)
+İçeriği yalnız bazı dillerde gerçekten yerelleştirilmiş sayfalar `RouteMeta.langs` ile işaretlenir (`src/seo/routeMeta.ts`, **tek kaynak**, `localizedLangs()`): şu an `/news` (yalnız `tr`: haberler kaynak sitede Türkçe) ve `/legal/explicit-consent` (`tr`+`en`: Arapçası yok). Hukuki belgelerin geri kalanının en/ar metni arka uçta VAR (V820), bu yüzden üç dilde indekslenir. Kural:
+- **sitemap** (`crawl.ts`) ve **sayfa head'i** (`headModel.ts`) aynı `localizedLangs`'i kullanır: yerelleşmiş dillerin URL'si + hreflang kümesi + `x-default` (listede `tr` varsa o). Yerelleşmemiş dil sürümü (ör. `/en/news`) `canonical → /tr/news`, hreflang yok, sitemap dışı.
+- `check-seo.mjs` aynı tabloyu `PARTIAL_LANG_PATHS` olarak aynalar (betik TypeScript'e bağımlı olmasın); `crawl.test.ts` iki tarafın eşitliğini doğrular. Yeni kısmi rota = `routeMeta.ts` `langs` + `PARTIAL_LANG_PATHS` satırı.
+- Haber ayrıntısı sitemap'e hiç girmez (`noindex, follow`).
 
 ## 5. HTTP başlıkları
 
@@ -170,9 +170,9 @@ nginx hazır (bölüm 1); **dosyaları uydurmadık** (parmak izi/Team ID kullan�
 | OG/Twitter | og:title/description/url/image/type/locale, twitter:card (H); og:url = canonical; og:image dist'te var (H) |
 | JSON-LD | geçerli JSON, `@context` schema.org, `http://` adres yok (H) |
 | bağlantılar | iç bağlantı önrender sayfası/dinamik rota/dosya olmalı (H); sondaki `/`, büyük harf (H); `http://` karışık içerik (H) |
-| sitemap | `loc` ↔ sayfa birebir: noindex/canonical dışı sayfa yok, indekslenebilir sayfa eksik yok (H); alternatifler = sayfa hreflang'ı (H); `lastmod` geçerli, gelecekte değil (H); hepsi aynı (U) |
+| sitemap | `loc` ↔ sayfa birebir: noindex/canonical dışı sayfa yok, indekslenebilir sayfa eksik yok (H); alternatifler = sayfa hreflang'ı (H); `lastmod` geçerli, gelecekte değil (H); hepsi aynı ve bugünden eski (U; bugünün tarihiyse site genelinde içerik bugün değişmiştir, meşru) |
 | robots | `Sitemap:` mutlak (H); `*`, Googlebot, Bingbot için sayfalar/`/assets`/`/fonts`/`/og.png` açık (H); api/files/admin/ws/support-track kapalı (H) |
-| Türkçe-only | en/ar sürümü indekslenebilir ya da tr sayfası en/ar listeliyor (U, `tr-only`) |
+| kısmi yerelleşme | yerelleşmemiş dil sürümü canonical → tr değil ya da hreflang taşıyor; hreflang dilleri `PARTIAL_LANG_PATHS` ile uyuşmuyor (H) |
 | diğer | 404.html noindex + h1 + canonical yok (H); security.txt yer tutucu; webmanifest simgeleri; yönetim nginx parçası üretilmiş (H) |
 
 `--live <köken>`: yayındaki siteye ~25 `GET` (150 ms aralıkla) ile davranış denetimi: yönlendirmeler (`/tr/`, `/TR`, `/index.html`, `//`), 404'ler (`/zzz-yok`, `/.env`), `X-Robots-Tag` (admin/api/haber ayrıntısı/destek izleme), robots/sitemap tipi, www → apex, sitemap'ten 5 örnek adresin 200 + canonical eşleşmesi. Dağıtımdan sonra çalıştırın.
@@ -180,7 +180,7 @@ nginx hazır (bölüm 1); **dosyaları uydurmadık** (parmak izi/Team ID kullan�
 Testler: `src/seo/crawl.test.ts` (robots/sitemap/nginx kuralları ve check-seo'nun sentetik bozuk girdileri yakaladığı), `notFound.test.ts`, `seo.test.ts`.
 
 ### Dağıtım kapısı önerisi (deploy.sh DEĞİŞTİRİLMEDİ)
-1. **CI** (web işi): `npm run lint && npm run typecheck && npx vitest run && npm run build && npm run check:bundle && npm run check:seo:strict`. Strict, 2. işin Türkçe-only head kuralı birleştirildikten sonra açılır; o zamana dek `npm run check:seo`.
+1. **CI** (web işi): `npm run lint && npm run typecheck && npx vitest run && npm run build && npm run check:bundle && npm run check:seo:strict`. Strict birleştirme sonrası 0 hata, 0 uyarı verir; CI'da bu kapı açıktır.
 2. **deploy.sh**, `docker compose … up` sonrası (isteğe bağlı satır): `(cd web && node scripts/check-seo.mjs --live https://bukampus.com.tr) || echo "UYARI: SEO canlı denetimi başarısız"`; başarısızlık dağıtımı geri almasın (yalnız uyarı), çünkü ağ kaynaklı yanlış alarm mümkündür.
 3. `build` sonrası `git diff --exit-code web/seo-lastmod.json` (CI): içerik değişti ama `seo-lastmod.json` commit edilmediyse uyarı.
 
@@ -188,12 +188,12 @@ Testler: `src/seo/crawl.test.ts` (robots/sitemap/nginx kuralları ve check-seo'n
 
 1. Dağıtın; ardından `node web/scripts/check-seo.mjs --live https://bukampus.com.tr` (GET, kibar) ve elle: `curl -sI https://bukampus.com.tr/zzz` → **404**, `…/tr/` → **301 /tr**, `…/admin/login` → `x-robots-tag: noindex…`.
 2. **Gece yenilemesi**: bölüm 6'daki `docker run` komutunu bir kez çalıştırın, `curl -s https://bukampus.com.tr/tr/menu | grep "Bugünün yemek listesi"` ile görün; sonra systemd timer (00:15) ya da cron ekleyin. İlk dağıtımda `bu_webdyn` volume'unun oluştuğunu doğrulayın (`docker volume ls | grep webdyn`).
-3. **Search Console**: *Alan* mülkü `bukampus.com.tr` (DNS TXT; bkz. SEO.md bölüm 8) → *Site haritaları* → `https://bukampus.com.tr/sitemap.xml` gönderin (**67 URL** beklenir; eski gönderim 81 idi: "keşfedilen URL" düşüşü beklenen ve doğrudur). Bing Webmaster: *Search Console'dan içe aktar*.
+3. **Search Console**: *Alan* mülkü `bukampus.com.tr` (DNS TXT; bkz. SEO.md bölüm 8) → *Site haritaları* → `https://bukampus.com.tr/sitemap.xml` gönderin (**78 URL** beklenir; eski gönderim 81 idi: "keşfedilen URL" düşüşü beklenen ve doğrudur). Bing Webmaster: *Search Console'dan içe aktar*.
 4. Search Console *URL denetimi*: `/tr/privacy/`, `/TR`, `/tr/zzz` → artık 301/301/404 (önbelleğe eski sonuç kalmışsa "yeniden dizine ekle" isteyin). *Sayfalar* raporunda "Soft 404" ve "Kopya, kullanıcı kanonik seçmedi" sayılarının 1-2 hafta içinde düştüğünü izleyin.
 5. App Links için bölüm 7'deki parmak izi/Team ID'yi sağlayın (yoksa nginx 404 döner; zararsız).
 6. Kararlar: (a) eğitim botlarının engeli (bölüm 2) uygun mu; (b) HSTS `preload` (bölüm 5); (c) haber ayrıntısının ileride dizine alınması (nginx `X-Robots-Tag: noindex, follow` satırı ve sayfa meta'sı birlikte değişmeli).
 7. Sayfa metni değiştiren her commit'te `web/seo-lastmod.json` güncellemesini commit edin (bölüm 4.2).
-8. 2. işin Türkçe-only head kuralı birleşince `npm run check:seo:strict` çalıştırın; `tr-only` uyarısı kalmamalı.
+8. `npm run check:seo:strict` temiz olmalı (0 hata, 0 uyarı); kısmi yerelleşme kuralı sayfa head'ine uygulanmıştır (bölüm 4.3).
 
 ## 10. Bilinen sınırlar
 
