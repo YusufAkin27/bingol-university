@@ -7,6 +7,7 @@ import { usePageTitle } from '../../lib/hooks';
 import { gt } from './unitnews/dict';
 import { AnnouncementsSection } from './unitnews/AnnouncementsSection';
 import { SourceHealth } from './unitnews/SourceHealth';
+import { UnitDistribution } from './unitnews/UnitDistribution';
 import { SourcesSection, useUnitSources } from './unitnews/SourcesSection';
 import styles from './unitnews/unitNews.module.css';
 
@@ -21,6 +22,7 @@ export default function UnitNewsAdminPage() {
       <PageHeader title={t('admin.unitNews.title')} description={t('admin.unitNews.subtitle')} />
       <div className={styles.stack}>
         {sources.data && <SourceHealth sources={sources.data} />}
+        {sources.data && <UnitDistribution sources={sources.data} />}
         <SourcesSection query={sources} />
         <AnnouncementsSection sources={sources.data} />
       </div>

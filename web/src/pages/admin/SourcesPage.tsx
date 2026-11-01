@@ -2,6 +2,7 @@
 // API: GET /api/admin/sources/status, POST /api/admin/sources/sync {source, reason} (api/adminBulk.ts).
 // Scraper kuralı: kaynak siteye yalnız zamanlayıcı istek atar; elle senkron bir istisnadır ve saatte 3 ile sınırlıdır.
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { adminUnitNewsApi, qk } from '../../api';
 import {
   getSourcesStatus,
   sourcesKeys,
@@ -25,6 +26,9 @@ import {
 import { useI18n } from '../../i18n/I18nProvider';
 import { usePageTitle } from '../../lib/hooks';
 import { bulkError } from './bulk/BulkParts';
+import { SourceHealthGrid } from './unitnews/SourceHealthGrid';
+import { coreTilesOf, type GridTile } from './unitnews/sourceGrid';
+import { gt } from './icerik/dict';
 import styles from './bulk/bulk.module.css';
 
 type Status = NewsSourceStatus | MenuSourceStatus;
@@ -38,6 +42,20 @@ export default function SourcesPage() {
   const kf = useKitFormat();
   const q = useQuery({ queryKey: sourcesKeys.status, queryFn: getSourcesStatus, refetchInterval: 60_000 });
   const perHour = q.data?.syncPerHour ?? 3;
+  // Birim siteleri ayrı sorgu: o başarısız olsa da ana kaynaklar görünür (paralel yüklenir)
+  const units = useQuery({
+    queryKey: qk.unitNews.sources(),
+    queryFn: adminUnitNewsApi.listSources,
+    staleTime: 30_000,
+    refetchInterval: 60_000,
+  });
+  const gtx = gt(i18n);
+  const coreTiles: GridTile[] = q.data
+    ? coreTilesOf(q.data.news, q.data.menu, {
+        news: gtx('admin.icerik.src.grid.coreNews'),
+        menu: gtx('admin.icerik.src.grid.coreMenu'),
+      })
+    : [];
 
   const when = (v: string | null) => (v ? formatDateTime(v) : t('admin.p15.sources.never'));
 
@@ -113,6 +131,7 @@ export default function SourcesPage() {
           tone={m.maintenance || m.upcomingDays < 7 ? 'warn' : 'good'}
           parts={t('admin.v2n.src.menu', { total: formatNumber(m.totalDays), upcoming: formatNumber(m.upcomingDays) })}
         />
+        <SourceHealthGrid core={coreTiles} units={units} />
         <div className={styles.cards}>
           <Card className={styles.card} data-source="NEWS" data-search-anchor="source-news">
             {head(n, t('admin.p15.sources.news'))}
