@@ -405,3 +405,5 @@ function QueryRow({
     </div>
   );
 }
+
+export default QuickNav;

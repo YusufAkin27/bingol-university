@@ -6,6 +6,7 @@
 // Sayfa görünürken 30 sn'de bir otomatik yenilenir.
 import { useQuery, useQueryClient, type UseQueryResult } from '@tanstack/react-query';
 import { useState, type ReactNode } from 'react';
+import { useUrlTab } from '../../search/useUrlTab';
 import { Link } from 'react-router-dom';
 import { isApiError } from '../../api/client';
 import { opsApi, qk } from '../../api';
@@ -466,7 +467,7 @@ export default function OpsPage() {
   const { t } = i18n;
   usePageTitle(t('admin.ops.title'));
   const qc = useQueryClient();
-  const [tab, setTab] = useState<TabId>('health');
+  const [tab, setTab] = useUrlTab<TabId>(TABS, 'health'); // ?tab=queues: arama derin bağlantısı sekmeyi açar
   const tabs = TABS.map((id) => ({ id, label: t(`admin.ops.tab.${id}` as 'admin.ops.tab.health') }));
 
   return (

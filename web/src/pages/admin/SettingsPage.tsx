@@ -24,6 +24,7 @@ import { GuardedDialog } from '../../components/admin/GuardedDialog';
 import { useI18n } from '../../i18n/I18nProvider';
 import { usePageTitle } from '../../lib/hooks';
 import { useSearchReveal } from '../../search/anchor';
+import { useUrlTab } from '../../search/useUrlTab';
 import { adminErrorMessage, Callout } from './campaigns/shared';
 import { AppVersionsLink } from './appVersions/SettingsLink';
 import { EventSettings } from './settings/EventSettings';
@@ -78,7 +79,8 @@ export default function SettingsPage() {
   const { t } = i18n;
   usePageTitle(t('admin.settings.title'));
   const qc = useQueryClient();
-  const [group, setGroup] = useState<SettingGroup>('general');
+  // Sekme adreste tutulur (?tab=maintenance): arama derin bağlantısı ve yenileme aynı sekmeyi açar
+  const [group, setGroup] = useUrlTab<SettingGroup>(GROUPS, 'general');
   const [edits, setEdits] = useState<Record<string, string>>({});
   const [errors, setErrors] = useState<Record<string, string>>({});
   // Kritik anahtarlar için onay penceresi: kaydedilecek anahtar + değer

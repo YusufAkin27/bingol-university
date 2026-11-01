@@ -286,7 +286,7 @@ button.groupBtn:hover {
 .sidebar[data-mode='rail'] .collapseBtn {
   justify-content: center;
   padding: 0;
-  min-height: 40px;
+  min-height: 44px;
 }
 .sidebar[data-mode='rail'] .nav {
   padding-inline: var(--space-2);
@@ -344,8 +344,14 @@ button.groupBtn:hover {
   }
   .item,
   .collapseBtn,
-  .groupBtn {
+  .groupBtn,
+  .closeBtn {
     min-height: 44px;
+  }
+  .filterClear {
+    width: 44px;
+    height: 44px;
+    inset-inline-end: 0;
   }
   .filterInput {
     min-height: 44px;
@@ -426,7 +432,7 @@ button.groupBtn:hover {
   display: inline-flex;
   align-items: center;
   gap: var(--space-2);
-  min-height: 40px;
+  min-height: 44px;
   min-width: 220px;
   margin-inline-end: var(--space-2);
   padding: 0 var(--space-3);
@@ -464,6 +470,51 @@ button.groupBtn:hover {
   border-block-end: 1px solid var(--warning);
   font-size: var(--text-sm);
 }
+.maintenance svg {
+  flex: none;
+}
+.maintenanceMsg {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: start;
+  cursor: default;
+}
+
+/* depolama bandı sarmalayıcısı: WARN iken gizle düğmesi (oturum boyunca), CRIT her zaman görünür */
+.dismissable {
+  display: flex;
+  align-items: stretch;
+}
+.dismissable > :first-child {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.dismissBtn {
+  display: none;
+  flex: none;
+  place-items: center;
+  inline-size: 44px;
+  border: 0;
+  border-block-end: 1px solid var(--border);
+  background: color-mix(in srgb, var(--warning) 14%, var(--surface));
+  color: var(--text);
+  cursor: pointer;
+}
+.dismissBtn:hover {
+  background: color-mix(in srgb, var(--warning) 26%, var(--surface));
+}
+.dismissable:not([data-dismissed]):has([data-testid='storage-banner'][data-status='WARN']) .dismissBtn {
+  display: grid;
+}
+.dismissable[data-dismissed='WARN'] [data-testid='storage-banner'][data-status='WARN'] {
+  display: none;
+}
+
 .main {
   flex: 1;
   min-width: 0;
@@ -503,16 +554,36 @@ button.groupBtn:hover {
     clip: rect(0 0 0 0);
   }
   .searchBtn {
-    min-width: 40px;
+    min-width: 44px;
     justify-content: center;
     margin-inline-end: 0;
   }
-  /* yalnız bulunulan sayfa görünür */
+  /* yalnız bulunulan sayfa görünür; uzun başlık ("Doğrulanmamış kullanıcılar") 2 satıra sarılır, kesilmez */
   .crumbs li:not([data-last]) {
     display: none;
   }
   .crumbs li[data-last]::before {
     content: none;
+  }
+  .crumbs ol {
+    white-space: normal;
+  }
+  .crumbs li[data-last] {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    overflow: hidden;
+    line-height: 1.25;
+    overflow-wrap: anywhere;
+    font-size: var(--text-sm);
+  }
+  .topbar {
+    gap: var(--space-2);
+    padding-inline: max(var(--space-3), env(safe-area-inset-left, 0px)) max(var(--space-3), env(safe-area-inset-right, 0px));
+  }
+  .tools {
+    gap: 0;
   }
 }
 
@@ -521,5 +592,53 @@ button.groupBtn:hover {
   .searchBtn {
     min-height: 44px;
     min-width: 44px;
+  }
+}
+
+/* ---- telefon: kalıcı bantlar tek satır (toplam ~%22 yerine ~%10 ekran) ---- */
+@media (max-width: 719px) {
+  .maintenance {
+    flex-wrap: nowrap;
+    gap: var(--space-2);
+    padding: 0 var(--space-3);
+    min-height: 44px;
+    font-size: var(--text-xs);
+  }
+  .maintenanceMsg {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 1;
+    line-clamp: 1;
+    overflow: hidden;
+    padding-block: var(--space-2);
+    cursor: pointer;
+  }
+  .maintenanceMsg[data-open='true'] {
+    -webkit-line-clamp: unset;
+    line-clamp: unset;
+    overflow: visible;
+  }
+  .dismissable [data-testid='storage-banner'] {
+    flex-wrap: nowrap;
+    gap: var(--space-2);
+    min-height: 44px;
+    padding: 0 var(--space-3);
+    font-size: var(--text-xs);
+  }
+  .dismissable [data-testid='storage-banner'] > svg {
+    flex: none;
+  }
+  .dismissable [data-testid='storage-banner'] > span {
+    flex: 1 1 0;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .dismissable [data-testid='storage-banner'] > a {
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
   }
 }

@@ -60,6 +60,17 @@ useSearchReveal((anchor) => {
 });
 ```
 
+**Sekme durumunu URL'de tutun**: `useState` yerine `useUrlTab` (`search/useUrlTab.ts`) kullanın; sekme `?tab=...` olur
+(yenileme/paylaşım aynı sekmeyi açar, `#hash` korunur) ve açıcı kendiliğinden bağlanır:
+
+```tsx
+const [tab, setTab] = useUrlTab<TabId>(TABS, 'health');   // varsayılan sekme adrese yazılmaz
+// sekme içeriğine  <SearchAnchor id="tab-queues">  koyarsanız  #tab-queues  o sekmeyi açar
+// (kural: `<param>-<sekme değeri>`); tek tek alanlar için useSearchReveal ile anchor → sekme eşlemesi yazın.
+```
+
+Uygulananlar: Ayarlar (`?tab=maintenance`), Operasyon, Sistem durumu ölü kayıtlar (`?tab=push`), Veri saklama geçmişi (`?tab=purges`).
+
 `<details>` içindeki hedef otomatik açılır. Veri yüklenince çizilen öğeler (Skeleton sonrası) beklenir; bulunamazsa kullanıcıya
 "Bu alan şu an bu sayfada görünmüyor." bildirimi çıkar (hata değildir: örn. veri yok, izin yok).
 
@@ -101,4 +112,5 @@ Sıralama: başlık > anahtar kelime > açıklama > kırıntı; tam başlık/ana
 | `engine.ts`, `fold.ts` | Motor: Türkçe katlama, önek/alt dizgi/yazım hatası, puan, gruplama, vurgulama, öneri |
 | `useAdminSearch.ts` | React kancası (RBAC filtresi, dizin önbelleği); QuickNav ve menü süzgeci ortak kullanır |
 | `anchor.tsx`, `search.module.css` | `SearchAnchor`, `useSearchAnchorFocus`, `useSearchReveal`, vurgu stili |
+| `useUrlTab.ts` | Sekme durumunu `?tab=` ile URL'de tutar; `tab-<değer>` anchor'ı sekmeyi açar |
 | `recent.ts`, `popular.ts` | Son aramalar (localStorage, hata toleranslı), sık aramalar |

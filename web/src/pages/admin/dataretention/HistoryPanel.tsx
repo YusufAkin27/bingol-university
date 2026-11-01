@@ -1,21 +1,22 @@
 // Geçmiş: son dışa aktarma makbuzları ve silme (temizlik) kayıtları. Silme kayıtları silinemez; makbuzsuz silmeler
 // "Makbuzsuz" rozetiyle öne çıkar.
 import { useQuery } from '@tanstack/react-query';
-import { useState } from 'react';
 import { getPurges, getReceipts, retentionKeys, type Purge, type Receipt } from '../../../api/dataRetention';
 import { Badge, Card, Table, Tabs, type Column, type Tone } from '../../../components/ui';
 import { useI18n } from '../../../i18n/I18nProvider';
+import { useUrlTab } from '../../../search/useUrlTab';
 import { formatBytes } from './format';
 import styles from './DataRetention.module.css';
 
 type TabId = 'receipts' | 'purges';
+const TAB_IDS: TabId[] = ['receipts', 'purges'];
 
 const RECEIPT_TONE: Record<Receipt['status'], Tone> = { COMPLETED: 'success', RUNNING: 'info', PARTIAL: 'warning', FAILED: 'danger' };
 const PURGE_TONE: Record<Purge['status'], Tone> = { COMPLETED: 'success', RUNNING: 'info', FAILED: 'danger', INTERRUPTED: 'warning' };
 
 export function HistoryPanel() {
   const { t, td, formatNumber, formatDateTime } = useI18n();
-  const [tab, setTab] = useState<TabId>('receipts');
+  const [tab, setTab] = useUrlTab<TabId>(TAB_IDS, 'receipts'); // ?tab=purges
   const receipts = useQuery({ queryKey: retentionKeys.exports, queryFn: getReceipts, staleTime: 15_000 });
   const purges = useQuery({ queryKey: retentionKeys.purges, queryFn: getPurges, staleTime: 15_000 });
 

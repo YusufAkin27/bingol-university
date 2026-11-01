@@ -1,9 +1,9 @@
 {
-  "_aciklama": "Paket boyutu butcesi (gzip -9, KB). `npm run check:bundle` (build sonrasi) asimda cikis kodu 1 verir; CI'da continue-on-error ile uyari. Olcum 2026-10-29: girdi 90.8, en agir site sayfasi (ar) 124.1, toplam JS 613. Kasitli buyutme gerekiyorsa degeri gerekceyle guncelleyin. 2026-10-31 (SITE3): site.* 21 -> 23 KB: yeni tanitim sitesi metinleri (vitrin, guven sayfalari Kisaca maddeleri, bilgi sayfalari) uc dilde; Arapca gzip en kotu sikisan dil (ar 21.98 KB). 2026-11-01 (UPDATEGATE): admin.tr 66 -> 67 KB: Uygulama guncelleme zorlama sayfasinin Turkce metinleri (admin-uv1.ts, ~3 KB ham); sayfa kodu ayri lazy parca. 2026-11-01 (KIT): admin.tr 67 -> 68 KB: gorsel kit (StatTile, ChartPanel, ResponsiveTable...) Turkce metinleri (admin-kit.ts, ~3 KB ham).",
+  "_aciklama": "Paket boyutu butcesi (gzip -9, KB). `npm run check:bundle` (build sonrasi) asimda cikis kodu 1 verir; CI'da continue-on-error ile uyari. Olcum 2026-10-29: girdi 90.8, en agir site sayfasi (ar) 124.1, toplam JS 613. Kasitli buyutme gerekiyorsa degeri gerekceyle guncelleyin. 2026-10-31 (SITE3): site.* 21 -> 23 KB: yeni tanitim sitesi metinleri (vitrin, guven sayfalari Kisaca maddeleri, bilgi sayfalari) uc dilde; Arapca gzip en kotu sikisan dil (ar 21.98 KB). 2026-11-01 (UPDATEGATE): admin.tr 66 -> 67 KB: Uygulama guncelleme zorlama sayfasinin Turkce metinleri (admin-uv1.ts, ~3 KB ham); sayfa kodu ayri lazy parca. 2026-11-01 (KIT): admin.tr 67 -> 68 KB: gorsel kit (StatTile, ChartPanel, ResponsiveTable...) Turkce metinleri (admin-kit.ts, ~3 KB ham). 2026-11-01 (SEARCH): panel aramasi (motor + dizin + QuickNav) yalniz kullanilinca yuklenen ayri lazy parcalar; admin.tr 68 -> 69 KB (admin.search.* metinleri, ~1 KB ham), routes.admin 16 -> 17 KB (SearchAnchor/useUrlTab/kabuk baglantilari), totalJs 680 -> 700 KB (arama motoru + ~100 girdilik dizin, sonraki dalgada sayfa girdileri artinca yeniden olculur).",
   "initialJsGzipKB": 100,
   "routeJsGzipKB": 135,
   "initialCssGzipKB": 10,
-  "totalJsGzipKB": 680,
+  "totalJsGzipKB": 700,
   "chunks": {
     "*": 70,
     "index": 24,
@@ -12,7 +12,7 @@
     "vendor-query": 15,
     "vendor-charts": 125,
     "site.*": 23,
-    "admin.tr": 68,
-    "routes.admin": 16
+    "admin.tr": 69,
+    "routes.admin": 17
   }
 }

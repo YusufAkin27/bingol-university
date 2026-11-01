@@ -113,11 +113,18 @@ describe('yönetim kabuğu', () => {
     await usersHeading();
     const menu = screen.getByRole('navigation', { name: 'Yönetim menüsü' });
     await user.type(screen.getByRole('searchbox', { name: 'Menüde ara' }), 'bakim modu');
+    // motor ilk yazışta yüklenir (dinamik içe aktarma): alt sonuç gelene dek bekle
+    await waitFor(() =>
+      expect(
+        within(menu)
+          .getAllByRole('link')
+          .some((l) => l.getAttribute('href') === '/admin/settings#maintenance_mode'),
+      ).toBe(true),
+    );
     expect(within(menu).getByRole('link', { name: 'Ayarlar' })).toBeInTheDocument();
     const deep = within(menu)
       .getAllByRole('link')
       .find((l) => l.getAttribute('href') === '/admin/settings#maintenance_mode');
-    expect(deep).toBeTruthy();
     expect(deep).toHaveTextContent('Bakım modu');
     // aynı arama: Enter en iyi sonucu (alana derin bağlantı) açar
     await user.type(screen.getByRole('searchbox', { name: 'Menüde ara' }), '{Enter}');

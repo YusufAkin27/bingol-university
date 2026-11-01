@@ -1,5 +1,5 @@
 import { useNoIndex } from '../lib/useNoIndex';
-import { Suspense, useEffect, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from 'react';
+import { Suspense, lazy, useEffect, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from 'react';
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useAppInfo } from '../api/hooks';
 import { RequirePerm, usePermissions } from '../auth/permissions';
@@ -10,12 +10,18 @@ import { useFocusTrap } from '../components/ui/Overlay';
 import { useI18n } from '../i18n/I18nProvider';
 import { readStorage, writeStorage } from '../lib/storage';
 import { paths } from '../paths';
-import { Highlight, groupByPage, useAdminSearch, useSearchAnchorFocus } from '../search';
-import { adminNav, locateNav } from './adminNav';
+import { useSearchAnchorFocus } from '../search/anchor';
+import type * as MenuSearch from '../search/menu';
+import type { MenuMatch } from '../search/menu';
+import { adminNav, locateNav, navMatches } from './adminNav';
 import { StorageBanner } from '../pages/admin/dataretention/StorageBanner';
-import { QuickNav } from './QuickNav';
 import { UserMenu } from './UserMenu';
 import styles from './AdminLayout.module.css';
+
+// Arama penceresi ve menü süzgeci motoru yalnız kullanılınca yüklenir (ana yönetim paketi küçük kalır)
+const QuickNav = lazy(() => import('./QuickNav'));
+type MenuSearchModule = typeof MenuSearch;
+type MenuHits = MenuMatch['hits'];
 
 const COLLAPSE_KEY = 'bu.admin.sidebar';
 const GROUPS_KEY = 'bu.admin.navgroups';
@@ -86,7 +92,7 @@ export function AdminLayout() {
   const info = useAppInfo();
   const asideRef = useRef<HTMLElement>(null);
   useSearchAnchorFocus(); // arama sonucu derin bağlantısı (#anchor): kaydır + vurgula
-  const adminSearch = useAdminSearch();
+  const [menuSearch, setMenuSearch] = useState<MenuSearchModule | null>(null);
 
   const mode: 'full' | 'rail' | 'hidden' =
     tier === 'wide' ? (collapsed ? 'rail' : 'full') : drawerOpen ? 'full' : tier === 'rail' ? 'rail' : 'hidden';
@@ -121,12 +127,22 @@ export function AdminLayout() {
   const here = useMemo(() => locateNav(location.pathname), [location.pathname]);
   const filtering = !rail && filter.trim() !== '';
 
-  // Yan menü süzgeci üst çubuk aramasıyla AYNI motoru kullanır: sayfa adı + sayfa içi ayar/alan/eylem girdileri
-  const menuMatches = useMemo(
-    () => (filtering ? groupByPage(adminSearch.search(filter, 80)) : []),
-    [filtering, filter, adminSearch],
-  );
-  const topHit = menuMatches[0]?.hits[0]?.item;
+  // Yan menü süzgeci üst çubuk aramasıyla AYNI motoru kullanır (sayfa adı + sayfa içi ayar/alan/eylem girdileri).
+  // Motor ilk yazışta yüklenir; o ana dek yalnız menü adlarıyla süzülür.
+  useEffect(() => {
+    if (filtering && !menuSearch) void import('../search/menu').then(setMenuSearch);
+  }, [filtering, menuSearch]);
+
+  const menuMatches = useMemo(() => {
+    if (!filtering) return [];
+    if (menuSearch) return menuSearch.searchMenu(t, perms.can, filter);
+    return adminNav.flatMap((g) =>
+      g.items
+        .filter((i) => navMatches(t(i.labelKey), filter))
+        .map((i) => ({ pageId: i.id, groupId: g.id, best: 0, hits: [] as MenuHits })),
+    );
+  }, [filtering, filter, menuSearch, t, perms]);
+  const Highlight = menuSearch?.Highlight;
 
   const visibleGroups = useMemo(() => {
     const byPage = new Map(menuMatches.map((m, order) => [m.pageId, { m, order }]));
@@ -246,9 +262,9 @@ export function AdminLayout() {
                     e.stopPropagation();
                     e.preventDefault();
                     setFilter('');
-                  } else if (e.key === 'Enter' && topHit) {
+                  } else if (e.key === 'Enter' && visibleGroups[0]) {
                     e.preventDefault();
-                    navigate(topHit.to);
+                    navigate(menuMatches[0]?.hits[0]?.item.to ?? visibleGroups[0].items[0].to);
                   }
                 }}
               />
@@ -309,7 +325,7 @@ export function AdminLayout() {
                             <Icon name={i.icon} size={20} />
                             <span className={styles.itemLabel}>{i.label}</span>
                           </NavLink>
-                          {filtering && i.sub.length > 0 && (
+                          {filtering && Highlight && i.sub.length > 0 && (
                             <ul className={styles.subList} aria-label={t('admin.search.menu.inside')}>
                               {i.sub.slice(0, 5).map((h) => (
                                 <li key={h.id}>
@@ -418,7 +434,11 @@ export function AdminLayout() {
           </Suspense>
         </main>
       </div>
-      <QuickNav open={searchOpen} onClose={() => setSearchOpen(false)} />
+      {searchOpen && (
+        <Suspense fallback={null}>
+          <QuickNav open onClose={() => setSearchOpen(false)} />
+        </Suspense>
+      )}
     </div>
   );
 }
