@@ -8,7 +8,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /** Kaynak sitedeki tarih bicimlerini (20.10.2026, 20/10/2026, 2026-10-20, "20 Ekim 2026") ayristirir. */
-final class NewsDates {
+public final class NewsDates {
 
     private static final Pattern NUMERIC = Pattern.compile("(?<!\\d)(\\d{1,2})[./-](\\d{1,2})[./-](\\d{4})(?!\\d)");
     private static final Pattern ISO = Pattern.compile("(?<!\\d)(\\d{4})-(\\d{2})-(\\d{2})(?!\\d)");
@@ -22,7 +22,7 @@ final class NewsDates {
     private NewsDates() {}
 
     /** Metindeki ilk gecerli tarihi doner; bulunamazsa null. */
-    static LocalDate parse(String text) {
+    public static LocalDate parse(String text) {
         if (text == null || text.isBlank()) {
             return null;
         }

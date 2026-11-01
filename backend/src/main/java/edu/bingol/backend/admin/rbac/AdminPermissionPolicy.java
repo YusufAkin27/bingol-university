@@ -100,7 +100,7 @@ public final class AdminPermissionPolicy {
 
         // --- icerik ---
         area("/api/admin/(news|menu|academic|faq|communities|communitiespage|community-categories|community-posts"
-                + "|events|polls|posts|sources)(/.*)?", CONTENT_READ, CONTENT_WRITE);
+                + "|events|polls|posts|sources|unit-news)(/.*)?", CONTENT_READ, CONTENT_WRITE);
 
         // --- destek ---
         area("/api/admin/(support|feedback)(/.*)?", SUPPORT_READ, SUPPORT_WRITE);
