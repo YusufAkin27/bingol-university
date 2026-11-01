@@ -98,6 +98,22 @@ class DeviceLogCapTest {
         assertEquals(2, mine.getSeenCount());
     }
 
+    /** FIX-P02/A01#14: her refresh SELECT+UPDATE yazmaz; ayni (kullanici, cihaz, ip) icin 30 dk'da bir kez. */
+    @Test
+    void refreshEventsAreThrottledToOneWritePerThirtyMinutesButLoginAlwaysWrites() {
+        svc.setMaxDevicesPerUser(0);
+        when(repo.findByUserIdAndDeviceHashAndIp(anyLong(), anyString(), anyString())).thenReturn(Optional.empty());
+
+        for (int i = 0; i < 20; i++) {
+            svc.record(7L, ctx("dev-r"), "REFRESH");
+        }
+        verify(repo, org.mockito.Mockito.times(1)).findByUserIdAndDeviceHashAndIp(7L, "dev-r", "203.0.113.5");
+
+        svc.record(7L, ctx("dev-r"), "LOGIN");
+        svc.record(7L, ctx("dev-r"), "LOGIN");
+        verify(repo, org.mockito.Mockito.times(3)).findByUserIdAndDeviceHashAndIp(7L, "dev-r", "203.0.113.5");
+    }
+
     @Test
     void zeroDisablesTheCap() {
         svc.setMaxDevicesPerUser(0);
