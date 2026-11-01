@@ -1,7 +1,8 @@
 // SAYFA: Kullanıcılar (/admin/users)
 // API: GET /api/admin/users (filtre/sayfa/sıralama; api/users.ts `listUsers`), GET /api/admin/users/export.csv (`exportUsersCsv`),
 //      GET /api/faculties (fakülte filtresi; api/appInfo.ts `getFaculties`).
-// Filtre durumu URL'dedir (paylaşılabilir bağlantı): ?q=&status=&role=&faculty=&department=&classYear=&language=&verified=&sort=&page=
+// Filtre durumu URL'dedir (paylaşılabilir bağlantı): ?q=&status=&role=&faculty=&department=&classYear=&language=&verified=&twoFactor=&sort=&page=
+//      twoFactor=true|false: iki faktörlü doğrulama süzgeci (docs/TWO_FACTOR_API.md).
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { useMemo, useState } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
@@ -150,6 +151,20 @@ export default function UsersPage() {
       ),
     },
     {
+      key: 'twoFactor',
+      header: t('admin.users.col.twoFactor'),
+      render: (u) =>
+        u.twoFactorEnabled ? (
+          <Badge tone="success">
+            {u.twoFactorTrustedDeviceCount !== undefined
+              ? t('admin.users.twoFactor.onDevices', { n: formatNumber(u.twoFactorTrustedDeviceCount) })
+              : t('admin.users.twoFactor.on')}
+          </Badge>
+        ) : (
+          <Badge tone="neutral">{t('admin.users.twoFactor.off')}</Badge>
+        ),
+    },
+    {
       key: 'createdAt',
       header: t('admin.users.col.createdAt'),
       headerLabel: t('admin.users.col.createdAt'),
@@ -178,7 +193,7 @@ export default function UsersPage() {
     <div>
       <PageHeader
         title={t('admin.users.title')}
-       
+
         actions={
           <Button
             variant="secondary"
@@ -220,7 +235,9 @@ export default function UsersPage() {
           value={filters.status}
           onChange={(e) => update({ status: e.target.value as UserFilters['status'] })}
         >
-          <option value="">{t('admin.users.filter.status')}: {t('common.all')}</option>
+          <option value="">
+            {t('admin.users.filter.status')}: {t('common.all')}
+          </option>
           {(['ACTIVE', 'SUSPENDED', 'DELETED'] as const).map((s) => (
             <option key={s} value={s}>
               {td(`admin.users.status.${s}`)}
@@ -232,7 +249,9 @@ export default function UsersPage() {
           value={filters.role}
           onChange={(e) => update({ role: e.target.value as UserFilters['role'] })}
         >
-          <option value="">{t('admin.users.filter.role')}: {t('common.all')}</option>
+          <option value="">
+            {t('admin.users.filter.role')}: {t('common.all')}
+          </option>
           {(['USER', 'ADMIN'] as const).map((r) => (
             <option key={r} value={r}>
               {td(`admin.users.role.${r}`)}
@@ -245,7 +264,9 @@ export default function UsersPage() {
             value={filters.faculty}
             onChange={(e) => update({ faculty: e.target.value })}
           >
-            <option value="">{t('admin.users.filter.faculty')}: {t('common.all')}</option>
+            <option value="">
+              {t('admin.users.filter.faculty')}: {t('common.all')}
+            </option>
             {facultyList.map((f) => (
               <option key={f} value={f}>
                 {f}
@@ -269,7 +290,9 @@ export default function UsersPage() {
           value={filters.classYear}
           onChange={(e) => update({ classYear: e.target.value as UserFilters['classYear'] })}
         >
-          <option value="">{t('admin.users.filter.classYear')}: {t('common.all')}</option>
+          <option value="">
+            {t('admin.users.filter.classYear')}: {t('common.all')}
+          </option>
           {[1, 2, 3, 4].map((n) => (
             <option key={n} value={String(n)}>
               {t('admin.users.classYearOption', { n: formatNumber(n) })}
@@ -281,7 +304,9 @@ export default function UsersPage() {
           value={filters.language}
           onChange={(e) => update({ language: e.target.value as UserFilters['language'] })}
         >
-          <option value="">{t('admin.users.filter.language')}: {t('common.all')}</option>
+          <option value="">
+            {t('admin.users.filter.language')}: {t('common.all')}
+          </option>
           {(['tr', 'en', 'ar'] as const).map((l) => (
             <option key={l} value={l}>
               {td(`admin.users.lang.${l}`)}
@@ -293,9 +318,22 @@ export default function UsersPage() {
           value={filters.verified}
           onChange={(e) => update({ verified: e.target.value as UserFilters['verified'] })}
         >
-          <option value="">{t('admin.users.filter.verified')}: {t('common.all')}</option>
+          <option value="">
+            {t('admin.users.filter.verified')}: {t('common.all')}
+          </option>
           <option value="true">{t('admin.users.filter.verified.true')}</option>
           <option value="false">{t('admin.users.filter.verified.false')}</option>
+        </Select>
+        <Select
+          aria-label={t('admin.users.filter.twoFactor')}
+          value={filters.twoFactor}
+          onChange={(e) => update({ twoFactor: e.target.value as UserFilters['twoFactor'] })}
+        >
+          <option value="">
+            {t('admin.users.filter.twoFactor')}: {t('common.all')}
+          </option>
+          <option value="true">{t('admin.users.filter.twoFactor.true')}</option>
+          <option value="false">{t('admin.users.filter.twoFactor.false')}</option>
         </Select>
       </div>
 
@@ -318,7 +356,9 @@ export default function UsersPage() {
               sort={sortState}
               onSortChange={(s) => update({ sort: `${s.key},${s.dir}` })}
               onRowClick={(u) =>
-                navigate(paths.admin.user(u.id), { state: { from: `${location.pathname}${location.search}` } })
+                navigate(paths.admin.user(u.id), {
+                  state: { from: `${location.pathname}${location.search}` },
+                })
               }
               empty={
                 <EmptyState

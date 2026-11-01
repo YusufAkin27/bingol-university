@@ -32,6 +32,7 @@ export const paths = {
     login: `${ADMIN_BASE}/login`,
     dashboard: ADMIN_BASE,
     users: `${ADMIN_BASE}/users`,
+    twoFactor: `${ADMIN_BASE}/two-factor`,
     user: (id: number | string) => `${ADMIN_BASE}/users/${id}`,
     userMessages: (id: number | string, conversationId?: number | string) =>
       `${ADMIN_BASE}/users/${id}/messages${conversationId === undefined ? '' : `?c=${conversationId}`}`,

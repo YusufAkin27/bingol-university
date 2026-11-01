@@ -19,6 +19,8 @@ export interface UserFilters {
   classYear: '' | '1' | '2' | '3' | '4';
   language: Lang | '';
   verified: '' | 'true' | 'false';
+  /** İki faktörlü doğrulama: açık / kapalı */
+  twoFactor: '' | 'true' | 'false';
   sort: string;
   page: number;
 }
@@ -32,6 +34,7 @@ export const EMPTY_FILTERS: UserFilters = {
   classYear: '',
   language: '',
   verified: '',
+  twoFactor: '',
   sort: DEFAULT_SORT,
   page: 0,
 };
@@ -58,6 +61,7 @@ export function parseUserFilters(sp: URLSearchParams): UserFilters {
     classYear: oneOf(sp.get('classYear'), ['1', '2', '3', '4'] as const),
     language: oneOf(sp.get('language'), LANGS),
     verified: oneOf(sp.get('verified'), ['true', 'false'] as const),
+    twoFactor: oneOf(sp.get('twoFactor'), ['true', 'false'] as const),
     sort: parseSort(sp.get('sort')),
     page: Number.isFinite(page) && page > 0 ? page : 0,
   };
@@ -75,6 +79,7 @@ export function filtersToSearch(f: UserFilters): URLSearchParams {
   put('classYear', f.classYear);
   put('language', f.language);
   put('verified', f.verified);
+  put('twoFactor', f.twoFactor);
   if (f.sort !== DEFAULT_SORT) sp.set('sort', f.sort);
   if (f.page > 0) sp.set('page', String(f.page));
   return sp;
@@ -91,12 +96,14 @@ export function filtersToApi(f: UserFilters): UserListParams {
   if (f.classYear) p.classYear = Number(f.classYear);
   if (f.language) p.language = f.language;
   if (f.verified) p.verified = f.verified === 'true';
+  if (f.twoFactor) p.twoFactor = f.twoFactor === 'true';
   return p;
 }
 
 export function activeFilterCount(f: UserFilters): number {
-  return [f.status, f.role, f.faculty, f.department, f.classYear, f.language, f.verified].filter(Boolean)
-    .length;
+  return [f.status, f.role, f.faculty, f.department, f.classYear, f.language, f.verified, f.twoFactor].filter(
+    Boolean,
+  ).length;
 }
 
 /** Blob'u tarayıcıda dosya olarak indirir. */

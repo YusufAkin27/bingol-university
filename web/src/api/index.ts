@@ -7,6 +7,7 @@ export * as appInfoApi from './appInfo';
 export * as legalApi from './legal';
 export * as faqApi from './faq';
 export * as usersApi from './users';
+export * as twoFactorApi from './twoFactor';
 export * as analyticsApi from './analytics';
 export * as reportsApi from './reports';
 export * as supportApi from './support';

@@ -1,5 +1,6 @@
 // SAYFA: Kullanıcı ayrıntısı (/admin/users/:id)
 // API: GET /api/admin/users/{id} (düz AdminUserDetail), PATCH .../role, DELETE .../{id}, POST .../suspend|unsuspend (api/users.ts).
+//      İki faktörlü doğrulama kartı: POST .../two-factor/disable (users/UserTwoFactor.tsx).
 // KVKK: yalnızca günlük açılış sayıları gösterilir; başka kullanım ayrıntısı yoktur.
 import { useQuery } from '@tanstack/react-query';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
@@ -23,6 +24,7 @@ import { paths } from '../../paths';
 import { ActivityBars } from './users/ActivityBars';
 import { UserActions } from './users/UserActions';
 import { UserExtras } from './users/UserExtras';
+import { UserTwoFactor } from './users/UserTwoFactor';
 import styles from './users/users.module.css';
 
 const COUNT_KEYS = [
@@ -169,6 +171,8 @@ export default function UserDetailPage() {
 
         <div className={styles.stack}>
           <UserActions user={u} selfId={me?.id} onDeleted={() => navigate(from)} />
+
+          <UserTwoFactor user={u} />
 
           <Card title={t('admin.users.detail.devices')}>
             {u.deviceCount === 0 ? (

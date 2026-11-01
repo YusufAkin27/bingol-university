@@ -39,7 +39,10 @@ export const adminNav: AdminNavGroup[] = [
   {
     id: 'people',
     labelKey: 'admin.nav.group.people',
-    items: [{ id: 'users', to: paths.admin.users, labelKey: 'admin.nav.users', icon: 'users' }],
+    items: [
+      { id: 'users', to: paths.admin.users, labelKey: 'admin.nav.users', icon: 'users' },
+      { id: 'twoFactor', to: paths.admin.twoFactor, labelKey: 'admin.nav.twoFactor', icon: 'shield' },
+    ],
   },
   {
     id: 'moderation',

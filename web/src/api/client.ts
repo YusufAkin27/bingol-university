@@ -1,5 +1,6 @@
 import { paths } from '../paths';
 import { getCurrentLang } from '../i18n/lang';
+import { getDeviceId } from '../lib/deviceId';
 import { clearTokens, getAccessToken, getRefreshToken, setTokens } from '../auth/tokens';
 import type { ApiErrorBody, TokenResponse } from './types';
 
@@ -66,6 +67,7 @@ async function send(path: string, opts: RequestOptions, token: string | null): P
   const headers: Record<string, string> = {
     Accept: 'application/json',
     'Accept-Language': getCurrentLang(),
+    'X-Device-Id': getDeviceId(),
   };
   if (opts.body !== undefined) headers['Content-Type'] = 'application/json';
   if (token && opts.auth !== false) headers.Authorization = `Bearer ${token}`;
