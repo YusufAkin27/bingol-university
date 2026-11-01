@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { jsonResponse, mockFetch } from '../../test/fetchMock';
 import { renderWithProviders } from '../../test/utils';
 import { FEATURES } from './components/features';
-import { buildNewFaq, NEW_FAQ_IDS } from './components/newFaq';
+import { buildNewFaq, GENERAL_FAQ_IDS, NEW_FAQ_IDS } from './components/newFaq';
 import FaqPage from './FaqPage';
 import FeaturesPage from './FeaturesPage';
 import LegalListPage from './LegalListPage';
@@ -46,7 +46,7 @@ describe('Tanıtım sitesi: yeni özellikler', () => {
 
   it('yeni SSS kimlikleri negatif ve benzersizdir', () => {
     const items = buildNewFaq((k) => translate('tr', k));
-    expect(items).toHaveLength(NEW_FAQ_IDS.length);
+    expect(items).toHaveLength(GENERAL_FAQ_IDS.length + NEW_FAQ_IDS.length);
     expect(new Set(items.map((i) => i.id)).size).toBe(items.length);
     expect(items.every((i) => i.id < 0 && i.question && i.answer)).toBe(true);
   });

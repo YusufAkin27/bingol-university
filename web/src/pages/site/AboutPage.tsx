@@ -10,6 +10,7 @@ import { paths } from '../../paths';
 import { siteOrigin } from '../../seo/siteUrl';
 import { ContactList, contactItems } from './components/ContactList';
 import { CtaBand } from './components/CtaBand';
+import { InlineLinks } from './components/InlineLinks';
 import { organizationLd } from './components/jsonLd';
 import { PageHero } from './components/PageHero';
 import { PhoneMockup } from './components/PhoneMockup';
@@ -114,6 +115,16 @@ export default function AboutPage() {
           )}
         </div>
       </section>
+
+      <InlineLinks
+        label={t('site.links.about.label')}
+        links={[
+          { to: paths.site.contact, label: t('site.links.about.contact') },
+          { to: paths.site.faq, label: t('site.links.about.faq') },
+        ]}
+      >
+        {t('site.links.about.text')}
+      </InlineLinks>
 
       <CtaBand title={t('site.home.ctaTitle')} text={t('site.v3.cta.text')} />
     </>

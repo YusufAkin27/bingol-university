@@ -8,6 +8,7 @@ import { metaDescription } from '../pages/site/components/newsUtils';
 import {
   breadcrumbLd,
   faqLd,
+  plainAnswer,
   mobileAppLd,
   newsArticleLd,
   organizationLd,
@@ -278,7 +279,9 @@ describe('JSON-LD (önrender çıktısı)', () => {
         expect(q['@type']).toBe('Question');
         expect(q.name).toBe(visible[i].question);
         expect(q.acceptedAnswer['@type']).toBe('Answer');
-        expect(q.acceptedAnswer.text).toBe(visible[i].answer);
+        // görünür metin: bağlantılar yalnız bağlantı metni olarak okunur
+        expect(q.acceptedAnswer.text).toBe(plainAnswer(visible[i].answer));
+        expect(q.acceptedAnswer.text).not.toMatch(/\]\(/);
         expect(q.name.trim()).not.toBe('');
       });
     }
