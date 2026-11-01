@@ -216,7 +216,7 @@ public class DbMaintenanceJob {
     private int mailCodeScrub(Instant now) {
         return deleter.delete("mail_code_scrub",
                 "UPDATE mail_outbox SET vars_json = '{}' WHERE id IN (SELECT id FROM mail_outbox WHERE status IN ('SENT', 'DEAD') "
-                        + "AND template IN ('VERIFICATION_CODE', 'PASSWORD_RESET_CODE') AND vars_json <> '{}' "
+                        + "AND template IN ('VERIFICATION_CODE', 'PASSWORD_RESET_CODE', 'TWO_FACTOR_CODE') AND vars_json <> '{}' "
                         + "AND created_at < :cutoff LIMIT :lim)",
                 Map.of("cutoff", now.minus(Duration.ofHours(1)).atOffset(ZoneOffset.UTC)));
     }

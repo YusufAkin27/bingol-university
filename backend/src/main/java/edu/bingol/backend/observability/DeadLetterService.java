@@ -60,7 +60,7 @@ public class DeadLetterService {
      */
     private static final String MAIL_RETRYABLE = " AND (template = 'ACCOUNT_DELETED' OR (vars_json IS NOT NULL "
             + "AND TRIM(vars_json) NOT IN ('', '{}'))) "
-            + "AND NOT (template IN ('VERIFICATION_CODE', 'PASSWORD_RESET_CODE') AND created_at < :codeCutoff)";
+            + "AND NOT (template IN ('VERIFICATION_CODE', 'PASSWORD_RESET_CODE', 'TWO_FACTOR_CODE') AND created_at < :codeCutoff)";
 
     /** Mail yeniden deneme sonucu: kuyruga alinan ve icerigi artik uretilemedigi icin reddedilen (acik) sayilar. */
     public record MailRetryResult(int requeued, int skipped) {

@@ -71,6 +71,6 @@ public interface MailOutboxRepository extends JpaRepository<MailOutbox, Long> {
             + "AND (m.template = edu.bingol.backend.mail.MailTemplate.ACCOUNT_DELETED "
             + "OR (m.varsJson IS NOT NULL AND TRIM(m.varsJson) <> '' AND TRIM(m.varsJson) <> '{}')) "
             + "AND NOT (m.template IN (edu.bingol.backend.mail.MailTemplate.VERIFICATION_CODE, "
-            + "edu.bingol.backend.mail.MailTemplate.PASSWORD_RESET_CODE) AND m.createdAt < :codeCutoff)")
+            + "edu.bingol.backend.mail.MailTemplate.PASSWORD_RESET_CODE, edu.bingol.backend.mail.MailTemplate.TWO_FACTOR_CODE) AND m.createdAt < :codeCutoff)")
     int requeueDead(@Param("now") Instant now, @Param("codeCutoff") Instant codeCutoff);
 }

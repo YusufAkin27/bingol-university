@@ -74,6 +74,11 @@ public class User {
     @Column(length = 300)
     private String suspendedReason;
 
+    /** E-posta kodlu iki faktorlu dogrulama acik mi (kullanici kendisi acar; bkz. auth.twofactor). */
+    private boolean twoFactorEnabled;
+
+    private Instant twoFactorEnabledAt;
+
     private Instant deletedAt;
 
     /** Son gorulme (en cok 5 dakikada bir guncellenir; bkz. analytics.ActivityTracker). */

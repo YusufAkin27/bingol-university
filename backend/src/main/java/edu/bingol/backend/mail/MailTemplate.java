@@ -8,6 +8,8 @@ package edu.bingol.backend.mail;
 public enum MailTemplate {
     VERIFICATION_CODE("verification"),
     PASSWORD_RESET_CODE("reset"),
+    /** Iki faktorlu giris kodu (tanimadik cihazdan giris / 2FA acma); kod 10 dk gecerli, degiskeni gece silinir. */
+    TWO_FACTOR_CODE("twofactor"),
     ACCOUNT_DELETED("deleted"),
     SECURITY_NEW_LOGIN("newlogin"),
     SECURITY_PASSWORD_CHANGED("pwchanged"),

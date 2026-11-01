@@ -27,7 +27,9 @@ import org.springframework.context.i18n.LocaleContextHolder;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import java.time.Duration;
+import edu.bingol.backend.auth.twofactor.TwoFactorRequiredException;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -158,8 +160,12 @@ public class AuthController {
         return auth.verifyEmail(r.email(), r.code(), r.client(), contexts.of(http), r.password());
     }
 
+    /**
+     * 200 {@link TokenResponse}; 2FA acik ve cihaz tanimiyorsa 202 + challenge ({@code twoFactorRequired}, token YOK,
+     * kod e-postaya gitti). Sifre bu noktada dogrulanmistir: kaba kuvvet sayaci sifirlanir.
+     */
     @PostMapping("/login")
-    public TokenResponse login(@Valid @RequestBody LoginRequest r, HttpServletRequest http) {
+    public ResponseEntity<Object> login(@Valid @RequestBody LoginRequest r, HttpServletRequest http) {
         String email = AuthService.normalizeEmail(r.email());
         String ip = clientIp.limitKey(http);
         // IP: yalniz toplu/NAT tavani (genis). Kaba kuvvet korumasi asagida e-posta ve cihaz bazli.
@@ -170,6 +176,10 @@ public class AuthController {
         TokenResponse res;
         try {
             res = auth.login(email, r.password(), r.client(), contexts.of(http));
+        } catch (TwoFactorRequiredException e) {
+            // Sifre dogru: kaba kuvvet sayaci sifirlanir (kod denemeleri kendi sinirlariyla korunur)
+            loginThrottle.recordSuccess(email, ip, dev);
+            return ResponseEntity.status(HttpStatus.ACCEPTED).body(e.challenge());
         } catch (ApiException e) {
             if ("INVALID_CREDENTIALS".equals(e.code())) {
                 loginThrottle.recordFailure(email, ip, dev);
@@ -177,7 +187,7 @@ public class AuthController {
             throw e;
         }
         loginThrottle.recordSuccess(email, ip, dev);
-        return res;
+        return ResponseEntity.ok(res);
     }
 
     @PostMapping("/refresh")

@@ -427,6 +427,8 @@ public class ProfileService {
         // Silinen hesapta yonetici yetkisi kalmasin (T-002): panelden/yanlis geri aciliste bile rol tasinmaz.
         u.setRole(Role.USER);
         u.setAdminProfile(null);
+        u.setTwoFactorEnabled(false); // guvenilen cihaz satirlari AccountDataPurger.DELETES ile silinir
+        u.setTwoFactorEnabledAt(null);
         u.setStatus(UserStatus.DELETED);
         u.setDeletedAt(Instant.now());
         users.saveAndFlush(u);
