@@ -55,4 +55,11 @@ export default {
   'admin.v2m.tpl.langYes': 'yazılı',
   'admin.v2m.tpl.langNo': 'yok, Türkçe gösterilir',
   'admin.v2m.tpl.ringLabel': 'Daha {n} şablon ekleyebilirsiniz',
+  'admin.v2m.polls.openHint': 'Şu an oy verilebiliyor',
+  'admin.v2m.polls.closedHint': 'Süresi bitti, sonuçlar belli',
+  'admin.v2m.polls.draftHint': 'Henüz yayınlanmadı',
+  'admin.v2m.polls.sentenceOpen': '{n} anket şu an açık.',
+  'admin.v2m.polls.sentenceTurnout': 'Toplam {votes} oy kullanıldı; ortalama katılım %{pct}.',
+  'admin.v2m.polls.sentenceNoTurnout': 'Toplam {votes} oy kullanıldı.',
+  'admin.v2m.polls.bulkNote': 'Kapat: oylar korunur. İptal et: anket yayından kalkar, oylar korunur. Sil: oylar da silinir.',
 } as const;

@@ -119,3 +119,11 @@
   overflow: hidden;
   max-block-size: none;
 }
+
+/* Toplu işlem çubuğundaki kısa açıklama (koyu zemin üstünde okunur) */
+.bulkNote {
+  flex: 1 1 100%;
+  font-size: var(--text-xs);
+  color: inherit;
+  opacity: 0.85;
+}

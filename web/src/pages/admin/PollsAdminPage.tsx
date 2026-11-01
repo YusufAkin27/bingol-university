@@ -14,11 +14,13 @@ import {
   FormField,
   GuardedAction,
   Input,
+  Insight,
   PageHeader,
   Pagination,
+  ProgressRing,
+  ResponsiveTable,
   Select,
-  StatCard,
-  Table,
+  StatTile,
   useToast,
   type Column,
 } from '../../components/ui';
@@ -27,6 +29,8 @@ import { useDebouncedValue, usePageTitle } from '../../lib/hooks';
 import { PollDetailDrawer } from './polls/PollDetail';
 import { PollFormModal } from './polls/PollForm';
 import { stateTone } from './polls/pollsLogic';
+import { FilterFold } from './moderation/v2';
+import v2 from './moderation/v2.module.css';
 import styles from './polls/polls.module.css';
 
 const STATUSES: PollStatus[] = ['DRAFT', 'OPEN', 'CLOSED', 'CANCELLED'];
@@ -34,7 +38,7 @@ const SCOPES: PollScope[] = ['GLOBAL', 'COMMUNITY', 'MENU'];
 const PAGE_SIZE = 20;
 const BULK_ACTIONS: { action: PollBulkAction; danger: boolean; irreversible: boolean }[] = [
   { action: 'CLOSE', danger: false, irreversible: false },
-  { action: 'CANCEL', danger: true, irreversible: true },
+  { action: 'CANCEL', danger: false, irreversible: true },
   { action: 'DELETE', danger: true, irreversible: true },
 ];
 
@@ -65,7 +69,6 @@ export default function PollsAdminPage() {
   const total = list.data?.total ?? 0;
   const totalPages = Math.max(1, Math.ceil(total / (list.data?.size || PAGE_SIZE)));
   const s = stats.data;
-  const n = (v: number | undefined) => (v === undefined ? '—' : formatNumber(v));
 
   function change(fn: () => void) {
     fn();
@@ -80,6 +83,7 @@ export default function PollsAdminPage() {
       key: 'title',
       header: t('admin.p03.col.title'),
       headerLabel: t('admin.p03.col.title'),
+      card: { priority: 1 },
       render: (p) => (
         <div className={styles.titleCell}>
           <button type="button" className={styles.linkBtn} dir="auto" onClick={() => setOpenId(p.id)}>
@@ -94,9 +98,10 @@ export default function PollsAdminPage() {
     {
       key: 'state',
       header: t('admin.p03.col.state'),
+      card: { priority: 2 },
       render: (p) => <Badge tone={stateTone(p.state)}>{i18n.td(`admin.p03.state.${p.state}`, p.state)}</Badge>,
     },
-    { key: 'votes', header: t('admin.p03.col.votes'), align: 'end', render: (p) => formatNumber(p.totalVotes) },
+    { key: 'votes', header: t('admin.p03.col.votes'), align: 'end', card: { priority: 3 }, render: (p) => formatNumber(p.totalVotes) },
     {
       key: 'closesAt',
       header: t('admin.p03.col.closesAt'),
@@ -116,21 +121,37 @@ export default function PollsAdminPage() {
         }
       />
 
-      <div className={styles.statGrid} data-testid="poll-stats">
-        <StatCard title={t('admin.p03.stats.total')} value={n(s?.total)} loading={stats.isLoading} />
-        <StatCard title={t('admin.p03.stats.open')} value={n(s?.open)} loading={stats.isLoading} />
-        <StatCard title={t('admin.p03.stats.closed')} value={n(s?.closed)} loading={stats.isLoading} />
-        <StatCard title={t('admin.p03.stats.draft')} value={n(s?.draft)} loading={stats.isLoading} />
-        <StatCard title={t('admin.p03.stats.cancelled')} value={n(s?.cancelled)} loading={stats.isLoading} />
-        <StatCard title={t('admin.p03.stats.votes')} value={n(s?.totalVotes)} loading={stats.isLoading} />
-        <StatCard
-          title={t('admin.p03.stats.turnout')}
-          value={s ? (s.avgTurnoutPercent == null ? '—' : `${formatNumber(s.avgTurnoutPercent)}%`) : '—'}
+      <div className={v2.tiles} data-testid="poll-stats" data-search-anchor="polls-stats">
+        <StatTile label={t('admin.p03.stats.total')} value={s?.total} loading={stats.isLoading} error={stats.isError} onRetry={() => void stats.refetch()} />
+        <StatTile label={t('admin.p03.stats.open')} value={s?.open} icon="check" loading={stats.isLoading} error={stats.isError} caption={t('admin.v2m.polls.openHint')} />
+        <StatTile label={t('admin.p03.stats.closed')} value={s?.closed} loading={stats.isLoading} error={stats.isError} caption={t('admin.v2m.polls.closedHint')} />
+        <StatTile label={t('admin.p03.stats.draft')} value={s?.draft} loading={stats.isLoading} error={stats.isError} caption={t('admin.v2m.polls.draftHint')} />
+        <StatTile label={t('admin.p03.stats.cancelled')} value={s?.cancelled} loading={stats.isLoading} error={stats.isError} />
+        <StatTile label={t('admin.p03.stats.votes')} value={s?.totalVotes} loading={stats.isLoading} error={stats.isError} />
+        <ProgressRing
+          value={s?.avgTurnoutPercent ?? null}
           loading={stats.isLoading}
+          size={92}
+          thickness={9}
+          tone="info"
+          label={t('admin.p03.stats.turnout')}
         />
       </div>
+      {s && (
+        <Insight
+          className={v2.sentence}
+          parts={[
+            { text: t('admin.v2m.polls.sentenceOpen', { n: formatNumber(s.open) }) },
+            ' ',
+            t(s.avgTurnoutPercent == null ? 'admin.v2m.polls.sentenceNoTurnout' : 'admin.v2m.polls.sentenceTurnout', {
+              votes: formatNumber(s.totalVotes),
+              pct: s.avgTurnoutPercent == null ? '' : formatNumber(Math.round(s.avgTurnoutPercent)),
+            }),
+          ]}
+        />
+      )}
 
-      <div className={styles.filters} role="search" aria-label={t('admin.p03.filters')}>
+      <FilterFold activeCount={[text.trim() !== '', scope !== '', status !== ''].filter(Boolean).length} anchor="polls-filters">
         <FormField label={t('admin.p03.filter.q')}>
           <Input
             type="search"
@@ -164,13 +185,15 @@ export default function PollsAdminPage() {
           size="sm"
           onClick={() => change(() => setScope(scope === 'MENU' ? '' : 'MENU'))}
           aria-pressed={scope === 'MENU'}
+          data-search-anchor="polls-menu-ratings"
         >
+          {scope === 'MENU' ? '✓ ' : ''}
           {t('admin.p03.menuRatings')}
         </Button>
-      </div>
+      </FilterFold>
 
       <div data-testid="poll-list">
-        <Table
+        <ResponsiveTable
           caption={t('admin.polls.title')}
           columns={columns}
           rows={rows}
@@ -185,6 +208,7 @@ export default function PollsAdminPage() {
         />
       </div>
       <BulkBar count={selected.size} onClear={() => setSelected(new Set())}>
+        <span className={v2.bulkNote}>{t('admin.v2m.polls.bulkNote')}</span>
         {BULK_ACTIONS.map(({ action, danger, irreversible }) => (
           <GuardedAction
             key={action}
