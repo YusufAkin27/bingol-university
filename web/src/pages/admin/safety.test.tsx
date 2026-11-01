@@ -233,62 +233,49 @@ describe('Yasaklı görsel özetleri', () => {
   });
 });
 
-describe('Sekme sayaçları ve cümleler yalnız yüklenen sayfayı kesin toplam sanmaz', () => {
-  const appeal = (id: number) => ({
-    id,
-    userId: id,
-    targetType: 'USER_AVATAR',
-    targetId: id,
-    message: 'İtiraz ' + id,
-    status: 'OPEN',
-    adminNote: null,
-    createdAt: '2026-01-01T10:00:00Z',
-    decidedAt: null,
-  });
-  const rec = (id: number) => ({
-    id,
-    userId: id,
-    strikeCount: 3,
-    status: 'OPEN',
-    reason: 'x',
-    createdAt: '2026-01-01T10:00:00Z',
-    decidedAt: null,
-    decidedBy: null,
-  });
+describe('Sekme sayaçları ve cümleler yalnız okunan kuyruğu kesin toplam sanmaz', () => {
+  let seq = 0;
+  const appeal = () => {
+    const id = ++seq;
+    return {
+      id,
+      userId: id,
+      targetType: 'USER_AVATAR',
+      targetId: id,
+      message: 'İtiraz ' + id,
+      status: 'OPEN',
+      adminNote: null,
+      createdAt: '2026-01-01T10:00:00Z',
+      decidedAt: null,
+    };
+  };
+  const rec = () => {
+    const id = ++seq;
+    return { id, userId: id, strikeCount: 3, status: 'OPEN', reason: 'x', createdAt: '2026-01-01T10:00:00Z', decidedAt: null, decidedBy: null };
+  };
 
-  it('itirazlar: 50 kayıt dönünce sekme "50+" yazar, cümle "En az" der', async () => {
-    mockFetch((url) => {
-      const size = Number(new URL(url, 'http://x').searchParams.get('size'));
-      const n = size === 50 ? 50 : 20;
-      return jsonResponse(200, {
-        items: Array.from({ length: n }, (_, i) => appeal(i + 1)),
-        nextCursor: size === 50 ? null : 'c1',
-      });
-    });
+  // Mod1: bekleyen kuyruk 50'şerlik en çok 4 sayfa okunur; sonda hâlâ imleç varsa "200+" ve "en az" yazılır
+  it('itirazlar: sayfa sınırına takılınca sekme "200+" yazar, cümle "en az" der', async () => {
+    mockFetch(() => jsonResponse(200, { items: Array.from({ length: 50 }, appeal), nextCursor: 99 }));
     renderWithProviders(<AppealsPage />);
-    expect(await screen.findByRole('tab', { name: /(50+)/ })).toBeInTheDocument();
-    expect(await screen.findByText(/En az 20 itiraz cevap bekliyor/)).toBeInTheDocument();
+    expect(await screen.findByRole('tab', { name: /(200+)/ })).toBeInTheDocument();
+    expect(await screen.findByText(/en az 200 itiraz bekliyor/)).toBeInTheDocument();
+    expect(screen.getByText(/Liste uzun: yalnız ilk 200 kayıt sayıldı/)).toBeInTheDocument();
   });
 
-  it('itirazlar: 3 kayıtta sayaç kesin, cümle "En az" demez', async () => {
-    mockFetch(() => jsonResponse(200, { items: [appeal(1), appeal(2), appeal(3)], nextCursor: null }));
+  it('itirazlar: 3 kayıtta sayaç kesin, cümle "en az" demez', async () => {
+    mockFetch(() => jsonResponse(200, { items: [appeal(), appeal(), appeal()], nextCursor: null }));
     renderWithProviders(<AppealsPage />);
     expect(await screen.findByRole('tab', { name: /(3)/ })).toBeInTheDocument();
-    expect(await screen.findByText('3 itiraz cevap bekliyor.')).toBeInTheDocument();
+    expect(await screen.findByText(/3 itiraz bekliyor/)).toBeInTheDocument();
+    expect(screen.queryByText(/en az/)).not.toBeInTheDocument();
   });
 
-  it('askı önerileri: 50 kayıt dönünce sekme "50+" yazar, cümle "En az" der', async () => {
-    mockFetch((url) => {
-      const size = Number(new URL(url, 'http://x').searchParams.get('size'));
-      const n = size === 50 ? 50 : 20;
-      return jsonResponse(200, {
-        items: Array.from({ length: n }, (_, i) => rec(i + 1)),
-        nextCursor: size === 50 ? null : 'c1',
-      });
-    });
+  it('askı önerileri: sayfa sınırına takılınca sekme "200+" yazar, cümle "en az" der', async () => {
+    mockFetch(() => jsonResponse(200, { items: Array.from({ length: 50 }, rec), nextCursor: 99 }));
     renderWithProviders(<SuspendRecommendationsPage />);
-    expect(await screen.findByRole('tab', { name: /(50+)/ })).toBeInTheDocument();
-    expect(await screen.findByText(/En az 20 kişi için karar bekleniyor/)).toBeInTheDocument();
+    expect(await screen.findByRole('tab', { name: /(200+)/ })).toBeInTheDocument();
+    expect(await screen.findByText(/en az 200 askı önerisi bekliyor/)).toBeInTheDocument();
   });
 });
 

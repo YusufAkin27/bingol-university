@@ -1,8 +1,9 @@
 // SAYFA: Uygunsuz ifade filtresi (/admin/profanity)
 // API: /api/admin/profanity (liste/ekle/toplu/sil/check/info/stats/export.csv) -> api/profanity.ts.
 // Yerleşik liste kaynak dosyadadır ve silinemez; yönetici BLOCK/ALLOW kayıtları buradan yönetilir.
+// Mod1: kategori dağılımı, liste büyüklüğü karışımı, toplu silme ve klavye (/ ara, N yeni kelime).
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   addBulk,
   addTerm,
@@ -19,6 +20,7 @@ import {
   type ProfanityTerm,
 } from '../../api/profanity';
 import {
+  BulkBar,
   Button,
   Card,
   ConfirmDialog,
@@ -44,6 +46,12 @@ import { adminErrorMessage } from './campaigns/shared';
 import styles from './moderation/moderation.module.css';
 import v2 from './moderation/v2.module.css';
 import { downloadBlob } from './users/filters';
+import { BulkRunDialog, useBatchToast } from './yaptirimMod1/BulkRunDialog';
+import { useGt } from './yaptirimMod1/dict';
+import { MixBar } from './yaptirimMod1/MixBar';
+import { shouldIgnoreShortcut } from './yaptirimMod1/queueLogic';
+import { ShortcutBar } from './yaptirimMod1/ShortcutBar';
+import mq from './yaptirimMod1/yaptirim.module.css';
 
 const NOTE_MAX = 200;
 
@@ -56,6 +64,8 @@ const FIELD_LABELS: Record<string, 'admin.v2m.prf.field.postText' | 'admin.v2m.p
 export default function ProfanityPage() {
   const i18n = useI18n();
   const { t, formatDateTime, formatNumber } = i18n;
+  const gt = useGt();
+  const batchToast = useBatchToast();
   usePageTitle(t('admin.prf.title'));
   const toast = useToast();
   const qc = useQueryClient();
@@ -68,6 +78,25 @@ export default function ProfanityPage() {
   const [touched, setTouched] = useState(false);
   const [removing, setRemoving] = useState<ProfanityTerm | null>(null);
   const [tryText, setTryText] = useState('');
+  const [selected, setSelected] = useState<ReadonlySet<number>>(new Set());
+  const [bulkRemoving, setBulkRemoving] = useState(false);
+
+  // Klavye: "/" aramaya, "N" yeni kelime alanına gider (yazı alanındayken çalışmaz)
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (shouldIgnoreShortcut(e)) return;
+      const key = e.key.toLowerCase();
+      const sel = key === '/' ? 'profanity-search' : key === 'n' ? 'profanity-term' : null;
+      if (!sel) return;
+      const el = document.querySelector<HTMLInputElement>('[data-search-anchor="' + sel + '"]');
+      if (el) {
+        e.preventDefault();
+        el.focus();
+      }
+    }
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
 
   const info = useQuery({ queryKey: profanityKeys.info(), queryFn: getInfo });
   const stats = useQuery({ queryKey: profanityKeys.stats(), queryFn: getStats });
@@ -80,6 +109,15 @@ export default function ProfanityPage() {
   const items = list.data?.pages.flatMap((p) => p.items) ?? [];
 
   const refresh = () => void qc.invalidateQueries({ queryKey: profanityKeys.all });
+  const toggle = (id: number) =>
+    setSelected((cur) => {
+      const n = new Set(cur);
+      if (n.has(id)) n.delete(id);
+      else n.add(id);
+      return n;
+    });
+  const selectedTerms = items.filter((x) => selected.has(x.id));
+  const allSelected = items.length > 0 && items.every((x) => selected.has(x.id));
 
   const add = useMutation({
     mutationFn: () => addTerm({ term: term.trim(), kind, lang, note: note.trim() }),
@@ -129,6 +167,9 @@ export default function ProfanityPage() {
   const last24 = stats.data?.last24h.total ?? 0;
   const last7 = stats.data?.last7d.total ?? 0;
   const dailyAvg = last7 / 7;
+  const catBars = Object.entries(stats.data?.last7d.byCategory ?? {})
+    .filter(([, n]) => n > 0)
+    .map(([k, n]) => ({ key: k, label: gt('admin.mod1.prf.cat.' + k), value: n }));
   const fieldBars = (stats.data?.last7d.byField ?? []).map((r) => {
     const known = FIELD_LABELS[`${r.entity}.${r.field}`];
     return { key: `${r.entity}.${r.field}`, label: known ? t(known) : `${r.entity} / ${r.field}`, value: r.count };
@@ -167,10 +208,36 @@ export default function ProfanityPage() {
             caption={stats.data ? t('admin.v2m.prf.avg', { n: formatNumber(Math.round(dailyAvg * 10) / 10) }) : undefined}
           />
         </div>
-        {fieldBars.length > 0 && (
-          <section data-search-anchor="profanity-fields" className={v2.clip}>
-            <h2 className={v2.hint}>{t('admin.prf.stat.byField')}</h2>
-            <RankedBars items={fieldBars} limit={5} ariaLabel={t('admin.prf.stat.byField')} />
+        {(fieldBars.length > 0 || catBars.length > 0) && (
+          <div className={mq.twoCols}>
+            {fieldBars.length > 0 && (
+              <section data-search-anchor="profanity-fields" className={mq.panel} aria-label={t('admin.prf.stat.byField')}>
+                <h2 className={mq.panelTitle}>{t('admin.prf.stat.byField')}</h2>
+                <RankedBars items={fieldBars} limit={5} ariaLabel={t('admin.prf.stat.byField')} />
+              </section>
+            )}
+            {catBars.length > 0 && (
+              <section data-search-anchor="profanity-categories" className={mq.panel} aria-label={gt('admin.mod1.prf.cat.title')}>
+                <h2 className={mq.panelTitle}>{gt('admin.mod1.prf.cat.title')}</h2>
+                <p className={mq.sub}>{gt('admin.mod1.prf.cat.hint')}</p>
+                <RankedBars items={catBars} limit={4} showShare ariaLabel={gt('admin.mod1.prf.cat.title')} />
+              </section>
+            )}
+          </div>
+        )}
+        {info.data && (
+          <section className={mq.panel} data-search-anchor="profanity-size" aria-label={gt('admin.mod1.prf.size.title')}>
+            <h2 className={mq.panelTitle}>{gt('admin.mod1.prf.size.title')}</h2>
+            <p className={mq.sub}>{gt('admin.mod1.prf.size.hint')}</p>
+            <MixBar
+              ariaLabel={gt('admin.mod1.prf.size.title')}
+              parts={[
+                { key: 'bb', label: gt('admin.mod1.prf.size.builtBlock'), value: info.data.builtIn.tr + info.data.builtIn.en + info.data.builtIn.ar },
+                { key: 'ab', label: gt('admin.mod1.prf.size.adminBlock'), value: info.data.adminBlock },
+                { key: 'ba', label: gt('admin.mod1.prf.size.builtAllow'), value: info.data.builtIn.allow },
+                { key: 'aa', label: gt('admin.mod1.prf.size.adminAllow'), value: info.data.adminAllow },
+              ]}
+            />
           </section>
         )}
 
@@ -184,6 +251,13 @@ export default function ProfanityPage() {
           ]}
         />
         <p className={v2.hint}>{t(kind === 'BLOCK' ? 'admin.v2m.prf.tabBlockHint' : 'admin.v2m.prf.tabAllowHint')}</p>
+        <ShortcutBar
+          anchor="profanity-keys"
+          items={[
+            { keys: '/', label: gt('admin.mod1.prf.keys.search') },
+            { keys: 'N', label: gt('admin.mod1.prf.keys.add') },
+          ]}
+        />
 
         <div className={`${styles.toolbar} ${v2.touch}`}>
           <FormField label={t('admin.prf.search')}>
@@ -202,10 +276,26 @@ export default function ProfanityPage() {
           <EmptyState icon="shield" title={t('admin.prf.empty.title')} description={t('admin.prf.empty.hint')} />
         ) : (
           <>
+            <label className={mq.selectRow}>
+              <input
+                type="checkbox"
+                checked={allSelected}
+                onChange={() => setSelected(allSelected ? new Set() : new Set(items.map((x) => x.id)))}
+              />
+              <span>{gt('admin.mod1.select.allShown', { n: formatNumber(items.length) })}</span>
+            </label>
             <ul className={styles.rowList} aria-label={t(`admin.prf.tab.${kind}` as const)}>
               {items.map((e) => (
-                <li key={e.id} className={styles.item}>
+                <li key={e.id} className={`${styles.item} ${selected.has(e.id) ? mq.rowSelected : ''}`}>
                   <div className={styles.itemHead}>
+                    <label className={mq.rowCheck}>
+                      <input
+                        type="checkbox"
+                        checked={selected.has(e.id)}
+                        onChange={() => toggle(e.id)}
+                        aria-label={gt('admin.mod1.select.row', { name: e.term })}
+                      />
+                    </label>
                     <code className={`${styles.mono} ltr`} dir="auto">
                       {e.term}
                     </code>
@@ -236,6 +326,13 @@ export default function ProfanityPage() {
             />
           </>
         )}
+        <div className={mq.bulkSticky} data-search-anchor="profanity-bulkdelete">
+          <BulkBar count={selectedTerms.length} onClear={() => setSelected(new Set())}>
+            <Button size="sm" variant="danger" onClick={() => setBulkRemoving(true)}>
+              {gt('admin.mod1.prf.bulk.remove')}
+            </Button>
+          </BulkBar>
+        </div>
 
         <Card title={t('admin.prf.add')} data-search-anchor="profanity-add">
           <form
@@ -253,7 +350,14 @@ export default function ProfanityPage() {
                 error={touched && termInvalid ? t('admin.prf.termInvalid') : null}
                 required
               >
-                <Input value={term} maxLength={80} dir="auto" autoComplete="off" onChange={(e) => setTerm(e.target.value)} />
+                <Input
+                  value={term}
+                  maxLength={80}
+                  dir="auto"
+                  autoComplete="off"
+                  data-search-anchor="profanity-term"
+                  onChange={(e) => setTerm(e.target.value)}
+                />
               </FormField>
               <ul className={v2.examples} aria-label={t('admin.v2m.prf.examplesLabel')}>
                 <li>{t('admin.v2m.prf.exPlain')}</li>
@@ -372,6 +476,22 @@ export default function ProfanityPage() {
           </details>
         )}
       </div>
+      <BulkRunDialog
+        open={bulkRemoving}
+        onClose={() => setBulkRemoving(false)}
+        danger
+        title={gt('admin.mod1.prf.bulkTitle', { n: formatNumber(selectedTerms.length) })}
+        message={gt('admin.mod1.prf.bulkBody', { n: formatNumber(selectedTerms.length) })}
+        confirmLabel={gt('admin.mod1.prf.bulkBtn', { n: formatNumber(selectedTerms.length) })}
+        items={selectedTerms}
+        runOne={(x) => removeTerm(x.id)}
+        onDone={(outcome) => {
+          batchToast(outcome);
+          setBulkRemoving(false);
+          setSelected(new Set());
+          refresh();
+        }}
+      />
       <ConfirmDialog
         open={!!removing}
         onClose={() => setRemoving(null)}

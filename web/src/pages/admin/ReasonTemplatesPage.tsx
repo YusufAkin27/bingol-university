@@ -2,8 +2,9 @@
 // API: GET/POST /api/admin/moderation/reason-templates, PUT/DELETE .../{id} (api/modAdmin.ts). En çok 50 şablon.
 // Panel yalnız Türkçedir; ancak şablon METİNLERİ kullanıcıya gösterilir (rapor kararı bildirimi, alıcının dilinde):
 // bu yüzden tr/en/ar üç metin alanı vardır (boş en/ar Türkçeye düşer). Kod oluşturulduktan sonra değişmez.
+// Mod1: dil kapsamı çubukları + sınır çubuğu (halka yerine), eksik çeviri uyarısı, tek tıkla aç/kapat.
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { modAdminApi, qk } from '../../api';
 import { MAX_REASON_TEMPLATES, type ReasonTemplateRow } from '../../api/modAdmin';
 import {
@@ -15,11 +16,13 @@ import {
   GuardedAction,
   Icon,
   Input,
+  Insight,
   Modal,
   PageHeader,
-  ProgressRing,
+  ProgressBar,
   ResponsiveTable,
   StatusPill,
+  StatTile,
   Switch,
   Textarea,
   useToast,
@@ -38,6 +41,8 @@ import {
 } from './moderation/p11Logic';
 import v2 from './moderation/v2.module.css';
 import styles from './moderation/p11.module.css';
+import { useGt } from './yaptirimMod1/dict';
+import q from './yaptirimMod1/yaptirim.module.css';
 
 const listKey = [...qk.moderation.all, 'reasonTemplates'] as const;
 
@@ -54,7 +59,8 @@ function toDraft(r: ReasonTemplateRow): TemplateDraft {
 
 export default function ReasonTemplatesPage() {
   const i18n = useI18n();
-  const { t, td } = i18n;
+  const { t, td, formatNumber } = i18n;
+  const gt = useGt();
   usePageTitle(t('admin.p11.tpl.title'));
   const toast = useToast();
   const qc = useQueryClient();
@@ -63,9 +69,17 @@ export default function ReasonTemplatesPage() {
   const [submitted, setSubmitted] = useState(false);
 
   const query = useQuery({ queryKey: listKey, queryFn: () => modAdminApi.listReasonTemplates() });
-  const rows = query.data?.items ?? [];
+  const rows = useMemo(() => query.data?.items ?? [], [query.data]);
   const max = query.data?.max ?? MAX_REASON_TEMPLATES;
   const canAdd = canAddTemplate(rows.length, max);
+  const stats = useMemo(() => {
+    const total = rows.length;
+    const active = rows.filter((r) => r.active).length;
+    const en = rows.filter((r) => !!r.textEn?.trim()).length;
+    const ar = rows.filter((r) => !!r.textAr?.trim()).length;
+    const missing = rows.filter((r) => !r.textEn?.trim() || !r.textAr?.trim()).length;
+    return { total, active, en, ar, missing };
+  }, [rows]);
   const isNew = editing === 'new';
   const errors = templateErrors(draft, isNew);
   const valid = Object.keys(errors).length === 0;
@@ -91,6 +105,24 @@ export default function ReasonTemplatesPage() {
     onSuccess: () => {
       toast.success(t(isNew ? 'admin.p11.tpl.created' : 'admin.p11.tpl.saved'));
       setEditing(null);
+      void qc.invalidateQueries({ queryKey: qk.moderation.all });
+      void qc.invalidateQueries({ queryKey: qk.reports.templates() });
+    },
+    onError: (e) => toast.error(adminError(i18n, e)),
+  });
+
+  // Tek tıkla aç/kapat: metinler olduğu gibi gönderilir, yalnız durum değişir
+  const toggleActive = useMutation({
+    mutationFn: (r: ReasonTemplateRow) =>
+      modAdminApi.updateReasonTemplate(r.id, {
+        textTr: r.textTr,
+        textEn: r.textEn ?? '',
+        textAr: r.textAr ?? '',
+        active: !r.active,
+        sortOrder: r.sortOrder,
+      }),
+    onSuccess: (_d, r) => {
+      toast.success(gt(r.active ? 'admin.mod1.tpl.toast.off' : 'admin.mod1.tpl.toast.on'));
       void qc.invalidateQueries({ queryKey: qk.moderation.all });
       void qc.invalidateQueries({ queryKey: qk.reports.templates() });
     },
@@ -140,6 +172,14 @@ export default function ReasonTemplatesPage() {
           <Button size="sm" variant="secondary" onClick={() => openEdit(r)}>
             {t('common.edit')}
           </Button>
+          <Button
+            size="sm"
+            variant="ghost"
+            loading={toggleActive.isPending && toggleActive.variables?.id === r.id}
+            onClick={() => toggleActive.mutate(r)}
+          >
+            {gt(r.active ? 'admin.mod1.tpl.turnOff' : 'admin.mod1.tpl.turnOn')}
+          </Button>
           <GuardedAction
             permission="moderation.write"
             size="sm"
@@ -177,23 +217,65 @@ export default function ReasonTemplatesPage() {
       />
       <p className={styles.callout}>{t('admin.p11.tpl.userFacing')}</p>
       {query.data && (
-        <div className={v2.tiles} data-search-anchor="tpl-limit">
-          <ProgressRing
-            value={rows.length}
-            max={max}
-            center={`${rows.length}/${max}`}
-            tone={canAdd ? 'primary' : 'warning'}
-            size={96}
-            thickness={9}
-            label={t('admin.v2m.tpl.ringLabel', { n: String(max - rows.length) })}
-          />
-        </div>
-      )}
-      {query.data && (
-        <p className={styles.meta} aria-live="polite">
-          {t('admin.p11.tpl.count', { n: rows.length, max })}
-          {!canAdd && <Badge tone="warning">{t('admin.p11.tpl.limit')}</Badge>}
-        </p>
+        <>
+          <div className={v2.tiles} data-search-anchor="tpl-summary">
+            <StatTile
+              label={gt('admin.mod1.tpl.tile.active')}
+              value={stats.active}
+              icon="check"
+              caption={gt('admin.mod1.tpl.tile.activeHint', { total: formatNumber(stats.total) })}
+            />
+            <StatTile
+              label={gt('admin.mod1.tpl.tile.missing')}
+              value={stats.missing}
+              icon="globe"
+              caption={gt('admin.mod1.tpl.tile.missingHint')}
+            />
+          </div>
+          {stats.total > 0 && (
+            <Insight
+              tone={stats.missing > 0 ? 'warn' : 'good'}
+              parts={[
+                stats.missing > 0
+                  ? gt('admin.mod1.tpl.sentenceMissing', { n: formatNumber(stats.missing) })
+                  : gt('admin.mod1.tpl.sentenceOk'),
+              ]}
+            />
+          )}
+          <div className={q.twoCols}>
+            <section className={q.panel} data-search-anchor="tpl-langs" aria-label={gt('admin.mod1.tpl.langs.title')}>
+              <h2 className={q.panelTitle}>{gt('admin.mod1.tpl.langs.title')}</h2>
+              <p className={q.sub}>{gt('admin.mod1.tpl.langs.hint')}</p>
+              <ProgressBar showLabel tone="success" value={stats.total} max={Math.max(1, stats.total)} label={gt('admin.mod1.tpl.lang.tr')} />
+              <ProgressBar
+                showLabel
+                tone={stats.en === stats.total ? 'success' : 'warning'}
+                value={stats.en}
+                max={Math.max(1, stats.total)}
+                label={gt('admin.mod1.tpl.lang.en')}
+              />
+              <ProgressBar
+                showLabel
+                tone={stats.ar === stats.total ? 'success' : 'warning'}
+                value={stats.ar}
+                max={Math.max(1, stats.total)}
+                label={gt('admin.mod1.tpl.lang.ar')}
+              />
+            </section>
+            <section className={q.panel} data-search-anchor="tpl-limit" aria-label={gt('admin.mod1.tpl.cap.title')}>
+              <h2 className={q.panelTitle}>{gt('admin.mod1.tpl.cap.title')}</h2>
+              <p className={q.sub}>{gt('admin.mod1.tpl.cap.hint', { left: formatNumber(Math.max(0, max - rows.length)) })}</p>
+              <ProgressBar
+                showLabel
+                tone={canAdd ? (rows.length / max >= 0.8 ? 'warning' : 'info') : 'danger'}
+                value={rows.length}
+                max={max}
+                label={t('admin.p11.tpl.count', { n: rows.length, max })}
+              />
+              {!canAdd && <Badge tone="warning">{t('admin.p11.tpl.limit')}</Badge>}
+            </section>
+          </div>
+        </>
       )}
       {query.isError ? (
         <ErrorState onRetry={() => void query.refetch()} description={adminError(i18n, query.error)} />

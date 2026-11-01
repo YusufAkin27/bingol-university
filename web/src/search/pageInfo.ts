@@ -33,15 +33,15 @@ export const pageInfo: Record<string, PageInfo> = {
   },
   suspensions: {
     d: 'Sistemin askıya alınmasını önerdiği hesaplar.',
-    k: ['hesap dondur', 'askıya al', 'ban önerisi', 'uzaklaştır', 'şüpheli hesap'],
+    k: ['hesap dondur', 'askıya al', 'ban önerisi', 'uzaklaştır', 'şüpheli hesap', 'kuyruk', 'bekleyen hesap', 'toplu askı', 'kısayol'],
   },
   appeals: {
     d: 'Kısıtlanan kullanıcıların kararı yeniden istemesi.',
-    k: ['itiraz', 'şikayet karar', 'kararı geri al', 'yeniden inceleme', 'af'],
+    k: ['itiraz', 'şikayet karar', 'kararı geri al', 'yeniden inceleme', 'af', 'kuyruk', 'bekleyen itiraz', 'toplu karar', 'kısayol', 'itiraz yaşı'],
   },
   accessBans: {
     d: 'IP, cihaz ya da ağ bazlı erişim yasakları.',
-    k: ['ip engelle', 'yasakla', 'ban', 'vpn', 'cihaz engeli', 'erişimi kapat', 'kara liste', 'engellenen ip'],
+    k: ['ip engelle', 'yasakla', 'ban', 'vpn', 'cihaz engeli', 'erişimi kapat', 'kara liste', 'engellenen ip', 'engel temizliği', 'süresi dolan engel', 'toplu kaldır'],
   },
   reports: {
     d: 'Kullanıcıların bildirdiği uygunsuz içerikler.',
@@ -61,23 +61,23 @@ export const pageInfo: Record<string, PageInfo> = {
   },
   blocklist: {
     d: 'Bu görsellerin yüklenmesi engellenir.',
-    k: ['yasaklı resim', 'engelli görsel', 'görsel kara liste', 'hash', 'zararlı resim', 'uygunsuz foto'],
+    k: ['yasaklı resim', 'engelli görsel', 'görsel kara liste', 'hash', 'zararlı resim', 'uygunsuz foto', 'toplu kaldır', 'hash ara'],
   },
   strikes: {
     d: 'Kullanıcılara verilen uyarı ve ihlal puanları.',
-    k: ['uyarı', 'ceza', 'ihlal puanı', 'sicil', 'strike', 'kural ihlali'],
+    k: ['uyarı', 'ceza', 'ihlal puanı', 'sicil', 'strike', 'kural ihlali', 'toplu af', 'askı eşiği', 'ihlal grafiği'],
   },
   hiddenContent: {
     d: 'Yöneticilerin gizlediği içerikler; geri açılabilir.',
-    k: ['gizlenen', 'kaldırılan içerik', 'gizlenmiş paylaşım', 'geri aç', 'görünmez'],
+    k: ['gizlenen', 'kaldırılan içerik', 'gizlenmiş paylaşım', 'geri aç', 'görünmez', 'toplu geri al', 'silinmeye yakın', 'gizleme yaşı'],
   },
   reasonTemplates: {
     d: 'Karar verirken seçilen hazır gerekçe metinleri.',
-    k: ['hazır metin', 'gerekçe', 'şablon', 'ret sebebi', 'sebep listesi', 'karar sebebi'],
+    k: ['hazır metin', 'gerekçe', 'şablon', 'ret sebebi', 'sebep listesi', 'karar sebebi', 'dil kapsamı', 'çeviri eksik'],
   },
   profanity: {
     d: 'Küfür ve uygunsuz sözcük listesi; yazılınca engellenir.',
-    k: ['küfür', 'argo', 'yasaklı kelime', 'kelime filtresi', 'hakaret', 'sansür', 'kötü söz', 'kara liste kelime'],
+    k: ['küfür', 'argo', 'yasaklı kelime', 'kelime filtresi', 'hakaret', 'sansür', 'kötü söz', 'kara liste kelime', 'toplu sil', 'kategori', 'kısayol'],
   },
   communities: {
     d: 'Kulüpleri onayla, düzenle, kapat ya da yönetici ata.',
