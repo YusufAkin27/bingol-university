@@ -105,6 +105,18 @@ public class FakeRedis {
             }
             return n;
         });
+        org.mockito.Mockito.doAnswer(i -> {
+            String from = i.getArgument(0);
+            String to = i.getArgument(1);
+            if (sets.containsKey(from)) {
+                sets.put(to, sets.remove(from));
+            } else if (values.containsKey(from)) {
+                values.put(to, values.remove(from));
+            } else {
+                throw new org.springframework.data.redis.RedisSystemException("ERR no such key", null);
+            }
+            return null;
+        }).when(template).rename(anyString(), anyString());
         when(template.expire(anyString(), any(Duration.class))).thenReturn(true);
         when(template.getExpire(anyString())).thenReturn(600L);
     }

@@ -8,6 +8,7 @@ import edu.bingol.backend.auth.dto.UserView;
 import edu.bingol.backend.auth.jwt.JwtService;
 import edu.bingol.backend.auth.token.PendingRegistrationStore;
 import edu.bingol.backend.auth.token.PendingRegistrationStore.Pending;
+import edu.bingol.backend.auth.token.MilliTick;
 import edu.bingol.backend.auth.token.RefreshTokenService;
 import edu.bingol.backend.auth.token.SessionService;
 import edu.bingol.backend.auth.token.VerificationService;
@@ -310,6 +311,9 @@ public class AuthService {
         if (!verification.consumeResetToken(email, resetToken)) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "INVALID_CODE", "Kod geçersiz veya süresi dolmuş.");
         }
+        // Iptal isareti DB kaydindan ONCE (FIX-P02/A01#12): kayittan sonra Redis kesilirse parola degismis ama calinmis
+        // access token'lar acik kalirdi; isaret onceden yazilirsa o pencere kapanir.
+        sessions.markPasswordChanged(user.getId());
         user.setPasswordHash(encoder.encode(newPassword));
         users.save(user);
         // Sifre degisince calinmis olabilecek tum oturumlar (refresh + access) kapanir.
@@ -342,16 +346,13 @@ public class AuthService {
         }
         PasswordPolicy.require(newPassword, minPasswordFor(isAdminAccount(user)),
                 new PasswordPolicy.Context(user.getEmail(), user.getDisplayName()));
+        sessions.markPasswordChanged(userId); // isaret DB kaydindan once (bkz. resetPassword)
         user.setPasswordHash(encoder.encode(newPassword));
         users.save(user);
         sessions.revokeAll(userId);
         clearTrustedDevices(userId); // 2FA: sifre degisince guvenilen cihazlar da gecersiz
         // Iptal isareti `iatms <= isaret` token'lari reddeder: yeni token'in iatms'i kesin buyuk olsun.
-        try {
-            Thread.sleep(1);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        }
+        MilliTick.awaitNext();
         notifyPasswordChanged(user);
         return tokens(user, client);
     }
@@ -395,6 +396,11 @@ public class AuthService {
         Pending p = pending.find(email);
         User existing = users.findByEmail(email).orElse(null);
         if (p == null || (existing != null && existing.isEmailVerified())) {
+            // Zamanlama yan kanali (FIX-P02/A01#15): bekleyen kayit VARSA asagida bcrypt calisir; yoksa da ayni maliyet
+            // odenir, boylece yanit suresinden bekleyen kayit varligi sezilmez.
+            if (password != null && fitsBcrypt(password)) {
+                encoder.matches(password, dummyHash);
+            }
             throw invalidCode();
         }
         if (password != null || verifyRequiresPassword) {
@@ -553,11 +559,7 @@ public class AuthService {
     public TokenResponse reissueTokens(Long userId, String client) {
         User user = users.findById(userId).filter(User::isActive)
                 .orElseThrow(() -> new ApiException(HttpStatus.UNAUTHORIZED, "UNAUTHORIZED", "Oturum geçersiz."));
-        try {
-            Thread.sleep(1);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        }
+        MilliTick.awaitNext();
         return tokens(user, client);
     }
 
@@ -574,6 +576,18 @@ public class AuthService {
             if (again != null) {
                 return again;
             }
+            if (refresh.rotationInProgress(refreshToken)) {
+                // Es zamanli ikinci istek (FIX-P02/K1): ilk istek yeni cifti yaziyor olabilir. Kisa bekleyip kaydi oku;
+                // yine yoksa 401 (istemci "oturum bitti" sanip cikis yapar) yerine 409 + Retry-After: istemci tekrar dener.
+                for (int i = 0; i < REPLAY_WAIT_TRIES; i++) {
+                    sleepQuietly(REPLAY_WAIT_MS);
+                    again = replayRotation(refreshToken);
+                    if (again != null) {
+                        return again;
+                    }
+                }
+                throw new RefreshInProgressException();
+            }
             if (refresh.wasRevoked(refreshToken)) {
                 // Askiya alma da oturumlari iptal eder: "baska cihazdan giris" yaniltmasi yerine gercek neden (A11-07).
                 Long owner = refresh.revokedOwner(refreshToken);
@@ -585,12 +599,20 @@ public class AuthService {
                         "Hesabınıza başka bir cihazdan giriş yapıldı.");
             }
             // Tuketilmis token tekrar sunuldu (toleransin otesinde): zincirin bir kopyasi calinmis olabilir;
-            // hangisinin gercek oldugu bilinemez, kullanicinin tum oturumlari kapanir.
-            OptionalLong reused = refresh.detectReuse(refreshToken);
-            if (reused != null && reused.isPresent()) {
-                log.warn("Refresh token yeniden kullanimi tespit edildi (user {}): tum oturumlar kapatiliyor",
-                        reused.getAsLong());
-                sessions.revokeAll(reused.getAsLong());
+            // hangisinin gercek oldugu bilinemez. Kullanici karari (FIX-P02/K1): YALNIZ bu oturum ailesi kapanir,
+            // kullanicinin diger cihazlari/girisleri acik kalir. Aile bilinmiyorsa (eski kayit) guvenli tarafta kalinir.
+            java.util.Optional<RefreshTokenService.Reuse> reused = refresh.findReuse(refreshToken);
+            if (reused.isPresent()) {
+                RefreshTokenService.Reuse r = reused.get();
+                if (r.familyKnown()) {
+                    int n = refresh.revokeFamily(r.userId(), r.client(), r.authTimeMs());
+                    log.warn("Refresh token yeniden kullanimi tespit edildi (user {}): oturum ailesi kapatildi ({} token)",
+                            r.userId(), n);
+                } else {
+                    log.warn("Refresh token yeniden kullanimi tespit edildi (user {}, aile bilinmiyor): tum oturumlar kapatiliyor",
+                            r.userId());
+                    sessions.revokeAll(r.userId());
+                }
             }
             throw invalidRefresh();
         }
@@ -616,6 +638,17 @@ public class AuthService {
         refresh.rememberRotation(refreshToken, next.accessToken() + "\n" + next.refreshToken() + "\n"
                 + next.expiresInSeconds() + "\n" + next.tokenType());
         return next;
+    }
+
+    private static final int REPLAY_WAIT_TRIES = 2;
+    private static final long REPLAY_WAIT_MS = 150;
+
+    private static void sleepQuietly(long ms) {
+        try {
+            Thread.sleep(ms);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
     }
 
     /** Kayitli rotasyon sonucunu (bkz. RefreshTokenService.rememberRotation) cozer; yoksa/gecersizse null. */

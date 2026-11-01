@@ -7,6 +7,7 @@ import edu.bingol.backend.config.JwtProperties;
 import java.security.SecureRandom;
 import java.time.Duration;
 import java.util.Base64;
+import java.util.Optional;
 import java.util.OptionalLong;
 import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,7 +34,12 @@ public class RefreshTokenService {
     private static final String USED_PREFIX = "rtused:";
     /** Rotasyon kaydi (T-007): eski token ozeti -> SIFRELI yeni cift; kaybolan yanit yeniden denemesi ayni cifti alir. */
     private static final String NEXT_PREFIX = "rtnext:";
-    static final Duration NEXT_TTL = Duration.ofSeconds(45);
+    static final Duration MAX_REUSE_WINDOW = Duration.ofMinutes(60);
+    /**
+     * Kaybolan yanit icin yeniden deneme penceresi (FIX-P02/K1): eskiden 45 sn; mobilde arka plan/tunel donusleri bunu
+     * asiyor ve calinti sanilip oturum kapaniyordu. Kayit AES-GCM ile ESKI token'a bagli oldugundan uzamasi guvenli.
+     */
+    static final Duration NEXT_TTL = Duration.ofMinutes(5);
 
     /** Tuketilen refresh token'in sahibi, istemci turu ve oturumun ilk giris ani (ms; 0 = eski token, bilinmiyor). */
     public record Session(Long userId, String client, long authTimeMs) {
@@ -41,6 +47,18 @@ public class RefreshTokenService {
             this(userId, client, 0L);
         }
     }
+
+    /**
+     * Yeniden kullanilan (calinti suphesi) token'in ait oldugu OTURUM AILESI: ayni giriste (authTimeMs) rotasyonla
+     * uretilmis zincir. authTimeMs &lt;= 0 ise aile bilinmiyor (eski kayit).
+     */
+    public record Reuse(long userId, String client, long authTimeMs) {
+        public boolean familyKnown() {
+            return authTimeMs > 0;
+        }
+    }
+
+    private record UsedMark(long owner, long usedAt, String client, long authTimeMs) {}
 
     private final StringRedisTemplate redis;
     private final Duration ttl;
@@ -50,7 +68,7 @@ public class RefreshTokenService {
     private final SecureRandom random = new SecureRandom();
 
     public RefreshTokenService(StringRedisTemplate redis, JwtProperties props) {
-        this(redis, props, new AuthProperties(Duration.ofHours(72), 90, Duration.ofHours(6), Duration.ofSeconds(10)));
+        this(redis, props, new AuthProperties(Duration.ofHours(72), 90, Duration.ofMinutes(60), Duration.ofSeconds(10)));
     }
 
     @Autowired
@@ -58,7 +76,10 @@ public class RefreshTokenService {
         this.redis = redis;
         this.ttl = Duration.ofDays(props.refreshTtlDays());
         this.sessionMax = Duration.ofDays(Math.max(1, auth.sessionMaxDays()));
-        this.reuseWindow = auth.refreshReuseWindow();
+        // `rtused:` anahtari rotasyon basina bir kayit: 6 sa Redis bellegini (maxmemory 200mb) yiyordu (FIX-P02/A01#6);
+        // calinti tespiti icin 60 dk yeter. Ayarin kendisi (AuthProperties, P10) daha buyukse burada kirpilir.
+        this.reuseWindow = auth.refreshReuseWindow().compareTo(MAX_REUSE_WINDOW) > 0 ? MAX_REUSE_WINDOW
+                : auth.refreshReuseWindow();
         this.reuseGrace = auth.refreshReuseGrace();
     }
 
@@ -112,32 +133,96 @@ public class RefreshTokenService {
         String[] p = v.split(":", 3);
         Long userId = Long.valueOf(p[0]);
         redis.opsForSet().remove(userKey(userId), hash);
+        String client = p.length < 2 ? WEB : normalizeClient(p[1]);
+        long authTime = p.length < 3 ? 0L : parseLong(p[2]);
         if (markUsed) {
-            redis.opsForValue().set(USED_PREFIX + hash, userId + ":" + System.currentTimeMillis(), reuseWindow);
+            // Deger: sahip:tuketimAni:istemci:girisAni (aile kimligi = girisAni; yeniden kullanimda yalniz o aile kapanir)
+            redis.opsForValue().set(USED_PREFIX + hash,
+                    userId + ":" + System.currentTimeMillis() + ":" + client + ":" + authTime, reuseWindow);
         }
-        return new Session(userId, p.length < 2 ? WEB : normalizeClient(p[1]), p.length < 3 ? 0L : parseLong(p[2]));
+        return new Session(userId, client, authTime);
     }
 
     /**
      * Zaten tuketilmis bir refresh token yeniden sunuldu mu (calinma/yeniden oynatma)? Sahibin id'sini doner; tuketim
-     * toleransin icindeyse (kaybolan yanit/ag yeniden denemesi) veya isaret yoksa bos. Cagiran tum oturumlari
-     * kapatmalidir (bir kopyayi saldirgan kullanmis olabilir).
+     * toleransin icindeyse (kaybolan yanit/ag yeniden denemesi) veya isaret yoksa bos.
      */
     public OptionalLong detectReuse(String token) {
+        return findReuse(token).map(r -> OptionalLong.of(r.userId())).orElse(OptionalLong.empty());
+    }
+
+    /**
+     * {@link #detectReuse} ile ayni ama oturum ailesini de doner: cagiran YALNIZ o aileyi kapatir
+     * ({@link #revokeFamily}); kullanicinin diger cihazlari etkilenmez (FIX-P02/K1).
+     */
+    public Optional<Reuse> findReuse(String token) {
+        UsedMark m = usedMark(token);
+        if (m == null || System.currentTimeMillis() - m.usedAt() < reuseGrace.toMillis()) {
+            return Optional.empty();
+        }
+        return Optional.of(new Reuse(m.owner(), m.client(), m.authTimeMs()));
+    }
+
+    /**
+     * Token az once tuketildi (tolerans penceresi icinde) ama rotasyon kaydi bulunamadi mi? Es zamanli ikinci istek:
+     * ilk istek yeni cifti henuz yaziyor olabilir; cagiran kisa bekleyip yeniden dener ya da 409 ile "tekrar dene" der.
+     */
+    public boolean rotationInProgress(String token) {
+        UsedMark m = usedMark(token);
+        if (m == null || System.currentTimeMillis() - m.usedAt() >= reuseGrace.toMillis()) {
+            return false;
+        }
+        // Rotasyon kaydi VARSA ama cift artik gecerli degilse (istemci yeni cifti alip yeniden dondurdu) is "suruyor"
+        // degil, bitmis: cagiran 401 doner, istemci sonsuz 409 dongusune girmez.
+        return !Boolean.TRUE.equals(redis.hasKey(NEXT_PREFIX + Hashing.sha256(token)));
+    }
+
+    private UsedMark usedMark(String token) {
         String v = redis.opsForValue().get(USED_PREFIX + Hashing.sha256(token));
         if (v == null) {
-            return OptionalLong.empty();
+            return null;
         }
-        int i = v.indexOf(':');
-        if (i < 0) {
-            return OptionalLong.empty();
+        String[] f = v.split(":", 4);
+        long owner = parseLong(f[0]);
+        if (f.length < 2 || owner <= 0) {
+            return null;
         }
-        long usedAt = parseLong(v.substring(i + 1));
-        long owner = parseLong(v.substring(0, i));
-        if (owner <= 0 || System.currentTimeMillis() - usedAt < reuseGrace.toMillis()) {
-            return OptionalLong.empty();
+        return new UsedMark(owner, parseLong(f[1]), f.length < 3 ? WEB : normalizeClient(f[2]),
+                f.length < 4 ? 0L : parseLong(f[3]));
+    }
+
+    /**
+     * Tek bir OTURUM AILESINI (ayni giriste, authTimeMs'de, acilmis zincir) kapatir: ailenin canli refresh token'i
+     * silinir ve mezar tasi birakilir. Kullanicinin diger cihazlari/girisleri etkilenmez. Access token'lar kendi
+     * omruyle (en cok 15 dk) biter. Silinen token sayisini doner.
+     */
+    public int revokeFamily(Long userId, String client, long authTimeMs) {
+        if (authTimeMs <= 0) {
+            return 0;
         }
-        return OptionalLong.of(owner);
+        String want = normalizeClient(client);
+        Set<String> hashes = redis.opsForSet().members(userKey(userId));
+        int n = 0;
+        if (hashes == null) {
+            return 0;
+        }
+        for (String h : hashes) {
+            String v = redis.opsForValue().get(TOKEN_PREFIX + h);
+            if (v == null) {
+                redis.opsForSet().remove(userKey(userId), h); // suresi dolmus
+                continue;
+            }
+            String[] parts = v.split(":", 3);
+            String c = parts.length < 2 ? WEB : normalizeClient(parts[1]);
+            long auth = parts.length < 3 ? 0L : parseLong(parts[2]);
+            if (auth == authTimeMs && c.equals(want)) {
+                redis.delete(TOKEN_PREFIX + h);
+                redis.opsForSet().remove(userKey(userId), h);
+                tombstone(h, userId);
+                n++;
+            }
+        }
+        return n;
     }
 
     /**
@@ -256,7 +341,21 @@ public class RefreshTokenService {
 
     /** Kullanicinin tum refresh token'larini siler (sifre degisimi, "tum cihazlardan cik"); silinen sayisini doner. */
     public int revokeAll(Long userId) {
-        Set<String> hashes = redis.opsForSet().members(userKey(userId));
+        // Dizin once ATOMIK olarak yan anahtara alinir (FIX-P02/A01#10): okuma ile silme arasinda issue()'nun SADD'ledigi
+        // yeni token dizinden dusmez (yeni kume olusur, sonraki iptalde bulunur).
+        String work = userKey(userId) + ":revoking";
+        Set<String> hashes = null;
+        if (Boolean.TRUE.equals(redis.hasKey(userKey(userId)))) {
+            try {
+                redis.rename(userKey(userId), work);
+                hashes = redis.opsForSet().members(work);
+            } catch (org.springframework.dao.DataAccessException e) {
+                if (!isNoSuchKey(e)) {
+                    throw e;
+                }
+                // hasKey ile rename arasinda baska iptal anahtari aldi: yapacak is kalmadi
+            }
+        }
         int n = 0;
         if (hashes != null && !hashes.isEmpty()) {
             redis.delete(hashes.stream().map(h -> TOKEN_PREFIX + h).toList());
@@ -265,8 +364,18 @@ public class RefreshTokenService {
             }
             n = hashes.size();
         }
-        redis.delete(userKey(userId));
+        redis.delete(work);
         return n;
+    }
+
+    private static boolean isNoSuchKey(Throwable e) {
+        for (Throwable t = e; t != null; t = t.getCause()) {
+            String m = t.getMessage();
+            if (m != null && m.toLowerCase(java.util.Locale.ROOT).contains("no such key")) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /** Yalniz verilen istemci turundeki refresh token'lari siler; silinen sayisini doner. */

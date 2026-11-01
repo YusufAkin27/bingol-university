@@ -67,12 +67,15 @@ class RefreshTokenServiceTest {
 
     @Test
     void revokeAllDeletesEveryTokenAndTheIndex() {
-        when(sets.members("rtu:7")).thenReturn(Set.of("h1"));
+        when(redis.hasKey("rtu:7")).thenReturn(true);
+        when(sets.members("rtu:7:revoking")).thenReturn(Set.of("h1"));
 
         service.revokeAll(7L);
 
+        // dizin once atomik yan anahtara alinir (okuma ile silme arasinda eklenen token dusmesin)
+        verify(redis).rename("rtu:7", "rtu:7:revoking");
         verify(redis).delete(List.of("rt:h1"));
-        verify(redis).delete("rtu:7");
+        verify(redis).delete("rtu:7:revoking");
         // iptal edilen token mezar tasi birakir
         verify(values).set(org.mockito.ArgumentMatchers.eq("rtx:h1"), org.mockito.ArgumentMatchers.eq("7"),
                 any(Duration.class));
@@ -136,11 +139,67 @@ class RefreshTokenServiceTest {
     }
 
     @Test
-    void revokeAllWithoutSessionsOnlyClearsIndex() {
-        service.revokeAll(7L);
+    void revokeAllWithoutSessionsDoesNotRenameAnything() {
+        assertEquals(0, service.revokeAll(7L));
 
-        verify(redis).delete("rtu:7");
+        verify(redis, org.mockito.Mockito.never()).rename(org.mockito.ArgumentMatchers.anyString(),
+                org.mockito.ArgumentMatchers.anyString());
         verify(redis, org.mockito.Mockito.never()).delete(org.mockito.ArgumentMatchers.<java.util.Collection<String>>any());
+    }
+
+    @Test
+    void revokeAllSurvivesTheRaceWhereTheIndexVanishedBetweenHasKeyAndRename() {
+        when(redis.hasKey("rtu:7")).thenReturn(true);
+        org.mockito.Mockito.doThrow(new org.springframework.data.redis.RedisSystemException("ERR no such key", null))
+                .when(redis).rename("rtu:7", "rtu:7:revoking");
+
+        assertEquals(0, service.revokeAll(7L));
+    }
+
+    @Test
+    void revokeFamilyClosesOnlyTheTokenOfThatLoginAndClient() {
+        when(sets.members("rtu:7")).thenReturn(Set.of("fam", "otherLogin", "otherClient", "gone"));
+        when(values.get("rt:fam")).thenReturn("7:mobile:1000");
+        when(values.get("rt:otherLogin")).thenReturn("7:mobile:2000");
+        when(values.get("rt:otherClient")).thenReturn("7:web:1000");
+        when(values.get("rt:gone")).thenReturn(null);
+
+        assertEquals(1, service.revokeFamily(7L, "mobile", 1000L));
+
+        verify(redis).delete("rt:fam");
+        verify(redis, org.mockito.Mockito.never()).delete("rt:otherLogin");
+        verify(redis, org.mockito.Mockito.never()).delete("rt:otherClient");
+        verify(values).set(org.mockito.ArgumentMatchers.eq("rtx:fam"), org.mockito.ArgumentMatchers.eq("7"),
+                any(Duration.class));
+        assertEquals(0, service.revokeFamily(7L, "mobile", 0L)); // aile bilinmiyorsa dokunulmaz
+    }
+
+    @Test
+    void usedMarkerCarriesClientAndAuthTimeAsFamilyId() {
+        when(values.getAndDelete("rt:" + Hashing.sha256("tok"))).thenReturn("7:mobile:123456");
+
+        service.consumeSession("tok");
+
+        verify(values).set(org.mockito.ArgumentMatchers.eq("rtused:" + Hashing.sha256("tok")),
+                org.mockito.ArgumentMatchers.matches("7:\\d+:mobile:123456"), any(Duration.class));
+    }
+
+    @Test
+    void findReuseReturnsTheFamilyAndRotationInProgressIgnoresFinishedRotations() {
+        long longAgo = System.currentTimeMillis() - 60_000;
+        when(values.get("rtused:" + Hashing.sha256("old"))).thenReturn("7:" + longAgo + ":mobile:555");
+        String freshHash = Hashing.sha256("fresh");
+        when(values.get("rtused:" + freshHash)).thenReturn("7:" + System.currentTimeMillis() + ":web:9");
+
+        RefreshTokenService.Reuse r = service.findReuse("old").orElseThrow();
+        assertEquals(new RefreshTokenService.Reuse(7L, "mobile", 555L), r);
+        org.junit.jupiter.api.Assertions.assertTrue(service.findReuse("fresh").isEmpty());
+
+        // tolerans icinde ve rotasyon kaydi yok -> "suruyor"; kayit varsa (cift baska yere gitti) suruyor degil
+        org.junit.jupiter.api.Assertions.assertTrue(service.rotationInProgress("fresh"));
+        when(redis.hasKey("rtnext:" + freshHash)).thenReturn(true);
+        org.junit.jupiter.api.Assertions.assertFalse(service.rotationInProgress("fresh"));
+        org.junit.jupiter.api.Assertions.assertFalse(service.rotationInProgress("old"));
     }
 
     @Test

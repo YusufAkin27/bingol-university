@@ -84,6 +84,8 @@ POST /api/auth/refresh   {"refreshToken":"cn219..."}   → 200 yeni TokenRespons
 ```
 `401 INVALID_REFRESH_TOKEN`: refresh token geçersiz/kullanılmış/süresi dolmuş, hesap pasif → **oturumu bitir, giriş ekranına dön**.
 
+**`409 REFRESH_IN_PROGRESS` + `Retry-After: 1` (FIX-P02/K1):** aynı refresh token ile eşzamanlı ikinci istek geldiğinde (iki sekme, ön plan + arka plan) ve ilk istek yeni çifti henüz yazmadıysa sunucu önce ~300 ms bekler, hâlâ yoksa 401 yerine **409** döner. Bu bir hata değil "tekrar dene"dir: **oturumu kapatmayın**, `Retry-After` kadar (1 sn) sonra AYNI refresh token ile yeniden deneyin; ilk istek bitince aynı yeni çifti alırsınız. Yanıt kaybolduysa aynı eski token ile yeniden deneme **5 dakika** boyunca (eskiden 45 sn) aynı çifti verir. Çalıntı/yeniden kullanım şüphesinde (tolerans dışı eski token) artık yalnız **o oturum ailesi** (aynı girişin zinciri) kapanır; kullanıcının diğer cihazları açık kalır.
+
 **Refresh token tek kullanımlık olduğundan eşzamanlı iki yenileme isteğinden biri 401 alır ve kullanıcı yanlışlıkla oturumdan atılır.** Bu yüzden uygulamada refresh'i tek bir yerden, tek uçuşta yapın (HTTP istemcisi, WebSocket ve arka plan işleri aynı kilidi paylaşır):
 
 ```dart
