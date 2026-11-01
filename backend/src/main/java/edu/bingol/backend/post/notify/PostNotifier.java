@@ -65,6 +65,10 @@ public class PostNotifier {
             if (!shouldNotify(actorId, postAuthorId)) {
                 return;
             }
+            // A06#11: begen/begenme/begen tekrarlari ("X ve 59 kisi begendi") grup sayacini sisirmesin
+            if (!firstLikeInWindow(actorId, postId)) {
+                return;
+            }
             String key = "postlike:" + postId + ":" + (clock.instant().getEpochSecond() / WINDOW_SECONDS);
             int others = notificationRows.findFirstByUserIdAndCollapseKeyAndReadAtIsNullOrderByIdDesc(postAuthorId, key)
                     .map(Notification::getGroupCount).orElse(0);
@@ -145,6 +149,31 @@ public class PostNotifier {
                     i18n.msg("notif.follow.accepted.body", lang, actorName(accepterId)), d);
         } catch (RuntimeException e) {
             log.warn("Takip kabul bildirimi gonderilemedi (kullanici {}): {}", requesterId, e.toString());
+        }
+    }
+
+    /** Aynı (kişi, gönderi) çiftine {@link #LIKE_DEDUPE_SECONDS} içinde ikinci beğeni bildirimi gitmez. */
+    static final long LIKE_DEDUPE_SECONDS = 600;
+    private static final int LIKE_DEDUPE_MAX = 20_000;
+
+    /** (kişi, gönderi) → bildirimin yeniden gönderilebileceği an (epoch sn); sınırlı LRU, örneğe özel (en iyi çaba). */
+    private final Map<String, Long> likeSeen = new LinkedHashMap<>(256, 0.75f, true) {
+        @Override
+        protected boolean removeEldestEntry(Map.Entry<String, Long> eldest) {
+            return size() > LIKE_DEDUPE_MAX;
+        }
+    };
+
+    private boolean firstLikeInWindow(Long actorId, Long postId) {
+        long nowS = clock.instant().getEpochSecond();
+        String k = actorId + ":" + postId;
+        synchronized (likeSeen) {
+            Long until = likeSeen.get(k);
+            if (until != null && until > nowS) {
+                return false;
+            }
+            likeSeen.put(k, nowS + LIKE_DEDUPE_SECONDS);
+            return true;
         }
     }
 

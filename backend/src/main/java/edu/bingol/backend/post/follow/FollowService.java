@@ -122,6 +122,22 @@ public class FollowService {
         this.requests = requests;
     }
 
+    /** Bildirim yurutucusu (A06#10; setter: kurucu imzasi degismesin; yoksa bildirim ayni iplikte gonderilir). */
+    private edu.bingol.backend.post.notify.NotifyDispatcher dispatcher;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setDispatcher(edu.bingol.backend.post.notify.NotifyDispatcher dispatcher) {
+        this.dispatcher = dispatcher;
+    }
+
+    private void notifyLater(Runnable r) {
+        if (dispatcher != null) {
+            dispatcher.run(r);
+        } else {
+            r.run();
+        }
+    }
+
     // ---------------------------------------------------------------- takip et / birak
 
     /**
@@ -152,12 +168,12 @@ public class FollowService {
             if (requests != null) {
                 requests.withdraw(me, target); // hesap araya acildiysa eski istek kalintisi
             }
-            afterCommit(() -> {
+            afterCommit(() -> notifyLater(() -> {
                 PostNotifier pn = notifier.getIfAvailable();
                 if (pn != null) {
                     pn.onFollow(me, target);
                 }
-            });
+            }));
         }
         return new FollowResult(true, followerCount(target));
     }

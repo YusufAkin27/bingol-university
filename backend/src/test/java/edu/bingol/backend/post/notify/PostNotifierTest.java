@@ -110,6 +110,27 @@ class PostNotifierTest {
         assertEquals("notif.post.like.many.body|Ayse|2", body.getValue());
     }
 
+    /** A06#11: ayni kisinin begen/begenme/begen tekrari 10 dk icinde ikinci bildirim uretmez. */
+    @Test
+    void repeatedLikeBySamePersonOnSamePostIsNotifiedOnlyOncePerWindow() {
+        notifier.onLike(2L, 50L, 1L);
+        notifier.onLike(2L, 50L, 1L);
+        now = now.plusSeconds(300);
+        notifier.onLike(2L, 50L, 1L);
+        verify(notifications, times(1)).send(eq(1L), any(NotificationType.class), any(NotificationSubtype.class),
+                anyString(), anyString(), anyString(), anyMap());
+
+        notifier.onLike(2L, 51L, 1L); // baska gonderi: bildirilir
+        notifier.onLike(3L, 50L, 1L); // baska kisi: bildirilir
+        verify(notifications, times(3)).send(eq(1L), any(NotificationType.class), any(NotificationSubtype.class),
+                anyString(), anyString(), anyString(), anyMap());
+
+        now = now.plusSeconds(601); // pencere doldu
+        notifier.onLike(2L, 50L, 1L);
+        verify(notifications, times(4)).send(eq(1L), any(NotificationType.class), any(NotificationSubtype.class),
+                anyString(), anyString(), anyString(), anyMap());
+    }
+
     @Test
     void collapseKeyChangesAfterTenMinuteWindow() {
         ArgumentCaptor<String> key = ArgumentCaptor.forClass(String.class);
