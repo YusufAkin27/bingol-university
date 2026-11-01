@@ -9,6 +9,7 @@ import { useI18n } from '../../i18n/I18nProvider';
 import { isoDate } from '../../lib/date';
 import { errorMessage } from '../../lib/errors';
 import { AppCallout } from './components/AppCallout';
+import { safeMenuImageUrl } from './components/newsUtils';
 import { PageHero } from './components/PageHero';
 import { usePageMeta } from './components/usePageMeta';
 import shared from './components/site.module.css';
@@ -61,6 +62,27 @@ function DayMenu({ day, compact = false }: { day: ParsedDay; compact?: boolean }
   );
 }
 
+/** Günün menü fotoğrafı (16:9). Yüklenemezse hiçbir şey çizilmez (yer tutucu yok). */
+function MenuPhoto({ src, date }: { src: string; date: string }) {
+  const { t, formatDate } = useI18n();
+  const [failed, setFailed] = useState(false);
+  // başka güne geçince (başka adres) önceki hata sıfırlanır
+  useEffect(() => setFailed(false), [src]);
+  if (failed) return null;
+  return (
+    <div className={styles.photo}>
+      <img
+        src={src}
+        alt={t('pg.menu.photoAlt', { date: formatDate(date, { day: 'numeric', month: 'long', year: 'numeric' }) })}
+        loading="lazy"
+        decoding="async"
+        referrerPolicy="no-referrer"
+        onError={() => setFailed(true)}
+      />
+    </div>
+  );
+}
+
 export default function MenuPage() {
   const i18n = useI18n();
   const { t, formatDate } = i18n;
@@ -91,6 +113,15 @@ export default function MenuPage() {
       for (const d of r.data ?? []) {
         const p = parseDay(d.items);
         if (p.dishCount > 0) map.set(d.date, p);
+      }
+    return map;
+  }, [results]);
+  const imageByDate = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const r of results)
+      for (const d of r.data ?? []) {
+        const src = safeMenuImageUrl(d.imageUrl);
+        if (src) map.set(d.date, src);
       }
     return map;
   }, [results]);
@@ -226,6 +257,7 @@ export default function MenuPage() {
           {!loading && !failed && ready && view === 'day' &&
             (current ? (
               <article className={`${styles.card} ${date === today ? styles.cardToday : ''}`}>
+                {imageByDate.has(date) && <MenuPhoto src={imageByDate.get(date) as string} date={date} />}
                 <header className={styles.cardHead}>
                   <div>
                     <p className={styles.cardEyebrow}>

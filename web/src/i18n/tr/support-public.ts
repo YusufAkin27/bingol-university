@@ -22,6 +22,7 @@ const m = {
   'pg.menu.kcal': '{n} kcal',
   'pg.menu.totalKcal': 'Toplam {n} kcal',
   'pg.menu.allergens': 'Alerjen: {list}',
+  'pg.menu.photoAlt': '{date} günü yemek listesi fotoğrafı',
   'pg.menu.itemCount': '{n} çeşit',
   'pg.menu.weekOf': '{from} – {to}',
   'pg.menu.noWeek': 'Bu hafta için menü yok',

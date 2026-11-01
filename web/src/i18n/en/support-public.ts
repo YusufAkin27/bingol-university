@@ -21,6 +21,7 @@ const m = {
   'pg.menu.kcal': '{n} kcal',
   'pg.menu.totalKcal': 'Total {n} kcal',
   'pg.menu.allergens': 'Allergens: {list}',
+  'pg.menu.photoAlt': 'Photo of the menu for {date}',
   'pg.menu.itemCount': '{n} items',
   'pg.menu.weekOf': '{from} – {to}',
   'pg.menu.noWeek': 'No menu for this week',

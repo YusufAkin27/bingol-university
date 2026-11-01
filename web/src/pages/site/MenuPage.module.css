@@ -162,6 +162,18 @@
 .cardToday {
   border-color: var(--primary);
 }
+/* Günün menü fotoğrafı: kartın üstünde 16:9 */
+.photo {
+  aspect-ratio: 16 / 9;
+  background: var(--surface-2);
+  border-block-end: 1px solid var(--border);
+}
+.photo img {
+  display: block;
+  inline-size: 100%;
+  block-size: 100%;
+  object-fit: cover;
+}
 .cardHead {
   display: flex;
   align-items: flex-end;

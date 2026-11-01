@@ -37,7 +37,7 @@ const m = {
     'Ders programı, sınav takvimi, akademik takvim ve bölüm duyuruları; hatırlatmalarla birlikte.',
 
   'site.shot.home.alt': 'BÜ Kampüs Ana Sayfa ekranı: bugünün yemeği, sıradaki ders, hızlı erişim ve günün menüsü.',
-  'site.shot.discover.alt': 'BÜ Kampüs Keşfet ekranı: kampüsten tek fotoğraflı bir gönderi.',
+  'site.shot.discover.alt': 'BÜ Kampüs Keşfet ekranı: iki sütunlu fotoğraf akışı; her kutuda yazar ve beğeni sayısı.',
   'site.shot.chat.alt': 'BÜ Kampüs Sohbet ekranı: tarih ayırıcıları ve mesaj yazma alanı olan bir konuşma.',
   'site.shot.clubs.alt': 'BÜ Kampüs Kulüpler ekranı: kategori çipleri ve katılınabilir kulüp listesi.',
   'site.shot.events.alt': 'BÜ Kampüs Etkinlikler ekranı: aylık takvim ve günün etkinlikleri.',
