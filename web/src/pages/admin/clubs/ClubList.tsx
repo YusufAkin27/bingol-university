@@ -76,6 +76,7 @@ export function ClubList({ onOpen, onOpenQueue }: { onOpen: (id: number) => void
   const columns: Column<ClubRow>[] = [
     {
       key: 'name',
+      width: '14rem',
       header: t('admin.p06.col.name'),
       headerLabel: t('admin.p06.col.name'),
       sortable: true,

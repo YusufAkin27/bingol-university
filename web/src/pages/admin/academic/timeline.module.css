@@ -137,8 +137,9 @@
   transform: translateX(-50%);
   padding: 0 var(--space-2);
   border-radius: var(--radius-pill) var(--radius-pill) 0 0;
-  background: var(--primary);
-  color: var(--on-primary, #fff);
+  /* koyu temada --primary açık kırmızıdır: beyaz yazı AA vermez; AA doğrulanmış hero zemini kullanılır */
+  background: var(--hero, var(--primary));
+  color: #fff;
   font-size: var(--text-xs, 0.75rem);
   font-weight: 700;
   line-height: 1.4;

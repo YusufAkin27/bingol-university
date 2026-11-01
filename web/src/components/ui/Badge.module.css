@@ -10,7 +10,8 @@
   line-height: 1.5;
   /* kısa rozet tek satırda kalır; kapsayıcıdan uzun metin (hata kodu, uzun ad) taşmaz, satıra sarılır */
   max-width: 100%;
-  overflow-wrap: anywhere;
+  /* anywhere değil break-word: en küçük içerik genişliği tam sözcük kalır, tablo sütunu rozeti harf harf sıkıştırmaz */
+  overflow-wrap: break-word;
   text-align: start;
 }
 .dot {

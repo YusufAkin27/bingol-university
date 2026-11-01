@@ -44,6 +44,10 @@
   font-weight: 600;
   overflow-wrap: anywhere;
 }
+/* uzun e-posta/slug satırı kırılsın; yoksa tablo diğer sütunları harf harf daraltır */
+.nameCell > .muted {
+  overflow-wrap: anywhere;
+}
 .badges {
   display: flex;
   flex-wrap: wrap;

@@ -7,7 +7,7 @@ import { test, type Page } from '@playwright/test';
 import { appendFileSync, mkdirSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { join } from 'node:path';
-import { json, pageOverflow } from './mockPanel';
+import { json, pageOverflow, stubPanel } from './mockPanel';
 import { stubCommunity } from './fixtures/community';
 import { stubIletisim } from './fixtures/iletisim';
 import { stubInsan } from './fixtures/insan';
@@ -81,14 +81,14 @@ const PAGES: { id: string; path: string; stub: (p: Page) => Promise<void>; extra
   { id: 'genel-bakis', path: '/admin', stub: (p) => stubInsan(p) },
   { id: 'analitik', path: '/admin/analytics', stub: (p) => stubInsan(p) },
   { id: 'kullanicilar', path: '/admin/users', stub: (p) => stubInsan(p) },
-  { id: 'raporlar', path: '/admin/reports', stub: (p) => stubModeration(p) },
-  { id: 'topluluklar', path: '/admin/communities', stub: (p) => stubCommunity(p) },
-  { id: 'akademik-takvim', path: '/admin/academic/calendar', stub: (p) => stubCommunity(p) },
-  { id: 'menu', path: '/admin/content/menu', stub: (p) => stubCommunity(p) },
-  { id: 'destek-talepleri', path: '/admin/support/tickets', stub: (p) => stubIletisim(p) },
+  { id: 'raporlar', path: '/admin/reports', stub: async (p) => { await stubPanel(p); await stubModeration(p); } },
+  { id: 'topluluklar', path: '/admin/communities', stub: async (p) => { await stubPanel(p); await stubCommunity(p); } },
+  { id: 'akademik-takvim', path: '/admin/academic/calendar', stub: async (p) => { await stubPanel(p); await stubCommunity(p); } },
+  { id: 'menu', path: '/admin/content/menu', stub: async (p) => { await stubPanel(p); await stubCommunity(p); } },
+  { id: 'destek-talepleri', path: '/admin/support/tickets', stub: async (p) => { await stubPanel(p); await stubIletisim(p); } },
   { id: 'sistem-durumu', path: '/admin/system', stub: (p) => stubNotifsys(p) },
   { id: 'yedekleme', path: '/admin/backup', stub: (p) => stubNotifsys(p), extra: true },
-  { id: 'birim-haberleri', path: '/admin/content/unit-news', stub: (p) => stubCommunity(p), extra: true },
+  { id: 'birim-haberleri', path: '/admin/content/unit-news', stub: async (p) => { await stubPanel(p); await stubCommunity(p); }, extra: true },
   { id: 'iki-faktorlu', path: '/admin/two-factor', stub: (p) => stubInsan(p) },
   { id: 'ayarlar', path: '/admin/settings', stub: (p) => stubNotifsys(p) },
   { id: 'denetim-kaydi', path: '/admin/audit', stub: (p) => stubNotifsys(p) },
@@ -113,6 +113,9 @@ for (const theme of ['light', 'dark'] as const) {
           if (pg.extra) await extraLayer(page);
           await page.addInitScript(([t]) => {
             try {
+              sessionStorage.setItem('bu.admin.access', 'a.b.c');
+              sessionStorage.setItem('bu.admin.refresh', 'r1');
+              localStorage.setItem('bu.lang', 'tr');
               localStorage.setItem('bu.theme', t as string);
             } catch {
               /* yok say */

@@ -162,6 +162,7 @@ export default function UsersPage() {
     },
     {
       key: 'faculty',
+      width: '13rem',
       header: t('admin.users.col.faculty'),
       render: (u) => {
         // sınıf ve uygulama dili ayrı sütun yerine ikinci satırda: dar ekranda sütunlar ezilmesin

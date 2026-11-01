@@ -80,13 +80,13 @@ describe('placeEvent', () => {
 describe('layoutBox ve packLanes', () => {
   it('dar çubuğa yazı için yer ayırır, sağ kenara taşırmaz', () => {
     const a = layoutBox(10, 1);
-    expect(a.occ).toBe(16);
+    expect(a.occ).toBe(22);
     expect(a.boxLeft).toBe(10);
     expect(a.alignEnd).toBe(false);
     const b = layoutBox(98, 1);
-    expect(b.boxLeft).toBe(84);
+    expect(b.boxLeft).toBe(78);
     expect(b.alignEnd).toBe(true);
-    expect(b.bandOffset).toBeCloseTo(((98 - 84) / 16) * 100, 5);
+    expect(b.bandOffset).toBeCloseTo(((98 - 78) / 22) * 100, 5);
     const wide = layoutBox(20, 40);
     expect(wide.occ).toBe(40);
     expect(wide.bandWidth).toBe(100);

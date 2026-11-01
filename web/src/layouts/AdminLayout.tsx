@@ -478,6 +478,7 @@ export function AdminLayout() {
             <IconButton
               label={t('admin.kbd.open')}
               aria-haspopup="dialog"
+              className={styles.helpBtn}
               data-search-anchor="shell-help"
               onClick={() => setHelpOpen(true)}
             >

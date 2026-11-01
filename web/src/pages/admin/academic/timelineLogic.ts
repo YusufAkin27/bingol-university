@@ -96,7 +96,7 @@ export function placeEvent(ev: AcademicEvent, win: TimelineWindow): PlacedEvent 
 }
 
 /** Yazı için ayrılan en az genişlik (yüzde): dar çubuğun başlığı sığsın diye paketlemede bu kadar yer tutulur. */
-export const MIN_LABEL_PCT = 16;
+export const MIN_LABEL_PCT = 22;
 
 export interface BoxLayout {
   /** Tıklanabilir kutunun başlangıcı ve genişliği (yüzde); sağ kenara taşmaz. */

@@ -79,7 +79,7 @@ export function Tabs({ tabs, value, onChange, label, children }: TabsProps) {
               id={`${uid}-tab-${t.id}`}
               data-tab={t.id}
               aria-selected={selected}
-              aria-controls={`${uid}-panel`}
+              aria-controls={children !== undefined ? `${uid}-panel` : undefined}
               tabIndex={selected ? 0 : -1}
               disabled={t.disabled}
               className={`${styles.tab} ${selected ? styles.active : ''}`}
