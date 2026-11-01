@@ -90,6 +90,21 @@ class Session extends ChangeNotifier {
   /// ve profil düzenleme fotoğraf değişince günceller; çıkışta temizlenir. Null: fotoğraf yok (varsayılan görsel).
   final avatarUrl = ValueNotifier<String?>(null);
 
+  /// Kullanıcının profildeki bölümü (`GET /users/me` -> `department`); null = yok/boş. Kabuk ve Ana Sayfa bu değeri
+  /// ortaklaşa kullanır (aynı profili iki kez çekmesinler); Ana Sayfa "Bölümümden" şeridi için bölüm var mı diye bakar.
+  /// Profil düzenleme kaydedince, çıkışta ve profil okununca [setDepartment] ile güncellenir.
+  final department = ValueNotifier<String?>(null);
+
+  /// [department] sunucudan okundu mu (false: henüz bilinmiyor).
+  bool departmentKnown = false;
+
+  /// Ham `department` değerini kaydeder (boş/boşluk = yok); değişirse dinleyenler haberdar edilir.
+  void setDepartment(Object? raw) {
+    final v = raw is String && raw.trim().isNotEmpty ? raw.trim() : null;
+    departmentKnown = true;
+    if (department.value != v) department.value = v;
+  }
+
   /// Çıkışta belirteçler silinemediyse bırakılan işaret (bkz. [_persistNow]): sonraki açılışta oturum AÇILMAZ.
   static const _signedOutKey = 'signed_out';
   bool _signedOutMarker = false;
@@ -322,6 +337,8 @@ class Session extends ChangeNotifier {
       displayName = null;
       email = null;
       avatarUrl.value = null;
+      departmentKnown = false;
+      department.value = null;
       _set(SessionState.signedOut); // push yerel temizliği kancadan (token yok: sunucu çağrısı atlanır)
       rootNavigatorKey.currentState?.popUntil((r) => r.isFirst);
     } finally {
@@ -358,6 +375,8 @@ class Session extends ChangeNotifier {
     displayName = null;
     email = null;
     avatarUrl.value = null;
+    departmentKnown = false;
+    department.value = null;
     _set(SessionState.signedOut);
   }
 

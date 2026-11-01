@@ -125,6 +125,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
         // `language` bilerek gönderilmez: PATCH kısmidir; açılış anındaki bayat dil sunucudaki güncel dili ezerdi.
       });
       _saved = true;
+      widget.session.setDepartment(_department); // Ana Sayfa "Bölümümden" şeridi yeni bölüme göre yenilenir
       if (mounted) Navigator.pop(context, true);
     } catch (e) {
       if (mounted) {

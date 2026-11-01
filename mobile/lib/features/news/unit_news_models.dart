@@ -90,12 +90,14 @@ class UnitNewsApi {
 
   final Session session;
 
-  /// Profilde bölüm var mı (`GET /users/me`). Yoksa `/news/unit` hiç çağrılmaz. Okunamazsa false.
+  /// Profilde bölüm var mı. Oturum bölümü zaten biliyorsa (kabuk `GET /users/me` okudu) yeniden sorulmaz; yoksa ya da
+  /// [force] ise `GET /users/me` okunur. Bölüm yoksa `/news/unit` hiç çağrılmaz. Okunamazsa false.
   Future<bool> hasDepartment({bool force = false}) async {
+    if (!force && session.departmentKnown) return session.department.value != null;
     try {
       final me = await session.api.get('/users/me', force: force);
-      final d = me is Map ? me['department'] : null;
-      return d is String && d.trim().isNotEmpty;
+      session.setDepartment(me is Map ? me['department'] : null);
+      return session.department.value != null;
     } catch (_) {
       return false;
     }

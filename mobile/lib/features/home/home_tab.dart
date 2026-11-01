@@ -81,6 +81,7 @@ class _HomeTabState extends State<HomeTab> {
   // "Bölümümden" şeridi: sessiz özellik. Bölüm yoksa / liste boşsa / hata olursa boş kalır ve HİÇBİR şey çizilmez
   // (yükleme sırasında da); veri gelince ana sayfanın en altına eklenir (sayfa zıplamaz).
   List<UnitNewsItem> _unit = const [];
+  bool _unitBusy = false;
 
   /// Kullanıcıya özel yerel düzen (bölüm sırası/görünürlüğü + Hızlı Erişim kısayolları).
   late final HomeLayoutController _layout = HomeLayoutController(uid: widget.session.userId);
@@ -95,12 +96,14 @@ class _HomeTabState extends State<HomeTab> {
   void initState() {
     super.initState();
     _layout.addListener(_onLayout);
+    _s.department.addListener(_onDepartment);
     _boot();
   }
 
   @override
   void dispose() {
     _layout.removeListener(_onLayout);
+    _s.department.removeListener(_onDepartment);
     _layout.dispose();
     super.dispose();
   }
@@ -192,13 +195,24 @@ class _HomeTabState extends State<HomeTab> {
   Future<void> _loadUnitNews(int gen) async {
     final api = UnitNewsApi(_s);
     final force = _force;
+    _unitBusy = true;
     var items = const <UnitNewsItem>[];
-    if (await api.hasDepartment(force: force)) {
-      items = await api.list(force: force);
+    try {
+      if (await api.hasDepartment(force: force)) {
+        items = await api.list(force: force);
+      }
+    } finally {
+      _unitBusy = false;
     }
     if (!mounted || gen != _gen) return;
     if (items.isEmpty && _unit.isEmpty) return; // gereksiz yeniden kurma yok
     setState(() => _unit = items);
+  }
+
+  /// Profilde bölüm değişti (profil düzenleme kaydı ya da kabuğun profil okuması): ilk yükleme bittiyse şerit yenilenir.
+  void _onDepartment() {
+    if (!mounted || _loading || _unitBusy) return;
+    unawaited(_loadUnitNews(_gen));
   }
 
   /// `GET /events/featured`: yaklaşan etkinlikler içinde en çok katılımcılı olan. 204/boş gövde -> null (boş durum).

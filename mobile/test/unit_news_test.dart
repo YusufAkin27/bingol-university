@@ -161,6 +161,33 @@ void main() {
       expect(b.count('/news/unit'), 0);
     });
 
+    testWidgets('oturum bölümü biliyorsa (kabuk okudu) ana sayfa /users/me çekmez', (tester) async {
+      final b = FakeBackend()
+        ..fail('/users/me')
+        ..on('/news/unit?limit=10', [_item(1, 'Kabuktan bilinen')]);
+      final s = makeSession(b)..setDepartment('Bilgisayar Mühendisliği');
+      useScreen(tester, const Size(390, 3200));
+      await tester.pumpWidget(buildApp(Scaffold(body: HomeTab(session: s, onOpenTab: (i, {newsType}) {}))));
+      await settle(tester, const Duration(seconds: 2));
+      expect(find.text('Kabuktan bilinen'), findsOneWidget);
+      expect(b.count('GET /users/me'), 0);
+    });
+
+    testWidgets('profil düzenlemede bölüm seçilince şerit kendiliğinden gelir', (tester) async {
+      final b = FakeBackend()
+        ..on('/users/me', {..._profile, 'department': null})
+        ..on('/news/unit?limit=10', [_item(1, 'Yeni bölümün haberi')]);
+      final s = makeSession(b);
+      useScreen(tester, const Size(390, 3200));
+      await tester.pumpWidget(buildApp(Scaffold(body: HomeTab(session: s, onOpenTab: (i, {newsType}) {}))));
+      await settle(tester, const Duration(seconds: 2));
+      expect(find.byType(UnitNewsSection), findsNothing);
+      expect(b.count('/news/unit'), 0);
+      s.setDepartment('Bilgisayar Mühendisliği'); // EditProfilePage kaydı bunu yapar
+      await settle(tester, const Duration(seconds: 1));
+      expect(find.text('Yeni bölümün haberi'), findsOneWidget);
+    });
+
     testWidgets('çekip yenileme şeridi yeniden ister', (tester) async {
       final b = FakeBackend()
         ..on('/users/me', _profile)
@@ -317,7 +344,7 @@ void main() {
       fakeCatalog(b);
       await tester.pumpWidget(buildApp(EditProfilePage(
         session: makeSession(b),
-        profile: {'displayName': 'Ayşe Yılmaz', 'language': 'tr', 'showEmail': false},
+        profile: const {'displayName': 'Ayşe Yılmaz', 'language': 'tr', 'showEmail': false},
       )));
       await settle(tester, const Duration(milliseconds: 300));
       await tester.tap(find.text('Kaydet').last);
@@ -332,7 +359,7 @@ void main() {
       fakeCatalog(b);
       await tester.pumpWidget(buildApp(EditProfilePage(
         session: makeSession(b),
-        profile: {'displayName': 'Ayşe Yılmaz', 'language': 'tr', 'showEmail': false},
+        profile: const {'displayName': 'Ayşe Yılmaz', 'language': 'tr', 'showEmail': false},
       )));
       await settle(tester, const Duration(milliseconds: 300));
       await tester.tap(find.text('Bölüm seçin'));
