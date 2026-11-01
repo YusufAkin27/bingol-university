@@ -84,17 +84,7 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-data-redis</artifactId>
 		</dependency>
-		<!-- Rate limit: Bucket4j + Redis (Lettuce) -->
-		<dependency>
-			<groupId>com.bucket4j</groupId>
-			<artifactId>bucket4j_jdk17-core</artifactId>
-			<version>8.14.0</version>
-		</dependency>
-		<dependency>
-			<groupId>com.bucket4j</groupId>
-			<artifactId>bucket4j_jdk17-lettuce</artifactId>
-			<version>8.14.0</version>
-		</dependency>
+		<!-- Rate limit: kendi RateLimiter'imiz (Redis INCR); Bucket4j bagimliliklari kullanilmadigi icin kaldirildi (A10#17) -->
 		<!-- Uyelik / giris: JWT -->
 		<dependency>
 			<groupId>io.jsonwebtoken</groupId>

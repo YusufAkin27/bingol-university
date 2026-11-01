@@ -21,14 +21,17 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/* \
     && ffmpeg -version | head -1
 RUN useradd --system --uid 1001 --no-create-home app \
-    && mkdir -p /data/uploads && chown -R app /data/uploads /app
+    && mkdir -p /data/uploads /data/ledger && chown -R app /data/uploads /data/ledger /app
 COPY --from=build --chown=app /build/target/*.jar app.jar
 USER app
+# MAX_RAM_PERCENTAGE: yigin orani (varsayilan 75 = onceki sabit deger; oneriler docs/DEPLOY.md "Bellek/JVM onerileri").
+# JAVA_OPTS icine -XX:MaxRAMPercentage yazilirsa o kazanir (komut satirinda sonra gelir).
+# /data/ledger: KVKK silme defteri hacmi (DELETION_LEDGER_FILE; compose `ledger` hacmi, yedek disi), sahibi app.
 ENV TZ=Europe/Istanbul \
-    JAVA_OPTS="-XX:MaxRAMPercentage=75 -XX:+ExitOnOutOfMemoryError -Djava.security.egd=file:/dev/./urandom"
+    JAVA_OPTS="-XX:+ExitOnOutOfMemoryError -Djava.security.egd=file:/dev/./urandom"
 EXPOSE 8080
 VOLUME /data/uploads
 HEALTHCHECK --interval=15s --timeout=5s --start-period=60s --retries=5 \
     CMD bash -c 'exec 3<>/dev/tcp/127.0.0.1/8080 && printf "GET /actuator/health HTTP/1.0\r\n\r\n" >&3 && grep -q "\"UP\"" <&3' || exit 1
 # exec: JVM PID 1 olur, SIGTERM ile graceful shutdown calisir
-ENTRYPOINT ["sh", "-c", "exec java $JAVA_OPTS -jar app.jar"]
+ENTRYPOINT ["sh", "-c", "exec java -XX:MaxRAMPercentage=${MAX_RAM_PERCENTAGE:-75} $JAVA_OPTS -jar app.jar"]

@@ -15,7 +15,6 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -79,7 +78,7 @@ class LegalMigrationV820FileTest {
     /** SQL, docs/legal kaynaklariyla birebir ayni (betik calistirildi; elle duzenleme yok). */
     @Test
     void sqlIcerigi_markdownKaynaklariylaBirebirAyni() throws Exception {
-        Assumptions.assumeTrue(Files.isDirectory(DOCS), "docs/legal bu calisma dizininden gorunmuyor");
+        LegalDocsGuard.requireDocs(Files.isDirectory(DOCS), "docs/legal bu calisma dizininden gorunmuyor");
         String sql = Files.readString(SQL, StandardCharsets.UTF_8);
         for (String[] t : TYPES) {
             for (String lang : LANGS) {
@@ -98,7 +97,7 @@ class LegalMigrationV820FileTest {
     /** tr ile en/ar BIRE BIR: ayni bolum sayisi/numarasi ve her bolumde ayni madde, tablo satiri, alinti, baglanti ve yer tutucu sayisi. */
     @Test
     void tr_en_ar_bolum_bolum_esit() throws Exception {
-        Assumptions.assumeTrue(Files.isDirectory(DOCS), "docs/legal bu calisma dizininden gorunmuyor");
+        LegalDocsGuard.requireDocs(Files.isDirectory(DOCS), "docs/legal bu calisma dizininden gorunmuyor");
         for (String[] t : TYPES) {
             List<String> tr = shape(read(t[0], "tr"));
             for (String lang : new String[] {"en", "ar"}) {
@@ -114,7 +113,7 @@ class LegalMigrationV820FileTest {
     /** Yer tutucu anahtarlari (alternatif metin haric) dilden bagimsiz ayni olmali: boylece kimlik satirlari her dilde birlikte cikar. */
     @Test
     void yerTutucuAnahtarlari_ucDilde_ayni() throws Exception {
-        Assumptions.assumeTrue(Files.isDirectory(DOCS), "docs/legal bu calisma dizininden gorunmuyor");
+        LegalDocsGuard.requireDocs(Files.isDirectory(DOCS), "docs/legal bu calisma dizininden gorunmuyor");
         for (String[] t : TYPES) {
             List<String> tr = placeholders(read(t[0], "tr"));
             for (String lang : new String[] {"en", "ar"}) {
@@ -128,7 +127,7 @@ class LegalMigrationV820FileTest {
     /** Kaldirilmis ozellikler ve yanlis alici satiri hicbir dilde kalmamali. */
     @Test
     void kaldirilmisOzelliklerVeUniversiteAlicisi_metinlerde_yok() throws Exception {
-        Assumptions.assumeTrue(Files.isDirectory(DOCS), "docs/legal bu calisma dizininden gorunmuyor");
+        LegalDocsGuard.requireDocs(Files.isDirectory(DOCS), "docs/legal bu calisma dizininden gorunmuyor");
         for (String[] t : TYPES) {
             String tr = read(t[0], "tr");
             String en = read(t[0], "en");
@@ -150,7 +149,7 @@ class LegalMigrationV820FileTest {
     /** Metindeki somut sayilar koddaki gercek varsayilanlarla ayni (yanlis vaat taramasi). */
     @Test
     void beyanEdilenSayilar_kodVarsayilaniyla_ayni() throws Exception {
-        Assumptions.assumeTrue(Files.isDirectory(DOCS), "docs/legal bu calisma dizininden gorunmuyor");
+        LegalDocsGuard.requireDocs(Files.isDirectory(DOCS), "docs/legal bu calisma dizininden gorunmuyor");
         String props = Files.readString(PROPS, StandardCharsets.UTF_8);
         // --- koddaki gercek degerler ---
         assertThat(prop(props, "app.notification.retention-days")).isEqualTo("30");

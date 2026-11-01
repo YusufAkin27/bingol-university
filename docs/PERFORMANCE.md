@@ -232,3 +232,23 @@ Ana sayfa/açılış yolundaki çağrılar (`app/info`, `status`, `menu/today`, 
 | T-073 | message 3 + notification 2 + analytics_event_user 133 MB kullanılmayan indeks; `app_user` UPDATE'lerinin %17,7'si HOT | `backend/src/main/resources/db/pending-k33/V961__...sql` (+ `.conf`): `DROP INDEX CONCURRENTLY`, **K-33/H-08 onayı bekler, Flyway konumunda DEĞİL** | yazma maliyeti -%15-25 (TAHMİN), HOT oranı artar | dosya başlığındaki `pg_stat_user_indexes` sorgusu, üretimde ≥14 gün sonra |
 
 Kalan: `analytics_event.idx_analytics_event_user` (133 MB) kısmi/BRIN tasarımı ertelendi (KVKK kullanıcı silme yolu); `rank_score` indeksi (HOT) PostRankService ile birlikte ayrıca değerlendirilmeli.
+
+## Metrik kardinalitesi: `http.server.requests` kovaları (FIX-P10)
+
+`management.metrics.distribution.percentiles-histogram.http.server.requests` (varsayılan **true**) her `uri` x yöntem x durum için ~69 histogram kovası üretir; ~600 uçta on binlerce seri, `MANAGEMENT_PORT` açıkken her kazıma megabaytlarca çıktıdır. Az kovalı alternatif **hazırdır ama varsayılan değişmedi** (Grafana/Prometheus panoları `http_server_requests_seconds_bucket` ile `histogram_quantile` kullanır):
+
+```
+METRICS_HTTP_PERCENTILES_HISTOGRAM=false
+METRICS_HTTP_SLO=50ms,100ms,250ms,500ms,1s,3s,10s
+```
+
+Geçişten sonra `histogram_quantile` tahminleri kova sınırları arasında doğrusal ara değerlemedir (daha kaba); `monitoring/prometheus/alert.rules.yml` eşiği (p95 > 1 sn) `1s` sınırına denk geldiği için etkilenmez. Medya yükleme panosu (3 sn üstü) için `10s` kovası bu yüzden vardır. Geçiş deploy-zamanı kararıdır; önce staging'de panoları kontrol edin.
+
+## Test paketi hızı (FIX-P10)
+
+- **Zamanlayıcılar test profilinde kapalı:** `@EnableScheduling` `config/SchedulingEnabledConfig` içine alındı (`app.scheduling.enabled`, ayarsız = açık = üretim davranışı değişmez); `src/test/resources/application.properties` `false` yapar. Eskiden önbellekteki HER Spring bağlamı ~47 `@Scheduled` işi (mail/push 5 sn, presence 10 sn, ...) test sonuna kadar çalıştırır, Redis olmadığından her turda hata yığını ve bağlanma denemesi üretirdi.
+- **Her bağlam kendi H2 veritabanını alır** (`jdbc:h2:mem:${random.uuid}`): yeni bağlamın `create-drop`'u eski bağlamın şemasını düşürmez.
+- **Yerelde JaCoCo kapalı** (`-Djacoco.skip=true`): sınıf yükleme 1,3-2x yavaşlar; CI'da açık kalır.
+- **Ölçüm** (aynı 8 sınıf, 2 bağlam, Docker Maven 17 / 2 CPU, `-Djacoco.skip=true`, makine paylaşımlı olduğundan ±%20 gürültü): sınıf başına "Time elapsed" toplamı zamanlayıcılar AÇIKken **408 sn** (194,8 + 12,1 + 121,8 + 0,7 + 0,9 + 29,0 + 5,6 + 9,2), KAPALI + benzersiz H2 ile **281 sn** (**-%31**); duvar saati 539 sn -> 346 sn (**-%36**). Daha yüklü makinedeki ilk ölçüm 693 sn idi. Kazanç ağırlıkla ikinci ve sonraki bağlamlarda (önbellekte yaşayan her eski bağlam ~47 isi 2 CPU'yu paylaşıyordu); ilk (soğuk) bağlam hâlâ 2-4 dk: JIT/sınıf yükleme + Hibernate (`StartupProfiler` sondası: `entityManagerFactory` ~44 sn, `ConfigurationClassPostProcessor` ~19 sn, ilk depo başlatmaları 16-20 sn).
+- **Bağlam çoğalması** (asıl maliyet): 68 `@SpringBootTest` dosyası **23 farklı bağlam** üretir (39 dosya varsayılan bağlamı paylaşır; geri kalan 29 dosya 22 ayrı bağlam). Kırıcılar: `@MockitoBean` kümeleri (`RateLimiter` +/- `StringRedisTemplate` +/- `NotificationService` +/- `RoomConversations`... ~12 küme) ve tek-dosyalık `properties` (`app.admin.require-reason=true`, `app.cache.*`, `jwt.*`, `app.admin.emails`, `app.mail.campaign-poll-ms`, `app.observability.backup-status-file`...). Yeni bağlam = soğuk makinede dakikalar. Birleştirme (ortak `@MockitoBean RateLimiter`+`StringRedisTemplate` taban sınıfı) ~14 başka paketin test dosyasına dokunur ve bazı testlerin gerçek `RateLimiter`/`NotificationService` davranışına dayanması riski taşır; **bu pakette yapılmadı** (bkz. `docs/changes/ops.md`). Yeni `@SpringBootTest` yazarken mevcut kümelerden birini kullanın.
+- `spring.main.lazy-initialization=true` (yalnız test için) denendi: aynı alt kümede anlamlı kazanç yok/belirsiz (ilk bağlam 226 sn, ikinci 61 sn; gürültü içinde) ve 68 sınıfın hepsinde doğrulanmadığı için UYGULANMADI.

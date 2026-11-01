@@ -112,8 +112,13 @@ curl -f localhost:8080/actuator/health
 | `INITIAL_FILL` | hayır | Boş tablolarda ilk haber/menü doldurma |
 | `DB_POOL_MAX`, `DB_POOL_MIN_IDLE` | hayır | Hikari havuzu (varsayılan 30 / 5) |
 | `MULTIPART_MAX_FILE`, `MULTIPART_MAX_REQUEST` | hayır | Yükleme sınırları (5MB / 6MB) |
-| `BACKEND_MEM_LIMIT`, `BACKEND_CPUS`, `POSTGRES_MEM_LIMIT`, `REDIS_MEM_LIMIT` | hayır | Konteyner kaynak limitleri (1g / 2 / 1g / 256m) |
-| `JAVA_TOOL_OPTIONS` | hayır | Ek JVM bayrakları (imaj varsayılanı: `-XX:MaxRAMPercentage=75`) |
+| `BACKEND_MEM_LIMIT`, `BACKEND_CPUS`, `POSTGRES_MEM_LIMIT`, `REDIS_MEM_LIMIT`, `REDIS_CPUS`, `BACKEND_TMP_SIZE` | hayır | Konteyner kaynak limitleri ve backend `/tmp` tmpfs boyutu (varsayılanlar: 2g / 2 / 2g / 320m / 0.5 / 2g). Öneri tablosu: aşağıda "Bellek/JVM önerileri" |
+| `MAX_RAM_PERCENTAGE` | hayır | JVM yığın oranı (imaj varsayılanı 75; entrypoint `-XX:MaxRAMPercentage=${MAX_RAM_PERCENTAGE:-75}` verir). `JAVA_TOOL_OPTIONS` ile DEĞİŞTİRİLEMEZ: komut satırı bayrağı onu ezer; `JAVA_OPTS` içine yazılan `-XX:MaxRAMPercentage` ise kazanır |
+| `JAVA_TOOL_OPTIONS` | hayır | Ek JVM bayrakları |
+| `REDIS_PASSWORD`, `REQUIRE_REDIS_PASSWORD` | hayır (kapalı) | Redis `--requirepass` + backend bağlantısı; `REQUIRE_REDIS_PASSWORD=true` iken boş parola açılışı reddeder. Bölüm 5 "Redis parolası" |
+| `DELETION_LEDGER_FILE`, `DELETION_LEDGER_CRON` | hayır (kapalı) | KVKK silme defteri dosyası (önerilen `/data/ledger/deletion-ledger.tsv`, compose `ledger` hacmi, yedek dışı) ve yeniden uygulama cron'u |
+| `SCHEDULING_POOL_SIZE`, `SCHEDULING_SINGLE_INSTANCE` | hayır | `sched-*` havuzu (8) ve tek örnek bayrağı (varsayılan `false`; bölüm 6) |
+| `METRICS_HTTP_PERCENTILES_HISTOGRAM`, `METRICS_HTTP_SLO` | hayır | `http.server.requests` kova modeli (varsayılan histogram açık, SLO boş); bkz. `docs/PERFORMANCE.md` "Metrik kardinalitesi" |
 | `BACKEND_PORT`, `WEB_PORT`, `ADMIN_PATH` | hayır | Portlar ve gizli yönetim yolu (güvenlik önlemi DEĞİL, yalnız gürültüyü azaltır: yol istemci paketinde açıktır; `/api/admin/**` yine ADMIN yetkisiyle korunur. Ayarlıysa `/admin` rotası kayıtlı değildir) |
 | `DEVICE_HMAC_KEY` | önerilir | Cihaz kimliği (`X-Device-Id`) HMAC-SHA256 anahtarı (>= 32 karakter, `openssl rand -base64 36`). Boşsa `JWT_SECRET`'ten türetilir; anahtar değişirse mevcut cihaz engelleri eşleşmez, bu yüzden ayrı ve kalıcı tutun (verilip 32 karakterden kısaysa prod açılışı reddedilir; boşsa uyarı yok, yine de ayrı anahtar önerilir) |
 | `BAN_ALLOWLIST` | önerilir | Asla IP ile engellenmeyecek ek ağlar (virgüllü IP/CIDR; yönetici ofis çıkış adresleri). Loopback ve özel ağlar zaten muaftır |
@@ -142,6 +147,18 @@ docker compose exec -T postgres pg_restore -U bingol -d bingol --clean --if-exis
 
 Compose `--appendonly yes` ile AOF açar (`redisdata` volume'u) ve `maxmemory 200mb` + **`volatile-lru`** kullanır: bellek dolunca yalnız TTL'li anahtarlar (refresh token, hız sınırı sayacı, doğrulama kodu, presence) atılır; TTL'siz kalıcı işaretler (`suspended:<id>`) asla atılmaz. Eski `noeviction` bellek dolunca yazmaları (giriş/kayıt) reddederdi. Takas: baskı altında oturumlar/sayaçlar erken düşebilir (kullanıcı yeniden giriş yapar); `redis-cli info stats | grep evicted_keys` sürekli artıyorsa `REDIS_MEM_LIMIT`/`maxmemory` yükseltin. Redis'e yeni TTL'siz anahtar eklerken bu politikayı düşünün. Redis'te yalnızca geçici/yeniden üretilebilir veri vardır (doğrulama kodları, refresh token hash'leri, rate limit, presence, askı işaretleri). Kayıp sonucu: kullanıcılar yeniden giriş yapar, bekleyen kodlar düşer; **veri kaybı olmaz**. Yine de `redisdata` volume'unu koruyun (oturumların kesilmemesi için). Redis çökerse auth ve mesajlaşma çalışmaz; haber/menü okuma çalışır.
 
+### Redis parolası (varsayılan KAPALI; etkinleştirme deploy-zamanı kararı)
+
+Compose artık `REDIS_PASSWORD` tanımlıysa `redis-server --requirepass` ile parolalı başlar ve backend aynı değerle bağlanır (`spring.data.redis.password`); healthcheck `REDISCLI_AUTH` kullanır. **Tanımsız = bugünkü davranış (parolasız, yalnız `internal` ağ).** Açmak için:
+
+1. `.env.prod`'a `REDIS_PASSWORD=$(openssl rand -base64 36)` (>= 16 karakter, yer tutucu değil) ekleyin; ardından isterseniz `REQUIRE_REDIS_PASSWORD=true` (bundan sonra boş/zayıf parola backend açılışını reddeder).
+2. Redis ve backend **birlikte** yeniden başlatılır (`docker compose up -d redis backend`): parola komut satırında olduğundan Redis yeniden yaratılır. AOF korunur (oturumlar kalır); kısa bir kesinti (saniyeler) olur, bu yüzden bakım penceresinde yapın.
+3. Doğrulama: `docker compose exec redis sh -c 'redis-cli ping'` -> `NOAUTH`; `.. -e REDISCLI_AUTH=$REDIS_PASSWORD .. ping` -> `PONG`; `/actuator/health` UP. Parola `docker inspect` çıktısında komut satırında görünür (internal ağdaki tek-ana-makine kurulumda kabul edilmiş taviz).
+
+### KVKK silme defteri (varsayılan KAPALI)
+
+`DELETION_LEDGER_FILE=/data/ledger/deletion-ledger.tsv` verilirse silinen hesap kimlikleri **yedek dışı** `ledger` hacmine yazılır (backup servisine bağlanmaz) ve yedekten dönüşte `DeletionLedgerReapplier` (açılış + 03:50) yeniden anonimleştirir. Dosyayı ayrıca (uzak kopya) saklayın; hacim `docker volume rm` ile kaybolursa defter de gider. Ayrıntı: `docs/BACKUP_RESTORE.md` bölüm 5 adım 7.
+
 ## 6. Ölçekleme ve zamanlayıcılar
 
 Backend durumsuzdur (JWT, Redis) ve yatay ölçeklenebilir; ancak **`@Scheduled` görevleri her örnekte çalışır**. Çoklu örnekte çift çalışma riski olan görevler: haber/menü senkronu (kaynak siteye çift istek), push kampanya dağıtıcı (zaten `FOR UPDATE SKIP LOCKED`, güvenli), etkinlik hatırlatmaları (çift bildirim), bildirim/mesaj/olay saklama temizlikleri (idempotent, zararsız), medya yetim süpürücüsü, sohbet odası bakımı.
@@ -156,11 +173,30 @@ void nightly() {
 ```
 
 - `ttl`, görevin en uzun süresinden büyük olmalı; kilit TTL ile kendiliğinden düşer.
-- Redis erişilemezse görev **atlanır** (fail-closed) ve sonraki tetikte denenir.
+- Redis erişilemezse görev **atlanır** (fail-closed) ve sonraki tetikte denenir. Tek örnek kurulumda `SCHEDULING_SINGLE_INSTANCE=true` (`app.scheduling.single-instance`) verilirse, `SchedulerLock.tryRunOrLocal` kullanan görevler (uyarı servisleri vb.) Redis yokken de yerelde koşar; varsayılan `false`. Çoklu örnekte bu bayrak AÇILMAZ.
+- `@Scheduled` işleme tek yerden açılır: `SchedulingEnabledConfig` (`app.scheduling.enabled`, ayarsız = açık). **Yalnız test profilinde `false`**; üretimde ENV ile kapatmayın (tüm zamanlayıcılar durur).
+- Kilitli (`tryRun`) işler ve kilitsiz kalanlar listesi için `CLAUDE.md` bölüm 1 `config` satırı ve bölüm 8'e bakın.
 - Kilit adı görev başına benzersiz olmalı (`schedlock:<ad>` anahtarı).
 - Daha zengin ihtiyaç (en az bekleme süresi, kilit denetimi) doğarsa ShedLock (JDBC provider) önerilir; bu, `pom.xml`'e bağımlılık ve yeni Flyway tablosu gerektirir.
 
 Tek örnek (varsayılan compose ve tek VPS kurulumu) çalıştırıyorsanız ek işlem gerekmez: `@Scheduled` görevleri tek süreçte çalışır, çift çalışma riski yoktur, `SchedulerLock` sarmalamasına gerek yoktur (yalnız ileride ikinci backend örneği eklenirse gerekir). Ayrıca: dosya yüklemeleri yerel diskte olduğundan çoklu örnek için paylaşılan volume (NFS) veya nesne depolama gerekir; WebSocket presence/pub-sub Redis üzerindendir ve örnekler arası çalışır.
+
+### Bellek/JVM önerileri (K25: UYGULANMADI, ölçüm sonrası karar)
+
+Backend konteyneri bugün: `mem_limit 2g`, JVM `MaxRAMPercentage=75` (yığın ~1,5 GB), `/tmp` tmpfs 2g (tmpfs sayfaları konteyner belleğine SAYILIR), `MEDIA_TRANSCODE_WORKERS=2` (iki eşzamanlı ffmpeg, yığın dışı). Sohbet videosu kodu yolu AKTİF (yalnız gönderi videosu kapalı), bu yüzden ffmpeg/tmpfs kaldırılamaz. Yığın dışı (metaspace + ~200 Tomcat iş parçacığı + Netty/Lettuce direct buffer + ffmpeg RSS ~200-400 MB x işçi + tmpfs içeriği) ~500 MB'a sığmayabilir; çekirdek OOM-killer'ı JVM'i SIGKILL ile öldürebilir (`ExitOnOutOfMemoryError` cgroup öldürmesini yakalamaz). Aşağıdaki değerler **öneridir**; canlı `docker stats`/`docker inspect --format '{{.State.OOMKilled}}'` ölçümü olmadan değiştirmeyin.
+
+| Ayar | Bugün | Öneri (ölçüm sonrası) | Nasıl |
+|---|---|---|---|
+| Yığın oranı | 75 | 55-60 | `.env.prod`: `MAX_RAM_PERCENTAGE=55` |
+| `/tmp` tmpfs | 2g | 512m (video sınırı 40 MB, 2 işçi x girdi+çıktı yeter) | `BACKEND_TMP_SIZE=512m` |
+| ffmpeg işçisi | 2 | 1 | `MEDIA_TRANSCODE_WORKERS=1` |
+| Backend belleği | 2g | 2,5-3g (host elveriyorsa) | `BACKEND_MEM_LIMIT=3g` |
+| Redis CPU | 0,5 | 1 (AOF rewrite/BGSAVE fork duraklaması 500 ms komut zaman aşımını aşmasın) | `REDIS_CPUS=1` |
+| Redis komut zaman aşımı / kesici | 500 ms / 5000 ms | 1500 ms / 2000 ms | `REDIS_TIMEOUT=1500ms`, `REDIS_BREAKER_MS=2000` (devre kesici mantığı P01 ile güncellenmiş olmalı) |
+| Sağlık başlangıç süresi | 360 s | 600 s (soğuk açılış 262-465 s, tavan 510 s) | `BACKEND_START_PERIOD=600s` (+ `HEALTH_WAIT_BACKEND`) |
+| Tek örnek zamanlayıcı | false | true | `SCHEDULING_SINGLE_INSTANCE=true` |
+
+Makine toplamı: limitlerin toplamı backend 2g + postgres 2g + redis 320m + backup 1g + caddy 256m + web 128m = ~5,7 GB, CPU ~6,5; **4 GB'lık VPS'te aşırı taahhüt** vardır (saatlik yedek `pg_dump` + `age` PostgreSQL ile birlikte koşunca host OOM-killer rastgele konteyner seçebilir). 4 GB makinede: backend 1,5g / postgres 1,5g / backup 512m (`BACKEND_MEM_LIMIT`, `POSTGRES_MEM_LIMIT`; yedek limiti compose'ta sabit 1g, değiştirmek için düzenleyin) ve yedek saatini yoğun saat dışına alın; ya da 8 GB VPS kullanın.
 
 ## 7. İzleme ve uyarı
 
@@ -252,7 +288,7 @@ ENV_FILE=.env.staging PROJECT=bu-staging COMPOSE_FILES="-f docker-compose.prod.y
 
 ## 13. Tek VPS: adım adım (Ubuntu 22.04/24.04 LTS)
 
-Önerilen en az: 2 vCPU, 4 GB RAM (JVM + PostgreSQL + ffmpeg), SSD; yüklemeler ve 3 yedek için veri boyutunun en az 4 katı disk.
+Önerilen en az: 2 vCPU, 4 GB RAM (JVM + PostgreSQL + ffmpeg; **dikkat:** varsayılan konteyner limitlerinin toplamı ~5,7 GB / 6,5 CPU'dur, 4 GB'ta limitleri bölüm 6 "Bellek/JVM önerileri" tablosuna göre düşürün ya da 8 GB seçin), SSD; yüklemeler ve 3 yedek için veri boyutunun en az 4 katı disk.
 
 1. **DNS:** `DOMAIN` için A (ve varsa AAAA) kaydı VPS IP'sine. Yayılmadan ilk dağıtım yapmayın (Let's Encrypt hız sınırı).
 2. **SSH anahtarı (yerelde):** `ssh-keygen -t ed25519`; `ssh-copy-id root@<ip>`. Anahtarla girişin çalıştığını **ayrı bir oturumda** doğrulayın.

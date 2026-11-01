@@ -94,7 +94,7 @@ services:
     <<: *hardening
     read_only: true
     tmpfs:
-      - /tmp:size=2g,mode=1777        # ffmpeg geçici dosyaları (app.media.transcode.temp-dir)
+      - /tmp:size=${BACKEND_TMP_SIZE:-2g},mode=1777        # ffmpeg geçici dosyaları (app.media.transcode.temp-dir)
     stop_grace_period: 40s
     mem_limit: ${BACKEND_MEM_LIMIT:-2g}
     cpus: ${BACKEND_CPUS:-2}
@@ -347,8 +347,40 @@ services:
       CRYPTO_NULL_PLAINTEXT:
       # Yedek hedefi: yedek servisiyle AYNI deger; ProdSettingsValidator bos ise uyarir (sir degil, rclone uzak adi)
       BACKUP_REMOTE:
+      # Redis parolasi (A10#15): REDIS_PASSWORD tanimliysa redis servisi `--requirepass` ile baslar ve backend ayni degerle baglanir.
+      # Tanimsiz = parolasiz (bugunku davranis). REQUIRE_REDIS_PASSWORD=true: ProdSettingsValidator bos parolayi HATA sayar.
+      # Etkinlestirme deploy-zamani kararidir (Redis yeniden baslar, tum oturumlar korunur ama kisa kesinti): docs/DEPLOY.md "Redis parolasi".
+      REDIS_PASSWORD:
+      REQUIRE_REDIS_PASSWORD:
+      # KVKK silme defteri (A10#15): DELETION_LEDGER_FILE=/data/ledger/deletion-ledger.tsv verilirse silinen hesap kimlikleri YEDEK DISI
+      # `ledger` hacmine yazilir ve yedekten donuste DeletionLedgerReapplier yeniden anonimlestirir. Tanimsiz = kapali (bugunku davranis).
+      DELETION_LEDGER_FILE:
+      DELETION_LEDGER_CRON:
+      # Zamanlayici: havuz boyutu; tek ornek kurulumda Redis yokken SchedulerLock'lu islerin yerelde kosmasi (P01 tryRunOrLocal, varsayilan false)
+      SCHEDULING_POOL_SIZE:
+      SCHEDULING_SINGLE_INSTANCE:
+      # Yonetici DB rol ayrimi (ProdSettingsValidator REQUIRE_DB_ROLE_SPLIT) ve diger ek ayarlar (compose-env-check.sh karsiligi)
+      DB_OWNER_USER:
+      DB_OWNER_PASSWORD:
+      REQUIRE_DB_ROLE_SPLIT:
+      CAMPAIGN_REDIS_LOCK:
+      CONTACTS_DAILY_CANDIDATE_CAP:
+      SUPPORT_FORM_TOKEN_REQUIRED:
+      SUPPORT_FORM_TOKEN_SECRET:
+      SUPPORT_TRACK_CLOSED_GRACE_DAYS:
+      SUPPORT_TRACK_TOKEN_DAYS:
+      # Metrik: http.server.requests icin yuzdelik-histogram yerine az sayida SLO kovasi (METRICS_HTTP_PERCENTILES_HISTOGRAM=false +
+      # METRICS_HTTP_SLO=50ms,100ms,250ms,500ms,1s,3s,10s); varsayilan degismez (true, kovasiz). docs/PERFORMANCE.md
+      METRICS_HTTP_PERCENTILES_HISTOGRAM:
+      METRICS_HTTP_SLO:
+      # JVM yigin orani (K25 onerisi icin; varsayilan 75 = Dockerfile) — bkz. docs/DEPLOY.md "Bellek/JVM onerileri"
+      MAX_RAM_PERCENTAGE:
+      # Soguk acilis olcumu (A10#12): STARTUP_PROFILE=true ise en yavas acilis adimlari "startup-profile" log satirlariyla yazilir (varsayilan kapali)
+      STARTUP_PROFILE:
     volumes:
       - uploads:/data/uploads
+      # KVKK silme defteri hacmi: YEDEK servisine BAGLANMAZ (yedekten donuste defter eski haline donmesin); ayri kopyalanmali
+      - ledger:/data/ledger
       # Yedek durumu (docs/OBSERVABILITY.md): backup servisinin yazdigi backup.prom, GET /api/admin/ops/backup-status icin RO
       - ${BACKUP_METRICS_DIR:-./monitoring/textfile}:/backup-status:ro
     logging: *logging
@@ -457,15 +489,20 @@ services:
     # volatile-lru: bellek dolunca YALNIZ TTL'li anahtarlar (refresh token, hiz siniri sayaci, dogrulama kodu, presence...) atilir;
     # TTL'siz kalici isaretler (suspended:<id>) asla atilmaz. noeviction dolunca yazmalari (giris/kayit) reddederdi.
     # AOF (appendonly) korunur: yeniden baslatmada oturumlar kaybolmaz. Gerekce ve izleme: docs/DEPLOY.md "Redis".
-    command: ["redis-server", "--appendonly", "yes", "--maxmemory", "200mb", "--maxmemory-policy", "volatile-lru"]
+    # Parola: REDIS_PASSWORD tanimliysa `--requirepass` ile parolali baslar; tanimsiz/bos ise `--requirepass ""` = parolasiz
+    # (bugunku davranis; redis-server ilk arguman KALMALI: imajin giris betigi yalniz o zaman redis kullanicisina duser).
+    # Backend ayni REDIS_PASSWORD ile baglanir (yukarida). Bkz. docs/DEPLOY.md "Redis parolasi".
+    command: ["redis-server", "--appendonly", "yes", "--maxmemory", "200mb", "--maxmemory-policy", "volatile-lru", "--requirepass", "${REDIS_PASSWORD:-}"]
+    environment:
+      REDIS_PASSWORD:
     mem_limit: ${REDIS_MEM_LIMIT:-320m}
-    cpus: 0.5
+    cpus: ${REDIS_CPUS:-0.5}
     networks: [internal]
     volumes:
       - redisdata:/data
     logging: *logging
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: ["CMD-SHELL", "if [ -n \"$$REDIS_PASSWORD\" ]; then export REDISCLI_AUTH=\"$$REDIS_PASSWORD\"; fi; redis-cli ping | grep -q PONG"]
       interval: 10s
       timeout: 3s
       retries: 10
@@ -560,6 +597,7 @@ volumes:
   pgdata:
   redisdata:
   uploads:
+  ledger:
   backups:
   caddy_data:
   caddy_config:
