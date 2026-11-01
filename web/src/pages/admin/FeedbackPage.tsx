@@ -16,10 +16,13 @@ import {
   GuardedAction,
   Icon,
   Input,
+  Insight,
   LoadMore,
   PageHeader,
+  RankedBars,
   Select,
   Skeleton,
+  StatTile,
   StatusPill,
   Switch,
   Textarea,
@@ -33,6 +36,7 @@ import { usePageTitle } from '../../lib/hooks';
 import { CsvButton } from './moderation/CsvButton';
 import { csvName, parseAssignee } from './moderation/p11Logic';
 import p11 from './moderation/p11.module.css';
+import v2 from './moderation/v2.module.css';
 import styles from './support/Support.module.css';
 import {
   FEEDBACK_STATUSES,
@@ -91,7 +95,7 @@ function FeedbackDrawer({ item, onClose }: { item: AdminFeedbackView; onClose: (
       <div className={styles.drawerForm}>
         <div>
           <div className={styles.fbHead}>
-            <Badge tone="primary">{t(`admin.feedback.category.${item.category}`)}</Badge>
+            <Badge tone="info">{t(`admin.feedback.category.${item.category}`)}</Badge>
             <span className={styles.fbMeta}>{formatDateTime(item.createdAt)}</span>
           </div>
           <h3 className={styles.fbSubject} dir="auto">
@@ -226,6 +230,13 @@ export default function FeedbackPage() {
   });
   const items = useMemo(() => query.data?.pages.flatMap((p) => p.items) ?? [], [query.data]);
   const editing = items.find((i) => i.id === editingId) ?? null;
+  const byStatus = (st: FeedbackStatus) => items.filter((i) => i.status === st).length;
+  const topVoted = [...items]
+    .filter((i) => i.voteCount > 0)
+    .sort((a, b) => b.voteCount - a.voteCount)
+    .slice(0, 3)
+    .map((i) => ({ key: String(i.id), label: i.subject, value: i.voteCount }));
+  const waitingNew = items.filter((i) => i.status === 'NEW').length;
 
   useEffect(() => {
     if (editingId !== null && !editing && !query.isFetching) setEditingId(null);
@@ -242,6 +253,31 @@ export default function FeedbackPage() {
           />
         }
       />
+      {query.isSuccess && items.length > 0 && (
+        <section data-search-anchor="fb-summary" aria-label={t('admin.v2m.fb.summary')}>
+          <div className={v2.tiles}>
+            {FEEDBACK_STATUSES.map((st) => (
+              <StatTile
+                key={st}
+                label={t(`admin.feedback.status.${st}`)}
+                value={byStatus(st)}
+                caption={st === 'NEW' ? t(query.hasNextPage ? 'admin.v2m.fb.newHintMore' : 'admin.v2m.fb.newHint') : undefined}
+              />
+            ))}
+          </div>
+          <Insight
+            className={v2.sentence}
+            tone={waitingNew > 0 ? 'warn' : 'good'}
+            parts={[t(waitingNew > 0 ? 'admin.v2m.fb.sentenceNew' : 'admin.v2m.fb.sentenceNone', { n: String(waitingNew) })]}
+          />
+          {topVoted.length > 0 && (
+            <div>
+              <h2 className={v2.hint}>{t('admin.v2m.fb.top')}</h2>
+              <RankedBars items={topVoted} limit={3} ariaLabel={t('admin.v2m.fb.top')} formatValue={(n) => t('admin.v2m.fb.supporters', { n: formatNumber(n) })} />
+            </div>
+          )}
+        </section>
+      )}
       <DataToolbar
         filters={
           <div className={styles.filterRow}>
@@ -296,11 +332,11 @@ export default function FeedbackPage() {
               <li key={f.id} className={styles.fb}>
                 <div className={styles.votes} aria-label={`${t('admin.feedback.votesLabel')}: ${f.voteCount}`}>
                   <span className={styles.votesNum}>{formatNumber(f.voteCount)}</span>
-                  <span className={styles.votesLbl}>{t('admin.feedback.votes', { n: '' }).trim()}</span>
+                  <span className={styles.votesLbl}>{t('admin.v2m.fb.votesLabel')}</span>
                 </div>
                 <div className={styles.fbBody}>
                   <div className={styles.fbHead}>
-                    <Badge tone="primary">{t(`admin.feedback.category.${f.category}`)}</Badge>
+                    <Badge tone="info">{t(`admin.feedback.category.${f.category}`)}</Badge>
                     <StatusPill tone={toneFor(f.status)}>{t(`admin.feedback.status.${f.status}`)}</StatusPill>
                     {f.publicVisible && <Badge tone="info">{t('admin.feedback.public')}</Badge>}
                   </div>
@@ -324,7 +360,7 @@ export default function FeedbackPage() {
                   </div>
                 </div>
                 <div className={styles.fbAct}>
-                  <Button variant="secondary" size="sm" onClick={() => setEditingId(f.id)}>
+                  <Button variant="secondary" size="sm" className={v2.minTouch} onClick={() => setEditingId(f.id)}>
                     {t('admin.feedback.edit')}
                   </Button>
                 </div>

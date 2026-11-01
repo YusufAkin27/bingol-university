@@ -285,3 +285,16 @@ select.filter {
 .emailBreak {
   overflow-wrap: anywhere;
 }
+
+/* MOD: geri bildirim kartı telefonda taşmasın (F-1) */
+.fb {
+  min-inline-size: 0;
+}
+.fbMeta > span {
+  min-inline-size: 0;
+  overflow-wrap: anywhere;
+}
+.fbSubject,
+.fbMessage {
+  overflow-wrap: anywhere;
+}

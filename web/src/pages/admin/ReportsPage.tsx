@@ -25,14 +25,20 @@ import {
   EmptyState,
   ErrorState,
   FormField,
+  Icon,
+  Insight,
   LoadMore,
   PageHeader,
+  RankedBars,
   Select,
   Skeleton,
+  StatTile,
   StatusPill,
   Tabs,
   Textarea,
   toneFor,
+  useIsNarrow,
+  useKitFormat,
   useToast,
   PermissionButton,
 } from '../../components/ui';
@@ -57,7 +63,13 @@ import { TARGET_TYPES, cleanReasonCode, toggleSelected } from './moderation/modL
 import modStyles from './moderation/moderation.module.css';
 import { BulkBar } from './reports/BulkBar';
 import { ReasonFields } from './reports/ReasonFields';
+import v2 from './moderation/v2.module.css';
 import styles from './reports/Reports.module.css';
+
+/** Öncelik puanı (açık raporlayan x10, gizliyse +100) yerine düz seviye: Acil / Yüksek / Normal. */
+function priorityLevel(p: number): 'URGENT' | 'HIGH' | 'NORMAL' {
+  return p >= 100 ? 'URGENT' : p >= 30 ? 'HIGH' : 'NORMAL';
+}
 
 function isTypingTarget(t: EventTarget | null): boolean {
   const el = t as HTMLElement | null;
@@ -66,7 +78,8 @@ function isTypingTarget(t: EventTarget | null): boolean {
 }
 
 function TargetPreview({ report }: { report: ReportView }) {
-  const { t } = useI18n();
+  const i18n = useI18n();
+  const { t } = i18n;
   const isUser = report.targetType === 'USER';
   const q = useQuery({
     queryKey: qk.users.detail(report.targetId),
@@ -87,7 +100,7 @@ function TargetPreview({ report }: { report: ReportView }) {
   return (
     <div className={styles.preview}>
       <div className={styles.previewHead}>
-        <Badge tone="primary">{typeLabel}</Badge>
+        <Badge tone="info">{typeLabel}</Badge>
         <span className={`${styles.mono} ltr`}>#{report.targetId}</span>
       </div>
       {isUser && q.isLoading && <Skeleton width="60%" />}
@@ -101,7 +114,7 @@ function TargetPreview({ report }: { report: ReportView }) {
           <div>
             <dt>{t('admin.reports.preview.status')}</dt>
             <dd>
-              <StatusPill tone={toneFor(q.data.status)}>{q.data.status}</StatusPill>
+              <StatusPill tone={toneFor(q.data.status)}>{i18n.td(`admin.users.status.${q.data.status}`, q.data.status)}</StatusPill>
             </dd>
           </div>
           <div>
@@ -121,10 +134,12 @@ function TargetPreview({ report }: { report: ReportView }) {
       {!isUser && !report.preview && <p className={styles.muted}>{t('admin.reports.preview.none')}</p>}
       <div className={styles.previewLinks}>
         {isUser && (
-          <Link to={paths.admin.user(report.targetId)}>{t('admin.reports.preview.openUser')}</Link>
+          <Link to={paths.admin.user(report.targetId)} className={v2.link}>
+            {t('admin.reports.preview.openUser')}
+          </Link>
         )}
         {listLink && (
-          <Link to={listLink}>
+          <Link to={listLink} className={v2.link}>
             {t(report.targetType === 'EVENT' ? 'admin.events.openFromReport' : 'admin.reports.preview.openList')}
           </Link>
         )}
@@ -154,6 +169,10 @@ export default function ReportsPage() {
   const [confirmOpen, setConfirmOpen] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
   const lastIndex = useRef(0);
+  // Telefonda ayrıntı tam ekran sayfa olarak açılır (R-1): listeye dön düğmesi + yapışkan karar çubuğu
+  const narrow = useIsNarrow(960);
+  const [sheetOpen, setSheetOpen] = useState(false);
+  const kit = useKitFormat();
 
   const query = useInfiniteQuery({
     queryKey: qk.reports.list(status, order, typeFilter || null),
@@ -198,6 +217,7 @@ export default function ReportsPage() {
     onSuccess: () => {
       toast.success(t('admin.reports.resolvedToast', { action: t(`admin.reports.resolution.${action}`) }));
       setConfirmOpen(false);
+      setSheetOpen(false);
       setBulkIds((ids) => ids.filter((x) => x !== selectedId));
       void qc.invalidateQueries({ queryKey: qk.reports.all });
     },
@@ -242,10 +262,15 @@ export default function ReportsPage() {
 
   function pick(id: number) {
     setSelectedId(id);
-    if (typeof window !== 'undefined' && window.innerWidth < 960) {
-      requestAnimationFrame(() => panelRef.current?.scrollIntoView?.({ behavior: 'smooth', block: 'start' }));
-    }
+    if (narrow) setSheetOpen(true);
   }
+
+  const urgentCount = items.filter((r) => priorityLevel(r.priority ?? 0) === 'URGENT').length;
+  const oldestAt = items.reduce<string | null>((o, r) => (!o || r.createdAt < o ? r.createdAt : o), null);
+  const typeBars = [...items.reduce((m, r) => m.set(r.targetType, (m.get(r.targetType) ?? 0) + 1), new Map<string, number>())].map(
+    ([k, v]) => ({ key: k, label: t(`admin.reports.targetType.${k}` as never), value: v }),
+  );
+  const queueMore = query.hasNextPage ? '+' : '';
 
   return (
     <>
@@ -258,6 +283,41 @@ export default function ReportsPage() {
           />
         }
       />
+      {status === 'OPEN' && !query.isLoading && !query.isError && items.length > 0 && (
+        <section data-search-anchor="reports-summary" aria-label={t('admin.v2m.reports.summary')}>
+          <div className={v2.tiles}>
+            <StatTile
+              label={t('admin.v2m.reports.waiting')}
+              value={`${items.length}${queueMore}`}
+              icon="flag"
+              caption={t('admin.v2m.reports.waitingHint')}
+            />
+            <StatTile
+              label={t('admin.v2m.reports.urgent')}
+              value={urgentCount}
+              icon="alert"
+              caption={t('admin.v2m.reports.urgentHint')}
+            />
+            <StatTile
+              label={t('admin.v2m.reports.oldest')}
+              value={oldestAt ? kit.relative(oldestAt) : '—'}
+              caption={t('admin.v2m.reports.oldestHint')}
+            />
+          </div>
+          <Insight
+            className={v2.sentence}
+            tone={urgentCount > 0 ? 'warn' : 'info'}
+            parts={[
+              { text: t('admin.v2m.reports.sentenceWaiting', { n: String(items.length) + queueMore }), tone: urgentCount > 0 ? 'warn' : undefined },
+              ' ',
+              urgentCount > 0 ? t('admin.v2m.reports.sentenceUrgent', { n: String(urgentCount) }) : t('admin.v2m.reports.sentenceCalm'),
+            ]}
+          />
+          {typeBars.length > 1 && (
+            <RankedBars items={typeBars} limit={5} ariaLabel={t('admin.v2m.reports.byType')} />
+          )}
+        </section>
+      )}
       <Tabs
         label={t('admin.reports.tabs')}
         value={status}
@@ -356,10 +416,11 @@ export default function ReportsPage() {
                       onClick={() => pick(r.id)}
                     >
                       <span className={styles.cardTop}>
-                        <Badge tone="primary">{t(`admin.reports.targetType.${r.targetType}`)}</Badge>
+                        {active && <Icon name="check" size={16} aria-hidden="true" className={styles.pickMark} />}
+                        <Badge tone="info">{t(`admin.reports.targetType.${r.targetType}`)}</Badge>
                         <span className={`${styles.mono} ltr`}>#{r.targetId}</span>
                         <span className={styles.spacer} />
-                        {n > 1 && <Badge tone="danger">{t('admin.reports.sameTarget', { n })}</Badge>}
+                        {n > 1 && <Badge tone="warning">{t('admin.reports.sameTarget', { n })}</Badge>}
                       </span>
                       <span className={styles.reason}>{t(`admin.reports.reason.${r.reason}`)}</span>
                       {(r.reporter?.displayName || r.reportedUser?.displayName) && (
@@ -375,12 +436,15 @@ export default function ReportsPage() {
                       )}
                       <span className={styles.cardMeta}>
                         {(r.priority ?? 0) > 0 && (
-                          <Badge tone={r.priority >= 100 ? 'danger' : 'warning'}>
-                            {t('admin.reports.priority', { n: r.priority })}
+                          <Badge tone={priorityLevel(r.priority) === 'URGENT' ? 'danger' : priorityLevel(r.priority) === 'HIGH' ? 'warning' : 'neutral'}>
+                            <span title={t('admin.reports.priority', { n: r.priority })}>
+                              {priorityLevel(r.priority) === 'URGENT' && <Icon name="alert" size={12} aria-hidden="true" />}{' '}
+                              {t(`admin.v2m.reports.level.${priorityLevel(r.priority)}`)}
+                            </span>
                           </Badge>
                         )}
                         {(r.openReporters ?? 0) > 0 && (
-                          <Badge tone="neutral">{t('admin.reports.openReporters', { n: r.openReporters })}</Badge>
+                          <Badge tone="neutral">{t('admin.v2m.reports.reporters', { n: r.openReporters })}</Badge>
                         )}
                         {r.hidden && (
                           <Badge tone="info">
@@ -409,19 +473,29 @@ export default function ReportsPage() {
             />
           </div>
 
-          <div ref={panelRef} className={styles.panel}>
+          {(!narrow || sheetOpen) && (
+          <div ref={panelRef} className={`${styles.panel} ${narrow ? styles.sheet : ''}`} data-search-anchor="reports-detail">
+            {narrow && (
+              <div className={styles.sheetBar}>
+                <button type="button" className={styles.backBtn} onClick={() => setSheetOpen(false)}>
+                  <Icon name="chevronLeft" size={20} aria-hidden="true" />
+                  {t('admin.v2m.reports.back')}
+                </button>
+                <span className={styles.sheetTitle}>{t('admin.v2m.reports.detailTitle')}</span>
+              </div>
+            )}
             {selected ? (
               <>
                 <Card title={t('admin.reports.preview.title')}>
                   <TargetPreview report={selected} />
                 </Card>
                 <ReportContextCard key={selected.id} reportId={selected.id} targetType={selected.targetType} />
-                <Card title={t(`admin.reports.reason.${selected.reason}`)}>
+                <Card title={t(`admin.reports.reason.${selected.reason}`)} data-search-anchor="reports-complaint">
                   <dl className={styles.facts}>
                     <div>
                       <dt>{t('admin.reports.reportedBy')}</dt>
                       <dd>
-                        <Link to={paths.admin.user(selected.reporterId)}>
+                        <Link to={paths.admin.user(selected.reporterId)} className={v2.link}>
                           {selected.reporter?.displayName ?? t('admin.reports.reporterId', { id: selected.reporterId })}
                         </Link>
                       </dd>
@@ -445,7 +519,7 @@ export default function ReportsPage() {
 
                 {selected.status === 'OPEN' ? (
                   <Card title={t('admin.reports.decision.title')}>
-                    <div role="radiogroup" aria-label={t('admin.reports.decision.label')} className={styles.choices}>
+                    <div role="radiogroup" aria-label={t('admin.reports.decision.label')} className={styles.choices} data-search-anchor="reports-decision">
                       {RESOLUTIONS.map((r, i) => (
                         <button
                           key={r}
@@ -459,7 +533,9 @@ export default function ReportsPage() {
                         >
                           <kbd className={styles.kbd}>{i + 1}</kbd>
                           <span className={styles.choiceText}>
-                            <strong>{t(`admin.reports.resolution.${r}`)}</strong>
+                            <strong>
+                              {action === r && <Icon name="check" size={16} aria-hidden="true" />} {t(`admin.reports.resolution.${r}`)}
+                            </strong>
                             <small>{t(`admin.reports.decision.hint.${r}`)}</small>
                           </span>
                         </button>
@@ -493,9 +569,10 @@ export default function ReportsPage() {
                         />
                       </FormField>
                     )}
-                    <div className={styles.applyRow}>
+                    <div className={`${styles.applyRow} ${v2.touch}`}>
                       <PermissionButton
                         permission="moderation.write"
+                        data-search-anchor="reports-apply"
                         variant={action === 'SUSPEND_USER' ? 'danger' : 'primary'}
                         onClick={requestApply}
                         loading={resolve.isPending}
@@ -531,6 +608,7 @@ export default function ReportsPage() {
               <EmptyState compact icon="flag" title={t('admin.reports.select')} description=" " />
             )}
           </div>
+          )}
         </div>
       )}
 
@@ -544,10 +622,11 @@ export default function ReportsPage() {
         confirmLabel={t(`admin.reports.resolution.${action}`)}
         message={
           <>
-            {t('admin.reports.confirm.body', {
-              id: selected?.id ?? '',
-              action: t(`admin.reports.resolution.${action}`),
-            })}
+            {t('admin.v2m.reports.confirmBody', { action: t(`admin.reports.resolution.${action}`) })}
+            <br />
+            <strong>{t(`admin.v2m.reports.consequence.${action}`)}</strong>
+            <br />
+            {t('admin.v2m.reports.sameTargetNote')}
             {needsMessage && message.trim() && (
               <>
                 <br />

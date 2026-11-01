@@ -44,7 +44,7 @@ describe('Şifreleme durumu sayfası', () => {
     setup();
     renderWithProviders(<CryptoPage />, { route: '/admin/crypto' });
     expect((await screen.findAllByText('k2', { selector: 'code' })).length).toBe(2);
-    expect(await screen.findByText('Yeniden sarma gerekli')).toBeInTheDocument();
+    expect(await screen.findByText('Yeni anahtara geçirilmeli')).toBeInTheDocument();
     expect(screen.queryByTestId('decrypt-warning')).toBeNull();
     expect(screen.queryByRole('button', { name: 'Mesajları çöz' })).toBeNull();
     expect(screen.queryByRole('textbox', { name: /Gerekçe/ })).toBeNull();
@@ -53,7 +53,7 @@ describe('Şifreleme durumu sayfası', () => {
   it('kullanıcı arayıp sohbet görüntüleyiciye bağlantı verir', async () => {
     setup();
     renderWithProviders(<CryptoPage />);
-    await screen.findByText('Yeniden sarma gerekli');
+    await screen.findByText('Yeni anahtara geçirilmeli');
     await userEvent.type(screen.getByRole('textbox', { name: /Kullanıcı ara/ }), 'ayşe');
     const link = await screen.findByRole('link', { name: 'Mesajları aç' });
     expect(link.getAttribute('href')).toMatch(/\/users\/5\/messages$/);
@@ -111,9 +111,9 @@ describe('Rapor kuyruğu güncellemeleri', () => {
     const first = calls.find((c) => c.url.includes('/admin/reports?'));
     expect(first?.url).toContain('order=priority');
     expect(first?.url).toContain('status=OPEN');
-    expect(screen.getAllByText('Öncelik 130').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('Acil').length).toBeGreaterThan(0);
     expect(screen.getAllByText('Otomatik gizlendi').length).toBeGreaterThan(0);
-    expect(screen.getAllByText('3 raporlayan').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('3 kişi şikâyet etti').length).toBeGreaterThan(0);
 
     await userEvent.click(screen.getByRole('checkbox', { name: 'Rapor 1 seç' }));
     await userEvent.click(screen.getByRole('checkbox', { name: 'Rapor 2 seç' }));

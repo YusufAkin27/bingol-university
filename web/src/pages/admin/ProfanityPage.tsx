@@ -26,22 +26,32 @@ import {
   ErrorState,
   FormField,
   Input,
+  Insight,
   LoadMore,
   PageHeader,
+  RankedBars,
   Select,
   Skeleton,
-  StatCard,
+  StatTile,
   Tabs,
   Textarea,
+  percentChange,
   useToast,
 } from '../../components/ui';
 import { useI18n } from '../../i18n/I18nProvider';
 import { usePageTitle } from '../../lib/hooks';
 import { adminErrorMessage } from './campaigns/shared';
 import styles from './moderation/moderation.module.css';
+import v2 from './moderation/v2.module.css';
 import { downloadBlob } from './users/filters';
 
 const NOTE_MAX = 200;
+
+/** Teknik alan adı -> düz Türkçe ad (bilinmeyenler olduğu gibi yazılır). */
+const FIELD_LABELS: Record<string, 'admin.v2m.prf.field.postText' | 'admin.v2m.prf.field.userName'> = {
+  'FeedPost.text': 'admin.v2m.prf.field.postText',
+  'AppUser.displayName': 'admin.v2m.prf.field.userName',
+};
 
 export default function ProfanityPage() {
   const i18n = useI18n();
@@ -114,107 +124,55 @@ export default function ProfanityPage() {
   const termInvalid = term.trim().length < 2 || term.trim().length > 80;
   const b = info.data?.builtIn;
 
+  const filterOn = info.data?.settings.enabled;
+  const filterMode = info.data?.settings.mode;
+  const last24 = stats.data?.last24h.total ?? 0;
+  const last7 = stats.data?.last7d.total ?? 0;
+  const dailyAvg = last7 / 7;
+  const fieldBars = (stats.data?.last7d.byField ?? []).map((r) => {
+    const known = FIELD_LABELS[`${r.entity}.${r.field}`];
+    return { key: `${r.entity}.${r.field}`, label: known ? t(known) : `${r.entity} / ${r.field}`, value: r.count };
+  });
+
   return (
     <>
       <PageHeader title={t('admin.prf.title')} description={t('admin.prf.intro')} />
       <div className={styles.stack}>
-        {info.isError ? (
-          <ErrorState compact description={adminErrorMessage(i18n, info.error)} onRetry={() => void info.refetch()} />
-        ) : (
-          <Card>
-            {info.isLoading || !b ? (
-              <Skeleton height="3rem" width="100%" />
-            ) : (
-              <div className={styles.stack}>
-                <p>
-                  {t('admin.prf.builtIn', {
-                    total: formatNumber(b.tr + b.en + b.ar),
-                    tr: b.tr,
-                    en: b.en,
-                    ar: b.ar,
-                    source: b.source,
-                  })}
-                </p>
-                <p className={styles.muted}>{t('admin.prf.builtInAllow', { n: b.allow })}</p>
-                <p className={styles.muted}>
-                  {t('admin.prf.adminCount', { block: info.data!.adminBlock, allow: info.data!.adminAllow })}
-                </p>
-                <p className={styles.muted}>
-                  {t('admin.prf.settings', {
-                    state: t(info.data!.settings.enabled ? 'admin.prf.enabled' : 'admin.prf.disabled'),
-                    mode: t(`admin.prf.mode.${info.data!.settings.mode}` as const),
-                  })}
-                </p>
-              </div>
-            )}
-          </Card>
-        )}
-
-        <div className={styles.toolbar}>
-          <StatCard
-            title={t('admin.prf.stat.24h')}
-            loading={stats.isLoading}
-            value={formatNumber(stats.data?.last24h.total ?? 0)}
+        {info.data && (
+          <Insight
+            tone={!filterOn ? 'bad' : filterMode === 'FLAG' ? 'warn' : 'good'}
+            parts={[
+              { text: t(!filterOn ? 'admin.v2m.prf.offTitle' : filterMode === 'FLAG' ? 'admin.v2m.prf.flagTitle' : 'admin.v2m.prf.onTitle') },
+              ' ',
+              t(!filterOn ? 'admin.v2m.prf.offText' : filterMode === 'FLAG' ? 'admin.v2m.prf.flagText' : 'admin.v2m.prf.onText'),
+            ]}
           />
-          <StatCard
-            title={t('admin.prf.stat.7d')}
+        )}
+        <div className={v2.tiles} data-search-anchor="profanity-stats">
+          <StatTile
+            label={t('admin.prf.stat.24h')}
             loading={stats.isLoading}
-            value={formatNumber(stats.data?.last7d.total ?? 0)}
+            error={stats.isError}
+            onRetry={() => void stats.refetch()}
+            value={stats.data ? last24 : undefined}
+            change={stats.data ? percentChange(last24, dailyAvg) : null}
+            goodWhen="down"
+            compareLabel={t('admin.v2m.prf.compare')}
+          />
+          <StatTile
+            label={t('admin.prf.stat.7d')}
+            loading={stats.isLoading}
+            error={stats.isError}
+            value={stats.data ? last7 : undefined}
+            caption={stats.data ? t('admin.v2m.prf.avg', { n: formatNumber(Math.round(dailyAvg * 10) / 10) }) : undefined}
           />
         </div>
-        {stats.data && (
-          <Card title={t('admin.prf.stat.byField')}>
-            {stats.data.last7d.byField.length === 0 ? (
-              <p className={styles.muted}>{t('admin.prf.stat.none')}</p>
-            ) : (
-              <ul className={styles.rowList}>
-                {stats.data.last7d.byField.map((r) => (
-                  <li key={`${r.entity}.${r.field}`} className={styles.itemHead}>
-                    <code className={`${styles.mono} ltr`}>
-                      {r.entity} / {r.field}
-                    </code>
-                    <span className={styles.spacer} />
-                    <strong>{formatNumber(r.count)}</strong>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </Card>
+        {fieldBars.length > 0 && (
+          <section data-search-anchor="profanity-fields">
+            <h2 className={v2.hint}>{t('admin.prf.stat.byField')}</h2>
+            <RankedBars items={fieldBars} limit={5} ariaLabel={t('admin.prf.stat.byField')} />
+          </section>
         )}
-
-        <Card title={t('admin.prf.try')}>
-          <form
-            className={styles.formGrid}
-            onSubmit={(e) => {
-              e.preventDefault();
-              if (tryText.trim()) check.mutate();
-            }}
-          >
-            <div className={styles.wide}>
-              <FormField label={t('admin.prf.tryText')} hint={t('admin.prf.tryHint')}>
-                <Textarea value={tryText} maxLength={20000} dir="auto" onChange={(e) => setTryText(e.target.value)} />
-              </FormField>
-            </div>
-            <div>
-              <Button type="submit" loading={check.isPending} disabled={!tryText.trim()}>
-                {t('admin.prf.tryBtn')}
-              </Button>
-            </div>
-          </form>
-          {check.data && (
-            <div className={styles.stack} role="status">
-              <strong>{t(check.data.blocked ? 'admin.prf.tryBlocked' : 'admin.prf.tryClean')}</strong>
-              {check.data.blocked && (
-                <p className={styles.body} dir="auto">
-                  {t('admin.prf.tryMatches')}: {check.data.matches.join(', ')}
-                </p>
-              )}
-              <p className={styles.muted} dir="auto">
-                {t('admin.prf.tryNormalized')}: {check.data.normalized}
-              </p>
-            </div>
-          )}
-        </Card>
 
         <Tabs
           label={t('admin.prf.tabs')}
@@ -225,71 +183,13 @@ export default function ProfanityPage() {
             { id: 'ALLOW', label: t('admin.prf.tab.ALLOW') },
           ]}
         />
+        <p className={v2.hint}>{t(kind === 'BLOCK' ? 'admin.v2m.prf.tabBlockHint' : 'admin.v2m.prf.tabAllowHint')}</p>
 
-        <Card title={t('admin.prf.add')}>
-          <form
-            className={styles.formGrid}
-            onSubmit={(e) => {
-              e.preventDefault();
-              setTouched(true);
-              if (!termInvalid) add.mutate();
-            }}
-          >
-            <div className={styles.wide}>
-              <FormField
-                label={t('admin.prf.term')}
-                hint={t('admin.prf.termHint')}
-                error={touched && termInvalid ? t('admin.prf.termInvalid') : null}
-                required
-              >
-                <Input value={term} maxLength={80} dir="auto" autoComplete="off" onChange={(e) => setTerm(e.target.value)} />
-              </FormField>
-            </div>
-            <FormField label={t('admin.prf.language')}>
-              <Select value={lang} onChange={(e) => setLang(e.target.value as ProfanityLang)}>
-                {PROFANITY_LANGS.map((l) => (
-                  <option key={l} value={l}>
-                    {t(`admin.prf.lang.${l}` as const)}
-                  </option>
-                ))}
-              </Select>
-            </FormField>
-            <div className={styles.wide}>
-              <FormField label={t('admin.prf.note')}>
-                <Input value={note} maxLength={NOTE_MAX} dir="auto" onChange={(e) => setNote(e.target.value)} />
-              </FormField>
-            </div>
-            <div>
-              <Button type="submit" loading={add.isPending}>
-                {t('admin.prf.addBtn')}
-              </Button>
-            </div>
-          </form>
-          <form
-            className={styles.formGrid}
-            onSubmit={(e) => {
-              e.preventDefault();
-              if (bulk.trim()) addMany.mutate();
-            }}
-          >
-            <div className={styles.wide}>
-              <FormField label={t('admin.prf.bulk')}>
-                <Textarea value={bulk} maxLength={20000} dir="auto" rows={5} onChange={(e) => setBulk(e.target.value)} />
-              </FormField>
-            </div>
-            <div>
-              <Button type="submit" variant="secondary" loading={addMany.isPending} disabled={!bulk.trim()}>
-                {t('admin.prf.bulkBtn')}
-              </Button>
-            </div>
-          </form>
-        </Card>
-
-        <div className={styles.toolbar}>
+        <div className={`${styles.toolbar} ${v2.touch}`}>
           <FormField label={t('admin.prf.search')}>
-            <Input value={q} maxLength={80} dir="auto" onChange={(e) => setQ(e.target.value)} />
+            <Input value={q} maxLength={80} dir="auto" onChange={(e) => setQ(e.target.value)} data-search-anchor="profanity-search" />
           </FormField>
-          <Button variant="secondary" loading={exporter.isPending} onClick={() => exporter.mutate()}>
+          <Button variant="secondary" loading={exporter.isPending} onClick={() => exporter.mutate()} data-search-anchor="profanity-export">
             {t('admin.prf.export')}
           </Button>
         </div>
@@ -311,9 +211,11 @@ export default function ProfanityPage() {
                     </code>
                     <span className={styles.muted}>{t(`admin.prf.lang.${e.lang}` as const)}</span>
                     <span className={styles.spacer} />
-                    <Button size="sm" variant="danger" onClick={() => setRemoving(e)}>
-                      {t('admin.prf.remove')}
-                    </Button>
+                    <span className={v2.touch}>
+                      <Button size="sm" variant="ghost" className={v2.softDanger} onClick={() => setRemoving(e)}>
+                        {t('admin.prf.remove')}
+                      </Button>
+                    </span>
                   </div>
                   {e.note && (
                     <p className={styles.body} dir="auto">
@@ -333,6 +235,141 @@ export default function ProfanityPage() {
               onLoadMore={() => void list.fetchNextPage()}
             />
           </>
+        )}
+
+        <Card title={t('admin.prf.add')} data-search-anchor="profanity-add">
+          <form
+            className={styles.formGrid}
+            onSubmit={(e) => {
+              e.preventDefault();
+              setTouched(true);
+              if (!termInvalid) add.mutate();
+            }}
+          >
+            <div className={styles.wide}>
+              <FormField
+                label={t('admin.prf.term')}
+                hint={t('admin.v2m.prf.termHint')}
+                error={touched && termInvalid ? t('admin.prf.termInvalid') : null}
+                required
+              >
+                <Input value={term} maxLength={80} dir="auto" autoComplete="off" onChange={(e) => setTerm(e.target.value)} />
+              </FormField>
+              <ul className={v2.examples} aria-label={t('admin.v2m.prf.examplesLabel')}>
+                <li>{t('admin.v2m.prf.exPlain')}</li>
+                <li>{t('admin.v2m.prf.exExact')}</li>
+                <li>{t('admin.v2m.prf.exInside')}</li>
+              </ul>
+            </div>
+            <FormField label={t('admin.prf.language')}>
+              <Select value={lang} onChange={(e) => setLang(e.target.value as ProfanityLang)}>
+                {PROFANITY_LANGS.map((l) => (
+                  <option key={l} value={l}>
+                    {t(`admin.prf.lang.${l}` as const)}
+                  </option>
+                ))}
+              </Select>
+            </FormField>
+            <div className={styles.wide}>
+              <FormField label={t('admin.prf.note')}>
+                <Input value={note} maxLength={NOTE_MAX} dir="auto" onChange={(e) => setNote(e.target.value)} />
+              </FormField>
+            </div>
+            <div className={v2.touch}>
+              <Button type="submit" loading={add.isPending}>
+                {t('admin.prf.addBtn')}
+              </Button>
+            </div>
+          </form>
+          <hr className={v2.divider} />
+          <form
+            className={styles.formGrid}
+            data-search-anchor="profanity-bulk"
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (bulk.trim()) addMany.mutate();
+            }}
+          >
+            <div className={styles.wide}>
+              <FormField label={t('admin.prf.bulk')}>
+                <Textarea value={bulk} maxLength={20000} dir="auto" rows={5} onChange={(e) => setBulk(e.target.value)} />
+              </FormField>
+            </div>
+            <div className={v2.touch}>
+              <Button type="submit" variant="secondary" loading={addMany.isPending} disabled={!bulk.trim()}>
+                {t('admin.prf.bulkBtn')}
+              </Button>
+            </div>
+          </form>
+        </Card>
+
+        <Card title={t('admin.prf.try')} data-search-anchor="profanity-try">
+          <form
+            className={styles.formGrid}
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (tryText.trim()) check.mutate();
+            }}
+          >
+            <div className={styles.wide}>
+              <FormField label={t('admin.prf.tryText')} hint={t('admin.prf.tryHint')}>
+                <Textarea value={tryText} maxLength={20000} dir="auto" onChange={(e) => setTryText(e.target.value)} />
+              </FormField>
+            </div>
+            <div className={v2.touch}>
+              <Button type="submit" loading={check.isPending} disabled={!tryText.trim()}>
+                {t('admin.prf.tryBtn')}
+              </Button>
+            </div>
+          </form>
+          {check.data && (
+            <div className={styles.stack} role="status">
+              <Insight tone={check.data.blocked ? 'bad' : 'good'} parts={[{ text: t(check.data.blocked ? 'admin.prf.tryBlocked' : 'admin.prf.tryClean') }]} />
+              {check.data.blocked && (
+                <p className={styles.body} dir="auto">
+                  {t('admin.prf.tryMatches')}: {check.data.matches.join(', ')}
+                </p>
+              )}
+              <p className={styles.muted} dir="auto">
+                {t('admin.prf.tryNormalized')}: {check.data.normalized}
+              </p>
+            </div>
+          )}
+        </Card>
+
+        {info.isError ? (
+          <ErrorState compact description={adminErrorMessage(i18n, info.error)} onRetry={() => void info.refetch()} />
+        ) : (
+          <details className={v2.fold} data-search-anchor="profanity-tech">
+            <summary>{t('admin.v2m.prf.techTitle')}</summary>
+            <div className={v2.foldBody}>
+              {info.isLoading || !b ? (
+                <Skeleton height="3rem" width="100%" />
+              ) : (
+                <div className={styles.stack}>
+                  <p>
+                    {t('admin.prf.builtIn', {
+                      total: formatNumber(b.tr + b.en + b.ar),
+                      tr: b.tr,
+                      en: b.en,
+                      ar: b.ar,
+                      source: b.source,
+                    })}
+                  </p>
+                  <p className={styles.muted}>{t('admin.prf.builtInAllow', { n: b.allow })}</p>
+                  <p className={styles.muted}>
+                    {t('admin.prf.adminCount', { block: info.data!.adminBlock, allow: info.data!.adminAllow })}
+                  </p>
+                  <p className={styles.muted}>
+                    {t('admin.prf.settings', {
+                      state: t(info.data!.settings.enabled ? 'admin.prf.enabled' : 'admin.prf.disabled'),
+                      mode: t(`admin.prf.mode.${info.data!.settings.mode}` as const),
+                    })}
+                  </p>
+                </div>
+              )}
+            </div>
+          </details>
         )}
       </div>
       <ConfirmDialog

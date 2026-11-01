@@ -22,10 +22,12 @@ import {
   PageHeader,
   Select,
   Skeleton,
+  StatTile,
   StatusPill,
   Tabs,
   Textarea,
   toneFor,
+  useIsNarrow,
   useToast,
 } from '../../components/ui';
 import { useCan } from '../../auth/permissions';
@@ -37,6 +39,7 @@ import { adminError } from '../../lib/errors';
 import { internalNotes, mergeThread, parseAssignee, threadMessages } from './moderation/p11Logic';
 import p11 from './moderation/p11.module.css';
 import { ChatThread } from './support/ChatThread';
+import v2 from './moderation/v2.module.css';
 import styles from './support/Support.module.css';
 import {
   MAX_REPLY,
@@ -70,6 +73,8 @@ export default function TicketDetailPage() {
   const [templates, setTemplates] = useState<ReplyTemplate[]>(loadTemplates);
   const [newTpl, setNewTpl] = useState('');
   const replyRef = useRef<HTMLTextAreaElement>(null);
+  const narrow = useIsNarrow(960);
+  const span = (ms: number) => (ms < 3600000 ? t('admin.v2m.td.spanMin', { n: String(Math.max(1, Math.round(ms / 60000))) }) : ms < 86400000 ? t('admin.v2m.td.spanHour', { n: String(Math.round(ms / 3600000)) }) : t('admin.v2m.td.spanDay', { n: String(Math.round(ms / 86400000)) }));
   const canWrite = useCan('support.write'); // VIEWER yalnız okur (A3-06): yazma denetimleri devre dışı
 
   const query = useQuery({
@@ -143,6 +148,8 @@ export default function TicketDetailPage() {
   });
 
   const ticket = query.data?.ticket;
+  const firstReplyAt = query.data?.messages.filter((m) => m.fromStaff && !m.internal).map((m) => m.createdAt).sort()[0] ?? null;
+  const firstReplyMs = ticket && firstReplyAt ? Math.max(0, new Date(firstReplyAt).getTime() - new Date(ticket.createdAt).getTime()) : null;
   const email = query.data?.userEmail ?? stateEmail;
   const isPublic = !!ticket?.publicTicket;
   const open = ticket ? canReply(ticket.status) : false;
@@ -166,6 +173,76 @@ export default function TicketDetailPage() {
     setText((cur) => (cur.trim() ? `${cur.replace(/\s+$/, '')}\n\n${tpl.text}` : tpl.text).slice(0, MAX_REPLY));
     replyRef.current?.focus();
   }
+
+  const templatesCard = (
+    <Card title={t('admin.tickets.tpl.title')}>
+      <p className={styles.hint}>{t('admin.tickets.tpl.hint')}</p>
+      {templates.length === 0 ? (
+        <p className={styles.hint}>{t('admin.tickets.tpl.empty')}</p>
+      ) : (
+        <ul className={styles.tplList}>
+          {templates.map((tpl) => (
+            <li key={tpl.id} className={styles.tpl}>
+              <button
+                type="button"
+                className={styles.tplInsert}
+                disabled={!open}
+                title={t('admin.tickets.tpl.insert', { text: tpl.text })}
+                aria-label={t('admin.tickets.tpl.insert', { text: tpl.text })}
+                onClick={() => insert(tpl)}
+              >
+                <span dir="auto">{tpl.text}</span>
+              </button>
+              <IconButton
+                label={t('admin.tickets.tpl.remove')}
+                size="sm"
+                onClick={() => updateTemplates(removeTemplate(templates, tpl.id))}
+              >
+                <Icon name="x" size={16} />
+              </IconButton>
+            </li>
+          ))}
+        </ul>
+      )}
+      <form
+        className={styles.tplForm}
+        onSubmit={(e) => {
+          e.preventDefault();
+          updateTemplates(addTemplate(templates, newTpl));
+          setNewTpl('');
+        }}
+      >
+        <Input
+          value={newTpl}
+          dir="auto"
+          maxLength={MAX_REPLY}
+          aria-label={t('admin.tickets.tpl.placeholder')}
+          placeholder={t('admin.tickets.tpl.placeholder')}
+          onChange={(e) => setNewTpl(e.target.value)}
+        />
+        <div className={styles.tplActions}>
+          <Button
+            type="submit"
+            size="sm"
+            variant="secondary"
+            disabled={!newTpl.trim() || templates.length >= MAX_TEMPLATES}
+            leftIcon={<Icon name="plus" size={16} />}
+          >
+            {t('admin.tickets.tpl.add')}
+          </Button>
+          <Button
+            size="sm"
+            variant="ghost"
+            disabled={!text.trim() || templates.length >= MAX_TEMPLATES}
+            onClick={() => updateTemplates(addTemplate(templates, text))}
+          >
+            {t('admin.tickets.tpl.saveCurrent')}
+          </Button>
+        </div>
+        {templates.length >= MAX_TEMPLATES && <p className={styles.hint}>{t('admin.tickets.tpl.full')}</p>}
+      </form>
+    </Card>
+  );
 
   const crumbs = [{ label: t('admin.tickets.title'), to: paths.admin.tickets }, { label: `#${Number.isFinite(id) ? id : ''}` }];
 
@@ -206,29 +283,27 @@ export default function TicketDetailPage() {
                   {t('admin.p12.reopen.button')}
                 </PermissionButton>
               )}
-              <GuardedAction
-                permission="support.write"
-                variant="ghost"
-                danger
-                irreversible
-                requireReason
-                typeToConfirm={t('admin.p12.delete.confirmWord')}
-                title={t('admin.p12.delete.title')}
-                confirmLabel={t('admin.p12.delete.button')}
-                message={<strong dir="auto">{ticket.subject}</strong>}
-                consequence={t(isPublic ? 'admin.p12.delete.consequencePublic' : 'admin.p12.delete.consequence')}
-                successMessage={t('admin.p12.delete.done')}
-                errorMessage={(e) => adminError(i18n, e)}
-                invalidateKeys={[qk.tickets.all]}
-                onSuccess={() => navigate(paths.admin.tickets)}
-                onConfirm={({ reason, idempotencyKey }) => supportAdminApi.deleteTicket(id, { reason, idempotencyKey })}
-              >
-                {t('admin.p12.delete.button')}
-              </GuardedAction>
             </>
           ) : undefined
         }
       />
+
+      {ticket && query.data && (
+        <section className={v2.sentenceBlock} data-search-anchor="td-timeline" aria-label={t('admin.v2m.td.timeline')}>
+          <ol className={v2.chips}>
+            <li className={v2.chip}>{t('admin.v2m.td.stepOpened', { when: formatDateTime(ticket.createdAt) })}</li>
+            {firstReplyAt && <li className={v2.chip}>{t('admin.v2m.td.stepAnswered', { when: formatDateTime(firstReplyAt) })}</li>}
+            {ticket.status === 'CLOSED' && <li className={v2.chip}>{t('admin.v2m.td.stepClosed')}</li>}
+          </ol>
+          <div className={v2.tiles}>
+            <StatTile
+              label={t('admin.v2m.td.firstReply')}
+              value={firstReplyMs === null ? t('admin.v2m.td.noReply') : span(firstReplyMs)}
+              caption={t(firstReplyMs === null ? 'admin.v2m.td.noReplyHint' : 'admin.v2m.td.firstReplyHint')}
+            />
+          </div>
+        </section>
+      )}
 
       <div className={styles.detailGrid}>
         <div className={styles.main}>
@@ -305,6 +380,7 @@ export default function TicketDetailPage() {
             </Card>
           )}
 
+          {narrow && templatesCard}
           <Card>
             {open ? (
               <div className={styles.compose}>
@@ -335,12 +411,39 @@ export default function TicketDetailPage() {
                   <PermissionButton permission="support.write" onClick={send} disabled={!canSend} loading={reply.isPending}>
                     {t('admin.tickets.reply.send')}
                   </PermissionButton>
+                  {!canSend && !text.trim() && <span className={styles.hint}>{t('admin.v2m.td.sendDisabled')}</span>}
                 </div>
               </div>
             ) : (
               ticket && <p className={styles.closedNote}>{t('admin.tickets.reply.closed')}</p>
             )}
           </Card>
+          {ticket && (
+            <Card title={t('admin.v2m.td.dangerTitle')} data-search-anchor="td-danger">
+              <p className={styles.hint}>{t('admin.v2m.td.dangerHint')}</p>
+              <div className={v2.touch}>
+                <GuardedAction
+                  permission="support.write"
+                  variant="ghost"
+                  danger
+                  irreversible
+                  requireReason
+                  typeToConfirm={t('admin.p12.delete.confirmWord')}
+                  title={t('admin.p12.delete.title')}
+                  confirmLabel={t('admin.p12.delete.button')}
+                  message={<strong dir="auto">{ticket.subject}</strong>}
+                  consequence={t(isPublic ? 'admin.p12.delete.consequencePublic' : 'admin.p12.delete.consequence')}
+                  successMessage={t('admin.p12.delete.done')}
+                  errorMessage={(e) => adminError(i18n, e)}
+                  invalidateKeys={[qk.tickets.all]}
+                  onSuccess={() => navigate(paths.admin.tickets)}
+                  onConfirm={({ reason, idempotencyKey }) => supportAdminApi.deleteTicket(id, { reason, idempotencyKey })}
+                >
+                  {t('admin.p12.delete.button')}
+                </GuardedAction>
+              </div>
+            </Card>
+          )}
         </div>
 
         <aside className={styles.aside} aria-label={t('admin.tickets.tpl.title')}>
@@ -360,6 +463,12 @@ export default function TicketDetailPage() {
                     ))}
                   </Select>
                 </FormField>
+                <p className={styles.hint} data-search-anchor="td-priority">
+                  <Badge tone={query.data.priority === 'URGENT' ? 'danger' : query.data.priority === 'HIGH' ? 'warning' : 'neutral'}>
+                    {query.data.priority === 'URGENT' ? '! ' : ''}
+                    {t(`admin.p12.priority.${query.data.priority ?? 'NORMAL'}`)}
+                  </Badge>
+                </p>
                 <p className={styles.hint} data-testid="assignee-now">
                   {query.data.assigneeId
                     ? t('admin.p12.triage.assigned', { name: query.data.assigneeName ?? `#${query.data.assigneeId}` })
@@ -395,73 +504,7 @@ export default function TicketDetailPage() {
               </div>
             </Card>
           )}
-          <Card title={t('admin.tickets.tpl.title')}>
-            <p className={styles.hint}>{t('admin.tickets.tpl.hint')}</p>
-            {templates.length === 0 ? (
-              <p className={styles.hint}>{t('admin.tickets.tpl.empty')}</p>
-            ) : (
-              <ul className={styles.tplList}>
-                {templates.map((tpl) => (
-                  <li key={tpl.id} className={styles.tpl}>
-                    <button
-                      type="button"
-                      className={styles.tplInsert}
-                      disabled={!open}
-                      title={t('admin.tickets.tpl.insert', { text: tpl.text })}
-                      aria-label={t('admin.tickets.tpl.insert', { text: tpl.text })}
-                      onClick={() => insert(tpl)}
-                    >
-                      <span dir="auto">{tpl.text}</span>
-                    </button>
-                    <IconButton
-                      label={t('admin.tickets.tpl.remove')}
-                      size="sm"
-                      onClick={() => updateTemplates(removeTemplate(templates, tpl.id))}
-                    >
-                      <Icon name="x" size={16} />
-                    </IconButton>
-                  </li>
-                ))}
-              </ul>
-            )}
-            <form
-              className={styles.tplForm}
-              onSubmit={(e) => {
-                e.preventDefault();
-                updateTemplates(addTemplate(templates, newTpl));
-                setNewTpl('');
-              }}
-            >
-              <Input
-                value={newTpl}
-                dir="auto"
-                maxLength={MAX_REPLY}
-                aria-label={t('admin.tickets.tpl.placeholder')}
-                placeholder={t('admin.tickets.tpl.placeholder')}
-                onChange={(e) => setNewTpl(e.target.value)}
-              />
-              <div className={styles.tplActions}>
-                <Button
-                  type="submit"
-                  size="sm"
-                  variant="secondary"
-                  disabled={!newTpl.trim() || templates.length >= MAX_TEMPLATES}
-                  leftIcon={<Icon name="plus" size={16} />}
-                >
-                  {t('admin.tickets.tpl.add')}
-                </Button>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  disabled={!text.trim() || templates.length >= MAX_TEMPLATES}
-                  onClick={() => updateTemplates(addTemplate(templates, text))}
-                >
-                  {t('admin.tickets.tpl.saveCurrent')}
-                </Button>
-              </div>
-              {templates.length >= MAX_TEMPLATES && <p className={styles.hint}>{t('admin.tickets.tpl.full')}</p>}
-            </form>
-          </Card>
+          {!narrow && templatesCard}
         </aside>
       </div>
 

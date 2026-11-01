@@ -21,9 +21,9 @@ export function ReasonFields({
   const { t, lang } = useI18n();
   return (
     <>
-      <FormField label={t('admin.reports.reasonCode.label')}>
+      <FormField label={t('admin.reports.reasonCode.label')} hint={t('admin.v2m.reports.reasonHint')}>
         <Select value={value} onChange={(e) => onChange(cleanReasonCode(e.target.value) ?? '')}>
-          <option value="">{t('admin.reports.reasonCode.none')}</option>
+          <option value="">{t('admin.v2m.reports.reasonNone')}</option>
           {REASON_CODES.map((c) => (
             <option key={c} value={c}>
               {t(`admin.reports.reasonCode.${c}`)}
