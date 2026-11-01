@@ -771,6 +771,39 @@
           }
         }
       },
+      "AdminItem" : {
+        "properties" : {
+          "attachmentCount" : {
+            "format" : "int32",
+            "type" : [ "integer", "null" ]
+          },
+          "hidden" : {
+            "type" : [ "boolean", "null" ]
+          },
+          "id" : {
+            "format" : "int64",
+            "type" : [ "integer", "null" ]
+          },
+          "publishedDate" : {
+            "type" : [ "string", "null" ]
+          },
+          "sourceCode" : {
+            "type" : [ "string", "null" ]
+          },
+          "sourceName" : {
+            "type" : [ "string", "null" ]
+          },
+          "title" : {
+            "type" : [ "string", "null" ]
+          },
+          "unitName" : {
+            "type" : [ "string", "null" ]
+          },
+          "url" : {
+            "type" : [ "string", "null" ]
+          }
+        }
+      },
       "AdminList" : {
         "properties" : {
           "activeCount" : {
@@ -887,6 +920,32 @@
           },
           "userId" : {
             "format" : "int64",
+            "type" : [ "integer", "null" ]
+          }
+        }
+      },
+      "AdminPage" : {
+        "properties" : {
+          "content" : {
+            "items" : {
+              "$ref" : "#/components/schemas/AdminItem"
+            },
+            "type" : "array"
+          },
+          "number" : {
+            "format" : "int32",
+            "type" : [ "integer", "null" ]
+          },
+          "size" : {
+            "format" : "int32",
+            "type" : [ "integer", "null" ]
+          },
+          "totalElements" : {
+            "format" : "int64",
+            "type" : [ "integer", "null" ]
+          },
+          "totalPages" : {
+            "format" : "int32",
             "type" : [ "integer", "null" ]
           }
         }
@@ -1252,6 +1311,16 @@
           },
           "suspendedReason" : {
             "type" : [ "string", "null" ]
+          },
+          "twoFactorEnabled" : {
+            "type" : [ "boolean", "null" ]
+          },
+          "twoFactorEnabledAt" : {
+            "type" : [ "string", "null" ]
+          },
+          "twoFactorTrustedDeviceCount" : {
+            "format" : "int64",
+            "type" : [ "integer", "null" ]
           }
         }
       },
@@ -1299,6 +1368,9 @@
           "status" : {
             "enum" : [ "ACTIVE", "SUSPENDED", "DELETED" ],
             "type" : [ "string", "null" ]
+          },
+          "twoFactorEnabled" : {
+            "type" : [ "boolean", "null" ]
           }
         }
       },
@@ -1864,6 +1936,19 @@
           }
         }
       },
+      "Attachment" : {
+        "properties" : {
+          "name" : {
+            "type" : [ "string", "null" ]
+          },
+          "type" : {
+            "type" : [ "string", "null" ]
+          },
+          "url" : {
+            "type" : [ "string", "null" ]
+          }
+        }
+      },
       "AttachmentView" : {
         "properties" : {
           "bytes" : {
@@ -2309,6 +2394,45 @@
           "id" : {
             "format" : "int64",
             "type" : [ "integer", "null" ]
+          }
+        }
+      },
+      "BackupReport" : {
+        "properties" : {
+          "lastStatus" : {
+            "type" : [ "string", "null" ]
+          },
+          "lastSuccessAt" : {
+            "format" : "date-time",
+            "type" : [ "string", "null" ]
+          },
+          "local" : {
+            "anyOf" : [ {
+              "$ref" : "#/components/schemas/Local"
+            }, {
+              "type" : "null"
+            } ]
+          },
+          "remote" : {
+            "anyOf" : [ {
+              "$ref" : "#/components/schemas/Remote"
+            }, {
+              "type" : "null"
+            } ]
+          },
+          "retention" : {
+            "anyOf" : [ {
+              "$ref" : "#/components/schemas/Retention"
+            }, {
+              "type" : "null"
+            } ]
+          },
+          "schedule" : {
+            "anyOf" : [ {
+              "$ref" : "#/components/schemas/Schedule"
+            }, {
+              "type" : "null"
+            } ]
           }
         }
       },
@@ -3007,6 +3131,16 @@
           }
         }
       },
+      "ChallengeRequest" : {
+        "properties" : {
+          "challengeToken" : {
+            "maxLength" : 200,
+            "minLength" : 0,
+            "type" : "string"
+          }
+        },
+        "required" : [ "challengeToken" ]
+      },
       "ChangePasswordRequest" : {
         "properties" : {
           "currentPassword" : {
@@ -3377,6 +3511,16 @@
           }
         }
       },
+      "CodeRequest" : {
+        "properties" : {
+          "code" : {
+            "maxLength" : 16,
+            "minLength" : 0,
+            "type" : "string"
+          }
+        },
+        "required" : [ "code" ]
+      },
       "CodeSent" : {
         "properties" : {
           "expiresInMinutes" : {
@@ -3384,29 +3528,6 @@
             "type" : [ "integer", "null" ]
           },
           "status" : {
-            "type" : [ "string", "null" ]
-          }
-        }
-      },
-      "Cohort" : {
-        "properties" : {
-          "d1" : {
-            "format" : "double",
-            "type" : [ "number", "null" ]
-          },
-          "d30" : {
-            "format" : "double",
-            "type" : [ "number", "null" ]
-          },
-          "d7" : {
-            "format" : "double",
-            "type" : [ "number", "null" ]
-          },
-          "size" : {
-            "format" : "int64",
-            "type" : [ "integer", "null" ]
-          },
-          "weekStart" : {
             "type" : [ "string", "null" ]
           }
         }
@@ -5021,6 +5142,57 @@
           }
         }
       },
+      "DepartmentView" : {
+        "properties" : {
+          "hasOwnFeed" : {
+            "type" : [ "boolean", "null" ]
+          },
+          "name" : {
+            "type" : [ "string", "null" ]
+          },
+          "nameKey" : {
+            "type" : [ "string", "null" ]
+          },
+          "slug" : {
+            "type" : [ "string", "null" ]
+          }
+        }
+      },
+      "Detail" : {
+        "properties" : {
+          "attachments" : {
+            "items" : {
+              "$ref" : "#/components/schemas/Attachment"
+            },
+            "type" : "array"
+          },
+          "body" : {
+            "type" : [ "string", "null" ]
+          },
+          "id" : {
+            "format" : "int64",
+            "type" : [ "integer", "null" ]
+          },
+          "publishedDate" : {
+            "type" : [ "string", "null" ]
+          },
+          "sourceName" : {
+            "type" : [ "string", "null" ]
+          },
+          "summary" : {
+            "type" : [ "string", "null" ]
+          },
+          "title" : {
+            "type" : [ "string", "null" ]
+          },
+          "unitName" : {
+            "type" : [ "string", "null" ]
+          },
+          "url" : {
+            "type" : [ "string", "null" ]
+          }
+        }
+      },
       "Device" : {
         "properties" : {
           "platform" : {
@@ -5126,6 +5298,16 @@
           }
         }
       },
+      "DisableRequest" : {
+        "properties" : {
+          "password" : {
+            "maxLength" : 200,
+            "minLength" : 0,
+            "type" : "string"
+          }
+        },
+        "required" : [ "password" ]
+      },
       "Discoverable" : {
         "properties" : {
           "enabled" : {
@@ -5178,6 +5360,13 @@
           }
         },
         "required" : [ "email" ]
+      },
+      "EnabledResponse" : {
+        "properties" : {
+          "enabled" : {
+            "type" : [ "boolean", "null" ]
+          }
+        }
       },
       "EnforceRequest" : {
         "properties" : {
@@ -6481,6 +6670,38 @@
           }
         }
       },
+      "Item" : {
+        "properties" : {
+          "attachments" : {
+            "items" : {
+              "$ref" : "#/components/schemas/Attachment"
+            },
+            "type" : "array"
+          },
+          "id" : {
+            "format" : "int64",
+            "type" : [ "integer", "null" ]
+          },
+          "publishedDate" : {
+            "type" : [ "string", "null" ]
+          },
+          "sourceName" : {
+            "type" : [ "string", "null" ]
+          },
+          "summary" : {
+            "type" : [ "string", "null" ]
+          },
+          "title" : {
+            "type" : [ "string", "null" ]
+          },
+          "unitName" : {
+            "type" : [ "string", "null" ]
+          },
+          "url" : {
+            "type" : [ "string", "null" ]
+          }
+        }
+      },
       "JoinByCodeRequest" : {
         "properties" : {
           "code" : {
@@ -6715,6 +6936,22 @@
             "type" : [ "string", "null" ]
           },
           "url" : {
+            "type" : [ "string", "null" ]
+          }
+        }
+      },
+      "Local" : {
+        "properties" : {
+          "bytes" : {
+            "format" : "int64",
+            "type" : [ "integer", "null" ]
+          },
+          "count" : {
+            "format" : "int64",
+            "type" : [ "integer", "null" ]
+          },
+          "oldestAt" : {
+            "format" : "date-time",
             "type" : [ "string", "null" ]
           }
         }
@@ -10346,6 +10583,38 @@
           }
         }
       },
+      "Remote" : {
+        "properties" : {
+          "bytes" : {
+            "format" : "int64",
+            "type" : [ "integer", "null" ]
+          },
+          "configured" : {
+            "type" : [ "boolean", "null" ]
+          },
+          "count" : {
+            "format" : "int64",
+            "type" : [ "integer", "null" ]
+          },
+          "kind" : {
+            "type" : [ "string", "null" ]
+          },
+          "lastError" : {
+            "type" : [ "string", "null" ]
+          },
+          "lastSuccessAt" : {
+            "format" : "date-time",
+            "type" : [ "string", "null" ]
+          },
+          "lastVerifiedAt" : {
+            "format" : "date-time",
+            "type" : [ "string", "null" ]
+          },
+          "name" : {
+            "type" : [ "string", "null" ]
+          }
+        }
+      },
       "RenameRequest" : {
         "properties" : {
           "title" : {
@@ -10798,6 +11067,14 @@
           }
         }
       },
+      "ResendResponse" : {
+        "properties" : {
+          "expiresInSeconds" : {
+            "format" : "int64",
+            "type" : [ "integer", "null" ]
+          }
+        }
+      },
       "ResetPasswordRequest" : {
         "properties" : {
           "email" : {
@@ -10891,11 +11168,29 @@
       },
       "Retention" : {
         "properties" : {
-          "cohorts" : {
-            "items" : {
-              "$ref" : "#/components/schemas/Cohort"
-            },
-            "type" : "array"
+          "localDaily" : {
+            "format" : "int32",
+            "type" : [ "integer", "null" ]
+          },
+          "localMonthly" : {
+            "format" : "int32",
+            "type" : [ "integer", "null" ]
+          },
+          "localWeekly" : {
+            "format" : "int32",
+            "type" : [ "integer", "null" ]
+          },
+          "remoteDaily" : {
+            "format" : "int32",
+            "type" : [ "integer", "null" ]
+          },
+          "remoteMonthly" : {
+            "format" : "int32",
+            "type" : [ "integer", "null" ]
+          },
+          "remoteWeekly" : {
+            "format" : "int32",
+            "type" : [ "integer", "null" ]
           }
         }
       },
@@ -11014,6 +11309,19 @@
           }
         },
         "required" : [ "nameTr" ]
+      },
+      "Schedule" : {
+        "properties" : {
+          "cron" : {
+            "type" : [ "string", "null" ]
+          },
+          "remoteCron" : {
+            "type" : [ "string", "null" ]
+          },
+          "verifyCron" : {
+            "type" : [ "string", "null" ]
+          }
+        }
       },
       "ScheduleRequest" : {
         "properties" : {
@@ -11414,6 +11722,70 @@
         },
         "required" : [ "source" ]
       },
+      "SourceUpdate" : {
+        "properties" : {
+          "enabled" : {
+            "type" : "boolean"
+          },
+          "facultyKeys" : {
+            "items" : {
+              "type" : "string"
+            },
+            "type" : "array"
+          }
+        },
+        "required" : [ "enabled" ]
+      },
+      "SourceView" : {
+        "properties" : {
+          "announcementCount" : {
+            "format" : "int64",
+            "type" : [ "integer", "null" ]
+          },
+          "baseUrl" : {
+            "type" : [ "string", "null" ]
+          },
+          "code" : {
+            "type" : [ "string", "null" ]
+          },
+          "departmentCount" : {
+            "format" : "int64",
+            "type" : [ "integer", "null" ]
+          },
+          "enabled" : {
+            "type" : [ "boolean", "null" ]
+          },
+          "facultyKeys" : {
+            "items" : {
+              "type" : "string"
+            },
+            "type" : "array"
+          },
+          "graduate" : {
+            "type" : [ "boolean", "null" ]
+          },
+          "kind" : {
+            "type" : [ "string", "null" ]
+          },
+          "lastAttemptAt" : {
+            "format" : "date-time",
+            "type" : [ "string", "null" ]
+          },
+          "lastMessage" : {
+            "type" : [ "string", "null" ]
+          },
+          "lastSuccessAt" : {
+            "format" : "date-time",
+            "type" : [ "string", "null" ]
+          },
+          "maintenance" : {
+            "type" : [ "boolean", "null" ]
+          },
+          "name" : {
+            "type" : [ "string", "null" ]
+          }
+        }
+      },
       "SourcesStatus" : {
         "properties" : {
           "menu" : {
@@ -11517,6 +11889,20 @@
           }
         },
         "required" : [ "status" ]
+      },
+      "StatusResponse" : {
+        "properties" : {
+          "currentDeviceTrusted" : {
+            "type" : [ "boolean", "null" ]
+          },
+          "enabled" : {
+            "type" : [ "boolean", "null" ]
+          },
+          "trustedDeviceCount" : {
+            "format" : "int64",
+            "type" : [ "integer", "null" ]
+          }
+        }
       },
       "StoredPreviewRequest" : {
         "properties" : {
@@ -11709,23 +12095,23 @@
       },
       "Summary" : {
         "properties" : {
-          "ackGroups" : {
+          "enabledCount" : {
             "format" : "int64",
             "type" : [ "integer", "null" ]
           },
-          "events24h" : {
+          "enabledLast7Days" : {
             "format" : "int64",
             "type" : [ "integer", "null" ]
           },
-          "newGroups" : {
+          "enabledPercent" : {
+            "format" : "double",
+            "type" : [ "number", "null" ]
+          },
+          "totalActiveUsers" : {
             "format" : "int64",
             "type" : [ "integer", "null" ]
           },
-          "reopened" : {
-            "format" : "int64",
-            "type" : [ "integer", "null" ]
-          },
-          "resolvedGroups" : {
+          "trustedDeviceTotal" : {
             "format" : "int64",
             "type" : [ "integer", "null" ]
           }
@@ -11875,19 +12261,12 @@
       },
       "SyncResult" : {
         "properties" : {
-          "changed" : {
+          "added" : {
             "format" : "int32",
             "type" : [ "integer", "null" ]
           },
-          "detail" : {
-            "additionalProperties" : {
-              "format" : "int32",
-              "type" : "integer"
-            },
-            "type" : [ "object", "null" ]
-          },
-          "source" : {
-            "type" : [ "string", "null" ]
+          "started" : {
+            "type" : [ "boolean", "null" ]
           }
         }
       },
@@ -12513,6 +12892,24 @@
             "type" : [ "integer", "null" ]
           }
         }
+      },
+      "TwoFactorLoginRequest" : {
+        "properties" : {
+          "challengeToken" : {
+            "maxLength" : 200,
+            "minLength" : 0,
+            "type" : "string"
+          },
+          "code" : {
+            "maxLength" : 16,
+            "minLength" : 0,
+            "type" : "string"
+          },
+          "trustDevice" : {
+            "type" : [ "boolean", "null" ]
+          }
+        },
+        "required" : [ "challengeToken", "code" ]
       },
       "TypeCount" : {
         "properties" : {
@@ -17829,7 +18226,7 @@
         "tags" : [ "club-admin-controller" ]
       },
       "patch" : {
-        "operationId" : "update_12",
+        "operationId" : "update_13",
         "parameters" : [ {
           "in" : "path",
           "name" : "id",
@@ -19464,7 +19861,7 @@
         "tags" : [ "community-category-admin-controller" ]
       },
       "put" : {
-        "operationId" : "update_5",
+        "operationId" : "update_6",
         "parameters" : [ {
           "in" : "path",
           "name" : "id",
@@ -20655,7 +21052,7 @@
     },
     "/api/admin/crashes/summary" : {
       "get" : {
-        "operationId" : "summary_1",
+        "operationId" : "summary_2",
         "responses" : {
           "200" : {
             "content" : {
@@ -20771,7 +21168,7 @@
         "tags" : [ "crash-admin-controller" ]
       },
       "get" : {
-        "operationId" : "detail_9",
+        "operationId" : "detail_10",
         "parameters" : [ {
           "in" : "path",
           "name" : "id",
@@ -20988,7 +21385,7 @@
     },
     "/api/admin/crypto/status" : {
       "get" : {
-        "operationId" : "status_2",
+        "operationId" : "status_3",
         "responses" : {
           "200" : {
             "content" : {
@@ -22073,7 +22470,7 @@
     },
     "/api/admin/events/{id}/announcements" : {
       "get" : {
-        "operationId" : "announcements_1",
+        "operationId" : "announcements_2",
         "parameters" : [ {
           "in" : "path",
           "name" : "id",
@@ -24000,7 +24397,7 @@
         "tags" : [ "faq-controller" ]
       },
       "put" : {
-        "operationId" : "update_4",
+        "operationId" : "update_5",
         "parameters" : [ {
           "in" : "path",
           "name" : "id",
@@ -24747,7 +25144,7 @@
         "tags" : [ "mail-campaign-admin-controller" ]
       },
       "put" : {
-        "operationId" : "update_3",
+        "operationId" : "update_4",
         "parameters" : [ {
           "in" : "path",
           "name" : "id",
@@ -25228,7 +25625,7 @@
           "name" : "template",
           "required" : false,
           "schema" : {
-            "enum" : [ "VERIFICATION_CODE", "PASSWORD_RESET_CODE", "ACCOUNT_DELETED", "SECURITY_NEW_LOGIN", "SECURITY_PASSWORD_CHANGED", "ANNOUNCEMENT", "CUSTOM" ],
+            "enum" : [ "VERIFICATION_CODE", "PASSWORD_RESET_CODE", "TWO_FACTOR_CODE", "ACCOUNT_DELETED", "SECURITY_NEW_LOGIN", "SECURITY_PASSWORD_CHANGED", "ANNOUNCEMENT", "CUSTOM" ],
             "type" : "string"
           }
         }, {
@@ -26419,7 +26816,7 @@
         "tags" : [ "mail-template-admin-controller" ]
       },
       "put" : {
-        "operationId" : "update_2",
+        "operationId" : "update_3",
         "parameters" : [ {
           "in" : "path",
           "name" : "id",
@@ -28240,7 +28637,7 @@
     },
     "/api/admin/moderation/hidden" : {
       "get" : {
-        "operationId" : "hidden",
+        "operationId" : "hidden_1",
         "parameters" : [ {
           "in" : "query",
           "name" : "targetType",
@@ -32591,7 +32988,7 @@
     },
     "/api/admin/push/devices/summary" : {
       "get" : {
-        "operationId" : "devices_1",
+        "operationId" : "devices_2",
         "responses" : {
           "200" : {
             "content" : {
@@ -32644,7 +33041,7 @@
     },
     "/api/admin/push/fcm/status" : {
       "get" : {
-        "operationId" : "status_1",
+        "operationId" : "status_2",
         "responses" : {
           "200" : {
             "content" : {
@@ -33063,7 +33460,7 @@
     },
     "/api/admin/push/outbox/{id}" : {
       "get" : {
-        "operationId" : "detail_8",
+        "operationId" : "detail_9",
         "parameters" : [ {
           "in" : "path",
           "name" : "id",
@@ -34207,7 +34604,7 @@
     },
     "/api/admin/reports/{id}" : {
       "get" : {
-        "operationId" : "detail_7",
+        "operationId" : "detail_8",
         "parameters" : [ {
           "in" : "path",
           "name" : "id",
@@ -35698,6 +36095,59 @@
         "tags" : [ "menu-controller" ]
       }
     },
+    "/api/admin/system/backup" : {
+      "get" : {
+        "operationId" : "backup",
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/BackupReport"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Dogrulama / is kurali hatasi (code alanina bakin)"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Token yok/gecersiz/suresi dolmus"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "ADMIN rolu gerekli"
+          }
+        },
+        "security" : [ {
+          "bearerAuth" : [ ]
+        }, {
+          "adminBasic" : [ ]
+        } ],
+        "tags" : [ "system-overview-controller" ]
+      }
+    },
     "/api/admin/system/dead-letters/mail" : {
       "get" : {
         "operationId" : "deadMail",
@@ -36242,6 +36692,641 @@
         "tags" : [ "retention-admin-controller" ]
       }
     },
+    "/api/admin/two-factor/summary" : {
+      "get" : {
+        "operationId" : "summary_1",
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Summary"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Dogrulama / is kurali hatasi (code alanina bakin)"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Token yok/gecersiz/suresi dolmus"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "ADMIN rolu gerekli"
+          }
+        },
+        "security" : [ {
+          "bearerAuth" : [ ]
+        }, {
+          "adminBasic" : [ ]
+        } ],
+        "tags" : [ "admin-two-factor-controller" ]
+      }
+    },
+    "/api/admin/two-factor/users" : {
+      "get" : {
+        "operationId" : "users",
+        "parameters" : [ {
+          "in" : "query",
+          "name" : "q",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "page",
+          "required" : false,
+          "schema" : {
+            "default" : 0,
+            "format" : "int32",
+            "type" : "integer"
+          }
+        }, {
+          "in" : "query",
+          "name" : "size",
+          "required" : false,
+          "schema" : {
+            "default" : 20,
+            "format" : "int32",
+            "type" : "integer"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/UserPage"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Dogrulama / is kurali hatasi (code alanina bakin)"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Token yok/gecersiz/suresi dolmus"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "ADMIN rolu gerekli"
+          }
+        },
+        "security" : [ {
+          "bearerAuth" : [ ]
+        }, {
+          "adminBasic" : [ ]
+        } ],
+        "tags" : [ "admin-two-factor-controller" ]
+      }
+    },
+    "/api/admin/unit-news/announcements" : {
+      "get" : {
+        "operationId" : "announcements_1",
+        "parameters" : [ {
+          "in" : "query",
+          "name" : "source",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "q",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "hidden",
+          "required" : false,
+          "schema" : {
+            "type" : "boolean"
+          }
+        }, {
+          "in" : "query",
+          "name" : "page",
+          "required" : false,
+          "schema" : {
+            "default" : 0,
+            "format" : "int32",
+            "type" : "integer"
+          }
+        }, {
+          "in" : "query",
+          "name" : "size",
+          "required" : false,
+          "schema" : {
+            "default" : 20,
+            "format" : "int32",
+            "type" : "integer"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/AdminPage"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Dogrulama / is kurali hatasi (code alanina bakin)"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Token yok/gecersiz/suresi dolmus"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "ADMIN rolu gerekli"
+          }
+        },
+        "security" : [ {
+          "bearerAuth" : [ ]
+        }, {
+          "adminBasic" : [ ]
+        } ],
+        "tags" : [ "unit-news-admin-controller" ]
+      }
+    },
+    "/api/admin/unit-news/announcements/{id}/hidden" : {
+      "put" : {
+        "operationId" : "hidden",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "format" : "int64",
+            "type" : "integer"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/HiddenRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "204" : {
+            "description" : "No Content"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Dogrulama / is kurali hatasi (code alanina bakin)"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Token yok/gecersiz/suresi dolmus"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "ADMIN rolu gerekli"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "RATE_LIMITED: istek siniri asildi"
+          }
+        },
+        "security" : [ {
+          "bearerAuth" : [ ]
+        }, {
+          "adminBasic" : [ ]
+        } ],
+        "tags" : [ "unit-news-admin-controller" ]
+      }
+    },
+    "/api/admin/unit-news/sources" : {
+      "get" : {
+        "operationId" : "sources",
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "items" : {
+                    "$ref" : "#/components/schemas/SourceView"
+                  },
+                  "type" : "array"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Dogrulama / is kurali hatasi (code alanina bakin)"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Token yok/gecersiz/suresi dolmus"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "ADMIN rolu gerekli"
+          }
+        },
+        "security" : [ {
+          "bearerAuth" : [ ]
+        }, {
+          "adminBasic" : [ ]
+        } ],
+        "tags" : [ "unit-news-admin-controller" ]
+      }
+    },
+    "/api/admin/unit-news/sources/{code}" : {
+      "put" : {
+        "operationId" : "update_2",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "code",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/SourceUpdate"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/SourceView"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Dogrulama / is kurali hatasi (code alanina bakin)"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Token yok/gecersiz/suresi dolmus"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "ADMIN rolu gerekli"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "RATE_LIMITED: istek siniri asildi"
+          }
+        },
+        "security" : [ {
+          "bearerAuth" : [ ]
+        }, {
+          "adminBasic" : [ ]
+        } ],
+        "tags" : [ "unit-news-admin-controller" ]
+      }
+    },
+    "/api/admin/unit-news/sources/{code}/departments" : {
+      "get" : {
+        "operationId" : "departments_2",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "code",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "items" : {
+                    "$ref" : "#/components/schemas/DepartmentView"
+                  },
+                  "type" : "array"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Dogrulama / is kurali hatasi (code alanina bakin)"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Token yok/gecersiz/suresi dolmus"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "ADMIN rolu gerekli"
+          }
+        },
+        "security" : [ {
+          "bearerAuth" : [ ]
+        }, {
+          "adminBasic" : [ ]
+        } ],
+        "tags" : [ "unit-news-admin-controller" ]
+      }
+    },
+    "/api/admin/unit-news/sources/{code}/sync" : {
+      "post" : {
+        "operationId" : "sync",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "code",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "202" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/SyncResult"
+                }
+              }
+            },
+            "description" : "Accepted"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Dogrulama / is kurali hatasi (code alanina bakin)"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Token yok/gecersiz/suresi dolmus"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "ADMIN rolu gerekli"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "RATE_LIMITED: istek siniri asildi"
+          }
+        },
+        "security" : [ {
+          "bearerAuth" : [ ]
+        }, {
+          "adminBasic" : [ ]
+        } ],
+        "tags" : [ "unit-news-admin-controller" ]
+      }
+    },
+    "/api/admin/unit-news/sync" : {
+      "post" : {
+        "operationId" : "syncAll",
+        "responses" : {
+          "202" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/SyncResult"
+                }
+              }
+            },
+            "description" : "Accepted"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Dogrulama / is kurali hatasi (code alanina bakin)"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Token yok/gecersiz/suresi dolmus"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "ADMIN rolu gerekli"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "RATE_LIMITED: istek siniri asildi"
+          }
+        },
+        "security" : [ {
+          "bearerAuth" : [ ]
+        }, {
+          "adminBasic" : [ ]
+        } ],
+        "tags" : [ "unit-news-admin-controller" ]
+      }
+    },
     "/api/admin/users" : {
       "get" : {
         "operationId" : "list_16",
@@ -36335,6 +37420,13 @@
           "schema" : {
             "format" : "date",
             "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "twoFactor",
+          "required" : false,
+          "schema" : {
+            "type" : "boolean"
           }
         }, {
           "in" : "query",
@@ -36581,6 +37673,13 @@
           }
         }, {
           "in" : "query",
+          "name" : "twoFactor",
+          "required" : false,
+          "schema" : {
+            "type" : "boolean"
+          }
+        }, {
+          "in" : "query",
           "name" : "sort",
           "required" : false,
           "schema" : {
@@ -36695,7 +37794,7 @@
         "tags" : [ "admin-user-controller" ]
       },
       "get" : {
-        "operationId" : "detail_6",
+        "operationId" : "detail_7",
         "parameters" : [ {
           "in" : "path",
           "name" : "id",
@@ -36839,7 +37938,7 @@
     },
     "/api/admin/users/{id}/devices" : {
       "get" : {
-        "operationId" : "devices",
+        "operationId" : "devices_1",
         "parameters" : [ {
           "in" : "path",
           "name" : "id",
@@ -37770,6 +38869,80 @@
         "tags" : [ "admin-moderation-controller" ]
       }
     },
+    "/api/admin/users/{id}/two-factor/disable" : {
+      "post" : {
+        "operationId" : "disable_1",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "format" : "int64",
+            "type" : "integer"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/DisableRequest"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "204" : {
+            "description" : "No Content"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Dogrulama / is kurali hatasi (code alanina bakin)"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Token yok/gecersiz/suresi dolmus"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "ADMIN rolu gerekli"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "RATE_LIMITED: istek siniri asildi"
+          }
+        },
+        "security" : [ {
+          "bearerAuth" : [ ]
+        }, {
+          "adminBasic" : [ ]
+        } ],
+        "tags" : [ "admin-two-factor-controller" ]
+      }
+    },
     "/api/admin/users/{id}/unsuspend" : {
       "post" : {
         "operationId" : "unsuspend",
@@ -38122,7 +39295,7 @@
     },
     "/api/announcements" : {
       "get" : {
-        "operationId" : "feed_2",
+        "operationId" : "feed_3",
         "parameters" : [ {
           "in" : "query",
           "name" : "scope",
@@ -38610,6 +39783,285 @@
         "tags" : [ "appeal-controller" ]
       }
     },
+    "/api/auth/2fa" : {
+      "get" : {
+        "operationId" : "status_1",
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/StatusResponse"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Dogrulama / is kurali hatasi (code alanina bakin)"
+          }
+        },
+        "security" : [ ],
+        "tags" : [ "two-factor-controller" ]
+      }
+    },
+    "/api/auth/2fa/devices" : {
+      "get" : {
+        "operationId" : "devices",
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "items" : {
+                    "$ref" : "#/components/schemas/DeviceView"
+                  },
+                  "type" : "array"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Dogrulama / is kurali hatasi (code alanina bakin)"
+          }
+        },
+        "security" : [ ],
+        "tags" : [ "two-factor-controller" ]
+      }
+    },
+    "/api/auth/2fa/devices/{id}" : {
+      "delete" : {
+        "operationId" : "removeDevice",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "format" : "int64",
+            "type" : "integer"
+          }
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "No Content"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Dogrulama / is kurali hatasi (code alanina bakin)"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Token yok/gecersiz/suresi dolmus"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "RATE_LIMITED: istek siniri asildi"
+          }
+        },
+        "security" : [ ],
+        "tags" : [ "two-factor-controller" ]
+      }
+    },
+    "/api/auth/2fa/disable" : {
+      "post" : {
+        "operationId" : "disable",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/DisableRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/EnabledResponse"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Dogrulama / is kurali hatasi (code alanina bakin)"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Token yok/gecersiz/suresi dolmus"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "RATE_LIMITED: istek siniri asildi"
+          }
+        },
+        "security" : [ ],
+        "tags" : [ "two-factor-controller" ]
+      }
+    },
+    "/api/auth/2fa/enable/confirm" : {
+      "post" : {
+        "operationId" : "confirmEnable",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/CodeRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/EnabledResponse"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Dogrulama / is kurali hatasi (code alanina bakin)"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Token yok/gecersiz/suresi dolmus"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "RATE_LIMITED: istek siniri asildi"
+          }
+        },
+        "security" : [ ],
+        "tags" : [ "two-factor-controller" ]
+      }
+    },
+    "/api/auth/2fa/enable/request" : {
+      "post" : {
+        "operationId" : "requestEnable",
+        "responses" : {
+          "202" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/MessageResponse"
+                }
+              }
+            },
+            "description" : "Accepted"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Dogrulama / is kurali hatasi (code alanina bakin)"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Token yok/gecersiz/suresi dolmus"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "RATE_LIMITED: istek siniri asildi"
+          }
+        },
+        "security" : [ ],
+        "tags" : [ "two-factor-controller" ]
+      }
+    },
     "/api/auth/change-password" : {
       "post" : {
         "operationId" : "changePassword",
@@ -38746,7 +40198,7 @@
             "content" : {
               "*/*" : {
                 "schema" : {
-                  "$ref" : "#/components/schemas/TokenResponse"
+                  "type" : "object"
                 }
               }
             },
@@ -38785,6 +40237,124 @@
         },
         "security" : [ ],
         "tags" : [ "auth-controller" ]
+      }
+    },
+    "/api/auth/login/2fa" : {
+      "post" : {
+        "operationId" : "loginTwoFactor",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/TwoFactorLoginRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/TokenResponse"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Dogrulama / is kurali hatasi (code alanina bakin)"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Token yok/gecersiz/suresi dolmus"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "RATE_LIMITED: istek siniri asildi"
+          }
+        },
+        "security" : [ ],
+        "tags" : [ "two-factor-controller" ]
+      }
+    },
+    "/api/auth/login/2fa/resend" : {
+      "post" : {
+        "operationId" : "resendLoginCode",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/ChallengeRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "202" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ResendResponse"
+                }
+              }
+            },
+            "description" : "Accepted"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Dogrulama / is kurali hatasi (code alanina bakin)"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Token yok/gecersiz/suresi dolmus"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "RATE_LIMITED: istek siniri asildi"
+          }
+        },
+        "security" : [ ],
+        "tags" : [ "two-factor-controller" ]
       }
     },
     "/api/auth/logout" : {
@@ -39990,7 +41560,7 @@
         "tags" : [ "community-controller" ]
       },
       "patch" : {
-        "operationId" : "update_11",
+        "operationId" : "update_12",
         "parameters" : [ {
           "in" : "path",
           "name" : "id",
@@ -45386,7 +46956,7 @@
         "tags" : [ "event-controller" ]
       },
       "patch" : {
-        "operationId" : "update_10",
+        "operationId" : "update_11",
         "parameters" : [ {
           "in" : "path",
           "name" : "id",
@@ -48704,7 +50274,7 @@
     },
     "/api/feed" : {
       "get" : {
-        "operationId" : "feed_1",
+        "operationId" : "feed_2",
         "parameters" : [ {
           "in" : "query",
           "name" : "scope",
@@ -50026,6 +51596,86 @@
         "tags" : [ "news-controller" ]
       }
     },
+    "/api/news/unit" : {
+      "get" : {
+        "operationId" : "feed_1",
+        "parameters" : [ {
+          "in" : "query",
+          "name" : "limit",
+          "required" : false,
+          "schema" : {
+            "default" : 10,
+            "format" : "int32",
+            "type" : "integer"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "items" : {
+                    "$ref" : "#/components/schemas/Item"
+                  },
+                  "type" : "array"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Dogrulama / is kurali hatasi (code alanina bakin)"
+          }
+        },
+        "security" : [ ],
+        "tags" : [ "unit-news-controller" ]
+      }
+    },
+    "/api/news/unit/{id}" : {
+      "get" : {
+        "operationId" : "detail_6",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "format" : "int64",
+            "type" : "integer"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Detail"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Dogrulama / is kurali hatasi (code alanina bakin)"
+          }
+        },
+        "security" : [ ],
+        "tags" : [ "unit-news-controller" ]
+      }
+    },
     "/api/news/{id}" : {
       "get" : {
         "operationId" : "get_14",
@@ -50772,7 +52422,7 @@
         "tags" : [ "poll-controller" ]
       },
       "patch" : {
-        "operationId" : "update_9",
+        "operationId" : "update_10",
         "parameters" : [ {
           "in" : "path",
           "name" : "id",
@@ -51494,7 +53144,7 @@
         "tags" : [ "post-controller" ]
       },
       "patch" : {
-        "operationId" : "update_8",
+        "operationId" : "update_9",
         "parameters" : [ {
           "in" : "path",
           "name" : "id",
@@ -52882,7 +54532,7 @@
         "tags" : [ "timetable-controller" ]
       },
       "patch" : {
-        "operationId" : "update_7",
+        "operationId" : "update_8",
         "parameters" : [ {
           "in" : "path",
           "name" : "id",
@@ -54024,7 +55674,7 @@
         "tags" : [ "profile-controller" ]
       },
       "patch" : {
-        "operationId" : "update_6",
+        "operationId" : "update_7",
         "requestBody" : {
           "content" : {
             "application/json" : {
