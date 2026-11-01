@@ -54,16 +54,16 @@ void main() {
   for (final size in [const Size(320, 700), const Size(390, 844)]) {
     for (final dark in [false, true]) {
       final tag = '${size.width.toInt()}dp ${dark ? 'koyu' : 'acik'}';
-      // Stitch v3 Yemek (BIREBIR_MENU): fotoğraf kartı kalktı; API imageUrl gönderse de sayfa fotoğraf göstermez, yalnız kalemler.
-      testWidgets('MenuPage fotoğraflı gün: fotoğraf gösterilmez (Stitch v3), kalemler var, taşma yok ($tag)', (tester) async {
+      // Yönetici fotoğraf yüklediyse yemek kartının üstünde gösterilir (Stitch v3 yüzeyi korunur), kalemler de var.
+      testWidgets('MenuPage fotoğraflı gün: fotoğraf kartın üstünde, kalemler var, taşma yok ($tag)', (tester) async {
         useScreen(tester, size);
         MenuPhotoGate.debugProvider = (_) => MemoryImage(_png);
         final b = FakeBackend()..on('/menu', _month(image: '/files/menu/today.jpg'));
                 await tester.pumpWidget(buildApp(MenuPage(session: makeSession(b)),
             brightness: dark ? Brightness.dark : Brightness.light));
         await settle(tester);
-        expect(find.bySemanticsLabel(RegExp('menüsü fotoğrafı')), findsNothing);
-        expect(find.byType(Image), findsNothing);
+        expect(find.bySemanticsLabel(RegExp('menüsü fotoğrafı')), findsOneWidget);
+        expect(find.byType(Image), findsOneWidget);
         expect(find.text('Mercimek çorbası'), findsWidgets);
         expect(tester.takeException(), isNull);
       });

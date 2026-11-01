@@ -4,6 +4,7 @@ import '../../core/locale_controller.dart';
 import '../../widgets/bu.dart';
 import '../news/news_tile.dart' show newsWeekdayName;
 import 'menu_models.dart';
+import 'menu_photo.dart';
 
 /// Yönetici girdisi hep BÜYÜK harfle gelebilir ("MERCİMEK ÇORBASI"); tümü büyükse Türkçe kurallarıyla
 /// "Mercimek Çorbası" biçimine çevrilir, karışık harfli adlara dokunulmaz.
@@ -184,7 +185,7 @@ class MenuDayLabel extends StatelessWidget {
 
 /// Öğle yemeği yüzeyi (Stitch v3): tek beyaz yüzey (1 dp `bd`, 16 köşe, iç 20 dp). Başlık 20 sp/600 solda,
 /// saat 14 sp soluk sağda; her yemek 1 dp çizgili satır (ad 16 sp, kcal 14 sp soluk; kcal yoksa "–");
-/// "Toplam enerji" satırı. Fotoğraf/yer tutucu yok.
+/// "Toplam enerji" satırı. Yönetici fotoğraf yüklediyse kartın üstünde 16:9 fotoğraf; yoksa yer tutucu çizilmez.
 class MenuMealCard extends StatelessWidget {
   const MenuMealCard({super.key, required this.day, required this.time});
 
@@ -200,6 +201,21 @@ class MenuMealCard extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.all(20),
         child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+          // Menü fotoğrafı (yönetici yüklediyse): kartın en üstünde 16:9; yok ya da yüklenemezse hiçbir şey çizilmez.
+          MenuPhotoGate(
+            url: day.imageUrl,
+            builder: (context, photo) => photo == null
+                ? const SizedBox.shrink()
+                : Padding(
+                    padding: const EdgeInsets.only(bottom: 16),
+                    child: Semantics(
+                      image: true,
+                      label: l.menuPhotoLabel,
+                      excludeSemantics: true,
+                      child: ClipRRect(borderRadius: BuRadius.bSm, child: AspectRatio(aspectRatio: 16 / 9, child: photo)),
+                    ),
+                  ),
+          ),
           Padding(
             padding: const EdgeInsets.only(bottom: 14),
             child: Row(crossAxisAlignment: CrossAxisAlignment.baseline, textBaseline: TextBaseline.alphabetic, children: [
