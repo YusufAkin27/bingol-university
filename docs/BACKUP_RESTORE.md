@@ -222,6 +222,8 @@ Beklenen süre: küçük veride betik kısmı **15-40 sn** + uygulama açılış
 
 ## 11. Yedeklerin sunucu DIŞINA kopyalanması (uzak kopya): adım adım
 
+> **Google Drive (önerilen, kolay yol):** [BACKUP_GDRIVE.md](BACKUP_GDRIVE.md). Günde 1 yükleme + indirmeden doğrulama + uzak saklama (7/4/6) + yerel yedekleri güvenle azaltma orada anlatılır. Aşağıdaki 11.1-11.5 S3/B2/SFTP gibi diğer hedefler içindir; **güncel davranış:** saatlik yükleme yerine günde bir yükleme (`remote-sync.sh`), uzak saklama betikle yapılır (yaşam döngüsü kuralı yine de önerilir), `deploy/rclone` artık yazılabilir bağlanır.
+
 **Durum tespiti (REL1b incelemesi):** `docker-compose.prod.yml` `backup` servisi rclone içerir (imaj `rclone` kurar, `deploy/rclone/` salt okunur `/config/rclone` olarak bağlanır, `RCLONE_CONFIG=/config/rclone/rclone.conf`) ve `scripts/backup/backup.sh` `BACKUP_REMOTE` doluysa her yedeği `rclone copy ... --checksum` ile `${BACKUP_REMOTE}/<damga>` altına yükler. **Ama `BACKUP_REMOTE` varsayılan olarak BOŞTUR** (`.env.prod.example`: `BACKUP_REMOTE=`); boşsa yedekler yalnız VPS'in `backups` volume'unda kalır, yani sunucu diski ya da hesabı giderse yedekler de gider. `deploy/compose.bukampus.yml` yalnız Caddy www yönlendirmesidir, yedek ayarı içermez. Yani **mekanizma var, açık değil**: aşağıdaki adımlar onu açar. Bu bölümdeki adımlar rclone sözdizimi düzeyinde (yerel `alias` uzağıyla `lsd` + `copy`) denendi; **gerçek bir sağlayıcı hesabına karşı DENENMEDİ** (hesap yok); ilk gerçek yüklemeyi `--dry-run` ve elle yedekle mutlaka doğrulayın.
 
 Neden güvenli: yüklenen her şey zaten **age ile şifrelidir** (`db.dump.age`, `uploads.tar.zst.age`); sağlayıcı yalnız şifreli bayt görür. Ek rclone `crypt` katmanı gerekmez (dosya adları yalnız zaman damgasıdır).
