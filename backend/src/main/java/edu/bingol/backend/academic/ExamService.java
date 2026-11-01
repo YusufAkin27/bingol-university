@@ -199,16 +199,43 @@ public class ExamService {
     private static final String SCHEDULE_SELECT = "SELECT id, title, type, term, course_code, faculty, department, grade, "
             + "starts_at, ends_at, room, note, published FROM exam_schedule ";
 
+    /** Kullanici listesi ust siniri ve gecmis penceresi (K21: 30 gunden eski bitmis sinavlar listeden duser). */
+    static final int OFFICIAL_MAX = 500;
+    static final java.time.Duration OFFICIAL_PAST = java.time.Duration.ofDays(30);
+
+    /**
+     * Yayinli resmi sinavlar. FIX-P08 (A07#1): pencere ({@code COALESCE(ends_at, starts_at) >= simdi - 30 gun}), kapsam
+     * suzgeci ve LIMIT veritabaninda uygulanir; eskiden tum tablo okunup bellekte suzuluyor, {@code scope=all} en ESKI
+     * 500 kaydi donduruyordu (yeni sinavlar gorunmez olurdu). Kapsam kurali {@link AudienceMatch} ile ayni
+     * ({@link AudienceKey}: bos kapsam = herkes; doluysa kullanici degeriyle ayni olmali, kullanici degeri bossa eslesmez).
+     */
     public OfficialExamsView official(Long uid, boolean all) {
         AcademicAudience.Who me = audience.of(uid);
-        List<AdminExamScheduleView> rows = jdbc.query(SCHEDULE_SELECT + "WHERE published = TRUE ORDER BY starts_at, id", SCHEDULE);
-        List<OfficialExamView> items = rows.stream()
-                .filter(x -> all || AudienceMatch.matches(x.department(), x.faculty(), x.grade(), me.department(), me.faculty(), me.grade()))
-                .limit(500)
+        StringBuilder sql = new StringBuilder(SCHEDULE_SELECT).append("WHERE published = TRUE AND COALESCE(ends_at, starts_at) >= ?");
+        List<Object> args = new ArrayList<>();
+        args.add(Timestamp.from(clock.instant().minus(OFFICIAL_PAST)));
+        if (!all) {
+            scope(sql, args, "department", me.department());
+            scope(sql, args, "faculty", me.faculty());
+            scope(sql, args, "grade", me.grade());
+        }
+        sql.append(" ORDER BY starts_at, id LIMIT ").append(OFFICIAL_MAX);
+        List<OfficialExamView> items = jdbc.query(sql.toString(), SCHEDULE, args.toArray()).stream()
                 .map(x -> new OfficialExamView(x.id(), x.title(), x.type(), x.term(), x.courseCode(), x.faculty(),
                         x.department(), x.grade(), x.startsAt(), x.endsAt(), x.room(), x.note()))
                 .toList();
         return new OfficialExamsView(items, me.complete());
+    }
+
+    /** Kapsam alani bos = herkes; doluysa kullanici anahtariyla ayni (kullanici degeri bossa yalniz kapsamsiz satirlar). */
+    private static void scope(StringBuilder sql, List<Object> args, String col, String userValue) {
+        String key = AudienceKey.of(userValue);
+        sql.append(" AND (").append(col).append(" IS NULL OR TRIM(").append(col).append(") = ''");
+        if (key != null) {
+            sql.append(" OR ").append(AudienceKey.sql(col)).append(" = ?");
+            args.add(key);
+        }
+        sql.append(")");
     }
 
     // ---- yonetici: resmi sinav programi ----
