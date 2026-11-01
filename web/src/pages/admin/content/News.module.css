@@ -69,6 +69,11 @@
   gap: var(--space-1);
   white-space: nowrap;
 }
+@media (max-width: 640px) {
+  .source {
+    min-block-size: 44px;
+  }
+}
 
 select.filter {
   flex: 0 1 13rem;

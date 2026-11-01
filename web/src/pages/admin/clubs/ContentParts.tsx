@@ -180,7 +180,7 @@ export function ContentRowItem({
         <div className={styles.muted}>
           {t('admin.p06.content.club')}:{' '}
           {onOpenClub ? (
-            <Button size="sm" variant="ghost" onClick={() => onOpenClub(row.communityId)}>
+            <Button size="sm" variant="ghost" className={styles.clubBtn} onClick={() => onOpenClub(row.communityId)}>
               {row.communityName}
             </Button>
           ) : (

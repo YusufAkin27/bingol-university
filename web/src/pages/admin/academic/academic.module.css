@@ -155,7 +155,8 @@
   outline-offset: 1px;
 }
 .chipDraft {
-  opacity: 0.6;
+  /* taslak: kesik çerçeve + soluk renk; yazı 4.5:1 altına düşmesin (0.6 opaklık 4.2:1 veriyordu) */
+  opacity: 0.85;
   border: 1px dashed var(--border-strong);
 }
 @media (max-width: 40rem) {

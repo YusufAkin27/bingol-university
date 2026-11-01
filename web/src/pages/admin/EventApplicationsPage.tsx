@@ -108,7 +108,7 @@ export default function EventApplicationsPage() {
                 </details>
               }
             />
-            <Link to={paths.admin.events}>{t('admin.admission.openEvents')}</Link>
+            <Link to={paths.admin.events} className={styles.touchLink}>{t('admin.admission.openEvents')}</Link>
             <EmptyState icon="calendar" title={t('admin.admission.empty.title')} description={t('admin.admission.empty.hint')} />
           </>
         ) : (
@@ -118,7 +118,7 @@ export default function EventApplicationsPage() {
               meta={t('admin.v2.apps.chipMeta')}
               onChange={() => setParams({})}
             />
-            <Link to={`${paths.admin.events}?open=${eventId}`}>{t('admin.v2.apps.openEvent')}</Link>
+            <Link to={`${paths.admin.events}?open=${eventId}`} className={styles.touchLink}>{t('admin.v2.apps.openEvent')}</Link>
           </>
         )}
 

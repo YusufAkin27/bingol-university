@@ -177,3 +177,19 @@
   grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
   gap: var(--space-3);
 }
+
+/* Sıra oku düğmeleri: yatay dokunma alanı da 44 px */
+.arrowBtn {
+  min-inline-size: 44px;
+}
+
+/* Tek başına duran bağlantı: telefonda 44 px dokunma yüksekliği */
+.touchLink {
+  display: inline-flex;
+  align-items: center;
+}
+@media (hover: none), (pointer: coarse), (max-width: 639.98px) {
+  .touchLink {
+    min-block-size: 44px;
+  }
+}

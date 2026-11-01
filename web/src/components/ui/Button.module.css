@@ -189,6 +189,8 @@
 @media (hover: none), (pointer: coarse), (max-width: 639.98px) {
   .sm {
     min-height: 44px;
+    /* kısa etiketli düğme ("Sil") yatayda da 44 px (41 px ölçüldü) */
+    min-width: 44px;
   }
   .icon-sm {
     width: 44px;

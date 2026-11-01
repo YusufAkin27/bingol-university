@@ -38,8 +38,9 @@
 .item + .item {
   border-block-start: 1px solid var(--border);
 }
-.draft .itemMain {
-  opacity: 0.72;
+.draft {
+  /* taslak: soluk yazı yerine kesik kenarlık + "Yayında değil" rozeti (0.72 opaklık kontrastı 3:1'e düşürüyordu) */
+  border-inline-start: 3px dashed var(--border-strong);
 }
 .itemMain {
   min-width: 0;

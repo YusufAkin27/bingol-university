@@ -409,16 +409,18 @@ export default function EventsAdminPage() {
                 >
                   <div className={styles.main}>
                     <div className={styles.titleRow}>
-                      <input
-                        type="checkbox"
-                        className={opsStyles.pick}
-                        aria-label={t('admin.p07.bulk.select', { title: ev.title })}
-                        checked={selected.has(ev.id)}
-                        disabled={!selected.has(ev.id) && selected.size >= EVENT_BULK_MAX}
-                        onClick={(e) => e.stopPropagation()}
-                        onKeyDown={(e) => e.stopPropagation()}
-                        onChange={(e) => toggle(ev.id, e.target.checked)}
-                      />
+                      <label className={opsStyles.pickBox} onClick={(e) => e.stopPropagation()}>
+                        <input
+                          type="checkbox"
+                          className={opsStyles.pick}
+                          aria-label={t('admin.p07.bulk.select', { title: ev.title })}
+                          checked={selected.has(ev.id)}
+                          disabled={!selected.has(ev.id) && selected.size >= EVENT_BULK_MAX}
+                          onClick={(e) => e.stopPropagation()}
+                          onKeyDown={(e) => e.stopPropagation()}
+                          onChange={(e) => toggle(ev.id, e.target.checked)}
+                        />
+                      </label>
                       <h2 className={styles.name}>{ev.title}</h2>
                       {timingBadge(ev)}
                       {ev.communityName ? (

@@ -81,10 +81,15 @@
   margin: 0;
   padding: 0;
   display: grid;
+  /* tek sütun içerik genişliğine göre büyümesin: uzun e-posta telefonda sayfayı taşırıyordu */
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--space-3);
 }
 .row {
+  min-inline-size: 0;
+  overflow-wrap: anywhere;
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--space-2);
   padding: var(--space-3);
   border: 1px solid var(--border);
@@ -225,4 +230,15 @@
   border-radius: var(--radius-sm);
   margin-block-end: var(--space-1);
   background: var(--surface-3);
+}
+
+/* Uzun kulüp adı düğme içinde kırılır (nowrap telefonda satırı taşırıyordu) */
+.clubBtn {
+  white-space: normal;
+  text-align: start;
+  max-inline-size: 100%;
+  min-inline-size: 0;
+  block-size: auto;
+  min-block-size: 44px;
+  overflow-wrap: anywhere;
 }

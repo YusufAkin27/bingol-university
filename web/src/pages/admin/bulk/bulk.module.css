@@ -13,9 +13,19 @@
   margin-block-end: var(--space-2);
 }
 .pick {
-  display: inline-flex;
-  align-items: center;
-  margin-inline-end: var(--space-2);
+  display: inline-grid;
+  place-items: center;
+  min-inline-size: 44px;
+  min-block-size: 44px;
+  /* düzen payı aynı kalsın: 44 px alan yanlara taşar */
+  margin: -10px;
+  margin-inline-end: calc(var(--space-2) - 10px);
+  cursor: pointer;
+}
+.pick input {
+  inline-size: 24px;
+  block-size: 24px;
+  margin: 0;
 }
 .reportList {
   margin: 0;

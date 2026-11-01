@@ -93,7 +93,8 @@ export function RowPick<K extends string | number>({
   selection: IdSelection<K>;
 }) {
   return (
-    <span className={styles.pick}>
+    // label: dokunma alanı 44 px'e tamamlanır (kutu 24 px), tıklama satıra sızmaz
+    <label className={styles.pick} onClick={(e) => e.stopPropagation()}>
       <input
         type="checkbox"
         aria-label={label}
@@ -101,7 +102,7 @@ export function RowPick<K extends string | number>({
         disabled={!selection.has(id) && selection.atMax}
         onChange={(e) => selection.toggle(id, e.target.checked)}
       />
-    </span>
+    </label>
   );
 }
 

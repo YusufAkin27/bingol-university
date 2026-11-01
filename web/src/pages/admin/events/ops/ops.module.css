@@ -154,3 +154,18 @@
   margin: calc((44px - 1.5rem) / 2);
   margin-inline-end: calc((44px - 1.5rem) / 2 + var(--space-2));
 }
+
+/* Satır onay kutusu: etiket 44 px dokunma alanı verir (kutu 24 px), düzen payı -10 px ile korunur */
+.pickBox {
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 auto;
+  min-inline-size: 44px;
+  min-block-size: 44px;
+  margin: -10px;
+  margin-inline-end: calc(var(--space-2) - 10px);
+  cursor: pointer;
+}
+.pickBox .pick {
+  margin: 0;
+}

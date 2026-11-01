@@ -83,6 +83,15 @@
   opacity: 0.55;
   cursor: not-allowed;
 }
+/* Telefon/dokunmatik: gerekçe şablonu çipleri 44 px dokunma hedefi (29 px ölçüldü) */
+@media (hover: none), (pointer: coarse), (max-width: 639.98px) {
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    min-block-size: 44px;
+    padding-inline: 0.9rem;
+  }
+}
 
 /* Sonuç notu */
 .consequence {

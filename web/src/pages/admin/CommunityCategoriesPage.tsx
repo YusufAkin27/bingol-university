@@ -310,6 +310,7 @@ export default function CommunityCategoriesPage() {
                       <Button
                         size="sm"
                         variant="secondary"
+                        className={styles.arrowBtn}
                         aria-label={t('admin.ccat.moveUp', { name: c.nameTr })}
                         disabled={index === 0 || reorder.isPending}
                         onClick={() => move(index, -1)}
@@ -319,6 +320,7 @@ export default function CommunityCategoriesPage() {
                       <Button
                         size="sm"
                         variant="secondary"
+                        className={styles.arrowBtn}
                         aria-label={t('admin.ccat.moveDown', { name: c.nameTr })}
                         disabled={index === items.length - 1 || reorder.isPending}
                         onClick={() => move(index, 1)}
