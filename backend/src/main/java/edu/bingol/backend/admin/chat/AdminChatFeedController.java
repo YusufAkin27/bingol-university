@@ -1,5 +1,6 @@
 package edu.bingol.backend.admin.chat;
 
+import edu.bingol.backend.common.ClientIp;
 import edu.bingol.backend.common.CurrentUser;
 import edu.bingol.backend.common.RateLimiter;
 import jakarta.servlet.http.HttpServletRequest;
@@ -19,10 +20,13 @@ public class AdminChatFeedController {
 
     private final AdminChatFeedService service;
     private final RateLimiter limiter;
+    private final ClientIp clientIp;
 
-    public AdminChatFeedController(AdminChatFeedService service, RateLimiter limiter) {
+    /** IP: guvenilir proxy zincirinden cozulen gercek istemci (message_access_audit.ip KVKK kaniti; FIX-P09 A08#7). */
+    public AdminChatFeedController(AdminChatFeedService service, RateLimiter limiter, ClientIp clientIp) {
         this.service = service;
         this.limiter = limiter;
+        this.clientIp = clientIp;
     }
 
     /** GET /api/admin/chat-media: tum sohbet ekleri (imlec = ek id, size <= 60). */
@@ -38,7 +42,7 @@ public class AdminChatFeedController {
         long adminId = CurrentUser.id();
         limit(adminId);
         return service.media(adminId, cursor, size, kind, viewOnce, deleted, userId, conversationId, from, to, order,
-                http.getRemoteAddr());
+                clientIp.of(http));
     }
 
     /** GET /api/admin/chat-media/stats: ek sayilari. */
@@ -46,7 +50,7 @@ public class AdminChatFeedController {
     public AdminChatFeedService.Stats stats(HttpServletRequest http) {
         long adminId = CurrentUser.id();
         limit(adminId);
-        return service.stats(adminId, http.getRemoteAddr());
+        return service.stats(adminId, clientIp.of(http));
     }
 
     /** GET /api/admin/chat-messages: tum sohbetlerden mesaj akisi (en yeni once, imlec = mesaj id, size <= 50). */
@@ -62,7 +66,7 @@ public class AdminChatFeedController {
         long adminId = CurrentUser.id();
         limit(adminId);
         return service.messages(adminId, cursor, size, userId, senderId, conversationId, deleted, suppressed, hasMedia,
-                from, to, http.getRemoteAddr());
+                from, to, clientIp.of(http));
     }
 
     private void limit(long adminId) {
