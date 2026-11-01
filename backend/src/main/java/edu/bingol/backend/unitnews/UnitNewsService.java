@@ -23,8 +23,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Ogrencinin bolumune gore birim duyurulari. Eslesme: profildeki bolum adi ({@link UnitKeys#deptKey}) ile alt sitelerin
- * bolum/program adlari; birden cok sitede ayni ad varsa fakulte adi ({@code faculty_keys}) ayirir, ayrilamazsa HICBIR
- * sey gosterilmez. Bolumun kendi akisi varsa o + kaynagin genel akisi, yoksa yalniz genel akis. Yuksek lisans/doktora
+ * bolum/program adlari; profilde fakulte varsa isabet edilen kaynak o fakulteye hizmet etmelidir ({@code faculty_keys};
+ * tek isabet de dogrulanir), birden cok sitede ayni ad varsa fakulte ayirir, ayrilamazsa/uyusmazsa HICBIR sey
+ * gosterilmez. Bolumun kendi akisi varsa o + kaynagin genel akisi, yoksa yalniz genel akis. Yuksek lisans/doktora
  * ({@code MASTER/PHD}) kullanicilarina fakultesine hizmet eden enstituler de eklenir. Eslesme yoksa bos liste:
  * istemci hicbir sey cizmez.
  */
@@ -101,7 +102,10 @@ public class UnitNewsService {
                     .filter(d -> byCode.containsKey(d.getSourceCode()) && !byCode.get(d.getSourceCode()).isGraduate())
                     .toList();
             Set<String> codes = hits.stream().map(UnitDepartment::getSourceCode).collect(Collectors.toSet());
-            if (codes.size() > 1 && fkey != null) {
+            // Fakulte biliniyorsa TEK isabet de dogrulanir (A1): "Hemsirelik" hem Saglik Bilimleri Fakultesi'nde hem
+            // Hemsirelik Yuksekokulu'nda gecer; yanlis birimin duyurusu yerine bos doner. Fakulte bilinmiyorsa
+            // yalniz tek isabet kabul edilir (asagida).
+            if (fkey != null) {
                 codes = codes.stream().filter(c -> serves(byCode.get(c), fkey)).collect(Collectors.toSet());
             }
             if (codes.size() == 1) {
