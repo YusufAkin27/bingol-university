@@ -23,6 +23,8 @@ test-results/
 mobile/android/key.properties
 *.jks
 *.keystore
+*.aab
+*.apk
 
 # Uretim sirlari ve yedek anahtarlari (SIR)
 .env.prod
@@ -38,3 +40,7 @@ deploy/backup-keys/verify.key
 # Sunucu dagitim kimlik bilgileri (asla commit etme)
 .deploy.env
 .deploy/
+
+# e2e/test artefaktlari
+web/e2e/.results-*/
+web/tsconfig.tsbuildinfo
