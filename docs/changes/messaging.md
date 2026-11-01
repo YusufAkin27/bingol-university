@@ -206,3 +206,16 @@ Mesaj isteği (T-026) ile ilişki: "alıcı göndereni takip ediyor" bağlamı y
 - **Eşzamanlı yanıtsız istek sınırı:** `MessageService.persist` (yalnız kabul edilmemiş konuşmada) konuşma satırını `lockById` ile kilitler ve 3 mesaj sınırını kilit içinde yeniden sayar; paralel gönderimle 3'ü aşmak artık 409 `MESSAGE_REQUEST_PENDING`.
 - **Sürüm kontrolü:** `GET /api/app/version` sürüm parçaları en çok 9 hane (`INVALID_VERSION` 400); 20+ haneli sürüm `Long.parseLong` taşmasıyla 500 veriyordu.
 - Duman: `scripts/smoke-qa-private.sh`.
+
+## FIX-P03: sohbet yuku, makbuz kapsami, sayac tavani, duzenleme siniri (2026-11-01)
+
+Istemci etkisi (mobil kodu bu degisiklikle DEGISMEZ; asagidakiler sunucu davranisidir):
+
+- **Oda / buyuk grup makbuzu kapali (K2):** kulup/etkinlik odalarinda ve `app.chat.receipts-max-members` (varsayilan 20) uyeyi asan gruplarda `MessageView.status` / `lastMessage.status` **hep `null`** gelir, `receipt` ve eski `read-receipts` olaylari ile `typing` olayi **yayinlanmaz**. Birebir ve <= 20 uyeli duz gruplarda hicbir sey degismez. Imlecler (okundu/iletildi) yine ilerler (okunmamis sayaci dogru kalir). Istemci `status == null` icin tik gostermemeli; odada "yaziyor" gostergesi gelmez.
+- **Okunmamis sayaci tavani (K3):** konusma basina `unreadCount` / `unread-count` satiri sunucuda **en cok 100**'e kadar sayilir (`MessageRepository.UNREAD_COUNT_CAP`); 100 = "99+" demektir (istemci `n > 99` icin "99+" yazmaya zaten hazir). Rozet toplami eskisi gibi 100'de kesilir.
+- **`MESSAGE_EDIT_LIMIT` (409):** bir mesaj en cok **10** kez duzenlenebilir (`{0}` = 10); tr/en/ar `messaging*.properties`.
+- **Oda yavas modu:** kulup/etkinlik odasina toplam gonderim dakikada 120 (`msg:room:<cid>`); asilirsa 429 (kullanici basina 30/dk sinirina ek).
+- **Mesaj istegi kabulu:** bekleyen/reddeden alicinin yanit yazmasi istegi artik mesajla AYNI islemde kabul eder; hiz siniri/dogrulama hatasinda istek kabul edilmis kalmaz (eskiden 429 alsa bile kabul yazilirdi).
+- **Konusma listesi:** `memberCount` ayni; 20'den cok uyeli konusmalarin yalniz uye sayisi (tek GROUP BY) ve kendi uyelik satiri yuklenir. Alan sozlesmesi degismedi.
+
+Sunucu ici: `ReceiptPolicy` (karar + 60 sn onbellek), `OrderedBusListener` (Redis pub/sub olaylari konusma anahtarli seritlerde, sinirli `chat-bus-` havuzu, `app.messaging.bus-threads` varsayilan 4-8), mute/archive yalniz ilgili kolonu yazar (`updateMute`/`updateArchive`), `DeletedMessageRetention` parcali silme (`ChunkedDeleter`; saklama suresi ayni), `MediaReferenceSource.snapshot()` ile gece yetim taramasi kaynak basina 1 sorgu, sohbet eki dizin taramasi gunde 1, DEK onbellegi varsayilan 20000 (`app.crypto.dek-cache-max-entries`) + aktif surum onbellegi (60 sn). Migration: `V1090__chat1090_unread_cover_idx` (kapsayici kismi indeks), `V1092__chat1092_message_encryption_partial_idx`.
