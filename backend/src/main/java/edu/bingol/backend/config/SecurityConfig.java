@@ -119,6 +119,8 @@ public class SecurityConfig {
                 .requestMatchers("/api/public/mail/unsubscribe").permitAll()
                 // T14: katilim sertifikasi dogrulama herkese acik (kod tahmin edilemez, IP hiz siniri var)
                 .requestMatchers(HttpMethod.GET, "/api/certificates/verify/*").permitAll()
+                // Birim (bolum) haberleri kisiseldir: giris gerekli (genel haber uclarindan once)
+                .requestMatchers("/api/news/unit", "/api/news/unit/**").authenticated()
                 .requestMatchers(HttpMethod.GET, "/api/news","/api/news/**", "/api/menu", "/api/menu/**", "/api/status").permitAll()
                 .requestMatchers("/api/hello", "/actuator/health", "/files/**", "/error").permitAll()
                 // WebSocket el sikismasi acik; kimlik STOMP CONNECT'te (JWT) zorunlu (bkz. messaging.ws.StompAuthInterceptor)
