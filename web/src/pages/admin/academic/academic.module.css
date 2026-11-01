@@ -24,6 +24,7 @@
   gap: var(--space-3);
 }
 .item {
+  border-inline-start: 4px solid var(--kf, var(--border));
   display: grid;
   gap: var(--space-2);
   padding: var(--space-4);
@@ -133,12 +134,13 @@
   color: var(--text-muted);
 }
 .chip {
+  border-inline-start: 3px solid var(--kf, var(--primary));
+  background: var(--kb, var(--primary-soft));
   display: block;
   inline-size: 100%;
   padding: 1px var(--space-1, 0.25rem);
   border: 0;
   border-radius: var(--radius-sm);
-  background: var(--primary-soft, var(--surface-2));
   color: var(--text);
   font: inherit;
   font-size: var(--text-xs, 0.75rem);
@@ -160,4 +162,130 @@
   .cell {
     min-block-size: 4rem;
   }
+}
+
+/* Etkinlik türü renkleri: renk + etiket birlikte kullanılır (renk tek başına anlam taşımaz) */
+.k_VIZE,
+.k_FINAL,
+.k_BUT {
+  --kb: var(--warning-soft);
+  --kf: var(--warning);
+}
+.k_TATIL,
+.k_RESMI_TATIL {
+  --kb: var(--success-soft);
+  --kf: var(--success);
+}
+.k_DERS_KAYIT {
+  --kb: var(--info-soft);
+  --kf: var(--info);
+}
+.k_DONEM_BASLANGIC {
+  --kb: var(--primary-soft);
+  --kf: var(--primary);
+}
+.k_DIGER {
+  --kb: var(--surface-3);
+  --kf: var(--text-muted);
+}
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+.legendDot {
+  display: inline-block;
+  inline-size: 0.75rem;
+  block-size: 0.75rem;
+  margin-inline-end: var(--space-1);
+  border-radius: 3px;
+  background: var(--kb, var(--surface-3));
+  border: 2px solid var(--kf, var(--border));
+  vertical-align: -1px;
+}
+.fieldBox {
+  min-width: 0;
+}
+
+/* Telefonda ay görünümü: gün gün ajanda */
+.agenda {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--space-3);
+}
+.agendaDay {
+  display: grid;
+  gap: var(--space-2);
+}
+.agendaHead {
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
+  font-weight: 700;
+}
+.agendaList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--space-2);
+}
+.agendaItem {
+  display: grid;
+  gap: 2px;
+  inline-size: 100%;
+  min-block-size: 44px;
+  padding: var(--space-3);
+  text-align: start;
+  font: inherit;
+  color: var(--text);
+  background: var(--kb, var(--surface-2));
+  border: 0;
+  border-inline-start: 4px solid var(--kf, var(--border-strong));
+  border-radius: var(--radius-md);
+  cursor: pointer;
+}
+.agendaItem:focus-visible {
+  outline: 2px solid var(--focus, var(--primary));
+  outline-offset: 2px;
+}
+.agendaKind {
+  font-size: var(--text-xs, 0.75rem);
+  font-weight: 700;
+  color: var(--kf, var(--text-muted));
+}
+.agendaTitle {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+.actions > .spacer {
+  flex: 1 1 0;
+}
+.readStat {
+  display: grid;
+  gap: var(--space-1);
+  max-inline-size: 28rem;
+}
+.groupHead {
+  margin: var(--space-3) 0 var(--space-2);
+  font-size: var(--text-base);
+}
+.warnText {
+  margin: 0;
+  padding: var(--space-2) var(--space-3);
+  background: var(--warning-soft);
+  color: var(--warning);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-sm);
+  font-weight: 600;
 }

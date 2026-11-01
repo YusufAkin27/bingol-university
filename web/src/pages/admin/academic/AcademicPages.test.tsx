@@ -81,7 +81,7 @@ function setup() {
 describe('Akademik takvim sayfası', () => {
   it('olayları listeler ve yayınla/sil çağrılarını gönderir', async () => {
     const calls = setup();
-    renderWithProviders(<AcademicCalendarPage />);
+    renderWithProviders(<AcademicCalendarPage />, { route: '/admin/academic/calendar?view=list' });
     expect(await screen.findByText('Ara sınav haftası')).toBeInTheDocument();
     await userEvent.click(screen.getByRole('button', { name: 'Yayınla' }));
     await waitFor(() =>
@@ -101,7 +101,7 @@ describe('Akademik takvim sayfası', () => {
 
   it('eksik başlıkta doğrulama hatası gösterir, geçerli formda POST gönderir', async () => {
     const calls = setup();
-    renderWithProviders(<AcademicCalendarPage />);
+    renderWithProviders(<AcademicCalendarPage />, { route: '/admin/academic/calendar?view=list' });
     await screen.findByText('Ara sınav haftası');
     await userEvent.click(screen.getByRole('button', { name: 'Olay ekle' }));
     const dialog = await screen.findByRole('dialog');
@@ -127,7 +127,7 @@ describe('Akademik takvim sayfası', () => {
 
   it('toplu içe aktarma sonucunu ve hatalı satırı gösterir', async () => {
     setup();
-    renderWithProviders(<AcademicCalendarPage />);
+    renderWithProviders(<AcademicCalendarPage />, { route: '/admin/academic/calendar?view=list' });
     await screen.findByText('Ara sınav haftası');
     await userEvent.click(screen.getByRole('button', { name: 'Toplu içe aktar' }));
     const dialog = await screen.findByRole('dialog');
@@ -138,15 +138,15 @@ describe('Akademik takvim sayfası', () => {
 
   it('ay görünümü olayı ilgili günlere koyar', async () => {
     setup();
-    renderWithProviders(<AcademicCalendarPage />);
+    renderWithProviders(<AcademicCalendarPage />, { route: '/admin/academic/calendar?view=list' });
     await screen.findByText('Ara sınav haftası');
-    await userEvent.click(screen.getByRole('tab', { name: 'Ay' }));
+    await userEvent.click(screen.getByRole('tab', { name: 'Takvim' }));
     expect(await screen.findByRole('grid')).toBeInTheDocument();
   });
 
   it('hata durumunda yeniden dene sunar', async () => {
     mockFetch(() => jsonResponse(500, { code: 'X', message: 'sunucu hatası' }));
-    renderWithProviders(<AcademicCalendarPage />);
+    renderWithProviders(<AcademicCalendarPage />, { route: '/admin/academic/calendar?view=list' });
     expect(await screen.findByRole('alert')).toBeInTheDocument();
   });
 });

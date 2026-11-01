@@ -1,6 +1,8 @@
 // Topluluk/akademik/içerik sayfaları ortak "özet şeridi" kapları: sayı kutuları ızgarası + tek cümlelik yorum.
 // Yalnız yerleşim; sayı kutusu ve yorum kit bileşenleridir (StatTile, Insight).
 import type { ReactNode } from 'react';
+import { Badge } from '../../../components/ui/Badge';
+import { useIsNarrow } from '../../../components/ui/useIsNarrow';
 import styles from './summary.module.css';
 
 /** Sayı kutuları ızgarası: telefonda 2 sütun, geniş ekranda otomatik sığar. */
@@ -93,5 +95,31 @@ export function FillBar({
       </span>
       <span className={styles.fillText}>{label}</span>
     </span>
+  );
+}
+
+/**
+ * Süzgeç kabı: geniş ekranda olduğu gibi gösterir; telefonda “Süzgeçler (2)” başlıklı katlanır kutuya alır
+ * (liste ilk ekranda görünsün). Arama derin bağlantısı kapalı kutuyu otomatik açar (<details>).
+ */
+export function CollapsibleFilters({
+  label,
+  activeCount,
+  children,
+}: {
+  label: string;
+  activeCount: number;
+  children: ReactNode;
+}) {
+  const narrow = useIsNarrow();
+  if (!narrow) return <>{children}</>;
+  return (
+    <details className={styles.filters}>
+      <summary className={styles.filtersSummary}>
+        {label}
+        {activeCount > 0 && <Badge tone="info">{activeCount}</Badge>}
+      </summary>
+      <div className={styles.filtersBody}>{children}</div>
+    </details>
   );
 }

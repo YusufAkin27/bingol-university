@@ -1,7 +1,7 @@
 // SAYFA: Resmi sınav programı (/admin/academic/exams)
 // API: /api/admin/academic/exams (liste/POST/PATCH/DELETE, publish|unpublish) -> api/academic.ts.
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useState, type FormEvent } from 'react';
+import { useMemo, useState, type FormEvent } from 'react';
 import {
   acdKeys,
   createExam,
@@ -25,6 +25,7 @@ import {
   ErrorState,
   FormField,
   Input,
+  Insight,
   Modal,
   PageHeader,
   Pagination,
@@ -32,8 +33,10 @@ import {
   Skeleton,
   StatusPill,
   Textarea,
+  useKitFormat,
   useToast,
 } from '../../../components/ui';
+import { CollapsibleFilters } from '../community/Summary';
 import { useI18n } from '../../../i18n/I18nProvider';
 import { useDebouncedValue, usePageTitle } from '../../../lib/hooks';
 import { BULK_MAX, exportAcademicCsv } from '../../../api/adminBulk';
@@ -41,14 +44,25 @@ import { AcademicBulkBar } from '../bulk/BulkBars';
 import { BulkCsvButton, RowPick, SelectPage, useIdSelection } from '../bulk/BulkParts';
 import { adminErrorMessage } from '../campaigns/shared';
 import styles from './academic.module.css';
-import { emptyToNull, endAfterStart, toDateTimeInput, totalPages } from './logic';
+import {
+  emptyToNull,
+  endAfterStart,
+  examBucket,
+  examConflicts,
+  toDateTimeInput,
+  totalPages,
+  type ExamBucket,
+} from './logic';
+
+const BUCKETS: ExamBucket[] = ['week', 'nextWeek', 'later', 'past'];
 
 const PAGE_SIZE = 20;
 const FORM_ID = 'acd-exam-form';
 
 export default function AcademicExamsPage() {
   const i18n = useI18n();
-  const { t, formatDateTime } = i18n;
+  const { t, formatDateTime, formatNumber } = i18n;
+  const kit = useKitFormat();
   usePageTitle(t('admin.acd.ex.title'));
   const toast = useToast();
   const qc = useQueryClient();
@@ -113,6 +127,17 @@ export default function AcademicExamsPage() {
         (x.department ?? '').toLocaleLowerCase().includes(department.trim().toLocaleLowerCase())),
   );
 
+  // Tarihe göre sırala, zaman kovalarına ayır, çakışmaları işaretle
+  const sorted = useMemo(() => [...items].sort((a, b) => a.startsAt.localeCompare(b.startsAt)), [items]);
+  const conflicts = useMemo(() => examConflicts(sorted), [sorted]);
+  const groups = useMemo(() => {
+    const now = new Date();
+    return BUCKETS.map((b) => ({ bucket: b, rows: sorted.filter((x) => examBucket(x.startsAt, now) === b) })).filter(
+      (g) => g.rows.length > 0,
+    );
+  }, [sorted]);
+  const thisWeek = groups.find((g) => g.bucket === 'week')?.rows.length ?? 0;
+
   return (
     <>
       <PageHeader
@@ -120,16 +145,24 @@ export default function AcademicExamsPage() {
         description={t('admin.acd.ex.intro')}
         actions={
           <>
-            <BulkCsvButton
-              filename="sinav-programi.csv"
-              fetchCsv={() => exportAcademicCsv({ entity: 'EXAM', q })}
-            />
-            <Button onClick={() => setEditing('new')}>{t('admin.acd.ex.add')}</Button>
+            <span data-search-anchor="ex-csv">
+              <BulkCsvButton
+                filename="sinav-programi.csv"
+                fetchCsv={() => exportAcademicCsv({ entity: 'EXAM', q })}
+              />
+            </span>
+            <Button data-search-anchor="ex-add" onClick={() => setEditing('new')}>
+              {t('admin.acd.ex.add')}
+            </Button>
           </>
         }
       />
       <div className={styles.stack}>
-        <div className={styles.toolbar}>
+        <CollapsibleFilters
+          label={t('admin.v2.filters.title')}
+          activeCount={[type, grade, status, deptText, qText].filter(Boolean).length}
+        >
+        <div className={styles.toolbar} data-search-anchor="ex-filters">
           <FormField label={t('admin.acd.ex.type')}>
             <Select
               value={type}
@@ -175,6 +208,7 @@ export default function AcademicExamsPage() {
           </FormField>
           <FormField label={t('admin.acd.statusLabel')}>
             <Select
+              data-search-anchor="ex-status"
               value={status}
               onChange={(e) => {
                 setStatus(e.target.value);
@@ -188,6 +222,7 @@ export default function AcademicExamsPage() {
           </FormField>
           <FormField label={t('admin.acd.search')}>
             <Input
+              data-search-anchor="ex-q"
               value={qText}
               maxLength={80}
               dir="auto"
@@ -198,6 +233,7 @@ export default function AcademicExamsPage() {
             />
           </FormField>
         </div>
+        </CollapsibleFilters>
 
         {list.isError ? (
           <ErrorState description={adminErrorMessage(i18n, list.error)} onRetry={() => void list.refetch()} />
@@ -211,61 +247,78 @@ export default function AcademicExamsPage() {
           />
         ) : (
           <>
+            <Insight
+              tone={conflicts.size > 0 ? 'warn' : 'info'}
+              parts={t(conflicts.size > 0 ? 'admin.v2.ex.insightConflict' : 'admin.v2.ex.insight', {
+                n: formatNumber(sorted.length),
+                week: formatNumber(thisWeek),
+                conflicts: formatNumber(conflicts.size),
+              })}
+            />
             <SelectPage ids={items.map((x) => x.id)} selection={selection} label={t('admin.p15.select.page')} />
-            <ul className={styles.rowList} aria-label={t('admin.acd.rows')}>
-              {items.map((x) => (
-                <li key={x.id} className={styles.item}>
-                  <div className={styles.itemHead}>
-                    <RowPick id={x.id} label={t('admin.p15.select.row', { title: x.title })} selection={selection} />
-                    <Badge tone="info">{t(`admin.acd.ex.type.${x.type}` as const)}</Badge>
-                    <StatusPill tone={x.published ? 'success' : 'neutral'}>
-                      {t(x.published ? 'admin.acd.published' : 'admin.acd.draft')}
-                    </StatusPill>
-                    <span className={styles.spacer} />
-                    <div className={styles.actions}>
-                      <Button size="sm" variant="secondary" onClick={() => setEditing(x)}>
-                        {t('common.edit')}
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="secondary"
-                        loading={toggle.isPending && toggle.variables?.id === x.id}
-                        onClick={() => toggle.mutate(x)}
-                      >
-                        {t(x.published ? 'admin.acd.unpublish' : 'admin.acd.publish')}
-                      </Button>
-                      <Button size="sm" variant="danger" onClick={() => setRemoving(x)}>
-                        {t('common.delete')}
-                      </Button>
-                    </div>
-                  </div>
-                  <h3 className={styles.itemTitle} dir="auto">
-                    {x.courseCode ? `${x.courseCode} · ` : ''}
-                    {x.title}
-                  </h3>
-                  <p className={styles.muted}>
-                    {formatDateTime(x.startsAt)}
-                    {x.endsAt ? ` – ${formatDateTime(x.endsAt)}` : ''}
-                    {x.room ? ` · ${x.room}` : ''}
-                  </p>
-                  <p className={styles.muted} dir="auto">
-                    {[
-                      x.term,
-                      x.faculty,
-                      x.department,
-                      x.grade ? t(`admin.acd.grade.${x.grade}` as const) : null,
-                    ]
-                      .filter(Boolean)
-                      .join(' · ')}
-                  </p>
-                  {x.note && (
-                    <p className={styles.body} dir="auto">
-                      {x.note}
-                    </p>
-                  )}
-                </li>
-              ))}
-            </ul>
+            {groups.map((g) => (
+              <section key={g.bucket} aria-label={t(`admin.v2.ex.bucket.${g.bucket}`)}>
+                <h2 className={styles.groupHead}>{t(`admin.v2.ex.bucket.${g.bucket}`)}</h2>
+                <ul className={styles.rowList} aria-label={t('admin.acd.rows')}>
+                  {g.rows.map((x) => (
+                    <li key={x.id} className={styles.item}>
+                      <div className={styles.itemHead}>
+                        <RowPick id={x.id} label={t('admin.p15.select.row', { title: x.title })} selection={selection} />
+                        <Badge tone="info">{t(`admin.acd.ex.type.${x.type}` as const)}</Badge>
+                        <StatusPill tone={x.published ? 'success' : 'neutral'}>
+                          {t(x.published ? 'admin.acd.published' : 'admin.acd.draft')}
+                        </StatusPill>
+                        {conflicts.has(x.id) && <Badge tone="warning">{t('admin.v2.ex.conflict')}</Badge>}
+                      </div>
+                      <h3 className={styles.itemTitle} dir="auto">
+                        {x.courseCode ? `${x.courseCode} · ` : ''}
+                        {x.title}
+                      </h3>
+                      <p className={styles.muted}>
+                        {formatDateTime(x.startsAt)}
+                        {x.endsAt ? ` – ${formatDateTime(x.endsAt)}` : ''}
+                        {x.room ? ` · ${x.room}` : ''}
+                        {' · '}
+                        <strong>{kit.relative(x.startsAt)}</strong>
+                      </p>
+                      <p className={styles.muted} dir="auto">
+                        {[
+                          x.term,
+                          x.faculty,
+                          x.department,
+                          x.grade ? t(`admin.acd.grade.${x.grade}` as const) : null,
+                        ]
+                          .filter(Boolean)
+                          .join(' · ')}
+                      </p>
+                      {conflicts.has(x.id) && <p className={styles.warnText}>{t('admin.v2.ex.conflictHint')}</p>}
+                      {x.note && (
+                        <p className={styles.body} dir="auto">
+                          {x.note}
+                        </p>
+                      )}
+                      <div className={styles.actions}>
+                        <Button size="sm" variant="secondary" onClick={() => setEditing(x)}>
+                          {t('common.edit')}
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="secondary"
+                          loading={toggle.isPending && toggle.variables?.id === x.id}
+                          onClick={() => toggle.mutate(x)}
+                        >
+                          {t(x.published ? 'admin.acd.unpublish' : 'admin.acd.publish')}
+                        </Button>
+                        <span className={styles.spacer} />
+                        <Button size="sm" variant="danger" onClick={() => setRemoving(x)}>
+                          {t('common.delete')}
+                        </Button>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            ))}
             <Pagination
               page={page}
               totalPages={totalPages(list.data!.total, PAGE_SIZE)}

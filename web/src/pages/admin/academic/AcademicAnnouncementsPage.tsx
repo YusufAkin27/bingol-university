@@ -34,6 +34,7 @@ import {
   Textarea,
   useToast,
 } from '../../../components/ui';
+import { CollapsibleFilters, FillBar } from '../community/Summary';
 import { useI18n } from '../../../i18n/I18nProvider';
 import { useDebouncedValue, usePageTitle } from '../../../lib/hooks';
 import { BULK_MAX, exportAcademicCsv } from '../../../api/adminBulk';
@@ -141,18 +142,24 @@ export default function AcademicAnnouncementsPage() {
         description={t('admin.acd.an.intro')}
         actions={
           <>
-            <BulkCsvButton
-              filename="duyurular.csv"
-              fetchCsv={() => exportAcademicCsv({ entity: 'ANNOUNCEMENT', q, status })}
-            />
-            <Button onClick={() => setEditing('new')}>{t('admin.acd.an.add')}</Button>
+            <span data-search-anchor="an-csv">
+              <BulkCsvButton
+                filename="duyurular.csv"
+                fetchCsv={() => exportAcademicCsv({ entity: 'ANNOUNCEMENT', q, status })}
+              />
+            </span>
+            <Button data-search-anchor="an-add" onClick={() => setEditing('new')}>
+              {t('admin.acd.an.add')}
+            </Button>
           </>
         }
       />
       <div className={styles.stack}>
+        <CollapsibleFilters label={t('admin.v2.filters.title')} activeCount={(status !== 'all' ? 1 : 0) + (qText ? 1 : 0)}>
         <div className={styles.toolbar}>
           <FormField label={t('admin.acd.statusLabel')}>
             <Select
+              data-search-anchor="an-status"
               value={status}
               onChange={(e) => {
                 setStatus(e.target.value as (typeof STATUSES)[number]);
@@ -178,6 +185,7 @@ export default function AcademicAnnouncementsPage() {
             />
           </FormField>
         </div>
+        </CollapsibleFilters>
 
         {list.isError ? (
           <ErrorState description={adminErrorMessage(i18n, list.error)} onRetry={() => void list.refetch()} />
@@ -196,7 +204,7 @@ export default function AcademicAnnouncementsPage() {
               selection={selection}
               label={t('admin.p15.select.page')}
             />
-            <ul className={styles.rowList} aria-label={t('admin.acd.rows')}>
+            <ul className={styles.rowList} aria-label={t('admin.acd.rows')} data-search-anchor="an-bulk">
               {list.data!.items.map((a) => {
                 const st = announcementState(a);
                 return (
@@ -216,32 +224,7 @@ export default function AcademicAnnouncementsPage() {
                       >
                         {t(`admin.acd.an.status.${st}` as const)}
                       </StatusPill>
-                      {a.pinned && <Badge tone="primary">{t('admin.acd.an.pinnedBadge')}</Badge>}
-                      <span className={styles.spacer} />
-                      <div className={styles.actions}>
-                        <Button size="sm" variant="secondary" onClick={() => setEditing(a)}>
-                          {t('common.edit')}
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="secondary"
-                          loading={pin.isPending && pin.variables?.id === a.id}
-                          onClick={() => pin.mutate(a)}
-                        >
-                          {t(a.pinned ? 'admin.acd.an.unpin' : 'admin.acd.an.pin')}
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="secondary"
-                          loading={toggle.isPending && toggle.variables?.id === a.id}
-                          onClick={() => toggle.mutate(a)}
-                        >
-                          {t(a.published ? 'admin.acd.unpublish' : 'admin.acd.publish')}
-                        </Button>
-                        <Button size="sm" variant="danger" onClick={() => setRemoving(a)}>
-                          {t('common.delete')}
-                        </Button>
-                      </div>
+                      {a.pinned && <Badge tone="info">{t('admin.acd.an.pinnedBadge')}</Badge>}
                     </div>
                     <h3 className={styles.itemTitle} dir="auto">
                       {a.title}
@@ -264,6 +247,31 @@ export default function AcademicAnnouncementsPage() {
                         ? ` · ${a.notifiedAt ? t('admin.acd.an.notifiedAt', { when: formatDateTime(a.notifiedAt) }) : t('admin.acd.an.notifyPending')}`
                         : ''}
                     </p>
+                      <div className={styles.actions}>
+                        <Button size="sm" variant="secondary" onClick={() => setEditing(a)}>
+                          {t('common.edit')}
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="secondary"
+                          loading={pin.isPending && pin.variables?.id === a.id}
+                          onClick={() => pin.mutate(a)}
+                        >
+                          {t(a.pinned ? 'admin.acd.an.unpin' : 'admin.acd.an.pin')}
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="secondary"
+                          loading={toggle.isPending && toggle.variables?.id === a.id}
+                          onClick={() => toggle.mutate(a)}
+                        >
+                          {t(a.published ? 'admin.acd.unpublish' : 'admin.acd.publish')}
+                        </Button>
+                        <span className={styles.spacer} />
+                        <Button size="sm" variant="danger" onClick={() => setRemoving(a)}>
+                          {t('common.delete')}
+                        </Button>
+                      </div>
                   </li>
                 );
               })}
@@ -313,14 +321,24 @@ function ReadStat({ a }: { a: AdminAnnouncement }) {
   });
   const pct = readPercent(a.readCount, total.data?.count);
   return (
-    <span>
-      {pct === null
-        ? t('admin.acd.an.reads', { n: formatNumber(a.readCount) })
-        : t('admin.acd.an.readsPct', {
-            n: formatNumber(a.readCount),
-            total: formatNumber(total.data!.count),
-            pct,
-          })}
+    <span className={styles.readStat}>
+      <span>
+        {pct === null
+          ? t('admin.acd.an.reads', { n: formatNumber(a.readCount) })
+          : t('admin.acd.an.readsPct', {
+              n: formatNumber(a.readCount),
+              total: formatNumber(total.data!.count),
+              pct,
+            })}
+      </span>
+      {pct !== null && total.data && (
+        <FillBar
+          tone="info"
+          value={a.readCount}
+          max={total.data.count}
+          label={t('admin.v2.an.readSentence', { pct: formatNumber(pct) })}
+        />
+      )}
     </span>
   );
 }

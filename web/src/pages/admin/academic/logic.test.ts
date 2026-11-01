@@ -5,6 +5,8 @@ import {
   announcementState,
   endAfterStart,
   eventsByDay,
+  examBucket,
+  examConflicts,
   isHttps,
   monthGrid,
   readPercent,
@@ -76,5 +78,23 @@ describe('akademik mantık', () => {
     expect(readPercent(50, 200)).toBe(25);
     expect(readPercent(5, 0)).toBeNull();
     expect(totalPages(41, 20)).toBe(3);
+  });
+});
+
+describe('sınav kovaları ve çakışma', () => {
+  const now = new Date(2026, 10, 4, 10, 0); // Çarşamba
+  it('geçmiş / bu hafta / gelecek hafta / daha sonra ayırır', () => {
+    expect(examBucket(new Date(2026, 10, 3).toISOString(), now)).toBe('past');
+    expect(examBucket(new Date(2026, 10, 6, 9).toISOString(), now)).toBe('week');
+    expect(examBucket(new Date(2026, 10, 10, 9).toISOString(), now)).toBe('nextWeek');
+    expect(examBucket(new Date(2026, 10, 25, 9).toISOString(), now)).toBe('later');
+  });
+  it('aynı sınıf ve bölümde çakışanı bulur, farklı bölümü ve sınıfsızı atlar', () => {
+    const base = { endsAt: null, faculty: null };
+    const a = { ...base, id: 1, startsAt: '2026-11-10T09:00:00', grade: '2', department: 'Bilgisayar' };
+    const b = { ...base, id: 2, startsAt: '2026-11-10T09:30:00', grade: '2', department: 'Bilgisayar' };
+    const c = { ...base, id: 3, startsAt: '2026-11-10T09:30:00', grade: '2', department: 'Makine' };
+    const d = { ...base, id: 4, startsAt: '2026-11-10T09:30:00', grade: null, department: 'Bilgisayar' };
+    expect([...examConflicts([a, b, c, d])].sort()).toEqual([1, 2]);
   });
 });

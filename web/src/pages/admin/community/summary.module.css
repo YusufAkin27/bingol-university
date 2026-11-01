@@ -87,3 +87,21 @@
   color: var(--text-muted);
   overflow-wrap: anywhere;
 }
+
+.filters {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding-inline: var(--space-3);
+}
+.filtersSummary {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-block-size: 44px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.filtersBody {
+  padding-block-end: var(--space-3);
+}

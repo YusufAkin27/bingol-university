@@ -139,7 +139,7 @@ describe('Akademik takvim: toplu yayınla / sil', () => {
 
   it('yayınla: sebep ister, entity CALENDAR + ids gönderir', async () => {
     const calls = setup();
-    renderWithProviders(<AcademicCalendarPage />);
+    renderWithProviders(<AcademicCalendarPage />, { route: '/admin/academic/calendar?view=list' });
     await screen.findByText('Olay 7');
     await userEvent.click(screen.getByRole('checkbox', { name: 'Seç: Olay 7' }));
     await userEvent.click(screen.getByRole('checkbox', { name: 'Seç: Olay 8' }));
@@ -159,7 +159,7 @@ describe('Akademik takvim: toplu yayınla / sil', () => {
 
   it('sil: yazarak onay (SİL) olmadan düğme kapalıdır', async () => {
     const calls = setup();
-    renderWithProviders(<AcademicCalendarPage />);
+    renderWithProviders(<AcademicCalendarPage />, { route: '/admin/academic/calendar?view=list' });
     await screen.findByText('Olay 7');
     await userEvent.click(screen.getByRole('checkbox', { name: 'Seç: Olay 7' }));
     await userEvent.click(await screen.findByRole('button', { name: 'Seçilenleri sil' }));
@@ -180,7 +180,7 @@ describe('Akademik takvim: toplu yayınla / sil', () => {
 
   it('CSV entity=CALENDAR ile istenir', async () => {
     const calls = setup();
-    renderWithProviders(<AcademicCalendarPage />);
+    renderWithProviders(<AcademicCalendarPage />, { route: '/admin/academic/calendar?view=list' });
     await screen.findByText('Olay 7');
     await userEvent.click(screen.getByRole('button', { name: 'CSV indir' }));
     await waitFor(() =>

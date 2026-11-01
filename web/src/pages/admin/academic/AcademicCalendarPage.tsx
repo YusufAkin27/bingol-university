@@ -26,6 +26,7 @@ import {
   ErrorState,
   FormField,
   Input,
+  Insight,
   Modal,
   PageHeader,
   Pagination,
@@ -34,8 +35,13 @@ import {
   StatusPill,
   Tabs,
   Textarea,
+  useIsNarrow,
+  useKitFormat,
   useToast,
 } from '../../../components/ui';
+import { useSearchReveal } from '../../../search/anchor';
+import { useUrlTab } from '../../../search/useUrlTab';
+import { CollapsibleFilters } from '../community/Summary';
 import { useI18n } from '../../../i18n/I18nProvider';
 import { useDebouncedValue, usePageTitle } from '../../../lib/hooks';
 import { BULK_MAX, exportAcademicCsv } from '../../../api/adminBulk';
@@ -69,7 +75,14 @@ export default function AcademicCalendarPage() {
   const toast = useToast();
   const qc = useQueryClient();
 
-  const [view, setView] = useState<'list' | 'month'>('list');
+  const [view, setView] = useUrlTab(['month', 'list'] as const, 'month', 'view');
+  const narrow = useIsNarrow();
+  const kit = useKitFormat();
+  // Arama: liste araç çubuğu ve ay gezinmesi ilgili görünümü açar
+  useSearchReveal((anchor) => {
+    if (anchor === 'cal-q') setView('list');
+    if (anchor === 'cal-nav') setView('month');
+  });
   const [kind, setKind] = useState('');
   const [status, setStatus] = useState('');
   const [qText, setQText] = useState('');
@@ -155,8 +168,26 @@ export default function AcademicCalendarPage() {
   );
   const todayKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
 
+  // Yaklaşan en çok 3 olay (bugünden itibaren), yüklenen ay verisinden
+  const upcoming = useMemo(() => {
+    const items = monthQuery.data?.items ?? [];
+    const from = `${todayKey}`;
+    return items
+      .filter((e) => e.startsAt.slice(0, 10) >= from)
+      .sort((a, b) => a.startsAt.localeCompare(b.startsAt))
+      .slice(0, 3);
+  }, [monthQuery.data, todayKey]);
+  const agendaDays = useMemo(
+    () =>
+      weeks
+        .flat()
+        .filter((c) => c.inMonth && (byDay.get(c.date)?.length ?? 0) > 0)
+        .map((c) => ({ date: c.date, events: byDay.get(c.date) ?? [] })),
+    [weeks, byDay],
+  );
+
   const rowActions = (ev: AcademicEvent) => (
-    <div className={styles.actions}>
+    <div className={styles.actions} data-search-anchor={ev.id === list.data?.items[0]?.id ? 'cal-publish' : undefined}>
       <Button size="sm" variant="secondary" onClick={() => setEditing(ev)}>
         {t('common.edit')}
       </Button>
@@ -168,6 +199,7 @@ export default function AcademicCalendarPage() {
       >
         {t(ev.published ? 'admin.acd.unpublish' : 'admin.acd.publish')}
       </Button>
+      <span className={styles.spacer} />
       <Button size="sm" variant="danger" onClick={() => setRemoving(ev)}>
         {t('common.delete')}
       </Button>
@@ -181,21 +213,30 @@ export default function AcademicCalendarPage() {
         description={t('admin.acd.cal.intro')}
         actions={
           <>
-            <BulkCsvButton
-              filename="akademik-takvim.csv"
-              fetchCsv={() => exportAcademicCsv({ entity: 'CALENDAR', q, kind, published })}
-            />
-            <Button variant="secondary" onClick={() => setImporting(true)}>
+            <span data-search-anchor="cal-csv">
+              <BulkCsvButton
+                filename="akademik-takvim.csv"
+                fetchCsv={() => exportAcademicCsv({ entity: 'CALENDAR', q, kind, published })}
+              />
+            </span>
+            <Button variant="secondary" data-search-anchor="cal-import" onClick={() => setImporting(true)}>
               {t('admin.acd.cal.import')}
             </Button>
-            <Button onClick={() => setEditing('new')}>{t('admin.acd.cal.add')}</Button>
+            <Button data-search-anchor="cal-add" onClick={() => setEditing('new')}>
+              {t('admin.acd.cal.add')}
+            </Button>
           </>
         }
       />
       <div className={styles.stack}>
+        <CollapsibleFilters
+          label={t('admin.v2.filters.title')}
+          activeCount={(kind ? 1 : 0) + (status ? 1 : 0) + (qText ? 1 : 0)}
+        >
         <div className={styles.toolbar}>
-          <FormField label={t('admin.acd.cal.kind')}>
-            <Select
+          <FormField label={t('admin.acd.cal.kind')} className={styles.fieldBox}>
+            <Select data-search-anchor="cal-kind"
+
               value={kind}
               onChange={(e) => {
                 setKind(e.target.value);
@@ -212,6 +253,7 @@ export default function AcademicCalendarPage() {
           </FormField>
           <FormField label={t('admin.acd.statusLabel')}>
             <Select
+              data-search-anchor="cal-status"
               value={status}
               onChange={(e) => {
                 setStatus(e.target.value);
@@ -226,6 +268,7 @@ export default function AcademicCalendarPage() {
           {view === 'list' && (
             <FormField label={t('admin.acd.search')}>
               <Input
+                data-search-anchor="cal-q"
                 value={qText}
                 maxLength={80}
                 dir="auto"
@@ -237,16 +280,19 @@ export default function AcademicCalendarPage() {
             </FormField>
           )}
         </div>
+        </CollapsibleFilters>
 
-        <Tabs
-          label={t('admin.acd.cal.view')}
-          value={view}
-          onChange={(id) => setView(id as 'list' | 'month')}
-          tabs={[
-            { id: 'list', label: t('admin.acd.cal.viewList') },
-            { id: 'month', label: t('admin.acd.cal.viewMonth') },
-          ]}
-        />
+        <div data-search-anchor="cal-view">
+          <Tabs
+            label={t('admin.acd.cal.view')}
+            value={view}
+            onChange={(id) => setView(id as 'list' | 'month')}
+            tabs={[
+              { id: 'month', label: t('admin.v2.cal.viewCalendar') },
+              { id: 'list', label: t('admin.acd.cal.viewList') },
+            ]}
+          />
+        </div>
 
         {view === 'list' ? (
           list.isError ? (
@@ -269,17 +315,16 @@ export default function AcademicCalendarPage() {
                 selection={selection}
                 label={t('admin.p15.select.page')}
               />
-              <ul className={styles.rowList} aria-label={t('admin.acd.rows')}>
+              <p className={styles.muted}>{t('admin.v2.cal.count', { n: list.data!.total })}</p>
+              <ul className={styles.rowList} aria-label={t('admin.acd.rows')} data-search-anchor="cal-bulk">
                 {list.data!.items.map((ev) => (
-                  <li key={ev.id} className={styles.item}>
+                  <li key={ev.id} className={`${styles.item} ${styles[`k_${ev.kind}`] ?? ''}`}>
                     <div className={styles.itemHead}>
                       <RowPick id={ev.id} label={t('admin.p15.select.row', { title: ev.title })} selection={selection} />
                       <Badge tone="info">{kindLabel(ev.kind)}</Badge>
                       <StatusPill tone={ev.published ? 'success' : 'neutral'}>
                         {t(ev.published ? 'admin.acd.published' : 'admin.acd.draft')}
                       </StatusPill>
-                      <span className={styles.spacer} />
-                      {rowActions(ev)}
                     </div>
                     <h3 className={styles.itemTitle} dir="auto">
                       {ev.title}
@@ -294,6 +339,7 @@ export default function AcademicCalendarPage() {
                         {ev.note}
                       </p>
                     )}
+                    {rowActions(ev)}
                   </li>
                 ))}
               </ul>
@@ -313,7 +359,21 @@ export default function AcademicCalendarPage() {
         ) : (
           <Card>
             <div className={styles.stack}>
-              <div className={styles.monthNav}>
+              {upcoming.length > 0 && (
+                <Insight
+                  tone="info"
+                  parts={[
+                    t('admin.v2.cal.upNext'),
+                    ' ',
+                    ...upcoming.flatMap((u, i) => [
+                      i > 0 ? '; ' : '',
+                      { text: u.title },
+                      ` (${kit.relative(u.startsAt.length <= 10 ? `${u.startsAt}T12:00:00` : u.startsAt)})`,
+                    ]),
+                  ]}
+                />
+              )}
+              <div className={styles.monthNav} data-search-anchor="cal-nav">
                 <Button
                   size="sm"
                   variant="secondary"
@@ -351,34 +411,58 @@ export default function AcademicCalendarPage() {
                       {t('admin.acd.cal.truncated', { n: monthQuery.data.items.length })}
                     </p>
                   )}
-                  <div className={styles.grid} role="grid" aria-label={t('admin.acd.cal.title')}>
-                    {dows.map((d, i) => (
-                      <div key={i} className={styles.dow} role="columnheader">
-                        {d}
-                      </div>
+                  <ul className={styles.legend} aria-label={t('admin.v2.cal.legend')}>
+                    {CALENDAR_KINDS.map((k) => (
+                      <li key={k}>
+                        <span className={`${styles.legendDot} ${styles[`k_${k}`] ?? ''}`} aria-hidden="true" />
+                        {kindLabel(k)}
+                      </li>
                     ))}
-                    {weeks.flat().map((c) => (
-                      <div
-                        key={c.date}
-                        role="gridcell"
-                        className={`${styles.cell} ${c.inMonth ? '' : styles.cellOut}`}
-                        aria-current={c.date === todayKey ? 'date' : undefined}
-                      >
-                        <span className={styles.dayNum}>{c.day}</span>
-                        {(byDay.get(c.date) ?? []).map((ev) => (
-                          <button
-                            key={ev.id}
-                            type="button"
-                            className={`${styles.chip} ${ev.published ? '' : styles.chipDraft}`}
-                            title={`${kindLabel(ev.kind)}: ${ev.title}`}
-                            onClick={() => setEditing(ev)}
-                          >
-                            {ev.title}
-                          </button>
-                        ))}
-                      </div>
-                    ))}
-                  </div>
+                  </ul>
+                  {narrow ? (
+                    <Agenda
+                      days={agendaDays}
+                      todayKey={todayKey}
+                      dayLabel={(date) =>
+                        formatDate(`${date}T12:00:00`, { weekday: 'long', day: 'numeric', month: 'long' })
+                      }
+                      kindLabel={kindLabel}
+                      when={when}
+                      onOpen={setEditing}
+                      emptyText={t('admin.v2.cal.monthEmpty')}
+                      todayText={t('admin.acd.cal.today')}
+                      draftText={t('admin.acd.draft')}
+                    />
+                  ) : (
+                    <div className={styles.grid} role="grid" aria-label={t('admin.acd.cal.title')}>
+                      {dows.map((d, i) => (
+                        <div key={i} className={styles.dow} role="columnheader">
+                          {d}
+                        </div>
+                      ))}
+                      {weeks.flat().map((c) => (
+                        <div
+                          key={c.date}
+                          role="gridcell"
+                          className={`${styles.cell} ${c.inMonth ? '' : styles.cellOut}`}
+                          aria-current={c.date === todayKey ? 'date' : undefined}
+                        >
+                          <span className={styles.dayNum}>{c.day}</span>
+                          {(byDay.get(c.date) ?? []).map((ev) => (
+                            <button
+                              key={ev.id}
+                              type="button"
+                              className={`${styles.chip} ${styles[`k_${ev.kind}`] ?? ''} ${ev.published ? '' : styles.chipDraft}`}
+                              title={`${kindLabel(ev.kind)}: ${ev.title}`}
+                              onClick={() => setEditing(ev)}
+                            >
+                              {ev.title}
+                            </button>
+                          ))}
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </>
               )}
             </div>
@@ -638,5 +722,67 @@ function ImportModal({ onClose, onDone }: { onClose: () => void; onDone: () => v
         )}
       </div>
     </Modal>
+  );
+}
+
+interface AgendaDay {
+  date: string;
+  events: AcademicEvent[];
+}
+
+/** Telefonda ay görünümü: yalnız olayı olan günler, gün gün liste (7 sütunlu ızgara 360 px'e sığmaz). */
+function Agenda({
+  days,
+  todayKey,
+  dayLabel,
+  kindLabel,
+  when,
+  onOpen,
+  emptyText,
+  todayText,
+  draftText,
+}: {
+  days: AgendaDay[];
+  todayKey: string;
+  dayLabel: (date: string) => string;
+  kindLabel: (k: CalendarKind) => string;
+  when: (ev: AcademicEvent) => string;
+  onOpen: (ev: AcademicEvent) => void;
+  emptyText: string;
+  todayText: string;
+  draftText: string;
+}) {
+  if (days.length === 0) return <p className={styles.muted}>{emptyText}</p>;
+  return (
+    <ol className={styles.agenda} data-testid="agenda">
+      {days.map((d) => (
+        <li key={d.date} className={styles.agendaDay} aria-current={d.date === todayKey ? 'date' : undefined}>
+          <h4 className={styles.agendaHead}>
+            {dayLabel(d.date)}
+            {d.date === todayKey && <Badge tone="info">{todayText}</Badge>}
+          </h4>
+          <ul className={styles.agendaList}>
+            {d.events.map((ev) => (
+              <li key={ev.id}>
+                <button
+                  type="button"
+                  className={`${styles.agendaItem} ${styles[`k_${ev.kind}`] ?? ''}`}
+                  onClick={() => onOpen(ev)}
+                >
+                  <span className={styles.agendaKind}>
+                    {kindLabel(ev.kind)}
+                    {ev.published ? '' : ` · ${draftText}`}
+                  </span>
+                  <span className={styles.agendaTitle} dir="auto">
+                    {ev.title}
+                  </span>
+                  <span className={styles.muted}>{when(ev)}</span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        </li>
+      ))}
+    </ol>
   );
 }
