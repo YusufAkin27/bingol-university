@@ -5,6 +5,7 @@ import edu.bingol.backend.accessban.ClientContexts;
 import edu.bingol.backend.auth.AuthService;
 import edu.bingol.backend.auth.dto.MessageResponse;
 import edu.bingol.backend.auth.dto.TokenResponse;
+import edu.bingol.backend.auth.jwt.JwtService;
 import edu.bingol.backend.auth.twofactor.TwoFactorDtos.ChallengeRequest;
 import edu.bingol.backend.auth.twofactor.TwoFactorDtos.CodeRequest;
 import edu.bingol.backend.auth.twofactor.TwoFactorDtos.DeviceView;
@@ -49,9 +50,10 @@ public class TwoFactorController {
     private final ClientContexts contexts;
     private final RateLimitProperties limits;
     private final I18n i18n;
+    private final JwtService jwt;
 
     public TwoFactorController(AuthService auth, TwoFactorService twoFactor, RateLimiter limiter, ClientIp clientIp,
-                               ClientContexts contexts, RateLimitProperties limits, I18n i18n) {
+                               ClientContexts contexts, RateLimitProperties limits, I18n i18n, JwtService jwt) {
         this.auth = auth;
         this.twoFactor = twoFactor;
         this.limiter = limiter;
@@ -59,6 +61,7 @@ public class TwoFactorController {
         this.contexts = contexts;
         this.limits = limits;
         this.i18n = i18n;
+        this.jwt = jwt;
     }
 
     // ------------------------------------------------------------------ giris ikinci adimi (herkese acik)
@@ -106,11 +109,14 @@ public class TwoFactorController {
         Long userId = userId(authentication);
         limiter.check("tf:enconf:user:" + userId, 10, Duration.ofMinutes(10));
         limiter.check("tf:enconf:ip:" + clientIp.limitKey(http), limits.verifyIpMax(), Duration.ofMinutes(10));
-        twoFactor.confirmEnable(userId, r.code(), contexts.of(http));
-        return new EnabledResponse(true);
+        twoFactor.confirmEnable(userId, r.code(), contexts.of(http), r.closeOthers());
+        return new EnabledResponse(true, r.closeOthers() ? auth.reissueTokens(userId, callerClient(http)) : null);
     }
 
-    /** Sifre ister (yanlis sifre 400 INVALID_PASSWORD); tum guvenilen cihazlar silinir. */
+    /**
+     * Sifre ister (yanlis sifre 400 INVALID_PASSWORD); tum guvenilen cihazlar silinir, kullaniciya bildirim + e-posta
+     * gider. closeOtherSessions=true ise oturumlar kapanir ve yanitta bu cihaz icin yeni cift ({@code session}) gelir.
+     */
     @PostMapping("/2fa/disable")
     public EnabledResponse disable(@Valid @RequestBody DisableRequest r, Authentication authentication,
                                    HttpServletRequest http) {
@@ -118,8 +124,8 @@ public class TwoFactorController {
         // Calinmis oturumla sifre tahmini: kullanici basina dar, IP basina genis
         limiter.check("tf:disable:user:" + userId, 5, Duration.ofMinutes(15));
         limiter.check("tf:disable:ip:" + clientIp.limitKey(http), limits.changePasswordIpMax(), Duration.ofHours(1));
-        twoFactor.disable(userId, r.password());
-        return new EnabledResponse(false);
+        twoFactor.disable(userId, r.password(), r.closeOthers());
+        return new EnabledResponse(false, r.closeOthers() ? auth.reissueTokens(userId, callerClient(http)) : null);
     }
 
     @GetMapping("/2fa/devices")
@@ -141,6 +147,13 @@ public class TwoFactorController {
 
     private static Long userId(Authentication authentication) {
         return (Long) authentication.getPrincipal();
+    }
+
+    /** Istegi yapan access token'in istemci turu (`cl`); yoksa web. */
+    private String callerClient(HttpServletRequest http) {
+        String h = http.getHeader("Authorization");
+        JwtService.Identity id = h != null && h.startsWith("Bearer ") ? jwt.parse(h.substring(7).trim()) : null;
+        return id == null ? null : id.client();
     }
 
     private String deviceOf(HttpServletRequest http) {

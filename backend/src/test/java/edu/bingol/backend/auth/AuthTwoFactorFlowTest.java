@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -31,6 +32,7 @@ import edu.bingol.backend.auth.twofactor.InMemoryTwoFactorDevices;
 import edu.bingol.backend.auth.twofactor.TwoFactorController;
 import edu.bingol.backend.auth.twofactor.TwoFactorDtos;
 import edu.bingol.backend.auth.twofactor.TwoFactorDtos.LoginChallengeResponse;
+import edu.bingol.backend.auth.twofactor.TwoFactorNotifier;
 import edu.bingol.backend.auth.twofactor.TwoFactorService;
 import edu.bingol.backend.catalog.CatalogService;
 import edu.bingol.backend.common.ApiException;
@@ -83,8 +85,9 @@ class AuthTwoFactorFlowTest {
     private final ClientIp clientIp = new ClientIp("10.0.0.0/8");
     private final ClientContexts contexts = new ClientContexts(clientIp, "test-hmac-key", "jwt-secret-for-tests-0123456789");
     private final VerificationService verification = new VerificationService(fake.template, mail);
-    private final TwoFactorService twoFactor =
-            new TwoFactorService(users, devices, verification, fake.template, encoder, limiter, Clock.systemUTC());
+    private final TwoFactorNotifier notifier = mock(TwoFactorNotifier.class);
+    private final TwoFactorService twoFactor = new TwoFactorService(users, devices, verification, fake.template, encoder,
+            limiter, Clock.systemUTC(), sessions, notifier);
     private final AuthService auth;
     private final AuthController authController;
     private final TwoFactorController tfController;
@@ -114,7 +117,12 @@ class AuthTwoFactorFlowTest {
         authController = new AuthController(auth, limiter, i18n, clientIp, contexts, jwt, throttle,
                 RateLimitProperties.defaults(), refresh);
         tfController = new TwoFactorController(auth, twoFactor, limiter, clientIp, contexts,
-                RateLimitProperties.defaults(), i18n);
+                RateLimitProperties.defaults(), i18n, jwt);
+        // Gercek SessionService gibi: revokeAll `pwchg:<uid>` isaretini yazar (acik challenge'lar bununla gecersizlesir)
+        org.mockito.Mockito.doAnswer(i -> {
+            fake.values.put("pwchg:" + i.getArgument(0), String.valueOf(System.currentTimeMillis()));
+            return null;
+        }).when(sessions).revokeAll(any());
     }
 
     // ------------------------------------------------------------------ yardimcilar
@@ -450,5 +458,114 @@ class AuthTwoFactorFlowTest {
         asChallenge(login(DEV_B));
         // ... ama bu cihaz (mevcut oturum) etkilenmedi
         assertEquals(HttpStatus.OK, login(DEV_A).getStatusCode());
+    }
+
+    // ------------------------------------------------------------------ guvenlik duzeltmeleri (HARDEN)
+
+    @Test
+    void trustDeviceDefaultsToFalseWhenTheFieldIsMissing() {
+        user.setTwoFactorEnabled(true);
+        LoginChallengeResponse ch = asChallenge(login(DEV_A));
+
+        assertFalse(new TwoFactorDtos.TwoFactorLoginRequest("t", "123456", null).trust());
+        assertTrue(new TwoFactorDtos.TwoFactorLoginRequest("t", "123456", true).trust());
+        // alan hic gonderilmediyse (eski/ ozensiz istemci) cihaz guvenilir YAPILMAZ
+        tfController.loginTwoFactor(new TwoFactorDtos.TwoFactorLoginRequest(ch.challengeToken(), lastCode(), null), req(DEV_A));
+
+        assertTrue(devices.rows.isEmpty());
+        asChallenge(login(DEV_A));
+    }
+
+    @Test
+    void aChallengeIsDeadAfterAPasswordChangeEvenIfTheAttackerKnowsTheCode() {
+        user.setTwoFactorEnabled(true);
+        LoginChallengeResponse ch = asChallenge(login(DEV_A)); // saldirgan eski parolayla challenge acti
+        String code = lastCode();
+
+        auth.changePassword(5L, PW, "Yeni-Sifre-9xQ!", "web"); // kurban parolayi degistirdi (oturumlar kapandi)
+
+        assertEquals("TWO_FACTOR_CHALLENGE_EXPIRED",
+                assertThrows(ApiException.class, () -> complete(ch, code, true, DEV_A)).code());
+        assertTrue(devices.rows.isEmpty(), "saldirganin cihazi guvenilir yapilmadi");
+        verify(refresh, never()).issue(anyLong(), eq("mobile"));
+    }
+
+    @Test
+    void aChallengeIsDeadAfterAPasswordResetAndAfterLogoutAll() {
+        user.setTwoFactorEnabled(true);
+        LoginChallengeResponse ch1 = asChallenge(login(DEV_A));
+        String code1 = lastCode();
+        when(verificationForAuth.checkResetToken(EMAIL, "tok")).thenReturn(true);
+        when(verificationForAuth.consumeResetToken(EMAIL, "tok")).thenReturn(true);
+        auth.resetPassword(EMAIL, "tok", "Yeni-Sifre-9xQ!");
+        assertEquals("TWO_FACTOR_CHALLENGE_EXPIRED",
+                assertThrows(ApiException.class, () -> complete(ch1, code1, true, DEV_A)).code());
+
+        user.setPasswordHash(encoder.encode("Yeni-Sifre-9xQ!"));
+        LoginChallengeResponse ch2 = asChallenge(authController.login(new LoginRequest(EMAIL, "Yeni-Sifre-9xQ!", "mobile"), req(DEV_A)));
+        String code2 = lastCode();
+        try {
+            Thread.sleep(2);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+        auth.logoutAll(5L);
+        assertEquals("TWO_FACTOR_CHALLENGE_EXPIRED",
+                assertThrows(ApiException.class, () -> complete(ch2, code2, true, DEV_A)).code());
+    }
+
+    @Test
+    void aChallengeIsDeadOnceTwoFactorWasTurnedOff() {
+        user.setTwoFactorEnabled(true);
+        LoginChallengeResponse ch = asChallenge(login(DEV_A));
+        String code = lastCode();
+
+        twoFactor.disable(5L, PW); // kullanici kapatti (ya da yonetici kurtarma kapatmasi)
+
+        assertEquals("TWO_FACTOR_CHALLENGE_EXPIRED",
+                assertThrows(ApiException.class, () -> complete(ch, code, true, DEV_A)).code());
+        assertEquals("TWO_FACTOR_CHALLENGE_EXPIRED", assertThrows(ApiException.class,
+                () -> tfController.resendLoginCode(new TwoFactorDtos.ChallengeRequest(ch.challengeToken()), req(DEV_A))).code());
+    }
+
+    @Test
+    void closeOtherSessionsReturnsAFreshPairForThisDeviceOnlyWhenAsked() {
+        tfController.requestEnable(principal(), req(DEV_A));
+        TwoFactorDtos.EnabledResponse plain =
+                tfController.confirmEnable(new TwoFactorDtos.CodeRequest(lastCode()), principal(), req(DEV_A));
+        assertNull(plain.session(), "varsayilan: oturumlar kapanmaz, yeni cift yok (eski istemciler bozulmaz)");
+        verify(sessions, never()).revokeAll(5L);
+
+        tfController.disable(new TwoFactorDtos.DisableRequest(PW), principal(), req(DEV_A));
+        tfController.requestEnable(principal(), req(DEV_A));
+        TwoFactorDtos.EnabledResponse closed = tfController.confirmEnable(
+                new TwoFactorDtos.CodeRequest(lastCode(), true), principal(), req(DEV_A));
+
+        verify(sessions).revokeAll(5L);
+        assertNotNull(closed.session());
+        assertEquals("access", closed.session().accessToken());
+        assertEquals("refresh", closed.session().refreshToken());
+
+        TwoFactorDtos.EnabledResponse off =
+                tfController.disable(new TwoFactorDtos.DisableRequest(PW, true), principal(), req(DEV_A));
+        assertFalse(off.enabled());
+        assertNotNull(off.session());
+        verify(sessions, org.mockito.Mockito.times(2)).revokeAll(5L);
+    }
+
+    @Test
+    void anAccountWithTwoFactorCannotSignInWhenTheTwoFactorServiceIsMissing() {
+        // fail-closed: 2FA servisi baglanamadiysa 2FA'li hesap kodsuz girmez (eskiden sessizce kapaliydi)
+        AuthService bare = new AuthService(users, encoder, jwt, refresh, verificationForAuth, new AdminProperties(List.of()),
+                mock(AccountCreator.class), mock(PendingRegistrationStore.class), sessions, new CatalogService());
+        user.setTwoFactorEnabled(true);
+
+        ApiException e = assertThrows(ApiException.class, () -> bare.login(EMAIL, PW, "web", contexts.of(req(DEV_A))));
+
+        assertEquals(500, e.status().value());
+        verify(jwt, never()).createAccessToken(any(), anyString());
+        // 2FA'siz hesap etkilenmez
+        user.setTwoFactorEnabled(false);
+        assertEquals("access", bare.login(EMAIL, PW, "web", contexts.of(req(DEV_A))).accessToken());
     }
 }

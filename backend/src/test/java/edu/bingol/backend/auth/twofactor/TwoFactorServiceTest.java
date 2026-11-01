@@ -18,6 +18,8 @@ import static org.mockito.Mockito.when;
 
 import edu.bingol.backend.accessban.ClientContext;
 import edu.bingol.backend.auth.FakeRedis;
+import edu.bingol.backend.auth.token.SessionService;
+import edu.bingol.backend.auth.token.SessionsRevokedEvent;
 import edu.bingol.backend.auth.token.VerificationService;
 import edu.bingol.backend.auth.twofactor.TwoFactorDtos.DeviceView;
 import edu.bingol.backend.auth.twofactor.TwoFactorDtos.LoginChallengeResponse;
@@ -78,8 +80,20 @@ class TwoFactorServiceTest {
     private final RateLimiter limiter = mock(RateLimiter.class);
     private final StepClock clock = new StepClock();
     private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(4);
+    private final SessionService sessions = mock(SessionService.class);
+    private final TwoFactorNotifier notifier = mock(TwoFactorNotifier.class);
     private final TwoFactorService service =
-            new TwoFactorService(users, devices, verification, fake.template, encoder, limiter, clock);
+            new TwoFactorService(users, devices, verification, fake.template, encoder, limiter, clock, sessions, notifier);
+
+    /** Giris kodlari {@code tf:<uid>:<challenge ozeti>} altinda; etkinlestirme kodu {@code tf:<uid>:enable}. */
+    private String codeKeyOfLoginChallenge() {
+        return fake.values.keySet().stream().filter(k -> k.startsWith("tf:7:") && !k.endsWith(":enable"))
+                .findFirst().orElse(null);
+    }
+
+    private boolean anyCodeKey() {
+        return fake.values.keySet().stream().anyMatch(k -> k.matches("tf:7:[0-9a-f]{32}") || k.equals("tf:7:enable"));
+    }
 
     private final User user = newUser(7L);
 
@@ -130,7 +144,7 @@ class TwoFactorServiceTest {
         // Redis'te ham jeton DEGIL ozeti anahtarlanir; kod yalniz hash'li tutulur
         assertTrue(fake.values.keySet().stream().noneMatch(k -> k.contains(r.challengeToken())));
         assertEquals(1, fake.values.keySet().stream().filter(k -> k.startsWith("2fa:") && !k.startsWith("2fa:att:")).count());
-        assertEquals(64, fake.values.get("tf:7").length(), "ozet (SHA-256/HMAC), 6 haneli duz kod degil");
+        assertEquals(64, fake.values.get(codeKeyOfLoginChallenge()).length(), "ozet (SHA-256/HMAC), 6 haneli duz kod degil");
         limiterChecked();
     }
 
@@ -177,10 +191,10 @@ class TwoFactorServiceTest {
         // 5. yanlista challenge ve kod silindi: dogru kod bile artik gecmez
         assertEquals("TWO_FACTOR_CHALLENGE_EXPIRED",
                 assertThrows(ApiException.class, () -> service.peek(r.challengeToken())).code());
-        assertNull(fake.values.get("tf:7"));
+        assertNull(codeKeyOfLoginChallenge());
         ApiException late = assertThrows(ApiException.class,
                 () -> service.verifyAndConsume(r.challengeToken(), ch, code, ctx(DEV_A)));
-        assertEquals("TWO_FACTOR_CODE_INVALID", late.code());
+        assertEquals("TWO_FACTOR_CHALLENGE_EXPIRED", late.code()); // challenge artik yok (verifyAndConsume once dogrular)
     }
 
     @Test
@@ -201,7 +215,7 @@ class TwoFactorServiceTest {
 
         assertEquals(Duration.ofMinutes(10), fake.ttls.entrySet().stream()
                 .filter(en -> en.getKey().startsWith("2fa:")).findFirst().orElseThrow().getValue());
-        assertEquals(Duration.ofMinutes(10), fake.ttls.get("tf:7"));
+        assertEquals(Duration.ofMinutes(10), fake.ttls.get(codeKeyOfLoginChallenge()));
     }
 
     @Test
@@ -212,7 +226,7 @@ class TwoFactorServiceTest {
         assertThrows(ApiException.class, () -> service.begin(user, ctx(DEV_A), "web"));
 
         assertTrue(fake.values.keySet().stream().noneMatch(k -> k.startsWith("2fa:")));
-        assertNull(fake.values.get("tf:7"));
+        assertNull(codeKeyOfLoginChallenge());
     }
 
     @Test
@@ -243,10 +257,10 @@ class TwoFactorServiceTest {
     }
 
     @Test
-    void codeDigestIsKeyedByUserIdNotEmail() {
+    void codeDigestIsKeyedByUserIdAndChallengeNotEmail() {
         service.begin(user, ctx(DEV_A), "web");
 
-        assertTrue(fake.values.containsKey("tf:7"));
+        assertTrue(codeKeyOfLoginChallenge() != null);
         assertTrue(fake.values.keySet().stream().noneMatch(k -> k.contains(EMAIL)));
     }
 
@@ -323,7 +337,10 @@ class TwoFactorServiceTest {
     @Test
     void emailHintMasksTheLocalPart() {
         assertEquals("ay***@bingol.edu.tr", TwoFactorService.maskEmail("ayse@bingol.edu.tr"));
-        assertEquals("a***@bingol.edu.tr", TwoFactorService.maskEmail("a@bingol.edu.tr"));
+        // en az bir karakter maskelenir: tek/iki harfli yerel kisim tam gorunmez (D7)
+        assertEquals("***@bingol.edu.tr", TwoFactorService.maskEmail("a@bingol.edu.tr"));
+        assertEquals("a***@bingol.edu.tr", TwoFactorService.maskEmail("ab@bingol.edu.tr"));
+        assertEquals("ab***@bingol.edu.tr", TwoFactorService.maskEmail("abc@bingol.edu.tr"));
         assertEquals("***", TwoFactorService.maskEmail("bozuk"));
         assertEquals("***", TwoFactorService.maskEmail(null));
     }
@@ -413,13 +430,19 @@ class TwoFactorServiceTest {
     void forceDisableDoesNotAskForAPasswordAndClearsEverything() {
         user.setTwoFactorEnabled(true);
         service.trust(7L, DEV_A, "WEB", null);
-        service.begin(user, ctx(DEV_A), "web");
+        user.setTwoFactorEnabled(false);
+        service.requestEnable(7L);
+        assertTrue(fake.values.containsKey("tf:7:enable"));
+        user.setTwoFactorEnabled(true);
 
         service.forceDisable(7L);
 
         assertFalse(user.isTwoFactorEnabled());
         assertTrue(devices.rows.isEmpty());
-        assertNull(fake.values.get("tf:7"), "bekleyen kod da silinir");
+        assertNull(fake.values.get("tf:7:enable"), "bekleyen etkinlestirme kodu da silinir");
+        // kurtarma kapatmasi tum oturumlari kapatir ve kullaniciya bildirim + e-posta gonderir (O1/O3)
+        verify(sessions).revokeAll(7L);
+        verify(notifier).notify(user, TwoFactorNotifier.Event.DISABLED_BY_ADMIN);
         assertEquals("TWO_FACTOR_NOT_ENABLED", assertThrows(ApiException.class, () -> service.forceDisable(7L)).code());
         assertEquals("USER_NOT_FOUND", assertThrows(ApiException.class, () -> service.forceDisable(99L)).code());
     }

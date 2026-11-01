@@ -66,6 +66,11 @@ public class VerificationService {
         mail.requireCodeQuota();
     }
 
+    /** Hesap sahibine giden kod (2FA) icin: yalniz saglayici kotasi tamamen dolduysa 503 MAIL_QUOTA_EXHAUSTED. */
+    public void requireAccountMailQuota() {
+        mail.requireAccountCodeQuota();
+    }
+
     /** Yeni kayit dogrulama kodu uretip gonderir. Ayni adrese 60 sn icinde tekrar gonderimi reddeder. */
     public void issue(String email, Lang lang) {
         issue(VERIFY, email, lang);
@@ -140,8 +145,9 @@ public class VerificationService {
     }
 
     /**
-     * Iki faktorlu giris/etkinlestirme kodu ("tf" anahtar alani). {@code subject} kullanici kimligidir (e-posta
-     * degil: kod, hesaba baglidir); kod {@code to} adresine gider. Kimliksiz akislardaki 60 sn bekleme YOKTUR (sifre
+     * Iki faktorlu giris/etkinlestirme kodu ("tf" anahtar alani). {@code subject} e-posta degildir: giris icin
+     * {@code <kullanici>:<challenge ozeti>}, etkinlestirme icin {@code <kullanici>:enable} (her biri ayri kod ve
+     * sayac); kod {@code to} adresine gider. Kimliksiz akislardaki 60 sn bekleme YOKTUR (sifre
      * dogrulanmis kullaniciya gider; yeniden gonderme siniri cagiranda, challenge basinadir); geri kalan her kural
      * (hash, 10 dk, 5 deneme, istemci kapsami, saatlik toplam) ayni kodu paylasir.
      */

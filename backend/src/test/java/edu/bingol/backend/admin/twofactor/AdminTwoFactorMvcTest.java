@@ -58,6 +58,7 @@ class AdminTwoFactorMvcTest {
     @Autowired WebApplicationContext ctx;
     @Autowired UserRepository users;
     @Autowired TwoFactorDeviceRepository devices;
+    @Autowired org.springframework.jdbc.core.JdbcTemplate jdbc;
     @MockitoBean RateLimiter limiter;
     @MockitoBean NotificationService notifications;
     @MockitoBean StringRedisTemplate redis;
@@ -256,31 +257,84 @@ class AdminTwoFactorMvcTest {
     }
 
     @Test
-    void permissionsReadIsUsersReadWriteIsUsersWriteAndAdminTargetsNeedFull() throws Exception {
+    void permissionsReadIsUsersReadDisableIsUsers2faForFullAndSupportOnly() throws Exception {
         User viewer = admin("viewer.izin", AdminProfile.VIEWER);
         User moderator = admin("mod.izin", AdminProfile.MODERATOR);
+        User support = admin("destek.izin", AdminProfile.SUPPORT);
+        User full = admin("full.izin", AdminProfile.FULL);
         User target = account("Izin Hedef", Role.USER, null, true);
         String disable = "/api/admin/users/" + target.getId() + "/two-factor/disable";
+        String reason = "gerekce yeterli uzunlukta";
 
-        // VIEWER okur (users.read) ama kapatamaz (users.write yok)
+        // VIEWER okur (users.read) ama kapatamaz
         assertEquals(200, as(viewer, get("/api/admin/two-factor/summary")).getResponse().getStatus());
         assertEquals(200, as(viewer, get("/api/admin/two-factor/users")).getResponse().getStatus());
-        MockHttpServletResponse denied = as(viewer, post(disable).header("X-Admin-Reason", "gerekce yeterli uzunlukta")).getResponse();
+        MockHttpServletResponse denied = as(viewer, post(disable).header("X-Admin-Reason", reason)).getResponse();
         assertEquals(403, denied.getStatus());
         assertEquals("ADMIN_PERMISSION_DENIED", json(denied).get("code").asText());
-        assertTrue(json(denied).get("message").asText().contains("users.write"), json(denied).toString());
+        assertTrue(json(denied).get("message").asText().contains("users.2fa"), json(denied).toString());
         assertTrue(users.findById(target.getId()).orElseThrow().isTwoFactorEnabled());
 
-        // MODERATOR (users.write) kapatabilir
-        assertEquals(204, as(moderator, post(disable).header("X-Admin-Reason", "gerekce yeterli uzunlukta")).getResponse().getStatus());
+        // MODERATOR users.write sahibi olsa da hesap kurtarma yapamaz (karar: yalniz FULL ve SUPPORT)
+        MockHttpServletResponse mod = as(moderator, post(disable).header("X-Admin-Reason", reason)).getResponse();
+        assertEquals(403, mod.getStatus(), mod.getContentAsString());
+        assertEquals("ADMIN_PERMISSION_DENIED", json(mod).get("code").asText());
+        assertTrue(users.findById(target.getId()).orElseThrow().isTwoFactorEnabled());
 
-        // ... ama FULL bir yoneticinin 2FA'sini kapatamaz (hiyerarsi)
-        User fullTarget = account("Full Hedef", Role.ADMIN, AdminProfile.FULL, true);
-        MockHttpServletResponse hier = as(moderator, post("/api/admin/users/" + fullTarget.getId() + "/two-factor/disable")
-                .header("X-Admin-Reason", "gerekce yeterli uzunlukta")).getResponse();
+        // SUPPORT kapatabilir
+        assertEquals(204, as(support, post(disable).header("X-Admin-Reason", reason)).getResponse().getStatus());
+        assertFalse(users.findById(target.getId()).orElseThrow().isTwoFactorEnabled());
+
+        // SUPPORT yonetici hesabina dokunamaz (hiyerarsi: yalniz FULL)
+        User adminTarget = account("Viewer Hedef", Role.ADMIN, AdminProfile.VIEWER, true);
+        MockHttpServletResponse hier = as(support, post("/api/admin/users/" + adminTarget.getId() + "/two-factor/disable")
+                .header("X-Admin-Reason", reason)).getResponse();
         assertEquals(403, hier.getStatus(), hier.getContentAsString());
         assertEquals("ADMIN_TARGET_FORBIDDEN", json(hier).get("code").asText());
-        assertTrue(users.findById(fullTarget.getId()).orElseThrow().isTwoFactorEnabled());
+        assertTrue(users.findById(adminTarget.getId()).orElseThrow().isTwoFactorEnabled());
+
+        // FULL, FULL olmayan bir yoneticinin 2FA'sini kapatabilir
+        assertEquals(204, as(full, post("/api/admin/users/" + adminTarget.getId() + "/two-factor/disable")
+                .header("X-Admin-Reason", reason)).getResponse().getStatus());
+        assertFalse(users.findById(adminTarget.getId()).orElseThrow().isTwoFactorEnabled());
+    }
+
+    @Test
+    void anAdminCannotDisableTheirOwnTwoFactorOrAnotherFullAdminsFromThePanel() throws Exception {
+        User full = account("Full Kendi", Role.ADMIN, null, true);
+        full.setAdminProfile(AdminProfile.FULL);
+        users.save(full);
+        User otherFull = account("Full Diger", Role.ADMIN, AdminProfile.FULL, true);
+        String reason = "gerekce yeterli uzunlukta";
+
+        MockHttpServletResponse self = as(full, post("/api/admin/users/" + full.getId() + "/two-factor/disable")
+                .header("X-Admin-Reason", reason)).getResponse();
+        assertEquals(403, self.getStatus(), self.getContentAsString());
+        assertEquals("ADMIN_SELF_FORBIDDEN", json(self).get("code").asText());
+        assertTrue(users.findById(full.getId()).orElseThrow().isTwoFactorEnabled());
+
+        MockHttpServletResponse other = as(full, post("/api/admin/users/" + otherFull.getId() + "/two-factor/disable")
+                .header("X-Admin-Reason", reason)).getResponse();
+        assertEquals(403, other.getStatus(), other.getContentAsString());
+        assertEquals("TWO_FACTOR_ADMIN_FORBIDDEN", json(other).get("code").asText());
+        assertTrue(users.findById(otherFull.getId()).orElseThrow().isTwoFactorEnabled());
+        verify(notifications, never()).sendLocalized(any(), any(), any(), any(), any(), any());
+    }
+
+    @Test
+    void anAdminCloseOfTwoFactorEndsTheSessionsAndWritesTheMailNotice() throws Exception {
+        User full = admin("full.oturum", AdminProfile.FULL);
+        User target = account("Oturumlu Hedef", Role.USER, null, true);
+        long outbox = jdbc.queryForObject("SELECT count(*) FROM mail_outbox WHERE template = 'SECURITY_TWO_FACTOR_NOTICE'", Long.class);
+
+        MockHttpServletResponse ok = as(full, post("/api/admin/users/" + target.getId() + "/two-factor/disable")
+                .header("X-Admin-Reason", "gerekce yeterli uzunlukta")).getResponse();
+
+        assertEquals(204, ok.getStatus(), ok.getContentAsString());
+        // SessionService.revokeAll: sifre/oturum iptal isareti yazilir (kullanicinin tum access token'lari reddedilir)
+        verify(redis.opsForValue()).set(org.mockito.ArgumentMatchers.eq("pwchg:" + target.getId()), any(String.class), any(java.time.Duration.class));
+        assertEquals(outbox + 1, jdbc.queryForObject(
+                "SELECT count(*) FROM mail_outbox WHERE template = 'SECURITY_TWO_FACTOR_NOTICE'", Long.class));
     }
 
     @Test

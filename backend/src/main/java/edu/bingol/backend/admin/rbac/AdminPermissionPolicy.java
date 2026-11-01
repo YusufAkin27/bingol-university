@@ -70,9 +70,10 @@ public final class AdminPermissionPolicy {
         one(Set.of("GET"), "/api/admin/users/" + ID + "/conversations(/.*)?", CHAT_READ);
         one(Set.of("GET"), "/api/admin/pending-registrations/export[.]csv", USERS_EXPORT);
         one(Set.of("GET"), "/api/admin/pending-registrations", USERS_PII);
-        // 2FA: ozet/liste okuma `users.read`; hesap kurtarma icin kapatma `users.write` (gerekce + denetim zorunlu)
+        // 2FA: ozet/liste okuma `users.read`; hesap kurtarma icin kapatma `users.2fa` (yalniz FULL ve SUPPORT; gerekce +
+        // denetim zorunlu; kendi hesabi ve FULL yonetici hedef servis katmaninda reddedilir)
         one(Set.of("GET"), "/api/admin/two-factor/(summary|users)", USERS_READ);
-        one(Set.of("POST"), "/api/admin/users/" + ID + "/two-factor/disable", USERS_WRITE);
+        one(Set.of("POST"), "/api/admin/users/" + ID + "/two-factor/disable", USERS_2FA);
         area("/api/admin/users(/.*)?", USERS_READ, USERS_WRITE);
         area("/api/admin/pending-registrations(/.*)?", USERS_PII, USERS_WRITE);
 

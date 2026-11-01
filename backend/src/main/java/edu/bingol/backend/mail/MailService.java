@@ -161,6 +161,23 @@ public class MailService {
         enqueue(to, MailTemplate.SECURITY_PASSWORD_CHANGED, lang, vars("time", time));
     }
 
+    /** 2FA guvenlik bildirimi: `message` alicinin dilinde hazir metindir (bkz. TwoFactorNotifier). */
+    public void sendTwoFactorNotice(String to, String message, Lang lang) {
+        enqueue(to, MailTemplate.SECURITY_TWO_FACTOR_NOTICE, lang, vars("message", message));
+    }
+
+    /**
+     * Hesap sahibine giden kod postasi icin (2FA girisi/etkinlestirme): yalniz saglayici gunluk kotasi TAMAMEN
+     * dolduysa 503 MAIL_QUOTA_EXHAUSTED. Kimliksiz kod butcesi/IP sayaci uygulanmaz (sifresi dogrulanmis kullanici);
+     * kota doluyken kod kuyrukta takilip kullaniciyi kilitli birakmasin diye istek baslarken reddedilir.
+     */
+    public void requireAccountCodeQuota() {
+        if (quota != null && props.enabled() && quota.exhausted()) {
+            throw new ApiException(HttpStatus.SERVICE_UNAVAILABLE, "MAIL_QUOTA_EXHAUSTED",
+                    "Şu anda doğrulama kodu gönderemiyoruz, lütfen daha sonra tekrar deneyin.");
+        }
+    }
+
     public void sendAnnouncement(String to, String heading, String message, Lang lang) {
         enqueue(to, MailTemplate.ANNOUNCEMENT, lang, vars("heading", heading, "message", message));
     }

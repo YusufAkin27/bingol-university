@@ -8,8 +8,9 @@ import edu.bingol.backend.admin.twofactor.AdminTwoFactorDtos.UserPage;
 import edu.bingol.backend.admin.twofactor.AdminTwoFactorDtos.UserRow;
 import edu.bingol.backend.auth.twofactor.TwoFactorService;
 import edu.bingol.backend.common.ApiException;
-import edu.bingol.backend.notification.NotificationService;
-import edu.bingol.backend.notification.NotificationType;
+import edu.bingol.backend.admin.rbac.AdminProfile;
+import edu.bingol.backend.admin.rbac.AdminProfileResolver;
+import edu.bingol.backend.user.Role;
 import edu.bingol.backend.user.User;
 import edu.bingol.backend.user.UserRepository;
 import edu.bingol.backend.user.UserStatus;
@@ -40,15 +41,15 @@ public class AdminTwoFactorService {
     private final NamedParameterJdbcTemplate jdbc;
     private final UserRepository users;
     private final TwoFactorService twoFactor;
-    private final NotificationService notifications;
+    private final AdminProfileResolver profiles;
     private final Clock clock;
 
     public AdminTwoFactorService(NamedParameterJdbcTemplate jdbc, UserRepository users, TwoFactorService twoFactor,
-                                 NotificationService notifications, Clock clock) {
+                                 AdminProfileResolver profiles, Clock clock) {
         this.jdbc = jdbc;
         this.users = users;
         this.twoFactor = twoFactor;
-        this.notifications = notifications;
+        this.profiles = profiles;
         this.clock = clock;
     }
 
@@ -100,26 +101,30 @@ public class AdminTwoFactorService {
     }
 
     /**
-     * Hesap kurtarma: 2FA'yi kapatir, guvenilen cihazlari siler, kullaniciya bildirim gonderir. Yonetici hesabina
-     * yalniz FULL mudahale eder (AdminHierarchy). Zaten kapaliysa 409 TWO_FACTOR_NOT_ENABLED. Denetim kaydini
-     * AuditInterceptor (hedef/gerekce) yazar; burada ayrica log tutulur (gerekce log'a yazilmaz).
+     * Hesap kurtarma: 2FA'yi kapatir, guvenilen cihazlari siler, tum oturumlari kapatir, kullaniciya bildirim +
+     * e-posta gonderir (TwoFactorService.forceDisable). Kurallar:
+     * <ul>
+     *   <li>Kendi hesabi: 403 ADMIN_SELF_FORBIDDEN (kendi 2FA'sini hesap ayarlarindan sifreyle kapatir).</li>
+     *   <li>FULL yonetici hedef: 403 TWO_FACTOR_ADMIN_FORBIDDEN (iki kisi onayi gerektirirdi; panelden yok).</li>
+     *   <li>FULL olmayan yonetici hedef: yalniz FULL mudahale eder (AdminHierarchy, 403 ADMIN_TARGET_FORBIDDEN).</li>
+     *   <li>Yetkili profil: yalniz FULL ve SUPPORT ({@code users.2fa} izni; MODERATOR yapamaz).</li>
+     * </ul>
+     * Zaten kapaliysa 409 TWO_FACTOR_NOT_ENABLED. Denetim kaydini AuditInterceptor (hedef/gerekce) yazar; burada
+     * ayrica log tutulur (gerekce log'a yazilmaz).
      */
     public void disable(Long actorId, Long targetId) {
         User u = users.findById(targetId).filter(x -> x.getStatus() != UserStatus.DELETED)
                 .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "USER_NOT_FOUND", "Kullanıcı bulunamadı."));
+        if (actorId != null && actorId.equals(targetId)) {
+            throw new ApiException(HttpStatus.FORBIDDEN, "ADMIN_SELF_FORBIDDEN",
+                    "Kendi hesabınızın iki faktörlü doğrulamasını yönetici ucundan kapatamazsınız.");
+        }
         AdminHierarchy.requireManageable(u);
+        if (u.getRole() == Role.ADMIN && profiles.effective(u) == AdminProfile.FULL) {
+            throw new ApiException(HttpStatus.FORBIDDEN, "TWO_FACTOR_ADMIN_FORBIDDEN",
+                    "FULL yönetici hesaplarının iki faktörlü doğrulaması panelden kapatılamaz.");
+        }
         twoFactor.forceDisable(targetId);
         log.info("ADMIN_2FA_DISABLE admin={} userId={}", actorId, targetId);
-        notifyUser(targetId);
-    }
-
-    /** Bildirim hatasi islemi bozmaz (servis sozlesmesi). */
-    private void notifyUser(Long userId) {
-        try {
-            notifications.sendLocalized(userId, NotificationType.SYSTEM, "notif.twofactor.disabled.title",
-                    "notif.twofactor.disabled.body", null, null);
-        } catch (RuntimeException e) {
-            log.warn("2FA kapatma bildirimi gonderilemedi userId={}: {}", userId, e.toString());
-        }
     }
 }

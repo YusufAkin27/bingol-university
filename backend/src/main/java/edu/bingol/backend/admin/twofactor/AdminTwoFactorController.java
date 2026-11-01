@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * Yonetici 2FA uclari (/api/admin/** => ROLE_ADMIN + RBAC: okuma `users.read`, kapatma `users.write`). Yazma hiz
+ * Yonetici 2FA uclari (/api/admin/** => ROLE_ADMIN + RBAC: okuma `users.read`, kapatma `users.2fa`: yalniz FULL ve SUPPORT). Yazma hiz
  * siniri, gerekce zorunlulugu ve yikici islem sayaci AdminGuardInterceptor/AdminGuardPolicy'dedir (bu yol
  * `accountOps` kapsamindadir); denetim kaydini AuditInterceptor yazar.
  */
@@ -43,7 +43,10 @@ public class AdminTwoFactorController {
         return service.users(q, page, size);
     }
 
-    /** Hesap kurtarma: 2FA kapatilir, guvenilen cihazlar silinir, kullaniciya bildirim gider. Gerekce zorunlu. */
+    /**
+     * Hesap kurtarma: 2FA kapatilir, guvenilen cihazlar silinir, oturumlar kapanir, kullaniciya bildirim + e-posta
+     * gider. Gerekce zorunlu. Kendi hesabi ve FULL yonetici hedef reddedilir (AdminTwoFactorService.disable).
+     */
     @AdminReasonRequired
     @PostMapping("/users/{id}/two-factor/disable")
     @ResponseStatus(HttpStatus.NO_CONTENT)

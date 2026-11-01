@@ -107,10 +107,13 @@ public class AuthService {
         this.verifyRequiresPassword = v;
     }
 
-    /** Iki faktorlu dogrulama (istege bagli: onsuz kurulan birim testleri icin). */
+    /**
+     * Iki faktorlu dogrulama. Uygulamada ZORUNLU (bean yoksa acilis basarisiz: 2FA sessizce kapanmasin); yalniz Spring
+     * disinda elle kurulan birim testlerinde null olabilir. null iken 2FA'si acik hesap GIRIS YAPAMAZ (fail-closed).
+     */
     private TwoFactorService twoFactor;
 
-    @Autowired(required = false)
+    @Autowired
     void setTwoFactor(TwoFactorService twoFactor) {
         this.twoFactor = twoFactor;
     }
@@ -466,9 +469,12 @@ public class AuthService {
         // 2FA: sifre ve engel kontrolleri gecti. Acik + cihaz guvenilir degilse (ya da cihaz basligi yoksa) token
         // URETILMEZ: kod e-postaya gider, 202 challenge doner. Oturum iptali/cihaz gunlugu/yeni giris bildirimi
         // kod dogrulandiktan sonra (completeTwoFactorLogin) calisir.
-        if (twoFactor != null && user.isTwoFactorEnabled()
-                && !twoFactor.touchIfTrusted(user.getId(), ctx == null ? null : ctx.deviceHash())) {
-            throw new TwoFactorRequiredException(twoFactor.begin(user, ctx, c));
+        if (user.isTwoFactorEnabled()) {
+            // Servis yoksa (yalniz yanlis kurulum) 2FA'li hesap kodsuz girmez: fail-closed
+            TwoFactorService tf = requireTwoFactorService();
+            if (!tf.touchIfTrusted(user.getId(), ctx == null ? null : ctx.deviceHash())) {
+                throw new TwoFactorRequiredException(tf.begin(user, ctx, c));
+            }
         }
         logDevice(user.getId(), ctx, "LOGIN");
         if (RefreshTokenService.MOBILE.equals(c)) {
@@ -487,6 +493,10 @@ public class AuthService {
         TwoFactorService.Challenge ch = requireTwoFactorService().peek(challengeToken);
         User user = loginableUser(ch);
         requireNotBlocked(ctx, user.getId(), "/api/auth/login/2fa");
+        // 2FA challenge'tan sonra kapatildiysa (kullanici/yonetici) challenge artik gecersiz
+        if (!user.isTwoFactorEnabled()) {
+            throw TwoFactorService.challengeExpired();
+        }
         twoFactor.verifyAndConsume(challengeToken, ch, code, ctx);
         if (trustDevice) {
             twoFactor.trust(user.getId(), ch.deviceHash(), ch.platform(), ch.appVersion());
@@ -504,6 +514,9 @@ public class AuthService {
         TwoFactorService.Challenge ch = requireTwoFactorService().peek(challengeToken);
         User user = loginableUser(ch);
         requireNotBlocked(ctx, user.getId(), "/api/auth/login/2fa/resend");
+        if (!user.isTwoFactorEnabled()) {
+            throw TwoFactorService.challengeExpired();
+        }
         return twoFactor.resend(challengeToken, ch);
     }
 
@@ -517,16 +530,35 @@ public class AuthService {
 
     private TwoFactorService requireTwoFactorService() {
         if (twoFactor == null) {
-            throw TwoFactorService.challengeExpired();
+            throw new ApiException(HttpStatus.INTERNAL_SERVER_ERROR, "INTERNAL_ERROR",
+                    "Beklenmeyen bir hata oluştu. Lütfen daha sonra tekrar deneyin.");
         }
         return twoFactor;
     }
 
-    /** Sifre degisimi/sifirlama/logout-all: guvenilen cihazlar silinir (sonraki giriste kod istenir). */
+    /**
+     * Sifre degisimi/sifirlama/logout-all: guvenilen cihazlar silinir (sonraki giriste kod istenir), bekleyen kod ve
+     * yeni cihaz kilidi temizlenir. Acik giris challenge'lari sifre degisim isaretiyle (`pwchg:`) gecersiz olur.
+     */
     private void clearTrustedDevices(Long userId) {
         if (twoFactor != null) {
-            twoFactor.clearDevices(userId);
+            twoFactor.onCredentialsChanged(userId);
         }
+    }
+
+    /**
+     * 2FA etkinlestirme/kapatma sonrasi oturumlar kapatildiysa (closeOtherSessions): bu cihaza yeni jeton cifti.
+     * Iptal isareti `iatms <= isaret` token'lari reddeder, yeni token'in iatms'i kesin buyuk olsun (changePassword gibi).
+     */
+    public TokenResponse reissueTokens(Long userId, String client) {
+        User user = users.findById(userId).filter(User::isActive)
+                .orElseThrow(() -> new ApiException(HttpStatus.UNAUTHORIZED, "UNAUTHORIZED", "Oturum geçersiz."));
+        try {
+            Thread.sleep(1);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+        return tokens(user, client);
     }
 
     public TokenResponse refresh(String refreshToken) {
