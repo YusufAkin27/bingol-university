@@ -76,6 +76,6 @@ class FollowWriter {
 
     private void ensureStats(Long uid) {
         jdbc.update("INSERT INTO user_follow_stats (user_id, follower_count, following_count) VALUES (?, 0, 0) "
-                + "ON CONFLICT (user_id) DO NOTHING", uid);
+                + "ON CONFLICT DO NOTHING", uid);
     }
 }

@@ -167,7 +167,7 @@ class PostMediaServiceTest {
                 .filter(m -> m.getPostId() != null && posts.containsKey(m.getPostId())
                         && posts.get(m.getPostId()).getDeletedAt() != null
                         && posts.get(m.getPostId()).getDeletedAt().isBefore(inv.getArgument(0)))
-                .limit(inv.<org.springframework.data.domain.Pageable>getArgument(1).getPageSize()).toList());
+                .limit(inv.getArguments().length > 1 && inv.getArgument(1) != null ? inv.<org.springframework.data.domain.Pageable>getArgument(1).getPageSize() : Integer.MAX_VALUE).toList());
         org.mockito.Mockito.doAnswer(inv -> {
             db.remove(inv.<PostMedia>getArgument(0).getId());
             return null;
@@ -179,7 +179,7 @@ class PostMediaServiceTest {
         when(repo.keysAfter(anyLong(), any())).thenAnswer(inv -> db.values().stream()
                 .filter(m -> m.getId() > inv.<Long>getArgument(0))
                 .sorted(java.util.Comparator.comparing(PostMedia::getId))
-                .limit(inv.<org.springframework.data.domain.Pageable>getArgument(1).getPageSize())
+                .limit(inv.getArguments().length > 1 && inv.getArgument(1) != null ? inv.<org.springframework.data.domain.Pageable>getArgument(1).getPageSize() : Integer.MAX_VALUE)
                 .map(m -> new Object[] {m.getId(), m.getStorageKey()}).toList());
         when(blocklist.isBlocked(anyString())).thenReturn(false);
         post(POST, ME, null, null);

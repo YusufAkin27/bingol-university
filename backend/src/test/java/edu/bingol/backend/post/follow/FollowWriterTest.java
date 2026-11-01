@@ -61,7 +61,7 @@ class FollowWriterTest {
         writer.create(7L, 3L);
         List<Call> inserts = calls.stream().filter(c -> c.sql().startsWith("INSERT INTO user_follow_stats")).toList();
         assertEquals(2, inserts.size());
-        assertTrue(inserts.stream().allMatch(c -> c.sql().contains("ON CONFLICT (user_id) DO NOTHING")),
+        assertTrue(inserts.stream().allMatch(c -> c.sql().contains("ON CONFLICT DO NOTHING")),
                 inserts.get(0).sql());
     }
 
