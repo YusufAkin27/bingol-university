@@ -285,7 +285,12 @@ public class TwoFactorService {
     @EventListener
     public void onSessionsRevoked(SessionsRevokedEvent e) {
         if (e.client() == null && e.userId() != null) {
-            devices.deleteAllForUser(e.userId());
+            try {
+                devices.deleteAllForUserInNewTx(e.userId());
+            } catch (RuntimeException ex) {
+                // oturum iptalini bozmaz; kayitlar 60 gunluk bosta suresiyle ve gece temizligiyle de duser
+                log.warn("Guvenilen 2FA cihazlari silinemedi (user {}): {}", e.userId(), ex.toString());
+            }
         }
     }
 
@@ -362,10 +367,11 @@ public class TwoFactorService {
                 || !encoder.matches(password, u.getPasswordHash())) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "INVALID_PASSWORD", "Şifre hatalı.");
         }
-        reset(u);
         if (closeOtherSessions) {
+            // reset'ten ONCE: olay dinleyicisi cihazlari AYRI islemde siler; bu islem ayni satirlari silmisse kilitlenirdi
             sessions.revokeAll(userId);
         }
+        reset(u);
         notifier.notify(u, TwoFactorNotifier.Event.DISABLED_BY_USER);
     }
 
@@ -380,8 +386,8 @@ public class TwoFactorService {
         if (!u.isTwoFactorEnabled()) {
             throw notEnabled();
         }
+        sessions.revokeAll(userId); // reset'ten ONCE (bkz. disable)
         reset(u);
-        sessions.revokeAll(userId);
         notifier.notify(u, TwoFactorNotifier.Event.DISABLED_BY_ADMIN);
     }
 

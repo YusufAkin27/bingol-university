@@ -325,6 +325,8 @@ class AdminTwoFactorMvcTest {
     void anAdminCloseOfTwoFactorEndsTheSessionsAndWritesTheMailNotice() throws Exception {
         User full = admin("full.oturum", AdminProfile.FULL);
         User target = account("Oturumlu Hedef", Role.USER, null, true);
+        trusted(target, 51); // kurtarma kapatmasi: revokeAll olayi (ayri islem) ve reset ayni satirlarda kilitlenmemeli
+        trusted(target, 52);
         long outbox = jdbc.queryForObject("SELECT count(*) FROM mail_outbox WHERE template = 'SECURITY_TWO_FACTOR_NOTICE'", Long.class);
 
         MockHttpServletResponse ok = as(full, post("/api/admin/users/" + target.getId() + "/two-factor/disable")
@@ -335,6 +337,8 @@ class AdminTwoFactorMvcTest {
         verify(redis.opsForValue()).set(org.mockito.ArgumentMatchers.eq("pwchg:" + target.getId()), any(String.class), any(java.time.Duration.class));
         assertEquals(outbox + 1, jdbc.queryForObject(
                 "SELECT count(*) FROM mail_outbox WHERE template = 'SECURITY_TWO_FACTOR_NOTICE'", Long.class));
+        assertEquals(0, devices.findByUserIdOrderByLastUsedAtDesc(target.getId()).size());
+        assertFalse(users.findById(target.getId()).orElseThrow().isTwoFactorEnabled());
     }
 
     @Test

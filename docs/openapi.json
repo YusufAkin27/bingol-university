@@ -3513,6 +3513,9 @@
       },
       "CodeRequest" : {
         "properties" : {
+          "closeOtherSessions" : {
+            "type" : [ "boolean", "null" ]
+          },
           "code" : {
             "maxLength" : 16,
             "minLength" : 0,
@@ -5300,6 +5303,9 @@
       },
       "DisableRequest" : {
         "properties" : {
+          "closeOtherSessions" : {
+            "type" : [ "boolean", "null" ]
+          },
           "password" : {
             "maxLength" : 200,
             "minLength" : 0,
@@ -5365,6 +5371,13 @@
         "properties" : {
           "enabled" : {
             "type" : [ "boolean", "null" ]
+          },
+          "session" : {
+            "anyOf" : [ {
+              "$ref" : "#/components/schemas/TokenResponse"
+            }, {
+              "type" : "null"
+            } ]
           }
         }
       },
@@ -25625,7 +25638,7 @@
           "name" : "template",
           "required" : false,
           "schema" : {
-            "enum" : [ "VERIFICATION_CODE", "PASSWORD_RESET_CODE", "TWO_FACTOR_CODE", "ACCOUNT_DELETED", "SECURITY_NEW_LOGIN", "SECURITY_PASSWORD_CHANGED", "ANNOUNCEMENT", "CUSTOM" ],
+            "enum" : [ "VERIFICATION_CODE", "PASSWORD_RESET_CODE", "TWO_FACTOR_CODE", "ACCOUNT_DELETED", "SECURITY_NEW_LOGIN", "SECURITY_PASSWORD_CHANGED", "SECURITY_TWO_FACTOR_NOTICE", "ANNOUNCEMENT", "CUSTOM" ],
             "type" : "string"
           }
         }, {

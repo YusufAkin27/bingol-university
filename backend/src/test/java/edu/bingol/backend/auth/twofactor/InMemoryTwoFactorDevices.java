@@ -48,6 +48,11 @@ public class InMemoryTwoFactorDevices implements TwoFactorDeviceRepository {
     }
 
     @Override
+    public int deleteAllForUserInNewTx(Long userId) {
+        return deleteAllForUser(userId);
+    }
+
+    @Override
     public int deleteAllForUser(Long userId) {
         int n = (int) countByUserId(userId);
         rows.removeIf(d -> d.getUserId().equals(userId));

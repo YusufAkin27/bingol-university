@@ -31,4 +31,15 @@ public interface TwoFactorDeviceRepository extends Repository<TwoFactorDevice, L
     @Modifying
     @Query("DELETE FROM TwoFactorDevice d WHERE d.userId = :uid")
     int deleteAllForUser(@Param("uid") Long userId);
+
+    /**
+     * {@code SessionsRevokedEvent} dinleyicisi icin: olay islemin COMMIT sonrasi geri cagirisinda (AfterCommit: askiya
+     * alma, sifre degisimi) yayinlanabilir; orada REQUIRED bitmis islemi "katilir" ve 'No active transaction' ile dusuyordu
+     * (bkz. notification.DeviceRepository.deleteAllByUser). Ayri islem: cagirani ayni satirlari kendi islemiyle silmemis
+     * olmalidir (TwoFactorService bu yuzden once oturumlari kapatir, sonra cihazlari siler).
+     */
+    @Transactional(propagation = org.springframework.transaction.annotation.Propagation.REQUIRES_NEW)
+    @Modifying
+    @Query("DELETE FROM TwoFactorDevice d WHERE d.userId = :uid")
+    int deleteAllForUserInNewTx(@Param("uid") Long userId);
 }
