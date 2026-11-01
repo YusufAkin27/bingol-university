@@ -45,19 +45,19 @@ export const pageInfo: Record<string, PageInfo> = {
   },
   reports: {
     d: 'Kullanıcıların bildirdiği uygunsuz içerikler.',
-    k: ['şikayetler', 'bildirimler', 'ihbar', 'uygunsuz içerik', 'raporlanan', 'moderasyon kuyruğu'],
+    k: ['şikayetler', 'bildirimler', 'ihbar', 'uygunsuz içerik', 'raporlanan', 'moderasyon kuyruğu', 'rapor kuyruğu', 'bekleyen şikayet'],
   },
   chatFeed: {
     d: 'Sohbetlerdeki görseller ve (yetkiliyse) mesajlar.',
-    k: ['mesajlar', 'sohbet', 'dm', 'özel mesaj', 'görseller', 'foto', 'konuşma', 'mesajlaşma'],
+    k: ['mesajlar', 'sohbet', 'dm', 'özel mesaj', 'görseller', 'foto', 'konuşma', 'mesajlaşma', 'yazışma', 'yazışmalar', 'mesaj akışı'],
   },
   posts: {
     d: 'Keşfet akışındaki fotoğraflı paylaşımları denetle.',
-    k: ['paylaşım', 'keşfet', 'fotoğraf', 'resim', 'post', 'akış', 'gizle', 'sil', 'beğeni'],
+    k: ['paylaşım', 'keşfet', 'fotoğraf', 'resim', 'post', 'akış', 'gizle', 'sil', 'beğeni', 'galeri', 'ızgara'],
   },
   polls: {
     d: 'Anket aç, kapat ve sonuçlara bak.',
-    k: ['anket', 'oylama', 'oy', 'seçim', 'yemek puanı', 'puanlama', 'sonuçlar'],
+    k: ['anket', 'oylama', 'oy', 'seçim', 'yemek puanı', 'puanlama', 'sonuçlar', 'grafik', 'oy dağılımı'],
   },
   blocklist: {
     d: 'Bu görsellerin yüklenmesi engellenir.',

@@ -30,9 +30,16 @@ import { PostDetailDrawer } from './posts/PostDetail';
 import { PostActionButtons, PostMediaThumb, StatusBadges, usePostActions } from './posts/PostParts';
 import { EMPTY_POST_FILTERS, excerpt, mediaToLightbox, type PostFilterState } from './posts/postsLogic';
 import type { AdminPostStatus } from '../../api/adminPosts';
+import { PostGrid, PostStateChart, PostViewSwitch, type PostView } from './mod2/PostParts2';
+import './mod2/dict';
+import mod2 from './mod2/mod2.module.css';
+import { useSearchReveal } from '../../search/anchor';
+import { useUrlTab } from '../../search/useUrlTab';
 import { FilterFold } from './moderation/v2';
 import v2 from './moderation/v2.module.css';
 import styles from './posts/posts.module.css';
+
+const VIEWS = ['list', 'grid'] as const;
 
 const STATUS_OPTIONS: AdminPostStatus[] = ['ALL', 'VISIBLE', 'HIDDEN', 'DELETED'];
 
@@ -106,6 +113,12 @@ function PostsTab() {
   const f = useMemo(() => ({ ...filters, q }), [filters, q]);
   const [lb, setLb] = useState<{ post: AdminPostRow; index: number } | null>(null);
   const actions = usePostActions();
+  const [view, setView] = useUrlTab<PostView>(VIEWS, 'list', 'view');
+  // Arama "Gönderi listesi" / "Izgara" bölümüne giderken doğru görünümü açar (yan etkisiz, tekrar çağrılabilir)
+  useSearchReveal((anchor) => {
+    if (anchor === 'posts-list') setView('list');
+    else if (anchor === 'posts-grid') setView('grid');
+  });
 
   const stats = useQuery({ queryKey: qk.adminPosts.stats(), queryFn: adminPostsApi.postStats, staleTime: 60_000 });
   const list = useInfiniteQuery({
@@ -165,14 +178,12 @@ function PostsTab() {
           error={stats.isError}
           caption={t('admin.v2m.posts.hiddenHint')}
         />
-        <StatTile
-          label={t('admin.posts.stats.likes')}
-          value={s ? s.likeCount : undefined}
-          loading={stats.isLoading}
-          error={stats.isError}
-          caption={s ? t('admin.v2m.posts.mediaCaption', { n: formatNumber(s.mediaCount) }) : undefined}
-        />
       </div>
+      {s && (
+        <div className={mod2.chartGrid}>
+          <PostStateChart stats={s} />
+        </div>
+      )}
       {s && (
         <Insight
           className={v2.sentence}
@@ -200,6 +211,9 @@ function PostsTab() {
         </div>
       )}
 
+      <div className={mod2.toolbar}>
+        <PostViewSwitch value={view} onChange={setView} />
+      </div>
       <FilterFold activeCount={activeCount} anchor="posts-filters">
         <FormField label={t('admin.posts.filter.status')}>
           <Select value={filters.status} onChange={(e) => set({ status: e.target.value as AdminPostStatus })}>
@@ -223,7 +237,7 @@ function PostsTab() {
             type="text"
             inputMode="numeric"
             value={filters.authorId}
-            onChange={(e) => set({ authorId: e.target.value.replace(/D/g, '') })}
+            onChange={(e) => set({ authorId: e.target.value.replace(/\D/g, '') })}
           />
         </FormField>
         <FormField label={t('admin.posts.filter.minReports')}>
@@ -231,7 +245,7 @@ function PostsTab() {
             type="text"
             inputMode="numeric"
             value={filters.minReports}
-            onChange={(e) => set({ minReports: e.target.value.replace(/D/g, '') })}
+            onChange={(e) => set({ minReports: e.target.value.replace(/\D/g, '') })}
           />
         </FormField>
         <FormField label={t('admin.posts.filter.from')}>
@@ -256,17 +270,21 @@ function PostsTab() {
         <EmptyState icon="list" title={t('admin.posts.empty')} description=" " />
       ) : (
         <>
-          <ul className={styles.list} data-testid="post-list" data-search-anchor="posts-list">
-            {rows.map((p) => (
-              <PostRowItem
-                key={p.id}
-                post={p}
-                actions={actions}
-                onOpen={() => openDetail(p.id)}
-                onMedia={(index) => setLb({ post: p, index })}
-              />
-            ))}
-          </ul>
+          {view === 'grid' ? (
+            <PostGrid rows={rows} onOpen={openDetail} />
+          ) : (
+            <ul className={styles.list} data-testid="post-list" data-search-anchor="posts-list">
+              {rows.map((p) => (
+                <PostRowItem
+                  key={p.id}
+                  post={p}
+                  actions={actions}
+                  onOpen={() => openDetail(p.id)}
+                  onMedia={(index) => setLb({ post: p, index })}
+                />
+              ))}
+            </ul>
+          )}
           <LoadMore hasMore={!!list.hasNextPage} loading={list.isFetchingNextPage} onLoadMore={() => void list.fetchNextPage()} />
         </>
       )}
