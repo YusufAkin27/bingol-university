@@ -1,5 +1,6 @@
-import { useId, useState, type ReactNode } from 'react';
+import { useId, useRef, useState, type ReactNode } from 'react';
 import { useI18n } from '../../i18n/I18nProvider';
+import { useSearchReveal } from '../../search/anchor';
 import { Icon } from './Icon';
 import { useIsNarrow } from './useIsNarrow';
 import styles from './FilterPanel.module.css';
@@ -36,9 +37,18 @@ export function FilterPanel({ children, activeCount = 0, chips, onClear, default
   const narrow = useIsNarrow(breakpoint);
   const [open, setOpen] = useState(!!defaultOpen);
   const panelId = useId();
+  const rootRef = useRef<HTMLDivElement>(null);
   const collapsed = narrow && !open;
+  // Arama derin bağlantısı panelin içindeki bir alanı hedeflerse (telefonda kapalıyken gizli kalırdı) paneli açar
+  useSearchReveal((anchor) => {
+    if (!narrow || open) return;
+    const inside = [...(rootRef.current?.querySelectorAll('[data-search-anchor]') ?? [])].some(
+      (el) => el.getAttribute('data-search-anchor') === anchor,
+    );
+    if (inside) setOpen(true);
+  });
   return (
-    <div className={`${styles.root} ${className ?? ''}`} data-narrow={narrow || undefined}>
+    <div ref={rootRef} className={`${styles.root} ${className ?? ''}`} data-narrow={narrow || undefined}>
       {narrow && (
         <div className={styles.head}>
           <button

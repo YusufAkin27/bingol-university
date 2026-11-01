@@ -1,4 +1,4 @@
-import { fireEvent, screen } from '@testing-library/react';
+import { fireEvent, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -6,6 +6,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { ApiError } from '../../api/client';
 import { DismissibleBand, MaintenanceBand } from '../../layouts/ShellBands';
 import { adminNav } from '../../layouts/adminNav';
+import { SearchAnchor, useSearchAnchorFocus } from '../../search/anchor';
 import { renderWithProviders } from '../../test/utils';
 import { BulkBar, ErrorState, FilterPanel, Input, ProgressBar, Table, Tabs, type Column } from './index';
 
@@ -435,5 +436,49 @@ describe('FilterPanel (AUD2 X-3, AUD3 G5, AUD4 G2)', () => {
     await user.click(toggle);
     expect(toggle).toHaveAttribute('aria-expanded', 'true');
     expect(screen.getByRole('textbox', { name: 'Ara' })).toBeVisible();
+  });
+
+  it('telefonda kapalı süzgeç paneli, içindeki alanı hedefleyen arama derin bağlantısında kendiliğinden açılır', async () => {
+    mockMedia(true);
+    Element.prototype.scrollIntoView = vi.fn();
+    function Harness() {
+      useSearchAnchorFocus();
+      return (
+        <FilterPanel activeCount={1}>
+          <SearchAnchor id="filtre-ara">
+            <Input aria-label="Ara" />
+          </SearchAnchor>
+        </FilterPanel>
+      );
+    }
+    renderWithProviders(<Harness />, { route: '/admin/x#filtre-ara' });
+    const toggle = screen.getByRole('button', { name: /Süzgeçler \(1\)/ });
+    await waitFor(() => expect(toggle).toHaveAttribute('aria-expanded', 'true'));
+    expect(screen.getByRole('textbox', { name: 'Ara' })).toBeVisible();
+    await waitFor(() =>
+      expect(screen.getByRole('textbox', { name: 'Ara' }).closest('[data-search-anchor]')).toHaveAttribute(
+        'data-search-hit',
+        'true',
+      ),
+    );
+  });
+
+  it('panelin dışındaki bir anchor paneli açmaz', async () => {
+    mockMedia(true);
+    Element.prototype.scrollIntoView = vi.fn();
+    function Harness() {
+      useSearchAnchorFocus();
+      return (
+        <>
+          <SearchAnchor id="baska">Başka bölüm</SearchAnchor>
+          <FilterPanel activeCount={1}>
+            <Input aria-label="Ara" />
+          </FilterPanel>
+        </>
+      );
+    }
+    renderWithProviders(<Harness />, { route: '/admin/x#baska' });
+    await waitFor(() => expect(screen.getByText('Başka bölüm')).toHaveAttribute('data-search-hit', 'true'));
+    expect(screen.getByRole('button', { name: /Süzgeçler \(1\)/ })).toHaveAttribute('aria-expanded', 'false');
   });
 });
