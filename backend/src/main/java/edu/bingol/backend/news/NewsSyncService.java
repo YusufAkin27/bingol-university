@@ -61,6 +61,13 @@ public class NewsSyncService {
         return budgetExceeded;
     }
 
+    private edu.bingol.backend.status.SyncExecutor syncExecutor;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setSyncExecutor(edu.bingol.backend.status.SyncExecutor syncExecutor) {
+        this.syncExecutor = syncExecutor;
+    }
+
     public NewsSyncService(NewsScraper scraper, NewsRepository repo, StatusService status, SyncProperties props,
                            NotificationService notifications, I18n i18n) {
         this.notifications = notifications;
@@ -76,7 +83,7 @@ public class NewsSyncService {
     public void initialFill() {
         if (props.initialFill() && repo.count() == 0) {
             // Acilisi bloklamasin (saglik kontrolu hemen UP olsun): ilk dolum arka planda
-            java.util.concurrent.CompletableFuture.runAsync(this::sync);
+            edu.bingol.backend.status.SyncExecutor.dispatch(syncExecutor, this::sync);
         }
     }
 
@@ -105,6 +112,11 @@ public class NewsSyncService {
                 }
                 try {
                     added.put(type, syncType(type, notify));
+                } catch (InterruptedException e) {
+                    // Kapanis/iptal: bayragi geri koy, kalan turlere devam etme (aksi halde kesinti yutulurdu)
+                    Thread.currentThread().interrupt();
+                    log.warn("Haber senkronizasyonu kesildi: {}", type);
+                    break;
                 } catch (Exception e) {
                     log.warn("{} senkronizasyonu basarisiz: {}", type, e.toString());
                     failures.add(type + ": " + e.getMessage());
@@ -148,24 +160,37 @@ public class NewsSyncService {
         }
         int count = 0;
         List<NewsItem> fresh = new ArrayList<>();
-        for (NewsScraper.ListEntry e : entries) {
-            if (repo.existsByUrl(e.url())) {
-                continue;
+        try {
+            for (NewsScraper.ListEntry e : entries) {
+                if (repo.existsByUrl(e.url())) {
+                    continue;
+                }
+                if (overBudget()) {
+                    break;
+                }
+                Instant now = Instant.now();
+                NewsItem item = new NewsItem();
+                item.setType(type);
+                item.setUrl(e.url());
+                item.setTitle(truncate(e.title(), 1000));
+                item.setFetchedAt(now);
+                item.setPublishedDate(e.date() != null ? e.date() : LocalDate.ofInstant(now, ZONE));
+                applyDetail(item, scraper.fetchDetail(e.url()), now);
+                fresh.add(repo.save(item));
+                count++;
+                Thread.sleep(REQUEST_DELAY_MS);
             }
-            if (overBudget()) {
-                break;
+        } catch (Exception ex) {
+            // Ortada hata (DB/ag/kesinti): o ana dek kaydedilenler sonraki turda "var" sayilacagindan bildirimi
+            // hic gitmezdi (P07-B7); bildir, sonra hatayi yukari tasi.
+            if (notify && !fresh.isEmpty()) {
+                try {
+                    notifyNew(type, fresh);
+                } catch (RuntimeException ne) {
+                    log.warn("{} icin kismi bildirim gonderilemedi: {}", type, ne.toString());
+                }
             }
-            Instant now = Instant.now();
-            NewsItem item = new NewsItem();
-            item.setType(type);
-            item.setUrl(e.url());
-            item.setTitle(truncate(e.title(), 1000));
-            item.setFetchedAt(now);
-            item.setPublishedDate(e.date() != null ? e.date() : LocalDate.ofInstant(now, ZONE));
-            applyDetail(item, scraper.fetchDetail(e.url()), now);
-            fresh.add(repo.save(item));
-            count++;
-            Thread.sleep(REQUEST_DELAY_MS);
+            throw ex;
         }
         if (notify) {
             notifyNew(type, fresh);
