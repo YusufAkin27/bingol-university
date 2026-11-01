@@ -1,0 +1,100 @@
+/* Kabuk eklentileri: yardım penceresi, yıldız düğmesi, "g" bekleme ipucu, sayfa iskeleti. Yalnız token renkleri. */
+
+/* ---- yardım penceresi ---- */
+.help {
+  display: grid;
+  gap: var(--space-5);
+}
+.helpH {
+  margin: 0 0 var(--space-2);
+  font-size: var(--text-sm);
+  font-weight: 700;
+  color: var(--text);
+}
+.helpNote {
+  margin: 0 0 var(--space-2);
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+.kbdList {
+  display: grid;
+  gap: var(--space-1);
+  margin: 0;
+}
+.kbdGrid {
+  grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+  column-gap: var(--space-4);
+}
+.kbdRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: 36px;
+}
+.kbdRow dt {
+  flex: none;
+  min-width: 5.5rem;
+  white-space: nowrap;
+}
+.kbdRow dd {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--text);
+}
+.help kbd {
+  display: inline-block;
+  min-width: 1.6rem;
+  padding: 1px 6px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-xs);
+  background: var(--surface-2);
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  text-align: center;
+}
+.tips {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+  padding-inline-start: 1.1rem;
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+
+/* ---- üst çubuk: yıldız ve yardım düğmeleri ---- */
+.starOn {
+  color: var(--warning, var(--primary));
+}
+.starOn svg {
+  fill: currentColor;
+}
+
+/* ---- "g" bekleme ipucu (sol altta, kısa süreli) ---- */
+.goHint {
+  position: fixed;
+  inset-block-end: var(--space-4);
+  inset-inline-start: var(--space-4);
+  z-index: 120;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: var(--shadow-2);
+  font-size: var(--text-sm);
+}
+
+/* ---- sayfa iskeleti (sabit yükseklikler: içerik gelince zıplamaz) ---- */
+.skel {
+  display: grid;
+  gap: var(--space-4);
+  min-height: 60vh;
+  padding: var(--space-5) var(--space-4);
+  align-content: start;
+}
+.skelTiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+  gap: var(--space-3);
+}

@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { useLocation } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { renderWithProviders } from '../test/utils';
+import { resetPageMemory } from './pageMemory';
 import { QuickNav } from './QuickNav';
 
 // İzin kümesi testten testte değişir (null = hepsi serbest)
@@ -34,6 +35,8 @@ function open(onClose = vi.fn()) {
 const box = () => screen.getByRole('combobox', { name: /Panelde sayfa, ayar ya da işlem ara/ });
 
 beforeEach(() => {
+  window.localStorage.clear();
+  resetPageMemory();
   allowed = null;
   Element.prototype.scrollIntoView = vi.fn();
 });
@@ -147,5 +150,51 @@ describe('QuickNav (panel araması)', () => {
     await user.keyboard('{Enter}');
     expect(screen.getByTestId('where')).toHaveTextContent('#maintenance_mode');
     spy.mockRestore();
+  });
+
+  it('"mesaj" yazınca mesaj içeren sayfaları listeler: sohbet akışı, mesaj erişim kayıtları, sohbetler ve şifreleme', async () => {
+    const { user } = open();
+    await user.type(box(), 'mesaj');
+    const text = within(screen.getByRole('listbox')).getAllByRole('option').map((o) => o.textContent ?? '');
+    const joined = text.join(' | ');
+    expect(joined).toContain('Mesaj erişim kayıtları');
+    expect(joined).toContain('Sohbet medyası ve mesajlar');
+    expect(joined).toContain('Sohbetler ve şifreleme');
+  });
+
+  it.each(['meaj', 'mesjalar', 'MESAJLAR'])('yazım hatası "%s" yine mesaj sayfalarını getirir; her sonuçta yol görünür', async (typo) => {
+    const { user } = open();
+    await user.type(box(), typo);
+    const opts = within(screen.getByRole('listbox')).getAllByRole('option');
+    expect(opts[0]).toHaveTextContent(/Mesaj erişim kayıtları|Sohbet medyası ve mesajlar/);
+    expect(opts[0].textContent).toMatch(/Sistem|Moderasyon/); // grup/yol kırıntısı
+  });
+
+  it('başlıkta görünmeyen eşleşme "Eşleşen:" ile kaynağını söyler (eş anlamlı/anahtar kelime)', async () => {
+    const { user } = open();
+    await user.type(box(), 'dm');
+    const texts = within(screen.getByRole('listbox')).getAllByRole('option').map((o) => o.textContent ?? '');
+    expect(texts.some((x) => x.includes('Sohbet medyası ve mesajlar'))).toBe(true);
+    expect(texts.some((x) => /Eşleşen: /.test(x))).toBe(true);
+  });
+
+  it('çok sonuçlu grupta "daha göster" kalan sonuçları açar, "Daha az göster" kapatır', async () => {
+    const { user } = open();
+    await user.type(box(), 'mesaj');
+    const more = screen.getAllByRole('button', { name: /sonuç daha göster/ })[0];
+    const before = within(screen.getByRole('listbox')).getAllByRole('option').length;
+    await user.click(more);
+    const after = within(screen.getByRole('listbox')).getAllByRole('option').length;
+    expect(after).toBeGreaterThan(before);
+    await user.click(screen.getAllByRole('button', { name: 'Daha az göster' })[0]);
+    expect(within(screen.getByRole('listbox')).getAllByRole('option').length).toBe(before);
+  });
+
+  it('boş kutuda son ziyaret edilen sayfalar listelenir ve seçilince açılır', async () => {
+    window.localStorage.setItem('bu.admin.pages.recent', JSON.stringify(['users', 'settings']));
+    const { user } = open();
+    expect(await screen.findByText('Son baktığınız sayfalar')).toBeInTheDocument();
+    await user.click(screen.getByRole('option', { name: 'Ayarlar' }));
+    expect(screen.getByTestId('where')).toHaveTextContent('/admin/settings');
   });
 });

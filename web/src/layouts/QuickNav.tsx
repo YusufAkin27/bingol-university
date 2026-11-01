@@ -1,6 +1,7 @@
 import { useEffect, useId, useMemo, useRef, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
+import { usePermissions } from '../auth/permissions';
 import { Icon, IconButton } from '../components/ui';
 import type { IconName } from '../components/ui';
 import { useFocusTrap } from '../components/ui/Overlay';
@@ -16,6 +17,8 @@ import {
   type SearchKind,
 } from '../search';
 import { POPULAR_QUERIES } from '../search/popular';
+import { allAdminNavItems } from './adminNav';
+import { usePageMemory } from './pageMemory';
 import styles from './QuickNav.module.css';
 
 const KIND_ICON: Record<Exclude<SearchKind, 'page'>, IconName> = {
@@ -26,14 +29,19 @@ const KIND_ICON: Record<Exclude<SearchKind, 'page'>, IconName> = {
 };
 
 type Row =
-  | { type: 'hit'; entry: ResolvedEntry; cls: SearchClass }
-  | { type: 'query'; text: string; label: ReactNode; hint?: string };
+  | { type: 'hit'; entry: ResolvedEntry; cls: SearchClass; via?: string }
+  | { type: 'query'; text: string; label: ReactNode; hint?: string }
+  | { type: 'page'; id: string; to: string; label: string; icon: IconName; hint: 'fav' | 'visited' };
+
+/** Gruptaki ilk görünen sonuç sayısı; fazlası "daha göster" ile açılır (mesaj gibi geniş sorgularda hiçbir ilgili sayfa kesilmez). */
+const GROUP_PREVIEW = 8;
 
 /** Ctrl/Cmd+K ile açılan panel arama penceresi: sayfa + bölüm + ayar/alan + eylem; telefonda tam ekran. */
 export function QuickNav({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { t } = useI18n();
   const navigate = useNavigate();
   const search = useAdminSearch();
+  const perms = usePermissions();
   const [q, setQ] = useState('');
   const [active, setActive] = useState(0);
   const [recent, setRecent] = useState<string[]>([]);
@@ -45,6 +53,8 @@ export function QuickNav({ open, onClose }: { open: boolean; onClose: () => void
   const inputRef = useRef<HTMLInputElement>(null);
   useFocusTrap(dialogRef, open, onClose);
 
+  useEffect(() => setExpanded(new Set()), [q]);
+
   useEffect(() => {
     if (open) {
       setQ('');
@@ -54,7 +64,32 @@ export function QuickNav({ open, onClose }: { open: boolean; onClose: () => void
   }, [open]);
 
   const trimmed = q.trim();
-  const groups = useMemo(() => (trimmed ? search.groups(trimmed) : []), [trimmed, search]);
+  const allGroups = useMemo(() => (trimmed ? search.groups(trimmed, 60, 60) : []), [trimmed, search]);
+  const [expanded, setExpanded] = useState<ReadonlySet<SearchClass>>(new Set());
+  const groups = useMemo(
+    () => allGroups.map((g) => ({ ...g, total: g.hits.length, hits: expanded.has(g.cls) ? g.hits : g.hits.slice(0, GROUP_PREVIEW) })),
+    [allGroups, expanded],
+  );
+  const toggleGroup = (cls: SearchClass) => {
+    setExpanded((cur) => {
+      const next = new Set(cur);
+      if (!next.delete(cls)) next.add(cls);
+      return next;
+    });
+    inputRef.current?.focus();
+  };
+
+  // Boş kutuda: sık kullanılan ve son bakılan sayfalar (izne göre)
+  const memory = usePageMemory();
+  const pageRows = useMemo<Row[]>(() => {
+    const toRow = (id: string, hint: 'fav' | 'visited'): Row | null => {
+      const item = allAdminNavItems.find((i) => i.id === id);
+      return item && perms.can(item.perm) ? { type: 'page', id, to: item.to, label: t(item.labelKey), icon: item.icon, hint } : null;
+    };
+    const fav = memory.fav.map((id) => toRow(id, 'fav'));
+    const visited = memory.recent.filter((id) => !memory.fav.includes(id)).slice(0, 5).map((id) => toRow(id, 'visited'));
+    return [...fav, ...visited].filter((r): r is Row => r !== null);
+  }, [memory, perms, t]);
   const suggestion = useMemo(
     () => (trimmed && groups.length === 0 ? search.suggest(trimmed) : null),
     [trimmed, groups, search],
@@ -83,6 +118,7 @@ export function QuickNav({ open, onClose }: { open: boolean; onClose: () => void
         });
       }
     } else {
+      out.push(...pageRows);
       for (const r of recent) out.push({ type: 'query', text: r, label: r, hint: 'recent' });
     }
     for (const p of popular) {
@@ -91,7 +127,7 @@ export function QuickNav({ open, onClose }: { open: boolean; onClose: () => void
       }
     }
     return out;
-  }, [trimmed, groups, suggestion, recent, popular, t]);
+  }, [trimmed, groups, suggestion, recent, popular, pageRows, t]);
 
   // Ok tuşlarıyla seçilen satır görünür kalsın
   useEffect(() => {
@@ -109,6 +145,11 @@ export function QuickNav({ open, onClose }: { open: boolean; onClose: () => void
       applyQuery(row.text);
       return;
     }
+    if (row.type === 'page') {
+      onClose();
+      navigate(row.to);
+      return;
+    }
     pushRecent(trimmed);
     onClose();
     navigate(row.entry.to);
@@ -121,6 +162,8 @@ export function QuickNav({ open, onClose }: { open: boolean; onClose: () => void
 
   const hasHits = groups.length > 0;
   const recentRows = rows.filter((r) => r.type === 'query' && r.hint === 'recent');
+  const favRows = rows.filter((r) => r.type === 'page' && r.hint === 'fav');
+  const visitedRows = rows.filter((r) => r.type === 'page' && r.hint === 'visited');
   const popularRows = rows.filter((r) => r.type === 'query' && r.hint === 'popular');
 
   return createPortal(
@@ -200,7 +243,14 @@ export function QuickNav({ open, onClose }: { open: boolean; onClose: () => void
                   <div key={g.cls} role="group" aria-labelledby={headId} className={styles.group}>
                     <div id={headId} className={styles.groupTitle}>
                       {t(`admin.search.group.${g.cls}` as 'admin.search.group.pages')}
-                      <span className={styles.groupCount}>{g.hits.length}</span>
+                      <span className={styles.groupCount}>{g.total}</span>
+                      {g.total > GROUP_PREVIEW && (
+                        <span className={styles.groupAction}>
+                          <button type="button" className={styles.linkBtn} aria-expanded={expanded.has(g.cls)} onClick={() => toggleGroup(g.cls)}>
+                            {expanded.has(g.cls) ? t('admin.search.less') : t('admin.search.more', { n: g.total - GROUP_PREVIEW })}
+                          </button>
+                        </span>
+                      )}
                     </div>
                     {g.hits.map((h) => {
                       cursor += 1;
@@ -227,6 +277,11 @@ export function QuickNav({ open, onClose }: { open: boolean; onClose: () => void
                               <Highlight text={e.title} query={trimmed} />
                             </span>
                             <span className={styles.crumbs}>{e.crumbs.join(' › ')}</span>
+                            {h.via && (
+                              <span className={styles.via}>
+                                {t('admin.search.via', { via: h.via })}
+                              </span>
+                            )}
                             {e.description && (
                               <span className={styles.desc}>
                                 <Highlight text={e.description} query={trimmed} />
@@ -278,6 +333,40 @@ export function QuickNav({ open, onClose }: { open: boolean; onClose: () => void
                       );
                     })()}
                   </div>
+                )}
+                {[
+                  { rowsOf: favRows, title: t('admin.search.favorites') },
+                  { rowsOf: visitedRows, title: t('admin.search.visited') },
+                ].map(
+                  (grp) =>
+                    grp.rowsOf.length > 0 && (
+                      <QueryGroup key={grp.title} title={grp.title}>
+                        {grp.rowsOf.map((r) => {
+                          cursor += 1;
+                          const idx = cursor;
+                          const on = idx === active;
+                          return (
+                            <div
+                              key={r.type === 'page' ? `${r.hint}-${r.id}` : idx}
+                              id={rowId(idx)}
+                              role="option"
+                              aria-selected={on}
+                              data-active={on}
+                              className={`${styles.item} ${styles.queryItem} ${on ? styles.on : ''}`}
+                              onClick={() => pick(r)}
+                              onMouseMove={() => active !== idx && setActive(idx)}
+                            >
+                              <span className={styles.iconBox} aria-hidden="true">
+                                <Icon name={r.type === 'page' ? r.icon : 'search'} size={16} />
+                              </span>
+                              <span className={styles.text}>
+                                <span className={styles.title}>{r.type === 'page' ? r.label : null}</span>
+                              </span>
+                            </div>
+                          );
+                        })}
+                      </QueryGroup>
+                    ),
                 )}
                 {recentRows.length > 0 && (
                   <QueryGroup

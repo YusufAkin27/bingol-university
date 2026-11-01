@@ -160,7 +160,95 @@ describe('öneri (Şunu mu aradınız?)', () => {
   });
 });
 
+describe('gövde (ek soyma)', () => {
+  const x = createSearcher<Searchable>([
+    { id: 'msg', kind: 'page', title: 'Mesaj erişim kayıtları', crumbs: ['Sistem'] },
+    { id: 'club', kind: 'page', title: 'Kulüp denetimi', crumbs: ['Topluluk'] },
+    { id: 'user', kind: 'page', title: 'Kullanıcılar', crumbs: ['Kullanıcılar'] },
+  ]);
+  it('çekim eki almış sorgu, başlıktaki kökü bulur', () => {
+    expect(x.search('mesajlar')[0]?.item.id).toBe('msg');
+    expect(x.search('mesajlarından')[0]?.item.id).toBe('msg');
+    expect(x.search('kulüpte')[0]?.item.id).toBe('club');
+    expect(x.search('kullanıcıların')[0]?.item.id).toBe('user');
+  });
+  it('ek soyma yazım hatasıyla birlikte de çalışır ("mesjalar")', () => {
+    expect(x.search('mesjalar')[0]?.item.id).toBe('msg');
+    expect(x.search('meaj')[0]?.item.id).toBe('msg');
+  });
+});
+
+describe('eş anlamlılar ve ilgili kavramlar', () => {
+  const x = createSearcher<Searchable>([
+    { id: 'chat', kind: 'page', title: 'Sohbet akışı', crumbs: ['Moderasyon'] },
+    { id: 'access', kind: 'page', title: 'Mesaj erişim kayıtları', crumbs: ['Sistem'] },
+    { id: 'camp', kind: 'page', title: 'Kampanyalar', crumbs: ['Bildirimler'] },
+    { id: 'ann', kind: 'page', title: 'Duyurular', crumbs: ['Akademik'] },
+    { id: 'users', kind: 'page', title: 'Üyeler', crumbs: ['Kullanıcılar'] },
+    { id: 'banner', kind: 'setting', title: 'Duyuru bandı', crumbs: ['Ayarlar'] },
+    { id: 'block', kind: 'page', title: 'Erişim engelleri', crumbs: ['Kullanıcılar'] },
+  ]);
+  const order = (q: string) => x.search(q).map((h) => h.item.id);
+
+  it('"mesaj" sohbet ve yazışma sayfalarını da getirir; doğrudan eşleşme önde', () => {
+    const r = order('mesaj');
+    expect(r.slice(0, 2).sort()).toEqual(['access', 'chat']);
+    expect(order('dm')).toContain('chat');
+    expect(order('yazışma')).toContain('chat');
+    expect(order('sohbet')).toContain('access');
+  });
+  it('ilgili (zayıf) kavramlar: "mesaj" kampanya ve duyuruyu da listeler ama sona koyar', () => {
+    const r = order('mesaj');
+    expect(r).toContain('camp');
+    expect(r).toContain('ann');
+    expect(r.indexOf('chat')).toBeLessThan(r.indexOf('camp'));
+    expect(r.indexOf('access')).toBeLessThan(r.indexOf('ann'));
+  });
+  it('yazım hatalı eş anlamlı da genişler', () => {
+    expect(order('meaj')).toContain('chat');
+    expect(order('sohbte')).toContain('access');
+  });
+  it('"kullanıcı" ↔ "üye"', () => {
+    expect(order('kullanıcı')).toContain('users');
+    expect(order('uye')).toContain('users');
+  });
+  it('kısa sözcükler yalnız tam eşleşir ("ban" bandı değil engeli getirir)', () => {
+    const r = order('ban');
+    expect(r).toContain('block');
+    expect(r).not.toContain('banner');
+  });
+  it('çok sözcüklü sorguda her sözcük genişler (VE)', () => {
+    expect(order('üye mesajı')).toEqual([]); // üye ve mesaj birlikte geçen sayfa yok
+    const y = createSearcher<Searchable>([{ id: 'um', kind: 'section', title: 'Kullanıcı mesajlarını görüntüle' }]);
+    expect(y.search('üye yazışma').map((h) => h.item.id)).toEqual(['um']);
+  });
+  it('e-posta gibi tek harfli parçalar sorguyu bozmaz', () => {
+    const y = createSearcher<Searchable>([
+      { id: 'p', kind: 'page', title: 'Posta kuyruğu' },
+      { id: 'z', kind: 'page', title: 'Elma' },
+    ]);
+    expect(y.search('e-posta').map((h) => h.item.id)).toEqual(['p']);
+  });
+});
+
+describe('eşleşme kaynağı (via)', () => {
+  it('başlıkta görünmeyen eşleşme, eşleşen anahtar kelimeyi bildirir', () => {
+    const x = createSearcher<Searchable>([
+      { id: 'a', kind: 'page', title: 'Karar şablonları', keywords: ['hazır cevap'] },
+      { id: 'b', kind: 'page', title: 'Hazır cevaplar' },
+    ]);
+    const hits = x.search('hazır cevap');
+    const a = hits.find((h) => h.item.id === 'a');
+    const b = hits.find((h) => h.item.id === 'b');
+    expect(a?.via).toBe('hazır cevap');
+    expect(b?.via).toBeUndefined();
+  });
+});
+
 describe('vurgulama', () => {
+  it('ek almış sorguda kökü işaretler', () => {
+    expect(highlight('Mesaj erişim kayıtları', 'mesajlar')[0]).toEqual({ text: 'Mesaj', hit: true });
+  });
   it('eşleşen kısımları özgün harflerle işaretler', () => {
     const seg = highlight('Bakım modu', 'bakim');
     expect(seg[0]).toEqual({ text: 'Bakım', hit: true });
