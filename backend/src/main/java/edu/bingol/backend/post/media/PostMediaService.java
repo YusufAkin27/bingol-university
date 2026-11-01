@@ -33,6 +33,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -408,7 +409,14 @@ public class PostMediaService implements PostMediaLookup, PostMediaBinder {
         if (p == null || p.getDeletedAt() != null || p.getHiddenAt() != null) {
             return Optional.empty();
         }
-        if (!p.getAuthorId().equals(viewerId) && blocks.hiddenFrom(viewerId).contains(p.getAuthorId())) {
+        // Yazar aktif degilse (askida/silinmis) gonderi akistan duser; medya da ID ile erisilemez olmali
+        // (null: durum okunamadi/test; hesap FK'li oldugundan canlida hep dolu)
+        if (p.getAuthorStatus() != null && p.getAuthorStatus() != edu.bingol.backend.user.UserStatus.ACTIVE
+                && !p.getAuthorId().equals(viewerId)) {
+            return Optional.empty();
+        }
+        // Tek EXISTS (iki yon): tum engel kumesini her gorselde yuklemek yerine
+        if (!p.getAuthorId().equals(viewerId) && blocks.isBlocked(viewerId, p.getAuthorId())) {
             return Optional.empty();
         }
         // Gizli hesabin fotografi yalniz sahibine ve kabul edilmis takipcilerine (URL tahmin edilse de 404)
@@ -634,11 +642,38 @@ public class PostMediaService implements PostMediaLookup, PostMediaBinder {
                     log.warn("Yetim gonderi medyasi silinemedi {}: {}", m.getId(), e.toString());
                 }
             }
-            store.sweep(BUCKET, repo::existsByStorageKey, maxAge);
+            // A06#1: dosya basina sorgu (O(N^2)) yerine saklama anahtarlari sayfali bir kez bellege alinir
+            // (yalniz suresi dolan bir dosya bulunursa, tembel). Supurulen dosyalar >= maxAge eski oldugundan
+            // sonradan eklenen satir onlari etkilemez.
+            Set<String> known = new HashSet<>();
+            boolean[] loaded = {false};
+            store.sweep(BUCKET, key -> {
+                if (!loaded[0]) {
+                    loadKeys(known);
+                    loaded[0] = true;
+                }
+                return known.contains(key);
+            }, maxAge);
         } catch (RuntimeException e) {
             log.warn("Gonderi medyasi temizligi yarim kaldi: {}", e.toString());
         }
         return n;
+    }
+
+    private static final int KEY_PAGE = 5000;
+
+    private void loadKeys(Set<String> into) {
+        long after = 0;
+        while (true) {
+            List<Object[]> page = repo.keysAfter(after, PageRequest.of(0, KEY_PAGE));
+            for (Object[] r : page) {
+                into.add((String) r[1]);
+                after = Math.max(after, ((Number) r[0]).longValue());
+            }
+            if (page.size() < KEY_PAGE) {
+                return;
+            }
+        }
     }
 
     /** Silinmesinden bu yana saklama suresi (varsayilan 30 gun) dolan gonderilerin medyasini diskten ve DB'den kaldirir. */
@@ -646,12 +681,22 @@ public class PostMediaService implements PostMediaLookup, PostMediaBinder {
         int n = 0;
         try {
             Instant before = Instant.now().minus(Duration.ofDays(Math.max(0, deletedRetentionDays)));
-            for (PostMedia m : repo.ofPostsDeletedBefore(before, PageRequest.of(0, 500))) {
-                try {
-                    removeNow(m);
-                    n++;
-                } catch (RuntimeException e) {
-                    log.warn("Silinen gonderinin medyasi temizlenemedi {}: {}", m.getId(), e.toString());
+            // A06#12: gunde 500 ile sinirli kalmasin; parti parti (en cok SWEEP_MAX_BATCHES). Hic satir silinemeyen
+            // parti dongu sonu: kalici hata veren satirlar ayni listeyi tekrar tekrar doldurmasin.
+            for (int b = 0; b < SWEEP_MAX_BATCHES; b++) {
+                List<PostMedia> batch = repo.ofPostsDeletedBefore(before, PageRequest.of(0, sweepBatch));
+                int done = 0;
+                for (PostMedia m : batch) {
+                    try {
+                        removeNow(m);
+                        n++;
+                        done++;
+                    } catch (RuntimeException e) {
+                        log.warn("Silinen gonderinin medyasi temizlenemedi {}: {}", m.getId(), e.toString());
+                    }
+                }
+                if (batch.size() < sweepBatch || done == 0) {
+                    break;
                 }
             }
         } catch (RuntimeException e) {
@@ -681,7 +726,14 @@ public class PostMediaService implements PostMediaLookup, PostMediaBinder {
         return new ApiException(HttpStatus.NOT_FOUND, "POST_MEDIA_NOT_FOUND", "Medya bulunamadı.");
     }
 
+    private static final int SWEEP_MAX_BATCHES = 20;
+    private int sweepBatch = 500;
+
     // Test erisimi
+    void setSweepBatch(int n) {
+        this.sweepBatch = Math.max(1, n);
+    }
+
     void setDeletedRetentionDays(int days) {
         this.deletedRetentionDays = days;
     }

@@ -166,14 +166,21 @@ class PostMediaServiceTest {
         when(repo.ofPostsDeletedBefore(any(Instant.class), any())).thenAnswer(inv -> db.values().stream()
                 .filter(m -> m.getPostId() != null && posts.containsKey(m.getPostId())
                         && posts.get(m.getPostId()).getDeletedAt() != null
-                        && posts.get(m.getPostId()).getDeletedAt().isBefore(inv.getArgument(0))).toList());
+                        && posts.get(m.getPostId()).getDeletedAt().isBefore(inv.getArgument(0)))
+                .limit(inv.<org.springframework.data.domain.Pageable>getArgument(1).getPageSize()).toList());
         org.mockito.Mockito.doAnswer(inv -> {
             db.remove(inv.<PostMedia>getArgument(0).getId());
             return null;
         }).when(repo).delete(any(PostMedia.class));
         when(repo.postState(anyLong())).thenAnswer(inv -> Optional.ofNullable(posts.get(inv.<Long>getArgument(0))));
 
-        when(blocks.hiddenFrom(any())).thenAnswer(inv -> OTHER.equals(inv.getArgument(0)) ? blockedForOther : Set.of());
+        when(blocks.isBlocked(any(), any())).thenAnswer(inv -> OTHER.equals(inv.getArgument(0))
+                && blockedForOther.contains(inv.<Long>getArgument(1)));
+        when(repo.keysAfter(anyLong(), any())).thenAnswer(inv -> db.values().stream()
+                .filter(m -> m.getId() > inv.<Long>getArgument(0))
+                .sorted(java.util.Comparator.comparing(PostMedia::getId))
+                .limit(inv.<org.springframework.data.domain.Pageable>getArgument(1).getPageSize())
+                .map(m -> new Object[] {m.getId(), m.getStorageKey()}).toList());
         when(blocklist.isBlocked(anyString())).thenReturn(false);
         post(POST, ME, null, null);
     }
@@ -183,7 +190,15 @@ class PostMediaServiceTest {
     }
 
     void post(Long id, Long author, Instant deletedAt, Instant hiddenAt) {
+        post(id, author, deletedAt, hiddenAt, edu.bingol.backend.user.UserStatus.ACTIVE);
+    }
+
+    void post(Long id, Long author, Instant deletedAt, Instant hiddenAt, edu.bingol.backend.user.UserStatus status) {
         posts.put(id, new PostMediaRepository.PostState() {
+            public edu.bingol.backend.user.UserStatus getAuthorStatus() {
+                return status;
+            }
+
             public Long getAuthorId() {
                 return author;
             }
@@ -615,6 +630,46 @@ class PostMediaServiceTest {
         assertEquals(4, fileCount()); // fresh + bound (ana + onizleme)
     }
 
+    /** A06#1: dosya basina existsByStorageKey sorgusu yok; referans kumesi sayfali (sabit sayida) sorguyla alinir. */
+    @Test
+    void sweepUnattachedDoesNotQueryPerFile() throws Exception {
+        List<PostMediaService.Uploaded> ups = new ArrayList<>();
+        for (int i = 0; i < 6; i++) {
+            ups.add(uploadImage(ME));
+        }
+        service.attach(POST, ME, ups.stream().map(PostMediaService.Uploaded::id).toList());
+        for (PostMediaService.Uploaded u : ups) { // hepsi eski ama satirli (bagli)
+            db.get(u.id()).setCreatedAt(Instant.now().minus(Duration.ofHours(30)));
+            Path f = dir.resolve("_private").resolve("post").resolve(db.get(u.id()).getStorageKey());
+            Files.setLastModifiedTime(f, java.nio.file.attribute.FileTime.from(Instant.now().minus(Duration.ofHours(48))));
+        }
+        long before = fileCount();
+        service.sweepUnattached(Duration.ofHours(24));
+        org.mockito.Mockito.verify(repo, org.mockito.Mockito.never()).existsByStorageKey(anyString());
+        org.mockito.Mockito.verify(repo, org.mockito.Mockito.atMost(2)).keysAfter(anyLong(), any());
+        assertEquals(before, fileCount(), "satirli dosyalar silinmemeli");
+    }
+
+    /** A06#7: askida/pasif yazarin fotografi ID ile erisilemez (akis VISIBLE kuraliyla tutarli). */
+    @Test
+    void mediaOfNonActiveAuthorIsNotAccessible() throws Exception {
+        PostMediaService.Uploaded u = uploadImage(ME);
+        service.attach(POST, ME, List.of(u.id()));
+        assertTrue(service.accessible(OTHER, u.id()).isPresent());
+        post(POST, ME, null, null, edu.bingol.backend.user.UserStatus.SUSPENDED);
+        assertTrue(service.accessible(OTHER, u.id()).isEmpty());
+    }
+
+    /** A06#6: engel denetimi tum engel kumesini yuklemeden tek EXISTS ile (isBlocked) yapilir. */
+    @Test
+    void accessCheckUsesPairwiseBlockLookup() throws Exception {
+        PostMediaService.Uploaded u = uploadImage(ME);
+        service.attach(POST, ME, List.of(u.id()));
+        service.accessible(OTHER, u.id());
+        org.mockito.Mockito.verify(blocks, org.mockito.Mockito.never()).hiddenFrom(any());
+        org.mockito.Mockito.verify(blocks).isBlocked(OTHER, ME);
+    }
+
     @Test
     void sweepUnattachedAlsoRemovesRowlessOldFiles() throws Exception {
         PostMediaService.Uploaded u = uploadImage(ME);
@@ -639,6 +694,20 @@ class PostMediaServiceTest {
         assertEquals(1, service.sweepDeleted());
         assertFalse(db.containsKey(u.id()));
         assertFalse(Files.exists(dir.resolve("_private").resolve("post").resolve(key)));
+    }
+
+    /** A06#12: tek parti (500) yerine parti parti dongu; birikim ayni listeyi tekrar doldurmaz. */
+    @Test
+    void sweepDeletedLoopsOverBatches() throws Exception {
+        List<Long> ids = new ArrayList<>();
+        for (int i = 0; i < 5; i++) {
+            ids.add(uploadImage(ME).id());
+        }
+        service.attach(POST, ME, ids);
+        post(POST, ME, Instant.now().minus(Duration.ofDays(31)), null);
+        service.setSweepBatch(2);
+        assertEquals(5, service.sweepDeleted());
+        assertTrue(ids.stream().noneMatch(db::containsKey));
     }
 
     @Test
