@@ -68,7 +68,7 @@ const m = {
   'admin.events.ends': 'Bitiş',
   'admin.events.location': 'Yer',
   'admin.events.community': 'Bağlı topluluk',
-  'admin.events.going': 'Katılacak',
+  'admin.events.going': 'Kayıtlı katılımcı',
   'admin.events.created': 'Oluşturulma',
   'admin.events.timing.past': 'Tarihi geçmiş',
   'admin.events.timing.soon': 'Yakında başlıyor ({when})',

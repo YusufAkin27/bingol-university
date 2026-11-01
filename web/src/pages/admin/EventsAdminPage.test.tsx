@@ -130,7 +130,7 @@ describe('EventsAdminPage: ayrıntı çekmecesi', () => {
     expect(within(dialog).getByTestId('request-counts')).toHaveTextContent('20');
     expect(within(dialog).getByTestId('history')).toHaveTextContent('Supheli icerik');
     expect(within(dialog).getByTestId('history')).toHaveTextContent('Yonetici Bir');
-    for (const name of ['Düzenle', 'Gizle', 'İptal et', 'Sil (iptal eder)']) {
+    for (const name of ['Düzenle', 'Gizle', 'İptal et', 'Kaldır (geri alınamaz)']) {
       expect(within(dialog).getByRole('button', { name })).toBeInTheDocument();
     }
     expect(within(dialog).queryByRole('button', { name: 'Yeniden yayına al' })).not.toBeInTheDocument();
@@ -168,7 +168,7 @@ describe('EventsAdminPage: ayrıntı çekmecesi', () => {
     const user = userEvent.setup();
     renderWithProviders(<EventsAdminPage />, { route: '/admin/events?open=1' });
     const drawer = await screen.findByRole('dialog');
-    await user.click(await within(drawer).findByRole('button', { name: 'Sil (iptal eder)' }));
+    await user.click(await within(drawer).findByRole('button', { name: 'Kaldır (geri alınamaz)' }));
     const dialogs = await screen.findAllByRole('dialog');
     const modal = dialogs[dialogs.length - 1];
     expect(modal).toHaveTextContent('Yumuşak silme');

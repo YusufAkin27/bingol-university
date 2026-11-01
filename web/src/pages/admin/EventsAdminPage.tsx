@@ -21,17 +21,20 @@ import {
   Badge,
   BulkBar,
   Button,
+  Checkbox,
   EmptyState,
   ErrorState,
   GuardedAction,
   Icon,
   Input,
+  Insight,
   LoadMore,
   Modal,
   PageHeader,
   SearchInput,
   Select,
   Skeleton,
+  StatTile,
   StatusPill,
   Tabs,
   toneFor,
@@ -39,7 +42,8 @@ import {
 } from '../../components/ui';
 import { useI18n } from '../../i18n/I18nProvider';
 import { usePageTitle } from '../../lib/hooks';
-import { Callout } from './campaigns/shared';
+import { SearchAnchor } from '../../search/anchor';
+import { FillBar, SummaryStrip } from './community/Summary';
 import { RejectDialog } from './community/ReviewParts';
 import styles from './community/review.module.css';
 import { EventDetailDrawer } from './events/EventDetailDrawer';
@@ -50,6 +54,26 @@ import opsStyles from './events/ops/ops.module.css';
 import { EVENT_STATUS_TABS, dayBoundIso, eventTiming, relativeStart } from './events/lib';
 
 type Scope = 'all' | 'standalone';
+
+/** Yerel takvim gününü YYYY-AA-GG yazar (tarih alanı değeri). */
+function ymd(d: Date): string {
+  const p = (n: number) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
+}
+/** Bu hafta (pazartesi-pazar) ve bu ay aralıkları. */
+function quickRange(kind: 'week' | 'month'): { from: string; to: string } {
+  const now = new Date();
+  if (kind === 'month') {
+    return {
+      from: ymd(new Date(now.getFullYear(), now.getMonth(), 1)),
+      to: ymd(new Date(now.getFullYear(), now.getMonth() + 1, 0)),
+    };
+  }
+  const dow = (now.getDay() + 6) % 7; // pazartesi = 0
+  const start = new Date(now.getFullYear(), now.getMonth(), now.getDate() - dow);
+  const end = new Date(start.getFullYear(), start.getMonth(), start.getDate() + 6);
+  return { from: ymd(start), to: ymd(end) };
+}
 
 export default function EventsAdminPage() {
   const i18n = useI18n();
@@ -165,12 +189,12 @@ export default function EventsAdminPage() {
     };
 
   const tabs = EVENT_STATUS_TABS.map((s) => ({ id: s, label: t(`admin.events.status.${s}`) }));
-  const scopes = (['all', 'standalone'] as const).map((k) => ({
-    id: k,
-    label: t(`admin.events.scope.${k}`),
-  }));
   const pending = status === 'PENDING_REVIEW';
   const now = new Date();
+  const waiting = items.reduce((sum, e) => sum + (e.pendingCount ?? 0), 0);
+  const almostFull = items.filter(
+    (e) => e.capacity !== null && e.capacity > 0 && e.goingCount / e.capacity >= 0.85,
+  ).length;
 
   function actionsFor(ev: EventView) {
     return (
@@ -217,7 +241,7 @@ export default function EventsAdminPage() {
   return (
     <div>
       <PageHeader title={t('admin.events.title')} />
-      <div className={styles.tabsWrap}>
+      <div className={styles.tabsWrap} data-search-anchor="ev-status">
         <Tabs
           tabs={tabs}
           value={status}
@@ -226,20 +250,19 @@ export default function EventsAdminPage() {
         />
       </div>
       <div className={styles.toolbar}>
-        <Tabs
-          tabs={scopes}
-          value={scope}
-          label={t('admin.events.scope.label')}
-          onChange={(id) => setView({ scope: id })}
-        />
-        <SearchInput
-          label={t('admin.events.search')}
-          placeholder={t('admin.events.search')}
-          onSearch={setQ}
-        />
+        <SearchAnchor id="ev-q">
+          <SearchInput label={t('admin.events.search')} placeholder={t('admin.events.search')} onSearch={setQ} />
+        </SearchAnchor>
+        <SearchAnchor id="ev-standalone">
+          <Checkbox
+            label={t('admin.v2.ev.standaloneOnly')}
+            checked={scope === 'standalone'}
+            onChange={(e) => setView({ scope: e.target.checked ? 'standalone' : 'all' })}
+          />
+        </SearchAnchor>
       </div>
-      <div className={evStyles.filters}>
-        <label className={evStyles.filterField}>
+      <SearchAnchor id="ev-dates" className={evStyles.filters}>
+        <label className={evStyles.filterField} data-search-anchor="ev-join">
           {t('admin.events.filter.joinPolicy')}
           <Select value={joinPolicy} onChange={(e) => setView({ join: e.target.value })}>
             <option value="">{t('admin.events.filter.all')}</option>
@@ -248,20 +271,28 @@ export default function EventsAdminPage() {
           </Select>
         </label>
         <label className={evStyles.filterField}>
-          {t('admin.events.filter.from')}
-          <Input
-            type="date"
-            className="ltr"
-            value={from}
-            onChange={(e) => setView({ from: e.target.value })}
-          />
+          {t('admin.events.filter.from')} ({t('admin.v2.ev.dateHint')})
+          <Input type="date" className="ltr" value={from} onChange={(e) => setView({ from: e.target.value })} />
         </label>
         <label className={evStyles.filterField}>
-          {t('admin.events.filter.to')}
+          {t('admin.events.filter.to')} ({t('admin.v2.ev.dateHint')})
           <Input type="date" className="ltr" value={to} onChange={(e) => setView({ to: e.target.value })} />
         </label>
-      </div>
-      <div className={evStyles.filters}>
+        <div className={evStyles.quick}>
+          <Button size="sm" variant="secondary" onClick={() => setView(quickRange('week'))}>
+            {t('admin.v2.ev.range.week')}
+          </Button>
+          <Button size="sm" variant="secondary" onClick={() => setView(quickRange('month'))}>
+            {t('admin.v2.ev.range.month')}
+          </Button>
+          {(from || to) && (
+            <Button size="sm" variant="ghost" onClick={() => setView({ from: '', to: '' })}>
+              {t('admin.v2.ev.range.clear')}
+            </Button>
+          )}
+        </div>
+      </SearchAnchor>
+      <div className={evStyles.filters} data-search-anchor="ev-csv">
         <CsvButton
           label={t('admin.p07.exportList')}
           filename="events.csv"
@@ -277,7 +308,44 @@ export default function EventsAdminPage() {
           }
         />
       </div>
-      <Callout tone="info">{t('admin.events.clubRule')}</Callout>
+      <details className={evStyles.rule} data-search-anchor="ev-rule">
+        <summary>{t('admin.v2.ev.ruleTitle')}</summary>
+        <p>{t('admin.events.clubRule')}</p>
+      </details>
+
+      {!query.isError && !query.isLoading && items.length > 0 && (
+        <SummaryStrip
+          insight={
+            <Insight
+              tone={waiting > 0 ? 'warn' : 'info'}
+              parts={t('admin.v2.ev.insight', {
+                n: formatNumber(items.length),
+                pending: formatNumber(waiting),
+                full: formatNumber(almostFull),
+              })}
+            />
+          }
+        >
+          <StatTile
+            icon="calendar"
+            label={t('admin.v2.ev.sum.shown')}
+            value={items.length}
+            caption={t('admin.v2.ev.sum.shownCap')}
+          />
+          <StatTile
+            icon="alert"
+            label={t('admin.v2.ev.sum.pending')}
+            value={waiting}
+            caption={t('admin.v2.ev.sum.pendingCap')}
+          />
+          <StatTile
+            icon="users"
+            label={t('admin.v2.ev.sum.almost')}
+            value={almostFull}
+            caption={t('admin.v2.ev.sum.almostCap')}
+          />
+        </SummaryStrip>
+      )}
 
       {query.isError ? (
         <ErrorState description={eventErrorMessage(i18n, query.error)} onRetry={() => void query.refetch()} />
@@ -301,10 +369,11 @@ export default function EventsAdminPage() {
         />
       ) : (
         <>
-          <label className={evStyles.filterField}>
+          <label className={`${evStyles.filterField} ${evStyles.selectAll}`} data-search-anchor="ev-bulk">
             <span>
               <input
                 type="checkbox"
+                className={opsStyles.pick}
                 checked={allOnPage}
                 onChange={(e) =>
                   setSelected(
@@ -380,9 +449,20 @@ export default function EventsAdminPage() {
                         <Icon name="pin" size={14} />
                         {ev.location || t('admin.events.noLocation')}
                       </span>
-                      <span>
-                        {t('admin.events.capacity')}:{' '}
-                        {ev.capacity === null ? t('admin.events.unlimited') : formatNumber(ev.capacity)}
+                      <span className={evStyles.fillWrap}>
+                        {ev.capacity === null || ev.capacity <= 0 ? (
+                          <span>{t('admin.v2.ev.fillOpen', { going: formatNumber(ev.goingCount) })}</span>
+                        ) : (
+                          <FillBar
+                            value={ev.goingCount}
+                            max={ev.capacity}
+                            label={t('admin.v2.ev.fill', {
+                              going: formatNumber(ev.goingCount),
+                              cap: formatNumber(ev.capacity),
+                              pct: formatNumber(Math.round((ev.goingCount / ev.capacity) * 100)),
+                            })}
+                          />
+                        )}
                       </span>
                       <span>
                         {t('admin.events.organizer')}:{' '}

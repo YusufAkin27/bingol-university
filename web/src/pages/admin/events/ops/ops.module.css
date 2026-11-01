@@ -147,4 +147,10 @@
   display: inline-flex;
   align-items: center;
   margin-inline-end: var(--space-2);
+  /* dokunma hedefi: kutu 24 px, çevresindeki alan 44 px'e tamamlanır */
+  inline-size: 1.5rem;
+  block-size: 1.5rem;
+  flex: 0 0 auto;
+  margin: calc((44px - 1.5rem) / 2);
+  margin-inline-end: calc((44px - 1.5rem) / 2 + var(--space-2));
 }

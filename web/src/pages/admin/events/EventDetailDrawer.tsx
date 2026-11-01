@@ -30,6 +30,7 @@ import { DetailList, RejectDialog } from '../community/ReviewParts';
 import { EventEditForm } from './EventEditForm';
 import { ReasonDialog } from './ReasonDialog';
 import { eventErrorMessage } from './errors';
+import { StackedBar } from '../community/Summary';
 import { allowed, type ReasonAction } from './lib';
 import { ApplicationsPanel } from './ops/ApplicationsPanel';
 import { AttendancePanel } from './ops/AttendancePanel';
@@ -311,6 +312,18 @@ export function EventDetailDrawer({ id, onClose }: { id: number | null; onClose:
                 />
 
                 <h3 className={styles.h3}>{t('admin.events.requests.title')}</h3>
+                <div className={styles.requestsBar}>
+                  <StackedBar
+                    ariaLabel={t('admin.v2.ev.requestsBar')}
+                    parts={[
+                      { key: 'pending', label: t('admin.events.requests.pending'), value: d.requests.pending, tone: 'warning' },
+                      { key: 'waitlisted', label: t('admin.events.requests.waitlisted'), value: d.requests.waitlisted, tone: 'info' },
+                      { key: 'accepted', label: t('admin.events.requests.accepted'), value: d.requests.accepted, tone: 'success' },
+                      { key: 'rejected', label: t('admin.events.requests.rejected'), value: d.requests.rejected, tone: 'danger' },
+                      { key: 'cancelled', label: t('admin.events.requests.cancelled'), value: d.requests.cancelled, tone: 'neutral' },
+                    ]}
+                  />
+                </div>
                 <dl className={styles.counts} data-testid="request-counts">
                   {(['pending', 'waitlisted', 'accepted', 'rejected', 'cancelled'] as const).map((k) => (
                     <div key={k} className={styles.count}>
@@ -319,6 +332,7 @@ export function EventDetailDrawer({ id, onClose }: { id: number | null; onClose:
                     </div>
                   ))}
                 </dl>
+                <p className={styles.note}>{t('admin.v2.ev.countsNote')}</p>
 
                 <h3 className={styles.h3}>{t('admin.events.history.title')}</h3>
                 {history.length === 0 ? (

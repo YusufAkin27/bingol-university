@@ -35,7 +35,7 @@ const m = {
   'admin.events.action.hide': 'Gizle',
   'admin.events.action.unhide': 'Yeniden yayına al',
   'admin.events.action.cancel': 'İptal et',
-  'admin.events.action.delete': 'Sil (iptal eder)',
+  'admin.events.action.delete': 'Kaldır (geri alınamaz)',
   'admin.events.dialog.title.hide': '“{name}” gizlensin mi?',
   'admin.events.dialog.title.unhide': '“{name}” yeniden yayına alınsın mı?',
   'admin.events.dialog.title.cancel': '“{name}” iptal edilsin mi?',
