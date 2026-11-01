@@ -26,3 +26,7 @@
 .bulk { margin-block: var(--space-3); padding: var(--space-3) var(--space-4); border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--surface); display: grid; gap: var(--space-2); }
 .bulk > summary { cursor: pointer; font-weight: 600; }
 .errors { margin: 0; padding-inline-start: 1.1rem; color: var(--danger); font-size: var(--text-sm); }
+
+/* Eksikler uyarısı */
+.gaps { margin-block: var(--space-3); padding: var(--space-3) var(--space-4); border: 1px solid var(--warning, var(--border)); border-radius: var(--radius-md); background: var(--surface); display: grid; gap: var(--space-2); font-size: var(--text-sm); }
+.gaps summary { cursor: pointer; }

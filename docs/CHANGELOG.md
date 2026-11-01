@@ -4,6 +4,11 @@
 
 Ayrıntılı modül notları: `docs/changes/*.md`. Mobil API rehberi: [MOBILE_API_GUIDE.md](MOBILE_API_GUIDE.md).
 
+### Menü: yemek adına bağlı kalori + içeriğe bağlı görsel (V1040)
+
+- **Kalori:** yönetici bir yemeğe kalori girince değer yemek adına (`menu_dish_calorie`) da kaydedilir; aynı adlı yemek tarihe özel satırı olmayan günlerde (gelecek ay menüsü dahil) otomatik kalorili görünür. Kalori silmek kayıtlı değeri de siler.
+- **Görsel:** menü görseli içeriğe (`menu_content_image`, yemek listesinin özeti) bağlıdır: birebir aynı menü aynı görseli alır, menüde en ufak değişiklik olursa görsel düşer ve gün "yeni görsel bekliyor" olur. Bkz. `changes/ops.md`.
+
 ### Mobil renk sistemi sadeleştirmesi (RENK-1)
 
 - **Tek palet:** sakin marka kırmızısı (`pr` #C0392B, simge #F73B2E ile uyumlu) + dört anlam ailesi (koyu mavi `info`, su mavisi `aqua`, yeşil `ok`, amber `warn`) + `danger` (hata, markadan ayrı ton) + sıcak-nötr yüzeyler (açık kırık beyaz #F7F5F2, koyu yumuşak kömür #171819). Mor/pembe/turkuaz/çivit/sarı-turuncu kaldırıldı; `tints` 6 çift korunur ama dört aileye eşlenir (`BuTintId`). Yeni belirteçler: `info*`, `aqua*`, `onOkSoft`, `dangerSoft`, `bdStrong`, `selectedBorder`.

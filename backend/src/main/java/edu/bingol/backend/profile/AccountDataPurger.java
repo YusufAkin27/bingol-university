@@ -152,6 +152,7 @@ public class AccountDataPurger {
             Map.entry("mail_template_custom.created_by", "Sablon yoneticisi izi"),
             Map.entry("mail_template_custom_version.created_by", "Sablon yoneticisi izi"),
             Map.entry("menu_item_calorie.updated_by", "Menu kalori yonetici izi"),
+            Map.entry("menu_dish_calorie.updated_by", "Menu yemek kalorisi yonetici izi"),
             Map.entry("message_attachment.hidden_by", "Moderasyon izi"),
             Map.entry("moderation_target_state.hidden_by", "Moderasyon izi"),
             Map.entry("profanity_term.created_by", "Uygunsuz ifade listesi yonetici izi"),

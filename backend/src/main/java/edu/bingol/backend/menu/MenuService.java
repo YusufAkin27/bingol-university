@@ -32,6 +32,7 @@ public class MenuService {
     private final MenuRepository repo;
     private final MenuCalorieService calories;
     private CacheService cache = CacheService.passthrough();
+    private MenuContentImages images;
 
     public MenuService(MenuRepository repo, MenuCalorieService calories) {
         this.repo = repo;
@@ -42,6 +43,12 @@ public class MenuService {
     @Autowired(required = false)
     void setCache(CacheService cache) {
         this.cache = cache;
+    }
+
+    /** Menu icerigine bagli gorsel; yoksa (elle kurulan testler) gunun kendi alani kullanilir. */
+    @Autowired(required = false)
+    void setImages(MenuContentImages images) {
+        this.images = images;
     }
 
     @Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
@@ -57,8 +64,10 @@ public class MenuService {
         LocalDate from = month.atDay(1);
         LocalDate to = month.atEndOfMonth();
         Map<LocalDate, Map<String, Integer>> kcal = calories.range(from, to);
-        return repo.findByMenuDateBetweenOrderByMenuDate(from, to).stream()
-                .map(d -> MenuResponse.of(d, kcal.getOrDefault(d.getMenuDate(), Map.of()))).toList();
+        List<MenuDay> list = repo.findByMenuDateBetweenOrderByMenuDate(from, to);
+        Map<LocalDate, String> img = images == null ? null : images.forDays(list);
+        return list.stream().map(d -> MenuResponse.of(d, kcal.getOrDefault(d.getMenuDate(), Map.of()),
+                img == null ? d.getImageUrl() : img.get(d.getMenuDate()))).toList();
     }
 
     /** null/bos -> bu ay; yyyy-MM disi veya makul aralik (2000-2100) disi -> 400. */
@@ -87,6 +96,7 @@ public class MenuService {
     public Optional<MenuResponse> today() {
         LocalDate today = LocalDate.now(ZONE);
         return Optional.ofNullable(cache.get("menu", "d:" + today, CacheTier.DAILY, DAY,
-                () -> repo.findByMenuDate(today).map(d -> MenuResponse.of(d, calories.forDate(today))).orElse(null)));
+                () -> repo.findByMenuDate(today).map(d -> MenuResponse.of(d, calories.forDate(today),
+                        images == null ? d.getImageUrl() : images.forDay(d))).orElse(null)));
     }
 }

@@ -23,6 +23,7 @@ import { MenuBulkBar } from './bulk/BulkBars';
 import { BulkCsvButton, RowPick, SelectPage, useIdSelection, type IdSelection } from './bulk/BulkParts';
 import { CalorieBulkImport } from './menu/CalorieBulkImport';
 import { CalorieEditor } from './menu/CalorieEditor';
+import { MenuGaps } from './menu/MenuGaps';
 import { currentMonth, isMonth, monthRange, validateMenuImage } from './menu/menuLogic';
 import styles from './menu/menu.module.css';
 
@@ -196,6 +197,7 @@ export default function MenuAdminPage() {
         <EmptyState icon="calendar" title={t('admin.menu.empty')} description=" " />
       ) : (
         <>
+          <MenuGaps days={days} />
           <SelectPage ids={days.map((d) => d.date)} selection={selection} label={t('admin.p15.menu.selectAll')} />
           <ul className={styles.list} data-testid="menu-list">
             {days.map((d) => (

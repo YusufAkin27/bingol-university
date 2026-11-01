@@ -12,8 +12,11 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -23,6 +26,10 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * Yemek kalorileri: okuma (menu cevabina eklemek icin) ve yonetici yazimi. Senkron (MenuSyncService) bu sinifi
  * KULLANMAZ ve kalori tablosuna yazmaz; yonetici degeri her zaman onceliklidir.
+ *
+ * <p>Kalori yemek adina da baglanir ({@link MenuDishCalorie}): yonetici bir gunun yemegine kalori girince deger "son
+ * bilinen" olarak saklanir ve tarihe ozel satiri olmayan, ayni isimli yemekte (orn. gelecek ay menusu) otomatik
+ * gorunur. Tarihe ozel satir her zaman onceliklidir; kalori silmek hem o gunun satirini hem son bilinen degeri siler.
  */
 @Service
 public class MenuCalorieService {
@@ -32,20 +39,35 @@ public class MenuCalorieService {
     public static final int MAX_DAYS = 62;
     private static final int MAX_SKIPPED_REPORTED = 100;
 
-    private final MenuItemCalorieRepository cal;
-    private final MenuRepository days;
+    /** IN listesi parca boyu (yonetici araligi 366 gune kadar cikabilir). */
+    private static final int KEY_CHUNK = 500;
 
-    public MenuCalorieService(MenuItemCalorieRepository cal, MenuRepository days) {
+    private final MenuItemCalorieRepository cal;
+    private final MenuDishCalorieRepository dishes;
+    private final MenuRepository days;
+    private final MenuContentImages images;
+
+    public MenuCalorieService(MenuItemCalorieRepository cal, MenuDishCalorieRepository dishes, MenuRepository days,
+                              MenuContentImages images) {
         this.cal = cal;
+        this.dishes = dishes;
         this.days = days;
+        this.images = images;
     }
 
-    /** Tarih -> (yemek anahtari -> kcal). Aralik cagiran tarafindan sinirlidir. */
+    /** Tarih -> (yemek anahtari -> kcal), yemek adi yedegi dahil. Aralik cagiran tarafindan sinirlidir. */
     @Transactional(readOnly = true)
     public Map<LocalDate, Map<String, Integer>> range(LocalDate from, LocalDate to) {
         Map<LocalDate, Map<String, Integer>> out = new HashMap<>();
         for (MenuItemCalorie c : cal.findByMenuDateBetween(from, to)) {
             out.computeIfAbsent(c.getMenuDate(), d -> new HashMap<>()).put(c.getItemKey(), c.getKcal());
+        }
+        List<MenuDay> list = days.findByMenuDateBetweenOrderByMenuDate(from, to);
+        Map<String, Integer> fallback = fallbackFor(list);
+        if (!fallback.isEmpty()) {
+            for (MenuDay d : list) {
+                fillMissing(out.computeIfAbsent(d.getMenuDate(), x -> new HashMap<>()), d, fallback);
+            }
         }
         return out;
     }
@@ -56,7 +78,44 @@ public class MenuCalorieService {
         for (MenuItemCalorie c : cal.findByMenuDate(date)) {
             out.put(c.getItemKey(), c.getKcal());
         }
+        days.findByMenuDate(date).ifPresent(d -> fillMissing(out, d, fallbackFor(List.of(d))));
         return out;
+    }
+
+    private static Set<String> keysOf(MenuDay day) {
+        Set<String> keys = new LinkedHashSet<>();
+        for (String it : day.getItems().split("\n")) {
+            String k = MenuItemKey.of(it);
+            if (!k.isEmpty()) {
+                keys.add(k);
+            }
+        }
+        return keys;
+    }
+
+    /** Verilen gunlerdeki yemeklerin yemek adina bagli son bilinen kalorileri. */
+    private Map<String, Integer> fallbackFor(List<MenuDay> list) {
+        Set<String> all = new LinkedHashSet<>();
+        for (MenuDay d : list) {
+            all.addAll(keysOf(d));
+        }
+        Map<String, Integer> out = new HashMap<>();
+        List<String> keys = new ArrayList<>(all);
+        for (int i = 0; i < keys.size(); i += KEY_CHUNK) {
+            for (MenuDishCalorie d : dishes.findByItemKeyIn(keys.subList(i, Math.min(keys.size(), i + KEY_CHUNK)))) {
+                out.put(d.getItemKey(), d.getKcal());
+            }
+        }
+        return out;
+    }
+
+    private static void fillMissing(Map<String, Integer> target, MenuDay day, Map<String, Integer> fallback) {
+        for (String k : keysOf(day)) {
+            Integer v = fallback.get(k);
+            if (v != null) {
+                target.putIfAbsent(k, v);
+            }
+        }
     }
 
     /** Tek gun, SIKI: bilinmeyen gun 404, gunde olmayan yemek 400; gecersiz kalori 400. Gunun guncel cevabini doner. */
@@ -68,7 +127,7 @@ public class MenuCalorieService {
         Counters c = new Counters();
         applyToDay(day, list, true, c, new ArrayList<>());
         AuditContext.target("MENU", date).summary("kalori: " + c.summary());
-        return MenuResponse.of(day, forDate(date));
+        return MenuResponse.of(day, forDate(date), images.forDay(day));
     }
 
     /** Toplu, GEVSEK: uygulanamayan satirlar atlanir ve raporlanir; gecersiz kalori tum istegi reddeder. */
@@ -77,7 +136,8 @@ public class MenuCalorieService {
         if (request == null || request.isEmpty() || request.size() > MAX_DAYS) {
             throw limit();
         }
-        Map<LocalDate, List<Entry>> byDate = new LinkedHashMap<>();
+        // tarih sirasi: ayni yemek birden cok gunde gelirse en son tarihin degeri "son bilinen" olur
+        Map<LocalDate, List<Entry>> byDate = new TreeMap<>();
         for (BulkDay d : request) {
             if (d == null) {
                 throw new ApiException(HttpStatus.BAD_REQUEST, "MENU_DATE_INVALID",
@@ -137,6 +197,10 @@ public class MenuCalorieService {
         for (MenuItemCalorie row : cal.findByMenuDate(date)) {
             existing.put(row.getItemKey(), row);
         }
+        Map<String, MenuDishCalorie> dish = new HashMap<>();
+        for (MenuDishCalorie d : dishes.findByItemKeyIn(dayNames.keySet())) {
+            dish.put(d.getItemKey(), d);
+        }
         String actor = actor();
         for (Entry en : entries) {
             String key = MenuItemKey.of(en.name());
@@ -150,15 +214,25 @@ public class MenuCalorieService {
                 continue;
             }
             MenuItemCalorie row = existing.get(key);
+            String shown = display.length() > 300 ? display.substring(0, 300) : display;
             if (en.kcal() == null) {
-                if (row == null) {
-                    c.unchanged++;
-                } else {
+                // silme: son bilinen deger de gider, yoksa yemek sonraki aylarda yeniden dolardi
+                MenuDishCalorie gone = dish.remove(key);
+                if (gone != null) {
+                    dishes.delete(gone);
+                }
+                if (row != null) {
                     cal.delete(row);
                     existing.remove(key);
+                }
+                if (row == null && gone == null) {
+                    c.unchanged++;
+                } else {
                     c.cleared++;
                 }
-            } else if (row != null && row.getKcal() == en.kcal()) {
+                continue;
+            }
+            if (row != null && row.getKcal() == en.kcal()) {
                 c.unchanged++;
             } else {
                 if (row == null) {
@@ -167,15 +241,30 @@ public class MenuCalorieService {
                     row.setItemKey(key);
                     existing.put(key, row);
                 }
-                row.setItemName(display.length() > 300 ? display.substring(0, 300) : display);
+                row.setItemName(shown);
                 row.setKcal(en.kcal());
                 row.setUpdatedAt(Instant.now());
                 row.setUpdatedBy(actor);
                 cal.save(row);
                 c.updated++;
             }
+            // yemek adina bagli son bilinen deger: son yazilan kazanir
+            MenuDishCalorie known = dish.get(key);
+            if (known == null) {
+                known = new MenuDishCalorie();
+                known.setItemKey(key);
+                dish.put(key, known);
+            } else if (known.getKcal() == en.kcal()) {
+                continue;
+            }
+            known.setItemName(shown);
+            known.setKcal(en.kcal());
+            known.setUpdatedAt(Instant.now());
+            known.setUpdatedBy(actor);
+            dishes.save(known);
         }
         cal.flush();
+        dishes.flush();
     }
 
     private static void skip(List<Skipped> skipped, Counters c, LocalDate date, String name, String reason) {

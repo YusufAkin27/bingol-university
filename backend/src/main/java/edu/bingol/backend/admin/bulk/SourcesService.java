@@ -66,7 +66,7 @@ public class SourcesService {
         MenuSourceStatus menu = new MenuSourceStatus(maint(ms), iso(ms == null ? null : ms.getLastSuccessAt()),
                 iso(ms == null ? null : ms.getLastAttemptAt()), msg(ms), count("SELECT COUNT(*) FROM menu_day"),
                 count("SELECT COUNT(*) FROM menu_day WHERE menu_date >= ?", java.sql.Date.valueOf(today)),
-                count("SELECT COUNT(*) FROM menu_day WHERE image_url IS NOT NULL"));
+                count("SELECT COUNT(*) FROM menu_content_image"));
         return new SourcesStatus(news, menu, SYNC_PER_HOUR);
     }
 
