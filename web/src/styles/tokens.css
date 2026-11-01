@@ -233,8 +233,8 @@
 
 /*
  * Yönetim paneli (AdminLayout <html data-area="admin"> koyar): bağlantı rengi marka/tehlike kırmızısı DEĞİL, bilgi mavisidir.
- * Kırmızı bağlantı hata/riskli eylemle karışıyordu. Seçici özgüllüğü temalardan yüksektir.
+ * Kırmızı bağlantı hata/riskli eylemle karışıyordu. Seçici özgüllüğü koyu tema bloklarından (0,2,0) yüksektir (0,2,1) ve dosyanın sonundadır; shared.test.tsx bunu denetler.
  */
-html[data-area='admin'] {
+html:root[data-area='admin'] {
   --link: var(--info);
 }

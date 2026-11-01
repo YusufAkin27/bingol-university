@@ -77,7 +77,35 @@ describe('renk anlamı (AUD1 ORT-8/9, AUD2 X-5/X-6, AUD3 G4, AUD4 G9)', () => {
   });
 
   it('yönetim alanında bağlantı rengi bilgi mavisi', () => {
-    expect(css('styles/tokens.css')).toMatch(/html\[data-area='admin'\]\s*\{\s*--link:\s*var\(--info\)/);
+    expect(css('styles/tokens.css')).toMatch(/html:root\[data-area='admin'\]\s*\{\s*--link:\s*var\(--info\)/);
+  });
+
+  it('yönetim bağlantı kuralı koyu tema bloklarını özgüllükle yener (koyu temada kırmızı kalmaz)', () => {
+    const src = css('styles/tokens.css').replace(/\/\*[\s\S]*?\*\//g, '');
+    // (id, sınıf/öznitelik/sözde sınıf, öğe) özgüllüğü; :not(...) argümanı sayılır
+    const specificity = (sel: string): [number, number, number] => {
+      const flat = sel.replace(/:not\(([^)]*)\)/g, ' $1 ');
+      const ids = (flat.match(/#[\w-]+/g) ?? []).length;
+      const cls = (flat.match(/\.[\w-]+|\[[^\]]+\]|:(?!:)[\w-]+(?:\([^)]*\))?/g) ?? []).length;
+      const els = (flat.match(/(?:^|[\s>+~])[a-z][\w-]*/gi) ?? []).length;
+      return [ids, cls, els];
+    };
+    const cmp = (a: number[], b: number[]) => a[0] - b[0] || a[1] - b[1] || a[2] - b[2];
+    // --link tanımlayan kurallar, kaynak sırasıyla (media içi dahil)
+    const rules: { sel: string; at: number }[] = [];
+    for (const m of src.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
+      if (!/--link\s*:/.test(m[2])) continue;
+      const sel = m[1].trim().split('@media')[0].replace(/^[^{]*\)\s*/, '').trim();
+      rules.push({ sel: sel || m[1].trim(), at: m.index ?? 0 });
+    }
+    const admin = rules.find((r) => r.sel.includes("data-area='admin'"))!;
+    expect(admin).toBeTruthy();
+    const others = rules.filter((r) => r !== admin);
+    expect(others.length).toBeGreaterThanOrEqual(2); // açık + iki koyu kural
+    for (const o of others) {
+      expect(cmp(specificity(admin.sel), specificity(o.sel)), `${admin.sel} > ${o.sel}`).toBeGreaterThan(0);
+      expect(admin.at).toBeGreaterThan(o.at);
+    }
   });
 
   it('grafik paleti iki temada aynı sırada: 1 mavi, 2 mercan', () => {
