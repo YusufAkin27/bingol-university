@@ -35,6 +35,8 @@ class UnitNewsSyncServiceTest {
         sources.deleteAll();
         sync.setPauseMs(0);
         sync.setSleeper(ms -> { });
+        sync.setNanoClock(System::nanoTime);
+        sync.setBudget(java.time.Duration.ofMinutes(45));
         UnitSource s = new UnitSource();
         s.setCode("mmf");
         s.setName("Mühendislik ve Mimarlık Fakültesi");
@@ -237,5 +239,30 @@ class UnitNewsSyncServiceTest {
         assertEquals(0, sync.syncAll());
         assertEquals(0, anns.count());
         assertEquals(-1, sync.sync("yok"));
+    }
+
+    @Test
+    void whenTheTimeBudgetRunsOutRemainingSourcesAreLeftForTheNextNightAndNoted() throws Exception {
+        UnitSource second = new UnitSource();
+        second.setCode("zzz");
+        second.setName("Ikinci");
+        second.setKind(UnitSource.Kind.FACULTY);
+        second.setBaseUrl("https://zzz.bingol.edu.tr");
+        sources.saveAndFlush(second);
+        // her bekleme "1 saat" ilerletir: ilk kaynagin ilk bolum yenilemesinde 45 dk butce asilir
+        java.util.concurrent.atomic.AtomicLong nanos = new java.util.concurrent.atomic.AtomicLong();
+        sync.setNanoClock(nanos::get);
+        sync.setPauseMs(600);
+        sync.setSleeper(ms -> nanos.addAndGet(3_600_000_000_000L));
+
+        int added = sync.syncAll();
+
+        org.mockito.Mockito.verify(scraper, org.mockito.Mockito.never()).fetchList(eq("https://zzz.bingol.edu.tr"), any());
+        org.mockito.Mockito.verify(scraper, org.mockito.Mockito.never()).fetchList(eq(BASE), eq("/bolumler_/bilgisayar-muhendisligi/duyurular/"));
+        assertTrue(added >= 1, "ilk kaynagin genel akisi yine de islendi");
+        UnitSource skipped = sources.findById("zzz").orElseThrow();
+        assertTrue(skipped.getLastMessage().contains("butcesi"), skipped.getLastMessage());
+        assertNull(skipped.getLastAttemptAt(), "atlanan kaynak yarin once denenir");
+        assertFalse(skipped.isMaintenance());
     }
 }

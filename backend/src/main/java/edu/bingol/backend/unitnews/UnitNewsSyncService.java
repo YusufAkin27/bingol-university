@@ -1,17 +1,23 @@
 package edu.bingol.backend.unitnews;
 
 import edu.bingol.backend.config.SyncProperties;
+import edu.bingol.backend.status.SyncExecutor;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.function.LongSupplier;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -45,6 +51,13 @@ public class UnitNewsSyncService {
     private final UnitAttachmentsJson json = new UnitAttachmentsJson();
     private final AtomicBoolean running = new AtomicBoolean();
 
+    /** Toplu senkronun toplam sure butcesi (haber senkronundaki T-074 gibi); asilirsa kalan kaynaklar sonraki geceye. */
+    private Duration budget = Duration.ofMinutes(45);
+    private LongSupplier nanoClock = System::nanoTime;
+    private volatile boolean deadlineActive;
+    private volatile long deadlineNanos;
+    private SyncExecutor syncExecutor;
+
     /** Istekler arasi bekleme (CLAUDE.md: 500 ms alti olmaz); testlerde 0. */
     private long pauseMs = 600;
     private java.util.function.LongConsumer sleeper = ms -> {
@@ -75,6 +88,29 @@ public class UnitNewsSyncService {
         this.props = props;
     }
 
+    @Autowired(required = false)
+    void setSyncExecutor(SyncExecutor syncExecutor) {
+        this.syncExecutor = syncExecutor;
+    }
+
+    @Autowired(required = false)
+    void setBudgetMinutes(@Value("${unitnews.sync.budget-minutes:45}") int minutes) {
+        this.budget = Duration.ofMinutes(Math.max(1, minutes));
+    }
+
+    /** Testler: sure butcesi ve saat. */
+    void setBudget(Duration budget) {
+        this.budget = budget;
+    }
+
+    void setNanoClock(LongSupplier nanoClock) {
+        this.nanoClock = nanoClock;
+    }
+
+    private boolean overBudget() {
+        return deadlineActive && nanoClock.getAsLong() - deadlineNanos > 0;
+    }
+
     void setPauseMs(long ms) {
         this.pauseMs = ms;
     }
@@ -88,7 +124,7 @@ public class UnitNewsSyncService {
     @EventListener(ApplicationReadyEvent.class)
     public void initialFill() {
         if (props.initialFill() && anns.count() == 0) {
-            java.util.concurrent.CompletableFuture.runAsync(this::syncAll);
+            SyncExecutor.dispatch(syncExecutor, this::syncAll);
         }
     }
 
@@ -105,7 +141,17 @@ public class UnitNewsSyncService {
         }
         try {
             int total = 0;
-            for (UnitSource listed : sources.findByEnabledTrueOrderByCodeAsc()) {
+            // En eski denenen kaynak once (sure butcesi dolarsa hep ayni son kaynaklar aclik cekmesin); esitlikte kod sirasi
+            List<UnitSource> order = new ArrayList<>(sources.findByEnabledTrueOrderByCodeAsc());
+            order.sort(Comparator.comparing(UnitSource::getLastAttemptAt, Comparator.nullsFirst(Comparator.naturalOrder())));
+            deadlineNanos = nanoClock.getAsLong() + budget.toNanos();
+            deadlineActive = true;
+            List<String> skipped = new ArrayList<>();
+            for (UnitSource listed : order) {
+                if (overBudget()) {
+                    skipped.add(listed.getCode());
+                    continue;
+                }
                 // liste senkron baslarken okundu; sirasi gelene kadar yonetici kapatmis olabilir (A2)
                 UnitSource s = sources.findById(listed.getCode()).filter(UnitSource::isEnabled).orElse(null);
                 if (s == null) {
@@ -114,13 +160,31 @@ public class UnitNewsSyncService {
                 total += syncOne(s);
                 pause();
             }
+            if (!skipped.isEmpty()) {
+                log.warn("Birim haberleri sure butcesi ({} dk) doldu, {} kaynak sonraki geceye kaldi", budget.toMinutes(),
+                        skipped.size());
+                noteSkipped(skipped);
+            }
             purgeOld();
             return total;
         } catch (RuntimeException e) {
             log.warn("Birim haberleri senkronu hata verdi: {}", e.toString());
             return 0;
         } finally {
+            deadlineActive = false;
             running.set(false);
+        }
+    }
+
+    /** Butce nedeniyle atlanan kaynaklara not duser (yalniz last_message; baska alana dokunulmaz). */
+    private void noteSkipped(List<String> codes) {
+        for (String code : codes) {
+            try {
+                jdbc.update("UPDATE unit_source SET last_message = ? WHERE code = ?",
+                        "Sure butcesi doldu, sonraki turda denenecek", code);
+            } catch (RuntimeException e) {
+                log.warn("Birim kaynagi notu yazilamadi ({}): {}", code, e.toString());
+            }
         }
     }
 
@@ -156,6 +220,10 @@ public class UnitNewsSyncService {
             boolean first = anns.countBySourceCode(s.getCode()) == 0;
             added = syncFeed(s, GENERAL_FEED, null, first, true);
             for (UnitDepartment d : depts.findBySourceCodeOrderByNameAsc(s.getCode())) {
+                if (overBudget()) {
+                    log.info("Sure butcesi doldu, {} kaynaginin kalan bolum akislari sonraki geceye", s.getCode());
+                    break;
+                }
                 if (d.getFeedPath() != null) {
                     pause();
                     try {

@@ -1,7 +1,9 @@
 package edu.bingol.backend.unitnews;
 
+import edu.bingol.backend.common.cache.CacheInvalidationListener;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EntityListeners;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -12,6 +14,7 @@ import lombok.Setter;
 
 /** Alt sitenin bir bolumu (/bolumler/&lt;slug&gt;/); nameKey profildeki bolumle eslesme anahtaridir. */
 @Entity
+@EntityListeners(CacheInvalidationListener.class)
 @Table(name = "unit_department", uniqueConstraints = @UniqueConstraint(columnNames = {"sourceCode", "slug"}))
 @Getter
 @Setter
