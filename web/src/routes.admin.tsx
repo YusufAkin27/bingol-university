@@ -29,6 +29,7 @@ const FeedbackPage = lazy(() => import('./pages/admin/FeedbackPage'));
 const LegalAdminPage = lazy(() => import('./pages/admin/LegalAdminPage'));
 const FaqAdminPage = lazy(() => import('./pages/admin/FaqAdminPage'));
 const NewsAdminPage = lazy(() => import('./pages/admin/NewsAdminPage'));
+const UnitNewsAdminPage = lazy(() => import('./pages/admin/UnitNewsAdminPage'));
 const ClubsManagePage = lazy(() => import('./pages/admin/ClubsManagePage'));
 const ContentReviewPage = lazy(() => import('./pages/admin/ContentReviewPage'));
 const EventsAdminPage = lazy(() => import('./pages/admin/EventsAdminPage'));
@@ -98,6 +99,7 @@ export default function AdminRoutes() {
           <Route path="content/legal" element={<LegalAdminPage />} />
           <Route path="content/faq" element={<FaqAdminPage />} />
           <Route path="content/news" element={<NewsAdminPage />} />
+          <Route path="content/unit-news" element={<UnitNewsAdminPage />} />
           <Route path="communities" element={<ClubsManagePage />} />
           <Route path="content-review" element={<ContentReviewPage />} />
           <Route path="events" element={<EventsAdminPage />} />

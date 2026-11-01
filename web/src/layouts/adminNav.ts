@@ -124,6 +124,7 @@ export const adminNav: AdminNavGroup[] = [
       { id: 'legal', perm: 'legal.read', to: paths.admin.legal, labelKey: 'admin.nav.legal', icon: 'file' },
       { id: 'faq', perm: 'content.read', to: paths.admin.faq, labelKey: 'admin.nav.faq', icon: 'help' },
       { id: 'news', perm: 'content.read', to: paths.admin.news, labelKey: 'admin.nav.news', icon: 'news' },
+      { id: 'unitNews', perm: 'content.read', to: paths.admin.unitNews, labelKey: 'admin.unitNews.nav', icon: 'community' },
       { id: 'menu', perm: 'content.read', to: paths.admin.menu, labelKey: 'admin.nav.menu', icon: 'calendar' },
     ],
   },

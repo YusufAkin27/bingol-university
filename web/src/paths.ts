@@ -53,6 +53,7 @@ export const paths = {
     legal: `${ADMIN_BASE}/content/legal`,
     faq: `${ADMIN_BASE}/content/faq`,
     news: `${ADMIN_BASE}/content/news`,
+    unitNews: `${ADMIN_BASE}/content/unit-news`,
     communities: `${ADMIN_BASE}/communities`,
     events: `${ADMIN_BASE}/events`,
     campaigns: `${ADMIN_BASE}/campaigns`,

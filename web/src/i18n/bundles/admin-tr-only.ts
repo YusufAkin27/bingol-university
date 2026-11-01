@@ -19,7 +19,7 @@ import Reg from '../tr/admin-reg';
 import Uv1 from '../tr/admin-uv1';
 
 // GD1 menü etiketi ana parçada kalır; sayfa metinleri tr/admin-gd1.ts içinde sayfanın kendi parçasında yüklenir.
-const Gd1Nav = { 'admin.gd1.nav': 'Yedekleme (Google Drive)' };
+const Gd1Nav = { 'admin.gd1.nav': 'Yedekleme (Google Drive)', 'admin.unitNews.nav': 'Birim haberleri' };
 
 export default {
   ...Guard,

@@ -40,6 +40,7 @@ const NAV_ENDPOINT: Record<string, string> = {
   legal: '/api/admin/legal/acceptance-stats',
   faq: '/api/admin/faq',
   news: '/api/admin/news',
+  unitNews: '/api/admin/unit-news/sources',
   menu: '/api/admin/menu',
   campaigns: '/api/admin/push/campaigns',
   mailTemplates: '/api/admin/mail/templates',
