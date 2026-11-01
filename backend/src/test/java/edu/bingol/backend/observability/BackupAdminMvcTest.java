@@ -137,6 +137,50 @@ class BackupAdminMvcTest {
     }
 
     @Test
+    void corruptOrHostileStatusFilesNeverBreakTheEndpointNor500() throws Exception {
+        for (String body : new String[] {"{not json", "[]", "null", "{\"remote\":\"x\",\"local\":5}", "\u0000\u0001garbage",
+                "{\"lastSuccessAt\":{\"a\":1},\"remote\":{\"configured\":true,\"name\":\"../../etc\",\"lastError\":\"\\u0007bad\"}}"}) {
+            Files.writeString(STATUS, body);
+            MockHttpServletResponse r = as(admin(AdminProfile.FULL), get("/api/admin/system/backup"));
+            assertThat(r.getStatus()).as(body).isEqualTo(200);
+            JsonNode j = json(r);
+            assertThat(j.has("remote")).as(body).isTrue();
+            assertThat(j.at("/remote/name").isNull() || !j.at("/remote/name").asText().contains("/")).as(body).isTrue();
+            assertThat(as(admin(AdminProfile.FULL), get("/api/admin/system/overview")).getStatus()).as(body).isEqualTo(200);
+        }
+    }
+
+    @Test
+    void remoteBackupFreshnessIsAnIndicatorWarnAfter30AndCritAfter36Hours() throws Exception {
+        String ok = java.time.Instant.now().minus(java.time.Duration.ofHours(2)).toString();
+        String warn = java.time.Instant.now().minus(java.time.Duration.ofHours(31)).toString();
+        String crit = java.time.Instant.now().minus(java.time.Duration.ofHours(40)).toString();
+        String head = "{\"lastSuccessAt\":\"" + java.time.Instant.now() + "\",\"remote\":{\"configured\":true,\"kind\":\"drive\",\"name\":\"gdrive\"";
+        Files.writeString(STATUS, head + ",\"lastSuccessAt\":\"" + ok + "\"}}");
+        assertThat(remoteIndicator().get("status").asText()).isEqualTo("OK");
+        Files.writeString(STATUS, head + ",\"lastSuccessAt\":\"" + warn + "\"}}");
+        assertThat(remoteIndicator().get("status").asText()).isEqualTo("WARN");
+        Files.writeString(STATUS, head + ",\"lastSuccessAt\":\"" + crit + "\"}}");
+        JsonNode c = remoteIndicator();
+        assertThat(c.get("status").asText()).isEqualTo("CRIT");
+        assertThat(c.at("/threshold/crit").asInt()).isEqualTo(36);
+        // hic basarili yukleme yok + hata kaydi: CRIT; hata yok: UNKNOWN (henuz calismadi)
+        Files.writeString(STATUS, head + ",\"lastSuccessAt\":null,\"lastError\":\"rclone.conf icinde yok\"}}");
+        assertThat(remoteIndicator().get("status").asText()).isEqualTo("CRIT");
+        Files.writeString(STATUS, head + ",\"lastSuccessAt\":null}}");
+        assertThat(remoteIndicator().get("status").asText()).isEqualTo("UNKNOWN");
+        // yapilandirilmamis: uyari uretmez
+        Files.writeString(STATUS, "{\"lastSuccessAt\":\"" + java.time.Instant.now() + "\",\"remote\":{\"configured\":false}}");
+        assertThat(remoteIndicator().get("status").asText()).isEqualTo("UNKNOWN");
+    }
+
+    private JsonNode remoteIndicator() throws Exception {
+        MockHttpServletResponse r = as(admin(AdminProfile.FULL), get("/api/admin/system/overview"));
+        assertThat(r.getStatus()).isEqualTo(200);
+        return json(r).at("/indicators/backup.remote");
+    }
+
+    @Test
     void overviewKeepsReportingBackupAgeIndicator() throws Exception {
         Files.writeString(STATUS, "{\"lastSuccessAt\":\"" + java.time.Instant.now() + "\",\"remote\":{\"configured\":false}}");
         MockHttpServletResponse r = as(admin(AdminProfile.FULL), get("/api/admin/system/overview"));

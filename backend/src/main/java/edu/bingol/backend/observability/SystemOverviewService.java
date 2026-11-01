@@ -55,7 +55,7 @@ public class SystemOverviewService {
                 "mail.dead", "mail.pending", "mail.oldestPendingAge", "mail.dailyQuota",
                 "push.dead", "push.pending", "push.oldestPendingAge",
                 "campaign.overdue", "campaign.counts",
-                "websocket.sessions", "db", "redis", "fcm", "disk.storage", "storage", "backup.age"));
+                "websocket.sessions", "db", "redis", "fcm", "disk.storage", "storage", "backup.age", "backup.remote"));
         for (JobSpec j : JOB_SPECS) {
             keys.add("jobs." + j.key());
         }
@@ -133,6 +133,7 @@ public class SystemOverviewService {
         out.put("disk.storage", disk(locale));
         out.put("storage", storage(locale));
         out.put("backup.age", backup(now, locale));
+        out.put("backup.remote", backupRemote(now, locale));
         for (JobSpec j : JOB_SPECS) {
             out.put("jobs." + j.key(), job(j, now, locale));
         }
@@ -317,6 +318,43 @@ public class SystemOverviewService {
         IndicatorStatus st = backupStatus(hours, props);
         return new Indicator(st, rounded, th,
                 st == IndicatorStatus.OK ? null : msg(l, "obs.msg.BACKUP_OLD", String.valueOf(rounded)));
+    }
+
+    /** Uzak (Drive) kopya gunde 1 yuklenir (+ 09/15/21 yeniden deneme): 30 saat WARN, 36 saat CRIT (Prometheus BackupRemoteStale ile uyumlu). */
+    static final int REMOTE_BACKUP_WARN_HOURS = 30;
+    static final int REMOTE_BACKUP_CRIT_HOURS = 36;
+
+    /**
+     * Uzak yedegin tazeligi (B8): webhook/Prometheus yoksa bile panelde gorunur ve CRIT'e gecince {@code SystemAlertService}
+     * yoneticilere uygulama ici bildirim yollar. Uzak kopya yapilandirilmamissa UNKNOWN (uyari uretmez).
+     */
+    private Indicator backupRemote(Instant now, Locale l) {
+        Map<String, Object> th = Map.of("warn", REMOTE_BACKUP_WARN_HOURS, "crit", REMOTE_BACKUP_CRIT_HOURS);
+        BackupReport.Remote r;
+        try {
+            r = backup.report().remote();
+        } catch (RuntimeException e) {
+            return Indicator.unknown(msg(l, "obs.msg.BACKUP_UNKNOWN"));
+        }
+        if (r == null || !r.configured()) {
+            return new Indicator(IndicatorStatus.UNKNOWN, null, th, msg(l, "obs.msg.BACKUP_REMOTE_OFF"));
+        }
+        return backupRemoteIndicator(r, now, th, l);
+    }
+
+    Indicator backupRemoteIndicator(BackupReport.Remote r, Instant now, Map<String, Object> th, Locale l) {
+        if (r.lastSuccessAt() == null) {
+            // hic basarili yukleme yok: hata kaydi varsa CRIT (ilk kurulum hatasi yillarca sessiz kalmasin), yoksa henuz calismadi
+            return r.lastError() != null
+                    ? new Indicator(IndicatorStatus.CRIT, null, th, msg(l, "obs.msg.BACKUP_REMOTE_NEVER", r.lastError()))
+                    : new Indicator(IndicatorStatus.UNKNOWN, null, th, msg(l, "obs.msg.BACKUP_REMOTE_NEVER", "-"));
+        }
+        double hours = Math.max(0, Duration.between(r.lastSuccessAt(), now).toSeconds()) / 3600.0;
+        double rounded = Math.round(hours * 10) / 10.0;
+        IndicatorStatus st = hours > REMOTE_BACKUP_CRIT_HOURS ? IndicatorStatus.CRIT
+                : hours > REMOTE_BACKUP_WARN_HOURS ? IndicatorStatus.WARN : IndicatorStatus.OK;
+        return new Indicator(st, rounded, th,
+                st == IndicatorStatus.OK ? null : msg(l, "obs.msg.BACKUP_REMOTE_OLD", String.valueOf(rounded)));
     }
 
     /** Saatlik yedek: > warn saat WARN, > crit saat CRIT. */

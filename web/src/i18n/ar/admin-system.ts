@@ -38,6 +38,7 @@ const m: Record<keyof typeof tr, string> = {
   'admin.system.ind.fcm': 'مزوّد الإشعارات (FCM)',
   'admin.system.ind.disk.storage': 'امتلاء قرص التخزين',
   'admin.system.ind.backup.age': 'آخر نسخة احتياطية ناجحة',
+  'admin.system.ind.backup.remote': 'آخر نسخة احتياطية بعيدة (Drive) ناجحة',
   'admin.system.ind.jobs.news-sync': 'مزامنة الأخبار',
   'admin.system.ind.jobs.menu-sync': 'مزامنة قائمة الطعام',
   'admin.system.ind.jobs.mail-queue': 'معالج طابور البريد',

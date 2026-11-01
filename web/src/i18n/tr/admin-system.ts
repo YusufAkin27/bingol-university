@@ -36,6 +36,7 @@ const m = {
   'admin.system.ind.fcm': 'Push sağlayıcı (FCM)',
   'admin.system.ind.disk.storage': 'Depolama diski doluluğu',
   'admin.system.ind.backup.age': 'Son başarılı yedek',
+  'admin.system.ind.backup.remote': 'Son başarılı uzak (Drive) yedek',
   'admin.system.ind.jobs.news-sync': 'Haber senkronu',
   'admin.system.ind.jobs.menu-sync': 'Yemek listesi senkronu',
   'admin.system.ind.jobs.mail-queue': 'Mail kuyruğu işleyici',

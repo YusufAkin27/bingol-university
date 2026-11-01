@@ -70,7 +70,7 @@ export function groupOf(key: string): SystemGroup {
 export type SystemUnit = 'minutes' | 'hours' | 'percent' | 'ms' | 'count' | 'object';
 export function unitOf(key: string): SystemUnit {
   if (key.endsWith('Age') || key === 'campaign.overdue' || key.startsWith('jobs.')) return 'minutes';
-  if (key === 'backup.age') return 'hours';
+  if (key === 'backup.age' || key === 'backup.remote') return 'hours';
   if (key === 'disk.storage') return 'percent';
   if (key === 'db' || key === 'redis') return 'ms';
   if (key === 'campaign.counts' || key === 'fcm') return 'object';
