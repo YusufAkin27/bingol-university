@@ -169,3 +169,27 @@
 .pickBox .pick {
   margin: 0;
 }
+
+/* Başvuru / yoklama özeti: halka + yığın çubuk + tek cümle */
+.sumBox {
+  display: grid;
+  gap: var(--space-3);
+  min-inline-size: 0;
+}
+.sumRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  align-items: center;
+  min-inline-size: 0;
+}
+.sumSide {
+  display: grid;
+  flex: 1 1 14rem;
+  gap: var(--space-2);
+  min-inline-size: 0;
+}
+.sumFact {
+  margin: 0;
+  font-size: var(--text-sm);
+}
