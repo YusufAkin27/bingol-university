@@ -123,6 +123,9 @@ check "cihaz kaydi (platform dagilimi)" 204 "$(code -X POST -H "$H" -H "$A1" $A/
 sleep 3   # arka plan aktiflik yazimi
 
 echo "== analitik: bilinen verilerle sayilar"
+# FIX-P09: /admin/analytics/overview 60 sn onbellekli (AnalyticsReportService.OVERVIEW_CACHE_MS); baslangic okumasi ile
+# ayni pencerede kalinmasin diye onbellek suresi beklenir.
+sleep 62
 OV1=$(curl -s -H "$AAD" $A/admin/analytics/overview)
 check "toplam kullanici +4" $((TOTAL0 + 4)) "$(echo "$OV1" | num totalUsers)"
 check "bugun yeni +4" $((NEW0 + 4)) "$(echo "$OV1" | num today)"

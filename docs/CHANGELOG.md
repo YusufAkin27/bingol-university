@@ -11,7 +11,9 @@ Ayrıntılı modül notları: `docs/changes/*.md`. Mobil API rehberi: [MOBILE_AP
 - **İkinci tur (P04 toplu API'sine bağlı kalemler):** üye/katılımcı/kitle bildirimleri istek thread'inden ve açık işlemden çıkarıldı (`FanoutNotifier`, `sendTemplatedBulk`): kulüp yazısı/duyurusu/silme, etkinlik güncelleme/iptal/duyuru, başvuru modu, anket, akademik duyuru, etkinlik hatırlatma. Kulüp satır kilidi artık bildirim boyunca tutulmaz.
 - **Geriye uyumluluk (eski mobil 2.0.5/2.0.6):** makbuz/yazıyor varsayılan eski davranış (ayarla kapatılır), oda gönderim sınırı 600/dk, etkinlik açma sınırları varsayılan kapalı, menü yakalama cron'u varsayılan kapalı. Refresh çift istek `409 REFRESH_IN_PROGRESS` ve "99+" sayaç eski istemcide güvenli (kanıt tabloda).
 - **Birleştirme düzeltmeleri:** P03 test derleme hatası, P09 panel önbelleği testleri, `AccountDataPurger` yeni sütun kararı, `NewsListPage` en az 3 karakter.
-- **Test:** backend TEST_COUNT_PLACEHOLDER; web 1781 geçti + 3 atlandı (166 dosya); yedek betik öz testleri 97 + 25 OK.
+- **Test:** backend 3388 test, 0 başarısız, 6 atlandı (Docker Maven 17, `-Djacoco.skip=true`, 8 dk 18 sn; panel dalı 3079 test); duman: izole PostgreSQL 16 yığınında 41 betik yeşil (Flyway 116 migration temiz uygulandı, son sürüm 1141); web lint/typecheck/vitest (1781 geçti, 3 atlandı)/build/bundle/seo/i18n/contract yeşil; yedek betik öz testleri 97 + 25 OK.
+- **Duman betiği düzeltmeleri:** `smoke-crash-reports` (taşma birleştirmesini bekler), `smoke-admin` (analitik önbelleği için 62 sn); ortam koşulları CLAUDE.md "Duman betikleri" bölümünde.
+- **OpenAPI:** `docs/openapi.json` yeniden üretildi (+`POST /api/admin/push/campaigns/{id}/resend`, `DELETE /api/devices/{idOrToken}`), web `schema.d.ts` yenilendi.
 
 ### FINAL (2026-11-01): iki dağıtım hattının birleştirilmesi
 

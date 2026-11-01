@@ -141,6 +141,12 @@ services:
       # `VAR:` (degersiz) = .env'de TANIMLIYSA iletilir, degilse hic iletilmez (uygulamanin varsayilani gecerli; bos dize gecmez).
       # Smoke betikleri LEGAL_ENFORCE_REACCEPT=false ister. Tam liste: docker-compose.prod.yml backend.environment (T-144).
       LEGAL_ENFORCE_REACCEPT:
+      # FINAL-ALL: tanimsiz = varsayilan; duman/yerel ayarlari (bkz. CLAUDE.md "Duman betikleri")
+      APP_CHAT_RECEIPTS_MAX_MEMBERS:
+      APP_CHAT_RECEIPTS_ROOMS:
+      MENU_CATCHUP_CRON:
+      APP_PROFILE_DEFAULT_PRIVATE_ACCOUNT:
+      APP_ADMIN_DESTRUCTIVE_PER_HOUR:
       ADMIN_BASIC_ENABLED:
       DEVICE_HMAC_KEY:
       BAN_ALLOWLIST:

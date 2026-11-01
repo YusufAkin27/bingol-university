@@ -140,8 +140,14 @@ echo "  kabul edilen: $n / 60"
 G4=$(group_id "$T4")
 D4=$(curl -s -H "$AD" $A/admin/crashes/$G4)
 EV=$(echo "$D4" | grep -o '"stack":' | wc -l | tr -d ' ')
-if [ "$EV" -le 50 ] && [ "$EV" -ge 40 ]; then echo "  ok   saklanan olay <= 50 ($EV)"; else echo "  FAIL saklanan olay sayisi ($EV)"; FAIL=1; fi
-has "kumulatif sayac" "\"eventCount\":$n" "$(curl -s -H "$AD" "$A/admin/crashes?q=$T4")"
+# FIX-P09: ayni imza dakikada app.crash.group-per-minute (30) kez DB'ye yazilir, fazlasi Redis'te sayilip dakikada bir
+# (CrashService.flushOverflow) kumulatif sayaca eklenir: saklanan olay 30..50, sayac birikimi en gec ~2.5 dk sonra.
+if [ "$EV" -le 50 ] && [ "$EV" -ge 30 ]; then echo "  ok   saklanan olay 30..50 ($EV)"; else echo "  FAIL saklanan olay sayisi ($EV)"; FAIL=1; fi
+for w in $(seq 1 16); do
+  curl -s -H "$AD" "$A/admin/crashes?q=$T4" | grep -q "\"eventCount\":$n" && break
+  sleep 10
+done
+has "kumulatif sayac (tasma dakikalik birlestirilir)" "\"eventCount\":$n" "$(curl -s -H "$AD" "$A/admin/crashes?q=$T4")"
 
 echo "== hiz siniri (cihaz basina dakikada 6 / gunde 20)"
 RL=""

@@ -189,6 +189,14 @@ services:
       AUTH_VERIFY_REQUIRES_PASSWORD:
       LEGAL_ENFORCE_REACCEPT:
       MAX_DEVICES_PER_USER:
+      # FINAL-ALL (hepsi tanimsiz = bugunku/eski istemci uyumlu davranis; tanimlanirsa iletilir): makbuz/yaziyor kapatma
+      # (eski mobil surumler elendikten sonra), menu gunluk yakalama cron'u (CLAUDE.md scraping kurali: sahibin karari),
+      # varsayilan gizli hesap, yikici yonetici islem siniri
+      APP_CHAT_RECEIPTS_MAX_MEMBERS:
+      APP_CHAT_RECEIPTS_ROOMS:
+      MENU_CATCHUP_CRON:
+      APP_PROFILE_DEFAULT_PRIVATE_ACCOUNT:
+      APP_ADMIN_DESTRUCTIVE_PER_HOUR:
       # Erisim engelleri (accessban)
       BAN_CACHE_TTL_SECONDS:
       BAN_LOG_RETENTION_DAYS:

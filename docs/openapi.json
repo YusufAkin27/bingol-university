@@ -4205,6 +4205,10 @@
             "format" : "int32",
             "type" : [ "integer", "null" ]
           },
+          "dead" : {
+            "format" : "int32",
+            "type" : [ "integer", "null" ]
+          },
           "failed" : {
             "format" : "int32",
             "type" : [ "integer", "null" ]
@@ -4220,6 +4224,10 @@
             },
             "type" : [ "object", "null" ]
           },
+          "outboxSkipped" : {
+            "format" : "int32",
+            "type" : [ "integer", "null" ]
+          },
           "pending" : {
             "format" : "int32",
             "type" : [ "integer", "null" ]
@@ -4229,6 +4237,10 @@
             "type" : [ "integer", "null" ]
           },
           "queued" : {
+            "format" : "int32",
+            "type" : [ "integer", "null" ]
+          },
+          "sent" : {
             "format" : "int32",
             "type" : [ "integer", "null" ]
           },
@@ -7072,6 +7084,8 @@
               "format" : "int64",
               "type" : "integer"
             },
+            "maxItems" : 200,
+            "minItems" : 0,
             "type" : "array"
           }
         }
@@ -25638,7 +25652,7 @@
           "name" : "template",
           "required" : false,
           "schema" : {
-            "enum" : [ "VERIFICATION_CODE", "PASSWORD_RESET_CODE", "TWO_FACTOR_CODE", "ACCOUNT_DELETED", "SECURITY_NEW_LOGIN", "SECURITY_PASSWORD_CHANGED", "SECURITY_TWO_FACTOR_NOTICE", "ANNOUNCEMENT", "CUSTOM" ],
+            "enum" : [ "VERIFICATION_CODE", "PASSWORD_RESET_CODE", "TWO_FACTOR_CODE", "SUPPORT_CODE", "ACCOUNT_DELETED", "SECURITY_NEW_LOGIN", "SECURITY_PASSWORD_CHANGED", "SECURITY_TWO_FACTOR_NOTICE", "ANNOUNCEMENT", "CUSTOM" ],
             "type" : "string"
           }
         }, {
@@ -30439,7 +30453,7 @@
     },
     "/api/admin/pending-registrations/{email}/resend-code" : {
       "post" : {
-        "operationId" : "resend",
+        "operationId" : "resend_1",
         "parameters" : [ {
           "in" : "path",
           "name" : "email",
@@ -32884,6 +32898,78 @@
         "responses" : {
           "204" : {
             "description" : "No Content"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Dogrulama / is kurali hatasi (code alanina bakin)"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Token yok/gecersiz/suresi dolmus"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "ADMIN rolu gerekli"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "RATE_LIMITED: istek siniri asildi"
+          }
+        },
+        "security" : [ {
+          "bearerAuth" : [ ]
+        }, {
+          "adminBasic" : [ ]
+        } ],
+        "tags" : [ "campaign-controller" ]
+      }
+    },
+    "/api/admin/push/campaigns/{id}/resend" : {
+      "post" : {
+        "operationId" : "resend",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "format" : "int64",
+            "type" : "integer"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CampaignView"
+                }
+              }
+            },
+            "description" : "OK"
           },
           "400" : {
             "content" : {
@@ -46494,12 +46580,12 @@
         "tags" : [ "client-state-controller" ]
       }
     },
-    "/api/devices/{token}" : {
+    "/api/devices/{idOrToken}" : {
       "delete" : {
         "operationId" : "unregisterDevice",
         "parameters" : [ {
           "in" : "path",
-          "name" : "token",
+          "name" : "idOrToken",
           "required" : true,
           "schema" : {
             "type" : "string"
