@@ -41,7 +41,7 @@ public interface UserEventRepository extends JpaRepository<UserEvent, Long> {
      */
     @Query("""
             SELECT e FROM UserEvent e
-            WHERE e.status = :active AND e.endsAt >= :from AND e.startsAt < :to
+            WHERE e.status = :active AND e.endsAt >= :from AND e.startsAt < :to AND e.startsAt >= :lb
               AND (:communityId = 0 OR e.communityId = :communityId)
               AND (e.startsAt > :cs OR (e.startsAt = :cs AND e.id > :cid))
               AND (e.communityId IS NULL OR e.communityId IN (
@@ -49,14 +49,31 @@ public interface UserEventRepository extends JpaRepository<UserEvent, Long> {
                       OR c.id IN (SELECT m.communityId FROM CommunityMember m WHERE m.userId = :uid AND m.status = :mActive))))
             ORDER BY e.startsAt, e.id
             """)
-    List<UserEvent> upcoming(@Param("active") UserEvent.Status active, @Param("from") Instant from,
-                             @Param("to") Instant to, @Param("communityId") long communityId,
-                             @Param("cs") Instant cursorStart, @Param("cid") long cursorId,
-                             @Param("cActive") edu.bingol.backend.community.Community.Status cActive,
-                             @Param("pub") edu.bingol.backend.community.Community.Visibility pub,
-                             @Param("uid") Long userId,
-                             @Param("mActive") edu.bingol.backend.community.CommunityMember.Status mActive,
-                             Pageable page);
+    List<UserEvent> upcomingBounded(@Param("active") UserEvent.Status active, @Param("from") Instant from,
+                                    @Param("to") Instant to, @Param("lb") Instant lowerBound,
+                                    @Param("communityId") long communityId,
+                                    @Param("cs") Instant cursorStart, @Param("cid") long cursorId,
+                                    @Param("cActive") edu.bingol.backend.community.Community.Status cActive,
+                                    @Param("pub") edu.bingol.backend.community.Community.Visibility pub,
+                                    @Param("uid") Long userId,
+                                    @Param("mActive") edu.bingol.backend.community.CommunityMember.Status mActive,
+                                    Pageable page);
+
+    /**
+     * FIX-P05 (A05#5): baslangic alt siniri. Etkinlik suresi en cok 30 gun (validateDuration); eski kayitlar icin
+     * payla 60 gun geri. Biten etkinlikler artik {@code idx_event_status_start} taramasina girmez (ilk sayfa
+     * O(biten etkinlik) buyumesi biter).
+     */
+    int START_LOOKBACK_DAYS = 60;
+
+    default List<UserEvent> upcoming(UserEvent.Status active, Instant from, Instant to, long communityId,
+                                     Instant cursorStart, long cursorId,
+                                     edu.bingol.backend.community.Community.Status cActive,
+                                     edu.bingol.backend.community.Community.Visibility pub, Long userId,
+                                     edu.bingol.backend.community.CommunityMember.Status mActive, Pageable page) {
+        return upcomingBounded(active, from, to, from.minus(java.time.Duration.ofDays(START_LOOKBACK_DAYS)), communityId,
+                cursorStart, cursorId, cActive, pub, userId, mActive, page);
+    }
 
     /**
      * Ana sayfa "one cikan": bitmemis ACTIVE etkinlikler icinde en cok GOING, esitlikte en yakin baslangic.
@@ -64,18 +81,28 @@ public interface UserEventRepository extends JpaRepository<UserEvent, Long> {
      */
     @Query("""
             SELECT e FROM UserEvent e
-            WHERE e.status = :active AND e.endsAt >= :now
+            WHERE e.status = :active AND e.endsAt >= :now AND e.startsAt >= :lb
               AND (e.communityId IS NULL OR e.communityId IN (
                     SELECT c.id FROM Community c WHERE c.status = :cActive AND (c.visibility = :pub
                       OR c.id IN (SELECT m.communityId FROM CommunityMember m WHERE m.userId = :uid AND m.status = :mActive))))
             ORDER BY e.goingCount DESC, e.startsAt, e.id
             """)
-    List<UserEvent> featured(@Param("active") UserEvent.Status active, @Param("now") Instant now,
-                             @Param("cActive") edu.bingol.backend.community.Community.Status cActive,
-                             @Param("pub") edu.bingol.backend.community.Community.Visibility pub,
-                             @Param("uid") Long userId,
-                             @Param("mActive") edu.bingol.backend.community.CommunityMember.Status mActive,
-                             Pageable page);
+    List<UserEvent> featuredBounded(@Param("active") UserEvent.Status active, @Param("now") Instant now,
+                                    @Param("lb") Instant lowerBound,
+                                    @Param("cActive") edu.bingol.backend.community.Community.Status cActive,
+                                    @Param("pub") edu.bingol.backend.community.Community.Visibility pub,
+                                    @Param("uid") Long userId,
+                                    @Param("mActive") edu.bingol.backend.community.CommunityMember.Status mActive,
+                                    Pageable page);
+
+    /** FIX-P05 (A05#5): {@link #upcoming} ile ayni alt sinir; tarihsel en cok katilimli biten etkinlikler taranmaz. */
+    default List<UserEvent> featured(UserEvent.Status active, Instant now,
+                                     edu.bingol.backend.community.Community.Status cActive,
+                                     edu.bingol.backend.community.Community.Visibility pub, Long userId,
+                                     edu.bingol.backend.community.CommunityMember.Status mActive, Pageable page) {
+        return featuredBounded(active, now, now.minus(java.time.Duration.ofDays(START_LOOKBACK_DAYS)), cActive, pub,
+                userId, mActive, page);
+    }
 
     /** Katilacaklarim: RSVP'li (GOING/INTERESTED), bitmemis, ACTIVE etkinlikler; takvim sirasi. */
     @Query("""

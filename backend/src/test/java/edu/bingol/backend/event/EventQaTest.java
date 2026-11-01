@@ -227,6 +227,7 @@ class EventQaTest {
         r.setRemindedDay(true);
         r.setRemindedHour(true);
         when(rsvps.findByEventIdAndUserId(5L, 1L)).thenReturn(Optional.of(r));
+        when(rsvps.transition(any(), any(), any())).thenReturn(1);
         when(events.tryIncrementGoing(5L)).thenReturn(1);
 
         svc.rsvp(stranger, 5L, EventRsvp.Status.INTERESTED);
@@ -289,9 +290,11 @@ class EventQaTest {
         event(UserEvent.Status.ACTIVE);
         when(rsvps.findByEventIdAndUserId(5L, 1L))
                 .thenReturn(Optional.of(new EventRsvp(5L, 1L, EventRsvp.Status.INTERESTED)));
+        when(rsvps.deleteClaim(any())).thenReturn(1);
 
         svc.cancelRsvp(stranger, 5L);
 
+        verify(rsvps).deleteClaim(any());
         verify(events, never()).decrementGoing(anyLong());
     }
 

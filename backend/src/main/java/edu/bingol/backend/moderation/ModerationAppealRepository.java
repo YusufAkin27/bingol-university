@@ -16,6 +16,11 @@ public interface ModerationAppealRepository extends JpaRepository<ModerationAppe
 
     List<ModerationAppeal> findTop50ByUserIdOrderByIdDesc(Long userId);
 
+    /** FIX-P05: karar verirken satiri kilitler (cift karar / cift bildirim onlenir). */
+    @org.springframework.data.jpa.repository.Lock(jakarta.persistence.LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT a FROM ModerationAppeal a WHERE a.id = :id")
+    java.util.Optional<ModerationAppeal> lockById(@Param("id") Long id);
+
     @Query("SELECT a FROM ModerationAppeal a WHERE a.status = :status AND (:cursor IS NULL OR a.id > :cursor) ORDER BY a.id ASC")
     List<ModerationAppeal> page(@Param("status") ModerationAppeal.Status status, @Param("cursor") Long cursor,
                                 Pageable pageable);

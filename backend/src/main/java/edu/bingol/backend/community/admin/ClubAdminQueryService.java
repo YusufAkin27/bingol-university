@@ -98,6 +98,19 @@ public class ClubAdminQueryService {
         return jdbc.query(SELECT + where + " ORDER BY c.id DESC LIMIT :lim", params, (rs, i) -> row(rs));
     }
 
+    /**
+     * FIX-P05 (A05#9): CSV icin kimlik imecli parca ({@code id < beforeId}, en yeni once, en cok {@code limit} satir).
+     * Cagiran parcalari dogrudan yanita yazar; 50.000 satir bellekte listelenmez.
+     */
+    @Transactional(readOnly = true)
+    public List<ClubRow> exportChunk(ClubFilter f, long beforeId, int limit) {
+        MapSqlParameterSource params = new MapSqlParameterSource().addValue("lim", Math.min(Math.max(limit, 1), 1000))
+                .addValue("beforeId", beforeId);
+        String where = where(f, params);
+        return jdbc.query(SELECT + where + " AND c.id < :beforeId ORDER BY c.id DESC LIMIT :lim", params,
+                (rs, i) -> row(rs));
+    }
+
     // ---- ayrinti ----
 
     @Transactional(readOnly = true)

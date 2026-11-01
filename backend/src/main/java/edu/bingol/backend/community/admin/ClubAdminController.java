@@ -101,23 +101,34 @@ public class ClubAdminController {
                           @RequestParam(required = false) Integer minReports, HttpServletResponse res)
             throws IOException {
         limit();
-        List<ClubRow> rows = query.export(new ClubFilter(status, category, q, visibility, joinPolicy, ownerId, minReports,
-                null, null));
+        ClubFilter filter = new ClubFilter(status, category, q, visibility, joinPolicy, ownerId, minReports, null, null);
         res.setStatus(HttpStatus.OK.value());
         res.setContentType("text/csv; charset=UTF-8");
         res.setHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"kulupler.csv\"");
         res.setHeader(HttpHeaders.CACHE_CONTROL, "no-store");
+        int written = 0;
         try (Writer w = new BufferedWriter(new OutputStreamWriter(res.getOutputStream(), StandardCharsets.UTF_8))) {
             w.write(Csv.BOM);
             w.write(Csv.row(CSV_HEADER));
-            for (ClubRow r : rows) {
-                w.write(Csv.row(Arrays.asList(r.id(), r.name(), r.slug(), r.category(), r.status(), r.visibility(),
-                        r.joinPolicy(), r.ownerId(), r.ownerName(), r.ownerEmail(), r.memberCount(), r.pendingCount(),
-                        r.openReportCount(), r.eventCount(), r.createdAt())));
+            // FIX-P05 (A05#9): 500'luk kimlik imecli parcalar dogrudan yanita yazilir (50.000 satir bellekte listelenmez)
+            long before = Long.MAX_VALUE;
+            while (written < ClubAdminQueryService.EXPORT_MAX) {
+                int want = Math.min(500, ClubAdminQueryService.EXPORT_MAX - written);
+                List<ClubRow> rows = query.exportChunk(filter, before, want);
+                for (ClubRow r : rows) {
+                    w.write(Csv.row(Arrays.asList(r.id(), r.name(), r.slug(), r.category(), r.status(), r.visibility(),
+                            r.joinPolicy(), r.ownerId(), r.ownerName(), r.ownerEmail(), r.memberCount(), r.pendingCount(),
+                            r.openReportCount(), r.eventCount(), r.createdAt())));
+                    written++;
+                }
+                if (rows.size() < want) {
+                    break;
+                }
+                before = rows.get(rows.size() - 1).id();
             }
             w.flush();
         } finally {
-            AuditContext.target("COMMUNITY", null).summary("csv satir=" + rows.size());
+            AuditContext.target("COMMUNITY", null).summary("csv satir=" + written);
         }
     }
 

@@ -128,7 +128,12 @@ public class ClubInviteService {
             existing.setJoinedAt(Instant.now());
             members.save(existing);
         } else {
-            members.save(new CommunityMember(c.getId(), a.id(), Role.MEMBER, CommunityMember.Status.ACTIVE));
+            try {
+                members.saveAndFlush(new CommunityMember(c.getId(), a.id(), Role.MEMBER, CommunityMember.Status.ACTIVE));
+            } catch (org.springframework.dao.DataIntegrityViolationException e) {
+                // FIX-P05 (A05#8): ayni kullanicinin es zamanli ikinci katilimi 500 degil 409 (islem, davet tuketimiyle geri alinir)
+                throw new ApiException(HttpStatus.CONFLICT, "ALREADY_MEMBER", "Zaten üyesiniz.");
+            }
         }
         grants.deleteMember(c.getId(), a.id());
         hooks.onMemberActivated(c.getId(), a.id());

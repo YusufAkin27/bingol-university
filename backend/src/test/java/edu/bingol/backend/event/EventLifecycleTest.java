@@ -117,13 +117,15 @@ class EventLifecycleTest {
         EventRsvp going = new EventRsvp(5L, 1L, EventRsvp.Status.GOING);
         when(rsvps.findByEventIdAndUserId(5L, 1L)).thenReturn(Optional.of(going));
         when(events.goingCount(5L)).thenReturn(1);
+        when(rsvps.deleteClaim(any())).thenReturn(1); // FIX-P05: silmeyi bu istek sahiplendi
 
         // ayni durumu yinelemek hata vermez
         assertEquals(EventRsvp.Status.GOING, svc.rsvp(stranger, 5L, EventRsvp.Status.GOING).myRsvp());
 
         // geri cekilme (RSVP silme) kapali kayitta da calisir
         svc.cancelRsvp(stranger, 5L);
-        verify(rsvps).delete(going);
+        verify(rsvps).deleteClaim(going.getId());
+        verify(events).decrementGoing(5L);
     }
 
     @Test

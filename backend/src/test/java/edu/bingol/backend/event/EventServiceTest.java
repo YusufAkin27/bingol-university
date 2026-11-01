@@ -45,6 +45,12 @@ class EventServiceTest {
     private final Instant start = Instant.now().plus(Duration.ofDays(2));
     private final Instant end = start.plus(Duration.ofHours(2));
 
+    {
+        // FIX-P05: durum gecisi / silme kosullu UPDATE ile sahiplenilir; varsayilan = bu istek kazandi
+        when(rsvps.transition(any(), any(), any())).thenReturn(1);
+        when(rsvps.deleteClaim(any())).thenReturn(1);
+    }
+
     private CreateEventRequest req(Instant s, Instant e, Integer cap, Long communityId) {
         return new CreateEventRequest("Konferans", "aciklama", s, e, "Salon", cap, communityId, null);
     }
@@ -211,7 +217,7 @@ class EventServiceTest {
         svc.rsvp(user, 5L, EventRsvp.Status.INTERESTED);
 
         verify(events).decrementGoing(5L);
-        assertEquals(EventRsvp.Status.INTERESTED, existing.getStatus());
+        verify(rsvps).transition(any(), eq(EventRsvp.Status.GOING), eq(EventRsvp.Status.INTERESTED));
     }
 
     @Test

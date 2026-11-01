@@ -69,7 +69,7 @@ public class AppealService {
 
     @Transactional
     public void decide(Long id, Long adminId, boolean accept, String note) {
-        ModerationAppeal a = appeals.findById(id)
+        ModerationAppeal a = appeals.lockById(id) // FIX-P05 (A05#10): cift karar yarisi
                 .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "APPEAL_NOT_FOUND", "İtiraz bulunamadı."));
         if (a.getStatus() != ModerationAppeal.Status.OPEN) {
             throw new ApiException(HttpStatus.CONFLICT, "ALREADY_RESOLVED", "Kayıt zaten sonuçlandırılmış.");

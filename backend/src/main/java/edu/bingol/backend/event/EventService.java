@@ -90,9 +90,17 @@ public class EventService {
     /** Kisa DB islemi (T-068: gorsel isleme islem disinda); yoksa dogrudan calisir (elle kurulan testler). */
     private ShortTx tx = ShortTx.direct();
 
+    /** FIX-P05: commit sonrasi yan etkiler (oda senkronu) icin REQUIRES_NEW sablonu; yoksa dogrudan calisir. */
+    private org.springframework.transaction.support.TransactionTemplate isolatedTx;
+
     @Autowired(required = false)
     void setTxManager(org.springframework.transaction.PlatformTransactionManager tm) {
         this.tx = ShortTx.of(tm);
+        if (tm != null) {
+            this.isolatedTx = new org.springframework.transaction.support.TransactionTemplate(tm);
+            this.isolatedTx.setPropagationBehavior(
+                    org.springframework.transaction.TransactionDefinition.PROPAGATION_REQUIRES_NEW);
+        }
     }
 
     public EventService(UserEventRepository events, EventRsvpRepository rsvps, OfficialEventRepository official,
@@ -225,6 +233,10 @@ public class EventService {
         // MANAGE_EVENTS yoksa 403. Yonetici/yetkili (MODERATOR+, sistem ADMIN'i) dogrudan yayinda; ozel yetki verilmis
         // sade uye (ornek: EVENT_MANAGER sablonu) yonetici onayina gider.
         communities.require(a, c.getId(), ClubPermission.MANAGE_EVENTS);
+        // FIX-P05 (A05#6, K14): acik etkinlik / gunluk acma sinirlari (eskiden hic cagrilmiyordu); sistem ADMIN'i muaf
+        if (admission != null) {
+            admission.beforeCreate(a);
+        }
         e.setCommunityId(c.getId());
         e.setStatus(isStaff(a, c.getId()) && !reservedTitle ? UserEvent.Status.ACTIVE : UserEvent.Status.PENDING_REVIEW);
         e.setTitle(r.title().trim());
@@ -664,15 +676,18 @@ public class EventService {
         }
         if (existing.isPresent()) {
             EventRsvp r = existing.get();
-            if (r.getStatus() != status) {
+            EventRsvp.Status old = r.getStatus();
+            if (old != status) {
+                // FIX-P05 (A05#2): gecis kosullu UPDATE ile sahiplenilir; es zamanli ikinci istek 0 alir ve sayaca
+                // dokunmaz (eskiden ikisi de decrement/increment yapip going_count'u kaydiriyordu).
+                if (rsvps.transition(r.getId(), old, status) == 0) {
+                    return new RsvpResult(status, events.goingCount(id), e.getCapacity());
+                }
                 if (status == EventRsvp.Status.GOING) {
-                    reserveSeat(id);
-                } else {
+                    reserveSeat(id); // dolu ise 409 firlar ve islem (gecis dahil) geri alinir
+                } else if (old == EventRsvp.Status.GOING) {
                     events.decrementGoing(id);
                 }
-                EventRsvp.Status old = r.getStatus();
-                r.setStatus(status);
-                rsvps.save(r);
                 chatSync(id, a.id(), old, status);
             }
         } else {
@@ -700,24 +715,40 @@ public class EventService {
             return;
         }
         rsvps.findByEventIdAndUserId(id, a.id()).ifPresent(r -> {
+            // FIX-P05: silmeyi sahiplenen ilk istek sayaci azaltir (cift dokunusta ikinci istek 0 alir)
+            if (rsvps.deleteClaim(r.getId()) == 0) {
+                return;
+            }
             if (r.getStatus() == EventRsvp.Status.GOING) {
                 events.decrementGoing(id);
             }
-            rsvps.delete(r);
             chatSync(id, a.id(), r.getStatus(), null);
         });
         leaveRoom(a, e);
     }
 
-    /** GOING girisi/cikisi sohbet odasina yansir (hook yoksa no-op). */
+    /**
+     * GOING girisi/cikisi sohbet odasina yansir (hook yoksa no-op). FIX-P05 (A05#4): commit SONRASI ve ayri islemde;
+     * eskiden RSVP'nin etkinlik satir kilidi tutulurken oda kilidi/sorgulari calisiyor, oda hatasi da RSVP'yi
+     * rollback-only yapabiliyordu (leaveRoom/closeRoom ile ayni desen).
+     */
     private void chatSync(Long eventId, Long userId, EventRsvp.Status from, EventRsvp.Status to) {
         if (chat == null) {
             return;
         }
         if (to == EventRsvp.Status.GOING) {
-            chat.onGoing(eventId, userId);
+            afterCommit(() -> inNewTx(() -> chat.onGoing(eventId, userId)));
         } else if (from == EventRsvp.Status.GOING) { // yalnizca GOING odada kalir (INTERESTED'a dusen de cikar)
-            chat.onLeft(eventId, userId);
+            afterCommit(() -> inNewTx(() -> chat.onLeft(eventId, userId)));
+        }
+    }
+
+    /** Yeni (bagimsiz) islemde calistirir; islem yoneticisi yoksa (birim testleri) dogrudan. */
+    private void inNewTx(Runnable work) {
+        if (isolatedTx == null) {
+            work.run();
+        } else {
+            isolatedTx.executeWithoutResult(s -> work.run());
         }
     }
 
@@ -943,7 +974,7 @@ public class EventService {
 
     private void notifyGoing(UserEvent e, String key) {
         // T-051: tum GOING katilimcilar (imecli sayfalar); eskiden ilk 500'de sessizce kesiliyordu
-        Paging.forEachChunk((after, n) -> rsvps.userIdsAfter(e.getId(), EventRsvp.Status.GOING, after, PageRequest.of(0, n)),
+        boolean truncated = Paging.forEachChunk((after, n) -> rsvps.userIdsAfter(e.getId(), EventRsvp.Status.GOING, after, PageRequest.of(0, n)),
                 ids -> {
                     for (Long uid : ids) {
                         if (!uid.equals(e.getCreatedBy())) {
@@ -952,6 +983,9 @@ public class EventService {
                         }
                     }
                 });
+        if (truncated) { // FIX-P05 (A05#3): guvenlik tavanina carpildi; sessiz kesme degil, loglanir
+            log.warn("Etkinlik {} bildirimi alici tavaninda kesildi ({})", e.getId(), key);
+        }
     }
 
     private List<EventView> views(List<UserEvent> list, Actor a, boolean detail) {

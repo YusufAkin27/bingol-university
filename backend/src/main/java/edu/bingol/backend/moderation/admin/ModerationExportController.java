@@ -43,6 +43,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class ModerationExportController {
 
     static final int MAX_ROWS = 50_000;
+    static final int CHUNK = 1000;
     private static final List<String> REPORT_HEADER = Arrays.asList("id", "durum", "karar", "nedenKodu", "raporlayanId",
             "hedefTuru", "hedefId", "sebep", "not", "oncelik", "olusturma", "cozumTarihi", "cozenId");
     private static final List<String> APPEAL_HEADER = Arrays.asList("id", "durum", "kullaniciId", "hedefTuru", "hedefId",
@@ -68,15 +69,17 @@ public class ModerationExportController {
                            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to,
                            HttpServletResponse res) throws IOException {
         limit();
-        List<Report> rows = findReports(status, targetType, resolution, reasonCode, AdminDates.from(from),
+        Specification<Report> spec = reportSpec(status, targetType, resolution, reasonCode, AdminDates.from(from),
                 AdminDates.toExclusive(to));
+        int[] n = {0};
         try {
-            write(res, "raporlar.csv", REPORT_HEADER, rows.stream().map(r -> Arrays.<Object>asList(r.getId(),
-                    r.getStatus(), r.getResolution(), r.getReasonCode(), r.getReporterId(), r.getTargetType(),
-                    r.getTargetId(), r.getReason(), r.getNote(), r.getPriority(), r.getCreatedAt(), r.getResolvedAt(),
-                    r.getResolvedBy())).toList());
+            // FIX-P05 (A05#9): 1000'lik kimlik imecli sayfalarla dogrudan yanita yazilir (50.000 varlik bellekte tutulmaz)
+            stream(res, "raporlar.csv", REPORT_HEADER, w -> n[0] = pump(reports, spec, Report::getId, r ->
+                    writeRow(w, Arrays.<Object>asList(r.getId(), r.getStatus(), r.getResolution(), r.getReasonCode(),
+                            r.getReporterId(), r.getTargetType(), r.getTargetId(), r.getReason(), r.getNote(),
+                            r.getPriority(), r.getCreatedAt(), r.getResolvedAt(), r.getResolvedBy()))));
         } finally {
-            AuditContext.target("REPORT", null).summary("csv satir=" + rows.size());
+            AuditContext.target("REPORT", null).summary("csv satir=" + n[0]);
         }
     }
 
@@ -88,19 +91,22 @@ public class ModerationExportController {
                            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to,
                            HttpServletResponse res) throws IOException {
         limit();
-        List<ModerationAppeal> rows = findAppeals(status, targetType, AdminDates.from(from), AdminDates.toExclusive(to));
+        Specification<ModerationAppeal> spec = appealSpec(status, targetType, AdminDates.from(from),
+                AdminDates.toExclusive(to));
+        int[] n = {0};
         try {
-            write(res, "itirazlar.csv", APPEAL_HEADER, rows.stream().map(a -> Arrays.<Object>asList(a.getId(),
-                    a.getStatus(), a.getUserId(), a.getTargetType(), a.getTargetId(), a.getMessage(), a.getAdminNote(),
-                    a.getCreatedAt(), a.getDecidedAt(), a.getDecidedBy())).toList());
+            stream(res, "itirazlar.csv", APPEAL_HEADER, w -> n[0] = pump(appeals, spec, ModerationAppeal::getId, a ->
+                    writeRow(w, Arrays.<Object>asList(a.getId(), a.getStatus(), a.getUserId(), a.getTargetType(),
+                            a.getTargetId(), a.getMessage(), a.getAdminNote(), a.getCreatedAt(), a.getDecidedAt(),
+                            a.getDecidedBy()))));
         } finally {
-            AuditContext.target("APPEAL", null).summary("csv satir=" + rows.size());
+            AuditContext.target("APPEAL", null).summary("csv satir=" + n[0]);
         }
     }
 
-    List<Report> findReports(String status, ReportTargetType type, Report.Resolution resolution, String reasonCode,
-                             Instant from, Instant toExclusive) {
-        Specification<Report> spec = (root, q, cb) -> {
+    Specification<Report> reportSpec(String status, ReportTargetType type, Report.Resolution resolution, String reasonCode,
+                                     Instant from, Instant toExclusive) {
+        return (root, q, cb) -> {
             List<Predicate> ps = new ArrayList<>();
             if ("OPEN".equalsIgnoreCase(status)) {
                 ps.add(cb.equal(root.get("status"), Report.Status.OPEN));
@@ -124,11 +130,10 @@ public class ModerationExportController {
             }
             return cb.and(ps.toArray(new Predicate[0]));
         };
-        return reports.findAll(spec, PageRequest.of(0, MAX_ROWS, Sort.by(Sort.Direction.DESC, "id"))).getContent();
     }
 
-    List<ModerationAppeal> findAppeals(String status, ReportTargetType type, Instant from, Instant toExclusive) {
-        Specification<ModerationAppeal> spec = (root, q, cb) -> {
+    Specification<ModerationAppeal> appealSpec(String status, ReportTargetType type, Instant from, Instant toExclusive) {
+        return (root, q, cb) -> {
             List<Predicate> ps = new ArrayList<>();
             for (ModerationAppeal.Status s : ModerationAppeal.Status.values()) {
                 if (s.name().equalsIgnoreCase(status)) {
@@ -146,10 +151,10 @@ public class ModerationExportController {
             }
             return cb.and(ps.toArray(new Predicate[0]));
         };
-        return appeals.findAll(spec, PageRequest.of(0, MAX_ROWS, Sort.by(Sort.Direction.DESC, "id"))).getContent();
     }
 
-    static void write(HttpServletResponse res, String filename, List<String> header, List<List<Object>> rows)
+    /** Yanita basligi yazar, govdeyi {@code body} ile akitir. */
+    static void stream(HttpServletResponse res, String filename, List<String> header, java.util.function.Consumer<Writer> body)
             throws IOException {
         res.setStatus(HttpStatus.OK.value());
         res.setContentType("text/csv; charset=UTF-8");
@@ -158,11 +163,52 @@ public class ModerationExportController {
         try (Writer w = new BufferedWriter(new OutputStreamWriter(res.getOutputStream(), StandardCharsets.UTF_8))) {
             w.write(Csv.BOM);
             w.write(Csv.row(header));
-            for (List<Object> r : rows) {
-                w.write(Csv.row(r));
-            }
+            body.accept(w);
             w.flush();
         }
+    }
+
+    private static void writeRow(Writer w, List<Object> row) {
+        try {
+            w.write(Csv.row(row));
+        } catch (IOException e) {
+            throw new java.io.UncheckedIOException(e);
+        }
+    }
+
+    /**
+     * Kimlige gore azalan, {@value #CHUNK} satirlik imecli sayfalarla (COUNT yok) en cok {@value #MAX_ROWS} satiri
+     * {@code out}'a verir. Doner: yazilan satir sayisi.
+     */
+    static <T> int pump(org.springframework.data.jpa.repository.JpaSpecificationExecutor<T> repo, Specification<T> base,
+                        java.util.function.Function<T, Long> idOf, java.util.function.Consumer<T> out) {
+        return pump(repo, base, idOf, out, CHUNK, MAX_ROWS);
+    }
+
+    static <T> int pump(org.springframework.data.jpa.repository.JpaSpecificationExecutor<T> repo, Specification<T> base,
+                        java.util.function.Function<T, Long> idOf, java.util.function.Consumer<T> out,
+                        int chunk, int max) {
+        int n = 0;
+        Long cursor = null;
+        while (n < max) {
+            int want = Math.min(chunk, max - n);
+            final Long before = cursor;
+            Specification<T> spec = before == null ? base
+                    : base.and((root, q, cb) -> cb.lessThan(root.<Long>get("id"), before));
+            List<T> rows = repo.findBy(spec, q -> q.sortBy(Sort.by(Sort.Direction.DESC, "id")).limit(want).all());
+            if (rows.isEmpty()) {
+                break;
+            }
+            for (T r : rows) {
+                out.accept(r);
+                n++;
+            }
+            cursor = idOf.apply(rows.get(rows.size() - 1));
+            if (rows.size() < want) {
+                break;
+            }
+        }
+        return n;
     }
 
     /** CSV dokumu agir olabilir: yonetici basina dakikada 10. */
