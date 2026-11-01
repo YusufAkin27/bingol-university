@@ -1,5 +1,5 @@
 // SAYFA: Haberler ve duyurular (/news)
-// API: GET /api/news?type=HABER|DUYURU|ETKINLIK&q=metin(en az 2 karakter)&page&size (herkese açık, sayfa tabanlı).
+// API: GET /api/news?type=HABER|DUYURU|ETKINLIK&q=metin(en az 3 karakter; sunucu K19)&page&size (herkese açık, sayfa tabanlı).
 // Tür ve arama URL'de (?type=&q=); "Daha fazla yükle" sayfaları birikimli getirir. En yeni kayıt öne çıkan kart olur (aramada olmaz).
 // Görseller yalnızca *.bingol.edu.tr'den yüklenir (nginx CSP img-src); yüklenemezse gradyan/ikon yedeği gösterilir.
 import { useInfiniteQuery } from '@tanstack/react-query';
@@ -19,7 +19,7 @@ import shared from './components/site.module.css';
 import styles from './NewsListPage.module.css';
 
 const PAGE_SIZE = 12;
-export const MIN_QUERY = 2;
+export const MIN_QUERY = 3;
 
 export function parseKind(v: string | null): NewsKind | undefined {
   return NEWS_KINDS.find((k) => k === v);

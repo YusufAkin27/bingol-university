@@ -49,7 +49,7 @@ Istemci etkisi (mobil/web kodu DEGISMEDI; sozlesme):
 
 Sunucu davranisi:
 - Haber liste/arama/favoriler `content` (TEXT) okumaz (`NewsRow` / `NewsSearchRow` dar projeksiyon).
-- Menu: ayin sonu cekimi basarisiz olursa bir ay beklenmez. Gunluk **06:00 "yakalama"** (`menu.catchup.cron`, K20 CLAUDE.md "cron
+- Menu: gunluk **06:00 "yakalama"** (`menu.catchup.cron`, K20) YAZILDI ama FINAL-ALL'de **VARSAYILAN KAPALI** (`menu.catchup.cron=-`): CLAUDE.md scraping kurali ("cron'lari sikilastirmayin") kesindir, istisna proje sahibinin kararidir. Acmak icin ortam degiskeni `MENU_CATCHUP_CRON="0 0 6 * * *"`: icinde bulunulan ayda >= 20 gun varsa kaynaga ISTEK ATMAZ; ay bossa gunde en cok bir istek, ay kismen doluysa yalniz ayin ilk 7 gunu. Bakim bandi (`GET /api/status`) yalniz icinde bulunulan ayin menusu bossa gosterilir (`StatusService.markAttempt`: son deneme yazilir, bakim acilmaz).
   sikilastirma" kuralina bilincli istisna): icinde bulunulan ayda >= 20 gun varsa kaynaga ISTEK ATMAZ; ay bossa gunde en cok bir
   istek, ay kismen doluysa yalniz ayin ilk 7 gunu. Bakim bandi (`GET /api/status`) yalniz icinde bulunulan ayin menusu bossa gosterilir
   (`StatusService.markAttempt`: son deneme yazilir, bakim acilmaz).

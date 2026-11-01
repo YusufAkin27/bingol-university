@@ -343,7 +343,7 @@ const m = {
   'pg.news.prevNext': 'Önceki ve sonraki içerik',
   'pg.news.emptySearch': 'Aramanızla eşleşen içerik yok',
   'pg.news.emptySearchHint':
-    'Farklı anahtar sözcükler deneyin (en az 2 karakter) veya tür filtresini değiştirin.',
+    'Farklı anahtar sözcükler deneyin (en az 3 karakter) veya tür filtresini değiştirin.',
   'pg.news.resultCount': '{count} sonuç bulundu',
   'pg.brand.lead':
     'BÜ Kampüs logoları, Kampüs Kırmızısı renk paleti, tipografi ve kullanım kuralları. Dosyaları doğrudan indirebilirsiniz.',

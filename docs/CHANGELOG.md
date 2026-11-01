@@ -4,6 +4,15 @@
 
 Ayrıntılı modül notları: `docs/changes/*.md`. Mobil API rehberi: [MOBILE_API_GUIDE.md](MOBILE_API_GUIDE.md).
 
+### FINAL-ALL (2026-11-01): backend düzeltme paketleri P01-P10 + panel dalı tek dalda (`deploy/final-all-20261101`)
+
+- **Birleşen paketler (sırayla):** P10 altyapı/test hızı, P01 Redis dayanıklılığı + hız sınırı, P04 bildirim/e-posta, P02 kimlik/oturum + erişim engelleri, P03 sohbet/medya, P05 topluluk/etkinlik, P06 keşfet/gönderi, P07 içerik/destek/arama, P08 akademik/profil, P09 yönetim/çökme/dbmaint. Ayrıntı: `docs/changes/*.md` ("FIX-Pxx" bölümleri), istemci etkisi tablosu [CLIENT_IMPACT_20261101.md](CLIENT_IMPACT_20261101.md).
+- **Flyway (yalnız YENİ dosyalar, uygulanmış hiçbiri değişmedi):** V1090, V1092 (sohbet indeksleri), V1100-V1102 (mail kampanya bağı, push SENT indeksi, kampanya ilerleme), V1110-V1111 (etkinlik/topluluk indeksleri), V1120-V1123 (gönderi indeksleri), V1140 (`grade` geriye doldurma), V1141 (hesap silme indeksleri). V1091, V1112, V1130, V1150+ kullanılmadı.
+- **İkinci tur (P04 toplu API'sine bağlı kalemler):** üye/katılımcı/kitle bildirimleri istek thread'inden ve açık işlemden çıkarıldı (`FanoutNotifier`, `sendTemplatedBulk`): kulüp yazısı/duyurusu/silme, etkinlik güncelleme/iptal/duyuru, başvuru modu, anket, akademik duyuru, etkinlik hatırlatma. Kulüp satır kilidi artık bildirim boyunca tutulmaz.
+- **Geriye uyumluluk (eski mobil 2.0.5/2.0.6):** makbuz/yazıyor varsayılan eski davranış (ayarla kapatılır), oda gönderim sınırı 600/dk, etkinlik açma sınırları varsayılan kapalı, menü yakalama cron'u varsayılan kapalı. Refresh çift istek `409 REFRESH_IN_PROGRESS` ve "99+" sayaç eski istemcide güvenli (kanıt tabloda).
+- **Birleştirme düzeltmeleri:** P03 test derleme hatası, P09 panel önbelleği testleri, `AccountDataPurger` yeni sütun kararı, `NewsListPage` en az 3 karakter.
+- **Test:** backend TEST_COUNT_PLACEHOLDER; web 1781 geçti + 3 atlandı (166 dosya); yedek betik öz testleri 97 + 25 OK.
+
 ### FINAL (2026-11-01): iki dağıtım hattının birleştirilmesi
 
 - `deploy/hardened-20261101` (SEO, site içeriği, Drive yedek, 2FA, birim haberleri, HARDEN) ile panel görsel yenilemesi + varsayılan gizli hesap (`app.profile.default-private-account`) + menü kalori/görsel tek dalda (`deploy/final-20261101`) birleştirildi. Flyway sırası V1040 (menü) → V1050 (birim haberleri) → V1060 (2FA); numara çakışması yok.

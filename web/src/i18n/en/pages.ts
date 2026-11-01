@@ -339,7 +339,7 @@ const m = {
   'pg.news.next': 'Next item',
   'pg.news.prevNext': 'Previous and next item',
   'pg.news.emptySearch': 'Nothing matches your search',
-  'pg.news.emptySearchHint': 'Try different keywords (at least 2 characters) or change the type filter.',
+  'pg.news.emptySearchHint': 'Try different keywords (at least 3 characters) or change the type filter.',
   'pg.news.resultCount': '{count} results found',
   'pg.brand.lead':
     'BÜ Kampüs logos, the Campus Red colour palette, typography and usage rules. Files can be downloaded directly.',
