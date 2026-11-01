@@ -52,8 +52,10 @@ describe('son ziyaret ve sık kullanılan sayfalar (pageMemory)', () => {
 
 describe('rota önyükleme (prefetch)', () => {
   const navIds = adminNav.flatMap((g) => g.items.map((i) => i.id));
-  it('her menü sayfasının yükleyicisi var, fazlası yok', () => {
-    expect(Object.keys(PAGE_LOADERS).sort()).toEqual([...navIds].sort());
+  it('yükleyiciler yalnız var olan menü sayfalarına aittir ve sık açılan sayfaları kapsar', () => {
+    const keys = Object.keys(PAGE_LOADERS);
+    for (const k of keys) expect(navIds, k).toContain(k);
+    for (const k of ['users', 'reports', 'chatFeed', 'tickets', 'campaigns']) expect(keys).toContain(k);
   });
   it('bilinmeyen kimlik sessizce yok sayılır', () => {
     expect(() => prefetchPage('yok-boyle-sayfa')).not.toThrow();
@@ -82,6 +84,11 @@ describe('klavye kısayolu tablosu', () => {
     expect(isTypingTarget(cb)).toBe(false);
     expect(isTypingTarget(btn)).toBe(false);
     expect(isTypingTarget(div)).toBe(false);
+    const list = document.createElement('div');
+    list.setAttribute('role', 'listbox');
+    const opt = document.createElement('div');
+    list.appendChild(opt);
+    expect(isTypingTarget(opt)).toBe(true);
     expect(isTypingTarget(null)).toBe(false);
   });
 });

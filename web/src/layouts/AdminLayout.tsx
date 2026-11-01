@@ -17,7 +17,6 @@ import { adminNav, allAdminNavItems, locateNav, navMatches } from './adminNav';
 import { StorageBanner } from '../pages/admin/dataretention/StorageBanner';
 import { PageSkeleton } from './PageSkeleton';
 import { recordPageVisit, toggleFavoritePage, usePageMemory } from './pageMemory';
-import { prefetchPage } from './prefetch';
 import { RouteBoundary } from './RouteBoundary';
 import { DismissibleBand, MaintenanceBand } from './ShellBands';
 import { useShellShortcuts } from './useShellShortcuts';
@@ -27,6 +26,8 @@ import extras from './ShellExtras.module.css';
 
 // Arama penceresi, yardım penceresi ve menü süzgeci motoru yalnız kullanılınca yüklenir (ana yönetim paketi küçük kalır)
 const QuickNav = lazy(() => import('./QuickNav'));
+/** Rota önyükleme tablosu (50+ dinamik içe aktarma) ayrı parçadır: ilk hover'da yüklenir, yönetim kabuğunu şişirmez. */
+const prefetchPage = (id: string) => void import('./prefetch').then((m) => m.prefetchPage(id));
 const ShortcutsHelp = lazy(() => import('./ShortcutsHelp'));
 type MenuSearchModule = typeof MenuSearch;
 type MenuHits = MenuMatch['hits'];

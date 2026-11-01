@@ -50,6 +50,8 @@ export const GENERAL_SHORTCUTS: readonly KeyDescriptor[] = [
 export function isTypingTarget(el: EventTarget | null): boolean {
   if (!(el instanceof HTMLElement)) return false;
   if (el.isContentEditable) return true;
+  // harfle öne atlayan (type-ahead) bileşenler: liste kutusu, menü, arama kutusu, ızgara
+  if (el.closest('[role="listbox"],[role="menu"],[role="combobox"],[role="textbox"],[role="searchbox"],[role="grid"]')) return true;
   const tag = el.tagName;
   if (tag === 'TEXTAREA' || tag === 'SELECT') return true;
   if (tag === 'INPUT') {
