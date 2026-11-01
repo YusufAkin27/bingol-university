@@ -16,6 +16,11 @@
 
 # Backend vekili (3 gövde-sınırı bloğu ortak kullanır). X-Forwarded-* Caddy tarafından üretilir (istemcinin gönderdiği ezilir);
 # güven modeli DEĞİŞMEZ: backend yalnız docker ağındaki proxy'den XFF kabul eder (APP_SECURITY_TRUSTED_PROXIES).
+# API / dosya / WebSocket yanıtları arama dizinine girmemeli (robots.txt zaten kapatır; bu ikinci güvence).
+(noindex) {
+	header X-Robots-Tag "noindex, nofollow"
+}
+
 (backend_proxy) {
 	reverse_proxy backend:8080 {
 		header_up X-Forwarded-For {client_ip}
@@ -54,6 +59,7 @@
 	# Yönetim/iç uçlar dışarı verilmez (sağlık denetimi konteyner içinden yapılır)
 	@internal path /actuator /actuator/* /swagger-ui* /v3/api-docs*
 	handle @internal {
+		import noindex
 		respond "Not Found" 404
 	}
 
@@ -63,6 +69,7 @@
 	#  2) /api/admin/*: 2 MB (e-posta şablonu/HTML gibi yönetici metinleri). 3) geri kalan /api/*, /files/*, /ws: 128 KB.
 	@upload path_regexp upload ^/api/(posts/media|users/me/avatar|communities/[^/]+/(cover|logo|posts/upload)|events/[^/]+/cover|conversations/[^/]+/(avatar|media)|admin/menu/[^/]+/image)/?$
 	handle @upload {
+		import noindex
 		request_body {
 			max_size {$MAX_BODY}
 		}
@@ -71,6 +78,7 @@
 
 	@admin path /api/admin/*
 	handle @admin {
+		import noindex
 		request_body {
 			max_size 2MB
 		}
@@ -80,6 +88,7 @@
 	# API, dosyalar, WebSocket: backend (/ws: yükseltme isteğinin gövdesi yok; STOMP çerçeveleri bu sınıra girmez)
 	@backend path /api/* /files/* /ws /ws/*
 	handle @backend {
+		import noindex
 		request_body {
 			max_size 128KB
 		}

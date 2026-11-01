@@ -117,7 +117,12 @@ sayfanın ilk okuma ucu da yazılır.
 Site 404 davranışı: `scripts/prerender.mjs` `dist/404.html` üretir (noindex + h1 + açıklama); `nginx.conf` dil önekli
 bilinmeyen yollar için HTTP 404 döner (`error_page 404 /404.html`). Haber kimliği, hukuki metin türü ve `/support/track`
 özel kurallarla kabuk (200) alır; **yeni dinamik site rotası eklenirse nginx'e de özel kural eklenmelidir**
-(`src/seo/notFound.test.ts` statik rotaları ve kural sırasını denetler).
+(`src/seo/notFound.test.ts` statik rotaları ve kural sırasını denetler). **Kök düzeyde bilinmeyen her yol da 404'tür**
+(eski SPA düşüşü kaldırıldı); yönetim yolu derlemede nginx'e `_nginx-generated.conf` ile bildirilir.
+
+Teknik SEO (robots, sitemap, URL hijyeni, başlıklar, gece menü/haber yenilemesi): [`docs/SEO_TECHNICAL.md`](../docs/SEO_TECHNICAL.md).
+`npm run build && npm run check:seo` (dist denetimi; `check:seo:strict` uyarıları da hata sayar; `-- --live <köken>` canlı
+davranış denetimi). Sayfa metni değiştiren commit'te `seo-lastmod.json` da commit edilir (sitemap `lastmod` kaydı).
 
 OpenAPI tipleri: `npm run gen:api` (`docs/openapi.json` -> `src/api/generated/schema.d.ts`); tip güvenli örnek
 modüller `src/api/typed/*` (bkz. `docs/MOBILE_CODEGEN.md`).

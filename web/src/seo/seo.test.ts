@@ -16,6 +16,7 @@ import {
   renderSecurityTxt,
   routeJsonLd,
 } from './prerender';
+import { sitemapLangs } from './crawl';
 import { ROUTE_META, infoRouteId, legalRouteId, matchRouteMeta, resolveMeta, routeById } from './routeMeta';
 
 const ORIGIN = 'https://example.org';
@@ -167,19 +168,21 @@ describe('sitemap.xml', () => {
   it('yer tutucu yok, hepsi mutlak https adres', () => {
     expect(xml).not.toContain('ALAN-ADI');
     const locs = [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1]);
-    expect(locs.length).toBe(ROUTE_META.length * LANGS.length);
+    // Türkçe-only (hukuki belge) rotalar yalnız tr ile girer; diğerleri her dilde
+    expect(locs.length).toBe(ROUTE_META.reduce((n, r) => n + sitemapLangs(r).length, 0));
     for (const l of locs) expect(l).toMatch(/^https:\/\/example\.org\/(tr|en|ar)(\/|$)/);
     expect(new Set(locs).size).toBe(locs.length);
     expect(xml).toContain('<lastmod>2026-10-28</lastmod>');
   });
 
-  it('hreflang karşılıklı: her url kendi dahil üç dili ve x-default listeler', () => {
+  it('hreflang karşılıklı: her url kendi dahil dilleri ve x-default listeler (Türkçe-only rotada yalnız tr)', () => {
     const blocks = xml.split('<url>').slice(1);
     const hrefsOf = (b: string) => [...b.matchAll(/hreflang="([^"]+)" href="([^"]+)"/g)].map((m) => [m[1], m[2]]);
     const byLoc = new Map<string, string[][]>();
     for (const b of blocks) byLoc.set(/<loc>([^<]+)<\/loc>/.exec(b)![1], hrefsOf(b));
     for (const [loc, alts] of byLoc) {
-      expect(alts.map((a) => a[0])).toEqual(['tr', 'en', 'ar', 'x-default']);
+      const route = ROUTE_META.find((r) => (loc.replace(ORIGIN, '').replace(/^\/(tr|en|ar)/, '') || '/') === r.path)!;
+      expect(alts.map((a) => a[0])).toEqual([...sitemapLangs(route), 'x-default']);
       // kendisi alternatiflerde var
       expect(alts.map((a) => a[1])).toContain(loc);
       // alternatifin kendi bloğu da bu url'yi listeler (karşılıklılık)
