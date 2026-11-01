@@ -23,7 +23,7 @@ public class AdminUserRepository {
 
     static final int RECENT_ACTIVITY_DAYS = 30;
     private static final String ROW_COLUMNS = "id, email, display_name, faculty, department, class_year, language, "
-            + "role, status, email_verified, created_at, last_seen_at, avatar_url";
+            + "role, status, email_verified, created_at, last_seen_at, avatar_url, two_factor_enabled";
 
     private final NamedParameterJdbcTemplate jdbc;
     private final ActivityRepository activity;
@@ -65,7 +65,8 @@ public class AdminUserRepository {
                 + "(SELECT count(*) FROM conversation_member cm WHERE cm.user_id = u.id AND cm.left_at IS NULL) AS c_conv, "
                 + "(SELECT count(*) FROM community_member m WHERE m.user_id = u.id AND m.status = 'ACTIVE') AS c_comm, "
                 + "(SELECT count(*) FROM user_event e WHERE e.created_by = u.id) AS c_events, "
-                + "(SELECT count(*) FROM bookmark b WHERE b.user_id = u.id) AS c_bookmarks "
+                + "(SELECT count(*) FROM bookmark b WHERE b.user_id = u.id) AS c_bookmarks, "
+                + "(SELECT count(*) FROM two_factor_device tf WHERE tf.user_id = u.id) AS c_tf_devices "
                 + "FROM app_user u WHERE u.id = :id", p, (rs, i) -> detailRow(rs));
         if (rows.isEmpty()) {
             return Optional.empty();
@@ -79,7 +80,8 @@ public class AdminUserRepository {
         return Optional.of(new AdminUserDetail(d.id(), d.email(), d.displayName(), d.faculty(), d.department(),
                 d.classYear(), d.language(), d.role(), d.status(), d.emailVerified(), d.createdAt(), d.lastSeenAt(),
                 d.avatarUrl(), d.bio(), d.suspendedReason(), d.deletedAt(), d.deviceCount(), platforms, d.counts(),
-                consents, activity.recentDays(id, RECENT_ACTIVITY_DAYS), extras(id, p)));
+                consents, activity.recentDays(id, RECENT_ACTIVITY_DAYS), extras(id, p), d.twoFactorEnabled(),
+                d.twoFactorTrustedDeviceCount(), d.twoFactorEnabledAt()));
     }
 
     /** Ek ayrintilar: her liste en fazla 50 kayit; mesaj icerigi okunmaz (yalnizca sayi). */
@@ -142,7 +144,8 @@ public class AdminUserRepository {
         return new AdminUserRow(rs.getLong("id"), rs.getString("email"), rs.getString("display_name"),
                 rs.getString("faculty"), rs.getString("department"), shortOrNull(rs, "class_year"),
                 rs.getString("language"), Role.valueOf(rs.getString("role")), UserStatus.valueOf(rs.getString("status")),
-                rs.getBoolean("email_verified"), ts(rs, "created_at"), ts(rs, "last_seen_at"), rs.getString("avatar_url"));
+                rs.getBoolean("email_verified"), ts(rs, "created_at"), ts(rs, "last_seen_at"), rs.getString("avatar_url"),
+                rs.getBoolean("two_factor_enabled"));
     }
 
     /** Alt listeler (platforms, consents, recentActivity) sonradan doldurulur. */
@@ -155,7 +158,8 @@ public class AdminUserRepository {
                 List.of(), new Counts(rs.getLong("c_feedback"), rs.getLong("c_tickets"), rs.getLong("c_against"),
                         rs.getLong("c_filed"), rs.getLong("c_conv"), rs.getLong("c_comm"), rs.getLong("c_events"),
                         rs.getLong("c_bookmarks")),
-                List.of(), List.of(), null);
+                List.of(), List.of(), null, rs.getBoolean("two_factor_enabled"), rs.getLong("c_tf_devices"),
+                ts(rs, "two_factor_enabled_at"));
     }
 
     static String ts(ResultSet rs, String col) throws SQLException {

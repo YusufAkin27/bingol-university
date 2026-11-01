@@ -70,11 +70,12 @@ public class AdminUserController {
                                            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate createdTo,
                                            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate seenFrom,
                                            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate seenTo,
+                                           @RequestParam(required = false) Boolean twoFactor,
                                            @RequestParam(defaultValue = "0") int page,
                                            @RequestParam(defaultValue = "20") int size,
                                            @RequestParam(required = false) String sort) {
         return service.list(new UserFilter(q, status, role, faculty, department, classYear, language, verified,
-                createdFrom, createdTo, seenFrom, seenTo), sort, page, size);
+                createdFrom, createdTo, seenFrom, seenTo, twoFactor), sort, page, size);
     }
 
     /** Ayni filtreler; UTF-8 BOM'lu, formul-enjeksiyonuna karsi kacirilmis, en cok 50.000 satir, akis halinde. */
@@ -91,10 +92,11 @@ public class AdminUserController {
                           @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate createdTo,
                           @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate seenFrom,
                           @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate seenTo,
+                          @RequestParam(required = false) Boolean twoFactor,
                           @RequestParam(required = false) String sort,
                           HttpServletResponse res) throws IOException {
         UserFilter f = new UserFilter(q, status, role, faculty, department, classYear, language, verified,
-                createdFrom, createdTo, seenFrom, seenTo);
+                createdFrom, createdTo, seenFrom, seenTo, twoFactor);
         f.where(); // ters tarih araligi da yanit yazilmadan once 400 versin
         AuditContext.target("USER", null).summary("kullanici CSV disa aktarma (suzgecli)");
         UserFilter.orderBy(sort); // gecersiz sort, yanit yazilmadan once 400 versin
