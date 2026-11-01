@@ -3,6 +3,8 @@ package edu.bingol.backend.auth;
 import edu.bingol.backend.auth.token.PendingRegistrationStore.Pending;
 import edu.bingol.backend.config.AdminProperties;
 import edu.bingol.backend.legal.LegalService;
+import edu.bingol.backend.profile.privacy.ProfilePrivacy;
+import edu.bingol.backend.profile.privacy.ProfilePrivacyRepository;
 import edu.bingol.backend.user.Role;
 import edu.bingol.backend.user.User;
 import edu.bingol.backend.user.UserRepository;
@@ -23,6 +25,14 @@ public class AccountCreator {
     /** Ihlal defteri (istege bagli: defter olmadan kurulan testler icin). */
     @org.springframework.beans.factory.annotation.Autowired(required = false)
     private edu.bingol.backend.moderation.ViolationLedgerService ledger;
+
+    /** Gizlilik ayarlari (istege bagli: depo olmadan kurulan birim testleri icin). */
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private ProfilePrivacyRepository privacy;
+
+    /** Yeni hesaplar gizli acilir; kullanici ayarlardan herkese acik yapar (acik yapma: PrivacyService). */
+    @org.springframework.beans.factory.annotation.Value("${app.profile.default-private-account:true}")
+    private boolean defaultPrivateAccount;
 
     public AccountCreator(UserRepository users, LegalService legal, AdminProperties admin) {
         this.users = users;
@@ -58,6 +68,11 @@ public class AccountCreator {
         boolean fresh = user.getId() == null;
         user = users.saveAndFlush(user);
         legal.recordSignupConsent(user.getId());
+        if (fresh && defaultPrivateAccount && privacy != null && !privacy.existsById(user.getId())) {
+            ProfilePrivacy settings = ProfilePrivacy.defaults(user.getId());
+            settings.setPrivateAccount(true);
+            privacy.save(settings);
+        }
         // Silinip ayni e-postayla yeniden kayit: ihlal defterindeki strike'lar devralinir (T-058)
         if (fresh && ledger != null) {
             ledger.inheritOnRegister(user.getId(), email);
