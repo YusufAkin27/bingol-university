@@ -577,6 +577,22 @@ class EventAdmissionServiceTest {
         svc.beforeCreate(user);
     }
 
+    @Test
+    void seriesCountIsAddedToCurrentOpenAndDailyCounts() {
+        when(settings.maxOpenPerUser()).thenReturn(5);
+        when(settings.dailyCreateLimit()).thenReturn(5);
+        when(eventRows.countOpen(eq(1L), anyCollection(), any())).thenReturn(3L);
+        when(eventRows.countCreatedSince(eq(1L), any())).thenReturn(1L);
+
+        svc.beforeCreate(user, 2); // 3 + 2 = 5 acik, 1 + 2 = 3 gunluk: sinirda, serbest
+        assertEquals("EVENT_LIMIT_OPEN", error(() -> svc.beforeCreate(user, 3)).code()); // 3 + 3 = 6 > 5
+
+        when(eventRows.countOpen(eq(1L), anyCollection(), any())).thenReturn(0L);
+        when(eventRows.countCreatedSince(eq(1L), any())).thenReturn(3L);
+        assertEquals("EVENT_LIMIT_DAILY", error(() -> svc.beforeCreate(user, 3)).code()); // 3 + 3 = 6 > 5
+        svc.beforeCreate(user, 2);
+    }
+
     // ---- yapilandirma ----
 
     @Test

@@ -14,8 +14,16 @@ public interface EventAdmissionHooks {
     /** Bagimsiz etkinlik yonetici onayi gerektiriyor mu (app_setting: events_require_approval). */
     boolean requireApproval();
 
-    /** Bagimsiz etkinlik acarken kullanici basina acik etkinlik ve gunluk acma sinirini uygular; asilirsa 429/409. */
-    void beforeCreate(Actor a);
+    /** Etkinlik acarken kullanici basina acik etkinlik ve gunluk acma sinirini uygular; asilirsa 429/409. */
+    default void beforeCreate(Actor a) {
+        beforeCreate(a, 1);
+    }
+
+    /**
+     * FIX-P05 (K14): {@code count} adet yeni etkinlik acilacak (tekrar serisi icin birden fazla); sinirlar bu sayi kadar
+     * artis hesaba katilarak denetlenir.
+     */
+    void beforeCreate(Actor a, int count);
 
     /** Etkinligin katilim turu (joinPolicy): satir yoksa OPEN. */
     EventAdmission.Mode joinPolicyOf(Long eventId);

@@ -395,19 +395,20 @@ public class EventAdmissionService implements EventAdmissionHooks {
     }
 
     @Override
-    public void beforeCreate(Actor a) {
+    public void beforeCreate(Actor a, int count) {
         if (a.systemAdmin(edu.bingol.backend.admin.rbac.PermissionMatrix.CONTENT_WRITE)) {
             return;
         }
+        int n = Math.max(1, count);
         int max = settings.maxOpenPerUser();
-        if (max > 0 && eventRows.countOpen(a.id(), OPEN_STATUSES, Instant.now()) >= max) {
+        if (max > 0 && eventRows.countOpen(a.id(), OPEN_STATUSES, Instant.now()) + n > max) {
             throw new ApiException(HttpStatus.CONFLICT, "EVENT_LIMIT_OPEN",
                     "Aynı anda en fazla " + max + " açık etkinliğiniz olabilir.", String.valueOf(max));
         }
         int daily = settings.dailyCreateLimit();
         if (daily > 0) {
             Instant since = LocalDate.now(ZONE).atStartOfDay(ZONE).toInstant();
-            if (eventRows.countCreatedSince(a.id(), since) >= daily) {
+            if (eventRows.countCreatedSince(a.id(), since) + n > daily) {
                 throw new ApiException(HttpStatus.TOO_MANY_REQUESTS, "EVENT_LIMIT_DAILY",
                         "Günlük etkinlik açma sınırına (" + daily + ") ulaştınız.", String.valueOf(daily));
             }

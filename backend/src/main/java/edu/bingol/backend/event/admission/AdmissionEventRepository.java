@@ -25,15 +25,15 @@ public interface AdmissionEventRepository extends Repository<UserEvent, Long> {
     @Query("SELECT e.capacity FROM UserEvent e WHERE e.id = :id")
     Integer capacityOf(@Param("id") Long id);
 
-    /** Kullanicinin yayindaki/onay bekleyen ve henuz bitmemis bagimsiz etkinlik sayisi. */
+    /** Kullanicinin yayindaki/onay bekleyen ve henuz bitmemis etkinlik sayisi (FIX-P05: kulup etkinlikleri dahil; etkinlik artik yalniz kulup adina acilir). */
     @Query("""
             SELECT COUNT(e) FROM UserEvent e
-            WHERE e.createdBy = :uid AND e.communityId IS NULL AND e.status IN :statuses AND e.endsAt > :now
+            WHERE e.createdBy = :uid AND e.status IN :statuses AND e.endsAt > :now
             """)
     long countOpen(@Param("uid") Long userId, @Param("statuses") Collection<UserEvent.Status> statuses,
                    @Param("now") Instant now);
 
-    /** Belirli andan beri acilan bagimsiz etkinlik sayisi (iptaller dahil: iptal-yeniden ac suistimalini onler). */
-    @Query("SELECT COUNT(e) FROM UserEvent e WHERE e.createdBy = :uid AND e.communityId IS NULL AND e.createdAt >= :since")
+    /** Belirli andan beri acilan etkinlik sayisi (kulup dahil; iptaller dahil: iptal-yeniden ac suistimalini onler). */
+    @Query("SELECT COUNT(e) FROM UserEvent e WHERE e.createdBy = :uid AND e.createdAt >= :since")
     long countCreatedSince(@Param("uid") Long userId, @Param("since") Instant since);
 }
