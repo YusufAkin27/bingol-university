@@ -4926,5 +4926,78 @@
   "unitNewsLinkFailed": "Bağlantı açılamadı.",
   "unitNewsHasAttachments": "Ekli dosya var",
   "unitNewsAttachmentOpen": "Eki aç: {name}",
-  "@unitNewsAttachmentOpen": {"placeholders": {"name": {"type": "String"}}}
+  "@unitNewsAttachmentOpen": {"placeholders": {"name": {"type": "String"}}},
+  "tfErrCodeInvalid": "Kod yanlış. Kontrol edip tekrar deneyin.",
+  "tfErrExpired": "Kodun süresi doldu. Lütfen yeniden giriş yapın.",
+  "tfErrAlreadyEnabled": "İki adımlı doğrulama zaten açık.",
+  "tfErrNotEnabled": "İki adımlı doğrulama açık değil.",
+  "tfErrWrongPassword": "Şifre hatalı.",
+  "tfLoginTitle": "Giriş kodu",
+  "tfLoginSubtitle": "{email} adresine 6 haneli kod gönderdik.",
+  "@tfLoginSubtitle": {
+    "placeholders": {
+      "email": {
+        "type": "String"
+      }
+    }
+  },
+  "tfLoginNote": "Kod 10 dakika geçerlidir. Gelmediyse spam klasörüne de bakın.",
+  "tfTrustDevice": "Bu cihaza güven",
+  "tfTrustDeviceSub": "Bu cihazdan sonraki girişlerde kod istenmez.",
+  "tfBackToLogin": "Girişe dön",
+  "tfSecTitle": "İki adımlı doğrulama",
+  "tfSecDesc": "Tanımadığımız bir cihazdan girişte e-posta adresinize kod göndeririz; güvendiğiniz cihazda tekrar sorulmaz.",
+  "tfSecLoadFailed": "Durum yüklenemedi. Yeniden denemek için dokunun.",
+  "tfDevicesRow": "Güvenilen cihazlar",
+  "tfEnableTitle": "İki adımlı doğrulamayı aç",
+  "tfEnableSubtitle": "Hesabınızı korumak için {email} adresine gönderdiğimiz 6 haneli kodu girin.",
+  "@tfEnableSubtitle": {
+    "placeholders": {
+      "email": {
+        "type": "String"
+      }
+    }
+  },
+  "tfEnableButton": "Aç",
+  "tfEnabledToast": "İki adımlı doğrulama açıldı.",
+  "tfDisableTitle": "İki adımlı doğrulama kapatılsın mı?",
+  "tfDisableBody": "Onaylamak için şifrenizi girin. Kapatınca tüm güvenilen cihazlar silinir.",
+  "tfDisableConfirm": "Kapat",
+  "tfDisabledToast": "İki adımlı doğrulama kapatıldı.",
+  "tfPasswordLabel": "Şifre",
+  "tfDevicesTitle": "Güvenilen cihazlar",
+  "tfDevicesIntro": "Bu cihazlardan girişte e-posta kodu istenmez.",
+  "tfDevicesEmptyTitle": "Güvenilen cihaz yok",
+  "tfDevicesEmptyBody": "Kodla giriş yapıp cihaza güvendiğinizde burada listelenir.",
+  "tfThisDevice": "Bu cihaz",
+  "tfDeviceUnknown": "Bilinmeyen cihaz",
+  "tfRemove": "Kaldır",
+  "tfRemoveDevice": "{name} cihazını kaldır",
+  "@tfRemoveDevice": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "tfLastUsed": "Son kullanım: {when}",
+  "@tfLastUsed": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "tfAddedOn": "Eklendi: {when}",
+  "@tfAddedOn": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "tfRemoveTitle": "Cihaz kaldırılsın mı?",
+  "tfRemoveBody": "Bu cihazdan bir sonraki girişte e-posta kodu istenir.",
+  "tfRemoveCurrentBody": "Şu an kullandığınız cihazı kaldırıyorsunuz. Bir sonraki girişte kod istenir; açık oturumunuz kapanmaz.",
+  "tfRemovedToast": "Cihaz kaldırıldı."
 }

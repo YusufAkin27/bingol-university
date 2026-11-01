@@ -9805,4 +9805,135 @@ class AppLocalizationsTr extends AppLocalizations {
   String unitNewsAttachmentOpen(String name) {
     return 'Eki aç: $name';
   }
+
+  @override
+  String get tfErrCodeInvalid => 'Kod yanlış. Kontrol edip tekrar deneyin.';
+
+  @override
+  String get tfErrExpired => 'Kodun süresi doldu. Lütfen yeniden giriş yapın.';
+
+  @override
+  String get tfErrAlreadyEnabled => 'İki adımlı doğrulama zaten açık.';
+
+  @override
+  String get tfErrNotEnabled => 'İki adımlı doğrulama açık değil.';
+
+  @override
+  String get tfErrWrongPassword => 'Şifre hatalı.';
+
+  @override
+  String get tfLoginTitle => 'Giriş kodu';
+
+  @override
+  String tfLoginSubtitle(String email) {
+    return '$email adresine 6 haneli kod gönderdik.';
+  }
+
+  @override
+  String get tfLoginNote =>
+      'Kod 10 dakika geçerlidir. Gelmediyse spam klasörüne de bakın.';
+
+  @override
+  String get tfTrustDevice => 'Bu cihaza güven';
+
+  @override
+  String get tfTrustDeviceSub => 'Bu cihazdan sonraki girişlerde kod istenmez.';
+
+  @override
+  String get tfBackToLogin => 'Girişe dön';
+
+  @override
+  String get tfSecTitle => 'İki adımlı doğrulama';
+
+  @override
+  String get tfSecDesc =>
+      'Tanımadığımız bir cihazdan girişte e-posta adresinize kod göndeririz; güvendiğiniz cihazda tekrar sorulmaz.';
+
+  @override
+  String get tfSecLoadFailed =>
+      'Durum yüklenemedi. Yeniden denemek için dokunun.';
+
+  @override
+  String get tfDevicesRow => 'Güvenilen cihazlar';
+
+  @override
+  String get tfEnableTitle => 'İki adımlı doğrulamayı aç';
+
+  @override
+  String tfEnableSubtitle(String email) {
+    return 'Hesabınızı korumak için $email adresine gönderdiğimiz 6 haneli kodu girin.';
+  }
+
+  @override
+  String get tfEnableButton => 'Aç';
+
+  @override
+  String get tfEnabledToast => 'İki adımlı doğrulama açıldı.';
+
+  @override
+  String get tfDisableTitle => 'İki adımlı doğrulama kapatılsın mı?';
+
+  @override
+  String get tfDisableBody =>
+      'Onaylamak için şifrenizi girin. Kapatınca tüm güvenilen cihazlar silinir.';
+
+  @override
+  String get tfDisableConfirm => 'Kapat';
+
+  @override
+  String get tfDisabledToast => 'İki adımlı doğrulama kapatıldı.';
+
+  @override
+  String get tfPasswordLabel => 'Şifre';
+
+  @override
+  String get tfDevicesTitle => 'Güvenilen cihazlar';
+
+  @override
+  String get tfDevicesIntro => 'Bu cihazlardan girişte e-posta kodu istenmez.';
+
+  @override
+  String get tfDevicesEmptyTitle => 'Güvenilen cihaz yok';
+
+  @override
+  String get tfDevicesEmptyBody =>
+      'Kodla giriş yapıp cihaza güvendiğinizde burada listelenir.';
+
+  @override
+  String get tfThisDevice => 'Bu cihaz';
+
+  @override
+  String get tfDeviceUnknown => 'Bilinmeyen cihaz';
+
+  @override
+  String get tfRemove => 'Kaldır';
+
+  @override
+  String tfRemoveDevice(String name) {
+    return '$name cihazını kaldır';
+  }
+
+  @override
+  String tfLastUsed(String when) {
+    return 'Son kullanım: $when';
+  }
+
+  @override
+  String tfAddedOn(String when) {
+    return 'Eklendi: $when';
+  }
+
+  @override
+  String get tfRemoveTitle => 'Cihaz kaldırılsın mı?';
+
+  @override
+  String get tfRemoveBody =>
+      'Bu cihazdan bir sonraki girişte e-posta kodu istenir.';
+
+  @override
+  String get tfRemoveCurrentBody =>
+      'Şu an kullandığınız cihazı kaldırıyorsunuz. Bir sonraki girişte kod istenir; açık oturumunuz kapanmaz.';
+
+  @override
+  String get tfRemovedToast => 'Cihaz kaldırıldı.';
 }

@@ -3128,5 +3128,78 @@
   "unitNewsLinkFailed": "تعذّر فتح الرابط.",
   "unitNewsHasAttachments": "يحتوي على مرفقات",
   "unitNewsAttachmentOpen": "فتح المرفق: {name}",
-  "@unitNewsAttachmentOpen": {"placeholders": {"name": {"type": "String"}}}
+  "@unitNewsAttachmentOpen": {"placeholders": {"name": {"type": "String"}}},
+  "tfErrCodeInvalid": "الرمز غير صحيح. تحقق منه وحاول مرة أخرى.",
+  "tfErrExpired": "انتهت صلاحية الرمز. يرجى تسجيل الدخول مرة أخرى.",
+  "tfErrAlreadyEnabled": "التحقق بخطوتين مفعّل بالفعل.",
+  "tfErrNotEnabled": "التحقق بخطوتين غير مفعّل.",
+  "tfErrWrongPassword": "كلمة المرور غير صحيحة.",
+  "tfLoginTitle": "رمز تسجيل الدخول",
+  "tfLoginSubtitle": "أرسلنا رمزًا من 6 أرقام إلى {email}.",
+  "@tfLoginSubtitle": {
+    "placeholders": {
+      "email": {
+        "type": "String"
+      }
+    }
+  },
+  "tfLoginNote": "الرمز صالح لمدة 10 دقائق. إن لم يصل، تحقق من مجلد الرسائل غير المرغوب فيها.",
+  "tfTrustDevice": "الوثوق بهذا الجهاز",
+  "tfTrustDeviceSub": "لن يُطلب منك رمز على هذا الجهاز في المرات القادمة.",
+  "tfBackToLogin": "العودة إلى تسجيل الدخول",
+  "tfSecTitle": "التحقق بخطوتين",
+  "tfSecDesc": "عند تسجيل الدخول من جهاز لا نعرفه نرسل رمزًا إلى بريدك الإلكتروني؛ ولا يُطلب مرة أخرى على الجهاز الذي تثق به.",
+  "tfSecLoadFailed": "تعذّر تحميل الحالة. اضغط لإعادة المحاولة.",
+  "tfDevicesRow": "الأجهزة الموثوقة",
+  "tfEnableTitle": "تفعيل التحقق بخطوتين",
+  "tfEnableSubtitle": "لحماية حسابك، أدخل الرمز المكوّن من 6 أرقام الذي أرسلناه إلى {email}.",
+  "@tfEnableSubtitle": {
+    "placeholders": {
+      "email": {
+        "type": "String"
+      }
+    }
+  },
+  "tfEnableButton": "تفعيل",
+  "tfEnabledToast": "تم تفعيل التحقق بخطوتين.",
+  "tfDisableTitle": "إيقاف التحقق بخطوتين؟",
+  "tfDisableBody": "أدخل كلمة المرور للتأكيد. سيؤدي الإيقاف إلى حذف جميع الأجهزة الموثوقة.",
+  "tfDisableConfirm": "إيقاف",
+  "tfDisabledToast": "تم إيقاف التحقق بخطوتين.",
+  "tfPasswordLabel": "كلمة المرور",
+  "tfDevicesTitle": "الأجهزة الموثوقة",
+  "tfDevicesIntro": "لا يُطلب رمز بريد إلكتروني عند تسجيل الدخول من هذه الأجهزة.",
+  "tfDevicesEmptyTitle": "لا توجد أجهزة موثوقة",
+  "tfDevicesEmptyBody": "تظهر هنا الأجهزة التي تثق بها عند تسجيل الدخول بالرمز.",
+  "tfThisDevice": "هذا الجهاز",
+  "tfDeviceUnknown": "جهاز غير معروف",
+  "tfRemove": "إزالة",
+  "tfRemoveDevice": "إزالة {name}",
+  "@tfRemoveDevice": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "tfLastUsed": "آخر استخدام: {when}",
+  "@tfLastUsed": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "tfAddedOn": "أُضيف: {when}",
+  "@tfAddedOn": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "tfRemoveTitle": "إزالة هذا الجهاز؟",
+  "tfRemoveBody": "سيُطلب رمز بريد إلكتروني عند تسجيل الدخول منه في المرة القادمة.",
+  "tfRemoveCurrentBody": "أنت تزيل الجهاز الذي تستخدمه الآن. سيُطلب رمز عند تسجيل الدخول في المرة القادمة؛ وستبقى جلستك الحالية مفتوحة.",
+  "tfRemovedToast": "تمت إزالة الجهاز."
 }

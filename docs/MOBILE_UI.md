@@ -180,3 +180,11 @@ Kural: takip isteği YALNIZ gizli hesaplar içindir; herkese açık hesap istek 
 ## 13. İkonlar (ICONS-MIGRATE)
 
 Tüm ikonlar `BuIcons` üzerinden (`lib/core/icons/bu_icons.dart`; `widgets/bu.dart` dışa aktarır). Glifler Hugeicons 4.4.0 (MIT) verisinden üretilmiş `assets/fonts/BuIcons.ttf` yazı tipindedir; `Icon(BuIcons.x)` Lucide ile aynı maliyetli, `IconData` tipi değişmez. **Yeni ikon = `BuIcons`** (doğrudan `LucideIcons`/`Icons` yok; `delete` ve `keyboard` Lucide'e işaret eden iki istisnadır). Ekleme/yeniden üretim: `mobile/tools/icons/README.md`; karar ve kalite ölçümleri: `docs/design/IKON_HUGEICONS.md` bölüm 11-12. Yerel test: `flutter test test/bu_icons_test.dart`.
+
+## 14. İki adımlı doğrulama (2FA-MOBIL)
+
+Sözleşme: [TWO_FACTOR_API.md](TWO_FACTOR_API.md). İstemci katmanı `lib/core/two_factor.dart` (`TwoFactorChallenge`, `TwoFactorStatus`, `TrustedDevice`, `TwoFactorService`; `session.twoFactor`).
+
+- **Giriş:** `Session.login` artık `Future<TwoFactorChallenge?>` döner; `POST /auth/login` **202** (`twoFactorRequired`) ise token yazılmaz, `LoginPage` `features/auth/two_factor_login_page.dart` kod ekranını açar (e-posta ipucu, 6 haneli `OtpCodeBoxes`, "Bu cihaza güven" anahtarı varsayılan açık -> `trustDevice`, yeniden gönder geri sayımı 60 sn / 429'da `Retry-After`). Doğru kod `Session.loginTwoFactor` ile oturum açar; `TWO_FACTOR_CHALLENGE_EXPIRED` girişe döndürür (bilgi bandı). Güvenilen cihazda sunucu 200 döner; istemcide özel mantık yoktur.
+- **Ayarlar:** Hesap ve güvenlik ekranında `features/profile/two_factor_section.dart` (anahtar + açıklama; `GET /auth/2fa` 404 ise blok gizlenir). Açma: `enable/request` -> `TwoFactorEnablePage` -> `enable/confirm`. Kapatma: şifre diyaloğu (`TwoFactorDisableDialog`) -> `/auth/2fa/disable`. `TrustedDevicesPage`: liste, "Bu cihaz" rozeti, satır başına "Kaldır" (mevcut cihaz için uyarı metni).
+- **Metinler:** `tf*` anahtarları (tr/en/ar); hata kodları `knownErrorText` içinde yerelde çevrilir. Test: `flutter test test/two_factor_test.dart`.

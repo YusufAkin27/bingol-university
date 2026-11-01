@@ -3128,5 +3128,78 @@
   "unitNewsLinkFailed": "Could not open the link.",
   "unitNewsHasAttachments": "Has attachments",
   "unitNewsAttachmentOpen": "Open attachment: {name}",
-  "@unitNewsAttachmentOpen": {"placeholders": {"name": {"type": "String"}}}
+  "@unitNewsAttachmentOpen": {"placeholders": {"name": {"type": "String"}}},
+  "tfErrCodeInvalid": "Incorrect code. Check it and try again.",
+  "tfErrExpired": "The code has expired. Please sign in again.",
+  "tfErrAlreadyEnabled": "Two-step verification is already on.",
+  "tfErrNotEnabled": "Two-step verification is not on.",
+  "tfErrWrongPassword": "Incorrect password.",
+  "tfLoginTitle": "Sign-in code",
+  "tfLoginSubtitle": "We sent a 6-digit code to {email}.",
+  "@tfLoginSubtitle": {
+    "placeholders": {
+      "email": {
+        "type": "String"
+      }
+    }
+  },
+  "tfLoginNote": "The code is valid for 10 minutes. If it doesn't arrive, check your spam folder.",
+  "tfTrustDevice": "Trust this device",
+  "tfTrustDeviceSub": "You won't be asked for a code on this device next time.",
+  "tfBackToLogin": "Back to sign in",
+  "tfSecTitle": "Two-step verification",
+  "tfSecDesc": "When you sign in from a device we don't recognize, we send a code to your email address; it isn't asked again on a device you trust.",
+  "tfSecLoadFailed": "Couldn't load the status. Tap to retry.",
+  "tfDevicesRow": "Trusted devices",
+  "tfEnableTitle": "Turn on two-step verification",
+  "tfEnableSubtitle": "To protect your account, enter the 6-digit code we sent to {email}.",
+  "@tfEnableSubtitle": {
+    "placeholders": {
+      "email": {
+        "type": "String"
+      }
+    }
+  },
+  "tfEnableButton": "Turn on",
+  "tfEnabledToast": "Two-step verification is on.",
+  "tfDisableTitle": "Turn off two-step verification?",
+  "tfDisableBody": "Enter your password to confirm. Turning it off removes all trusted devices.",
+  "tfDisableConfirm": "Turn off",
+  "tfDisabledToast": "Two-step verification is off.",
+  "tfPasswordLabel": "Password",
+  "tfDevicesTitle": "Trusted devices",
+  "tfDevicesIntro": "No email code is asked when you sign in from these devices.",
+  "tfDevicesEmptyTitle": "No trusted devices",
+  "tfDevicesEmptyBody": "Devices you trust when signing in with a code will be listed here.",
+  "tfThisDevice": "This device",
+  "tfDeviceUnknown": "Unknown device",
+  "tfRemove": "Remove",
+  "tfRemoveDevice": "Remove {name}",
+  "@tfRemoveDevice": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "tfLastUsed": "Last used: {when}",
+  "@tfLastUsed": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "tfAddedOn": "Added: {when}",
+  "@tfAddedOn": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "tfRemoveTitle": "Remove this device?",
+  "tfRemoveBody": "An email code will be asked the next time you sign in from it.",
+  "tfRemoveCurrentBody": "You are removing the device you are using right now. A code will be asked the next time you sign in; your current session stays open.",
+  "tfRemovedToast": "Device removed."
 }
