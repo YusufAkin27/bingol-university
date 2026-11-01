@@ -1,0 +1,148 @@
+.wrap {
+  display: grid;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  min-inline-size: 0;
+}
+.scroll {
+  position: relative;
+  min-inline-size: 0;
+  overflow-x: auto;
+}
+.map {
+  inline-size: 100%;
+  border-collapse: separate;
+  border-spacing: 3px;
+  font-size: var(--text-sm);
+}
+.map thead th {
+  font-weight: 700;
+  text-align: center;
+  padding: var(--space-2) var(--space-1);
+  white-space: nowrap;
+}
+.map thead th:first-child,
+.map tbody th,
+.map tfoot th {
+  text-align: start;
+}
+.map tbody th,
+.map tfoot th {
+  font-weight: 600;
+  min-inline-size: 8rem;
+}
+.groupBtn {
+  display: grid;
+  gap: 2px;
+  inline-size: 100%;
+  min-block-size: 2.75rem;
+  padding: var(--space-1) var(--space-2);
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm, 6px);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+.groupBtn:hover {
+  background: var(--surface-2);
+}
+.groupBtn[aria-pressed='true'] {
+  border-color: var(--primary);
+  background: color-mix(in srgb, var(--primary) 10%, var(--surface));
+}
+.groupCount {
+  font-weight: 400;
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
+.cell {
+  text-align: center;
+  min-inline-size: 3.25rem;
+  min-block-size: 2.75rem;
+  border-radius: var(--radius-sm, 6px);
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  /* kontrast: metin yüzeyin zıttı, arka plan hep açık/koyu yüzeyle karıştırılır */
+  color: var(--text);
+}
+.cell[data-level='0'] {
+  background: var(--surface-2);
+  color: var(--text-muted);
+  font-weight: 400;
+}
+.cell[data-level='1'] {
+  background: color-mix(in srgb, var(--primary) 14%, var(--surface));
+}
+.cell[data-level='2'] {
+  background: color-mix(in srgb, var(--primary) 28%, var(--surface));
+}
+.cell[data-level='3'] {
+  background: color-mix(in srgb, var(--primary) 46%, var(--surface));
+}
+.cell[data-level='4'] {
+  background: color-mix(in srgb, var(--primary) 66%, var(--surface));
+}
+.total {
+  text-align: center;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  padding-block-start: var(--space-2);
+}
+.legend {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
+.swatch {
+  inline-size: 1.25rem;
+  block-size: 0.75rem;
+  border-radius: 3px;
+  border: 1px solid var(--border);
+}
+.swatch[data-level='0'] {
+  background: var(--surface-2);
+}
+.swatch[data-level='1'] {
+  background: color-mix(in srgb, var(--primary) 14%, var(--surface));
+}
+.swatch[data-level='2'] {
+  background: color-mix(in srgb, var(--primary) 28%, var(--surface));
+}
+.swatch[data-level='3'] {
+  background: color-mix(in srgb, var(--primary) 46%, var(--surface));
+}
+.swatch[data-level='4'] {
+  background: color-mix(in srgb, var(--primary) 66%, var(--surface));
+}
+.srOnly {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+@media (max-width: 520px) {
+  .wrap {
+    padding: var(--space-3);
+  }
+  .map {
+    border-spacing: 2px;
+    font-size: var(--text-xs);
+  }
+  .map tbody th,
+  .map tfoot th {
+    min-inline-size: 5.25rem;
+  }
+  .map thead th {
+    font-size: var(--text-xs);
+    padding-inline: 0;
+  }
+  .cell {
+    min-inline-size: 2.5rem;
+  }
+}

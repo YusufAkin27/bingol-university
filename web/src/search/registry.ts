@@ -3,6 +3,7 @@
  * Yeni grup dosyası = buraya bir `import` + yayılım satırı.
  */
 import { entries as academic } from './index/academic';
+import { entries as ayarYetki } from './index/ayarYetki';
 import { entries as community } from './index/community';
 import { entries as content } from './index/content';
 import { entries as moderation } from './index/moderation';
@@ -24,5 +25,6 @@ export const registeredEntries: SearchEntry[] = [
   ...content,
   ...notifications,
   ...system,
+  ...ayarYetki,
   ...shell,
 ];
