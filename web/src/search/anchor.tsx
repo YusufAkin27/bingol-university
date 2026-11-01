@@ -20,6 +20,14 @@ const ATTR = 'data-search-anchor';
 /** Sayfaya özgü açma işlemleri (sekme seç, açıklayıcı aç). Aynı anchor için tekrar çağrılabilir: yan etkisiz olmalı. */
 const revealers = new Set<(anchor: string) => void>();
 
+/** Açıcılar çalışırken true: o sırada yapılan sekme değişimi aramadandır (karma korunur), kullanıcıdan gelen değildir. */
+let revealing = false;
+
+/** Şu an arama açıcısı mı çalışıyor? (useUrlTab: kullanıcı kaynaklı sekme değişiminde karmayı siler, arama kaynaklıda korur.) */
+export function isSearchRevealing(): boolean {
+  return revealing;
+}
+
 /** Sayfa, anchor'ı görünür kılmak için gereken durumu (sekme, accordion) ayarlayan işleyiciyi kaydeder. */
 export function useSearchReveal(handler: (anchor: string) => void): void {
   const ref = useRef(handler);
@@ -113,7 +121,12 @@ export function useSearchAnchorFocus(): void {
 
     const attempt = () => {
       if (done) return;
-      revealers.forEach((fn) => fn(id));
+      revealing = true;
+      try {
+        revealers.forEach((fn) => fn(id));
+      } finally {
+        revealing = false;
+      }
       const el = findAnchor(id);
       if (el) {
         done = true;

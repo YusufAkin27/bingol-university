@@ -2,13 +2,15 @@
  * Sekme durumunu URL'de (`?tab=...`) tutar: sayfa yenilenince/bağlantı paylaşılınca aynı sekme açılır ve arama
  * derin bağlantısı (`path#anchor`) sekmeyi açabilir (useSearchReveal içinden `setTab`).
  *  - Geçersiz/eksik değer varsayılan sekmeye düşer; varsayılan sekme URL'ye yazılmaz (temiz adres).
- *  - Değişim `replace` ile yapılır (geri düğmesi sekme geçmişiyle dolmaz) ve `#hash` KORUNUR (setSearchParams hash'i düşürür).
+ *  - Değişim `replace` ile yapılır (geri düğmesi sekme geçmişiyle dolmaz).
+ *  - `#hash`: arama açıcısından (useSearchReveal) gelen değişimde KORUNUR (derin bağlantı vurgusu sürsün); kullanıcı
+ *    kaynaklı değişimde SİLİNİR, yoksa konum anahtarı değişince odak efekti açıcıları yeniden çağırıp sekmeyi geri alırdı.
  *  - Kural: `tab-<değer>` biçimli anchor (örn. `tab-queues`) o sekmeyi açar (çoklu sekme grubunda `param` önekli: `<param>-<değer>`).
  *  - Aynı değeri tekrar atamak hiçbir şey yapmaz (açıcılar arama sırasında tekrar çağrılabilir).
  */
 import { useCallback } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { useSearchReveal } from './anchor';
+import { isSearchRevealing, useSearchReveal } from './anchor';
 
 export function useUrlTab<T extends string>(
   values: readonly T[],
@@ -27,7 +29,8 @@ export function useUrlTab<T extends string>(
       if (next === initial) params.delete(param);
       else params.set(param, next);
       const q = params.toString();
-      navigate({ pathname, search: q ? `?${q}` : '', hash }, { replace: true });
+      const keepHash = isSearchRevealing();
+      navigate({ pathname, search: q ? `?${q}` : '', hash: keepHash ? hash : '' }, { replace: true });
     },
     [tab, search, pathname, hash, initial, param, navigate],
   );
