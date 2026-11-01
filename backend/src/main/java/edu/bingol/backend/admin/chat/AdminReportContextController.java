@@ -1,5 +1,6 @@
 package edu.bingol.backend.admin.chat;
 
+import edu.bingol.backend.common.ClientIp;
 import edu.bingol.backend.common.CurrentUser;
 import edu.bingol.backend.common.RateLimiter;
 import jakarta.servlet.http.HttpServletRequest;
@@ -17,10 +18,13 @@ public class AdminReportContextController {
 
     private final AdminReportContextService service;
     private final RateLimiter limiter;
+    private final ClientIp clientIp;
 
-    public AdminReportContextController(AdminReportContextService service, RateLimiter limiter) {
+    /** IP: guvenilir proxy zincirinden cozulen gercek istemci (message_access_audit.ip KVKK kaniti; FIX-P09 A08#7). */
+    public AdminReportContextController(AdminReportContextService service, RateLimiter limiter, ClientIp clientIp) {
         this.service = service;
         this.limiter = limiter;
+        this.clientIp = clientIp;
     }
 
     /** GET /api/admin/reports/{id}: sikayet + context + relatedReports + viewerPath. */
@@ -28,6 +32,6 @@ public class AdminReportContextController {
     public AdminReportContextService.ReportDetail detail(@PathVariable long id, HttpServletRequest http) {
         long adminId = CurrentUser.id();
         limiter.check("adminchat:" + adminId, AdminChatViewerController.PAGES_PER_MINUTE, Duration.ofMinutes(1));
-        return service.detail(adminId, id, http.getRemoteAddr());
+        return service.detail(adminId, id, clientIp.of(http));
     }
 }

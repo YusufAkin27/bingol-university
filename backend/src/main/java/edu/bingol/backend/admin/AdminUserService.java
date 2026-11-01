@@ -172,11 +172,38 @@ public class AdminUserService {
             requireAnotherAdmin();
         }
         profiles.anonymizeAccount(targetId);
-        // Mevcut access token'lar aninda gecersiz olsun (askiya almadaki mekanizma)
-        redis.opsForValue().set(JwtAuthFilter.SUSPENDED_KEY_PREFIX + targetId, "1");
-        // Refresh token'lar da kapansin (silinen hesabin oturum kumesi Redis'te bekleyip yasamasin).
-        if (sessions != null) {
-            sessions.revokeAll(targetId);
+        // FIX-P09 (A08#14): Redis isaretleri islem COMMIT OLDUKTAN sonra yazilir. Eskiden commit'ten once yaziliyordu;
+        // sonraki adim (revokeAll) hata verip islem geri alinirsa kullanici anonimlestirilmeden "askida" kalirdi.
+        afterCommitOrNow(() -> {
+            // Mevcut access token'lar aninda gecersiz olsun (askiya almadaki mekanizma)
+            redis.opsForValue().set(JwtAuthFilter.SUSPENDED_KEY_PREFIX + targetId, "1");
+            // Refresh token'lar da kapansin (silinen hesabin oturum kumesi Redis'te bekleyip yasamasin).
+            if (sessions != null) {
+                sessions.revokeAll(targetId);
+            }
+        });
+    }
+
+    /**
+     * Islem varsa COMMIT'ten sonra (hata log'lanir, yayilmaz: veri zaten kalici), yoksa hemen calistirir. Rol isareti
+     * ({@link #markRoleChanged}) ile ayni kalip.
+     */
+    private void afterCommitOrNow(Runnable action) {
+        if (org.springframework.transaction.support.TransactionSynchronizationManager.isSynchronizationActive()) {
+            org.springframework.transaction.support.TransactionSynchronizationManager.registerSynchronization(
+                    new org.springframework.transaction.support.TransactionSynchronization() {
+                        @Override
+                        public void afterCommit() {
+                            try {
+                                action.run();
+                            } catch (RuntimeException e) {
+                                org.slf4j.LoggerFactory.getLogger(AdminUserService.class)
+                                        .warn("Hesap silme sonrasi Redis isareti yazilamadi: {}", e.toString());
+                            }
+                        }
+                    });
+        } else {
+            action.run();
         }
     }
 

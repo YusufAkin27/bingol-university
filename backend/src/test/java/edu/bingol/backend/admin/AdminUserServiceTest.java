@@ -131,6 +131,45 @@ class AdminUserServiceTest {
         }
     }
 
+    /** FIX-P09 (A08#14): hesap silmede Redis isaretleri COMMIT'ten sonra yazilir; geri alinan islemde hic yazilmaz. */
+    @Test
+    void deleteWritesSuspendedMarkAndRevokesSessionsOnlyAfterCommit() {
+        user(6L, Role.USER);
+        var sessions = mock(edu.bingol.backend.auth.token.SessionService.class);
+        service.setSessions(sessions);
+        org.springframework.transaction.support.TransactionSynchronizationManager.initSynchronization();
+        try {
+            service.delete(1L, 6L);
+
+            verify(profiles).anonymizeAccount(6L);
+            verify(ops, never()).set(eq(JwtAuthFilter.SUSPENDED_KEY_PREFIX + 6L), anyString());
+            verify(sessions, never()).revokeAll(6L);
+            for (var s : org.springframework.transaction.support.TransactionSynchronizationManager.getSynchronizations()) {
+                s.afterCommit();
+            }
+            verify(ops).set(JwtAuthFilter.SUSPENDED_KEY_PREFIX + 6L, "1");
+            verify(sessions).revokeAll(6L);
+        } finally {
+            org.springframework.transaction.support.TransactionSynchronizationManager.clearSynchronization();
+        }
+    }
+
+    @Test
+    void rolledBackDeleteLeavesNoSuspendedMark() {
+        user(7L, Role.USER);
+        org.mockito.Mockito.doThrow(new IllegalStateException("db")).when(profiles).anonymizeAccount(7L);
+        org.springframework.transaction.support.TransactionSynchronizationManager.initSynchronization();
+        try {
+            assertThrows(IllegalStateException.class, () -> service.delete(1L, 7L));
+            for (var s : org.springframework.transaction.support.TransactionSynchronizationManager.getSynchronizations()) {
+                s.afterCommit(); // geri alindi: Spring afterCommit'i hic cagirmaz; burada kayitli senkron yok
+            }
+            verify(ops, never()).set(eq(JwtAuthFilter.SUSPENDED_KEY_PREFIX + 7L), anyString());
+        } finally {
+            org.springframework.transaction.support.TransactionSynchronizationManager.clearSynchronization();
+        }
+    }
+
     @Test
     void deleteAlsoRevokesRefreshSessions() {
         user(4L, Role.USER);

@@ -1,5 +1,6 @@
 package edu.bingol.backend.admin.chat;
 
+import edu.bingol.backend.common.ClientIp;
 import edu.bingol.backend.common.CurrentUser;
 import edu.bingol.backend.common.RateLimiter;
 import jakarta.servlet.http.HttpServletRequest;
@@ -23,10 +24,13 @@ public class AdminChatViewerController {
 
     private final AdminChatViewerService service;
     private final RateLimiter limiter;
+    private final ClientIp clientIp;
 
-    public AdminChatViewerController(AdminChatViewerService service, RateLimiter limiter) {
+    /** IP: guvenilir proxy zincirinden cozulen gercek istemci (message_access_audit.ip KVKK kaniti; FIX-P09 A08#7). */
+    public AdminChatViewerController(AdminChatViewerService service, RateLimiter limiter, ClientIp clientIp) {
         this.service = service;
         this.limiter = limiter;
+        this.clientIp = clientIp;
     }
 
     /** GET /api/admin/users/{id}/conversations?cursor&size: konusma listesi (son mesaj en yeni once). */
@@ -36,7 +40,7 @@ public class AdminChatViewerController {
             HttpServletRequest http) {
         long adminId = CurrentUser.id();
         limiter.check("adminchat:" + adminId, PAGES_PER_MINUTE, Duration.ofMinutes(1));
-        return service.conversations(adminId, userId, cursor, size, http.getRemoteAddr());
+        return service.conversations(adminId, userId, cursor, size, clientIp.of(http));
     }
 
     /** GET /api/admin/users/{id}/conversations/{cid}/messages?before&size: eskiden yeniye sirali; nextBefore imleci. */
@@ -46,6 +50,6 @@ public class AdminChatViewerController {
             HttpServletRequest http) {
         long adminId = CurrentUser.id();
         limiter.check("adminchat:" + adminId, PAGES_PER_MINUTE, Duration.ofMinutes(1));
-        return service.messages(adminId, userId, conversationId, before, size, http.getRemoteAddr());
+        return service.messages(adminId, userId, conversationId, before, size, clientIp.of(http));
     }
 }

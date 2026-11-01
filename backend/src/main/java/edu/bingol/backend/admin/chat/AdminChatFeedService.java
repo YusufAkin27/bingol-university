@@ -247,12 +247,39 @@ public class AdminChatFeedService {
 
     // --- istatistik ---
 
+    /** Istatistik onbellegi (ms): tum-zaman toplami {@code message_attachment JOIN message} uzerinde tam tarama yapar. */
+    static final long STATS_CACHE_MS = 5 * 60_000L;
+
+    private record CachedStats(long at, Stats value) {
+    }
+
+    private volatile CachedStats statsCache;
+
+    /**
+     * FIX-P09 (A08#6): tum-tablo toplamlari ({@code 8 x SUM(CASE)} iki kez) her sayfa acilisinda calismasin diye sonuc
+     * 5 dk tutulur (kuresel veri, yoneticiye bagli degil; erisim yetkisi {@code crypto.requireEnabled} her cagrida
+     * denetlenir). Tek ucus: es zamanli istekler tek sorgu atar.
+     */
     public Stats stats(long adminId, String ip) {
         crypto.requireEnabled();
-        Counts all = counts(null);
-        Counts day = counts(Timestamp.from(Instant.now().minusSeconds(24 * 3600L)));
-        return new Stats(all.imageCount(), all.videoCount(), all.viewOnceCount(), all.deletedMessageMediaCount(),
-                all.hiddenCount(), all.suppressedCount(), all.purgedCount(), all.totalBytes(), day);
+        CachedStats c = statsCache;
+        long now = System.nanoTime() / 1_000_000L;
+        if (c != null && now - c.at() < STATS_CACHE_MS) {
+            return c.value();
+        }
+        synchronized (this) {
+            c = statsCache;
+            now = System.nanoTime() / 1_000_000L;
+            if (c != null && now - c.at() < STATS_CACHE_MS) {
+                return c.value();
+            }
+            Counts all = counts(null);
+            Counts day = counts(Timestamp.from(Instant.now().minusSeconds(24 * 3600L)));
+            Stats s = new Stats(all.imageCount(), all.videoCount(), all.viewOnceCount(), all.deletedMessageMediaCount(),
+                    all.hiddenCount(), all.suppressedCount(), all.purgedCount(), all.totalBytes(), day);
+            statsCache = new CachedStats(now, s);
+            return s;
+        }
     }
 
     private Counts counts(Timestamp since) {

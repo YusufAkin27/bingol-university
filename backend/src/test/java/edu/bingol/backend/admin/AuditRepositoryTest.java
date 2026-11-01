@@ -26,6 +26,37 @@ class AuditRepositoryTest {
     private JdbcTemplate jdbc;
     private AuditRepository repo;
     private AuditController controller;
+    private final edu.bingol.backend.common.RateLimiter limiter = org.mockito.Mockito.mock(edu.bingol.backend.common.RateLimiter.class);
+
+    /** FIX-P09 (A08#9): CSV akisi anahtar imlecli sayfalarla; tekrar/atlama yok, limit korunur, sira en yeni once. */
+    @Test
+    void csvStreamPagesByKeysetWithoutDuplicatesOrGaps() {
+        for (int i = 0; i < 2500; i++) {
+            jdbc.update("INSERT INTO admin_audit (admin_id, method, path, status) VALUES (5, 'POST', ?, 201)", "/p" + i);
+        }
+        List<Long> ids = new ArrayList<>();
+        repo.stream(new AuditRepository.Filter(null, null, null), 50_000, r -> ids.add(r.id()));
+        assertEquals(2500, ids.size());
+        assertEquals(2500, ids.stream().distinct().count());
+        for (int i = 1; i < ids.size(); i++) {
+            assertTrue(ids.get(i - 1) > ids.get(i));
+        }
+        List<Long> capped = new ArrayList<>();
+        repo.stream(new AuditRepository.Filter(null, null, null), 1500, r -> capped.add(r.id()));
+        assertEquals(1500, capped.size());
+        assertEquals(ids.subList(0, 1500), capped);
+    }
+
+    @Test
+    void csvExportIsRateLimitedPerAdmin() {
+        org.mockito.Mockito.doThrow(new edu.bingol.backend.common.RateLimitedException(30))
+                .when(limiter).check(org.mockito.ArgumentMatchers.startsWith("admcsv:"), org.mockito.ArgumentMatchers.eq(10),
+                        org.mockito.ArgumentMatchers.any());
+        MockHttpServletResponse res = new MockHttpServletResponse();
+        assertThrows(edu.bingol.backend.common.RateLimitedException.class,
+                () -> controller.exportCsv(null, null, null, null, null, null, null, null, res));
+        assertEquals(0, res.getContentAsByteArray().length);
+    }
 
     @BeforeEach
     void setUp() {
@@ -44,7 +75,7 @@ class AuditRepositoryTest {
         jdbc.update("INSERT INTO app_user VALUES (5, 'root@bingol.edu.tr'), (6, 'ops@bingol.edu.tr')");
         var named = new NamedParameterJdbcTemplate(jdbc);
         repo = new AuditRepository(named);
-        controller = new AuditController(repo, new MessageAccessAuditReader(named));
+        controller = new AuditController(repo, new MessageAccessAuditReader(named), limiter);
     }
 
     private void add(Long admin, String method, String path, int status, String type, String id, String reason,

@@ -74,8 +74,31 @@ public class AuditRecorder {
             repo.insert(adminId, fallback, req.getMethod(), req.getRequestURI(), status, clientIp.of(req),
                     details(req, status));
         } catch (RuntimeException e) {
+            // Fail-open kalir (yazma islemi zaten yapildi); ama artik GORUNUR: sayac + sistem durumu gostergesi
+            // (FIX-P09 A08#11). Denetimi ayni islemde yazma (AOP) ayri, daha riskli bir karardir.
+            FAILED_WRITES.incrementAndGet();
+            lastFailedAtMs = System.currentTimeMillis();
             log.warn("Denetim kaydi yazilamadi: {}", e.toString());
         }
+    }
+
+    private static final java.util.concurrent.atomic.AtomicLong FAILED_WRITES = new java.util.concurrent.atomic.AtomicLong();
+    private static volatile long lastFailedAtMs;
+
+    /** Surecin basindan beri yazilamayan denetim kaydi sayisi. */
+    public static long failedWrites() {
+        return FAILED_WRITES.get();
+    }
+
+    /** Son yazma hatasinin epoch ms'i; hic hata olmadiysa 0. */
+    public static long lastFailedAtMs() {
+        return lastFailedAtMs;
+    }
+
+    /** Yalniz testler: sayaclari sifirlar. */
+    static void resetFailureStats() {
+        FAILED_WRITES.set(0);
+        lastFailedAtMs = 0;
     }
 
     /**

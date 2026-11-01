@@ -42,12 +42,15 @@ public class AdminUserController {
     private final AdminUserService service;
     private final ProfileService profiles;
     private final AdminAccountVerificationService accountOps;
+    private final edu.bingol.backend.common.RateLimiter limiter;
 
     public AdminUserController(AdminUserService service, ProfileService profiles,
-                               AdminAccountVerificationService accountOps) {
+                               AdminAccountVerificationService accountOps,
+                               edu.bingol.backend.common.RateLimiter limiter) {
         this.service = service;
         this.profiles = profiles;
         this.accountOps = accountOps;
+        this.limiter = limiter;
     }
 
     /** Giris yapmis yonetici (JWT gerekir; Basic auth'ta kullanici kaydi yoktur => 401). */
@@ -95,6 +98,8 @@ public class AdminUserController {
                           @RequestParam(required = false) Boolean twoFactor,
                           @RequestParam(required = false) String sort,
                           HttpServletResponse res) throws IOException {
+        // FIX-P09 (A08#9): tam e-postali disa aktarma pahali ve hassas; yonetici basina dakikada 10 (audit CSV ile ortak anahtar)
+        limiter.check("admcsv:" + AuditController.actor(), AuditController.CSV_PER_MINUTE, java.time.Duration.ofMinutes(1));
         UserFilter f = new UserFilter(q, status, role, faculty, department, classYear, language, verified,
                 createdFrom, createdTo, seenFrom, seenTo, twoFactor);
         f.where(); // ters tarih araligi da yanit yazilmadan once 400 versin

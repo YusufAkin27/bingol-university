@@ -42,7 +42,7 @@ public class SystemOverviewController {
     @GetMapping("/overview")
     public SystemOverviewService.Overview overview() {
         limiter.check("admin:system:" + adminKey(), 120, Duration.ofMinutes(1));
-        return overview.evaluate(LocaleContextHolder.getLocale());
+        return overview.cached(LocaleContextHolder.getLocale());
     }
 
     /**
