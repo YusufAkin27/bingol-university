@@ -12,7 +12,7 @@ import org.springframework.boot.context.properties.bind.DefaultValue;
  * @param requireKeys         true ise anahtar yokken uygulama acilmaz (prod profili de bunu zorlar)
  * @param adminDecryptEnabled yonetici cozme ucu acik mi
  * @param dekCacheTtlSeconds  bellek ici DEK onbellegi omru (0 = kapali)
- * @param dekCacheMaxEntries  onbellek ust siniri
+ * @param dekCacheMaxEntries  onbellek ust siniri (varsayilan 20000 giris, ~2 MB: kampuste 1024 aktif sohbeti kolayca asar)
  * @param adminDecryptPerHour yonetici basina saatlik cozme istegi siniri
  * @param adminDecryptMaxMessages tek istekte cozulebilecek mesaj sayisi
  */
@@ -24,7 +24,7 @@ public record CryptoProperties(
         @DefaultValue("false") boolean requireKeys,
         @DefaultValue("true") boolean adminDecryptEnabled,
         @DefaultValue("300") int dekCacheTtlSeconds,
-        @DefaultValue("1024") int dekCacheMaxEntries,
+        @DefaultValue("20000") int dekCacheMaxEntries,
         @DefaultValue("30") int adminDecryptPerHour,
         @DefaultValue("200") int adminDecryptMaxMessages) {
 }

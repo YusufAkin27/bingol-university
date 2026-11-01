@@ -40,6 +40,11 @@ public class ConversationKeyService {
     private final int maxEntries;
     private final LongSupplier clock;
     private final Map<String, Cached> cache = new ConcurrentHashMap<>();
+    /** FIX-P03 (A02#11): aktif surum onbellegi; her gonderimde `conversation_key` sorgusu atilmasin. */
+    private record ActiveRef(int version, long expiresAtMillis) {}
+
+    private static final long ACTIVE_TTL_MILLIS = 60_000L;
+    private final Map<Long, ActiveRef> activeCache = new ConcurrentHashMap<>();
 
     @Autowired
     public ConversationKeyService(ConversationKeyStore store, KeyProvider keys, CryptoService crypto,
@@ -60,6 +65,25 @@ public class ConversationKeyService {
 
     /** Konusmanin aktif DEK'i; yoksa uretilip kaydedilir (yarista tek kazanan, digerleri onu okur). */
     public DekRef active(long conversationId) {
+        long now = clock.getAsLong();
+        ActiveRef ar = ttlMillis <= 0 ? null : activeCache.get(conversationId);
+        if (ar != null && ar.expiresAtMillis() > now) {
+            Cached c = cache.get(cacheKey(conversationId, ar.version()));
+            if (c != null && c.expiresAtMillis() > now) {
+                return new DekRef(ar.version(), c.key()); // sorgu yok
+            }
+        }
+        DekRef ref = loadActive(conversationId);
+        if (ttlMillis > 0) {
+            if (activeCache.size() >= maxEntries) {
+                evictSome(activeCache.keySet());
+            }
+            activeCache.put(conversationId, new ActiveRef(ref.version(), now + Math.min(ACTIVE_TTL_MILLIS, ttlMillis)));
+        }
+        return ref;
+    }
+
+    private DekRef loadActive(long conversationId) {
         StoredKey s = store.findActive(conversationId).orElse(null);
         if (s == null) {
             byte[] raw = crypto.newKeyBytes();
@@ -105,14 +129,26 @@ public class ConversationKeyService {
             long now = clock.getAsLong();
             cache.entrySet().removeIf(e -> e.getValue().expiresAtMillis() <= now);
             if (cache.size() >= maxEntries) {
-                cache.clear();
+                // FIX-P03: hepsini bosaltmak (eskiden clear) sicak anahtarlari da atip herkesi ayni anda DB'ye
+                // yonlendiriyordu (thundering herd); yalniz yaklasik %10'u cikar.
+                evictSome(cache.keySet());
             }
         }
         cache.put(cacheKey(cid, version), new Cached(dek, clock.getAsLong() + ttlMillis));
     }
 
+    private void evictSome(java.util.Set<?> keys) {
+        int drop = Math.max(1, maxEntries / 10);
+        var it = keys.iterator();
+        while (it.hasNext() && drop-- > 0) {
+            it.next();
+            it.remove();
+        }
+    }
+
     public void clearCache() {
         cache.clear();
+        activeCache.clear();
     }
 
     private static String cacheKey(long cid, int version) {
