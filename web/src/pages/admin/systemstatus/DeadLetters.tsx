@@ -180,6 +180,7 @@ export function DeadLetters({ i18n }: { i18n: I18n }) {
               caption={t('admin.v2n.sys.dead.title')}
               selectedKeys={selected}
               onSelectionChange={setSelected}
+              selectLabel={(r) => t('admin.system.dead.selectRow', { id: String(r.id) })}
             />
           </>
         )}

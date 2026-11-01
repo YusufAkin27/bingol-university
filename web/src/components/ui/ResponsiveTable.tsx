@@ -79,6 +79,7 @@ export function DataCards<T>({
   onRetry,
   selectedKeys,
   onSelectionChange,
+  selectLabel,
   expandDetails,
 }: TableProps<T> & { expandDetails?: boolean }) {
   const { t } = useI18n();
@@ -163,7 +164,7 @@ export function DataCards<T>({
                       <input
                         type="checkbox"
                         checked={picked}
-                        aria-label={t('admin.table.selectRow')}
+                        aria-label={selectLabel ? selectLabel(row) : t('admin.table.selectRow')}
                         onChange={() => toggleRow(k)}
                       />
                     </label>

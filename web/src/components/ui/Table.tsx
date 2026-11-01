@@ -56,6 +56,8 @@ export interface TableProps<T> {
   /** Satır seçimi (toplu işlemler): ikisi birlikte verilirse ilk sütun onay kutusu olur. */
   selectedKeys?: ReadonlySet<string | number>;
   onSelectionChange?: (next: Set<string | number>) => void;
+  /** Seçim kutusunun erişilebilir adı (ekran okuyucu satırı ayırt etsin): "Kaydı seç: 7". Verilmezse "Satırı seç". */
+  selectLabel?: (row: T) => string;
   /** Daha geniş satır aralığı (varsayılan: yoğun). */
   comfortable?: boolean;
   /**
@@ -110,6 +112,7 @@ export function Table<T>({
   onRetry,
   selectedKeys,
   onSelectionChange,
+  selectLabel,
   comfortable,
   mobile = 'scroll',
 }: TableProps<T>) {
@@ -168,6 +171,7 @@ export function Table<T>({
         onRetry={onRetry}
         selectedKeys={selectedKeys}
         onSelectionChange={onSelectionChange}
+        selectLabel={selectLabel}
       />
     );
   }
@@ -281,7 +285,7 @@ export function Table<T>({
                           <input
                             type="checkbox"
                             className={styles.check}
-                            aria-label={t('admin.table.selectRow')}
+                            aria-label={selectLabel ? selectLabel(row) : t('admin.table.selectRow')}
                             checked={picked}
                             onChange={() => toggleRow(k)}
                           />

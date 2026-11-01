@@ -108,7 +108,10 @@ describe('Sistem durumu sayfası', () => {
     const calls = setup();
     renderWithProviders(<SystemStatusPage />);
     expect(await screen.findByText('VERIFY')).toBeInTheDocument();
-    await userEvent.click(screen.getAllByLabelText('Satırı seç')[0]);
+    // seçim kutusu kayıt kimliğini taşır (ekran okuyucu satırları ayırt etsin)
+    expect(screen.queryByLabelText('Satırı seç')).toBeNull();
+    expect(screen.getByLabelText('Kaydı seç: 8')).toBeInTheDocument();
+    await userEvent.click(screen.getByLabelText('Kaydı seç: 7'));
     await userEvent.click(screen.getByRole('button', { name: 'Seçilenleri yeniden dene' }));
     await waitFor(() =>
       expect(
@@ -125,7 +128,7 @@ describe('Sistem durumu sayfası', () => {
   it('silmeden önce onay ister', async () => {
     const calls = setup();
     renderWithProviders(<SystemStatusPage />);
-    await userEvent.click((await screen.findAllByLabelText('Satırı seç'))[1]);
+    await userEvent.click(await screen.findByLabelText('Kaydı seç: 8'));
     await userEvent.click(screen.getByRole('button', { name: 'Seçilenleri sil' }));
     expect(calls.some((c) => c.url.endsWith('/mail/delete'))).toBe(false);
     const dialog = await screen.findByRole('dialog');
