@@ -9,7 +9,7 @@ import {
 } from '../../../api/analytics';
 import { qk } from '../../../api/queryKeys';
 import { BarChart, DonutChart } from '../../../components/charts';
-import { Card, EmptyState, Insight, StatCard, StatusPill, Table, toneFor, type Column } from '../../../components/ui';
+import { Card, EmptyState, Insight, StatTile, StatusPill, Table, toneFor, type Column } from '../../../components/ui';
 import { useI18n } from '../../../i18n/I18nProvider';
 import { useGt } from '../dashboard/dict';
 import { DailySummary } from './DailySummary';
@@ -99,7 +99,7 @@ export default function OverviewTab({ range, compare }: { range: DateRange; comp
             const sum = (k: 'news' | 'announcements' | 'events') => d.daily.reduce((s, x) => s + x[k], 0);
             const total = sum('news') + sum('announcements') + sum('events');
             return (
-              <div data-search-anchor="anl-content">
+              <div data-search-anchor="anl-content" className={styles.spanAll}>
               <ChartCard
                 title={t('admin.analytics.overview.content')}
                 rows={d.daily}
@@ -242,8 +242,8 @@ export default function OverviewTab({ range, compare }: { range: DateRange; comp
               return (
                 <>
                   <div className={styles.grid3} style={{ gridTemplateColumns: 'repeat(2, minmax(0, 1fr))' }}>
-                    <StatCard title={t('admin.analytics.push.campaigns')} value={formatNumber(d.totals.campaigns)} />
-                    <StatCard title={t('admin.analytics.push.recipients')} value={formatNumber(d.totals.recipients)} />
+                    <StatTile label={t('admin.analytics.push.campaigns')} value={d.totals.campaigns} />
+                    <StatTile label={t('admin.analytics.push.recipients')} value={d.totals.recipients} />
                   </div>
                   <h3 className={styles.sub}>{t('admin.analytics.push.recent')}</h3>
                   <Table
