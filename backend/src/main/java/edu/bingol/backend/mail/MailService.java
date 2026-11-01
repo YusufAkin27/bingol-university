@@ -123,6 +123,15 @@ public class MailService {
     }
 
     /**
+     * Iki faktorlu giris/etkinlestirme kodu. Hesap sahibine, sifre dogrulandiktan sonra gider (kimliksiz kod akisi
+     * degildir): kimliksiz kod butcesi ve alici basina gunluk "sessiz atlama" UYGULANMAZ; hiz siniri cagiranda
+     * (TwoFactorService) kullanici basinadir.
+     */
+    public void sendTwoFactorCode(String to, String code, int minutes, Lang lang) {
+        enqueue(to, MailTemplate.TWO_FACTOR_CODE, lang, vars("code", code, "minutes", String.valueOf(minutes)));
+    }
+
+    /**
      * Alici basina gunluk kod postasi siniri (app.mail.max-codes-per-email-per-day). Asilirsa posta SESSIZCE
      * gonderilmez (genel cevap korunur: hesap varligi sizmaz; kod zaten e-postaya ulasmamis olur) ve log'lanir.
      */

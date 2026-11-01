@@ -11,6 +11,8 @@ import edu.bingol.backend.auth.token.PendingRegistrationStore.Pending;
 import edu.bingol.backend.auth.token.RefreshTokenService;
 import edu.bingol.backend.auth.token.SessionService;
 import edu.bingol.backend.auth.token.VerificationService;
+import edu.bingol.backend.auth.twofactor.TwoFactorRequiredException;
+import edu.bingol.backend.auth.twofactor.TwoFactorService;
 import edu.bingol.backend.catalog.CatalogService;
 import edu.bingol.backend.moderation.profanity.ContentGuard;
 import edu.bingol.backend.moderation.profanity.ContentGuard.Entity;
@@ -103,6 +105,14 @@ public class AuthService {
 
     void setVerifyRequiresPassword(boolean v) {
         this.verifyRequiresPassword = v;
+    }
+
+    /** Iki faktorlu dogrulama (istege bagli: onsuz kurulan birim testleri icin). */
+    private TwoFactorService twoFactor;
+
+    @Autowired(required = false)
+    void setTwoFactor(TwoFactorService twoFactor) {
+        this.twoFactor = twoFactor;
     }
 
     @Autowired(required = false)
@@ -301,6 +311,7 @@ public class AuthService {
         users.save(user);
         // Sifre degisince calinmis olabilecek tum oturumlar (refresh + access) kapanir.
         sessions.revokeAll(user.getId());
+        clearTrustedDevices(user.getId()); // 2FA: sifre sifirlaninca guvenilen cihazlar da gecersiz
         // Hesap sahibi bilsin (kod e-postasina erisen biri sifreyi degistirmis olabilir).
         notifyPasswordChanged(user);
     }
@@ -331,6 +342,7 @@ public class AuthService {
         user.setPasswordHash(encoder.encode(newPassword));
         users.save(user);
         sessions.revokeAll(userId);
+        clearTrustedDevices(userId); // 2FA: sifre degisince guvenilen cihazlar da gecersiz
         // Iptal isareti `iatms <= isaret` token'lari reddeder: yeni token'in iatms'i kesin buyuk olsun.
         try {
             Thread.sleep(1);
@@ -450,12 +462,71 @@ public class AuthService {
         if (promoteIfAdmin(user)) {
             users.save(user);
         }
-        logDevice(user.getId(), ctx, "LOGIN");
         String c = RefreshTokenService.normalizeClient(client);
+        // 2FA: sifre ve engel kontrolleri gecti. Acik + cihaz guvenilir degilse (ya da cihaz basligi yoksa) token
+        // URETILMEZ: kod e-postaya gider, 202 challenge doner. Oturum iptali/cihaz gunlugu/yeni giris bildirimi
+        // kod dogrulandiktan sonra (completeTwoFactorLogin) calisir.
+        if (twoFactor != null && user.isTwoFactorEnabled()
+                && !twoFactor.touchIfTrusted(user.getId(), ctx == null ? null : ctx.deviceHash())) {
+            throw new TwoFactorRequiredException(twoFactor.begin(user, ctx, c));
+        }
+        logDevice(user.getId(), ctx, "LOGIN");
         if (RefreshTokenService.MOBILE.equals(c)) {
             sessions.revokeClient(user.getId(), c, true);
         }
         return tokens(user, c);
+    }
+
+    /**
+     * 2FA ikinci adimi: challenge + e-posta kodu. Once hesap/engel kontrolleri (kod tuketilmeden), sonra kod;
+     * basarida cihaz (istenirse) guvenilir yapilir ve normal girisle ayni sonuc doner (tek cihaz kurali, cihaz
+     * gunlugu, yeni giris bildirimi dahil). Challenge tek kullanimliktir.
+     */
+    public TokenResponse completeTwoFactorLogin(String challengeToken, String code, boolean trustDevice,
+                                                ClientContext ctx) {
+        TwoFactorService.Challenge ch = requireTwoFactorService().peek(challengeToken);
+        User user = loginableUser(ch);
+        requireNotBlocked(ctx, user.getId(), "/api/auth/login/2fa");
+        twoFactor.verifyAndConsume(challengeToken, ch, code, ctx);
+        if (trustDevice) {
+            twoFactor.trust(user.getId(), ch.deviceHash(), ch.platform(), ch.appVersion());
+        }
+        logDevice(user.getId(), ctx, "LOGIN");
+        String c = RefreshTokenService.normalizeClient(ch.client());
+        if (RefreshTokenService.MOBILE.equals(c)) {
+            sessions.revokeClient(user.getId(), c, true);
+        }
+        return tokens(user, c);
+    }
+
+    /** 2FA kodunu ayni challenge icin yeniden gonderir; kalan omur (sn) doner. Sinir controller'da. */
+    public long resendTwoFactorCode(String challengeToken, ClientContext ctx) {
+        TwoFactorService.Challenge ch = requireTwoFactorService().peek(challengeToken);
+        User user = loginableUser(ch);
+        requireNotBlocked(ctx, user.getId(), "/api/auth/login/2fa/resend");
+        return twoFactor.resend(challengeToken, ch);
+    }
+
+    /** Challenge sahibi hesap hala girebilir mi (dogrulanmis, silinmemis, askida degil)? Degilse challenge gecersiz. */
+    private User loginableUser(TwoFactorService.Challenge ch) {
+        User user = users.findById(ch.userId()).filter(User::isEmailVerified)
+                .orElseThrow(TwoFactorService::challengeExpired);
+        requireActive(user);
+        return user;
+    }
+
+    private TwoFactorService requireTwoFactorService() {
+        if (twoFactor == null) {
+            throw TwoFactorService.challengeExpired();
+        }
+        return twoFactor;
+    }
+
+    /** Sifre degisimi/sifirlama/logout-all: guvenilen cihazlar silinir (sonraki giriste kod istenir). */
+    private void clearTrustedDevices(Long userId) {
+        if (twoFactor != null) {
+            twoFactor.clearDevices(userId);
+        }
     }
 
     public TokenResponse refresh(String refreshToken) {
@@ -557,6 +628,7 @@ public class AuthService {
     /** Tum cihazlardaki oturumlari kapatir (refresh token'lar + eski access token'lar). */
     public void logoutAll(Long userId) {
         sessions.revokeAll(userId);
+        clearTrustedDevices(userId); // 2FA: "tum cihazlardan cik" guvenilen cihazlari da sifirlar
     }
 
     public UserView me(Long userId) {
