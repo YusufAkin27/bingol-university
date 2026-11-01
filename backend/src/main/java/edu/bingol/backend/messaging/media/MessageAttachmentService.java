@@ -938,6 +938,9 @@ public class MessageAttachmentService {
 
     // ------------------------------------------------------------------ temizlik
 
+    static final Duration FILE_SWEEP_EVERY = Duration.ofHours(23);
+    private volatile Instant lastFileSweep = Instant.EPOCH;
+
     /** Baglanmamis ve `maxAge`den eski yuklemeleri siler; ardindan satiri olmayan eski dosyalari tarar. */
     public int cleanup(Duration maxAge) {
         int n = 0;
@@ -953,7 +956,13 @@ public class MessageAttachmentService {
                     log.warn("Yetim ek silinemedi {}: {}", a.getId(), e.toString());
                 }
             }
-            store.sweep(BUCKET, repo::existsByStorageKey, maxAge);
+            // FIX-P03 (A09#10): dosya sistemi taramasi (tum dizin listelenir, dosya basina 1 sorgu) saatte bir degil
+            // gunde bir; baglanmamis yukleme temizligi (yukaridaki, indeksli) saatlik kalir.
+            Instant now = Instant.now();
+            if (Duration.between(lastFileSweep, now).compareTo(FILE_SWEEP_EVERY) >= 0) {
+                lastFileSweep = now;
+                store.sweep(BUCKET, repo::existsByStorageKey, maxAge);
+            }
         } catch (RuntimeException e) {
             log.warn("Sohbet gorseli temizligi yarim kaldi: {}", e.toString());
         }
