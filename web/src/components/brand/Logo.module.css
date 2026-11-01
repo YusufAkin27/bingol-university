@@ -6,6 +6,10 @@
   text-decoration: none;
   max-width: 100%;
 }
+/* Bağlantı olan logo: dokunma hedefi en az 44px yükseklik */
+a.logo {
+  min-height: 44px;
+}
 .img {
   display: block;
   max-width: 100%;

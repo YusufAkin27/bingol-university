@@ -34,6 +34,10 @@
 .skeletons {
   display: grid;
   gap: var(--space-3);
+  align-content: start;
+  /* CLS: veri gelince altındaki "yeni özellikler" bölümü ilk ekranda kaymasın (ekran dışında kalır) */
+  min-height: 100vh;
+  min-height: 100svh;
 }
 .search {
   position: relative;

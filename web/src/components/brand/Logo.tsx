@@ -18,6 +18,8 @@ interface LogoProps {
   to?: string;
   /** Süs amaçlı kullanım (yanında ad yazıyorsa): alt metin boş, ekran okuyuculardan gizli */
   decorative?: boolean;
+  /** İlk ekrandaki (sayfa üstü) logo: hemen yüklenir. Diğerleri tembel yüklenir (gizli ton hiç indirilmez). */
+  priority?: boolean;
   className?: string;
 }
 
@@ -36,7 +38,7 @@ function Img({
   height: number;
   alt: string;
   className?: string;
-  /** Gizli (CSS ile display:none) tema varyantı: tarayıcı lazy görseli düzen kutusu yokken indirmez. */
+  /** Sayfa altı / gizli (CSS ile display:none) tema varyantı: tarayıcı lazy görseli düzen kutusu yokken indirmez. */
   lazy?: boolean;
 }) {
   return (
@@ -65,6 +67,7 @@ export function Logo({
   height,
   to,
   decorative = false,
+  priority = false,
   className,
 }: LogoProps) {
   const { t } = useI18n();
@@ -74,7 +77,7 @@ export function Logo({
 
   let content: JSX.Element;
   if (variant === 'mark') {
-    content = <Img src={markAsset.src} width={h} height={h} alt={alt} className={styles.img} />;
+    content = <Img src={markAsset.src} width={h} height={h} alt={alt} lazy={!priority} className={styles.img} />;
   } else {
     const key = (tn: 'light' | 'dark') => `${variant}${tagline ? '-tagline' : ''}-${tn}`;
     const dims = (tn: 'light' | 'dark') => {
@@ -86,13 +89,15 @@ export function Logo({
       const d = dims('dark');
       content = (
         <>
-          <Img src={l.a.src} width={l.w} height={h} alt={alt} lazy className={`${styles.img} ${styles.forLight}`} />
-          <Img src={d.a.src} width={d.w} height={h} alt="" lazy className={`${styles.img} ${styles.forDark}`} />
+          <Img src={l.a.src} width={l.w} height={h} alt={alt} lazy={!priority} className={`${styles.img} ${styles.forLight}`} />
+          {/* İki tonun da alt metni var: görünmeyen (display:none) ton erişilebilirlik ağacında yer almaz; koyu temada yalnız
+              bu görünür ve bağlantısız kullanımda erişilebilir ad onda olmalı (önceden boştu: link-name/image-alt hatası) */}
+          <Img src={d.a.src} width={d.w} height={h} alt={alt} lazy className={`${styles.img} ${styles.forDark}`} />
         </>
       );
     } else {
       const x = dims(tone);
-      content = <Img src={x.a.src} width={x.w} height={h} alt={alt} className={styles.img} />;
+      content = <Img src={x.a.src} width={x.w} height={h} alt={alt} lazy={!priority} className={styles.img} />;
     }
   }
 

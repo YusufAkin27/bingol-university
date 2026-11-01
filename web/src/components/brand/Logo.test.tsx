@@ -10,11 +10,13 @@ describe('Logo', () => {
     expect(img).toHaveAttribute('height', '40');
   });
 
-  it('yatay: oran korunur, auto iki ton basar (yalnız biri alt metinli)', () => {
+  it('yatay: oran korunur, auto iki ton basar (ikisi de alt metinli: koyu temada link adı boş kalmaz)', () => {
     const { container } = renderWithProviders(<Logo variant="horizontal" height={36} />);
     const imgs = container.querySelectorAll('img');
     expect(imgs).toHaveLength(2);
-    expect(screen.getAllByAltText('BÜ Kampüs logosu')).toHaveLength(1);
+    expect(screen.getAllByAltText('BÜ Kampüs logosu')).toHaveLength(2);
+    // gizli ton tembel yüklenir (indirilmez); öncelikli logo açık tonu hemen yükler
+    expect(imgs[1]).toHaveAttribute('loading', 'lazy');
     const w = Number(imgs[0].getAttribute('width'));
     expect(imgs[0]).toHaveAttribute('height', '36');
     expect(w / 36).toBeGreaterThan(3); // geniş yatay kilit

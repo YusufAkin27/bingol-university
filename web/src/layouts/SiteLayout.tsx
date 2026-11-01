@@ -107,7 +107,7 @@ export function SiteLayout() {
       )}
       <header className={styles.header}>
         <div className={`container ${styles.bar}`}>
-          <Logo to={paths.site.home} height={36} />
+          <Logo to={paths.site.home} height={36} priority />
           <nav
             id="site-nav"
             aria-label={t('site.nav.main')}
