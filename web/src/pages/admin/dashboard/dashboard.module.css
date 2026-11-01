@@ -171,7 +171,7 @@
 }
 .audit li {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--space-1) var(--space-3);
   padding: var(--space-2) 0;
 }
@@ -190,7 +190,7 @@
   overflow-wrap: anywhere;
 }
 .auditMeta {
-  grid-column: 2;
+  grid-column: 1;
   font-size: var(--text-xs);
   color: var(--text-muted);
 }
