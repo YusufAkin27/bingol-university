@@ -18,6 +18,9 @@ import '../menu/menu_parts.dart' show menuDishTitle;
 import '../news/news_detail_page.dart';
 import '../news/news_list_page.dart';
 import '../news/news_tile.dart' show newsLocalDate, newsMonthName, newsWeekdayName;
+import '../news/unit_news_detail_page.dart';
+import '../news/unit_news_models.dart';
+import '../news/unit_news_strip.dart';
 import '../notifications/notifications_page.dart';
 import '../polls/poll_routes.dart';
 import '../profile/saved_news_page.dart';
@@ -75,6 +78,11 @@ class _HomeTabState extends State<HomeTab> {
   TimetableData? _timetable;
   List<Exam> _exams = const [];
 
+  // "Bölümümden" şeridi: sessiz özellik. Bölüm yoksa / liste boşsa / hata olursa boş kalır ve HİÇBİR şey çizilmez
+  // (yükleme sırasında da); veri gelince ana sayfanın en altına eklenir (sayfa zıplamaz).
+  List<UnitNewsItem> _unit = const [];
+  bool _unitBusy = false;
+
   /// Kullanıcıya özel yerel düzen (bölüm sırası/görünürlüğü + Hızlı Erişim kısayolları).
   late final HomeLayoutController _layout = HomeLayoutController(uid: widget.session.userId);
 
@@ -88,12 +96,14 @@ class _HomeTabState extends State<HomeTab> {
   void initState() {
     super.initState();
     _layout.addListener(_onLayout);
+    _s.department.addListener(_onDepartment);
     _boot();
   }
 
   @override
   void dispose() {
     _layout.removeListener(_onLayout);
+    _s.department.removeListener(_onDepartment);
     _layout.dispose();
     super.dispose();
   }
@@ -177,6 +187,32 @@ class _HomeTabState extends State<HomeTab> {
     });
     _ensureSectionData(); // yükleme sırasında görünür olan bölüm varsa
     unawaited(_loadAcademic()); // ilk boyamayı beklemez; hata sessiz
+    unawaited(_loadUnitNews(gen)); // ilk boyamayı beklemez; hata sessiz
+  }
+
+  /// Profilde bölüm varsa `GET /news/unit?limit=10`. Bölüm yok / boş / hata: şerit boş kalır (iz bırakılmaz).
+  /// Bölümü olmayan kullanıcıda uç hiç çağrılmaz.
+  Future<void> _loadUnitNews(int gen) async {
+    final api = UnitNewsApi(_s);
+    final force = _force;
+    _unitBusy = true;
+    var items = const <UnitNewsItem>[];
+    try {
+      if (await api.hasDepartment(force: force)) {
+        items = await api.list(force: force);
+      }
+    } finally {
+      _unitBusy = false;
+    }
+    if (!mounted || gen != _gen) return;
+    if (items.isEmpty && _unit.isEmpty) return; // gereksiz yeniden kurma yok
+    setState(() => _unit = items);
+  }
+
+  /// Profilde bölüm değişti (profil düzenleme kaydı ya da kabuğun profil okuması): ilk yükleme bittiyse şerit yenilenir.
+  void _onDepartment() {
+    if (!mounted || _loading || _unitBusy) return;
+    unawaited(_loadUnitNews(_gen));
   }
 
   /// `GET /events/featured`: yaklaşan etkinlikler içinde en çok katılımcılı olan. 204/boş gövde -> null (boş durum).
@@ -487,6 +523,13 @@ class _HomeTabState extends State<HomeTab> {
           resetLabel: l.p60ResetDefault,
           onReset: _layout.reset,
         ),
+      ));
+    }
+    // "Bölümümden": yalnız veri varsa, en altta (yoksa listeye hiçbir öğe eklenmez: başlık/boşluk/yer tutucu yok).
+    if (_unit.isNotEmpty) {
+      out.add(Padding(
+        padding: const EdgeInsets.only(top: 12),
+        child: UnitNewsSection(items: _unit, onOpen: (n) => _push(UnitNewsDetailPage(session: _s, item: n))),
       ));
     }
     return out;

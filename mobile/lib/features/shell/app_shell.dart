@@ -114,6 +114,7 @@ class _AppShellState extends State<AppShell> with WidgetsBindingObserver, Single
       if (m is! Map) return;
       final av = m['avatarUrl'];
       s.avatarUrl.value = av is String && av.isNotEmpty ? av : null;
+      s.setDepartment(m['department']); // Ana Sayfa "Bölümümden" şeridi aynı profili yeniden çekmesin
     } catch (_) {}
   }
 

@@ -9785,4 +9785,24 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get frqMsgReqDeclineGroupConfirm => 'Daveti sil';
+
+  @override
+  String get unitNewsTitle => 'Bölümümden';
+
+  @override
+  String get unitNewsAttachments => 'Ekler';
+
+  @override
+  String get unitNewsOpenSource => 'Kaynakta aç';
+
+  @override
+  String get unitNewsLinkFailed => 'Bağlantı açılamadı.';
+
+  @override
+  String get unitNewsHasAttachments => 'Ekli dosya var';
+
+  @override
+  String unitNewsAttachmentOpen(String name) {
+    return 'Eki aç: $name';
+  }
 }

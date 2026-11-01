@@ -17766,6 +17766,42 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Daveti sil'**
   String get frqMsgReqDeclineGroupConfirm;
+
+  /// No description provided for @unitNewsTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bölümümden'**
+  String get unitNewsTitle;
+
+  /// No description provided for @unitNewsAttachments.
+  ///
+  /// In tr, this message translates to:
+  /// **'Ekler'**
+  String get unitNewsAttachments;
+
+  /// No description provided for @unitNewsOpenSource.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kaynakta aç'**
+  String get unitNewsOpenSource;
+
+  /// No description provided for @unitNewsLinkFailed.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bağlantı açılamadı.'**
+  String get unitNewsLinkFailed;
+
+  /// No description provided for @unitNewsHasAttachments.
+  ///
+  /// In tr, this message translates to:
+  /// **'Ekli dosya var'**
+  String get unitNewsHasAttachments;
+
+  /// No description provided for @unitNewsAttachmentOpen.
+  ///
+  /// In tr, this message translates to:
+  /// **'Eki aç: {name}'**
+  String unitNewsAttachmentOpen(String name);
 }
 
 class _AppLocalizationsDelegate

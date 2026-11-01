@@ -3121,5 +3121,12 @@
   "frqMsgReqEmpty": "لا توجد طلبات رسائل معلّقة.",
   "frqMsgReqDeclineGroupTitle": "حذف دعوة المجموعة؟",
   "frqMsgReqDeclineGroupBody": "ستغادر المجموعة ولن يتمكن الشخص الذي أضافك من إضافتك مرة أخرى.",
-  "frqMsgReqDeclineGroupConfirm": "حذف الدعوة"
+  "frqMsgReqDeclineGroupConfirm": "حذف الدعوة",
+  "unitNewsTitle": "من قسمي",
+  "unitNewsAttachments": "المرفقات",
+  "unitNewsOpenSource": "افتح في المصدر",
+  "unitNewsLinkFailed": "تعذّر فتح الرابط.",
+  "unitNewsHasAttachments": "يحتوي على مرفقات",
+  "unitNewsAttachmentOpen": "فتح المرفق: {name}",
+  "@unitNewsAttachmentOpen": {"placeholders": {"name": {"type": "String"}}}
 }

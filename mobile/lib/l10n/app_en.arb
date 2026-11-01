@@ -3121,5 +3121,12 @@
   "frqMsgReqEmpty": "No pending message requests.",
   "frqMsgReqDeclineGroupTitle": "Delete group invite?",
   "frqMsgReqDeclineGroupBody": "You will leave the group and the person who added you cannot add you again.",
-  "frqMsgReqDeclineGroupConfirm": "Delete invite"
+  "frqMsgReqDeclineGroupConfirm": "Delete invite",
+  "unitNewsTitle": "From my department",
+  "unitNewsAttachments": "Attachments",
+  "unitNewsOpenSource": "Open at source",
+  "unitNewsLinkFailed": "Could not open the link.",
+  "unitNewsHasAttachments": "Has attachments",
+  "unitNewsAttachmentOpen": "Open attachment: {name}",
+  "@unitNewsAttachmentOpen": {"placeholders": {"name": {"type": "String"}}}
 }
