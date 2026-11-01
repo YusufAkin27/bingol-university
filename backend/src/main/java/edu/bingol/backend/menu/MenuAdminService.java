@@ -26,6 +26,7 @@ public class MenuAdminService {
     private final MenuRepository repo;
     private final MediaService media;
     private final MenuCalorieService calories;
+    private final MenuContentImages images;
 
     /** Kisa DB islemi (T-068); yoksa dogrudan calisir (elle kurulan testler). */
     private ShortTx tx = ShortTx.direct();
@@ -35,10 +36,12 @@ public class MenuAdminService {
         this.tx = ShortTx.of(tm);
     }
 
-    public MenuAdminService(MenuRepository repo, MediaService media, MenuCalorieService calories) {
+    public MenuAdminService(MenuRepository repo, MediaService media, MenuCalorieService calories,
+                            MenuContentImages images) {
         this.repo = repo;
         this.media = media;
         this.calories = calories;
+        this.images = images;
     }
 
     public static LocalDate parseDate(String raw) {
@@ -61,23 +64,32 @@ public class MenuAdminService {
                     "Tarih aralığı geçersiz (en çok 366 gün).");
         }
         Map<LocalDate, Map<String, Integer>> kcal = calories.range(from, to);
-        return repo.findByMenuDateBetweenOrderByMenuDate(from, to).stream()
-                .map(d -> MenuResponse.of(d, kcal.getOrDefault(d.getMenuDate(), Map.of()))).toList();
+        List<MenuDay> list = repo.findByMenuDateBetweenOrderByMenuDate(from, to);
+        Map<LocalDate, String> img = images.forDays(list);
+        return list.stream().map(d -> MenuResponse.of(d, kcal.getOrDefault(d.getMenuDate(), Map.of()),
+                img.get(d.getMenuDate()))).toList();
     }
 
-    /** Gorsel isleme islem DISINDA (T-068); yalniz URL yazimi kisa islemdedir. */
+    /**
+     * Gorsel isleme islem DISINDA (T-068); yalniz URL yazimi kisa islemdedir. Gorsel bu menunun ICERIGINE baglanir:
+     * birebir ayni menu (baska gun/ay) ayni gorseli alir, menude en ufak degisiklik olan gun gorselsiz kalir.
+     */
     public MenuImageResponse setImage(LocalDate date, MultipartFile file) {
         load(date); // yoksa gorsel islenmeden 404
         String url = media.storeImage(file, ImageKind.COVER).url();
-        String old = tx.call(() -> {
+        String[] old = tx.call(() -> {
             MenuDay day = load(date);
-            String prev = day.getImageUrl();
-            day.setImageUrl(url);
-            repo.saveAndFlush(day);
-            return prev;
+            String legacy = day.getImageUrl();
+            if (legacy != null) {
+                day.setImageUrl(null);
+                repo.saveAndFlush(day);
+            }
+            return new String[] {images.remember(day, url), legacy};
         });
-        if (old != null && !old.equals(url)) {
-            media.release(old);
+        for (String o : old) {
+            if (o != null && !o.equals(url)) {
+                media.release(o);
+            }
         }
         return new MenuImageResponse(date.toString(), url);
     }
@@ -85,13 +97,14 @@ public class MenuAdminService {
     @Transactional
     public void deleteImage(LocalDate date) {
         MenuDay day = load(date);
-        String old = day.getImageUrl();
-        if (old == null) {
-            return;
+        String legacy = day.getImageUrl();
+        if (legacy != null) {
+            day.setImageUrl(null);
+            repo.saveAndFlush(day);
         }
-        day.setImageUrl(null);
-        repo.saveAndFlush(day);
-        media.release(old);
+        String removed = images.forget(day);
+        media.release(removed);
+        media.release(legacy);
     }
 
     private MenuDay load(LocalDate date) {

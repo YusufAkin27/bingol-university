@@ -21,6 +21,11 @@ public record MenuResponse(String date, List<String> items, String imageUrl, Lis
 
     /** kcalByKey: {@link MenuItemKey#of} anahtarli kalori haritasi (bos olabilir). */
     public static MenuResponse of(MenuDay d, Map<String, Integer> kcalByKey) {
+        return of(d, kcalByKey, d.getImageUrl());
+    }
+
+    /** imageUrl: menu icerigine bagli gorsel ({@code MenuContentImages}); eslesme yoksa null = yeni gorsel bekliyor. */
+    public static MenuResponse of(MenuDay d, Map<String, Integer> kcalByKey, String imageUrl) {
         List<String> items = List.of(d.getItems().split("\n"));
         List<MenuDish> dishes = items.stream().map(n -> new MenuDish(n, kcalByKey.get(MenuItemKey.of(n)))).toList();
         int known = 0;
@@ -31,7 +36,7 @@ public record MenuResponse(String date, List<String> items, String imageUrl, Lis
                 sum += dish.kcal();
             }
         }
-        return new MenuResponse(d.getMenuDate().toString(), items, d.getImageUrl(), dishes,
+        return new MenuResponse(d.getMenuDate().toString(), items, imageUrl, dishes,
                 known == 0 ? null : sum, known == dishes.size() && known > 0);
     }
 }

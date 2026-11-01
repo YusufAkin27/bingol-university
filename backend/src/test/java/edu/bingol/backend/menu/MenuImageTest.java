@@ -1,6 +1,7 @@
 package edu.bingol.backend.menu;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
@@ -27,7 +28,8 @@ class MenuImageTest {
 
     private final MenuRepository repo = mock(MenuRepository.class);
     private final MediaService media = mock(MediaService.class);
-    private final MenuAdminService service = new MenuAdminService(repo, media, mock(MenuCalorieService.class));
+    private final MenuContentImages images = mock(MenuContentImages.class);
+    private final MenuAdminService service = new MenuAdminService(repo, media, mock(MenuCalorieService.class), images);
     private final LocalDate date = LocalDate.of(2026, 10, 28);
     private final MockMultipartFile file = new MockMultipartFile("file", "a.jpg", "image/jpeg", new byte[] {1});
 
@@ -40,16 +42,18 @@ class MenuImageTest {
     }
 
     @Test
-    void setImageReplacesAndReleasesOld() {
+    void setImageBindsToContentAndReleasesOld() {
         MenuDay d = day("/files/covers/old.jpg");
         when(repo.findByMenuDate(date)).thenReturn(Optional.of(d));
         when(media.storeImage(any(), eq(ImageKind.COVER)))
                 .thenReturn(new StoredImage("/files/covers/new.jpg", "/files/covers/new-t.jpg", 1, 1, 1, "image/jpeg"));
+        when(images.remember(d, "/files/covers/new.jpg")).thenReturn("/files/covers/prev.jpg");
         var res = service.setImage(date, file);
         assertEquals("/files/covers/new.jpg", res.imageUrl());
         assertEquals("2026-10-28", res.date());
-        assertEquals("/files/covers/new.jpg", d.getImageUrl());
+        assertNull(d.getImageUrl(), "eski gun alani bosaltilir");
         verify(media).release("/files/covers/old.jpg");
+        verify(media).release("/files/covers/prev.jpg");
     }
 
     @Test
@@ -62,12 +66,25 @@ class MenuImageTest {
     }
 
     @Test
-    void deleteClearsAndReleases() {
+    void deleteForgetsContentImageAndReleases() {
         MenuDay d = day("/files/covers/old.jpg");
         when(repo.findByMenuDate(date)).thenReturn(Optional.of(d));
+        when(images.forget(d)).thenReturn("/files/covers/bound.jpg");
         service.deleteImage(date);
         assertNull(d.getImageUrl());
         verify(media).release("/files/covers/old.jpg");
+        verify(media).release("/files/covers/bound.jpg");
+    }
+
+    @Test
+    void contentHashIgnoresOrderCaseAndTurkishLettersButNotRealChanges() {
+        String base = MenuContentImages.hash("Corba\nPilav\nAyran");
+        assertEquals(base, MenuContentImages.hash("AYRAN\nCORBA\nPİLAV"));
+        assertEquals(base, MenuContentImages.hash(" ayran \n\nPilav\nCorba"));
+        assertNotEquals(base, MenuContentImages.hash("Corba\nPilav\nAyran\nSalata"));
+        assertNotEquals(base, MenuContentImages.hash("Corba\nPilav"));
+        assertNotEquals(base, MenuContentImages.hash("Corba\nMakarna\nAyran"));
+        assertNull(MenuContentImages.hash("  \n "));
     }
 
     @Test
@@ -87,7 +104,7 @@ class MenuImageTest {
     }
 
     @Test
-    void syncKeepsExistingImage() throws Exception {
+    void syncDoesNotTouchImageFields() throws Exception {
         MenuScraper scraper = mock(MenuScraper.class);
         MenuRepository r = mock(MenuRepository.class);
         MenuDay d = day("/files/covers/keep.jpg");
@@ -96,6 +113,7 @@ class MenuImageTest {
         int changed = new MenuSyncService(scraper, r, mock(StatusService.class), new SyncProperties(false)).sync();
         assertEquals(1, changed);
         assertEquals("Yeni\nListe", d.getItems());
+        // gorsel eslesmesi okuma aninda icerik ozetiyle cozulur; senkron gorsele dokunmaz
         assertEquals("/files/covers/keep.jpg", d.getImageUrl());
     }
 }

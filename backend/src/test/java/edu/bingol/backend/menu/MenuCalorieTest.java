@@ -40,6 +40,9 @@ class MenuCalorieTest {
     @Autowired WebApplicationContext ctx;
     @Autowired MenuRepository menu;
     @Autowired MenuItemCalorieRepository cal;
+    @Autowired MenuDishCalorieRepository dishCal;
+    @Autowired MenuContentImageRepository imageRepo;
+    @Autowired MenuContentImages images;
     @Autowired MenuService menuService;
     @Autowired MenuSyncService sync;
 
@@ -51,6 +54,8 @@ class MenuCalorieTest {
     void setUp() {
         mvc = MockMvcBuilders.webAppContextSetup(ctx).apply(springSecurity()).build();
         cal.deleteAll();
+        dishCal.deleteAll();
+        imageRepo.deleteAll();
         menu.deleteAll();
         save(D1, "PATLICAN MUSAKKA\nBULGUR PİLAVI\nCACIK");
         save(D2, "ORMAN KEBABI");
@@ -197,6 +202,77 @@ class MenuCalorieTest {
         menu.deleteAll();
         assertEquals(2, sync.sync());
         assertEquals(320, dayOf(D1).dishes().get(0).kcal());
+    }
+
+    @Test
+    void enteredCalorieCarriesOverToSameDishOnLaterMonthsAndClearRemovesIt() throws Exception {
+        LocalDate next = LocalDate.of(2031, 4, 7);
+        putJson("/api/admin/menu/2031-03-03/calories",
+                "{\"items\":[{\"name\":\"patlıcan musakka\",\"kcal\":320},{\"name\":\"CACIK\",\"kcal\":80}]}");
+
+        // gelecek ay menusu senkronla (kalori bilgisi olmadan) gelir: ayni isimli yemekler otomatik dolar
+        save(next, "Patlıcan Musakka\nCACIK\nYENI YEMEK");
+        MenuResponse r = dayOf(next);
+        assertEquals(320, r.dishes().get(0).kcal());
+        assertEquals(80, r.dishes().get(1).kcal());
+        assertNull(r.dishes().get(2).kcal());
+        assertEquals(400, r.totalKcal());
+        assertEquals(1, cal.findByMenuDate(D1).stream().filter(x -> x.getKcal() == 80).count());
+        assertEquals(0, cal.findByMenuDate(next).size());
+
+        // yeni tarihte baska deger girilince o gun ve sonraki aylar guncellenir, eski tarih kendi degerini korur
+        putJson("/api/admin/menu/2031-04-07/calories", "{\"items\":[{\"name\":\"CACIK\",\"kcal\":90}]}");
+        save(LocalDate.of(2031, 5, 5), "CACIK");
+        assertEquals(90, dayOf(LocalDate.of(2031, 5, 5)).dishes().get(0).kcal());
+        assertEquals(80, dayOf(D1).dishes().get(2).kcal());
+
+        // silmek hem gunun satirini hem yemek adina bagli degeri kaldirir
+        putJson("/api/admin/menu/2031-04-07/calories", "{\"items\":[{\"name\":\"CACIK\",\"kcal\":null}]}");
+        assertNull(dayOf(next).dishes().get(1).kcal());
+        assertNull(dayOf(LocalDate.of(2031, 5, 5)).dishes().get(0).kcal());
+    }
+
+    @Test
+    void imageFollowsMenuContentAndWaitsForNewOneWhenMenuChanges() throws Exception {
+        images.remember(menu.findByMenuDate(D1).orElseThrow(), "/files/covers/a.jpg");
+        assertEquals("/files/covers/a.jpg", dayOf(D1).imageUrl());
+
+        // birebir ayni menu (sira/yazim farki onemsiz) baska ayda ayni gorseli alir
+        LocalDate apr = LocalDate.of(2031, 4, 7);
+        save(apr, "cacik\nbulgur pilavi\nPatlıcan Musakka");
+        assertEquals("/files/covers/a.jpg", dayOf(apr).imageUrl());
+
+        // en ufak degisiklik: gorsel yok, yeni gorsel bekliyor
+        LocalDate may = LocalDate.of(2031, 5, 5);
+        save(may, "PATLICAN MUSAKKA\nBULGUR PİLAVI\nCACIK\nAYRAN");
+        assertNull(dayOf(may).imageUrl());
+
+        // kaynak site gunun menusunu degistirirse gorsel o gunden duser
+        when(scraper.fetch()).thenReturn(List.of(
+                new MenuScraper.Day(D1, List.of("PATLICAN MUSAKKA", "BULGUR PİLAVI", "CACIK", "AYRAN"))));
+        sync.sync();
+        assertNull(dayOf(D1).imageUrl());
+
+        // yeni menuye gorsel girilince yalniz o menuyle eslesenler alir
+        images.remember(menu.findByMenuDate(may).orElseThrow(), "/files/covers/b.jpg");
+        assertEquals("/files/covers/b.jpg", dayOf(D1).imageUrl());
+        assertEquals("/files/covers/a.jpg", dayOf(apr).imageUrl());
+
+        // gorsel kaldirilinca ayni icerikli tum gunlerden gider
+        assertEquals("/files/covers/a.jpg", images.forget(menu.findByMenuDate(apr).orElseThrow()));
+        assertNull(dayOf(apr).imageUrl());
+    }
+
+    @Test
+    void bulkLatestDateWinsAsKnownCalorie() throws Exception {
+        save(LocalDate.of(2031, 4, 7), "CACIK");
+        json(putJson("/api/admin/menu/calories", """
+                {"days":[
+                  {"date":"2031-04-07","items":[{"name":"CACIK","kcal":95}]},
+                  {"date":"2031-03-03","items":[{"name":"CACIK","kcal":80}]}
+                ]}"""));
+        save(LocalDate.of(2031, 6, 2), "CACIK");
+        assertEquals(95, dayOf(LocalDate.of(2031, 6, 2)).dishes().get(0).kcal());
     }
 
     @Test

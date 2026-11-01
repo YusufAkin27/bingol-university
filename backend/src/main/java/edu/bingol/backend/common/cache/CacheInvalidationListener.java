@@ -19,17 +19,19 @@ import org.springframework.beans.factory.annotation.Autowired;
 public class CacheInvalidationListener {
 
     /** Varlik basit adi -> gecersiz kilinacak ad alanlari. */
-    static final Map<String, String[]> NAMESPACES = Map.of(
-            "NewsItem", new String[] {"news"},
-            "MenuDay", new String[] {"menu"},
-            "MenuItemCalorie", new String[] {"menu"},
-            "SyncStatus", new String[] {"status"},
-            "AppSetting", new String[] {"appinfo"},
-            "LegalDocument", new String[] {"legal"},
-            "FaqItem", new String[] {"faq"},
-            "CommunityCategory", new String[] {"categories"},
+    static final Map<String, String[]> NAMESPACES = Map.ofEntries(
+            Map.entry("NewsItem", new String[] {"news"}),
+            Map.entry("MenuDay", new String[] {"menu"}),
+            Map.entry("MenuItemCalorie", new String[] {"menu"}),
+            Map.entry("MenuDishCalorie", new String[] {"menu"}),
+            Map.entry("MenuContentImage", new String[] {"menu"}),
+            Map.entry("SyncStatus", new String[] {"status"}),
+            Map.entry("AppSetting", new String[] {"appinfo"}),
+            Map.entry("LegalDocument", new String[] {"legal"}),
+            Map.entry("FaqItem", new String[] {"faq"}),
+            Map.entry("CommunityCategory", new String[] {"categories"}),
             // kategori sayilari (kesfette gorunen kulup) Community durumuna baglidir
-            "Community", new String[] {"categories"});
+            Map.entry("Community", new String[] {"categories"}));
 
     /** Tembel cozulur: EntityManagerFactory kurulurken CacheService'e dairesel bagimlilik olusmasin. */
     @Autowired(required = false)

@@ -128,3 +128,27 @@ export function parseCalorieText(text: string): ParsedCalories {
   const days = [...byDate.entries()].map(([date, m]) => ({ date, items: [...m.values()] }));
   return { days, count: days.reduce((n, d) => n + d.items.length, 0), errors };
 }
+
+// ---- Eksikler (uyarı) ----
+export interface MenuGaps {
+  /** Fotoğrafı olmayan ("yeni görsel bekliyor") günler. */
+  noImage: string[];
+  /** Kalorisi girilmemiş yemekler (ad -> kaç günde geçtiği); ilk görülme sırasıyla. */
+  noKcal: { name: string; days: number }[];
+}
+
+/** Gösterilen aydaki eksikleri bulur: fotoğrafsız günler ve kalorisiz yemekler (aynı ad bir kez). */
+export function menuGaps(days: { date: string; items: string[]; imageUrl: string | null; dishes?: DishLike[] }[]): MenuGaps {
+  const noImage = days.filter((d) => !d.imageUrl).map((d) => d.date);
+  const byName = new Map<string, { name: string; days: number }>();
+  for (const d of days) {
+    for (const dish of dishesOf(d)) {
+      if (dish.kcal !== null) continue;
+      const key = dish.name.trim().toLocaleLowerCase('tr');
+      const cur = byName.get(key);
+      if (cur) cur.days += 1;
+      else byName.set(key, { name: dish.name.trim(), days: 1 });
+    }
+  }
+  return { noImage, noKcal: [...byName.values()] };
+}

@@ -22,6 +22,7 @@ import edu.bingol.backend.media.MediaService;
 import edu.bingol.backend.media.StoredImage;
 import edu.bingol.backend.menu.MenuAdminService;
 import edu.bingol.backend.menu.MenuCalorieService;
+import edu.bingol.backend.menu.MenuContentImages;
 import edu.bingol.backend.menu.MenuDay;
 import edu.bingol.backend.menu.MenuRepository;
 import edu.bingol.backend.moderation.BlockService;
@@ -142,7 +143,8 @@ class ImageUploadOutsideTxTest {
             writeInTx.add(TransactionSynchronizationManager.isActualTransactionActive());
             return inv.getArgument(0);
         });
-        MenuAdminService svc = new MenuAdminService(repo, media, mock(MenuCalorieService.class));
+        MenuContentImages images = mock(MenuContentImages.class);
+        MenuAdminService svc = new MenuAdminService(repo, media, mock(MenuCalorieService.class), images);
         org.springframework.test.util.ReflectionTestUtils.invokeMethod(svc, "setTxManager", tm);
 
         svc.setImage(date, file);
@@ -150,7 +152,9 @@ class ImageUploadOutsideTxTest {
         assertEquals(List.of(false), storeInTx);
         assertEquals(List.of(true), writeInTx);
         assertEquals(List.of(false), releaseInTx);
-        assertEquals("/files/avatars/new.jpg", d.getImageUrl());
+        // gorsel icerik tablosuna yazilir; eski gun alani bosaltilir
+        verify(images).remember(d, "/files/avatars/new.jpg");
+        assertEquals(null, d.getImageUrl());
     }
 
     @Test

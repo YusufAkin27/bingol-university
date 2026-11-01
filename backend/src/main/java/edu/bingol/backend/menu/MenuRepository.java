@@ -10,4 +10,7 @@ public interface MenuRepository extends JpaRepository<MenuDay, Long> {
     Optional<MenuDay> findByMenuDate(LocalDate date);
 
     List<MenuDay> findByMenuDateBetweenOrderByMenuDate(LocalDate from, LocalDate to);
+
+    /** Eski gorsel alanini tasimak icin (yalniz gorselli gunler: kucuk kume). */
+    List<MenuDay> findByImageUrlIsNotNull();
 }
