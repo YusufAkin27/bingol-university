@@ -64,4 +64,31 @@ class EventReminderServiceTest {
 
         verify(notifications).sendTemplated(eq(12L), eq(NotificationType.EVENT), eq("notif.event.reminderDay"), any(), any(String[].class));
     }
+
+    @Test
+    void dayReminderWindowIsAroundTwentyFourHoursNotOneToTwentyFour() {
+        // FIX-P05 (A05#7, K16): "yarin basliyor" metni icin pencere baslangica 22-26 saat kala
+        when(rsvps.hourCandidates(any(), any(), any(), any(), any())).thenReturn(List.of());
+        when(rsvps.dayCandidates(any(), any(), any(), any(), any())).thenReturn(List.of());
+
+        svc.run(now);
+
+        verify(rsvps).dayCandidates(any(), any(), eq(now.plus(java.time.Duration.ofHours(22))),
+                eq(now.plus(java.time.Duration.ofHours(26))), any());
+    }
+
+    @Test
+    void failedSendGivesTheClaimBackSoItIsRetriedNextRound() {
+        when(rsvps.hourCandidates(any(), any(), any(), any(), any())).thenReturn(List.<Object[]>of(row(1L, 11L)));
+        when(rsvps.dayCandidates(any(), any(), any(), any(), any())).thenReturn(List.<Object[]>of(row(2L, 12L)));
+        when(rsvps.claimHour(1L)).thenReturn(1);
+        when(rsvps.claimDay(2L)).thenReturn(1);
+        org.mockito.Mockito.doThrow(new IllegalStateException("push")).when(notifications)
+                .sendTemplated(any(), any(), any(), any(), any(String[].class));
+
+        assertEquals(0, svc.run(now));
+
+        verify(rsvps).unclaimHour(1L);
+        verify(rsvps).unclaimDay(2L);
+    }
 }

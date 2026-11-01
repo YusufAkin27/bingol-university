@@ -49,21 +49,35 @@ public class EventReminderService {
         for (Object[] row : hour) {
             EventRsvp r = (EventRsvp) row[0];
             UserEvent e = (UserEvent) row[1];
-            if (rsvps.claimHour(r.getId()) == 1 && send(r, e, "notif.event.reminderHour")) {
-                sent++;
+            if (rsvps.claimHour(r.getId()) == 1) {
+                if (send(r, e, "notif.event.reminderHour")) {
+                    sent++;
+                } else {
+                    rsvps.unclaimHour(r.getId()); // FIX-P05: gonderim hatasinda iz geri alinir, sonraki turda yeniden denenir
+                }
             }
         }
+        // FIX-P05 (A05#7, K16): "yarin" metni icin pencere daraltildi (eskiden 1-24 sa: 3 saat sonraki etkinlige de
+        // "yarin" gidiyordu). Pencereye girmeyen (kisa surede RSVP verilen) etkinlik zaten saat hatirlatmasi alir.
         List<Object[]> day = rsvps.dayCandidates(EventRsvp.Status.GOING, UserEvent.Status.ACTIVE,
-                now.plus(Duration.ofHours(1)), now.plus(Duration.ofDays(1)), PageRequest.of(0, BATCH));
+                now.plus(DAY_WINDOW_FROM), now.plus(DAY_WINDOW_TO), PageRequest.of(0, BATCH));
         for (Object[] row : day) {
             EventRsvp r = (EventRsvp) row[0];
             UserEvent e = (UserEvent) row[1];
-            if (rsvps.claimDay(r.getId()) == 1 && send(r, e, "notif.event.reminderDay")) {
-                sent++;
+            if (rsvps.claimDay(r.getId()) == 1) {
+                if (send(r, e, "notif.event.reminderDay")) {
+                    sent++;
+                } else {
+                    rsvps.unclaimDay(r.getId());
+                }
             }
         }
         return sent;
     }
+
+    /** "Yarin basliyor" hatirlatmasi: baslangica 22-26 saat kala. */
+    static final Duration DAY_WINDOW_FROM = Duration.ofHours(22);
+    static final Duration DAY_WINDOW_TO = Duration.ofHours(26);
 
     /** Tek kisinin hatasi digerlerinin hatirlatmasini engellemesin. */
     private boolean send(EventRsvp r, UserEvent e, String key) {
