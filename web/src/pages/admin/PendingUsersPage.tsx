@@ -39,6 +39,8 @@ import { usePageTitle } from '../../lib/hooks';
 import { exportPendingCsv } from '../../api/adminBulk';
 import { PendingBulkCancel } from './bulk/BulkBars';
 import { BulkCsvButton } from './bulk/BulkParts';
+import { it } from './users/insan';
+import insan from './users/insan.module.css';
 import styles from './pending/pending.module.css';
 
 /** E-posta '@' işaretinden önce kırılabilsin (karakter karakter bölünmesin). */
@@ -71,6 +73,7 @@ interface BulkState {
 export default function PendingUsersPage() {
   const i18n = useI18n();
   const { t, formatNumber } = i18n;
+  const ti = it(i18n);
   usePageTitle(t('admin.pend.title'));
   const toast = useToast();
   const qc = useQueryClient();
@@ -370,6 +373,15 @@ export default function PendingUsersPage() {
   const selectedCount = rows.filter((u) => selected.has(u.email)).length;
   const soon = rows.filter((u) => u.remainingSeconds <= 6 * 3600).length;
   const many = rows.filter((u) => u.resendCount >= 4).length;
+  // Kalan süre dağılımı (yığılmış çubuk): renk + sayı + metin birlikte
+  const urgent = rows.filter((u) => u.remainingSeconds <= 3600).length;
+  const warnN = rows.filter((u) => u.remainingSeconds > 3600 && u.remainingSeconds <= 6 * 3600).length;
+  const calm = rows.length - urgent - warnN;
+  const dist = [
+    { tone: 'danger', n: urgent, label: ti('admin.insan.pend.urgency.danger') },
+    { tone: 'warning', n: warnN, label: ti('admin.insan.pend.urgency.warning') },
+    { tone: 'success', n: calm, label: ti('admin.insan.pend.urgency.success') },
+  ] as const;
 
   return (
     <div>
@@ -401,6 +413,36 @@ export default function PendingUsersPage() {
               caption={t('admin.v2p.pend.tile.manyHint')}
             />
           </div>
+          {rows.length > 0 && (
+            <div className={insan.cardBody} data-search-anchor="pending-urgency">
+              <h2 className={insan.h2}>{ti('admin.insan.pend.urgency')}</h2>
+              <Insight
+                tone={soon > 0 ? 'warn' : 'good'}
+                parts={
+                  soon > 0
+                    ? ti('admin.insan.pend.urgency.sentence', { n: formatNumber(soon), ok: formatNumber(calm) })
+                    : ti('admin.insan.pend.urgency.calm')
+                }
+              />
+              <div className={insan.stack} role="img" aria-label={ti('admin.insan.pend.urgency.aria')}>
+                {dist
+                  .filter((d) => d.n > 0)
+                  .map((d) => (
+                    <span key={d.tone} className={insan.stackSeg} data-tone={d.tone} style={{ flexGrow: d.n }} />
+                  ))}
+              </div>
+              <ul className={insan.legend}>
+                {dist.map((d) => (
+                  <li key={d.tone}>
+                    <StatusDot tone={d.tone} announceTone={false}>
+                      {d.label}: <strong>{formatNumber(d.n)}</strong>
+                    </StatusDot>
+                  </li>
+                ))}
+              </ul>
+              {hasNextPage && <p className={insan.note}>{ti('admin.insan.pend.partial', { n: formatNumber(rows.length) })}</p>}
+            </div>
+          )}
         </section>
       )}
 
