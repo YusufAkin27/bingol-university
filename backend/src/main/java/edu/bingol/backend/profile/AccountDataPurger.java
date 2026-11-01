@@ -170,6 +170,35 @@ public class AccountDataPurger {
             Map.entry("support_ticket_note.author_id", "Personelin ic notu yazari (yonetici izi, kullanici degil)"),
             Map.entry("user_event.moderated_by", "Etkinlik moderasyonunu yapan yonetici izi"));
 
+    /**
+     * Kimligi E-POSTA ile tutan kayitlar (FIX-P08, A07#6 / K5c): hesapsiz acilan herkese acik destek talebi
+     * {@code contact_email} ile baglidir, {@code user_id} yoktur; hesap silinince eski adresle eslesen talebin konusu,
+     * kullanici mesajlari ve takip jetonlari temizlenir. SIRA onemlidir: ticket satiri (adres) EN SON silinir, ondan
+     * once adresle bulunan alt kayitlar islenir. Personel yanitlari kalir (kisisel veri icermez, destek kaydi).
+     * Parametre: kucuk harfli eski adres.
+     */
+    static final List<String> EMAIL_SCRUBS = List.of(
+            "UPDATE support_message SET text = '[silindi]' WHERE from_staff = FALSE AND ticket_id IN "
+                    + "(SELECT id FROM support_ticket WHERE public_ticket = TRUE AND LOWER(contact_email) = ?)",
+            "DELETE FROM support_track_token WHERE ticket_id IN "
+                    + "(SELECT id FROM support_ticket WHERE public_ticket = TRUE AND LOWER(contact_email) = ?)",
+            "UPDATE support_ticket SET subject = '[silindi]', contact_email = NULL, contact_name = NULL, code_hash = NULL, "
+                    + "code_expires_at = NULL WHERE public_ticket = TRUE AND LOWER(contact_email) = ?");
+
+    /**
+     * E-posta/adres tutan sutunlarin hesap silme karari ("tablo.sutun" -> ne yapilir). {@code AccountDataPurgerCoverageTest}
+     * migration'lari tarar: yeni bir {@code *email*}/{@code to_address} sutunu burada yoksa test KIRMIZI olur.
+     */
+    public static final Map<String, String> EMAIL_KEYED = Map.ofEntries(
+            Map.entry("support_ticket.contact_email", "EMAIL_SCRUBS: adresle eslesen herkese acik talep temizlenir"),
+            Map.entry("mail_outbox.to_address", "MAIL_BY_ADDRESS: kuyruktaki bekleyen kayitlar adresle silinir; 30 gun saklama politikasi"),
+            Map.entry("mail_suppression.email_hash", "Posta bastirma listesi (bounce/sikayet): geri donuk gonderimi onlemek icin ozet kalir"),
+            Map.entry("mail_suppression.email_masked", "Posta bastirma listesi: maskeli adres (yonetici gorunumu), ozetle birlikte kalir"),
+            Map.entry("violation_ledger.email_digest", "Ihlal defteri (T-058): yalniz tek yonlu ozet; yeniden kayitla ihlal gecmisi sifirlanmasin"),
+            Map.entry("admin_audit.admin_email", "Yonetici islem izi (eylemi yapan yonetici), 365 gun"),
+            Map.entry("data_export_receipt.admin_email", "Veri saklama makbuzu: silinemez (DS1), yonetici izi"),
+            Map.entry("data_purge_log.admin_email", "Veri silme defteri: silinemez (DS1), yonetici izi"));
+
     static final String LEAVE_ROOMS =
             "UPDATE conversation_member SET left_at = CURRENT_TIMESTAMP WHERE user_id = ? AND left_at IS NULL";
 
@@ -226,7 +255,9 @@ public class AccountDataPurger {
         SCRUBS.forEach(sql -> jdbc.update(sql, userId));
         jdbc.update(LEAVE_ROOMS, userId);
         if (oldEmail != null && !oldEmail.isBlank()) {
-            jdbc.update(MAIL_BY_ADDRESS, oldEmail.trim().toLowerCase(Locale.ROOT));
+            String addr = oldEmail.trim().toLowerCase(Locale.ROOT);
+            jdbc.update(MAIL_BY_ADDRESS, addr);
+            EMAIL_SCRUBS.forEach(sql -> jdbc.update(sql, addr));
         }
         if (ledger != null) {
             // COMMIT sonrasi: islem geri alinirsa canli hesap deftere dusmesin (geri yukleme sonrasi yanlis silme)

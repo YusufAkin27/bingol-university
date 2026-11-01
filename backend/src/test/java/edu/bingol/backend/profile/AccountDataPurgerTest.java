@@ -46,6 +46,21 @@ class AccountDataPurgerTest {
         assertTrue(AccountDataPurger.MAIL_BY_ADDRESS.contains("ACCOUNT_DELETED"));
     }
 
+    /** FIX-P08 (K5c): eski adresle eslesen herkese acik destek talepleri temizlenir; adres yoksa dokunulmaz. */
+    @Test
+    void publicSupportTicketsScrubbedByOldAddressOnly() {
+        JdbcTemplate jdbc = mock(JdbcTemplate.class);
+        new AccountDataPurger(jdbc).purge(7L, " Ali.Veli@Bingol.edu.tr ");
+        for (String sql : AccountDataPurger.EMAIL_SCRUBS) {
+            verify(jdbc).update(sql, "ali.veli@bingol.edu.tr");
+        }
+
+        JdbcTemplate none = mock(JdbcTemplate.class);
+        new AccountDataPurger(none).purge(7L);
+        assertTrue(org.mockito.Mockito.mockingDetails(none).getInvocations().stream()
+                .noneMatch(i -> i.getArguments().length > 0 && AccountDataPurger.EMAIL_SCRUBS.contains(i.getArguments()[0])));
+    }
+
     @Test
     void noAddressMeansNoMailDelete() {
         JdbcTemplate jdbc = mock(JdbcTemplate.class);

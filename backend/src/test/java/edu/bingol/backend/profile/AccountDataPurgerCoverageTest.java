@@ -121,6 +121,35 @@ class AccountDataPurgerCoverageTest {
 
     /** Migration'lari surum sirasiyla okuyup (CREATE/ALTER/DROP) kullanici kimligi tutan "tablo.sutun" kumesini cikarir. */
     static Set<String> userColumnsFromMigrations() throws IOException {
+        return columnsFromMigrations(USER_COL, true);
+    }
+
+    /** E-postayla (kullanici kimligi degil, ADRES) eslesen sutunlar: hesap silme kararlari EMAIL_KEYED'de (FIX-P08, A07#6). */
+    static final Pattern EMAIL_COL = Pattern.compile("(^|.*_)(email|to_address)(_.*)?");
+
+    @Test
+    void everyEmailKeyedColumnHasADeletionDecision() throws IOException {
+        Set<String> found = new LinkedHashSet<>(columnsFromMigrations(EMAIL_COL, false));
+        found.removeIf(c -> c.endsWith("email_verified")); // dogrulama bayragi, adres degil
+        List<String> missing = new ArrayList<>();
+        for (String c : found) {
+            if (!AccountDataPurger.EMAIL_KEYED.containsKey(c)) {
+                missing.add(c);
+            }
+        }
+        assertTrue(missing.isEmpty(),
+                "Hesap silme karari olmayan e-posta/adres sutunlari (AccountDataPurger.EMAIL_KEYED): " + new TreeSet<>(missing));
+        List<String> stale = new ArrayList<>();
+        for (String c : AccountDataPurger.EMAIL_KEYED.keySet()) {
+            if (!found.contains(c)) {
+                stale.add(c);
+            }
+        }
+        assertTrue(stale.isEmpty(), "Semada bulunmayan EMAIL_KEYED girisleri: " + stale);
+        AccountDataPurger.EMAIL_KEYED.forEach((k, v) -> assertTrue(v != null && v.length() >= 8, "gerekce yok: " + k));
+    }
+
+    static Set<String> columnsFromMigrations(Pattern colPattern, boolean includeFk) throws IOException {
         Path dir = Path.of("src/main/resources/db/migration");
         List<Path> files;
         try (Stream<Path> s = Files.list(dir)) {
@@ -177,8 +206,8 @@ class AccountDataPurgerCoverageTest {
                 if (NOT_USER_IDENTITY.contains(key)) {
                     continue;
                 }
-                boolean fk = refs.getOrDefault(t, Set.of()).contains(c);
-                if (USER_COL.matcher(c).matches() || fk) {
+                boolean fk = includeFk && refs.getOrDefault(t, Set.of()).contains(c);
+                if (colPattern.matcher(c).matches() || fk) {
                     // app_user kendisi (anonimlestirilir) ve kullanici-disi *_by yardimcilari atlanir
                     if (!t.equals("app_user")) {
                         out.add(key);
