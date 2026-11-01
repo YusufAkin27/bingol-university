@@ -12,7 +12,6 @@ import java.sql.SQLException;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
-import org.springframework.jdbc.core.RowCallbackHandler;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -46,12 +45,29 @@ public class AdminUserRepository {
                 + " LIMIT :lim OFFSET :off", w.params(), (rs, i) -> row(rs));
     }
 
-    /** CSV icin akis: en cok `limit` satir, bellekte biriktirmeden. */
+    /** CSV akisinda sorgu basina satir (bellek ust siniri). */
+    static final int STREAM_PAGE = 1000;
+
+    /**
+     * CSV icin akis: en cok `limit` satir. FIX-P09 (A08#9): tek sorgu + RowCallbackHandler tum sonucu heap'e alirdi
+     * (PostgreSQL JDBC fetchSize=0, otomatik commit). Simdi 1000'lik sayfalar; siralama {@link UserFilter#orderBy}
+     * ile her zaman {@code id} ile kesinlesir (sayfalar arasi tekrar/atlama yok). Ortak sort anahtari keyset'e
+     * elverisli olmadigindan (lower(display_name) vb.) LIMIT/OFFSET kullanilir; 50 sayfa ust siniri maliyeti sinirlar.
+     */
     public void stream(UserFilter f, String orderBy, int limit, java.util.function.Consumer<AdminUserRow> sink) {
         UserFilter.Where w = f.where();
-        w.params().addValue("lim", limit);
-        jdbc.query("SELECT " + ROW_COLUMNS + " FROM app_user WHERE " + w.sql() + " ORDER BY " + orderBy + " LIMIT :lim",
-                w.params(), (RowCallbackHandler) rs -> sink.accept(row(rs)));
+        int offset = 0;
+        while (offset < limit) {
+            int page = Math.min(STREAM_PAGE, limit - offset);
+            w.params().addValue("lim", page).addValue("off", (long) offset);
+            List<AdminUserRow> rows = jdbc.query("SELECT " + ROW_COLUMNS + " FROM app_user WHERE " + w.sql()
+                    + " ORDER BY " + orderBy + " LIMIT :lim OFFSET :off", w.params(), (rs, i) -> row(rs));
+            rows.forEach(sink);
+            offset += rows.size();
+            if (rows.size() < page) {
+                return;
+            }
+        }
     }
 
     public Optional<AdminUserDetail> detail(Long id) {
