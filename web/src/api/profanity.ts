@@ -32,6 +32,8 @@ export interface ProfanityStatRow {
 export interface ProfanityStatWindow {
   total: number;
   byField: ProfanityStatRow[];
+  /** Kategoriye göre (PROFANITY, HATE, TERROR, SELF_HARM); eski sunucuda yok. */
+  byCategory?: Record<string, number>;
 }
 export interface ProfanityStats {
   last24h: ProfanityStatWindow;

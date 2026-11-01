@@ -1,11 +1,13 @@
 // SAYFA: Yasaklı görseller (/admin/moderation/blocklist)
 // API: GET /api/admin/moderation/blocklist?cursor=<sha256>&size= , POST .../blocklist {sha256 (64 hex), note?} (201, idempotent),
 //      DELETE .../blocklist/{sha256} (204/404) (api/moderation.ts). Yüklemelerde özeti eşleşen görsel reddedilir (medya hattı).
+// Mod1: listede arama (özet/not), eklenme yaşı grafiği, son 7 gün göstergesi ve toplu kaldırma.
 import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useRef, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { moderationApi, qk } from '../../api';
 import type { BlocklistEntry } from '../../api/types';
 import {
+  BulkBar,
   Button,
   Card,
   ConfirmDialog,
@@ -27,14 +29,23 @@ import { adminErrorMessage } from './campaigns/shared';
 import { isValidSha256, normalizeSha256 } from './moderation/modLogic';
 import styles from './moderation/moderation.module.css';
 import v2 from './moderation/v2.module.css';
+import { BulkRunDialog, useBatchToast } from './yaptirimMod1/BulkRunDialog';
+import { useGt } from './yaptirimMod1/dict';
+import { QueueAgePanel } from './yaptirimMod1/QueueAgePanel';
+import { ageMs, DAY_MS } from './yaptirimMod1/queueLogic';
+import q from './yaptirimMod1/yaptirim.module.css';
 
 const NOTE_MAX = 300;
+/** Özet ekleme/silme "yıkıcı" sayılır (saatte en çok 20, docs/ADMIN_API.md): toplu kaldırma bu kadarla sınırlıdır. */
+const BULK_MAX = 20;
 /** Tarayıcı belleğini korumak için: bundan büyük görsel özetlenmez (yükleme sınırlarının çok üstünde). */
 const FILE_MAX_BYTES = 25 * 1024 * 1024;
 
 export default function BlocklistPage() {
   const i18n = useI18n();
-  const { t, formatDateTime } = i18n;
+  const { t, formatDateTime, formatNumber } = i18n;
+  const gt = useGt();
+  const batchToast = useBatchToast();
   usePageTitle(t('admin.blocklist.title'));
   const toast = useToast();
   const qc = useQueryClient();
@@ -42,6 +53,9 @@ export default function BlocklistPage() {
   const [note, setNote] = useState('');
   const [touched, setTouched] = useState(false);
   const [removing, setRemoving] = useState<BlocklistEntry | null>(null);
+  const [filter, setFilter] = useState('');
+  const [selected, setSelected] = useState<ReadonlySet<string>>(new Set());
+  const [bulkOpen, setBulkOpen] = useState(false);
   const [fileName, setFileName] = useState('');
   const [hashing, setHashing] = useState<'idle' | 'busy' | 'unsupported' | 'failed' | 'tooBig'>('idle');
   /** Dosyadan hesaplanan özet (alandaki değerle eşleşiyorsa "hazır" mesajı gösterilir). */
@@ -89,7 +103,28 @@ export default function BlocklistPage() {
     initialPageParam: null as string | null,
     getNextPageParam: (p) => p.nextCursor ?? undefined,
   });
-  const items = query.data?.pages.flatMap((p) => p.items) ?? [];
+  const items = useMemo(() => query.data?.pages.flatMap((p) => p.items) ?? [], [query.data]);
+  const now = query.dataUpdatedAt || Date.now();
+  const needle = filter.trim().toLowerCase();
+  const visible = useMemo(
+    () =>
+      needle === ''
+        ? items
+        : items.filter((e) => e.sha256.includes(needle) || (e.note ?? '').toLowerCase().includes(needle)),
+    [items, needle],
+  );
+  const dates = useMemo(() => items.map((e) => e.createdAt), [items]);
+  const lastWeek = items.filter((e) => (ageMs(e.createdAt, now) ?? Infinity) < 7 * DAY_MS).length;
+  const toggle = (sha: string) =>
+    setSelected((cur) => {
+      const n = new Set(cur);
+      if (n.has(sha)) n.delete(sha);
+      else n.add(sha);
+      return n;
+    });
+  const selectedItems = visible.filter((e) => selected.has(e.sha256));
+  const bulkItems = selectedItems.slice(0, BULK_MAX);
+  const allSelected = visible.length > 0 && visible.every((e) => selected.has(e.sha256));
 
   const add = useMutation({
     mutationFn: () => moderationApi.addBlocklist(normalizeSha256(sha), note.trim()),
@@ -137,8 +172,27 @@ export default function BlocklistPage() {
             onRetry={() => void query.refetch()}
             caption={t(query.hasNextPage ? 'admin.v2m.bl.tileMore' : 'admin.v2m.bl.tileHint')}
           />
+          <StatTile
+            label={gt('admin.mod1.bl.tile.week')}
+            value={query.isSuccess ? lastWeek : undefined}
+            icon="clock"
+            loading={query.isLoading}
+            error={query.isError}
+            caption={gt(query.hasNextPage ? 'admin.mod1.bl.tile.weekMore' : 'admin.mod1.bl.tile.weekHint')}
+          />
         </div>
         {query.isSuccess && <Insight parts={[t('admin.v2m.bl.sentence')]} />}
+        {query.isSuccess && items.length > 0 && (
+          <QueueAgePanel
+            anchor="blocklist-age"
+            variant="plain"
+            title={gt('admin.mod1.bl.age.title')}
+            noun={gt('admin.mod1.bl.noun')}
+            dates={dates}
+            now={now}
+            truncated={query.hasNextPage}
+          />
+        )}
         <Card title={t('admin.blocklist.add')} data-search-anchor="blocklist-add">
           <form
             className={styles.formGrid}
@@ -200,10 +254,35 @@ export default function BlocklistPage() {
           <EmptyState icon="shield" title={t('admin.blocklist.empty.title')} description={t('admin.v2m.bl.emptyHint')} />
         ) : (
           <>
+            <div className={q.toolbarRow} data-search-anchor="blocklist-filter">
+              <FormField label={gt('admin.mod1.bl.filter')} hint={gt('admin.mod1.bl.filterHint', { n: formatNumber(items.length) })}>
+                <Input value={filter} maxLength={80} dir="auto" autoComplete="off" onChange={(e) => setFilter(e.target.value)} />
+              </FormField>
+            </div>
+            {visible.length === 0 ? (
+              <EmptyState icon="shield" title={gt('admin.mod1.bl.filterEmpty')} description={gt('admin.mod1.bl.filterEmptyHint')} compact />
+            ) : (
+              <label className={q.selectRow}>
+                <input
+                  type="checkbox"
+                  checked={allSelected}
+                  onChange={() => setSelected(allSelected ? new Set() : new Set(visible.map((e) => e.sha256)))}
+                />
+                <span>{gt('admin.mod1.select.allShown', { n: formatNumber(visible.length) })}</span>
+              </label>
+            )}
             <ul className={styles.rowList} aria-label={t('admin.blocklist.title')}>
-              {items.map((e) => (
-                <li key={e.sha256} className={styles.item}>
+              {visible.map((e) => (
+                <li key={e.sha256} className={`${styles.item} ${selected.has(e.sha256) ? q.rowSelected : ''}`}>
                   <div className={styles.itemHead}>
+                    <label className={q.rowCheck}>
+                      <input
+                        type="checkbox"
+                        checked={selected.has(e.sha256)}
+                        onChange={() => toggle(e.sha256)}
+                        aria-label={gt('admin.mod1.select.row', { name: e.sha256.slice(0, 12) })}
+                      />
+                    </label>
                     <code className={`${styles.mono} ltr`}>{e.sha256}</code>
                     <CopyButton value={e.sha256} />
                     <span className={styles.spacer} />
@@ -233,6 +312,31 @@ export default function BlocklistPage() {
           </>
         )}
       </div>
+      <div className={q.bulkSticky} data-search-anchor="blocklist-bulk">
+        <BulkBar count={selectedItems.length} onClear={() => setSelected(new Set())}>
+          <Button size="sm" variant="danger" onClick={() => setBulkOpen(true)}>
+            {gt('admin.mod1.bl.bulk.remove')}
+          </Button>
+        </BulkBar>
+      </div>
+      <BulkRunDialog
+        open={bulkOpen}
+        onClose={() => setBulkOpen(false)}
+        danger
+        title={gt('admin.mod1.bl.bulkTitle', { n: formatNumber(bulkItems.length) })}
+        message={`${gt('admin.mod1.bl.bulkBody', { n: formatNumber(bulkItems.length) })} ${
+          selectedItems.length > BULK_MAX ? gt('admin.mod1.bl.bulkCap', { max: formatNumber(BULK_MAX) }) : ''
+        }`}
+        confirmLabel={gt('admin.mod1.bl.bulkBtn', { n: formatNumber(bulkItems.length) })}
+        items={bulkItems}
+        runOne={(e) => moderationApi.removeBlocklist(e.sha256)}
+        onDone={(outcome) => {
+          batchToast(outcome);
+          setBulkOpen(false);
+          setSelected(new Set());
+          void qc.invalidateQueries({ queryKey: qk.moderation.blocklist() });
+        }}
+      />
       <ConfirmDialog
         open={!!removing}
         onClose={() => setRemoving(null)}

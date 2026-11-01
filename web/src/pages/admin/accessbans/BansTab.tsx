@@ -1,6 +1,7 @@
 // Engeller sekmesi: GET /api/admin/access-bans (imleç sayfalı), PATCH/DELETE /{id}, GET /{id}/attempts.
+// Mod1: engel sağlığı (süresi dolan / hiç isabet almayan / yakında bitecek) + en çok isabet alanlar + toplu kapat/kaldır.
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import {
   accessBanKeys,
   BAN_KINDS,
@@ -13,6 +14,7 @@ import {
 } from '../../../api/accessBans';
 import {
   Badge,
+  BulkBar,
   Button,
   CopyButton,
   PermissionButton,
@@ -23,7 +25,9 @@ import {
   FormField,
   Input,
   LoadMore,
+  Insight,
   Modal,
+  RankedBars,
   SearchInput,
   Select,
   Skeleton,
@@ -37,10 +41,20 @@ import { adminErrorMessage } from '../campaigns/shared';
 import { AddBanDialog } from './AddBanDialog';
 import styles from './accessBans.module.css';
 import { endOfDayIso } from './logic';
+import { BulkRunDialog, useBatchToast } from '../yaptirimMod1/BulkRunDialog';
+import { useGt } from '../yaptirimMod1/dict';
+import { ageMs, DAY_MS } from '../yaptirimMod1/queueLogic';
+import mq from '../yaptirimMod1/yaptirim.module.css';
+
+/** Hiç isabet almamış etkin engel bu kadar gündür duruyorsa "temizlik adayı" sayılır. */
+const IDLE_DAYS = 30;
+const SOON_DAYS = 7;
 
 export function BansTab() {
   const i18n = useI18n();
-  const { t, td, formatDateTime } = i18n;
+  const { t, td, formatDateTime, formatNumber } = i18n;
+  const gt = useGt();
+  const batchToast = useBatchToast();
   const toast = useToast();
   const qc = useQueryClient();
   const [kind, setKind] = useState<BanKind | ''>('');
@@ -50,6 +64,8 @@ export function BansTab() {
   const [editing, setEditing] = useState<AccessBan | null>(null);
   const [removing, setRemoving] = useState<AccessBan | null>(null);
   const [viewing, setViewing] = useState<AccessBan | null>(null);
+  const [selected, setSelected] = useState<ReadonlySet<string | number>>(new Set());
+  const [bulk, setBulk] = useState<'disable' | 'remove' | null>(null);
 
   const params = { kind, active: active === '' ? ('' as const) : active === 'true', q, size: 30 };
   const query = useInfiniteQuery({
@@ -59,6 +75,37 @@ export function BansTab() {
     getNextPageParam: (p) => p.nextCursor ?? undefined,
   });
   const items = query.data?.pages.flatMap((p) => p.items);
+  const now = query.dataUpdatedAt || Date.now();
+  const health = useMemo(() => {
+    const expiredIds: number[] = [];
+    const idleIds: number[] = [];
+    const soonIds: number[] = [];
+    for (const b of items ?? []) {
+      const exp = b.expiresAt ? new Date(b.expiresAt).getTime() : null;
+      const isExpired = exp !== null && exp <= now;
+      if (isExpired && b.active) expiredIds.push(b.id);
+      else if (b.active && !isExpired) {
+        if (exp !== null && exp - now <= SOON_DAYS * DAY_MS) soonIds.push(b.id);
+        if (b.hitCount === 0 && (ageMs(b.createdAt, now) ?? 0) >= IDLE_DAYS * DAY_MS) idleIds.push(b.id);
+      }
+    }
+    return { expiredIds, idleIds, soonIds };
+  }, [items, now]);
+  const topHits = useMemo(
+    () =>
+      [...(items ?? [])]
+        .filter((b) => b.hitCount > 0)
+        .sort((a, b) => b.hitCount - a.hitCount)
+        .slice(0, 8)
+        .map((b) => ({
+          key: String(b.id),
+          label: td('admin.ab.kind.' + b.kind, b.kind) + ' · ' + (b.kind === 'USER' ? (b.label ?? b.valueShort) : b.valueShort),
+          value: b.hitCount,
+        })),
+    [items, td],
+  );
+  const selectedBans = (items ?? []).filter((b) => selected.has(b.id));
+  const selectIds = (ids: number[]) => setSelected(new Set(ids));
 
   const refresh = () => void qc.invalidateQueries({ queryKey: accessBanKeys.all });
 
@@ -191,6 +238,44 @@ export function BansTab() {
       <p className={styles.warn} data-search-anchor="ab-warn">
         {t('admin.v2p.ab.campusWarn')}
       </p>
+      {items && items.length > 0 && (
+        <div className={mq.twoCols} data-search-anchor="ab-health">
+          <section className={mq.panel} aria-label={gt('admin.mod1.ab.health.title')}>
+            <h2 className={mq.panelTitle}>{gt('admin.mod1.ab.health.title')}</h2>
+            <Insight
+              tone={health.expiredIds.length > 0 ? 'warn' : 'good'}
+              parts={[
+                health.expiredIds.length > 0
+                  ? gt('admin.mod1.ab.health.expired', { n: formatNumber(health.expiredIds.length) })
+                  : gt('admin.mod1.ab.health.clean'),
+              ]}
+            />
+            <div className={mq.pickRow}>
+              <Button size="sm" variant="secondary" disabled={health.expiredIds.length === 0} onClick={() => selectIds(health.expiredIds)}>
+                {gt('admin.mod1.ab.health.pickExpired', { n: formatNumber(health.expiredIds.length) })}
+              </Button>
+              <Button size="sm" variant="secondary" disabled={health.idleIds.length === 0} onClick={() => selectIds(health.idleIds)}>
+                {gt('admin.mod1.ab.health.pickIdle', { n: formatNumber(health.idleIds.length), days: formatNumber(IDLE_DAYS) })}
+              </Button>
+              <Button size="sm" variant="secondary" disabled={health.soonIds.length === 0} onClick={() => selectIds(health.soonIds)}>
+                {gt('admin.mod1.ab.health.pickSoon', { n: formatNumber(health.soonIds.length), days: formatNumber(SOON_DAYS) })}
+              </Button>
+            </div>
+            {query.hasNextPage && <p className={mq.muted}>{gt('admin.mod1.ab.health.partial')}</p>}
+          </section>
+          <section className={mq.panel} aria-label={gt('admin.mod1.ab.hits.title')} data-search-anchor="ab-hits">
+            <h2 className={mq.panelTitle}>{gt('admin.mod1.ab.hits.title')}</h2>
+            <p className={mq.sub}>{gt('admin.mod1.ab.hits.hint')}</p>
+            <RankedBars
+              items={topHits}
+              limit={5}
+              ariaLabel={gt('admin.mod1.ab.hits.title')}
+              formatValue={(n) => gt('admin.mod1.ab.hits.value', { n: formatNumber(n) })}
+              emptyLabel={gt('admin.mod1.ab.hits.empty')}
+            />
+          </section>
+        </div>
+      )}
       <div className={styles.topRow}>
         <div className={styles.filters} style={{ flex: 1 }} data-search-anchor="ab-filters">
           <FormField label={t('admin.ab.filter.kind')}>
@@ -236,6 +321,9 @@ export function BansTab() {
               columns={columns}
               rows={items}
               rowKey={(b) => b.id}
+              selectedKeys={selected}
+              onSelectionChange={setSelected}
+              selectLabel={(b) => gt('admin.mod1.select.row', { name: b.kind === 'USER' ? (b.label ?? b.valueShort) : b.valueShort })}
               caption={t('admin.ab.title')}
               breakpoint={720}
             />
@@ -248,6 +336,38 @@ export function BansTab() {
         </>
       )}
 
+      <div className={mq.bulkSticky} data-search-anchor="ab-bulk">
+        <BulkBar count={selectedBans.length} onClear={() => setSelected(new Set())}>
+          <PermissionButton permission="moderation.write" size="sm" variant="secondary" onClick={() => setBulk('disable')}>
+            {gt('admin.mod1.ab.bulk.disable')}
+          </PermissionButton>
+          <PermissionButton permission="moderation.write" size="sm" variant="danger" onClick={() => setBulk('remove')}>
+            {gt('admin.mod1.ab.bulk.remove')}
+          </PermissionButton>
+        </BulkBar>
+      </div>
+      <BulkRunDialog
+        open={bulk !== null}
+        onClose={() => setBulk(null)}
+        danger={bulk === 'remove'}
+        title={gt(bulk === 'remove' ? 'admin.mod1.ab.bulkRemoveTitle' : 'admin.mod1.ab.bulkDisableTitle', {
+          n: formatNumber(selectedBans.length),
+        })}
+        message={gt(bulk === 'remove' ? 'admin.mod1.ab.bulkRemoveBody' : 'admin.mod1.ab.bulkDisableBody', {
+          n: formatNumber(selectedBans.length),
+        })}
+        confirmLabel={gt(bulk === 'remove' ? 'admin.mod1.ab.bulkRemoveBtn' : 'admin.mod1.ab.bulkDisableBtn', {
+          n: formatNumber(selectedBans.length),
+        })}
+        items={selectedBans}
+        runOne={(b) => (bulk === 'remove' ? removeBan(b.id) : updateBan(b.id, { active: false }))}
+        onDone={(outcome) => {
+          batchToast(outcome);
+          setBulk(null);
+          setSelected(new Set());
+          refresh();
+        }}
+      />
       {adding && <AddBanDialog open onClose={() => setAdding(false)} />}
       {editing && <EditDialog ban={editing} onClose={() => setEditing(null)} onSaved={refresh} />}
       {viewing && <AttemptsDrawer ban={viewing} onClose={() => setViewing(null)} />}
