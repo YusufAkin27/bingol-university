@@ -7,7 +7,7 @@ import { ApiError } from '../../api/client';
 import { DismissibleBand, MaintenanceBand } from '../../layouts/ShellBands';
 import { adminNav } from '../../layouts/adminNav';
 import { renderWithProviders } from '../../test/utils';
-import { BulkBar, ErrorState, ProgressBar, Table, Tabs, type Column } from './index';
+import { BulkBar, ErrorState, FilterPanel, Input, ProgressBar, Table, Tabs, type Column } from './index';
 
 /**
  * SHARED (ortak bileşen) denetim düzeltmeleri: AUD1 ORT-1..13, AUD2 X-1..13, AUD3 G1-G9, AUD4 G1-G12.
@@ -369,5 +369,43 @@ describe('hata iskeleti süresi (AUD3 G8)', () => {
     expect(retry(1, new Error('5xx'))).toBe(false);
     expect(retry(0, new ApiError(404, 'X', 'x'))).toBe(false);
     expect(q.retryDelay).toBe(800);
+  });
+});
+
+describe('FilterPanel (AUD2 X-3, AUD3 G5, AUD4 G2)', () => {
+  it('geniş ekranda alanlar açık, katlama düğmesi yok', () => {
+    renderWithProviders(
+      <FilterPanel activeCount={2}>
+        <Input aria-label="Ara" />
+      </FilterPanel>,
+    );
+    expect(screen.queryByRole('button', { name: /Süzgeçler/ })).toBeNull();
+    expect(screen.getByRole('textbox', { name: 'Ara' })).toBeVisible();
+  });
+
+  it('telefonda "Süzgeçler (2)" düğmesi: alanlar katlı, çipler görünür, açınca alanlar belirir', async () => {
+    mockMedia(true);
+    const onRemove = vi.fn();
+    const onClear = vi.fn();
+    const user = userEvent.setup();
+    renderWithProviders(
+      <FilterPanel
+        activeCount={2}
+        onClear={onClear}
+        chips={[{ key: 'durum', label: 'Durum: Açık', onRemove }]}
+      >
+        <Input aria-label="Ara" />
+      </FilterPanel>,
+    );
+    const toggle = screen.getByRole('button', { name: /Süzgeçler \(2\)/ });
+    expect(toggle).toHaveAttribute('aria-expanded', 'false');
+    expect(screen.queryByRole('textbox', { name: 'Ara' })).toBeNull(); // hidden: erişilebilirlik ağacında yok
+    await user.click(screen.getByRole('button', { name: 'Durum: Açık süzgecini kaldır' }));
+    expect(onRemove).toHaveBeenCalledTimes(1);
+    await user.click(screen.getByRole('button', { name: 'Süzgeçleri temizle' }));
+    expect(onClear).toHaveBeenCalledTimes(1);
+    await user.click(toggle);
+    expect(toggle).toHaveAttribute('aria-expanded', 'true');
+    expect(screen.getByRole('textbox', { name: 'Ara' })).toBeVisible();
   });
 });

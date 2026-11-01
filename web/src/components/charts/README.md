@@ -117,6 +117,24 @@ const narrow = useIsNarrow();            // < 640 px; matchMedia yoksa false (SS
 
 `PageHeader` telefonda artık başlık ve eylemleri alt alta dizer (eylem düğmeleri satırı doldurur, 44 px).
 
+### Ortak düzeltmeler (SHARED): sayfa ajanları için kısa notlar
+
+```tsx
+<Table columns={cols} rows={rows} rowKey={…} mobile="cards" />   // <640 px kart yığını (sütunlara card ipucu); varsayılan "scroll": kenar gölgesi + "yana kaydırın"
+<FilterPanel activeCount={2} chips={[{ key: 'durum', label: 'Durum: Açık', onRemove }]} onClear={reset}>…alanlar…</FilterPanel>  // telefonda "Süzgeçler (2)" arkasına katlanır
+<ErrorState subject="Kulüp listesi" error={query.error} onRetry={query.refetch} />   // "Kulüp listesi yüklenemedi" + nedene göre cümle (bağlantı yok / yetki yok / sunucu)
+<ErrorState inline subject="Özet kartları" error={e} onRetry={r} />                // tek satırlık hata (çok kartlı sayfalarda)
+<ProgressBar value={sent} max={total} label="Gönderilen bildirim" />               // bitince yeşil, sürerken mavi; kırmızı yalnız tone="danger"
+<Button variant="dangerOutline" size="sm">Sil</Button>                              // satırdaki rutin silme: çerçeveli; dolu "danger" yalnız onay diyaloğunda
+<div className="wrap-any">uzun@e-posta.adresi</div>                                 // uzun ad/e-posta/yol taşmasın (global yardımcı)
+```
+
+- Rozet `tone="primary"` artık bilgi (mavi) tonudur; kırmızı yalnız `danger`. Seçili satır/kart nötr-mavi (`--select-bg`, `--select-border`).
+- Yönetim panelinde bağlantılar mavidir (`html[data-area="admin"]`); kırmızı yalnız tehlike/hata içindir.
+- Dokunmatik/telefonda (`hover:none`, `pointer:coarse`, <640 px) `Button sm`, `IconButton sm`, onay kutusu (24 px + 44 px satır), sekme, sıralama düğmesi, tablo satırı 44 px; masaüstü yoğunluğu aynıdır.
+- Grafik paleti iki temada aynı sırada (1 mavi, 2 mercan); Recharts açıklama metni seri renginde değil `--text`.
+- React Query tek kısa yeniden dener (800 ms): hata durumu 5-7 sn yerine ~2 sn içinde gelir.
+
 ### Sayı ve süre
 
 ```tsx

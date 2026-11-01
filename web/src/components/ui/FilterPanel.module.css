@@ -1,0 +1,104 @@
+/* Süzgeç paneli: geniş ekranda alanlar satırda; telefonda "Süzgeçler (n)" düğmesi + çipler, alanlar katlanır. */
+.root {
+  display: grid;
+  gap: var(--space-3);
+  min-width: 0;
+  margin-block-end: var(--space-4);
+}
+.fields {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--space-3);
+  min-width: 0;
+}
+.fields[hidden] {
+  display: none;
+}
+.fields > * {
+  min-width: 0;
+}
+.head {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+.toggle {
+  flex: 1 1 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  min-height: 44px;
+  padding: 0 var(--space-3);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  color: var(--text);
+  font-weight: 600;
+  font-size: var(--text-sm);
+  cursor: pointer;
+}
+.toggle > span {
+  flex: 1;
+  text-align: start;
+}
+.toggle:hover {
+  background: var(--surface-2);
+}
+.clear {
+  min-height: 44px;
+  padding: 0 var(--space-3);
+  border: 0;
+  background: none;
+  color: var(--link);
+  font-weight: 600;
+  font-size: var(--text-sm);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 44px;
+  max-width: 100%;
+  padding: 0 var(--space-3);
+  border: 1px solid var(--select-border);
+  border-radius: var(--radius-pill);
+  background: var(--select-bg);
+  color: var(--text);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  cursor: pointer;
+}
+.chip > span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.chip:hover {
+  background: var(--surface-2);
+}
+@media (max-width: 639.98px) {
+  /* katlanan panelde her alan tam genişlik */
+  .fields {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    align-items: stretch;
+  }
+  .fields[hidden] {
+    display: none;
+  }
+}

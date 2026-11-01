@@ -25,6 +25,7 @@ export * from '../admin/guard';
 export * from './StatTile';
 export * from './ProgressRing';
 export * from './ProgressBar';
+export * from './FilterPanel';
 export * from './useScrollEdges';
 export * from './RankedBars';
 export * from './ChartLegend';

@@ -25,7 +25,7 @@ export function MaintenanceBand({ message }: { message?: string | null }) {
           title={open ? t('admin.layout.bandLess') : t('admin.layout.bandMore')}
           onClick={() => setOpen((o) => !o)}
         >
-          {message}
+          <span className={styles.maintenanceText}>{message}</span>
         </button>
       )}
     </div>

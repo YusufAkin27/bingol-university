@@ -17,6 +17,12 @@ export default {
   'admin.layout.bandMore': 'Tamamını göster',
   'admin.layout.bandLess': 'Kısalt',
 
+  'admin.kit.filter.title': 'Süzgeçler',
+  'admin.kit.filter.count': 'Süzgeçler ({count})',
+  'admin.kit.filter.clear': 'Süzgeçleri temizle',
+  'admin.kit.filter.active': 'Etkin süzgeçler',
+  'admin.kit.filter.remove': '{label} süzgecini kaldır',
+
   'admin.kit.delta.up': '{compare} %{value} fazla',
   'admin.kit.delta.down': '{compare} %{value} az',
   'admin.kit.delta.same': '{compare} aynı',
