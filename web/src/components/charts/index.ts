@@ -9,4 +9,7 @@ export { FunnelChart } from './FunnelChart';
 export type { FunnelStep } from './FunnelChart';
 export { CohortTable } from './CohortTable';
 export type { CohortRow } from './CohortTable';
-export { CHART_COLORS } from './ChartFrame';
+export { CHART_COLORS, ChartFrame } from './ChartFrame';
+export { ChartPanel } from './ChartPanel';
+export type { ChartPanelProps, ChartTableColumn, ChartTableData } from './ChartPanel';
+// recharts GEREKTİRMEYEN kit bileşenleri (StatTile, RankedBars, ProgressRing, Insight, ChartLegend...) components/ui'dan gelir.

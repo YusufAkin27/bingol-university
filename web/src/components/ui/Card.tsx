@@ -32,10 +32,23 @@ export function Card({
   );
 }
 
-export function Sparkline({ data, label }: { data: number[]; label?: string }) {
+export function Sparkline({
+  data,
+  label,
+  color = 'var(--chart-1)',
+  width = 96,
+  height = 32,
+}: {
+  data: number[];
+  label?: string;
+  /** Çizgi rengi (tema değişkeni); varsayılan --chart-1. */
+  color?: string;
+  width?: number;
+  height?: number;
+}) {
   if (data.length < 2) return null;
-  const w = 96;
-  const h = 32;
+  const w = width;
+  const h = height;
   const min = Math.min(...data);
   const max = Math.max(...data);
   const span = max - min || 1;
@@ -55,11 +68,11 @@ export function Sparkline({ data, label }: { data: number[]; label?: string }) {
       aria-hidden={label ? undefined : true}
       preserveAspectRatio="none"
     >
-      <path d={area} fill="var(--chart-1)" opacity="0.14" />
+      <path d={area} fill={color} opacity="0.14" />
       <path
         d={line}
         fill="none"
-        stroke="var(--chart-1)"
+        stroke={color}
         strokeWidth="1.8"
         strokeLinejoin="round"
         strokeLinecap="round"

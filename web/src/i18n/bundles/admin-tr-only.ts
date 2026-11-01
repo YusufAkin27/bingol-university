@@ -17,6 +17,7 @@ import Cr1 from '../tr/admin-cr1';
 import Ds1 from '../tr/admin-ds1';
 import Reg from '../tr/admin-reg';
 import Uv1 from '../tr/admin-uv1';
+import Kit from '../tr/admin-kit';
 
 export default {
   ...Guard,
@@ -37,4 +38,5 @@ export default {
   ...Ds1,
   ...Reg,
   ...Uv1,
+  ...Kit,
 };

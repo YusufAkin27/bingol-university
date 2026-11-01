@@ -1,0 +1,83 @@
+/* Mobil yardımcılar: kaydırma kabı + kenar gölgesi, eylem çubuğu. Mantıksal özellikler (RTL). */
+
+/* ---------- ScrollShadow ---------- */
+.shadowWrap {
+  position: relative;
+  min-width: 0;
+  max-width: 100%;
+}
+.scroller {
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-x: contain;
+  scrollbar-width: thin;
+  -webkit-overflow-scrolling: touch;
+}
+.shade {
+  position: absolute;
+  inset-block: 0;
+  inline-size: 24px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.2s var(--ease);
+}
+.shadeStart {
+  inset-inline-start: 0;
+  background: linear-gradient(to right, color-mix(in srgb, var(--text) 18%, transparent), transparent);
+}
+.shadeEnd {
+  inset-inline-end: 0;
+  background: linear-gradient(to left, color-mix(in srgb, var(--text) 18%, transparent), transparent);
+}
+:global([dir='rtl']) .shadeStart {
+  background: linear-gradient(to left, color-mix(in srgb, var(--text) 18%, transparent), transparent);
+}
+:global([dir='rtl']) .shadeEnd {
+  background: linear-gradient(to right, color-mix(in srgb, var(--text) 18%, transparent), transparent);
+}
+.shadowWrap[data-start='true'] .shadeStart,
+.shadowWrap[data-end='true'] .shadeEnd {
+  opacity: 1;
+}
+.scrollHint {
+  display: none;
+  margin: 0;
+  padding-block: var(--space-1);
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  text-align: center;
+}
+@media (max-width: 960px), (pointer: coarse) {
+  .scrollHint {
+    display: block;
+  }
+}
+
+/* ---------- ActionBar ---------- */
+.actionBar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+}
+.alignstart {
+  justify-content: flex-start;
+}
+.alignend {
+  justify-content: flex-end;
+}
+.alignbetween {
+  justify-content: space-between;
+}
+@media (max-width: 639.98px) {
+  .stretch {
+    justify-content: stretch;
+  }
+  .stretch > * {
+    flex: 1 1 auto;
+    min-block-size: 44px;
+  }
+}

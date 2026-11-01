@@ -1,0 +1,497 @@
+/* Yönetim paneli görsel kiti: büyük sayı kutusu, trend, halka, sıralı çubuk, açıklama, durum, yorum cümlesi.
+   Yalnız tema değişkenleri; mantıksal özellikler (RTL); animasyonlar prefers-reduced-motion'da kapanır. */
+
+/* ---------- DeltaBadge ---------- */
+.delta {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: var(--text-xs);
+  font-weight: 700;
+  line-height: 1.35;
+  color: var(--text-muted);
+}
+.deltaGood {
+  color: var(--success);
+}
+.deltaBad {
+  color: var(--danger);
+}
+.deltaNone {
+  font-weight: 400;
+}
+.flatMark {
+  display: inline-block;
+  inline-size: 10px;
+  block-size: 2px;
+  border-radius: 1px;
+  background: currentColor;
+}
+
+/* ---------- StatTile ---------- */
+.tile {
+  display: grid;
+  gap: var(--space-2);
+  min-width: 0;
+  padding: var(--space-4) var(--space-5);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+}
+.tileHead {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+.tileIcon {
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  inline-size: 28px;
+  block-size: 28px;
+  border-radius: var(--radius-sm);
+  background: var(--primary-soft);
+  color: var(--primary);
+}
+.tileLabel {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.tileBody {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-3);
+  min-width: 0;
+}
+.tileValue {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  min-width: 0;
+  margin: 0;
+}
+.bigNumber {
+  font-family: var(--font-display);
+  font-size: var(--text-2xl);
+  font-weight: 700;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+.bigNumberMuted {
+  color: var(--text-faint);
+}
+.unit {
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+  font-weight: 500;
+}
+.tileSpark {
+  flex: none;
+  max-inline-size: 40%;
+  color: var(--chart-1);
+}
+.tileCaption {
+  margin: 0;
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
+.tileState {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+.tileError {
+  border-color: var(--danger);
+}
+.retry {
+  min-block-size: 44px;
+  padding-inline: var(--space-3);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  color: var(--text);
+  font-weight: 600;
+  font-size: var(--text-sm);
+  cursor: pointer;
+}
+.retry:hover {
+  background: var(--surface-2);
+}
+@media (max-width: 480px) {
+  .tile {
+    padding: var(--space-3) var(--space-4);
+  }
+  .bigNumber {
+    font-size: var(--text-xl);
+  }
+}
+
+/* ---------- ProgressRing ---------- */
+.ring {
+  display: inline-grid;
+  justify-items: center;
+  gap: var(--space-2);
+  max-inline-size: 100%;
+  text-align: center;
+}
+.ringBox {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+}
+.ringSvg {
+  display: block;
+  transform: rotate(-90deg);
+}
+:global([dir='rtl']) .ringSvg {
+  transform: rotate(-90deg) scaleY(-1);
+}
+.ringTrack {
+  fill: none;
+  stroke: var(--surface-3);
+}
+.ringArc {
+  fill: none;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.6s var(--ease);
+}
+.ringCenter {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  color: var(--text);
+}
+.ringLabel {
+  margin: 0;
+  max-inline-size: 22ch;
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+.strokeprimary {
+  stroke: var(--primary);
+}
+.strokesuccess {
+  stroke: var(--success);
+}
+.strokewarning {
+  stroke: var(--warning);
+}
+.strokedanger {
+  stroke: var(--danger);
+}
+.strokeinfo {
+  stroke: var(--info);
+}
+.strokeneutral {
+  stroke: var(--chart-axis);
+}
+
+/* ---------- RankedBars ---------- */
+.ranked {
+  display: grid;
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.rankedRow {
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr) auto;
+  grid-template-areas:
+    'rank label value'
+    '.    bar   bar';
+  align-items: center;
+  column-gap: var(--space-3);
+  row-gap: 4px;
+}
+.rank {
+  grid-area: rank;
+  display: inline-grid;
+  place-items: center;
+  inline-size: 28px;
+  block-size: 28px;
+  border-radius: var(--radius-pill);
+  background: var(--surface-3);
+  color: var(--text-muted);
+  font-size: var(--text-xs);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.rankTop {
+  background: var(--primary-soft);
+  color: var(--primary);
+}
+.rankLabel {
+  grid-area: label;
+  min-width: 0;
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+.truncate {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.rankValue {
+  grid-area: value;
+  font-size: var(--text-sm);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  text-align: end;
+  white-space: nowrap;
+}
+.rankShare {
+  display: block;
+  font-size: var(--text-xs);
+  font-weight: 400;
+  color: var(--text-muted);
+}
+.rankBar {
+  grid-area: bar;
+  block-size: 10px;
+  border-radius: var(--radius-pill);
+  background: var(--surface-2);
+  overflow: hidden;
+}
+.rankFill {
+  block-size: 100%;
+  min-inline-size: 3px;
+  border-radius: var(--radius-pill);
+  background: var(--chart-1);
+  transition: inline-size 0.5s var(--ease);
+}
+.rankHint {
+  display: block;
+  font-size: var(--text-xs);
+  font-weight: 400;
+  color: var(--text-muted);
+}
+.moreBtn {
+  justify-self: start;
+  min-block-size: 44px;
+  padding-inline: var(--space-3);
+  border: 0;
+  background: none;
+  color: var(--primary);
+  font-weight: 600;
+  font-size: var(--text-sm);
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+}
+.moreBtn:hover {
+  background: var(--primary-soft);
+}
+.stateBox {
+  display: grid;
+  place-items: center;
+  gap: var(--space-2);
+  padding: var(--space-5) var(--space-3);
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius-md);
+  background: var(--surface-2);
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  text-align: center;
+}
+
+/* ---------- ChartLegend ---------- */
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--text-sm);
+}
+.legendItem {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+}
+.swatch {
+  flex: none;
+  inline-size: 16px;
+  block-size: 16px;
+  border-radius: 4px;
+  border: 2px solid var(--swatch);
+  background-color: var(--swatch);
+}
+/* Desen: renk göremeyen kullanıcı için renge ek ayırt edici işaret */
+.patternSolid {
+  background-image: none;
+}
+.patternStripe {
+  background-image: repeating-linear-gradient(45deg, var(--surface) 0 2px, transparent 2px 5px);
+}
+.patternDots {
+  background-image: radial-gradient(var(--surface) 1.5px, transparent 1.6px);
+  background-size: 5px 5px;
+}
+.patternCross {
+  background-image:
+    repeating-linear-gradient(45deg, var(--surface) 0 1.5px, transparent 1.5px 5px),
+    repeating-linear-gradient(-45deg, var(--surface) 0 1.5px, transparent 1.5px 5px);
+}
+.patternHollow {
+  background-color: transparent;
+}
+.legendValue {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- StatusDot ---------- */
+.status {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  min-width: 0;
+}
+.statusIcon {
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  inline-size: 20px;
+  block-size: 20px;
+  border-radius: 50%;
+}
+.statusDot {
+  inline-size: 8px;
+  block-size: 8px;
+  border-radius: 50%;
+  background: currentColor;
+}
+.statusSuccess {
+  color: var(--success);
+}
+.statusWarning {
+  color: var(--warning);
+}
+.statusDanger {
+  color: var(--danger);
+}
+.statusInfo {
+  color: var(--info);
+}
+.statusPrimary {
+  color: var(--primary);
+}
+.statusNeutral {
+  color: var(--text-muted);
+}
+.statusSuccess .statusIcon {
+  background: var(--success-soft);
+}
+.statusWarning .statusIcon {
+  background: var(--warning-soft);
+}
+.statusDanger .statusIcon {
+  background: var(--danger-soft);
+}
+.statusInfo .statusIcon {
+  background: var(--info-soft);
+}
+.statusPrimary .statusIcon {
+  background: var(--primary-soft);
+}
+.statusNeutral .statusIcon {
+  background: var(--surface-3);
+}
+.statusText {
+  color: var(--text);
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.pulse {
+  animation: kitPulse 1.8s ease-in-out infinite;
+}
+@keyframes kitPulse {
+  50% {
+    opacity: 0.45;
+  }
+}
+
+/* ---------- Insight ---------- */
+.insight {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  margin: 0;
+  padding: var(--space-3) var(--space-4);
+  border-inline-start: 4px solid var(--info);
+  border-radius: var(--radius-md);
+  background: var(--info-soft);
+  color: var(--text);
+  font-size: var(--text-base);
+  line-height: 1.5;
+}
+.insightIcon {
+  flex: none;
+  margin-block-start: 2px;
+  color: var(--info);
+}
+.insightText {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.insightGood {
+  border-inline-start-color: var(--success);
+  background: var(--success-soft);
+}
+.insightGood .insightIcon {
+  color: var(--success);
+}
+.insightBad {
+  border-inline-start-color: var(--danger);
+  background: var(--danger-soft);
+}
+.insightBad .insightIcon {
+  color: var(--danger);
+}
+.insightWarn {
+  border-inline-start-color: var(--warning);
+  background: var(--warning-soft);
+}
+.insightWarn .insightIcon {
+  color: var(--warning);
+}
+.insightNeutral {
+  border-inline-start-color: var(--border-strong);
+  background: var(--surface-2);
+}
+.insightNeutral .insightIcon {
+  color: var(--text-muted);
+}
+.partGood {
+  color: var(--success);
+}
+.partBad {
+  color: var(--danger);
+}
+.partWarn {
+  color: var(--warning);
+}
+.partBold {
+  font-weight: 700;
+}

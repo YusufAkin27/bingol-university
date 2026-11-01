@@ -21,3 +21,15 @@ export * from './DataToolbar';
 export * from './Icon';
 export * from './ContourBackdrop';
 export * from '../admin/guard';
+// Görsel kit (yönetim paneli): recharts GEREKTİRMEYEN bileşenler; grafik çerçevesi için components/charts
+export * from './StatTile';
+export * from './ProgressRing';
+export * from './RankedBars';
+export * from './ChartLegend';
+export * from './StatusDot';
+export * from './Insight';
+export * from './ResponsiveTable';
+export * from './ScrollShadow';
+export * from './ActionBar';
+export * from './useIsNarrow';
+export * from './kitFormat';

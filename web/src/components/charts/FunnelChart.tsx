@@ -1,4 +1,6 @@
+import { useContext } from 'react';
 import { useI18n } from '../../i18n/I18nProvider';
+import { ChartDescriptionContext } from './ChartFrame';
 import styles from './charts.module.css';
 
 export interface FunnelStep {
@@ -18,6 +20,7 @@ interface Props {
  */
 export function FunnelChart({ steps, ariaLabel, emptyLabel }: Props) {
   const { t, formatNumber } = useI18n();
+  const describedBy = useContext(ChartDescriptionContext);
   const top = steps[0]?.value ?? 0;
   if (steps.length === 0 || top === 0) {
     return (
@@ -26,13 +29,14 @@ export function FunnelChart({ steps, ariaLabel, emptyLabel }: Props) {
         style={{ height: 160 }}
         role="img"
         aria-label={`${ariaLabel}: ${emptyLabel ?? t('common.noResults')}`}
+        aria-describedby={describedBy}
       >
         {emptyLabel ?? t('common.noResults')}
       </div>
     );
   }
   return (
-    <ol className={styles.funnel} aria-label={ariaLabel}>
+    <ol className={styles.funnel} aria-label={ariaLabel} aria-describedby={describedBy}>
       {steps.map((s) => {
         const pct = Math.round((s.value / top) * 100);
         return (

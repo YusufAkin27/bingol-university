@@ -4,6 +4,18 @@ import { Icon } from './Icon';
 import { EmptyState, ErrorState, Skeleton } from './Feedback';
 import styles from './Table.module.css';
 
+/** Dar ekranda kart görünümü (ResponsiveTable) için isteğe bağlı ipuçları; Table bunları yok sayar. */
+export interface CardHint {
+  /** 1: kart başlığı, 2-3: başlığın altındaki öncelikli alanlar. Hiçbir sütunda yoksa ilk 3 sütun alınır. */
+  priority?: 1 | 2 | 3;
+  /** Kartta başlık yerine kullanılacak kısa etiket (varsayılan: sütun başlığı). */
+  label?: string;
+  /** Eylem sütunu: kartın altında, 44 px dokunma hedefleriyle gösterilir. */
+  actions?: boolean;
+  /** Kartta hiç gösterme (örn. yinelenen sütun). */
+  hide?: boolean;
+}
+
 export interface Column<T> {
   key: string;
   header: ReactNode;
@@ -14,6 +26,8 @@ export interface Column<T> {
   width?: string;
   /** Erişilebilir sıralama düğmesi adı için düz metin başlık. */
   headerLabel?: string;
+  /** ResponsiveTable kart görünümü ipuçları (isteğe bağlı). */
+  card?: CardHint;
 }
 
 export interface SortState {
@@ -21,7 +35,7 @@ export interface SortState {
   dir: 'asc' | 'desc';
 }
 
-interface TableProps<T> {
+export interface TableProps<T> {
   columns: Column<T>[];
   rows: T[] | undefined;
   rowKey: (row: T) => string | number;
