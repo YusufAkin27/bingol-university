@@ -52,8 +52,8 @@ describe('Şifreleme durumu sayfası', () => {
 
   it('kullanıcı arayıp sohbet görüntüleyiciye bağlantı verir', async () => {
     setup();
-    renderWithProviders(<CryptoPage />);
-    await screen.findByText('Yeni anahtara geçirilmeli');
+    renderWithProviders(<CryptoPage />, { route: '/admin/crypto?tab=messages' });
+    await screen.findByRole('textbox', { name: /Kullanıcı ara/ });
     await userEvent.type(screen.getByRole('textbox', { name: /Kullanıcı ara/ }), 'ayşe');
     const link = await screen.findByRole('link', { name: 'Mesajları aç' });
     expect(link.getAttribute('href')).toMatch(/\/users\/5\/messages$/);
@@ -61,7 +61,7 @@ describe('Şifreleme durumu sayfası', () => {
 
   it('sunucuda kapalıysa uyarır ve bağlantı vermez', async () => {
     setup({ adminDecryptEnabled: false });
-    renderWithProviders(<CryptoPage />);
+    renderWithProviders(<CryptoPage />, { route: '/admin/crypto?tab=messages' });
     expect(await screen.findByText(/sunucu ayarıyla kapatılmış/)).toBeInTheDocument();
     await userEvent.type(screen.getByRole('textbox', { name: /Kullanıcı ara/ }), 'ayşe');
     await screen.findByText('Ayşe Demir');

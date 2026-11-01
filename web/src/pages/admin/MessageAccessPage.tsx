@@ -13,8 +13,10 @@ import {
   Button,
   EmptyState,
   ErrorState,
+  FilterPanel,
   FormField,
   Input,
+  Insight,
   PageHeader,
   Pagination,
   SearchInput,
@@ -67,15 +69,17 @@ export default function MessageAccessPage() {
   const activeCount = [f.adminId !== undefined, f.targetUserId, f.conversationId, f.kind, f.q, f.from, f.to].filter(Boolean).length;
 
   const columns: Column<MessageAccessRow>[] = [
-    { key: 'at', header: t('admin.wp02.access.col.time'), render: (r) => <span className={styles.nowrap}>{formatDateTime(r.at)}</span> },
+    { key: 'at', header: t('admin.wp02.access.col.time'), card: { priority: 3 }, render: (r) => <span className={styles.nowrap}>{formatDateTime(r.at)}</span> },
     {
       key: 'admin',
       header: t('admin.wp02.access.col.admin'),
+      card: { priority: 1 },
       render: (r) => (r.adminEmail ? <span className="ltr">{r.adminEmail}</span> : <span className={styles.muted}>—</span>),
     },
     {
       key: 'user',
       header: t('admin.wp02.access.col.user'),
+      card: { priority: 2 },
       render: (r) =>
         r.targetUserId != null ? (
           <Link to={paths.admin.user(r.targetUserId)} className={styles.targetLink}>
@@ -104,6 +108,7 @@ export default function MessageAccessPage() {
     {
       key: 'kind',
       header: t('admin.wp02.access.col.kind'),
+      card: { priority: 2 },
       render: (r) => <Badge tone="primary">{td(`admin.wp02.access.kind.${r.kind}`, r.kind)}</Badge>,
     },
     {
@@ -125,19 +130,21 @@ export default function MessageAccessPage() {
     {
       key: 'reason',
       header: t('admin.wp02.access.col.reason'),
+      card: { priority: 3 },
       render: (r) =>
         r.reason ? (
           <span className={styles.clip} dir="auto" title={r.reason}>
             {clip(r.reason, 80)}
           </span>
         ) : (
-          <span className={styles.muted}>—</span>
+          <Badge tone="warning">{t('admin.v2n.ma.noReason')}</Badge>
         ),
     },
     { key: 'ip', header: t('admin.wp02.access.col.ip'), render: (r) => <span className="ltr">{r.ip ?? '—'}</span> },
   ];
 
   const data = list.data;
+  const noReason = (data?.items ?? []).filter((r) => !r.reason).length;
   return (
     <div>
       <PageHeader
@@ -145,6 +152,22 @@ export default function MessageAccessPage() {
         description={t('admin.wp02.access.subtitle')}
         actions={<Link to={paths.admin.audit}>{t('admin.wp02.access.back')}</Link>}
       />
+      {data && data.items.length > 0 && (
+        <Insight
+          tone={noReason > 0 ? 'warn' : 'good'}
+          parts={t(noReason > 0 ? 'admin.v2n.ma.summaryBad' : 'admin.v2n.ma.summaryOk', {
+            n: formatNumber(data.items.length),
+            bad: formatNumber(noReason),
+          })}
+        />
+      )}
+      <FilterPanel
+        activeCount={activeCount}
+        onClear={() => {
+          setResetKey((k) => k + 1);
+          setSp(new URLSearchParams(), { replace: true });
+        }}
+      >
       <div className={styles.filters} role="group" aria-label={t('admin.wp02.access.filters.label')} data-search-anchor="filters">
         <div className={styles.bar}>
           <div className={styles.search}>
@@ -224,6 +247,7 @@ export default function MessageAccessPage() {
           </div>
         </div>
       </div>
+      </FilterPanel>
 
       {list.isError && !data ? (
         <ErrorState
@@ -239,6 +263,7 @@ export default function MessageAccessPage() {
             rows={data?.items}
             rowKey={(r) => r.id}
             loading={list.isLoading}
+            mobile="cards"
             empty={
               <EmptyState
                 icon="shield"

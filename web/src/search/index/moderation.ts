@@ -86,7 +86,7 @@ export const entries: SearchEntry[] = [
     id: 'chatFeed.audit',
     kind: 'section',
     page: 'chatFeed',
-    title: 'Her bakışınız kayda geçer',
+    title: 'Her görüntüleme kayda geçer',
     anchor: 'chatfeed-audit-note',
     keywords: ['denetim kaydı', 'gizlilik uyarısı', 'sebep yazmak', 'görüntüleme sebebi'],
     description: 'Sohbet içeriğine bakmak için sebep yazılır ve denetim kaydına işlenir.',
@@ -97,7 +97,7 @@ export const entries: SearchEntry[] = [
     page: 'chatFeed',
     title: 'Medya istatistikleri',
     anchor: 'chatfeed-stats',
-    keywords: ['kaç fotoğraf', 'kaç video', 'toplam boyut', 'depolama', 'bir kez bakılan', 'silinen medya'],
+    keywords: ['kaç fotoğraf', 'kaç video', 'toplam boyut', 'depolama', 'tek seferlik görüntülenen', 'silinen medya'],
     description: 'Sohbetlerde paylaşılan fotoğraf ve video sayıları ile toplam boyut.',
   },
   {

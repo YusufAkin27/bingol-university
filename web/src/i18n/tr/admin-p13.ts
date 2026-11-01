@@ -2,7 +2,7 @@
 // Yönetim paneli YALNIZ Türkçedir: bu dosyanın en/ar karşılığı yazılmaz; i18n/index.ts en/ar sözlüklerine aynı Türkçe
 // metni katar ve scripts/check-i18n.mjs bu dosyayı en/ar eşitliği denetiminden muaf tutar.
 export default {
-  'admin.p13.nav.suppressions': 'Bastırma listesi',
+  'admin.p13.nav.suppressions': 'Mail engel listesi',
   'admin.p13.nav.queue': 'Mail kuyruğu',
 
   'admin.p13.filters': 'Süzgeçler',
@@ -22,7 +22,7 @@ export default {
   'admin.p13.category.ANNOUNCEMENT': 'Duyuru',
 
   // bastırma listesi
-  'admin.p13.supp.title': 'Mail bastırma listesi',
+  'admin.p13.supp.title': 'Mail engel listesi',
   'admin.p13.supp.desc':
     'Duyuru maili gönderilmeyecek adresler: abonelikten çıkanlar, kalıcı teslim hatası verenler, şikayet edenler ve elle eklenenler. İşlemsel postalar (kod, güvenlik) etkilenmez. Adresler listede maskelidir.',
   'admin.p13.supp.list': 'Bastırılan adresler',
@@ -32,7 +32,7 @@ export default {
   'admin.p13.supp.col.category': 'Kapsam',
   'admin.p13.supp.col.note': 'Not',
   'admin.p13.supp.col.date': 'Eklenme',
-  'admin.p13.supp.noAddress': 'Adres kayıtlı değil (özet {hash}…)',
+  'admin.p13.supp.noAddress': 'Adres gösterilemiyor (güvenlik için saklanmıyor)',
   'admin.p13.supp.optOut': 'Kullanıcı kendisi çıktı',
   'admin.p13.supp.reason.UNSUBSCRIBED': 'Abonelikten çıktı',
   'admin.p13.supp.reason.BOUNCED': 'Teslim hatası',
@@ -42,10 +42,10 @@ export default {
   'admin.p13.supp.filter.qHint': 'Adresler düz saklanmaz: tam e-posta yazın ya da kayıtlı kullanıcı adresinden en az 3 karakter girin.',
   'admin.p13.supp.empty.title': 'Bastırılmış adres yok',
   'admin.p13.supp.empty.hint': 'Süzgeçleri değiştirin ya da bir adresi elle ekleyin.',
-  'admin.p13.supp.notResolved': 'Tam adres gösterilemiyor: adres bastırma kaydında düz saklanmaz ve eşleşen bir kullanıcı hesabı yok.',
+  'admin.p13.supp.notResolved': 'Tam adres gösterilemiyor: adres engel kaydında düz saklanmaz ve eşleşen bir kullanıcı hesabı yok.',
 
   'admin.p13.supp.detail.open': 'Ayrıntı',
-  'admin.p13.supp.detail.title': 'Bastırma kaydı #{id}',
+  'admin.p13.supp.detail.title': 'Engel kaydı #{id}',
   'admin.p13.supp.detail.user': 'Kullanıcı hesabı',
   'admin.p13.supp.detail.by': 'Ekleyen yönetici',
   'admin.p13.supp.warn.UNSUBSCRIBED.title': 'Kullanıcı kendisi çıktı.',
@@ -55,16 +55,16 @@ export default {
   'admin.p13.supp.warn.COMPLAINT.body':
     'Şikayet eden adrese tekrar duyuru göndermek gönderici itibarını zedeler. Kaldırmak için güçlü bir gerekçe gerekir.',
 
-  'admin.p13.supp.remove.title': 'Bastırmayı kaldır',
+  'admin.p13.supp.remove.title': 'Engeli kaldır',
   'admin.p13.supp.remove.button': 'Listeden kaldır',
   'admin.p13.supp.remove.hint': 'Kaldırma geri alınamaz. En az {n} karakterlik gerekçe gerekir; işlem denetim kaydına yazılır.',
-  'admin.p13.supp.remove.message': 'Bu adres bastırma listesinden çıkarılacak ve sonraki duyurular yeniden gönderilecek.',
+  'admin.p13.supp.remove.message': 'Bu adres engel listesinden çıkarılacak ve sonraki duyurular yeniden gönderilecek.',
   'admin.p13.supp.remove.messageStrong':
     'Kullanıcı kendisi çıkmıştı. Bu adres listeden çıkarılırsa sonraki duyurular yeniden gönderilir. Onaylamak için e-postayı yazın ve gerekçenizi (en az 20 karakter) belirtin.',
   'admin.p13.supp.remove.consequence': 'Kullanıcıya bildirim gitmez; kayıt silinir.',
-  'admin.p13.supp.remove.done': 'Bastırma kaldırıldı',
+  'admin.p13.supp.remove.done': 'Engel kaldırıldı',
 
-  'admin.p13.supp.add.title': 'Adresi bastırma listesine ekle',
+  'admin.p13.supp.add.title': 'Adresi engel listesine ekle',
   'admin.p13.supp.add.consequence':
     'Bu adrese bundan sonra duyuru maili gönderilmez. İşlemsel postalar (doğrulama kodu, güvenlik) yine gider. Kaldırmak için gerekçe gerekir.',
   'admin.p13.supp.add.email': 'E-posta adresi',
@@ -72,7 +72,7 @@ export default {
   'admin.p13.supp.add.note': 'Gerekçe',
   'admin.p13.supp.add.noteHint': 'En az 5 karakter (örn. "Kullanıcı telefonla duyuru istemediğini bildirdi").',
   'admin.p13.supp.add.submit': 'Bastır',
-  'admin.p13.supp.add.done': 'Adres bastırma listesine eklendi',
+  'admin.p13.supp.add.done': 'Adres engel listesine eklendi',
 
   // kuyruk
   'admin.p13.queue.title': 'Mail kuyruğu',
@@ -123,7 +123,7 @@ export default {
   'admin.p13.tl.SKIPPED': 'Atlandı ya da iptal edildi',
   'admin.p13.tl.ADMIN_ACTION': 'Yönetici işlemi',
   'admin.p13.queue.warn.CODE_MAIL': 'Kod postası: kod yalnızca 10 dakika geçerlidir; eski bir kod postasını yeniden göndermek işe yaramaz.',
-  'admin.p13.queue.warn.SUPPRESSED': 'Bu kayıt adres bastırma listesinde olduğu için atlandı.',
+  'admin.p13.queue.warn.SUPPRESSED': 'Bu kayıt adres engel listesinde olduğu için atlandı.',
 
   'admin.p13.queue.retry.title': 'Kaydı yeniden dene',
   'admin.p13.queue.retry.button': 'Yeniden dene',
@@ -178,17 +178,17 @@ export default {
   'admin.p13.quota.note': 'Sayaç yalnız bugünü ve dünü gösterir. Kota burada yalnız okunur; değiştirmek için sunucu ayarına bakın.',
 
   // hata kodları
-  'admin.p13.err.MAILOPS_SUPPRESSION_NOT_FOUND': 'Bastırma kaydı bulunamadı; liste yenilenmiş olabilir.',
+  'admin.p13.err.MAILOPS_SUPPRESSION_NOT_FOUND': 'Engel kaydı bulunamadı; liste yenilenmiş olabilir.',
   'admin.p13.err.MAILOPS_EMAIL_INVALID': 'E-posta adresi geçersiz.',
   'admin.p13.err.MAILOPS_REASON_INVALID': 'Elle eklemede sebep yalnızca "elle" olabilir.',
-  'admin.p13.err.MAILOPS_SUPPRESSION_EXISTS': 'Bu adres zaten bastırma listesinde.',
+  'admin.p13.err.MAILOPS_SUPPRESSION_EXISTS': 'Bu adres zaten engel listesinde.',
   'admin.p13.err.MAILOPS_USER_OPTED_OUT':
     'Kullanıcı kendisi çıktı: kaldırmak için ek onay ve en az 20 karakterlik gerekçe gerekir.',
   'admin.p13.err.MAILOPS_OUTBOX_NOT_FOUND': 'Kuyruk kaydı bulunamadı (temizlenmiş olabilir).',
   'admin.p13.err.MAILOPS_RETRY_STATE': 'Yalnızca ölü ya da atlanmış kayıt yeniden denenebilir.',
   'admin.p13.err.MAILOPS_RETRY_STALE_CODE': 'Eski kod postası: kod 10 dakikada geçersiz olur. Kullanıcı yeni kod istemelidir.',
   'admin.p13.err.MAILOPS_RETRY_NO_CONTENT': 'Posta içeriği gizlilik gereği silindiği için yeniden üretilemez.',
-  'admin.p13.err.MAILOPS_RETRY_SUPPRESSED': 'Adres bastırma listesinde olduğu için duyuru yeniden gönderilmez.',
+  'admin.p13.err.MAILOPS_RETRY_SUPPRESSED': 'Adres engel listesinde olduğu için duyuru yeniden gönderilmez.',
   'admin.p13.err.MAILOPS_CANCEL_STATE': 'Yalnızca bekleyen kayıt iptal edilebilir; kayıt bu arada gönderilmiş olabilir.',
   'admin.p13.err.MAILOPS_BULK_INVALID': 'Toplu işlem geçersiz: en çok 200 kayıt ve yeniden dene/iptal eylemi gerekir.',
 };

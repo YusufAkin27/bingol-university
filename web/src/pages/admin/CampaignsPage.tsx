@@ -13,8 +13,10 @@ import {
   ErrorState,
   EmptyState,
   Icon,
+  Insight,
   LoadMore,
   PageHeader,
+  ProgressBar,
   StatusPill,
   Table,
   Tabs,
@@ -57,11 +59,13 @@ export default function CampaignsPage() {
       key: 'status',
       header: t('common.status'),
       width: '150px',
+      card: { priority: 2 },
       render: (c) => <StatusPill tone={toneFor(c.status)}>{t(`admin.campaigns.status.${c.status}`)}</StatusPill>,
     },
     {
       key: 'content',
       header: t('admin.campaigns.col.content'),
+      card: { priority: 1 },
       render: (c) => (
         <div className={styles.cellContent}>
           <span className={styles.cellTitle}>{c.tr.title}</span>
@@ -71,10 +75,11 @@ export default function CampaignsPage() {
         </div>
       ),
     },
-    { key: 'audience', header: t('admin.campaigns.col.audience'), render: (c) => audienceSummary(c.audience) },
+    { key: 'audience', header: t('admin.campaigns.col.audience'), card: { priority: 3 }, render: (c) => audienceSummary(c.audience) },
     {
       key: 'recipients',
       header: t('admin.campaigns.col.recipients'),
+      card: { priority: 2 },
       align: 'end',
       render: (c) =>
         c.recipientCount === null ? (
@@ -82,9 +87,19 @@ export default function CampaignsPage() {
         ) : (
           <span className={styles.cellContent}>
             <span>
-              {formatNumber(c.recipientCount)}
-              {c.audienceSize != null && ` / ${formatNumber(c.audienceSize)}`}
+              {c.audienceSize != null
+                ? t('admin.v2n.camp.reached', { n: formatNumber(c.recipientCount), total: formatNumber(c.audienceSize) })
+                : formatNumber(c.recipientCount)}
             </span>
+            {!!c.audienceSize && (
+              <ProgressBar
+                value={c.recipientCount}
+                max={c.audienceSize}
+                label={t('admin.v2n.camp.progress')}
+                className={styles.recipBar}
+                tone={c.status === 'FAILED' ? 'danger' : c.status === 'SENDING' ? 'info' : 'auto'}
+              />
+            )}
             {!!c.skippedCount && (
               <span className={styles.cellBody}>{t('admin.campaigns.skipped', { n: formatNumber(c.skippedCount) })}</span>
             )}
@@ -94,6 +109,7 @@ export default function CampaignsPage() {
     {
       key: 'when',
       header: t('admin.campaigns.col.when'),
+      card: { priority: 3 },
       render: (c) => (
         <span className={styles.nowrap}>
           {formatDateTime(c.status === 'SCHEDULED' ? c.scheduledAt : (c.startedAt ?? c.scheduledAt))}
@@ -111,7 +127,7 @@ export default function CampaignsPage() {
     <div>
       <PageHeader
         title={t('admin.campaigns.title')}
-       
+        description={t('admin.v2n.camp.intro')}
         actions={
           <ButtonLink to={paths.admin.campaignNew} leftIcon={<Icon name="plus" size={18} />} data-search-anchor="new-campaign">
             {t('admin.campaigns.new')}
@@ -129,6 +145,17 @@ export default function CampaignsPage() {
           onChange={(id) => setParams(id === 'ALL' ? {} : { status: id }, { replace: true })}
         />
       </div>
+      {!query.isLoading && !query.isError && items.length > 0 && (
+        <Insight
+          tone={items.some((c) => c.status === 'FAILED') ? 'warn' : 'info'}
+          parts={t('admin.v2n.camp.summary', {
+            n: formatNumber(items.length),
+            sending: formatNumber(items.filter((c) => c.status === 'SENDING').length),
+            scheduled: formatNumber(items.filter((c) => c.status === 'SCHEDULED').length),
+            failed: formatNumber(items.filter((c) => c.status === 'FAILED').length),
+          })}
+        />
+      )}
       {live && (
         <p className={styles.liveNote} role="status">
           <span className={styles.liveDot} aria-hidden="true" />
@@ -136,7 +163,7 @@ export default function CampaignsPage() {
         </p>
       )}
       {query.isError ? (
-        <ErrorState description={adminErrorMessage(i18n, query.error)} onRetry={() => void query.refetch()} />
+        <ErrorState subject={t('admin.v2n.camp.subject')} error={query.error} description={adminErrorMessage(i18n, query.error)} onRetry={() => void query.refetch()} />
       ) : (
         <>
           <Table
@@ -145,6 +172,7 @@ export default function CampaignsPage() {
             rows={items}
             rowKey={(c) => c.id}
             loading={query.isLoading}
+            mobile="cards"
             onRowClick={(c) => setOpenId(c.id)}
             empty={
               <EmptyState

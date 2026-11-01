@@ -107,7 +107,7 @@ describe('liste', () => {
     expect(within(stats).getByText('Son 24 saatte rapor')).toBeInTheDocument();
     const table = within(screen.getByRole('table'));
     expect(table.getByText('Yeni')).toBeInTheDocument();
-    expect(table.getByText(/1\.2\.0 · A · 9/)).toBeInTheDocument();
+    expect(table.getByText(/Android 1\.2\.0: 9 kez/)).toBeInTheDocument();
     expect(table.getByText('+1 daha')).toBeInTheDocument();
   });
 

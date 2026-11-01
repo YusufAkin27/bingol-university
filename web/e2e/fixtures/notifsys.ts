@@ -93,6 +93,25 @@ export async function stubNotifsys(page: Page, scenario: Scenario = 'full', call
           { id: 2, adminId: 1, adminEmail: 'mod@bingol.edu.tr', method: 'POST', path: '/api/admin/academic/exams/9/publish-with-a-very-long-segment-name', status: 403, at: '2026-11-01T09:31:00Z', ip: '10.0.0.2' },
         ], page: 0, size: 20, total: 2, totalPages: 1, totalItems: 2 });
       if (p === '/admin/rbac/admins') return json(r, []);
+      if (p === '/admin/push/campaigns')
+        return json(r, { items: [
+          { id: 1, createdBy: 1, type: 'ANNOUNCEMENT', audience: { type: 'ALL' }, tr: { title: 'Final haftası duyurusu', body: 'Kütüphane final haftasında 24 saat açık olacak, kartınızı yanınızda bulundurun.' }, en: null, ar: null, target: null, status: 'SENDING', scheduledAt: null, startedAt: '2026-11-01T09:00:00Z', finishedAt: null, recipientCount: 2400, audienceSize: 5200, skippedCount: 0, source: 'CAMPAIGN', error: null, createdAt: '2026-11-01T08:59:00Z' },
+          { id: 2, createdBy: 1, type: 'NEWS', audience: { type: 'ALL' }, tr: { title: 'Yeni yemek listesi', body: 'Kasım ayı yemek listesi yayında.' }, en: null, ar: null, target: null, status: 'SENT', scheduledAt: null, startedAt: '2026-10-30T09:00:00Z', finishedAt: '2026-10-30T09:05:00Z', recipientCount: 4990, audienceSize: 5200, skippedCount: 210, source: 'CAMPAIGN', error: null, createdAt: '2026-10-30T08:59:00Z' },
+          { id: 3, createdBy: 1, type: 'ANNOUNCEMENT', audience: { type: 'ALL' }, tr: { title: 'Hata veren kampanya', body: 'Gönderilemedi.' }, en: null, ar: null, target: null, status: 'FAILED', scheduledAt: null, startedAt: '2026-10-29T09:00:00Z', finishedAt: null, recipientCount: 0, audienceSize: 5200, skippedCount: 0, source: 'CAMPAIGN', error: 'FCM_DISABLED', createdAt: '2026-10-29T08:59:00Z' },
+        ], nextCursor: null });
+      if (p === '/admin/crashes/summary') return json(r, { newGroups: 4, ackGroups: 2, resolvedGroups: 9, events24h: 260, reopened: 1 });
+      if (p === '/admin/crashes')
+        return json(r, { items: [
+          { id: 1, errorType: 'RangeError', message: 'Invalid value', topFrame: 'package:bu_kampus/features/menu/menu_page.dart:142', status: 'NEW', eventCount: 241, firstSeenAt: '2026-10-30T10:00:00Z', lastSeenAt: '2026-11-01T09:55:00Z', firstVersion: '2.0.4', lastVersion: '2.0.5', reopenCount: 0, statusReason: null, statusBy: null, statusAt: null, fixedInVersion: null, versions: [{ version: '2.0.5', platform: 'ANDROID', count: 200 }, { version: '2.0.4', platform: 'IOS', count: 41 }] },
+        ], page: 0, totalPages: 1, totalItems: 1 });
+      if (p === '/admin/rbac/matrix')
+        return json(r, { profiles: ['FULL', 'MODERATOR', 'VIEWER'], entries: [
+          { permission: 'users.read', profiles: ['FULL', 'MODERATOR', 'VIEWER'] },
+          { permission: 'users.pii', profiles: ['FULL', 'MODERATOR'] },
+          { permission: 'settings.write', profiles: ['FULL'] },
+        ] });
+      if (p === '/admin/rbac/changes') return json(r, []);
+      if (p === '/admin/push/fcm/status') return json(r, { enabled: false, validated: false, projectId: null, error: 'INIT_FAILED:com.google.auth.oauth2.ServiceAccountCredentialsReadException' });
       if (p === '/admin/system/overview') {
         if (scenario === 'error') return json(r, { code: 'INTERNAL', message: 'x' }, 500);
         return json(r, scenario === 'empty' ? OVERVIEW_OK : OVERVIEW_FULL);

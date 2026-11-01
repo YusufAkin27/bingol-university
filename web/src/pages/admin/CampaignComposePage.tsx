@@ -16,6 +16,7 @@ import {
   FormField,
   Icon,
   Input,
+  Insight,
   PageHeader,
   Select,
   Spinner,
@@ -185,16 +186,25 @@ export default function CampaignComposePage() {
     <div>
       <PageHeader
         title={t('admin.campaigns.compose.title')}
-       
         breadcrumbs={[{ label: t('admin.campaigns.title'), to: paths.admin.campaigns }, { label: t('admin.campaigns.new') }]}
         actions={
           <Button
-            variant="secondary"
+            variant="ghost"
             onClick={() => (isDraftEmpty(state) ? reset() : setResetOpen(true))}
-            leftIcon={<Icon name="plus" size={16} />}
+            leftIcon={<Icon name="x" size={16} />}
           >
             {t('admin.campaigns.compose.reset')}
           </Button>
+        }
+      />
+      <Insight
+        tone={count === 0 ? 'warn' : 'info'}
+        parts={
+          count === null
+            ? t('admin.v2n.compose.countNone')
+            : count === 0
+              ? t('admin.v2n.compose.countZero')
+              : t('admin.v2n.compose.count', { n: i18n.formatNumber(count) })
         }
       />
       {restored && (

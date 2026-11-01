@@ -15,9 +15,11 @@ import {
   Card,
   ErrorState,
   GuardedAction,
+  Insight,
   PageHeader,
   Skeleton,
   StatusPill,
+  useKitFormat,
   useToast,
 } from '../../components/ui';
 import { useI18n } from '../../i18n/I18nProvider';
@@ -33,6 +35,7 @@ export default function SourcesPage() {
   usePageTitle(t('admin.p15.sources.title'));
   const toast = useToast();
   const qc = useQueryClient();
+  const kf = useKitFormat();
   const q = useQuery({ queryKey: sourcesKeys.status, queryFn: getSourcesStatus, refetchInterval: 60_000 });
   const perHour = q.data?.syncPerHour ?? 3;
 
@@ -92,15 +95,24 @@ export default function SourcesPage() {
   return (
     <>
       <PageHeader title={t('admin.p15.sources.title')} description={t('admin.p15.sources.intro')} />
-      <div className={styles.notice} role="note" data-search-anchor="sources-rule">
-        <p>{t('admin.p15.sources.rule')}</p>
-        <p>{t('admin.p15.sources.limit', { n: perHour })}</p>
-      </div>
       {q.isError ? (
-        <ErrorState description={bulkError(i18n, q.error)} onRetry={() => void q.refetch()} />
+        <ErrorState subject={t('admin.v2n.src.subject')} error={q.error} description={bulkError(i18n, q.error)} onRetry={() => void q.refetch()} />
       ) : q.isLoading || !n || !m ? (
         <Skeleton height="10rem" width="100%" />
       ) : (
+        <>
+        <Insight
+          tone={n.maintenance ? 'warn' : 'good'}
+          parts={
+            n.maintenance
+              ? t('admin.v2n.src.newsMaint', { when: kf.relative(n.lastSuccess) })
+              : t('admin.v2n.src.newsOk', { when: kf.relative(n.lastSuccess) })
+          }
+        />
+        <Insight
+          tone={m.maintenance || m.upcomingDays < 7 ? 'warn' : 'good'}
+          parts={t('admin.v2n.src.menu', { total: formatNumber(m.totalDays), upcoming: formatNumber(m.upcomingDays) })}
+        />
         <div className={styles.cards}>
           <Card className={styles.card} data-source="NEWS" data-search-anchor="source-news">
             {head(n, t('admin.p15.sources.news'))}
@@ -152,6 +164,12 @@ export default function SourcesPage() {
             <div className={styles.actionsRow}>{syncButton('MENU')}</div>
           </Card>
         </div>
+        <details className={styles.notice} data-search-anchor="sources-rule">
+          <summary>{t('admin.v2n.src.how')}</summary>
+          <p>{t('admin.p15.sources.rule')}</p>
+          <p>{t('admin.p15.sources.limit', { n: perHour })}</p>
+        </details>
+        </>
       )}
     </>
   );

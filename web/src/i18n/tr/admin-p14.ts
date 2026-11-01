@@ -8,10 +8,10 @@ export default {
   'admin.p14.desc':
     'Firebase (FCM) bağlantısı, push kuyruğu, cihaz özeti ve bildirim kutusu istatistikleri. Bu sayfada mesaj içeriği ya da cihaz belirteci (token) gösterilmez; hedefler maskelidir.',
   'admin.p14.tabs': 'Push altyapısı sekmeleri',
-  'admin.p14.tab.fcm': 'FCM durumu',
-  'admin.p14.tab.queue': 'Kuyruk',
+  'admin.p14.tab.fcm': 'Bağlantı',
+  'admin.p14.tab.queue': 'Sıradakiler',
   'admin.p14.tab.devices': 'Cihazlar',
-  'admin.p14.tab.stats': 'Bildirim istatistikleri',
+  'admin.p14.tab.stats': 'İstatistik',
   'admin.p14.filters': 'Süzgeçler',
   'admin.p14.filter.all': 'Tümü',
   'admin.p14.filter.from': 'Başlangıç tarihi',
@@ -96,7 +96,7 @@ export default {
   'admin.p14.fcm.ios.android': 'Android cihazlar bu eksiklerden etkilenmez; Firebase kimliği tanımlıysa Android push çalışır.',
 
   // kuyruk sekmesi
-  'admin.p14.queue.stat.pending': 'Bekleyen',
+  'admin.p14.queue.stat.pending': 'Sırada bekleyen',
   'admin.p14.queue.stat.sending': 'Gönderiliyor',
   'admin.p14.queue.stat.failed': 'Geçici hata',
   'admin.p14.queue.stat.dead': 'Başarısız (vazgeçilen)',

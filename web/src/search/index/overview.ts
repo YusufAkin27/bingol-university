@@ -66,7 +66,7 @@ const dashboard: SearchEntry[] = [
     title: 'Ayrıntılı sayılar',
     anchor: 'dash-details',
     keywords: ['mesaj sayısı', 'topluluk sayısı', 'etkinlik sayısı', 'favori sayısı', 'bildirim kampanyası', 'askıdaki hesap', 'haftalık aktif', 'aylık aktif'],
-    description: 'Mesaj, topluluk, etkinlik, destek ve moderasyon sayıları.',
+    description: 'Mesaj, topluluk, etkinlik, destek ve denetim sayıları.',
   },
   {
     id: 'dashboard.audit',

@@ -159,7 +159,7 @@ describe('bildirim gönderimi: kampanya listesi', () => {
   it('sayaçları gösterir: alıcı / kitle ve tercihle atlananlar', async () => {
     setupList();
     expect(await screen.findByText('Kampanya başlığı')).toBeInTheDocument();
-    expect(screen.getByText(/80 \/ 100/)).toBeInTheDocument();
+    expect(screen.getByText(/100 kişiden 80 kişiye ulaştı/)).toBeInTheDocument();
     expect(screen.getByText('20 kişi tercihi nedeniyle atlandı')).toBeInTheDocument();
   });
 

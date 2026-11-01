@@ -72,7 +72,7 @@ describe('bastırma listesi', () => {
     renderWithProviders(<MailSuppressionPage />);
     expect(await screen.findByText('a***@bingol.edu.tr')).toBeInTheDocument();
     expect(screen.getByText('Kullanıcı kendisi çıktı')).toBeInTheDocument();
-    expect(screen.getByText('Adres kayıtlı değil (özet ffee001122…)')).toBeInTheDocument();
+    expect(screen.getByText('Adres gösterilemiyor (güvenlik için saklanmıyor)')).toBeInTheDocument();
     expect(screen.queryByText(FULL)).toBeNull();
     const table = within(screen.getByRole('table'));
     expect(table.getByText('Abonelikten çıktı')).toBeInTheDocument();

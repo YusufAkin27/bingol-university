@@ -434,3 +434,16 @@
 .statusTabs {
   margin-block-end: var(--space-3);
 }
+
+/* NOTIF: alıcı hücresindeki ilerleme çubuğu tam genişlik; telefonda kartı taşırmaz */
+.recipBar {
+  align-self: stretch;
+  inline-size: 100%;
+  min-inline-size: 6rem;
+}
+@media (max-width: 40rem) {
+  .cellContent {
+    min-width: 0;
+    max-width: 100%;
+  }
+}

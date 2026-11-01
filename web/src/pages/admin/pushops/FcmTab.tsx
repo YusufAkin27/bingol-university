@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
 import { getFcmStatus, pushOpsKeys, validateFcm, type FcmCheck } from '../../../api/adminPushOps';
 import { isApiError } from '../../../api/client';
-import { Card, ErrorState, GuardedAction, Skeleton, StatusPill } from '../../../components/ui';
+import { Card, ErrorState, GuardedAction, Insight, Skeleton, StatusPill } from '../../../components/ui';
 import { useI18n } from '../../../i18n/I18nProvider';
 import { adminError } from '../../../lib/errors';
 import { Callout } from '../campaigns/shared';
@@ -26,9 +26,23 @@ export function FcmTab() {
 
   return (
     <div className={styles.stack}>
+      {s && (
+        <Insight
+          tone={s.enabled ? 'good' : 'bad'}
+          parts={
+            s.enabled
+              ? t('admin.v2n.push.on')
+              : off?.kind === 'NO_CREDENTIALS'
+                ? t('admin.v2n.push.offNoKey')
+                : off?.kind === 'INIT_FAILED'
+                  ? t('admin.v2n.push.offBadKey')
+                  : t('admin.v2n.push.off')
+          }
+        />
+      )}
       <Card title={t('admin.p14.fcm.title')}>
         {q.isError ? (
-          <ErrorState onRetry={() => void q.refetch()} description={adminError(i18n, q.error, 'admin.p14.err')} />
+          <ErrorState subject={t('admin.v2n.push.subject')} error={q.error} description={adminError(i18n, q.error, 'admin.p14.err')} onRetry={() => void q.refetch()} />
         ) : !s ? (
           <Skeleton width="100%" height="5em" />
         ) : (
@@ -53,12 +67,15 @@ export function FcmTab() {
           <Callout tone="warning" title={t('admin.p14.fcm.off.title')}>
             {t('admin.p14.fcm.off.body')}
             {off && (
-              <p data-testid="fcm-why">
-                <strong>{t('admin.p14.fcm.why.title')}</strong>{' '}
-                {off.kind === 'INIT_FAILED' && !off.detail
-                  ? t('admin.p14.fcm.why.INIT_FAILED.nodetail')
-                  : t(`admin.p14.fcm.why.${off.kind}`, { detail: off.detail ?? '' })}
-              </p>
+              <details>
+                <summary>{t('admin.v2n.push.tech')}</summary>
+                <p data-testid="fcm-why">
+                  <strong>{t('admin.p14.fcm.why.title')}</strong>{' '}
+                  {off.kind === 'INIT_FAILED' && !off.detail
+                    ? t('admin.p14.fcm.why.INIT_FAILED.nodetail')
+                    : t(`admin.p14.fcm.why.${off.kind}`, { detail: off.detail ?? '' })}
+                </p>
+              </details>
             )}
           </Callout>
         )}

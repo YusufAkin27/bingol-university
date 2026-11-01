@@ -24,9 +24,11 @@ import {
   Drawer,
   EmptyState,
   ErrorState,
+  FilterPanel,
   FormField,
   GuardedAction,
   Input,
+  Insight,
   PageHeader,
   Pagination,
   SearchInput,
@@ -79,6 +81,7 @@ export default function CrashesPage() {
     {
       key: 'error',
       header: t('admin.cr1.col.error'),
+      card: { priority: 1 },
       render: (r) => (
         <span className={styles.cellStack}>
           <span className={`${styles.errType} ltr`}>{r.errorType}</span>
@@ -90,12 +93,14 @@ export default function CrashesPage() {
     {
       key: 'status',
       header: t('admin.cr1.col.status'),
+      card: { priority: 2 },
       render: (r) => <StatusPill tone={statusTone(r.status)}>{t(`admin.cr1.status.${r.status}`)}</StatusPill>,
     },
-    { key: 'count', header: t('admin.cr1.col.count'), align: 'end', render: (r) => formatNumber(r.eventCount) },
+    { key: 'count', header: t('admin.cr1.col.count'), card: { priority: 2 }, align: 'end', render: (r) => t('admin.v2n.cr.times', { n: formatNumber(r.eventCount) }) },
     {
       key: 'versions',
       header: t('admin.cr1.col.versions'),
+      card: { priority: 3 },
       render: (r) => <VersionChips group={r} />,
     },
     {
@@ -112,6 +117,7 @@ export default function CrashesPage() {
       key: 'actions',
       header: t('admin.cr1.col.actions'),
       align: 'end',
+      card: { actions: true },
       render: (r) => (
         <Button size="sm" variant="secondary" onClick={() => setOpenId(r.id)}>
           {t('admin.cr1.open')}
@@ -127,16 +133,26 @@ export default function CrashesPage() {
       <PageHeader title={t('admin.cr1.title')} description={t('admin.cr1.desc')} />
 
       {s && (
+        <Insight
+          tone={s.newGroups > 0 ? 'bad' : 'good'}
+          parts={
+            s.newGroups > 0
+              ? t('admin.v2n.cr.hasNew', { n: formatNumber(s.newGroups), e: formatNumber(s.events24h) })
+              : t('admin.v2n.cr.none', { e: formatNumber(s.events24h) })
+          }
+        />
+      )}
+      {s && (
         <div className={styles.summary} data-testid="crash-summary">
-          <Stat label={t('admin.cr1.summary.new')} value={formatNumber(s.newGroups)} />
-          <Stat label={t('admin.cr1.summary.ack')} value={formatNumber(s.ackGroups)} />
-          <Stat label={t('admin.cr1.summary.resolved')} value={formatNumber(s.resolvedGroups)} />
+          <Stat label={t('admin.cr1.summary.new')} value={formatNumber(s.newGroups)} tone={s.newGroups > 0 ? 'danger' : undefined} onClick={() => set({ status: 'NEW' })} />
+          <Stat label={t('admin.cr1.summary.ack')} value={formatNumber(s.ackGroups)} onClick={() => set({ status: 'ACK' })} />
+          <Stat label={t('admin.cr1.summary.resolved')} value={formatNumber(s.resolvedGroups)} onClick={() => set({ status: 'RESOLVED' })} />
           <Stat label={t('admin.cr1.summary.reopened')} value={formatNumber(s.reopened)} />
           <Stat label={t('admin.cr1.summary.events24h')} value={formatNumber(s.events24h)} />
         </div>
       )}
 
-      <div className={styles.filters} role="search" aria-label={t('admin.cr1.filters')} data-search-anchor="filters">
+      <div role="search" aria-label={t('admin.cr1.filters')} data-search-anchor="filters">
         <div>
           <SearchInput
             label={t('admin.cr1.filter.q')}
@@ -144,6 +160,11 @@ export default function CrashesPage() {
             onSearch={(q) => set({ q })}
           />
         </div>
+        <FilterPanel
+          activeCount={[filters.status, filters.platform, filters.version].filter(Boolean).length}
+          onClear={() => setFilters((f) => ({ ...EMPTY, q: f.q }))}
+        >
+        <div className={styles.filters}>
         <FormField label={t('admin.cr1.filter.status')}>
           <Select value={filters.status} onChange={(e) => set({ status: e.target.value as CrashStatus | '' })}>
             <option value="">{t('admin.cr1.filter.all')}</option>
@@ -180,6 +201,8 @@ export default function CrashesPage() {
             ))}
           </Select>
         </FormField>
+        </div>
+        </FilterPanel>
       </div>
 
       {data && (
@@ -188,7 +211,7 @@ export default function CrashesPage() {
         </p>
       )}
       {query.isError ? (
-        <ErrorState onRetry={() => void query.refetch()} description={adminError(i18n, query.error, ...ERR_SCOPES)} />
+        <ErrorState subject={t('admin.v2n.cr.subject')} error={query.error} description={adminError(i18n, query.error, ...ERR_SCOPES)} onRetry={() => void query.refetch()} />
       ) : (
         <>
           <Table
@@ -197,7 +220,14 @@ export default function CrashesPage() {
             rows={data?.items}
             rowKey={(r) => r.id}
             loading={query.isLoading}
-            empty={<EmptyState icon="alert" title={t('admin.cr1.empty.title')} description={t('admin.cr1.empty.hint')} compact />}
+            mobile="cards"
+            empty={
+              filters.status || filters.platform || filters.version || filters.q ? (
+                <EmptyState icon="search" title={t('admin.v2n.cr.emptyFiltered')} description={t('admin.v2n.cr.emptyFilteredHint')} compact />
+              ) : (
+                <EmptyState icon="check" title={t('admin.v2n.cr.emptyGood')} description={t('admin.v2n.cr.emptyGoodHint')} compact />
+              )
+            }
           />
           {data && data.totalPages > 1 && (
             <div className={styles.pager}>
@@ -212,17 +242,26 @@ export default function CrashesPage() {
   );
 }
 
-function Stat({ label, value }: { label: string; value: string }) {
-  return (
-    <div className={styles.stat}>
+function Stat({ label, value, tone, onClick }: { label: string; value: string; tone?: 'danger'; onClick?: () => void }) {
+  const body = (
+    <>
       <span className={styles.statValue}>{value}</span>
       <span className={styles.statLabel}>{label}</span>
+    </>
+  );
+  return onClick ? (
+    <button type="button" className={`${styles.stat} ${styles.statBtn}`} data-tone={tone} onClick={onClick}>
+      {body}
+    </button>
+  ) : (
+    <div className={styles.stat} data-tone={tone}>
+      {body}
     </div>
   );
 }
 
 function VersionChips({ group }: { group: CrashGroup }) {
-  const { t, formatNumber } = useI18n();
+  const { t, td, formatNumber } = useI18n();
   const shown = group.versions.slice(0, VISIBLE_VERSIONS);
   const more = group.versions.length - shown.length;
   return (
@@ -230,7 +269,7 @@ function VersionChips({ group }: { group: CrashGroup }) {
       {shown.map((v) => (
         <Badge key={`${v.version}-${v.platform}`}>
           <span className="ltr">
-            {v.version} · {v.platform === 'ANDROID' ? 'A' : v.platform === 'IOS' ? 'i' : '?'} · {formatNumber(v.count)}
+            {t('admin.v2n.cr.ver', { platform: td(`admin.cr1.platform.${v.platform}`, v.platform), v: v.version, n: formatNumber(v.count) })}
           </span>
         </Badge>
       ))}

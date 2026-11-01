@@ -28,10 +28,12 @@ import {
   ErrorState,
   GuardedAction,
   PageHeader,
+  ProgressBar,
   Select,
   Skeleton,
   StatusPill,
   Table,
+  useIsNarrow,
   type Column,
   type Tone,
 } from '../../components/ui';
@@ -54,6 +56,7 @@ export default function RolesPage() {
   const perms = usePermissions();
   const canManage = perms.can('rbac.manage');
   const profileName = (p: AdminProfile) => t(`admin.p16.profile.${p}`);
+  const narrow = useIsNarrow();
 
   const matrix = useQuery({ queryKey: rbacKeys.matrix, queryFn: getRbacMatrix, staleTime: Infinity });
   // Yönetici listesi ve değişiklikler yalnız rbac.manage sahibine sorulur (diğerleri 403 alırdı)
@@ -99,9 +102,34 @@ export default function RolesPage() {
   const matrixCard = (
     <Card title={t('admin.p16.matrix.title')} padded={false} data-search-anchor="roles-matrix">
       {matrix.isError ? (
-        <ErrorState description={err(matrix.error)} onRetry={() => void matrix.refetch()} />
+        <ErrorState subject={t('admin.v2n.roles.matrixSubject')} error={matrix.error} description={err(matrix.error)} onRetry={() => void matrix.refetch()} />
       ) : !matrix.data ? (
         <Skeleton height="12rem" width="100%" />
+      ) : narrow ? (
+        <div className={styles.profileCards} data-testid="roles-profile-cards">
+          {matrix.data.profiles.map((p) => {
+            const allowed = matrix.data!.entries.filter((e) => e.profiles.includes(p));
+            return (
+              <details key={p} className={styles.profileCard}>
+                <summary>
+                  <strong>{profileName(p)}</strong>
+                  <span className={styles.muted}>
+                    {t('admin.v2n.roles.count', { n: allowed.length, total: matrix.data!.entries.length })}
+                  </span>
+                </summary>
+                <ProgressBar value={allowed.length} max={matrix.data!.entries.length} label={profileName(p)} tone="info" />
+                <p className={styles.muted}>{t(`admin.p16.profileDesc.${p}`)}</p>
+                <ul className={styles.permList}>
+                  {allowed.map((e) => (
+                    <li key={e.permission}>
+                      <span aria-hidden="true">✓</span> {i18n.td(`admin.p16.perm.${e.permission}`, e.permission)}
+                    </li>
+                  ))}
+                </ul>
+              </details>
+            );
+          })}
+        </div>
       ) : (
         <div className={styles.scroll}>
           <table className={styles.matrix} aria-label={t('admin.p16.matrix.caption')} data-testid="roles-matrix">
@@ -145,6 +173,7 @@ export default function RolesPage() {
     {
       key: 'name',
       header: t('admin.p16.admins.name'),
+      card: { priority: 1 },
       render: (a) => (
         <div>
           <strong>{a.displayName}</strong>
@@ -160,16 +189,19 @@ export default function RolesPage() {
     {
       key: 'profile',
       header: t('admin.p16.admins.profile'),
+      card: { priority: 2 },
       render: (a) => <StatusPill tone={a.profile === 'FULL' ? 'primary' : 'info'}>{profileName(a.profile)}</StatusPill>,
     },
     {
       key: 'lastSeen',
       header: t('admin.p16.admins.lastSeen'),
+      card: { priority: 3 },
       render: (a) => (a.lastSeenAt ? formatDateTime(a.lastSeenAt) : t('admin.p16.admins.never')),
     },
     {
       key: 'actions',
       header: '',
+      card: { actions: true },
       render: (a) => <ProfileAssign row={a} locked={a.id === myId || a.pinned} />,
     },
   ];
@@ -179,13 +211,14 @@ export default function RolesPage() {
       {!canManage ? (
         <p className={styles.pad}>{t('admin.p16.admins.noManage')}</p>
       ) : admins.isError ? (
-        <ErrorState description={err(admins.error)} onRetry={() => void admins.refetch()} />
+        <ErrorState subject={t('admin.v2n.roles.adminsSubject')} error={admins.error} description={err(admins.error)} onRetry={() => void admins.refetch()} />
       ) : (
         <Table
           columns={adminColumns}
           rows={admins.data}
           rowKey={(a) => a.id}
           loading={admins.isLoading}
+          mobile="cards"
           empty={<EmptyState title={t('admin.p16.admins.empty')} compact />}
           caption={t('admin.p16.admins.title')}
         />
@@ -198,6 +231,7 @@ export default function RolesPage() {
     {
       key: 'target',
       header: t('admin.p16.changes.target'),
+      card: { priority: 1 },
       render: (c) => (
         <div>
           <strong>{c.targetName ?? `#${c.targetUserId}`}</strong>
@@ -210,11 +244,13 @@ export default function RolesPage() {
     {
       key: 'change',
       header: t('admin.p16.changes.change'),
+      card: { priority: 2 },
       render: (c) => `${c.fromProfile ? profileName(c.fromProfile) : '—'} → ${profileName(c.toProfile)}`,
     },
     {
       key: 'proposer',
       header: t('admin.p16.changes.proposer'),
+      card: { priority: 3 },
       render: (c) => (c.proposedBy === myId ? t('admin.p16.changes.you') : (c.proposedByEmail ?? `#${c.proposedBy}`)),
     },
     { key: 'reason', header: t('admin.p16.changes.reason'), render: (c) => <span dir="auto">{c.reason}</span> },
@@ -222,11 +258,13 @@ export default function RolesPage() {
     {
       key: 'status',
       header: t('admin.p16.changes.status'),
+      card: { priority: 2 },
       render: (c) => <StatusPill tone={STATUS_TONE[c.status]}>{t(`admin.p16.changes.status.${c.status}`)}</StatusPill>,
     },
     {
       key: 'actions',
       header: '',
+      card: { actions: true },
       render: (c) => (c.status === 'PENDING' ? <ChangeActions change={c} mine={c.proposedBy === myId} /> : null),
     },
   ];
@@ -234,13 +272,14 @@ export default function RolesPage() {
   const changesCard = (
     <Card title={t('admin.p16.changes.title')} padded={false} data-testid="roles-changes">
       {changes.isError ? (
-        <ErrorState description={err(changes.error)} onRetry={() => void changes.refetch()} />
+        <ErrorState subject={t('admin.v2n.roles.changesSubject')} error={changes.error} description={err(changes.error)} onRetry={() => void changes.refetch()} />
       ) : (
         <Table
           columns={changeColumns}
           rows={changes.data}
           rowKey={(c) => c.id}
           loading={changes.isLoading}
+          mobile="cards"
           empty={<EmptyState title={t('admin.p16.changes.empty')} compact />}
           caption={t('admin.p16.changes.title')}
         />

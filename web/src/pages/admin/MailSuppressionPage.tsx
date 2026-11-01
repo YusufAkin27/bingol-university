@@ -24,6 +24,7 @@ import {
   Drawer,
   EmptyState,
   ErrorState,
+  FilterPanel,
   FormField,
   GuardedAction,
   Icon,
@@ -82,6 +83,7 @@ export default function MailSuppressionPage() {
     {
       key: 'address',
       header: t('admin.p13.supp.col.address'),
+      card: { priority: 1 },
       render: (r) =>
         r.emailMasked ? (
           <span className="ltr">{r.emailMasked}</span>
@@ -92,6 +94,7 @@ export default function MailSuppressionPage() {
     {
       key: 'reason',
       header: t('admin.p13.supp.col.reason'),
+      card: { priority: 2 },
       render: (r) => (
         <span className={styles.cellStack}>
           <StatusPill tone={reasonTone(r.reason)}>{t(`admin.p13.supp.reason.${r.reason}`)}</StatusPill>
@@ -99,17 +102,18 @@ export default function MailSuppressionPage() {
         </span>
       ),
     },
-    { key: 'category', header: t('admin.p13.supp.col.category'), render: (r) => <Badge>{t(`admin.p13.category.${r.category}`)}</Badge> },
+    { key: 'category', header: t('admin.p13.supp.col.category'), card: { priority: 2 }, render: (r) => <Badge>{t(`admin.p13.category.${r.category}`)}</Badge> },
     {
       key: 'note',
       header: t('admin.p13.supp.col.note'),
       render: (r) => (r.note ? <span dir="auto">{r.note}</span> : <span className={styles.muted}>—</span>),
     },
-    { key: 'createdAt', header: t('admin.p13.supp.col.date'), render: (r) => formatDateTime(r.createdAt) },
+    { key: 'createdAt', header: t('admin.p13.supp.col.date'), card: { priority: 3 }, render: (r) => formatDateTime(r.createdAt) },
     {
       key: 'actions',
       header: t('admin.p13.col.actions'),
       align: 'end',
+      card: { actions: true },
       render: (r) => (
         <Button size="sm" variant="secondary" onClick={() => setOpenId(r.id)}>
           {t('admin.p13.supp.detail.open')}
@@ -133,11 +137,19 @@ export default function MailSuppressionPage() {
           </>
         }
       />
-      <div className={styles.filters} role="search" aria-label={t('admin.p13.filters')} data-search-anchor="filters">
+      <div role="search" aria-label={t('admin.p13.filters')} data-search-anchor="filters">
         <div className={styles.searchField}>
           <SearchInput label={t('admin.p13.filter.q')} placeholder={t('admin.p13.supp.filter.qPlaceholder')} onSearch={(q) => set({ q })} />
           <span className={styles.muted}>{t('admin.p13.supp.filter.qHint')}</span>
         </div>
+        <FilterPanel
+          activeCount={[filters.reason, filters.category, filters.from, filters.to].filter(Boolean).length}
+          onClear={() => {
+            setFilters((f) => ({ ...EMPTY, q: f.q }));
+            setPage(0);
+          }}
+        >
+        <div className={styles.filters}>
         <FormField label={t('admin.p13.filter.reason')}>
           <Select value={filters.reason} onChange={(e) => set({ reason: e.target.value as SuppressionReason | '' })}>
             <option value="">{t('admin.p13.filter.all')}</option>
@@ -161,6 +173,8 @@ export default function MailSuppressionPage() {
         <FormField label={t('admin.p13.filter.to')}>
           <Input type="date" value={filters.to} min={filters.from || undefined} onChange={(e) => set({ to: e.target.value })} />
         </FormField>
+        </div>
+        </FilterPanel>
       </div>
 
       {data && (
@@ -169,7 +183,7 @@ export default function MailSuppressionPage() {
         </p>
       )}
       {query.isError ? (
-        <ErrorState onRetry={() => void query.refetch()} description={adminError(i18n, query.error, ...ERR_SCOPES)} />
+        <ErrorState subject={t('admin.v2n.supp.subject')} error={query.error} description={adminError(i18n, query.error, ...ERR_SCOPES)} onRetry={() => void query.refetch()} />
       ) : (
         <>
           <Table
@@ -178,6 +192,7 @@ export default function MailSuppressionPage() {
             rows={data?.items}
             rowKey={(r) => r.id}
             loading={query.isLoading}
+            mobile="cards"
             empty={<EmptyState icon="mail" title={t('admin.p13.supp.empty.title')} description={t('admin.p13.supp.empty.hint')} compact />}
           />
           {data && data.totalPages > 1 && (

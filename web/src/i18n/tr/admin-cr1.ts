@@ -5,7 +5,7 @@ export default {
   'admin.cr1.nav': 'Çökme raporları',
   'admin.cr1.title': 'Çökme raporları',
   'admin.cr1.desc':
-    'Mobil uygulamanın anonim hata raporları, aynı hata imzasına göre gruplanır. Raporlarda kullanıcı kimliği, e-posta veya mesaj içeriği yoktur; yığın izleri maskelidir. Olaylar 30 gün saklanır.',
+    'Uygulamanın çöktüğü yerler. Aynı hatayı yaşayanlar tek satırda toplanır. Raporlarda kullanıcı kimliği, e-posta veya mesaj içeriği yoktur; yığın izleri maskelidir. Olaylar 30 gün saklanır.',
 
   'admin.cr1.summary.new': 'Yeni',
   'admin.cr1.summary.ack': 'İncelemede',

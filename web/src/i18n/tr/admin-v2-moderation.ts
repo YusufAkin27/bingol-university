@@ -12,7 +12,7 @@ export default {
   'admin.v2m.posts.sentenceNew': 'Son 24 saatte {n} yeni gönderi paylaşıldı.',
   'admin.v2m.posts.showReported': 'Yalnız şikâyetli gönderileri göster',
   'admin.v2m.posts.actionHint': 'Gizle geri alınabilir. Sil geri alınamaz: 30 gün sonra kalıcı olarak temizlenir.',
-  'admin.v2m.chat.auditLead': 'Her bakışınız kayda geçer.',
+  'admin.v2m.chat.auditLead': 'Her görüntüleme kayda geçer.',
   'admin.v2m.chat.viewOnce': 'Bir kez bakılabilen',
   'admin.v2m.chat.viewOnceHint': 'Karşı taraf yalnız bir kez görebilir',
   'admin.v2m.chat.deleted': 'Silinen mesajlardaki medya',

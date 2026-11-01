@@ -12,6 +12,7 @@ import {
   ErrorState,
   FormField,
   Icon,
+  Insight,
   PageHeader,
   Pagination,
   SearchInput,
@@ -58,6 +59,7 @@ function CampaignList() {
     {
       key: 'name',
       header: t('admin.mail.campaigns.col.name'),
+      card: { priority: 1 },
       render: (c) => (
         <div>
           <strong>{c.name}</strong>
@@ -65,16 +67,17 @@ function CampaignList() {
         </div>
       ),
     },
-    { key: 'status', header: t('common.status'), width: '170px', render: (c) => <CampaignStatusPill status={c.status} /> },
+    { key: 'status', header: t('common.status'), width: '170px', card: { priority: 2 }, render: (c) => <CampaignStatusPill status={c.status} /> },
     {
       key: 'progress',
       header: t('admin.mail.campaigns.col.progress'),
       width: '220px',
+      card: { priority: 2 },
       render: (c) => (
         <div>
           <ProgressBar percent={c.counters.progressPercent} label={`${c.name}: ${t('admin.mail.detail.progress')}`} tone={progressToneOf(c.status)} />
           <span className={styles.muted}>
-            {formatNumber(c.counters.queued)} / {formatNumber(c.counters.target)}
+            {t('admin.v2n.mc.sent', { n: formatNumber(c.counters.queued), total: formatNumber(c.counters.target) })}
           </span>
         </div>
       ),
@@ -82,12 +85,14 @@ function CampaignList() {
     {
       key: 'when',
       header: t('admin.mail.campaigns.col.when'),
+      card: { priority: 3 },
       render: (c) => <span className={styles.nowrap}>{formatDateTime(c.scheduledAt ?? c.createdAt)}</span>,
     },
     {
       key: 'open',
       header: <span className="sr-only">{t('admin.mail.campaigns.open')}</span>,
       width: '110px',
+      card: { actions: true },
       render: (c) => (
         <ButtonLink to={`${paths.admin.mailCampaigns}/${c.id}`} variant="ghost" size="sm" aria-label={`${t('admin.mail.campaigns.open')}: ${c.name}`}>
           {t('admin.mail.campaigns.open')}
@@ -107,6 +112,18 @@ function CampaignList() {
           </ButtonLink>
         }
       />
+      {query.data && query.data.items.length > 0 && (
+        <Insight
+          tone={query.data.items.some((c) => c.status === 'FAILED') ? 'warn' : 'info'}
+          parts={t('admin.v2n.mc.summary', {
+            n: formatNumber(query.data.items.length),
+            sending: formatNumber(query.data.items.filter((c) => c.status === 'SENDING').length),
+            sched: formatNumber(query.data.items.filter((c) => c.status === 'SCHEDULED').length),
+            done: formatNumber(query.data.items.filter((c) => c.status === 'DONE').length),
+            failed: formatNumber(query.data.items.filter((c) => c.status === 'FAILED').length),
+          })}
+        />
+      )}
       <div className={styles.toolbar}>
         <div className={styles.toolbarSearch}>
           <SearchInput
@@ -136,7 +153,7 @@ function CampaignList() {
         </FormField>
       </div>
       {query.isError ? (
-        <ErrorState description={mailErrorMessage(i18n, query.error)} onRetry={() => void query.refetch()} />
+        <ErrorState subject={t('admin.v2n.mc.subject')} error={query.error} description={mailErrorMessage(i18n, query.error)} onRetry={() => void query.refetch()} />
       ) : (
         <>
           <Table
@@ -145,6 +162,7 @@ function CampaignList() {
             rows={query.data?.items}
             rowKey={(c) => c.id}
             loading={query.isLoading}
+            mobile="cards"
             empty={
               <EmptyState
                 icon="mail"

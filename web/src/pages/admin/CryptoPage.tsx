@@ -5,7 +5,9 @@ import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { cryptoApi, qk, usersApi } from '../../api';
-import { Badge, Card, EmptyState, ErrorState, FormField, Input, Insight, PageHeader, Skeleton } from '../../components/ui';
+import { Badge, Card, EmptyState, ErrorState, FormField, Input, Insight, PageHeader, Skeleton, Tabs } from '../../components/ui';
+import { SearchAnchor, useSearchReveal } from '../../search/anchor';
+import { useUrlTab } from '../../search/useUrlTab';
 import { useI18n } from '../../i18n/I18nProvider';
 import { useDebouncedValue, usePageTitle } from '../../lib/hooks';
 import { paths } from '../../paths';
@@ -43,11 +45,20 @@ function CryptoSummary({ i18n, data }: { i18n: ReturnType<typeof useI18n>; data:
   );
 }
 
+type CryptoTab = 'status' | 'messages';
+const CRYPTO_TABS: CryptoTab[] = ['status', 'messages'];
+
 export default function CryptoPage() {
   const i18n = useI18n();
   const { t, formatNumber } = i18n;
   usePageTitle(t('admin.crypto.title'));
   const [q, setQ] = useState('');
+  // Güvenlik durumu ile mesaj okuma aracı ayrı sekmelerde (?tab=messages); arama anchor'ı da doğru sekmeyi açar
+  const [tab, setTab] = useUrlTab<CryptoTab>(CRYPTO_TABS, 'status');
+  useSearchReveal((anchor) => {
+    if (anchor === 'crypto-open') setTab('messages');
+    else if (anchor === 'crypto-status') setTab('status');
+  });
   const term = useDebouncedValue(q.trim(), 300);
 
   const status = useQuery({ queryKey: qk.crypto.status(), queryFn: cryptoApi.getCryptoStatus });
@@ -60,8 +71,19 @@ export default function CryptoPage() {
 
   return (
     <>
-      <PageHeader title={t('admin.crypto.title')} />
+      <PageHeader title={t('admin.crypto.title')} description={t('admin.v2n.crypto.intro')} />
+      <Tabs
+        label={t('admin.v2n.crypto.tabs')}
+        value={tab}
+        onChange={(id) => setTab(id as CryptoTab)}
+        tabs={[
+          { id: 'status', label: t('admin.v2n.crypto.tabStatus') },
+          { id: 'messages', label: t('admin.v2n.crypto.tabMessages') },
+        ]}
+      >
       <div className={styles.stack}>
+        {tab === 'status' && (
+        <SearchAnchor id="tab-status">
         <Card title={t('admin.crypto.status.title')} data-search-anchor="crypto-status">
           {status.isError ? (
             <ErrorState compact description={adminErrorMessage(i18n, status.error)} onRetry={() => void status.refetch()} />
@@ -108,7 +130,11 @@ export default function CryptoPage() {
             </>
           )}
         </Card>
+        </SearchAnchor>
+        )}
 
+        {tab === 'messages' && (
+        <SearchAnchor id="tab-messages">
         <Card title={t('admin.crypto.open.title')} data-search-anchor="crypto-open">
           <p className={styles.muted}>{t('admin.crypto.open.hint')}</p>
           {disabled && (
@@ -146,7 +172,10 @@ export default function CryptoPage() {
               </ul>
             ))}
         </Card>
+        </SearchAnchor>
+        )}
       </div>
+      </Tabs>
     </>
   );
 }

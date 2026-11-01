@@ -145,9 +145,9 @@ const m = {
 
   // ---- oluşturucu ----
   'admin.campaigns.compose.title': 'Yeni kampanya oluştur',
-  'admin.campaigns.compose.reset': 'Yeni kampanya',
-  'admin.campaigns.compose.resetTitle': 'Taslak silinsin mi?',
-  'admin.campaigns.compose.resetMessage': 'Şu anki taslak temizlenir ve baştan başlanır.',
+  'admin.campaigns.compose.reset': 'Taslağı temizle',
+  'admin.campaigns.compose.resetTitle': 'Taslak temizlensin mi?',
+  'admin.campaigns.compose.resetMessage': 'Yazdığınız her şey silinir ve boş bir taslakla baştan başlarsınız. Bu işlem geri alınamaz.',
   'admin.campaigns.compose.restored': 'Önceki taslağınız geri yüklendi. Baştan başlamak için “Yeni kampanya”ya basın.',
   'admin.campaigns.compose.audience': '1. Kime gidecek?',
   'admin.campaigns.compose.content': '2. Ne yazacak?',

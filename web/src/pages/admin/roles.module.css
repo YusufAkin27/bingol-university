@@ -76,3 +76,32 @@
   align-items: center;
   gap: var(--space-2);
 }
+
+/* NOTIF: telefonda profil kartları (izin matrisi yerine) */
+.profileCards {
+  display: grid;
+  gap: var(--space-3);
+  padding: var(--space-3);
+}
+.profileCard {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 0 var(--space-3) var(--space-3);
+  background: var(--surface);
+}
+.profileCard > summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  min-block-size: 2.75rem;
+  cursor: pointer;
+}
+.permList {
+  list-style: none;
+  margin: var(--space-2) 0 0;
+  padding: 0;
+  display: grid;
+  gap: var(--space-2);
+}

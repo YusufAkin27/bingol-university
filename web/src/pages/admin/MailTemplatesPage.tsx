@@ -12,6 +12,7 @@ import {
   ErrorState,
   FormField,
   Icon,
+  Insight,
   PageHeader,
   Pagination,
   SearchInput,
@@ -53,6 +54,7 @@ function TemplateList() {
     {
       key: 'name',
       header: t('admin.mail.templates.col.name'),
+      card: { priority: 1 },
       render: (r) => (
         <div>
           <strong>{r.name}</strong>
@@ -60,14 +62,15 @@ function TemplateList() {
         </div>
       ),
     },
-    { key: 'status', header: t('common.status'), width: '140px', render: (r) => <TemplateStatusPill status={r.status} /> },
-    { key: 'langs', header: t('admin.mail.templates.col.langs'), width: '150px', render: (r) => <LangBadges languages={r.languages} /> },
+    { key: 'status', header: t('common.status'), width: '140px', card: { priority: 2 }, render: (r) => <TemplateStatusPill status={r.status} /> },
+    { key: 'langs', header: t('admin.mail.templates.col.langs'), width: '150px', card: { priority: 2 }, render: (r) => <LangBadges languages={r.languages} /> },
     { key: 'version', header: t('admin.mail.templates.col.version'), width: '90px', align: 'end', render: (r) => `v${r.version}` },
-    { key: 'updated', header: t('admin.mail.templates.col.updated'), render: (r) => <span className={styles.nowrap}>{formatDateTime(r.updatedAt)}</span> },
+    { key: 'updated', header: t('admin.mail.templates.col.updated'), card: { priority: 3 }, render: (r) => <span className={styles.nowrap}>{formatDateTime(r.updatedAt)}</span> },
     {
       key: 'open',
       header: <span className="sr-only">{t('common.edit')}</span>,
       width: '110px',
+      card: { actions: true },
       render: (r) => (
         <ButtonLink to={`${paths.admin.mailTemplates}/${r.id}`} variant="ghost" size="sm" aria-label={`${t('common.edit')}: ${r.name}`}>
           {t('common.edit')}
@@ -87,6 +90,17 @@ function TemplateList() {
           </ButtonLink>
         }
       />
+      {query.data && query.data.items.length > 0 && (
+        <Insight
+          tone="info"
+          parts={t('admin.v2n.tpl.summary', {
+            n: i18n.formatNumber(query.data.items.length),
+            pub: i18n.formatNumber(query.data.items.filter((r) => r.status === 'PUBLISHED').length),
+            draft: i18n.formatNumber(query.data.items.filter((r) => r.status === 'DRAFT').length),
+            arch: i18n.formatNumber(query.data.items.filter((r) => r.status === 'ARCHIVED').length),
+          })}
+        />
+      )}
       <div className={styles.toolbar} data-search-anchor="template-filters">
         <div className={styles.toolbarSearch}>
           <SearchInput
@@ -116,7 +130,7 @@ function TemplateList() {
         </FormField>
       </div>
       {query.isError ? (
-        <ErrorState description={mailErrorMessage(i18n, query.error)} onRetry={() => void query.refetch()} />
+        <ErrorState subject={t('admin.v2n.tpl.subject')} error={query.error} description={mailErrorMessage(i18n, query.error)} onRetry={() => void query.refetch()} />
       ) : (
         <>
           <Table
@@ -125,6 +139,7 @@ function TemplateList() {
             rows={query.data?.items}
             rowKey={(r) => r.id}
             loading={query.isLoading}
+            mobile="cards"
             empty={
               <EmptyState
                 icon="mail"

@@ -2,7 +2,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { getNotificationStats, pushOpsKeys } from '../../../api/adminPushOps';
 import { LineAreaChart } from '../../../components/charts/LineAreaChart';
-import { Card, ErrorState, Skeleton, StatCard, Table, type Column } from '../../../components/ui';
+import { Card, ErrorState, Insight, RankedBars, Skeleton, StatCard, Table, type Column } from '../../../components/ui';
 import { useI18n } from '../../../i18n/I18nProvider';
 import { adminError } from '../../../lib/errors';
 import { Callout } from '../campaigns/shared';
@@ -23,7 +23,7 @@ export function StatsTab() {
   const s = q.data;
 
   if (q.isError) {
-    return <ErrorState onRetry={() => void q.refetch()} description={adminError(i18n, q.error, 'admin.p14.err')} />;
+    return <ErrorState subject={t('admin.v2n.ps.subject')} error={q.error} description={adminError(i18n, q.error, 'admin.p14.err')} onRetry={() => void q.refetch()} />;
   }
   if (!s) {
     return <Skeleton width="100%" height="12em" />;
@@ -51,6 +51,14 @@ export function StatsTab() {
 
   return (
     <div className={styles.stack}>
+      <Insight
+        tone={rate !== null && rate < 30 ? 'warn' : 'info'}
+        parts={
+          rate === null
+            ? t('admin.v2n.ps.none', { n: s.days })
+            : t('admin.v2n.ps.summary', { n: s.days, created: formatNumber(s.created), rate: formatNumber(rate) })
+        }
+      />
       <div className={styles.statGrid}>
         <StatCard title={t('admin.p14.stats.stat.created')} value={formatNumber(s.created)} hint={t('admin.p14.stats.stat.window', { n: s.days })} />
         <StatCard title={t('admin.p14.stats.stat.read')} value={formatNumber(s.read)} />
@@ -72,17 +80,31 @@ export function StatsTab() {
           ariaLabel={t('admin.p14.stats.chart.aria', { n: s.days })}
           emptyLabel={t('admin.p14.stats.empty')}
         />
-        <Table caption={t('admin.p14.stats.table.days')} columns={dayCols} rows={rows} rowKey={(r) => r.date} />
+        <details>
+          <summary className={styles.hint}>{t('admin.v2n.ps.showTable')}</summary>
+          <Table caption={t('admin.p14.stats.table.days')} columns={dayCols} rows={rows} rowKey={(r) => r.date} />
+        </details>
       </Card>
 
       <Card title={t('admin.p14.stats.type.title')}>
-        <Table
-          caption={t('admin.p14.stats.table.types')}
-          columns={typeCols}
-          rows={s.byType}
-          rowKey={(r) => r.type}
-          empty={<p className={styles.hint}>{t('admin.p14.stats.empty')}</p>}
-        />
+        {s.byType.length > 0 && (
+          <RankedBars
+            ariaLabel={t('admin.p14.stats.type.title')}
+            items={s.byType.map((r) => ({ key: r.type, label: td(`admin.p14.stats.type.${r.type}`, r.type), value: r.count }))}
+            showShare
+            formatValue={(n) => formatNumber(n)}
+          />
+        )}
+        <details>
+          <summary className={styles.hint}>{t('admin.v2n.ps.showTable')}</summary>
+          <Table
+            caption={t('admin.p14.stats.table.types')}
+            columns={typeCols}
+            rows={s.byType}
+            rowKey={(r) => r.type}
+            empty={<p className={styles.hint}>{t('admin.p14.stats.empty')}</p>}
+          />
+        </details>
       </Card>
     </div>
   );

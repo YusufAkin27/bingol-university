@@ -35,6 +35,7 @@ import { isInverted, rowStatus, type RowStatus, type StoreInfo } from './appVers
 import { PreviewDialog } from './appVersions/PreviewDialog';
 import { PublishWizard } from './appVersions/PublishWizard';
 import styles from './appVersions/appVersions.module.css';
+import sysStyles from './systemstatus/systemstatus.module.css';
 
 const STATE_TONE: Record<PlatformSummary['state'], Tone> = { FORCE: 'danger', SOFT: 'info', OFF: 'neutral' };
 const ROW_TONE: Record<RowStatus, Tone> = { FORCED: 'danger', SUGGESTED: 'warning', CURRENT: 'success', UNKNOWN: 'neutral' };
@@ -77,7 +78,7 @@ export default function AppVersionsPage() {
         }
       />
       {q.isError ? (
-        <ErrorState description={adminErrorMessage(i18n, q.error)} onRetry={() => void q.refetch()} />
+        <ErrorState subject={t('admin.v2n.uv.subject')} error={q.error} description={adminErrorMessage(i18n, q.error)} onRetry={() => void q.refetch()} />
       ) : !data ? (
         <div className={styles.page} aria-busy="true">
           <Skeleton width="100%" height="12rem" />
@@ -85,11 +86,6 @@ export default function AppVersionsPage() {
         </div>
       ) : (
         <div className={styles.page}>
-          <SearchAnchor id="source-note">
-            <Callout tone="info" title={t('admin.uv.sourceTitle')}>
-              {data.sourceNote} ({t('admin.uv.sourceWindow', { n: data.windowDays })})
-            </Callout>
-          </SearchAnchor>
           <div className={styles.cards}>
             {APP_PLATFORMS.map((p) => {
               const summary = data.platforms.find((s) => s.platform === p);
@@ -105,6 +101,11 @@ export default function AppVersionsPage() {
               ) : null;
             })}
           </div>
+          <SearchAnchor id="source-note">
+            <Callout tone="info" title={t('admin.uv.sourceTitle')}>
+              {data.sourceNote} ({t('admin.uv.sourceWindow', { n: data.windowDays })})
+            </Callout>
+          </SearchAnchor>
         </div>
       )}
       {wizard && data && (
@@ -147,6 +148,11 @@ function PlatformCard({
 }) {
   const { t, formatNumber } = useI18n();
   const name = t(`admin.uv.platform.${platform}`);
+  const unknownN = summary.unknownVersion;
+  const forceN = summary.belowMin;
+  const suggestN = Math.max(0, summary.belowLatest - summary.belowMin);
+  const currentN = Math.max(0, summary.total - summary.belowLatest - unknownN);
+  const pct = (n: number) => (summary.total > 0 ? formatNumber(Math.round((n / summary.total) * 1000) / 10) : '0');
   const rows = data.distribution.filter((r) => r.platform === platform);
   const columns: Column<VersionRow>[] = [
     {
@@ -154,11 +160,13 @@ function PlatformCard({
       header: t('admin.uv.table.version'),
       render: (r) =>
         r.version ? <span className={styles.ltr}>{r.version}</span> : t('admin.uv.table.unknownVersion'),
+      card: { priority: 1 },
     },
-    { key: 'devices', header: t('admin.uv.table.devices'), align: 'end', render: (r) => formatNumber(r.devices) },
+    { key: 'devices', header: t('admin.uv.table.devices'), align: 'end', card: { priority: 2 }, render: (r) => formatNumber(r.devices) },
     {
       key: 'status',
       header: t('admin.uv.table.status'),
+      card: { priority: 2 },
       render: (r) => {
         const s = rowStatus(r, summary);
         return <Badge tone={ROW_TONE[s]}>{t(`admin.uv.row.${s}`)}</Badge>;
@@ -177,9 +185,22 @@ function PlatformCard({
         <Stat label={t('admin.uv.stat.devices')} value={formatNumber(summary.total)} />
         <Stat label={t('admin.uv.stat.belowLatest')} value={formatNumber(summary.belowLatest)} />
       </div>
+      {summary.total > 0 && (
+        <>
+          <div className={sysStyles.stacked} aria-hidden="true" data-testid={`uv-split-${platform}`}>
+            {currentN > 0 && <span className={sysStyles.stackSeg} data-tone="success" style={{ flexGrow: currentN }} />}
+            {suggestN > 0 && <span className={sysStyles.stackSeg} data-tone="warning" style={{ flexGrow: suggestN }} />}
+            {forceN > 0 && <span className={sysStyles.stackSeg} data-tone="danger" style={{ flexGrow: forceN }} />}
+            {unknownN > 0 && <span className={sysStyles.stackSeg} style={{ flexGrow: unknownN }} />}
+          </div>
+          <p className={styles.muted}>
+            {t('admin.v2n.uv.split', { cur: pct(currentN), sug: pct(suggestN), force: pct(forceN), unk: pct(unknownN) })}
+          </p>
+        </>
+      )}
       <p className={`${styles.below} ${summary.belowMin > 0 ? styles.belowWarn : styles.muted}`} data-testid={`uv-below-${platform}`}>
         {summary.belowMin > 0
-          ? t('admin.uv.belowMin', { n: formatNumber(summary.belowMin) })
+          ? `${t('admin.uv.belowMin', { n: formatNumber(summary.belowMin) })} ${t('admin.v2n.uv.forceImpact', { p: pct(summary.belowMin) })}`
           : t('admin.uv.belowMinNone')}
         {summary.unknownVersion > 0 && (
           <span className={styles.muted}>
@@ -195,6 +216,7 @@ function PlatformCard({
         <Table
           columns={columns}
           rows={rows}
+          mobile="cards"
           rowKey={(r) => `${r.platform}-${r.version ?? 'x'}`}
           caption={t('admin.uv.table.caption', { platform: name })}
           empty={<p>{t('admin.uv.table.empty', { n: data.windowDays })}</p>}

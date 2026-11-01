@@ -25,7 +25,7 @@ export default {
   'admin.p16.err.RBAC_CHANGE_EXPIRED': 'Önerinin süresi dolmuş (24 saat); yeni öneri oluşturun.',
   'admin.p16.err.RBAC_SAME_APPROVER': 'Öneriyi yapan kişi onaylayamaz; ikinci bir FULL yönetici gerekir.',
   'admin.p16.err.RBAC_CHANGE_STALE': 'Hedefin profili öneriden sonra değişmiş; yeni öneri oluşturun.',
-  'admin.p16.err.ADMIN_EMAIL_PINNED': 'Bu hesap ADMIN_EMAILS listesinde; her zaman FULL kalır, panelden değiştirilemez.',
+  'admin.p16.err.ADMIN_EMAIL_PINNED': 'Bu hesap sunucu ayarında sabit yönetici; her zaman tam yetkili kalır, panelden değiştirilemez.',
 
   // profiller
   'admin.p16.profile.FULL': 'Tam yetkili (FULL)',
@@ -84,7 +84,7 @@ export default {
   'admin.p16.me.title': 'Ben',
   'admin.p16.me.profile': 'Profilim',
   'admin.p16.me.perms': '{n} izin',
-  'admin.p16.me.pinned': 'Hesabınız ADMIN_EMAILS listesinde olduğu için her zaman FULL kalır.',
+  'admin.p16.me.pinned': 'Hesabınız sunucu ayarında sabit yönetici olarak tanımlı; her zaman tam yetkili kalır.',
   'admin.p16.me.basic': 'Temel kimlik doğrulamasıyla (kullanıcı hesabı yok) girdiniz; FULL sayılırsınız.',
   'admin.p16.me.loadError': 'Profil bilgisi alınamadı.',
   'admin.p16.matrix.title': 'İzin matrisi',
@@ -98,7 +98,7 @@ export default {
   'admin.p16.admins.profile': 'Profil',
   'admin.p16.admins.lastSeen': 'Son görülme',
   'admin.p16.admins.never': 'Hiç',
-  'admin.p16.admins.pinned': 'Sabit (ADMIN_EMAILS)',
+  'admin.p16.admins.pinned': 'Sabit hesap (değiştirilemez)',
   'admin.p16.admins.self': 'Siz',
   'admin.p16.admins.suspended': 'Askıda',
   'admin.p16.admins.next': 'Yeni profil: {name}',
@@ -116,7 +116,7 @@ export default {
   'admin.p16.admins.noManage': 'Yönetici listesini ve profil atamayı yalnız FULL yöneticiler görür.',
 
   // bekleyen değişiklikler
-  'admin.p16.changes.title': 'Profil değişiklikleri (iki kişi onayı)',
+  'admin.p16.changes.title': 'Bekleyen yetki değişiklikleri (ikinci kişi onaylamalı)',
   'admin.p16.changes.empty': 'Bekleyen veya geçmiş değişiklik önerisi yok.',
   'admin.p16.changes.target': 'Hedef',
   'admin.p16.changes.change': 'Değişiklik',

@@ -18,6 +18,8 @@ export function Callout({
   children?: ReactNode;
   role?: 'alert' | 'status';
 }) {
+  // Metni olmayan kutu çizilmez (boş hata kutusu kafa karıştırır)
+  if (!title && (children === undefined || children === null || children === false || children === '')) return null;
   return (
     <div className={`${styles.callout} ${styles[tone]}`} role={role}>
       <span className={styles.calloutIcon} aria-hidden="true">

@@ -55,14 +55,14 @@
 }
 .sample .nTitle,
 .sample .nBody {
-  color: #6f7b93;
+  color: #4d5870; /* açık zeminde >= 4,5:1 (eskiden #6f7b93 = 3,79:1) */
 }
 .notifHead {
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 0.72rem;
-  color: #53607a;
+  font-size: 0.78rem;
+  color: #47536b;
   direction: ltr;
   margin-block-end: 6px;
 }

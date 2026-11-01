@@ -622,3 +622,35 @@ Etiket NOTIF. Ekran görüntüleri (sonra): `C:\bu_qa\shots\adminvisual\after\NO
 | 5-6, 10, 11, 13, 15, 17, 19, 21 (kart görünümü, jargon, görselleştirme) | KALDI | zaman yetmedi: Push kampanyaları, Yeni kampanya, Mail engel listesi, Push altyapısı, Kaynaklar, Çökme, Uygulama güncelleme, Roller, Mesaj erişimi için yalnız arama anchor'ları eklendi |
 
 Backend gerekir: sistem göstergeleri geçmişi (sparkline), kampanya durum sayaçları, denetim günlük sayıları.
+
+
+## UYGULAMA DURUMU, tur 2 (NOTIF) — kalan sayfalar
+
+Önceki tablodaki "KALDI" satırlarının güncel durumu (ekran görüntüleri: `C:\bu_qa\shots\adminvisual\after\NOTIF\`: campaigns, crashes, roles, push-ops 390 açık):
+
+| Madde | Durum | Not |
+|---|---|---|
+| 5.1, 5.2, 5.4, 5.5 Push kampanyaları | KAPANDI | `Table mobile="cards"` (içerik, durum, alıcı, zaman), "5.200 kişiden 2.400 kişiye ulaştı" cümlesi + `ProgressBar` (hata = kırmızı), sayfa açıklaması, özet cümlesi (gidiyor/zamanlı/başarısız), `ErrorState subject` |
+| 5.3 durum sekmelerinde sayaç | KALDI | kesin sayı için backend gerekir |
+| 6.1 "Yeni kampanya" düğmesi taslağı siliyor | KAPANDI | "Taslağı temizle" (ikincil), onay metni sonucu söylüyor |
+| 6.2 boş hata kutusu | KAPANDI | `Callout` metni yoksa çizilmez; sayfa üstünde "Bu bildirim N kişiye gidecek" cümlesi |
+| 6.5 önizleme kontrastı 3,79:1 | KAPANDI | örnek metin `#4d5870` (>= 4,5:1), uygulama adı 12,5 px |
+| 6.3 yapışkan alıcı sayısı / adımlar | KALDI | |
+| 7.1, 7.2 Mail şablonları | KAPANDI | kart görünümü, üç parçalı özet cümlesi, dil çipi "AR yok" |
+| 7.4 şablon düzenleyici (zengin metin) | KALDI | L boyutlu |
+| 8.2, 8.3 Mail kampanyaları | KISMEN | liste kartları + "N kişiden M tanesi için sıraya alındı" + özet cümlesi; ayrıntıdaki yığılmış çubuk KALDI |
+| 10.1, 10.2, 10.3 Mail engel listesi | KAPANDI | "Bastırma" yerine "Mail engel listesi" (menü, başlık, düğmeler, hata metinleri), `FilterPanel`, kart görünümü, "Adres gösterilemiyor (güvenlik için saklanmıyor)" |
+| 10.4 sebep dağılımı | KALDI | |
+| 11.1, 11.2, 11.3 Push altyapısı | KAPANDI | bağlantı sekmesinde tek cümlelik durum ("Bildirimler şu an telefonlara GİTMİYOR: ..."), ham ayrıntı "Teknik ayrıntı" altında, sekmeler "Bağlantı / Sıradakiler / Cihazlar / İstatistik", kuyrukta özet cümle + `FilterPanel` + kart, istatistikte yorum cümlesi + `RankedBars`, 14 günlük tablo katlanır |
+| 11.4 cihazlar sekmesi tekrar tablo | KALDI | |
+| 13.1, 13.2, 13.5 Kaynaklar | KISMEN | haber ve yemek için durum cümleleri ("en son N sa önce yenilendi"), kural notu katlanır; yığılmış tür çubuğu KALDI |
+| 15.1, 15.2, 15.3, 15.4, 15.5, 15.6 Çökme raporları | KAPANDI | durum cümlesi (yeni hata var / yok), tıklanır özet kutuları (süzgeç olur, "Yeni" kırmızı), "Android 2.0.5: 200 kez", kart görünümü, `FilterPanel`, olumlu boş durum, açıklama "Aynı hatayı yaşayanlar tek satırda toplanır" |
+| 17.1, 17.2, 17.3 Uygulama güncelleme | KAPANDI | güncel / önerilen / zorunlu / bilinmiyor yığılmış çubuk + yüzde cümlesi, "cihazların %N kadarı güncellemeden uygulamayı açamaz", bilgi kutusu alta, tablo kart |
+| 19.1, 19.2, 19.3, 19.4 Roller | KAPANDI | telefonda profil kartları ("14 / 35 izin", çubuk, izin cümleleri) matris yerine; yönetici ve değişiklik tabloları kart; ADMIN_EMAILS jargonu "sabit hesap" oldu |
+| 21.1, 21.2 Mesaj erişimi | KAPANDI | `FilterPanel`, kart, "Sebep yazılmamış" rozeti, sebepsiz erişim sayısını söyleyen özet |
+| 22.2 Şifreleme | KAPANDI | "Güvenlik durumu" ve "Kullanıcı mesajları" ayrı sekmeler (`?tab=messages`; arama anchor'ı doğru sekmeyi açar) |
+| 2.1 giriş yardım notu | KISMEN | "Şifrenizi hatırlamıyorsanız sistem yöneticisine yazın" notu; "Şifremi unuttum" bağlantısı ürün kararı bekliyor |
+| 4.1 404 | KAPANDI | açıklayıcı metin + "Genel bakışa dön" düğmesi |
+| 3.x Kayıt | KALDI | onay kutusu 44 px SHARED'da |
+| tokens.test "literal px border-radius" | KAPANDI (bende yok) | bildirim ve sistem alanı dosyalarında ihlal yok; kalan ihlaller (QuickNav, academic, accessbans, analytics, community, menu, pending, search.module) başka alanlarda |
+| build.test RBAC 'bakim mdu' önerisi | KAPANDI | sebep benim girdilerim değil; bulanık eşleşme "Genel bakış" + "Moderasyon" üst başlıklarıyla `chatFeed.audit`, `chatFeed.stats`, `dashboard.details` girdilerini ('bakışınız', 'bakılan', 'moderasyon') "bakım modu"na eşliyordu; bu üç girdinin metni ("Her görüntüleme kayda geçer", "tek seferlik görüntülenen", "denetim sayıları") değiştirildi, test zayıflatılmadı |

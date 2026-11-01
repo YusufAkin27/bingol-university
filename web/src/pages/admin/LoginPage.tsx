@@ -105,6 +105,7 @@ export default function LoginPage() {
             {busy ? t('admin.login.submitting') : t('admin.login.submit')}
           </Button>
           <p className={styles.note}>{t('admin.login.restricted')}</p>
+          <p className={styles.note}>{t('admin.v2n.login.help')}</p>
         </form>
         <Link to={paths.admin.register} className={styles.back}>
           {t('admin.reg.linkFromLogin')}

@@ -21,9 +21,11 @@ import {
   Button,
   EmptyState,
   ErrorState,
+  FilterPanel,
   FormField,
   GuardedAction,
   Input,
+  Insight,
   Modal,
   Pagination,
   Select,
@@ -98,15 +100,17 @@ export function QueueTab() {
   const overLimit = selected.size > BULK_MAX;
 
   const columns: Column<OutboxRow>[] = [
-    { key: 'id', header: t('admin.p14.queue.col.id'), render: (r) => <span className={styles.muted}>#{r.id}</span> },
+    { key: 'id', header: t('admin.p14.queue.col.id'), card: { priority: 3 }, render: (r) => <span className={styles.muted}>#{r.id}</span> },
     {
       key: 'status',
       header: t('admin.p14.queue.col.status'),
+      card: { priority: 1 },
       render: (r) => <StatusPill tone={STATUS_TONE[r.status]}>{t(`admin.p14.status.${r.status}`)}</StatusPill>,
     },
     {
       key: 'type',
       header: t('admin.p14.queue.col.type'),
+      card: { priority: 2 },
       render: (r) => (r.type ? <Badge tone="neutral">{r.type}</Badge> : <span className={styles.muted}>—</span>),
     },
     {
@@ -128,6 +132,7 @@ export function QueueTab() {
     {
       key: 'code',
       header: t('admin.p14.queue.col.code'),
+      card: { priority: 2 },
       render: (r) => {
         if (!r.errorCode) return <span className={styles.muted}>—</span>;
         const k = codeKey(r.errorCode);
@@ -145,11 +150,22 @@ export function QueueTab() {
       render: (r) =>
         r.nextAttemptAt && (r.status === 'PENDING' || r.status === 'FAILED') ? formatDateTime(r.nextAttemptAt) : '—',
     },
-    { key: 'created', header: t('admin.p14.queue.col.created'), render: (r) => formatDateTime(r.createdAt) },
+    { key: 'created', header: t('admin.p14.queue.col.created'), card: { priority: 3 }, render: (r) => formatDateTime(r.createdAt) },
   ];
 
   return (
     <div>
+      {st && (
+        <Insight
+          tone={st.dead > 0 ? 'warn' : 'good'}
+          parts={t('admin.v2n.pq.summary', {
+            pending: formatNumber(st.pending),
+            sending: formatNumber(st.sending),
+            failed: formatNumber(st.failed),
+            dead: formatNumber(st.dead),
+          })}
+        />
+      )}
       <div className={styles.statGrid}>
         <StatCard title={t('admin.p14.queue.stat.pending')} value={st ? formatNumber(st.pending) : '—'} loading={stats.isLoading} />
         <StatCard title={t('admin.p14.queue.stat.sending')} value={st ? formatNumber(st.sending) : '—'} loading={stats.isLoading} />
@@ -164,7 +180,12 @@ export function QueueTab() {
         </div>
       )}
 
-      <div className={styles.filters} role="search" aria-label={t('admin.p14.filters')}>
+      <div role="search" aria-label={t('admin.p14.filters')}>
+        <FilterPanel
+          activeCount={[filters.status, filters.type, filters.campaign, filters.from, filters.to].filter(Boolean).length}
+          onClear={() => set(EMPTY)}
+        >
+      <div className={styles.filters}>
         <FormField label={t('admin.p14.queue.filter.status')}>
           <Select value={filters.status} onChange={(e) => set({ status: e.target.value as OutboxStatus | '' })}>
             <option value="">{t('admin.p14.filter.all')}</option>
@@ -202,11 +223,8 @@ export function QueueTab() {
         <FormField label={t('admin.p14.filter.to')}>
           <Input type="date" value={filters.to} min={filters.from || undefined} onChange={(e) => set({ to: e.target.value })} />
         </FormField>
-        <div>
-          <Button variant="ghost" onClick={() => set(EMPTY)}>
-            {t('admin.p14.filter.clear')}
-          </Button>
-        </div>
+      </div>
+        </FilterPanel>
       </div>
 
       {data && (
@@ -215,7 +233,7 @@ export function QueueTab() {
         </p>
       )}
       {list.isError ? (
-        <ErrorState onRetry={() => void list.refetch()} description={adminError(i18n, list.error, 'admin.p14.err')} />
+        <ErrorState subject={t('admin.v2n.pq.subject')} error={list.error} description={adminError(i18n, list.error, 'admin.p14.err')} onRetry={() => void list.refetch()} />
       ) : (
         <>
           <Table
@@ -224,6 +242,7 @@ export function QueueTab() {
             rows={data?.items}
             rowKey={(r) => r.id}
             loading={list.isLoading}
+            mobile="cards"
             selectedKeys={selected}
             onSelectionChange={setSelected}
             onRowClick={(r) => setOpenId(r.id)}
