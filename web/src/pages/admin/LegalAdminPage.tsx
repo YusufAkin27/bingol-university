@@ -2,7 +2,7 @@
 // API: GET /api/legal, GET /api/admin/legal/{type}/versions, GET /api/admin/legal/acceptance-stats,
 //      POST /api/admin/legal/{type} {tr, en?, ar?, requireReaccept} (api/legal.ts). Yayın geri alınamaz.
 import { useQuery } from '@tanstack/react-query';
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { legalApi, qk } from '../../api';
 import type { Lang, LegalType, LegalVersionRow } from '../../api/types';
 import {
@@ -12,14 +12,17 @@ import {
   ErrorState,
   FormField,
   Input,
+  Insight,
   MarkdownText,
+  ProgressRing,
+  ResponsiveTable,
   Modal,
   PageHeader,
   Skeleton,
   StatusPill,
   Switch,
-  Table,
   Tabs,
+  useIsNarrow,
   useToast,
   useUnsavedGuard,
   type Column,
@@ -30,6 +33,7 @@ import { useI18n } from '../../i18n/I18nProvider';
 import { errorMessage } from '../../lib/errors';
 import { usePageTitle } from '../../lib/hooks';
 import { MarkdownEditor } from './content/MarkdownEditor';
+import { SearchAnchor, useSearchReveal } from '../../search/anchor';
 import {
   LEGAL_LANGS,
   LEGAL_TYPES,
@@ -46,6 +50,15 @@ import {
 } from './content/legalLogic';
 import styles from './content/Legal.module.css';
 
+/** Seçili kartın işareti: kırmızı çerçeveye (hata gibi okunur) ek olarak onay simgesi + gizli metin. */
+function selectedMark(on: boolean) {
+  return on ? (
+    <span className={styles.selMark} aria-hidden="true">
+      ✓
+    </span>
+  ) : null;
+}
+
 export default function LegalAdminPage() {
   const i18n = useI18n();
   const { t, formatDate, formatNumber } = i18n;
@@ -60,6 +73,13 @@ export default function LegalAdminPage() {
   const [showErrors, setShowErrors] = useState(false);
   const [publishOpen, setPublishOpen] = useState(false);
   const [viewRow, setViewRow] = useState<LegalVersionRow | null>(null);
+  const narrow = useIsNarrow();
+  const sectionRef = useRef<HTMLDivElement>(null);
+  // Arama: sürüm geçmişi / editör sekmesindeki öğeleri açtır
+  useSearchReveal((anchor) => {
+    if (anchor === 'legal-history') setTab('history');
+    if (anchor === 'legal-editor') setTab('editor');
+  });
 
   const summaries = useQuery({ queryKey: qk.legal.list(), queryFn: legalApi.listLegal });
   const stats = useQuery({ queryKey: qk.legal.acceptance(), queryFn: legalApi.getLegalAcceptanceStats });
@@ -87,6 +107,8 @@ export default function LegalAdminPage() {
       setShowErrors(false);
       setLang('tr');
       setType(next);
+      // Telefonda kartlar çok yer kaplar: seçilince sürüm geçmişi/editör bölümüne kaydır
+      if (narrow) requestAnimationFrame(() => sectionRef.current?.scrollIntoView?.({ block: 'start', behavior: 'smooth' }));
     });
   }
 
@@ -110,18 +132,32 @@ export default function LegalAdminPage() {
   }
 
   const columns: Column<LegalVersionRow>[] = [
-    { key: 'version', header: t('admin.legal.history.col.version'), render: (r) => <strong>{r.version}</strong>, width: '5rem' },
-    { key: 'lang', header: t('admin.legal.history.col.lang'), render: (r) => t(`admin.legal.lang.${r.lang}`) },
-    { key: 'title', header: t('admin.legal.history.col.title'), render: (r) => <span dir="auto">{r.title}</span> },
+    {
+      key: 'version',
+      header: t('admin.legal.history.col.version'),
+      render: (r) => <strong>{r.version}</strong>,
+      width: '5rem',
+      card: { priority: 1, label: t('admin.legal.history.col.version') },
+    },
+    {
+      key: 'lang',
+      header: t('admin.legal.history.col.lang'),
+      render: (r) => t(`admin.legal.lang.${r.lang}`),
+      card: { priority: 2 },
+    },
+    { key: 'title', header: t('admin.legal.history.col.title'), render: (r) => <span dir="auto">{r.title}</span>, card: { priority: 3 } },
     {
       key: 'reaccept',
       header: t('admin.legal.history.col.reaccept'),
+      headerLabel: t('admin.legal.history.col.reaccept'),
       render: (r) => (r.requireReaccept ? t('common.yes') : t('common.no')),
+      card: { label: t('admin.v2.legal.reacceptAsk') },
     },
     { key: 'published', header: t('admin.legal.history.col.published'), render: (r) => formatDate(r.publishedAt, { dateStyle: 'medium', timeStyle: 'short' }) },
     {
       key: 'status',
       header: t('admin.legal.history.col.status'),
+      card: { priority: 3 },
       render: (r) =>
         r.active ? (
           <StatusPill tone="success">{t('admin.legal.history.active')}</StatusPill>
@@ -133,6 +169,7 @@ export default function LegalAdminPage() {
       key: 'view',
       header: <span className="sr-only">{t('common.actions')}</span>,
       align: 'end',
+      card: { actions: true },
       render: (r) => (
         <Button size="sm" variant="ghost" onClick={() => setViewRow(r)}>
           {t('admin.legal.history.view')}
@@ -140,6 +177,9 @@ export default function LegalAdminPage() {
       ),
     },
   ];
+
+  // Kabul oranı düşük (%50 altı) sözleşmeler: renk + simge + cümleyle uyarılır
+  const lowAccept = (stats.data ?? []).filter((x) => acceptanceRatio(x.accepted, x.totalActiveUsers) < 0.5);
 
   const errorText = (code: string) => t(`admin.legal.err.${code}` as 'admin.legal.err.trRequired');
   const d = drafts[lang];
@@ -151,10 +191,26 @@ export default function LegalAdminPage() {
       <PageHeader title={t('admin.legal.title')} />
       {unsaved.dialog}
 
+      {!stats.isLoading && stats.data && stats.data.length > 0 && (
+        <Insight
+          tone={lowAccept.length > 0 ? 'warn' : 'good'}
+          parts={
+            lowAccept.length > 0
+              ? t('admin.v2.legal.insightLow', {
+                  total: formatNumber(stats.data.length),
+                  good: formatNumber(stats.data.length - lowAccept.length),
+                  low: formatNumber(lowAccept.length),
+                })
+              : t('admin.v2.legal.insightGood', { total: formatNumber(stats.data.length) })
+          }
+        />
+      )}
+
       {summaries.isError && (
         <ErrorState compact onRetry={() => void summaries.refetch()} description={errorMessage(i18n, summaries.error)} />
       )}
 
+      <SearchAnchor id="legal-acceptance">
       <div className={styles.cards} role="group" aria-label={t('admin.legal.types')}>
         {LEGAL_TYPES.map((ty) => {
           const sum = summaries.data?.find((s) => s.type === ty);
@@ -170,47 +226,48 @@ export default function LegalAdminPage() {
               onClick={() => selectType(ty)}
               data-type={ty}
             >
-              <span className={styles.typeName}>{t(`admin.legal.type.${ty}`)}</span>
+              <span className={styles.typeName} data-search-anchor={`legal-${ty}`}>
+                {selectedMark(ty === type)}
+                {t(`admin.legal.type.${ty}`)}
+              </span>
               {summaries.isLoading ? (
                 <Skeleton width="50%" />
               ) : sum ? (
                 <span className={styles.typeMeta}>
-                  <Badge tone="primary">{t('admin.legal.version', { n: sum.version })}</Badge>
+                  <Badge tone="info">{t('admin.legal.version', { n: sum.version })}</Badge>
                   <span>{t('admin.legal.publishedAt', { date: formatDate(sum.publishedAt) })}</span>
                 </span>
               ) : (
                 <span className={styles.typeMeta}>{t('admin.legal.noVersion')}</span>
               )}
               <span className={styles.accept}>
-                <span className={styles.acceptHead}>
-                  <span>{t('admin.legal.acceptance')}</span>
-                  <strong className="ltr">{st ? `${formatNumber(pct)}%` : '—'}</strong>
+                <ProgressRing
+                  value={st ? pct : null}
+                  size={64}
+                  thickness={7}
+                  tone={!st ? 'neutral' : pct >= 90 ? 'success' : pct >= 50 ? 'info' : 'warning'}
+                  label={`${t('admin.legal.acceptance')}: ${t(`admin.legal.type.${ty}`)}`}
+                />
+                <span className={styles.acceptText}>
+                  <strong className="ltr">{st ? `%${formatNumber(pct)}` : '—'}</strong>
+                  {st && (
+                    <span className={styles.acceptCount}>
+                      {t('admin.legal.acceptanceCount', {
+                        accepted: formatNumber(st.accepted),
+                        total: formatNumber(st.totalActiveUsers),
+                      })}
+                    </span>
+                  )}
+                  {st && pct < 50 && <span className={styles.acceptWarn}>{t('admin.v2.legal.lowWarn')}</span>}
                 </span>
-                <span
-                  className={styles.bar}
-                  role="progressbar"
-                  aria-label={`${t('admin.legal.acceptance')}: ${t(`admin.legal.type.${ty}`)}`}
-                  aria-valuemin={0}
-                  aria-valuemax={100}
-                  aria-valuenow={pct}
-                >
-                  <span className={styles.barFill} style={{ inlineSize: `${pct}%` }} />
-                </span>
-                {st && (
-                  <span className={styles.acceptCount}>
-                    {t('admin.legal.acceptanceCount', {
-                      accepted: formatNumber(st.accepted),
-                      total: formatNumber(st.totalActiveUsers),
-                    })}
-                  </span>
-                )}
               </span>
             </button>
           );
         })}
       </div>
+      </SearchAnchor>
 
-      <div className={styles.section}>
+      <div className={styles.section} ref={sectionRef}>
         <Tabs
           label={t('admin.legal.tabs')}
           value={tab}
@@ -230,11 +287,11 @@ export default function LegalAdminPage() {
         />
 
         {/* Düzenleyici açık kalır: sekme değişince taslak kaybolmaz */}
-        <div hidden={tab !== 'history'} className={styles.pane}>
+        <div hidden={tab !== 'history'} className={styles.pane} data-search-anchor="legal-history">
           {versions.isError ? (
             <ErrorState onRetry={() => void versions.refetch()} description={errorMessage(i18n, versions.error)} />
           ) : (
-            <Table
+            <ResponsiveTable
               caption={t('admin.legal.tab.history')}
               columns={columns}
               rows={rows}
@@ -245,7 +302,7 @@ export default function LegalAdminPage() {
           )}
         </div>
 
-        <div hidden={tab !== 'editor'} className={styles.pane}>
+        <div hidden={tab !== 'editor'} className={styles.pane} data-search-anchor="legal-editor">
           <div className={styles.editorTop}>
             <Tabs
               label={t('admin.legal.editor.langs')}

@@ -6,6 +6,7 @@ import { useSearchParams } from 'react-router-dom';
 import { PageHeader, Tabs } from '../../components/ui';
 import { useI18n } from '../../i18n/I18nProvider';
 import { usePageTitle } from '../../lib/hooks';
+import { useSearchReveal } from '../../search/anchor';
 import CommunitiesAdminPage from './CommunitiesAdminPage';
 import { ClubDrawer } from './clubs/ClubDrawer';
 import { ClubList } from './clubs/ClubList';
@@ -22,6 +23,12 @@ export default function ClubsManagePage() {
   const [tab, setTab] = useState<MainTab>(params.get('tab') === 'queue' || params.has('status') ? 'queue' : 'all');
   const [openId, setOpenId] = useState<number | null>(Number.isInteger(clubParam) && clubParam > 0 ? clubParam : null);
 
+  // Arama derin bağlantısı: süzgeç/liste öğeleri "Tüm kulüpler", kuyruk öğesi "Onay kuyruğu" sekmesindedir
+  useSearchReveal((anchor) => {
+    if (anchor === 'club-queue') setTab('queue');
+    else if (anchor.startsWith('club-')) setTab('all');
+  });
+
   function open(id: number | null) {
     setOpenId(id);
     const next = new URLSearchParams(params);
@@ -33,7 +40,7 @@ export default function ClubsManagePage() {
   return (
     <div>
       <PageHeader title={t('admin.p06.clubs.title')} description={t('admin.p06.clubs.subtitle')} />
-      <div className={styles.tabsWrap}>
+      <div className={styles.tabsWrap} data-search-anchor="club-queue">
         <Tabs
           label={t('admin.p06.clubs.tabs')}
           value={tab}

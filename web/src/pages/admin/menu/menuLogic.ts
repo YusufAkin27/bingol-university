@@ -152,3 +152,11 @@ export function menuGaps(days: { date: string; items: string[]; imageUrl: string
   }
   return { noImage, noKcal: [...byName.values()] };
 }
+
+/** 'yyyy-MM' ayını delta ay kaydırır (geçersiz girdide aynen döner). */
+export function shiftMonthValue(month: string, delta: number): string {
+  const m = MONTH_RE.exec(month);
+  if (!m) return month;
+  const d = new Date(Date.UTC(Number(m[1]), Number(m[2]) - 1 + delta, 1));
+  return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}`;
+}

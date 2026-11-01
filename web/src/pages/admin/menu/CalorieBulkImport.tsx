@@ -18,7 +18,7 @@ export function CalorieBulkImport({ onDone }: { onDone: () => void }) {
   const parsed = parseCalorieText(text);
 
   return (
-    <details className={styles.bulk}>
+    <details className={styles.bulk} data-search-anchor="menu-bulk-kcal">
       <summary>{t('admin.menu.kcal.bulk.title')}</summary>
       <p className={styles.muted}>{t('admin.menu.kcal.bulk.help')}</p>
       <Textarea

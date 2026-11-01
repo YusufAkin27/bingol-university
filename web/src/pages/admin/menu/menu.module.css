@@ -30,3 +30,24 @@
 /* Eksikler uyarısı */
 .gaps { margin-block: var(--space-3); padding: var(--space-3) var(--space-4); border: 1px solid var(--warning, var(--border)); border-radius: var(--radius-md); background: var(--surface); display: grid; gap: var(--space-2); font-size: var(--text-sm); }
 .gaps summary { cursor: pointer; }
+
+/* Telefonda kompakt günler: katlanır gün satırı (yakın günler açık), kalori çubuğu, eksik uyarısı */
+.dayDetails { inline-size: 100%; }
+.daySummary { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-2); min-block-size: 44px; cursor: pointer; font-weight: 600; }
+.dayTitle { overflow-wrap: anywhere; }
+.dayChips { display: flex; flex-wrap: wrap; gap: var(--space-1, 0.25rem); }
+.dayBody { display: flex; flex-wrap: wrap; gap: var(--space-4); align-items: flex-start; padding-block-start: var(--space-3); }
+.help { margin-block: var(--space-2); padding: var(--space-2) var(--space-3); border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--surface); font-size: var(--text-sm); color: var(--text-muted); }
+.help > summary { cursor: pointer; font-weight: 600; min-block-size: 44px; display: flex; align-items: center; color: var(--text); }
+.help ul { margin: 0 0 var(--space-2); padding-inline-start: 1.1rem; }
+.dish { flex-wrap: wrap; }
+.dishName { display: grid; gap: 2px; flex: 1 1 8rem; }
+.kcalBar { display: block; block-size: 6px; border-radius: 999px; background: var(--surface-3); overflow: hidden; max-inline-size: 12rem; }
+.kcalBarFill { display: block; block-size: 100%; background: var(--info); border-radius: 999px; }
+.missing { color: var(--warning); font-weight: 700; font-size: var(--text-xs); }
+.missing::before { content: '! '; }
+.kcalInput { min-block-size: 44px; }
+@media (max-width: 639px) {
+  .media { inline-size: 100%; }
+  .thumb, .placeholder { inline-size: 100%; max-inline-size: 16rem; }
+}

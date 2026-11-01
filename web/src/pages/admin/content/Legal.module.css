@@ -235,3 +235,52 @@
     gap: 2px;
   }
 }
+
+/* Sözleşme kartları: kabul halkası + seçim işareti; telefonda yatay kaydırmalı şerit (8 kart ~1400 px tutmasın) */
+.accept {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+.acceptText {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+.acceptWarn {
+  font-size: var(--text-xs);
+  font-weight: 700;
+  color: var(--warning);
+}
+.acceptWarn::before {
+  content: '! ';
+}
+.selMark {
+  display: inline-grid;
+  place-items: center;
+  inline-size: 1.25rem;
+  block-size: 1.25rem;
+  margin-inline-end: var(--space-2);
+  border-radius: 50%;
+  background: var(--text);
+  color: var(--surface);
+  font-size: 0.8rem;
+  line-height: 1;
+}
+.typeCard.selected {
+  border-width: 2px;
+  background: var(--surface-2);
+}
+@media (max-width: 639px) {
+  .cards {
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x proximity;
+    gap: var(--space-3);
+    padding-block-end: var(--space-2);
+  }
+  .typeCard {
+    flex: 0 0 min(17rem, 82%);
+    scroll-snap-align: start;
+  }
+}

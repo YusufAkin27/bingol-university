@@ -169,7 +169,7 @@ export function ContentRowItem({
           {row.openReportCount > 0 && (
             <Badge tone="danger">{t('admin.p06.content.reports', { n: row.openReportCount })}</Badge>
           )}
-          {row.pinned && <Badge tone="primary">{t('admin.p06.content.pinned')}</Badge>}
+          {row.pinned && <Badge tone="info">{t('admin.p06.content.pinned')}</Badge>}
         </span>
         <span className={styles.spacer} />
         <time className={styles.muted} dateTime={row.createdAt}>
@@ -191,7 +191,12 @@ export function ContentRowItem({
       <p className={styles.text} dir="auto">
         {excerpt(row.text, 600)}
       </p>
-      {row.imageUrl && <p className={styles.muted}>{t('admin.p06.content.hasImage')}</p>}
+      {row.imageUrl && (
+        <p className={styles.muted}>
+          <img className={styles.thumb} src={row.imageUrl} alt="" loading="lazy" />
+          {t('admin.p06.content.hasImage')}
+        </p>
+      )}
       {row.state === 'HIDDEN' && row.hiddenReason && (
         <p className={styles.reason}>{t('admin.p06.content.hiddenReason', { reason: row.hiddenReason })}</p>
       )}

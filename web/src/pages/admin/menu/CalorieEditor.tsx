@@ -11,7 +11,16 @@ import { adminErrorMessage } from '../campaigns/shared';
 import { MAX_KCAL, dishesOf, parseKcal, sumKcal } from './menuLogic';
 import styles from './menu.module.css';
 
-export function CalorieEditor({ day, onSaved }: { day: AdminMenuDay; onSaved: () => void }) {
+export function CalorieEditor({
+  day,
+  onSaved,
+  maxKcal = 1000,
+}: {
+  day: AdminMenuDay;
+  onSaved: () => void;
+  /** Çubuk ölçeği: ayın en yüksek kalorili yemeği (çubuklar birbiriyle kıyaslanabilsin). */
+  maxKcal?: number;
+}) {
   const i18n = useI18n();
   const { t } = i18n;
   const toast = useToast();
@@ -49,6 +58,16 @@ export function CalorieEditor({ day, onSaved }: { day: AdminMenuDay; onSaved: ()
           <li key={`${i}-${d.name}`} className={styles.dish}>
             <span className={styles.dishName} dir="auto">
               {d.name}
+              {values[i] === null ? (
+                <span className={styles.missing}>{t('admin.v2.menu.missingDish')}</span>
+              ) : (
+                <span className={styles.kcalBar} aria-hidden="true">
+                  <span
+                    className={styles.kcalBarFill}
+                    style={{ inlineSize: `${Math.min(100, Math.round(((values[i] as number) / maxKcal) * 100))}%` }}
+                  />
+                </span>
+              )}
             </span>
             <span className={styles.kcalField}>
               <input

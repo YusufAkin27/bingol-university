@@ -80,7 +80,7 @@ export default function AcademicCalendarPage() {
   const kit = useKitFormat();
   // Arama: liste araç çubuğu ve ay gezinmesi ilgili görünümü açar
   useSearchReveal((anchor) => {
-    if (anchor === 'cal-q') setView('list');
+    if (anchor === 'cal-q' || anchor === 'cal-bulk' || anchor === 'cal-publish') setView('list');
     if (anchor === 'cal-nav') setView('month');
   });
   const [kind, setKind] = useState('');
@@ -187,7 +187,7 @@ export default function AcademicCalendarPage() {
   );
 
   const rowActions = (ev: AcademicEvent) => (
-    <div className={styles.actions} data-search-anchor={ev.id === list.data?.items[0]?.id ? 'cal-publish' : undefined}>
+    <div className={styles.actions}>
       <Button size="sm" variant="secondary" onClick={() => setEditing(ev)}>
         {t('common.edit')}
       </Button>
@@ -233,53 +233,54 @@ export default function AcademicCalendarPage() {
           label={t('admin.v2.filters.title')}
           activeCount={(kind ? 1 : 0) + (status ? 1 : 0) + (qText ? 1 : 0)}
         >
-        <div className={styles.toolbar}>
-          <FormField label={t('admin.acd.cal.kind')} className={styles.fieldBox}>
-            <Select data-search-anchor="cal-kind"
+          <div className={styles.toolbar}>
+            <FormField label={t('admin.acd.cal.kind')} className={styles.fieldBox}>
+              <Select
+                data-search-anchor="cal-kind"
 
-              value={kind}
-              onChange={(e) => {
-                setKind(e.target.value);
-                setPage(0);
-              }}
-            >
-              <option value="">{t('admin.acd.cal.kindAll')}</option>
-              {CALENDAR_KINDS.map((k) => (
-                <option key={k} value={k}>
-                  {kindLabel(k)}
-                </option>
-              ))}
-            </Select>
-          </FormField>
-          <FormField label={t('admin.acd.statusLabel')}>
-            <Select
-              data-search-anchor="cal-status"
-              value={status}
-              onChange={(e) => {
-                setStatus(e.target.value);
-                setPage(0);
-              }}
-            >
-              <option value="">{t('admin.acd.statusAll')}</option>
-              <option value="true">{t('admin.acd.published')}</option>
-              <option value="false">{t('admin.acd.draft')}</option>
-            </Select>
-          </FormField>
-          {view === 'list' && (
-            <FormField label={t('admin.acd.search')}>
-              <Input
-                data-search-anchor="cal-q"
-                value={qText}
-                maxLength={80}
-                dir="auto"
+                value={kind}
                 onChange={(e) => {
-                  setQText(e.target.value);
+                  setKind(e.target.value);
                   setPage(0);
                 }}
-              />
+              >
+                <option value="">{t('admin.acd.cal.kindAll')}</option>
+                {CALENDAR_KINDS.map((k) => (
+                  <option key={k} value={k}>
+                    {kindLabel(k)}
+                  </option>
+                ))}
+              </Select>
             </FormField>
-          )}
-        </div>
+            <FormField label={t('admin.acd.statusLabel')}>
+              <Select
+                data-search-anchor="cal-status"
+                value={status}
+                onChange={(e) => {
+                  setStatus(e.target.value);
+                  setPage(0);
+                }}
+              >
+                <option value="">{t('admin.acd.statusAll')}</option>
+                <option value="true">{t('admin.acd.published')}</option>
+                <option value="false">{t('admin.acd.draft')}</option>
+              </Select>
+            </FormField>
+            {view === 'list' && (
+              <FormField label={t('admin.acd.search')}>
+                <Input
+                  data-search-anchor="cal-q"
+                  value={qText}
+                  maxLength={80}
+                  dir="auto"
+                  onChange={(e) => {
+                    setQText(e.target.value);
+                    setPage(0);
+                  }}
+                />
+              </FormField>
+            )}
+          </div>
         </CollapsibleFilters>
 
         <div data-search-anchor="cal-view">
@@ -316,33 +317,39 @@ export default function AcademicCalendarPage() {
                 label={t('admin.p15.select.page')}
               />
               <p className={styles.muted}>{t('admin.v2.cal.count', { n: list.data!.total })}</p>
-              <ul className={styles.rowList} aria-label={t('admin.acd.rows')} data-search-anchor="cal-bulk">
-                {list.data!.items.map((ev) => (
-                  <li key={ev.id} className={`${styles.item} ${styles[`k_${ev.kind}`] ?? ''}`}>
-                    <div className={styles.itemHead}>
-                      <RowPick id={ev.id} label={t('admin.p15.select.row', { title: ev.title })} selection={selection} />
-                      <Badge tone="info">{kindLabel(ev.kind)}</Badge>
-                      <StatusPill tone={ev.published ? 'success' : 'neutral'}>
-                        {t(ev.published ? 'admin.acd.published' : 'admin.acd.draft')}
-                      </StatusPill>
-                    </div>
-                    <h3 className={styles.itemTitle} dir="auto">
-                      {ev.title}
-                    </h3>
-                    <p className={styles.muted}>
-                      {when(ev)}
-                      {ev.allDay ? ` · ${t('admin.acd.cal.allDay')}` : ''}
-                      {ev.scopeDepartment ? ` · ${ev.scopeDepartment}` : ''}
-                    </p>
-                    {ev.note && (
-                      <p className={styles.body} dir="auto">
-                        {ev.note}
+              <div data-search-anchor="cal-publish">
+                <ul className={styles.rowList} aria-label={t('admin.acd.rows')} data-search-anchor="cal-bulk">
+                  {list.data!.items.map((ev) => (
+                    <li key={ev.id} className={`${styles.item} ${styles[`k_${ev.kind}`] ?? ''}`}>
+                      <div className={styles.itemHead}>
+                        <RowPick
+                          id={ev.id}
+                          label={t('admin.p15.select.row', { title: ev.title })}
+                          selection={selection}
+                        />
+                        <Badge tone="info">{kindLabel(ev.kind)}</Badge>
+                        <StatusPill tone={ev.published ? 'success' : 'neutral'}>
+                          {t(ev.published ? 'admin.acd.published' : 'admin.acd.draft')}
+                        </StatusPill>
+                      </div>
+                      <h3 className={styles.itemTitle} dir="auto">
+                        {ev.title}
+                      </h3>
+                      <p className={styles.muted}>
+                        {when(ev)}
+                        {ev.allDay ? ` · ${t('admin.acd.cal.allDay')}` : ''}
+                        {ev.scopeDepartment ? ` · ${ev.scopeDepartment}` : ''}
                       </p>
-                    )}
-                    {rowActions(ev)}
-                  </li>
-                ))}
-              </ul>
+                      {ev.note && (
+                        <p className={styles.body} dir="auto">
+                          {ev.note}
+                        </p>
+                      )}
+                      {rowActions(ev)}
+                    </li>
+                  ))}
+                </ul>
+              </div>
               <Pagination
                 page={page}
                 totalPages={totalPages(list.data!.total, PAGE_SIZE)}
@@ -414,7 +421,10 @@ export default function AcademicCalendarPage() {
                   <ul className={styles.legend} aria-label={t('admin.v2.cal.legend')}>
                     {CALENDAR_KINDS.map((k) => (
                       <li key={k}>
-                        <span className={`${styles.legendDot} ${styles[`k_${k}`] ?? ''}`} aria-hidden="true" />
+                        <span
+                          className={`${styles.legendDot} ${styles[`k_${k}`] ?? ''}`}
+                          aria-hidden="true"
+                        />
                         {kindLabel(k)}
                       </li>
                     ))}

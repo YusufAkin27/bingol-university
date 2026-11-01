@@ -110,4 +110,60 @@ export default {
   'admin.v2.ex.bucket.past': 'Geçmiş sınavlar',
   'admin.v2.ex.conflict': 'Saat çakışması',
   'admin.v2.ex.conflictHint': 'Aynı sınıf ve bölümde aynı saatte başka bir sınav var. Öğrenciler ikisine birden giremez.',
+
+  // Sözleşmeler
+  'admin.v2.legal.insightGood': '{total} sözleşmenin hepsinde kabul oranı yarının üstünde.',
+  'admin.v2.legal.insightLow':
+    '{total} sözleşmeden {good} tanesini kullanıcıların yarısından fazlası kabul etmiş; {low} tanesini yarıdan az kişi kabul etmiş. Uyarı işaretli kartlara bakın.',
+  'admin.v2.legal.lowWarn': 'Az kişi onayladı',
+  'admin.v2.legal.reacceptAsk': 'Kullanıcılardan yeniden onay istendi mi?',
+
+  // Kulüpler
+  'admin.v2.club.noOwnerName': 'Adı yok',
+  'admin.v2.club.members': '{n} üye',
+  'admin.v2.club.reports': '{n} şikâyet',
+  'admin.v2.club.insight': 'Bu sayfadaki {n} kulübün {active} tanesi yayında, {pending} tanesi onay bekliyor.',
+  'admin.v2.club.stackAria': 'Bu sayfadaki kulüplerin duruma göre dağılımı',
+
+  // Kulüp içerikleri
+  'admin.v2.cr.minHint': 'Şikâyeti en az bu kadar olan içerikler gösterilir. Boş bırakırsanız hepsi görünür.',
+  'admin.v2.cr.insightReported': 'Bu sayfadaki {n} içeriğin {reported} tanesinde açık şikâyet var, {hidden} tanesi gizli. Şikâyetlileri önce inceleyin.',
+  'admin.v2.cr.insightClean': 'Bu sayfadaki {n} içeriğin hiçbirinde açık şikâyet yok; {hidden} tanesi gizli.',
+  'admin.v2.cr.reported': 'Şikâyetli içerik',
+  'admin.v2.cr.reportedCap': 'Bu sayfada, açık şikâyeti olan',
+  'admin.v2.cr.hidden': 'Gizlenen içerik',
+  'admin.v2.cr.hiddenCap': 'Bu sayfada, uygulamada görünmeyen',
+
+  // Kulüp kategorileri
+  'admin.v2.cat.limitBar': 'Daha {free} kategori aktif edebilirsiniz',
+  'admin.v2.cat.usageBar': '{n} kulüp bu kategoride',
+  'admin.v2.cat.unused': 'Hiçbir kulüp kullanmıyor',
+  'admin.v2.cat.noTranslation': 'çeviri yok',
+
+  // SSS
+  'admin.v2.faq.insightAll': 'Bu dilde {total} soru var, hepsi yayında ({cats} başlık altında).',
+  'admin.v2.faq.insightDraft': 'Bu dilde {total} soru var; {drafts} tanesi taslak, yani uygulamada görünmüyor.',
+  'admin.v2.faq.published': 'Yayındaki soru',
+  'admin.v2.faq.publishedCap': 'Uygulamada görünen',
+  'admin.v2.faq.drafts': 'Taslak soru',
+  'admin.v2.faq.draftsCap': 'Henüz yayınlanmamış',
+  'admin.v2.faq.byCategory': 'Başlığa göre soru sayısı',
+
+  // Yemek menüsü
+  'admin.v2.menu.totalChip': '{kcal} kcal',
+  'admin.v2.menu.missingChip': '{n} yemekte kalori eksik',
+  'admin.v2.menu.noPhotoChip': 'Fotoğraf yok',
+  'admin.v2.menu.missingDish': 'Kalori eksik',
+  'admin.v2.menu.prev': 'Önceki ay',
+  'admin.v2.menu.next': 'Sonraki ay',
+  'admin.v2.menu.thisMonth': 'Bu ay',
+  'admin.v2.menu.insightOk': 'Bu ay {n} günün menüsü var ve hepsinin kalorisi girilmiş.',
+  'admin.v2.menu.insightMissing': 'Bu ay {n} günün menüsü var; {missing} günde kalorisi girilmemiş yemek var. Turuncu uyarılı günleri açıp doldurun.',
+  'admin.v2.menu.sum.days': 'Menülü gün',
+  'admin.v2.menu.sum.daysCap': 'Bu ay yemek listesi olan',
+  'admin.v2.menu.sum.missing': 'Kalorisi eksik gün',
+  'admin.v2.menu.sum.missingCap': 'En az bir yemeğin kalorisi boş',
+  'admin.v2.menu.sum.noPhoto': 'Fotoğrafsız gün',
+  'admin.v2.menu.sum.noPhotoCap': 'Menüye fotoğraf eklenmemiş',
+  'admin.v2.menu.helpTitle': 'Fotoğraf ve kalori nasıl çalışır?',
 };

@@ -28,6 +28,8 @@ import {
   Skeleton,
   useToast,
 } from '../../components/ui';
+import { useSearchReveal } from '../../search/anchor';
+import { FillBar } from './community/Summary';
 import { useI18n } from '../../i18n/I18nProvider';
 import { usePageTitle } from '../../lib/hooks';
 import { adminErrorMessage } from './campaigns/shared';
@@ -137,9 +139,15 @@ export default function CommunityCategoriesPage() {
     reorder.mutate(ids);
   };
 
+  // Arama: form alanları yalnız form açıkken çizilir; "yeni kategori" formunu açtır
+  useSearchReveal((anchor) => {
+    if (['cat-key', 'cat-icon', 'cat-names'].includes(anchor) && !editing) open('new');
+  });
+
   const nameInvalid = form.nameTr.trim().length === 0;
   const keyInvalid = editing === 'new' && form.key.trim() !== '' && !KEY_RE.test(form.key.trim());
   const full = !!list.data && list.data.activeCount >= list.data.maxActive;
+  const maxUsage = Math.max(1, ...items.map((c) => c.usageCount));
 
   return (
     <>
@@ -147,20 +155,30 @@ export default function CommunityCategoriesPage() {
         title={t('admin.ccat.title')}
         description={t('admin.ccat.intro')}
         actions={
-          <Button onClick={() => open('new')} disabled={!!editing}>
+          <Button data-search-anchor="cat-add" onClick={() => open('new')} disabled={!!editing}>
             {t('admin.ccat.add')}
           </Button>
         }
       />
       <div className={styles.stack}>
         {list.data && (
-          <p className={styles.muted} role="status">
-            {t('admin.ccat.limit', {
-              active: formatNumber(list.data.activeCount),
-              max: formatNumber(list.data.maxActive),
-            })}
-            {full ? ` ${t('admin.ccat.limitFull')}` : ''}
-          </p>
+          <div data-search-anchor="cat-limit">
+            <p className={styles.muted} role="status">
+              {t('admin.ccat.limit', {
+                active: formatNumber(list.data.activeCount),
+                max: formatNumber(list.data.maxActive),
+              })}
+              {full ? ` ${t('admin.ccat.limitFull')}` : ''}
+            </p>
+            <FillBar
+              tone={full ? 'warning' : 'info'}
+              value={list.data.activeCount}
+              max={list.data.maxActive}
+              label={t('admin.v2.cat.limitBar', {
+                free: formatNumber(Math.max(0, list.data.maxActive - list.data.activeCount)),
+              })}
+            />
+          </div>
         )}
 
         {editing && (
@@ -180,6 +198,7 @@ export default function CommunityCategoriesPage() {
                 error={touched && keyInvalid ? t('admin.ccat.field.keyInvalid') : null}
               >
                 <Input
+                  data-search-anchor="cat-key"
                   value={form.key}
                   maxLength={40}
                   dir="ltr"
@@ -190,6 +209,7 @@ export default function CommunityCategoriesPage() {
               </FormField>
               <FormField label={t('admin.ccat.field.icon')} hint={t('admin.ccat.field.iconHint')}>
                 <Input
+                  data-search-anchor="cat-icon"
                   value={form.icon}
                   maxLength={40}
                   dir="ltr"
@@ -203,6 +223,7 @@ export default function CommunityCategoriesPage() {
                 required
               >
                 <Input
+                  data-search-anchor="cat-names"
                   value={form.nameTr}
                   maxLength={80}
                   onChange={(e) => setForm({ ...form, nameTr: e.target.value })}
@@ -248,60 +269,83 @@ export default function CommunityCategoriesPage() {
         ) : list.isLoading ? (
           <Skeleton height="5rem" width="100%" />
         ) : items.length === 0 ? (
-          <EmptyState icon="list" title={t('admin.ccat.empty.title')} description={t('admin.ccat.empty.hint')} />
+          <EmptyState
+            icon="list"
+            title={t('admin.ccat.empty.title')}
+            description={t('admin.ccat.empty.hint')}
+          />
         ) : (
-          <ul className={styles.rowList} aria-label={t('admin.ccat.list')}>
-            {items.map((c, index) => (
-              <li key={c.id} className={styles.item}>
-                <div className={styles.itemHead}>
-                  <strong dir="auto">{c.nameTr}</strong>
-                  <Badge tone={c.active ? 'success' : 'neutral'}>
-                    {t(c.active ? 'admin.ccat.status.active' : 'admin.ccat.status.inactive')}
-                  </Badge>
-                  <span className={styles.spacer} />
-                  <span className={styles.muted}>{t('admin.ccat.usage', { n: formatNumber(c.usageCount) })}</span>
-                </div>
-                <p className={styles.muted} dir="auto">
-                  <code className={`${styles.mono} ltr`}>{c.key}</code> · EN: {c.nameEn} · AR: <span dir="rtl">{c.nameAr}</span>
-                  {c.icon ? ` · ${c.icon}` : ''}
-                </p>
-                <div className={styles.actions}>
-                  <Button
-                    size="sm"
-                    variant="secondary"
-                    aria-label={t('admin.ccat.moveUp', { name: c.nameTr })}
-                    disabled={index === 0 || reorder.isPending}
-                    onClick={() => move(index, -1)}
-                  >
-                    ↑
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="secondary"
-                    aria-label={t('admin.ccat.moveDown', { name: c.nameTr })}
-                    disabled={index === items.length - 1 || reorder.isPending}
-                    onClick={() => move(index, 1)}
-                  >
-                    ↓
-                  </Button>
-                  <Button size="sm" variant="secondary" onClick={() => open(c)}>
-                    {t('admin.ccat.edit')}
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="secondary"
-                    loading={toggle.isPending && toggle.variables?.id === c.id}
-                    onClick={() => toggle.mutate(c)}
-                  >
-                    {t(c.active ? 'admin.ccat.deactivate' : 'admin.ccat.activate')}
-                  </Button>
-                  <Button size="sm" variant="danger" onClick={() => setRemoving(c)}>
-                    {t('admin.ccat.remove')}
-                  </Button>
-                </div>
-              </li>
-            ))}
-          </ul>
+          <div data-search-anchor="cat-toggle">
+            <div data-search-anchor="cat-delete">
+              <ul className={styles.rowList} aria-label={t('admin.ccat.list')} data-search-anchor="cat-order">
+                {items.map((c, index) => (
+                  <li key={c.id} className={styles.item}>
+                    <div className={styles.itemHead}>
+                      <strong dir="auto">{c.nameTr}</strong>
+                      <Badge tone={c.active ? 'success' : 'neutral'}>
+                        {t(c.active ? 'admin.ccat.status.active' : 'admin.ccat.status.inactive')}
+                      </Badge>
+                      <span className={styles.spacer} />
+                      <span className={styles.muted}>
+                        {c.usageCount > 0
+                          ? t('admin.ccat.usage', { n: formatNumber(c.usageCount) })
+                          : t('admin.v2.cat.unused')}
+                      </span>
+                    </div>
+                    {c.usageCount > 0 && (
+                      <FillBar
+                        tone="info"
+                        value={c.usageCount}
+                        max={maxUsage}
+                        label={t('admin.v2.cat.usageBar', { n: formatNumber(c.usageCount) })}
+                      />
+                    )}
+                    <p className={styles.muted} dir="auto">
+                      <code className={`${styles.mono} ltr`}>{c.key}</code> · EN:{' '}
+                      {c.nameEn || t('admin.v2.cat.noTranslation')} · AR:{' '}
+                      {c.nameAr ? <span dir="rtl">{c.nameAr}</span> : t('admin.v2.cat.noTranslation')}
+                      {c.icon ? ` · ${c.icon}` : ''}
+                    </p>
+                    <div className={styles.actions}>
+                      <Button
+                        size="sm"
+                        variant="secondary"
+                        aria-label={t('admin.ccat.moveUp', { name: c.nameTr })}
+                        disabled={index === 0 || reorder.isPending}
+                        onClick={() => move(index, -1)}
+                      >
+                        ↑
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="secondary"
+                        aria-label={t('admin.ccat.moveDown', { name: c.nameTr })}
+                        disabled={index === items.length - 1 || reorder.isPending}
+                        onClick={() => move(index, 1)}
+                      >
+                        ↓
+                      </Button>
+                      <Button size="sm" variant="secondary" onClick={() => open(c)}>
+                        {t('admin.ccat.edit')}
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="secondary"
+
+                        loading={toggle.isPending && toggle.variables?.id === c.id}
+                        onClick={() => toggle.mutate(c)}
+                      >
+                        {t(c.active ? 'admin.ccat.deactivate' : 'admin.ccat.activate')}
+                      </Button>
+                      <Button size="sm" variant="danger" onClick={() => setRemoving(c)}>
+                        {t('admin.ccat.remove')}
+                      </Button>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
         )}
       </div>
       <ConfirmDialog

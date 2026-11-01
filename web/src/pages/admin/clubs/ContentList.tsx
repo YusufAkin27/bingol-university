@@ -14,11 +14,14 @@ import {
   ErrorState,
   FormField,
   Input,
+  Insight,
   Pagination,
   Select,
   Skeleton,
+  StatTile,
   Button,
 } from '../../../components/ui';
+import { CollapsibleFilters, SummaryStrip } from '../community/Summary';
 import { useI18n } from '../../../i18n/I18nProvider';
 import { useDebouncedValue } from '../../../lib/hooks';
 import { adminError } from '../../../lib/errors';
@@ -55,12 +58,22 @@ export function ContentList({ communityId, kind, onOpenClub }: Props) {
     staleTime: 10_000,
   });
   const data = list.data;
+  const reported = (data?.items ?? []).filter((r) => r.openReportCount > 0).length;
+  const hidden = (data?.items ?? []).filter((r) => r.state === 'HIDDEN').length;
+  const activeFilters =
+    (filters.status !== 'ALL' ? 1 : 0) +
+    (!kind && filters.kind !== 'ALL' ? 1 : 0) +
+    (filters.q ? 1 : 0) +
+    (filters.minReports ? 1 : 0) +
+    (filters.from ? 1 : 0) +
+    (filters.to ? 1 : 0);
 
   return (
     <div>
+      <CollapsibleFilters label={t('admin.v2.filters.title')} activeCount={activeFilters}>
       <div className={styles.filters} role="search" aria-label={t('admin.p06.content.filters')}>
         <FormField label={t('admin.p06.content.filter.status')}>
-          <Select value={filters.status} onChange={(e) => set({ status: e.target.value as ContentState | 'ALL' })}>
+          <Select data-search-anchor="cr-state" value={filters.status} onChange={(e) => set({ status: e.target.value as ContentState | 'ALL' })}>
             {STATES.map((s) => (
               <option key={s} value={s}>
                 {t(`admin.p06.content.statusFilter.${s}`)}
@@ -70,7 +83,7 @@ export function ContentList({ communityId, kind, onOpenClub }: Props) {
         </FormField>
         {!kind && (
           <FormField label={t('admin.p06.content.filter.kind')}>
-            <Select value={filters.kind} onChange={(e) => set({ kind: e.target.value as ContentKind | 'ALL' })}>
+            <Select data-search-anchor="cr-kind" value={filters.kind} onChange={(e) => set({ kind: e.target.value as ContentKind | 'ALL' })}>
               {KINDS.map((k) => (
                 <option key={k} value={k}>
                   {t(`admin.p06.content.kindFilter.${k}`)}
@@ -81,14 +94,17 @@ export function ContentList({ communityId, kind, onOpenClub }: Props) {
         )}
         <FormField label={t('admin.p06.content.filter.q')}>
           <Input
+            data-search-anchor="cr-q"
             type="search"
             value={filters.q}
             placeholder={t('admin.p06.content.filter.qPlaceholder')}
             onChange={(e) => set({ q: e.target.value })}
           />
         </FormField>
-        <FormField label={t('admin.p06.content.filter.minReports')}>
+        <FormField label={t('admin.p06.content.filter.minReports')} hint={t('admin.v2.cr.minHint')}>
           <Input
+            data-search-anchor="cr-min-reports"
+            placeholder="0"
             type="text"
             inputMode="numeric"
             value={filters.minReports}
@@ -96,13 +112,13 @@ export function ContentList({ communityId, kind, onOpenClub }: Props) {
           />
         </FormField>
         <FormField label={t('admin.p06.content.filter.from')}>
-          <Input type="date" value={filters.from} onChange={(e) => set({ from: e.target.value })} />
+          <Input data-search-anchor="cr-dates" type="date" value={filters.from} onChange={(e) => set({ from: e.target.value })} />
         </FormField>
         <FormField label={t('admin.p06.content.filter.to')}>
           <Input type="date" value={filters.to} onChange={(e) => set({ to: e.target.value })} />
         </FormField>
         <FormField label={t('admin.p06.content.filter.sort')}>
-          <Select value={filters.sort} onChange={(e) => set({ sort: e.target.value as ContentFilters['sort'] })}>
+          <Select data-search-anchor="cr-sort" value={filters.sort} onChange={(e) => set({ sort: e.target.value as ContentFilters['sort'] })}>
             <option value="createdAt">{t('admin.p06.content.sort.createdAt')}</option>
             <option value="reports">{t('admin.p06.content.sort.reports')}</option>
           </Select>
@@ -111,6 +127,25 @@ export function ContentList({ communityId, kind, onOpenClub }: Props) {
           {t('admin.p06.filter.reset')}
         </Button>
       </div>
+      </CollapsibleFilters>
+
+      {data && data.items.length > 0 && (
+        <SummaryStrip
+          insight={
+            <Insight
+              tone={reported > 0 ? 'warn' : 'info'}
+              parts={t(reported > 0 ? 'admin.v2.cr.insightReported' : 'admin.v2.cr.insightClean', {
+                n: data.items.length,
+                reported,
+                hidden,
+              })}
+            />
+          }
+        >
+          <StatTile icon="flag" label={t('admin.v2.cr.reported')} value={reported} caption={t('admin.v2.cr.reportedCap')} />
+          <StatTile icon="eyeOff" label={t('admin.v2.cr.hidden')} value={hidden} caption={t('admin.v2.cr.hiddenCap')} />
+        </SummaryStrip>
+      )}
 
       {list.isError ? (
         <ErrorState description={adminError(i18n, list.error)} onRetry={() => void list.refetch()} />
@@ -124,7 +159,7 @@ export function ContentList({ communityId, kind, onOpenClub }: Props) {
             <p className={styles.meta} aria-live="polite">
               {t('admin.p06.content.count', { n: data.total })}
             </p>
-            <ul className={styles.list} data-testid="content-list">
+            <ul className={styles.list} data-testid="content-list" data-search-anchor="cr-reports">
               {data.items.map((r) => (
                 <ContentRowItem key={r.id} row={r} actions={actions} showClub={!communityId} onOpenClub={onOpenClub} />
               ))}

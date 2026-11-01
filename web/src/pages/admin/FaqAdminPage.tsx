@@ -13,8 +13,11 @@ import {
   Icon,
   IconButton,
   Input,
+  Insight,
   Modal,
   PageHeader,
+  RankedBars,
+  StatTile,
   Skeleton,
   Switch,
   Tabs,
@@ -26,6 +29,7 @@ import { GuardedDialog } from '../../components/admin/GuardedDialog';
 import { useI18n } from '../../i18n/I18nProvider';
 import { errorMessage } from '../../lib/errors';
 import { usePageTitle } from '../../lib/hooks';
+import { SummaryStrip } from './community/Summary';
 import { moveItem } from './moderation/p11Logic';
 import p11 from './moderation/p11.module.css';
 import styles from './content/Faq.module.css';
@@ -72,6 +76,7 @@ export default function FaqAdminPage() {
     return [...map.entries()].sort(([a], [b]) => a.localeCompare(b, i18n.locale));
   }, [allItems, lang, i18n.locale]);
   const total = groups.reduce((n, [, l]) => n + l.length, 0);
+  const drafts = groups.reduce((n, [, l]) => n + l.filter((f) => !f.published).length, 0);
   const categories = useMemo(
     () => [...new Set(allItems.filter((f) => f.lang === lang).map((f) => f.category))],
     [allItems, lang],
@@ -178,17 +183,46 @@ export default function FaqAdminPage() {
         title={t('admin.faq.title')}
        
         actions={
-          <Button leftIcon={<Icon name="plus" size={18} />} onClick={openNew}>
+          <Button data-search-anchor="faq-add" leftIcon={<Icon name="plus" size={18} />} onClick={openNew}>
             {t('admin.faq.add')}
           </Button>
         }
       />
-      <Tabs
-        label={t('admin.faq.langs')}
-        value={lang}
-        onChange={(id) => setLang(id as Lang)}
-        tabs={LANGS.map((l) => ({ id: l, label: t(`admin.legal.lang.${l}`) }))}
-      />
+      <div data-search-anchor="faq-langs">
+        <Tabs
+          label={t('admin.faq.langs')}
+          value={lang}
+          onChange={(id) => setLang(id as Lang)}
+          tabs={LANGS.map((l) => ({ id: l, label: t(`admin.legal.lang.${l}`) }))}
+        />
+      </div>
+
+      {!query.isError && !query.isLoading && total > 0 && (
+        <SummaryStrip
+          insight={
+            <Insight
+              tone={drafts > 0 ? 'warn' : 'good'}
+              parts={t(drafts > 0 ? 'admin.v2.faq.insightDraft' : 'admin.v2.faq.insightAll', {
+                total,
+                drafts,
+                cats: groups.length,
+              })}
+            />
+          }
+        >
+          <StatTile icon="help" label={t('admin.v2.faq.published')} value={total - drafts} caption={t('admin.v2.faq.publishedCap')} />
+          <StatTile icon="file" label={t('admin.v2.faq.drafts')} value={drafts} caption={t('admin.v2.faq.draftsCap')} />
+          {groups.length > 1 && (
+            <div data-search-anchor="faq-category">
+              <RankedBars
+                ariaLabel={t('admin.v2.faq.byCategory')}
+                limit={4}
+                items={groups.map(([cat, list]) => ({ key: cat, label: cat, value: list.length }))}
+              />
+            </div>
+          )}
+        </SummaryStrip>
+      )}
 
       {query.isError ? (
         <ErrorState onRetry={() => void query.refetch()} description={errorMessage(i18n, query.error)} />
@@ -259,9 +293,9 @@ export default function FaqAdminPage() {
                       <Button size="sm" variant="secondary" onClick={() => openEdit(f)}>
                         {t('common.edit')}
                       </Button>
-                      <IconButton label={t('common.delete')} size="sm" onClick={() => setDeleting(f)}>
-                        <Icon name="x" size={16} />
-                      </IconButton>
+                      <Button size="sm" variant="dangerOutline" onClick={() => setDeleting(f)}>
+                        {t('common.delete')}
+                      </Button>
                     </div>
                   </li>
                 ))}
@@ -273,7 +307,7 @@ export default function FaqAdminPage() {
 
       {query.hasNextPage && !query.isError && total > 0 && <p className={styles.moreHint}>{t('admin.p12.faq.orderLocked')}</p>}
       {query.hasNextPage && !query.isError && (
-        <div className={styles.more}>
+        <div className={styles.more} data-search-anchor="faq-more">
           <p className={styles.moreHint}>
             {total === 0 ? t('admin.p05.faq.moreOtherLang') : t('admin.p05.faq.moreHint')}
           </p>

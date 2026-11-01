@@ -196,3 +196,33 @@
   padding-block-end: var(--space-2);
   border-block-end: 1px solid var(--border);
 }
+
+.slug {
+  overflow-wrap: anywhere;
+}
+@media (max-width: 639px) {
+  .slug {
+    display: none;
+  }
+}
+.memberCell {
+  display: grid;
+  gap: var(--space-1);
+  justify-items: start;
+  min-inline-size: 7rem;
+}
+.summary {
+  display: grid;
+  gap: var(--space-2);
+  margin-block-end: var(--space-3);
+}
+.thumb {
+  display: block;
+  inline-size: 6rem;
+  max-inline-size: 100%;
+  block-size: 4.5rem;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+  margin-block-end: var(--space-1);
+  background: var(--surface-3);
+}
