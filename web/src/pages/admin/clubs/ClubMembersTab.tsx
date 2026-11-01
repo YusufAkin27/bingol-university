@@ -115,7 +115,7 @@ export function ClubMembersTab({ communityId, clubName }: { communityId: number;
                         <span className={`${styles.muted} ltr`}>{mm.email}</span>
                       </span>
                       <span className={styles.badges}>
-                        <Badge tone={mm.role === 'OWNER' ? 'primary' : mm.role === 'MEMBER' ? 'neutral' : 'info'}>
+                        <Badge tone={mm.role === 'OWNER' ? 'success' : mm.role === 'MEMBER' ? 'neutral' : 'info'}>
                           {t(`admin.p06.members.role.${mm.role}`)}
                         </Badge>
                         {mm.status !== 'ACTIVE' && (

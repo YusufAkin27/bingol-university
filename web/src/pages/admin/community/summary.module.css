@@ -1,0 +1,89 @@
+.strip {
+  display: grid;
+  gap: var(--space-3);
+  margin-block-end: var(--space-4);
+  min-width: 0;
+}
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3);
+}
+@media (min-width: 640px) {
+  .grid {
+    grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+  }
+}
+
+.stack {
+  display: grid;
+  gap: var(--space-2);
+  min-width: 0;
+}
+.stackBar {
+  display: flex;
+  block-size: 0.75rem;
+  border-radius: 999px;
+  overflow: hidden;
+  background: var(--surface-3, var(--surface-2));
+  gap: 2px;
+}
+.seg {
+  min-inline-size: 4px;
+}
+.seg_success {
+  background: var(--success);
+}
+.seg_warning {
+  background: var(--warning);
+}
+.seg_danger {
+  background: var(--danger);
+}
+.seg_info {
+  background: var(--info, var(--text-muted));
+}
+.seg_neutral {
+  background: var(--text-faint);
+}
+.stackLegend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+.swatch {
+  display: inline-block;
+  inline-size: 0.75rem;
+  block-size: 0.75rem;
+  border-radius: 3px;
+  margin-inline-end: var(--space-1);
+  vertical-align: -1px;
+}
+
+.fill {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+.fillTrack {
+  display: block;
+  block-size: 0.5rem;
+  border-radius: 999px;
+  background: var(--surface-3, var(--surface-2));
+  overflow: hidden;
+}
+.fillBar {
+  display: block;
+  block-size: 100%;
+  border-radius: 999px;
+}
+.fillText {
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+  overflow-wrap: anywhere;
+}

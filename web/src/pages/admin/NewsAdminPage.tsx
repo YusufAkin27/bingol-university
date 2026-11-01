@@ -14,15 +14,18 @@ import {
   EmptyState,
   ErrorState,
   Icon,
-  IconButton,
+  Insight,
   PageHeader,
   Pagination,
+  ResponsiveTable,
   Select,
+  StatTile,
   StatusPill,
-  Table,
+  useKitFormat,
   useToast,
   type Column,
 } from '../../components/ui';
+import { SummaryStrip } from './community/Summary';
 import { useI18n } from '../../i18n/I18nProvider';
 import { errorMessage } from '../../lib/errors';
 import { usePageTitle } from '../../lib/hooks';
@@ -49,6 +52,7 @@ function syncSummary(r: Record<string, number> | undefined): string | null {
 export default function NewsAdminPage() {
   const i18n = useI18n();
   const { t, formatDate, formatDateTime } = i18n;
+  const kit = useKitFormat();
   usePageTitle(t('admin.news.title'));
   const toast = useToast();
   const qc = useQueryClient();
@@ -70,7 +74,11 @@ export default function NewsAdminPage() {
     page,
     size: PAGE_SIZE,
   };
-  const list = useQuery({ queryKey: qk.news.list(params), queryFn: () => newsApi.listNews(params), placeholderData: (p) => p });
+  const list = useQuery({
+    queryKey: qk.news.list(params),
+    queryFn: () => newsApi.listNews(params),
+    placeholderData: (p) => p,
+  });
   const status = useQuery({ queryKey: qk.settings.sync(), queryFn: settingsApi.getSyncStatus });
 
   const sync = useMutation({
@@ -80,7 +88,9 @@ export default function NewsAdminPage() {
     },
     onSuccess: ({ src, result }) => {
       if (src === 'NEWS') {
-        toast.success(t('admin.news.sync.doneNews', { summary: syncSummary(result) ?? t('admin.news.sync.noNew') }));
+        toast.success(
+          t('admin.news.sync.doneNews', { summary: syncSummary(result) ?? t('admin.news.sync.noNew') }),
+        );
       } else {
         toast.success(t('admin.news.sync.doneMenu', { n: result?.changed ?? 0 }));
       }
@@ -99,6 +109,7 @@ export default function NewsAdminPage() {
     {
       key: 'title',
       header: t('admin.news.col.title'),
+      card: { priority: 1 },
       render: (r) => (
         <span className={styles.title}>
           <span dir="auto" className={r.hidden ? styles.dim : undefined}>
@@ -108,11 +119,22 @@ export default function NewsAdminPage() {
         </span>
       ),
     },
-    { key: 'type', header: t('admin.news.col.type'), render: (r) => t(`admin.news.type.${r.type}`) },
-    { key: 'date', header: t('admin.news.col.date'), render: (r) => formatDate(r.publishedDate) },
+    {
+      key: 'type',
+      header: t('admin.news.col.type'),
+      card: { priority: 2 },
+      render: (r) => <Badge tone="info">{t(`admin.news.type.${r.type}`)}</Badge>,
+    },
+    {
+      key: 'date',
+      header: t('admin.news.col.date'),
+      card: { priority: 3 },
+      render: (r) => (r.publishedDate ? formatDate(r.publishedDate) : '–'),
+    },
     {
       key: 'source',
       header: t('admin.news.col.source'),
+      card: { priority: 3, label: t('admin.news.col.source') },
       render: (r) => (
         <a href={r.url} target="_blank" rel="noopener noreferrer" className={styles.source}>
           {t('admin.news.openSource')}
@@ -124,18 +146,23 @@ export default function NewsAdminPage() {
       key: 'actions',
       header: <span className="sr-only">{t('admin.news.col.actions')}</span>,
       align: 'end',
+      card: { actions: true },
       render: (r) => (
-        <IconButton
+        <Button
           variant="secondary"
           size="sm"
-          label={`${r.hidden ? t('admin.news.show') : t('admin.news.hide')}: ${r.title}`}
+          aria-label={`${r.hidden ? t('admin.news.show') : t('admin.news.hide')}: ${r.title}`}
+          leftIcon={<Icon name={r.hidden ? 'eye' : 'eyeOff'} size={16} />}
           onClick={() => setToggling({ row: r, hidden: !r.hidden })}
         >
-          <Icon name={r.hidden ? 'eye' : 'eyeOff'} size={16} />
-        </IconButton>
+          {r.hidden ? t('admin.news.show') : t('admin.news.hide')}
+        </Button>
       ),
     },
   ];
+
+  const pageHidden = (list.data?.items ?? []).filter((r) => r.hidden).length;
+  const total = list.data?.totalItems;
 
   function sourceStatus(src: Source): SyncSourceStatus | undefined {
     return status.data?.[src];
@@ -146,15 +173,45 @@ export default function NewsAdminPage() {
       <PageHeader
         title={t('admin.news.title')}
         actions={
-          <BulkCsvButton
-            filename="haberler.csv"
-            fetchCsv={() =>
-              exportNewsCsv({ q, type, hidden: vis === '' ? undefined : vis === 'hidden' })
-            }
-          />
+          <span data-search-anchor="news-csv">
+            <BulkCsvButton
+              filename="haberler.csv"
+              fetchCsv={() => exportNewsCsv({ q, type, hidden: vis === '' ? undefined : vis === 'hidden' })}
+            />
+          </span>
         }
       />
-      <Card title={t('admin.news.sync.title')} className={styles.syncCard}>
+      {list.data && (
+        <SummaryStrip
+          insight={
+            <Insight
+              tone={pageHidden > 0 ? 'warn' : 'info'}
+              parts={
+                (total ?? 0) === 0
+                  ? t('admin.v2.news.insight.empty')
+                  : t(pageHidden > 0 ? 'admin.v2.news.insight.hidden' : 'admin.v2.news.insight.noHidden', {
+                      total: kit.number(total ?? 0),
+                      hidden: kit.number(pageHidden),
+                    })
+              }
+            />
+          }
+        >
+          <StatTile
+            icon="news"
+            label={t('admin.v2.news.sum.total')}
+            value={total ?? 0}
+            caption={t('admin.v2.news.sum.totalCap')}
+          />
+          <StatTile
+            icon="eyeOff"
+            label={t('admin.v2.news.sum.hidden')}
+            value={pageHidden}
+            caption={t('admin.v2.news.sum.hiddenCap')}
+          />
+        </SummaryStrip>
+      )}
+      <Card title={t('admin.news.sync.title')} className={styles.syncCard} data-search-anchor="news-sync">
         {status.isError ? (
           <p className={styles.muted}>{t('admin.news.sync.unavailable')}</p>
         ) : (
@@ -162,7 +219,12 @@ export default function NewsAdminPage() {
             {SOURCES.map((src) => {
               const s = sourceStatus(src);
               return (
-                <div key={src} className={styles.source2} data-source={src}>
+                <div
+                  key={src}
+                  className={styles.source2}
+                  data-source={src}
+                  data-search-anchor={src === 'NEWS' ? 'news-sync-news' : 'news-sync-menu'}
+                >
                   <div className={styles.srcHead}>
                     <strong>{t(`admin.news.sync.${src}`)}</strong>
                     {s && (
@@ -171,10 +233,19 @@ export default function NewsAdminPage() {
                       </StatusPill>
                     )}
                   </div>
+                  {s && (
+                    <p
+                      className={s.maintenance ? styles.age : styles.muted}
+                      data-search-anchor={src === 'NEWS' ? 'news-sync-status' : undefined}
+                    >
+                      {s.maintenance ? t('admin.v2.news.syncMaintenance') : t('admin.v2.news.syncOk')}
+                    </p>
+                  )}
                   <p className={styles.muted}>
-                    {t('admin.news.sync.lastSuccess', {
-                      date: s?.lastSuccessAt ? formatDateTime(s.lastSuccessAt) : t('admin.news.sync.never'),
-                    })}
+                    {s?.lastSuccessAt
+                      ? t('admin.v2.news.syncAge.ago', { ago: kit.relative(s.lastSuccessAt) })
+                      : t('admin.v2.news.syncAge.never')}
+                    {s?.lastSuccessAt ? ` (${formatDateTime(s.lastSuccessAt)})` : ''}
                   </p>
                   <p className={styles.muted}>
                     {t('admin.news.sync.lastAttempt', {
@@ -200,50 +271,56 @@ export default function NewsAdminPage() {
         )}
       </Card>
 
-      <DataToolbar
-        onSearch={(v) => {
-          setQ(v);
-          setPage(0);
-        }}
-        searchPlaceholder={t('admin.news.searchPlaceholder')}
-        filters={
-          <div className={styles.filterRow}>
-            <Select className={styles.filter}
-              aria-label={t('admin.news.filter.type')}
-              value={type}
-              onChange={(e) => {
-                setType(e.target.value as NewsType | '');
-                setPage(0);
-              }}
-            >
-              <option value="">{t('admin.news.filter.allTypes')}</option>
-              {TYPES.map((x) => (
-                <option key={x} value={x}>
-                  {t(`admin.news.type.${x}`)}
-                </option>
-              ))}
-            </Select>
-            <Select className={styles.filter}
-              aria-label={t('admin.news.filter.visibility')}
-              value={vis}
-              onChange={(e) => {
-                setVis(e.target.value as '' | 'visible' | 'hidden');
-                setPage(0);
-              }}
-            >
-              <option value="">{t('admin.news.filter.all')}</option>
-              <option value="visible">{t('admin.news.filter.visible')}</option>
-              <option value="hidden">{t('admin.news.filter.hidden')}</option>
-            </Select>
-          </div>
-        }
-      />
+      <div data-search-anchor="news-q">
+        <DataToolbar
+          onSearch={(v) => {
+            setQ(v);
+            setPage(0);
+          }}
+          searchPlaceholder={t('admin.news.searchPlaceholder')}
+          filters={
+            <div className={styles.filterRow}>
+              <Select
+                className={styles.filter}
+                data-search-anchor="news-type"
+                aria-label={t('admin.news.filter.type')}
+                value={type}
+                onChange={(e) => {
+                  setType(e.target.value as NewsType | '');
+                  setPage(0);
+                }}
+              >
+                <option value="">{t('admin.news.filter.allTypes')}</option>
+                {TYPES.map((x) => (
+                  <option key={x} value={x}>
+                    {t(`admin.news.type.${x}`)}
+                  </option>
+                ))}
+              </Select>
+              <Select
+                className={styles.filter}
+                data-search-anchor="news-visible"
+                aria-label={t('admin.news.filter.visibility')}
+                value={vis}
+                onChange={(e) => {
+                  setVis(e.target.value as '' | 'visible' | 'hidden');
+                  setPage(0);
+                }}
+              >
+                <option value="">{t('admin.news.filter.all')}</option>
+                <option value="visible">{t('admin.news.filter.visible')}</option>
+                <option value="hidden">{t('admin.news.filter.hidden')}</option>
+              </Select>
+            </div>
+          }
+        />
+      </div>
 
       {list.isError ? (
         <ErrorState onRetry={() => void list.refetch()} description={errorMessage(i18n, list.error)} />
       ) : (
-        <>
-          <Table
+        <div data-search-anchor="news-list">
+          <ResponsiveTable
             caption={t('admin.news.title')}
             columns={columns}
             rows={list.data?.items}
@@ -268,7 +345,7 @@ export default function NewsAdminPage() {
               onPageChange={setPage}
             />
           )}
-        </>
+        </div>
       )}
 
       <NewsBulkBar ids={[...selection.selected]} onClear={selection.clear} />
@@ -278,7 +355,9 @@ export default function NewsAdminPage() {
         onClose={() => setToggling(null)}
         title={t(toggling?.hidden ? 'admin.p05.news.hideTitle' : 'admin.p05.news.showTitle')}
         message={<strong dir="auto">{toggling?.row.title}</strong>}
-        consequence={t(toggling?.hidden ? 'admin.p05.news.hideConsequence' : 'admin.p05.news.showConsequence')}
+        consequence={t(
+          toggling?.hidden ? 'admin.p05.news.hideConsequence' : 'admin.p05.news.showConsequence',
+        )}
         irreversible={false}
         confirmLabel={t(toggling?.hidden ? 'admin.news.hide' : 'admin.news.show')}
         danger={toggling?.hidden}

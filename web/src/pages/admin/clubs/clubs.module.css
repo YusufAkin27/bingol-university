@@ -98,14 +98,30 @@
   gap: var(--space-2);
 }
 .person {
-  display: inline-flex;
+  /* Uzun ad/e-posta kendi satırında kırılır; taşmaz (eskiden inline-flex + nowrap e-posta harf harf kırıyordu) */
+  display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: var(--space-2);
+  gap: var(--space-1) var(--space-2);
+  flex: 1 1 14rem;
   min-inline-size: 0;
+  max-inline-size: 100%;
 }
 .personName {
   font-weight: 600;
   overflow-wrap: anywhere;
+  flex: 1 1 8rem;
+  min-inline-size: 0;
+}
+.person .muted {
+  flex: 1 1 100%;
+  min-inline-size: 0;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.person > img,
+.person > :first-child {
+  flex: 0 0 auto;
 }
 .spacer {
   flex: 1 1 auto;

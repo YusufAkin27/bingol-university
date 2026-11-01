@@ -31,15 +31,32 @@
   color: var(--text-muted);
 }
 .title {
+  /* Başlık sütunu ezilmesin: tek min-width (eskiden ikinci satır 0'a çekip sütunu 70 px'e düşürüyordu) */
   min-width: 14rem;
   display: inline-flex;
   align-items: center;
   gap: var(--space-2);
   flex-wrap: wrap;
-  min-width: 0;
 }
 .title > span:first-child {
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
+  word-break: normal;
+  min-width: 0;
+}
+@media (max-width: 639px) {
+  /* Kart görünümünde sütun genişliği yok */
+  .title {
+    min-width: 0;
+  }
+}
+.actionRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  align-items: center;
+}
+.age {
+  font-weight: 600;
 }
 .dim {
   color: var(--text-muted);
