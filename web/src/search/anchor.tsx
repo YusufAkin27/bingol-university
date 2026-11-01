@@ -12,7 +12,7 @@ import { useToast } from '../components/ui/Toast';
 import { useI18n } from '../i18n/I18nProvider';
 import './search.module.css'; // vurgu stilleri (genel seçiciler)
 
-const WAIT_MS = 3500;
+const WAIT_MS = 8000;
 const POLL_MS = 100;
 const HIGHLIGHT_MS = 2200;
 const ATTR = 'data-search-anchor';
