@@ -1,0 +1,423 @@
+/* Sistem durumu: kahraman, katlanır gruplar, dolgun kartlar, kompakt satırlar, eşikli çubuk. Yalnız token + mantıksal özellikler. */
+.page {
+  display: grid;
+  gap: var(--space-4);
+  margin-block-start: var(--space-4);
+  min-inline-size: 0;
+}
+.stack {
+  display: grid;
+  gap: var(--space-3);
+}
+.muted {
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  margin: 0;
+}
+
+/* ---- Kahraman ---- */
+.hero {
+  display: flex;
+  gap: var(--space-4);
+  align-items: flex-start;
+  padding: var(--space-5);
+  border-radius: var(--radius-lg);
+  border: 2px solid var(--border);
+  background: var(--surface);
+  min-inline-size: 0;
+}
+.hero[data-status='OK'] {
+  border-color: var(--success);
+  background: var(--success-soft);
+}
+.hero[data-status='WARN'] {
+  border-color: var(--warning);
+  background: var(--warning-soft);
+}
+.hero[data-status='CRIT'] {
+  border-color: var(--danger);
+  background: var(--danger-soft);
+}
+.hero[data-status='UNKNOWN'] {
+  background: var(--surface-2);
+}
+.heroIcon {
+  flex: none;
+  display: grid;
+  place-items: center;
+  inline-size: 4rem;
+  block-size: 4rem;
+  border-radius: var(--radius-pill);
+  background: var(--surface);
+  border: 3px solid currentColor;
+}
+.hero[data-status='OK'] .heroIcon {
+  color: var(--success);
+}
+.hero[data-status='WARN'] .heroIcon {
+  color: var(--warning);
+}
+.hero[data-status='CRIT'] .heroIcon {
+  color: var(--danger);
+}
+.hero[data-status='UNKNOWN'] .heroIcon {
+  color: var(--text-muted);
+}
+.heroBody {
+  display: grid;
+  gap: var(--space-2);
+  min-inline-size: 0;
+  flex: 1;
+}
+.heroKicker {
+  margin: 0;
+  font-size: var(--text-xs);
+  font-weight: 700;
+  color: var(--text-muted);
+}
+.heroTitle {
+  margin: 0;
+  font-size: var(--text-xl);
+  line-height: var(--leading-tight);
+  overflow-wrap: anywhere;
+}
+.heroText {
+  margin: 0;
+  font-size: var(--text-base);
+}
+.heroCounts {
+  margin: 0;
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
+.problems {
+  list-style: none;
+  margin: var(--space-1) 0;
+  padding: 0;
+  display: grid;
+  gap: var(--space-2);
+}
+.problems li {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-inline-start-width: 4px;
+  border-radius: var(--radius-md);
+  min-block-size: 2.75rem;
+}
+.problems li[data-status='CRIT'] {
+  border-inline-start-color: var(--danger);
+  color: var(--danger);
+}
+.problems li[data-status='WARN'] {
+  border-inline-start-color: var(--warning);
+  color: var(--warning);
+}
+.problemText {
+  flex: 1;
+  min-inline-size: 0;
+  color: var(--text);
+  overflow-wrap: anywhere;
+}
+.jump {
+  flex: none;
+  min-block-size: 2.75rem;
+  min-inline-size: 2.75rem;
+  padding: 0 var(--space-3);
+  background: none;
+  border: 0;
+  color: var(--link);
+  font: inherit;
+  font-weight: 700;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+/* ---- Katlanır gruplar ---- */
+.group {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 0 var(--space-4) var(--space-4);
+  min-inline-size: 0;
+}
+.group:not([open]) {
+  padding-block-end: 0;
+}
+.groupSummary {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-block-size: 3.5rem;
+  padding-block: var(--space-3);
+  cursor: pointer;
+  list-style: none;
+}
+.groupSummary::-webkit-details-marker {
+  display: none;
+}
+.groupIcon {
+  flex: none;
+  display: grid;
+  place-items: center;
+  inline-size: 1.75rem;
+  block-size: 1.75rem;
+  border-radius: var(--radius-pill);
+  border: 2px solid currentColor;
+}
+.groupIcon[data-status='OK'] {
+  color: var(--success);
+}
+.groupIcon[data-status='WARN'] {
+  color: var(--warning);
+}
+.groupIcon[data-status='CRIT'] {
+  color: var(--danger);
+}
+.groupIcon[data-status='UNKNOWN'] {
+  color: var(--text-muted);
+}
+.groupHead {
+  display: grid;
+  flex: 1;
+  min-inline-size: 0;
+}
+.groupTitle {
+  font-size: var(--text-lg);
+  font-weight: 700;
+}
+.groupSub {
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+.chevron {
+  flex: none;
+  transition: transform 0.15s var(--ease);
+}
+.group[open] .chevron {
+  transform: rotate(180deg);
+}
+.groupAbout {
+  margin: 0 0 var(--space-3);
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+
+/* ---- Dolgun kart ---- */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 16rem), 1fr));
+  gap: var(--space-3);
+}
+.card {
+  display: grid;
+  gap: var(--space-2);
+  align-content: start;
+  padding: var(--space-4);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-inline-start-width: 6px;
+  border-radius: var(--radius-lg);
+  min-inline-size: 0;
+}
+.card[data-status='OK'] {
+  border-inline-start-color: var(--success);
+}
+.card[data-status='WARN'] {
+  border-inline-start-color: var(--warning);
+}
+.card[data-status='CRIT'] {
+  border-inline-start-color: var(--danger);
+  background: var(--danger-soft);
+}
+.card[data-status='UNKNOWN'] {
+  border-inline-start-color: var(--border-strong, var(--border));
+}
+.label {
+  margin: 0;
+  font-weight: 700;
+}
+.value {
+  margin: 0;
+  font-size: var(--text-xl);
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+.valueSm {
+  margin: 0;
+  font-weight: 700;
+}
+.message {
+  margin: 0;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: var(--text-xs);
+  font-weight: 700;
+}
+.badge[data-status='OK'] {
+  color: var(--success);
+}
+.badge[data-status='WARN'] {
+  color: var(--warning);
+}
+.badge[data-status='CRIT'] {
+  color: var(--danger);
+}
+.badge[data-status='UNKNOWN'] {
+  color: var(--text-muted);
+}
+.link {
+  color: var(--link);
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  min-block-size: 2.75rem;
+}
+
+/* ---- Eşikli çubuk ---- */
+.meter {
+  position: relative;
+  block-size: 0.625rem;
+  border-radius: var(--radius-pill);
+  background: var(--surface-3);
+  overflow: visible;
+}
+.meterFill {
+  block-size: 100%;
+  border-radius: inherit;
+  background: var(--success);
+  min-inline-size: 2px;
+}
+.meter[data-status='WARN'] .meterFill {
+  background: var(--warning);
+}
+.meter[data-status='CRIT'] .meterFill {
+  background: var(--danger);
+}
+.meter[data-status='UNKNOWN'] .meterFill {
+  background: var(--text-faint);
+}
+.meterTick {
+  position: absolute;
+  inset-block: -3px;
+  inline-size: 2px;
+  background: var(--text-muted);
+}
+.meterTick[data-kind='crit'] {
+  background: var(--danger);
+}
+
+/* ---- Yığılmış kampanya çubuğu ---- */
+.stacked {
+  display: flex;
+  block-size: 0.75rem;
+  border-radius: var(--radius-pill);
+  overflow: hidden;
+  gap: 2px;
+}
+.stackSeg {
+  min-inline-size: 4px;
+  background: var(--text-faint);
+}
+.stackSeg[data-tone='success'] {
+  background: var(--success);
+}
+.stackSeg[data-tone='danger'] {
+  background: var(--danger);
+}
+.stackSeg[data-tone='info'] {
+  background: var(--info);
+}
+
+/* ---- Kompakt satırlar ---- */
+.rows {
+  list-style: none;
+  margin: var(--space-3) 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 22rem), 1fr));
+  gap: var(--space-1) var(--space-4);
+}
+.row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-block-size: 2.75rem;
+  padding-block: var(--space-1);
+  border-block-end: 1px solid var(--border);
+  min-inline-size: 0;
+}
+.rowIcon {
+  flex: none;
+  display: grid;
+  place-items: center;
+  color: var(--success);
+}
+.rowName {
+  flex: 1;
+  min-inline-size: 0;
+  overflow-wrap: anywhere;
+}
+.rowValue {
+  flex: none;
+  max-inline-size: 55%;
+  text-align: end;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+/* ---- Gönderilemeyen kayıtlar ---- */
+.errWrap {
+  display: grid;
+  gap: var(--space-1);
+  max-inline-size: 32rem;
+  color: var(--text-muted);
+}
+.errClamp {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+}
+.errFull {
+  overflow-wrap: anywhere;
+}
+.errToggle {
+  justify-self: start;
+  min-block-size: 2.75rem;
+  padding: 0;
+  background: none;
+  border: 0;
+  color: var(--link);
+  font: inherit;
+  font-weight: 700;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+@media (max-width: 40rem) {
+  .hero {
+    flex-direction: column;
+    padding: var(--space-4);
+  }
+  .heroIcon {
+    inline-size: 3.25rem;
+    block-size: 3.25rem;
+  }
+  .problems li {
+    flex-wrap: wrap;
+  }
+  .rowValue {
+    max-inline-size: 50%;
+  }
+}

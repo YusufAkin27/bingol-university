@@ -51,33 +51,64 @@ function setup(overall: 'OK' | 'CRIT' = 'CRIT') {
 }
 
 describe('Sistem durumu sayfası', () => {
-  it('göstergeleri simge + metinle gösterir, kritik uyarısı çıkarır', async () => {
+  it('kritik durumda kahraman cümlesi, sorun listesi ve simge + metinli kartlar gösterir', async () => {
     setup('CRIT');
     renderWithProviders(<SystemStatusPage />);
     const card = await screen.findByTestId('ind-mail.dead');
     expect(within(card).getByText('Kritik')).toBeInTheDocument();
-    expect(within(card).getByText('25')).toBeInTheDocument();
-    expect(within(card).getByText('Uyarı: 1 · Kritik: 20')).toBeInTheDocument();
+    expect(within(card).getByText('Gönderilemeyen e-postalar')).toBeInTheDocument();
+    expect(within(card).getByText('25 e-posta')).toBeInTheDocument();
+    expect(within(card).getByText('Uyarı eşiği: 1 · Kritik eşiği: 20')).toBeInTheDocument();
     expect(screen.getByTestId('ind-mail.oldestPendingAge')).toHaveTextContent('15 dk');
     expect(screen.getByTestId('ind-mail.oldestPendingAge')).toHaveTextContent('Uyarı');
     expect(screen.getByTestId('ind-backup.age')).toHaveTextContent('Bilinmiyor');
-    expect(screen.getByTestId('ind-disk.storage')).toHaveTextContent('%41,5');
-    expect(screen.getByTestId('ind-jobs.mail-queue')).toHaveTextContent('0 dk önce');
-    expect(screen.getByRole('alert')).toHaveTextContent('1 gösterge');
+    expect(screen.getByTestId('ind-disk.storage')).toHaveTextContent('%41,5 dolu');
+    expect(screen.getByTestId('ind-jobs.mail-queue')).toHaveTextContent('Az önce');
+    const hero = screen.getByTestId('sys-hero');
+    expect(hero).toHaveTextContent('Sorun var');
+    expect(hero).toHaveTextContent('25 kayıt ölü');
   });
 
-  it('her şey normalse kritik uyarısı göstermez', async () => {
+  it('her şey normalse "Her şey yolunda" der', async () => {
     setup('OK');
     renderWithProviders(<SystemStatusPage />);
     await screen.findByTestId('ind-mail.dead');
-    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+    expect(screen.getByTestId('sys-hero')).toHaveTextContent('Her şey yolunda');
+  });
+
+  it('ham anahtar göstermez: bilinmeyen gösterge "Diğer gösterge", kota ve depolama yüzde ile yazılır', async () => {
+    mockFetch((url) => {
+      if (url.includes('/admin/system/overview'))
+        return jsonResponse(200, {
+          generatedAt: '2026-10-28T10:00:00Z',
+          overall: 'WARN',
+          indicators: {
+            'mail.dailyQuota': { status: 'WARN', value: 82, threshold: { warn: 80, crit: 95 }, message: null },
+            storage: { status: 'OK', value: 83.4, threshold: { warn: 90, crit: 95 }, message: null },
+            'jobs.storage-alert': { status: 'OK', value: 300, threshold: { warn: 3600, crit: 7200 }, message: null },
+            'garip.anahtar': { status: 'OK', value: 3, threshold: null, message: null },
+            'campaign.counts': { status: 'OK', value: { SCHEDULED: 2, SENDING: 1, SENT: 40, FAILED: 1 }, threshold: null, message: null },
+          },
+        });
+      return jsonResponse(200, []);
+    });
+    renderWithProviders(<SystemStatusPage />);
+    const quota = await screen.findByTestId('ind-mail.dailyQuota');
+    expect(quota).toHaveTextContent('Bugünkü e-posta hakkı');
+    expect(quota).toHaveTextContent('%82 dolu');
+    expect(screen.getByTestId('ind-storage')).toHaveTextContent('%83,4 dolu');
+    expect(screen.getByTestId('ind-jobs.storage-alert')).toHaveTextContent('Disk doluluğu denetimi');
+    expect(screen.getByTestId('ind-jobs.storage-alert')).toHaveTextContent('5 dk önce');
+    expect(screen.getByTestId('ind-garip.anahtar')).toHaveTextContent('Diğer gösterge');
+    expect(screen.getByTestId('ind-campaign.counts')).toHaveTextContent('2 zamanlı, 1 gidiyor, 40 gitti, 1 hata');
+    expect(document.body.textContent).not.toMatch(/mail\.dailyQuota|jobs\.storage-alert/);
   });
 
   it('ölü mail kayıtlarını listeler ve seçilenleri yeniden dener', async () => {
     const calls = setup();
     renderWithProviders(<SystemStatusPage />);
     expect(await screen.findByText('VERIFY')).toBeInTheDocument();
-    await userEvent.click(screen.getByLabelText('Kaydı seç: 7'));
+    await userEvent.click(screen.getAllByLabelText('Satırı seç')[0]);
     await userEvent.click(screen.getByRole('button', { name: 'Seçilenleri yeniden dene' }));
     await waitFor(() =>
       expect(
@@ -94,7 +125,7 @@ describe('Sistem durumu sayfası', () => {
   it('silmeden önce onay ister', async () => {
     const calls = setup();
     renderWithProviders(<SystemStatusPage />);
-    await userEvent.click(await screen.findByLabelText('Kaydı seç: 8'));
+    await userEvent.click((await screen.findAllByLabelText('Satırı seç'))[1]);
     await userEvent.click(screen.getByRole('button', { name: 'Seçilenleri sil' }));
     expect(calls.some((c) => c.url.endsWith('/mail/delete'))).toBe(false);
     const dialog = await screen.findByRole('dialog');
