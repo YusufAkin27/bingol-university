@@ -24,6 +24,9 @@ TR_ONLY.add('admin-genel.ts'); // PANEL-genel-bakis
 TR_ONLY.add('admin-mod1.ts'); // PANEL-yaptirim
 TR_ONLY.add('admin-mod2.ts'); // PANEL-icerik-denetimi
 TR_ONLY.add('admin-icerik.ts'); // PANEL-akademik-icerik
+TR_ONLY.add('admin-insan.ts'); // PANEL-insanlar
+TR_ONLY.add('admin-topluluk.ts'); // PANEL-topluluk
+TR_ONLY.add('admin-sys2.ts'); // PANEL-sistem-saglik
 const problems = [];
 
 for (const f of readdirSync(join(root, 'tr')).filter((x) => x.endsWith('.ts') && !TR_ONLY.has(x))) {
