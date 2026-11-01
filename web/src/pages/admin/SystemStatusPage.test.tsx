@@ -146,6 +146,7 @@ describe('system yardımcıları', () => {
     expect(groupOf('db')).toBe('infra');
     expect(unitOf('push.oldestPendingAge')).toBe('minutes');
     expect(unitOf('backup.age')).toBe('hours');
+    expect(unitOf('backup.remote')).toBe('hours');
     expect(toUnit('minutes', 900)).toBe(15);
     expect(toUnit('hours', 3)).toBe(3);
   });

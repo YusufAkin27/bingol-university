@@ -273,7 +273,7 @@ describe('çocuk güvenliği standartları (/child-safety)', () => {
     const mail = screen.getAllByRole('link').find((a) => a.getAttribute('href') === `mailto:${CHILD_SAFETY_EMAIL}`);
     expect(mail).toBeTruthy();
     expect(screen.getByRole('main').textContent).toContain(CHILD_SAFETY_EMAIL);
-    await waitFor(() => expect(document.title).toContain(h1));
+    await waitFor(() => expect(document.title.toLowerCase()).toContain(h1.toLowerCase()));
     expect(document.documentElement.dir).toBe(lang === 'ar' ? 'rtl' : 'ltr');
     expect(document.documentElement.lang).toBe(lang);
   });

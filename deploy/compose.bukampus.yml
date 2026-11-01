@@ -9,3 +9,12 @@ services:
     volumes:
       - ./deploy/Caddyfile:/etc/caddy/Caddyfile.base:ro
       - ./deploy/Caddyfile.bukampus:/etc/caddy/Caddyfile:ro
+
+  # SEO gece yenileme katmani: web/scripts/refresh-prerender.mjs menu/haber sayfalarini bu volume a yazar, web SALT OKUNUR okur
+  # (web konteyneri read_only). Volume bos/yoksa site derleme ciktisini sunar. Calistirma: docs/SEO_TECHNICAL.md bolum 6.
+  web:
+    volumes:
+      - webdyn:/var/lib/bu-dyn:ro
+
+volumes:
+  webdyn: {}

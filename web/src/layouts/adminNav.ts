@@ -48,6 +48,7 @@ export const adminNav: AdminNavGroup[] = [
     labelKey: 'admin.nav.group.people',
     items: [
       { id: 'users', perm: 'users.read', to: paths.admin.users, labelKey: 'admin.nav.users', icon: 'users' },
+      { id: 'twoFactor', perm: 'users.read', to: paths.admin.twoFactor, labelKey: 'admin.twoFactor.nav', icon: 'key' },
       { id: 'pendingUsers', perm: 'users.pii', to: paths.admin.pendingUsers, labelKey: 'admin.nav.pendingUsers', icon: 'clock' },
       { id: 'suspensions', perm: 'moderation.read', to: paths.admin.suspensions, labelKey: 'admin.nav.suspensions', icon: 'lock' },
       { id: 'appeals', perm: 'moderation.read', to: paths.admin.appeals, labelKey: 'admin.nav.appeals', icon: 'scale' },
@@ -124,6 +125,7 @@ export const adminNav: AdminNavGroup[] = [
       { id: 'legal', perm: 'legal.read', to: paths.admin.legal, labelKey: 'admin.nav.legal', icon: 'file' },
       { id: 'faq', perm: 'content.read', to: paths.admin.faq, labelKey: 'admin.nav.faq', icon: 'help' },
       { id: 'news', perm: 'content.read', to: paths.admin.news, labelKey: 'admin.nav.news', icon: 'news' },
+      { id: 'unitNews', perm: 'content.read', to: paths.admin.unitNews, labelKey: 'admin.unitNews.nav', icon: 'graduation' },
       { id: 'menu', perm: 'content.read', to: paths.admin.menu, labelKey: 'admin.nav.menu', icon: 'cup' },
     ],
   },
@@ -148,6 +150,7 @@ export const adminNav: AdminNavGroup[] = [
       { id: 'ops', perm: 'system.read', to: paths.admin.ops, labelKey: 'admin.nav.ops', icon: 'panel' },
       { id: 'crashes', perm: 'system.read', to: paths.admin.crashes, labelKey: 'admin.cr1.nav', icon: 'bug' },
       { id: 'dataRetention', perm: 'data.retention.read', to: paths.admin.dataRetention, labelKey: 'admin.ds1.nav', icon: 'database' },
+      { id: 'backup', perm: 'system.read', to: paths.admin.backup, labelKey: 'admin.gd1.nav', icon: 'download' },
       { id: 'appVersions', perm: 'settings.read', to: paths.admin.appVersions, labelKey: 'admin.uv.nav', icon: 'download' },
       { id: 'settings', perm: 'settings.read', to: paths.admin.settings, labelKey: 'admin.nav.settings', icon: 'settings' },
       { id: 'roles', perm: 'dashboard.read', to: paths.admin.roles, labelKey: 'admin.p16.nav', icon: 'shield' },

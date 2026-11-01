@@ -38,6 +38,7 @@ const m: Record<keyof typeof tr, string> = {
   'admin.system.ind.fcm': 'Push provider (FCM)',
   'admin.system.ind.disk.storage': 'Storage disk usage',
   'admin.system.ind.backup.age': 'Last successful backup',
+  'admin.system.ind.backup.remote': 'Last successful remote (Drive) backup',
   'admin.system.ind.jobs.news-sync': 'News sync',
   'admin.system.ind.jobs.menu-sync': 'Menu sync',
   'admin.system.ind.jobs.mail-queue': 'Mail queue worker',

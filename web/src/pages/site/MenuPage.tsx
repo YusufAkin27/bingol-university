@@ -8,7 +8,10 @@ import type { TranslationKey } from '../../i18n';
 import { useI18n } from '../../i18n/I18nProvider';
 import { isoDate } from '../../lib/date';
 import { errorMessage } from '../../lib/errors';
+import { paths } from '../../paths';
 import { AppCallout } from './components/AppCallout';
+import { InlineLinks } from './components/InlineLinks';
+import { safeMenuImageUrl } from './components/newsUtils';
 import { PageHero } from './components/PageHero';
 import { usePageMeta } from './components/usePageMeta';
 import shared from './components/site.module.css';
@@ -61,6 +64,30 @@ function DayMenu({ day, compact = false }: { day: ParsedDay; compact?: boolean }
   );
 }
 
+/** Günün menü fotoğrafı (özgün 3:2 oranı korunur). Yüklenemezse hiçbir şey çizilmez (yer tutucu yok). */
+function MenuPhoto({ src, date }: { src: string; date: string }) {
+  const { t, formatDate } = useI18n();
+  const [failed, setFailed] = useState(false);
+  // başka güne geçince (başka adres) önceki hata sıfırlanır
+  useEffect(() => setFailed(false), [src]);
+  if (failed) return null;
+  return (
+    <div className={styles.photo}>
+      <img
+        src={src}
+        width={1536}
+        height={1024}
+        alt={t('pg.menu.photoAlt', { date: formatDate(date, { day: 'numeric', month: 'long', year: 'numeric' }) })}
+        // sayfanın ana içeriği: tembel yükleme yok, tarayıcıya öncelik ver (LCP); React 18 fetchPriority'yi tanımaz
+        {...({ fetchpriority: 'high' } as Record<string, string>)}
+        decoding="async"
+        referrerPolicy="no-referrer"
+        onError={() => setFailed(true)}
+      />
+    </div>
+  );
+}
+
 export default function MenuPage() {
   const i18n = useI18n();
   const { t, formatDate } = i18n;
@@ -91,6 +118,15 @@ export default function MenuPage() {
       for (const d of r.data ?? []) {
         const p = parseDay(d.items);
         if (p.dishCount > 0) map.set(d.date, p);
+      }
+    return map;
+  }, [results]);
+  const imageByDate = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const r of results)
+      for (const d of r.data ?? []) {
+        const src = safeMenuImageUrl(d.imageUrl);
+        if (src) map.set(d.date, src);
       }
     return map;
   }, [results]);
@@ -225,7 +261,13 @@ export default function MenuPage() {
 
           {!loading && !failed && ready && view === 'day' &&
             (current ? (
-              <article className={`${styles.card} ${date === today ? styles.cardToday : ''}`}>
+              <article
+                className={`${styles.card} ${date === today ? styles.cardToday : ''} ${
+                  imageByDate.has(date) ? styles.cardPhoto : ''
+                }`}
+              >
+                {imageByDate.has(date) && <MenuPhoto src={imageByDate.get(date) as string} date={date} />}
+                <div className={styles.cardBody}>
                 <header className={styles.cardHead}>
                   <div>
                     <p className={styles.cardEyebrow}>
@@ -238,6 +280,7 @@ export default function MenuPage() {
                   <span className={styles.count}>{t('pg.menu.itemCount', { n: current.dishCount })}</span>
                 </header>
                 <DayMenu day={current} />
+                </div>
               </article>
             ) : (
               <EmptyState icon="calendar" title={t('pg.menu.noDay')} description={t('pg.menu.noDayHint')} />
@@ -279,6 +322,16 @@ export default function MenuPage() {
           )}
         </div>
       </section>
+      <InlineLinks
+        label={t('pg.menu.about.title')}
+        title={t('pg.menu.about.title')}
+        links={[
+          { to: `${paths.site.faq}#faq-calorie`, label: t('pg.menu.about.faq') },
+          { to: paths.site.news, label: t('pg.menu.about.news') },
+        ]}
+      >
+        {t('pg.menu.about.text')}
+      </InlineLinks>
       <AppCallout shot="menu" title={t('site.s2.menu.appTitle')} text={t('site.s2.menu.appText')} crop={0.85} />
     </>
   );

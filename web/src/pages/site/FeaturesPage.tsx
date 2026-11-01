@@ -3,9 +3,11 @@
 // Yapı: sekiz ekran vitrini (zikzak FeatureRow: telefon + başlık + metin) > "Ve daha fazlası" ayrıntı ızgarası > alt CTA.
 import { Icon } from '../../components/ui';
 import { useI18n } from '../../i18n/I18nProvider';
+import { paths } from '../../paths';
 import { CtaBand } from './components/CtaBand';
 import { FEATURES, MORE_FEATURE_IDS, SHOWCASE } from './components/features';
 import { FeatureRow } from './components/FeatureRow';
+import { InlineLinks } from './components/InlineLinks';
 import { PageHero } from './components/PageHero';
 import { Reveal } from './components/Reveal';
 import { SectionHeading } from './components/SectionHeading';
@@ -57,6 +59,16 @@ export default function FeaturesPage() {
           </ul>
         </div>
       </section>
+
+      <InlineLinks
+        label={t('site.links.features.label')}
+        links={[
+          { to: paths.site.menu, label: t('site.links.features.menu') },
+          { to: paths.site.download, label: t('site.links.features.download') },
+        ]}
+      >
+        {t('site.links.features.text')}
+      </InlineLinks>
 
       <CtaBand title={t('site.features.ctaTitle')} text={t('site.v3.cta.text')} />
     </>

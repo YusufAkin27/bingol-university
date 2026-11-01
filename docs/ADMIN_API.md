@@ -639,6 +639,24 @@ Yeni hata kodu: `EVENT_CLUB_REQUIRED` (400; `i18n/event*.properties` tr/en/ar). 
 
 Paket `observability`. Yazma (POST) uçları denetim kaydına düşer; hız sınırı: okuma 120/dk, yazma 30/10 dk.
 
+### `GET /api/admin/system/backup`
+
+Yedek durumu (yerel + uzak kopya); izin `system.read` (FULL, VIEWER). Yalnız durum dosyasından (`last-success.json`, yedek ajanı yazar) okur, ağa çıkmaz; dosya yoksa/bozuksa tüm alanlar `null`, `remote.configured=false`. Eski biçimli dosyada (uzak alanı yok) da aynıdır. Tarihler ISO-8601 UTC. **Uzak hedefin yolu/belirteci hiçbir alanda yoktur**; `remote.name` yalnız rclone uzak adıdır. Kurulum: `docs/BACKUP_GDRIVE.md`.
+
+```json
+{
+  "local":  {"count":3,"bytes":1500000,"oldestAt":"2026-11-01T08:05:00Z"},
+  "remote": {"configured":true,"kind":"drive","name":"gdrive","lastSuccessAt":"2026-11-01T00:40:12Z",
+             "lastVerifiedAt":"2026-11-01T00:40:30Z","lastError":null,"bytes":7340032,"count":6},
+  "lastSuccessAt":"2026-11-01T10:05:09Z",
+  "lastStatus":"OK",
+  "schedule":  {"cron":"5 * * * *","verifyCron":"30 4 * * 0","remoteCron":"35 3 * * *"},
+  "retention": {"localDaily":3,"localWeekly":0,"localMonthly":0,"remoteDaily":7,"remoteWeekly":4,"remoteMonthly":6}
+}
+```
+
+`remote.kind`: `drive` | `other`. `lastStatus`: `OK` | `FAILED` (son başarılı yedekten sonra yerel yedek denemesi başarısız oldu; `last-failure.json` var) | `null`. `remote.lastError` kısa, tek satır ve sırsızdır (ör. "Google yetkisi geçersiz veya süresi dolmuş (invalid_grant); rclone authorize ile belirteci yenileyin"). `schedule.remoteCron` uzak kopya kapalıysa `null`. `GET /overview` göstergesi `backup.age` değişmedi (yalnız `lastSuccessAt` yaşı).
+
 ### `GET /api/admin/system/overview`
 
 Tüm göstergeler tek yanıtta. Her gösterge `{status: OK|WARN|CRIT|UNKNOWN, value, threshold, message}`; `message` yalnız OK değilse dolu ve istek dilindedir (`Accept-Language` tr/en/ar). `UNKNOWN` = ölçülemiyor/henüz veri yok (uyarı tetiklemez). `overall` = bilinen göstergelerin en kötüsü.
@@ -660,12 +678,13 @@ Tüm göstergeler tek yanıtta. Her gösterge `{status: OK|WARN|CRIT|UNKNOWN, va
     "fcm":                   {"status":"UNKNOWN","value":null,"threshold":null,"message":"Push (FCM) kapalı veya yapılandırılmamış."},
     "disk.storage":          {"status":"OK","value":41.5,"threshold":{"warn":80,"crit":90},"message":null},
     "backup.age":            {"status":"UNKNOWN","value":null,"threshold":{"warn":3,"crit":6},"message":"Yedek durum dosyası yok veya okunamadı."},
+    "backup.remote":         {"status":"UNKNOWN","value":null,"threshold":{"warn":30,"crit":36},"message":"Uzak (Google Drive) yedek yapılandırılmamış."},
     "jobs.mail-queue":       {"status":"OK","value":3,"threshold":{"warn":120,"crit":360},"message":null}
   }
 }
 ```
 
-Birimler: `*Age`, `campaign.overdue`, `jobs.*` ve eşikleri **saniye**; `backup.age` ve eşikleri **saat**; `disk.storage` yüzde; `db`/`redis` ms. `*.oldestPendingAge` "zamanı gelmiş (`next_attempt_at` geçmiş) ama gönderilmemiş en eski kayıt"ın gecikmesidir (geri çekilme beklemesindeki ve hız sınırlı duyuru kayıtları sayılmaz; aksi halde bilerek bekleyenler yalancı CRIT üretirdi). `jobs.<anahtar>` değeri son **başarılı** çalışmadan bu yana geçen saniyedir; uygulama yeniden başlayınca bellek sıfırlanır, ilk çalışmaya kadar UNKNOWN.
+Birimler: `*Age`, `campaign.overdue`, `jobs.*` ve eşikleri **saniye**; `backup.age` ve `backup.remote` (uzak/Drive son başarı; HARDEN B8: > 30 sa WARN, > 36 sa CRIT, hiç başarı yokken hata kaydı CRIT, uzak kapalıysa UNKNOWN) ve eşikleri **saat**; `disk.storage` yüzde; `db`/`redis` ms. `*.oldestPendingAge` "zamanı gelmiş (`next_attempt_at` geçmiş) ama gönderilmemiş en eski kayıt"ın gecikmesidir (geri çekilme beklemesindeki ve hız sınırlı duyuru kayıtları sayılmaz; aksi halde bilerek bekleyenler yalancı CRIT üretirdi). `jobs.<anahtar>` değeri son **başarılı** çalışmadan bu yana geçen saniyedir; uygulama yeniden başlayınca bellek sıfırlanır, ilk çalışmaya kadar UNKNOWN.
 
 Zamanlayıcı anahtarları: `news-sync`, `menu-sync`, `mail-queue`, `push-queue`, `campaign-dispatch`, `mail-campaign`, `mail-purge`, `push-purge`, `device-cleanup`, `notification-retention`, `analytics-retention`.
 
@@ -912,6 +931,7 @@ Haber, akademik içerik, yemek menüsü ve bekleyen kayıtlar için toplu işlem
 | users.read (e-posta maskeli: SUPPORT, VIEWER) | x | x | x |  | x |
 | users.pii, users.write | x | x |  |  |  |
 | users.role, users.delete, users.export, users.verify (W1-B T-011: kodsuz hesap doğrulama) | x |  |  |  |  |
+| users.2fa (HARDEN O3: 2FA hesap kurtarma kapatması; MODERATOR yapamaz) | x |  | x |  |  |
 | moderation.read | x | x |  |  | x |
 | moderation.write, chat.read, chat.write | x | x |  |  |  |
 | content.write | x |  |  | x |  |
@@ -1000,3 +1020,13 @@ Yönetici "bu sürümün altındakiler güncellemeden kullanamasın" diyebilir; 
 **Web:** `/admin/app-versions` ("Uygulama güncelleme", Sistem grubu, `settings.read`): platform kartı (durum rozeti "Zorunlu güncelleme AÇIK / Yalnız öneri / Kapalı", yayındaki ve zorunlu en düşük sürüm, sürüm dağılımı tablosu, "bu sürümün altında: N cihaz"), "Yeni sürümü yayınla" sihirbazı (sürüm + kip + etki önizlemesi + uyarılar, sonra gerekçe; FORCE için "ZORLA" yazdırılır), "Güncelleme ekranını önizle" (telefon çerçevesi, TR/EN/AR). Mağaza bağlantısı, paket adı, Apple kimliği ve üç dilli metin alanları Ayarlar > Mağaza ve sürümler'dedir. Uyarılar: min > latest, mağaza bağlantısı/iOS kimliği yokken FORCE ("düğme çalışmaz"; iOS henüz mağazada değilse zorlama önerilmez), girilen sürümün hiçbir cihazda olmaması. Duman: `scripts/smoke-app-version.sh` (koşulamadı).
 
 Yeni hata kodları (tr/en/ar `ops*.properties`): `VERSION_BELOW_LATEST`, `VERSION_BELOW_MIN`.
+
+## Iki faktorlu dogrulama (2FA, V1060)
+
+Kullanici tarafi sozlesmesi: `docs/TWO_FACTOR_API.md`. Yonetici uclari RBAC ile korunur (`AdminPermissionPolicy`): okuma `users.read`, kapatma `users.2fa` (yalniz FULL ve SUPPORT; HARDEN turunda `users.write`'dan ayrildi, MODERATOR artik yapamaz).
+
+- **Kullanici DTO'lari:** `GET /api/admin/users` satirlarina `twoFactorEnabled: boolean`; `GET /api/admin/users/{id}` ayrintisina ek `twoFactorTrustedDeviceCount`, `twoFactorEnabledAt` (ISO). Suzgec: `GET /api/admin/users?twoFactor=true|false` (CSV disa aktarimda sutun YOK).
+- `GET /api/admin/two-factor/summary` -> `{enabledCount, totalActiveUsers, enabledPercent (tek ondalik), enabledLast7Days, trustedDeviceTotal}`.
+- `GET /api/admin/two-factor/users?page&size&q` -> `{content:[{userId, displayName, email, role, enabledAt, trustedDeviceCount, lastLoginAt}], totalElements, totalPages, number, size}`. `q` kurallari kullanici listesiyle ayni (`users.pii` olmayan profil yalniz gorunen adi arar, en az 3 karakter; e-posta maskeli, `PermissionAwareMasking`). `lastLoginAt` = guvenilen cihazlarin en yeni `last_used_at` degeri, yoksa `last_seen_at`. Sira: acilis tarihi (yeni once).
+- `POST /api/admin/users/{id}/two-factor/disable` `{"reason"}` -> **204**. Hesap kurtarma: 2FA kapanir, guvenilen cihazlar ve bekleyen kod silinir, kullanicinin TUM oturumlari kapanir, kullaniciya uygulama ici SYSTEM bildirimi VE e-posta (`SECURITY_TWO_FACTOR_NOTICE`) gider (kullanicinin dilinde). Kendi hesabi 403 `ADMIN_SELF_FORBIDDEN`; hedef FULL yonetici ise 403 `TWO_FACTOR_ADMIN_FORBIDDEN` (iki kisi onayi gerektirecegi icin panelden kapatilamaz); hedef FULL olmayan yonetici ise yalniz FULL kapatabilir. Gerekce ZORUNLU (en az 5 karakter, `AdminGuardPolicy.accountOps` + `@AdminReasonRequired`), yikici islem sayilir (saatlik siki hiz siniri), denetim kaydi: hedef `USER:<id>`, gerekce, ozet. Hatalar: 404 `USER_NOT_FOUND`, 409 `TWO_FACTOR_NOT_ENABLED`, 403 `ADMIN_TARGET_FORBIDDEN` (yonetici hesabina yalniz FULL), 403 `ADMIN_PERMISSION_DENIED` (`users.2fa` yok: MODERATOR/EDITOR/VIEWER), 400 `REASON_REQUIRED`.
+- Duman: `scripts/smoke-two-factor.sh`; testler `AdminTwoFactorMvcTest`.

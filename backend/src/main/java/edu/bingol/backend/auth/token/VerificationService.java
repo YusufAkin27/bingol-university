@@ -43,6 +43,8 @@ public class VerificationService {
 
     private static final String VERIFY = "vc";
     private static final String RESET = "pr";
+    /** Iki faktorlu giris/etkinlestirme kodu: anahtar `tf:<kullanici kimligi>` (bkz. issueTwoFactor). */
+    private static final String TWO_FACTOR = "tf";
 
     private final StringRedisTemplate redis;
     private final MailService mail;
@@ -62,6 +64,11 @@ public class VerificationService {
     /** Gunluk e-posta kotasi doluysa genel 503 MAIL_QUOTA_EXHAUSTED (e-postadan bagimsiz: enumerasyon yok). */
     public void requireMailQuota() {
         mail.requireCodeQuota();
+    }
+
+    /** Hesap sahibine giden kod (2FA) icin: yalniz saglayici kotasi tamamen dolduysa 503 MAIL_QUOTA_EXHAUSTED. */
+    public void requireAccountMailQuota() {
+        mail.requireAccountCodeQuota();
     }
 
     /** Yeni kayit dogrulama kodu uretip gonderir. Ayni adrese 60 sn icinde tekrar gonderimi reddeder. */
@@ -137,11 +144,41 @@ public class VerificationService {
         return Boolean.TRUE.equals(redis.delete(key));
     }
 
+    /**
+     * Iki faktorlu giris/etkinlestirme kodu ("tf" anahtar alani). {@code subject} e-posta degildir: giris icin
+     * {@code <kullanici>:<challenge ozeti>}, etkinlestirme icin {@code <kullanici>:enable} (her biri ayri kod ve
+     * sayac); kod {@code to} adresine gider. Kimliksiz akislardaki 60 sn bekleme YOKTUR (sifre
+     * dogrulanmis kullaniciya gider; yeniden gonderme siniri cagiranda, challenge basinadir); geri kalan her kural
+     * (hash, 10 dk, 5 deneme, istemci kapsami, saatlik toplam) ayni kodu paylasir.
+     */
+    public void issueTwoFactor(String subject, String to, Lang lang) {
+        issue(TWO_FACTOR, subject, to, lang, false);
+    }
+
+    /** Iki faktorlu kod dogruysa true (ve kod tuketilir); kilit/limit asilirsa 429. `scope`: istemci anahtari. */
+    public boolean verifyTwoFactor(String subject, String code, String scope) {
+        return verify(TWO_FACTOR, subject, code, scope);
+    }
+
+    /** Bekleyen iki faktorlu kodu, sayaclarini ve kilidini siler (2FA kapatilirken / challenge iptalinde). */
+    public void clearTwoFactor(String subject) {
+        redis.delete(List.of(TWO_FACTOR + ":" + subject, TWO_FACTOR + ":att:" + subject,
+                TWO_FACTOR + ":lock:" + subject, TWO_FACTOR + ":gatt:" + subject));
+        clearScoped(TWO_FACTOR, subject);
+    }
+
     private void issue(String ns, String email, Lang lang) {
-        Boolean first = redis.opsForValue().setIfAbsent(ns + ":cd:" + email, "1", RESEND_COOLDOWN);
-        if (!Boolean.TRUE.equals(first)) {
-            throw new ApiException(HttpStatus.TOO_MANY_REQUESTS, "RESEND_COOLDOWN",
-                    "Yeni kod için lütfen 1 dakika bekleyin.");
+        issue(ns, email, email, lang, true);
+    }
+
+    /** `email` hem anahtar hem varsayilan alici; iki faktorlu kodda anahtar kullanici kimligi, alici `to`. */
+    private void issue(String ns, String email, String to, Lang lang, boolean cooldown) {
+        if (cooldown) {
+            Boolean first = redis.opsForValue().setIfAbsent(ns + ":cd:" + email, "1", RESEND_COOLDOWN);
+            if (!Boolean.TRUE.equals(first)) {
+                throw new ApiException(HttpStatus.TOO_MANY_REQUESTS, "RESEND_COOLDOWN",
+                        "Yeni kod için lütfen 1 dakika bekleyin.");
+            }
         }
         String code = String.format("%06d", random.nextInt(1_000_000));
         redis.opsForValue().set(ns + ":" + email, hash(email, code), CODE_TTL);
@@ -156,9 +193,11 @@ public class VerificationService {
         }
         try {
             if (RESET.equals(ns)) {
-                mail.sendPasswordResetCode(email, code, (int) CODE_TTL.toMinutes(), lang);
+                mail.sendPasswordResetCode(to, code, (int) CODE_TTL.toMinutes(), lang);
+            } else if (TWO_FACTOR.equals(ns)) {
+                mail.sendTwoFactorCode(to, code, (int) CODE_TTL.toMinutes(), lang);
             } else {
-                mail.sendVerificationCode(email, code, (int) CODE_TTL.toMinutes(), lang);
+                mail.sendVerificationCode(to, code, (int) CODE_TTL.toMinutes(), lang);
             }
         } catch (RuntimeException e) {
             // Gonderilemediyse bekleme suresi kullaniciyi cezalandirmasin.

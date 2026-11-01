@@ -18,6 +18,7 @@ export type Permission =
   | 'users.role'
   | 'users.delete'
   | 'users.verify'
+  | 'users.2fa'
   | 'users.export'
   | 'moderation.read'
   | 'moderation.write'

@@ -34,10 +34,10 @@ describe('usePageMeta', () => {
     const { unmount } = renderWithProviders(<Meta title="Özellikler" ld={{ '@type': 'MobileApplication' }} />, {
       route: '/features',
     });
-    expect(document.title).toBe('Özellikler · BÜ Kampüs');
+    expect(document.title).toBe('Özellikler | BÜ Kampüs');
     const q = (s: string) => document.head.querySelector(s);
     expect(q('meta[name="description"]')).toHaveAttribute('content', 'Açıklama metni');
-    expect(q('meta[property="og:title"]')).toHaveAttribute('content', 'Özellikler · BÜ Kampüs');
+    expect(q('meta[property="og:title"]')).toHaveAttribute('content', 'Özellikler | BÜ Kampüs');
     expect(q('meta[property="og:locale"]')).toHaveAttribute('content', 'tr_TR');
     expect(q('link[rel="canonical"]')).toHaveAttribute('href', `${window.location.origin}/tr/features`);
     expect(q('script[type="application/ld+json"]')?.textContent).toContain('MobileApplication');
@@ -71,7 +71,7 @@ describe('usePageMeta (rota tablosundan)', () => {
   it('başlık/açıklama routeMeta kaynağından; canonical dil önekli; hreflang + x-default; OG/Twitter mutlak', () => {
     renderWithProviders(<RouteMeta route="privacy" />, { route: '/en/privacy', lang: 'en' });
     const origin = window.location.origin;
-    expect(document.title).toBe('Privacy policy · BÜ Kampüs');
+    expect(document.title).toBe('Privacy Policy and Personal Data | BÜ Kampüs');
     expect(q('meta[name="description"]')?.getAttribute('content')).toMatch(/privacy policy/i);
     expect(q('link[rel="canonical"]')).toHaveAttribute('href', `${origin}/en/privacy`);
     expect(all('link[rel="alternate"][hreflang]').map((l) => `${l.getAttribute('hreflang')}=${l.getAttribute('href')}`)).toEqual([
@@ -82,7 +82,7 @@ describe('usePageMeta (rota tablosundan)', () => {
     ]);
     expect(q('meta[property="og:image"]')).toHaveAttribute('content', `${origin}/og.png`);
     expect(q('meta[property="og:image:alt"]')).toBeTruthy();
-    expect(q('meta[name="twitter:title"]')).toHaveAttribute('content', 'Privacy policy · BÜ Kampüs');
+    expect(q('meta[name="twitter:title"]')).toHaveAttribute('content', 'Privacy Policy and Personal Data | BÜ Kampüs');
     expect(q('meta[name="twitter:image"]')).toHaveAttribute('content', `${origin}/og.png`);
     expect(all('meta[property="og:locale:alternate"]').length).toBe(2);
     const ld = all('script[type="application/ld+json"]').map((s) => JSON.parse(s.textContent ?? '{}') as { '@type': string });
@@ -109,7 +109,7 @@ describe('usePageMeta (rota tablosundan)', () => {
       return null;
     }
     renderWithProviders(<NoIdx />, { route: '/tr/zzz' });
-    expect(q('meta[name="robots"]')).toHaveAttribute('content', 'noindex');
+    expect(q('meta[name="robots"]')).toHaveAttribute('content', 'noindex, nofollow');
     expect(all('link[rel="alternate"][hreflang]')).toEqual([]);
   });
 });

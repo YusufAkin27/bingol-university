@@ -23,7 +23,7 @@ export default function DownloadPage() {
   const origin = siteOrigin();
   usePageMeta({
     route: 'download',
-    jsonLd: mobileAppLd(info.data, stores, origin),
+    jsonLd: mobileAppLd(info.data, stores, origin, t('seo.d.home')),
   });
   return (
     <>
@@ -37,14 +37,14 @@ export default function DownloadPage() {
                   <GooglePlayIcon width={22} height={22} />
                 </span>
                 <h2 className={styles.platformTitle}>{t('site.download.android')}</h2>
-                <StoreButton store="android" href={stores.android} size="lg" />
+                <StoreButton store="android" href={stores.android} size="lg" pending={stores.isLoading} />
               </div>
               <div className={styles.platform}>
                 <span className={styles.glyph}>
                   <AppleIcon width={22} height={22} />
                 </span>
                 <h2 className={styles.platformTitle}>{t('site.download.ios')}</h2>
-                <StoreButton store="ios" href={stores.ios} size="lg" />
+                <StoreButton store="ios" href={stores.ios} size="lg" pending={stores.isLoading} />
               </div>
             </div>
 

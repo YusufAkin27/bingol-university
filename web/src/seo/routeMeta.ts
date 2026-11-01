@@ -7,7 +7,7 @@
  */
 import type { TranslationKey } from '../i18n';
 import { translate } from '../i18n/registry';
-import type { Lang } from '../i18n/lang';
+import { LANGS, type Lang } from '../i18n/lang';
 import type { LegalType } from '../api/types';
 import { paths } from '../paths';
 
@@ -33,11 +33,22 @@ export interface RouteMeta {
   home?: boolean;
   /** SSS sayfası: FAQPage JSON-LD. */
   faq?: boolean;
+  /**
+   * Sayfa içeriğinin gerçekten yerelleştirildiği diller (varsayılan: hepsi). Dışındaki dillerde sayfa Türkçe içerik gösterir:
+   * o URL'ler canonical'ı Türkçeye verir, hreflang kümesine ve sitemap'e girmez (çeviri değil kopya sayılmasın).
+   */
+  langs?: Lang[];
   changefreq: RouteChangefreq;
   priority: number;
+  /** Arama sonucu başlığı (markasız, ≤ 48 karakter) ve açıklaması (120-158); sözlükte `seo.t.<id>` / `seo.d.<id>`. */
+  seoTitleKey: TranslationKey;
+  seoDescKey: TranslationKey;
 }
 
-const legal = (type: LegalType, id: string, path: string, titleKey?: TranslationKey): RouteMeta => ({
+/** Elle yazılan satırlarda SEO anahtarları kimlikten türetilir (`seo.t.<id>`, `seo.d.<id>`). */
+type RouteMetaInput = Omit<RouteMeta, 'seoTitleKey' | 'seoDescKey'>;
+
+const legal = (type: LegalType, id: string, path: string, titleKey?: TranslationKey): RouteMetaInput => ({
   id,
   path,
   titleKey: titleKey ?? (`legal.title.${type}` as TranslationKey),
@@ -50,12 +61,12 @@ const legal = (type: LegalType, id: string, path: string, titleKey?: Translation
 });
 
 /** Sitemap'e ve önrendera giren rotalar (sıra = sitemap sırası). */
-export const ROUTE_META: RouteMeta[] = [
+const RAW_ROUTES: RouteMetaInput[] = [
   { id: 'home', path: paths.site.home, titleKey: 'site.home.heroTitle', descKey: 'site.meta.home', leadKey: 'site.home.heroLead', home: true, changefreq: 'weekly', priority: 1 },
   { id: 'features', path: paths.site.features, titleKey: 'site.features.title', descKey: 'site.meta.features', leadKey: 'site.features.lead', changefreq: 'monthly', priority: 0.8 },
   { id: 'about', path: paths.site.about, titleKey: 'site.about.title', descKey: 'site.meta.about', leadKey: 'site.about.lead', changefreq: 'monthly', priority: 0.6 },
   { id: 'download', path: paths.site.download, titleKey: 'site.download.title', descKey: 'site.meta.download', leadKey: 'site.download.lead', changefreq: 'monthly', priority: 0.9 },
-  { id: 'news', path: paths.site.news, titleKey: 'pg.news.title', descKey: 'pg.news.meta', leadKey: 'pg.news.lead', changefreq: 'daily', priority: 0.7 },
+  { id: 'news', path: paths.site.news, titleKey: 'pg.news.title', descKey: 'pg.news.meta', leadKey: 'pg.news.lead', langs: ['tr'], changefreq: 'daily', priority: 0.7 },
   { id: 'menu', path: paths.site.menu, titleKey: 'pg.menu.title', descKey: 'pg.menu.meta', leadKey: 'pg.menu.lead', changefreq: 'daily', priority: 0.7 },
   { id: 'help', path: paths.site.help, titleKey: 'pg.help.title', descKey: 'pg.help.meta', leadKey: 'pg.help.lead', changefreq: 'monthly', priority: 0.6 },
   { id: 'faq', path: paths.site.faq, titleKey: 'site.faq.title', descKey: 'site.meta.faq', leadKey: 'site.faq.lead', faq: true, changefreq: 'monthly', priority: 0.6 },
@@ -84,7 +95,7 @@ export const ROUTE_META: RouteMeta[] = [
   { id: 'legal', path: paths.site.legalIndex, titleKey: 'legal.list.title', descKey: 'site.meta.legal', leadKey: 'legal.list.lead', changefreq: 'yearly', priority: 0.4 },
   legal('KVKK', 'legalKvkk', paths.site.legal('KVKK')),
   legal('COMMUNITY_RULES', 'legalCommunityRules', paths.site.legal('COMMUNITY_RULES'), 'seo.legal.COMMUNITY_RULES.title'),
-  legal('EXPLICIT_CONSENT', 'legalExplicitConsent', paths.site.legal('EXPLICIT_CONSENT')),
+  { ...legal('EXPLICIT_CONSENT', 'legalExplicitConsent', paths.site.legal('EXPLICIT_CONSENT')), langs: ['tr', 'en'] },
   legal('CONTENT_REMOVAL', 'legalContentRemoval', paths.site.legal('CONTENT_REMOVAL')),
   legal('RETENTION', 'legalRetention', paths.site.legal('RETENTION')),
   { id: 'cookies', path: paths.site.cookies, titleKey: 'pg.cookies.title', descKey: 'pg.cookies.meta', leadKey: 'pg.cookies.lead', infoSlug: 'cookies', changefreq: 'yearly', priority: 0.3 },
@@ -94,6 +105,12 @@ export const ROUTE_META: RouteMeta[] = [
   { id: 'security', path: paths.site.security, titleKey: 'pg.security.title', descKey: 'pg.security.meta', leadKey: 'pg.security.lead', infoSlug: 'security', changefreq: 'yearly', priority: 0.3 },
   { id: 'sitemap', path: paths.site.sitemap, titleKey: 'pg.sitemap.title', descKey: 'pg.sitemap.meta', leadKey: 'pg.sitemap.lead', changefreq: 'monthly', priority: 0.2 },
 ];
+
+export const ROUTE_META: RouteMeta[] = RAW_ROUTES.map((r) => ({
+  ...r,
+  seoTitleKey: `seo.t.${r.id}` as TranslationKey,
+  seoDescKey: `seo.d.${r.id}` as TranslationKey,
+}));
 
 export type RouteId = string;
 
@@ -133,23 +150,39 @@ export function infoRouteId(slug: string): RouteId {
 }
 
 export interface ResolvedMeta {
-  /** Sayfa başlığı (uygulama adı eki olmadan). */
+  /** Sayfa içi ad (h1 / breadcrumb; uygulama adı eki olmadan). */
   title: string;
-  /** `<title>` metni: "Başlık · BÜ Kampüs" (ana sayfada "BÜ Kampüs · Slogan"). */
+  /** Arama sonucu başlığı (uygulama adı eki olmadan). */
+  seoTitle: string;
+  /** `<title>` metni: "Başlık | BÜ Kampüs" (ana sayfada "BÜ Kampüs | Başlık"). */
   fullTitle: string;
   description: string;
   appName: string;
+}
+
+/** Marka kalıbı: `<title>` ve og:title bu ayraçla biter (ana sayfada marka başa gelir). */
+export const TITLE_SEPARATOR = ' | ';
+
+export function brandTitle(seoTitle: string, appName: string, brandFirst = false): string {
+  if (!seoTitle) return appName;
+  return brandFirst ? `${appName}${TITLE_SEPARATOR}${seoTitle}` : `${seoTitle}${TITLE_SEPARATOR}${appName}`;
 }
 
 /** Dile göre başlık/açıklama çözümü. */
 export function resolveMeta(meta: RouteMeta, lang: Lang): ResolvedMeta {
   const t = (k: string) => translate(lang, k);
   const appName = t('common.appName');
-  const title = t(meta.titleKey);
+  const seoTitle = t(meta.seoTitleKey);
   return {
-    title,
-    fullTitle: meta.home ? `${appName} · ${title}` : `${title} · ${appName}`,
-    description: t(meta.descKey),
+    title: t(meta.titleKey),
+    seoTitle,
+    fullTitle: brandTitle(seoTitle, appName, !!meta.home),
+    description: t(meta.seoDescKey),
     appName,
   };
+}
+
+/** Sayfanın hreflang kümesine girecek diller (içerik yerelleştirilmemişse yalnız o diller). */
+export function localizedLangs(meta: RouteMeta): Lang[] {
+  return meta.langs ?? LANGS.map((l) => l.code);
 }

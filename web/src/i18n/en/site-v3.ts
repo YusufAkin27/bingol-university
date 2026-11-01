@@ -35,7 +35,7 @@ const m = {
     'Class schedule, exam calendar, academic calendar and department announcements, with reminders.',
 
   'site.shot.home.alt': 'BÜ Kampüs Home screen: today’s meal, next class, quick access and the menu of the day.',
-  'site.shot.discover.alt': 'BÜ Kampüs Discover screen: a single-photo post from campus.',
+  'site.shot.discover.alt': 'BÜ Kampüs Discover screen: a two-column photo feed with the author and like count on each tile.',
   'site.shot.chat.alt': 'BÜ Kampüs Chat screen: a conversation with date dividers and a message box.',
   'site.shot.clubs.alt': 'BÜ Kampüs Clubs screen: category chips and a list of clubs you can join.',
   'site.shot.events.alt': 'BÜ Kampüs Events screen: a monthly calendar and the events of the day.',

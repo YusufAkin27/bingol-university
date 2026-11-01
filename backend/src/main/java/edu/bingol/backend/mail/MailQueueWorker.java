@@ -227,7 +227,8 @@ public class MailQueueWorker {
     }
 
     private static boolean isStaleCodeMail(MailOutbox m) {
-        return (m.getTemplate() == MailTemplate.VERIFICATION_CODE || m.getTemplate() == MailTemplate.PASSWORD_RESET_CODE)
+        return (m.getTemplate() == MailTemplate.VERIFICATION_CODE || m.getTemplate() == MailTemplate.PASSWORD_RESET_CODE
+                || m.getTemplate() == MailTemplate.TWO_FACTOR_CODE)
                 && m.getCreatedAt() != null && m.getCreatedAt().isBefore(Instant.now().minus(CODE_MAIL_MAX_AGE));
     }
 
@@ -257,6 +258,8 @@ public class MailQueueWorker {
     private void logForDevelopment(MailOutbox m, MailRenderer.Rendered mail, Map<String, String> vars) {
         if (m.getTemplate() == MailTemplate.VERIFICATION_CODE) {
             log.warn("[DEV] {} icin dogrulama kodu: {}", m.getToAddress(), vars.get("code"));
+        } else if (m.getTemplate() == MailTemplate.TWO_FACTOR_CODE) {
+            log.warn("[DEV] {} icin iki faktorlu giris kodu: {}", m.getToAddress(), vars.get("code"));
         } else {
             transport.logInsteadOfSending(m.getToAddress(), mail.subject(), mail.text());
         }

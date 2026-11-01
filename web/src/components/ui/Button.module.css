@@ -177,12 +177,14 @@
 
 /* Orta genişlik: küçük hedefler en az 40 px */
 @media (max-width: 960px), (pointer: coarse) {
-  .sm {
-    min-height: 40px;
+  .sm,
+  .md {
+    min-height: 44px;
   }
-  .icon-sm {
-    width: 40px;
-    height: 40px;
+  .icon-sm,
+  .icon-md {
+    width: 44px;
+    height: 44px;
   }
 }
 /* Dokunmatik ekran (hover olmayan/kaba işaretçi) ve telefon genişliği: WCAG/Apple 44 px hedefi; masaüstü yoğunluğu korunur */

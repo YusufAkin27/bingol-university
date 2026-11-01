@@ -36,7 +36,7 @@ class CorsConfigTest {
 
         assertEquals(List.of("http://localhost:5173", "http://localhost:3000"), c.getAllowedOrigins());
         assertEquals(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"), c.getAllowedMethods());
-        assertEquals(List.of("Authorization", "Content-Type", "Accept-Language"), c.getAllowedHeaders());
+        assertEquals(List.of("Authorization", "Content-Type", "Accept-Language", "X-Device-Id"), c.getAllowedHeaders());
         assertEquals(false, c.getAllowCredentials());
         assertEquals("http://localhost:5173", c.checkOrigin("http://localhost:5173"));
         assertNull(c.checkOrigin("https://evil.example"));

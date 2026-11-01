@@ -34,6 +34,7 @@ export const paths = {
     register: `${ADMIN_BASE}/register`,
     dashboard: ADMIN_BASE,
     users: `${ADMIN_BASE}/users`,
+    twoFactor: `${ADMIN_BASE}/two-factor`,
     pendingUsers: `${ADMIN_BASE}/pending-users`,
     user: (id: number | string) => `${ADMIN_BASE}/users/${id}`,
     userMessages: (id: number | string, conversationId?: number | string, messageId?: number | string) =>
@@ -53,6 +54,7 @@ export const paths = {
     legal: `${ADMIN_BASE}/content/legal`,
     faq: `${ADMIN_BASE}/content/faq`,
     news: `${ADMIN_BASE}/content/news`,
+    unitNews: `${ADMIN_BASE}/content/unit-news`,
     communities: `${ADMIN_BASE}/communities`,
     events: `${ADMIN_BASE}/events`,
     campaigns: `${ADMIN_BASE}/campaigns`,
@@ -88,5 +90,6 @@ export const paths = {
     crashes: `${ADMIN_BASE}/crashes`,
     appVersions: `${ADMIN_BASE}/app-versions`,
     dataRetention: `${ADMIN_BASE}/data-retention`,
+    backup: `${ADMIN_BASE}/backup`,
   },
 } as const;

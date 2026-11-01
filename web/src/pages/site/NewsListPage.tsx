@@ -9,7 +9,9 @@ import { Button, EmptyState, ErrorState, SearchInput } from '../../components/ui
 import type { TranslationKey } from '../../i18n';
 import { useI18n } from '../../i18n/I18nProvider';
 import { errorMessage } from '../../lib/errors';
+import { paths } from '../../paths';
 import { AppCallout } from './components/AppCallout';
+import { InlineLinks } from './components/InlineLinks';
 import { NewsCard, NewsCardSkeleton } from './components/NewsCard';
 import { PageHero } from './components/PageHero';
 import { usePageMeta } from './components/usePageMeta';
@@ -159,6 +161,15 @@ export default function NewsListPage() {
           </div>
         </div>
       </section>
+      <InlineLinks
+        label={t('site.links.news.label')}
+        links={[
+          { to: paths.site.menu, label: t('site.links.news.menu') },
+          { to: paths.site.download, label: t('site.links.news.download') },
+        ]}
+      >
+        {t('site.links.news.text')}
+      </InlineLinks>
       <AppCallout shot="home" title={t('site.s2.news.appTitle')} text={t('site.s2.news.appText')} crop={0.8} />
     </>
   );

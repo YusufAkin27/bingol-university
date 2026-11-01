@@ -15,12 +15,12 @@ Kalan site sayfalarını yazacak ajanlar için. Tüm bileşenler `src/pages/site
 
 ## Ekran görüntüleri (kaynak → web)
 
-Kaynak: uygulamanın kendi ekran çıktıları `C:\bu_qa\shots\tasarim\...` (RENK-1, Türkçe; Stitch ham çıktıları kullanılmadı). Kişi adı içerenler (Ana Sayfa karşılaması "Merhaba!", Keşfet gönderi sahipleri, Sohbet başlığı "Çalışma Grubu") yazılarak temizlendi; hepsi 600 px genişlikte WebP.
+Kaynak: uygulamanın kendi ekran çıktıları `C:\bu_qa\shots\tasarim\...` (RENK-1, Türkçe; Stitch ham ekran çıktıları kullanılmadı; tek istisna Keşfet ekranındaki manzara fotoğraflarıdır, bkz. `src/assets/site/CREDITS.md`). Kişi adı içerenler (Ana Sayfa karşılaması "Merhaba!", Keşfet gönderi sahipleri, Sohbet başlığı "Çalışma Grubu") yazılarak temizlendi; hepsi 600 px genişlikte WebP.
 
 | Web yolu (`src/assets/site/`) | Kaynak |
 |---|---|
 | `app-home.webp` | `p3/home/birebir/01_ana_sayfa_tr.png` (üst 2110 px, karşılama satırı düzeltilmiş) |
-| `app-discover.webp` | `kesfet/sonra/01_dolu_tr.png` (yazar adları kaldırılmış) |
+| `app-discover.webp` | Keşfet 2 sütun masonry (Stitch v3 kesfet2 A): `C:\bu_design\stitch\v3_kesfet2\_render\img\*.jpg` manzara fotoğrafları + uygulama düzeni, Playwright ile 390x844 @2x ekran görüntüsü (kişi adı yok; fotoğraf kaynakları `src/assets/site/CREDITS.md`) |
 | `app-chat.webp` | `chat_bg/sonra/konusma_acik_tr.png` (başlık adı ve bozuk tepki simgesi temizlenmiş) |
 | `app-clubs.webp` | `dd/birebir_kulup/01_kesfet_tr.png` |
 | `app-events.webp` | `dd/birebir_etkinlik/01_liste_tr.png` |

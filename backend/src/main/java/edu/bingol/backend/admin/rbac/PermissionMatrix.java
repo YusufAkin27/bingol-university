@@ -28,6 +28,8 @@ public final class PermissionMatrix {
     public static final String USERS_EXPORT = "users.export";
     /** T-011: e-posta kodu olmadan hesap dogrulama (bekleyen kayit / verify-email); yalniz FULL. */
     public static final String USERS_VERIFY = "users.verify";
+    /** Hesap kurtarma: kullanicinin iki faktorlu dogrulamasini kapatma; yalniz FULL ve SUPPORT (MODERATOR degil). */
+    public static final String USERS_2FA = "users.2fa";
     public static final String MODERATION_READ = "moderation.read";
     public static final String MODERATION_WRITE = "moderation.write";
     public static final String CHAT_READ = "chat.read";
@@ -82,6 +84,7 @@ public final class PermissionMatrix {
         grant(USERS_DELETE, F);
         grant(USERS_EXPORT, F);
         grant(USERS_VERIFY, F);
+        grant(USERS_2FA, F, S);
         grant(MODERATION_READ, F, M, V);
         grant(MODERATION_WRITE, F, M);
         grant(CHAT_READ, F, M);

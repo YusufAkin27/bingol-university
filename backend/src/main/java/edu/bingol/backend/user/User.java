@@ -11,6 +11,7 @@ import jakarta.persistence.Table;
 import java.time.Instant;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.ColumnDefault;
 
 @Entity
 @Table(name = "app_user")
@@ -73,6 +74,13 @@ public class User {
 
     @Column(length = 300)
     private String suspendedReason;
+
+    /** E-posta kodlu iki faktorlu dogrulama acik mi (kullanici kendisi acar; bkz. auth.twofactor). */
+    // DB varsayilani: ham INSERT yazan betikler/testler alani vermeyince NOT NULL ihlali olmasin (V1060'ta da DEFAULT FALSE)
+    @ColumnDefault("false")
+    private boolean twoFactorEnabled;
+
+    private Instant twoFactorEnabledAt;
 
     private Instant deletedAt;
 

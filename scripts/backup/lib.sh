@@ -74,7 +74,9 @@ PROM
 STATUS_FILE="${BACKUP_STATUS_FILE:-$BACKUP_DIR/last-success.json}"
 FAILURE_FILE="$(dirname "$STATUS_FILE")/last-failure.json"
 
-json_esc() { printf '%s' "$1" | sed 's/\\/\\\\/g; s/"/\\"/g' | tr -d '\n\r'; }
+# json_esc: JSON dizgesi icin kacis (B5). Kontrol karakterleri (satir sonu, \x00-\x1f) atilir, TAB \t olur; ters egik cizgi ve
+# cift tirnak kacirilir. Sabit-sirali ciktilarda jq tercih edilir (status_failure); bu yalniz printf yedegi ve webhook metni icin.
+json_esc() { printf '%s' "$1" | tr -d '\000-\010\012-\037\177' | sed 's/\\/\\\\/g; s/"/\\"/g; s/\t/\\t/g'; }
 
 # status_success <dosya-adi> <sizeBytes> <durationSec> <dbOk true/false> <filesOk true/false>
 status_success() {
@@ -89,14 +91,185 @@ status_success() {
   chmod 644 "$STATUS_FILE" 2>/dev/null || true
   # basarili yedekten sonra eski basarisizlik kaydi yaniltici olur
   rm -f "$FAILURE_FILE"
+  # yerel/uzak/zamanlama/saklama alanlari (GDRIVE-BACKUP); hata yedegi basarisiz saymaz
+  status_enrich || log "uyari: durum dosyasi zenginlestirilemedi"
+}
+
+# ---------------------------------------------------------------------------------------------------------------------
+# Yerel/uzak kopya durumu (GDRIVE-BACKUP). last-success.json'a local/remote/schedule/retention nesneleri eklenir; eski alanlar
+# (lastSuccessAt, time, file...) aynen kalir. Uzak durum $REMOTE_STATE_FILE'dadir (remote-sync.sh yazar; yalniz kisa hata metni,
+# uzak adi ve sayilar; hedef yolu/belirtec ASLA). jq yoksa zenginlestirme sessizce atlanir.
+# ---------------------------------------------------------------------------------------------------------------------
+REMOTE_STATE_FILE="${BACKUP_REMOTE_STATE_FILE:-$BACKUP_DIR/remote-state.json}"
+STAMP_RE='^[0-9]{8}T[0-9]{6}$'
+
+now_iso() { date -u '+%Y-%m-%dT%H:%M:%SZ'; }
+
+# iso_to_epoch <YYYY-MM-DDTHH:MM:SSZ> (UTC) -> unix sn; ayrisamazsa 0. busybox date "T...Z" bicimini KABUL ETMEZ: T bosluga cevrilir, Z atilir.
+iso_to_epoch() {
+  local s="${1%Z}"
+  [ -n "$s" ] && [ "$s" != null ] || { echo 0; return 0; }
+  date -u -d "${s/T/ }" +%s 2>/dev/null || echo 0
+}
+
+# stamp_to_iso <YYYYmmddTHHMMSS> (yerel saat) -> ISO-8601 UTC; cevrilemezse bos
+stamp_to_iso() {
+  local s="$1" e
+  e="$(date -d "${s:0:4}-${s:4:2}-${s:6:2} ${s:9:2}:${s:11:2}:${s:13:2}" +%s 2>/dev/null)" || return 0
+  date -u -d "@$e" '+%Y-%m-%dT%H:%M:%SZ' 2>/dev/null || true
+}
+
+# Yalniz rclone UZAK ADI (iki nokta oncesi); gecersiz/yoksa bos. Yol ve belirtec bu fonksiyondan cikmaz.
+remote_name() {
+  local n
+  case "${BACKUP_REMOTE:-}" in *:*) n="${BACKUP_REMOTE%%:*}";; *) return 0;; esac
+  printf '%s' "$n" | grep -E '^[A-Za-z0-9_.-]+$' || true
+}
+
+# drive | other. alias/crypt/chunker/compress zincirini en fazla 4 basamak izler; `rclone config dump` ciktisi borudan okunur,
+# log'a yazilmaz.
+remote_kind() {
+  local n dump i t r
+  n="$(remote_name)"
+  [ -n "$n" ] && command -v jq >/dev/null && command -v rclone >/dev/null || { echo other; return 0; }
+  dump="$(rclone config dump 2>/dev/null)" || { echo other; return 0; }
+  for i in 1 2 3 4; do
+    t="$(printf '%s' "$dump" | jq -r --arg n "$n" '.[$n].type // empty' 2>/dev/null)"
+    case "$t" in
+      drive) echo drive; return 0;;
+      alias|crypt|chunker|compress|cache)
+        r="$(printf '%s' "$dump" | jq -r --arg n "$n" '.[$n].remote // empty' 2>/dev/null)"
+        case "$r" in *:*) n="${r%%:*}";; *) break;; esac;;
+      *) break;;
+    esac
+  done
+  echo other
+}
+
+# local_stats_json -> {"count":N,"bytes":B,"oldestAt":"..Z"|null}; damga basina bir sayilir (haftalik/aylik sabit baglar tekrar saymaz)
+local_stats_json() {
+  local names count oldest bytes="0" t dirs=() oiso
+  names="$(for t in daily weekly monthly; do ls -1 "$BACKUP_DIR/$t" 2>/dev/null; done | grep -E "$STAMP_RE" | sort -u || true)"
+  if [ -z "$names" ]; then echo '{"count":0,"bytes":0,"oldestAt":null}'; return 0; fi
+  count="$(printf '%s\n' "$names" | wc -l | tr -d ' ')"
+  oldest="$(printf '%s\n' "$names" | head -1)"
+  for t in daily weekly monthly; do [ -d "$BACKUP_DIR/$t" ] && dirs+=("$BACKUP_DIR/$t"); done
+  # tek du cagrisi: sabit baglar (cp -al) bir kez sayilir
+  bytes="$(du -sk "${dirs[@]}" 2>/dev/null | awk '{s+=$1} END{print s*1024+0}')"
+  oiso="$(stamp_to_iso "$oldest")"
+  jq -nc --argjson c "$count" --argjson b "${bytes:-0}" --arg o "$oiso" '{count:$c,bytes:$b,oldestAt:(if $o=="" then null else $o end)}'
+}
+
+remote_json() {
+  local st='{}'
+  if [ -z "${BACKUP_REMOTE:-}" ]; then
+    echo '{"configured":false,"kind":null,"name":null,"lastSuccessAt":null,"lastVerifiedAt":null,"lastError":null,"bytes":null,"count":null}'
+    return 0
+  fi
+  [ -s "$REMOTE_STATE_FILE" ] && st="$(jq -c '.' "$REMOTE_STATE_FILE" 2>/dev/null || echo '{}')"
+  printf '%s' "$st" | jq -c --arg name "$(remote_name)" --arg kind "$(remote_kind)" '{
+      configured: true, kind: $kind, name: (if $name == "" then null else $name end),
+      lastSuccessAt: (.lastSuccessAt // null), lastVerifiedAt: (.lastVerifiedAt // null),
+      lastError: (.lastError // null), bytes: (.bytes // null), count: (.count // null)}'
+}
+
+# Ayarlanan saklama/zamanlama (yonetim paneli "kurulum" ekrani icin); degerler sir degildir.
+retention_json() {
+  jq -nc --argjson ld "${BACKUP_KEEP_DAILY:-3}" --argjson lw "${BACKUP_KEEP_WEEKLY:-0}" --argjson lm "${BACKUP_KEEP_MONTHLY:-0}" \
+    --argjson rd "${BACKUP_REMOTE_KEEP_DAILY:-7}" --argjson rw "${BACKUP_REMOTE_KEEP_WEEKLY:-4}" --argjson rm "${BACKUP_REMOTE_KEEP_MONTHLY:-6}" \
+    '{localDaily:$ld,localWeekly:$lw,localMonthly:$lm,remoteDaily:$rd,remoteWeekly:$rw,remoteMonthly:$rm}' 2>/dev/null || echo 'null'
+}
+schedule_json() {
+  jq -nc --arg c "${BACKUP_CRON:-5 * * * *}" --arg v "${BACKUP_VERIFY_CRON:-30 4 * * 0}" --arg r "${BACKUP_REMOTE_CRON:-35 3 * * *}" \
+    --argjson on "$([ -n "${BACKUP_REMOTE:-}" ] && echo true || echo false)" \
+    '{cron:$c,verifyCron:$v,remoteCron:(if $on then $r else null end)}'
+}
+
+# status_enrich: mevcut last-success.json'a local/remote/schedule/retention ekler (yoksa yalniz bunlarla olusturur).
+# Eszamanli yazarlar (backup.sh :05, remote-sync.sh :35) .status.lock ile sirali.
+status_enrich() {
+  command -v jq >/dev/null || return 0
+  local cur='{}' tmp="$STATUS_FILE.tmp.$$"
+  mkdir -p "$(dirname "$STATUS_FILE")" "$BACKUP_DIR" 2>/dev/null || true
+  (
+    flock -x 8 || exit 1   # busybox flock: -w yok; kritik bolum kisa (jq + mv), bekleme zararsiz
+    [ -s "$STATUS_FILE" ] && cur="$(jq -c 'if type=="object" then . else {} end' "$STATUS_FILE" 2>/dev/null || echo '{}')"
+    printf '%s' "$cur" | jq -c --argjson l "$(local_stats_json)" --argjson r "$(remote_json)" \
+        --argjson s "$(schedule_json)" --argjson t "$(retention_json)" \
+        '. + {local:$l, remote:$r, schedule:$s, retention:$t}' > "$tmp" || { rm -f "$tmp"; exit 1; }
+    mv -f "$tmp" "$STATUS_FILE"
+    chmod 644 "$STATUS_FILE" 2>/dev/null || true
+  ) 8>"$BACKUP_DIR/.status.lock"
+}
+
+# state_merge '<json-nesne>': uzak durum dosyasina alanlari birlestirir (atomik)
+state_merge() {
+  local cur='{}' tmp="$REMOTE_STATE_FILE.tmp.$$"
+  [ -s "$REMOTE_STATE_FILE" ] && cur="$(jq -c '.' "$REMOTE_STATE_FILE" 2>/dev/null || echo '{}')"
+  printf '%s' "$cur" | jq -c --argjson a "$1" '. + $a' > "$tmp" && mv -f "$tmp" "$REMOTE_STATE_FILE"
+  chmod 640 "$REMOTE_STATE_FILE" 2>/dev/null || true
+}
+
+# metric_remote_write: backup_remote.prom (Prometheus textfile). Durum dosyasindan okunur; aga cikmaz.
+metric_remote_write() {
+  command -v jq >/dev/null || return 0
+  mkdir -p "$METRICS_DIR"
+  local st='{}' loc cfg=0 ts vs ok b c lc lb lo oiso
+  [ -s "$REMOTE_STATE_FILE" ] && st="$(jq -c '.' "$REMOTE_STATE_FILE" 2>/dev/null || echo '{}')"
+  [ -z "${BACKUP_REMOTE:-}" ] || cfg=1
+  loc="$(local_stats_json)"
+  to_ts() { iso_to_epoch "$1"; }
+  ts="$(to_ts "$(printf '%s' "$st" | jq -r '.lastSuccessAt // empty')")"
+  vs="$(to_ts "$(printf '%s' "$st" | jq -r '.lastVerifiedAt // empty')")"
+  ok="$(printf '%s' "$st" | jq -r 'if (.lastError // null) == null then 1 else 0 end')"
+  [ "$cfg" = 1 ] && [ -s "$REMOTE_STATE_FILE" ] || ok=1
+  b="$(printf '%s' "$st" | jq -r '.bytes // 0')"; c="$(printf '%s' "$st" | jq -r '.count // 0')"
+  lc="$(printf '%s' "$loc" | jq -r '.count')"; lb="$(printf '%s' "$loc" | jq -r '.bytes')"
+  oiso="$(printf '%s' "$loc" | jq -r '.oldestAt // empty')"; lo="$(to_ts "$oiso")"
+  local tmp="$METRICS_DIR/backup_remote.prom.tmp.$$"
+  cat > "$tmp" <<PROM
+# HELP backup_remote_configured Uzak kopya (BACKUP_REMOTE) tanimli mi: 1 evet, 0 hayir
+# TYPE backup_remote_configured gauge
+backup_remote_configured $cfg
+# HELP backup_remote_last_success_timestamp_seconds Son BASARILI ve dogrulanmis uzak yuklemenin unix zamani
+# TYPE backup_remote_last_success_timestamp_seconds gauge
+backup_remote_last_success_timestamp_seconds $ts
+# HELP backup_remote_last_verified_timestamp_seconds Uzak kopyanin son dogrulama zamani
+# TYPE backup_remote_last_verified_timestamp_seconds gauge
+backup_remote_last_verified_timestamp_seconds $vs
+# HELP backup_remote_last_status Son uzak yukleme denemesi: 1 basarili (ya da kapali), 0 basarisiz
+# TYPE backup_remote_last_status gauge
+backup_remote_last_status $ok
+# HELP backup_remote_bytes Uzak hedefteki toplam yedek boyutu (bayt)
+# TYPE backup_remote_bytes gauge
+backup_remote_bytes $b
+# HELP backup_remote_count Uzak hedefteki yedek dizini sayisi
+# TYPE backup_remote_count gauge
+backup_remote_count $c
+# HELP backup_local_count Yerel yedek sayisi (damga basina)
+# TYPE backup_local_count gauge
+backup_local_count $lc
+# HELP backup_local_bytes Yerel yedeklerin disk boyutu (bayt)
+# TYPE backup_local_bytes gauge
+backup_local_bytes $lb
+# HELP backup_local_oldest_timestamp_seconds En eski yerel yedegin unix zamani
+# TYPE backup_local_oldest_timestamp_seconds gauge
+backup_local_oldest_timestamp_seconds $lo
+PROM
+  mv -f "$tmp" "$METRICS_DIR/backup_remote.prom"
+  chmod 644 "$METRICS_DIR/backup_remote.prom" 2>/dev/null || true
 }
 
 # status_failure <hata-metni> <durationSec> <dbOk> <filesOk>
 status_failure() {
   local tmp="$FAILURE_FILE.tmp.$$"
   mkdir -p "$(dirname "$FAILURE_FILE")"
-  printf '{"time":"%s","error":"%s","durationSec":%s,"dbOk":%s,"filesOk":%s}\n' \
-    "$(date -u '+%Y-%m-%dT%H:%M:%SZ')" "$(json_esc "$1")" "$2" "$3" "$4" > "$tmp"
+  # jq ile yazilir (B5): hata metni rclone/pg ciktisindan gelir, kontrol karakteri tasiyabilir; elle kacis bozuk JSON uretebilirdi
+  if ! { command -v jq >/dev/null && jq -nc --arg t "$(date -u '+%Y-%m-%dT%H:%M:%SZ')" --arg e "$1" --argjson d "${2:-0}" \
+        --argjson db "${3:-false}" --argjson f "${4:-false}" '{time:$t,error:$e,durationSec:$d,dbOk:$db,filesOk:$f}' > "$tmp" 2>/dev/null; }; then
+    printf '{"time":"%s","error":"%s","durationSec":%s,"dbOk":%s,"filesOk":%s}\n' \
+      "$(date -u '+%Y-%m-%dT%H:%M:%SZ')" "$(json_esc "$1")" "${2:-0}" "${3:-false}" "${4:-false}" > "$tmp"
+  fi
   mv -f "$tmp" "$FAILURE_FILE"
   chmod 644 "$FAILURE_FILE" 2>/dev/null || true
 }

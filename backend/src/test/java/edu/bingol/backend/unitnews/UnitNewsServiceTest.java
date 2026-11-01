@@ -137,6 +137,30 @@ class UnitNewsServiceTest {
     }
 
     @Test
+    void aSingleHitFromAnotherFacultyIsNotShownWhenTheProfileFacultyDoesNotMatch() {
+        // A1: "Hemsirelik" yalniz sbf'de kayitli; Hemsirelik Yuksekokulu ogrencisi sbf duyurularini GORMEMELI
+        source("sbf", "Sağlık Bilimleri Fakültesi", UnitSource.Kind.FACULTY, false, "saglik bilimleri fakultesi");
+        dept("sbf", "hemsirelik", "Hemşirelik", null);
+        ann("sbf", null, "SBF duyurusu", 1);
+
+        assertTrue(service.feed(user("Hemşirelik Yüksekokulu", "Hemşirelik", "2"), 10).isEmpty());
+        // fakulte ESLESIRSE tek isabet gosterilir
+        assertEquals(List.of("SBF duyurusu"), titles(service.feed(user("Sağlık Bilimleri Fakültesi", "Hemşirelik", "2"), 10)));
+        // fakulte bilinmiyorsa (profil bos) tek isabet eskisi gibi eslesir; belirsizse bos kalir
+        assertEquals(List.of("SBF duyurusu"), titles(service.feed(user(null, "Hemşirelik", "2"), 10)));
+        // MYO'larda "meslek yuksekokulu" anahtari ile tek okulda gecen program eslesmeye devam eder
+        assertEquals(List.of("BT MYO duyurusu"),
+                titles(service.feed(user("Meslek Yüksekokulu", "Bilgisayar Teknolojileri", "1"), 10)));
+        // ayni ad iki fakultede (Bilgisayar Muhendisligi) ve profildeki fakulte hicbirine uymuyorsa bos
+        source("ziraat", "Ziraat Fakültesi", UnitSource.Kind.FACULTY, false, "ziraat fakultesi");
+        dept("ziraat", "bilgisayar-muhendisligi", "Bilgisayar Mühendisliği", null);
+        assertTrue(service.feed(user("Hemşirelik Yüksekokulu", "Bilgisayar Mühendisliği", "2"), 10).isEmpty());
+        // fakulte uyusan tek kaynak secilir
+        assertEquals(List.of("Bilgisayar sınav programı", "Fakülte genel duyurusu"),
+                titles(service.feed(user("Mühendislik Fakültesi", "Bilgisayar Mühendisliği", "2"), 10)));
+    }
+
+    @Test
     void graduateStudentsAlsoGetTheirInstituteFeed() {
         assertEquals(List.of("Bilgisayar sınav programı", "Fakülte genel duyurusu", "Enstitü duyurusu"),
                 titles(service.feed(user("Mühendislik Fakültesi", "Bilgisayar Mühendisliği", "MASTER"), 10)));

@@ -258,6 +258,10 @@ set -euo pipefail
 install -d -o $SSH_USER -g $SSH_USER -m 755 $BASEDIR $BASEDIR/releases $DATADIR
 install -d -o 70 -g 70 -m 755 $DATADIR/backup-metrics
 install -d -o $SSH_USER -g $SSH_USER -m 700 $DATADIR/secrets
+# KALICI yedek ayarlari (surum dizini her dagitimda yenilenir): rclone.conf (konteyner uid 70 sahipligine alir; icerigi
+# 'sudo' ile duzenlenir, docs/BACKUP_GDRIVE.md bolum 5) ve verify.key (arsiv '*.key' tasimaz; elle konur: docs/BACKUP_RESTORE.md)
+install -d -o 70 -g 70 -m 700 $DATADIR/rclone
+install -d -o $SSH_USER -g $SSH_USER -m 700 $DATADIR/backup-keys
 EOF
 if [ "$DRY" = 1 ]; then
   plan "yerel: git archive $SHORT (mobile/, brand/, test-results/ haric) | ssh tar -x -C $BASEDIR/releases/$SHORT"
@@ -321,6 +325,8 @@ setv WWW_DOMAIN "$WWW_V"
 setv CORS_ORIGINS "https://$DOMAIN_V,https://www.$DOMAIN_V"
 setv PUBLIC_WEB_URL "https://$DOMAIN_V"
 setv BACKUP_METRICS_DIR "$DATADIR/backup-metrics"
+setv RCLONE_CONF_DIR "$DATADIR/rclone"
+setv BACKUP_KEYS_DIR "$DATADIR/backup-keys"
 [ -n "$ADMIN_V" ] && setv ADMIN_EMAILS "$ADMIN_V"
 setv MAIL_ENABLED "$MAIL_ON"
 if [ "$MAIL_ON" = true ]; then setv MAIL_USERNAME "$MAIL_USER_V"; setv MAIL_PASSWORD "$MAIL_PASS_V"; fi
@@ -449,6 +455,12 @@ cur="$(getv STORAGE_DB_DISK_CAPACITY_BYTES)"
 case "$cur" in ""|0) putv STORAGE_DB_DISK_CAPACITY_BYTES "$V_STORAGE_CAP"; WROTE="$WROTE STORAGE_DB_DISK_CAPACITY_BYTES";; esac
 sync_miss STORAGE_RESERVED_BYTES "$V_STORAGE_RES"
 sync_miss BACKUP_REMOTE "$V_BACKUP_REMOTE"
+# rclone.conf ve verify.key surum dizininde KALMAZ (her dagitim yeni releases/<sha>): kalici dizinler (B1)
+sync_miss RCLONE_CONF_DIR /opt/bukampus-data/rclone
+sync_miss BACKUP_KEYS_DIR /opt/bukampus-data/backup-keys
+# rclone dizini uid 70 sahipli 0700: deploy kullanicisi okuyamaz, bu yuzden sudo ile bakilir (sudo yoksa uyari verilmez)
+if [ -n "$(getv BACKUP_REMOTE)" ] && sudo -n true 2>/dev/null && ! sudo -n test -s /opt/bukampus-data/rclone/rclone.conf; then echo "ENVSYNC-UYARI: BACKUP_REMOTE dolu ama /opt/bukampus-data/rclone/rclone.conf yok: Drive yedegi 'rclone.conf icinde yok' hatasi verir (docs/BACKUP_GDRIVE.md bolum 5)"; fi
+if [ ! -s /opt/bukampus-data/backup-keys/verify.key ]; then echo "ENVSYNC-UYARI: /opt/bukampus-data/backup-keys/verify.key yok: haftalik otomatik geri yukleme dogrulamasi atlanir (docs/BACKUP_RESTORE.md)"; fi
 sync_miss BACKUP_WEBHOOK_URL "$V_BACKUP_WEBHOOK"
 echo "ENVSYNC: yazilan anahtarlar:${WROTE:- (yok; her sey zaten ayarli)}"
 if [ "$(getv ADMIN_BASIC_ENABLED)" = true ]; then echo "ENVSYNC-UYARI: ADMIN_BASIC_ENABLED=true (uretimde kapali olmali; elle degistirin)"; fi

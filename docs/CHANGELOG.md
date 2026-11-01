@@ -4,6 +4,13 @@
 
 Ayrıntılı modül notları: `docs/changes/*.md`. Mobil API rehberi: [MOBILE_API_GUIDE.md](MOBILE_API_GUIDE.md).
 
+### Entegrasyon (ENT-ALL): Drive yedek + birim duyuruları + iki faktörlü doğrulama
+
+- **Google Drive yedek (backend/ops):** `scripts/backup/remote-sync.sh` (günde 1 doğrulanmış yükleme, `.partial` -> damga adı, uzak GFS saklama), `prune-local-after-remote.sh` (yalnız Drive'da doğrulanmış yerel yedekleri azaltır, varsayılan kuru çalışma), `GET /api/admin/system/backup` (`BackupReport`, izin `system.read`), `docker-compose.prod.yml` `backup` servisi (`RCLONE_CONF_DIR` ile kalıcı, yazılabilir rclone dizini), [BACKUP_GDRIVE.md](BACKUP_GDRIVE.md). Saatlik yedek yerelde kalır; Drive kopyası en kötü ~24 saat geridir.
+- **Yönetim paneli:** `/admin/backup` (durum kartları + adım adım kurulum rehberi; rehber `docs/BACKUP_GDRIVE.md` ile hizalı), `/admin/content/unit-news` (kaynaklar, eşleme, bölümler, duyuru gizle/göster, sağlık özeti), `/admin/two-factor` (özet + tablo), kullanıcı listesinde 2FA sütunu/süzgeci, ayrıntıda gerekçeli kapatma, yönetici girişinde 202 kod adımı ve kalıcı `X-Device-Id`.
+- **Birim duyuruları (V1050, `unitnews`):** 23 alt siteden gece çekimi, bölüme göre `GET /api/news/unit`, yönetici uçları `/api/admin/unit-news/**`; sözleşme [UNIT_NEWS_API.md](UNIT_NEWS_API.md). İlk açılışta tablolar boşken ilk doldurma yaklaşık 15 dk sürer.
+- **İki faktörlü doğrulama (V1060, `auth.twofactor`, `admin.twofactor`):** e-posta kodu + güvenilen cihaz, `TWO_FACTOR_CODE` e-posta şablonu, yönetici özet/liste/gerekçeli kurtarma kapatması (RBAC `users.read`/`users.write`); sözleşme [TWO_FACTOR_API.md](TWO_FACTOR_API.md). CORS izinli başlıklara `X-Device-Id` eklendi.
+
 ### Menü: yemek adına bağlı kalori + içeriğe bağlı görsel (V1040)
 
 - **Kalori:** yönetici bir yemeğe kalori girince değer yemek adına (`menu_dish_calorie`) da kaydedilir; aynı adlı yemek tarihe özel satırı olmayan günlerde (gelecek ay menüsü dahil) otomatik kalorili görünür. Kalori silmek kayıtlı değeri de siler.

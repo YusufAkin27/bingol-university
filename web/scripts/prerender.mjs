@@ -5,6 +5,7 @@
 // Köken: PUBLIC_WEB_URL (yoksa VITE_PUBLIC_URL, yoksa https://bukampus.com.tr). Headless tarayıcı gerekmez.
 // Mantık src/seo/*.ts içindedir (testli); bu dosya yalnızca dosya sistemi ve doğrulama işini yapar.
 import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from 'node:fs';
+import { createHash } from 'node:crypto';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createServer } from 'vite';
@@ -81,8 +82,42 @@ const hints = manifest
   : undefined;
 if (!hints) console.warn('prerender: vite manifest yok, modulepreload ipuçları atlandı');
 
-const buildDate = new Date().toISOString().slice(0, 10);
-const result = mod.prerender({ template, origin, buildDate, hints });
+// Derleme günü İstanbul saatiyle (sunucu UTC olsa da gece yarısı kayması olmasın)
+const buildDate = new Date().toLocaleDateString('sv-SE', { timeZone: 'Europe/Istanbul' });
+
+// --- sitemap lastmod: sayfa BAŞINA, gerçek değişim tarihi ---
+// seo-lastmod.json (depoda tutulur): "<rota>:<dil>" -> { hash, lastmod }. Sayfanın içerik imzası (başlık, açıklama, JSON-LD,
+// noscript metni; varlık özetleri hariç) değiştiyse lastmod = bugün, değişmediyse eski tarih korunur. Betik dosyayı
+// günceller; içerik değiştiren commit'te güncel seo-lastmod.json da commit edilmelidir (docs/SEO_TECHNICAL.md bölüm 4).
+// Yeniden üretilebilirlik: Docker derlemesinde dosya depodan gelir; kayıt konteyner içinde kalır ve zararsızdır.
+const lastmodPath = join(root, 'seo-lastmod.json');
+let lastmodDb = { version: 1, pages: {} };
+if (existsSync(lastmodPath)) {
+  try {
+    lastmodDb = JSON.parse(readFileSync(lastmodPath, 'utf8'));
+  } catch {
+    fail('seo-lastmod.json okunamadı (geçersiz JSON)');
+  }
+}
+const hasSigs = (r) => r.signatures instanceof Map;
+// İmzalar, lastmod çözücüden ÖNCE gerekir: önce imza turu (dosya yazmadan), sonra asıl önrender
+const sigRun = mod.prerender({ template, origin, buildDate });
+if (!hasSigs(sigRun)) fail('prerender() imza haritası döndürmedi');
+const nextPages = {};
+let lastmodChanged = false;
+for (const [key, hash] of [...sigRun.signatures].sort((a, b) => a[0].localeCompare(b[0]))) {
+  const old = lastmodDb.pages?.[key];
+  const entry = old && old.hash === hash ? old : { hash, lastmod: buildDate };
+  if (!old || old.hash !== hash) lastmodChanged = true;
+  nextPages[key] = entry;
+}
+if (Object.keys(lastmodDb.pages ?? {}).length !== Object.keys(nextPages).length) lastmodChanged = true;
+if (lastmodChanged && process.env.SEO_LASTMOD_WRITE !== '0') {
+  writeFileSync(lastmodPath, JSON.stringify({ version: 1, pages: nextPages }, null, 2) + '\n', 'utf8');
+  console.log('prerender: seo-lastmod.json güncellendi (içeriği değişen sayfalar bugünün tarihini aldı) — commit edin');
+}
+const lastmodOf = (id, lang) => nextPages[`${id}:${lang}`]?.lastmod ?? buildDate;
+const result = mod.prerender({ template, origin, buildDate, hints, lastmod: lastmodOf });
 const resolvedOrigin = origin.replace(/\/+$/, '') || 'https://bukampus.com.tr';
 
 for (const [rel, html] of result.files) {
@@ -96,6 +131,38 @@ const secPath = join(dist, '.well-known', 'security.txt');
 if (existsSync(secPath)) {
   writeFileSync(secPath, mod.renderSecurityTxt(readFileSync(secPath, 'utf8'), resolvedOrigin), 'utf8');
 }
+
+// nginx yönetim konumu: yönetim arayüzü yolu (VITE_ADMIN_PATH, derleme sırasında gömülür) nginx'e de bildirilir; böylece
+// (1) yönetim kabuğu bu yolda 200 verir ama HER yanıtta X-Robots-Tag noindex taşır, (2) yönetim dışındaki bilinmeyen kök
+// yollar gerçek 404 olur (soft 404 yok). Dockerfile bu dosyayı /etc/nginx/snippets/generated-locations.conf'a taşır ve html
+// kökünden siler. Yol nginx yapılandırmasına girdiği için yalnız güvenli karakterlere izin verilir.
+const rawAdmin = (process.env.VITE_ADMIN_PATH || '').trim().replace(/\/+$/, '');
+const adminBase = !rawAdmin ? '/admin' : rawAdmin.startsWith('/') ? rawAdmin : `/${rawAdmin}`;
+if (!/^\/[A-Za-z0-9_-]+(\/[A-Za-z0-9_-]+)*$/.test(adminBase)) fail(`VITE_ADMIN_PATH geçersiz karakter içeriyor: ${adminBase}`);
+// Derleme kimliği: bu derlemenin giriş HTML'inin (hash'li varlık adları dahil) özeti. Gece yenileme katmanı (refresh-prerender.mjs)
+// /var/lib/bu-dyn/<kimlik>/ altına yazar; yeni dağıtım yeni kimlik demektir, eski katman kendiliğinden devre dışı kalır
+// (eski HTML'in sildiği hash'li varlıklara bağlanıp sayfayı bozması imkânsız).
+const buildSource = templateNoSeo.replace(/<div id="root">[\s\S]*?<\/div>/, '').replace(/<html[^>]*>/, '');
+const buildId = createHash('sha1').update(buildSource).digest('hex').slice(0, 10);
+writeFileSync(join(dist, 'build-id.txt'), `${buildId}\n`, 'utf8');
+const adminConf = [
+  '# Otomatik üretildi: web/scripts/prerender.mjs (elle düzenlemeyin). Gece yenileme katmanı kökü + yönetim arayüzü kabuğu (noindex, önbelleksiz).',
+  `set $dyn_root /var/lib/bu-dyn/${buildId};`,
+  `location = ${adminBase} {`,
+  '    add_header Cache-Control "no-cache";',
+  '    add_header X-Robots-Tag "noindex, nofollow, noarchive" always;',
+  '    include /etc/nginx/snippets/security.conf;',
+  '    try_files /index.html =404;',
+  '}',
+  `location ^~ ${adminBase}/ {`,
+  '    add_header Cache-Control "no-cache";',
+  '    add_header X-Robots-Tag "noindex, nofollow, noarchive" always;',
+  '    include /etc/nginx/snippets/security.conf;',
+  '    try_files /index.html =404;',
+  '}',
+  '',
+].join('\n');
+writeFileSync(join(dist, '_nginx-generated.conf'), adminConf, 'utf8');
 
 // manifest yalnızca derleme aracıdır; yayına girmesin
 rmSync(join(dist, '.vite'), { recursive: true, force: true });
@@ -143,6 +210,7 @@ const robots = readFileSync(join(dist, 'robots.txt'), 'utf8');
 if (!robots.includes(`Sitemap: ${resolvedOrigin}/sitemap.xml`) || !robots.includes('Disallow: /admin')) {
   fail('robots.txt eksik');
 }
+if (adminBase !== '/admin' && robots.includes(adminBase)) fail('robots.txt gizli yönetim yolunu açıklıyor');
 
 console.log(
   `prerender: ${result.pageCount} sayfa + kök, sitemap.xml, robots.txt (${resolvedOrigin}) — ${Date.now() - t0} ms`,

@@ -26,7 +26,7 @@ Her yedek `daily/<YYYYMMDDTHHMMSS>/` altında dört dosyadır:
 
 - **Şifreleme: [age](https://age-encryption.org).** Sunucuda yalnızca **genel anahtar** bulunur (`BACKUP_AGE_RECIPIENT=age1...`). Sunucu ele geçirilse bile yedek dosyaları (özellikle sunucu dışına kopyalananlar) çözülemez. **Özel anahtar sunucuda DEĞİLDİR**; çevrimdışı kasada + şifre yöneticisinde saklanır.
 - İki alıcı kullanılır (isteğe bağlı ama önerilir): (1) çevrimdışı kasadaki kurtarma anahtarı `BACKUP_AGE_RECIPIENT`; (2) haftalık **otomatik** doğrulama için sunucuda duran ayrı bir doğrulama anahtarı `BACKUP_VERIFY_AGE_RECIPIENT` (özel anahtarı `deploy/backup-keys/verify.key`). İkincisi, yedekten yalnızca sunucudaki veriyi çözebilir; zaten canlı veritabanı da orada olduğundan ek bir risk yaratmaz, ama **sunucu dışına kopyalanan yedekler** kurtarma anahtarı olmadan çözülemez ve doğrulama anahtarı sunucudan çıkmaz.
-- **Uzak kopya:** `BACKUP_REMOTE` (rclone hedefi, ör. `s3crypt:bu-yedek`) tanımlıysa her yedek yüklenir (`deploy/rclone/rclone.conf` salt okunur bağlanır; gizlidir, commit'lenmez). Aynı veri merkezinde tek kopya yedek sayılmaz: **mutlaka farklı sağlayıcı/bölgede bir uzak kopya** tutun; uzak tarafta nesne kilidi (object lock) / sürümleme ve yaşam döngüsü kuralı önerilir; **uzak saklama en çok 365 gün** olmalı (`docs/legal/internal/01` saklama politikası ≤ 12 ay; 400 gün önerisi geçersizdir, A8-17).
+- **Uzak kopya:** `BACKUP_REMOTE` (rclone hedefi, ör. `s3crypt:bu-yedek`) tanımlıysa her yedek yüklenir (`deploy/rclone/rclone.conf` yazılabilir bağlanır; gizlidir, commit'lenmez). Aynı veri merkezinde tek kopya yedek sayılmaz: **mutlaka farklı sağlayıcı/bölgede bir uzak kopya** tutun; uzak tarafta nesne kilidi (object lock) / sürümleme ve yaşam döngüsü kuralı önerilir; **uzak saklama en çok 365 gün** olmalı (`docs/legal/internal/01` saklama politikası ≤ 12 ay; 400 gün önerisi geçersizdir, A8-17).
 - Yedek **kendi başına** `CRYPTO_MASTER_KEYS` içermez. Mesajlar ve gönderi videoları ana anahtarla şifrelidir; **ana anahtar olmadan yedek geri yüklense bile bu veriler okunamaz** (bölüm 6, [KEY_MANAGEMENT.md](KEY_MANAGEMENT.md)).
 
 ### Kurulum (bir kez)
@@ -36,7 +36,9 @@ Her yedek `daily/<YYYYMMDDTHHMMSS>/` altında dört dosyadır:
 age-keygen -o kurtarma.age.key        # "Public key: age1..." satırını not edin -> BACKUP_AGE_RECIPIENT
 age-keygen -o verify.age.key          # haftalık otomatik doğrulama anahtarı -> BACKUP_VERIFY_AGE_RECIPIENT
 # kurtarma.age.key: şifre yöneticisi + çevrimdışı kasa (>= 2 yer, KEY_MANAGEMENT.md)
-# verify.age.key  : sunucuya, deploy/backup-keys/verify.key olarak; sunucu dışına yedeği YOKTUR (kaybolursa yenisi üretilir)
+# verify.age.key  : sunucuya, KALICI dizinde /opt/bukampus-data/backup-keys/verify.key olarak (BACKUP_KEYS_DIR; scripts/deploy.sh dizini
+#   açar. Depo içi deploy/backup-keys yalnız yerel geliştirme içindir: dağıtım arşivi *.key taşımaz ve her sürüm yeni dizine açılır);
+#   sunucu dışına yedeği YOKTUR (kaybolursa yenisi üretilir)
 #   İzin: konteynerdeki zamanlayıcı postgres (uid 70) olarak çalışır; 0600 + başka sahip ise okuyamaz. Ya
 #   `sudo chown 70:70 deploy/backup-keys/verify.key && chmod 0400 deploy/backup-keys/verify.key`, ya da yedek konteyneri
 #   başlarken kök olarak okunup postgres'e özel 0400 kopya (/run/age-key/age.key) yapılır (anahtar sonradan konduysa
@@ -222,7 +224,9 @@ Beklenen süre: küçük veride betik kısmı **15-40 sn** + uygulama açılış
 
 ## 11. Yedeklerin sunucu DIŞINA kopyalanması (uzak kopya): adım adım
 
-**Durum tespiti (REL1b incelemesi):** `docker-compose.prod.yml` `backup` servisi rclone içerir (imaj `rclone` kurar, `deploy/rclone/` salt okunur `/config/rclone` olarak bağlanır, `RCLONE_CONFIG=/config/rclone/rclone.conf`) ve `scripts/backup/backup.sh` `BACKUP_REMOTE` doluysa her yedeği `rclone copy ... --checksum` ile `${BACKUP_REMOTE}/<damga>` altına yükler. **Ama `BACKUP_REMOTE` varsayılan olarak BOŞTUR** (`.env.prod.example`: `BACKUP_REMOTE=`); boşsa yedekler yalnız VPS'in `backups` volume'unda kalır, yani sunucu diski ya da hesabı giderse yedekler de gider. `deploy/compose.bukampus.yml` yalnız Caddy www yönlendirmesidir, yedek ayarı içermez. Yani **mekanizma var, açık değil**: aşağıdaki adımlar onu açar. Bu bölümdeki adımlar rclone sözdizimi düzeyinde (yerel `alias` uzağıyla `lsd` + `copy`) denendi; **gerçek bir sağlayıcı hesabına karşı DENENMEDİ** (hesap yok); ilk gerçek yüklemeyi `--dry-run` ve elle yedekle mutlaka doğrulayın.
+> **Google Drive (önerilen, kolay yol):** [BACKUP_GDRIVE.md](BACKUP_GDRIVE.md). Günde 1 yükleme + indirmeden doğrulama + uzak saklama (7/4/6) + yerel yedekleri güvenle azaltma orada anlatılır. Aşağıdaki 11.1-11.5 S3/B2/SFTP gibi diğer hedefler içindir; **güncel davranış:** saatlik yükleme yerine günde bir yükleme (`remote-sync.sh`), uzak saklama betikle yapılır (yaşam döngüsü kuralı yine de önerilir), `deploy/rclone` artık yazılabilir bağlanır.
+
+**Durum tespiti (REL1b incelemesi):** `docker-compose.prod.yml` `backup` servisi rclone içerir (imaj `rclone` kurar, `deploy/rclone/` (ya da `RCLONE_CONF_DIR`) YAZILABİLİR `/config/rclone` olarak bağlanır, `RCLONE_CONFIG=/config/rclone/rclone.conf`) ve `scripts/backup/backup.sh` `BACKUP_REMOTE` doluysa her yedeği `rclone copy ... --checksum` ile `${BACKUP_REMOTE}/<damga>` altına yükler. **Ama `BACKUP_REMOTE` varsayılan olarak BOŞTUR** (`.env.prod.example`: `BACKUP_REMOTE=`); boşsa yedekler yalnız VPS'in `backups` volume'unda kalır, yani sunucu diski ya da hesabı giderse yedekler de gider. `deploy/compose.bukampus.yml` yalnız Caddy www yönlendirmesidir, yedek ayarı içermez. Yani **mekanizma var, açık değil**: aşağıdaki adımlar onu açar. Bu bölümdeki adımlar rclone sözdizimi düzeyinde (yerel `alias` uzağıyla `lsd` + `copy`) denendi; **gerçek bir sağlayıcı hesabına karşı DENENMEDİ** (hesap yok); ilk gerçek yüklemeyi `--dry-run` ve elle yedekle mutlaka doğrulayın.
 
 Neden güvenli: yüklenen her şey zaten **age ile şifrelidir** (`db.dump.age`, `uploads.tar.zst.age`); sağlayıcı yalnız şifreli bayt görür. Ek rclone `crypt` katmanı gerekmez (dosya adları yalnız zaman damgasıdır).
 
@@ -247,7 +251,7 @@ Kural: **farklı sağlayıcıda/bölgede** olsun (VPS ile aynı firmada ikinci d
 Önemli: preflight `rclone lsd <uzak>:` çalıştırır. Kovaya kısıtlı anahtarla **kova listeleme** yetkisi olmayabileceğinden uzağı bir `alias` ile kovanın İÇİNE bağlayın; böylece `lsd` kova içeriğini listeler ve yetki sorunu çıkmaz.
 
 ```ini
-# deploy/rclone/rclone.conf   (chmod 0644 veya chown 70:70 + 0400: konteynerdeki postgres kullanıcısı okuyabilmeli)
+# rclone.conf   (kalıcı dizin: RCLONE_CONF_DIR, bkz. BACKUP_GDRIVE.md bölüm 5; izin elle ayarlanmaz: konteyner dosyayı postgres sahipliğine alıp 0600 yapar, dizin YAZILABİLİR bağlanır)
 [r2]
 type = s3
 provider = Cloudflare

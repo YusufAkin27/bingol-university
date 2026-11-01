@@ -16,6 +16,7 @@ const GRANTS: Record<string, Profile[]> = {
   'users.delete': ['FULL'],
   'users.export': ['FULL'],
   'users.verify': ['FULL'],
+  'users.2fa': ['FULL', 'SUPPORT'],
   'moderation.read': ['FULL', 'MODERATOR', 'VIEWER'],
   'moderation.write': ['FULL', 'MODERATOR'],
   'chat.read': ['FULL', 'MODERATOR'],

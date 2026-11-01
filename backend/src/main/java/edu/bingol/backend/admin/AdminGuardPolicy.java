@@ -17,7 +17,7 @@ public final class AdminGuardPolicy {
     private static final Pattern USER_ROLE = Pattern.compile("^/api/admin/users/[^/]+/role$");
     private static final Pattern USER_DELETE = Pattern.compile("^/api/admin/users/[^/]+$");
     private static final Pattern USER_ACCOUNT_OPS =
-            Pattern.compile("^/api/admin/users/[^/]+/(verify-email|send-reset|revoke-sessions)$");
+            Pattern.compile("^/api/admin/users/[^/]+/(verify-email|send-reset|revoke-sessions|two-factor/disable)$");
     private static final Pattern LEGAL_PUBLISH = Pattern.compile("^/api/admin/legal/[^/]+$");
     private static final Pattern SETTING = Pattern.compile("^/api/admin/settings/([^/]+)$");
     private static final Pattern BULK = Pattern.compile("^/api/admin/.*/bulk(/.*)?$");

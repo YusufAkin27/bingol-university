@@ -14,6 +14,7 @@ const LoginPage = lazy(() => import('./pages/admin/LoginPage'));
 const AdminRegisterPage = lazy(() => import('./pages/admin/AdminRegisterPage'));
 const DashboardPage = lazy(() => import('./pages/admin/DashboardPage'));
 const UsersPage = lazy(() => import('./pages/admin/UsersPage'));
+const TwoFactorPage = lazy(() => import('./pages/admin/TwoFactorPage'));
 const UserDetailPage = lazy(() => import('./pages/admin/UserDetailPage'));
 const UserMessagesPage = lazy(() => import('./pages/admin/UserMessagesPage'));
 const LegacyMessageRedirect = lazy(() => import('./pages/admin/chat/LegacyMessageRedirect'));
@@ -29,6 +30,7 @@ const FeedbackPage = lazy(() => import('./pages/admin/FeedbackPage'));
 const LegalAdminPage = lazy(() => import('./pages/admin/LegalAdminPage'));
 const FaqAdminPage = lazy(() => import('./pages/admin/FaqAdminPage'));
 const NewsAdminPage = lazy(() => import('./pages/admin/NewsAdminPage'));
+const UnitNewsAdminPage = lazy(() => import('./pages/admin/UnitNewsAdminPage'));
 const ClubsManagePage = lazy(() => import('./pages/admin/ClubsManagePage'));
 const ContentReviewPage = lazy(() => import('./pages/admin/ContentReviewPage'));
 const EventsAdminPage = lazy(() => import('./pages/admin/EventsAdminPage'));
@@ -52,6 +54,7 @@ const OpsPage = lazy(() => import('./pages/admin/OpsPage'));
 const CrashesPage = lazy(() => import('./pages/admin/CrashesPage'));
 const AppVersionsPage = lazy(() => import('./pages/admin/AppVersionsPage'));
 const DataRetentionPage = lazy(() => import('./pages/admin/DataRetentionPage'));
+const BackupPage = lazy(() => import('./pages/admin/BackupPage'));
 const SystemStatusPage = lazy(() => import('./pages/admin/SystemStatusPage'));
 const SourcesPage = lazy(() => import('./pages/admin/SourcesPage'));
 const MailTemplatesPage = lazy(() => import('./pages/admin/MailTemplatesPage'));
@@ -82,6 +85,7 @@ export default function AdminRoutes() {
         >
           <Route index element={<DashboardPage />} />
           <Route path="users" element={<UsersPage />} />
+          <Route path="two-factor" element={<TwoFactorPage />} />
           <Route path="users/:id" element={<UserDetailPage />} />
           <Route path="users/:id/messages" element={<RequirePerm perm="chat.read"><UserMessagesPage /></RequirePerm>} />
           <Route path="users/:id/message" element={<LegacyMessageRedirect />} />
@@ -97,6 +101,7 @@ export default function AdminRoutes() {
           <Route path="content/legal" element={<LegalAdminPage />} />
           <Route path="content/faq" element={<FaqAdminPage />} />
           <Route path="content/news" element={<NewsAdminPage />} />
+          <Route path="content/unit-news" element={<UnitNewsAdminPage />} />
           <Route path="communities" element={<ClubsManagePage />} />
           <Route path="content-review" element={<ContentReviewPage />} />
           <Route path="events" element={<EventsAdminPage />} />
@@ -120,6 +125,7 @@ export default function AdminRoutes() {
           <Route path="crashes" element={<CrashesPage />} />
           <Route path="app-versions" element={<AppVersionsPage />} />
           <Route path="data-retention" element={<DataRetentionPage />} />
+          <Route path="backup" element={<BackupPage />} />
           <Route path="system" element={<SystemStatusPage />} />
           <Route path="sources" element={<SourcesPage />} />
           <Route path="mail/templates" element={<MailTemplatesPage />} />

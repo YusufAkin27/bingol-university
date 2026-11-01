@@ -80,6 +80,11 @@ grafikler yalnızca `components/charts` üzerinden (Recharts yalnızca onu içe 
 
 **Sözlükler dil başına ve kapsam başına lazy parçadır** (ana paket küçük kalır): `i18n/bundles/site.{tr,en,ar}.ts` (ziyaretçi yalnız kendi dilini indirir), `bundles/admin.tr.ts` (yalnız `/admin`; yönetim yalnız Türkçe), `registry.ts` (çalışma zamanı kayıt defteri: `loadDictionary`, `translate`, `hasKey`; indirme hatasında `I18nProvider` görünen dili korur, hiç dil yoksa Türkçeye düşer). `i18n/index.ts` yalnız tür (`TranslationKey`) ve `translate/hasKey` cephesidir, sözlük içermez; **uygulama kodu `i18n/all.ts`'i içe aktarmaz** (tüm diller ana pakete girer). `all.ts` testler (`test/setup.ts` otomatik içe aktarır), önrender ve betikler içindir. Yeni ad alanı: üç dilde dosya aç, ilgili `bundles/*` dosyasına ve `all.ts`'e ekle. `scripts/prerender.mjs` sayfanın sözlük ve sayfa parçalarını `modulepreload` olarak HTML'e yazar (vite manifest'inden).
 
+## Sayfa içi SEO (başlık, açıklama, hreflang, JSON-LD)
+
+Tek kaynak `src/seo/routeMeta.ts`: her herkese açık rota için `seoTitleKey`/`seoDescKey` (`i18n/<dil>/seo.ts` içinde `seo.t.<id>` / `seo.d.<id>`; başlık ≤ 48 karakter, `| BÜ Kampüs` eki kodda eklenir ve toplam ≤ 60, açıklama 120-158). Sayfa içi h1 ve breadcrumb adı ayrıdır (`titleKey`). Yeni herkese açık sayfa: `ROUTE_META` satırı + üç dilde `seo.t.<id>`/`seo.d.<id>`; `src/seo/pageMeta.test.ts` uzunluk, benzersizlik, hreflang ve JSON-LD kurallarını denetler.
+`usePageMeta` (çalışma zamanı) ve `seo/prerender.ts` (derleme) aynı `headModel`i kullanır. `RouteMeta.langs` içeriği yalnızca bazı dillerde yerelleştirilmiş sayfalar içindir (haber: yalnız `tr`): diğer dil URL'leri canonical'ı Türkçeye verir, hreflang ve sitemap kümesine girmez. Yönetim, giriş, token'lı takip ve 404 `noindex, nofollow`; haber ayrıntısı `noindex, follow` (docs/SEO.md P5; dizine almak için `NewsDetailPage` içindeki `robots` satırını kaldırın). JSON-LD: `pages/site/components/jsonLd.ts` (Organization, WebSite, MobileApplication, BreadcrumbList, FAQPage, NewsArticle). Yayıncı her zaman "BÜ Kampüs"tür; uygulama Bingöl Üniversitesi'nin resmî uygulaması değildir, üniversite adı kuruluş/yayıncı olarak yazılmaz. Mağaza bağlantısı yönetici ayarından gelince `installUrl` otomatik dolar; adres uydurulmaz.
+
 ## Performans ve paket bütçesi
 
 `npm run check:bundle` (build sonrası): `dist/assets` gzip boyutları `bundle-budget.json` ile karşılaştırılır (girdi paketi, en ağır önrender sayfa, parça başına, toplam). Aşımda çıkış kodu 1; CI'da uyarı (`continue-on-error`). Yeni büyük bağımlılık ya da sayfa eklerken önce bütçeye bakın; bilinçli yükseltmeyi dosyada gerekçeleyin. Yazı tipleri değişken Inter (latin 48 KB, latin-ext 85 KB nadiren, `inter-turkish` 3 KB yalnız Ğ ğ İ ı Ş ş); `/assets/*` ve `/fonts/*` nginx'te 1 yıl `immutable`, HTML `no-cache`.
@@ -117,7 +122,12 @@ sayfanın ilk okuma ucu da yazılır.
 Site 404 davranışı: `scripts/prerender.mjs` `dist/404.html` üretir (noindex + h1 + açıklama); `nginx.conf` dil önekli
 bilinmeyen yollar için HTTP 404 döner (`error_page 404 /404.html`). Haber kimliği, hukuki metin türü ve `/support/track`
 özel kurallarla kabuk (200) alır; **yeni dinamik site rotası eklenirse nginx'e de özel kural eklenmelidir**
-(`src/seo/notFound.test.ts` statik rotaları ve kural sırasını denetler).
+(`src/seo/notFound.test.ts` statik rotaları ve kural sırasını denetler). **Kök düzeyde bilinmeyen her yol da 404'tür**
+(eski SPA düşüşü kaldırıldı); yönetim yolu derlemede nginx'e `_nginx-generated.conf` ile bildirilir.
+
+Teknik SEO (robots, sitemap, URL hijyeni, başlıklar, gece menü/haber yenilemesi): [`docs/SEO_TECHNICAL.md`](../docs/SEO_TECHNICAL.md).
+`npm run build && npm run check:seo` (dist denetimi; `check:seo:strict` uyarıları da hata sayar; `-- --live <köken>` canlı
+davranış denetimi). Sayfa metni değiştiren commit'te `seo-lastmod.json` da commit edilir (sitemap `lastmod` kaydı).
 
 OpenAPI tipleri: `npm run gen:api` (`docs/openapi.json` -> `src/api/generated/schema.d.ts`); tip güvenli örnek
 modüller `src/api/typed/*` (bkz. `docs/MOBILE_CODEGEN.md`).

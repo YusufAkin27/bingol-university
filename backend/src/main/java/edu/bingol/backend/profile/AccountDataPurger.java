@@ -68,7 +68,9 @@ public class AccountDataPurger {
             "DELETE FROM account_delete_hold WHERE user_id = ?",
             // FOLLOWREQ: bekleyen takip istekleri (gonderdigim ve aldigim; iki sutun da kisi kimligi)
             "DELETE FROM follow_request WHERE requester_id = ?",
-            "DELETE FROM follow_request WHERE target_id = ?");
+            "DELETE FROM follow_request WHERE target_id = ?",
+            // 2FA: guvenilen cihaz ozetleri (kisisel veri: cihaza bagli HMAC ozeti + platform/surum etiketi)
+            "DELETE FROM two_factor_device WHERE user_id = ?");
 
     /** Serbest metinler temizlenir, satir (ve kimlik baglantisi) kalir; kullanici satiri anonimlestirildi. */
     public static final List<String> SCRUBS = List.of(

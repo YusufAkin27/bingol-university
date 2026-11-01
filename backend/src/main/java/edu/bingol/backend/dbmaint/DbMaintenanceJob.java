@@ -50,6 +50,9 @@ public class DbMaintenanceJob {
     private final int activityDays;
     private final int crashDays;
     private final int logDays;
+    /** Guvenilen 2FA cihazinin bosta kalma siniri (gun); TwoFactorService ile ayni ayar. */
+    @Value("${app.twofactor.device-ttl-days:60}")
+    private int twoFactorDeviceDays = 60;
 
     public DbMaintenanceJob(ChunkedDeleter deleter, NamedParameterJdbcTemplate jdbc, AnalyticsRollup rollup,
                             SchedulerLock lock, Clock clock,
@@ -82,6 +85,10 @@ public class DbMaintenanceJob {
         this.activityDays = activityDays;
         this.crashDays = crashDays;
         this.logDays = logDays;
+    }
+
+    void setTwoFactorDeviceDays(int days) {
+        this.twoFactorDeviceDays = days;
     }
 
     @Scheduled(cron = "${app.dbmaint.cron:0 0 3 * * *}", zone = "Europe/Istanbul")
@@ -122,6 +129,7 @@ public class DbMaintenanceJob {
         out.put("message_access_audit", safe("message_access_audit", () -> longAudit("message_access_audit", now)));
         out.put("club_audit", safe("club_audit", () -> longAudit("club_audit", now)));
         out.put("follow_request", safe("follow_request", () -> followRequests(now)));
+        out.put("two_factor_device", safe("two_factor_device", () -> twoFactorDevices(now)));
         out.put("crash_event", safe("crash_event", () -> crashEvents(now)));
         out.put("crash_group", safe("crash_group", () -> crashGroups(now)));
         log.info("dbmaint tamam: {}", out);
@@ -152,6 +160,16 @@ public class DbMaintenanceJob {
         return deleter.delete("follow_request",
                 "DELETE FROM follow_request WHERE id IN (SELECT id FROM follow_request WHERE created_at < :cutoff LIMIT :lim)",
                 Map.of("cutoff", cutoff(now, FOLLOW_REQUEST_DAYS)));
+    }
+
+    /**
+     * 2FA guvenilen cihazlar: {@code app.twofactor.device-ttl-days} (60) gun kullanilmayan kayit silinir (kaybolan/satilan
+     * telefon sonsuza dek kodsuz girmesin; TwoFactorService.touchIfTrusted ayni siniri giriste de uygular).
+     */
+    private int twoFactorDevices(Instant now) {
+        return twoFactorDeviceDays <= 0 ? 0 : deleter.delete("two_factor_device",
+                "DELETE FROM two_factor_device WHERE id IN (SELECT id FROM two_factor_device WHERE last_used_at < :cutoff ORDER BY id LIMIT :lim)",
+                Map.of("cutoff", cutoff(now, twoFactorDeviceDays)));
     }
 
     /** Gunluk acilis sayaci: raporlar en cok 366 gun sorgular; 400 gunden eskisi gereksiz. */
@@ -211,12 +229,12 @@ public class DbMaintenanceJob {
 
     /**
      * T-063 (A8-25): dogrulama/sifre sifirlama KODU gonderildikten (ya da olunce) sonra kuyrukta tutulmaz. Kod 10 dk
-     * gecerlidir; 1 saatten eski SENT/DEAD kod postalarinin degiskenleri '{}' yapilir (satir ve istatistik kalir).
+     * gecerlidir; 1 saatten eski SENT/DEAD/SKIPPED kod postalarinin degiskenleri '{}' yapilir (satir ve istatistik kalir).
      */
     private int mailCodeScrub(Instant now) {
         return deleter.delete("mail_code_scrub",
-                "UPDATE mail_outbox SET vars_json = '{}' WHERE id IN (SELECT id FROM mail_outbox WHERE status IN ('SENT', 'DEAD') "
-                        + "AND template IN ('VERIFICATION_CODE', 'PASSWORD_RESET_CODE') AND vars_json <> '{}' "
+                "UPDATE mail_outbox SET vars_json = '{}' WHERE id IN (SELECT id FROM mail_outbox WHERE status IN ('SENT', 'DEAD', 'SKIPPED') "
+                        + "AND template IN ('VERIFICATION_CODE', 'PASSWORD_RESET_CODE', 'TWO_FACTOR_CODE') AND vars_json <> '{}' "
                         + "AND created_at < :cutoff LIMIT :lim)",
                 Map.of("cutoff", now.minus(Duration.ofHours(1)).atOffset(ZoneOffset.UTC)));
     }

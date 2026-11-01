@@ -1,5 +1,6 @@
 // SAYFA: Kullanıcı ayrıntısı (/admin/users/:id)
 // API: GET /api/admin/users/{id} (düz AdminUserDetail), PATCH .../role, DELETE .../{id}, POST .../suspend|unsuspend (api/users.ts).
+//      İki faktörlü doğrulama kartı: POST .../two-factor/disable (users/UserTwoFactor.tsx).
 // KVKK: yalnızca günlük açılış sayıları gösterilir; başka kullanım ayrıntısı yoktur.
 // PEOPLE: 20 kartlık tek sütun yerine; üstte durum/risk bandı + hızlı işlem çubuğu, altta 5 sade sekme
 // (Özet, Katılım, Destek ve raporlar, Cihazlar ve güvenlik, Yönetim). Sekme ?tab= ile URL'dedir (arama derin bağlantısı).
@@ -40,6 +41,7 @@ import { UserDevices } from './accessbans/UserDevices';
 import { UserActions } from './users/UserActions';
 import { UserDeepTabs } from './users/UserDeepTabs';
 import { UserExtras } from './users/UserExtras';
+import { UserTwoFactor } from './users/UserTwoFactor';
 import styles from './users/users.module.css';
 
 const TAB_IDS = ['overview', 'activity', 'support', 'security', 'manage'] as const;
@@ -346,6 +348,7 @@ export default function UserDetailPage() {
               </Card>
             </>
           )}
+          <UserTwoFactor user={u} isSelf={me?.id === u.id} />
 
           {tab === 'activity' && (
             <>

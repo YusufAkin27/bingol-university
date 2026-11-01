@@ -44,7 +44,7 @@ function LegalDocPage({ type }: { type: LegalType }) {
     queryFn: () => listPublicLegalVersions(type),
   });
   const title = doc.data?.title ?? t(`legal.title.${type}`);
-  usePageMeta({ route: legalRouteId(type), title });
+  usePageMeta({ route: legalRouteId(type) });
 
   // Yazdırma görünümü: site üst/alt bilgisi gizlenir (LegalPage.module.css)
   useEffect(() => {
