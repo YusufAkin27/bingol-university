@@ -20,6 +20,7 @@ import Uv1 from '../tr/admin-uv1';
 import Kit from '../tr/admin-kit';
 import V2Community from '../tr/admin-v2-community';
 import V2People from '../tr/admin-v2-people';
+import V2Moderation from '../tr/admin-v2-moderation';
 import V2Notifsys from '../tr/admin-v2-notifsys';
 
 export default {
@@ -44,5 +45,6 @@ export default {
   ...Kit,
   ...V2Community,
   ...V2People,
+  ...V2Moderation,
   ...V2Notifsys,
 };

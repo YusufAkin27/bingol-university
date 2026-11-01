@@ -1,0 +1,104 @@
+/* Moderasyon + Destek görsel yenileme (MOD): ortak yardımcılar. Renkler yalnız token'dan, mantıksal özellikler (RTL). */
+.tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9.5rem, 1fr));
+  gap: var(--space-3);
+  margin-block: var(--space-3);
+}
+.tiles > * {
+  min-inline-size: 0;
+}
+.sentence {
+  margin-block: var(--space-3);
+}
+.fold {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  margin-block: var(--space-3);
+  min-inline-size: 0;
+}
+.fold > summary {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-block-size: 44px;
+  padding-inline: var(--space-3);
+  font-weight: 600;
+  cursor: pointer;
+  list-style: none;
+}
+.fold > summary::-webkit-details-marker {
+  display: none;
+}
+.foldCount {
+  margin-inline-start: auto;
+  padding: 0 var(--space-2);
+  border-radius: var(--radius-pill);
+  background: var(--primary-soft);
+  color: var(--on-soft);
+  font-size: var(--text-xs);
+  font-weight: 700;
+}
+.foldBody {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  align-items: end;
+  padding: var(--space-3);
+  border-block-start: 1px solid var(--border);
+}
+.foldBody > * {
+  min-inline-size: 0;
+}
+/* Bağlantı: kırmızı "tehlike" rengi değil, nötr mavi (info) */
+.link {
+  color: var(--info);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  overflow-wrap: anywhere;
+}
+/* Dokunma hedefi >= 44 px (telefon / dokunmatik) */
+.touch button,
+.touch a,
+.touch select,
+.touch input:not([type='checkbox']):not([type='radio']) {
+  min-block-size: 44px;
+}
+@media (min-width: 961px) and (pointer: fine) {
+  .touch button,
+  .touch a {
+    min-block-size: 0;
+  }
+}
+.checkRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-block-size: 44px;
+  cursor: pointer;
+}
+.checkRow input {
+  inline-size: 20px;
+  block-size: 20px;
+  flex: none;
+}
+/* Rutin satır eylemi: dolu kırmızı yerine çerçeveli; kırmızı yalnız onay diyaloğunda */
+.softDanger {
+  background: transparent;
+  color: var(--danger);
+  border-color: var(--danger);
+}
+.softDanger:hover:not(:disabled) {
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+.hint {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+.mono {
+  font-family: var(--font-mono);
+  overflow-wrap: anywhere;
+}
