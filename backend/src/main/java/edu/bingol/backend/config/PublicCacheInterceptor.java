@@ -48,8 +48,10 @@ public class PublicCacheInterceptor implements HandlerInterceptor {
             case "/api/communities/categories":
                 return new Policy(60, 120);
             case "/api/menu":
-            case "/api/menu/today":
                 return new Policy(300, 600);
+            case "/api/menu/today":
+                // Gun donumunden sonra dunun menusu ara onbellekte 15 dk kalmasin (P07-B14)
+                return new Policy(60, 120);
             case "/api/status":
                 return new Policy(30, 60);
             case "/api/faq":

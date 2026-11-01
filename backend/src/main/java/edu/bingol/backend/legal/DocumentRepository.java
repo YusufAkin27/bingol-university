@@ -10,11 +10,34 @@ import org.springframework.transaction.annotation.Transactional;
 
 public interface DocumentRepository extends JpaRepository<LegalDocument, Long> {
 
-    List<LegalDocument> findByActiveTrue();
+    /** Metinsiz baslik satiri: tam sozlesme metni (120-320 KB) gerekmeyen okumalar (bekleyen onay, surum listesi) icin. */
+    interface DocHead {
+        LegalType getType();
+
+        String getLang();
+
+        int getVersion();
+
+        String getTitle();
+
+        boolean isRequireReaccept();
+
+        java.time.Instant getPublishedAt();
+    }
+
+    /** Aktif belgelerin basliklari, tek dilde (onay/surum takibi tr belge uzerinden). */
+    @Query("SELECT d.type AS type, d.lang AS lang, d.version AS version, d.title AS title, "
+            + "d.requireReaccept AS requireReaccept, d.publishedAt AS publishedAt "
+            + "FROM LegalDocument d WHERE d.active = true AND d.lang = :lang")
+    List<DocHead> activeHeads(@Param("lang") String lang);
+
+    /** Bir turun tum surumlerinin basliklari (metinsiz), en yeni surum once. */
+    @Query("SELECT d.type AS type, d.lang AS lang, d.version AS version, d.title AS title, "
+            + "d.requireReaccept AS requireReaccept, d.publishedAt AS publishedAt "
+            + "FROM LegalDocument d WHERE d.type = :type AND d.lang = :lang ORDER BY d.version DESC")
+    List<DocHead> versionHeads(@Param("type") LegalType type, @Param("lang") String lang);
 
     Optional<LegalDocument> findByTypeAndLangAndActiveTrue(LegalType type, String lang);
-
-    List<LegalDocument> findByTypeAndLangOrderByVersionDesc(LegalType type, String lang);
 
     /** Yonetici: tum diller, en yeni surum once. */
     List<LegalDocument> findByTypeOrderByVersionDescLangAsc(LegalType type);

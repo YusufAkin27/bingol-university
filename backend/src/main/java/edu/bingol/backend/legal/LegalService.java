@@ -5,6 +5,7 @@ import edu.bingol.backend.common.cache.CacheService;
 import edu.bingol.backend.common.cache.CacheTier;
 import edu.bingol.backend.i18n.Lang;
 import edu.bingol.backend.legal.LegalDtos.AcceptanceView;
+import edu.bingol.backend.legal.LegalDtos.BaseDoc;
 import edu.bingol.backend.legal.LegalDtos.ConsentItem;
 import edu.bingol.backend.legal.LegalDtos.LegalContent;
 import edu.bingol.backend.legal.LegalDtos.LegalSummary;
@@ -37,6 +38,7 @@ public class LegalService {
     private CacheService readCache = CacheService.passthrough();
     private static final TypeReference<List<LegalSummary>> SUMMARIES = new TypeReference<>() { };
     private static final TypeReference<LegalContent> CONTENT = new TypeReference<>() { };
+    private static final TypeReference<List<BaseDoc>> BASES = new TypeReference<>() { };
 
     /** Yer tutucu anahtari -> app_setting anahtari; listede olmayanlar "legal." onekiyle aranir. */
     static final Map<String, String> SETTING_KEYS = Map.of(
@@ -113,16 +115,18 @@ public class LegalService {
                 .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "LEGAL_NOT_FOUND", "Belge bulunamadı."));
     }
 
-    public List<LegalDocument> versions(LegalType type, Lang lang) {
-        return docs.findByTypeAndLangOrderByVersionDesc(type, lang.code());
+    /** Surum listesi: metin (120-320 KB) okunmaz; dil + tur basina onbellekli, yeni surumde (legal ad alani) yenilenir. */
+    public List<LegalSummary> versions(LegalType type, Lang lang) {
+        return readCache.get("legal", "v:" + type.name() + ":" + lang.code(), CacheTier.STABLE, SUMMARIES,
+                () -> docs.versionHeads(type, lang.code()).stream().map(LegalSummary::of).toList());
     }
 
     /** Kayit sirasinda guncel tum belgeler kabul edilmis sayilir (istemci acceptTerms=true gonderir). */
     @Transactional
     public void recordSignupConsent(Long userId) {
-        for (LegalDocument d : baseDocs()) {
-            if (d.getType().isSignupRequired()) {
-                record(userId, d.getType(), d.getVersion());
+        for (BaseDoc d : baseDocs()) {
+            if (d.type().isSignupRequired()) {
+                record(userId, d.type(), d.version());
             }
         }
     }
@@ -134,21 +138,24 @@ public class LegalService {
      */
     public List<PendingConsent> pending(Long userId, Lang lang) {
         List<PendingConsent> out = new ArrayList<>();
-        for (LegalDocument base : baseDocs()) {
-            if (!base.getType().isSignupRequired()) {
+        Map<LegalType, String> titles = null; // yalniz bekleyen onay varsa (ve tr disi dilde) gerekir
+        for (BaseDoc base : baseDocs()) {
+            if (!base.type().isSignupRequired()) {
                 continue;
             }
-            int needed = Math.min(base.getVersion(),
-                    Math.max(base.isRequireReaccept() ? base.getVersion() : 0, docs.maxReacceptVersion(base.getType())));
+            int needed = Math.min(base.version(),
+                    Math.max(base.requireReaccept() ? base.version() : 0, docs.maxReacceptVersion(base.type())));
             if (needed <= 0) {
                 continue;
             }
-            boolean accepted = acceptances.existsByUserIdAndDocTypeAndVersion(userId, base.getType(), base.getVersion())
-                    || (needed < base.getVersion()
-                    && acceptances.existsByUserIdAndDocTypeAndVersionGreaterThanEqual(userId, base.getType(), needed));
+            boolean accepted = acceptances.existsByUserIdAndDocTypeAndVersion(userId, base.type(), base.version())
+                    || (needed < base.version()
+                    && acceptances.existsByUserIdAndDocTypeAndVersionGreaterThanEqual(userId, base.type(), needed));
             if (!accepted) {
-                LegalDocument shown = findCurrent(base.getType(), lang).orElse(base);
-                out.add(new PendingConsent(base.getType(), base.getVersion(), shown.getTitle()));
+                if (titles == null) {
+                    titles = lang == Lang.TR ? Map.of() : summaryTitles(lang);
+                }
+                out.add(new PendingConsent(base.type(), base.version(), titles.getOrDefault(base.type(), base.title())));
             }
         }
         return out;
@@ -189,9 +196,23 @@ public class LegalService {
         return version;
     }
 
-    public List<LegalDocument> baseDocs() {
-        return docs.findByActiveTrue().stream().filter(d -> Lang.TR.code().equals(d.getLang()))
-                .sorted(Comparator.comparing(LegalDocument::getType)).toList();
+    /**
+     * Onay/surum takibinin esas aldigi aktif tr belgelerin baslik satirlari (metinsiz). Her acilista ve
+     * (yeniden onay acikken) her yazma isteginde cagrildigindan onbellekli; LegalDocument olayiyla gecersiz kilinir.
+     */
+    public List<BaseDoc> baseDocs() {
+        return readCache.get("legal", "base", CacheTier.STABLE, BASES,
+                () -> docs.activeHeads(Lang.TR.code()).stream().map(BaseDoc::of)
+                        .sorted(Comparator.comparing(BaseDoc::type)).toList());
+    }
+
+    /** Istenen dildeki guncel basliklar (yoksa tr): onbellekli ozet listesinden, tam metin okunmaz. */
+    private Map<LegalType, String> summaryTitles(Lang lang) {
+        Map<LegalType, String> m = new HashMap<>();
+        for (LegalSummary s : summaries(lang)) {
+            m.put(s.type(), s.title());
+        }
+        return m;
     }
 
     private java.util.Optional<LegalDocument> findCurrent(LegalType type, Lang lang) {

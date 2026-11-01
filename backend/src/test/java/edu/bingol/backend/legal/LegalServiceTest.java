@@ -30,6 +30,28 @@ class LegalServiceTest {
         return a;
     }
 
+    /** Metinsiz baslik satiri (DocumentRepository.activeHeads sonucu) */
+    private static DocumentRepository.DocHead head(LegalDocument d) {
+        DocumentRepository.DocHead h = mock(DocumentRepository.DocHead.class);
+        when(h.getType()).thenReturn(d.getType());
+        when(h.getLang()).thenReturn(d.getLang());
+        when(h.getVersion()).thenReturn(d.getVersion());
+        when(h.getTitle()).thenReturn(d.getTitle());
+        when(h.isRequireReaccept()).thenReturn(d.isRequireReaccept());
+        when(h.getPublishedAt()).thenReturn(d.getPublishedAt());
+        return h;
+    }
+
+    /** Mockito: when(...) argumani icinde baska mock kurulmaz; once basliklar uretilir. */
+    private void stubHeads(LegalDocument... ds) {
+        List<DocumentRepository.DocHead> hs = heads(ds);
+        when(docs.activeHeads("tr")).thenReturn(hs);
+    }
+
+    private static List<DocumentRepository.DocHead> heads(LegalDocument... ds) {
+        return java.util.Arrays.stream(ds).map(LegalServiceTest::head).toList();
+    }
+
     private static LegalDocument doc(LegalType t) {
         LegalDocument d = new LegalDocument();
         d.setType(t);
@@ -54,9 +76,9 @@ class LegalServiceTest {
 
     @Test
     void kayitOnayiYalnizZorunluDortTur() {
-        when(docs.findByActiveTrue()).thenReturn(List.of(doc(LegalType.TERMS), doc(LegalType.PRIVACY),
+        stubHeads(doc(LegalType.TERMS), doc(LegalType.PRIVACY),
                 doc(LegalType.KVKK), doc(LegalType.COMMUNITY_RULES), doc(LegalType.EXPLICIT_CONSENT),
-                doc(LegalType.COOKIES), doc(LegalType.CONTENT_REMOVAL), doc(LegalType.RETENTION)));
+                doc(LegalType.COOKIES), doc(LegalType.CONTENT_REMOVAL), doc(LegalType.RETENTION));
         when(acc.existsByUserIdAndDocTypeAndVersion(any(), any(), eq(3))).thenReturn(false);
         service.recordSignupConsent(7L);
         verify(acc, never()).save(argThat((LegalAcceptance a) -> !a.getDocType().isSignupRequired()));
@@ -65,7 +87,7 @@ class LegalServiceTest {
 
     @Test
     void bekleyenOnayBilgilendirmeTurleriniIcermez() {
-        when(docs.findByActiveTrue()).thenReturn(List.of(doc(LegalType.TERMS), doc(LegalType.COOKIES)));
+        stubHeads(doc(LegalType.TERMS), doc(LegalType.COOKIES));
         assertThat(service.pending(1L, Lang.TR)).extracting("type").containsExactly(LegalType.TERMS);
     }
 
@@ -89,8 +111,9 @@ class LegalServiceTest {
     @Test
     void yeniSurumYayinlaninca_eskiOnayliKullaniciYenidenOnayBekler_arapcaSurumuTetiklemez() {
         // Aktif tr belge surum 5; kullanici yalniz 4'u onaylamis
-        when(docs.findByActiveTrue()).thenReturn(List.of(docLang(LegalType.TERMS, "tr", 5, true),
-                docLang(LegalType.TERMS, "ar", 5, true)));
+        stubHeads(docLang(LegalType.TERMS, "tr", 5, true));
+        // Arapca basliklar onbellekli ozet listesinden gelir (tam metin okunmaz)
+        when(docs.findByTypeAndLangAndActiveTrue(LegalType.PRIVACY, "ar")).thenReturn(java.util.Optional.empty());
         when(docs.findByTypeAndLangAndActiveTrue(LegalType.TERMS, "ar"))
                 .thenReturn(java.util.Optional.of(docLang(LegalType.TERMS, "ar", 5, true)));
         when(acc.existsByUserIdAndDocTypeAndVersion(1L, LegalType.TERMS, 4)).thenReturn(true);
@@ -120,7 +143,7 @@ class LegalServiceTest {
         // Aktif surum 6 yalniz bilgilendirme (false); surum 5 zorunluydu. Kullanici yalniz 4'u onaylamis -> bekler.
         LegalDocument current = docLang(LegalType.PRIVACY, "tr", 6, true);
         current.setRequireReaccept(false);
-        when(docs.findByActiveTrue()).thenReturn(List.of(current));
+        stubHeads(current);
         when(docs.maxReacceptVersion(LegalType.PRIVACY)).thenReturn(5);
         when(acc.existsByUserIdAndDocTypeAndVersionGreaterThanEqual(1L, LegalType.PRIVACY, 5)).thenReturn(false);
         assertThat(service.pending(1L, Lang.TR)).extracting("version").containsExactly(6);
@@ -133,7 +156,7 @@ class LegalServiceTest {
     void hicZorunluSurumYoksaBekleyenOnayYok() {
         LegalDocument current = docLang(LegalType.KVKK, "tr", 3, true);
         current.setRequireReaccept(false);
-        when(docs.findByActiveTrue()).thenReturn(List.of(current));
+        stubHeads(current);
         when(docs.maxReacceptVersion(LegalType.KVKK)).thenReturn(0);
         assertThat(service.pending(1L, Lang.TR)).isEmpty();
     }
