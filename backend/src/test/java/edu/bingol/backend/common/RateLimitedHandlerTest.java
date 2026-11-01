@@ -10,19 +10,15 @@ import static org.mockito.Mockito.when;
 import edu.bingol.backend.i18n.I18n;
 import java.time.Duration;
 import org.junit.jupiter.api.Test;
-import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.data.redis.core.ValueOperations;
 
 class RateLimitedHandlerTest {
 
     @Test
     @SuppressWarnings("unchecked")
     void limiterThrowsWithRemainingTtlAndHandlerSetsRetryAfter() {
-        StringRedisTemplate redis = mock(StringRedisTemplate.class);
-        ValueOperations<String, String> ops = mock(ValueOperations.class);
-        when(redis.opsForValue()).thenReturn(ops);
-        when(ops.increment(anyString())).thenReturn(4L);
-        when(redis.getExpire(anyString())).thenReturn(42L);
+        ScriptedRedis redis = new ScriptedRedis();
+        redis.counters.put("rl:k", 3L); // limit (3) dolu: sonraki istek 4.
+        redis.ttlMs.put("rl:k", 42_000L);
         RateLimitedException e = assertThrows(RateLimitedException.class,
                 () -> new RateLimiter(redis).check("k", 3, Duration.ofMinutes(1)));
         assertEquals(42, e.retryAfterSeconds());
