@@ -37,6 +37,8 @@ flock -n 9 || { log "baska bir uzak esitleme calisiyor; atlandi"; exit 0; }
 START=$(date +%s)
 ERRMSG=""; STAGE=""; STAMP=""
 fail() { ERRMSG="$*"; log "HATA: $*"; exit 1; }
+# die de nedeni durum dosyasina yazsin (B4): aksi halde ERRMSG bos kalir ve on_exit onceki bir rclone hatasini ("403" vb.) yansitirdi
+die() { fail "$@"; }
 
 on_exit() {
   local code=$?
@@ -53,6 +55,14 @@ on_exit() {
   rm -f "$RC_ERR" 2>/dev/null || true
 }
 trap on_exit EXIT
+
+# --- hedef ve saklama ayarlari (B2/B6): gecersizse HIC BIR SEY SILINMEZ / hedefe dokunulmaz ---
+remote_target_validate || fail "$TARGET_ERR"
+RET_BAD=0
+if ! retention_validate; then
+  RET_BAD=1; RETENTION=0
+  log "HATA: uzak saklama ayarlari gecersiz ($RET_ERR); yukleme yapilir ama uzak SILME ATLANDI"
+fi
 
 # --- yakinlik: son basari yeterince yeniyse (yeniden deneme zamanlayicisi) hicbir sey yapma ---
 if [ "$STALE" = 1 ] && [ "$FORCE" = 0 ] && [ -s "$REMOTE_STATE_FILE" ]; then
@@ -96,12 +106,16 @@ fi
 
 # --- plan: yuklemeden sonraki saklama ---
 PLAN_ALL="$(printf '%s\n%s\n' "$REMOTE_LIST" "$STAMP" | grep -E "$STAMP_RE" | sort -u)"
-TO_DELETE="$(printf '%s\n' "$PLAN_ALL" | gfs_delete_list "$RK_DAILY" "$RK_WEEKLY" "$RK_MONTHLY")"
-MAXDEL="${BACKUP_REMOTE_MAX_DELETE:-20}"
+TO_DELETE=""; MAXDEL=0
+if [ "$RET_BAD" = 0 ]; then
+  TO_DELETE="$(printf '%s\n' "$PLAN_ALL" | gfs_delete_list "$RK_DAILY" "$RK_WEEKLY" "$RK_MONTHLY")"
+  MAXDEL="${BACKUP_REMOTE_MAX_DELETE:-20}"
+fi
 if [ "$DRY" = 1 ]; then
   log "KURU CALISMA: $STAMP uzakta ${BACKUP_REMOTE%%:*}:... altina yuklenir (once .partial-$STAMP, dogrulanir, sonra yeniden adlandirilir)"
   log "KURU CALISMA: uzakta simdi $(printf '%s\n' "$REMOTE_LIST" | grep -c . || true) yedek; saklama gunluk $RK_DAILY / haftalik $RK_WEEKLY / aylik $RK_MONTHLY"
   if [ -n "$TO_DELETE" ]; then printf '%s\n' "$TO_DELETE" | head -n "$MAXDEL" | while read -r d; do log "KURU CALISMA: yuklemeden sonra SILINIR: $d"; done
+  elif [ "$RET_BAD" = 1 ]; then log "KURU CALISMA: saklama ayarlari gecersiz ($RET_ERR); hicbir sey silinmez ve gercek calismada hata verilir"
   else log "KURU CALISMA: silinecek uzak yedek yok"; fi
   log "KURU CALISMA tamam: hicbir sey yuklenmedi/silinmedi"
   exit 0
@@ -119,18 +133,23 @@ ALREADY=0
 printf '%s\n' "$REMOTE_LIST" | grep -qx "$STAMP" && ALREADY=1
 if [ "$ALREADY" = 1 ] && [ "$FORCE" = 0 ]; then
   log "$STAMP uzakta zaten var; yalniz dogrulaniyor"
-  if verify_remote_copy "$SRC" "$REMOTE_BASE/$STAMP"; then :; else
-    log "uzak kopya dogrulanamadi ($VERIFY_MSG); yeniden yuklenecek"
-    rc purge "$REMOTE_BASE/$STAMP" --drive-use-trash=false || fail "bozuk uzak kopya silinemedi"
-    ALREADY=0
-  fi
+  VRC=0; verify_remote_copy "$SRC" "$REMOTE_BASE/$STAMP" || VRC=$?
+  case "$VRC" in
+    0) ;;
+    1) # KESIN fark: kopya gercekten bozuk/eksik -> silip yeniden yukle
+      log "uzak kopya bozuk/eksik ($VERIFY_MSG); yeniden yuklenecek"
+      rc purge "$REMOTE_BASE/$STAMP" --drive-use-trash=false || fail "bozuk uzak kopya silinemedi"
+      ALREADY=0;;
+    *) # dogrulanamadi (ag/okuma hatasi): kopya hakkinda bir sey bilinmiyor -> SILME (B3); sonraki denemede yeniden
+      fail "uzak kopya dogrulanamadi ($VERIFY_MSG); kopya SILINMEDI, sonraki denemede yeniden dogrulanacak";;
+  esac
 fi
 
 if [ "$ALREADY" = 0 ] || [ "$FORCE" = 1 ]; then
   # prune, yukleme sirasinda kaynagi silmesin: sabit bagli (hardlink) kopya, ek disk kullanmaz
   STAGE="$BACKUP_DIR/.remote-stage-$STAMP"
   rm -rf "$STAGE"; cp -al "$SRC" "$STAGE"
-  if [ "$ALREADY" = 1 ]; then rc purge "$REMOTE_BASE/$STAMP" --drive-use-trash=false || fail "$(classify_error)"; fi
+  # --force ile mevcut dogru kopya YUKLEMEDEN ONCE silinmez (B3): yeni kopya .partial'da yuklenip dogrulaninca (asagida) degisir
   TMPD="$REMOTE_BASE/.partial-$STAMP"
   log "rclone yukleme basliyor -> .partial-$STAMP (tek aktarim, parca ${BACKUP_RCLONE_DRIVE_CHUNK:-64M})"
   : > "$RC_ERR"
@@ -140,6 +159,8 @@ if [ "$ALREADY" = 0 ] || [ "$FORCE" = 1 ]; then
       fail "yukleme basarisiz: $(classify_error)"; }
   log "yukleme bitti; indirmeden dogrulaniyor"
   verify_remote_copy "$STAGE" "$TMPD" || fail "yukleme dogrulamasi basarisiz: $VERIFY_MSG"
+  # eski (--force ile degistirilen) kopya, ancak yenisi dogrulandiktan sonra kaldirilir
+  if [ "$ALREADY" = 1 ]; then rc purge "$REMOTE_BASE/$STAMP" --drive-use-trash=false || fail "$(classify_error)"; fi
   rc moveto "$TMPD" "$REMOTE_BASE/$STAMP" || fail "$(classify_error)"
   verify_remote_copy "$STAGE" "$REMOTE_BASE/$STAMP" || fail "yayin sonrasi dogrulama basarisiz: $VERIFY_MSG"
 fi
@@ -176,6 +197,10 @@ if [ -n "${BACKUP_LOCAL_KEEP_WHEN_REMOTE_OK:-}" ]; then
   "$HERE/prune-local-after-remote.sh" --apply --keep "$BACKUP_LOCAL_KEEP_WHEN_REMOTE_OK" || log "uyari: yerel azaltma tamamlanamadi"
 fi
 
+log "bitti: sure $(( $(date +%s) - START )) sn"
+# gecersiz saklama ayari sessiz kalmasin (B2): yukleme basarili ve durum yazildi, ama panel/metrik/webhook HATA gosterir
+if [ "$RET_BAD" = 1 ]; then
+  fail "uzak saklama ayarlari gecersiz ($RET_ERR); yukleme tamam, uzak silme ATLANDI; BACKUP_REMOTE_KEEP_* degerlerini duzeltin"
+fi
 metric_remote_write || true
 status_enrich || true
-log "bitti: sure $(( $(date +%s) - START )) sn"

@@ -539,7 +539,10 @@ services:
       # Her surum YENI dizine acilir (releases/<sha>): ./deploy/rclone yeni surumde bos olur. Kalici konum icin .env.prod'a
       # RCLONE_CONF_DIR=/opt/bukampus-data/rclone yazin (docs/BACKUP_GDRIVE.md bolum 5); varsayilan yalniz yerel kullanim icindir.
       - ${RCLONE_CONF_DIR:-./deploy/rclone}:/config/rclone
-      - ./deploy/backup-keys:/run/backup:ro   # verify.key (yalniz DOGRULAMA ozel anahtari; bkz. docs/BACKUP_RESTORE.md)
+      # verify.key (yalniz DOGRULAMA ozel anahtari; bkz. docs/BACKUP_RESTORE.md). deploy.sh arsivi '*.key' dosyalarini ASLA tasimaz
+      # ve her surum yeni dizine acilir: ./deploy/backup-keys yeni surumde bos olur. Kalici konum: .env.prod'da
+      # BACKUP_KEYS_DIR=/opt/bukampus-data/backup-keys (deploy.sh dizini olusturur ve anahtari yoksa ekler).
+      - ${BACKUP_KEYS_DIR:-./deploy/backup-keys}:/run/backup:ro
     logging: *logging
     healthcheck:
       test: ["CMD-SHELL", "test -f /var/backups/metrics/backup.prom && wget -q -O /dev/null http://127.0.0.1:9199/backup.prom"]

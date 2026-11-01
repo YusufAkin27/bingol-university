@@ -168,4 +168,94 @@ chk "eski alanlar korunur" test "$(jq -r '.lastSuccessAt,.file' "$S" | tr '\n' '
 chk "BACKUP_REMOTE bos -> remote.configured=false" test "$(jq -r '.remote.configured' "$S")" = false
 chk "ilk anahtar hala lastSuccessAt (regex okuyucular icin)" test "$(jq -r 'keys_unsorted[0]' "$S")" = lastSuccessAt
 
+# ---------------------------------------------------------------------------------------------------------------------
+# 10) HARDEN B2: gecersiz saklama degerleri HICBIR uzak yedegi silmez; hata gorunur
+printf '{"lastSuccessAt":"2026-10-28T10:52:20Z"}\n' > "$S"
+mkbackup 20261110T030500
+"$HERE/remote-sync.sh" > "$T/b2ok.log" 2>&1
+BEFOREDIRS="$(ls "$T/remote/yedek" | wc -l | tr -d ' ')"
+chk "B2 onkosul: uzakta birden cok yedek var (silme denenebilir)" test "$BEFOREDIRS" -ge 3
+for badd in 0 abc 1 "" "-3"; do
+  BACKUP_REMOTE_KEEP_DAILY="${badd:-x}" BACKUP_REMOTE_KEEP_WEEKLY=0 BACKUP_REMOTE_KEEP_MONTHLY=0 \
+    "$HERE/remote-sync.sh" --force > "$T/b2.log" 2>&1; br=$?
+  chk "B2: KEEP_DAILY='${badd:-x}' -> cikis 1 (hata gorunur)" test "$br" = 1
+  chk "B2: KEEP_DAILY='${badd:-x}' -> uzak yedek SILINMEDI" test "$(ls "$T/remote/yedek" | grep -cE '^[0-9]{8}T[0-9]{6}$')" -ge "$BEFOREDIRS"
+  chk "B2: KEEP_DAILY='${badd:-x}' -> lastError saklamayi soyler" test "$(jq -r '.remote.lastError' "$S" | grep -ci saklama)" = 1
+done
+BACKUP_REMOTE_KEEP_DAILY=7 BACKUP_REMOTE_KEEP_WEEKLY=abc "$HERE/remote-sync.sh" --force > "$T/b2w.log" 2>&1
+chk "B2: KEEP_WEEKLY sayi degil -> cikis 1, silme yok" test "$?" = 1 -a "$(ls "$T/remote/yedek" | grep -cE '^[0-9]{8}T[0-9]{6}$')" -ge "$BEFOREDIRS"
+BACKUP_REMOTE_MAX_DELETE=abc "$HERE/remote-sync.sh" --force > "$T/b2m.log" 2>&1
+chk "B2: MAX_DELETE sayi degil -> cikis 1, silme yok" test "$?" = 1 -a "$(ls "$T/remote/yedek" | grep -cE '^[0-9]{8}T[0-9]{6}$')" -ge "$BEFOREDIRS"
+BACKUP_REMOTE_KEEP_DAILY=7 BACKUP_REMOTE_KEEP_WEEKLY=0 BACKUP_REMOTE_KEEP_MONTHLY=0 "$HERE/remote-sync.sh" --dry-run > "$T/b2d.log" 2>&1
+chk "B2: gecerli (7/0/0) ayar kabul edilir" grep -q "KURU CALISMA tamam" "$T/b2d.log"
+BACKUP_REMOTE_KEEP_DAILY=0 "$HERE/remote-sync.sh" --dry-run > "$T/b2e.log" 2>&1
+chk "B2: --dry-run gecersiz ayari bildirir ve silme listelemez" bash -c "grep -q 'saklama ayarlari gecersiz' '$T/b2e.log' && ! grep -q 'SILINIR' '$T/b2e.log'"
+"$HERE/remote-sync.sh" > "$T/b2back.log" 2>&1
+chk "B2: duzeltilince hata temizlenir" test "$(jq -r '.remote.lastError' "$S")" = null
+
+# 11) HARDEN B3: gecici ag hatasi DOGRU uzak kopyayi silmez; --force eski kopyayi yenisi dogrulanana kadar korur
+mkdir -p "$T/fakebin"
+REALRCLONE="$(command -v rclone)"
+cat > "$T/fakebin/rclone" <<FAKE
+#!/bin/sh
+# FAKE_NET_DOWN doluyken UZAK hedefe (fake:) giden boyut/karsilastirma/okuma komutlari ag hatasi verir; yerel olanlar ve digerleri
+# (lsd/lsf/mkdir/copy...) gercek rclone'a gider: boylece hata tam dogrulama adiminda olusur
+if [ -n "\$FAKE_NET_DOWN" ]; then
+  case " \$* " in *fake:*) case " \$* " in *" size "*|*" check "*|*" cat "*) echo "Failed to size: dial tcp: lookup www.googleapis.com: no such host" >&2; exit 1;; esac;; esac
+fi
+exec "$REALRCLONE" "\$@"
+FAKE
+chmod +x "$T/fakebin/rclone"
+NEWEST="$(ls "$BACKUP_DIR/daily" | sort | tail -1)"
+"$HERE/remote-sync.sh" > "$T/b3a.log" 2>&1
+chk "B3 onkosul: en yeni yedek uzakta" test -s "$T/remote/yedek/$NEWEST/SHA256SUMS"
+PATH="$T/fakebin:$PATH" FAKE_NET_DOWN=1 "$HERE/remote-sync.sh" > "$T/b3b.log" 2>&1; br=$?
+chk "B3: dogrulama ag hatasi -> cikis 1" test "$br" = 1
+chk "B3: dogru uzak kopya SILINMEDI (icerik ayni)" cmp -s "$T/remote/yedek/$NEWEST/db.dump.age" "$BACKUP_DIR/daily/$NEWEST/db.dump.age"
+chk "B3: hata 'SILINMEDI' diyor" test "$(jq -r '.remote.lastError' "$S" | grep -c SILINMEDI)" = 1
+PATH="$T/fakebin:$PATH" FAKE_NET_DOWN=1 "$HERE/remote-sync.sh" --force > "$T/b3c.log" 2>&1; br=$?
+chk "B3: --force + ag hatasi -> cikis 1" test "$br" = 1
+chk "B3: --force yukleme dogrulanamayinca ESKI kopya yerinde" cmp -s "$T/remote/yedek/$NEWEST/db.dump.age" "$BACKUP_DIR/daily/$NEWEST/db.dump.age"
+# basarisiz --force kosusunun sarmalayici (timeout) sureci kilidi birkac saniye daha tutabilir: kilit acilana kadar bekle
+for _w in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15; do ( flock -n 9 ) 9>"$BACKUP_REMOTE_LOCK" 2>/dev/null && break; sleep 1; done
+"$HERE/remote-sync.sh" --force > "$T/b3d.log" 2>&1
+chk "B3: ag duzelince --force tamamlanir, .partial kalmaz" test "$?" = 0 -a -z "$(ls -a "$T/remote/yedek" | grep partial)"
+chk "B3: --force sonrasi kopya dogru" cmp -s "$T/remote/yedek/$NEWEST/db.dump.age" "$BACKUP_DIR/daily/$NEWEST/db.dump.age"
+
+# 12) HARDEN B6: kok hedef reddedilir; 'en yeni N' yalniz gecerli yedekleri sayar
+for root in "fake:" "fake:/" "fake://"; do
+  BACKUP_REMOTE="$root" "$HERE/remote-sync.sh" > "$T/b6.log" 2>&1; br=$?
+  chk "B6: BACKUP_REMOTE='$root' (kok) reddedilir (cikis 1)" test "$br" = 1
+  chk "B6: hata kok dizini soyler" test "$(jq -r '.remote.lastError' "$S" | grep -ci 'klasor')" = 1
+  BACKUP_REMOTE="$root" "$HERE/prune-local-after-remote.sh" --apply > "$T/b6p.log" 2>&1
+  chk "B6: prune-local de kok hedefi reddeder" test "$?" -ne 0
+done
+BACKUP_REMOTE="fake:a/../b" "$HERE/remote-sync.sh" --dry-run > "$T/b6d.log" 2>&1
+chk "B6: '..' iceren yol reddedilir" test "$?" -ne 0
+"$HERE/remote-sync.sh" > "$T/b6ok.log" 2>&1
+mkdir -p "$BACKUP_DIR/daily/29990101T000000"   # en yeni ama GECERSIZ (SHA256SUMS/db.dump.age yok)
+"$HERE/prune-local-after-remote.sh" --apply --keep 1 > "$T/b6q.log" 2>&1
+chk "B6: gecersiz en yeni dizin 'en yeni 1' kotasini harcamaz: gecerli en yeni yedek korunur" test -d "$BACKUP_DIR/daily/$NEWEST"
+chk "B6: gecersiz dizin silinmedi, 'sayimina girmez' yazildi" bash -c "test -d '$BACKUP_DIR/daily/29990101T000000' && grep -q 'sayimina girmez' '$T/b6q.log'"
+rm -rf "$BACKUP_DIR/daily/29990101T000000"
+
+# 13) HARDEN B4: die yolu nedeni durum dosyasina yazar (eski rclone hatasi yaniltmaz); 403 yalniz HTTP 403
+"$HERE/remote-sync.sh" --stamp not-a-stamp > "$T/b4.log" 2>&1
+chk "B4: gecersiz damga -> lastError damgayi soyler (rclone hatasi DEGIL)" test "$(jq -r '.remote.lastError' "$S" | grep -c 'gecersiz damga')" = 1
+ERRS="$(mktemp)"; RC_ERR="$ERRS"   # export ETMEZ: alt surecler kendi hata dosyasini kullanir
+printf 'ERROR : dosya_403.age: Failed to copy: 4030 bytes of 2003 files\n' > "$ERRS"
+chk "B4: '403' rakami baska sayilarda gecince izin hatasi SAYILMAZ" test "$(classify_error | grep -c 'izin hatasi')" = 0
+printf 'googleapi: Error 403: The caller does not have permission\n' > "$ERRS"
+chk "B4: gercek HTTP 403 izin hatasi olarak siniflanir" test "$(classify_error | grep -c 'izin hatasi')" = 1
+
+# 14) HARDEN B5: durum JSON'u kontrol karakterlerinde de gecerli kalir
+. "$HERE/lib.sh" 2>/dev/null
+status_failure "$(printf 'hata\twith\ttab "tirnak" \\ ters\001ctl\nsatir2')" 5 true false
+FF="$(dirname "$BACKUP_STATUS_FILE")/last-failure.json"
+chk "B5: last-failure.json gecerli JSON (TAB/kontrol/tirnak/ters egik cizgi)" jq -e . "$FF" >/dev/null
+roundtrip() { local e; e="$(jq -r .error "$FF")"; case "$e" in *'"tirnak"'*'\'*ters*) return 0;; esac; return 1; }
+chk "B5: hata metni gidis-donus korunur (tirnak ve ters egik cizgi)" roundtrip
+esc_valid() { printf '{"e":"%s"}' "$(json_esc "$(printf 'a\tb\007c"d\\e')")" | jq -e . >/dev/null; }
+chk "B5: json_esc ciktisi (printf yedegi) de gecerli JSON" esc_valid
+
 exit "$fail"

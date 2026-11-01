@@ -74,7 +74,9 @@ PROM
 STATUS_FILE="${BACKUP_STATUS_FILE:-$BACKUP_DIR/last-success.json}"
 FAILURE_FILE="$(dirname "$STATUS_FILE")/last-failure.json"
 
-json_esc() { printf '%s' "$1" | sed 's/\\/\\\\/g; s/"/\\"/g' | tr -d '\n\r'; }
+# json_esc: JSON dizgesi icin kacis (B5). Kontrol karakterleri (satir sonu, \x00-\x1f) atilir, TAB \t olur; ters egik cizgi ve
+# cift tirnak kacirilir. Sabit-sirali ciktilarda jq tercih edilir (status_failure); bu yalniz printf yedegi ve webhook metni icin.
+json_esc() { printf '%s' "$1" | tr -d '\000-\010\012-\037\177' | sed 's/\\/\\\\/g; s/"/\\"/g; s/\t/\\t/g'; }
 
 # status_success <dosya-adi> <sizeBytes> <durationSec> <dbOk true/false> <filesOk true/false>
 status_success() {
@@ -262,8 +264,12 @@ PROM
 status_failure() {
   local tmp="$FAILURE_FILE.tmp.$$"
   mkdir -p "$(dirname "$FAILURE_FILE")"
-  printf '{"time":"%s","error":"%s","durationSec":%s,"dbOk":%s,"filesOk":%s}\n' \
-    "$(date -u '+%Y-%m-%dT%H:%M:%SZ')" "$(json_esc "$1")" "$2" "$3" "$4" > "$tmp"
+  # jq ile yazilir (B5): hata metni rclone/pg ciktisindan gelir, kontrol karakteri tasiyabilir; elle kacis bozuk JSON uretebilirdi
+  if ! { command -v jq >/dev/null && jq -nc --arg t "$(date -u '+%Y-%m-%dT%H:%M:%SZ')" --arg e "$1" --argjson d "${2:-0}" \
+        --argjson db "${3:-false}" --argjson f "${4:-false}" '{time:$t,error:$e,durationSec:$d,dbOk:$db,filesOk:$f}' > "$tmp" 2>/dev/null; }; then
+    printf '{"time":"%s","error":"%s","durationSec":%s,"dbOk":%s,"filesOk":%s}\n' \
+      "$(date -u '+%Y-%m-%dT%H:%M:%SZ')" "$(json_esc "$1")" "${2:-0}" "${3:-false}" "${4:-false}" > "$tmp"
+  fi
   mv -f "$tmp" "$FAILURE_FILE"
   chmod 644 "$FAILURE_FILE" 2>/dev/null || true
 }

@@ -107,6 +107,7 @@ token = {"access_token":"ya29....","token_type":"Bearer","refresh_token":"1//0g.
 ```
 
 - **İzin/sahiplik elle ayarlanmaz (`chown 70:70` + `chmod 400` YAPMAYIN).** `backup` konteyneri her açılışta dizini ve dosyayı `postgres` (uid 70) sahipliğine alır, dizini 0700, dosyayı **0600** yapar; başka kullanıcı okuyamaz. Dosya salt okunur (0400) olursa rclone yenilenen belirteci yazamaz. Sonuç: dosyayı daha sonra düzenlemek için `sudo` gerekir (`sudo nano ...`); düzenledikten sonra sonraki çalışma yeni dosyayı okur, sahiplik bir sonraki `docker compose up -d backup` ile düzelir.
+- **Otomatik kalıcılık (HARDEN B1):** `scripts/deploy.sh` `/opt/bukampus-data/rclone` (uid 70, 0700) ve `/opt/bukampus-data/backup-keys` dizinlerini oluşturur, `.env.prod`'a `RCLONE_CONF_DIR` ve `BACKUP_KEYS_DIR` yoksa yazar ve `BACKUP_REMOTE` doluyken `rclone.conf` yoksa uyarır. **`verify.key` aynı sorunu taşıyordu** (arşiv `*.key` dosyalarını bilerek taşımaz ve depo içi `deploy/backup-keys` her sürümde boş gelir): artık `docker-compose.prod.yml` `${BACKUP_KEYS_DIR:-./deploy/backup-keys}` bağlar; anahtarı `sudo install -m 0400 verify.age.key /opt/bukampus-data/backup-keys/verify.key` ile bir kez koyun (bkz. BACKUP_RESTORE.md bölüm 2). **Dosyayı düzenlemek için `sudo` gerekir** (konteyner girişte dizini/dosyayı uid 70 sahipliğine alır, dizin 0700): `sudo nano /opt/bukampus-data/rclone/rclone.conf`.
 - **Dosya git'e girmez** (`.gitignore`: `deploy/rclone/rclone.conf`; kalıcı dizin zaten depo dışındadır). Bir kopyasını parola yöneticinizde de saklayın (zorunlu değil: `rclone authorize` ile yeniden alınabilir).
 - **Neden yazılabilir bağlanıyor?** Google'ın erişim belirteci ~1 saatte biter; rclone yenisini aldığında `rclone.conf`'a **geri yazar**. Dizin salt okunur (`:ro`) bağlıysa her çalışmada `Failed to save new token` hatası oluşur. Bu yüzden `docker-compose.prod.yml` dizini (`${RCLONE_CONF_DIR:-./deploy/rclone}:/config/rclone`) **yazılabilir** bağlar. Yenilenen belirteç dosyada kalır, konteyner yeniden başlasa bile korunur. Güvenlik: yalnızca bu tek dizin bağlıdır; dosya 0600; konteynerde `cap_drop: ALL`.
 - Yapılandırmayı parolayla şifrelemek isterseniz `rclone config` ile parola koyup `.env.prod`'a `RCLONE_CONFIG_PASS=...` yazın.
@@ -209,8 +210,8 @@ Betik şunları **silmez**: uzakta kopyası olmayan (saatlik, günlük yüklemey
 | `BACKUP_REMOTE` | boş | `rcloneUzakAdı:KlasörAdı`; boşsa uzak kopya kapalı |
 | `BACKUP_REMOTE_SCHEDULE` | `daily` | `each` = her yerel yedeği yükle (eski davranış; Drive için önerilmez) |
 | `BACKUP_REMOTE_CRON` / `_RETRY_CRON` | `35 3 * * *` / `35 9,15,21 * * *` | günlük yükleme / başarısızsa yeniden deneme (yalnız son başarı >20 sa eskiyse) |
-| `BACKUP_REMOTE_KEEP_DAILY/WEEKLY/MONTHLY` | 7 / 4 / 6 | uzak saklama (GFS). 0 = o katman kapalı |
-| `BACKUP_REMOTE_MAX_DELETE` | 20 | bir çalışmada en çok silinecek uzak klasör (hata/saat kayması koruması; en eskiden başlar) |
+| `BACKUP_REMOTE_KEEP_DAILY/WEEKLY/MONTHLY` | 7 / 4 / 6 | uzak saklama (GFS). **Doğrulanır (HARDEN B2):** üçü de sayı olmalı, günlük **>= 2**, toplam >= 1; haftalık/aylık 0 olabilir (o katman kapalı). Geçersiz değer (0, boş, sayı olmayan) hiçbir uzak yedeği **silmez**: yükleme yapılır, silme atlanır, çalışma **hata** ile biter (`remote.lastError`, metrik, webhook) |
+| `BACKUP_REMOTE_MAX_DELETE` | 20 | bir çalışmada en çok silinecek uzak klasör (hata/saat kayması koruması; en eskiden başlar). Sayı olmalı (0 = hiç silme); sayı değilse B2 ile aynı yoldan hata |
 | `BACKUP_LOCAL_KEEP_WHEN_REMOTE_OK` | boş (kapalı) | N: uzakta doğrulananlar için katman başına yerelde en yeni N kalır |
 | `BACKUP_RCLONE_DRIVE_CHUNK` | `64M` | Drive yükleme parçası (bellek ~ parça x 1 aktarım; konteyner 1 GB). Büyük parça = daha hızlı, kesintide daha çok tekrar |
 | `BACKUP_RCLONE_TIMEOUT` | `5m` | rclone boşta zaman aşımı (tek bir G/Ç beklemesi) |
@@ -221,7 +222,11 @@ Kodda sabit güvenli varsayılanlar: `--transfers 1`, `--checkers 2`, `--retries
 
 **Kısmi yükleme temizliği:** yükleme `.partial-<damga>` klasörüne yapılır, doğrulanınca yeniden adlandırılır. Yarım kalmış bir yükleme asla damga adı almaz; bir sonraki çalışma aynı damgayı devam ettirir, **farklı** damgalı eski `.partial-*` klasörlerini siler. Yerelde `.remote-stage-*` (sabit bağlı geçici kopya, ek disk kullanmaz) çalışma sonunda silinir.
 
-**crypt notu:** rclone `crypt` uzakları hash vermez (`could not be checked`); doğrulama yalnız boyut + `SHA256SUMS`/`manifest.json` içeriğine iner. Yedekler zaten age ile şifreli olduğundan crypt gereksizdir; kullanıyorsanız `BACKUP_REMOTE_VERIFY_DOWNLOAD=1` açın.
+**crypt notu (B7):** rclone `crypt` uzakları hash vermez (`could not be checked`); doğrulama yalnız boyut + `SHA256SUMS`/`manifest.json` içeriğine iner. Yedekler zaten age ile şifreli olduğundan crypt gereksizdir; kullanıyorsanız `BACKUP_REMOTE_VERIFY_DOWNLOAD=1` açın. **Doğrulanamadı:** hash'siz (crypt/alias zinciri) bir uzakta `rclone check`'in tam davranışı (hash karşılaştıramazsa hata mı verir, boyuta mı düşer) gerçek bir Drive/crypt hesabına karşı **denenmedi**; bu yüzden yalnız `alias` + yerel dizin ile selftest edildi. Crypt kullanacaksanız ilk gerçek yüklemeyi `--dry-run` ve elle `remote-sync.sh --force` ile izleyin, `lastError`'a bakın.
+
+**Doğrulama sonucu ve silme (B3):** `verify_remote_copy` üç sonuç verir: 0 aynı, 1 **kesin fark** (boyut/dosya sayısı/hash/`SHA256SUMS`-`manifest.json` içeriği uyuşmuyor), 2 **doğrulanamadı** (ağ/okuma hatası). Mevcut uzak kopya yalnız 1'de silinip yeniden yüklenir; 2'de **silinmez** (geçici ağ hatası doğru kopyayı yok etmesin), çalışma hata ile biter ve sonraki denemede yeniden doğrulanır. `--force` mevcut kopyayı yüklemeden önce silmez: yeni kopya `.partial-<damga>` altında yüklenip doğrulandıktan sonra eskisi kaldırılır.
+
+**Hedef kök olamaz (B6):** `BACKUP_REMOTE=gdrive:` ya da `gdrive:/` (klasörsüz) Drive'ın **kökünü** hedef yapar; `remote-sync.sh` ve `prune-local-after-remote.sh` bunu reddeder (`'..'` içeren yol da). Her zaman `gdrive:KlasörAdı` yazın. `prune-local-after-remote.sh` "her katmanda en yeni N" sayımına yalnız **geçerli** (SHA256SUMS + db.dump.age olan) yedekleri alır; bozuk/yarım en yeni dizin korunan N'den bir yeri boşa harcamaz.
 
 ## 10. Geri yükleme: Drive'dan indirme + age anahtarı
 
@@ -259,6 +264,7 @@ Hata metni panelde `remote.lastError` olarak kısa ve sırsız görünür; ayrı
 ## 12. İzleme
 
 - Panel: **Sistem -> Yedekleme** (`GET /api/admin/system/backup`): yerel sayı/boyut/en eski, uzak son başarı/doğrulama/hata/boyut/sayı, zamanlama ve saklama.
+- **Uygulama içi uyarı (B8):** `GET /api/admin/system/overview` yeni göstergesi `backup.remote` (saat): uzak son başarı > **30 sa WARN**, > **36 sa CRIT**; hiç başarılı yükleme yokken hata kaydı varsa CRIT, yoksa UNKNOWN; uzak kopya yapılandırılmamışsa UNKNOWN (uyarı üretmez). Genel durum CRIT'e geçince mevcut `SystemAlertService` yöneticilere uygulama içi bildirim gönderir (webhook/Prometheus olmasa da).
 - Prometheus (`backup_remote.prom`): `backup_remote_configured`, `backup_remote_last_success_timestamp_seconds`, `backup_remote_last_verified_timestamp_seconds`, `backup_remote_last_status`, `backup_remote_bytes`, `backup_remote_count`, `backup_local_count`, `backup_local_bytes`, `backup_local_oldest_timestamp_seconds`. Uyarılar: `BackupRemoteStale` (36 saat), `BackupRemoteLastFailed` (12 saat) — `monitoring/prometheus/alert.rules.yml`.
 - Webhook (`BACKUP_WEBHOOK_URL`): uzak yükleme başarısız olursa `UZAK YEDEK BASARISIZ` bildirimi gider. **Davranış değişikliği:** uzak yükleme hatası artık *yerel* yedeği başarısız saymaz (`last-failure.json` yazılmaz); hata `remote.lastError` ve yukarıdaki metrik/bildirimle görünür.
 - Testler: `bash scripts/backup/selftest-remote.sh` (Docker: bkz. dosya başı; backup imajında çalıştırın), `scripts/backup/selftest-prune.sh`.

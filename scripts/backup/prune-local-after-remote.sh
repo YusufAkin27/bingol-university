@@ -27,6 +27,7 @@ done
 
 [ -n "${BACKUP_REMOTE:-}" ] || { log "BACKUP_REMOTE bos: uzak kopya olmadan yerel yedek silinmez"; exit 2; }
 command -v rclone >/dev/null && command -v jq >/dev/null || die "rclone/jq yok"
+remote_target_validate || die "$TARGET_ERR"   # kok dizin hedefi reddedilir (B6)
 
 if [ "$APPLY" = 1 ]; then
   # hourly backup.sh ile ayni anda silme/yazma olmasin
@@ -44,8 +45,12 @@ for tier in daily weekly monthly; do
   tdir="$BACKUP_DIR/$tier"; [ -d "$tdir" ] || continue
   i=0
   for stamp in $(ls -1 "$tdir" | grep -E "$STAMP_RE" | sort -r); do
-    i=$((i + 1))
     path="$tdir/$stamp"
+    # "en yeni N" yalniz GECERLI yedekleri sayar (B6): bozuk/yarim en yeni dizin korunan N'den bir yeri bosa harcamasin
+    if [ ! -s "$path/SHA256SUMS" ] || [ ! -s "$path/db.dump.age" ]; then
+      log "atlandi (gecersiz/eksik yedek, 'en yeni $KEEP' sayimina girmez): $tier/$stamp"; SKIP=$((SKIP + 1)); continue
+    fi
+    i=$((i + 1))
     if [ "$i" -le "$KEEP" ]; then log "tutuldu (en yeni $KEEP): $tier/$stamp"; KEPT=$((KEPT + 1)); continue; fi
     if [ -L "$path" ] || [ ! -d "$path" ]; then log "atlandi (dizin degil/sembolik bag): $tier/$stamp"; SKIP=$((SKIP + 1)); continue; fi
     real="$(cd "$path" && pwd -P)" || { SKIP=$((SKIP + 1)); continue; }

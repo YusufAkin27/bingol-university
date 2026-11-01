@@ -678,12 +678,13 @@ Tüm göstergeler tek yanıtta. Her gösterge `{status: OK|WARN|CRIT|UNKNOWN, va
     "fcm":                   {"status":"UNKNOWN","value":null,"threshold":null,"message":"Push (FCM) kapalı veya yapılandırılmamış."},
     "disk.storage":          {"status":"OK","value":41.5,"threshold":{"warn":80,"crit":90},"message":null},
     "backup.age":            {"status":"UNKNOWN","value":null,"threshold":{"warn":3,"crit":6},"message":"Yedek durum dosyası yok veya okunamadı."},
+    "backup.remote":         {"status":"UNKNOWN","value":null,"threshold":{"warn":30,"crit":36},"message":"Uzak (Google Drive) yedek yapılandırılmamış."},
     "jobs.mail-queue":       {"status":"OK","value":3,"threshold":{"warn":120,"crit":360},"message":null}
   }
 }
 ```
 
-Birimler: `*Age`, `campaign.overdue`, `jobs.*` ve eşikleri **saniye**; `backup.age` ve eşikleri **saat**; `disk.storage` yüzde; `db`/`redis` ms. `*.oldestPendingAge` "zamanı gelmiş (`next_attempt_at` geçmiş) ama gönderilmemiş en eski kayıt"ın gecikmesidir (geri çekilme beklemesindeki ve hız sınırlı duyuru kayıtları sayılmaz; aksi halde bilerek bekleyenler yalancı CRIT üretirdi). `jobs.<anahtar>` değeri son **başarılı** çalışmadan bu yana geçen saniyedir; uygulama yeniden başlayınca bellek sıfırlanır, ilk çalışmaya kadar UNKNOWN.
+Birimler: `*Age`, `campaign.overdue`, `jobs.*` ve eşikleri **saniye**; `backup.age` ve `backup.remote` (uzak/Drive son başarı; HARDEN B8: > 30 sa WARN, > 36 sa CRIT, hiç başarı yokken hata kaydı CRIT, uzak kapalıysa UNKNOWN) ve eşikleri **saat**; `disk.storage` yüzde; `db`/`redis` ms. `*.oldestPendingAge` "zamanı gelmiş (`next_attempt_at` geçmiş) ama gönderilmemiş en eski kayıt"ın gecikmesidir (geri çekilme beklemesindeki ve hız sınırlı duyuru kayıtları sayılmaz; aksi halde bilerek bekleyenler yalancı CRIT üretirdi). `jobs.<anahtar>` değeri son **başarılı** çalışmadan bu yana geçen saniyedir; uygulama yeniden başlayınca bellek sıfırlanır, ilk çalışmaya kadar UNKNOWN.
 
 Zamanlayıcı anahtarları: `news-sync`, `menu-sync`, `mail-queue`, `push-queue`, `campaign-dispatch`, `mail-campaign`, `mail-purge`, `push-purge`, `device-cleanup`, `notification-retention`, `analytics-retention`.
 

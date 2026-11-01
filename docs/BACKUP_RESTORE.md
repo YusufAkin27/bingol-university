@@ -36,7 +36,9 @@ Her yedek `daily/<YYYYMMDDTHHMMSS>/` altında dört dosyadır:
 age-keygen -o kurtarma.age.key        # "Public key: age1..." satırını not edin -> BACKUP_AGE_RECIPIENT
 age-keygen -o verify.age.key          # haftalık otomatik doğrulama anahtarı -> BACKUP_VERIFY_AGE_RECIPIENT
 # kurtarma.age.key: şifre yöneticisi + çevrimdışı kasa (>= 2 yer, KEY_MANAGEMENT.md)
-# verify.age.key  : sunucuya, deploy/backup-keys/verify.key olarak; sunucu dışına yedeği YOKTUR (kaybolursa yenisi üretilir)
+# verify.age.key  : sunucuya, KALICI dizinde /opt/bukampus-data/backup-keys/verify.key olarak (BACKUP_KEYS_DIR; scripts/deploy.sh dizini
+#   açar. Depo içi deploy/backup-keys yalnız yerel geliştirme içindir: dağıtım arşivi *.key taşımaz ve her sürüm yeni dizine açılır);
+#   sunucu dışına yedeği YOKTUR (kaybolursa yenisi üretilir)
 #   İzin: konteynerdeki zamanlayıcı postgres (uid 70) olarak çalışır; 0600 + başka sahip ise okuyamaz. Ya
 #   `sudo chown 70:70 deploy/backup-keys/verify.key && chmod 0400 deploy/backup-keys/verify.key`, ya da yedek konteyneri
 #   başlarken kök olarak okunup postgres'e özel 0400 kopya (/run/age-key/age.key) yapılır (anahtar sonradan konduysa
