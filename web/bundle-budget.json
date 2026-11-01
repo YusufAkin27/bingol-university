@@ -1,5 +1,5 @@
 {
-  "_aciklama": "Paket boyutu butcesi (gzip -9, KB). `npm run check:bundle` (build sonrasi) asimda cikis kodu 1 verir; CI'da continue-on-error ile uyari. Olcum 2026-10-29: girdi 90.8, en agir site sayfasi (ar) 124.1, toplam JS 613. Kasitli buyutme gerekiyorsa degeri gerekceyle guncelleyin. 2026-10-31 (SITE3): site.* 21 -> 23 KB: yeni tanitim sitesi metinleri (vitrin, guven sayfalari Kisaca maddeleri, bilgi sayfalari) uc dilde; Arapca gzip en kotu sikisan dil (ar 21.98 KB). 2026-11-01 (UPDATEGATE): admin.tr 66 -> 67 KB: Uygulama guncelleme zorlama sayfasinin Turkce metinleri (admin-uv1.ts, ~3 KB ham); sayfa kodu ayri lazy parca. 2026-11-01 (SEO-SAYFA): site.* 23 -> 24 KB: 27 rota x 3 dil arama sonucu basligi/aciklamasi (seo.t.* / seo.d.*, ~7 KB ham her dilde; Arapca 23.68 KB, en/tr ~21 KB). 2026-11-01 (SEO-ENT birlestirme, olcum): diger tavanlar gercek degerlere %3-8 pay birakacak sekilde sikilastirildi (index 20.14 -> 22, initialJs 91.7 -> 95, routeJs 127.7 -> 131, totalJs 664.4 -> 675, vendor-react 44.3 -> 46, vendor-query 13.25 -> 14, vendor-router 14.0 -> 15, vendor-charts 110.1 -> 115); admin.tr (66.28) ve routes.admin (15.54) paneli baska dalgalar buyuttugu icin 67/16'da birakildi.",
+  "_aciklama": "Paket boyutu butcesi (gzip -9, KB). `npm run check:bundle` (build sonrasi) asimda cikis kodu 1 verir; CI'da continue-on-error ile uyari. Olcum 2026-10-29: girdi 90.8, en agir site sayfasi (ar) 124.1, toplam JS 613. Kasitli buyutme gerekiyorsa degeri gerekceyle guncelleyin. 2026-10-31 (SITE3): site.* 21 -> 23 KB: yeni tanitim sitesi metinleri (vitrin, guven sayfalari Kisaca maddeleri, bilgi sayfalari) uc dilde; Arapca gzip en kotu sikisan dil (ar 21.98 KB). 2026-11-01 (UPDATEGATE): admin.tr 66 -> 67 KB: Uygulama guncelleme zorlama sayfasinin Turkce metinleri (admin-uv1.ts, ~3 KB ham); sayfa kodu ayri lazy parca. 2026-11-01 (SEO-SAYFA): site.* 23 -> 24 KB: 27 rota x 3 dil arama sonucu basligi/aciklamasi (seo.t.* / seo.d.*, ~7 KB ham her dilde; Arapca 23.68 KB, en/tr ~21 KB). 2026-11-01 (SEO-ENT birlestirme, olcum): diger tavanlar gercek degerlere %3-8 pay birakacak sekilde sikilastirildi (index 20.14 -> 22, initialJs 91.7 -> 95, routeJs 127.7 -> 131, totalJs 664.4 -> 675, vendor-react 44.3 -> 46, vendor-query 13.25 -> 14, vendor-router 14.0 -> 15, vendor-charts 110.1 -> 115); admin.tr (66.28) ve routes.admin (15.54) paneli baska dalgalar buyuttugu icin 67/16'da birakildi. 2026-11-01 (SITE-ICERIK): site.* 24 -> 26 KB: 15 yeni genel SSS sorusu + ic baglanti/yemek aciklama metinleri uc dilde (ar 23.68 -> 25.46 KB, tr 23.12, en 22.16); metinler kasitli icerik, kod degismedi.",
   "initialJsGzipKB": 95,
   "routeJsGzipKB": 131,
   "initialCssGzipKB": 10,
@@ -11,7 +11,7 @@
     "vendor-router": 15,
     "vendor-query": 14,
     "vendor-charts": 115,
-    "site.*": 24,
+    "site.*": 26,
     "admin.tr": 67,
     "routes.admin": 16
   }

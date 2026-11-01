@@ -90,7 +90,15 @@ export function breadcrumbLd(items: { name: string; url: string }[]): Record<str
   };
 }
 
-/** FAQPage: soru/yanıt çiftleri (yanıtlar düz metin; sayfada görünen metinle birebir olmalı). */
+/** `[metin](/yol)` bağlantılarını görünen metne indirger: sayfada okunan düz metin budur. */
+export function plainAnswer(answer: string): string {
+  return answer.replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, '$1');
+}
+
+/**
+ * FAQPage: soru/yanıt çiftleri. Yanıt, sayfada görünen metinle birebir olmalıdır; sayfa bağlantıyı
+ * çizdiği için JSON-LD'ye bağlantı sözdizimi değil bağlantı metni girer (`plainAnswer`).
+ */
 export function faqLd(entries: { question: string; answer: string }[]): Record<string, unknown> {
   return {
     '@context': 'https://schema.org',
@@ -98,7 +106,7 @@ export function faqLd(entries: { question: string; answer: string }[]): Record<s
     mainEntity: entries.map((e) => ({
       '@type': 'Question',
       name: e.question,
-      acceptedAnswer: { '@type': 'Answer', text: e.answer },
+      acceptedAnswer: { '@type': 'Answer', text: plainAnswer(e.answer) },
     })),
   };
 }

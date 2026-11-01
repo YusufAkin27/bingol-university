@@ -12,7 +12,7 @@ import { CtaBand } from './components/CtaBand';
 import { FaqAccordion } from './components/FaqAccordion';
 import { countFaq, filterFaq } from './components/faqFilter';
 import { faqLd } from './components/jsonLd';
-import { buildNewFaq } from './components/newFaq';
+import { buildFeatureFaq, buildGeneralFaq, buildNewFaq } from './components/newFaq';
 import { PageHero } from './components/PageHero';
 import { PhoneMockup } from './components/PhoneMockup';
 import { usePageMeta } from './components/usePageMeta';
@@ -25,6 +25,8 @@ export default function FaqPage() {
   const [query, setQuery] = useState('');
   // Yalnız sayfada her zaman görünen statik bölümün soruları: JSON-LD görünür içerikle birebir kalır
   const faqJsonLd = useMemo(() => faqLd(buildNewFaq(t)), [t]);
+  const generalFaq = useMemo(() => buildGeneralFaq(t), [t]);
+  const featureFaq = useMemo(() => buildFeatureFaq(t), [t]);
   usePageMeta({ route: 'faq', jsonLd: faqJsonLd });
   const faq = useQuery({ queryKey: qk.faq.public(lang), queryFn: listFaq });
   const groups = useMemo(() => filterFaq(faq.data ?? [], query), [faq.data, query]);
@@ -38,11 +40,17 @@ export default function FaqPage() {
         <div className={`container ${styles.layout}`}>
           <div className={styles.wrap}>
             {/* Statik bölüm ÜSTTE: API'den gelen dinamik liste (iskelet -> veri) sayfanın altında büyür, üstündeki içerik kaymaz (CLS, A3-11) */}
+            <section className={styles.group} aria-labelledby="faq-gen-title" data-testid="faq-general">
+              <h2 id="faq-gen-title" className={styles.groupTitle}>
+                {t('site.faq.gen.title')}
+              </h2>
+              <FaqAccordion items={generalFaq} />
+            </section>
             <section className={styles.group} aria-labelledby="faq-new-title" data-testid="faq-new">
               <h2 id="faq-new-title" className={styles.groupTitle}>
                 {t('site.faq.new.title')}
               </h2>
-              <FaqAccordion items={buildNewFaq(t)} />
+              <FaqAccordion items={featureFaq} />
             </section>
             {faq.isLoading && (
               <div className={styles.skeletons} role="status" aria-label={t('common.loading')}>

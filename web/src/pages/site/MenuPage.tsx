@@ -8,7 +8,9 @@ import type { TranslationKey } from '../../i18n';
 import { useI18n } from '../../i18n/I18nProvider';
 import { isoDate } from '../../lib/date';
 import { errorMessage } from '../../lib/errors';
+import { paths } from '../../paths';
 import { AppCallout } from './components/AppCallout';
+import { InlineLinks } from './components/InlineLinks';
 import { safeMenuImageUrl } from './components/newsUtils';
 import { PageHero } from './components/PageHero';
 import { usePageMeta } from './components/usePageMeta';
@@ -320,6 +322,16 @@ export default function MenuPage() {
           )}
         </div>
       </section>
+      <InlineLinks
+        label={t('pg.menu.about.title')}
+        title={t('pg.menu.about.title')}
+        links={[
+          { to: `${paths.site.faq}#faq-calorie`, label: t('pg.menu.about.faq') },
+          { to: paths.site.news, label: t('pg.menu.about.news') },
+        ]}
+      >
+        {t('pg.menu.about.text')}
+      </InlineLinks>
       <AppCallout shot="menu" title={t('site.s2.menu.appTitle')} text={t('site.s2.menu.appText')} crop={0.85} />
     </>
   );
