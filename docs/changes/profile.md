@@ -121,3 +121,12 @@ silinmis (anonimlestirilmis) hesapta NULL. `ProfileView`/KVKK dis aktarimi bu su
 - **`PublicProfile`:** `isPrivate`, `followState` (`NONE|REQUESTED|FOLLOWING|SELF`), `locked` (NON_NULL: yalnız `GET /api/users/{id}` ve `GET /api/users/search` satırlarında dolu). `locked=true` iken `followerCount/followingCount` null.
 - **Gizlilik dışa aktarımı:** `profilePrivacy` bölümü `privateAccount` içerir.
 - Ayrıntı ve uçlar: `docs/MOBILE_API_GUIDE.md` "Gizli hesap ve takip isteği (FOLLOWREQ)"; kod notları `docs/changes/post.md`.
+
+## FIX-P08: hesap silme kapsamı, departments önbelleği
+- **Hesap silme (KVKK):** `AccountDataPurger.purge(userId, oldEmail)` artık eski adresle eşleşen **herkese açık destek taleplerini** de temizler (`EMAIL_SCRUBS`, K5c): talep konusu `[silindi]`, `contact_email`/`contact_name`/kod özeti boş, kullanıcı mesajları `[silindi]`, `support_track_token` satırları silinir; personel yanıtları kalır. E-posta/adres tutan her sütunun kararı `AccountDataPurger.EMAIL_KEYED`'dedir; `AccountDataPurgerCoverageTest` migration'ları `email`/`to_address` için de tarar (yeni sütun = karar zorunlu). Anonim mesajlar ve silinen gönderi fotoğrafları süresiz kalır (K5 kararı, yeni süre eklenmedi); mail kuyruğu 30 gün politikası değişmedi.
+- `ProfileService.deleteAccount`: parola doğrulaması ve ön kontroller işlem dışında, yalnız anonimleştirme kısa işlemde; silinen hesabın parola alanı bcrypt değil **kullanılamaz özet** (`!deleted:<uuid>`); commit sonrası "askıya alma işareti" ve "oturum iptali" adımları ayrı ayrı bir kez yeniden denenir. `DeletionLedgerReapplier` 500'lük `findAllById` parçalarıyla çalışır.
+- **`GET /api/departments` (istemci etkisi yok):** sunucuda 5 dk bellek önbelleği + `Cache-Control: public, max-age=300, stale-while-revalidate=600` (fakültelerle aynı). Yeni bir bölüm adı listede en geç ~5-10 dk sonra görünür.
+- `UserRepository` kullanılmayan `audienceAll/Department/ClassYear/Ids` sorguları kaldırıldı.
+- `GET /api/users/search` minimum 2 karakter **değişmedi** (istemci sözleşmesi); 2 karakterde tam tarama riski ölçüm gerektirir.
+- Dışa aktarım: `feedback` ve `supportTickets` bölümleri en yeni 5000 kayıtla sınırlı (diğer bölümlerle aynı `MAX_ROWS`).
+- Migration: `V1140` (grade geriye doldurma), `V1141` (hesap silme indeksleri); ayrıntı `docs/changes/academic.md`.

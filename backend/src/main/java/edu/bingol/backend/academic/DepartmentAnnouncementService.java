@@ -91,9 +91,11 @@ public class DepartmentAnnouncementService {
     /** Kapsamsiz duyuru (bolum, fakulte ve sinif bos): "Tumu" sekmesi yalniz bunlari listeler (K-19). */
     private static final String UNSCOPED = " AND a.department IS NULL AND a.faculty IS NULL AND a.grade IS NULL";
 
+    private static final String AUDIENCE_FROM = " FROM app_user WHERE status = 'ACTIVE' AND deleted_at IS NULL";
+
     /** Hedef kitle (aktif kullanicilar): duyurunun bolum/fakulte/sinif alani bossa kisitsiz. */
     static List<Long> audienceIds(JdbcTemplate jdbc, String dept, String faculty, String grade) {
-        StringBuilder sql = new StringBuilder("SELECT id FROM app_user WHERE status = 'ACTIVE' AND deleted_at IS NULL");
+        StringBuilder sql = new StringBuilder("SELECT id").append(AUDIENCE_FROM);
         List<Object> args = new ArrayList<>();
         userField(sql, args, "department", dept, false);
         userField(sql, args, "faculty", faculty, false);
@@ -114,8 +116,15 @@ public class DepartmentAnnouncementService {
         }
     }
 
+    /** Hedef kitle buyuklugu: tum id'leri listeye cekmek yerine COUNT (yonetici arayuzu secim degistikce cagirir). */
     public long audienceCount(String dept, String faculty, String grade) {
-        return audienceIds(jdbc, dept, faculty, ExamService.grade(grade)).size();
+        StringBuilder sql = new StringBuilder("SELECT COUNT(*)").append(AUDIENCE_FROM);
+        List<Object> args = new ArrayList<>();
+        userField(sql, args, "department", dept, false);
+        userField(sql, args, "faculty", faculty, false);
+        userField(sql, args, "grade", ExamService.grade(grade), true);
+        Long n = jdbc.queryForObject(sql.toString(), Long.class, args.toArray());
+        return n == null ? 0 : n;
     }
 
     // ---- kullanici ----

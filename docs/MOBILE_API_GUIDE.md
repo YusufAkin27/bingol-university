@@ -744,7 +744,7 @@ HTTP 422
 Tam sözleşme (JSON örnekleri, hata kodları, saat biçimleri): [API_CONTRACTS_V2.md](API_CONTRACTS_V2.md) "Akademik". Özet:
 
 - **Ders programı (kişisel):** `GET /api/timetable`, `POST|PATCH|DELETE /api/timetable/courses[/{id}]` (bir ders + çok oturum; çakışma `409 COURSE_CONFLICT`, `force=true` ile geçilir), `POST /api/timetable/import` (en çok 60 oturum), `GET /api/timetable/today|week|reminders`, `GET /api/timetable/export.ics` (VTIMEZONE Europe/Istanbul, haftalık RRULE), dönemler `/api/timetable/semesters` (+ `from-official`).
-- **Sınavlar:** kişisel `/api/timetable/exams[/upcoming]`, resmi program `GET /api/exams/official` (profildeki fakülte/bölüm/sınıfa göre).
+- **Sınavlar:** kişisel `/api/timetable/exams[/upcoming]`, resmi program `GET /api/exams/official` (profildeki fakülte/bölüm/sınıfa göre; en çok 500 kayıt, **bitişi 30 günden eski sınavlar `scope=all` dahil listelenmez**, `starts_at` artan).
 - **Akademik takvim:** `GET /api/academic/calendar?month=YYYY-MM|from&to`, `GET /api/academic/calendar/next`.
 - **Bölüm duyuruları:** `GET /api/announcements?scope=mine|all&cursor&size` (opak string imleç, sabitlenmişler önce), `GET /api/announcements/{id}` (okundu işaretler), `POST /api/announcements/{id}/read`, `POST /api/announcements/read-all`, `GET /api/announcements/unread-count`. Push: tür `ANNOUNCEMENT`, `targetType=ANNOUNCEMENT`, `targetId=<duyuru id>`.
 - Ders/sınav hatırlatmaları **mobil yerel bildirimle** yapılır; sunucu yalnız `reminders` listesini verir. Saat dilimi Europe/Istanbul, `dayOfWeek` ISO 1..7.

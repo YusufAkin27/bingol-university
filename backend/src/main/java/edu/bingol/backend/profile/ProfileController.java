@@ -119,7 +119,10 @@ public class ProfileController {
 
     /** Profil formunda otomatik tamamlama icin sistemde kullanilan bolum adlari. */
     @GetMapping("/departments")
-    public List<String> departments() {
-        return profiles.departments();
+    public org.springframework.http.ResponseEntity<List<String>> departments() {
+        // Herkese ayni cevap (faculties ile ayni onbellek kurali); sunucuda de 5 dk bellek onbellegi var (A07#8)
+        return org.springframework.http.ResponseEntity.ok()
+                .header("Cache-Control", FACULTIES_CACHE_CONTROL)
+                .body(profiles.departments());
     }
 }
