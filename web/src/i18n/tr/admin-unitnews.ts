@@ -11,6 +11,7 @@ const m = {
   'admin.unitNews.health.neverSynced': 'Hiç çekilmemiş: {n}',
   'admin.unitNews.health.oldest': 'En eski başarılı çekim: {date}',
   'admin.unitNews.health.allGood': 'Tüm açık kaynaklar çalışıyor.',
+  'admin.unitNews.health.neverSyncedSentence': 'Bazı kaynaklar henüz hiç çekilmedi; ilk gece çekiminden sonra dolar.',
 
   'admin.unitNews.sources.title': 'Kaynaklar',
   'admin.unitNews.sources.loadError': 'Kaynaklar yüklenemedi.',

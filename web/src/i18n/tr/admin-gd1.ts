@@ -8,6 +8,9 @@ export default {
   'admin.gd1.refresh': 'Yenile',
 
   'admin.gd1.status.heading': 'Yedek durumu',
+  'admin.gd1.sentence.good': 'Her şey yolunda: son yedek {ago} alındı ve Google Drive kopyası doğrulandı.',
+  'admin.gd1.sentence.late': 'Yedek gecikmiş olabilir: son başarılı yedek {ago}. Aşağıdaki kartlara bakın.',
+  'admin.gd1.sentence.driveError': 'Google Drive kopyası alınamıyor; son yerel yedek {ago}. Ayrıntı Drive kartında.',
   'admin.gd1.status.unavailable': 'Durum bilgisi henüz alınamıyor (sunucu bu bilgiyi vermiyor). Kurulum rehberi aşağıdadır.',
   'admin.gd1.status.error': 'Durum bilgisi alınamadı.',
 

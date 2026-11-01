@@ -12,11 +12,12 @@ import {
   Badge,
   EmptyState,
   ErrorState,
+  Insight,
   PageHeader,
   Pagination,
+  ResponsiveTable,
   SearchInput,
-  StatCard,
-  Table,
+  StatTile,
   type Column,
 } from '../../components/ui';
 import { useI18n } from '../../i18n/I18nProvider';
@@ -24,6 +25,7 @@ import { errorMessage } from '../../lib/errors';
 import { usePageTitle } from '../../lib/hooks';
 import { paths } from '../../paths';
 import { gt } from './twofactor/dict';
+import people from './people/people.module.css';
 import styles from './users/users.module.css';
 
 const PAGE_SIZE = 20;
@@ -52,6 +54,7 @@ export default function TwoFactorPage() {
     {
       key: 'name',
       header: t('admin.twoFactor.col.name'),
+      card: { priority: 1 },
       render: (u) => (
         <div className={styles.person}>
           <Avatar name={u.displayName} size={32} />
@@ -65,6 +68,7 @@ export default function TwoFactorPage() {
     {
       key: 'role',
       header: t('admin.twoFactor.col.role'),
+      card: { priority: 2 },
       render: (u) => (
         <Badge tone={u.role === 'ADMIN' ? 'primary' : 'neutral'}>{td(`admin.users.role.${u.role}`)}</Badge>
       ),
@@ -79,6 +83,7 @@ export default function TwoFactorPage() {
       key: 'devices',
       header: t('admin.twoFactor.col.devices'),
       align: 'end',
+      card: { priority: 3 },
       render: (u) => formatNumber(u.trustedDeviceCount),
     },
     {
@@ -94,6 +99,7 @@ export default function TwoFactorPage() {
     {
       key: 'detail',
       header: t('admin.twoFactor.col.detail'),
+      card: { actions: true },
       render: (u) => (
         <Link
           to={paths.admin.user(u.userId)}
@@ -111,29 +117,48 @@ export default function TwoFactorPage() {
     <div>
       <PageHeader title={t('admin.twoFactor.title')} description={t('admin.twoFactor.intro')} />
 
-      <div className={styles.statGrid}>
-        <StatCard
-          title={t('admin.twoFactor.sum.enabled')}
-          value={s ? formatNumber(s.enabledCount) : '—'}
-          loading={summary.isLoading}
+      <section className={people.summary} aria-label={t('admin.twoFactor.summary')} data-search-anchor="twofactor-summary">
+        <Insight
+          tone={s && s.enabledCount === 0 ? 'warn' : 'info'}
+          parts={
+            s
+              ? t('admin.twoFactor.sentence', {
+                  enabled: formatNumber(s.enabledCount),
+                  total: formatNumber(s.totalActiveUsers),
+                  percent: formatNumber(Math.round(s.enabledPercent * 10) / 10),
+                })
+              : t('admin.twoFactor.loading')
+          }
         />
-        <StatCard
-          title={t('admin.twoFactor.sum.percent')}
-          value={s ? `%${formatNumber(Math.round(s.enabledPercent * 10) / 10)}` : '—'}
-          hint={s ? t('admin.twoFactor.sum.percentHint', { n: formatNumber(s.totalActiveUsers) }) : undefined}
-          loading={summary.isLoading}
-        />
-        <StatCard
-          title={t('admin.twoFactor.sum.last7')}
-          value={s ? formatNumber(s.enabledLast7Days) : '—'}
-          loading={summary.isLoading}
-        />
-        <StatCard
-          title={t('admin.twoFactor.sum.devices')}
-          value={s ? formatNumber(s.trustedDeviceTotal) : '—'}
-          loading={summary.isLoading}
-        />
-      </div>
+        <div className={people.tiles}>
+          <StatTile
+            label={t('admin.twoFactor.sum.enabled')}
+            value={s?.enabledCount}
+            unit={t('admin.twoFactor.unit.person')}
+            icon="shield"
+            loading={summary.isLoading}
+          />
+          <StatTile
+            label={t('admin.twoFactor.sum.percent')}
+            value={s ? `%${formatNumber(Math.round(s.enabledPercent * 10) / 10)}` : undefined}
+            caption={s ? t('admin.twoFactor.sum.percentHint', { n: formatNumber(s.totalActiveUsers) }) : undefined}
+            loading={summary.isLoading}
+          />
+          <StatTile
+            label={t('admin.twoFactor.sum.last7')}
+            value={s?.enabledLast7Days}
+            unit={t('admin.twoFactor.unit.person')}
+            loading={summary.isLoading}
+          />
+          <StatTile
+            label={t('admin.twoFactor.sum.devices')}
+            value={s?.trustedDeviceTotal}
+            unit={t('admin.twoFactor.unit.device')}
+            icon="smartphone"
+            loading={summary.isLoading}
+          />
+        </div>
+      </section>
       {summary.isError && (
         <ErrorState
           compact
@@ -143,7 +168,7 @@ export default function TwoFactorPage() {
       )}
 
       <div className={styles.topRow}>
-        <div className={styles.search}>
+        <div className={styles.search} data-search-anchor="twofactor-search">
           <SearchInput
             defaultValue={q}
             placeholder={t('admin.twoFactor.searchPlaceholder')}
@@ -164,13 +189,14 @@ export default function TwoFactorPage() {
               {t('admin.twoFactor.count', { n: formatNumber(data.totalItems) })}
             </p>
           )}
-          <div className={styles.tableCard}>
-            <Table
+          <div className={styles.tableCard} data-search-anchor="twofactor-table">
+            <ResponsiveTable
               caption={t('admin.twoFactor.title')}
               columns={columns}
               rows={data?.items}
               rowKey={(u) => u.userId}
               loading={list.isLoading}
+              breakpoint={720}
               empty={
                 <EmptyState
                   icon="shield"

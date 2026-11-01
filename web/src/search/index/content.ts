@@ -16,6 +16,47 @@ const LEGAL: { type: string; title: string; keywords: string[] }[] = [
   { type: 'RETENTION', title: 'Veri saklama ve imha', keywords: ['saklama süresi', 'silme politikası'] },
 ];
 
+/** Birim haberleri: fakülte, enstitü ve MYO alt sitelerinden çekilen duyurular. */
+const unitNews: SearchEntry[] = [
+  {
+    id: 'unitNews.health',
+    kind: 'section',
+    page: 'unitNews',
+    title: 'Kaynak sağlığı',
+    anchor: 'unitnews-health',
+    keywords: ['çalışıyor mu', 'bakımda kaynak', 'hiç çekilmemiş', 'son çekim', 'duyuru gelmiyor'],
+    description: 'Alt sitelerden duyuru çekimi sağlıklı mı, kaç kaynak bakımda.',
+  },
+  {
+    id: 'unitNews.sources',
+    kind: 'section',
+    page: 'unitNews',
+    title: 'Kaynaklar',
+    anchor: 'unitnews-sources',
+    keywords: ['alt siteler', 'fakülte siteleri', 'kaynak aç kapat', 'bölüm eşleme', 'hangi fakülte', 'meslek yüksekokulu', 'enstitü'],
+    description: 'Her fakülte, enstitü ve MYO sitesini aç/kapat, bölümlerle eşle.',
+  },
+  {
+    id: 'unitNews.syncAll',
+    kind: 'action',
+    page: 'unitNews',
+    title: 'Hepsini şimdi çek',
+    anchor: 'unitnews-sync-all',
+    perm: 'content.write',
+    keywords: ['elle çek', 'yenile', 'duyuruları güncelle', 'senkronize et', 'hemen çek'],
+    description: 'Gece çekimini beklemeden tüm açık kaynaklardan duyuruları getirir.',
+  },
+  {
+    id: 'unitNews.list',
+    kind: 'section',
+    page: 'unitNews',
+    title: 'Birim duyuruları',
+    anchor: 'unitnews-list',
+    keywords: ['bölüm duyuruları', 'duyuru gizle', 'duyuru göster', 'fakülte duyurusu', 'uygunsuz duyuru', 'duyuru ara'],
+    description: 'Çekilen duyuruları ara; öğrencilere görünmesini istemediğini gizle.',
+  },
+];
+
 export const entries: SearchEntry[] = [
   // ---- Sözleşmeler ----
   ...LEGAL.map(
@@ -215,4 +256,5 @@ export const entries: SearchEntry[] = [
     keywords: ['yemek fotoğrafı', 'fotoğraf sınırı', '5 mb', 'jpeg', 'png', 'webp', 'kalori kaydı'],
     description: 'Fotoğraf boyutu, türü ve kalorinin yemek adına bağlı kaydedildiği kısa anlatım.',
   },
+  ...unitNews,
 ];

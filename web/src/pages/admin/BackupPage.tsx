@@ -3,14 +3,14 @@
 // kurulum rehberini gösterir. Sayfa hiçbir sır toplamaz: yalnız durum okur ve talimat verir.
 import { useQuery } from '@tanstack/react-query';
 import { backupKeys, getBackupStatus } from '../../api/backup';
-import { Button, ErrorState, PageHeader, Skeleton } from '../../components/ui';
+import { Button, ErrorState, Insight, PageHeader, Skeleton } from '../../components/ui';
 import { useI18n } from '../../i18n/I18nProvider';
 import { usePageTitle } from '../../lib/hooks';
 import { adminErrorMessage, Callout } from './campaigns/shared';
 import { gt } from './backup/dict';
-import { driveState, isEndpointMissing } from './backup/lib';
+import { driveState, freshness, isEndpointMissing } from './backup/lib';
 import { SetupGuide } from './backup/SetupGuide';
-import { StatusCards } from './backup/StatusCards';
+import { agoText, StatusCards } from './backup/StatusCards';
 import styles from './backup/backup.module.css';
 
 const POLL_MS = 60_000;
@@ -31,6 +31,17 @@ export default function BackupPage() {
   const failed = q.isError && !missing;
   const status = q.data ?? null;
   const drive = driveState(status);
+  const fresh = freshness(status, Date.now());
+  const sentence =
+    status && drive !== 'NOT_CONFIGURED' && drive !== 'UNAVAILABLE' && fresh !== 'NONE'
+      ? {
+          tone: fresh === 'FRESH' && drive === 'OK' ? ('good' as const) : fresh === 'STALE' && drive !== 'ERROR' ? ('warn' as const) : ('bad' as const),
+          text: t(
+            fresh === 'FRESH' && drive === 'OK' ? 'admin.gd1.sentence.good' : drive === 'ERROR' ? 'admin.gd1.sentence.driveError' : 'admin.gd1.sentence.late',
+            { ago: agoText(i18n, status.lastSuccessAt, Date.now()) },
+          ),
+        }
+      : null;
 
   const goGuide = () => document.getElementById('gd-guide')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
@@ -40,7 +51,7 @@ export default function BackupPage() {
         title={t('admin.gd1.title')}
         description={t('admin.gd1.desc')}
         actions={
-          <Button variant="secondary" onClick={() => void q.refetch()} loading={q.isFetching}>
+          <Button variant="secondary" data-search-anchor="backup-refresh" onClick={() => void q.refetch()} loading={q.isFetching}>
             {t('admin.gd1.refresh')}
           </Button>
         }
@@ -74,7 +85,12 @@ export default function BackupPage() {
               {t('admin.gd1.status.unavailable')}
             </Callout>
           ) : (
-            <StatusCards i18n={i18n} status={status} now={Date.now()} />
+            <>
+              {sentence && <Insight tone={sentence.tone} parts={sentence.text} />}
+              <div data-search-anchor="backup-status">
+                <StatusCards i18n={i18n} status={status} now={Date.now()} />
+              </div>
+            </>
           )}
         </section>
         <SetupGuide i18n={i18n} connected={drive === 'OK'} />

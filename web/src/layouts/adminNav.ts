@@ -150,7 +150,7 @@ export const adminNav: AdminNavGroup[] = [
       { id: 'ops', perm: 'system.read', to: paths.admin.ops, labelKey: 'admin.nav.ops', icon: 'panel' },
       { id: 'crashes', perm: 'system.read', to: paths.admin.crashes, labelKey: 'admin.cr1.nav', icon: 'bug' },
       { id: 'dataRetention', perm: 'data.retention.read', to: paths.admin.dataRetention, labelKey: 'admin.ds1.nav', icon: 'database' },
-      { id: 'backup', perm: 'system.read', to: paths.admin.backup, labelKey: 'admin.gd1.nav', icon: 'download' },
+      { id: 'backup', perm: 'system.read', to: paths.admin.backup, labelKey: 'admin.gd1.nav', icon: 'inbox' },
       { id: 'appVersions', perm: 'settings.read', to: paths.admin.appVersions, labelKey: 'admin.uv.nav', icon: 'download' },
       { id: 'settings', perm: 'settings.read', to: paths.admin.settings, labelKey: 'admin.nav.settings', icon: 'settings' },
       { id: 'roles', perm: 'dashboard.read', to: paths.admin.roles, labelKey: 'admin.p16.nav', icon: 'shield' },

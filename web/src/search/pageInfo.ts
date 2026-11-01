@@ -23,6 +23,10 @@ export const pageInfo: Record<string, PageInfo> = {
     d: 'Üyeleri bul, incele, rolünü değiştir ya da hesabı kapat.',
     k: ['üyeler', 'öğrenci', 'kişi', 'hesap', 'kullanıcı ara', 'rol', 'yönetici yap', 'hesabı sil', 'e-posta ara', 'öğrenci numarası'],
   },
+  twoFactor: {
+    d: 'İki faktörlü doğrulamayı kimler açmış, kaç güvenilen cihaz var.',
+    k: ['iki faktörlü', '2fa', 'doğrulama', 'güvenilen cihaz', 'ek koruma', 'giriş kodu', 'iki adımlı doğrulama'],
+  },
   pendingUsers: {
     d: 'E-postasını henüz doğrulamamış kayıtlar.',
     k: ['doğrulama bekleyen', 'onaylanmamış', 'kayıt olmuş ama girmemiş', 'bekleyen kayıt', 'kod gelmedi', 'doğrulama kodu'],
@@ -131,6 +135,10 @@ export const pageInfo: Record<string, PageInfo> = {
     d: 'Üniversite sitesinden gelen haber ve duyurular.',
     k: ['haber', 'duyuru', 'haberi gizle', 'üniversite haberleri', 'etkinlik haberi', 'manşet'],
   },
+  unitNews: {
+    d: 'Fakülte, enstitü ve MYO sitelerinden gelen bölüm duyuruları ve kaynakları.',
+    k: ['birim haberleri', 'bölüm duyuruları', 'fakülte', 'duyuru', 'alt siteler', 'meslek yüksekokulu', 'enstitü', 'fakülte duyurusu', 'duyuru gizle'],
+  },
   menu: {
     d: 'Günlük yemek listesi ve yemeklerin kalorisi.',
     k: ['yemekhane', 'öğle yemeği', 'akşam yemeği', 'kalori', 'günün menüsü', 'yemek listesi', 'kantin', 'sks'],
@@ -174,6 +182,10 @@ export const pageInfo: Record<string, PageInfo> = {
   crashes: {
     d: 'Mobil uygulamanın çökme kayıtları, sürüme göre.',
     k: ['hata', 'crash', 'çöktü', 'uygulama kapanıyor', 'hata raporu', 'exception', 'sürüm hatası'],
+  },
+  backup: {
+    d: 'Veritabanı yedekleri ve Google Drive kopyası: durum ve kurulum rehberi.',
+    k: ['yedekleme', 'drive', 'yedek', 'geri yükleme', 'rclone', 'google drive', 'yedek al', 'felaket kurtarma'],
   },
   dataRetention: {
     d: 'Şişen kayıt tablolarını yedekleyip temizle.',

@@ -1,4 +1,4 @@
-import { Badge, Card } from '../../../components/ui';
+import { Badge, Insight } from '../../../components/ui';
 import type { UnitSource } from '../../../api/adminUnitNews';
 import { useI18n } from '../../../i18n/I18nProvider';
 import { gt } from './dict';
@@ -25,7 +25,17 @@ export function SourceHealth({ sources }: { sources: UnitSource[] }) {
   const s = summarizeSources(sources);
   const allGood = s.maintenance === 0 && s.neverSynced === 0;
   return (
-    <Card title={t('admin.unitNews.health.title')} data-testid="unit-news-health">
+    <section className={styles.healthBox} aria-label={t('admin.unitNews.health.title')} data-testid="unit-news-health" data-search-anchor="unitnews-health">
+      <Insight
+        tone={allGood ? 'good' : s.maintenance > 0 ? 'bad' : 'warn'}
+        parts={
+          allGood
+            ? t('admin.unitNews.health.allGood')
+            : s.oldest
+              ? t('admin.unitNews.health.oldest', { date: formatDateTime(s.oldest) })
+              : t('admin.unitNews.health.neverSyncedSentence')
+        }
+      />
       <div className={styles.health}>
         <Badge tone={allGood ? 'success' : 'neutral'}>
           {t('admin.unitNews.health.healthy', { n: s.healthy, total: s.total })}
@@ -38,13 +48,6 @@ export function SourceHealth({ sources }: { sources: UnitSource[] }) {
         )}
         {s.disabled > 0 && <Badge>{t('admin.unitNews.health.disabled', { n: s.disabled })}</Badge>}
       </div>
-      <p className={styles.healthNote}>
-        {allGood
-          ? t('admin.unitNews.health.allGood')
-          : s.oldest
-            ? t('admin.unitNews.health.oldest', { date: formatDateTime(s.oldest) })
-            : null}
-      </p>
-    </Card>
+    </section>
   );
 }

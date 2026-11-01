@@ -12,8 +12,8 @@ import {
   ErrorState,
   Icon,
   StatusPill,
+  ResponsiveTable,
   Switch,
-  Table,
   useToast,
   type Column,
 } from '../../../components/ui';
@@ -82,6 +82,7 @@ export function SourcesSection({ query }: { query: UseQueryResult<UnitSource[]> 
     {
       key: 'name',
       header: t('admin.unitNews.col.source'),
+      card: { priority: 1 },
       render: (s) => (
         <span className={styles.name}>
           <span className={styles.nameRow}>
@@ -105,6 +106,7 @@ export function SourcesSection({ query }: { query: UseQueryResult<UnitSource[]> 
     {
       key: 'status',
       header: t('admin.unitNews.col.status'),
+      card: { priority: 2 },
       render: (s) => (
         <span className={styles.name}>
           {!s.enabled ? (
@@ -138,6 +140,7 @@ export function SourcesSection({ query }: { query: UseQueryResult<UnitSource[]> 
     {
       key: 'enabled',
       header: t('admin.unitNews.col.enabled'),
+      card: { priority: 3 },
       render: (s) => (
         <span title={noPerm}>
           <Switch
@@ -154,6 +157,8 @@ export function SourcesSection({ query }: { query: UseQueryResult<UnitSource[]> 
     {
       key: 'actions',
       header: <span className="sr-only">{t('admin.unitNews.col.actions')}</span>,
+      headerLabel: t('admin.unitNews.col.actions'),
+      card: { actions: true },
       align: 'end',
       render: (s) => (
         <span className={styles.rowActions}>
@@ -194,11 +199,13 @@ export function SourcesSection({ query }: { query: UseQueryResult<UnitSource[]> 
 
   return (
     <Card
+      data-search-anchor="unitnews-sources"
       title={t('admin.unitNews.sources.title')}
       padded={false}
       actions={
         <Button
           size="sm"
+          data-search-anchor="unitnews-sync-all"
           leftIcon={<Icon name="download" size={16} />}
           disabled={!canWrite || !query.data?.length}
           title={noPerm}
@@ -211,7 +218,7 @@ export function SourcesSection({ query }: { query: UseQueryResult<UnitSource[]> 
       {query.isError ? (
         <ErrorState onRetry={() => void query.refetch()} description={errorMessage(i18n, query.error)} />
       ) : (
-        <Table
+        <ResponsiveTable
           caption={t('admin.unitNews.sources.title')}
           columns={columns}
           rows={query.data}

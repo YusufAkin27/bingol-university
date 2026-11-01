@@ -22,6 +22,11 @@ const m = {
   'admin.twoFactor.title': 'İki faktörlü doğrulama',
   'admin.twoFactor.intro':
     'İki faktörlü doğrulamayı açan kullanıcılar, tanınmayan bir cihazdan girişte e-postalarına gelen 6 haneli kodu girer.',
+  'admin.twoFactor.summary': 'İki faktörlü doğrulama özeti',
+  'admin.twoFactor.loading': 'Özet yükleniyor.',
+  'admin.twoFactor.sentence': '{total} etkin kullanıcıdan {enabled} kişi (%{percent}) ek koruma kullanıyor.',
+  'admin.twoFactor.unit.person': 'kişi',
+  'admin.twoFactor.unit.device': 'cihaz',
   'admin.twoFactor.sum.enabled': 'Açan kullanıcı',
   'admin.twoFactor.sum.percent': 'Etkin kullanıcıların yüzdesi',
   'admin.twoFactor.sum.percentHint': '{n} etkin kullanıcıdan',

@@ -3,6 +3,7 @@
 import { useState, type ReactNode } from 'react';
 import { Button, CopyButton, Icon } from '../../../components/ui';
 import type { I18n } from '../../../i18n/I18nProvider';
+import { useSearchReveal } from '../../../search/anchor';
 import { Callout } from '../campaigns/shared';
 import { gt } from './dict';
 import { FAQ_IDS, GUIDE_STEPS, type GuideItem } from './guide';
@@ -50,7 +51,7 @@ function Step({
 }) {
   const title = i18n.td(`admin.gd1.step.${id}.title`, id);
   return (
-    <li className={styles.step} data-testid={`gd-step-${id}`}>
+    <li className={styles.step} data-testid={`gd-step-${id}`} data-search-anchor={`gd-step-${id}`}>
       <h3 className={styles.stepHead}>
         <button
           type="button"
@@ -87,10 +88,19 @@ export function SetupGuide({ i18n, connected }: { i18n: I18n; connected: boolean
     const base = open ?? Object.fromEntries(ALL_IDS.map((x) => [x, isOpen(x)]));
     setOpen({ ...base, [id]: !base[id] });
   };
+  // Arama bir adımı hedefleyince o adım açılır (yan etkisiz, tekrar çağrılabilir).
+  useSearchReveal((anchor) => {
+    const id = anchor.startsWith('gd-step-') ? anchor.slice('gd-step-'.length) : null;
+    if (!id || !ALL_IDS.includes(id)) return;
+    setOpen((cur) => {
+      const base = cur ?? Object.fromEntries(ALL_IDS.map((x) => [x, !connected && x === GUIDE_STEPS[0].id]));
+      return base[id] ? cur : { ...base, [id]: true };
+    });
+  });
   const setAll = (v: boolean) => setOpen(Object.fromEntries(ALL_IDS.map((x) => [x, v])));
 
   return (
-    <section id="gd-guide" className={styles.section} aria-labelledby="gd-guide-h">
+    <section id="gd-guide" className={styles.section} aria-labelledby="gd-guide-h" data-search-anchor="backup-guide">
       <h2 id="gd-guide-h" className={styles.h2}>
         {t('admin.gd1.guide.heading')}
       </h2>

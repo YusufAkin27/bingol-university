@@ -43,7 +43,8 @@ describe('TwoFactorPage', () => {
     expect(await screen.findByText('42')).toBeInTheDocument();
     expect(screen.getByText('63')).toBeInTheDocument();
     expect(screen.getByText('7')).toBeInTheDocument();
-    expect(screen.getByText(/400/)).toBeInTheDocument();
+    expect(screen.getByText('400 etkin kullanıcıdan')).toBeInTheDocument();
+    expect(screen.getByText(/ek koruma kullanıyor/)).toBeInTheDocument();
     // e-posta sunucuda maskelenmiş gelir, olduğu gibi gösterilir
     expect(screen.getByText('ay***@bingol.edu.tr')).toBeInTheDocument();
     expect(screen.getByText('Hiç')).toBeInTheDocument();

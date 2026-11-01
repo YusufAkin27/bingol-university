@@ -11,8 +11,8 @@ import {
   Icon,
   Pagination,
   Select,
+  ResponsiveTable,
   Switch,
-  Table,
   useToast,
   type Column,
 } from '../../../components/ui';
@@ -68,6 +68,7 @@ export function AnnouncementsSection({ sources }: { sources: UnitSource[] | unde
     {
       key: 'title',
       header: t('admin.unitNews.list.col.title'),
+      card: { priority: 1 },
       render: (r) => {
         const href = safeHref(r.url);
         return (
@@ -96,6 +97,7 @@ export function AnnouncementsSection({ sources }: { sources: UnitSource[] | unde
     },
     {
       key: 'source',
+      card: { priority: 2 },
       header: t('admin.unitNews.list.col.source'),
       render: (r) => (
         <span className={styles.name}>
@@ -108,7 +110,7 @@ export function AnnouncementsSection({ sources }: { sources: UnitSource[] | unde
         </span>
       ),
     },
-    { key: 'date', header: t('admin.unitNews.list.col.date'), render: (r) => formatDate(r.publishedDate) },
+    { key: 'date', header: t('admin.unitNews.list.col.date'), card: { priority: 3 }, render: (r) => formatDate(r.publishedDate) },
     {
       key: 'attachments',
       header: t('admin.unitNews.list.col.attachments'),
@@ -130,7 +132,7 @@ export function AnnouncementsSection({ sources }: { sources: UnitSource[] | unde
   ];
 
   return (
-    <section aria-labelledby="unit-news-list-h">
+    <section aria-labelledby="unit-news-list-h" data-search-anchor="unitnews-list">
       <h2 id="unit-news-list-h" className="sr-only">
         {t('admin.unitNews.list.title')}
       </h2>
@@ -178,7 +180,7 @@ export function AnnouncementsSection({ sources }: { sources: UnitSource[] | unde
         <ErrorState onRetry={() => void list.refetch()} description={errorMessage(i18n, list.error)} />
       ) : (
         <>
-          <Table
+          <ResponsiveTable
             caption={t('admin.unitNews.list.title')}
             columns={columns}
             rows={list.data?.content}

@@ -8,6 +8,10 @@
   gap: var(--space-2) var(--space-4);
   align-items: center;
 }
+.healthBox {
+  display: grid;
+  gap: var(--space-3);
+}
 .healthNote {
   margin: var(--space-2) 0 0;
   font-size: var(--text-sm);

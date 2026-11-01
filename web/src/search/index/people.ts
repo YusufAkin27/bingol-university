@@ -400,4 +400,34 @@ const accessBans: SearchEntry[] = [
   },
 ];
 
-export const entries: SearchEntry[] = [...users, ...pending, ...suspensions, ...appeals, ...accessBans];
+/** İki faktörlü doğrulama sayfası. */
+const twoFactor: SearchEntry[] = [
+  {
+    id: 'twoFactor.summary',
+    kind: 'section',
+    page: 'twoFactor',
+    title: 'İki faktörlü doğrulama özeti',
+    anchor: 'twofactor-summary',
+    keywords: ['kaç kişi açtı', 'yüzde', 'güvenilen cihaz sayısı', 'ek koruma', 'kullanım oranı'],
+    description: 'Kaç kişinin ek giriş korumasını açtığını ve kaç cihaza güvenildiğini gösterir.',
+  },
+  {
+    id: 'twoFactor.search',
+    kind: 'field',
+    page: 'twoFactor',
+    title: 'Kullanıcı ara (2FA)',
+    anchor: 'twofactor-search',
+    keywords: ['ad ara', 'e-posta ara', 'kim açmış'],
+  },
+  {
+    id: 'twoFactor.table',
+    kind: 'section',
+    page: 'twoFactor',
+    title: 'Koruması açık kullanıcılar',
+    anchor: 'twofactor-table',
+    keywords: ['2fa listesi', 'son giriş', 'ne zaman açtı', 'güvenilen cihaz', 'hesap kurtarma', 'doğrulamayı kapat'],
+    description: 'İki faktörlü doğrulamayı açan hesapların listesi; satırdan kullanıcıya gidip kapatabilirsiniz.',
+  },
+];
+
+export const entries: SearchEntry[] = [...users, ...pending, ...suspensions, ...appeals, ...accessBans, ...twoFactor];
