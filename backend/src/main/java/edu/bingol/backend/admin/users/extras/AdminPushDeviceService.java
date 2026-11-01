@@ -17,7 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class AdminPushDeviceService {
 
     /** Token'in gosterilen son karakter sayisi; tamami ASLA donmez. */
-    static final int TAIL = 6;
+    static final int TAIL_CHARS = 6;
 
     private final DeviceRepository devices;
     private final UserRepository users;
@@ -65,12 +65,12 @@ public class AdminPushDeviceService {
         devices.delete(d);
     }
 
-    /** Son {@value #TAIL} karakter; kisa token'da bile tamami acilmaz (en cok uzunlugun dortte biri). */
+    /** Son {@value #TAIL_CHARS} karakter; kisa token'da bile tamami acilmaz (en cok uzunlugun dortte biri). */
     static String tail(String token) {
         if (token == null || token.isEmpty()) {
             return "";
         }
-        int n = Math.min(TAIL, Math.max(1, token.length() / 4));
+        int n = Math.min(TAIL_CHARS, Math.max(1, token.length() / 4));
         return token.substring(token.length() - n);
     }
 

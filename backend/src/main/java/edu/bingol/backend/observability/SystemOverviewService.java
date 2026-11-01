@@ -35,7 +35,7 @@ public class SystemOverviewService {
     }
 
     /** Izlenen zamanlayicilar (bkz. CLAUDE.md zamanlayici tablosu). Bu paket baska paketlerin kodunu degistirmez. */
-    static final List<JobSpec> JOBS = List.of(
+    static final List<JobSpec> JOB_SPECS = List.of(
             new JobSpec("news-sync", "NewsSyncService.scheduledSync", JobKind.NIGHTLY),
             new JobSpec("menu-sync", "MenuSyncService.scheduledSync", JobKind.MONTHLY),
             new JobSpec("mail-queue", "MailQueueWorker.poll", JobKind.POLLER),
@@ -56,7 +56,7 @@ public class SystemOverviewService {
                 "push.dead", "push.pending", "push.oldestPendingAge",
                 "campaign.overdue", "campaign.counts",
                 "websocket.sessions", "db", "redis", "fcm", "disk.storage", "storage", "backup.age"));
-        for (JobSpec j : JOBS) {
+        for (JobSpec j : JOB_SPECS) {
             keys.add("jobs." + j.key());
         }
         return keys;
@@ -133,7 +133,7 @@ public class SystemOverviewService {
         out.put("disk.storage", disk(locale));
         out.put("storage", storage(locale));
         out.put("backup.age", backup(now, locale));
-        for (JobSpec j : JOBS) {
+        for (JobSpec j : JOB_SPECS) {
             out.put("jobs." + j.key(), job(j, now, locale));
         }
         return new Overview(now, overall(out.values()), out);

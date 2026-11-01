@@ -41,7 +41,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api")
 public class EventExtrasController {
 
-    private static final MediaType ICS = new MediaType("text", "calendar", java.nio.charset.StandardCharsets.UTF_8);
+    private static final MediaType ICS_TYPE = new MediaType("text", "calendar", java.nio.charset.StandardCharsets.UTF_8);
 
     private final CoOrganizerService coOrganizers;
     private final AnnouncementService announcements;
@@ -181,7 +181,7 @@ public class EventExtrasController {
 
     private static ResponseEntity<String> icsResponse(String body, String filename) {
         return ResponseEntity.ok()
-                .contentType(ICS)
+                .contentType(ICS_TYPE)
                 .header(HttpHeaders.CONTENT_DISPOSITION, ContentDisposition.attachment().filename(filename).build().toString())
                 .body(body);
     }

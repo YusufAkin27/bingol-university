@@ -62,7 +62,7 @@ public class DevSeedRunner implements ApplicationRunner {
     private record U(String email, String name, String faculty, String dept, int year, String lang, boolean admin) {
     }
 
-    private static final List<U> USERS = List.of(
+    private static final List<U> SEED_USERS = List.of(
             new U(ADMIN_EMAIL, "Seed Yonetici", "Rektorluk", "Bilgi Islem", 0, "tr", true),
             new U(PERF_EMAIL, "Mobil Test", "Muhendislik-Mimarlik Fakultesi", "Bilgisayar Muhendisligi", 3, "tr", false),
             new U("seed.ayse@bingol.edu.tr", "Ayse Demir", "Fen-Edebiyat Fakultesi", "Matematik", 2, "tr", false),
@@ -97,7 +97,7 @@ public class DevSeedRunner implements ApplicationRunner {
     private List<Long> seedUsers() {
         String hash = encoder.encode(DEV_PASSWORD);
         List<Long> ids = new ArrayList<>();
-        for (U s : USERS) {
+        for (U s : SEED_USERS) {
             User u = users.findByEmail(s.email()).orElse(null);
             if (u == null) {
                 u = new User();

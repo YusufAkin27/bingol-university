@@ -12,7 +12,7 @@ final class MailBounces {
 
     private static final Pattern CODE = Pattern.compile("(?<![0-9])(550|551|553)(?:[ -]|$)");
     private static final Pattern UNKNOWN_USER = Pattern.compile(
-            "5\\.1\\.[0-9]|user unknown|no such user|unknown user|does not exist|does not exist|"
+            "5\\.1\\.[0-9]|user unknown|no such user|unknown user|does not exist|"
                     + "unknown recipient|invalid recipient|recipient (address )?rejected|mailbox (unavailable|not found)|"
                     + "address rejected|no mailbox|user not found|recipient not found");
     private static final Pattern POLICY = Pattern.compile(

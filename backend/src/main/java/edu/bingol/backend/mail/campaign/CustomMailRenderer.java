@@ -68,7 +68,7 @@ public class CustomMailRenderer implements CustomMailContent {
             return new Resolved(want, lang, false);
         }
         Content tr = contentOf(v, Lang.TR);
-        return new Resolved(tr == null ? new Content("", "", "") : tr, Lang.TR, lang != Lang.TR);
+        return new Resolved(tr, Lang.TR, lang != Lang.TR);
     }
 
     public static Content contentOf(MailCustomTemplateVersion v, Lang lang) {
