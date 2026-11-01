@@ -18,6 +18,7 @@ import Ds1 from '../tr/admin-ds1';
 import Reg from '../tr/admin-reg';
 import Uv1 from '../tr/admin-uv1';
 import Kit from '../tr/admin-kit';
+import V2People from '../tr/admin-v2-people';
 
 export default {
   ...Guard,
@@ -39,4 +40,5 @@ export default {
   ...Reg,
   ...Uv1,
   ...Kit,
+  ...V2People,
 };
