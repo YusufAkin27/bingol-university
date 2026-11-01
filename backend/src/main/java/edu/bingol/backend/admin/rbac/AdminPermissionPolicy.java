@@ -121,6 +121,8 @@ public final class AdminPermissionPolicy {
         area("/api/admin/data-retention(/.*)?", RETENTION_READ, RETENTION_PURGE);
 
         // --- sistem / altyapi ---
+        // yedek durumu (yerel/uzak kopya): yalniz okuma; yazma yolu yok (kurulum sunucuda, docs/BACKUP_GDRIVE.md)
+        one(Set.of("GET"), "/api/admin/system/backup", SYSTEM_READ);
         area("/api/admin/push/(fcm|outbox|devices)(/.*)?", SYSTEM_READ, SYSTEM_WRITE);
         area("/api/admin/mail/(outbox|suppressions|quota)(/.*)?", SYSTEM_READ, SYSTEM_WRITE);
         area("/api/admin/(ops|system|crypto|crashes)(/.*)?", SYSTEM_READ, SYSTEM_WRITE);
