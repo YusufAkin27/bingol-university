@@ -639,6 +639,24 @@ Yeni hata kodu: `EVENT_CLUB_REQUIRED` (400; `i18n/event*.properties` tr/en/ar). 
 
 Paket `observability`. Yazma (POST) uçları denetim kaydına düşer; hız sınırı: okuma 120/dk, yazma 30/10 dk.
 
+### `GET /api/admin/system/backup`
+
+Yedek durumu (yerel + uzak kopya); izin `system.read` (FULL, VIEWER). Yalnız durum dosyasından (`last-success.json`, yedek ajanı yazar) okur, ağa çıkmaz; dosya yoksa/bozuksa tüm alanlar `null`, `remote.configured=false`. Eski biçimli dosyada (uzak alanı yok) da aynıdır. Tarihler ISO-8601 UTC. **Uzak hedefin yolu/belirteci hiçbir alanda yoktur**; `remote.name` yalnız rclone uzak adıdır. Kurulum: `docs/BACKUP_GDRIVE.md`.
+
+```json
+{
+  "local":  {"count":3,"bytes":1500000,"oldestAt":"2026-11-01T08:05:00Z"},
+  "remote": {"configured":true,"kind":"drive","name":"gdrive","lastSuccessAt":"2026-11-01T00:40:12Z",
+             "lastVerifiedAt":"2026-11-01T00:40:30Z","lastError":null,"bytes":7340032,"count":6},
+  "lastSuccessAt":"2026-11-01T10:05:09Z",
+  "lastStatus":"OK",
+  "schedule":  {"cron":"5 * * * *","verifyCron":"30 4 * * 0","remoteCron":"35 3 * * *"},
+  "retention": {"localDaily":3,"localWeekly":0,"localMonthly":0,"remoteDaily":7,"remoteWeekly":4,"remoteMonthly":6}
+}
+```
+
+`remote.kind`: `drive` | `other`. `lastStatus`: `OK` | `FAILED` (son başarılı yedekten sonra yerel yedek denemesi başarısız oldu; `last-failure.json` var) | `null`. `remote.lastError` kısa, tek satır ve sırsızdır (ör. "Google yetkisi geçersiz veya süresi dolmuş (invalid_grant); rclone authorize ile belirteci yenileyin"). `schedule.remoteCron` uzak kopya kapalıysa `null`. `GET /overview` göstergesi `backup.age` değişmedi (yalnız `lastSuccessAt` yaşı).
+
 ### `GET /api/admin/system/overview`
 
 Tüm göstergeler tek yanıtta. Her gösterge `{status: OK|WARN|CRIT|UNKNOWN, value, threshold, message}`; `message` yalnız OK değilse dolu ve istek dilindedir (`Accept-Language` tr/en/ar). `UNKNOWN` = ölçülemiyor/henüz veri yok (uyarı tetiklemez). `overall` = bilinen göstergelerin en kötüsü.
