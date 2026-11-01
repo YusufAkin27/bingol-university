@@ -232,3 +232,22 @@ Ana sayfa/açılış yolundaki çağrılar (`app/info`, `status`, `menu/today`, 
 | T-073 | message 3 + notification 2 + analytics_event_user 133 MB kullanılmayan indeks; `app_user` UPDATE'lerinin %17,7'si HOT | `backend/src/main/resources/db/pending-k33/V961__...sql` (+ `.conf`): `DROP INDEX CONCURRENTLY`, **K-33/H-08 onayı bekler, Flyway konumunda DEĞİL** | yazma maliyeti -%15-25 (TAHMİN), HOT oranı artar | dosya başlığındaki `pg_stat_user_indexes` sorgusu, üretimde ≥14 gün sonra |
 
 Kalan: `analytics_event.idx_analytics_event_user` (133 MB) kısmi/BRIN tasarımı ertelendi (KVKK kullanıcı silme yolu); `rank_score` indeksi (HOT) PostRankService ile birlikte ayrıca değerlendirilmeli.
+
+## Metrik kardinalitesi: `http.server.requests` kovaları (FIX-P10)
+
+`management.metrics.distribution.percentiles-histogram.http.server.requests` (varsayılan **true**) her `uri` x yöntem x durum için ~69 histogram kovası üretir; ~600 uçta on binlerce seri, `MANAGEMENT_PORT` açıkken her kazıma megabaytlarca çıktıdır. Az kovalı alternatif **hazırdır ama varsayılan değişmedi** (Grafana/Prometheus panoları `http_server_requests_seconds_bucket` ile `histogram_quantile` kullanır):
+
+```
+METRICS_HTTP_PERCENTILES_HISTOGRAM=false
+METRICS_HTTP_SLO=50ms,100ms,250ms,500ms,1s,3s,10s
+```
+
+Geçişten sonra `histogram_quantile` tahminleri kova sınırları arasında doğrusal ara değerlemedir (daha kaba); `monitoring/prometheus/alert.rules.yml` eşiği (p95 > 1 sn) `1s` sınırına denk geldiği için etkilenmez. Medya yükleme panosu (3 sn üstü) için `10s` kovası bu yüzden vardır. Geçiş deploy-zamanı kararıdır; önce staging'de panoları kontrol edin.
+
+## Test paketi hızı (FIX-P10)
+
+- **Zamanlayıcılar test profilinde kapalı:** `@EnableScheduling` `config/SchedulingEnabledConfig` içine alındı (`app.scheduling.enabled`, ayarsız = açık = üretim davranışı değişmez); `src/test/resources/application.properties` `false` yapar. Eskiden önbellekteki HER Spring bağlamı ~47 `@Scheduled` işi (mail/push 5 sn, presence 10 sn, ...) test sonuna kadar çalıştırır, Redis olmadığından her turda hata yığını ve bağlanma denemesi üretirdi.
+- **Her bağlam kendi H2 veritabanını alır** (`jdbc:h2:mem:${random.uuid}`): yeni bağlamın `create-drop`'u eski bağlamın şemasını düşürmez.
+- **Yerelde JaCoCo kapalı** (`-Djacoco.skip=true`): sınıf yükleme 1,3-2x yavaşlar; CI'da açık kalır.
+- Ölçüm (aynı 14 sınıflı alt küme, Docker Maven 17, ilk koşu `~/.m2` sıcak): bkz. `docs/changes/ops.md` "FIX-P10".
+- Bağlam çoğalması: `@MockitoBean` kümesi ve `properties` farkı yeni bağlam üretir. Yeni `@SpringBootTest` yazarken mevcut kümelerden birini kullanın.
