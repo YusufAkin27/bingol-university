@@ -3,8 +3,7 @@
  *  1) Her admin rotası (parametresiz) için en az 1 girdi var.
  *  2) Her girdinin `page` kimliği menüde var; kimlikler benzersiz.
  *  3) Her girdinin anchor'u kaynak kodda `SearchAnchor id="..."` / `data-search-anchor` olarak bulunur.
- *  4) Derin girdisi (bölüm/ayar/alan/eylem) olmayan sayfalar RAPORLANIR; yalnız BEKLENEN_EKSIKLER dışındakiler testi düşürür.
- *     Sayfa ajanları dalgasında liste sıfırlanır (her sayfa derin girdi ekler).
+ *  4) Her sayfanın en az bir derin girdisi (bölüm/ayar/alan/eylem) vardır; BEKLENEN_EKSIKLER boştur ve gerçekten sıfır olduğu doğrulanır.
  */
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
@@ -20,10 +19,11 @@ const SRC = join(process.cwd(), 'src');
 /** node:path shim'inde dirname yok: klasör adı elle alınır. */
 const dirname = (p: string): string => p.slice(0, Math.max(p.lastIndexOf('/'), p.lastIndexOf('\\')));
 
-/** Sonraki dalgada sayfa ajanları doldurur ve bu liste BOŞALIR. Menü öğe kimlikleri. */
-const BEKLENEN_EKSIKLER: string[] = adminNav
-  .flatMap((g) => g.items.map((i) => i.id))
-  .filter((id) => !['settings', 'appVersions', 'system', 'campaigns', 'mailTemplates', 'mailCampaigns', 'mailQueue', 'mailSuppressions', 'pushOps', 'sources', 'ops', 'crashes', 'dataRetention', 'roles', 'audit', 'messageAccess', 'crypto'].includes(id));
+/**
+ * Derin girdisi (bölüm/ayar/alan/eylem) olmayabilecek sayfalar. Tüm sayfalar derin girdi taşıdığı için liste BOŞTUR;
+ * yeni menü öğesi derin girdisiz eklenirse test düşer (listeye eklemek bilinçli bir istisna olmalı, gerekçesiyle).
+ */
+const BEKLENEN_EKSIKLER: string[] = [];
 
 function walk(dir: string, out: string[] = []): string[] {
   for (const name of readdirSync(dir)) {
@@ -109,16 +109,12 @@ describe('arama kayıt defteri kapsamı', () => {
     expect(missing, 'kaynakta karşılığı olmayan anchor değerleri').toEqual([]);
   });
 
-  it('derin girdisi olmayan sayfalar raporlanır; beklenen listede olmayan eksik testi düşürür', () => {
+  it('her sayfanın derin girdisi var; BEKLENEN_EKSIKLER boş ve eksik sayısı gerçekten sıfır', () => {
     const deep = new Set(registeredEntries.filter((e) => e.kind !== 'page').map((e) => e.page));
     const shallow = adminNav.flatMap((g) => g.items.map((i) => i.id)).filter((id) => !deep.has(id));
-    const unexpected = shallow.filter((id) => !BEKLENEN_EKSIKLER.includes(id));
-    const stale = BEKLENEN_EKSIKLER.filter((id) => deep.has(id));
-    console.info(
-      `[arama kapsamı] derin girdisi olan sayfa: ${deep.size}; derin girdisi eksik: ${shallow.length}` +
-        (stale.length ? `; BEKLENEN_EKSIKLER listesinden çıkarın: ${stale.join(', ')}` : ''),
-    );
-    expect(unexpected, 'bu sayfalar derin girdi eklemeli ya da BEKLENEN_EKSIKLER listesine alınmalı').toEqual([]);
+    expect(BEKLENEN_EKSIKLER, 'istisna listesi boş kalmalı').toEqual([]);
+    expect(shallow, 'bu sayfalar derin girdi (bölüm/ayar/alan/eylem) eklemeli').toEqual([]);
+    expect(deep.size).toBeGreaterThan(0);
   });
 
   it('SettingRow her ayar alanına anchor koyar (anahtar = anchor)', () => {
