@@ -69,7 +69,10 @@ function setup(opts: { items?: unknown[]; totalPages?: number; fail?: boolean } 
   return calls;
 }
 
-const auditCalls = (calls: string[]) => calls.filter((u) => /\/admin\/audit\?/.test(u));
+// Özet grafikleri için ayrıca "en yeni 100 işlem" örneği istenir (size=100); liste istekleri bunun dışındakilerdir.
+const SAMPLE = /[?&]size=100(&|$)/;
+const auditCalls = (calls: string[]) => calls.filter((u) => /\/admin\/audit\?/.test(u) && !SAMPLE.test(u));
+const sampleCalls = (calls: string[]) => calls.filter((u) => /\/admin\/audit\?/.test(u) && SAMPLE.test(u));
 const lastAudit = (calls: string[]) => auditCalls(calls).at(-1) ?? '';
 const paramsOf = (url: string) => new URL(url, 'http://x').searchParams;
 
@@ -277,5 +280,75 @@ describe('Denetim kaydı v2', () => {
     setup();
     renderPage();
     expect(await screen.findByRole('link', { name: 'Mesaj erişim kayıtları' })).toHaveAttribute('href', '/admin/audit/message-access');
+  });
+});
+
+describe('Denetim kaydı: özet, hızlı süzgeç çipleri, zaman çizelgesi (sistem2)', () => {
+  it('özet grafikleri için en yeni 100 işlemi ayrıca ister ve eylem türü / alan başlıklarını yazar', async () => {
+    const calls = setup();
+    renderPage();
+    await loadedRows();
+    expect(await screen.findByText('Ne tür işlemler yapıldı?')).toBeInTheDocument();
+    expect(screen.getByText('En çok hangi alanda işlem yapıldı?')).toBeInTheDocument();
+    expect(sampleCalls(calls).length).toBeGreaterThan(0);
+    // örnek de aynı süzgeçleri taşır (burada süzgeç yok)
+    expect(paramsOf(sampleCalls(calls)[0]).get('page')).toBe('0');
+  });
+
+  it('"Reddedilenler" çipi 403 süzgecini uygular, etkin süzgeç çipi görünür ve kaldırılır', async () => {
+    const calls = setup();
+    renderPage();
+    await loadedRows();
+    const chip = screen.getByTestId('audit-quick-denied');
+    expect(chip).toHaveAttribute('aria-pressed', 'false');
+    await userEvent.click(chip);
+    await waitFor(() => expect(paramsOf(lastAudit(calls)).get('status')).toBe('403'));
+    expect(screen.getByTestId('audit-quick-denied')).toHaveAttribute('aria-pressed', 'true');
+    const active = within(await screen.findByTestId('audit-active-chips'));
+    await userEvent.click(active.getByRole('button', { name: /süzgecini kaldır/ }));
+    await waitFor(() => expect(paramsOf(lastAudit(calls)).get('status')).toBeNull());
+    expect(screen.queryByTestId('audit-active-chips')).toBeNull();
+  });
+
+  it('"Bugün" çipi from/to tarihini aynı güne ayarlar', async () => {
+    const calls = setup();
+    renderPage();
+    await loadedRows();
+    await userEvent.click(screen.getByTestId('audit-quick-today'));
+    await waitFor(() => {
+      const p = paramsOf(lastAudit(calls));
+      expect(p.get('from')).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+      expect(p.get('to')).toBe(p.get('from'));
+    });
+  });
+
+  it('zaman çizelgesi görünümü satırları gün gün listeler ve satıra basınca çekmece açılır', async () => {
+    setup();
+    renderPage();
+    await loadedRows();
+    await userEvent.click(screen.getByRole('button', { name: 'Zaman çizelgesi' }));
+    const tl = await screen.findByTestId('audit-timeline');
+    expect(within(tl).getByText('Kullanıcı rolü değiştirildi')).toBeInTheDocument();
+    expect(within(tl).getByText('Etkinlik onaylandı')).toBeInTheDocument();
+    // reddedilen eski satır renk + metinle ayrılır
+    expect(within(tl).getByText(/Yetkisiz/)).toBeInTheDocument();
+    await userEvent.click(within(tl).getByRole('button', { name: /Ayrıntıyı aç: Kullanıcı rolü değiştirildi/ }));
+    expect(await screen.findByRole('dialog')).toBeInTheDocument();
+    // tabloya dönüş
+    await userEvent.click(screen.getByRole('button', { name: 'Tablo' }));
+    expect(screen.queryByTestId('audit-timeline')).toBeNull();
+  });
+
+  it('örnek isteği başarısızsa grafik alanında tek hata kutusu çıkar, liste çalışmaya devam eder', async () => {
+    mockFetch((url) => {
+      if (url.includes('/admin/audit')) {
+        if (/[?&]size=100(&|$)/.test(url)) return jsonResponse(500, { code: 'X', message: 'x' });
+        return jsonResponse(200, page(ROWS));
+      }
+      return jsonResponse(200, { items: [], page: 0, size: 100, totalItems: 0, totalPages: 1 });
+    });
+    renderPage();
+    await loadedRows();
+    await waitFor(() => expect(screen.getAllByRole('button', { name: /Tekrar dene|Yeniden dene/i })).toHaveLength(1));
   });
 });

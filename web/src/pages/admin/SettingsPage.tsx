@@ -31,6 +31,10 @@ import { EventSettings } from './settings/EventSettings';
 import { DirtyBar, NowStrip } from './settings/NowStrip';
 import { FacultyEditor } from './settings/FacultyEditor';
 import { SettingDiff } from './settings/SettingDiff';
+import { focusAnchor } from './settings/focusAnchor';
+import { PendingChanges } from './settings/PendingChanges';
+import { RecentChanges } from './settings/RecentChanges';
+import { SettingsSearch } from './settings/SettingsSearch';
 import {
   compareVersions,
   GROUP_KEYS,
@@ -108,6 +112,7 @@ export default function SettingsPage() {
     });
     void qc.invalidateQueries({ queryKey: qk.settings.all });
     void qc.invalidateQueries({ queryKey: qk.appInfo });
+    void qc.invalidateQueries({ queryKey: ['audit', 'settings-recent'] });
     if (key === 'faculties') void qc.invalidateQueries({ queryKey: qk.faculties });
   };
   /** Hata metnini alanın altında da gösterir (toast'u çağıran tarafı üretir). */
@@ -178,9 +183,23 @@ export default function SettingsPage() {
 
   const mode = valueOf({ server, edits }, 'maintenance_mode') === 'true';
 
+  /** Aramadan/değişiklik listesinden alana git: sekmeyi aç, çizilince kaydır ve vurgula. */
+  const goTo = (anchor: string) => {
+    const g = groupOfAnchor(anchor);
+    if (g) setGroup(g);
+    focusAnchor(anchor);
+  };
+  const pendingList = dirtyKeys.map((k) => ({
+    key: k,
+    label: i18n.td(`admin.settings.key.${k}`, k),
+    before: server[k] ?? '',
+    after: edits[k] ?? '',
+  }));
+
   return (
     <SettingsProvider value={ctx}>
       <PageHeader title={t('admin.settings.title')} />
+      {!q.isError && !q.isLoading && <SettingsSearch server={server} groupOf={groupOfAnchor} onPick={goTo} />}
       <Tabs tabs={tabs} value={group} onChange={(id) => setGroup(id as SettingGroup)} label={t('admin.settings.groups')} />
 
       {q.isError ? (
@@ -420,7 +439,10 @@ export default function SettingsPage() {
             </Card>
           )}
         </div>
-        <DirtyBar count={dirtyKeys.length} onRevertAll={() => dirtyKeys.forEach((k) => ctx.revert(k))} />
+        <RecentChanges />
+        <DirtyBar count={dirtyKeys.length} onRevertAll={() => dirtyKeys.forEach((k) => ctx.revert(k))}>
+          <PendingChanges changes={pendingList} onGo={goTo} />
+        </DirtyBar>
         </>
       )}
 

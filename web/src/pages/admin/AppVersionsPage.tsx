@@ -20,14 +20,17 @@ import {
   Button,
   Card,
   ErrorState,
+  Insight,
   PageHeader,
   PermissionButton,
+  RankedBars,
   Skeleton,
   Table,
   type Column,
   type Tone,
 } from '../../components/ui';
 import { useI18n } from '../../i18n/I18nProvider';
+import { useGt } from './sys2Dict';
 import { usePageTitle } from '../../lib/hooks';
 import { SearchAnchor } from '../../search/anchor';
 import { adminErrorMessage, Callout } from './campaigns/shared';
@@ -147,6 +150,7 @@ function PlatformCard({
   onPreview: () => void;
 }) {
   const { t, formatNumber } = useI18n();
+  const gt = useGt();
   const name = t(`admin.uv.platform.${platform}`);
   const unknownN = summary.unknownVersion;
   const forceN = summary.belowMin;
@@ -182,9 +186,31 @@ function PlatformCard({
       <div className={styles.stats}>
         <Stat label={t('admin.uv.stat.latest')} value={summary.latestVersion} ltr />
         <Stat label={t('admin.uv.stat.min')} value={summary.minVersion} ltr />
-        <Stat label={t('admin.uv.stat.devices')} value={formatNumber(summary.total)} />
-        <Stat label={t('admin.uv.stat.belowLatest')} value={formatNumber(summary.belowLatest)} />
       </div>
+      {summary.total > 0 && (
+        <div className={styles.chartBlock}>
+          <Insight
+            tone={forceN > 0 ? 'warn' : suggestN > 0 ? 'info' : 'good'}
+            parts={gt('admin.sys2.uv.insight', {
+              total: formatNumber(summary.total),
+              p: pct(currentN),
+              behind: formatNumber(summary.belowLatest),
+            })}
+          />
+          <RankedBars
+            ariaLabel={gt('admin.sys2.uv.barsLabel', { platform: name })}
+            items={rows.map((r) => ({
+              key: `${r.platform}-${r.version ?? 'x'}`,
+              label: r.version ?? t('admin.uv.table.unknownVersion'),
+              value: r.devices,
+              hint: t(`admin.uv.row.${rowStatus(r, summary)}`),
+            }))}
+            limit={5}
+            showShare
+            formatValue={(n) => gt('admin.sys2.uv.devices', { n: formatNumber(n) })}
+          />
+        </div>
+      )}
       {summary.total > 0 && (
         <>
           <div className={sysStyles.stacked} aria-hidden="true" data-testid={`uv-split-${platform}`}>
