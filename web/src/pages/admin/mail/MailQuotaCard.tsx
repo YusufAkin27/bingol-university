@@ -1,13 +1,20 @@
 // Günlük gönderim kotası kartı (P13; salt okunur). Yüzde >= 80 uyarı, >= 95 kritik: renge ek olarak METİN de gösterilir.
 import { useQuery } from '@tanstack/react-query';
-import { getQuota, mailOpsKeys, type QuotaView } from '../../../api/adminMailOps';
+import { getQuota, mailOpsKeys, type OutboxStatus, type QuotaView } from '../../../api/adminMailOps';
 import { ErrorState, Insight, Skeleton, StatusPill } from '../../../components/ui';
 import { useI18n } from '../../../i18n/I18nProvider';
 import { adminError } from '../../../lib/errors';
+import { QueueHealth } from '../iletisim/QueueHealth';
 import { barPercent, quotaLevel, quotaTone } from './mailOpsLogic';
 import styles from './mailops.module.css';
 
-export function MailQuotaCard() {
+/** Kuyruk sağlığı şeridindeki satıra basınca liste süzgecini o duruma çeviren isteğe bağlı bağlantı. */
+export interface QueueFilterProps {
+  onPickStatus?: (s: OutboxStatus | '') => void;
+  selectedStatus?: OutboxStatus | '';
+}
+
+export function MailQuotaCard(props: QueueFilterProps) {
   const i18n = useI18n();
   const { t } = i18n;
   const query = useQuery({
@@ -30,7 +37,7 @@ export function MailQuotaCard() {
       />
     );
   }
-  return <QuotaBody q={query.data} />;
+  return <QuotaBody q={query.data} {...props} />;
 }
 
 /** Son günlerin gönderimi: sütunlar kota çizgisine göre (sayı her sütunun altında yazılıdır). */
@@ -40,7 +47,9 @@ function QuotaHistory({ q }: { q: QuotaView }) {
   const top = Math.max(q.limit, ...days.map((d) => d.used), 1);
   return (
     <figure className={styles.history}>
-      <figcaption className={styles.muted}>{t('admin.v2n.mq.history', { limit: formatNumber(q.limit) })}</figcaption>
+      <figcaption className={styles.muted}>
+        {t('admin.v2n.mq.history', { limit: formatNumber(q.limit) })}
+      </figcaption>
       <ol className={styles.historyBars}>
         {days.map((d) => (
           <li key={d.date}>
@@ -59,15 +68,23 @@ function QuotaHistory({ q }: { q: QuotaView }) {
   );
 }
 
-export function QuotaBody({ q }: { q: QuotaView }) {
+export function QuotaBody({ q, onPickStatus, selectedStatus }: { q: QuotaView } & QueueFilterProps) {
   const { t, formatNumber, formatDateTime } = useI18n();
   // Sunucudan gelen düzeyle çelişmemesi için yüzdeden de türetilir (ikisi aynı eşikleri kullanır).
   const level = q.enabled ? quotaLevel(q.percent) : 'OFF';
   const p = barPercent(q.percent);
-  const cls = [styles.quota, level === 'WARN' ? styles.quotaWarn : '', level === 'CRITICAL' ? styles.quotaCritical : '']
+  const cls = [
+    styles.quota,
+    level === 'WARN' ? styles.quotaWarn : '',
+    level === 'CRITICAL' ? styles.quotaCritical : '',
+  ]
     .filter(Boolean)
     .join(' ');
-  const fill = [styles.fill, level === 'WARN' ? styles.fillWarn : '', level === 'CRITICAL' ? styles.fillCritical : '']
+  const fill = [
+    styles.fill,
+    level === 'WARN' ? styles.fillWarn : '',
+    level === 'CRITICAL' ? styles.fillCritical : '',
+  ]
     .filter(Boolean)
     .join(' ');
   const yesterday = q.history.length > 1 ? q.history[0] : null;
@@ -95,7 +112,11 @@ export function QuotaBody({ q }: { q: QuotaView }) {
               aria-valuemin={0}
               aria-valuemax={100}
               aria-valuenow={p}
-              aria-valuetext={t('admin.p13.quota.barText', { used: formatNumber(q.used), limit: formatNumber(q.limit), p })}
+              aria-valuetext={t('admin.p13.quota.barText', {
+                used: formatNumber(q.used),
+                limit: formatNumber(q.limit),
+                p,
+              })}
             >
               <div className={fill} style={{ inlineSize: `${p}%` }} />
             </div>
@@ -103,7 +124,9 @@ export function QuotaBody({ q }: { q: QuotaView }) {
           </div>
           {(level === 'WARN' || level === 'CRITICAL') && (
             <p className={styles.callout} role="alert">
-              {level === 'WARN' ? t('admin.p13.quota.warn.WARN', { p }) : t('admin.p13.quota.warn.CRITICAL', { p })}
+              {level === 'WARN'
+                ? t('admin.p13.quota.warn.WARN', { p })
+                : t('admin.p13.quota.warn.CRITICAL', { p })}
             </p>
           )}
           <Insight
@@ -119,73 +142,73 @@ export function QuotaBody({ q }: { q: QuotaView }) {
           {q.history.length > 1 && <QuotaHistory q={q} />}
           <details className={styles.moreDetails} data-search-anchor="quota-details">
             <summary>{t('admin.v2n.mq.showDetails')}</summary>
-          <dl className={styles.quotaStats}>
-            <div>
-              <dt>{t('admin.p13.quota.used')}</dt>
-              <dd>
-                {formatNumber(q.used)} / {formatNumber(q.limit)}
-              </dd>
-            </div>
-            <div>
-              <dt>{t('admin.p13.quota.remaining')}</dt>
-              <dd>{formatNumber(q.remaining)}</dd>
-            </div>
-            <div>
-              <dt>{t('admin.p13.quota.announcementRemaining')}</dt>
-              <dd>
-                {formatNumber(q.announcementRemaining)} <span className={styles.muted}>({t('admin.p13.quota.reserve', { n: formatNumber(q.reserve) })})</span>
-              </dd>
-            </div>
-            <div>
-              <dt>{t('admin.p13.quota.reset')}</dt>
-              <dd>
-                {formatDateTime(q.nextReset)} <span className={styles.muted}>({t('admin.p13.quota.resetHour', { h: q.resetHourUtc })})</span>
-              </dd>
-            </div>
-            <div>
-              <dt>{t('admin.p13.quota.publicCodes')}</dt>
-              <dd>
-                {formatNumber(q.publicCodeUsed)} / {formatNumber(q.publicCodeCapRegistration)}{' '}
-                <span className={styles.muted}>({t('admin.p13.quota.publicCodesReset', { n: formatNumber(q.publicCodeCapReset) })})</span>
-              </dd>
-            </div>
-            {yesterday && (
+            <dl className={styles.quotaStats}>
               <div>
-                <dt>{t('admin.p13.quota.yesterday')}</dt>
-                <dd>{formatNumber(yesterday.used)}</dd>
+                <dt>{t('admin.p13.quota.used')}</dt>
+                <dd>
+                  {formatNumber(q.used)} / {formatNumber(q.limit)}
+                </dd>
               </div>
-            )}
-          </dl>
+              <div>
+                <dt>{t('admin.p13.quota.remaining')}</dt>
+                <dd>{formatNumber(q.remaining)}</dd>
+              </div>
+              <div>
+                <dt>{t('admin.p13.quota.announcementRemaining')}</dt>
+                <dd>
+                  {formatNumber(q.announcementRemaining)}{' '}
+                  <span className={styles.muted}>
+                    ({t('admin.p13.quota.reserve', { n: formatNumber(q.reserve) })})
+                  </span>
+                </dd>
+              </div>
+              <div>
+                <dt>{t('admin.p13.quota.reset')}</dt>
+                <dd>
+                  {formatDateTime(q.nextReset)}{' '}
+                  <span className={styles.muted}>
+                    ({t('admin.p13.quota.resetHour', { h: q.resetHourUtc })})
+                  </span>
+                </dd>
+              </div>
+              <div>
+                <dt>{t('admin.p13.quota.publicCodes')}</dt>
+                <dd>
+                  {formatNumber(q.publicCodeUsed)} / {formatNumber(q.publicCodeCapRegistration)}{' '}
+                  <span className={styles.muted}>
+                    ({t('admin.p13.quota.publicCodesReset', { n: formatNumber(q.publicCodeCapReset) })})
+                  </span>
+                </dd>
+              </div>
+              {yesterday && (
+                <div>
+                  <dt>{t('admin.p13.quota.yesterday')}</dt>
+                  <dd>{formatNumber(yesterday.used)}</dd>
+                </div>
+              )}
+            </dl>
           </details>
         </>
       ) : (
         <p className={styles.muted}>{t('admin.p13.quota.unlimited', { n: formatNumber(q.used) })}</p>
       )}
 
-      <dl className={styles.quotaStats} aria-label={t('admin.p13.quota.queue')}>
-        <div>
-          <dt>{t('admin.p13.status.PENDING')}</dt>
-          <dd>{formatNumber(q.queue.pending)}</dd>
-        </div>
-        <div>
-          <dt>{t('admin.p13.status.FAILED')}</dt>
-          <dd>{formatNumber(q.queue.failed)}</dd>
-        </div>
-        <div>
-          <dt>{t('admin.p13.status.DEAD')}</dt>
-          <dd>{formatNumber(q.queue.dead)}</dd>
-        </div>
-        <div>
-          <dt>{t('admin.p13.status.SKIPPED')}</dt>
-          <dd>{formatNumber(q.queue.skipped)}</dd>
-        </div>
-        {q.queue.oldestPendingAt && (
-          <div>
-            <dt>{t('admin.p13.quota.oldest')}</dt>
-            <dd>{formatDateTime(q.queue.oldestPendingAt)}</dd>
-          </div>
-        )}
-      </dl>
+      <div data-search-anchor="queue-health">
+        <QueueHealth
+          title={t('admin.p13.quota.queue')}
+          ariaLabel={t('admin.p13.quota.queue')}
+          counts={q.queue}
+          labels={{
+            pending: t('admin.p13.status.PENDING'),
+            failed: t('admin.p13.status.FAILED'),
+            dead: t('admin.p13.status.DEAD'),
+            skipped: t('admin.p13.status.SKIPPED'),
+          }}
+          oldestAt={q.queue.oldestPendingAt}
+          onSelect={onPickStatus ? (k) => onPickStatus(k.toUpperCase() as OutboxStatus) : undefined}
+          selectedKey={selectedStatus ? selectedStatus.toLowerCase() : null}
+        />
+      </div>
       <p className={styles.muted}>{t('admin.p13.quota.note')}</p>
     </section>
   );

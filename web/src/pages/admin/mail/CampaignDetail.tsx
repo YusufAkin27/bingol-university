@@ -19,6 +19,7 @@ import {
   EmptyState,
   ErrorState,
   FormField,
+  Insight,
   PageHeader,
   Pagination,
   Select,
@@ -32,16 +33,28 @@ import { ADMIN_REASON_MIN, isReasonValid } from '../../../components/admin/guard
 import { useI18n } from '../../../i18n/I18nProvider';
 import { usePageTitle } from '../../../lib/hooks';
 import { paths } from '../../../paths';
+import { StackedShare } from '../../../components/kit/StackedShareIletisim';
 import { Callout } from '../campaigns/shared';
+import { useIl } from '../iletisim/il';
+import { mailShareSegments } from '../iletisim/logic';
 import { CampaignStatusPill, ProgressBar, progressToneOf } from './MailParts';
 import { isCampaignLive, mailErrorMessage } from './mailLogic';
 import styles from './mail.module.css';
 
 const RECIPIENT_STATUSES: RecipientStatus[] = ['PENDING', 'QUEUED', 'SKIPPED', 'FAILED', 'CANCELLED'];
+/** Dağılım şeridi anahtarı -> alıcı listesi süzgeci. */
+const RECIPIENT_FILTER: Record<string, RecipientStatus> = {
+  queued: 'QUEUED',
+  pending: 'PENDING',
+  skipped: 'SKIPPED',
+  failed: 'FAILED',
+  cancelled: 'CANCELLED',
+};
 
 export function CampaignDetail({ id }: { id: number }) {
   const i18n = useI18n();
   const { t, td, formatNumber, formatDateTime } = i18n;
+  const il = useIl();
   const toast = useToast();
   const qc = useQueryClient();
   const [confirm, setConfirm] = useState<null | 'pause' | 'resume' | 'cancel'>(null);
@@ -100,50 +113,73 @@ export function CampaignDetail({ id }: { id: number }) {
   const langs = Object.entries(k.languages ?? {}).filter(([, n]) => n > 0);
 
   const cols: Column<RecipientRow>[] = [
-    { key: 'email', header: t('admin.mail.detail.col.email'), render: (r) => <span className="ltr">{r.email}</span> },
+    {
+      key: 'email',
+      header: t('admin.mail.detail.col.email'),
+      render: (r) => <span className="ltr">{r.email}</span>,
+    },
     {
       key: 'status',
       header: t('common.status'),
-      render: (r) => <Badge tone={r.status === 'FAILED' ? 'danger' : r.status === 'QUEUED' ? 'success' : 'neutral'}>{t(`admin.mail.rstatus.${r.status}`)}</Badge>,
+      render: (r) => (
+        <Badge tone={r.status === 'FAILED' ? 'danger' : r.status === 'QUEUED' ? 'success' : 'neutral'}>
+          {t(`admin.mail.rstatus.${r.status}`)}
+        </Badge>
+      ),
     },
     {
       key: 'lang',
       header: t('common.language'),
       render: (r) =>
-        r.lang ? `${r.lang.toUpperCase()}${r.langFallback ? ` (${t('admin.mail.detail.fallbackShort')})` : ''}` : '—',
+        r.lang
+          ? `${r.lang.toUpperCase()}${r.langFallback ? ` (${t('admin.mail.detail.fallbackShort')})` : ''}`
+          : '—',
     },
     {
       key: 'detail',
       header: t('admin.mail.detail.col.detail'),
-      render: (r) => (r.skipReason ? td(`admin.mail.skip.${r.skipReason}`, r.skipReason) : (r.errorCode ?? '—')),
+      render: (r) =>
+        r.skipReason ? td(`admin.mail.skip.${r.skipReason}`, r.skipReason) : (r.errorCode ?? '—'),
     },
-    { key: 'updated', header: t('admin.mail.templates.col.updated'), render: (r) => <span className={styles.nowrap}>{formatDateTime(r.updatedAt)}</span> },
+    {
+      key: 'updated',
+      header: t('admin.mail.templates.col.updated'),
+      render: (r) => <span className={styles.nowrap}>{formatDateTime(r.updatedAt)}</span>,
+    },
   ];
-
-  const stat = (label: string, v: number) => (
-    <div className={styles.stat}>
-      <p className={styles.statLabel}>{label}</p>
-      <p className={styles.statValue}>{formatNumber(v)}</p>
-    </div>
-  );
 
   return (
     <div>
       <PageHeader
         title={c.name}
-        breadcrumbs={[{ label: t('admin.mail.campaigns.title'), to: paths.admin.mailCampaigns }, { label: c.name }]}
+        breadcrumbs={[
+          { label: t('admin.mail.campaigns.title'), to: paths.admin.mailCampaigns },
+          { label: c.name },
+        ]}
         actions={
           <div className={styles.row}>
             <CampaignStatusPill status={c.status} />
-            {canPause && <Button variant="secondary" onClick={() => setConfirm('pause')}>{t('admin.mail.detail.pause')}</Button>}
-            {canResume && <Button variant="secondary" onClick={() => setConfirm('resume')}>{t('admin.mail.detail.resume')}</Button>}
-            {canCancel && <Button
-              variant="danger"
-              onClick={() => {
-                setWhy('');
-                setConfirm('cancel');
-              }}
-            >{t('admin.mail.detail.cancel')}</Button>}
+            {canPause && (
+              <Button variant="secondary" onClick={() => setConfirm('pause')}>
+                {t('admin.mail.detail.pause')}
+              </Button>
+            )}
+            {canResume && (
+              <Button variant="secondary" onClick={() => setConfirm('resume')}>
+                {t('admin.mail.detail.resume')}
+              </Button>
+            )}
+            {canCancel && (
+              <Button
+                variant="danger"
+                onClick={() => {
+                  setWhy('');
+                  setConfirm('cancel');
+                }}
+              >
+                {t('admin.mail.detail.cancel')}
+              </Button>
+            )}
           </div>
         }
       />
@@ -161,14 +197,40 @@ export function CampaignDetail({ id }: { id: number }) {
           </div>
         )}
         <Card>
-          <ProgressBar percent={k.progressPercent} label={t('admin.mail.detail.progress')} tone={progressToneOf(c.status)} />
-          <div className={styles.stats} style={{ marginBlockStart: 'var(--space-4)' }}>
-            {stat(t('admin.mail.detail.target'), k.target)}
-            {stat(t('admin.mail.detail.pending'), k.pending)}
-            {stat(t('admin.mail.detail.queued'), k.queued)}
-            {stat(t('admin.mail.detail.skipped'), k.skipped)}
-            {stat(t('admin.mail.detail.failed'), k.failed)}
-            {stat(t('admin.mail.detail.cancelled'), k.cancelled)}
+          <ProgressBar
+            percent={k.progressPercent}
+            label={t('admin.mail.detail.progress')}
+            tone={progressToneOf(c.status)}
+          />
+          <div style={{ marginBlockStart: 'var(--space-4)' }} data-search-anchor="mc-detail-dist">
+            <Insight
+              tone={k.failed > 0 ? 'warn' : c.status === 'DONE' ? 'good' : 'info'}
+              parts={il('admin.il.mc.detail.sentence', {
+                queued: formatNumber(k.queued),
+                target: formatNumber(k.target),
+                skipped: formatNumber(k.skipped),
+                failed: formatNumber(k.failed),
+              })}
+            />
+            <StackedShare
+              ariaLabel={t('admin.mail.detail.recipients')}
+              segments={mailShareSegments(k, {
+                queued: t('admin.mail.detail.queued'),
+                pending: t('admin.mail.detail.pending'),
+                skipped: t('admin.mail.detail.skipped'),
+                failed: t('admin.mail.detail.failed'),
+                cancelled: t('admin.mail.detail.cancelled'),
+              })}
+              onSelect={(key) => {
+                setRStatus(RECIPIENT_FILTER[key] ?? '');
+                setRPage(0);
+              }}
+              selectedKey={
+                rStatus
+                  ? (Object.keys(RECIPIENT_FILTER).find((x) => RECIPIENT_FILTER[x] === rStatus) ?? null)
+                  : null
+              }
+            />
           </div>
           <p className={styles.muted} style={{ marginBlockStart: 'var(--space-3)' }}>
             {t('admin.mail.detail.queuedNote')}
@@ -207,7 +269,9 @@ export function CampaignDetail({ id }: { id: number }) {
               </ul>
             )}
             {k.languageFallback > 0 && (
-              <p className={styles.muted}>{t('admin.mail.prev.fallback', { n: formatNumber(k.languageFallback) })}</p>
+              <p className={styles.muted}>
+                {t('admin.mail.prev.fallback', { n: formatNumber(k.languageFallback) })}
+              </p>
             )}
           </Card>
           <Card title={t('admin.mail.prev.reasons')}>
@@ -246,7 +310,11 @@ export function CampaignDetail({ id }: { id: number }) {
             </FormField>
           </div>
           {recipients.isError ? (
-            <ErrorState compact description={mailErrorMessage(i18n, recipients.error)} onRetry={() => void recipients.refetch()} />
+            <ErrorState
+              compact
+              description={mailErrorMessage(i18n, recipients.error)}
+              onRetry={() => void recipients.refetch()}
+            />
           ) : (
             <>
               <Table

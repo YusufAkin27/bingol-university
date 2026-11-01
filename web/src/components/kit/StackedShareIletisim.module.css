@@ -1,0 +1,141 @@
+/* Yığılmış dağılım çubuğu: renkler yalnız token'dan, mantıksal özellikler (RTL). */
+.root {
+  display: grid;
+  gap: var(--space-3);
+  min-inline-size: 0;
+}
+.bar {
+  display: flex;
+  gap: 2px;
+  block-size: 18px;
+  border-radius: var(--radius-pill);
+  overflow: hidden;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+}
+.emptyBar {
+  flex: 1;
+}
+.seg {
+  min-inline-size: 6px;
+  background-color: var(--seg);
+}
+.success {
+  --seg: var(--success);
+}
+.warning {
+  --seg: var(--warning);
+}
+.danger {
+  --seg: var(--danger);
+}
+.info {
+  --seg: var(--info);
+}
+.neutral {
+  --seg: var(--border-strong);
+}
+.primary {
+  --seg: var(--chart-1);
+}
+/* Desen: renk göremeyen yönetici de parçaları ayırt eder (her ton farklı desen) */
+.success.seg,
+.success.swatch {
+  background-image: none;
+}
+.warning.seg,
+.warning.swatch {
+  background-image: repeating-linear-gradient(45deg, var(--surface) 0 2px, transparent 2px 6px);
+}
+.danger.seg,
+.danger.swatch {
+  background-image:
+    repeating-linear-gradient(45deg, var(--surface) 0 1.5px, transparent 1.5px 5px),
+    repeating-linear-gradient(-45deg, var(--surface) 0 1.5px, transparent 1.5px 5px);
+}
+.info.seg,
+.info.swatch {
+  background-image: radial-gradient(var(--surface) 1.5px, transparent 1.6px);
+  background-size: 6px 6px;
+}
+.neutral.seg,
+.neutral.swatch {
+  background-image: repeating-linear-gradient(90deg, var(--surface) 0 2px, transparent 2px 6px);
+}
+.primary.seg,
+.primary.swatch {
+  background-image: none;
+}
+.legend {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+  gap: var(--space-2);
+}
+.legend > li {
+  min-inline-size: 0;
+}
+.row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  inline-size: 100%;
+  min-block-size: 44px;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  color: var(--text);
+  text-align: start;
+  font: inherit;
+}
+.rowBtn {
+  cursor: pointer;
+}
+.rowBtn:hover {
+  background: var(--surface-2);
+}
+.rowBtn:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+.rowOn {
+  border-color: var(--info);
+  background: var(--info-soft);
+}
+.swatch {
+  flex: none;
+  inline-size: 16px;
+  block-size: 16px;
+  border-radius: var(--radius-xs);
+  background-color: var(--seg);
+}
+.text {
+  display: grid;
+  min-inline-size: 0;
+  flex: 1;
+}
+.label {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+.hint {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
+.nums {
+  display: grid;
+  justify-items: end;
+  line-height: 1.2;
+}
+.share {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
+.go {
+  flex: none;
+  color: var(--text-faint);
+}

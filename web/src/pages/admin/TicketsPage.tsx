@@ -11,12 +11,10 @@ import {
   EmptyState,
   ErrorState,
   Icon,
-  Insight,
   LoadMore,
   PageHeader,
   ResponsiveTable,
   Select,
-  StatTile,
   StatusPill,
   Badge,
   toneFor,
@@ -31,13 +29,25 @@ import { csvName } from './moderation/p11Logic';
 import v2 from './moderation/v2.module.css';
 import styles from './support/Support.module.css';
 import { paths } from '../../paths';
+import { useIl } from './iletisim/il';
+import il2 from './iletisim/iletisim.module.css';
+import { ageKeyOf, type AgeKey } from './iletisim/logic';
+import { TicketsOverview } from './iletisim/TicketsOverview';
 
 const STATUSES: TicketStatus[] = ['OPEN', 'ANSWERED', 'CLOSED'];
+/** Bekleyen talebin yaşına göre rozet tonu: ne kadar eskiyse o kadar acil. */
+const AGE_TONE: Record<AgeKey, 'neutral' | 'info' | 'warning' | 'danger'> = {
+  lt4h: 'neutral',
+  lt24h: 'info',
+  lt3d: 'warning',
+  gt3d: 'danger',
+};
 
 export default function TicketsPage() {
   const i18n = useI18n();
   const { t, formatDateTime } = i18n;
   const kit = useKitFormat();
+  const il = useIl();
   usePageTitle(t('admin.tickets.title'));
   const navigate = useNavigate();
   const [status, setStatus] = useState<TicketStatus | ''>('');
@@ -54,11 +64,6 @@ export default function TicketsPage() {
     () => (query.data?.pages.flatMap((p) => p.items) ?? []) as (AdminTicketSummary & TicketRowExtra)[],
     [query.data],
   );
-
-  const waiting = rows.filter((r) => r.status === 'OPEN');
-  const answered = rows.filter((r) => r.status === 'ANSWERED').length;
-  const closed = rows.filter((r) => r.status === 'CLOSED').length;
-  const oldestWaiting = waiting.reduce<string | null>((o, r) => (!o || r.updatedAt < o ? r.updatedAt : o), null);
 
   const columns: Column<AdminTicketSummary & TicketRowExtra>[] = [
     {
@@ -77,12 +82,20 @@ export default function TicketsPage() {
         </span>
       ),
     },
-    { key: 'category', header: t('admin.tickets.col.category'), render: (r) => t(`admin.tickets.category.${r.category}`) },
+    {
+      key: 'category',
+      header: t('admin.tickets.col.category'),
+      render: (r) => t(`admin.tickets.category.${r.category}`),
+    },
     {
       key: 'status',
       header: t('admin.tickets.col.status'),
       card: { priority: 2 },
-      render: (r) => <StatusPill tone={toneFor(r.status)}>{t(`admin.tickets.status.${r.status}`)}</StatusPill>,
+      render: (r) => (
+        <span className={il2.nowrap}>
+          <StatusPill tone={toneFor(r.status)}>{t(`admin.tickets.status.${r.status}`)}</StatusPill>
+        </span>
+      ),
     },
     {
       key: 'user',
@@ -112,6 +125,19 @@ export default function TicketsPage() {
       header: t('admin.p12.col.assignee'),
       render: (r) => (r.assigneeId ? <span className="ltr">#{r.assigneeId}</span> : '—'),
     },
+    {
+      key: 'wait',
+      header: il('admin.il.tk.col.wait'),
+      card: { priority: 2 },
+      render: (r) =>
+        r.status === 'OPEN' ? (
+          <span className={il2.nowrap}>
+            <Badge tone={AGE_TONE[ageKeyOf(r.updatedAt)]}>{kit.relative(r.updatedAt)}</Badge>
+          </span>
+        ) : (
+          '—'
+        ),
+    },
     { key: 'updated', header: t('admin.tickets.col.updated'), render: (r) => formatDateTime(r.updatedAt) },
   ];
 
@@ -129,52 +155,32 @@ export default function TicketsPage() {
           </span>
         }
       />
-      {query.isSuccess && (
-        <>
-          <div className={v2.tiles} data-search-anchor="tickets-summary">
-            <StatTile
-              label={t('admin.v2m.tickets.waiting')}
-              value={waiting.length}
-              icon="lifebuoy"
-              caption={t(query.hasNextPage ? 'admin.v2m.tickets.waitingHintMore' : 'admin.v2m.tickets.waitingHint')}
-            />
-            <StatTile label={t('admin.v2m.tickets.answered')} value={answered} caption={t('admin.v2m.tickets.answeredHint')} />
-            <StatTile label={t('admin.v2m.tickets.closed')} value={closed} caption={t('admin.v2m.tickets.closedHint')} />
-          </div>
-          <Insight
-            className={v2.sentence}
-            tone={waiting.length > 0 ? 'warn' : 'good'}
-            parts={
-              waiting.length > 0
-                ? [
-                    { text: t('admin.v2m.tickets.sentenceWaiting', { n: String(waiting.length) }), tone: 'warn' },
-                    ...(oldestWaiting ? [' ', t('admin.v2m.tickets.sentenceOldest', { when: kit.relative(oldestWaiting) })] : []),
-                  ]
-                : [{ text: t('admin.v2m.tickets.sentenceNone'), tone: 'good' }]
-            }
-          />
-        </>
-      )}
+      <TicketsOverview status={status} onStatus={setStatus} />
       <DataToolbar
         filters={
           <>
-          <Select className={styles.filter}
-            data-search-anchor="tickets-status"
-            aria-label={t('admin.tickets.filter.status')}
-            value={status}
-            onChange={(e) => setStatus(e.target.value as TicketStatus | '')}
-          >
-            <option value="">{t('admin.tickets.filter.all')}</option>
-            {STATUSES.map((s) => (
-              <option key={s} value={s}>
-                {t(`admin.tickets.status.${s}`)}
-              </option>
-            ))}
-          </Select>
-          <label className={v2.checkRow} data-search-anchor="tickets-public-only" title={t('admin.v2m.tickets.publicOnlyHint')}>
-            <input type="checkbox" checked={publicOnly} onChange={(e) => setPublicOnly(e.target.checked)} />
-            {t('admin.v2m.tickets.publicOnly')}
-          </label>
+            <Select
+              className={styles.filter}
+              data-search-anchor="tickets-status"
+              aria-label={t('admin.tickets.filter.status')}
+              value={status}
+              onChange={(e) => setStatus(e.target.value as TicketStatus | '')}
+            >
+              <option value="">{t('admin.tickets.filter.all')}</option>
+              {STATUSES.map((s) => (
+                <option key={s} value={s}>
+                  {t(`admin.tickets.status.${s}`)}
+                </option>
+              ))}
+            </Select>
+            <label
+              className={v2.checkRow}
+              data-search-anchor="tickets-public-only"
+              title={t('admin.v2m.tickets.publicOnlyHint')}
+            >
+              <input type="checkbox" checked={publicOnly} onChange={(e) => setPublicOnly(e.target.checked)} />
+              {t('admin.v2m.tickets.publicOnly')}
+            </label>
           </>
         }
       />
@@ -188,7 +194,9 @@ export default function TicketsPage() {
             rows={rows}
             rowKey={(r) => r.id}
             loading={query.isLoading}
-            onRowClick={(r) => navigate(paths.admin.ticket(r.id), { state: { email: r.userEmail, userId: r.userId } })}
+            onRowClick={(r) =>
+              navigate(paths.admin.ticket(r.id), { state: { email: r.userEmail, userId: r.userId } })
+            }
             empty={
               <EmptyState
                 icon="lifebuoy"
