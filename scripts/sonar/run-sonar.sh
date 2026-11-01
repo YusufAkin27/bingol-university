@@ -8,6 +8,9 @@ cd "$(dirname "$0")/../.."
 SONAR_URL=${SONAR_URL:-http://localhost:9000}
 COMPOSE="docker compose -f scripts/sonar/docker-compose.sonar.yml"
 
+# vitest lcov yollari web/ icin goreli (ve Windows'ta ters bolu): Sonar kok dizinden okur, yollari duzelt
+[ -f web/coverage/lcov.info ] && sed -i -E '/^SF:/{s/[\]/\//g;s/^SF:src\//SF:web\/src\//}' web/coverage/lcov.info
+
 # Elasticsearch icin gerekli (Docker Desktop / WSL2)
 MSYS_NO_PATHCONV=1 wsl -d docker-desktop sysctl -w vm.max_map_count=262144 >/dev/null 2>&1 || true
 
