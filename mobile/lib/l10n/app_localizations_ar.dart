@@ -9715,4 +9715,24 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get frqMsgReqDeclineGroupConfirm => 'حذف الدعوة';
+
+  @override
+  String get unitNewsTitle => 'من قسمي';
+
+  @override
+  String get unitNewsAttachments => 'المرفقات';
+
+  @override
+  String get unitNewsOpenSource => 'افتح في المصدر';
+
+  @override
+  String get unitNewsLinkFailed => 'تعذّر فتح الرابط.';
+
+  @override
+  String get unitNewsHasAttachments => 'يحتوي على مرفقات';
+
+  @override
+  String unitNewsAttachmentOpen(String name) {
+    return 'فتح المرفق: $name';
+  }
 }

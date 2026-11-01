@@ -4919,5 +4919,12 @@
   "frqMsgReqEmpty": "Bekleyen mesaj isteği yok.",
   "frqMsgReqDeclineGroupTitle": "Grup daveti silinsin mi?",
   "frqMsgReqDeclineGroupBody": "Gruptan ayrılırsın ve seni ekleyen kişi bir daha ekleyemez.",
-  "frqMsgReqDeclineGroupConfirm": "Daveti sil"
+  "frqMsgReqDeclineGroupConfirm": "Daveti sil",
+  "unitNewsTitle": "Bölümümden",
+  "unitNewsAttachments": "Ekler",
+  "unitNewsOpenSource": "Kaynakta aç",
+  "unitNewsLinkFailed": "Bağlantı açılamadı.",
+  "unitNewsHasAttachments": "Ekli dosya var",
+  "unitNewsAttachmentOpen": "Eki aç: {name}",
+  "@unitNewsAttachmentOpen": {"placeholders": {"name": {"type": "String"}}}
 }

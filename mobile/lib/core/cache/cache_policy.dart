@@ -17,6 +17,7 @@ class CachePolicy {
   static final List<(RegExp, Duration)> _rules = [
     (RegExp(r'^/menu/today$'), _day * 2),
     (RegExp(r'^/menu($|/)'), _day * 7),
+    (RegExp(r'^/news/unit($|/)'), _day), // bölüme özel: kullanıcıya göre değişir, kısa ömürlü
     (RegExp(r'^/news($|/)'), _day * 7),
     (RegExp(r'^/catalog/'), _day * 30),
     (RegExp(r'^/faq($|/)'), _day * 30),
@@ -46,6 +47,9 @@ class CachePolicy {
   /// Uygulama bilgisi (bakım bandı, duyuru): kısa pencere. Kapı bağlantı dönüşünde/öne gelişte `force` ile yeniler.
   static const appInfoFresh = Duration(minutes: 2);
 
+  /// "Bölümümden" şeridi (`/news/unit`): kısa pencere; ana sayfa yenilemesi `force` ile atlar.
+  static const unitNewsFresh = Duration(minutes: 10);
+
   static final List<(RegExp, Duration)> _fresh = [
     (RegExp(r'^/catalog/'), staticFresh),
     (RegExp(r'^/faq($|/)'), staticFresh),
@@ -53,6 +57,7 @@ class CachePolicy {
     (RegExp(r'^/communities/categories$'), staticFresh),
     (RegExp(r'^/app/info$'), appInfoFresh), // açılış kapısı ve ana sayfa aynı bilgiyi art arda çekmesin
     (RegExp(r'^/menu($|/)'), dailyFresh),
+    (RegExp(r'^/news/unit($|/)'), unitNewsFresh), // /news kuralından ÖNCE
     (RegExp(r'^/news($|/)'), dailyFresh),
     (RegExp(r'^/events/(featured|calendar)$'), dailyFresh),
     (RegExp(r'^/events$'), dailyFresh),

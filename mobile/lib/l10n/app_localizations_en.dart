@@ -9818,4 +9818,24 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get frqMsgReqDeclineGroupConfirm => 'Delete invite';
+
+  @override
+  String get unitNewsTitle => 'From my department';
+
+  @override
+  String get unitNewsAttachments => 'Attachments';
+
+  @override
+  String get unitNewsOpenSource => 'Open at source';
+
+  @override
+  String get unitNewsLinkFailed => 'Could not open the link.';
+
+  @override
+  String get unitNewsHasAttachments => 'Has attachments';
+
+  @override
+  String unitNewsAttachmentOpen(String name) {
+    return 'Open attachment: $name';
+  }
 }
