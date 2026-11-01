@@ -170,7 +170,7 @@ export const entries: SearchEntry[] = [
     page: 'clubAudit',
     title: 'Denetlenecek kulübü seç',
     anchor: 'audit-club',
-    keywords: ['kulüp seç', 'topluluk kimliği', 'kulüp ara'],
+    keywords: ['kim ne yaptı', 'kulüp denetimi', 'kulüp seç', 'topluluk kimliği', 'kulüp ara'],
     description: 'Kimin ne yaptığını görmek istediğiniz kulübü adıyla seçin.',
   },
   {
@@ -419,7 +419,7 @@ export const entries: SearchEntry[] = [
     page: 'clubAudit',
     title: 'Hangi işlemler yapılmış? (tür dağılımı)',
     anchor: 'audit-groups',
-    keywords: ['üyelik işlemleri', 'yetki değişikliği', 'devir', 'davet', 'işlem grafiği'],
+    keywords: ['kim ne yaptı', 'kulüp işlem geçmişi', 'üyelik işlemleri', 'yetki değişikliği', 'devir', 'davet', 'işlem grafiği'],
     description: 'Seçili kulübün denetim kayıtlarını üyelik, yetki, devir ve davet olarak çubukta gösterir.',
   },
   {

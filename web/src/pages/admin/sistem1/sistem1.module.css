@@ -170,7 +170,7 @@
 .legendSwatch {
   inline-size: 0.9rem;
   block-size: 0.9rem;
-  border-radius: 3px;
+  border-radius: var(--radius-xs);
   flex: none;
 }
 
@@ -255,7 +255,7 @@
   flex: 1 1 0;
   min-inline-size: 4px;
   max-inline-size: 1.25rem;
-  border-radius: 3px 3px 0 0;
+  border-radius: var(--radius-xs) var(--radius-xs) 0 0;
 }
 .timeBar[data-verdict='good'] {
   block-size: 35%;

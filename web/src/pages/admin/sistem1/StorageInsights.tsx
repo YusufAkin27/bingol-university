@@ -70,7 +70,7 @@ export function GrowthPanel() {
   const now = Date.now();
   const rows = growthRows(tables.data, now, 6);
   const totalPerDay = rows.reduce((s, r) => s + r.perDay, 0);
-  const free = storage.data?.dbServerDisk.freeBytes ?? null;
+  const free = storage.data?.dbServerDisk?.freeBytes ?? null;
   const days = daysUntilFull(free, totalPerDay);
   const top = rows[0];
 

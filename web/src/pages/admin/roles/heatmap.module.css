@@ -38,7 +38,7 @@
   min-block-size: 2.75rem;
   padding: var(--space-1) var(--space-2);
   border: 1px solid transparent;
-  border-radius: var(--radius-sm, 6px);
+  border-radius: var(--radius-sm);
   background: transparent;
   color: inherit;
   font: inherit;
@@ -61,7 +61,7 @@
   text-align: center;
   min-inline-size: 3.25rem;
   min-block-size: 2.75rem;
-  border-radius: var(--radius-sm, 6px);
+  border-radius: var(--radius-sm);
   font-variant-numeric: tabular-nums;
   font-weight: 600;
   /* kontrast: metin yüzeyin zıttı, arka plan hep açık/koyu yüzeyle karıştırılır */
@@ -100,7 +100,7 @@
 .swatch {
   inline-size: 1.25rem;
   block-size: 0.75rem;
-  border-radius: 3px;
+  border-radius: var(--radius-xs);
   border: 1px solid var(--border);
 }
 .swatch[data-level='0'] {

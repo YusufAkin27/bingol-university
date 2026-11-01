@@ -128,7 +128,7 @@
 .swatch {
   inline-size: 0.75rem;
   block-size: 0.75rem;
-  border-radius: 3px;
+  border-radius: var(--radius-xs);
   flex: none;
 }
 .chart1 {

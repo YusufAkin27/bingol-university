@@ -155,7 +155,7 @@ describe('Akademik takvim: telefonda ajanda', () => {
         size: 100,
       }),
     );
-    renderWithProviders(<AcademicCalendarPage />, { route: '/admin/academic/calendar' });
+    renderWithProviders(<AcademicCalendarPage />, { route: '/admin/academic/calendar?view=month' });
     const agenda = await screen.findByTestId('agenda');
     expect(within(agenda).getByText('Ara sınav haftası')).toBeInTheDocument();
     expect(screen.queryByRole('grid')).toBeNull();

@@ -371,7 +371,8 @@ describe('Etkinlik başvuru özeti ve kulüp denetimi', () => {
     renderWithProviders(<EventApplicationsPage />, { route: '/admin/events/applications?eventId=7' });
     expect(await screen.findByText('Etkinlik #7 özeti')).toBeInTheDocument();
     expect(urls[0]).toContain('/events/7/applications/summary');
-    expect(screen.getByText('Bekleme listesinde')).toBeInTheDocument();
+    // PANEL-topluluk: tekrar eden sayı kutuları kaldırıldı; bekleme listesi yığılmış çubuğun açıklamasında görünür
+    expect(screen.getByText(/Bekleme listesinde:/)).toHaveTextContent('Bekleme listesinde: 2');
     expect(screen.getByText(/Başvuru ve onay/)).toBeInTheDocument();
   });
 
