@@ -110,4 +110,11 @@ public class CampaignController {
         limiter.check("campaign:ctl:" + CurrentUser.id(), 60, Duration.ofMinutes(1));
         campaigns.resume(id);
     }
+
+    /** Basarisiz (yarida kesilen / hic gitmeyen) kampanyayi kalan alicilara yeniden gonderir. */
+    @PostMapping("/campaigns/{id}/resend")
+    public CampaignView resend(@PathVariable Long id) {
+        limiter.check("campaign:ctl:" + CurrentUser.id(), 60, Duration.ofMinutes(1));
+        return CampaignView.of(campaigns.resend(id));
+    }
 }
