@@ -22,7 +22,6 @@ import V2Community from '../tr/admin-v2-community';
 import V2People from '../tr/admin-v2-people';
 import V2Moderation from '../tr/admin-v2-moderation';
 import V2Notifsys from '../tr/admin-v2-notifsys';
-import Genel from '../tr/admin-genel';
 
 // GD1 menü etiketi ana parçada kalır; sayfa metinleri tr/admin-gd1.ts içinde sayfanın kendi parçasında yüklenir.
 const Gd1Nav = { 'admin.gd1.nav': 'Yedekleme (Google Drive)', 'admin.unitNews.nav': 'Birim haberleri',
@@ -53,6 +52,5 @@ export default {
   ...V2People,
   ...V2Moderation,
   ...V2Notifsys,
-  ...Genel,
   ...Gd1Nav,
 };

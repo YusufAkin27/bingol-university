@@ -6,6 +6,7 @@ import { useParams, useSearchParams } from 'react-router-dom';
 import type { BreakdownDimension } from '../../api/types';
 import { DateRangePicker, Icon, Insight, PageHeader, Switch, Tabs, type DateRangeValue } from '../../components/ui';
 import { useI18n } from '../../i18n/I18nProvider';
+import { useGt } from './dashboard/dict';
 import { lastDays } from '../../lib/date';
 import { useSearchReveal } from '../../search/anchor';
 import { usePageTitle } from '../../lib/hooks';
@@ -40,6 +41,7 @@ const TAB_OF_ANCHOR: Record<string, TabId> = {
 
 export default function AnalyticsPage() {
   const { t, formatDate, formatNumber } = useI18n();
+  const g = useGt();
   usePageTitle(t('admin.analytics.title'));
   const [sp, setSp] = useSearchParams();
   const params = useParams();
@@ -108,23 +110,23 @@ export default function AnalyticsPage() {
                 <Switch
                   checked={compare}
                   onChange={(on) => patch({ cmp: on ? null : '0' })}
-                  label={t('admin.genel.anl.compare')}
+                  label={g('admin.genel.anl.compare')}
                 />
               </div>
             )}
             <p className={styles.rangeNote} data-testid="range-note">
-              {t('admin.genel.anl.rangeSummary', {
+              {g('admin.genel.anl.rangeSummary', {
                 days: formatNumber(rangeDays(range)),
                 from: shortDate(from),
                 to: shortDate(to),
               })}
               {prev && tab !== 'engagement' && (
-                <> {t('admin.genel.anl.compareHint', { from: shortDate(prev.from), to: shortDate(prev.to) })}</>
+                <> {g('admin.genel.anl.compareHint', { from: shortDate(prev.from), to: shortDate(prev.to) })}</>
               )}
             </p>
             {(swapped || clipped) && (
               <div className={styles.rangeNote}>
-                <Insight tone="warn" parts={clipped ? t('admin.genel.anl.rangeClipped') : t('admin.genel.anl.rangeSwapped')} />
+                <Insight tone="warn" parts={clipped ? g('admin.genel.anl.rangeClipped') : g('admin.genel.anl.rangeSwapped')} />
               </div>
             )}
           </div>

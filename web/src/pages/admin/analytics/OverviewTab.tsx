@@ -11,6 +11,7 @@ import { qk } from '../../../api/queryKeys';
 import { BarChart, DonutChart } from '../../../components/charts';
 import { Card, EmptyState, Insight, StatCard, StatusPill, Table, toneFor, type Column } from '../../../components/ui';
 import { useI18n } from '../../../i18n/I18nProvider';
+import { useGt } from '../dashboard/dict';
 import { DailySummary } from './DailySummary';
 import styles from './analytics.module.css';
 import { Async, BarList, ChartCard } from './parts';
@@ -20,6 +21,7 @@ import type { DateRange } from '../../../api/types';
 
 export default function OverviewTab({ range, compare }: { range: DateRange; compare: boolean }) {
   const { t, td, formatDate, formatNumber, formatDateTime } = useI18n();
+  const g = useGt();
   const fmt = (v: string | number) => formatDate(String(v), { day: 'numeric', month: 'short' });
   const dateCol = { key: 'date', header: t('admin.analytics.table.date'), render: (r: { date: string }) => formatDate(r.date) };
   const numCol = <T extends object>(key: keyof T & string, header: string): Column<T> => ({
@@ -86,7 +88,7 @@ export default function OverviewTab({ range, compare }: { range: DateRange; comp
               prevPoints={regsPrev.data?.points.map((p) => ({ date: p.date, value: p.count }))}
               seriesLabel={t('admin.analytics.overview.regSeries')}
               mode="sum"
-              verb={t('admin.genel.anl.verbJoined')}
+              verb={g('admin.genel.anl.verbJoined')}
             />
           )}
         </Async>
@@ -106,7 +108,7 @@ export default function OverviewTab({ range, compare }: { range: DateRange; comp
                   total > 0
                     ? {
                         tone: 'info',
-                        parts: t('admin.genel.anl.contentSentence', {
+                        parts: g('admin.genel.anl.contentSentence', {
                           total: formatNumber(total),
                           news: formatNumber(sum('news')),
                           ann: formatNumber(sum('announcements')),
@@ -164,8 +166,8 @@ export default function OverviewTab({ range, compare }: { range: DateRange; comp
                       tone={d.tickets.open > 0 ? 'warn' : 'good'}
                       parts={
                         d.tickets.open + d.tickets.answered + d.tickets.closed === 0
-                          ? t('admin.genel.anl.ticketsNone')
-                          : t('admin.genel.anl.ticketsSentence', {
+                          ? g('admin.genel.anl.ticketsNone')
+                          : g('admin.genel.anl.ticketsSentence', {
                               open: formatNumber(d.tickets.open),
                               answered: formatNumber(d.tickets.answered),
                               closed: formatNumber(d.tickets.closed),
@@ -180,7 +182,7 @@ export default function OverviewTab({ range, compare }: { range: DateRange; comp
                       ]}
                       ariaLabel={t('admin.analytics.support.title')}
                       height={220}
-                      emptyLabel={t('admin.genel.anl.ticketsNone')}
+                      emptyLabel={g('admin.genel.anl.ticketsNone')}
                     />
                   </div>
                   <p className={styles.muted} style={{ marginBlockStart: 'var(--space-3)' }}>

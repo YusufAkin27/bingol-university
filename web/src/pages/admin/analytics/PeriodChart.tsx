@@ -3,6 +3,7 @@ import type { ReactNode } from 'react';
 import { LineAreaChart } from '../../../components/charts';
 import { useCompareSentence, type Column, type InsightPart, type InsightTone } from '../../../components/ui';
 import { useI18n } from '../../../i18n/I18nProvider';
+import { useGt } from '../dashboard/dict';
 import styles from './analytics.module.css';
 import { ChartCard } from './parts';
 import { mergePrevious, seriesStats } from './transform';
@@ -33,6 +34,7 @@ interface Props {
 
 export function PeriodChart({ title, anchor, points, prevPoints, seriesLabel, color, mode, verb, extra, noInsight }: Props) {
   const { t, formatDate, formatNumber } = useI18n();
+  const g = useGt();
   const sentence = useCompareSentence();
   const fmt = (v: string | number) => formatDate(String(v), { day: 'numeric', month: 'short' });
 
@@ -45,9 +47,9 @@ export function PeriodChart({ title, anchor, points, prevPoints, seriesLabel, co
   if (!noInsight && stats.peakIndex >= 0 && stats.total > 0) {
     if (prevStats) {
       const cmp = sentence({
-        nowLabel: t(mode === 'avg' ? 'admin.genel.anl.cmpNowAvg' : 'admin.genel.anl.cmpNowSum'),
+        nowLabel: g(mode === 'avg' ? 'admin.genel.anl.cmpNowAvg' : 'admin.genel.anl.cmpNowSum'),
         current: mode === 'avg' ? stats.avg : stats.total,
-        thenLabel: t('admin.genel.anl.cmpThen'),
+        thenLabel: g('admin.genel.anl.cmpThen'),
         previous: mode === 'avg' ? prevStats.avg : prevStats.total,
         unit: t('admin.v2p.unit.person'),
         verb,
@@ -58,7 +60,7 @@ export function PeriodChart({ title, anchor, points, prevPoints, seriesLabel, co
       insight = {
         tone: 'info',
         parts: [
-          t(mode === 'avg' ? 'admin.genel.anl.plainAvg' : 'admin.genel.anl.plainSum', {
+          g(mode === 'avg' ? 'admin.genel.anl.plainAvg' : 'admin.genel.anl.plainSum', {
             n: formatNumber(mode === 'avg' ? stats.avg : stats.total),
             verb,
             day,
@@ -81,7 +83,7 @@ export function PeriodChart({ title, anchor, points, prevPoints, seriesLabel, co
       ? [
           {
             key: 'prev',
-            header: t('admin.genel.anl.prevSeries'),
+            header: g('admin.genel.anl.prevSeries'),
             align: 'end' as const,
             render: (r: (typeof rows)[number]) => (
               <span className={styles.num}>{r.prev === undefined ? '—' : formatNumber(r.prev)}</span>
@@ -101,7 +103,7 @@ export function PeriodChart({ title, anchor, points, prevPoints, seriesLabel, co
           area={!hasPrev}
           series={[
             { key: 'value', label: seriesLabel, color },
-            ...(hasPrev ? [{ key: 'prev', label: t('admin.genel.anl.prevSeries'), color: 'var(--chart-4)' }] : []),
+            ...(hasPrev ? [{ key: 'prev', label: g('admin.genel.anl.prevSeries'), color: 'var(--chart-4)' }] : []),
           ]}
           ariaLabel={title}
           formatX={fmt}

@@ -22,6 +22,7 @@ import {
   useCompareSentence,
 } from '../../components/ui';
 import { useI18n } from '../../i18n/I18nProvider';
+import { useGt } from './dashboard/dict';
 import { errorMessage } from '../../lib/errors';
 import { istanbulYesterday, lastDaysIstanbul } from '../../lib/date';
 import { usePageTitle } from '../../lib/hooks';
@@ -36,6 +37,7 @@ const Trends = lazy(() => import('./dashboard/Trends'));
 
 export default function DashboardPage() {
   const i18n = useI18n();
+  const g = useGt();
   const { t, formatNumber, formatDate } = i18n;
   usePageTitle(t('admin.dashboard.title'));
   const perms = usePermissions();
@@ -89,12 +91,12 @@ export default function DashboardPage() {
   const weekNewSentence =
     weekNew?.found && prevWeekNew?.found
       ? sentence({
-          nowLabel: t('admin.genel.week.newNow'),
+          nowLabel: g('admin.genel.week.newNow'),
           current: weekNew.total,
-          thenLabel: t('admin.genel.week.then'),
+          thenLabel: g('admin.genel.week.then'),
           previous: prevWeekNew.total,
           unit: t('admin.v2p.unit.person'),
-          verb: t('admin.genel.week.newVerb'),
+          verb: g('admin.genel.week.newVerb'),
         })
       : null;
 
@@ -120,13 +122,13 @@ export default function DashboardPage() {
           <div className={styles.refreshRow} data-search-anchor="dash-refresh">
             {overview.dataUpdatedAt > 0 && (
               <span className={styles.updated} data-testid="dash-updated">
-                {t('admin.genel.updatedAt', {
+                {g('admin.genel.updatedAt', {
                   time: formatDate(new Date(overview.dataUpdatedAt).toISOString(), { hour: '2-digit', minute: '2-digit' }),
                 })}
               </span>
             )}
             <Button variant="secondary" size="sm" onClick={refreshAll} disabled={refreshing} aria-busy={refreshing}>
-              <Icon name="activity" size={16} aria-hidden="true" /> {t('admin.genel.refresh')}
+              <Icon name="activity" size={16} aria-hidden="true" /> {g('admin.genel.refresh')}
             </Button>
           </div>
         }

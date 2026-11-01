@@ -5,6 +5,7 @@ import { qk } from '../../../api/queryKeys';
 import type { DateRange } from '../../../api/types';
 import { Card, ProgressRing, StatTile } from '../../../components/ui';
 import { useI18n } from '../../../i18n/I18nProvider';
+import { useGt } from '../dashboard/dict';
 import { lastDays } from '../../../lib/date';
 import styles from './analytics.module.css';
 import { Async, ChartCard } from './parts';
@@ -13,6 +14,7 @@ import { periodCompare, previousRange } from './transform';
 
 export default function GrowthTab({ range, compare }: { range: DateRange; compare: boolean }) {
   const { t, formatNumber } = useI18n();
+  const g = useGt();
 
   const regs = useQuery({ queryKey: qk.analytics.registrations(range), queryFn: () => getRegistrations(range) });
   // Karşılaştırma seçili aralıktan bağımsızdır: 30 + 30 gün için son 60 gün alınır
@@ -38,7 +40,7 @@ export default function GrowthTab({ range, compare }: { range: DateRange; compar
               prevPoints={regsPrev.data?.points.map((p) => ({ date: p.date, value: p.count }))}
               seriesLabel={t('admin.analytics.overview.regSeries')}
               mode="sum"
-              verb={t('admin.genel.anl.verbJoined')}
+              verb={g('admin.genel.anl.verbJoined')}
             />
           )}
         </Async>

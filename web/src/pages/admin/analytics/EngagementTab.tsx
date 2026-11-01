@@ -5,6 +5,7 @@ import type { DateRange } from '../../../api/types';
 import { FunnelChart, LineAreaChart } from '../../../components/charts';
 import { Card, EmptyState, RankedBars, Table, type Column } from '../../../components/ui';
 import { useI18n } from '../../../i18n/I18nProvider';
+import { useGt } from '../dashboard/dict';
 import styles from './analytics.module.css';
 import { Async, BarList, ChartCard } from './parts';
 import { funnelRows } from './transform';
@@ -23,6 +24,7 @@ function EventName({ name }: { name: string }) {
 
 export default function EngagementTab({ range }: { range: DateRange }) {
   const { t, td, formatDate, formatNumber } = useI18n();
+  const g = useGt();
   const fmt = (v: string | number) => formatDate(String(v), { day: 'numeric', month: 'short' });
   const q = useQuery({ queryKey: qk.analytics.engagement(range), queryFn: () => getEngagement(range) });
 
@@ -80,7 +82,7 @@ export default function EngagementTab({ range }: { range: DateRange }) {
             dailyTotal > 0
               ? {
                   tone: 'info' as const,
-                  parts: t('admin.genel.anl.dailySentence', {
+                  parts: g('admin.genel.anl.dailySentence', {
                     messages: formatNumber(sumOf('messages')),
                     posts: formatNumber(sumOf('posts')),
                     rsvps: formatNumber(sumOf('rsvps')),
@@ -133,7 +135,7 @@ export default function EngagementTab({ range }: { range: DateRange }) {
                           key: e.name,
                           label: td(`admin.v2p.anl.event.${e.name}`, e.name),
                           value: e.count,
-                          hint: t('admin.genel.anl.eventUsers', { n: formatNumber(e.uniqueUsers) }),
+                          hint: g('admin.genel.anl.eventUsers', { n: formatNumber(e.uniqueUsers) }),
                         }))}
                       />
                       <details style={{ marginBlockStart: 'var(--space-3)' }} data-testid="events-table">

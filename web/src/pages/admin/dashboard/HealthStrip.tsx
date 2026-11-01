@@ -9,6 +9,7 @@ import { getOverview as getSystemOverview } from '../../../api/system';
 import { usePermissions } from '../../../auth/permissions';
 import { Icon, Skeleton } from '../../../components/ui';
 import { useI18n } from '../../../i18n/I18nProvider';
+import { useGt } from './dict';
 import { paths } from '../../../paths';
 import { nameOf } from '../systemstatus/indicators';
 import { summarizeHealth } from './health';
@@ -18,7 +19,8 @@ const MAX_CHIPS = 4;
 
 export function HealthStrip() {
   const i18n = useI18n();
-  const { t, td, formatNumber } = i18n;
+  const g = useGt();
+  const { td, formatNumber } = i18n;
   const perms = usePermissions();
   const canSystem = perms.can('system.read');
   const system = useQuery({
@@ -34,7 +36,7 @@ export function HealthStrip() {
   const waiting = (canSystem && system.isLoading) || sources.isLoading;
   if (waiting) {
     return (
-      <section className={styles.health} aria-busy="true" aria-label={t('admin.genel.health.title')} data-search-anchor="dash-health">
+      <section className={styles.health} aria-busy="true" aria-label={g('admin.genel.health.title')} data-search-anchor="dash-health">
         <Skeleton height="3.5rem" width="100%" />
       </section>
     );
@@ -44,23 +46,23 @@ export function HealthStrip() {
   const { tone, issues } = summary;
   const systemFailed = canSystem && system.isError;
   const sourcesFailed = sources.isError;
-  const scope = summary.systemKnown ? t('admin.genel.health.scopeAll') : t('admin.genel.health.scopeSources');
+  const scope = summary.systemKnown ? g('admin.genel.health.scopeAll') : g('admin.genel.health.scopeSources');
 
   const headline =
     tone === 'good'
       ? sourcesFailed
-        ? t('admin.genel.health.sourcesUnknown')
-        : t('admin.genel.health.good', { scope })
+        ? g('admin.genel.health.sourcesUnknown')
+        : g('admin.genel.health.good', { scope })
       : tone === 'bad'
-        ? t('admin.genel.health.bad', { n: formatNumber(issues.length) })
-        : t('admin.genel.health.warn', { n: formatNumber(issues.length) });
+        ? g('admin.genel.health.bad', { n: formatNumber(issues.length) })
+        : g('admin.genel.health.warn', { n: formatNumber(issues.length) });
 
   const shown = issues.slice(0, MAX_CHIPS);
   const hidden = issues.length - shown.length;
   const label = (id: string): string => {
     if (id.startsWith('source:')) {
       const name = id.slice('source:'.length);
-      return t('admin.genel.health.sourceMaintenance', { name: td(`admin.dashboard.sources.${name}`, name) });
+      return g('admin.genel.health.sourceMaintenance', { name: td(`admin.dashboard.sources.${name}`, name) });
     }
     return nameOf(i18n, id);
   };
@@ -68,7 +70,7 @@ export function HealthStrip() {
   return (
     <section
       className={`${styles.health} ${tone === 'good' ? styles.healthGood : tone === 'warn' ? styles.healthWarn : styles.healthBad}`}
-      aria-label={t('admin.genel.health.title')}
+      aria-label={g('admin.genel.health.title')}
       data-search-anchor="dash-health"
       data-tone={tone}
       data-testid="health-strip"
@@ -76,29 +78,29 @@ export function HealthStrip() {
       <div className={styles.healthHead}>
         <Icon name={tone === 'good' ? 'check' : 'alert'} size={22} aria-hidden="true" className={styles.healthIcon} />
         <div className={styles.healthText}>
-          <h2 className={styles.healthTitle}>{t('admin.genel.health.title')}</h2>
+          <h2 className={styles.healthTitle}>{g('admin.genel.health.title')}</h2>
           <p className={styles.healthSentence}>{headline}</p>
         </div>
         {canSystem && (
           <Link to={paths.admin.system} className={styles.healthLink}>
-            {t('admin.genel.health.openSystem')}
+            {g('admin.genel.health.openSystem')}
           </Link>
         )}
       </div>
       {shown.length > 0 && (
-        <ul className={styles.healthChips} aria-label={t('admin.genel.health.issues')}>
+        <ul className={styles.healthChips} aria-label={g('admin.genel.health.issues')}>
           {shown.map((i) => (
             <li key={i.id}>
               <Link to={i.kind === 'source' ? paths.admin.sources : paths.admin.system} className={styles.healthChip}>
-                <strong>{t(`admin.genel.health.level.${i.level}`)}</strong>
+                <strong>{g(`admin.genel.health.level.${i.level}`)}</strong>
                 <span>{label(i.id)}</span>
               </Link>
             </li>
           ))}
-          {hidden > 0 && <li className={styles.healthMore}>{t('admin.genel.health.more', { n: formatNumber(hidden) })}</li>}
+          {hidden > 0 && <li className={styles.healthMore}>{g('admin.genel.health.more', { n: formatNumber(hidden) })}</li>}
         </ul>
       )}
-      {systemFailed && <p className={styles.healthNote}>{t('admin.genel.health.systemUnknown')}</p>}
+      {systemFailed && <p className={styles.healthNote}>{g('admin.genel.health.systemUnknown')}</p>}
     </section>
   );
 }

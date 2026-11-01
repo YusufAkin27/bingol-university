@@ -2,6 +2,7 @@ import type { UseQueryResult } from '@tanstack/react-query';
 import { ChartPanel, LineAreaChart } from '../../../components/charts';
 import { useCompareSentence } from '../../../components/ui';
 import { useI18n } from '../../../i18n/I18nProvider';
+import { useGt } from './dict';
 import type { ActiveUsersResponse, RegistrationsResponse } from '../../../api/types';
 import styles from './dashboard.module.css';
 import { weekCompare } from './transform';
@@ -17,6 +18,7 @@ interface Props {
  */
 export default function Trends({ registrations, activeUsers }: Props) {
   const { t, formatDate, formatNumber } = useI18n();
+  const g = useGt();
   const sentence = useCompareSentence();
   const fmt = (v: string | number) => formatDate(String(v), { day: 'numeric', month: 'short' });
 
@@ -32,12 +34,12 @@ export default function Trends({ registrations, activeUsers }: Props) {
   const week = weekCompare(act.map((p) => ({ date: p.date, value: p.dau })));
   const weekSentence = week.hasData
     ? sentence({
-        nowLabel: t('admin.genel.week.now'),
+        nowLabel: g('admin.genel.week.now'),
         current: week.thisTotal,
-        thenLabel: t('admin.genel.week.then'),
+        thenLabel: g('admin.genel.week.then'),
         previous: week.lastTotal,
-        unit: t('admin.genel.week.unit'),
-        verb: t('admin.genel.week.verb'),
+        unit: g('admin.genel.week.unit'),
+        verb: g('admin.genel.week.verb'),
       })
     : null;
   const weekday = (v: string | number) => formatDate(String(v), { weekday: 'short' });
@@ -119,21 +121,21 @@ export default function Trends({ registrations, activeUsers }: Props) {
 
       <div className={styles.chartsWide} data-search-anchor="dash-week">
         <ChartPanel
-          title={t('admin.genel.week.title')}
+          title={g('admin.genel.week.title')}
           insight={weekSentence?.parts}
           insightTone={weekSentence?.tone}
           loading={activeUsers.isLoading}
           error={activeUsers.isError}
           onRetry={() => void activeUsers.refetch()}
           empty={!!activeUsers.data && !week.hasData}
-          emptyLabel={t('admin.genel.week.empty')}
+          emptyLabel={g('admin.genel.week.empty')}
           height={220}
-          footnote={t('admin.genel.week.note')}
+          footnote={g('admin.genel.week.note')}
           table={{
             columns: [
               { key: 'day', header: t('admin.v2p.dash.trend.colDay') },
-              { key: 'a', header: t('admin.genel.week.thisSeries'), align: 'end' },
-              { key: 'b', header: t('admin.genel.week.lastSeries'), align: 'end' },
+              { key: 'a', header: g('admin.genel.week.thisSeries'), align: 'end' },
+              { key: 'b', header: g('admin.genel.week.lastSeries'), align: 'end' },
             ],
             rows: week.rows.map((r) => ({ day: weekDay(r.date), a: formatNumber(r.thisWeek), b: formatNumber(r.lastWeek) })),
           }}
@@ -143,10 +145,10 @@ export default function Trends({ registrations, activeUsers }: Props) {
             xKey="date"
             area={false}
             series={[
-              { key: 'thisWeek', label: t('admin.genel.week.thisSeries'), color: 'var(--chart-1)' },
-              { key: 'lastWeek', label: t('admin.genel.week.lastSeries'), color: 'var(--chart-4)' },
+              { key: 'thisWeek', label: g('admin.genel.week.thisSeries'), color: 'var(--chart-1)' },
+              { key: 'lastWeek', label: g('admin.genel.week.lastSeries'), color: 'var(--chart-4)' },
             ]}
-            ariaLabel={t('admin.genel.week.title')}
+            ariaLabel={g('admin.genel.week.title')}
             height={220}
             formatX={weekday}
             emptyLabel={t('admin.analytics.chart.noData')}
