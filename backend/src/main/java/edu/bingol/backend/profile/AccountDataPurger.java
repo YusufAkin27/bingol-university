@@ -159,6 +159,7 @@ public class AccountDataPurger {
             Map.entry("moderation_target_state.hidden_by", "Moderasyon izi"),
             Map.entry("profanity_term.created_by", "Uygunsuz ifade listesi yonetici izi"),
             Map.entry("push_campaign.created_by", "Push kampanya yonetici izi"),
+            Map.entry("push_campaign.last_user_id", "Kampanya ilerleme isareti (son islenen alici kimligi, kisisel veri degil; kampanya kaydiyla yasar)"),
             Map.entry("admin_profile_change.proposed_by", "Yonetici yetki degisikligi oneren yonetici izi"),
             Map.entry("conversation.closed_by", "Sohbeti kapatan yonetici/moderator izi"),
             Map.entry("crash_group.status_by", "Cokme grubu durumunu degistiren yonetici izi (anonim cokme verisi)"),

@@ -451,36 +451,42 @@ class AcademicServiceTest {
 
     @Test
     void audienceCountAndNotifyOnce() {
+        // FINAL-ALL: baglam artik test siniflari arasinda paylasilir (P10); baska testlerin biraktigi kullanicilar sayiyi
+        // kaydirir. Mutlak sayi yerine bu testin ekledigi/degistirdigi farka bakilir.
+        long othersDept = ann.audienceCount("bilgisayar mühendisliği", null, null) - 1; // acd-1 haric
+        long othersDept3 = ann.audienceCount("Bilgisayar Mühendisliği", null, "3");
+        long othersLaw = ann.audienceCount("Hukuk", null, null) - 1; // acd-2 haric
         user("acd-3@bingol.edu.tr", "Bilgisayar Mühendisliği", "Mühendislik Fakültesi", "3");
         jdbc.update("UPDATE app_user SET status = 'SUSPENDED' WHERE email = 'acd-2@bingol.edu.tr'");
-        assertEquals(2, ann.audienceCount("bilgisayar mühendisliği", null, null));
-        assertEquals(1, ann.audienceCount("Bilgisayar Mühendisliği", null, "3"));
-        assertEquals(0, ann.audienceCount("Hukuk", null, null), "askidaki kullanici sayilmaz");
+        assertEquals(othersDept + 2, ann.audienceCount("bilgisayar mühendisliği", null, null));
+        assertEquals(othersDept3 + 1, ann.audienceCount("Bilgisayar Mühendisliği", null, "3"));
+        assertEquals(othersLaw, ann.audienceCount("Hukuk", null, null), "askidaki kullanici sayilmaz");
         assertEquals("ANNOUNCEMENT_INVALID", assertThrows(ApiException.class, () -> ann.audienceCount(null, null, "99")).code());
 
         // notify=true, hemen gorunur: bir kez gonderilir
         AdminAnnouncementView a = ann.create(null, new AnnouncementRequest("Bildirimli", "Govde", "Bilgisayar Mühendisliği", null, null, false,
                 null, null, null, true, true));
-        org.mockito.Mockito.verify(notifications, org.mockito.Mockito.times(1)).sendBulk(org.mockito.ArgumentMatchers.anyCollection(),
-                org.mockito.ArgumentMatchers.eq(edu.bingol.backend.notification.NotificationType.ANNOUNCEMENT),
-                org.mockito.ArgumentMatchers.eq("Bildirimli"), org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.anyMap(), org.mockito.ArgumentMatchers.eq("academic_announcements"));
+        verifyBulk(1, "Bildirimli");
         assertNotNull(ann.adminGet(a.id()).notifiedAt());
         notifier.dispatchDue();
         ann.update(null, a.id(), new AnnouncementRequest("Bildirimli 2", null, null, null, null, null, null, null, null, null, null));
-        org.mockito.Mockito.verify(notifications, org.mockito.Mockito.times(1)).sendBulk(org.mockito.ArgumentMatchers.anyCollection(),
-                org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.any(),
-                org.mockito.ArgumentMatchers.anyMap(), org.mockito.ArgumentMatchers.eq("academic_announcements"));
+        verifyBulk(1, null);
 
         // zamanlanmis notify: zamani gelince tarama gonderir
         ann.create(null, new AnnouncementRequest("Sonra", "Govde", null, null, null, false, "2026-11-02T11:00", null, null, true, true));
         notifier.dispatchDue();
-        org.mockito.Mockito.verify(notifications, org.mockito.Mockito.never()).sendBulk(org.mockito.ArgumentMatchers.anyCollection(),
-                org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.eq("Sonra"), org.mockito.ArgumentMatchers.any(),
-                org.mockito.ArgumentMatchers.anyMap(), org.mockito.ArgumentMatchers.eq("academic_announcements"));
+        verifyBulk(0, "Sonra");
         new AnnouncementNotifier(jdbc, notifications, Clock.fixed(NOW.plusSeconds(3600), ZoneOffset.UTC)).dispatchDue();
-        org.mockito.Mockito.verify(notifications, org.mockito.Mockito.times(1)).sendBulk(org.mockito.ArgumentMatchers.anyCollection(),
-                org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.eq("Sonra"), org.mockito.ArgumentMatchers.any(),
-                org.mockito.ArgumentMatchers.anyMap(), org.mockito.ArgumentMatchers.eq("academic_announcements"));
+        verifyBulk(1, "Sonra");
+    }
+
+    /** FINAL-ALL: duyuru bildirimi sendTemplatedBulk ile gider (title null = herhangi bir baslik). */
+    private void verifyBulk(int times, String title) {
+        org.mockito.Mockito.verify(notifications, org.mockito.Mockito.times(times)).sendTemplatedBulk(
+                org.mockito.ArgumentMatchers.anyCollection(), org.mockito.ArgumentMatchers.eq(AnnouncementNotifier.TEMPLATE),
+                org.mockito.ArgumentMatchers.anyMap(), org.mockito.ArgumentMatchers.any(),
+                title == null ? org.mockito.ArgumentMatchers.<String>any() : org.mockito.ArgumentMatchers.eq(title),
+                org.mockito.ArgumentMatchers.<String>any());
     }
 
     // ---------------- KVKK ----------------

@@ -78,9 +78,10 @@ public class MenuSyncService {
      * Gunluk 06:00 yakalama (K20, CLAUDE.md "cron sikilastirma" kuralina bilincli istisna): ay sonu cekimi basarisiz
      * ya da yeni ay menusu gec yayinlanmissa bir ay beklenmesin. Kaynak siteye YALNIZ icinde bulunulan ayin menusu
      * eksikse (bkz. {@link #catchUp()}) ve son denemeden beri en az 20 saat gectiyse gidilir; ay doluysa istek atilmaz.
-     * Ayar: menu.catchup.cron
+     * Ayar: menu.catchup.cron. FINAL-ALL: VARSAYILAN KAPALI ("-"). CLAUDE.md scraping kurali "cron'lari sikilastirmayin"
+     * kesindir; istisna ancak proje sahibinin karariyla acilir (ornek ortam degiskeni MENU_CATCHUP_CRON="0 0 6 * * *").
      */
-    @Scheduled(cron = "${menu.catchup.cron:0 0 6 * * *}", zone = "Europe/Istanbul")
+    @Scheduled(cron = "${menu.catchup.cron:-}", zone = "Europe/Istanbul")
     public void scheduledCatchUp() {
         catchUp();
     }

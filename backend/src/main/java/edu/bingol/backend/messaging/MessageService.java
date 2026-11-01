@@ -50,8 +50,12 @@ public class MessageService {
     /** DB sorgularindan ONCE uygulanan kaba kullanici siniri (tekrarli clientId dahil tum gonderim denemeleri). */
     static final int COARSE_SEND_PER_MINUTE = 120;
     static final int COARSE_READ_PER_MINUTE = 180;
-    /** Kulup/etkinlik odasi basina toplam gonderim siniri (dakikada); kullanici basina 30/dk ayrica gecerli. */
-    static final int ROOM_SEND_PER_MINUTE = 120;
+    /**
+     * Kulup/etkinlik odasi basina toplam gonderim siniri (dakikada); kullanici basina 30/dk ayrica gecerli.
+     * FINAL-ALL: 120 -> 600. 120/dk (2 mesaj/sn) canli etkinlik odasinda mesru trafigi keserdi ve eski mobil surumler
+     * oda icin 429 beklemiyor; 600/dk yine kontrolsuz seli (30 x yuzlerce kullanici) sinirlar.
+     */
+    static final int ROOM_SEND_PER_MINUTE = 600;
     private static final int PUSH_PREVIEW = 100;
     static final int READ_PER_WINDOW = 20;
     static final Duration READ_WINDOW = Duration.ofSeconds(10);

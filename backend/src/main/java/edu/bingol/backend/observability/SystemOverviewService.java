@@ -77,7 +77,9 @@ public class SystemOverviewService {
     private record Cached(long at, Overview overview) {
     }
 
-    private static final long CACHE_MS = 15_000;
+    /** Panel onbellek omru (ms); testte 0 (durum dosyasi/ayar degisince hemen yansisin). */
+    @org.springframework.beans.factory.annotation.Value("${app.observability.overview-cache-ms:15000}")
+    private long cacheMs = 15_000;
 
     private final ObservabilityProperties props;
     private final QueueQueries queues;
@@ -127,7 +129,7 @@ public class SystemOverviewService {
         Lang lang = Lang.of(locale);
         long now = System.currentTimeMillis();
         Cached c = cache.get(lang);
-        if (c == null || now - c.at() > CACHE_MS) {
+        if (c == null || now - c.at() >= cacheMs) {
             c = new Cached(now, evaluate(lang.locale()));
             cache.put(lang, c);
         }

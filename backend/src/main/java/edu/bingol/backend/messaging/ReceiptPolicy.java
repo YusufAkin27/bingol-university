@@ -13,9 +13,13 @@ import org.springframework.stereotype.Component;
 
 /**
  * Okundu/iletildi tikleri ve "yaziyor" bilgisinin hangi konusmalarda tutuldugunu belirler (FIX-P03, karar K2).
- * Birebir her zaman acik; kulup/etkinlik odalari ve `app.chat.receipts-max-members` (varsayilan 20) uyeyi asan
- * gruplarda kapali: bu konusmalarda sunucu yalniz uyenin kendi imlecini ilerletir, diger uyelere olay yayinlamaz
- * (500 uyeli odada her okuma 499 alicili iki olay + gonderen basina sorgu uretiyordu).
+ * Birebir her zaman acik. FINAL-ALL (geriye uyumluluk): VARSAYILAN DAVRANIS ESKISIYLE AYNIDIR (her konusmada tik ve
+ * "yaziyor" acik): eski mobil surumler (2.0.5/2.0.6) oda ve buyuk gruplarda iletildi/okundu tiklerini gosteriyor;
+ * `status` her zaman null gelirse tikler "gonderildi"de takili kalir. Yuku azaltan kapatma KABUL ARACI olarak durur:
+ * `app.chat.receipts-max-members` (N > 0: N uyeyi asan gruplarda kapali; 0 = sinirsiz, varsayilan) ve
+ * `app.chat.receipts-rooms` (false: kulup/etkinlik odalarinda kapali; varsayilan true). Kapali konusmalarda sunucu yalniz
+ * uyenin kendi imlecini ilerletir, diger uyelere olay yayinlamaz (500 uyeli odada her okuma 499 alicili iki olay +
+ * gonderen basina sorgu uretiyordu). Eski surumler gerekli en dusuk surume yukseltilince ayarlar cevrilir.
  */
 @Component
 public class ReceiptPolicy {
@@ -26,20 +30,40 @@ public class ReceiptPolicy {
 
     private final ConversationMemberRepository members;
     private final ChatRoomLinkRepository roomLinks;
+    /** 0 = uye siniri yok. */
     private final int maxMembers;
+    private final boolean roomsEnabled;
     private final ConcurrentHashMap<Long, Decision> cache = new ConcurrentHashMap<>();
 
     private record Decision(boolean tracked, long expiresAt) {}
 
+    /** Uretim kurucusu: varsayilan = eski davranis (siniri yok, odalarda acik). */
+    @org.springframework.beans.factory.annotation.Autowired
     public ReceiptPolicy(ConversationMemberRepository members, ChatRoomLinkRepository roomLinks,
-                         @Value("${app.chat.receipts-max-members:20}") int maxMembers) {
+                         @Value("${app.chat.receipts-max-members:0}") int maxMembers,
+                         @Value("${app.chat.receipts-rooms:true}") boolean roomsEnabled) {
         this.members = members;
         this.roomLinks = roomLinks;
-        this.maxMembers = Math.max(2, maxMembers);
+        this.maxMembers = maxMembers <= 0 ? 0 : Math.max(2, maxMembers);
+        this.roomsEnabled = roomsEnabled;
+    }
+
+    /** Sinirli kurucu (testler): N uyeyi asan gruplar ve odalar KAPALI. */
+    public ReceiptPolicy(ConversationMemberRepository members, ChatRoomLinkRepository roomLinks, int maxMembers) {
+        this(members, roomLinks, maxMembers, false);
     }
 
     public int maxMembers() {
         return maxMembers;
+    }
+
+    /** Hicbir kisit yok (varsayilan): her konusmada makbuz/yaziyor acik. */
+    private boolean unrestricted() {
+        return maxMembers == 0 && roomsEnabled;
+    }
+
+    private boolean withinLimit(long n) {
+        return maxMembers == 0 || n <= maxMembers;
     }
 
     /** Konusma bir kulup/etkinlik odasi mi (tek PK/benzersiz sorgu). */
@@ -57,13 +81,16 @@ public class ReceiptPolicy {
 
     /** Tur bilinmiyorsa: 2 ve daha az uyeli konusma birebir sayilir (her zaman acik). */
     public boolean tracked(Long conversationId) {
+        if (unrestricted()) {
+            return true;
+        }
         long now = System.nanoTime();
         Decision d = cache.get(conversationId);
         if (d != null && d.expiresAt() > now) {
             return d.tracked();
         }
         long n = members.countByConversationIdAndLeftAtIsNull(conversationId);
-        boolean ok = n <= 2 || (n <= maxMembers && !isRoom(conversationId));
+        boolean ok = n <= 2 || (withinLimit(n) && (roomsEnabled || !isRoom(conversationId)));
         if (cache.size() >= CACHE_CAP) {
             cache.clear();
         }
@@ -81,6 +108,9 @@ public class ReceiptPolicy {
      * tek GROUP BY sorgusuyla sayilir. 2 ve daha az uyeli konusma birebir sayilir (oda kontrolu yapilmaz).
      */
     public Set<Long> trackable(Collection<Long> conversationIds, Map<Long, Integer> known) {
+        if (unrestricted()) {
+            return new HashSet<>(conversationIds);
+        }
         Map<Long, Integer> counts = new HashMap<>(known == null ? Map.of() : known);
         Set<Long> unknown = new HashSet<>(conversationIds);
         unknown.removeAll(counts.keySet());
@@ -95,7 +125,7 @@ public class ReceiptPolicy {
             int n = counts.getOrDefault(cid, 0);
             if (n <= 2) {
                 out.add(cid);
-            } else if (n <= maxMembers) {
+            } else if (withinLimit(n)) {
                 groups.add(cid);
             }
         }
@@ -106,7 +136,9 @@ public class ReceiptPolicy {
                     rooms.add(l.getConversationId());
                 }
             }
-            groups.removeAll(rooms);
+            if (!roomsEnabled) {
+                groups.removeAll(rooms);
+            }
             out.addAll(groups);
         }
         return out;
