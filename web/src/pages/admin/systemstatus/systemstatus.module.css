@@ -63,11 +63,18 @@
 .hero[data-status='UNKNOWN'] .heroIcon {
   color: var(--text-muted);
 }
+.heroLight {
+  flex: none;
+  padding-block-start: var(--space-1);
+}
+.hero {
+  flex-wrap: wrap;
+}
 .heroBody {
   display: grid;
   gap: var(--space-2);
   min-inline-size: 0;
-  flex: 1;
+  flex: 1 1 16rem;
 }
 .heroKicker {
   margin: 0;

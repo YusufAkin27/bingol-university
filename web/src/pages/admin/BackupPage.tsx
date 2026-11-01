@@ -10,6 +10,9 @@ import { adminErrorMessage, Callout } from './campaigns/shared';
 import { gt } from './backup/dict';
 import { driveState, freshness, isEndpointMissing } from './backup/lib';
 import { SetupGuide } from './backup/SetupGuide';
+import { s1 } from './sistem1/dict';
+import { BackupHealth } from './sistem1/BackupHealth';
+import sx from './sistem1/sistem1.module.css';
 import { agoText, StatusCards } from './backup/StatusCards';
 import styles from './backup/backup.module.css';
 
@@ -86,10 +89,12 @@ export default function BackupPage() {
             </Callout>
           ) : (
             <>
+              <BackupHealth i18n={i18n} status={status} now={Date.now()} />
               {sentence && <Insight tone={sentence.tone} parts={sentence.text} />}
-              <div data-search-anchor="backup-status">
+              <details className={sx.numbers} open={drive === 'NOT_CONFIGURED' || fresh !== 'FRESH' || undefined} data-search-anchor="backup-status">
+                <summary>{s1(i18n)('admin.s1.backup.details')}</summary>
                 <StatusCards i18n={i18n} status={status} now={Date.now()} />
-              </div>
+              </details>
             </>
           )}
         </section>

@@ -41,6 +41,7 @@ import {
 import { useI18n } from '../../i18n/I18nProvider';
 import { adminError } from '../../lib/errors';
 import { usePageTitle } from '../../lib/hooks';
+import { CrashOverview } from './sistem1/CrashOverview';
 import styles from './crashes/crashes.module.css';
 
 const ERR_SCOPES = ['admin.cr1.err', 'admin.err'];
@@ -75,6 +76,12 @@ export default function CrashesPage() {
   const params: CrashFilters = { ...filters, page, size: 20 };
   const query = useQuery({ queryKey: [...crashKeys.list, params], queryFn: () => listCrashes(params) });
   const summary = useQuery({ queryKey: crashKeys.summary, queryFn: getCrashSummary });
+  // Sürüm dağılımı için süzgeçsiz, en çok çöken 50 grup (süzgeç/sayfa değişince yeniden istenmez)
+  const overview = useQuery({
+    queryKey: [...crashKeys.list, 'overview'],
+    queryFn: () => listCrashes({ sort: 'count', size: 50, page: 0 }),
+    staleTime: 60_000,
+  });
   const data = query.data;
 
   const columns: Column<CrashGroup>[] = [
@@ -151,6 +158,8 @@ export default function CrashesPage() {
           <Stat label={t('admin.cr1.summary.events24h')} value={formatNumber(s.events24h)} />
         </div>
       )}
+
+      <CrashOverview summary={s} groups={overview.data?.items} groupsLoading={overview.isLoading} />
 
       <div role="search" aria-label={t('admin.cr1.filters')} data-search-anchor="filters">
         <div>

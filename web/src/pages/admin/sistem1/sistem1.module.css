@@ -1,0 +1,444 @@
+/* Sistem sağlığı görselleri (sistem1): trafik ışığı, bölge ölçeği, yığılmış çubuk, ana gösterge kutuları, çizelge, şerit.
+   Yalnız mevcut token'lar + mantıksal özellikler (RTL). Renk tek başına anlam taşımaz: simge, kelime, desen ve boy da vardır. */
+.stack {
+  display: grid;
+  gap: var(--space-3);
+  min-inline-size: 0;
+}
+.note {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+
+/* ---- Trafik ışığı ---- */
+.lights {
+  display: inline-flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+.lamp {
+  display: grid;
+  justify-items: center;
+  gap: var(--space-1);
+  min-inline-size: 3.25rem;
+  color: var(--text-muted);
+  font-size: var(--text-xs);
+  font-weight: 700;
+}
+.lampBulb {
+  display: grid;
+  place-items: center;
+  inline-size: 2.75rem;
+  block-size: 2.75rem;
+  border-radius: var(--radius-pill);
+  border: 2px solid var(--border);
+  background: var(--surface-2);
+  opacity: 0.7;
+}
+.lamp[data-on] {
+  color: var(--text);
+}
+.lamp[data-on] .lampBulb {
+  opacity: 1;
+  color: var(--surface);
+  border-color: transparent;
+  box-shadow: 0 0 0 4px color-mix(in srgb, currentColor 0%, transparent);
+}
+.lamp[data-verdict='good'][data-on] .lampBulb {
+  background: var(--success);
+}
+.lamp[data-verdict='attention'][data-on] .lampBulb {
+  background: var(--warning);
+}
+.lamp[data-verdict='urgent'][data-on] .lampBulb {
+  background: var(--danger);
+}
+.lampText {
+  text-align: center;
+}
+.lampUnknown {
+  align-self: center;
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  font-weight: 700;
+}
+.lights[data-compact] .lampBulb {
+  inline-size: 1.75rem;
+  block-size: 1.75rem;
+}
+.lights[data-compact] .lamp {
+  min-inline-size: 2.5rem;
+}
+
+/* ---- Bölge ölçeği ---- */
+.zone {
+  position: relative;
+  padding-block: 0.4rem 0.2rem;
+  min-inline-size: 0;
+}
+.zoneTrack {
+  display: flex;
+  block-size: 0.6rem;
+  border-radius: var(--radius-pill);
+  overflow: hidden;
+  background: var(--surface-2);
+}
+.zoneSeg[data-zone='ok'] {
+  background: color-mix(in srgb, var(--success) 55%, var(--surface));
+}
+.zoneSeg[data-zone='warn'] {
+  background: repeating-linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--warning) 70%, var(--surface)) 0 4px,
+    color-mix(in srgb, var(--warning) 35%, var(--surface)) 4px 8px
+  );
+}
+.zoneSeg[data-zone='crit'] {
+  background: repeating-linear-gradient(
+    45deg,
+    color-mix(in srgb, var(--danger) 80%, var(--surface)) 0 3px,
+    color-mix(in srgb, var(--danger) 45%, var(--surface)) 3px 6px
+  );
+}
+.zoneMark {
+  position: absolute;
+  inset-block-start: 0;
+  inline-size: 0;
+  block-size: 0;
+  border-inline: 6px solid transparent;
+  border-block-start: 9px solid var(--text);
+  transform: translateX(-50%);
+}
+:global([dir='rtl']) .zoneMark {
+  transform: translateX(50%);
+}
+
+/* ---- Yığılmış çubuk + açıklama ---- */
+.stackWrap {
+  display: grid;
+  gap: var(--space-2);
+  min-inline-size: 0;
+}
+.stackBar {
+  display: flex;
+  block-size: 0.9rem;
+  border-radius: var(--radius-pill);
+  overflow: hidden;
+  background: var(--surface-2);
+  gap: 2px;
+}
+.stackSeg,
+.legendSwatch {
+  min-inline-size: 0.5rem;
+}
+.stackSeg[data-tone='success'],
+.legendSwatch[data-tone='success'] {
+  background: var(--success);
+}
+.stackSeg[data-tone='info'],
+.legendSwatch[data-tone='info'] {
+  background: var(--info);
+}
+.stackSeg[data-tone='warning'],
+.legendSwatch[data-tone='warning'] {
+  background: repeating-linear-gradient(135deg, var(--warning) 0 4px, color-mix(in srgb, var(--warning) 45%, var(--surface)) 4px 8px);
+}
+.stackSeg[data-tone='danger'],
+.legendSwatch[data-tone='danger'] {
+  background: repeating-linear-gradient(45deg, var(--danger) 0 3px, color-mix(in srgb, var(--danger) 50%, var(--surface)) 3px 6px);
+}
+.stackSeg[data-tone='neutral'],
+.legendSwatch[data-tone='neutral'] {
+  background: var(--border-strong, var(--border));
+}
+.legend {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-4);
+  font-size: var(--text-sm);
+}
+.legendItem {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+.legendSwatch {
+  inline-size: 0.9rem;
+  block-size: 0.9rem;
+  border-radius: 3px;
+  flex: none;
+}
+
+/* ---- Ana gösterge kutuları (en çok 4) ---- */
+.tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 13.5rem), 1fr));
+  gap: var(--space-3);
+  min-inline-size: 0;
+}
+.tile {
+  display: grid;
+  gap: var(--space-2);
+  align-content: start;
+  justify-items: start;
+  padding: var(--space-4);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-block-start-width: 5px;
+  border-radius: var(--radius-lg);
+  min-inline-size: 0;
+  min-block-size: 15rem;
+}
+.tile[data-status='OK'] {
+  border-block-start-color: var(--success);
+}
+.tile[data-status='WARN'] {
+  border-block-start-color: var(--warning);
+}
+.tile[data-status='CRIT'] {
+  border-block-start-color: var(--danger);
+}
+.tile[data-status='UNKNOWN'] {
+  border-block-start-color: var(--border-strong, var(--border));
+}
+.tile .zone {
+  inline-size: 100%;
+}
+.tileTitle {
+  margin: 0;
+  font-size: var(--text-base);
+  font-weight: 700;
+}
+.tileBig {
+  margin: 0;
+  font-size: var(--text-xl);
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+.tileSentence {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--text);
+  overflow-wrap: anywhere;
+}
+.tileLink {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: 2.75rem;
+  color: var(--link);
+  font-weight: 700;
+}
+.tileList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--space-2);
+}
+
+/* ---- Oturum sağlık çizelgesi ---- */
+.timeline {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  block-size: 3.5rem;
+}
+.timeBar {
+  flex: 1 1 0;
+  min-inline-size: 4px;
+  max-inline-size: 1.25rem;
+  border-radius: 3px 3px 0 0;
+}
+.timeBar[data-verdict='good'] {
+  block-size: 35%;
+  background: var(--success);
+}
+.timeBar[data-verdict='attention'] {
+  block-size: 70%;
+  background: repeating-linear-gradient(135deg, var(--warning) 0 4px, color-mix(in srgb, var(--warning) 45%, var(--surface)) 4px 8px);
+}
+.timeBar[data-verdict='urgent'] {
+  block-size: 100%;
+  background: repeating-linear-gradient(45deg, var(--danger) 0 3px, color-mix(in srgb, var(--danger) 50%, var(--surface)) 3px 6px);
+}
+.timeBar[data-verdict='unknown'] {
+  block-size: 20%;
+  background: var(--border-strong, var(--border));
+}
+.timeAxis {
+  display: flex;
+  justify-content: space-between;
+  color: var(--text-muted);
+  font-size: var(--text-xs);
+}
+
+/* ---- Görev şeridi ---- */
+.lanes {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--space-2);
+}
+.lane {
+  display: grid;
+  gap: 0.15rem;
+  padding-block: var(--space-1);
+  border-block-end: 1px solid var(--border);
+}
+.lane:last-child {
+  border-block-end: 0;
+}
+.laneHead {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-inline-size: 0;
+}
+.lane[data-status='OK'] .laneHead svg {
+  color: var(--success);
+}
+.lane[data-status='WARN'] .laneHead svg {
+  color: var(--warning);
+}
+.lane[data-status='CRIT'] .laneHead svg {
+  color: var(--danger);
+}
+.laneName {
+  flex: 1;
+  min-inline-size: 0;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+.laneWhen {
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  white-space: nowrap;
+}
+
+/* ---- Katlanır teknik bölüm ---- */
+.tech {
+  background: var(--surface);
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-lg);
+  padding: 0 var(--space-4) var(--space-4);
+  min-inline-size: 0;
+}
+.tech:not([open]) {
+  padding-block-end: 0;
+}
+.techSummary {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-block-size: 3rem;
+  cursor: pointer;
+  font-weight: 700;
+  list-style: none;
+}
+.techSummary::-webkit-details-marker {
+  display: none;
+}
+.techBody {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.numbers {
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-md);
+  padding: 0 var(--space-3) var(--space-3);
+}
+.numbers:not([open]) {
+  padding-block-end: 0;
+}
+.numbers > summary {
+  min-block-size: 2.75rem;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+/* ---- Özet şeridi (sayfa başı ışık + tek cümle) ---- */
+.summary {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+  padding: var(--space-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  min-inline-size: 0;
+}
+.summary[data-verdict='good'] {
+  border-color: var(--success);
+}
+.summary[data-verdict='attention'] {
+  border-color: var(--warning);
+}
+.summary[data-verdict='urgent'] {
+  border-color: var(--danger);
+}
+.summaryText {
+  flex: 1 1 14rem;
+  min-inline-size: 0;
+  display: grid;
+  gap: var(--space-1);
+}
+.summaryTitle {
+  margin: 0;
+  font-size: var(--text-lg);
+  font-weight: 700;
+}
+.summarySentence {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+/* ---- Büyüme / dağılım panelleri ---- */
+.twoCol {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr));
+  gap: var(--space-4);
+  align-items: start;
+  min-inline-size: 0;
+}
+.ringRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+}
+.ringRow > :last-child {
+  flex: 1 1 12rem;
+  min-inline-size: 0;
+}
+.techList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: var(--space-1);
+  font-size: var(--text-sm);
+}
+.mono {
+  font-family: var(--font-mono, ui-monospace, monospace);
+  overflow-wrap: anywhere;
+}
+
+.blockTitle {
+  margin: 0;
+  font-size: var(--text-base);
+  font-weight: 700;
+}

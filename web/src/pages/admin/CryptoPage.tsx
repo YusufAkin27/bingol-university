@@ -5,7 +5,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { cryptoApi, qk, usersApi } from '../../api';
-import { Badge, Card, EmptyState, ErrorState, FormField, Input, Insight, PageHeader, Skeleton, Tabs } from '../../components/ui';
+import { Badge, Card, EmptyState, ErrorState, FormField, Input, Insight, PageHeader, ProgressRing, Skeleton, Tabs } from '../../components/ui';
 import { SearchAnchor, useSearchReveal } from '../../search/anchor';
 import { useUrlTab } from '../../search/useUrlTab';
 import { useI18n } from '../../i18n/I18nProvider';
@@ -14,7 +14,8 @@ import { paths } from '../../paths';
 import type { CryptoStatus } from '../../api/types';
 import { adminErrorMessage, Callout } from './campaigns/shared';
 import styles from './moderation/moderation.module.css';
-import sysStyles from './systemstatus/systemstatus.module.css';
+import { s1 } from './sistem1/dict';
+import sx from './sistem1/sistem1.module.css';
 
 /** Tek cümlelik durum + güncel/eski anahtar oranı (yığılmış çubuk). */
 function CryptoSummary({ i18n, data }: { i18n: ReturnType<typeof useI18n>; data: CryptoStatus }) {
@@ -32,13 +33,18 @@ function CryptoSummary({ i18n, data }: { i18n: ReturnType<typeof useI18n>; data:
       <Insight tone={data.devKey ? 'bad' : old > 0 ? 'warn' : 'good'} parts={text} />
       {total > 0 && (
         <>
-          <div className={sysStyles.stacked} aria-hidden="true">
-            {current > 0 && <span className={sysStyles.stackSeg} data-tone="success" style={{ flexGrow: current }} />}
-            {old > 0 && <span className={sysStyles.stackSeg} data-tone="warning" style={{ flexGrow: old }} />}
+          <div className={sx.ringRow}>
+            <ProgressRing
+              value={current}
+              max={total}
+              label={s1(i18n)('admin.s1.crypto.ring')}
+              center={`${f(current)}/${f(total)}`}
+              tone={data.devKey ? 'danger' : old > 0 ? 'warning' : 'success'}
+              size={96}
+              thickness={10}
+            />
+            <p className={styles.muted}>{i18n.t('admin.v2n.crypto.split', { current: f(current), old: f(old) })}</p>
           </div>
-          <p className={styles.muted}>
-            {i18n.t('admin.v2n.crypto.split', { current: f(current), old: f(old) })}
-          </p>
         </>
       )}
     </>
@@ -92,6 +98,17 @@ export default function CryptoPage() {
           ) : (
             <>
               <CryptoSummary i18n={i18n} data={status.data} />
+              {status.data.devKey && (
+                <Callout tone="danger" role="alert" title={t('admin.crypto.status.devKeyTitle')}>
+                  {t('admin.crypto.status.devKey')}
+                </Callout>
+              )}
+              <details
+                className={sx.numbers}
+                open={status.data.devKey || Object.keys(status.data.dekCountsByMasterKey).some((k) => k !== status.data?.activeKeyId) || undefined}
+                data-search-anchor="crypto-keys"
+              >
+                <summary>{s1(i18n)('admin.s1.crypto.technical')}</summary>
               <dl className={styles.statGrid}>
                 <div>
                   <dt className={styles.muted}>{t('admin.crypto.status.active')}</dt>
@@ -112,11 +129,6 @@ export default function CryptoPage() {
                   </dd>
                 </div>
               </dl>
-              {status.data.devKey && (
-                <Callout tone="danger" role="alert" title={t('admin.crypto.status.devKeyTitle')}>
-                  {t('admin.crypto.status.devKey')}
-                </Callout>
-              )}
               <h3 className={styles.muted}>{t('admin.crypto.status.deks')}</h3>
               <ul className={styles.msgList}>
                 {Object.entries(status.data.dekCountsByMasterKey).map(([k, n]) => (
@@ -127,6 +139,7 @@ export default function CryptoPage() {
                   </li>
                 ))}
               </ul>
+              </details>
             </>
           )}
         </Card>
