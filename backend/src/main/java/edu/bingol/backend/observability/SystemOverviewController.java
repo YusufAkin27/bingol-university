@@ -29,18 +29,30 @@ public class SystemOverviewController {
     private final SystemOverviewService overview;
     private final DeadLetterService deadLetters;
     private final RateLimiter limiter;
+    private final BackupStatusProvider backup;
 
     public SystemOverviewController(SystemOverviewService overview, DeadLetterService deadLetters,
-                                    RateLimiter limiter) {
+                                    RateLimiter limiter, BackupStatusProvider backup) {
         this.overview = overview;
         this.deadLetters = deadLetters;
         this.limiter = limiter;
+        this.backup = backup;
     }
 
     @GetMapping("/overview")
     public SystemOverviewService.Overview overview() {
         limiter.check("admin:system:" + adminKey(), 120, Duration.ofMinutes(1));
         return overview.evaluate(LocaleContextHolder.getLocale());
+    }
+
+    /**
+     * Yedek durumu (yerel/uzak kopya, zamanlama, saklama); izin {@code system.read}. Yalniz dosyadan okur, aga cikmaz; durum
+     * dosyasi yoksa/bozuksa tum alanlar null ve {@code remote.configured=false}. Uzak hedefin yolu/belirteci ASLA donmez.
+     */
+    @GetMapping("/backup")
+    public BackupReport backup() {
+        limiter.check("admin:system:" + adminKey(), 120, Duration.ofMinutes(1));
+        return backup.report();
     }
 
     @GetMapping("/dead-letters/mail")
