@@ -62,3 +62,13 @@ Hepsi için hazır cevaplar: [data_safety.md](data_safety.md), [content_rating.m
 - **Push gitmesi için** sunucuya Firebase hizmet hesabı kimliği girilmeli (`FCM_CREDENTIALS_JSON`/`FCM_CREDENTIALS_FILE`, [../PUSH_SETUP.md](../PUSH_SETUP.md)); aksi halde uygulama içi bildirim kutusu dolar ama push gelmez. Mağazadan kurulan sürümün gerçek imzası **Play App Signing sertifikasıdır**: Console > Kurulum > Uygulama bütünlüğü'ndeki SHA-1/SHA-256'yı Firebase Android uygulamasına ve (kısıt varsa) Google Cloud API anahtarına ekleyin.
 - Test hesabı (inceleyici) ve test kullanıcıları için backend'de `bingol.edu.tr` doğrulamalı hesap gerekir; e-posta gönderimi (`MAIL_ENABLED=true`) canlıda çalışmalıdır, aksi halde doğrulama kodu gelmez.
 - Hukuk metinleri taslaktır ([../LEGAL_NOTES.md](../LEGAL_NOTES.md)); yayın öncesi gözden geçirin. Konum izni kaldırıldığı için `privacy_tr.md`/`explicit_consent_tr.md` içindeki konum satırlarının güncellenmesi gerekir.
+
+## 8. 2.0.6+20006 yayınından sonra yapılacaklar
+1. Üretim > yeni sürüm > `bu-kampus-2.0.6+20006.aab` (aşamalı yayın %10 > %50 > %100). Mağaza metni "Yenilikler" (tr-TR):
+   - Yemek listesinde menü fotoğrafı
+   - Ana Sayfa'da "Bölümümden" duyuruları
+   - İki adımlı doğrulama: hesabınızı e-posta koduyla koruyun, güvendiğiniz cihazları yönetin
+   - Hız ve kararlılık iyileştirmeleri
+2. Sunucu tarafı (bölüm duyuruları `/api/news/unit`, 2FA `/auth/2fa`) dağıtıldıktan sonra bu iki özellik uygulamada kendiliğinden görünür; dağıtılmadıysa gizli kalır (ek sürüm gerekmez).
+3. **Zorunlu güncelleme kapısı:** yeni sürüm Play'de %100 yayında ve mağaza sayfasından kurulabilir olduktan SONRA yönetim panelinde ayar `min_version_android` değerini `2.0.6` yapın (ayrıntı: `docs/ADMIN_API.md` "GET /api/app/version", `docs/MOBILE_API_GUIDE.md` 1.x güncelleme kapısı). Daha erken açarsanız kullanıcılar henüz göremedikleri güncellemeye zorlanır. Eski sürümleri zorlamak istemiyorsanız ayarı değiştirmeyin.
+4. Çökme sembolleri: `symbols-2.0.6` klasörünü (ve `mapping.txt`) saklayın; Play Console > Çökme çözümleme için `mapping.txt` yüklenebilir.

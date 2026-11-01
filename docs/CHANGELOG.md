@@ -4,6 +4,13 @@
 
 Ayrıntılı modül notları: `docs/changes/*.md`. Mobil API rehberi: [MOBILE_API_GUIDE.md](MOBILE_API_GUIDE.md).
 
+### Mobil 2.0.6+20006 (Android AAB, 2026-11-01)
+
+- **Yemek fotoğrafı:** Yemek sayfasında yönetici fotoğraf yüklediyse menü fotoğrafı kartın üstünde 16:9 gösterilir (yoksa/yüklenemezse yer tutucu çizilmez).
+- **Bölüm duyuruları:** Ana Sayfa "Bölümümden" şeridi + birim haberi detay sayfası (`GET /api/news/unit`, 10 dk önbellek). Sunucu sürümü dağıtılana kadar görünmez: uç boş ya da hata dönerse şerit hiç çizilmez.
+- **İki adımlı doğrulama arayüzü:** giriş kod ekranı ("Bu cihaza güven"), Hesap güvenliği'nde aç/kapat ve güvenilen cihazlar listesi (tr/en/ar). Sunucu sürümü dağıtılana kadar görünmez: `GET /auth/2fa` 404 dönerse ayar bloğu gizlenir; sunucu kod istemedikçe giriş akışı eskisi gibidir.
+- Sürüm 2.0.5+20005 -> 2.0.6+20006 (`appVersion` / push varsayılanları dahil).
+
 ### Menü: yemek adına bağlı kalori + içeriğe bağlı görsel (V1040)
 
 - **Kalori:** yönetici bir yemeğe kalori girince değer yemek adına (`menu_dish_calorie`) da kaydedilir; aynı adlı yemek tarihe özel satırı olmayan günlerde (gelecek ay menüsü dahil) otomatik kalorili görünür. Kalori silmek kayıtlı değeri de siler.
