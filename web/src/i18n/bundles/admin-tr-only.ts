@@ -18,6 +18,9 @@ import Ds1 from '../tr/admin-ds1';
 import Reg from '../tr/admin-reg';
 import Uv1 from '../tr/admin-uv1';
 
+// GD1 menü etiketi ana parçada kalır; sayfa metinleri tr/admin-gd1.ts içinde sayfanın kendi parçasında yüklenir.
+const Gd1Nav = { 'admin.gd1.nav': 'Yedekleme (Google Drive)' };
+
 export default {
   ...Guard,
   ...Shell,
@@ -37,4 +40,5 @@ export default {
   ...Ds1,
   ...Reg,
   ...Uv1,
+  ...Gd1Nav,
 };
