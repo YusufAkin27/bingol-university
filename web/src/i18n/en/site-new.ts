@@ -59,7 +59,7 @@ const m = {
     'The menu is taken from the monthly list published by the university cafeteria (SKS) and is updated once a month. The app is independent; if there is a difference, the official list prevails. See the [menu page](/menu) for the current menu.',
   'site.faq.gen.calorie.q': 'How are meal calories calculated?',
   'site.faq.gen.calorie.a':
-    'An administrator enters calories for each dish; they do not come from the university’s list and are approximate. The entered calories are saved under the dish name, so the same dish is filled in automatically on later days. No value is shown for a dish without calories, so the daily total may be incomplete.',
+    'An administrator enters calories for each dish; they do not come from the university’s list. The entered calories are saved under the dish name, so the same dish is filled in automatically on later days. No value is shown for a dish without calories, so the daily total may be incomplete.',
   'site.faq.gen.newsSource.q': 'Where do news and announcements come from, and can they be delayed?',
   'site.faq.gen.newsSource.a':
     'News, announcements and events published on the Bingöl University website are imported into the app once every night, so a new item may take until the next day to appear. Every item links to its official source page. Everything is listed on the [news page](/news).',
@@ -103,7 +103,7 @@ const m = {
 
   'pg.menu.about.title': 'Where do the calories and data come from?',
   'pg.menu.about.text':
-    'The menu is taken from the monthly list published by the university cafeteria (SKS); BÜ Kampüs is an independent app and, if there is a difference, the official list prevails. An administrator enters calories for each dish and they are approximate; because they are saved under the dish name, the same dish is filled in automatically on later days. No value is shown for a dish without calories.',
+    'The menu is taken from the monthly list published by the university cafeteria (SKS); BÜ Kampüs is an independent app and, if there is a difference, the official list prevails. An administrator enters calories for each dish; because they are saved under the dish name, the same dish is filled in automatically on later days. No value is shown for a dish without calories.',
   'pg.menu.about.faq': 'How are calories calculated? Read the answer in the FAQ',
   'pg.menu.about.news': 'Bingöl University news and announcements',
 

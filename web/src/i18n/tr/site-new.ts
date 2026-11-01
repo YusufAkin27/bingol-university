@@ -59,7 +59,7 @@ const m = {
     'Liste, üniversite yemekhanesinin (SKS) yayımladığı aylık listeden alınır ve ayda bir güncellenir. Uygulama bağımsızdır; bir fark olursa resmî liste esastır. Güncel menü için [yemek listesi sayfasına](/menu) bakın.',
   'site.faq.gen.calorie.q': 'Yemek kalorileri nasıl hesaplanıyor?',
   'site.faq.gen.calorie.a':
-    'Kalori değerlerini yönetici yemek başına girer; üniversitenin listesinden gelmez ve yaklaşık değerlerdir. Girilen kalori yemek adına kaydedilir, aynı yemek sonraki günlerde otomatik dolar. Kalorisi girilmemiş yemekte değer gösterilmez, günün toplamı bu yüzden eksik olabilir.',
+    'Kalori değerlerini yönetici yemek başına girer; üniversitenin listesinden gelmez. Girilen kalori yemek adına kaydedilir, aynı yemek sonraki günlerde otomatik dolar. Kalorisi girilmemiş yemekte değer gösterilmez, günün toplamı bu yüzden eksik olabilir.',
   'site.faq.gen.newsSource.q': 'Haber ve duyurular nereden geliyor, gecikme olur mu?',
   'site.faq.gen.newsSource.a':
     'Bingöl Üniversitesi’nin sitesinde yayımlanan haber, duyuru ve etkinlikler her gece bir kez uygulamaya alınır; bu yüzden yeni bir içerik ertesi güne kadar görünmeyebilir. Her haberde resmî kaynak sayfaya bağlantı bulunur. Tümü [haberler sayfasında](/news) listelenir.',
@@ -103,7 +103,7 @@ const m = {
 
   'pg.menu.about.title': 'Kalori ve veriler nereden geliyor?',
   'pg.menu.about.text':
-    'Yemek listesi, üniversite yemekhanesinin (SKS) yayımladığı aylık listeden alınır; BÜ Kampüs bağımsız bir uygulamadır ve bir fark olursa resmî liste esastır. Kalori değerlerini yönetici yemek başına girer ve yaklaşık değerlerdir; girilen kalori yemek adına kaydedildiği için aynı yemek sonraki günlerde otomatik dolar. Kalorisi girilmemiş yemekte değer gösterilmez.',
+    'Yemek listesi, üniversite yemekhanesinin (SKS) yayımladığı aylık listeden alınır; BÜ Kampüs bağımsız bir uygulamadır ve bir fark olursa resmî liste esastır. Kalori değerlerini yönetici yemek başına girer; girilen kalori yemek adına kaydedildiği için aynı yemek sonraki günlerde otomatik dolar. Kalorisi girilmemiş yemekte değer gösterilmez.',
   'pg.menu.about.faq': 'Kalori nasıl hesaplanır? Sık sorulan sorulardaki yanıtı okuyun',
   'pg.menu.about.news': 'Bingöl Üniversitesi haber ve duyuruları',
 
