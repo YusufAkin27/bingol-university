@@ -10,14 +10,25 @@ import java.util.ArrayList;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionDefinition;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
+import org.springframework.transaction.support.TransactionTemplate;
 
 /**
  * Uyelik degisimlerini kulup sohbet odasina ve basvuru yanitlarina yansitan kanca. CommunityService / ClubInviteService
- * uyelik satirini yazdiktan sonra cagirir (ayni islemde). Servis sozlesmesi: hicbir kanca exception sizdirmaz;
- * oda senkronu basarisiz olsa uyelik islemi bozulmaz (bir sonraki degisimde / GET chat-room ile duzelir).
+ * uyelik satirini yazdiktan sonra cagirir. Servis sozlesmesi: hicbir kanca exception sizdirmaz; oda senkronu
+ * basarisiz olsa uyelik islemi bozulmaz (bir sonraki degisimde / GET chat-room ile duzelir).
+ *
+ * <p>FIX-P05 (A05#8): oda senkronu uyelik islemiyle AYNI islemde degil, commit SONRASI ve ayri (REQUIRES_NEW) islemde
+ * calisir. Eskiden oda sorgusundaki DB hatasi (kilit zaman asimi, benzersizlik yarisi) catch ile yutulsa bile ortak
+ * islemi rollback-only yapiyor; join/decide commit'te 500 verip uyeligi de geri aliyordu. Aktif islem yoksa (birim
+ * testleri, elle cagri) senkron calisir. Basvuru yanitlarinin silinmesi KVKK geregi uyelik islemiyle birlikte kalir.
  */
 @Component
 public class ClubExtrasHooks {
@@ -31,6 +42,9 @@ public class ClubExtrasHooks {
     private final ClubJoinAnswerRepository answers;
     private final ApplicationEventPublisher events;
 
+    /** Commit sonrasi ayri islem sablonu; islem yoneticisi yoksa (elle kurulan testler) dogrudan calisir. */
+    private TransactionTemplate isolatedTx;
+
     public ClubExtrasHooks(RoomConversations rooms, CommunityRepository communities,
                            ClubMemberQueryRepository memberQuery, ClubJoinAnswerRepository answers,
                            ApplicationEventPublisher events) {
@@ -41,28 +55,72 @@ public class ClubExtrasHooks {
         this.answers = answers;
     }
 
+    @Autowired(required = false)
+    void setTxManager(PlatformTransactionManager tm) {
+        if (tm != null) {
+            this.isolatedTx = new TransactionTemplate(tm);
+            this.isolatedTx.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
+        }
+    }
+
+    /**
+     * Oda senkronunu commit sonrasina erteler (islem yoksa hemen) ve ayri islemde calistirir. Is kendi exception'larini
+     * yutar; ayri islemin commit hatasi (rollback-only) burada loglanir.
+     */
+    private void later(String what, Runnable work) {
+        Runnable safe = () -> {
+            try {
+                if (isolatedTx == null) {
+                    work.run();
+                } else {
+                    isolatedTx.executeWithoutResult(s -> work.run());
+                }
+            } catch (RuntimeException e) {
+                log.warn("Kulup oda senkronu basarisiz ({}): {}", what, e.toString());
+            }
+        };
+        if (TransactionSynchronizationManager.isSynchronizationActive()) {
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    safe.run();
+                }
+            });
+        } else {
+            safe.run();
+        }
+    }
+
     /** Kulup yayina girdi (veya oda ilk istekte kuruluyor): odayi kurar ve tum aktif uyeleri ekler. */
     public void onCommunityActivated(Community c) {
+        later("activate " + c.getId(), () -> doActivate(c));
+    }
+
+    private void doActivate(Community c) {
         try {
             rooms.ensureRoom(RoomKind.COMMUNITY, c.getId(), c.getName(), c.getOwnerId());
             rooms.addMembers(RoomKind.COMMUNITY, c.getId(), activeUserIds(c.getId()));
         } catch (RuntimeException e) {
             log.warn("Kulup sohbet odasi kurulamadi (kulup {}): {}", c.getId(), e.toString());
+            throw e; // ayri islem geri alinsin (kismi oda yazimi kalmasin)
         }
     }
 
     /** Kullanici kulubun ACTIVE uyesi oldu (acik katilim, onay, davet). */
     public void onMemberActivated(Long communityId, Long userId) {
-        try {
-            if (rooms.find(RoomKind.COMMUNITY, communityId).isPresent()) {
-                rooms.addMember(RoomKind.COMMUNITY, communityId, userId);
-            } else {
-                communities.findById(communityId).filter(c -> c.getStatus() == Community.Status.ACTIVE)
-                        .ifPresent(this::onCommunityActivated);
+        later("member+ " + communityId + "/" + userId, () -> {
+            try {
+                if (rooms.find(RoomKind.COMMUNITY, communityId).isPresent()) {
+                    rooms.addMember(RoomKind.COMMUNITY, communityId, userId);
+                } else {
+                    communities.findById(communityId).filter(c -> c.getStatus() == Community.Status.ACTIVE)
+                            .ifPresent(this::doActivate);
+                }
+            } catch (RuntimeException e) {
+                log.warn("Odaya eklenemedi (kulup {}, kullanici {}): {}", communityId, userId, e.toString());
+                throw e;
             }
-        } catch (RuntimeException e) {
-            log.warn("Odaya eklenemedi (kulup {}, kullanici {}): {}", communityId, userId, e.toString());
-        }
+        });
     }
 
     /**
@@ -70,11 +128,14 @@ public class ClubExtrasHooks {
      * sil (KVKK veri azaltma).
      */
     public void onMemberGone(Long communityId, Long userId) {
-        try {
-            rooms.removeMember(RoomKind.COMMUNITY, communityId, userId);
-        } catch (RuntimeException e) {
-            log.warn("Odadan cikarilamadi (kulup {}, kullanici {}): {}", communityId, userId, e.toString());
-        }
+        later("member- " + communityId + "/" + userId, () -> {
+            try {
+                rooms.removeMember(RoomKind.COMMUNITY, communityId, userId);
+            } catch (RuntimeException e) {
+                log.warn("Odadan cikarilamadi (kulup {}, kullanici {}): {}", communityId, userId, e.toString());
+                throw e;
+            }
+        });
         dropAnswers(communityId, userId);
         try {
             events.publishEvent(new ClubMemberLeftEvent(communityId, userId));
@@ -95,11 +156,14 @@ public class ClubExtrasHooks {
 
     /** Kulup silindi: sohbet odasi kapanir (herkes cikar, kimse goremez); bagli etkinlikler olay dinleyicisinde iptal edilir. */
     public void onCommunityDeleted(Community c) {
-        try {
-            rooms.closeRoom(RoomKind.COMMUNITY, c.getId());
-        } catch (RuntimeException e) {
-            log.warn("Kulup odasi kapatilamadi (kulup {}): {}", c.getId(), e.toString());
-        }
+        later("delete " + c.getId(), () -> {
+            try {
+                rooms.closeRoom(RoomKind.COMMUNITY, c.getId());
+            } catch (RuntimeException e) {
+                log.warn("Kulup odasi kapatilamadi (kulup {}): {}", c.getId(), e.toString());
+                throw e;
+            }
+        });
         try {
             events.publishEvent(new ClubDeletedEvent(c.getId()));
         } catch (RuntimeException e) {
@@ -108,11 +172,14 @@ public class ClubExtrasHooks {
     }
 
     public void onRenamed(Community c) {
-        try {
-            rooms.renameRoom(RoomKind.COMMUNITY, c.getId(), c.getName());
-        } catch (RuntimeException e) {
-            log.warn("Oda basligi guncellenemedi (kulup {}): {}", c.getId(), e.toString());
-        }
+        later("rename " + c.getId(), () -> {
+            try {
+                rooms.renameRoom(RoomKind.COMMUNITY, c.getId(), c.getName());
+            } catch (RuntimeException e) {
+                log.warn("Oda basligi guncellenemedi (kulup {}): {}", c.getId(), e.toString());
+                throw e;
+            }
+        });
     }
 
     /** Kulubun tum etkin (hesabi aktif) uyelerinin kullanici id'leri. */

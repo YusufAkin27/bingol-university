@@ -1,6 +1,9 @@
 package edu.bingol.backend.event;
 
+import edu.bingol.backend.community.Actor;
 import edu.bingol.backend.community.ClubMemberLeftEvent;
+import edu.bingol.backend.event.admission.EventAdmissionHooks;
+import edu.bingol.backend.event.chat.EventChatHooks;
 import edu.bingol.backend.community.Community;
 import edu.bingol.backend.community.CommunityRepository;
 import edu.bingol.backend.event.extras.CoOrganizerRepository;
@@ -62,16 +65,39 @@ public class EventMemberLeftCleanup {
         List<Long> ids = events.liveIdsByCommunity(communityId,
                 List.of(UserEvent.Status.ACTIVE, UserEvent.Status.PENDING_REVIEW), Instant.now());
         for (Long eventId : ids) {
+            // FIX-P05 (A05#11): basvuru akisi varsa (ACCEPTED/PENDING/WAITLISTED) koltuk basvuru uzerinden birakilir:
+            // basvuru CANCELLED olur, bekleme listesindeki siradaki terfi eder, sohbet odasindan cikarilir.
+            UserEvent ev = admission == null ? null : events.findById(eventId).orElse(null);
+            if (ev != null && admission.withdrawAccepted(new Actor(userId, false), ev)) {
+                rsvps.findByEventIdAndUserId(eventId, userId).ifPresent(rsvps::delete); // kalan ilgileniyorum kaydi
+                n++;
+                continue;
+            }
             var rsvp = rsvps.findByEventIdAndUserId(eventId, userId).orElse(null);
             if (rsvp == null) {
                 continue;
             }
-            if (rsvp.getStatus() == EventRsvp.Status.GOING) {
+            boolean wasGoing = rsvp.getStatus() == EventRsvp.Status.GOING;
+            if (wasGoing) {
                 events.decrementGoing(eventId);
             }
             rsvps.delete(rsvp);
+            if (wasGoing && chat != null) {
+                chat.onLeft(eventId, userId);
+            }
             n++;
         }
         return n;
+    }
+
+    /** Alim kurallari ve sohbet odasi senkronu (setter + @Lazy: dongusel bagimlilik yok; null iken eski davranis). */
+    private EventAdmissionHooks admission;
+    private EventChatHooks chat;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setHooks(@org.springframework.context.annotation.Lazy EventAdmissionHooks admission,
+                  @org.springframework.context.annotation.Lazy EventChatHooks chat) {
+        this.admission = admission;
+        this.chat = chat;
     }
 }
