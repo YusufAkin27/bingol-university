@@ -33,9 +33,22 @@ public interface SocialFeedRepository extends Repository<Post, Long> {
      * T-053: yazarin bolum bilgisi bakana kapaliysa (ONLY_ME / SHARED_CONTEXT) o yazar bolum akisinda yer almaz;
      * aksi halde akis, bolum gizliligini yan kanaldan sizdirirdi. Kendi gonderilerim her zaman gorunur.
      */
-    String DEPARTMENT = "p.authorId IN (SELECT u.id FROM User u WHERE u.department = :dept AND (u.id = :viewer "
-            + "OR NOT EXISTS (SELECT 1 FROM ProfilePrivacy pp WHERE pp.userId = u.id "
-            + "AND pp.departmentAudience <> edu.bingol.backend.profile.privacy.Audience.EVERYONE))) AND ";
+    /**
+     * A06#5: bolum akisi de "following" gibi ACIK yazar listesiyle sorgulanir (once bolum yazarlari, sonra
+     * {@code author_id IN}); onceki {@code IN (SELECT ...)} alt sorgusunda plan zaman tersine TUM gonderileri gezip yazari
+     * suzuyor, az gonderili bolumde sayfa doldurulamayinca tablo taraniyordu (8 sn -> 503 DB_TIMEOUT). Liste
+     * {@code prv9_user_dept_class_idx} ile kurulur; bir bolumde bu sinirdan fazla aktif kullanici varsa en yeni hesaplar alinir.
+     */
+    int MAX_DEPARTMENT_AUTHORS = 5000;
+
+    /**
+     * T-053: yazarin bolum bilgisi bakana kapaliysa (ONLY_ME / SHARED_CONTEXT) o yazar bolum akisinda yer almaz;
+     * aksi halde akis, bolum gizliligini yan kanaldan sizdirirdi. Kendi gonderilerim her zaman gorunur.
+     */
+    @Query("SELECT u.id FROM User u WHERE u.department = :dept AND u.status = edu.bingol.backend.user.UserStatus.ACTIVE "
+            + "AND (u.id = :viewer OR NOT EXISTS (SELECT 1 FROM ProfilePrivacy pp WHERE pp.userId = u.id "
+            + "AND pp.departmentAudience <> edu.bingol.backend.profile.privacy.Audience.EVERYONE)) ORDER BY u.id DESC")
+    List<Long> departmentAuthors(@Param("viewer") Long viewer, @Param("dept") String dept, Pageable page);
 
     /** Bakanin takip ettikleri, en yeni takip once (siniri Pageable belirler; bkz. {@link #MAX_FOLLOWED_AUTHORS}). */
     @Query("SELECT f.id.b FROM UserFollow f WHERE f.id.a = :viewer ORDER BY f.createdAt DESC, f.id.b DESC")
@@ -48,10 +61,4 @@ public interface SocialFeedRepository extends Repository<Post, Long> {
     List<Post> followingAfter(@Param("viewer") Long viewer, @Param("authors") Collection<Long> authors,
                               @Param("at") Instant at, @Param("cid") Long cid, Pageable page);
 
-    @Query("SELECT p FROM Post p WHERE " + DEPARTMENT + FEED_VISIBLE + LATEST_ORDER)
-    List<Post> departmentFirst(@Param("viewer") Long viewer, @Param("dept") String dept, Pageable page);
-
-    @Query("SELECT p FROM Post p WHERE " + DEPARTMENT + FEED_VISIBLE + LATEST_AFTER + LATEST_ORDER)
-    List<Post> departmentAfter(@Param("viewer") Long viewer, @Param("dept") String dept, @Param("at") Instant at,
-                               @Param("cid") Long cid, Pageable page);
 }
