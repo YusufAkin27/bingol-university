@@ -28,6 +28,9 @@ BLOCK_ANONYMIZERS=true
 BAN_CACHE_TTL_SECONDS=7
 APP_MAIL_ALLOW_LOG_ONLY=true
 BACKUP_REMOTE=s3crypt:bu-yedek
+REDIS_PASSWORD=ornek-redis-parolasi-16+
+REQUIRE_REDIS_PASSWORD=true
+DELETION_LEDGER_FILE=/data/ledger/deletion-ledger.tsv
 ENV
 JSON="$(docker compose -f docker-compose.prod.yml --env-file "$ENVF" config --format json)" \
   || { echo "FAIL: docker compose config gecersiz"; exit 1; }
@@ -59,7 +62,9 @@ else:
     print("ok   statik: %d degisken backend\x27e iletiliyor (%d muaf)" % (len(names - set(EXEMPT)), len(EXEMPT)))
 want = {"LEGAL_ENFORCE_REACCEPT": "true", "FCM_CREDENTIALS_FILE": "/run/secrets/fcm.json", "DB_POOL_MAX": "41",
         "OBS_ALERT_EMAIL": "ops@example.test", "BLOCK_ANONYMIZERS": "true", "BAN_CACHE_TTL_SECONDS": "7",
-        "APP_MAIL_ALLOW_LOG_ONLY": "true", "BACKUP_REMOTE": "s3crypt:bu-yedek"}
+        "APP_MAIL_ALLOW_LOG_ONLY": "true", "BACKUP_REMOTE": "s3crypt:bu-yedek",
+        "REDIS_PASSWORD": "ornek-redis-parolasi-16+", "REQUIRE_REDIS_PASSWORD": "true",
+        "DELETION_LEDGER_FILE": "/data/ledger/deletion-ledger.tsv"}
 bad = [k for k, v in want.items() if env.get(k) != v]
 # tanimsiz iletilen degisken bos dize olmamali (Spring bos dizeyi varsayilanin ustune yazar)
 unset = [k for k in ("DB_POOL_MIN_IDLE", "CHAT_ROOM_MAX_MEMBERS", "BAN_LOG_RETENTION_DAYS") if env.get(k) not in (None,)]
@@ -68,5 +73,22 @@ if bad or unset:
     fail = 1
 else:
     print("ok   dinamik: .env.prod degerleri backend\x27e geciyor; tanimsizlar iletilmiyor")
+# Redis parolasi (A10#15): redis servisi AYNI parolayla --requirepass alir; silme defteri hacmi backend\x27e bagli, yedege degil
+rcmd = cfg["services"]["redis"].get("command") or []
+rbad = []
+if "--requirepass" not in rcmd or rcmd[rcmd.index("--requirepass") + 1] != "ornek-redis-parolasi-16+":
+    rbad.append("redis komutu --requirepass <REDIS_PASSWORD> icermiyor")
+if rcmd and rcmd[0] != "redis-server":
+    rbad.append("redis-server ilk arguman olmali (giris betigi yetki dusurmesi)")
+mounts = lambda svc: [v.get("source") for v in (cfg["services"][svc].get("volumes") or [])]
+if "ledger" not in mounts("backend"):
+    rbad.append("backend ledger hacmini baglamiyor")
+if "ledger" in mounts("backup"):
+    rbad.append("ledger hacmi YEDEK servisine baglanmamali")
+if rbad:
+    print("FAIL redis/defter:", rbad)
+    fail = 1
+else:
+    print("ok   redis parolasi + silme defteri hacmi (yedek disi) dogru baglanmis")
 sys.exit(fail)
 '
