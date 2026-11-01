@@ -166,7 +166,7 @@ describe('Doğrulanmamış kullanıcılar sayfası', () => {
     );
     renderWithProviders(<PendingUsersPage />);
     await screen.findByText('a@bingol.edu.tr');
-    await userEvent.click(screen.getByLabelText('Görünenlerin tümünü seç'));
+    await userEvent.click(screen.getByLabelText('Görünen tüm satırları seç'));
     expect(screen.getByText('2 seçili')).toBeInTheDocument();
     await userEvent.click(screen.getByRole('button', { name: 'Seçilenleri doğrula' }));
     const dialog = screen.getByRole('dialog');

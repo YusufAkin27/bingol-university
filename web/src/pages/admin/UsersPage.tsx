@@ -5,6 +5,7 @@
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
+import { getOverview } from '../../api/analytics';
 import { bulkUsers, USER_BULK_MAX, type BulkUserAction, type BulkUserResult } from '../../api/adminUsers';
 import { getFaculties } from '../../api/appInfo';
 import { qk } from '../../api/queryKeys';
@@ -19,21 +20,26 @@ import {
   ErrorState,
   GuardedAction,
   Icon,
+  Insight,
   Modal,
   Pagination,
   PageHeader,
+  ResponsiveTable,
   SearchInput,
   Select,
+  StatTile,
+  StatusDot,
   StatusPill,
-  Table,
   toneFor,
+  useIsNarrow,
+  useKitFormat,
   useToast,
   type Column,
 } from '../../components/ui';
 import { useI18n } from '../../i18n/I18nProvider';
 import { usePageTitle } from '../../lib/hooks';
 import { adminError, errorMessage } from '../../lib/errors';
-import { usePermissions } from '../../auth/permissions';
+import { useCan, usePermissions } from '../../auth/permissions';
 import { paths } from '../../paths';
 import { DebouncedInput } from './users/DebouncedInput';
 import {
@@ -47,7 +53,12 @@ import {
   type UserFilters,
 } from './users/filters';
 import deep from './users/deep.module.css';
+import people from './people/people.module.css';
 import styles from './users/users.module.css';
+
+const DAY_MS = 86_400_000;
+const isRecent = (iso: string) => Date.now() - new Date(iso).getTime() < DAY_MS;
+const isNew = (iso: string) => Date.now() - new Date(iso).getTime() < 7 * DAY_MS;
 
 /** Maskeli (users.pii olmayan) profillerde arama için en az karakter (sunucu: UserFilter.MASKED_Q_MIN). */
 const MASKED_SEARCH_MIN = 3;
@@ -65,6 +76,12 @@ export default function UsersPage() {
   const [searchKey, setSearchKey] = useState(0);
   const [selected, setSelected] = useState<Set<string | number>>(new Set());
   const [bulkResult, setBulkResult] = useState<BulkUserResult | null>(null);
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const narrow = useIsNarrow(720);
+  const kit = useKitFormat();
+  // Özet şeridi: yalnız analitik izni olan profilde (sunucu /admin/analytics/* için analytics.read ister)
+  const canOverview = useCan('analytics.read');
+  const overview = useQuery({ queryKey: qk.analytics.overview(), queryFn: getOverview, enabled: canOverview });
 
   const update = (patch: Partial<UserFilters>) =>
     setSp(filtersToSearch({ ...filters, page: 0, ...patch }), { replace: !('page' in patch) });
@@ -120,6 +137,7 @@ export default function UsersPage() {
     {
       key: 'id',
       header: t('admin.users.col.id'),
+      card: { hide: true },
       render: (u) => <span className={styles.muted}>#{u.id}</span>,
     },
     {
@@ -127,6 +145,7 @@ export default function UsersPage() {
       header: t('admin.users.col.name'),
       headerLabel: t('admin.users.col.name'),
       sortable: true,
+      card: { priority: 1 },
       render: (u) => (
         <div className={styles.person}>
           <Avatar name={u.displayName} src={u.avatarUrl} size={32} />
@@ -157,12 +176,13 @@ export default function UsersPage() {
     },
     {
       key: 'language',
-      header: t('admin.users.filter.language'),
+      header: t('admin.v2p.users.col.language'),
       render: (u) => (u.language ? td(`admin.users.lang.${u.language}`, u.language) : dash),
     },
     {
       key: 'role',
       header: t('admin.users.col.role'),
+      card: { priority: 3 },
       render: (u) => (
         <Badge tone={u.role === 'ADMIN' ? 'primary' : 'neutral'}>{td(`admin.users.role.${u.role}`)}</Badge>
       ),
@@ -170,6 +190,7 @@ export default function UsersPage() {
     {
       key: 'status',
       header: t('admin.users.col.status'),
+      card: { priority: 2 },
       render: (u) => (
         <div className={styles.badges}>
           <StatusPill tone={toneFor(u.status)}>{td(`admin.users.status.${u.status}`)}</StatusPill>
@@ -184,7 +205,12 @@ export default function UsersPage() {
       header: t('admin.users.col.createdAt'),
       headerLabel: t('admin.users.col.createdAt'),
       sortable: true,
-      render: (u) => <span className={styles.nowrap}>{formatDate(u.createdAt)}</span>,
+      render: (u) => (
+        <span className={styles.nowrap} title={formatDate(u.createdAt)}>
+          {kit.relative(u.createdAt)}
+          {isNew(u.createdAt) && <Badge tone="info">{t('admin.v2p.users.new')}</Badge>}
+        </span>
+      ),
     },
     {
       key: 'lastSeenAt',
@@ -193,9 +219,13 @@ export default function UsersPage() {
       sortable: true,
       render: (u) =>
         u.lastSeenAt ? (
-          <span className={styles.nowrap}>{formatDateTime(u.lastSeenAt)}</span>
+          <span className={styles.nowrap} title={formatDateTime(u.lastSeenAt)}>
+            <StatusDot tone={isRecent(u.lastSeenAt) ? 'success' : 'neutral'} announceTone={false}>
+              {kit.relative(u.lastSeenAt)}
+            </StatusDot>
+          </span>
         ) : (
-          <span className={styles.muted}>{t('admin.users.never')}</span>
+          <span className={styles.muted}>{t('admin.v2p.users.neverSeen')}</span>
         ),
     },
   ];
@@ -203,26 +233,105 @@ export default function UsersPage() {
   const facultyList = faculties.data ?? [];
   const activeFilters = activeFilterCount(filters) + (filters.q ? 1 : 0);
   const data = list.data;
+  // sunucu eksik/boş yanıt verirse özet şeridi hiç çizilmez (çökmesin)
+  const o = overview.data && typeof overview.data.totalUsers === 'number' && overview.data.newUsers ? overview.data : undefined;
+
+  const clearAll = () => {
+    setSearchKey((k) => k + 1);
+    update({ ...EMPTY_FILTERS, sort: filters.sort });
+  };
+
+  // Etkin süzgeçler çip olarak görünür (× ile tek tek kaldırılır): kapalı panelde bile ne süzüldüğü anlaşılır.
+  const chips: { key: string; label: string; clear: () => void }[] = [];
+  const addChip = (key: keyof UserFilters, label: string) =>
+    chips.push({ key, label, clear: () => update({ [key]: '' } as Partial<UserFilters>) });
+  if (filters.status) addChip('status', `${t('admin.users.filter.status')}: ${td(`admin.users.status.${filters.status}`)}`);
+  if (filters.role) addChip('role', `${t('admin.users.filter.role')}: ${td(`admin.users.role.${filters.role}`)}`);
+  if (filters.faculty) addChip('faculty', `${t('admin.users.filter.faculty')}: ${filters.faculty}`);
+  if (filters.department) addChip('department', `${t('admin.users.filter.department')}: ${filters.department}`);
+  if (filters.classYear)
+    addChip('classYear', t('admin.users.classYearOption', { n: formatNumber(Number(filters.classYear)) }));
+  if (filters.language)
+    addChip('language', `${t('admin.v2p.users.col.language')}: ${td(`admin.users.lang.${filters.language}`)}`);
+  if (filters.verified)
+    addChip(
+      'verified',
+      filters.verified === 'true' ? t('admin.users.filter.verified.true') : t('admin.users.filter.verified.false'),
+    );
+  if (filters.createdFrom) addChip('createdFrom', `${t('admin.p09.filter.createdFrom')}: ${filters.createdFrom}`);
+  if (filters.createdTo) addChip('createdTo', `${t('admin.p09.filter.createdTo')}: ${filters.createdTo}`);
+  if (filters.seenFrom) addChip('seenFrom', `${t('admin.p09.filter.seenFrom')}: ${filters.seenFrom}`);
+  if (filters.seenTo) addChip('seenTo', `${t('admin.p09.filter.seenTo')}: ${filters.seenTo}`);
+  const filterCount = activeFilterCount(filters);
+  const showFilters = !narrow || filtersOpen;
 
   return (
     <div>
       <PageHeader
         title={t('admin.users.title')}
-       
         actions={
           <Button
             variant="secondary"
             loading={exporting}
+            disabled={list.isError && !data}
             leftIcon={<Icon name="download" size={18} />}
             onClick={onExport}
+            data-search-anchor="users-export"
           >
             {t('admin.users.export')}
           </Button>
         }
       />
 
+      {canOverview && (overview.isLoading || o) && (
+        <section className={people.summary} aria-label={t('admin.v2p.users.summary')} data-search-anchor="users-summary">
+          <Insight
+            tone={o && o.suspendedUsers > 0 ? 'warn' : 'info'}
+            parts={
+              o
+                ? t('admin.v2p.users.sentence', {
+                    total: formatNumber(o.totalUsers),
+                    suspended: formatNumber(o.suspendedUsers),
+                    unverified: formatNumber(Math.max(0, o.totalUsers - o.verifiedUsers)),
+                  })
+                : t('admin.v2p.loading')
+            }
+          />
+          <div className={people.tiles}>
+            <StatTile
+              label={t('admin.v2p.users.tile.total')}
+              value={o?.totalUsers}
+              unit={t('admin.v2p.unit.person')}
+              icon="users"
+              loading={overview.isLoading}
+            />
+            <StatTile
+              label={t('admin.v2p.users.tile.newToday')}
+              value={o?.newUsers.today}
+              unit={t('admin.v2p.unit.person')}
+              caption={o ? t('admin.v2p.users.tile.new7', { n: formatNumber(o.newUsers.last7d) }) : undefined}
+              loading={overview.isLoading}
+            />
+            <StatTile
+              label={t('admin.v2p.users.tile.suspended')}
+              value={o?.suspendedUsers}
+              unit={t('admin.v2p.unit.person')}
+              caption={t('admin.v2p.users.tile.suspendedHint')}
+              loading={overview.isLoading}
+            />
+            <StatTile
+              label={t('admin.v2p.users.tile.unverified')}
+              value={o ? Math.max(0, o.totalUsers - o.verifiedUsers) : undefined}
+              unit={t('admin.v2p.unit.person')}
+              caption={t('admin.v2p.users.tile.unverifiedHint')}
+              loading={overview.isLoading}
+            />
+          </div>
+        </section>
+      )}
+
       <div className={styles.topRow}>
-        <div className={styles.search}>
+        <div className={styles.search} data-search-anchor="users-search">
           <SearchInput
             key={searchKey}
             defaultValue={filters.q}
@@ -235,125 +344,154 @@ export default function UsersPage() {
             </p>
           )}
         </div>
-        {activeFilters > 0 && (
+        {narrow && (
           <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => {
-              setSearchKey((k) => k + 1);
-              update({ ...EMPTY_FILTERS, sort: filters.sort });
-            }}
+            variant="secondary"
+            leftIcon={<Icon name="list" size={18} />}
+            aria-expanded={filtersOpen}
+            aria-controls="users-filter-panel"
+            onClick={() => setFiltersOpen((v) => !v)}
           >
+            {filterCount > 0
+              ? t('admin.v2p.users.filterBtnCount', { n: formatNumber(filterCount) })
+              : t('admin.v2p.users.filterBtn')}
+          </Button>
+        )}
+        {activeFilters > 0 && (
+          <Button variant="ghost" size="sm" onClick={clearAll} data-search-anchor="users-clear">
             {t('admin.users.filter.clear')}
           </Button>
         )}
       </div>
 
-      <div className={styles.filters} role="group" aria-label={t('admin.users.filters.label')}>
-        <Select
-          aria-label={t('admin.users.filter.status')}
-          value={filters.status}
-          onChange={(e) => update({ status: e.target.value as UserFilters['status'] })}
-        >
-          <option value="">{t('admin.users.filter.status')}: {t('common.all')}</option>
-          {(['ACTIVE', 'SUSPENDED', 'DELETED'] as const).map((s) => (
-            <option key={s} value={s}>
-              {td(`admin.users.status.${s}`)}
-            </option>
+      {chips.length > 0 && (
+        <ul className={people.chips} aria-label={t('admin.v2p.users.activeFilters')}>
+          {chips.map((c) => (
+            <li key={c.key} className={people.chip}>
+              <span>{c.label}</span>
+              <button
+                type="button"
+                className={people.chipX}
+                aria-label={t('admin.v2p.users.removeFilter', { name: c.label })}
+                onClick={c.clear}
+              >
+                <Icon name="x" size={14} aria-hidden="true" />
+              </button>
+            </li>
           ))}
-        </Select>
-        <Select
-          aria-label={t('admin.users.filter.role')}
-          value={filters.role}
-          onChange={(e) => update({ role: e.target.value as UserFilters['role'] })}
-        >
-          <option value="">{t('admin.users.filter.role')}: {t('common.all')}</option>
-          {(['USER', 'ADMIN'] as const).map((r) => (
-            <option key={r} value={r}>
-              {td(`admin.users.role.${r}`)}
-            </option>
-          ))}
-        </Select>
-        {facultyList.length > 0 ? (
-          <Select
-            aria-label={t('admin.users.filter.faculty')}
-            value={filters.faculty}
-            onChange={(e) => update({ faculty: e.target.value })}
-          >
-            <option value="">{t('admin.users.filter.faculty')}: {t('common.all')}</option>
-            {facultyList.map((f) => (
-              <option key={f} value={f}>
-                {f}
-              </option>
-            ))}
-          </Select>
-        ) : (
-          <DebouncedInput
-            label={t('admin.users.filter.faculty')}
-            value={filters.faculty}
-            onCommit={(faculty) => update({ faculty })}
-          />
-        )}
-        <DebouncedInput
-          label={t('admin.users.filter.department')}
-          value={filters.department}
-          onCommit={(department) => update({ department })}
-        />
-        <Select
-          aria-label={t('admin.users.filter.classYear')}
-          value={filters.classYear}
-          onChange={(e) => update({ classYear: e.target.value as UserFilters['classYear'] })}
-        >
-          <option value="">{t('admin.users.filter.classYear')}: {t('common.all')}</option>
-          {[1, 2, 3, 4].map((n) => (
-            <option key={n} value={String(n)}>
-              {t('admin.users.classYearOption', { n: formatNumber(n) })}
-            </option>
-          ))}
-        </Select>
-        <Select
-          aria-label={t('admin.users.filter.language')}
-          value={filters.language}
-          onChange={(e) => update({ language: e.target.value as UserFilters['language'] })}
-        >
-          <option value="">{t('admin.users.filter.language')}: {t('common.all')}</option>
-          {(['tr', 'en', 'ar'] as const).map((l) => (
-            <option key={l} value={l}>
-              {td(`admin.users.lang.${l}`)}
-            </option>
-          ))}
-        </Select>
-        <Select
-          aria-label={t('admin.users.filter.verified')}
-          value={filters.verified}
-          onChange={(e) => update({ verified: e.target.value as UserFilters['verified'] })}
-        >
-          <option value="">{t('admin.users.filter.verified')}: {t('common.all')}</option>
-          <option value="true">{t('admin.users.filter.verified.true')}</option>
-          <option value="false">{t('admin.users.filter.verified.false')}</option>
-        </Select>
-      </div>
+        </ul>
+      )}
 
-      <div className={deep.dateFilters} role="group" aria-label={t('admin.p09.filter.dates')}>
-        {(
-          [
-            ['createdFrom', 'admin.p09.filter.createdFrom'],
-            ['createdTo', 'admin.p09.filter.createdTo'],
-            ['seenFrom', 'admin.p09.filter.seenFrom'],
-            ['seenTo', 'admin.p09.filter.seenTo'],
-          ] as const
-        ).map(([key, label]) => (
-          <label key={key} className={deep.dateField}>
-            {t(label)}
-            <input
-              type="date"
-              value={filters[key]}
-              max="9999-12-31"
-              onChange={(e) => update({ [key]: e.target.value } as Partial<UserFilters>)}
+      {showFilters && (
+        <div id="users-filter-panel" data-search-anchor="users-filters">
+          <div className={styles.filters} role="group" aria-label={t('admin.users.filters.label')}>
+            <Select
+              aria-label={t('admin.users.filter.status')}
+              value={filters.status}
+              onChange={(e) => update({ status: e.target.value as UserFilters['status'] })}
+            >
+              <option value="">{t('admin.users.filter.status')}: {t('common.all')}</option>
+              {(['ACTIVE', 'SUSPENDED', 'DELETED'] as const).map((s) => (
+                <option key={s} value={s}>
+                  {td(`admin.users.status.${s}`)}
+                </option>
+              ))}
+            </Select>
+            <Select
+              aria-label={t('admin.users.filter.role')}
+              value={filters.role}
+              onChange={(e) => update({ role: e.target.value as UserFilters['role'] })}
+            >
+              <option value="">{t('admin.users.filter.role')}: {t('common.all')}</option>
+              {(['USER', 'ADMIN'] as const).map((r) => (
+                <option key={r} value={r}>
+                  {td(`admin.users.role.${r}`)}
+                </option>
+              ))}
+            </Select>
+            {facultyList.length > 0 ? (
+              <Select
+                aria-label={t('admin.users.filter.faculty')}
+                value={filters.faculty}
+                onChange={(e) => update({ faculty: e.target.value })}
+              >
+                <option value="">{t('admin.users.filter.faculty')}: {t('common.all')}</option>
+                {facultyList.map((f) => (
+                  <option key={f} value={f}>
+                    {f}
+                  </option>
+                ))}
+              </Select>
+            ) : (
+              <DebouncedInput
+                label={t('admin.users.filter.faculty')}
+                value={filters.faculty}
+                onCommit={(faculty) => update({ faculty })}
+              />
+            )}
+            <DebouncedInput
+              label={t('admin.users.filter.department')}
+              value={filters.department}
+              onCommit={(department) => update({ department })}
             />
-          </label>
-        ))}
-      </div>
+            <Select
+              aria-label={t('admin.users.filter.classYear')}
+              value={filters.classYear}
+              onChange={(e) => update({ classYear: e.target.value as UserFilters['classYear'] })}
+            >
+              <option value="">{t('admin.users.filter.classYear')}: {t('common.all')}</option>
+              {[1, 2, 3, 4].map((n) => (
+                <option key={n} value={String(n)}>
+                  {t('admin.users.classYearOption', { n: formatNumber(n) })}
+                </option>
+              ))}
+            </Select>
+            <Select
+              aria-label={t('admin.v2p.users.col.language')}
+              value={filters.language}
+              onChange={(e) => update({ language: e.target.value as UserFilters['language'] })}
+            >
+              <option value="">{t('admin.v2p.users.col.language')}: {t('common.all')}</option>
+              {(['tr', 'en', 'ar'] as const).map((l) => (
+                <option key={l} value={l}>
+                  {td(`admin.users.lang.${l}`)}
+                </option>
+              ))}
+            </Select>
+            <Select
+              aria-label={t('admin.users.filter.verified')}
+              value={filters.verified}
+              onChange={(e) => update({ verified: e.target.value as UserFilters['verified'] })}
+            >
+              <option value="">{t('admin.users.filter.verified')}: {t('common.all')}</option>
+              <option value="true">{t('admin.users.filter.verified.true')}</option>
+              <option value="false">{t('admin.users.filter.verified.false')}</option>
+            </Select>
+          </div>
+
+          <div className={deep.dateFilters} role="group" aria-label={t('admin.p09.filter.dates')}>
+            {(
+              [
+                ['createdFrom', 'admin.p09.filter.createdFrom'],
+                ['createdTo', 'admin.p09.filter.createdTo'],
+                ['seenFrom', 'admin.p09.filter.seenFrom'],
+                ['seenTo', 'admin.p09.filter.seenTo'],
+              ] as const
+            ).map(([key, label]) => (
+              <label key={key} className={deep.dateField}>
+                {t(label)}
+                <input
+                  type="date"
+                  className={people.dateInput}
+                  value={filters[key]}
+                  max="9999-12-31"
+                  onChange={(e) => update({ [key]: e.target.value } as Partial<UserFilters>)}
+                />
+              </label>
+            ))}
+          </div>
+        </div>
+      )}
 
       {list.isError && !data ? (
         <ErrorState description={errorMessage(i18n, list.error)} onRetry={() => void list.refetch()} />
@@ -364,8 +502,8 @@ export default function UsersPage() {
               {t('admin.users.count', { n: formatNumber(data.totalItems) })}
             </p>
           )}
-          <div className={styles.tableCard}>
-            <Table
+          <div className={styles.tableCard} data-search-anchor="users-table">
+            <ResponsiveTable
               caption={t('admin.users.title')}
               columns={columns}
               rows={data?.items}
@@ -375,6 +513,7 @@ export default function UsersPage() {
               onSortChange={(s) => update({ sort: `${s.key},${s.dir}` })}
               selectedKeys={selected}
               onSelectionChange={setSelected}
+              breakpoint={720}
               onRowClick={(u) =>
                 navigate(paths.admin.user(u.id), { state: { from: `${location.pathname}${location.search}` } })
               }
@@ -384,6 +523,13 @@ export default function UsersPage() {
                   compact
                   title={t('admin.users.empty.title')}
                   description={t('admin.users.empty.hint')}
+                  action={
+                    activeFilters > 0 ? (
+                      <Button variant="secondary" size="sm" onClick={clearAll}>
+                        {t('admin.users.filter.clear')}
+                      </Button>
+                    ) : undefined
+                  }
                 />
               }
             />

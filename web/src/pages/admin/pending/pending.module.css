@@ -65,3 +65,54 @@
 .progress {
   font-variant-numeric: tabular-nums;
 }
+
+/* PEOPLE: özet şeridi, kalan süre çubuğu, telefonda büyük dokunma hedefleri */
+.summary {
+  display: grid;
+  gap: var(--space-3);
+  margin-block-end: var(--space-4);
+}
+.tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(10.5rem, 1fr));
+  gap: var(--space-3);
+}
+.tiles > * {
+  min-width: 0;
+}
+.remain {
+  display: grid;
+  gap: 4px;
+  min-inline-size: 7rem;
+}
+.bar {
+  display: block;
+  block-size: 6px;
+  border-radius: 999px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  overflow: hidden;
+}
+.barFill {
+  display: block;
+  block-size: 100%;
+  border-radius: 999px;
+}
+.success {
+  background: var(--success);
+}
+.warning {
+  background: var(--warning);
+}
+.danger {
+  background: var(--danger);
+}
+.rowActions {
+  gap: var(--space-3);
+}
+@media (max-width: 720px) {
+  .rowActions > * {
+    flex: 1 1 100%;
+    min-block-size: 44px;
+  }
+}

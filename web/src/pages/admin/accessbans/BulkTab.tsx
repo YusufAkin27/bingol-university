@@ -91,9 +91,13 @@ export function BulkTab() {
           }}
         >
           <p className={styles.muted}>{t('admin.ab.bulk.intro')}</p>
+          <p className={styles.warn} data-search-anchor="ab-bulk-warn">
+            {t('admin.v2p.ab.campusWarn')}
+          </p>
           <FormField label={t('admin.ab.bulk.lines')}>
             <Textarea
               className={`${styles.textarea} ltr`}
+              placeholder={t('admin.v2p.ab.bulkExample')}
               value={text}
               rows={10}
               spellCheck={false}

@@ -116,3 +116,98 @@
   background: var(--surface-2);
   font-size: var(--text-sm);
 }
+
+/* PEOPLE: özet şeridi, değer/not hücreleri, telefonda büyük dokunma hedefleri */
+.summary {
+  display: grid;
+  gap: var(--space-3);
+}
+.summaryGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr);
+  gap: var(--space-3);
+  align-items: stretch;
+}
+@media (max-width: 720px) {
+  .summaryGrid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+.kindCard {
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  align-content: start;
+}
+.kindTitle {
+  margin: 0;
+  font-weight: 700;
+}
+.kindBar {
+  display: flex;
+  block-size: 14px;
+  border-radius: 999px;
+  overflow: hidden;
+  gap: 2px;
+}
+.kindPart {
+  min-inline-size: 6px;
+}
+.kindLegend {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+  gap: var(--space-2) var(--space-4);
+}
+.kindLegend li {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
+}
+.kindLegend strong {
+  margin-inline-start: auto;
+  font-variant-numeric: tabular-nums;
+}
+.swatch {
+  inline-size: 12px;
+  block-size: 12px;
+  border-radius: 3px;
+  flex: none;
+}
+.intro {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+.valueCell {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  min-inline-size: 0;
+}
+.noBreak {
+  white-space: nowrap;
+  overflow-wrap: normal;
+}
+.userName {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+.note {
+  display: inline-block;
+  max-inline-size: 24ch;
+  overflow-wrap: anywhere;
+}
+@media (max-width: 720px) {
+  .actions > * {
+    flex: 1 1 calc(50% - var(--space-2));
+    min-block-size: 44px;
+  }
+}

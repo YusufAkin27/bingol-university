@@ -68,6 +68,7 @@ export function AnonymizersTab() {
   return (
     <div className={styles.stack}>
       <Callout tone="info">{t('admin.ab.anon.info')}</Callout>
+      <p className={styles.muted}>{t('admin.v2p.ab.anonPlain')}</p>
 
       <Card title={t('admin.ab.anon.setting')}>
         {list.data ? (
@@ -75,7 +76,7 @@ export function AnonymizersTab() {
             <Badge tone={list.data.enforced ? 'success' : 'neutral'}>
               {list.data.enforced ? t('admin.ab.anon.on') : t('admin.ab.anon.off')}
             </Badge>{' '}
-            <span className={styles.muted}>{t('admin.ab.anon.settingHint')}</span>
+            <span className={styles.muted}>{t('admin.v2p.ab.anonSettingHint')}</span>
           </p>
         ) : (
           <Skeleton width="40%" />

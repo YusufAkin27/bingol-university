@@ -14,6 +14,7 @@ import {
 import {
   Badge,
   Button,
+  CopyButton,
   PermissionButton,
   ConfirmDialog,
   Drawer,
@@ -26,8 +27,8 @@ import {
   SearchInput,
   Select,
   Skeleton,
+  ResponsiveTable,
   StatusPill,
-  Table,
   useToast,
   type Column,
 } from '../../../components/ui';
@@ -89,17 +90,27 @@ export function BansTab() {
     {
       key: 'kind',
       header: t('admin.ab.col.kind'),
+      card: { priority: 2 },
       render: (b) => <Badge tone="info">{td(`admin.ab.kind.${b.kind}`, b.kind)}</Badge>,
     },
     {
       key: 'value',
       header: t('admin.ab.col.value'),
+      card: { priority: 1 },
       render: (b) => (
-        <span>
-          <code className={`${styles.mono} ltr`} title={b.value}>
-            {b.kind === 'USER' && b.label ? b.label : b.valueShort}
-          </code>
+        <span className={styles.valueCell}>
+          {/* ad normal yazı tipiyle, yalnız IP/cihaz kodu tek aralıklı (ACB-12); IP satır ortasından kırılmaz (ACB-2) */}
+          {b.kind === 'USER' ? (
+            <span className={styles.userName} dir="auto">
+              {b.label ?? b.valueShort}
+            </span>
+          ) : (
+            <code className={`${styles.mono} ${styles.noBreak} ltr`} title={b.value}>
+              {b.valueShort}
+            </code>
+          )}
           {b.kind === 'USER' && <p className={styles.muted}>#{b.userId ?? b.value}</p>}
+          {b.kind !== 'USER' && <CopyButton value={b.value} label={t('admin.v2p.ab.copy')} />}
           {!b.active && <StatusPill tone="neutral">{t('admin.ab.inactive')}</StatusPill>}
         </span>
       ),
@@ -107,9 +118,18 @@ export function BansTab() {
     {
       key: 'reason',
       header: t('admin.ab.col.reason'),
+      card: { priority: 3 },
       render: (b) => <Badge tone="warning">{td(`admin.ab.reason.${b.reasonCode}`, b.reasonCode)}</Badge>,
     },
-    { key: 'note', header: t('admin.ab.col.note'), render: (b) => <span dir="auto">{b.note || '—'}</span> },
+    {
+      key: 'note',
+      header: t('admin.ab.col.note'),
+      render: (b) => (
+        <span dir="auto" className={styles.note} title={b.note ?? undefined}>
+          {b.note || '—'}
+        </span>
+      ),
+    },
     {
       key: 'expires',
       header: t('admin.ab.col.expires'),
@@ -117,14 +137,14 @@ export function BansTab() {
         !b.expiresAt ? (
           t('admin.ab.forever')
         ) : expired(b) ? (
-          <StatusPill tone="neutral">{t('admin.ab.expired')}</StatusPill>
+          <StatusPill tone="neutral">{t('admin.v2p.ab.expiredOn', { date: formatDateTime(b.expiresAt) })}</StatusPill>
         ) : (
           t('admin.ab.expiresOn', { date: formatDateTime(b.expiresAt) })
         ),
     },
     {
       key: 'hits',
-      header: t('admin.ab.col.hits'),
+      header: t('admin.v2p.ab.col.hits'),
       render: (b) =>
         b.hitCount > 0 ? (
           <span>
@@ -143,6 +163,7 @@ export function BansTab() {
     {
       key: 'actions',
       header: t('admin.ab.col.actions'),
+      card: { actions: true },
       render: (b) => (
         <div className={styles.actions}>
           <Button size="sm" variant="secondary" onClick={() => setViewing(b)}>
@@ -166,8 +187,12 @@ export function BansTab() {
 
   return (
     <div className={styles.stack}>
+      <p className={styles.intro}>{t('admin.v2p.ab.bansIntro')}</p>
+      <p className={styles.warn} data-search-anchor="ab-warn">
+        {t('admin.v2p.ab.campusWarn')}
+      </p>
       <div className={styles.topRow}>
-        <div className={styles.filters} style={{ flex: 1 }}>
+        <div className={styles.filters} style={{ flex: 1 }} data-search-anchor="ab-filters">
           <FormField label={t('admin.ab.filter.kind')}>
             <Select value={kind} onChange={(e) => setKind(e.target.value as BanKind | '')}>
               <option value="">{t('common.all')}</option>
@@ -189,7 +214,9 @@ export function BansTab() {
             <SearchInput label={t('admin.ab.filter.search')} placeholder={t('admin.ab.filter.searchPh')} onSearch={setQ} />
           </div>
         </div>
-        <PermissionButton permission="moderation.write" onClick={() => setAdding(true)}>{t('admin.ab.add')}</PermissionButton>
+        <PermissionButton permission="moderation.write" onClick={() => setAdding(true)} data-search-anchor="ab-add">
+          {t('admin.ab.add')}
+        </PermissionButton>
       </div>
 
       {query.isError ? (
@@ -204,7 +231,15 @@ export function BansTab() {
         />
       ) : (
         <>
-          <Table columns={columns} rows={items} rowKey={(b) => b.id} caption={t('admin.ab.title')} />
+          <div data-search-anchor="ab-table">
+            <ResponsiveTable
+              columns={columns}
+              rows={items}
+              rowKey={(b) => b.id}
+              caption={t('admin.ab.title')}
+              breakpoint={720}
+            />
+          </div>
           <LoadMore
             hasMore={!!query.hasNextPage}
             loading={query.isFetchingNextPage}

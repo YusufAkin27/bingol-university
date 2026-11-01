@@ -16,15 +16,18 @@ import {
 import {
   Badge,
   Button,
-  Checkbox,
   ConfirmDialog,
   EmptyState,
   ErrorState,
+  Icon,
+  Insight,
   Modal,
   PageHeader,
   PermissionButton,
+  ResponsiveTable,
   SearchInput,
-  Table,
+  StatTile,
+  StatusDot,
   useToast,
   type Column,
 } from '../../components/ui';
@@ -37,6 +40,19 @@ import { exportPendingCsv } from '../../api/adminBulk';
 import { PendingBulkCancel } from './bulk/BulkBars';
 import { BulkCsvButton } from './bulk/BulkParts';
 import styles from './pending/pending.module.css';
+
+/** E-posta '@' işaretinden önce kırılabilsin (karakter karakter bölünmesin). */
+function breakable(email: string) {
+  const i = email.indexOf('@');
+  if (i < 0) return email;
+  return (
+    <>
+      {email.slice(0, i)}
+      <wbr />
+      {email.slice(i)}
+    </>
+  );
+}
 
 const PAGE_SIZE = 20;
 const MAX_BULK = 50;
@@ -231,59 +247,18 @@ export default function PendingUsersPage() {
     setDialog(null);
   }
 
-  function toggle(email: string, on: boolean) {
-    if (on && selected.size >= MAX_BULK && !selected.has(email)) {
-      toast.error(t('admin.pend.bulk.max', { n: MAX_BULK }));
-      return;
-    }
-    setSelected((s) => {
-      const n = new Set(s);
-      if (on) n.add(email);
-      else n.delete(email);
-      return n;
-    });
-  }
-
-  const allChecked = rows.length > 0 && rows.every((u) => selected.has(u.email));
-  function toggleAll(on: boolean) {
-    if (!on) {
-      setSelected(new Set());
-      return;
-    }
-    const n = new Set<string>();
-    for (const u of rows) {
-      if (n.size >= MAX_BULK) break;
-      n.add(u.email);
-    }
-    if (rows.length > MAX_BULK) toast.info(t('admin.pend.bulk.max', { n: MAX_BULK }));
-    setSelected(n);
-  }
+  // Kalan süre 72 saatlik pencerenin yüzdesi; son 6 saat sarı, son 1 saat kırmızı (renk + metin + simge birlikte)
+  const WINDOW_SEC = 72 * 3600;
+  const urgency = (sec: number) => (sec <= 3600 ? 'danger' : sec <= 6 * 3600 ? 'warning' : 'success');
 
   const columns: Column<PendingUser>[] = [
     {
-      key: 'select',
-      header: (
-        <Checkbox
-          label={<span className="sr-only">{t('admin.pend.selectAll')}</span>}
-          checked={allChecked}
-          onChange={(e) => toggleAll(e.target.checked)}
-        />
-      ),
-      width: '44px',
-      render: (u) => (
-        <Checkbox
-          label={<span className="sr-only">{t('admin.pend.selectRow', { email: u.email })}</span>}
-          checked={selected.has(u.email)}
-          onChange={(e) => toggle(u.email, e.target.checked)}
-        />
-      ),
-    },
-    {
       key: 'email',
       header: t('admin.pend.col.email'),
+      card: { priority: 1 },
       render: (u) => (
         <div className={styles.id}>
-          <span className={`${styles.idMain} ltr`}>{u.email}</span>
+          <span className={`${styles.idMain} ltr`}>{breakable(u.email)}</span>
           {!u.email.includes('@') && <Badge tone="info">{t('admin.pend.schoolNo')}</Badge>}
         </div>
       ),
@@ -291,7 +266,30 @@ export default function PendingUsersPage() {
     {
       key: 'name',
       header: t('admin.pend.col.name'),
+      card: { priority: 2 },
       render: (u) => u.displayName || <span className={styles.muted}>—</span>,
+    },
+    {
+      key: 'remaining',
+      header: t('admin.pend.col.remaining'),
+      card: { priority: 3 },
+      render: (u) => (
+        <div className={styles.remain}>
+          <StatusDot tone={urgency(u.remainingSeconds)} announceTone={false}>
+            <span className={styles.nowrap}>{remaining(u.remainingSeconds)}</span>
+          </StatusDot>
+          <span
+            className={styles.bar}
+            role="img"
+            aria-label={t('admin.v2p.pend.barLabel', { time: remaining(u.remainingSeconds) })}
+          >
+            <span
+              className={`${styles.barFill} ${styles[urgency(u.remainingSeconds)]}`}
+              style={{ inlineSize: `${Math.max(3, Math.min(100, (u.remainingSeconds / WINDOW_SEC) * 100))}%` }}
+            />
+          </span>
+        </div>
+      ),
     },
     {
       key: 'dept',
@@ -307,14 +305,24 @@ export default function PendingUsersPage() {
         ),
     },
     {
-      key: 'remaining',
-      header: t('admin.pend.col.remaining'),
-      render: (u) => <span className={styles.nowrap}>{remaining(u.remainingSeconds)}</span>,
+      key: 'resend',
+      header: t('admin.pend.col.resend'),
+      render: (u) => (
+        <span className={styles.nowrap}>
+          {t('admin.v2p.pend.resendTimes', { n: formatNumber(u.resendCount) })}
+          {u.resendCount >= 4 && (
+            <>
+              {' '}
+              <Badge tone="warning">{t('admin.v2p.pend.resendMany')}</Badge>
+            </>
+          )}
+        </span>
+      ),
     },
-    { key: 'resend', header: t('admin.pend.col.resend'), render: (u) => formatNumber(u.resendCount) },
     {
       key: 'actions',
       header: t('admin.pend.col.actions'),
+      card: { actions: true },
       render: (u) => {
         const wait = Math.ceil(((cooldown[u.email] ?? 0) - now) / 1000);
         return (
@@ -322,6 +330,7 @@ export default function PendingUsersPage() {
             <PermissionButton
               permission="users.verify"
               size="sm"
+              leftIcon={<Icon name="check" size={16} />}
               onClick={() => {
                 setReason('');
                 setDialog({ kind: 'verify', user: u });
@@ -332,7 +341,12 @@ export default function PendingUsersPage() {
             <Button size="sm" variant="secondary" disabled={wait > 0} onClick={() => void onResend(u)}>
               {wait > 0 ? t('admin.pend.resend.wait', { s: formatNumber(wait) }) : t('admin.pend.resend')}
             </Button>
-            <Button size="sm" variant="danger" onClick={() => setDialog({ kind: 'cancel', user: u })}>
+            <Button
+              size="sm"
+              variant="dangerOutline"
+              leftIcon={<Icon name="x" size={16} />}
+              onClick={() => setDialog({ kind: 'cancel', user: u })}
+            >
               {t('admin.pend.cancel')}
             </Button>
           </div>
@@ -341,16 +355,57 @@ export default function PendingUsersPage() {
     },
   ];
 
+  // Seçim tablonun/kart yığınının kendi onay kutularıyla yapılır; en çok MAX_BULK kayıt seçilebilir.
+  function onSelectionChange(next: Set<string | number>) {
+    const emails = [...next].map(String);
+    if (emails.length > MAX_BULK) {
+      toast.info(t('admin.pend.bulk.max', { n: MAX_BULK }));
+      setSelected(new Set(emails.slice(0, MAX_BULK)));
+      return;
+    }
+    setSelected(new Set(emails));
+  }
+
   const dlgUser = dialog && dialog.kind !== 'bulk' ? dialog.user : null;
   const selectedCount = rows.filter((u) => selected.has(u.email)).length;
+  const soon = rows.filter((u) => u.remainingSeconds <= 6 * 3600).length;
+  const many = rows.filter((u) => u.resendCount >= 4).length;
 
   return (
     <div>
       <PageHeader title={t('admin.pend.title')} />
       <p className={styles.intro}>{t('admin.pend.intro')}</p>
 
+      {list.data && (
+        <section className={styles.summary} aria-label={t('admin.v2p.pend.summary')} data-search-anchor="pending-summary">
+          <Insight
+            tone={soon > 0 ? 'warn' : 'info'}
+            parts={
+              rows.length === 0
+                ? t('admin.v2p.pend.sentenceNone')
+                : t('admin.v2p.pend.sentence', { n: formatNumber(rows.length), soon: formatNumber(soon) })
+            }
+          />
+          <div className={styles.tiles}>
+            <StatTile label={t('admin.v2p.pend.tile.waiting')} value={rows.length} unit={t('admin.v2p.unit.person')} />
+            <StatTile
+              label={t('admin.v2p.pend.tile.soon')}
+              value={soon}
+              unit={t('admin.v2p.unit.person')}
+              caption={t('admin.v2p.pend.tile.soonHint')}
+            />
+            <StatTile
+              label={t('admin.v2p.pend.tile.many')}
+              value={many}
+              unit={t('admin.v2p.unit.person')}
+              caption={t('admin.v2p.pend.tile.manyHint')}
+            />
+          </div>
+        </section>
+      )}
+
       <div className={styles.topRow}>
-        <div className={styles.search}>
+        <div className={styles.search} data-search-anchor="pending-search">
           <SearchInput placeholder={t('admin.pend.search')} onSearch={(v) => setQ(v.trim())} />
         </div>
         <BulkCsvButton filename="bekleyen-kayitlar.csv" fetchCsv={() => exportPendingCsv({ q })} />
@@ -386,21 +441,26 @@ export default function PendingUsersPage() {
               {t('admin.pend.count', { n: formatNumber(rows.length) })}
             </p>
           )}
-          <Table
-            caption={t('admin.pend.title')}
-            columns={columns}
-            rows={list.isLoading ? undefined : rows}
-            rowKey={(u) => u.email}
-            loading={list.isLoading}
-            empty={
-              <EmptyState
-                icon="users"
-                compact
-                title={t('admin.pend.empty.title')}
-                description={t('admin.pend.empty.hint')}
-              />
-            }
-          />
+          <div data-search-anchor="pending-table">
+            <ResponsiveTable
+              caption={t('admin.pend.title')}
+              columns={columns}
+              rows={list.isLoading ? undefined : rows}
+              rowKey={(u) => u.email}
+              loading={list.isLoading}
+              breakpoint={720}
+              selectedKeys={selected}
+              onSelectionChange={onSelectionChange}
+              empty={
+                <EmptyState
+                  icon="users"
+                  compact
+                  title={t('admin.pend.empty.title')}
+                  description={q ? t('admin.v2p.pend.emptySearch') : t('admin.v2p.pend.emptyAll')}
+                />
+              }
+            />
+          </div>
           {list.isError && (
             <ErrorState
               compact

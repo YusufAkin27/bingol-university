@@ -39,11 +39,11 @@
   font-variant-numeric: tabular-nums;
 }
 .person {
-  min-width: 14rem;
+  /* USR-1: ikinci "min-width: 0" birincisini eziyor, ad/e-posta sütunu avatara çöküyordu */
+  min-width: 13rem;
   display: flex;
   align-items: center;
   gap: var(--space-3);
-  min-width: 0;
 }
 .personText {
   display: grid;
@@ -97,6 +97,8 @@
 }
 .stack {
   display: grid;
+  /* UDT-1: sütun şablonu yoktu; uzun e-posta/yol örtük "auto" sütunu sayfa dışına itiyordu */
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--space-5);
   min-width: 0;
 }
@@ -232,4 +234,106 @@
 .modalForm {
   display: grid;
   gap: var(--space-3);
+}
+
+/* PEOPLE: kullanıcı ayrıntısı sade bölümler */
+.dangerBox {
+  display: grid;
+  gap: var(--space-3);
+  margin-block-start: var(--space-2);
+  padding: var(--space-4);
+  border: 1px solid var(--danger);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+}
+.dangerTitle {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-base);
+  color: var(--danger);
+}
+.statusBand {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  border-inline-start-width: 4px;
+  background: var(--surface-2);
+  font-size: var(--text-sm);
+  overflow-wrap: anywhere;
+}
+.statusBand[data-tone='warning'] {
+  border-color: var(--warning);
+  background: var(--warning-soft);
+}
+.statusBand[data-tone='danger'] {
+  border-color: var(--danger);
+  background: var(--danger-soft);
+}
+.statusBand[data-tone='success'] {
+  border-color: var(--success);
+  background: var(--success-soft);
+}
+.statusBand strong {
+  display: block;
+}
+.statusText {
+  flex: 1 1 14rem;
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+.groupTitle {
+  margin: var(--space-4) 0 var(--space-2);
+  font-size: var(--text-sm);
+  font-weight: 700;
+  color: var(--text-muted);
+}
+.groupTitle:first-child {
+  margin-block-start: 0;
+}
+.count[data-alert='true'] {
+  background: var(--warning-soft);
+  border: 1px solid var(--warning);
+}
+.count[data-alert='true'] dt {
+  color: var(--text);
+  font-weight: 700;
+}
+.quick {
+  padding: var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  box-shadow: var(--shadow-1);
+  margin-block-end: var(--space-4);
+}
+.pageStack {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-4);
+  min-width: 0;
+}
+.wrapAnywhere {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.wrapAnywhere * {
+  overflow-wrap: anywhere;
+}
+.consentRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+.devicePlat {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-block-start: var(--space-2);
 }
