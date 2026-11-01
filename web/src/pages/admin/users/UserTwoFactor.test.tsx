@@ -59,6 +59,33 @@ describe('UserTwoFactor', () => {
     expect(screen.getByRole('button', { name: '2FA’yı kapat' })).toBeInTheDocument();
   });
 
+  it('kendi hesabında kapatma düğmesi yerine açıklama gösterilir (sunucu 403 ADMIN_SELF_FORBIDDEN verir)', () => {
+    renderWithProviders(<UserTwoFactor user={base} isSelf />);
+    expect(screen.queryByRole('button', { name: '2FA’yı kapat' })).not.toBeInTheDocument();
+    expect(screen.getByText(/Kendi iki faktörlü doğrulamanızı panelden kapatamazsınız/)).toBeInTheDocument();
+  });
+
+  it('düğme users.2fa iznine bağlıdır: izin yoksa devre dışı kalır', async () => {
+    mockFetch((url) =>
+      String(url).endsWith('/admin/rbac/me')
+        ? jsonResponse(200, { profile: 'MODERATOR', permissions: ['users.read', 'users.write'], pinned: false })
+        : jsonResponse(204),
+    );
+    renderWithProviders(<UserTwoFactor user={base} />);
+    await waitFor(() => expect(screen.getByRole('button', { name: '2FA’yı kapat' })).toBeDisabled());
+  });
+
+  it('sunucu FULL yönetici hedefini reddederse mesaj gösterilir', async () => {
+    mockFetch(() => jsonResponse(403, { code: 'TWO_FACTOR_ADMIN_FORBIDDEN', message: 'FULL yönetici hesabı' }));
+    renderWithProviders(<UserTwoFactor user={{ ...base, role: 'ADMIN' }} />);
+    const user = userEvent.setup();
+    await user.click(screen.getByRole('button', { name: '2FA’yı kapat' }));
+    const dialog = screen.getByRole('dialog');
+    await user.type(within(dialog).getByRole('textbox'), 'Gerekçe yeterli');
+    await user.click(within(dialog).getByRole('button', { name: '2FA’yı kapat' }));
+    expect(await screen.findByText(/FULL yönetici hesabı/)).toBeInTheDocument();
+  });
+
   it('kapalıyken kapatma eylemi yoktur', () => {
     renderWithProviders(<UserTwoFactor user={{ ...base, twoFactorEnabled: false }} />);
     expect(screen.getByText('Kapalı')).toBeInTheDocument();

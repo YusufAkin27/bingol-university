@@ -930,6 +930,7 @@ Haber, akademik içerik, yemek menüsü ve bekleyen kayıtlar için toplu işlem
 | users.read (e-posta maskeli: SUPPORT, VIEWER) | x | x | x |  | x |
 | users.pii, users.write | x | x |  |  |  |
 | users.role, users.delete, users.export, users.verify (W1-B T-011: kodsuz hesap doğrulama) | x |  |  |  |  |
+| users.2fa (HARDEN O3: 2FA hesap kurtarma kapatması; MODERATOR yapamaz) | x |  | x |  |  |
 | moderation.read | x | x |  |  | x |
 | moderation.write, chat.read, chat.write | x | x |  |  |  |
 | content.write | x |  |  | x |  |
@@ -1021,10 +1022,10 @@ Yeni hata kodları (tr/en/ar `ops*.properties`): `VERSION_BELOW_LATEST`, `VERSIO
 
 ## Iki faktorlu dogrulama (2FA, V1060)
 
-Kullanici tarafi sozlesmesi: `docs/TWO_FACTOR_API.md`. Yonetici uclari RBAC ile korunur (`AdminPermissionPolicy`): okuma `users.read`, kapatma `users.write`.
+Kullanici tarafi sozlesmesi: `docs/TWO_FACTOR_API.md`. Yonetici uclari RBAC ile korunur (`AdminPermissionPolicy`): okuma `users.read`, kapatma `users.2fa` (yalniz FULL ve SUPPORT; HARDEN turunda `users.write`'dan ayrildi, MODERATOR artik yapamaz).
 
 - **Kullanici DTO'lari:** `GET /api/admin/users` satirlarina `twoFactorEnabled: boolean`; `GET /api/admin/users/{id}` ayrintisina ek `twoFactorTrustedDeviceCount`, `twoFactorEnabledAt` (ISO). Suzgec: `GET /api/admin/users?twoFactor=true|false` (CSV disa aktarimda sutun YOK).
 - `GET /api/admin/two-factor/summary` -> `{enabledCount, totalActiveUsers, enabledPercent (tek ondalik), enabledLast7Days, trustedDeviceTotal}`.
 - `GET /api/admin/two-factor/users?page&size&q` -> `{content:[{userId, displayName, email, role, enabledAt, trustedDeviceCount, lastLoginAt}], totalElements, totalPages, number, size}`. `q` kurallari kullanici listesiyle ayni (`users.pii` olmayan profil yalniz gorunen adi arar, en az 3 karakter; e-posta maskeli, `PermissionAwareMasking`). `lastLoginAt` = guvenilen cihazlarin en yeni `last_used_at` degeri, yoksa `last_seen_at`. Sira: acilis tarihi (yeni once).
-- `POST /api/admin/users/{id}/two-factor/disable` `{"reason"}` -> **204**. Hesap kurtarma: 2FA kapanir, guvenilen cihazlar ve bekleyen kod silinir, kullaniciya uygulama ici SYSTEM bildirimi gider (kullanicinin dilinde; e-posta GITMEZ). Gerekce ZORUNLU (en az 5 karakter, `AdminGuardPolicy.accountOps` + `@AdminReasonRequired`), yikici islem sayilir (saatlik siki hiz siniri), denetim kaydi: hedef `USER:<id>`, gerekce, ozet. Hatalar: 404 `USER_NOT_FOUND`, 409 `TWO_FACTOR_NOT_ENABLED`, 403 `ADMIN_TARGET_FORBIDDEN` (yonetici hesabina yalniz FULL), 403 `ADMIN_PERMISSION_DENIED` (`users.write` yok), 400 `REASON_REQUIRED`.
+- `POST /api/admin/users/{id}/two-factor/disable` `{"reason"}` -> **204**. Hesap kurtarma: 2FA kapanir, guvenilen cihazlar ve bekleyen kod silinir, kullanicinin TUM oturumlari kapanir, kullaniciya uygulama ici SYSTEM bildirimi VE e-posta (`SECURITY_TWO_FACTOR_NOTICE`) gider (kullanicinin dilinde). Kendi hesabi 403 `ADMIN_SELF_FORBIDDEN`; hedef FULL yonetici ise 403 `TWO_FACTOR_ADMIN_FORBIDDEN` (iki kisi onayi gerektirecegi icin panelden kapatilamaz); hedef FULL olmayan yonetici ise yalniz FULL kapatabilir. Gerekce ZORUNLU (en az 5 karakter, `AdminGuardPolicy.accountOps` + `@AdminReasonRequired`), yikici islem sayilir (saatlik siki hiz siniri), denetim kaydi: hedef `USER:<id>`, gerekce, ozet. Hatalar: 404 `USER_NOT_FOUND`, 409 `TWO_FACTOR_NOT_ENABLED`, 403 `ADMIN_TARGET_FORBIDDEN` (yonetici hesabina yalniz FULL), 403 `ADMIN_PERMISSION_DENIED` (`users.2fa` yok: MODERATOR/EDITOR/VIEWER), 400 `REASON_REQUIRED`.
 - Duman: `scripts/smoke-two-factor.sh`; testler `AdminTwoFactorMvcTest`.

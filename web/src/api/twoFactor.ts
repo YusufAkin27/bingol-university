@@ -21,8 +21,9 @@ export async function listTwoFactorUsers(
 }
 
 /**
- * `POST /api/admin/users/{id}/two-factor/disable` (izin: users.write): hesap kurtarma. Gerekçe zorunludur ve
- * denetim kaydına yazılır; güvenilen cihazlar silinir, kullanıcıya bildirim/e-posta gider.
+ * `POST /api/admin/users/{id}/two-factor/disable` (izin: users.2fa = FULL ve SUPPORT): hesap kurtarma. Gerekçe
+ * zorunludur ve denetim kaydına yazılır; güvenilen cihazlar silinir, kullanıcının tüm oturumları kapanır, kullanıcıya
+ * bildirim/e-posta gider. Kendi hesabı 403 ADMIN_SELF_FORBIDDEN, FULL yönetici hedef 403 TWO_FACTOR_ADMIN_FORBIDDEN.
  */
 export const disableUserTwoFactor = (id: number, reason: string) =>
   api.post(`/admin/users/${id}/two-factor/disable`, { reason });

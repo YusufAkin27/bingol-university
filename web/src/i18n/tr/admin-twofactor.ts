@@ -59,7 +59,9 @@ const m = {
   'admin.users.tf.disable': '2FA’yı kapat',
   'admin.users.tf.disable.title': 'İki faktörlü doğrulamayı kapat',
   'admin.users.tf.disable.explain':
-    'Hesap kurtarma işlemidir: kullanıcı e-postasına erişemediğinde kullanılır. Kapatınca tüm güvenilen cihazlar silinir, kullanıcıya bildirim ve e-posta gider, işlem denetim kaydına yazılır.',
+    'Hesap kurtarma işlemidir: kullanıcı e-postasına erişemediğinde kullanılır. Kapatınca tüm güvenilen cihazlar silinir, kullanıcının tüm oturumları kapanır, kullanıcıya bildirim ve e-posta gider, işlem denetim kaydına yazılır. Yalnız FULL ve SUPPORT yöneticileri yapabilir; kendi hesabınız ve FULL yönetici hesapları panelden kapatılamaz.',
+  'admin.users.tf.selfNote':
+    'Kendi iki faktörlü doğrulamanızı panelden kapatamazsınız; hesap ayarlarından şifrenizle kapatın.',
   'admin.users.tf.disable.confirm': '{name} için iki faktörlü doğrulama kapatılsın mı?',
   'admin.users.tf.disable.reason': 'Gerekçe',
   'admin.users.tf.disable.reasonHint':

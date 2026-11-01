@@ -209,7 +209,7 @@ export default function UserDetailPage() {
           {notifyOpen && (
             <QuickSendDialog open onClose={() => setNotifyOpen(false)} userId={u.id} userName={u.displayName || u.email} />
           )}
-          <UserTwoFactor user={u} />
+          <UserTwoFactor user={u} isSelf={me?.id === u.id} />
 
           <Card title={t('admin.users.detail.devices')}>
             {u.deviceCount === 0 ? (

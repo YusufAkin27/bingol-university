@@ -1,5 +1,5 @@
 // Kullanıcı ayrıntısı: iki faktörlü doğrulama kartı + "2FA'yı kapat" (hesap kurtarma).
-// API: POST /api/admin/users/{id}/two-factor/disable {reason} (api/twoFactor.ts; izin users.write, sunucu zorlar).
+// API: POST /api/admin/users/{id}/two-factor/disable {reason} (api/twoFactor.ts; izin users.2fa: FULL ve SUPPORT; sunucu zorlar. Kendi hesabı ve FULL yönetici reddedilir).
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { qk } from '../../../api/queryKeys';
@@ -12,7 +12,11 @@ import { errorMessage } from '../../../lib/errors';
 import { gt } from '../twofactor/dict';
 import styles from './users.module.css';
 
-export function UserTwoFactor({ user }: { user: AdminUserDetail }) {
+/**
+ * `isSelf`: kartı açan yönetici bu hesabın sahibidir. Kendi hesabı panelden kapatılamaz (sunucu 403
+ * ADMIN_SELF_FORBIDDEN): düğme yerine açıklama gösterilir.
+ */
+export function UserTwoFactor({ user, isSelf = false }: { user: AdminUserDetail; isSelf?: boolean }) {
   const i18n = useI18n();
   const t = gt(i18n);
   const { formatNumber, formatDateTime } = i18n;
@@ -74,9 +78,10 @@ export function UserTwoFactor({ user }: { user: AdminUserDetail }) {
         )}
       </dl>
       {!enabled && <p className={styles.hint}>{t('admin.users.tf.offNote')}</p>}
-      {enabled && !deleted && (
+      {enabled && !deleted && isSelf && <p className={styles.hint}>{t('admin.users.tf.selfNote')}</p>}
+      {enabled && !deleted && !isSelf && (
         <div className={styles.actionRow} style={{ marginBlockStart: 'var(--space-3)' }}>
-          <PermissionButton permission="users.write" variant="danger" onClick={() => setOpen(true)}>
+          <PermissionButton permission="users.2fa" variant="danger" onClick={() => setOpen(true)}>
             {t('admin.users.tf.disable')}
           </PermissionButton>
         </div>

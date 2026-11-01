@@ -50,6 +50,7 @@ export default {
   'admin.p16.perm.users.pii': 'Tam e-posta, IP, cihaz ve oturum bilgisi',
   'admin.p16.perm.users.write': 'Askıya alma, oturum kapatma, şifre sıfırlama gönderme, profil müdahalesi',
   'admin.p16.perm.users.verify': 'E-postayı elle doğrulama ve bekleyen kaydı koda gerek kalmadan doğrulama (yalnız FULL)',
+  'admin.p16.perm.users.2fa': 'Hesap kurtarma: kullanıcının iki faktörlü doğrulamasını kapatma (yalnız FULL ve SUPPORT)',
   'admin.p16.perm.users.role': 'Kullanıcı rolü değiştirme (USER/ADMIN)',
   'admin.p16.perm.users.delete': 'Hesap silme (anonimleştirme)',
   'admin.p16.perm.users.export': 'Kullanıcı verisi dışa aktarma (CSV, KVKK)',

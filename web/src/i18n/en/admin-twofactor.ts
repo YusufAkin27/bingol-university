@@ -59,7 +59,9 @@ const m = {
   'admin.users.tf.disable': 'Turn off 2FA',
   'admin.users.tf.disable.title': 'Turn off two-factor authentication',
   'admin.users.tf.disable.explain':
-    'This is an account recovery action for users who cannot access their email. All trusted devices are removed, the user is notified by notification and email, and the action is written to the audit log.',
+    'This is an account recovery action for users who cannot access their email. All trusted devices are removed, all of the user\'s sessions are closed, the user is notified by notification and email, and the action is written to the audit log. Only FULL and SUPPORT administrators can do this; you cannot turn off your own account or a FULL administrator account from the panel.',
+  'admin.users.tf.selfNote':
+    'You cannot turn off your own two-factor authentication from the panel; turn it off in your account settings with your password.',
   'admin.users.tf.disable.confirm': 'Turn off two-factor authentication for {name}?',
   'admin.users.tf.disable.reason': 'Reason',
   'admin.users.tf.disable.reasonHint':
