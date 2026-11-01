@@ -470,7 +470,7 @@ services:
       timeout: 3s
       retries: 10
 
-  # Zamanlanmış yedek (SAATLİK; yerelde en yeni 7 + haftalık 4 + aylık 3, uzak kopya BACKUP_REMOTE) + haftalık otomatik geri yükleme doğrulaması. docs/BACKUP_RESTORE.md
+  # Zamanlanmış yedek (SAATLİK; yerelde en yeni 7 + haftalık 4 + aylık 3; uzak kopya BACKUP_REMOTE = GÜNDE 1 tam yükleme, docs/BACKUP_GDRIVE.md) + haftalık otomatik geri yükleme doğrulaması. docs/BACKUP_RESTORE.md
   backup:
     build: ./scripts/backup
     restart: unless-stopped
@@ -508,6 +508,22 @@ services:
       BACKUP_CRON: ${BACKUP_CRON:-5 * * * *}
       BACKUP_VERIFY_CRON: ${BACKUP_VERIFY_CRON:-30 4 * * 0}
       BACKUP_VERIFY_AGE_RECIPIENT: ${BACKUP_VERIFY_AGE_RECIPIENT:-}
+      # Uzak kopya (Google Drive vb.; docs/BACKUP_GDRIVE.md): gunde BIR tam yukleme (03:35) + dogrulama + uzak GFS saklama.
+      # BACKUP_REMOTE_SCHEDULE=each eski "her saat yukle" davranisidir (Drive kotasini hizla doldurur; onerilmez).
+      BACKUP_REMOTE_SCHEDULE: ${BACKUP_REMOTE_SCHEDULE:-daily}
+      BACKUP_REMOTE_CRON: ${BACKUP_REMOTE_CRON:-35 3 * * *}
+      BACKUP_REMOTE_RETRY_CRON: ${BACKUP_REMOTE_RETRY_CRON:-35 9,15,21 * * *}
+      BACKUP_REMOTE_KEEP_DAILY: ${BACKUP_REMOTE_KEEP_DAILY:-7}
+      BACKUP_REMOTE_KEEP_WEEKLY: ${BACKUP_REMOTE_KEEP_WEEKLY:-4}
+      BACKUP_REMOTE_KEEP_MONTHLY: ${BACKUP_REMOTE_KEEP_MONTHLY:-6}
+      BACKUP_REMOTE_MAX_DELETE: ${BACKUP_REMOTE_MAX_DELETE:-20}
+      BACKUP_REMOTE_BWLIMIT: ${BACKUP_REMOTE_BWLIMIT:-}
+      BACKUP_REMOTE_VERIFY: ${BACKUP_REMOTE_VERIFY:-hash}
+      BACKUP_REMOTE_VERIFY_DOWNLOAD: ${BACKUP_REMOTE_VERIFY_DOWNLOAD:-0}
+      BACKUP_RCLONE_DRIVE_CHUNK: ${BACKUP_RCLONE_DRIVE_CHUNK:-64M}
+      BACKUP_RCLONE_TIMEOUT: ${BACKUP_RCLONE_TIMEOUT:-5m}
+      # Bos = yerel saklama yalniz BACKUP_KEEP_* ile. Sayi N: uzakta DOGRULANMIS kopyasi olan eski yerel yedekler, katman basina en yeni N disinda silinir.
+      BACKUP_LOCAL_KEEP_WHEN_REMOTE_OK: ${BACKUP_LOCAL_KEEP_WHEN_REMOTE_OK:-}
       # Kaynak: host'taki 0600 anahtar (baska sahip olabilir); entrypoint postgres icin /run/age-key/age.key kopyasini uretir
       BACKUP_AGE_IDENTITY_SRC: /run/backup/verify.key
       BACKUP_AGE_IDENTITY_FILE: /run/age-key/age.key
@@ -518,7 +534,9 @@ services:
       - backups:/var/backups
       # node-exporter textfile dizini (monitoring/docker-compose.monitoring.yml ile ayni yol); backup.prom buraya yazilir
       - ${BACKUP_METRICS_DIR:-./monitoring/textfile}:/var/backups/metrics
-      - ./deploy/rclone:/config/rclone:ro
+      # YAZILABILIR (:ro DEGIL): Google Drive OAuth erisim belirteci ~1 saatte biter; rclone yenisini rclone.conf'a geri yazar.
+      # Salt okunur olursa her calismada "Failed to save new token" hatasi olur. entrypoint dizini postgres'e verir, dosyayi 0600 yapar.
+      - ./deploy/rclone:/config/rclone
       - ./deploy/backup-keys:/run/backup:ro   # verify.key (yalniz DOGRULAMA ozel anahtari; bkz. docs/BACKUP_RESTORE.md)
     logging: *logging
     healthcheck:
