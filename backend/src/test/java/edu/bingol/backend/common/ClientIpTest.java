@@ -29,6 +29,27 @@ class ClientIpTest {
     }
 
     @Test
+    void hostnameLookalikesInXffAreRejectedWithoutDnsLookup() {
+        // yalniz hex karakterli ama IP olmayan "ana makine adlari" (fade, bad.bad) DNS tetiklememeli ve reddedilmeli
+        assertEquals("172.18.0.5", ip.resolve("172.18.0.5", "fade"));
+        assertEquals("172.18.0.5", ip.resolve("172.18.0.5", "bad.bad"));
+        assertEquals("172.18.0.5", ip.resolve("172.18.0.5", "dead:beef"));
+        assertEquals("172.18.0.5", ip.resolve("172.18.0.5", "198.51.100.7, bad.bad"));
+        assertEquals("172.18.0.5", ip.resolve("172.18.0.5", "999.1.1.1"));
+        assertEquals("172.18.0.5", ip.resolve("172.18.0.5", "1.2.3"));
+        assertEquals("172.18.0.5", ip.resolve("172.18.0.5", "1.2.3.4.5"));
+    }
+
+    @Test
+    void validLiteralsStillAccepted() {
+        assertEquals("198.51.100.7", ip.resolve("172.18.0.5", "198.51.100.7"));
+        assertEquals("2001:db8::7", ip.resolve("172.18.0.5", "2001:db8::7"));
+        assertEquals("::ffff:198.51.100.7", ip.resolve("172.18.0.5", "::ffff:198.51.100.7"));
+        assertEquals("2001:db8:0:0:0:0:0:7", ip.resolve("172.18.0.5", "2001:db8:0:0:0:0:0:7"));
+        assertEquals("203.0.113.9", ClientIp.limitKey("::ffff:203.0.113.9"));
+    }
+
+    @Test
     void limitKeyCollapsesIpv6To64AndKeepsIpv4() {
         // ayni /64 icindeki iki adres ayni anahtar (adres dondurerek limit atlatilamaz)
         assertEquals(ClientIp.limitKey("2001:db8:1:2:aaaa:bbbb:cccc:dddd"),

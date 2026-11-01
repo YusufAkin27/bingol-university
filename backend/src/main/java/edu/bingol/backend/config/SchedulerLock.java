@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.stereotype.Component;
@@ -29,12 +30,29 @@ public class SchedulerLock {
 
     private final StringRedisTemplate redis;
 
+    /** Tek ornekli kurulum: Redis yokken tryRunOrLocal gorevi yerelde calistirir. Varsayilan kapali (eski davranis). */
+    @Value("${app.scheduling.single-instance:false}")
+    private boolean singleInstance = false;
+
     public SchedulerLock(StringRedisTemplate redis) {
         this.redis = redis;
     }
 
     /** Kilit alinabilirse gorevi calistirir ve true doner; aksi halde (veya Redis hatasinda) false. Gorev hatasi yayilir. */
     public boolean tryRun(String name, Duration ttl, Runnable task) {
+        return run(name, ttl, task, false);
+    }
+
+    /**
+     * {@link #tryRun} gibi; tek farki: Redis ERISILEMEZSE ve {@code app.scheduling.single-instance=true} (tek ornekli
+     * kurulum) ise gorevi kilitsiz YEREL calistirir (gece bakim isi Redis kesintisinde sessizce atlanmasin). Kilit baska
+     * ornekte tutuluyorsa hicbir zaman calistirmaz. Varsayilan (false) tryRun ile ayni davranistir.
+     */
+    public boolean tryRunOrLocal(String name, Duration ttl, Runnable task) {
+        return run(name, ttl, task, singleInstance);
+    }
+
+    private boolean run(String name, Duration ttl, Runnable task, boolean localFallback) {
         String key = PREFIX + name;
         String token = UUID.randomUUID().toString();
         try {
@@ -44,6 +62,12 @@ public class SchedulerLock {
                 return false;
             }
         } catch (RuntimeException e) {
+            if (localFallback) {
+                log.warn("Zamanlayici kilidi alinamadi (Redis), tek ornek: gorev kilitsiz yerelde calisiyor: {} ({})",
+                        name, e.getClass().getSimpleName());
+                task.run();
+                return true;
+            }
             log.warn("Zamanlayici kilidi alinamadi (Redis), gorev atlandi: {} ({})", name, e.getClass().getSimpleName());
             return false;
         }

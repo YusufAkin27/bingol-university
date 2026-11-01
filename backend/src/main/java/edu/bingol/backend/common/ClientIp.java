@@ -95,21 +95,53 @@ public class ClientIp {
         return false;
     }
 
-    /** DNS cozumlemesi yapmadan yalnizca sayisal IPv4/IPv6 metnini kabul eder. */
+    /**
+     * DNS cozumlemesi yapmadan yalnizca sayisal IPv4/IPv6 metnini kabul eder. Yalniz hex karakterli ana makine adlari
+     * (ornek {@code fade}, {@code bad.bad}) ve {@code 999.1.1.1} gibi bozuk dortlular reddedilir: {@code getByName}
+     * bunlari ad cozumlemesine gonderirdi.
+     */
     private static boolean isLiteralIp(String s) {
-        if (s.isEmpty() || s.length() > 45) {
-            return false;
+        return parseLiteral(s) != null;
+    }
+
+    private static final java.util.regex.Pattern IPV4 =
+            java.util.regex.Pattern.compile("(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})");
+
+    /** Sayisal IP'nin baytlari; sayisal degilse null. Hic ag/DNS erisimi yapmaz. */
+    private static byte[] parseLiteral(String s) {
+        if (s == null || s.isEmpty() || s.length() > 45) {
+            return null;
         }
-        for (char ch : s.toCharArray()) {
-            if (!(Character.digit(ch, 16) >= 0 || ch == '.' || ch == ':')) {
-                return false;
+        java.util.regex.Matcher m = IPV4.matcher(s);
+        if (m.matches()) {
+            byte[] b = new byte[4];
+            for (int i = 0; i < 4; i++) {
+                int v = Integer.parseInt(m.group(i + 1));
+                if (v > 255) {
+                    return null;
+                }
+                b[i] = (byte) v;
+            }
+            return b;
+        }
+        // IPv6: en az iki ':' (tek ':' ya da hic yok = ana makine adi/port); yalniz hex, ':' ve gomulu IPv4 icin '.'
+        int colons = 0;
+        for (int i = 0; i < s.length(); i++) {
+            char ch = s.charAt(i);
+            if (ch == ':') {
+                colons++;
+            } else if (!(Character.digit(ch, 16) >= 0 || ch == '.')) {
+                return null;
             }
         }
+        if (colons < 2) {
+            return null;
+        }
         try {
-            InetAddress.getByName(s);
-            return true;
+            // ':' iceren metin IPv6 sabiti olarak ayristirilir; ad cozumlemesi yapilmaz
+            return InetAddress.getByName(s).getAddress();
         } catch (Exception e) {
-            return false;
+            return null;
         }
     }
 
@@ -126,11 +158,11 @@ public class ClientIp {
         }
 
         boolean contains(String ip) {
-            if (!isLiteralIp(ip)) {
+            byte[] b = parseLiteral(ip);
+            if (b == null) {
                 return false;
             }
             try {
-                byte[] b = InetAddress.getByName(ip).getAddress();
                 if (b.length != net.length) {
                     return false;
                 }

@@ -37,7 +37,8 @@ import org.springframework.web.context.WebApplicationContext;
  * yok, Redis kesilince kimlikli istek 503 + Retry-After ama herkese acik uclar 200.
  */
 // Test application.properties jwt.access-ttl-minutes tanimlamaz (0 = aninda dolan token): acikca verilir
-@SpringBootTest(properties = {"jwt.access-ttl-minutes=15", "jwt.refresh-ttl-days=30"})
+@SpringBootTest(properties = {"jwt.access-ttl-minutes=15", "jwt.refresh-ttl-days=30",
+        "app.redis.breaker-threshold=1"})
 class ErrorEnvelopeMvcTest {
 
     @Autowired WebApplicationContext ctx;
