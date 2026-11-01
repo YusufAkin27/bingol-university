@@ -42,6 +42,10 @@ export const qk = {
     list: (p: UserListParams) => ['users', 'list', p] as const,
     detail: (id: number) => ['users', 'detail', id] as const,
     stats: () => ['users', 'stats'] as const,
+    // 'users' önekinde: kullanıcı işlemleri (qk.users.all) 2FA görünümlerini de tazeler
+    twoFactorSummary: () => ['users', 'two-factor', 'summary'] as const,
+    twoFactorList: (p: { page: number; size: number; q: string }) =>
+      ['users', 'two-factor', 'list', p] as const,
   },
   analytics: {
     all: ['analytics'] as const,

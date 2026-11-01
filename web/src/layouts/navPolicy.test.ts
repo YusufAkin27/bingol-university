@@ -13,6 +13,7 @@ const NAV_ENDPOINT: Record<string, string> = {
   dashboard: '/api/admin/stats',
   analytics: '/api/admin/analytics/overview',
   users: '/api/admin/users',
+  twoFactor: '/api/admin/two-factor/summary',
   pendingUsers: '/api/admin/pending-registrations',
   suspensions: '/api/admin/moderation/suspend-recommendations',
   appeals: '/api/admin/moderation/appeals',

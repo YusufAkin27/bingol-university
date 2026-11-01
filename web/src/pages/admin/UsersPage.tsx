@@ -1,7 +1,8 @@
 // SAYFA: Kullanıcılar (/admin/users)
 // API: GET /api/admin/users (filtre/sayfa/sıralama; api/users.ts `listUsers`), GET /api/admin/users/export.csv (`exportUsersCsv`),
 //      GET /api/faculties (fakülte filtresi; api/appInfo.ts `getFaculties`).
-// Filtre durumu URL'dedir (paylaşılabilir bağlantı): ?q=&status=&role=&faculty=&department=&classYear=&language=&verified=&sort=&page=
+// Filtre durumu URL'dedir (paylaşılabilir bağlantı): ?q=&status=&role=&faculty=&department=&classYear=&language=&verified=&twoFactor=&sort=&page=
+//      twoFactor=true|false: iki faktörlü doğrulama süzgeci (docs/TWO_FACTOR_API.md).
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
@@ -46,6 +47,7 @@ import {
   parseUserFilters,
   type UserFilters,
 } from './users/filters';
+import { gt } from './twofactor/dict';
 import deep from './users/deep.module.css';
 import styles from './users/users.module.css';
 
@@ -55,6 +57,7 @@ const MASKED_SEARCH_MIN = 3;
 export default function UsersPage() {
   const i18n = useI18n();
   const { t, td, formatNumber, formatDate, formatDateTime } = i18n;
+  const g2 = gt(i18n); // 2FA metinleri sayfaya özel sözlükte (twofactor/dict.ts)
   usePageTitle(t('admin.users.title'));
   const toast = useToast();
   const navigate = useNavigate();
@@ -178,6 +181,20 @@ export default function UsersPage() {
           )}
         </div>
       ),
+    },
+    {
+      key: 'twoFactor',
+      header: g2('admin.users.col.twoFactor'),
+      render: (u) =>
+        u.twoFactorEnabled ? (
+          <Badge tone="success">
+            {u.twoFactorTrustedDeviceCount !== undefined
+              ? g2('admin.users.twoFactor.onDevices', { n: formatNumber(u.twoFactorTrustedDeviceCount) })
+              : g2('admin.users.twoFactor.on')}
+          </Badge>
+        ) : (
+          <Badge tone="neutral">{g2('admin.users.twoFactor.off')}</Badge>
+        ),
     },
     {
       key: 'createdAt',
@@ -331,6 +348,17 @@ export default function UsersPage() {
           <option value="">{t('admin.users.filter.verified')}: {t('common.all')}</option>
           <option value="true">{t('admin.users.filter.verified.true')}</option>
           <option value="false">{t('admin.users.filter.verified.false')}</option>
+        </Select>
+        <Select
+          aria-label={g2('admin.users.filter.twoFactor')}
+          value={filters.twoFactor}
+          onChange={(e) => update({ twoFactor: e.target.value as UserFilters['twoFactor'] })}
+        >
+          <option value="">
+            {g2('admin.users.filter.twoFactor')}: {t('common.all')}
+          </option>
+          <option value="true">{g2('admin.users.filter.twoFactor.true')}</option>
+          <option value="false">{g2('admin.users.filter.twoFactor.false')}</option>
         </Select>
       </div>
 

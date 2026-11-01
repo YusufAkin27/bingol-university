@@ -24,6 +24,8 @@ export interface UserFilters {
   createdTo: string;
   seenFrom: string;
   seenTo: string;
+  /** İki faktörlü doğrulama: açık / kapalı */
+  twoFactor: '' | 'true' | 'false';
   sort: string;
   page: number;
 }
@@ -41,6 +43,7 @@ export const EMPTY_FILTERS: UserFilters = {
   createdTo: '',
   seenFrom: '',
   seenTo: '',
+  twoFactor: '',
   sort: DEFAULT_SORT,
   page: 0,
 };
@@ -76,6 +79,7 @@ export function parseUserFilters(sp: URLSearchParams): UserFilters {
     createdTo: date(sp.get('createdTo')),
     seenFrom: date(sp.get('seenFrom')),
     seenTo: date(sp.get('seenTo')),
+    twoFactor: oneOf(sp.get('twoFactor'), ['true', 'false'] as const),
     sort: parseSort(sp.get('sort')),
     page: Number.isFinite(page) && page > 0 ? page : 0,
   };
@@ -97,6 +101,7 @@ export function filtersToSearch(f: UserFilters): URLSearchParams {
   put('createdTo', f.createdTo);
   put('seenFrom', f.seenFrom);
   put('seenTo', f.seenTo);
+  put('twoFactor', f.twoFactor);
   if (f.sort !== DEFAULT_SORT) sp.set('sort', f.sort);
   if (f.page > 0) sp.set('page', String(f.page));
   return sp;
@@ -117,6 +122,7 @@ export function filtersToApi(f: UserFilters): UserListParams {
   if (f.createdTo) p.createdTo = f.createdTo;
   if (f.seenFrom) p.seenFrom = f.seenFrom;
   if (f.seenTo) p.seenTo = f.seenTo;
+  if (f.twoFactor) p.twoFactor = f.twoFactor === 'true';
   return p;
 }
 
@@ -133,6 +139,7 @@ export function activeFilterCount(f: UserFilters): number {
     f.createdTo,
     f.seenFrom,
     f.seenTo,
+    f.twoFactor,
   ].filter(Boolean).length;
 }
 

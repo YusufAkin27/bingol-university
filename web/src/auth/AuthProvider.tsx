@@ -13,7 +13,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { authApi } from '../api';
 import { isApiError, setUnauthorizedHandler } from '../api/client';
-import type { AdminMe } from '../api/types';
+import type { AdminMe, TokenResponse, TwoFactorChallenge } from '../api/types';
 import { clearTokens, getAccessToken, getRefreshToken, setTokens } from './tokens';
 
 /**
@@ -25,8 +25,15 @@ export type AuthStatus = 'loading' | 'anonymous' | 'authenticated' | 'forbidden'
 export interface AuthContextValue {
   status: AuthStatus;
   user: AdminMe | null;
-  /** Hata durumunda ApiError fırlatır (kod: INVALID_CREDENTIALS, EMAIL_NOT_VERIFIED, ...). */
-  login: (email: string, password: string) => Promise<void>;
+  /**
+   * Hata durumunda ApiError fırlatır (kod: INVALID_CREDENTIALS, EMAIL_NOT_VERIFIED, ...).
+   * İki faktörlü doğrulama gerekiyorsa (202) oturum AÇILMAZ ve challenge döner; null = oturum açıldı.
+   */
+  login: (email: string, password: string) => Promise<TwoFactorChallenge | null>;
+  /** Giriş kodunu doğrular (TWO_FACTOR_CODE_INVALID, TWO_FACTOR_CHALLENGE_EXPIRED, 429) ve oturumu açar. */
+  verifyTwoFactor: (challengeToken: string, code: string, trustDevice: boolean) => Promise<void>;
+  /** Kodu e-postaya yeniden gönderir; geçerlilik süresini (sn) döndürür. */
+  resendTwoFactor: (challengeToken: string) => Promise<number>;
   logout: () => Promise<void>;
 }
 
@@ -88,14 +95,36 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => setUnauthorizedHandler(null);
   }, [queryClient]);
 
-  const login = useCallback(
-    async (email: string, password: string) => {
-      const t = await authApi.login({ email: email.trim(), password });
+  const completeLogin = useCallback(
+    async (t: TokenResponse) => {
       setTokens(t.accessToken, t.refreshToken);
       await verify();
     },
     [verify],
   );
+
+  const login = useCallback(
+    async (email: string, password: string): Promise<TwoFactorChallenge | null> => {
+      const r = await authApi.login({ email: email.trim(), password });
+      if (authApi.isTwoFactorChallenge(r)) return r;
+      await completeLogin(r);
+      return null;
+    },
+    [completeLogin],
+  );
+
+  const verifyTwoFactor = useCallback(
+    async (challengeToken: string, code: string, trustDevice: boolean) => {
+      const t = await authApi.verifyTwoFactorLogin({ challengeToken, code: code.trim(), trustDevice });
+      await completeLogin(t);
+    },
+    [completeLogin],
+  );
+
+  const resendTwoFactor = useCallback(async (challengeToken: string) => {
+    const r = await authApi.resendTwoFactorCode(challengeToken);
+    return r?.expiresInSeconds ?? 600;
+  }, []);
 
   const logout = useCallback(async () => {
     const rt = getRefreshToken();
@@ -112,7 +141,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [queryClient]);
 
-  const value = useMemo(() => ({ status, user, login, logout }), [status, user, login, logout]);
+  const value = useMemo(
+    () => ({ status, user, login, verifyTwoFactor, resendTwoFactor, logout }),
+    [status, user, login, verifyTwoFactor, resendTwoFactor, logout],
+  );
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 

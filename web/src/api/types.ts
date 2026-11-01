@@ -37,6 +37,18 @@ export interface TokenResponse {
   expiresInSeconds: number;
   tokenType: string;
 }
+/** POST /auth/login 202: iki faktörlü doğrulama gerekli (token YOK; kod e-postaya gitti). */
+export interface TwoFactorChallenge {
+  twoFactorRequired: true;
+  challengeToken: string;
+  emailHint: string;
+  expiresInSeconds: number;
+}
+export interface TwoFactorVerifyRequest {
+  challengeToken: string;
+  code: string;
+  trustDevice: boolean;
+}
 export interface UserView {
   id: number;
   email: string;
@@ -168,8 +180,13 @@ export interface AdminUserRow {
   createdAt: string;
   lastSeenAt: string | null;
   avatarUrl: string | null;
+  /** İki faktörlü doğrulama açık mı (eski sunucu alanı göndermezse undefined = kapalı). */
+  twoFactorEnabled?: boolean;
+  /** Liste yanıtında varsa rozet güvenilen cihaz sayısını da gösterir. */
+  twoFactorTrustedDeviceCount?: number;
 }
 export interface AdminUserDetail extends AdminUserRow {
+  twoFactorEnabledAt?: string | null;
   bio: string | null;
   suspendedReason: string | null;
   deletedAt: string | null;
@@ -222,6 +239,8 @@ export interface UserListParams {
   createdTo?: string;
   seenFrom?: string;
   seenTo?: string;
+  /** İki faktörlü süzgeci: true = açık, false = kapalı. */
+  twoFactor?: boolean;
   page?: number;
   size?: number;
   /** örn. `createdAt,desc` (createdAt | lastSeenAt | displayName | faculty | role | status) */
@@ -907,4 +926,31 @@ export interface AuditParams {
   adminId?: number;
   method?: string;
   q?: string;
+}
+
+// ---------- İki faktörlü doğrulama (yönetici) ----------
+export interface TwoFactorSummary {
+  enabledCount: number;
+  totalActiveUsers: number;
+  enabledPercent: number;
+  enabledLast7Days: number;
+  trustedDeviceTotal: number;
+}
+export interface TwoFactorUserRow {
+  userId: number;
+  displayName: string;
+  /** Sunucu maskeler (yetkiye göre). */
+  email: string;
+  role: Role;
+  enabledAt: string | null;
+  trustedDeviceCount: number;
+  lastLoginAt: string | null;
+}
+/** `GET /admin/two-factor/users` ham yanıtı (Spring Page biçimi). */
+export interface TwoFactorUsersResponse {
+  content: TwoFactorUserRow[];
+  totalElements: number;
+  totalPages: number;
+  number: number;
+  size: number;
 }

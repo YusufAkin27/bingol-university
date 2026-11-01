@@ -34,6 +34,7 @@ export const paths = {
     register: `${ADMIN_BASE}/register`,
     dashboard: ADMIN_BASE,
     users: `${ADMIN_BASE}/users`,
+    twoFactor: `${ADMIN_BASE}/two-factor`,
     pendingUsers: `${ADMIN_BASE}/pending-users`,
     user: (id: number | string) => `${ADMIN_BASE}/users/${id}`,
     userMessages: (id: number | string, conversationId?: number | string, messageId?: number | string) =>
