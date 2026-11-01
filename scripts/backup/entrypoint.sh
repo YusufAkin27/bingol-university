@@ -20,6 +20,19 @@ prepare_key() {
 }
 prepare_key
 
+# rclone.conf: Google Drive OAuth belirteci (access token ~1 saatte biter) rclone tarafindan YENILENIP bu dosyaya geri YAZILIR; dizin
+# salt okunur olursa her calismada "Failed to save new token" hatasi olur. Bu yuzden dizin postgres'e ait ve yazilabilir baglanir,
+# dosya 0600 postgres sahipli yapilir (baska kullanici okuyamaz). Sir commit'lenmez (.gitignore: deploy/rclone/rclone.conf).
+RCONF="${RCLONE_CONFIG:-/config/rclone/rclone.conf}"
+fix_rclone_conf() {
+  [ -f "$RCONF" ] || return 0
+  chown postgres:postgres "$(dirname "$RCONF")" "$RCONF" 2>/dev/null || true
+  chmod 0700 "$(dirname "$RCONF")" 2>/dev/null || true
+  chmod 0600 "$RCONF" 2>/dev/null || echo "uyari: $RCONF icin chmod 0600 yapilamadi" >&2
+  [ -w "$RCONF" ] || echo "uyari: $RCONF yazilamiyor; OAuth belirteci yenilenemez (deploy/rclone dizini salt okunur baglanmis olmasin)" >&2
+}
+fix_rclone_conf
+
 if [ "$#" -gt 0 ]; then
   chown -R postgres:postgres "$BACKUP_DIR" 2>/dev/null || true
   [ -f "$BACKUP_DIR/metrics/backup.prom" ] || /opt/backup/lib.sh init-metrics
@@ -38,7 +51,16 @@ CRON_FILE=/tmp/backup.cron
 {
   echo "${BACKUP_CRON:-5 * * * *} flock -n /tmp/backup.lock /opt/backup/backup.sh"
   echo "${BACKUP_VERIFY_CRON:-30 4 * * 0} flock -n /tmp/backup.lock /opt/backup/verify-restore.sh --latest"
+  # Uzak kopya (Google Drive vb.): gunde BIR tam yukleme (varsayilan 03:35 = 03:05 yedeginden sonra) + basarisizsa gun icinde yeniden
+  # deneme (yalniz son basari >20 saat eskiyse). remote-sync.sh kendi kilidini (backup-remote.lock) alir: yukleme saatlik yerel yedegi engellemez.
+  if [ -n "${BACKUP_REMOTE:-}" ] && [ "${BACKUP_REMOTE_SCHEDULE:-daily}" != each ]; then
+    echo "${BACKUP_REMOTE_CRON:-35 3 * * *} /opt/backup/remote-sync.sh"
+    echo "${BACKUP_REMOTE_RETRY_CRON:-35 9,15,21 * * *} /opt/backup/remote-sync.sh --if-stale"
+  fi
 } > "$CRON_FILE"
+
+# Yeni durum alanlari (local/remote/schedule/retention) ilk yedegi beklemeden gorunsun
+su-exec postgres /opt/backup/status-refresh.sh || true
 
 # Prometheus: http://backup:9199/backup.prom (node-exporter textfile icin ayni dosya: metrics/backup.prom)
 httpd -f -p 9199 -h "$BACKUP_DIR/metrics" &

@@ -2,7 +2,8 @@
 # PostgreSQL (pg_dump -Fc) + uploads tar -> age ile sifreli, SHA-256 ozetli yedek.
 # Kullanim: backup.sh [--dry-run]
 # Env: PGHOST PGUSER PGDATABASE PGPASSWORD, BACKUP_AGE_RECIPIENT (age GENEL anahtari), BACKUP_DIR, UPLOADS_DIR,
-#      BACKUP_REMOTE (rclone hedefi, ops.), BACKUP_KEEP_DAILY/WEEKLY/MONTHLY (14/8/12), BACKUP_WEBHOOK_URL
+#      BACKUP_REMOTE (rclone hedefi, ops.), BACKUP_KEEP_DAILY/WEEKLY/MONTHLY (yerel; 3/0/0), BACKUP_WEBHOOK_URL,
+#      BACKUP_REMOTE_SCHEDULE (daily = uzak yukleme ayri zamanlayicida remote-sync.sh, varsayilan; each = her yerel yedekten sonra)
 # --dry-run: hicbir yedek yazmaz; baglanti, izin, anahtar, disk ve uzak hedefi dener, plani yazdirir.
 set -Eeuo pipefail
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -56,7 +57,8 @@ psql -Atqc 'select 1' >/dev/null || die "PostgreSQL kimlik dogrulamasi/sorgu bas
 AGE_ARGS=(-r "$RECIPIENT")
 [ -z "$EXTRA_RECIPIENT" ] || [ "$EXTRA_RECIPIENT" = "$RECIPIENT" ] || AGE_ARGS+=(-r "$EXTRA_RECIPIENT")
 printf 'age-denemesi' | age "${AGE_ARGS[@]}" >/dev/null || die "age alicisi gecersiz"
-if [ -n "${BACKUP_REMOTE:-}" ]; then
+# Uzak hedef onkontrolu YALNIZ kuru calismada: normal saatlik yerel yedek uzak hedef (Drive) kesintisinden etkilenmesin.
+if [ "$DRY" = 1 ] && [ -n "${BACKUP_REMOTE:-}" ]; then
   rclone lsd "${BACKUP_REMOTE%%:*}:" >/dev/null 2>&1 || rclone about "${BACKUP_REMOTE%%:*}:" >/dev/null 2>&1 \
     || die "rclone hedefi erisilemez: ${BACKUP_REMOTE%%:*}"
 fi
@@ -67,7 +69,7 @@ if [ "$DRY" = 1 ]; then
   UPSZ="$(du -sk "$UPLOADS_DIR" 2>/dev/null | awk '{print $1*1024}')"
   FREE="$(df -Pk "$BACKUP_DIR" | awk 'NR==2{print $4*1024}')"
   log "KURU CALISMA: DB boyutu $(human "$DBSZ"), uploads $UPN dosya / $(human "$UPSZ"), hedefte bos alan $(human "$FREE")"
-  log "KURU CALISMA: yazilacak: $DEST/{db.dump.age,uploads.tar.zst.age,manifest.json,SHA256SUMS}; saklama $KEEP_D gunluk/$KEEP_W haftalik/$KEEP_M aylik; uzak: ${BACKUP_REMOTE:-yok}"
+  log "KURU CALISMA: yazilacak: $DEST/{db.dump.age,uploads.tar.zst.age,manifest.json,SHA256SUMS}; yerel saklama $KEEP_D saatlik/$KEEP_W haftalik/$KEEP_M aylik; uzak: $([ -n "${BACKUP_REMOTE:-}" ] && echo "${BACKUP_REMOTE%%:*} (${BACKUP_REMOTE_SCHEDULE:-daily})" || echo yok)"
   log "KURU CALISMA tamam: hicbir dosya yazilmadi, metrik degismedi"
   exit 0
 fi
@@ -126,11 +128,12 @@ DBB="$(stat -c %s "$PART/db.dump.age")"; UPB="$(stat -c %s "$PART/uploads.tar.zs
 
 mv "$PART" "$DEST"
 
-# --- uzak kopya (istege bagli): rotasyondan ONCE; hata burada beklenir ama rotasyonu engellemez (disk dolmasin) ---
-REMOTE_ERR=""
-if [ -n "${BACKUP_REMOTE:-}" ]; then
-  log "rclone -> $BACKUP_REMOTE"
-  rclone copy "$DEST" "${BACKUP_REMOTE%/}/$STAMP" --checksum --transfers 2 || REMOTE_ERR="rclone yuklemesi basarisiz"
+# --- uzak kopya (istege bagli) ---
+# Varsayilan (BACKUP_REMOTE_SCHEDULE=daily): saatlik yedek UZAGA GITMEZ; gunluk yukleme + dogrulama + uzak saklama ayri zamanlayicida
+# (remote-sync.sh, BACKUP_REMOTE_CRON). "each": eski davranis, her yerel yedek yuklenir (Drive kotasini hizla doldurur; onerilmez).
+# Uzak hata YEREL yedegi basarisiz saymaz (disk dolmasin, yerel rotasyon calissin); hata remote.lastError + metrik + webhook ile gorunur.
+if [ -n "${BACKUP_REMOTE:-}" ] && [ "${BACKUP_REMOTE_SCHEDULE:-daily}" = each ]; then
+  "$HERE/remote-sync.sh" --stamp "$STAMP" || log "uyari: uzak kopya basarisiz (yerel yedek tamam)"
 fi
 
 # --- saklama: YALNIZ basarili yerel yedekten sonra, en yeni KEEP_D tane kalir (varsayilan 3 = 3 saatlik pencere) ---
@@ -138,10 +141,10 @@ fi
 if [ "$KEEP_W" -gt 0 ] && [ "$(date +%u)" = 7 ]; then cp -al "$DEST" "$BACKUP_DIR/weekly/$STAMP"; fi
 if [ "$KEEP_M" -gt 0 ] && [ "$(date +%d)" = 01 ]; then cp -al "$DEST" "$BACKUP_DIR/monthly/$STAMP"; fi
 prune "$BACKUP_DIR/daily" "$KEEP_D"; prune "$BACKUP_DIR/weekly" "$KEEP_W"; prune "$BACKUP_DIR/monthly" "$KEEP_M"
-[ -z "$REMOTE_ERR" ] || die "$REMOTE_ERR"
 
 NOW=$(date +%s)
 echo "$NOW" > "$BACKUP_DIR/last_success"
 metric_write "$NOW" "$NOW" 1 "$((NOW-START))" "$DBB" "$UPB" "" ""
+metric_remote_write || true
 status_success "$STAMP" "$((DBB+UPB))" "$((NOW-START))" "$DB_OK" "$FILES_OK"
 log "TAMAM: $STAMP db=$(human "$DBB") uploads=$(human "$UPB") sure=$((NOW-START))sn"
