@@ -33,3 +33,30 @@ Hepsi geriye uyumludur (yalnizca ekleme).
 - `application.properties`: `spring.messages.basename=i18n/messages,i18n/news`
   (yeni anahtarlar: `error.NEWS_TYPE_INVALID`, `error.MENU_MONTH_INVALID`, `status.maintenance.NEWS|MENU`;
   yuklenmezse `maintenanceMessage` null, hata metni koddaki Turkce varsayilana duser).
+
+## P07 duzeltme turu (icerik / kazima / sozlesme / destek / onbellek)
+
+Istemci etkisi (mobil/web kodu DEGISMEDI; sozlesme):
+- `GET /api/news?q=`: metin aramasi **en az 3 karakter** (onceden 2; 2 karakter `400 VALIDATION_ERROR`), **IP basina dakikada 30**
+  (asilirsa `429 RATE_LIMITED` + `Retry-After`), `page` ust siniri 200 (ustu 200'e indirgenir). Aramasiz liste/sayfa degismedi.
+  Web `NewsListPage` "en az 2 karakter" kuralini 3'e cekmeli.
+- `POST /api/admin/sync` ve `/api/admin/sync-menu`: kaynak basina saatte 3 (panelin `/api/admin/sources/*/sync` ucuyla ayni
+  sayac); asilirsa 429. Yanit bicimi ayni (senkron).
+- `GET /api/legal/{type}/versions` ve bekleyen onay/yeniden onay okumalari sozlesme METNINI okumaz (cevap ayni); sunucu onbellegi `legal` ad alani.
+- `GET /api/menu/today` `Cache-Control` max-age 300 -> 60 (gun donumunde dunun menusu ara onbellekte 15 dk kalmasin).
+- Herkese acik destek (`/api/public/support/tickets`, `/verify`): cevap sozlesmesi ayni; SMTP gonderimi artik veritabani isleminin
+  disinda. E-posta basina gunluk 5 sayaci yalniz bal kabagi/hiz elemesini gecen gecerli isteklerde harcanir.
+
+Sunucu davranisi:
+- Haber liste/arama/favoriler `content` (TEXT) okumaz (`NewsRow` / `NewsSearchRow` dar projeksiyon).
+- Menu: ayin sonu cekimi basarisiz olursa bir ay beklenmez. Gunluk **06:00 "yakalama"** (`menu.catchup.cron`, K20 CLAUDE.md "cron
+  sikilastirma" kuralina bilincli istisna): icinde bulunulan ayda >= 20 gun varsa kaynaga ISTEK ATMAZ; ay bossa gunde en cok bir
+  istek, ay kismen doluysa yalniz ayin ilk 7 gunu. Bakim bandi (`GET /api/status`) yalniz icinde bulunulan ayin menusu bossa gosterilir
+  (`StatusService.markAttempt`: son deneme yazilir, bakim acilmaz).
+- Birim haberleri: toplu senkron icin 45 dk sure butcesi (`unitnews.sync.budget-minutes`), kaynaklar en eski denenenden baslar,
+  butce dolunca kalan kaynaklar ertesi geceye (`unit_source.last_message`); liste govde okumaz, hedef eslesmesi `unitnews` ad alaninda onbellekli.
+- Ilk dolum ve yonetici tetiklemeleri adlandirilmis tek is parcacigi (`content-sync`, `SyncExecutor`); eskiden ortak ForkJoin havuzu.
+- Haber senkronu: ortada hata olsa da o ana dek kaydedilen kayitlar icin bildirim gider; `InterruptedException` bayragi korunur;
+  `sync_status.message` 500 karaktere kirpilir; ana site yonlendirmeleri elle izlenir (yalniz `www.bingol.edu.tr`, https, en cok 3).
+- `CacheService.invalidate`: ayni islemde ayni ad alani commit sonrasi TEK kez gecersiz kilinir (toplu kalori yazimi).
+- Yonetici destek/geri bildirim CSV'si id azalan 1000'luk sayfalarla akar (50 bin entity bellekte tutulmaz).

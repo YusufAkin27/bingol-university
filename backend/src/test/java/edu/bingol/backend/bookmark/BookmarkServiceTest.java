@@ -14,7 +14,7 @@ import edu.bingol.backend.common.ApiException;
 import edu.bingol.backend.common.CursorPage;
 import edu.bingol.backend.bookmark.dto.BookmarkView;
 import edu.bingol.backend.news.ContentType;
-import edu.bingol.backend.news.NewsItem;
+import edu.bingol.backend.news.NewsRow;
 import edu.bingol.backend.news.NewsRepository;
 import java.time.Instant;
 import java.util.List;
@@ -82,7 +82,8 @@ class BookmarkServiceTest {
     void listPagesWithCursorAndSkipsMissingNews() {
         // size 2 istendi -> 3 satir geldi: sonraki sayfa var, imec son gosterilen kaydin id'si
         when(repo.page(anyLong(), any(), anyLong(), any())).thenReturn(List.of(bm(30, 3), bm(20, 2), bm(10, 1)));
-        when(news.findAllById(any())).thenReturn(List.of(item(3L)));
+        NewsRow found = item(3L);
+        when(news.findByIdInAndHiddenFalse(any())).thenReturn(List.of(found));
 
         CursorPage<BookmarkView> page = service.list(1L, null, 2);
 
@@ -101,12 +102,12 @@ class BookmarkServiceTest {
         return b;
     }
 
-    private static NewsItem item(long id) {
-        NewsItem n = new NewsItem();
-        n.setId(id);
-        n.setType(ContentType.HABER);
-        n.setTitle("Baslik");
-        n.setUrl("https://x/" + id);
+    private static NewsRow item(long id) {
+        NewsRow n = mock(NewsRow.class);
+        when(n.getId()).thenReturn(id);
+        when(n.getType()).thenReturn(ContentType.HABER);
+        when(n.getTitle()).thenReturn("Baslik");
+        when(n.getUrl()).thenReturn("https://x/" + id);
         return n;
     }
 }

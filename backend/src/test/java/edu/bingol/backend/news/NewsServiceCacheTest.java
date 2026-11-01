@@ -39,13 +39,26 @@ class NewsServiceCacheTest {
         return n;
     }
 
+    private static NewsRow row(long id, String title) {
+        NewsRow r = mock(NewsRow.class);
+        when(r.getId()).thenReturn(id);
+        when(r.getType()).thenReturn(ContentType.HABER);
+        when(r.getTitle()).thenReturn(title);
+        when(r.getSummary()).thenReturn("ozet");
+        when(r.getUrl()).thenReturn("https://www.bingol.edu.tr/" + id);
+        when(r.getPublishedDate()).thenReturn(LocalDate.of(2026, 10, 1));
+        return r;
+    }
+
     @BeforeEach
     void wire() {
         service.setCache(cache);
+        NewsRow r1 = row(1, "Baslik");
+        NewsRow r2 = row(2, "Tur");
         when(repo.findByHiddenFalse(any(Pageable.class)))
-                .thenReturn(new PageImpl<>(List.of(item(1, "Baslik")), PageRequest.of(0, 20), 1));
+                .thenReturn(new PageImpl<>(List.of(r1), PageRequest.of(0, 20), 1));
         when(repo.findByTypeAndHiddenFalse(any(ContentType.class), any(Pageable.class)))
-                .thenReturn(new PageImpl<>(List.of(item(2, "Tur")), PageRequest.of(0, 20), 1));
+                .thenReturn(new PageImpl<>(List.of(r2), PageRequest.of(0, 20), 1));
     }
 
     @Test

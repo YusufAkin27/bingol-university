@@ -4,6 +4,7 @@ import edu.bingol.backend.academic.AudienceKey;
 import edu.bingol.backend.admin.AuditContext;
 import edu.bingol.backend.admin.UserFilter;
 import edu.bingol.backend.common.ApiException;
+import edu.bingol.backend.status.SyncExecutor;
 import edu.bingol.backend.unitnews.UnitNewsDtos.AdminItem;
 import edu.bingol.backend.unitnews.UnitNewsDtos.AdminPage;
 import edu.bingol.backend.unitnews.UnitNewsDtos.DepartmentView;
@@ -16,7 +17,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.CompletableFuture;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -35,6 +36,12 @@ public class UnitNewsAdminService {
     private final UnitDepartmentRepository depts;
     private final UnitNewsSyncService sync;
     private final NamedParameterJdbcTemplate jdbc;
+    private SyncExecutor syncExecutor;
+
+    @Autowired(required = false)
+    void setSyncExecutor(SyncExecutor syncExecutor) {
+        this.syncExecutor = syncExecutor;
+    }
 
     public UnitNewsAdminService(UnitSourceRepository sources, UnitDepartmentRepository depts, UnitNewsSyncService sync,
                                 NamedParameterJdbcTemplate jdbc) {
@@ -83,7 +90,7 @@ public class UnitNewsAdminService {
         if (sync.isRunning()) {
             return new SyncResult(0, false);
         }
-        CompletableFuture.runAsync(() -> {
+        SyncExecutor.dispatch(syncExecutor, () -> {
             if (code == null) {
                 sync.syncAll();
             } else {

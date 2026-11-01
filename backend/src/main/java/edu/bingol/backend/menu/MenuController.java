@@ -1,8 +1,10 @@
 package edu.bingol.backend.menu;
 
+import edu.bingol.backend.common.RateLimiter;
 import edu.bingol.backend.menu.dto.MenuResponse;
 import java.time.YearMonth;
 import java.time.format.DateTimeParseException;
+import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import org.springframework.http.ResponseEntity;
@@ -18,10 +20,12 @@ public class MenuController {
 
     private final MenuService menu;
     private final MenuSyncService sync;
+    private final RateLimiter limiter;
 
-    public MenuController(MenuService menu, MenuSyncService sync) {
+    public MenuController(MenuService menu, MenuSyncService sync, RateLimiter limiter) {
         this.menu = menu;
         this.sync = sync;
+        this.limiter = limiter;
     }
 
     /** GET /api/menu?month=2026-10 (varsayilan: icinde bulunulan ay). Gecersiz ay -> 400 MENU_MONTH_INVALID. */
@@ -35,9 +39,10 @@ public class MenuController {
         return ResponseEntity.of(menu.today());
     }
 
-    /** Manuel tetikleme (ADMIN). */
+    /** Manuel tetikleme (ADMIN). Saatte 3 (panelin SourcesService.sync uciyla ayni sayac); asilirsa 429 + Retry-After. */
     @PostMapping("/admin/sync-menu")
     public Map<String, Integer> triggerSync() {
+        limiter.check("sources-sync:MENU", 3, Duration.ofHours(1));
         return Map.of("changed", sync.sync());
     }
 }

@@ -55,7 +55,7 @@ public class CacheService {
 
     /** Bilinen tum ad alanlari: her acilista gecersiz kilinir (Redis kayitlari yeniden dagitimdan sag cikar; migration ile degisen veri bayat kalmasin). */
     public static final java.util.List<String> NAMESPACES =
-            java.util.List.of("news", "menu", "status", "appinfo", "legal", "faq", "categories");
+            java.util.List.of("news", "menu", "status", "appinfo", "legal", "faq", "categories", "unitnews");
 
     private record L1Entry(Object value, long l1FreshUntil, long freshUntil, long staleUntil, long localVer) {}
 
@@ -278,6 +278,21 @@ public class CacheService {
 
     // ---- gecersiz kilma ----
 
+    /** Islem basina tek kayit: commit sonrasi biriken ad alanlarini bir kez gecersiz kilar. */
+    private static final class BatchInvalidation implements TransactionSynchronization {
+        final CacheService owner;
+        final java.util.Set<String> namespaces = new java.util.LinkedHashSet<>();
+
+        BatchInvalidation(CacheService owner) {
+            this.owner = owner;
+        }
+
+        @Override
+        public void afterCommit() {
+            owner.invalidateNow(namespaces.toArray(new String[0]));
+        }
+    }
+
     /**
      * Ad alanlarini gecersiz kilar. Etkin bir islem varsa COMMIT'ten SONRA calisir (commit oncesi silmek, okuyucunun
      * eski veriyi yeniden doldurmasina yol acar); geri alinan islemde hic calismaz.
@@ -289,12 +304,22 @@ public class CacheService {
         String[] copy = namespaces.clone();
         if (TransactionSynchronizationManager.isSynchronizationActive()
                 && TransactionSynchronizationManager.isActualTransactionActive()) {
-            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
-                @Override
-                public void afterCommit() {
-                    invalidateNow(copy);
+            // Ayni islemde ayni ad alani tekrar tekrar istenirse (toplu kalori yazimi: binlerce varlik olayi) tek kayit:
+            // commit sonrasi ad alani basina yalniz BIR gecersiz kilma (Redis INCR+EXPIRE ve L1 taramasi bir kez).
+            // Durum islem kaynaklarinda degil senkronizasyon nesnesinin kendisinde tutulur: islem bitince nesne de gider,
+            // thread-local'de artik kalamaz.
+            BatchInvalidation mine = null;
+            for (TransactionSynchronization sync : TransactionSynchronizationManager.getSynchronizations()) {
+                if (sync instanceof BatchInvalidation bi && bi.owner == this) {
+                    mine = bi;
+                    break;
                 }
-            });
+            }
+            if (mine == null) {
+                mine = new BatchInvalidation(this);
+                TransactionSynchronizationManager.registerSynchronization(mine);
+            }
+            java.util.Collections.addAll(mine.namespaces, copy);
         } else {
             invalidateNow(copy);
         }

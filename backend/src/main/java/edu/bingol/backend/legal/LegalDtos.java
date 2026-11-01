@@ -16,6 +16,17 @@ public final class LegalDtos {
         static LegalSummary of(LegalDocument d) {
             return new LegalSummary(d.getType(), d.getVersion(), d.getTitle(), d.getLang(), d.getPublishedAt().toString());
         }
+
+        static LegalSummary of(DocumentRepository.DocHead d) {
+            return new LegalSummary(d.getType(), d.getVersion(), d.getTitle(), d.getLang(), d.getPublishedAt().toString());
+        }
+    }
+
+    /** Surum listesi satiri (metinsiz) ve bekleyen onay hesabi icin onbellekli baslik. */
+    public record BaseDoc(LegalType type, int version, boolean requireReaccept, String title) {
+        static BaseDoc of(DocumentRepository.DocHead h) {
+            return new BaseDoc(h.getType(), h.getVersion(), h.isRequireReaccept(), h.getTitle());
+        }
     }
 
     public record LegalContent(LegalType type, int version, String title, String content, String lang,

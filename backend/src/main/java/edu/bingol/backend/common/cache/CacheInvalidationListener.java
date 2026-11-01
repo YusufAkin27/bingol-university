@@ -29,6 +29,9 @@ public class CacheInvalidationListener {
             Map.entry("AppSetting", new String[] {"appinfo"}),
             Map.entry("LegalDocument", new String[] {"legal"}),
             Map.entry("FaqItem", new String[] {"faq"}),
+            // birim duyurulari: kullanici -> hedef kaynak eslesmesi kaynak/bolum varliklarina baglidir
+            Map.entry("UnitSource", new String[] {"unitnews"}),
+            Map.entry("UnitDepartment", new String[] {"unitnews"}),
             Map.entry("CommunityCategory", new String[] {"categories"}),
             // kategori sayilari (kesfette gorunen kulup) Community durumuna baglidir
             Map.entry("Community", new String[] {"categories"}));

@@ -30,9 +30,15 @@ class PublicCacheInterceptorTest {
 
     @Test
     void anonymousGetGetsPublicHeaderWithStaleWhileRevalidate() {
-        MockHttpServletResponse res = run(interceptor, "GET", "/api/menu/today", false, 200, null);
+        MockHttpServletResponse res = run(interceptor, "GET", "/api/menu", false, 200, null);
         assertEquals("public, max-age=300, stale-while-revalidate=600", res.getHeader("Cache-Control"));
         assertEquals("Accept-Language", res.getHeader("Vary"));
+    }
+
+    @Test
+    void todaysMenuIsCachedShortSoDayRolloverShowsFast() {
+        MockHttpServletResponse res = run(interceptor, "GET", "/api/menu/today", false, 200, null);
+        assertEquals("public, max-age=60, stale-while-revalidate=120", res.getHeader("Cache-Control"));
     }
 
     @Test

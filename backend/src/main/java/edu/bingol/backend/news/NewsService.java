@@ -25,6 +25,10 @@ import tools.jackson.core.type.TypeReference;
 public class NewsService {
 
     private static final int MAX_PAGE_SIZE = 50;
+    /** Sayfa numarasi ust siniri (derin OFFSET taramasi acik uc icin pahali); ustu bu sayfaya indirgenir. */
+    public static final int MAX_PAGE = 200;
+    /** Herkese acik haber aramasi alt siniri (K19): 2 karakter trigram indeksini kullanamaz. */
+    public static final int SEARCH_MIN_LEN = 3;
     /** Onbellege yalniz ilk sayfalar girer (anahtar uzayi sinirli kalsin). */
     private static final int MAX_CACHED_PAGE = 20;
     private static final TypeReference<NewsPage> PAGE = new TypeReference<>() { };
@@ -64,7 +68,7 @@ public class NewsService {
      */
     @Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
     public NewsPage list(ContentType type, String q, int page, int size) {
-        int p = Math.max(page, 0);
+        int p = Math.min(Math.max(page, 0), MAX_PAGE);
         int s = Math.min(Math.max(size, 1), MAX_PAGE_SIZE);
         if ((q == null || q.isBlank()) && p <= MAX_CACHED_PAGE) {
             String key = "list:" + (type == null ? "all" : type.name()) + ":" + p + ":" + s;
@@ -74,16 +78,17 @@ public class NewsService {
     }
 
     private NewsPage load(ContentType type, String q, int p, int s) {
-        Page<NewsItem> result;
         if (q != null && !q.isBlank()) {
-            String nq = SearchQuery.normalize(q);
-            result = repo.searchPage(type == null ? null : type.name(), nq, SearchQuery.likePattern(nq),
-                    PageRequest.of(p, s));
-        } else {
-            Pageable pageable = PageRequest.of(p, s,
-                    Sort.by(Sort.Order.desc("publishedDate").nullsLast(), Sort.Order.desc("id")));
-            result = type == null ? repo.findByHiddenFalse(pageable) : repo.findByTypeAndHiddenFalse(type, pageable);
+            String nq = SearchQuery.normalize(q, SEARCH_MIN_LEN);
+            Page<NewsSearchRow> result = repo.searchPage(type == null ? null : type.name(), nq,
+                    SearchQuery.likePattern(nq), PageRequest.of(p, s));
+            return new NewsPage(result.getContent().stream().map(NewsSummary::of).toList(),
+                    result.getNumber(), result.getTotalPages(), result.getTotalElements());
         }
+        Pageable pageable = PageRequest.of(p, s,
+                Sort.by(Sort.Order.desc("publishedDate").nullsLast(), Sort.Order.desc("id")));
+        Page<NewsRow> result = type == null ? repo.findByHiddenFalse(pageable)
+                : repo.findByTypeAndHiddenFalse(type, pageable);
         return new NewsPage(result.getContent().stream().map(NewsSummary::of).toList(),
                 result.getNumber(), result.getTotalPages(), result.getTotalElements());
     }

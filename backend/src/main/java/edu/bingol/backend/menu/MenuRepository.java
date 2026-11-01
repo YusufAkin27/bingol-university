@@ -11,6 +11,9 @@ public interface MenuRepository extends JpaRepository<MenuDay, Long> {
 
     List<MenuDay> findByMenuDateBetweenOrderByMenuDate(LocalDate from, LocalDate to);
 
+    /** Yakalama isi ve bakim karari icin: bir aralikta kac gunluk menu var (COUNT, satir cekmez). */
+    long countByMenuDateBetween(LocalDate from, LocalDate to);
+
     /** Eski gorsel alanini tasimak icin (yalniz gorselli gunler: kucuk kume). */
     List<MenuDay> findByImageUrlIsNotNull();
 }
