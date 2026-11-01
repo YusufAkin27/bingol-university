@@ -259,6 +259,40 @@ public class CampaignService {
         }
     }
 
+    /** Gonderim ilerleme parcasi: her parcadan sonra isaret yazilir (cokme/yeniden baslatmada devam icin). */
+    static final int PROGRESS_CHUNK = 500;
+
+    /** Bu kadar suredir ilerlemeyen SENDING kampanya yarida kesilmis sayilir. */
+    @org.springframework.beans.factory.annotation.Value("${app.push.campaign-stale-minutes:30}")
+    private long staleMinutes = 30;
+
+    /**
+     * Sunucu gonderim sirasinda yeniden basladi/coktu: SENDING'de takili kampanyalar FAILED olur (cift gonderim riski
+     * yok; yonetici {@link #resend} ile kalan kisilere devam eder).
+     */
+    @Scheduled(fixedDelayString = "${app.push.campaign-recover-ms:60000}")
+    public void recoverStale() {
+        try {
+            int n = campaigns.failStale(Instant.now().minus(Duration.ofMinutes(Math.max(1, staleMinutes))),
+                    "Gönderim yarıda kesildi (sunucu yeniden başladı); yeniden gönderebilirsiniz.");
+            if (n > 0) {
+                log.warn("{} push kampanyasi SENDING'de takili kaldigi icin FAILED yapildi", n);
+            }
+        } catch (RuntimeException e) {
+            log.warn("Takili push kampanyasi kurtarma basarisiz: {}", e.toString());
+        }
+    }
+
+    /** FAILED kampanyayi kalan alicilara yeniden gonderir (ilerleme isareti korunur: gidenlere tekrar gitmez). */
+    public PushCampaign resend(Long id) {
+        get(id);
+        if (campaigns.resendIfFailed(id) == 0) {
+            throw new ApiException(HttpStatus.CONFLICT, "CAMPAIGN_NOT_RESENDABLE",
+                    "Yalnızca başarısız kampanyalar yeniden gönderilebilir.");
+        }
+        return get(id);
+    }
+
     void dispatch(Long id) {
         PushCampaign c = campaigns.findById(id).orElse(null);
         if (c == null) {
@@ -266,12 +300,9 @@ public class CampaignService {
         }
         try {
             // Cozumleyici kimlige gore tekillestirir; gonderim aninda aktif/dogrulanmis olmayan (askida, silinmis) elenir
-            List<Member> recipients =
-                    resolver.resolve(c.getAudienceType(), c.getAudienceValue(), c.getCreatedBy()).members();
-            Map<String, List<Long>> byLang = new HashMap<>();
-            for (Member u : recipients) {
-                byLang.computeIfAbsent(Lang.of(u.language()).code(), k -> new ArrayList<>()).add(u.id());
-            }
+            List<Member> recipients = new ArrayList<>(
+                    resolver.resolve(c.getAudienceType(), c.getAudienceValue(), c.getCreatedBy()).members());
+            recipients.sort(java.util.Comparator.comparing(Member::id));
             c.setAudienceSize(recipients.size());
             Map<String, String> data = new HashMap<>();
             if (c.getTargetType() != PushCampaign.TargetType.NONE) {
@@ -282,15 +313,50 @@ public class CampaignService {
             }
             data.put("campaignId", String.valueOf(c.getId()));
 
-            int sent = 0;
-            for (Map.Entry<String, List<Long>> e : byLang.entrySet()) {
-                Content text = contentFor(c, Lang.of(e.getKey()));
-                sent += notifications.sendBulk(e.getValue(), c.getType(), text.title(), text.body(), data);
+            // Yeniden gonderim: ilerleme isaretinden sonrakilere devam; sayac birikir
+            long after = c.getLastUserId() == null ? 0 : c.getLastUserId();
+            int sent = after > 0 && c.getRecipientCount() != null ? c.getRecipientCount() : 0;
+            int chunks = 0;
+            int failedChunks = 0;
+            List<Member> remaining = recipients.stream().filter(m -> m.id() > after).toList();
+            for (int i = 0; i < remaining.size(); i += PROGRESS_CHUNK) {
+                List<Member> part = remaining.subList(i, Math.min(i + PROGRESS_CHUNK, remaining.size()));
+                Map<String, List<Long>> byLang = new HashMap<>();
+                for (Member u : part) {
+                    byLang.computeIfAbsent(Lang.of(u.language()).code(), k -> new ArrayList<>()).add(u.id());
+                }
+                for (Map.Entry<String, List<Long>> e : byLang.entrySet()) {
+                    Content text = contentFor(c, Lang.of(e.getKey()));
+                    NotificationService.BulkResult r = notifications.sendBulkDetailed(e.getValue(), c.getType(),
+                            text.title(), text.body(), data, c.getType().prefColumn());
+                    sent += r.recipients();
+                    chunks += r.chunks();
+                    failedChunks += r.failedChunks();
+                }
+                c.setLastUserId(part.get(part.size() - 1).id());
+                c.setLastProgressAt(Instant.now());
+                c.setRecipientCount(sent);
+                campaigns.save(c); // ilerleme isareti + canlilik (recoverStale bunu okur)
             }
-            c.setStatus(PushCampaign.Status.SENT);
             c.setRecipientCount(sent);
             c.setFinishedAt(Instant.now());
-            log.info("Push kampanyasi {} gonderildi: {} kisi", id, sent);
+            if (chunks > 0 && failedChunks == chunks) {
+                // Hicbir parca gitmedi: "SENT, 0 kisi" yazmak yaniltici; FAILED + yeniden gonder
+                c.setStatus(PushCampaign.Status.FAILED);
+                c.setError("Hiçbir alıcıya gönderilemedi (" + failedChunks + " parça başarısız).");
+                log.error("Push kampanyasi {} hic gonderilemedi ({} parca)", id, failedChunks);
+            } else {
+                c.setStatus(PushCampaign.Status.SENT);
+                if (failedChunks > 0) {
+                    // Kismi basarisizlik: durum SENT kalir (istemci durum kumesi degismesin), hata alani uyarir
+                    c.setError("Kısmi: " + failedChunks + "/" + chunks + " parça gönderilemedi.");
+                    log.warn("Push kampanyasi {} kismen gonderildi: {} kisi, {}/{} parca basarisiz", id, sent,
+                            failedChunks, chunks);
+                } else {
+                    c.setError(null);
+                    log.info("Push kampanyasi {} gonderildi: {} kisi", id, sent);
+                }
+            }
         } catch (RuntimeException e) {
             log.error("Push kampanyasi {} basarisiz", id, e);
             c.setStatus(PushCampaign.Status.FAILED);

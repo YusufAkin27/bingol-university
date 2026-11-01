@@ -171,4 +171,38 @@ class PushOutboxServiceTest {
         o.setCreatedAt(created);
         return o;
     }
+
+    @Test
+    void retryDeadSkipsPermanentErrorCodesAndExpiredRows() {
+        Device a = device();
+        Device b = device();
+        Device c = device();
+        service.enqueueTokens(List.of(a.getFcmToken(), b.getFcmToken(), c.getFcmToken()), message, null);
+        List<PushOutbox> rows = repo.findAll();
+        for (PushOutbox r : rows) {
+            r.setStatus(PushOutboxStatus.DEAD);
+        }
+        rows.get(0).setErrorCode("UNREGISTERED");              // kalici: cihaz silinmis, yeniden deneme anlamsiz
+        rows.get(1).setErrorCode("THIRD_PARTY_AUTH_ERROR");    // yapilandirma duzeltilince yeniden denenmeli
+        rows.get(2).setErrorCode("SEND_ERROR");
+        rows.get(2).setCreatedAt(Instant.now().minus(Duration.ofHours(30))); // 24 saatten eski: isleyicide hemen EXPIRED olurdu
+        repo.saveAllAndFlush(rows);
+
+        assertThat(service.retryDead()).isEqualTo(1);
+
+        assertThat(repo.findById(rows.get(0).getId()).orElseThrow().getStatus()).isEqualTo(PushOutboxStatus.DEAD);
+        assertThat(repo.findById(rows.get(1).getId()).orElseThrow().getStatus()).isEqualTo(PushOutboxStatus.PENDING);
+        assertThat(repo.findById(rows.get(2).getId()).orElseThrow().getStatus()).isEqualTo(PushOutboxStatus.DEAD);
+    }
+
+    @Test
+    void dedupeAcrossManyDevicesUsesOneLookupAndSkipsOnlyQueuedOnes() {
+        Device a = device();
+        Device b = device();
+        assertThat(service.enqueueTokens(List.of(a.getFcmToken()), message, "k:1")).isEqualTo(1);
+
+        // a zaten bekliyor, b yeni: yalniz b yazilir
+        assertThat(service.enqueueTokens(List.of(a.getFcmToken(), b.getFcmToken()), message, "k:1")).isEqualTo(1);
+        assertThat(repo.activeDeviceIds("k:1", List.of(a.getId(), b.getId()))).containsExactlyInAnyOrder(a.getId(), b.getId());
+    }
 }

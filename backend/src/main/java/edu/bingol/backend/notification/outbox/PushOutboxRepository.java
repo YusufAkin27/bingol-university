@@ -54,12 +54,35 @@ public interface PushOutboxRepository extends JpaRepository<PushOutbox, Long> {
             + "edu.bingol.backend.notification.outbox.PushOutboxStatus.FAILED)")
     boolean existsActive(@Param("key") String dedupeKey, @Param("deviceId") Long deviceId);
 
+    /** Yeniden denemenin anlamsiz oldugu KALICI hata kodlari (cihaz silinmis, yuk bozuk, suresi dolmus). */
+    List<String> PERMANENT_ERROR_CODES = List.of("UNREGISTERED", "DEVICE_MISSING", "PAYLOAD_UNREADABLE", "EXPIRED");
+
+    /** Yeniden kuyruga alinan kayit bu yastan genc olmali: daha eskisi isleyicide hemen EXPIRED olurdu. */
+    java.time.Duration REQUEUE_MAX_AGE = java.time.Duration.ofHours(24);
+
+    /**
+     * Yonetici toplu yeniden deneme: yalniz DEAD ve kalici olmayan hata kodlu ({@code permanent} disindaki), yeterince
+     * taze kayitlar PENDING olur. Eskiden hepsi alinir, kalici hatalilar bos yere FCM turu atip tekrar olurdu.
+     */
+    /** Toplu karsiligi ({@link #existsActive}): bu anahtarla zaten bekleyen kaydi olan cihazlar (cihaz basina sorgu yok). */
+    @Query("SELECT o.deviceId FROM PushOutbox o WHERE o.dedupeKey = :key AND o.deviceId IN :ids AND o.status IN "
+            + "(edu.bingol.backend.notification.outbox.PushOutboxStatus.PENDING, "
+            + "edu.bingol.backend.notification.outbox.PushOutboxStatus.SENDING, "
+            + "edu.bingol.backend.notification.outbox.PushOutboxStatus.FAILED)")
+    List<Long> activeDeviceIds(@Param("key") String dedupeKey, @Param("ids") Collection<Long> deviceIds);
+
     @Transactional
     @Modifying
     @Query("UPDATE PushOutbox o SET o.status = edu.bingol.backend.notification.outbox.PushOutboxStatus.PENDING, "
             + "o.attempts = 0, o.nextAttemptAt = :now, o.leaseUntil = NULL "
-            + "WHERE o.status = edu.bingol.backend.notification.outbox.PushOutboxStatus.DEAD")
-    int requeueDead(@Param("now") Instant now);
+            + "WHERE o.status = edu.bingol.backend.notification.outbox.PushOutboxStatus.DEAD "
+            + "AND (o.errorCode IS NULL OR o.errorCode NOT IN :permanent) AND o.createdAt > :minCreated")
+    int requeueRetryableDead(@Param("now") Instant now, @Param("permanent") Collection<String> permanent,
+                             @Param("minCreated") Instant minCreated);
+
+    default int requeueDead(Instant now) {
+        return requeueRetryableDead(now, PERMANENT_ERROR_CODES, now.minus(REQUEUE_MAX_AGE));
+    }
 
     @Transactional
     @Modifying

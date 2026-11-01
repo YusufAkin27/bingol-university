@@ -49,7 +49,7 @@ public final class NotificationDtos {
     public record DeletedCount(int deleted) {}
 
     /** ids veya all=true'dan biri verilmeli. */
-    public record MarkReadRequest(List<Long> ids, Boolean all) {}
+    public record MarkReadRequest(@jakarta.validation.constraints.Size(max = 200) List<Long> ids, Boolean all) {}
 
     /** Sessiz saatler; start/end "HH:mm" (kullanicinin saat diliminde), start == end gecersiz. */
     public record QuietHoursView(boolean enabled, @Pattern(regexp = "([01]\\d|2[0-3]):[0-5]\\d") String start,

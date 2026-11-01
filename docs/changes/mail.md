@@ -83,3 +83,11 @@ Yeni uclar (`/api/admin/mail/**`, yalniz ADMIN; yazmalar sebep ister ve `AuditCo
 - `AdminGuardPolicy`: elle bastirma, bastirma kaldirma, tek/toplu retry-cancel sebep ister ve "yikici" (saatlik sinir) sayilir. Hata kodlari `i18n/mailops*.properties` (`MAILOPS_*`).
 - Web: `/admin/mail/queue` (kuyruk + kota karti), `/admin/mail/suppressions`; yalniz Turkce (`i18n/tr/admin-p13.ts`).
 - Duman: `scripts/smoke-admin-mailops.sh`.
+
+## FIX-P04: mail kuyruğu dayanıklılığı
+
+- **Kampanya iptali kuyruğu durdurur.** `mail_outbox.campaign_id` (V1100, kısmi indeks `ntf1100_mail_campaign_idx`); `MailService.enqueue(..., Long campaignId)` kampanya dağıtıcısı tarafından kullanılır. Yönetici `cancel` artık `PENDING/FAILED` kuyruk satırlarını `SKIPPED` yapar (değişkenler temizlenir) ve karşılık gelen `QUEUED` alıcı satırlarını `CANCELLED`'a çevirir. `Counters` yanıtına `sent`, `dead`, `outboxSkipped` alanları eklendi (kuyruk durumundan türetilir; eski alanlar değişmedi).
+- **İşçi.** İşlemsel (kod/güvenlik) turu kendi yürütücüsünde, duyurular ayrı yürütücüde (`mail-announce`); yavaş bir duyuru SMTP'si zamanlayıcı havuzunu ve doğrulama kodlarını bloklamaz. `MailQueued` olayları `roundQueued` ile birleşir (200 kayıt = en çok 2 tur). Günlük duyuru kotası dolunca kayıtlar kiralanmaz; zamanı gelen tüm duyurular TEK `UPDATE` ile kota gününün dönüşüne ertelenir (eskiden 5 sn'de 20 kayıt tek tek yarına taşınırdı). Gönderimden hemen önce kira `UPDATE .. WHERE next_attempt_at = :claimed` ile yenilenir; kira bu arada başka iş parçacığına geçtiyse kayıt atlanır (çift posta yok).
+- **Herkese açık destek kodu kuyruktan.** `MailService.enqueuePublicCode(String to, String code, int minutes, Lang lang)` → şablon `SUPPORT_CODE` (`mail.tpl.supportcode.*`, tr/en/ar). `sendPublicCode` ile aynı korumalar (kota 503, alıcı başına günlük sınır 429), kod 10 dk sonra bayatlar (`MailTemplate.isCode()`). `PublicSupportService`'in çağrısı P07 işidir; senkron `sendPublicCode` bu sürümde silinmedi.
+- **Bastırma kapısı.** `MailSuppressionGateImpl.blocked` e-posta özetlerini bellekte hesaplar ve `MailSuppressionService.suppressedAmong` ile TEK sorguda tarar (kullanıcı başına `exists` yok).
+- **Değişmeyenler.** Kuyrukta 30 günlük silme politikası (K13) ve `max-code-requests-per-ip-per-day` sınırları (K12) olduğu gibi.

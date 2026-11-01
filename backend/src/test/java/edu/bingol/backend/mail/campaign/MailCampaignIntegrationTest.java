@@ -498,4 +498,36 @@ class MailCampaignIntegrationTest {
         Map<Long, String> blocked = realGate.blocked(List.of(a.getId(), b.getId()));
         assertEquals(Map.of(a.getId(), "SUPPRESSED"), blocked);
     }
+
+    /** P04 (A04#2): iptal, kuyruga alinmis ama henuz gonderilmemis postalari da durdurur; kampanya bagi kuyrukta tutulur. */
+    @Test
+    void cancelStopsMailsAlreadyQueuedInOutbox() {
+        User admin = user(null, "tr");
+        String f = uniqueFaculty();
+        User u1 = user(f, "tr");
+        User u2 = user(f, "tr");
+        TemplateView t = publishedTemplate(admin.getId(), false);
+        CampaignView c = campaigns.create(admin.getId(), request(t.id(), faculty(f), null, null));
+        campaigns.schedule(c.id(), null);
+        dispatcher.tick(); // iki alici kuyruga yazildi
+        assertEquals(1, outboxFor(u1));
+        assertEquals(2, jdbc.queryForObject("SELECT COUNT(*) FROM mail_outbox WHERE campaign_id = ? AND status = 'PENDING'",
+                Integer.class, c.id()));
+        // kampanya hala gonderiliyor sayilsin (gercekte kuyruk saatlerce bosalir): elle SENDING'e al
+        MailCampaign entity = campaignRepo.findById(c.id()).orElseThrow();
+        entity.setStatus(MailCampaign.Status.SENDING);
+        campaignRepo.save(entity);
+
+        CampaignView cancelled = campaigns.cancel(c.id());
+
+        assertEquals(MailCampaign.Status.CANCELLED, cancelled.status());
+        assertEquals(0, jdbc.queryForObject("SELECT COUNT(*) FROM mail_outbox WHERE campaign_id = ? AND status = 'PENDING'",
+                Integer.class, c.id()));
+        assertEquals(2, jdbc.queryForObject("SELECT COUNT(*) FROM mail_outbox WHERE campaign_id = ? AND status = 'SKIPPED'",
+                Integer.class, c.id()));
+        assertEquals(2, cancelled.counters().cancelled()); // QUEUED alici satirlari CANCELLED'a dondu
+        assertEquals(0, cancelled.counters().queued());
+        assertEquals(2, cancelled.counters().outboxSkipped());
+        assertEquals(0, cancelled.counters().sent());
+    }
 }

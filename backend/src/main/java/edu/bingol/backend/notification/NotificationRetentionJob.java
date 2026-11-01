@@ -9,8 +9,11 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 /**
- * Saklama suresi: okunmus bildirimler `app.notification.retention-days` (varsayilan 90) sonra,
- * hic okunmamislar `app.notification.unread-retention-days` (varsayilan 365) sonra silinir. Gece 03:30 (Istanbul).
+ * Saklama suresi: okunmus bildirimler `app.notification.retention-days` (varsayilan 30) sonra,
+ * hic okunmamislar `app.notification.unread-retention-days` (varsayilan 90) sonra silinir. Gece 03:30 (Istanbul).
+ * Varsayilanlar application.properties ve {@code DbMaintenanceJob} ile AYNIDIR (eskiden kodda 90/365 idi, ayni anahtar
+ * iki yerde farkli varsayilan tasiyordu). Asil temizligi 03:00'te {@code DbMaintenanceJob} parcali yapar; bu gorev ikinci
+ * emniyet agidir (o gece atlanan/yarim kalan satirlar icin) ve normalde silinecek satir bulamaz.
  */
 @Component
 public class NotificationRetentionJob {
@@ -22,8 +25,8 @@ public class NotificationRetentionJob {
     private final int unreadDays;
 
     public NotificationRetentionJob(NotificationRepository notifications,
-                                    @Value("${app.notification.retention-days:90}") int readDays,
-                                    @Value("${app.notification.unread-retention-days:365}") int unreadDays) {
+                                    @Value("${app.notification.retention-days:30}") int readDays,
+                                    @Value("${app.notification.unread-retention-days:90}") int unreadDays) {
         this.notifications = notifications;
         this.readDays = readDays;
         this.unreadDays = unreadDays;

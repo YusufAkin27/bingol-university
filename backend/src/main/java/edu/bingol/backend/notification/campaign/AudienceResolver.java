@@ -1,5 +1,6 @@
 package edu.bingol.backend.notification.campaign;
 
+import edu.bingol.backend.academic.AudienceKey;
 import edu.bingol.backend.notification.campaign.PushCampaign.AudienceType;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -40,9 +41,17 @@ public class AudienceResolver {
         List<String> notFound = List.of();
         switch (type) {
             case ALL -> rows = query("", new MapSqlParameterSource());
-            case DEPARTMENT -> rows = query(" AND department = :v", new MapSqlParameterSource("v", value));
-            case FACULTY -> rows = query(" AND faculty = :v", new MapSqlParameterSource("v", value));
-            case CLASS_YEAR -> rows = query(" AND class_year = :v", new MapSqlParameterSource("v", Short.parseShort(value)));
+            // Duyuru/anket/sinav ile AYNI eslesme: buyuk-kucuk harf ve Turkce I/İ farki yok sayilir (AudienceKey)
+            case DEPARTMENT -> rows = query(" AND " + AudienceKey.sql("department") + " = :v",
+                    new MapSqlParameterSource("v", AudienceKey.of(value)));
+            case FACULTY -> rows = query(" AND " + AudienceKey.sql("faculty") + " = :v",
+                    new MapSqlParameterSource("v", AudienceKey.of(value)));
+            case CLASS_YEAR -> {
+                // Eski `class_year` sayisi VEYA yeni `grade` katalogu (PREP, 1..6, MASTER, PHD): ikisinden biri eslesirse
+                short year = Short.parseShort(value);
+                rows = query(" AND (class_year = :v OR UPPER(TRIM(grade)) = :g)",
+                        new MapSqlParameterSource("v", year).addValue("g", gradeOfYear(year)));
+            }
             case LANGUAGE -> rows = query(" AND language = :v", new MapSqlParameterSource("v", value));
             case ADMINS -> rows = query(" AND role = 'ADMIN'", new MapSqlParameterSource());
             case SELF -> rows = query(" AND id = :v", new MapSqlParameterSource("v", adminId));
@@ -80,6 +89,16 @@ public class AudienceResolver {
             unique.putIfAbsent(m.id(), m);
         }
         return new Resolved(new ArrayList<>(unique.values()), notFound);
+    }
+
+    /** Kampanya "sinif" degeri (0..8) -> grade katalog degeri (0 hazirlik, 7 yuksek lisans, 8 doktora). */
+    static String gradeOfYear(short year) {
+        return switch (year) {
+            case 0 -> "PREP";
+            case 7 -> "MASTER";
+            case 8 -> "PHD";
+            default -> String.valueOf(year);
+        };
     }
 
     private List<Member> query(String where, MapSqlParameterSource p) {

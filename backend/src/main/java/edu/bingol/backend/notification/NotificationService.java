@@ -463,7 +463,177 @@ public class NotificationService {
                 i18n.msg(t.key() + ".body", lang, (Object[]) args), data);
     }
 
+    /**
+     * Cok alicili SABLONLU bildirim (P04 toplu API): {@link #sendTemplate} ile AYNI karar tablosu (aktiflik, tur ve alt
+     * tur tercihi, sessiz saat, PushGate, birlesme anahtari, alici dili) ama alici basina degil parca (250) basina
+     * sabit sayida sorgu: aktiflik+dil, tercih, alt tur tercihi, bildirim satiri (tek INSERT ya da `ON CONFLICT`
+     * upsert), cihaz token'lari ve rozet sayilari birer IN sorgusudur. Cagiran istek/tx disinda (afterCommit + havuz)
+     * cagirmalidir; metot exception sizdirmaz.
+     * <p>
+     * Tum alicilar ayni birlesme anahtarini paylasir (`collapseKey` null ise birlesme yok). MESSAGE turu desteklenmez
+     * ({@link #sendNewMessageBatch} kullanin). Veritabani PostgreSQL degilse (H2 testleri) alici basina eski yola duser.
+     * Rozet = bildirim kutusu okunmamisi (sohbet payi eklenmez; istemci acilista /api/me/summary ile duzeltir).
+     *
+     * @param args sablon argumanlari (icerik kaynakli, cevrilmez)
+     * @return uygulama ici kaydi yazilan kullanici sayisi (PostgreSQL disinda: islenen alici sayisi)
+     */
+    public int sendTemplatedBulk(Collection<Long> userIds, NotificationTemplates.Template t, Map<String, String> data,
+                                 String collapseKey, String... args) {
+        return sendTemplatedBulkBy(userIds, t, data, collapseKey == null ? null : id -> collapseKey, args);
+    }
+
+    /** {@link #sendTemplatedBulk} ile ayni; birlesme anahtari alici basina farkli olabilir (null donen = birlesme yok). */
+    public int sendTemplatedBulkBy(Collection<Long> userIds, NotificationTemplates.Template t,
+                                   Map<String, String> data, Function<Long, String> collapseKeyFn, String... args) {
+        if (userIds == null || userIds.isEmpty() || t == null) {
+            return 0;
+        }
+        if (t.type() == NotificationType.MESSAGE) {
+            throw new IllegalArgumentException("MESSAGE turu sendNewMessageBatch ile gonderilir");
+        }
+        List<Long> all = new ArrayList<>(new java.util.LinkedHashSet<>(userIds));
+        all.removeIf(java.util.Objects::isNull);
+        if (batchWriter == null || !batchWriter.supported()) {
+            for (Long id : all) {
+                sendTemplate(id, t, data, collapseKeyFn == null ? null : collapseKeyFn.apply(id), args);
+            }
+            return all.size();
+        }
+        int total = 0;
+        for (int i = 0; i < all.size(); i += BATCH_CHUNK) {
+            List<Long> chunk = all.subList(i, Math.min(i + BATCH_CHUNK, all.size()));
+            try {
+                total += templatedChunk(chunk, t, data, collapseKeyFn, args);
+            } catch (RuntimeException e) {
+                log.warn("Toplu sablonlu bildirim parcasi basarisiz ({} alici, {}): {}", chunk.size(), t.key(), e.toString());
+            }
+        }
+        return total;
+    }
+
+    /** Parca icinde ayni dil + birlesme anahtarini paylasan alicilar. */
+    private record TemplGroup(Lang lang, String key) {}
+
+    /** Yazilan satirin push adayi: ayni metin/sayac/rozet taşıyanlar tek dagitimda toplanir. */
+    private record TemplPush(String title, String body, String key, int count, int badge) {}
+
+    private int templatedChunk(List<Long> chunk, NotificationTemplates.Template t, Map<String, String> data,
+                               Function<Long, String> keyFn, String[] args) {
+        Instant now = Instant.now();
+        NotificationType type = t.type();
+        NotificationSubtype sub = t.subtype();
+        Map<Long, Lang> receivable = new java.util.HashMap<>(guard.receivable(chunk)); // askidaki/silinmis hesap elenir (1 sorgu)
+        if (type == NotificationType.SYSTEM) {
+            // SYSTEM (hesap/moderasyon) askidaki hesaba da gider: eksik olanlarin dilini tek tek cozeriz (nadir)
+            for (Long id : chunk) {
+                receivable.computeIfAbsent(id, i18n::langOf);
+            }
+        }
+        if (receivable.isEmpty()) {
+            return 0;
+        }
+        Map<Long, NotificationPref> prefMap = new java.util.HashMap<>();
+        prefs.findAllById(receivable.keySet()).forEach(p -> prefMap.put(p.getUserId(), p)); // 1 sorgu
+        java.util.Set<Long> subOff = sub != null && !sub.flagBacked() && type != NotificationType.SYSTEM
+                ? new java.util.HashSet<>(notifications.subtypeDisabledAmong(receivable.keySet(), sub.name())) // 1 sorgu
+                : java.util.Set.of();
+        String json = toJson(data);
+        String storedData = json != null && json.length() > 1000 ? null : json;
+
+        Map<TemplGroup, List<Long>> groups = new java.util.LinkedHashMap<>();
+        for (Long id : chunk) {
+            if (!receivable.containsKey(id)) {
+                continue;
+            }
+            NotificationPref pref = prefMap.get(id);
+            boolean allowed = enabled(pref, type)
+                    && (sub != null && sub.flagBacked() ? pref == null || sub.flag(pref) : !subOff.contains(id));
+            if (!allowed) {
+                continue;
+            }
+            Lang lang = receivable.get(id) != null ? receivable.get(id) : i18n.langOf(id);
+            String k = keyFn == null ? null : keyFn.apply(id);
+            groups.computeIfAbsent(new TemplGroup(lang, k == null ? null : truncate(k, 120)), g -> new ArrayList<>()).add(id);
+        }
+
+        boolean pushOn = dispatcher.enabled();
+        // uid -> (metin, anahtar, sayac); satir yazildiktan sonra push adayi olur
+        record Pending(Long uid, String title, String body, String key, int count) {}
+        List<Pending> pushCandidates = new ArrayList<>();
+        int written = 0;
+        for (Map.Entry<TemplGroup, List<Long>> e : groups.entrySet()) {
+            Lang lang = e.getKey().lang();
+            String key = e.getKey().key();
+            String title = i18n.msg(t.key() + ".title", lang, (Object[]) args);
+            String body = i18n.msg(t.key() + ".body", lang, (Object[]) args);
+            Map<Long, NotificationBatchWriter.Row> rows = key != null
+                    ? batchWriter.upsertUnread(e.getValue(), type, sub == null ? null : sub.name(), key,
+                            truncate(title, 200), truncate(body, 500), storedData, 1, now)
+                    : batchWriter.insertAll(e.getValue(), type, sub == null ? null : sub.name(), truncate(title, 200),
+                            truncate(body, 500), storedData, now);
+            written += rows.size();
+            if (!pushOn) {
+                continue; // FCM kapali: uygulama ici kayit yazildi, push atlanir
+            }
+            for (Long uid : e.getValue()) {
+                NotificationBatchWriter.Row row = rows.get(uid);
+                if (row == null) {
+                    continue;
+                }
+                if (type != NotificationType.SYSTEM && QuietHours.isQuiet(prefMap.get(uid), now)) {
+                    continue; // sessiz saat: yalniz uygulama ici kayit
+                }
+                int count = row.groupCount();
+                if (type == NotificationType.POST_LIKE && count > 1) {
+                    continue; // birlesen begeni: ilk begeniden push gitti
+                }
+                if (type != NotificationType.SYSTEM && !gate.allowGeneralPush(uid)) {
+                    continue;
+                }
+                pushCandidates.add(new Pending(uid, count > 1 ? truncate(title, 180) + " (" + count + ")" : title,
+                        body, key, count));
+            }
+        }
+        if (pushCandidates.isEmpty()) {
+            return written;
+        }
+        Map<Long, List<String>> tokens = new java.util.HashMap<>();
+        for (Object[] r : notifications.deviceTokensOf(pushCandidates.stream().map(Pending::uid).toList())) { // 1 sorgu
+            tokens.computeIfAbsent((Long) r[0], k -> new ArrayList<>()).add((String) r[1]);
+        }
+        if (tokens.isEmpty()) {
+            return written;
+        }
+        Map<Long, Long> badges = new java.util.HashMap<>();
+        for (Object[] r : notifications.unreadCountsOf(tokens.keySet())) { // 1 sorgu
+            badges.put((Long) r[0], (Long) r[1]);
+        }
+        Map<TemplPush, List<String>> dispatches = new java.util.LinkedHashMap<>();
+        for (Pending p : pushCandidates) {
+            List<String> toks = tokens.get(p.uid());
+            if (toks == null || toks.isEmpty()) {
+                continue;
+            }
+            dispatches.computeIfAbsent(new TemplPush(p.title(), p.body(), p.key(), p.count(),
+                    (int) (long) badges.getOrDefault(p.uid(), 0L)), k -> new ArrayList<>()).addAll(toks);
+        }
+        dispatches.forEach((k, toks) -> push(toks, k.title(), k.body(), type, sub, data, k.count(), k.key(), k.badge()));
+        return written;
+    }
+
+    /** Genel yayin icin anahtar-kumeli toplu yazim (PostgreSQL); yoksa (H2 testleri) eski tam tarama yolu. */
+    private BroadcastWriter broadcastWriter;
+
+    @Autowired(required = false)
+    void setBroadcastWriter(BroadcastWriter broadcastWriter) {
+        this.broadcastWriter = broadcastWriter;
+    }
+
     public void broadcast(NotificationType type, String title, String body, Map<String, String> data) {
+        if (rangeBroadcast()) {
+            broadcastRanges(type, type.prefColumn(), null, title, body, data);
+            return;
+        }
         try {
             notifications.insertForAll(type.name(), truncate(title, 200), truncate(body, 500), toJson(data),
                     type.prefColumn());
@@ -486,12 +656,73 @@ public class NotificationService {
             try {
                 String t = title.apply(lang);
                 String b = body == null ? null : body.apply(lang);
+                if (rangeBroadcast()) {
+                    broadcastRanges(type, prefColumn, lang.code(), t, b, data);
+                    continue;
+                }
                 notifications.insertForLang(type.name(), truncate(t, 200), truncate(b, 500), toJson(data),
                         prefColumn, lang.code());
                 push(devices.tokensForBroadcastLang(prefColumn, lang.code()), t, b, type, null, data, 1, null, null);
             } catch (RuntimeException e) {
                 log.warn("Toplu bildirim ({}) gonderilemedi: {}", lang, e.toString());
             }
+        }
+    }
+
+    private boolean rangeBroadcast() {
+        return broadcastWriter != null && broadcastWriter.supported();
+    }
+
+    /**
+     * Genel yayin, kullanici kimligi araliklariyla (BroadcastWriter.RANGE): her aralikta once uygulama ici kayit, sonra
+     * (ayri try) push kuyrugu TEK ifadeyle yazilir. Boylece bir aralikta `statement_timeout` asilirsa o aralikta push de
+     * dusmez, sonraki araliklar etkilenmez ve tek bir devasa islem/liste olusmaz. lang null = tum diller.
+     */
+    private void broadcastRanges(NotificationType type, String prefColumn, String lang, String title, String body,
+                                 Map<String, String> data) {
+        String t = truncate(title, 200);
+        String b = truncate(body, 500);
+        String json = toJson(data);
+        boolean pushOn = dispatcher.enabled() && dispatcher.rangeBroadcastSupported();
+        edu.bingol.backend.notification.fcm.PushMessage message = pushOn
+                ? PushMessages.of(type, null, title, body == null ? "" : body, PushPayload.build(type, null, data, 1), null, null)
+                : null;
+        long after = 0;
+        int ranges = 0;
+        while (true) {
+            Long hi;
+            try {
+                hi = broadcastWriter.upperBound(after, BroadcastWriter.RANGE);
+            } catch (RuntimeException e) {
+                log.warn("Toplu bildirim araligi okunamadi (after={}): {}", after, e.toString());
+                return;
+            }
+            if (hi == null) {
+                break;
+            }
+            try {
+                broadcastWriter.insertNotifications(type, t, b, json, prefColumn, lang, after, hi);
+            } catch (RuntimeException e) {
+                log.warn("Toplu bildirim satirlari yazilamadi ({}..{}): {}", after, hi, e.toString());
+            }
+            if (message != null) {
+                try {
+                    dispatcher.dispatchRange(message, prefColumn, lang, after, hi);
+                } catch (RuntimeException e) {
+                    log.warn("Toplu push kuyruga yazilamadi ({}..{}): {}", after, hi, e.toString());
+                }
+            }
+            after = hi;
+            ranges++;
+        }
+        log.debug("Toplu bildirim {} aralikta yazildi (tur={}, dil={})", ranges, type, lang);
+    }
+
+    /** Toplu gonderim sonucu: uygulama ici kaydi yazilan kisi sayisi ve parca basarisi (kampanya durumu icin). */
+    public record BulkResult(int recipients, int chunks, int failedChunks) {
+        /** Hicbir parca basarili olmadi (en az bir parca denendi). */
+        public boolean allFailed() {
+            return chunks > 0 && failedChunks == chunks;
         }
     }
 
@@ -507,33 +738,52 @@ public class NotificationService {
     /** prefColumn: turun varsayilan tercih sutunu yerine baska bir bayrak (ornek "academic_announcements"). */
     public int sendBulk(Collection<Long> userIds, NotificationType type, String title, String body,
                         Map<String, String> data, String prefColumn) {
+        return sendBulkDetailed(userIds, type, title, body, data, prefColumn).recipients();
+    }
+
+    /**
+     * {@link #sendBulk} ile ayni; ek olarak kac parcanin basarisiz oldugunu doner (parca hatasi yutulur ve loglanir,
+     * diger parcalar surer). Kampanya dagiticisi hepsi basarisizsa FAILED, kismi basarisizlikta uyari isaretler.
+     */
+    public BulkResult sendBulkDetailed(Collection<Long> userIds, NotificationType type, String title, String body,
+                                       Map<String, String> data, String prefColumn) {
         int total = 0;
+        int chunks = 0;
+        int failed = 0;
         List<Long> all = new ArrayList<>(userIds);
         for (int i = 0; i < all.size(); i += CHUNK) {
             List<Long> chunk = all.subList(i, Math.min(i + CHUNK, all.size()));
+            chunks++;
             try {
                 List<Long> allowed = prefs.allowing(chunk, prefColumn);
                 if (allowed.isEmpty()) {
                     continue;
                 }
-                List<Notification> rows = new ArrayList<>(allowed.size());
-                for (Long uid : allowed) {
-                    Notification n = new Notification();
-                    n.setUserId(uid);
-                    n.setType(type);
-                    n.setTitle(truncate(title, 200));
-                    n.setBody(truncate(body, 500));
-                    n.setData(toJson(data));
-                    rows.add(n);
+                if (batchWriter != null && batchWriter.supported()) {
+                    // PostgreSQL: tek ifadelik INSERT (IDENTITY anahtarli saveAll satir satir yazardi)
+                    total += batchWriter.insertAll(allowed, type, null, truncate(title, 200), truncate(body, 500),
+                            toJson(data), Instant.now()).size();
+                } else {
+                    List<Notification> rows = new ArrayList<>(allowed.size());
+                    for (Long uid : allowed) {
+                        Notification n = new Notification();
+                        n.setUserId(uid);
+                        n.setType(type);
+                        n.setTitle(truncate(title, 200));
+                        n.setBody(truncate(body, 500));
+                        n.setData(toJson(data));
+                        rows.add(n);
+                    }
+                    notifications.saveAll(rows);
+                    total += rows.size();
                 }
-                notifications.saveAll(rows);
-                total += rows.size();
                 push(devices.tokensForUsers(allowed, prefColumn), title, body, type, null, data, 1, null, null);
             } catch (RuntimeException e) {
+                failed++;
                 log.warn("Toplu gonderim parcasi basarisiz: {}", e.toString());
             }
         }
-        return total;
+        return new BulkResult(total, chunks, failed);
     }
 
     private static boolean enabled(NotificationPref p, NotificationType type) {

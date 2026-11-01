@@ -96,6 +96,11 @@ public class PushCampaign {
     @Column(length = 500)
     private String error;
 
+    /** Gonderim ilerleme isareti: bu kimlige (dahil) kadar olanlara gitti (yeniden gonderimde atlanir). V1102. */
+    private Long lastUserId;
+
+    private Instant lastProgressAt;
+
     @Column(nullable = false)
     private Instant createdAt = Instant.now();
 }

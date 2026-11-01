@@ -10,6 +10,8 @@ public enum MailTemplate {
     PASSWORD_RESET_CODE("reset"),
     /** Iki faktorlu giris kodu (tanimadik cihazdan giris / 2FA acma); kod 10 dk gecerli, degiskeni gece silinir. */
     TWO_FACTOR_CODE("twofactor"),
+    /** Herkese acik destek talebi dogrulama kodu (hesapsiz; kuyruktan gider, 10 dk sonra bayatlar). */
+    SUPPORT_CODE("supportcode"),
     ACCOUNT_DELETED("deleted"),
     SECURITY_NEW_LOGIN("newlogin"),
     SECURITY_PASSWORD_CHANGED("pwchanged"),
@@ -27,5 +29,10 @@ public enum MailTemplate {
 
     public String key() {
         return key;
+    }
+
+    /** Kod tasiyan (10 dk sonra bayatlayan, degiskeni gonderimden sonra silinen) sablonlar. */
+    public boolean isCode() {
+        return this == VERIFICATION_CODE || this == PASSWORD_RESET_CODE || this == TWO_FACTOR_CODE || this == SUPPORT_CODE;
     }
 }
