@@ -12,7 +12,6 @@ import {
   ErrorState,
   FormField,
   Icon,
-  Insight,
   PageHeader,
   Pagination,
   SearchInput,
@@ -23,6 +22,7 @@ import {
 import { useI18n } from '../../i18n/I18nProvider';
 import { usePageTitle } from '../../lib/hooks';
 import { paths } from '../../paths';
+import { TemplatesOverview } from './iletisim/TemplatesOverview';
 import { LangBadges, TemplateStatusPill } from './mail/MailParts';
 import { TemplateEditor } from './mail/TemplateEditor';
 import { mailErrorMessage } from './mail/mailLogic';
@@ -62,17 +62,45 @@ function TemplateList() {
         </div>
       ),
     },
-    { key: 'status', header: t('common.status'), width: '140px', card: { priority: 2 }, render: (r) => <TemplateStatusPill status={r.status} /> },
-    { key: 'langs', header: t('admin.mail.templates.col.langs'), width: '150px', card: { priority: 2 }, render: (r) => <LangBadges languages={r.languages} /> },
-    { key: 'version', header: t('admin.mail.templates.col.version'), width: '90px', align: 'end', render: (r) => `v${r.version}` },
-    { key: 'updated', header: t('admin.mail.templates.col.updated'), card: { priority: 3 }, render: (r) => <span className={styles.nowrap}>{formatDateTime(r.updatedAt)}</span> },
+    {
+      key: 'status',
+      header: t('common.status'),
+      width: '140px',
+      card: { priority: 2 },
+      render: (r) => <TemplateStatusPill status={r.status} />,
+    },
+    {
+      key: 'langs',
+      header: t('admin.mail.templates.col.langs'),
+      width: '150px',
+      card: { priority: 2 },
+      render: (r) => <LangBadges languages={r.languages} />,
+    },
+    {
+      key: 'version',
+      header: t('admin.mail.templates.col.version'),
+      width: '90px',
+      align: 'end',
+      render: (r) => `v${r.version}`,
+    },
+    {
+      key: 'updated',
+      header: t('admin.mail.templates.col.updated'),
+      card: { priority: 3 },
+      render: (r) => <span className={styles.nowrap}>{formatDateTime(r.updatedAt)}</span>,
+    },
     {
       key: 'open',
       header: <span className="sr-only">{t('common.edit')}</span>,
       width: '110px',
       card: { actions: true },
       render: (r) => (
-        <ButtonLink to={`${paths.admin.mailTemplates}/${r.id}`} variant="ghost" size="sm" aria-label={`${t('common.edit')}: ${r.name}`}>
+        <ButtonLink
+          to={`${paths.admin.mailTemplates}/${r.id}`}
+          variant="ghost"
+          size="sm"
+          aria-label={`${t('common.edit')}: ${r.name}`}
+        >
           {t('common.edit')}
         </ButtonLink>
       ),
@@ -85,22 +113,22 @@ function TemplateList() {
         title={t('admin.mail.templates.title')}
         description={t('admin.mail.templates.intro')}
         actions={
-          <ButtonLink to={`${paths.admin.mailTemplates}/new`} leftIcon={<Icon name="plus" size={18} />} data-search-anchor="new-template">
+          <ButtonLink
+            to={`${paths.admin.mailTemplates}/new`}
+            leftIcon={<Icon name="plus" size={18} />}
+            data-search-anchor="new-template"
+          >
             {t('admin.mail.templates.new')}
           </ButtonLink>
         }
       />
-      {query.data && query.data.items.length > 0 && (
-        <Insight
-          tone="info"
-          parts={t('admin.v2n.tpl.summary', {
-            n: i18n.formatNumber(query.data.items.length),
-            pub: i18n.formatNumber(query.data.items.filter((r) => r.status === 'PUBLISHED').length),
-            draft: i18n.formatNumber(query.data.items.filter((r) => r.status === 'DRAFT').length),
-            arch: i18n.formatNumber(query.data.items.filter((r) => r.status === 'ARCHIVED').length),
-          })}
-        />
-      )}
+      <TemplatesOverview
+        status={status}
+        onStatus={(s) => {
+          setStatus(s);
+          setPage(0);
+        }}
+      />
       <div className={styles.toolbar} data-search-anchor="template-filters">
         <div className={styles.toolbarSearch}>
           <SearchInput
@@ -130,7 +158,12 @@ function TemplateList() {
         </FormField>
       </div>
       {query.isError ? (
-        <ErrorState subject={t('admin.v2n.tpl.subject')} error={query.error} description={mailErrorMessage(i18n, query.error)} onRetry={() => void query.refetch()} />
+        <ErrorState
+          subject={t('admin.v2n.tpl.subject')}
+          error={query.error}
+          description={mailErrorMessage(i18n, query.error)}
+          onRetry={() => void query.refetch()}
+        />
       ) : (
         <>
           <Table
@@ -145,11 +178,20 @@ function TemplateList() {
                 icon="mail"
                 title={t('admin.mail.templates.empty.title')}
                 description={t('admin.mail.templates.empty.hint')}
-                action={<ButtonLink to={`${paths.admin.mailTemplates}/new`}>{t('admin.mail.templates.new')}</ButtonLink>}
+                action={
+                  <ButtonLink to={`${paths.admin.mailTemplates}/new`}>
+                    {t('admin.mail.templates.new')}
+                  </ButtonLink>
+                }
               />
             }
           />
-          <Pagination page={query.data?.page ?? page} totalPages={query.data?.totalPages ?? 0} totalItems={query.data?.totalItems} onPageChange={setPage} />
+          <Pagination
+            page={query.data?.page ?? page}
+            totalPages={query.data?.totalPages ?? 0}
+            totalItems={query.data?.totalItems}
+            onPageChange={setPage}
+          />
         </>
       )}
     </div>

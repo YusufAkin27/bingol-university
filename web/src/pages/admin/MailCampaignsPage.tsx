@@ -12,7 +12,6 @@ import {
   ErrorState,
   FormField,
   Icon,
-  Insight,
   PageHeader,
   Pagination,
   SearchInput,
@@ -23,6 +22,7 @@ import {
 import { useI18n } from '../../i18n/I18nProvider';
 import { usePageTitle } from '../../lib/hooks';
 import { paths } from '../../paths';
+import { MailCampaignsOverview } from './iletisim/MailCampaignsOverview';
 import { CampaignDetail } from './mail/CampaignDetail';
 import { CampaignWizard } from './mail/CampaignWizard';
 import { CampaignStatusPill, ProgressBar, progressToneOf } from './mail/MailParts';
@@ -67,7 +67,13 @@ function CampaignList() {
         </div>
       ),
     },
-    { key: 'status', header: t('common.status'), width: '170px', card: { priority: 2 }, render: (c) => <CampaignStatusPill status={c.status} /> },
+    {
+      key: 'status',
+      header: t('common.status'),
+      width: '170px',
+      card: { priority: 2 },
+      render: (c) => <CampaignStatusPill status={c.status} />,
+    },
     {
       key: 'progress',
       header: t('admin.mail.campaigns.col.progress'),
@@ -75,9 +81,16 @@ function CampaignList() {
       card: { priority: 2 },
       render: (c) => (
         <div>
-          <ProgressBar percent={c.counters.progressPercent} label={`${c.name}: ${t('admin.mail.detail.progress')}`} tone={progressToneOf(c.status)} />
+          <ProgressBar
+            percent={c.counters.progressPercent}
+            label={`${c.name}: ${t('admin.mail.detail.progress')}`}
+            tone={progressToneOf(c.status)}
+          />
           <span className={styles.muted}>
-            {t('admin.v2n.mc.sent', { n: formatNumber(c.counters.queued), total: formatNumber(c.counters.target) })}
+            {t('admin.v2n.mc.sent', {
+              n: formatNumber(c.counters.queued),
+              total: formatNumber(c.counters.target),
+            })}
           </span>
         </div>
       ),
@@ -94,7 +107,12 @@ function CampaignList() {
       width: '110px',
       card: { actions: true },
       render: (c) => (
-        <ButtonLink to={`${paths.admin.mailCampaigns}/${c.id}`} variant="ghost" size="sm" aria-label={`${t('admin.mail.campaigns.open')}: ${c.name}`}>
+        <ButtonLink
+          to={`${paths.admin.mailCampaigns}/${c.id}`}
+          variant="ghost"
+          size="sm"
+          aria-label={`${t('admin.mail.campaigns.open')}: ${c.name}`}
+        >
           {t('admin.mail.campaigns.open')}
         </ButtonLink>
       ),
@@ -107,23 +125,22 @@ function CampaignList() {
         title={t('admin.mail.campaigns.title')}
         description={t('admin.mail.campaigns.intro')}
         actions={
-          <ButtonLink to={`${paths.admin.mailCampaigns}/new`} leftIcon={<Icon name="plus" size={18} />} data-search-anchor="new-mail-campaign">
+          <ButtonLink
+            to={`${paths.admin.mailCampaigns}/new`}
+            leftIcon={<Icon name="plus" size={18} />}
+            data-search-anchor="new-mail-campaign"
+          >
             {t('admin.mail.campaigns.new')}
           </ButtonLink>
         }
       />
-      {query.data && query.data.items.length > 0 && (
-        <Insight
-          tone={query.data.items.some((c) => c.status === 'FAILED') ? 'warn' : 'info'}
-          parts={t('admin.v2n.mc.summary', {
-            n: formatNumber(query.data.items.length),
-            sending: formatNumber(query.data.items.filter((c) => c.status === 'SENDING').length),
-            sched: formatNumber(query.data.items.filter((c) => c.status === 'SCHEDULED').length),
-            done: formatNumber(query.data.items.filter((c) => c.status === 'DONE').length),
-            failed: formatNumber(query.data.items.filter((c) => c.status === 'FAILED').length),
-          })}
-        />
-      )}
+      <MailCampaignsOverview
+        status={status}
+        onStatus={(s) => {
+          setStatus(s);
+          setPage(0);
+        }}
+      />
       <div className={styles.toolbar}>
         <div className={styles.toolbarSearch}>
           <SearchInput
@@ -153,7 +170,12 @@ function CampaignList() {
         </FormField>
       </div>
       {query.isError ? (
-        <ErrorState subject={t('admin.v2n.mc.subject')} error={query.error} description={mailErrorMessage(i18n, query.error)} onRetry={() => void query.refetch()} />
+        <ErrorState
+          subject={t('admin.v2n.mc.subject')}
+          error={query.error}
+          description={mailErrorMessage(i18n, query.error)}
+          onRetry={() => void query.refetch()}
+        />
       ) : (
         <>
           <Table
@@ -168,11 +190,20 @@ function CampaignList() {
                 icon="mail"
                 title={t('admin.mail.campaigns.empty.title')}
                 description={t('admin.mail.campaigns.empty.hint')}
-                action={<ButtonLink to={`${paths.admin.mailCampaigns}/new`}>{t('admin.mail.campaigns.new')}</ButtonLink>}
+                action={
+                  <ButtonLink to={`${paths.admin.mailCampaigns}/new`}>
+                    {t('admin.mail.campaigns.new')}
+                  </ButtonLink>
+                }
               />
             }
           />
-          <Pagination page={query.data?.page ?? page} totalPages={query.data?.totalPages ?? 0} totalItems={query.data?.totalItems} onPageChange={setPage} />
+          <Pagination
+            page={query.data?.page ?? page}
+            totalPages={query.data?.totalPages ?? 0}
+            totalItems={query.data?.totalItems}
+            onPageChange={setPage}
+          />
         </>
       )}
     </div>

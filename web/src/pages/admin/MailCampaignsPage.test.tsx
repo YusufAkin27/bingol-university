@@ -73,7 +73,7 @@ describe('kampanya listesi', () => {
     renderPage('/admin/mail/campaigns');
     expect(await screen.findByText('Bahar şenliği')).toBeInTheDocument();
     expect(screen.getAllByText('Gönderiliyor').length).toBeGreaterThan(0);
-    const bar = screen.getByRole('progressbar');
+    const bar = screen.getByRole('progressbar', { name: /Bahar şenliği/ });
     expect(bar).toHaveAttribute('aria-valuenow', '67');
   });
 

@@ -44,6 +44,7 @@ import { useI18n } from '../../i18n/I18nProvider';
 import { adminError } from '../../lib/errors';
 import { usePageTitle } from '../../lib/hooks';
 import { paths } from '../../paths';
+import { SuppressionOverview } from './iletisim/SuppressionOverview';
 import { CsvButton } from './moderation/CsvButton';
 import { isSuppressionFormValid, reasonTone, removalPolicy } from './mail/mailOpsLogic';
 import styles from './mail/mailops.module.css';
@@ -102,13 +103,23 @@ export default function MailSuppressionPage() {
         </span>
       ),
     },
-    { key: 'category', header: t('admin.p13.supp.col.category'), card: { priority: 2 }, render: (r) => <Badge>{t(`admin.p13.category.${r.category}`)}</Badge> },
+    {
+      key: 'category',
+      header: t('admin.p13.supp.col.category'),
+      card: { priority: 2 },
+      render: (r) => <Badge>{t(`admin.p13.category.${r.category}`)}</Badge>,
+    },
     {
       key: 'note',
       header: t('admin.p13.supp.col.note'),
       render: (r) => (r.note ? <span dir="auto">{r.note}</span> : <span className={styles.muted}>—</span>),
     },
-    { key: 'createdAt', header: t('admin.p13.supp.col.date'), card: { priority: 3 }, render: (r) => formatDateTime(r.createdAt) },
+    {
+      key: 'createdAt',
+      header: t('admin.p13.supp.col.date'),
+      card: { priority: 3 },
+      render: (r) => formatDateTime(r.createdAt),
+    },
     {
       key: 'actions',
       header: t('admin.p13.col.actions'),
@@ -131,15 +142,24 @@ export default function MailSuppressionPage() {
         actions={
           <>
             <CsvButton fetcher={() => exportSuppressionsCsv(filters)} filename="mail-bastirma.csv" />
-            <Button leftIcon={<Icon name="plus" size={16} />} onClick={() => setAdding(true)} data-search-anchor="add-address">
+            <Button
+              leftIcon={<Icon name="plus" size={16} />}
+              onClick={() => setAdding(true)}
+              data-search-anchor="add-address"
+            >
               {t('admin.p13.supp.add')}
             </Button>
           </>
         }
       />
+      <SuppressionOverview reason={filters.reason} onReason={(r) => set({ reason: r })} />
       <div role="search" aria-label={t('admin.p13.filters')} data-search-anchor="filters">
         <div className={styles.searchField}>
-          <SearchInput label={t('admin.p13.filter.q')} placeholder={t('admin.p13.supp.filter.qPlaceholder')} onSearch={(q) => set({ q })} />
+          <SearchInput
+            label={t('admin.p13.filter.q')}
+            placeholder={t('admin.p13.supp.filter.qPlaceholder')}
+            onSearch={(q) => set({ q })}
+          />
           <span className={styles.muted}>{t('admin.p13.supp.filter.qHint')}</span>
         </div>
         <FilterPanel
@@ -149,31 +169,47 @@ export default function MailSuppressionPage() {
             setPage(0);
           }}
         >
-        <div className={styles.filters}>
-        <FormField label={t('admin.p13.filter.reason')}>
-          <Select value={filters.reason} onChange={(e) => set({ reason: e.target.value as SuppressionReason | '' })}>
-            <option value="">{t('admin.p13.filter.all')}</option>
-            {SUPPRESSION_REASONS.map((x) => (
-              <option key={x} value={x}>
-                {t(`admin.p13.supp.reason.${x}`)}
-              </option>
-            ))}
-          </Select>
-        </FormField>
-        <FormField label={t('admin.p13.filter.category')}>
-          <Select value={filters.category} onChange={(e) => set({ category: e.target.value as MailCategory | '' })}>
-            <option value="">{t('admin.p13.filter.all')}</option>
-            <option value="ANNOUNCEMENT">{t('admin.p13.category.ANNOUNCEMENT')}</option>
-            <option value="TRANSACTIONAL">{t('admin.p13.category.TRANSACTIONAL')}</option>
-          </Select>
-        </FormField>
-        <FormField label={t('admin.p13.filter.from')}>
-          <Input type="date" value={filters.from} max={filters.to || undefined} onChange={(e) => set({ from: e.target.value })} />
-        </FormField>
-        <FormField label={t('admin.p13.filter.to')}>
-          <Input type="date" value={filters.to} min={filters.from || undefined} onChange={(e) => set({ to: e.target.value })} />
-        </FormField>
-        </div>
+          <div className={styles.filters}>
+            <FormField label={t('admin.p13.filter.reason')}>
+              <Select
+                value={filters.reason}
+                onChange={(e) => set({ reason: e.target.value as SuppressionReason | '' })}
+              >
+                <option value="">{t('admin.p13.filter.all')}</option>
+                {SUPPRESSION_REASONS.map((x) => (
+                  <option key={x} value={x}>
+                    {t(`admin.p13.supp.reason.${x}`)}
+                  </option>
+                ))}
+              </Select>
+            </FormField>
+            <FormField label={t('admin.p13.filter.category')}>
+              <Select
+                value={filters.category}
+                onChange={(e) => set({ category: e.target.value as MailCategory | '' })}
+              >
+                <option value="">{t('admin.p13.filter.all')}</option>
+                <option value="ANNOUNCEMENT">{t('admin.p13.category.ANNOUNCEMENT')}</option>
+                <option value="TRANSACTIONAL">{t('admin.p13.category.TRANSACTIONAL')}</option>
+              </Select>
+            </FormField>
+            <FormField label={t('admin.p13.filter.from')}>
+              <Input
+                type="date"
+                value={filters.from}
+                max={filters.to || undefined}
+                onChange={(e) => set({ from: e.target.value })}
+              />
+            </FormField>
+            <FormField label={t('admin.p13.filter.to')}>
+              <Input
+                type="date"
+                value={filters.to}
+                min={filters.from || undefined}
+                onChange={(e) => set({ to: e.target.value })}
+              />
+            </FormField>
+          </div>
         </FilterPanel>
       </div>
 
@@ -183,7 +219,12 @@ export default function MailSuppressionPage() {
         </p>
       )}
       {query.isError ? (
-        <ErrorState subject={t('admin.v2n.supp.subject')} error={query.error} description={adminError(i18n, query.error, ...ERR_SCOPES)} onRetry={() => void query.refetch()} />
+        <ErrorState
+          subject={t('admin.v2n.supp.subject')}
+          error={query.error}
+          description={adminError(i18n, query.error, ...ERR_SCOPES)}
+          onRetry={() => void query.refetch()}
+        />
       ) : (
         <>
           <Table
@@ -193,11 +234,23 @@ export default function MailSuppressionPage() {
             rowKey={(r) => r.id}
             loading={query.isLoading}
             mobile="cards"
-            empty={<EmptyState icon="mail" title={t('admin.p13.supp.empty.title')} description={t('admin.p13.supp.empty.hint')} compact />}
+            empty={
+              <EmptyState
+                icon="mail"
+                title={t('admin.p13.supp.empty.title')}
+                description={t('admin.p13.supp.empty.hint')}
+                compact
+              />
+            }
           />
           {data && data.totalPages > 1 && (
             <div className={styles.pager}>
-              <Pagination page={data.page} totalPages={data.totalPages} totalItems={data.total} onPageChange={setPage} />
+              <Pagination
+                page={data.page}
+                totalPages={data.totalPages}
+                totalItems={data.total}
+                onPageChange={setPage}
+              />
             </div>
           )}
         </>
@@ -225,7 +278,10 @@ function SuppressionDrawer({ id, onClose }: { id: number; onClose: () => void })
   return (
     <Drawer open onClose={onClose} title={t('admin.p13.supp.detail.title', { id })} size="md">
       {query.isError ? (
-        <ErrorState onRetry={() => void query.refetch()} description={adminError(i18n, query.error, ...ERR_SCOPES)} />
+        <ErrorState
+          onRetry={() => void query.refetch()}
+          description={adminError(i18n, query.error, ...ERR_SCOPES)}
+        />
       ) : !d || !policy ? (
         <p className={styles.muted} role="status">
           {t('admin.p13.loading')}
@@ -233,8 +289,12 @@ function SuppressionDrawer({ id, onClose }: { id: number; onClose: () => void })
       ) : (
         <>
           {d.userOptOut && (
-            <p className={`${styles.callout} ${d.reason === 'COMPLAINT' ? styles.calloutDanger : styles.calloutWarn}`} role="note">
-              <strong>{t(`admin.p13.supp.warn.${warnKey}.title`)}</strong> {t(`admin.p13.supp.warn.${warnKey}.body`)}
+            <p
+              className={`${styles.callout} ${d.reason === 'COMPLAINT' ? styles.calloutDanger : styles.calloutWarn}`}
+              role="note"
+            >
+              <strong>{t(`admin.p13.supp.warn.${warnKey}.title`)}</strong>{' '}
+              {t(`admin.p13.supp.warn.${warnKey}.body`)}
             </p>
           )}
           <dl className={styles.facts}>
@@ -284,7 +344,9 @@ function SuppressionDrawer({ id, onClose }: { id: number; onClose: () => void })
               typeToConfirm={policy.typeTarget ?? undefined}
               title={t('admin.p13.supp.remove.title')}
               confirmLabel={t('admin.p13.supp.remove.button')}
-              message={t(policy.strong ? 'admin.p13.supp.remove.messageStrong' : 'admin.p13.supp.remove.message')}
+              message={t(
+                policy.strong ? 'admin.p13.supp.remove.messageStrong' : 'admin.p13.supp.remove.message',
+              )}
               consequence={t('admin.p13.supp.remove.consequence')}
               successMessage={t('admin.p13.supp.remove.done')}
               errorMessage={(e) => adminError(i18n, e, ...ERR_SCOPES)}
@@ -310,7 +372,8 @@ function AddSuppressionModal({ onClose }: { onClose: () => void }) {
   const [note, setNote] = useState('');
   const valid = isSuppressionFormValid(email, note);
   const add = useGuardedMutation({
-    mutationFn: (v: { email: string; note: string }, ctx) => addSuppression(v, { idempotencyKey: ctx.idempotencyKey }),
+    mutationFn: (v: { email: string; note: string }, ctx) =>
+      addSuppression(v, { idempotencyKey: ctx.idempotencyKey }),
     successMessage: t('admin.p13.supp.add.done'),
     errorMessage: (e) => adminError(i18n, e, ...ERR_SCOPES),
     invalidateKeys: [mailOpsKeys.suppressions],
@@ -349,7 +412,14 @@ function AddSuppressionModal({ onClose }: { onClose: () => void }) {
           {t('admin.p13.supp.add.consequence')}
         </p>
         <FormField label={t('admin.p13.supp.add.email')} hint={t('admin.p13.supp.add.emailHint')} required>
-          <Input type="email" dir="ltr" autoComplete="off" value={email} maxLength={254} onChange={(e) => setEmail(e.target.value)} />
+          <Input
+            type="email"
+            dir="ltr"
+            autoComplete="off"
+            value={email}
+            maxLength={254}
+            onChange={(e) => setEmail(e.target.value)}
+          />
         </FormField>
         <FormField label={t('admin.p13.supp.add.note')} hint={t('admin.p13.supp.add.noteHint')} required>
           <Textarea rows={3} value={note} maxLength={300} onChange={(e) => setNote(e.target.value)} />

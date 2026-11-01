@@ -25,17 +25,17 @@ import {
   FormField,
   GuardedAction,
   Input,
-  Insight,
   Modal,
   Pagination,
   Select,
-  StatCard,
   StatusPill,
   Table,
   type Column,
 } from '../../../components/ui';
 import { useI18n } from '../../../i18n/I18nProvider';
 import { adminError } from '../../../lib/errors';
+import { QueueHealth } from '../iletisim/QueueHealth';
+import { useIl } from '../iletisim/il';
 import { OutboxDrawer } from './OutboxDrawer';
 import { DeadCodes } from './DeadCodes';
 import { codeKey, failureCounts, parseCampaignId, STATUS_TONE, validDate } from './lib';
@@ -54,6 +54,7 @@ const PAGE_SIZE = 20;
 export function QueueTab() {
   const i18n = useI18n();
   const { t, td, formatDateTime, formatNumber } = i18n;
+  const il = useIl();
   const [filters, setFilters] = useState<Filters>(EMPTY);
   const [page, setPage] = useState(0);
   const [selected, setSelected] = useState<Set<string | number>>(new Set());
@@ -69,7 +70,10 @@ export function QueueTab() {
 
   const campaignId = parseCampaignId(filters.campaign);
   const campaignBad = filters.campaign.trim() !== '' && campaignId === null;
-  const datesOk = validDate(filters.from) && validDate(filters.to) && !(filters.from && filters.to && filters.from > filters.to);
+  const datesOk =
+    validDate(filters.from) &&
+    validDate(filters.to) &&
+    !(filters.from && filters.to && filters.from > filters.to);
   const params: OutboxFilters = {
     status: filters.status,
     type: filters.type,
@@ -100,23 +104,40 @@ export function QueueTab() {
   const overLimit = selected.size > BULK_MAX;
 
   const columns: Column<OutboxRow>[] = [
-    { key: 'id', header: t('admin.p14.queue.col.id'), card: { priority: 3 }, render: (r) => <span className={styles.muted}>#{r.id}</span> },
+    {
+      key: 'id',
+      header: t('admin.p14.queue.col.id'),
+      card: { priority: 3 },
+      render: (r) => <span className={styles.muted}>#{r.id}</span>,
+    },
     {
       key: 'status',
       header: t('admin.p14.queue.col.status'),
       card: { priority: 1 },
-      render: (r) => <StatusPill tone={STATUS_TONE[r.status]}>{t(`admin.p14.status.${r.status}`)}</StatusPill>,
+      render: (r) => (
+        <span className={styles.nowrap}>
+          <StatusPill tone={STATUS_TONE[r.status]}>{t(`admin.p14.status.${r.status}`)}</StatusPill>
+        </span>
+      ),
     },
     {
       key: 'type',
       header: t('admin.p14.queue.col.type'),
       card: { priority: 2 },
-      render: (r) => (r.type ? <Badge tone="neutral">{r.type}</Badge> : <span className={styles.muted}>—</span>),
+      render: (r) =>
+        r.type ? (
+          <span className={styles.nowrap}>
+            <Badge tone="neutral">{r.type}</Badge>
+          </span>
+        ) : (
+          <span className={styles.muted}>—</span>
+        ),
     },
     {
       key: 'campaign',
       header: t('admin.p14.queue.col.campaign'),
-      render: (r) => (r.campaignId ? <span className="ltr">#{r.campaignId}</span> : <span className={styles.muted}>—</span>),
+      render: (r) =>
+        r.campaignId ? <span className="ltr">#{r.campaignId}</span> : <span className={styles.muted}>—</span>,
     },
     {
       key: 'target',
@@ -128,7 +149,12 @@ export function QueueTab() {
         </span>
       ),
     },
-    { key: 'attempts', header: t('admin.p14.queue.col.attempts'), align: 'end', render: (r) => formatNumber(r.attempts) },
+    {
+      key: 'attempts',
+      header: t('admin.p14.queue.col.attempts'),
+      align: 'end',
+      render: (r) => formatNumber(r.attempts),
+    },
     {
       key: 'code',
       header: t('admin.p14.queue.col.code'),
@@ -148,31 +174,61 @@ export function QueueTab() {
       key: 'next',
       header: t('admin.p14.queue.col.next'),
       render: (r) =>
-        r.nextAttemptAt && (r.status === 'PENDING' || r.status === 'FAILED') ? formatDateTime(r.nextAttemptAt) : '—',
+        r.nextAttemptAt && (r.status === 'PENDING' || r.status === 'FAILED')
+          ? formatDateTime(r.nextAttemptAt)
+          : '—',
     },
-    { key: 'created', header: t('admin.p14.queue.col.created'), card: { priority: 3 }, render: (r) => formatDateTime(r.createdAt) },
+    {
+      key: 'created',
+      header: t('admin.p14.queue.col.created'),
+      card: { priority: 3 },
+      render: (r) => formatDateTime(r.createdAt),
+    },
   ];
 
   return (
     <div>
-      {st && (
-        <Insight
-          tone={st.dead > 0 ? 'warn' : 'good'}
-          parts={t('admin.v2n.pq.summary', {
-            pending: formatNumber(st.pending),
-            sending: formatNumber(st.sending),
-            failed: formatNumber(st.failed),
-            dead: formatNumber(st.dead),
-          })}
+      {stats.isLoading ? (
+        <div
+          style={{ minBlockSize: '12rem' }}
+          aria-busy="true"
+          role="status"
+          aria-label={il('admin.il.qh.loading')}
         />
+      ) : stats.isError ? (
+        <ErrorState
+          compact
+          onRetry={() => void stats.refetch()}
+          description={adminError(i18n, stats.error, 'admin.p14.err')}
+        />
+      ) : (
+        st && (
+          <div data-search-anchor="push-queue-health">
+            <QueueHealth
+              title={il('admin.il.qh.pushTitle')}
+              ariaLabel={il('admin.il.qh.pushTitle')}
+              counts={st}
+              labels={{
+                pending: t('admin.p14.status.PENDING'),
+                sending: t('admin.p14.status.SENDING'),
+                failed: t('admin.p14.status.FAILED'),
+                dead: t('admin.p14.status.DEAD'),
+              }}
+              oldestAt={st.oldestPendingAt ?? null}
+              sentLast24h={st.sentLast24h}
+              onSelect={(k) =>
+                set({
+                  status:
+                    (k.toUpperCase() as OutboxStatus) === filters.status
+                      ? ''
+                      : (k.toUpperCase() as OutboxStatus),
+                })
+              }
+              selectedKey={filters.status ? filters.status.toLowerCase() : null}
+            />
+          </div>
+        )
       )}
-      <div className={styles.statGrid}>
-        <StatCard title={t('admin.p14.queue.stat.pending')} value={st ? formatNumber(st.pending) : '—'} loading={stats.isLoading} />
-        <StatCard title={t('admin.p14.queue.stat.sending')} value={st ? formatNumber(st.sending) : '—'} loading={stats.isLoading} />
-        <StatCard title={t('admin.p14.queue.stat.failed')} value={st ? formatNumber(st.failed) : '—'} loading={stats.isLoading} />
-        <StatCard title={t('admin.p14.queue.stat.dead')} value={st ? formatNumber(st.dead) : '—'} loading={stats.isLoading} invertTone />
-        <StatCard title={t('admin.p14.queue.stat.sent24')} value={st ? formatNumber(st.sentLast24h) : '—'} loading={stats.isLoading} />
-      </div>
 
       {st && st.dead > 0 && (
         <div className={styles.stack} style={{ marginBlockEnd: 'var(--space-4)' }}>
@@ -182,48 +238,63 @@ export function QueueTab() {
 
       <div role="search" aria-label={t('admin.p14.filters')}>
         <FilterPanel
-          activeCount={[filters.status, filters.type, filters.campaign, filters.from, filters.to].filter(Boolean).length}
+          activeCount={
+            [filters.status, filters.type, filters.campaign, filters.from, filters.to].filter(Boolean).length
+          }
           onClear={() => set(EMPTY)}
         >
-      <div className={styles.filters}>
-        <FormField label={t('admin.p14.queue.filter.status')}>
-          <Select value={filters.status} onChange={(e) => set({ status: e.target.value as OutboxStatus | '' })}>
-            <option value="">{t('admin.p14.filter.all')}</option>
-            {OUTBOX_STATUSES.map((s) => (
-              <option key={s} value={s}>
-                {t(`admin.p14.status.${s}`)}
-              </option>
-            ))}
-          </Select>
-        </FormField>
-        <FormField label={t('admin.p14.queue.filter.type')}>
-          <Select value={filters.type} onChange={(e) => set({ type: e.target.value })}>
-            <option value="">{t('admin.p14.filter.all')}</option>
-            {PUSH_TYPES.map((x) => (
-              <option key={x} value={x}>
-                {x}
-              </option>
-            ))}
-          </Select>
-        </FormField>
-        <FormField
-          label={t('admin.p14.queue.filter.campaign')}
-          error={campaignBad ? t('admin.p14.queue.filter.campaignBad') : undefined}
-        >
-          <Input
-            inputMode="numeric"
-            placeholder={t('admin.p14.queue.filter.campaignPlaceholder')}
-            value={filters.campaign}
-            onChange={(e) => set({ campaign: e.target.value })}
-          />
-        </FormField>
-        <FormField label={t('admin.p14.filter.from')}>
-          <Input type="date" value={filters.from} max={filters.to || undefined} onChange={(e) => set({ from: e.target.value })} />
-        </FormField>
-        <FormField label={t('admin.p14.filter.to')}>
-          <Input type="date" value={filters.to} min={filters.from || undefined} onChange={(e) => set({ to: e.target.value })} />
-        </FormField>
-      </div>
+          <div className={styles.filters}>
+            <FormField label={t('admin.p14.queue.filter.status')}>
+              <Select
+                value={filters.status}
+                onChange={(e) => set({ status: e.target.value as OutboxStatus | '' })}
+              >
+                <option value="">{t('admin.p14.filter.all')}</option>
+                {OUTBOX_STATUSES.map((s) => (
+                  <option key={s} value={s}>
+                    {t(`admin.p14.status.${s}`)}
+                  </option>
+                ))}
+              </Select>
+            </FormField>
+            <FormField label={t('admin.p14.queue.filter.type')}>
+              <Select value={filters.type} onChange={(e) => set({ type: e.target.value })}>
+                <option value="">{t('admin.p14.filter.all')}</option>
+                {PUSH_TYPES.map((x) => (
+                  <option key={x} value={x}>
+                    {x}
+                  </option>
+                ))}
+              </Select>
+            </FormField>
+            <FormField
+              label={t('admin.p14.queue.filter.campaign')}
+              error={campaignBad ? t('admin.p14.queue.filter.campaignBad') : undefined}
+            >
+              <Input
+                inputMode="numeric"
+                placeholder={t('admin.p14.queue.filter.campaignPlaceholder')}
+                value={filters.campaign}
+                onChange={(e) => set({ campaign: e.target.value })}
+              />
+            </FormField>
+            <FormField label={t('admin.p14.filter.from')}>
+              <Input
+                type="date"
+                value={filters.from}
+                max={filters.to || undefined}
+                onChange={(e) => set({ from: e.target.value })}
+              />
+            </FormField>
+            <FormField label={t('admin.p14.filter.to')}>
+              <Input
+                type="date"
+                value={filters.to}
+                min={filters.from || undefined}
+                onChange={(e) => set({ to: e.target.value })}
+              />
+            </FormField>
+          </div>
         </FilterPanel>
       </div>
 
@@ -233,7 +304,12 @@ export function QueueTab() {
         </p>
       )}
       {list.isError ? (
-        <ErrorState subject={t('admin.v2n.pq.subject')} error={list.error} description={adminError(i18n, list.error, 'admin.p14.err')} onRetry={() => void list.refetch()} />
+        <ErrorState
+          subject={t('admin.v2n.pq.subject')}
+          error={list.error}
+          description={adminError(i18n, list.error, 'admin.p14.err')}
+          onRetry={() => void list.refetch()}
+        />
       ) : (
         <>
           <Table
@@ -247,12 +323,22 @@ export function QueueTab() {
             onSelectionChange={setSelected}
             onRowClick={(r) => setOpenId(r.id)}
             empty={
-              <EmptyState icon="bell" title={t('admin.p14.queue.empty.title')} description={t('admin.p14.queue.empty.hint')} compact />
+              <EmptyState
+                icon="bell"
+                title={t('admin.p14.queue.empty.title')}
+                description={t('admin.p14.queue.empty.hint')}
+                compact
+              />
             }
           />
           {data && data.totalPages > 1 && (
             <div className={styles.pager}>
-              <Pagination page={data.page} totalPages={data.totalPages} totalItems={data.totalItems} onPageChange={setPage} />
+              <Pagination
+                page={data.page}
+                totalPages={data.totalPages}
+                totalItems={data.totalItems}
+                onPageChange={setPage}
+              />
             </div>
           )}
         </>

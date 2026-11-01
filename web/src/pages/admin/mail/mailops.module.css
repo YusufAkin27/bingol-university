@@ -1,5 +1,6 @@
 /* Mail altyapısı (P13) sayfaları: yalnızca tasarım token'ları ve mantıksal özellikler. */
 .filters {
+  inline-size: 100%;
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
   gap: var(--space-3) var(--space-4);

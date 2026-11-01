@@ -2,11 +2,23 @@
 import { useQuery } from '@tanstack/react-query';
 import { getNotificationStats, pushOpsKeys } from '../../../api/adminPushOps';
 import { LineAreaChart } from '../../../components/charts/LineAreaChart';
-import { Card, ErrorState, Insight, RankedBars, Skeleton, StatCard, Table, type Column } from '../../../components/ui';
+import {
+  Card,
+  ErrorState,
+  Insight,
+  ProgressRing,
+  RankedBars,
+  Skeleton,
+  StatTile,
+  Table,
+  type Column,
+} from '../../../components/ui';
 import { useI18n } from '../../../i18n/I18nProvider';
 import { adminError } from '../../../lib/errors';
+import { useIl } from '../iletisim/il';
 import { Callout } from '../campaigns/shared';
 import { dayRate, percent } from './lib';
+import ilStyles from '../iletisim/iletisim.module.css';
 import styles from './pushops.module.css';
 
 interface DayRow {
@@ -19,11 +31,19 @@ interface DayRow {
 export function StatsTab() {
   const i18n = useI18n();
   const { t, td, formatNumber, formatDate } = i18n;
+  const il = useIl();
   const q = useQuery({ queryKey: pushOpsKeys.inbox(), queryFn: () => getNotificationStats(14) });
   const s = q.data;
 
   if (q.isError) {
-    return <ErrorState subject={t('admin.v2n.ps.subject')} error={q.error} description={adminError(i18n, q.error, 'admin.p14.err')} onRetry={() => void q.refetch()} />;
+    return (
+      <ErrorState
+        subject={t('admin.v2n.ps.subject')}
+        error={q.error}
+        description={adminError(i18n, q.error, 'admin.p14.err')}
+        onRetry={() => void q.refetch()}
+      />
+    );
   }
   if (!s) {
     return <Skeleton width="100%" height="12em" />;
@@ -35,7 +55,12 @@ export function StatsTab() {
 
   const dayCols: Column<DayRow>[] = [
     { key: 'date', header: t('admin.p14.stats.col.date'), render: (r) => formatDate(`${r.date}T12:00:00`) },
-    { key: 'created', header: t('admin.p14.stats.col.created'), align: 'end', render: (r) => formatNumber(r.created) },
+    {
+      key: 'created',
+      header: t('admin.p14.stats.col.created'),
+      align: 'end',
+      render: (r) => formatNumber(r.created),
+    },
     { key: 'read', header: t('admin.p14.stats.col.read'), align: 'end', render: (r) => formatNumber(r.read) },
     {
       key: 'rate',
@@ -45,8 +70,17 @@ export function StatsTab() {
     },
   ];
   const typeCols: Column<{ type: string; count: number }>[] = [
-    { key: 'type', header: t('admin.p14.stats.col.type'), render: (r) => td(`admin.p14.stats.type.${r.type}`, r.type) },
-    { key: 'count', header: t('admin.p14.stats.col.count'), align: 'end', render: (r) => formatNumber(r.count) },
+    {
+      key: 'type',
+      header: t('admin.p14.stats.col.type'),
+      render: (r) => td(`admin.p14.stats.type.${r.type}`, r.type),
+    },
+    {
+      key: 'count',
+      header: t('admin.p14.stats.col.count'),
+      align: 'end',
+      render: (r) => formatNumber(r.count),
+    },
   ];
 
   return (
@@ -56,16 +90,36 @@ export function StatsTab() {
         parts={
           rate === null
             ? t('admin.v2n.ps.none', { n: s.days })
-            : t('admin.v2n.ps.summary', { n: s.days, created: formatNumber(s.created), rate: formatNumber(rate) })
+            : t('admin.v2n.ps.summary', {
+                n: s.days,
+                created: formatNumber(s.created),
+                rate: formatNumber(rate),
+              })
         }
       />
-      <div className={styles.statGrid}>
-        <StatCard title={t('admin.p14.stats.stat.created')} value={formatNumber(s.created)} hint={t('admin.p14.stats.stat.window', { n: s.days })} />
-        <StatCard title={t('admin.p14.stats.stat.read')} value={formatNumber(s.read)} />
-        <StatCard title={t('admin.p14.stats.stat.rate')} value={rate === null ? '—' : `%${formatNumber(rate)}`} />
-        <StatCard title={t('admin.p14.stats.stat.total')} value={formatNumber(s.totalRows)} />
-        <StatCard title={t('admin.p14.stats.stat.unread')} value={formatNumber(s.unreadRows)} />
+      <div className={ilStyles.tiles} data-search-anchor="push-stats-tiles">
+        <StatTile
+          label={t('admin.p14.stats.stat.created')}
+          value={s.created}
+          icon="bell"
+          caption={t('admin.p14.stats.stat.window', { n: s.days })}
+        />
+        <StatTile
+          label={t('admin.p14.stats.stat.read')}
+          value={s.read}
+          icon="check"
+          caption={il('admin.il.ps.readHint')}
+        />
+        <ProgressRing
+          value={rate}
+          label={il('admin.il.ps.ring')}
+          tone={rate === null ? 'neutral' : rate >= 50 ? 'success' : rate >= 30 ? 'warning' : 'danger'}
+          size={104}
+        />
       </div>
+      <p className={styles.hint}>
+        {il('admin.il.ps.inbox', { total: formatNumber(s.totalRows), unread: formatNumber(s.unreadRows) })}
+      </p>
       <Callout tone="info">{t('admin.p14.stats.note')}</Callout>
 
       <Card title={t('admin.p14.stats.chart.title', { n: s.days })}>
@@ -82,7 +136,12 @@ export function StatsTab() {
         />
         <details>
           <summary className={styles.hint}>{t('admin.v2n.ps.showTable')}</summary>
-          <Table caption={t('admin.p14.stats.table.days')} columns={dayCols} rows={rows} rowKey={(r) => r.date} />
+          <Table
+            caption={t('admin.p14.stats.table.days')}
+            columns={dayCols}
+            rows={rows}
+            rowKey={(r) => r.date}
+          />
         </details>
       </Card>
 
@@ -90,7 +149,11 @@ export function StatsTab() {
         {s.byType.length > 0 && (
           <RankedBars
             ariaLabel={t('admin.p14.stats.type.title')}
-            items={s.byType.map((r) => ({ key: r.type, label: td(`admin.p14.stats.type.${r.type}`, r.type), value: r.count }))}
+            items={s.byType.map((r) => ({
+              key: r.type,
+              label: td(`admin.p14.stats.type.${r.type}`, r.type),
+              value: r.count,
+            }))}
             showShare
             formatValue={(n) => formatNumber(n)}
           />
