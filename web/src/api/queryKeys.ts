@@ -1,3 +1,4 @@
+import type { UnitAnnouncementParams } from './adminUnitNews';
 import type {
   AuditParams,
   BreakdownDimension,
@@ -103,5 +104,11 @@ export const qk = {
   },
   events: { all: ['events'] as const, list: (status: EventStatus) => ['events', 'list', status] as const },
   news: { all: ['news'] as const, list: (p: NewsListParams) => ['news', 'list', p] as const },
+  unitNews: {
+    all: ['unitNews'] as const,
+    sources: () => ['unitNews', 'sources'] as const,
+    departments: (code: string) => ['unitNews', 'departments', code] as const,
+    announcements: (p: UnitAnnouncementParams) => ['unitNews', 'announcements', p] as const,
+  },
   audit: { all: ['audit'] as const, list: (p: AuditParams) => ['audit', 'list', p] as const },
 };

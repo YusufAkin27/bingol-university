@@ -17,6 +17,7 @@ import trAdminCampaigns from './tr/admin-campaigns';
 import trAdminSettings from './tr/admin-settings';
 import trAdminSafety from './tr/admin-safety';
 import trAdminChat from './tr/admin-chat';
+import trAdminUnitNews from './tr/admin-unitnews';
 import trSiteNew from './tr/site-new';
 import trLegal from './tr/legal';
 import trPages from './tr/pages';
@@ -34,6 +35,7 @@ import enAdminCampaigns from './en/admin-campaigns';
 import enAdminSettings from './en/admin-settings';
 import enAdminSafety from './en/admin-safety';
 import enAdminChat from './en/admin-chat';
+import enAdminUnitNews from './en/admin-unitnews';
 import enSiteNew from './en/site-new';
 import enLegal from './en/legal';
 import enPages from './en/pages';
@@ -51,6 +53,7 @@ import arAdminCampaigns from './ar/admin-campaigns';
 import arAdminSettings from './ar/admin-settings';
 import arAdminSafety from './ar/admin-safety';
 import arAdminChat from './ar/admin-chat';
+import arAdminUnitNews from './ar/admin-unitnews';
 import arSiteNew from './ar/site-new';
 import arLegal from './ar/legal';
 import arPages from './ar/pages';
@@ -69,6 +72,7 @@ const tr = {
   ...trAdminSettings,
   ...trAdminSafety,
   ...trAdminChat,
+  ...trAdminUnitNews,
   ...trSiteNew,
   ...trLegal,
   ...trPages,
@@ -92,6 +96,7 @@ const en: Dictionary = {
   ...enAdminSettings,
   ...enAdminSafety,
   ...enAdminChat,
+  ...enAdminUnitNews,
   ...enSiteNew,
   ...enLegal,
   ...enPages,
@@ -111,6 +116,7 @@ const ar: Dictionary = {
   ...arAdminSettings,
   ...arAdminSafety,
   ...arAdminChat,
+  ...arAdminUnitNews,
   ...arSiteNew,
   ...arLegal,
   ...arPages,

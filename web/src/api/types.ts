@@ -48,6 +48,8 @@ export interface AdminMe {
   email: string;
   displayName: string;
   role: Role;
+  /** RBAC izinleri (örn. `content.write`). Sunucu göndermiyorsa tanımsız: arayüz kısıtlamaz, yetkiyi sunucu denetler. */
+  permissions?: string[];
 }
 
 // ---------- Uygulama bilgisi / ayarlar ----------

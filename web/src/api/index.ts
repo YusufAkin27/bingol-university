@@ -15,6 +15,7 @@ export * as campaignsApi from './campaigns';
 export * as settingsApi from './settings';
 export * as approvalsApi from './approvals';
 export * as newsApi from './news';
+export * as adminUnitNewsApi from './adminUnitNews';
 export * as auditApi from './audit';
 export * as moderationApi from './moderation';
 export * as cryptoApi from './crypto';
