@@ -4,7 +4,8 @@ import { listAudit } from '../../../api/audit';
 import { qk } from '../../../api/queryKeys';
 import { getSyncStatus } from '../../../api/settings';
 import type { AnalyticsOverview } from '../../../api/types';
-import { Badge, Card, EmptyState, ErrorState, Icon, Skeleton, StatusPill } from '../../../components/ui';
+import { Card, EmptyState, ErrorState, Icon, Skeleton, StatusDot, StatusPill, useKitFormat } from '../../../components/ui';
+import { describeAction } from '../audit/auditLogic';
 import { useI18n } from '../../../i18n/I18nProvider';
 import { errorMessage } from '../../../lib/errors';
 import { paths } from '../../../paths';
@@ -147,11 +148,8 @@ export function DevicePanel({ overview }: { overview: UseQueryResult<AnalyticsOv
                 <span className={styles.swatch} style={{ background: DEVICE_COLORS[i] }} aria-hidden="true" />
                 {t(`admin.dashboard.devices.${p.id as 'android' | 'ios' | 'web'}`)}
                 <span className={styles.legendValue}>
-                  {formatNumber(p.n)}
-                  <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>
-                    {' '}
-                    ({formatNumber(Math.round((p.n / total) * 100))}%)
-                  </span>
+                  <span className={styles.legendPct}>%{formatNumber(Math.round((p.n / total) * 100))}</span>
+                  <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}> ({formatNumber(p.n)})</span>
                 </span>
               </li>
             ))}
@@ -162,16 +160,17 @@ export function DevicePanel({ overview }: { overview: UseQueryResult<AnalyticsOv
   );
 }
 
-/** Son 5 yönetici işlemi. */
+/** Son 5 yönetici işlemi: "Ayşe · Kullanıcıyı askıya aldı · 3 dk önce" (ham HTTP yolu gösterilmez). */
 export function RecentAudit() {
   const i18n = useI18n();
-  const { t, formatDateTime } = i18n;
+  const { t, td } = i18n;
+  const kit = useKitFormat();
   const q = useQuery({
     queryKey: qk.audit.list({ page: 0, size: 5 }),
     queryFn: () => listAudit({ page: 0, size: 5 }),
   });
   return (
-    <Card title={t('admin.dashboard.audit.title')} data-testid="recent-audit">
+    <Card title={t('admin.dashboard.audit.title')} data-testid="recent-audit" data-search-anchor="dash-audit">
       {q.isError ? (
         <ErrorState compact description={errorMessage(i18n, q.error)} onRetry={() => void q.refetch()} />
       ) : !q.data ? (
@@ -181,24 +180,33 @@ export function RecentAudit() {
       ) : (
         <>
           <ul className={styles.audit}>
-            {q.data.items.map((r) => (
-              <li key={r.id}>
-                <span className={`${styles.auditMethod} ltr`}>{r.method}</span>
-                <span className={`${styles.auditPath} ltr`}>
-                  {r.path}{' '}
-                  <Badge tone={r.status >= 400 ? 'danger' : 'success'}>
-                    <span className="ltr">{r.status}</span>
-                  </Badge>
-                </span>
-                <span className={styles.auditMeta}>
-                  <span className="ltr">{r.adminEmail ?? '—'}</span>
-                  {' · '}
-                  {formatDateTime(r.at)}
-                </span>
-              </li>
-            ))}
+            {q.data.items.map((r) => {
+              const a = describeAction(td, r.method, r.path);
+              const denied = r.status === 403;
+              const failed = r.status >= 400;
+              return (
+                <li key={r.id}>
+                  <span className={styles.auditText}>
+                    <strong className="ltr">{r.adminEmail ? r.adminEmail.split('@')[0] : t('admin.audit.noAdmin')}</strong>
+                    {' · '}
+                    {a.label}
+                  </span>
+                  <span className={styles.auditMeta}>
+                    <StatusDot tone={denied ? 'warning' : failed ? 'danger' : 'success'} announceTone={false}>
+                      {denied
+                        ? t('admin.v2p.dash.audit.denied')
+                        : failed
+                          ? t('admin.v2p.dash.audit.failed')
+                          : t('admin.v2p.dash.audit.done')}
+                    </StatusDot>
+                    {' · '}
+                    <span title={r.at}>{kit.relative(r.at)}</span>
+                  </span>
+                </li>
+              );
+            })}
           </ul>
-          <Link to={paths.admin.audit} className={styles.more}>
+          <Link to={paths.admin.audit} className={styles.moreLink}>
             {t('admin.dashboard.audit.all')} <Icon name="external" size={14} />
           </Link>
         </>

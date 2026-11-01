@@ -5,7 +5,7 @@ import { getBreakdown } from '../../../api/analytics';
 import { qk } from '../../../api/queryKeys';
 import type { BreakdownDimension, BreakdownResponse } from '../../../api/types';
 import { DonutChart } from '../../../components/charts';
-import { Badge, Button, Card, EmptyState, Table, type Column } from '../../../components/ui';
+import { Badge, Button, Card, EmptyState, Insight, Table, type Column } from '../../../components/ui';
 import { useI18n } from '../../../i18n/I18nProvider';
 import { paths } from '../../../paths';
 import styles from './analytics.module.css';
@@ -75,7 +75,7 @@ export default function DemographicsTab({
             <Link to={paths.admin.settings}>{t('admin.analytics.demo.facultyHintLink')}</Link>
           </p>
         )}
-        <Async query={q} height={300}>
+        <Async query={q} height={300} title={t(`admin.analytics.demo.${dimension}`)}>
           {(d) => {
             if (d.items.length === 0 || d.total === 0) {
               return (
@@ -110,9 +110,19 @@ export default function DemographicsTab({
               },
             ];
             const donut = items.length <= 6;
+            const biggest = [...items].sort((a, b) => b.count - a.count)[0];
             return (
               <>
-                <p className={styles.muted} style={{ marginBlockEnd: 'var(--space-3)' }}>
+                {biggest && biggest.key !== 'unknown' && (
+                  <Insight
+                    tone="info"
+                    parts={t('admin.v2p.anl.demo.biggest', {
+                      pct: formatNumber(Math.round(biggest.percent)),
+                      name: biggest.text,
+                    })}
+                  />
+                )}
+                <p className={styles.muted} style={{ marginBlock: 'var(--space-3)' }}>
                   {t('admin.analytics.demo.total', { n: formatNumber(d.total) })}
                   {dimension === 'platform' && <> {t('admin.analytics.demo.platformNote')}</>}
                 </p>
@@ -137,14 +147,15 @@ export default function DemographicsTab({
                       />
                     )}
                   </div>
-                  <div data-testid="demo-table">
+                  <details data-testid="demo-table">
+                    <summary className={styles.detailsSummary}>{t('admin.analytics.table.show')}</summary>
                     <Table
                       caption={t(`admin.analytics.demo.${dimension}`)}
                       columns={columns}
                       rows={items}
                       rowKey={(i) => i.key}
                     />
-                  </div>
+                  </details>
                 </div>
               </>
             );

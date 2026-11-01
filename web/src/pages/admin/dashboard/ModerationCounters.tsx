@@ -3,7 +3,7 @@
 // bu sayılar yok; ilk sayfa sayılır, sonraki sayfa varsa "50+" gösterilir. Hata veren sayaç "—" gösterir, diğerlerini bozmaz.
 import { useQuery } from '@tanstack/react-query';
 import { moderationApi, qk } from '../../../api';
-import { StatCard } from '../../../components/ui';
+import { StatTile } from '../../../components/ui';
 import { useI18n } from '../../../i18n/I18nProvider';
 import { countLabel } from '../moderation/modLogic';
 
@@ -25,14 +25,16 @@ export function ModerationCounters() {
     q.data ? countLabel(q.data.items.length, q.data.nextCursor !== null) : '—';
   return (
     <>
-      <StatCard
-        title={t('admin.dashboard.kpi.openAppeals')}
+      <StatTile
+        label={t('admin.dashboard.kpi.openAppeals')}
         value={label(appeals)}
+        goodWhen="down"
         loading={appeals.isLoading}
       />
-      <StatCard
-        title={t('admin.dashboard.kpi.openSuspend')}
+      <StatTile
+        label={t('admin.dashboard.kpi.openSuspend')}
         value={label(recs)}
+        goodWhen="down"
         loading={recs.isLoading}
       />
     </>

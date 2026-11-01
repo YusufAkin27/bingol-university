@@ -1,8 +1,7 @@
 import type { UseQueryResult } from '@tanstack/react-query';
 import { useId, useState, type ReactNode } from 'react';
-import { Button, Card, ErrorState, Skeleton, Table, type Column } from '../../../components/ui';
+import { Button, Card, Icon, Skeleton, Table, useIsNarrow, type Column } from '../../../components/ui';
 import { useI18n } from '../../../i18n/I18nProvider';
-import { errorMessage } from '../../../lib/errors';
 import styles from './analytics.module.css';
 import { cohortStyle, COHORT_LEVEL_MIX, isCohortMature } from './transform';
 
@@ -11,15 +10,25 @@ export function Async<T>({
   query,
   children,
   height = 220,
+  title,
 }: {
   query: UseQueryResult<T>;
   children: (data: T) => ReactNode;
   height?: number;
+  /** Hata satırında "X yüklenemedi" diye hangi verinin gelmediğini söylemek için. */
+  title?: string;
 }) {
   const i18n = useI18n();
   if (query.isError && !query.data) {
+    // ANL-4: 270 px'lik büyük hata kutusu yerine tek satır; kartın başlığı yerinde kalır
     return (
-      <ErrorState compact description={errorMessage(i18n, query.error)} onRetry={() => void query.refetch()} />
+      <p className={styles.inlineError} role="alert">
+        <Icon name="alert" size={18} aria-hidden="true" />
+        <span>{title ? i18n.t('admin.v2p.anl.loadFailNamed', { name: title }) : i18n.t('admin.v2p.anl.loadFail')}</span>
+        <Button size="sm" variant="secondary" onClick={() => void query.refetch()}>
+          {i18n.t('common.retry')}
+        </Button>
+      </p>
     );
   }
   if (!query.data) {
@@ -124,6 +133,41 @@ export function CohortHeat({ cohorts, today }: { cohorts: CohortData[]; today?: 
     { key: 'd7', days: 7, label: t('admin.analytics.retention.d7') },
     { key: 'd30', days: 30, label: t('admin.analytics.retention.d30') },
   ] as const;
+  const narrow = useIsNarrow(720);
+  // ANL-R1: telefonda 7. ve 30. gün sütunları ekran dışında kalıyordu; her hafta bir kart, üç ilerleme çubuğu
+  if (narrow) {
+    return (
+      <ul className={styles.cohortCards} aria-label={t('admin.analytics.retention.title')}>
+        {cohorts.map((c) => (
+          <li key={c.weekStart} className={styles.cohortCard}>
+            <p className={styles.cohortHead}>
+              <strong>{formatDate(c.weekStart, { day: 'numeric', month: 'short', year: 'numeric' })}</strong>
+              <span className={styles.muted}>{t('admin.v2p.anl.cohortSize', { n: formatNumber(c.size) })}</span>
+            </p>
+            {cols.map((col) => {
+              const mature = isCohortMature(c.weekStart, col.days, today);
+              const v = c[col.key];
+              return (
+                <div key={col.key} className={styles.cohortLine}>
+                  <span>{col.label}</span>
+                  {mature ? (
+                    <>
+                      <span className={styles.cohortBar} aria-hidden="true">
+                        <span style={{ inlineSize: `${Math.max(2, Math.min(100, v))}%` }} />
+                      </span>
+                      <strong className="ltr">%{formatNumber(Math.round(v))}</strong>
+                    </>
+                  ) : (
+                    <span className={styles.muted}>{t('admin.analytics.retention.pending')}</span>
+                  )}
+                </div>
+              );
+            })}
+          </li>
+        ))}
+      </ul>
+    );
+  }
   return (
     <div>
       <div className={styles.cohortWrap}>

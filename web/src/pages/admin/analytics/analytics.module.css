@@ -233,3 +233,111 @@
 .unknownTag {
   font-style: italic;
 }
+
+/* PEOPLE: tek satır hata, kohort kartları, KVKK açılır notu, özet şeridi */
+.inlineError {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0;
+  padding: var(--space-3);
+  border: 1px solid var(--danger);
+  border-radius: var(--radius-sm);
+  background: var(--danger-soft);
+  font-size: var(--text-sm);
+}
+.cohortCards {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--space-3);
+}
+.cohortCard {
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+}
+.cohortHead {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-2);
+  margin: 0;
+  flex-wrap: wrap;
+}
+.cohortLine {
+  display: grid;
+  grid-template-columns: 5.5rem minmax(0, 1fr) 3.2rem;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
+}
+.cohortBar {
+  display: block;
+  block-size: 10px;
+  border-radius: 999px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  overflow: hidden;
+}
+.cohortBar > span {
+  display: block;
+  block-size: 100%;
+  background: var(--chart-1);
+}
+.ringRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-5);
+  justify-content: center;
+  margin-block: var(--space-4);
+}
+.kvkkBox {
+  margin-block-end: var(--space-3);
+}
+.kvkkSummary {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-block-size: 44px;
+  cursor: pointer;
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+.summaryBox {
+  display: grid;
+  gap: var(--space-3);
+}
+.summaryTiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+  gap: var(--space-3);
+}
+.summaryTiles > * {
+  min-width: 0;
+}
+.funnelNotes {
+  margin: var(--space-3) 0 0;
+  padding-inline-start: var(--space-4);
+  display: grid;
+  gap: var(--space-1);
+  font-size: var(--text-sm);
+}
+.detailsSummary {
+  cursor: pointer;
+  min-block-size: 44px;
+  display: flex;
+  align-items: center;
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+@media (max-width: 720px) {
+  .grid3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-2);
+  }
+}

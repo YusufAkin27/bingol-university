@@ -1,15 +1,27 @@
 // SAYFA: Genel bakış (/admin)
 // API: GET /api/admin/moderation/appeals + suspend-recommendations (açık sayaçlar), GET /api/admin/analytics/overview, /registrations, /active-users (api/analytics.ts), GET /api/status, GET /api/admin/audit?size=5.
-// Her kart kendi sorgusunu yapar ve bağımsız hata verir; mini grafikler (recharts) tembel yüklenir.
+// PEOPLE: önce tek cümlelik özet ("Bugün 120 kişi girdi, dün 98 idi: %22 fazla"), sonra 4 büyük kutu (giren, yeni üye, geri dönen,
+// bekleyen iş), halkalar ve dikkat gerektirenler; 20 sayılık eski yığın "Ayrıntılı sayılar" altında katlanır.
+// Genel bakış (overview) hata verirse tek bir üst bant gösterilir; trend/denetim/kaynak kartları bağımsız kalır.
 import { useQuery } from '@tanstack/react-query';
-import { lazy, Suspense, useMemo, type ReactNode } from 'react';
+import { lazy, Suspense, useMemo } from 'react';
 import { getActiveUsers, getOverview, getRegistrations } from '../../api/analytics';
 import { qk } from '../../api/queryKeys';
 import { usePermissions } from '../../auth/permissions';
-import { ErrorState, PageHeader, Skeleton, StatCard } from '../../components/ui';
+import {
+  Card,
+  ErrorState,
+  Insight,
+  PageHeader,
+  ProgressRing,
+  Skeleton,
+  StatTile,
+  percentChange,
+  useCompareSentence,
+} from '../../components/ui';
 import { useI18n } from '../../i18n/I18nProvider';
 import { errorMessage } from '../../lib/errors';
-import { lastDays } from '../../lib/date';
+import { isoDate, lastDays } from '../../lib/date';
 import { usePageTitle } from '../../lib/hooks';
 import styles from './dashboard/dashboard.module.css';
 import { ModerationCounters } from './dashboard/ModerationCounters';
@@ -17,22 +29,19 @@ import { AttentionPanel, DevicePanel, RecentAudit, SourcesPanel } from './dashbo
 
 const Trends = lazy(() => import('./dashboard/Trends'));
 
-function Section({ title, children }: { title: string; children: ReactNode }) {
-  return (
-    <section className={styles.section} aria-label={title}>
-      <h2 className={styles.sectionTitle}>{title}</h2>
-      <div className={styles.kpis}>{children}</div>
-    </section>
-  );
-}
-
 export default function DashboardPage() {
   const i18n = useI18n();
   const { t, formatNumber } = i18n;
   usePageTitle(t('admin.dashboard.title'));
   const perms = usePermissions();
+  const sentence = useCompareSentence();
 
   const range = useMemo(() => lastDays(30), []);
+  const yesterday = useMemo(() => {
+    const d = new Date();
+    d.setDate(d.getDate() - 1);
+    return isoDate(d);
+  }, []);
   const overview = useQuery({ queryKey: qk.analytics.overview(), queryFn: getOverview });
   const registrations = useQuery({
     queryKey: qk.analytics.registrations(range),
@@ -45,126 +54,141 @@ export default function DashboardPage() {
 
   const o = overview.data;
   const loading = overview.isLoading;
-  const n = (v: number | undefined) => (v === undefined ? '' : formatNumber(v));
-  const pct = (ratio: number) => formatNumber(Math.round(ratio * 100));
+
+  // Dünün değerleri günlük serilerden okunur; seri yoksa karşılaştırma yazılmaz (uydurma yüzde yok).
+  const yDau = activeUsers.data?.points.find((p) => p.date === yesterday)?.dau;
+  const yNew = registrations.data?.points.find((p) => p.date === yesterday)?.count;
+  const dau = o?.activeUsers.dau;
+  const newToday = o?.newUsers.today;
+  const returning = dau !== undefined && newToday !== undefined ? Math.max(0, dau - newToday) : undefined;
+  const yReturning = yDau !== undefined && yNew !== undefined ? Math.max(0, yDau - yNew) : undefined;
+  const waiting = o
+    ? o.openReports + o.openTickets + o.newFeedback + o.communities.pending + o.events.pending
+    : undefined;
+  const dauSpark = activeUsers.data?.points.map((p) => p.dau);
+  const regSpark = registrations.data?.points.map((p) => p.count);
+  const pct = (ratio: number) => Math.round(ratio * 100);
+
+  const hero = o
+    ? o.totalUsers === 0
+      ? { parts: [t('admin.v2p.dash.emptyAll')], tone: 'info' as const }
+      : sentence({
+          nowLabel: t('admin.v2p.dash.today'),
+          current: o.activeUsers.dau,
+          thenLabel: t('admin.v2p.dash.yesterday'),
+          previous: yDau,
+          unit: t('admin.v2p.unit.person'),
+          verb: t('admin.v2p.dash.verbEntered'),
+        })
+    : null;
 
   return (
     <div>
       <PageHeader title={t('admin.dashboard.title')} />
 
-      <div className={styles.top}>
-        <AttentionPanel overview={overview} />
-        <SourcesPanel />
-      </div>
-
       {overview.isError ? (
         <ErrorState
-          title={t('common.state.errorTitle')}
-          description={errorMessage(i18n, overview.error)}
+          title={t('admin.v2p.dash.errorTitle')}
+          description={`${t('admin.v2p.dash.errorHint')} ${errorMessage(i18n, overview.error)}`}
           onRetry={() => void overview.refetch()}
         />
       ) : (
         <>
-          <Section title={t('admin.dashboard.section.users')}>
-            <StatCard title={t('admin.dashboard.kpi.users')} value={n(o?.totalUsers)} loading={loading} />
-            <StatCard
-              title={t('admin.dashboard.kpi.verified')}
-              value={n(o?.verifiedUsers)}
-              loading={loading}
-              hint={
-                o && o.totalUsers > 0
-                  ? t('admin.dashboard.kpi.verifiedHint', { pct: pct(o.verifiedUsers / o.totalUsers) })
-                  : undefined
-              }
-            />
-            <StatCard
-              title={t('admin.dashboard.kpi.suspended')}
-              value={n(o?.suspendedUsers)}
-              loading={loading}
-            />
-          </Section>
+          <section className={styles.hero} aria-label={t('admin.v2p.dash.heroLabel')} data-search-anchor="dash-hero">
+            {hero ? <Insight parts={hero.parts} tone={hero.tone} /> : <Skeleton height="2.6rem" width="100%" />}
+            {o && waiting !== undefined && waiting > 0 && (
+              <Insight tone="warn" parts={t('admin.v2p.dash.waitingSentence', { n: formatNumber(waiting) })} />
+            )}
+            {o && waiting === 0 && <Insight tone="good" parts={t('admin.v2p.dash.waitingNone')} />}
+          </section>
 
-          <Section title={t('admin.dashboard.section.signups')}>
-            <StatCard title={t('admin.dashboard.kpi.newToday')} value={n(o?.newUsers.today)} loading={loading} />
-            <StatCard title={t('admin.dashboard.kpi.new7')} value={n(o?.newUsers.last7d)} loading={loading} />
-            <StatCard
-              title={t('admin.dashboard.kpi.new30')}
-              value={n(o?.newUsers.last30d)}
+          <section className={styles.tiles} aria-label={t('admin.v2p.dash.tilesLabel')} data-search-anchor="dash-tiles">
+            <StatTile
+              label={t('admin.v2p.dash.tile.entered')}
+              value={dau}
+              unit={t('admin.v2p.unit.person')}
+              icon="users"
+              change={dau !== undefined ? percentChange(dau, yDau) : null}
+              compareLabel={t('admin.v2p.dash.fromYesterday')}
+              spark={dauSpark}
+              caption={t('admin.v2p.dash.tile.enteredHint')}
               loading={loading}
-              sparkline={registrations.data?.points.map((p) => p.count)}
             />
-          </Section>
+            <StatTile
+              label={t('admin.v2p.dash.tile.new')}
+              value={newToday}
+              unit={t('admin.v2p.unit.person')}
+              icon="plus"
+              change={newToday !== undefined ? percentChange(newToday, yNew) : null}
+              compareLabel={t('admin.v2p.dash.fromYesterday')}
+              spark={regSpark}
+              caption={t('admin.v2p.dash.tile.newHint')}
+              loading={loading}
+            />
+            <StatTile
+              label={t('admin.v2p.dash.tile.returning')}
+              value={returning}
+              unit={t('admin.v2p.unit.person')}
+              icon="home"
+              change={returning !== undefined ? percentChange(returning, yReturning) : null}
+              compareLabel={t('admin.v2p.dash.fromYesterday')}
+              caption={t('admin.v2p.dash.tile.returningHint')}
+              loading={loading}
+            />
+            <StatTile
+              label={t('admin.v2p.dash.tile.waiting')}
+              value={waiting}
+              unit={t('admin.v2p.dash.unit.task')}
+              icon="flag"
+              goodWhen="down"
+              caption={t('admin.v2p.dash.tile.waitingHint')}
+              loading={loading}
+            />
+          </section>
 
-          <Section title={t('admin.dashboard.section.activity')}>
-            <StatCard
-              title={t('admin.dashboard.kpi.activeUsers')}
-              value={n(o?.activeUsers.dau)}
-              loading={loading}
-              sparkline={activeUsers.data?.points.map((p) => p.dau)}
-            />
-            <StatCard title={t('admin.dashboard.kpi.wau')} value={n(o?.activeUsers.wau)} loading={loading} />
-            <StatCard title={t('admin.dashboard.kpi.mau')} value={n(o?.activeUsers.mau)} loading={loading} />
-            <StatCard
-              title={t('admin.dashboard.kpi.stickiness')}
-              value={o ? `${pct(o.stickiness)}%` : ''}
-              loading={loading}
-            />
-          </Section>
+          <div className={styles.top}>
+            <AttentionPanel overview={overview} />
+            <SourcesPanel />
+          </div>
 
-          <Section title={t('admin.dashboard.section.content')}>
-            <StatCard
-              title={t('admin.dashboard.kpi.messages')}
-              value={n(o?.messages.total)}
-              loading={loading}
-              hint={o ? t('admin.dashboard.kpi.messages24', { n: formatNumber(o.messages.last24h) }) : undefined}
-            />
-            <StatCard
-              title={t('admin.dashboard.kpi.communities')}
-              value={n(o?.communities.active)}
-              loading={loading}
-              hint={
-                o && o.communities.pending > 0
-                  ? t('admin.dashboard.kpi.communitiesPending', { n: formatNumber(o.communities.pending) })
-                  : undefined
-              }
-            />
-            <StatCard
-              title={t('admin.dashboard.kpi.events')}
-              value={n(o?.events.upcoming)}
-              loading={loading}
-              hint={
-                o && o.events.pending > 0
-                  ? t('admin.dashboard.kpi.eventsPending', { n: formatNumber(o.events.pending) })
-                  : undefined
-              }
-            />
-            <StatCard title={t('admin.dashboard.kpi.bookmarks')} value={n(o?.bookmarks)} loading={loading} />
-            <StatCard
-              title={t('admin.dashboard.kpi.push')}
-              value={n(o?.pushCampaignsSent30d)}
-              loading={loading}
-            />
-          </Section>
-
-          <Section title={t('admin.dashboard.section.support')}>
-            <StatCard
-              title={t('admin.dashboard.kpi.openReports')}
-              value={n(o?.openReports)}
-              loading={loading}
-            />
-            <StatCard
-              title={t('admin.dashboard.kpi.openTickets')}
-              value={n(o?.openTickets)}
-              loading={loading}
-            />
-            <StatCard title={t('admin.dashboard.kpi.newFeedback')} value={n(o?.newFeedback)} loading={loading} />
-          </Section>
-
-          {perms.can('moderation.read') && (
-            <Section title={t('admin.dashboard.section.moderation')}>
-              <ModerationCounters />
-            </Section>
-          )}
+          <div className={styles.rings} data-search-anchor="dash-rings">
+            <Card title={t('admin.v2p.dash.verified.title')}>
+              <ProgressRing
+                value={o?.verifiedUsers}
+                max={o?.totalUsers || 1}
+                label={t('admin.v2p.dash.verified.label')}
+                tone="success"
+                loading={loading}
+              />
+              {o && (
+                <p className={styles.ringNote}>
+                  {t('admin.v2p.dash.verified.note', {
+                    total: formatNumber(o.totalUsers),
+                    verified: formatNumber(o.verifiedUsers),
+                    missing: formatNumber(Math.max(0, o.totalUsers - o.verifiedUsers)),
+                  })}
+                </p>
+              )}
+            </Card>
+            <Card title={t('admin.v2p.dash.sticky.title')}>
+              <ProgressRing
+                value={o ? pct(o.stickiness) : undefined}
+                max={100}
+                label={t('admin.v2p.dash.sticky.label')}
+                tone="primary"
+                loading={loading}
+              />
+              {o && (
+                <p className={styles.ringNote}>
+                  {t('admin.v2p.dash.sticky.note', {
+                    week: formatNumber(o.activeUsers.wau),
+                    month: formatNumber(o.activeUsers.mau),
+                  })}
+                </p>
+              )}
+            </Card>
+            <DevicePanel overview={overview} />
+          </div>
         </>
       )}
 
@@ -172,10 +196,33 @@ export default function DashboardPage() {
         <Trends registrations={registrations} activeUsers={activeUsers} />
       </Suspense>
 
-      <div className={styles.bottom}>
-        <DevicePanel overview={overview} />
-        {perms.can('audit.read') && <RecentAudit />}
-      </div>
+      {o && !overview.isError && (
+        <details className={styles.more} data-search-anchor="dash-details">
+          <summary>{t('admin.v2p.dash.details')}</summary>
+          <div className={styles.kpis}>
+            <StatTile label={t('admin.dashboard.kpi.suspended')} value={o.suspendedUsers} unit={t('admin.v2p.unit.person')} goodWhen="down" />
+            <StatTile label={t('admin.dashboard.kpi.new7')} value={o.newUsers.last7d} unit={t('admin.v2p.unit.person')} />
+            <StatTile label={t('admin.dashboard.kpi.new30')} value={o.newUsers.last30d} unit={t('admin.v2p.unit.person')} spark={regSpark} />
+            <StatTile label={t('admin.v2p.dash.kpi.week')} value={o.activeUsers.wau} unit={t('admin.v2p.unit.person')} />
+            <StatTile label={t('admin.v2p.dash.kpi.month')} value={o.activeUsers.mau} unit={t('admin.v2p.unit.person')} />
+            <StatTile label={t('admin.dashboard.kpi.messages')} value={o.messages.total} unit={t('admin.v2p.dash.unit.message')} caption={t('admin.dashboard.kpi.messages24', { n: formatNumber(o.messages.last24h) })} />
+            <StatTile label={t('admin.dashboard.kpi.communities')} value={o.communities.active} caption={o.communities.pending > 0 ? t('admin.dashboard.kpi.communitiesPending', { n: formatNumber(o.communities.pending) }) : undefined} />
+            <StatTile label={t('admin.dashboard.kpi.events')} value={o.events.upcoming} caption={o.events.pending > 0 ? t('admin.dashboard.kpi.eventsPending', { n: formatNumber(o.events.pending) }) : undefined} />
+            <StatTile label={t('admin.dashboard.kpi.bookmarks')} value={o.bookmarks} />
+            <StatTile label={t('admin.dashboard.kpi.push')} value={o.pushCampaignsSent30d} />
+            <StatTile label={t('admin.dashboard.kpi.openReports')} value={o.openReports} goodWhen="down" />
+            <StatTile label={t('admin.dashboard.kpi.openTickets')} value={o.openTickets} goodWhen="down" />
+            <StatTile label={t('admin.dashboard.kpi.newFeedback')} value={o.newFeedback} />
+            {perms.can('moderation.read') && <ModerationCounters />}
+          </div>
+        </details>
+      )}
+
+      {perms.can('audit.read') && (
+        <div className={styles.audit1}>
+          <RecentAudit />
+        </div>
+      )}
     </div>
   );
 }

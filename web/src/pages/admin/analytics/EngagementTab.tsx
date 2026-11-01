@@ -9,6 +9,18 @@ import styles from './analytics.module.css';
 import { Async, BarList, ChartCard } from './parts';
 import { funnelRows } from './transform';
 
+/** Teknik olay adını (screen_view, message_sent) Türkçe yazar; bilinmeyeni gri "teknik ad" etiketiyle gösterir. */
+function EventName({ name }: { name: string }) {
+  const { t, td } = useI18n();
+  const label = td(`admin.v2p.anl.event.${name}`, '');
+  if (label) return <span title={name}>{label}</span>;
+  return (
+    <span>
+      <code className="ltr">{name}</code> <span className={styles.muted}>{t('admin.v2p.anl.technicalName')}</span>
+    </span>
+  );
+}
+
 export default function EngagementTab({ range }: { range: DateRange }) {
   const { t, td, formatDate, formatNumber } = useI18n();
   const fmt = (v: string | number) => formatDate(String(v), { day: 'numeric', month: 'short' });
@@ -16,7 +28,7 @@ export default function EngagementTab({ range }: { range: DateRange }) {
 
   return (
     <div className={styles.panel}>
-      <Async query={q} height={320}>
+      <Async query={q} height={320} title={t('admin.v2p.anl.engagement.title')}>
         {(d) => {
           const rows = funnelRows(d.funnel);
           const funnelCols: Column<(typeof rows)[number]>[] = [
@@ -37,7 +49,7 @@ export default function EngagementTab({ range }: { range: DateRange }) {
             },
           ];
           const eventCols: Column<(typeof d.topEvents)[number]>[] = [
-            { key: 'name', header: t('admin.analytics.engagement.event'), render: (e) => <code className="ltr">{e.name}</code> },
+            { key: 'name', header: t('admin.analytics.engagement.event'), render: (e) => <EventName name={e.name} /> },
             {
               key: 'count',
               header: t('admin.analytics.engagement.count'),
@@ -74,10 +86,23 @@ export default function EngagementTab({ range }: { range: DateRange }) {
                     ariaLabel={t('admin.analytics.funnel.title')}
                     emptyLabel={t('admin.analytics.chart.noData')}
                   />
+                  {rows.length > 1 && (
+                    <ul className={styles.funnelNotes}>
+                      {rows.slice(1).map((r) => (
+                        <li key={r.step}>
+                          {t('admin.v2p.anl.funnel.keep', {
+                            step: td(`admin.analytics.funnel.${r.step}`, r.step),
+                            pct: formatNumber(r.fromPrev ?? 0),
+                          })}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
                   {rows.length > 0 && (
-                    <div style={{ marginBlockStart: 'var(--space-4)' }} data-testid="funnel-table">
+                    <details style={{ marginBlockStart: 'var(--space-3)' }} data-testid="funnel-table">
+                      <summary className={styles.detailsSummary}>{t('admin.analytics.table.show')}</summary>
                       <Table caption={t('admin.analytics.funnel.title')} columns={funnelCols} rows={rows} rowKey={(r) => r.step} />
-                    </div>
+                    </details>
                   )}
                 </Card>
 
@@ -93,7 +118,7 @@ export default function EngagementTab({ range }: { range: DateRange }) {
               </div>
 
               <ChartCard
-                title={t('admin.analytics.engagement.daily')}
+                title={t('admin.v2p.anl.engagement.dailyTitle')}
                 rows={d.daily}
                 rowKey={(r) => r.date}
                 columns={dailyCols}
@@ -108,7 +133,7 @@ export default function EngagementTab({ range }: { range: DateRange }) {
                     { key: 'rsvps', label: t('admin.analytics.engagement.rsvps') },
                     { key: 'searches', label: t('admin.analytics.engagement.searches') },
                   ]}
-                  ariaLabel={t('admin.analytics.engagement.daily')}
+                  ariaLabel={t('admin.v2p.anl.engagement.dailyTitle')}
                   formatX={fmt}
                   emptyLabel={t('admin.analytics.chart.noData')}
                 />
@@ -120,7 +145,11 @@ export default function EngagementTab({ range }: { range: DateRange }) {
                 ) : (
                   <BarList
                     ariaLabel={t('admin.analytics.engagement.screens')}
-                    items={d.screens.map((s) => ({ key: s.screen, label: s.screen, value: s.views }))}
+                    items={d.screens.slice(0, 8).map((s) => ({
+                      key: s.screen,
+                      label: td(`admin.v2p.anl.screen.${s.screen}`, s.screen),
+                      value: s.views,
+                    }))}
                   />
                 )}
               </Card>

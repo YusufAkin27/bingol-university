@@ -10,7 +10,7 @@ import { qk } from '../../../api/queryKeys';
 import { BarChart, LineAreaChart } from '../../../components/charts';
 import { Card, EmptyState, StatCard, StatusPill, Table, toneFor, type Column } from '../../../components/ui';
 import { useI18n } from '../../../i18n/I18nProvider';
-import { SourcesPanel } from '../dashboard/panels';
+import { DailySummary } from './DailySummary';
 import styles from './analytics.module.css';
 import { Async, BarList, ChartCard } from './parts';
 import { humanizeMinutes } from './transform';
@@ -35,8 +35,9 @@ export default function OverviewTab({ range }: { range: DateRange }) {
 
   return (
     <div className={styles.panel}>
+      <DailySummary />
       <div className={styles.grid2}>
-        <Async query={dau}>
+        <Async query={dau} title={t('admin.analytics.overview.dau')}>
           {(d) => (
             <ChartCard
               title={t('admin.analytics.overview.dau')}
@@ -66,7 +67,7 @@ export default function OverviewTab({ range }: { range: DateRange }) {
           )}
         </Async>
 
-        <Async query={regs}>
+        <Async query={regs} title={t('admin.analytics.overview.reg')}>
           {(d) => (
             <ChartCard
               title={t('admin.analytics.overview.reg')}
@@ -86,27 +87,7 @@ export default function OverviewTab({ range }: { range: DateRange }) {
           )}
         </Async>
 
-        <Async query={regs}>
-          {(d) => (
-            <ChartCard
-              title={t('admin.analytics.overview.cum')}
-              rows={d.points}
-              rowKey={(r) => r.date}
-              columns={[dateCol, numCol('cumulative', t('admin.analytics.overview.cumSeries'))]}
-            >
-              <LineAreaChart
-                data={d.points}
-                xKey="date"
-                series={[{ key: 'cumulative', label: t('admin.analytics.overview.cumSeries'), color: 'var(--chart-5)' }]}
-                ariaLabel={t('admin.analytics.overview.cum')}
-                formatX={fmt}
-                emptyLabel={t('admin.analytics.chart.noData')}
-              />
-            </ChartCard>
-          )}
-        </Async>
-
-        <Async query={content}>
+        <Async query={content} title={t('admin.analytics.overview.content')}>
           {(d) => {
             const data = d.daily.map((x) => ({ ...x, label: fmt(x.date) }));
             return (
@@ -141,7 +122,7 @@ export default function OverviewTab({ range }: { range: DateRange }) {
 
       <div className={styles.grid2}>
         <Card title={t('admin.analytics.support.title')}>
-          <Async query={support} height={160}>
+          <Async query={support} height={160} title={t('admin.analytics.support.title')}>
             {(d) => {
               const avg = d.avgFirstResponseMinutes;
               const h = avg ? humanizeMinutes(avg) : null;
@@ -191,7 +172,7 @@ export default function OverviewTab({ range }: { range: DateRange }) {
         </Card>
 
         <Card title={t('admin.analytics.push.title')}>
-          <Async query={push} height={160}>
+          <Async query={push} height={160} title={t('admin.analytics.push.title')}>
             {(d) => {
               const columns: Column<(typeof d.recent)[number]>[] = [
                 { key: 'title', header: t('admin.analytics.push.col.title'), render: (c) => c.tr.title },
@@ -237,7 +218,6 @@ export default function OverviewTab({ range }: { range: DateRange }) {
         </Card>
       </div>
 
-      <SourcesPanel />
     </div>
   );
 }

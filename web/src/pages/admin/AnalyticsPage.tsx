@@ -50,10 +50,15 @@ export default function AnalyticsPage() {
   return (
     <div>
       <PageHeader title={t('admin.analytics.title')} />
-      <p className={styles.kvkk} role="note">
-        <Icon name="shield" size={18} />
-        <span>{t('admin.analytics.kvkk')}</span>
-      </p>
+      <details className={styles.kvkkBox} data-search-anchor="anl-kvkk">
+        <summary className={styles.kvkkSummary}>
+          <Icon name="shield" size={18} aria-hidden="true" />
+          <span>{t('admin.v2p.anl.kvkkShort')}</span>
+        </summary>
+        <p className={styles.kvkk} role="note">
+          <span>{t('admin.analytics.kvkk')}</span>
+        </p>
+      </details>
 
       <Tabs
         label={t('admin.analytics.tabs.label')}
@@ -62,7 +67,7 @@ export default function AnalyticsPage() {
         tabs={TABS.map((id) => ({ id, label: t(`admin.analytics.tab.${id}`) }))}
       >
         {showRange && (
-          <div className={styles.controls}>
+          <div className={styles.controls} data-search-anchor="anl-range">
             <DateRangePicker
               value={range}
               onChange={(r) => patch({ from: r.from || null, to: r.to || null })}
