@@ -68,6 +68,7 @@ fi
 
 # --- on kontroller ---
 rc lsd "${BACKUP_REMOTE%%:*}:" >/dev/null || rc about "${BACKUP_REMOTE%%:*}:" >/dev/null || fail "$(classify_error)"
+: > "$RC_ERR"   # basarili on kontrolun gecici (yeniden denenen) hata satirlari sonraki hata siniflandirmasini yaniltmasin
 [ "$DRY" = 1 ] || rc mkdir "$REMOTE_BASE" || fail "$(classify_error)"
 [ "$DRY" = 1 ] || state_merge "$(jq -nc --arg t "$(now_iso)" '{lastAttemptAt:$t}')"
 
@@ -132,8 +133,11 @@ if [ "$ALREADY" = 0 ] || [ "$FORCE" = 1 ]; then
   if [ "$ALREADY" = 1 ]; then rc purge "$REMOTE_BASE/$STAMP" --drive-use-trash=false || fail "$(classify_error)"; fi
   TMPD="$REMOTE_BASE/.partial-$STAMP"
   log "rclone yukleme basliyor -> .partial-$STAMP (tek aktarim, parca ${BACKUP_RCLONE_DRIVE_CHUNK:-64M})"
+  : > "$RC_ERR"
   timeout "${BACKUP_REMOTE_MAX_SECONDS:-14400}" rclone "${RC_OPTS[@]}" copy "$STAGE" "$TMPD" --checksum --transfers 1 --checkers 2 \
-    2>>"$RC_ERR" || fail "yukleme basarisiz: $(classify_error)"
+    2>>"$RC_ERR" || { UC=$?
+      case "$UC" in 124|137|143) fail "yukleme sure sinirini asti (BACKUP_REMOTE_MAX_SECONDS=${BACKUP_REMOTE_MAX_SECONDS:-14400} sn); sonraki denemede tamamlanmamis dosyalar bastan yuklenir";; esac
+      fail "yukleme basarisiz: $(classify_error)"; }
   log "yukleme bitti; indirmeden dogrulaniyor"
   verify_remote_copy "$STAGE" "$TMPD" || fail "yukleme dogrulamasi basarisiz: $VERIFY_MSG"
   rc moveto "$TMPD" "$REMOTE_BASE/$STAMP" || fail "$(classify_error)"
