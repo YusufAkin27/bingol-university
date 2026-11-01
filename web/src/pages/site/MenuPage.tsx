@@ -62,7 +62,7 @@ function DayMenu({ day, compact = false }: { day: ParsedDay; compact?: boolean }
   );
 }
 
-/** Günün menü fotoğrafı (16:9). Yüklenemezse hiçbir şey çizilmez (yer tutucu yok). */
+/** Günün menü fotoğrafı (özgün 3:2 oranı korunur). Yüklenemezse hiçbir şey çizilmez (yer tutucu yok). */
 function MenuPhoto({ src, date }: { src: string; date: string }) {
   const { t, formatDate } = useI18n();
   const [failed, setFailed] = useState(false);
@@ -73,8 +73,11 @@ function MenuPhoto({ src, date }: { src: string; date: string }) {
     <div className={styles.photo}>
       <img
         src={src}
+        width={1536}
+        height={1024}
         alt={t('pg.menu.photoAlt', { date: formatDate(date, { day: 'numeric', month: 'long', year: 'numeric' }) })}
-        loading="lazy"
+        // sayfanın ana içeriği: tembel yükleme yok, tarayıcıya öncelik ver (LCP); React 18 fetchPriority'yi tanımaz
+        {...({ fetchpriority: 'high' } as Record<string, string>)}
         decoding="async"
         referrerPolicy="no-referrer"
         onError={() => setFailed(true)}
@@ -256,8 +259,13 @@ export default function MenuPage() {
 
           {!loading && !failed && ready && view === 'day' &&
             (current ? (
-              <article className={`${styles.card} ${date === today ? styles.cardToday : ''}`}>
+              <article
+                className={`${styles.card} ${date === today ? styles.cardToday : ''} ${
+                  imageByDate.has(date) ? styles.cardPhoto : ''
+                }`}
+              >
                 {imageByDate.has(date) && <MenuPhoto src={imageByDate.get(date) as string} date={date} />}
+                <div className={styles.cardBody}>
                 <header className={styles.cardHead}>
                   <div>
                     <p className={styles.cardEyebrow}>
@@ -270,6 +278,7 @@ export default function MenuPage() {
                   <span className={styles.count}>{t('pg.menu.itemCount', { n: current.dishCount })}</span>
                 </header>
                 <DayMenu day={current} />
+                </div>
               </article>
             ) : (
               <EmptyState icon="calendar" title={t('pg.menu.noDay')} description={t('pg.menu.noDayHint')} />

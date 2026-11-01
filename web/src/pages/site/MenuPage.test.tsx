@@ -28,12 +28,16 @@ function renderMenu(imageUrl: string | null | undefined, lang: 'tr' | 'en' | 'ar
 }
 
 describe('yemek listesi: menü fotoğrafı', () => {
-  it('imageUrl varsa günlük kartın üstünde 16:9 fotoğraf çizer (tembel yükleme, anlamlı alt metin)', async () => {
+  it('imageUrl varsa günlük kartın üstünde özgün 3:2 oranlı fotoğraf çizer (öncelikli yükleme, anlamlı alt metin)', async () => {
     renderMenu('/files/menu/abc-123.webp');
     await screen.findByText('Mercimek çorbası', {}, { timeout: 10_000 });
     const img = screen.getByRole('img', { name: /yemek listesi fotoğrafı/ });
     expect(img).toHaveAttribute('src', '/files/menu/abc-123.webp');
-    expect(img).toHaveAttribute('loading', 'lazy');
+    // ana içerik: tembel yükleme yok, boyut öznitelikleri (CLS) ve yükleme önceliği var
+    expect(img).not.toHaveAttribute('loading', 'lazy');
+    expect(img).toHaveAttribute('width', '1536');
+    expect(img).toHaveAttribute('height', '1024');
+    expect(img).toHaveAttribute('fetchpriority', 'high');
     const card = img.closest('article') as HTMLElement;
     expect(card).toBeTruthy();
     // fotoğraf kartın ilk çocuğudur (başlıktan önce)

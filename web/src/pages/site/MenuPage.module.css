@@ -157,6 +157,7 @@
 
 /* Günlük kart */
 .card {
+  inline-size: 100%;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
@@ -165,17 +166,37 @@
 .cardToday {
   border-color: var(--primary);
 }
-/* Günün menü fotoğrafı: kartın üstünde 16:9 */
+/* Günün menü fotoğrafı: özgün 3:2 oranı (kırpma yok); geniş ekranda solda, menü sağda */
 .photo {
-  aspect-ratio: 16 / 9;
+  position: relative;
+  aspect-ratio: 3 / 2;
   background: var(--surface-2);
   border-block-end: 1px solid var(--border);
 }
 .photo img {
+  position: absolute;
+  inset: 0;
   display: block;
   inline-size: 100%;
   block-size: 100%;
   object-fit: cover;
+}
+.cardBody {
+  min-inline-size: 0;
+}
+@media (min-width: 56rem) {
+  .cardPhoto {
+    display: grid;
+    /* fotoğraf sütunu 3:2 oranına yakın kalsın (yandan kırpma az) */
+    grid-template-columns: minmax(0, 6fr) minmax(0, 5fr);
+    align-items: stretch;
+  }
+  .cardPhoto .photo {
+    aspect-ratio: auto;
+    min-block-size: 20rem;
+    border-block-end: 0;
+    border-inline-end: 1px solid var(--border);
+  }
 }
 .cardHead {
   display: flex;
