@@ -169,6 +169,10 @@ check "gerekcesiz" 400 "$(code -X POST -H "$H" -H "$AAD" $A/admin/users/$UID_/tw
 check "kullanici yapamaz" 403 "$(code -X POST -H "$H" -H "Authorization: Bearer $T0" $A/admin/users/$UID_/two-factor/disable -d '{"reason":"duman testi kurtarma"}')"
 check "kapat" 204 "$(code -X POST -H "$H" -H "$AAD" $A/admin/users/$UID_/two-factor/disable -d '{"reason":"duman testi: hesap kurtarma"}')"
 check "tekrar kapat 409" 409 "$(code -X POST -H "$H" -H "$AAD" $A/admin/users/$UID_/two-factor/disable -d '{"reason":"duman testi: hesap kurtarma"}')"
+# HARDEN O3: kurtarma kapatmasi kullanicinin TUM oturumlarini kapatir -> eski jeton artik gecersiz, yeniden giris gerekir
+check "kurtarma sonrasi eski oturum kapali" 401 "$(code -H "$AUTHA" $A/auth/2fa)"
+T0=$(curl -s -X POST -H "$H" -H "$(dev $DEVC)" $A/auth/login -d "{\"email\":\"$EMAIL\",\"password\":\"$PW\"}" | field accessToken)
+AUTHA="Authorization: Bearer $T0"
 S=$(curl -s -H "$AUTHA" -H "$(dev $DEVA)" $A/auth/2fa)
 has "durum: kapali" '"enabled":false' "$S"
 has "cihazlar silindi" '"trustedDeviceCount":0' "$S"
