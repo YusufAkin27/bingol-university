@@ -31,7 +31,7 @@
   gap: var(--space-1);
   padding-inline: var(--space-3) var(--space-1);
   min-height: 36px;
-  border-radius: var(--radius-pill, 999px);
+  border-radius: var(--radius-pill);
   border: 1px solid var(--border-strong, var(--border));
   background: var(--surface-2);
   font-size: var(--text-sm);

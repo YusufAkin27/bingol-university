@@ -203,7 +203,7 @@
   inline-size: 0.75rem;
   block-size: 0.75rem;
   margin-inline-end: var(--space-1);
-  border-radius: 3px;
+  border-radius: var(--radius-xs);
   background: var(--kb, var(--surface-3));
   border: 2px solid var(--kf, var(--border));
   vertical-align: -1px;

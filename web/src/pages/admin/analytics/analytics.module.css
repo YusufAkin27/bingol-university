@@ -279,7 +279,7 @@
 .cohortBar {
   display: block;
   block-size: 10px;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: var(--surface-2);
   border: 1px solid var(--border);
   overflow: hidden;

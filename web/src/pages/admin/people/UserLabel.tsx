@@ -21,7 +21,8 @@ export function UserLabel({ userId, fallback }: { userId: number; fallback: stri
     staleTime: 5 * 60_000,
     retry: false,
   });
-  const u = q.data;
+  // sunucu eksik/boş gövde dönerse (ya da hata) ad yok sayılır: "#id" görünümü korunur
+  const u = q.data && typeof q.data.displayName === "string" && q.data.displayName ? q.data : undefined;
   return (
     <Link to={paths.admin.user(userId)} className={styles.userLink}>
       {u ? <Avatar name={u.displayName} src={u.avatarUrl} size={32} /> : null}

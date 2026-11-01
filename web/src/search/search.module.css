@@ -3,7 +3,7 @@
   background: var(--warning-soft);
   color: inherit;
   font-weight: 700;
-  border-radius: 2px;
+  border-radius: var(--radius-xs);
   padding-inline: 1px;
   text-decoration: underline;
   text-decoration-thickness: 2px;

@@ -23,7 +23,7 @@
 .stackBar {
   display: flex;
   block-size: 0.75rem;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   overflow: hidden;
   background: var(--surface-3, var(--surface-2));
   gap: 2px;
@@ -60,7 +60,7 @@
   display: inline-block;
   inline-size: 0.75rem;
   block-size: 0.75rem;
-  border-radius: 3px;
+  border-radius: var(--radius-xs);
   margin-inline-end: var(--space-1);
   vertical-align: -1px;
 }
@@ -73,14 +73,14 @@
 .fillTrack {
   display: block;
   block-size: 0.5rem;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: var(--surface-3, var(--surface-2));
   overflow: hidden;
 }
 .fillBar {
   display: block;
   block-size: 100%;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
 }
 .fillText {
   font-size: var(--text-sm);

@@ -88,7 +88,7 @@
 .bar {
   display: block;
   block-size: 6px;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: var(--surface-2);
   border: 1px solid var(--border);
   overflow: hidden;
@@ -96,7 +96,7 @@
 .barFill {
   display: block;
   block-size: 100%;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
 }
 .success {
   background: var(--success);
