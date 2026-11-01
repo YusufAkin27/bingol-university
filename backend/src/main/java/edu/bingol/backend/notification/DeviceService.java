@@ -65,4 +65,14 @@ public class DeviceService {
     public void unregister(Long userId, String token) {
         devices.deleteByFcmTokenAndUserId(token, userId);
     }
+
+    /** FCM token'lari uzun ve harf iceren dizelerdir; yalniz rakamlardan olusan kisa deger cihaz kimligidir. */
+    public static boolean isDeviceId(String s) {
+        return s != null && s.matches("\\d{1,18}");
+    }
+
+    /** Yalniz kendi cihazini siler (baskasinin kimligi sessizce yok sayilir). */
+    public void unregisterById(Long userId, Long deviceId) {
+        devices.deleteByIdAndUserId(deviceId, userId);
+    }
 }

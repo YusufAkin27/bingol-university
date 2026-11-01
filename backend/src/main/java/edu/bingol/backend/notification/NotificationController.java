@@ -60,12 +60,20 @@ public class NotificationController {
         return devices.list(CurrentUser.id());
     }
 
-    @DeleteMapping("/devices/{token}")
+    /**
+     * Cihaz kaydini siler. Yol degiskeni cihaz KIMLIGI (yalniz rakam, `GET /devices` yanitindaki `id`) ya da eski
+     * istemciler icin FCM token'i olabilir. Token URL'de erisim gunluklerine duser; yeni istemciler kimlik kullanmali.
+     */
+    @DeleteMapping("/devices/{idOrToken}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void unregisterDevice(@PathVariable String token) {
+    public void unregisterDevice(@PathVariable String idOrToken) {
         Long uid = CurrentUser.id();
         limiter.check("dev-unreg:" + uid, 60, Duration.ofHours(1));
-        devices.unregister(uid, token);
+        if (DeviceService.isDeviceId(idOrToken)) {
+            devices.unregisterById(uid, Long.parseLong(idOrToken));
+        } else {
+            devices.unregister(uid, idOrToken);
+        }
     }
 
     /** type=EVENT gibi tur filtresi ve unread=true (yalnizca okunmamislar) destekler. */

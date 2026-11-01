@@ -97,6 +97,20 @@ public class PushGate {
         return maxPerMinute <= 0 || store.incr("pushcap:" + userId, Duration.ofMinutes(1)) <= maxPerMinute;
     }
 
+    /**
+     * INCR + ilk artista TTL TEK Redis betiginde: INCR ile EXPIRE arasinda baglanti/Redis hatasi olursa sayac TTL'siz
+     * kalip kullaniciyi kalici push'suz birakirdi (anahtar tarih icermiyor).
+     */
+    static final org.springframework.data.redis.core.script.DefaultRedisScript<Long> INCR_WITH_TTL =
+            new org.springframework.data.redis.core.script.DefaultRedisScript<>(
+                    "local n = redis.call('INCR', KEYS[1]) "
+                            + "if n == 1 or redis.call('PTTL', KEYS[1]) < 0 then redis.call('PEXPIRE', KEYS[1], ARGV[1]) end "
+                            + "return n", Long.class);
+
+    static Store redisStore(StringRedisTemplate redis) {
+        return new RedisStore(redis);
+    }
+
     private record RedisStore(StringRedisTemplate redis) implements Store {
         @Override
         public boolean setIfAbsent(String key, Duration ttl) {
@@ -105,10 +119,7 @@ public class PushGate {
 
         @Override
         public long incr(String key, Duration ttl) {
-            Long n = redis.opsForValue().increment(key);
-            if (n != null && n == 1L) {
-                redis.expire(key, ttl);
-            }
+            Long n = redis.execute(INCR_WITH_TTL, java.util.List.of(key), String.valueOf(ttl.toMillis()));
             return n == null ? 0 : n;
         }
     }
