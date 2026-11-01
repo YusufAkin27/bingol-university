@@ -179,6 +179,80 @@ class AccessBanServiceTest {
         assertEquals(0, bans.count());
     }
 
+    @Autowired org.springframework.transaction.PlatformTransactionManager txm;
+    @Autowired javax.sql.DataSource dataSource;
+
+    /** FIX-P02/A01#2: Redis cagrilari acik DB islemini tutmaz; ban kaydi COMMIT edildikten sonra calisir. */
+    @Test
+    void sessionsAreRevokedOnlyAfterTheBanRowIsCommitted() {
+        User a = user("a", Role.USER);
+        log(a.getId(), "-", "198.51.100.10", Instant.now());
+        java.util.concurrent.atomic.AtomicLong visibleBans = new java.util.concurrent.atomic.AtomicLong(-1);
+        org.mockito.Mockito.doAnswer(inv -> {
+            // ayri (islem disi) baglanti: yalniz COMMIT edilmis satirlari gorur
+            try (java.sql.Connection c = dataSource.getConnection(); java.sql.Statement st = c.createStatement();
+                 java.sql.ResultSet rs = st.executeQuery("SELECT COUNT(*) FROM access_ban")) {
+                rs.next();
+                visibleBans.set(rs.getLong(1));
+            }
+            return null;
+        }).when(sessions).revokeAll(a.getId());
+
+        new org.springframework.transaction.support.TransactionTemplate(txm).execute(
+                s -> service.create(adminUser.getId(), req("CIDR", "198.51.100.0/24"), admin));
+
+        assertEquals(1L, visibleBans.get(), "oturum iptali ban satiri commit olmadan calisti");
+    }
+
+    /** PostgreSQL dalinda aralik sorgusu hata verirse savepoint'e donulur, islem (ban kaydi) kurtulur, uygulama-ici yol kullanilir. */
+    @Test
+    void rangeQueryFailureOnThePostgresBranchFallsBackWithoutAbortingTheTransaction() throws Exception {
+        java.lang.reflect.Field f = AccessBanService.class.getDeclaredField("postgres");
+        f.setAccessible(true);
+        f.set(service, Boolean.TRUE); // H2'de `CAST(ip AS inet)` gecersiz: SQL hata verir
+        User a = user("a", Role.USER);
+        log(a.getId(), "-", "198.51.100.10", Instant.now());
+
+        BlockAccessResult r = new org.springframework.transaction.support.TransactionTemplate(txm).execute(
+                s -> service.create(adminUser.getId(), req("CIDR", "198.51.100.0/24"), admin));
+
+        assertEquals(1, r.sessionsClosedUsers());
+        verify(sessions).revokeAll(a.getId());
+        assertEquals(1, bans.count(), "ban kaydi kaybolmadi");
+    }
+
+    @Test
+    void closingMoreThanOneChunkContinuesInTheBackgroundAndSaysSo() {
+        int total = AccessBanService.CLOSE_CHUNK + 80;
+        Instant now = Instant.now();
+        for (int i = 0; i < total; i++) {
+            User u = user("m" + i, Role.USER);
+            log(u.getId(), "-", "198.51.100." + (i % 200), now);
+        }
+
+        BlockAccessResult r = service.create(adminUser.getId(), req("CIDR", "198.51.100.0/24"), admin);
+
+        assertEquals(total, r.sessionsClosedUsers());
+        assertTrue(r.warnings().contains("SESSIONS_CLOSING_IN_BACKGROUND"));
+        // ilk parca istek icinde, kalani arka planda: sonunda hepsi kapanir
+        verify(sessions, org.mockito.Mockito.timeout(10_000).times(total)).revokeAll(org.mockito.ArgumentMatchers.anyLong());
+    }
+
+    @Test
+    void oneFailingRevokeDoesNotStopTheOthers() {
+        User a = user("a", Role.USER);
+        User b = user("b", Role.USER);
+        log(a.getId(), "-", "198.51.100.10", Instant.now());
+        log(b.getId(), "-", "198.51.100.11", Instant.now());
+        org.mockito.Mockito.doThrow(new IllegalStateException("redis down")).when(sessions).revokeAll(a.getId());
+
+        BlockAccessResult r = service.create(adminUser.getId(), req("CIDR", "198.51.100.0/24"), admin);
+
+        assertEquals(2, r.sessionsClosedUsers());
+        verify(sessions).revokeAll(b.getId());
+        assertEquals(1, bans.count());
+    }
+
     @Test
     void newIpBanClosesSessionsOfMatchingUsersButNotAdmins() {
         User a = user("a", Role.USER);
@@ -511,12 +585,65 @@ class AccessBanServiceTest {
         jdbc.update("INSERT INTO blocked_attempt_log (kind, ip, attempted_at) VALUES ('IP', '192.0.2.2', ?)",
                 java.sql.Timestamp.from(now.minus(Duration.ofDays(1))));
 
-        int n = new AccessBanRetentionJob(deviceLogs, attempts, mock(edu.bingol.backend.config.SchedulerLock.class), clock, 90)
+        int n = new AccessBanRetentionJob(chunked(100), mock(edu.bingol.backend.config.SchedulerLock.class), clock, 90)
                 .run(now);
 
         assertEquals(2, n);
         assertEquals(1, deviceLogs.findByUserIdOrderByLastSeenAtDesc(u.getId()).size());
         assertEquals(1L, jdbc.queryForObject("SELECT COUNT(*) FROM blocked_attempt_log", Long.class));
+    }
+
+    edu.bingol.backend.dbmaint.ChunkedDeleter chunked(int size) {
+        return new edu.bingol.backend.dbmaint.ChunkedDeleter(
+                new org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate(jdbc),
+                new io.micrometer.core.instrument.simple.SimpleMeterRegistry(), size, 0, 1000);
+    }
+
+    @Test
+    void retentionJobDeletesInBoundedChunksNotOneBigDelete() {
+        Instant now = Instant.now();
+        // 250 eski deneme satiri, parca 100: 3 parca (100+100+50) -> tek DELETE degil
+        for (int i = 0; i < 250; i++) {
+            jdbc.update("INSERT INTO blocked_attempt_log (kind, ip, attempted_at) VALUES ('IP', '192.0.2.9', ?)",
+                    java.sql.Timestamp.from(now.minus(Duration.ofDays(120))));
+        }
+        jdbc.update("INSERT INTO blocked_attempt_log (kind, ip, attempted_at) VALUES ('IP', '192.0.2.10', ?)",
+                java.sql.Timestamp.from(now.minus(Duration.ofDays(2))));
+        java.util.List<Integer> chunkRows = new java.util.ArrayList<>();
+        org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate counting =
+                new org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate(jdbc) {
+                    @Override
+                    public int update(String sql, java.util.Map<String, ?> params) {
+                        int n = super.update(sql, params);
+                        if (sql.contains("blocked_attempt_log")) {
+                            chunkRows.add(n);
+                        }
+                        return n;
+                    }
+                };
+        edu.bingol.backend.dbmaint.ChunkedDeleter d = new edu.bingol.backend.dbmaint.ChunkedDeleter(counting,
+                new io.micrometer.core.instrument.simple.SimpleMeterRegistry(), 100, 0, 1000);
+
+        int n = new AccessBanRetentionJob(d, mock(edu.bingol.backend.config.SchedulerLock.class), clock, 90).run(now);
+
+        assertEquals(250, n);
+        assertEquals(java.util.List.of(100, 100, 50), chunkRows, "tek DELETE degil, 100'luk parcalar");
+        assertEquals(1L, jdbc.queryForObject("SELECT COUNT(*) FROM blocked_attempt_log", Long.class));
+    }
+
+    @Test
+    void retentionJobFailsLoudlyWhenAChunkFailsInsteadOfSwallowingIt() {
+        org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate broken =
+                org.mockito.Mockito.mock(org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate.class);
+        org.mockito.Mockito.when(broken.update(org.mockito.ArgumentMatchers.anyString(),
+                org.mockito.ArgumentMatchers.<java.util.Map<String, ?>>any()))
+                .thenThrow(new org.springframework.dao.QueryTimeoutException("statement timeout"));
+        edu.bingol.backend.dbmaint.ChunkedDeleter d = new edu.bingol.backend.dbmaint.ChunkedDeleter(broken,
+                new io.micrometer.core.instrument.simple.SimpleMeterRegistry(), 100, 0, 10);
+
+        assertThrows(IllegalStateException.class,
+                () -> new AccessBanRetentionJob(d, mock(edu.bingol.backend.config.SchedulerLock.class), clock, 90)
+                        .run(Instant.now()));
     }
 
     @Test

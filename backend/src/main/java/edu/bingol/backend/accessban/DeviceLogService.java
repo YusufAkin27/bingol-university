@@ -53,11 +53,35 @@ public class DeviceLogService {
         if (userId == null || ctx == null || ctx.ip() == null) {
             return;
         }
+        // REFRESH 15 dk'da bir her oturum icin gelir ve her seferinde SELECT + UPDATE (iki indeks) yazardi; ayni
+        // (kullanici, cihaz, ip) icin 30 dk'da en cok bir kez yazilir (FIX-P02/A01#14). LOGIN/REGISTER her zaman yazar.
+        if ("REFRESH".equals(event) && !refreshDue(userId, ctx)) {
+            return;
+        }
         try {
             upsert(userId, ctx, event);
         } catch (RuntimeException e) {
             log.warn("Cihaz kaydi yazilamadi (user {}): {}", userId, e.toString());
         }
+    }
+
+    private final Map<String, Long> recentRefresh = new ConcurrentHashMap<>();
+
+    private boolean refreshDue(Long userId, ClientContext ctx) {
+        String key = userId + "|" + ctx.deviceHash() + "|" + ctx.ip();
+        long now = clock.millis();
+        if (recentRefresh.size() > 50_000) {
+            recentRefresh.values().removeIf(t -> now - t >= REQUEST_THROTTLE_MS);
+            if (recentRefresh.size() > 50_000) {
+                recentRefresh.clear();
+            }
+        }
+        Long prev = recentRefresh.get(key);
+        if (prev != null && now - prev < REQUEST_THROTTLE_MS) {
+            return false;
+        }
+        recentRefresh.put(key, now);
+        return true;
     }
 
     /** Normal istek: kisitli ve asenkron. */

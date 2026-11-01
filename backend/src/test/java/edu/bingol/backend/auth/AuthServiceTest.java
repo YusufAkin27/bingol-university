@@ -249,12 +249,24 @@ class AuthServiceTest {
     }
 
     @Test
-    void refreshReuseBeyondGraceRevokesAllSessions() {
-        when(refresh.detectReuse("calinan")).thenReturn(java.util.OptionalLong.of(7L));
+    void refreshReuseBeyondGraceRevokesOnlyThatSessionFamily() {
+        when(refresh.findReuse("calinan")).thenReturn(
+                java.util.Optional.of(new RefreshTokenService.Reuse(7L, "mobile", 1_761_700_000_000L)));
 
         ApiException e = assertThrows(ApiException.class, () -> auth.refresh("calinan"));
 
         assertEquals("INVALID_REFRESH_TOKEN", e.code());
+        verify(refresh).revokeFamily(7L, "mobile", 1_761_700_000_000L);
+        verify(sessions, never()).revokeAll(any());
+    }
+
+    @Test
+    void refreshReuseWithUnknownFamilyFallsBackToRevokingAllSessions() {
+        when(refresh.findReuse("eski-kayit")).thenReturn(
+                java.util.Optional.of(new RefreshTokenService.Reuse(7L, "web", 0L)));
+
+        assertThrows(ApiException.class, () -> auth.refresh("eski-kayit"));
+
         verify(sessions).revokeAll(7L);
     }
 

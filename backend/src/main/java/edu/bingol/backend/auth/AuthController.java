@@ -201,7 +201,18 @@ public class AuthController {
         } else {
             limiter.check("refresh:bad:" + ip, limits.refreshInvalidIpMax(), Duration.ofMinutes(15));
         }
-        return auth.refresh(r.refreshToken(), contexts.of(http));
+        try {
+            return auth.refresh(r.refreshToken(), contexts.of(http));
+        } catch (RefreshInProgressException e) {
+            // 409 + Retry-After: ortak hata isleyici govdeyi (istek dilinde) uretir, baslik burada eklenir
+            org.springframework.web.context.request.RequestAttributes attrs =
+                    org.springframework.web.context.request.RequestContextHolder.getRequestAttributes();
+            if (attrs instanceof org.springframework.web.context.request.ServletRequestAttributes sra
+                    && sra.getResponse() != null) {
+                sra.getResponse().setHeader(org.springframework.http.HttpHeaders.RETRY_AFTER, "1");
+            }
+            throw e;
+        }
     }
 
     @PostMapping("/logout")

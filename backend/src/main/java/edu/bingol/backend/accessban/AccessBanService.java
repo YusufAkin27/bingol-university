@@ -2,6 +2,7 @@ package edu.bingol.backend.accessban;
 
 import edu.bingol.backend.accessban.AccessBanDtos.*;
 import edu.bingol.backend.auth.token.SessionService;
+import edu.bingol.backend.common.AfterCommit;
 import edu.bingol.backend.common.ApiException;
 import edu.bingol.backend.common.CursorPage;
 import edu.bingol.backend.user.Role;
@@ -22,6 +23,8 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
@@ -39,7 +42,20 @@ import org.springframework.transaction.annotation.Transactional;
 public class AccessBanService {
 
     static final int BULK_MAX = 5000;
-    static final int CLOSE_MAX_USERS = 5000;
+    /** Tek engel islemi en cok bu kadar kullanicinin oturumunu kapatir (fazlasi SESSIONS_CLOSE_CAPPED uyarisi). */
+    static final int CLOSE_MAX_USERS = 50_000;
+    /** Oturum kapatma parcasi: ilk parca istek icinde, kalanlar arka planda parca parca. */
+    static final int CLOSE_CHUNK = 500;
+    private static final int LOOKUP_CHUNK = 1000;
+    private static final Logger log = LoggerFactory.getLogger(AccessBanService.class);
+    /** Arka plan oturum kapatma: tek is parcacigi (Redis'i bogmaz), kuyruk kisa. */
+    private static final java.util.concurrent.ExecutorService CLOSER = new java.util.concurrent.ThreadPoolExecutor(
+            1, 1, 30, java.util.concurrent.TimeUnit.SECONDS, new java.util.concurrent.LinkedBlockingQueue<>(200),
+            r -> {
+                Thread t = new Thread(r, "access-ban-closer");
+                t.setDaemon(true);
+                return t;
+            });
     static final Set<String> REASONS = Set.of("ABUSE", "SPAM", "FRAUD", "OTHER");
     private static final Pattern HASH = Pattern.compile("[0-9a-f]{64}");
     private static final Duration DEVICE_WINDOW = Duration.ofDays(90);
@@ -116,7 +132,7 @@ public class AccessBanService {
         if (created.isEmpty()) {
             warnings.add("ALREADY_BANNED");
         }
-        int closed = closeSessions(toClose, adminId);
+        int closed = closeSessions(toClose, adminId, warnings);
         cache.invalidate();
         return new BlockAccessResult(views(created), (int) created.stream().filter(b -> AccessBan.DEVICE.equals(b.getKind())).count(),
                 (int) created.stream().filter(b -> !AccessBan.DEVICE.equals(b.getKind()) && !AccessBan.USER.equals(b.getKind())).count(),
@@ -194,7 +210,7 @@ public class AccessBanService {
             }
         }
         // Yonetici hesaplarinin oturumlari IP/cihaz kapsami nedeniyle kapatilmaz (kilitlenme onlemi)
-        int closed = closeSessions(toClose, adminId);
+        int closed = closeSessions(toClose, adminId, warnings);
         cache.invalidate();
         return new BlockAccessResult(views(created), devicesBlocked, ipsBlocked, closed, warnings);
     }
@@ -247,7 +263,7 @@ public class AccessBanService {
             ranges.add(range);
         }
         bans.saveAll(fresh);
-        int closed = ranges.isEmpty() ? 0 : closeSessions(new LinkedHashSet<>(usersInRange(ranges)), adminId);
+        int closed = ranges.isEmpty() ? 0 : closeSessions(new LinkedHashSet<>(usersInRange(ranges)), adminId, null);
         cache.invalidate();
         return new BulkResult(fresh.size(), already, closed, rejected);
     }
@@ -542,12 +558,20 @@ public class AccessBanService {
     /** Aralik(lar)a son 7 gunde denk gelen kullanicilar (oturum kapatmak icin). */
     private Set<Long> usersInRange(List<IpRanges.Range> ranges) {
         Set<Long> out = new LinkedHashSet<>();
-        IpRanges.RangeSet set = IpRanges.RangeSet.of(ranges.stream().map(x -> new IpRanges.RangeSet.Entry(x, 1)).toList());
         Instant since = clock.instant().minus(SESSION_IP_WINDOW);
         if (ranges.size() == 1 && ranges.get(0).single()) {
             out.addAll(deviceLogs.usersOfIp(ranges.get(0).canonical(), since));
             return out;
         }
+        if (isPostgres()) {
+            // Aralik eslemesi veritabaninda (inet <<=): son 7 gunun (kullanici, ip) satirlari uygulamaya cekilmez.
+            try {
+                return usersInRangeSql(ranges, since);
+            } catch (org.springframework.dao.DataAccessException e) {
+                log.warn("Erisim engeli: aralik sorgusu veritabaninda calismadi, uygulama tarafina donuluyor: {}", e.toString());
+            }
+        }
+        IpRanges.RangeSet set = IpRanges.RangeSet.of(ranges.stream().map(x -> new IpRanges.RangeSet.Entry(x, 1)).toList());
         for (Object[] row : deviceLogs.recentUserIps(since, PageRequest.of(0, 200_000))) {
             long[] k = IpRanges.keyOf((String) row[1]);
             if (k != null && set.find(k[0], k[1]) >= 0) {
@@ -557,23 +581,117 @@ public class AccessBanService {
         return out;
     }
 
-    /** Kullanicilarin tum oturumlarini kapatir (yonetici hesaplari ve islemi yapan haric); kapatilan sayiyi doner. */
-    private int closeSessions(Set<Long> uids, Long actorId) {
+    /** PostgreSQL: `ip::inet <<= ANY(aralik dizisi)`; sonuca tavan {@link #CLOSE_MAX_USERS}+1 (fazlasi uyariyla bildirilir). */
+    private Set<Long> usersInRangeSql(List<IpRanges.Range> ranges, Instant since) {
+        String[] cidrs = ranges.stream().map(IpRanges.Range::canonical).toArray(String[]::new);
+        // Savepoint: sorgu hata verirse PostgreSQL acik islemi "aborted" yapar; savepoint'e donmek islemi (ban kaydi
+        // dahil) kurtarir ve cagiran uygulama-ici yola dusebilir.
+        return jdbc.execute((java.sql.Connection con) -> {
+            java.sql.Savepoint sp = con.getAutoCommit() ? null : con.setSavepoint();
+            Set<Long> out = new LinkedHashSet<>();
+            try (java.sql.PreparedStatement ps = con.prepareStatement(
+                    "SELECT DISTINCT user_id FROM user_device_log WHERE last_seen_at >= ? "
+                            + "AND CAST(ip AS inet) <<= ANY (CAST(? AS inet[])) LIMIT ?")) {
+                ps.setTimestamp(1, Timestamp.from(since));
+                ps.setArray(2, con.createArrayOf("text", cidrs));
+                ps.setInt(3, CLOSE_MAX_USERS + 1);
+                try (java.sql.ResultSet rs = ps.executeQuery()) {
+                    while (rs.next()) {
+                        out.add(rs.getLong(1));
+                    }
+                }
+            } catch (java.sql.SQLException e) {
+                if (sp != null) {
+                    con.rollback(sp);
+                }
+                throw e;
+            }
+            if (sp != null) {
+                try {
+                    con.releaseSavepoint(sp);
+                } catch (java.sql.SQLException ignored) {
+                    // savepoint serbest birakilamasa da islem surer
+                }
+            }
+            return out;
+        });
+    }
+
+    private volatile Boolean postgres;
+
+    private boolean isPostgres() {
+        Boolean p = postgres;
+        if (p == null) {
+            try {
+                p = jdbc.execute((java.sql.Connection con) ->
+                        con.getMetaData().getDatabaseProductName().toLowerCase(Locale.ROOT).contains("postgres"));
+            } catch (RuntimeException e) {
+                p = Boolean.FALSE;
+            }
+            postgres = p;
+        }
+        return p;
+    }
+
+    /**
+     * Kullanicilarin oturumlarini kapatmaya hazirlar (yonetici hesaplari ve islemi yapan haric) ve kapatilacak sayiyi
+     * doner. Asil kapatma ENGEL KAYDI COMMIT OLDUKTAN SONRA yapilir (FIX-P02/A01#2): Redis cagrilari acik DB
+     * islemini tutmaz; `idle_in_transaction_session_timeout` ile ban kaydinin geri alinmasi ama oturumlarin
+     * iptal edilmesi tutarsizligi olmaz. Ilk {@link #CLOSE_CHUNK} kullanici istek icinde, kalani arka planda parca
+     * parca kapatilir; kalan varsa `warnings`'e SESSIONS_CLOSING_IN_BACKGROUND eklenir.
+     */
+    private int closeSessions(Set<Long> uids, Long actorId, List<String> warnings) {
         if (uids.isEmpty()) {
             return 0;
         }
-        List<Long> ids = uids.stream().filter(u -> !u.equals(actorId)).limit(CLOSE_MAX_USERS).toList();
-        int n = 0;
-        for (User u : users.findAllById(ids)) {
-            if (u.getRole() == Role.ADMIN) {
-                continue;
+        List<Long> candidates = uids.stream().filter(u -> !u.equals(actorId)).toList();
+        if (candidates.size() > CLOSE_MAX_USERS) {
+            candidates = candidates.subList(0, CLOSE_MAX_USERS);
+            if (warnings != null) {
+                warnings.add("SESSIONS_CLOSE_CAPPED");
             }
-            // WS once ACCESS_BLOCKED koduyla kapanir; sonra token'lar iptal edilir
-            events.publishEvent(new AccessBlockedEvent(u.getId()));
-            sessions.revokeAll(u.getId());
-            n++;
         }
-        return n;
+        List<Long> eligible = new ArrayList<>();
+        for (int i = 0; i < candidates.size(); i += LOOKUP_CHUNK) {
+            for (User u : users.findAllById(candidates.subList(i, Math.min(i + LOOKUP_CHUNK, candidates.size())))) {
+                if (u.getRole() != Role.ADMIN) {
+                    eligible.add(u.getId());
+                }
+            }
+        }
+        if (eligible.isEmpty()) {
+            return 0;
+        }
+        List<Long> head = List.copyOf(eligible.subList(0, Math.min(CLOSE_CHUNK, eligible.size())));
+        List<Long> rest = List.copyOf(eligible.subList(head.size(), eligible.size()));
+        if (!rest.isEmpty() && warnings != null) {
+            warnings.add("SESSIONS_CLOSING_IN_BACKGROUND");
+        }
+        AfterCommit.run(() -> {
+            revokeChunk(head);
+            for (int i = 0; i < rest.size(); i += CLOSE_CHUNK) {
+                List<Long> part = rest.subList(i, Math.min(i + CLOSE_CHUNK, rest.size()));
+                try {
+                    CLOSER.execute(() -> revokeChunk(part));
+                } catch (java.util.concurrent.RejectedExecutionException e) {
+                    revokeChunk(part);
+                }
+            }
+        });
+        return eligible.size();
+    }
+
+    private void revokeChunk(List<Long> ids) {
+        for (Long id : ids) {
+            try {
+                // WS once ACCESS_BLOCKED koduyla kapanir; sonra token'lar iptal edilir
+                events.publishEvent(new AccessBlockedEvent(id));
+                sessions.revokeAll(id);
+            } catch (RuntimeException e) {
+                // tek kullanicinin Redis hatasi digerlerinin kapatilmasini durdurmaz; engel kaydi zaten yazildi
+                log.warn("Erisim engeli: oturum kapatilamadi (user {}): {}", id, e.toString());
+            }
+        }
     }
 
     private static boolean ownIpIn(IpRanges.Range range, ClientContext admin) {

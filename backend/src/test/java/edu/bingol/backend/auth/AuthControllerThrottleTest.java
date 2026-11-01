@@ -199,6 +199,26 @@ class AuthControllerThrottleTest {
         verify(limiter, never()).check(startsWith("refresh:bad:"), anyInt(), any(Duration.class));
     }
 
+    /** FIX-P02/K1: es zamanli refresh 409 doner ve istemciye Retry-After: 1 verir. */
+    @Test
+    void refreshInProgressAddsRetryAfterHeaderToTheConflict() {
+        when(refreshTokens.peekUserId("tok")).thenReturn(42L);
+        when(auth.refresh(eq("tok"), any())).thenThrow(new RefreshInProgressException());
+        org.springframework.mock.web.MockHttpServletRequest req = from("203.0.113.9");
+        org.springframework.mock.web.MockHttpServletResponse res = new org.springframework.mock.web.MockHttpServletResponse();
+        org.springframework.web.context.request.RequestContextHolder.setRequestAttributes(
+                new org.springframework.web.context.request.ServletRequestAttributes(req, res));
+        try {
+            ApiException e = assertThrows(ApiException.class, () -> controller.refresh(new RefreshRequest("tok"), req));
+
+            assertEquals("REFRESH_IN_PROGRESS", e.code());
+            assertEquals(409, e.status().value());
+            assertEquals("1", res.getHeader("Retry-After"));
+        } finally {
+            org.springframework.web.context.request.RequestContextHolder.resetRequestAttributes();
+        }
+    }
+
     @Test
     void refreshOfAnUnknownTokenCountsAgainstTheInvalidIpBucket() {
         when(refreshTokens.peekUserId("tok")).thenReturn(null);
