@@ -82,18 +82,37 @@ class DeletionLedgerTest {
         l.record(8L); // hesap yok -> atlanir
         UserRepository users = mock(UserRepository.class);
         ProfileService profiles = mock(ProfileService.class);
-        when(users.findById(5L)).thenReturn(Optional.of(user(5L, UserStatus.ACTIVE, 1_700_000_000L)));
-        when(users.findById(6L)).thenReturn(Optional.of(user(6L, UserStatus.DELETED, 1_700_000_000L)));
-        when(users.findById(7L)).thenReturn(Optional.of(user(7L, UserStatus.ACTIVE, 1_900_000_000L)));
-        when(users.findById(8L)).thenReturn(Optional.empty());
+        // FIX-P08: tek toplu sorgu (findAllById); hesap 8 donmez
+        when(users.findAllById(any())).thenReturn(java.util.List.of(
+                user(5L, UserStatus.ACTIVE, 1_700_000_000L),
+                user(6L, UserStatus.DELETED, 1_700_000_000L),
+                user(7L, UserStatus.ACTIVE, 1_900_000_000L)));
 
         int n = new DeletionLedgerReapplier(l, users, profiles).reapply();
 
         assertEquals(1, n);
+        verify(users, org.mockito.Mockito.times(1)).findAllById(any());
+        verify(users, never()).findById(anyLong());
         verify(profiles).anonymizeAccount(5L);
         verify(profiles, never()).anonymizeAccount(6L);
         verify(profiles, never()).anonymizeAccount(7L);
         verify(profiles, never()).anonymizeAccount(8L);
+    }
+
+    @Test
+    void reapplierQueriesInChunksOf500() {
+        Path f = dir.resolve("big.log");
+        DeletionLedger l = ledger(f.toString());
+        for (long id = 1; id <= 1200; id++) {
+            l.record(id);
+        }
+        UserRepository users = mock(UserRepository.class);
+        when(users.findAllById(any())).thenReturn(java.util.List.of());
+
+        new DeletionLedgerReapplier(l, users, mock(ProfileService.class)).reapply();
+
+        verify(users, org.mockito.Mockito.times(3)).findAllById(any()); // 500 + 500 + 200
+        verify(users, never()).findById(anyLong());
     }
 
     @Test

@@ -18,17 +18,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     String AUDIENCE_BASE = "SELECT id AS id, language AS language FROM app_user WHERE status = 'ACTIVE' AND email_verified = TRUE";
 
-    @Query(value = AUDIENCE_BASE, nativeQuery = true)
-    List<UserLang> audienceAll();
-
-    @Query(value = AUDIENCE_BASE + " AND department = :dept", nativeQuery = true)
-    List<UserLang> audienceDepartment(@Param("dept") String department);
-
-    @Query(value = AUDIENCE_BASE + " AND class_year = :year", nativeQuery = true)
-    List<UserLang> audienceClassYear(@Param("year") short year);
-
-    @Query(value = AUDIENCE_BASE + " AND id IN (:ids)", nativeQuery = true)
-    List<UserLang> audienceIds(@Param("ids") Collection<Long> ids);
+    // FIX-P08 (A07#7): audienceAll/Department/ClassYear/Ids kaldirildi (cagiran yoktu; tam eslesme + class_year eski
+    // mantigini tasiyordu). Hedef kitle cozumu AudienceResolver / DepartmentAnnouncementService.audienceIds'tedir.
 
     @Query(value = AUDIENCE_BASE + " AND role = 'ADMIN'", nativeQuery = true)
     List<UserLang> audienceAdmins();

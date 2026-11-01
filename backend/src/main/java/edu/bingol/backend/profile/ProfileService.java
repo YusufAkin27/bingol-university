@@ -40,6 +40,8 @@ import org.springframework.web.multipart.MultipartFile;
 public class ProfileService {
 
     private static final int MIN_QUERY = 2;
+    /** Silinen hesabin parola alani: "!" bcrypt bicimine uymaz, matches() daima false doner. */
+    static final String UNUSABLE_PASSWORD_PREFIX = "!deleted:";
     private static final int MAX_SEARCH_SIZE = 20;
     static final int MAX_SEARCH_OFFSET = 200;
 
@@ -318,8 +320,9 @@ public class ProfileService {
      * Hesap silme (KVKK): kisisel veriler anonimlestirilir, hesap DELETED olur ve giris/yenileme kapanir.
      * Satir silinmez: baskalarinin mesaj/topluluk gecmisi referans butunlugunu korur.
      */
-    @Transactional
     public void deleteAccount(Long id, String password) {
+        // FIX-P08 (A01#11): bcrypt dogrulamasi (yavas) ve on kontroller ISLEM DISINDA; yalniz anonimlestirme kisa bir
+        // islemde calisir (Hikari baglantisi ve PostgreSQL oturumu bcrypt boyunca "idle in transaction" kalmaz).
         User u = get(id);
         if (!encoder.matches(password, u.getPasswordHash())) {
             throw new ApiException(HttpStatus.FORBIDDEN, "WRONG_PASSWORD", "Şifre hatalı.");
@@ -334,7 +337,8 @@ public class ProfileService {
         if (ledger != null) {
             ledger.requireDeletionAllowed(u.getId());
         }
-        anonymize(u);
+        // Taze satir islem icinde yeniden okunur (bcrypt sirasinda degismis olabilir)
+        tx.run(() -> anonymize(get(id)));
     }
 
     /** Yapilandirilmis yonetici adresleri (istege bagli: birim testlerinde yok). */
@@ -416,7 +420,8 @@ public class ProfileService {
         avatarCleanups.run(u.getId(), oldAvatar); // T11: gorsel referanslari + gizlilik satiri (KVKK)
         u.setEmail("deleted-" + u.getId() + "@deleted.invalid");
         u.setDisplayName("Silinmiş kullanıcı");
-        u.setPasswordHash(encoder.encode(java.util.UUID.randomUUID().toString()));
+        // Kullanilamaz ozet: bcrypt degil, hicbir parolayla eslesmez; islem icinde pahali encode() YOK (A01#11)
+        u.setPasswordHash(UNUSABLE_PASSWORD_PREFIX + java.util.UUID.randomUUID());
         u.setDepartment(null);
         u.setFaculty(null);
         u.setClassYear(null);
@@ -449,15 +454,32 @@ public class ProfileService {
         // Eldeki access token'lar aninda gecersiz olsun (askiya almadaki mekanizma) + refresh oturumlari kapansin.
         // COMMIT SONRASI: islem geri alinirsa hesap yanlisla kilitli kalmaz (T-009); refresh kumesi (rtu:<id>) temizlenir.
         Long uid = u.getId();
+        // FIX-P08 (A01#11): afterCommit'te firlayan istisna sessizce yutulur ve ikinci adim hic calismazdi; her adim
+        // ayri denenir (bir kez daha), basarisizlik log'a yazilir.
         edu.bingol.backend.common.AfterCommit.run(() -> {
-            redis.opsForValue().set(JwtAuthFilter.SUSPENDED_KEY_PREFIX + uid, "1");
+            retryOnce("askiya alma isareti", uid, () -> redis.opsForValue().set(JwtAuthFilter.SUSPENDED_KEY_PREFIX + uid, "1"));
             if (sessions != null) {
-                sessions.revokeAll(uid);
+                retryOnce("oturum iptali", uid, () -> sessions.revokeAll(uid));
             }
         });
         // Sahipsiz kulup, yetim basvuru/bekleme listesi, gonderi gorselleri: commit sonrasi dinleyicilerde
         if (publisher != null) {
             publisher.publishEvent(new UserAccountDeletedEvent(u.getId(), List.copyOf(freedEvents)));
+        }
+    }
+
+    private static final org.slf4j.Logger LOG = org.slf4j.LoggerFactory.getLogger(ProfileService.class);
+
+    /** Commit sonrasi adim: hata olursa bir kez daha dener, yine olmazsa uyarir ama digerlerini engellemez. */
+    static void retryOnce(String what, Long uid, Runnable step) {
+        try {
+            step.run();
+        } catch (RuntimeException first) {
+            try {
+                step.run();
+            } catch (RuntimeException second) {
+                LOG.warn("Hesap silme sonrasi {} basarisiz (kullanici {}): {}", what, uid, second.toString());
+            }
         }
     }
 
@@ -473,8 +495,23 @@ public class ProfileService {
         return appInfo.faculties();
     }
 
+    /** Bolum listesi onbellegi: herkese ayni cevap ve app_user uzerinde DISTINCT taramasi; 5 dk bellekte tutulur (A07#8). */
+    static final long DEPARTMENTS_TTL_MS = 300_000L;
+    private volatile List<String> departmentsCache;
+    private volatile long departmentsLoadedAt;
+    /** Birim testleri saati ileri sarabilsin. */
+    java.util.function.LongSupplier clockMs = System::currentTimeMillis;
+
     public List<String> departments() {
-        return users.distinctDepartments();
+        long now = clockMs.getAsLong();
+        List<String> cached = departmentsCache;
+        if (cached != null && now - departmentsLoadedAt < DEPARTMENTS_TTL_MS) {
+            return cached;
+        }
+        List<String> fresh = List.copyOf(users.distinctDepartments());
+        departmentsLoadedAt = now;
+        departmentsCache = fresh;
+        return fresh;
     }
 
     /** Fakulte listesi tanimliysa deger listeden biri olmali; liste bos ise serbest metin kabul edilir. */
