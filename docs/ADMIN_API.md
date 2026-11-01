@@ -1018,3 +1018,13 @@ Yönetici "bu sürümün altındakiler güncellemeden kullanamasın" diyebilir; 
 **Web:** `/admin/app-versions` ("Uygulama güncelleme", Sistem grubu, `settings.read`): platform kartı (durum rozeti "Zorunlu güncelleme AÇIK / Yalnız öneri / Kapalı", yayındaki ve zorunlu en düşük sürüm, sürüm dağılımı tablosu, "bu sürümün altında: N cihaz"), "Yeni sürümü yayınla" sihirbazı (sürüm + kip + etki önizlemesi + uyarılar, sonra gerekçe; FORCE için "ZORLA" yazdırılır), "Güncelleme ekranını önizle" (telefon çerçevesi, TR/EN/AR). Mağaza bağlantısı, paket adı, Apple kimliği ve üç dilli metin alanları Ayarlar > Mağaza ve sürümler'dedir. Uyarılar: min > latest, mağaza bağlantısı/iOS kimliği yokken FORCE ("düğme çalışmaz"; iOS henüz mağazada değilse zorlama önerilmez), girilen sürümün hiçbir cihazda olmaması. Duman: `scripts/smoke-app-version.sh` (koşulamadı).
 
 Yeni hata kodları (tr/en/ar `ops*.properties`): `VERSION_BELOW_LATEST`, `VERSION_BELOW_MIN`.
+
+## Iki faktorlu dogrulama (2FA, V1060)
+
+Kullanici tarafi sozlesmesi: `docs/TWO_FACTOR_API.md`. Yonetici uclari RBAC ile korunur (`AdminPermissionPolicy`): okuma `users.read`, kapatma `users.write`.
+
+- **Kullanici DTO'lari:** `GET /api/admin/users` satirlarina `twoFactorEnabled: boolean`; `GET /api/admin/users/{id}` ayrintisina ek `twoFactorTrustedDeviceCount`, `twoFactorEnabledAt` (ISO). Suzgec: `GET /api/admin/users?twoFactor=true|false` (CSV disa aktarimda sutun YOK).
+- `GET /api/admin/two-factor/summary` -> `{enabledCount, totalActiveUsers, enabledPercent (tek ondalik), enabledLast7Days, trustedDeviceTotal}`.
+- `GET /api/admin/two-factor/users?page&size&q` -> `{content:[{userId, displayName, email, role, enabledAt, trustedDeviceCount, lastLoginAt}], totalElements, totalPages, number, size}`. `q` kurallari kullanici listesiyle ayni (`users.pii` olmayan profil yalniz gorunen adi arar, en az 3 karakter; e-posta maskeli, `PermissionAwareMasking`). `lastLoginAt` = guvenilen cihazlarin en yeni `last_used_at` degeri, yoksa `last_seen_at`. Sira: acilis tarihi (yeni once).
+- `POST /api/admin/users/{id}/two-factor/disable` `{"reason"}` -> **204**. Hesap kurtarma: 2FA kapanir, guvenilen cihazlar ve bekleyen kod silinir, kullaniciya uygulama ici SYSTEM bildirimi gider (kullanicinin dilinde; e-posta GITMEZ). Gerekce ZORUNLU (en az 5 karakter, `AdminGuardPolicy.accountOps` + `@AdminReasonRequired`), yikici islem sayilir (saatlik siki hiz siniri), denetim kaydi: hedef `USER:<id>`, gerekce, ozet. Hatalar: 404 `USER_NOT_FOUND`, 409 `TWO_FACTOR_NOT_ENABLED`, 403 `ADMIN_TARGET_FORBIDDEN` (yonetici hesabina yalniz FULL), 403 `ADMIN_PERMISSION_DENIED` (`users.write` yok), 400 `REASON_REQUIRED`.
+- Duman: `scripts/smoke-two-factor.sh`; testler `AdminTwoFactorMvcTest`.
