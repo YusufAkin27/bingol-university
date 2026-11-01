@@ -55,9 +55,9 @@ export const entries: SearchEntry[] = [
     id: 'acdCalendar.view',
     kind: 'section',
     page: 'acdCalendar',
-    title: 'Takvim / Liste görünümü',
+    title: 'Çizelge / Takvim / Liste görünümü',
     anchor: 'cal-view',
-    keywords: ['ay görünümü', 'ajanda', 'liste'],
+    keywords: ['ay görünümü', 'ajanda', 'liste', 'çizelge görünümü'],
     description: 'Olayları ay takvimi ya da liste olarak gösterir.',
   },
   {
@@ -97,6 +97,34 @@ export const entries: SearchEntry[] = [
     description: 'Liste görünümünde birden çok olayı seçip aynı anda işlem yapar.',
   },
 
+  {
+    id: 'acdCalendar.timeline',
+    kind: 'section',
+    page: 'acdCalendar',
+    title: 'Dönem çizelgesi',
+    anchor: 'cal-timeline',
+    keywords: ['gantt', 'zaman çizelgesi', 'zaman çizgisi', 'dönem planı', 'bugün çizgisi', 'yıllık plan', 'takvim çubukları'],
+    description: 'Dönemin tüm olaylarını türüne göre zaman çubukları olarak gösterir; bugün çizgisi nerede olduğunuzu söyler.',
+  },
+  {
+    id: 'acdCalendar.upcoming',
+    kind: 'section',
+    page: 'acdCalendar',
+    title: 'Yaklaşan olaylar',
+    anchor: 'cal-upcoming',
+    keywords: ['sıradaki tarih', 'önümüzdeki günler', 'geri sayım', 'kaç gün kaldı', 'ne zaman', 'şu an sürüyor'],
+    description: 'Bugün sürenleri ve sıradaki olayları kaç gün kaldığıyla listeler.',
+  },
+  {
+    id: 'acdCalendar.timelineNav',
+    kind: 'action',
+    page: 'acdCalendar',
+    title: 'Çizelgede 3 ay ileri / geri git',
+    anchor: 'cal-timeline-nav',
+    keywords: ['sonraki dönem', 'önceki dönem', 'bugüne git', 'ay kaydır'],
+    description: 'Çizelgenin gösterdiği 6 aylık aralığı kaydırır.',
+  },
+
   // ---- Sınavlar ----
   {
     id: 'acdExams.add',
@@ -115,6 +143,15 @@ export const entries: SearchEntry[] = [
     anchor: 'ex-filters',
     keywords: ['vize', 'final', 'bütünleme', 'sınıf', 'bölüm'],
     description: 'Sınavları türüne, sınıfına ya da bölümüne göre daraltır.',
+  },
+  {
+    id: 'acdExams.timeline',
+    kind: 'section',
+    page: 'acdExams',
+    title: 'Sınavların zamana dağılımı',
+    anchor: 'ex-timeline',
+    keywords: ['bu hafta sınav', 'gelecek hafta', 'sınav yoğunluğu', 'geçmiş sınavlar', 'çakışma'],
+    description: 'Sınavların kaçı bu hafta, kaçı gelecek hafta ya da daha sonra tek çubukta görünür.',
   },
   {
     id: 'acdExams.status',

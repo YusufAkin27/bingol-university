@@ -23,6 +23,7 @@ TR_ONLY.add('admin-arama.ts'); // PANEL-arama: kısayollar, yardım, sayfa hatas
 TR_ONLY.add('admin-genel.ts'); // PANEL-genel-bakis
 TR_ONLY.add('admin-mod1.ts'); // PANEL-yaptirim
 TR_ONLY.add('admin-mod2.ts'); // PANEL-icerik-denetimi
+TR_ONLY.add('admin-icerik.ts'); // PANEL-akademik-icerik
 const problems = [];
 
 for (const f of readdirSync(join(root, 'tr')).filter((x) => x.endsWith('.ts') && !TR_ONLY.has(x))) {

@@ -36,7 +36,7 @@ import {
   useKitFormat,
   useToast,
 } from '../../../components/ui';
-import { CollapsibleFilters } from '../community/Summary';
+import { CollapsibleFilters, StackedBar, type StackPart } from '../community/Summary';
 import { useI18n } from '../../../i18n/I18nProvider';
 import { useDebouncedValue, usePageTitle } from '../../../lib/hooks';
 import { BULK_MAX, exportAcademicCsv } from '../../../api/adminBulk';
@@ -55,6 +55,12 @@ import {
 } from './logic';
 
 const BUCKETS: ExamBucket[] = ['week', 'nextWeek', 'later', 'past'];
+const BUCKET_TONE: Record<ExamBucket, StackPart['tone']> = {
+  week: 'warning',
+  nextWeek: 'info',
+  later: 'success',
+  past: 'neutral',
+};
 
 const PAGE_SIZE = 20;
 const FORM_ID = 'acd-exam-form';
@@ -255,6 +261,23 @@ export default function AcademicExamsPage() {
                 conflicts: formatNumber(conflicts.size),
               })}
             />
+            <div data-search-anchor="ex-timeline">
+              <StackedBar
+                ariaLabel={t('admin.v2.ex.insight', {
+                  n: formatNumber(sorted.length),
+                  week: formatNumber(thisWeek),
+                  conflicts: formatNumber(conflicts.size),
+                })}
+                parts={groups.map(
+                  (g): StackPart => ({
+                    key: g.bucket,
+                    label: t(`admin.v2.ex.bucket.${g.bucket}`),
+                    value: g.rows.length,
+                    tone: BUCKET_TONE[g.bucket],
+                  }),
+                )}
+              />
+            </div>
             <SelectPage ids={items.map((x) => x.id)} selection={selection} label={t('admin.p15.select.page')} />
             {groups.map((g) => (
               <section key={g.bucket} aria-label={t(`admin.v2.ex.bucket.${g.bucket}`)}>

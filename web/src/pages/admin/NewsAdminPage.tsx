@@ -5,6 +5,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { api, newsApi, qk, settingsApi } from '../../api';
 import type { AdminNewsRow, NewsType, SyncSourceStatus } from '../../api/types';
+import type { NewsSourceStatus } from '../../api/adminBulk';
 import {
   Badge,
   Button,
@@ -25,15 +26,17 @@ import {
   useToast,
   type Column,
 } from '../../components/ui';
-import { SummaryStrip } from './community/Summary';
+import { StackedBar, SummaryStrip } from './community/Summary';
 import { useI18n } from '../../i18n/I18nProvider';
 import { errorMessage } from '../../lib/errors';
 import { usePageTitle } from '../../lib/hooks';
 import { GuardedDialog } from '../../components/admin/GuardedDialog';
 import { ADMIN_REASON_MIN } from '../../components/admin/guard/match';
-import { BULK_MAX, exportNewsCsv } from '../../api/adminBulk';
+import { BULK_MAX, exportNewsCsv, getSourcesStatus, sourcesKeys } from '../../api/adminBulk';
 import { NewsBulkBar } from './bulk/BulkBars';
 import { BulkCsvButton, useIdSelection } from './bulk/BulkParts';
+import { distributionText, newsDistribution } from './content/newsDist';
+import { gt, type GT } from './icerik/dict';
 import styles from './content/News.module.css';
 
 const TYPES: NewsType[] = ['HABER', 'DUYURU', 'ETKINLIK'];
@@ -80,6 +83,9 @@ export default function NewsAdminPage() {
     placeholderData: (p) => p,
   });
   const status = useQuery({ queryKey: qk.settings.sync(), queryFn: settingsApi.getSyncStatus });
+  // Tür dağılımı ve genel sayılar (süzgeçten bağımsız); başarısız olursa eski özet gösterilir
+  const overall = useQuery({ queryKey: sourcesKeys.status, queryFn: getSourcesStatus, staleTime: 60_000 });
+  const gtx = gt(i18n);
 
   const sync = useMutation({
     mutationFn: async (src: Source) => {
@@ -181,35 +187,44 @@ export default function NewsAdminPage() {
           </span>
         }
       />
-      {list.data && (
-        <SummaryStrip
-          insight={
-            <Insight
-              tone={pageHidden > 0 ? 'warn' : 'info'}
-              parts={
-                (total ?? 0) === 0
-                  ? t('admin.v2.news.insight.empty')
-                  : t(pageHidden > 0 ? 'admin.v2.news.insight.hidden' : 'admin.v2.news.insight.noHidden', {
-                      total: kit.number(total ?? 0),
-                      hidden: kit.number(pageHidden),
-                    })
-              }
+      {overall.data?.news ? (
+        <NewsOverview
+          news={overall.data.news}
+          gtx={gtx}
+          typeLabel={(k) => i18n.td(`admin.news.type.${k}`, k)}
+          fmt={kit.number}
+        />
+      ) : (
+        list.data && (
+          <SummaryStrip
+            insight={
+              <Insight
+                tone={pageHidden > 0 ? 'warn' : 'info'}
+                parts={
+                  (total ?? 0) === 0
+                    ? t('admin.v2.news.insight.empty')
+                    : t(pageHidden > 0 ? 'admin.v2.news.insight.hidden' : 'admin.v2.news.insight.noHidden', {
+                        total: kit.number(total ?? 0),
+                        hidden: kit.number(pageHidden),
+                      })
+                }
+              />
+            }
+          >
+            <StatTile
+              icon="news"
+              label={t('admin.v2.news.sum.total')}
+              value={total ?? 0}
+              caption={t('admin.v2.news.sum.totalCap')}
             />
-          }
-        >
-          <StatTile
-            icon="news"
-            label={t('admin.v2.news.sum.total')}
-            value={total ?? 0}
-            caption={t('admin.v2.news.sum.totalCap')}
-          />
-          <StatTile
-            icon="eyeOff"
-            label={t('admin.v2.news.sum.hidden')}
-            value={pageHidden}
-            caption={t('admin.v2.news.sum.hiddenCap')}
-          />
-        </SummaryStrip>
+            <StatTile
+              icon="eyeOff"
+              label={t('admin.v2.news.sum.hidden')}
+              value={pageHidden}
+              caption={t('admin.v2.news.sum.hiddenCap')}
+            />
+          </SummaryStrip>
+        )
       )}
       <Card title={t('admin.news.sync.title')} className={styles.syncCard} data-search-anchor="news-sync">
         {status.isError ? (
@@ -380,5 +395,47 @@ export default function NewsAdminPage() {
         confirmLabel={t('admin.news.sync.confirmRun')}
       />
     </>
+  );
+}
+
+/** Üst özet: üç vurgulu sayı + tür dağılımı çubuğu + tek cümlelik yorum. Süzgeçten bağımsız genel durumdur. */
+function NewsOverview({
+  news,
+  gtx,
+  typeLabel,
+  fmt,
+}: {
+  news: NewsSourceStatus;
+  gtx: GT;
+  typeLabel: (key: string) => string;
+  fmt: (n: number) => string;
+}) {
+  const parts = newsDistribution(news.byType ?? {}, typeLabel);
+  const total = news.total ?? 0;
+  const week = news.itemsLast7d ?? 0;
+  const hidden = news.hidden ?? 0;
+  const sentence =
+    total === 0
+      ? gtx('admin.icerik.news.dist.insightNone')
+      : gtx('admin.icerik.news.dist.insight', {
+          total: fmt(total),
+          parts: distributionText(parts, fmt),
+          week: fmt(week),
+          hidden: fmt(hidden),
+        });
+  return (
+    <SummaryStrip
+      insight={<Insight tone={hidden > 0 ? 'warn' : 'info'} parts={sentence} />}
+    >
+      <StatTile icon="news" label={gtx('admin.icerik.news.sum.total')} value={total} caption={gtx('admin.icerik.news.sum.totalCap')} />
+      <StatTile icon="download" label={gtx('admin.icerik.news.sum.week')} value={week} caption={gtx('admin.icerik.news.sum.weekCap')} />
+      <StatTile icon="eyeOff" label={gtx('admin.icerik.news.sum.hidden')} value={hidden} caption={gtx('admin.icerik.news.sum.hiddenCap')} />
+      {parts.length > 0 && (
+        <div className={styles.dist} data-search-anchor="news-dist" aria-label={gtx('admin.icerik.news.dist.title')} role="group">
+          <h2 className={styles.distTitle}>{gtx('admin.icerik.news.dist.title')}</h2>
+          <StackedBar parts={parts} ariaLabel={gtx('admin.icerik.news.dist.label')} />
+        </div>
+      )}
+    </SummaryStrip>
   );
 }

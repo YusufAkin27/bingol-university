@@ -1,0 +1,259 @@
+/* Akademik takvim çizelgesi (yalnız token'lar, mantıksal özellikler). Tür renkleri academic.module.css'teki --kf/--kb ile gelir. */
+.wrap {
+  display: grid;
+  gap: var(--space-4);
+  min-inline-size: 0;
+}
+.h {
+  margin: 0 0 var(--space-2);
+  font-size: var(--text-base);
+}
+
+/* Yaklaşan olaylar */
+.upcoming {
+  min-inline-size: 0;
+}
+.upList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--space-2);
+  grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+}
+.upItem {
+  display: grid;
+  gap: 2px;
+  inline-size: 100%;
+  min-block-size: 44px;
+  padding: var(--space-3);
+  text-align: start;
+  font: inherit;
+  color: var(--text);
+  background: var(--kb, var(--surface-2));
+  border: 0;
+  border-inline-start: 4px solid var(--kf, var(--border-strong));
+  border-radius: var(--radius-md);
+  cursor: pointer;
+}
+.upItem:focus-visible,
+.hit:focus-visible {
+  outline: 2px solid var(--focus, var(--primary));
+  outline-offset: 2px;
+}
+.upKind {
+  font-size: var(--text-xs, 0.75rem);
+  font-weight: 700;
+  color: var(--text-muted);
+}
+.upTitle {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+.upDate {
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+.upWhen {
+  font-size: var(--text-sm);
+  font-weight: 700;
+}
+.upNow {
+  color: var(--success);
+}
+
+/* Pencere gezintisi */
+.nav {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+.range {
+  margin: 0;
+  font-size: var(--text-lg, 1.125rem);
+  min-inline-size: 12rem;
+  text-align: center;
+}
+
+/* Pano */
+.board {
+  --tl-label: 8.5rem;
+  --tl-rowh: 3rem;
+  min-inline-size: 46rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  overflow: hidden;
+}
+.row {
+  display: grid;
+  grid-template-columns: var(--tl-label) minmax(0, 1fr);
+  border-block-end: 1px solid var(--border);
+}
+.row:last-child {
+  border-block-end: 0;
+}
+.corner,
+.laneLabel {
+  padding: var(--space-2) var(--space-3);
+  background: var(--surface-2);
+  border-inline-end: 1px solid var(--border);
+}
+.laneLabel {
+  display: grid;
+  align-content: center;
+  gap: 2px;
+  border-inline-start: 4px solid var(--kf, var(--border-strong));
+}
+.laneName {
+  font-weight: 700;
+  font-size: var(--text-sm);
+  overflow-wrap: anywhere;
+}
+.laneCount {
+  font-size: var(--text-xs, 0.75rem);
+  color: var(--text-muted);
+}
+.months {
+  position: relative;
+  display: grid;
+  background: var(--surface-2);
+}
+.monthCell {
+  padding: var(--space-2) var(--space-2) 1.5rem;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--text-muted);
+  border-inline-start: 1px solid var(--border);
+  white-space: nowrap;
+}
+.monthCell:first-child {
+  border-inline-start: 0;
+}
+.todayFlag {
+  position: absolute;
+  inset-block-end: 0;
+  transform: translateX(-50%);
+  padding: 0 var(--space-2);
+  border-radius: var(--radius-pill) var(--radius-pill) 0 0;
+  background: var(--primary);
+  color: var(--on-primary, #fff);
+  font-size: var(--text-xs, 0.75rem);
+  font-weight: 700;
+  line-height: 1.4;
+  pointer-events: none;
+}
+
+/* Şerit: alt satırlar, ay çizgileri, bugün çizgisi */
+.track {
+  position: relative;
+  min-inline-size: 0;
+  block-size: calc(var(--tl-rows, 1) * var(--tl-rowh) + 0.7rem);
+}
+.cols {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  pointer-events: none;
+}
+.cols > span {
+  border-inline-start: 1px dashed var(--border);
+}
+.cols > span:first-child {
+  border-inline-start: 0;
+}
+.todayLine {
+  position: absolute;
+  inset-block: 0;
+  inline-size: 2px;
+  margin-inline-start: -1px;
+  background: var(--primary);
+  opacity: 0.75;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Olay: tıklanabilir kutu = renkli şerit + başlık/tarih */
+.hit {
+  position: absolute;
+  z-index: 2;
+  display: grid;
+  gap: 2px;
+  align-content: start;
+  min-inline-size: 0;
+  block-size: calc(var(--tl-rowh) - 0.2rem);
+  padding: 0;
+  font: inherit;
+  color: var(--text);
+  text-align: start;
+  background: transparent;
+  border: 0;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+.hit:hover .textTitle {
+  text-decoration: underline;
+}
+.hitEnd {
+  text-align: end;
+}
+.band {
+  display: block;
+  block-size: 0.6rem;
+  min-inline-size: 6px;
+  max-inline-size: 100%;
+  background: var(--kf, var(--primary));
+  border-radius: var(--radius-pill);
+}
+.bandDraft {
+  /* taslak: çizgili dolgu (renk tek başına anlam taşımaz) */
+  background: repeating-linear-gradient(
+    135deg,
+    var(--kf, var(--primary)) 0 4px,
+    transparent 4px 7px
+  );
+  outline: 1px dashed var(--kf, var(--primary));
+  outline-offset: -1px;
+}
+.cutStart {
+  border-start-start-radius: 0;
+  border-end-start-radius: 0;
+}
+.cutEnd {
+  border-start-end-radius: 0;
+  border-end-end-radius: 0;
+}
+.text {
+  display: grid;
+  min-inline-size: 0;
+  padding-inline: 2px;
+}
+.textTitle {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  line-height: 1.25;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.textDate {
+  font-size: var(--text-xs, 0.75rem);
+  color: var(--text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 39.9rem) {
+  .board {
+    --tl-label: 6.25rem;
+  }
+  .upList {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .range {
+    flex: 1 1 100%;
+    order: -1;
+  }
+}
