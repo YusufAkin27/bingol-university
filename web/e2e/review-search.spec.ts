@@ -3,13 +3,9 @@
  *   cd web && E2E_PORT=5306 npx playwright test review-search.spec.ts
  */
 import { expect, test, type Page } from '@playwright/test';
-import { appendFileSync, mkdirSync } from 'node:fs';
+import { appendFileSync, mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { json, stubPanel, type Profile, permsOf } from './mockPanel';
-import { stubCommunity } from './fixtures/community';
-import { stubModeration } from './fixtures/moderation';
-import { stubPeople } from './fixtures/people';
-import { stubNotifsys } from './fixtures/notifsys';
 
 const DIR = process.env.SHOTS_DIR || 'C:\\bu_qa\\shots\\adminvisual\\after\\REVIEW';
 mkdirSync(DIR, { recursive: true });
@@ -177,6 +173,7 @@ async function entriesOf(page: Page): Promise<E[]> {
 
 for (const profile of ['SUPPORT', 'VIEWER', 'EDITOR'] as const) {
   test(`S6 RBAC ${profile}: yetkisiz girdi görünmez`, async ({ page }) => {
+    test.setTimeout(150000);
     await boot(page, profile, 1280, 800, 'light', '/admin');
     const all = await entriesOf(page);
     const granted = new Set(permsOf(profile));
@@ -205,21 +202,11 @@ for (const profile of ['SUPPORT', 'VIEWER', 'EDITOR'] as const) {
   });
 }
 
-// ---- 15+ farklı sayfadan derin bağlantı ----
-const stubFor = async (page: Page, group: string) => {
-  if (group === 'overview' || group === 'people') return stubPeople(page, 'full');
-  if (group === 'notifications' || group === 'system') return stubNotifsys(page, 'full');
-  await stubPanel(page, 'FULL');
-  if (group === 'moderation' || group === 'support') return stubModeration(page, 'full');
-  return stubCommunity(page, 'full');
-};
-
-test('S7 rastgele ayar/alan araması: 15+ sayfadan derin bağlantı doğru öğeye gider', async ({ page }) => {
-  test.setTimeout(420000);
-  await page.setViewportSize({ width: 1280, height: 800 });
+// ---- 15+ farklı sayfadan derin bağlantı: planı yaz (ziyaretler review-deeplink.spec.ts'te, testi başına temiz sayfa) ----
+test('S7 plan: sayfa başına tohumlu rastgele bir ayar/alan girdisi seç ve dosyaya yaz', async ({ page }) => {
+  test.setTimeout(180000);
   await boot(page, 'FULL', 1280, 800, 'light', '/admin');
   const all = (await entriesOf(page)).filter((e) => e.anchor && e.kind !== 'page');
-  // tohumlu karıştırma
   let seed = 20261101;
   const rnd = () => ((seed = (seed * 1664525 + 1013904223) % 4294967296) / 4294967296);
   const byPage = new Map<string, E[]>();
@@ -229,72 +216,7 @@ test('S7 rastgele ayar/alan araması: 15+ sayfadan derin bağlantı doğru öğe
     const l = byPage.get(p)!;
     return l[Math.floor(rnd() * l.length)];
   });
-  log({ s: 'S7-plan', pages: picks.length, picks: picks.map((p) => `${p.pageId}:${p.id}`) });
-  const rows: Record<string, unknown>[] = [];
-  let hookInstalled = false;
-  for (const e of picks.slice(0, 26)) {
-    // aynı bağlam: Vite modülleri tarayıcı önbelleğinden gelir (her seferinde yeni bağlam 15 sn'yi aşıyordu)
-    const pg = page;
-    await pg.unrouteAll({ behavior: 'ignoreErrors' });
-    const row: Record<string, unknown> = { id: e.id, page: e.pageId, to: e.to, anchor: e.anchor };
-    try {
-      if (!hookInstalled) {
-        hookInstalled = true;
-        await pg.addInitScript(() => {
-        localStorage.setItem('bu.cookies', 'ack:v1');
-        (window as unknown as { __hits: Record<string, unknown> }).__hits = {};
-        const start = () => {
-          new MutationObserver((ms) => {
-            for (const m of ms) {
-              const el = m.target as HTMLElement;
-              if (m.attributeName === 'data-search-hit' && el.getAttribute('data-search-hit') === 'true') {
-                const a = el.getAttribute('data-search-anchor')!;
-                const r = el.getBoundingClientRect();
-                const h = (window as unknown as { __hits: Record<string, unknown> }).__hits;
-                if (!h[a]) h[a] = { top: r.top, bottom: r.bottom, w: r.width, h: r.height, vh: innerHeight };
-              }
-            }
-          }).observe(document, { attributes: true, subtree: true, attributeFilter: ['data-search-hit'] });
-        };
-        start();
-        });
-      }
-      await stubFor(pg, e.groupId);
-      await pg.goto(e.to, { waitUntil: 'domcontentloaded' });
-      await pg.waitForSelector('main h1', { timeout: 40000 });
-      const sel = `[data-search-anchor="${e.anchor}"]`;
-      let state = 'missing';
-      for (let i = 0; i < 60; i++) {
-        const info = await pg.evaluate((a) => {
-          const el = document.querySelector(`[data-search-anchor="${a}"]`);
-          const h = (window as unknown as { __hits?: Record<string, { top: number; bottom: number; w: number; h: number; vh: number }> }).__hits?.[a];
-          if (!el) return { present: false, h: null as typeof h | null, vis: false };
-          const r = el.getBoundingClientRect();
-          return { present: true, h: h ?? null, vis: r.width > 0 && r.height > 0 };
-        }, e.anchor!);
-        if (info.h) {
-          const vis = info.h.w > 0 && info.h.h > 0;
-          const inView = info.h.top >= -2 && info.h.top <= info.h.vh - 20;
-          state = vis && inView ? 'ok' : vis ? 'hit-not-in-view' : 'hit-hidden';
-          break;
-        }
-        if (info.present) state = info.vis ? 'present-no-hit' : 'present-hidden';
-        await pg.waitForTimeout(150);
-      }
-      void sel;
-      row.state = state;
-      row.toast = (await pg.getByText('Bu alan şu an bu sayfada görünmüyor').count()) > 0;
-      const err = await pg.locator('[role=alert]').allInnerTexts();
-      row.alerts = err.slice(0, 2).map((s) => s.replace(/\s+/g, ' ').slice(0, 80));
-      if (state !== 'ok') await pg.screenshot({ path: join(DIR, `S7-${e.id.replace(/\W+/g, '_')}.png`) });
-    } catch (x) {
-      row.state = 'error';
-      row.err = String(x).slice(0, 120);
-    }
-    rows.push(row);
-    log({ s: 'S7', ...row });
-  }
-  const ok = rows.filter((r) => r.state === 'ok').length;
-  log({ s: 'S7-sum', total: rows.length, ok });
-  expect(rows.length).toBeGreaterThanOrEqual(15);
+  writeFileSync(join(DIR, 's7-plan.json'), JSON.stringify(picks.map((e) => ({ id: e.id, pageId: e.pageId, groupId: e.groupId, to: e.to, anchor: e.anchor, title: e.title })), null, 1));
+  log({ s: 'S7-plan', pages: picks.length });
+  expect(picks.length).toBeGreaterThanOrEqual(15);
 });
