@@ -17,9 +17,10 @@ import {
   Input,
   Modal,
   PageHeader,
+  ProgressRing,
+  ResponsiveTable,
   StatusPill,
   Switch,
-  Table,
   Textarea,
   useToast,
   type Column,
@@ -35,6 +36,7 @@ import {
   templateErrors,
   type TemplateDraft,
 } from './moderation/p11Logic';
+import v2 from './moderation/v2.module.css';
 import styles from './moderation/p11.module.css';
 
 const listKey = [...qk.moderation.all, 'reasonTemplates'] as const;
@@ -102,17 +104,18 @@ export default function ReasonTemplatesPage() {
   const err = (k: keyof typeof errors) => (submitted && errors[k] ? td(errors[k] as string) : null);
 
   const columns: Column<ReasonTemplateRow>[] = [
-    { key: 'code', header: t('admin.p11.tpl.col.code'), render: (r) => <code className="ltr">{r.code}</code> },
+    { key: 'code', header: t('admin.p11.tpl.col.code'), card: { priority: 3 }, render: (r) => <code className="ltr">{r.code}</code> },
     {
       key: 'texts',
       header: t('admin.p11.tpl.col.texts'),
+      card: { priority: 1 },
       render: (r) => (
         <span className={styles.cellStack}>
           <span dir="auto">{r.textTr}</span>
           <span className={styles.muted}>
-            {t('admin.p11.tpl.langs', {
-              en: r.textEn ? t('admin.p11.tpl.has') : t('admin.p11.tpl.fallback'),
-              ar: r.textAr ? t('admin.p11.tpl.has') : t('admin.p11.tpl.fallback'),
+            {t('admin.v2m.tpl.langs', {
+              en: t(r.textEn ? 'admin.v2m.tpl.langYes' : 'admin.v2m.tpl.langNo'),
+              ar: t(r.textAr ? 'admin.v2m.tpl.langYes' : 'admin.v2m.tpl.langNo'),
             })}
           </span>
         </span>
@@ -121,6 +124,7 @@ export default function ReasonTemplatesPage() {
     {
       key: 'active',
       header: t('admin.p11.tpl.col.active'),
+      card: { priority: 2 },
       render: (r) => (
         <StatusPill tone={r.active ? 'success' : 'neutral'}>{t(r.active ? 'admin.p11.tpl.on' : 'admin.p11.tpl.off')}</StatusPill>
       ),
@@ -130,8 +134,9 @@ export default function ReasonTemplatesPage() {
       key: 'actions',
       header: t('admin.p11.col.actions'),
       align: 'end',
+      card: { actions: true },
       render: (r) => (
-        <span className={styles.actionsRow}>
+        <span className={`${styles.actionsRow} ${v2.touch}`}>
           <Button size="sm" variant="secondary" onClick={() => openEdit(r)}>
             {t('common.edit')}
           </Button>
@@ -139,6 +144,7 @@ export default function ReasonTemplatesPage() {
             permission="moderation.write"
             size="sm"
             variant="ghost"
+            className={v2.softDanger}
             danger
             irreversible
             requireReason
@@ -171,6 +177,19 @@ export default function ReasonTemplatesPage() {
       />
       <p className={styles.callout}>{t('admin.p11.tpl.userFacing')}</p>
       {query.data && (
+        <div className={v2.tiles} data-search-anchor="tpl-limit">
+          <ProgressRing
+            value={rows.length}
+            max={max}
+            center={`${rows.length}/${max}`}
+            tone={canAdd ? 'primary' : 'warning'}
+            size={96}
+            thickness={9}
+            label={t('admin.v2m.tpl.ringLabel', { n: String(max - rows.length) })}
+          />
+        </div>
+      )}
+      {query.data && (
         <p className={styles.meta} aria-live="polite">
           {t('admin.p11.tpl.count', { n: rows.length, max })}
           {!canAdd && <Badge tone="warning">{t('admin.p11.tpl.limit')}</Badge>}
@@ -179,7 +198,7 @@ export default function ReasonTemplatesPage() {
       {query.isError ? (
         <ErrorState onRetry={() => void query.refetch()} description={adminError(i18n, query.error)} />
       ) : (
-        <Table
+        <ResponsiveTable
           caption={t('admin.p11.tpl.list')}
           columns={columns}
           rows={rows}

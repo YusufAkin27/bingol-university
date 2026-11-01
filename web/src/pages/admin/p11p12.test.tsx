@@ -231,7 +231,7 @@ describe('P11: karar şablonları', () => {
     renderWithProviders(<ReasonTemplatesPage />);
     await screen.findByText('Metin 1');
     expect(screen.getByText('2 / 50 şablon')).toBeInTheDocument();
-    expect(screen.getAllByText('EN: Türkçe · AR: Türkçe')).toHaveLength(2);
+    expect(screen.getAllByText('İngilizce: yok, Türkçe gösterilir · Arapça: yok, Türkçe gösterilir')).toHaveLength(2);
   });
 
   it('boş form hata gösterir ve istek atmaz; geçerli formda büyük harfli kodla POST gider', async () => {

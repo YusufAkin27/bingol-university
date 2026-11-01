@@ -14,11 +14,14 @@ import {
   FormField,
   GuardedAction,
   Input,
+  Insight,
   PageHeader,
   Pagination,
+  RankedBars,
+  ResponsiveTable,
   Select,
+  StatTile,
   StatusPill,
-  Table,
   type Column,
 } from '../../components/ui';
 import { useI18n } from '../../i18n/I18nProvider';
@@ -26,6 +29,8 @@ import { adminError } from '../../lib/errors';
 import { usePageTitle } from '../../lib/hooks';
 import { paths } from '../../paths';
 import { MOD_TARGET_TYPES, canForgive, strikeState } from './moderation/p11Logic';
+import { FilterFold } from './moderation/v2';
+import v2 from './moderation/v2.module.css';
 import styles from './moderation/p11.module.css';
 
 const RESOLUTIONS: StrikeResolution[] = ['HIDE', 'WARN', 'SUSPEND_USER'];
@@ -72,9 +77,10 @@ export default function StrikesPage() {
     {
       key: 'user',
       header: t('admin.p11.strikes.col.user'),
+      card: { priority: 1 },
       render: (r) => (
         <span className={styles.cellStack}>
-          <Link to={paths.admin.user(r.userId)} dir="auto">
+          <Link to={paths.admin.user(r.userId)} dir="auto" className={v2.link}>
             {r.userName || t('admin.p11.strikes.user', { id: r.userId })}
           </Link>
           <span className={`${styles.muted} ltr`}>{r.userEmail ?? `#${r.userId}`}</span>
@@ -88,18 +94,23 @@ export default function StrikesPage() {
         <span className={styles.cellStack}>
           <Badge tone="primary">{t(`admin.reports.targetType.${r.targetType}`)}</Badge>
           <span className={`${styles.muted} ltr`}>#{r.targetId}</span>
+          {r.reportId != null && (
+            <span className={styles.muted}>{t('admin.v2m.strikes.fromReport', { id: r.reportId })}</span>
+          )}
         </span>
       ),
     },
     {
       key: 'resolution',
       header: t('admin.p11.strikes.col.resolution'),
+      card: { priority: 2 },
       render: (r) => t(`admin.p11.strikes.resolution.${r.resolution}`),
     },
     { key: 'createdAt', header: t('admin.p11.strikes.col.date'), render: (r) => formatDateTime(r.createdAt) },
     {
       key: 'state',
       header: t('admin.p11.strikes.col.state'),
+      card: { priority: 3 },
       render: (r) => {
         const s = strikeState(r);
         return (
@@ -120,6 +131,7 @@ export default function StrikesPage() {
       key: 'actions',
       header: t('admin.p11.col.actions'),
       align: 'end',
+      card: { actions: true },
       render: (r) =>
         canForgive(r) ? (
           <GuardedAction
@@ -143,10 +155,48 @@ export default function StrikesPage() {
     },
   ];
 
+  const rows = data?.items ?? [];
+  const topUsers = (() => {
+    const m = new Map<number, { label: string; n: number }>();
+    for (const r of rows) {
+      if (!r.active) continue;
+      const cur = m.get(r.userId) ?? { label: r.userName || t('admin.p11.strikes.user', { id: r.userId }), n: 0 };
+      cur.n += 1;
+      m.set(r.userId, cur);
+    }
+    return [...m.entries()].map(([id, v]) => ({ key: String(id), label: v.label, value: v.n }));
+  })();
+  const activeCount = [
+    filters.userId.trim() !== '',
+    filters.status !== 'ACTIVE',
+    filters.targetType !== '',
+    filters.resolution !== '',
+    filters.from !== '',
+    filters.to !== '',
+  ].filter(Boolean).length;
+
   return (
     <>
-      <PageHeader title={t('admin.p11.strikes.title')} description={t('admin.p11.strikes.desc')} />
-      <div className={styles.filters} role="search" aria-label={t('admin.p11.filters')}>
+      <PageHeader title={t('admin.p11.strikes.title')} description={t('admin.v2m.strikes.desc')} />
+      <div className={v2.tiles} data-search-anchor="strikes-summary">
+        <StatTile
+          label={t('admin.v2m.strikes.tile')}
+          value={data ? data.total : undefined}
+          icon="flag"
+          loading={query.isLoading}
+          error={query.isError}
+          onRetry={() => void query.refetch()}
+          caption={t(filters.status === 'ACTIVE' ? 'admin.v2m.strikes.tileHintActive' : 'admin.v2m.strikes.tileHintFiltered')}
+        />
+      </div>
+      <Insight className={v2.sentence} tone="info" parts={[t('admin.v2m.strikes.sentence')]} />
+      {topUsers.length > 1 && (
+        <div data-search-anchor="strikes-top">
+          <h2 className={v2.hint}>{t('admin.v2m.strikes.topTitle')}</h2>
+          <RankedBars items={topUsers} limit={5} ariaLabel={t('admin.v2m.strikes.topTitle')} />
+        </div>
+      )}
+      <FilterFold activeCount={activeCount} anchor="strikes-filters">
         <FormField label={t('admin.p11.strikes.filter.user')}>
           <Input
             inputMode="numeric"
@@ -190,7 +240,7 @@ export default function StrikesPage() {
         <FormField label={t('admin.p11.filter.to')}>
           <Input type="date" value={filters.to} min={filters.from || undefined} onChange={(e) => set({ to: e.target.value })} />
         </FormField>
-      </div>
+      </FilterFold>
 
       {data && (
         <p className={styles.meta} aria-live="polite">
@@ -201,7 +251,7 @@ export default function StrikesPage() {
         <ErrorState onRetry={() => void query.refetch()} description={adminError(i18n, query.error)} />
       ) : (
         <>
-          <Table
+          <ResponsiveTable
             caption={t('admin.p11.strikes.list')}
             columns={columns}
             rows={data?.items}

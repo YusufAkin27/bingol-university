@@ -10,13 +10,17 @@ import {
   DataToolbar,
   EmptyState,
   ErrorState,
+  Icon,
+  Insight,
   LoadMore,
   PageHeader,
+  ResponsiveTable,
   Select,
+  StatTile,
   StatusPill,
   Badge,
-  Table,
   toneFor,
+  useKitFormat,
   type Column,
 } from '../../components/ui';
 import { useI18n } from '../../i18n/I18nProvider';
@@ -24,6 +28,7 @@ import { errorMessage } from '../../lib/errors';
 import { usePageTitle } from '../../lib/hooks';
 import { CsvButton } from './moderation/CsvButton';
 import { csvName } from './moderation/p11Logic';
+import v2 from './moderation/v2.module.css';
 import styles from './support/Support.module.css';
 import { paths } from '../../paths';
 
@@ -32,6 +37,7 @@ const STATUSES: TicketStatus[] = ['OPEN', 'ANSWERED', 'CLOSED'];
 export default function TicketsPage() {
   const i18n = useI18n();
   const { t, formatDateTime } = i18n;
+  const kit = useKitFormat();
   usePageTitle(t('admin.tickets.title'));
   const navigate = useNavigate();
   const [status, setStatus] = useState<TicketStatus | ''>('');
@@ -49,16 +55,25 @@ export default function TicketsPage() {
     [query.data],
   );
 
+  const waiting = rows.filter((r) => r.status === 'OPEN');
+  const answered = rows.filter((r) => r.status === 'ANSWERED').length;
+  const closed = rows.filter((r) => r.status === 'CLOSED').length;
+  const oldestWaiting = waiting.reduce<string | null>((o, r) => (!o || r.updatedAt < o ? r.updatedAt : o), null);
+
   const columns: Column<AdminTicketSummary & TicketRowExtra>[] = [
     {
       key: 'subject',
       header: t('admin.tickets.col.subject'),
+      card: { priority: 1 },
       render: (r) => (
-        <span style={{ display: 'grid', gap: 2, minWidth: '12rem' }}>
-          <strong dir="auto" style={{ overflowWrap: 'anywhere' }}>
-            {r.subject}
-          </strong>
-          <span style={{ color: 'var(--text-faint)', fontSize: 'var(--text-xs)' }}>#{r.id}</span>
+        <span className={styles.subjectCell}>
+          <span className={styles.subjectText}>
+            <strong dir="auto" className={styles.subjectStrong}>
+              {r.subject}
+            </strong>
+            <span className={styles.subjectId}>#{r.id}</span>
+          </span>
+          <Icon name="chevronRight" size={18} aria-hidden="true" />
         </span>
       ),
     },
@@ -66,14 +81,16 @@ export default function TicketsPage() {
     {
       key: 'status',
       header: t('admin.tickets.col.status'),
+      card: { priority: 2 },
       render: (r) => <StatusPill tone={toneFor(r.status)}>{t(`admin.tickets.status.${r.status}`)}</StatusPill>,
     },
     {
       key: 'user',
       header: t('admin.tickets.col.user'),
+      card: { priority: 3 },
       render: (r) => (
-        <span style={{ display: 'grid', gap: 4 }}>
-          <span className="ltr">{r.userEmail}</span>
+        <span className={styles.userCell}>
+          <span className={`ltr ${styles.emailBreak}`}>{r.userEmail}</span>
           {r.publicTicket && <Badge tone="info">{t('admin.tickets.public.badge')}</Badge>}
         </span>
       ),
@@ -102,6 +119,7 @@ export default function TicketsPage() {
     <>
       <PageHeader
         title={t('admin.tickets.title')}
+        description={t('admin.v2m.tickets.desc')}
         actions={
           <CsvButton
             filename={csvName('talepler')}
@@ -109,6 +127,32 @@ export default function TicketsPage() {
           />
         }
       />
+      {query.isSuccess && (
+        <>
+          <div className={v2.tiles} data-search-anchor="tickets-summary">
+            <StatTile
+              label={t('admin.v2m.tickets.waiting')}
+              value={waiting.length}
+              icon="lifebuoy"
+              caption={t(query.hasNextPage ? 'admin.v2m.tickets.waitingHintMore' : 'admin.v2m.tickets.waitingHint')}
+            />
+            <StatTile label={t('admin.v2m.tickets.answered')} value={answered} caption={t('admin.v2m.tickets.answeredHint')} />
+            <StatTile label={t('admin.v2m.tickets.closed')} value={closed} caption={t('admin.v2m.tickets.closedHint')} />
+          </div>
+          <Insight
+            className={v2.sentence}
+            tone={waiting.length > 0 ? 'warn' : 'good'}
+            parts={
+              waiting.length > 0
+                ? [
+                    { text: t('admin.v2m.tickets.sentenceWaiting', { n: String(waiting.length) }), tone: 'warn' },
+                    ...(oldestWaiting ? [' ', t('admin.v2m.tickets.sentenceOldest', { when: kit.relative(oldestWaiting) })] : []),
+                  ]
+                : [{ text: t('admin.v2m.tickets.sentenceNone'), tone: 'good' }]
+            }
+          />
+        </>
+      )}
       <DataToolbar
         filters={
           <>
@@ -124,9 +168,9 @@ export default function TicketsPage() {
               </option>
             ))}
           </Select>
-          <label style={{ display: 'inline-flex', gap: 8, alignItems: 'center' }}>
+          <label className={v2.checkRow} data-search-anchor="tickets-public-only" title={t('admin.v2m.tickets.publicOnlyHint')}>
             <input type="checkbox" checked={publicOnly} onChange={(e) => setPublicOnly(e.target.checked)} />
-            {t('admin.tickets.public.filter')}
+            {t('admin.v2m.tickets.publicOnly')}
           </label>
           </>
         }
@@ -135,7 +179,7 @@ export default function TicketsPage() {
         <ErrorState onRetry={() => void query.refetch()} description={errorMessage(i18n, query.error)} />
       ) : (
         <>
-          <Table
+          <ResponsiveTable
             caption={t('admin.tickets.list')}
             columns={columns}
             rows={rows}

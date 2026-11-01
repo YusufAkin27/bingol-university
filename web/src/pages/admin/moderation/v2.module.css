@@ -102,3 +102,20 @@
   font-family: var(--font-mono);
   overflow-wrap: anywhere;
 }
+
+/* Önizleme küçük resmi (96 px) ve 3 satırlık metin özeti */
+.thumb img {
+  inline-size: 96px;
+  block-size: 96px;
+  max-inline-size: 100%;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+}
+.clamp3 {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  overflow: hidden;
+  max-block-size: none;
+}

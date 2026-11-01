@@ -14,11 +14,14 @@ import {
   FormField,
   GuardedAction,
   Input,
+  Insight,
   PageHeader,
   Pagination,
+  ResponsiveTable,
   Select,
+  StatTile,
   StatusPill,
-  Table,
+  useKitFormat,
   type Column,
 } from '../../components/ui';
 import { useI18n } from '../../i18n/I18nProvider';
@@ -27,6 +30,8 @@ import { usePageTitle } from '../../lib/hooks';
 import { paths } from '../../paths';
 import { AuthImage } from './moderation/AuthImage';
 import { MOD_TARGET_TYPES, restoreAvailability } from './moderation/p11Logic';
+import { FilterFold } from './moderation/v2';
+import v2 from './moderation/v2.module.css';
 import styles from './moderation/p11.module.css';
 
 interface Filters {
@@ -54,11 +59,13 @@ export default function HiddenContentPage() {
     queryFn: () => modAdminApi.listHidden(params),
   });
   const data = query.data;
+  const kit = useKitFormat();
 
   const columns: Column<HiddenRow>[] = [
     {
       key: 'target',
       header: t('admin.p11.hidden.col.content'),
+      card: { priority: 1 },
       render: (r) => (
         <span className={styles.cellStack}>
           <Badge tone="primary">{t(`admin.reports.targetType.${r.targetType}`)}</Badge>
@@ -70,13 +77,14 @@ export default function HiddenContentPage() {
     {
       key: 'preview',
       header: t('admin.p11.hidden.col.preview'),
+      card: { priority: 2 },
       render: (r) =>
         r.preview?.kind === 'IMAGE' ? (
-          <div className={styles.preview}>
+          <div className={`${styles.preview} ${v2.thumb}`}>
             <AuthImage url={r.preview.thumbnailUrl ?? r.preview.url} alt={t('admin.reports.preview.image')} />
           </div>
         ) : r.preview?.kind === 'TEXT' && r.preview.text ? (
-          <p className={styles.previewText} dir="auto">
+          <p className={`${styles.previewText} ${v2.clamp3}`} dir="auto">
             {r.preview.text}
           </p>
         ) : (
@@ -88,7 +96,7 @@ export default function HiddenContentPage() {
       header: t('admin.p11.hidden.col.owner'),
       render: (r) =>
         r.ownerId ? (
-          <Link to={paths.admin.user(r.ownerId)} dir="auto">
+          <Link to={paths.admin.user(r.ownerId)} dir="auto" className={v2.link}>
             {r.ownerName || `#${r.ownerId}`}
           </Link>
         ) : (
@@ -98,6 +106,7 @@ export default function HiddenContentPage() {
     {
       key: 'hiddenBy',
       header: t('admin.p11.hidden.col.by'),
+      card: { priority: 3 },
       render: (r) => (
         <StatusPill tone={r.hiddenBy === 'ADMIN' ? 'danger' : 'warning'}>{t(`admin.p11.hidden.by.${r.hiddenBy}`)}</StatusPill>
       ),
@@ -107,6 +116,7 @@ export default function HiddenContentPage() {
       key: 'actions',
       header: t('admin.p11.col.actions'),
       align: 'end',
+      card: { actions: true },
       render: (r) => {
         const av = restoreAvailability(r);
         if (!av.ok) {
@@ -137,10 +147,50 @@ export default function HiddenContentPage() {
     },
   ];
 
+  const rows = data?.items ?? [];
+  const byAdmin = rows.filter((r) => r.hiddenBy === 'ADMIN').length;
+  const byAuto = rows.length - byAdmin;
+  const oldest = rows.reduce<string | null>((o, r) => (r.hiddenAt && (!o || r.hiddenAt < o) ? r.hiddenAt : o), null);
+  const activeCount = [filters.targetType !== '', filters.hiddenBy !== '', filters.from !== '', filters.to !== ''].filter(Boolean).length;
+
   return (
     <>
       <PageHeader title={t('admin.p11.hidden.title')} description={t('admin.p11.hidden.desc')} />
-      <div className={styles.filters} role="search" aria-label={t('admin.p11.filters')}>
+      <div className={v2.tiles} data-search-anchor="hidden-summary">
+        <StatTile
+          label={t('admin.v2m.hidden.tile')}
+          value={data ? data.total : undefined}
+          icon="eyeOff"
+          loading={query.isLoading}
+          error={query.isError}
+          onRetry={() => void query.refetch()}
+          caption={t('admin.v2m.hidden.tileHint')}
+        />
+        <StatTile
+          label={t('admin.v2m.hidden.byAdmin')}
+          value={data ? byAdmin : undefined}
+          loading={query.isLoading}
+          error={query.isError}
+          caption={t('admin.v2m.hidden.byAdminHint')}
+        />
+        <StatTile
+          label={t('admin.v2m.hidden.byAuto')}
+          value={data ? byAuto : undefined}
+          loading={query.isLoading}
+          error={query.isError}
+          caption={t('admin.v2m.hidden.byAutoHint')}
+        />
+      </div>
+      {data && data.total > 0 && (
+        <Insight
+          className={v2.sentence}
+          parts={[
+            t('admin.v2m.hidden.sentence'),
+            ...(oldest ? [' ', { text: t('admin.v2m.hidden.oldest', { when: kit.relative(oldest) }) }] : []),
+          ]}
+        />
+      )}
+      <FilterFold activeCount={activeCount} anchor="hidden-filters">
         <FormField label={t('admin.p11.hidden.filter.type')}>
           <Select value={filters.targetType} onChange={(e) => set({ targetType: e.target.value as ReportTargetType | '' })}>
             <option value="">{t('admin.p11.filter.all')}</option>
@@ -164,7 +214,7 @@ export default function HiddenContentPage() {
         <FormField label={t('admin.p11.filter.to')}>
           <Input type="date" value={filters.to} min={filters.from || undefined} onChange={(e) => set({ to: e.target.value })} />
         </FormField>
-      </div>
+      </FilterFold>
 
       {data && (
         <p className={styles.meta} aria-live="polite">
@@ -175,7 +225,7 @@ export default function HiddenContentPage() {
         <ErrorState onRetry={() => void query.refetch()} description={adminError(i18n, query.error)} />
       ) : (
         <>
-          <Table
+          <ResponsiveTable
             caption={t('admin.p11.hidden.list')}
             columns={columns}
             rows={data?.items}
