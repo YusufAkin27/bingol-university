@@ -80,7 +80,7 @@ export default function StrikesPage() {
       card: { priority: 1 },
       render: (r) => (
         <span className={styles.cellStack}>
-          <Link to={paths.admin.user(r.userId)} dir="auto" className={v2.link}>
+          <Link to={paths.admin.user(r.userId)} dir="auto" className={`${v2.link} ${v2.linkTouch}`}>
             {r.userName || t('admin.p11.strikes.user', { id: r.userId })}
           </Link>
           <span className={`${styles.muted} ltr`}>{r.userEmail ?? `#${r.userId}`}</span>
@@ -164,7 +164,7 @@ export default function StrikesPage() {
       cur.n += 1;
       m.set(r.userId, cur);
     }
-    return [...m.entries()].map(([id, v]) => ({ key: String(id), label: v.label, value: v.n }));
+    return [...m.entries()].map(([id, v]) => ({ key: String(id), label: v.label.length > 26 ? v.label.slice(0, 25) + '…' : v.label, value: v.n }));
   })();
   const activeCount = [
     filters.userId.trim() !== '',
@@ -191,7 +191,7 @@ export default function StrikesPage() {
       </div>
       <Insight className={v2.sentence} tone="info" parts={[t('admin.v2m.strikes.sentence')]} />
       {topUsers.length > 1 && (
-        <div data-search-anchor="strikes-top">
+        <div data-search-anchor="strikes-top" className={v2.clip}>
           <h2 className={v2.hint}>{t('admin.v2m.strikes.topTitle')}</h2>
           <RankedBars items={topUsers} limit={5} ariaLabel={t('admin.v2m.strikes.topTitle')} />
         </div>

@@ -425,6 +425,7 @@ export default function TicketDetailPage() {
                 <GuardedAction
                   permission="support.write"
                   variant="ghost"
+                  className={v2.softDanger}
                   danger
                   irreversible
                   requireReason

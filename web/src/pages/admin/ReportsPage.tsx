@@ -316,7 +316,7 @@ export default function ReportsPage() {
             ]}
           />
           {typeBars.length > 1 && (
-            <RankedBars items={typeBars} limit={5} ariaLabel={t('admin.v2m.reports.byType')} />
+            <RankedBars className={v2.clip} items={typeBars} limit={5} ariaLabel={t('admin.v2m.reports.byType')} />
           )}
         </section>
       )}

@@ -96,7 +96,7 @@ export default function HiddenContentPage() {
       header: t('admin.p11.hidden.col.owner'),
       render: (r) =>
         r.ownerId ? (
-          <Link to={paths.admin.user(r.ownerId)} dir="auto" className={v2.link}>
+          <Link to={paths.admin.user(r.ownerId)} dir="auto" className={`${v2.link} ${v2.linkTouch}`}>
             {r.ownerName || `#${r.ownerId}`}
           </Link>
         ) : (

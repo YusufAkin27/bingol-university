@@ -235,7 +235,7 @@ export default function FeedbackPage() {
     .filter((i) => i.voteCount > 0)
     .sort((a, b) => b.voteCount - a.voteCount)
     .slice(0, 3)
-    .map((i) => ({ key: String(i.id), label: i.subject, value: i.voteCount }));
+    .map((i) => ({ key: String(i.id), label: i.subject.length > 26 ? i.subject.slice(0, 25) + '…' : i.subject, value: i.voteCount }));
   const waitingNew = items.filter((i) => i.status === 'NEW').length;
 
   useEffect(() => {
@@ -273,7 +273,7 @@ export default function FeedbackPage() {
             parts={[t(waitingNew > 0 ? 'admin.v2m.fb.sentenceNew' : 'admin.v2m.fb.sentenceNone', { n: String(waitingNew) })]}
           />
           {topVoted.length > 0 && (
-            <div>
+            <div className={v2.clip}>
               <h2 className={v2.hint}>{t('admin.v2m.fb.top')}</h2>
               <RankedBars items={topVoted} limit={3} ariaLabel={t('admin.v2m.fb.top')} formatValue={(n) => t('admin.v2m.fb.supporters', { n: formatNumber(n) })} />
             </div>

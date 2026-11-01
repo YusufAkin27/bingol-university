@@ -168,7 +168,7 @@ export default function ProfanityPage() {
           />
         </div>
         {fieldBars.length > 0 && (
-          <section data-search-anchor="profanity-fields">
+          <section data-search-anchor="profanity-fields" className={v2.clip}>
             <h2 className={v2.hint}>{t('admin.prf.stat.byField')}</h2>
             <RankedBars items={fieldBars} limit={5} ariaLabel={t('admin.prf.stat.byField')} />
           </section>

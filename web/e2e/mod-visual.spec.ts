@@ -96,6 +96,7 @@ for (const scenario of ['empty', 'error'] as const) {
 test('gönderi ayrıntı çekmecesi telefonda kapatılabilir (P-2)', async ({ page }) => {
   await setup(page, 'light', 390, 844, 'full');
   await page.goto('/admin/posts?open=3');
+  await page.waitForSelector('main h1', { timeout: 30000 });
   const close = page.getByRole('button', { name: /Kapat|Close/ }).first();
   await expect(close).toBeVisible();
   const box = await close.boundingBox();
@@ -129,6 +130,8 @@ test('raporlarda ayrıntı telefonda tam ekran açılır ve listeye dönülür (
   const back = page.getByRole('button', { name: 'Listeye dön' });
   await expect(back).toBeVisible();
   await page.screenshot({ path: join(DIR, 'reports-sheet-390-light.png') });
+  const cancel = page.getByRole('button', { name: 'Vazgeç' });
+  if (await cancel.isVisible().catch(() => false)) await cancel.click();
   await page.getByRole('radio').nth(3).click();
   await page.screenshot({ path: join(DIR, 'reports-sheet-suspend-390-light.png') });
   await back.click();

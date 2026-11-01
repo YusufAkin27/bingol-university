@@ -189,3 +189,15 @@
 .minTouch {
   min-block-size: 44px;
 }
+
+.clip {
+  min-inline-size: 0;
+  max-inline-size: 100%;
+  overflow: hidden;
+}
+
+.linkTouch {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: 44px;
+}
