@@ -187,7 +187,7 @@ export default function NewsAdminPage() {
           </span>
         }
       />
-      {overall.data ? (
+      {overall.data?.news ? (
         <NewsOverview
           news={overall.data.news}
           gtx={gtx}
@@ -410,23 +410,26 @@ function NewsOverview({
   typeLabel: (key: string) => string;
   fmt: (n: number) => string;
 }) {
-  const parts = newsDistribution(news.byType, typeLabel);
+  const parts = newsDistribution(news.byType ?? {}, typeLabel);
+  const total = news.total ?? 0;
+  const week = news.itemsLast7d ?? 0;
+  const hidden = news.hidden ?? 0;
   const sentence =
-    news.total === 0
+    total === 0
       ? gtx('admin.icerik.news.dist.insightNone')
       : gtx('admin.icerik.news.dist.insight', {
-          total: fmt(news.total),
+          total: fmt(total),
           parts: distributionText(parts, fmt),
-          week: fmt(news.itemsLast7d),
-          hidden: fmt(news.hidden),
+          week: fmt(week),
+          hidden: fmt(hidden),
         });
   return (
     <SummaryStrip
-      insight={<Insight tone={news.hidden > 0 ? 'warn' : 'info'} parts={sentence} />}
+      insight={<Insight tone={hidden > 0 ? 'warn' : 'info'} parts={sentence} />}
     >
-      <StatTile icon="news" label={gtx('admin.icerik.news.sum.total')} value={news.total} caption={gtx('admin.icerik.news.sum.totalCap')} />
-      <StatTile icon="download" label={gtx('admin.icerik.news.sum.week')} value={news.itemsLast7d} caption={gtx('admin.icerik.news.sum.weekCap')} />
-      <StatTile icon="eyeOff" label={gtx('admin.icerik.news.sum.hidden')} value={news.hidden} caption={gtx('admin.icerik.news.sum.hiddenCap')} />
+      <StatTile icon="news" label={gtx('admin.icerik.news.sum.total')} value={total} caption={gtx('admin.icerik.news.sum.totalCap')} />
+      <StatTile icon="download" label={gtx('admin.icerik.news.sum.week')} value={week} caption={gtx('admin.icerik.news.sum.weekCap')} />
+      <StatTile icon="eyeOff" label={gtx('admin.icerik.news.sum.hidden')} value={hidden} caption={gtx('admin.icerik.news.sum.hiddenCap')} />
       {parts.length > 0 && (
         <div className={styles.dist} data-search-anchor="news-dist" aria-label={gtx('admin.icerik.news.dist.title')} role="group">
           <h2 className={styles.distTitle}>{gtx('admin.icerik.news.dist.title')}</h2>

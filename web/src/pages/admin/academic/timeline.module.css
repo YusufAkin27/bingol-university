@@ -121,7 +121,7 @@
   background: var(--surface-2);
 }
 .monthCell {
-  padding: var(--space-2) var(--space-2);
+  padding: var(--space-2) var(--space-2) 1.5rem;
   font-size: var(--text-sm);
   font-weight: 600;
   color: var(--text-muted);
@@ -246,6 +246,9 @@
 }
 
 @media (max-width: 39.9rem) {
+  .board {
+    --tl-label: 6.25rem;
+  }
   .upList {
     grid-template-columns: minmax(0, 1fr);
   }

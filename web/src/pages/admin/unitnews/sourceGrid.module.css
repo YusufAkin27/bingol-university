@@ -3,7 +3,7 @@
   display: grid;
   gap: var(--space-3);
   min-inline-size: 0;
-  margin-block-end: var(--space-4);
+  margin-block: var(--space-4);
 }
 .h {
   margin: 0;

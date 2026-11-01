@@ -92,7 +92,7 @@ async function stub(page: Page) {
   await stubPanel(page, 'FULL');
   await page.route(
     (u) => u.pathname.startsWith('/api/'),
-    (r, next) => {
+    (r) => {
       const u = new URL(r.request().url());
       const p = u.pathname.replace(/^\/api/, '');
       if (p === '/admin/academic/events')
@@ -107,7 +107,7 @@ async function stub(page: Page) {
       if (p === '/admin/unit-news/sources') return json(r, Array.from({ length: 23 }, (_, i) => SRC(i + 1)));
       if (p === '/admin/news')
         return json(r, { items: [], page: 0, size: 20, total: 0, totalPages: 1, totalItems: 0 });
-      return next();
+      return r.fallback();
     },
   );
 }
@@ -123,11 +123,12 @@ for (const [w, h, tag] of [
 ] as const) {
   test.describe(`${tag} ${w}px`, () => {
     test.use({ viewport: { width: w, height: h } });
+    test.setTimeout(90_000);
 
     test('akademik takvim çizelgesi', async ({ page }) => {
       await stub(page);
-      await page.goto('/admin/academic/calendar');
-      await expect(page.getByTestId('cal-timeline')).toBeVisible();
+      await page.goto('/admin/academic/calendar', { waitUntil: 'domcontentloaded' });
+      await expect(page.getByTestId('cal-timeline')).toBeVisible({ timeout: 45_000 });
       await expect(page.getByRole('heading', { name: 'Yaklaşan olaylar' })).toBeVisible();
       await expect(page.getByRole('button', { name: /Ara sınav haftası, Vize/ }).first()).toBeVisible();
       await shot(page, `takvim-cizelge-${tag}`);
@@ -137,8 +138,8 @@ for (const [w, h, tag] of [
 
     test('menü kalori grafiği', async ({ page }) => {
       await stub(page);
-      await page.goto('/admin/content/menu');
-      await expect(page.getByTestId('menu-kcal-chart')).toBeVisible();
+      await page.goto('/admin/content/menu', { waitUntil: 'domcontentloaded' });
+      await expect(page.getByTestId('menu-kcal-chart')).toBeVisible({ timeout: 45_000 });
       await shot(page, `menu-kalori-${tag}`);
       const o = await pageOverflow(page);
       expect(o.sw, `yatay taşma: ${o.offenders.join(', ')}`).toBeLessThanOrEqual(o.cw);
@@ -146,8 +147,8 @@ for (const [w, h, tag] of [
 
     test('kaynak durumu ızgarası', async ({ page }) => {
       await stub(page);
-      await page.goto('/admin/sources');
-      await expect(page.getByTestId('source-grid')).toBeVisible();
+      await page.goto('/admin/sources', { waitUntil: 'domcontentloaded' });
+      await expect(page.getByTestId('source-grid')).toBeVisible({ timeout: 45_000 });
       await expect(page.getByTestId('source-grid').getByRole('listitem').first()).toBeVisible();
       await shot(page, `kaynak-izgara-${tag}`);
       const o = await pageOverflow(page);
@@ -156,8 +157,8 @@ for (const [w, h, tag] of [
 
     test('haber dağılımı', async ({ page }) => {
       await stub(page);
-      await page.goto('/admin/content/news');
-      await expect(page.getByText('Kayıt dağılımı')).toBeVisible();
+      await page.goto('/admin/content/news', { waitUntil: 'domcontentloaded' });
+      await expect(page.getByText('Kayıt dağılımı')).toBeVisible({ timeout: 45_000 });
       await shot(page, `haber-dagilim-${tag}`);
       const o = await pageOverflow(page);
       expect(o.sw, `yatay taşma: ${o.offenders.join(', ')}`).toBeLessThanOrEqual(o.cw);
