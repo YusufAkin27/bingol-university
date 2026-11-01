@@ -59,22 +59,67 @@ public class SystemAlertService {
     /** Servis sozlesmesi: istisna sizdirmaz. */
     void check() {
         try {
-            SystemOverviewService.Overview o = overview.evaluate(edu.bingol.backend.i18n.Lang.DEFAULT.locale());
-            String previous = redis.opsForValue().get(STATE_KEY);
+            // 15 sn onbellekli degerlendirme (metrik/panel ile ortak); dakikada bir tam yeniden hesap gerekmez
+            SystemOverviewService.Overview o = overview.cached();
+            String previous = previousState();
             // Depolama dolulugu kendi uyari isi (StorageAlertJob) ile bildirilir: burada ikilenmesin
             IndicatorStatus overall = overallExcept(o, StorageAlertJob.INDICATOR_KEY);
-            redis.opsForValue().set(STATE_KEY, overall.name());
+            storeState(overall.name());
             if (!shouldAlert(previous, overall)) {
                 return;
             }
-            Boolean first = redis.opsForValue().setIfAbsent(THROTTLE_KEY, "1",
-                    Duration.ofMinutes(Math.max(1, props.alertIntervalMinutes())));
-            if (!Boolean.TRUE.equals(first)) {
+            if (!firstInInterval()) {
                 return; // son bir saatte zaten uyarildi
             }
             notifyAdmins(o);
         } catch (RuntimeException e) {
             log.warn("Sistem uyarisi kontrolu basarisiz: {}", e.toString());
+        }
+    }
+
+    // ---- durum: Redis (cok ornekte ortak) + bellek ici yedek ----
+    // FIX-P09 (A08#3): en kritik bagimlilik (Redis) kesilince onceki-durum okumasi istisna atip uyariyi yutuyordu;
+    // simdi bellek ici yedekle devam edilir (bu ornegin gordugu son durum / son uyari zamani).
+
+    private final java.util.concurrent.atomic.AtomicReference<String> memState = new java.util.concurrent.atomic.AtomicReference<>();
+    private volatile long memThrottleUntilMs;
+
+    private String previousState() {
+        try {
+            String v = redis.opsForValue().get(STATE_KEY);
+            return v != null ? v : memState.get();
+        } catch (RuntimeException e) {
+            log.debug("Sistem durumu Redis'ten okunamadi, bellek yedegi: {}", e.toString());
+            return memState.get();
+        }
+    }
+
+    private void storeState(String state) {
+        memState.set(state);
+        try {
+            redis.opsForValue().set(STATE_KEY, state);
+        } catch (RuntimeException e) {
+            log.debug("Sistem durumu Redis'e yazilamadi: {}", e.toString());
+        }
+    }
+
+    private boolean firstInInterval() {
+        Duration interval = Duration.ofMinutes(Math.max(1, props.alertIntervalMinutes()));
+        long now = System.currentTimeMillis();
+        try {
+            Boolean first = redis.opsForValue().setIfAbsent(THROTTLE_KEY, "1", interval);
+            if (Boolean.TRUE.equals(first)) {
+                memThrottleUntilMs = now + interval.toMillis();
+                return true;
+            }
+            return false;
+        } catch (RuntimeException e) {
+            // Redis yok: bu ornegin kendi araligi (cok ornekte ayni anda iki uyari olabilir; uyarisizliktan iyidir)
+            if (now < memThrottleUntilMs) {
+                return false;
+            }
+            memThrottleUntilMs = now + interval.toMillis();
+            return true;
         }
     }
 

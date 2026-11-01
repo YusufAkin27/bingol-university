@@ -49,6 +49,23 @@ class StorageUsageTest {
         };
     }
 
+    /** FIX-P09 (A08#12): kesilen dizin taramasi eksik (dusuk) boyut dondurup doluluk yuzdesini kucultmesin. */
+    @Test
+    void truncatedDirectoryScanKeepsTheLastGoodSize() throws IOException {
+        Path uploads = Files.createDirectories(dir.resolve("big"));
+        for (int i = 0; i < 5; i++) {
+            Files.write(uploads.resolve("f" + i), new byte[100]);
+        }
+        StorageUsageService s = service(props(80, 90), new StorageCapacityProperties(0, "", 0), 1000);
+        assertThat(s.dirSize(uploads)).isEqualTo(500);
+        assertThat(s.dirTruncated(uploads)).isFalse();
+
+        s.expireDirCache();
+        s.setDirLimits(4_000, 2); // en cok 2 dosya: kesilir (3 dosya = 300 bayt gorur)
+        assertThat(s.dirSize(uploads)).as("onceki iyi olcumden kucuk deger kaydedilmemeli").isEqualTo(500);
+        assertThat(s.dirTruncated(uploads)).isTrue();
+    }
+
     @Test
     void unknownWhenNeitherDiskPathNorCapacityConfigured() {
         StorageUsageService s = service(props(80, 90), new StorageCapacityProperties(0, "", 0), 1000);

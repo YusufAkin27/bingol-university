@@ -280,6 +280,18 @@ class AdminChatFeedServiceTest {
         assertFalse(svc.media(ADMIN, null, 1000, null, null, null, null, null, null, null, "desc", "ip").items().isEmpty());
     }
 
+    /** FIX-P09 (A08#6): tum-tablo istatistik sorgulari 5 dk onbellekli; ikinci cagri DB'ye gitmez. */
+    @Test
+    void mediaStatsAreCachedForFiveMinutes() {
+        long m1 = msg(DM, ALICE, "1");
+        att(m1, DM, ALICE, "IMAGE", false);
+        assertEquals(1, svc.stats(ADMIN, "ip").imageCount());
+
+        long m2 = msg(DM, BOB, "2");
+        att(m2, DM, BOB, "IMAGE", false);
+        assertEquals(1, svc.stats(ADMIN, "ip").imageCount(), "onbellekten gelmeli, yeni ek sayilmaz");
+    }
+
     @Test
     void mediaStatsCountKindsViewOnceDeletedAndLast24h() {
         long m1 = msg(DM, ALICE, "1");

@@ -59,8 +59,38 @@ public class AnalyticsReportService {
         this.i18n = i18n;
     }
 
+    /** Genel bakis onbellegi (ms): acilis ekrani tum-tablo sayimlari (message, bookmark, MAU) her acilista calismasin. */
+    static final long OVERVIEW_CACHE_MS = 60_000;
+
+    private record CachedOverview(long at, LocalDate day, Overview value) {
+    }
+
+    private volatile CachedOverview overviewCache;
+
+    /**
+     * FIX-P09 (A08#6/A09#3): {@code count(*) FROM message} ve {@code count(DISTINCT user_id)} gibi tum-tablo sayimlari
+     * milyonlarca satirda 8 sn {@code statement_timeout}'u asip 503 DB_TIMEOUT ile paneli bozabilir; sonuc 60 sn tutulur
+     * (yoneticiye ozel, herkese ayni veri; gun degisince yenilenir). Tek ucus: es zamanli acilislar tek sorgu atar.
+     */
     public Overview overview() {
-        return repo.overview(DateRange.today(clock));
+        LocalDate today = DateRange.today(clock);
+        CachedOverview c = overviewCache;
+        if (fresh(c, today)) {
+            return c.value();
+        }
+        synchronized (this) {
+            c = overviewCache;
+            if (fresh(c, today)) {
+                return c.value();
+            }
+            Overview o = repo.overview(today);
+            overviewCache = new CachedOverview(clock.millis(), today, o);
+            return o;
+        }
+    }
+
+    private boolean fresh(CachedOverview c, LocalDate today) {
+        return c != null && c.day().equals(today) && clock.millis() - c.at() < OVERVIEW_CACHE_MS;
     }
 
     public Registrations registrations(String from, String to) {

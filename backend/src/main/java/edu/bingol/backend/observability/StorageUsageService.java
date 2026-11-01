@@ -85,11 +85,20 @@ public class StorageUsageService {
         long now = System.currentTimeMillis();
         Cached c = cache.get();
         if (c == null || now - c.at() > REPORT_TTL_MS) {
-            c = new Cached(now, measure());
-            cache.set(c);
+            // FIX-P09 (A08#12): tek ucus; TTL bitiminde es zamanli istekler her biri agir olcumu (pg_class + dizin
+            // yuruyusu) tekrar etmesin, ilk gelen olcer digerleri onun sonucunu kullanir.
+            synchronized (measureLock) {
+                c = cache.get();
+                if (c == null || System.currentTimeMillis() - c.at() > REPORT_TTL_MS) {
+                    c = new Cached(System.currentTimeMillis(), measure());
+                    cache.set(c);
+                }
+            }
         }
         return c.report();
     }
+
+    private final Object measureLock = new Object();
 
     /** Onbellegi atlayip yeniden olcer (zamanlayici). */
     public Report fresh() {
@@ -252,7 +261,7 @@ public class StorageUsageService {
             return c.bytes();
         }
         long[] acc = {0, 0};
-        long deadline = now + DIR_BUDGET_MS;
+        long deadline = now + dirBudgetMs;
         boolean[] truncated = {false};
         try {
             Files.walkFileTree(dir, new SimpleFileVisitor<>() {
@@ -260,7 +269,7 @@ public class StorageUsageService {
                 public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
                     acc[0] += attrs.size();
                     acc[1]++;
-                    if (acc[1] > DIR_MAX_FILES || System.currentTimeMillis() > deadline) {
+                    if (acc[1] > dirMaxFiles || System.currentTimeMillis() > deadline) {
                         truncated[0] = true;
                         return FileVisitResult.TERMINATE;
                     }
@@ -275,7 +284,36 @@ public class StorageUsageService {
         } catch (IOException | RuntimeException e) {
             log.debug("Dizin boyutu okunamadi: {}", e.toString());
         }
-        dirSizes.put(dir, new DirSize(now, acc[0], truncated[0]));
-        return acc[0];
+        long bytes = acc[0];
+        if (truncated[0] && c != null) {
+            // FIX-P09 (A08#12): kesilen tarama eksik boyut verir (COMPUTED modda doluluk yanlis dusuk gorunurdu);
+            // onceki olcum varsa ondan kucuk bir deger kaydetme (alt sinir olarak en buyugu tut).
+            bytes = Math.max(bytes, c.bytes());
+        }
+        if (truncated[0]) {
+            log.debug("Dizin boyutu taramasi kesildi ({}): {} bayt (alt sinir)", dir, bytes);
+        }
+        dirSizes.put(dir, new DirSize(now, bytes, truncated[0]));
+        return bytes;
+    }
+
+    /** Dizin taramasi sinirlari (testlerde kucultulur). */
+    private volatile long dirBudgetMs = DIR_BUDGET_MS;
+    private volatile long dirMaxFiles = DIR_MAX_FILES;
+
+    void setDirLimits(long budgetMs, long maxFiles) {
+        this.dirBudgetMs = budgetMs;
+        this.dirMaxFiles = maxFiles;
+    }
+
+    /** Dizin onbellegini bayatlatir (testler; sonraki dirSize yeniden tarar, onceki deger yedek olarak kalir). */
+    void expireDirCache() {
+        dirSizes.replaceAll((p, d) -> new DirSize(0, d.bytes(), d.truncated()));
+    }
+
+    /** Son dizin taramasi kesildi mi (sonuc alt sinirdir). */
+    boolean dirTruncated(Path dir) {
+        DirSize d = dirSizes.get(dir);
+        return d != null && d.truncated();
     }
 }
