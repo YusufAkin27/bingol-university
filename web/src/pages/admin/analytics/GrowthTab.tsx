@@ -3,81 +3,59 @@ import { useMemo } from 'react';
 import { getOverview, getRegistrations } from '../../../api/analytics';
 import { qk } from '../../../api/queryKeys';
 import type { DateRange } from '../../../api/types';
-import { LineAreaChart } from '../../../components/charts';
-import { Card, ProgressRing, StatTile, type Column } from '../../../components/ui';
+import { Card, ProgressRing, StatTile } from '../../../components/ui';
 import { useI18n } from '../../../i18n/I18nProvider';
+import { useGt } from '../dashboard/dict';
 import { lastDays } from '../../../lib/date';
 import styles from './analytics.module.css';
 import { Async, ChartCard } from './parts';
-import { periodCompare } from './transform';
+import { PeriodChart } from './PeriodChart';
+import { periodCompare, previousRange } from './transform';
 
-export default function GrowthTab({ range }: { range: DateRange }) {
-  const { t, formatDate, formatNumber } = useI18n();
-  const fmt = (v: string | number) => formatDate(String(v), { day: 'numeric', month: 'short' });
+export default function GrowthTab({ range, compare }: { range: DateRange; compare: boolean }) {
+  const { t, formatNumber } = useI18n();
+  const g = useGt();
 
   const regs = useQuery({ queryKey: qk.analytics.registrations(range), queryFn: () => getRegistrations(range) });
   // Karşılaştırma seçili aralıktan bağımsızdır: 30 + 30 gün için son 60 gün alınır
   const wide = useMemo(() => lastDays(60), []);
+  const prevRange = useMemo(() => (compare ? previousRange(range) : null), [compare, range]);
+  const regsPrev = useQuery({
+    queryKey: qk.analytics.registrations(prevRange ?? {}),
+    queryFn: () => getRegistrations(prevRange as DateRange),
+    enabled: !!prevRange,
+  });
   const regs60 = useQuery({ queryKey: qk.analytics.registrations(wide), queryFn: () => getRegistrations(wide) });
   const overview = useQuery({ queryKey: qk.analytics.overview(), queryFn: getOverview });
-
-  const col = (key: 'count' | 'cumulative', header: string): Column<{ date: string; count: number; cumulative: number }> => ({
-    key,
-    header,
-    align: 'end',
-    render: (r) => <span className={styles.num}>{formatNumber(r[key])}</span>,
-  });
-  const dateCol: Column<{ date: string; count: number; cumulative: number }> = {
-    key: 'date',
-    header: t('admin.analytics.table.date'),
-    render: (r) => formatDate(r.date),
-  };
 
   return (
     <div className={styles.panel}>
       <div className={styles.grid2}>
         <Async query={regs} title={t('admin.analytics.growth.reg')}>
-          {(d) => {
-            const total = d.points.reduce((s, p) => s + p.count, 0);
-            return (
-              <ChartCard
-                title={t('admin.analytics.growth.reg')}
-                rows={d.points}
-                rowKey={(r) => r.date}
-                columns={[dateCol, col('count', t('admin.analytics.overview.regSeries'))]}
-              >
-                <p className={styles.muted} style={{ marginBlockEnd: 'var(--space-2)' }}>
-                  {t('admin.analytics.growth.total', { n: formatNumber(total) })}
-                </p>
-                <LineAreaChart
-                  data={d.points}
-                  xKey="date"
-                  series={[{ key: 'count', label: t('admin.analytics.overview.regSeries') }]}
-                  ariaLabel={t('admin.analytics.growth.reg')}
-                  formatX={fmt}
-                  emptyLabel={t('admin.analytics.chart.noData')}
-                />
-              </ChartCard>
-            );
-          }}
-        </Async>
-        <Async query={regs}>
           {(d) => (
-            <ChartCard
+            <PeriodChart
+              title={t('admin.v2p.dash.trend.signups')}
+              anchor="anl-growth-reg"
+              points={d.points.map((p) => ({ date: p.date, value: p.count }))}
+              prevPoints={regsPrev.data?.points.map((p) => ({ date: p.date, value: p.count }))}
+              seriesLabel={t('admin.analytics.overview.regSeries')}
+              mode="sum"
+              verb={g('admin.genel.anl.verbJoined')}
+            />
+          )}
+        </Async>
+        <Async query={regs} title={t('admin.analytics.growth.cum')}>
+          {(d) => (
+            <PeriodChart
               title={t('admin.analytics.growth.cum')}
-              rows={d.points}
-              rowKey={(r) => r.date}
-              columns={[dateCol, col('cumulative', t('admin.analytics.overview.cumSeries'))]}
-            >
-              <LineAreaChart
-                data={d.points}
-                xKey="date"
-                series={[{ key: 'cumulative', label: t('admin.analytics.overview.cumSeries'), color: 'var(--chart-5)' }]}
-                ariaLabel={t('admin.analytics.growth.cum')}
-                formatX={fmt}
-                emptyLabel={t('admin.analytics.chart.noData')}
-              />
-            </ChartCard>
+              anchor="anl-growth-cum"
+              points={d.points.map((p) => ({ date: p.date, value: p.cumulative }))}
+              seriesLabel={t('admin.analytics.overview.cumSeries')}
+              color="var(--chart-5)"
+              mode="sum"
+              verb=""
+              noInsight
+            />
           )}
         </Async>
       </div>

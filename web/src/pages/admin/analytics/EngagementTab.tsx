@@ -3,8 +3,9 @@ import { getEngagement } from '../../../api/analytics';
 import { qk } from '../../../api/queryKeys';
 import type { DateRange } from '../../../api/types';
 import { FunnelChart, LineAreaChart } from '../../../components/charts';
-import { Card, EmptyState, Table, type Column } from '../../../components/ui';
+import { Card, EmptyState, RankedBars, Table, type Column } from '../../../components/ui';
 import { useI18n } from '../../../i18n/I18nProvider';
+import { useGt } from '../dashboard/dict';
 import styles from './analytics.module.css';
 import { Async, BarList, ChartCard } from './parts';
 import { funnelRows } from './transform';
@@ -23,6 +24,7 @@ function EventName({ name }: { name: string }) {
 
 export default function EngagementTab({ range }: { range: DateRange }) {
   const { t, td, formatDate, formatNumber } = useI18n();
+  const g = useGt();
   const fmt = (v: string | number) => formatDate(String(v), { day: 'numeric', month: 'short' });
   const q = useQuery({ queryKey: qk.analytics.engagement(range), queryFn: () => getEngagement(range) });
 
@@ -74,6 +76,20 @@ export default function EngagementTab({ range }: { range: DateRange }) {
               }),
             ),
           ];
+          const sumOf = (k: 'messages' | 'posts' | 'rsvps' | 'searches') => d.daily.reduce((s, r) => s + r[k], 0);
+          const dailyTotal = sumOf('messages') + sumOf('posts') + sumOf('rsvps') + sumOf('searches');
+          const dailyInsight =
+            dailyTotal > 0
+              ? {
+                  tone: 'info' as const,
+                  parts: g('admin.genel.anl.dailySentence', {
+                    messages: formatNumber(sumOf('messages')),
+                    posts: formatNumber(sumOf('posts')),
+                    rsvps: formatNumber(sumOf('rsvps')),
+                    searches: formatNumber(sumOf('searches')),
+                  }),
+                }
+              : null;
           return (
             <>
               <div className={styles.grid2}>
@@ -107,21 +123,42 @@ export default function EngagementTab({ range }: { range: DateRange }) {
                 </Card>
 
                 <Card title={t('admin.analytics.engagement.topEvents')} data-search-anchor="anl-events">
-                  <Table
-                    caption={t('admin.analytics.engagement.topEvents')}
-                    columns={eventCols}
-                    rows={d.topEvents}
-                    rowKey={(e) => e.name}
-                    empty={<EmptyState compact icon="chart" title={t('admin.analytics.engagement.noEvents')} description=" " />}
-                  />
+                  {d.topEvents.length === 0 ? (
+                    <EmptyState compact icon="chart" title={t('admin.analytics.engagement.noEvents')} description=" " />
+                  ) : (
+                    <>
+                      <RankedBars
+                        ariaLabel={t('admin.analytics.engagement.topEvents')}
+                        limit={6}
+                        truncateAt={40}
+                        items={d.topEvents.map((e) => ({
+                          key: e.name,
+                          label: td(`admin.v2p.anl.event.${e.name}`, e.name),
+                          value: e.count,
+                          hint: g('admin.genel.anl.eventUsers', { n: formatNumber(e.uniqueUsers) }),
+                        }))}
+                      />
+                      <details style={{ marginBlockStart: 'var(--space-3)' }} data-testid="events-table">
+                        <summary className={styles.detailsSummary}>{t('admin.analytics.table.show')}</summary>
+                        <Table
+                          caption={t('admin.analytics.engagement.topEvents')}
+                          columns={eventCols}
+                          rows={d.topEvents}
+                          rowKey={(e) => e.name}
+                        />
+                      </details>
+                    </>
+                  )}
                 </Card>
               </div>
 
+              <div data-search-anchor="anl-daily">
               <ChartCard
                 title={t('admin.v2p.anl.engagement.dailyTitle')}
                 rows={d.daily}
                 rowKey={(r) => r.date}
                 columns={dailyCols}
+                insight={dailyInsight}
               >
                 <LineAreaChart
                   data={d.daily}
@@ -138,6 +175,7 @@ export default function EngagementTab({ range }: { range: DateRange }) {
                   emptyLabel={t('admin.analytics.chart.noData')}
                 />
               </ChartCard>
+              </div>
 
               <Card title={t('admin.analytics.engagement.screens')} data-search-anchor="anl-screens">
                 {d.screens.length === 0 ? (

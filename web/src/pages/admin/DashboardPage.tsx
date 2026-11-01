@@ -3,14 +3,16 @@
 // PEOPLE: önce tek cümlelik özet ("Bugün 120 kişi girdi, dün 98 idi: %22 fazla"), sonra 4 büyük kutu (giren, yeni üye, geri dönen,
 // bekleyen iş), halkalar ve dikkat gerektirenler; 20 sayılık eski yığın "Ayrıntılı sayılar" altında katlanır.
 // Genel bakış (overview) hata verirse tek bir üst bant gösterilir; trend/denetim/kaynak kartları bağımsız kalır.
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { lazy, Suspense, useMemo } from 'react';
 import { getActiveUsers, getOverview, getRegistrations } from '../../api/analytics';
 import { qk } from '../../api/queryKeys';
 import { usePermissions } from '../../auth/permissions';
 import {
+  Button,
   Card,
   ErrorState,
+  Icon,
   Insight,
   PageHeader,
   ProgressRing,
@@ -20,34 +22,50 @@ import {
   useCompareSentence,
 } from '../../components/ui';
 import { useI18n } from '../../i18n/I18nProvider';
+import { useGt } from './dashboard/dict';
 import { errorMessage } from '../../lib/errors';
 import { istanbulYesterday, lastDaysIstanbul } from '../../lib/date';
 import { usePageTitle } from '../../lib/hooks';
 import styles from './dashboard/dashboard.module.css';
+import { AudiencePanel } from './dashboard/AudiencePanel';
+import { HealthStrip } from './dashboard/HealthStrip';
 import { ModerationCounters } from './dashboard/ModerationCounters';
 import { AttentionPanel, DevicePanel, RecentAudit, SourcesPanel } from './dashboard/panels';
+import { shiftDate, sumWindow } from './dashboard/transform';
 
 const Trends = lazy(() => import('./dashboard/Trends'));
 
 export default function DashboardPage() {
   const i18n = useI18n();
-  const { t, formatNumber } = i18n;
+  const g = useGt();
+  const { t, formatNumber, formatDate } = i18n;
   usePageTitle(t('admin.dashboard.title'));
   const perms = usePermissions();
   const sentence = useCompareSentence();
+  const queryClient = useQueryClient();
 
   const range = useMemo(() => lastDaysIstanbul(30), []);
   // Dün, panelin iş günü olan Europe/Istanbul gününe göre (tarayıcı saat diliminden bağımsız)
   const yesterday = useMemo(() => istanbulYesterday(), []);
-  const overview = useQuery({ queryKey: qk.analytics.overview(), queryFn: getOverview });
+  // Üç sorgu paralel başlar (waterfall yok); 1 dk taze sayılır, 5 dk'da bir kendiliğinden yenilenir
+  const live = { staleTime: 60_000, refetchInterval: 5 * 60_000 } as const;
+  const overview = useQuery({ queryKey: qk.analytics.overview(), queryFn: getOverview, ...live });
   const registrations = useQuery({
     queryKey: qk.analytics.registrations(range),
     queryFn: () => getRegistrations(range),
+    ...live,
   });
   const activeUsers = useQuery({
     queryKey: qk.analytics.activeUsers(range),
     queryFn: () => getActiveUsers(range),
+    ...live,
   });
+  const refreshing = overview.isFetching || registrations.isFetching || activeUsers.isFetching;
+  const refreshAll = () => {
+    void queryClient.invalidateQueries({ queryKey: qk.analytics.all });
+    void queryClient.invalidateQueries({ queryKey: qk.system.all });
+    void queryClient.invalidateQueries({ queryKey: qk.settings.sync() });
+  };
 
   const o = overview.data;
   const loading = overview.isLoading;
@@ -66,6 +84,22 @@ export default function DashboardPage() {
   const regSpark = registrations.data?.points.map((p) => p.count);
   const pct = (ratio: number) => Math.round(ratio * 100);
 
+  // Son 7 tamamlanmış günde katılanlar ile önceki 7 gün (bugün bitmediği için dışarıda)
+  const regPoints = registrations.data?.points.map((p) => ({ date: p.date, value: p.count }));
+  const weekNew = regPoints ? sumWindow(regPoints, yesterday, 7) : undefined;
+  const prevWeekNew = regPoints ? sumWindow(regPoints, shiftDate(yesterday, -7), 7) : undefined;
+  const weekNewSentence =
+    weekNew?.found && prevWeekNew?.found
+      ? sentence({
+          nowLabel: g('admin.genel.week.newNow'),
+          current: weekNew.total,
+          thenLabel: g('admin.genel.week.then'),
+          previous: prevWeekNew.total,
+          unit: t('admin.v2p.unit.person'),
+          verb: g('admin.genel.week.newVerb'),
+        })
+      : null;
+
   const hero = o
     ? o.totalUsers === 0
       ? { parts: [t('admin.v2p.dash.emptyAll')], tone: 'info' as const }
@@ -82,7 +116,25 @@ export default function DashboardPage() {
 
   return (
     <div>
-      <PageHeader title={t('admin.dashboard.title')} />
+      <PageHeader
+        title={t('admin.dashboard.title')}
+        actions={
+          <div className={styles.refreshRow} data-search-anchor="dash-refresh">
+            {overview.dataUpdatedAt > 0 && (
+              <span className={styles.updated} data-testid="dash-updated">
+                {g('admin.genel.updatedAt', {
+                  time: formatDate(new Date(overview.dataUpdatedAt).toISOString(), { hour: '2-digit', minute: '2-digit' }),
+                })}
+              </span>
+            )}
+            <Button variant="secondary" size="sm" onClick={refreshAll} disabled={refreshing} aria-busy={refreshing}>
+              <Icon name="activity" size={16} aria-hidden="true" /> {g('admin.genel.refresh')}
+            </Button>
+          </div>
+        }
+      />
+
+      <HealthStrip />
 
       {overview.isError ? (
         <ErrorState
@@ -94,6 +146,7 @@ export default function DashboardPage() {
         <>
           <section className={styles.hero} aria-label={t('admin.v2p.dash.heroLabel')} data-search-anchor="dash-hero">
             {hero ? <Insight parts={hero.parts} tone={hero.tone} /> : <Skeleton height="2.6rem" width="100%" />}
+            {weekNewSentence && <Insight parts={weekNewSentence.parts} tone={weekNewSentence.tone} />}
             {o && waiting !== undefined && waiting > 0 && (
               <Insight tone="warn" parts={t('admin.v2p.dash.waitingSentence', { n: formatNumber(waiting) })} />
             )}
@@ -190,6 +243,10 @@ export default function DashboardPage() {
             </Card>
             <DevicePanel overview={overview} />
           </div>
+
+          <div className={styles.section}>
+            <AudiencePanel overview={overview} />
+          </div>
         </>
       )}
 
@@ -217,16 +274,6 @@ export default function DashboardPage() {
               value={o.newUsers.last30d}
               unit={t('admin.v2p.unit.person')}
               spark={regSpark}
-            />
-            <StatTile
-              label={t('admin.v2p.dash.kpi.week')}
-              value={o.activeUsers.wau}
-              unit={t('admin.v2p.unit.person')}
-            />
-            <StatTile
-              label={t('admin.v2p.dash.kpi.month')}
-              value={o.activeUsers.mau}
-              unit={t('admin.v2p.unit.person')}
             />
             <StatTile
               label={t('admin.dashboard.kpi.messages')}

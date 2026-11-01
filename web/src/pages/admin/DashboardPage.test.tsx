@@ -67,7 +67,7 @@ describe('DashboardPage', () => {
     });
     renderWithProviders(<DashboardPage />, { route: '/admin' });
 
-    expect(await screen.findByText(/1\.234/)).toBeInTheDocument();
+    expect(await screen.findByText(/1\.234 kişiden/)).toBeInTheDocument();
     const attention = screen.getByTestId('attention-panel');
     await waitFor(() => expect(within(attention).getByText('5 açık rapor')).toBeInTheDocument());
     expect(within(attention).getByText('5 açık rapor').closest('a')).toHaveAttribute('href', '/admin/reports');

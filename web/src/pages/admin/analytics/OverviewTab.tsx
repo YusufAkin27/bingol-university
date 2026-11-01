@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
+import { useMemo } from 'react';
 import {
   getActiveUsers,
   getContentAnalytics,
@@ -7,17 +8,20 @@ import {
   getSupportAnalytics,
 } from '../../../api/analytics';
 import { qk } from '../../../api/queryKeys';
-import { BarChart, LineAreaChart } from '../../../components/charts';
-import { Card, EmptyState, StatCard, StatusPill, Table, toneFor, type Column } from '../../../components/ui';
+import { BarChart, DonutChart } from '../../../components/charts';
+import { Card, EmptyState, Insight, StatTile, StatusPill, Table, toneFor, type Column } from '../../../components/ui';
 import { useI18n } from '../../../i18n/I18nProvider';
+import { useGt } from '../dashboard/dict';
 import { DailySummary } from './DailySummary';
 import styles from './analytics.module.css';
 import { Async, BarList, ChartCard } from './parts';
-import { humanizeMinutes } from './transform';
+import { PeriodChart } from './PeriodChart';
+import { humanizeMinutes, previousRange } from './transform';
 import type { DateRange } from '../../../api/types';
 
-export default function OverviewTab({ range }: { range: DateRange }) {
+export default function OverviewTab({ range, compare }: { range: DateRange; compare: boolean }) {
   const { t, td, formatDate, formatNumber, formatDateTime } = useI18n();
+  const g = useGt();
   const fmt = (v: string | number) => formatDate(String(v), { day: 'numeric', month: 'short' });
   const dateCol = { key: 'date', header: t('admin.analytics.table.date'), render: (r: { date: string }) => formatDate(r.date) };
   const numCol = <T extends object>(key: keyof T & string, header: string): Column<T> => ({
@@ -27,8 +31,19 @@ export default function OverviewTab({ range }: { range: DateRange }) {
     render: (r) => <span className={styles.num}>{formatNumber(r[key] as number)}</span>,
   });
 
+  const prevRange = useMemo(() => (compare ? previousRange(range) : null), [compare, range]);
   const dau = useQuery({ queryKey: qk.analytics.activeUsers(range), queryFn: () => getActiveUsers(range) });
   const regs = useQuery({ queryKey: qk.analytics.registrations(range), queryFn: () => getRegistrations(range) });
+  const dauPrev = useQuery({
+    queryKey: qk.analytics.activeUsers(prevRange ?? {}),
+    queryFn: () => getActiveUsers(prevRange as DateRange),
+    enabled: !!prevRange,
+  });
+  const regsPrev = useQuery({
+    queryKey: qk.analytics.registrations(prevRange ?? {}),
+    queryFn: () => getRegistrations(prevRange as DateRange),
+    enabled: !!prevRange,
+  });
   const content = useQuery({ queryKey: qk.analytics.content(range), queryFn: () => getContentAnalytics(range) });
   const support = useQuery({ queryKey: qk.analytics.support(), queryFn: getSupportAnalytics });
   const push = useQuery({ queryKey: qk.analytics.push(), queryFn: getPushAnalytics });
@@ -37,64 +52,71 @@ export default function OverviewTab({ range }: { range: DateRange }) {
     <div className={styles.panel}>
       <DailySummary />
       <div className={styles.grid2}>
-        <Async query={dau} title={t('admin.analytics.overview.dau')}>
+        <Async query={dau} title={t('admin.v2p.dash.trend.dau')}>
           {(d) => (
-            <ChartCard
-              title={t('admin.analytics.overview.dau')}
-              rows={d.points}
-              rowKey={(r) => r.date}
-              columns={[dateCol, numCol('dau', t('admin.analytics.overview.dauSeries'))]}
-            >
-              <div className={styles.chips}>
-                <div className={styles.chip}>
-                  <span className={styles.chipLabel}>{t('admin.analytics.overview.wau')}</span>
-                  <span className={styles.chipValue}>{formatNumber(d.wau)}</span>
+            <PeriodChart
+              title={t('admin.v2p.dash.trend.dau')}
+              anchor="anl-dau"
+              points={d.points.map((p) => ({ date: p.date, value: p.dau }))}
+              prevPoints={dauPrev.data?.points.map((p) => ({ date: p.date, value: p.dau }))}
+              seriesLabel={t('admin.analytics.overview.dauSeries')}
+              color="var(--chart-3)"
+              mode="avg"
+              verb={t('admin.v2p.dash.verbEntered')}
+              extra={
+                <div className={styles.chips}>
+                  <div className={styles.chip}>
+                    <span className={styles.chipLabel}>{t('admin.analytics.overview.wau')}</span>
+                    <span className={styles.chipValue}>{formatNumber(d.wau)}</span>
+                  </div>
+                  <div className={styles.chip}>
+                    <span className={styles.chipLabel}>{t('admin.analytics.overview.mau')}</span>
+                    <span className={styles.chipValue}>{formatNumber(d.mau)}</span>
+                  </div>
                 </div>
-                <div className={styles.chip}>
-                  <span className={styles.chipLabel}>{t('admin.analytics.overview.mau')}</span>
-                  <span className={styles.chipValue}>{formatNumber(d.mau)}</span>
-                </div>
-              </div>
-              <LineAreaChart
-                data={d.points}
-                xKey="date"
-                series={[{ key: 'dau', label: t('admin.analytics.overview.dauSeries'), color: 'var(--chart-3)' }]}
-                ariaLabel={t('admin.analytics.overview.dau')}
-                formatX={fmt}
-                emptyLabel={t('admin.analytics.chart.noData')}
-              />
-            </ChartCard>
+              }
+            />
           )}
         </Async>
 
-        <Async query={regs} title={t('admin.analytics.overview.reg')}>
+        <Async query={regs} title={t('admin.v2p.dash.trend.signups')}>
           {(d) => (
-            <ChartCard
-              title={t('admin.analytics.overview.reg')}
-              rows={d.points}
-              rowKey={(r) => r.date}
-              columns={[dateCol, numCol('count', t('admin.analytics.overview.regSeries')), numCol('cumulative', t('admin.analytics.overview.cumSeries'))]}
-            >
-              <LineAreaChart
-                data={d.points}
-                xKey="date"
-                series={[{ key: 'count', label: t('admin.analytics.overview.regSeries') }]}
-                ariaLabel={t('admin.analytics.overview.reg')}
-                formatX={fmt}
-                emptyLabel={t('admin.analytics.chart.noData')}
-              />
-            </ChartCard>
+            <PeriodChart
+              title={t('admin.v2p.dash.trend.signups')}
+              anchor="anl-reg"
+              points={d.points.map((p) => ({ date: p.date, value: p.count }))}
+              prevPoints={regsPrev.data?.points.map((p) => ({ date: p.date, value: p.count }))}
+              seriesLabel={t('admin.analytics.overview.regSeries')}
+              mode="sum"
+              verb={g('admin.genel.anl.verbJoined')}
+            />
           )}
         </Async>
 
         <Async query={content} title={t('admin.analytics.overview.content')}>
           {(d) => {
             const data = d.daily.map((x) => ({ ...x, label: fmt(x.date) }));
+            const sum = (k: 'news' | 'announcements' | 'events') => d.daily.reduce((s, x) => s + x[k], 0);
+            const total = sum('news') + sum('announcements') + sum('events');
             return (
+              <div data-search-anchor="anl-content" className={styles.spanAll}>
               <ChartCard
                 title={t('admin.analytics.overview.content')}
                 rows={d.daily}
                 rowKey={(r) => r.date}
+                insight={
+                  total > 0
+                    ? {
+                        tone: 'info',
+                        parts: g('admin.genel.anl.contentSentence', {
+                          total: formatNumber(total),
+                          news: formatNumber(sum('news')),
+                          ann: formatNumber(sum('announcements')),
+                          ev: formatNumber(sum('events')),
+                        }),
+                      }
+                    : null
+                }
                 columns={[
                   dateCol,
                   numCol('news', t('admin.analytics.overview.news')),
@@ -115,13 +137,14 @@ export default function OverviewTab({ range }: { range: DateRange }) {
                   emptyLabel={t('admin.analytics.chart.noData')}
                 />
               </ChartCard>
+              </div>
             );
           }}
         </Async>
       </div>
 
       <div className={styles.grid2}>
-        <Card title={t('admin.analytics.support.title')}>
+        <Card title={t('admin.analytics.support.title')} data-search-anchor="anl-support">
           <Async query={support} height={160} title={t('admin.analytics.support.title')}>
             {(d) => {
               const avg = d.avgFirstResponseMinutes;
@@ -138,10 +161,29 @@ export default function OverviewTab({ range }: { range: DateRange }) {
               }));
               return (
                 <>
-                  <div className={styles.grid3}>
-                    <StatCard title={t('admin.analytics.support.open')} value={formatNumber(d.tickets.open)} />
-                    <StatCard title={t('admin.analytics.support.answered')} value={formatNumber(d.tickets.answered)} />
-                    <StatCard title={t('admin.analytics.support.closed')} value={formatNumber(d.tickets.closed)} />
+                  <div className={styles.ticketsBody}>
+                    <Insight
+                      tone={d.tickets.open > 0 ? 'warn' : 'good'}
+                      parts={
+                        d.tickets.open + d.tickets.answered + d.tickets.closed === 0
+                          ? g('admin.genel.anl.ticketsNone')
+                          : g('admin.genel.anl.ticketsSentence', {
+                              open: formatNumber(d.tickets.open),
+                              answered: formatNumber(d.tickets.answered),
+                              closed: formatNumber(d.tickets.closed),
+                            })
+                      }
+                    />
+                    <DonutChart
+                      data={[
+                        { name: t('admin.analytics.support.open'), value: d.tickets.open },
+                        { name: t('admin.analytics.support.answered'), value: d.tickets.answered },
+                        { name: t('admin.analytics.support.closed'), value: d.tickets.closed },
+                      ]}
+                      ariaLabel={t('admin.analytics.support.title')}
+                      height={220}
+                      emptyLabel={g('admin.genel.anl.ticketsNone')}
+                    />
                   </div>
                   <p className={styles.muted} style={{ marginBlockStart: 'var(--space-3)' }}>
                     {t('admin.analytics.support.avg')}:{' '}
@@ -171,7 +213,7 @@ export default function OverviewTab({ range }: { range: DateRange }) {
           </Async>
         </Card>
 
-        <Card title={t('admin.analytics.push.title')}>
+        <Card title={t('admin.analytics.push.title')} data-search-anchor="anl-push">
           <Async query={push} height={160} title={t('admin.analytics.push.title')}>
             {(d) => {
               const columns: Column<(typeof d.recent)[number]>[] = [
@@ -200,8 +242,8 @@ export default function OverviewTab({ range }: { range: DateRange }) {
               return (
                 <>
                   <div className={styles.grid3} style={{ gridTemplateColumns: 'repeat(2, minmax(0, 1fr))' }}>
-                    <StatCard title={t('admin.analytics.push.campaigns')} value={formatNumber(d.totals.campaigns)} />
-                    <StatCard title={t('admin.analytics.push.recipients')} value={formatNumber(d.totals.recipients)} />
+                    <StatTile label={t('admin.analytics.push.campaigns')} value={d.totals.campaigns} />
+                    <StatTile label={t('admin.analytics.push.recipients')} value={d.totals.recipients} />
                   </div>
                   <h3 className={styles.sub}>{t('admin.analytics.push.recent')}</h3>
                   <Table
