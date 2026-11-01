@@ -187,7 +187,9 @@ export default function UsersPage() {
       header: t('admin.users.col.role'),
       card: { priority: 3 },
       render: (u) => (
-        <Badge tone={u.role === 'ADMIN' ? 'primary' : 'neutral'}>{td(`admin.users.role.${u.role}`)}</Badge>
+        <span className={styles.nowrap}>
+          <Badge tone={u.role === 'ADMIN' ? 'primary' : 'neutral'}>{td(`admin.users.role.${u.role}`)}</Badge>
+        </span>
       ),
     },
     {
@@ -195,7 +197,7 @@ export default function UsersPage() {
       header: t('admin.users.col.status'),
       card: { priority: 2 },
       render: (u) => (
-        <div className={styles.badges}>
+        <div className={`${styles.badges} ${styles.nowrap}`}>
           <StatusPill tone={toneFor(u.status)}>{td(`admin.users.status.${u.status}`)}</StatusPill>
           {!u.emailVerified && u.status !== 'DELETED' && (
             <Badge tone="warning">{t('admin.users.verified.no')}</Badge>
@@ -206,16 +208,19 @@ export default function UsersPage() {
     {
       key: 'twoFactor',
       header: g2('admin.users.col.twoFactor'),
-      render: (u) =>
-        u.twoFactorEnabled ? (
-          <Badge tone="success">
-            {u.twoFactorTrustedDeviceCount !== undefined
-              ? g2('admin.users.twoFactor.onDevices', { n: formatNumber(u.twoFactorTrustedDeviceCount) })
-              : g2('admin.users.twoFactor.on')}
-          </Badge>
-        ) : (
-          <Badge tone="neutral">{g2('admin.users.twoFactor.off')}</Badge>
-        ),
+      render: (u) => (
+        <span className={styles.nowrap}>
+          {u.twoFactorEnabled ? (
+            <Badge tone="success">
+              {u.twoFactorTrustedDeviceCount !== undefined
+                ? g2('admin.users.twoFactor.onDevices', { n: formatNumber(u.twoFactorTrustedDeviceCount) })
+                : g2('admin.users.twoFactor.on')}
+            </Badge>
+          ) : (
+            <Badge tone="neutral">{g2('admin.users.twoFactor.off')}</Badge>
+          )}
+        </span>
+      ),
     },
     {
       key: 'createdAt',

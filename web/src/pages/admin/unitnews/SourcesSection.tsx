@@ -223,6 +223,7 @@ export function SourcesSection({ query }: { query: UseQueryResult<UnitSource[]> 
           columns={columns}
           rows={query.data}
           rowKey={(s) => s.code}
+          breakpoint={1400}
           loading={query.isLoading}
           skeletonRows={8}
           empty={<EmptyState compact icon="community" title={t('admin.unitNews.sources.empty')} />}
