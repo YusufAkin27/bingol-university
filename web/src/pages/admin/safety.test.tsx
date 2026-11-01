@@ -233,6 +233,65 @@ describe('Yasaklı görsel özetleri', () => {
   });
 });
 
+describe('Sekme sayaçları ve cümleler yalnız yüklenen sayfayı kesin toplam sanmaz', () => {
+  const appeal = (id: number) => ({
+    id,
+    userId: id,
+    targetType: 'USER_AVATAR',
+    targetId: id,
+    message: 'İtiraz ' + id,
+    status: 'OPEN',
+    adminNote: null,
+    createdAt: '2026-01-01T10:00:00Z',
+    decidedAt: null,
+  });
+  const rec = (id: number) => ({
+    id,
+    userId: id,
+    strikeCount: 3,
+    status: 'OPEN',
+    reason: 'x',
+    createdAt: '2026-01-01T10:00:00Z',
+    decidedAt: null,
+    decidedBy: null,
+  });
+
+  it('itirazlar: 50 kayıt dönünce sekme "50+" yazar, cümle "En az" der', async () => {
+    mockFetch((url) => {
+      const size = Number(new URL(url, 'http://x').searchParams.get('size'));
+      const n = size === 50 ? 50 : 20;
+      return jsonResponse(200, {
+        items: Array.from({ length: n }, (_, i) => appeal(i + 1)),
+        nextCursor: size === 50 ? null : 'c1',
+      });
+    });
+    renderWithProviders(<AppealsPage />);
+    expect(await screen.findByRole('tab', { name: /(50+)/ })).toBeInTheDocument();
+    expect(await screen.findByText(/En az 20 itiraz cevap bekliyor/)).toBeInTheDocument();
+  });
+
+  it('itirazlar: 3 kayıtta sayaç kesin, cümle "En az" demez', async () => {
+    mockFetch(() => jsonResponse(200, { items: [appeal(1), appeal(2), appeal(3)], nextCursor: null }));
+    renderWithProviders(<AppealsPage />);
+    expect(await screen.findByRole('tab', { name: /(3)/ })).toBeInTheDocument();
+    expect(await screen.findByText('3 itiraz cevap bekliyor.')).toBeInTheDocument();
+  });
+
+  it('askı önerileri: 50 kayıt dönünce sekme "50+" yazar, cümle "En az" der', async () => {
+    mockFetch((url) => {
+      const size = Number(new URL(url, 'http://x').searchParams.get('size'));
+      const n = size === 50 ? 50 : 20;
+      return jsonResponse(200, {
+        items: Array.from({ length: n }, (_, i) => rec(i + 1)),
+        nextCursor: size === 50 ? null : 'c1',
+      });
+    });
+    renderWithProviders(<SuspendRecommendationsPage />);
+    expect(await screen.findByRole('tab', { name: /(50+)/ })).toBeInTheDocument();
+    expect(await screen.findByText(/En az 20 kişi için karar bekleniyor/)).toBeInTheDocument();
+  });
+});
+
 describe('Yasaklı görsel dosya seçimi', () => {
   afterEach(() => vi.unstubAllGlobals());
 

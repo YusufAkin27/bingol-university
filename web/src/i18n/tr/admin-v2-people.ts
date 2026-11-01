@@ -190,6 +190,7 @@ export default {
   'admin.v2p.sus.explain':
     'Kısa sürede çok ihlal yapan kullanıcılar için sistem askıya alma önerir. Askıya alırsanız kişi giriş yapamaz; yoksayarsanız öneri kapanır ve hesap olduğu gibi kalır.',
   'admin.v2p.sus.sentence': '{n} kişi için karar bekleniyor; en çok ihlal sayısı {max}.',
+  'admin.v2p.sus.sentenceMore': 'En az {n} kişi için karar bekleniyor (liste uzun, hepsi yüklenmedi); yüklenenler arasında en çok ihlal sayısı {max}.',
   'admin.v2p.sus.tabCount': '{label} ({n})',
   'admin.v2p.sus.waiting': '{when} önerildi',
   'admin.v2p.sus.dismissTitle': 'Öneriyi yoksay',
@@ -198,6 +199,7 @@ export default {
   'admin.v2p.sus.acceptConsequence': 'Kişi hemen giriş yapamaz hale gelir; askıyı kullanıcı sayfasından kaldırabilirsiniz.',
   'admin.v2p.apl.explain':
     'Kullanıcı, gizlenen ya da silinen bir içeriğin yanlış olduğunu düşünüyorsa itiraz eder. Kabul ederseniz içerik geri açılır; reddederseniz gizli kalır.',
+  'admin.v2p.apl.sentenceMore': 'En az {n} itiraz cevap bekliyor (liste uzun, hepsi yüklenmedi).',
   'admin.v2p.apl.sentence': '{n} itiraz cevap bekliyor.',
   'admin.v2p.apl.about': 'İtiraz edilen: {type}.',
   'admin.v2p.apl.seeHidden': 'Gizlenen içeriklere git',

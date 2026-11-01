@@ -64,6 +64,9 @@ export default function AppealsPage() {
     retry: false,
   });
   const openN = openCount.data?.items.length;
+  // Sayaç yalnız ilk 50 kaydı görür: 50'ye ulaştıysa kesin toplam bilinmez, "50+" yazılır (kesin toplam backend ister)
+  const openLabel = openN === undefined ? '' : openN >= 50 ? '50+' : formatNumber(openN);
+  const moreLoaded = query.hasNextPage === true;
 
   const decide = useMutation({
     mutationFn: (v: { id: number; accept: boolean; note: string; why: string }) =>
@@ -94,7 +97,12 @@ export default function AppealsPage() {
         {t('admin.v2p.apl.explain')}
       </p>
       {status === 'OPEN' && items.length > 0 && (
-        <Insight tone="warn" parts={t('admin.v2p.apl.sentence', { n: formatNumber(items.length) })} />
+        <Insight
+          tone="warn"
+          parts={t(moreLoaded ? 'admin.v2p.apl.sentenceMore' : 'admin.v2p.apl.sentence', {
+            n: formatNumber(items.length),
+          })}
+        />
       )}
       <div data-search-anchor="apl-tabs">
         <Tabs
@@ -105,7 +113,7 @@ export default function AppealsPage() {
             id: s,
             label:
               s === 'OPEN' && openN !== undefined
-                ? t('admin.v2p.sus.tabCount', { label: t(`admin.appeals.status.${s}`), n: formatNumber(openN) })
+                ? t('admin.v2p.sus.tabCount', { label: t(`admin.appeals.status.${s}`), n: openLabel })
                 : t(`admin.appeals.status.${s}`),
           }))}
         />

@@ -56,6 +56,8 @@ export default function SuspendRecommendationsPage() {
     retry: false,
   });
   const openN = openCount.data?.items.length;
+  // Sayaç yalnız ilk 50 kaydı görür: 50'ye ulaştıysa "50+" yazılır (kesin toplam backend ister)
+  const openLabel = openN === undefined ? '' : openN >= 50 ? '50+' : formatNumber(openN);
   const maxStrikes = items.reduce((m, r) => Math.max(m, r.strikeCount), 0);
 
   const onError = (e: unknown) => {
@@ -92,7 +94,10 @@ export default function SuspendRecommendationsPage() {
       {status === 'OPEN' && items.length > 0 && (
         <Insight
           tone="warn"
-          parts={t('admin.v2p.sus.sentence', { n: formatNumber(items.length), max: formatNumber(maxStrikes) })}
+          parts={t(query.hasNextPage ? 'admin.v2p.sus.sentenceMore' : 'admin.v2p.sus.sentence', {
+            n: formatNumber(items.length),
+            max: formatNumber(maxStrikes),
+          })}
         />
       )}
       <div data-search-anchor="sus-tabs">
@@ -104,7 +109,7 @@ export default function SuspendRecommendationsPage() {
             id: s,
             label:
               s === 'OPEN' && openN !== undefined
-                ? t('admin.v2p.sus.tabCount', { label: t(`admin.suspend.status.${s}`), n: formatNumber(openN) })
+                ? t('admin.v2p.sus.tabCount', { label: t(`admin.suspend.status.${s}`), n: openLabel })
                 : t(`admin.suspend.status.${s}`),
           }))}
         />
