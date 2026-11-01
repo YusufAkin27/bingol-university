@@ -240,8 +240,14 @@ public class PostService {
             if (dept == null) {
                 return new FeedPage(List.of(), null, "NO_DEPARTMENT");
             }
-            rows = c == null ? repo.departmentFirst(viewer, dept, PageRequest.of(0, n + 1))
-                    : repo.departmentAfter(viewer, dept, at, cid, PageRequest.of(0, n + 1));
+            // A06#5: acik yazar listesi (bolum arkadaslari) -> yazar indeksi; alt sorgu yerine
+            List<Long> authors = repo.departmentAuthors(viewer, dept,
+                    PageRequest.of(0, edu.bingol.backend.post.social.SocialFeedRepository.MAX_DEPARTMENT_AUTHORS));
+            if (authors.isEmpty()) {
+                return page(viewer, List.of(), n, p -> PostCursor.latest(p.getCreatedAt(), p.getId()));
+            }
+            rows = c == null ? repo.followingFirst(viewer, authors, PageRequest.of(0, n + 1))
+                    : repo.followingAfter(viewer, authors, at, cid, PageRequest.of(0, n + 1));
         }
         return page(viewer, rows, n, p -> PostCursor.latest(p.getCreatedAt(), p.getId()));
     }

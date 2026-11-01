@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -35,13 +36,26 @@ public class PostRankService {
     /** Hesap sürümü: son yeniden hesap anı (epoch sn); imlece yazılır, değişmişse hint=RANK_REFRESHED döner. Örneğe özeldir. */
     private final AtomicLong version = new AtomicLong(Instant.now().getEpochSecond());
 
+    /**
+     * Pencere dışına çıkan gönderilerin puanını sıfırlayan UPDATE'in en sık çalışma aralığı (ms). 0 = her turda
+     * (eski davranış, varsayılan); öneri 3600000 (1 sa). Elle {@link #recompute()} her zaman sıfırlar.
+     */
+    private final long zeroOldIntervalMs;
+    private volatile long lastZeroOldMs = 0;
+
     public PostRankService(PostRepository posts, PostRankRepository ranks, PostRankProperties props,
-                           SchedulerLock lock, TransactionTemplate tx) {
+                           SchedulerLock lock, TransactionTemplate tx,
+                           @Value("${app.post.rank.zero-old-interval-ms:0}") long zeroOldIntervalMs) {
         this.posts = posts;
         this.ranks = ranks;
         this.props = props;
         this.lock = lock;
         this.tx = tx;
+        this.zeroOldIntervalMs = Math.max(0, zeroOldIntervalMs);
+    }
+
+    long zeroOldIntervalMs() {
+        return zeroOldIntervalMs;
     }
 
     public PostRankProperties props() {
@@ -68,17 +82,27 @@ public class PostRankService {
     public void scheduled() {
         try {
             long ttl = Math.max(props.recomputeMs(), 60_000L);
-            lock.tryRun("post-rank", Duration.ofMillis(ttl), this::recompute);
+            lock.tryRun("post-rank", Duration.ofMillis(ttl), () -> recompute(false));
         } catch (RuntimeException e) {
             log.warn("Kesfet puan isi basarisiz: {}", e.toString());
         }
     }
 
-    /** Kilitsiz çekirdek (test / elle tetikleme). */
+    /** Kilitsiz çekirdek (test / elle tetikleme): eski gönderileri her zaman sıfırlar. */
     public void recompute() {
+        recompute(true);
+    }
+
+    void recompute(boolean forceZeroOld) {
         Instant now = Instant.now();
         Instant since = now.minus(Duration.ofDays(props.windowDays()));
-        tx.executeWithoutResult(s -> ranks.zeroOld(since));
+        long nowMs = System.currentTimeMillis();
+        if (forceZeroOld || zeroOldIntervalMs == 0 || nowMs - lastZeroOldMs >= zeroOldIntervalMs) {
+            tx.executeWithoutResult(s -> ranks.zeroOld(since));
+            lastZeroOldMs = nowMs;
+        }
+        // A06#8: son 24 sa beğenileri tur başına TEK sorguyla (parti başına IN + PK taraması yerine)
+        Map<Long, Integer> recent = toMap(ranks.recentLikesSince(now.minus(Duration.ofHours(24))));
         long after = 0;
         while (true) {
             final long cursor = after;
@@ -90,7 +114,6 @@ public class PostRankService {
                 List<Long> ids = batch.stream().map(Post::getId).toList();
                 List<Long> authors = batch.stream().map(Post::getAuthorId).distinct().toList();
                 Map<Long, Integer> followers = toMap(ranks.followers(authors));
-                Map<Long, Integer> recent = toMap(ranks.recentLikes(ids, now.minus(Duration.ofHours(24))));
                 Map<Long, Integer> reports = toMap(ranks.openReports(ids));
                 List<Post> changed = new java.util.ArrayList<>();
                 for (Post p : batch) {

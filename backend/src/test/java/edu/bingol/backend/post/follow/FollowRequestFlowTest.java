@@ -352,6 +352,14 @@ class FollowRequestFlowTest {
 
         setPrivate(t, false); // gizli -> acik
 
+        // A06#9: istek ipliginde en cok BIR parca (200) kabul edilir; kalani FollowRequestJob'a (heal) birakilir
+        assertEquals(n - FollowRequestService.AUTO_ACCEPT_CHUNK,
+                count("SELECT COUNT(*) FROM follow_request WHERE target_id = ?", t.getId()),
+                "istek ipliginde yalniz ilk parca islenir");
+        for (int i = 0; i < 20 && count("SELECT COUNT(*) FROM follow_request WHERE target_id = ?", t.getId()) > 0; i++) {
+            requests.healPublicTargets(); // ortak veritabaninda baska artiklar da olabilir
+        }
+
         assertEquals(0, count("SELECT COUNT(*) FROM follow_request WHERE target_id = ?", t.getId()));
         assertEquals(n, count("SELECT COUNT(*) FROM user_follow WHERE followee_id = ?", t.getId()));
         assertEquals(n, follow.followerCount(t.getId()), "takipci sayaci tutarli");
