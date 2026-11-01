@@ -29,6 +29,8 @@ import styles from './moderation/moderation.module.css';
 import v2 from './moderation/v2.module.css';
 
 const NOTE_MAX = 300;
+/** Tarayıcı belleğini korumak için: bundan büyük görsel özetlenmez (yükleme sınırlarının çok üstünde). */
+const FILE_MAX_BYTES = 25 * 1024 * 1024;
 
 export default function BlocklistPage() {
   const i18n = useI18n();
@@ -41,13 +43,29 @@ export default function BlocklistPage() {
   const [touched, setTouched] = useState(false);
   const [removing, setRemoving] = useState<BlocklistEntry | null>(null);
   const [fileName, setFileName] = useState('');
-  const [hashing, setHashing] = useState<'idle' | 'busy' | 'unsupported' | 'failed'>('idle');
+  const [hashing, setHashing] = useState<'idle' | 'busy' | 'unsupported' | 'failed' | 'tooBig'>('idle');
+  /** Dosyadan hesaplanan özet (alandaki değerle eşleşiyorsa "hazır" mesajı gösterilir). */
+  const [hashedSha, setHashedSha] = useState('');
+  /** Art arda seçimlerde yalnız en son seçimin sonucu geçerlidir. */
+  const pickSeq = useRef(0);
   const fileRef = useRef<HTMLInputElement>(null);
 
   // B-1: görseli seçince SHA-256 özeti tarayıcıda hesaplanır (dosya sunucuya gitmez); API aynı kalır.
   async function onPickFile(file: File | undefined) {
-    if (!file) return;
+    const seq = ++pickSeq.current;
+    // Her yeni seçimde önceki dosyanın özeti alanda KALMAZ (yanlış görseli yasaklamayı önler)
+    setSha('');
+    setHashedSha('');
+    if (!file) {
+      setFileName('');
+      setHashing('idle');
+      return;
+    }
     setFileName(file.name);
+    if (file.size > FILE_MAX_BYTES) {
+      setHashing('tooBig');
+      return;
+    }
     if (typeof crypto === 'undefined' || !crypto.subtle) {
       setHashing('unsupported');
       return;
@@ -55,10 +73,13 @@ export default function BlocklistPage() {
     setHashing('busy');
     try {
       const digest = await crypto.subtle.digest('SHA-256', await file.arrayBuffer());
-      setSha(Array.from(new Uint8Array(digest), (b) => b.toString(16).padStart(2, '0')).join(''));
+      if (seq !== pickSeq.current) return;
+      const hex = Array.from(new Uint8Array(digest), (b) => b.toString(16).padStart(2, '0')).join('');
+      setSha(hex);
+      setHashedSha(hex);
       setHashing('idle');
     } catch {
-      setHashing('failed');
+      if (seq === pickSeq.current) setHashing('failed');
     }
   }
 
@@ -75,6 +96,9 @@ export default function BlocklistPage() {
     onSuccess: () => {
       toast.success(t('admin.v2m.bl.added'));
       setSha('');
+      setHashedSha('');
+      setHashing('idle');
+      pickSeq.current += 1;
       setFileName('');
       if (fileRef.current) fileRef.current.value = '';
       setNote('');
@@ -138,7 +162,8 @@ export default function BlocklistPage() {
               {hashing === 'busy' && <p className={v2.hint}>{t('admin.v2m.bl.hashing')}</p>}
               {hashing === 'unsupported' && <p className={v2.hint}>{t('admin.v2m.bl.unsupported')}</p>}
               {hashing === 'failed' && <p className={v2.hint}>{t('admin.v2m.bl.failed')}</p>}
-              {fileName && isValidSha256(sha) && (
+              {hashing === 'tooBig' && <p className={v2.hint}>{t('admin.v2m.bl.tooBig')}</p>}
+              {fileName && hashedSha !== '' && normalizeSha256(sha) === hashedSha && (
                 <p className={v2.hint} role="status">
                   {t('admin.v2m.bl.hashed', { name: fileName })}
                 </p>

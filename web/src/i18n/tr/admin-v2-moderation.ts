@@ -115,6 +115,7 @@ export default {
   'admin.v2m.bl.hashing': 'Parmak izi hesaplanıyor…',
   'admin.v2m.bl.unsupported': 'Bu tarayıcı bağlantısı hesaplamaya izin vermiyor. Parmak izini aşağıya elle yazın.',
   'admin.v2m.bl.failed': 'Parmak izi hesaplanamadı. Başka bir görsel deneyin ya da aşağıya elle yazın.',
+  'admin.v2m.bl.tooBig': 'Bu görsel çok büyük (en çok 25 MB). Daha küçük bir görsel seçin ya da parmak izini aşağıya elle yazın.',
   'admin.v2m.bl.hashed': '“{name}” için parmak izi hazır. Listeye ekleyebilirsiniz.',
   'admin.v2m.bl.shaHint': 'Görsel seçince kendiliğinden dolar. Elinizde hazır bir parmak izi (SHA-256) varsa buraya yapıştırabilirsiniz.',
   'admin.v2m.bl.noteHint': 'Neden yasaklandığını kısaca yazın; ekip arkadaşlarınız görsün.',

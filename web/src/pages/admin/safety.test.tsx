@@ -1,6 +1,6 @@
 import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { dictionaries } from '../../i18n/all';
 import { jsonResponse, mockFetch } from '../../test/fetchMock';
 import { renderWithProviders } from '../../test/utils';
@@ -230,6 +230,78 @@ describe('Yasaklı görsel özetleri', () => {
       const post = calls.find((c) => c.init.method === 'POST');
       expect(JSON.parse(String(post?.init.body))).toEqual({ sha256: 'a'.repeat(64) });
     });
+  });
+});
+
+describe('Yasaklı görsel dosya seçimi', () => {
+  afterEach(() => vi.unstubAllGlobals());
+
+  function fakeFile(name: string, bytes: number[], size?: number) {
+    const f = new File([new Uint8Array(bytes)], name, { type: 'image/png' });
+    Object.defineProperty(f, 'arrayBuffer', { value: async () => new Uint8Array(bytes).buffer });
+    if (size !== undefined) Object.defineProperty(f, 'size', { value: size });
+    return f;
+  }
+  const hexOf = (n: number) => String(n).repeat(64).slice(0, 64);
+  function setup(digest: (data: ArrayBuffer) => Promise<ArrayBuffer>) {
+    vi.stubGlobal('crypto', { subtle: { digest: (_a: string, d: ArrayBuffer) => digest(d) } });
+    mockFetch(() => jsonResponse(200, { items: [], nextCursor: null }));
+    renderWithProviders(<BlocklistPage />);
+  }
+  const bytesOfHex = (n: number) => new Uint8Array(32).fill(n * 17).buffer;
+  const shaBox = () => screen.getByRole('textbox', { name: /SHA-256 özeti/ }) as HTMLInputElement;
+  const fileInput = () => document.querySelector('input[type=file]') as HTMLInputElement;
+
+  it('art arda iki dosyada eski (geç gelen) özet yok sayılır; yeni dosyanın özeti kalır', async () => {
+    let releaseFirst: (b: ArrayBuffer) => void = () => {};
+    setup((d) => {
+      const first = new Uint8Array(d)[0] === 1;
+      return first ? new Promise<ArrayBuffer>((r) => (releaseFirst = r)) : Promise.resolve(bytesOfHex(2));
+    });
+    await screen.findByText('Liste boş');
+    await userEvent.upload(fileInput(), fakeFile('bir.png', [1]));
+    await userEvent.upload(fileInput(), fakeFile('iki.png', [2]));
+    await waitFor(() => expect(shaBox().value).toBe('22'.repeat(32)));
+    releaseFirst(bytesOfHex(1)); // birinci dosyanın geç gelen sonucu
+    await new Promise((r) => setTimeout(r, 30));
+    expect(shaBox().value).toBe('22'.repeat(32));
+    expect(hexOf(1)).toHaveLength(64);
+  });
+
+  it('hesaplama başarısız olunca önceki dosyanın özeti alanda kalmaz', async () => {
+    let fail = false;
+    setup(async () => {
+      if (fail) throw new Error('boom');
+      return bytesOfHex(3);
+    });
+    await screen.findByText('Liste boş');
+    await userEvent.upload(fileInput(), fakeFile('a.png', [3]));
+    await waitFor(() => expect(shaBox().value).toBe('33'.repeat(32)));
+    fail = true;
+    await userEvent.upload(fileInput(), fakeFile('b.png', [4]));
+    expect(await screen.findByText(/Parmak izi hesaplanamadı/)).toBeInTheDocument();
+    expect(shaBox().value).toBe('');
+  });
+
+  it('tarayıcı destek vermiyorsa önceki özet temizlenir', async () => {
+    setup(async () => bytesOfHex(5));
+    await screen.findByText('Liste boş');
+    await userEvent.upload(fileInput(), fakeFile('a.png', [5]));
+    await waitFor(() => expect(shaBox().value).toBe('55'.repeat(32)));
+    vi.stubGlobal('crypto', {});
+    await userEvent.upload(fileInput(), fakeFile('b.png', [6]));
+    expect(await screen.findByText(/Bu tarayıcı bağlantısı hesaplamaya izin vermiyor/)).toBeInTheDocument();
+    expect(shaBox().value).toBe('');
+  });
+
+  it('25 MB üstü dosya özetlenmez ve sade uyarı gösterilir', async () => {
+    const digest = vi.fn(async () => bytesOfHex(7));
+    setup(digest);
+    await screen.findByText('Liste boş');
+    await userEvent.upload(fileInput(), fakeFile('buyuk.png', [7], 26 * 1024 * 1024));
+    expect(await screen.findByText(/Bu görsel çok büyük \(en çok 25 MB\)/)).toBeInTheDocument();
+    expect(digest).not.toHaveBeenCalled();
+    expect(shaBox().value).toBe('');
   });
 });
 
