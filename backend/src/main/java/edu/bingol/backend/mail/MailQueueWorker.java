@@ -42,11 +42,22 @@ public class MailQueueWorker {
     private final MailProperties props;
     private final JsonMapper json;
     private final MeterRegistry metrics;
+    /** Islemsel postalar (kodlar) icin ayri yurutucu: yavas duyuru SMTP'si dogrulama kodunu geciktirmesin. */
     private final ExecutorService nudgeExecutor = Executors.newSingleThreadExecutor(r -> {
         Thread t = new Thread(r, "mail-nudge");
         t.setDaemon(true);
         return t;
     });
+    /** Duyuru gonderimi kendi iplik havuzunda (zamanlayici havuzunu bloklamaz). */
+    private final ExecutorService announcementExecutor = Executors.newSingleThreadExecutor(r -> {
+        Thread t = new Thread(r, "mail-announce");
+        t.setDaemon(true);
+        return t;
+    });
+    /** Bekleyen tek bir islemsel tur varsa yenisi kuyruga alinmaz (200 kayit = 200 tur olmasin). */
+    private final java.util.concurrent.atomic.AtomicBoolean roundQueued = new java.util.concurrent.atomic.AtomicBoolean();
+    /** Duyuru turu calisiyorsa yenisi baslatilmaz. */
+    private final java.util.concurrent.atomic.AtomicBoolean announcementRunning = new java.util.concurrent.atomic.AtomicBoolean();
 
     private final MailSuppressionService suppression;
     private final UnsubscribeTokens tokens;
@@ -83,19 +94,48 @@ public class MailQueueWorker {
         this(outbox, renderer, transport, props, json, metrics, null, null, null, null);
     }
 
-    /** Yeni e-posta yazilinca (transaction commit'inden sonra) beklemeden bir tur calistirir. */
+    /**
+     * Yeni e-posta yazilinca (transaction commit'inden sonra) beklemeden bir ISLEMSEL tur calistirir. Bekleyen bir tur
+     * zaten kuyruktaysa yenisi eklenmez (kampanya dagitici 200 kayit yazarken 200 bos tur olusmaz); duyurular
+     * zamanlayicidan (poll) alinir.
+     */
     @TransactionalEventListener(fallbackExecution = true)
     void onQueued(MailQueued event) {
+        if (!roundQueued.compareAndSet(false, true)) {
+            return;
+        }
         try {
-            nudgeExecutor.execute(this::processDue);
+            nudgeExecutor.execute(() -> {
+                roundQueued.set(false); // tur basladi: bu andan sonra gelen kayit yeni tur ister
+                processTransactional();
+            });
         } catch (RuntimeException e) {
+            roundQueued.set(false);
             log.debug("Mail isleyici tetiklenemedi, zamanlayici alacak: {}", e.toString());
         }
     }
 
+    /**
+     * Zamanlayici: islemsel postalar bu iplikte (kisa ve onceliklidir), duyurular ayri yurutucuda calisir; boylece
+     * yavas bir duyuru SMTP'si ne zamanlayici havuzunu ne de dogrulama kodlarini bloklar.
+     */
     @Scheduled(fixedDelayString = "${app.mail.queue-poll-ms:5000}")
     public void poll() {
-        processDue();
+        processTransactional();
+        if (announcementRunning.compareAndSet(false, true)) {
+            try {
+                announcementExecutor.execute(() -> {
+                    try {
+                        processAnnouncements();
+                    } finally {
+                        announcementRunning.set(false);
+                    }
+                });
+            } catch (RuntimeException e) {
+                announcementRunning.set(false);
+                log.debug("Duyuru turu baslatilamadi: {}", e.toString());
+            }
+        }
     }
 
     /** 30 gunden eski her durumdaki kayitlari siler (her gece). */
@@ -120,20 +160,51 @@ public class MailQueueWorker {
         }
     }
 
-    /** Zamani gelen e-postalari bir parti halinde isler. */
+    /** Zamani gelen e-postalari bir parti halinde isler (islemsel + duyuru, ardisik; testler ve elle tetikleme). */
     void processDue() {
+        processTransactional();
+        processAnnouncements();
+    }
+
+    /** Kayit alinirken yazilan kira bitisi: gonderimden hemen once yenilenebilmesi icin ms'ye yuvarlanir. */
+    private static Instant leaseEnd(Instant now) {
+        return now.plus(LEASE).truncatedTo(java.time.temporal.ChronoUnit.MILLIS);
+    }
+
+    /** Islemsel mailler (kodlar, guvenlik): her zaman once ve sinirsiz. */
+    void processTransactional() {
         try {
             Instant now = Instant.now();
-            // Islemsel mailler her zaman once ve sinirsiz
-            List<Long> ids = outbox.claimDue(now, now.plus(LEASE), props.batchSize());
-            ids.forEach(this::process);
-            // Duyurular: dakika basina sinir (isinma/itibar korumasi); butce DB'den hesaplanir (cok ornekte ortak)
+            Instant lease = leaseEnd(now);
+            outbox.claimDue(now, lease, props.batchSize()).forEach(id -> process(id, lease));
+        } catch (Exception e) {
+            log.error("Mail kuyrugu (islemsel) islenemedi: {}", e.toString());
+        }
+    }
+
+    /**
+     * Duyurular: dakika basina sinir (isinma/itibar korumasi); butce DB'den hesaplanir (cok ornekte ortak). Gunluk
+     * kota duyuru tavanina ulastiysa kayitlar KIRALANMAZ: hepsi tek ifadeyle kota gununun donusune ertelenir (eskiden her
+     * 5 sn'de 20 kayit okunup tek tek yarina tasinirdi).
+     */
+    void processAnnouncements() {
+        try {
+            Instant now = Instant.now();
+            if (props.enabled() && quota != null && !quota.allow(true)) {
+                int n = outbox.deferAnnouncements(now, quota.nextReset(now));
+                if (n > 0) {
+                    metrics.counter("mail.queue.quota_deferred").increment(n);
+                    log.warn("Gunluk duyuru kotasi doldu, {} duyuru kota gunune ertelendi", n);
+                }
+                return;
+            }
             int budget = announcementBudget(now);
             if (budget > 0) {
-                outbox.claimDueAnnouncements(now, now.plus(LEASE), budget).forEach(this::process);
+                Instant lease = leaseEnd(now);
+                outbox.claimDueAnnouncements(now, lease, budget).forEach(id -> process(id, lease));
             }
         } catch (Exception e) {
-            log.error("Mail kuyrugu islenemedi: {}", e.toString());
+            log.error("Mail kuyrugu (duyuru) islenemedi: {}", e.toString());
         }
     }
 
@@ -148,7 +219,13 @@ public class MailQueueWorker {
         return (int) Math.max(0, Math.min(batch, props.maxPerMinute() - sent));
     }
 
-    private void process(Long id) {
+    private void process(Long id, Instant claimedLease) {
+        // Kira korumasi: kayit alindiktan sonra siramiz gelene kadar kira dolup baska is parcacigi aldiysa ATLA (cift
+        // posta olmasin); degilse kirayi bu kaydin kendi gonderimi icin taze bir sureye uzat.
+        if (outbox.renewLease(id, claimedLease, leaseEnd(Instant.now())) == 0) {
+            log.debug("Mail kirasi baska surece gecti, atlandi id={}", id);
+            return;
+        }
         MailOutbox m = outbox.findById(id).orElse(null);
         if (m == null || (m.getStatus() != MailStatus.PENDING && m.getStatus() != MailStatus.FAILED)) {
             return;
@@ -227,8 +304,7 @@ public class MailQueueWorker {
     }
 
     private static boolean isStaleCodeMail(MailOutbox m) {
-        return (m.getTemplate() == MailTemplate.VERIFICATION_CODE || m.getTemplate() == MailTemplate.PASSWORD_RESET_CODE
-                || m.getTemplate() == MailTemplate.TWO_FACTOR_CODE)
+        return m.getTemplate() != null && m.getTemplate().isCode()
                 && m.getCreatedAt() != null && m.getCreatedAt().isBefore(Instant.now().minus(CODE_MAIL_MAX_AGE));
     }
 
@@ -282,5 +358,6 @@ public class MailQueueWorker {
     @PreDestroy
     void shutdown() {
         nudgeExecutor.shutdown();
+        announcementExecutor.shutdown();
     }
 }

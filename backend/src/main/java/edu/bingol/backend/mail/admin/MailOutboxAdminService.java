@@ -51,7 +51,8 @@ public class MailOutboxAdminService {
     static final Duration CODE_MAX_AGE = Duration.ofMinutes(10);
     private static final Pattern DIGITS = Pattern.compile("^[0-9]{1,18}$");
     private static final Set<MailTemplate> CODE_TEMPLATES =
-            Set.of(MailTemplate.VERIFICATION_CODE, MailTemplate.PASSWORD_RESET_CODE, MailTemplate.TWO_FACTOR_CODE);
+            Set.of(MailTemplate.VERIFICATION_CODE, MailTemplate.PASSWORD_RESET_CODE, MailTemplate.TWO_FACTOR_CODE,
+                    MailTemplate.SUPPORT_CODE);
     private static final Set<MailStatus> RETRY_FROM = Set.of(MailStatus.DEAD, MailStatus.SKIPPED);
     private static final Set<MailStatus> CANCEL_FROM = Set.of(MailStatus.PENDING, MailStatus.FAILED);
     public static final String CANCEL_NOTE = "yonetici iptal etti";

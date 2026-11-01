@@ -29,6 +29,16 @@ public class MailSuppressionService {
         return isSuppressedHash(hash(email));
     }
 
+    /** Toplu karsiligi: verilen ozetlerden listede olanlar (TEK sorgu; 500'luk parcalara bolunur). */
+    public java.util.Set<String> suppressedAmong(java.util.Collection<String> hashes) {
+        java.util.Set<String> out = new java.util.HashSet<>();
+        java.util.List<String> all = new java.util.ArrayList<>(new java.util.LinkedHashSet<>(hashes));
+        for (int i = 0; i < all.size(); i += 500) {
+            out.addAll(repo.findHashesIn(all.subList(i, Math.min(i + 500, all.size()))));
+        }
+        return out;
+    }
+
     public boolean isSuppressedHash(String emailHash) {
         return repo.existsByEmailHash(emailHash);
     }

@@ -85,6 +85,14 @@ public class MailService {
 
     /** Genel giris: sablonu degiskenleriyle kuyruga yazar. Gonderim arka planda yapilir. */
     public void enqueue(String to, MailTemplate template, Lang lang, Map<String, String> vars) {
+        enqueue(to, template, lang, vars, null);
+    }
+
+    /**
+     * Kampanya postasi: kuyruk satirina kampanya kimligi yazilir; kampanya iptal edilince henuz gonderilmemis
+     * satirlar SKIPPED olur (campaignId null = islemsel / kampanyasiz).
+     */
+    public void enqueue(String to, MailTemplate template, Lang lang, Map<String, String> vars, Long campaignId) {
         if (!MailAddresses.isPlausible(to)) {
             log.warn("Gecersiz alici adresi, e-posta kuyruga alinmadi: {}", MailAddresses.mask(to));
             throw mailUnavailable();
@@ -96,6 +104,7 @@ public class MailService {
             m.setLang(lang.code());
             m.setVarsJson(toJson(vars));
             m.setPriority(MailCategory.of(template).priority());
+            m.setCampaignId(campaignId);
             m.setCreatedAt(Instant.now());
             m.setNextAttemptAt(m.getCreatedAt());
             outbox.save(m);
@@ -224,10 +233,40 @@ public class MailService {
         return ok;
     }
 
+    /**
+     * Herkese acik (hesapsiz) destek dogrulama kodunu KUYRUGA yazar; SMTP cagiran iplikte konusulmaz (yavas SMTP'de
+     * Tomcat is parcaciklari tukenmesin). {@link #sendPublicCode} ile ayni korumalar: saglayici kotasi ya da kimliksiz
+     * kod butcesi (SUPPORT) doluysa 503 MAIL_QUOTA_EXHAUSTED, alici basina gunluk sinir asildiysa 429; kod postasi 10
+     * dk sonra bayatlar ve gonderilmez ({@code CODE_MAIL_MAX_AGE}). Kuyruga yazilamazsa 503 MAIL_UNAVAILABLE.
+     * Gonderim sonucu cagirana donmez (hata kuyrukta yeniden denenir).
+     */
+    public void enqueuePublicCode(String to, String code, int minutes, Lang lang) {
+        if (quota != null && props.enabled()) {
+            if (quota.exhausted() || quota.publicExhausted(MailDailyQuota.CodeKind.SUPPORT)) {
+                throw new ApiException(HttpStatus.SERVICE_UNAVAILABLE, "MAIL_QUOTA_EXHAUSTED",
+                        "Şu anda doğrulama kodu gönderemiyoruz, lütfen daha sonra tekrar deneyin.");
+            }
+            if (!quota.allowRecipientCode(to)) {
+                throw new edu.bingol.backend.common.RateLimitedException(3600);
+            }
+        }
+        enqueue(to, MailTemplate.SUPPORT_CODE, lang, vars("code", code, "minutes", String.valueOf(minutes)));
+        recordPublicCode();
+    }
+
     /** Kuyruktaki e-postalarin duruma gore sayilari. */
     public QueueStats queueStats() {
         return new QueueStats(outbox.countByStatus(MailStatus.PENDING), outbox.countByStatus(MailStatus.FAILED),
                 outbox.countByStatus(MailStatus.SENT), outbox.countByStatus(MailStatus.DEAD));
+    }
+
+    /** Saglik gostergesi icin dar sayim (SENT sayilmaz: buyuk tabloda pahali ve gostergede gereksiz). */
+    public record HealthStats(long pending, long failed, long dead) {
+    }
+
+    public HealthStats healthStats() {
+        return new HealthStats(outbox.countByStatus(MailStatus.PENDING), outbox.countByStatus(MailStatus.FAILED),
+                outbox.countByStatus(MailStatus.DEAD));
     }
 
     private String toJson(Map<String, String> vars) {

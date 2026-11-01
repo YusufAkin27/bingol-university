@@ -10,6 +10,10 @@ public interface MailSuppressionRepository extends JpaRepository<MailSuppression
 
     boolean existsByEmailHash(String emailHash);
 
+    /** Verilen ozetlerden bastirma listesinde OLANLAR (toplu kontrol: kullanici basina exists sorgusu yok). */
+    @Query("SELECT s.emailHash FROM MailSuppression s WHERE s.emailHash IN :hashes")
+    java.util.List<String> findHashesIn(@Param("hashes") java.util.Collection<String> hashes);
+
     @Transactional
     @Modifying
     @Query("DELETE FROM MailSuppression s WHERE s.emailHash = :hash")

@@ -78,7 +78,7 @@ public final class MailAdminDtos {
 
     public record Counters(int target, int pending, int queued, int skipped, int failed, int cancelled,
                            Map<String, Integer> skippedByReason, Map<String, Integer> languages,
-                           int languageFallback, int progressPercent) {}
+                           int languageFallback, int progressPercent, int sent, int dead, int outboxSkipped) {}
 
     public record CampaignView(Long id, String name, Long templateId, String templateName, int templateVersion,
                                MailCampaign.Status status, AudienceView audience, String scheduledAt,

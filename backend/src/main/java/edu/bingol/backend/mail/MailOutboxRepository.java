@@ -38,6 +38,27 @@ public interface MailOutboxRepository extends JpaRepository<MailOutbox, Long> {
     List<Long> claimDueAnnouncements(@Param("now") Instant now, @Param("leaseUntil") Instant leaseUntil,
                                      @Param("batch") int batch);
 
+    /**
+     * Gonderimden hemen once kirayi YENILER ve kaydin hala bizim kirami altinda oldugunu dogrular: kira, kayit
+     * alinirken yazilan {@code claimed} degerindeyse (baska is parcacigi yeniden kiralamadiysa) {@code newLease}'e
+     * ilerletilir ve 1 doner; 0 = kira bu arada baska birine gecti (cift posta olmasin diye atlanir).
+     */
+    @Transactional
+    @Modifying
+    @Query("UPDATE MailOutbox m SET m.nextAttemptAt = :newLease WHERE m.id = :id AND m.nextAttemptAt = :claimed "
+            + "AND m.status IN (edu.bingol.backend.mail.MailStatus.PENDING, edu.bingol.backend.mail.MailStatus.FAILED)")
+    int renewLease(@Param("id") Long id, @Param("claimed") Instant claimed, @Param("newLease") Instant newLease);
+
+    /**
+     * Gunluk kota dolunca zamani gelmis TUM duyurulari tek ifadeyle {@code reset} anina erteler (kayit basina
+     * okuma+yazma yok; kota gunu donene kadar kuyruk tekrar taranmaz).
+     */
+    @Transactional
+    @Modifying
+    @Query("UPDATE MailOutbox m SET m.nextAttemptAt = :reset WHERE m.priority > 0 AND m.nextAttemptAt <= :now "
+            + "AND m.status IN (edu.bingol.backend.mail.MailStatus.PENDING, edu.bingol.backend.mail.MailStatus.FAILED)")
+    int deferAnnouncements(@Param("now") Instant now, @Param("reset") Instant reset);
+
     /** Son dakikada gonderilen duyuru sayisi (hiz siniri butcesi; cok ornekte ortak). */
     long countByPriorityGreaterThanAndStatusAndSentAtAfter(int priority, MailStatus status, Instant after);
 
@@ -71,6 +92,7 @@ public interface MailOutboxRepository extends JpaRepository<MailOutbox, Long> {
             + "AND (m.template = edu.bingol.backend.mail.MailTemplate.ACCOUNT_DELETED "
             + "OR (m.varsJson IS NOT NULL AND TRIM(m.varsJson) <> '' AND TRIM(m.varsJson) <> '{}')) "
             + "AND NOT (m.template IN (edu.bingol.backend.mail.MailTemplate.VERIFICATION_CODE, "
-            + "edu.bingol.backend.mail.MailTemplate.PASSWORD_RESET_CODE, edu.bingol.backend.mail.MailTemplate.TWO_FACTOR_CODE) AND m.createdAt < :codeCutoff)")
+            + "edu.bingol.backend.mail.MailTemplate.PASSWORD_RESET_CODE, edu.bingol.backend.mail.MailTemplate.TWO_FACTOR_CODE, "
+            + "edu.bingol.backend.mail.MailTemplate.SUPPORT_CODE) AND m.createdAt < :codeCutoff)")
     int requeueDead(@Param("now") Instant now, @Param("codeCutoff") Instant codeCutoff);
 }

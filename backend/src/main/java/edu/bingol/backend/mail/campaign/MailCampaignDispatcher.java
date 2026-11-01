@@ -214,7 +214,7 @@ public class MailCampaignDispatcher {
                 vars.put("tplId", String.valueOf(c.getTemplateId()));
                 vars.put("tplVer", String.valueOf(c.getTemplateVersion()));
                 // Kategori: duyuru (ANNOUNCEMENT). MailCategory/abonelik katmani geldiginde yalniz bu cagri guncellenir.
-                mail.enqueue(u.email(), MailTemplate.CUSTOM, Lang.of(lang), vars);
+                mail.enqueue(u.email(), MailTemplate.CUSTOM, Lang.of(lang), vars, c.getId());
             });
         } catch (RuntimeException e) {
             String code = e instanceof ApiException a ? a.code() : "ENQUEUE_ERROR";
