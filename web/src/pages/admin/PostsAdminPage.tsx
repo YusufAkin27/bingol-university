@@ -15,11 +15,12 @@ import {
   ErrorState,
   FormField,
   Input,
+  Insight,
   LoadMore,
   PageHeader,
   Select,
   Skeleton,
-  StatCard,
+  StatTile,
 } from '../../components/ui';
 import { useI18n } from '../../i18n/I18nProvider';
 import { useDebouncedValue, usePageTitle } from '../../lib/hooks';
@@ -29,6 +30,8 @@ import { PostDetailDrawer } from './posts/PostDetail';
 import { PostActionButtons, PostMediaThumb, StatusBadges, usePostActions } from './posts/PostParts';
 import { EMPTY_POST_FILTERS, excerpt, mediaToLightbox, type PostFilterState } from './posts/postsLogic';
 import type { AdminPostStatus } from '../../api/adminPosts';
+import { FilterFold } from './moderation/v2';
+import v2 from './moderation/v2.module.css';
 import styles from './posts/posts.module.css';
 
 const STATUS_OPTIONS: AdminPostStatus[] = ['ALL', 'VISIBLE', 'HIDDEN', 'DELETED'];
@@ -51,16 +54,19 @@ function PostRowItem({
       <div className={styles.rowHead}>
         <span className={styles.author}>
           <Avatar name={name} src={post.author.avatarUrl} size={32} />
-          <span className={styles.authorName} dir="auto">
-            {name}
+          <span className={styles.authorText}>
+            <span className={styles.authorName} dir="auto">
+              {name}
+            </span>
+            <span className={`${styles.muted} ${styles.email} ltr`}>{post.author.email}</span>
           </span>
-          <span className={`${styles.muted} ltr`}>{post.author.email}</span>
         </span>
-        <StatusBadges post={post} />
-        <span className={styles.spacer} />
         <time className={styles.muted} dateTime={post.createdAt}>
           {formatDateTime(post.createdAt)}
         </time>
+      </div>
+      <div className={styles.badgeRow}>
+        <StatusBadges post={post} />
       </div>
       <p className={styles.text} dir="auto">
         {excerpt(post.text) || t('admin.posts.noText')}
@@ -79,11 +85,11 @@ function PostRowItem({
           <span>{t('admin.posts.likes', { n: post.likeCount })}</span>
         </span>
         <span className={styles.spacer} />
-        <Button size="sm" variant="ghost" onClick={onOpen}>
+        <Button size="sm" variant="secondary" onClick={onOpen}>
           {t('admin.posts.open')}
         </Button>
-        <PostActionButtons post={post} actions={actions} />
       </div>
+      <PostActionButtons post={post} actions={actions} />
     </li>
   );
 }
@@ -111,7 +117,15 @@ function PostsTab() {
   });
   const rows = useMemo(() => list.data?.pages.flatMap((p) => p.items) ?? [], [list.data]);
   const s = stats.data;
-  const n = (v: number | undefined) => (v === undefined ? '—' : formatNumber(v));
+  const activeCount = [
+    filters.status !== 'ALL',
+    filters.q.trim() !== '',
+    filters.authorId !== '',
+    filters.minReports !== '',
+    filters.from !== '',
+    filters.to !== '',
+    filters.hasMedia,
+  ].filter(Boolean).length;
 
   function openDetail(id: number | null) {
     setOpenId(id);
@@ -124,17 +138,69 @@ function PostsTab() {
 
   return (
     <>
-      <p className={styles.note}>{t('admin.posts.auditNote')}</p>
-      <div className={styles.statGrid} data-testid="post-stats">
-        <StatCard title={t('admin.posts.stats.posts')} value={n(s?.postCount)} loading={stats.isLoading}
-          hint={s ? t('admin.posts.stats.last24h', { n: formatNumber(s.last24h.postCount) }) : undefined} />
-        <StatCard title={t('admin.posts.stats.likes')} value={n(s?.likeCount)} loading={stats.isLoading} />
-        <StatCard title={t('admin.posts.stats.media')} value={n(s?.mediaCount)} loading={stats.isLoading} />
-        <StatCard title={t('admin.posts.stats.hidden')} value={n(s?.hiddenCount)} loading={stats.isLoading} />
-        <StatCard title={t('admin.posts.stats.reported')} value={n(s?.openReportedCount)} loading={stats.isLoading} />
+      <p className={styles.note} data-search-anchor="posts-audit-note">
+        {t('admin.posts.auditNote')}
+      </p>
+      <div className={v2.tiles} data-testid="post-stats" data-search-anchor="posts-stats">
+        <StatTile
+          label={t('admin.posts.stats.posts')}
+          value={s ? s.postCount : undefined}
+          loading={stats.isLoading}
+          error={stats.isError}
+          onRetry={() => void stats.refetch()}
+          caption={s ? t('admin.posts.stats.last24h', { n: formatNumber(s.last24h.postCount) }) : undefined}
+        />
+        <StatTile
+          label={t('admin.posts.stats.reported')}
+          value={s ? s.openReportedCount : undefined}
+          icon="alert"
+          loading={stats.isLoading}
+          error={stats.isError}
+          caption={t('admin.v2m.posts.reportedHint')}
+        />
+        <StatTile
+          label={t('admin.posts.stats.hidden')}
+          value={s ? s.hiddenCount : undefined}
+          loading={stats.isLoading}
+          error={stats.isError}
+          caption={t('admin.v2m.posts.hiddenHint')}
+        />
+        <StatTile
+          label={t('admin.posts.stats.likes')}
+          value={s ? s.likeCount : undefined}
+          loading={stats.isLoading}
+          error={stats.isError}
+          caption={s ? t('admin.v2m.posts.mediaCaption', { n: formatNumber(s.mediaCount) }) : undefined}
+        />
       </div>
+      {s && (
+        <Insight
+          className={v2.sentence}
+          tone={s.openReportedCount > 0 ? 'warn' : 'good'}
+          parts={
+            s.openReportedCount > 0
+              ? [
+                  { text: t('admin.v2m.posts.sentenceReported', { n: formatNumber(s.openReportedCount) }), tone: 'warn' },
+                  ' ',
+                  t('admin.v2m.posts.sentenceNew', { n: formatNumber(s.last24h.postCount) }),
+                ]
+              : [
+                  { text: t('admin.v2m.posts.sentenceClean'), tone: 'good' },
+                  ' ',
+                  t('admin.v2m.posts.sentenceNew', { n: formatNumber(s.last24h.postCount) }),
+                ]
+          }
+        />
+      )}
+      {s && s.openReportedCount > 0 && filters.minReports !== '1' && (
+        <div className={v2.touch}>
+          <Button variant="secondary" size="sm" onClick={() => set({ minReports: '1', status: 'ALL' })}>
+            {t('admin.v2m.posts.showReported')}
+          </Button>
+        </div>
+      )}
 
-      <div className={styles.filters} role="search" aria-label={t('admin.posts.filters')}>
+      <FilterFold activeCount={activeCount} anchor="posts-filters">
         <FormField label={t('admin.posts.filter.status')}>
           <Select value={filters.status} onChange={(e) => set({ status: e.target.value as AdminPostStatus })}>
             {STATUS_OPTIONS.map((st) => (
@@ -157,7 +223,7 @@ function PostsTab() {
             type="text"
             inputMode="numeric"
             value={filters.authorId}
-            onChange={(e) => set({ authorId: e.target.value.replace(/\D/g, '') })}
+            onChange={(e) => set({ authorId: e.target.value.replace(/D/g, '') })}
           />
         </FormField>
         <FormField label={t('admin.posts.filter.minReports')}>
@@ -165,7 +231,7 @@ function PostsTab() {
             type="text"
             inputMode="numeric"
             value={filters.minReports}
-            onChange={(e) => set({ minReports: e.target.value.replace(/\D/g, '') })}
+            onChange={(e) => set({ minReports: e.target.value.replace(/D/g, '') })}
           />
         </FormField>
         <FormField label={t('admin.posts.filter.from')}>
@@ -174,13 +240,13 @@ function PostsTab() {
         <FormField label={t('admin.posts.filter.to')}>
           <Input type="date" value={filters.to} onChange={(e) => set({ to: e.target.value })} />
         </FormField>
-        <div className={styles.checks}>
+        <div className={`${styles.checks} ${v2.touch}`}>
           <Checkbox label={t('admin.posts.filter.hasMedia')} checked={filters.hasMedia} onChange={(e) => set({ hasMedia: e.target.checked })} />
           <Button variant="ghost" size="sm" onClick={() => setFilters(EMPTY_POST_FILTERS)}>
             {t('admin.posts.filter.reset')}
           </Button>
         </div>
-      </div>
+      </FilterFold>
 
       {list.isError ? (
         <ErrorState description={adminErrorMessage(i18n, list.error)} onRetry={() => void list.refetch()} />

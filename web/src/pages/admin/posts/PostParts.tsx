@@ -14,6 +14,7 @@ import { adminErrorMessage } from '../campaigns/shared';
 import { formatDuration } from '../chat/chatLogic';
 import { useBlobUrl } from '../chat/useBlobUrl';
 import { POST_MAX_CHARS, postTextError } from './postsLogic';
+import v2 from '../moderation/v2.module.css';
 import styles from './posts.module.css';
 
 export function PostMediaThumb({ media, onOpen, large }: { media: AdminPostMedia; onOpen: () => void; large?: boolean }) {
@@ -187,22 +188,34 @@ export function PostActionButtons({
   const { t } = useI18n();
   if (post.deleted) return null;
   return (
-    <div className={styles.actions}>
-      <PermissionButton permission="content.hide" size="sm" variant="secondary" onClick={() => actions.askEdit(post)}>
-        {t('admin.posts.action.edit')}
-      </PermissionButton>
-      {post.hidden ? (
-        <PermissionButton permission="content.hide" size="sm" variant="secondary" loading={actions.busy} onClick={() => actions.unhide(post)}>
-          {t('admin.posts.action.unhide')}
+    <div className={styles.actionsWrap}>
+      <div className={`${styles.actions} ${v2.touch}`}>
+        <PermissionButton permission="content.hide" size="sm" variant="secondary" onClick={() => actions.askEdit(post)}>
+          {t('admin.posts.action.edit')}
         </PermissionButton>
-      ) : (
-        <PermissionButton permission="content.hide" size="sm" variant="secondary" onClick={() => actions.askHide(post)}>
-          {t('admin.posts.action.hide')}
-        </PermissionButton>
-      )}
-      <PermissionButton permission="content.hide" size="sm" variant="danger" onClick={() => actions.askDelete(post)}>
-        {t('admin.posts.action.delete')}
-      </PermissionButton>
+        {post.hidden ? (
+          <PermissionButton permission="content.hide" size="sm" variant="secondary" loading={actions.busy} onClick={() => actions.unhide(post)}>
+            {t('admin.posts.action.unhide')}
+          </PermissionButton>
+        ) : (
+          <PermissionButton permission="content.hide" size="sm" variant="secondary" onClick={() => actions.askHide(post)}>
+            {t('admin.posts.action.hide')}
+          </PermissionButton>
+        )}
+        {/* Geri alınamaz eylem ayrı grupta ve çerçeveli: yanlış dokunma kolay olmasın */}
+        <span className={styles.dangerGroup}>
+          <PermissionButton
+            permission="content.hide"
+            size="sm"
+            variant="ghost"
+            className={v2.softDanger}
+            onClick={() => actions.askDelete(post)}
+          >
+            {t('admin.posts.action.delete')}
+          </PermissionButton>
+        </span>
+      </div>
+      <p className={v2.hint}>{t('admin.v2m.posts.actionHint')}</p>
     </div>
   );
 }

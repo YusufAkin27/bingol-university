@@ -18,6 +18,11 @@ export function PostDetailDrawer({ postId, onClose }: { postId: number; onClose:
   const q = useQuery({ queryKey: qk.adminPosts.detail(postId), queryFn: () => adminPostsApi.getPost(postId) });
   const actions = usePostActions(() => onClose());
   const [lb, setLb] = useState<number | null>(null);
+  const reasonLabel = (code: string) => {
+    const key = `admin.reports.reason.${code}`;
+    const label = t(key as never);
+    return label === key ? code : label;
+  };
   const post = q.data?.post;
   const reports = q.data?.reports ?? [];
   const items = useMemo(() => (post ? mediaToLightbox(post) : []), [post]);
@@ -34,10 +39,12 @@ export function PostDetailDrawer({ postId, onClose }: { postId: number; onClose:
           <div className={styles.rowHead}>
             <span className={styles.author}>
               <Avatar name={name} src={post.author.avatarUrl} size={32} />
-              <span className={styles.authorName} dir="auto">
-                {name}
+              <span className={styles.authorText}>
+                <span className={styles.authorName} dir="auto">
+                  {name}
+                </span>
+                <span className={`${styles.muted} ${styles.email} ltr`}>{post.author.email}</span>
               </span>
-              <span className={`${styles.muted} ltr`}>{post.author.email}</span>
             </span>
             <StatusBadges post={post} />
           </div>
@@ -85,7 +92,7 @@ export function PostDetailDrawer({ postId, onClose }: { postId: number; onClose:
                     <Badge tone={r.status === 'OPEN' ? 'danger' : 'neutral'}>
                       {r.status === 'OPEN' ? t('admin.posts.reports.open') : t('admin.posts.reports.resolved')}
                     </Badge>
-                    <span>{r.reason}</span>
+                    <span>{reasonLabel(r.reason)}</span>
                     <time className={styles.muted} dateTime={r.createdAt}>
                       {formatDateTime(r.createdAt)}
                     </time>

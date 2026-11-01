@@ -5,13 +5,15 @@
 import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
 import { adminChatApi, qk } from '../../api';
-import { EmptyState, PageHeader, StatCard, Tabs } from '../../components/ui';
+import { EmptyState, Insight, PageHeader, StatTile, Tabs } from '../../components/ui';
 import { useI18n } from '../../i18n/I18nProvider';
 import { usePageTitle } from '../../lib/hooks';
 import { chatReasonKey } from './chat/chatReason';
 import { ReasonGate } from './chat/ReasonGate';
 import { EMPTY_FILTERS, FeedFilters, MediaTab, MessagesTab, type FeedFilterState } from './chat/FeedParts';
-import { formatBytes, parseId } from './chat/chatLogic';
+import { parseId } from './chat/chatLogic';
+import { FilterFold, formatBytesLocal } from './moderation/v2';
+import v2 from './moderation/v2.module.css';
 import styles from './chat/chat.module.css';
 
 export default function ChatFeedPage() {
@@ -23,29 +25,82 @@ export default function ChatFeedPage() {
   const s = stats.data;
   // W1-B (T-015): sunucu süzgeçsiz akışı 400 FEED_FILTER_REQUIRED ile reddeder; süzgeç seçilmeden istek atılmaz.
   const hasFilter = filters.user !== null || parseId(filters.conversationId || null) !== null;
-  const n = (v: number | undefined) => (v === undefined ? '—' : formatNumber(v));
+  const total = s ? s.imageCount + s.videoCount : 0;
+  const imgPct = total > 0 && s ? Math.round((s.imageCount / total) * 100) : 0;
+  const activeCount = [
+    filters.kind !== '',
+    filters.user !== null,
+    filters.conversationId !== '',
+    filters.from !== '',
+    filters.to !== '',
+    filters.viewOnce,
+    filters.deleted,
+    filters.suppressed,
+    filters.hasMedia,
+  ].filter(Boolean).length;
 
   return (
     <>
       <PageHeader title={t('admin.chatFeed.title')} description={t('admin.chatFeed.subtitle')} />
-      <p className={styles.auditNote}>{t('admin.chat.auditNote')}</p>
-      <div className={styles.statGrid} data-testid="chat-stats">
-        <StatCard title={t('admin.chatFeed.stats.images')} value={n(s?.imageCount)} loading={stats.isLoading} />
-        <StatCard title={t('admin.chatFeed.stats.videos')} value={n(s?.videoCount)} loading={stats.isLoading} />
-        <StatCard title={t('admin.chatFeed.stats.viewOnce')} value={n(s?.viewOnceCount)} loading={stats.isLoading} />
-        <StatCard
-          title={t('admin.chatFeed.stats.deleted')}
-          value={n(s?.deletedMessageMediaCount)}
+      <p className={styles.auditNote} data-search-anchor="chatfeed-audit-note">
+        <strong>{t('admin.v2m.chat.auditLead')}</strong> {t('admin.chat.auditNote')}
+      </p>
+      <div className={v2.tiles} data-testid="chat-stats" data-search-anchor="chatfeed-stats">
+        <StatTile
+          label={t('admin.chatFeed.stats.images')}
+          value={s?.imageCount}
           loading={stats.isLoading}
+          error={stats.isError}
+          onRetry={() => void stats.refetch()}
         />
-        <StatCard title={t('admin.chatFeed.stats.purged')} value={n(s?.purgedCount)} loading={stats.isLoading} />
-        <StatCard
-          title={t('admin.chatFeed.stats.size')}
-          value={s ? formatBytes(s.totalBytes) : '—'}
-          hint={s ? t('admin.chatFeed.stats.last24h', { n: formatNumber(s.last24h.imageCount + s.last24h.videoCount) }) : undefined}
+        <StatTile
+          label={t('admin.chatFeed.stats.videos')}
+          value={s?.videoCount}
           loading={stats.isLoading}
+          error={stats.isError}
+          onRetry={() => void stats.refetch()}
+        />
+        <StatTile
+          label={t('admin.v2m.chat.viewOnce')}
+          value={s?.viewOnceCount}
+          loading={stats.isLoading}
+          error={stats.isError}
+          caption={t('admin.v2m.chat.viewOnceHint')}
+        />
+        <StatTile
+          label={t('admin.v2m.chat.deleted')}
+          value={s?.deletedMessageMediaCount}
+          loading={stats.isLoading}
+          error={stats.isError}
+          caption={t('admin.v2m.chat.deletedHint')}
+        />
+        <StatTile
+          label={t('admin.v2m.chat.purged')}
+          value={s?.purgedCount}
+          loading={stats.isLoading}
+          error={stats.isError}
+          caption={t('admin.v2m.chat.purgedHint')}
+        />
+        <StatTile
+          label={t('admin.chatFeed.stats.size')}
+          value={s ? formatBytesLocal(s.totalBytes, formatNumber) : undefined}
+          loading={stats.isLoading}
+          error={stats.isError}
+          caption={s ? t('admin.chatFeed.stats.last24h', { n: formatNumber(s.last24h.imageCount + s.last24h.videoCount) }) : undefined}
         />
       </div>
+      {s && total > 0 && (
+        <Insight
+          className={v2.sentence}
+          parts={[
+            t('admin.v2m.chat.sentenceTotal', { n: formatNumber(total) }),
+            ' ',
+            { text: t('admin.v2m.chat.sentenceSplit', { img: formatNumber(imgPct), vid: formatNumber(100 - imgPct) }) },
+            ' ',
+            t('admin.v2m.chat.sentenceNew', { n: formatNumber(s.last24h.imageCount + s.last24h.videoCount) }),
+          ]}
+        />
+      )}
       <ReasonGate storeKey={chatReasonKey.feed()}>
         {(reason) => (
           <>
@@ -58,13 +113,15 @@ export default function ChatFeedPage() {
                 { id: 'messages', label: t('admin.chatFeed.tab.messages') },
               ]}
             />
-            <FeedFilters tab={tab} value={filters} onChange={setFilters} />
+            <FilterFold activeCount={activeCount} anchor="chatfeed-filters" defaultOpen={!hasFilter}>
+              <FeedFilters tab={tab} value={filters} onChange={setFilters} />
+            </FilterFold>
             {!hasFilter ? (
               <EmptyState
                 compact
                 icon="search"
                 title={t('admin.wp02.chatFeed.filterRequired.title')}
-                description={t('admin.wp02.chatFeed.filterRequired.text')}
+                description={t('admin.v2m.chat.filterRequiredText')}
               />
             ) : tab === 'media' ? (
               <MediaTab filters={filters} reason={reason} />

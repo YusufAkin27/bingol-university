@@ -27,6 +27,7 @@ import { MessageBulkBar, useMessageSelection } from './MessageBulkBar';
 import { chatReasonKey, useRejectOnReasonError } from './chatReason';
 import { Lightbox } from './Lightbox';
 import { MediaBadges, MediaThumb } from './MediaThumb';
+import v2 from '../moderation/v2.module.css';
 import { collectLightboxItems, mediaToItem, nextCursorParam, parseId, viewerLink } from './chatLogic';
 import styles from './chat.module.css';
 
@@ -254,7 +255,11 @@ export function MediaTab({ filters, reason }: { filters: FeedFilterState; reason
               <time className={styles.muted} dateTime={x.createdAt}>
                 {formatDateTime(x.createdAt)}
               </time>
-              {lbItems[i].link && <Link to={lbItems[i].link as string}>{t('admin.chat.showInChat')}</Link>}
+              {lbItems[i].link && (
+                <Link to={lbItems[i].link as string} className={v2.link}>
+                  {t('admin.chat.showInChat')}
+                </Link>
+              )}
             </span>
           </li>
         ))}
@@ -320,11 +325,20 @@ export function MessagesTab({ filters, reason }: { filters: FeedFilterState; rea
           return (
             <li key={r.message.id} className={styles.feedRow} data-testid="feed-row">
               <div className={styles.feedHead}>
-                <span className={styles.convTitle} dir="auto">
-                  <Avatar name={sender} src={r.message.sender?.avatarUrl} size={24} /> {sender} →{' '}
-                  {r.conversation.title ?? t(`admin.chat.type.${r.conversation.type}`)}
+                <span className={styles.feedTitle} dir="auto">
+                  <Avatar name={sender} src={r.message.sender?.avatarUrl} size={24} />
+                  <span className={styles.feedWho}>
+                    <strong>{sender}</strong>
+                    <span className={styles.feedTo}>
+                      → {r.conversation.title ?? t(`admin.chat.type.${r.conversation.type}`)}
+                    </span>
+                  </span>
                 </span>
-                {link && <Link to={link}>{t('admin.chat.showInChat')}</Link>}
+                {link && (
+                  <Link to={link} className={v2.link}>
+                    {t('admin.chat.showInChat')}
+                  </Link>
+                )}
               </div>
               <ul className={styles.feedInner}>
                 <ChatBubble

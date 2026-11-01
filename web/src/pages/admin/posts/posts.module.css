@@ -37,6 +37,7 @@
   gap: var(--space-3);
 }
 .row {
+  min-inline-size: 0;
   display: grid;
   gap: var(--space-2);
   padding: var(--space-3);
@@ -51,14 +52,41 @@
   gap: var(--space-2);
 }
 .author {
-  display: inline-flex;
+  display: flex;
   align-items: center;
   gap: var(--space-2);
+  min-inline-size: 0;
+  flex: 1 1 12rem;
+}
+.authorText {
+  display: grid;
   min-inline-size: 0;
 }
 .authorName {
   font-weight: 600;
   overflow-wrap: anywhere;
+}
+.email {
+  overflow-wrap: anywhere;
+  word-break: break-all;
+}
+.badgeRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+.badgeRow:empty {
+  display: none;
+}
+.actionsWrap {
+  display: grid;
+  gap: var(--space-1);
+  min-inline-size: 0;
+}
+.dangerGroup {
+  margin-inline-start: auto;
+  padding-inline-start: var(--space-3);
+  border-inline-start: 1px solid var(--border);
 }
 .spacer {
   flex: 1 1 auto;
@@ -92,8 +120,9 @@
   cursor: pointer;
 }
 .thumbBtn.large {
-  inline-size: 8rem;
-  block-size: 8rem;
+  inline-size: min(100%, 14rem);
+  block-size: auto;
+  aspect-ratio: 1;
 }
 .thumbImg {
   inline-size: 100%;
@@ -127,6 +156,10 @@
 .detail {
   display: grid;
   gap: var(--space-3);
+  min-inline-size: 0;
+}
+.detail > * {
+  min-inline-size: 0;
 }
 .comments {
   list-style: none;

@@ -368,6 +368,9 @@
   }
 }
 .gridItem {
+  position: relative;
+  overflow: hidden;
+  align-content: start;
   display: grid;
   gap: var(--space-1);
   min-inline-size: 0;
@@ -438,6 +441,22 @@
   align-items: baseline;
   justify-content: space-between;
 }
+.feedTitle {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-inline-size: 0;
+  flex: 1 1 14rem;
+}
+.feedWho {
+  display: grid;
+  min-inline-size: 0;
+  overflow-wrap: anywhere;
+}
+.feedTo {
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
 .feedInner {
   list-style: none;
   margin: 0;
@@ -495,4 +514,18 @@
 .facts dd {
   margin: 0;
   overflow-wrap: anywhere;
+}
+
+/* MOD: medya ızgarası düzeni (rozetler görselin üst köşesinde, bağlantı 44 px) */
+.gridItem > .badges {
+  position: absolute;
+  inset-block-start: var(--space-3);
+  inset-inline-start: var(--space-3);
+  max-inline-size: calc(100% - var(--space-5));
+  pointer-events: none;
+}
+.cap a {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: 44px;
 }

@@ -13,16 +13,19 @@ export function FilterFold({
   children,
   label,
   anchor,
+  defaultOpen,
 }: {
   activeCount: number;
   children: ReactNode;
   label?: string;
   anchor?: string;
+  /** Telefonda da açık başlasın (örn. süzgeç zorunlu olan sayfa). */
+  defaultOpen?: boolean;
 }) {
   const { t, formatNumber } = useI18n();
   const narrow = useIsNarrow(640);
   const [userOpen, setUserOpen] = useState<boolean | null>(null);
-  const open = userOpen ?? !narrow;
+  const open = userOpen ?? (defaultOpen || !narrow);
   return (
     <details
       className={styles.fold}
@@ -39,4 +42,17 @@ export function FilterFold({
       <div className={styles.foldBody}>{children}</div>
     </details>
   );
+}
+
+/** Bayt sayısını Türkçe yerel biçimle yazar ("7,57 GB"); ondalık ayırıcı noktadan virgüle döner (X-9). */
+export function formatBytesLocal(n: number, formatNumber: (n: number, o?: Intl.NumberFormatOptions) => string): string {
+  if (!Number.isFinite(n) || n < 0) return '—';
+  const units = ['B', 'KB', 'MB', 'GB', 'TB'];
+  let i = 0;
+  let x = n;
+  while (x >= 1024 && i < units.length - 1) {
+    x /= 1024;
+    i += 1;
+  }
+  return `${formatNumber(x, { maximumFractionDigits: i === 0 ? 0 : i >= 3 ? 2 : 1 })} ${units[i]}`;
 }
