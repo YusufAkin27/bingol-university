@@ -19,7 +19,11 @@ public final class CrashScrubber {
     static final int MAX_LINE_CHARS = 300;
     static final int SIGNATURE_FRAMES = 8;
 
-    private static final Pattern EMAIL = Pattern.compile("[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}");
+    /** Maskelemeden once satir/alan en cok max x bu carpan karaktere kirpilir (acik uc: O(n^2) onlemi). */
+    static final int PRE_CUT_FACTOR = 2;
+
+    /** Onden lookbehind: desen yalniz kosu basindan denenir (uzun "aaaa..." satirinda ikinci dereceden geri izleme yok). */
+    private static final Pattern EMAIL = Pattern.compile("(?<![A-Za-z0-9._%+-])[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}");
     private static final Pattern URL_QUERY = Pattern.compile("(?i)(https?://[^\\s?#\"'<>)]*)[?#][^\\s\"'<>)]*");
     private static final Pattern UUID = Pattern.compile(
             "(?i)\\b[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\\b");
@@ -45,7 +49,7 @@ public final class CrashScrubber {
         if (raw == null) {
             return null;
         }
-        String s = clean(raw).replace('\n', ' ').replace('\t', ' ');
+        String s = clean(preCut(raw, max)).replace('\n', ' ').replace('\t', ' ');
         s = WS.matcher(s).replaceAll(" ").strip();
         if (s.isEmpty()) {
             return null;
@@ -64,7 +68,7 @@ public final class CrashScrubber {
             if (out.size() >= MAX_STACK_LINES) {
                 break;
             }
-            String s = clean(line).stripTrailing();
+            String s = clean(preCut(line, MAX_LINE_CHARS)).stripTrailing();
             if (s.isBlank()) {
                 continue;
             }
@@ -72,6 +76,12 @@ public final class CrashScrubber {
         }
         String joined = String.join("\n", out);
         return joined.length() > MAX_STACK_CHARS ? joined.substring(0, MAX_STACK_CHARS) : joined;
+    }
+
+    /** Maskelemeden once girdiyi sinirlar; kesme noktasindaki gizli deger yine maskelensin diye pay birakilir. */
+    private static String preCut(String raw, int max) {
+        int limit = Math.max(1, max) * PRE_CUT_FACTOR;
+        return raw.length() > limit ? raw.substring(0, limit) : raw;
     }
 
     /** Ortak maskeleme zinciri. */
