@@ -103,6 +103,13 @@ STAMP_RE='^[0-9]{8}T[0-9]{6}$'
 
 now_iso() { date -u '+%Y-%m-%dT%H:%M:%SZ'; }
 
+# iso_to_epoch <YYYY-MM-DDTHH:MM:SSZ> (UTC) -> unix sn; ayrisamazsa 0. busybox date "T...Z" bicimini KABUL ETMEZ: T bosluga cevrilir, Z atilir.
+iso_to_epoch() {
+  local s="${1%Z}"
+  [ -n "$s" ] && [ "$s" != null ] || { echo 0; return 0; }
+  date -u -d "${s/T/ }" +%s 2>/dev/null || echo 0
+}
+
 # stamp_to_iso <YYYYmmddTHHMMSS> (yerel saat) -> ISO-8601 UTC; cevrilemezse bos
 stamp_to_iso() {
   local s="$1" e
@@ -209,7 +216,7 @@ metric_remote_write() {
   [ -s "$REMOTE_STATE_FILE" ] && st="$(jq -c '.' "$REMOTE_STATE_FILE" 2>/dev/null || echo '{}')"
   [ -z "${BACKUP_REMOTE:-}" ] || cfg=1
   loc="$(local_stats_json)"
-  to_ts() { [ -n "$1" ] && [ "$1" != null ] && date -u -d "$1" +%s 2>/dev/null || echo 0; }
+  to_ts() { iso_to_epoch "$1"; }
   ts="$(to_ts "$(printf '%s' "$st" | jq -r '.lastSuccessAt // empty')")"
   vs="$(to_ts "$(printf '%s' "$st" | jq -r '.lastVerifiedAt // empty')")"
   ok="$(printf '%s' "$st" | jq -r 'if (.lastError // null) == null then 1 else 0 end')"
