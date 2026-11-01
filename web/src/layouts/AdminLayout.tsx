@@ -10,7 +10,8 @@ import { useFocusTrap } from '../components/ui/Overlay';
 import { useI18n } from '../i18n/I18nProvider';
 import { readStorage, writeStorage } from '../lib/storage';
 import { paths } from '../paths';
-import { adminNav, locateNav, navMatches } from './adminNav';
+import { Highlight, groupByPage, useAdminSearch, useSearchAnchorFocus } from '../search';
+import { adminNav, locateNav } from './adminNav';
 import { StorageBanner } from '../pages/admin/dataretention/StorageBanner';
 import { QuickNav } from './QuickNav';
 import { UserMenu } from './UserMenu';
@@ -84,6 +85,8 @@ export function AdminLayout() {
   const [groupState, setGroupState] = useState<Record<string, boolean>>(readGroups);
   const info = useAppInfo();
   const asideRef = useRef<HTMLElement>(null);
+  useSearchAnchorFocus(); // arama sonucu derin bağlantısı (#anchor): kaydır + vurgula
+  const adminSearch = useAdminSearch();
 
   const mode: 'full' | 'rail' | 'hidden' =
     tier === 'wide' ? (collapsed ? 'rail' : 'full') : drawerOpen ? 'full' : tier === 'rail' ? 'rail' : 'hidden';
@@ -118,20 +121,32 @@ export function AdminLayout() {
   const here = useMemo(() => locateNav(location.pathname), [location.pathname]);
   const filtering = !rail && filter.trim() !== '';
 
-  const visibleGroups = useMemo(
-    () =>
-      adminNav
-        .map((g) => ({
-          ...g,
-          label: t(g.labelKey),
-          items: g.items
-            .filter((i) => perms.can(i.perm)) // yetkisiz öğe GİZLENİR (P16)
-            .map((i) => ({ ...i, label: t(i.labelKey) }))
-            .filter((i) => !filtering || navMatches(i.label, filter)),
-        }))
-        .filter((g) => g.items.length > 0),
-    [t, filter, filtering, perms],
+  // Yan menü süzgeci üst çubuk aramasıyla AYNI motoru kullanır: sayfa adı + sayfa içi ayar/alan/eylem girdileri
+  const menuMatches = useMemo(
+    () => (filtering ? groupByPage(adminSearch.search(filter, 80)) : []),
+    [filtering, filter, adminSearch],
   );
+  const topHit = menuMatches[0]?.hits[0]?.item;
+
+  const visibleGroups = useMemo(() => {
+    const byPage = new Map(menuMatches.map((m, order) => [m.pageId, { m, order }]));
+    return adminNav
+      .map((g) => {
+        const items = g.items
+          .filter((i) => perms.can(i.perm)) // yetkisiz öğe GİZLENİR (P16)
+          .filter((i) => !filtering || byPage.has(i.id))
+          .map((i) => {
+            const found = byPage.get(i.id);
+            // sayfanın kendi girdisi dışındaki eşleşmeler menü altında kısa yol olur
+            const sub = (found?.m.hits ?? []).filter((h) => h.item.id !== `page.${i.id}`).map((h) => h.item);
+            return { ...i, label: t(i.labelKey), sub, order: found?.order ?? 0 };
+          })
+          .sort((a, b) => (filtering ? a.order - b.order : 0));
+        return { ...g, label: t(g.labelKey), items, order: Math.min(...items.map((i) => i.order), 1e9) };
+      })
+      .filter((g) => g.items.length > 0)
+      .sort((a, b) => (filtering ? a.order - b.order : 0));
+  }, [t, filtering, perms, menuMatches]);
   const matchCount = visibleGroups.reduce((n, g) => n + g.items.length, 0);
 
   function isOpen(id: string): boolean {
@@ -231,9 +246,9 @@ export function AdminLayout() {
                     e.stopPropagation();
                     e.preventDefault();
                     setFilter('');
-                  } else if (e.key === 'Enter' && visibleGroups[0]) {
+                  } else if (e.key === 'Enter' && topHit) {
                     e.preventDefault();
-                    navigate(visibleGroups[0].items[0].to);
+                    navigate(topHit.to);
                   }
                 }}
               />
@@ -294,6 +309,25 @@ export function AdminLayout() {
                             <Icon name={i.icon} size={20} />
                             <span className={styles.itemLabel}>{i.label}</span>
                           </NavLink>
+                          {filtering && i.sub.length > 0 && (
+                            <ul className={styles.subList} aria-label={t('admin.search.menu.inside')}>
+                              {i.sub.slice(0, 5).map((h) => (
+                                <li key={h.id}>
+                                  <Link to={h.to} className={styles.subLink} data-navitem>
+                                    <span className={styles.subTitle}>
+                                      <Highlight text={h.title} query={filter} />
+                                    </span>
+                                    {h.crumbs.length > 2 && h.crumbs[h.crumbs.length - 1] !== h.title && (
+                                      <span className={styles.subCrumb}>{h.crumbs.slice(2).join(' › ')}</span>
+                                    )}
+                                  </Link>
+                                </li>
+                              ))}
+                              {i.sub.length > 5 && (
+                                <li className={styles.subMore}>{t('admin.search.menu.more', { n: i.sub.length - 5 })}</li>
+                              )}
+                            </ul>
+                          )}
                         </li>
                       ))}
                     </ul>
@@ -344,9 +378,14 @@ export function AdminLayout() {
             </ol>
           </nav>
           <div className={styles.tools}>
-            <button type="button" className={styles.searchBtn} onClick={() => setSearchOpen(true)}>
+            <button
+              type="button"
+              className={styles.searchBtn}
+              onClick={() => setSearchOpen(true)}
+              aria-haspopup="dialog"
+            >
               <Icon name="search" size={18} />
-              <span className={styles.searchText}>{t('admin.layout.search')}</span>
+              <span className={styles.searchText}>{t('admin.search.title')}</span>
               <kbd className="ltr">Ctrl K</kbd>
             </button>
             <ThemeToggle />

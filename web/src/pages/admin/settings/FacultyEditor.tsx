@@ -45,7 +45,12 @@ export function FacultyEditor() {
   }
 
   return (
-    <div className={`${styles.row} ${dirty ? styles.rowDirty : ''}`} data-dirty={dirty || undefined} data-key={KEY}>
+    <div
+      className={`${styles.row} ${dirty ? styles.rowDirty : ''}`}
+      data-dirty={dirty || undefined}
+      data-key={KEY}
+      data-search-anchor={KEY}
+    >
       {dirty && (
         <span className={styles.unsaved}>
           <Badge tone="warning">{t('admin.settings.unsaved')}</Badge>

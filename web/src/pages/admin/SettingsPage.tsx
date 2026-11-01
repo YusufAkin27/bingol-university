@@ -23,6 +23,7 @@ import {
 import { GuardedDialog } from '../../components/admin/GuardedDialog';
 import { useI18n } from '../../i18n/I18nProvider';
 import { usePageTitle } from '../../lib/hooks';
+import { useSearchReveal } from '../../search/anchor';
 import { adminErrorMessage, Callout } from './campaigns/shared';
 import { AppVersionsLink } from './appVersions/SettingsLink';
 import { EventSettings } from './settings/EventSettings';
@@ -50,6 +51,28 @@ const LANGS: Lang[] = ['tr', 'en', 'ar'];
 /** Kritik ayar sebebi en az bu kadar karakter (sunucu denetim kuralıyla aynı: 5). */
 const SETTING_REASON_MIN = 5;
 
+/** Arama derin bağlantısı: kart/eylem anchor'ının hangi sekmede olduğu (ayar anahtarları GROUP_KEYS'ten bulunur). */
+const ANCHOR_GROUP: Record<string, SettingGroup> = {
+  'card-app': 'general',
+  'card-legal': 'general',
+  'card-social': 'general',
+  'card-android': 'stores',
+  'card-ios': 'stores',
+  'card-update-messages': 'stores',
+  'card-banner-preview': 'banner',
+  'card-banner-texts': 'banner',
+  'card-maintenance-messages': 'maintenance',
+  maintenance_save: 'maintenance',
+  'card-event-approval': 'events',
+  'card-event-limits': 'events',
+};
+
+function groupOfAnchor(anchor: string): SettingGroup | null {
+  if (ANCHOR_GROUP[anchor]) return ANCHOR_GROUP[anchor];
+  if (anchor.startsWith('legal.')) return 'general';
+  return GROUPS.find((g) => GROUP_KEYS[g].includes(anchor)) ?? null;
+}
+
 export default function SettingsPage() {
   const i18n = useI18n();
   const { t } = i18n;
@@ -61,6 +84,11 @@ export default function SettingsPage() {
   // Kritik anahtarlar için onay penceresi: kaydedilecek anahtar + değer
   const [pending, setPending] = useState<{ key: string; value: string } | null>(null);
   const [bannerLang, setBannerLang] = useState<Lang>('tr');
+  // Arama sonucu: ilgili sekmeyi aç (öğe o sekmede çizilir)
+  useSearchReveal((anchor) => {
+    const g = groupOfAnchor(anchor);
+    if (g) setGroup(g);
+  });
 
   const q = useQuery({ queryKey: qk.settings.list(), queryFn: getSettings });
   const server = useMemo(() => q.data ?? {}, [q.data]);
@@ -163,7 +191,7 @@ export default function SettingsPage() {
         <div className={styles.panel}>
           {group === 'general' && (
             <>
-              <Card title={t('admin.settings.general.app')}>
+              <Card title={t('admin.settings.general.app')} data-search-anchor="card-app">
                 <div className={styles.grid}>
                   <SettingRow k="app_name" label={t('admin.settings.key.app_name')} />
                   <SettingRow k="website" label={t('admin.settings.key.website')} kind="url" placeholder="https://" />
@@ -177,7 +205,7 @@ export default function SettingsPage() {
                   <SettingRow k="address" label={t('admin.settings.key.address')} kind="textarea" />
                 </div>
               </Card>
-              <Card title={t('admin.settings.general.legal')}>
+              <Card title={t('admin.settings.general.legal')} data-search-anchor="card-legal">
                 <p>{t('admin.settings.general.legalHint')}</p>
                 <div className={styles.grid}>
                   <SettingRow k="legal.controller.name" label={t('admin.settings.key.legal.controller.name')} />
@@ -196,7 +224,7 @@ export default function SettingsPage() {
                   <SettingRow k="legal.hosting.location" label={t('admin.settings.key.legal.hosting.location')} />
                 </div>
               </Card>
-              <Card title={t('admin.settings.general.social')}>
+              <Card title={t('admin.settings.general.social')} data-search-anchor="card-social">
                 <div className={styles.grid}>
                   <SettingRow k="instagram" label={t('admin.settings.key.instagram')} ltr />
                   <SettingRow k="twitter" label={t('admin.settings.key.twitter')} ltr />
@@ -217,7 +245,7 @@ export default function SettingsPage() {
                   !validateSetting(`latest_version_${p}`, latest) &&
                   compareVersions(min, latest) > 0;
                 return (
-                  <Card key={p} title={t(`admin.settings.stores.${p}`)}>
+                  <Card key={p} title={t(`admin.settings.stores.${p}`)} data-search-anchor={`card-${p}`}>
                     <div className={styles.grid}>
                       <SettingRow
                         k={`min_version_${p}`}
@@ -266,7 +294,7 @@ export default function SettingsPage() {
                   </Card>
                 );
               })}
-              <Card title={t('admin.uv.settings.messagesTitle')}>
+              <Card title={t('admin.uv.settings.messagesTitle')} data-search-anchor="card-update-messages">
                 <p className={styles.cardIntro}>{t('admin.uv.settings.messagesIntro')}</p>
                 <div className={styles.grid}>
                   {LANGS.map((l) => (
@@ -285,7 +313,7 @@ export default function SettingsPage() {
 
           {group === 'banner' && (
             <>
-              <Card title={t('admin.settings.banner.preview')}>
+              <Card title={t('admin.settings.banner.preview')} data-search-anchor="card-banner-preview">
                 <div className={styles.langSwitch} role="group" aria-label={t('admin.settings.banner.previewLang')}>
                   {LANGS.map((l) => (
                     <button
@@ -306,7 +334,7 @@ export default function SettingsPage() {
                   url={valueOf({ server, edits }, 'banner_url')}
                 />
               </Card>
-              <Card title={t('admin.settings.banner.texts')}>
+              <Card title={t('admin.settings.banner.texts')} data-search-anchor="card-banner-texts">
                 <p className={styles.cardIntro}>{t('admin.settings.banner.intro')}</p>
                 <div className={styles.grid}>
                   {LANGS.map((l) => (
@@ -340,6 +368,7 @@ export default function SettingsPage() {
                 <div
                   className={`${styles.row} ${isDirty({ server, edits }, 'maintenance_mode') ? styles.rowDirty : ''}`}
                   data-key="maintenance_mode"
+                  data-search-anchor="maintenance_mode"
                 >
                   {isDirty({ server, edits }, 'maintenance_mode') && (
                     <span className={styles.unsaved}>
@@ -356,12 +385,12 @@ export default function SettingsPage() {
                       {ctx.errors.maintenance_mode}
                     </p>
                   )}
-                  <div className={styles.rowActions}>
+                  <div className={styles.rowActions} data-search-anchor="maintenance_save">
                     <MaintenanceButtons />
                   </div>
                 </div>
               </Card>
-              <Card title={t('admin.settings.maintenance.messages')}>
+              <Card title={t('admin.settings.maintenance.messages')} data-search-anchor="card-maintenance-messages">
                 <div className={styles.grid}>
                   {LANGS.map((l) => (
                     <SettingRow

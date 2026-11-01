@@ -143,7 +143,7 @@ for (const width of WIDTHS) {
         await page.screenshot({ path: path.join(SHOTS, `drawer.${width}.${theme}.png`) });
         // menü araması ve Esc
         await page.getByRole('searchbox', { name: 'Menüde ara' }).fill('rapor');
-        await expect(page.getByRole('navigation', { name: 'Yönetim menüsü' }).getByRole('link')).toHaveCount(1);
+        await expect(page.getByRole('navigation', { name: 'Yönetim menüsü' }).getByRole('link').first()).toHaveAccessibleName('Raporlar');
         await page.keyboard.press('Escape');
         await expect(page.getByRole('searchbox', { name: 'Menüde ara' })).toHaveCount(width === 768 ? 0 : 1);
         if (width === 768) expect((await page.locator('main').boundingBox())!.x).toBeCloseTo(mainLeft, 0);
@@ -179,7 +179,7 @@ for (const width of WIDTHS) {
   }
 }
 
-test('klavye: skip-link ana alana odaklar, Ctrl+K sayfa aramasını açar', async ({ page }) => {
+test('klavye: skip-link ana alana odaklar, Ctrl+K panel aramasını açar', async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 800 });
   await prepare(page, 'light', true);
   await stub(page);
@@ -191,7 +191,7 @@ test('klavye: skip-link ana alana odaklar, Ctrl+K sayfa aramasını açar', asyn
   await page.keyboard.press('Enter');
   await expect(page.locator('#admin-main')).toBeFocused();
   await page.keyboard.press('Control+k');
-  await expect(page.getByRole('combobox', { name: 'Sayfa ara' })).toBeVisible();
+  await expect(page.getByRole('combobox', { name: 'Panelde sayfa, ayar ya da işlem ara' })).toBeVisible();
   await page.keyboard.type('anket');
   await page.keyboard.press('Enter');
   await expect(page).toHaveURL(/\/admin\/polls/);

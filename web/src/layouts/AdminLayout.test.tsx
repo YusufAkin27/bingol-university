@@ -94,7 +94,7 @@ describe('yönetim kabuğu', () => {
     const box = screen.getByRole('searchbox', { name: 'Menüde ara' });
 
     await user.type(box, 'gonderi');
-    expect(within(menu).getAllByRole('link')).toHaveLength(1);
+    expect(within(menu).getAllByRole('link')[0]).toHaveAccessibleName('Gönderiler');
     expect(within(menu).getByRole('link', { name: 'Gönderiler' })).toBeInTheDocument();
 
     await user.clear(box);
@@ -105,6 +105,33 @@ describe('yönetim kabuğu', () => {
     await user.keyboard('{Escape}');
     expect(box).toHaveValue('');
     expect(within(menu).getAllByRole('link').length).toBeGreaterThan(5);
+  });
+
+  it('menü süzgeci sayfa içi ayarları da bulur: "bakım modu" → Ayarlar altında alan kısayolu', async () => {
+    const user = userEvent.setup();
+    open();
+    await usersHeading();
+    const menu = screen.getByRole('navigation', { name: 'Yönetim menüsü' });
+    await user.type(screen.getByRole('searchbox', { name: 'Menüde ara' }), 'bakim modu');
+    expect(within(menu).getByRole('link', { name: 'Ayarlar' })).toBeInTheDocument();
+    const deep = within(menu)
+      .getAllByRole('link')
+      .find((l) => l.getAttribute('href') === '/admin/settings#maintenance_mode');
+    expect(deep).toBeTruthy();
+    expect(deep).toHaveTextContent('Bakım modu');
+    // aynı arama: Enter en iyi sonucu (alana derin bağlantı) açar
+    await user.type(screen.getByRole('searchbox', { name: 'Menüde ara' }), '{Enter}');
+    expect(await screen.findByRole('heading', { level: 1, name: 'Ayarlar' })).toBeInTheDocument();
+  });
+
+  it('üst çubuk araması Ctrl+K ile açılır ve ayar alanına götürür', async () => {
+    const user = userEvent.setup();
+    open();
+    await usersHeading();
+    await user.keyboard('{Control>}k{/Control}');
+    const input = await screen.findByRole('combobox', { name: /Panelde sayfa, ayar ya da işlem ara/ });
+    await user.type(input, 'bakim modu');
+    expect(within(screen.getByRole('listbox')).getAllByRole('option')[0]).toHaveTextContent('Bakım modu');
   });
 
   it('grup başlığı menü bölümünü açıp kapatır (aria-expanded)', async () => {

@@ -294,8 +294,54 @@ button.groupBtn:hover {
 .sidebar[data-mode='rail'] .collapseBtn {
   margin-inline: var(--space-2);
 }
+/* menü süzgeci: sayfa içi eşleşmeler (ayar/alan/eylem) sayfanın altında kısa yol olarak listelenir */
+.subList {
+  list-style: none;
+  margin: 2px 0 var(--space-1);
+  padding: 0 0 0 calc(var(--space-3) + 20px + var(--space-3) - 4px);
+  display: grid;
+  gap: 1px;
+  border-inline-start: 0;
+}
+.subLink {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-height: 32px;
+  padding: 5px var(--space-3);
+  border-radius: var(--radius-sm);
+  border-inline-start: 2px solid rgba(255, 255, 255, 0.22);
+  color: var(--sb-text);
+  font-size: var(--text-xs);
+  text-decoration: none;
+}
+.subLink:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+}
+.subTitle {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+.subCrumb {
+  color: var(--sb-muted);
+}
+.subMore {
+  padding: 2px var(--space-3);
+  color: var(--sb-muted);
+  font-size: var(--text-xs);
+}
+.subLink mark {
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
+  text-decoration-color: var(--red-600);
+}
 /* dokunmatik ekran: >= 44 px hedef */
 @media (pointer: coarse), (max-width: 720px) {
+  .subLink {
+    min-height: 44px;
+    justify-content: center;
+  }
   .item,
   .collapseBtn,
   .groupBtn {
@@ -467,5 +513,13 @@ button.groupBtn:hover {
   }
   .crumbs li[data-last]::before {
     content: none;
+  }
+}
+
+/* üst çubuk araması: dokunmatik ekranda >= 44 px (telefonda yalnız simge görünür) */
+@media (pointer: coarse), (max-width: 719px) {
+  .searchBtn {
+    min-height: 44px;
+    min-width: 44px;
   }
 }

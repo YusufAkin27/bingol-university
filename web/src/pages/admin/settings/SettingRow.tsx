@@ -69,7 +69,12 @@ export function SettingRow({
     onChange: (e: { target: { value: string } }) => c.setEdit(k, e.target.value),
   };
   return (
-    <div className={`${styles.row} ${dirty ? styles.rowDirty : ''}`} data-dirty={dirty || undefined} data-key={k}>
+    <div
+      className={`${styles.row} ${dirty ? styles.rowDirty : ''}`}
+      data-dirty={dirty || undefined}
+      data-key={k}
+      data-search-anchor={k}
+    >
       {dirty && (
         <span className={styles.unsaved}>
           <Badge tone="warning">{t('admin.settings.unsaved')}</Badge>

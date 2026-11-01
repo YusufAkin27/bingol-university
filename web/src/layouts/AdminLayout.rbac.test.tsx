@@ -1,4 +1,5 @@
 import { screen, waitFor, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { AuthProvider } from '../auth/AuthProvider';
 import { setTokens } from '../auth/tokens';
@@ -106,5 +107,14 @@ describe('yönetim menüsü izinleri (P16)', () => {
   it('kullanıcı mesajları sayfası chat.read ister', async () => {
     open('/admin/users/5/messages');
     expect(await screen.findByText('Gereken izin: chat.read')).toBeInTheDocument();
+  });
+  it('menü süzgeci de yetkisiz girdiyi GİZLER (ayar alt sonuçları dahil)', async () => {
+    const user = userEvent.setup();
+    open('/admin/users');
+    const menu = await screen.findByRole('navigation', { name: 'Yönetim menüsü' });
+    await waitFor(() => expect(within(menu).queryByRole('link', { name: 'Denetim kaydı', hidden: true })).toBeNull());
+    await user.type(screen.getByRole('searchbox', { name: 'Menüde ara' }), 'bakım modu');
+    expect(within(menu).queryAllByRole('link')).toHaveLength(0); // settings.read yok → ne sayfa ne alt sonuç
+    expect(screen.getByText('Eşleşen menü öğesi yok')).toBeInTheDocument();
   });
 });

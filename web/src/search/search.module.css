@@ -1,0 +1,35 @@
+/* Eşleşen sözcük vurgusu: renk + kalınlık + alt çizgi (yalnız renge güvenmez) */
+.mark {
+  background: var(--warning-soft);
+  color: inherit;
+  font-weight: 700;
+  border-radius: 2px;
+  padding-inline: 1px;
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 2px;
+  text-decoration-color: var(--warning);
+}
+
+/* Derin bağlantı hedefi: üstteki yapışkan çubuğun altında kalmasın */
+:global([data-search-anchor]) {
+  scroll-margin-block: 6rem;
+}
+
+/* Hedef vurgusu: kenarlık + halka (renk + şekil); hareket yalnız kullanıcı izin veriyorsa */
+:global([data-search-hit='true']) {
+  outline: 3px solid var(--focus);
+  outline-offset: 3px;
+  border-radius: var(--radius-md);
+  box-shadow: 0 0 0 8px color-mix(in srgb, var(--focus) 22%, transparent);
+}
+@media (prefers-reduced-motion: no-preference) {
+  :global([data-search-hit='true']) {
+    animation: search-hit-pulse 1.1s var(--ease) 2;
+  }
+}
+@keyframes search-hit-pulse {
+  50% {
+    box-shadow: 0 0 0 14px color-mix(in srgb, var(--focus) 8%, transparent);
+  }
+}

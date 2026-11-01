@@ -175,7 +175,7 @@ function DeadLetters({ i18n }: { i18n: I18n }) {
       : ['user', 'attempts', 'created'];
 
   return (
-    <Card title={t('admin.system.dead.title')}>
+    <Card title={t('admin.system.dead.title')} data-search-anchor="dead-letters">
       <Tabs
         tabs={[
           { id: 'mail', label: t('admin.system.dead.mail') },
@@ -294,7 +294,12 @@ export default function SystemStatusPage() {
         title={t('admin.system.title')}
         description={t('admin.system.intro')}
         actions={
-          <Button variant="secondary" size="sm" onClick={() => void qc.invalidateQueries({ queryKey: qk.system.all })}>
+          <Button
+            variant="secondary"
+            size="sm"
+            data-search-anchor="refresh"
+            onClick={() => void qc.invalidateQueries({ queryKey: qk.system.all })}
+          >
             {t('admin.system.refresh')}
           </Button>
         }
@@ -310,7 +315,7 @@ export default function SystemStatusPage() {
           <Skeleton height="8rem" width="100%" />
         ) : (
           <>
-            <div className={styles.overall}>
+            <div className={styles.overall} data-search-anchor="overall">
               <strong>{t('admin.system.overall')}:</strong>
               <Level i18n={i18n} level={levelOf(data.overall)} />
             </div>
@@ -323,7 +328,7 @@ export default function SystemStatusPage() {
               const items = entries.filter(([k]) => groupOf(k) === g);
               if (items.length === 0) return null;
               return (
-                <section key={g} aria-labelledby={`sys-${g}`}>
+                <section key={g} aria-labelledby={`sys-${g}`} data-search-anchor={`group-${g}`}>
                   <h2 id={`sys-${g}`} className={styles.groupTitle}>
                     {t(`admin.system.group.${g}` as 'admin.system.group.queues')}
                   </h2>

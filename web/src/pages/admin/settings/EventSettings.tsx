@@ -12,7 +12,7 @@ function ApprovalSwitch() {
   const on = valueOf(c, k) === 'true';
   const dirty = isDirty(c, k);
   return (
-    <div className={`${styles.row} ${dirty ? styles.rowDirty : ''}`} data-key={k}>
+    <div className={`${styles.row} ${dirty ? styles.rowDirty : ''}`} data-key={k} data-search-anchor={k}>
       {dirty && (
         <span className={styles.unsaved}>
           <Badge tone="warning">{t('admin.settings.unsaved')}</Badge>
@@ -52,10 +52,10 @@ export function EventSettings() {
   const { t } = useI18n();
   return (
     <>
-      <Card title={t('admin.settings.events.approvalTitle')}>
+      <Card title={t('admin.settings.events.approvalTitle')} data-search-anchor="card-event-approval">
         <ApprovalSwitch />
       </Card>
-      <Card title={t('admin.settings.events.limitsTitle')}>
+      <Card title={t('admin.settings.events.limitsTitle')} data-search-anchor="card-event-limits">
         <div className={styles.grid}>
           <SettingRow
             k="event_max_open_per_user"
