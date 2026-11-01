@@ -487,10 +487,13 @@ services:
     <<: *hardening
     # redis:7-alpine giris betigi root olarak baslayip `setpriv` ile redis kullanicisina duser: cap_drop ALL tek basina
     # "setpriv: setresuid failed: Operation not permitted" ile sonsuz dongude birakir (REL1 geri yukleme provasinda bulundu).
+    # DAC_READ_SEARCH: giris betigi root olarak `find . ! -user redis` ile /data'yi tarar; appendonlydir redis'e ait 0700 oldugundan
+    # bu yetki olmadan "find: ./appendonlydir: Permission denied" ile cikar ve yeniden baslatmada konteyner dongude kalir.
     cap_add:
       - CHOWN
       - SETUID
       - SETGID
+      - DAC_READ_SEARCH
     read_only: true
     tmpfs:
       - /tmp
