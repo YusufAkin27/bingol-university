@@ -4,6 +4,12 @@
 
 Ayrıntılı modül notları: `docs/changes/*.md`. Mobil API rehberi: [MOBILE_API_GUIDE.md](MOBILE_API_GUIDE.md).
 
+### FINAL (2026-11-01): iki dağıtım hattının birleştirilmesi
+
+- `deploy/hardened-20261101` (SEO, site içeriği, Drive yedek, 2FA, birim haberleri, HARDEN) ile panel görsel yenilemesi + varsayılan gizli hesap (`app.profile.default-private-account`) + menü kalori/görsel tek dalda (`deploy/final-20261101`) birleştirildi. Flyway sırası V1040 (menü) → V1050 (birim haberleri) → V1060 (2FA); numara çakışması yok.
+- Yedekleme (`/admin/backup`), Birim haberleri (`/admin/content/unit-news`) ve İki faktörlü doğrulama (`/admin/two-factor`) sayfaları yeni görsel kite (Insight, StatTile, ResponsiveTable), menü gruplarına (Sistem / İçerik / Kullanıcılar), RBAC izinlerine ve Ctrl+K derin aramasına uyarlandı; kullanıcı listesinde 2FA süzgeci ve çipi.
+- `web/bundle-budget.json`: totalJs 770 → 800 KB, `site.*` 23 → 26 KB (gerekçe dosyada).
+
 ### Entegrasyon (ENT-ALL): Drive yedek + birim duyuruları + iki faktörlü doğrulama
 
 - **Google Drive yedek (backend/ops):** `scripts/backup/remote-sync.sh` (günde 1 doğrulanmış yükleme, `.partial` -> damga adı, uzak GFS saklama), `prune-local-after-remote.sh` (yalnız Drive'da doğrulanmış yerel yedekleri azaltır, varsayılan kuru çalışma), `GET /api/admin/system/backup` (`BackupReport`, izin `system.read`), `docker-compose.prod.yml` `backup` servisi (`RCLONE_CONF_DIR` ile kalıcı, yazılabilir rclone dizini), [BACKUP_GDRIVE.md](BACKUP_GDRIVE.md). Saatlik yedek yerelde kalır; Drive kopyası en kötü ~24 saat geridir.
