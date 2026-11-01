@@ -144,7 +144,9 @@ class ExtraExportersTest {
             Map.entry("club_member_grant", "clubPermissions"),
             Map.entry("display_name_history", "displayNameHistory"),
             // FOLLOWREQ: gonderdigim bekleyen takip istekleri (gelenler baskalarinin verisi, dahil degil)
-            Map.entry("follow_request", "followRequests"));
+            Map.entry("follow_request", "followRequests"),
+            // 2FA (V1060): durum + guvenilen cihaz etiketleri (ham/ozet kimlik disa verilmez)
+            Map.entry("two_factor_device", "twoFactor"));
 
     /** Bilincli muaf: gecici push kuyrugu ve gizli oy secmen kaydi (kimlik-oy baglantisi tutulmaz, disari verilemez). */
     private static final Set<String> EXEMPT = Set.of("push_outbox", "poll_ballot",

@@ -186,7 +186,7 @@ class AdminPermissionPolicyTest {
     @Test
     void userDtosMaskEmailOnlyForMaskedProfiles() {
         var row = new edu.bingol.backend.admin.AdminDtos.AdminUserRow(1L, "ali.veli@bingol.edu.tr", "Ali", null, null,
-                null, "tr", edu.bingol.backend.user.Role.USER, edu.bingol.backend.user.UserStatus.ACTIVE, true, null, null, null);
+                null, "tr", edu.bingol.backend.user.Role.USER, edu.bingol.backend.user.UserStatus.ACTIVE, true, null, null, null, false);
         // istek baglami yok => maskesiz
         assertThat(row.masked().email()).isEqualTo("ali.veli@bingol.edu.tr");
         try {
