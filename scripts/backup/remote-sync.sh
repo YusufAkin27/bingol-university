@@ -59,7 +59,7 @@ if [ "$STALE" = 1 ] && [ "$FORCE" = 0 ] && [ -s "$REMOTE_STATE_FILE" ]; then
   LS="$(jq -r '.lastSuccessAt // empty' "$REMOTE_STATE_FILE" 2>/dev/null || true)"
   LE="$(jq -r '.lastError // empty' "$REMOTE_STATE_FILE" 2>/dev/null || true)"
   if [ -n "$LS" ] && [ -z "$LE" ]; then
-    LSS="$(date -u -d "$LS" +%s 2>/dev/null || echo 0)"
+    LSS="$(iso_to_epoch "$LS")"
     if [ $(( $(date +%s) - LSS )) -lt $(( ${BACKUP_REMOTE_STALE_HOURS:-20} * 3600 )) ]; then
       log "son uzak yukleme yeni ($LS); yeniden deneme gerekmiyor"; exit 0
     fi

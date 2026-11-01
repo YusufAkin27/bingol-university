@@ -81,6 +81,9 @@ chk "durum dosyasinda hedef yolu SIZMIYOR" test -z "$(grep -F "$T" "$S" || true)
 
 "$HERE/remote-sync.sh" > "$T/out2.log" 2>&1
 chk "ikinci calisma: 'zaten var' ve yeniden yuklemez" grep -q "zaten var" "$T/out2.log"
+chk "Prometheus: son basari zamani gercek unix sn (busybox date T..Z hatasi yok)" bash -c "grep -Eq '^backup_remote_last_success_timestamp_seconds 1[0-9]{9}$' '$BACKUP_METRICS_DIR/backup_remote.prom' && grep -Eq '^backup_local_oldest_timestamp_seconds 1[0-9]{9}$' '$BACKUP_METRICS_DIR/backup_remote.prom'"
+"$HERE/remote-sync.sh" --if-stale > "$T/out2b.log" 2>&1
+chk "--if-stale: yeni basari varken hicbir sey yapmaz" grep -q "yeniden deneme gerekmiyor" "$T/out2b.log"
 
 # 3) bozulma: ayni boyutta bir bayt degistir -> dogrulama yakalar ve kendini onarir
 printf 'X' | dd of="$T/remote/yedek/20261101T030500/db.dump.age" bs=1 seek=100 conv=notrunc 2>/dev/null
