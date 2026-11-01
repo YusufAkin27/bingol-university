@@ -7,6 +7,7 @@ import type { AdminMenuDay } from '../../api/adminMenu';
 import {
   Badge,
   Button,
+  Card,
   ConfirmDialog,
   EmptyState,
   ErrorState,
@@ -28,6 +29,8 @@ import { BulkCsvButton, RowPick, SelectPage, useIdSelection, type IdSelection } 
 import { CalorieBulkImport } from './menu/CalorieBulkImport';
 import { CalorieEditor } from './menu/CalorieEditor';
 import { MenuGaps } from './menu/MenuGaps';
+import { MenuKcalChart } from './menu/MenuKcalChart';
+import { gt } from './icerik/dict';
 import { currentMonth, dishesOf, isMonth, monthRange, shiftMonthValue, sumKcal, validateMenuImage } from './menu/menuLogic';
 import styles from './menu/menu.module.css';
 
@@ -95,7 +98,7 @@ function DayRow({
 
   return (
     <li className={styles.row} data-testid="menu-row">
-      <details className={styles.dayDetails} open={isNear(day.date)}>
+      <details id={`menu-day-${day.date}`} className={styles.dayDetails} open={isNear(day.date)}>
         <summary className={styles.daySummary}>
           <span className={styles.dayTitle}>{label}</span>
           <span className={styles.dayChips}>
@@ -197,6 +200,16 @@ export default function MenuAdminPage() {
   const daysNoImage = days.filter((d) => !d.imageUrl).length;
   // P15 toplu silme seçimi: ay değişince sıfırlanır
   const selection = useIdSelection<string>(month, MENU_BULK_MAX);
+  const gtx = gt(i18n);
+  // Grafikteki çubuk: o günün satırını açar, ekrana getirir ve odaklar
+  const openDay = (date: string) => {
+    const el = document.getElementById(`menu-day-${date}`);
+    if (!(el instanceof HTMLDetailsElement)) return;
+    el.open = true;
+    const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    el.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
+    el.querySelector('summary')?.focus({ preventScroll: true });
+  };
 
   return (
     <>
@@ -241,6 +254,11 @@ export default function MenuAdminPage() {
           <StatTile icon="image" label={t('admin.v2.menu.sum.noPhoto')} value={daysNoImage} caption={t('admin.v2.menu.sum.noPhotoCap')} />
         </SummaryStrip>
       )}
+      {valid && days.length > 0 && (
+        <Card title={gtx('admin.icerik.menu.kcal.title')} data-search-anchor="menu-kcal-chart">
+          <MenuKcalChart days={days} onPick={openDay} />
+        </Card>
+      )}
       <details className={styles.help} data-search-anchor="menu-photo-help">
         <summary>{t('admin.v2.menu.helpTitle')}</summary>
         <ul>
@@ -260,7 +278,9 @@ export default function MenuAdminPage() {
         <EmptyState icon="calendar" title={t('admin.menu.empty')} description=" " />
       ) : (
         <>
-          <MenuGaps days={days} />
+          <div data-search-anchor="menu-gaps">
+            <MenuGaps days={days} />
+          </div>
           <SelectPage ids={days.map((d) => d.date)} selection={selection} label={t('admin.p15.menu.selectAll')} />
           <ul className={styles.list} data-testid="menu-list">
             {days.map((d) => (
