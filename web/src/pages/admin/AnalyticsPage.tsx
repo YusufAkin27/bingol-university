@@ -4,7 +4,7 @@
 import { useMemo } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
 import type { BreakdownDimension } from '../../api/types';
-import { DateRangePicker, Icon, PageHeader, Tabs, type DateRangeValue } from '../../components/ui';
+import { DateRangePicker, Icon, Insight, PageHeader, Switch, Tabs, type DateRangeValue } from '../../components/ui';
 import { useI18n } from '../../i18n/I18nProvider';
 import { lastDays } from '../../lib/date';
 import { useSearchReveal } from '../../search/anchor';
@@ -15,12 +15,21 @@ import EngagementTab from './analytics/EngagementTab';
 import GrowthTab from './analytics/GrowthTab';
 import OverviewTab from './analytics/OverviewTab';
 import RetentionTab from './analytics/RetentionTab';
-import { DIMENSIONS, parseTab, TABS, type TabId } from './analytics/transform';
+import { clampRange, DIMENSIONS, parseTab, previousRange, rangeDays, TABS, type TabId } from './analytics/transform';
 
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 const RANGE_TABS: TabId[] = ['overview', 'growth', 'engagement'];
 const TAB_OF_ANCHOR: Record<string, TabId> = {
   'anl-today': 'overview',
+  'anl-dau': 'overview',
+  'anl-reg': 'overview',
+  'anl-content': 'overview',
+  'anl-support': 'overview',
+  'anl-push': 'overview',
+  'anl-compare-toggle': 'overview',
+  'anl-growth-reg': 'growth',
+  'anl-growth-cum': 'growth',
+  'anl-daily': 'engagement',
   'anl-compare': 'growth',
   'anl-funnel': 'engagement',
   'anl-events': 'engagement',
@@ -30,7 +39,7 @@ const TAB_OF_ANCHOR: Record<string, TabId> = {
 };
 
 export default function AnalyticsPage() {
-  const { t } = useI18n();
+  const { t, formatDate, formatNumber } = useI18n();
   usePageTitle(t('admin.analytics.title'));
   const [sp, setSp] = useSearchParams();
   const params = useParams();
@@ -38,8 +47,12 @@ export default function AnalyticsPage() {
   // `?tab=` önceliklidir; eski `/analytics/:tab` yolu da kabul edilir
   const tab = parseTab(sp.get('tab') ?? params.tab);
   const defaults = useMemo(() => lastDays(30), []);
-  const from = DATE_RE.test(sp.get('from') ?? '') ? (sp.get('from') as string) : defaults.from;
-  const to = DATE_RE.test(sp.get('to') ?? '') ? (sp.get('to') as string) : defaults.to;
+  const rawFrom = DATE_RE.test(sp.get('from') ?? '') ? (sp.get('from') as string) : defaults.from;
+  const rawTo = DATE_RE.test(sp.get('to') ?? '') ? (sp.get('to') as string) : defaults.to;
+  // ters ya da 366 günden uzun aralık güvenli hâle getirilir (sunucu 400 döndürmesin)
+  const { from, to, swapped, clipped } = useMemo(() => clampRange(rawFrom, rawTo), [rawFrom, rawTo]);
+  // karşılaştırma varsayılan AÇIK; kapatmak için ?cmp=0
+  const compare = sp.get('cmp') !== '0';
   const dimParam = sp.get('dim');
   const dimension: BreakdownDimension = (DIMENSIONS as readonly string[]).includes(dimParam ?? '')
     ? (dimParam as BreakdownDimension)
@@ -60,7 +73,9 @@ export default function AnalyticsPage() {
     if (target && target !== tab) patch({ tab: target });
   });
 
-  const range: DateRangeValue = { from, to };
+  const range: DateRangeValue = useMemo(() => ({ from, to }), [from, to]);
+  const prev = compare ? previousRange(range) : null;
+  const shortDate = (d: string) => formatDate(d, { day: 'numeric', month: 'short' });
   const showRange = RANGE_TABS.includes(tab);
 
   return (
@@ -88,10 +103,34 @@ export default function AnalyticsPage() {
               value={range}
               onChange={(r) => patch({ from: r.from || null, to: r.to || null })}
             />
+            {tab !== 'engagement' && (
+              <div className={styles.compareToggle} data-search-anchor="anl-compare-toggle">
+                <Switch
+                  checked={compare}
+                  onChange={(on) => patch({ cmp: on ? null : '0' })}
+                  label={t('admin.genel.anl.compare')}
+                />
+              </div>
+            )}
+            <p className={styles.rangeNote} data-testid="range-note">
+              {t('admin.genel.anl.rangeSummary', {
+                days: formatNumber(rangeDays(range)),
+                from: shortDate(from),
+                to: shortDate(to),
+              })}
+              {prev && tab !== 'engagement' && (
+                <> {t('admin.genel.anl.compareHint', { from: shortDate(prev.from), to: shortDate(prev.to) })}</>
+              )}
+            </p>
+            {(swapped || clipped) && (
+              <div className={styles.rangeNote}>
+                <Insight tone="warn" parts={clipped ? t('admin.genel.anl.rangeClipped') : t('admin.genel.anl.rangeSwapped')} />
+              </div>
+            )}
           </div>
         )}
-        {tab === 'overview' && <OverviewTab range={range} />}
-        {tab === 'growth' && <GrowthTab range={range} />}
+        {tab === 'overview' && <OverviewTab range={range} compare={compare} />}
+        {tab === 'growth' && <GrowthTab range={range} compare={compare} />}
         {tab === 'engagement' && <EngagementTab range={range} />}
         {tab === 'retention' && <RetentionTab />}
         {tab === 'demographics' && (

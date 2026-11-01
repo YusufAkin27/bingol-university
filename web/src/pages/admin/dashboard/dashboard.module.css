@@ -278,3 +278,130 @@
   margin-block-start: var(--space-3);
   min-block-size: 44px;
 }
+
+/* GENEL: "şu an her şey yolunda mı?" şeridi */
+.health {
+  display: grid;
+  gap: var(--space-3);
+  margin-block-end: var(--space-4);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--border);
+  border-inline-start-width: 4px;
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  min-block-size: 4.5rem; /* iskelet ile gerçek içerik arasında kayma olmasın */
+}
+.healthGood {
+  border-inline-start-color: var(--success);
+  background: var(--success-soft);
+}
+.healthWarn {
+  border-inline-start-color: var(--warning);
+  background: var(--warning-soft);
+}
+.healthBad {
+  border-inline-start-color: var(--danger);
+  background: var(--danger-soft);
+}
+.healthHead {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+.healthIcon {
+  flex: none;
+}
+.healthGood .healthIcon {
+  color: var(--success);
+}
+.healthWarn .healthIcon {
+  color: var(--warning);
+}
+.healthBad .healthIcon {
+  color: var(--danger);
+}
+.healthText {
+  flex: 1 1 14rem;
+  min-width: 0;
+}
+.healthTitle {
+  margin: 0;
+  font-size: var(--text-sm);
+  font-weight: 700;
+  color: var(--text-muted);
+}
+.healthSentence {
+  margin: 0;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+.healthLink {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: 44px;
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+.healthChips {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+.healthChip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-block-size: 44px;
+  padding-inline: var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  background: var(--surface);
+  color: var(--text);
+  text-decoration: none;
+  font-size: var(--text-sm);
+}
+.healthChip:hover {
+  border-color: var(--primary);
+}
+.healthMore {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: 44px;
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+.healthNote {
+  margin: 0;
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
+
+/* kitle çubukları */
+.audienceBody {
+  display: grid;
+  gap: var(--space-3);
+}
+
+/* tam genişlikte grafik satırı */
+.chartsWide {
+  grid-column: 1 / -1;
+  min-width: 0;
+}
+.charts > * {
+  min-width: 0;
+}
+
+.refreshRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+.updated {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}

@@ -26,6 +26,24 @@
   gap: var(--space-5);
   min-width: 0;
 }
+.chartInsight {
+  margin-block-end: var(--space-3);
+}
+.rangeNote {
+  flex-basis: 100%;
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+.compareToggle {
+  min-block-size: 44px;
+  display: flex;
+  align-items: center;
+}
+.ticketsBody {
+  display: grid;
+  gap: var(--space-3);
+}
 .grid2 {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
