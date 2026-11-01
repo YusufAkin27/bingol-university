@@ -34,7 +34,10 @@ export default {
   'admin.v2.apps.sentence.limited':
     '{cap} kişilik etkinliğin {going} yeri dolu, {left} yer boş; {pending} başvuru karar bekliyor.',
   'admin.v2.apps.sentence.full': '{cap} kişilik etkinlik tamamen dolu; {pending} başvuru karar bekliyor.',
+  'admin.v2.apps.sentence.over':
+    '{cap} kişilik etkinlikte kontenjan aşıldı ({going} kişi kayıtlı); {pending} başvuru karar bekliyor.',
   'admin.v2.apps.sentence.unlimited': 'Kontenjan sınırı yok; {going} kişi kayıtlı, {pending} başvuru karar bekliyor.',
+  'admin.v2.apps.ringOver': '{going} / {cap} kişi (kontenjan aşıldı)',
   'admin.v2.apps.ring': '{going} / {cap} kişi dolu',
   'admin.v2.apps.funnel': 'Başvuruların durumlara göre dağılımı',
   'admin.v2.apps.counts': 'Başvuru durumları',
@@ -75,6 +78,7 @@ export default {
   'admin.v2.ev.sum.almostCap': '%85 ve üstü dolu etkinlik',
   'admin.v2.ev.insight': 'Listede {n} etkinlik var; {pending} başvuru karar bekliyor, {full} etkinlik dolmak üzere.',
   'admin.v2.ev.fill': '{going} / {cap} kişi (%{pct} dolu)',
+  'admin.v2.ev.fillOver': '{going} / {cap} kişi (kontenjan aşıldı: {over} kişi fazla)',
   'admin.v2.ev.fillOpen': '{going} kişi katılıyor (kontenjan sınırsız)',
   'admin.v2.ev.standaloneOnly': 'Yalnız kulüpsüz etkinlikler',
   'admin.v2.ev.range.week': 'Bu hafta',

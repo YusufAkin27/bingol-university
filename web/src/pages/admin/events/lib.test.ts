@@ -1,7 +1,22 @@
 import { describe, expect, it } from 'vitest';
-import { eventTiming, filterEvents, relativeStart } from './lib';
+import { translate } from '../../../i18n';
+import { eventTiming, fillLabel, filterEvents, relativeStart } from './lib';
 
 const NOW = new Date('2026-10-23T12:00:00Z');
+
+describe('etkinlik doluluk yazısı', () => {
+  const t = (k: Parameters<typeof translate>[1], p?: Parameters<typeof translate>[2]) => translate('tr', k, p);
+  const nf = (n: number) => String(n);
+  it('normal doluluk yüzdesi yazılır', () => {
+    expect(fillLabel(t, nf, 94, 100)).toBe('94 / 100 kişi (%94 dolu)');
+    expect(fillLabel(t, nf, 100, 100)).toBe('100 / 100 kişi (%100 dolu)');
+  });
+  it('kontenjan aşılınca %100 üstü yazılmaz, açık metin gösterilir', () => {
+    const text = fillLabel(t, nf, 125, 100);
+    expect(text).toBe('125 / 100 kişi (kontenjan aşıldı: 25 kişi fazla)');
+    expect(text).not.toMatch(/%12/);
+  });
+});
 
 describe('etkinlik zamanlama vurgusu', () => {
   it('geçmiş / yakında / sonra', () => {

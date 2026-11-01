@@ -388,6 +388,26 @@ describe('Etkinlik başvuru özeti ve kulüp denetimi', () => {
     expect(screen.getByText(/Başvuru ve onay/)).toBeInTheDocument();
   });
 
+  it('kontenjan aşıldıysa özet cümlesi açıkça söyler', async () => {
+    mockFetch(() =>
+      jsonResponse(200, {
+        eventId: 7,
+        mode: 'APPROVAL',
+        capacity: 100,
+        goingCount: 125,
+        pending: 2,
+        accepted: 125,
+        waitlisted: 0,
+        rejected: 0,
+        cancelled: 0,
+      }),
+    );
+    renderWithProviders(<EventApplicationsPage />, { route: '/admin/events/applications?eventId=7' });
+    expect(await screen.findByText(/kontenjan aşıldı \(125 kişi kayıtlı\)/)).toBeInTheDocument();
+    expect(screen.getByText('125 / 100 kişi (kontenjan aşıldı)')).toBeInTheDocument();
+    expect(document.body.textContent).not.toMatch(/%12\d/);
+  });
+
   it('kimlik girilmeden istek atmaz', () => {
     const fn = mockFetch(() => jsonResponse(200, {}));
     renderWithProviders(<EventApplicationsPage />);

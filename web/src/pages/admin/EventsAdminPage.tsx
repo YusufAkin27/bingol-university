@@ -51,7 +51,7 @@ import { CsvButton } from './events/ops/opsParts';
 import { eventErrorMessage } from './events/errors';
 import evStyles from './events/events.module.css';
 import opsStyles from './events/ops/ops.module.css';
-import { EVENT_STATUS_TABS, dayBoundIso, eventTiming, relativeStart } from './events/lib';
+import { EVENT_STATUS_TABS, dayBoundIso, eventTiming, fillLabel, relativeStart } from './events/lib';
 
 type Scope = 'all' | 'standalone';
 
@@ -456,11 +456,7 @@ export default function EventsAdminPage() {
                           <FillBar
                             value={ev.goingCount}
                             max={ev.capacity}
-                            label={t('admin.v2.ev.fill', {
-                              going: formatNumber(ev.goingCount),
-                              cap: formatNumber(ev.capacity),
-                              pct: formatNumber(Math.round((ev.goingCount / ev.capacity) * 100)),
-                            })}
+                            label={fillLabel(t, formatNumber, ev.goingCount, ev.capacity)}
                           />
                         )}
                       </span>

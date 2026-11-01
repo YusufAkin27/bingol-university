@@ -36,7 +36,13 @@ function sentence(t: ReturnType<typeof useI18n>['t'], nf: (n: number) => string,
     return t('admin.v2.apps.sentence.unlimited', { going: nf(s.goingCount), pending: nf(s.pending) });
   }
   const left = Math.max(0, s.capacity - s.goingCount);
-  return t(left === 0 ? 'admin.v2.apps.sentence.full' : 'admin.v2.apps.sentence.limited', {
+  const key =
+    s.goingCount > s.capacity
+      ? 'admin.v2.apps.sentence.over'
+      : left === 0
+        ? 'admin.v2.apps.sentence.full'
+        : 'admin.v2.apps.sentence.limited';
+  return t(key, {
     cap: nf(s.capacity),
     going: nf(s.goingCount),
     left: nf(left),
@@ -131,7 +137,7 @@ export default function EventApplicationsPage() {
                     value={s.goingCount}
                     max={s.capacity}
                     tone={s.goingCount >= s.capacity ? 'warning' : 'info'}
-                    label={t('admin.v2.apps.ring', { going: formatNumber(s.goingCount), cap: formatNumber(s.capacity) })}
+                    label={t(s.goingCount > s.capacity ? 'admin.v2.apps.ringOver' : 'admin.v2.apps.ring', { going: formatNumber(s.goingCount), cap: formatNumber(s.capacity) })}
                     size={110}
                   />
                 )}

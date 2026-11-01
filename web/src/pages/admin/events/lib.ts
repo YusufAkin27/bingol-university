@@ -1,5 +1,6 @@
 import type { AdminEventPatch, EventAction, EventStatusFilter } from '../../../api/adminEvents';
 import type { EventJoinPolicy, EventView } from '../../../api/types';
+import type { TParams, TranslationKey } from '../../../i18n';
 import { localToIso, toLocalInput } from '../campaigns/lib';
 export type EventTiming = 'past' | 'soon' | 'later';
 export const SOON_HOURS = 48;
@@ -135,4 +136,20 @@ export function dayBoundIso(day: string, end: boolean): string | undefined {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(day)) return undefined;
   const d = new Date(`${day}T${end ? '23:59:59' : '00:00:00'}`);
   return Number.isNaN(d.getTime()) ? undefined : d.toISOString();
+}
+
+/**
+ * Doluluk yazısı: yüzde en çok %100 gösterilir; kontenjan aşıldıysa (örn. 125/100) "%125 dolu" yerine açık metin yazılır.
+ */
+export function fillLabel(
+  t: (key: TranslationKey, params?: TParams) => string,
+  nf: (n: number) => string,
+  going: number,
+  capacity: number,
+): string {
+  if (going > capacity) {
+    return t('admin.v2.ev.fillOver', { going: nf(going), cap: nf(capacity), over: nf(going - capacity) });
+  }
+  const pct = Math.min(100, Math.round((going / capacity) * 100));
+  return t('admin.v2.ev.fill', { going: nf(going), cap: nf(capacity), pct: nf(pct) });
 }
