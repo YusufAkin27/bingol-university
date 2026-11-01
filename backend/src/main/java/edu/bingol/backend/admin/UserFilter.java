@@ -18,7 +18,8 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
  */
 public record UserFilter(String q, UserStatus status, Role role, String faculty, String department,
                          Short classYear, String language, Boolean verified,
-                         LocalDate createdFrom, LocalDate createdTo, LocalDate seenFrom, LocalDate seenTo) {
+                         LocalDate createdFrom, LocalDate createdTo, LocalDate seenFrom, LocalDate seenTo,
+                         Boolean twoFactor) {
 
     /** Gun sinirlari (kayit/son gorulme araligi) Europe/Istanbul gunune gore yorumlanir (analytics.DateRange ile ayni). */
     static final ZoneId ZONE = ZoneId.of("Europe/Istanbul");
@@ -26,10 +27,18 @@ public record UserFilter(String q, UserStatus status, Role role, String faculty,
     /** users.pii olmayan profillerde q icin en az uzunluk (T-019). */
     static final int MASKED_Q_MIN = 3;
 
+    /** Iki faktorlu suzgeci olmayan bicim (2FA oncesi cagrilar ve testler). */
+    public UserFilter(String q, UserStatus status, Role role, String faculty, String department,
+                      Short classYear, String language, Boolean verified,
+                      LocalDate createdFrom, LocalDate createdTo, LocalDate seenFrom, LocalDate seenTo) {
+        this(q, status, role, faculty, department, classYear, language, verified, createdFrom, createdTo, seenFrom,
+                seenTo, null);
+    }
+
     /** Tarih araligi olmayan eski bicim (P09 oncesi cagrilar ve testler). */
     public UserFilter(String q, UserStatus status, Role role, String faculty, String department,
                       Short classYear, String language, Boolean verified) {
-        this(q, status, role, faculty, department, classYear, language, verified, null, null, null, null);
+        this(q, status, role, faculty, department, classYear, language, verified, null, null, null, null, null);
     }
 
     /** WHERE govdesi (basinda "WHERE" yok; bos filtre icin "TRUE") ve baglanacak degerler. */
@@ -88,6 +97,10 @@ public record UserFilter(String q, UserStatus status, Role role, String faculty,
         if (verified != null) {
             c.add("email_verified = :verified");
             p.addValue("verified", verified);
+        }
+        if (twoFactor != null) {
+            c.add("two_factor_enabled = :twoFactor");
+            p.addValue("twoFactor", twoFactor);
         }
         range(c, p, "created_at", "created", createdFrom, createdTo);
         range(c, p, "last_seen_at", "seen", seenFrom, seenTo);
