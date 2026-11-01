@@ -26,6 +26,8 @@ import {
 } from '../../components/ui';
 import { useI18n } from '../../i18n/I18nProvider';
 import { useDebouncedValue, usePageTitle } from '../../lib/hooks';
+import './mod2/dict';
+import { PollsOverview } from './mod2/PollViz';
 import { PollDetailDrawer } from './polls/PollDetail';
 import { PollFormModal } from './polls/PollForm';
 import { stateTone } from './polls/pollsLogic';
@@ -121,21 +123,21 @@ export default function PollsAdminPage() {
         }
       />
 
-      <div className={v2.tiles} data-testid="poll-stats" data-search-anchor="polls-stats">
-        <StatTile label={t('admin.p03.stats.total')} value={s?.total} loading={stats.isLoading} error={stats.isError} onRetry={() => void stats.refetch()} />
-        <StatTile label={t('admin.p03.stats.open')} value={s?.open} icon="check" loading={stats.isLoading} error={stats.isError} caption={t('admin.v2m.polls.openHint')} />
-        <StatTile label={t('admin.p03.stats.closed')} value={s?.closed} loading={stats.isLoading} error={stats.isError} caption={t('admin.v2m.polls.closedHint')} />
-        <StatTile label={t('admin.p03.stats.draft')} value={s?.draft} loading={stats.isLoading} error={stats.isError} caption={t('admin.v2m.polls.draftHint')} />
-        <StatTile label={t('admin.p03.stats.cancelled')} value={s?.cancelled} loading={stats.isLoading} error={stats.isError} />
-        <StatTile label={t('admin.p03.stats.votes')} value={s?.totalVotes} loading={stats.isLoading} error={stats.isError} />
-        <ProgressRing
-          value={s?.avgTurnoutPercent ?? null}
-          loading={stats.isLoading}
-          size={92}
-          thickness={9}
-          tone="info"
-          label={t('admin.p03.stats.turnout')}
-        />
+      <div data-testid="poll-stats" data-search-anchor="polls-stats">
+        <div className={v2.tiles}>
+          <StatTile label={t('admin.p03.stats.total')} value={s?.total} loading={stats.isLoading} error={stats.isError} onRetry={() => void stats.refetch()} />
+          <StatTile label={t('admin.p03.stats.open')} value={s?.open} icon="check" loading={stats.isLoading} error={stats.isError} caption={t('admin.v2m.polls.openHint')} />
+          <StatTile label={t('admin.p03.stats.votes')} value={s?.totalVotes} loading={stats.isLoading} error={stats.isError} />
+          <ProgressRing
+            value={s?.avgTurnoutPercent ?? null}
+            loading={stats.isLoading}
+            size={92}
+            thickness={9}
+            tone="info"
+            label={t('admin.p03.stats.turnout')}
+          />
+        </div>
+        {s && <PollsOverview stats={s} />}
       </div>
       {s && (
         <Insight

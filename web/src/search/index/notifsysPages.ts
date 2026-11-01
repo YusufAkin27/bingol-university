@@ -336,6 +336,34 @@ export const systemPages: SearchEntry[] = [
     description: 'Yazışmalara kimin, ne zaman ve neden eriştiğini süz.',
   },
 
+  {
+    id: 'messageAccess.byAdmin',
+    kind: 'section',
+    page: 'messageAccess',
+    title: 'Kim bakmış? (yöneticilere göre erişim)',
+    anchor: 'access-by-admin',
+    keywords: ['en çok mesaj okuyan yönetici', 'yazışmalara bakanlar', 'erişim sıralaması'],
+    description: 'Sohbetlere en çok bakan yöneticilerin sıralaması.',
+  },
+  {
+    id: 'messageAccess.byKind',
+    kind: 'section',
+    page: 'messageAccess',
+    title: 'Nasıl bakılmış? (erişim türleri)',
+    anchor: 'access-by-kind',
+    keywords: ['sohbet açma', 'mesaj aralığı', 'medya görüntüleme', 'erişim türü dağılımı'],
+    description: 'Erişimlerin türüne göre dağılımı.',
+  },
+  {
+    id: 'messageAccess.reasonChart',
+    kind: 'section',
+    page: 'messageAccess',
+    title: 'Sebep yazılmış mı?',
+    anchor: 'access-reason-chart',
+    keywords: ['gerekçesiz bakış', 'sebepsiz erişim', 'gerekçe oranı', 'sebep eksik'],
+    description: 'Erişimlerin kaçında sebep yazıldığını gösterir.',
+  },
+
   // ---- Şifreleme ----
   {
     id: 'crypto.status',

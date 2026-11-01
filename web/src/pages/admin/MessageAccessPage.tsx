@@ -38,6 +38,8 @@ import {
 } from './audit/accessLogic';
 import { clip } from './audit/auditLogic';
 import { DebouncedInput } from './users/DebouncedInput';
+import { AccessCharts } from './mod2/AccessCharts';
+import './mod2/dict';
 
 export default function MessageAccessPage() {
   const i18n = useI18n();
@@ -161,6 +163,7 @@ export default function MessageAccessPage() {
           })}
         />
       )}
+      {data && <AccessCharts rows={data.items} />}
       <FilterPanel
         activeCount={activeCount}
         onClear={() => {
