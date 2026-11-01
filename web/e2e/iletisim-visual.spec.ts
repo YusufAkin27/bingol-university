@@ -76,7 +76,7 @@ for (const sz of SIZES) {
       page.on('pageerror', (e) => errors.push(e.message));
       await setup(page, 'light', sz.w, sz.h, 'full');
       await page.goto(ps.path);
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('networkidle', { timeout: 8000 }).catch(() => {}); // canlı yenilenen sayfalar hiç boşta kalmaz
       await page.waitForTimeout(700);
       if (!SHOTS_ONLY && ps.expect) await expect(page.getByText(ps.expect).first()).toBeVisible();
       await page.screenshot({ path: join(DIR, `${ps.name}-${sz.tag}-light.png`), fullPage: true });
@@ -96,7 +96,7 @@ for (const ps of PAGES) {
   test(`${ps.name} @1280 (koyu, dolu)`, async ({ page }) => {
     await setup(page, 'dark', 1280, 900, 'full');
     await page.goto(ps.path);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('networkidle', { timeout: 8000 }).catch(() => {}); // canlı yenilenen sayfalar hiç boşta kalmaz
     await page.waitForTimeout(500);
     await page.screenshot({ path: join(DIR, `${ps.name}-1280-dark.png`), fullPage: true });
   });
@@ -107,7 +107,7 @@ for (const ps of PAGES.filter((p) => ['tickets', 'feedback', 'campaigns', 'mail-
     test(`${ps.name} @1280 (${sc})`, async ({ page }) => {
       await setup(page, 'light', 1280, 900, sc);
       await page.goto(ps.path);
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('networkidle', { timeout: 8000 }).catch(() => {}); // canlı yenilenen sayfalar hiç boşta kalmaz
       await page.waitForTimeout(500);
       if (!SHOTS_ONLY && sc === 'empty' && ps.expectEmpty) await expect(page.getByText(ps.expectEmpty).first()).toBeVisible();
       await page.screenshot({ path: join(DIR, `${ps.name}-1280-${sc}.png`), fullPage: true });

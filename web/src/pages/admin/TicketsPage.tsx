@@ -131,7 +131,9 @@ export default function TicketsPage() {
       card: { priority: 2 },
       render: (r) =>
         r.status === 'OPEN' ? (
-          <Badge tone={AGE_TONE[ageKeyOf(r.updatedAt)]}>{kit.relative(r.updatedAt)}</Badge>
+          <span className={il2.nowrap}>
+            <Badge tone={AGE_TONE[ageKeyOf(r.updatedAt)]}>{kit.relative(r.updatedAt)}</Badge>
+          </span>
         ) : (
           '—'
         ),
