@@ -23,7 +23,7 @@ export default function DownloadPage() {
   const origin = siteOrigin();
   usePageMeta({
     route: 'download',
-    jsonLd: mobileAppLd(info.data, stores, origin),
+    jsonLd: mobileAppLd(info.data, stores, origin, t('seo.d.home')),
   });
   return (
     <>

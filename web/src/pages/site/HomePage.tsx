@@ -7,10 +7,11 @@ import { useAppInfo, useStoreLinks } from '../../api/hooks';
 import { Icon, type IconName } from '../../components/ui';
 import { useI18n } from '../../i18n/I18nProvider';
 import { paths } from '../../paths';
+import { pageUrl } from '../../seo/headModel';
 import { siteOrigin } from '../../seo/siteUrl';
 import { CtaBand } from './components/CtaBand';
 import { SHOWCASE } from './components/features';
-import { mobileAppLd, organizationLd } from './components/jsonLd';
+import { mobileAppLd, organizationLd, websiteLd } from './components/jsonLd';
 import { MaintenanceNotice } from './components/Notices';
 import { useHeadingFocus } from './components/PageHero';
 import { PhoneMockup } from './components/PhoneMockup';
@@ -27,14 +28,18 @@ const TILES = SHOWCASE.filter((s) => ['menu', 'chat', 'clubs', 'events'].include
 const PRIVACY_ICONS: IconName[] = ['shield', 'download', 'eyeOff', 'message'];
 
 export default function HomePage() {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const stores = useStoreLinks();
   const info = useAppInfo();
   const h1 = useHeadingFocus<HTMLHeadingElement>();
   const origin = siteOrigin();
   usePageMeta({
     route: 'home',
-    jsonLd: [organizationLd(info.data, origin), mobileAppLd(info.data, stores, origin)],
+    jsonLd: [
+      organizationLd(info.data, origin),
+      websiteLd(origin, lang, pageUrl(origin, lang, '/')),
+      mobileAppLd(info.data, stores, origin, t('seo.d.home')),
+    ],
   });
 
   const privacy: Point[] = ([1, 2, 3, 4] as const).map((n) => ({

@@ -11,6 +11,7 @@ import { paths } from '../../paths';
 import { CtaBand } from './components/CtaBand';
 import { FaqAccordion } from './components/FaqAccordion';
 import { countFaq, filterFaq } from './components/faqFilter';
+import { faqLd } from './components/jsonLd';
 import { buildNewFaq } from './components/newFaq';
 import { PageHero } from './components/PageHero';
 import { PhoneMockup } from './components/PhoneMockup';
@@ -22,7 +23,9 @@ export default function FaqPage() {
   const i18n = useI18n();
   const { t, lang } = i18n;
   const [query, setQuery] = useState('');
-  usePageMeta({ route: 'faq' });
+  // Yalnız sayfada her zaman görünen statik bölümün soruları: JSON-LD görünür içerikle birebir kalır
+  const faqJsonLd = useMemo(() => faqLd(buildNewFaq(t)), [t]);
+  usePageMeta({ route: 'faq', jsonLd: faqJsonLd });
   const faq = useQuery({ queryKey: qk.faq.public(lang), queryFn: listFaq });
   const groups = useMemo(() => filterFaq(faq.data ?? [], query), [faq.data, query]);
   const total = countFaq(faq.data ?? []);

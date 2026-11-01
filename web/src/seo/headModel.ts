@@ -54,7 +54,18 @@ export interface HeadInput {
   title: string;
   description?: string;
   appName: string;
+  /** true: `noindex, nofollow` (yönetim, giriş, token'lı sayfalar, 404). Alternatif/hreflang yazılmaz. */
   noindex?: boolean;
+  /** `noindex` yerine verilecek tam robots değeri (ör. haber ayrıntısı: `noindex, follow`). Verilirse noindex sayılır. */
+  robots?: string;
+  /** og:type (varsayılan website; haber ayrıntısı article). */
+  ogType?: 'website' | 'article';
+  /** Sayfaya özgü paylaşım görseli (mutlak adres). Boyutlar bilinmediği için og:image:width/height yazılmaz. */
+  image?: { url: string; alt?: string };
+  /** article:published_time (ISO 8601); yalnız ogType=article. */
+  publishedTime?: string;
+  /** Sayfa içeriğinin yerelleştirildiği diller (varsayılan hepsi). `lang` bunların dışındaysa canonical Türkçeye gider, hreflang yazılmaz. */
+  langs?: Lang[];
   /** Kanonik yol ve alternatifler başka yola işaret edecekse (eş adlar). Varsayılan `path`. */
   canonicalPath?: string;
 }
@@ -63,25 +74,34 @@ const t = (lang: Lang, key: string): string => translate(lang, key);
 
 export function buildHeadModel(i: HeadInput): HeadModel {
   const canonicalPath = i.canonicalPath ?? i.path;
-  const url = pageUrl(i.origin, i.lang, canonicalPath);
-  const image = `${i.origin}${ogImagePath(i.lang)}`;
-  const alt = t(i.lang, 'seo.og.imageAlt');
+  const allLangs = LANGS.map((l) => l.code);
+  const langs = i.langs?.length ? i.langs : allLangs;
+  const localized = langs.includes(i.lang);
+  // Yerelleştirilmemiş dil: Türkçe (yoksa listedeki ilk dil) sürüm kanoniktir; bu sayfa kopya olarak işaretlenir
+  const canonicalLang: Lang = localized ? i.lang : langs.includes('tr') ? 'tr' : langs[0];
+  const url = pageUrl(i.origin, canonicalLang, canonicalPath);
+  const robots = i.robots ?? (i.noindex ? 'noindex, nofollow' : undefined);
+  const image = i.image?.url ?? `${i.origin}${ogImagePath(i.lang)}`;
+  const alt = i.image ? i.image.alt : t(i.lang, 'seo.og.imageAlt');
   const metas: MetaTag[] = [];
   const meta = (attr: MetaTag['attr'], key: string, content: string | undefined) => {
     if (content) metas.push({ attr, key, content });
   };
   meta('name', 'description', i.description);
-  if (i.noindex) meta('name', 'robots', 'noindex');
-  meta('property', 'og:type', 'website');
+  meta('name', 'robots', robots);
+  meta('property', 'og:type', i.ogType ?? 'website');
   meta('property', 'og:site_name', i.appName);
   meta('property', 'og:title', i.title);
   meta('property', 'og:description', i.description);
   meta('property', 'og:url', url);
-  meta('property', 'og:locale', OG_LOCALE[i.lang]);
-  for (const l of LANGS) if (l.code !== i.lang) meta('property', 'og:locale:alternate', OG_LOCALE[l.code]);
+  meta('property', 'og:locale', OG_LOCALE[canonicalLang]);
+  for (const code of langs) if (code !== canonicalLang) meta('property', 'og:locale:alternate', OG_LOCALE[code]);
+  if (i.ogType === 'article') meta('property', 'article:published_time', i.publishedTime);
   meta('property', 'og:image', image);
-  meta('property', 'og:image:width', String(OG_IMAGE_SIZE.width));
-  meta('property', 'og:image:height', String(OG_IMAGE_SIZE.height));
+  if (!i.image) {
+    meta('property', 'og:image:width', String(OG_IMAGE_SIZE.width));
+    meta('property', 'og:image:height', String(OG_IMAGE_SIZE.height));
+  }
   meta('property', 'og:image:alt', alt);
   meta('name', 'twitter:card', 'summary_large_image');
   meta('name', 'twitter:title', i.title);
@@ -90,11 +110,11 @@ export function buildHeadModel(i: HeadInput): HeadModel {
   meta('name', 'twitter:image:alt', alt);
 
   const links: LinkTag[] = [{ rel: 'canonical', href: url }];
-  if (!i.noindex) {
-    for (const l of LANGS) {
-      links.push({ rel: 'alternate', hreflang: l.code, href: pageUrl(i.origin, l.code, canonicalPath) });
+  if (!robots && localized) {
+    for (const code of langs) {
+      links.push({ rel: 'alternate', hreflang: code, href: pageUrl(i.origin, code, canonicalPath) });
     }
-    links.push({ rel: 'alternate', hreflang: 'x-default', href: pageUrl(i.origin, 'tr', canonicalPath) });
+    links.push({ rel: 'alternate', hreflang: 'x-default', href: pageUrl(i.origin, langs.includes('tr') ? 'tr' : langs[0], canonicalPath) });
   }
   return { lang: i.lang, dir: dirOf(i.lang), title: i.title, canonical: url, metas, links };
 }

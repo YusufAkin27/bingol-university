@@ -6,32 +6,29 @@ import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'nod
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { afterAll, describe, expect, it } from 'vitest';
-import { DYNAMIC_PATH_RES, TR_ONLY_PATH_RE, parseRobots, robotsAllows, runChecks } from '../../scripts/check-seo.mjs';
+import { DYNAMIC_PATH_RES, PARTIAL_LANG_PATHS, parseRobots, robotsAllows, runChecks } from '../../scripts/check-seo.mjs';
 import { LANGS } from '../i18n/lang';
-import { AI_TRAINING_BOTS, buildRobots, buildSitemap, contentHash, isTurkishOnly, sitemapLangs } from './crawl';
+import { AI_TRAINING_BOTS, buildRobots, buildSitemap, contentHash } from './crawl';
 import { SEO_END, SEO_START, prerender, routeSignature } from './prerender';
-import { ROUTE_META } from './routeMeta';
+import { ROUTE_META, localizedLangs } from './routeMeta';
 
 const ORIGIN = 'https://example.org';
 const NGINX = readFileSync(join(process.cwd(), 'nginx.conf'), 'utf-8');
 
-describe('Türkçe-only kuralı', () => {
-  it('check-seo.mjs düzenli ifadesi routeMeta legalType ile birebir aynı rotaları kapsar', () => {
+describe('kısmi yerelleşme kuralı (routeMeta.langs)', () => {
+  it('check-seo.mjs PARTIAL_LANG_PATHS tablosu routeMeta.langs ile birebir aynıdır', () => {
     for (const r of ROUTE_META) {
-      expect(TR_ONLY_PATH_RE.test(r.path), r.id).toBe(isTurkishOnly(r));
+      expect(PARTIAL_LANG_PATHS[r.path] ?? ['tr', 'en', 'ar'], r.id).toEqual(localizedLangs(r));
     }
   });
 
-  it('sitemapLangs: hukuki belge yalnız tr, diğerleri üç dil', () => {
-    expect(sitemapLangs(ROUTE_META.find((r) => r.id === 'privacy')!)).toEqual(['tr']);
-    expect(sitemapLangs(ROUTE_META.find((r) => r.id === 'faq')!)).toEqual(['tr', 'en', 'ar']);
-  });
-
-  it('sitemap: Türkçe-only sayfanın en/ar adresi ve alternatifi yok', () => {
+  it('sitemap: yerelleşmemiş dilin adresi ve alternatifi yok; tam yerelleşmiş sayfa üç dilde', () => {
     const xml = buildSitemap(ORIGIN, '2026-01-01');
-    expect(xml).toContain(`<loc>${ORIGIN}/tr/privacy</loc>`);
-    expect(xml).not.toContain(`${ORIGIN}/en/privacy`);
-    expect(xml).not.toContain(`${ORIGIN}/ar/legal/kvkk`);
+    expect(xml).toContain(`<loc>${ORIGIN}/tr/news</loc>`);
+    expect(xml).not.toContain(`${ORIGIN}/en/news`);
+    expect(xml).toContain(`<loc>${ORIGIN}/en/legal/explicit-consent</loc>`);
+    expect(xml).not.toContain(`${ORIGIN}/ar/legal/explicit-consent`);
+    expect(xml).toContain(`<loc>${ORIGIN}/ar/legal/kvkk</loc>`);
     expect(xml).toContain(`<loc>${ORIGIN}/ar/faq</loc>`);
   });
 });
@@ -194,11 +191,19 @@ describe('check-seo.mjs (sentetik dist)', () => {
   }
   const run = (dist: string) => runChecks({ dist, origin: ORIGIN, adminPath: '/admin', today: '2026-11-01' });
 
-  it('temiz çıktıda hata yok (yalnız Türkçe-only uyarıları olabilir)', () => {
+  it('temiz çıktıda hata yok; hreflang/sitemap/canonical uyarısı da yok (kısmi yerelleşme kuralı uygulanır)', () => {
     const { errors, warnings } = run(makeDist('ok'));
     expect(errors).toEqual([]);
-    // Başka uyarı kategorisi (örn. kısa description) bu testin konusu değil; tr-only dışı yeni kategori çıkarsa gözden geçirilsin
-    expect(new Set(warnings.map((w) => w.cat)).size).toBeLessThanOrEqual(4);
+    expect(warnings.filter((w) => /hreflang|sitemap|canonical/.test(w.cat))).toEqual([]);
+  });
+
+  it('yerelleşmemiş dil sürümü canonical → tr, hreflang yok; bozulursa hata verir', () => {
+    const dist = makeDist('partial');
+    const f = join(dist, 'en', 'news', 'index.html');
+    expect(readFileSync(f, 'utf-8')).toContain(`<link rel="canonical" href="${ORIGIN}/tr/news"`);
+    writeFileSync(f, readFileSync(f, 'utf-8').replace(`<link rel="canonical" href="${ORIGIN}/tr/news"`, `<link rel="canonical" href="${ORIGIN}/en/news"`));
+    const text = run(dist).errors.map((e) => `${e.where} ${e.cat} ${e.msg}`).join('\n');
+    expect(text).toMatch(/\/en\/news .*canonical/);
   });
 
   it('bozuk girdileri yakalar: ikinci h1, canonical yok, bozuk iç bağlantı, noindex sayfa sitemap içinde, http bağlantı', () => {

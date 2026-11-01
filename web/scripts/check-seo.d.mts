@@ -1,4 +1,4 @@
-export const TR_ONLY_PATH_RE: RegExp;
+export const PARTIAL_LANG_PATHS: Record<string, string[]>;
 export const DYNAMIC_PATH_RES: RegExp[];
 export interface RobotsGroup {
   agents: string[];

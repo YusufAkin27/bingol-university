@@ -17,7 +17,7 @@ export function usePageTitle(title: string) {
   const suffix = t('common.appName');
   useEffect(() => {
     const prev = document.title;
-    document.title = title ? `${title} · ${suffix}` : suffix;
+    document.title = title ? `${title} | ${suffix}` : suffix;
     return () => {
       document.title = prev;
     };

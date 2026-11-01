@@ -3,26 +3,12 @@
  * Saf işlevler (dosya sistemi scripts/prerender.mjs'te). Mantıksal rota listesi routeMeta.ts'ten gelir.
  * Teknik SEO sözleşmesi ve gerekçeler: docs/SEO_TECHNICAL.md.
  */
-import { LANGS, type Lang } from '../i18n/lang';
+import type { Lang } from '../i18n/lang';
 import { pageUrl } from './headModel';
-import { ROUTE_META, type RouteMeta } from './routeMeta';
+import { ROUTE_META, localizedLangs } from './routeMeta';
 
 const esc = (s: string): string =>
   s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-
-/**
- * İçeriği yalnız Türkçe sunulan rotalar: hukuki belgeler arka uçtan gelir ve EN/AR çevirisi yoktur (Türkçe gösterilir).
- * Bu sayfaların en/ar sürümü "çeviri" değil kopya olur: hreflang kümesine ve sitemap'e GİRMEZ (docs/SEO_TECHNICAL.md bölüm 3).
- * Kural tek yerde durur; başlık/hreflang tarafı (headModel) ve check-seo.mjs aynı kuralı kullanır.
- */
-export function isTurkishOnly(meta: Pick<RouteMeta, 'legalType'>): boolean {
-  return Boolean(meta.legalType);
-}
-
-/** Rotanın sitemap'e girecek dilleri (Türkçe-only rotada yalnız tr). */
-export function sitemapLangs(meta: RouteMeta): Lang[] {
-  return isTurkishOnly(meta) ? ['tr'] : LANGS.map((l) => l.code);
-}
 
 /** Rota × dil → `lastmod` (YYYY-MM-DD). */
 export type LastmodResolver = (routeId: string, lang: Lang) => string;
@@ -31,10 +17,12 @@ export function buildSitemap(origin: string, lastmod: string | LastmodResolver):
   const mod: LastmodResolver = typeof lastmod === 'function' ? lastmod : () => lastmod;
   const entries: string[] = [];
   for (const r of ROUTE_META) {
-    const langs = sitemapLangs(r);
+    // Yalnız içeriği o dilde gerçekten yerelleştirilmiş diller (routeMeta.langs, TEK kaynak): diğer dil URL'leri canonical → tr,
+    // hreflang kümesine ve sitemap'e girmez (docs/SEO_TECHNICAL.md bölüm 3). Başlık tarafı headModel aynı kuralı uygular.
+    const langs = localizedLangs(r);
     const alt = [
       ...langs.map((l) => `    <xhtml:link rel="alternate" hreflang="${l}" href="${esc(pageUrl(origin, l, r.path))}" />`),
-      `    <xhtml:link rel="alternate" hreflang="x-default" href="${esc(pageUrl(origin, 'tr', r.path))}" />`,
+      `    <xhtml:link rel="alternate" hreflang="x-default" href="${esc(pageUrl(origin, langs.includes('tr') ? 'tr' : langs[0], r.path))}" />`,
     ].join('\n');
     for (const lang of langs) {
       entries.push(

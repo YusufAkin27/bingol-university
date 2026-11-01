@@ -20,10 +20,15 @@ import { dirname, join, relative } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
 /**
- * İçeriği yalnız Türkçe sunulan rotalar (hukuki belgeler: arka uçtan gelir, EN/AR çevirisi yok). Bunların en/ar sürümü
- * hreflang kümesinde ve sitemap'te OLMAMALI (src/seo/crawl.ts isTurkishOnly ile aynı kural; seo.test.ts eşitliği doğrular).
+ * İçeriği yalnız bazı dillerde yerelleştirilmiş rotalar (mantıksal yol → diller). Tek kaynak `RouteMeta.langs`
+ * (src/seo/routeMeta.ts); bu tablo betiğin TypeScript'e bağımlı olmaması için aynalanır, eşitliği crawl.test.ts doğrular.
+ * Listelenmeyen rota üç dilde yerelleşmiştir. Dışarıda kalan dil sürümü canonical'ı listedeki ilk dile (tr) verir ve
+ * hreflang kümesinde ve sitemap'te OLMAMALI.
  */
-export const TR_ONLY_PATH_RE = /^\/(privacy|terms|legal\/(kvkk|community-rules|explicit-consent|content-removal|retention))$/;
+export const PARTIAL_LANG_PATHS = {
+  '/news': ['tr'], // haberler kaynak sitede yalnız Türkçe
+  '/legal/explicit-consent': ['tr', 'en'], // açık rıza metninin Arapçası yok
+};
 
 /** nginx'in kabuk (200) verdiği ama önrender dosyası olmayan geçerli dinamik iç yollar. */
 export const DYNAMIC_PATH_RES = [
@@ -169,8 +174,13 @@ export function runChecks({ dist, origin, adminPath = '', today = new Date().toI
   const urlOf = (path, langPrefix = true) => (path === '/' ? origin + '/' : origin + path);
   const byCanonical = new Map();
   const isRoot = (p) => p.path === '/';
+  const logicalOf = (p) => p.path.replace(/^\/(tr|en|ar)(?=\/|$)/, '') || '/';
+  /** Bu sayfa için yerelleştirilmiş diller (kısmi yerelleşme tablosu; yoksa üç dil). */
+  const localizedOf = (p) => PARTIAL_LANG_PATHS[logicalOf(p)] ?? LANG_CODES;
+  /** İçeriği o dilde yerelleştirilmemiş sürüm: canonical listedeki ilk dile gider, hreflang/sitemap dışıdır. */
+  const isConsolidated = (p) => p.path !== '/404.html' && !isRoot(p) && !localizedOf(p).includes(p.lang);
   for (const p of pages.values()) {
-    if (p.path === '/404.html' || isRoot(p) || p.noindex) continue;
+    if (p.path === '/404.html' || isRoot(p) || p.noindex || isConsolidated(p)) continue;
     byCanonical.set(urlOf(p.path), p);
   }
 
@@ -184,7 +194,8 @@ export function runChecks({ dist, origin, adminPath = '', today = new Date().toI
     const where = p.path === '/404.html' ? '404.html' : p.path;
     const is404 = p.path === '/404.html';
     const isRootPage = isRoot(p);
-    const indexable = !is404 && !p.noindex;
+    const consolidated = isConsolidated(p);
+    const indexable = !is404 && !p.noindex && !consolidated;
     if (indexable && !isRootPage) stats.indexable++;
 
     // title
@@ -256,7 +267,8 @@ export function runChecks({ dist, origin, adminPath = '', today = new Date().toI
       if (/[?#]/.test(c)) err(where, `canonical sorgu/parça içeriyor: ${c}`, 'canonical');
       if (c !== origin + '/' && c.endsWith('/')) err(where, `canonical sondaki / ile bitiyor: ${c}`, 'canonical');
       if (c !== c.toLowerCase()) err(where, `canonical büyük harf içeriyor: ${c}`, 'canonical');
-      const expected = isRootPage ? origin + '/tr' : urlOf(p.path);
+      const expected = isRootPage ? origin + '/tr' : consolidated ? urlOf(`/${localizedOf(p)[0]}${logicalOf(p)}`) : urlOf(p.path);
+      if (consolidated && p.alternates.length) err(where, 'canonical başka dile verilen sayfada hreflang olmamalı', 'hreflang');
       if (c !== expected) {
         const target = byCanonical.get(c);
         if (!target) err(where, `canonical (${c}) önrender edilmiş indekslenebilir bir sayfaya işaret etmiyor`, 'canonical');
@@ -295,13 +307,10 @@ export function runChecks({ dist, origin, adminPath = '', today = new Date().toI
           if (!back || back.hreflang !== p.lang) err(where, `hreflang karşılıklı değil: ${a.href} bu sayfaya geri bağlanmıyor`, 'hreflang');
         }
       }
-      // Türkçe-only kural
-      const logical = p.path.replace(/^\/(tr|en|ar)/, '') || '/';
-      if (TR_ONLY_PATH_RE.test(logical)) {
-        const nonTr = p.alternates.filter((a) => a.hreflang !== 'x-default' && a.hreflang !== 'tr');
-        if (p.lang !== 'tr') warn(where, 'içeriği yalnız Türkçe olan sayfanın en/ar sürümü indekslenebilir (noindex ya da canonical→tr olmalı)', 'tr-only');
-        else if (nonTr.length) warn(where, `Türkçe-only sayfa en/ar hreflang listeliyor (${nonTr.map((a) => a.hreflang).join(',')})`, 'tr-only');
-      }
+      // kısmi yerelleşme: hreflang kümesi tam olarak yerelleştirilmiş diller (+ x-default) olmalı
+      const want = [...localizedOf(p)].sort().join(',');
+      const got = p.alternates.filter((a) => a.hreflang !== 'x-default').map((a) => a.hreflang).sort().join(',');
+      if (got !== want) err(where, `hreflang dilleri yerelleştirilmiş dillerle uyuşmuyor (sayfada: ${got}; beklenen: ${want})`, 'hreflang');
     }
 
     // Open Graph / Twitter
@@ -431,20 +440,15 @@ export function runChecks({ dist, origin, adminPath = '', today = new Date().toI
       const onlyHead = [...headSet].filter((x) => !smSet.has(x));
       const onlySm = [...smSet].filter((x) => !headSet.has(x));
       if (onlyHead.length || onlySm.length) {
-        const logical = page.path.replace(/^\/(tr|en|ar)/, '') || '/';
-        const trOnlyDiff = TR_ONLY_PATH_RE.test(logical) && onlySm.length === 0;
-        (trOnlyDiff ? warn : err)(
+        err(
           where,
           `sitemap alternatifleri sayfa hreflang'ıyla uyuşmuyor (yalnız sayfada: ${onlyHead.join(' ') || '-'}; yalnız sitemap'te: ${onlySm.join(' ') || '-'})`,
-          trOnlyDiff ? 'tr-only' : 'sitemap',
+          'sitemap',
         );
       }
     }
-    for (const [url, p] of byCanonical) {
-      if (inSitemap.has(url)) continue;
-      const logical = p.path.replace(/^\/(tr|en|ar)/, '') || '/';
-      if (TR_ONLY_PATH_RE.test(logical) && p.lang !== 'tr') warn(`sitemap ${url}`, 'indekslenebilir sayfa sitemap\'te yok (Türkçe-only en/ar: noindex yapılmalı)', 'tr-only');
-      else err(`sitemap ${url}`, "indekslenebilir sayfa sitemap'te yok", 'sitemap');
+    for (const url of byCanonical.keys()) {
+      if (!inSitemap.has(url)) err(`sitemap ${url}`, "indekslenebilir sayfa sitemap'te yok", 'sitemap');
     }
     if (lastmods.length >= 10 && new Set(lastmods).size === 1) {
       warn('sitemap.xml', `tüm lastmod değerleri aynı (${lastmods[0]}): sayfa başına gerçek değişim tarihi kullanılmalı (seo-lastmod.json)`, 'lastmod');

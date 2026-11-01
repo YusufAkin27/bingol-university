@@ -32,7 +32,7 @@ describe('404.html (prerender)', () => {
   it('noindex + açıklama + h1 içerir, canonical/hreflang içermez', () => {
     expect(html).toContain('<meta name="robots" content="noindex, nofollow"');
     expect(html).toContain('<meta name="description"');
-    expect(html).toContain('<title>Sayfa bulunamadı · BÜ Kampüs</title>');
+    expect(html).toContain('<title>Sayfa bulunamadı | BÜ Kampüs</title>');
     expect(html).toMatch(/<h1>Sayfa bulunamadı<\/h1>/);
     expect(html).not.toContain('rel="canonical"');
     expect(html).not.toContain('hreflang');

@@ -2,7 +2,7 @@
 // API: GET /api/news/{id} (herkese açık; 404 → bulunamadı); GET /api/news?type=<aynı tür>&size=12 (önceki/sonraki ve ilgili içerikler).
 // Metin düz metin olarak, HTML enjekte edilmeden. Paylaş: Web Share API, yoksa bağlantıyı kopyalar. Orijinal habere bağlantı korunur.
 import { useQuery } from '@tanstack/react-query';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { Link } from '../../components/LocalizedLink';
 import { isApiError } from '../../api/client';
@@ -11,9 +11,12 @@ import { Button, ButtonLink, EmptyState, ErrorState, Icon, Skeleton } from '../.
 import { useI18n } from '../../i18n/I18nProvider';
 import { errorMessage } from '../../lib/errors';
 import { paths } from '../../paths';
+import { pageUrl } from '../../seo/headModel';
+import { siteOrigin } from '../../seo/siteUrl';
 import { NewsCard, NewsMeta, NewsThumb } from './components/NewsCard';
 import { PageHero } from './components/PageHero';
-import { safeImageUrl, safeSourceUrl, sourceHost } from './components/newsUtils';
+import { newsArticleLd } from './components/jsonLd';
+import { metaDescription, safeImageUrl, safeSourceUrl, sourceHost } from './components/newsUtils';
 import { usePageMeta } from './components/usePageMeta';
 import shared from './components/site.module.css';
 import styles from './NewsDetailPage.module.css';
@@ -104,11 +107,39 @@ export default function NewsDetailPage() {
   const list = t('pg.news.title');
   const title = q.data?.title ?? list;
   const notFound = !valid || (q.isError && isApiError(q.error) && q.error.status === 404);
+  const { lang } = i18n;
+  const origin = siteOrigin();
+  const logicalPath = valid ? paths.site.newsItem(id!) : paths.site.news;
+  const desc = metaDescription(q.data?.content, t('pg.news.meta'));
+  const seoImage = safeImageUrl(q.data?.imageUrl ?? null);
+  const articleLd = useMemo(
+    () =>
+      q.data && !notFound
+        ? newsArticleLd(
+            {
+              url: pageUrl(origin, lang, logicalPath),
+              headline: q.data.title,
+              description: desc,
+              datePublished: q.data.publishedDate,
+              image: seoImage,
+              lang: 'tr', // kaynak içerik Türkçe, arayüz dili değil
+              sourceUrl: safeSourceUrl(q.data.url),
+            },
+            origin,
+          )
+        : undefined,
+    [q.data, notFound, origin, lang, logicalPath, desc, seoImage],
+  );
+  // Haber ayrıntısı başlangıçta dizine girmez (üniversite içeriğinin özeti: kopya/telif riski; bkz. docs/SEO.md P5).
+  // Bağlantılar izlenir; karar değişirse yalnız bu robots değeri kalkar.
   usePageMeta({
     title,
-    description: q.data?.content?.slice(0, 160) || t('pg.news.meta'),
-    path: valid ? paths.site.newsItem(id!) : paths.site.news,
-    noindex: notFound,
+    description: desc,
+    path: logicalPath,
+    robots: 'noindex, follow',
+    jsonLd: articleLd,
+    image: seoImage ? { url: seoImage, alt: title } : undefined,
+    article: q.data ? { publishedTime: q.data.publishedDate } : undefined,
   });
   const source = safeSourceUrl(q.data?.url ?? null);
   const host = sourceHost(q.data?.url ?? null);
@@ -157,7 +188,7 @@ export default function NewsDetailPage() {
                 </div>
               </div>
               {hero && (
-                <NewsThumb src={q.data.imageUrl} alt={t('pg.news.untitledImage')} className={styles.hero} />
+                <NewsThumb src={q.data.imageUrl} alt={q.data.title} className={styles.hero} />
               )}
               <div className={styles.prose}>
                 {paras.length > 0 ? (

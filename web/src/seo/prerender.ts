@@ -8,10 +8,10 @@ import type { TranslationKey } from '../i18n';
 import { dictionaries } from '../i18n/all'; // önrender tüm dilleri eşzamanlı ister (çalışma zamanı paketine girmez)
 import { LANGS, dirOf, type Lang } from '../i18n/lang';
 import { buildNewFaq } from '../pages/site/components/newFaq';
-import { breadcrumbLd, faqLd, mobileAppLd, organizationLd } from '../pages/site/components/jsonLd';
+import { breadcrumbLd, faqLd, mobileAppLd, organizationLd, websiteLd } from '../pages/site/components/jsonLd';
 import { buildHeadModel, normalizeOrigin, pageUrl, type HeadModel } from './headModel';
 import { buildRobots, buildSitemap, contentHash, type LastmodResolver } from './crawl';
-import { ROUTE_META, resolveMeta, type RouteMeta } from './routeMeta';
+import { ROUTE_META, brandTitle, localizedLangs, resolveMeta, type RouteMeta } from './routeMeta';
 
 export const SEO_START = '<!--seo:start-->';
 export const SEO_END = '<!--seo:end-->';
@@ -48,9 +48,16 @@ export function routeJsonLd(meta: RouteMeta, lang: Lang, origin: string): unknow
   const resolved = resolveMeta(meta, lang);
   const blocks: unknown[] = [];
   const stores = { android: null, ios: null };
-  if (meta.id === 'home') blocks.push(organizationLd(undefined, origin), mobileAppLd(undefined, stores, origin));
+  const appDesc = t('seo.d.home');
+  if (meta.id === 'home') {
+    blocks.push(
+      organizationLd(undefined, origin),
+      websiteLd(origin, lang, pageUrl(origin, lang, '/')),
+      mobileAppLd(undefined, stores, origin, appDesc),
+    );
+  }
   if (meta.id === 'about' || meta.id === 'contact') blocks.push(organizationLd(undefined, origin));
-  if (meta.id === 'download') blocks.push(mobileAppLd(undefined, stores, origin));
+  if (meta.id === 'download') blocks.push(mobileAppLd(undefined, stores, origin, appDesc));
   if (meta.faq) {
     blocks.push(faqLd(buildNewFaq((k: TranslationKey) => t(k))));
   }
@@ -181,6 +188,7 @@ export function applyTemplate(
     title: resolved.fullTitle,
     description: resolved.description,
     appName: resolved.appName,
+    langs: localizedLangs(meta),
   });
   const lines = [serializeHead(model, routeJsonLd(meta, lang, origin)), ...(hints ? renderHints(hints, meta, lang) : [])];
   const head = `${SEO_START}\n    ${lines.join('\n    ')}\n    ${SEO_END}`;
@@ -206,7 +214,7 @@ export function render404(template: string): string {
   if (start < 0 || end < start) throw new Error(`Şablonda ${SEO_START} ... ${SEO_END} işaretleri yok`);
   if (!ROOT_DIV.test(template)) throw new Error(`Şablonda <div id="root"> yok`);
   const t = tr('tr');
-  const title = `${t('site.notFound.title')} · ${t('common.appName')}`;
+  const title = brandTitle(t('site.notFound.title'), t('common.appName'));
   const head = [
     `<title>${esc(title)}</title>`,
     `<meta name="robots" content="noindex, nofollow" data-pre="1" />`,

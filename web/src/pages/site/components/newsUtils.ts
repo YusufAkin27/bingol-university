@@ -44,3 +44,13 @@ export function sourceHost(url: string | null | undefined): string | null {
 export function kindTone(kind: NewsKind): Tone {
   return kind === 'DUYURU' ? 'warning' : kind === 'ETKINLIK' ? 'info' : 'primary';
 }
+
+/** Meta açıklaması: boşlukları sadeleştirir, sözcük sınırında en çok `max` karaktere keser (uzunsa "…" ekler); boşsa `fallback`. */
+export function metaDescription(text: string | null | undefined, fallback: string, max = 155): string {
+  const flat = (text ?? '').replace(/\s+/g, ' ').trim();
+  if (flat.length < 40) return fallback;
+  if (flat.length <= max) return flat;
+  const cut = flat.slice(0, max - 1);
+  const at = cut.lastIndexOf(' ');
+  return `${(at > max * 0.6 ? cut.slice(0, at) : cut).replace(/[\s,;:.\-–]+$/, '')}…`;
+}

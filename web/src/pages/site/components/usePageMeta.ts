@@ -3,7 +3,7 @@ import { useLocation } from 'react-router-dom';
 import { useI18n } from '../../../i18n/I18nProvider';
 import { splitLangPath } from '../../../i18n/langPath';
 import { buildHeadModel, pageUrl } from '../../../seo/headModel';
-import { resolveMeta, routeById, type RouteId } from '../../../seo/routeMeta';
+import { brandTitle, localizedLangs, resolveMeta, routeById, type RouteId } from '../../../seo/routeMeta';
 import { siteOrigin } from '../../../seo/siteUrl';
 import { breadcrumbLd } from './jsonLd';
 
@@ -20,7 +20,14 @@ export interface PageMetaOptions {
   path?: string;
   /** Yalnızca bilinen alanlarla JSON-LD nesne(ler)i. Rota sayfalarına BreadcrumbList otomatik eklenir. */
   jsonLd?: Record<string, unknown> | Record<string, unknown>[];
+  /** `noindex, nofollow`: yönetim, giriş, token'lı ve hata sayfaları. */
   noindex?: boolean;
+  /** Tam robots değeri (ör. `noindex, follow`); verilirse noindex'ten önceliklidir. */
+  robots?: string;
+  /** Sayfaya özgü paylaşım görseli (mutlak adres) ve metni; yoksa varsayılan og.png. */
+  image?: { url: string; alt?: string };
+  /** og:type=article (haber ayrıntısı) ve yayın tarihi. */
+  article?: { publishedTime?: string | null };
 }
 
 /** Önrender çıktısındaki ve bu kancanın yazdığı yönetilen etiketler. */
@@ -39,7 +46,7 @@ const MANAGED = [
  * sayfadan çıkınca önceki (önrender dışı) değerleri geri koyar. `lang`/`dir` I18nProvider tarafından yönetilir.
  * Derleme zamanında aynı değerleri `scripts/prerender.mjs` HTML'e gömer (aynı headModel + routeMeta).
  */
-export function usePageMeta({ route, title, description, path, jsonLd, noindex }: PageMetaOptions) {
+export function usePageMeta({ route, title, description, path, jsonLd, noindex, robots, image, article }: PageMetaOptions) {
   const { lang, t } = useI18n();
   const location = useLocation();
   const meta = route ? routeById(route) : undefined;
@@ -50,9 +57,22 @@ export function usePageMeta({ route, title, description, path, jsonLd, noindex }
     const resolved = meta ? resolveMeta(meta, lang) : undefined;
     const appName = t('common.appName');
     const shownTitle = title ?? resolved?.title ?? '';
-    const full = title === undefined && resolved ? resolved.fullTitle : shownTitle ? `${shownTitle} · ${appName}` : appName;
+    const full = title === undefined && resolved ? resolved.fullTitle : brandTitle(shownTitle, appName, !!meta?.home);
     const desc = description ?? resolved?.description;
-    const model = buildHeadModel({ lang, origin, path: logicalPath, title: full, description: desc, appName, noindex });
+    const model = buildHeadModel({
+      lang,
+      origin,
+      path: logicalPath,
+      title: full,
+      description: desc,
+      appName,
+      noindex,
+      robots,
+      image,
+      ogType: article ? 'article' : undefined,
+      publishedTime: article?.publishedTime ?? undefined,
+      langs: meta ? localizedLangs(meta) : undefined,
+    });
     const blocks = jsonLd ? [...(Array.isArray(jsonLd) ? jsonLd : [jsonLd])] : [];
     if (meta && !meta.home) {
       blocks.push(
@@ -63,7 +83,7 @@ export function usePageMeta({ route, title, description, path, jsonLd, noindex }
       );
     }
     return { head: model, ldText: blocks.map((b) => JSON.stringify(b)) };
-  }, [meta, lang, t, title, description, jsonLd, logicalPath, noindex, origin]);
+  }, [meta, lang, t, title, description, jsonLd, logicalPath, noindex, robots, image, article, origin]);
 
   const headKey = JSON.stringify(head);
   const ldKey = ldText.join('\n');
