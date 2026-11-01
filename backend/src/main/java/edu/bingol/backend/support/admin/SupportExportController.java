@@ -27,10 +27,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -107,17 +108,18 @@ public class SupportExportController {
             }
             return cb.and(ps.toArray(new Predicate[0]));
         };
-        List<SupportTicket> rows = tickets.findAll(spec, PageRequest.of(0, MAX_ROWS, Sort.by(Sort.Direction.DESC, "id")))
-                .getContent();
-        Map<Long, String> emails = emailsOf(rows.stream().map(SupportTicket::getUserId).toList());
+        int[] total = {0};
         try {
-            write(res, "talepler.csv", TICKET_HEADER, rows.stream().map(r -> Arrays.<Object>asList(r.getId(),
-                    r.getStatus(), r.getCategory(), r.getPriority(), r.getAssigneeId(), r.getSubject(), r.getUserId(),
-                    PermissionAwareMasking.email(r.isPublicTicket() ? r.getContactEmail() : emails.get(r.getUserId())),
-                    r.isPublicTicket(),
-                    r.getCreatedAt(), r.getUpdatedAt(), r.getClosedAt())).toList());
+            streamCsv(res, "talepler.csv", TICKET_HEADER, tickets, spec, SupportTicket::getId, batch -> {
+                Map<Long, String> emails = emailsOf(batch.stream().map(SupportTicket::getUserId).toList());
+                return batch.stream().map(r -> Arrays.<Object>asList(r.getId(),
+                        r.getStatus(), r.getCategory(), r.getPriority(), r.getAssigneeId(), r.getSubject(), r.getUserId(),
+                        PermissionAwareMasking.email(r.isPublicTicket() ? r.getContactEmail() : emails.get(r.getUserId())),
+                        r.isPublicTicket(),
+                        r.getCreatedAt(), r.getUpdatedAt(), r.getClosedAt())).toList();
+            }, total);
         } finally {
-            AuditContext.target("TICKET", null).summary("csv satir=" + rows.size());
+            AuditContext.target("TICKET", null).summary("csv satir=" + total[0]);
         }
     }
 
@@ -146,17 +148,58 @@ public class SupportExportController {
             }
             return cb.and(ps.toArray(new Predicate[0]));
         };
-        List<Feedback> rows = feedback.findAll(spec, PageRequest.of(0, MAX_ROWS, Sort.by(Sort.Direction.DESC, "id")))
-                .getContent();
-        Map<Long, String> emails = emailsOf(rows.stream().map(Feedback::getUserId).toList());
+        int[] total = {0};
         try {
-            write(res, "geri-bildirimler.csv", FEEDBACK_HEADER, rows.stream().map(r -> Arrays.<Object>asList(r.getId(),
-                    r.getCategory(), r.getStatus(), r.getSubject(), r.getUserId(),
-                    PermissionAwareMasking.email(emails.get(r.getUserId())),
-                    r.isPublicVisible(), r.getVoteCount(), r.getPlatform(), r.getAppVersion(), r.getCreatedAt(),
-                    r.getRespondedAt())).toList());
+            streamCsv(res, "geri-bildirimler.csv", FEEDBACK_HEADER, feedback, spec, Feedback::getId, batch -> {
+                Map<Long, String> emails = emailsOf(batch.stream().map(Feedback::getUserId).toList());
+                return batch.stream().map(r -> Arrays.<Object>asList(r.getId(),
+                        r.getCategory(), r.getStatus(), r.getSubject(), r.getUserId(),
+                        PermissionAwareMasking.email(emails.get(r.getUserId())),
+                        r.isPublicVisible(), r.getVoteCount(), r.getPlatform(), r.getAppVersion(), r.getCreatedAt(),
+                        r.getRespondedAt())).toList();
+            }, total);
         } finally {
-            AuditContext.target("FEEDBACK", null).summary("csv satir=" + rows.size());
+            AuditContext.target("FEEDBACK", null).summary("csv satir=" + total[0]);
+        }
+    }
+
+    /** Sayfa basina satir: bellek ust siniri (50 bin entity ayni anda tutulmaz) ve IN listesi parametre siniri icin. */
+    static final int PAGE = 1000;
+
+    /**
+     * Anahtar-imecli (id azalan) sayfalarla dogrudan yazar (P07-B11): ek count(*) yok, her sayfada yalniz o sayfanin
+     * kullanici e-postalari okunur, toplam en cok {@value #MAX_ROWS} satir. {@code total[0]} yazilan satir sayisini tasir.
+     */
+    private <T> void streamCsv(HttpServletResponse res, String filename, List<String> header,
+                               JpaSpecificationExecutor<T> repo, Specification<T> spec, Function<T, Long> idOf,
+                               Function<List<T>, List<List<Object>>> rowsOf, int[] total) throws IOException {
+        res.setStatus(HttpStatus.OK.value());
+        res.setContentType("text/csv; charset=UTF-8");
+        res.setHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"");
+        res.setHeader(HttpHeaders.CACHE_CONTROL, "no-store");
+        try (Writer w = new BufferedWriter(new OutputStreamWriter(res.getOutputStream(), StandardCharsets.UTF_8))) {
+            w.write(Csv.BOM);
+            w.write(Csv.row(header));
+            Long last = null;
+            while (total[0] < MAX_ROWS) {
+                final Long after = last;
+                final int take = Math.min(PAGE, MAX_ROWS - total[0]);
+                Specification<T> page = after == null ? spec
+                        : spec.and((root, q, cb) -> cb.lessThan(root.<Long>get("id"), after));
+                List<T> batch = repo.findBy(page, q -> q.sortBy(Sort.by(Sort.Direction.DESC, "id")).limit(take).all());
+                if (batch.isEmpty()) {
+                    break;
+                }
+                for (List<Object> r : rowsOf.apply(batch)) {
+                    w.write(Csv.row(r));
+                }
+                total[0] += batch.size();
+                last = idOf.apply(batch.get(batch.size() - 1));
+                if (batch.size() < take) {
+                    break;
+                }
+            }
+            w.flush();
         }
     }
 
@@ -169,22 +212,6 @@ public class SupportExportController {
             }
         }
         return out;
-    }
-
-    static void write(HttpServletResponse res, String filename, List<String> header, List<List<Object>> rows)
-            throws IOException {
-        res.setStatus(HttpStatus.OK.value());
-        res.setContentType("text/csv; charset=UTF-8");
-        res.setHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"");
-        res.setHeader(HttpHeaders.CACHE_CONTROL, "no-store");
-        try (Writer w = new BufferedWriter(new OutputStreamWriter(res.getOutputStream(), StandardCharsets.UTF_8))) {
-            w.write(Csv.BOM);
-            w.write(Csv.row(header));
-            for (List<Object> r : rows) {
-                w.write(Csv.row(r));
-            }
-            w.flush();
-        }
     }
 
     private void limit() {
