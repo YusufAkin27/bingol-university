@@ -5,6 +5,7 @@ import '../../core/locale_controller.dart';
 import '../../core/session.dart';
 import '../../widgets/bu.dart';
 import 'profil_widgets.dart';
+import 'two_factor_section.dart';
 
 /// Şifre güncelleme çağrısı: `POST /auth/change-password {currentPassword,newPassword}`.
 /// Yanıt biçimi kesinleşene dek iki durum desteklenir: 204/boş gövde ya da yeni token çifti
@@ -247,6 +248,8 @@ class _AccountSecurityPageState extends State<AccountSecurityPage> {
                     ),
                   ]),
                 ),
+                // İki adımlı doğrulama: sunucuda uç yoksa blok kendiliğinden gizlenir.
+                TwoFactorSection(session: widget.session),
                 const SizedBox(height: 24),
                 Divider(height: 1, thickness: 1, color: t.bd),
                 ProfilFlatSection(l.profil2SecSessions, top: 24, upper: true),

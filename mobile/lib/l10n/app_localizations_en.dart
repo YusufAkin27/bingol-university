@@ -9818,4 +9818,136 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get frqMsgReqDeclineGroupConfirm => 'Delete invite';
+
+  @override
+  String get tfErrCodeInvalid => 'Incorrect code. Check it and try again.';
+
+  @override
+  String get tfErrExpired => 'The code has expired. Please sign in again.';
+
+  @override
+  String get tfErrAlreadyEnabled => 'Two-step verification is already on.';
+
+  @override
+  String get tfErrNotEnabled => 'Two-step verification is not on.';
+
+  @override
+  String get tfErrWrongPassword => 'Incorrect password.';
+
+  @override
+  String get tfLoginTitle => 'Sign-in code';
+
+  @override
+  String tfLoginSubtitle(String email) {
+    return 'We sent a 6-digit code to $email.';
+  }
+
+  @override
+  String get tfLoginNote =>
+      'The code is valid for 10 minutes. If it doesn\'t arrive, check your spam folder.';
+
+  @override
+  String get tfTrustDevice => 'Trust this device';
+
+  @override
+  String get tfTrustDeviceSub =>
+      'You won\'t be asked for a code on this device next time.';
+
+  @override
+  String get tfBackToLogin => 'Back to sign in';
+
+  @override
+  String get tfSecTitle => 'Two-step verification';
+
+  @override
+  String get tfSecDesc =>
+      'When you sign in from a device we don\'t recognize, we send a code to your email address; it isn\'t asked again on a device you trust.';
+
+  @override
+  String get tfSecLoadFailed => 'Couldn\'t load the status. Tap to retry.';
+
+  @override
+  String get tfDevicesRow => 'Trusted devices';
+
+  @override
+  String get tfEnableTitle => 'Turn on two-step verification';
+
+  @override
+  String tfEnableSubtitle(String email) {
+    return 'To protect your account, enter the 6-digit code we sent to $email.';
+  }
+
+  @override
+  String get tfEnableButton => 'Turn on';
+
+  @override
+  String get tfEnabledToast => 'Two-step verification is on.';
+
+  @override
+  String get tfDisableTitle => 'Turn off two-step verification?';
+
+  @override
+  String get tfDisableBody =>
+      'Enter your password to confirm. Turning it off removes all trusted devices.';
+
+  @override
+  String get tfDisableConfirm => 'Turn off';
+
+  @override
+  String get tfDisabledToast => 'Two-step verification is off.';
+
+  @override
+  String get tfPasswordLabel => 'Password';
+
+  @override
+  String get tfDevicesTitle => 'Trusted devices';
+
+  @override
+  String get tfDevicesIntro =>
+      'No email code is asked when you sign in from these devices.';
+
+  @override
+  String get tfDevicesEmptyTitle => 'No trusted devices';
+
+  @override
+  String get tfDevicesEmptyBody =>
+      'Devices you trust when signing in with a code will be listed here.';
+
+  @override
+  String get tfThisDevice => 'This device';
+
+  @override
+  String get tfDeviceUnknown => 'Unknown device';
+
+  @override
+  String get tfRemove => 'Remove';
+
+  @override
+  String tfRemoveDevice(String name) {
+    return 'Remove $name';
+  }
+
+  @override
+  String tfLastUsed(String when) {
+    return 'Last used: $when';
+  }
+
+  @override
+  String tfAddedOn(String when) {
+    return 'Added: $when';
+  }
+
+  @override
+  String get tfRemoveTitle => 'Remove this device?';
+
+  @override
+  String get tfRemoveBody =>
+      'An email code will be asked the next time you sign in from it.';
+
+  @override
+  String get tfRemoveCurrentBody =>
+      'You are removing the device you are using right now. A code will be asked the next time you sign in; your current session stays open.';
+
+  @override
+  String get tfRemovedToast => 'Device removed.';
 }

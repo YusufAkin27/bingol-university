@@ -17766,6 +17766,234 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Daveti sil'**
   String get frqMsgReqDeclineGroupConfirm;
+
+  /// No description provided for @tfErrCodeInvalid.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kod yanlış. Kontrol edip tekrar deneyin.'**
+  String get tfErrCodeInvalid;
+
+  /// No description provided for @tfErrExpired.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kodun süresi doldu. Lütfen yeniden giriş yapın.'**
+  String get tfErrExpired;
+
+  /// No description provided for @tfErrAlreadyEnabled.
+  ///
+  /// In tr, this message translates to:
+  /// **'İki adımlı doğrulama zaten açık.'**
+  String get tfErrAlreadyEnabled;
+
+  /// No description provided for @tfErrNotEnabled.
+  ///
+  /// In tr, this message translates to:
+  /// **'İki adımlı doğrulama açık değil.'**
+  String get tfErrNotEnabled;
+
+  /// No description provided for @tfErrWrongPassword.
+  ///
+  /// In tr, this message translates to:
+  /// **'Şifre hatalı.'**
+  String get tfErrWrongPassword;
+
+  /// No description provided for @tfLoginTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Giriş kodu'**
+  String get tfLoginTitle;
+
+  /// No description provided for @tfLoginSubtitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'{email} adresine 6 haneli kod gönderdik.'**
+  String tfLoginSubtitle(String email);
+
+  /// No description provided for @tfLoginNote.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kod 10 dakika geçerlidir. Gelmediyse spam klasörüne de bakın.'**
+  String get tfLoginNote;
+
+  /// No description provided for @tfTrustDevice.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu cihaza güven'**
+  String get tfTrustDevice;
+
+  /// No description provided for @tfTrustDeviceSub.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu cihazdan sonraki girişlerde kod istenmez.'**
+  String get tfTrustDeviceSub;
+
+  /// No description provided for @tfBackToLogin.
+  ///
+  /// In tr, this message translates to:
+  /// **'Girişe dön'**
+  String get tfBackToLogin;
+
+  /// No description provided for @tfSecTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'İki adımlı doğrulama'**
+  String get tfSecTitle;
+
+  /// No description provided for @tfSecDesc.
+  ///
+  /// In tr, this message translates to:
+  /// **'Tanımadığımız bir cihazdan girişte e-posta adresinize kod göndeririz; güvendiğiniz cihazda tekrar sorulmaz.'**
+  String get tfSecDesc;
+
+  /// No description provided for @tfSecLoadFailed.
+  ///
+  /// In tr, this message translates to:
+  /// **'Durum yüklenemedi. Yeniden denemek için dokunun.'**
+  String get tfSecLoadFailed;
+
+  /// No description provided for @tfDevicesRow.
+  ///
+  /// In tr, this message translates to:
+  /// **'Güvenilen cihazlar'**
+  String get tfDevicesRow;
+
+  /// No description provided for @tfEnableTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'İki adımlı doğrulamayı aç'**
+  String get tfEnableTitle;
+
+  /// No description provided for @tfEnableSubtitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Hesabınızı korumak için {email} adresine gönderdiğimiz 6 haneli kodu girin.'**
+  String tfEnableSubtitle(String email);
+
+  /// No description provided for @tfEnableButton.
+  ///
+  /// In tr, this message translates to:
+  /// **'Aç'**
+  String get tfEnableButton;
+
+  /// No description provided for @tfEnabledToast.
+  ///
+  /// In tr, this message translates to:
+  /// **'İki adımlı doğrulama açıldı.'**
+  String get tfEnabledToast;
+
+  /// No description provided for @tfDisableTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'İki adımlı doğrulama kapatılsın mı?'**
+  String get tfDisableTitle;
+
+  /// No description provided for @tfDisableBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Onaylamak için şifrenizi girin. Kapatınca tüm güvenilen cihazlar silinir.'**
+  String get tfDisableBody;
+
+  /// No description provided for @tfDisableConfirm.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kapat'**
+  String get tfDisableConfirm;
+
+  /// No description provided for @tfDisabledToast.
+  ///
+  /// In tr, this message translates to:
+  /// **'İki adımlı doğrulama kapatıldı.'**
+  String get tfDisabledToast;
+
+  /// No description provided for @tfPasswordLabel.
+  ///
+  /// In tr, this message translates to:
+  /// **'Şifre'**
+  String get tfPasswordLabel;
+
+  /// No description provided for @tfDevicesTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Güvenilen cihazlar'**
+  String get tfDevicesTitle;
+
+  /// No description provided for @tfDevicesIntro.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu cihazlardan girişte e-posta kodu istenmez.'**
+  String get tfDevicesIntro;
+
+  /// No description provided for @tfDevicesEmptyTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Güvenilen cihaz yok'**
+  String get tfDevicesEmptyTitle;
+
+  /// No description provided for @tfDevicesEmptyBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kodla giriş yapıp cihaza güvendiğinizde burada listelenir.'**
+  String get tfDevicesEmptyBody;
+
+  /// No description provided for @tfThisDevice.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu cihaz'**
+  String get tfThisDevice;
+
+  /// No description provided for @tfDeviceUnknown.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bilinmeyen cihaz'**
+  String get tfDeviceUnknown;
+
+  /// No description provided for @tfRemove.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kaldır'**
+  String get tfRemove;
+
+  /// No description provided for @tfRemoveDevice.
+  ///
+  /// In tr, this message translates to:
+  /// **'{name} cihazını kaldır'**
+  String tfRemoveDevice(String name);
+
+  /// No description provided for @tfLastUsed.
+  ///
+  /// In tr, this message translates to:
+  /// **'Son kullanım: {when}'**
+  String tfLastUsed(String when);
+
+  /// No description provided for @tfAddedOn.
+  ///
+  /// In tr, this message translates to:
+  /// **'Eklendi: {when}'**
+  String tfAddedOn(String when);
+
+  /// No description provided for @tfRemoveTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Cihaz kaldırılsın mı?'**
+  String get tfRemoveTitle;
+
+  /// No description provided for @tfRemoveBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu cihazdan bir sonraki girişte e-posta kodu istenir.'**
+  String get tfRemoveBody;
+
+  /// No description provided for @tfRemoveCurrentBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Şu an kullandığınız cihazı kaldırıyorsunuz. Bir sonraki girişte kod istenir; açık oturumunuz kapanmaz.'**
+  String get tfRemoveCurrentBody;
+
+  /// No description provided for @tfRemovedToast.
+  ///
+  /// In tr, this message translates to:
+  /// **'Cihaz kaldırıldı.'**
+  String get tfRemovedToast;
 }
 
 class _AppLocalizationsDelegate

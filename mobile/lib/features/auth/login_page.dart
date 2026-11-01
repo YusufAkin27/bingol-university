@@ -11,6 +11,7 @@ import 'forgot_password_page.dart';
 import 'help/about_page.dart';
 import 'help/help_form_page.dart';
 import 'register_page.dart';
+import 'two_factor_login_page.dart';
 import 'verify_code_page.dart';
 import 'widgets/auth_motion.dart';
 import 'widgets/auth_ref.dart';
@@ -92,7 +93,19 @@ class _LoginPageState extends State<LoginPage> {
       _retry = null;
     });
     try {
-      await widget.session.login(_email.text, _password.text);
+      final challenge = await widget.session.login(_email.text, _password.text);
+      if (challenge != null) {
+        // İki adımlı doğrulama: tanınmayan cihaz, kod e-postaya gitti. Kod ekranı oturumu kendisi açar.
+        if (!mounted) return;
+        final exit = await Navigator.push<TwoFactorExit>(
+          context,
+          MaterialPageRoute(builder: (_) => TwoFactorLoginPage(session: widget.session, challenge: challenge)),
+        );
+        if (exit == TwoFactorExit.expired && mounted) {
+          _fail(ApiError(400, 'TWO_FACTOR_CHALLENGE_EXPIRED', ''));
+        }
+        return;
+      }
       await widget.session.pending.clear();
     } on ApiError catch (e) {
       if (!mounted) return;

@@ -15,6 +15,7 @@ import 'pending_verification.dart';
 import '../features/legal/legal_reaccept.dart';
 import 'realtime/chat_realtime.dart';
 import 'secure_store.dart';
+import 'two_factor.dart';
 
 enum SessionState { loading, signedOut, signedIn }
 
@@ -200,10 +201,33 @@ class Session extends ChangeNotifier {
     } catch (_) {}
   }
 
-  Future<void> login(String email, String password) async {
+  /// Girişte tanınmayan cihaz + iki adımlı doğrulama açıksa sunucu 202 döner: oturum AÇILMAZ, kod e-postaya gider ve
+  /// [TwoFactorChallenge] döner (çağıran kod ekranını açar, [loginTwoFactor] ile bitirir). Normal girişte null.
+  Future<TwoFactorChallenge?> login(String email, String password) async {
     final res = await api.post('/auth/login', {'email': normalizeIdentifier(email), 'password': password, 'client': kClientMobile}, false);
+    final challenge = TwoFactorChallenge.tryParse(res);
+    if (challenge != null) return challenge;
     await _accept(res);
+    return null;
   }
+
+  /// Giriş kodunu doğrular ve oturumu açar. [trustDevice] true ise bu cihaz güvenilir olur (sonraki girişte kod yok).
+  Future<void> loginTwoFactor(String challengeToken, String code, {bool trustDevice = true}) async {
+    final res = await api.post(
+      '/auth/login/2fa',
+      {'challengeToken': challengeToken, 'code': code.trim(), 'trustDevice': trustDevice},
+      false,
+    );
+    await _accept(res);
+    await pending.clear();
+  }
+
+  /// Giriş kodunu yeniden gönderir (genel 202; sınır aşılırsa 429).
+  Future<void> resendTwoFactor(String challengeToken) =>
+      api.post('/auth/login/2fa/resend', {'challengeToken': challengeToken}, false);
+
+  /// İki adımlı doğrulama ayarları (JWT gerekir).
+  late final TwoFactorService twoFactor = TwoFactorService(api);
 
   /// Tam e-postayı döndürür (sunucu yanıtındaki ya da numaradan türetilen).
   Future<String> register({
@@ -484,6 +508,14 @@ String? knownErrorText(ApiError e, AppLocalizations l) {
       return l.chatClosedBanner;
     case 'CERTIFICATE_REVOKED': // P07: yönetici sertifikayı iptal etti, yeniden alınamaz
       return l.errCertificateRevoked;
+    case 'TWO_FACTOR_CODE_INVALID':
+      return l.tfErrCodeInvalid;
+    case 'TWO_FACTOR_CHALLENGE_EXPIRED':
+      return l.tfErrExpired;
+    case 'TWO_FACTOR_ALREADY_ENABLED':
+      return l.tfErrAlreadyEnabled;
+    case 'TWO_FACTOR_NOT_ENABLED':
+      return l.tfErrNotEnabled;
     case 'COMMUNITY_NOT_FOUND': // P06: kulüp kapatıldı (HIDDEN) / silindi
       return l.clubUnavailable;
   }

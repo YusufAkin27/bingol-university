@@ -9715,4 +9715,136 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get frqMsgReqDeclineGroupConfirm => 'حذف الدعوة';
+
+  @override
+  String get tfErrCodeInvalid => 'الرمز غير صحيح. تحقق منه وحاول مرة أخرى.';
+
+  @override
+  String get tfErrExpired => 'انتهت صلاحية الرمز. يرجى تسجيل الدخول مرة أخرى.';
+
+  @override
+  String get tfErrAlreadyEnabled => 'التحقق بخطوتين مفعّل بالفعل.';
+
+  @override
+  String get tfErrNotEnabled => 'التحقق بخطوتين غير مفعّل.';
+
+  @override
+  String get tfErrWrongPassword => 'كلمة المرور غير صحيحة.';
+
+  @override
+  String get tfLoginTitle => 'رمز تسجيل الدخول';
+
+  @override
+  String tfLoginSubtitle(String email) {
+    return 'أرسلنا رمزًا من 6 أرقام إلى $email.';
+  }
+
+  @override
+  String get tfLoginNote =>
+      'الرمز صالح لمدة 10 دقائق. إن لم يصل، تحقق من مجلد الرسائل غير المرغوب فيها.';
+
+  @override
+  String get tfTrustDevice => 'الوثوق بهذا الجهاز';
+
+  @override
+  String get tfTrustDeviceSub =>
+      'لن يُطلب منك رمز على هذا الجهاز في المرات القادمة.';
+
+  @override
+  String get tfBackToLogin => 'العودة إلى تسجيل الدخول';
+
+  @override
+  String get tfSecTitle => 'التحقق بخطوتين';
+
+  @override
+  String get tfSecDesc =>
+      'عند تسجيل الدخول من جهاز لا نعرفه نرسل رمزًا إلى بريدك الإلكتروني؛ ولا يُطلب مرة أخرى على الجهاز الذي تثق به.';
+
+  @override
+  String get tfSecLoadFailed => 'تعذّر تحميل الحالة. اضغط لإعادة المحاولة.';
+
+  @override
+  String get tfDevicesRow => 'الأجهزة الموثوقة';
+
+  @override
+  String get tfEnableTitle => 'تفعيل التحقق بخطوتين';
+
+  @override
+  String tfEnableSubtitle(String email) {
+    return 'لحماية حسابك، أدخل الرمز المكوّن من 6 أرقام الذي أرسلناه إلى $email.';
+  }
+
+  @override
+  String get tfEnableButton => 'تفعيل';
+
+  @override
+  String get tfEnabledToast => 'تم تفعيل التحقق بخطوتين.';
+
+  @override
+  String get tfDisableTitle => 'إيقاف التحقق بخطوتين؟';
+
+  @override
+  String get tfDisableBody =>
+      'أدخل كلمة المرور للتأكيد. سيؤدي الإيقاف إلى حذف جميع الأجهزة الموثوقة.';
+
+  @override
+  String get tfDisableConfirm => 'إيقاف';
+
+  @override
+  String get tfDisabledToast => 'تم إيقاف التحقق بخطوتين.';
+
+  @override
+  String get tfPasswordLabel => 'كلمة المرور';
+
+  @override
+  String get tfDevicesTitle => 'الأجهزة الموثوقة';
+
+  @override
+  String get tfDevicesIntro =>
+      'لا يُطلب رمز بريد إلكتروني عند تسجيل الدخول من هذه الأجهزة.';
+
+  @override
+  String get tfDevicesEmptyTitle => 'لا توجد أجهزة موثوقة';
+
+  @override
+  String get tfDevicesEmptyBody =>
+      'تظهر هنا الأجهزة التي تثق بها عند تسجيل الدخول بالرمز.';
+
+  @override
+  String get tfThisDevice => 'هذا الجهاز';
+
+  @override
+  String get tfDeviceUnknown => 'جهاز غير معروف';
+
+  @override
+  String get tfRemove => 'إزالة';
+
+  @override
+  String tfRemoveDevice(String name) {
+    return 'إزالة $name';
+  }
+
+  @override
+  String tfLastUsed(String when) {
+    return 'آخر استخدام: $when';
+  }
+
+  @override
+  String tfAddedOn(String when) {
+    return 'أُضيف: $when';
+  }
+
+  @override
+  String get tfRemoveTitle => 'إزالة هذا الجهاز؟';
+
+  @override
+  String get tfRemoveBody =>
+      'سيُطلب رمز بريد إلكتروني عند تسجيل الدخول منه في المرة القادمة.';
+
+  @override
+  String get tfRemoveCurrentBody =>
+      'أنت تزيل الجهاز الذي تستخدمه الآن. سيُطلب رمز عند تسجيل الدخول في المرة القادمة؛ وستبقى جلستك الحالية مفتوحة.';
+
+  @override
+  String get tfRemovedToast => 'تمت إزالة الجهاز.';
 }
