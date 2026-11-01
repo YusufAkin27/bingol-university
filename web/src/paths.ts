@@ -88,5 +88,6 @@ export const paths = {
     crashes: `${ADMIN_BASE}/crashes`,
     appVersions: `${ADMIN_BASE}/app-versions`,
     dataRetention: `${ADMIN_BASE}/data-retention`,
+    backup: `${ADMIN_BASE}/backup`,
   },
 } as const;
