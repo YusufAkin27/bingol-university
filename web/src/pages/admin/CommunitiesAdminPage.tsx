@@ -14,6 +14,7 @@ import {
   EmptyState,
   ErrorState,
   Icon,
+  Insight,
   LoadMore,
   PageHeader,
   Skeleton,
@@ -26,6 +27,8 @@ import { useI18n } from '../../i18n/I18nProvider';
 import { usePageTitle } from '../../lib/hooks';
 import { adminErrorMessage } from './campaigns/shared';
 import { DetailList, RejectDialog } from './community/ReviewParts';
+import { tp } from './community/tp';
+import { STALE_DAYS, oldestWaitDays, waitDays } from './community/tpLogic';
 import styles from './community/review.module.css';
 
 const STATUSES: CommunityStatus[] = ['PENDING_REVIEW', 'ACTIVE', 'REJECTED', 'HIDDEN'];
@@ -34,6 +37,7 @@ const STATUSES: CommunityStatus[] = ['PENDING_REVIEW', 'ACTIVE', 'REJECTED', 'HI
 export default function CommunitiesAdminPage({ embedded = false }: { embedded?: boolean } = {}) {
   const i18n = useI18n();
   const { t, formatDateTime, formatNumber } = i18n;
+  const x = tp(i18n);
   const toast = useToast();
   const qc = useQueryClient();
   usePageTitle(t('admin.communities.title'));
@@ -78,6 +82,23 @@ export default function CommunitiesAdminPage({ embedded = false }: { embedded?: 
 
   const tabs = STATUSES.map((s) => ({ id: s, label: t(`admin.communities.status.${s}`) }));
   const pending = status === 'PENDING_REVIEW';
+  const now = new Date();
+  const oldest = pending ? oldestWaitDays(items, now) : null;
+  const queueInsight =
+    oldest === null
+      ? null
+      : query.hasNextPage
+        ? x('admin.tp.queue.insightMore', { n: formatNumber(items.length), days: formatNumber(oldest) })
+        : oldest === 0
+          ? x('admin.tp.queue.insightToday', { n: formatNumber(items.length) })
+          : x('admin.tp.queue.insight', { n: formatNumber(items.length), days: formatNumber(oldest) });
+
+  /** Bekleme süresi rozeti: renk + metin; 3 günü aşan başvuru uyarı tonunda. */
+  function waitBadge(createdAt: string) {
+    const d = waitDays(createdAt, now);
+    if (d >= STALE_DAYS) return <Badge tone="warning">{x('admin.tp.queue.stale', { days: formatNumber(d) })}</Badge>;
+    return <Badge>{d === 0 ? x('admin.tp.queue.waitingToday') : x('admin.tp.queue.waiting', { days: formatNumber(d) })}</Badge>;
+  }
 
   function actionsFor(c: CommunityView, size: 'sm' | 'md') {
     return (
@@ -125,6 +146,12 @@ export default function CommunitiesAdminPage({ embedded = false }: { embedded?: 
         />
       </div>
 
+      {queueInsight && !query.isError && (
+        <div className={styles.insightWrap} data-search-anchor="queue-insight">
+          <Insight tone={oldest !== null && oldest >= STALE_DAYS ? 'warn' : 'info'} parts={queueInsight} />
+        </div>
+      )}
+
       {query.isError ? (
         <ErrorState description={adminErrorMessage(i18n, query.error)} onRetry={() => void query.refetch()} />
       ) : query.isLoading ? (
@@ -166,6 +193,7 @@ export default function CommunitiesAdminPage({ embedded = false }: { embedded?: 
                     <h2 className={styles.name}>{c.name}</h2>
                     {c.category && <Badge tone="info">{c.category}</Badge>}
                     <Badge>{t(`admin.communities.policy.${c.joinPolicy}`)}</Badge>
+                    {pending && waitBadge(c.createdAt)}
                     <Badge tone={c.visibility === 'PRIVATE' ? 'warning' : 'neutral'}>
                       {t(`admin.communities.visibility.${c.visibility}`)}
                     </Badge>

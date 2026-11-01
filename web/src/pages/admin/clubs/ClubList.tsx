@@ -18,7 +18,6 @@ import {
   FormField,
   Icon,
   Input,
-  Insight,
   Pagination,
   ResponsiveTable,
   Select,
@@ -30,11 +29,12 @@ import { useI18n } from '../../../i18n/I18nProvider';
 import { adminError } from '../../../lib/errors';
 import { useDebouncedValue } from '../../../lib/hooks';
 import { downloadBlob } from '../users/filters';
-import { CollapsibleFilters, FillBar, StackedBar } from '../community/Summary';
+import { CollapsibleFilters, FillBar } from '../community/Summary';
+import { ClubOverview } from './ClubOverview';
 import { CLUB_STATUSES, csvFilename, statusTone } from './clubsLogic';
 import styles from './clubs.module.css';
 
-export function ClubList({ onOpen }: { onOpen: (id: number) => void }) {
+export function ClubList({ onOpen, onOpenQueue }: { onOpen: (id: number) => void; onOpenQueue?: () => void }) {
   const i18n = useI18n();
   const { t, formatDateTime, formatNumber } = i18n;
   const toast = useToast();
@@ -61,7 +61,6 @@ export function ClubList({ onOpen }: { onOpen: (id: number) => void }) {
     staleTime: 5 * 60_000,
   });
   const maxMembers = Math.max(1, ...(data?.items ?? []).map((c) => c.memberCount));
-  const countBy = (st: ClubStatus) => (data?.items ?? []).filter((c) => c.status === st).length;
   const activeFilters =
     (filters.status ? 1 : 0) +
     (filters.q ? 1 : 0) +
@@ -248,26 +247,7 @@ export function ClubList({ onOpen }: { onOpen: (id: number) => void }) {
           {t('admin.p06.count', { n: formatNumber(data.total) })}
         </p>
       )}
-      {data && data.items.length > 0 && (
-        <div className={styles.summary}>
-          <Insight
-            parts={t('admin.v2.club.insight', {
-              n: formatNumber(data.items.length),
-              active: formatNumber(countBy('ACTIVE')),
-              pending: formatNumber(countBy('PENDING_REVIEW')),
-            })}
-          />
-          <StackedBar
-            ariaLabel={t('admin.v2.club.stackAria')}
-            parts={(['ACTIVE', 'PENDING_REVIEW', 'HIDDEN', 'REJECTED'] as ClubStatus[]).map((st) => ({
-              key: st,
-              label: t(`admin.p06.status.${st}`),
-              value: countBy(st),
-              tone: st === 'ACTIVE' ? 'success' : st === 'PENDING_REVIEW' ? 'warning' : 'danger',
-            }))}
-          />
-        </div>
-      )}
+      <ClubOverview filters={f} pageItems={data?.items ?? []} ready={!!data} onOpenQueue={onOpenQueue} />
       <div className={styles.tableCard}>
         <ResponsiveTable
           caption={t('admin.p06.clubs.title')}

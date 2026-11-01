@@ -221,6 +221,22 @@
   gap: var(--space-2);
   margin-block-end: var(--space-3);
 }
+.topMembers {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  padding-inline: var(--space-3);
+}
+.topMembers > summary {
+  display: flex;
+  align-items: center;
+  min-block-size: 44px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.topMembers[open] {
+  padding-block-end: var(--space-3);
+}
 .thumb {
   display: block;
   inline-size: 6rem;
