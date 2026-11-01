@@ -199,15 +199,41 @@ public class ViolationLedgerService {
         return t.atZone(ZoneId.of("Europe/Istanbul")).toLocalDate().toString();
     }
 
+    /** FIX-P05 (A05 #11): parcali silme ve coklu ornek kilidi (istege bagli; yoksa eski tek DELETE yolu). */
+    private edu.bingol.backend.dbmaint.ChunkedDeleter deleter;
+    private edu.bingol.backend.config.SchedulerLock lock;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    public void setMaintenance(edu.bingol.backend.dbmaint.ChunkedDeleter deleter, edu.bingol.backend.config.SchedulerLock lock) {
+        this.deleter = deleter;
+        this.lock = lock;
+    }
+
     @Scheduled(cron = "0 40 4 * * *", zone = "Europe/Istanbul")
-    @Transactional
     public void purgeExpired() {
         try {
-            Instant now = Instant.now();
-            ledger.deleteExpired(now);
-            holdRepo.deleteReleasedBefore(now.minus(Duration.ofDays(30)));
+            if (lock != null) {
+                lock.tryRun("violation-ledger-purge", Duration.ofMinutes(15), this::doPurge);
+            } else {
+                doPurge();
+            }
         } catch (RuntimeException e) {
             log.warn("Ihlal defteri temizlenemedi: {}", e.getClass().getSimpleName());
+        }
+    }
+
+    void doPurge() {
+        Instant now = Instant.now();
+        if (deleter != null) {
+            deleter.delete("violation_ledger",
+                    "DELETE FROM violation_ledger WHERE id IN (SELECT id FROM violation_ledger WHERE expires_at < :now ORDER BY id LIMIT :lim)",
+                    java.util.Map.of("now", java.time.OffsetDateTime.ofInstant(now, java.time.ZoneOffset.UTC)));
+            deleter.delete("account_delete_hold",
+                    "DELETE FROM account_delete_hold WHERE user_id IN (SELECT user_id FROM account_delete_hold WHERE release_at < :cutoff ORDER BY user_id LIMIT :lim)",
+                    java.util.Map.of("cutoff", java.time.OffsetDateTime.ofInstant(now.minus(Duration.ofDays(30)), java.time.ZoneOffset.UTC)));
+        } else {
+            ledger.deleteExpired(now);
+            holdRepo.deleteReleasedBefore(now.minus(Duration.ofDays(30)));
         }
     }
 }

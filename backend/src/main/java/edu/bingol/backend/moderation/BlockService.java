@@ -1,9 +1,13 @@
 package edu.bingol.backend.moderation;
 
 import edu.bingol.backend.common.ApiException;
+import edu.bingol.backend.post.follow.FollowRequestService;
+import edu.bingol.backend.post.follow.FollowService;
 import edu.bingol.backend.user.UserRepository;
 import java.util.List;
 import java.util.Set;
+import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.http.HttpStatus;
@@ -33,6 +37,28 @@ public class BlockService {
         if (!blocks.existsByBlockerIdAndBlockedId(blockerId, targetId)) {
             blocks.save(new UserBlock(blockerId, targetId));
         }
+        // FIX-P05 (A06#3, K15): engel, iki yonlu takibi ve bekleyen takip isteklerini de kaldirir (gizlilik: gizli
+        // hesapta engel kalkinca eski takipci olarak kalma sorunu). Idempotent; zaten engelliyse tekrar temizler.
+        dropFollowRelations(blockerId, targetId);
+    }
+
+    /** Takip/istek iliskisini ayni islemde siler. Bagimlilik dairesi olmasin diye tembel (ObjectProvider). */
+    private void dropFollowRelations(Long a, Long b) {
+        if (followProvider != null) {
+            followProvider.ifAvailable(f -> f.dropBetween(a, b));
+        }
+        if (followRequestProvider != null) {
+            followRequestProvider.ifAvailable(r -> r.dropBetween(a, b));
+        }
+    }
+
+    private ObjectProvider<FollowService> followProvider;
+    private ObjectProvider<FollowRequestService> followRequestProvider;
+
+    @Autowired(required = false)
+    void setFollowProviders(ObjectProvider<FollowService> follows, ObjectProvider<FollowRequestService> requests) {
+        this.followProvider = follows;
+        this.followRequestProvider = requests;
     }
 
     @Transactional

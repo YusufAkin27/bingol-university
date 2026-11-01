@@ -12,6 +12,11 @@ import org.springframework.data.repository.query.Param;
 
 public interface ReportRepository extends JpaRepository<Report, Long>, JpaSpecificationExecutor<Report> {
 
+    /** FIX-P05: karar verirken satiri kilitler (cift karar / cift strike onlenir). */
+    @org.springframework.data.jpa.repository.Lock(jakarta.persistence.LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT r FROM Report r WHERE r.id = :id")
+    java.util.Optional<Report> lockById(@Param("id") Long id);
+
     boolean existsByReporterIdAndTargetTypeAndTargetIdAndStatus(Long reporterId, ReportTargetType type, Long targetId,
                                                                 Report.Status status);
 

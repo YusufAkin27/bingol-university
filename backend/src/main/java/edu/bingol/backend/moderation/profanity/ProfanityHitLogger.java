@@ -46,13 +46,37 @@ public class ProfanityHitLogger {
         }
     }
 
+    /** FIX-P05 (A05 #11): parcali silme ve coklu ornek kilidi (istege bagli; yoksa eski tek DELETE yolu). */
+    private edu.bingol.backend.dbmaint.ChunkedDeleter deleter;
+    private edu.bingol.backend.config.SchedulerLock lock;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    public void setMaintenance(edu.bingol.backend.dbmaint.ChunkedDeleter deleter, edu.bingol.backend.config.SchedulerLock lock) {
+        this.deleter = deleter;
+        this.lock = lock;
+    }
+
     @Scheduled(cron = "0 30 4 * * *", zone = "Europe/Istanbul")
-    @Transactional
     public void purgeOld() {
         try {
-            repo.deleteOlderThan(Instant.now().minus(Duration.ofDays(RETENTION_DAYS)));
+            if (lock != null) {
+                lock.tryRun("profanity-hit-purge", Duration.ofMinutes(15), this::doPurge);
+            } else {
+                doPurge();
+            }
         } catch (RuntimeException e) {
             log.warn("Uygunsuz ifade gunlugu temizlenemedi: {}", e.getClass().getSimpleName());
+        }
+    }
+
+    void doPurge() {
+        Instant cutoff = Instant.now().minus(Duration.ofDays(RETENTION_DAYS));
+        if (deleter != null) {
+            deleter.delete("profanity_hit_log",
+                    "DELETE FROM profanity_hit_log WHERE id IN (SELECT id FROM profanity_hit_log WHERE at < :cutoff ORDER BY id LIMIT :lim)",
+                    java.util.Map.of("cutoff", java.time.OffsetDateTime.ofInstant(cutoff, java.time.ZoneOffset.UTC)));
+        } else {
+            repo.deleteOlderThan(cutoff); // ChunkedDeleter yoksa (elle kurulan birim testleri) eski tek DELETE
         }
     }
 }

@@ -112,6 +112,9 @@ public class AdminModerationController {
                 out.add(new BulkResult(id, true, null));
             } catch (ApiException e) {
                 out.add(new BulkResult(id, false, e.code()));
+            } catch (RuntimeException e) {
+                // FIX-P05 (A05#10): beklenmeyen hata (kilit zaman asimi vb.) kalan kimlikleri atlatmaz
+                out.add(new BulkResult(id, false, "INTERNAL_ERROR"));
             }
         }
         return out;
