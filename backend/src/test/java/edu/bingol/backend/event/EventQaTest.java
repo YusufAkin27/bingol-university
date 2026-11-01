@@ -1,5 +1,6 @@
 package edu.bingol.backend.event;
 
+import edu.bingol.backend.notification.BulkSent;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -261,8 +262,8 @@ class EventQaTest {
 
         svc.delete(stranger, 5L);
 
-        verify(notifications, times(2)).sendTemplated(any(), any(), eq("notif.event.cancelled"), any(), any(String[].class));
-        verify(notifications, never()).sendTemplated(eq(1L), any(), any(), any(), any(String[].class));
+        // FINAL-ALL: toplu gonderim; duzenleyen (1) alici listesinde yok
+        assertEquals(List.of(50L, 51L), BulkSent.to(notifications, "notif.event.cancelled"));
     }
 
     @Test

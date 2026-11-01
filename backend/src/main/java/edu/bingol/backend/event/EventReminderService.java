@@ -1,6 +1,7 @@
 package edu.bingol.backend.event;
 
 import edu.bingol.backend.notification.NotificationService;
+import edu.bingol.backend.notification.NotificationTemplates;
 import edu.bingol.backend.notification.NotificationType;
 import java.time.Duration;
 import java.time.Instant;
@@ -40,38 +41,22 @@ public class EventReminderService {
         }
     }
 
-    /** Dis islem yoktur: her claim* sorgusu kendi islemindedir ve bildirimden once commit olur. @return gonderilen sayi */
+    /**
+     * Dis islem yoktur: her claim* sorgusu kendi islemindedir ve bildirimden once commit olur. FINAL-ALL: sahiplenilen
+     * hatirlatmalar etkinlik basina gruplanip tek {@code sendTemplatedBulk} ile gonderilir (alici basina doSend yok);
+     * gonderim istisna firlatirsa o etkinligin sahiplenmeleri geri alinir. @return sahiplenilen/gonderilen sayi
+     */
     public int run(Instant now) {
         int sent = 0;
         // Once saat hatirlatmalari (gun hatirlatmasi da kapanir), sonra gun hatirlatmalari.
         List<Object[]> hour = rsvps.hourCandidates(EventRsvp.Status.GOING, UserEvent.Status.ACTIVE, now,
                 now.plus(Duration.ofHours(1)), PageRequest.of(0, BATCH));
-        for (Object[] row : hour) {
-            EventRsvp r = (EventRsvp) row[0];
-            UserEvent e = (UserEvent) row[1];
-            if (rsvps.claimHour(r.getId()) == 1) {
-                if (send(r, e, "notif.event.reminderHour")) {
-                    sent++;
-                } else {
-                    rsvps.unclaimHour(r.getId()); // FIX-P05: gonderim hatasinda iz geri alinir, sonraki turda yeniden denenir
-                }
-            }
-        }
+        sent += remind(hour, "notif.event.reminderHour", rsvps::claimHour, rsvps::unclaimHour);
         // FIX-P05 (A05#7, K16): "yarin" metni icin pencere daraltildi (eskiden 1-24 sa: 3 saat sonraki etkinlige de
         // "yarin" gidiyordu). Pencereye girmeyen (kisa surede RSVP verilen) etkinlik zaten saat hatirlatmasi alir.
         List<Object[]> day = rsvps.dayCandidates(EventRsvp.Status.GOING, UserEvent.Status.ACTIVE,
                 now.plus(DAY_WINDOW_FROM), now.plus(DAY_WINDOW_TO), PageRequest.of(0, BATCH));
-        for (Object[] row : day) {
-            EventRsvp r = (EventRsvp) row[0];
-            UserEvent e = (UserEvent) row[1];
-            if (rsvps.claimDay(r.getId()) == 1) {
-                if (send(r, e, "notif.event.reminderDay")) {
-                    sent++;
-                } else {
-                    rsvps.unclaimDay(r.getId());
-                }
-            }
-        }
+        sent += remind(day, "notif.event.reminderDay", rsvps::claimDay, rsvps::unclaimDay);
         return sent;
     }
 
@@ -79,16 +64,35 @@ public class EventReminderService {
     static final Duration DAY_WINDOW_FROM = Duration.ofHours(22);
     static final Duration DAY_WINDOW_TO = Duration.ofHours(26);
 
-    /** Tek kisinin hatasi digerlerinin hatirlatmasini engellemesin. */
-    private boolean send(EventRsvp r, UserEvent e, String key) {
-        String where = e.getLocation() == null ? "" : " (" + e.getLocation() + ")";
-        try {
-            notifications.sendTemplated(r.getUserId(), NotificationType.EVENT, key,
-                    Map.of("eventId", e.getId().toString()), e.getTitle() + where);
-            return true;
-        } catch (RuntimeException ex) {
-            log.warn("Hatirlatma gonderilemedi (rsvp {}): {}", r.getId(), ex.toString());
-            return false;
+    /** Adaylari sahiplenir, etkinlik basina toplu gonderir; tek etkinligin hatasi digerlerini engellemez. */
+    private int remind(List<Object[]> rows, String key, java.util.function.ToIntFunction<Long> claim,
+                       java.util.function.Consumer<Long> unclaim) {
+        Map<Long, List<Long>> claimedByEvent = new java.util.LinkedHashMap<>(); // etkinlik -> sahiplenilen rsvp kimlikleri
+        Map<Long, List<Long>> usersByEvent = new java.util.LinkedHashMap<>();
+        Map<Long, UserEvent> events = new java.util.HashMap<>();
+        for (Object[] row : rows) {
+            EventRsvp r = (EventRsvp) row[0];
+            UserEvent e = (UserEvent) row[1];
+            if (claim.applyAsInt(r.getId()) == 1) {
+                events.putIfAbsent(e.getId(), e);
+                claimedByEvent.computeIfAbsent(e.getId(), k -> new java.util.ArrayList<>()).add(r.getId());
+                usersByEvent.computeIfAbsent(e.getId(), k -> new java.util.ArrayList<>()).add(r.getUserId());
+            }
         }
+        int sent = 0;
+        for (Map.Entry<Long, List<Long>> en : usersByEvent.entrySet()) {
+            UserEvent e = events.get(en.getKey());
+            String where = e.getLocation() == null ? "" : " (" + e.getLocation() + ")";
+            try {
+                notifications.sendTemplatedBulk(en.getValue(), NotificationTemplates.of(key, NotificationType.EVENT),
+                        Map.of("eventId", e.getId().toString()), null, e.getTitle() + where);
+                sent += en.getValue().size();
+            } catch (RuntimeException ex) {
+                log.warn("Hatirlatma gonderilemedi (etkinlik {}, {} alici): {}", e.getId(), en.getValue().size(), ex.toString());
+                // FIX-P05: gonderim hatasinda iz geri alinir, sonraki turda yeniden denenir
+                claimedByEvent.get(en.getKey()).forEach(unclaim);
+            }
+        }
+        return sent;
     }
 }

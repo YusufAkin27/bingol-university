@@ -1,5 +1,6 @@
 package edu.bingol.backend.community;
 
+import edu.bingol.backend.notification.BulkSent;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -92,9 +93,8 @@ class ClubLifecycleTest {
         verify(media).release("/files/kapak.jpg");
         verify(hooks).onCommunityDeleted(c);
         // silen kisi haric uyelere bildirim
-        verify(notifications).sendTemplated(eq(3L), eq(NotificationType.COMMUNITY), eq("notif.community.deleted"), any(), anyString());
-        verify(notifications).sendTemplated(eq(4L), eq(NotificationType.COMMUNITY), eq("notif.community.deleted"), any(), anyString());
-        verify(notifications, never()).sendTemplated(eq(1L), any(), anyString(), any(), anyString());
+        // FINAL-ALL: toplu gonderim (parca basina tek cagri); silen (1) alici listesinde yok
+        assertEquals(List.of(3L, 4L), BulkSent.to(notifications, "notif.community.deleted"));
     }
 
     @Test

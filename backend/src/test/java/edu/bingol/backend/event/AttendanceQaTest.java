@@ -265,27 +265,34 @@ class AttendanceQaTest {
 
     @Test
     void failingNotificationDoesNotAbortRemainingReminders() {
+        // FINAL-ALL: hatirlatmalar etkinlik basina toplu gider; bir etkinligin gonderimi cokerse yalniz onun izi geri alinir
         EventRsvpRepository repo = mock(EventRsvpRepository.class);
         NotificationService notif = mock(NotificationService.class);
         EventReminderService rem = new EventReminderService(repo, notif);
         UserEvent e = new UserEvent();
         e.setId(5L);
         e.setTitle("Konferans");
+        UserEvent e2 = new UserEvent();
+        e2.setId(6L);
+        e2.setTitle("Panel");
         EventRsvp a = new EventRsvp(5L, 11L, EventRsvp.Status.GOING);
         a.setId(1L);
-        EventRsvp b = new EventRsvp(5L, 12L, EventRsvp.Status.GOING);
+        EventRsvp b = new EventRsvp(6L, 12L, EventRsvp.Status.GOING);
         b.setId(2L);
         when(repo.hourCandidates(any(), any(), any(), any(), any()))
-                .thenReturn(List.<Object[]>of(new Object[] {a, e}, new Object[] {b, e}));
+                .thenReturn(List.<Object[]>of(new Object[] {a, e}, new Object[] {b, e2}));
         when(repo.dayCandidates(any(), any(), any(), any(), any())).thenReturn(List.of());
         when(repo.claimHour(anyLongObj())).thenReturn(1);
         doThrow(new IllegalStateException("fcm down")).when(notif)
-                .sendTemplated(eq(11L), eq(NotificationType.EVENT), anyString(), any(), any(String[].class));
+                .sendTemplatedBulk(eq(List.of(11L)), any(), any(), any(), any(String[].class));
 
         int sent = rem.run(Instant.parse("2026-11-01T10:00:00Z"));
 
         assertEquals(1, sent);
-        verify(notif).sendTemplated(eq(12L), eq(NotificationType.EVENT), eq("notif.event.reminderHour"), any(), any(String[].class));
+        assertEquals(List.of(12L), edu.bingol.backend.notification.BulkSent.to(notif, "notif.event.reminderHour").stream()
+                .filter(id -> id == 12L).toList());
+        verify(repo).unclaimHour(1L);
+        verify(repo, org.mockito.Mockito.never()).unclaimHour(2L);
     }
 
     private static Long anyLongObj() {
@@ -309,6 +316,7 @@ class AttendanceQaTest {
 
         rem.run(Instant.now());
 
-        verify(notif).sendTemplated(eq(11L), eq(NotificationType.EVENT), anyString(), any(), eq("Konferans (Salon A)"));
+        assertEquals(List.of(11L), edu.bingol.backend.notification.BulkSent.to(notif, "notif.event.reminderHour"));
+        assertEquals(List.of("Konferans (Salon A)"), edu.bingol.backend.notification.BulkSent.lastArgs(notif, "notif.event.reminderHour"));
     }
 }

@@ -1,5 +1,6 @@
 package edu.bingol.backend.event.admission;
 
+import edu.bingol.backend.notification.BulkSent;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -545,8 +546,7 @@ class EventAdmissionServiceTest {
         svc.onEventCancelled(event);
 
         verify(apps).closeAll(eq(EVENT_ID), anyCollection(), eq(Status.CANCELLED), any());
-        verify(notifications).sendTemplated(eq(1L), eq(NotificationType.EVENT), eq("notif.event.cancelled"), any(), anyString());
-        verify(notifications).sendTemplated(eq(2L), eq(NotificationType.EVENT), eq("notif.event.cancelled"), any(), anyString());
+        assertEquals(List.of(1L, 2L), BulkSent.to(notifications, "notif.event.cancelled"));
     }
 
     // ---- sinirlar ----
@@ -611,7 +611,8 @@ class EventAdmissionServiceTest {
         assertEquals(Mode.OPEN, v.mode());
         assertEquals(List.of(), v.questions());
         verify(apps).closeAll(eq(EVENT_ID), anyCollection(), eq(Status.CANCELLED), any());
-        verify(notifications).sendTemplated(eq(2L), eq(NotificationType.EVENT), eq("notif.admission.modeOpen"), any(), eq("Konferans"));
+        assertEquals(List.of(2L), BulkSent.to(notifications, "notif.admission.modeOpen"));
+        assertEquals(List.of("Konferans"), BulkSent.lastArgs(notifications, "notif.admission.modeOpen"));
     }
 
     @Test

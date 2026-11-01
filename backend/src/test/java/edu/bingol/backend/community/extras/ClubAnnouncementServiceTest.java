@@ -1,5 +1,6 @@
 package edu.bingol.backend.community.extras;
 
+import edu.bingol.backend.notification.BulkSent;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -105,6 +106,26 @@ class ClubAnnouncementServiceTest {
     }
 
     @Test
+    void memberNotificationsLeaveTheRequestWhichHoldsTheClubRowLock() {
+        // FINAL-ALL (P05 ertelenen): kulup satir kilidi (lockById) bildirim boyunca tutulmaz; is commit sonrasi calisir.
+        t.member(2L, Role.MODERATOR);
+        stubSave();
+        when(repo.countSince(eq(10L), any())).thenReturn(0L);
+        when(memberQuery.activeUserIdsAfter(eq(10L), eq(0L), any())).thenReturn(List.of(1L, 2L, 3L));
+        when(blocks.hiddenFrom(2L)).thenReturn(Set.of());
+        edu.bingol.backend.notification.CapturingFanout fanout = new edu.bingol.backend.notification.CapturingFanout();
+        svc.setFanout(fanout);
+
+        svc.create(mod, 10L, "Toplanti");
+
+        org.mockito.Mockito.verifyNoInteractions(notifications);
+        org.mockito.Mockito.verify(memberQuery, org.mockito.Mockito.never()).activeUserIdsAfter(eq(10L), eq(0L), any());
+        assertEquals(1, fanout.tasks.size());
+        fanout.runAll();
+        assertEquals(List.of(1L, 3L), BulkSent.to(notifications, "notif.community.announcement"));
+    }
+
+    @Test
     void notifiesActiveMembersExceptAuthorAndBlockRelated() {
         t.member(2L, Role.MODERATOR);
         stubSave();
@@ -116,10 +137,9 @@ class ClubAnnouncementServiceTest {
 
         assertEquals("Toplanti yarin", v.text());
         assertEquals(55L, v.id());
-        ArgumentCaptor<Long> to = ArgumentCaptor.forClass(Long.class);
-        verify(notifications, org.mockito.Mockito.times(3)).sendTemplated(to.capture(), eq(NotificationType.COMMUNITY),
-                eq("notif.community.announcement"), any(), eq("Kulup"), eq("Toplanti yarin"));
-        assertEquals(List.of(1L, 3L, 5L), to.getAllValues());
+        // FINAL-ALL: toplu gonderim; yazar (2) ve engel iliskisi (4) haric
+        assertEquals(List.of(1L, 3L, 5L), BulkSent.to(notifications, "notif.community.announcement"));
+        assertEquals(List.of("Kulup", "Toplanti yarin"), BulkSent.lastArgs(notifications, "notif.community.announcement"));
         verify(audit).record(10L, 2L, null, ClubAuditService.ANNOUNCEMENT_POSTED, "post=55");
     }
 

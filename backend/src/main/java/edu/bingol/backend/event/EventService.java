@@ -28,7 +28,9 @@ import edu.bingol.backend.event.dto.EventDtos.RsvpResult;
 import edu.bingol.backend.event.dto.EventDtos.UpdateEventRequest;
 import edu.bingol.backend.news.ContentType;
 import edu.bingol.backend.news.NewsItem;
+import edu.bingol.backend.notification.FanoutNotifier;
 import edu.bingol.backend.notification.NotificationService;
+import edu.bingol.backend.notification.NotificationTemplates;
 import edu.bingol.backend.notification.NotificationType;
 import edu.bingol.backend.user.User;
 import java.time.Instant;
@@ -972,20 +974,33 @@ public class EventService {
                 PageRequest.of(0, limit));
     }
 
+    /**
+     * FINAL-ALL (P05 ertelenen): GOING katilimcilara bildirim istek thread'inden ve acik islemden (etkinlik satir
+     * kilidi dahil) cikarildi; COMMIT sonrasi havuzda, parca basina sabit sorguyla ({@code sendTemplatedBulk}) gider.
+     */
     private void notifyGoing(UserEvent e, String key) {
-        // T-051: tum GOING katilimcilar (imecli sayfalar); eskiden ilk 500'de sessizce kesiliyordu
-        boolean truncated = Paging.forEachChunk((after, n) -> rsvps.userIdsAfter(e.getId(), EventRsvp.Status.GOING, after, PageRequest.of(0, n)),
-                ids -> {
-                    for (Long uid : ids) {
-                        if (!uid.equals(e.getCreatedBy())) {
-                            notifications.sendTemplated(uid, NotificationType.EVENT, key,
-                                    Map.of("eventId", e.getId().toString()), e.getTitle());
-                        }
-                    }
-                });
-        if (truncated) { // FIX-P05 (A05#3): guvenlik tavanina carpildi; sessiz kesme degil, loglanir
-            log.warn("Etkinlik {} bildirimi alici tavaninda kesildi ({})", e.getId(), key);
-        }
+        Long eventId = e.getId();
+        Long organizerId = e.getCreatedBy();
+        String title = e.getTitle();
+        FanoutNotifier.dispatch(fanout, "event-going:" + eventId, () -> {
+            NotificationTemplates.Template tpl = NotificationTemplates.of(key, NotificationType.EVENT);
+            Map<String, String> data = Map.of("eventId", eventId.toString());
+            // T-051: tum GOING katilimcilar (imecli sayfalar); eskiden ilk 500'de sessizce kesiliyordu
+            boolean truncated = Paging.forEachChunk((after, n) -> rsvps.userIdsAfter(eventId, EventRsvp.Status.GOING, after, PageRequest.of(0, n)),
+                    ids -> notifications.sendTemplatedBulk(ids.stream().filter(uid -> !uid.equals(organizerId)).toList(), tpl,
+                            data, null, title));
+            if (truncated) { // FIX-P05 (A05#3): guvenlik tavanina carpildi; sessiz kesme degil, loglanir
+                log.warn("Etkinlik {} bildirimi alici tavaninda kesildi ({})", eventId, key);
+            }
+        });
+    }
+
+    /** Birim testleri icin yoktur (ayni is parcaciginda calisir); uretimde commit sonrasi havuz. */
+    private FanoutNotifier fanout;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setFanout(FanoutNotifier fanout) {
+        this.fanout = fanout;
     }
 
     private List<EventView> views(List<UserEvent> list, Actor a, boolean detail) {

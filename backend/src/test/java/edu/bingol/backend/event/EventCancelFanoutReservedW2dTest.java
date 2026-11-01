@@ -1,5 +1,6 @@
 package edu.bingol.backend.event;
 
+import edu.bingol.backend.notification.BulkSent;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -123,8 +124,9 @@ class EventCancelFanoutReservedW2dTest {
 
         svc.delete(new Actor(99L, false), 5L);
 
-        verify(notifications, times(600)).sendTemplated(anyLong(), eq(NotificationType.EVENT),
-                eq("notif.event.cancelled"), anyMap(), eq("Konferans"));
+        // FINAL-ALL: 600 katilimci iki parcada (500 + 100) toplu gider, hepsi kapsanir
+        assertEquals(600, BulkSent.to(notifications, "notif.event.cancelled").size());
+        assertEquals(2, BulkSent.calls(notifications, "notif.event.cancelled"));
     }
 
     // ---- T-052 ----

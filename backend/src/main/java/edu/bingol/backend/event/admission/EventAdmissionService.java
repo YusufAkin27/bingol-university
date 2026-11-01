@@ -26,7 +26,9 @@ import edu.bingol.backend.event.admission.EventAdmission.Mode;
 import edu.bingol.backend.event.chat.EventChatHooks;
 import edu.bingol.backend.event.admission.EventApplication.Status;
 import edu.bingol.backend.moderation.BlockService;
+import edu.bingol.backend.notification.FanoutNotifier;
 import edu.bingol.backend.notification.NotificationService;
+import edu.bingol.backend.notification.NotificationTemplates;
 import edu.bingol.backend.notification.NotificationType;
 import edu.bingol.backend.user.User;
 import edu.bingol.backend.user.UserStatus;
@@ -150,10 +152,8 @@ public class EventAdmissionService implements EventAdmissionHooks {
             List<Status> open = List.of(Status.PENDING, Status.WAITLISTED);
             List<Long> users = apps.userIdsByStatus(eventId, open);
             apps.closeAll(eventId, open, Status.CANCELLED, Instant.now());
-            for (Long uid : users) {
-                notifications.sendTemplated(uid, NotificationType.EVENT, "notif.admission.modeOpen", data(eventId, null),
-                        e.getTitle());
-            }
+            // FINAL-ALL (P05 ertelenen): bekleyen/siradaki basvuru sahiplerine toplu bildirim commit sonrasi havuzda.
+            notifyAll(users, "notif.admission.modeOpen", eventId, e.getTitle());
         }
     }
 
@@ -543,6 +543,28 @@ public class EventAdmissionService implements EventAdmissionHooks {
         }
     }
 
+    /**
+     * Basvuru sahiplerine ayni metni toplu gonderir (parca basina sabit sorgu). Istek thread'inden ve acik islemden
+     * cikarilir: COMMIT sonrasi sinirli havuzda calisir (geri alinan islem bildirmez).
+     */
+    private void notifyAll(List<Long> users, String key, Long eventId, String title) {
+        if (users.isEmpty()) {
+            return;
+        }
+        List<Long> to = List.copyOf(users);
+        FanoutNotifier.dispatch(fanout, "admission:" + key + ":" + eventId, () ->
+                notifications.sendTemplatedBulk(to, NotificationTemplates.of(key, NotificationType.EVENT),
+                        data(eventId, null), null, title));
+    }
+
+    /** Birim testleri icin yoktur (ayni is parcaciginda calisir); uretimde commit sonrasi havuz. */
+    private FanoutNotifier fanout;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setFanout(FanoutNotifier fanout) {
+        this.fanout = fanout;
+    }
+
     @Override
     @Transactional
     public void onEventCancelled(UserEvent e) {
@@ -552,9 +574,7 @@ public class EventAdmissionService implements EventAdmissionHooks {
             return;
         }
         apps.closeAll(e.getId(), open, Status.CANCELLED, Instant.now());
-        for (Long uid : users) {
-            notifications.sendTemplated(uid, NotificationType.EVENT, "notif.event.cancelled", data(e.getId(), null), e.getTitle());
-        }
+        notifyAll(users, "notif.event.cancelled", e.getId(), e.getTitle());
     }
 
     @Override

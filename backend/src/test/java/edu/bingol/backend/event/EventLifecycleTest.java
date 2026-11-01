@@ -1,5 +1,6 @@
 package edu.bingol.backend.event;
 
+import edu.bingol.backend.notification.BulkSent;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -149,8 +150,7 @@ class EventLifecycleTest {
 
         assertEquals(1, n);
         assertEquals(UserEvent.Status.CANCELLED, e.getStatus());
-        verify(notifications).sendTemplated(eq(1L), any(), eq("notif.event.cancelled"), any(), anyString());
-        verify(notifications).sendTemplated(eq(2L), any(), eq("notif.event.cancelled"), any(), anyString());
+        assertEquals(List.of(1L, 2L), BulkSent.to(notifications, "notif.event.cancelled"));
     }
 
     @Test

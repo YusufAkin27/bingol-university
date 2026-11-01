@@ -52,6 +52,20 @@ public final class NotificationTemplates {
         return t;
     }
 
+    /**
+     * Kayitli sablonu doner; yoksa alt turu olmayan (`sendTemplated(key)` ile ayni karar) KAYITSIZ bir sablon uretir
+     * (anahtarlar baska i18n dosyalarinda olabilir; kayit defteri/NotificationTemplatesTest yalniz `register` edilenleri
+     * `messages*.properties` icinde arar). Toplu gonderim (`sendTemplatedBulk`) sablon nesnesi ister; anahtar tabanli
+     * eski cagrilari tek satirla ona cevirir.
+     */
+    public static Template of(String key, NotificationType type) {
+        Template t = REGISTRY.get(key);
+        if (t != null && t.type() == type) {
+            return t;
+        }
+        return new Template(key, type, t != null && t.subtype() != null && t.subtype().parent() == type ? t.subtype() : null);
+    }
+
     public static Optional<Template> find(String key) {
         return Optional.ofNullable(REGISTRY.get(key));
     }

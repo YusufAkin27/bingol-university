@@ -1,5 +1,6 @@
 package edu.bingol.backend.event;
 
+import edu.bingol.backend.notification.BulkSent;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -39,7 +40,7 @@ class EventReminderServiceTest {
 
         assertEquals(1, svc.run(now));
 
-        verify(notifications).sendTemplated(eq(11L), eq(NotificationType.EVENT), eq("notif.event.reminderHour"), any(), any(String[].class));
+        assertEquals(List.of(11L), BulkSent.to(notifications, "notif.event.reminderHour"));
     }
 
     @Test
@@ -62,7 +63,7 @@ class EventReminderServiceTest {
 
         assertEquals(1, svc.run(now));
 
-        verify(notifications).sendTemplated(eq(12L), eq(NotificationType.EVENT), eq("notif.event.reminderDay"), any(), any(String[].class));
+        assertEquals(List.of(12L), BulkSent.to(notifications, "notif.event.reminderDay"));
     }
 
     @Test
@@ -84,7 +85,7 @@ class EventReminderServiceTest {
         when(rsvps.claimHour(1L)).thenReturn(1);
         when(rsvps.claimDay(2L)).thenReturn(1);
         org.mockito.Mockito.doThrow(new IllegalStateException("push")).when(notifications)
-                .sendTemplated(any(), any(), any(), any(), any(String[].class));
+                .sendTemplatedBulk(any(), any(), any(), any(), any(String[].class));
 
         assertEquals(0, svc.run(now));
 

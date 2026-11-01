@@ -2,6 +2,8 @@ package edu.bingol.backend.academic;
 
 import edu.bingol.backend.common.AfterCommit;
 import edu.bingol.backend.notification.NotificationService;
+import edu.bingol.backend.notification.NotificationTemplates;
+import edu.bingol.backend.notification.NotificationSubtype;
 import edu.bingol.backend.notification.NotificationType;
 import java.sql.Timestamp;
 import java.time.Clock;
@@ -30,14 +32,16 @@ import org.springframework.stereotype.Component;
  * sonuc-kumesi geri cagrisinin disinda yapilir (uzun gonderim boyunca bir baglanti tutulmaz). Hedef kitle cozumlenemezse
  * sahiplenme geri alinir (hicbir sey gonderilmedi, zamanlayici yeniden dener).
  *
- * <p>TODO(P04 entegrasyonu): {@code notifications.sendBulk(...)} kullanicidan kullaniciya doSend/IDENTITY INSERT yapar;
- * P04 toplu API'si ({@code sendTemplatedBulk}/alt tur tercihi/sessiz saat) hazir olunca fan-out noktasi
- * {@link #send} tek yerde degisir.
+ * <p>FINAL-ALL: fan-out noktasi {@link #send} {@code sendTemplatedBulk} kullanir (alt tur tercihi, sessiz saat, PushGate).
  */
 @Component
 public class AnnouncementNotifier {
 
     private static final Logger log = LoggerFactory.getLogger(AnnouncementNotifier.class);
+
+    /** Basligi/govdesi yoneticinin yazdigi duyuru metnidir (cevrilmez): `{0}` baslik, `{1}` govde. */
+    static final NotificationTemplates.Template TEMPLATE = NotificationTemplates.register("notif.academic.announcement",
+            NotificationType.ANNOUNCEMENT, NotificationSubtype.ACADEMIC_ANNOUNCEMENT);
 
     private final JdbcTemplate jdbc;
     private final NotificationService notifications;
@@ -154,8 +158,10 @@ public class AnnouncementNotifier {
         data.put("value", String.valueOf(id));
         data.put("announcementId", String.valueOf(id));
         String body = row.body();
-        int sent = notifications.sendBulk(users, NotificationType.ANNOUNCEMENT, row.title(),
-                body.length() > 140 ? body.substring(0, 140) + "…" : body, data, "academic_announcements");
+        // FINAL-ALL (P08 ertelenen): sendBulk yerine sendTemplatedBulk: alt tur tercihi (academic_announcements AND
+        // announcements, onceki prefColumn ile ayni), sessiz saat ve PushGate de uygulanir; metin icerik kaynaklidir.
+        int sent = notifications.sendTemplatedBulk(users, TEMPLATE, data, null, row.title(),
+                body.length() > 140 ? body.substring(0, 140) + "…" : body);
         log.info("Duyuru {} bildirimi: hedef={} kayit={}", id, users.size(), sent);
     }
 

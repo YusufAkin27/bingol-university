@@ -56,8 +56,7 @@ class AnnouncementCreateNoSyncFanoutTest {
         }
         adminId = jdbc.queryForObject("SELECT id FROM app_user WHERE email = 'ans-0@bingol.edu.tr'", Long.class);
         notifications = mock(NotificationService.class);
-        when(notifications.sendBulk(anyCollection(), any(NotificationType.class), anyString(), anyString(), anyMap(), anyString()))
-                .thenReturn(3);
+        when(notifications.sendTemplatedBulk(anyCollection(), any(), anyMap(), any(), any(String[].class))).thenReturn(3);
     }
 
     @AfterEach
@@ -95,13 +94,13 @@ class AnnouncementCreateNoSyncFanoutTest {
             AdminAnnouncementView v = svc.create(adminId, request());
             assertNotNull(v.id());
             // islem henuz commit olmadi: toplu bildirim YOK
-            verify(notifications, never()).sendBulk(anyCollection(), any(), anyString(), anyString(), anyMap(), anyString());
+            verify(notifications, never()).sendTemplatedBulk(anyCollection(), any(), anyMap(), any(), any(String[].class));
             return v.id();
         });
 
         assertNotNull(id);
-        verify(notifications, times(1)).sendBulk(anyCollection(), eq(NotificationType.ANNOUNCEMENT), eq("Final takvimi"),
-                anyString(), anyMap(), eq("academic_announcements"));
+        verify(notifications, times(1)).sendTemplatedBulk(anyCollection(), eq(AnnouncementNotifier.TEMPLATE), anyMap(), any(),
+                eq("Final takvimi"), anyString());
     }
 
     @Test
@@ -114,7 +113,7 @@ class AnnouncementCreateNoSyncFanoutTest {
             status.setRollbackOnly(); // geri alindi: afterCommit hic cagrilmaz
         });
 
-        verify(notifications, never()).sendBulk(anyCollection(), any(), anyString(), anyString(), anyMap(), anyString());
+        verify(notifications, never()).sendTemplatedBulk(anyCollection(), any(), anyMap(), any(), any(String[].class));
     }
 
     @Test
@@ -126,7 +125,7 @@ class AnnouncementCreateNoSyncFanoutTest {
         service(notifier).create(adminId, request()); // islem yok: AfterCommit hemen calisir, is yurutucuya devredilir
 
         assertEquals(1, handed.get());
-        verify(notifications, never()).sendBulk(anyCollection(), any(), anyString(), anyString(), anyMap(), anyString());
+        verify(notifications, never()).sendTemplatedBulk(anyCollection(), any(), anyMap(), any(), any(String[].class));
     }
 
     @Test
