@@ -2,7 +2,103 @@ import type { SearchEntry } from '../types';
 
 /**
  * Arama girdileri: Destek grubu (tickets, feedback).
- * Sayfa ajanı bu dosyaya KENDİ sayfalarının ayar/alan/eylem/bölüm girdilerini ekler (kılavuz: ../README.md).
- * Menü sayfalarının kendisi (`page`) otomatik üretilir; burada tekrar yazmayın.
+ * Menü sayfalarının kendisi (`page`) otomatik üretilir; burada tekrar yazılmaz.
+ * Talep ayrıntısı (/admin/support/tickets/:id) talep numarası ister; arama oraya doğrudan gidemez, bu yüzden
+ * ayrıntı eylemleri (yanıtla, kapat, sil...) açıklamada "bir talebi açın" der ve Destek talepleri listesini açar.
  */
-export const entries: SearchEntry[] = [];
+export const entries: SearchEntry[] = [
+  // ---- Destek talepleri ----
+  {
+    id: 'tickets.summary',
+    kind: 'section',
+    page: 'tickets',
+    title: 'Talep özeti',
+    anchor: 'tickets-summary',
+    keywords: ['yanıt bekleyen talep', 'kaç talep var', 'en eski talep', 'cevap bekleyen'],
+    description: 'Yanıt bekleyen, yanıtlanan ve kapanan talep sayıları.',
+  },
+  {
+    id: 'tickets.status',
+    kind: 'field',
+    page: 'tickets',
+    title: 'Talep durumu filtresi',
+    anchor: 'tickets-status',
+    keywords: ['yanıt bekliyor', 'yanıtlandı', 'kapalı', 'açık talepler'],
+    description: 'Listeyi talebin durumuna göre daraltır.',
+  },
+  {
+    id: 'tickets.public',
+    kind: 'field',
+    page: 'tickets',
+    title: 'Yalnız hesapsız (misafir) talepler',
+    anchor: 'tickets-public-only',
+    keywords: ['herkese açık', 'ziyaretçi talebi', 'üye olmayan', 'web sitesinden gelen'],
+    description: 'Hesabı olmayan ziyaretçilerin web sitesinden gönderdiği talepleri gösterir.',
+  },
+  {
+    id: 'tickets.csv',
+    kind: 'action',
+    page: 'tickets',
+    title: 'Talepleri CSV indir',
+    anchor: 'tickets-csv',
+    keywords: ['excel', 'dışa aktar', 'liste indir'],
+    description: 'Listedeki talepleri bir tablo dosyası olarak indirir.',
+  },
+  {
+    id: 'tickets.reply',
+    kind: 'action',
+    page: 'tickets',
+    title: 'Talebi yanıtla, kapat ya da sil',
+    keywords: ['cevap yaz', 'kullanıcıya yaz', 'talebi kapat', 'yeniden aç', 'iç not', 'hazır yanıt', 'öncelik', 'atama'],
+    description: 'Bir talebi açın: orada yanıt yazar, kapatır, öncelik verir ya da atarsınız.',
+    perm: 'support.write',
+  },
+
+  // ---- Geri bildirim ----
+  {
+    id: 'feedback.summary',
+    kind: 'section',
+    page: 'feedback',
+    title: 'Geri bildirim durum özeti',
+    anchor: 'fb-summary',
+    keywords: ['yeni geri bildirim', 'öneri sayısı', 'en çok oy alan öneri', 'planlanan', 'tamamlanan'],
+    description: 'Durumlara göre sayılar ve en çok desteklenen öneriler.',
+  },
+  {
+    id: 'feedback.status',
+    kind: 'field',
+    page: 'feedback',
+    title: 'Geri bildirim durumu filtresi',
+    anchor: 'fb-status',
+    keywords: ['yeni', 'inceleniyor', 'planlandı', 'tamamlandı', 'reddedildi'],
+    description: 'Listeyi geri bildirimin durumuna göre daraltır.',
+  },
+  {
+    id: 'feedback.category',
+    kind: 'field',
+    page: 'feedback',
+    title: 'Kategori filtresi',
+    anchor: 'fb-category',
+    keywords: ['hata bildirimi', 'öneri', 'şikayet', 'teşekkür'],
+    description: 'Listeyi hata, öneri, şikâyet ya da teşekkür türüne göre daraltır.',
+  },
+  {
+    id: 'feedback.csv',
+    kind: 'action',
+    page: 'feedback',
+    title: 'Geri bildirimleri CSV indir',
+    anchor: 'fb-csv',
+    keywords: ['excel', 'dışa aktar', 'liste indir'],
+    description: 'Listedeki geri bildirimleri bir tablo dosyası olarak indirir.',
+  },
+  {
+    id: 'feedback.list',
+    kind: 'section',
+    page: 'feedback',
+    title: 'Geri bildirim listesi (değerlendir, birleştir, sil)',
+    anchor: 'fb-list',
+    keywords: ['yönetici yanıtı', 'herkese açık öneri panosu', 'oylamaya aç', 'aynı öneri', 'çift kayıt', 'durum değiştir'],
+    description: 'Birine dokunup yanıt yazın, durumunu değiştirin, birleştirin ya da silin.',
+    perm: 'support.write',
+  },
+];

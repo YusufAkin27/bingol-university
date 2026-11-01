@@ -115,7 +115,7 @@ export default function PollsAdminPage() {
         title={t('admin.polls.title')}
         description={t('admin.p03.subtitle')}
         actions={
-          <Button onClick={() => setForm({ poll: null })} data-testid="poll-new">
+          <Button onClick={() => setForm({ poll: null })} data-testid="poll-new" data-search-anchor="polls-create">
             {t('admin.p03.create')}
           </Button>
         }
@@ -192,7 +192,7 @@ export default function PollsAdminPage() {
         </Button>
       </FilterFold>
 
-      <div data-testid="poll-list">
+      <div data-testid="poll-list" data-search-anchor="polls-list">
         <ResponsiveTable
           caption={t('admin.polls.title')}
           columns={columns}

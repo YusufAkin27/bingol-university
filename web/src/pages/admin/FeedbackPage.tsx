@@ -247,10 +247,12 @@ export default function FeedbackPage() {
       <PageHeader
         title={t('admin.feedback.title')}
         actions={
-          <CsvButton
-            filename={csvName('geri-bildirimler')}
-            fetcher={() => supportAdminApi.exportFeedbackCsv({ status, category })}
-          />
+          <span data-search-anchor="fb-csv">
+            <CsvButton
+              filename={csvName('geri-bildirimler')}
+              fetcher={() => supportAdminApi.exportFeedbackCsv({ status, category })}
+            />
+          </span>
         }
       />
       {query.isSuccess && items.length > 0 && (
@@ -282,6 +284,7 @@ export default function FeedbackPage() {
         filters={
           <div className={styles.filterRow}>
             <Select className={styles.filter}
+              data-search-anchor="fb-status"
               aria-label={t('admin.feedback.filter.status')}
               value={status}
               onChange={(e) => setStatus(e.target.value as FeedbackStatus | '')}
@@ -294,6 +297,7 @@ export default function FeedbackPage() {
               ))}
             </Select>
             <Select className={styles.filter}
+              data-search-anchor="fb-category"
               aria-label={t('admin.feedback.filter.category')}
               value={category}
               onChange={(e) => setCategory(e.target.value as FeedbackCategory | '')}
@@ -327,7 +331,7 @@ export default function FeedbackPage() {
         />
       ) : (
         <>
-          <ul className={styles.fbList}>
+          <ul className={styles.fbList} data-search-anchor="fb-list">
             {items.map((f) => (
               <li key={f.id} className={styles.fb}>
                 <div className={styles.votes} aria-label={`${t('admin.feedback.votesLabel')}: ${f.voteCount}`}>

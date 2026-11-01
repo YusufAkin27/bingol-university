@@ -121,10 +121,12 @@ export default function TicketsPage() {
         title={t('admin.tickets.title')}
         description={t('admin.v2m.tickets.desc')}
         actions={
-          <CsvButton
-            filename={csvName('talepler')}
-            fetcher={() => supportAdminApi.exportTicketsCsv({ status, publicOnly })}
-          />
+          <span data-search-anchor="tickets-csv">
+            <CsvButton
+              filename={csvName('talepler')}
+              fetcher={() => supportAdminApi.exportTicketsCsv({ status, publicOnly })}
+            />
+          </span>
         }
       />
       {query.isSuccess && (
@@ -157,6 +159,7 @@ export default function TicketsPage() {
         filters={
           <>
           <Select className={styles.filter}
+            data-search-anchor="tickets-status"
             aria-label={t('admin.tickets.filter.status')}
             value={status}
             onChange={(e) => setStatus(e.target.value as TicketStatus | '')}

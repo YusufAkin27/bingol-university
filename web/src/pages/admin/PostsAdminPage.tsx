@@ -256,7 +256,7 @@ function PostsTab() {
         <EmptyState icon="list" title={t('admin.posts.empty')} description=" " />
       ) : (
         <>
-          <ul className={styles.list} data-testid="post-list">
+          <ul className={styles.list} data-testid="post-list" data-search-anchor="posts-list">
             {rows.map((p) => (
               <PostRowItem
                 key={p.id}

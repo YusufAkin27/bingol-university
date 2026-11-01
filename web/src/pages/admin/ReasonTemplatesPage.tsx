@@ -170,7 +170,7 @@ export default function ReasonTemplatesPage() {
         title={t('admin.p11.tpl.title')}
         description={t('admin.p11.tpl.desc')}
         actions={
-          <Button leftIcon={<Icon name="plus" size={18} />} onClick={openNew} disabled={!canAdd}>
+          <Button leftIcon={<Icon name="plus" size={18} />} onClick={openNew} disabled={!canAdd} data-search-anchor="tpl-add">
             {t('admin.p11.tpl.add')}
           </Button>
         }

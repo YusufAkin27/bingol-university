@@ -277,10 +277,12 @@ export default function ReportsPage() {
       <PageHeader
         title={t('admin.reports.title')}
         actions={
-          <CsvButton
-            filename={csvName('raporlar')}
-            fetcher={() => modAdminApi.exportReportsCsv({ status, targetType: typeFilter })}
-          />
+          <span data-search-anchor="reports-csv">
+            <CsvButton
+              filename={csvName('raporlar')}
+              fetcher={() => modAdminApi.exportReportsCsv({ status, targetType: typeFilter })}
+            />
+          </span>
         }
       />
       {status === 'OPEN' && !query.isLoading && !query.isError && items.length > 0 && (
@@ -318,6 +320,7 @@ export default function ReportsPage() {
           )}
         </section>
       )}
+      <div data-search-anchor="reports-tabs">
       <Tabs
         label={t('admin.reports.tabs')}
         value={status}
@@ -331,9 +334,11 @@ export default function ReportsPage() {
           { id: 'RESOLVED', label: t('admin.reports.tab.RESOLVED') },
         ]}
       />
+      </div>
       <div className={modStyles.toolbar}>
         <FormField label={t('admin.reports.order.label')}>
           <Select
+            data-search-anchor="reports-order"
             value={order}
             onChange={(e) => {
               setOrder(e.target.value as ReportOrder);
@@ -348,6 +353,7 @@ export default function ReportsPage() {
         </FormField>
         <FormField label={t('admin.reports.filter.type')}>
           <Select
+            data-search-anchor="reports-type"
             value={typeFilter}
             onChange={(e) => {
               setTypeFilter(e.target.value as ReportTargetType | '');
@@ -395,7 +401,7 @@ export default function ReportsPage() {
       ) : (
         <div className={styles.layout}>
           <div>
-            <ul className={styles.list} aria-label={t('admin.reports.queue')}>
+            <ul className={styles.list} aria-label={t('admin.reports.queue')} data-search-anchor="reports-queue">
               {items.map((r) => {
                 const n = counts.get(targetKey(r)) ?? 1;
                 const active = r.id === selectedId;
