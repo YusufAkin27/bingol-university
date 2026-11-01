@@ -41,7 +41,7 @@ class ConversationPrefsServiceTest {
     void setUp() {
         mine = ConversationMember.of(CONV, ME, ConversationMember.Role.MEMBER);
         when(members.findByConversationIdAndUserIdAndLeftAtIsNull(CONV, ME)).thenReturn(Optional.of(mine));
-        when(conversations.detail(ME, CONV)).thenReturn(new ConversationDetail(null, List.of()));
+        when(conversations.view(ME, CONV)).thenReturn(null);
     }
 
     @Test
@@ -51,7 +51,9 @@ class ConversationPrefsServiceTest {
         assertTrue(mine.isMuted());
         assertTrue(mine.getMutedUntil().isAfter(Instant.now().plus(Duration.ofMinutes(59))));
         assertTrue(mine.getMutedUntil().isBefore(Instant.now().plus(Duration.ofMinutes(61))));
-        verify(members).save(mine);
+        // FIX-P03 (A09#8): tam satir save yerine yalniz mutedUntil kolonu yazilir (bayat imlec geri yazilmaz)
+        verify(members).updateMute(CONV, ME, mine.getMutedUntil());
+        verify(members, org.mockito.Mockito.never()).save(org.mockito.ArgumentMatchers.any());
     }
 
     @Test
