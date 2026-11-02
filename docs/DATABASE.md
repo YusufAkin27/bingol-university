@@ -50,6 +50,7 @@ Diğer log tabloları: `profanity_hit_log`, `blocked_attempt_log` (90 gün, mevc
 | Gönderi/keşfet | `post`, `post_media`, `post_like`, `post_save`, `post_mention`, `user_follow`, `follow_request`, `poll*` | Kullanıcı etkileşimi | `post_like`/`user_follow` birkaç M; `follow_request` yalnız bekleyenler | `PostRetentionJob` (silinmişler); `follow_request` bekleyen istekler 90 gün sonra `DbMaintenanceJob` (`follow_request`) ile silinir (V1020, yalnız gizli hesaplara); kaldırılan özellik tabloları (`story*`, `post_comment`, `hashtag`, `post_hashtag`) V470 ile DROP edilir — burada dokunulmadı |
 | İçerik | `news_item`, `menu_day`, `menu_item_calorie`, `academic_event`, `tt_*`, `department_announcement`, `announcement_read` | Kaynak sitede ≤20/tür/gün; **yinelenen çekilmez** (URL UNIQUE) | `news_item` ~3 k/yıl; `content` TEXT (TOAST, ortalama 8-20 KB) ≈ 60 MB | Kalıcı; `announcement_read` kullanıcı×duyuru |
 | Destek | `support_ticket`, `support_message`, `feedback*`, `faq_item`, `support_track_token` | Talep başına | <50 k | Herkese açık talep 365 gün |
+| Kampüs haritası | `campus_place`, `campus_config` (V1200) | Yönetici girişi + OSM tohumu (`osm_ref` benzersiz) | `campus_place` <2 000 (uygulama sınırı), `campus_config` tek satır | Kalıcı, kişisel veri yok; silme yumuşak (`deleted_at`) |
 | Yapılandırma | `app_setting`, `legal_document`, `profanity_term`, `mail_template_custom*`, `mail_suppression`, `access_ban*` | Sabit/küçük | <10 k | Kalıcı |
 | Oturum | `refresh token` | **Redis** (`rt:*`, `rtu:*`), PostgreSQL'de yok | — | TTL 30 gün |
 

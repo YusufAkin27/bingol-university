@@ -872,3 +872,12 @@ Gizli hesapta "yeni takipçi" (`USER_FOLLOW`) bildirimi gitmez (istek anında `F
 **Mesaj isteği ile ilişki:** ilk DM'de "alıcı göndereni takip ediyor" bağlamı yalnız KABUL EDİLMİŞ takibe dayanır; bekleyen istek bağlam sayılmaz.
 
 Hata kodu (3 dilde çeviri var): 422 `FOLLOW_REQUEST_LIMIT`. Ayrıntı: `docs/changes/post.md` ve `docs/changes/profile.md` (FOLLOWREQ).
+
+## Kampüs haritası (CAMPUS-BE)
+
+Kategori anahtarları (13): faculty, institute, school, vocational, dining, library, sports, health, admin, service, dorm, gate, social. Tam sözleşme, kategori tablosu (anahtar/ikon/renk) ve OSM lisans notu: [CAMPUS_MAP.md](CAMPUS_MAP.md). Özet (hepsi giriş gerektirir, `Accept-Language` etiketleri çevirir, `ETag`/`304` ve `Cache-Control: private, max-age` döner):
+
+- `GET /api/campus/map` → `{version, center{lat,lng}, zoom{initial,min,max}, bounds{south,west,north,east}, boundary[[lat,lng]…], tiles{urlTemplate, attribution, maxNativeZoom, userAgentHint}, categories[{key,label,icon,color}]}`. Harita altlığı `tiles.urlTemplate` ile çizilir (`{z}/{x}/{y}`), `attribution` köşede her zaman görünür, `userAgentHint` içindeki `{version}` istemci sürümüyle değiştirilip karo isteklerinin `User-Agent`'ı yapılır. `boundary` boşsa sınır çizilmez. Kamera `bounds` dışına çıkmaz. Karo adresi sunucudan değişebilir; istemci adresi sabit yazmaz.
+- `GET /api/campus/places?category=&q=&limit=` → `{items:[{id,name,category,lat,lng,summary,photoUrl,units[],footprint[[lat,lng]…]|null,sortKey,webUrl|null,remote,unitSourceCode|null,departments[]|null}]}`. `remote=true` birimler (ana yerleşke dışı: Ilıcalar, Hayvan Hastanesi, Genç MYO, Solhan MYO vb.) ana harita sınırlarında gösterilmez; aramada/listede "Diğer yerleşkeler" grubu olur. `departments` yalnız `/places/{id}` yanıtında dolu (akademik birimlerde, `unit_department` salt okuma), listede `null`. `q` Türkçe-duyarsızdır ("mü" = "mu" = "MÜ"), yalnız kampüs kayıtları döner (kampüs dışı arama yok; istemci başka coğrafi arama yapmaz). `limit` varsayılan 100, en çok 200. `photoUrl` göreli `/files/...` yoludur. Yürüme süresi/mesafe istemcide hesaplanır; favoriler yerel saklanır (sunucuda kişisel veri yok).
+- `GET /api/campus/places/{id}` → tek yer; yoksa 404 `CAMPUS_PLACE_NOT_FOUND`. Geçersiz `category` → 400 `CAMPUS_CATEGORY_INVALID`.
+- `version` değişince önbelleğe alınmış harita/yer listesi bayattır; HTTP önbelleği harita için 300 sn, liste için 60 sn.
