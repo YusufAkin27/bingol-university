@@ -296,7 +296,7 @@ void main() {
       await tester.enterText(field, 'bir iki uc dort bes alti yedi');
       await tester.pump(const Duration(milliseconds: 60));
       final mid = tester.widget<AnimatedDefaultTextStyle>(find.ancestor(of: counter, matching: find.byType(AnimatedDefaultTextStyle)).first);
-      expect(mid.duration, const Duration(milliseconds: 150));
+      expect(mid.duration, const Duration(milliseconds: 200)); // BuMotion.short (quick)
       await settle(tester, const Duration(milliseconds: 300));
       expect(find.text('7/7 kelime'), findsOneWidget);
       // 8 kelime: uyari satiri AnimatedSize icinde belirir.

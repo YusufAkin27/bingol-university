@@ -39,7 +39,7 @@ class _BubbleEntryState extends State<BubbleEntry> with SingleTickerProviderStat
     if (!widget.fresh || BuMotion.reduced(context)) return;
     final c = AnimationController(
       vsync: this,
-      duration: widget.mine ? BuMotion.medium : BuMotion.short,
+      duration: BuMotion.durations.quick, // sohbet: ağır animasyon yok, kısa fade (+ kısa yükselme)
     );
     _curve = CurvedAnimation(parent: c, curve: BuMotion.emphasizedDecelerate);
     _c = c..forward();
@@ -62,7 +62,7 @@ class _BubbleEntryState extends State<BubbleEntry> with SingleTickerProviderStat
       child: AnimatedBuilder(
         animation: curve,
         child: widget.child,
-        builder: (_, child) => Transform.translate(offset: Offset(0, 14 * (1 - curve.value)), child: child),
+        builder: (_, child) => Transform.translate(offset: Offset(0, 10 * (1 - curve.value)), child: child),
       ),
     );
   }

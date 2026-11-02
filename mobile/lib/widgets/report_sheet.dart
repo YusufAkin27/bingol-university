@@ -115,6 +115,7 @@ abstract final class ReportSheet {
   ) async {
     final done = await showModalBottomSheet<bool>(
       context: context,
+      sheetAnimationStyle: BuMotionStyles.sheet(context),
       isScrollControlled: true,
       backgroundColor: context.bu.sf3,
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(28))),

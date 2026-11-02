@@ -318,7 +318,7 @@ class AnketMarkFlat extends StatelessWidget {
         child: AnimatedScale(
           scale: on ? 1 : 0,
           duration: d,
-          curve: Curves.easeOutBack,
+          curve: BuMotion.success,
           child: Center(
             child: square
                 ? Icon(BuIcons.check, size: size - 4, color: t.onPr)

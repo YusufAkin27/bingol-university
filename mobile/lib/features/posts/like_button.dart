@@ -60,6 +60,13 @@ class LikeButton extends StatefulWidget {
 
   static const debounce = Duration(milliseconds: 250);
 
+  /// Kalp darbesi: 1 -> 1,08 (yavaşlayan) -> 1 (yerleşme, ~%3 taşma). Toplam 450 ms'nin ilk ~%60'ı.
+  static final TweenSequence<double> _heartPopSeq = TweenSequence<double>([
+    TweenSequenceItem(tween: Tween(begin: 1.0, end: 1.08).chain(CurveTween(curve: BuMotion.decelerate)), weight: 25),
+    TweenSequenceItem(tween: Tween(begin: 1.08, end: 1.0).chain(CurveTween(curve: BuMotion.settle)), weight: 40),
+    TweenSequenceItem(tween: ConstantTween(1.0), weight: 35),
+  ]);
+
   @override
   State<LikeButton> createState() => _LikeButtonState();
 }
@@ -74,12 +81,12 @@ class _LikeButtonState extends State<LikeButton> with TickerProviderStateMixin {
 
   Timer? _timer;
   bool _inflight = false;
-  late final AnimationController _anim =
-      AnimationController(vsync: this, duration: const Duration(milliseconds: 520));
+  late final AnimationController _anim = AnimationController(vsync: this, duration: BuMotion.durations.slow);
   // Sayaç değişimi: eski sayı yukarı kayıp solar, yenisi aşağıdan gelir.
-  late final AnimationController _countAnim =
-      AnimationController(vsync: this, duration: const Duration(milliseconds: 250), value: 1);
+  late final AnimationController _countAnim = AnimationController(vsync: this, duration: BuMotion.durations.quick, value: 1);
   int _prevCount = 0;
+
+  Animatable<double> get _heartPop => LikeButton._heartPopSeq;
 
   Post get _post => widget.post;
   bool get _pending => _timer != null || _inflight;
@@ -198,10 +205,7 @@ class _LikeButtonState extends State<LikeButton> with TickerProviderStateMixin {
     // Görsel üstü hapta beğeni kırmızı değil: dolu beyaz kalp (Stitch v3); normal yerde marka kırmızısı.
     final color = _liked ? t.pr : (widget.detail ? t.ink : t.mut);
     const box = 44.0;
-    final scale = TweenSequence<double>([
-      TweenSequenceItem(tween: Tween(begin: 1.0, end: 1.38).chain(CurveTween(curve: Curves.easeOut)), weight: 40),
-      TweenSequenceItem(tween: Tween(begin: 1.38, end: 1.0).chain(CurveTween(curve: Curves.easeInOut)), weight: 60),
-    ]).animate(_anim);
+    final scale = _heartPop.animate(_anim);
 
     // Kalp, fotoğrafın başlangıç kenarıyla hizalı (kutu yalnız dokunma hedefini büyütür).
     final heart = Semantics(
@@ -244,7 +248,7 @@ class _LikeButtonState extends State<LikeButton> with TickerProviderStateMixin {
     final count = AnimatedBuilder(
       animation: _countAnim,
       builder: (c, _) {
-        final v = Curves.easeOut.transform(_countAnim.value);
+        final v = BuMotion.standard.transform(_countAnim.value);
         if (v >= 1) return countText;
         return Stack(alignment: AlignmentDirectional.centerStart, children: [
           Opacity(
@@ -290,10 +294,7 @@ class _LikeButtonState extends State<LikeButton> with TickerProviderStateMixin {
   Widget _buildTile(BuildContext context, Widget count) {
     final t = context.bu;
     final size = widget.size ?? 20.0;
-    final scale = TweenSequence<double>([
-      TweenSequenceItem(tween: Tween(begin: 1.0, end: 1.38).chain(CurveTween(curve: Curves.easeOut)), weight: 40),
-      TweenSequenceItem(tween: Tween(begin: 1.38, end: 1.0).chain(CurveTween(curve: Curves.easeInOut)), weight: 60),
-    ]).animate(_anim);
+    final scale = _heartPop.animate(_anim);
     final icon = SizedBox(
       key: const ValueKey('like-heart'),
       width: size,
@@ -358,16 +359,11 @@ class _BurstPainter extends CustomPainter {
     if (progress <= 0 || progress >= 1) return;
     final c = size.center(Offset.zero);
     final fade = (1 - progress).clamp(0.0, 1.0);
-    canvas.drawCircle(
-      c,
-      30,
-      Paint()
-        ..color = color.withValues(alpha: .28 * fade)
-        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 10),
-    );
+    // Yumuşak ışıma: bulanıklık (MaskFilter) yerine tek dolgu halkası; her karede blur maliyeti yok.
+    canvas.drawCircle(c, 26, Paint()..color = color.withValues(alpha: .16 * fade));
     final p = Paint()..color = color.withValues(alpha: .75 * fade);
     const n = 8;
-    final r = 17 + 12 * Curves.easeOut.transform(progress);
+    final r = 17 + 12 * BuMotion.standard.transform(progress);
     for (var i = 0; i < n; i++) {
       final a = (i / n) * 2 * math.pi;
       canvas.drawCircle(c + Offset(math.cos(a), math.sin(a)) * r, 3 * fade + .8, p);
@@ -397,8 +393,7 @@ class DoubleTapLike extends StatefulWidget {
 }
 
 class _DoubleTapLikeState extends State<DoubleTapLike> with SingleTickerProviderStateMixin {
-  late final AnimationController _c =
-      AnimationController(vsync: this, duration: const Duration(milliseconds: 520));
+  late final AnimationController _c = AnimationController(vsync: this, duration: BuMotion.durations.slow);
 
   @override
   void dispose() {
@@ -418,10 +413,9 @@ class _DoubleTapLikeState extends State<DoubleTapLike> with SingleTickerProvider
     final scale = calm
         ? const AlwaysStoppedAnimation<double>(1.0)
         : TweenSequence<double>([
-            TweenSequenceItem(tween: Tween(begin: .9, end: 1.1).chain(CurveTween(curve: Curves.easeOut)), weight: 35),
-            TweenSequenceItem(tween: Tween(begin: 1.1, end: 1.0), weight: 15),
-            TweenSequenceItem(tween: ConstantTween(1.0), weight: 30),
-            TweenSequenceItem(tween: Tween(begin: 1.0, end: 1.3), weight: 20),
+            TweenSequenceItem(tween: Tween(begin: .85, end: 1.05).chain(CurveTween(curve: BuMotion.decelerate)), weight: 30),
+            TweenSequenceItem(tween: Tween(begin: 1.05, end: 1.0).chain(CurveTween(curve: BuMotion.settle)), weight: 20),
+            TweenSequenceItem(tween: ConstantTween(1.0), weight: 50),
           ]).animate(_c);
     final opacity = TweenSequence<double>([
       TweenSequenceItem(tween: Tween(begin: 0.0, end: 1.0), weight: 15),

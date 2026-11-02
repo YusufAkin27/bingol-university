@@ -44,7 +44,8 @@ class PrefSwitch extends StatelessWidget {
           height: 44, // dokunma alanı
           child: Center(
             child: AnimatedContainer(
-              duration: const Duration(milliseconds: 160),
+              duration: BuMotion.of(context, BuMotion.short),
+              curve: BuMotion.standard,
               width: 46,
               height: 28,
               padding: const EdgeInsets.all(3),

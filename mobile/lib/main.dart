@@ -32,6 +32,7 @@ import 'core/error_log.dart';
 import 'core/nav.dart';
 import 'core/push/push_service.dart';
 import 'core/session.dart';
+import 'core/motion/bu_motion.dart';
 import 'core/theme.dart';
 import 'core/theme_controller.dart';
 import 'features/auth/login_page.dart';
@@ -296,12 +297,15 @@ class _SignedOutRootState extends State<_SignedOutRoot> {
             ? WelcomePage(onLogin: () => _finish(register: false), onRegister: () => _finish(register: true))
             : LoginPage(session: widget.session);
     return AnimatedSwitcher(
-      duration: const Duration(milliseconds: 320),
-      switchInCurve: Curves.easeOutCubic,
-      switchOutCurve: Curves.easeIn,
+      duration: BuMotion.fadeOf(context, BuMotion.medium),
+      reverseDuration: BuMotion.fadeOf(context, BuMotion.exit(BuMotion.medium)),
+      switchInCurve: BuMotion.emphasizedDecelerate,
+      switchOutCurve: BuMotion.accelerate,
       transitionBuilder: (child, anim) => FadeTransition(
         opacity: anim,
-        child: SlideTransition(position: Tween(begin: const Offset(0, .03), end: Offset.zero).animate(anim), child: child),
+        child: BuMotion.reduced(context)
+            ? child
+            : SlideTransition(position: Tween(begin: const Offset(0, .03), end: Offset.zero).animate(anim), child: child),
       ),
       child: KeyedSubtree(key: ValueKey(page.runtimeType), child: page),
     );

@@ -40,7 +40,7 @@ Future<String?> showMessageActions(
     barrierLabel: context.l10n.chatDetailClose,
     barrierColor:
         Colors.transparent, // karartmayı kendimiz çiziyoruz (animasyonlu)
-    transitionDuration: BuMotion.of(context, const Duration(milliseconds: 180)),
+    transitionDuration: BuMotion.of(context, BuMotion.short),
     transitionBuilder: (c, a, s, child) => child,
     pageBuilder: (c, animation, _) => _MessageActionsOverlay(
       animation: animation,
@@ -126,11 +126,11 @@ class _MessageActionsOverlay extends StatelessWidget {
     final cardW = math.min(248.0, size.width - _edge * 2);
 
     final scale = Tween<double>(begin: .86, end: 1)
-        .chain(CurveTween(curve: Curves.easeOutCubic))
+        .chain(CurveTween(curve: BuMotion.standard))
         .animate(animation);
-    final fade = CurvedAnimation(parent: animation, curve: Curves.easeOut);
+    final fade = CurvedAnimation(parent: animation, curve: BuMotion.standard);
     final slide =
-        CurvedAnimation(parent: animation, curve: Curves.easeOutCubic);
+        CurvedAnimation(parent: animation, curve: BuMotion.standard);
 
     void close([String? v]) => Navigator.of(context).pop(v);
 

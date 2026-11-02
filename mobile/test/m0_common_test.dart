@@ -64,7 +64,7 @@ void main() {
       expect(scaleOf(t), closeTo(.97, 1e-9));
       await t.pump(const Duration(milliseconds: 60));
       final mid = t.widget<AnimatedOpacity>(find.byType(AnimatedOpacity).first);
-      expect(mid.duration, const Duration(milliseconds: 100));
+      expect(mid.duration, const Duration(milliseconds: 120)); // micro: basma <150 ms
       await g.up();
       await t.pump();
       expect(opacityOf(t), 1);

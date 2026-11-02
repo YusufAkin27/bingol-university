@@ -228,7 +228,7 @@ class _AuthRuleState extends State<AuthRule> {
               AnimatedScale(
                 scale: ok ? 1 : 0,
                 duration: BuMotion.of(context, BuMotion.medium),
-                curve: Curves.easeOutBack,
+                curve: BuMotion.success,
                 child: Icon(BuIcons.check, size: 18, color: t.ink),
               ),
             ],

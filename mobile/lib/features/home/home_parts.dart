@@ -310,7 +310,7 @@ class HomeSectionSlot extends StatelessWidget {
   Widget build(BuildContext context) {
     // "Animasyonları azalt": geçişsiz (sıfır süreli AnimatedSize yerleşim sırasında yeniden çizim tetikler).
     if (BuMotion.reduced(context)) return visible ? KeyedSubtree(key: const ValueKey('on'), child: builder()) : const SizedBox(width: double.infinity);
-    const d = Duration(milliseconds: 220);
+    const d = BuMotion.medium;
     return AnimatedSize(
       duration: d,
       curve: BuMotion.standard,

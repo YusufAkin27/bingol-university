@@ -656,7 +656,7 @@ class _FrameLock extends StatelessWidget {
           AnimatedScale(
             scale: success ? 1 : 0,
             duration: d,
-            curve: Curves.easeOutBack,
+            curve: BuMotion.success,
             child: AnimatedOpacity(
               opacity: success ? 1 : 0,
               duration: d,

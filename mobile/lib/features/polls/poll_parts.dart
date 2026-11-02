@@ -56,7 +56,7 @@ class StarRating extends StatelessWidget {
                 child: AnimatedScale(
                   scale: value == i && onChanged != null ? 1.16 : 1,
                   duration: d,
-                  curve: Curves.easeOutBack,
+                  curve: BuMotion.success,
                   child: Icon((value ?? 0) >= i ? BuIcons.starFilled : BuIcons.star,
                       size: size + 4,
                       color: (value ?? 0) >= i ? gold : (inactiveColor ?? t.mut.withValues(alpha: .5))),

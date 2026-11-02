@@ -692,8 +692,8 @@ class _ChatTabState extends State<ChatTab> {
                 child: AnimatedAlign(
                   alignment: Alignment.topCenter,
                   heightFactor: removing ? 0 : 1,
-                  duration: BuMotion.of(context, const Duration(milliseconds: 220)),
-                  curve: Curves.easeOutCubic,
+                  duration: BuMotion.of(context, BuMotion.short),
+                  curve: BuMotion.standard,
                   child: row,
                 ),
               ),

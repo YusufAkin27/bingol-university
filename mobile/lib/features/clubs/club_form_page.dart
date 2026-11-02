@@ -241,7 +241,7 @@ class _ClubFormPageState extends State<ClubFormPage> {
       _formError = null;
     });
     if (e.isNotEmpty && _scroll.hasClients) {
-      _scroll.animateTo(0, duration: const Duration(milliseconds: 250), curve: Curves.easeOut);
+      BuMotion.scrollTo(context, _scroll, 0);
     }
     return e.isEmpty;
   }
@@ -362,7 +362,7 @@ class _ClubFormPageState extends State<ClubFormPage> {
           _partial = true;
         });
         if (_scroll.hasClients) {
-          _scroll.animateTo(0, duration: const Duration(milliseconds: 250), curve: Curves.easeOut);
+          BuMotion.scrollTo(context, _scroll, 0);
         }
         return;
       }

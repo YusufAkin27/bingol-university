@@ -143,8 +143,8 @@ class _LoginPageState extends State<LoginPage> {
         ValueListenableBuilder<bool>(
           valueListenable: widget.session.replacedNotice,
           builder: (context, show, _) => AnimatedSize(
-            duration: const Duration(milliseconds: 240),
-            curve: Curves.easeOutCubic,
+            duration: BuMotion.of(context, BuMotion.medium),
+            curve: BuMotion.standard,
             alignment: Alignment.topCenter,
             child: show
                 ? Padding(
@@ -162,8 +162,8 @@ class _LoginPageState extends State<LoginPage> {
           ),
         ),
         AnimatedSize(
-          duration: const Duration(milliseconds: 240),
-          curve: Curves.easeOutCubic,
+          duration: BuMotion.of(context, BuMotion.medium),
+          curve: BuMotion.standard,
           alignment: Alignment.topCenter,
           child: _pending == null
               ? const SizedBox(width: double.infinity)

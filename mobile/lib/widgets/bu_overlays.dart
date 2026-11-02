@@ -45,7 +45,7 @@ class BuBottomSheet extends StatelessWidget {
     final mq = MediaQuery.of(context);
     final body = Padding(padding: padding, child: child);
     return AnimatedPadding(
-      duration: BuMotion.of(context, const Duration(milliseconds: 120)),
+      duration: BuMotion.of(context, BuMotion.durations.micro),
       padding: EdgeInsets.only(bottom: mq.viewInsets.bottom),
       child: SafeArea(
         top: false,

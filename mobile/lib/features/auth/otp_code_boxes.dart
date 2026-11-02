@@ -102,7 +102,7 @@ class _OtpCodeBoxesState extends State<OtpCodeBoxes> {
                                 return Expanded(
                                   child: AnimatedContainer(
                                     duration: BuMotion.of(context, BuMotion.short),
-                                    curve: Curves.easeOut,
+                                    curve: BuMotion.standard,
                                     alignment: Alignment.center,
                                     decoration: BoxDecoration(
                                       color: ok ? t.okSoft : t.sf,
@@ -226,7 +226,7 @@ class _OtpDigitState extends State<_OtpDigit> with SingleTickerProviderStateMixi
 
   @override
   Widget build(BuildContext context) {
-    final a = CurvedAnimation(parent: _c, curve: Curves.easeOutBack);
+    final a = CurvedAnimation(parent: _c, curve: BuMotion.success);
     return FadeTransition(
       opacity: _c,
       child: ScaleTransition(scale: Tween<double>(begin: .6, end: 1).animate(a), child: Text(widget.ch, style: widget.style)),

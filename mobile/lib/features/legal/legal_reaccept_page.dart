@@ -159,6 +159,7 @@ class _LegalReacceptPageState extends State<LegalReacceptPage> {
     final l = context.l10n;
     await showModalBottomSheet<void>(
       context: context,
+      sheetAnimationStyle: BuMotionStyles.sheet(context),
       isScrollControlled: true,
       useSafeArea: true,
       backgroundColor: Colors.transparent,
@@ -359,7 +360,8 @@ class _AckCard extends StatelessWidget {
               child: Row(
                 children: [
                   AnimatedContainer(
-                    duration: const Duration(milliseconds: 200),
+                    duration: BuMotion.of(context, BuMotion.short),
+                    curve: BuMotion.standard,
                     width: 28,
                     height: 28,
                     decoration: BoxDecoration(

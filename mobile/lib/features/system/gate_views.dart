@@ -143,7 +143,7 @@ class _GateIconState extends State<_GateIcon> with SingleTickerProviderStateMixi
     Widget glyph = Icon(icon, size: 48, color: danger ? t.danger : t.ink);
     if (c != null) {
       glyph = ScaleTransition(
-        scale: Tween<double>(begin: 1, end: 1.06).animate(CurvedAnimation(parent: c, curve: Curves.easeInOut)),
+        scale: Tween<double>(begin: 1, end: 1.06).animate(CurvedAnimation(parent: c, curve: Curves.easeInOutSine)),
         child: glyph,
       );
     }

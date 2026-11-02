@@ -176,7 +176,7 @@ class _MessageRequestsPageState extends State<MessageRequestsPage> {
     try {
       await (accept ? _api.accept(id) : _api.decline(id));
       if (!mounted) return;
-      await Future<void>.delayed(BuMotion.of(context, const Duration(milliseconds: 220)));
+      await Future<void>.delayed(BuMotion.of(context, BuMotion.short));
       if (!mounted) return;
       setState(() {
         _items.removeWhere((x) => _id(x) == id);
@@ -400,8 +400,8 @@ class _RequestTile extends StatelessWidget {
         child: AnimatedAlign(
           alignment: Alignment.topCenter,
           heightFactor: leaving ? 0 : 1,
-          duration: BuMotion.of(context, const Duration(milliseconds: 220)),
-          curve: Curves.easeOutCubic,
+          duration: BuMotion.of(context, BuMotion.short),
+          curve: BuMotion.standard,
           child: row,
         ),
       ),

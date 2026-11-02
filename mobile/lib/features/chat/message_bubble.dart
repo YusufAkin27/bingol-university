@@ -899,7 +899,7 @@ class _SwipeReplyState extends State<_SwipeReply> with SingleTickerProviderState
   static const _max = 64.0;
   static const _threshold = 48.0;
 
-  late final AnimationController _back = AnimationController(vsync: this, duration: const Duration(milliseconds: 220));
+  late final AnimationController _back = AnimationController(vsync: this, duration: BuMotion.short);
   double _p = 0; // 0.._max, sürükleme yönündeki ilerleme
   bool _armed = false;
   double _from = 0;
@@ -909,7 +909,7 @@ class _SwipeReplyState extends State<_SwipeReply> with SingleTickerProviderState
     super.initState();
     _back.addListener(() {
       if (mounted) {
-        setState(() => _p = (_from * (1 - Curves.easeOutCubic.transform(_back.value))).clamp(0.0, _max).toDouble());
+        setState(() => _p = (_from * (1 - BuMotion.standard.transform(_back.value))).clamp(0.0, _max).toDouble());
       }
     });
   }
