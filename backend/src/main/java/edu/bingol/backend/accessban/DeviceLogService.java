@@ -84,6 +84,22 @@ public class DeviceLogService {
         return true;
     }
 
+    /**
+     * Bu cihaz (X-Device-Id ozeti) kullanicinin gecmisinde hic gorulmedi mi? Cihaz kimligi yoksa ya da hesabin hic cihaz
+     * kaydi yoksa (ilk giris/kayit) false: ilk cihaz "yeni cihaz" sayilmaz. Giris kaydi YAZILMADAN ONCE cagrilir.
+     */
+    public boolean isNewDevice(Long userId, ClientContext ctx) {
+        if (userId == null || ctx == null || ctx.deviceHash() == null) {
+            return false;
+        }
+        try {
+            return !repo.existsByUserIdAndDeviceHash(userId, ctx.deviceHash()) && repo.countByUserId(userId) > 0;
+        } catch (RuntimeException e) {
+            log.warn("Yeni cihaz denetimi yapilamadi (user {}): {}", userId, e.toString());
+            return false;
+        }
+    }
+
     /** Normal istek: kisitli ve asenkron. */
     public void touch(Long userId, ClientContext ctx) {
         if (userId == null || ctx == null || ctx.ip() == null) {
