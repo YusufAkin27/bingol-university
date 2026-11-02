@@ -2,12 +2,11 @@
 // Fotoğraf alanı YOK: yönetici uç sözleşmesinde yükleme ucu tanımlı değil; mevcut `photoUrl` düzenlemede aynen korunur.
 import { useMemo, useState, type KeyboardEvent } from 'react';
 import {
-  CAMPUS_CATEGORIES,
   createCampusPlace,
   updateCampusPlace,
   campusKeys,
   type CampusPlace,
-  type CampusCategory,
+  type CampusCategoryInfo,
   type LatLng,
 } from '../../../api/adminCampus';
 import {
@@ -28,6 +27,7 @@ import { errText, gt } from './dict';
 import {
   EMPTY_PLACE_FORM,
   NAME_MAX,
+  WEB_URL_MAX,
   SUMMARY_MAX,
   UNITS_MAX,
   addUnits,
@@ -40,6 +40,7 @@ import {
   type PlaceField,
   type PlaceFormState,
 } from './logic';
+import { PlacePhoto } from './PlacePhoto';
 import { PlacePreview } from './PlacePreview';
 import styles from './campus.module.css';
 
@@ -50,10 +51,12 @@ interface Props {
   /** null: yeni yer. */
   place: CampusPlace | null;
   boundary: LatLng[];
+  /** Sunucudan gelen (ya da yedek) kategori listesi. */
+  categories: CampusCategoryInfo[];
   onClose: () => void;
 }
 
-export function PlaceForm({ place, boundary, onClose }: Props) {
+export function PlaceForm({ place, boundary, categories, onClose }: Props) {
   const i18n = useI18n();
   const t = gt(i18n);
   const { formatNumber } = i18n;
@@ -64,8 +67,13 @@ export function PlaceForm({ place, boundary, onClose }: Props) {
   const [pasteState, setPasteState] = useState<'idle' | 'ok' | 'bad'>('idle');
   const [unitDraft, setUnitDraft] = useState('');
 
-  const photoUrl = place?.photoUrl ?? null;
-  const v = useMemo(() => validatePlaceForm(form, boundary, photoUrl), [form, boundary, photoUrl]);
+  const [photoUrl, setPhotoUrl] = useState<string | null>(place?.photoUrl ?? null);
+  const categoryKeys = useMemo(() => categories.map((c) => c.key), [categories]);
+  const unitSourceCode = place?.unitSourceCode ?? null;
+  const v = useMemo(
+    () => validatePlaceForm(form, boundary, { photoUrl, categories: categoryKeys, unitSourceCode }),
+    [form, boundary, photoUrl, categoryKeys, unitSourceCode],
+  );
   const set = (patch: Partial<PlaceFormState>) => setForm((f) => ({ ...f, ...patch }));
   const blur = (field: PlaceField) => setBlurred((s) => (s.has(field) ? s : new Set(s).add(field)));
 
@@ -171,13 +179,13 @@ export function PlaceForm({ place, boundary, onClose }: Props) {
           <Select
             data-search-anchor="campus-category"
             value={form.category}
-            onChange={(e) => set({ category: e.target.value as CampusCategory | '' })}
+            onChange={(e) => set({ category: e.target.value })}
             onBlur={() => blur('category')}
           >
             <option value="">{t('admin.campus.form.categoryChoose')}</option>
-            {CAMPUS_CATEGORIES.map((c) => (
-              <option key={c} value={c}>
-                {t(`admin.campus.cat.${c}`)}
+            {categories.map((c) => (
+              <option key={c.key} value={c.key}>
+                {c.label}
               </option>
             ))}
           </Select>
@@ -282,6 +290,41 @@ export function PlaceForm({ place, boundary, onClose }: Props) {
 
         <div className={styles.wide}>
           <FormField
+            label={t('admin.campus.form.webUrl')}
+            hint={t('admin.campus.form.webUrlHint', { max: WEB_URL_MAX })}
+            error={err('webUrl')}
+          >
+            <Input
+              data-search-anchor="campus-weburl"
+              value={form.webUrl}
+              dir="ltr"
+              inputMode="url"
+              autoComplete="off"
+              spellCheck={false}
+              placeholder="https://fef.bingol.edu.tr"
+              onChange={(e) => set({ webUrl: e.target.value })}
+              onBlur={() => blur('webUrl')}
+            />
+          </FormField>
+        </div>
+
+        <div className={styles.wide} data-search-anchor="campus-remote">
+          <Checkbox
+            label={t('admin.campus.form.remote')}
+            checked={form.remote}
+            onChange={(e) => set({ remote: e.target.checked })}
+          />
+          <p className={styles.muted}>{t('admin.campus.form.remoteHint')}</p>
+        </div>
+
+        {place && (
+          <div className={styles.wide}>
+            <PlacePhoto placeId={place.id} name={place.name} url={photoUrl} onChange={setPhotoUrl} />
+          </div>
+        )}
+
+        <div className={styles.wide}>
+          <FormField
             label={t('admin.campus.form.summary')}
             hint={`${t('admin.campus.form.summaryHint', { max: SUMMARY_MAX })} (${formatNumber(form.summary.trim().length)}/${formatNumber(SUMMARY_MAX)})`}
             error={err('summary')}
@@ -337,6 +380,20 @@ export function PlaceForm({ place, boundary, onClose }: Props) {
             </ul>
           )}
         </div>
+
+        {place?.departments && place.departments.length > 0 && (
+          <div className={styles.wide} data-search-anchor="campus-departments">
+            <span className={styles.photoLabel}>{t('admin.campus.form.departments')}</span>
+            <ul className={styles.chips} aria-label={t('admin.campus.form.departments')}>
+              {place.departments.map((d) => (
+                <li key={d} className={`${styles.chip} ${styles.chipStatic}`}>
+                  <span dir="auto">{d}</span>
+                </li>
+              ))}
+            </ul>
+            <p className={styles.muted}>{t('admin.campus.form.departmentsHint')}</p>
+          </div>
+        )}
 
         <div className={styles.wide}>
           <FormField

@@ -1,15 +1,16 @@
 // Üst göstergeler: toplam yer, kategori dağılımı (mini çubuklar) ve son güncelleme.
 import { useMemo } from 'react';
-import type { CampusPlace } from '../../../api/adminCampus';
+import type { CampusCategoryInfo, CampusPlace } from '../../../api/adminCampus';
 import { RankedBars, StatTile } from '../../../components/ui';
 import { useI18n } from '../../../i18n/I18nProvider';
 import { SummaryGrid } from '../community/Summary';
 import { gt } from './dict';
-import { categoryCounts, latestUpdate } from './logic';
+import { categoryCounts, categoryLabel, latestUpdate } from './logic';
 import styles from './campus.module.css';
 
 interface Props {
   places: CampusPlace[] | undefined;
+  categories: CampusCategoryInfo[];
   /** Ayar kaydının güncellenme zamanı (sunucu verirse). */
   configUpdatedAt?: string | null;
   loading: boolean;
@@ -17,7 +18,7 @@ interface Props {
   onRetry: () => void;
 }
 
-export function CampusSummary({ places, configUpdatedAt, loading, error, onRetry }: Props) {
+export function CampusSummary({ places, categories, configUpdatedAt, loading, error, onRetry }: Props) {
   const i18n = useI18n();
   const t = gt(i18n);
   const { formatNumber, formatDate } = i18n;
@@ -59,7 +60,7 @@ export function CampusSummary({ places, configUpdatedAt, loading, error, onRetry
             ariaLabel={t('admin.campus.stat.catsAria')}
             items={stats?.cats.map((c) => ({
               key: c.category,
-              label: t(`admin.campus.cat.${c.category}`),
+              label: categoryLabel(categories, c.category),
               value: c.count,
             }))}
             limit={3}

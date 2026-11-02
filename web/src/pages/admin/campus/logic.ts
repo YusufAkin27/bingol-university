@@ -1,11 +1,13 @@
 // Kampüs haritası sayfasının saf mantığı: koordinat/poligon/karo adresi doğrulaması, süzgeç ve sıralama.
 // Arayüzden bağımsızdır (test edilebilir); hata kodları `admin.campus.err.*` çevirilerine karşılık gelir.
-import type {
-  CampusCategory,
-  CampusConfig,
-  CampusPlace,
-  CampusPlaceInput,
-  LatLng,
+import {
+  FALLBACK_CATEGORIES,
+  type CampusCategory,
+  type CampusCategoryInfo,
+  type CampusConfig,
+  type CampusPlace,
+  type CampusPlaceInput,
+  type LatLng,
 } from '../../../api/adminCampus';
 import { fold } from '../../../search/fold';
 
@@ -258,7 +260,7 @@ export function osmLink(lat: number, lng: number, zoom = 18): string {
 
 export interface PlaceFormState {
   name: string;
-  category: CampusCategory | '';
+  category: CampusCategory;
   lat: string;
   lng: string;
   summary: string;
@@ -266,6 +268,9 @@ export interface PlaceFormState {
   footprintText: string;
   sortKey: string;
   active: boolean;
+  webUrl: string;
+  /** Ana yerleşke dışındaki birim. */
+  remote: boolean;
 }
 
 export const EMPTY_PLACE_FORM: PlaceFormState = {
@@ -278,6 +283,8 @@ export const EMPTY_PLACE_FORM: PlaceFormState = {
   footprintText: '',
   sortKey: '0',
   active: true,
+  webUrl: '',
+  remote: false,
 };
 
 export const NAME_MAX = 120;
@@ -285,8 +292,29 @@ export const SUMMARY_MAX = 500;
 export const UNIT_MAX = 80;
 export const UNITS_MAX = 30;
 export const SORT_KEY_MAX = 9999;
+export const WEB_URL_MAX = 300;
 
-export type PlaceField = 'name' | 'category' | 'lat' | 'lng' | 'summary' | 'footprint' | 'sortKey' | 'unit';
+export type WebUrlError = 'notHttps' | 'host' | 'invalid' | 'tooLong';
+
+/** Birim web adresi: boş geçerli; https ve bingol.edu.tr (ya da alt alanı), kullanıcı bilgisi/boşluk yok. */
+export function validateWebUrl(raw: string): WebUrlError | null {
+  const u = raw.trim();
+  if (!u) return null;
+  if (u.length > WEB_URL_MAX) return 'tooLong';
+  if (/\s/.test(u)) return 'invalid';
+  if (!/^https:\/\//i.test(u)) return 'notHttps';
+  let url: URL;
+  try {
+    url = new URL(u);
+  } catch {
+    return 'invalid';
+  }
+  if (url.username || url.password) return 'invalid';
+  const host = url.hostname.toLowerCase();
+  return host === 'bingol.edu.tr' || host.endsWith('.bingol.edu.tr') ? null : 'host';
+}
+
+export type PlaceField = 'name' | 'category' | 'lat' | 'lng' | 'summary' | 'footprint' | 'sortKey' | 'unit' | 'webUrl';
 export type PlaceWarning = 'outsideBoundary' | 'footprintOutside';
 
 export interface PlaceValidation {
@@ -311,6 +339,8 @@ export function placeToForm(p: CampusPlace): PlaceFormState {
     footprintText: pointsToText(p.footprint),
     sortKey: String(p.sortKey),
     active: p.active,
+    webUrl: p.webUrl ?? '',
+    remote: p.remote ?? false,
   };
 }
 
@@ -327,6 +357,9 @@ export function placeToInput(p: CampusPlace): CampusPlaceInput {
     footprint: p.footprint,
     sortKey: p.sortKey,
     active: p.active,
+    webUrl: p.webUrl ?? null,
+    remote: p.remote ?? false,
+    unitSourceCode: p.unitSourceCode ?? null,
   };
 }
 
@@ -347,7 +380,15 @@ export function addUnits(current: string[], raw: string): string[] {
   return out;
 }
 
-export function validatePlaceForm(f: PlaceFormState, boundary: LatLng[], photoUrl: string | null): PlaceValidation {
+export interface PlaceContext {
+  photoUrl: string | null;
+  /** Geçerli kategori anahtarları (sunucu listesi); boş/yok ise yalnız "seçilmiş mi" denetlenir. */
+  categories?: string[];
+  /** Formda düzenlenmeyen, korunan birim haberleri bağı. */
+  unitSourceCode?: string | null;
+}
+
+export function validatePlaceForm(f: PlaceFormState, boundary: LatLng[], ctx: PlaceContext): PlaceValidation {
   const errors: PlaceValidation['errors'] = {};
   const warnings: PlaceWarning[] = [];
 
@@ -356,6 +397,12 @@ export function validatePlaceForm(f: PlaceFormState, boundary: LatLng[], photoUr
   else if (name.length > NAME_MAX) errors.name = { code: 'tooLong' };
 
   if (!f.category) errors.category = { code: 'required' };
+  else if (ctx.categories && ctx.categories.length > 0 && !ctx.categories.includes(f.category)) {
+    errors.category = { code: 'categoryUnknown' };
+  }
+
+  const webErr = validateWebUrl(f.webUrl);
+  if (webErr) errors.webUrl = { code: `web.${webErr}` };
 
   const lat = parseCoord(f.lat);
   const lng = parseCoord(f.lng);
@@ -375,8 +422,9 @@ export function validatePlaceForm(f: PlaceFormState, boundary: LatLng[], photoUr
   if (fp.error) errors.footprint = { code: `poly.${fp.error.code}`, index: fp.error.index };
 
   const point = !errors.lat && !errors.lng ? { lat, lng } : null;
-  if (point && insideBoundary(point.lat, point.lng, boundary) === false) warnings.push('outsideBoundary');
-  if (!errors.footprint && fp.points.length >= 3 && boundary.length >= 3) {
+  // uzak birimler ana yerleşke sınırının dışındadır: sınır uyarısı verilmez
+  if (!f.remote && point && insideBoundary(point.lat, point.lng, boundary) === false) warnings.push('outsideBoundary');
+  if (!f.remote && !errors.footprint && fp.points.length >= 3 && boundary.length >= 3) {
     if (fp.points.some(([a, b]) => !pointInPolygon(a, b, boundary))) warnings.push('footprintOutside');
   }
 
@@ -384,15 +432,18 @@ export function validatePlaceForm(f: PlaceFormState, boundary: LatLng[], photoUr
   const input: CampusPlaceInput | null = ok
     ? {
         name,
-        category: f.category as CampusCategory,
+        category: f.category,
         lat: point.lat,
         lng: point.lng,
         summary: f.summary.trim() || null,
-        photoUrl,
+        photoUrl: ctx.photoUrl,
         units: f.units,
         footprint: fp.points.length >= 3 ? fp.points : null,
         sortKey,
         active: f.active,
+        webUrl: f.webUrl.trim() || null,
+        remote: f.remote,
+        unitSourceCode: ctx.unitSourceCode ?? null,
       }
     : null;
   return { errors, warnings, input, point, footprint: errors.footprint ? [] : fp.points };
@@ -510,6 +561,20 @@ export function validateConfigForm(f: ConfigFormState): ConfigValidation {
 
 /* --------------------------------------------------------------- liste mantığı */
 
+/** Kategori listesi: sunucudan (ayar yanıtı) ya da yedek; kayıtlarda geçen ama listede olmayan anahtarlar da eklenir. */
+export function resolveCategories(
+  fromServer: CampusCategoryInfo[] | undefined,
+  placeKeys: string[] = [],
+): CampusCategoryInfo[] {
+  const base = fromServer && fromServer.length > 0 ? [...fromServer] : [...FALLBACK_CATEGORIES];
+  for (const k of placeKeys) if (k && !base.some((c) => c.key === k)) base.push({ key: k, label: k });
+  return base;
+}
+
+export function categoryLabel(list: CampusCategoryInfo[], key: string): string {
+  return list.find((c) => c.key === key)?.label ?? key;
+}
+
 export type PlaceSort = 'sortKey' | 'name' | 'category' | 'updated';
 export type StatusFilter = '' | 'active' | 'inactive';
 
@@ -569,4 +634,29 @@ export function latestUpdate(...stamps: (string | null | undefined)[]): string |
     }
   }
   return best;
+}
+
+/* ------------------------------------------- sınır kaynağı ve kaydırma sınırı */
+
+export type BoundarySourceKind = 'osm' | 'approx' | 'unknown';
+
+/** Sunucunun bildirdiği sınır kaynağı: "OSM"/"openstreetmap" ya da "yaklaşık"/"approx..." ; yoksa bilinmiyor. */
+export function boundarySourceKind(src: string | null | undefined): BoundarySourceKind {
+  const v = fold(src ?? '');
+  if (!v) return 'unknown';
+  if (v.includes('yaklas') || v.includes('approx') || v.includes('estimat')) return 'approx';
+  if (v.includes('osm') || v.includes('openstreetmap')) return 'osm';
+  return 'unknown';
+}
+
+/**
+ * Kaydırma sınırı (`bounds`): merkez ve sınır poligonu değişmediyse aynen geri gönderilir; değiştiyse
+ * gönderilmez (sunucu poligondan yeniden hesaplar; eski kutu yeni sınırı kapsamayıp 400 verirdi).
+ */
+export function boundsToSend(config: CampusConfig, next: CampusConfig): CampusConfig['bounds'] {
+  const same =
+    config.center.lat === next.center.lat &&
+    config.center.lng === next.center.lng &&
+    JSON.stringify(config.boundary) === JSON.stringify(next.boundary);
+  return same ? (config.bounds ?? undefined) : undefined;
 }

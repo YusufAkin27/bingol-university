@@ -37,9 +37,15 @@ const place = (id: number, over: Record<string, unknown> = {}) => ({
 });
 
 const PLACES = [
-  place(1, { name: 'Mühendislik Fakültesi', units: ['Bilgisayar Mühendisliği'], updatedAt: '2026-10-30T10:00:00Z' }),
-  place(2, { name: 'Merkez Kütüphane', category: 'library', active: false }),
-  place(3, { name: 'Çınar Yemekhanesi', category: 'dining' }),
+  place(1, {
+    name: 'Mühendislik Fakültesi',
+    units: ['Bilgisayar Mühendisliği'],
+    departments: ['Bilgisayar Mühendisliği', 'İnşaat Mühendisliği'],
+    unitSourceCode: 'mmf',
+    updatedAt: '2026-10-30T10:00:00Z',
+  }),
+  place(2, { name: 'Fen Edebiyat Fakültesi', active: false, webUrl: 'https://fef.bingol.edu.tr' }),
+  place(3, { name: 'Merkezi Kafeterya', category: 'dining' }),
 ];
 
 interface Call {
@@ -55,6 +61,7 @@ interface Opts {
   placesStatus?: number;
   configStatus?: number;
   hang?: boolean;
+  config?: Record<string, unknown>;
 }
 
 function setup(opts: Opts = {}) {
@@ -64,7 +71,7 @@ function setup(opts: Opts = {}) {
     calls.push({
       url,
       method,
-      body: init.body ? JSON.parse(String(init.body)) : undefined,
+      body: typeof init.body === 'string' ? JSON.parse(init.body) : undefined,
       reason: headerOf(init, 'X-Admin-Reason'),
     });
     if (url.endsWith('/admin/me')) {
@@ -87,7 +94,7 @@ function setup(opts: Opts = {}) {
     if (url.endsWith('/admin/campus/config')) {
       if (method === 'PUT') return jsonResponse(200, config);
       if (opts.configStatus) return jsonResponse(opts.configStatus, { code: 'SERVER_ERROR', message: 'x' });
-      return jsonResponse(200, config);
+      return jsonResponse(200, { ...config, ...opts.config });
     }
     return jsonResponse(404, { code: 'NOT_FOUND', message: 'x' });
   });
@@ -118,8 +125,8 @@ describe('Kampüs haritası: göstergeler ve liste', () => {
     expect(within(stats).getByText('Kategori dağılımı')).toBeInTheDocument();
     expect(within(stats).getByText('Son güncelleme')).toBeInTheDocument();
     // kategori çubukları: fakülte/kütüphane/yemekhane etiketleri
-    expect(within(stats).getByText('Kütüphane')).toBeInTheDocument();
-    expect(screen.getByText('Merkez Kütüphane')).toBeInTheDocument();
+    expect(within(stats).getByText('Yemekhane')).toBeInTheDocument();
+    expect(screen.getByText('Fen Edebiyat Fakültesi')).toBeInTheDocument();
     expect(screen.getByText('Pasif', { selector: 'span' })).toBeInTheDocument();
     expect(screen.getByText('3 yer listeleniyor')).toBeInTheDocument();
   });
@@ -150,9 +157,9 @@ describe('Kampüs haritası: göstergeler ve liste', () => {
   it('arama ve kategori süzgeci listeyi daraltır; eşleşme yoksa süzgeç boş durumu çıkar', async () => {
     setup({ permissions: WRITE });
     await screen.findByText('Mühendislik Fakültesi');
-    await userEvent.type(screen.getByRole('searchbox', { name: 'Yer ara' }), 'cinar');
-    await waitFor(() => expect(screen.queryByText('Merkez Kütüphane')).not.toBeInTheDocument());
-    expect(screen.getByText('Çınar Yemekhanesi')).toBeInTheDocument();
+    await userEvent.type(screen.getByRole('searchbox', { name: 'Yer ara' }), 'kafeterya');
+    await waitFor(() => expect(screen.queryByText('Fen Edebiyat Fakültesi')).not.toBeInTheDocument());
+    expect(screen.getByText('Merkezi Kafeterya')).toBeInTheDocument();
     expect(screen.getByText('1 yer listeleniyor')).toBeInTheDocument();
     await userEvent.clear(screen.getByRole('searchbox', { name: 'Yer ara' }));
     await userEvent.type(screen.getByRole('searchbox', { name: 'Yer ara' }), 'yokboyleyer');
@@ -241,7 +248,7 @@ describe('Kampüs haritası: yer ekleme', () => {
   it('kampüs sınırı dışındaki noktada UYARI çıkar ama kayıt engellenmez', async () => {
     const { calls, dialog } = await openForm();
     await userEvent.type(within(dialog).getByLabelText(/^Yer adı/), 'Uzak Bina');
-    await userEvent.selectOptions(within(dialog).getByLabelText(/^Kategori/), 'dormitory');
+    await userEvent.selectOptions(within(dialog).getByLabelText(/^Kategori/), 'dorm');
     await userEvent.type(within(dialog).getByLabelText(/^Enlem/), '39.5');
     await userEvent.type(within(dialog).getByLabelText(/^Boylam/), '40.4981');
     expect(await within(dialog).findByText(/kampüs sınırının dışında görünüyor/)).toBeInTheDocument();
@@ -294,6 +301,9 @@ describe('Kampüs haritası: yer ekleme', () => {
       footprint: null,
       sortKey: 0,
       active: true,
+      webUrl: null,
+      remote: false,
+      unitSourceCode: null,
     });
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
   });
@@ -316,19 +326,19 @@ describe('Kampüs haritası: düzenleme, aç-kapat, silme', () => {
 
   it('düzenle: form mevcut değerlerle açılır, kaydedince PUT gider', async () => {
     const calls = setup({ permissions: WRITE });
-    await userEvent.click(await screen.findByRole('button', { name: /^Düzenle.*Merkez Kütüphane/ }));
+    await userEvent.click(await screen.findByRole('button', { name: /^Düzenle.*Fen Edebiyat Fakültesi/ }));
     const dialog = await screen.findByRole('dialog');
-    expect(within(dialog).getByLabelText(/^Yer adı/)).toHaveValue('Merkez Kütüphane');
+    expect(within(dialog).getByLabelText(/^Yer adı/)).toHaveValue('Fen Edebiyat Fakültesi');
     await userEvent.clear(within(dialog).getByLabelText(/^Yer adı/));
-    await userEvent.type(within(dialog).getByLabelText(/^Yer adı/), 'Kütüphane');
+    await userEvent.type(within(dialog).getByLabelText(/^Yer adı/), 'Fen Fakültesi');
     await userEvent.click(within(dialog).getByRole('button', { name: 'Kaydet' }));
     await waitFor(() => expect(calls.some((c) => c.method === 'PUT' && c.url.endsWith('/places/2'))).toBe(true));
-    expect(calls.find((c) => c.method === 'PUT')!.body).toMatchObject({ name: 'Kütüphane', active: false });
+    expect(calls.find((c) => c.method === 'PUT')!.body).toMatchObject({ name: 'Fen Fakültesi', active: false, webUrl: 'https://fef.bingol.edu.tr' });
   });
 
   it('silme gerekçe ister; gerekçeyle DELETE X-Admin-Reason taşır', async () => {
     const calls = setup({ permissions: WRITE });
-    await userEvent.click(await screen.findByRole('button', { name: /^Sil.*Çınar/ }));
+    await userEvent.click(await screen.findByRole('button', { name: /^Sil.*Kafeterya/ }));
     const dialog = await screen.findByRole('alertdialog');
     const confirm = within(dialog).getByRole('button', { name: 'Sil' });
     expect(confirm).toBeDisabled();
@@ -417,5 +427,146 @@ describe('Kampüs haritası: harita ayarları', () => {
     await screen.findByText('Mühendislik Fakültesi');
     await userEvent.click(screen.getByRole('tab', { name: 'Harita ayarları' }));
     expect(await screen.findByRole('alert')).toBeInTheDocument();
+  });
+});
+
+describe('Kampüs haritası: gerçek birim verisi alanları', () => {
+  it('web adresi doğrulanır: bingol.edu.tr dışı ve http reddedilir', async () => {
+    setup({ permissions: WRITE });
+    await screen.findByText('Mühendislik Fakültesi');
+    await userEvent.click(await screen.findByRole('button', { name: 'Yer ekle' }));
+    const dialog = await screen.findByRole('dialog');
+    const web = within(dialog).getByLabelText(/^Web adresi/);
+    await userEvent.type(web, 'https://example.com');
+    await userEvent.tab();
+    expect(await within(dialog).findByText(/Yalnızca bingol\.edu\.tr ve alt alanları/)).toBeInTheDocument();
+    await userEvent.clear(web);
+    await userEvent.type(web, 'http://fef.bingol.edu.tr');
+    expect(await within(dialog).findByText('Adres https:// ile başlamalı.')).toBeInTheDocument();
+    await userEvent.clear(web);
+    await userEvent.type(web, 'https://fef.bingol.edu.tr');
+    await waitFor(() => expect(within(dialog).queryByText('Adres https:// ile başlamalı.')).not.toBeInTheDocument());
+  });
+
+  it('uzak birim işaretlenince sınır dışı uyarısı kalkar', async () => {
+    setup({ permissions: WRITE });
+    await screen.findByText('Mühendislik Fakültesi');
+    await userEvent.click(await screen.findByRole('button', { name: 'Yer ekle' }));
+    const dialog = await screen.findByRole('dialog');
+    await userEvent.type(within(dialog).getByLabelText(/^Enlem/), '38.987914');
+    await userEvent.type(within(dialog).getByLabelText(/^Boylam/), '40.672833');
+    expect(await within(dialog).findByText(/kampüs sınırının dışında görünüyor/)).toBeInTheDocument();
+    await userEvent.click(within(dialog).getByRole('checkbox', { name: /Ana yerleşke dışında/ }));
+    await waitFor(() => expect(within(dialog).queryByText(/kampüs sınırının dışında görünüyor/)).not.toBeInTheDocument());
+  });
+
+  it('bölümler salt okunur gösterilir, düzenleme alanı yoktur; kaydedince unitSourceCode korunur', async () => {
+    const calls = setup({ permissions: WRITE });
+    await userEvent.click(await screen.findByRole('button', { name: /^Düzenle.*Mühendislik/ }));
+    const dialog = await screen.findByRole('dialog');
+    const list = within(dialog).getByRole('list', { name: 'Bölümler' });
+    expect(within(list).getByText('İnşaat Mühendisliği')).toBeInTheDocument();
+    expect(within(list).queryByRole('button')).not.toBeInTheDocument();
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Kaydet' }));
+    await waitFor(() => expect(calls.some((c) => c.method === 'PUT' && c.url.endsWith('/places/1'))).toBe(true));
+    const body = calls.find((c) => c.method === 'PUT')!.body as Record<string, unknown>;
+    expect(body.unitSourceCode).toBe('mmf');
+    expect(body).not.toHaveProperty('departments');
+  });
+
+  it('kategoriler ayar yanıtındaki listeden gelir (etiket sunucudan)', async () => {
+    setup({
+      permissions: WRITE,
+      config: { categories: [{ key: 'faculty', label: 'Fakülteler' }, { key: 'dining', label: 'Kafeteryalar' }] },
+    });
+    await screen.findByText('Mühendislik Fakültesi');
+    expect(await screen.findAllByText('Fakülteler')).not.toHaveLength(0);
+    await userEvent.click(await screen.findByRole('button', { name: 'Yer ekle' }));
+    const dialog = await screen.findByRole('dialog');
+    const options = within(within(dialog).getByLabelText(/^Kategori/)).getAllByRole('option').map((o) => o.textContent);
+    expect(options).toEqual(['Kategori seçin', 'Fakülteler', 'Kafeteryalar']);
+  });
+
+  it('yedek kategori listesi 12 etiketi içerir (sunucu liste vermezse)', async () => {
+    setup({ permissions: WRITE });
+    await screen.findByText('Mühendislik Fakültesi');
+    await userEvent.click(await screen.findByRole('button', { name: 'Yer ekle' }));
+    const dialog = await screen.findByRole('dialog');
+    const labels = within(within(dialog).getByLabelText(/^Kategori/)).getAllByRole('option').map((o) => o.textContent);
+    expect(labels).toContain('Meslek yüksekokulu');
+    expect(labels).toContain('Yurt ve konaklama');
+    expect(labels.length).toBe(13);
+  });
+
+  it('fotoğraf: yanlış türde istemci hatası verir, istek atmaz', async () => {
+    const calls = setup({ permissions: WRITE });
+    await userEvent.click(await screen.findByRole('button', { name: /^Düzenle.*Mühendislik/ }));
+    const dialog = await screen.findByRole('dialog');
+    const input = within(dialog).getByTestId('campus-photo-file') as HTMLInputElement;
+    await userEvent.upload(input, new File(['x'], 'a.gif', { type: 'image/gif' }), { applyAccept: false });
+    expect(await within(dialog).findByText('Yalnızca JPEG, PNG ya da WebP yüklenebilir.')).toBeInTheDocument();
+    expect(calls.some((c) => c.method === 'POST')).toBe(false);
+  });
+
+  it('fotoğraf: kayıtlı yerde yüklenir (POST multipart)', async () => {
+    const calls = setup({ permissions: WRITE });
+    await userEvent.click(await screen.findByRole('button', { name: /^Düzenle.*Mühendislik/ }));
+    const dialog = await screen.findByRole('dialog');
+    const input = within(dialog).getByTestId('campus-photo-file') as HTMLInputElement;
+    await userEvent.upload(input, new File(['x'], 'a.jpg', { type: 'image/jpeg' }));
+    await waitFor(() => expect(calls.some((c) => c.method === 'POST' && c.url.endsWith('/places/1/photo'))).toBe(true));
+  });
+
+  it('yeni yerde fotoğraf alanı yoktur (önce kaydedilir)', async () => {
+    setup({ permissions: WRITE });
+    await screen.findByText('Mühendislik Fakültesi');
+    await userEvent.click(await screen.findByRole('button', { name: 'Yer ekle' }));
+    const dialog = await screen.findByRole('dialog');
+    expect(within(dialog).queryByTestId('campus-photo-file')).not.toBeInTheDocument();
+  });
+
+  it('ayarlar: yaklaşık sınır için kaynak rozeti ve düzeltme uyarısı gösterilir', async () => {
+    setup({ permissions: WRITE, config: { boundarySource: 'yaklaşık' } });
+    await screen.findByText('Mühendislik Fakültesi');
+    await userEvent.click(screen.getByRole('tab', { name: 'Harita ayarları' }));
+    expect(await screen.findByText('Kaynak: yaklaşık')).toBeInTheDocument();
+    expect(screen.getByText(/Bu sınır yaklaşıktır/)).toBeInTheDocument();
+  });
+
+  it('ayarlar: OSM kaynaklı sınırda uyarı yok', async () => {
+    setup({ permissions: WRITE, config: { boundarySource: 'OSM' } });
+    await screen.findByText('Mühendislik Fakültesi');
+    await userEvent.click(screen.getByRole('tab', { name: 'Harita ayarları' }));
+    expect(await screen.findByText('Kaynak: OpenStreetMap')).toBeInTheDocument();
+    expect(screen.queryByText(/Bu sınır yaklaşıktır/)).not.toBeInTheDocument();
+  });
+
+  it('ayarlar kaydında bounds ve userAgentHint korunur, salt okunur alanlar gönderilmez', async () => {
+    const calls = setup({
+      permissions: WRITE,
+      config: {
+        bounds: { south: 38.86, west: 40.47, north: 38.91, east: 40.53 },
+        tiles: { ...config.tiles, userAgentHint: 'BUKampus/{version}' },
+        version: 7,
+        categories: [{ key: 'faculty', label: 'Fakülteler' }],
+      },
+    });
+    await screen.findByText('Mühendislik Fakültesi');
+    await userEvent.click(screen.getByRole('tab', { name: 'Harita ayarları' }));
+    const zi = await screen.findByLabelText(/^İlk yakınlaştırma/);
+    await userEvent.clear(zi);
+    await userEvent.type(zi, '17');
+    const save = screen.getByRole('button', { name: 'Ayarları kaydet' });
+    await waitFor(() => expect(save).toBeEnabled());
+    await userEvent.click(save);
+    const dialog = await screen.findByRole('dialog');
+    await userEvent.type(within(dialog).getByLabelText(/Değişiklik gerekçesi/), 'Yakınlaştırma ayarı');
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Ayarları kaydet' }));
+    await waitFor(() => expect(calls.some((c) => c.method === 'PUT' && c.url.endsWith('/admin/campus/config'))).toBe(true));
+    const body = calls.find((c) => c.method === 'PUT' && c.url.endsWith('/admin/campus/config'))!.body as Record<string, unknown>;
+    expect(body.bounds).toEqual({ south: 38.86, west: 40.47, north: 38.91, east: 40.53 });
+    expect((body.tiles as Record<string, unknown>).userAgentHint).toBe('BUKampus/{version}');
+    expect(body).not.toHaveProperty('version');
+    expect(body).not.toHaveProperty('categories');
   });
 });

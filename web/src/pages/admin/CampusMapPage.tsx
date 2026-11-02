@@ -4,7 +4,7 @@
 // İzinler: campus.read (sayfa) / campus.write (ekle, düzenle, aç-kapat, sil, ayar kaydı). Yazma düğmeleri izinsizlere GİZLİDİR.
 // Gerçek harita kütüphanesi yok: konum doğrulaması şematik önizleme + OpenStreetMap bağlantısıyla yapılır.
 import { useQuery } from '@tanstack/react-query';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { campusKeys, getCampusConfig, listAllCampusPlaces, type CampusPlace } from '../../api/adminCampus';
 import { Button, Icon, PageHeader, Tabs } from '../../components/ui';
 import { usePermissions } from '../../auth/permissions';
@@ -16,6 +16,7 @@ import { ConfigPanel } from './campus/ConfigPanel';
 import { CampusSummary } from './campus/CampusSummary';
 import { gt } from './campus/dict';
 import { PlaceForm } from './campus/PlaceForm';
+import { resolveCategories } from './campus/logic';
 import { PlacesPanel } from './campus/PlacesPanel';
 import styles from './campus/campus.module.css';
 
@@ -35,10 +36,16 @@ export default function CampusMapPage() {
   const places = useQuery({ queryKey: campusKeys.places, queryFn: ({ signal }) => listAllCampusPlaces(signal) });
   const config = useQuery({ queryKey: campusKeys.config, queryFn: getCampusConfig });
 
+  // Kategoriler sunucudan (ayar yanıtı) gelir; yoksa yedek liste. Kayıtlarda geçen bilinmeyen anahtarlar da eklenir.
+  const categories = useMemo(
+    () => resolveCategories(config.data?.categories, [...new Set((places.data ?? []).map((p) => p.category))]),
+    [config.data?.categories, places.data],
+  );
+
   // Arama derin bağlantıları: form alanları yalnız panel açıkken, ayar alanları yalnız kendi sekmesinde çizilir
   useSearchReveal((anchor) => {
     if (anchor.startsWith('cfg-')) setTab('settings');
-    else if (anchor.startsWith('campus-') && /^campus-(name|category|sortkey|coords|paste|check|summary|units|footprint)$/.test(anchor)) {
+    else if (anchor.startsWith('campus-') && /^campus-(name|category|sortkey|coords|paste|check|summary|units|footprint|weburl|remote)$/.test(anchor)) {
       if (canWrite && editing === null) {
         setTab('places');
         setEditing('new');
@@ -69,6 +76,7 @@ export default function CampusMapPage() {
       <div className={styles.stack}>
         <CampusSummary
           places={places.data}
+          categories={categories}
           configUpdatedAt={config.data?.updatedAt}
           loading={places.isLoading}
           error={places.isError}
@@ -84,7 +92,7 @@ export default function CampusMapPage() {
           ]}
         />
         {tab === 'places' ? (
-          <PlacesPanel query={places} canWrite={canWrite} onEdit={setEditing} onAdd={() => setEditing('new')} />
+          <PlacesPanel query={places} canWrite={canWrite} categories={categories} onEdit={setEditing} onAdd={() => setEditing('new')} />
         ) : (
           <ConfigPanel query={config} canWrite={canWrite} />
         )}
@@ -94,6 +102,7 @@ export default function CampusMapPage() {
           key={editing === 'new' ? 'new' : editing.id}
           place={editing === 'new' ? null : editing}
           boundary={config.data?.boundary ?? []}
+          categories={categories}
           onClose={() => setEditing(null)}
         />
       )}

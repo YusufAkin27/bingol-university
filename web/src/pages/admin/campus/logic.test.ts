@@ -19,6 +19,11 @@ import {
   validateConfigForm,
   validatePlaceForm,
   validateTileUrl,
+  validateWebUrl,
+  resolveCategories,
+  categoryLabel,
+  boundarySourceKind,
+  boundsToSend,
   type PlaceFormState,
 } from './logic';
 
@@ -29,10 +34,12 @@ const BOUNDARY: LatLng[] = [
   [38.9, 40.48],
 ];
 
+const CTX = { photoUrl: null as string | null };
+
 const OK_FORM: PlaceFormState = {
   ...EMPTY_PLACE_FORM,
-  name: 'Merkez Kütüphane',
-  category: 'library',
+  name: 'Mühendislik Fakültesi',
+  category: 'faculty',
   lat: '38.8847',
   lng: '40.4981',
 };
@@ -164,12 +171,12 @@ describe('karo adresi', () => {
 
 describe('yer formu doğrulaması', () => {
   it('geçerli formdan gövde üretir', () => {
-    const v = validatePlaceForm({ ...OK_FORM, summary: ' Kitaplık ', units: ['A'] }, BOUNDARY, 'https://x/p.jpg');
+    const v = validatePlaceForm({ ...OK_FORM, summary: ' Kitaplık ', units: ['A'] }, BOUNDARY, { ...CTX, photoUrl: 'https://x/p.jpg', unitSourceCode: 'mmf' });
     expect(v.errors).toEqual({});
     expect(v.warnings).toEqual([]);
     expect(v.input).toEqual({
-      name: 'Merkez Kütüphane',
-      category: 'library',
+      name: 'Mühendislik Fakültesi',
+      category: 'faculty',
       lat: 38.8847,
       lng: 40.4981,
       summary: 'Kitaplık',
@@ -178,44 +185,47 @@ describe('yer formu doğrulaması', () => {
       footprint: null,
       sortKey: 0,
       active: true,
+      webUrl: null,
+      remote: false,
+      unitSourceCode: 'mmf',
     });
   });
 
   it('zorunlu alanlar ve aralıklar', () => {
-    const v = validatePlaceForm(EMPTY_PLACE_FORM, [], null);
+    const v = validatePlaceForm(EMPTY_PLACE_FORM, [], CTX);
     expect(v.input).toBeNull();
     expect(v.errors.name?.code).toBe('required');
     expect(v.errors.category?.code).toBe('required');
     expect(v.errors.lat?.code).toBe('required');
     expect(v.errors.lng?.code).toBe('required');
 
-    expect(validatePlaceForm({ ...OK_FORM, lat: '91' }, [], null).errors.lat?.code).toBe('latRange');
-    expect(validatePlaceForm({ ...OK_FORM, lat: '-90.5' }, [], null).errors.lat?.code).toBe('latRange');
-    expect(validatePlaceForm({ ...OK_FORM, lng: '180.1' }, [], null).errors.lng?.code).toBe('lngRange');
-    expect(validatePlaceForm({ ...OK_FORM, lng: 'x' }, [], null).errors.lng?.code).toBe('invalid');
-    expect(validatePlaceForm({ ...OK_FORM, lat: '90', lng: '-180' }, [], null).input).not.toBeNull();
-    expect(validatePlaceForm({ ...OK_FORM, sortKey: '1.5' }, [], null).errors.sortKey?.code).toBe('sortKey');
-    expect(validatePlaceForm({ ...OK_FORM, sortKey: '10000' }, [], null).errors.sortKey?.code).toBe('sortKey');
-    expect(validatePlaceForm({ ...OK_FORM, name: 'x'.repeat(121) }, [], null).errors.name?.code).toBe('tooLong');
-    expect(validatePlaceForm({ ...OK_FORM, summary: 'x'.repeat(501) }, [], null).errors.summary?.code).toBe('tooLong');
+    expect(validatePlaceForm({ ...OK_FORM, lat: '91' }, [], CTX).errors.lat?.code).toBe('latRange');
+    expect(validatePlaceForm({ ...OK_FORM, lat: '-90.5' }, [], CTX).errors.lat?.code).toBe('latRange');
+    expect(validatePlaceForm({ ...OK_FORM, lng: '180.1' }, [], CTX).errors.lng?.code).toBe('lngRange');
+    expect(validatePlaceForm({ ...OK_FORM, lng: 'x' }, [], CTX).errors.lng?.code).toBe('invalid');
+    expect(validatePlaceForm({ ...OK_FORM, lat: '90', lng: '-180' }, [], CTX).input).not.toBeNull();
+    expect(validatePlaceForm({ ...OK_FORM, sortKey: '1.5' }, [], CTX).errors.sortKey?.code).toBe('sortKey');
+    expect(validatePlaceForm({ ...OK_FORM, sortKey: '10000' }, [], CTX).errors.sortKey?.code).toBe('sortKey');
+    expect(validatePlaceForm({ ...OK_FORM, name: 'x'.repeat(121) }, [], CTX).errors.name?.code).toBe('tooLong');
+    expect(validatePlaceForm({ ...OK_FORM, summary: 'x'.repeat(501) }, [], CTX).errors.summary?.code).toBe('tooLong');
   });
 
   it('kampüs sınırı dışındaki nokta UYARI verir ama kaydı engellemez', () => {
-    const v = validatePlaceForm({ ...OK_FORM, lat: '39.5' }, BOUNDARY, null);
+    const v = validatePlaceForm({ ...OK_FORM, lat: '39.5' }, BOUNDARY, CTX);
     expect(v.warnings).toContain('outsideBoundary');
     expect(v.input).not.toBeNull();
     // sınır tanımsızsa uyarı yok
-    expect(validatePlaceForm({ ...OK_FORM, lat: '39.5' }, [], null).warnings).toEqual([]);
+    expect(validatePlaceForm({ ...OK_FORM, lat: '39.5' }, [], CTX).warnings).toEqual([]);
   });
 
   it('bina izi: geçerli iz gövdeye girer, bozuk iz hata, sınır dışı köşe uyarı', () => {
     const fp = '38.880, 40.490\n38.880, 40.495\n38.885, 40.495';
-    const ok = validatePlaceForm({ ...OK_FORM, footprintText: fp }, BOUNDARY, null);
+    const ok = validatePlaceForm({ ...OK_FORM, footprintText: fp }, BOUNDARY, CTX);
     expect(ok.input?.footprint).toHaveLength(3);
-    const bad = validatePlaceForm({ ...OK_FORM, footprintText: '38.88, 40.49\n38.88, 40.495' }, BOUNDARY, null);
+    const bad = validatePlaceForm({ ...OK_FORM, footprintText: '38.88, 40.49\n38.88, 40.495' }, BOUNDARY, CTX);
     expect(bad.errors.footprint?.code).toBe('poly.tooFew');
     expect(bad.input).toBeNull();
-    const out = validatePlaceForm({ ...OK_FORM, footprintText: '38.88, 40.49\n38.88, 40.60\n38.885, 40.60' }, BOUNDARY, null);
+    const out = validatePlaceForm({ ...OK_FORM, footprintText: '38.88, 40.49\n38.88, 40.60\n38.885, 40.60' }, BOUNDARY, CTX);
     expect(out.warnings).toContain('footprintOutside');
   });
 });
@@ -319,5 +329,81 @@ describe('liste mantığı', () => {
     expect(addUnits(['Bilgisayar'], ' bilgisayar ,  Elektrik ; ')).toEqual(['Bilgisayar', 'Elektrik']);
     const full = Array.from({ length: 30 }, (_, i) => `B${i}`);
     expect(addUnits(full, 'Yeni')).toHaveLength(30);
+  });
+});
+
+describe('birim web adresi', () => {
+  it('boş geçerli; yalnız https + bingol.edu.tr (alt alan dahil)', () => {
+    expect(validateWebUrl('')).toBeNull();
+    expect(validateWebUrl('https://fef.bingol.edu.tr')).toBeNull();
+    expect(validateWebUrl('https://www.bingol.edu.tr/tr/universitemiz/yonetim/rektor')).toBeNull();
+    expect(validateWebUrl('https://bingol.edu.tr')).toBeNull();
+    expect(validateWebUrl('http://fef.bingol.edu.tr')).toBe('notHttps');
+    expect(validateWebUrl('https://bingol.edu.tr.evil.com')).toBe('host');
+    expect(validateWebUrl('https://evilbingol.edu.tr')).toBe('host');
+    expect(validateWebUrl('https://user:pw@fef.bingol.edu.tr')).toBe('invalid');
+    expect(validateWebUrl('https://fef.bingol.edu.tr/a b')).toBe('invalid');
+    expect(validateWebUrl(`https://fef.bingol.edu.tr/${'x'.repeat(300)}`)).toBe('tooLong');
+  });
+
+  it('formda web adresi hatası kaydı engeller; geçerli adres gövdeye girer', () => {
+    expect(validatePlaceForm({ ...OK_FORM, webUrl: 'https://example.com' }, [], CTX).errors.webUrl?.code).toBe('web.host');
+    expect(validatePlaceForm({ ...OK_FORM, webUrl: ' https://fef.bingol.edu.tr ' }, [], CTX).input?.webUrl).toBe(
+      'https://fef.bingol.edu.tr',
+    );
+  });
+});
+
+describe('uzak birim ve dinamik kategori', () => {
+  it('uzak birimde sınır dışı uyarısı çıkmaz', () => {
+    const far = { ...OK_FORM, lat: '38.987914', lng: '40.672833' }; // Ilıcalar Termal Tesis
+    expect(validatePlaceForm(far, BOUNDARY, CTX).warnings).toContain('outsideBoundary');
+    const remote = validatePlaceForm({ ...far, remote: true }, BOUNDARY, CTX);
+    expect(remote.warnings).toEqual([]);
+    expect(remote.input?.remote).toBe(true);
+  });
+
+  it('kategori sunucu listesine göre doğrulanır; liste yoksa yalnız seçilmiş olması yeter', () => {
+    expect(validatePlaceForm({ ...OK_FORM, category: 'bilinmez' }, [], { ...CTX, categories: ['faculty'] }).errors.category?.code).toBe(
+      'categoryUnknown',
+    );
+    expect(validatePlaceForm({ ...OK_FORM, category: 'bilinmez' }, [], CTX).errors.category).toBeUndefined();
+  });
+
+  it('kategori listesi: sunucu önceliklidir, yoksa 12 yedek; kayıttaki bilinmeyen anahtar eklenir', () => {
+    const server = [{ key: 'faculty', label: 'Fakülteler' }];
+    expect(resolveCategories(server).map((c) => c.key)).toEqual(['faculty']);
+    expect(resolveCategories(undefined)).toHaveLength(12);
+    expect(resolveCategories(undefined).map((c) => c.label)).toEqual(
+      expect.arrayContaining(['Fakülte', 'Enstitü', 'Yüksekokul', 'Meslek yüksekokulu', 'Merkezi birim', 'Sağlık', 'Sosyal yaşam', 'Yurt ve konaklama', 'Hizmet', 'Yemekhane', 'Spor', 'Kütüphane']),
+    );
+    const withUnknown = resolveCategories(server, ['faculty', 'eski']);
+    expect(withUnknown.map((c) => c.key)).toEqual(['faculty', 'eski']);
+    expect(categoryLabel(withUnknown, 'faculty')).toBe('Fakülteler');
+    expect(categoryLabel(withUnknown, 'eski')).toBe('eski');
+  });
+});
+
+describe('sınır kaynağı ve kaydırma sınırı', () => {
+  it('kaynak türünü tanır', () => {
+    expect(boundarySourceKind('OSM')).toBe('osm');
+    expect(boundarySourceKind('openstreetmap')).toBe('osm');
+    expect(boundarySourceKind('yaklaşık')).toBe('approx');
+    expect(boundarySourceKind('APPROXIMATE')).toBe('approx');
+    expect(boundarySourceKind(null)).toBe('unknown');
+    expect(boundarySourceKind('elle')).toBe('unknown');
+  });
+
+  it('bounds yalnız merkez ve sınır değişmediyse geri gönderilir', () => {
+    const cfg = {
+      center: { lat: 38.9, lng: 40.48 },
+      zoom: { initial: 16, min: 14, max: 19 },
+      boundary: BOUNDARY,
+      bounds: { south: 38.86, west: 40.47, north: 38.91, east: 40.53 },
+      tiles: { urlTemplate: 'https://t.example.com/{z}/{x}/{y}.png', attribution: 'x', maxNativeZoom: 19 },
+    };
+    expect(boundsToSend(cfg, { ...cfg, zoom: { initial: 17, min: 14, max: 19 } })).toEqual(cfg.bounds);
+    expect(boundsToSend(cfg, { ...cfg, center: { lat: 38.91, lng: 40.48 } })).toBeUndefined();
+    expect(boundsToSend(cfg, { ...cfg, boundary: [...BOUNDARY, [38.88, 40.5]] })).toBeUndefined();
   });
 });
