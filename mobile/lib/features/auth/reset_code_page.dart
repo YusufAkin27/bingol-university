@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../core/api.dart';
 import '../../core/identifier.dart';
 import '../../core/locale_controller.dart';
+import '../../core/resend_cooldown.dart';
 import '../../core/session.dart';
 import '../../widgets/bu.dart';
 import 'new_password_page.dart';
@@ -78,10 +79,6 @@ class _ResetCodePageState extends State<ResetCodePage> {
       if (mounted) {
         _fail(errorText(e));
         _code.clear();
-        // Deneme sınırı aşıldıysa beklemeden yeni kod istenebilir.
-        if (e is ApiError && e.code == 'TOO_MANY_ATTEMPTS') {
-          _resendKey.currentState?.makeReady();
-        }
       }
     } finally {
       if (mounted) {
@@ -99,12 +96,14 @@ class _ResetCodePageState extends State<ResetCodePage> {
       _info = null;
     });
     try {
-      await widget.session.forgotPassword(widget.email);
+      final s = await widget.session.forgotPassword(widget.email);
       if (!mounted) return;
       setState(() => _info = context.l10n.authCodeSent);
-      _resendKey.currentState?.restart();
+      _resendKey.currentState?.restart(s);
     } catch (e) {
-      if (mounted) _fail(errorText(e));
+      if (!mounted) return;
+      _fail(errorText(e));
+      if (e is ApiError && e.code == 'RESEND_COOLDOWN') _resendKey.currentState?.restart(e.retryAfter);
     }
   }
 
@@ -141,8 +140,12 @@ class _ResetCodePageState extends State<ResetCodePage> {
             AuthResendRow(
               key: _resendKey,
               onResend: _busy ? () {} : _resend,
-              waitingLabel: (s) => l.authResendIn('$s'),
+              waitingLabel: (s) => l.authResendCountdown(formatResendClock(s)),
+              waitingSemantics: (m) => l.authResendWaitA11y('$m'),
               resendLabel: l.authResendCode,
+              store: widget.session.resendCooldown,
+              flow: 'reset',
+              identity: widget.email,
             ),
             RefLink(label: l.authChangeEmail, compact: true, onPressed: _busy ? null : () => Navigator.maybePop(context)),
           ],

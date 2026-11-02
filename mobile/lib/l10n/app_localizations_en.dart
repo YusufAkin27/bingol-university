@@ -209,8 +209,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get authResendCode => 'Resend code';
 
   @override
-  String authResendIn(String seconds) {
-    return 'Resend in ${seconds}s';
+  String authResendCountdown(String time) {
+    return 'Resend ($time)';
+  }
+
+  @override
+  String authResendWaitA11y(String minutes) {
+    return 'Wait up to $minutes min to resend the code';
   }
 
   @override

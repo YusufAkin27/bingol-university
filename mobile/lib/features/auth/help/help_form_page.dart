@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/api.dart';
+import '../../../core/resend_cooldown.dart';
 import '../../../core/locale_controller.dart';
 import '../../../core/session.dart';
 import '../../../widgets/bu.dart';
@@ -43,12 +44,33 @@ class _HelpFormPageState extends State<HelpFormPage> {
     super.dispose();
   }
 
-  Future<void> _send(PublicSupportApi api) => api.submit(
+  /// Kodu ister ve kalıcı yeniden-gönder sayacını başlatır; döner: bekleme (sn). Bekleme sürüyorsa (429
+  /// RESEND_COOLDOWN) sayaç sunucunun kalan süresine ayarlanıp hata yeniden fırlatılır.
+  Future<int> _send(PublicSupportApi api) async {
+    final id = _email.text.trim();
+    try {
+      final s = await api.submit(
         name: _name.text,
         email: _email.text,
         category: _category,
         message: _message.text,
         elapsedMs: _opened.elapsedMilliseconds,
+      );
+      await widget.session.resendCooldown.start('support', id, seconds: s);
+      return s;
+    } on ApiError catch (e) {
+      if (e.code == 'RESEND_COOLDOWN') {
+        await widget.session.resendCooldown.start('support', id, seconds: e.retryAfter ?? kCodeResendSeconds);
+      }
+      rethrow;
+    }
+  }
+
+  Future<void> _openCode(PublicSupportApi api) => Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => HelpCodePage(session: widget.session, email: _email.text.trim(), resend: () => _send(api)),
+        ),
       );
 
   Future<void> _submit() async {
@@ -68,14 +90,14 @@ class _HelpFormPageState extends State<HelpFormPage> {
       await _send(api);
       if (!mounted) return;
       // Yanıt hep genel (hesap var/yok sızdırmaz): doğrudan kod adımı.
-      await Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) => HelpCodePage(session: widget.session, email: _email.text.trim(), resend: () => _send(api)),
-        ),
-      );
+      await _openCode(api);
     } catch (e) {
       if (!mounted) return;
+      // Bu adrese kod az önce gönderildi (bekleme sürüyor): hata yerine kod adımına geç, sayaç kalan süreyle sürer.
+      if (e is ApiError && e.code == 'RESEND_COOLDOWN') {
+        await _openCode(api);
+        return;
+      }
       authHaptic(AuthHaptic.error);
       var text = errorText(e);
       String? retry;

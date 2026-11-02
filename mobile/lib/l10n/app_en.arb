@@ -63,7 +63,22 @@
   "authIdHint": "Your school email",
   "authVerify": "Verify",
   "authResendCode": "Resend code",
-  "authResendIn": "Resend in {seconds}s",
+  "authResendCountdown": "Resend ({time})",
+  "@authResendCountdown": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "authResendWaitA11y": "Wait up to {minutes} min to resend the code",
+  "@authResendWaitA11y": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
   "authNewCodeIn": "You can request a new code in {seconds}s",
   "authCodeSent": "Code sent.",
   "authNewCodeSent": "A new code has been sent.",

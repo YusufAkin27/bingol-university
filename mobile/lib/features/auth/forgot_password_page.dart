@@ -86,6 +86,17 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
         ),
       );
     } catch (e) {
+      // Kod az önce gönderildi (hesap var/yok fark etmeksizin aynı 429): hata yerine kod adımı, sayaç kalan süreyle sürer.
+      if (mounted && e is ApiError && e.code == 'RESEND_COOLDOWN') {
+        setState(() => _sent = true);
+        await Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => ResetCodePage(session: widget.session, email: normalizeIdentifier(_email.text)),
+          ),
+        );
+        return;
+      }
       if (mounted) {
         authHaptic(AuthHaptic.error);
         final l = context.l10n;

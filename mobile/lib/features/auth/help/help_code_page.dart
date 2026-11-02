@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../core/api.dart';
 import '../../../core/locale_controller.dart';
+import '../../../core/resend_cooldown.dart';
 import '../../../core/session.dart';
 import '../../../widgets/bu.dart';
 import '../otp_code_boxes.dart';
@@ -18,7 +19,7 @@ class HelpCodePage extends StatefulWidget {
 
   final Session session;
   final String email;
-  final Future<void> Function() resend;
+  final Future<int> Function() resend;
 
   @override
   State<HelpCodePage> createState() => _HelpCodePageState();
@@ -76,7 +77,7 @@ class _HelpCodePageState extends State<HelpCodePage> {
       if (mounted) {
         _fail(e is ApiError && e.status == 429 ? _rate(e) : context.l10n.p66CodeBad);
         _code.clear();
-        if (e is ApiError && e.code == 'TOO_MANY_ATTEMPTS') _resendKey.currentState?.makeReady();
+        
       }
     }
     if (mounted) setState(() => _busy = false);
@@ -90,12 +91,14 @@ class _HelpCodePageState extends State<HelpCodePage> {
       _info = null;
     });
     try {
-      await widget.resend();
+      final s = await widget.resend();
       if (!mounted) return;
       setState(() => _info = context.l10n.authNewCodeSent);
-      _resendKey.currentState?.restart();
+      _resendKey.currentState?.restart(s);
     } catch (e) {
-      if (mounted) _fail(e is ApiError && e.status == 429 ? _rate(e) : errorText(e));
+      if (!mounted) return;
+      _fail(e is ApiError && e.status == 429 ? _rate(e) : errorText(e));
+      if (e is ApiError && e.code == 'RESEND_COOLDOWN') _resendKey.currentState?.restart(e.retryAfter);
     }
   }
 
@@ -131,8 +134,12 @@ class _HelpCodePageState extends State<HelpCodePage> {
             AuthResendRow(
               key: _resendKey,
               onResend: _busy ? () {} : _resend,
-              waitingLabel: (s) => l.authResendIn('$s'),
+              waitingLabel: (s) => l.authResendCountdown(formatResendClock(s)),
+              waitingSemantics: (m) => l.authResendWaitA11y('$m'),
               resendLabel: l.authResendCode,
+              store: widget.session.resendCooldown,
+              flow: 'support',
+              identity: widget.email,
             ),
             RefLink(label: l.authChangeEmail, compact: true, onPressed: _busy ? null : () => Navigator.maybePop(context)),
           ],

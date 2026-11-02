@@ -210,8 +210,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get authResendCode => 'إعادة إرسال الرمز';
 
   @override
-  String authResendIn(String seconds) {
-    return 'إعادة الإرسال ($seconds ث)';
+  String authResendCountdown(String time) {
+    return 'إعادة الإرسال ($time)';
+  }
+
+  @override
+  String authResendWaitA11y(String minutes) {
+    return 'انتظر حتى $minutes دقيقة لإعادة إرسال الرمز';
   }
 
   @override

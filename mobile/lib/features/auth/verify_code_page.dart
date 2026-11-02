@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../core/api.dart';
 import '../../core/identifier.dart';
 import '../../core/locale_controller.dart';
+import '../../core/resend_cooldown.dart';
 import '../../core/session.dart';
 import '../../widgets/bu.dart';
 import 'otp_code_boxes.dart';
@@ -94,11 +95,8 @@ class _VerifyCodePageState extends State<VerifyCodePage> {
     } catch (e) {
       if (mounted) {
         _fail(errorText(e));
-        // Deneme sınırı: yeni kod beklemeden istenebilir.
-        if (e is ApiError && e.code == 'TOO_MANY_ATTEMPTS') {
-          _code.clear();
-          _resendKey.currentState?.makeReady();
-        }
+        // Deneme sınırı: kod silinir; yeni kod istemek de sunucunun bekleme süresine (180 sn) tabidir.
+        if (e is ApiError && e.code == 'TOO_MANY_ATTEMPTS') _code.clear();
       }
     } finally {
       if (mounted) setState(() => _busy = false);
@@ -111,15 +109,16 @@ class _VerifyCodePageState extends State<VerifyCodePage> {
       _info = null;
     });
     try {
-      await widget.session.resendCode(widget.email);
+      final s = await widget.session.resendCode(widget.email);
       if (!mounted) return;
       setState(() => _info = context.l10n.authNewCodeSent);
-      _resendKey.currentState?.restart();
+      _resendKey.currentState?.restart(s);
     } catch (e) {
       if (!mounted) return;
       _fail(errorText(e));
+      // Bekleme sürüyor: sayaç sunucunun kalan süresine (Retry-After) ayarlanır.
       if (e is ApiError && e.code == 'RESEND_COOLDOWN') {
-        _resendKey.currentState?.restart();
+        _resendKey.currentState?.restart(e.retryAfter);
       }
     }
   }
@@ -166,8 +165,12 @@ class _VerifyCodePageState extends State<VerifyCodePage> {
             AuthResendRow(
               key: _resendKey,
               onResend: _busy ? () {} : _resend,
-              waitingLabel: (s) => l.authResendIn('$s'),
+              waitingLabel: (s) => l.authResendCountdown(formatResendClock(s)),
+              waitingSemantics: (m) => l.authResendWaitA11y('$m'),
               resendLabel: l.authResendCode,
+              store: widget.session.resendCooldown,
+              flow: 'verify',
+              identity: widget.email,
             ),
             RefLink(label: l.authChangeEmail, compact: true, onPressed: _busy ? null : () => Navigator.maybePop(context)),
           ],

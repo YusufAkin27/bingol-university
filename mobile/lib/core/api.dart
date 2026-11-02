@@ -541,7 +541,9 @@ class ApiClient {
       if (!parsed || _isHtml(res)) throw ApiError(0, 'BAD_RESPONSE', '');
       return json;
     }
-    final retryAfter = int.tryParse((res.headers['retry-after'] ?? '').trim());
+    var retryAfter = int.tryParse((res.headers['retry-after'] ?? '').trim());
+    // Kod yeniden isteme beklemesi (429 RESEND_COOLDOWN): başlık düşse bile gövdedeki kalan süre okunur.
+    if (retryAfter == null && json is Map && json['retryAfterSeconds'] is num) retryAfter = (json['retryAfterSeconds'] as num).toInt();
     if (json is Map && json['code'] is String) {
       final code = json['code'] as String;
       final msg = json['message'];

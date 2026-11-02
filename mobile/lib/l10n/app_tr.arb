@@ -84,10 +84,18 @@
   "authIdHint": "Okul e-postanız",
   "authVerify": "Doğrula",
   "authResendCode": "Kodu yeniden gönder",
-  "authResendIn": "Yeniden gönder ({seconds} sn)",
-  "@authResendIn": {
+  "authResendCountdown": "Yeniden gönder ({time})",
+  "@authResendCountdown": {
     "placeholders": {
-      "seconds": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "authResendWaitA11y": "Kodu yeniden göndermek için en çok {minutes} dakika bekleyin",
+  "@authResendWaitA11y": {
+    "placeholders": {
+      "minutes": {
         "type": "String"
       }
     }

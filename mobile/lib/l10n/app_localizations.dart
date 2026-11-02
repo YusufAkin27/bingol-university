@@ -478,11 +478,17 @@ abstract class AppLocalizations {
   /// **'Kodu yeniden gönder'**
   String get authResendCode;
 
-  /// No description provided for @authResendIn.
+  /// No description provided for @authResendCountdown.
   ///
   /// In tr, this message translates to:
-  /// **'Yeniden gönder ({seconds} sn)'**
-  String authResendIn(String seconds);
+  /// **'Yeniden gönder ({time})'**
+  String authResendCountdown(String time);
+
+  /// No description provided for @authResendWaitA11y.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kodu yeniden göndermek için en çok {minutes} dakika bekleyin'**
+  String authResendWaitA11y(String minutes);
 
   /// No description provided for @authNewCodeIn.
   ///

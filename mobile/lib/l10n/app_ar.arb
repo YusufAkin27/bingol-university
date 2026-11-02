@@ -63,7 +63,22 @@
   "authIdHint": "بريدك الجامعي",
   "authVerify": "تحقق",
   "authResendCode": "إعادة إرسال الرمز",
-  "authResendIn": "إعادة الإرسال ({seconds} ث)",
+  "authResendCountdown": "إعادة الإرسال ({time})",
+  "@authResendCountdown": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "authResendWaitA11y": "انتظر حتى {minutes} دقيقة لإعادة إرسال الرمز",
+  "@authResendWaitA11y": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
   "authNewCodeIn": "انتظر {seconds} ث للحصول على رمز جديد",
   "authCodeSent": "تم إرسال الرمز.",
   "authNewCodeSent": "تم إرسال رمز جديد.",

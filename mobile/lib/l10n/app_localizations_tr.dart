@@ -209,8 +209,13 @@ class AppLocalizationsTr extends AppLocalizations {
   String get authResendCode => 'Kodu yeniden gönder';
 
   @override
-  String authResendIn(String seconds) {
-    return 'Yeniden gönder ($seconds sn)';
+  String authResendCountdown(String time) {
+    return 'Yeniden gönder ($time)';
+  }
+
+  @override
+  String authResendWaitA11y(String minutes) {
+    return 'Kodu yeniden göndermek için en çok $minutes dakika bekleyin';
   }
 
   @override

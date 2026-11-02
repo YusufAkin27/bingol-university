@@ -208,7 +208,7 @@ void main() {
       await settle(tester, const Duration(milliseconds: 600));
       expect(find.byType(ResetCodePage), findsOneWidget);
       expect(find.text('ayse@bingol.edu.tr adresine gönderdiğimiz 6 haneli kodu girin.'), findsOneWidget);
-      expect(find.textContaining('Yeniden gönder (60 sn)'), findsOneWidget);
+      expect(find.textContaining('Yeniden gönder (3:00)'), findsOneWidget);
       noOld();
       await tester.enterText(find.byType(EditableText).first, '123456');
       await settle(tester, const Duration(milliseconds: 600));
@@ -229,14 +229,14 @@ void main() {
       await tester.tap(find.text('Doğrula'));
       await tester.pump();
       expect(find.text('6 haneli kodu girin.'), findsOneWidget);
-      expect(find.textContaining('60 sn'), findsOneWidget);
-      await tester.pump(const Duration(seconds: 61));
+      expect(find.textContaining('(3:00)'), findsOneWidget);
+      await tester.pump(const Duration(seconds: 181));
       expect(find.text('Kodu yeniden gönder'), findsOneWidget);
       await tester.ensureVisible(find.text('Kodu yeniden gönder'));
       await tester.tap(find.text('Kodu yeniden gönder'));
       await settle(tester, const Duration(milliseconds: 300));
       expect(find.text('Yeni kod gönderildi.'), findsOneWidget);
-      expect(find.textContaining('60 sn'), findsOneWidget);
+      expect(find.textContaining('(3:00)'), findsOneWidget); // sunucu süre vermezse varsayılan 180 sn
       await unmount(tester);
       expect(tester.takeException(), isNull);
     });

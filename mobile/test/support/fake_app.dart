@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:bu_kampus/core/api.dart';
 import 'package:bu_kampus/core/pending_verification.dart';
+import 'package:bu_kampus/core/resend_cooldown.dart';
 import 'package:bu_kampus/core/session.dart';
 import 'package:bu_kampus/core/theme.dart';
 import 'package:bu_kampus/widgets/bu_widgets.dart';
@@ -257,7 +258,8 @@ void mockSecureStorage() {
 Session makeSession(FakeBackend b, {bool signedIn = true}) {
   mockSecureStorage();
   final s = Session(ApiClient(client: b.client, retryDelay: Duration.zero))
-    ..pending = PendingVerificationStore.memory();
+    ..pending = PendingVerificationStore.memory()
+    ..resendCooldown = ResendCooldownStore.memory(); // testler arasında "yeniden gönder" sayacı sızmasın
   if (signedIn) {
     s.state = SessionState.signedIn;
     s.userId = 1;

@@ -1,4 +1,5 @@
 import '../../../core/api.dart';
+import '../../../core/session.dart' show resendSecondsOf;
 import '../../../core/secure_store.dart';
 
 /// Herkese açık destek talebi (T27, `/api/public/support/**`): hesapsız, e-posta doğrulamalı. Tek HTTP katmanı
@@ -14,22 +15,25 @@ class PublicSupportApi {
   static const emailMax = 254;
 
   /// Talebi gönderir ve e-postaya 6 haneli kod yollatır. `website` bal kabağı alanı gerçek kullanıcıda HER ZAMAN boştur;
-  /// `elapsedMs` formun açılışından gönderime geçen süredir.
-  Future<void> submit({
+  /// `elapsedMs` formun açılışından gönderime geçen süredir. Dönen değer "yeniden gönder" bekleme süresidir (sn; sunucu
+  /// `resendAfterSeconds`, yoksa 180). Bekleme sürerken 429 `RESEND_COOLDOWN` fırlar (`ApiError.retryAfter` = kalan sn).
+  Future<int> submit({
     required String name,
     required String email,
     required String category,
     required String message,
     required int elapsedMs,
-  }) =>
-      _api.post('/public/support/tickets', {
-        'name': name.trim(),
-        'email': email.trim(),
-        'category': category,
-        'message': message.trim(),
-        'website': '',
-        'elapsedMs': elapsedMs,
-      }, false);
+  }) async {
+    final res = await _api.post('/public/support/tickets', {
+      'name': name.trim(),
+      'email': email.trim(),
+      'category': category,
+      'message': message.trim(),
+      'website': '',
+      'elapsedMs': elapsedMs,
+    }, false);
+    return resendSecondsOf(res);
+  }
 
   /// Kodu doğrular; başarıda takip jetonunu döner.
   Future<String> verify(String email, String code) async {

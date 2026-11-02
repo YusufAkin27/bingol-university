@@ -110,7 +110,7 @@ void main() {
       final b = FakeBackend()
         ..on('/public/support/tickets/verify', {'ticketId': 7, 'trackToken': 'tok-123'})
         ..on('/public/support/track', detail);
-      await tester.pumpWidget(buildApp(HelpCodePage(session: sess(b), email: 'elif@gmail.com', resend: () async {})));
+      await tester.pumpWidget(buildApp(HelpCodePage(session: sess(b), email: 'elif@gmail.com', resend: () async => 180)));
       await settle(tester, const Duration(milliseconds: 900));
       await tester.enterText(find.byType(EditableText).first, '528412');
       await tester.pump();
@@ -126,7 +126,7 @@ void main() {
     testWidgets('yanlış kod: hata metni, talep durumu açılmaz', (tester) async {
       useScreen(tester, kPhoneMedium);
       final b = FakeBackend()..fail('/public/support/tickets/verify', status: 400, code: 'INVALID_CODE', message: 'x');
-      await tester.pumpWidget(buildApp(HelpCodePage(session: sess(b), email: 'elif@gmail.com', resend: () async {})));
+      await tester.pumpWidget(buildApp(HelpCodePage(session: sess(b), email: 'elif@gmail.com', resend: () async => 180)));
       await settle(tester, const Duration(milliseconds: 900));
       await tester.enterText(find.byType(EditableText).first, '111111');
       await settle(tester, const Duration(milliseconds: 900));
@@ -202,7 +202,7 @@ void main() {
   group('320 dp / 1.3x yazı', () {
     final pages = <String, Widget Function(Session s)>{
       'form': (s) => HelpFormPage(session: s),
-      'kod': (s) => HelpCodePage(session: s, email: 'ad.soyad@bingol.edu.tr', resend: () async {}),
+      'kod': (s) => HelpCodePage(session: s, email: 'ad.soyad@bingol.edu.tr', resend: () async => 180),
       'talep': (s) => HelpTrackPage(session: s, token: 't'),
       'hakkında': (s) => AboutPage(session: s),
     };

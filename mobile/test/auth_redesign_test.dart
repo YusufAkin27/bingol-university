@@ -172,7 +172,7 @@ void main() {
       await unmount(tester);
     });
 
-    testWidgets('verify: TOO_MANY_ATTEMPTS mesajı gösterir, kodu temizler ve beklemeden yeniden gönderi açar', (tester) async {
+    testWidgets('verify: TOO_MANY_ATTEMPTS mesajı gösterir, kodu temizler; yeni kod yine sunucu beklemesine (3 dk) tabidir', (tester) async {
       useScreen(tester, kPhoneMedium);
       final b = FakeBackend()
         ..fail('/auth/verify-email', status: 429, code: 'TOO_MANY_ATTEMPTS', message: 'Çok fazla hatalı deneme. Yeni kod isteyin.');
@@ -183,7 +183,9 @@ void main() {
       await tester.enterText(find.byType(EditableText).first, '123456');
       await settle(tester, const Duration(milliseconds: 500));
       expect(find.text('Çok fazla hatalı deneme. Yeni kod isteyin.'), findsOneWidget);
-      expect(find.text('Kodu yeniden gönder'), findsOneWidget);
+      // Sunucu 180 sn dolmadan yeni kodu reddeder: düğme erken açılmaz, sayaç sürer.
+      expect(find.text('Kodu yeniden gönder'), findsNothing);
+      expect(find.textContaining('Yeniden gönder ('), findsOneWidget);
       expect(tester.widget<EditableText>(find.byType(EditableText).first).controller.text, '');
       await unmount(tester);
     });

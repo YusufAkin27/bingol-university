@@ -12,6 +12,7 @@ import 'identifier.dart';
 import 'locale_controller.dart';
 import 'nav.dart';
 import 'pending_verification.dart';
+import 'resend_cooldown.dart';
 import '../features/legal/legal_reaccept.dart';
 import 'realtime/chat_realtime.dart';
 import 'secure_store.dart';
@@ -73,6 +74,9 @@ class Session extends ChangeNotifier {
 
   /// Doğrulaması bekleyen kayıt (şifresiz, 72 sa). Testler bellek içi depo atar.
   PendingVerificationStore pending = PendingVerificationStore();
+
+  /// Kod "yeniden iste" bekleme bitiş anları (sunucu süresi TEK kaynak; kalıcı). Testler bellek içi depo atar.
+  ResendCooldownStore resendCooldown = ResendCooldownStore.instance;
 
   // Kayıt/girişte girilen şifre yalnızca bellekte, doğrulama sonrası otomatik giriş için tutulur.
   String? _memId, _memPassword;
@@ -245,13 +249,32 @@ class Session extends ChangeNotifier {
       },
       false,
     );
+    // İlk gönderim de bekleme başlatır: "yeniden gönder" 3 dk sonra açılır.
+    await resendCooldown.start('verify', email, seconds: resendSecondsOf(res));
     final server = res is Map ? res['email'] : null;
     // Kayıtta numara kısayolu yok: yazılan adres olduğu gibi (normalize) kullanılır.
     return server is String && server.isNotEmpty ? server : normalizeIdentifier(email);
   }
 
-  Future<void> resendCode(String email) =>
-      api.post('/auth/resend-code', {'email': normalizeIdentifier(email)}, false);
+  /// Yeni doğrulama kodu ister; sunucunun bildirdiği bekleme süresini (sn) döner ve kalıcı sayacı başlatır.
+  /// Bekleme sürerken 429 `RESEND_COOLDOWN` fırlar (kalan süre `ApiError.retryAfter`, sayaç ona göre ayarlanır).
+  Future<int> resendCode(String email) => _codeRequest('verify', '/auth/resend-code', email);
+
+  /// Kod isteyen uçlar ortak: yanıttaki `resendAfterSeconds` (yoksa 180) ya da 429 `Retry-After` sayacı belirler.
+  Future<int> _codeRequest(String flow, String path, String email) async {
+    final id = normalizeIdentifier(email);
+    try {
+      final res = await api.post(path, {'email': id}, false);
+      final s = resendSecondsOf(res);
+      await resendCooldown.start(flow, id, seconds: s);
+      return s;
+    } on ApiError catch (e) {
+      if (e.code == 'RESEND_COOLDOWN') {
+        await resendCooldown.start(flow, id, seconds: e.retryAfter ?? kCodeResendSeconds);
+      }
+      rethrow;
+    }
+  }
 
   /// Kayıt sırasında girilen şifre bellekte duruyor mu (doğrulama adımı parola kanıtı için)?
   bool hasRememberedPassword(String email) => _memPassword != null && _memId == fullEmail(email);
@@ -282,8 +305,8 @@ class Session extends ChangeNotifier {
     }
   }
 
-  Future<void> forgotPassword(String email) =>
-      api.post('/auth/forgot-password', {'email': normalizeIdentifier(email)}, false);
+  /// Şifre sıfırlama kodu ister (hesap var/yok fark etmeksizin aynı yanıt ve aynı bekleme); bekleme süresini döner.
+  Future<int> forgotPassword(String email) => _codeRequest('reset', '/auth/forgot-password', email);
 
   /// Kodu doğrular; doğruysa yeni şifre adımı için tek kullanımlık anahtar döner.
   Future<String> verifyResetCode(String email, String code) async {
@@ -441,6 +464,12 @@ class Session extends ChangeNotifier {
     state = s;
     notifyListeners();
   }
+}
+
+/// Kod gönderen uçların yanıtındaki `resendAfterSeconds` (yoksa/geçersizse varsayılan 180 sn).
+int resendSecondsOf(Object? res) {
+  final v = res is Map ? res['resendAfterSeconds'] : null;
+  return v is num && v > 0 ? v.toInt() : kCodeResendSeconds;
 }
 
 /// Hata kodlarına kullanıcı metni: sunucu zaten istek dilinde `message` döner; bilinen kodlar için

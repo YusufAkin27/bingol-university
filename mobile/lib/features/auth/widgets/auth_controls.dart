@@ -3,42 +3,89 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import '../../../core/locale_controller.dart';
+import '../../../core/resend_cooldown.dart';
 import '../../../widgets/bu.dart';
 import 'auth_motion.dart';
 import 'auth_ref.dart';
 
-/// Yeniden gönder: geri sayım halkası + metin; süre bitince düğme olur. Zamanlayıcı yalnız bu parçayı yeniler.
+/// Yeniden gönder: geri sayım (d:ss) + metin; süre bitince düğme olur. Zamanlayıcı yalnız bu parçayı yeniler.
+/// Süre sunucudan gelir (`resendAfterSeconds` / 429 `Retry-After`); [store] + [flow] + [identity] verilirse bitiş anı
+/// kalıcıdır: uygulama kapanıp açılsa ya da arka plandan dönse sayaç doğru süreden devam eder. Ekran okuyucuya her
+/// saniye okunmaz: [waitingSemantics] yalnız dakika değişince güncellenen özet metni verir.
 class AuthResendRow extends StatefulWidget {
   const AuthResendRow({
     super.key,
     required this.onResend,
     required this.waitingLabel,
     required this.resendLabel,
-    this.initialSeconds = 60,
+    this.waitingSemantics,
+    this.initialSeconds = kCodeResendSeconds,
     this.startReady = false,
+    this.store,
+    this.flow,
+    this.identity,
   });
 
   final VoidCallback onResend;
   final String Function(int seconds) waitingLabel;
   final String resendLabel;
+
+  /// Ekran okuyucu özeti (kalan tam dakika, yukarı yuvarlı); yoksa görsel metin okunur.
+  final String Function(int minutes)? waitingSemantics;
   final int initialSeconds;
 
   /// Bekleme olmadan hazır başlar (ör. deneme sınırı aşıldı).
   final bool startReady;
 
+  /// Kalıcı bitiş anı deposu ve anahtarı (akış + e-posta); üçü birlikte verilirse kullanılır.
+  final ResendCooldownStore? store;
+  final String? flow;
+  final String? identity;
+
   @override
   State<AuthResendRow> createState() => AuthResendRowState();
 }
 
-class AuthResendRowState extends State<AuthResendRow> {
+class AuthResendRowState extends State<AuthResendRow> with WidgetsBindingObserver {
   Timer? _timer;
-  late int _total = widget.initialSeconds;
-  late int _left = widget.startReady ? 0 : widget.initialSeconds;
+  late int _left;
+  bool _touched = false;
+
+  bool get _persisted => widget.store != null && widget.flow != null && widget.identity != null;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    final stored = _persisted ? widget.store!.peek(widget.flow!, widget.identity!) : null;
+    _left = widget.startReady ? 0 : (stored ?? widget.initialSeconds);
     if (_left > 0) _tick();
+    if (_persisted && stored == null && !widget.startReady) _loadStored();
+  }
+
+  /// Bellekte kayıt yoksa (uygulama yeniden açıldı) depodan oku; kayıt varsa sayaç ondan devam eder.
+  Future<void> _loadStored() async {
+    final r = await widget.store!.remaining(widget.flow!, widget.identity!);
+    if (!mounted || _touched || r == null) return;
+    _apply(r);
+  }
+
+  void _apply(int seconds) {
+    if (seconds <= 0) {
+      _timer?.cancel();
+      setState(() => _left = 0);
+    } else {
+      setState(() => _left = seconds);
+      _tick();
+    }
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // Arka planda zamanlayıcı durur: öne dönünce kalan süreyi bitiş anından yeniden hesapla.
+    if (state != AppLifecycleState.resumed || !_persisted) return;
+    final r = widget.store!.peek(widget.flow!, widget.identity!);
+    if (r != null && mounted) _apply(r);
   }
 
   void _tick() {
@@ -50,24 +97,27 @@ class AuthResendRowState extends State<AuthResendRow> {
     });
   }
 
-  /// Sayacı yeniden başlatır (yeni kod gönderildi).
+  /// Sayacı yeniden başlatır (yeni kod gönderildi ya da sunucu kalan süreyi bildirdi). Süre verilmezse varsayılan.
+  /// Kalıcı depo varsa bitiş anı da güncellenir.
   void restart([int? seconds]) {
     if (!mounted) return;
-    setState(() {
-      _total = seconds ?? widget.initialSeconds;
-      _left = _total;
-    });
+    _touched = true;
+    final s = (seconds == null || seconds <= 0) ? widget.initialSeconds : seconds;
+    setState(() => _left = s);
     _tick();
+    if (_persisted) widget.store!.start(widget.flow!, widget.identity!, seconds: s);
   }
 
   /// Beklemeyi atlar ve düğmeyi açar.
   void makeReady() {
     _timer?.cancel();
+    _touched = true;
     if (mounted) setState(() => _left = 0);
   }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _timer?.cancel();
     super.dispose();
   }
@@ -76,6 +126,9 @@ class AuthResendRowState extends State<AuthResendRow> {
   Widget build(BuildContext context) {
     final t = context.bu;
     final tx = Theme.of(context).textTheme;
+    final label = _left > 0 ? widget.waitingLabel(_left) : '';
+    final semantic = widget.waitingSemantics;
+    final text = Text(label, style: tx.labelLarge!.copyWith(color: t.mut, fontWeight: FontWeight.w600));
     return AnimatedSwitcher(
       duration: BuMotion.of(context, BuMotion.short),
       child: _left > 0
@@ -88,7 +141,10 @@ class AuthResendRowState extends State<AuthResendRow> {
                 Flexible(
                   child: Padding(
                     padding: const EdgeInsets.symmetric(vertical: 13),
-                    child: Text(widget.waitingLabel(_left), style: tx.labelLarge!.copyWith(color: t.mut, fontWeight: FontWeight.w600)),
+                    // Her saniye değişen metin ekran okuyucuya okunmaz; dakikada bir güncellenen özet okunur.
+                    child: semantic == null
+                        ? text
+                        : Semantics(label: semantic((_left + 59) ~/ 60), excludeSemantics: true, child: text),
                   ),
                 ),
               ],

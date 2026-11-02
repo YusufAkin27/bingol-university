@@ -11,6 +11,7 @@ import 'api.dart';
 import 'cache/image_disk_cache.dart';
 import 'cache/message_cache.dart';
 import 'language_sync.dart';
+import 'resend_cooldown.dart';
 
 /// Çıkış / hesap değişimi / hesap silme / oturum iptalinde silinmesi gereken kullanıcıya özel yerel depoların
 /// TEK kayıt noktası ([ApiClient.setTokens] bu kancaları çalıştırır). Kural: kullanıcıya özel veri tutan her yeni
@@ -31,6 +32,7 @@ void registerUserDataCleaners(ApiClient api) {
     ..add(ChatBackgroundPrefs.clear) // sohbet arka planı tercihi (Desen/Hafif/Orta/Düz)
     ..add(CampusLocalStore.clear) // kampüs haritası: favori yerler + son aramalar
     ..add(HomeLayoutStore.clear) // Ana Sayfa düzeni (bölüm sırası/görünürlüğü + Hızlı Erişim kısayolları)
+    ..add(ResendCooldownStore.instance.clearAll) // kod "yeniden iste" bekleme bitiş anları (e-postaya bağlı)
     ..add(TrackTokenStore.clear) // herkese açık destek talebinin takip jetonu (e-postaya bağlı)
     ..add(_clearLegalLater); // "sözleşme onayını sonra yap" işareti (kullanıcı kimliği içerir)
 }
