@@ -264,7 +264,7 @@ class _HomeTabState extends State<HomeTab> {
   Future<void> _loadStatus() async {
     final gen = _gen;
     try {
-      final st = await _s.api.get('/status') as Map<String, dynamic>;
+      final st = await _s.api.get('/status', force: _force) as Map<String, dynamic>;
       final stale = (st['NEWS'] as Map?)?['maintenance'] == true || (st['MENU'] as Map?)?['maintenance'] == true;
       _apply(gen, () => _newsStale = stale);
     } catch (_) {}
