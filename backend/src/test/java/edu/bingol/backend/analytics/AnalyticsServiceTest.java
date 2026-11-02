@@ -138,4 +138,34 @@ class AnalyticsServiceTest {
         Instant slightlyAhead = NOW.plusSeconds(60);
         assertEquals(slightlyAhead, AnalyticsService.time(slightlyAhead, NOW).toInstant());
     }
+
+    @Test
+    void integralDoublesAreStoredAsIntegers() {
+        Map<String, Object> props = new LinkedHashMap<>();
+        props.put("ms", 1500.0);
+        props.put("from", "home");
+        assertEquals("{\"ms\":1500,\"from\":\"home\"}", AnalyticsService.propsJson(props));
+    }
+
+    @Test
+    void platformAndVersionAreWhitelisted() {
+        assertEquals("android", AnalyticsService.cleanPlatform(" Android "));
+        assertEquals("ios", AnalyticsService.cleanPlatform("IOS"));
+        assertNull(AnalyticsService.cleanPlatform("other"));
+        assertNull(AnalyticsService.cleanPlatform(null));
+        assertEquals("2.0.6+20006", AnalyticsService.cleanVersion("2.0.6+20006"));
+        assertNull(AnalyticsService.cleanVersion("2.0 6"));
+        assertNull(AnalyticsService.cleanVersion("x".repeat(33)));
+        assertNull(AnalyticsService.cleanVersion("a@b.c"));
+    }
+
+    @Test
+    void screenViewWithUsageProps() {
+        Map<String, Object> props = new LinkedHashMap<>();
+        props.put("from", "news_list");
+        props.put("ms", 4200);
+        List<ValidEvent> v = ok(new EventIn("screen_view", "news_detail", props, null));
+        assertEquals("news_detail", v.get(0).screen());
+        assertEquals("{\"from\":\"news_list\",\"ms\":4200}", v.get(0).propsJson());
+    }
 }

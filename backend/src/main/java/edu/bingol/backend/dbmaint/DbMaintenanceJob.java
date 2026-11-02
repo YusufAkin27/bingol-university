@@ -40,6 +40,7 @@ public class DbMaintenanceJob {
     private final ChunkedDeleter deleter;
     private final NamedParameterJdbcTemplate jdbc;
     private final AnalyticsRollup rollup;
+    private UsageRollup usageRollup;
     private final SchedulerLock lock;
     private final Clock clock;
     private final boolean enabled;
@@ -101,6 +102,12 @@ public class DbMaintenanceJob {
     /** Son runAll'da patlayan gorev adlari (nightly bunu is hatasi olarak gosterir; bakim "basarili" gorunmesin). */
     private final java.util.List<String> failedTasks = new java.util.concurrent.CopyOnWriteArrayList<>();
 
+    /** Kullanim ozeti toplulastirmasi (isteğe bagli bean; birim testleri onsuz kurar). */
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setUsageRollup(UsageRollup usageRollup) {
+        this.usageRollup = usageRollup;
+    }
+
     void setTwoFactorDeviceDays(int days) {
         this.twoFactorDeviceDays = days;
     }
@@ -143,6 +150,10 @@ public class DbMaintenanceJob {
         // basarisizsa ham olay silme ATLANIR (ham olay bir sonraki gece yeniden denenene kadar kalir).
         boolean[] rollupOk = {true};
         out.put("analytics_rollup_days", safe("analytics_rollup", rollup::rollUpMissingDays, () -> rollupOk[0] = false));
+        if (usageRollup != null) {
+            // kullanim ozetleri (V1220) de ham olaydan uretilir: basarisizsa ham olay silme yine atlanir
+            out.put("usage_rollup_days", safe("usage_rollup", usageRollup::rollUpMissingDays, () -> rollupOk[0] = false));
+        }
         if (rollupOk[0]) {
             out.put("analytics_event", safe("analytics_event", () -> rawEvents(now)));
         } else {

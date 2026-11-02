@@ -3,6 +3,7 @@ package edu.bingol.backend.analytics;
 import edu.bingol.backend.analytics.AnalyticsDtos.EventsRequest;
 import edu.bingol.backend.common.CurrentUser;
 import edu.bingol.backend.common.RateLimiter;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import java.time.Duration;
 import org.springframework.http.HttpStatus;
@@ -27,9 +28,13 @@ public class AnalyticsController {
 
     @PostMapping("/events")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void events(@Valid @RequestBody EventsRequest r) {
+    public void events(@Valid @RequestBody EventsRequest r, HttpServletRequest req) {
         Long uid = CurrentUser.id();
         limiter.check("analytics:user:" + uid, 30, Duration.ofMinutes(1));
-        analytics.record(uid, r.events());
+        String platform = req.getHeader("X-App-Platform");
+        if (platform == null || platform.isBlank()) {
+            platform = req.getHeader("X-Device-Platform");
+        }
+        analytics.record(uid, r.events(), platform, req.getHeader("X-App-Version"));
     }
 }

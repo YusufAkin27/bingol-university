@@ -50,6 +50,8 @@ public final class AdminPermissionPolicy {
         one(null, "/api/admin/rbac(/.*)?", RBAC_MANAGE);
 
         // --- analitik ---
+        // kullanim ozetini zorla tazeleme agir bir yazma/hesaplama: okuma izni yetmez, yalniz system.write (FULL)
+        one(Set.of("POST"), "/api/admin/analytics/usage/refresh", SYSTEM_WRITE);
         one(null, "/api/admin/analytics(/.*)?", ANALYTICS_READ);
         one(Set.of("GET"), "/api/admin/notifications/stats", ANALYTICS_READ);
 

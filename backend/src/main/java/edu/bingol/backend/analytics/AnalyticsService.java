@@ -39,9 +39,17 @@ public class AnalyticsService {
     /** 10+ ardisik rakam telefon/TC kimlik no benzeri kisisel veri sayilir. */
     private static final Pattern LONG_DIGITS = Pattern.compile("\\d{10,}");
     private static final Pattern SCREEN = Pattern.compile("[A-Za-z0-9_./-]{1,60}");
+    private static final Pattern APP_VERSION = Pattern.compile("[A-Za-z0-9._+\\-]{1,32}");
 
     /** Dogrulanmis, veritabanina yazilmaya hazir olay. */
-    public record ValidEvent(String name, String screen, String propsJson, OffsetDateTime at) {}
+    public record ValidEvent(String name, String screen, String propsJson, OffsetDateTime at,
+                             String platform, String appVersion) {
+
+        /** Istek basligindan gelen platform/surum eklenmis kopya. */
+        ValidEvent withClient(String platform, String appVersion) {
+            return new ValidEvent(name, screen, propsJson, at, platform, appVersion);
+        }
+    }
 
     private final ActivityRepository repo;
     private final Clock clock;
@@ -91,10 +99,18 @@ public class AnalyticsService {
         return localDaily.computeIfAbsent(key, k -> new java.util.concurrent.atomic.AtomicLong()).addAndGet(n);
     }
 
-    @Transactional
     public void record(Long userId, List<EventIn> events) {
+        record(userId, events, null, null);
+    }
+
+    /**
+     * @param platform istek basligindan (X-App-Platform / X-Device-Platform); yoksa olayin `props.p` degeri
+     * @param appVersion istek basligindan (X-App-Version); yoksa olayin `props.v` degeri
+     */
+    @Transactional
+    public void record(Long userId, List<EventIn> events, String platform, String appVersion) {
         Instant now = clock.instant();
-        List<ValidEvent> valid = validate(events, now);
+        List<ValidEvent> valid = withClient(validate(events, now), events, platform, appVersion);
         if (valid.isEmpty()) {
             return;
         }
@@ -116,6 +132,39 @@ public class AnalyticsService {
         }
     }
 
+    /** Platform: android|ios|web (kucuk harf), baska deger null. */
+    static String cleanPlatform(Object raw) {
+        if (raw == null) {
+            return null;
+        }
+        String v = String.valueOf(raw).trim().toLowerCase(java.util.Locale.ROOT);
+        return v.equals("android") || v.equals("ios") || v.equals("web") ? v : null;
+    }
+
+    /** Surum: ASCII 1-32 karakter, baska bicim null. */
+    static String cleanVersion(Object raw) {
+        if (raw == null) {
+            return null;
+        }
+        String v = String.valueOf(raw).trim();
+        return APP_VERSION.matcher(v).matches() ? v : null;
+    }
+
+    /** Baslik degeri oncelikli; yoksa olayin kendi `p`/`v` ozelligi (baslik gondermeyen istemciler). */
+    private static List<ValidEvent> withClient(List<ValidEvent> valid, List<EventIn> in, String platform,
+                                               String appVersion) {
+        String hp = cleanPlatform(platform);
+        String hv = cleanVersion(appVersion);
+        List<ValidEvent> out = new ArrayList<>(valid.size());
+        for (int i = 0; i < valid.size(); i++) {
+            Map<String, Object> props = in.get(i).props();
+            String p = hp != null ? hp : cleanPlatform(props == null ? null : props.get("p"));
+            String v = hv != null ? hv : cleanVersion(props == null ? null : props.get("v"));
+            out.add(valid.get(i).withClient(p, v));
+        }
+        return out;
+    }
+
     /** Tum olaylar gecerli degilse hicbiri kaydedilmez (400 INVALID_EVENT). */
     static List<ValidEvent> validate(List<EventIn> events, Instant now) {
         if (events == null || events.size() > MAX_EVENTS) {
@@ -130,7 +179,7 @@ public class AnalyticsService {
             if (screen != null && !SCREEN.matcher(screen).matches()) {
                 throw invalid();
             }
-            out.add(new ValidEvent(e.name(), screen, propsJson(e.props()), time(e.at(), now)));
+            out.add(new ValidEvent(e.name(), screen, propsJson(e.props()), time(e.at(), now), null, null));
         }
         return out;
     }
@@ -157,7 +206,8 @@ public class AnalyticsService {
                     || !(v instanceof String || v instanceof Number || v instanceof Boolean)) {
                 throw invalid();
             }
-            String text = String.valueOf(v);
+            String text = v instanceof Double || v instanceof Float ? plainNumber(((Number) v).doubleValue())
+                    : String.valueOf(v);
             if (text.length() > MAX_VALUE_LEN || text.indexOf('@') >= 0
                     || LONG_DIGITS.matcher(text).find()) {
                 throw invalid();
@@ -174,6 +224,14 @@ public class AnalyticsService {
             }
         }
         return sb.append('}').toString();
+    }
+
+    /** 1500.0 -> "1500" (tamsayi gibi gonderilen ondalik; sonsuz/NaN gecersiz). */
+    private static String plainNumber(double d) {
+        if (Double.isNaN(d) || Double.isInfinite(d)) {
+            throw invalid();
+        }
+        return d == Math.rint(d) && Math.abs(d) < 1e15 ? String.valueOf((long) d) : String.valueOf(d);
     }
 
     /** JSON dizgesi (RFC 8259) kacirma. */

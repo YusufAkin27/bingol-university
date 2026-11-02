@@ -43,9 +43,10 @@ public class ActivityRepository {
     public void insertEvents(Long userId, List<AnalyticsService.ValidEvent> events) {
         SqlParameterSource[] batch = events.stream().map(e -> new MapSqlParameterSource()
                 .addValue("uid", userId).addValue("name", e.name()).addValue("screen", e.screen())
-                .addValue("props", e.propsJson()).addValue("at", e.at())).toArray(SqlParameterSource[]::new);
-        jdbc.batchUpdate("INSERT INTO analytics_event (user_id, name, screen, props, created_at) "
-                + "VALUES (:uid, :name, :screen, CAST(:props AS jsonb), :at)", batch);
+                .addValue("props", e.propsJson()).addValue("at", e.at())
+                .addValue("platform", e.platform()).addValue("ver", e.appVersion())).toArray(SqlParameterSource[]::new);
+        jdbc.batchUpdate("INSERT INTO analytics_event (user_id, name, screen, props, created_at, platform, app_version) "
+                + "VALUES (:uid, :name, :screen, CAST(:props AS jsonb), :at, :platform, :ver)", batch);
     }
 
     /** Saklama suresi dolan olaylari parca parca siler (uzun kilit olusmasin). Silinen toplam sayiyi doner. */
