@@ -9,3 +9,8 @@ services:
     volumes:
       - ./deploy/Caddyfile:/etc/caddy/Caddyfile.base:ro
       - ./deploy/Caddyfile.bukampus:/etc/caddy/Caddyfile:ro
+
+  backup:
+    volumes:
+      # Sunucuya ait sirlar surum arsivinde bulunmaz; kalici dizinden okunur.
+      - /opt/bukampus-data/rclone:/config/rclone:ro
