@@ -247,3 +247,55 @@ Dagitimdan sonra: yonetici panelinde dead-letter push kayitlarini "yeniden dene"
 - **Kitle (`AudienceResolver`).** `DEPARTMENT`/`FACULTY` duyuru/anket ile aynı `AudienceKey` eşleşmesi (büyük-küçük harf, İ/I); `CLASS_YEAR` hem eski `class_year` hem `grade` kataloğuna bakar (0 hazırlık, 7 yüksek lisans, 8 doktora) — aynı kitle artık iki yerde aynı kişileri verir (davranış genişler: yalnız `grade` dolu kullanıcılar da eklenir).
 - **Saklama (K10).** `NotificationRetentionJob` kod varsayılanları 90/365 → 30/90 (properties ve `DbMaintenanceJob` ile aynı); asıl temizlik 03:00 parçalı iştedir, bu görev emniyet ağı.
 - **Ertelenen:** Brevo webhook (K11), `push_payload` normalizasyonu, `PushOutboxWorker` `sendEach` toplu FCM (FCM adaptör arayüzü değişir), gated indeks düşürme (V1102 ayrılan aralıkta gated numara kullanılmadı: gerçek ilerleme sütunları için kullanıldı), bildirim istatistik önbelleği (A04#16).
+
+## NOTIF-BE: Stitch bildirim tasarımı arka ucu (28 kart; V1180)
+
+Kaynak sözleşme: `NOTIF-CONTRACT.md` (mobil ajanla ortak). Tek karar noktası `notification/NotifCard` (kanal + eylemler + görsel stili); push yükü (`PushMessages`) ve bildirim kutusu satırı (`InboxCardEnricher`) aynı enum'dan türer. Kart önce verideki `card` anahtarından, yoksa sablon/başlık anahtarından (`NotificationService.withCard`: sendTemplated/sendTemplate/sendTemplatedBulk/sendLocalized içinde otomatik), yoksa tür/alt türden çözülür. `card` bildirim satırının `data` JSON'una da yazılır (eski/yeni satır aynı eylemi alır).
+
+### Push yükü (FCM `data`)
+
+`card`, `channelId` (chat/event/announcement/poll/social/academic/**security**), `actions` (virgüllü kimlikler), `iosCategory` (`BU_<EYLEMLER>`, örn. `BU_REPLY_MARK_READ`), `imageStyle` (yalnız `imageUrl` varken: `big` sohbet fotoğrafı, `thumb` haber/yemek/gönderi), `groupBadge=1` (grup/kulüp odası), `senderName`, `senderAvatarUrl`, `imageUrl`, `label` (üst etiket: bölüm adı), `tag` (zengin yolda çökme anahtarı), `count`. Avatar yalnız `AvatarVisibility` + engel kontrolünden geçerse ve yalnız push yüküne girer (kutu satırına yazılmaz). `imageUrl` yalnız uygulamanın kendi alan adı ya da `https://*.bingol.edu.tr` olabilir; yabancı/`http` adres düşer.
+
+| # | Kart | Olay / kaynak | actions | Not |
+|---|---|---|---|---|
+| 1-4 | Sohbet (DM, grup, fotoğraf, birikim) | `MessageService` (değişmedi) | reply,mark_read / reply,mute_1h / view,reply / reply,mark_read | kart veriden: görsel > adet>1 > grup > DM; grup rozeti `conversationType=GROUP` |
+| 5, 6 | Etkinlik yarın / 1 saat | `EventReminderService` | calendar,view / qr_checkin | gövde `<ad> · Yarın HH:mm · <yer>`; kulüp adı/logosu YOK (atlandı) |
+| 7, 9 | Etkinlik değişiklik / iptal | `EventService.update` / `cancel*` | view | değişiklik gövdesi `: 13:00 → 14:30 | A → B`; iptal gerekçesi yalnız yönetici iptalinde (mevcut metin) |
+| 8 | Başvuru onaylandı | `notif.admission.accepted`/`promoted` | view | başlık metni "Başvurunuz onaylandı" |
+| 10, 13 | Yeni duyuru / haber | `NewsSyncService` | view | haber `imageUrl` (https, ≤400 karakter) `thumb` |
+| 11 | Bölümünüzde yeni duyuru | **YENİ** `UnitNewsNotifier` (sabah 09:30, `unitnews.notify.cron`) | view | gece çekimi bildirim atmaz; `notified_at` ile sahiplenme; kullanıcı başına koşuda ≤3; yalnız bölüm/kaynak eşleşenler |
+| 12, 14 | Akademik duyuru / sınav | `AnnouncementNotifier`, `ExamReminderJob` | view / exam_card | kanal `academic` |
+| 15 | Ders 30 dk sonra | YEREL hatırlatma (mobil) | - | backend'de olay yok |
+| 16 | Ödev teslimi | **ATLANDI**: ödev modülü yok | - | |
+| 17 | Bugünün menüsü | **YENİ** `MenuDailyNotifier` (hafta içi 11:00, `menu.daily-push.cron`) | view | yalnız DB menüsü (kaynağa istek yok), kalori + görsel `MenuService.today()`; **tercih `menuDaily` varsayılan KAPALI** |
+| 18, 19 | Yeni anket / yarın kapanıyor | `PollNotifier` (zaten vardı) | vote | kapanış metni "Anket yarın kapanıyor / `<soru>` · Son 24 saat" |
+| 20-23 | Beğeni, takipçi, istek, kabul | `PostNotifier` | view / follow_back / accept,reject / view | push başlığı `<ad> gönderini beğendi`; takipçi gövdesi `bölüm · N. sınıf` (gizlilik izinli alanlar); istek `requestId` = isteği gönderenin kullanıcı kimliği |
+| 24 | Yeni cihazdan giriş | **YENİ** `LoginAlertService` (AuthService.login + 2FA ikinci adım) | not_me,view | `X-Device-Id` özeti bu hesapta daha önce görülmediyse (hesabın ilk cihazı sayılmaz); gövde `<model|platform> · HH:mm`, IP/şehir/e-posta YOK |
+| 25 | Şifre değişti | **YENİ** (`changePassword`, `resetPassword`) | reset_password | e-postadan bağımsız push + kutu |
+| 26 | 2FA açıldı/kapandı | `TwoFactorNotifier` (zaten vardı) | view / enable_2fa | kullanıcı + yönetici kapatması; başlıklar "İki adımlı doğrulama açıldı/kapatıldı" |
+| 27 | Oturum başka cihazda | **YENİ** (`LoginAlertService`) | sign_out_device | yeni cihaz uyarısı yoksa ve eski mobil oturum kapandıysa; ikisi birlikteyse tek bildirim (yeni cihaz) |
+| 28 | Destek yanıtı | `TicketService.staffReply` | view_ticket | gövde `#<id> <yanıt özeti ≤120>`; kanal `announcement` (`system` adlı kanal yok) |
+
+**Güvenlik bildirimleri** SYSTEM türündedir: tercihle, alt tur anahtarıyla, sessiz saatle ve `PushGate` hız sınırıyla kapatılamaz/kesilmez; `security` kanalı, yüksek öncelik, 7 gün TTL. Tek cihaz kuralı yeni mobil girişte eski cihazın FCM kaydını siler; bu yüzden uyarı, **oturum iptalinden önce yakalanan token'lara** gider (`LoginAlertService.snapshotTokens` → `NotificationService.sendSecurity(..., tokens)`). Şifre değişiminde de aynı (tüm token'lar).
+
+### Zengin yol (veri-mesajı) artık TÜM kanallar
+
+`PushDispatcher.dispatch`: `app.push.rich-chat-enabled=true` iken kanalı olan her mesaj; Android ≥ 2.0.8 cihazlara `richChat=1` veri-mesajı (başlık/gövde `data`'da, `tag` ve eylemlerle), diğerlerine (eski Android, iOS) standart `notification` bloğu. Genel yayın aralıkları (`dispatchRange`) için `BroadcastWriter.RICH_FILTER` (SQL: platform + sürüm ≥ 2.0.8) iki ayrı kuyruk yazımı yapar. **Bayrak varsayılan KAPALI**; mobil arka plan işleyicisi yayınlanıp doğrulanmadan açılmaz. Her mesajda (rich olsun olmasın) `normalizeMedia`: görsel adresleri mutlak https'e çevrilir, yabancılar düşer. APNs: `mutable-content=1`, `category` (`iosCategory`), `fcm_options.image` (https).
+
+`tag` varsayılanları (yalnız zengin yol, üretici `collapseKey` verdiyse o): `conv:<id>`, `event:<id>`, `poll:<id>`, `news:<id>`, `ticket:<id>`, `unit:<id>`, `menu:<tarih>`, `security:<KART>`, yoksa `<targetType>:<targetId>`.
+
+### Bildirim kutusu (GET /api/notifications)
+
+Yeni sorgu parametresi `category=all|messages|events|announcements|social|system` (verilirse `type`'a baskındır; `messages` her zaman boş: sohbet mesajı kutuda tutulmaz). Satır alanları (**yalnız eklendi**): `card`, `category`, `channelId`, `senderName`, `senderAvatarUrl`, `imageUrl`, `imageStyle`, `actions` (dizi), `requestId`, `label`. Gönderen adı/avatarı okuma anında bakana göre üretilir (gizlilik + engel); cevaplanmış (okundu) takip isteğinde `actions` boştur.
+
+### Yeni uç ve tercih
+
+- `POST /api/security/not-me` (kimlik doğrulamalı, saatte 5): tüm oturumlar + güvenilen 2FA cihazları + push kayıtları kapanır, `admin_audit`'e yazılır; yanıt hep `{"ok":true,"resetPasswordRecommended":true}`. İstemci kullanıcıyı şifre sıfırlamaya (forgot-password) yönlendirir. Not: yeni cihaz uyarısı çoğunlukla oturumu KAPANMIŞ eski cihaza düşer; istemci 401'de girişe yönlendirip sonra çağırmalıdır.
+- `PUT /api/notifications/preferences`: `menuDaily` (üst düzey) ve `subtypes.MENU_DAILY`, `subtypes.UNIT_ANNOUNCEMENT`. `GET` yanıtına `menuDaily` eklendi.
+- İstemci başlığı `X-Device-Model` (isteğe bağlı, ≤40 karakter, harf/rakam/boşluk/`._+()-`): yeni cihaz bildiriminde gösterilir, saklanmaz.
+- Sessize alma uç noktası zaten var: `PUT /api/conversations/{id}/mute` `{"durationMinutes":60}` (`mute_1h` eylemi bunu kullanır).
+- Takip isteği: `POST /api/users/me/follow-requests/{requestId}/accept|decline` (eylem kimliği `reject` → uç `decline`).
+
+### Migration V1180
+
+`notification_pref.menu_daily BOOLEAN NOT NULL DEFAULT FALSE`; `unit_announcement.notified_at` (mevcut kayıtlar gönderilmiş sayılır) + kısmi indeks `ntf_unit_ann_pending_idx`.

@@ -803,6 +803,18 @@ Ayrıntı ve örnekler: [changes/event.md](changes/event.md) "Herkes etkinlik a�
 
 **FCM doğrulama (yönetici):** `GET /api/admin/push/fcm/status` (ağ çağrısı yok: `enabled`, `projectId`), `POST /api/admin/push/fcm/validate` (Firebase `validateOnly` konu mesajı; hiçbir cihaza gitmez; `validated`, `error` yalnız kod; dakikada 5). Açılışta etkinse log: `FCM etkin: Firebase proje kimligi=<id>`; sağlık `fcm` detayında `projectId`. Anahtar hiçbir yerde yazılmaz.
 
+
+### 6.y Stitch bildirim kartları (NOTIF-BE; V1180)
+
+Ayrıntı ve kart tablosu: `docs/changes/push.md` "NOTIF-BE". Mobil için özet:
+
+- **Push `data` yeni anahtarlar:** `card`, `actions` (virgüllü; bilinmeyen kimlik yok sayılır), `channelId` (+`security`), `imageStyle` (`big`|`thumb`, yalnız `imageUrl` varsa), `groupBadge`, `senderName`, `senderAvatarUrl`, `imageUrl`, `label`, `iosCategory`, `tag`. Hedef `targetType` yeni değerleri: `SECURITY` (Güvenlik ekranı), `UNIT_NEWS` (birim duyurusu detayı), `MENU` (yemek, `targetId`=tarih).
+- **`GET /api/notifications?category=all|messages|events|announcements|social|system`**; her satırda ek alanlar: `card`, `category`, `channelId`, `senderName`, `senderAvatarUrl`, `imageUrl`, `imageStyle`, `actions[]`, `requestId`, `label` (mevcut alanlar değişmedi). `createdAt` (ISO UTC) bugün/dün gruplaması için yeterlidir; `unreadCount` tüm kutunun sayacıdır.
+- **`POST /api/security/not-me`** (JWT) → `200 {"ok":true,"resetPasswordRecommended":true}`; tüm oturumlar kapanır, istemci girişe/şifre sıfırlamaya yönlendirir. Hız sınırı: saatte 5 (429).
+- **Tercihler:** `GET/PUT /api/notifications/preferences` içinde yeni `menuDaily` (varsayılan `false`) ve `subtypes.MENU_DAILY` / `subtypes.UNIT_ANNOUNCEMENT`. Güvenlik/destek yanıtı bildirimleri tercih listesinde YOKTUR (kapatılamaz).
+- **İstek başlıkları:** `X-Device-Id` (zaten), yeni isteğe bağlı `X-Device-Model` (örn. `Samsung Galaxy S24`): yeni cihaz uyarısında gösterilir.
+- **Eylem uçları:** `reply` → `POST /api/conversations/{id}/messages`; `mark_read` → `POST /api/conversations/{id}/read`; `mute_1h` → `PUT /api/conversations/{id}/mute` `{"durationMinutes":60}`; `follow_back` → `POST /api/users/{id}/follow`; `accept`/`reject` → `POST /api/users/me/follow-requests/{requestId}/accept|decline`.
+
 ## Tasarım uygulaması için eklenen opsiyonel alanlar (B1)
 
 Hepsi **geriye uyumlu eklemedir** (alan silme/yeniden adlandırma yok; migration yok). Eski mobil sürümler yeni alanları yok sayar; yeni mobil, alan yoksa ilgili parçayı çizmez. Ayrıntı: `changes/*.md`.
