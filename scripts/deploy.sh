@@ -524,8 +524,9 @@ for img in \$(dc config --images 2>/dev/null | sort -u); do
 done
 if [ -n "\$CUR" ] && [ "\$CUR" != "\$REL" ]; then echo "\$CUR" > "\$BASEDIR/.previous_release"; fi
 if [ "\$NOBUILD" != 1 ]; then rlog "imajlar derleniyor (ilk derleme 5-15 dk surebilir)"; dc build; fi
-dc up -d --remove-orphans
 OK=1
+# Baslatma hatasi da saglik hatasi gibi geri alma yoluna gitmeli.
+if ! dc up -d --remove-orphans; then rlog "konteynerler baslatilamadi"; OK=0; fi
 wait_healthy backend "\${HW_BACKEND:-600}" || { rlog "backend saglikli olmadi (\${HW_BACKEND:-600} sn)"; OK=0; }
 if [ "\$OK" = 1 ]; then wait_healthy caddy 90 || { rlog "caddy saglikli degil"; OK=0; }; fi
 if [ "\$OK" = 1 ]; then
