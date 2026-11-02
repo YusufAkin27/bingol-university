@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import '../../features/news/news_tile.dart' show newsMonthName;
 import '../../widgets/bu.dart';
 import '../locale_controller.dart' show L10nContext;
 import '../nav.dart';
@@ -146,8 +147,40 @@ class _BannerHost extends StatelessWidget {
   }
 }
 
-/// Ön plan bildirim kartı (05/4): avatar, başlık + zaman, gövde, altta birleşmiş mesaj sayısı ve yanıt ipucu.
-/// Aynı sohbetten art arda gelenler birleşince kartın altında ikinci bir kart kenarı görünür.
+/// Şerit başı görünümü: sol görsel + sağ eylem hapı (tasarım 08 üst kısım).
+enum BannerLead {
+  /// Kişi avatarı (sohbet, sosyal): sohbette sağ altta mesaj rozeti.
+  avatar,
+
+  /// Etkinlik: tarih karosu (`startsAt` yoksa takvim simgesi).
+  dateTile,
+
+  /// Duyuru/haber: megafon karosu.
+  megaphone,
+
+  /// Diğer: hedefe uygun simge karosu ([bannerIcon]).
+  icon,
+}
+
+enum BannerCta { reply, detail, none }
+
+/// Yükten şerit görünümü (SAF; test edilir). Sohbet = avatar + "Yanıtla", etkinlik = tarih karosu + "Detay",
+/// duyuru/haber = megafon karosu; bilinmeyen yük simge karosuna düşer.
+({BannerLead lead, BannerCta cta}) bannerPresentation(Map<String, dynamic> data) {
+  final type = '${data['type'] ?? ''}'.toUpperCase();
+  final chat = '${data['conversationId'] ?? ''}'.isNotEmpty || type == 'MESSAGE';
+  if (chat) return (lead: BannerLead.avatar, cta: BannerCta.reply);
+  final dest = resolvePushTarget(data).dest;
+  if (dest == PushDest.event || type == 'EVENT') return (lead: BannerLead.dateTile, cta: BannerCta.detail);
+  if (dest == PushDest.news || dest == PushDest.deptAnnouncement || type == 'ANNOUNCEMENT' || type == 'NEWS') {
+    return (lead: BannerLead.megaphone, cta: BannerCta.none);
+  }
+  if ('${data['senderAvatarUrl'] ?? ''}'.isNotEmpty) return (lead: BannerLead.avatar, cta: BannerCta.none);
+  return (lead: BannerLead.icon, cta: BannerCta.none);
+}
+
+/// Ön plan bildirim kartı (tasarım 08): üstte marka satırı (BU Kampüs · şimdi · kapat), altta görsel + başlık/gövde +
+/// eylem hapı. Aynı sohbetten art arda gelenler birleşince kartın altında ikinci bir kart kenarı görünür.
 class _BannerCard extends StatelessWidget {
   const _BannerCard({required this.item, required this.onTap, required this.onClose});
 
@@ -160,9 +193,13 @@ class _BannerCard extends StatelessWidget {
     final t = context.bu;
     final l = context.l10n;
     final tx = Theme.of(context).textTheme;
-    final chat = '${item.data['conversationId'] ?? ''}'.isNotEmpty;
     final merged = item.count > 1;
-    final showFooter = merged || chat;
+    final pres = bannerPresentation(item.data);
+    final cta = switch (pres.cta) {
+      BannerCta.reply => l.notifActReply,
+      BannerCta.detail => l.notifActDetail,
+      BannerCta.none => null,
+    };
     final card = Material(
       color: t.sf3,
       elevation: 8,
@@ -172,101 +209,78 @@ class _BannerCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
         onTap: onTap,
         child: Padding(
-          padding: const EdgeInsetsDirectional.fromSTEB(14, 12, 4, 10),
+          padding: const EdgeInsetsDirectional.fromSTEB(14, 6, 4, 12),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              // Marka satırı: (B) BU KAMPÜS · şimdi            X
               Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   ExcludeSemantics(
-                    child: SizedBox(
-                      width: 46,
-                      height: 46,
-                      child: chat
-                          ? Stack(
-                              clipBehavior: Clip.none,
-                              children: [
-                                BuAvatar(name: item.title, size: 44),
-                                PositionedDirectional(
-                                  end: -2,
-                                  bottom: -2,
-                                  child: Container(
-                                    width: 18,
-                                    height: 18,
-                                    alignment: Alignment.center,
-                                    decoration: BoxDecoration(color: t.pr, shape: BoxShape.circle, border: Border.all(color: t.sf3, width: 2)),
-                                    child: Icon(BuIcons.messageCircle, size: 9, color: t.onPr),
-                                  ),
-                                ),
-                              ],
-                            )
-                          : Align(
-                              alignment: AlignmentDirectional.topStart,
-                              child: Container(
-                                width: 44,
-                                height: 44,
-                                alignment: Alignment.center,
-                                decoration: BoxDecoration(color: t.soft, borderRadius: BorderRadius.circular(14)),
-                                child: Icon(bannerIcon(item.data), size: 22, color: t.onSoft),
-                              ),
-                            ),
+                    child: Container(
+                      width: 16,
+                      height: 16,
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(color: t.pr, shape: BoxShape.circle),
+                      child: Text('B', style: tx.labelSmall!.copyWith(color: t.onPr, fontSize: 10, fontWeight: FontWeight.w800, height: 1)),
                     ),
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Row(
-                          children: [
-                            if (item.title.isNotEmpty)
-                              Expanded(child: Text(item.title, maxLines: item.body.isEmpty ? 2 : 1, overflow: TextOverflow.ellipsis, style: tx.titleMedium!.copyWith(color: t.ink)))
-                            else
-                              const Spacer(),
-                            const SizedBox(width: 8),
-                            Text(l.p01PushNow, maxLines: 1, style: tx.labelSmall!.copyWith(color: t.mut)),
-                          ],
-                        ),
-                        if (item.body.isNotEmpty)
-                          Padding(
-                            padding: const EdgeInsets.only(top: 2),
-                            child: Text(item.body, maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.bodyMedium!.copyWith(color: t.mut)),
-                          ),
-                      ],
-                    ),
-                  ),
+                  const SizedBox(width: 6),
+                  Text(l.notifBrandCaption, maxLines: 1, style: tx.labelSmall!.copyWith(color: t.mut, fontWeight: FontWeight.w700, letterSpacing: .4)),
+                  const SizedBox(width: 6),
+                  Text('·', style: tx.labelSmall!.copyWith(color: t.mut)),
+                  const SizedBox(width: 6),
+                  Expanded(child: Text(l.p01PushNow, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.labelSmall!.copyWith(color: t.mut))),
                   IconButton(
                     tooltip: l.commonClose,
                     visualDensity: VisualDensity.compact,
-                    constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
+                    constraints: const BoxConstraints(minWidth: 40, minHeight: 36),
                     icon: Icon(BuIcons.x, size: 18, color: t.mut),
                     onPressed: onClose,
                   ),
                 ],
               ),
-              if (showFooter)
+              Padding(
+                padding: const EdgeInsetsDirectional.only(end: 10),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    ExcludeSemantics(child: _BannerLead(item: item, lead: pres.lead)),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          if (item.title.isNotEmpty)
+                            Text(item.title,
+                                maxLines: item.body.isEmpty ? 2 : 1, overflow: TextOverflow.ellipsis, style: tx.titleMedium!.copyWith(color: t.ink)),
+                          if (item.body.isNotEmpty)
+                            Padding(
+                              padding: const EdgeInsets.only(top: 2),
+                              child: Text(item.body, maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.bodyMedium!.copyWith(color: t.mut)),
+                            ),
+                        ],
+                      ),
+                    ),
+                    if (cta != null) ...[
+                      const SizedBox(width: 8),
+                      _BannerPill(
+                        key: const ValueKey('banner-cta'),
+                        label: cta,
+                        reply: pres.cta == BannerCta.reply,
+                        onTap: onTap,
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              if (merged)
                 Padding(
                   padding: const EdgeInsetsDirectional.only(top: 8, end: 10),
-                  child: Row(
-                    children: [
-                      if (merged)
-                        Text(l.p01PushMore('${item.count - 1}'),
-                            maxLines: 1, style: tx.labelMedium!.copyWith(color: t.pr, fontWeight: FontWeight.w700)),
-                      if (chat)
-                        Expanded(
-                          child: Text(l.p01PushReply,
-                              maxLines: 1,
-                              textAlign: TextAlign.end,
-                              overflow: TextOverflow.ellipsis,
-                              style: tx.labelMedium!.copyWith(color: t.mut, fontWeight: FontWeight.w500)),
-                        )
-                      else
-                        const Spacer(),
-                    ],
-                  ),
+                  child: Text(l.p01PushMore('${item.count - 1}'),
+                      maxLines: 1, style: tx.labelMedium!.copyWith(color: t.pr, fontWeight: FontWeight.w700)),
                 ),
             ],
           ),
@@ -293,4 +307,114 @@ class _BannerCard extends StatelessWidget {
       ],
     );
   }
+}
+
+/// Şerit eylem hapı: sohbette açık zeminli "Yanıtla" (ok simgesi), etkinlikte koyu "Detay".
+class _BannerPill extends StatelessWidget {
+  const _BannerPill({super.key, required this.label, required this.reply, required this.onTap});
+
+  final String label;
+  final bool reply;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.bu;
+    final tx = Theme.of(context).textTheme;
+    final bg = reply ? t.sf2 : t.ink;
+    final fg = reply ? t.ink : t.bg;
+    return Semantics(
+      button: true,
+      child: Material(
+        color: bg,
+        borderRadius: BorderRadius.circular(BuRadius.pill),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(BuRadius.pill),
+          onTap: onTap,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(minHeight: 36, minWidth: 48),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (reply) ...[Icon(BuIcons.reply, size: 14, color: fg), const SizedBox(width: 6)],
+                  Flexible(child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.labelLarge!.copyWith(color: fg, fontWeight: FontWeight.w700))),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _BannerLead extends StatelessWidget {
+  const _BannerLead({required this.item, required this.lead});
+
+  final BannerItem item;
+  final BannerLead lead;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.bu;
+    switch (lead) {
+      case BannerLead.avatar:
+        final chat = '${item.data['conversationId'] ?? ''}'.isNotEmpty;
+        final url = '${item.data['senderAvatarUrl'] ?? ''}';
+        return SizedBox(
+          width: 48,
+          height: 48,
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              BuAvatar(name: item.title, url: url.isEmpty ? null : url, size: 46),
+              if (chat)
+                PositionedDirectional(
+                  end: -2,
+                  bottom: -2,
+                  child: Container(
+                    width: 18,
+                    height: 18,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(color: t.pr, shape: BoxShape.circle, border: Border.all(color: t.sf3, width: 2)),
+                    child: Icon(BuIcons.messageCircle, size: 9, color: t.onPr),
+                  ),
+                ),
+            ],
+          ),
+        );
+      case BannerLead.dateTile:
+        final d = DateTime.tryParse('${item.data['startsAt'] ?? item.data['eventStartsAt'] ?? ''}')?.toLocal();
+        if (d == null) return _tile(t, BuIcons.calendarDays);
+        final month = trUpper(newsMonthName(context, d.month));
+        return Container(
+          width: 48,
+          height: 48,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(color: t.soft, borderRadius: BorderRadius.circular(14)),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(month.length > 3 ? month.substring(0, 3) : month,
+                  maxLines: 1, style: BuType.caption.copyWith(fontSize: 10, height: 1.1, fontWeight: FontWeight.w700, color: t.onSoft)),
+              Text('${d.day}', maxLines: 1, style: BuType.caption.copyWith(fontSize: 18, height: 1.1, fontWeight: FontWeight.w800, color: t.onSoft)),
+            ],
+          ),
+        );
+      case BannerLead.megaphone:
+        return _tile(t, BuIcons.megaphone);
+      case BannerLead.icon:
+        return _tile(t, bannerIcon(item.data));
+    }
+  }
+
+  Widget _tile(BuTokens t, IconData icon) => Container(
+        width: 48,
+        height: 48,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(color: t.soft, borderRadius: BorderRadius.circular(14)),
+        child: Icon(icon, size: 22, color: t.onSoft),
+      );
 }

@@ -11,10 +11,12 @@
     <string name="channel_social_name">Sosyal (beğeni, takip)</string>
     <string name="channel_poll_name">Anketler</string>
     <string name="channel_academic_name">Ders ve sınav hatırlatmaları</string>
+    <string name="channel_security_name">Güvenlik</string>
     <string name="channel_chat_desc">Birebir ve grup sohbet mesajları. Ses ve titreşimle gelir.</string>
     <string name="channel_event_desc">Etkinlik hatırlatmaları, değişiklikler ve katılım sonuçları.</string>
     <string name="channel_announcement_desc">Haber, duyuru, kulüp ve sistem bildirimleri.</string>
     <string name="channel_social_desc">Beğeni ve takip bildirimleri. Sessiz gelir.</string>
     <string name="channel_poll_desc">Yeni anketler ve sonuçları.</string>
     <string name="channel_academic_desc">Ders ve sınav saatinden önceki yerel hatırlatmalar.</string>
+    <string name="channel_security_desc">Yeni cihaz girişi, şifre ve oturum uyarıları. Her zaman gönderilir, sessiz saatte de gelir.</string>
 </resources>

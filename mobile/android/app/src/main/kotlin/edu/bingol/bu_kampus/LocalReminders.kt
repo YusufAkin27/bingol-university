@@ -172,7 +172,7 @@ object Channels {
 
     private const val PREFS = "bu_channels"
 
-    // Kimlikler SUNUCU sozlesmesiyle ayni (PushMessages: chat/event/announcement/poll/social); academic yerel hatirlatma.
+    // Kimlikler SUNUCU sozlesmesiyle ayni (PushMessages: chat/event/announcement/poll/social/academic/security).
     // Varsayilan adlar/aciklamalar res/values{,-en,-ar}/strings.xml'den (cihaz diline gore; varsayilan = dogru
     // diyakritikli Turkce, ARB ile ayni metin). Dart acilista/on plana donuste setNames ile kullanicinin SECTIGI dile
     // gunceller ve SharedPreferences'a yazar: uygulama kapaliyken FCM sureci Application.onCreate'te kanallari
@@ -180,12 +180,14 @@ object Channels {
     private val defaultNames = mapOf(
         "chat" to R.string.channel_chat_name, "event" to R.string.channel_event_name,
         "announcement" to R.string.channel_announcement_name, "social" to R.string.channel_social_name,
-        "poll" to R.string.channel_poll_name, "academic" to R.string.channel_academic_name
+        "poll" to R.string.channel_poll_name, "academic" to R.string.channel_academic_name,
+        "security" to R.string.channel_security_name
     )
     private val defaultDescs = mapOf(
         "chat" to R.string.channel_chat_desc, "event" to R.string.channel_event_desc,
         "announcement" to R.string.channel_announcement_desc, "social" to R.string.channel_social_desc,
-        "poll" to R.string.channel_poll_desc, "academic" to R.string.channel_academic_desc
+        "poll" to R.string.channel_poll_desc, "academic" to R.string.channel_academic_desc,
+        "security" to R.string.channel_security_desc
     )
 
     // Onem (kanal olusturulunca sabitlenir; kullanici sistem ayarindan degistirebilir, kod dusuremez):
@@ -193,11 +195,13 @@ object Channels {
     private val importance = mapOf(
         "chat" to NotificationManager.IMPORTANCE_HIGH, "event" to NotificationManager.IMPORTANCE_DEFAULT,
         "announcement" to NotificationManager.IMPORTANCE_DEFAULT, "social" to NotificationManager.IMPORTANCE_LOW,
-        "poll" to NotificationManager.IMPORTANCE_DEFAULT, "academic" to NotificationManager.IMPORTANCE_HIGH
+        "poll" to NotificationManager.IMPORTANCE_DEFAULT, "academic" to NotificationManager.IMPORTANCE_HIGH,
+        // Guvenlik uyarilari (yeni cihaz girisi, sifre, oturum): HIGH; sunucu tur tercihiyle KAPATMAZ, sessiz saatte de gonderir.
+        "security" to NotificationManager.IMPORTANCE_HIGH
     )
 
     /** Kullanici bunlari sistem ayarindan kapatirsa bildirim gelmez; yardim ekrani uyarir. (social bilincli kapatilabilir.) */
-    private val critical = listOf("chat", "event", "announcement")
+    private val critical = listOf("chat", "event", "announcement", "security")
 
     private fun prefs(c: Context) = c.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
 
@@ -230,6 +234,11 @@ object Channels {
                         ch.setShowBadge(true)
                     }
                     "social" -> ch.setShowBadge(false)
+                    "security" -> {
+                        ch.enableVibration(true)
+                        ch.enableLights(true)
+                        ch.lightColor = ACCENT
+                    }
                 }
                 nm.createNotificationChannel(ch)
             }

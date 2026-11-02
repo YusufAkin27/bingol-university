@@ -2,16 +2,24 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 
+import '../../core/api.dart' show ApiError;
 import '../../core/locale_controller.dart';
-import '../../core/session.dart';
-import '../../widgets/bu.dart';
 import '../../core/push/push_router.dart';
 import '../../core/push/push_targets.dart';
+import '../../core/push/rich/rich_actions.dart' show personIdOf;
+import '../../core/push/rich/rich_card.dart';
+import '../../core/session.dart';
+import '../../widgets/bu.dart';
+import '../../widgets/sistem_widgets.dart' show MaintenanceBand;
+import '../follow/follow_requests_api.dart';
 import '../follow/follow_requests_entry.dart';
 import '../news/news_tile.dart' show newsLocalDate, newsMonthName;
-import 'notif_row.dart';
+import '../profile/notification_prefs_page.dart';
+import 'notif_card.dart';
 
-/// Uygulama içi bildirim listesi (design/P-Notifications).
+/// Uygulama içi bildirim listesi (Stitch "Bildirim - Uygulama içi şerit ve liste", alt kısım):
+/// marka başlığı, "N Yeni" + "Tümünü okundu yap", kategori çipleri, Bugün/Dün/Daha eski grupları,
+/// kişi avatarlı ya da sistem rozetli kartlar, takip isteğinde Onayla/Reddet.
 class NotificationsPage extends StatefulWidget {
   const NotificationsPage({super.key, required this.session});
 
@@ -27,8 +35,12 @@ class _NotificationsPageState extends State<NotificationsPage> {
   int? _cursor;
   bool _loading = true;
   bool _more = false;
-  bool _unreadOnly = false;
+  NotifCategory _cat = NotifCategory.all;
   Object? _error;
+
+  /// Takip isteği satırında verilen karar: bildirim kimliği -> true (onaylandı) / false (reddedildi).
+  final _decided = <Object?, bool>{};
+  final _deciding = <Object?>{};
 
   /// Yenilemede artar: üstteki "Takip istekleri" satırı sayısını yeniden yükler.
   int _reqRefresh = 0;
@@ -231,30 +243,158 @@ class _NotificationsPageState extends State<NotificationsPage> {
     }
   }
 
-  Widget _filters(BuTokens t) {
+  /// Süzgeç: kategori (istemci) ya da yalnız okunmamışlar. Bilinmeyen tür yalnız "Tümü"nde görünür.
+  List<Map<String, dynamic>> get _shown {
+    switch (_cat) {
+      case NotifCategory.all:
+        return _items;
+      case NotifCategory.unread:
+        return _items.where((n) => n['read'] != true).toList();
+      default:
+        return _items.where((n) => notifCategoryOf('${n['type'] ?? ''}', subtype: '${n['subtype'] ?? _data(n)['subtype'] ?? ''}') == _cat).toList();
+    }
+  }
+
+  /// Takip isteği satırı: onayla (true) / reddet (false). Başarıda satır karar etiketi gösterir ve okunur.
+  Future<void> _decide(Map<String, dynamic> n, int userId, bool accept) async {
+    final id = n['id'];
+    if (_deciding.contains(id)) return;
+    setState(() => _deciding.add(id));
+    try {
+      final api = FollowRequestsApi(_s);
+      if (accept) {
+        await api.accept(userId);
+      } else {
+        await api.decline(userId);
+      }
+      if (!mounted) return;
+      setState(() {
+        _decided[id] = accept;
+        _deciding.remove(id);
+      });
+      _markOne(n);
+      setState(() => _reqRefresh++);
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _deciding.remove(id));
+      _snack(errorText(e));
+    }
+  }
+
+  // ---------------------------------------------------------------------------------------------------------------
+
+  Widget _chips(BuTokens t) {
     final l = context.l10n;
-    // Çipin 48 dp dokunma alanı görsel 34 dp'nin 7 dp üstüne taşar; görsel konumu Stitch ölçüsüne oturtmak için
-    // paint + hit-test 7 dp yukarı alınır (yer ayırma aynı kalır, alt boşluk buna göre).
-    return Transform.translate(
-      offset: const Offset(0, -7),
-      child: Align(
-        alignment: AlignmentDirectional.centerStart,
-        child: Padding(
-      padding: const EdgeInsets.fromLTRB(20, 0, 20, 15),
-      child: Wrap(spacing: 8, runSpacing: 8, children: [
-        _NotifFilterChip(
-            key: const ValueKey('notif-seg-all'),
-            label: l.bildirimFilterAll,
-            selected: !_unreadOnly,
-            onTap: () => setState(() => _unreadOnly = false)),
-        _NotifFilterChip(
-            key: const ValueKey('notif-seg-unread'),
-            label: l.bildirimFilterUnread,
-            selected: _unreadOnly,
-            onTap: () => setState(() => _unreadOnly = true)),
+    final defs = <(NotifCategory, String, String)>[
+      (NotifCategory.all, l.bildirimFilterAll, 'notif-seg-all'),
+      (NotifCategory.messages, l.notifFilterMessages, 'notif-seg-messages'),
+      (NotifCategory.events, l.notifFilterEvents, 'notif-seg-events'),
+      (NotifCategory.announcements, l.notifFilterAnnouncements, 'notif-seg-announcements'),
+      (NotifCategory.social, l.notifFilterSocial, 'notif-seg-social'),
+      // Önceki sürümden gelen "yalnız okunmamışlar" süzgeci: son çip, tasarımdaki gibi yatay kaydırmada.
+      (NotifCategory.unread, l.bildirimFilterUnread, 'notif-seg-unread'),
+    ];
+    return SizedBox(
+      height: 48,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        itemCount: defs.length,
+        separatorBuilder: (_, __) => const SizedBox(width: 8),
+        itemBuilder: (_, i) {
+          final d = defs[i];
+          return Center(
+            child: _NotifFilterChip(key: ValueKey(d.$3), label: d.$2, selected: _cat == d.$1, onTap: () => setState(() => _cat = d.$1)),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _brandHeader(BuTokens t) {
+    final l = context.l10n;
+    return Padding(
+      padding: EdgeInsetsDirectional.fromSTEB(8, MediaQuery.of(context).padding.top + 8, 8, 8),
+      child: Row(children: [
+        BuIconButton(icon: BuIcons.arrowLeft, onTap: () => Navigator.pop(context), tooltip: l.commonBack),
+        const SizedBox(width: 8),
+        ExcludeSemantics(
+          child: Container(
+            width: 36,
+            height: 36,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(color: t.pr, shape: BoxShape.circle),
+            child: Text('BU', style: BuType.caption.copyWith(fontSize: 13, fontWeight: FontWeight.w800, color: t.onPr, height: 1)),
+          ),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
+            Text(l.notifBrandCaption,
+                maxLines: 1, style: BuType.caption.copyWith(fontSize: 11, height: 1.2, fontWeight: FontWeight.w800, letterSpacing: .6, color: t.pr)),
+            Semantics(
+              header: true,
+              child: Text(l.notifTitle, maxLines: 1, overflow: TextOverflow.ellipsis, style: BuType.caption.copyWith(fontSize: 18, height: 1.2, fontWeight: FontWeight.w800, color: t.ink)),
+            ),
+          ]),
+        ),
+        BuIconButton(icon: BuIcons.bell, onTap: _openPrefs, tooltip: l.notifSettings),
+        PopupMenuButton<String>(
+          key: const ValueKey('notif-menu'),
+          tooltip: l.notifSettings,
+          icon: Icon(BuIcons.ellipsisVertical, size: 22, color: t.ink),
+          onSelected: (v) {
+            if (v == 'all') _markAll();
+            if (v == 'prefs') _openPrefs();
+          },
+          itemBuilder: (_) => [
+            PopupMenuItem(value: 'all', child: Text(l.notifMarkAll)),
+            PopupMenuItem(value: 'prefs', child: Text(l.notifSettings)),
+          ],
+        ),
       ]),
-      ),
-      ),
+    );
+  }
+
+  void _openPrefs() {
+    Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => NotificationPrefsPage(session: _s)));
+  }
+
+  /// "Bildirimler [2 Yeni]                Tümünü okundu yap"
+  Widget _titleRow(BuTokens t) {
+    final l = context.l10n;
+    final n = _unread > 0 ? _unread : _s.badges.notifications.value;
+    final bigText = MediaQuery.textScalerOf(context).scale(10) > 11.5 || MediaQuery.sizeOf(context).width < 380;
+    final markAll = n > 0
+        ? BuPressable(
+            onTap: _markAll,
+            child: Container(
+              constraints: const BoxConstraints(minHeight: 44),
+              alignment: AlignmentDirectional.centerEnd,
+              child: Text(l.notifMarkAll,
+                  key: const ValueKey('notif-mark-all'),
+                  maxLines: bigText ? 2 : 1,
+                  textAlign: TextAlign.end,
+                  overflow: TextOverflow.ellipsis,
+                  style: BuType.caption.copyWith(fontSize: 13, height: 1.3, fontWeight: FontWeight.w700, color: t.pr)),
+            ),
+          )
+        : null;
+    final heading = Wrap(crossAxisAlignment: WrapCrossAlignment.center, spacing: 8, children: [
+      Text(l.notifTitle, style: BuType.caption.copyWith(fontSize: 22, height: 1.25, fontWeight: FontWeight.w800, color: t.ink)),
+      if (n > 0)
+        Container(
+          key: const ValueKey('notif-new-badge'),
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+          decoration: BoxDecoration(color: t.soft, borderRadius: BorderRadius.circular(BuRadius.pill)),
+          child: Text(l.notifNewBadge('$n'), style: BuType.caption.copyWith(fontSize: 11, height: 1.2, fontWeight: FontWeight.w800, color: t.onSoft)),
+        ),
+    ]);
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 4, 20, 8),
+      child: bigText && markAll != null
+          ? Column(crossAxisAlignment: CrossAxisAlignment.start, children: [heading, Align(alignment: AlignmentDirectional.centerEnd, child: markAll)])
+          : Row(children: [Expanded(child: heading), if (markAll != null) Flexible(child: markAll)]),
     );
   }
 
@@ -262,38 +402,26 @@ class _NotificationsPageState extends State<NotificationsPage> {
   Widget build(BuildContext context) {
     final t = context.bu;
     final l = context.l10n;
-    // Geniş ekranda "Tümünü okundu yap" başlık satırının sağında; dar ekran / büyük yazıda başlığın altında.
-    final bigText = MediaQuery.textScalerOf(context).scale(10) > 11.5 || MediaQuery.sizeOf(context).width < 380;
-    final pill = _unread > 0 || _s.badges.notifications.value > 0
-        ? ConstrainedBox(
-            // Başlığı ezmesin: genişliğin sınırlı bölümü, metin kısalır.
-            constraints: BoxConstraints(maxWidth: MediaQuery.sizeOf(context).width * (bigText ? .9 : .5)),
-            child: BuPressable(
-              onTap: _markAll,
-              child: Container(
-                constraints: const BoxConstraints(minHeight: 44),
-                alignment: AlignmentDirectional.centerEnd,
-                child: Text(l.notifMarkAll,
-                    maxLines: bigText ? 2 : 1,
-                    textAlign: TextAlign.end,
-                    overflow: TextOverflow.ellipsis,
-                    style: BuType.caption.copyWith(fontSize: 14, height: 1.3, fontWeight: FontWeight.w600, color: t.pr)),
-              ),
-            ),
-          )
-        : null;
-
-    final shown = _unreadOnly ? _items.where((n) => n['read'] != true).toList() : _items;
+    final shown = _shown;
     final failed = _error != null;
+    final maintenance = _error is ApiError && (((_error as ApiError).status == 503) || (_error as ApiError).code.toUpperCase().contains('MAINTENANCE'));
 
     Widget body;
     if (failed && _items.isEmpty) {
       body = ListView(
         padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
-        children: [_ErrorCard(onRetry: _load)],
+        children: [
+          if (maintenance) MaintenanceBand(text: l.coreMaintenance, margin: const EdgeInsets.only(bottom: 8)),
+          _ErrorCard(onRetry: _load),
+        ],
       );
     } else if (shown.isEmpty) {
-      final unreadEmpty = _unreadOnly && _items.isNotEmpty;
+      final filtered = _cat != NotifCategory.all && _items.isNotEmpty;
+      final text = _cat == NotifCategory.unread && _items.isNotEmpty
+          ? l.bildirimEmptyUnread
+          : filtered
+              ? l.notifEmptyFilter
+              : l.notifEmpty;
       // Boş: ortada soluk tek cümle (illüstrasyon yok).
       body = RefreshIndicator(
         onRefresh: () => _load(silent: true),
@@ -306,8 +434,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
                 child: Center(
                   child: Semantics(
                     liveRegion: true,
-                    child: Text(unreadEmpty ? l.bildirimEmptyUnread : l.notifEmpty,
-                        textAlign: TextAlign.center, style: BuType.caption.copyWith(fontSize: 16, height: 1.5, color: t.mut)),
+                    child: Text(text, textAlign: TextAlign.center, style: BuType.caption.copyWith(fontSize: 16, height: 1.5, color: t.mut)),
                   ),
                 ),
               ),
@@ -318,18 +445,32 @@ class _NotificationsPageState extends State<NotificationsPage> {
       if (failed) {
         children.add(Padding(padding: const EdgeInsets.fromLTRB(20, 0, 20, 8), child: _ErrorCard(onRetry: _load)));
       }
+      // Grup başlığında o gruptaki okunmamış sayısı ("2 okunmamış").
+      final unreadByGroup = <String, int>{};
+      for (final n in shown) {
+        if (n['read'] != true) {
+          final g = _group(n['createdAt'] as String?);
+          unreadByGroup[g] = (unreadByGroup[g] ?? 0) + 1;
+        }
+      }
       String? last;
       var row = 0;
       for (final n in shown) {
         final g = _group(n['createdAt'] as String?);
         if (g != last) {
           last = g;
+          final u = unreadByGroup[g] ?? 0;
           children.add(Padding(
             padding: EdgeInsetsDirectional.fromSTEB(20, row == 0 ? 8 : 16, 20, 6),
-            child: Semantics(
-              header: true,
-              child: Text(trUpper(g), style: BuType.caption.copyWith(fontSize: 13, height: 1.3, fontWeight: FontWeight.w600, letterSpacing: .6, color: t.mut)),
-            ),
+            child: Row(children: [
+              Expanded(
+                child: Semantics(
+                  header: true,
+                  child: Text(trUpper(g), style: BuType.caption.copyWith(fontSize: 12, height: 1.3, fontWeight: FontWeight.w700, letterSpacing: .6, color: t.mut)),
+                ),
+              ),
+              if (u > 0) Text(l.notifGroupUnreadCount('$u'), style: BuType.caption.copyWith(fontSize: 12, height: 1.3, color: t.mut)),
+            ]),
           ));
         }
         // İlk görünürde ilk 8 satır sırayla belirir; kaydırınca ya da süzünce yeniden oynamaz.
@@ -348,13 +489,8 @@ class _NotificationsPageState extends State<NotificationsPage> {
           ),
         ));
       } else if (_cursor == null) {
-        // Liste sonu: tek sakin satır.
-        children.add(Padding(
-          padding: const EdgeInsets.symmetric(vertical: 32),
-          child: Center(
-            child: Text(l.bildirimAllCaughtUp, textAlign: TextAlign.center, style: BuType.caption.copyWith(fontSize: 13, height: 1.4, color: t.mut)),
-          ),
-        ));
+        // Liste sonu: onay simgesi + "Başka bildiriminiz bulunmuyor".
+        children.add(const _EndOfList(key: ValueKey('notif-end')));
       }
       body = RefreshIndicator(
         onRefresh: () => _load(silent: true),
@@ -362,7 +498,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
           child: ListView(
             controller: _scroll,
             physics: const AlwaysScrollableScrollPhysics(),
-            padding: EdgeInsets.fromLTRB(0, 0, 0, MediaQuery.of(context).padding.bottom),
+            padding: EdgeInsets.fromLTRB(0, 0, 0, MediaQuery.of(context).padding.bottom + 16),
             children: children,
           ),
         ),
@@ -379,55 +515,117 @@ class _NotificationsPageState extends State<NotificationsPage> {
     return Scaffold(
       backgroundColor: t.bg,
       body: Column(children: [
-        BuHeader(
-          title: l.notifTitle,
-          onBack: () => Navigator.pop(context),
-          actions: [if (pill != null && !bigText) pill],
-        ),
-        if (pill != null && bigText)
-          Padding(
-            padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
-            child: Align(alignment: AlignmentDirectional.centerEnd, child: pill),
-          ),
-        FollowRequestsEntry(session: _s, refresh: _reqRefresh),
-        if (!_loading) _filters(t),
+        _brandHeader(t),
+        if (maintenance && _items.isNotEmpty)
+          Padding(padding: const EdgeInsets.fromLTRB(20, 0, 20, 8), child: MaintenanceBand(text: l.coreMaintenance)),
+        if (!_loading) _titleRow(t),
+        if (!_loading) FollowRequestsEntry(session: _s, refresh: _reqRefresh),
+        if (!_loading) _chips(t),
         Expanded(child: body),
       ]),
     );
   }
 
   Widget _tile(BuTokens t, Map<String, dynamic> n) {
+    final l = context.l10n;
     final un = n['read'] != true;
     final type = n['type'] as String?;
+    final data = _data(n);
+    final kind = notifKindOf(n, data);
+    final id = n['id'];
+    String? field(String k) {
+      final v = n[k] ?? data[k];
+      final s = v == null ? '' : '$v'.trim();
+      return s.isEmpty ? null : s;
+    }
+
+    final title = (n['title'] as String?) ?? '';
+    final avatarUrl = field('senderAvatarUrl');
+    final person = notifIsPerson(kind);
+    final name = field('senderName') ?? title;
+    final Widget leading = person
+        ? BuAvatar(name: name, url: avatarUrl, size: 44)
+        : NotifBadge(kind: kind);
+
+    Widget? actions;
+    if (kind == RichKind.followRequest) {
+      final uid = personIdOf(data) ?? int.tryParse(field('requestId') ?? '') ?? int.tryParse(field('senderId') ?? '');
+      final decided = _decided[id];
+      if (decided != null) {
+        actions = Text(decided ? l.notifActAccept : l.notifActReject,
+            key: ValueKey('notif-decided-$id'), style: BuType.caption.copyWith(fontSize: 13, fontWeight: FontWeight.w700, color: t.mut));
+      } else if (uid != null) {
+        final busy = _deciding.contains(id);
+        actions = Row(children: [
+          NotifPill(key: ValueKey('notif-accept-$id'), label: l.notifActAccept, primary: true, onTap: busy ? () {} : () => _decide(n, uid, true)),
+          const SizedBox(width: 8),
+          NotifPill(key: ValueKey('notif-reject-$id'), label: l.notifActReject, primary: false, onTap: busy ? () {} : () => _decide(n, uid, false)),
+        ]);
+      }
+    }
+
     return Dismissible(
-      key: ValueKey('notif-${n['id']}'),
+      key: ValueKey('notif-$id'),
       direction: DismissDirection.endToStart,
       onDismissed: (_) {
         buHaptic(BuHaptic.light);
         _delete(n);
       },
-      // Sola kaydırınca sağdan `danger` zeminli "Sil" levhası (köşe 0, satırın yüksekliğinde).
+      // Sola kaydırınca sağdan `danger` zeminli "Sil" levhası.
       background: Container(
-        color: t.danger,
+        margin: const EdgeInsets.only(bottom: 10),
+        decoration: BoxDecoration(color: t.danger, borderRadius: BorderRadius.circular(20)),
         alignment: AlignmentDirectional.centerEnd,
         padding: const EdgeInsetsDirectional.only(end: 24),
-        child: Text(context.l10n.bildirimDelete, style: BuType.caption.copyWith(fontSize: 14, fontWeight: FontWeight.w600, color: t.onMedia)),
+        child: Text(l.bildirimDelete, style: BuType.caption.copyWith(fontSize: 14, fontWeight: FontWeight.w600, color: t.onMedia)),
       ),
-      child: NotifRow(
-        title: (n['title'] as String?) ?? '',
-        typeLabel: _typeLabel(type),
+      child: NotifCard(
+        title: title,
         body: (n['body'] as String?) ?? '',
         time: _ago(n['createdAt'] as String?),
         unread: un,
-        unreadLabel: context.l10n.notifUnread,
+        leading: leading,
+        // Okunmamış bilgisi + tür + zaman tek okuma: "Okunmamış, Duyuru, 5 dk".
+        semanticsLabel: [if (un) l.notifUnread, _typeLabel(type), _ago(n['createdAt'] as String?)].where((s) => s.isNotEmpty).join(', '),
+        warning: kind == RichKind.newDeviceLogin ? l.notifSecWarn : null,
+        actions: actions,
         onTap: () => _open(n),
       ),
     );
   }
 }
 
-/// Süzgeç hapı (Stitch v3): seçili = `soft` zemin + `pr` metin (çerçevesiz); seçili değil = 1 dp `bd` çerçeve +
-/// ink metin. Görünür yükseklik 34 dp, dokunma alanı 48 dp; sayaç rozeti yok.
+/// Liste sonu (tasarım 08): çift onay simgesi + "Başka bildiriminiz bulunmuyor" + açıklama.
+class _EndOfList extends StatelessWidget {
+  const _EndOfList({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.bu;
+    final l = context.l10n;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(32, 32, 32, 16),
+      child: Column(mainAxisSize: MainAxisSize.min, children: [
+        ExcludeSemantics(
+          child: Container(
+            width: 44,
+            height: 44,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(color: t.sf2, shape: BoxShape.circle),
+            child: Icon(BuIcons.checkCheck, size: 22, color: t.mut),
+          ),
+        ),
+        const SizedBox(height: 10),
+        Text(l.notifEndTitle, textAlign: TextAlign.center, style: BuType.caption.copyWith(fontSize: 13, height: 1.4, fontWeight: FontWeight.w700, color: t.ink)),
+        const SizedBox(height: 2),
+        Text(l.notifEndSub, textAlign: TextAlign.center, style: BuType.caption.copyWith(fontSize: 12, height: 1.4, color: t.mut)),
+      ]),
+    );
+  }
+}
+
+/// Süzgeç hapı (tasarım 08): seçili = koyu (ink) zemin + açık yazı; seçili değil = gri zemin + ink yazı.
+/// Görünür yükseklik 34 dp, dokunma alanı 48 dp.
 class _NotifFilterChip extends StatelessWidget {
   const _NotifFilterChip({super.key, required this.label, required this.selected, required this.onTap});
 
@@ -447,13 +645,12 @@ class _NotifFilterChip extends StatelessWidget {
           child: AnimatedContainer(
             duration: BuMotion.of(context, BuMotion.short),
             constraints: const BoxConstraints(minHeight: 34),
-            padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 5),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
             decoration: BoxDecoration(
-              color: selected ? t.soft : t.bg,
+              color: selected ? t.ink : t.sf2,
               borderRadius: BorderRadius.circular(BuRadius.pill),
-              border: Border.all(color: selected ? t.soft : t.bd),
             ),
-            child: Text(label, style: BuType.caption.copyWith(fontSize: 14, height: 1.3, fontWeight: FontWeight.w500, color: selected ? t.pr : t.ink)),
+            child: Text(label, style: BuType.caption.copyWith(fontSize: 14, height: 1.3, fontWeight: FontWeight.w600, color: selected ? t.bg : t.ink)),
           ),
         ),
       ),

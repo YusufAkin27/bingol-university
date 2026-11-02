@@ -1,7 +1,6 @@
 import 'package:bu_kampus/core/locale_controller.dart';
 import 'package:bu_kampus/features/menu/menu_page.dart';
 import 'package:bu_kampus/features/menu/menu_parts.dart';
-import 'package:bu_kampus/features/notifications/notifications_page.dart';
 import 'package:bu_kampus/features/profile/notification_prefs_page.dart';
 import 'package:bu_kampus/widgets/bu.dart';
 import 'package:flutter/material.dart';
@@ -99,42 +98,7 @@ void main() {
     _fails.clear();
   });
 
-  testWidgets('Bildirimler (13_bildirimler_light) olculeri', (tester) async {
-    // Ayni gun grubunda kalmali ("3 saat once" gece yarisindan sonra onceki gune dusup grup basligi ekliyor: adim olcusu bozuluyordu).
-    final now = DateTime.now();
-    final be = FakeBackend()
-      ..on('/notifications', {
-        'unreadCount': 2,
-        'nextCursor': null,
-        'items': [
-          {'id': 1, 'type': 'ANNOUNCEMENT', 'title': 'Ders ekleme-bırakma tarihleri duyuruldu', 'body': 'Güz dönemi ders ekleme ve bırakma işlemleri başladı.', 'read': false, 'createdAt': now.toIso8601String()},
-          {'id': 2, 'type': 'EVENT', 'title': 'Kariyer Günleri yarın başlıyor', 'body': 'Konferans salonunda düzenlenecek oturum detayları.', 'read': false, 'createdAt': now.subtract(const Duration(seconds: 20)).toIso8601String()},
-          {'id': 3, 'type': 'COMMUNITY', 'title': 'Müzik Kulübü isteğiniz onaylandı', 'body': 'Kulüp etkinliklerine artık katılabilirsiniz.', 'read': true, 'createdAt': now.subtract(const Duration(days: 1)).toIso8601String()},
-        ],
-      });
-    await _mount(tester, NotificationsPage(session: makeSession(be)));
-    final circle = tester.getRect(find.byType(BuIconButton).first);
-    final top = circle.top + 4; // 48 dp dokunma kutusu, gorsel daire 40 dp -> ust 4 dp ice
-    final r1 = tester.getRect(find.byKey(const ValueKey('notif-1')));
-    final r2 = tester.getRect(find.byKey(const ValueKey('notif-2')));
-    _row('Satir yuksekligi (adim)', 165 / 1.8103, r2.top - r1.top, tol: 2);
-    _row('Satir sol/sag kenar (genislik)', 350, r1.width, tol: 1);
-    final chipAll = tester.getRect(find.descendant(of: find.byKey(const ValueKey('notif-seg-all')), matching: find.byType(AnimatedContainer)));
-    _row('Cip yuksekligi', 34, chipAll.height, tol: 2);
-    _row('Tumu cipi genislik', (161 - 37) / 1.8103, chipAll.width, tol: 4);
-    final chipUn = tester.getRect(find.descendant(of: find.byKey(const ValueKey('notif-seg-unread')), matching: find.byType(AnimatedContainer)));
-    _row('Cip araligi', 8, chipUn.left - chipAll.right, tol: 2);
-    _row('Cip ust (baslik dairesi ustune gore)', (131 - 52) / 1.8103, chipAll.top - top, tol: 8);
-    final dot = tester.getRect(find.byKey(const ValueKey('notif-unread-dot')).first);
-    _row('Nokta capi', 8, dot.width, tol: 0);
-    final type = tester.getRect(find.text('Duyuru'));
-    _row('Tur etiketi sol (satira gore)', (73 - 37) / 1.8103 + 20 - 20, type.left - r1.left, tol: 2);
-    final titleR = tester.getRect(find.text('Ders ekleme-bırakma tarihleri duyuruldu'));
-    _row('Baslik - tur etiketi dikey', (380 - 342) / 1.8103, titleR.center.dy - type.center.dy, tol: 3);
-    expect(tester.takeException(), isNull);
-    expect(_fails, isEmpty);
-    _fails.clear();
-  });
+  // Bildirimler sayfasi tasarim 08'e gore yenilendi (notif-mobile): olculer test/notif_page_design_test.dart'ta.
 
   testWidgets('Bildirim tercihleri (15_bildirim_tercihleri_light) olculeri', (tester) async {
     final be = FakeBackend()

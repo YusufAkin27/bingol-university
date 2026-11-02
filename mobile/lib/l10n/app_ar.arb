@@ -3128,5 +3128,84 @@
   "homeFeaturedMenu": "قائمة الطعام",
   "homeSearchFilters": "فلاتر البحث",
   "homeMore": "المزيد",
-  "homeViewAll": "عرض الكل"
+  "homeViewAll": "عرض الكل",
+  "notifActReply": "رد",
+  "notifActMarkRead": "تحديد كمقروء",
+  "notifActMute1h": "كتم لمدة ساعة",
+  "notifActView": "عرض",
+  "notifActQuickReply": "رد سريع",
+  "notifActOpenAll": "فتح الكل",
+  "notifActCalendar": "إضافة إلى التقويم",
+  "notifActQr": "الدخول برمز QR",
+  "notifActFollowBack": "متابعة",
+  "notifActAccept": "قبول",
+  "notifActReject": "رفض",
+  "notifActVote": "صوّت",
+  "notifActNotMe": "لم أكن أنا",
+  "notifActResetPw": "إعادة التعيين الآن",
+  "notifActEnable2fa": "تفعيل 2FA",
+  "notifActSignOutDevice": "إخراج الجهاز",
+  "notifActViewTicket": "عرض الطلب",
+  "notifActProfile": "عرض الملف الشخصي",
+  "notifActDetail": "التفاصيل",
+  "notifActExamCard": "بطاقة الامتحان",
+  "notifActOpenSchedule": "فتح الجدول",
+  "notifActOpen": "فتح",
+  "notifActReplyHint": "اكتب ردك",
+  "notifActFailed": "تعذّر الإرسال، حاول مجددًا في التطبيق",
+  "notifActNotMeTitle": "تم إغلاق الجلسات",
+  "notifActNotMeBody": "تم إنهاء جميع الجلسات. أعد تعيين كلمة المرور فورًا.",
+  "notifRichChat": "محادثة",
+  "notifRichClubRoom": "غرفة النادي",
+  "notifRichMedia": "وسائط",
+  "notifRichEvent": "فعالية",
+  "notifRichAnnouncement": "إعلان",
+  "notifRichDept": "إعلان القسم",
+  "notifRichAcademic": "أكاديمي",
+  "notifRichNews": "خبر",
+  "notifRichPoll": "استطلاع",
+  "notifRichSocial": "اجتماعي",
+  "notifRichSecurity": "الأمان",
+  "notifRichSupport": "الدعم",
+  "notifRichMenu": "المطعم",
+  "notifRichHomework": "واجب",
+  "notifRichClass": "محاضرة",
+  "notifRichNewMsgs": "{n} رسائل جديدة",
+  "@notifRichNewMsgs": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "bildirimmobilKanalSecurity": "الأمان",
+  "p21ChanSecurityDesc": "تنبيهات الدخول من جهاز جديد وكلمة المرور والجلسات. تصل دائمًا حتى خلال ساعات الهدوء.",
+  "notifFilterMessages": "الرسائل",
+  "notifFilterEvents": "الفعاليات",
+  "notifFilterAnnouncements": "الإعلانات",
+  "notifFilterSocial": "اجتماعي",
+  "notifBrandCaption": "BU كامبوس",
+  "notifNewBadge": "{n} جديد",
+  "@notifNewBadge": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "notifGroupUnreadCount": "{n} غير مقروء",
+  "@notifGroupUnreadCount": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "notifEndTitle": "لا توجد إشعارات أخرى",
+  "notifEndSub": "سنواصل إرسال أهم مستجدات الحرم الجامعي فورًا.",
+  "notifSettings": "إعدادات الإشعارات",
+  "notifEmptyFilter": "لا توجد إشعارات من هذا النوع.",
+  "notifActDone": "تم",
+  "notifActFailedTitle": "BU كامبوس",
+  "notifSecWarn": "إن لم تكن أنت فأعد تعيين كلمة المرور"
 }

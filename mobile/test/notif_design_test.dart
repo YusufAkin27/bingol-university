@@ -45,9 +45,9 @@ void main() {
               size: size));
           await settle(tester);
           expect(find.text('Kariyer günleri'), findsOneWidget);
-          expect(find.text('Duyuru'), findsOneWidget);
-          await tester.scrollUntilVisible(find.text('Hepsi bu kadar'), 200, scrollable: find.byType(Scrollable).first);
-          expect(find.text('Hepsi bu kadar'), findsOneWidget);
+          expect(find.text('Tümü'), findsOneWidget);
+          await tester.scrollUntilVisible(find.text('Başka bildiriminiz bulunmuyor'), 200, scrollable: find.byType(Scrollable).last);
+          expect(find.text('Başka bildiriminiz bulunmuyor'), findsOneWidget);
           expect(tester.takeException(), isNull);
           await unmount(tester);
         });
@@ -73,8 +73,7 @@ void main() {
     expect(find.text('Yeni takip isteği'), findsOneWidget);
     expect(find.text('Kariyer günleri'), findsOneWidget);
     // Okunmamış süzgeci de mesaj satırını göstermez (yalnız takip isteği kalır).
-    await tester.tap(find.byKey(const ValueKey('notif-seg-unread')));
-    await settle(tester);
+    await tapNotifChip(tester, 'notif-seg-unread');
     expect(find.text('Mehmet Kaya mesaj gönderdi'), findsNothing);
     expect(find.text('Yeni takip isteği'), findsOneWidget);
     await unmount(tester);
@@ -91,12 +90,10 @@ void main() {
     final be = _notifBe();
     await tester.pumpWidget(buildApp(NotificationsPage(session: makeSession(be))));
     await settle(tester);
-    await tester.tap(find.byKey(const ValueKey('notif-seg-unread')));
-    await settle(tester);
+    await tapNotifChip(tester, 'notif-seg-unread');
     expect(find.text('Müzik Kulübü isteğiniz onaylandı'), findsNothing);
     expect(find.text('Kariyer günleri'), findsOneWidget);
-    await tester.tap(find.byKey(const ValueKey('notif-seg-all')));
-    await settle(tester);
+    await tapNotifChip(tester, 'notif-seg-all');
     expect(find.text('Müzik Kulübü isteğiniz onaylandı'), findsOneWidget);
     await tester.drag(find.byKey(const ValueKey('notif-3')), const Offset(-500, 0));
     await settle(tester);

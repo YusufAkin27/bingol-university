@@ -9806,4 +9806,187 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get homeViewAll => 'Tümünü gör';
+
+  @override
+  String get notifActReply => 'Yanıtla';
+
+  @override
+  String get notifActMarkRead => 'Okundu İşaretle';
+
+  @override
+  String get notifActMute1h => '1 Saat Sessize Al';
+
+  @override
+  String get notifActView => 'Görüntüle';
+
+  @override
+  String get notifActQuickReply => 'Hızlı Yanıtla';
+
+  @override
+  String get notifActOpenAll => 'Tümünü Aç';
+
+  @override
+  String get notifActCalendar => 'Takvime Ekle';
+
+  @override
+  String get notifActQr => 'QR ile Giriş';
+
+  @override
+  String get notifActFollowBack => 'Takip et';
+
+  @override
+  String get notifActAccept => 'Onayla';
+
+  @override
+  String get notifActReject => 'Reddet';
+
+  @override
+  String get notifActVote => 'Oy ver';
+
+  @override
+  String get notifActNotMe => 'Bu ben değilim';
+
+  @override
+  String get notifActResetPw => 'Hemen Sıfırla';
+
+  @override
+  String get notifActEnable2fa => '2FA Aç';
+
+  @override
+  String get notifActSignOutDevice => 'Cihazı Çıkar';
+
+  @override
+  String get notifActViewTicket => 'Talebi Görüntüle';
+
+  @override
+  String get notifActProfile => 'Profili Gör';
+
+  @override
+  String get notifActDetail => 'Detay';
+
+  @override
+  String get notifActExamCard => 'Sınav Belgesi';
+
+  @override
+  String get notifActOpenSchedule => 'Programı Aç';
+
+  @override
+  String get notifActOpen => 'Aç';
+
+  @override
+  String get notifActReplyHint => 'Yanıtınızı yazın';
+
+  @override
+  String get notifActFailed => 'Gönderilemedi, uygulamada tekrar deneyin';
+
+  @override
+  String get notifActNotMeTitle => 'Oturumlar kapatıldı';
+
+  @override
+  String get notifActNotMeBody =>
+      'Tüm cihazlardaki oturumlar sonlandırıldı. Şifrenizi hemen sıfırlayın.';
+
+  @override
+  String get notifRichChat => 'Sohbet';
+
+  @override
+  String get notifRichClubRoom => 'Kulüp Odası';
+
+  @override
+  String get notifRichMedia => 'Medya';
+
+  @override
+  String get notifRichEvent => 'Etkinlik';
+
+  @override
+  String get notifRichAnnouncement => 'Duyuru';
+
+  @override
+  String get notifRichDept => 'Bölüm duyurusu';
+
+  @override
+  String get notifRichAcademic => 'Akademik';
+
+  @override
+  String get notifRichNews => 'Güncel Haber';
+
+  @override
+  String get notifRichPoll => 'Anket';
+
+  @override
+  String get notifRichSocial => 'Sosyal';
+
+  @override
+  String get notifRichSecurity => 'Güvenlik';
+
+  @override
+  String get notifRichSupport => 'Destek';
+
+  @override
+  String get notifRichMenu => 'Yemekhane';
+
+  @override
+  String get notifRichHomework => 'Ödev';
+
+  @override
+  String get notifRichClass => 'Ders';
+
+  @override
+  String notifRichNewMsgs(String n) {
+    return '$n yeni mesaj';
+  }
+
+  @override
+  String get bildirimmobilKanalSecurity => 'Güvenlik';
+
+  @override
+  String get p21ChanSecurityDesc =>
+      'Yeni cihaz girişi, şifre ve oturum uyarıları. Her zaman gönderilir, sessiz saatte de gelir.';
+
+  @override
+  String get notifFilterMessages => 'Mesajlar';
+
+  @override
+  String get notifFilterEvents => 'Etkinlik';
+
+  @override
+  String get notifFilterAnnouncements => 'Duyuru';
+
+  @override
+  String get notifFilterSocial => 'Sosyal';
+
+  @override
+  String get notifBrandCaption => 'BU KAMPÜS';
+
+  @override
+  String notifNewBadge(String n) {
+    return '$n Yeni';
+  }
+
+  @override
+  String notifGroupUnreadCount(String n) {
+    return '$n okunmamış';
+  }
+
+  @override
+  String get notifEndTitle => 'Başka bildiriminiz bulunmuyor';
+
+  @override
+  String get notifEndSub =>
+      'Önemli kampüs gelişmelerini anında iletmeye devam edeceğiz.';
+
+  @override
+  String get notifSettings => 'Bildirim ayarları';
+
+  @override
+  String get notifEmptyFilter => 'Bu türde bildirim yok.';
+
+  @override
+  String get notifActDone => 'Yapıldı';
+
+  @override
+  String get notifActFailedTitle => 'BU Kampüs';
+
+  @override
+  String get notifSecWarn => 'Bu siz değilseniz şifrenizi sıfırlayın';
 }

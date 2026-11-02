@@ -127,7 +127,7 @@ void main() {
   });
 
   group('T-100: Android kanal adları', () {
-    const ids = ['chat', 'event', 'announcement', 'social', 'poll', 'academic'];
+    const ids = ['chat', 'event', 'announcement', 'social', 'poll', 'academic', 'security'];
     final arbKeys = {
       for (final id in ids) id: ('bildirimmobilKanal${id[0].toUpperCase()}${id.substring(1)}', 'p21Chan${id[0].toUpperCase()}${id.substring(1)}Desc'),
     };

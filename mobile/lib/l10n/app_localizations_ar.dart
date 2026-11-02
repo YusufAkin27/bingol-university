@@ -9736,4 +9736,186 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get homeViewAll => 'عرض الكل';
+
+  @override
+  String get notifActReply => 'رد';
+
+  @override
+  String get notifActMarkRead => 'تحديد كمقروء';
+
+  @override
+  String get notifActMute1h => 'كتم لمدة ساعة';
+
+  @override
+  String get notifActView => 'عرض';
+
+  @override
+  String get notifActQuickReply => 'رد سريع';
+
+  @override
+  String get notifActOpenAll => 'فتح الكل';
+
+  @override
+  String get notifActCalendar => 'إضافة إلى التقويم';
+
+  @override
+  String get notifActQr => 'الدخول برمز QR';
+
+  @override
+  String get notifActFollowBack => 'متابعة';
+
+  @override
+  String get notifActAccept => 'قبول';
+
+  @override
+  String get notifActReject => 'رفض';
+
+  @override
+  String get notifActVote => 'صوّت';
+
+  @override
+  String get notifActNotMe => 'لم أكن أنا';
+
+  @override
+  String get notifActResetPw => 'إعادة التعيين الآن';
+
+  @override
+  String get notifActEnable2fa => 'تفعيل 2FA';
+
+  @override
+  String get notifActSignOutDevice => 'إخراج الجهاز';
+
+  @override
+  String get notifActViewTicket => 'عرض الطلب';
+
+  @override
+  String get notifActProfile => 'عرض الملف الشخصي';
+
+  @override
+  String get notifActDetail => 'التفاصيل';
+
+  @override
+  String get notifActExamCard => 'بطاقة الامتحان';
+
+  @override
+  String get notifActOpenSchedule => 'فتح الجدول';
+
+  @override
+  String get notifActOpen => 'فتح';
+
+  @override
+  String get notifActReplyHint => 'اكتب ردك';
+
+  @override
+  String get notifActFailed => 'تعذّر الإرسال، حاول مجددًا في التطبيق';
+
+  @override
+  String get notifActNotMeTitle => 'تم إغلاق الجلسات';
+
+  @override
+  String get notifActNotMeBody =>
+      'تم إنهاء جميع الجلسات. أعد تعيين كلمة المرور فورًا.';
+
+  @override
+  String get notifRichChat => 'محادثة';
+
+  @override
+  String get notifRichClubRoom => 'غرفة النادي';
+
+  @override
+  String get notifRichMedia => 'وسائط';
+
+  @override
+  String get notifRichEvent => 'فعالية';
+
+  @override
+  String get notifRichAnnouncement => 'إعلان';
+
+  @override
+  String get notifRichDept => 'إعلان القسم';
+
+  @override
+  String get notifRichAcademic => 'أكاديمي';
+
+  @override
+  String get notifRichNews => 'خبر';
+
+  @override
+  String get notifRichPoll => 'استطلاع';
+
+  @override
+  String get notifRichSocial => 'اجتماعي';
+
+  @override
+  String get notifRichSecurity => 'الأمان';
+
+  @override
+  String get notifRichSupport => 'الدعم';
+
+  @override
+  String get notifRichMenu => 'المطعم';
+
+  @override
+  String get notifRichHomework => 'واجب';
+
+  @override
+  String get notifRichClass => 'محاضرة';
+
+  @override
+  String notifRichNewMsgs(String n) {
+    return '$n رسائل جديدة';
+  }
+
+  @override
+  String get bildirimmobilKanalSecurity => 'الأمان';
+
+  @override
+  String get p21ChanSecurityDesc =>
+      'تنبيهات الدخول من جهاز جديد وكلمة المرور والجلسات. تصل دائمًا حتى خلال ساعات الهدوء.';
+
+  @override
+  String get notifFilterMessages => 'الرسائل';
+
+  @override
+  String get notifFilterEvents => 'الفعاليات';
+
+  @override
+  String get notifFilterAnnouncements => 'الإعلانات';
+
+  @override
+  String get notifFilterSocial => 'اجتماعي';
+
+  @override
+  String get notifBrandCaption => 'BU كامبوس';
+
+  @override
+  String notifNewBadge(String n) {
+    return '$n جديد';
+  }
+
+  @override
+  String notifGroupUnreadCount(String n) {
+    return '$n غير مقروء';
+  }
+
+  @override
+  String get notifEndTitle => 'لا توجد إشعارات أخرى';
+
+  @override
+  String get notifEndSub => 'سنواصل إرسال أهم مستجدات الحرم الجامعي فورًا.';
+
+  @override
+  String get notifSettings => 'إعدادات الإشعارات';
+
+  @override
+  String get notifEmptyFilter => 'لا توجد إشعارات من هذا النوع.';
+
+  @override
+  String get notifActDone => 'تم';
+
+  @override
+  String get notifActFailedTitle => 'BU كامبوس';
+
+  @override
+  String get notifSecWarn => 'إن لم تكن أنت فأعد تعيين كلمة المرور';
 }

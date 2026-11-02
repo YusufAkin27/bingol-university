@@ -10,6 +10,7 @@ import '../../features/follow/follow_requests_page.dart';
 import '../../features/news/news_detail_page.dart';
 import '../../features/notifications/notifications_page.dart';
 import '../../features/polls/poll_routes.dart';
+import '../../features/profile/account_security_page.dart';
 import '../../features/posts/post_routes.dart';
 import '../../features/profile/user_profile_page.dart';
 import '../../features/support/support_page.dart';
@@ -115,6 +116,9 @@ class PushRouter {
         return true;
       case PushDest.feedback:
         push(SupportPage(session: s));
+        return true;
+      case PushDest.accountSecurity:
+        push(AccountSecurityPage(session: s));
         return true;
       case PushDest.signOut: // ölü değer (bkz. PushDest.signOut): hiçbir yük buraya çözülmez, çıkış yapılmaz
       case PushDest.notifications:

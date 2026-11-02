@@ -288,6 +288,18 @@ Widget buildApp(Widget home, {Brightness brightness = Brightness.light, Size? si
 }
 
 /// Test görünümünü verilen mantıksal boyuta (dpr 1) ayarlar; test sonunda geri alınır.
+/// Bildirimler çipleri yatay kaydırılır (tasarımda son çip kesik görünür): çipi görünür kılıp dokunur.
+Future<void> tapNotifChip(WidgetTester tester, String key) async {
+  final f = find.byKey(ValueKey(key));
+  final horizontal = find.byWidgetPredicate((w) => w is Scrollable && w.axis == Axis.horizontal);
+  tester.state<ScrollableState>(horizontal).position.jumpTo(0);
+  await tester.pump();
+  await tester.scrollUntilVisible(f, 80, scrollable: horizontal);
+  await tester.pump();
+  await tester.tap(f);
+  await settle(tester);
+}
+
 void useScreen(WidgetTester tester, Size size) {
   tester.view.devicePixelRatio = 1;
   tester.view.physicalSize = size;

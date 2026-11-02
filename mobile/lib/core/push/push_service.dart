@@ -6,6 +6,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart' show NotificationResponse;
 
 import '../../features/auth/permissions_page.dart';
 import '../locale_controller.dart';
@@ -19,19 +20,30 @@ import 'push_api.dart';
 import 'push_banner.dart';
 import 'push_registrar.dart';
 import 'push_router.dart';
+import 'rich/rich_actions.dart' show kBackgroundActionIds;
+import 'rich/rich_card.dart';
+import 'rich/rich_notifications.dart';
+import 'rich/rich_notifier.dart' show richPayloadParse;
+import 'rich/rich_runner.dart' show RichOutcome;
 
 const _appVersion = String.fromEnvironment('APP_VERSION', defaultValue: '2.0.8');
 
 /// Arka plan / kapalı durum işleyicisi: top-level + entry-point olmalı (ayrı isolate'ta çalışır) ve
 /// `main()` içinde ([PushService.prepare]) oturumdan bağımsız kaydedilir.
-/// Sunucu her zaman `notification` bloklu (+ Android kanal/etiket) mesaj gönderdiği için uygulama kapalıyken
-/// bildirimi SİSTEM gösterir (işleyici gerekmez); işleyici yalnız ileride veri-yüklü mesaj gelirse Firebase'i
-/// hazır tutar (yük işlenmez, UI/oturuma dokunulmaz). Dokunuş [PushService] ile yönlendirilir.
+/// Standart yol: sunucu `notification` bloklu mesaj gönderir, uygulama kapalıyken bildirimi SİSTEM gösterir (işleyici
+/// bir şey yapmaz). ZENGİN yol: yeni Android cihaz kaydı için sunucu `richChat=1` VERİ-mesajı gönderir (sistem bir şey
+/// çizmez) ve kart BURADA çizilir ([handleRichBackgroundMessage]: avatar, MessagingStyle, görsel, eylem düğmeleri).
+/// `richChat` yoksa yük işlenmez. Dokunuş [PushService] ile yönlendirilir.
 @pragma('vm:entry-point')
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   try {
     await Firebase.initializeApp();
   } catch (_) {}
+  if (RichCard.isRich(message.data)) {
+    try {
+      await handleRichBackgroundMessage(Map<String, dynamic>.from(message.data));
+    } catch (_) {}
+  }
 }
 
 /// FCM jetonunu alır. iOS'ta APNs belirteci (anahtar/izin/imza hazırsa) birkaç saniye içinde gelir; gelmeden
@@ -153,6 +165,8 @@ class PushService with WidgetsBindingObserver {
     try {
       await Firebase.initializeApp();
       FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
+      // Zengin bildirim dokunuş/eylemleri (Android); iOS'ta etkisiz. Hata uygulamayı etkilemez.
+      unawaited(RichNotifications.instance.init(onResponse: _onRichResponse, onBackground: richBackgroundResponse));
       return true;
     } catch (e) {
       debugPrint('Push devre disi (Firebase yapilandirilmamis): ${e.runtimeType}');
@@ -168,6 +182,52 @@ class PushService with WidgetsBindingObserver {
   }
 
   final _seenMessageIds = <String>{}; // ön plan şeridi tekilleştirmesi (son 60 mesaj)
+
+  // --- Zengin bildirim (Android) dokunuş + arayüz açan eylemler ---
+  static PushService? _current;
+  static final List<NotificationResponse> _richQueue = [];
+  bool _richLaunchHandled = false;
+
+  /// Eklenti (ana isolate) çağrısı: oturum/yönlendirici hazır değilse (örn. açılışta) yanıt kuyruğa alınır.
+  static void _onRichResponse(NotificationResponse r) {
+    final s = _current;
+    if (s != null && s._active) {
+      unawaited(s.handleRichResponse(r));
+    } else {
+      _richQueue.add(r);
+    }
+  }
+
+  Future<void> _attachRich() async {
+    _current = this;
+    await RichNotifications.instance.init(onResponse: _onRichResponse, onBackground: richBackgroundResponse);
+    final queued = List<NotificationResponse>.of(_richQueue);
+    _richQueue.clear();
+    for (final r in queued) {
+      unawaited(handleRichResponse(r));
+    }
+    if (_richLaunchHandled) return;
+    _richLaunchHandled = true;
+    final launch = await RichNotifications.instance.launchResponse();
+    if (launch != null) unawaited(handleRichResponse(launch));
+  }
+
+  /// Zengin bildirime dokunuş ya da arayüz açan eylem: sohbet/etkinlik/duyuru... ilgili ekranı açar. Arka plan eylemleri
+  /// (yanıt, okundu...) ayrı isolate'te yürür ([richBackgroundResponse]); ana isolate onları işlemez (çift işlem olmasın).
+  /// Yük bildirime dışarıdan eklenebildiği için yerel hatırlatma gibi güvenilmez sayılır (yalnız hedef anahtarları).
+  @visibleForTesting
+  Future<void> handleRichResponse(NotificationResponse r) async {
+    final data = richPayloadParse(r.payload);
+    if (data.isEmpty) return;
+    final actionId = r.actionId;
+    if (actionId == null || actionId.isEmpty) {
+      _open(data, localReminder: true);
+      return;
+    }
+    if (kBackgroundActionIds.contains(actionId)) return;
+    final res = await buildRunner(RichNotifications.instance, null).run(actionId, data);
+    if (res.outcome == RichOutcome.open && res.openData != null) _open(res.openData!, localReminder: true);
+  }
 
   bool _tapBridge = false;
 
@@ -195,6 +255,7 @@ class PushService with WidgetsBindingObserver {
     unawaited(_syncChannelNames()); // FCM'den bağımsız: kanal adları/açıklamaları kullanıcının dilinde
     _iconBadge.attach(session.badges.notifications, extra: session.badges.chat); // iOS: push'un bıraktığı eski rozet düzeltilir, okununca düşer (kutu + sohbet toplamı)
     if (!await _ensureInit()) return;
+    unawaited(_attachRich());
     try {
       final fm = FirebaseMessaging.instance;
       // Dinleyiciler ve soğuk açılış yönlendirmesi izin/jetondan ÖNCE: izin sayfası bekleniyorsa, izin
@@ -294,7 +355,11 @@ class PushService with WidgetsBindingObserver {
     active.setForeground(fg);
     final t = _token;
     if (t != null && session.state == SessionState.signedIn) unawaited(_api.setState(t, fg));
-    if (fg) unawaited(refresh());
+    if (fg) {
+      unawaited(refresh());
+      // Bildirim eylemi arka plan isolate'inde belirteç yenilemiş olabilir: bellekteki eski refresh çiftini bırak.
+      unawaited(session.reloadTokensFromStore());
+    }
   }
 
   /// Kanal adları + açıklamaları kullanıcının dilinde (Android; kanal başına sistem ayarı adı). Hata sessizdir.
@@ -310,6 +375,7 @@ class PushService with WidgetsBindingObserver {
           'social': l.bildirimmobilKanalSocial,
           'poll': l.bildirimmobilKanalPoll,
           'academic': l.bildirimmobilKanalAcademic,
+          'security': l.bildirimmobilKanalSecurity,
         },
         'descriptions': {
           'chat': l.p21ChanChatDesc,
@@ -318,6 +384,7 @@ class PushService with WidgetsBindingObserver {
           'social': l.p21ChanSocialDesc,
           'poll': l.p21ChanPollDesc,
           'academic': l.p21ChanAcademicDesc,
+          'security': l.p21ChanSecurityDesc,
         },
       });
     } on MissingPluginException {
@@ -328,6 +395,10 @@ class PushService with WidgetsBindingObserver {
   Future<void> onSignedOut() async {
     if (!_active) return; // kanca iki kez (beforeSignOut + durum değişimi) gelebilir
     _active = false;
+    if (identical(_current, this)) _current = null;
+    _richQueue.clear();
+    _richLaunchHandled = false;
+    unawaited(RichNotifications.instance.removeAllShown()); // önceki hesabın kartları kilit ekranında kalmasın
     _permDenied = false;
     _iconBadge.detach(); // rozeti sıfırla (başka hesabın sayısı kalmasın)
     _viewing?.stop();
@@ -376,8 +447,9 @@ class PushService with WidgetsBindingObserver {
   }
 
   void _showBanner(RemoteMessage m) => handleForeground(
-        title: m.notification?.title ?? '',
-        body: m.notification?.body ?? '',
+        // Zengin veri-mesajında `notification` bloğu yoktur: başlık/gövde `data`'dadır.
+        title: m.notification?.title ?? '${m.data['title'] ?? ''}',
+        body: m.notification?.body ?? '${m.data['body'] ?? ''}',
         data: m.data,
       );
 
