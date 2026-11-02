@@ -8141,6 +8141,16 @@
           }
         }
       },
+      "NotMeResponse" : {
+        "properties" : {
+          "ok" : {
+            "type" : [ "boolean", "null" ]
+          },
+          "resetPasswordRecommended" : {
+            "type" : [ "boolean", "null" ]
+          }
+        }
+      },
       "NoteRequest" : {
         "properties" : {
           "text" : {
@@ -8263,7 +8273,22 @@
       },
       "NotificationView" : {
         "properties" : {
+          "actions" : {
+            "items" : {
+              "type" : "string"
+            },
+            "type" : "array"
+          },
           "body" : {
+            "type" : [ "string", "null" ]
+          },
+          "card" : {
+            "type" : [ "string", "null" ]
+          },
+          "category" : {
+            "type" : [ "string", "null" ]
+          },
+          "channelId" : {
             "type" : [ "string", "null" ]
           },
           "count" : {
@@ -8283,8 +8308,26 @@
             "format" : "int64",
             "type" : [ "integer", "null" ]
           },
+          "imageStyle" : {
+            "type" : [ "string", "null" ]
+          },
+          "imageUrl" : {
+            "type" : [ "string", "null" ]
+          },
+          "label" : {
+            "type" : [ "string", "null" ]
+          },
           "read" : {
             "type" : [ "boolean", "null" ]
+          },
+          "requestId" : {
+            "type" : [ "string", "null" ]
+          },
+          "senderAvatarUrl" : {
+            "type" : [ "string", "null" ]
+          },
+          "senderName" : {
+            "type" : [ "string", "null" ]
           },
           "subtype" : {
             "type" : [ "string", "null" ]
@@ -9436,6 +9479,9 @@
           "events" : {
             "type" : [ "boolean", "null" ]
           },
+          "menuDaily" : {
+            "type" : [ "boolean", "null" ]
+          },
           "messagePreview" : {
             "type" : [ "boolean", "null" ]
           },
@@ -9475,6 +9521,9 @@
             "type" : [ "boolean", "null" ]
           },
           "events" : {
+            "type" : [ "boolean", "null" ]
+          },
+          "menuDaily" : {
             "type" : [ "boolean", "null" ]
           },
           "messagePreview" : {
@@ -51907,6 +51956,13 @@
           }
         }, {
           "in" : "query",
+          "name" : "category",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
           "name" : "unread",
           "required" : false,
           "schema" : {
@@ -53970,6 +54026,57 @@
           "bearerAuth" : [ ]
         } ],
         "tags" : [ "search-controller" ]
+      }
+    },
+    "/api/security/not-me" : {
+      "post" : {
+        "operationId" : "notMe",
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/NotMeResponse"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Dogrulama / is kurali hatasi (code alanina bakin)"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Token yok/gecersiz/suresi dolmus"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "RATE_LIMITED: istek siniri asildi"
+          }
+        },
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ],
+        "tags" : [ "security-controller" ]
       }
     },
     "/api/status" : {

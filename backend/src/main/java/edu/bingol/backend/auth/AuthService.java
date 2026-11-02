@@ -125,6 +125,34 @@ public class AuthService {
         this.deviceLog = deviceLog;
     }
 
+    /** Hesap guvenligi bildirimleri (yeni cihaz, oturum, sifre); yoksa (birim testleri) gonderilmez. */
+    private LoginAlertService loginAlerts;
+
+    @Autowired(required = false)
+    void setLoginAlerts(LoginAlertService loginAlerts) {
+        this.loginAlerts = loginAlerts;
+    }
+
+    /**
+     * Giris basarisi sonrasi ortak adim (sifreli giris + 2FA ikinci adimi): yeni cihaz tespiti (kayit YAZILMADAN once),
+     * cihaz gunlugu, tek cihaz kurali (mobil: eski oturumlar kapanir) ve guvenlik bildirimi. Bildirim, eski cihazin
+     * token'lari oturum iptaliyle silinmeden ONCE yakalanir.
+     */
+    private void onLoggedIn(User user, ClientContext ctx, String client) {
+        boolean newDevice = deviceLog != null && deviceLog.isNewDevice(user.getId(), ctx);
+        logDevice(user.getId(), ctx, "LOGIN");
+        boolean mobile = RefreshTokenService.MOBILE.equals(client);
+        java.util.List<edu.bingol.backend.notification.Device> oldTokens = loginAlerts == null || !mobile
+                ? java.util.List.of() : loginAlerts.snapshotDevices(user.getId());
+        boolean hadSessions = false;
+        if (mobile) {
+            hadSessions = sessions.revokeClient(user.getId(), client, true);
+        }
+        if (loginAlerts != null) {
+            loginAlerts.afterLogin(user, ctx, mobile, newDevice, hadSessions, oldTokens);
+        }
+    }
+
     private void requireNotBlocked(ClientContext ctx, Long userId, String path) {
         if (guard != null && ctx != null) {
             guard.require(ctx, userId, path);
@@ -316,11 +344,13 @@ public class AuthService {
         sessions.markPasswordChanged(user.getId());
         user.setPasswordHash(encoder.encode(newPassword));
         users.save(user);
+        java.util.List<edu.bingol.backend.notification.Device> alertTokens = loginAlerts == null ? java.util.List.of()
+                : loginAlerts.snapshotDevices(user.getId()); // oturum iptali cihaz kayitlarini siler: once yakala
         // Sifre degisince calinmis olabilecek tum oturumlar (refresh + access) kapanir.
         sessions.revokeAll(user.getId());
         clearTrustedDevices(user.getId()); // 2FA: sifre sifirlaninca guvenilen cihazlar da gecersiz
         // Hesap sahibi bilsin (kod e-postasina erisen biri sifreyi degistirmis olabilir).
-        notifyPasswordChanged(user);
+        notifyPasswordChanged(user, alertTokens);
     }
 
     private boolean isAdminAccount(User user) {
@@ -349,15 +379,20 @@ public class AuthService {
         sessions.markPasswordChanged(userId); // isaret DB kaydindan once (bkz. resetPassword)
         user.setPasswordHash(encoder.encode(newPassword));
         users.save(user);
+        java.util.List<edu.bingol.backend.notification.Device> alertTokens = loginAlerts == null ? java.util.List.of()
+                : loginAlerts.snapshotDevices(userId); // oturum iptali cihaz kayitlarini siler: once yakala
         sessions.revokeAll(userId);
         clearTrustedDevices(userId); // 2FA: sifre degisince guvenilen cihazlar da gecersiz
         // Iptal isareti `iatms <= isaret` token'lari reddeder: yeni token'in iatms'i kesin buyuk olsun.
         MilliTick.awaitNext();
-        notifyPasswordChanged(user);
+        notifyPasswordChanged(user, alertTokens);
         return tokens(user, client);
     }
 
-    private void notifyPasswordChanged(User user) {
+    private void notifyPasswordChanged(User user, java.util.List<edu.bingol.backend.notification.Device> alertTokens) {
+        if (loginAlerts != null) {
+            loginAlerts.passwordChanged(user, alertTokens); // push + kutu (guvenlik kanali), e-postadan bagimsiz
+        }
         if (mail == null) {
             return;
         }
@@ -482,10 +517,7 @@ public class AuthService {
                 throw new TwoFactorRequiredException(tf.begin(user, ctx, c));
             }
         }
-        logDevice(user.getId(), ctx, "LOGIN");
-        if (RefreshTokenService.MOBILE.equals(c)) {
-            sessions.revokeClient(user.getId(), c, true);
-        }
+        onLoggedIn(user, ctx, c);
         return tokens(user, c);
     }
 
@@ -507,11 +539,8 @@ public class AuthService {
         if (trustDevice) {
             twoFactor.trust(user.getId(), ch.deviceHash(), ch.platform(), ch.appVersion());
         }
-        logDevice(user.getId(), ctx, "LOGIN");
         String c = RefreshTokenService.normalizeClient(ch.client());
-        if (RefreshTokenService.MOBILE.equals(c)) {
-            sessions.revokeClient(user.getId(), c, true);
-        }
+        onLoggedIn(user, ctx, c);
         return tokens(user, c);
     }
 

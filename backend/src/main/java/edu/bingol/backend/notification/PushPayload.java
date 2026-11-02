@@ -26,7 +26,8 @@ public final class PushPayload {
             new String[] {"eventId", "EVENT"}, new String[] {"communityId", "COMMUNITY"},
             new String[] {"newsId", "NEWS"}, new String[] {"ticketId", "TICKET"},
             new String[] {"feedbackId", "FEEDBACK"});
-    private static final List<String> CONTRACT = List.of("type", "subtype", "target", "value", "targetType", "targetId", "count");
+    private static final List<String> CONTRACT = List.of("type", "subtype", "target", "value", "targetType", "targetId", "count",
+            "card", "actions", "channelId", "iosCategory", "imageStyle", "tag", "senderName", "groupBadge");
 
     private PushPayload() {}
 

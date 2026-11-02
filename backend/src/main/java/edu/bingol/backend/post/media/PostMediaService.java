@@ -361,6 +361,21 @@ public class PostMediaService implements PostMediaLookup, PostMediaBinder {
         }
     }
 
+    /**
+     * Bildirim kartinin kucuk resmi (begeni karti): ilk gorselin KISA OMURLU imzali CDN adresi. Bildirim goruntuleyici
+     * Authorization basligi tasiyamaz, bu yuzden CDN kapaliysa (imzali adres yok) bos doner ve kart gorselsiz gider.
+     * Yalniz bagli, gizlenmemis medya; yetki karari cagirana aittir (gonderi yazarina kendi gonderisi).
+     */
+    @Transactional(readOnly = true)
+    public Optional<String> pushThumbUrl(long postId) {
+        if (cdn == null) {
+            return Optional.empty();
+        }
+        return repo.findByPostIdOrderByPositionAscIdAsc(postId).stream()
+                .filter(m -> !m.isHidden() && PostMedia.IMAGE.equals(m.getKind()))
+                .findFirst().map(m -> cdn.url(m.getId(), m.getThumbKey() != null));
+    }
+
     @Override
     @Transactional(readOnly = true)
     public List<Long> mediaIdsOf(long postId) {

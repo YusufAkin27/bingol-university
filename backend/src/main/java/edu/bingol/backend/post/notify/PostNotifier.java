@@ -8,12 +8,14 @@ import edu.bingol.backend.notification.NotificationRepository;
 import edu.bingol.backend.notification.NotificationService;
 import edu.bingol.backend.notification.NotificationSubtype;
 import edu.bingol.backend.notification.NotificationType;
+import edu.bingol.backend.profile.privacy.AvatarVisibility;
 import edu.bingol.backend.user.User;
 import edu.bingol.backend.user.UserRepository;
 import java.time.Clock;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -59,6 +61,22 @@ public class PostNotifier {
         this.clock = clock;
     }
 
+    /** Gonderen avatari / bolum / sinif gizlilik kontrolu (yoksa avatar ve ayrinti eklenmez). */
+    private AvatarVisibility visibility;
+
+    @Autowired(required = false)
+    void setVisibility(AvatarVisibility visibility) {
+        this.visibility = visibility;
+    }
+
+    /** Gonderi onizleme adresi (yalniz CDN imzali adres varsa; yoksa kart gorselsiz gider). */
+    private org.springframework.beans.factory.ObjectProvider<edu.bingol.backend.post.media.PostMediaService> postMedia;
+
+    @Autowired(required = false)
+    void setPostMedia(org.springframework.beans.factory.ObjectProvider<edu.bingol.backend.post.media.PostMediaService> m) {
+        this.postMedia = m;
+    }
+
     /** Gönderi beğenildi; yazara (kendi beğenisi hariç) birleşen bildirim. */
     public void onLike(Long actorId, Long postId, Long postAuthorId) {
         try {
@@ -78,8 +96,16 @@ public class PostNotifier {
             String body = others > 0
                     ? i18n.msg("notif.post.like.many.body", lang, name, String.valueOf(others))
                     : i18n.msg("notif.post.like.body", lang, name);
-            notifications.send(postAuthorId, NotificationType.POST_LIKE, NotificationSubtype.POST_LIKE, key, title, body,
-                    data(postId));
+            Map<String, String> d = data(postId);
+            d.put("actorId", String.valueOf(actorId)); // kutuda gonderen adi/avatari bakana gore uretilir
+            Map<String, String> extra = actorExtra(postAuthorId, actorId, name);
+            String thumb = postThumb(postId);
+            if (thumb != null) {
+                extra.put("imageUrl", thumb);
+            }
+            // Push: "{ad} gonderini begendi" (govde bos), kutu: "Yeni begeni" + ayrintili govde
+            notifications.sendCard(postAuthorId, NotificationType.POST_LIKE, NotificationSubtype.POST_LIKE, key, title,
+                    body, body, "", d, extra);
         } catch (RuntimeException e) {
             log.warn("Begeni bildirimi gonderilemedi (gonderi {}): {}", postId, e.toString());
         }
@@ -101,9 +127,12 @@ public class PostNotifier {
             d.put("target", "USER");
             d.put("value", String.valueOf(followerId));
             d.put("userId", String.valueOf(followerId));
-            notifications.send(followeeId, NotificationType.USER_FOLLOW, NotificationSubtype.USER_FOLLOW,
+            String name = actorName(followerId);
+            Map<String, String> extra = actorExtra(followeeId, followerId, name);
+            notifications.sendCard(followeeId, NotificationType.USER_FOLLOW, NotificationSubtype.USER_FOLLOW,
                     "follow:" + followerId, i18n.msg("notif.user.follow.title", lang),
-                    i18n.msg("notif.user.follow.body", lang, actorName(followerId)), d);
+                    i18n.msg("notif.user.follow.body", lang, name), i18n.msg("notif.push.follow.title", lang, name),
+                    actorLine(followeeId, followerId, lang), d, extra);
         } catch (RuntimeException e) {
             log.warn("Takip bildirimi gonderilemedi (kullanici {}): {}", followeeId, e.toString());
         }
@@ -124,9 +153,13 @@ public class PostNotifier {
             d.put("target", "FOLLOW_REQUESTS");
             d.put("value", String.valueOf(requesterId));
             d.put("userId", String.valueOf(requesterId));
-            notifications.send(targetId, NotificationType.FOLLOW_REQUEST, NotificationSubtype.FOLLOW_REQUEST,
+            String name = actorName(requesterId);
+            d.put("requestId", String.valueOf(requesterId)); // kabul/red: /api/users/me/follow-requests/{requestId}/accept|decline
+            Map<String, String> extra = actorExtra(targetId, requesterId, name);
+            notifications.sendCard(targetId, NotificationType.FOLLOW_REQUEST, NotificationSubtype.FOLLOW_REQUEST,
                     "followreq:" + requesterId, i18n.msg("notif.follow.request.title", lang),
-                    i18n.msg("notif.follow.request.body", lang, actorName(requesterId)), d);
+                    i18n.msg("notif.follow.request.body", lang, name), i18n.msg("notif.push.request.title", lang, name),
+                    actorLine(targetId, requesterId, lang), d, extra);
         } catch (RuntimeException e) {
             log.warn("Takip istegi bildirimi gonderilemedi (kullanici {}): {}", targetId, e.toString());
         }
@@ -144,9 +177,12 @@ public class PostNotifier {
             d.put("target", "USER");
             d.put("value", String.valueOf(accepterId));
             d.put("userId", String.valueOf(accepterId));
-            notifications.send(requesterId, NotificationType.FOLLOW_ACCEPTED, NotificationSubtype.FOLLOW_ACCEPTED,
+            String name = actorName(accepterId);
+            Map<String, String> extra = actorExtra(requesterId, accepterId, name);
+            notifications.sendCard(requesterId, NotificationType.FOLLOW_ACCEPTED, NotificationSubtype.FOLLOW_ACCEPTED,
                     "followacc:" + accepterId, i18n.msg("notif.follow.accepted.title", lang),
-                    i18n.msg("notif.follow.accepted.body", lang, actorName(accepterId)), d);
+                    i18n.msg("notif.follow.accepted.body", lang, name), i18n.msg("notif.push.accepted.title", lang, name),
+                    "", d, extra);
         } catch (RuntimeException e) {
             log.warn("Takip kabul bildirimi gonderilemedi (kullanici {}): {}", requesterId, e.toString());
         }
@@ -180,6 +216,64 @@ public class PostNotifier {
     private boolean shouldNotify(Long actorId, Long recipientId) {
         return recipientId != null && actorId != null && !Objects.equals(actorId, recipientId)
                 && !blocks.isBlocked(actorId, recipientId);
+    }
+
+    /**
+     * Yalniz push yukune giren gonderen bilgisi: ad ve (alicinin gormesine gizlilik izin veriyorsa, engel yoksa) avatar.
+     * Kutu satirina yazilmaz; kutuda ayni bilgi okuma aninda bakana gore uretilir (InboxCardEnricher).
+     */
+    private Map<String, String> actorExtra(Long recipientId, Long actorId, String name) {
+        Map<String, String> extra = new LinkedHashMap<>();
+        extra.put("senderName", name);
+        try {
+            String avatar = users.findById(actorId).map(User::getAvatarUrl).filter(a -> !a.isBlank()).orElse(null);
+            if (avatar != null && visibility != null && !blocks.isBlocked(actorId, recipientId)
+                    && visibility.canSee(recipientId, actorId, AvatarVisibility.Field.AVATAR)) {
+                extra.put("senderAvatarUrl", avatar);
+            }
+        } catch (RuntimeException e) {
+            log.debug("Gonderen avatari hazirlanamadi: {}", e.toString());
+        }
+        return extra;
+    }
+
+    /** "Bolum - N. sinif" (yalniz alicinin gormesine izin verilen alanlar); bos olabilir. */
+    private String actorLine(Long recipientId, Long actorId, Lang lang) {
+        try {
+            User u = users.findById(actorId).orElse(null);
+            if (u == null) {
+                return "";
+            }
+            Set<AvatarVisibility.Field> ok = new java.util.HashSet<>();
+            if (visibility != null) {
+                Map<AvatarVisibility.Field, Set<Long>> vis = visibility.visibleOwners(recipientId, Set.of(actorId),
+                        java.util.EnumSet.of(AvatarVisibility.Field.DEPARTMENT, AvatarVisibility.Field.CLASS_YEAR));
+                vis.forEach((f, owners) -> {
+                    if (owners.contains(actorId)) {
+                        ok.add(f);
+                    }
+                });
+            }
+            java.util.List<String> parts = new java.util.ArrayList<>();
+            if (ok.contains(AvatarVisibility.Field.DEPARTMENT) && u.getDepartment() != null && !u.getDepartment().isBlank()) {
+                parts.add(u.getDepartment());
+            }
+            if (ok.contains(AvatarVisibility.Field.CLASS_YEAR) && u.getClassYear() != null) {
+                parts.add(i18n.msg("notif.push.classYear", lang, String.valueOf(u.getClassYear())));
+            }
+            return String.join(" · ", parts);
+        } catch (RuntimeException e) {
+            return "";
+        }
+    }
+
+    private String postThumb(Long postId) {
+        try {
+            edu.bingol.backend.post.media.PostMediaService svc = postMedia == null ? null : postMedia.getIfAvailable();
+            return svc == null ? null : svc.pushThumbUrl(postId).orElse(null);
+        } catch (RuntimeException e) {
+            return null;
+        }
     }
 
     private String actorName(Long actorId) {

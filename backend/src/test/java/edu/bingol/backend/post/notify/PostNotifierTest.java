@@ -87,8 +87,7 @@ class PostNotifierTest {
         ArgumentCaptor<Map<String, String>> data = ArgumentCaptor.forClass(Map.class);
         ArgumentCaptor<String> key = ArgumentCaptor.forClass(String.class);
         ArgumentCaptor<String> body = ArgumentCaptor.forClass(String.class);
-        verify(notifications).send(eq(1L), eq(NotificationType.POST_LIKE), eq(NotificationSubtype.POST_LIKE),
-                key.capture(), anyString(), body.capture(), data.capture());
+        verify(notifications).sendCard(eq(1L), eq(NotificationType.POST_LIKE), eq(NotificationSubtype.POST_LIKE), key.capture(), anyString(), body.capture(), org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.any(), data.capture(), org.mockito.ArgumentMatchers.anyMap());
         assertTrue(key.getValue().startsWith("postlike:50:"));
         assertEquals("notif.post.like.body|Ayse", body.getValue());
         assertEquals("POST", data.getValue().get("target"));
@@ -105,8 +104,7 @@ class PostNotifierTest {
         notifier.onLike(2L, 50L, 1L);
 
         ArgumentCaptor<String> body = ArgumentCaptor.forClass(String.class);
-        verify(notifications).send(eq(1L), eq(NotificationType.POST_LIKE), eq(NotificationSubtype.POST_LIKE),
-                anyString(), anyString(), body.capture(), anyMap());
+        verify(notifications).sendCard(eq(1L), eq(NotificationType.POST_LIKE), eq(NotificationSubtype.POST_LIKE), anyString(), anyString(), body.capture(), org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.any(), anyMap(), org.mockito.ArgumentMatchers.anyMap());
         assertEquals("notif.post.like.many.body|Ayse|2", body.getValue());
     }
 
@@ -117,18 +115,15 @@ class PostNotifierTest {
         notifier.onLike(2L, 50L, 1L);
         now = now.plusSeconds(300);
         notifier.onLike(2L, 50L, 1L);
-        verify(notifications, times(1)).send(eq(1L), any(NotificationType.class), any(NotificationSubtype.class),
-                anyString(), anyString(), anyString(), anyMap());
+        verify(notifications, times(1)).sendCard(eq(1L), any(NotificationType.class), any(NotificationSubtype.class), anyString(), anyString(), anyString(), org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.any(), anyMap(), org.mockito.ArgumentMatchers.anyMap());
 
         notifier.onLike(2L, 51L, 1L); // baska gonderi: bildirilir
         notifier.onLike(3L, 50L, 1L); // baska kisi: bildirilir
-        verify(notifications, times(3)).send(eq(1L), any(NotificationType.class), any(NotificationSubtype.class),
-                anyString(), anyString(), anyString(), anyMap());
+        verify(notifications, times(3)).sendCard(eq(1L), any(NotificationType.class), any(NotificationSubtype.class), anyString(), anyString(), anyString(), org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.any(), anyMap(), org.mockito.ArgumentMatchers.anyMap());
 
         now = now.plusSeconds(601); // pencere doldu
         notifier.onLike(2L, 50L, 1L);
-        verify(notifications, times(4)).send(eq(1L), any(NotificationType.class), any(NotificationSubtype.class),
-                anyString(), anyString(), anyString(), anyMap());
+        verify(notifications, times(4)).sendCard(eq(1L), any(NotificationType.class), any(NotificationSubtype.class), anyString(), anyString(), anyString(), org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.any(), anyMap(), org.mockito.ArgumentMatchers.anyMap());
     }
 
     @Test
@@ -137,8 +132,7 @@ class PostNotifierTest {
         notifier.onLike(2L, 50L, 1L);
         now = now.plusSeconds(601);
         notifier.onLike(3L, 50L, 1L);
-        verify(notifications, times(2)).send(eq(1L), any(NotificationType.class), any(NotificationSubtype.class),
-                key.capture(), anyString(), anyString(), anyMap());
+        verify(notifications, times(2)).sendCard(eq(1L), any(NotificationType.class), any(NotificationSubtype.class), key.capture(), anyString(), anyString(), org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.any(), anyMap(), org.mockito.ArgumentMatchers.anyMap());
         List<String> keys = key.getAllValues();
         assertNotEquals(keys.get(0), keys.get(1));
     }
@@ -148,8 +142,7 @@ class PostNotifierTest {
         notifier.onLike(1L, 50L, 1L);
         when(blocks.isBlocked(2L, 1L)).thenReturn(true);
         notifier.onLike(2L, 50L, 1L);
-        verify(notifications, never()).send(anyLong(), any(NotificationType.class), any(), any(), anyString(),
-                anyString(), anyMap());
+        verify(notifications, never()).sendCard(anyLong(), any(NotificationType.class), any(), any(), anyString(), anyString(), org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.any(), anyMap(), org.mockito.ArgumentMatchers.anyMap());
     }
 
     @Test
@@ -191,7 +184,7 @@ class PostNotifierTest {
 
         notifier.onFollow(1L, 2L);
 
-        verify(notifications, org.mockito.Mockito.never()).send(anyLong(), any(), any(), any(), any(), any(), any());
+        verify(notifications, org.mockito.Mockito.never()).sendCard(anyLong(), any(), any(), any(), any(), any(), org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.any(), any(), org.mockito.ArgumentMatchers.anyMap());
     }
 
     @Test
@@ -200,7 +193,67 @@ class PostNotifierTest {
 
         notifier.onFollow(1L, 2L);
 
-        verify(notifications).send(eq(2L), eq(NotificationType.USER_FOLLOW), eq(NotificationSubtype.USER_FOLLOW),
-                eq("follow:1"), any(), any(), any());
+        verify(notifications).sendCard(eq(2L), eq(NotificationType.USER_FOLLOW), eq(NotificationSubtype.USER_FOLLOW), eq("follow:1"), any(), any(), org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.any(), any(), org.mockito.ArgumentMatchers.anyMap());
+    }
+
+    // ---- Stitch kart tasarimi: push metni + gonderen bilgisi (yalniz push), gizlilik ----
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void followPushUsesSentenceTitleAndSenderNameButNoAvatarWithoutPermission() {
+        User actor = new User();
+        actor.setDisplayName("Ayse");
+        actor.setAvatarUrl("/files/ayse.jpg");
+        when(users.findById(anyLong())).thenReturn(Optional.of(actor));
+        edu.bingol.backend.profile.privacy.AvatarVisibility vis = mock(edu.bingol.backend.profile.privacy.AvatarVisibility.class);
+        notifier.setVisibility(vis); // canSee: varsayilan false -> avatar YOK
+
+        notifier.onFollow(1L, 2L);
+
+        ArgumentCaptor<String> pushTitle = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<Map<String, String>> extra = ArgumentCaptor.forClass(Map.class);
+        verify(notifications).sendCard(eq(2L), eq(NotificationType.USER_FOLLOW), eq(NotificationSubtype.USER_FOLLOW),
+                eq("follow:1"), anyString(), anyString(), pushTitle.capture(), any(), anyMap(), extra.capture());
+        assertEquals("notif.push.follow.title|Ayse", pushTitle.getValue());
+        assertEquals("Ayse", extra.getValue().get("senderName"));
+        assertFalse(extra.getValue().containsKey("senderAvatarUrl"));
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void avatarGoesToPushOnlyWhenPrivacyAllowsAndNeverIntoStoredData() {
+        User actor = new User();
+        actor.setDisplayName("Ayse");
+        actor.setAvatarUrl("/files/ayse.jpg");
+        when(users.findById(anyLong())).thenReturn(Optional.of(actor));
+        edu.bingol.backend.profile.privacy.AvatarVisibility vis = mock(edu.bingol.backend.profile.privacy.AvatarVisibility.class);
+        when(vis.canSee(eq(2L), eq(1L), eq(edu.bingol.backend.profile.privacy.AvatarVisibility.Field.AVATAR))).thenReturn(true);
+        notifier.setVisibility(vis);
+
+        notifier.onFollow(1L, 2L);
+
+        ArgumentCaptor<Map<String, String>> data = ArgumentCaptor.forClass(Map.class);
+        ArgumentCaptor<Map<String, String>> extra = ArgumentCaptor.forClass(Map.class);
+        verify(notifications).sendCard(eq(2L), any(NotificationType.class), any(NotificationSubtype.class), anyString(),
+                anyString(), anyString(), anyString(), any(), data.capture(), extra.capture());
+        assertEquals("/files/ayse.jpg", extra.getValue().get("senderAvatarUrl"));
+        assertFalse(data.getValue().containsKey("senderAvatarUrl"), "avatar kalici veriye yazilmaz");
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void followRequestCarriesRequestIdAndLikeCarriesActorIdForTheInbox() {
+        notifier.onFollowRequest(5L, 10L);
+        ArgumentCaptor<Map<String, String>> data = ArgumentCaptor.forClass(Map.class);
+        verify(notifications).sendCard(eq(10L), eq(NotificationType.FOLLOW_REQUEST), eq(NotificationSubtype.FOLLOW_REQUEST),
+                eq("followreq:5"), anyString(), anyString(), anyString(), any(), data.capture(), anyMap());
+        assertEquals("5", data.getValue().get("requestId"));
+        assertEquals("5", data.getValue().get("userId"));
+
+        notifier.onLike(2L, 50L, 1L);
+        ArgumentCaptor<Map<String, String>> like = ArgumentCaptor.forClass(Map.class);
+        verify(notifications).sendCard(eq(1L), eq(NotificationType.POST_LIKE), eq(NotificationSubtype.POST_LIKE),
+                anyString(), anyString(), anyString(), anyString(), any(), like.capture(), anyMap());
+        assertEquals("2", like.getValue().get("actorId"));
     }
 }

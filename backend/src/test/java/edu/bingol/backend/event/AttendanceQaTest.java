@@ -308,6 +308,7 @@ class AttendanceQaTest {
         e.setId(5L);
         e.setTitle("Konferans");
         e.setLocation("Salon A");
+        e.setStartsAt(Instant.parse("2026-11-01T11:00:00Z")); // Istanbul 14:00
         EventRsvp a = new EventRsvp(5L, 11L, EventRsvp.Status.GOING);
         a.setId(1L);
         when(repo.hourCandidates(any(), any(), any(), any(), any())).thenReturn(List.<Object[]>of(new Object[] {a, e}));
@@ -317,6 +318,8 @@ class AttendanceQaTest {
         rem.run(Instant.now());
 
         assertEquals(List.of(11L), edu.bingol.backend.notification.BulkSent.to(notif, "notif.event.reminderHour"));
-        assertEquals(List.of("Konferans (Salon A)"), edu.bingol.backend.notification.BulkSent.lastArgs(notif, "notif.event.reminderHour"));
+        // gövde: "<ad> · <saat> · <yer>" (saat Istanbul, yer yoksa son parça boş)
+        assertEquals(List.of("Konferans", "14:00", " · Salon A"),
+                edu.bingol.backend.notification.BulkSent.lastArgs(notif, "notif.event.reminderHour"));
     }
 }

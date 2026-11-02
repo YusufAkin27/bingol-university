@@ -247,7 +247,13 @@ public class NewsSyncService {
         };
         if (fresh.size() <= 3) {
             for (NewsItem n : fresh) {
-                notifications.broadcast(nt, n.getTitle(), n.getSummary(), java.util.Map.of("newsId", String.valueOf(n.getId())));
+                java.util.Map<String, String> d = new java.util.LinkedHashMap<>();
+                d.put("newsId", String.valueOf(n.getId()));
+                // Kart kucuk resmi (haber karti, imageStyle=thumb); bildirim satiri JSON'u 1000 karakterle sinirli: uzun adres atlanir
+                if (n.getImageUrl() != null && n.getImageUrl().startsWith("https://") && n.getImageUrl().length() <= 400) {
+                    d.put("imageUrl", n.getImageUrl());
+                }
+                notifications.broadcast(nt, n.getTitle(), n.getSummary(), d);
             }
         } else {
             String count = String.valueOf(fresh.size());

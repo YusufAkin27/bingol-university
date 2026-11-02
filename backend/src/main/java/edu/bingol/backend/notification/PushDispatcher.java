@@ -42,7 +42,10 @@ public class PushDispatcher {
     @org.springframework.beans.factory.annotation.Value("${PUBLIC_WEB_URL:}")
     private String publicWebUrl = "";
 
-    /** Veri-mesaji (zengin) sohbet bildirimi: istemcide karsilayan kod yayinlanana dek KAPALI (yoksa bildirim hic gorunmez). */
+    /**
+     * Veri-mesaji (zengin) bildirim, TUM kanallar: istemcide karsilayan kod yayinlanana dek KAPALI (yoksa bildirim hic
+     * gorunmez). Anahtar adi sohbetten kalma; kapsam artik her kanaldir.
+     */
     @org.springframework.beans.factory.annotation.Value("${app.push.rich-chat-enabled:false}")
     private boolean richChatEnabled = false;
 
@@ -116,11 +119,14 @@ public class PushDispatcher {
     }
 
     /** Kuyruga atar ve hemen doner; hata cagirana sizmaz. */
-    public void dispatch(Collection<String> tokens, PushMessage message) {
+    public void dispatch(Collection<String> tokens, PushMessage original) {
         if (tokens == null || tokens.isEmpty()) {
             return;
         }
-        if (richChatEnabled && "chat".equals(message.channelId()) && !RichChatPayload.isRich(message)) {
+        // gorsel adresleri mutlak https, yabanci alan adi dusurulur
+        final PushMessage message = RichChatPayload.isRich(original) ? original
+                : RichChatPayload.normalizeMedia(original, publicWebUrl);
+        if (richChatEnabled && message.channelId() != null && !RichChatPayload.isRich(message)) {
             try {
                 var all = java.util.List.copyOf(tokens);
                 var rich = new java.util.HashSet<String>();
@@ -165,6 +171,47 @@ public class PushDispatcher {
         }
     }
 
+    /**
+     * DOGRUDAN gonderim (kalici kuyruk ATLANIR): kuyruk satiri cihaz kaydina baglidir ve gonderimde cihazi cozer; tek cihaz
+     * kurali/oturum iptali cihaz kaydini silince kuyruktaki uyari "cihaz kaydi yok" diye olurdu. Hesap guvenligi uyarilari
+     * (yeni cihaz, sifre degisti), kayit silinmeden once yakalanan cihazlara bu yolla gider. Zengin yol destegi cihazin
+     * kayitli platform/surumunden karar verilir. FCM kapaliysa hicbir sey yapmaz; hata cagirana sizmaz.
+     */
+    public void dispatchDirect(Collection<Device> targets, PushMessage original) {
+        if (targets == null || targets.isEmpty() || !fcm.enabled()) {
+            return;
+        }
+        PushMessage message = RichChatPayload.isRich(original) ? original
+                : RichChatPayload.normalizeMedia(original, publicWebUrl);
+        List<String> rich = new ArrayList<>();
+        List<String> plain = new ArrayList<>();
+        for (Device d : targets) {
+            if (d == null || d.getFcmToken() == null) {
+                continue;
+            }
+            (richChatEnabled && message.channelId() != null && RichChatPayload.supports(d) ? rich : plain)
+                    .add(d.getFcmToken());
+        }
+        sendDirect(rich, rich.isEmpty() ? message : RichChatPayload.enrich(message, publicWebUrl));
+        sendDirect(plain, message);
+    }
+
+    private void sendDirect(List<String> tokens, PushMessage message) {
+        if (tokens.isEmpty()) {
+            return;
+        }
+        try {
+            executor.execute(() -> sendChunks(tokens, message, 0));
+        } catch (RejectedExecutionException e) {
+            recordDropped(tokens.size());
+        }
+    }
+
+    /** Zengin (veri-mesaji) yol acik mi (yalniz genel yayin dagitimi icin disariya). */
+    public boolean richEnabled() {
+        return richChatEnabled;
+    }
+
     /** Genel yayin icin aralik tabanli kalici kuyruk yazimi kullanilabilir mi (kuyruk + PostgreSQL). */
     public boolean rangeBroadcastSupported() {
         return outbox != null && outbox.rangeEnqueueSupported();
@@ -182,7 +229,16 @@ public class PushDispatcher {
             return; // FCM yok, tutma kapali: birikmesin
         }
         try {
-            outbox.enqueueBroadcastRange(message, prefColumn, lang, after, hi);
+            if (richChatEnabled) {
+                // Cihaza gore ayrim: Android >= 2.0.8 veri-mesaji, digerleri standart bildirim blogu
+                outbox.enqueueBroadcastRange(RichChatPayload.enrich(RichChatPayload.normalizeMedia(message, publicWebUrl),
+                        publicWebUrl), prefColumn, lang, after, hi, Boolean.TRUE);
+                outbox.enqueueBroadcastRange(RichChatPayload.normalizeMedia(message, publicWebUrl), prefColumn, lang,
+                        after, hi, Boolean.FALSE);
+            } else {
+                outbox.enqueueBroadcastRange(RichChatPayload.normalizeMedia(message, publicWebUrl), prefColumn, lang,
+                        after, hi);
+            }
         } catch (RuntimeException e) {
             recordFailure("kalici kuyruga toplu yazilamadi: " + e.getClass().getSimpleName());
         }

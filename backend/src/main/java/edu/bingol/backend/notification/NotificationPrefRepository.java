@@ -8,6 +8,10 @@ import org.springframework.data.repository.query.Param;
 
 public interface NotificationPrefRepository extends JpaRepository<NotificationPref, Long> {
 
+    /** "Bugunun menusu" bildirimini acmis kullanicilar (anahtar kumeli sayfa; aktiflik/sessiz saat gonderimde elenir). */
+    @Query("SELECT p.userId FROM NotificationPref p WHERE p.menuDaily = true AND p.userId > :after ORDER BY p.userId")
+    List<Long> menuDailyUserIds(@Param("after") Long after, org.springframework.data.domain.Pageable page);
+
     /** Verilen kullanicilar icinden, bu bildirim turunu kapatmamis olanlar (aktif hesaplar). */
     @Query(value = """
             SELECT u.id FROM app_user u

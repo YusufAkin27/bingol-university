@@ -22,6 +22,8 @@ public class ClientContexts {
     public static final String DEVICE_HEADER = "X-Device-Id";
     public static final String PLATFORM_HEADER = "X-Device-Platform";
     public static final String VERSION_HEADER = "X-App-Version";
+    /** Istege bagli, yeni cihaz bildiriminde gosterilen cihaz adi (ornek "Samsung Galaxy S24"). */
+    public static final String MODEL_HEADER = "X-Device-Model";
 
     private static final Pattern RAW_DEVICE = Pattern.compile("[A-Za-z0-9._:\\-]{8,128}");
     private static final Pattern VERSION = Pattern.compile("[A-Za-z0-9._+\\-]{1,32}");
@@ -44,17 +46,33 @@ public class ClientContexts {
             return c;
         }
         ClientContext c = build(clientIp.of(req), req.getHeader(DEVICE_HEADER), req.getHeader(PLATFORM_HEADER),
-                req.getHeader(VERSION_HEADER));
+                req.getHeader(VERSION_HEADER), req.getHeader(MODEL_HEADER));
         req.setAttribute(ClientContext.REQUEST_ATTR, c);
         return c;
     }
 
     public ClientContext build(String ip, String rawDeviceId, String platform, String appVersion) {
+        return build(ip, rawDeviceId, platform, appVersion, null);
+    }
+
+    public ClientContext build(String ip, String rawDeviceId, String platform, String appVersion, String model) {
         String raw = rawDeviceId == null ? null : rawDeviceId.trim();
         String hash = raw != null && RAW_DEVICE.matcher(raw).matches() ? hash(raw) : null;
         return new ClientContext(ip, hash, platform(platform),
-                appVersion != null && VERSION.matcher(appVersion.trim()).matches() ? appVersion.trim() : null);
+                appVersion != null && VERSION.matcher(appVersion.trim()).matches() ? appVersion.trim() : null,
+                model(model));
     }
+
+    /** Cihaz modeli: harf/rakam/bosluk/. _ - + ( ) ve en cok 40 karakter; baska her sey elenir (bildirim metnine girer). */
+    static String model(String m) {
+        if (m == null) {
+            return null;
+        }
+        String v = m.strip();
+        return MODEL.matcher(v).matches() ? v : null;
+    }
+
+    private static final Pattern MODEL = Pattern.compile("[\\p{L}\\p{N} ._+()\\-]{1,40}");
 
     /** Ham cihaz kimliginin HMAC-SHA256 ozeti (kucuk harfli hex, 64 karakter). */
     public String hash(String raw) {

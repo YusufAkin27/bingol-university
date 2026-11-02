@@ -59,19 +59,16 @@ class FollowRequestNotifierTest {
         lang(12, "ar");
         ArgumentCaptor<Map<String, String>> data = ArgumentCaptor.forClass(Map.class);
         notifier.onFollowRequest(5L, 10L);
-        verify(notifications).send(eq(10L), eq(NotificationType.FOLLOW_REQUEST), eq(NotificationSubtype.FOLLOW_REQUEST),
-                eq("followreq:5"), eq("Takip isteği"), eq("Ayse seni takip etmek istiyor"), data.capture());
+        verify(notifications).sendCard(eq(10L), eq(NotificationType.FOLLOW_REQUEST), eq(NotificationSubtype.FOLLOW_REQUEST), eq("followreq:5"), eq("Takip isteği"), eq("Ayse seni takip etmek istiyor"), org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.any(), data.capture(), org.mockito.ArgumentMatchers.anyMap());
         assertEquals("FOLLOW_REQUESTS", data.getValue().get("target"));
         assertEquals("5", data.getValue().get("userId"));
 
         notifier.onFollowRequest(5L, 11L);
-        verify(notifications).send(eq(11L), eq(NotificationType.FOLLOW_REQUEST), eq(NotificationSubtype.FOLLOW_REQUEST),
-                eq("followreq:5"), eq("Follow request"), eq("Ayse wants to follow you"), anyMap());
+        verify(notifications).sendCard(eq(11L), eq(NotificationType.FOLLOW_REQUEST), eq(NotificationSubtype.FOLLOW_REQUEST), eq("followreq:5"), eq("Follow request"), eq("Ayse wants to follow you"), org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.any(), anyMap(), org.mockito.ArgumentMatchers.anyMap());
 
         notifier.onFollowRequest(5L, 12L);
         ArgumentCaptor<String> title = ArgumentCaptor.forClass(String.class);
-        verify(notifications).send(eq(12L), eq(NotificationType.FOLLOW_REQUEST), eq(NotificationSubtype.FOLLOW_REQUEST),
-                eq("followreq:5"), title.capture(), anyString(), anyMap());
+        verify(notifications).sendCard(eq(12L), eq(NotificationType.FOLLOW_REQUEST), eq(NotificationSubtype.FOLLOW_REQUEST), eq("followreq:5"), title.capture(), anyString(), org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.any(), anyMap(), org.mockito.ArgumentMatchers.anyMap());
         assertEquals("طلب متابعة", title.getValue());
     }
 
@@ -81,8 +78,7 @@ class FollowRequestNotifierTest {
         lang(20, "en");
         ArgumentCaptor<Map<String, String>> data = ArgumentCaptor.forClass(Map.class);
         notifier.onFollowAccepted(7L, 20L); // 7 kabul etti, 20 istek sahibi
-        verify(notifications).send(eq(20L), eq(NotificationType.FOLLOW_ACCEPTED), eq(NotificationSubtype.FOLLOW_ACCEPTED),
-                eq("followacc:7"), eq("Follow request accepted"), eq("Ayse accepted your follow request"), data.capture());
+        verify(notifications).sendCard(eq(20L), eq(NotificationType.FOLLOW_ACCEPTED), eq(NotificationSubtype.FOLLOW_ACCEPTED), eq("followacc:7"), eq("Follow request accepted"), eq("Ayse accepted your follow request"), org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.any(), data.capture(), org.mockito.ArgumentMatchers.anyMap());
         assertEquals("USER", data.getValue().get("target"));
         assertEquals("7", data.getValue().get("value"), "targetId = kabul eden");
     }
@@ -94,7 +90,6 @@ class FollowRequestNotifierTest {
         when(blocks.isBlocked(10L, 5L)).thenReturn(true);
         notifier.onFollowRequest(5L, 10L);
         notifier.onFollowAccepted(10L, 5L);
-        verify(notifications, never()).send(anyLong(), any(NotificationType.class), any(NotificationSubtype.class),
-                anyString(), anyString(), anyString(), anyMap());
+        verify(notifications, never()).sendCard(anyLong(), any(NotificationType.class), any(NotificationSubtype.class), anyString(), anyString(), anyString(), org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.any(), anyMap(), org.mockito.ArgumentMatchers.anyMap());
     }
 }

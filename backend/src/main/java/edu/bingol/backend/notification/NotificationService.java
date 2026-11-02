@@ -144,7 +144,7 @@ public class NotificationService {
                 : NotificationSubtype.MESSAGE_DIRECT;
         doSend(userId, NotificationType.MESSAGE, sub, key, title, stored,
                 pushPreview == null || pushPreview.isBlank() ? stored : pushPreview, data, push, pushExtra,
-                previewRequiresOptIn);
+                previewRequiresOptIn, null, null);
     }
 
     /**
@@ -304,12 +304,38 @@ public class NotificationService {
     /** Saklanan govde (`body`) ile push govdesi (`pushBody`) ayri olabilir. */
     public void send(Long userId, NotificationType type, NotificationSubtype subtype, String collapseKey,
                      String title, String body, String pushBody, Map<String, String> data) {
-        doSend(userId, type, subtype, collapseKey, title, body, pushBody, data, true, null, false);
+        doSend(userId, type, subtype, collapseKey, title, body, pushBody, data, true, null, false, null, null);
+    }
+
+    /**
+     * Stitch kart tasarimi icin zengin tek alicili gonderim. `pushTitle`/`pushBody` yalniz push metnidir (kutu satiri
+     * `title`/`body` ile yazilir; ornek: push "Mehmet gonderini begendi", kutu "Yeni begeni"). `pushExtra` yalniz push
+     * yukune eklenir, kutu satirina YAZILMAZ (gonderen avatari gibi sonradan gizlenebilir alanlar). Tercih, alt tur, sessiz
+     * saat ve hiz siniri ayni karar tablosundan gecer.
+     */
+    public void sendCard(Long userId, NotificationType type, NotificationSubtype subtype, String collapseKey,
+                         String title, String body, String pushTitle, String pushBody, Map<String, String> data,
+                         Map<String, String> pushExtra) {
+        doSend(userId, type, subtype, collapseKey, title, body, pushBody == null ? body : pushBody, data, true,
+                pushExtra, false, pushTitle, null);
+    }
+
+    /**
+     * Hesap guvenligi bildirimi (SYSTEM): tercih, alt tur anahtari ve sessiz saat uygulanmaz. Kutu satiri yazilir;
+     * push `targets` verilmisse YALNIZ o cihazlara ve DOGRUDAN gider (tek cihaz kurali/oturum iptali cihaz kaydini siler;
+     * kalici kuyruk kayitsiz cihaza gonderemez, bkz. PushDispatcher#dispatchDirect), null ise kullanicinin o anki tum
+     * cihazlarina normal yolla. Hata cagirana sizmaz.
+     */
+    public void sendSecurity(Long userId, String title, String body, Map<String, String> data,
+                             Collection<Device> targets) {
+        doSend(userId, NotificationType.SYSTEM, null, null, title, body, body, data, true, null, false, null,
+                targets == null ? null : List.copyOf(targets));
     }
 
     private void doSend(Long userId, NotificationType type, NotificationSubtype subtype, String collapseKey,
                         String title, String body, String pushBody, Map<String, String> data, boolean push,
-                        Map<String, String> pushExtra, boolean previewRequiresOptIn) {
+                        Map<String, String> pushExtra, boolean previewRequiresOptIn, String pushTitle,
+                        List<Device> directTargets) {
         try {
             // Askidaki/silinmis hesaba bildirim yok (SYSTEM = hesap/moderasyon bildirimleri istisna).
             if (type != NotificationType.SYSTEM && !guard.canReceive(userId)) {
@@ -374,7 +400,7 @@ public class NotificationService {
             if (type == NotificationType.POST_LIKE && count > 1) {
                 return; // birlesen begeni: ilk begeniden push gitti, devami yalniz kutuda guncellenir
             }
-            String pTitle = title;
+            String pTitle = pushTitle == null ? title : pushTitle;
             String pBody = pushBody;
             if (previewRequiresOptIn && (pref != null && !pref.isMessagePreview())) {
                 pBody = body; // onizleme izni yok: sabit "Yeni mesaj"
@@ -391,15 +417,21 @@ public class NotificationService {
                 if (type != NotificationType.SYSTEM && !gate.allowGeneralPush(userId)) {
                     return;
                 }
-                if (count > 1) {
+                if (count > 1 && pushTitle == null) {
                     pTitle = truncate(title, 180) + " (" + count + ")";
                 }
             }
-            List<String> tokens = devices.findByUserId(userId).stream().map(Device::getFcmToken).toList();
+            List<String> tokens = directTargets != null ? List.of()
+                    : devices.findByUserId(userId).stream().map(Device::getFcmToken).toList();
             int badge = (int) badgeOf(userId);
             Map<String, String> pushData = messagePushData(data, pushExtra,
                     type != NotificationType.MESSAGE || !previewRequiresOptIn || pref == null || pref.isMessagePreview());
-            push(tokens, pTitle, pBody, type, subtype, pushData, count, key, badge);
+            if (directTargets != null) {
+                dispatcher.dispatchDirect(directTargets, PushMessages.of(type, subtype, pTitle, pBody == null ? "" : pBody,
+                        PushPayload.build(type, subtype, pushData, count), key, badge));
+            } else {
+                push(tokens, pTitle, pBody, type, subtype, pushData, count, key, badge);
+            }
         } catch (RuntimeException e) {
             log.warn("Bildirim gonderilemedi (kullanici {}): {}", userId, e.toString());
         }
@@ -435,7 +467,21 @@ public class NotificationService {
                               Map<String, String> data) {
         Lang lang = i18n.langOf(userId);
         String body = bodyKey != null ? i18n.msg(bodyKey, lang) : bodyText;
-        send(userId, type, i18n.msg(titleKey, lang), body, data);
+        send(userId, type, i18n.msg(titleKey, lang), body, withCard(data, titleKey));
+    }
+
+    /**
+     * Sablon/baslik anahtarindan kart (NotifCard) bilinirse verinin kopyasina `card` ekler (uretici verdiyse dokunmaz).
+     * Boylece kart eylemleri uretici koduna dokunmadan hem push yukune hem bildirim kutusu satirina gecer.
+     */
+    static Map<String, String> withCard(Map<String, String> data, String key) {
+        NotifCard card = NotifCard.forKey(key);
+        if (card == null || data != null && data.containsKey("card")) {
+            return data;
+        }
+        Map<String, String> out = new java.util.LinkedHashMap<>(data == null ? Map.of() : data);
+        out.put("card", card.name());
+        return out;
     }
 
     /**
@@ -446,14 +492,14 @@ public class NotificationService {
                               Map<String, String> data, String... args) {
         Lang lang = i18n.langOf(userId);
         send(userId, type, subtype, null, i18n.msg(key + ".title", lang, (Object[]) args),
-                i18n.msg(key + ".body", lang, (Object[]) args), data);
+                i18n.msg(key + ".body", lang, (Object[]) args), withCard(data, key));
     }
 
     public void sendTemplated(Long userId, NotificationType type, String key, Map<String, String> data, String... args) {
         Lang lang = i18n.langOf(userId);
         NotificationSubtype sub = NotificationTemplates.find(key).map(NotificationTemplates.Template::subtype).orElse(null);
         send(userId, type, sub, null, i18n.msg(key + ".title", lang, (Object[]) args),
-                i18n.msg(key + ".body", lang, (Object[]) args), data);
+                i18n.msg(key + ".body", lang, (Object[]) args), withCard(data, key));
     }
 
     /**
@@ -464,7 +510,7 @@ public class NotificationService {
                              String collapseKey, String... args) {
         Lang lang = i18n.langOf(userId);
         send(userId, t.type(), t.subtype(), collapseKey, i18n.msg(t.key() + ".title", lang, (Object[]) args),
-                i18n.msg(t.key() + ".body", lang, (Object[]) args), data);
+                i18n.msg(t.key() + ".body", lang, (Object[]) args), withCard(data, t.key()));
     }
 
     /**
@@ -488,10 +534,11 @@ public class NotificationService {
 
     /** {@link #sendTemplatedBulk} ile ayni; birlesme anahtari alici basina farkli olabilir (null donen = birlesme yok). */
     public int sendTemplatedBulkBy(Collection<Long> userIds, NotificationTemplates.Template t,
-                                   Map<String, String> data, Function<Long, String> collapseKeyFn, String... args) {
+                                   Map<String, String> rawData, Function<Long, String> collapseKeyFn, String... args) {
         if (userIds == null || userIds.isEmpty() || t == null) {
             return 0;
         }
+        final Map<String, String> data = withCard(rawData, t.key());
         if (t.type() == NotificationType.MESSAGE) {
             throw new IllegalArgumentException("MESSAGE turu sendNewMessageBatch ile gonderilir");
         }

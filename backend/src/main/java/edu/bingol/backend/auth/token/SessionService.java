@@ -77,7 +77,7 @@ public class SessionService {
      * Yalniz `client` turundeki oturumlari kapatir. `newLogin`: tetikleyen, ayni kullanicinin yeni girisidir.
      * Yeni oturumun token'lari bu cagrindan SONRA uretilmelidir (iatms isaretten kesin buyuk olur).
      */
-    public void revokeClient(Long userId, String client, boolean newLogin) {
+    public boolean revokeClient(Long userId, String client, boolean newLogin) {
         String c = RefreshTokenService.normalizeClient(client);
         int n = refresh.revokeClient(userId, c);
         if (RefreshTokenService.MOBILE.equals(c)) {
@@ -88,5 +88,6 @@ public class SessionService {
             MilliTick.awaitNext();
         }
         events.publishEvent(new SessionsRevokedEvent(userId, c, newLogin, n > 0));
+        return n > 0; // iptal edilen en az bir refresh oturumu vardi
     }
 }

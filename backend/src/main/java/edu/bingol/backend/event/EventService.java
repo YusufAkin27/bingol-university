@@ -316,6 +316,9 @@ public class EventService {
         Texts.requireNoInvisible(changed(r.title(), e.getTitle()), changed(r.location(), e.getLocation()));
         boolean backToReview = e.getStatus() == UserEvent.Status.ACTIVE && textChanged && e.getCommunityId() != null
                 && (reservedNow || !isStaff(a, e.getCommunityId()));
+        // Katilimcilara "neyin degistigi" (eski -> yeni) bilgisi; yalniz zaman/yer degisimi
+        String change = changeLine(e.getStartsAt(), start, e.getLocation(),
+                r.location() == null ? e.getLocation() : Texts.blankToNull(r.location()));
         if (r.title() != null && !r.title().isBlank()) {
             e.setTitle(r.title().trim());
         }
@@ -340,7 +343,7 @@ public class EventService {
             rsvps.resetReminders(e.getId());
         }
         if (scheduleChanged && e.getStatus() == UserEvent.Status.ACTIVE) {
-            notifyGoing(e, "notif.event.updated");
+            notifyGoing(e, "notif.event.updated", change);
         }
         if (admission != null && r.capacity() != null) {
             admission.afterCapacityChanged(e);
@@ -441,7 +444,7 @@ public class EventService {
         events.saveAndFlush(e);
         media.release(oldCover);
         if (wasActive && e.getEndsAt().isAfter(Instant.now())) {
-            notifyGoing(e, "notif.event.cancelled");
+            notifyGoing(e, "notif.event.cancelled", null);
         }
         if (admission != null) {
             admission.onEventCancelled(e);
@@ -978,7 +981,23 @@ public class EventService {
      * FINAL-ALL (P05 ertelenen): GOING katilimcilara bildirim istek thread'inden ve acik islemden (etkinlik satir
      * kilidi dahil) cikarildi; COMMIT sonrasi havuzda, parca basina sabit sorguyla ({@code sendTemplatedBulk}) gider.
      */
-    private void notifyGoing(UserEvent e, String key) {
+    /** Zaman/yer degisimi ozeti: "02.11 13:00 -> 02.11 14:30 | Salon A -> Salon B" (degisen parcalar); bos olabilir. */
+    static String changeLine(Instant oldStart, Instant newStart, String oldLoc, String newLoc) {
+        java.time.format.DateTimeFormatter f = java.time.format.DateTimeFormatter.ofPattern("dd.MM HH:mm");
+        java.time.ZoneId z = java.time.ZoneId.of("Europe/Istanbul");
+        java.util.List<String> parts = new java.util.ArrayList<>();
+        if (oldStart != null && newStart != null && !oldStart.equals(newStart)) {
+            parts.add(f.format(oldStart.atZone(z)) + " → " + f.format(newStart.atZone(z)));
+        }
+        String o = oldLoc == null ? "" : oldLoc.trim();
+        String n = newLoc == null ? "" : newLoc.trim();
+        if (!o.equals(n) && !n.isEmpty()) {
+            parts.add((o.isEmpty() ? "" : o + " → ") + n);
+        }
+        return String.join(" | ", parts);
+    }
+
+    private void notifyGoing(UserEvent e, String key, String change) {
         Long eventId = e.getId();
         Long organizerId = e.getCreatedBy();
         String title = e.getTitle();
@@ -986,9 +1005,12 @@ public class EventService {
             NotificationTemplates.Template tpl = NotificationTemplates.of(key, NotificationType.EVENT);
             Map<String, String> data = Map.of("eventId", eventId.toString());
             // T-051: tum GOING katilimcilar (imecli sayfalar); eskiden ilk 500'de sessizce kesiliyordu
+            // `notif.event.updated.body` iki arguman ister ({1}: ": eski -> yeni" ya da bos); iptal tek argumanla gider
+            String[] args = change == null ? new String[] {title}
+                    : new String[] {title, change.isBlank() ? "" : ": " + change};
             boolean truncated = Paging.forEachChunk((after, n) -> rsvps.userIdsAfter(eventId, EventRsvp.Status.GOING, after, PageRequest.of(0, n)),
                     ids -> notifications.sendTemplatedBulk(ids.stream().filter(uid -> !uid.equals(organizerId)).toList(), tpl,
-                            data, null, title));
+                            data, null, args));
             if (truncated) { // FIX-P05 (A05#3): guvenlik tavanina carpildi; sessiz kesme degil, loglanir
                 log.warn("Etkinlik {} bildirimi alici tavaninda kesildi ({})", eventId, key);
             }

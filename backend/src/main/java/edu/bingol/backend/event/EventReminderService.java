@@ -82,10 +82,13 @@ public class EventReminderService {
         int sent = 0;
         for (Map.Entry<Long, List<Long>> en : usersByEvent.entrySet()) {
             UserEvent e = events.get(en.getKey());
-            String where = e.getLocation() == null ? "" : " (" + e.getLocation() + ")";
+            // Govde: "<ad> - Yarin 14:00 - <yer>" (saat Istanbul; yer yoksa son parca yok)
+            String time = e.getStartsAt() == null ? "" : java.time.format.DateTimeFormatter.ofPattern("HH:mm")
+                    .format(e.getStartsAt().atZone(java.time.ZoneId.of("Europe/Istanbul")));
+            String where = e.getLocation() == null || e.getLocation().isBlank() ? "" : " · " + e.getLocation().trim();
             try {
                 notifications.sendTemplatedBulk(en.getValue(), NotificationTemplates.of(key, NotificationType.EVENT),
-                        Map.of("eventId", e.getId().toString()), null, e.getTitle() + where);
+                        Map.of("eventId", e.getId().toString()), null, e.getTitle(), time, where);
                 sent += en.getValue().size();
             } catch (RuntimeException ex) {
                 log.warn("Hatirlatma gonderilemedi (etkinlik {}, {} alici): {}", e.getId(), en.getValue().size(), ex.toString());
