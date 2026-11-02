@@ -130,16 +130,16 @@ class DeviceAndPrefServiceTest {
     }
 
     @Test
-    void messagePreviewDefaultsOffAndCanBeTurnedOn() {
+    void messagePreviewDefaultsOnAndCanBeTurnedOff() {
         stubSave();
-        assertFalse(prefSvc.get(1L).messagePreview());
+        assertTrue(prefSvc.get(1L).messagePreview());
 
-        PrefsView v = prefSvc.update(1L, new PrefsUpdate(null, null, null, null, null, null, null, null, null, true));
-        assertTrue(v.messagePreview());
+        PrefsView v = prefSvc.update(1L, new PrefsUpdate(null, null, null, null, null, null, null, null, null, false));
+        assertFalse(v.messagePreview());
 
         // eski istemci (alan yok): degismez
         PrefsView w = prefSvc.update(1L, new PrefsUpdate(null, null, null, null, null, null, null));
-        assertFalse(w.messagePreview()); // stubSave her seferinde varsayilan satir doner; null alan degeri degistirmez
+        assertTrue(w.messagePreview()); // stubSave her seferinde varsayilan satir doner; null alan degeri degistirmez
     }
 
     @Test

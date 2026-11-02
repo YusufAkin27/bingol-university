@@ -198,6 +198,10 @@ class NotificationMessageBatchTest {
         yes.setUserId(1L);
         yes.setMessagePreview(true);
         prefMap.put(1L, yes);
+        NotificationPref no = new NotificationPref();
+        no.setUserId(2L);
+        no.setMessagePreview(false); // varsayilan artik ACIK: onizlemeyi kapatan kullanici acikca kapatmis olmali
+        prefMap.put(2L, no);
 
         svc.sendNewMessageBatch(List.of(target(1, true), target(2, true)), "Ali", "gizli metin", true, GROUP, 1);
 

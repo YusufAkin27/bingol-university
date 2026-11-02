@@ -39,6 +39,13 @@ public class PushDispatcher {
         void schedule(Runnable task, long delayMs);
     }
 
+    @org.springframework.beans.factory.annotation.Value("${PUBLIC_WEB_URL:}")
+    private String publicWebUrl = "";
+
+    /** Veri-mesaji (zengin) sohbet bildirimi: istemcide karsilayan kod yayinlanana dek KAPALI (yoksa bildirim hic gorunmez). */
+    @org.springframework.beans.factory.annotation.Value("${app.push.rich-chat-enabled:false}")
+    private boolean richChatEnabled = false;
+
     private final FcmSender fcm;
     private final DeviceRepository devices;
     private final Executor executor;
@@ -112,6 +119,24 @@ public class PushDispatcher {
     public void dispatch(Collection<String> tokens, PushMessage message) {
         if (tokens == null || tokens.isEmpty()) {
             return;
+        }
+        if (richChatEnabled && "chat".equals(message.channelId()) && !RichChatPayload.isRich(message)) {
+            try {
+                var all = java.util.List.copyOf(tokens);
+                var rich = new java.util.HashSet<String>();
+                for (int i = 0; i < all.size(); i += CHUNK) {
+                    var rows = devices.findByFcmTokenIn(all.subList(i, Math.min(i + CHUNK, all.size())));
+                    if (rows != null) rows.stream().filter(RichChatPayload::supports).map(Device::getFcmToken).forEach(rich::add);
+                }
+                if (!rich.isEmpty()) {
+                    dispatch(rich, RichChatPayload.enrich(message, publicWebUrl));
+                    tokens = all.stream().filter(t -> !rich.contains(t)).toList();
+                    if (tokens.isEmpty()) return;
+                }
+            } catch (RuntimeException e) {
+                // Surum kaydi sorgulanamazsa eski yol kullanilir; bildirim kaybolmaz.
+                log.warn("Zengin sohbet bildirimi surum kontrolu basarisiz: {}", e.getClass().getSimpleName());
+            }
         }
         if (outbox != null) {
             if (!outbox.accepting()) {

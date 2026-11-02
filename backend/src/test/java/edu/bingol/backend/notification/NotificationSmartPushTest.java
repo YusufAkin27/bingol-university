@@ -241,18 +241,18 @@ class NotificationSmartPushTest {
     }
 
     @Test
-    void previewRequiringOptInIsHiddenUntilTheUserTurnsItOn() {
+    void previewIsShownByDefaultAndHiddenOnlyWhenTheUserTurnsItOff() {
         when(i18n.msg("notif.message.new", Lang.TR)).thenReturn("Yeni mesaj");
 
-        svc.sendNewMessage(1L, "Ali", "gizli metin", true, CONV, true, null); // tercih satiri yok -> kapali
-        assertEquals("Yeni mesaj", fcm.messages().get(0).body());
+        svc.sendNewMessage(1L, "Ali", "gizli metin", true, CONV, true, null); // tercih satiri yok -> varsayilan ACIK
+        assertEquals("gizli metin", fcm.messages().get(0).body());
 
         NotificationPref p = NotificationPref.defaults(1L);
-        p.setMessagePreview(true);
+        p.setMessagePreview(false);
         when(prefs.findById(1L)).thenReturn(Optional.of(p));
         svc.sendNewMessage(1L, "Ali", "gizli metin", true, Map.of("conversationId", "6", "conversationType", "DIRECT"),
                 true, null);
-        assertEquals("gizli metin", fcm.messages().get(1).body());
+        assertEquals("Yeni mesaj", fcm.messages().get(1).body());
     }
 
     @Test

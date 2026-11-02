@@ -160,9 +160,11 @@ public class FirebaseFcmSender implements FcmSender {
     }
 
     private static MulticastMessage toMulticast(List<String> tokens, PushMessage m) {
-        return MulticastMessage.builder()
-                .setNotification(Notification.builder().setTitle(m.title()).setBody(m.body()).build())
-                .putAllData(m.data())
+        var builder = MulticastMessage.builder();
+        if (!edu.bingol.backend.notification.RichChatPayload.isRich(m)) {
+            builder.setNotification(Notification.builder().setTitle(m.title()).setBody(m.body()).build());
+        }
+        return builder.putAllData(m.data())
                 .setAndroidConfig(android(m))
                 .setApnsConfig(apns(m))
                 .addAllTokens(tokens)
@@ -190,8 +192,8 @@ public class FirebaseFcmSender implements FcmSender {
             n.setDefaultVibrateTimings(true);
         }
         AndroidConfig.Builder b = AndroidConfig.builder()
-                .setPriority(m.highPriority() ? AndroidConfig.Priority.HIGH : AndroidConfig.Priority.NORMAL)
-                .setNotification(n.build());
+                .setPriority(m.highPriority() ? AndroidConfig.Priority.HIGH : AndroidConfig.Priority.NORMAL);
+        if (!edu.bingol.backend.notification.RichChatPayload.isRich(m)) b.setNotification(n.build());
         if (m.ttlSeconds() != null && m.ttlSeconds() >= 0) {
             b.setTtl(m.ttlSeconds() * 1000L);
         }
