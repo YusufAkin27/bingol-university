@@ -142,8 +142,7 @@ class _SavedNewsPageState extends State<SavedNewsPage> {
                   padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
                   child: Semantics(
                     header: true,
-                    child: Text(l.icerikFavorites,
-                        style: tx.headlineMedium!.copyWith(fontSize: 28, fontWeight: FontWeight.w700, height: 1.2, color: t.ink)),
+                    child: BuFeatureTitle(title: l.icerikFavorites, icon: BuIcons.bookmark),
                   ),
                 ),
               ),

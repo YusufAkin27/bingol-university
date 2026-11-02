@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../../core/locale_controller.dart';
 import '../../widgets/bu.dart';
 import 'notification_prefs_page.dart' show PrefSwitch;
 
@@ -22,7 +21,8 @@ class ProfilCard extends StatelessWidget {
     final t = context.bu;
     final card = BuCard(
       padding: EdgeInsets.zero,
-      radius: BuRadius.md,
+      radius: 22,
+      style: BuCardStyle.elevated,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -46,41 +46,11 @@ class ProfilTopBar extends StatelessWidget {
   final Widget? trailing;
 
   @override
-  Widget build(BuildContext context) {
-    final t = context.bu;
-    final l = context.l10n;
-    void back() => onBack != null ? onBack!() : Navigator.maybePop(context);
-    return Padding(
-      padding: EdgeInsetsDirectional.fromSTEB(4, MediaQuery.paddingOf(context).top, 8, 0),
-      child: SizedBox(
-        height: 56,
-        child: Row(children: [
-          Semantics(
-            button: true,
-            label: l.commonBack,
-            excludeSemantics: true,
-            onTap: back,
-            child: IconButton(
-              constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
-              icon: Icon(buDirIcon(context, BuIcons.arrowLeft), size: 24, color: t.ink),
-              onPressed: back,
-            ),
-          ),
-          const SizedBox(width: 4),
-          Expanded(
-            child: Semantics(
-              header: true,
-              child: Text(title,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: Theme.of(context).textTheme.titleLarge!.copyWith(fontSize: 18, fontWeight: FontWeight.w600, color: t.ink)),
-            ),
-          ),
-          if (trailing != null) trailing!,
-        ]),
-      ),
-    );
-  }
+  Widget build(BuildContext context) => BuHeader(
+        title: title,
+        onBack: onBack ?? () => Navigator.maybePop(context),
+        actions: [if (trailing != null) trailing!],
+      );
 }
 
 /// Stitch v3 düz bölüm etiketi: 13/500 mut, büyük harf değil; üstte [top] dp boşluk.
@@ -125,22 +95,29 @@ class ProfilFlatGroup extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
-    return ColoredBox(
-      color: color ?? t.sf,
-      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        for (var i = 0; i < children.length; i++) ...[
-          if (i > 0) Divider(height: 1, thickness: 1, color: t.bd),
-          children[i],
-        ],
-      ]),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: BuCard(
+        radius: 22,
+        style: BuCardStyle.elevated,
+        color: color,
+        padding: EdgeInsets.zero,
+        child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+          for (var i = 0; i < children.length; i++) ...[
+            if (i > 0) Padding(padding: const EdgeInsets.symmetric(horizontal: 16), child: Divider(height: 1, thickness: 1, color: t.bd)),
+            children[i],
+          ],
+        ]),
+      ),
     );
   }
 }
 
 /// 56 dp düz satır: etiket 16 ink, sağda değer 15 mut + chevron 20 mut. [danger]: etiket danger (chevron yok).
 class ProfilFlatRow extends StatelessWidget {
-  const ProfilFlatRow({super.key, required this.label, this.value, this.onTap, this.danger = false, this.chevron = true, this.trailing});
+  const ProfilFlatRow({super.key, required this.label, this.value, this.onTap, this.danger = false, this.chevron = true, this.trailing, this.icon});
 
+  final IconData? icon;
   final String label;
   final String? value;
   final VoidCallback? onTap;
@@ -162,14 +139,17 @@ class ProfilFlatRow extends StatelessWidget {
       child: ConstrainedBox(
         constraints: const BoxConstraints(minHeight: 56),
         child: Padding(
-          padding: const EdgeInsetsDirectional.fromSTEB(20, 8, 16, 8),
+          padding: const EdgeInsetsDirectional.fromSTEB(16, 10, 12, 10),
           child: Row(children: [
+            if (icon != null) ...[
+              ProfilIconTile(icon: icon!, danger: danger),
+              const SizedBox(width: 12),
+            ],
             Expanded(
               child: Text(label,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
-                  style: tx.bodyLarge!.copyWith(
-                      fontSize: 16, color: danger ? t.danger : t.ink, fontWeight: danger ? FontWeight.w600 : FontWeight.w400)),
+                  style: tx.bodyLarge!.copyWith(fontSize: 16, color: danger ? t.danger : t.ink, fontWeight: FontWeight.w500)),
             ),
             if (value != null && value!.isNotEmpty) ...[
               const SizedBox(width: 8),
@@ -250,8 +230,7 @@ class ProfilSection extends StatelessWidget {
       padding: EdgeInsetsDirectional.only(start: 4, bottom: 8, top: top),
       child: Semantics(
         header: true,
-        child: Text(text,
-            style: Theme.of(context).textTheme.labelLarge!.copyWith(fontSize: 13, fontWeight: FontWeight.w500, color: t.mut)),
+        child: Text(text, style: Theme.of(context).textTheme.labelLarge!.copyWith(fontSize: 13, fontWeight: FontWeight.w500, color: t.mut)),
       ),
     );
   }
@@ -271,8 +250,8 @@ class ProfilIconTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
-    final bg = danger ? Theme.of(context).colorScheme.errorContainer : (tint?.bg ?? t.sf2);
-    final fg = color ?? (danger ? t.danger : (tint?.fg ?? t.ink));
+    final bg = danger ? Theme.of(context).colorScheme.errorContainer : (tint?.bg ?? t.soft);
+    final fg = color ?? (danger ? t.danger : (tint?.fg ?? t.onSoft));
     return Container(
       width: 36,
       height: 36,
@@ -342,12 +321,7 @@ class ProfilRow extends StatelessWidget {
                       softWrap: false,
                       overflow: TextOverflow.ellipsis,
                       style: tx.bodyLarge!.copyWith(fontWeight: icon == null ? FontWeight.w400 : FontWeight.w600, color: c)),
-                  if (sub != null)
-                    Text(sub!,
-                        maxLines: 1,
-                        softWrap: false,
-                        overflow: TextOverflow.ellipsis,
-                        style: tx.bodySmall!.copyWith(color: t.mut)),
+                  if (sub != null) Text(sub!, maxLines: 1, softWrap: false, overflow: TextOverflow.ellipsis, style: tx.bodySmall!.copyWith(color: t.mut)),
                 ],
               ),
             ),
@@ -356,10 +330,7 @@ class ProfilRow extends StatelessWidget {
               ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 110),
                 child: Text(value!,
-                    maxLines: 1,
-                    softWrap: false,
-                    overflow: TextOverflow.ellipsis,
-                    style: tx.bodyMedium!.copyWith(fontWeight: FontWeight.w400, color: t.mut)),
+                    maxLines: 1, softWrap: false, overflow: TextOverflow.ellipsis, style: tx.bodyMedium!.copyWith(fontWeight: FontWeight.w400, color: t.mut)),
               ),
             ],
             if (trailing != null) ...[const SizedBox(width: 8), trailing!],

@@ -91,8 +91,7 @@ class _PrivacyDataPageState extends State<PrivacyDataPage> {
         const SizedBox(width: 12),
         Expanded(
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
-            Text(l.profil2SaveFailed,
-                maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.titleSmall!.copyWith(color: t.bg, fontWeight: FontWeight.w700)),
+            Text(l.profil2SaveFailed, maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.titleSmall!.copyWith(color: t.bg, fontWeight: FontWeight.w700)),
             Text(l.p19SaveFailedSub, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.bodySmall!.copyWith(color: t.bg.withValues(alpha: .75))),
           ]),
         ),
@@ -254,10 +253,7 @@ class _PrivacyDataPageState extends State<PrivacyDataPage> {
                 key: ValueKey('privacy-row-$f'),
                 padding: const EdgeInsets.fromLTRB(20, 16, 20, 12),
                 child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-                  Text(labels[f]!,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: tx.bodyLarge!.copyWith(fontSize: 16, color: t.ink)),
+                  Text(labels[f]!, maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.bodyLarge!.copyWith(fontSize: 16, color: t.ink)),
                   const SizedBox(height: 4),
                   P2Segment3(
                     key: ValueKey('privacy-select-$f'),
@@ -305,11 +301,13 @@ class _PrivacyDataPageState extends State<PrivacyDataPage> {
               onChanged: _setSaveGallery,
             ),
             ProfilFlatRow(
+              icon: BuIcons.userX,
               label: l.profil2BlockedSection,
               value: _blockedCount,
               onTap: () => _push(BlockedUsersPage(session: widget.session)),
             ),
             ProfilFlatRow(
+              icon: BuIcons.download,
               label: l.profil2MyDataRow,
               onTap: () => _push(MyDataPage(session: widget.session)),
             ),

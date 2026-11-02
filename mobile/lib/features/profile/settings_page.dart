@@ -187,36 +187,7 @@ class _SettingsPageState extends State<SettingsPage> {
       backgroundColor: t.bg,
       body: Column(
         children: [
-          // Stitch v3: 56 dp üst çubuk, düz geri oku + başlık 18/600, çizgisiz.
-          Padding(
-            padding: EdgeInsetsDirectional.fromSTEB(4, MediaQuery.paddingOf(context).top, 16, 0),
-            child: SizedBox(
-              height: 56,
-              child: Row(children: [
-                Semantics(
-                  button: true,
-                  label: l.commonBack,
-                  excludeSemantics: true,
-                  onTap: () => Navigator.maybePop(context),
-                  child: IconButton(
-                    constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
-                    icon: Icon(buDirIcon(context, BuIcons.arrowLeft), size: 24, color: t.ink),
-                    onPressed: () => Navigator.maybePop(context),
-                  ),
-                ),
-                const SizedBox(width: 4),
-                Expanded(
-                  child: Semantics(
-                    header: true,
-                    child: Text(l.settingsTitle,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: tx.titleLarge!.copyWith(fontSize: 18, fontWeight: FontWeight.w600, color: t.ink)),
-                  ),
-                ),
-              ]),
-            ),
-          ),
+          ProfilTopBar(title: l.settingsTitle),
           Expanded(
             child: ListView(
               padding: EdgeInsets.only(bottom: MediaQuery.paddingOf(context).bottom + 32),
@@ -225,12 +196,14 @@ class _SettingsPageState extends State<SettingsPage> {
                 ProfilFlatGroup(children: [
                   ProfilFlatRow(
                     key: const ValueKey('settings-language'),
+                    icon: BuIcons.globe,
                     label: l.settingsLanguage,
                     value: langName,
                     onTap: lc != null ? _pickLang : null,
                   ),
                   ProfilFlatRow(
                     key: const ValueKey('settings-theme'),
+                    icon: BuIcons.palette,
                     label: l.profil1Theme,
                     value: _modeName(_modeId()),
                     onTap: _pickTheme,
@@ -240,10 +213,12 @@ class _SettingsPageState extends State<SettingsPage> {
                 ProfilFlatGroup(children: [
                   ProfilFlatRow(
                     key: const ValueKey('settings-chats'),
+                    icon: BuIcons.image,
                     label: l.p67ChatBgTitle,
                     onTap: () => _push(const ChatBackgroundSettingsPage()),
                   ),
                   ProfilFlatRow(
+                    icon: BuIcons.users,
                     label: l.settingsFindContacts,
                     onTap: () => _push(ContactsMatchPage(session: widget.session)),
                   ),
@@ -252,11 +227,13 @@ class _SettingsPageState extends State<SettingsPage> {
                 ProfilFlatGroup(children: [
                   ProfilFlatRow(
                     key: const ValueKey('settings-notif-prefs'),
+                    icon: BuIcons.bell,
                     label: l.profil1Notifications,
                     onTap: () => _push(NotificationPrefsPage(session: widget.session)),
                   ),
                   ProfilFlatRow(
                     key: const ValueKey('settings-push'),
+                    icon: BuIcons.bell,
                     label: l.p21HelpPermTitle,
                     value: pushValue,
                     onTap: () => _toast(_pushStatus == 'on' ? l.pushOnToast : l.pushStatusToast(pushText)),
@@ -267,22 +244,27 @@ class _SettingsPageState extends State<SettingsPage> {
                   listenable: _crash,
                   builder: (_, __) => ProfilFlatGroup(children: [
                     ProfilFlatRow(
+                      icon: BuIcons.lock,
                       label: l.settingsPrivacyData,
                       onTap: () => _push(PrivacyDataPage(session: widget.session)),
                     ),
                     ProfilFlatRow(
+                      icon: BuIcons.shieldCheck,
                       label: l.profil1AccountSecurity,
                       onTap: () => _push(AccountSecurityPage(session: widget.session)),
                     ),
                     ProfilFlatRow(
+                      icon: BuIcons.userX,
                       label: l.profilePrefsBlockedTitle,
                       onTap: () => _push(BlockedUsersPage(session: widget.session)),
                     ),
                     ProfilFlatRow(
+                      icon: BuIcons.headset,
                       label: l.settingsSupport,
                       onTap: () => _push(SupportPage(session: widget.session)),
                     ),
                     ProfilFlatRow(
+                      icon: BuIcons.info,
                       label: l.profileAboutShort,
                       onTap: () => _push(AboutPage(session: widget.session)),
                     ),
@@ -296,12 +278,14 @@ class _SettingsPageState extends State<SettingsPage> {
                     ),
                     ProfilFlatRow(
                       key: const ValueKey('settings-logout-all'),
+                      icon: BuIcons.logOut,
                       label: l.settingsLogoutAll,
                       danger: true,
                       onTap: _logoutAll,
                     ),
                     ProfilFlatRow(
                       key: const ValueKey('settings-sign-out'),
+                      icon: BuIcons.logOut,
                       label: l.profileSignOut,
                       onTap: _signOut,
                       chevron: false,

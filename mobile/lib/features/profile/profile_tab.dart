@@ -25,11 +25,7 @@ import 'saved_news_page.dart';
 /// tek kutuda 3 sütun sayaç (Takipçi · Takip · Gönderi) ve simgesiz 56 dp satır listeleri (İçeriğim, Uygulama tercihleri).
 /// Dil, tema, hesap, gizlilik, çıkış Ayarlar sayfasındadır. İlk yüklemede iskelet, çekerek yenile, aşamalı giriş.
 class ProfileTab extends StatefulWidget {
-  const ProfileTab(
-      {super.key,
-      required this.session,
-      required this.themeController,
-      this.localeController});
+  const ProfileTab({super.key, required this.session, required this.themeController, this.localeController});
 
   final Session session;
   final ThemeController themeController;
@@ -63,8 +59,7 @@ class _ProfileTabState extends State<ProfileTab> {
     final gen = ++_gen;
     if (_profile == null) setState(() => _loading = true);
     try {
-      final p =
-          await widget.session.api.get('/users/me') as Map<String, dynamic>;
+      final p = await widget.session.api.get('/users/me') as Map<String, dynamic>;
       if (!mounted || gen != _gen) return;
       final av = p['avatarUrl'];
       widget.session.avatarUrl.value = av is String && av.isNotEmpty ? av : null; // alt gezinme Profil sekmesi avatarı
@@ -86,8 +81,7 @@ class _ProfileTabState extends State<ProfileTab> {
   // Tek istekte kulüp / etkinlik / kayıtlı haber sayıları.
   Future<void> _loadStats() async {
     try {
-      final r =
-          await widget.session.api.get('/me/summary') as Map<String, dynamic>;
+      final r = await widget.session.api.get('/me/summary') as Map<String, dynamic>;
       if (!mounted) return;
       setState(() {
         _clubs = '${(r['communities'] as num?)?.toInt() ?? 0}';
@@ -121,8 +115,7 @@ class _ProfileTabState extends State<ProfileTab> {
   Future<void> _edit(Map<String, dynamic> p) async {
     final changed = await Navigator.push<bool>(
       context,
-      MaterialPageRoute(
-          builder: (_) => EditProfilePage(session: widget.session, profile: p)),
+      MaterialPageRoute(builder: (_) => EditProfilePage(session: widget.session, profile: p)),
     );
     if (changed == true) {
       _load();
@@ -156,9 +149,7 @@ class _ProfileTabState extends State<ProfileTab> {
       backgroundColor: t.bg,
       body: AnimatedSwitcher(
         duration: BuMotion.of(context, BuMotion.medium),
-        child: KeyedSubtree(
-            key: ValueKey(p != null ? 'ready' : (_loading ? 'load' : 'err')),
-            child: body),
+        child: KeyedSubtree(key: ValueKey(p != null ? 'ready' : (_loading ? 'load' : 'err')), child: body),
       ),
     );
   }
@@ -168,10 +159,7 @@ class _ProfileTabState extends State<ProfileTab> {
     final uid = widget.session.userId;
     int? n(String? v) => int.tryParse(v ?? '');
     final extraCells = [
-      StatCell(
-          label: l.icerikStatPosts,
-          value: n(_posts),
-          onTap: () => _go(UserPostsPage(session: widget.session))),
+      StatCell(label: l.icerikStatPosts, value: n(_posts), onTap: () => _go(UserPostsPage(session: widget.session))),
     ];
     // Stitch v3: bölüm etiketi + 56 dp simgesiz satırlar, tek kutu; kulüp/etkinlik sayıları satırın sağında (mut).
     return BuStaggerScope(
@@ -203,30 +191,36 @@ class _ProfileTabState extends State<ProfileTab> {
                 if (_followReq > 0)
                   ProfilRow(
                     key: const ValueKey('profile-follow-requests'),
+                    icon: BuIcons.userPlus,
                     label: l.frqReqTitle,
                     value: '$_followReq',
                     onTap: () => _go(FollowRequestsPage(session: widget.session)),
                   ),
                 ProfilRow(
+                  icon: BuIcons.image,
                   label: l.profileMyPosts,
                   onTap: () => _go(UserPostsPage(session: widget.session)),
                 ),
                 ProfilRow(
+                  icon: BuIcons.bookmark,
                   label: l.profileSaved,
                   value: _saved,
                   onTap: () => _go(SavedNewsPage(session: widget.session)),
                 ),
                 ProfilRow(
+                  icon: BuIcons.users,
                   label: l.profileMyClubs,
                   value: _clubs,
                   onTap: () => _go(MyClubsPage(session: widget.session)),
                 ),
                 ProfilRow(
+                  icon: BuIcons.calendar,
                   label: l.profileMyEvents,
                   value: _events,
                   onTap: () => _go(MyEventsPage(session: widget.session)),
                 ),
                 ProfilRow(
+                  icon: BuIcons.userPlus,
                   label: l.profileSuggested,
                   onTap: () => _go(FollowSuggestionsPage(session: widget.session)),
                 ),
@@ -239,14 +233,17 @@ class _ProfileTabState extends State<ProfileTab> {
               ProfilSection(l.p18SecPrefs, top: 24),
               ProfilCard(children: [
                 ProfilRow(
+                  icon: BuIcons.graduationCap,
                   label: l.profileAcademic,
                   onTap: () => _go(AcademicHubPage(session: widget.session)),
                 ),
                 ProfilRow(
+                  icon: BuIcons.bell,
                   label: l.notifTitle,
                   onTap: () => _go(NotificationPrefsPage(session: widget.session)),
                 ),
                 ProfilRow(
+                  icon: BuIcons.settings,
                   label: l.settingsTitle,
                   onTap: () => _go(SettingsPage(
                     session: widget.session,
@@ -255,6 +252,7 @@ class _ProfileTabState extends State<ProfileTab> {
                   )),
                 ),
                 ProfilRow(
+                  icon: BuIcons.headset,
                   label: l.profil1Support,
                   onTap: () => _go(SupportPage(session: widget.session)),
                 ),
@@ -282,13 +280,7 @@ class _TitleRow extends StatelessWidget {
         child: Semantics(
           container: true,
           header: true,
-          child: Text(l.p18ProfileTitle,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: Theme.of(context)
-                  .textTheme
-                  .headlineMedium!
-                  .copyWith(fontSize: 28, fontWeight: FontWeight.w700, color: t.ink)),
+          child: BuFeatureTitle(title: l.p18ProfileTitle, icon: BuIcons.user),
         ),
       ),
       const SizedBox(width: 12),
@@ -313,9 +305,7 @@ class _TitleRow extends StatelessWidget {
                   alignment: Alignment.center,
                   child: ExcludeSemantics(
                     child: Text(l.p18Edit,
-                        maxLines: 1,
-                        style: Theme.of(context).textTheme.labelLarge!.copyWith(
-                            fontSize: 13, color: t.onSoft, fontWeight: FontWeight.w500)),
+                        maxLines: 1, style: Theme.of(context).textTheme.labelLarge!.copyWith(fontSize: 13, color: t.onSoft, fontWeight: FontWeight.w500)),
                   ),
                 ),
               ),
@@ -339,34 +329,36 @@ class _ProfileHero extends StatelessWidget {
     final name = profile['displayName'] as String?;
     final year = (profile['classYear'] as num?)?.toInt();
     final g = profile['grade'];
-    final grade = (g is String && g.isNotEmpty)
-        ? gradeLabelL(context.l10n, g)
-        : (year != null && year > 0 ? context.l10n.profileGradeYear('$year') : '');
+    final grade = (g is String && g.isNotEmpty) ? gradeLabelL(context.l10n, g) : (year != null && year > 0 ? context.l10n.profileGradeYear('$year') : '');
     final facultyCanon = (profile['faculty'] as String?) ?? '';
     final dept = context.departmentName((profile['department'] as String?) ?? '', faculty: facultyCanon);
     final line1 = [dept, grade].where((s) => s.isNotEmpty).join(' · ');
     final bio = (profile['bio'] as String?) ?? '';
-    return Column(mainAxisSize: MainAxisSize.min, children: [
-      BuAvatar(name: name, url: profile['avatarUrl'] as String?, size: 88),
-      const SizedBox(height: 16),
-      Text(name ?? '',
-          textAlign: TextAlign.center,
-          maxLines: 3,
-          overflow: TextOverflow.ellipsis,
-          style: tx.headlineSmall!.copyWith(fontSize: 22, color: t.ink, fontWeight: FontWeight.w700)),
-      if (line1.isNotEmpty) ...[
-        const SizedBox(height: 4),
-        Text(line1, textAlign: TextAlign.center, style: tx.bodyLarge!.copyWith(fontSize: 15, color: t.mut)),
-      ],
-      if (bio.isNotEmpty) ...[
-        const SizedBox(height: 4),
-        Text(bio,
-            textAlign: TextAlign.center,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: tx.bodyLarge!.copyWith(fontSize: 15, height: 1.4, color: t.mut)),
-      ],
-    ]);
+    return BuCard(
+        radius: 24,
+        style: BuCardStyle.elevated,
+        padding: const EdgeInsets.all(20),
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
+          BuAvatar(name: name, url: profile['avatarUrl'] as String?, size: 88),
+          const SizedBox(height: 16),
+          Text(name ?? '',
+              textAlign: TextAlign.center,
+              maxLines: 3,
+              overflow: TextOverflow.ellipsis,
+              style: tx.headlineSmall!.copyWith(fontSize: 22, color: t.ink, fontWeight: FontWeight.w700)),
+          if (line1.isNotEmpty) ...[
+            const SizedBox(height: 4),
+            Text(line1, textAlign: TextAlign.center, style: tx.bodyLarge!.copyWith(fontSize: 15, color: t.mut)),
+          ],
+          if (bio.isNotEmpty) ...[
+            const SizedBox(height: 4),
+            Text(bio,
+                textAlign: TextAlign.center,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: tx.bodyLarge!.copyWith(fontSize: 15, height: 1.4, color: t.mut)),
+          ],
+        ]));
   }
 }
 
@@ -427,48 +419,29 @@ class _ProfileSkeleton extends StatelessWidget {
       child: SingleChildScrollView(
         physics: const NeverScrollableScrollPhysics(),
         padding: EdgeInsetsDirectional.fromSTEB(20, top + 12, 20, 24),
-        child:
-            Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
           if (error != null) ...[
             Container(
               key: const ValueKey('profile-error'),
               padding: const EdgeInsets.all(14),
-              decoration: BoxDecoration(
-                  color: cs.errorContainer, borderRadius: BuRadius.bMd),
+              decoration: BoxDecoration(color: cs.errorContainer, borderRadius: BuRadius.bMd),
               child: Row(children: [
                 Container(
                   width: 44,
                   height: 44,
-                  decoration: BoxDecoration(
-                      color: t.danger.withValues(alpha: .14),
-                      shape: BoxShape.circle),
+                  decoration: BoxDecoration(color: t.danger.withValues(alpha: .14), shape: BoxShape.circle),
                   child: Icon(BuIcons.wifiOff, size: 20, color: t.danger),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(l.p18ProfileLoadFailed,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            style: tx.titleSmall!.copyWith(
-                                fontWeight: FontWeight.w800,
-                                color: cs.onErrorContainer)),
-                        Text(errorText(error!),
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            style: tx.bodySmall!
-                                .copyWith(color: cs.onErrorContainer)),
-                      ]),
+                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
+                    Text(l.p18ProfileLoadFailed,
+                        maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w800, color: cs.onErrorContainer)),
+                    Text(errorText(error!), maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.bodySmall!.copyWith(color: cs.onErrorContainer)),
+                  ]),
                 ),
                 const SizedBox(width: 10),
-                BuButton(
-                    label: l.profileRetry,
-                    icon: BuIcons.refreshCw,
-                    compact: true,
-                    onPressed: onRetry),
+                BuButton(label: l.profileRetry, icon: BuIcons.refreshCw, compact: true, onPressed: onRetry),
               ]),
             ),
             const SizedBox(height: 16),

@@ -539,13 +539,12 @@ class _PrefCard extends StatelessWidget {
   final Widget child;
 
   @override
-  Widget build(BuildContext context) {
-    final t = context.bu;
-    return DecoratedBox(
-      decoration: BoxDecoration(color: t.sf, borderRadius: BuRadius.bMd, border: Border.all(color: t.bd)),
-      child: ClipRRect(borderRadius: BorderRadius.circular(BuRadius.md - 1), child: Material(type: MaterialType.transparency, child: child)),
-    );
-  }
+  Widget build(BuildContext context) => BuCard(
+        radius: 22,
+        style: BuCardStyle.elevated,
+        padding: EdgeInsets.zero,
+        child: child,
+      );
 }
 
 class _PrefDivider extends StatelessWidget {

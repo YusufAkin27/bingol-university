@@ -19,8 +19,7 @@ class LegalListPage extends StatefulWidget {
 class _LegalListPageState extends State<LegalListPage> {
   late Future<List<Map<String, dynamic>>> _future = _fetch();
 
-  Future<List<Map<String, dynamic>>> _fetch() async =>
-      List<Map<String, dynamic>>.from(await widget.session.api.get('/legal') as List);
+  Future<List<Map<String, dynamic>>> _fetch() async => List<Map<String, dynamic>>.from(await widget.session.api.get('/legal') as List);
 
   Future<void> _refresh() async {
     setState(() {
@@ -86,7 +85,7 @@ class _LegalListPageState extends State<LegalListPage> {
         children: [
           // Stitch v3 "16": kart/ikon yok; düz satırlar + ince ayırıcı.
           for (var i = 0; i < docs.length; i++) ...[
-            if (i > 0) Divider(height: 1, color: t.bd),
+            if (i > 0) const SizedBox(height: 10),
             _DocRow(
               doc: docs[i],
               onTap: () => Navigator.push(
@@ -111,7 +110,10 @@ class _DocRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.bu;
     final tx = Theme.of(context).textTheme;
-    return InkWell(
+    return BuCard(
+      style: BuCardStyle.elevated,
+      radius: 22,
+      padding: const EdgeInsets.symmetric(horizontal: 16),
       onTap: onTap,
       child: ConstrainedBox(
         constraints: const BoxConstraints(minHeight: 72),
@@ -119,6 +121,8 @@ class _DocRow extends StatelessWidget {
           padding: const EdgeInsets.symmetric(vertical: 16),
           child: Row(
             children: [
+              const BuFeatureIcon(icon: BuIcons.fileText, size: 36),
+              const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -186,8 +190,7 @@ class LegalDocPage extends StatefulWidget {
 class _LegalDocPageState extends State<LegalDocPage> {
   late Future<Map<String, dynamic>> _future = _fetch();
 
-  Future<Map<String, dynamic>> _fetch() async =>
-      await widget.session.api.get('/legal/${widget.type}') as Map<String, dynamic>;
+  Future<Map<String, dynamic>> _fetch() async => await widget.session.api.get('/legal/${widget.type}') as Map<String, dynamic>;
 
   @override
   Widget build(BuildContext context) {
@@ -204,33 +207,32 @@ class _LegalDocPageState extends State<LegalDocPage> {
             children: [
               BuHeader(
                 title: (d?['title'] as String?) ?? l.profileLegalTitle,
-                subtitle: d == null
-                    ? null
-                    : (date.isEmpty ? l.profileVersion('${d['version']}') : l.p01LgMetaLine('${d['version']}', date)),
+                subtitle: d == null ? null : (date.isEmpty ? l.profileVersion('${d['version']}') : l.p01LgMetaLine('${d['version']}', date)),
                 onBack: () => Navigator.pop(context),
               ),
               Expanded(
                 child: BuFadeThrough(
                   child: snap.connectionState != ConnectionState.done
-                    ? const LoadingView(key: ValueKey('doc-loading'))
-                    : snap.hasError
-                        ? ListView(
-                            key: const ValueKey('doc-error'),
-                            padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
-                            children: [
-                              _FailedRow(onRetry: () => setState(() {
-                                _future = _fetch();
-                              })),
-                            ],
-                          )
-                        : ListView(
-                            key: const ValueKey('doc-ok'),
-                            padding: const EdgeInsets.fromLTRB(20, 20, 20, 40),
-                            children: [
-                              // Kart yok (Stitch v3 "17"): metin doğrudan zeminde. Başlık/alıntı/tablo/kalın destekli Markdown; HTML yorumlanmaz.
-                              SimpleMarkdown((d!['content'] as String?) ?? ''),
-                            ],
-                          ),
+                      ? const LoadingView(key: ValueKey('doc-loading'))
+                      : snap.hasError
+                          ? ListView(
+                              key: const ValueKey('doc-error'),
+                              padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
+                              children: [
+                                _FailedRow(
+                                    onRetry: () => setState(() {
+                                          _future = _fetch();
+                                        })),
+                              ],
+                            )
+                          : ListView(
+                              key: const ValueKey('doc-ok'),
+                              padding: const EdgeInsets.fromLTRB(20, 20, 20, 40),
+                              children: [
+                                // Kart yok (Stitch v3 "17"): metin doğrudan zeminde. Başlık/alıntı/tablo/kalın destekli Markdown; HTML yorumlanmaz.
+                                SimpleMarkdown((d!['content'] as String?) ?? ''),
+                              ],
+                            ),
                 ),
               ),
             ],

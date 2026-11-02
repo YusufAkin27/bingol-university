@@ -219,20 +219,20 @@ class _MyDataPageState extends State<MyDataPage> with WidgetsBindingObserver {
                     child: Semantics(
                       liveRegion: true,
                       container: true,
-                      child: Text(_limitMessage!,
-                          key: const ValueKey('my-data-limit'),
-                          style: tx.bodySmall!.copyWith(fontSize: 13, color: t.danger)),
+                      child: Text(_limitMessage!, key: const ValueKey('my-data-limit'), style: tx.bodySmall!.copyWith(fontSize: 13, color: t.danger)),
                     ),
                   ),
                 const SizedBox(height: 32),
                 Divider(height: 1, thickness: 1, color: t.bd),
                 ProfilFlatGroup(color: Colors.transparent, children: [
                   ProfilFlatRow(
+                    icon: BuIcons.fileText,
                     label: l.profil2DataKvkk,
                     onTap: () => _push(LegalListPage(session: widget.session)),
                   ),
                   ProfilFlatRow(
                     key: const ValueKey('my-data-delete-row'),
+                    icon: BuIcons.trash2,
                     label: l.profilePrefsDeleteMyAccount,
                     danger: true,
                     onTap: () => _push(DeleteAccountPage(session: widget.session)),

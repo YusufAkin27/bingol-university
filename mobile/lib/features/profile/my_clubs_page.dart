@@ -250,8 +250,7 @@ class _MyClubsPageState extends State<MyClubsPage> {
                     const BuIllustrationView(BuIllustration.club, size: 140),
                     const SizedBox(height: 20),
                     Text(l.profilyardClubsEmptyTitle,
-                        textAlign: TextAlign.center,
-                        style: Theme.of(context).textTheme.titleLarge!.copyWith(color: t.ink, fontWeight: FontWeight.w800)),
+                        textAlign: TextAlign.center, style: Theme.of(context).textTheme.titleLarge!.copyWith(color: t.ink, fontWeight: FontWeight.w800)),
                     const SizedBox(height: 8),
                     Text(l.profilyardClubsEmptyBody,
                         textAlign: TextAlign.center, style: Theme.of(context).textTheme.bodyMedium!.copyWith(color: t.mut, height: 1.45)),
@@ -281,6 +280,7 @@ class _MyClubsPageState extends State<MyClubsPage> {
             if (member.isNotEmpty) ...[
               _SectionHead(title: l.profilePrefsClubsMember, count: l.p12CountClubs('${member.length}')),
               BuCard(
+                style: BuCardStyle.elevated,
                 padding: EdgeInsets.zero,
                 child: Column(
                   children: [
@@ -328,6 +328,7 @@ class _MyClubsPageState extends State<MyClubsPage> {
     final inReview = c['status'] == 'PENDING_REVIEW' || c['status'] == 'PENDING';
     final cat = (c['category'] as String?) ?? '';
     return BuCard(
+      style: BuCardStyle.elevated,
       onTap: () => _open(c),
       padding: const EdgeInsets.all(16),
       child: Row(
@@ -338,7 +339,8 @@ class _MyClubsPageState extends State<MyClubsPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text((c['name'] ?? '').toString(), maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.titleMedium!.copyWith(color: t.ink, fontWeight: FontWeight.w800)),
+                Text((c['name'] ?? '').toString(),
+                    maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.titleMedium!.copyWith(color: t.ink, fontWeight: FontWeight.w800)),
                 const SizedBox(height: 6),
                 Wrap(
                   spacing: 8,
@@ -391,7 +393,8 @@ class _MyClubsPageState extends State<MyClubsPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text((c['name'] ?? '').toString(), maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.titleSmall!.copyWith(color: t.ink, fontWeight: FontWeight.w800)),
+                  Text((c['name'] ?? '').toString(),
+                      maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.titleSmall!.copyWith(color: t.ink, fontWeight: FontWeight.w800)),
                   const SizedBox(height: 4),
                   Wrap(
                     spacing: 8,
@@ -418,6 +421,7 @@ class _MyClubsPageState extends State<MyClubsPage> {
     final tx = Theme.of(context).textTheme;
     final when = relativeTime((c['requestedAt'] ?? c['joinedAt'])?.toString(), context: context);
     return BuCard(
+      style: BuCardStyle.elevated,
       onTap: () => _open(c),
       padding: const EdgeInsets.fromLTRB(16, 14, 8, 0),
       child: Column(
@@ -433,7 +437,8 @@ class _MyClubsPageState extends State<MyClubsPage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text((c['name'] ?? '').toString(), maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.titleSmall!.copyWith(color: t.ink, fontWeight: FontWeight.w800)),
+                      Text((c['name'] ?? '').toString(),
+                          maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.titleSmall!.copyWith(color: t.ink, fontWeight: FontWeight.w800)),
                       const SizedBox(height: 4),
                       Wrap(
                         spacing: 8,
@@ -509,9 +514,7 @@ class _Pill extends StatelessWidget {
           if (icon != null) ...[ExcludeSemantics(child: Icon(icon, size: 12, color: fg)), const SizedBox(width: 4)],
           Flexible(
             child: Text(label,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: Theme.of(context).textTheme.labelSmall!.copyWith(color: fg, fontWeight: FontWeight.w800)),
+                maxLines: 2, overflow: TextOverflow.ellipsis, style: Theme.of(context).textTheme.labelSmall!.copyWith(color: fg, fontWeight: FontWeight.w800)),
           ),
         ],
       ),
@@ -537,7 +540,8 @@ class _SectionHead extends StatelessWidget {
           Expanded(
             child: Semantics(
               header: true,
-              child: Text(trUpper(title), maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.labelMedium!.copyWith(color: t.mut, fontWeight: FontWeight.w800, letterSpacing: .6)),
+              child: Text(trUpper(title),
+                  maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.labelMedium!.copyWith(color: t.mut, fontWeight: FontWeight.w800, letterSpacing: .6)),
             ),
           ),
           Text(count, style: tx.labelMedium!.copyWith(color: t.mut, fontWeight: FontWeight.w700)),

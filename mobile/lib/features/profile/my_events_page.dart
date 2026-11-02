@@ -268,8 +268,7 @@ class _MyEventsPageState extends State<MyEventsPage> {
                 ),
               ),
             ),
-          if (f.more)
-            const SliverToBoxAdapter(child: BuSkeletonList(variant: BuSkeletonVariant.row, itemCount: 1, shrinkWrap: true)),
+          if (f.more) const SliverToBoxAdapter(child: BuSkeletonList(variant: BuSkeletonVariant.row, itemCount: 1, shrinkWrap: true)),
         ],
       ),
     );
@@ -283,9 +282,7 @@ class _MyEventsPageState extends State<MyEventsPage> {
     }
     if (_tab == 1) {
       final n = [e['pendingRequestCount'], e['pendingRequests'], e['pendingCount']].whereType<num>().firstOrNull?.toInt();
-      return (n != null && n > 0)
-          ? EventStatusTag(l.profilyardEventPendingCount('$n'), tone: EventTone.warn, icon: BuIcons.userPlus)
-          : null;
+      return (n != null && n > 0) ? EventStatusTag(l.profilyardEventPendingCount('$n'), tone: EventTone.warn, icon: BuIcons.userPlus) : null;
     }
     return switch (e['myRsvp']) {
       'GOING' => _GoingPill(l.profilyardEventGoing),
@@ -319,6 +316,7 @@ class _MyEventsPageState extends State<MyEventsPage> {
     ];
 
     return BuCard(
+      style: BuCardStyle.elevated,
       key: ValueKey('my-ev-$id'),
       padding: const EdgeInsetsDirectional.fromSTEB(14, 14, 10, 12),
       radius: 20,
@@ -333,10 +331,7 @@ class _MyEventsPageState extends State<MyEventsPage> {
                   child: Icon(BuIcons.calendar, size: 22, color: t.mut),
                 )
               : EtkinlikDateBlock(
-                  month: eventMonthShortOf(context, start.month),
-                  day: '${start.day}',
-                  tone: past ? EtkinlikBlockTone.grey : EtkinlikBlockTone.blue,
-                  size: 48),
+                  month: eventMonthShortOf(context, start.month), day: '${start.day}', tone: past ? EtkinlikBlockTone.grey : EtkinlikBlockTone.blue, size: 48),
           const SizedBox(width: 12),
           Expanded(
             child: Padding(
@@ -358,10 +353,7 @@ class _MyEventsPageState extends State<MyEventsPage> {
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     style: tx.titleMedium!.copyWith(
-                        fontWeight: FontWeight.w700,
-                        height: 1.25,
-                        color: past ? t.mut : t.ink,
-                        decoration: cancelled ? TextDecoration.lineThrough : null)),
+                        fontWeight: FontWeight.w700, height: 1.25, color: past ? t.mut : t.ink, decoration: cancelled ? TextDecoration.lineThrough : null)),
               ]),
             ),
           ),

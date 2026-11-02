@@ -177,8 +177,7 @@ class _AccountSecurityPageState extends State<AccountSecurityPage> {
                         ExcludeSemantics(child: Icon(BuIcons.lock, size: 16, color: t.mut)),
                         const SizedBox(width: 6),
                         Flexible(
-                          child: Text('${l.profil2SecVerified} · ${l.profil2SecEmailFixed}',
-                              style: tx.bodySmall!.copyWith(fontSize: 12, color: t.mut)),
+                          child: Text('${l.profil2SecVerified} · ${l.profil2SecEmailFixed}', style: tx.bodySmall!.copyWith(fontSize: 12, color: t.mut)),
                         ),
                       ]),
                     ]),
@@ -253,6 +252,7 @@ class _AccountSecurityPageState extends State<AccountSecurityPage> {
                 ProfilFlatGroup(children: [
                   ProfilFlatRow(
                     key: const ValueKey('sec-logout-all'),
+                    icon: BuIcons.logOut,
                     label: l.settingsLogoutAll,
                     danger: true,
                     trailing: _loggingOut ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2)) : null,
