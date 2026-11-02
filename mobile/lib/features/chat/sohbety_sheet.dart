@@ -9,6 +9,7 @@ Future<T?> showSohbetySheet<T>(BuildContext context, WidgetBuilder builder) {
   final t = context.bu;
   return showModalBottomSheet<T>(
     context: context,
+    sheetAnimationStyle: BuMotionStyles.sheet(context),
     backgroundColor: t.sf3,
     barrierColor: t.scrim.withValues(alpha: .5),
     isScrollControlled: true,

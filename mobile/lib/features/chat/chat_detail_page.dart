@@ -1661,8 +1661,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
       final idx = _msgs.indexWhere((e) => (e['id'] as num?)?.toInt() == id);
       if (idx < 0 || !_scroll.hasClients) return;
       final target = (idx * 76.0).clamp(0.0, _scroll.position.maxScrollExtent);
-      await _scroll.animateTo(target,
-          duration: const Duration(milliseconds: 250), curve: Curves.easeOut);
+      await BuMotion.scrollTo(context, _scroll, target, duration: BuMotion.medium);
       await WidgetsBinding.instance.endOfFrame;
       if (!mounted) return;
       ctx = _rowKeys[id]?.currentContext;
@@ -1670,8 +1669,8 @@ class _ChatDetailPageState extends State<ChatDetailPage>
     if (ctx != null && ctx.mounted) {
       await Scrollable.ensureVisible(ctx,
           alignment: .5,
-          duration: const Duration(milliseconds: 250),
-          curve: Curves.easeOut);
+          duration: BuMotion.of(context, BuMotion.medium),
+          curve: BuMotion.standard);
     }
     if (!mounted) return;
     _hi.value = id;
@@ -1719,8 +1718,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
   void _scrollToEnd() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_scroll.hasClients) {
-        _scroll.animateTo(0,
-            duration: const Duration(milliseconds: 200), curve: Curves.easeOut);
+        BuMotion.scrollTo(context, _scroll, 0, duration: BuMotion.short);
       }
     });
   }
@@ -2812,9 +2810,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
               key: const ValueKey('scrollDown'),
               onTap: () {
                 _newBelow.value = 0;
-                _scroll.animateTo(0,
-                    duration: const Duration(milliseconds: 300),
-                    curve: Curves.easeOut);
+                BuMotion.scrollTo(c, _scroll, 0);
               },
               child: Stack(clipBehavior: Clip.none, children: [
                 Container(
@@ -3136,7 +3132,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
                 child: AnimatedRotation(
                   turns: _attachOpen ? .125 : 0,
                   duration: BuMotion.of(context, BuMotion.short),
-                  curve: Curves.easeOutCubic,
+                  curve: BuMotion.standard,
                   child: Icon(BuIcons.plus, size: 24, color: t.ink),
                 ),
               ),

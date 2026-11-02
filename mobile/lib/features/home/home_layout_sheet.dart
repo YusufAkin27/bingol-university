@@ -134,7 +134,7 @@ Widget _lifted(BuildContext context, Widget child, int index, Animation<double> 
   return AnimatedBuilder(
     animation: animation,
     builder: (context, c) {
-      final a = Curves.easeOut.transform(animation.value);
+      final a = BuMotion.standard.transform(animation.value);
       return Transform.scale(
         scale: 1 + .02 * a,
         child: DecoratedBox(

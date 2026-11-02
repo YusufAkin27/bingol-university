@@ -172,7 +172,8 @@ class _SelectCard extends StatelessWidget {
           ),
         ),
         AnimatedSize(
-          duration: const Duration(milliseconds: 200),
+          duration: BuMotion.of(context, BuMotion.short),
+          curve: BuMotion.standard,
           alignment: Alignment.topCenter,
           child: hasError
               ? Padding(

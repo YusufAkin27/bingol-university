@@ -217,7 +217,7 @@ class _Segment extends StatelessWidget {
     return TweenAnimationBuilder<double>(
       tween: Tween(begin: 0, end: done ? 1 : 0),
       duration: BuMotion.of(context, BuMotion.medium),
-      curve: Curves.easeOutCubic,
+      curve: BuMotion.standard,
       builder: (context, v, _) => ClipRRect(
         borderRadius: BorderRadius.circular(height),
         child: SizedBox(

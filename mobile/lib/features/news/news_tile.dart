@@ -358,7 +358,7 @@ class _SaveIcon extends StatelessWidget {
                       : null,
                   child: AnimatedSwitcher(
                     duration: BuMotion.of(context, BuMotion.medium),
-                    switchInCurve: Curves.easeOutBack,
+                    switchInCurve: BuMotion.success,
                     transitionBuilder: (c, a) => ScaleTransition(scale: a, child: c),
                     child: icon,
                   ),

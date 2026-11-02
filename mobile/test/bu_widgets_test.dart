@@ -54,8 +54,8 @@ void main() {
     expect(n, 1);
 
     await tester.pumpWidget(host(BuButton(label: 'Gönder', busy: true, onPressed: () => n++)));
-    // M0: etiket -> çember geçişi 150 ms yumuşak (giden etiket solarak çıkar).
-    await tester.pump(const Duration(milliseconds: 200));
+    // M0: etiket -> çember geçişi 200 ms (quick) yumuşak (giden etiket solarak çıkar).
+    await tester.pump(const Duration(milliseconds: 300));
     expect(find.text('Gönder'), findsNothing);
     expect(find.byType(CircularProgressIndicator), findsOneWidget);
     await tester.tap(find.byType(BuButton));

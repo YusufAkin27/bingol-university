@@ -328,11 +328,14 @@ class MenuStaleBanner extends StatelessWidget {
     return Semantics(
       liveRegion: true,
       container: true,
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(color: t.warnSoft, borderRadius: BuRadius.bMd, border: Border.all(color: t.warn.withValues(alpha: .25))),
-        child: Text(text, style: BuType.caption.copyWith(fontSize: 13, height: 1.4, color: t.onWarnSoft)),
+      child: BuFadeSlideIn(
+        offset: -8,
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(color: t.warnSoft, borderRadius: BuRadius.bMd, border: Border.all(color: t.warn.withValues(alpha: .25))),
+          child: Text(text, style: BuType.caption.copyWith(fontSize: 13, height: 1.4, color: t.onWarnSoft)),
+        ),
       ),
     );
   }

@@ -1,4 +1,3 @@
-import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -19,46 +18,16 @@ void authHaptic(AuthHaptic kind) {
   } catch (_) {}
 }
 
-/// Hata sarsıntısı: [trigger] artınca 380 ms'lik sönümlü yatay titreşim oynar.
-class AuthShake extends StatefulWidget {
+/// Hata sarsıntısı: [trigger] artınca hafif (±6 dp, 2,5 salınım, 320 ms) sönümlü yatay titreşim; taşma/ölçek yok.
+/// Ortak [BuShake]'e yönlenir; "animasyonları azalt" açıksa oynamaz.
+class AuthShake extends StatelessWidget {
   const AuthShake({super.key, required this.trigger, required this.child});
 
   final int trigger;
   final Widget child;
 
   @override
-  State<AuthShake> createState() => _AuthShakeState();
-}
-
-class _AuthShakeState extends State<AuthShake> with SingleTickerProviderStateMixin {
-  late final AnimationController _c = AnimationController(vsync: this, duration: const Duration(milliseconds: 380));
-
-  @override
-  void didUpdateWidget(AuthShake old) {
-    super.didUpdateWidget(old);
-    if (widget.trigger != old.trigger && !(MediaQuery.maybeDisableAnimationsOf(context) ?? false)) {
-      _c.forward(from: 0);
-    }
-  }
-
-  @override
-  void dispose() {
-    _c.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _c,
-      child: widget.child,
-      builder: (context, ch) {
-        final v = _c.value;
-        final dx = math.sin(v * math.pi * 5) * 9 * (1 - v);
-        return Transform.translate(offset: Offset(dx, 0), child: ch);
-      },
-    );
-  }
+  Widget build(BuildContext context) => BuShake(trigger: trigger, child: child);
 }
 
 /// Adım göstergesi çubuğu (kayıt): her parça sırayla soldan (RTL'de sağdan) dolar; geri gidince boşalır.

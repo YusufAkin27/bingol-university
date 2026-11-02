@@ -155,8 +155,8 @@ void main() {
       expect(BuRadius.sm, 12);
       expect(BuRadius.md, 16);
       expect(BuRadius.xl, 28);
-      expect(BuMotion.short, const Duration(milliseconds: 150));
-      expect(BuMotion.medium, const Duration(milliseconds: 250));
+      expect(BuMotion.short, const Duration(milliseconds: 200));
+      expect(BuMotion.medium, const Duration(milliseconds: 300));
       expect(BuMotion.long, const Duration(milliseconds: 400));
     });
 

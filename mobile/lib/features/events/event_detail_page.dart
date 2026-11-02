@@ -911,7 +911,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
       return TweenAnimationBuilder<double>(
         tween: Tween(begin: 0, end: 1),
         duration: BuMotion.of(context, BuMotion.long),
-        curve: Curves.easeOutBack,
+        curve: BuMotion.success,
         builder: (_, v, child) => Transform.scale(scale: .9 + .1 * v, child: Opacity(opacity: v.clamp(0.0, 1.0), child: child)),
         child: note(l.eventFormCheckedIn, key: const ValueKey('detail-checked-in')),
       );

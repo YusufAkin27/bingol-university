@@ -122,7 +122,8 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 AnimatedSize(
-                  duration: const Duration(milliseconds: 220),
+                  duration: BuMotion.of(context, BuMotion.medium),
+                  curve: BuMotion.standard,
                   alignment: Alignment.topCenter,
                   child: _expired
                       ? Padding(
@@ -140,7 +141,8 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                   onSubmitted: _sendCode,
                 ),
                 AnimatedSize(
-                  duration: const Duration(milliseconds: 220),
+                  duration: BuMotion.of(context, BuMotion.medium),
+                  curve: BuMotion.standard,
                   alignment: Alignment.topCenter,
                   child: _error == null
                       ? const SizedBox(width: double.infinity)
@@ -163,7 +165,8 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                   onPressed: _sendCode,
                 ),
                 AnimatedSize(
-                  duration: const Duration(milliseconds: 220),
+                  duration: BuMotion.of(context, BuMotion.medium),
+                  curve: BuMotion.standard,
                   alignment: Alignment.topCenter,
                   child: _sent && _error == null && !_busy
                       ? Padding(

@@ -115,7 +115,7 @@ class _FollowRequestsPageState extends State<FollowRequestsPage> {
     try {
       final left = await (accept ? _api.accept(r.userId) : _api.decline(r.userId));
       if (!mounted) return;
-      await Future<void>.delayed(BuMotion.of(context, const Duration(milliseconds: 220)));
+      await Future<void>.delayed(BuMotion.of(context, BuMotion.short));
       if (!mounted) return;
       setState(() {
         _items.removeWhere((e) => e.userId == r.userId);
@@ -310,8 +310,8 @@ class _RequestRow extends StatelessWidget {
         child: AnimatedAlign(
           alignment: Alignment.topCenter,
           heightFactor: leaving ? 0 : 1,
-          duration: BuMotion.of(context, const Duration(milliseconds: 220)),
-          curve: Curves.easeOutCubic,
+          duration: BuMotion.of(context, BuMotion.short),
+          curve: BuMotion.standard,
           child: row,
         ),
       ),

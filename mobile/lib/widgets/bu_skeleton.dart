@@ -17,7 +17,7 @@ class BuSkeletonScope extends StatefulWidget {
 }
 
 class _BuSkeletonScopeState extends State<BuSkeletonScope> with SingleTickerProviderStateMixin {
-  late final AnimationController _c = AnimationController(vsync: this, duration: const Duration(milliseconds: 1100));
+  late final AnimationController _c = AnimationController(vsync: this, duration: BuMotion.durations.ambient);
   bool? _reduced;
 
   @override
@@ -106,7 +106,7 @@ class _SkeletonPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final p = Paint()..color = Color.lerp(a, b, Curves.easeInOut.transform(anim.value))!;
+    final p = Paint()..color = Color.lerp(a, b, Curves.easeInOutSine.transform(anim.value))!;
     if (circle) {
       canvas.drawCircle(size.center(Offset.zero), size.shortestSide / 2, p);
     } else {

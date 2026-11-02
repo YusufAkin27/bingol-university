@@ -433,7 +433,7 @@ class _NavItem extends StatelessWidget {
                 child: AnimatedScale(
                   scale: show ? 1 : 0,
                   duration: BuMotion.of(context, BuMotion.medium),
-                  curve: Curves.easeOutBack,
+                  curve: BuMotion.success,
                   child: n > 0
                       ? BuPop(trigger: n, child: BuCountBadge(n, key: const ValueKey('nav-badge')))
                       : const SizedBox.shrink(),

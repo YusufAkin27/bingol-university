@@ -98,12 +98,12 @@ void main() {
   });
 
   group('hareket', () {
-    testWidgets('yeni doku 150 ms solarak gelir', (tester) async {
+    testWidgets('yeni doku 200 ms solarak gelir', (tester) async {
       await pumpWall(tester, style: ChatBgStyle.strong);
       await tester.pump();
       // Hedef opaklık 1; animasyon 0 -> 1 arasında sürüyor (ara kare).
       final o = tester.widget<AnimatedOpacity>(wall());
-      expect(o.duration, const Duration(milliseconds: 150));
+      expect(o.duration, const Duration(milliseconds: 200));
       await tester.pump(const Duration(milliseconds: 60));
       final mid = tester.widget<FadeTransition>(find.descendant(of: wall(), matching: find.byType(FadeTransition))).opacity.value;
       expect(mid, inExclusiveRange(0.0, 1.0));

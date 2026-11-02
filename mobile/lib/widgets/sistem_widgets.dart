@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../core/motion/bu_motion_widgets.dart';
 import '../core/theme.dart';
 import '../core/theme/bu_shape.dart';
 import '../core/theme/bu_sizes.dart';
@@ -202,20 +203,24 @@ class MaintenanceBand extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final fg = SistemTones.bandFg(context);
-    return Container(
-      margin: margin,
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-      decoration: BoxDecoration(
-        color: SistemTones.bandBg(context),
-        border: Border.all(color: SistemTones.bandBd(context)),
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Row(
-        children: [
-          ExcludeSemantics(child: Icon(icon, size: 16, color: fg)),
-          const SizedBox(width: 10),
-          Expanded(child: Text(text, style: BuType.label.copyWith(color: fg, height: 1.4, fontWeight: FontWeight.w500))),
-        ],
+    // Bant üstten 8 dp süzülerek belirir (yer açma animasyonu yok: yerleşim değişmez); kapanışta anında kalkar.
+    return BuFadeSlideIn(
+      offset: -8,
+      child: Container(
+        margin: margin,
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+        decoration: BoxDecoration(
+          color: SistemTones.bandBg(context),
+          border: Border.all(color: SistemTones.bandBd(context)),
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Row(
+          children: [
+            ExcludeSemantics(child: Icon(icon, size: 16, color: fg)),
+            const SizedBox(width: 10),
+            Expanded(child: Text(text, style: BuType.label.copyWith(color: fg, height: 1.4, fontWeight: FontWeight.w500))),
+          ],
+        ),
       ),
     );
   }

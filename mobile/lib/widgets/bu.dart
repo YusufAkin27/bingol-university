@@ -9,6 +9,7 @@ library;
 
 export '../core/haptics.dart';
 export '../core/icons/bu_icons.dart';
+export '../core/motion/bu_motion_widgets.dart';
 export '../core/motion/bu_number_style.dart';
 export '../core/motion/bu_scroll_behavior.dart';
 export '../core/theme/bu_design.dart';

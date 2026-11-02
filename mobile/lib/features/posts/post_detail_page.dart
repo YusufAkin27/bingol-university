@@ -333,7 +333,7 @@ class _BackButton extends StatelessWidget {
             child: Stack(alignment: Alignment.center, children: [
               AnimatedOpacity(
                 opacity: scrolled ? .94 : 0,
-                duration: BuMotion.of(context, const Duration(milliseconds: 120)),
+                duration: BuMotion.of(context, BuMotion.durations.micro),
                 child: DecoratedBox(
                   key: const ValueKey('postBackCircle'),
                   decoration: BoxDecoration(color: t.sf, shape: BoxShape.circle, border: Border.all(color: t.bd)),

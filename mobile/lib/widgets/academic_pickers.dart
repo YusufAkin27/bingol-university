@@ -257,6 +257,7 @@ class _InfoRow extends StatelessWidget {
 Future<String?> showGradeSheet(BuildContext context, {required List<AcademicGrade> grades, String? selected}) {
   return showModalBottomSheet<String>(
     context: context,
+    sheetAnimationStyle: BuMotionStyles.sheet(context),
     isScrollControlled: true,
     useSafeArea: true,
     backgroundColor: Colors.transparent,

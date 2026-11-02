@@ -93,7 +93,7 @@ void main() {
       // Stitch v3 02: Fotoğraf seç -> iki satırlık kaynak sayfası
       await settle(tester, const Duration(milliseconds: 900));
       await tester.tap(find.byKey(const ValueKey('photoSrcGallery')));
-      await settle(tester, const Duration(milliseconds: 300));
+      await settle(tester, const Duration(milliseconds: 500)); // geçişler quick 200 / standard 300 ms
       expect(asked, [ImageSource.gallery]);
       expect(find.byKey(const ValueKey('composePreview')), findsOneWidget);
       expect(find.byKey(const ValueKey('composePicker')), findsNothing);

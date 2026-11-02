@@ -699,7 +699,7 @@ class _HomeTabState extends State<HomeTab> {
       (label: l.icerikSavedList, icon: BuIcons.bookmark, action: () => _push(SavedNewsPage(session: _s))),
       (label: l.p60EditHome, icon: BuIcons.pencil, action: _editLayout),
     ];
-    showModalBottomSheet<void>(context: context, showDragHandle: true, builder: (sheetContext) => SafeArea(
+    showModalBottomSheet<void>(context: context, sheetAnimationStyle: BuMotionStyles.sheet(context), showDragHandle: true, builder: (sheetContext) => SafeArea(
       child: Column(mainAxisSize: MainAxisSize.min, children: [
         Padding(padding: const EdgeInsets.all(12), child: Text(l.homeMore, style: BuType.title.copyWith(color: context.bu.ink))),
         for (final entry in entries) ListTile(leading: Icon(entry.icon, color: context.bu.pr), title: Text(entry.label), onTap: () {

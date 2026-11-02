@@ -622,7 +622,7 @@ class _GalleryTileState extends State<_GalleryTile> {
           // Seçili kare hafif küçülür ve marka rengi çerçeve alır (yalnız transform).
           scale: 1,
           duration: BuMotion.of(context, BuMotion.short),
-          curve: Curves.easeOutCubic,
+          curve: BuMotion.standard,
           child: ClipRRect(
             borderRadius: BorderRadius.circular(10),
             child: Stack(fit: StackFit.expand, children: [

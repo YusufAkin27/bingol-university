@@ -284,7 +284,7 @@ class _ChatWallpaperState extends State<ChatWallpaper> {
                       child: AnimatedOpacity(
                         key: const ValueKey('chatWallpaper'),
                         opacity: opacity,
-                        duration: reduced ? Duration.zero : const Duration(milliseconds: 150),
+                        duration: reduced ? Duration.zero : BuMotion.short,
                         child: CustomPaint(painter: _TilePainter(img, dpr), size: Size.infinite),
                       ),
                     ),
@@ -322,7 +322,7 @@ class _ChatWallpaperState extends State<ChatWallpaper> {
                     errorBuilder: (c, e, st) => const SizedBox.shrink(),
                     frameBuilder: (c, child, frame, sync) => sync
                         ? child
-                        : AnimatedOpacity(opacity: frame == null ? 0 : 1, duration: reduced ? Duration.zero : const Duration(milliseconds: 150), child: child),
+                        : AnimatedOpacity(opacity: frame == null ? 0 : 1, duration: reduced ? Duration.zero : BuMotion.short, child: child),
                   );
                 }),
               ),

@@ -120,7 +120,7 @@ class _DiscoverMasonryFeedState extends State<DiscoverMasonryFeed> {
       _error = null;
     });
     if (_scroll.hasClients) {
-      _scroll.animateTo(0, duration: const Duration(milliseconds: 250), curve: Curves.easeOut);
+      BuMotion.scrollTo(context, _scroll, 0);
     }
   }
 
