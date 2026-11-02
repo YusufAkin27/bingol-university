@@ -10,6 +10,7 @@ import edu.bingol.backend.auth.token.PendingRegistrationStore;
 import edu.bingol.backend.auth.token.PendingRegistrationStore.Pending;
 import edu.bingol.backend.auth.token.MilliTick;
 import edu.bingol.backend.auth.token.RefreshTokenService;
+import edu.bingol.backend.auth.token.ResendCooldownException;
 import edu.bingol.backend.auth.token.SessionService;
 import edu.bingol.backend.auth.token.VerificationService;
 import edu.bingol.backend.auth.twofactor.TwoFactorRequiredException;
@@ -236,6 +237,7 @@ public class AuthService {
             // Yetkisiz adres: yetkili akisla ayni sure/cevap (parola ozeti + ayni dogrulamalar), yan etki YOK.
             ContentGuard.clean(contentGuard, Entity.PROFILE, "displayName", null, name);
             encoder.encode(password);
+            reserveVerifyCooldownQuietly(email);
             log.info("Yonetici portali kaydi yetkisiz adres icin sessizce atlandi: {}", LogMasking.email(email));
             return;
         }
@@ -245,6 +247,7 @@ public class AuthService {
                 // Yetkili ama zaten kayitli: 409 ADMIN_EMAILS uyeligini sizdirirdi; yetkisizle ayni sessiz 202.
                 ContentGuard.clean(contentGuard, Entity.PROFILE, "displayName", null, name);
                 encoder.encode(password);
+                reserveVerifyCooldownQuietly(email);
                 log.info("Yonetici portali kaydi zaten kayitli adres icin atlandi: {}", LogMasking.email(email));
                 return;
             }
@@ -268,18 +271,33 @@ public class AuthService {
         pending.save(email, new Pending(hash, name, lang.code(), fa, de, gr));
     }
 
+    /**
+     * Yonetici portali sessiz yollarinda (yetkisiz / zaten kayitli adres) da kod bekleme suresi baslar: yetkili adreste
+     * kod gonderimi beklemeyi baslattigindan, aksi halde ardindan `resend-code` 429 donup liste uyeligini sizdirirdi.
+     * Zaten sureliyse sessizce gecilir (kayit istegi 202 kalir).
+     */
+    private void reserveVerifyCooldownQuietly(String email) {
+        try {
+            verification.reserveVerifyCooldown(email);
+        } catch (ResendCooldownException e) {
+            log.debug("Yonetici portali bekleme zaten suruyor");
+        }
+    }
+
     public void resendCode(String rawEmail) {
         String email = normalizeEmail(rawEmail);
         verification.requireMailQuota();
+        // Bekleme hesap aramasindan ONCE rezerve edilir: sure dolmadan istek hesap var/yok fark etmeksizin 429
+        // RESEND_COOLDOWN + Retry-After alir (enumerasyon yok); var olmayan adres de ayni sureyi harcar.
+        verification.reserveVerifyCooldown(email);
         Pending p = pending.find(email);
         if (p == null) {
             return;
         }
         try {
-            verification.issue(email, Lang.of(p.language()));
+            verification.issueAfterReserve(email, Lang.of(p.language()));
             pending.markResend(email);
         } catch (ApiException e) {
-            // Bekleme suresi cevabi hesabin varligini sizdirirdi: ayni genel cevap doner.
             log.debug("resend-code atlandi: {}", e.code());
         } catch (RuntimeException e) {
             log.warn("Dogrulama e-postasi gonderilemedi: {}", e.getMessage());
@@ -287,20 +305,19 @@ public class AuthService {
         // Hesap yoksa/dogrulanmissa da ayni cevap doner (e-posta taramasini engellemek icin).
     }
 
+    /** Kod yeniden isteme bekleme suresi (saniye): kod gonderen uclarin yanitindaki `resendAfterSeconds`. */
+    public long codeResendSeconds() {
+        return verification.resendCooldownSeconds();
+    }
+
     /** Hesap var ve dogrulanmissa sifirlama kodu gonderir; her durumda ayni cevap (enumerasyon yok). */
     public void forgotPassword(String rawEmail) {
         String email = normalizeEmail(rawEmail);
         verification.requireMailQuota();
-        users.findByEmail(email).filter(User::isEmailVerified).filter(User::isActive).ifPresent(u -> {
-            try {
-                verification.issueReset(email, Lang.of(u.getLanguage()));
-            } catch (ApiException e) {
-                // Bekleme suresi cevabi hesabin varligini sizdirirdi: sessizce yutulur.
-                if (!"RESEND_COOLDOWN".equals(e.code())) {
-                    throw e;
-                }
-            }
-        });
+        // Bekleme hesap var/yok fark etmeksizin rezerve edilir: var olmayan adres de ayni 429'u alir.
+        verification.reserveResetCooldown(email);
+        users.findByEmail(email).filter(User::isEmailVerified).filter(User::isActive)
+                .ifPresent(u -> verification.issueResetAfterReserve(email, Lang.of(u.getLanguage())));
     }
 
     /** Sifirlama kodunu dogrular; dogruysa yeni sifre adimi icin tek kullanimlik anahtar verir. */

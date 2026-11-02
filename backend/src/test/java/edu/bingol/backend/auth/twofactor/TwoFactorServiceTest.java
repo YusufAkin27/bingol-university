@@ -240,10 +240,15 @@ class TwoFactorServiceTest {
     }
 
     @Test
-    void resendIssuesANewCodeWithoutTheSixtySecondCooldown() {
+    void resendIsRejectedWithinCooldownThenIssuesANewCodeAfterIt() {
         LoginChallengeResponse r = service.begin(user, ctx(DEV_A), "web");
         String first = lastCode();
         TwoFactorService.Challenge ch = service.peek(r.challengeToken());
+        // ilk gonderim 180 sn bekleme baslatti
+        edu.bingol.backend.auth.token.ResendCooldownException early = assertThrows(
+                edu.bingol.backend.auth.token.ResendCooldownException.class, () -> service.resend(r.challengeToken(), ch));
+        assertTrue(early.retryAfterSeconds() >= 1 && early.retryAfterSeconds() <= 180);
+        fake.values.keySet().removeIf(k -> k.startsWith("vcool:")); // 180 sn gecti
 
         long ttl = service.resend(r.challengeToken(), ch);
 

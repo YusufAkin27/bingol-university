@@ -3,6 +3,7 @@ package edu.bingol.backend.auth;
 import edu.bingol.backend.accessban.ClientContext;
 import edu.bingol.backend.accessban.ClientContexts;
 import edu.bingol.backend.auth.dto.ChangePasswordRequest;
+import edu.bingol.backend.auth.dto.CodeSentResponse;
 import edu.bingol.backend.auth.dto.EmailRequest;
 import edu.bingol.backend.auth.jwt.JwtService;
 import edu.bingol.backend.auth.token.RefreshTokenService;
@@ -99,7 +100,7 @@ public class AuthController {
 
     @PostMapping("/register")
     @ResponseStatus(HttpStatus.ACCEPTED)
-    public MessageResponse register(@Valid @RequestBody RegisterRequest r, HttpServletRequest http) {
+    public CodeSentResponse register(@Valid @RequestBody RegisterRequest r, HttpServletRequest http) {
         codeRequestLimits("register", http);
         // E-posta basina sinir: kod yenileme/posta bombalama ve bekleyen kaydi tekrar tekrar ezme engellenir.
         String ed = LoginThrottle.digest(AuthService.normalizeEmail(r.email()));
@@ -108,29 +109,29 @@ public class AuthController {
         Lang lang = r.language() != null ? Lang.of(r.language()) : Lang.of(LocaleContextHolder.getLocale());
         auth.register(r.email(), r.password(), r.displayName(), lang, r.faculty(), r.department(), r.grade(),
                 Boolean.TRUE.equals(r.adminPortal()));
-        return new MessageResponse(i18n.current("msg.register.sent"));
+        return new CodeSentResponse(i18n.current("msg.register.sent"), auth.codeResendSeconds());
     }
 
     @PostMapping("/resend-code")
     @ResponseStatus(HttpStatus.ACCEPTED)
-    public MessageResponse resendCode(@Valid @RequestBody EmailRequest r, HttpServletRequest http) {
+    public CodeSentResponse resendCode(@Valid @RequestBody EmailRequest r, HttpServletRequest http) {
         codeRequestLimits("resend", http);
         String ed = LoginThrottle.digest(AuthService.normalizeEmail(r.email()));
         limiter.check("resend:email:" + ed, 5, Duration.ofHours(1));
         codeMailCap(ed);
         auth.resendCode(r.email());
-        return new MessageResponse(i18n.current("msg.resend.sent"));
+        return new CodeSentResponse(i18n.current("msg.resend.sent"), auth.codeResendSeconds());
     }
 
     @PostMapping("/forgot-password")
     @ResponseStatus(HttpStatus.ACCEPTED)
-    public MessageResponse forgotPassword(@Valid @RequestBody EmailRequest r, HttpServletRequest http) {
+    public CodeSentResponse forgotPassword(@Valid @RequestBody EmailRequest r, HttpServletRequest http) {
         codeRequestLimits("forgot", http);
         String ed = LoginThrottle.digest(AuthService.normalizeEmail(r.email()));
         limiter.check("forgot:email:" + ed, 5, Duration.ofHours(1));
         codeMailCap(ed);
         auth.forgotPassword(r.email());
-        return new MessageResponse(i18n.current("msg.forgot.sent"));
+        return new CodeSentResponse(i18n.current("msg.forgot.sent"), auth.codeResendSeconds());
     }
 
     @PostMapping("/verify-reset-code")

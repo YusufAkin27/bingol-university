@@ -3,7 +3,7 @@ package edu.bingol.backend.auth.twofactor;
 import edu.bingol.backend.accessban.ClientContext;
 import edu.bingol.backend.accessban.ClientContexts;
 import edu.bingol.backend.auth.AuthService;
-import edu.bingol.backend.auth.dto.MessageResponse;
+import edu.bingol.backend.auth.dto.CodeSentResponse;
 import edu.bingol.backend.auth.dto.TokenResponse;
 import edu.bingol.backend.auth.jwt.JwtService;
 import edu.bingol.backend.auth.twofactor.TwoFactorDtos.ChallengeRequest;
@@ -81,7 +81,8 @@ public class TwoFactorController {
         limiter.check("tf2r:ip:" + clientIp.limitKey(http), limits.codeIpMax(), Duration.ofHours(1));
         // En cok 3 yeniden gonderme / 10 dk (challenge basina)
         limiter.check("tf2:resend:" + digest(r.challengeToken()), 3, Duration.ofMinutes(10));
-        return new ResendResponse(auth.resendTwoFactorCode(r.challengeToken(), contexts.of(http)));
+        return new ResendResponse(auth.resendTwoFactorCode(r.challengeToken(), contexts.of(http)),
+                twoFactor.resendCooldownSeconds());
     }
 
     // ------------------------------------------------------------------ ayarlar (JWT)
@@ -95,12 +96,12 @@ public class TwoFactorController {
 
     @PostMapping("/2fa/enable/request")
     @ResponseStatus(HttpStatus.ACCEPTED)
-    public MessageResponse requestEnable(Authentication authentication, HttpServletRequest http) {
+    public CodeSentResponse requestEnable(Authentication authentication, HttpServletRequest http) {
         Long userId = userId(authentication);
         limiter.check("tf:enreq:user:" + userId, 5, Duration.ofHours(1));
         limiter.check("tf:enreq:ip:" + clientIp.limitKey(http), limits.codeIpMax(), Duration.ofHours(1));
         twoFactor.requestEnable(userId);
-        return new MessageResponse(i18n.current("msg.twofactor.code.sent"));
+        return new CodeSentResponse(i18n.current("msg.twofactor.code.sent"), twoFactor.resendCooldownSeconds());
     }
 
     @PostMapping("/2fa/enable/confirm")

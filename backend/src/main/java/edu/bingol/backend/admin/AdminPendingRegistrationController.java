@@ -53,7 +53,7 @@ public class AdminPendingRegistrationController {
         return new VerifiedUser(u.getId(), u.getEmail(), u.getDisplayName(), u.getCreatedAt());
     }
 
-    /** Yeni dogrulama kodu gonderir (60 sn bekleme kurali gecerli). */
+    /** Yeni dogrulama kodu gonderir (180 sn bekleme kurali gecerli). */
     @PostMapping("/{email}/resend-code")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void resend(@PathVariable String email) {

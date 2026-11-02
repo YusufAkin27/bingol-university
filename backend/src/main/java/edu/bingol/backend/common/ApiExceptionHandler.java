@@ -47,6 +47,20 @@ public class ApiExceptionHandler {
         return body(e.status(), e.code(), i18n.error(e.code(), e.getMessage(), locale(), e.args()));
     }
 
+    /** Kod yeniden isteme beklemesi: Retry-After + govdede `retryAfterSeconds` (istemci geri sayimi buradan baslar). */
+    @ExceptionHandler(edu.bingol.backend.auth.token.ResendCooldownException.class)
+    ResponseEntity<Map<String, Object>> resendCooldown(edu.bingol.backend.auth.token.ResendCooldownException e) {
+        Map<String, Object> body = new java.util.LinkedHashMap<>();
+        body.put("code", e.code());
+        body.put("message", i18n.error(e.code(), e.getMessage(), locale(), e.args()));
+        body.put("retryAfterSeconds", e.retryAfterSeconds());
+        String id = org.slf4j.MDC.get("requestId");
+        if (id != null) {
+            body.put("traceId", id);
+        }
+        return json(e.status().value()).header(HttpHeaders.RETRY_AFTER, String.valueOf(e.retryAfterSeconds())).body(body);
+    }
+
     @ExceptionHandler(RateLimitedException.class)
     ResponseEntity<Map<String, String>> rateLimited(RateLimitedException e) {
         return json(e.status().value()).header(HttpHeaders.RETRY_AFTER, String.valueOf(e.retryAfterSeconds()))

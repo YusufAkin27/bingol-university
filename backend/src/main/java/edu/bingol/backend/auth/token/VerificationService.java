@@ -20,6 +20,8 @@ import org.springframework.stereotype.Service;
  * Limit asilirsa kod silinmez, adres gecici kilitlenir (baskasi yanlis denemelerle gercek kullanicinin kodunu
  * yakamasin); yeni kod istegi kilidi ve sayaci sifirlar. Dogru kod tek kullanimliktir.
  * Iki amac ayri anahtar alaninda tutulur: "vc" e-posta dogrulama, "pr" sifre sifirlama.
+ * Yeniden kod isteme beklemesi (varsayilan 180 sn) {@link CodeResendCooldown}'dadir (Redis `vcool:*`); kod gecerliligi
+ * (10 dk) ondan bagimsizdir.
  *
  * Hedefli kilitleme (DoS) ve kod yenilemeyle sayac sifirlama:
  * - `scope` (istemci anahtari, IPv6 /64'e indirgenmis IP) verilirse yanlis deneme sayaci (e-posta, istemci) cifti
@@ -33,7 +35,6 @@ public class VerificationService {
 
     static final Duration CODE_TTL = Duration.ofMinutes(10);
     static final Duration LOCK_TTL = Duration.ofMinutes(10);
-    private static final Duration RESEND_COOLDOWN = Duration.ofSeconds(60);
     static final int MAX_ATTEMPTS = 5;
     /** Bir kod icin tum istemcilerden toplam deneme siniri (istemci basina sinirin ustunde, DoS'a kapali). */
     static final int GLOBAL_ATTEMPTS = 20;
@@ -48,6 +49,7 @@ public class VerificationService {
 
     private final StringRedisTemplate redis;
     private final MailService mail;
+    private CodeResendCooldown cooldown;
     private final SecureRandom random = new SecureRandom();
     /**
      * Kod ozeti icin gizli tuz (T-009): 6 haneli kodun SHA-256'si tuzsuzken Redis sizintisinda 1e6 denemeyle kirilirdi.
@@ -61,6 +63,37 @@ public class VerificationService {
         this.mail = mail;
     }
 
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setCooldown(CodeResendCooldown cooldown) {
+        this.cooldown = cooldown;
+    }
+
+    /** Birim testleri Spring disinda kurar: varsayilan sureyle yerel ornek. */
+    private CodeResendCooldown cd() {
+        if (cooldown == null) {
+            cooldown = new CodeResendCooldown(redis);
+        }
+        return cooldown;
+    }
+
+    /** Yeniden kod isteme bekleme suresi (saniye): istemciye `resendAfterSeconds` olarak doner. */
+    public long resendCooldownSeconds() {
+        return cd().seconds();
+    }
+
+    /**
+     * Kayit/e-posta dogrulama kodu beklemesini hesap aramasindan ONCE rezerve eder (var/yok fark etmez; zaten
+     * sureliyse 429 RESEND_COOLDOWN). Ardindan {@link #issueAfterReserve} cagrilir.
+     */
+    public void reserveVerifyCooldown(String email) {
+        cd().acquire(CodeResendCooldown.VERIFY, email);
+    }
+
+    /** Sifre sifirlama icin ayni (hesap var/yok fark etmeksizin) rezervasyon. */
+    public void reserveResetCooldown(String email) {
+        cd().acquire(CodeResendCooldown.RESET, email);
+    }
+
     /** Gunluk e-posta kotasi doluysa genel 503 MAIL_QUOTA_EXHAUSTED (e-postadan bagimsiz: enumerasyon yok). */
     public void requireMailQuota() {
         mail.requireCodeQuota();
@@ -71,20 +104,30 @@ public class VerificationService {
         mail.requireAccountCodeQuota();
     }
 
-    /** Yeni kayit dogrulama kodu uretip gonderir. Ayni adrese 60 sn icinde tekrar gonderimi reddeder. */
+    /** Yeni kayit dogrulama kodu uretip gonderir. Ayni adrese bekleme suresi (180 sn) icinde tekrar gonderimi reddeder. */
     public void issue(String email, Lang lang) {
-        issue(VERIFY, email, lang);
+        issue(VERIFY, email, email, lang, true);
+    }
+
+    /** Bekleme {@link #reserveVerifyCooldown} ile ONCEDEN rezerve edilmisse kod gonderir (tekrar kontrol etmez). */
+    public void issueAfterReserve(String email, Lang lang) {
+        issue(VERIFY, email, email, lang, false);
     }
 
     /** Sifre sifirlama kodu uretip gonderir (ayri anahtar alani, ayni kurallar). */
     public void issueReset(String email, Lang lang) {
-        issue(RESET, email, lang);
+        issue(RESET, email, email, lang, true);
+    }
+
+    /** Bekleme {@link #reserveResetCooldown} ile ONCEDEN rezerve edilmisse sifirlama kodu gonderir. */
+    public void issueResetAfterReserve(String email, Lang lang) {
+        issue(RESET, email, email, lang, false);
     }
 
     /** Yonetici dogrulamasindan sonra e-posta dogrulama kodunu, sayaclarini, kilidini ve beklemeyi temizler. */
     public void clearVerify(String email) {
-        redis.delete(List.of(VERIFY + ":" + email, VERIFY + ":att:" + email, VERIFY + ":lock:" + email,
-                VERIFY + ":cd:" + email));
+        redis.delete(List.of(VERIFY + ":" + email, VERIFY + ":att:" + email, VERIFY + ":lock:" + email));
+        cd().release(CodeResendCooldown.VERIFY, email);
     }
 
     /** Kod dogruysa true (ve kod tuketilir); yanlis/suresi gecmisse false; kilitliyse veya limit asilirsa 429. */
@@ -147,11 +190,24 @@ public class VerificationService {
     /**
      * Iki faktorlu giris/etkinlestirme kodu ("tf" anahtar alani). {@code subject} e-posta degildir: giris icin
      * {@code <kullanici>:<challenge ozeti>}, etkinlestirme icin {@code <kullanici>:enable} (her biri ayri kod ve
-     * sayac); kod {@code to} adresine gider. Kimliksiz akislardaki 60 sn bekleme YOKTUR (sifre
-     * dogrulanmis kullaniciya gider; yeniden gonderme siniri cagiranda, challenge basinadir); geri kalan her kural
-     * (hash, 10 dk, 5 deneme, istemci kapsami, saatlik toplam) ayni kodu paylasir.
+     * sayac); kod {@code to} adresine gider. Yeniden gonderme beklemesi (180 sn) KONU basinadir (challenge ya da
+     * etkinlestirme); geri kalan her kural (hash, 10 dk, 5 deneme, istemci kapsami, saatlik toplam) ayni kodu paylasir.
      */
     public void issueTwoFactor(String subject, String to, Lang lang) {
+        issue(TWO_FACTOR, subject, to, lang, true);
+    }
+
+    /** Iki faktorlu bekleme rezervasyonu (cagiran diger kota/sinirlardan ONCE alir; sonra {@link #issueTwoFactorAfterReserve}). */
+    public void reserveTwoFactorCooldown(String subject) {
+        cd().acquire(CodeResendCooldown.TWO_FACTOR, subject);
+    }
+
+    /** Rezervasyon sonradan geri alinir (sinir/kota nedeniyle kod gonderilemedi). */
+    public void releaseTwoFactorCooldown(String subject) {
+        cd().release(CodeResendCooldown.TWO_FACTOR, subject);
+    }
+
+    public void issueTwoFactorAfterReserve(String subject, String to, Lang lang) {
         issue(TWO_FACTOR, subject, to, lang, false);
     }
 
@@ -165,20 +221,18 @@ public class VerificationService {
         redis.delete(List.of(TWO_FACTOR + ":" + subject, TWO_FACTOR + ":att:" + subject,
                 TWO_FACTOR + ":lock:" + subject, TWO_FACTOR + ":gatt:" + subject));
         clearScoped(TWO_FACTOR, subject);
+        cd().release(CodeResendCooldown.TWO_FACTOR, subject);
     }
 
-    private void issue(String ns, String email, Lang lang) {
-        issue(ns, email, email, lang, true);
+    private static String flowOf(String ns) {
+        return RESET.equals(ns) ? CodeResendCooldown.RESET
+                : TWO_FACTOR.equals(ns) ? CodeResendCooldown.TWO_FACTOR : CodeResendCooldown.VERIFY;
     }
 
     /** `email` hem anahtar hem varsayilan alici; iki faktorlu kodda anahtar kullanici kimligi, alici `to`. */
-    private void issue(String ns, String email, String to, Lang lang, boolean cooldown) {
-        if (cooldown) {
-            Boolean first = redis.opsForValue().setIfAbsent(ns + ":cd:" + email, "1", RESEND_COOLDOWN);
-            if (!Boolean.TRUE.equals(first)) {
-                throw new ApiException(HttpStatus.TOO_MANY_REQUESTS, "RESEND_COOLDOWN",
-                        "Yeni kod için lütfen 1 dakika bekleyin.");
-            }
+    private void issue(String ns, String email, String to, Lang lang, boolean acquireCooldown) {
+        if (acquireCooldown) {
+            cd().acquire(flowOf(ns), email); // zaten sureliyse 429 RESEND_COOLDOWN (Retry-After = kalan sure)
         }
         String code = String.format("%06d", random.nextInt(1_000_000));
         redis.opsForValue().set(ns + ":" + email, hash(email, code), CODE_TTL);
@@ -201,7 +255,7 @@ public class VerificationService {
             }
         } catch (RuntimeException e) {
             // Gonderilemediyse bekleme suresi kullaniciyi cezalandirmasin.
-            redis.delete(ns + ":cd:" + email);
+            cd().release(flowOf(ns), email);
             redis.delete(ns + ":" + email);
             throw e;
         }

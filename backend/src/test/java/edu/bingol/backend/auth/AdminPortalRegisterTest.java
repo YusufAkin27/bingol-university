@@ -15,7 +15,7 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import edu.bingol.backend.accessban.ClientContexts;
-import edu.bingol.backend.auth.dto.MessageResponse;
+import edu.bingol.backend.auth.dto.CodeSentResponse;
 import edu.bingol.backend.auth.dto.RegisterRequest;
 import edu.bingol.backend.auth.jwt.JwtService;
 import edu.bingol.backend.auth.token.PendingRegistrationStore;
@@ -140,8 +140,8 @@ class AdminPortalRegisterTest {
         when(i18n.current("msg.register.sent")).thenReturn("Kod gonderildi");
         when(users.findByEmail(ADMIN_GMAIL)).thenReturn(Optional.empty());
 
-        MessageResponse authorized = controller.register(req(ADMIN_GMAIL, PW, true), from("203.0.113.9"));
-        MessageResponse unauthorized = controller.register(req(STUDENT, PW, true), from("203.0.113.9"));
+        CodeSentResponse authorized = controller.register(req(ADMIN_GMAIL, PW, true), from("203.0.113.9"));
+        CodeSentResponse unauthorized = controller.register(req(STUDENT, PW, true), from("203.0.113.9"));
 
         assertEquals(authorized, unauthorized);
         assertEquals("Kod gonderildi", unauthorized.message());

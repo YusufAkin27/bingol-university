@@ -43,7 +43,7 @@ public final class PublicSupportDtos {
                                     @NotBlank @Size(max = 2000) String text) {}
 
     /** Her zaman ayni cevap (enumerasyona/otomasyona karsi). */
-    public record CodeSent(String status, int expiresInMinutes) {}
+    public record CodeSent(String status, int expiresInMinutes, long resendAfterSeconds) {}
 
     /** E-posta dogrulandi: talep numarasi ve (yalnizca bu cevapta duz metin) durum sorgu anahtari. */
     public record Verified(Long ticketId, String trackToken) {}

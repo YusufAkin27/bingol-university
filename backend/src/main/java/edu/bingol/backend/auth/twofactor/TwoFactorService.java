@@ -151,7 +151,8 @@ public class TwoFactorService {
             redis.delete(key);
             throw e;
         }
-        return new LoginChallengeResponse(true, token, maskEmail(user.getEmail()), CHALLENGE_TTL.toSeconds());
+        return new LoginChallengeResponse(true, token, maskEmail(user.getEmail()), CHALLENGE_TTL.toSeconds(),
+                verification.resendCooldownSeconds());
     }
 
     /**
@@ -222,16 +223,32 @@ public class TwoFactorService {
         }
     }
 
-    /** Ayni challenge icin yeni kod (sinir cagiranda: 3 / 10 dk). Challenge omru uzar. */
+    /**
+     * Ayni challenge icin yeni kod (sinir cagiranda: 3 / 10 dk; ayrica kod yeniden isteme beklemesi 180 sn, ihlalde
+     * 429 RESEND_COOLDOWN + Retry-After). Bekleme diger kota/sinirlardan ONCE alinir: erken istekler onlari tuketmez;
+     * kod gonderilemezse bekleme geri verilir. Challenge omru uzar.
+     */
     public long resend(String challengeToken, Challenge ch) {
         peek(challengeToken);
         User u = users.findById(ch.userId()).orElseThrow(TwoFactorService::challengeExpired);
-        verification.requireAccountMailQuota();
-        limiter.check("tf:code:user:" + u.getId(), MAX_CODE_MAILS_PER_HOUR, Duration.ofHours(1));
         String hash = Hashing.sha256(challengeToken);
-        verification.issueTwoFactor(challengeSubject(u.getId(), hash), u.getEmail(), Lang.of(u.getLanguage()));
+        String subject = challengeSubject(u.getId(), hash);
+        verification.reserveTwoFactorCooldown(subject);
+        try {
+            verification.requireAccountMailQuota();
+            limiter.check("tf:code:user:" + u.getId(), MAX_CODE_MAILS_PER_HOUR, Duration.ofHours(1));
+            verification.issueTwoFactorAfterReserve(subject, u.getEmail(), Lang.of(u.getLanguage()));
+        } catch (RuntimeException e) {
+            verification.releaseTwoFactorCooldown(subject);
+            throw e;
+        }
         redis.expire(CHALLENGE_PREFIX + hash, CHALLENGE_TTL);
         return CHALLENGE_TTL.toSeconds();
+    }
+
+    /** Kod yeniden isteme bekleme suresi (saniye); istemci geri sayim varsayilani. */
+    public long resendCooldownSeconds() {
+        return verification.resendCooldownSeconds();
     }
 
     // ------------------------------------------------------------------ guvenilen cihazlar
@@ -312,9 +329,16 @@ public class TwoFactorService {
             throw new ApiException(HttpStatus.CONFLICT, "TWO_FACTOR_ALREADY_ENABLED",
                     "İki faktörlü doğrulama zaten açık.");
         }
-        verification.requireAccountMailQuota();
-        limiter.check("tf:code:user:" + userId, MAX_CODE_MAILS_PER_HOUR, Duration.ofHours(1));
-        verification.issueTwoFactor(enableSubject(userId), u.getEmail(), Lang.of(u.getLanguage()));
+        String subject = enableSubject(userId);
+        verification.reserveTwoFactorCooldown(subject); // 180 sn: erken istek kota/siniri tuketmez
+        try {
+            verification.requireAccountMailQuota();
+            limiter.check("tf:code:user:" + userId, MAX_CODE_MAILS_PER_HOUR, Duration.ofHours(1));
+            verification.issueTwoFactorAfterReserve(subject, u.getEmail(), Lang.of(u.getLanguage()));
+        } catch (RuntimeException e) {
+            verification.releaseTwoFactorCooldown(subject);
+            throw e;
+        }
     }
 
     /** Kodu dogrular, 2FA'yi acar ve bu cihazi guvenilir yapar; kullaniciya bildirim + e-posta gider. */
@@ -341,6 +365,7 @@ public class TwoFactorService {
         u.setTwoFactorEnabled(true);
         u.setTwoFactorEnabledAt(clock.instant());
         users.save(u);
+        verification.releaseTwoFactorCooldown(enableSubject(userId)); // akis tamam: kapat/yeniden ac beklemeye takilmasin
         if (closeOtherSessions) {
             sessions.revokeAll(userId); // dinleyici guvenilen cihazlari da siler; bu cihaz asagida yeniden eklenir
         }

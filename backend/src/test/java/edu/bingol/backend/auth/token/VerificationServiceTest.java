@@ -53,7 +53,7 @@ class VerificationServiceTest {
         for (int i = 0; i < VerificationService.MAX_ATTEMPTS; i++) {
             assertFalse(vs.verify(EMAIL, "000000", scope));
         }
-        fake.values.remove("vc:cd:" + EMAIL); // 60 sn bekleme gecti
+        fake.values.remove(CodeResendCooldown.key(CodeResendCooldown.VERIFY, EMAIL)); // 180 sn bekleme gecti
         vs.issue(EMAIL, Lang.TR);
         verify(mail, org.mockito.Mockito.times(2)).sendVerificationCode(eq(EMAIL), code.capture(), anyInt(), any());
 
@@ -174,7 +174,7 @@ class VerificationServiceTest {
 
     @Test
     void issueStoresHashedCodeAndClearsAttemptsAndLock() {
-        when(ops.setIfAbsent(eq("vc:cd:" + EMAIL), anyString(), any(java.time.Duration.class))).thenReturn(true);
+        when(ops.setIfAbsent(eq(CodeResendCooldown.key(CodeResendCooldown.VERIFY, EMAIL)), anyString(), any(java.time.Duration.class))).thenReturn(true);
 
         service.issue(EMAIL, Lang.TR);
 
@@ -186,7 +186,7 @@ class VerificationServiceTest {
 
     @Test
     void issueWithinCooldownIsRejected() {
-        when(ops.setIfAbsent(eq("vc:cd:" + EMAIL), anyString(), any(java.time.Duration.class))).thenReturn(false);
+        when(ops.setIfAbsent(eq(CodeResendCooldown.key(CodeResendCooldown.VERIFY, EMAIL)), anyString(), any(java.time.Duration.class))).thenReturn(false);
 
         ApiException e = assertThrows(ApiException.class, () -> service.issue(EMAIL, Lang.TR));
 
@@ -258,7 +258,7 @@ class VerificationServiceTest {
 
     @Test
     void issueDoesNotUnlockWhenHourlyTotalAlreadyExceeded() {
-        when(ops.setIfAbsent(eq("vc:cd:" + EMAIL), anyString(), any(java.time.Duration.class))).thenReturn(true);
+        when(ops.setIfAbsent(eq(CodeResendCooldown.key(CodeResendCooldown.VERIFY, EMAIL)), anyString(), any(java.time.Duration.class))).thenReturn(true);
         when(ops.get("vc:tot:" + EMAIL)).thenReturn(String.valueOf(VerificationService.MAX_HOURLY_WRONG + 1));
 
         service.issue(EMAIL, Lang.TR);

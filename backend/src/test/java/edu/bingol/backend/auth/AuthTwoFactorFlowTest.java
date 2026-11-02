@@ -349,11 +349,17 @@ class AuthTwoFactorFlowTest {
     void resendSendsANewCodeAndTheNewOneWorks() {
         user.setTwoFactorEnabled(true);
         LoginChallengeResponse ch = asChallenge(login(DEV_A));
+        assertEquals(180, ch.resendAfterSeconds());
+        // ilk gonderim beklemeyi baslatti: 180 sn dolmadan yeniden gonderme 429 RESEND_COOLDOWN
+        assertEquals("RESEND_COOLDOWN", assertThrows(ApiException.class, () -> tfController.resendLoginCode(
+                new TwoFactorDtos.ChallengeRequest(ch.challengeToken()), req(DEV_A))).code());
+        fake.values.keySet().removeIf(k -> k.startsWith("vcool:")); // 180 sn gecti
 
         TwoFactorDtos.ResendResponse r =
                 tfController.resendLoginCode(new TwoFactorDtos.ChallengeRequest(ch.challengeToken()), req(DEV_A));
 
         assertEquals(600, r.expiresInSeconds());
+        assertEquals(180, r.resendAfterSeconds());
         verify(mail, org.mockito.Mockito.times(2)).sendTwoFactorCode(eq(EMAIL), any(), anyInt(), any());
         assertNotNull(complete(ch, lastCode(), true, DEV_A));
         // sinir: challenge basina 3 / 10 dk

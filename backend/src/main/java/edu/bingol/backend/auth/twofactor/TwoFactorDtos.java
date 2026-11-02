@@ -12,7 +12,7 @@ public final class TwoFactorDtos {
 
     /** 202 giris cevabi: token YOK; kod e-postaya gitti. */
     public record LoginChallengeResponse(boolean twoFactorRequired, String challengeToken, String emailHint,
-                                         long expiresInSeconds) {}
+                                         long expiresInSeconds, long resendAfterSeconds) {}
 
     public record TwoFactorLoginRequest(@NotBlank @Size(max = 200) String challengeToken,
                                         @NotBlank @Size(max = 16) String code, Boolean trustDevice) {
@@ -24,7 +24,7 @@ public final class TwoFactorDtos {
 
     public record ChallengeRequest(@NotBlank @Size(max = 200) String challengeToken) {}
 
-    public record ResendResponse(long expiresInSeconds) {}
+    public record ResendResponse(long expiresInSeconds, long resendAfterSeconds) {}
 
     /** {@code closeOtherSessions} (istege bagli, varsayilan false): true ise tum oturumlar kapanir, yanitta yeni cift gelir. */
     public record CodeRequest(@NotBlank @Size(max = 16) String code, Boolean closeOtherSessions) {

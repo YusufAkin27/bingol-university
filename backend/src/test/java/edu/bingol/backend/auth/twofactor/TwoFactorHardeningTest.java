@@ -300,7 +300,7 @@ class TwoFactorHardeningTest {
         verify(sessions, never()).revokeAll(any());
 
         user.setTwoFactorEnabled(false);
-        service.requestEnable(7L);
+        service.requestEnable(7L); // onay basarili olunca bekleme kalkar: hemen yeniden kod istenebilir
         service.confirmEnable(7L, lastCode(), ctx(DEV_B), true);
 
         verify(sessions).revokeAll(7L);

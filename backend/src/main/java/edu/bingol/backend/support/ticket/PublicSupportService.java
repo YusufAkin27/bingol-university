@@ -1,5 +1,6 @@
 package edu.bingol.backend.support.ticket;
 
+import edu.bingol.backend.auth.token.CodeResendCooldown;
 import edu.bingol.backend.common.ApiException;
 import edu.bingol.backend.common.Hashing;
 import edu.bingol.backend.common.RateLimiter;
@@ -52,6 +53,18 @@ public class PublicSupportService {
     private final RateLimiter limiter;
     private final SupportProperties props;
     private final SecureRandom random = new SecureRandom();
+
+    /** Kod yeniden isteme bekleme suresi (180 sn, tek kaynak); yoksa (elle kurulan birim testleri) bekleme uygulanmaz. */
+    private CodeResendCooldown cooldown;
+
+    @Autowired(required = false)
+    void setCooldown(CodeResendCooldown cooldown) {
+        this.cooldown = cooldown;
+    }
+
+    private long cooldownSeconds() {
+        return cooldown == null ? CodeResendCooldown.DEFAULT_SECONDS : cooldown.seconds();
+    }
 
     /** Sunucu imzali form jetonu (T-062); yoksa (elle kurulan birim testleri) eski elapsedMs denetimi. */
     private SupportFormToken formTokens;
@@ -114,7 +127,7 @@ public class PublicSupportService {
     public CodeSent submit(SubmitRequest r, String ip, Lang lang) {
         String email = normalizeEmail(r.email());
         limiter.check("pubsup:ip:" + ip, 5, Duration.ofHours(1));
-        CodeSent generic = new CodeSent("CODE_SENT", (int) CODE_TTL.toMinutes());
+        CodeSent generic = new CodeSent("CODE_SENT", (int) CODE_TTL.toMinutes(), cooldownSeconds());
         boolean tooFast;
         if (formTokens != null && formTokens.required()) {
             // T-062: istemcinin bildirdigi sure guvenilmez; yalniz sunucu imzali, zaman damgali jeton gecerlidir
@@ -130,6 +143,22 @@ public class PublicSupportService {
             log.info("Herkese acik destek talebi elendi (honeypot/hiz)");
             return generic;
         }
+        // Kod yeniden isteme beklemesi (180 sn, e-posta basina): diger sinirlardan ONCE alinir ki erken istekler gunluk
+        // hakki tuketmesin; kod gonderilemezse geri verilir. Honeypot/hiz elemesi bekleme baslatmaz.
+        if (cooldown != null) {
+            cooldown.acquire(CodeResendCooldown.SUPPORT, email);
+        }
+        try {
+            return sendCode(r, email, ip, lang, generic);
+        } catch (RuntimeException e) {
+            if (cooldown != null) {
+                cooldown.release(CodeResendCooldown.SUPPORT, email);
+            }
+            throw e;
+        }
+    }
+
+    private CodeSent sendCode(SubmitRequest r, String email, String ip, Lang lang, CodeSent generic) {
         // E-posta basina gunluk sayac YALNIZ gecerli jeton/bal kabagi elemesinden sonra harcanir (P07-B16): aksi halde
         // saldirgan hedef adres icin gunluk 5 hakki bos isteklerle tuketip gercek kullaniciyi engelleyebilirdi.
         limiter.check("pubsup:em:" + Hashing.sha256(email), 5, Duration.ofDays(1));
@@ -188,6 +217,9 @@ public class PublicSupportService {
             mailer.sendReceived(o.ticket(), o.first(), o.token()); // basarisizligi akisi bozmaz; kullanici zaten token'i cevapta alir
         } catch (RuntimeException e) {
             log.warn("Alindi e-postasi gonderilemedi: {}", e.toString());
+        }
+        if (cooldown != null) {
+            cooldown.release(CodeResendCooldown.SUPPORT, email); // akis tamamlandi: yeni talep icin beklemeye gerek yok
         }
         return new Verified(o.ticket().getId(), o.token());
     }

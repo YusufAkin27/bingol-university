@@ -109,19 +109,20 @@ class AuthServiceTest {
         auth.resendCode(EMAIL);
 
         verify(verification).requireMailQuota();
+        verify(verification).reserveVerifyCooldown(EMAIL); // hesap yoksa da bekleme baslar (enumerasyon yok)
         verifyNoMoreInteractions(verification);
     }
 
     @Test
-    void resendCodeSwallowsCooldownAndMailFailures() {
+    void resendCodeSwallowsMailFailuresButNotCooldown() {
         when(pending.find(EMAIL)).thenReturn(new Pending("h", "Ali", "tr"));
-        doThrow(new ApiException(HttpStatus.TOO_MANY_REQUESTS, "RESEND_COOLDOWN", "x"))
-                .when(verification).issue(anyString(), any());
-
+        doThrow(new IllegalStateException("smtp")).when(verification).issueAfterReserve(anyString(), any());
         auth.resendCode(EMAIL);
 
-        doThrow(new IllegalStateException("smtp")).when(verification).issue(anyString(), any());
-        auth.resendCode(EMAIL);
+        // bekleme hesap aramasindan once rezerve edilir ve 429 olarak YUKARI gider (var/yok fark etmez)
+        doThrow(new edu.bingol.backend.auth.token.ResendCooldownException(120))
+                .when(verification).reserveVerifyCooldown(anyString());
+        assertThrows(edu.bingol.backend.auth.token.ResendCooldownException.class, () -> auth.resendCode(EMAIL));
     }
 
     @Test
@@ -494,7 +495,8 @@ class AuthServiceTest {
 
         auth.resendCode("Ali@Bingol.edu.tr");
 
-        verify(verification).issue(EMAIL, Lang.TR);
+        verify(verification).reserveVerifyCooldown(EMAIL);
+        verify(verification).issueAfterReserve(EMAIL, Lang.TR);
         verify(pending).markResend(EMAIL);
     }
 
@@ -621,16 +623,22 @@ class AuthServiceTest {
 
         auth.forgotPassword("yok@bingol.edu.tr");
 
-        verify(verification, never()).issueReset(any(), any());
+        verify(verification, never()).issueResetAfterReserve(any(), any());
+        verify(verification).reserveResetCooldown("yok@bingol.edu.tr"); // var olmayan hesapta da bekleme baslar
     }
 
     @Test
-    void forgotPasswordSwallowsCooldownSoExistenceDoesNotLeak() {
+    void forgotPasswordReturns429DuringCooldownForExistingAndUnknownAccountAlike() {
+        doThrow(new edu.bingol.backend.auth.token.ResendCooldownException(100))
+                .when(verification).reserveResetCooldown(anyString());
         when(users.findByEmail(EMAIL)).thenReturn(Optional.of(verifiedUser()));
-        doThrow(new ApiException(HttpStatus.TOO_MANY_REQUESTS, "RESEND_COOLDOWN", "bekleyin"))
-                .when(verification).issueReset(any(), any());
 
-        auth.forgotPassword(EMAIL);
+        ApiException known = assertThrows(ApiException.class, () -> auth.forgotPassword(EMAIL));
+        ApiException unknown = assertThrows(ApiException.class, () -> auth.forgotPassword("yok@bingol.edu.tr"));
+
+        assertEquals("RESEND_COOLDOWN", known.code());
+        assertEquals(known.code(), unknown.code());
+        verify(verification, never()).issueResetAfterReserve(any(), any());
     }
 
     @Test
@@ -798,7 +806,8 @@ class AuthServiceTest {
         assertEquals(edu.bingol.backend.admin.rbac.AdminProfile.FULL, u.getAdminProfile());
 
         a.forgotPassword(admin);
-        verify(verification).issueReset(eq(admin), any());
+        verify(verification).reserveResetCooldown(admin);
+        verify(verification).issueResetAfterReserve(eq(admin), any());
     }
 
     // ---------------------------------------------------------------- W1-A: T-001 / T-005 / T-007 / T-009
