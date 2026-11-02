@@ -12,5 +12,5 @@ services:
 
   backup:
     volumes:
-      # Sunucuya ait sirlar surum arsivinde bulunmaz; kalici dizinden okunur.
-      - /opt/bukampus-data/rclone:/config/rclone:ro
+      # Kalici OAuth config: rclone yenilenen tokeni bu dizine yazar (uid 70, dizin 0700).
+      - /opt/bukampus-data/rclone:/config/rclone
