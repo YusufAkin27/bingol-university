@@ -237,7 +237,7 @@ Kaynak: [Feedback], [Loading], [Progress indicators], [Alerts], [Offering help].
 | GBD-4 | Yükleme göstergesi tutarlı yerde ve sürekli hareketli olsun; takılı kaldıysa durumu açıkla. | Evet | — | Elle |
 | GBD-5 | Dairesel göstergeden çubuğa (ya da tersi) geçme. | Evet | — | Elle |
 | GBD-6 | Mümkünse iptal edilebilsin; iptalin sonucunu söyle. | Evet | Yükleme iptali (gönderi/medya) | Elle |
-| GBD-7 | Çek-yenile desteği; ayrıca otomatik yenileme. | Evet | `BuRefresh` | Elle |
+| GBD-7 | Çek-yenile desteği; ayrıca otomatik yenileme. | Evet | `BuRefreshIndicator` | Elle |
 | GBD-8 | Geri bildirim birden çok kanaldan gelsin (renk + metin + ses/haptik). | Evet | `BuToast` + `BuHaptics` | Elle |
 | GBD-9 | Durum bilgisini ilgili yerde göster (satır içi). | Evet | `StaleBanner`, bakım bandı | Elle |
 | GBD-10 | Önemli işlem tamamlanınca onayla; sıradan işlemde gürültü yapma. | Evet | `BuToast` | Elle |
