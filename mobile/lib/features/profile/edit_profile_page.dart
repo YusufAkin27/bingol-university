@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../core/analytics.dart';
 import '../../core/academic_catalog.dart';
 import '../../core/api.dart';
 import '../../core/locale_controller.dart';
@@ -125,6 +126,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
         // `language` bilerek gönderilmez: PATCH kısmidir; açılış anındaki bayat dil sunucudaki güncel dili ezerdi.
       });
       _saved = true;
+      Analytics.instance.track('profile_edit');
       if (mounted) Navigator.pop(context, true);
     } catch (e) {
       if (mounted) {

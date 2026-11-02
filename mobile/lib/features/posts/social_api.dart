@@ -1,3 +1,4 @@
+import '../../core/analytics.dart';
 import '../../core/session.dart';
 import 'post_models.dart';
 import 'social_models.dart';
@@ -26,8 +27,11 @@ class SocialApi {
   }
 
   /// `POST /users/{id}/follow` -> `{following, followerCount}`.
-  Future<FollowResult> follow(int userId) async =>
-      FollowResult.fromJson(await session.api.post('/users/$userId/follow'));
+  Future<FollowResult> follow(int userId) async {
+    final r = FollowResult.fromJson(await session.api.post('/users/$userId/follow'));
+    Analytics.instance.track('user_follow');
+    return r;
+  }
 
   /// `DELETE /users/{id}/follow` -> `{following, followerCount}`.
   Future<FollowResult> unfollow(int userId) async =>

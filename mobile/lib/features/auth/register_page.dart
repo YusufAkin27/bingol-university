@@ -1,6 +1,7 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
+import '../../core/analytics.dart';
 import '../../core/academic_catalog.dart';
 import '../../core/api.dart';
 import '../../core/identifier.dart';
@@ -109,6 +110,7 @@ class _RegisterPageState extends State<RegisterPage> {
     }
     if (_step < _steps - 1) {
       authHaptic(AuthHaptic.tap);
+      Analytics.instance.track('register_step', props: {'step': _step + 1}); // oturum yokken kuyruğa alınmaz
       _goTo(_step + 1);
     } else {
       await _submit();
@@ -132,6 +134,7 @@ class _RegisterPageState extends State<RegisterPage> {
       final id = normalizeIdentifier(_email.text);
       widget.session.rememberCredentials(id, _password.text);
       await widget.session.pending.save(id);
+      Analytics.instance.track('register_done');
       if (!mounted) return;
       await Navigator.push(context, MaterialPageRoute(builder: (_) {
         return VerifyCodePage(session: widget.session, email: id, displayEmail: full);

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../core/analytics.dart';
 import '../../core/api.dart';
 import '../../core/locale_controller.dart';
 import '../../core/session.dart';
@@ -449,6 +450,7 @@ class _EventsPageState extends State<EventsPage> {
     try {
       final res =
           await widget.session.api.put('/events/$id/rsvp', {'status': status});
+      Analytics.instance.track('event_rsvp', props: {'status': status});
       if (!mounted) return;
       final going =
           (res is Map ? (res['goingCount'] as num?)?.toInt() : null) ??
@@ -616,6 +618,7 @@ class _EventsPageState extends State<EventsPage> {
     if (id == null) return l.eventListNotCode;
     try {
       await widget.session.api.post('/events/$id/check-in', {'code': code});
+      Analytics.instance.track('event_checkin', props: {'via': 'qr'});
       buHaptic(BuHaptic.medium);
       return null;
     } catch (e) {

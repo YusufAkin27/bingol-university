@@ -2,6 +2,7 @@ import 'dart:ui' show PathMetric;
 
 import 'package:flutter/material.dart';
 
+import '../../core/analytics.dart';
 import '../../core/api.dart';
 import '../../core/locale_controller.dart';
 import '../../core/platform/image_service.dart';
@@ -340,6 +341,7 @@ class _ClubFormPageState extends State<ClubFormPage> {
         if ((body['description'] as String).isEmpty) body.remove('description');
         if (_category != null) body['category'] = _category;
         final res = await api.post('/communities', body);
+        Analytics.instance.track('club_create');
         final m =
             res is Map ? Map<String, dynamic>.from(res) : <String, dynamic>{};
         final st = (m['status'] ?? '').toString();

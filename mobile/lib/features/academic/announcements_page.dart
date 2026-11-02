@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../core/analytics.dart';
 import '../../core/academic_catalog.dart' show AcademicLabels, gradeLabelL;
 import '../../core/api.dart';
 import '../../core/locale_controller.dart';
@@ -266,6 +267,7 @@ class _AnnouncementDetailPageState extends State<AnnouncementDetailPage> {
     super.initState();
     _a = null;
     _load();
+    Analytics.instance.track('announcement_open', props: {'kind': 'academic'});
   }
 
   Future<void> _load() async {

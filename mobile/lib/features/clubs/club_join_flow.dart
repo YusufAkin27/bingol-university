@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../core/analytics.dart';
 import '../../core/locale_controller.dart';
 import '../../core/session.dart';
 import '../../widgets/bu.dart';
@@ -41,6 +42,7 @@ Future<String?> joinClubFlow(
     answers == null ? null : {'answers': answers},
   );
   final st = res is Map ? res['status']?.toString() : null;
+  Analytics.instance.track('club_join', props: {'status': st == 'PENDING' ? 'pending' : 'active'});
   return st ?? (needsApproval ? 'PENDING' : 'ACTIVE');
 }
 

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../core/analytics.dart';
 import '../../core/locale_controller.dart';
 import '../../core/session.dart';
 import '../../widgets/bu.dart';
@@ -40,6 +41,7 @@ class _MenuPageState extends State<MenuPage> {
   @override
   void initState() {
     super.initState();
+    Analytics.instance.track('menu_view');
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     _month = DateTime(now.year, now.month);

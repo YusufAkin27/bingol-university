@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import '../../core/analytics.dart';
 import '../../core/academic_catalog.dart' show AcademicLabels, gradeLabelL;
 import '../../core/api.dart';
 import '../../core/locale_controller.dart';
@@ -44,6 +45,7 @@ class _ExamsPageState extends State<ExamsPage> {
   @override
   void initState() {
     super.initState();
+    Analytics.instance.track('exam_open');
     _loadMine();
     _loadOfficial();
   }

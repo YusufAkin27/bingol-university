@@ -5,6 +5,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
 
+import '../analytics.dart';
 import '../api.dart';
 import '../closed_conversations.dart';
 import '../connectivity/connectivity_service.dart';
@@ -768,6 +769,7 @@ class Outbox extends ChangeNotifier {
           final res = await _deliver(it, send);
           _items.removeWhere((e) => e.clientId == it.clientId);
           _deleteFiles(it);
+          Analytics.instance.track('message_send', props: {'queued': true});
           _deliveries.add(OutboxDelivery(it, res));
           await _save();
           notifyListeners();

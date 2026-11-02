@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart' hide TextDirection;
 
+import '../../core/analytics.dart';
 import '../../core/api.dart';
 import '../../core/locale_controller.dart';
 import '../../core/session.dart';
@@ -156,6 +157,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
     setState(() => _rsvpBusy = true);
     try {
       final r = await widget.session.api.put('$_path/rsvp', {'status': status});
+      Analytics.instance.track('event_rsvp', props: {'status': status});
       if (!mounted) return;
       setState(() => _rsvpBusy = false);
       if (r is Map && r['myRsvp'] == 'PENDING') {
@@ -202,6 +204,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
         if (res.note != null) 'note': res.note,
         'answers': res.answers,
       });
+      Analytics.instance.track('event_apply');
       if (!mounted) return;
       setState(() => _rsvpBusy = false);
       _toast(context.l10n.etkinlik2RequestSentToast);
@@ -334,6 +337,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
     if (id != widget.eventId) return l.eventFormWrongEventCode;
     try {
       final r = await widget.session.api.post('$_path/check-in', {'code': code});
+      Analytics.instance.track('event_checkin', props: {'via': 'qr'});
       if (mounted) setState(() => _myAtt = Map<String, dynamic>.from(r as Map));
       return null;
     } catch (e) {

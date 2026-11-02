@@ -1,3 +1,4 @@
+import '../../core/analytics.dart';
 import '../../core/session.dart';
 import 'academic_models.dart';
 
@@ -15,8 +16,11 @@ class AcademicApi {
   Future<TimetableData> timetable({int? semesterId}) async =>
       TimetableData.fromJson(_map(await session.api.get('/timetable${semesterId == null ? '' : '?semesterId=$semesterId'}')));
 
-  Future<Course> createCourse(Map<String, dynamic> body) async =>
-      Course.fromJson(_map(await session.api.post('/timetable/courses', body)));
+  Future<Course> createCourse(Map<String, dynamic> body) async {
+    final c = Course.fromJson(_map(await session.api.post('/timetable/courses', body)));
+    Analytics.instance.track('course_add');
+    return c;
+  }
 
   Future<Course> updateCourse(int id, Map<String, dynamic> body) async =>
       Course.fromJson(_map(await session.api.patch('/timetable/courses/$id', body)));
@@ -49,7 +53,11 @@ class AcademicApi {
   Future<List<Exam>> upcomingExams({int days = 30}) async =>
       [for (final e in _items(await session.api.get('/timetable/exams/upcoming?days=$days'))) Exam.fromJson(e)];
 
-  Future<Exam> createExam(Map<String, dynamic> body) async => Exam.fromJson(_map(await session.api.post('/timetable/exams', body)));
+  Future<Exam> createExam(Map<String, dynamic> body) async {
+    final e = Exam.fromJson(_map(await session.api.post('/timetable/exams', body)));
+    Analytics.instance.track('exam_add');
+    return e;
+  }
 
   Future<Exam> updateExam(int id, Map<String, dynamic> body) async =>
       Exam.fromJson(_map(await session.api.patch('/timetable/exams/$id', body)));

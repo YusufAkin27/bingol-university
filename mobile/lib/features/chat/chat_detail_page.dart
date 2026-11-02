@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:ui' show ImageFilter;
 
+import '../../core/analytics.dart';
 import '../../core/push/active_conversation.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -1238,6 +1239,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
         }
       }
       setState(() => _merge([Map<String, dynamic>.from(res as Map)]));
+      Analytics.instance.track('message_send', props: {'media': _uploadsOf(local).isNotEmpty}); // içerik YOK
       _changed = true;
       _markRead();
     } catch (e) {

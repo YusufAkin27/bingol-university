@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../../core/analytics.dart';
 import '../../core/api.dart';
 import '../../core/locale_controller.dart';
 import '../../core/session.dart';
@@ -42,6 +43,7 @@ class _TimetablePageState extends State<TimetablePage> {
   @override
   void initState() {
     super.initState();
+    Analytics.instance.track('timetable_open');
     _load();
     _tick = Timer.periodic(const Duration(minutes: 1), (_) {
       if (mounted) setState(() {});

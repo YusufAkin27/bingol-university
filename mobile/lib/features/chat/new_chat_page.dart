@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import '../../core/analytics.dart';
 import '../../core/locale_controller.dart';
 import '../../core/session.dart';
 import '../../widgets/bu.dart';
@@ -183,6 +184,7 @@ class _NewChatPageState extends State<NewChatPage> {
     });
     try {
       final res = await widget.session.api.post('/conversations', body);
+      Analytics.instance.track('chat_create');
       if (!mounted) return;
       final conv = Map<String, dynamic>.from(res as Map);
       Navigator.pushReplacement(

@@ -3,6 +3,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import '../../core/analytics.dart';
 import '../../core/locale_controller.dart';
 import '../../core/session.dart';
 import '../../widgets/bu.dart';
@@ -158,6 +159,7 @@ class _LikeButtonState extends State<LikeButton> with TickerProviderStateMixin {
       final api = widget.session.api;
       final r = want ? await api.put('/posts/${_post.id}/like') : await api.delete('/posts/${_post.id}/like');
       final res = LikeResult.fromJson(r is Map ? Map<String, dynamic>.from(r) : null);
+      if (want) Analytics.instance.track('post_like');
       _confirmedLiked = res.liked;
       _confirmedCount = res.likeCount;
       _inflight = false;
