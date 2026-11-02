@@ -3121,5 +3121,12 @@
   "frqMsgReqEmpty": "No pending message requests.",
   "frqMsgReqDeclineGroupTitle": "Delete group invite?",
   "frqMsgReqDeclineGroupBody": "You will leave the group and the person who added you cannot add you again.",
-  "frqMsgReqDeclineGroupConfirm": "Delete invite"
+  "frqMsgReqDeclineGroupConfirm": "Delete invite",
+  "homeBrandSubtitle": "Bingöl University Campus App",
+  "homeLibrary": "Library",
+  "homeFeaturedSchedule": "Class Schedule",
+  "homeFeaturedMenu": "Meal Menu",
+  "homeSearchFilters": "Search filters",
+  "homeMore": "More",
+  "homeViewAll": "View all"
 }

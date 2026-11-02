@@ -31,7 +31,10 @@ class FloatingNav extends StatelessWidget {
     required this.chatBadge,
     this.avatarUrl,
     this.avatarName,
+    this.onPublish,
   });
+
+  final VoidCallback? onPublish;
 
   final int index;
   final ValueChanged<int> onChanged;
@@ -115,12 +118,31 @@ class FloatingNav extends StatelessWidget {
                 blurRadius: 4,
                 offset: const Offset(0, 1)),
           ];
+    final slots = onPublish == null ? const [0, 1, 2, 3, 4] : const [0, 1, -1, 2, 4];
+    final selectedPosition = slots.indexOf(index);
     final cells = <Widget>[
-      for (var i = 0; i < 5; i++)
+      for (final i in slots)
+        if (i == -1)
+          Expanded(child: Center(child: Semantics(
+            button: true,
+            label: context.l10n.discoverCompose,
+            onTap: onPublish,
+            child: Tooltip(message: context.l10n.discoverCompose, excludeFromSemantics: true,
+              child: ExcludeSemantics(child: BuPressable(onTap: onPublish, child: Container(
+                key: const ValueKey('nav-publish'),
+                width: 54, height: 54,
+                decoration: BoxDecoration(color: BuColors.red600, shape: BoxShape.circle,
+                  border: Border.all(color: t.sf3, width: 3),
+                  boxShadow: [BoxShadow(color: t.pr.withValues(alpha: .2), blurRadius: 12, offset: const Offset(0, 4))]),
+                child: Icon(BuIcons.plus, size: 30, color: t.onMedia),
+              ))),
+            ),
+          )))
+        else
         Expanded(
           child: _NavItem(
             key: ValueKey('nav-$i'),
-            position: i,
+            position: slots.indexOf(i),
             selected: i == index,
             label: labels[i],
             topPad: topPad,
@@ -130,7 +152,7 @@ class FloatingNav extends StatelessWidget {
               if (i != index) buHaptic(BuHaptic.selection);
               onChanged(i);
             },
-            outline: i < 4 ? _outline[i] : null,
+            outline: i < 4 ? _outline[i] : onPublish == null ? null : BuIcons.user,
             badge: i == _chatIndex ? chatBadge : null,
             avatarUrl: i == 4 ? avatarUrl : null,
             avatarName: avatarName,
@@ -165,14 +187,14 @@ class FloatingNav extends StatelessWidget {
                           child: Stack(
                             children: [
                               // Kayan gösterge: seçili hücrenin simge alanında (yön duyarlı: RTL'de aynalanır).
-                              Positioned.fill(
+                              if (selectedPosition >= 0) Positioned.fill(
                                 top: topPad,
                                 bottom: barHeight - topPad - _iconSlot,
                                 child: ExcludeSemantics(
                                   child: AnimatedAlign(
                                     key: const ValueKey('nav-indicator'),
                                     alignment: AlignmentDirectional(
-                                        -1 + 2 * index / 4, 0),
+                                        -1 + 2 * selectedPosition / 4, 0),
                                     duration:
                                         BuMotion.of(context, BuMotion.medium),
                                     curve: BuMotion.decelerate,

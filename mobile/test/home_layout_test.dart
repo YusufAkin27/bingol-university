@@ -37,7 +37,7 @@ void main() {
         HomeSection.upcomingEvents,
         HomeSection.announcements,
       ]);
-      expect(d.shortcuts, [HomeShortcut.news, HomeShortcut.menu, HomeShortcut.events, HomeShortcut.polls, HomeShortcut.schedule]);
+      expect(d.shortcuts, [HomeShortcut.news, HomeShortcut.events, HomeShortcut.polls, HomeShortcut.schedule, HomeShortcut.more]);
       expect(d.isDefault, isTrue);
     });
 
@@ -72,7 +72,7 @@ void main() {
       }
       expect(one.shortcuts.length, 1, reason: 'son acik kisayol kapatilamaz');
       final r = HomeLayout.defaults.reorderShortcut(4, 0);
-      expect(r.shortcuts.first, HomeShortcut.schedule);
+      expect(r.shortcuts.first, HomeShortcut.more);
     });
 
     test('json: gidis-donus, baska kullanici/bozuk/eski kayit varsayilana duser', () {
@@ -369,7 +369,7 @@ void main() {
       await tester.pump(const Duration(milliseconds: 300));
       expect(find.text('5/5'), findsOneWidget);
       final j = jsonDecode((await st.read(key: HomeLayoutStore.key))!) as Map;
-      expect(j['sOn'], ['news', 'menu', 'events', 'schedule', 'chat']);
+      expect(j['sOn'], ['news', 'events', 'schedule', 'more', 'chat']);
       await tester.tap(find.text('Bitti').last);
       await settle(tester, const Duration(milliseconds: 700));
       await tester.tap(find.text('Bitti').last);

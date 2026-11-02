@@ -16,6 +16,7 @@ import '../clubs/clubs_tab.dart';
 import '../discover/discover_tab.dart';
 import '../home/home_tab.dart';
 import '../profile/profile_tab.dart';
+import '../posts/post_routes.dart' show openComposePost;
 import 'floating_nav.dart';
 
 export 'floating_nav.dart' show FloatingNav;
@@ -40,6 +41,8 @@ class AppShell extends StatefulWidget {
 
 class _AppShellState extends State<AppShell> with WidgetsBindingObserver, SingleTickerProviderStateMixin {
   int _tab = 0;
+  int _publishedVersion = 0;
+  bool _publishing = false;
   // Bir kez açılmış sekmeler (tembel kurulum; kapanınca da canlı kalır).
   final Set<int> _built = {AppTab.home};
   late final AnimationController _fade = AnimationController(vsync: this, duration: BuMotion.medium, value: 1);
@@ -179,7 +182,7 @@ class _AppShellState extends State<AppShell> with WidgetsBindingObserver, Single
       case AppTab.home:
         return HomeTab(session: s, onOpenTab: _go);
       case AppTab.discover:
-        return DiscoverTab(session: s, typeRequest: _discoverType);
+        return DiscoverTab(key: ValueKey(_publishedVersion), session: s, typeRequest: _discoverType);
       case AppTab.chat:
         return ChatTab(session: s);
       case AppTab.clubs:
@@ -201,6 +204,19 @@ class _AppShellState extends State<AppShell> with WidgetsBindingObserver, Single
       ),
       child: _scaffoldBody(),
     );
+  }
+
+  Future<void> _publish() async {
+    if (_publishing) return;
+    _publishing = true;
+    try {
+      final post = await openComposePost(context, s);
+      if (!mounted || post == null) return;
+      setState(() => _publishedVersion++);
+      _select(AppTab.discover);
+    } finally {
+      _publishing = false;
+    }
   }
 
   Widget _scaffoldBody() {
@@ -233,6 +249,7 @@ class _AppShellState extends State<AppShell> with WidgetsBindingObserver, Single
         listenable: s,
         builder: (context, _) => FloatingNav(
           index: _tab,
+          onPublish: _publish,
           onChanged: (i) {
             _go(i);
             if (i == AppTab.chat) _refreshBadges();

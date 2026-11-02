@@ -9715,4 +9715,25 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get frqMsgReqDeclineGroupConfirm => 'حذف الدعوة';
+
+  @override
+  String get homeBrandSubtitle => 'تطبيق حرم جامعة بينغول';
+
+  @override
+  String get homeLibrary => 'المكتبة';
+
+  @override
+  String get homeFeaturedSchedule => 'جدول الدروس';
+
+  @override
+  String get homeFeaturedMenu => 'قائمة الطعام';
+
+  @override
+  String get homeSearchFilters => 'فلاتر البحث';
+
+  @override
+  String get homeMore => 'المزيد';
+
+  @override
+  String get homeViewAll => 'عرض الكل';
 }

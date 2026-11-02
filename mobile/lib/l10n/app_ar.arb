@@ -3121,5 +3121,12 @@
   "frqMsgReqEmpty": "لا توجد طلبات رسائل معلّقة.",
   "frqMsgReqDeclineGroupTitle": "حذف دعوة المجموعة؟",
   "frqMsgReqDeclineGroupBody": "ستغادر المجموعة ولن يتمكن الشخص الذي أضافك من إضافتك مرة أخرى.",
-  "frqMsgReqDeclineGroupConfirm": "حذف الدعوة"
+  "frqMsgReqDeclineGroupConfirm": "حذف الدعوة",
+  "homeBrandSubtitle": "تطبيق حرم جامعة بينغول",
+  "homeLibrary": "المكتبة",
+  "homeFeaturedSchedule": "جدول الدروس",
+  "homeFeaturedMenu": "قائمة الطعام",
+  "homeSearchFilters": "فلاتر البحث",
+  "homeMore": "المزيد",
+  "homeViewAll": "عرض الكل"
 }

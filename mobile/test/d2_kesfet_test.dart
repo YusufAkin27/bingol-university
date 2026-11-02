@@ -194,7 +194,8 @@ void main() {
       await settle(tester, const Duration(seconds: 2));
       expect(find.byType(HomeQuickGrid), findsOneWidget);
       expect(find.text('Anketler'), findsOneWidget);
-      expect(find.text('Kulüpler'), findsNothing);
+      expect(find.descendant(of: find.byType(HomeQuickGrid), matching: find.text('Kulüpler')), findsNothing);
+      expect(find.descendant(of: find.byType(HomeFeaturedShortcuts), matching: find.text('Kulüpler')), findsOneWidget);
       await tester.tap(find.text('Anketler'));
       await settle(tester, const Duration(milliseconds: 800));
       expect(find.byType(PollListPage), findsOneWidget);

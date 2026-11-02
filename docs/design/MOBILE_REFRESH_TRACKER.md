@@ -1,6 +1,6 @@
 # Mobil ekran yenileme — güncel envanter
 
-Referans: kullanıcının onayladığı ana sayfa; HOME_2026_11.md.
+Referans: kullanıcının yeni görseli; HOME_REFERENCE_2026_11_02.md. Ortak ikonlu başlık altyapısı eklendi; özel sayfa düzenleri sırayla güncellenecek.
 
 98 herkese açık sayfa, sekme ve tam ekran görüntüleyici sınıfı. RefPage yeniden kullanılan yerleşimdir, sayılmaz.
 
@@ -111,7 +111,7 @@ Her grup: kaynak inceleme → tasarım → davranış testleri → açık/koyu v
 | Sayfa | Kaynak | Durum |
 |---|---|---|
 | HomeLayoutPage | [home_layout_sheet.dart](../../mobile/lib/features/home/home_layout_sheet.dart) | Bekliyor |
-| HomeTab | [home_tab.dart](../../mobile/lib/features/home/home_tab.dart) | Tamamlandı — 2.0.7 |
+| HomeTab | [home_tab.dart](../../mobile/lib/features/home/home_tab.dart) | Tamamlandı — 2.0.8 |
 
 ## legal
 

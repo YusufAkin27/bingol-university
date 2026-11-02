@@ -9818,4 +9818,25 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get frqMsgReqDeclineGroupConfirm => 'Delete invite';
+
+  @override
+  String get homeBrandSubtitle => 'Bingöl University Campus App';
+
+  @override
+  String get homeLibrary => 'Library';
+
+  @override
+  String get homeFeaturedSchedule => 'Class Schedule';
+
+  @override
+  String get homeFeaturedMenu => 'Meal Menu';
+
+  @override
+  String get homeSearchFilters => 'Search filters';
+
+  @override
+  String get homeMore => 'More';
+
+  @override
+  String get homeViewAll => 'View all';
 }

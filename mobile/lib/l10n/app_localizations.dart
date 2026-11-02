@@ -17766,6 +17766,48 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Daveti sil'**
   String get frqMsgReqDeclineGroupConfirm;
+
+  /// No description provided for @homeBrandSubtitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bingöl Üniversitesi Kampüs Uygulaması'**
+  String get homeBrandSubtitle;
+
+  /// No description provided for @homeLibrary.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kütüphane'**
+  String get homeLibrary;
+
+  /// No description provided for @homeFeaturedSchedule.
+  ///
+  /// In tr, this message translates to:
+  /// **'Ders Programı'**
+  String get homeFeaturedSchedule;
+
+  /// No description provided for @homeFeaturedMenu.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yemek Menüsü'**
+  String get homeFeaturedMenu;
+
+  /// No description provided for @homeSearchFilters.
+  ///
+  /// In tr, this message translates to:
+  /// **'Arama filtreleri'**
+  String get homeSearchFilters;
+
+  /// No description provided for @homeMore.
+  ///
+  /// In tr, this message translates to:
+  /// **'Diğer'**
+  String get homeMore;
+
+  /// No description provided for @homeViewAll.
+  ///
+  /// In tr, this message translates to:
+  /// **'Tümünü gör'**
+  String get homeViewAll;
 }
 
 class _AppLocalizationsDelegate

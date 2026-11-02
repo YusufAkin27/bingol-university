@@ -455,6 +455,7 @@ class _HomeTabState extends State<HomeTab> {
         padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
         child: HomeSearchBox(hint: l.homeSearchHint, onTap: () => _push(SearchPage(session: _s))),
       )),
+      stag(Padding(padding: const EdgeInsets.fromLTRB(20, 20, 20, 8), child: _featuredShortcuts(context))),
       // "Bugün": sabit, gizlenemez; satırlar yüklendikçe/boşalınca yükseklik + solma geçişi.
       HomeSectionSlot(
         key: const ValueKey('slot-today'),
@@ -462,7 +463,7 @@ class _HomeTabState extends State<HomeTab> {
         builder: () => stag(Padding(
           padding: const EdgeInsets.fromLTRB(20, 8, 20, 0), // Stitch: arama alt boşluğu 20 (12 + satır içi 12 = 24 yerine 8 + 12)
           child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-            HomeSectionHeader(title: l.p60Today, onLongPress: _editLayout),
+            HomeSectionHeader(title: l.p60Today, action: l.homeViewAll, accent: true, onAction: () => _push(AcademicHubPage(session: _s)), onLongPress: _editLayout),
             HomeTodayCard(rows: todayRows),
           ]),
         )),
@@ -679,11 +680,43 @@ class _HomeTabState extends State<HomeTab> {
     return trUpper(name).characters.take(3).toString();
   }
 
+  Widget _featuredShortcuts(BuildContext context) {
+    final t = context.bu;
+    final l = context.l10n;
+    return HomeFeaturedShortcuts(items: [
+      (label: l.homeFeaturedSchedule, icon: BuIcons.calendar, bg: t.soft, fg: t.onSoft, onTap: () => _push(AcademicHubPage(session: _s))),
+      (label: l.homeFeaturedMenu, icon: BuIcons.utensils, bg: t.infoSoft, fg: t.onInfoSoft, onTap: () => _push(MenuPage(session: _s))),
+      (label: l.homeLibrary, icon: BuIcons.bookOpen, bg: t.okSoft, fg: t.onOkSoft, onTap: () => _openUrl('https://kutuphane.bingol.edu.tr/')),
+      (label: l.navClubs, icon: BuIcons.users, bg: t.campusClubSoft, fg: t.onCampusClubSoft, onTap: () => widget.onOpenTab(AppTab.clubs)),
+    ]);
+  }
+
+  void _openMore(BuildContext context) {
+    final l = context.l10n;
+    final entries = <({String label, IconData icon, VoidCallback action})>[
+      (label: l.supportTitle, icon: BuIcons.headset, action: () => _push(SupportPage(session: _s))),
+      (label: l.notifTitle, icon: BuIcons.bell, action: () => _push(NotificationsPage(session: _s))),
+      (label: l.icerikSavedList, icon: BuIcons.bookmark, action: () => _push(SavedNewsPage(session: _s))),
+      (label: l.p60EditHome, icon: BuIcons.pencil, action: _editLayout),
+    ];
+    showModalBottomSheet<void>(context: context, showDragHandle: true, builder: (sheetContext) => SafeArea(
+      child: Column(mainAxisSize: MainAxisSize.min, children: [
+        Padding(padding: const EdgeInsets.all(12), child: Text(l.homeMore, style: BuType.title.copyWith(color: context.bu.ink))),
+        for (final entry in entries) ListTile(leading: Icon(entry.icon, color: context.bu.pr), title: Text(entry.label), onTap: () {
+          Navigator.pop(sheetContext);
+          entry.action();
+        }),
+        const SizedBox(height: 12),
+      ]),
+    ));
+  }
+
   /// Hızlı erişim: kullanıcının seçtiği en çok 5 kısayol (varsayılan: Haberler / Yemek / Etkinlikler / Anketler / Program).
   /// Hedefler mevcut ekranlardır (sekmeye geçenler kabuğa yönlendirir).
   Widget _quickAccess(BuildContext context) {
     final l = context.l10n;
     VoidCallback go(HomeShortcut sc) => switch (sc) {
+          HomeShortcut.more => () => _openMore(context),
           HomeShortcut.news => () => _push(NewsListPage(session: _s)),
           HomeShortcut.menu => () => _push(MenuPage(session: _s)),
           HomeShortcut.events => () => _push(EventsPage(session: _s)),

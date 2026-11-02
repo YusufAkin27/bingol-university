@@ -11,6 +11,8 @@ import 'package:bu_kampus/features/profile/blocked_users_page.dart';
 import 'package:bu_kampus/features/profile/settings_page.dart';
 import 'package:bu_kampus/features/search/search_page.dart';
 import 'package:bu_kampus/features/shell/app_shell.dart';
+import 'package:bu_kampus/features/posts/compose_post_page.dart';
+import 'package:bu_kampus/features/posts/post_models.dart';
 import 'package:bu_kampus/features/support/support_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -56,6 +58,30 @@ void main() {
       await tester.pumpWidget(buildApp(AppShell(session: makeSession(b), themeController: ThemeController())));
       await settle(tester);
     }
+
+    testWidgets('ortadaki arti yeni gonderiyi acar, iptal ana sayfayi korur', (tester) async {
+      await pumpShell(tester);
+      await tester.tap(find.byKey(const ValueKey('nav-publish')));
+      await settle(tester);
+      expect(find.byType(ComposePostPage), findsOneWidget);
+      await back(tester);
+      await settle(tester);
+      expect(find.byType(ComposePostPage), findsNothing);
+      expect(tester.widget<FloatingNav>(find.byType(FloatingNav)).index, 0);
+      await unmount(tester);
+    });
+
+    testWidgets('basarili paylasim Kesfet sekmesine doner', (tester) async {
+      await pumpShell(tester);
+      await tester.tap(find.byKey(const ValueKey('nav-publish')));
+      await settle(tester);
+      Navigator.of(tester.element(find.byType(ComposePostPage))).pop(Post.fromJson({'id': 99, 'author': {'id': 1, 'displayName': 'Ayşe'}}));
+      await settle(tester);
+      expect(tester.widget<FloatingNav>(find.byType(FloatingNav)).index, 1);
+      expect(find.byType(ComposePostPage), findsNothing);
+      noErr(tester);
+      await unmount(tester);
+    });
 
     int navIndex(WidgetTester tester) => tester.widget<FloatingNav>(find.byType(FloatingNav)).index;
 

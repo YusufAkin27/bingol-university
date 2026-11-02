@@ -111,7 +111,7 @@ Widget _home(FakeBackend b) => HomeTab(session: makeSession(b), onOpenTab: (i, {
 final _previewBadge = ValueNotifier<int>(2);
 Widget _phone(FakeBackend b) => Stack(children: [
   Positioned.fill(child: _home(b)),
-  Positioned(left: 0, right: 0, bottom: 0, child: FloatingNav(index: 0, onChanged: (_) {}, chatBadge: _previewBadge)),
+  Positioned(left: 0, right: 0, bottom: 0, child: FloatingNav(index: 0, onChanged: (_) {}, chatBadge: _previewBadge, onPublish: () {})),
 ]);
 
 final _shots = <_Shot>[
@@ -221,6 +221,14 @@ void main() {
           await tester.pump(const Duration(milliseconds: 900));
         } else {
           await tester.pump(const Duration(milliseconds: 400));
+        }
+        // Telefon/uzun sayfa kanıtı her zaman listenin başından alınır.
+        if (shot.file == '00_telefon' || shot.file == '01_ana_sayfa') {
+          final lists = find.byType(Scrollable);
+          if (lists.evaluate().isNotEmpty) {
+            tester.state<ScrollableState>(lists.first).position.jumpTo(0);
+            await tester.pump();
+          }
         }
         final err = tester.takeException();
         if (err != null) fail('Istisna: $err');

@@ -40,7 +40,8 @@ enum HomeShortcut {
   support('support'),
   search('search'),
   notifications('notifications'),
-  bookmarks('bookmarks');
+  bookmarks('bookmarks'),
+  more('more');
 
   const HomeShortcut(this.id);
 
@@ -72,7 +73,7 @@ class HomeLayout {
   static const defaults = HomeLayout(
     order: [HomeSection.quickAccess, HomeSection.featuredNews, HomeSection.menu, HomeSection.todayClasses, HomeSection.upcomingEvents, HomeSection.announcements],
     hidden: <HomeSection>{},
-    shortcutOn: [HomeShortcut.news, HomeShortcut.menu, HomeShortcut.events, HomeShortcut.polls, HomeShortcut.schedule],
+    shortcutOn: [HomeShortcut.news, HomeShortcut.events, HomeShortcut.polls, HomeShortcut.schedule, HomeShortcut.more],
   );
 
   bool isVisible(HomeSection s) => !hidden.contains(s);

@@ -9785,4 +9785,25 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get frqMsgReqDeclineGroupConfirm => 'Daveti sil';
+
+  @override
+  String get homeBrandSubtitle => 'Bingöl Üniversitesi Kampüs Uygulaması';
+
+  @override
+  String get homeLibrary => 'Kütüphane';
+
+  @override
+  String get homeFeaturedSchedule => 'Ders Programı';
+
+  @override
+  String get homeFeaturedMenu => 'Yemek Menüsü';
+
+  @override
+  String get homeSearchFilters => 'Arama filtreleri';
+
+  @override
+  String get homeMore => 'Diğer';
+
+  @override
+  String get homeViewAll => 'Tümünü gör';
 }

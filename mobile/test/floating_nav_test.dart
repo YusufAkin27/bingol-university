@@ -15,6 +15,24 @@ Widget _nav(int idx, void Function(int) on, ValueNotifier<int> badge, Size size,
     );
 
 void main() {
+  testWidgets('orta paylasim dugmesi sekme secmeden gonderi eylemini acar', (tester) async {
+    useScreen(tester, kPhoneMedium);
+    final badge = ValueNotifier<int>(2);
+    addTearDown(badge.dispose);
+    var published = 0;
+    final selected = <int>[];
+    await tester.pumpWidget(buildApp(Scaffold(bottomNavigationBar: FloatingNav(
+      index: 0, onChanged: selected.add, chatBadge: badge, onPublish: () => published++,
+    ))));
+    expect(find.text('Kulüpler'), findsNothing);
+    await tester.tap(find.byKey(const ValueKey('nav-publish')));
+    await tester.pump();
+    expect(published, 1);
+    expect(selected, isEmpty);
+    await tester.tap(find.byKey(const ValueKey('nav-2')));
+    expect(selected, [2]);
+  });
+
   testWidgets('5 ikon, gorunur etiketler, Semantics etiketleri var', (tester) async {
     final h = tester.ensureSemantics();
     useScreen(tester, kPhoneMedium);

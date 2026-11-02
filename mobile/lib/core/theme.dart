@@ -12,7 +12,7 @@ class BuColors {
 
   static const ink = Color(0xFF171E33);
   static const red600 = Color(0xFFF73A2E); // logo kırmızısı: simge, splash
-  static const red700 = Color(0xFFC0392B); // eylem kırmızısı: düğme/bağlantı (sakinleştirilmiş)
+  static const red700 = Color(0xFFC62A20); // eylem kırmızısı: düğme/bağlantı (sakinleştirilmiş)
   static const red800 = Color(0xFF8A2A20);
   static const red100 = Color(0xFFFBE9E6);
 }
@@ -89,6 +89,10 @@ class BuTokens extends ThemeExtension<BuTokens> {
     this.shadow = const Color(0xFF171E33),
     this.tints = _tintsLight,
   });
+
+  /// Kullanıcının yeni referansındaki Kulüpler kısayolu; ana paleti değiştirmez.
+  Color get campusClubSoft => bg.computeLuminance() > .5 ? const Color(0xFFF1EAFF) : const Color(0xFF30243F);
+  Color get onCampusClubSoft => bg.computeLuminance() > .5 ? const Color(0xFF5426A1) : const Color(0xFFDCC4FF);
 
   final Color bg; // sayfa zemini
   final Color sf; // kart/yüzey
@@ -185,13 +189,13 @@ class BuTokens extends ThemeExtension<BuTokens> {
 
   static const light = BuTokens(
     // Sıcak-nötr yüzeyler (kırık beyaz), lacivert mürekkep, sakin marka kırmızısı (RENK-1).
-    bg: Color(0xFFF7F5F2),
+    bg: Color(0xFFFAF6F3),
     sf: Color(0xFFFFFFFF),
     sf2: Color(0xFFEEEBE6),
     ink: Color(0xFF171E33),
     mut: Color(0xFF5C5A56),
     bd: Color(0xFFDAD5CD), // kart/ayraç çizgisi; kontrol çerçevesi için bdStrong
-    pr: Color(0xFFC0392B),
+    pr: Color(0xFFC62A20),
     onPr: Color(0xFFFFFFFF),
     soft: Color(0xFFFBE9E6),
     onSoft: Color(0xFF8A2A20),

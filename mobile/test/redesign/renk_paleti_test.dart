@@ -18,6 +18,7 @@ void main() {
       test('${e.key}: metin ciftleri >= 4.5', () {
         // (yazi, zemin): her zemin ailesi icin gercekte kullanilan yazi renkleri.
         final pairs = <String, (Color, Color)>{
+          'campusClub': (t.onCampusClubSoft, t.campusClubSoft),
           'ink/bg': (t.ink, t.bg),
           'ink/sf': (t.ink, t.sf),
           'ink/sf2': (t.ink, t.sf2),
@@ -153,7 +154,9 @@ void main() {
 
     test('yuzeyler notr ve doygunluk dusuk (bg/sf/sf2/bd), koyu tema saf siyah degil', () {
       for (final t in themes.values) {
-        for (final c in [t.bg, t.sf, t.sf2, t.sf3, t.bd]) {
+        // Kullanıcının 2 Kasım referansı açık zemini açıkça #FAF6F3 olarak belirler.
+        if (identical(t, BuTokens.light)) expect(t.bg.toARGB32(), 0xFFFAF6F3);
+        for (final c in [t.sf, t.sf2, t.sf3, t.bd, if (!identical(t, BuTokens.light)) t.bg]) {
           expect(sat(c), lessThan(.3)); // HSL doygunlugu: acik sicak notrler ~.2-.25 cikar, kromatik degil
         }
       }

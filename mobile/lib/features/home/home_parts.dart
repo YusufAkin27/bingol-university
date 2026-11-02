@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import '../../core/locale_controller.dart';
 import '../../widgets/bu.dart';
 import '../news/icerik_parts.dart' show newsHero;
+import 'home_campus_art.dart';
 
 /// Ana Sayfa (Stitch v3, `docs/design/BIREBIR_HOME.md`): tek yüzey ailesi = beyaz (`sf`) + 1 dp `bd` çerçeve + 16 köşe,
 /// gölge yok; bölüm başlığı 17/600; yan boşluk 20; bölümler arası 24.
@@ -23,12 +24,14 @@ class HomeSurface extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
-    return Material(
+    return DecoratedBox(
+      decoration: BoxDecoration(borderRadius: BorderRadius.circular(22), boxShadow: BuElevation.of(context, 1)),
+      child: Material(
       color: color ?? t.sf,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(BuRadius.md), side: BorderSide(color: t.bd)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22), side: BorderSide(color: t.bd)),
       clipBehavior: Clip.antiAlias,
       child: InkWell(onTap: onTap, child: Padding(padding: padding, child: child)),
-    );
+    ));
   }
 }
 
@@ -42,40 +45,30 @@ class HomeHairline extends StatelessWidget {
 
 /// Arama kutusu: 48 dp, beyaz, 1 dp çerçeve, 16 köşe; dokununca arama sayfasına gider.
 class HomeSearchBox extends StatelessWidget {
-  const HomeSearchBox({super.key, required this.hint, required this.onTap});
-
+  const HomeSearchBox({super.key, required this.hint, required this.onTap, this.onFilter});
   final String hint;
   final VoidCallback onTap;
-
+  final VoidCallback? onFilter;
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
-    return Semantics(
-      button: true,
-      label: hint,
-      excludeSemantics: true,
-      onTap: onTap,
-      child: BuPressable(
-        scale: .985,
-        child: Material(
-          color: t.sf,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(BuRadius.md), side: BorderSide(color: t.bd)),
-          child: InkWell(
-            customBorder: RoundedRectangleBorder(borderRadius: BorderRadius.circular(BuRadius.md)),
-            onTap: onTap,
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(minHeight: BuSize.search),
-              child: Padding(
-                padding: const EdgeInsetsDirectional.symmetric(horizontal: 16, vertical: 8),
-                child: Row(children: [
-                  Icon(BuIcons.search, size: 16, color: t.mut),
-                  const SizedBox(width: 12),
-                  Expanded(child: Text(hint, maxLines: 1, overflow: TextOverflow.ellipsis, style: BuType.body.copyWith(fontSize: 15, color: t.mut))),
-                ]),
-              ),
-            ),
-          ),
-        ),
+    return DecoratedBox(
+      decoration: BoxDecoration(borderRadius: BorderRadius.circular(32), boxShadow: BuElevation.of(context, 1)),
+      child: Material(color: t.sf, shape: StadiumBorder(side: BorderSide(color: t.bd)), clipBehavior: Clip.antiAlias,
+        child: Row(children: [
+          Expanded(child: Semantics(button: true, label: hint, excludeSemantics: true, onTap: onTap,
+            child: InkWell(onTap: onTap, child: Padding(
+              padding: const EdgeInsetsDirectional.fromSTEB(16, 12, 8, 12),
+              child: Row(children: [Icon(BuIcons.search, size: 22, color: t.mut), const SizedBox(width: 12),
+                Expanded(child: Text(hint, maxLines: 1, overflow: TextOverflow.ellipsis, style: BuType.body.copyWith(fontSize: 15, color: t.mut))),
+              ]),
+            )),
+          )),
+          SizedBox(height: 24, child: VerticalDivider(width: 1, color: t.bd)),
+          IconButton(tooltip: context.l10n.homeSearchFilters, onPressed: onFilter ?? onTap,
+            icon: Icon(BuIcons.slidersHorizontal, size: 22, color: t.mut)),
+          const SizedBox(width: 4),
+        ]),
       ),
     );
   }
@@ -387,8 +380,8 @@ class HomeTodayCard extends StatelessWidget {
             final meal = row.label == l.yemekLunch;
             final lesson = row.label == l.p60NextClass;
             final icon = meal ? BuIcons.utensils : lesson ? BuIcons.bookOpen : BuIcons.calendar;
-            final foreground = meal ? t.onOkSoft : lesson ? t.onInfoSoft : t.onWarnSoft;
-            final background = meal ? t.okSoft : lesson ? t.infoSoft : t.warnSoft;
+            final foreground = meal ? t.onOkSoft : lesson ? t.onSoft : t.onWarnSoft;
+            final background = meal ? t.okSoft : lesson ? t.soft : t.warnSoft;
             return Semantics(
               button: true,
               label: '${row.label}: ${row.value}',
@@ -398,19 +391,19 @@ class HomeTodayCard extends StatelessWidget {
                 onTap: row.onTap,
                 borderRadius: BorderRadius.circular(12),
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  padding: const EdgeInsets.symmetric(vertical: 8),
                   child: Row(children: [
                     Container(
-                      width: 46, height: 48,
+                      width: 40, height: 40,
                       decoration: BoxDecoration(color: background, borderRadius: BorderRadius.circular(14)),
-                      child: Icon(icon, size: 24, color: foreground),
+                      child: Icon(icon, size: 22, color: foreground),
                     ),
                     const SizedBox(width: 12),
                     Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                      Text(row.label, style: BuType.caption.copyWith(color: t.mut)),
-                      const SizedBox(height: 4),
+                      Text(row.label, style: BuType.caption.copyWith(fontSize: 11, color: t.mut)),
+                      const SizedBox(height: 3),
                       Text(row.value, maxLines: 3, overflow: TextOverflow.ellipsis,
-                        style: BuType.body.copyWith(fontWeight: FontWeight.w600, height: 1.3, color: row.muted ? t.mut : t.ink)),
+                        style: BuType.body.copyWith(fontSize: 13.5, fontWeight: FontWeight.w600, height: 1.3, color: row.muted ? t.mut : t.ink)),
                     ])),
                     const SizedBox(width: 6),
                     Icon(Directionality.of(context) == TextDirection.rtl ? BuIcons.chevronLeft : BuIcons.chevronRight, size: 16, color: t.mut),
@@ -723,23 +716,61 @@ class HomeBrandHeader extends StatelessWidget {
   final List<Widget> actions;
   final String hello;
   final String? greeting;
-
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       Row(children: [
-        Expanded(child: Text('BÜ KAMPÜS', style: BuType.title.copyWith(fontSize: 16, fontWeight: FontWeight.w700, letterSpacing: 1.5, color: t.ink))),
-        for (final action in actions) action,
+        ClipRRect(borderRadius: BorderRadius.circular(12), child: Image.asset('assets/branding/mark.png', width: 42, height: 42, excludeFromSemantics: true)),
+        const SizedBox(width: 10),
+        Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text('BÜ Kampüs', maxLines: 1, style: BuType.title.copyWith(fontSize: 18, fontWeight: FontWeight.w700, color: t.ink)),
+          const SizedBox(height: 3),
+          Text(context.l10n.homeBrandSubtitle, maxLines: 2, overflow: TextOverflow.ellipsis, style: BuType.caption.copyWith(fontSize: 10, height: 1.25, color: t.mut)),
+        ])),
+        for (final action in actions.reversed) action,
       ]),
       const SizedBox(height: 14),
-      Semantics(header: true, child: Text(hello, maxLines: 2, overflow: TextOverflow.ellipsis,
-        style: BuType.display.copyWith(fontSize: 27, fontWeight: FontWeight.w700, height: 1.15, color: t.ink))),
-      const SizedBox(height: 6),
-      Text(MaterialLocalizations.of(context).formatFullDate(DateTime.now()),
-        style: BuType.body.copyWith(fontSize: 13, color: t.mut)),
+      SizedBox(width: double.infinity, child: Stack(children: [
+        const PositionedDirectional(end: 0, bottom: 0, width: 100, height: 50, child: HomeCampusArt()),
+        Padding(padding: const EdgeInsets.only(bottom: 8), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Row(children: [
+            Flexible(child: Semantics(header: true, child: Text(hello, maxLines: 2, overflow: TextOverflow.ellipsis,
+              style: BuType.display.copyWith(fontSize: 26, fontWeight: FontWeight.w700, height: 1.2, color: t.ink)))),
+            const SizedBox(width: 8),
+            ExcludeSemantics(child: Icon(BuIcons.hand, size: 24, color: t.warn)),
+          ]),
+          const SizedBox(height: 8),
+          FractionallySizedBox(widthFactor: .66, child: Text(MaterialLocalizations.of(context).formatFullDate(DateTime.now()),
+            style: BuType.body.copyWith(fontSize: 13, color: t.mut))),
+        ])),
+      ])),
     ]);
   }
+}
+
+/// Dört ana kampüs hedefi; kaydedilen kişisel hızlı erişimden bağımsızdır.
+class HomeFeaturedShortcuts extends StatelessWidget {
+  const HomeFeaturedShortcuts({super.key, required this.items});
+  final List<({String label, IconData icon, Color bg, Color fg, VoidCallback onTap})> items;
+  @override
+  Widget build(BuildContext context) => IntrinsicHeight(child: Row(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+    for (var i = 0; i < items.length; i++) ...[
+      if (i > 0) const SizedBox(width: 8),
+      Expanded(child: Semantics(button: true, label: items[i].label, excludeSemantics: true, onTap: items[i].onTap,
+        child: BuPressable(onTap: items[i].onTap, child: Container(
+          constraints: const BoxConstraints(minHeight: 82),
+          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 10),
+          decoration: BoxDecoration(color: items[i].bg, borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: context.bu.sf, width: 1.5), boxShadow: BuElevation.of(context, 1)),
+          child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+            Icon(items[i].icon, size: 26, color: items[i].fg), const SizedBox(height: 8),
+            Text(items[i].label, textAlign: TextAlign.center, style: BuType.label.copyWith(fontSize: 12, height: 1.2, fontWeight: FontWeight.w600, color: context.bu.ink)),
+          ]),
+        )),
+      )),
+    ],
+  ]));
 }
 
 /// Öne çıkan haber kartı (yatay kaydırma): 240 dp, beyaz + 1 dp çerçeve + 16 köşe, iç 12; üstte 112 dp görsel
@@ -764,7 +795,7 @@ class HomeNewsCard extends StatelessWidget {
   static const _maxScale = 1.5;
 
   /// Kartın (çerçeve dahil) yüksekliği; [scale] sistem yazı ölçeği (en çok 1,5 hesaba katılır).
-  static double heightFor(double scale) => 124 + 48 * (scale.clamp(1.0, _maxScale) - 1);
+  static double heightFor(double scale) => 112 + 64 * (scale.clamp(1.0, _maxScale) - 1);
 
   /// Verilirse görsel, haber detayının kapağına paylaşılan geçişle (Hero) uçar.
   final int? heroId;
@@ -791,7 +822,7 @@ class HomeNewsCard extends StatelessWidget {
             onTap: onTap,
             padding: const EdgeInsets.all(12),
             child: Row(children: [
-              ClipRRect(borderRadius: BorderRadius.circular(12), child: SizedBox(width: 88, height: 92, child: image)),
+              ClipRRect(borderRadius: BorderRadius.circular(12), child: SizedBox(width: 78, height: 80, child: image)),
               const SizedBox(width: 12),
               Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisAlignment: MainAxisAlignment.center, children: [
                 Text(title, maxLines: 3, overflow: TextOverflow.ellipsis,
