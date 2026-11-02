@@ -1,10 +1,10 @@
 // SAYFA: Analitik (/admin/analytics?tab=overview|growth|engagement|retention|demographics&from=&to=&dim=)
 // API: /api/admin/analytics/{overview,registrations,active-users,breakdown,engagement,retention,support,push,content} (api/analytics.ts).
 // KVKK: yalnızca toplulaştırılmış veri gösterilir. Sekmeler, tarih aralığı ve demografi boyutu URL'dedir.
-import { useMemo } from 'react';
+import { lazy, Suspense, useMemo } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
 import type { BreakdownDimension } from '../../api/types';
-import { DateRangePicker, Icon, Insight, PageHeader, Switch, Tabs, type DateRangeValue } from '../../components/ui';
+import { DateRangePicker, Icon, Insight, PageHeader, Skeleton, Switch, Tabs, type DateRangeValue } from '../../components/ui';
 import { useI18n } from '../../i18n/I18nProvider';
 import { useGt } from './dashboard/dict';
 import { lastDays } from '../../lib/date';
@@ -17,9 +17,11 @@ import GrowthTab from './analytics/GrowthTab';
 import OverviewTab from './analytics/OverviewTab';
 import RetentionTab from './analytics/RetentionTab';
 import { clampRange, DIMENSIONS, parseTab, previousRange, rangeDays, TABS, type TabId } from './analytics/transform';
+// Kullanım sekmesi (ayrı tembel parça: metinler ve bileşenler yalnız sekme açılınca yüklenir)
+const UsageTab = lazy(() => import('./analytics/usage/UsageTab'));
 
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
-const RANGE_TABS: TabId[] = ['overview', 'growth', 'engagement'];
+const RANGE_TABS: TabId[] = ['overview', 'growth', 'engagement', 'usage'];
 const TAB_OF_ANCHOR: Record<string, TabId> = {
   'anl-today': 'overview',
   'anl-dau': 'overview',
@@ -35,12 +37,20 @@ const TAB_OF_ANCHOR: Record<string, TabId> = {
   'anl-funnel': 'engagement',
   'anl-events': 'engagement',
   'anl-screens': 'engagement',
+  'usage-highlights': 'usage',
+  'usage-screens': 'usage',
+  'usage-actions': 'usage',
+  'usage-flow': 'usage',
+  'usage-hourly': 'usage',
+  'usage-segments': 'usage',
+  'usage-features': 'usage',
+  'usage-export': 'usage',
   'anl-retention': 'retention',
   'anl-demo-dims': 'demographics',
 };
 
 export default function AnalyticsPage() {
-  const { t, formatDate, formatNumber } = useI18n();
+  const { t, td, formatDate, formatNumber } = useI18n();
   const g = useGt();
   usePageTitle(t('admin.analytics.title'));
   const [sp, setSp] = useSearchParams();
@@ -97,7 +107,11 @@ export default function AnalyticsPage() {
         label={t('admin.analytics.tabs.label')}
         value={tab}
         onChange={(id) => patch({ tab: id })}
-        tabs={TABS.map((id) => ({ id, label: t(`admin.analytics.tab.${id}`) }))}
+        tabs={TABS.map((id) => ({
+          id,
+          // Kullanım sekmesinin adı kendi tembel sözlüğündedir (admin.tr bütçesi); yüklenene dek varsayılan metin
+          label: id === 'usage' ? td('admin.analytics.tab.usage', 'Kullanım') : t(`admin.analytics.tab.${id}`),
+        }))}
       >
         {showRange && (
           <div className={styles.controls} data-search-anchor="anl-range">
@@ -105,7 +119,7 @@ export default function AnalyticsPage() {
               value={range}
               onChange={(r) => patch({ from: r.from || null, to: r.to || null })}
             />
-            {tab !== 'engagement' && (
+            {tab !== 'engagement' && tab !== 'usage' && (
               <div className={styles.compareToggle} data-search-anchor="anl-compare-toggle">
                 <Switch
                   checked={compare}
@@ -120,7 +134,7 @@ export default function AnalyticsPage() {
                 from: shortDate(from),
                 to: shortDate(to),
               })}
-              {prev && tab !== 'engagement' && (
+              {prev && tab !== 'engagement' && tab !== 'usage' && (
                 <> {g('admin.genel.anl.compareHint', { from: shortDate(prev.from), to: shortDate(prev.to) })}</>
               )}
             </p>
@@ -134,6 +148,11 @@ export default function AnalyticsPage() {
         {tab === 'overview' && <OverviewTab range={range} compare={compare} />}
         {tab === 'growth' && <GrowthTab range={range} compare={compare} />}
         {tab === 'engagement' && <EngagementTab range={range} />}
+        {tab === 'usage' && (
+          <Suspense fallback={<Skeleton height={320} width="100%" radius="var(--radius-sm)" style={{ display: 'block' }} />}>
+            <UsageTab range={range} />
+          </Suspense>
+        )}
         {tab === 'retention' && <RetentionTab />}
         {tab === 'demographics' && (
           <DemographicsTab dimension={dimension} onDimensionChange={(d) => patch({ dim: d })} />

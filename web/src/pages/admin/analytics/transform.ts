@@ -1,7 +1,7 @@
 import type { FunnelStep } from '../../../api/types';
 import { shiftDate } from '../dashboard/transform';
 
-export const TABS = ['overview', 'growth', 'engagement', 'retention', 'demographics'] as const;
+export const TABS = ['overview', 'growth', 'engagement', 'usage', 'retention', 'demographics'] as const;
 export type TabId = (typeof TABS)[number];
 
 export function parseTab(v: string | null | undefined): TabId {

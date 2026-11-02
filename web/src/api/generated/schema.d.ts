@@ -468,6 +468,134 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/admin/analytics/usage/features": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["features"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/analytics/usage/flow": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["flow"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/analytics/usage/hourly": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["hourly"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/analytics/usage/refresh": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["refresh_1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/analytics/usage/segments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["segments"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/analytics/usage/summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["summary_3"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/analytics/usage/top-actions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["topActions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/analytics/usage/top-screens": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["topScreens"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/admin/announcements": {
         parameters: {
             query?: never;
@@ -8811,6 +8939,16 @@ export interface components {
             /** Format: int64 */
             userId?: number | null;
         };
+        ActionItem: {
+            action?: string | null;
+            /** Format: double */
+            adoptionPercent?: number | null;
+            /** Format: int64 */
+            count?: number | null;
+            trend?: number[];
+            /** Format: int64 */
+            userDays?: number | null;
+        };
         ActionResult: {
             /** Format: int64 */
             id?: number | null;
@@ -11046,6 +11184,21 @@ export interface components {
             projectId?: string | null;
             validated?: boolean | null;
         };
+        FeatureItem: {
+            feature?: string | null;
+            /** Format: double */
+            percentOfMau?: number | null;
+            /** Format: int64 */
+            users?: number | null;
+        };
+        Features: {
+            asOf?: string | null;
+            items?: components["schemas"]["FeatureItem"][];
+            /** Format: int64 */
+            mau?: number | null;
+            /** Format: int64 */
+            reportingUsers?: number | null;
+        };
         FeedPage: {
             hint?: string | null;
             items?: components["schemas"]["PostDtosPostView"][];
@@ -11094,6 +11247,19 @@ export interface components {
             language?: string | null;
             /** @enum {string|null} */
             role?: "USER" | "ADMIN" | null;
+        };
+        Flow: {
+            edges?: components["schemas"]["FlowEdge"][];
+            from?: string | null;
+            to?: string | null;
+            /** Format: int64 */
+            totalTransitions?: number | null;
+        };
+        FlowEdge: {
+            /** Format: int64 */
+            count?: number | null;
+            from?: string | null;
+            to?: string | null;
         };
         FollowResult: {
             followState?: string | null;
@@ -11178,6 +11344,26 @@ export interface components {
             targetId?: number | null;
             /** @enum {string|null} */
             targetType?: "USER" | "MESSAGE" | "POST" | "COMMUNITY" | "EVENT" | "MESSAGE_IMAGE" | "USER_AVATAR" | "COMMUNITY_COVER" | "EVENT_COVER" | "FEED_POST" | "CONVERSATION" | "ANNOUNCEMENT" | "POLL" | null;
+        };
+        HourCell: {
+            /** Format: int32 */
+            dow?: number | null;
+            /** Format: int32 */
+            hour?: number | null;
+            /** Format: int64 */
+            sessions?: number | null;
+            /** Format: int64 */
+            views?: number | null;
+        };
+        Hourly: {
+            cells?: components["schemas"]["HourCell"][];
+            from?: string | null;
+            peak?: components["schemas"]["Peak"] | null;
+            to?: string | null;
+            /** Format: int64 */
+            totalSessions?: number | null;
+            /** Format: int64 */
+            totalViews?: number | null;
         };
         IdsRequest: {
             ids?: number[];
@@ -12169,6 +12355,14 @@ export interface components {
             noExpiry?: boolean | null;
             note?: string | null;
         };
+        Peak: {
+            /** Format: int32 */
+            dow?: number | null;
+            /** Format: int32 */
+            hour?: number | null;
+            /** Format: int64 */
+            sessions?: number | null;
+        };
         PendingBulkCancelRequest: {
             emails: string[];
             reason?: string | null;
@@ -13049,6 +13243,22 @@ export interface components {
             /** Format: date-time */
             scheduledAt?: string | null;
         };
+        ScreenItem: {
+            /** Format: double */
+            avgDailyUsers?: number | null;
+            /** Format: double */
+            avgSeconds?: number | null;
+            /** Format: double */
+            exitPercent?: number | null;
+            /** Format: double */
+            medianSeconds?: number | null;
+            screen?: string | null;
+            trend?: number[];
+            /** Format: int64 */
+            userDays?: number | null;
+            /** Format: int64 */
+            views?: number | null;
+        };
         ScreenViews: {
             screen?: string | null;
             /** Format: int64 */
@@ -13077,6 +13287,23 @@ export interface components {
             /** Format: int64 */
             nextCursor?: number | null;
             q?: string | null;
+        };
+        SegmentItem: {
+            key?: string | null;
+            /** Format: double */
+            percent?: number | null;
+            /** Format: int64 */
+            userDays?: number | null;
+        };
+        Segments: {
+            departments?: components["schemas"]["SegmentItem"][];
+            faculties?: components["schemas"]["SegmentItem"][];
+            from?: string | null;
+            /** Format: int32 */
+            kAnonymity?: number | null;
+            platforms?: components["schemas"]["SegmentItem"][];
+            to?: string | null;
+            versions?: components["schemas"]["SegmentItem"][];
         };
         SemesterRequest: {
             current?: boolean | null;
@@ -13574,12 +13801,30 @@ export interface components {
             refreshToken?: string | null;
             tokenType?: string | null;
         };
+        TopActions: {
+            /** Format: double */
+            avgReportingUsers?: number | null;
+            dates?: string[];
+            from?: string | null;
+            items?: components["schemas"]["ActionItem"][];
+            to?: string | null;
+            /** Format: int64 */
+            totalEvents?: number | null;
+        };
         TopEvent: {
             /** Format: int64 */
             count?: number | null;
             name?: string | null;
             /** Format: int64 */
             uniqueUsers?: number | null;
+        };
+        TopScreens: {
+            dates?: string[];
+            from?: string | null;
+            items?: components["schemas"]["ScreenItem"][];
+            to?: string | null;
+            /** Format: int64 */
+            totalViews?: number | null;
         };
         TrackReplyRequest: {
             text: string;
@@ -16001,6 +16246,414 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["SupportReport"];
+                };
+            };
+            /** @description Dogrulama / is kurali hatasi (code alanina bakin) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Token yok/gecersiz/suresi dolmus */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description ADMIN rolu gerekli */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    features: {
+        parameters: {
+            query?: {
+                from?: string;
+                to?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["Features"];
+                };
+            };
+            /** @description Dogrulama / is kurali hatasi (code alanina bakin) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Token yok/gecersiz/suresi dolmus */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description ADMIN rolu gerekli */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    flow: {
+        parameters: {
+            query?: {
+                from?: string;
+                to?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["Flow"];
+                };
+            };
+            /** @description Dogrulama / is kurali hatasi (code alanina bakin) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Token yok/gecersiz/suresi dolmus */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description ADMIN rolu gerekli */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    hourly: {
+        parameters: {
+            query?: {
+                from?: string;
+                to?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["Hourly"];
+                };
+            };
+            /** @description Dogrulama / is kurali hatasi (code alanina bakin) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Token yok/gecersiz/suresi dolmus */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description ADMIN rolu gerekli */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    refresh_1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Accepted */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": {
+                        [key: string]: string;
+                    };
+                };
+            };
+            /** @description Dogrulama / is kurali hatasi (code alanina bakin) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Token yok/gecersiz/suresi dolmus */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description ADMIN rolu gerekli */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description RATE_LIMITED: istek siniri asildi */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    segments: {
+        parameters: {
+            query?: {
+                from?: string;
+                to?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["Segments"];
+                };
+            };
+            /** @description Dogrulama / is kurali hatasi (code alanina bakin) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Token yok/gecersiz/suresi dolmus */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description ADMIN rolu gerekli */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    summary_3: {
+        parameters: {
+            query?: {
+                from?: string;
+                to?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["Summary"];
+                };
+            };
+            /** @description Dogrulama / is kurali hatasi (code alanina bakin) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Token yok/gecersiz/suresi dolmus */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description ADMIN rolu gerekli */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    topActions: {
+        parameters: {
+            query?: {
+                from?: string;
+                to?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["TopActions"];
+                };
+            };
+            /** @description Dogrulama / is kurali hatasi (code alanina bakin) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Token yok/gecersiz/suresi dolmus */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description ADMIN rolu gerekli */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    topScreens: {
+        parameters: {
+            query?: {
+                from?: string;
+                to?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["TopScreens"];
                 };
             };
             /** @description Dogrulama / is kurali hatasi (code alanina bakin) */

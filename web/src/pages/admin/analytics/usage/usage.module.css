@@ -1,0 +1,261 @@
+.top {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  align-items: center;
+  justify-content: space-between;
+}
+.intro {
+  margin: 0;
+  flex: 1 1 28ch;
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+.hlGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-3);
+}
+@media (max-width: 960px) {
+  .hlGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 480px) {
+  .hlGrid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+.note {
+  margin: var(--space-2) 0 0;
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+.insight {
+  margin-block-end: var(--space-3);
+}
+
+/* sayfa satırları */
+.rows {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--space-3);
+}
+.row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-areas:
+    'rank label value'
+    'bar bar bar'
+    'meta meta spark';
+  gap: var(--space-1) var(--space-3);
+  align-items: center;
+}
+.rank {
+  grid-area: rank;
+  inline-size: 1.6rem;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+.rankTop {
+  color: var(--primary);
+  font-weight: 700;
+}
+.label {
+  grid-area: label;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font-weight: 600;
+}
+.value {
+  grid-area: value;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+.bar {
+  grid-area: bar;
+  block-size: 8px;
+  border-radius: 999px;
+  background: var(--surface-2, var(--border));
+  overflow: hidden;
+}
+.barFill {
+  display: block;
+  block-size: 100%;
+  border-radius: 999px;
+  background: var(--chart-1);
+}
+.meta {
+  grid-area: meta;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  align-items: center;
+}
+.spark {
+  grid-area: spark;
+  justify-self: end;
+  line-height: 0;
+}
+.technical {
+  color: var(--text-muted);
+  font-size: var(--text-xs, 0.75rem);
+}
+
+/* halkalar */
+.rings {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  justify-content: space-around;
+  margin-block-end: var(--space-4);
+}
+.ringItem {
+  flex: 1 1 110px;
+  display: grid;
+  justify-items: center;
+  gap: var(--space-1);
+  text-align: center;
+  min-width: 0;
+}
+.ringName {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+/* akış */
+.flowRow {
+  display: grid;
+  gap: var(--space-1);
+}
+.flowHead {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  align-items: center;
+  justify-content: space-between;
+}
+.flowPath {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  align-items: center;
+  font-weight: 600;
+  min-width: 0;
+}
+.arrow {
+  color: var(--text-muted);
+}
+[dir='rtl'] .arrow {
+  transform: scaleX(-1);
+}
+
+/* ısı haritası */
+.heatWrap {
+  overflow-x: auto;
+}
+.heat {
+  inline-size: 100%;
+  min-inline-size: 320px;
+  border-collapse: separate;
+  border-spacing: 2px;
+  table-layout: fixed;
+  font-size: var(--text-xs, 0.75rem);
+}
+.heat th {
+  font-weight: 500;
+  color: var(--text-muted);
+  text-align: center;
+  padding: 0;
+}
+.heat th[scope='row'] {
+  inline-size: 2.6rem;
+  text-align: start;
+}
+.heat td {
+  block-size: 24px;
+  padding: 0;
+  border-radius: 3px;
+  background: var(--surface-2, var(--border));
+}
+.heat td[data-level='1'] {
+  background: color-mix(in srgb, var(--chart-1) 22%, var(--surface));
+}
+.heat td[data-level='2'] {
+  background: color-mix(in srgb, var(--chart-1) 45%, var(--surface));
+}
+.heat td[data-level='3'] {
+  background: color-mix(in srgb, var(--chart-1) 70%, var(--surface));
+}
+.heat td[data-level='4'] {
+  background: var(--chart-1);
+}
+.legendRow {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+  margin-block-start: var(--space-3);
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+.legendStep {
+  inline-size: 18px;
+  block-size: 12px;
+  border-radius: 3px;
+  background: var(--surface-2, var(--border));
+}
+
+/* kırılımlar */
+.segGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-5);
+}
+@media (max-width: 720px) {
+  .segGrid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+.segTitle {
+  margin: 0 0 var(--space-2);
+  font-size: var(--text-base);
+  font-weight: 600;
+}
+
+/* özellik tablosu */
+.share {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-inline-size: 9rem;
+}
+.shareBar {
+  flex: 1;
+  block-size: 8px;
+  border-radius: 999px;
+  background: var(--surface-2, var(--border));
+  overflow: hidden;
+}
+.shareFill {
+  display: block;
+  block-size: 100%;
+  background: var(--chart-1);
+}
+.num {
+  font-variant-numeric: tabular-nums;
+}
+.details {
+  margin-block-start: var(--space-3);
+}
+.detailsSummary {
+  cursor: pointer;
+  color: var(--primary);
+  font-size: var(--text-sm);
+  min-block-size: 44px;
+  display: inline-flex;
+  align-items: center;
+}
