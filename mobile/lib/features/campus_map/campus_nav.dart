@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../core/analytics.dart';
 import '../../core/locale_controller.dart';
 import '../../core/session.dart';
 import '../../widgets/bu.dart';
@@ -55,9 +56,17 @@ Future<void> _launch(BuildContext context, Uri uri, {required Uri fallback}) asy
   if (!ok && context.mounted) BuToast.show(context, context.l10n.campusOpenFailed, kind: BuToastKind.error);
 }
 
+/// Yer kategorisini analitik için kısa sabit etikete çevirir (`[a-z0-9_]`, en çok 40; boşsa `other`).
+String campusKindLabel(String category) {
+  final s = category.toLowerCase().replaceAll(RegExp(r'[^a-z0-9_]+'), '_').replaceAll(RegExp(r'^_+|_+$'), '');
+  if (s.isEmpty) return 'other';
+  return s.length > 40 ? s.substring(0, 40) : s;
+}
+
 /// Paylaş: uygulamada başka yerde de olduğu gibi (haber) metin + bağlantı panoya kopyalanır.
 Future<void> sharePlace(BuildContext context, CampusPlace p) async {
   final text = '${p.name} - BÜ Kampüs\n${shareUri(p.point)}';
   await Clipboard.setData(ClipboardData(text: text));
+  Analytics.instance.track('share', props: {'kind': 'campus_place'}); // yalnız tür; ad/koordinat yok
   if (context.mounted) BuToast.show(context, context.l10n.campusLinkCopied, kind: BuToastKind.success);
 }

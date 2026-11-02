@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../core/analytics.dart';
 import '../../core/locale_controller.dart';
 import '../../widgets/bu.dart';
 import 'campus_geo.dart';
@@ -28,6 +29,13 @@ class CampusPlacePage extends StatefulWidget {
 
 class _CampusPlacePageState extends State<CampusPlacePage> {
   final _map = MapController();
+
+  @override
+  void initState() {
+    super.initState();
+    // Kullanım istatistiği: yalnız kategori (yer adı/kimliği/konum gönderilmez).
+    Analytics.instance.track('map_place_open', props: {'kind': campusKindLabel(widget.place.category)});
+  }
 
   @override
   void dispose() {

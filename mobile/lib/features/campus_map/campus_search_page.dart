@@ -118,7 +118,12 @@ class _CampusSearchPageState extends State<CampusSearchPage> {
                   ),
                 ]),
               ),
-              Expanded(child: q.isEmpty ? _idle(context) : _results(context, q)),
+              Expanded(
+                child: BuStateSwitcher(
+                  state: q.isEmpty ? 'idle' : 'results',
+                  child: q.isEmpty ? _idle(context) : _results(context, q),
+                ),
+              ),
             ]);
           },
         ),

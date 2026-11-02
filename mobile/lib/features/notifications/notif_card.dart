@@ -42,6 +42,7 @@ RichKind notifKindOf(Map<String, dynamic> n, Map<String, dynamic> data) {
     'type': pick('type'),
     'subtype': pick('subtype'),
     'channelId': pick('channelId'),
+    'card': pick('card'), // backend NotifCard adı (varsa kart türünü doğrudan belirler)
   };
   final actionsRaw = pick('actions');
   final actions = <String>[

@@ -163,7 +163,10 @@ class _NotificationsPageState extends State<NotificationsPage> {
     // Tek yönlendirme tablosu: push dokunuşu ile aynı (core/push/push_targets.dart).
     final d = _data(n);
     final t = resolvePushTarget(d);
-    if (t.dest == PushDest.notifications || t.dest == PushDest.signOut) return;
+    if (t.dest == PushDest.notifications || t.dest == PushDest.signOut) {
+      PushRouter.trackOpen(t); // hedefsiz satır da bir açılıştır (PushRouter.open çağrılmadığı için burada)
+      return;
+    }
     await PushRouter.open(d);
   }
 

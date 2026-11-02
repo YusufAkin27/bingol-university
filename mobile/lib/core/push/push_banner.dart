@@ -73,6 +73,10 @@ class PushBannerCenter {
 
   final Duration duration;
   final ValueNotifier<BannerItem?> current = ValueNotifier(null);
+
+  /// Süre dolunca şerit önce kayarak/solarak çıkar ([BuMotion.exit] + hızlanan eğri), sonra kaldırılır.
+  /// Açık kapatma ([hide]: dokunma, kapat düğmesi) anında kaldırır.
+  final ValueNotifier<bool> leaving = ValueNotifier(false);
   OverlayEntry? _entry;
   Timer? _timer;
   void Function(Map<String, dynamic>)? _onTap;
@@ -80,9 +84,10 @@ class PushBannerCenter {
   /// [onTap] kart tıklanınca çağrılır (sohbete git vb.).
   void show(BannerItem item, {required void Function(Map<String, dynamic>) onTap, OverlayState? overlay}) {
     _onTap = onTap;
+    leaving.value = false;
     current.value = mergeBanner(current.value, item);
     _timer?.cancel();
-    _timer = Timer(duration, hide);
+    _timer = Timer(duration, _autoHide);
     if (_entry == null) {
       final o = overlay ?? rootNavigatorKey.currentState?.overlay;
       if (o == null) {
@@ -94,9 +99,19 @@ class PushBannerCenter {
     }
   }
 
+  void _autoHide() {
+    if (current.value == null) return;
+    leaving.value = true;
+    _timer = Timer(BuMotion.exit(_enter), hide);
+  }
+
+  /// Giriş süresi (300 ms, emphasizedDecelerate); çıkış bunun %70'i.
+  static const Duration _enter = Duration(milliseconds: 300);
+
   void hide() {
     _timer?.cancel();
     _timer = null;
+    leaving.value = false;
     current.value = null;
     _entry?.remove();
     _entry = null;
@@ -120,6 +135,7 @@ class _BannerHost extends StatelessWidget {
       valueListenable: center.current,
       builder: (context, item, _) {
         if (item == null) return const SizedBox.shrink();
+        final reduced = BuMotion.reduced(context);
         return Positioned(
           top: 0,
           left: 0,
@@ -127,11 +143,21 @@ class _BannerHost extends StatelessWidget {
           child: SafeArea(
             child: Padding(
               padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
-              child: TweenAnimationBuilder<double>(
-                tween: Tween(begin: -1, end: 0),
-                duration: BuMotion.reduced(context) ? Duration.zero : const Duration(milliseconds: 220),
-                curve: Curves.easeOutCubic,
-                builder: (_, v, child) => Transform.translate(offset: Offset(0, v * 40), child: Opacity(opacity: 1 + v, child: child)),
+              child: ValueListenableBuilder<bool>(
+                valueListenable: center.leaving,
+                builder: (context, leaving, child) => TweenAnimationBuilder<double>(
+                  // Giriş: üstten 300 ms yavaşlayan iniş; çıkış: giriş x 0.7 hızlanan. Azaltılmış harekette yalnız solma.
+                  tween: Tween(begin: -1, end: leaving ? -1 : 0),
+                  duration: reduced
+                      ? BuMotion.durations.reducedFade
+                      : (leaving ? BuMotion.exit(PushBannerCenter._enter) : PushBannerCenter._enter),
+                  curve: leaving ? BuMotion.accelerate : BuMotion.emphasizedDecelerate,
+                  builder: (_, v, c) => Transform.translate(
+                    offset: reduced ? Offset.zero : Offset(0, v * 40),
+                    child: Opacity(opacity: (1 + v).clamp(0.0, 1.0), child: c),
+                  ),
+                  child: child,
+                ),
                 child: Dismissible(
                   key: const ValueKey('push-banner'),
                   direction: DismissDirection.up,

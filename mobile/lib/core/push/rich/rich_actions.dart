@@ -175,7 +175,7 @@ int? conversationIdOf(Map<String, dynamic> d) {
 
 /// Kişi (gönderen/istek sahibi) kimliği.
 int? personIdOf(Map<String, dynamic> d) {
-  final direct = _id(d['requesterId']) ?? _id(d['senderId']) ?? _id(d['userId']);
+  final direct = _id(d['requesterId']) ?? _id(d['requestId']) ?? _id(d['senderId']) ?? _id(d['userId']);
   if (direct != null) return direct;
   final t = _up(d['targetType'] ?? d['target']);
   if (t == 'USER' || t == 'USER_FOLLOW' || t == 'FOLLOW' || t == 'FOLLOW_REQUEST' || t == 'FOLLOW_REQUESTS') {

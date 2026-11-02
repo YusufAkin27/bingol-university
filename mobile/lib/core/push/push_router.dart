@@ -15,6 +15,7 @@ import '../../features/posts/post_routes.dart';
 import '../../features/profile/user_profile_page.dart';
 import '../../features/support/support_page.dart';
 import '../../features/support/support_ticket_page.dart';
+import '../analytics.dart';
 import '../api.dart';
 import '../closed_conversations.dart';
 import '../nav.dart';
@@ -39,6 +40,7 @@ class PushRouter {
     // Sohbet kapatıldı/yeniden açıldı bildirimi: durum, hedef ekran açılmadan önce işlenir (bantlı açılsın).
     if (!localReminder) ClosedConversations.instance.applyPushData(payload);
     final target = resolvePushTarget(payload);
+    trackOpen(target);
     final nav = rootNavigatorKey.currentState;
     if (s == null || nav == null || s.state != SessionState.signedIn) return;
     try {
@@ -48,6 +50,12 @@ class PushRouter {
     }
     if (!nav.mounted) return;
     nav.push(MaterialPageRoute<void>(builder: (_) => NotificationsPage(session: s)));
+  }
+
+  /// Kullanım istatistiği `notification_open {kind}`: bildirime (push, banner, zengin eylem, liste satırı) dokunuş.
+  /// `kind` yalnız çözülen hedef türünün sabit adıdır (`conversation`, `event`...); kimlik, başlık, metin GİTMEZ.
+  static void trackOpen(PushTarget target) {
+    Analytics.instance.track('notification_open', props: {'kind': target.dest.name});
   }
 
   /// `GET /conversations/{id}` yanıtı `{conversation, members}` sarmalayıcısıdır (ChatDetailPage

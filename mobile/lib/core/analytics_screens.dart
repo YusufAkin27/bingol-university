@@ -21,6 +21,10 @@ import '../features/auth/reset_code_page.dart';
 import '../features/auth/reset_success_page.dart';
 import '../features/auth/verify_code_page.dart';
 import '../features/auth/welcome_page.dart';
+import '../features/campus_map/campus_category_page.dart';
+import '../features/campus_map/campus_map_page.dart';
+import '../features/campus_map/campus_place_page.dart';
+import '../features/campus_map/campus_search_page.dart';
 import '../features/chat/chat_background_settings_page.dart';
 import '../features/chat/chat_detail_page.dart';
 import '../features/chat/chat_info_media.dart';
@@ -170,6 +174,11 @@ final Map<Type, String> _widgetKeys = {
   NotificationsPage: 'notifications',
   PushHelpPage: 'push_help',
   SearchPage: 'search',
+  // Kampüs haritası
+  CampusMapPage: 'campus_map',
+  CampusSearchPage: 'campus_search',
+  CampusCategoryPage: 'campus_category',
+  CampusPlacePage: 'campus_place',
   // Anketler
   PollListPage: 'poll_list',
   PollDetailPage: 'poll_detail',

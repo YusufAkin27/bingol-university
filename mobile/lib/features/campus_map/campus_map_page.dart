@@ -172,8 +172,8 @@ class _CampusMapPageState extends State<CampusMapPage> with WidgetsBindingObserv
         return;
       }
       _anim?.dispose();
-      final c = _anim = AnimationController(vsync: this, duration: const Duration(milliseconds: 320));
-      final curve = CurvedAnimation(parent: c, curve: Curves.easeInOutCubic);
+      final c = _anim = AnimationController(vsync: this, duration: BuMotion.durations.standard);
+      final curve = CurvedAnimation(parent: c, curve: BuMotion.emphasized);
       final lat = Tween<double>(begin: cam.center.latitude, end: target.latitude);
       final lng = Tween<double>(begin: cam.center.longitude, end: target.longitude);
       final zt = Tween<double>(begin: cam.zoom, end: z);
@@ -279,12 +279,17 @@ class _CampusMapPageState extends State<CampusMapPage> with WidgetsBindingObserv
               const SizedBox(height: 8),
             ],
             Expanded(
-              child: switch (_ctl.load) {
-                CampusLoad.loading => _loading(context),
-                CampusLoad.error => Center(child: CampusMapErrorCard(onRetry: () => unawaited(_ctl.refresh(force: true)))),
-                CampusLoad.maintenance => Center(child: CampusMapErrorCard(maintenance: true, onRetry: () => unawaited(_ctl.refresh(force: true)))),
-                CampusLoad.ready => _body(context),
-              },
+              // Yükleniyor/hata/bakım/hazır geçişi: kısa solma + 8 dp kayma (azaltılmış harekette yalnız solma).
+              child: BuStateSwitcher(
+                state: _ctl.load,
+                alignment: Alignment.center,
+                child: switch (_ctl.load) {
+                  CampusLoad.loading => _loading(context),
+                  CampusLoad.error => Center(child: CampusMapErrorCard(onRetry: () => unawaited(_ctl.refresh(force: true)))),
+                  CampusLoad.maintenance => Center(child: CampusMapErrorCard(maintenance: true, onRetry: () => unawaited(_ctl.refresh(force: true)))),
+                  CampusLoad.ready => _body(context),
+                },
+              ),
             ),
           ]),
         ),

@@ -59,7 +59,7 @@ class NotifRow extends StatelessWidget {
                         key: const ValueKey('notif-unread-dot'),
                         scale: unread ? 1 : 0,
                         duration: BuMotion.of(context, BuMotion.medium),
-                        curve: BuMotion.emphasizedDecelerate,
+                        curve: BuMotion.settle, // rozet yerleşmesi (~%3 taşma)
                         child: AnimatedOpacity(
                           opacity: unread ? 1 : 0,
                           duration: BuMotion.of(context, BuMotion.short),

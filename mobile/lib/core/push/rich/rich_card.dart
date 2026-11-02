@@ -224,10 +224,51 @@ String defaultChannelOf(RichKind k) {
   }
 }
 
-/// Yükten kart türünü çözer: önce `subtype`/`type`, olmazsa eylem kimlikleri ve kanal ipuçları (backend alt tür adları
+/// Backend `NotifCard` sabit adı -> mobil kart türü (push `data.card` ve bildirim satırı `card`). Backend'in `card`
+/// alanı kart kararını tek yerde verir (alt tür adları tek başına EVENT_HOUR/POLL_CLOSING/iptal ayrımını taşımaz).
+/// Tabloda olmayan değer null döner; çağıran eski alt tür/eylem yoluna düşer.
+const Map<String, RichKind> kBackendCardKinds = {
+  'CHAT_DM': RichKind.directMessage,
+  'CHAT_GROUP': RichKind.groupMessage,
+  'CHAT_PHOTO': RichKind.photoMessage,
+  'CHAT_MANY': RichKind.messageBurst,
+  'EVENT_DAY': RichKind.eventTomorrow,
+  'EVENT_HOUR': RichKind.eventSoon,
+  'EVENT_CHANGED': RichKind.eventUpdate,
+  'EVENT_ADMISSION': RichKind.eventApproved,
+  'EVENT_CANCELLED': RichKind.eventCancelled,
+  'ANNOUNCEMENT': RichKind.announcement,
+  'UNIT_ANNOUNCEMENT': RichKind.deptAnnouncement,
+  'ACADEMIC_ANNOUNCEMENT': RichKind.academicAnnouncement,
+  'NEWS': RichKind.news,
+  'EXAM_REMINDER': RichKind.examReminder,
+  'MENU_TODAY': RichKind.menuToday,
+  'POLL_NEW': RichKind.pollNew,
+  'POLL_CLOSING': RichKind.pollClosing,
+  'POST_LIKE': RichKind.postLike,
+  'USER_FOLLOW': RichKind.newFollower,
+  'FOLLOW_REQUEST': RichKind.followRequest,
+  'FOLLOW_ACCEPTED': RichKind.followAccepted,
+  'SECURITY_NEW_DEVICE': RichKind.newDeviceLogin,
+  'SECURITY_PASSWORD': RichKind.passwordChanged,
+  'SECURITY_2FA_OFF': RichKind.twoFaChanged,
+  'SECURITY_2FA_ON': RichKind.twoFaChanged,
+  'SECURITY_SESSION': RichKind.sessionReplaced,
+  'SUPPORT_TICKET': RichKind.supportReply,
+};
+
+/// `card` değerinden kart türü; boş/bilinmeyen = null.
+RichKind? richKindOfCard(Object? card) {
+  final k = _s(card).toUpperCase();
+  return k.isEmpty ? null : kBackendCardKinds[k];
+}
+
+/// Yükten kart türünü çözer: önce backend `card`, sonra `subtype`/`type`, olmazsa eylem kimlikleri ve kanal ipuçları (backend alt tür adları
 /// değişse de doğru kart çıkar). SAF fonksiyon.
 RichKind resolveRichKind(Map<String, dynamic> d, List<String> actions,
     {required int count, required RichImageStyle style}) {
+  final byCard = richKindOfCard(d['card']);
+  if (byCard != null) return byCard;
   final type = _s(d['type']).toUpperCase();
   final sub = _s(d['subtype']).toUpperCase();
   final channel = _s(d['channelId']).toLowerCase();
