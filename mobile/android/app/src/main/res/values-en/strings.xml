@@ -7,10 +7,12 @@
     <string name="channel_social_name">Social (likes, follows)</string>
     <string name="channel_poll_name">Polls</string>
     <string name="channel_academic_name">Class and exam reminders</string>
+    <string name="channel_security_name">Security</string>
     <string name="channel_chat_desc">Direct and group chat messages. Arrive with sound and vibration.</string>
     <string name="channel_event_desc">Event reminders, changes and attendance results.</string>
     <string name="channel_announcement_desc">News, announcements, club and system notifications.</string>
     <string name="channel_social_desc">Like and follow notifications. Delivered silently.</string>
     <string name="channel_poll_desc">New polls and their results.</string>
     <string name="channel_academic_desc">Local reminders before your classes and exams.</string>
+    <string name="channel_security_desc">New device sign-ins, password and session alerts. Always delivered, even during quiet hours.</string>
 </resources>

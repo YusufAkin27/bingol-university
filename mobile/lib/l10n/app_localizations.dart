@@ -17808,6 +17808,354 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Tümünü gör'**
   String get homeViewAll;
+
+  /// No description provided for @notifActReply.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yanıtla'**
+  String get notifActReply;
+
+  /// No description provided for @notifActMarkRead.
+  ///
+  /// In tr, this message translates to:
+  /// **'Okundu İşaretle'**
+  String get notifActMarkRead;
+
+  /// No description provided for @notifActMute1h.
+  ///
+  /// In tr, this message translates to:
+  /// **'1 Saat Sessize Al'**
+  String get notifActMute1h;
+
+  /// No description provided for @notifActView.
+  ///
+  /// In tr, this message translates to:
+  /// **'Görüntüle'**
+  String get notifActView;
+
+  /// No description provided for @notifActQuickReply.
+  ///
+  /// In tr, this message translates to:
+  /// **'Hızlı Yanıtla'**
+  String get notifActQuickReply;
+
+  /// No description provided for @notifActOpenAll.
+  ///
+  /// In tr, this message translates to:
+  /// **'Tümünü Aç'**
+  String get notifActOpenAll;
+
+  /// No description provided for @notifActCalendar.
+  ///
+  /// In tr, this message translates to:
+  /// **'Takvime Ekle'**
+  String get notifActCalendar;
+
+  /// No description provided for @notifActQr.
+  ///
+  /// In tr, this message translates to:
+  /// **'QR ile Giriş'**
+  String get notifActQr;
+
+  /// No description provided for @notifActFollowBack.
+  ///
+  /// In tr, this message translates to:
+  /// **'Takip et'**
+  String get notifActFollowBack;
+
+  /// No description provided for @notifActAccept.
+  ///
+  /// In tr, this message translates to:
+  /// **'Onayla'**
+  String get notifActAccept;
+
+  /// No description provided for @notifActReject.
+  ///
+  /// In tr, this message translates to:
+  /// **'Reddet'**
+  String get notifActReject;
+
+  /// No description provided for @notifActVote.
+  ///
+  /// In tr, this message translates to:
+  /// **'Oy ver'**
+  String get notifActVote;
+
+  /// No description provided for @notifActNotMe.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu ben değilim'**
+  String get notifActNotMe;
+
+  /// No description provided for @notifActResetPw.
+  ///
+  /// In tr, this message translates to:
+  /// **'Hemen Sıfırla'**
+  String get notifActResetPw;
+
+  /// No description provided for @notifActEnable2fa.
+  ///
+  /// In tr, this message translates to:
+  /// **'2FA Aç'**
+  String get notifActEnable2fa;
+
+  /// No description provided for @notifActSignOutDevice.
+  ///
+  /// In tr, this message translates to:
+  /// **'Cihazı Çıkar'**
+  String get notifActSignOutDevice;
+
+  /// No description provided for @notifActViewTicket.
+  ///
+  /// In tr, this message translates to:
+  /// **'Talebi Görüntüle'**
+  String get notifActViewTicket;
+
+  /// No description provided for @notifActProfile.
+  ///
+  /// In tr, this message translates to:
+  /// **'Profili Gör'**
+  String get notifActProfile;
+
+  /// No description provided for @notifActDetail.
+  ///
+  /// In tr, this message translates to:
+  /// **'Detay'**
+  String get notifActDetail;
+
+  /// No description provided for @notifActExamCard.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sınav Belgesi'**
+  String get notifActExamCard;
+
+  /// No description provided for @notifActOpenSchedule.
+  ///
+  /// In tr, this message translates to:
+  /// **'Programı Aç'**
+  String get notifActOpenSchedule;
+
+  /// No description provided for @notifActOpen.
+  ///
+  /// In tr, this message translates to:
+  /// **'Aç'**
+  String get notifActOpen;
+
+  /// No description provided for @notifActReplyHint.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yanıtınızı yazın'**
+  String get notifActReplyHint;
+
+  /// No description provided for @notifActFailed.
+  ///
+  /// In tr, this message translates to:
+  /// **'Gönderilemedi, uygulamada tekrar deneyin'**
+  String get notifActFailed;
+
+  /// No description provided for @notifActNotMeTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Oturumlar kapatıldı'**
+  String get notifActNotMeTitle;
+
+  /// No description provided for @notifActNotMeBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Tüm cihazlardaki oturumlar sonlandırıldı. Şifrenizi hemen sıfırlayın.'**
+  String get notifActNotMeBody;
+
+  /// No description provided for @notifRichChat.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sohbet'**
+  String get notifRichChat;
+
+  /// No description provided for @notifRichClubRoom.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kulüp Odası'**
+  String get notifRichClubRoom;
+
+  /// No description provided for @notifRichMedia.
+  ///
+  /// In tr, this message translates to:
+  /// **'Medya'**
+  String get notifRichMedia;
+
+  /// No description provided for @notifRichEvent.
+  ///
+  /// In tr, this message translates to:
+  /// **'Etkinlik'**
+  String get notifRichEvent;
+
+  /// No description provided for @notifRichAnnouncement.
+  ///
+  /// In tr, this message translates to:
+  /// **'Duyuru'**
+  String get notifRichAnnouncement;
+
+  /// No description provided for @notifRichDept.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bölüm duyurusu'**
+  String get notifRichDept;
+
+  /// No description provided for @notifRichAcademic.
+  ///
+  /// In tr, this message translates to:
+  /// **'Akademik'**
+  String get notifRichAcademic;
+
+  /// No description provided for @notifRichNews.
+  ///
+  /// In tr, this message translates to:
+  /// **'Güncel Haber'**
+  String get notifRichNews;
+
+  /// No description provided for @notifRichPoll.
+  ///
+  /// In tr, this message translates to:
+  /// **'Anket'**
+  String get notifRichPoll;
+
+  /// No description provided for @notifRichSocial.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sosyal'**
+  String get notifRichSocial;
+
+  /// No description provided for @notifRichSecurity.
+  ///
+  /// In tr, this message translates to:
+  /// **'Güvenlik'**
+  String get notifRichSecurity;
+
+  /// No description provided for @notifRichSupport.
+  ///
+  /// In tr, this message translates to:
+  /// **'Destek'**
+  String get notifRichSupport;
+
+  /// No description provided for @notifRichMenu.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yemekhane'**
+  String get notifRichMenu;
+
+  /// No description provided for @notifRichHomework.
+  ///
+  /// In tr, this message translates to:
+  /// **'Ödev'**
+  String get notifRichHomework;
+
+  /// No description provided for @notifRichClass.
+  ///
+  /// In tr, this message translates to:
+  /// **'Ders'**
+  String get notifRichClass;
+
+  /// No description provided for @notifRichNewMsgs.
+  ///
+  /// In tr, this message translates to:
+  /// **'{n} yeni mesaj'**
+  String notifRichNewMsgs(String n);
+
+  /// No description provided for @bildirimmobilKanalSecurity.
+  ///
+  /// In tr, this message translates to:
+  /// **'Güvenlik'**
+  String get bildirimmobilKanalSecurity;
+
+  /// No description provided for @p21ChanSecurityDesc.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yeni cihaz girişi, şifre ve oturum uyarıları. Her zaman gönderilir, sessiz saatte de gelir.'**
+  String get p21ChanSecurityDesc;
+
+  /// No description provided for @notifFilterMessages.
+  ///
+  /// In tr, this message translates to:
+  /// **'Mesajlar'**
+  String get notifFilterMessages;
+
+  /// No description provided for @notifFilterEvents.
+  ///
+  /// In tr, this message translates to:
+  /// **'Etkinlik'**
+  String get notifFilterEvents;
+
+  /// No description provided for @notifFilterAnnouncements.
+  ///
+  /// In tr, this message translates to:
+  /// **'Duyuru'**
+  String get notifFilterAnnouncements;
+
+  /// No description provided for @notifFilterSocial.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sosyal'**
+  String get notifFilterSocial;
+
+  /// No description provided for @notifBrandCaption.
+  ///
+  /// In tr, this message translates to:
+  /// **'BU KAMPÜS'**
+  String get notifBrandCaption;
+
+  /// No description provided for @notifNewBadge.
+  ///
+  /// In tr, this message translates to:
+  /// **'{n} Yeni'**
+  String notifNewBadge(String n);
+
+  /// No description provided for @notifGroupUnreadCount.
+  ///
+  /// In tr, this message translates to:
+  /// **'{n} okunmamış'**
+  String notifGroupUnreadCount(String n);
+
+  /// No description provided for @notifEndTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Başka bildiriminiz bulunmuyor'**
+  String get notifEndTitle;
+
+  /// No description provided for @notifEndSub.
+  ///
+  /// In tr, this message translates to:
+  /// **'Önemli kampüs gelişmelerini anında iletmeye devam edeceğiz.'**
+  String get notifEndSub;
+
+  /// No description provided for @notifSettings.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bildirim ayarları'**
+  String get notifSettings;
+
+  /// No description provided for @notifEmptyFilter.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu türde bildirim yok.'**
+  String get notifEmptyFilter;
+
+  /// No description provided for @notifActDone.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yapıldı'**
+  String get notifActDone;
+
+  /// No description provided for @notifActFailedTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'BU Kampüs'**
+  String get notifActFailedTitle;
+
+  /// No description provided for @notifSecWarn.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu siz değilseniz şifrenizi sıfırlayın'**
+  String get notifSecWarn;
 }
 
 class _AppLocalizationsDelegate

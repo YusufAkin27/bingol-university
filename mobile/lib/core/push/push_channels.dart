@@ -1,7 +1,6 @@
 /// Android bildirim kanalı tablosu. Kimlikler SUNUCU sözleşmesiyle aynıdır
-/// (`PushMessages.channel`: chat / event / announcement) ve `LocalReminders.kt` içindeki
-/// `Channels.ensure` ile eşleşmelidir. `social`/`poll` şimdilik sunucu tarafından kullanılmaz
-/// (beğeni/takip `announcement` kanalına düşer); ileride sunucu geçince hazır dursun diye tabloda var.
+/// (`PushMessages.channel`: chat / event / announcement / social / poll / academic / security) ve `LocalReminders.kt`
+/// içindeki `Channels.ensure` ile eşleşmelidir.
 enum PushImportance { low, defaultLevel, high }
 
 class PushChannel {
@@ -20,6 +19,8 @@ const pushChannels = <PushChannel>[
   PushChannel('social', PushImportance.low, 'social'),
   PushChannel('poll', PushImportance.defaultLevel, 'poll'),
   PushChannel('academic', PushImportance.high, 'academic'),
+  // Guvenlik uyarilari: sunucu tur tercihiyle kapatmaz, sessiz saatte de gonderir (kanal HIGH).
+  PushChannel('security', PushImportance.high, 'security'),
 ];
 
 /// Bildirim türü (`type`) -> sunucunun seçtiği kanal (yedek eşleme; istemci yerel şerit için kullanır).

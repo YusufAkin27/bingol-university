@@ -125,6 +125,22 @@ class Session extends ChangeNotifier {
     _set(SessionState.signedOut);
   }
 
+  /// Arka plan isolate'i (bildirim eylemi: satır içi yanıt vb.) belirteci yenilediyse güvenli depodaki GÜNCEL çifti belleğe
+  /// alır: refresh belirteci tek kullanımlıktır, bellekteki eskisiyle yenilemek oturumu düşürürdü. Oturum açık değilse
+  /// ya da depo okunamazsa hiçbir şey yapmaz.
+  Future<void> reloadTokensFromStore() async {
+    if (state != SessionState.signedIn) return;
+    try {
+      final a = await _storage.read(key: 'access');
+      final rf = await _storage.read(key: 'refresh');
+      if (a == null || rf == null || a.isEmpty || rf.isEmpty) return;
+      final cur = api.tokens;
+      if (cur != null && cur.access == a && cur.refresh == rf) return;
+      if (state != SessionState.signedIn) return;
+      api.tokens = Tokens(a, rf);
+    } catch (_) {}
+  }
+
   /// Geçici hatada (ağ, 5xx, 429, 408) `/auth/me` yeniden denemeleri arasındaki bekleme.
   /// Testler kısaltabilir.
   @visibleForTesting

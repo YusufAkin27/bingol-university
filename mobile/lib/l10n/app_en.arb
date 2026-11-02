@@ -3128,5 +3128,84 @@
   "homeFeaturedMenu": "Meal Menu",
   "homeSearchFilters": "Search filters",
   "homeMore": "More",
-  "homeViewAll": "View all"
+  "homeViewAll": "View all",
+  "notifActReply": "Reply",
+  "notifActMarkRead": "Mark as read",
+  "notifActMute1h": "Mute for 1 hour",
+  "notifActView": "View",
+  "notifActQuickReply": "Quick reply",
+  "notifActOpenAll": "Open all",
+  "notifActCalendar": "Add to calendar",
+  "notifActQr": "Check in with QR",
+  "notifActFollowBack": "Follow back",
+  "notifActAccept": "Accept",
+  "notifActReject": "Decline",
+  "notifActVote": "Vote",
+  "notifActNotMe": "This wasn't me",
+  "notifActResetPw": "Reset now",
+  "notifActEnable2fa": "Turn on 2FA",
+  "notifActSignOutDevice": "Sign out device",
+  "notifActViewTicket": "View request",
+  "notifActProfile": "View profile",
+  "notifActDetail": "Details",
+  "notifActExamCard": "Exam card",
+  "notifActOpenSchedule": "Open schedule",
+  "notifActOpen": "Open",
+  "notifActReplyHint": "Type your reply",
+  "notifActFailed": "Couldn't send. Try again in the app.",
+  "notifActNotMeTitle": "Sessions were closed",
+  "notifActNotMeBody": "All sessions were ended. Reset your password right away.",
+  "notifRichChat": "Chat",
+  "notifRichClubRoom": "Club room",
+  "notifRichMedia": "Media",
+  "notifRichEvent": "Event",
+  "notifRichAnnouncement": "Announcement",
+  "notifRichDept": "Department",
+  "notifRichAcademic": "Academic",
+  "notifRichNews": "News",
+  "notifRichPoll": "Poll",
+  "notifRichSocial": "Social",
+  "notifRichSecurity": "Security",
+  "notifRichSupport": "Support",
+  "notifRichMenu": "Cafeteria",
+  "notifRichHomework": "Assignment",
+  "notifRichClass": "Class",
+  "notifRichNewMsgs": "{n} new messages",
+  "@notifRichNewMsgs": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "bildirimmobilKanalSecurity": "Security",
+  "p21ChanSecurityDesc": "New device sign-ins, password and session alerts. Always delivered, even during quiet hours.",
+  "notifFilterMessages": "Messages",
+  "notifFilterEvents": "Events",
+  "notifFilterAnnouncements": "Announcements",
+  "notifFilterSocial": "Social",
+  "notifBrandCaption": "BU CAMPUS",
+  "notifNewBadge": "{n} new",
+  "@notifNewBadge": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "notifGroupUnreadCount": "{n} unread",
+  "@notifGroupUnreadCount": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "notifEndTitle": "You're all caught up",
+  "notifEndSub": "We'll keep sending important campus updates right away.",
+  "notifSettings": "Notification settings",
+  "notifEmptyFilter": "No notifications of this type.",
+  "notifActDone": "Done",
+  "notifActFailedTitle": "BU Campus",
+  "notifSecWarn": "If this wasn't you, reset your password"
 }

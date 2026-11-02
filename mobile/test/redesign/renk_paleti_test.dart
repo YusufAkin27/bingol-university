@@ -188,6 +188,8 @@ void main() {
       'lib/features/academic/academic_models.dart',
       'lib/features/chat/sohbety_widgets.dart',
       'lib/features/chat/media_preview_page.dart',
+      // Android bildirim vurgu rengi (arka plan isolate'inde BuTokens/BuildContext yok; res/values/colors.xml ile ayni).
+      'lib/core/push/rich/rich_notifier.dart',
     };
     // Colors.white/black yalniz baglamsiz painter'da (avatar parlamasi).
     const colorsConstAllow = {'lib/widgets/bu_default_avatar.dart'};

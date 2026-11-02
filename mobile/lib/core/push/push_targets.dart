@@ -24,6 +24,9 @@ enum PushDest {
   exams,
   ticket,
   feedback,
+
+  /// Hesap ve güvenlik ekranı (`ACCOUNT_SECURITY`: şifre sıfırla / 2FA aç / cihaz oturumu bildirim eylemleri). Kimliksiz.
+  accountSecurity,
   notifications,
 }
 
@@ -120,6 +123,8 @@ PushDest? _destOf(String t) {
       return PushDest.user;
     case 'TICKET':
       return PushDest.ticket;
+    case 'ACCOUNT_SECURITY':
+      return PushDest.accountSecurity;
     case 'FEEDBACK':
       return PushDest.feedback;
     case 'EXAM':
@@ -179,7 +184,8 @@ PushTarget resolvePushTarget(Map<String, dynamic>? data) {
       case PushDest.exams:
         return PushTarget(dest, id: value); // kimliksiz de geçerli: ilgili listeyi açar
       case PushDest.followRequests:
-        return PushTarget(dest); // kimlik yok: istekler ekranı
+      case PushDest.accountSecurity:
+        return PushTarget(dest); // kimlik yok: ilgili ekranı açar
       case PushDest.post:
         if (value != null) return PushTarget(dest, id: value, commentId: commentId);
       default:

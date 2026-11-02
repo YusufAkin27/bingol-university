@@ -557,7 +557,9 @@ void main() {
         });
       await tester.pumpWidget(buildApp(NotificationsPage(session: makeSession(b)), size: kPhoneMedium));
       await settle(tester, const Duration(seconds: 1));
-      expect(find.text('Takip'), findsNWidgets(2));
+      final sem = tester.ensureSemantics();
+      expect(find.bySemanticsLabel(RegExp('Takip')), findsWidgets);
+      sem.dispose();
       expect(find.text('Yeni takip isteği'), findsOneWidget);
       await unmount(tester);
     });

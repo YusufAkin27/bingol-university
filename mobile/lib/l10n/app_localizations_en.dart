@@ -9839,4 +9839,187 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get homeViewAll => 'View all';
+
+  @override
+  String get notifActReply => 'Reply';
+
+  @override
+  String get notifActMarkRead => 'Mark as read';
+
+  @override
+  String get notifActMute1h => 'Mute for 1 hour';
+
+  @override
+  String get notifActView => 'View';
+
+  @override
+  String get notifActQuickReply => 'Quick reply';
+
+  @override
+  String get notifActOpenAll => 'Open all';
+
+  @override
+  String get notifActCalendar => 'Add to calendar';
+
+  @override
+  String get notifActQr => 'Check in with QR';
+
+  @override
+  String get notifActFollowBack => 'Follow back';
+
+  @override
+  String get notifActAccept => 'Accept';
+
+  @override
+  String get notifActReject => 'Decline';
+
+  @override
+  String get notifActVote => 'Vote';
+
+  @override
+  String get notifActNotMe => 'This wasn\'t me';
+
+  @override
+  String get notifActResetPw => 'Reset now';
+
+  @override
+  String get notifActEnable2fa => 'Turn on 2FA';
+
+  @override
+  String get notifActSignOutDevice => 'Sign out device';
+
+  @override
+  String get notifActViewTicket => 'View request';
+
+  @override
+  String get notifActProfile => 'View profile';
+
+  @override
+  String get notifActDetail => 'Details';
+
+  @override
+  String get notifActExamCard => 'Exam card';
+
+  @override
+  String get notifActOpenSchedule => 'Open schedule';
+
+  @override
+  String get notifActOpen => 'Open';
+
+  @override
+  String get notifActReplyHint => 'Type your reply';
+
+  @override
+  String get notifActFailed => 'Couldn\'t send. Try again in the app.';
+
+  @override
+  String get notifActNotMeTitle => 'Sessions were closed';
+
+  @override
+  String get notifActNotMeBody =>
+      'All sessions were ended. Reset your password right away.';
+
+  @override
+  String get notifRichChat => 'Chat';
+
+  @override
+  String get notifRichClubRoom => 'Club room';
+
+  @override
+  String get notifRichMedia => 'Media';
+
+  @override
+  String get notifRichEvent => 'Event';
+
+  @override
+  String get notifRichAnnouncement => 'Announcement';
+
+  @override
+  String get notifRichDept => 'Department';
+
+  @override
+  String get notifRichAcademic => 'Academic';
+
+  @override
+  String get notifRichNews => 'News';
+
+  @override
+  String get notifRichPoll => 'Poll';
+
+  @override
+  String get notifRichSocial => 'Social';
+
+  @override
+  String get notifRichSecurity => 'Security';
+
+  @override
+  String get notifRichSupport => 'Support';
+
+  @override
+  String get notifRichMenu => 'Cafeteria';
+
+  @override
+  String get notifRichHomework => 'Assignment';
+
+  @override
+  String get notifRichClass => 'Class';
+
+  @override
+  String notifRichNewMsgs(String n) {
+    return '$n new messages';
+  }
+
+  @override
+  String get bildirimmobilKanalSecurity => 'Security';
+
+  @override
+  String get p21ChanSecurityDesc =>
+      'New device sign-ins, password and session alerts. Always delivered, even during quiet hours.';
+
+  @override
+  String get notifFilterMessages => 'Messages';
+
+  @override
+  String get notifFilterEvents => 'Events';
+
+  @override
+  String get notifFilterAnnouncements => 'Announcements';
+
+  @override
+  String get notifFilterSocial => 'Social';
+
+  @override
+  String get notifBrandCaption => 'BU CAMPUS';
+
+  @override
+  String notifNewBadge(String n) {
+    return '$n new';
+  }
+
+  @override
+  String notifGroupUnreadCount(String n) {
+    return '$n unread';
+  }
+
+  @override
+  String get notifEndTitle => 'You\'re all caught up';
+
+  @override
+  String get notifEndSub =>
+      'We\'ll keep sending important campus updates right away.';
+
+  @override
+  String get notifSettings => 'Notification settings';
+
+  @override
+  String get notifEmptyFilter => 'No notifications of this type.';
+
+  @override
+  String get notifActDone => 'Done';
+
+  @override
+  String get notifActFailedTitle => 'BU Campus';
+
+  @override
+  String get notifSecWarn => 'If this wasn\'t you, reset your password';
 }

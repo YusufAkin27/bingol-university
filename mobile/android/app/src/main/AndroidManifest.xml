@@ -58,6 +58,10 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
+        <!-- Zengin bildirim eylemleri (yanit, okundu, sessize al, takip, onay/ret...): flutter_local_notifications eylem alicisi.
+             exported=false: yalniz uygulamanin kendi PendingIntent'leri tetikler. Zamanlanmis bildirim alicilari KULLANILMAZ
+             (yerel hatirlatmalar ReminderReceiver ile), bu yuzden Schedule* alicilari ve exact alarm izni eklenmez. -->
+        <receiver android:name="com.dexterous.flutterlocalnotifications.ActionBroadcastReceiver" android:exported="false"/>
         <receiver android:name=".ReminderReceiver" android:exported="false"/>
         <!-- Yalniz sistem yayinlari (BOOT_COMPLETED vb.) alinir; exported=false disaridan sahte tetiklemeyi engeller
              (sistem yayinlari yine iletilir). rearmAll sadece yerel alarmlari yeniden kurar. -->

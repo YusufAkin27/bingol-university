@@ -4926,5 +4926,84 @@
   "homeFeaturedMenu": "Yemek Menüsü",
   "homeSearchFilters": "Arama filtreleri",
   "homeMore": "Diğer",
-  "homeViewAll": "Tümünü gör"
+  "homeViewAll": "Tümünü gör",
+  "notifActReply": "Yanıtla",
+  "notifActMarkRead": "Okundu İşaretle",
+  "notifActMute1h": "1 Saat Sessize Al",
+  "notifActView": "Görüntüle",
+  "notifActQuickReply": "Hızlı Yanıtla",
+  "notifActOpenAll": "Tümünü Aç",
+  "notifActCalendar": "Takvime Ekle",
+  "notifActQr": "QR ile Giriş",
+  "notifActFollowBack": "Takip et",
+  "notifActAccept": "Onayla",
+  "notifActReject": "Reddet",
+  "notifActVote": "Oy ver",
+  "notifActNotMe": "Bu ben değilim",
+  "notifActResetPw": "Hemen Sıfırla",
+  "notifActEnable2fa": "2FA Aç",
+  "notifActSignOutDevice": "Cihazı Çıkar",
+  "notifActViewTicket": "Talebi Görüntüle",
+  "notifActProfile": "Profili Gör",
+  "notifActDetail": "Detay",
+  "notifActExamCard": "Sınav Belgesi",
+  "notifActOpenSchedule": "Programı Aç",
+  "notifActOpen": "Aç",
+  "notifActReplyHint": "Yanıtınızı yazın",
+  "notifActFailed": "Gönderilemedi, uygulamada tekrar deneyin",
+  "notifActNotMeTitle": "Oturumlar kapatıldı",
+  "notifActNotMeBody": "Tüm cihazlardaki oturumlar sonlandırıldı. Şifrenizi hemen sıfırlayın.",
+  "notifRichChat": "Sohbet",
+  "notifRichClubRoom": "Kulüp Odası",
+  "notifRichMedia": "Medya",
+  "notifRichEvent": "Etkinlik",
+  "notifRichAnnouncement": "Duyuru",
+  "notifRichDept": "Bölüm duyurusu",
+  "notifRichAcademic": "Akademik",
+  "notifRichNews": "Güncel Haber",
+  "notifRichPoll": "Anket",
+  "notifRichSocial": "Sosyal",
+  "notifRichSecurity": "Güvenlik",
+  "notifRichSupport": "Destek",
+  "notifRichMenu": "Yemekhane",
+  "notifRichHomework": "Ödev",
+  "notifRichClass": "Ders",
+  "notifRichNewMsgs": "{n} yeni mesaj",
+  "@notifRichNewMsgs": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "bildirimmobilKanalSecurity": "Güvenlik",
+  "p21ChanSecurityDesc": "Yeni cihaz girişi, şifre ve oturum uyarıları. Her zaman gönderilir, sessiz saatte de gelir.",
+  "notifFilterMessages": "Mesajlar",
+  "notifFilterEvents": "Etkinlik",
+  "notifFilterAnnouncements": "Duyuru",
+  "notifFilterSocial": "Sosyal",
+  "notifBrandCaption": "BU KAMPÜS",
+  "notifNewBadge": "{n} Yeni",
+  "@notifNewBadge": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "notifGroupUnreadCount": "{n} okunmamış",
+  "@notifGroupUnreadCount": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "notifEndTitle": "Başka bildiriminiz bulunmuyor",
+  "notifEndSub": "Önemli kampüs gelişmelerini anında iletmeye devam edeceğiz.",
+  "notifSettings": "Bildirim ayarları",
+  "notifEmptyFilter": "Bu türde bildirim yok.",
+  "notifActDone": "Yapıldı",
+  "notifActFailedTitle": "BU Kampüs",
+  "notifSecWarn": "Bu siz değilseniz şifrenizi sıfırlayın"
 }

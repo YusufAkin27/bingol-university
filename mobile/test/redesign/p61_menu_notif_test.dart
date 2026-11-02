@@ -183,7 +183,7 @@ void main() {
   });
 
   group('Bildirimler (Stitch v3)', () {
-    testWidgets('satir: karti/simgesi yok, tur etiketi + zaman + tek nokta, bd cizgisi', (tester) async {
+    testWidgets('satir: kart + rozet, zaman + tek nokta (tasarim 08)', (tester) async {
       final b = FakeBackend()..on('/notifications', _notifs());
       await _show(tester, NotificationsPage(session: makeSession(b)));
       expect(find.text('Duyuru'), findsOneWidget);
@@ -191,10 +191,7 @@ void main() {
       // Ağaçta kalır, okunanlar ölçeksiz. Eski MESSAGE satırı (id 4) istemcide gizlenir: 3 satır.
       expect(find.byKey(const ValueKey('notif-unread-dot')), findsNWidgets(3));
       expect(find.text('Mehmet Kaya mesaj gönderdi'), findsNothing);
-      expect(find.byIcon(BuIcons.megaphone), findsNothing);
-      expect(find.byIcon(BuIcons.checkCheck), findsNothing);
       expect(find.byType(BuCard), findsNothing);
-      expect(find.textContaining(' yeni'), findsNothing);
       expect(tester.takeException(), isNull);
     });
 
@@ -206,16 +203,14 @@ void main() {
       sem.dispose();
     });
 
-    testWidgets('cipler: Tumu secili = soft + pr metin, sayac rozeti yok, >= 48 dp dokunma', (tester) async {
+    testWidgets('cipler: Tumu secili = koyu (ink), sayac rozeti yok, >= 48 dp dokunma', (tester) async {
       final b = FakeBackend()..on('/notifications', _notifs());
       await _show(tester, NotificationsPage(session: makeSession(b)));
       final all = find.byKey(const ValueKey('notif-seg-all'));
-      final unread = find.byKey(const ValueKey('notif-seg-unread'));
       expect(find.descendant(of: all, matching: find.byType(Text)), findsOneWidget);
-      expect(find.descendant(of: unread, matching: find.byType(Text)), findsOneWidget);
       expect(tester.getSize(all).height, greaterThanOrEqualTo(48));
       final box = tester.widget<AnimatedContainer>(find.descendant(of: all, matching: find.byType(AnimatedContainer)));
-      expect((box.decoration as BoxDecoration).color, BuTokens.light.soft);
+      expect((box.decoration as BoxDecoration).color, BuTokens.light.ink); // tasarim 08: secili cip koyu
       expect(tester.getSize(find.descendant(of: all, matching: find.byType(AnimatedContainer))).height, closeTo(34, 3));
     });
 
@@ -237,8 +232,7 @@ void main() {
     testWidgets('Okunmamis cipinde hepsi okunduysa ayri cumle', (tester) async {
       final b2 = FakeBackend()..on('/notifications', _notifs());
       await _show(tester, NotificationsPage(session: makeSession(b2)));
-      await tester.tap(find.byKey(const ValueKey('notif-seg-unread')));
-      await settle(tester);
+      await tapNotifChip(tester, 'notif-seg-unread');
       await tester.drag(find.byKey(const ValueKey('notif-1')), const Offset(-500, 0));
       await settle(tester);
       await tester.drag(find.byKey(const ValueKey('notif-2')), const Offset(-500, 0));
