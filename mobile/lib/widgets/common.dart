@@ -8,6 +8,7 @@ import 'bu_illustrations.dart';
 import 'bu_state.dart';
 import 'sistem_widgets.dart';
 import '../core/icons/bu_icons.dart';
+import '../core/theme/bu_space.dart';
 
 /// 2026-10-26 -> 26.10.2026
 String fmtDate(String? iso) {
@@ -148,7 +149,7 @@ class TypeBadge extends StatelessWidget {
     final cs = Theme.of(context).colorScheme;
     final isEvent = type == 'ETKINLIK';
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: BuOptical.n3),
       decoration: BoxDecoration(
         color: isEvent ? cs.primaryContainer : cs.secondary,
         borderRadius: BorderRadius.circular(999),
@@ -171,7 +172,7 @@ class SectionHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 24, 12, 8),
+      padding: const EdgeInsetsDirectional.fromSTEB(20, 24, 12, 8),
       child: Row(
         children: [
           Expanded(
@@ -214,6 +215,7 @@ class NewsThumb extends StatelessWidget {
       borderRadius: BorderRadius.circular(radius),
       child: Image(
         image: persistentNetworkImage(url!, cacheWidth: width.isFinite ? (width * MediaQuery.devicePixelRatioOf(context)).ceil() : 800),
+        excludeFromSemantics: true, // küçük resim süstür; başlık yanındaki metindedir
         width: width,
         height: height,
         fit: BoxFit.cover,

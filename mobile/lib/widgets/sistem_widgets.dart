@@ -6,6 +6,7 @@ import '../core/theme/bu_shape.dart';
 import '../core/theme/bu_sizes.dart';
 import '../core/typography.dart';
 import '../core/icons/bu_icons.dart';
+import '../core/theme/bu_space.dart';
 
 /// Sistem ekranları (izin, bakım, güncelleme, hata, QR) için ortak yapı taşları.
 /// Tasarım: Sm1-Sm8, Et3b. Renkler `context.bu`; tasarımdaki sabit tonlar burada.
@@ -101,7 +102,7 @@ class SistemButton extends StatelessWidget {
                 constraints: BoxConstraints(minHeight: height, minWidth: BuSize.touch),
                 child: Center(
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    padding: const EdgeInsets.symmetric(horizontal: BuSpace.s10, vertical: 4),
                     child: busy
                         ? SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2.4, color: fg))
                         : Text(label, textAlign: TextAlign.center, style: style),
@@ -154,7 +155,7 @@ class SistemStatusView extends StatelessWidget {
                 constraints: BoxConstraints(minHeight: c.maxHeight),
                 child: Center(
                   child: Padding(
-                    padding: const EdgeInsets.fromLTRB(24, 16, 24, 16),
+                    padding: const EdgeInsetsDirectional.fromSTEB(24, 16, 24, 16),
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
@@ -163,14 +164,14 @@ class SistemStatusView extends StatelessWidget {
                         Text(title,
                             textAlign: TextAlign.center,
                             style: BuType.display.copyWith(color: t.ink, letterSpacing: -.5)),
-                        const SizedBox(height: 10),
+                        BuGap.h10,
                         Semantics(
                           liveRegion: true,
                           child: Text(body,
                               textAlign: TextAlign.center,
                               style: BuType.body.copyWith(color: t.mut, height: 1.5)),
                         ),
-                        for (final e in extras) ...[const SizedBox(height: 10), e],
+                        for (final e in extras) ...[BuGap.h10, e],
                       ],
                     ),
                   ),
@@ -181,7 +182,7 @@ class SistemStatusView extends StatelessWidget {
         ),
         if (footer.isNotEmpty)
           Padding(
-            padding: const EdgeInsets.fromLTRB(20, 4, 20, 28),
+            padding: const EdgeInsetsDirectional.fromSTEB(20, 4, 20, 28),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [for (var i = 0; i < footer.length; i++) ...[if (i > 0) const SizedBox(height: 4), footer[i]]],
@@ -208,7 +209,7 @@ class MaintenanceBand extends StatelessWidget {
       offset: -8,
       child: Container(
         margin: margin,
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+        padding: const EdgeInsets.symmetric(horizontal: BuSpace.s14, vertical: BuSpace.s10),
         decoration: BoxDecoration(
           color: SistemTones.bandBg(context),
           border: Border.all(color: SistemTones.bandBd(context)),
@@ -217,7 +218,7 @@ class MaintenanceBand extends StatelessWidget {
         child: Row(
           children: [
             ExcludeSemantics(child: Icon(icon, size: 16, color: fg)),
-            const SizedBox(width: 10),
+            BuGap.w10,
             Expanded(child: Text(text, style: BuType.label.copyWith(color: fg, height: 1.4, fontWeight: FontWeight.w500))),
           ],
         ),

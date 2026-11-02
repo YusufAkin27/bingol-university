@@ -6,6 +6,7 @@ import '../core/theme/bu_shape.dart';
 import '../core/theme/bu_sizes.dart';
 import 'bu_widgets.dart';
 import '../core/icons/bu_icons.dart';
+import '../core/theme/bu_space.dart';
 
 /// Bölüm başlığı: sol başlık (`titleMedium`) + sağda isteğe bağlı "Tümü" eylemi. Ekran okuyucuda başlık olarak okunur.
 class BuSectionHeader extends StatelessWidget {
@@ -61,7 +62,7 @@ class BuCountBadge extends StatelessWidget {
     return DecoratedBox(
       decoration: BoxDecoration(color: muted ? t.mut : t.pr, borderRadius: BuRadius.bPill),
       child: ConstrainedBox(
-        constraints: const BoxConstraints(minWidth: 20, minHeight: 20),
+        constraints: const BoxConstraints(minWidth: BuSize.badge, minHeight: BuSize.badge),
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 6),
           child: Center(
@@ -97,7 +98,7 @@ class BuListTile extends StatelessWidget {
     this.showChevron = false,
     this.danger = false,
     this.maxTitleLines = 2,
-    this.padding = const EdgeInsetsDirectional.symmetric(horizontal: 16, vertical: 10),
+    this.padding = const EdgeInsetsDirectional.symmetric(horizontal: 16, vertical: BuSpace.s10),
   });
 
   final String title;
@@ -136,7 +137,7 @@ class BuListTile extends StatelessWidget {
             padding: padding,
             child: Row(
               children: [
-                if (leading != null) ...[leading!, const SizedBox(width: 14)],
+                if (leading != null) ...[leading!, BuGap.w14],
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -227,7 +228,7 @@ class BuSettingsTile extends StatelessWidget {
     final row = ConstrainedBox(
       constraints: const BoxConstraints(minHeight: 60),
       child: Padding(
-        padding: const EdgeInsetsDirectional.symmetric(horizontal: 16, vertical: 10),
+        padding: const EdgeInsetsDirectional.symmetric(horizontal: 16, vertical: BuSpace.s10),
         child: Row(
           children: [
             ExcludeSemantics(
@@ -238,7 +239,7 @@ class BuSettingsTile extends StatelessWidget {
                 child: Icon(icon, size: 19, color: fg),
               ),
             ),
-            const SizedBox(width: 14),
+            BuGap.w14,
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -256,7 +257,7 @@ class BuSettingsTile extends StatelessWidget {
               ),
             ),
             if (value != null) ...[
-              const SizedBox(width: 10),
+              BuGap.w10,
               Flexible(
                 flex: 0,
                 child: ConstrainedBox(
@@ -265,9 +266,9 @@ class BuSettingsTile extends StatelessWidget {
                 ),
               ),
             ],
-            if (trailing != null) ...[const SizedBox(width: 10), trailing!],
+            if (trailing != null) ...[BuGap.w10, trailing!],
             if (isSwitch) ...[
-              const SizedBox(width: 10),
+              BuGap.w10,
               ExcludeSemantics(child: Switch(value: switchValue!, onChanged: onSwitch)),
             ] else if (onTap != null && !danger && trailing == null)
               Padding(

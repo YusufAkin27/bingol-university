@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../core/locale_controller.dart';
 import '../core/theme.dart';
 import '../core/theme/bu_motion.dart';
+import '../core/theme/bu_space.dart';
 
 /// Tek paylaşılan animasyonu iskelet kutularına dağıtan kapsam. Bir grup iskelet [BuSkeletonScope] altında
 /// çizilirse ekranda yalnız BİR AnimationController çalışır ("tek ticker"). Kutular yeniden kurulmaz,
@@ -137,7 +138,7 @@ class BuSkeletonList extends StatelessWidget {
     super.key,
     this.variant = BuSkeletonVariant.row,
     this.itemCount = 6,
-    this.padding = const EdgeInsets.fromLTRB(20, 8, 20, 20),
+    this.padding = const EdgeInsetsDirectional.fromSTEB(20, 8, 20, 20),
     this.shrinkWrap = false,
   });
 
@@ -180,11 +181,11 @@ class _RowSkeleton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => const Padding(
-        padding: EdgeInsets.symmetric(vertical: 10),
+        padding: EdgeInsets.symmetric(vertical: BuSpace.s10),
         child: Row(
           children: [
             BuSkeleton.circle(48),
-            SizedBox(width: 14),
+            BuGap.w14,
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,

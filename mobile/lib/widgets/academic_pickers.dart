@@ -84,14 +84,14 @@ class _DepartmentPickerPageState extends State<DepartmentPickerPage> {
             for (final g in groups) ...[
               RefCard(
                 radius: 24,
-                padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                padding: const EdgeInsetsDirectional.fromSTEB(16, 16, 16, 8),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     Row(
                       children: [
                         Icon(BuIcons.building2, size: 20, color: t.pr),
-                        const SizedBox(width: 10),
+                        BuGap.w10,
                         Expanded(
                           child: Text(
                             _facultyHeading(lang, g.$1.label(lang)),
@@ -170,7 +170,7 @@ class _DeptRow extends StatelessWidget {
           child: ConstrainedBox(
             constraints: const BoxConstraints(minHeight: 56),
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: BuSpace.s10),
               child: Row(
                 children: [
                   Expanded(child: title),
@@ -222,7 +222,7 @@ class _InfoRow extends StatelessWidget {
     final tx = Theme.of(context).textTheme;
     return RefCard(
       radius: 20,
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(BuSpace.s14),
       child: Row(
         children: [
           Container(
@@ -240,7 +240,7 @@ class _InfoRow extends StatelessWidget {
               style: TextButton.styleFrom(
                 backgroundColor: t.soft,
                 foregroundColor: t.onSoft,
-                minimumSize: const Size(48, 40),
+                minimumSize: const Size(BuSize.touch, BuSize.actionPill), // görünür 40 dp; hedef tema padded ile 48
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 shape: const StadiumBorder(),
               ),
@@ -272,7 +272,7 @@ Future<String?> showGradeSheet(BuildContext context, {required List<AcademicGrad
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const SizedBox(height: 10),
+              BuGap.h10,
               Container(width: 40, height: 4, decoration: BoxDecoration(color: t.bd, borderRadius: BorderRadius.circular(2))),
               Padding(
                 padding: const EdgeInsetsDirectional.fromSTEB(20, 12, 12, 4),
@@ -287,7 +287,7 @@ Future<String?> showGradeSheet(BuildContext context, {required List<AcademicGrad
                     IconButton(
                       tooltip: l.commonClose,
                       style: IconButton.styleFrom(backgroundColor: t.sf2),
-                      constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
+                      constraints: const BoxConstraints(minWidth: BuSize.iconBtn, minHeight: BuSize.iconBtn), // görünür 40 dp; hedef tema padded ile 48
                       icon: Icon(BuIcons.x, size: 20, color: t.ink),
                       onPressed: () => Navigator.maybePop(ctx),
                     ),
@@ -297,7 +297,7 @@ Future<String?> showGradeSheet(BuildContext context, {required List<AcademicGrad
               Flexible(
                 child: ListView(
                   shrinkWrap: true,
-                  padding: const EdgeInsets.fromLTRB(8, 4, 8, 12),
+                  padding: const EdgeInsetsDirectional.fromSTEB(8, 4, 8, 12),
                   children: [
                     for (final g in grades)
                       Builder(builder: (_) {

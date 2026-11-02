@@ -9,6 +9,7 @@ import '../core/theme/bu_shape.dart';
 import 'bu_illustrations.dart';
 import 'bu_widgets.dart';
 import '../core/icons/bu_icons.dart';
+import '../core/theme/bu_space.dart';
 
 /// Sınırlı yükseklikte ortalar, sığmazsa (320 dp + büyük yazı) kaydırır; sınırsızda (ListView içinde) düz ortalar
 /// ve içerik küçük (compact) çizilir ([builder]'a sınırsız yükseklik (infinity) verilir; küçük kutuda içerik sıkılaşır).
@@ -254,7 +255,7 @@ class BuOfflineBanner extends StatelessWidget {
       liveRegion: true,
       child: Container(
         margin: margin ?? const EdgeInsetsDirectional.fromSTEB(16, 8, 16, 4),
-        padding: const EdgeInsetsDirectional.fromSTEB(14, 10, 8, 10),
+        padding: const EdgeInsetsDirectional.fromSTEB(BuSpace.s14, BuSpace.s10, 8, BuSpace.s10),
         decoration:
             BoxDecoration(color: t.warnSoft, borderRadius: BuRadius.bMd),
         child: Column(

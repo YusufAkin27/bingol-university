@@ -42,7 +42,7 @@ class RequestsEntryRow extends StatelessWidget {
                       decoration: BoxDecoration(color: t.soft, shape: BoxShape.circle),
                       child: Icon(icon, size: 20, color: t.onSoft),
                     ),
-                    const SizedBox(width: 14),
+                    BuGap.w14,
                     Expanded(
                       child: Text(label,
                           maxLines: 2,

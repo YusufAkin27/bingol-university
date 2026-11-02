@@ -81,20 +81,20 @@ abstract final class ReportSheet {
               Semantics(header: true, child: Text(l.profileBlockTitle, style: tx.titleLarge!.copyWith(fontWeight: FontWeight.w800, color: t.ink))),
               const SizedBox(height: 6),
               Text(l.profileBlockBody, style: tx.bodyMedium!.copyWith(color: t.ink)),
-              const SizedBox(height: 14),
+              BuGap.h14,
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(color: t.sf2, borderRadius: BuRadius.bMd),
                 child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Padding(padding: const EdgeInsets.only(top: 1), child: Icon(BuIcons.info, size: 16, color: t.mut)),
-                  const SizedBox(width: 10),
+                  Padding(padding: const EdgeInsets.only(top: BuOptical.n1), child: Icon(BuIcons.info, size: 16, color: t.mut)),
+                  BuGap.w10,
                   Expanded(child: Text(l.p20BlockInfo, style: tx.bodySmall!.copyWith(color: t.mut, height: 1.4))),
                 ]),
               ),
               const SizedBox(height: 20),
               Row(children: [
                 Expanded(child: BuButton(label: l.profileCancel, kind: BuButtonKind.soft, onPressed: () => Navigator.pop(ctx, false))),
-                const SizedBox(width: 10),
+                BuGap.w10,
                 Expanded(child: BuButton(label: l.profileBlock, kind: BuButtonKind.danger, onPressed: () => Navigator.pop(ctx, true))),
               ]),
             ]),
@@ -176,14 +176,14 @@ class _SheetBodyState extends State<_SheetBody> {
     final tx = Theme.of(context).textTheme;
     final title = widget.title ?? (widget.forMessage ? l.reportMessageTitle : l.reportTitle);
     return Padding(
-      padding: EdgeInsets.fromLTRB(16, 12, 16, MediaQuery.of(context).viewInsets.bottom + 20),
+      padding: EdgeInsetsDirectional.fromSTEB(16, 12, 16, MediaQuery.of(context).viewInsets.bottom + 20),
       child: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Center(child: Container(width: 40, height: 4, decoration: BoxDecoration(color: t.bd, borderRadius: BorderRadius.circular(2)))),
-            const SizedBox(height: 14),
+            BuGap.h14,
             Row(children: [
               Expanded(child: Semantics(header: true, child: Text(title, style: tx.titleLarge!.copyWith(fontWeight: FontWeight.w800, color: t.ink)))),
               IconButton(
@@ -197,11 +197,11 @@ class _SheetBodyState extends State<_SheetBody> {
             if (widget.quote != null) ...[
               const SizedBox(height: 6),
               Container(
-                padding: const EdgeInsets.all(14),
+                padding: const EdgeInsets.all(BuSpace.s14),
                 decoration: BoxDecoration(color: t.sf2, borderRadius: BorderRadius.circular(16)),
                 child: Text('"${widget.quote}"', maxLines: 4, overflow: TextOverflow.ellipsis, style: tx.bodyMedium!.copyWith(fontStyle: FontStyle.italic, color: t.ink)),
               ),
-              const SizedBox(height: 10),
+              BuGap.h10,
             ],
             Text(l.reportPrompt, style: tx.bodyMedium!.copyWith(color: t.mut)),
             const SizedBox(height: 12),
@@ -217,6 +217,9 @@ class _SheetBodyState extends State<_SheetBody> {
             Stack(children: [
               TextField(
               controller: _details,
+              keyboardType: TextInputType.multiline,
+              textInputAction: TextInputAction.newline,
+              autofillHints: const <String>[], // serbest metin: otomatik doldurma yok
               maxLength: 250,
               maxLines: 3,
               enabled: !_busy,
@@ -227,7 +230,7 @@ class _SheetBodyState extends State<_SheetBody> {
                 counterText: '',
                 filled: true,
                 fillColor: t.sf2,
-                contentPadding: const EdgeInsets.fromLTRB(14, 12, 14, 30),
+                contentPadding: const EdgeInsetsDirectional.fromSTEB(BuSpace.s14, 12, BuSpace.s14, BuSpace.xxxl - BuSpace.xxs), // altta 30: sayaç yeri
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
                 enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
                 focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide(color: t.pr, width: 2)),
@@ -240,7 +243,7 @@ class _SheetBodyState extends State<_SheetBody> {
                 padding: const EdgeInsets.only(top: 8),
                 child: Text(_error!, style: tx.bodySmall!.copyWith(color: t.danger)),
               ),
-            const SizedBox(height: 14),
+            BuGap.h14,
             BuButton(label: l.reportSend, icon: BuIcons.send, busy: _busy, onPressed: (_busy || _reason == null) ? null : _submit),
           ],
         ),
@@ -268,12 +271,12 @@ class _SheetBodyState extends State<_SheetBody> {
           child: ConstrainedBox(
             constraints: const BoxConstraints(minHeight: BuSize.row),
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 14),
+              padding: const EdgeInsets.symmetric(horizontal: BuSpace.s14),
               child: Row(children: [
                 Icon(ReportSheet.reasonIcon(code), size: 18, color: sel ? t.onSoft : t.ink),
-                const SizedBox(width: 12),
+                BuGap.w12,
                 Expanded(child: Text(label, style: tx.titleSmall!.copyWith(fontWeight: sel ? FontWeight.w800 : FontWeight.w600, color: sel ? t.onSoft : t.ink))),
-                const SizedBox(width: 12),
+                BuGap.w12,
                 _Radio(selected: sel),
               ]),
             ),

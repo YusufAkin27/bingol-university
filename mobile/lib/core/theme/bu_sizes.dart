@@ -24,6 +24,12 @@ abstract final class BuSize {
   /// Arama kutusu (içindeki temizle düğmesi 48 dp dokunma alanını bozmasın diye 48).
   static const double search = 48;
 
+  /// Kart içi metin eylemi (hap düğme) görünür yüksekliği; dokunma alanı [touch] (tema `MaterialTapTargetSize.padded`).
+  static const double actionPill = 40;
+
+  /// Sayaç rozetinin (okunmamış sayısı) en küçük çapı: dokunulmaz, bilgi gösterir.
+  static const double badge = 20;
+
   /// Filtre çipi görünür yüksekliği; dokunma alanı [touch].
   static const double chip = 34;
 

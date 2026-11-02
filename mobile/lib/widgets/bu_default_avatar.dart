@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../core/theme.dart';
+
 /// Varsayılan profil görseli (N4): fotoğraf yokken / yüklenirken / yüklenemediğinde HER avatarın altında durur.
 /// Baş harf yerine yumuşak gradyan zemin + sade, yüzsüz, cinsiyetsiz kişi silueti (omuz + baş) çizilir.
 /// Tümü vektörel (varlık dosyası yok): her boyutta net, 24 dp'de de okunur.
@@ -47,27 +49,6 @@ class BuDefaultAvatar extends StatelessWidget {
   }
 }
 
-/// Üst renk, alt renk (gradyan) ve siluet rengi. Tümü uygulama paletinin ailelerindendir (marka, lacivert, mavi,
-/// su mavisi, yeşil, kum); mor/pembe yok (RENK-1). Painter bağlamsız olduğundan değerler burada sabittir ve
-/// `test/redesign/renk_paleti_test.dart` ile palet ailelerine uyum denetlenir.
-class _Palette {
-  const _Palette(this.top, this.bottom, this.glow);
-  final Color top;
-  final Color bottom;
-  final Color glow;
-}
-
-const _palettes = <_Palette>[
-  _Palette(Color(0xFFF2A094), Color(0xFFC0392B),
-      Color(0xFFFBE0DC)), // marka kırmızısı (sakin)
-  _Palette(Color(0xFF4A5C94), Color(0xFF171E33), Color(0xFF9FB0E6)), // lacivert
-  _Palette(
-      Color(0xFFDCD3C4), Color(0xFF8C8172), Color(0xFFF3EEE6)), // kum (nötr)
-  _Palette(Color(0xFF6CC3D6), Color(0xFF0B6E86), Color(0xFFCDEEF5)), // su mavisi
-  _Palette(Color(0xFF7FCBA3), Color(0xFF1E7A50), Color(0xFFD2F0E1)), // yeşil
-  _Palette(Color(0xFF7FA8E6), Color(0xFF1F4E96), Color(0xFFD3E3FA)), // mavi
-];
-
 class _AvatarPainter extends CustomPainter {
   const _AvatarPainter(this.variant, this.group);
 
@@ -76,7 +57,7 @@ class _AvatarPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final p = _palettes[variant];
+    final p = BuAvatarPalette.variants[variant];
     final rect = Offset.zero & size;
     final w = size.width;
     final h = size.height;
@@ -86,8 +67,8 @@ class _AvatarPainter extends CustomPainter {
       rect,
       Paint()
         ..shader = LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
+          begin: BuAvatarPalette.gradientBegin,
+          end: BuAvatarPalette.gradientEnd,
           colors: [p.top, p.bottom],
         ).createShader(rect),
     );
@@ -164,8 +145,8 @@ class _AvatarPainter extends CustomPainter {
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: [
-            Colors.white.withValues(alpha: alpha),
-            Colors.white.withValues(alpha: alpha * .86)
+            BuAvatarPalette.silhouette.withValues(alpha: alpha),
+            BuAvatarPalette.silhouette.withValues(alpha: alpha * .86)
           ],
         ).createShader(bounds),
     );
@@ -180,8 +161,8 @@ class _AvatarPainter extends CustomPainter {
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: [
-            Colors.white.withValues(alpha: alpha),
-            Colors.white.withValues(alpha: alpha * .88)
+            BuAvatarPalette.silhouette.withValues(alpha: alpha),
+            BuAvatarPalette.silhouette.withValues(alpha: alpha * .88)
           ],
         ).createShader(head),
     );

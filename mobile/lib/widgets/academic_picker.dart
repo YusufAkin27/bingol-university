@@ -7,6 +7,7 @@ import '../core/theme/bu_sizes.dart';
 import '../core/typography.dart';
 import 'academic_pickers.dart';
 import '../core/icons/bu_icons.dart';
+import '../core/theme/bu_space.dart';
 
 /// Fakülte, bölüm ve sınıf seçimi. Fakülte/bölüm adları serbest metin olabilir (katalogda olmayan eski kayıtlar
 /// olduğu gibi gösterilir). Değişiklikler [onChanged] ile bildirilir; durum üst widget'ta tutulur.
@@ -109,7 +110,7 @@ class AcademicFields extends StatelessWidget {
                 ],
               ),
             ],
-            const SizedBox(height: 14),
+            BuGap.h14,
             _FieldLabel(context.l10n.pickGrade),
             _SelectBox(
               text: _gradeName(context, gradeOptions),
@@ -144,7 +145,7 @@ class _FieldError extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Padding(
-        padding: const EdgeInsets.only(top: 6, left: 4),
+        padding: const EdgeInsetsDirectional.only(top: 6, start: 4),
         child: Text(text, style: BuType.caption.copyWith(color: context.bu.danger)),
       );
 }
@@ -171,7 +172,7 @@ class _SelectBox extends StatelessWidget {
           onTap: onTap,
           child: Container(
             constraints: const BoxConstraints(minHeight: BuSize.field),
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: BuSpace.s10),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(14),
               border: Border.all(color: error ? t.danger : t.bd),
@@ -186,7 +187,7 @@ class _SelectBox extends StatelessWidget {
                     style: (has ? BuType.bodyStrong : BuType.body).copyWith(color: has ? t.ink : t.mut),
                   ),
                 ),
-                const SizedBox(width: 8),
+                BuGap.w8,
                 Icon(BuIcons.chevronDown, size: 16, color: t.mut),
               ],
             ),
@@ -206,7 +207,7 @@ class _FacultyInfo extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.bu;
     return Padding(
-      padding: const EdgeInsets.only(top: 8, left: 4, right: 4),
+      padding: const EdgeInsetsDirectional.only(top: 8, start: 4, end: 4),
       child: Row(
         children: [
           Icon(BuIcons.building2, size: 14, color: t.mut),

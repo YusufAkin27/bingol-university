@@ -12,6 +12,7 @@ import '../core/typography.dart';
 import 'bu_default_avatar.dart';
 import 'bu_pressable.dart';
 import '../core/icons/bu_icons.dart';
+import '../core/theme/bu_space.dart';
 
 export 'package:lucide_icons_flutter/lucide_icons.dart' show LucideIcons;
 
@@ -76,7 +77,7 @@ class BuHeader extends StatelessWidget {
                     header: true,
                     child: LayoutBuilder(builder: (context, c) {
                       // Arapçada harf aralığı bitişik harfleri bozar: sıfır.
-                      final style = BuType.display.copyWith(fontSize: 26, fontWeight: FontWeight.w700, letterSpacing: _isArabic(context) ? 0 : -.4, color: t.ink);
+                      final style = BuType.display.copyWith(fontSize: BuScale.s26, fontWeight: FontWeight.w700, letterSpacing: _isArabic(context) ? 0 : -.4, color: t.ink);
                       // En uzun kelime satıra sığmıyorsa yazıyı küçült (kelime ortadan bölünmesin).
                       final scale = MediaQuery.textScalerOf(context).scale(1);
                       var longest = 0.0;
@@ -231,7 +232,7 @@ class BuCard extends StatelessWidget {
   const BuCard({
     super.key,
     required this.child,
-    this.padding = const EdgeInsets.all(14),
+    this.padding = const EdgeInsets.all(BuSpace.s14),
     this.onTap,
     this.color,
     this.radius = 20,
@@ -345,7 +346,7 @@ class BuChip extends StatelessWidget {
                           onTap!();
                         },
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+                    padding: const EdgeInsets.symmetric(horizontal: BuSpace.s14, vertical: BuOptical.n7),
                     // Çip yüksekliği sabit satır alanına sığsın: yazı ölçeği 1.5 ile sınırlı.
                     child: MediaQuery.withClampedTextScaling(
                       maxScaleFactor: 1.5,
@@ -358,7 +359,7 @@ class BuChip extends StatelessWidget {
                               duration: BuMotion.of(context, BuMotion.short),
                               builder: (context, c, _) => Icon(icon, size: 15, color: c ?? fg),
                             ),
-                            const SizedBox(width: 6),
+                            BuGap.w6,
                           ],
                           AnimatedDefaultTextStyle(
                             duration: BuMotion.of(context, BuMotion.short),
@@ -396,7 +397,7 @@ class BuBadge extends StatelessWidget {
     final bg = color ?? (soft ? t.soft : t.ink);
     final fg = onColor ?? (soft ? t.onSoft : t.bg);
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
+      padding: const EdgeInsets.symmetric(horizontal: BuOptical.n9, vertical: BuOptical.n3),
       decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(12)),
       child: Text(text, style: BuType.caption.copyWith(color: fg, fontWeight: FontWeight.w500)),
     );
@@ -455,6 +456,7 @@ class BuAvatar extends StatelessWidget {
                 fallback,
                 Image(
                     image: persistentNetworkImage(full, headers: headers, cacheWidth: px),
+                    excludeFromSemantics: true, // avatar adı yanındaki metindedir; görsel dekoratif
                     width: size,
                     height: size,
                     fit: BoxFit.cover,
@@ -739,38 +741,52 @@ class _BuSearchFieldState extends State<BuSearchField> {
   Widget build(BuildContext context) {
     final t = context.bu;
     final focused = _focus.hasFocus && !widget.readOnly;
-    return AnimatedContainer(
+    // Çizgi ÖNDE çizilir (foregroundDecoration): içerik alanı 48 dp'nin tamamıdır, yani alan düğümü ve silme düğmesi
+    // 48 dp dokunma hedefi verir (çizgi içeriği 1-2 dp daraltmaz). Başlangıç/bitiş boşluğu eski çizgi payı (1 dp) eklenerek
+    // 16+1 / 4+1 yapıldı: simge ve metin eski konumunda kalır.
+    final shape = BorderRadius.circular(BuSize.search / 2);
+    final field = AnimatedContainer(
       duration: BuMotion.of(context, BuMotion.short),
       height: BuSize.search,
-      padding: const EdgeInsetsDirectional.only(start: 16, end: 4),
-      decoration: BoxDecoration(
-        color: t.sf,
-        borderRadius: BorderRadius.circular(BuSize.search / 2),
+      padding: const EdgeInsetsDirectional.only(start: BuSpace.lg + BuOptical.n1, end: BuSpace.xs + BuOptical.n1),
+      decoration: BoxDecoration(color: t.sf, borderRadius: shape),
+      foregroundDecoration: BoxDecoration(
+        borderRadius: shape,
         border: Border.all(color: focused ? t.pr : t.bd, width: focused ? 2 : 1),
       ),
       child: Row(
         children: [
           Icon(BuIcons.search, size: 18, color: focused ? t.pr : t.mut),
-          const SizedBox(width: 10),
+          BuGap.w10,
           Expanded(
-            child: TextField(
-              controller: _c,
-              focusNode: _focus,
-              readOnly: widget.readOnly,
-              autofocus: widget.autofocus,
-              onTap: widget.onTap,
-              onChanged: widget.onChanged,
-              onSubmitted: widget.onSubmitted,
-              textInputAction: TextInputAction.search,
-              style: BuType.body.copyWith(color: t.ink),
-              decoration: InputDecoration(
-                hintText: widget.hint ?? context.l10n.commonSearchHint,
-                isCollapsed: true,
-                border: InputBorder.none,
-                enabledBorder: InputBorder.none,
-                focusedBorder: InputBorder.none,
-                filled: false,
-                contentPadding: EdgeInsets.zero,
+            // MergeSemantics: alan düğümünün sınırı 48 dp'lik kutu olur (içerideki 20 dp'lik yazı alanı değil).
+            child: MergeSemantics(
+              child: SizedBox(
+                height: double.infinity,
+                child: Align(
+                  child: TextField(
+                    controller: _c,
+                    focusNode: _focus,
+                    keyboardType: TextInputType.text,
+                    autofillHints: const <String>[], // arama kutusu otomatik doldurma almaz
+                    readOnly: widget.readOnly,
+                    autofocus: widget.autofocus,
+                    onTap: widget.onTap,
+                    onChanged: widget.onChanged,
+                    onSubmitted: widget.onSubmitted,
+                    textInputAction: TextInputAction.search,
+                    style: BuType.body.copyWith(color: t.ink),
+                    decoration: InputDecoration(
+                      hintText: widget.hint ?? context.l10n.commonSearchHint,
+                      isCollapsed: true,
+                      border: InputBorder.none,
+                      enabledBorder: InputBorder.none,
+                      focusedBorder: InputBorder.none,
+                      filled: false,
+                      contentPadding: EdgeInsets.zero,
+                    ),
+                  ),
+                ),
               ),
             ),
           ),
@@ -791,6 +807,13 @@ class _BuSearchFieldState extends State<BuSearchField> {
         ],
       ),
     );
+    // Alanın her yerine (simge, boşluk) dokunmak odak verir / salt okunur alanda [onTap]'ı çalıştırır.
+    return GestureDetector(
+      behavior: HitTestBehavior.translucent,
+      excludeFromSemantics: true,
+      onTap: widget.readOnly ? widget.onTap : _focus.requestFocus,
+      child: field,
+    );
   }
 }
 
@@ -807,7 +830,7 @@ class BuSectionTitle extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.bu;
     return Padding(
-      padding: padding ?? const EdgeInsetsDirectional.fromSTEB(20, 18, 20, 6),
+      padding: padding ?? const EdgeInsetsDirectional.fromSTEB(20, BuOptical.n18, 20, 6),
       child: Row(
         children: [
           Expanded(
@@ -834,7 +857,7 @@ class BuSectionTitle extends StatelessWidget {
 
 /// Kırmızı gradyanlı büyük kart (hero). Süs daireleri tasarımdakiyle aynı; RTL'de aynalanır.
 class BuHeroCard extends StatelessWidget {
-  const BuHeroCard({super.key, required this.child, this.padding = const EdgeInsets.all(18), this.radius = 26});
+  const BuHeroCard({super.key, required this.child, this.padding = const EdgeInsets.all(BuOptical.n18), this.radius = 26});
 
   final Widget child;
   final EdgeInsetsGeometry padding;
@@ -910,14 +933,14 @@ class BuMenuRow extends StatelessWidget {
                 child: Icon(icon, size: 17, color: danger ? t.danger : t.pr),
               ),
             ),
-            const SizedBox(width: 14),
+            BuGap.w14,
             Expanded(
                 child: Text(label,
                     maxLines: 1, softWrap: false, overflow: TextOverflow.ellipsis,
                     style: BuType.bodyStrong.copyWith(color: c))),
             if (trailing != null) trailing!,
             // Ok alanı sabit: ok her satırda aynı konumda.
-            const SizedBox(width: 8),
+            BuGap.w8,
             SizedBox(
               width: 16,
               child: (showChevron && !danger)
@@ -999,6 +1022,6 @@ class BuFeatureTitle extends StatelessWidget {
     const SizedBox(width: 12),
     Expanded(child: Semantics(header: true, child: Text(title, maxLines: 2,
       overflow: TextOverflow.ellipsis,
-      style: BuType.display.copyWith(fontSize: 26, height: 1.15, fontWeight: FontWeight.w700, color: context.bu.ink)))),
+      style: BuType.display.copyWith(fontSize: BuScale.s26, height: 1.15, fontWeight: FontWeight.w700, color: context.bu.ink)))),
   ]);
 }

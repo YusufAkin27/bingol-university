@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../core/theme.dart';
 import '../core/typography.dart';
+import '../core/theme/bu_space.dart';
 
 /// Sözleşme metinleri için küçük Markdown çizicisi (paket eklemeden).
 /// Desteklenenler: `#`/`##`/`###` başlık, `>` alıntı, `- `/`* ` madde, `1. ` numaralı madde,
@@ -30,8 +31,9 @@ class SimpleMarkdown extends StatelessWidget {
           2 => BuType.heading,
           _ => BuType.bodyStrong,
         };
+        final top = b.level == 1 ? 8.0 : 16.0;
         return Padding(
-          padding: EdgeInsets.only(top: b.level == 1 ? 8 : 16, bottom: 6),
+          padding: EdgeInsets.only(top: top, bottom: 6),
           child: Semantics(
             header: true,
             child: SelectableText.rich(_inline(b.text, style.copyWith(color: t.ink), t)),
@@ -41,7 +43,7 @@ class SimpleMarkdown extends StatelessWidget {
         return Padding(
           padding: const EdgeInsets.symmetric(vertical: 6),
           child: Container(
-            padding: const EdgeInsetsDirectional.fromSTEB(12, 10, 12, 10),
+            padding: const EdgeInsetsDirectional.fromSTEB(12, BuSpace.s10, 12, BuSpace.s10),
             decoration: BoxDecoration(
               color: t.soft,
               borderRadius: BorderRadius.circular(12),
@@ -54,7 +56,7 @@ class SimpleMarkdown extends StatelessWidget {
       case MdKind.bullet:
       case MdKind.numbered:
         return Padding(
-          padding: const EdgeInsetsDirectional.only(start: 4, top: 3, bottom: 3),
+          padding: const EdgeInsetsDirectional.only(start: 4, top: BuOptical.n3, bottom: BuOptical.n3),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -70,7 +72,7 @@ class SimpleMarkdown extends StatelessWidget {
           ),
         );
       case MdKind.rule:
-        return Padding(padding: const EdgeInsets.symmetric(vertical: 10), child: Divider(height: 1, color: t.bd));
+        return Padding(padding: const EdgeInsets.symmetric(vertical: BuSpace.s10), child: Divider(height: 1, color: t.bd));
       case MdKind.table:
         return Padding(padding: const EdgeInsets.symmetric(vertical: 8), child: _MdTable(rows: b.rows, header: b.header));
       case MdKind.paragraph:
