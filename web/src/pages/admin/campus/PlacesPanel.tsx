@@ -2,10 +2,10 @@
 import type { UseQueryResult } from '@tanstack/react-query';
 import { useMemo, useState } from 'react';
 import {
-  CAMPUS_CATEGORIES,
   campusKeys,
   deleteCampusPlace,
   updateCampusPlace,
+  type CampusCategoryInfo,
   type CampusPlace,
 } from '../../../api/adminCampus';
 import {
@@ -29,6 +29,7 @@ import { useI18n } from '../../../i18n/I18nProvider';
 import { adminError } from '../../../lib/errors';
 import { gt } from './dict';
 import {
+  categoryLabel,
   EMPTY_FILTERS,
   filterPlaces,
   fmtCoord,
@@ -48,11 +49,12 @@ const SORTS: PlaceSort[] = ['sortKey', 'name', 'category', 'updated'];
 interface Props {
   query: UseQueryResult<CampusPlace[]>;
   canWrite: boolean;
+  categories: CampusCategoryInfo[];
   onEdit: (place: CampusPlace) => void;
   onAdd: () => void;
 }
 
-export function PlacesPanel({ query, canWrite, onEdit, onAdd }: Props) {
+export function PlacesPanel({ query, canWrite, categories, onEdit, onAdd }: Props) {
   const i18n = useI18n();
   const t = gt(i18n);
   const { formatNumber } = i18n;
@@ -100,7 +102,7 @@ export function PlacesPanel({ query, canWrite, onEdit, onAdd }: Props) {
       key: 'category',
       header: t('admin.campus.col.category'),
       card: { priority: 2 },
-      render: (p) => <Badge>{t(`admin.campus.cat.${p.category}`)}</Badge>,
+      render: (p) => <Badge>{categoryLabel(categories, p.category)}</Badge>,
     },
     {
       key: 'coords',
@@ -212,9 +214,9 @@ export function PlacesPanel({ query, canWrite, onEdit, onAdd }: Props) {
                 onChange={(e) => set({ category: e.target.value as PlaceFilters['category'] })}
               >
                 <option value="">{t('admin.campus.filter.all')}</option>
-                {CAMPUS_CATEGORIES.map((c) => (
-                  <option key={c} value={c}>
-                    {t(`admin.campus.cat.${c}`)}
+                {categories.map((c) => (
+                  <option key={c.key} value={c.key}>
+                    {c.label}
                   </option>
                 ))}
               </Select>

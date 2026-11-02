@@ -16,7 +16,14 @@ import {
 import { useI18n } from '../../../i18n/I18nProvider';
 import { adminError } from '../../../lib/errors';
 import { errText, gt } from './dict';
-import { configToForm, parsePoints, validateConfigForm, type ConfigFormState } from './logic';
+import {
+  boundarySourceKind,
+  boundsToSend,
+  configToForm,
+  parsePoints,
+  validateConfigForm,
+  type ConfigFormState,
+} from './logic';
 import { PlacePreview } from './PlacePreview';
 import styles from './campus.module.css';
 
@@ -70,6 +77,7 @@ function ConfigForm({ config, canWrite }: { config: CampusConfig; canWrite: bool
   }, [form.boundaryText]);
 
   const osm = v.warnings.includes('osmPublic');
+  const srcKind = boundarySourceKind(config.boundarySource);
 
   return (
     <form
@@ -135,6 +143,17 @@ function ConfigForm({ config, canWrite }: { config: CampusConfig; canWrite: bool
             onChange={(e) => set({ boundaryText: e.target.value })}
           />
         </FormField>
+        <p className={styles.srcInfo} data-search-anchor="cfg-boundary-source">
+          <Badge tone={srcKind === 'osm' ? 'success' : srcKind === 'approx' ? 'warning' : 'neutral'}>
+            {t(`admin.campus.cfg.src.${srcKind}`)}
+          </Badge>
+          <span className={styles.muted}>{t(`admin.campus.cfg.src.${srcKind}Note`)}</span>
+        </p>
+        {srcKind === 'approx' && (
+          <p className={`${styles.callout} ${styles.calloutWarn}`} role="note">
+            {t('admin.campus.cfg.src.approxWarn')}
+          </p>
+        )}
         {boundaryCount > 0 && (
           <p className={styles.muted} role="status">
             {t('admin.campus.cfg.boundaryCount', { n: formatNumber(boundaryCount) })}
@@ -209,7 +228,17 @@ function ConfigForm({ config, canWrite }: { config: CampusConfig; canWrite: bool
             errorMessage={(e) => adminError(i18n, e, ...ERR_SCOPES)}
             invalidateKeys={[campusKeys.config]}
             onSuccess={() => setDraft(null)}
-            onConfirm={({ reason, idempotencyKey }) => updateCampusConfig(v.config!, { reason, idempotencyKey })}
+            onConfirm={({ reason, idempotencyKey }) => {
+              const next = v.config!;
+              return updateCampusConfig(
+                {
+                  ...next,
+                  bounds: boundsToSend(config, next),
+                  tiles: { ...next.tiles, userAgentHint: config.tiles.userAgentHint },
+                },
+                { reason, idempotencyKey },
+              );
+            }}
           >
             {t('admin.campus.cfg.save')}
           </GuardedAction>

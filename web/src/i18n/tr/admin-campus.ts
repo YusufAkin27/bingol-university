@@ -8,18 +8,6 @@ const m = {
   'admin.campus.tab.places': 'Yerler',
   'admin.campus.tab.settings': 'Harita ayarları',
 
-  // Kategoriler
-  'admin.campus.cat.faculty': 'Fakülte',
-  'admin.campus.cat.dining': 'Yemekhane',
-  'admin.campus.cat.library': 'Kütüphane',
-  'admin.campus.cat.sports': 'Spor',
-  'admin.campus.cat.health': 'Sağlık',
-  'admin.campus.cat.admin': 'İdari',
-  'admin.campus.cat.dormitory': 'Yurt',
-  'admin.campus.cat.gate': 'Giriş kapısı',
-  'admin.campus.cat.parking': 'Otopark',
-  'admin.campus.cat.social': 'Sosyal alan',
-
   // Göstergeler
   'admin.campus.stats': 'Kampüs haritası özeti',
   'admin.campus.stat.total': 'Toplam yer',
@@ -114,6 +102,28 @@ const m = {
   'admin.campus.form.previewInside': 'nokta kampüs sınırının içinde',
   'admin.campus.form.previewOutside': 'nokta kampüs sınırının dışında',
   'admin.campus.form.previewNoBoundary': 'kampüs sınırı tanımlı değil',
+  'admin.campus.form.webUrl': 'Web adresi',
+  'admin.campus.form.webUrlHint':
+    'Birimin web sayfası (isteğe bağlı). Yalnızca https ile başlayan bingol.edu.tr adresleri kabul edilir. En çok {max} karakter.',
+  'admin.campus.form.remote': 'Ana yerleşke dışında (uzak birim)',
+  'admin.campus.form.remoteHint':
+    'İşaretlenirse bu yer için "kampüs sınırı dışında" uyarısı verilmez (örn. termal tesis, hayvan hastanesi).',
+  'admin.campus.form.departments': 'Bölümler',
+  'admin.campus.form.departmentsHint':
+    'Bu liste Birim haberleri kaynağından gelir ve burada değiştirilemez; bölüm eklemek için Birim haberleri sayfasını kullanın.',
+  'admin.campus.photo.label': 'Fotoğraf',
+  'admin.campus.photo.alt': '{name} fotoğrafı',
+  'admin.campus.photo.none': 'Bu yer için fotoğraf yok.',
+  'admin.campus.photo.input': 'Fotoğraf dosyası seç',
+  'admin.campus.photo.upload': 'Fotoğraf yükle',
+  'admin.campus.photo.replace': 'Fotoğrafı değiştir',
+  'admin.campus.photo.remove': 'Fotoğrafı kaldır',
+  'admin.campus.photo.hint': 'JPEG, PNG ya da WebP, en çok 5 MB. Sunucu görseli yeniden kodlar ve konum bilgisini siler.',
+  'admin.campus.photo.uploaded': 'Fotoğraf yüklendi.',
+  'admin.campus.photo.removed': 'Fotoğraf kaldırıldı.',
+  'admin.campus.photo.err.type': 'Yalnızca JPEG, PNG ya da WebP yüklenebilir.',
+  'admin.campus.photo.err.size': 'Dosya 5 MB sınırını aşıyor.',
+  'admin.campus.photo.err.empty': 'Dosya boş görünüyor.',
   'admin.campus.form.invalid': 'Kaydetmek için işaretli alanları düzeltin.',
   'admin.campus.form.warnOutside':
     'Bu nokta tanımlı kampüs sınırının dışında görünüyor. Enlem ve boylamı ters girmiş olabilirsiniz; "Haritada kontrol et" ile bakın. Yine de kaydedebilirsiniz.',
@@ -150,6 +160,14 @@ const m = {
   'admin.campus.cfg.boundaryHint':
     'Kampüsü çevreleyen köşe noktaları. Her satıra "enlem, boylam" yazın ya da GeoJSON (Polygon) yapıştırın; en az 3 nokta. Boş bırakırsanız sınır denetimi yapılmaz.',
   'admin.campus.cfg.boundaryCount': '{n} köşe okundu',
+  'admin.campus.cfg.src.osm': 'Kaynak: OpenStreetMap',
+  'admin.campus.cfg.src.osmNote': 'Sınır OpenStreetMap verisinden alındı (ODbL). Haritada atıf görünmelidir.',
+  'admin.campus.cfg.src.approx': 'Kaynak: yaklaşık',
+  'admin.campus.cfg.src.approxNote': 'Sınır, birim noktalarının çevresinden tahmini olarak üretildi.',
+  'admin.campus.cfg.src.approxWarn':
+    'Bu sınır yaklaşıktır, gerçek kampüs sınırından sapabilir. Doğru köşe noktalarını girerek düzeltin; o zamana kadar sınır dışı uyarıları yanıltıcı olabilir.',
+  'admin.campus.cfg.src.unknown': 'Kaynak bilinmiyor',
+  'admin.campus.cfg.src.unknownNote': 'Sunucu sınırın nereden alındığını bildirmedi; doğruluğunu haritada kontrol edin.',
   'admin.campus.cfg.tiles': 'Harita karoları',
   'admin.campus.cfg.tileUrl': 'Karo adresi',
   'admin.campus.cfg.tileUrlHint':
@@ -194,6 +212,11 @@ const m = {
   'admin.campus.err.poly.tooFew': 'Çokgen için en az 3 farklı nokta gerekir.',
   'admin.campus.err.poly.tooMany': 'En çok 500 nokta girebilirsiniz.',
   'admin.campus.err.poly.selfIntersect': 'Çokgenin kenarları birbirini kesiyor. Noktaları çevre boyunca sırayla yazın.',
+  'admin.campus.err.categoryUnknown': 'Bu kategori sunucudaki listede yok. Listeden seçin.',
+  'admin.campus.err.web.notHttps': 'Adres https:// ile başlamalı.',
+  'admin.campus.err.web.host': 'Yalnızca bingol.edu.tr ve alt alanları (örn. fef.bingol.edu.tr) kabul edilir.',
+  'admin.campus.err.web.invalid': 'Geçerli bir web adresi girin (boşluk ve kullanıcı bilgisi olmamalı).',
+  'admin.campus.err.web.tooLong': 'Adres çok uzun.',
   'admin.campus.err.tile.required': 'Karo adresi zorunlu.',
   'admin.campus.err.tile.tooLong': 'Adres en çok 500 karakter olabilir.',
   'admin.campus.err.tile.notHttps': 'Adres https:// ile başlamalı.',

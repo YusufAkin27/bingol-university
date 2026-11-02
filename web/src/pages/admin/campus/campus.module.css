@@ -54,10 +54,14 @@
   margin-block-end: var(--space-3);
 }
 .filterGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
+  display: flex;
+  flex-wrap: wrap;
   gap: var(--space-3) var(--space-4);
-  align-items: end;
+  align-items: flex-end;
+}
+.filterGrid > * {
+  flex: 1 1 11rem;
+  min-width: 11rem;
 }
 
 /* Satır eylemleri (dokunma hedefi >= 44 px dar ekranda) */
@@ -254,4 +258,32 @@
   flex-wrap: wrap;
   align-items: center;
   gap: var(--space-3);
+}
+
+.chipStatic {
+  padding-inline: var(--space-3);
+}
+.photoBox {
+  display: grid;
+  gap: var(--space-2);
+  justify-items: start;
+}
+.photoLabel {
+  font-weight: 600;
+  font-size: var(--text-sm);
+}
+.photoThumb {
+  max-inline-size: 16rem;
+  max-block-size: 10rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  object-fit: cover;
+}
+.srcInfo {
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
 }
