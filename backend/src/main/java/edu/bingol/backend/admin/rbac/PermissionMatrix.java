@@ -57,6 +57,10 @@ public final class PermissionMatrix {
     public static final String RETENTION_EXPORT = "data.retention.export";
     /** Onayli kalici silme. */
     public static final String RETENTION_PURGE = "data.retention.purge";
+    /** Kampus haritasi: yer ve ayar okuma. */
+    public static final String CAMPUS_READ = "campus.read";
+    /** Kampus haritasi: yer/ayar/fotograf yazma (FULL ve EDITOR). */
+    public static final String CAMPUS_WRITE = "campus.write";
     /** Haritada eslenmemis /api/admin yollari icin guvenli varsayilan: yalniz FULL. */
     public static final String FULL_ONLY = "admin.full";
 
@@ -107,6 +111,8 @@ public final class PermissionMatrix {
         grant(RETENTION_READ, F, V);
         grant(RETENTION_EXPORT, F);
         grant(RETENTION_PURGE, F);
+        grant(CAMPUS_READ, F, M, S, E, V);
+        grant(CAMPUS_WRITE, F, E);
         grant(FULL_ONLY, F);
     }
 

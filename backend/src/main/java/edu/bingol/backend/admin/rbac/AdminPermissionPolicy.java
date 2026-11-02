@@ -102,6 +102,9 @@ public final class AdminPermissionPolicy {
         area("/api/admin/(news|menu|academic|faq|communities|communitiespage|community-categories|community-posts"
                 + "|events|polls|posts|sources|unit-news)(/.*)?", CONTENT_READ, CONTENT_WRITE);
 
+        // --- kampus haritasi: FULL/EDITOR yazar, diger profiller yalniz okur ---
+        area("/api/admin/campus(/.*)?", CAMPUS_READ, CAMPUS_WRITE);
+
         // --- destek ---
         area("/api/admin/(support|feedback)(/.*)?", SUPPORT_READ, SUPPORT_WRITE);
 
