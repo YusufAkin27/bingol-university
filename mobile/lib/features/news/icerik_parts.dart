@@ -230,30 +230,11 @@ class IcerikHeader extends StatelessWidget {
   final List<Widget> actions;
 
   @override
-  Widget build(BuildContext context) {
-    final t = context.bu;
-    return Padding(
-      padding: EdgeInsetsDirectional.fromSTEB(20, MediaQuery.paddingOf(context).top + 8, 20, 0),
-      child: Row(children: [
-        IcerikIconButton(
-            icon: buDirIcon(context, BuIcons.arrowLeft),
-            label: backLabel,
-            shadow: true,
-            onTap: () => Navigator.maybePop(context)),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Semantics(
-            header: true,
-            child: Text(title,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: Theme.of(context).textTheme.titleLarge!.copyWith(color: t.ink)),
-          ),
-        ),
-        for (final a in actions) ...[const SizedBox(width: 10), a],
-      ]),
-    );
-  }
+  Widget build(BuildContext context) => BuHeader(
+    title: title,
+    onBack: () => Navigator.maybePop(context),
+    actions: actions,
+  );
 }
 
 /// Sekme şeridi (M3 segmentli düğme düzeni): kayan marka tonlu gösterge; her parça 48 dp. Parçalara

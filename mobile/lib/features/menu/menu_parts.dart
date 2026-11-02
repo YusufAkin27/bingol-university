@@ -183,7 +183,7 @@ class MenuDayLabel extends StatelessWidget {
   }
 }
 
-/// Öğle yemeği yüzeyi (Stitch v3): tek beyaz yüzey (1 dp `bd`, 16 köşe, iç 20 dp). Başlık 20 sp/600 solda,
+/// Öğle yemeği yüzeyi (Stitch v3): tek beyaz yüzey (1 dp `bd`, 22 köşe, iç 20 dp). Başlık 20 sp/600 solda,
 /// saat 14 sp soluk sağda; her yemek 1 dp çizgili satır (ad 16 sp, kcal 14 sp soluk; kcal yoksa "–");
 /// "Toplam enerji" satırı. Yönetici fotoğraf yüklediyse kartın üstünde 16:9 fotoğraf; yoksa yer tutucu çizilmez.
 class MenuMealCard extends StatelessWidget {
@@ -197,7 +197,7 @@ class MenuMealCard extends StatelessWidget {
     final t = context.bu;
     final l = context.l10n;
     return DecoratedBox(
-      decoration: BoxDecoration(color: t.sf, borderRadius: BuRadius.bMd, border: Border.all(color: t.bd)),
+      decoration: BoxDecoration(color: t.sf, borderRadius: BorderRadius.circular(22), border: Border.all(color: t.bd), boxShadow: BuElevation.of(context, 1)),
       child: Padding(
         padding: const EdgeInsets.all(20),
         child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
@@ -218,7 +218,10 @@ class MenuMealCard extends StatelessWidget {
           ),
           Padding(
             padding: const EdgeInsets.only(bottom: 14),
-            child: Row(crossAxisAlignment: CrossAxisAlignment.baseline, textBaseline: TextBaseline.alphabetic, children: [
+            child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
+              Container(width: 40, height: 40, decoration: BoxDecoration(color: t.okSoft, borderRadius: BorderRadius.circular(14)),
+                child: Icon(BuIcons.utensils, size: 22, color: t.onOkSoft)),
+              const SizedBox(width: 12),
               Expanded(
                 child: Semantics(
                   header: true,
@@ -281,8 +284,9 @@ class _TotalRow extends StatelessWidget {
     final l = context.l10n;
     final number = BuType.caption.copyWith(fontSize: 15, height: 1.3, fontWeight: FontWeight.w700, color: t.ink, fontFeatures: const [FontFeature.tabularFigures()]);
     return Container(
-      decoration: BoxDecoration(border: Border(top: BorderSide(color: t.bd))),
-      padding: const EdgeInsets.only(top: 14),
+      decoration: BoxDecoration(color: t.okSoft, borderRadius: BorderRadius.circular(14)),
+      margin: const EdgeInsets.only(top: 12),
+      padding: const EdgeInsets.all(14),
       child: Semantics(
           container: true,
           label: complete ? '${l.p03MenuTotalEnergy} ${l.p03MenuKcal('$total')}' : '${l.p03MenuTotalEnergy} ${l.p03MenuAtLeast('$total')}',

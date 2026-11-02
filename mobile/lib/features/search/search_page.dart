@@ -914,8 +914,10 @@ class _SearchPageState extends State<SearchPage> {
       key: ValueKey('search-hit-${h.type}-${h.id}'),
       scale: .985,
       onTap: () => _open(h),
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(minHeight: 48),
+      child: Container(
+        constraints: const BoxConstraints(minHeight: 56),
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(color: t.sf, borderRadius: BorderRadius.circular(20), border: Border.all(color: t.bd)),
         child: Row(children: [
           if (leading != null) ...[leading, const SizedBox(width: 12)],
           Expanded(
@@ -1047,8 +1049,9 @@ class _SearchBoxState extends State<_SearchBox> {
       padding: const EdgeInsetsDirectional.only(start: 14, end: 0),
       decoration: BoxDecoration(
         color: t.sf,
-        borderRadius: BorderRadius.circular(BuRadius.md),
-        border: Border.all(color: focused ? t.pr : t.bd, width: focused ? 1.5 : 1),
+        borderRadius: BorderRadius.circular(28),
+        border: Border.all(color: focused ? t.pr : t.bdStrong, width: focused ? 1.5 : 1),
+        boxShadow: BuElevation.of(context, 1),
       ),
       child: Row(children: [
         Icon(BuIcons.search, size: 18, color: t.mut),

@@ -2,10 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../../widgets/bu.dart';
 
-/// Bildirim satırı (Stitch v3): kart yok; satır sayfa zemininde, altında 1 dp `bd` çizgi. Solda 8 dp `pr`
-/// okunmamış noktası (okunmuşta yeri boş kalır, hizalama sabit), yanında: üstte tür etiketi + zaman (12 sp
-/// soluk), başlık (16 sp/600; gövdesizse 2 satır), gövde (14 sp soluk, tek satır). Dikey iç 14 dp, nokta
-/// ile metin arası 12 dp. Yatay 20 dp kenar boşluğu satırın dışındadır (çizgi 20 dp içeriden başlar).
+/// Bildirim kartı: okunmamışta marka çerçevesi ve nokta, okunduğunda nötr yüzey.
+/// Dekoratif ikon aynı font ailesinden gelir; tür, zaman ve okunmamış semantiği korunur.
 class NotifRow extends StatelessWidget {
   const NotifRow({
     super.key,
@@ -34,16 +32,24 @@ class NotifRow extends StatelessWidget {
       // Basılı tutunca hafif küçülür (dokunmayı içerideki InkWell yakalar).
       child: BuPressable(
         scale: .985,
-        child: DecoratedBox(
-          decoration: BoxDecoration(color: t.bg, border: Border(bottom: BorderSide(color: t.bd))),
+        child: Padding(
+          padding: const EdgeInsets.only(bottom: 10),
+          child: DecoratedBox(
+          decoration: BoxDecoration(color: t.sf, borderRadius: BorderRadius.circular(20), border: Border.all(color: unread ? t.selectedBorder : t.bd)),
           child: Material(
             type: MaterialType.transparency,
             child: InkWell(
               onTap: onTap,
               child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 14),
+                padding: const EdgeInsets.all(14),
                 child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  // Okunmamış noktası: okundu olunca küçülerek solar (yer korunur; yalnız transform + opaklık).
+                  ExcludeSemantics(child: Container(
+                    width: 36, height: 40,
+                    decoration: BoxDecoration(color: unread ? t.soft : t.sf2, borderRadius: BorderRadius.circular(12)),
+                    child: Icon(BuIcons.bell, size: 21, color: unread ? t.onSoft : t.mut),
+                  )),
+                  const SizedBox(width: 8),
+                  // Okunmamış noktası okunduğunda solar; mevcut erişilebilirlik korunur.
                   Padding(
                     padding: const EdgeInsets.only(top: 6),
                     child: SizedBox(
@@ -93,6 +99,7 @@ class NotifRow extends StatelessWidget {
             ),
           ),
         ),
+      ),
       ),
     );
   }

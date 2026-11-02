@@ -81,9 +81,8 @@ String newsSourceHost(Map<String, dynamic> item) {
   return h.startsWith('www.') ? h.substring(4) : h;
 }
 
-/// Liste satırı (Ic2/Ic4): kartsız, zeminde; 72 dp küçük görsel (görsel yoksa hiç görsel çizilmez), başlık (16 sp/600,
-/// en çok 2 satır), tek satır soluk meta ("21 Ekim 2026 · bingol.edu.tr"), isteğe bağlı yer imi. Satırlar arası çizgiyi
-/// liste koyar ([NewsRowDivider]). Görsel, detay kapağına paylaşılan geçişle (Hero) uçar.
+/// Haber kartı: 20 dp köşe, 14 dp iç boşluk, görsel veya yumuşak bilgi ikonu.
+/// Başlık ve kaynak meta satırı korunur; yer imi ayrı eylem, görsel detay kapağına Hero ile geçer.
 class NewsTile extends StatelessWidget {
   const NewsTile({
     super.key,
@@ -123,16 +122,23 @@ class NewsTile extends StatelessWidget {
     if (hasImg) {
       thumb = IcerikThumb(url: img, size: thumbSize, radius: BuRadius.sm, fallbackIcon: newsTypeIcon(type));
       if (id != null) thumb = newsHero(id: id, radius: BuRadius.sm, child: thumb);
+    } else {
+      thumb = Container(
+        width: 48, height: 52,
+        decoration: BoxDecoration(color: t.infoSoft, borderRadius: BorderRadius.circular(14)),
+        child: Icon(newsTypeIcon(type), size: 24, color: t.onInfoSoft),
+      );
     }
-    return BuPressable(
-      scale: .985,
-      onTap: onTap,
-      child: Padding(
-        padding: EdgeInsets.symmetric(vertical: hasImg ? 16 : 14),
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: IcerikCard(
+        onTap: onTap,
+        shadow: false,
+        padding: const EdgeInsets.all(14),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            if (thumb != null) ...[thumb, const SizedBox(width: 16)],
+            thumb, const SizedBox(width: 16),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,

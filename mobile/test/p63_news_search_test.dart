@@ -69,7 +69,7 @@ void main() {
   setUpAll(loadTestFonts);
 
   group('Haber listesi (16/17)', () {
-    testWidgets('ölçüler: 72 dp görsel (köşe 12), satır aralığı 105 dp, 1 dp çizgiler, tek satır meta', (tester) async {
+    testWidgets('kart ölçüleri: 72 dp görsel, 14 dp iç boşluk, 110 dp adım ve tek satır meta', (tester) async {
       useScreen(tester, kPhoneMedium);
       await tester.pumpWidget(buildApp(NewsListPage(session: makeSession(_news())), size: kPhoneMedium));
       await settle(tester);
@@ -77,10 +77,9 @@ void main() {
       expect(thumbs, findsNWidgets(4));
       expect(tester.getSize(thumbs.first), const Size(72, 72));
       final pitch = tester.getTopLeft(thumbs.at(1)).dy - tester.getTopLeft(thumbs.at(0)).dy;
-      expect(pitch, closeTo(105, 2));
-      expect(tester.getTopLeft(thumbs.first).dx, 20);
-      expect(find.byType(NewsRowDivider), findsNWidgets(3));
-      expect(tester.getSize(find.byType(NewsRowDivider).first).height, 1);
+      expect(pitch, closeTo(110, 2));
+      expect(tester.getTopLeft(thumbs.first).dx, 34);
+      expect(find.byType(NewsRowDivider), findsNothing);
       expect(find.textContaining(' · bingol.edu.tr'), findsNWidgets(4));
       // Sekme şeridi: 44 dp, kapsül yok; seçili sekme koyu, 2 dp marka alt çizgisi.
       expect(tester.getSize(find.byType(IcerikUnderlineTabs)).height, 44);
@@ -89,12 +88,13 @@ void main() {
       await unmount(tester);
     });
 
-    testWidgets('görselsiz satırda hiç görsel yok, başlık tam genişlik', (tester) async {
+    testWidgets('görselsiz haberde fotoğraf yerine bilgi ikonlu kart vardır', (tester) async {
       useScreen(tester, kPhoneMedium);
       await tester.pumpWidget(buildApp(NewsListPage(session: makeSession(_news(images: false))), size: kPhoneMedium));
       await settle(tester);
       expect(find.byType(IcerikThumb), findsNothing);
-      expect(tester.getTopLeft(find.textContaining('düzenlemesi yapıldı 1').first).dx, 20);
+      expect(tester.getTopLeft(find.textContaining('düzenlemesi yapıldı 1').first).dx, 98);
+      expect(find.byType(IcerikCard), findsNWidgets(4));
       await unmount(tester);
     });
 

@@ -340,7 +340,7 @@ class _NewsListPageState extends State<NewsListPage> {
               padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
               sliver: SliverList.separated(
                 itemCount: rest.length,
-                separatorBuilder: (_, __) => const NewsRowDivider(),
+                separatorBuilder: (_, __) => const SizedBox.shrink(),
                 itemBuilder: (context, i) {
                   final n = rest[i];
                   return BuStaggerItem(

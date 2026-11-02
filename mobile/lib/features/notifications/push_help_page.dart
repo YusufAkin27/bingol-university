@@ -69,7 +69,7 @@ class _PushHelpPageState extends State<PushHelpPage> with WidgetsBindingObserver
       child: h == null
           ? const Center(child: CircularProgressIndicator())
           : ListView(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
               children: [
                 _banner(h),
                 const SizedBox(height: 16),
@@ -147,7 +147,11 @@ class _PushHelpPageState extends State<PushHelpPage> with WidgetsBindingObserver
     return AkadCard(
       child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
         Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Icon(icon, size: 22, color: color),
+          ExcludeSemantics(child: Container(
+            width: 40, height: 40,
+            decoration: BoxDecoration(color: ok == null ? t.infoSoft : ok ? t.okSoft : t.warnSoft, borderRadius: BorderRadius.circular(14)),
+            child: Icon(icon, size: 22, color: color),
+          )),
           const SizedBox(width: 12),
           Expanded(
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
