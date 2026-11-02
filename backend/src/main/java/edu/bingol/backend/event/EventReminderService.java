@@ -83,7 +83,7 @@ public class EventReminderService {
         for (Map.Entry<Long, List<Long>> en : usersByEvent.entrySet()) {
             UserEvent e = events.get(en.getKey());
             // Govde: "<ad> - Yarin 14:00 - <yer>" (saat Istanbul; yer yoksa son parca yok)
-            String time = java.time.format.DateTimeFormatter.ofPattern("HH:mm")
+            String time = e.getStartsAt() == null ? "" : java.time.format.DateTimeFormatter.ofPattern("HH:mm")
                     .format(e.getStartsAt().atZone(java.time.ZoneId.of("Europe/Istanbul")));
             String where = e.getLocation() == null || e.getLocation().isBlank() ? "" : " · " + e.getLocation().trim();
             try {

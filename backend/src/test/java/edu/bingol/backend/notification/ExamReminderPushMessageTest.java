@@ -29,12 +29,12 @@ class ExamReminderPushMessageTest {
     }
 
     @Test
-    void otherAnnouncementsKeepTheirChannel() {
+    void academicAnnouncementsUseAcademicChannelPerTheNotificationDesign() {
         Map<String, String> payload = PushPayload.build(NotificationType.ANNOUNCEMENT, NotificationSubtype.ACADEMIC_ANNOUNCEMENT,
                 Map.of("announcementId", "5"), 1);
         PushMessage m = PushMessages.of(NotificationType.ANNOUNCEMENT, NotificationSubtype.ACADEMIC_ANNOUNCEMENT, "t", "b",
                 payload, null, null);
-        assertEquals("announcement", m.channelId());
+        assertEquals("academic", m.channelId()); // Stitch tasarimi #12: akademik duyuru kendi kanalinda
         assertEquals(3 * 86_400, m.ttlSeconds());
     }
 }
