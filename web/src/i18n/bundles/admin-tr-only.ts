@@ -25,7 +25,7 @@ import V2Notifsys from '../tr/admin-v2-notifsys';
 import Arama from '../tr/admin-arama';
 
 // GD1 menü etiketi ana parçada kalır; sayfa metinleri tr/admin-gd1.ts içinde sayfanın kendi parçasında yüklenir.
-const Gd1Nav = { 'admin.gd1.nav': 'Yedekleme (Google Drive)', 'admin.unitNews.nav': 'Birim haberleri',
+const Gd1Nav = { 'admin.gd1.nav': 'Yedekleme (Google Drive)', 'admin.unitNews.nav': 'Birim haberleri', 'admin.campus.nav': 'Kampüs haritası',
   'admin.twoFactor.nav': 'İki faktörlü doğrulama',
 };
 

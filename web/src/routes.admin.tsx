@@ -21,6 +21,7 @@ const LegacyMessageRedirect = lazy(() => import('./pages/admin/chat/LegacyMessag
 const ChatFeedPage = lazy(() => import('./pages/admin/ChatFeedPage'));
 const PostsAdminPage = lazy(() => import('./pages/admin/PostsAdminPage'));
 const MenuAdminPage = lazy(() => import('./pages/admin/MenuAdminPage'));
+const CampusMapPage = lazy(() => import('./pages/admin/CampusMapPage'));
 const PollsAdminPage = lazy(() => import('./pages/admin/PollsAdminPage'));
 const AnalyticsPage = lazy(() => import('./pages/admin/AnalyticsPage'));
 const ReportsPage = lazy(() => import('./pages/admin/ReportsPage'));
@@ -93,6 +94,7 @@ export default function AdminRoutes() {
           <Route path="posts" element={<PostsAdminPage />} />
           <Route path="polls" element={<PollsAdminPage />} />
           <Route path="content/menu" element={<MenuAdminPage />} />
+          <Route path="campus" element={<CampusMapPage />} />
           <Route path="analytics/:tab?" element={<AnalyticsPage />} />
           <Route path="reports" element={<ReportsPage />} />
           <Route path="support/tickets" element={<TicketsPage />} />
