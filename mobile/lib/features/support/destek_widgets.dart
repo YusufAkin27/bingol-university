@@ -15,11 +15,14 @@ class DestekCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
-    return Material(
-      color: t.sf,
-      clipBehavior: clip ? Clip.antiAlias : Clip.none,
-      shape: RoundedRectangleBorder(borderRadius: BuRadius.bLg, side: BorderSide(color: t.bd)),
-      child: padding == null ? child : Padding(padding: padding!, child: child),
+    return DecoratedBox(
+      decoration: BoxDecoration(borderRadius: BorderRadius.circular(22), boxShadow: BuElevation.of(context, 1)),
+      child: Material(
+        color: t.sf,
+        clipBehavior: clip ? Clip.antiAlias : Clip.none,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22), side: BorderSide(color: t.bd)),
+        child: padding == null ? child : Padding(padding: padding!, child: child),
+      ),
     );
   }
 }

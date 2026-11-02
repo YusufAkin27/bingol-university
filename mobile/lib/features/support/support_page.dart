@@ -144,7 +144,7 @@ class _SupportPageState extends State<SupportPage> {
               child: AnketAmberNote(l.supportTooManyRequests),
             ),
           ),
-        SliverToBoxAdapter(child: _SectionTitle(l.p13SuppFaqHeading, top: 24)),
+        SliverToBoxAdapter(child: _SectionTitle(l.p13SuppFaqHeading, top: 24, icon: BuIcons.info)),
         if (filters)
           SliverToBoxAdapter(
             child: Padding(
@@ -170,7 +170,7 @@ class _SupportPageState extends State<SupportPage> {
             ),
           ),
         SliverToBoxAdapter(child: _faqList()),
-        SliverToBoxAdapter(child: _SectionTitle(l.p13TicketsHeading, top: 25)),
+        SliverToBoxAdapter(child: _SectionTitle(l.p13TicketsHeading, top: 25, icon: BuIcons.messageCircle)),
         ..._ticketSlivers(newTicket),
         SliverToBoxAdapter(
           child: Padding(
@@ -184,7 +184,10 @@ class _SupportPageState extends State<SupportPage> {
                     label: l.supportFeedbackTitle,
                     onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => FeedbackPage(session: widget.session))),
                   ),
-                  ExcludeSemantics(child: Padding(padding: const EdgeInsets.symmetric(horizontal: 4), child: Text('·', style: Theme.of(context).textTheme.bodyMedium!.copyWith(color: t.mut)))),
+                  ExcludeSemantics(
+                      child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 4),
+                          child: Text('·', style: Theme.of(context).textTheme.bodyMedium!.copyWith(color: t.mut)))),
                   _LinkText(
                     label: l.supportBoard,
                     onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => SuggestionsPage(session: widget.session))),
@@ -207,10 +210,7 @@ class _SupportPageState extends State<SupportPage> {
       if (_cat != null && cat != _cat) continue;
       final items = ((g['items'] as List?) ?? [])
           .whereType<Map>()
-          .where((it) =>
-              _q.isEmpty ||
-              '${it['question'] ?? ''}'.toLowerCase().contains(_q) ||
-              '${it['answer'] ?? ''}'.toLowerCase().contains(_q))
+          .where((it) => _q.isEmpty || '${it['question'] ?? ''}'.toLowerCase().contains(_q) || '${it['answer'] ?? ''}'.toLowerCase().contains(_q))
           .toList();
       for (final it in items) {
         final i = idx++;
@@ -223,7 +223,8 @@ class _SupportPageState extends State<SupportPage> {
       }
     }
     if (rows.isEmpty) {
-      return AnketStateLine(text: _faq.isNotEmpty ? l.destekFaqNoMatch : l.supportNoFaq, padding: const EdgeInsetsDirectional.fromSTEB(kAnketPad, 4, kAnketPad, 0));
+      return AnketStateLine(
+          text: _faq.isNotEmpty ? l.destekFaqNoMatch : l.supportNoFaq, padding: const EdgeInsetsDirectional.fromSTEB(kAnketPad, 4, kAnketPad, 0));
     }
     return Column(children: rows);
   }
@@ -271,22 +272,25 @@ class _SupportPageState extends State<SupportPage> {
 
 /// Bölüm başlığı (Stitch v3): 18 sp/600 ink; tek satır, sığmazsa küçülür.
 class _SectionTitle extends StatelessWidget {
-  const _SectionTitle(this.text, {required this.top});
+  const _SectionTitle(this.text, {required this.top, this.icon = BuIcons.info});
 
   final String text;
+  final IconData icon;
   final double top;
 
   @override
   Widget build(BuildContext context) => Padding(
-        padding: EdgeInsetsDirectional.fromSTEB(kAnketPad, top, kAnketPad, 16),
-        child: Semantics(
-          header: true,
-          child: FittedBox(
-            fit: BoxFit.scaleDown,
-            alignment: AlignmentDirectional.centerStart,
-            child: Text(text, maxLines: 1, style: Theme.of(context).textTheme.titleLarge!.copyWith(color: context.bu.ink, fontSize: 18, fontWeight: FontWeight.w600)),
-          ),
-        ),
+        padding: EdgeInsetsDirectional.fromSTEB(kAnketPad, top, kAnketPad, 12),
+        child: Row(children: [
+          BuFeatureIcon(icon: icon, size: 32),
+          const SizedBox(width: 10),
+          Expanded(
+              child: Semantics(
+                  header: true,
+                  child: Text(text,
+                      maxLines: 2,
+                      style: Theme.of(context).textTheme.titleMedium!.copyWith(color: context.bu.ink, fontSize: 17, fontWeight: FontWeight.w600)))),
+        ]),
       );
 }
 
@@ -320,7 +324,8 @@ class _FaqTile extends StatelessWidget {
     final tx = Theme.of(context).textTheme;
     final d = BuMotion.of(context, BuMotion.medium);
     return Container(
-      decoration: BoxDecoration(border: Border(bottom: BorderSide(color: t.bd))),
+      margin: const EdgeInsetsDirectional.fromSTEB(kAnketPad, 0, kAnketPad, 8),
+      decoration: BoxDecoration(color: t.sf, borderRadius: BorderRadius.circular(20), border: Border.all(color: t.bd), boxShadow: BuElevation.of(context, 1)),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Semantics(
           button: true,
@@ -333,7 +338,7 @@ class _FaqTile extends StatelessWidget {
             child: ConstrainedBox(
               constraints: BoxConstraints(minHeight: open ? 0 : 56),
               child: Padding(
-                padding: EdgeInsetsDirectional.fromSTEB(kAnketPad, open ? 17 : 12, kAnketPad, open ? 10 : 12),
+                padding: EdgeInsetsDirectional.fromSTEB(16, open ? 17 : 12, 16, open ? 10 : 12),
                 child: Row(children: [
                   Expanded(child: Text(question, style: tx.titleMedium!.copyWith(color: t.ink, fontSize: 16, fontWeight: FontWeight.w500, height: 1.35))),
                   const SizedBox(width: 12),
@@ -355,7 +360,7 @@ class _FaqTile extends StatelessWidget {
           alignment: Alignment.topCenter,
           child: open
               ? Padding(
-                  padding: const EdgeInsetsDirectional.fromSTEB(kAnketPad, 0, kAnketPad, 17),
+                  padding: const EdgeInsetsDirectional.fromSTEB(16, 0, 16, 17),
                   // Cevap açılırken solarak belirir (açılışta bir kez).
                   child: TweenAnimationBuilder<double>(
                     tween: Tween(begin: 0, end: 1),
@@ -407,11 +412,15 @@ class _TicketTile extends StatelessWidget {
         onTap: onTap,
         child: Container(
           width: double.infinity,
-          padding: const EdgeInsetsDirectional.fromSTEB(kAnketPad, 17, kAnketPad, 16),
-          decoration: BoxDecoration(border: Border(bottom: BorderSide(color: t.bd))),
+          margin: const EdgeInsetsDirectional.fromSTEB(kAnketPad, 0, kAnketPad, 8),
+          padding: const EdgeInsets.all(16),
+          decoration:
+              BoxDecoration(color: t.sf, borderRadius: BorderRadius.circular(20), border: Border.all(color: t.bd), boxShadow: BuElevation.of(context, 1)),
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Text('${ticket['subject'] ?? ''}',
-                maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.titleMedium!.copyWith(color: t.ink, fontSize: 16, fontWeight: FontWeight.w600, height: 1.3)),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: tx.titleMedium!.copyWith(color: t.ink, fontSize: 16, fontWeight: FontWeight.w600, height: 1.3)),
             const SizedBox(height: 4),
             Text.rich(
               TextSpan(style: meta, children: [

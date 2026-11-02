@@ -70,8 +70,7 @@ class _SupportTicketPageState extends State<SupportTicketPage> {
   void _toEnd() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted || !_scroll.hasClients) return;
-      _scroll.animateTo(_scroll.position.maxScrollExtent,
-          duration: BuMotion.of(context, BuMotion.long), curve: BuMotion.emphasizedDecelerate);
+      _scroll.animateTo(_scroll.position.maxScrollExtent, duration: BuMotion.of(context, BuMotion.long), curve: BuMotion.emphasizedDecelerate);
     });
   }
 
@@ -115,9 +114,7 @@ class _SupportTicketPageState extends State<SupportTicketPage> {
   @override
   Widget build(BuildContext context) {
     final closed = _ticket?['status'] == 'CLOSED';
-    final state = _loading
-        ? BuViewState.loading
-        : (_error != null && _ticket == null ? BuViewState.error : BuViewState.ready);
+    final state = _loading ? BuViewState.loading : (_error != null && _ticket == null ? BuViewState.error : BuViewState.ready);
     final subject = '${_ticket?['subject'] ?? ''}'.trim();
     return PopScope(
       canPop: false,
@@ -183,37 +180,37 @@ class _SupportTicketPageState extends State<SupportTicketPage> {
     };
     final no = (_ticket?['id'] as num?)?.toInt() ?? widget.ticketId;
     return Transform.translate(
-      offset: const Offset(0, -2.5), // 48 dp dokunma satırı referanstaki 44 dp'lik satıra hizalanır
-      child: Padding(
-      padding: const EdgeInsetsDirectional.fromSTEB(kAnketPad, 0, 8, 0),
-      child: Row(children: [
-        Expanded(
-          child: Semantics(
-            container: true,
-            child: Row(children: [
-              ExcludeSemantics(child: Container(width: 8, height: 8, decoration: BoxDecoration(color: color, shape: BoxShape.circle))),
-              const SizedBox(width: 6),
-              Flexible(
-                child: Text.rich(
-                  TextSpan(style: tx.bodySmall!.copyWith(color: t.mut, fontSize: 13, height: 1.3), children: [
-                    TextSpan(text: style.label, style: TextStyle(color: color, fontWeight: FontWeight.w600)),
-                    TextSpan(text: ' · ${l.p68TicketNo('$no')}'),
-                  ]),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
+        offset: const Offset(0, -2.5), // 48 dp dokunma satırı referanstaki 44 dp'lik satıra hizalanır
+        child: Padding(
+          padding: const EdgeInsetsDirectional.fromSTEB(kAnketPad, 0, 8, 0),
+          child: Row(children: [
+            Expanded(
+              child: Semantics(
+                container: true,
+                child: Row(children: [
+                  ExcludeSemantics(child: Container(width: 8, height: 8, decoration: BoxDecoration(color: color, shape: BoxShape.circle))),
+                  const SizedBox(width: 6),
+                  Flexible(
+                    child: Text.rich(
+                      TextSpan(style: tx.bodySmall!.copyWith(color: t.mut, fontSize: 13, height: 1.3), children: [
+                        TextSpan(text: style.label, style: TextStyle(color: color, fontWeight: FontWeight.w600)),
+                        TextSpan(text: ' · ${l.p68TicketNo('$no')}'),
+                      ]),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ]),
               ),
-            ]),
-          ),
-        ),
-        if (!closed)
-          TextButton(
-            style: TextButton.styleFrom(foregroundColor: t.mut, minimumSize: const Size(48, 48), padding: const EdgeInsets.symmetric(horizontal: 12)),
-            onPressed: _closing ? null : _close,
-            child: Text(l.supportCloseTicketTitle, style: tx.bodyMedium!.copyWith(color: t.mut, fontWeight: FontWeight.w400)),
-          ),
-      ]),
-    ));
+            ),
+            if (!closed)
+              TextButton(
+                style: TextButton.styleFrom(foregroundColor: t.mut, minimumSize: const Size(48, 48), padding: const EdgeInsets.symmetric(horizontal: 12)),
+                onPressed: _closing ? null : _close,
+                child: Text(l.supportCloseTicketTitle, style: tx.bodyMedium!.copyWith(color: t.mut, fontWeight: FontWeight.w400)),
+              ),
+          ]),
+        ));
   }
 
   String _dayOf(Map<String, dynamic> m) {
@@ -247,7 +244,8 @@ class _SupportTicketPageState extends State<SupportTicketPage> {
             padding: const EdgeInsets.symmetric(horizontal: 12),
             child: Text(_dayLabel(m),
                 maxLines: 1,
-                style: Theme.of(context).textTheme.labelSmall!.copyWith(color: t.mut, fontSize: 12, fontWeight: FontWeight.w500, letterSpacing: Localizations.localeOf(context).languageCode == 'ar' ? 0 : .5)),
+                style: Theme.of(context).textTheme.labelSmall!.copyWith(
+                    color: t.mut, fontSize: 12, fontWeight: FontWeight.w500, letterSpacing: Localizations.localeOf(context).languageCode == 'ar' ? 0 : .5)),
           ),
           Expanded(child: Container(height: 1, color: t.bd)),
         ]),
@@ -266,9 +264,10 @@ class _SupportTicketPageState extends State<SupportTicketPage> {
       constraints: BoxConstraints(maxWidth: maxW),
       padding: const EdgeInsetsDirectional.fromSTEB(15, 14, 15, 8),
       decoration: BoxDecoration(
-        color: staff ? t.sf : t.sf2,
+        color: staff ? t.sf : t.soft,
         border: staff ? Border.all(color: t.bd) : null,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: staff ? BuElevation.of(context, 1) : null,
       ),
       child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
         Text('${m['text'] ?? ''}', style: tx.bodyLarge!.copyWith(fontSize: 16, height: 1.45, color: t.ink)),

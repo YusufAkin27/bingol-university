@@ -247,14 +247,18 @@ class _SuggestionTile extends StatelessWidget {
     return Semantics(
       container: true,
       child: Container(
-        padding: EdgeInsetsDirectional.fromSTEB(kAnketPad, first ? 2 : 17, kAnketPad, 16),
-        decoration: BoxDecoration(border: Border(bottom: BorderSide(color: t.bd))),
+        margin: const EdgeInsetsDirectional.fromSTEB(kAnketPad, 0, kAnketPad, 8),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(color: t.sf, borderRadius: BorderRadius.circular(20), border: Border.all(color: t.bd), boxShadow: BuElevation.of(context, 1)),
         child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Expanded(
             child: InkWell(
               onTap: onOpen,
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text('${item['subject'] ?? ''}', maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.titleMedium!.copyWith(color: t.ink, fontSize: 18, fontWeight: FontWeight.w600, height: 1.3)),
+                Text('${item['subject'] ?? ''}',
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: tx.titleMedium!.copyWith(color: t.ink, fontSize: 18, fontWeight: FontWeight.w600, height: 1.3)),
                 const SizedBox(height: 4),
                 Text('${item['message'] ?? ''}', maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.bodyMedium!.copyWith(height: 1.45, color: t.mut)),
                 const SizedBox(height: 7),
@@ -380,7 +384,9 @@ class _SuggestionDetailPageState extends State<SuggestionDetailPage> {
                 child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                   SupportFeedbackPill(it['status'] as String?),
                   const SizedBox(height: 14),
-                  Semantics(header: true, child: Text('${it['subject'] ?? ''}', style: tx.headlineSmall!.copyWith(color: t.ink, fontWeight: FontWeight.w800, height: 1.3))),
+                  Semantics(
+                      header: true,
+                      child: Text('${it['subject'] ?? ''}', style: tx.headlineSmall!.copyWith(color: t.ink, fontWeight: FontWeight.w800, height: 1.3))),
                   const SizedBox(height: 12),
                   Text('${it['message'] ?? ''}', style: tx.bodyLarge!.copyWith(color: t.ink, height: 1.55)),
                   if (resp != null && resp.isNotEmpty) ...[const SizedBox(height: 14), SupportStaffReply(text: resp)],

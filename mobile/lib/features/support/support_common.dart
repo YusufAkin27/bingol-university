@@ -131,9 +131,8 @@ class SupportLabel extends StatelessWidget {
       child: Semantics(
         header: true,
         child: Text(text,
-            style: form
-                ? tx.labelLarge!.copyWith(color: t.ink, fontWeight: FontWeight.w700)
-                : tx.labelMedium!.copyWith(letterSpacing: ar ? 0 : .6, color: t.mut)),
+            style:
+                form ? tx.labelLarge!.copyWith(color: t.ink, fontWeight: FontWeight.w700) : tx.labelMedium!.copyWith(letterSpacing: ar ? 0 : .6, color: t.mut)),
       ),
     );
   }
@@ -222,8 +221,7 @@ class SupportChoices extends StatelessWidget {
   Widget build(BuildContext context) => Wrap(
         spacing: 8,
         children: [
-          for (final e in options.entries)
-            BuChip(label: e.value, selected: e.key == value, icon: icons?[e.key], onTap: () => onChanged(e.key)),
+          for (final e in options.entries) BuChip(label: e.value, selected: e.key == value, icon: icons?[e.key], onTap: () => onChanged(e.key)),
         ],
       );
 }
@@ -300,8 +298,7 @@ class SupportErrorNote extends StatelessWidget {
   }
 }
 
-void supportSnack(BuildContext context, String text, [BuToastKind kind = BuToastKind.info]) =>
-    BuToast.show(context, text, kind: kind);
+void supportSnack(BuildContext context, String text, [BuToastKind kind = BuToastKind.info]) => BuToast.show(context, text, kind: kind);
 
 /// Hata metni; 429'da sunucu mesajı yoksa bekleme uyarısı verir (Retry-After başlığına ApiError taşımıyor).
 String supportError(BuildContext context, Object e) {
@@ -415,6 +412,8 @@ class SupportEmptyCard extends StatelessWidget {
     final t = context.bu;
     final tx = Theme.of(context).textTheme;
     return BuCard(
+      radius: 22,
+      style: BuCardStyle.elevated,
       padding: const EdgeInsetsDirectional.all(16),
       child: SizedBox(
         width: double.infinity,
@@ -422,8 +421,8 @@ class SupportEmptyCard extends StatelessWidget {
           Container(
             width: 52,
             height: 52,
-            decoration: BoxDecoration(color: t.sf2, borderRadius: BorderRadius.circular(16)),
-            child: ExcludeSemantics(child: Icon(icon, size: 24, color: t.ink)),
+            decoration: BoxDecoration(color: t.soft, borderRadius: BorderRadius.circular(16)),
+            child: ExcludeSemantics(child: Icon(icon, size: 24, color: t.onSoft)),
           ),
           const SizedBox(width: 16),
           Expanded(
@@ -455,7 +454,11 @@ class SupportDotPill extends StatelessWidget {
         child: Row(mainAxisSize: MainAxisSize.min, children: [
           Container(width: 6, height: 6, decoration: BoxDecoration(color: dot, shape: BoxShape.circle)),
           const SizedBox(width: 6),
-          Flexible(child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, style: Theme.of(context).textTheme.labelMedium!.copyWith(color: fg, fontWeight: FontWeight.w700))),
+          Flexible(
+              child: Text(label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.labelMedium!.copyWith(color: fg, fontWeight: FontWeight.w700))),
         ]),
       );
 }
