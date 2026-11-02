@@ -31,9 +31,9 @@ void main() {
       const d = HomeLayout.defaults;
       expect(d.visible, [
         HomeSection.quickAccess,
+        HomeSection.featuredNews,
         HomeSection.menu,
         HomeSection.todayClasses,
-        HomeSection.featuredNews,
         HomeSection.upcomingEvents,
         HomeSection.announcements,
       ]);
@@ -42,12 +42,12 @@ void main() {
     });
 
     test('siralama: moveSection, reorderSection (onReorderItem kurali), sinirda degismez', () {
-      var v = HomeLayout.defaults.moveSection(HomeSection.featuredNews, -1);
+      var v = HomeLayout.defaults.moveSection(HomeSection.menu, -1);
       expect(v.order.take(4), [HomeSection.quickAccess, HomeSection.menu, HomeSection.featuredNews, HomeSection.todayClasses]);
       expect(v.moveSection(HomeSection.quickAccess, -1), v, reason: 'ilk satir yukari tasinamaz');
       expect(v.moveSection(HomeSection.announcements, 1), v, reason: 'son satir asagi tasinamaz');
       v = HomeLayout.defaults.reorderSection(0, 2); // quickAccess -> 3. siraya (cikarildiktan sonraki indeks)
-      expect(v.order.take(3), [HomeSection.menu, HomeSection.todayClasses, HomeSection.quickAccess]);
+      expect(v.order.take(3), [HomeSection.featuredNews, HomeSection.menu, HomeSection.quickAccess]);
       expect(v.isDefault, isFalse);
     });
 
@@ -181,11 +181,11 @@ void main() {
       expect(find.text('Günün menüsü'), findsOneWidget);
       expect(find.text('Hızlı erişim'), findsOneWidget);
       expect(find.text('Duyurular'), findsOneWidget);
-      expect(find.text('Bugün'), findsOneWidget);
+      expect(find.text('Bugün kampüste'), findsOneWidget);
       // Varsayilan sira: Hizli erisim < menu < haberler < etkinlikler < duyurular (dersler veri yoksa cizilmez).
       double y(String s) => tester.getTopLeft(find.text(s)).dy;
       expect(y('Hızlı erişim'), lessThan(y('Günün menüsü')));
-      expect(y('Günün menüsü'), lessThan(y('Öne çıkan haberler')));
+      expect(y('Öne çıkan haberler'), lessThan(y('Günün menüsü')));
       expect(y('Öne çıkan haberler'), lessThan(y('Yaklaşan etkinlikler')));
       expect(y('Yaklaşan etkinlikler'), lessThan(y('Duyurular')));
       expect(tester.takeException(), isNull);
@@ -257,7 +257,7 @@ void main() {
       await tester.tap(up('Günün menüsü'));
       await settle(tester, const Duration(milliseconds: 600));
       final saved1 = jsonDecode((await st.read(key: HomeLayoutStore.key))!) as Map;
-      expect((saved1['order'] as List).take(2), ['menu', 'quickAccess']);
+      expect((saved1['order'] as List).take(2), ['quickAccess', 'menu']);
       // Menu'yu gizle.
       await tester.tap(rowSwitch('Günün menüsü'));
       await settle(tester, const Duration(milliseconds: 600));

@@ -3430,7 +3430,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Source site unreachable; data may be outdated.';
 
   @override
-  String get homeSearchHint => 'Search news, clubs, events';
+  String get homeSearchHint => 'Search campus';
 
   @override
   String get homeMyClubs => 'From my clubs';
@@ -9650,7 +9650,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get p51EvClubOnly => 'Events are created on behalf of clubs.';
 
   @override
-  String get p60Today => 'Today';
+  String get p60Today => 'Today on campus';
 
   @override
   String get p60NextClass => 'Next class';

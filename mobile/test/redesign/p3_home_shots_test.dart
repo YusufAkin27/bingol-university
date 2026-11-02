@@ -14,6 +14,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:bu_kampus/features/shell/floating_nav.dart';
 import '../support/fake_app.dart';
 import '../support/store_shots_images.dart';
 
@@ -107,7 +108,14 @@ class _Shot {
 
 Widget _home(FakeBackend b) => HomeTab(session: makeSession(b), onOpenTab: (i, {newsType}) {});
 
+final _previewBadge = ValueNotifier<int>(2);
+Widget _phone(FakeBackend b) => Stack(children: [
+  Positioned.fill(child: _home(b)),
+  Positioned(left: 0, right: 0, bottom: 0, child: FloatingNav(index: 0, onChanged: (_) {}, chatBadge: _previewBadge)),
+]);
+
 final _shots = <_Shot>[
+  const _Shot('00_telefon', _phone, height: 844),
   const _Shot('01_ana_sayfa', _home),
   const _Shot('02_iskelet', _home, loading: true, height: 844),
   _Shot('03_tum_gizli', _home, height: 844, layout: _allHidden()),

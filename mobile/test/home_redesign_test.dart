@@ -44,9 +44,9 @@ void main() {
           await tester.pumpWidget(buildApp(home(b), brightness: dark ? Brightness.dark : Brightness.light));
           await settle(tester, const Duration(seconds: 2));
           // Stitch v3: logo karosu/uygulama adı/avatar yok; selamlama + kalem + zil.
-          expect(find.text('BÜ KAMPÜS'), findsNothing);
+          expect(find.text('BÜ KAMPÜS'), findsOneWidget);
           expect(find.text('Bağımsız öğrenci uygulaması'), findsNothing);
-          expect(find.textContaining('Merhaba'), findsOneWidget);
+          expect(find.textContaining('Ayşe'), findsOneWidget);
           expect(find.byTooltip('Ana sayfayı düzenle'), findsOneWidget);
           expect(find.text('Hızlı erişim'), findsOneWidget);
           expect(find.text('Yemek'), findsOneWidget);
@@ -55,7 +55,7 @@ void main() {
           expect(find.text('Kulüpler'), findsNothing); // Kulüpler alt gezinmede zaten var (bu testte kabuk yok)
           expect(find.bySemanticsLabel('Program'), findsOneWidget);
           // "Bugün" yüzeyi: öğle yemeği satırı (ilk iki yemek + "+N"); kırmızı dolu vitrin ve fotoğraf yok.
-          expect(find.text('Bugün'), findsOneWidget);
+          expect(find.text('Bugün kampüste'), findsOneWidget);
           expect(find.text('Öğle yemeği'), findsOneWidget);
           expect(find.textContaining('Mercimek çorbası, Orman kebabı +2'), findsOneWidget);
           expect(find.text('Menü Detayı'), findsNothing);

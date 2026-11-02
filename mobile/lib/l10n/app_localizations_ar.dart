@@ -3398,7 +3398,7 @@ class AppLocalizationsAr extends AppLocalizations {
       'الموقع المصدر غير متاح، وقد تكون البيانات قديمة.';
 
   @override
-  String get homeSearchHint => 'ابحث عن أخبار أو أندية أو فعاليات';
+  String get homeSearchHint => 'ابحث في الحرم الجامعي';
 
   @override
   String get homeMyClubs => 'من أنديتي';
@@ -9547,7 +9547,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get p51EvClubOnly => 'تُنشأ الفعاليات باسم الأندية.';
 
   @override
-  String get p60Today => 'اليوم';
+  String get p60Today => 'اليوم في الحرم الجامعي';
 
   @override
   String get p60NextClass => 'الدرس القادم';

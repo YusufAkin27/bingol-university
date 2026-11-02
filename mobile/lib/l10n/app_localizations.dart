@@ -6394,7 +6394,7 @@ abstract class AppLocalizations {
   /// No description provided for @homeSearchHint.
   ///
   /// In tr, this message translates to:
-  /// **'Haber, kulüp, etkinlik ara'**
+  /// **'Kampüste ara'**
   String get homeSearchHint;
 
   /// No description provided for @homeMyClubs.
@@ -17476,7 +17476,7 @@ abstract class AppLocalizations {
   /// No description provided for @p60Today.
   ///
   /// In tr, this message translates to:
-  /// **'Bugün'**
+  /// **'Bugün kampüste'**
   String get p60Today;
 
   /// No description provided for @p60NextClass.

@@ -408,6 +408,7 @@ class _HomeTabState extends State<HomeTab> {
       final name = (e.courseName ?? '').trim().isNotEmpty ? e.courseName!.trim() : e.title;
       rows.add((label: l.p60UpcomingExam, value: '${w.day} ${newsMonthName(context, w.month)} · $name', onTap: () => _push(AcademicHubPage(session: _s)), muted: false));
     }
+    rows.sort((a, b) => (a.label == l.p60NextClass ? 0 : a.label == l.yemekLunch ? 1 : 2).compareTo(b.label == l.p60NextClass ? 0 : b.label == l.yemekLunch ? 1 : 2));
     return rows;
   }
 
@@ -590,12 +591,12 @@ class _HomeTabState extends State<HomeTab> {
   /// Üst çubuk: "İyi günler" + "Merhaba, Ad"; sağda ana sayfayı düzenle (kalem) ve bildirimler (zil, okunmamış noktası).
   Widget _header(BuildContext context, {bool afterBanner = false}) {
     final l = context.l10n;
-    final name = (_s.displayName ?? '').trim();
+    final name = (_s.displayName ?? '').trim().split(RegExp(r'\s+')).first;
     return Padding(
       padding: EdgeInsets.fromLTRB(20, (afterBanner ? 0 : MediaQuery.of(context).padding.top) + 12, 20, 0),
       child: HomeBrandHeader(
         greeting: _greeting(context),
-        hello: name.isEmpty ? l.anasayfaHelloNoName : l.anasayfaHello(name),
+        hello: name.isEmpty ? _greeting(context) : '${_greeting(context)}, $name',
         actions: [
           BuIconButton(icon: BuIcons.pencil, tooltip: l.p60EditHome, onTap: _editLayout),
           ValueListenableBuilder<int>(

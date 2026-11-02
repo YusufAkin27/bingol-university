@@ -3415,7 +3415,7 @@ class AppLocalizationsTr extends AppLocalizations {
       'Kaynak siteye ulaşılamıyor; veriler eski olabilir.';
 
   @override
-  String get homeSearchHint => 'Haber, kulüp, etkinlik ara';
+  String get homeSearchHint => 'Kampüste ara';
 
   @override
   String get homeMyClubs => 'Kulüplerimden';
@@ -9616,7 +9616,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get p51EvClubOnly => 'Etkinlikler kulüpler adına açılır.';
 
   @override
-  String get p60Today => 'Bugün';
+  String get p60Today => 'Bugün kampüste';
 
   @override
   String get p60NextClass => 'Sıradaki ders';
