@@ -17808,6 +17808,18 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Tümünü gör'**
   String get homeViewAll;
+
+  /// No description provided for @settingsUsageStats.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kullanım istatistikleri'**
+  String get settingsUsageStats;
+
+  /// No description provided for @settingsUsageStatsDesc.
+  ///
+  /// In tr, this message translates to:
+  /// **'Hangi ekranların kullanıldığı kimliksiz ve toplu olarak ölçülür; mesaj içeriği, arama metni ve kişisel bilgi toplanmaz.'**
+  String get settingsUsageStatsDesc;
 }
 
 class _AppLocalizationsDelegate

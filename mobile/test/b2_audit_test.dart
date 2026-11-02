@@ -405,7 +405,7 @@ void main() {
       final body = backend.bodies['POST /analytics/events'] as Map;
       final ev = (body['events'] as List).single as Map;
       expect(ev['name'], 'app_error');
-      expect(ev['screen'], '/news');
+      expect(ev['screen'], 'news'); // ekran anahtarı [a-z0-9_] biçimine getirilir
       expect(ev['props'], {'type': 'StateError', 'source': 'platform', 'version': isNotNull});
     });
 

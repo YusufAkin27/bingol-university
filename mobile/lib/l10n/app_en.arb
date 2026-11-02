@@ -3128,5 +3128,7 @@
   "homeFeaturedMenu": "Meal Menu",
   "homeSearchFilters": "Search filters",
   "homeMore": "More",
-  "homeViewAll": "View all"
+  "homeViewAll": "View all",
+  "settingsUsageStats": "Usage statistics",
+  "settingsUsageStatsDesc": "Which screens are used is measured anonymously and in aggregate; message content, search text and personal information are not collected."
 }

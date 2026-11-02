@@ -1,6 +1,8 @@
 import 'dart:async';
 
 import '../news/news_list_page.dart';
+import '../../core/analytics.dart';
+import '../../core/analytics_screens.dart' show kTabScreens;
 import '../../core/locale_controller.dart';
 import '../../core/nav.dart';
 import 'package:flutter/material.dart';
@@ -58,6 +60,7 @@ class _AppShellState extends State<AppShell> with WidgetsBindingObserver, Single
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     s.realtime?.start();
+    Analytics.instance.screens.setTab(kTabScreens[_tab]);
     _msgSub = s.realtime?.messages.listen(_onRealtimeMessage);
     shellTabRequest.addListener(_onTabRequest);
     WidgetsBinding.instance.addPostFrameCallback((_) => _onTabRequest());
@@ -133,6 +136,7 @@ class _AppShellState extends State<AppShell> with WidgetsBindingObserver, Single
   /// Sekmeyi seçer: ilk seçimde kurar, geçişte fade-through oynatır ("animasyonları azalt" ise anlık).
   void _select(int i) {
     if (i == _tab) return;
+    Analytics.instance.screens.setTab(kTabScreens[i]);
     setState(() {
       _tab = i;
       _built.add(i);

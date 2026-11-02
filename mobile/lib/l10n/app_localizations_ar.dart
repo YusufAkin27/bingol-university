@@ -9736,4 +9736,11 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get homeViewAll => 'عرض الكل';
+
+  @override
+  String get settingsUsageStats => 'إحصاءات الاستخدام';
+
+  @override
+  String get settingsUsageStatsDesc =>
+      'يُقاس استخدام الشاشات بشكل مجهول ومجمّع؛ لا يتم جمع محتوى الرسائل أو نص البحث أو المعلومات الشخصية.';
 }

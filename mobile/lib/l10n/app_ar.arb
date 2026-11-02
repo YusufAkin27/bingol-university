@@ -3128,5 +3128,7 @@
   "homeFeaturedMenu": "قائمة الطعام",
   "homeSearchFilters": "فلاتر البحث",
   "homeMore": "المزيد",
-  "homeViewAll": "عرض الكل"
+  "homeViewAll": "عرض الكل",
+  "settingsUsageStats": "إحصاءات الاستخدام",
+  "settingsUsageStatsDesc": "يُقاس استخدام الشاشات بشكل مجهول ومجمّع؛ لا يتم جمع محتوى الرسائل أو نص البحث أو المعلومات الشخصية."
 }

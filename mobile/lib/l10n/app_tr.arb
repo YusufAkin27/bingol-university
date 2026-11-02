@@ -4926,5 +4926,7 @@
   "homeFeaturedMenu": "Yemek Menüsü",
   "homeSearchFilters": "Arama filtreleri",
   "homeMore": "Diğer",
-  "homeViewAll": "Tümünü gör"
+  "homeViewAll": "Tümünü gör",
+  "settingsUsageStats": "Kullanım istatistikleri",
+  "settingsUsageStatsDesc": "Hangi ekranların kullanıldığı kimliksiz ve toplu olarak ölçülür; mesaj içeriği, arama metni ve kişisel bilgi toplanmaz."
 }

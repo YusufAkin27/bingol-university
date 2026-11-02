@@ -9839,4 +9839,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get homeViewAll => 'View all';
+
+  @override
+  String get settingsUsageStats => 'Usage statistics';
+
+  @override
+  String get settingsUsageStatsDesc =>
+      'Which screens are used is measured anonymously and in aggregate; message content, search text and personal information are not collected.';
 }
