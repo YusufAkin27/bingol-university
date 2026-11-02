@@ -135,6 +135,10 @@ export const pageInfo: Record<string, PageInfo> = {
     d: 'Üniversite sitesinden gelen haber ve duyurular.',
     k: ['haber', 'duyuru', 'haberi gizle', 'üniversite haberleri', 'etkinlik haberi', 'manşet'],
   },
+  campus: {
+    d: 'Kampüs haritasındaki binalar ve yerler, harita merkezi, sınırı ve karo adresi.',
+    k: ['harita', 'kampüs haritası', 'bina', 'yer', 'konum', 'koordinat', 'enlem', 'boylam', 'karo', 'sınır', 'yer ekle', 'fakülte binası', 'yurt', 'otopark', 'kapı', 'openstreetmap'],
+  },
   menu: {
     d: 'Günlük yemek listesi ve yemeklerin kalorisi.',
     k: ['yemekhane', 'öğle yemeği', 'akşam yemeği', 'kalori', 'günün menüsü', 'yemek listesi', 'kantin', 'sks'],

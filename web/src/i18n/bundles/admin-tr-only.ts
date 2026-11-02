@@ -24,6 +24,9 @@ import V2Moderation from '../tr/admin-v2-moderation';
 import V2Notifsys from '../tr/admin-v2-notifsys';
 import Bh from '../tr/admin-bh';
 
+// Kampüs haritası menü etiketi ana parçada kalır; sayfa metinleri tr/admin-campus.ts içinde sayfanın kendi parçasında yüklenir.
+const CampusNav = { 'admin.campus.nav': 'Kampüs haritası' };
+
 export default {
   ...Guard,
   ...Shell,
@@ -49,4 +52,5 @@ export default {
   ...V2Moderation,
   ...V2Notifsys,
   ...Bh,
+  ...CampusNav,
 };

@@ -42,6 +42,7 @@ const NAV_ENDPOINT: Record<string, string> = {
   faq: '/api/admin/faq',
   news: '/api/admin/news',
   menu: '/api/admin/menu',
+  campus: '/api/admin/campus/places',
   campaigns: '/api/admin/push/campaigns',
   mailTemplates: '/api/admin/mail/templates',
   mailCampaigns: '/api/admin/mail/campaigns',

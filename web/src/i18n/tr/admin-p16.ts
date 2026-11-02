@@ -69,6 +69,8 @@ export default {
   'admin.p16.perm.comms.announce': 'Akademik duyuru yayınlama',
   'admin.p16.perm.legal.read': 'Sözleşme sürümlerini ve kabul istatistiklerini görme',
   'admin.p16.perm.legal.publish': 'Sözleşme yayınlama',
+  'admin.p16.perm.campus.read': 'Kampüs haritası yerlerini ve ayarlarını görme',
+  'admin.p16.perm.campus.write': 'Kampüs haritası yerlerini ve ayarlarını yönetme',
   'admin.p16.perm.settings.read': 'Uygulama ayarlarını görme',
   'admin.p16.perm.settings.write': 'Uygulama ayarlarını değiştirme (bakım modu, sürüm...)',
   'admin.p16.perm.system.read': 'Sistem durumu, kuyruklar, yedek, şifreleme durumu',
