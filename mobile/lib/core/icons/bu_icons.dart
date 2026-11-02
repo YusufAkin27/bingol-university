@@ -66,6 +66,8 @@ abstract final class BuIcons {
   static const IconData camera = IconData(0xe01a, fontFamily: 'BuIcons');
   /// Hugeicons CameraOff01; Lucide cameraOff
   static const IconData cameraOff = IconData(0xe01b, fontFamily: 'BuIcons');
+  /// Hugeicons Car01
+  static const IconData car = IconData(0xe0b6, fontFamily: 'BuIcons');
   /// Hugeicons PieChart; Lucide chartPie
   static const IconData chartPie = IconData(0xe01c, fontFamily: 'BuIcons');
   /// Hugeicons BubbleChat; Material chat_bubble_outline_rounded
@@ -122,6 +124,8 @@ abstract final class BuIcons {
   static const IconData contact = IconData(0xe036, fontFamily: 'BuIcons');
   /// Hugeicons Copy01; Lucide copy
   static const IconData copy = IconData(0xe037, fontFamily: 'BuIcons');
+  /// Hugeicons CornerUpRight
+  static const IconData cornerUpRight = IconData(0xe0b7, fontFamily: 'BuIcons');
   /// Hugeicons Cpu; Lucide cpu
   static const IconData cpu = IconData(0xe038, fontFamily: 'BuIcons');
   /// Hugeicons Crop; Lucide crop
@@ -134,6 +138,8 @@ abstract final class BuIcons {
   static const IconData doorOpen = IconData(0xe03c, fontFamily: 'BuIcons');
   /// Hugeicons Download01; Lucide download
   static const IconData download = IconData(0xe03d, fontFamily: 'BuIcons');
+  /// Hugeicons Dumbbell01
+  static const IconData dumbbell = IconData(0xe0b8, fontFamily: 'BuIcons');
   /// Hugeicons MoreHorizontal; Lucide ellipsis; Material more_horiz
   static const IconData ellipsis = IconData(0xe03e, fontFamily: 'BuIcons');
   /// Hugeicons MoreVertical; Lucide ellipsisVertical
@@ -152,8 +158,12 @@ abstract final class BuIcons {
   static const IconData flashlight = IconData(0xe045, fontFamily: 'BuIcons');
   /// Hugeicons FlashlightOff; Lucide flashlightOff
   static const IconData flashlightOff = IconData(0xe046, fontFamily: 'BuIcons');
+  /// Hugeicons FlaskConical
+  static const IconData flaskConical = IconData(0xe0b9, fontFamily: 'BuIcons');
   /// Hugeicons Focus; Lucide focus
   static const IconData focus = IconData(0xe047, fontFamily: 'BuIcons');
+  /// Hugeicons Footprints
+  static const IconData footprints = IconData(0xe0ba, fontFamily: 'BuIcons');
   /// Hugeicons Redo01; Lucide forward
   static const IconData forward = IconData(0xe048, fontFamily: 'BuIcons');
   /// Hugeicons Globe02; Lucide globe
@@ -200,6 +210,8 @@ abstract final class BuIcons {
   static const IconData landmark = IconData(0xe05d, fontFamily: 'BuIcons');
   /// Hugeicons Laptop; Lucide laptop
   static const IconData laptop = IconData(0xe05e, fontFamily: 'BuIcons');
+  /// Hugeicons Layers01
+  static const IconData layers = IconData(0xe0bb, fontFamily: 'BuIcons');
   /// Hugeicons Library; Lucide library
   static const IconData library = IconData(0xe05f, fontFamily: 'BuIcons');
   /// Hugeicons Lightbulb; Lucide lightbulb
@@ -208,6 +220,8 @@ abstract final class BuIcons {
   static const IconData listChecks = IconData(0xe061, fontFamily: 'BuIcons');
   /// Hugeicons ListOrdered; Lucide listOrdered
   static const IconData listOrdered = IconData(0xe062, fontFamily: 'BuIcons');
+  /// Hugeicons LocateFixed
+  static const IconData locateFixed = IconData(0xe0bc, fontFamily: 'BuIcons');
   /// Hugeicons LockKeyhole; Lucide lock
   static const IconData lock = IconData(0xe063, fontFamily: 'BuIcons');
   /// Hugeicons LockKeyhole; Lucide lockKeyhole
@@ -218,6 +232,8 @@ abstract final class BuIcons {
   static const IconData logOut = IconData(0xe066, fontFamily: 'BuIcons');
   /// Hugeicons MailCheck; Lucide mailCheck
   static const IconData mailCheck = IconData(0xe067, fontFamily: 'BuIcons');
+  /// Hugeicons Map
+  static const IconData map = IconData(0xe0bd, fontFamily: 'BuIcons');
   /// Hugeicons Location01; Lucide mapPin
   static const IconData mapPin = IconData(0xe068, fontFamily: 'BuIcons');
   /// Hugeicons Megaphone02; Lucide megaphone
@@ -236,6 +252,8 @@ abstract final class BuIcons {
   static const IconData minus = IconData(0xe06f, fontFamily: 'BuIcons');
   /// Hugeicons Music02; Lucide music
   static const IconData music = IconData(0xe070, fontFamily: 'BuIcons');
+  /// Hugeicons Navigation03
+  static const IconData navigation = IconData(0xe0be, fontFamily: 'BuIcons');
   /// Hugeicons Newspaper; Lucide newspaper
   static const IconData newspaper = IconData(0xe071, fontFamily: 'BuIcons');
   /// Hugeicons NotebookPen; Lucide notebookPen
@@ -244,6 +262,8 @@ abstract final class BuIcons {
   static const IconData octagonAlert = IconData(0xe073, fontFamily: 'BuIcons');
   /// Hugeicons Palette; Lucide palette
   static const IconData palette = IconData(0xe074, fontFamily: 'BuIcons');
+  /// Hugeicons ParkingAreaSquare
+  static const IconData parking = IconData(0xe0bf, fontFamily: 'BuIcons');
   /// Hugeicons Pause
   static const IconData pause = IconData(0xe075, fontFamily: 'BuIcons');
   /// Hugeicons Pause (dolu); Material pause_rounded

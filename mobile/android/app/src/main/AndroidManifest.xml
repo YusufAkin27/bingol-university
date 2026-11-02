@@ -4,7 +4,7 @@
     <uses-permission android:name="android.permission.INTERNET"/>
     <!-- Sohbet gorselini galeriye kaydetme: yalniz Android 9 ve altinda gerekir. -->
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="28" tools:replace="android:maxSdkVersion"/>
-    <!-- Ilk giris izinleri: bildirim (Android 13+) ve rehber (yalniz kisi bulma). Konum KULLANILMAZ. -->
+    <!-- Ilk giris izinleri: bildirim (Android 13+) ve rehber (yalniz kisi bulma). -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
     <uses-permission android:name="android.permission.READ_CONTACTS"/>
     <!-- Yerel ders/sinav hatirlatmalarini cihaz yeniden basladiktan sonra tekrar kurmak icin. -->
@@ -16,7 +16,12 @@
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES"/>
     <uses-permission android:name="android.permission.READ_MEDIA_VIDEO"/>
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32"/>
+    <!-- Kampus haritasi: yalniz on planda, haritada "konumum" icin (arka plan konumu YOK). Konum sunucuya gonderilmez. -->
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
     <!-- Donanim yoksa bile Play cihaz filtrelemesin. -->
+    <uses-feature android:name="android.hardware.location" android:required="false"/>
+    <uses-feature android:name="android.hardware.location.gps" android:required="false"/>
     <uses-feature android:name="android.hardware.camera" android:required="false"/>
     <uses-feature android:name="android.hardware.camera.any" android:required="false"/>
     <uses-feature android:name="android.hardware.camera.autofocus" android:required="false"/>
