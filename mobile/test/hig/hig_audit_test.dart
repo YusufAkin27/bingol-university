@@ -379,4 +379,52 @@ void main() {
       }
     }, skip: !_on);
   }
+
+  // ------------------------------------------------------------------ (g) klavye: odaktaki alan klavyenin ustunde kalir mi
+  const keyboard = 300.0;
+  final formScreens = screens.where((s) => const ['Login', 'Register', 'ForgotPassword', 'SearchPage', 'NewChatPage'].contains(s.name));
+  for (final sc in formScreens) {
+    testWidgets('HIG-g ${sc.name} klavye', (t) async {
+      for (final h in [640.0, 844.0]) {
+        final c = _Catch()..start();
+        var visible = 'alan yok';
+        try {
+          t.view.devicePixelRatio = 1;
+          t.view.physicalSize = Size(360, h);
+          t.view.viewInsets = const FakeViewPadding(bottom: keyboard);
+          addTearDown(t.view.resetViewInsets);
+          final s = makeSession(_backend(), signedIn: sc.signedIn);
+          await t.pumpWidget(p00App(sc.build(s), scaffold: sc.scaffold));
+          await settle(t, const Duration(milliseconds: 2500));
+          final fields = find.byType(EditableText);
+          if (fields.evaluate().isNotEmpty) {
+            // Son alana odaklan: en kotu durum (klavyeye en yakin)
+            await t.tap(fields.last, warnIfMissed: false);
+            await settle(t, const Duration(milliseconds: 900));
+            final r = t.getRect(fields.last);
+            final limit = h - keyboard;
+            visible = r.bottom <= limit + 1 ? 'gorunur' : 'KLAVYE ALTINDA (alt=${r.bottom.toStringAsFixed(0)} sinir=${limit.toStringAsFixed(0)})';
+          }
+        } catch (err) {
+          visible = 'hata: ${err.toString().split('\n').first}';
+        }
+        c.stop();
+        t.takeException();
+        (_report['keyboard'] ??= <Map<String, dynamic>>[] as dynamic);
+        (_report['keyboard'] as List).add({
+          'screen': sc.name,
+          'height': h,
+          'focused_field': visible,
+          'overflow_count': c.items.where((e) => e['kind'] == 'overflow').length,
+        });
+        // ignore: avoid_print
+        print('HIG|g|${sc.name}|h=$h|$visible|overflow=${c.items.where((e) => e['kind'] == 'overflow').length}');
+        try {
+          await _unmount(t);
+        } catch (_) {}
+        t.takeException();
+        t.view.resetViewInsets();
+      }
+    }, skip: !_on);
+  }
 }

@@ -264,8 +264,8 @@ PAIRS = [
     ("onSoft / soft", "onSoft", "soft", "T"),
     ("pr / soft", "pr", "soft", "T"),
     ("onNav / nav (alt gezinme)", "onNav", "nav", "T"),
-    ("onPr / h1 (hero)", "onPr", "h1", "T"),
-    ("onPr / h2 (hero)", "onPr", "h2", "T"),
+    ("onMedia / h1 (hero; BuHeroCard yazisi onMedia)", "onMedia", "h1", "T"),
+    ("onMedia / h2 (hero)", "onMedia", "h2", "T"),
     ("ok / bg", "ok", "bg", "T"),
     ("ok / sf", "ok", "sf", "T"),
     ("onOkSoft / okSoft", "onOkSoft", "okSoft", "T"),
@@ -445,6 +445,10 @@ def measure_font(srcs) -> dict:
                 off_scale.append(Finding(s, mm.start(), f"fontSize {v:g}"))
             else:
                 scaled_ok += 1
+    thin = []
+    for s in srcs:
+        for mm in re.finditer(r"FontWeight\.(?:w[123]00|thin|extraLight|light)\b", s.masked):
+            thin.append(Finding(s, mm.start(), "ince agirlik (HIG: Regular ve ustu)"))
     vals = Counter()
     for f in off_scale + below:
         vals[f.note] += 1
@@ -452,6 +456,7 @@ def measure_font(srcs) -> dict:
         "total_literals": total,
         "below_min": summarize(below),
         "off_scale": summarize(off_scale),
+        "thin_weights": summarize(thin),
         "on_scale_literals": scaled_ok,
         "off_values": vals.most_common(12),
     }
@@ -727,6 +732,10 @@ def dialog_labels(srcs) -> dict:
 # --------------------------------------------------------------------------- paket eslemesi
 def package_of(rel_path: str) -> str:
     r = rel_path
+    if r.startswith(("lib/core/push/", "lib/core/notify/")):
+        return "P8"  # bildirim altyapisi (baska ajanlarin dosyalari: sonra)
+    if r == "lib/core/app_gate.dart":
+        return "P2"  # acilis kapisi (giris/sistem durumlari)
     if r.startswith(("lib/widgets/", "lib/core/", "lib/main.dart")):
         return "P1"
     f = r.split("/")
