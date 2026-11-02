@@ -3433,6 +3433,281 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeSearchHint => 'Search campus';
 
   @override
+  String get campusTitle => 'Map';
+
+  @override
+  String get campusOtherCampuses => 'Other campuses';
+
+  @override
+  String get campusUnitPage => 'Unit page';
+
+  @override
+  String get campusBrand => 'BU CAMPUS';
+
+  @override
+  String get campusCardTitle => 'Campus Map';
+
+  @override
+  String get campusCardSub =>
+      'Find buildings, the cafeteria, the library and more on the map.';
+
+  @override
+  String get campusCardOpen => 'Open map';
+
+  @override
+  String get campusSearchHint => 'Search campus';
+
+  @override
+  String get campusOnlyCampus => 'Campus places only';
+
+  @override
+  String get campusAll => 'All';
+
+  @override
+  String get campusChipFood => 'Cafeteria';
+
+  @override
+  String get campusChipLibrary => 'Library';
+
+  @override
+  String get campusChipFaculties => 'Faculties';
+
+  @override
+  String get campusNearby => 'Near me on campus';
+
+  @override
+  String get campusPlacesTitle => 'Places on campus';
+
+  @override
+  String campusPlaceCount(String count) {
+    return '$count places';
+  }
+
+  @override
+  String get campusSeeAll => 'See all';
+
+  @override
+  String get campusDirections => 'Directions';
+
+  @override
+  String get campusOpenInMaps => 'Open in Maps';
+
+  @override
+  String get campusShare => 'Share';
+
+  @override
+  String get campusDetailTitle => 'Place details';
+
+  @override
+  String get campusLocationLabel => 'Location';
+
+  @override
+  String get campusMainCampus => 'Main campus';
+
+  @override
+  String get campusUnits => 'Units';
+
+  @override
+  String get campusAbout => 'About';
+
+  @override
+  String get campusWalkTime => 'Walking time';
+
+  @override
+  String campusWalkValue(String min, String dist) {
+    return '$min min ($dist)';
+  }
+
+  @override
+  String get campusWalkUnknown => 'Location is off';
+
+  @override
+  String get campusDistanceNote => 'Distances and times are approximate.';
+
+  @override
+  String get campusFavAdd => 'Add to favorites';
+
+  @override
+  String get campusFavRemove => 'Remove from favorites';
+
+  @override
+  String get campusLinkCopied => 'Place info and link copied';
+
+  @override
+  String get campusOpenFailed => 'Could not open a maps app';
+
+  @override
+  String get campusPermTitle => 'Use your location?';
+
+  @override
+  String get campusPermBody =>
+      'Location permission lets us show buildings and faculties on the map. Your location stays on your device and is never shared.';
+
+  @override
+  String get campusPermChipLocal => 'Stays on device';
+
+  @override
+  String get campusPermChipBattery => 'Low battery use';
+
+  @override
+  String get campusPermAllow => 'Allow';
+
+  @override
+  String get campusPermLater => 'Not now';
+
+  @override
+  String get campusLocOffBand => 'Location is off';
+
+  @override
+  String get campusLocDeniedBody =>
+      'Location permission is off. The map still works; turn it on in Settings to see distances.';
+
+  @override
+  String get campusOpenSettings => 'Open settings';
+
+  @override
+  String get campusLocServiceTitle => 'Location service is off';
+
+  @override
+  String get campusLocServiceBadge => 'Off';
+
+  @override
+  String get campusLocServiceBody =>
+      'Device location services are off. Turn on device location for on-campus directions.';
+
+  @override
+  String get campusOutsideCampus => 'You are outside the campus right now.';
+
+  @override
+  String get campusMyLocation => 'My location';
+
+  @override
+  String get campusZoomIn => 'Zoom in';
+
+  @override
+  String get campusZoomOut => 'Zoom out';
+
+  @override
+  String get campusLayers => 'Map layer';
+
+  @override
+  String get campusLayerStandard => 'Standard';
+
+  @override
+  String get campusLayerSatellite => 'Satellite';
+
+  @override
+  String get campusAttribution => '© OpenStreetMap contributors';
+
+  @override
+  String get campusMapError =>
+      'The map could not be loaded. Check your connection.';
+
+  @override
+  String get campusMaintenanceTitle => 'The campus map is under maintenance';
+
+  @override
+  String get campusMaintenanceBody => 'Please try again shortly.';
+
+  @override
+  String get campusTilesFailing =>
+      'Map tiles cannot be loaded. Check your connection.';
+
+  @override
+  String get campusStaleNote => 'Showing the saved place list.';
+
+  @override
+  String get campusNoPlaces => 'No places in this category.';
+
+  @override
+  String get campusNoPlacesAll => 'No campus places have been added yet.';
+
+  @override
+  String get campusQuickRoute => 'QUICK ROUTE';
+
+  @override
+  String get campusNearestTitle => 'Nearest place';
+
+  @override
+  String campusNearestBody(String name, String min) {
+    return '$name is about $min min away on foot.';
+  }
+
+  @override
+  String get campusStart => 'Start';
+
+  @override
+  String get campusRecent => 'RECENT SEARCHES';
+
+  @override
+  String get campusClear => 'Clear';
+
+  @override
+  String get campusRemoveRecent => 'Remove search';
+
+  @override
+  String get campusCategoriesTitle => 'Categories';
+
+  @override
+  String campusResultCount(String count) {
+    return '$count results';
+  }
+
+  @override
+  String get campusNoResult => 'No results on campus. Try a different name.';
+
+  @override
+  String get campusOutsideNote =>
+      'Places outside the campus cannot be searched.';
+
+  @override
+  String get campusSort => 'Sort';
+
+  @override
+  String get campusSortNear => 'Nearest';
+
+  @override
+  String get campusSortName => 'Name';
+
+  @override
+  String get campusFindMoreTitle => 'Cannot find the place?';
+
+  @override
+  String get campusFindMoreBody =>
+      'Search all buildings, lecture halls and units on campus.';
+
+  @override
+  String get campusOnlyCampusShown =>
+      'Only places inside the campus are shown.';
+
+  @override
+  String campusPinLabel(String name, String category) {
+    return '$name, $category';
+  }
+
+  @override
+  String campusClusterLabel(String count) {
+    return '$count places';
+  }
+
+  @override
+  String get campusYouAreHere => 'Your location';
+
+  @override
+  String get campusCloseCard => 'Close place card';
+
+  @override
+  String get campusDetails => 'Details';
+
+  @override
+  String campusWalkTo(String name) {
+    return 'Directions to $name';
+  }
+
+  @override
+  String get campusPanelHandle => 'Places panel';
+
+  @override
   String get homeMyClubs => 'From my clubs';
 
   @override

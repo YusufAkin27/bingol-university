@@ -51,6 +51,21 @@ MATERIAL_NAMES = {
     "warning_rounded": "triangleAlertFilled",
 }
 
+# Belgedeki 167+25 eslemenin disinda sonradan eklenen ikonlar (BuIcons adi -> Hugeicons adi).
+# Kampus haritasi (CAMPUS-MOB): harita, konum, katman, yurume, rota, kategori simgeleri.
+EXTRA_GLYPHS = {
+    "map": "Map",
+    "locateFixed": "LocateFixed",
+    "layers": "Layers01",
+    "footprints": "Footprints",
+    "navigation": "Navigation03",
+    "cornerUpRight": "CornerUpRight",
+    "parking": "ParkingAreaSquare",
+    "car": "Car01",
+    "flaskConical": "FlaskConical",
+    "dumbbell": "Dumbbell01",
+}
+
 # Dolu (filled) glif: taban ad -> uretim tarifi build_icons.py icinde (FILLED_RECIPES).
 FILLED = [
     "heart", "star", "bookmark", "bell", "home", "chat", "users",
@@ -99,6 +114,7 @@ def main():
         bu = v["bu"]
         base = bu[:-len("Filled")] if bu.endswith("Filled") else bu
         glyphs.setdefault(base, v["huge"])  # dolu ad icin de cizgi tabani gerekir
+    glyphs.update(EXTRA_GLYPHS)
     # Dolu hallerin tabani glyphs'te olmali
     for f in FILLED:
         if f not in glyphs:

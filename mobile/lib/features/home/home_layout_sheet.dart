@@ -14,6 +14,7 @@ String homeSectionLabel(AppLocalizations l, HomeSection s) => switch (s) {
       HomeSection.upcomingEvents => l.p03HomeUpcoming,
       HomeSection.announcements => l.anasayfaAnnouncements,
       HomeSection.todayClasses => l.p60SectionClasses,
+      HomeSection.campusMap => l.campusCardTitle,
     };
 
 /// Kısayol adı (Hızlı Erişim karosu etiketi ve seçici satırı).
@@ -30,6 +31,7 @@ String homeShortcutLabel(AppLocalizations l, HomeShortcut s, {bool picker = fals
       HomeShortcut.search => l.p60ShortSearch,
       HomeShortcut.notifications => l.notifTitle,
       HomeShortcut.bookmarks => l.icerikSavedList,
+      HomeShortcut.campusMap => l.campusTitle,
     };
 
 IconData homeShortcutIcon(HomeShortcut s) => switch (s) {
@@ -45,6 +47,7 @@ IconData homeShortcutIcon(HomeShortcut s) => switch (s) {
       HomeShortcut.search => BuIcons.search,
       HomeShortcut.notifications => BuIcons.bell,
       HomeShortcut.bookmarks => BuIcons.bookmark,
+      HomeShortcut.campusMap => BuIcons.map,
     };
 
 /// "Ana sayfayı düzenle" tam sayfası (alt gezinme yok): bölümleri tutamaçtan sürükleyerek ya da yukarı/aşağı

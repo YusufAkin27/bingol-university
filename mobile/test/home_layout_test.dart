@@ -31,6 +31,7 @@ void main() {
       const d = HomeLayout.defaults;
       expect(d.visible, [
         HomeSection.quickAccess,
+        HomeSection.campusMap,
         HomeSection.featuredNews,
         HomeSection.menu,
         HomeSection.todayClasses,
@@ -43,11 +44,11 @@ void main() {
 
     test('siralama: moveSection, reorderSection (onReorderItem kurali), sinirda degismez', () {
       var v = HomeLayout.defaults.moveSection(HomeSection.menu, -1);
-      expect(v.order.take(4), [HomeSection.quickAccess, HomeSection.menu, HomeSection.featuredNews, HomeSection.todayClasses]);
+      expect(v.order.take(4), [HomeSection.quickAccess, HomeSection.campusMap, HomeSection.menu, HomeSection.featuredNews]);
       expect(v.moveSection(HomeSection.quickAccess, -1), v, reason: 'ilk satir yukari tasinamaz');
       expect(v.moveSection(HomeSection.announcements, 1), v, reason: 'son satir asagi tasinamaz');
       v = HomeLayout.defaults.reorderSection(0, 2); // quickAccess -> 3. siraya (cikarildiktan sonraki indeks)
-      expect(v.order.take(3), [HomeSection.featuredNews, HomeSection.menu, HomeSection.quickAccess]);
+      expect(v.order.take(3), [HomeSection.campusMap, HomeSection.featuredNews, HomeSection.quickAccess]);
       expect(v.isDefault, isFalse);
     });
 
@@ -84,6 +85,28 @@ void main() {
         expect(HomeLayout.fromJson(bad, 7).order.length, HomeSection.values.length, reason: '$bad');
       }
       expect(HomeLayout.fromJson('x', 7), HomeLayout.defaults);
+    });
+
+    test('kayitli duzende olmayan Kampus Haritasi bolumu Hizli Erisim in hemen ardina eklenir', () {
+      final v = HomeLayout.fromJson({
+        'u': 7,
+        'order': ['featuredNews', 'quickAccess', 'menu', 'todayClasses', 'upcomingEvents', 'announcements'],
+        'hidden': <String>[],
+        'sOn': ['news'],
+      }, 7);
+      expect(v.order, [
+        HomeSection.featuredNews,
+        HomeSection.quickAccess,
+        HomeSection.campusMap,
+        HomeSection.menu,
+        HomeSection.todayClasses,
+        HomeSection.upcomingEvents,
+        HomeSection.announcements,
+      ]);
+      expect(v.isVisible(HomeSection.campusMap), isTrue);
+      // Hizli Erisim havuzunda Harita kisayolu var; varsayilan 5 kisayol degismedi.
+      expect(HomeLayout.defaults.shortcutPool, contains(HomeShortcut.campusMap));
+      expect(HomeLayout.defaults.shortcuts, isNot(contains(HomeShortcut.campusMap)));
     });
 
     test('bilinmeyen kimlik atilir, yeni bolum sona eklenir, tekrarlar elenir, kisayollar 5 ile sinirli', () {
@@ -214,7 +237,7 @@ void main() {
 
     testWidgets('kayitli siralama uygulanir: haberler menuden once', (tester) async {
       useScreen(tester, const Size(390, 2400));
-      await saved(HomeLayout.defaults.reorderSection(3, 1));
+      await saved(HomeLayout.defaults.reorderSection(4, 2));
       final b = be();
       await tester.pumpWidget(buildApp(home(b)));
       await settle(tester, const Duration(seconds: 2));
@@ -257,7 +280,7 @@ void main() {
       await tester.tap(up('Günün menüsü'));
       await settle(tester, const Duration(milliseconds: 600));
       final saved1 = jsonDecode((await st.read(key: HomeLayoutStore.key))!) as Map;
-      expect((saved1['order'] as List).take(2), ['quickAccess', 'menu']);
+      expect((saved1['order'] as List).take(3), ['quickAccess', 'campusMap', 'menu']);
       // Menu'yu gizle.
       await tester.tap(rowSwitch('Günün menüsü'));
       await settle(tester, const Duration(milliseconds: 600));

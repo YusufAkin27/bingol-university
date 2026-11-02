@@ -10,6 +10,8 @@ import '../../widgets/common.dart';
 import '../academic/academic_api.dart';
 import '../academic/academic_hub_page.dart';
 import '../academic/academic_models.dart';
+import '../campus_map/campus_home_card.dart';
+import '../campus_map/campus_nav.dart';
 import '../events/event_detail_page.dart';
 import '../events/events_page.dart';
 import '../menu/menu_models.dart';
@@ -501,6 +503,7 @@ class _HomeTabState extends State<HomeTab> {
         HomeSection.featuredNews => _newsSection(context, _newsFeedHaber),
         HomeSection.upcomingEvents => _eventSection(context),
         HomeSection.announcements => _newsSection(context, _newsFeedDuyuru),
+        HomeSection.campusMap => _campusMapSection(context),
       };
 
   Widget _pad(Widget child) => Padding(padding: const EdgeInsets.symmetric(horizontal: 20), child: child);
@@ -694,6 +697,7 @@ class _HomeTabState extends State<HomeTab> {
   void _openMore(BuildContext context) {
     final l = context.l10n;
     final entries = <({String label, IconData icon, VoidCallback action})>[
+      (label: l.campusTitle, icon: BuIcons.map, action: () => unawaited(openCampusMap(context, _s))),
       (label: l.supportTitle, icon: BuIcons.headset, action: () => _push(SupportPage(session: _s))),
       (label: l.notifTitle, icon: BuIcons.bell, action: () => _push(NotificationsPage(session: _s))),
       (label: l.icerikSavedList, icon: BuIcons.bookmark, action: () => _push(SavedNewsPage(session: _s))),
@@ -709,6 +713,19 @@ class _HomeTabState extends State<HomeTab> {
         const SizedBox(height: 12),
       ]),
     ));
+  }
+
+  /// Kampüs Haritası kartı: statik önizleme + arama şeridi + 3 hızlı kategori (ağ isteği YOK; veri harita açılınca istenir).
+  Widget _campusMapSection(BuildContext context) {
+    final l = context.l10n;
+    return _pad(Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+      HomeSectionHeader(title: l.campusCardTitle, action: l.campusCardOpen, accent: true, onAction: () => unawaited(openCampusMap(context, _s)), onLongPress: _editLayout),
+      CampusHomeCard(
+        onOpen: () => unawaited(openCampusMap(context, _s)),
+        onSearch: () => unawaited(openCampusMap(context, _s, openSearch: true)),
+        onChip: (label) => unawaited(openCampusMap(context, _s, categoryHint: label)),
+      ),
+    ]));
   }
 
   /// Hızlı erişim: kullanıcının seçtiği en çok 5 kısayol (varsayılan: Haberler / Yemek / Etkinlikler / Anketler / Program).
@@ -728,6 +745,7 @@ class _HomeTabState extends State<HomeTab> {
           HomeShortcut.search => () => _push(SearchPage(session: _s)),
           HomeShortcut.notifications => () => _push(NotificationsPage(session: _s)),
           HomeShortcut.bookmarks => () => _push(SavedNewsPage(session: _s)),
+          HomeShortcut.campusMap => () => unawaited(openCampusMap(context, _s)),
         };
     final shortcuts = _layout.value.shortcuts;
     final labels = [for (final sc in shortcuts) homeShortcutLabel(l, sc)];

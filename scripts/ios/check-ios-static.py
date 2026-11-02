@@ -53,10 +53,11 @@ REQUIRED_USAGE = [
     'NSPhotoLibraryUsageDescription',  # photo_manager, image_picker (galeri)
     'NSPhotoLibraryAddUsageDescription',  # gal (galeriye kaydet)
     'NSContactsUsageDescription',      # flutter_contacts (rehber eslestirme)
+    'NSLocationWhenInUseUsageDescription',  # geolocator (Kampus Haritasi: yalniz on plan, konum cihazda kalir)
 ]
 # Uygulamada KARSILIGI OLMAYAN izin anahtarlari: eklenirse App Review "kullanilmayan izin" sorar
 FORBIDDEN_USAGE = [
-    'NSLocationWhenInUseUsageDescription', 'NSLocationAlwaysAndWhenInUseUsageDescription',
+    'NSLocationAlwaysAndWhenInUseUsageDescription',
     'NSLocationAlwaysUsageDescription', 'NSUserTrackingUsageDescription', 'NSBluetoothAlwaysUsageDescription',
     'NSCalendarsUsageDescription', 'NSRemindersUsageDescription', 'NSSpeechRecognitionUsageDescription',
     'NSMotionUsageDescription', 'NSFaceIDUsageDescription', 'NSHealthShareUsageDescription',
