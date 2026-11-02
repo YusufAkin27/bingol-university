@@ -41,10 +41,11 @@ bool _isArabic(BuildContext context) => Localizations.maybeLocaleOf(context)?.la
 
 /// Ekran üst başlığı: isteğe bağlı geri düğmesi + büyük başlık + sağda eylemler.
 class BuHeader extends StatelessWidget {
-  const BuHeader({super.key, required this.title, this.onBack, this.actions = const [], this.subtitle});
+  const BuHeader({super.key, required this.title, this.onBack, this.actions = const [], this.subtitle, this.icon});
 
   final String title;
   final String? subtitle;
+  final IconData? icon;
   final VoidCallback? onBack;
   final List<Widget> actions;
 
@@ -59,6 +60,10 @@ class BuHeader extends StatelessWidget {
             BuIconButton(icon: BuIcons.arrowLeft, onTap: onBack, tooltip: context.l10n.commonBack),
             const SizedBox(width: 12),
           ],
+          if (icon != null && onBack == null) ...[
+            BuFeatureIcon(icon: icon!),
+            const SizedBox(width: 12),
+          ],
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -71,7 +76,7 @@ class BuHeader extends StatelessWidget {
                     header: true,
                     child: LayoutBuilder(builder: (context, c) {
                       // Arapçada harf aralığı bitişik harfleri bozar: sıfır.
-                      final style = BuType.display.copyWith(letterSpacing: _isArabic(context) ? 0 : -.4, color: t.ink);
+                      final style = BuType.display.copyWith(fontSize: 26, fontWeight: FontWeight.w700, letterSpacing: _isArabic(context) ? 0 : -.4, color: t.ink);
                       // En uzun kelime satıra sığmıyorsa yazıyı küçült (kelime ortadan bölünmesin).
                       final scale = MediaQuery.textScalerOf(context).scale(1);
                       var longest = 0.0;
@@ -964,3 +969,33 @@ const double kNavInset = BuSize.navInset;
 
 /// Kırmızı hero rengi (tema bağımsız logo vb. için).
 const Color kBrandRed = BuColors.red600;
+
+/// Ana sayfayla aynı ikon dili; dekoratif simge ekran okuyucuda tekrar edilmez.
+class BuFeatureIcon extends StatelessWidget {
+  const BuFeatureIcon({super.key, required this.icon, this.size = 42});
+  final IconData icon;
+  final double size;
+  @override
+  Widget build(BuildContext context) {
+    final t = context.bu;
+    return ExcludeSemantics(child: Container(
+      width: size, height: size,
+      decoration: BoxDecoration(color: t.soft, borderRadius: BorderRadius.circular(14)),
+      child: Icon(icon, size: size * .52, color: t.onSoft),
+    ));
+  }
+}
+
+class BuFeatureTitle extends StatelessWidget {
+  const BuFeatureTitle({super.key, required this.title, required this.icon});
+  final String title;
+  final IconData icon;
+  @override
+  Widget build(BuildContext context) => Row(children: [
+    BuFeatureIcon(icon: icon),
+    const SizedBox(width: 12),
+    Expanded(child: Semantics(header: true, child: Text(title, maxLines: 2,
+      overflow: TextOverflow.ellipsis,
+      style: BuType.display.copyWith(fontSize: 26, height: 1.15, fontWeight: FontWeight.w700, color: context.bu.ink)))),
+  ]);
+}
