@@ -30,8 +30,11 @@ public class CacheInvalidationListener {
             Map.entry("LegalDocument", new String[] {"legal"}),
             Map.entry("FaqItem", new String[] {"faq"}),
             // birim duyurulari: kullanici -> hedef kaynak eslesmesi kaynak/bolum varliklarina baglidir
-            Map.entry("UnitSource", new String[] {"unitnews"}),
+            Map.entry("UnitSource", new String[] {"unitnews", "campus"}),
             Map.entry("UnitDepartment", new String[] {"unitnews"}),
+            // kampus haritasi: yer ve ayar varliklari tek ad alanini gecersiz kilar
+            Map.entry("CampusPlace", new String[] {"campus"}),
+            Map.entry("CampusConfig", new String[] {"campus"}),
             Map.entry("CommunityCategory", new String[] {"categories"}),
             // kategori sayilari (kesfette gorunen kulup) Community durumuna baglidir
             Map.entry("Community", new String[] {"categories"}));
