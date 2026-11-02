@@ -257,3 +257,7 @@ Saklama süresi değişiklikleri (W2-F):
 | `display_name_history` | gorunen ad degisimi (eski/yeni ad, zaman) | `ProfileService.anonymize` satirlari siler. `AccountDataPurger.HANDLED_ELSEWHERE` kaydi gerekir (W2-F listesi) |
 | `moderation_strike.inherited` | yeniden kayitta defterden devralinan strike | strike satiri gibi (yasal saklama / ihlal gecmisi) |
 | `profanity_term.category`, `profanity_hit_log.category` | kategori (PROFANITY/HATE/TERROR/SELF_HARM) | `profanity_hit_log` 90 gun |
+
+## 18. Kullanim istatistikleri ozet tablolari (USAGE, V1220)
+
+Kalici, kimliksiz gunluk ozetler (kullanici sutunu yok): `analytics_usage_day` (gun basina 1 satir), `analytics_screen_daily` (~20-40 satir/gun), `analytics_screen_dur_daily` (ekran x 11 kova), `analytics_action_daily` (~20-30), `analytics_flow_daily` (en cok 500), `analytics_hour_daily` (en cok 24), `analytics_segment_daily` (~30; k-anonimlik yazarken uygulanir), `analytics_feature_snapshot` (~10). Toplam en cok ~1,5 bin satir/gun = ~0,5 M satir/yil (~50 MB/yil); saklama suresi yok, disa aktarma beyaz listesine (`RetentionTables`) alinmadi. Ham `analytics_event` tablosuna `platform`, `app_version` eklendi (45 gun saklama ayni). Gece `UsageRollup` (DbMaintenanceJob), bugun icin 15 dk'da bir kismi tazeleme; raporlar yalniz bu tablolari okur. Ayrinti: `docs/USAGE_STATS.md`.

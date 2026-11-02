@@ -186,6 +186,32 @@
           }
         }
       },
+      "ActionItem" : {
+        "properties" : {
+          "action" : {
+            "type" : [ "string", "null" ]
+          },
+          "adoptionPercent" : {
+            "format" : "double",
+            "type" : [ "number", "null" ]
+          },
+          "count" : {
+            "format" : "int64",
+            "type" : [ "integer", "null" ]
+          },
+          "trend" : {
+            "items" : {
+              "format" : "int64",
+              "type" : "integer"
+            },
+            "type" : "array"
+          },
+          "userDays" : {
+            "format" : "int64",
+            "type" : [ "integer", "null" ]
+          }
+        }
+      },
       "ActionResult" : {
         "properties" : {
           "id" : {
@@ -6136,6 +6162,42 @@
           }
         }
       },
+      "FeatureItem" : {
+        "properties" : {
+          "feature" : {
+            "type" : [ "string", "null" ]
+          },
+          "percentOfMau" : {
+            "format" : "double",
+            "type" : [ "number", "null" ]
+          },
+          "users" : {
+            "format" : "int64",
+            "type" : [ "integer", "null" ]
+          }
+        }
+      },
+      "Features" : {
+        "properties" : {
+          "asOf" : {
+            "type" : [ "string", "null" ]
+          },
+          "items" : {
+            "items" : {
+              "$ref" : "#/components/schemas/FeatureItem"
+            },
+            "type" : "array"
+          },
+          "mau" : {
+            "format" : "int64",
+            "type" : [ "integer", "null" ]
+          },
+          "reportingUsers" : {
+            "format" : "int64",
+            "type" : [ "integer", "null" ]
+          }
+        }
+      },
       "FeedPage" : {
         "properties" : {
           "hint" : {
@@ -6266,6 +6328,40 @@
           },
           "role" : {
             "enum" : [ "USER", "ADMIN" ],
+            "type" : [ "string", "null" ]
+          }
+        }
+      },
+      "Flow" : {
+        "properties" : {
+          "edges" : {
+            "items" : {
+              "$ref" : "#/components/schemas/FlowEdge"
+            },
+            "type" : "array"
+          },
+          "from" : {
+            "type" : [ "string", "null" ]
+          },
+          "to" : {
+            "type" : [ "string", "null" ]
+          },
+          "totalTransitions" : {
+            "format" : "int64",
+            "type" : [ "integer", "null" ]
+          }
+        }
+      },
+      "FlowEdge" : {
+        "properties" : {
+          "count" : {
+            "format" : "int64",
+            "type" : [ "integer", "null" ]
+          },
+          "from" : {
+            "type" : [ "string", "null" ]
+          },
+          "to" : {
             "type" : [ "string", "null" ]
           }
         }
@@ -6484,6 +6580,57 @@
           "targetType" : {
             "enum" : [ "USER", "MESSAGE", "POST", "COMMUNITY", "EVENT", "MESSAGE_IMAGE", "USER_AVATAR", "COMMUNITY_COVER", "EVENT_COVER", "FEED_POST", "CONVERSATION", "ANNOUNCEMENT", "POLL" ],
             "type" : [ "string", "null" ]
+          }
+        }
+      },
+      "HourCell" : {
+        "properties" : {
+          "dow" : {
+            "format" : "int32",
+            "type" : [ "integer", "null" ]
+          },
+          "hour" : {
+            "format" : "int32",
+            "type" : [ "integer", "null" ]
+          },
+          "sessions" : {
+            "format" : "int64",
+            "type" : [ "integer", "null" ]
+          },
+          "views" : {
+            "format" : "int64",
+            "type" : [ "integer", "null" ]
+          }
+        }
+      },
+      "Hourly" : {
+        "properties" : {
+          "cells" : {
+            "items" : {
+              "$ref" : "#/components/schemas/HourCell"
+            },
+            "type" : "array"
+          },
+          "from" : {
+            "type" : [ "string", "null" ]
+          },
+          "peak" : {
+            "anyOf" : [ {
+              "$ref" : "#/components/schemas/Peak"
+            }, {
+              "type" : "null"
+            } ]
+          },
+          "to" : {
+            "type" : [ "string", "null" ]
+          },
+          "totalSessions" : {
+            "format" : "int64",
+            "type" : [ "integer", "null" ]
+          },
+          "totalViews" : {
+            "format" : "int64",
+            "type" : [ "integer", "null" ]
           }
         }
       },
@@ -9030,6 +9177,22 @@
           }
         }
       },
+      "Peak" : {
+        "properties" : {
+          "dow" : {
+            "format" : "int32",
+            "type" : [ "integer", "null" ]
+          },
+          "hour" : {
+            "format" : "int32",
+            "type" : [ "integer", "null" ]
+          },
+          "sessions" : {
+            "format" : "int64",
+            "type" : [ "integer", "null" ]
+          }
+        }
+      },
       "PendingBulkCancelRequest" : {
         "properties" : {
           "emails" : {
@@ -11358,6 +11521,44 @@
           }
         }
       },
+      "ScreenItem" : {
+        "properties" : {
+          "avgDailyUsers" : {
+            "format" : "double",
+            "type" : [ "number", "null" ]
+          },
+          "avgSeconds" : {
+            "format" : "double",
+            "type" : [ "number", "null" ]
+          },
+          "exitPercent" : {
+            "format" : "double",
+            "type" : [ "number", "null" ]
+          },
+          "medianSeconds" : {
+            "format" : "double",
+            "type" : [ "number", "null" ]
+          },
+          "screen" : {
+            "type" : [ "string", "null" ]
+          },
+          "trend" : {
+            "items" : {
+              "format" : "int64",
+              "type" : "integer"
+            },
+            "type" : "array"
+          },
+          "userDays" : {
+            "format" : "int64",
+            "type" : [ "integer", "null" ]
+          },
+          "views" : {
+            "format" : "int64",
+            "type" : [ "integer", "null" ]
+          }
+        }
+      },
       "ScreenViews" : {
         "properties" : {
           "screen" : {
@@ -11427,6 +11628,59 @@
           },
           "q" : {
             "type" : [ "string", "null" ]
+          }
+        }
+      },
+      "SegmentItem" : {
+        "properties" : {
+          "key" : {
+            "type" : [ "string", "null" ]
+          },
+          "percent" : {
+            "format" : "double",
+            "type" : [ "number", "null" ]
+          },
+          "userDays" : {
+            "format" : "int64",
+            "type" : [ "integer", "null" ]
+          }
+        }
+      },
+      "Segments" : {
+        "properties" : {
+          "departments" : {
+            "items" : {
+              "$ref" : "#/components/schemas/SegmentItem"
+            },
+            "type" : "array"
+          },
+          "faculties" : {
+            "items" : {
+              "$ref" : "#/components/schemas/SegmentItem"
+            },
+            "type" : "array"
+          },
+          "from" : {
+            "type" : [ "string", "null" ]
+          },
+          "kAnonymity" : {
+            "format" : "int32",
+            "type" : [ "integer", "null" ]
+          },
+          "platforms" : {
+            "items" : {
+              "$ref" : "#/components/schemas/SegmentItem"
+            },
+            "type" : "array"
+          },
+          "to" : {
+            "type" : [ "string", "null" ]
+          },
+          "versions" : {
+            "items" : {
+              "$ref" : "#/components/schemas/SegmentItem"
+            },
+            "type" : "array"
           }
         }
       },
@@ -12764,6 +13018,36 @@
           }
         }
       },
+      "TopActions" : {
+        "properties" : {
+          "avgReportingUsers" : {
+            "format" : "double",
+            "type" : [ "number", "null" ]
+          },
+          "dates" : {
+            "items" : {
+              "type" : "string"
+            },
+            "type" : "array"
+          },
+          "from" : {
+            "type" : [ "string", "null" ]
+          },
+          "items" : {
+            "items" : {
+              "$ref" : "#/components/schemas/ActionItem"
+            },
+            "type" : "array"
+          },
+          "to" : {
+            "type" : [ "string", "null" ]
+          },
+          "totalEvents" : {
+            "format" : "int64",
+            "type" : [ "integer", "null" ]
+          }
+        }
+      },
       "TopEvent" : {
         "properties" : {
           "count" : {
@@ -12774,6 +13058,32 @@
             "type" : [ "string", "null" ]
           },
           "uniqueUsers" : {
+            "format" : "int64",
+            "type" : [ "integer", "null" ]
+          }
+        }
+      },
+      "TopScreens" : {
+        "properties" : {
+          "dates" : {
+            "items" : {
+              "type" : "string"
+            },
+            "type" : "array"
+          },
+          "from" : {
+            "type" : [ "string", "null" ]
+          },
+          "items" : {
+            "items" : {
+              "$ref" : "#/components/schemas/ScreenItem"
+            },
+            "type" : "array"
+          },
+          "to" : {
+            "type" : [ "string", "null" ]
+          },
+          "totalViews" : {
             "format" : "int64",
             "type" : [ "integer", "null" ]
           }
@@ -16405,6 +16715,548 @@
           "adminBasic" : [ ]
         } ],
         "tags" : [ "admin-analytics-controller" ]
+      }
+    },
+    "/api/admin/analytics/usage/features" : {
+      "get" : {
+        "operationId" : "features",
+        "parameters" : [ {
+          "in" : "query",
+          "name" : "from",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "to",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Features"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Dogrulama / is kurali hatasi (code alanina bakin)"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Token yok/gecersiz/suresi dolmus"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "ADMIN rolu gerekli"
+          }
+        },
+        "security" : [ {
+          "bearerAuth" : [ ]
+        }, {
+          "adminBasic" : [ ]
+        } ],
+        "tags" : [ "admin-usage-controller" ]
+      }
+    },
+    "/api/admin/analytics/usage/flow" : {
+      "get" : {
+        "operationId" : "flow",
+        "parameters" : [ {
+          "in" : "query",
+          "name" : "from",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "to",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Flow"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Dogrulama / is kurali hatasi (code alanina bakin)"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Token yok/gecersiz/suresi dolmus"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "ADMIN rolu gerekli"
+          }
+        },
+        "security" : [ {
+          "bearerAuth" : [ ]
+        }, {
+          "adminBasic" : [ ]
+        } ],
+        "tags" : [ "admin-usage-controller" ]
+      }
+    },
+    "/api/admin/analytics/usage/hourly" : {
+      "get" : {
+        "operationId" : "hourly",
+        "parameters" : [ {
+          "in" : "query",
+          "name" : "from",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "to",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Hourly"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Dogrulama / is kurali hatasi (code alanina bakin)"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Token yok/gecersiz/suresi dolmus"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "ADMIN rolu gerekli"
+          }
+        },
+        "security" : [ {
+          "bearerAuth" : [ ]
+        }, {
+          "adminBasic" : [ ]
+        } ],
+        "tags" : [ "admin-usage-controller" ]
+      }
+    },
+    "/api/admin/analytics/usage/refresh" : {
+      "post" : {
+        "operationId" : "refresh_1",
+        "responses" : {
+          "202" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "additionalProperties" : {
+                    "type" : "string"
+                  },
+                  "type" : "object"
+                }
+              }
+            },
+            "description" : "Accepted"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Dogrulama / is kurali hatasi (code alanina bakin)"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Token yok/gecersiz/suresi dolmus"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "ADMIN rolu gerekli"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "RATE_LIMITED: istek siniri asildi"
+          }
+        },
+        "security" : [ {
+          "bearerAuth" : [ ]
+        }, {
+          "adminBasic" : [ ]
+        } ],
+        "tags" : [ "admin-usage-controller" ]
+      }
+    },
+    "/api/admin/analytics/usage/segments" : {
+      "get" : {
+        "operationId" : "segments",
+        "parameters" : [ {
+          "in" : "query",
+          "name" : "from",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "to",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Segments"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Dogrulama / is kurali hatasi (code alanina bakin)"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Token yok/gecersiz/suresi dolmus"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "ADMIN rolu gerekli"
+          }
+        },
+        "security" : [ {
+          "bearerAuth" : [ ]
+        }, {
+          "adminBasic" : [ ]
+        } ],
+        "tags" : [ "admin-usage-controller" ]
+      }
+    },
+    "/api/admin/analytics/usage/summary" : {
+      "get" : {
+        "operationId" : "summary_3",
+        "parameters" : [ {
+          "in" : "query",
+          "name" : "from",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "to",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Summary"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Dogrulama / is kurali hatasi (code alanina bakin)"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Token yok/gecersiz/suresi dolmus"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "ADMIN rolu gerekli"
+          }
+        },
+        "security" : [ {
+          "bearerAuth" : [ ]
+        }, {
+          "adminBasic" : [ ]
+        } ],
+        "tags" : [ "admin-usage-controller" ]
+      }
+    },
+    "/api/admin/analytics/usage/top-actions" : {
+      "get" : {
+        "operationId" : "topActions",
+        "parameters" : [ {
+          "in" : "query",
+          "name" : "from",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "to",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/TopActions"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Dogrulama / is kurali hatasi (code alanina bakin)"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Token yok/gecersiz/suresi dolmus"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "ADMIN rolu gerekli"
+          }
+        },
+        "security" : [ {
+          "bearerAuth" : [ ]
+        }, {
+          "adminBasic" : [ ]
+        } ],
+        "tags" : [ "admin-usage-controller" ]
+      }
+    },
+    "/api/admin/analytics/usage/top-screens" : {
+      "get" : {
+        "operationId" : "topScreens",
+        "parameters" : [ {
+          "in" : "query",
+          "name" : "from",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "to",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/TopScreens"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Dogrulama / is kurali hatasi (code alanina bakin)"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Token yok/gecersiz/suresi dolmus"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "ADMIN rolu gerekli"
+          }
+        },
+        "security" : [ {
+          "bearerAuth" : [ ]
+        }, {
+          "adminBasic" : [ ]
+        } ],
+        "tags" : [ "admin-usage-controller" ]
       }
     },
     "/api/admin/announcements" : {

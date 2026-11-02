@@ -44,7 +44,7 @@ Tarihler ISO-8601 (`2026-10-23T12:00:00Z`), tarih-yalnız alanlar `yyyy-MM-dd`. 
 - `GET /api/faculties` (herkese açık) → `["Mühendislik Fakültesi", …]` — liste `app_setting` anahtarı `faculties` içinde `;` ile ayrılmış tutulur (yönetici `PUT /api/admin/settings/faculties`). Liste boş değilse profildeki fakülte listeden biri olmalıdır (`INVALID_FACULTY`).
 
 ### Kullanım takibi (mobil → backend)
-- `POST /api/analytics/events` (giriş gerekli, dakikada 30 istek) gövde `{events:[{name, screen?, props?, at?}]}` (≤50 olay; `name` `[a-z0-9_]{1,40}`; `props` en çok 5 anahtar, değerler ≤100 karakter, kişisel veri yok) → 204. Olaylar `analytics_event` tablosuna yazılır; **180 gün** sonra silinir (zamanlayıcı).
+- `POST /api/analytics/events` (giriş gerekli, dakikada 30 istek) gövde `{events:[{name, screen?, props?, at?}]}` (≤50 olay; `name` `[a-z0-9_]{1,40}`; `props` en çok 5 anahtar, değerler ≤100 karakter, kişisel veri yok) → 204. Olaylar `analytics_event` tablosuna yazılır; **45 gün** sonra silinir (`app.dbmaint.analytics-raw-days`; kalıcı günlük özet ayrı tablolardadır). Platform/sürüm `X-App-Platform`/`X-Device-Platform` ve `X-App-Version` başlıklarından okunur. Olay sözleşmesi (`screen_view` `props.from`/`ms`, `app_background` `props.dur`, eylem adları): [USAGE_STATS.md](USAGE_STATS.md).
 - Her kimlikli istekte kullanıcı başına günde en çok bir kez `activity_daily(user_id, day, opens)` güncellenir ve `app_user.last_seen_at` en çok 5 dakikada bir yazılır (Redis ile kısıtlanır; istek yolunu yavaşlatmaz).
 - KVKK: yalnızca toplulaştırılmış analitik gösterilir; kullanıcı detayında yalnızca günlük açılış sayıları görünür. `GET /api/users/me/export` bu verileri de içerir.
 
@@ -58,6 +58,17 @@ Tarihler ISO-8601 (`2026-10-23T12:00:00Z`), tarih-yalnız alanlar `yyyy-MM-dd`. 
 - `GET .../support` → `{tickets:{open,answered,closed}, avgFirstResponseMinutes, feedbackByCategory:[{key,count}], feedbackByStatus:[{key,count}]}`
 - `GET .../push` → `{totals:{campaigns,recipients}, recent:[CampaignView]}`
 - `GET .../content?from=&to=` → `{daily:[{date,news,announcements,events}], sources:{NEWS:{maintenance,lastSuccessAt}, MENU:{…}}}`
+
+### Kullanım istatistikleri (`/api/admin/analytics/usage/*`, USAGE, V1220)
+Aynı `from`/`to` kuralları; izin `analytics.read`; yalnız toplulaştırılmış, kimliksiz veri (ayrıntı, tanımlar ve k-anonimlik: [USAGE_STATS.md](USAGE_STATS.md)). Yanıtlar 5 dk önbelleklenir.
+- `GET /summary` → `{from,to,totalSessions,totalScreenViews,avgDau,avgReportingUsers,avgSessionSeconds|null,topScreen|null,topAction|null,daily:[{date,dau,reportingUsers,sessions,screenViews}]}`
+- `GET /top-screens` → `{from,to,dates:[…],totalViews,items:[{screen,views,userDays,avgDailyUsers,avgSeconds|null,medianSeconds|null,exitPercent,trend:[…]}]}` (ilk 20)
+- `GET /top-actions` → `{from,to,dates,totalEvents,avgReportingUsers,items:[{action,count,userDays,adoptionPercent,trend}]}` (ilk 20; `screen_view`/`app_open`/`app_background` eylem değildir)
+- `GET /flow` → `{from,to,totalTransitions,edges:[{from,to,count}]}` (en çok 30)
+- `GET /hourly` → `{from,to,totalSessions,totalViews,peak:{dow,hour,sessions}|null,cells:[{dow 1..7,hour 0..23,sessions,views}×168]}` (İstanbul saati)
+- `GET /segments` → `{from,to,kAnonymity,platforms,versions,faculties,departments:[{key,userDays,percent}]}`; `key` `other` (k eşiğinin altında birleşenler) ya da `unknown` olabilir
+- `GET /features` → `{asOf|null,mau,reportingUsers,items:[{feature,users,percentOfMau}]}` (gece hesaplanan 30 günlük pencere)
+- `POST /refresh` → 202 `{refreshedDay}` bugünün kısmi özetini hemen yeniler (dakikada 2). İzin `system.write` (yalnız FULL yönetici). Hata: 403 `ADMIN_PERMISSION_DENIED`, 429 hız sınırı.
 
 ### Denetim kaydı
 `/api/admin/**` altındaki **GET dışı** tüm istekler (HandlerInterceptor, gövde kaydedilmez) `admin_audit` tablosuna yazılır:
