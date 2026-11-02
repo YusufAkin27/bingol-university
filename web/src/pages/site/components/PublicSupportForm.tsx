@@ -22,6 +22,8 @@ import { Button, FormField, Icon, Input, Select, Textarea } from '../../../compo
 import type { TranslationKey } from '../../../i18n';
 import { useI18n } from '../../../i18n/I18nProvider';
 import { errorMessage } from '../../../lib/errors';
+import { formatClock, minutesLeft, resendSecondsOf, useResendCountdown } from '../../../lib/resendCountdown';
+import { isApiError } from '../../../api/client';
 import { paths } from '../../../paths';
 import shared from './site.module.css';
 import styles from './PublicSupportForm.module.css';
@@ -55,6 +57,8 @@ export function PublicSupportForm() {
   const [codeError, setCodeError] = useState<string | null>(null);
   const [minutes, setMinutes] = useState(10);
   const [result, setResult] = useState<PublicSupportVerified | null>(null);
+  const cooldown = useResendCountdown();
+  const [resent, setResent] = useState(false);
 
   /** Geçerli jeton; yoksa/eskiyse sunucudan yenisini alır (aynı anda tek istek). */
   function ensureToken(): Promise<HeldToken> {
@@ -98,9 +102,19 @@ export function PublicSupportForm() {
       held.current = null; // jeton başına en çok 3 gönderim: sonraki gönderim yeni jeton alır
       void ensureToken().catch(() => undefined);
       setMinutes(r.expiresInMinutes);
+      cooldown.restart(resendSecondsOf(r)); // ilk gönderim de bekleme başlatır
       setCode('');
       setCodeError(null);
       setStep('code');
+    },
+    onError: (err) => {
+      // Bu adrese kod az önce gönderildi (429 RESEND_COOLDOWN): kod adımına geç, sayaç sunucunun kalan süresiyle sürer.
+      if (isApiError(err) && err.status === 429 && err.code === 'RESEND_COOLDOWN') {
+        cooldown.restart(err.retryAfter);
+        setCode('');
+        setCodeError(null);
+        setStep('code');
+      }
     },
   });
   const verify = useMutation({
@@ -191,6 +205,38 @@ export function PublicSupportForm() {
             {t('site.pubsup.codeBack')}
           </Button>
         </div>
+        {/* Yeniden gönder: sunucu bekleme süresi (3 dk) dolana dek kapalı; aynı form yeniden gönderilir */}
+        <Button
+          variant="ghost"
+          type="button"
+          loading={send.isPending}
+          disabled={cooldown.left > 0}
+          onClick={() => {
+            setResent(false);
+            send.mutate(undefined, { onSuccess: () => setResent(true) });
+          }}
+        >
+          {cooldown.left > 0 ? (
+            <>
+              <span aria-hidden="true">{t('site.pubsup.codeResendIn', { time: formatClock(cooldown.left) })}</span>
+              <span className="sr-only">
+                {t('site.pubsup.codeResend')}. {t('site.pubsup.codeResendWait', { n: minutesLeft(cooldown.left) })}
+              </span>
+            </>
+          ) : (
+            t('site.pubsup.codeResend')
+          )}
+        </Button>
+        {send.error && !(isApiError(send.error) && send.error.code === 'RESEND_COOLDOWN') && (
+          <p className={styles.error} role="alert">
+            {errorMessage(i18n, send.error)}
+          </p>
+        )}
+        {resent && !send.error && (
+          <p className={shared.muted} role="status">
+            {t('site.pubsup.codeResent')}
+          </p>
+        )}
       </form>
     );
   }

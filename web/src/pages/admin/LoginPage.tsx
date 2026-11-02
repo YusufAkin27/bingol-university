@@ -16,6 +16,7 @@ import { Button, Checkbox, FormField, Icon, Input, PasswordInput } from '../../c
 import { useI18n } from '../../i18n/I18nProvider';
 import { errorMessage } from '../../lib/errors';
 import { usePageTitle } from '../../lib/hooks';
+import { CODE_RESEND_SECONDS, formatClock, minutesLeft, useResendCountdown } from '../../lib/resendCountdown';
 import { paths } from '../../paths';
 import { gt } from './twofactor/dict';
 import styles from './LoginPage.module.css';
@@ -145,7 +146,7 @@ function formatRemaining(sec: number): string {
 interface StepProps {
   challenge: TwoFactorChallenge;
   onVerify: (challengeToken: string, code: string, trustDevice: boolean) => Promise<void>;
-  onResend: (challengeToken: string) => Promise<number>;
+  onResend: (challengeToken: string) => Promise<{ expiresInSeconds: number; resendAfterSeconds: number }>;
   onBack: () => void;
 }
 
@@ -161,6 +162,8 @@ function TwoFactorStep({ challenge, onVerify, onResend, onBack }: StepProps) {
   const [info, setInfo] = useState<string | null>(null);
   const [touched, setTouched] = useState(false);
   const [remaining, setRemaining] = useState(challenge.expiresInSeconds);
+  // "Yeniden gönder" 3 dk (sunucu süresi) dolana dek kapalı; sunucu 429 RESEND_COOLDOWN dönerse kalan süre uygulanır.
+  const cooldown = useResendCountdown(challenge.resendAfterSeconds ?? CODE_RESEND_SECONDS);
 
   useEffect(() => {
     const id = window.setInterval(() => setRemaining((r) => (r > 0 ? r - 1 : 0)), 1000);
@@ -189,12 +192,14 @@ function TwoFactorStep({ challenge, onVerify, onResend, onBack }: StepProps) {
     setError(null);
     setInfo(null);
     try {
-      const sec = await onResend(challenge.challengeToken);
-      setRemaining(sec);
+      const r = await onResend(challenge.challengeToken);
+      setRemaining(r.expiresInSeconds);
+      cooldown.restart(r.resendAfterSeconds);
       setCode('');
       setTouched(false);
       setInfo(t('admin.login.2fa.resent'));
     } catch (err) {
+      if (isApiError(err) && err.status === 429 && err.retryAfter) cooldown.restart(err.retryAfter);
       setError(errorMessage(i18n, err));
     } finally {
       setResending(false);
@@ -246,8 +251,25 @@ function TwoFactorStep({ challenge, onVerify, onResend, onBack }: StepProps) {
       <Button type="submit" size="lg" fullWidth loading={busy}>
         {busy ? t('admin.login.2fa.submitting') : t('admin.login.2fa.submit')}
       </Button>
-      <Button type="button" variant="secondary" fullWidth loading={resending} onClick={() => void resend()}>
-        {t('admin.login.2fa.resend')}
+      <Button
+        type="button"
+        variant="secondary"
+        fullWidth
+        loading={resending}
+        disabled={cooldown.left > 0}
+        onClick={() => void resend()}
+      >
+        {cooldown.left > 0 ? (
+          <>
+            {/* görsel sayaç her saniye değişir: ekran okuyucuya yalnız dakikada bir güncellenen özet okunur */}
+            <span aria-hidden="true">{t('admin.login.2fa.resendIn', { time: formatClock(cooldown.left) })}</span>
+            <span className="sr-only">
+              {t('admin.login.2fa.resend')}. {t('admin.login.2fa.resendWait', { n: minutesLeft(cooldown.left) })}
+            </span>
+          </>
+        ) : (
+          t('admin.login.2fa.resend')
+        )}
       </Button>
       <Button type="button" variant="ghost" fullWidth onClick={onBack}>
         {t('admin.login.2fa.back')}

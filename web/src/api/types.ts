@@ -43,6 +43,8 @@ export interface TwoFactorChallenge {
   challengeToken: string;
   emailHint: string;
   expiresInSeconds: number;
+  /** "Yeniden gönder" bekleme süresi (sn; sunucu, varsayılan 180). Eski sunucuda yok. */
+  resendAfterSeconds?: number;
 }
 export interface TwoFactorVerifyRequest {
   challengeToken: string;

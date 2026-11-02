@@ -22,16 +22,16 @@
 ### Giriş (değişen): `POST /api/auth/login`
 2FA kapalı ya da cihaz güvenilir: **200** `TokenResponse` (değişmez). 2FA açık ve cihaz tanınmıyor: **202** (token YOK, e-posta gider):
 ```json
-{"twoFactorRequired": true, "challengeToken": "…", "emailHint": "ay***@bingol.edu.tr", "expiresInSeconds": 600}
+{"twoFactorRequired": true, "challengeToken": "…", "emailHint": "ay***@bingol.edu.tr", "expiresInSeconds": 600, "resendAfterSeconds": 180}
 ```
 ### `POST /api/auth/login/2fa` (herkese açık, hız sınırlı)
 `{"challengeToken","code","trustDevice":true}` → **200** `TokenResponse` (cihaz güvenilir yapılır; `trustDevice=false` ise yapılmaz). **Sunucu varsayılanı `false`** (HARDEN D4): alan hiç gönderilmezse cihaz güvenilir yapılmaz. İstemciler alanı **açıkça** gönderir (mobil `Session.loginTwoFactor` ve web `verifyTwoFactorLogin` zaten gönderir; "Bu cihaza güven" kutusu arayüzde varsayılan işaretli kalabilir, ama bu artık istemci kararıdır). Hatalar: 400 `TWO_FACTOR_CODE_INVALID`, 400 `TWO_FACTOR_CHALLENGE_EXPIRED`, 429 `RATE_LIMITED`/`Retry-After`.
 ### `POST /api/auth/login/2fa/resend`
-`{"challengeToken"}` → **202** `{"expiresInSeconds":600}` (genel cevap; sınırlar aşılırsa 429).
+`{"challengeToken"}` → **202** `{"expiresInSeconds":600,"resendAfterSeconds":180}`. **Yeniden kod isteme beklemesi 180 sn** (tek kaynak `app.auth.code-resend-cooldown-seconds`; kod geçerliliği 10 dk DEĞİŞMEZ): ilk gönderim (giriş) beklemeyi başlatır; süre dolmadan istek **429 `RESEND_COOLDOWN`** + `Retry-After: <kalan sn>` + gövdede `retryAfterSeconds` döner. Bekleme challenge başına tutulur (Redis `vcool:tf:<özet>`); diğer sınırlar (challenge başına 3/10 dk, kullanıcı başına saatte 10 kod) aynen sürer ve bekleme bunlardan ÖNCE alınır (erken istek onları tüketmez). İstemci "Yeniden gönder (2:59)" geri sayımını `resendAfterSeconds`/`Retry-After` ile başlatır.
 
 ### Ayarlar (JWT gerekli)
 - `GET /api/auth/2fa` → `{"enabled":bool,"trustedDeviceCount":n,"currentDeviceTrusted":bool}`
-- `POST /api/auth/2fa/enable/request` → **202** (kod e-postaya gider; zaten açıksa 409 `TWO_FACTOR_ALREADY_ENABLED`)
+- `POST /api/auth/2fa/enable/request` → **202** `{"message","resendAfterSeconds":180}` (kod e-postaya gider; zaten açıksa 409 `TWO_FACTOR_ALREADY_ENABLED`; 180 sn dolmadan yeniden istek 429 `RESEND_COOLDOWN` + `Retry-After`; onay başarılı olunca bekleme kalkar)
 - `POST /api/auth/2fa/enable/confirm` `{"code","closeOtherSessions"?}` → **200** `{"enabled":true}` (bu cihaz güvenilir olur; kullanıcıya bildirim + e-posta)
 - `POST /api/auth/2fa/disable` `{"password","closeOtherSessions"?}` → **200** `{"enabled":false}` (yanlış şifre 400 `INVALID_PASSWORD`; tüm güvenilen cihazlar silinir; kullanıcıya bildirim + e-posta)
 - **`closeOtherSessions` (isteğe bağlı, varsayılan `false`, HARDEN O1):** `true` ise kullanıcının TÜM oturumları kapanır (2FA öncesi açılmış, çalınmış olabilecek refresh token'lar dahil) ve yanıta bu cihaz için yeni çift eklenir: `{"enabled":true,"session":{"accessToken","refreshToken","expiresInSeconds","tokenType"}}`; istemci yeni çifti **saklamalıdır** (`change-password` ile aynı kural). Alan yoksa/`false` ise oturumlar kapanmaz ve `session` alanı yanıtta bulunmaz (eski istemciler bozulmaz). Web paneli bu alanı kullanır; mobil istemci henüz göndermez (mobil sürümde ayrı iş: yeni çifti `ApiClient.setTokens` ile saklamak).

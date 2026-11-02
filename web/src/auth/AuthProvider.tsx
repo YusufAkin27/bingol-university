@@ -14,6 +14,7 @@ import { useNavigate } from 'react-router-dom';
 import { authApi } from '../api';
 import { isApiError, setUnauthorizedHandler } from '../api/client';
 import type { AdminMe, TokenResponse, TwoFactorChallenge } from '../api/types';
+import { resendSecondsOf } from '../lib/resendCountdown';
 import { clearTokens, getAccessToken, getRefreshToken, setTokens } from './tokens';
 
 /**
@@ -33,7 +34,7 @@ export interface AuthContextValue {
   /** Giriş kodunu doğrular (TWO_FACTOR_CODE_INVALID, TWO_FACTOR_CHALLENGE_EXPIRED, 429) ve oturumu açar. */
   verifyTwoFactor: (challengeToken: string, code: string, trustDevice: boolean) => Promise<void>;
   /** Kodu e-postaya yeniden gönderir; geçerlilik süresini (sn) döndürür. */
-  resendTwoFactor: (challengeToken: string) => Promise<number>;
+  resendTwoFactor: (challengeToken: string) => Promise<{ expiresInSeconds: number; resendAfterSeconds: number }>;
   logout: () => Promise<void>;
 }
 
@@ -123,7 +124,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const resendTwoFactor = useCallback(async (challengeToken: string) => {
     const r = await authApi.resendTwoFactorCode(challengeToken);
-    return r?.expiresInSeconds ?? 600;
+    return { expiresInSeconds: r?.expiresInSeconds ?? 600, resendAfterSeconds: resendSecondsOf(r) };
   }, []);
 
   const logout = useCallback(async () => {

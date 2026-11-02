@@ -154,10 +154,31 @@ describe('yönetici girişi: iki faktörlü adım', () => {
     await waitFor(() => expect(screen.getByRole('alert')).toHaveTextContent('Çok fazla deneme'));
   });
 
+  it('"Yeniden gönder" 3 dakika dolana dek kapalı ve geri sayım (3:00) gösterir; sunucu süresi varsa ondan başlar', async () => {
+    const user = userEvent.setup();
+    mockFetch((url) => {
+      if (url.endsWith('/auth/login')) return jsonResponse(202, { ...challenge, resendAfterSeconds: 95 });
+      return jsonResponse(404);
+    });
+    render(<App />);
+    await passwordStep(user);
+    const btn = await screen.findByRole('button', { name: /Kodu yeniden gönder/ });
+    expect(btn).toBeDisabled();
+    expect(btn).toHaveTextContent('Yeniden gönder (1:35)');
+  });
+
+  it('sunucu süre vermezse varsayılan 3:00 ile başlar', async () => {
+    const user = userEvent.setup();
+    mockFetch((url) => (url.endsWith('/auth/login') ? jsonResponse(202, challenge) : jsonResponse(404)));
+    render(<App />);
+    await passwordStep(user);
+    expect(await screen.findByRole('button', { name: /Kodu yeniden gönder/ })).toHaveTextContent('Yeniden gönder (3:00)');
+  });
+
   it('kodu yeniden gönderir ve bilgi mesajı gösterir', async () => {
     const user = userEvent.setup();
     const f = mockFetch((url) => {
-      if (url.endsWith('/auth/login')) return jsonResponse(202, challenge);
+      if (url.endsWith('/auth/login')) return jsonResponse(202, { ...challenge, resendAfterSeconds: 0 });
       if (url.endsWith('/auth/login/2fa/resend')) return jsonResponse(202, { expiresInSeconds: 600 });
       return jsonResponse(404);
     });

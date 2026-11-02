@@ -57,6 +57,10 @@ const m = {
   'site.pubsup.codeLabel': 'Doğrulama kodu',
   'site.pubsup.codeSubmit': 'Doğrula ve gönder',
   'site.pubsup.codeBack': 'Bilgileri düzenle',
+  'site.pubsup.codeResend': 'Kodu yeniden gönder',
+  'site.pubsup.codeResendIn': 'Yeniden gönder ({time})',
+  'site.pubsup.codeResendWait': 'Yeni kod için yaklaşık {n} dakika bekleyin.',
+  'site.pubsup.codeResent': 'Yeni kod gönderildi.',
   'site.pubsup.codeInvalid': 'Kod 6 haneli olmalı.',
   'site.pubsup.doneTitle': 'Talebiniz alındı',
   'site.pubsup.doneText':

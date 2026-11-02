@@ -10,6 +10,8 @@ const m = {
   'admin.login.2fa.submit': 'Doğrula ve giriş yap',
   'admin.login.2fa.submitting': 'Doğrulanıyor…',
   'admin.login.2fa.resend': 'Kodu yeniden gönder',
+  'admin.login.2fa.resendIn': 'Yeniden gönder ({time})',
+  'admin.login.2fa.resendWait': 'Yeni kod için yaklaşık {n} dakika bekleyin.',
   'admin.login.2fa.resent': 'Yeni kod e-postanıza gönderildi.',
   'admin.login.2fa.back': 'Girişe dön',
   'common.error.TWO_FACTOR_CODE_INVALID': 'Kod hatalı. Kontrol edip yeniden deneyin.',

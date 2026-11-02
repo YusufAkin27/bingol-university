@@ -25,6 +25,8 @@ export default {
   'admin.reg.verify': 'Doğrula ve giriş yap',
   'admin.reg.verifying': 'Doğrulanıyor…',
   'admin.reg.resend': 'Kodu yeniden gönder',
+  'admin.reg.resendIn': 'Yeniden gönder ({time})',
+  'admin.reg.resendWait': 'Yeni kod için yaklaşık {n} dakika bekleyin.',
   'admin.reg.resent': 'Yeni kod gönderildi.',
   'admin.reg.changeEmail': 'E-postayı değiştir',
   'admin.reg.linkFromLogin': 'Hesabınız yok mu? Yönetici hesabı oluşturun',

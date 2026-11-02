@@ -3,6 +3,8 @@
 # Kullanim: BASE=http://localhost:8080 ./scripts/smoke-student-number.sh
 # Onkosul: compose'ta MAIL_ENABLED=false (kod log'dan okunur). Kayit ucu IP basina saatte 10 ile sinirli:
 # betikler arasinda `docker compose exec -T redis redis-cli flushall`.
+# Kod "yeniden iste" beklemesi (varsayilan 180 sn): yigini CODE_RESEND_COOLDOWN_SECONDS=2 ile baslatin (bu betik de ayni
+# degiskeni okur); kayit zaten beklemeyi baslatir, bu yuzden resend-code once 429, sure dolunca 202 beklenir.
 set -u
 BASE=${BASE:-http://localhost:8080}
 A=$BASE/api
@@ -41,7 +43,11 @@ echo "== gecersiz kimlik"
 R=$(post /auth/login "{\"email\":\"12345\",\"password\":\"Zk7-Qmv-Lpx92w\"}")
 check short-number 400 "$(status "$R")"
 
-echo "== resend-code (genel 202)"
+echo "== resend-code (bekleme dolmadan 429, sonra genel 202)"
+CD_SEC=${CODE_RESEND_COOLDOWN_SECONDS:-2}
+R=$(post /auth/resend-code "{\"email\":\"$NUM\"}")
+check resend-early 429 "$(status "$R")"
+sleep $((CD_SEC + 1))
 R=$(post /auth/resend-code "{\"email\":\"$NUM\"}")
 check resend 202 "$(status "$R")"
 

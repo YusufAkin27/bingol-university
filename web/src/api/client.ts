@@ -94,12 +94,16 @@ async function send(path: string, opts: RequestOptions, token: string | null): P
 
 async function toError(res: Response): Promise<ApiError> {
   const ra = Number(res.headers.get('Retry-After'));
-  const retryAfter = Number.isFinite(ra) && ra > 0 ? Math.ceil(ra) : undefined;
-  let body: Partial<ApiErrorBody> | null = null;
+  let retryAfter = Number.isFinite(ra) && ra > 0 ? Math.ceil(ra) : undefined;
+  let body: (Partial<ApiErrorBody> & { retryAfterSeconds?: unknown }) | null = null;
   try {
-    body = (await res.json()) as Partial<ApiErrorBody>;
+    body = (await res.json()) as Partial<ApiErrorBody> & { retryAfterSeconds?: unknown };
   } catch {
     body = null;
+  }
+  // 429 RESEND_COOLDOWN: başlık düşse bile gövdedeki kalan süre okunur
+  if (retryAfter === undefined && typeof body?.retryAfterSeconds === 'number' && body.retryAfterSeconds > 0) {
+    retryAfter = Math.ceil(body.retryAfterSeconds);
   }
   if (body && typeof body.code === 'string') {
     return new ApiError(res.status, body.code, typeof body.message === 'string' ? body.message : body.code, retryAfter);

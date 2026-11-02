@@ -10,6 +10,8 @@ const m = {
   'admin.login.2fa.submit': 'Verify and sign in',
   'admin.login.2fa.submitting': 'Verifying…',
   'admin.login.2fa.resend': 'Resend code',
+  'admin.login.2fa.resendIn': 'Resend ({time})',
+  'admin.login.2fa.resendWait': 'Wait about {n} min for a new code.',
   'admin.login.2fa.resent': 'A new code was sent to your email.',
   'admin.login.2fa.back': 'Back to sign in',
   'common.error.TWO_FACTOR_CODE_INVALID': 'The code is incorrect. Check it and try again.',

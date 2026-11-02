@@ -10,6 +10,8 @@ const m = {
   'admin.login.2fa.submit': 'تحقّق وسجّل الدخول',
   'admin.login.2fa.submitting': 'جارٍ التحقق…',
   'admin.login.2fa.resend': 'إعادة إرسال الرمز',
+  'admin.login.2fa.resendIn': 'إعادة الإرسال ({time})',
+  'admin.login.2fa.resendWait': 'انتظر حوالي {n} دقيقة للحصول على رمز جديد.',
   'admin.login.2fa.resent': 'تم إرسال رمز جديد إلى بريدك الإلكتروني.',
   'admin.login.2fa.back': 'العودة إلى تسجيل الدخول',
   'common.error.TWO_FACTOR_CODE_INVALID': 'الرمز غير صحيح. تحقّق منه وحاول مرة أخرى.',

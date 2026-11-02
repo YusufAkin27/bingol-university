@@ -17,6 +17,7 @@ import { Button, Checkbox, FormField, Icon, Input, PasswordInput } from '../../c
 import { useI18n } from '../../i18n/I18nProvider';
 import { errorMessage } from '../../lib/errors';
 import { usePageTitle } from '../../lib/hooks';
+import { formatClock, minutesLeft, resendSecondsOf, useResendCountdown } from '../../lib/resendCountdown';
 import { paths } from '../../paths';
 import styles from './LoginPage.module.css';
 
@@ -39,6 +40,7 @@ export default function AdminRegisterPage() {
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
   const [touched, setTouched] = useState(false);
+  const cooldown = useResendCountdown();
   usePageTitle(t('admin.reg.title'));
 
   if (status === 'authenticated') return <Navigate to={paths.admin.dashboard} replace />;
@@ -66,7 +68,7 @@ export default function AdminRegisterPage() {
     if (!cleanEmail.includes('@') || !name.trim() || password.length < MIN_PASSWORD || !terms) return;
     setBusy(true);
     try {
-      await authApi.register({
+      const r = await authApi.register({
         email: cleanEmail,
         password,
         displayName: name.trim(),
@@ -74,6 +76,7 @@ export default function AdminRegisterPage() {
         language: 'tr',
         adminPortal: true,
       });
+      cooldown.restart(resendSecondsOf(r)); // ilk gönderim de bekleme başlatır
       setStep('code');
     } catch (err) {
       fail(err);
@@ -107,9 +110,12 @@ export default function AdminRegisterPage() {
     setInfo(null);
     setBusy(true);
     try {
-      await authApi.resendCode(cleanEmail);
+      const r = await authApi.resendCode(cleanEmail);
+      cooldown.restart(resendSecondsOf(r));
       setInfo(t('admin.reg.resent'));
     } catch (err) {
+      // 429 RESEND_COOLDOWN: sayaç sunucunun kalan süresine ayarlanır
+      if (isApiError(err) && err.status === 429 && err.retryAfter) cooldown.restart(err.retryAfter);
       fail(err);
     } finally {
       setBusy(false);
@@ -220,8 +226,18 @@ export default function AdminRegisterPage() {
             <Button type="submit" size="lg" fullWidth loading={busy} disabled={!codeOk}>
               {busy ? t('admin.reg.verifying') : t('admin.reg.verify')}
             </Button>
-            <Button type="button" variant="ghost" fullWidth disabled={busy} onClick={onResend}>
-              {t('admin.reg.resend')}
+            <Button type="button" variant="ghost" fullWidth disabled={busy || cooldown.left > 0} onClick={onResend}>
+              {cooldown.left > 0 ? (
+                <>
+                  {/* sayaç her saniye değişir: ekran okuyucuya dakikada bir güncellenen özet okunur */}
+                  <span aria-hidden="true">{t('admin.reg.resendIn', { time: formatClock(cooldown.left) })}</span>
+                  <span className="sr-only">
+                    {t('admin.reg.resend')}. {t('admin.reg.resendWait', { n: minutesLeft(cooldown.left) })}
+                  </span>
+                </>
+              ) : (
+                t('admin.reg.resend')
+              )}
             </Button>
             <Button
               type="button"

@@ -22,9 +22,12 @@ export const login = (r: LoginRequest) =>
 export const verifyTwoFactorLogin = (r: TwoFactorVerifyRequest) =>
   apiFetch<TokenResponse>('/auth/login/2fa', { method: 'POST', body: r, auth: false });
 
-/** `POST /auth/login/2fa/resend`: 202 `{expiresInSeconds}` (genel cevap; sınır aşılırsa 429). */
+/**
+ * `POST /auth/login/2fa/resend`: 202 `{expiresInSeconds, resendAfterSeconds}`. Bekleme (180 sn) dolmadan 429
+ * RESEND_COOLDOWN + `Retry-After` (ApiError.retryAfter); diğer sınırlar da 429.
+ */
 export const resendTwoFactorCode = (challengeToken: string) =>
-  apiFetch<{ expiresInSeconds: number }>('/auth/login/2fa/resend', {
+  apiFetch<{ expiresInSeconds: number; resendAfterSeconds?: number }>('/auth/login/2fa/resend', {
     method: 'POST',
     body: { challengeToken },
     auth: false,
@@ -50,13 +53,14 @@ export interface RegisterRequest {
   adminPortal?: boolean;
 }
 export const register = (r: RegisterRequest) =>
-  apiFetch<{ message?: string }>('/auth/register', { method: 'POST', body: r, auth: false });
+  apiFetch<{ message?: string; resendAfterSeconds?: number }>('/auth/register', { method: 'POST', body: r, auth: false });
 
 export const verifyEmail = (r: { email: string; code: string; password: string }) =>
   apiFetch<TokenResponse>('/auth/verify-email', { method: 'POST', body: { ...r, client: 'web' }, auth: false });
 
+/** 202; bekleme (180 sn) dolmadan 429 RESEND_COOLDOWN + `Retry-After` (hesap var/yok fark etmez). */
 export const resendCode = (email: string) =>
-  apiFetch<{ message?: string }>('/auth/resend-code', { method: 'POST', body: { email }, auth: false });
+  apiFetch<{ message?: string; resendAfterSeconds?: number }>('/auth/resend-code', { method: 'POST', body: { email }, auth: false });
 
 export const getMe = () => api.get<UserView>('/auth/me');
 

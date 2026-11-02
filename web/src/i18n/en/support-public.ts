@@ -56,6 +56,10 @@ const m = {
   'site.pubsup.codeLabel': 'Verification code',
   'site.pubsup.codeSubmit': 'Verify and submit',
   'site.pubsup.codeBack': 'Edit details',
+  'site.pubsup.codeResend': 'Resend code',
+  'site.pubsup.codeResendIn': 'Resend ({time})',
+  'site.pubsup.codeResendWait': 'Wait about {n} min for a new code.',
+  'site.pubsup.codeResent': 'A new code was sent.',
   'site.pubsup.codeInvalid': 'The code must be 6 digits.',
   'site.pubsup.doneTitle': 'Your request was received',
   'site.pubsup.doneText':

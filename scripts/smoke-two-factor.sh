@@ -4,6 +4,8 @@
 # baslik yoksa her giriste kod, cihaz listesi/silme, sifreyle kapatma, yonetici ozeti/listesi/suzgeci/kurtarma kapatmasi.
 # Kullanim: BASE=http://localhost:8080 ADMIN_EMAIL=boss@bingol.edu.tr ./scripts/smoke-two-factor.sh
 # Onkosul: compose'ta MAIL_ENABLED=false (kod `docker compose logs backend` ciktisindan okunur), ADMIN_EMAILS=$ADMIN_EMAIL.
+# Kod "yeniden iste" beklemesi (varsayilan 180 sn) betigi geciktirmesin diye yigini CODE_RESEND_COOLDOWN_SECONDS=2 ile
+# baslatin (bu betik de ayni degiskeni okur); varsayilan 180 ise yeniden gonderme adimi ATLANIR.
 # Idempotent: her calistirmada benzersiz kullanici/cihaz kimlikleri uretilir. Betikler arasi redis flushall onerilir
 # (kayit ucu IP basina saatte 10 ile sinirlidir).
 set -u
@@ -110,6 +112,12 @@ R=$(curl -s -w '\n%{http_code}' -X POST -H "$H" $A/auth/login/2fa -d '{"challeng
 check "bilinmeyen challenge" 400 "$(echo "$R" | tail -1)"
 has "TWO_FACTOR_CHALLENGE_EXPIRED" '"code":"TWO_FACTOR_CHALLENGE_EXPIRED"' "$R"
 echo "== yeniden gonderme"
+CD_SEC=${CODE_RESEND_COOLDOWN_SECONDS:-2}
+if [ "$CD_SEC" -gt 10 ]; then
+  echo "  ATLA yeniden gonderme: CODE_RESEND_COOLDOWN_SECONDS=$CD_SEC (yigini 2 ile baslatin)"; exit 2
+fi
+check "resend bekleme suresi dolmadan 429" 429 "$(code -X POST -H "$H" $A/auth/login/2fa/resend -d "{\"challengeToken\":\"$CH\"}")"
+sleep $((CD_SEC + 1))
 check "resend" 202 "$(code -X POST -H "$H" $A/auth/login/2fa/resend -d "{\"challengeToken\":\"$CH\"}")"
 C3=$(last_code "$EMAIL" "$C2")
 [ -n "$C3" ] && echo "  ok   yeni kod geldi" || { echo "  FAIL yeni kod yok"; exit 1; }

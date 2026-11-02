@@ -315,7 +315,7 @@ Kayıt, e-posta kodu doğrulanana kadar yalnızca Redis'te (`reg:<email>`) durur
 - `DELETE /api/admin/pending-registrations/{email}` → `204` (e-posta ya da okul numarası; yoksa `404 NOT_FOUND`). Kaydı iptal eder; kullanıcı yeniden kayıt olabilir.
 - `GET /api/admin/users?q=226051015` okul numarasıyla da bulur (e-posta `ILIKE %q%`).
 - `POST /api/admin/pending-registrations/{email}/verify` → `201 {id, email, displayName, createdAt}` (path: tam e-posta ya da okul numarası). Kod GEREKTİRMEDEN hesabı oluşturur (`emailVerified=true`, kayıttaki ad/dil/fakülte/bölüm/sınıf/şifre özeti, sözleşme onayı `acceptTerms` varsayımıyla `legal_acceptance`'a yazılır), bekleyen kaydı ve doğrulama kodunu/kilidini siler. Bekleyen yoksa `404 PENDING_REGISTRATION_NOT_FOUND`; doğrulanmış hesap zaten varsa ya da benzersizlik ihlalinde `409 EMAIL_ALREADY_REGISTERED` (bekleyen kayıt silinir). Kullanıcı sonra normal girişle (e-posta/numara + kayıttaki şifre) girer.
-- `POST /api/admin/pending-registrations/{email}/resend-code` → `204`. Yeni doğrulama kodu gönderir; 60 sn bekleme kuralı aynen geçerli (`429 RESEND_COOLDOWN`); yoksa `404 PENDING_REGISTRATION_NOT_FOUND`.
+- `POST /api/admin/pending-registrations/{email}/resend-code` → `204`. Yeni doğrulama kodu gönderir; 180 sn bekleme kuralı aynen geçerli (`429 RESEND_COOLDOWN`); yoksa `404 PENDING_REGISTRATION_NOT_FOUND`.
 - Veritabanındaki doğrulanmamış satırlar (eski akışlar): `GET /api/admin/users?verified=false` ile listelenir; `POST /api/admin/users/{id}/verify-email` → `204` (idempotent) elle doğrular.
 - Denetim kaydı: tüm bu POST/DELETE istekleri `AuditInterceptor` ile (hangi yönetici, hangi yol/e-posta) yazılır; ayrıca sunucu log'unda `ADMIN_VERIFY` satırı.
 

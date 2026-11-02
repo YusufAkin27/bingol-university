@@ -39,6 +39,8 @@ export function msUntilFillAllowed(issuedAt: number, minFillSeconds: number, now
 export interface PublicSupportCodeSent {
   status: 'CODE_SENT';
   expiresInMinutes: number;
+  /** "Yeniden gönder" bekleme süresi (sn; sunucu, varsayılan 180). Eski sunucuda yok. */
+  resendAfterSeconds?: number;
 }
 
 export interface PublicSupportVerified {

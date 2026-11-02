@@ -56,6 +56,10 @@ const m = {
   'site.pubsup.codeLabel': 'رمز التحقق',
   'site.pubsup.codeSubmit': 'تحقق وأرسل',
   'site.pubsup.codeBack': 'تعديل البيانات',
+  'site.pubsup.codeResend': 'إعادة إرسال الرمز',
+  'site.pubsup.codeResendIn': 'إعادة الإرسال ({time})',
+  'site.pubsup.codeResendWait': 'انتظر حوالي {n} دقيقة للحصول على رمز جديد.',
+  'site.pubsup.codeResent': 'تم إرسال رمز جديد.',
   'site.pubsup.codeInvalid': 'يجب أن يتكون الرمز من 6 أرقام.',
   'site.pubsup.doneTitle': 'تم استلام طلبك',
   'site.pubsup.doneText':

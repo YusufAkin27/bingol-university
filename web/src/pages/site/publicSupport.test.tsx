@@ -160,6 +160,44 @@ describe('herkese açık destek formu', () => {
   });
 });
 
+describe('kod yeniden gönderme beklemesi (3 dk)', () => {
+  function fill() {
+    fireEvent.change(screen.getByLabelText(/Ad soyad/), { target: { value: 'Ali' } });
+    fireEvent.change(screen.getByLabelText(/E-posta/), { target: { value: 'ali@example.com' } });
+    fireEvent.change(screen.getByLabelText(/Mesajınız/), { target: { value: 'Yeterince uzun bir mesaj yazıyorum' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Doğrulama kodu gönder' }));
+  }
+
+  it('kod adımında "Yeniden gönder (3:00)" kapalıdır; sunucu süresi varsa ondan başlar', async () => {
+    mockFetch((url) => {
+      if (url.endsWith('/public/support/form-token')) return jsonResponse(200, { formToken: 'v1.t', minFillSeconds: 0 });
+      if (url.endsWith('/public/support/tickets')) return jsonResponse(202, { status: 'CODE_SENT', expiresInMinutes: 10, resendAfterSeconds: 120 });
+      return jsonResponse(200, info);
+    });
+    renderAt('/contact');
+    fireEvent.change(await screen.findByLabelText(/Ad soyad/), { target: { value: 'Ali' } });
+    fill();
+    expect(await screen.findByText('E-postanızı doğrulayın')).toBeInTheDocument();
+    const btn = screen.getByRole('button', { name: /Kodu yeniden gönder/ });
+    expect(btn).toBeDisabled();
+    expect(btn).toHaveTextContent('Yeniden gönder (2:00)');
+  });
+
+  it('sunucu 429 RESEND_COOLDOWN dönerse hata yerine kod adımı açılır ve sayaç Retry-After ile sürer', async () => {
+    mockFetch((url) => {
+      if (url.endsWith('/public/support/form-token')) return jsonResponse(200, { formToken: 'v1.t', minFillSeconds: 0 });
+      if (url.endsWith('/public/support/tickets'))
+        return jsonResponse(429, { code: 'RESEND_COOLDOWN', message: 'bekleyin', retryAfterSeconds: 95 }); // başlıksız: gövdeden okunur
+      return jsonResponse(200, info);
+    });
+    renderAt('/contact');
+    fireEvent.change(await screen.findByLabelText(/Ad soyad/), { target: { value: 'Ali' } });
+    fill();
+    expect(await screen.findByText('E-postanızı doğrulayın')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Kodu yeniden gönder/ })).toHaveTextContent('Yeniden gönder (1:35)');
+  });
+});
+
 describe('form jetonu (T-062)', () => {
   it('jeton yoksa ya da 100 dk üstündeyse yenilenir; hızlı gönderim için kalan bekleme hesaplanır', () => {
     const now = 1_000_000_000;
