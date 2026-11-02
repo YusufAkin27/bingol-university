@@ -3401,6 +3401,277 @@ class AppLocalizationsAr extends AppLocalizations {
   String get homeSearchHint => 'ابحث في الحرم الجامعي';
 
   @override
+  String get campusTitle => 'الخريطة';
+
+  @override
+  String get campusOtherCampuses => 'الحرمات الأخرى';
+
+  @override
+  String get campusUnitPage => 'صفحة الوحدة';
+
+  @override
+  String get campusBrand => 'حرم BU';
+
+  @override
+  String get campusCardTitle => 'خريطة الحرم الجامعي';
+
+  @override
+  String get campusCardSub =>
+      'اعثر على المباني والمطعم والمكتبة وغيرها على الخريطة.';
+
+  @override
+  String get campusCardOpen => 'افتح الخريطة';
+
+  @override
+  String get campusSearchHint => 'ابحث في الحرم الجامعي';
+
+  @override
+  String get campusOnlyCampus => 'أماكن الحرم الجامعي فقط';
+
+  @override
+  String get campusAll => 'الكل';
+
+  @override
+  String get campusChipFood => 'المطعم';
+
+  @override
+  String get campusChipLibrary => 'المكتبة';
+
+  @override
+  String get campusChipFaculties => 'الكليات';
+
+  @override
+  String get campusNearby => 'بالقرب مني في الحرم';
+
+  @override
+  String get campusPlacesTitle => 'أماكن في الحرم';
+
+  @override
+  String campusPlaceCount(String count) {
+    return '$count مكان';
+  }
+
+  @override
+  String get campusSeeAll => 'عرض الكل';
+
+  @override
+  String get campusDirections => 'الاتجاهات';
+
+  @override
+  String get campusOpenInMaps => 'افتح في الخرائط';
+
+  @override
+  String get campusShare => 'مشاركة';
+
+  @override
+  String get campusDetailTitle => 'تفاصيل المكان';
+
+  @override
+  String get campusLocationLabel => 'الموقع';
+
+  @override
+  String get campusMainCampus => 'الحرم الرئيسي';
+
+  @override
+  String get campusUnits => 'الوحدات';
+
+  @override
+  String get campusAbout => 'نبذة';
+
+  @override
+  String get campusWalkTime => 'مدة المشي';
+
+  @override
+  String campusWalkValue(String min, String dist) {
+    return '$min د ($dist)';
+  }
+
+  @override
+  String get campusWalkUnknown => 'الموقع غير مفعّل';
+
+  @override
+  String get campusDistanceNote => 'المسافات والأوقات تقريبية.';
+
+  @override
+  String get campusFavAdd => 'أضف إلى المفضلة';
+
+  @override
+  String get campusFavRemove => 'إزالة من المفضلة';
+
+  @override
+  String get campusLinkCopied => 'تم نسخ معلومات المكان والرابط';
+
+  @override
+  String get campusOpenFailed => 'تعذّر فتح تطبيق الخرائط';
+
+  @override
+  String get campusPermTitle => 'هل نستخدم موقعك؟';
+
+  @override
+  String get campusPermBody =>
+      'نحتاج إلى إذن الموقع لنعرض المباني والكليات على الخريطة. يبقى موقعك على جهازك ولا تتم مشاركته.';
+
+  @override
+  String get campusPermChipLocal => 'يبقى على الجهاز';
+
+  @override
+  String get campusPermChipBattery => 'استهلاك منخفض للبطارية';
+
+  @override
+  String get campusPermAllow => 'السماح';
+
+  @override
+  String get campusPermLater => 'ليس الآن';
+
+  @override
+  String get campusLocOffBand => 'الموقع مغلق';
+
+  @override
+  String get campusLocDeniedBody =>
+      'إذن الموقع غير مفعّل. تعمل الخريطة كالمعتاد؛ فعّله من الإعدادات لرؤية المسافات.';
+
+  @override
+  String get campusOpenSettings => 'افتح الإعدادات';
+
+  @override
+  String get campusLocServiceTitle => 'خدمة الموقع متوقفة';
+
+  @override
+  String get campusLocServiceBadge => 'مغلق';
+
+  @override
+  String get campusLocServiceBody =>
+      'خدمات الموقع في الجهاز مغلقة. فعّل الموقع للحصول على الاتجاهات داخل الحرم.';
+
+  @override
+  String get campusOutsideCampus => 'أنت خارج الحرم الجامعي حاليًا.';
+
+  @override
+  String get campusMyLocation => 'موقعي';
+
+  @override
+  String get campusZoomIn => 'تكبير';
+
+  @override
+  String get campusZoomOut => 'تصغير';
+
+  @override
+  String get campusLayers => 'طبقة الخريطة';
+
+  @override
+  String get campusLayerStandard => 'قياسية';
+
+  @override
+  String get campusLayerSatellite => 'قمر صناعي';
+
+  @override
+  String get campusAttribution => '© مساهمو OpenStreetMap';
+
+  @override
+  String get campusMapError => 'تعذّر تحميل الخريطة. تحقق من اتصالك.';
+
+  @override
+  String get campusMaintenanceTitle => 'خريطة الحرم قيد الصيانة حاليًا';
+
+  @override
+  String get campusMaintenanceBody => 'يرجى المحاولة بعد قليل.';
+
+  @override
+  String get campusTilesFailing => 'تعذّر تحميل أجزاء الخريطة. تحقق من اتصالك.';
+
+  @override
+  String get campusStaleNote => 'يتم عرض قائمة الأماكن المحفوظة.';
+
+  @override
+  String get campusNoPlaces => 'لا توجد أماكن في هذه الفئة.';
+
+  @override
+  String get campusNoPlacesAll => 'لم تتم إضافة أماكن في الحرم بعد.';
+
+  @override
+  String get campusQuickRoute => 'مسار سريع';
+
+  @override
+  String get campusNearestTitle => 'أقرب مكان';
+
+  @override
+  String campusNearestBody(String name, String min) {
+    return '$name على بعد حوالي $min د سيرًا على الأقدام.';
+  }
+
+  @override
+  String get campusStart => 'ابدأ';
+
+  @override
+  String get campusRecent => 'عمليات البحث الأخيرة';
+
+  @override
+  String get campusClear => 'مسح';
+
+  @override
+  String get campusRemoveRecent => 'حذف البحث';
+
+  @override
+  String get campusCategoriesTitle => 'الفئات';
+
+  @override
+  String campusResultCount(String count) {
+    return '$count نتيجة';
+  }
+
+  @override
+  String get campusNoResult => 'لا توجد نتائج داخل الحرم. جرّب اسمًا آخر.';
+
+  @override
+  String get campusOutsideNote => 'لا يمكن البحث عن أماكن خارج الحرم.';
+
+  @override
+  String get campusSort => 'ترتيب';
+
+  @override
+  String get campusSortNear => 'الأقرب';
+
+  @override
+  String get campusSortName => 'الاسم';
+
+  @override
+  String get campusFindMoreTitle => 'لم تجد المكان؟';
+
+  @override
+  String get campusFindMoreBody =>
+      'ابحث عن جميع المباني والقاعات والوحدات في الحرم.';
+
+  @override
+  String get campusOnlyCampusShown => 'تُعرض الأماكن داخل الحرم فقط.';
+
+  @override
+  String campusPinLabel(String name, String category) {
+    return '$name، $category';
+  }
+
+  @override
+  String campusClusterLabel(String count) {
+    return '$count أماكن';
+  }
+
+  @override
+  String get campusYouAreHere => 'موقعك';
+
+  @override
+  String get campusCloseCard => 'إغلاق بطاقة المكان';
+
+  @override
+  String get campusDetails => 'التفاصيل';
+
+  @override
+  String campusWalkTo(String name) {
+    return 'الاتجاهات إلى $name';
+  }
+
+  @override
+  String get campusPanelHandle => 'لوحة الأماكن';
+
+  @override
   String get homeMyClubs => 'من أنديتي';
 
   @override
