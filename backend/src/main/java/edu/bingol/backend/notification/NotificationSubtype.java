@@ -18,7 +18,12 @@ public enum NotificationSubtype {
     POLL(NotificationType.ANNOUNCEMENT), ACADEMIC_ANNOUNCEMENT(NotificationType.ANNOUNCEMENT),
     // Sinav hatirlatmasi (sinavdan 2 sa once): "Akademik duyurular" bayragini (academic_announcements) paylasir;
     // ayri sutun yok, kullanici tek akademik anahtarla ikisini birden yonetir.
-    EXAM_REMINDER(NotificationType.ANNOUNCEMENT);
+    EXAM_REMINDER(NotificationType.ANNOUNCEMENT),
+    // Bolumunuzde yeni birim duyurusu (ayri kapatilabilir; "announcements" ana bayragi da acik olmali)
+    UNIT_ANNOUNCEMENT(NotificationType.ANNOUNCEMENT),
+    // Gunluk "Bugunun menusu" (notification_pref.menu_daily, V1180; varsayilan KAPALI, kullanici acar)
+    MENU_DAILY(NotificationType.ANNOUNCEMENT);
+    // Not: SYSTEM turunun alt turu YOKTUR (guvenlik/destek yaniti kartlari `card` verisiyle ayrilir, NotifCard).
 
     private final NotificationType parent;
 
@@ -32,7 +37,7 @@ public enum NotificationSubtype {
 
     /** Alt tur bayragi notification_pref'te ayri sutunda tutuluyor mu (alt tur satiri degil). */
     public boolean flagBacked() {
-        return this == POLL || this == ACADEMIC_ANNOUNCEMENT || this == EXAM_REMINDER;
+        return this == POLL || this == ACADEMIC_ANNOUNCEMENT || this == EXAM_REMINDER || this == MENU_DAILY;
     }
 
     /** flagBacked alt turler icin kullanicinin bayragi; digerleri icin true. */
@@ -40,6 +45,7 @@ public enum NotificationSubtype {
         return switch (this) {
             case POLL -> p.isPolls();
             case ACADEMIC_ANNOUNCEMENT, EXAM_REMINDER -> p.isAcademicAnnouncements();
+            case MENU_DAILY -> p.isMenuDaily();
             default -> true;
         };
     }

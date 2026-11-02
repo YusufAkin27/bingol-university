@@ -76,15 +76,24 @@ public class NotificationController {
         }
     }
 
-    /** type=EVENT gibi tur filtresi ve unread=true (yalnizca okunmamislar) destekler. */
+    /**
+     * type=EVENT gibi tur filtresi, category=all|messages|events|announcements|social|system (istemci chip'leri) ve
+     * unread=true (yalnizca okunmamislar) destekler. Her satirda kart alanlari (card, actions, senderName...) bulunur.
+     */
     @GetMapping("/notifications")
     public NotificationPage list(@RequestParam(required = false) Long cursor,
                                  @RequestParam(defaultValue = "20") int size,
                                  @RequestParam(required = false) String type,
+                                 @RequestParam(required = false) String category,
                                  @RequestParam(defaultValue = "false") boolean unread) {
         Long uid = CurrentUser.id();
         limiter.check("notif-list:" + uid, 120, MINUTE); // T-060
-        return inbox.list(uid, cursor, size, type, unread);
+        return inbox.list(uid, cursor, size, type, category, unread);
+    }
+
+    /** Eski 4 parametreli imza (kategori yok); HTTP'ye eslenmez, birim testleri/eski cagiranlar icin. */
+    public NotificationPage list(Long cursor, int size, String type, boolean unread) {
+        return list(cursor, size, type, null, unread);
     }
 
     /** Hafif sayac (rozet icin sik cagrilabilir). */

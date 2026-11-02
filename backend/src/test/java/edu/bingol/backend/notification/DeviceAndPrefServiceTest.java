@@ -126,7 +126,24 @@ class DeviceAndPrefServiceTest {
         assertFalse(v.quietHours().enabled());
         assertEquals("22:00", v.quietHours().start());
         assertEquals(NotificationSubtype.values().length, v.subtypes().size());
-        assertTrue(v.subtypes().values().stream().allMatch(b -> b));
+        // "Bugunun menusu" (MENU_DAILY) varsayilan KAPALI (kullanici acar); digerleri acik
+        assertFalse(v.menuDaily());
+        assertFalse(v.subtypes().get("MENU_DAILY"));
+        assertTrue(v.subtypes().entrySet().stream().filter(e -> !e.getKey().equals("MENU_DAILY"))
+                .allMatch(e -> e.getValue()));
+    }
+
+    @Test
+    void menuDailyOptInViaTopLevelFieldOrSubtypeKey() {
+        stubSave();
+        PrefsView v = prefSvc.update(1L, new PrefsUpdate(null, null, null, null, null, null, null, null, null, null, true));
+        assertTrue(v.menuDaily());
+        assertTrue(v.subtypes().get("MENU_DAILY"));
+        // alt tur anahtariyla da ayni sutun; alt tur satiri uretilmez
+        PrefsView w = prefSvc.update(1L, new PrefsUpdate(null, null, null, null, null, null,
+                Map.of("MENU_DAILY", true)));
+        assertTrue(w.menuDaily());
+        verify(subs, never()).save(any(NotificationSubtypePref.class));
     }
 
     @Test

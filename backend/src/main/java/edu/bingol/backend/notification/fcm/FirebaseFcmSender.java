@@ -208,8 +208,11 @@ public class FirebaseFcmSender implements FcmSender {
         if (m.threadId() != null) {
             aps.setThreadId(m.threadId());
         }
-        if (m.category() != null) {
-            aps.setCategory(m.category());
+        // Eylem kumesine gore kategori (NotifCard#iosCategory: BU_REPLY_MARK_READ...); yoksa eski tur adi
+        String category = m.data() != null && m.data().get("iosCategory") != null ? m.data().get("iosCategory")
+                : m.category();
+        if (category != null) {
+            aps.setCategory(category);
         }
         if (!m.highPriority() && "social".equals(m.channelId())) {
             aps.putCustomData("interruption-level", "passive"); // begeni/takip: ekrani uyandirmaz
@@ -224,6 +227,11 @@ public class FirebaseFcmSender implements FcmSender {
         }
         if (m.collapseKey() != null && m.collapseKey().length() <= MAX_APNS_COLLAPSE_ID) {
             b.putHeader("apns-collapse-id", m.collapseKey());
+        }
+        // Gorsel (haber/yemek/gonderi/sohbet): bildirim uzantisi (mutable-content) indirir; https mutlak adres sarttir
+        String image = m.data() == null ? null : m.data().get("imageUrl");
+        if (image != null && image.startsWith("https://")) {
+            b.setFcmOptions(com.google.firebase.messaging.ApnsFcmOptions.builder().setImage(image).build());
         }
         return b.build();
     }

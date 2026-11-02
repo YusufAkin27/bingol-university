@@ -39,6 +39,17 @@ public class BroadcastWriter {
               AND (CAST(:lang AS varchar) IS NULL OR u.language = :lang)
               AND\s""" + PREF_OK;
 
+    /**
+     * Zengin yol ayrimi (`:rich` null ise filtre yok): cihaz Android ve surum >= 2.0.8 ise "zengin". Surum metni tam
+     * bicim denetiminden gecmeden int[] cevrilmez (bozuk surum sorguyu dusurmesin).
+     */
+    static final String RICH_FILTER = """
+
+              AND (CAST(:rich AS boolean) IS NULL OR CAST(:rich AS boolean) = COALESCE(
+                    d.platform = 'ANDROID' AND d.app_version ~ '^[0-9]+([.][0-9]+){0,2}([^0-9.].*)?$'
+                    AND CAST(string_to_array(regexp_replace(d.app_version, '[^0-9.].*$', ''), '.') AS int[])
+                        >= ARRAY[2,0,8], FALSE))""";
+
     private static final String INSERT_PUSH = """
             INSERT INTO push_outbox (user_id, device_id, fcm_token_hash, payload_json, priority, status, attempts,
                                      next_attempt_at, created_at, msg_type)
@@ -49,7 +60,8 @@ public class BroadcastWriter {
             LEFT JOIN notification_pref p ON p.user_id = u.id
             WHERE u.id > :after AND u.id <= :hi
               AND (CAST(:lang AS varchar) IS NULL OR u.language = :lang)
-              AND\s""" + PREF_OK + "  AND " + QuietSql.NOT_QUIET;
+              AND\s""" + PREF_OK + "  AND " + QuietSql.NOT_QUIET + RICH_FILTER;
+
 
     private final NamedParameterJdbcTemplate jdbc;
     private final NotificationBatchWriter dialect;
@@ -88,8 +100,14 @@ public class BroadcastWriter {
      */
     public int enqueuePush(String payloadJson, short priority, String msgType, String prefColumn, String lang,
                            long after, long hi) {
+        return enqueuePush(payloadJson, priority, msgType, prefColumn, lang, after, hi, null);
+    }
+
+    /** rich: true = yalniz zengin yol cihazlari, false = digerleri, null = hepsi. */
+    public int enqueuePush(String payloadJson, short priority, String msgType, String prefColumn, String lang,
+                           long after, long hi, Boolean rich) {
         return jdbc.update(INSERT_PUSH, new MapSqlParameterSource("payload", payloadJson).addValue("prio", priority)
                 .addValue("msgType", msgType).addValue("col", prefColumn).addValue("lang", lang)
-                .addValue("after", after).addValue("hi", hi));
+                .addValue("after", after).addValue("hi", hi).addValue("rich", rich, java.sql.Types.BOOLEAN));
     }
 }

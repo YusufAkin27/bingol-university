@@ -24,6 +24,9 @@ public class NotificationPref {
     private boolean polls = true;
     @Column(columnDefinition = "boolean not null default true")
     private boolean academicAnnouncements = true;
+    /** "Bugunun menusu" gunluk bildirimi (V1180): yalniz kullanici acarsa gider, varsayilan KAPALI. */
+    @Column(columnDefinition = "boolean not null default false")
+    private boolean menuDaily = false;
 
     /**
      * Sohbet mesaj metni onizlemesi push govdesinde (ve kilit ekraninda) gorunsun mu (V890). Varsayilan ACIK:

@@ -119,6 +119,12 @@ public class PushOutboxService {
      * @return yazilan kayit sayisi
      */
     public int enqueueBroadcastRange(PushMessage message, String prefColumn, String lang, long after, long hi) {
+        return enqueueBroadcastRange(message, prefColumn, lang, after, hi, null);
+    }
+
+    /** rich: true = yalniz zengin yol destekleyen (Android >= 2.0.8) cihazlar, false = digerleri, null = hepsi. */
+    public int enqueueBroadcastRange(PushMessage message, String prefColumn, String lang, long after, long hi,
+                                     Boolean rich) {
         if (!rangeEnqueueSupported()) {
             return 0;
         }
@@ -132,7 +138,7 @@ public class PushOutboxService {
         String msgType = message.category() == null ? null
                 : message.category().substring(0, Math.min(message.category().length(), 24));
         int n = broadcastWriter.enqueuePush(payload, (short) (message.highPriority() ? 1 : 0), msgType, prefColumn, lang,
-                after, hi);
+                after, hi, rich);
         if (n > 0) {
             metrics.counter("push.outbox.enqueued").increment(n);
             events.publishEvent(new PushQueued(n));

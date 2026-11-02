@@ -23,21 +23,47 @@ public class NotificationInboxService {
     }
 
     private final NotificationRepository notifications;
+    private final InboxCardEnricher enricher;
 
-    public NotificationInboxService(NotificationRepository notifications) {
+    public NotificationInboxService(NotificationRepository notifications, InboxCardEnricher enricher) {
         this.notifications = notifications;
+        this.enricher = enricher;
     }
 
     public NotificationPage list(Long userId, Long cursor, int size, String type, boolean unreadOnly) {
+        return list(userId, cursor, size, type, null, unreadOnly);
+    }
+
+    /**
+     * `category` (istemci chip'i): all | messages | events | announcements | social | system; `type` ile birlikte verilirse
+     * category kazanir. Sohbet mesaji kutuda yok (yalniz push): `messages` gecerli ama bos liste.
+     */
+    public NotificationPage list(Long userId, Long cursor, int size, String type, String category, boolean unreadOnly) {
         int s = CursorPage.clampSize(size);
-        if (isMessageType(type)) {
-            // Sohbet mesaji kutuda yok (yalniz push): gecerli tur ama bos liste
+        List<NotificationType> wanted = category == null || category.isBlank() ? null : categoryTypes(category);
+        if (wanted != null && wanted.isEmpty() || wanted == null && isMessageType(type)) {
             return new NotificationPage(List.of(), null, notifications.countUnreadInbox(userId));
         }
-        List<Notification> rows = notifications.pageFiltered(userId, cursor, types(type), unreadOnly,
-                PageRequest.of(0, s + 1));
-        CursorPage<NotificationView> page = CursorPage.of(rows, s, Notification::getId, NotificationView::of);
-        return new NotificationPage(page.items(), page.nextCursor(), notifications.countUnreadInbox(userId));
+        List<Notification> rows = notifications.pageFiltered(userId, cursor, wanted != null ? wanted : types(type),
+                unreadOnly, PageRequest.of(0, s + 1));
+        CursorPage<Notification> page = CursorPage.of(rows, s, Notification::getId, n -> n);
+        return new NotificationPage(enricher.enrich(userId, page.items()), page.nextCursor(),
+                notifications.countUnreadInbox(userId));
+    }
+
+    /** Kategori -> kutuda gosterilen turler (messages bos: kutuda mesaj tutulmaz). */
+    static List<NotificationType> categoryTypes(String category) {
+        return switch (category.trim().toLowerCase(java.util.Locale.ROOT)) {
+            case "all" -> ALL_TYPES;
+            case "messages" -> List.of();
+            case "events" -> List.of(NotificationType.EVENT);
+            case "announcements" -> List.of(NotificationType.NEWS, NotificationType.ANNOUNCEMENT, NotificationType.COMMUNITY);
+            case "social" -> List.of(NotificationType.POST_LIKE, NotificationType.POST_COMMENT,
+                    NotificationType.COMMENT_REPLY, NotificationType.POST_MENTION, NotificationType.USER_FOLLOW,
+                    NotificationType.FOLLOW_REQUEST, NotificationType.FOLLOW_ACCEPTED);
+            case "system" -> List.of(NotificationType.SYSTEM);
+            default -> throw new ApiException(HttpStatus.BAD_REQUEST, "VALIDATION_ERROR", "Geçersiz bildirim kategorisi.");
+        };
     }
 
     public long unreadCount(Long userId) {

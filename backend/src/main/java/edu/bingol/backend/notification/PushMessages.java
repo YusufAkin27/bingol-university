@@ -15,6 +15,8 @@ final class PushMessages {
     static final String CHANNEL_SOCIAL = "social";
     /** Sinav hatirlatmasi (istemci kanali yerel ders/sinav hatirlatmalariyla ortak, HIGH). */
     static final String CHANNEL_ACADEMIC = "academic";
+    /** Hesap guvenligi (yeni cihaz, sifre, 2FA, oturum): istemci kanali HIGH; tercih/sessiz saat uygulanmaz. */
+    static final String CHANNEL_SECURITY = "security";
 
     private PushMessages() {}
 
@@ -25,10 +27,17 @@ final class PushMessages {
         boolean urgent = type == NotificationType.MESSAGE || type == NotificationType.SYSTEM
                 || subtype == NotificationSubtype.EVENT_ADMISSION || subtype == NotificationSubtype.EXAM_REMINDER;
         String thread = threadId(type, payload);
-        String channel = payload.containsKey("pollId") ? CHANNEL_POLL
+        // Stitch kart tasarimi: kart (kanal + eylemler + gorsel stili) tur/alt tur/`card` verisinden cozulur
+        NotifCard card = NotifCard.resolve(type, subtype, payload, countOf(payload));
+        String channel = card != null ? card.channel() : payload.containsKey("pollId") ? CHANNEL_POLL
                 : subtype == NotificationSubtype.EXAM_REMINDER ? CHANNEL_ACADEMIC : channel(type);
         Map<String, String> data = new java.util.LinkedHashMap<>(payload);
         data.put("channelId", channel);
+        if (card != null) {
+            card.pushKeys(payload).forEach(data::putIfAbsent);
+            data.put("channelId", channel);
+            urgent = urgent || card.security();
+        }
         data.put("threadId", thread);
         // `tag`: Android'de ayni etiketli bildirim yenisiyle degisir; yalniz birlesmesi istenen yerde (collapseKey) konur.
         // Tur/thread adi ASLA etiket olmaz (farkli duyurular tepside birbirini siler, A13-01). Istemci yerel bildirim
@@ -63,6 +72,14 @@ final class PushMessages {
             case POST_LIKE, POST_COMMENT, COMMENT_REPLY, POST_MENTION, USER_FOLLOW, FOLLOW_REQUEST, FOLLOW_ACCEPTED, EVENT -> 86_400;
             case NEWS, ANNOUNCEMENT, COMMUNITY -> 3 * 86_400;
         };
+    }
+
+    private static int countOf(Map<String, String> payload) {
+        try {
+            return Integer.parseInt(payload.getOrDefault("count", "1"));
+        } catch (NumberFormatException e) {
+            return 1;
+        }
     }
 
     static PushMessage of(NotificationType type, String title, String body, Map<String, String> payload,

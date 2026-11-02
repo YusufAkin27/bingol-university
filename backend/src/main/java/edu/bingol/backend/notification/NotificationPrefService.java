@@ -73,10 +73,12 @@ public class NotificationPrefService {
             if (s == NotificationSubtype.ACADEMIC_ANNOUNCEMENT || s == NotificationSubtype.EXAM_REMINDER) {
                 p.setAcademicAnnouncements(v);
             }
+            if (s == NotificationSubtype.MENU_DAILY) p.setMenuDaily(v);
         });
         if (r.polls() != null) p.setPolls(r.polls());
         if (r.academicAnnouncements() != null) p.setAcademicAnnouncements(r.academicAnnouncements());
         if (r.messagePreview() != null) p.setMessagePreview(r.messagePreview());
+        if (r.menuDaily() != null) p.setMenuDaily(r.menuDaily());
         p.setQuietEnabled(qen);
         p.setQuietStart(qs);
         p.setQuietEnd(qe);
