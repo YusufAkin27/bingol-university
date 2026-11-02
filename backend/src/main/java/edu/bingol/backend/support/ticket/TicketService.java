@@ -126,8 +126,9 @@ public class TicketService {
         t.setUpdatedAt(Instant.now());
         tickets.save(t);
         if (t.getUserId() != null) {
+            // Tasarim: "#<id> + yanit ozeti" (govde kullanici/personel metnidir, cevrilmez; 120 karakterde kirpilir)
             notifications.sendLocalized(t.getUserId(), NotificationType.SYSTEM, "notif.ticket.answered.title", null,
-                    t.getSubject(), Map.of("ticketId", String.valueOf(t.getId())));
+                    "#" + t.getId() + " " + snippet(text, 120), Map.of("ticketId", String.valueOf(t.getId())));
         }
         return toDetail(t);
     }
@@ -143,6 +144,15 @@ public class TicketService {
     }
 
     // --- yardimcilar ---
+
+    /** Bildirim govdesi icin tek satir ozet. */
+    static String snippet(String text, int max) {
+        if (text == null) {
+            return "";
+        }
+        String one = text.replaceAll("\\s+", " ").strip();
+        return one.length() <= max ? one : one.substring(0, max - 1) + "…";
+    }
 
     private void close(SupportTicket t) {
         if (t.getStatus() != SupportTicket.Status.CLOSED) {

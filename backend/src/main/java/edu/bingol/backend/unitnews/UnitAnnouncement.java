@@ -54,4 +54,7 @@ public class UnitAnnouncement {
 
     @Column(nullable = false)
     private Instant fetchedAt = Instant.now();
+
+    /** Bildirimi (bolumunuzde yeni duyuru) gonderildi mi; null = bekliyor (V1180). */
+    private Instant notifiedAt;
 }

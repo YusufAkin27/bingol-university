@@ -107,12 +107,17 @@ public class UnitNewsService {
 
     List<Target> resolve(Long userId) {
         User u = users.findById(userId).orElse(null);
-        if (u == null) {
-            return List.of();
-        }
-        String dkey = UnitKeys.deptKey(u.getDepartment());
-        String fkey = AudienceKey.of(u.getFaculty());
-        boolean graduate = isGraduate(u.getGrade());
+        return u == null ? List.of() : targetsFor(u.getDepartment(), u.getFaculty(), u.getGrade());
+    }
+
+    /**
+     * Bolum/fakulte/sinif uclusu icin hedefler (kullanicidan bagimsiz; yeni duyuru bildirimi ayni uclusu paylasan
+     * kullanicilari tek hesapla eler). Eslesme yoksa bos.
+     */
+    public List<Target> targetsFor(String department, String faculty, String grade) {
+        String dkey = UnitKeys.deptKey(department);
+        String fkey = AudienceKey.of(faculty);
+        boolean graduate = isGraduate(grade);
         if (dkey == null && !(fkey != null && graduate)) {
             return List.of(); // eslesme anahtari yok: DB'ye gitmeye gerek yok
         }
