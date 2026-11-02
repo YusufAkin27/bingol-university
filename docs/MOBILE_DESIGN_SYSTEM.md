@@ -20,7 +20,7 @@ Uygulamanın TEK ikon kapısı `BuIcons` (`lib/core/icons/bu_icons.dart`, `widge
 1. **Material 3 gövde, marka kimliği:** `useMaterial3`, M3 bileşenleri (NavigationBar, FilledButton.tonal, SegmentedButton, SearchBar, BottomSheet...) marka belirteçleriyle temalanır. Marka: sakin kampüs kırmızısı (`pr`), lacivert mürekkep (`ink`), sıcak-nötr zemin (`bg`), beyaz kartlar (`sf`); anlam renkleri mavi/su mavisi/yeşil/amber (bkz. bölüm 3).
 2. **Katmanlı yüzeyler:** sayfa `bg` < kart `sf` < ikincil `sf2` < üst katman `sf3` (diyalog, alt sayfa, menü). Açık temada ince çizgi + yumuşak gölge, koyu temada tonal yüzey (gölge yok).
 3. **Tonal vurgu:** seçili/etkin durum **marka tonu** (`soft` zemin + `onSoft` yazı + `selectedBorder`; tek stil) ile gösterilir (NavigationBar göstergesi, seçili çip, segment, tonal düğme); dolu kırmızı (`pr`) yalnız birincil eylemde.
-4. **Hareket anlamlıdır:** basma (hafif küçülme + titreşim), seçim (kayan gösterge), içerik girişi (aşamalı), durum geçişi (fade-through). 150/250/400 ms; yalnız `transform`/`opacity`. "Animasyonları azalt" açıkken hepsi anlık.
+4. **Hareket anlamlıdır:** basma (hafif küçülme + titreşim), seçim (kayan gösterge), içerik girişi (aşamalı), durum geçişi (fade-through). 200/300/450 ms (kurumsal + sıcak); yalnız `transform`/`opacity`. "Animasyonları azalt" açıkken hepsi anlık ya da yalnız 100 ms solma. Ayrıntı: [MOBILE_MOTION.md](MOBILE_MOTION.md).
 5. **Durumlar eksiksiz:** yükleniyor (iskelet, çember değil) / boş (illüstrasyon + yönlendirme) / hata (yeniden dene) / çevrimdışı (şerit, eski veri) / bakım.
 6. **Hız:** `const`, tembel liste, `RepaintBoundary` ile ağır boyacılar izole, tek ticker (iskelet), ağ görselinde `cacheWidth`, kaydırılan listede `Opacity/BackdropFilter/saveLayer` yok.
 
@@ -88,7 +88,8 @@ BuSpace.xxs 2 · xs 4 · sm 8 · md 12 · lg 16 · xl 20 · xxl 24 · xxxl 32 ·
 BuSpace.pageH (EdgeInsetsDirectional yatay 20) · BuSpace.card (16) · BuSpace.row
 BuGap.h8 / BuGap.w12 ...   // const SizedBox: h2 h4 h6 h8 h12 h16 h20 h24 h32 h48 · w4 w6 w8 w12 w16 w20 w24
 BuRadius.xs 8 · sm 12 · md 16 · lg 20 · xl 28 · pill 999   (+ bXs..bPill BorderRadius, topXl, rect(r, side:))
-BuMotion.short 150 ms · medium 250 ms · long 400 ms · stagger 40 ms
+BuMotion.durations: micro 120 · quick 200 · standard 300 · slow 450 · page 400 · dramatic 700 ms  (eski adlar: short=quick, medium=standard, long=page)
+BuMotion.stagger(index, {step 60 ms, max 6}) · BuMotion.curves.settle/success · BuMotion.springs
 BuMotion.standard · emphasized · emphasizedDecelerate (giriş) · emphasizedAccelerate (çıkış) · decelerate
 BuMotion.reduced(context) · BuMotion.of(context, duration)   // azaltılmışsa Duration.zero
 BuElevation.of(context, level 0..3)  // açık: gölge listesi; koyu: boş
@@ -208,7 +209,9 @@ BuImage(String? url, {double? width, double? height, BoxFit fit = cover, double 
 
 #### Hareket (BuMotion) - D1 ortak hareket sistemi
 
-Jetonlar `BuMotion` (150/250/400 ms, eğriler `standard`/`emphasizedDecelerate` giriş/`emphasizedAccelerate` çıkış), aşamalı giriş `BuStaggerItem`/`BuStaggeredList`, geçiş `BuFadeThrough`/`BuSharedAxis`, basma `BuPressable` (0.97) yukarıda. D1 eklemeleri `core/motion/` altındadır ve `widgets/bu.dart` ile gelir:
+Hareket ilkeleri, süre/eğri/yay tabloları, azaltılmış hareket ve kontrol listesi: [MOBILE_MOTION.md](MOBILE_MOTION.md); denetim: [MOBILE_MOTION_AUDIT.md](MOBILE_MOTION_AUDIT.md).
+
+Jetonlar `BuMotion` (`core/motion/bu_motion.dart`; 200/300/400 ms, eğriler `standard`/`emphasizedDecelerate` giriş/`emphasizedAccelerate` çıkış), aşamalı giriş `BuStaggerItem`/`BuStaggeredList`, geçiş `BuFadeThrough`/`BuSharedAxis`, basma `BuPressable` (0.97) yukarıda. D1 eklemeleri `core/motion/` altındadır ve `widgets/bu.dart` ile gelir:
 
 ```dart
 BuSwapIn(loading: !loaded, skeleton: const MySkeleton(), child: liste)      // iskelet -> içerik: yalnız opacity, boyut değişmez
