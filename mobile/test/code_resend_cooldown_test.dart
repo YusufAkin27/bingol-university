@@ -1,6 +1,5 @@
 import 'package:bu_kampus/core/api.dart';
 import 'package:bu_kampus/core/resend_cooldown.dart';
-import 'package:bu_kampus/core/session.dart';
 import 'package:bu_kampus/core/theme.dart';
 import 'package:bu_kampus/features/auth/forgot_password_page.dart';
 import 'package:bu_kampus/features/auth/reset_code_page.dart';
