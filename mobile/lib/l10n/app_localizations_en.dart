@@ -10297,4 +10297,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get notifSecWarn => 'If this wasn\'t you, reset your password';
+
+  @override
+  String get settingsUsageStats => 'Usage statistics';
+
+  @override
+  String get settingsUsageStatsDesc =>
+      'Which screens are used is measured anonymously and in aggregate; message content, search text and personal information are not collected.';
 }

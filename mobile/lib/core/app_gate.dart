@@ -169,7 +169,7 @@ class _AppGateState extends State<AppGate> with WidgetsBindingObserver {
       if (_d.kind == GateKind.updateRequired || shouldRecheckOnResume(_lastCheck, DateTime.now())) _check(force: true);
       Analytics.instance.appOpen();
     } else if (s == AppLifecycleState.paused) {
-      Analytics.instance.flush();
+      Analytics.instance.onBackground(); // ekran süresi durur, kuyruk boşalır
     }
   }
 

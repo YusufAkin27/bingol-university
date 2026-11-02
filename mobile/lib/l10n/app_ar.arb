@@ -3291,5 +3291,7 @@
   "notifEmptyFilter": "لا توجد إشعارات من هذا النوع.",
   "notifActDone": "تم",
   "notifActFailedTitle": "BU كامبوس",
-  "notifSecWarn": "إن لم تكن أنت فأعد تعيين كلمة المرور"
+  "notifSecWarn": "إن لم تكن أنت فأعد تعيين كلمة المرور",
+  "settingsUsageStats": "إحصاءات الاستخدام",
+  "settingsUsageStatsDesc": "يُقاس استخدام الشاشات بشكل مجهول ومجمّع؛ لا يتم جمع محتوى الرسائل أو نص البحث أو المعلومات الشخصية."
 }

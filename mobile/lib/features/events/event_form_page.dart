@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 
+import '../../core/analytics.dart';
 import '../../core/api.dart';
 import '../../l10n/app_localizations.dart';
 import '../../core/locale_controller.dart';
@@ -460,6 +461,7 @@ class _EventFormPageState extends State<EventFormPage> {
           'communityId': _clubId,
           'joinPolicy': _policy,
         });
+        Analytics.instance.track('event_create');
         id = r is Map ? (r['id'] as num?)?.toInt() : null;
         status = r is Map ? r['status'] as String? : null;
       }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 
+import '../../core/analytics.dart';
 import '../../core/locale_controller.dart';
 import '../../core/permissions/ensure_permission.dart';
 import '../../widgets/bu.dart';
@@ -49,6 +50,7 @@ class _QrScanPageState extends State<QrScanPage> with SingleTickerProviderStateM
   @override
   void initState() {
     super.initState();
+    Analytics.instance.track('qr_scan_open');
     _manual.addListener(() {
       if (_error != null) setState(() => _error = null);
     });

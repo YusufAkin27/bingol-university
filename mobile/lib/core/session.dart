@@ -219,6 +219,7 @@ class Session extends ChangeNotifier {
   Future<void> login(String email, String password) async {
     final res = await api.post('/auth/login', {'email': normalizeIdentifier(email), 'password': password, 'client': kClientMobile}, false);
     await _accept(res);
+    Analytics.instance.track('login_success');
   }
 
   /// Tam e-postayı döndürür (sunucu yanıtındaki ya da numaradan türetilen).
@@ -360,6 +361,7 @@ class Session extends ChangeNotifier {
     try {
       realtime?.stop();
     } catch (_) {}
+    Analytics.instance.discard(); // bekleyen olaylar bir sonraki kullanıcının oturumuyla gönderilmez
     if (remote && refresh != null) {
       try {
         await api.post('/auth/logout', {'refreshToken': refresh, if (fcm != null && fcm.isNotEmpty) 'fcmToken': fcm}, false);

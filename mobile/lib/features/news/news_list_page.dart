@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../core/analytics.dart';
 import '../../core/locale_controller.dart';
 import '../../core/session.dart';
 import '../../widgets/bu.dart';
@@ -172,6 +173,7 @@ class _NewsListPageState extends State<NewsListPage> {
         await widget.session.api.delete('/bookmarks/news/$id');
       } else {
         await widget.session.api.put('/bookmarks/news/$id');
+        Analytics.instance.track('favorite_add', props: {'kind': 'news'});
       }
       if (mounted) {
         final l = context.l10n;

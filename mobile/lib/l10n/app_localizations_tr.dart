@@ -10263,4 +10263,11 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get notifSecWarn => 'Bu siz değilseniz şifrenizi sıfırlayın';
+
+  @override
+  String get settingsUsageStats => 'Kullanım istatistikleri';
+
+  @override
+  String get settingsUsageStatsDesc =>
+      'Hangi ekranların kullanıldığı kimliksiz ve toplu olarak ölçülür; mesaj içeriği, arama metni ve kişisel bilgi toplanmaz.';
 }

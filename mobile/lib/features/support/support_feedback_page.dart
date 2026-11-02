@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../core/analytics.dart';
 import '../../core/locale_controller.dart';
 import '../../core/session.dart';
 import '../../widgets/bu.dart';
@@ -92,6 +93,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
         'message': m,
         'platform': 'ANDROID',
       });
+      Analytics.instance.track('feedback_send');
       if (!mounted) return;
       _subject.clear();
       _message.clear();

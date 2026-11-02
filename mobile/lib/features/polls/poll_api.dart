@@ -1,3 +1,4 @@
+import '../../core/analytics.dart';
 import '../../core/api.dart';
 import '../../core/session.dart';
 import '../posts/post_models.dart' show PostPage;
@@ -33,6 +34,7 @@ class PollApi {
   /// Oy ver / oyu değiştir (idempotent). Dönen anket güncel durumla gelir.
   Future<Poll> vote(int id, PollSelection s) async {
     final r = await session.api.post('/polls/$id/vote', s.toBody());
+    Analytics.instance.track('poll_vote');
     return r is Map<String, dynamic> && r['id'] != null ? Poll.fromJson(r) : await get(id);
   }
 

@@ -3291,5 +3291,7 @@
   "notifEmptyFilter": "No notifications of this type.",
   "notifActDone": "Done",
   "notifActFailedTitle": "BU Campus",
-  "notifSecWarn": "If this wasn't you, reset your password"
+  "notifSecWarn": "If this wasn't you, reset your password",
+  "settingsUsageStats": "Usage statistics",
+  "settingsUsageStatsDesc": "Which screens are used is measured anonymously and in aggregate; message content, search text and personal information are not collected."
 }

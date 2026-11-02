@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show SystemUiOverlayStyle;
 
+import '../../core/analytics.dart';
 import '../../core/api.dart';
 import '../../core/locale_controller.dart';
 import '../../core/platform/image_service.dart';
@@ -238,6 +239,7 @@ class _ClubDetailPageState extends State<ClubDetailPage> {
     setState(() => _busy = true);
     try {
       await widget.session.api.delete('$_base/membership');
+      Analytics.instance.track('club_leave');
       await _load();
     } catch (e) {
       if (mounted) _snack(errorText(e));

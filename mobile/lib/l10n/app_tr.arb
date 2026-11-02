@@ -5096,5 +5096,7 @@
   "notifEmptyFilter": "Bu türde bildirim yok.",
   "notifActDone": "Yapıldı",
   "notifActFailedTitle": "BU Kampüs",
-  "notifSecWarn": "Bu siz değilseniz şifrenizi sıfırlayın"
+  "notifSecWarn": "Bu siz değilseniz şifrenizi sıfırlayın",
+  "settingsUsageStats": "Kullanım istatistikleri",
+  "settingsUsageStatsDesc": "Hangi ekranların kullanıldığı kimliksiz ve toplu olarak ölçülür; mesaj içeriği, arama metni ve kişisel bilgi toplanmaz."
 }

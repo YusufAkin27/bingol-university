@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../core/analytics.dart';
 import '../../core/api.dart';
 import '../../core/locale_controller.dart';
 import '../../core/session.dart';
@@ -14,6 +15,7 @@ Future<void> changePasswordRequest(Session session, {required String current, re
   if (res is Map && res['accessToken'] is String && res['refreshToken'] is String) {
     await session.api.setTokens(Tokens.fromJson(res));
   }
+  Analytics.instance.track('password_change');
 }
 
 /// Hesap ve güvenlik (Stitch 49-2): e-posta kartı, şifre güncelleme, tüm cihazlardan çıkış.

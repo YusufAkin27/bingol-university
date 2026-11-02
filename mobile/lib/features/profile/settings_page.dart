@@ -2,6 +2,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 
+import '../../core/analytics.dart';
 import '../../core/app_gate.dart' show appVersion;
 import '../../core/crash/crash_reporter.dart';
 import '../../core/locale_controller.dart';
@@ -126,6 +127,7 @@ class _SettingsPageState extends State<SettingsPage> {
     );
     if (chosen == null || chosen == lc.pref) return;
     await lc.set(chosen);
+    Analytics.instance.track('language_change', props: {'lang': lc.locale.languageCode});
     // Sunucu profil dili (bildirim/e-posta) uygulama diliyle eşitlenir; hata sessizdir.
     try {
       await widget.session.api.patch('/users/me', {'language': lc.locale.languageCode});
@@ -241,7 +243,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 ]),
                 ProfilFlatSection(l.settingsSectionPrivacy),
                 ListenableBuilder(
-                  listenable: _crash,
+                  listenable: Listenable.merge([_crash, Analytics.instance]),
                   builder: (_, __) => ProfilFlatGroup(children: [
                     ProfilFlatRow(
                       icon: BuIcons.lock,
@@ -275,6 +277,14 @@ class _SettingsPageState extends State<SettingsPage> {
                       sub: l.p19CrashReportsShort,
                       value: _crash.enabled,
                       onChanged: (v) => _crash.setEnabled(v),
+                    ),
+                    // Kimliksiz kullanım istatistiği: kapalıyken hiçbir olay kuyruğa alınmaz, bekleyenler silinir.
+                    ProfilFlatToggle(
+                      key: const ValueKey('usageStatsSwitch'),
+                      label: l.settingsUsageStats,
+                      sub: l.settingsUsageStatsDesc,
+                      value: Analytics.instance.enabled,
+                      onChanged: (v) => Analytics.instance.setEnabled(v),
                     ),
                     ProfilFlatRow(
                       key: const ValueKey('settings-logout-all'),

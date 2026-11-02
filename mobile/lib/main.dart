@@ -135,6 +135,7 @@ Future<void> _bootstrap() async {
   LocaleController.current = localeCtl;
   Analytics.instance.attach(session);
   final push = PushService(session);
+  AppLifecycleHooks.instance.onSignedIn.add((_) => Analytics.instance.signedIn()); // restore sonrası da app_open
   final hooks = AppLifecycleHooks.instance;
   hooks.onSignedIn.add((_) => push.onSignedIn()); // restore sonrası oturum açıksa bir kez tetiklenir
   hooks.onSignedIn.add((_) => outbox.load()); // bekleyen mesajlar yüklenir ve gönderilir (oturum açıkken)
@@ -149,7 +150,7 @@ Future<void> _bootstrap() async {
     await session.restore();
   }());
   // Tema ve dil ilk karede doğru olsun (yanıp sönme yok): paralel yüklenir, runApp yalnız bunları bekler.
-  await Future.wait([theme.load(), localeCtl.load(), crashInit]);
+  await Future.wait([theme.load(), localeCtl.load(), crashInit, Analytics.instance.load()]);
   runApp(BingolApp(session: session, themeController: theme, push: push, localeController: localeCtl));
 }
 

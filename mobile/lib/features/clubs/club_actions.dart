@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../core/analytics.dart';
 import '../../core/api.dart';
 import '../../core/locale_controller.dart';
 import '../../core/session.dart';
@@ -85,6 +86,7 @@ Future<bool> leaveClubFlow(
 
   try {
     await session.api.delete('/communities/$communityId/membership');
+    Analytics.instance.track('club_leave');
     session.badges.conversationsDirty.value++;
     return true;
   } on ApiError catch (e) {

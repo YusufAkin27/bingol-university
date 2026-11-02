@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import '../../core/analytics.dart';
 import '../../core/api.dart';
 import '../../core/locale_controller.dart';
 import '../../core/session.dart';
@@ -268,6 +269,7 @@ class _SearchPageState extends State<SearchPage> {
   /// Yeni sorgu: Tümü sekmesi gruplu yanıtı çeker; tür sekmeleri sıfırlanır.
   Future<void> _run(String q) async {
     if (q.length < 2) return;
+    Analytics.instance.track('search_query', props: {'scope': _tab == _Tab.all ? 'all' : _tab.name}); // sorgu metni ASLA gönderilmez
     final seq = ++_seq;
     final l = context.l10n;
     setState(() {

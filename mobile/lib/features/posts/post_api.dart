@@ -1,3 +1,4 @@
+import '../../core/analytics.dart';
 import '../../core/session.dart';
 import 'post_models.dart';
 
@@ -52,6 +53,7 @@ class PostApi {
       if (text != null && text.trim().isNotEmpty) 'text': text.trim(),
       'mediaIds': [mediaId],
     });
+    Analytics.instance.track('post_create');
     return Post.fromJson(_m(r));
   }
 

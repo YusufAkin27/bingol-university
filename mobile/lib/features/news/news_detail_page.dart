@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../core/analytics.dart';
 import '../../core/locale_controller.dart';
 import '../../core/session.dart';
 import '../../widgets/bu.dart';
@@ -58,6 +59,7 @@ class _NewsDetailPageState extends State<NewsDetailPage> {
     super.initState();
     _scroll.addListener(_onScroll);
     if (widget.saved == null) _loadSaved();
+    Analytics.instance.track(widget.item['type'] == 'DUYURU' ? 'announcement_open' : 'news_open', props: {'kind': widget.item['type'] == 'ETKINLIK' ? 'event' : 'news'});
   }
 
   @override
@@ -96,6 +98,7 @@ class _NewsDetailPageState extends State<NewsDetailPage> {
       } else {
         await widget.session.api.put('/bookmarks/news/$_id');
       }
+      if (!was) Analytics.instance.track('favorite_add', props: {'kind': 'news'});
       if (mounted) BuToast.show(context, was ? l.p05UnsavedToast : l.p05SavedToast, kind: BuToastKind.success);
     } catch (e) {
       if (!mounted) return;
@@ -126,6 +129,7 @@ class _NewsDetailPageState extends State<NewsDetailPage> {
     final text = (url != null && url.isNotEmpty) ? url : ((n['title'] as String?) ?? '');
     if (text.isEmpty) return;
     await Clipboard.setData(ClipboardData(text: text));
+    Analytics.instance.track('share', props: {'kind': 'news'});
     if (!mounted) return;
     BuToast.show(context, context.l10n.icerikLinkCopied, kind: BuToastKind.success);
   }

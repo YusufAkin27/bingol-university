@@ -10189,4 +10189,11 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get notifSecWarn => 'إن لم تكن أنت فأعد تعيين كلمة المرور';
+
+  @override
+  String get settingsUsageStats => 'إحصاءات الاستخدام';
+
+  @override
+  String get settingsUsageStatsDesc =>
+      'يُقاس استخدام الشاشات بشكل مجهول ومجمّع؛ لا يتم جمع محتوى الرسائل أو نص البحث أو المعلومات الشخصية.';
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../core/analytics.dart';
 import '../../core/locale_controller.dart';
 import '../../core/session.dart';
 import '../../widgets/bu.dart';
@@ -64,6 +65,7 @@ class _NewTicketPageState extends State<NewTicketPage> {
     });
     try {
       await widget.session.api.post('/support/tickets', {'category': _category, 'subject': s, 'message': m});
+      Analytics.instance.track('ticket_create');
       if (!mounted) return;
       supportSnack(context, context.l10n.supportTicketReceived, BuToastKind.success);
       Navigator.pop(context, true);
