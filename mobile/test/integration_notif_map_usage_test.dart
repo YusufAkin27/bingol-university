@@ -118,6 +118,12 @@ void main() {
       expect(notifKindOf({'type': 'EVENT', 'subtype': 'EVENT_ADMISSION'}, const {}), RichKind.eventApproved);
     });
 
+    test('backend targetType=SECURITY hesap ve güvenlik ekranına; UNIT_NEWS/MENU henüz bildirim listesine düşer (güvenli)', () {
+      expect(resolvePushTarget({'targetType': 'SECURITY', 'target': 'SECURITY'}).dest, PushDest.accountSecurity);
+      expect(resolvePushTarget({'targetType': 'UNIT_NEWS', 'targetId': '4'}).dest, PushDest.notifications);
+      expect(resolvePushTarget({'targetType': 'MENU', 'targetId': '2026-11-03'}).dest, PushDest.notifications);
+    });
+
     test('takip isteği: backend requestId/userId ile kabul-red isteği kurulur', () {
       final accept = planRichAction('accept', {'requestId': '33'});
       expect(accept, isA<HttpPlan>());

@@ -124,6 +124,7 @@ PushDest? _destOf(String t) {
     case 'TICKET':
       return PushDest.ticket;
     case 'ACCOUNT_SECURITY':
+    case 'SECURITY': // backend NotifCard güvenlik kartları (targetType=SECURITY)
       return PushDest.accountSecurity;
     case 'FEEDBACK':
       return PushDest.feedback;

@@ -4,6 +4,11 @@
 
 Ayrıntılı modül notları: `docs/changes/*.md`. Mobil API rehberi: [MOBILE_API_GUIDE.md](MOBILE_API_GUIDE.md).
 
+### Mobil entegrasyon: bildirim tasarımı + kampüs haritası + kullanım istatistikleri (INTEGRATION)
+
+- **Birleştirilen dallar:** `feat/hig-p1` (hareket sistemi + HIG P1 yardımcıları) üzerine `feat/notif-design-mobile`, `feat/campus-map-mobile`, `feat/usage-stats-mobile`. `pubspec.yaml` üç dalın paketlerini birlikte taşır (`flutter_local_notifications` 22.3.3, `flutter_map` 8.3.2, `latlong2` 0.10.1, `geolocator` 14.1.2); kilit dosyası yeniden çözüldü (geçişli `dbus` 0.8.0 -> 0.7.15, geolocator_linux kısıtı). ARB anahtarları birlikte kaldı (çift anahtar yok), `flutter gen-l10n` yeniden üretildi.
+- **Bağlantılar:** kampüs sayfaları ekran eşlemesinde (`campus_map|campus_search|campus_category|campus_place`); `notification_open {kind}`, `map_place_open {kind}`, kampüs `share {kind: campus_place}` olayları (içerik/kimlik yok); şerit çıkış hareketi ve kampüs durum geçişleri `BuMotion`/`BuStateSwitcher` ile; backend `card` alanı ve `SECURITY` hedefi desteği. Sözleşme farkları: [NOTIF_MAP_CONTRACT_CHECK.md](NOTIF_MAP_CONTRACT_CHECK.md). Test: `test/integration_notif_map_usage_test.dart`.
+
 ### Menü: yemek adına bağlı kalori + içeriğe bağlı görsel (V1040)
 
 - **Kalori:** yönetici bir yemeğe kalori girince değer yemek adına (`menu_dish_calorie`) da kaydedilir; aynı adlı yemek tarihe özel satırı olmayan günlerde (gelecek ay menüsü dahil) otomatik kalorili görünür. Kalori silmek kayıtlı değeri de siler.
