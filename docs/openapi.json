@@ -197,6 +197,37 @@
           }
         }
       },
+      "ActionStat" : {
+        "properties" : {
+          "count" : {
+            "format" : "int32",
+            "type" : [ "integer", "null" ]
+          },
+          "kind" : {
+            "type" : [ "string", "null" ]
+          },
+          "perScreen" : {
+            "items" : {
+              "$ref" : "#/components/schemas/ScreenCount"
+            },
+            "type" : "array"
+          },
+          "users" : {
+            "format" : "int32",
+            "type" : [ "integer", "null" ]
+          }
+        }
+      },
+      "Actions" : {
+        "properties" : {
+          "items" : {
+            "items" : {
+              "$ref" : "#/components/schemas/ActionStat"
+            },
+            "type" : "array"
+          }
+        }
+      },
       "ActiveRequest" : {
         "properties" : {
           "active" : {
@@ -5558,6 +5589,25 @@
         },
         "required" : [ "content" ]
       },
+      "DropOff" : {
+        "properties" : {
+          "entered" : {
+            "format" : "int32",
+            "type" : [ "integer", "null" ]
+          },
+          "left" : {
+            "format" : "int32",
+            "type" : [ "integer", "null" ]
+          },
+          "leftRate" : {
+            "format" : "double",
+            "type" : [ "number", "null" ]
+          },
+          "screen" : {
+            "type" : [ "string", "null" ]
+          }
+        }
+      },
       "EditMessageRequest" : {
         "properties" : {
           "text" : {
@@ -6522,6 +6572,34 @@
           "role" : {
             "enum" : [ "USER", "ADMIN" ],
             "type" : [ "string", "null" ]
+          }
+        }
+      },
+      "Flows" : {
+        "properties" : {
+          "dropOff" : {
+            "items" : {
+              "$ref" : "#/components/schemas/DropOff"
+            },
+            "type" : "array"
+          },
+          "entryScreens" : {
+            "items" : {
+              "$ref" : "#/components/schemas/ScreenSessions"
+            },
+            "type" : "array"
+          },
+          "exitScreens" : {
+            "items" : {
+              "$ref" : "#/components/schemas/ScreenSessions"
+            },
+            "type" : "array"
+          },
+          "topTransitions" : {
+            "items" : {
+              "$ref" : "#/components/schemas/Transition"
+            },
+            "type" : "array"
           }
         }
       },
@@ -11987,12 +12065,95 @@
           }
         }
       },
+      "ScreenCount" : {
+        "properties" : {
+          "count" : {
+            "format" : "int32",
+            "type" : [ "integer", "null" ]
+          },
+          "screen" : {
+            "type" : [ "string", "null" ]
+          }
+        }
+      },
+      "ScreenSessions" : {
+        "properties" : {
+          "screen" : {
+            "type" : [ "string", "null" ]
+          },
+          "sessions" : {
+            "format" : "int32",
+            "type" : [ "integer", "null" ]
+          }
+        }
+      },
+      "ScreenStat" : {
+        "properties" : {
+          "avgDwellMs" : {
+            "format" : "int64",
+            "type" : [ "integer", "null" ]
+          },
+          "bounceRate" : {
+            "format" : "double",
+            "type" : [ "number", "null" ]
+          },
+          "exitRate" : {
+            "format" : "double",
+            "type" : [ "number", "null" ]
+          },
+          "medianDwellMs" : {
+            "format" : "int64",
+            "type" : [ "integer", "null" ]
+          },
+          "p90DwellMs" : {
+            "format" : "int64",
+            "type" : [ "integer", "null" ]
+          },
+          "screen" : {
+            "type" : [ "string", "null" ]
+          },
+          "sharePct" : {
+            "format" : "double",
+            "type" : [ "number", "null" ]
+          },
+          "users" : {
+            "format" : "int32",
+            "type" : [ "integer", "null" ]
+          },
+          "views" : {
+            "format" : "int32",
+            "type" : [ "integer", "null" ]
+          }
+        }
+      },
       "ScreenViews" : {
         "properties" : {
           "screen" : {
             "type" : [ "string", "null" ]
           },
           "views" : {
+            "format" : "int64",
+            "type" : [ "integer", "null" ]
+          }
+        }
+      },
+      "ScreensPage" : {
+        "properties" : {
+          "items" : {
+            "items" : {
+              "$ref" : "#/components/schemas/ScreenStat"
+            },
+            "type" : "array"
+          },
+          "page" : {
+            "format" : "int32",
+            "type" : [ "integer", "null" ]
+          },
+          "size" : {
+            "format" : "int32",
+            "type" : [ "integer", "null" ]
+          },
+          "total" : {
             "format" : "int64",
             "type" : [ "integer", "null" ]
           }
@@ -12287,6 +12448,40 @@
           }
         }
       },
+      "SessionOut" : {
+        "properties" : {
+          "bounce" : {
+            "type" : [ "boolean", "null" ]
+          },
+          "durationMs" : {
+            "format" : "int64",
+            "type" : [ "integer", "null" ]
+          },
+          "endedAt" : {
+            "format" : "date-time",
+            "type" : [ "string", "null" ]
+          },
+          "quickClose" : {
+            "type" : [ "boolean", "null" ]
+          },
+          "reason" : {
+            "type" : [ "string", "null" ]
+          },
+          "sid" : {
+            "type" : [ "string", "null" ]
+          },
+          "startedAt" : {
+            "format" : "date-time",
+            "type" : [ "string", "null" ]
+          },
+          "steps" : {
+            "items" : {
+              "$ref" : "#/components/schemas/StepOut"
+            },
+            "type" : "array"
+          }
+        }
+      },
       "SessionView" : {
         "properties" : {
           "dayOfWeek" : {
@@ -12563,6 +12758,27 @@
           }
         },
         "required" : [ "status" ]
+      },
+      "StepOut" : {
+        "properties" : {
+          "at" : {
+            "format" : "date-time",
+            "type" : [ "string", "null" ]
+          },
+          "dwellMs" : {
+            "format" : "int64",
+            "type" : [ "integer", "null" ]
+          },
+          "kind" : {
+            "type" : [ "string", "null" ]
+          },
+          "screen" : {
+            "type" : [ "string", "null" ]
+          },
+          "type" : {
+            "type" : [ "string", "null" ]
+          }
+        }
       },
       "StoredPreviewRequest" : {
         "properties" : {
@@ -13429,6 +13645,17 @@
           }
         }
       },
+      "TopScreen" : {
+        "properties" : {
+          "ms" : {
+            "format" : "int64",
+            "type" : [ "integer", "null" ]
+          },
+          "screen" : {
+            "type" : [ "string", "null" ]
+          }
+        }
+      },
       "TrackReplyRequest" : {
         "properties" : {
           "text" : {
@@ -13536,6 +13763,20 @@
           "toUserId" : {
             "format" : "int64",
             "type" : [ "integer", "null" ]
+          }
+        }
+      },
+      "Transition" : {
+        "properties" : {
+          "count" : {
+            "format" : "int32",
+            "type" : [ "integer", "null" ]
+          },
+          "from" : {
+            "type" : [ "string", "null" ]
+          },
+          "to" : {
+            "type" : [ "string", "null" ]
           }
         }
       },
@@ -13875,6 +14116,30 @@
           }
         }
       },
+      "UserDetail" : {
+        "properties" : {
+          "sessions" : {
+            "items" : {
+              "$ref" : "#/components/schemas/SessionOut"
+            },
+            "type" : "array"
+          },
+          "summary" : {
+            "anyOf" : [ {
+              "$ref" : "#/components/schemas/UserSummary"
+            }, {
+              "type" : "null"
+            } ]
+          },
+          "user" : {
+            "anyOf" : [ {
+              "$ref" : "#/components/schemas/UserInfo"
+            }, {
+              "type" : "null"
+            } ]
+          }
+        }
+      },
       "UserDevices" : {
         "properties" : {
           "devices" : {
@@ -13888,6 +14153,26 @@
               "$ref" : "#/components/schemas/IpSeen"
             },
             "type" : "array"
+          },
+          "userId" : {
+            "format" : "int64",
+            "type" : [ "integer", "null" ]
+          }
+        }
+      },
+      "UserInfo" : {
+        "properties" : {
+          "department" : {
+            "type" : [ "string", "null" ]
+          },
+          "displayName" : {
+            "type" : [ "string", "null" ]
+          },
+          "email" : {
+            "type" : [ "string", "null" ]
+          },
+          "grade" : {
+            "type" : [ "string", "null" ]
           },
           "userId" : {
             "format" : "int64",
@@ -13944,6 +14229,56 @@
           },
           "nextCursor" : {
             "type" : [ "string", "null" ]
+          }
+        }
+      },
+      "UserRow" : {
+        "properties" : {
+          "avgSessionMs" : {
+            "format" : "int64",
+            "type" : [ "integer", "null" ]
+          },
+          "bounceRate" : {
+            "format" : "double",
+            "type" : [ "number", "null" ]
+          },
+          "department" : {
+            "type" : [ "string", "null" ]
+          },
+          "displayName" : {
+            "type" : [ "string", "null" ]
+          },
+          "email" : {
+            "type" : [ "string", "null" ]
+          },
+          "grade" : {
+            "type" : [ "string", "null" ]
+          },
+          "lastSeenAt" : {
+            "format" : "date-time",
+            "type" : [ "string", "null" ]
+          },
+          "quickCloseCount" : {
+            "format" : "int32",
+            "type" : [ "integer", "null" ]
+          },
+          "sessions" : {
+            "format" : "int32",
+            "type" : [ "integer", "null" ]
+          },
+          "topScreens" : {
+            "items" : {
+              "$ref" : "#/components/schemas/TopScreen"
+            },
+            "type" : "array"
+          },
+          "totalMs" : {
+            "format" : "int64",
+            "type" : [ "integer", "null" ]
+          },
+          "userId" : {
+            "format" : "int64",
+            "type" : [ "integer", "null" ]
           }
         }
       },
@@ -14044,6 +14379,28 @@
             "type" : [ "string", "null" ]
           },
           "id" : {
+            "format" : "int64",
+            "type" : [ "integer", "null" ]
+          }
+        }
+      },
+      "UsersPage" : {
+        "properties" : {
+          "items" : {
+            "items" : {
+              "$ref" : "#/components/schemas/UserRow"
+            },
+            "type" : "array"
+          },
+          "page" : {
+            "format" : "int32",
+            "type" : [ "integer", "null" ]
+          },
+          "size" : {
+            "format" : "int32",
+            "type" : [ "integer", "null" ]
+          },
+          "total" : {
             "format" : "int64",
             "type" : [ "integer", "null" ]
           }
@@ -17038,6 +17395,487 @@
           "adminBasic" : [ ]
         } ],
         "tags" : [ "admin-analytics-controller" ]
+      }
+    },
+    "/api/admin/analytics/behavior/actions" : {
+      "get" : {
+        "operationId" : "actions",
+        "parameters" : [ {
+          "in" : "query",
+          "name" : "from",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "to",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Actions"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Dogrulama / is kurali hatasi (code alanina bakin)"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Token yok/gecersiz/suresi dolmus"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "ADMIN rolu gerekli"
+          }
+        },
+        "security" : [ {
+          "bearerAuth" : [ ]
+        }, {
+          "adminBasic" : [ ]
+        } ],
+        "tags" : [ "behavior-controller" ]
+      }
+    },
+    "/api/admin/analytics/behavior/flows" : {
+      "get" : {
+        "operationId" : "flows",
+        "parameters" : [ {
+          "in" : "query",
+          "name" : "from",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "to",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Flows"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Dogrulama / is kurali hatasi (code alanina bakin)"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Token yok/gecersiz/suresi dolmus"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "ADMIN rolu gerekli"
+          }
+        },
+        "security" : [ {
+          "bearerAuth" : [ ]
+        }, {
+          "adminBasic" : [ ]
+        } ],
+        "tags" : [ "behavior-controller" ]
+      }
+    },
+    "/api/admin/analytics/behavior/overview" : {
+      "get" : {
+        "operationId" : "overview_2",
+        "parameters" : [ {
+          "in" : "query",
+          "name" : "from",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "to",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Overview"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Dogrulama / is kurali hatasi (code alanina bakin)"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Token yok/gecersiz/suresi dolmus"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "ADMIN rolu gerekli"
+          }
+        },
+        "security" : [ {
+          "bearerAuth" : [ ]
+        }, {
+          "adminBasic" : [ ]
+        } ],
+        "tags" : [ "behavior-controller" ]
+      }
+    },
+    "/api/admin/analytics/behavior/screens" : {
+      "get" : {
+        "operationId" : "screens",
+        "parameters" : [ {
+          "in" : "query",
+          "name" : "from",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "to",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "sort",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "dir",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "page",
+          "required" : false,
+          "schema" : {
+            "default" : 0,
+            "format" : "int32",
+            "type" : "integer"
+          }
+        }, {
+          "in" : "query",
+          "name" : "size",
+          "required" : false,
+          "schema" : {
+            "default" : 20,
+            "format" : "int32",
+            "type" : "integer"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ScreensPage"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Dogrulama / is kurali hatasi (code alanina bakin)"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Token yok/gecersiz/suresi dolmus"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "ADMIN rolu gerekli"
+          }
+        },
+        "security" : [ {
+          "bearerAuth" : [ ]
+        }, {
+          "adminBasic" : [ ]
+        } ],
+        "tags" : [ "behavior-controller" ]
+      }
+    },
+    "/api/admin/analytics/behavior/users" : {
+      "get" : {
+        "operationId" : "users",
+        "parameters" : [ {
+          "in" : "query",
+          "name" : "from",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "to",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "sort",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "dir",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "q",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "page",
+          "required" : false,
+          "schema" : {
+            "default" : 0,
+            "format" : "int32",
+            "type" : "integer"
+          }
+        }, {
+          "in" : "query",
+          "name" : "size",
+          "required" : false,
+          "schema" : {
+            "default" : 20,
+            "format" : "int32",
+            "type" : "integer"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/UsersPage"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Dogrulama / is kurali hatasi (code alanina bakin)"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Token yok/gecersiz/suresi dolmus"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "ADMIN rolu gerekli"
+          }
+        },
+        "security" : [ {
+          "bearerAuth" : [ ]
+        }, {
+          "adminBasic" : [ ]
+        } ],
+        "tags" : [ "behavior-controller" ]
+      }
+    },
+    "/api/admin/analytics/behavior/users/{id}" : {
+      "get" : {
+        "operationId" : "userDetail",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "format" : "int64",
+            "type" : "integer"
+          }
+        }, {
+          "in" : "query",
+          "name" : "days",
+          "required" : false,
+          "schema" : {
+            "format" : "int32",
+            "type" : "integer"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/UserDetail"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Dogrulama / is kurali hatasi (code alanina bakin)"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Token yok/gecersiz/suresi dolmus"
+          },
+          "403" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "ADMIN rolu gerekli"
+          }
+        },
+        "security" : [ {
+          "bearerAuth" : [ ]
+        }, {
+          "adminBasic" : [ ]
+        } ],
+        "tags" : [ "behavior-controller" ]
       }
     },
     "/api/admin/analytics/breakdown" : {
