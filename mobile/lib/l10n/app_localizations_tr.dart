@@ -12,7 +12,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get commonRetry => 'Yeniden dene';
 
   @override
-  String get commonRetryShort => 'Tekrar dene';
+  String get commonRetryShort => 'Yeniden dene';
 
   @override
   String get commonCancel => 'Vazgeç';

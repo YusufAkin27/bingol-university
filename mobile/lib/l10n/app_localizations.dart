@@ -109,7 +109,7 @@ abstract class AppLocalizations {
   /// No description provided for @commonRetryShort.
   ///
   /// In tr, this message translates to:
-  /// **'Tekrar dene'**
+  /// **'Yeniden dene'**
   String get commonRetryShort;
 
   /// No description provided for @commonCancel.

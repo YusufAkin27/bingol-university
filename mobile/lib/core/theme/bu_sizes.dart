@@ -17,6 +17,10 @@ abstract final class BuSize {
   /// Metin giriş alanı / seçim kutusu / arama kutusu yüksekliği.
   static const double field = 52;
 
+  /// Metin alanı yüksekliği ALT SINIRI (HIG-P1): görünür alan 46 dp gibi küçük çizilmişse en az bu kadar olmalıdır
+  /// (= [touch]). Tema alanları zaten [field] (52) civarındadır; özel `RefTextField` benzeri alanlar bunu taban alır.
+  static const double fieldMin = 48;
+
   /// Arama kutusu (içindeki temizle düğmesi 48 dp dokunma alanını bozmasın diye 48).
   static const double search = 48;
 

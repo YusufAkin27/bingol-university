@@ -1,7 +1,7 @@
 {
   "@@locale": "tr",
   "commonRetry": "Yeniden dene",
-  "commonRetryShort": "Tekrar dene",
+  "commonRetryShort": "Yeniden dene",
   "commonCancel": "Vazgeç",
   "commonClose": "Kapat",
   "commonLoading": "Yükleniyor",

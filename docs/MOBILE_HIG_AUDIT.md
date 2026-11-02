@@ -420,3 +420,84 @@ Her paketin kabul ölçütü aynı betik/testle doğrulanır: `python -I -X utf8
 | Uyarı düğmeleri | "Tamam" yerine fiil; yıkıcı eylem ayrı stil ve her zaman Vazgeç (Ç-10) |
 
 Hareket kuralları (ERS-8 ve bölüm 21) başka ajanın kapsamındadır; çatışma listesine alınmadı.
+
+---
+
+## 14. HIG-P1: ortak yardımcılar ve jeton eşleme tablosu (diğer paketler P2-P8 için)
+
+Kullanıcı kararı (onaylı): D-1 (190 jeton dışı yazı boyutu ölçeğe EKLENİR) ve D-2 (`BuSpace`e 10 ve 14 EKLENİR) **görünüm değişmeden** uygulanır. Bu bölüm P2-P8 paketlerinin eski değeri hangi jetona çevireceğini verir. Jetonlar: `lib/core/typography.dart` (`BuScale`, `BuBold`), `lib/core/theme/bu_space.dart` (`BuSpace`, `BuGap`, `BuOptical`, `BuInsets`), `lib/core/theme/bu_sizes.dart` (`BuSize.fieldMin`), `lib/core/theme.dart` (`BuColors`, `BuAvatarPalette`, `BuCourseColors`). Hepsi `import '../../widgets/bu.dart'` (ya da `core/theme/bu_design.dart`) ile gelir.
+
+### 14.1 Yardımcı el kitabı (10 satır)
+
+1. **Dokunma alanı:** `BuTouchTarget(child: X)` görünür kutuyu aynı bırakıp yerleşim kutusunu 48x48'e çıkarır; `axis: Axis.vertical` yalnız yüksekliği büyütür (geniş çip). `BuPressable/GestureDetector/InkWell` ile **dıştan** sarın, `BuTouchTarget`'ı onun **içine** koyun.
+2. **Yalnız-simge düğme:** `BuIconButton(icon:, tooltip:, onTap:)`; `tooltip` artık ZORUNLU (derleme hatası verir), 40 dp görünür + 48 dp hedef. `IconButton` yerine bunu tercih edin; `IconButton` kalırsa `tooltip:` şart.
+3. **Görsel:** anlamlıysa `BuImage(url, semanticLabel: '...')`, süsse `BuImage.decorative(url)`; ham `Image(...)` için `semanticLabel:` ya da `excludeFromSemantics: true`.
+4. **Yazı boyutu:** elle `fontSize: 13` yok; 14.2 tablosundaki `BuScale.*` jetonu. 11 sp altı yok (K-21).
+5. **Boşluk:** `SizedBox(height: 10)` -> `BuGap.h10`; `EdgeInsets...(10)` -> `BuSpace.s10`; 4'ün katı olmayan optik değerler -> `BuOptical.nN` (14.3).
+6. **Yön:** `EdgeInsets.fromLTRB(a,t,b,bt)` -> `BuInsets.steb(a,t,b,bt)`; `only(left:)` -> `BuInsets.start`; `Positioned(left:)` -> `PositionedDirectional(start:)`; `Alignment.centerLeft` -> `AlignmentDirectional.centerStart`.
+7. **Kalın yazı:** `Text`/`TextField` `MediaQuery.boldText`'i çerçeveden kendiliğinden uygular; `TextPainter`/painter metni için `BuBold.style(context, style)`.
+8. **Renk:** `Color(0xFF...)`/`Colors.white` yerine `context.bu` jetonu; bağlamsız (painter/model) yerde 14.4 tablosundaki sabit jeton.
+9. **Metin alanı:** yükseklik alt sınırı `BuSize.fieldMin` (48); tema alanları 52 (`BuSize.field`).
+10. **Metin sözlüğü:** yeniden deneme düğmesi her yerde `Yeniden dene` (`commonRetry`/`commonRetryShort` artık aynı metin); "Tamam" yerine fiil (14.6).
+
+### 14.2 Yazı boyutu: eski değer -> jeton (görünüm AYNI)
+
+| Eski `fontSize` | Jeton | Not |
+|---|---|---|
+| 10 | (jeton YOK) | K-21 tabanı 11 altı: `BuScale.caption` (11,5) ya da `BuScale.s11`; `home_parts.dart:729` kararı onaylı: 11,5 (P3) |
+| 11 | `BuScale.s11` | yeni kodda `caption` |
+| 11,5 / 12,5 / 14 / 15 / 16 / 18 / 22 | zaten `BuScale.caption/label/body/bodyLarge/heading/title/display` | `BuType.*` stilinden gelir |
+| 12 | `BuScale.s12` | 39 yer |
+| 13 | `BuScale.s13` | 105 yer |
+| 13,5 | `BuScale.s135` | 4 yer |
+| 17 | `BuScale.s17` | 21 yer |
+| 19 | `BuScale.s19` | |
+| 20 | `BuScale.s20` | 7 yer |
+| 26 | `BuScale.s26` | `BuHeader`, `BuFeatureTitle` |
+| 28 | `BuScale.s28` | 5 yer |
+| 88 | `BuScale.s88` | 2 yer |
+
+Kullanım: `BuType.body.copyWith(fontSize: BuScale.s13)`.
+
+### 14.3 Boşluk: eski değer -> jeton (görünüm AYNI)
+
+| Eski | Jeton |
+|---|---|
+| 10 | `BuSpace.s10`; `BuGap.h10` / `BuGap.w10` |
+| 14 | `BuSpace.s14`; `BuGap.h14` / `BuGap.w14` |
+| 1 / 3 / 5 / 7 / 9 | `BuOptical.n1` / `n3` / `n5` / `n7` / `n9` |
+| 13 / 15 / 17 / 18 / 22 / 25 / 26 | `BuOptical.n13` / `n15` / `n17` / `n18` / `n22` / `n25` / `n26` |
+| 1,5; 1,6; 11; 12,5; 15,5; 16,5; 19; 23; 25,5; 30; 33; 34; 38; 85 | jetonsuz tek kullanımlıklar (toplam ~15): en yakın `BuSpace`/`BuOptical` değerine çekin (en çok 2 dp kayar) ve sayfa notuna yazın |
+| 0, 2, 4, 6, 8, 12, 16, 20, 24, 32, 48 | zaten ölçek (`BuSpace.*`, `BuGap.*`); denetim bunları ihlal saymaz |
+
+`BuOptical` yeni tasarım için DEĞİL, mevcut görünümü korumak içindir. Not: denetim betiği yalnız **sayı literallerini** sayar; `BuSpace.s10` gibi adlandırılmış kullanım ihlal olmaz.
+
+### 14.4 Renk: eski -> jeton
+
+| Eski | Jeton |
+|---|---|
+| `Color(0xFFF2A094/C0392B/FBE0DC)` ... avatar paleti (6 değişken x 3) | `BuAvatarPalette.brand/navy/sand/aqua/green/blue` (`.variants`) |
+| avatar `Colors.white` | `BuAvatarPalette.silhouette` (= `BuColors.white`) |
+| avatar `Alignment.topLeft/bottomRight` | `BuAvatarPalette.gradientBegin/End` (yön bağımsız çizim) |
+| `academic_models.dart` ders renkleri `0xFFBC3A2D/9A5700/1E7A50/0B6E86/1F4E96/5C5A56` (P4) | `BuCourseColors.red/amber/green/teal/blue/neutral` |
+| `sohbety_widgets.dart:13` `Color(0x40171E33)` (P5) | `BuColors.inkShadow25` |
+| `media_preview_page.dart:32,33` `Color(0x00000000)` (P5) | `Colors.transparent` |
+| arayüz yüzeyinde `Colors.white` | `context.bu.onMedia` |
+
+Not: `test/redesign/renk_paleti_test.dart` izin listesi (`theme.dart`, `bu_default_avatar.dart`, ...) değişmedi; yeni jetonlar `theme.dart` içindedir.
+
+### 14.5 Yön (RTL)
+
+| Eski | Yeni |
+|---|---|
+| `EdgeInsets.fromLTRB(a, t, b, bt)` | `EdgeInsetsDirectional.fromSTEB` ya da `BuInsets.steb` |
+| `EdgeInsets.only(left: x)` / `(right: x)` | `EdgeInsetsDirectional.only(start: x)` / `(end: x)` ya da `BuInsets.start/end` |
+| `Positioned(left:, right:)` | `PositionedDirectional(start:, end:)` |
+| `Alignment.centerLeft/Right`, `topLeft` | `AlignmentDirectional.centerStart/centerEnd/topStart` |
+
+### 14.6 Metin sözlüğü
+
+- Yeniden deneme: **`Yeniden dene`** (ortak `commonRetry` ve `commonRetryShort` artık aynı Türkçe metin). Hâlâ "Tekrar dene" olan sayfa anahtarları (sahibi düzeltir): `permRetry` (P2), `eventFormRetry` (P6). "Hatalı bir şey oldu, Tekrar dene" biçimi kalmamalı.
+- "Tamam": ortak anahtarlarda yok; sayfa anahtarları `clubOk`, `clubMgmtOk` (P6), `evcOk` (P6) fiille değişir (örn. "Anladım" yerine eylemi söyleyen fiil: "Kapat", "Devam et").
+- Koruma testi: `test/hig/hig_helpers_test.dart` ("Metin sözlüğü") ortak (`common*`) anahtarlarda "Tekrar dene" ve tek başına "Tamam" bulursa kırılır.
+

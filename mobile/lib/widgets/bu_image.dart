@@ -23,6 +23,20 @@ class BuImage extends StatelessWidget {
     this.maxDecodeWidth = 1600,
   });
 
+  /// Dekoratif görsel (HIG-P1): ekran okuyucudan gizlenir (süs, kapak arka planı, başlığı zaten yazılı kart görseli).
+  /// Anlam taşıyan görselde [semanticLabel] verin; ikisinden biri HER ZAMAN bilinçli seçilir.
+  const BuImage.decorative(
+    this.url, {
+    super.key,
+    this.width,
+    this.height,
+    this.fit = BoxFit.cover,
+    this.radius = 0,
+    this.headers,
+    this.placeholderIcon = BuIcons.image,
+    this.maxDecodeWidth = 1600,
+  }) : semanticLabel = null;
+
   final String? url;
   final double? width;
   final double? height;
@@ -34,7 +48,7 @@ class BuImage extends StatelessWidget {
   /// Yetkili uçlar için istek başlıkları.
   final Map<String, String>? headers;
 
-  /// Ekran okuyucu etiketi; null ise görsel dekoratif sayılır.
+  /// Ekran okuyucu etiketi; null ise görsel dekoratif sayılır (bunun için [BuImage.decorative] tercih edin).
   final String? semanticLabel;
   final IconData placeholderIcon;
 

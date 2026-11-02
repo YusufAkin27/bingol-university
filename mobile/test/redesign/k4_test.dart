@@ -86,7 +86,7 @@ void main() {
     await tester.pump(const Duration(milliseconds: 400));
     await tester.pump(const Duration(milliseconds: 400));
     expect(find.text('Beğeni kaydedilemedi'), findsOneWidget);
-    expect(find.text('Tekrar dene'), findsOneWidget);
+    expect(find.text('Yeniden dene'), findsOneWidget);
     expect(find.byIcon(BuIcons.heart), findsOneWidget);
     expect((tester.widget(find.byKey(const ValueKey('like-count'))) as Text).data, '127');
     await tester.pump(const Duration(seconds: 6));

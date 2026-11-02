@@ -329,9 +329,9 @@ void main() {
       await tester.pumpWidget(buildApp(home(b)));
       await settle(tester, const Duration(seconds: 2));
       expect(find.text('Etkinlik yüklenemedi'), findsOneWidget);
-      expect(find.text('Yeniden dene'), findsNothing); // tüm sayfa çökmedi
+      expect(find.text('Yeniden dene'), findsOneWidget); // yalnız bölüm içi eylem (tüm sayfa çökmedi)
       b.on('/events/featured', featured());
-      await tester.tap(find.text('Tekrar dene'));
+      await tester.tap(find.text('Yeniden dene'));
       await settle(tester, const Duration(seconds: 1));
       expect(find.text('Etkinlik yüklenemedi'), findsNothing);
       expect(find.text('Bahar Şenliği ' * 4), findsOneWidget);

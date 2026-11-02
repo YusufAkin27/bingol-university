@@ -15,6 +15,52 @@ class BuColors {
   static const red700 = Color(0xFFC62A20); // eylem kırmızısı: düğme/bağlantı (sakinleştirilmiş)
   static const red800 = Color(0xFF8A2A20);
   static const red100 = Color(0xFFFBE9E6);
+
+  /// Sabit gölge rengi: `ink` %25 (0x40). Bağlamsız `const BoxShadow` için (tema gölgesi `BuTokens.shadow`).
+  static const inkShadow25 = Color(0x40171E33);
+
+  /// Tema bağımsız beyaz: bağlamsız çizimlerde (painter) siluet/parlama. Arayüz yüzeyinde `t.onMedia` kullanın.
+  static const white = Color(0xFFFFFFFF);
+}
+
+/// Varsayılan avatar paleti (HIG-P1): üst renk, alt renk (gradyan), siluet parlaması. Painter bağlamsız olduğundan
+/// değerler temadan bağımsız burada sabittir; tümü uygulama paletinin ailelerindendir (marka, lacivert, kum, su mavisi,
+/// yeşil, mavi; mor/pembe yok, RENK-1). Eski değer -> jeton eşlemesi: `docs/MOBILE_HIG_AUDIT.md` "P1 jeton eşleme".
+@immutable
+class BuAvatarColors {
+  const BuAvatarColors(this.top, this.bottom, this.glow);
+  final Color top;
+  final Color bottom;
+  final Color glow;
+}
+
+abstract final class BuAvatarPalette {
+  static const brand = BuAvatarColors(Color(0xFFF2A094), Color(0xFFC0392B), Color(0xFFFBE0DC)); // marka kırmızısı (sakin)
+  static const navy = BuAvatarColors(Color(0xFF4A5C94), Color(0xFF171E33), Color(0xFF9FB0E6)); // lacivert
+  static const sand = BuAvatarColors(Color(0xFFDCD3C4), Color(0xFF8C8172), Color(0xFFF3EEE6)); // kum (nötr)
+  static const aqua = BuAvatarColors(Color(0xFF6CC3D6), Color(0xFF0B6E86), Color(0xFFCDEEF5)); // su mavisi
+  static const green = BuAvatarColors(Color(0xFF7FCBA3), Color(0xFF1E7A50), Color(0xFFD2F0E1)); // yeşil
+  static const blue = BuAvatarColors(Color(0xFF7FA8E6), Color(0xFF1F4E96), Color(0xFFD3E3FA)); // mavi
+
+  /// Seçim sırası (kararlıdır: kişi her yerde aynı rengi alır; sırayı değiştirmeyin).
+  static const variants = <BuAvatarColors>[brand, navy, sand, aqua, green, blue];
+
+  /// Siluet rengi (tema bağımsız beyaz).
+  static const silhouette = BuColors.white;
+
+  /// Gradyan başlangıç/bitiş: yöne bağımsız çizim (silüet RTL'de aynalanmaz; sol üst -> sağ alt).
+  static const gradientBegin = Alignment(-1, -1);
+  static const gradientEnd = Alignment(1, 1);
+}
+
+/// Ders/etiket renkleri (akademik): bağlamsız model katmanında kullanılır. Eski `Color(0xFF...)` değerleriyle aynı.
+abstract final class BuCourseColors {
+  static const red = Color(0xFFBC3A2D);
+  static const amber = Color(0xFF9A5700);
+  static const green = Color(0xFF1E7A50);
+  static const teal = Color(0xFF0B6E86);
+  static const blue = Color(0xFF1F4E96);
+  static const neutral = Color(0xFF5C5A56);
 }
 
 /// Kategori/etiket renk çifti: yumuşak zemin + üstündeki yazı/simge (AA kontrast).

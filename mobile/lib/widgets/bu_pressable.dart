@@ -23,18 +23,32 @@ void buHaptic([BuHaptic kind = BuHaptic.selection]) {
   }
 }
 
-/// Görünür kutu küçükken (çip 34, düğme 34 dp) dokunma alanını en az [BuSize.touch] (48 dp) yapar; görünür kutuyu
-/// ortalar, çevresindeki boşluk da basılabilir (BuPressable/GestureDetector dış kutunun tamamını yakalar).
+/// Görünür kutu küçükken (çip 34, düğme 34 dp, 44 dp'lik çip) dokunma alanını en az [BuSize.touch] (48 dp) yapar; görünür
+/// kutuyu ortalar, çevresindeki boşluk da basılabilir (dıştaki `BuPressable`/`GestureDetector`/`InkWell` bu kutunun
+/// tamamını yakalar: bu sarmalayıcıyı onların İÇİNE koyun). Görünür boyut AYNI kalır; yalnız yerleşim kutusu büyür.
+///
+/// [axis] verilirse yalnız o eksende büyür: geniş çiplerde (`Axis.vertical`) genişlik hiç değişmez.
+///
+/// ```dart
+/// BuPressable(onTap: f, child: BuTouchTarget(axis: Axis.vertical, child: chip))
+/// ```
 class BuTouchTarget extends StatelessWidget {
-  const BuTouchTarget({super.key, required this.child, this.minSize = BuSize.touch});
+  const BuTouchTarget({super.key, required this.child, this.minSize = BuSize.touch, this.axis});
 
   final Widget child;
   final double minSize;
 
+  /// null: iki eksen; [Axis.vertical]: yalnız yükseklik; [Axis.horizontal]: yalnız genişlik.
+  final Axis? axis;
+
   @override
   Widget build(BuildContext context) => ConstrainedBox(
-        constraints: BoxConstraints(minHeight: minSize, minWidth: minSize),
-        child: Center(widthFactor: 1, child: child),
+        constraints: BoxConstraints(
+          minHeight: axis == Axis.horizontal ? 0 : minSize,
+          minWidth: axis == Axis.vertical ? 0 : minSize,
+        ),
+        // heightFactor: 1 -> sınırlı yükseklikli üst kutuda (Row/SizedBox) bile gereğinden fazla uzamaz.
+        child: Center(widthFactor: 1, heightFactor: 1, child: child),
       );
 }
 

@@ -121,12 +121,14 @@ IconData buDirIcon(BuildContext context, IconData icon) {
 
 /// Yuvarlak, çizgili ikon düğmesi (üst başlıkta). [filled] true ise kırmızı dolgulu.
 /// Görsel boyut [size] ([BuSize.iconBtn] = 40); dokunma alanı en az 48x48 dp. Basılınca hafifçe küçülür.
+///
+/// [tooltip] ZORUNLUDUR (HIG-P1): yalnız simgeli düğmenin ekran okuyucu adı ve uzun basma ipucudur; boş olamaz.
 class BuIconButton extends StatelessWidget {
   const BuIconButton({
     super.key,
     required this.icon,
+    required this.tooltip,
     this.onTap,
-    this.tooltip,
     this.filled = false,
     this.badge = false,
     this.size = BuSize.iconBtn,
@@ -134,7 +136,7 @@ class BuIconButton extends StatelessWidget {
 
   final IconData icon;
   final VoidCallback? onTap;
-  final String? tooltip;
+  final String tooltip;
   final bool filled;
   final bool badge;
   final double size;
@@ -155,7 +157,8 @@ class BuIconButton extends StatelessWidget {
           child: Stack(
             alignment: Alignment.center,
             children: [
-              Icon(buDirIcon(context, icon), size: size * .5, color: filled ? t.onPr : t.ink),
+              // Ad dış Semantics'te ([tooltip]); simge dekoratif.
+              ExcludeSemantics(child: Icon(buDirIcon(context, icon), size: size * .5, color: filled ? t.onPr : t.ink)),
               if (badge)
                 PositionedDirectional(
                   top: size * .2,
@@ -203,7 +206,7 @@ class BuIconButton extends StatelessWidget {
       ),
     );
     // Etiket Semantics'te verilir; Tooltip yalnız görsel ipucu (çift okunmasın).
-    return tooltip == null ? child : Tooltip(message: tooltip!, excludeFromSemantics: true, child: child);
+    return Tooltip(message: tooltip, excludeFromSemantics: true, child: child);
   }
 }
 
