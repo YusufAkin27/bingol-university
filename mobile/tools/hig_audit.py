@@ -521,6 +521,8 @@ def measure_a11y(srcs) -> dict:
         m = s.masked
         for mm in ICON_BTN.finditer(m):
             args, _ = call_args(m, mm.end() - 1)
+            if re.match(r"\s*\{", args) and "this." in args:
+                continue  # kurucu TANIMI (`const BuIconButton({required this.tooltip, ...})`), kullanim degil
             icon_btn_total += 1
             if not re.search(r"\btooltip\s*:|semanticLabel|\blabel\s*:", args):
                 no_tip.append(Finding(s, mm.start(), mm.group(1)))

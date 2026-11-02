@@ -313,3 +313,8 @@ BuSheet.show<void>(context, title: l10n.sortBy, actions: [BuButton(label: l10n.a
 - `LoadingView` (`common.dart`) hâlâ çemberdir (9 test `CircularProgressIndicator` bekliyor); ekran yenileyen paketler iskelete geçerken testini günceller.
 - `sistem_widgets.dart` (`SistemTile/Button/StatusView`) P1 ekranları içindir; `MaintenanceBand` renkleri tokenlara taşındı.
 - Test ortamında elevation gölgeleri (FAB, kaydırıcı başparmağı) koyu halka gibi çizilir; cihazda yumuşak gölgedir.
+
+## 11. HIG-P1 eklemeleri (jetonlar ve yardımcılar)
+
+Apple HIG denetimi sonrası eklenen, **görünümü değiştirmeyen** jetonlar ve yardımcılar: `BuScale.s11..s88` (yazı geçiş boyutları), `BuSpace.s10/s14` + `BuGap.h10/h14/w10/w14`, `BuOptical.nN` (optik boşluklar), `BuInsets` (yön duyarlı kenar boşluğu), `BuSize.fieldMin/actionPill/badge`, `BuBold` (kalın yazı), `BuTouchTarget(axis:)`, `BuImage.decorative`, `BuAvatarPalette`, `BuCourseColors`. `BuIconButton.tooltip` zorunludur. Eski değer -> jeton eşleme tablosu, el kitabı ve kod dönüştürücü (`mobile/tools/hig_tokenize.py`): `docs/MOBILE_HIG_AUDIT.md` bölüm 14. Yeni tasarım önce anlamlı basamakları (`display..caption`, `xxs..huge`) kullanır; geçiş jetonları yalnız mevcut ekranların boyutunu korumak içindir.
+

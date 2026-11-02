@@ -467,7 +467,7 @@ Kullanım: `BuType.body.copyWith(fontSize: BuScale.s13)`.
 | 14 | `BuSpace.s14`; `BuGap.h14` / `BuGap.w14` |
 | 1 / 3 / 5 / 7 / 9 | `BuOptical.n1` / `n3` / `n5` / `n7` / `n9` |
 | 13 / 15 / 17 / 18 / 22 / 25 / 26 | `BuOptical.n13` / `n15` / `n17` / `n18` / `n22` / `n25` / `n26` |
-| 1,5; 1,6; 11; 12,5; 15,5; 16,5; 19; 23; 25,5; 30; 33; 34; 38; 85 | jetonsuz tek kullanımlıklar (toplam ~15): en yakın `BuSpace`/`BuOptical` değerine çekin (en çok 2 dp kayar) ve sayfa notuna yazın |
+| 1,5; 1,6; 11; 12,5; 15,5; 16,5; 19; 23; 25,5; 30; 33; 34; 38; 85 | jetonsuz tek kullanımlıklar (toplam ~15): görünüm DEĞİŞMESİN diye ölçek ifadesiyle yazın (örn. 30 = `BuSpace.xxxl - BuSpace.xxs`, 17 = `BuSpace.lg + BuOptical.n1`; denetim yalnız sayı literalini sayar) ya da en yakın değere çekip (en çok 2 dp) sayfa notuna yazın |
 | 0, 2, 4, 6, 8, 12, 16, 20, 24, 32, 48 | zaten ölçek (`BuSpace.*`, `BuGap.*`); denetim bunları ihlal saymaz |
 
 `BuOptical` yeni tasarım için DEĞİL, mevcut görünümü korumak içindir. Not: denetim betiği yalnız **sayı literallerini** sayar; `BuSpace.s10` gibi adlandırılmış kullanım ihlal olmaz.
@@ -500,4 +500,38 @@ Not: `test/redesign/renk_paleti_test.dart` izin listesi (`theme.dart`, `bu_defau
 - Yeniden deneme: **`Yeniden dene`** (ortak `commonRetry` ve `commonRetryShort` artık aynı Türkçe metin). Hâlâ "Tekrar dene" olan sayfa anahtarları (sahibi düzeltir): `permRetry` (P2), `eventFormRetry` (P6). "Hatalı bir şey oldu, Tekrar dene" biçimi kalmamalı.
 - "Tamam": ortak anahtarlarda yok; sayfa anahtarları `clubOk`, `clubMgmtOk` (P6), `evcOk` (P6) fiille değişir (örn. "Anladım" yerine eylemi söyleyen fiil: "Kapat", "Devam et").
 - Koruma testi: `test/hig/hig_helpers_test.dart` ("Metin sözlüğü") ortak (`common*`) anahtarlarda "Tekrar dene" ve tek başına "Tamam" bulursa kırılır.
+
+### 14.7 Kod dönüştürücü: `mobile/tools/hig_tokenize.py` (P2-P8 için)
+
+Yukarıdaki eşlemelerin mekanik kısmını (yazı boyutu jetonu, `BuGap`/`BuSpace`/`BuOptical`, `EdgeInsets` -> `EdgeInsetsDirectional`, `Positioned` -> `PositionedDirectional`) görünümü değiştirmeden uygular; yorum ve dizelere dokunmaz, gerekli `import`ları ekler. Varsayılan KURU ÇALIŞMA.
+
+```bash
+cd mobile
+python -I -X utf8 tools/hig_tokenize.py lib/features/news lib/features/menu          # yalnız sayar
+python -I -X utf8 tools/hig_tokenize.py --write lib/features/news                       # uygular
+python -I -X utf8 tools/hig_tokenize.py --write --only font,space lib/features/chat     # yalnız font + boşluk
+python -I -X utf8 tools/hig_tokenize.py --write --align lib/features/clubs              # Alignment.centerLeft -> AlignmentDirectional
+```
+
+Sonrasında ŞUNLAR elle yapılır: `dart analyze` (RTL dönüşümü `EdgeInsets` tipli alan/parametreyi kırarsa `EdgeInsetsGeometry`/`EdgeInsetsDirectional` yapın), kalan denetim satırları (10 sp, jetonsuz tek kullanımlıklar, `a ? 10 : 14` gibi koşullu değerler), ilgili testler. `--align` gradyan/hizalama anlamını RTL'de aynalar: gözle bakın. P1 kendi dosyalarına (`lib/widgets/**`) bu aracı uyguladı.
+
+### 14.8 P1 sonuçları (statik, `hig_audit.py`)
+
+| Ölçüm (P1 dosyaları) | Önce | Sonra |
+|---|---|---|
+| Color(0x..) / Colors.* | 18 / 4 | 0 / 0 (avatar paleti `BuAvatarPalette`) |
+| Dokunma şüphesi (b-statik) | 8 | 0 |
+| Yazı boyutu jeton dışı | 2 | 0 |
+| EdgeInsets ölçek dışı / SizedBox ölçek dışı | 23 / 21 | 0 / 0 |
+| tooltip'siz IconButton / etiketsiz Image / yalnız-simge dokunma | 1 / 2 / 1 | 0 / 0 / 0 |
+| klavye (keyboardType / autofillHints / textInputAction) | 2 / 2 / 1 | 0 / 0 / 0 |
+| sabit sol/sağ (RTL) | 12 | 0 |
+| **Toplam P1** | **97** | **0** |
+
+Dinamik ortak bileşen doğrulaması: `test/hig/hig_p1_components_test.dart` (2,0 yazı ölçeği x 320/390 dp x tr/en/ar x açık/koyu taşma 0; `androidTapTargetGuideline` + `labeledTapTargetGuideline` 0; `BuErrorState`/`BuEmptyState`/`SistemStatusView` yerleştikten sonra `textContrastGuideline` açık+koyu 0). Hata/boş durum "belirsiz kontrast" bulgusu (1,94:1) giriş animasyonu sırasındaki ölçüm yanılgısıdır; yerleşince bileşen metni `mut`/`ink` jetonlarıyla geçer.
+
+Davranış/görünüm notları (görünüm AYNI, ölçümle doğrulandı):
+- `BuSearchField`: çizgi `foregroundDecoration` ile ÖNDE çizilir, alan düğümü 48 dp olur (önceki 22 dp), silme düğmesi 48x48; simge ve metin konumları birebir aynı (önce/sonra ölçüm: simge 17,15; metin 45,14,4), odak çizgisi artık içeriği 1 dp kaydırmaz. Alanın boşluk/simge bölgesine dokunmak odak verir.
+- `BuIconButton.tooltip` zorunlu (imza sıkılaştı; tüm çağıranlar zaten veriyordu).
+- Material düğmelerinde (`TextButton` 40 dp, `IconButton` 40 dp) görünür boyut AYNI; hedef temadaki `MaterialTapTargetSize.padded` ile 48 dp (`BuSize.actionPill`, `BuSize.iconBtn`).
 
