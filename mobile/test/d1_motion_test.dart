@@ -16,12 +16,13 @@ Widget host(Widget child, {bool reduce = false}) => MaterialApp(
 void main() {
   group('jetonlar', () {
     test('süre kademesi hızlı < normal < yavaş ve makul aralıkta', () {
-      expect(BuMotion.short.inMilliseconds, inInclusiveRange(120, 160));
-      expect(BuMotion.medium.inMilliseconds, inInclusiveRange(220, 280));
-      expect(BuMotion.long.inMilliseconds, inInclusiveRange(300, 400));
+      // Eski adlar yeni ölçeğin takma adıdır (kurumsal + sıcak: 200 / 300 / 400 ms).
+      expect(BuMotion.short, BuMotion.durations.quick);
+      expect(BuMotion.medium, BuMotion.durations.standard);
+      expect(BuMotion.long, BuMotion.durations.page);
       expect(BuMotion.short < BuMotion.medium, isTrue);
       expect(BuMotion.medium < BuMotion.long, isTrue);
-      expect(BuMotion.stagger.inMilliseconds, inInclusiveRange(30, 40));
+      expect(BuMotion.stagger(1).inMilliseconds, inInclusiveRange(50, 100));
     });
 
     test('eğriler 0 -> 0, 1 -> 1 uçlu ve giriş çıkıştan farklı', () {
@@ -79,6 +80,7 @@ void main() {
       await tester.pumpWidget(build(true));
       await tester.pumpWidget(build(false));
       await tester.pump();
+      await tester.pump(BuMotion.durations.reducedFade + const Duration(milliseconds: 20)); // yalnız kısa solma
       expect(find.byKey(const ValueKey('sk')), findsNothing);
       expect(find.byKey(const ValueKey('ct')), findsOneWidget);
     });

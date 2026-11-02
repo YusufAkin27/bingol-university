@@ -38,7 +38,8 @@ class BuTouchTarget extends StatelessWidget {
       );
 }
 
-/// Basılı tutunca hafifçe küçülen (0.97) ve hafifçe solan (opaklık ~0.92) dokunma sarmalayıcısı. İki kullanım:
+/// Basılı tutunca hafifçe küçülen (0.97, 120 ms) ve hafifçe solan (opaklık ~0.92) dokunma sarmalayıcısı; bırakınca
+/// 300 ms'de yerleşir (BuMotion.curves.settle). İki kullanım:
 ///
 /// * `onTap` verilirse dokunmayı kendisi yakalar (anlamsal düğme + titreşim).
 /// * `onTap` null ise yalnız ölçek efekti verir; dokunmayı içerideki `InkWell` yakalar (kart/satır).
@@ -66,7 +67,7 @@ class BuPressable extends StatefulWidget {
   /// Basılıyken ölçek (0.9-1.0).
   final double scale;
 
-  /// Basılıyken opaklık (1 = solma yok). Ölçekle birlikte 100 ms'de, "animasyonları azalt" açıkken hiç uygulanmaz.
+  /// Basılıyken opaklık (1 = solma yok). Ölçekle birlikte 120 ms'de, "animasyonları azalt" açıkken hiç uygulanmaz.
   final double pressedOpacity;
 
   /// Dokunuşta titreşim ([onTap] ile birlikte).
@@ -95,14 +96,16 @@ class _BuPressableState extends State<BuPressable> {
   @override
   Widget build(BuildContext context) {
     final pressed = _down && _active;
+    // Basma <150 ms (micro 120), bırakınca 200-300 ms'de hafif taşmayla (~%3) yerleşir.
+    const d = BuMotion.durations;
     Widget c = AnimatedScale(
       scale: pressed ? widget.scale : 1,
-      duration: BuMotion.short,
-      curve: BuMotion.standard,
+      duration: pressed ? d.micro : d.standard,
+      curve: pressed ? BuMotion.curves.standard : BuMotion.curves.settle,
       child: AnimatedOpacity(
         opacity: pressed ? widget.pressedOpacity : 1,
-        duration: const Duration(milliseconds: 100),
-        curve: BuMotion.standard,
+        duration: d.micro,
+        curve: BuMotion.curves.standard,
         child: widget.child,
       ),
     );

@@ -4,7 +4,7 @@ import '../core/api.dart';
 import '../core/locale_controller.dart';
 import '../core/session.dart' show errorText;
 import '../core/theme.dart';
-import '../core/theme/bu_motion.dart';
+import '../core/motion/bu_motion_widgets.dart';
 import '../core/theme/bu_shape.dart';
 import 'bu_illustrations.dart';
 import 'bu_widgets.dart';
@@ -37,18 +37,7 @@ class _Enter extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (BuMotion.reduced(context)) return child;
-    return TweenAnimationBuilder<double>(
-      tween: Tween(begin: 0, end: 1),
-      duration: BuMotion.long,
-      curve: BuMotion.emphasizedDecelerate,
-      builder: (context, v, child) => Opacity(
-        opacity: v.clamp(0.0, 1.0),
-        child:
-            Transform.translate(offset: Offset(0, (1 - v) * 14), child: child),
-      ),
-      child: child,
-    );
+    return BuFadeSlideIn(child: child);
   }
 }
 

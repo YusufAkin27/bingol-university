@@ -32,7 +32,8 @@ class _StaggerData extends InheritedWidget {
   bool updateShouldNotify(_StaggerData old) => false;
 }
 
-/// Öğeyi (solma + 14 dp yükselme) ile içeri alır; gecikme `index * 40 ms`, en çok [maxAnimated] öğe.
+/// Öğeyi (solma + yükselme) ile içeri alır; gecikme `index × 50 ms` ([BuMotion.stagger]), en çok [maxAnimated] öğe
+/// (toplam kademe < 500 ms).
 /// Kapsam ([BuStaggerScope]) varsa her indeks yalnız bir kez oynar. "Animasyonları azalt" açıksa anında.
 class BuStaggerItem extends StatefulWidget {
   const BuStaggerItem({super.key, required this.index, required this.child, this.maxAnimated = 8});
@@ -60,12 +61,12 @@ class _BuStaggerItemState extends State<BuStaggerItem> with SingleTickerProvider
     if (skip) return;
     played?.add(widget.index);
     _static = false;
-    final delay = BuMotion.stagger.inMilliseconds * widget.index;
-    final total = BuMotion.long.inMilliseconds + delay;
+    final delay = BuMotion.stagger(widget.index, step: const Duration(milliseconds: 50), max: widget.maxAnimated).inMilliseconds;
+    final total = BuMotion.durations.standard.inMilliseconds + delay;
     final c = AnimationController(vsync: this, duration: Duration(milliseconds: total));
     final curve = CurvedAnimation(
       parent: c,
-      curve: Interval(delay / total, 1, curve: BuMotion.emphasizedDecelerate),
+      curve: Interval(delay / total, 1, curve: BuMotion.curves.emphasizedDecelerate),
     );
     _fade = curve;
     _slide = Tween(begin: const Offset(0, .06), end: Offset.zero).animate(curve);

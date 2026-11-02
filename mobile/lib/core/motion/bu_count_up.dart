@@ -10,7 +10,7 @@ class BuCountUp extends StatelessWidget {
     super.key,
     required this.value,
     this.style,
-    this.duration = BuMotion.long,
+    this.duration = const Duration(milliseconds: 450),
     this.animateFirst = true,
     this.format,
     this.textAlign,
@@ -36,7 +36,7 @@ class BuCountUp extends StatelessWidget {
       child: TweenAnimationBuilder<double>(
         tween: Tween<double>(begin: animateFirst ? 0 : value.toDouble(), end: value.toDouble()),
         duration: d,
-        curve: BuMotion.emphasizedDecelerate,
+        curve: BuMotion.curves.emphasizedDecelerate,
         builder: (context, v, _) => Text(
           _fmt(v.round()),
           style: style,
@@ -49,10 +49,11 @@ class BuCountUp extends StatelessWidget {
   }
 }
 
-/// Küçük "pop": [trigger] değişince çocuk bir kez 1 -> [peak] -> 1 ölçeklenir (beğeni, rozet sayısı).
+/// Küçük "pop": [trigger] değişince çocuk bir kez 1 -> [peak] (varsayılan %10; beğeni/kaydet için 1,05) -> 1
+/// ölçeklenir (rozet sayısı, başarı). Hata için kullanılmaz.
 /// İlk kurulumda oynamaz. Yalnız `transform`; "animasyonları azalt" açıksa hiç oynamaz.
 class BuPop extends StatefulWidget {
-  const BuPop({super.key, required this.trigger, required this.child, this.peak = 1.18});
+  const BuPop({super.key, required this.trigger, required this.child, this.peak = 1.1});
 
   /// Değiştiğinde (`!=`) animasyon oynar; ör. sayaç değeri ya da beğeni durumu.
   final Object? trigger;
@@ -64,11 +65,11 @@ class BuPop extends StatefulWidget {
 }
 
 class _BuPopState extends State<BuPop> with SingleTickerProviderStateMixin {
-  late final AnimationController _c = AnimationController(vsync: this, duration: BuMotion.medium);
+  late final AnimationController _c = AnimationController(vsync: this, duration: BuMotion.durations.standard);
 
   late final Animation<double> _scale = TweenSequence<double>([
     TweenSequenceItem(tween: Tween(begin: 1.0, end: widget.peak).chain(CurveTween(curve: BuMotion.emphasizedDecelerate)), weight: 40),
-    TweenSequenceItem(tween: Tween(begin: widget.peak, end: 1.0).chain(CurveTween(curve: BuMotion.standard)), weight: 60),
+    TweenSequenceItem(tween: Tween(begin: widget.peak, end: 1.0).chain(CurveTween(curve: BuMotion.curves.settle)), weight: 60),
   ]).animate(_c);
 
   @override
