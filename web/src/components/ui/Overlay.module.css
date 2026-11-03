@@ -20,6 +20,10 @@
   outline: none;
 }
 .modal {
+  /* Izgara öğesinde yüzde max-height çözülmez (satır yüksekliği içeriğe bağlı); uzun içerikte pencere ekrandan taşıp
+     eylem düğmeleri erişilemez kalıyordu. Görünür alana göre sınırlanır, gövde (.body) kendi içinde kayar. */
+  max-height: calc(100vh - 2 * var(--space-4));
+  max-height: calc(100dvh - 2 * var(--space-4));
   border-radius: var(--radius-lg);
   animation: pop 0.18s var(--ease);
 }
