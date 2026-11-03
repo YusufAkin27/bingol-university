@@ -14,6 +14,10 @@ Ayrıntılı modül notları: `docs/changes/*.md`. Mobil API rehberi: [MOBILE_AP
 
 - **`forgot-password`:** kayıtlı olmayan hesap için e-posta gitmez, `404 ACCOUNT_NOT_FOUND` döner (bilinçli enumerasyon istisnası; IP başına dakikada 15 ek sınır). **Kodlar:** geçerlilik tam 10 dk; yeniden kod bekleme süresi 60 sn → **180 sn** (`resend-code`, `forgot-password`, tekrar `register`, destek formu): erken istek `429 RESEND_COOLDOWN` + `Retry-After`. Bkz. `docs/changes/auth.md`.
 
+### Kullanıcı davranış analizi (V1210, yönetim paneli)
+
+- **Sunucu (BK6):** mobil olay sözleşmesi genişledi (`props.sid` oturum kimliği, `session_start|session_end|screen_exit|action`, 22 izinli eylem türü; sözleşmeyi bozan olay tek tek elenir; `props` 5 -> 8 anahtar). Yeni `analytics.behavior` paketi: `GET /api/admin/analytics/behavior/{overview,screens,flows,actions}` (`analytics.read`) ve `/users`, `/users/{id}` (`users.pii`, her çağrı denetim kaydına yazılır): oturum/ekran süresi, çıkış ve bounce oranları, akışlar, eylem sayıları, kullanıcı oturum zaman çizelgesi. Aralık en çok 45 gün (`RANGE_TOO_LARGE`). Kalıcı günlük özetler `analytics_session_daily` / `analytics_screen_daily` (kullanıcı kimliği yok; gece dolum). Ayrıntı: `docs/ADMIN_API.md` "Kullanıcı davranış analizi", `docs/changes/ops.md`. Duman: `scripts/smoke-behavior.sh`.
+
 ### Resmî ders programı (Excel yükleme, V1070) + yeni hesap varsayılanı
 
 - **Tohumlama:** `GET /api/timetable`, kişisel dersi olmayan ve resmi programı tek birimden gelen öğrencinin programını resmi programdan otomatik doldurur; `tt_official_seed` işareti sayesinde dersler silinse de aynı dönem için tekrarlanmaz. Çoklu birimde mobil birim seçtirir.

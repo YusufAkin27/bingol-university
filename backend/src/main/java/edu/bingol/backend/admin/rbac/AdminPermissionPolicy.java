@@ -50,6 +50,9 @@ public final class AdminPermissionPolicy {
         one(null, "/api/admin/rbac(/.*)?", RBAC_MANAGE);
 
         // --- analitik ---
+        // Kullanici bazli davranis (kisi + ekran/eylem zaman cizelgesi) kisisel veridir: analytics.read yetmez, users.pii
+        // (FULL, MODERATOR) ister; cagrilar AuditRecorder'da denetlenir. Ozet/ekran/akis/eylem toplu veridir (analytics.read).
+        one(Set.of("GET"), "/api/admin/analytics/behavior/users(/" + ID + ")?", USERS_PII);
         one(null, "/api/admin/analytics(/.*)?", ANALYTICS_READ);
         one(Set.of("GET"), "/api/admin/notifications/stats", ANALYTICS_READ);
 
