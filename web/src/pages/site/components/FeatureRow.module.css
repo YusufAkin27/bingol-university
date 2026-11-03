@@ -22,21 +22,26 @@
 }
 .visual {
   position: relative;
+  overflow: hidden;
+  isolation: isolate;
   display: grid;
   justify-items: center;
-  /* telefon yan eğimi ve gölgesi için nefes payı */
-  padding-block: var(--space-2);
+  /* yumuşak panel: telefon eğimi, gölgesi ve ışıması için nefes payı */
+  padding: var(--space-6) var(--space-4);
+  border-radius: var(--radius-lg);
+  background: var(--surface-2);
 }
 .visual::before {
   content: '';
   position: absolute;
-  inset: 6% 8%;
+  inset: 10% 12%;
+  z-index: -1;
   border-radius: 50%;
-  background: radial-gradient(closest-side, color-mix(in srgb, var(--primary) 10%, transparent), transparent);
+  background: radial-gradient(closest-side, color-mix(in srgb, var(--primary) 14%, transparent), transparent);
   pointer-events: none;
 }
 .phones {
-  --phone-w: min(68vw, 250px);
+  --phone-w: min(68vw, 260px);
   position: relative;
   display: grid;
   justify-items: center;
@@ -71,10 +76,13 @@
   .flip .visual {
     order: 1;
   }
+  .visual {
+    padding: var(--space-7) var(--space-6);
+  }
   .phones {
-    --phone-w: 270px;
+    --phone-w: 290px;
   }
   .pair {
-    --phone-w: 220px;
+    --phone-w: 230px;
   }
 }
