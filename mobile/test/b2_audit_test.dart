@@ -138,7 +138,7 @@ void main() {
   });
 
   group('Kayıt: EMAIL_ALIAS_NOT_ALLOWED', () {
-    testWidgets('+ etiketi istemcide alan altında reddedilir; istek atılmaz', (tester) async {
+    testWidgets('+ etiketi yazılamaz: alan yalnız rakam alır (harf, + ve @ süzülür); boş alan reddedilir', (tester) async {
       useScreen(tester, const Size(390, 1800));
       final b = FakeBackend();
       fakeCatalog(b);
@@ -151,9 +151,10 @@ void main() {
       await tester.enterText(fields.at(0), 'Ayşe Yılmaz');
       await tester.enterText(fields.at(1), 'ayse+etiket@bingol.edu.tr');
       await tester.pump();
+      expect(tester.widget<TextField>(find.byType(TextField).at(1)).controller!.text, '');
       await tester.tap(find.text('Devam'));
       await tester.pump(const Duration(milliseconds: 400));
-      expect(find.text('E-posta adresinde + etiketi kullanılamaz.'), findsOneWidget);
+      expect(find.text('Okul numaranızı girin.'), findsOneWidget);
       expect(find.text('Adım 2/3'), findsOneWidget);
       expect(b.count('/auth/register'), 0);
       await unmount(tester);
@@ -171,8 +172,8 @@ void main() {
       expect(b.count('/auth/register'), 1);
       expect(find.text('Adım 2/3'), findsOneWidget);
       expect(find.text('E-posta adresinde + etiketi kullanılamaz.'), findsOneWidget);
-      // E-posta değişince hata kalkar.
-      await tester.enterText(find.byType(TextFormField).at(1), 'ayse2@bingol.edu.tr');
+      // Numara değişince hata kalkar.
+      await tester.enterText(find.byType(TextFormField).at(1), '226051016');
       await tester.pump();
       expect(find.text('E-posta adresinde + etiketi kullanılamaz.'), findsNothing);
       await unmount(tester);

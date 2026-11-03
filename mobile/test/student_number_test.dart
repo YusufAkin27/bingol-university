@@ -256,9 +256,10 @@ void main() {
       await tester.pump(const Duration(milliseconds: 400));
       final fields = find.byType(TextFormField);
       await tester.enterText(fields.at(0), 'Ayşe Yılmaz');
-      await tester.enterText(fields.at(1), '226051015@bingol.edu.tr');
+      // Alan yalnız rakam alır: numara yazılır, sonek `@bingol.edu.tr` görünür, istekte tam e-posta gider.
+      await tester.enterText(fields.at(1), '226051015');
       await tester.pump();
-      expect(_suffix(), findsNothing);
+      expect(_suffix(), findsOneWidget);
       await tester.tap(find.text('Devam'));
       await tester.pump(const Duration(milliseconds: 400));
       await tester.pump(const Duration(milliseconds: 400));
@@ -280,7 +281,7 @@ void main() {
       await unmount(tester);
     });
 
-    testWidgets('yalniz numara kayitta reddedilir: hap yok, ornek e-posta, istek yok', (tester) async {
+    testWidgets('gecersiz numara kayitta reddedilir (5 hane): 2. adimda kalir, istek yok', (tester) async {
       useScreen(tester, const Size(390, 1800));
       final b = FakeBackend();
       fakeCatalog(b);
@@ -289,36 +290,34 @@ void main() {
       await fillAcademic(tester);
       await tester.tap(find.text('Devam'));
       await tester.pump(const Duration(milliseconds: 400));
-      expect(find.text('Okul e-posta adresiniz'), findsOneWidget);
       await tester.enterText(find.byType(TextFormField).at(0), 'Ayşe Yılmaz');
-      await tester.enterText(find.byType(TextFormField).at(1), '226051015');
+      await tester.enterText(find.byType(TextFormField).at(1), '12345');
       await tester.pump();
-      expect(_suffix(), findsNothing);
-      expect(find.textContaining('226051015 ya da'), findsNothing);
       await tester.tap(find.text('Devam'));
       await tester.pump();
-      expect(find.text('Okul e-posta adresinizin tamamını yazın, örn. ad.soyad@bingol.edu.tr'), findsOneWidget);
+      expect(find.text('Okul numarasını kontrol edin.'), findsOneWidget);
       expect(find.text('Adım 2/3'), findsOneWidget);
       expect(b.count('/auth/register'), 0);
       await unmount(tester);
     });
 
-    testWidgets('gecersiz alan adi kayitta reddedilir', (tester) async {
+    testWidgets('tam e-posta artik yazilamaz: harf ve @ suzulur, bos kalan alan reddedilir', (tester) async {
       useScreen(tester, const Size(390, 1800));
       final b = FakeBackend();
       fakeCatalog(b);
       await tester.pumpWidget(buildApp(RegisterPage(session: makeSession(b, signedIn: false))));
       await settle(tester, const Duration(milliseconds: 300));
-      // Kayıt 3 adımlı sihirbaz: e-posta 2. adımda doğrulanır, geçersizse 3. adıma geçilmez.
+      // Kayıt 3 adımlı sihirbaz: numara 2. adımda doğrulanır, geçersizse 3. adıma geçilmez.
       await fillAcademic(tester);
       await tester.tap(find.text('Devam'));
       await tester.pump(const Duration(milliseconds: 400));
       await tester.enterText(find.byType(TextFormField).at(0), 'Ayşe Yılmaz');
       await tester.enterText(find.byType(TextFormField).at(1), 'ayse@gmail.com');
       await tester.pump();
+      expect(tester.widget<TextField>(find.byType(TextField).at(1)).controller!.text, '');
       await tester.tap(find.text('Devam'));
       await tester.pump();
-      expect(find.text('Yalnızca bingol.edu.tr uzantılı adres kullanılabilir.'), findsOneWidget);
+      expect(find.text('Okul numaranızı girin.'), findsOneWidget);
       expect(find.text('Adım 2/3'), findsOneWidget);
       expect(b.count('/auth/register'), 0);
       await unmount(tester);
@@ -354,12 +353,12 @@ void main() {
         await tester.ensureVisible(find.text('Devam'));
         await tester.tap(find.text('Devam'));
         await tester.pump(const Duration(milliseconds: 400));
-        await tester.enterText(find.byType(TextFormField).at(1), '226051015');
+        await tester.enterText(find.byType(TextFormField).at(1), '12345');
         await tester.pump();
         await tester.ensureVisible(find.text('Devam'));
         await tester.tap(find.text('Devam'));
         await settle(tester, const Duration(milliseconds: 600));
-        expect(find.text('Okul e-posta adresinizin tamamını yazın, örn. ad.soyad@bingol.edu.tr'), findsOneWidget);
+        expect(find.text('Okul numarasını kontrol edin.'), findsOneWidget);
         expect(tester.takeException(), isNull);
         await unmount(tester);
       });
