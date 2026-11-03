@@ -320,6 +320,7 @@ class _AvatarEditorPageState extends State<AvatarEditorPage> with SingleTickerPr
                 constraints: const BoxConstraints(minHeight: BuSize.touch, minWidth: 88),
                 child: Center(
                   widthFactor: 1,
+                  heightFactor: 1,
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 22),
                     child: _busy

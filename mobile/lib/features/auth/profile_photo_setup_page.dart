@@ -125,6 +125,8 @@ class _ProfilePhotoSetupPageState extends State<ProfilePhotoSetupPage> {
             Positioned.fill(
               child: ClipOval(
                 child: Stack(fit: StackFit.expand, children: [
+                  // Varsayılan görsel altta durur: önizleme çözülürken boşluk görünmez.
+                  BuAvatar(name: widget.session.displayName, url: _url, size: _avatarSize),
                   if (_preview != null)
                     Image.memory(
                       _preview!,
@@ -132,10 +134,8 @@ class _ProfilePhotoSetupPageState extends State<ProfilePhotoSetupPage> {
                       fit: BoxFit.cover,
                       gaplessPlayback: true,
                       cacheWidth: (_avatarSize * MediaQuery.devicePixelRatioOf(context)).ceil(),
-                      errorBuilder: (_, __, ___) => BuAvatar(name: widget.session.displayName, url: _url, size: _avatarSize),
-                    )
-                  else
-                    BuAvatar(name: widget.session.displayName, size: _avatarSize),
+                      errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                    ),
                   if (_busy)
                     ColoredBox(
                       color: t.scrim.withValues(alpha: .6),
