@@ -28,6 +28,7 @@ class LoginUnderlineField extends StatefulWidget {
     this.suffix,
     this.trailing,
     this.hint,
+    this.textCapitalization = TextCapitalization.none,
   });
 
   final TextEditingController controller;
@@ -50,6 +51,7 @@ class LoginUnderlineField extends StatefulWidget {
   /// Satır sonunda parça (göz düğmesi).
   final Widget? trailing;
   final String? hint;
+  final TextCapitalization textCapitalization;
 
   @override
   State<LoginUnderlineField> createState() => _LoginUnderlineFieldState();
@@ -153,6 +155,7 @@ class _LoginUnderlineFieldState extends State<LoginUnderlineField> {
       inputFormatters: widget.inputFormatters,
       textInputAction: widget.textInputAction,
       autofillHints: widget.autofillHints,
+      textCapitalization: widget.textCapitalization,
       autocorrect: false,
       enableSuggestions: false,
       validator: _validate,
@@ -337,8 +340,19 @@ class LoginNumberField extends StatelessWidget {
 
 /// Şifre alanı (lg4): aynı dilde, küçük ölçekte; göster/gizle gözü 48 dp hedef.
 class LoginPasswordField extends StatefulWidget {
-  const LoginPasswordField({super.key, required this.controller, required this.enabled, required this.validator, this.onSubmitted});
+  const LoginPasswordField({
+    super.key,
+    required this.controller,
+    required this.enabled,
+    required this.validator,
+    this.onSubmitted,
+    this.label,
+    this.autofillHints = const [AutofillHints.password],
+  });
 
+  /// Varsayılan: "Şifre". Kayıtta "Şifre (en az 8 karakter)".
+  final String? label;
+  final Iterable<String> autofillHints;
   final TextEditingController controller;
   final bool enabled;
   final String? Function(String?) validator;
@@ -357,12 +371,12 @@ class _LoginPasswordFieldState extends State<LoginPasswordField> {
     final l = context.l10n;
     return LoginUnderlineField(
       controller: widget.controller,
-      label: l.authPasswordLabel,
+      label: widget.label ?? l.authPasswordLabel,
       enabled: widget.enabled,
       obscureText: _hidden,
       keyboardType: TextInputType.visiblePassword,
       textInputAction: TextInputAction.done,
-      autofillHints: const [AutofillHints.password],
+      autofillHints: widget.autofillHints,
       validator: widget.validator,
       onSubmitted: widget.onSubmitted,
       trailing: IconButton(

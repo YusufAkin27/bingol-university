@@ -1,5 +1,6 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../../core/academic_catalog.dart';
 import '../../core/api.dart';
@@ -14,6 +15,7 @@ import 'widgets/auth_academic.dart';
 import 'widgets/auth_controls.dart';
 import 'widgets/auth_motion.dart';
 import 'widgets/auth_ref.dart';
+import 'widgets/login_underline_field.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key, required this.session});
@@ -224,21 +226,21 @@ class _RegisterPageState extends State<RegisterPage> {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            RefTextField(
+            LoginUnderlineField(
               controller: _name,
               label: l.authNameHint,
-              icon: BuIcons.user,
               textCapitalization: TextCapitalization.words,
               autofillHints: const [AutofillHints.name],
-              maxLength: 80,
+              inputFormatters: [LengthLimitingTextInputFormatter(80)],
               enabled: !_busy,
               validator: (v) => (v == null || v.trim().isEmpty) ? l.authNameRequired : null,
             ),
-            const SizedBox(height: 18),
-            RefIdentifierField(
-              allowStudentNumber: false,
-              label: l.authRegIdLabel,
+            const SizedBox(height: 28),
+            LoginUnderlineField(
               controller: _email,
+              label: l.authRegIdLabel,
+              keyboardType: TextInputType.emailAddress,
+              autofillHints: const [AutofillHints.username, AutofillHints.email],
               enabled: !_busy,
               validator: _validateRegisterId,
               textInputAction: TextInputAction.done,
@@ -253,11 +255,9 @@ class _RegisterPageState extends State<RegisterPage> {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            RefPasswordField(
+            LoginPasswordField(
               controller: _password,
               label: l.authPasswordMin8,
-              innerLabel: true,
-              showIcon: false,
               enabled: !_busy,
               validator: newPasswordValidator(context),
               autofillHints: const [AutofillHints.newPassword],
@@ -313,8 +313,13 @@ class _RegisterPageState extends State<RegisterPage> {
             child: ExcludeSemantics(child: AuthStepBar(step: _step, steps: _steps)),
           ),
           const SizedBox(height: 24),
-          RefHeading(title: _title(context), subtitle: _hint(context)),
-          const SizedBox(height: 24),
+          Semantics(
+            header: true,
+            child: Text(_title(context), style: tx.displaySmall!.copyWith(color: t.ink, fontWeight: FontWeight.w800, height: 1.1)),
+          ),
+          const SizedBox(height: 10),
+          Text(_hint(context), style: tx.bodyLarge!.copyWith(color: t.mut, height: 1.4)),
+          const SizedBox(height: 32),
           // Hata bandı yumuşakça açılır; yeni hatada hafifçe sarsılır.
           AnimatedSize(
             duration: BuMotion.of(context, BuMotion.short),

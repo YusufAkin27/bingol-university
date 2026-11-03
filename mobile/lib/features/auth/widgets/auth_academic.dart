@@ -110,7 +110,7 @@ class AuthAcademicFields extends StatelessWidget {
   }
 }
 
-/// Seçim kartı: küçük etiket üstte, değer altta; sağda yuvarlak aşağı ok düğmesi.
+/// Seçim alanı (çizgili): küçük etiket üstte, iri değer altta, ince alt çizgi, sağda aşağı ok.
 class _SelectCard extends StatelessWidget {
   const _SelectCard({required this.label, required this.value, required this.placeholder, required this.onTap, this.error});
 
@@ -129,42 +129,36 @@ class _SelectCard extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Padding(
-          padding: const EdgeInsetsDirectional.only(bottom: 8),
-          child: Text(label, style: tx.labelLarge!.copyWith(color: hasError ? t.danger : t.ink, fontWeight: FontWeight.w500)),
-        ),
+        Text(label, style: tx.labelLarge!.copyWith(color: hasError ? t.danger : t.mut, fontWeight: FontWeight.w600)),
         Semantics(
           button: true,
           label: label,
-          child: DecoratedBox(
-            decoration: BoxDecoration(
-              color: t.sf,
-              borderRadius: BuRadius.bControl,
-              border: Border.all(color: hasError ? t.danger : t.bdStrong, width: hasError ? 1.5 : 1),
-            ),
-            child: Material(
-              type: MaterialType.transparency,
-              child: InkWell(
-                borderRadius: BuRadius.bControl,
-                onTap: onTap,
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(minHeight: BuSize.field),
-                  child: Padding(
-                    padding: const EdgeInsetsDirectional.fromSTEB(16, 8, 12, 8),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            has ? value! : placeholder,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            style: tx.bodyLarge!.copyWith(color: has ? t.ink : t.mut, fontWeight: has ? FontWeight.w500 : FontWeight.w400),
-                          ),
+          child: Material(
+            type: MaterialType.transparency,
+            child: InkWell(
+              onTap: onTap,
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(minHeight: 64),
+                child: Container(
+                  alignment: AlignmentDirectional.centerStart,
+                  padding: const EdgeInsetsDirectional.only(top: 10, bottom: 10),
+                  // Çizgili alan (giriş ile aynı dil): kutu yok, altta ince çizgi; hatada danger.
+                  decoration: BoxDecoration(
+                    border: Border(bottom: BorderSide(color: hasError ? t.danger : t.bdStrong, width: hasError ? 1.5 : 1)),
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          has ? value! : placeholder,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: tx.titleLarge!.copyWith(color: has ? t.ink : t.mutSoft, fontWeight: has ? FontWeight.w600 : FontWeight.w500),
                         ),
-                        const SizedBox(width: 8),
-                        Icon(BuIcons.chevronDown, size: 20, color: t.mut),
-                      ],
-                    ),
+                      ),
+                      const SizedBox(width: 8),
+                      Icon(BuIcons.chevronDown, size: 22, color: t.mut),
+                    ],
                   ),
                 ),
               ),
