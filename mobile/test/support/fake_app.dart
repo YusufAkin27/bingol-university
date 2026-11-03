@@ -435,13 +435,14 @@ Future<void> fillAcademic(WidgetTester tester) async {
 
 /// Kayıt akışını 3 adımda doldurur; son adımda (şifre) "Kayıt ol" düğmesi basılmadan kalır.
 Future<void> fillRegister(WidgetTester tester,
-    {String name = 'Ayşe Yılmaz', String email = 'ayse@bingol.edu.tr', String password = 'Sifre1234'}) async {
+    {String name = 'Ayşe Yılmaz', String number = '226051015', String password = 'Sifre1234'}) async {
   await fillAcademic(tester);
   await tester.tap(find.text('Devam'));
   await tester.pump(const Duration(milliseconds: 400));
   final fields = find.byType(TextFormField);
   await tester.enterText(fields.at(0), name);
-  await tester.enterText(fields.at(1), email);
+  // Kayıt alanı yalnız rakam alır (okul numarası); istekte `<numara>@bingol.edu.tr` gider.
+  await tester.enterText(fields.at(1), number);
   await tester.pump();
   await tester.tap(find.text('Devam'));
   // Adım geçiş animasyonu bitmeden eski adımın alanı hâlâ ağaçta olur ('first' yanlış alanı bulur).

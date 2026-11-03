@@ -259,8 +259,8 @@ void main() {
       await tester.tap(find.text('Devam'));
       await tester.pump();
       expect(find.text('Adınızı ve soyadınızı girin.'), findsOneWidget);
-      // Kayıt artık yalnız okul e-postası ister (öğrenci numarasıyla kayıt yok): boş alan "Okul e-posta adresinizi girin."
-      expect(find.text('Okul e-posta adresinizi girin.'), findsOneWidget);
+      // Kayıt alanı girişle aynıdır (yalnız okul numarası): boş alan "Okul numaranızı girin."
+      expect(find.text('Okul numaranızı girin.'), findsOneWidget);
       expect(find.text('Adım 2/3'), findsOneWidget);
       expect(b.count('/auth/register'), 0);
       await unmount(tester);
