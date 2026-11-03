@@ -297,7 +297,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get authNameHint => 'Full name';
 
   @override
-  String get authPasswordMin8 => 'Password (at least 8 characters)';
+  String get authPasswordMin8 => 'Password (6 digits)';
 
   @override
   String get authTermsPrefix => 'I accept the ';
@@ -5133,7 +5133,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get authHintPassword =>
-      'Choose a password with at least 8 characters.';
+      'Choose a 6-digit password that is not easy to guess.';
 
   @override
   String get authNext => 'Continue';
@@ -5145,10 +5145,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get authTermsAutoSuffix => '.';
 
   @override
-  String get authPwMinErr => 'Password must be at least 8 characters.';
+  String get authPwMinErr => 'Password must be exactly 6 digits.';
 
   @override
-  String get authPwMaxErr => 'Password can be at most 72 characters.';
+  String get authPwMaxErr => 'Password must be exactly 6 digits.';
 
   @override
   String get authIdHelper => '226051015 or first.last@bingol.edu.tr';
@@ -5431,10 +5431,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'This replaces your old password. You will be logged out on all devices.';
 
   @override
-  String get authRuleLen => 'At least 8 characters';
+  String get authRuleLen => 'Exactly 6 digits';
 
   @override
-  String get authRuleMix => 'Contains letters and numbers';
+  String get authRuleMix => 'Not easy to guess';
 
   @override
   String get authStep1Title => 'Which department are you in?';
@@ -5713,7 +5713,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profil2SecNewLabel => 'New password';
 
   @override
-  String get profil2SecNewHint => 'At least 8 characters';
+  String get profil2SecNewHint => '6 digits';
 
   @override
   String get profil2SecRepeatLabel => 'New password (repeat)';
@@ -5723,7 +5723,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get profil2SecPwRule =>
-      '8 to 72 characters. Mixing letters and digits makes it stronger.';
+      '6 digits. Sequences (123456) and repeated digits (111111) are not accepted.';
 
   @override
   String get profil2SecPwButton => 'Update password';
@@ -9862,4 +9862,21 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get homeViewAll => 'View all';
+
+  @override
+  String get authPinWeak =>
+      'Too easy to guess; avoid sequential or repeated digits.';
+
+  @override
+  String get authPinLegacyHint =>
+      'If your old password is longer, set a new 6-digit one with “Forgot password?”.';
+
+  @override
+  String pinFieldSemantics(String label, String count) {
+    return '$label, 6 digits, $count entered';
+  }
+
+  @override
+  String get errAccountTempLocked =>
+      'Too many failed attempts. Your account is temporarily locked.';
 }

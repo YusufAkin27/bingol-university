@@ -637,7 +637,7 @@ abstract class AppLocalizations {
   /// No description provided for @authPasswordMin8.
   ///
   /// In tr, this message translates to:
-  /// **'Şifre (en az 8 karakter)'**
+  /// **'Şifre (6 rakam)'**
   String get authPasswordMin8;
 
   /// No description provided for @authTermsPrefix.
@@ -9460,7 +9460,7 @@ abstract class AppLocalizations {
   /// No description provided for @authHintPassword.
   ///
   /// In tr, this message translates to:
-  /// **'En az 8 karakterli bir şifre seçin.'**
+  /// **'6 haneli, kolay tahmin edilmeyen bir şifre seçin.'**
   String get authHintPassword;
 
   /// No description provided for @authNext.
@@ -9484,13 +9484,13 @@ abstract class AppLocalizations {
   /// No description provided for @authPwMinErr.
   ///
   /// In tr, this message translates to:
-  /// **'Şifre en az 8 karakter olmalı.'**
+  /// **'Şifre 6 haneli rakamlardan oluşmalı.'**
   String get authPwMinErr;
 
   /// No description provided for @authPwMaxErr.
   ///
   /// In tr, this message translates to:
-  /// **'Şifre en çok 72 karakter olabilir.'**
+  /// **'Şifre 6 haneli rakamlardan oluşmalı.'**
   String get authPwMaxErr;
 
   /// No description provided for @authIdHelper.
@@ -10018,13 +10018,13 @@ abstract class AppLocalizations {
   /// No description provided for @authRuleLen.
   ///
   /// In tr, this message translates to:
-  /// **'En az 8 karakter'**
+  /// **'6 rakamdan oluşur'**
   String get authRuleLen;
 
   /// No description provided for @authRuleMix.
   ///
   /// In tr, this message translates to:
-  /// **'Harf ve rakam içerir'**
+  /// **'Kolay tahmin edilmez'**
   String get authRuleMix;
 
   /// No description provided for @authStep1Title.
@@ -10540,7 +10540,7 @@ abstract class AppLocalizations {
   /// No description provided for @profil2SecNewHint.
   ///
   /// In tr, this message translates to:
-  /// **'En az 8 karakter'**
+  /// **'6 haneli rakam'**
   String get profil2SecNewHint;
 
   /// No description provided for @profil2SecRepeatLabel.
@@ -10558,7 +10558,7 @@ abstract class AppLocalizations {
   /// No description provided for @profil2SecPwRule.
   ///
   /// In tr, this message translates to:
-  /// **'8 ile 72 karakter. Harf ve rakam karıştırırsanız güçlenir.'**
+  /// **'6 rakamdan oluşur; ardışık (123456) ya da aynı rakamlar (111111) kabul edilmez.'**
   String get profil2SecPwRule;
 
   /// No description provided for @profil2SecPwButton.
@@ -17850,6 +17850,30 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Tümünü gör'**
   String get homeViewAll;
+
+  /// No description provided for @authPinWeak.
+  ///
+  /// In tr, this message translates to:
+  /// **'Çok kolay bir şifre; ardışık ya da aynı rakamlar kullanma.'**
+  String get authPinWeak;
+
+  /// No description provided for @authPinLegacyHint.
+  ///
+  /// In tr, this message translates to:
+  /// **'Eski şifreniz uzunsa “Şifremi unuttum” ile 6 haneli yeni şifre belirleyin.'**
+  String get authPinLegacyHint;
+
+  /// No description provided for @pinFieldSemantics.
+  ///
+  /// In tr, this message translates to:
+  /// **'{label}, 6 haneli, {count} hane girildi'**
+  String pinFieldSemantics(String label, String count);
+
+  /// No description provided for @errAccountTempLocked.
+  ///
+  /// In tr, this message translates to:
+  /// **'Çok fazla hatalı deneme. Hesabınız geçici olarak kilitlendi.'**
+  String get errAccountTempLocked;
 }
 
 class _AppLocalizationsDelegate

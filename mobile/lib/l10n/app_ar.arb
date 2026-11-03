@@ -89,7 +89,7 @@
   "authDepartmentsLoadFailed": "تعذّر تحميل قائمة الأقسام. حاول مرة أخرى.",
   "authNameRequired": "أدخل اسمك الكامل.",
   "authNameHint": "الاسم الكامل",
-  "authPasswordMin8": "كلمة المرور (8 أحرف على الأقل)",
+  "authPasswordMin8": "كلمة المرور (6 أرقام)",
   "authTermsPrefix": "أوافق على ",
   "authTermsLink": "شروط الاستخدام",
   "authTermsSep": " و",
@@ -1559,12 +1559,12 @@
   "authSectionPassword": "عيّن كلمة مرور",
   "authHintAcademic": "اختر قسمك وسنتك الدراسية.",
   "authHintPersonal": "أدخل اسمك وبريدك الجامعي.",
-  "authHintPassword": "اختر كلمة مرور من 8 أحرف على الأقل.",
+  "authHintPassword": "اختر كلمة مرور من 6 أرقام يصعب تخمينها.",
   "authNext": "متابعة",
   "authTermsAutoPrefix": "بالتسجيل، فإنك توافق على ",
   "authTermsAutoSuffix": ".",
-  "authPwMinErr": "يجب ألا تقل كلمة المرور عن 8 أحرف.",
-  "authPwMaxErr": "يجب ألا تزيد كلمة المرور عن 72 حرفًا.",
+  "authPwMinErr": "يجب أن تتكون كلمة المرور من 6 أرقام.",
+  "authPwMaxErr": "يجب أن تتكون كلمة المرور من 6 أرقام.",
   "authIdHelper": "226051015 أو name.surname@bingol.edu.tr",
   "authRegIdLabel": "بريدك الإلكتروني الجامعي",
   "authRegIdHelper": "مثال: name.surname@bingol.edu.tr",
@@ -1652,8 +1652,8 @@
   "authBackToLogin": "العودة لتسجيل الدخول",
   "authChangeEmail": "تغيير البريد الإلكتروني",
   "authNewPwSub": "ستحل محل كلمة المرور القديمة. سيتم إنهاء الجلسات على جميع الأجهزة.",
-  "authRuleLen": "8 أحرف على الأقل",
-  "authRuleMix": "تحتوي على أحرف وأرقام",
+  "authRuleLen": "تتكون من 6 أرقام",
+  "authRuleMix": "يصعب تخمينها",
   "authStep1Title": "في أي قسم أنت؟",
   "authStep2Title": "لنتعرف عليك",
   "welcomeHeadline": "الحرم الجامعي\nفي جيبك",
@@ -1739,10 +1739,10 @@
   "profil2SecCurrentLabel": "كلمة المرور الحالية",
   "profil2SecCurrentHint": "كلمة مرورك الحالية",
   "profil2SecNewLabel": "كلمة المرور الجديدة",
-  "profil2SecNewHint": "8 أحرف على الأقل",
+  "profil2SecNewHint": "6 أرقام",
   "profil2SecRepeatLabel": "كلمة المرور الجديدة (تكرار)",
   "profil2SecRepeatHint": "أعد كتابة كلمة المرور الجديدة",
-  "profil2SecPwRule": "من 8 إلى 72 حرفًا. خلط الحروف والأرقام يجعلها أقوى.",
+  "profil2SecPwRule": "6 أرقام. لا تُقبل الأرقام المتسلسلة (123456) أو المكررة (111111).",
   "profil2SecPwButton": "تحديث كلمة المرور",
   "profil2SecMismatch": "كلمتا المرور غير متطابقتين.",
   "profil2SecSame": "لا يمكن أن تكون كلمة المرور الجديدة مثل الحالية.",
@@ -3135,5 +3135,19 @@
   "homeFeaturedMenu": "قائمة الطعام",
   "homeSearchFilters": "فلاتر البحث",
   "homeMore": "المزيد",
-  "homeViewAll": "عرض الكل"
+  "homeViewAll": "عرض الكل",
+  "authPinWeak": "كلمة مرور سهلة التخمين؛ تجنب الأرقام المتسلسلة أو المكررة.",
+  "authPinLegacyHint": "إذا كانت كلمة مرورك القديمة أطول، فعيّن كلمة مرور جديدة من 6 أرقام عبر «نسيت كلمة المرور».",
+  "pinFieldSemantics": "{label}، 6 أرقام، تم إدخال {count}",
+  "@pinFieldSemantics": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      },
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "errAccountTempLocked": "محاولات فاشلة كثيرة. تم قفل حسابك مؤقتًا."
 }

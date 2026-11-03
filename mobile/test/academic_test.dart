@@ -259,8 +259,8 @@ void main() {
       await tester.tap(find.text('Devam'));
       await tester.pump();
       expect(find.text('Adınızı ve soyadınızı girin.'), findsOneWidget);
-      // Kayıt artık yalnız okul e-postası ister (öğrenci numarasıyla kayıt yok): boş alan "Okul e-posta adresinizi girin."
-      expect(find.text('Okul e-posta adresinizi girin.'), findsOneWidget);
+      // Kayıt alanı girişle aynıdır (okul numarası): boş alan "Okul numaranızı veya e-posta adresinizi girin."
+      expect(find.text('Okul numaranızı veya e-posta adresinizi girin.'), findsOneWidget);
       expect(find.text('Adım 2/3'), findsOneWidget);
       expect(b.count('/auth/register'), 0);
       await unmount(tester);
@@ -308,7 +308,7 @@ void main() {
       expect(find.text('Kayıtta belirlediğiniz şifre'), findsNothing);
       await tester.enterText(find.byType(EditableText).first, '123456');
       await settle(tester, const Duration(milliseconds: 600));
-      expect((b.bodies['POST /auth/verify-email'] as Map)['password'], 'Sifre1234');
+      expect((b.bodies['POST /auth/verify-email'] as Map)['password'], '481952');
       await unmount(tester);
     });
 

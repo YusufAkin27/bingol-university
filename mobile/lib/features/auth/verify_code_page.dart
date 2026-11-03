@@ -9,7 +9,7 @@ import 'otp_code_boxes.dart';
 import 'widgets/auth_controls.dart';
 import 'widgets/auth_motion.dart';
 import 'widgets/auth_ref.dart';
-import 'widgets/login_underline_field.dart';
+import 'widgets/pin_field.dart';
 
 /// E-posta doğrulama (Stitch 02): 6 haneli kod, yeniden gönderme beklemesi, "E-postayı değiştir", spam ipucu.
 class VerifyCodePage extends StatefulWidget {
@@ -177,11 +177,10 @@ class _VerifyCodePageState extends State<VerifyCodePage> {
           const SizedBox(height: 24),
           Text(l.authVerifyPasswordNote, style: tx.bodySmall!.copyWith(color: t.mut, height: 1.45)),
           const SizedBox(height: 16),
-          LoginPasswordField(
+          PinField(
             controller: _password,
             label: l.authVerifyPasswordLabel,
             enabled: !_busy,
-            validator: (_) => null,
             onSubmitted: _verify,
             autofillHints: const [AutofillHints.password],
           ),

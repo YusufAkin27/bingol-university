@@ -468,6 +468,8 @@ String? knownErrorText(ApiError e, AppLocalizations l) {
       return l.errEmailAliasNotAllowed;
     case 'PASSWORD_TOO_LONG':
       return l.errPasswordTooLong;
+    case 'ACCOUNT_TEMP_LOCKED': // 6 haneli şifre: 5 yanlış denemede hesap 15 dk kilitlenir (429 + Retry-After)
+      return _withRetry(l.errAccountTempLocked, e, l);
     case 'PAYLOAD_TOO_LARGE':
       return l.errPayloadTooLarge;
     case 'UPLOAD_BUSY':

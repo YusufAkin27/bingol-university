@@ -33,7 +33,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get commonSomethingWentWrong => 'حدث خطأ ما';
 
   @override
-  String get configError => 'خطأ في الإعدادات: عنوان الخادم (API_BASE) غير آمن (https). أعد بناء التطبيق بالعنوان الصحيح.';
+  String get configError =>
+      'خطأ في الإعدادات: عنوان الخادم (API_BASE) غير آمن (https). أعد بناء التطبيق بالعنوان الصحيح.';
 
   @override
   String get exitAgainHint => 'اضغط رجوع مرة أخرى للخروج';
@@ -57,7 +58,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get updateRequiredTitle => 'التحديث مطلوب';
 
   @override
-  String get updateRequiredBody => 'يجب تحديث التطبيق إلى أحدث إصدار لمتابعة استخدامه.';
+  String get updateRequiredBody =>
+      'يجب تحديث التطبيق إلى أحدث إصدار لمتابعة استخدامه.';
 
   @override
   String get updateAvailable => 'يتوفر إصدار جديد.';
@@ -71,7 +73,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get accessBlockedTitle => 'تم حظر الوصول';
 
   @override
-  String get accessBlockedBody => 'تم حظر الوصول من هذا الجهاز أو الشبكة. إذا كنت تعتقد أن هذا خطأ، تواصل مع الدعم.';
+  String get accessBlockedBody =>
+      'تم حظر الوصول من هذا الجهاز أو الشبكة. إذا كنت تعتقد أن هذا خطأ، تواصل مع الدعم.';
 
   @override
   String get settingsTitle => 'الإعدادات';
@@ -98,7 +101,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settingsLanguage => 'اللغة';
 
   @override
-  String get settingsLanguageHint => 'لغة التطبيق والإشعارات والبريد الإلكتروني';
+  String get settingsLanguageHint =>
+      'لغة التطبيق والإشعارات والبريد الإلكتروني';
 
   @override
   String get languageSystem => 'النظام';
@@ -145,7 +149,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settingsLogoutAllTitle => 'تسجيل الخروج من جميع الأجهزة';
 
   @override
-  String get settingsLogoutAllBody => 'سيتم تسجيل خروج حسابك من جميع الأجهزة وستحتاج إلى تسجيل الدخول مجددًا.';
+  String get settingsLogoutAllBody =>
+      'سيتم تسجيل خروج حسابك من جميع الأجهزة وستحتاج إلى تسجيل الدخول مجددًا.';
 
   @override
   String get settingsLogoutAllConfirm => 'تسجيل الخروج';
@@ -162,7 +167,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get loginSubtitle => 'سجّل الدخول ببريدك الجامعي.';
 
   @override
-  String get loginReplacedNotice => 'تم تسجيل الدخول إلى حسابك من جهاز آخر. حفاظًا على أمانك أُغلقت الجلسة على هذا الجهاز.';
+  String get loginReplacedNotice =>
+      'تم تسجيل الدخول إلى حسابك من جهاز آخر. حفاظًا على أمانك أُغلقت الجلسة على هذا الجهاز.';
 
   @override
   String get loginPasswordRequired => 'أدخل كلمة المرور.';
@@ -245,7 +251,8 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get authUnverifiedNotice => 'تحقق من بريدك الإلكتروني. يجب توثيق حسابك لتتمكن من تسجيل الدخول.';
+  String get authUnverifiedNotice =>
+      'تحقق من بريدك الإلكتروني. يجب توثيق حسابك لتتمكن من تسجيل الدخول.';
 
   @override
   String get authUseOtherAccount => 'سجّل الدخول بحساب آخر';
@@ -281,7 +288,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get authSelectGrade => 'اختر سنتك الدراسية.';
 
   @override
-  String get authDepartmentsLoadFailed => 'تعذّر تحميل قائمة الأقسام. حاول مرة أخرى.';
+  String get authDepartmentsLoadFailed =>
+      'تعذّر تحميل قائمة الأقسام. حاول مرة أخرى.';
 
   @override
   String get authNameRequired => 'أدخل اسمك الكامل.';
@@ -290,7 +298,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get authNameHint => 'الاسم الكامل';
 
   @override
-  String get authPasswordMin8 => 'كلمة المرور (8 أحرف على الأقل)';
+  String get authPasswordMin8 => 'كلمة المرور (6 أرقام)';
 
   @override
   String get authTermsPrefix => 'أوافق على ';
@@ -514,7 +522,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get acadSelect => 'اختيار';
 
   @override
-  String get acadMaintenance => 'الخدمات الأكاديمية قيد الصيانة. يرجى المحاولة لاحقًا.';
+  String get acadMaintenance =>
+      'الخدمات الأكاديمية قيد الصيانة. يرجى المحاولة لاحقًا.';
 
   @override
   String get acadMyDept => 'قسمي';
@@ -580,7 +589,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get acadExamsTabOfficial => 'البرنامج الرسمي';
 
   @override
-  String get acadExamsEmptyMine => 'لم تضف أي امتحان شخصي.\nتابع مواعيد الامتحانات النصفية والنهائية والاختبارات القصيرة من هنا.';
+  String get acadExamsEmptyMine =>
+      'لم تضف أي امتحان شخصي.\nتابع مواعيد الامتحانات النصفية والنهائية والاختبارات القصيرة من هنا.';
 
   @override
   String get acadExamsUpcoming => 'القادمة';
@@ -597,7 +607,8 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String acadExamsSemanticCd(String type, String title, String date, String countdown) {
+  String acadExamsSemanticCd(
+      String type, String title, String date, String countdown) {
     return '$type: $title. $date. $countdown. المس للتعديل.';
   }
 
@@ -607,12 +618,14 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String acadOfficialSemanticRoom(String type, String title, String date, String room) {
+  String acadOfficialSemanticRoom(
+      String type, String title, String date, String room) {
     return '$type: $title. $date، $room';
   }
 
   @override
-  String get acadExamsProfileIncomplete => 'لا يوجد قسم في ملفك الشخصي؛ تُعرض الامتحانات العامة فقط. يمكنك إضافة قسمك عبر تعديل الملف الشخصي.';
+  String get acadExamsProfileIncomplete =>
+      'لا يوجد قسم في ملفك الشخصي؛ تُعرض الامتحانات العامة فقط. يمكنك إضافة قسمك عبر تعديل الملف الشخصي.';
 
   @override
   String get acadExamsEmptyOfficial => 'لم يُنشر أي برنامج امتحانات رسمي بعد.';
@@ -698,7 +711,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get acadAnnReadAll => 'تحديد الكل كمقروء';
 
   @override
-  String get acadAnnEmptyMine => 'لا توجد إعلانات خاصة بقسمك.\nيمكنك رؤية كل الإعلانات من تبويب \"الكل\".';
+  String get acadAnnEmptyMine =>
+      'لا توجد إعلانات خاصة بقسمك.\nيمكنك رؤية كل الإعلانات من تبويب \"الكل\".';
 
   @override
   String get acadAnnEmptyAll => 'لا توجد إعلانات بعد.';
@@ -886,7 +900,8 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get acadTimeEmptyText => 'لم تضف أي مقرر بعد.\nأضف مقرراتك لإنشاء جدولك الأسبوعي.';
+  String get acadTimeEmptyText =>
+      'لم تضف أي مقرر بعد.\nأضف مقرراتك لإنشاء جدولك الأسبوعي.';
 
   @override
   String get acadTimeAddFirst => 'أضف أول مقرر';
@@ -956,7 +971,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get acadTimeStatusDone => 'انتهت';
 
   @override
-  String acadTimeSlotSemantic(String name, String day, String start, String end) {
+  String acadTimeSlotSemantic(
+      String name, String day, String start, String end) {
     return '$name، $day من $start إلى $end';
   }
 
@@ -1075,7 +1091,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get acadTimeSemester => 'الفصل';
 
   @override
-  String get acadTimeNoSemester => 'لا توجد فصول بعد. أضف فصلًا لتنظيم مقرراتك.';
+  String get acadTimeNoSemester =>
+      'لا توجد فصول بعد. أضف فصلًا لتنظيم مقرراتك.';
 
   @override
   String get acadTimeAddSemester => 'إضافة فصل جديد';
@@ -1124,7 +1141,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get acadTimeSemesterNeedAll => 'الاسم والتاريخان مطلوبان.';
 
   @override
-  String get acadTimeSemesterEndAfter => 'يجب أن يكون تاريخ الانتهاء بعد تاريخ البدء.';
+  String get acadTimeSemesterEndAfter =>
+      'يجب أن يكون تاريخ الانتهاء بعد تاريخ البدء.';
 
   @override
   String get acadTimeAdd => 'إضافة';
@@ -1133,7 +1151,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get acadTimeRemindersTitle => 'التذكيرات';
 
   @override
-  String get acadTimeRemindersIntro => 'تتم جدولة الإشعارات على جهازك دون الحاجة إلى الإنترنت. وتُحدَّث عند تغيير جدولك أو امتحاناتك.';
+  String get acadTimeRemindersIntro =>
+      'تتم جدولة الإشعارات على جهازك دون الحاجة إلى الإنترنت. وتُحدَّث عند تغيير جدولك أو امتحاناتك.';
 
   @override
   String get acadTimeClassReminder => 'تذكير المحاضرة';
@@ -1191,13 +1210,15 @@ class AppLocalizationsAr extends AppLocalizations {
   String get chatDetailVideoTooLarge => 'الفيديو كبير جدًا، اختر فيديو أقصر';
 
   @override
-  String get chatDetailVideoUnsupported => 'لا يمكن إرسال الفيديو على هذا الجهاز.';
+  String get chatDetailVideoUnsupported =>
+      'لا يمكن إرسال الفيديو على هذا الجهاز.';
 
   @override
   String get chatDetailVideoFailed => 'تعذر تجهيز الفيديو.';
 
   @override
-  String get chatDetailVideosSplit => 'الفيديوهات كبيرة، لذا ستُرسل في عدة رسائل';
+  String get chatDetailVideosSplit =>
+      'الفيديوهات كبيرة، لذا ستُرسل في عدة رسائل';
 
   @override
   String get chatDetailImageTooLarge => 'الصورة كبيرة جدًا، اختر صورة أصغر.';
@@ -1517,7 +1538,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get chatInfoDeleteConvGroup => 'ستغادر المجموعة وتحذف هذه المحادثة.';
 
   @override
-  String get chatInfoDeleteConvDirect => 'ستُحذف هذه المحادثة لديك فقط ولن يتأثر الطرف الآخر.';
+  String get chatInfoDeleteConvDirect =>
+      'ستُحذف هذه المحادثة لديك فقط ولن يتأثر الطرف الآخر.';
 
   @override
   String get chatInfoUser => 'مستخدم';
@@ -1885,7 +1907,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get chatMiscContactsFind => 'ابحث عن أشخاص من جهات الاتصال';
 
   @override
-  String get chatMiscContactsRationale => 'نحتاج إلى الوصول إلى جهات الاتصال للعثور على أشخاص الجامعة بينها. لا يتم إرسال جهات الاتصال إلى الخادم، بل تتم مطابقة ملخصات البريد الإلكتروني فقط.';
+  String get chatMiscContactsRationale =>
+      'نحتاج إلى الوصول إلى جهات الاتصال للعثور على أشخاص الجامعة بينها. لا يتم إرسال جهات الاتصال إلى الخادم، بل تتم مطابقة ملخصات البريد الإلكتروني فقط.';
 
   @override
   String get chatMiscContactsSubtitle => 'أشخاص من الجامعة';
@@ -1894,7 +1917,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get chatMiscContactsPermTitle => 'إذن جهات الاتصال مطلوب';
 
   @override
-  String get chatMiscContactsPermText => 'يجب منح إذن الوصول إلى جهات الاتصال حتى نتمكن من العثور على أشخاص الحرم الجامعي بينها.';
+  String get chatMiscContactsPermText =>
+      'يجب منح إذن الوصول إلى جهات الاتصال حتى نتمكن من العثور على أشخاص الحرم الجامعي بينها.';
 
   @override
   String get chatMiscContactsPermAction => 'السماح';
@@ -1903,13 +1927,15 @@ class AppLocalizationsAr extends AppLocalizations {
   String get chatMiscContactsNoneTitle => 'لا يوجد أشخاص مطابقون';
 
   @override
-  String get chatMiscContactsNoneText => 'لم نجد أيًّا من جهات اتصالك يستخدم التطبيق ببريده الجامعي. سيظهر أصدقاؤك هنا عند انضمامهم.';
+  String get chatMiscContactsNoneText =>
+      'لم نجد أيًّا من جهات اتصالك يستخدم التطبيق ببريده الجامعي. سيظهر أصدقاؤك هنا عند انضمامهم.';
 
   @override
   String get chatMiscContactsSearchHint => 'ابحث في الأشخاص';
 
   @override
-  String get chatMiscContactsTruncated => 'تم بلوغ حد الطلبات في الساعة؛ ستتم مطابقة بقية الأشخاص لاحقًا.';
+  String get chatMiscContactsTruncated =>
+      'تم بلوغ حد الطلبات في الساعة؛ ستتم مطابقة بقية الأشخاص لاحقًا.';
 
   @override
   String get chatMiscContactsNoSearchMatch => 'لا يوجد أشخاص مطابقون لبحثك.';
@@ -1923,7 +1949,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get chatMiscMessage => 'رسالة';
 
   @override
-  String get chatMiscContactsPrivacy => 'لا يتم إرسال جهات الاتصال إلى الخادم، بل تتم مطابقة ملخصات البريد الإلكتروني فقط.';
+  String get chatMiscContactsPrivacy =>
+      'لا يتم إرسال جهات الاتصال إلى الخادم، بل تتم مطابقة ملخصات البريد الإلكتروني فقط.';
 
   @override
   String get chatMiscGroupMax => 'يمكن إضافة 50 شخصًا كحد أقصى إلى المجموعة.';
@@ -1986,7 +2013,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get chatMiscChatNotFound => 'لم يتم العثور على محادثات.';
 
   @override
-  String get chatMiscGalleryRationale => 'نحتاج إلى إذن الوصول لعرض الصور ومقاطع الفيديو في معرضك.';
+  String get chatMiscGalleryRationale =>
+      'نحتاج إلى إذن الوصول لعرض الصور ومقاطع الفيديو في معرضك.';
 
   @override
   String get chatMiscVideoMax60 => 'يجب ألا يتجاوز الفيديو 60 ثانية';
@@ -2026,10 +2054,12 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get chatMiscCameraRationale => 'نحتاج إلى الوصول إلى الكاميرا لتتمكن من التقاط الصور والفيديو.';
+  String get chatMiscCameraRationale =>
+      'نحتاج إلى الوصول إلى الكاميرا لتتمكن من التقاط الصور والفيديو.';
 
   @override
-  String get chatMiscMicRationale => 'نحتاج إلى الوصول إلى الميكروفون لتسجيل الصوت مع الفيديو.';
+  String get chatMiscMicRationale =>
+      'نحتاج إلى الوصول إلى الميكروفون لتسجيل الصوت مع الفيديو.';
 
   @override
   String get chatMiscPhotoFailed => 'تعذر التقاط الصورة.';
@@ -2047,7 +2077,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get chatMiscFlipCamera => 'تبديل الكاميرا';
 
   @override
-  String get chatMiscOnceToast => 'عرض لمرة واحدة: يمكن للمستلم مشاهدتها مرة واحدة فقط';
+  String get chatMiscOnceToast =>
+      'عرض لمرة واحدة: يمكن للمستلم مشاهدتها مرة واحدة فقط';
 
   @override
   String get chatMiscAddCaption => 'أضف تعليقًا…';
@@ -2059,13 +2090,16 @@ class AppLocalizationsAr extends AppLocalizations {
   String get chatMiscOnceGone => 'لم يعد بالإمكان عرض هذه الصورة.';
 
   @override
-  String get chatMiscOnceOwn => 'لا يمكنك فتح صورة العرض لمرة واحدة التي أرسلتها.';
+  String get chatMiscOnceOwn =>
+      'لا يمكنك فتح صورة العرض لمرة واحدة التي أرسلتها.';
 
   @override
-  String get chatMiscOnceNetwork => 'تعذر تحميل الصورة. تحقق من اتصالك. بما أنها للعرض لمرة واحدة، قد لا يمكن فتحها مرة أخرى.';
+  String get chatMiscOnceNetwork =>
+      'تعذر تحميل الصورة. تحقق من اتصالك. بما أنها للعرض لمرة واحدة، قد لا يمكن فتحها مرة أخرى.';
 
   @override
-  String get chatMiscOnceShowFailed => 'تعذر عرض الصورة. بما أنها للعرض لمرة واحدة، قد لا يمكن فتحها مرة أخرى.';
+  String get chatMiscOnceShowFailed =>
+      'تعذر عرض الصورة. بما أنها للعرض لمرة واحدة، قد لا يمكن فتحها مرة أخرى.';
 
   @override
   String get chatMiscOnceTitle => 'عرض لمرة واحدة';
@@ -2128,7 +2162,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get clubChatClosed => 'محادثة النادي مغلقة حاليًا.';
 
   @override
-  String get clubChatPreparing => 'محادثة النادي قيد التجهيز، حاول مرة أخرى بعد قليل.';
+  String get clubChatPreparing =>
+      'محادثة النادي قيد التجهيز، حاول مرة أخرى بعد قليل.';
 
   @override
   String get clubChat => 'محادثة النادي';
@@ -2273,7 +2308,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get clubRoleModerator => 'مشرف';
 
   @override
-  String get clubDeleteBody => 'سيتم حذف الأعضاء والفعاليات والمحادثة. لا يمكن التراجع عن هذا الإجراء.';
+  String get clubDeleteBody =>
+      'سيتم حذف الأعضاء والفعاليات والمحادثة. لا يمكن التراجع عن هذا الإجراء.';
 
   @override
   String clubDeleteTypeName(String name) {
@@ -2284,7 +2320,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get clubNameHint => 'اسم النادي';
 
   @override
-  String get clubOwnerCannotLeave => 'لا يمكن لمالك النادي المغادرة. انقل الملكية أولًا أو احذف النادي.';
+  String get clubOwnerCannotLeave =>
+      'لا يمكن لمالك النادي المغادرة. انقل الملكية أولًا أو احذف النادي.';
 
   @override
   String get clubCannotLeaveTitle => 'لا يمكنك مغادرة النادي';
@@ -2393,7 +2430,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get clubMgmtPendingTitle => 'تم إرسال ناديك للموافقة';
 
   @override
-  String get clubMgmtPendingBody => 'سيتم نشر النادي بعد مراجعة الإدارة. يمكنك متابعة الحالة من قسم أنديتي.';
+  String get clubMgmtPendingBody =>
+      'سيتم نشر النادي بعد مراجعة الإدارة. يمكنك متابعة الحالة من قسم أنديتي.';
 
   @override
   String get clubMgmtOk => 'حسنًا';
@@ -2402,7 +2440,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get clubMgmtImageTooLarge => 'الصورة كبيرة جدًا.';
 
   @override
-  String get clubMgmtImageUnsupported => 'يمكن رفع صور JPEG أو PNG أو WebP فقط.';
+  String get clubMgmtImageUnsupported =>
+      'يمكن رفع صور JPEG أو PNG أو WebP فقط.';
 
   @override
   String get clubMgmtImageUnreadable => 'تعذرت قراءة الصورة.';
@@ -2423,7 +2462,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get clubMgmtCategoryMax => 'يجب ألا تتجاوز الفئة 40 حرفًا.';
 
   @override
-  String get clubMgmtSavedWithWarning => 'تم حفظ النادي لكن تعذر حفظ الغلاف أو أسئلة الانضمام.';
+  String get clubMgmtSavedWithWarning =>
+      'تم حفظ النادي لكن تعذر حفظ الغلاف أو أسئلة الانضمام.';
 
   @override
   String get clubMgmtEditTitle => 'تعديل النادي';
@@ -2459,7 +2499,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get clubMgmtPrivate => 'خاص';
 
   @override
-  String get clubMgmtPrivateHint => 'يرى المحتوى الأعضاء فقط، والانضمام بموافقة.';
+  String get clubMgmtPrivateHint =>
+      'يرى المحتوى الأعضاء فقط، والانضمام بموافقة.';
 
   @override
   String get clubMgmtPublicHint => 'يظهر النادي في قسم استكشاف.';
@@ -2474,7 +2515,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get clubMgmtApprovalPolicy => 'بموافقة';
 
   @override
-  String get clubMgmtApprovalHint => 'يرسل الراغبون في الانضمام طلبًا ويوافق عليه مديرو النادي.';
+  String get clubMgmtApprovalHint =>
+      'يرسل الراغبون في الانضمام طلبًا ويوافق عليه مديرو النادي.';
 
   @override
   String get clubMgmtOpenHint => 'يمكن للجميع الانضمام مباشرة.';
@@ -2680,31 +2722,36 @@ class AppLocalizationsAr extends AppLocalizations {
   String get permNotificationsTitle => 'الإشعارات';
 
   @override
-  String get permNotificationsText => 'اسمح لنا بإرسال الإشعارات لتعرف فورًا بالرسائل والفعاليات والإعلانات.';
+  String get permNotificationsText =>
+      'اسمح لنا بإرسال الإشعارات لتعرف فورًا بالرسائل والفعاليات والإعلانات.';
 
   @override
   String get permContactsTitle => 'جهات الاتصال';
 
   @override
-  String get permContactsText => 'مطلوب للعثور على أشخاص الجامعة في جهات اتصالك وبدء المحادثات. لا يتم إرسال جهات اتصالك إلى الخادم.';
+  String get permContactsText =>
+      'مطلوب للعثور على أشخاص الجامعة في جهات اتصالك وبدء المحادثات. لا يتم إرسال جهات اتصالك إلى الخادم.';
 
   @override
   String get permCameraTitle => 'الكاميرا';
 
   @override
-  String get permCameraText => 'نحتاج إلى الوصول إلى الكاميرا لمسح رموز QR والتقاط الصور.';
+  String get permCameraText =>
+      'نحتاج إلى الوصول إلى الكاميرا لمسح رموز QR والتقاط الصور.';
 
   @override
   String get permMicrophoneTitle => 'الميكروفون';
 
   @override
-  String get permMicrophoneText => 'نحتاج إلى الوصول إلى الميكروفون لتتمكن من تسجيل الصوت والفيديو.';
+  String get permMicrophoneText =>
+      'نحتاج إلى الوصول إلى الميكروفون لتتمكن من تسجيل الصوت والفيديو.';
 
   @override
   String get permPhotosTitle => 'الصور';
 
   @override
-  String get permPhotosText => 'نحتاج إلى الوصول إلى معرض الصور لتتمكن من اختيار الصور ومشاركتها.';
+  String get permPhotosText =>
+      'نحتاج إلى الوصول إلى معرض الصور لتتمكن من اختيار الصور ومشاركتها.';
 
   @override
   String get permContinue => 'متابعة';
@@ -2727,7 +2774,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get permPageTitle => 'بعض الأذونات';
 
   @override
-  String get permPageIntro => 'امنح ما تشاء الآن، ويمكنك تغيير الباقي لاحقًا من الإعدادات.';
+  String get permPageIntro =>
+      'امنح ما تشاء الآن، ويمكنك تغيير الباقي لاحقًا من الإعدادات.';
 
   @override
   String get permStart => 'ابدأ';
@@ -2778,7 +2826,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get eventFormLeaveTitle => 'إلغاء المشاركة';
 
   @override
-  String get eventFormLeaveMessage => 'ستتم إزالة هذه الفعالية من قائمة فعالياتي.';
+  String get eventFormLeaveMessage =>
+      'ستتم إزالة هذه الفعالية من قائمة فعالياتي.';
 
   @override
   String get eventFormLeaveConfirm => 'مغادرة';
@@ -2793,7 +2842,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get eventFormCancelTitle => 'إلغاء الفعالية';
 
   @override
-  String get eventFormCancelMessage => 'سيتم إلغاء هذه الفعالية لجميع المشاركين.';
+  String get eventFormCancelMessage =>
+      'سيتم إلغاء هذه الفعالية لجميع المشاركين.';
 
   @override
   String get eventFormCancelAction => 'إلغاء الفعالية';
@@ -3130,7 +3180,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get eventListPastMonth => 'شهر سابق: للعرض فقط.';
 
   @override
-  String get eventListTruncated => 'لا يمكن عرض الشهر كاملًا؛ بعض الفعاليات غير موجودة في القائمة.';
+  String get eventListTruncated =>
+      'لا يمكن عرض الشهر كاملًا؛ بعض الفعاليات غير موجودة في القائمة.';
 
   @override
   String get eventListUpcoming => 'القادمة';
@@ -3139,7 +3190,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get eventListPast => 'السابقة';
 
   @override
-  String get eventListCreatedHint => 'يمكنك إدارة الفعاليات التي أنشأتها من هنا.';
+  String get eventListCreatedHint =>
+      'يمكنك إدارة الفعاليات التي أنشأتها من هنا.';
 
   @override
   String get eventListEmptyUpcoming => 'ليس لديك فعاليات للمشاركة فيها.';
@@ -3351,7 +3403,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get homeMaintenanceDefault => 'النظام قيد الصيانة.';
 
   @override
-  String get homeSourceUnreachable => 'الموقع المصدر غير متاح، وقد تكون البيانات قديمة.';
+  String get homeSourceUnreachable =>
+      'الموقع المصدر غير متاح، وقد تكون البيانات قديمة.';
 
   @override
   String get homeSearchHint => 'ابحث في الحرم الجامعي';
@@ -3467,7 +3520,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get newsLinkOpenFailed => 'تعذر فتح الرابط.';
 
   @override
-  String get newsFullContent => 'افتح الصفحة المصدر للاطلاع على المحتوى كاملًا.';
+  String get newsFullContent =>
+      'افتح الصفحة المصدر للاطلاع على المحتوى كاملًا.';
 
   @override
   String get newsOpenSource => 'فتح في الصفحة المصدر';
@@ -3572,7 +3626,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get discoverNoCategory => 'لا يوجد محتوى في هذه الفئة بعد.';
 
   @override
-  String get discoverDeptHint => 'اختر قسمك من ملفك الشخصي لترى منشورات قسمك هنا.';
+  String get discoverDeptHint =>
+      'اختر قسمك من ملفك الشخصي لترى منشورات قسمك هنا.';
 
   @override
   String get discoverDeptEmpty => 'لا توجد منشورات من قسمك بعد.';
@@ -3596,7 +3651,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get discoverNews => 'الأخبار';
 
   @override
-  String get discoverSourceMaint => 'الموقع المصدر قيد الصيانة حاليًا. قد تكون البيانات غير محدثة.';
+  String get discoverSourceMaint =>
+      'الموقع المصدر قيد الصيانة حاليًا. قد تكون البيانات غير محدثة.';
 
   @override
   String get menuTitle => 'قائمة الطعام';
@@ -3608,13 +3664,15 @@ class AppLocalizationsAr extends AppLocalizations {
   String get menuTopUpTitle => 'رصيد بطاقة الطعام';
 
   @override
-  String get menuTopUpBody => 'نفد رصيدك؟ يمكنك شحن بطاقة المطعم بأمان عبر yukle.al.';
+  String get menuTopUpBody =>
+      'نفد رصيدك؟ يمكنك شحن بطاقة المطعم بأمان عبر yukle.al.';
 
   @override
   String get menuTopUpAction => 'شحن الرصيد';
 
   @override
-  String get menuTopUpFailed => 'تعذر فتح الرابط. يرجى زيارة yukle.al من المتصفح.';
+  String get menuTopUpFailed =>
+      'تعذر فتح الرابط. يرجى زيارة yukle.al من المتصفح.';
 
   @override
   String get menuPrevMonth => 'الشهر السابق';
@@ -3699,13 +3757,15 @@ class AppLocalizationsAr extends AppLocalizations {
   String get searchUserDefault => 'مستخدم';
 
   @override
-  String get searchHint => 'ابحث عن أخبار أو أندية أو فعاليات أو منشورات أو أشخاص';
+  String get searchHint =>
+      'ابحث عن أخبار أو أندية أو فعاليات أو منشورات أو أشخاص';
 
   @override
   String get searchClear => 'مسح البحث';
 
   @override
-  String get searchPrompt => 'اكتب حرفين على الأقل للبحث عن أخبار أو إعلانات أو أندية أو فعاليات أو أشخاص.';
+  String get searchPrompt =>
+      'اكتب حرفين على الأقل للبحث عن أخبار أو إعلانات أو أندية أو فعاليات أو أشخاص.';
 
   @override
   String get searchRecent => 'عمليات البحث الأخيرة';
@@ -3773,13 +3833,15 @@ class AppLocalizationsAr extends AppLocalizations {
   String get qrConfirm => 'تأكيد';
 
   @override
-  String get qrCameraDenied => 'لم يتم منح إذن الكاميرا. يمكنك إدخال الرمز يدويًا أو منح الإذن ومحاولة المسح مرة أخرى.';
+  String get qrCameraDenied =>
+      'لم يتم منح إذن الكاميرا. يمكنك إدخال الرمز يدويًا أو منح الإذن ومحاولة المسح مرة أخرى.';
 
   @override
   String get qrGrantCamera => 'منح إذن الكاميرا';
 
   @override
-  String get qrDeniedSettings => 'لم يتم منح إذن الكاميرا. يمكنك السماح به من الإعدادات > BÜ Kampüs أو إدخال الرمز يدويًا.';
+  String get qrDeniedSettings =>
+      'لم يتم منح إذن الكاميرا. يمكنك السماح به من الإعدادات > BÜ Kampüs أو إدخال الرمز يدويًا.';
 
   @override
   String get qrCameraFailed => 'تعذر فتح الكاميرا. يمكنك إدخال الرمز يدويًا.';
@@ -3920,7 +3982,8 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get pollBlockedNotEligible => 'ليس لديك صلاحية المشاركة في هذا الاستطلاع.';
+  String get pollBlockedNotEligible =>
+      'ليس لديك صلاحية المشاركة في هذا الاستطلاع.';
 
   @override
   String get pollBlockedClosed => 'هذا الاستطلاع مغلق. لا يمكن التصويت.';
@@ -3929,7 +3992,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get pollBlockedNotOpen => 'لم يُفتح هذا الاستطلاع بعد.';
 
   @override
-  String get pollBlockedAlreadyVoted => 'تم حفظ صوتك؛ لا يمكن تغيير الصوت في هذا الاستطلاع.';
+  String get pollBlockedAlreadyVoted =>
+      'تم حفظ صوتك؛ لا يمكن تغيير الصوت في هذا الاستطلاع.';
 
   @override
   String get pollBlockedDefault => 'لا يمكنك التصويت في هذا الاستطلاع.';
@@ -4003,7 +4067,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get pollResultsAfterClose => 'ستظهر النتائج عند إغلاق الاستطلاع.';
 
   @override
-  String get pollHintRanked => 'المس الخيارات بترتيب الأفضلية؛ أول خيار تلمسه هو الأول.';
+  String get pollHintRanked =>
+      'المس الخيارات بترتيب الأفضلية؛ أول خيار تلمسه هو الأول.';
 
   @override
   String pollHintMax(String n) {
@@ -4097,7 +4162,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get postComposeErrNetwork => 'لا يوجد اتصال، حاول مرة أخرى.';
 
   @override
-  String get postComposeErrVideoTooLarge => 'الفيديو كبير جدًا (الحد الأقصى 40 ميغابايت).';
+  String get postComposeErrVideoTooLarge =>
+      'الفيديو كبير جدًا (الحد الأقصى 40 ميغابايت).';
 
   @override
   String get postComposeErrVideoTooLong => 'يجب ألا يتجاوز الفيديو 60 ثانية.';
@@ -4112,7 +4178,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get postComposeErrMediaInvalid => 'الوسائط غير صالحة، أعد رفعها.';
 
   @override
-  String get postComposeErrProfanity => 'لا يُسمح بالألفاظ غير اللائقة هنا. يرجى تعديل النص.';
+  String get postComposeErrProfanity =>
+      'لا يُسمح بالألفاظ غير اللائقة هنا. يرجى تعديل النص.';
 
   @override
   String get postComposeErrRate => 'أنت تنشر بسرعة كبيرة، انتظر قليلًا.';
@@ -4124,7 +4191,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get postComposeErrGeneric => 'حدث خطأ، حاول مرة أخرى.';
 
   @override
-  String get postComposeErrVideoUnsupported => 'لا يمكن تجهيز الفيديو على هذا الجهاز.';
+  String get postComposeErrVideoUnsupported =>
+      'لا يمكن تجهيز الفيديو على هذا الجهاز.';
 
   @override
   String get postComposeErrCancelled => 'تم الإلغاء.';
@@ -4169,7 +4237,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get postComposeBlockTitle => 'هل تريد حظر المستخدم؟';
 
   @override
-  String get postComposeBlockBody => 'لن ترى منشورات من تحظره ولن تتمكن من مراسلته.';
+  String get postComposeBlockBody =>
+      'لن ترى منشورات من تحظره ولن تتمكن من مراسلته.';
 
   @override
   String get postComposeBlock => 'حظر';
@@ -4206,10 +4275,12 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get postComposeInvalidRetry => 'الوسائط غير صالحة وسيعاد رفعها. المس مشاركة مرة أخرى.';
+  String get postComposeInvalidRetry =>
+      'الوسائط غير صالحة وسيعاد رفعها. المس مشاركة مرة أخرى.';
 
   @override
-  String get postComposeNetworkDraftKept => 'لا يوجد اتصال. تم حفظ مسودتك، حاول مرة أخرى.';
+  String get postComposeNetworkDraftKept =>
+      'لا يوجد اتصال. تم حفظ مسودتك، حاول مرة أخرى.';
 
   @override
   String get postComposeShared => 'تمت المشاركة';
@@ -4218,7 +4289,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get postComposeDiscardTitle => 'هل تريد حذف المسودة؟';
 
   @override
-  String get postComposeDiscardBody => 'سيتم حذف ما كتبته والوسائط التي اخترتها.';
+  String get postComposeDiscardBody =>
+      'سيتم حذف ما كتبته والوسائط التي اخترتها.';
 
   @override
   String get postComposeContinue => 'متابعة';
@@ -4417,7 +4489,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get postViewHideReplies => 'إخفاء الردود';
 
   @override
-  String get postViewCommentsLoadFailed => 'تعذر تحميل التعليقات · أعد المحاولة';
+  String get postViewCommentsLoadFailed =>
+      'تعذر تحميل التعليقات · أعد المحاولة';
 
   @override
   String get postViewCommentsLoading => 'جارٍ تحميل التعليقات';
@@ -4610,7 +4683,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get profileRemovePhoto => 'إزالة الصورة';
 
   @override
-  String get profilePhotoTooLargeHint => 'الحد الأقصى لحجم الصورة 2 ميغابايت. اختر صورة أصغر.';
+  String get profilePhotoTooLargeHint =>
+      'الحد الأقصى لحجم الصورة 2 ميغابايت. اختر صورة أصغر.';
 
   @override
   String get profilePhotoUnsupported => 'يمكن رفع صور JPG أو PNG أو WebP فقط.';
@@ -4765,7 +4839,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get profileReminders => 'تذكيرات المحاضرات والامتحانات';
 
   @override
-  String get profileSavedEmpty => 'لم تحفظ أي خبر بعد. المس أيقونة الإشارة المرجعية في الأخبار.';
+  String get profileSavedEmpty =>
+      'لم تحفظ أي خبر بعد. المس أيقونة الإشارة المرجعية في الأخبار.';
 
   @override
   String get profileRetry => 'أعد المحاولة';
@@ -4803,7 +4878,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get profilePrefsDataCopied => 'تم نسخ بياناتك إلى الحافظة';
 
   @override
-  String get profilePrefsExportLimit => 'يمكنك تنزيل بياناتك 3 مرات كحد أقصى في اليوم.';
+  String get profilePrefsExportLimit =>
+      'يمكنك تنزيل بياناتك 3 مرات كحد أقصى في اليوم.';
 
   @override
   String get profilePrefsBlockedUsers => 'المستخدمون المحظورون';
@@ -4830,7 +4906,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get profilePrefsDeleteAccountTitle => 'حذف الحساب';
 
   @override
-  String get profilePrefsDeleteAccountBody => 'سيتم حذف حسابك وبياناتك الشخصية. لا يمكن التراجع عن هذا الإجراء. أدخل كلمة المرور للتأكيد.';
+  String get profilePrefsDeleteAccountBody =>
+      'سيتم حذف حسابك وبياناتك الشخصية. لا يمكن التراجع عن هذا الإجراء. أدخل كلمة المرور للتأكيد.';
 
   @override
   String get profilePrefsPassword => 'كلمة المرور';
@@ -5010,7 +5087,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get authHintPersonal => 'أدخل اسمك وبريدك الجامعي.';
 
   @override
-  String get authHintPassword => 'اختر كلمة مرور من 8 أحرف على الأقل.';
+  String get authHintPassword => 'اختر كلمة مرور من 6 أرقام يصعب تخمينها.';
 
   @override
   String get authNext => 'متابعة';
@@ -5022,10 +5099,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get authTermsAutoSuffix => '.';
 
   @override
-  String get authPwMinErr => 'يجب ألا تقل كلمة المرور عن 8 أحرف.';
+  String get authPwMinErr => 'يجب أن تتكون كلمة المرور من 6 أرقام.';
 
   @override
-  String get authPwMaxErr => 'يجب ألا تزيد كلمة المرور عن 72 حرفًا.';
+  String get authPwMaxErr => 'يجب أن تتكون كلمة المرور من 6 أرقام.';
 
   @override
   String get authIdHelper => '226051015 أو name.surname@bingol.edu.tr';
@@ -5040,7 +5117,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get authRegIdEmpty => 'أدخل بريدك الإلكتروني الجامعي.';
 
   @override
-  String get authRegIdFull => 'أدخل عنوان بريدك الإلكتروني الجامعي كاملاً، مثل name.surname@bingol.edu.tr';
+  String get authRegIdFull =>
+      'أدخل عنوان بريدك الإلكتروني الجامعي كاملاً، مثل name.surname@bingol.edu.tr';
 
   @override
   String get supportCatAccount => 'الحساب';
@@ -5091,7 +5169,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get supportStatusOpen => 'مفتوح';
 
   @override
-  String get supportTooManyRequests => 'لقد أرسلت طلبات كثيرة. يرجى الانتظار قليلًا ثم المحاولة مرة أخرى.';
+  String get supportTooManyRequests =>
+      'لقد أرسلت طلبات كثيرة. يرجى الانتظار قليلًا ثم المحاولة مرة أخرى.';
 
   @override
   String get supportLabelCategory => 'الفئة';
@@ -5178,13 +5257,15 @@ class AppLocalizationsAr extends AppLocalizations {
   String get supportAddSuggestion => 'إضافة اقتراح';
 
   @override
-  String get supportNoSuggestions => 'لا توجد اقتراحات منشورة بعد. كن أول من يضيف اقتراحًا.';
+  String get supportNoSuggestions =>
+      'لا توجد اقتراحات منشورة بعد. كن أول من يضيف اقتراحًا.';
 
   @override
   String get supportCloseTicketTitle => 'إغلاق الطلب';
 
   @override
-  String get supportCloseTicketBody => 'سيتم إغلاق هذا الطلب ولن تتمكن من كتابة ردود جديدة. هل تريد المتابعة؟';
+  String get supportCloseTicketBody =>
+      'سيتم إغلاق هذا الطلب ولن تتمكن من كتابة ردود جديدة. هل تريد المتابعة؟';
 
   @override
   String get supportCancel => 'إلغاء';
@@ -5298,13 +5379,14 @@ class AppLocalizationsAr extends AppLocalizations {
   String get authChangeEmail => 'تغيير البريد الإلكتروني';
 
   @override
-  String get authNewPwSub => 'ستحل محل كلمة المرور القديمة. سيتم إنهاء الجلسات على جميع الأجهزة.';
+  String get authNewPwSub =>
+      'ستحل محل كلمة المرور القديمة. سيتم إنهاء الجلسات على جميع الأجهزة.';
 
   @override
-  String get authRuleLen => '8 أحرف على الأقل';
+  String get authRuleLen => 'تتكون من 6 أرقام';
 
   @override
-  String get authRuleMix => 'تحتوي على أحرف وأرقام';
+  String get authRuleMix => 'يصعب تخمينها';
 
   @override
   String get authStep1Title => 'في أي قسم أنت؟';
@@ -5316,7 +5398,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get welcomeHeadline => 'الحرم الجامعي\nفي جيبك';
 
   @override
-  String get welcomeSub => 'الإعلانات وقائمة الطعام والأندية والفعاليات في تطبيق واحد.';
+  String get welcomeSub =>
+      'الإعلانات وقائمة الطعام والأندية والفعاليات في تطبيق واحد.';
 
   @override
   String get welcomeNews => 'الأخبار والإعلانات';
@@ -5418,7 +5501,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get profil2PrivacyTitle => 'الخصوصية والمحظورون';
 
   @override
-  String get profil2PrivacyIntro => 'اختر من يمكنه رؤية كل جزء من ملفك الشخصي. أنت ترى ملفك الشخصي كاملًا دائمًا.';
+  String get profil2PrivacyIntro =>
+      'اختر من يمكنه رؤية كل جزء من ملفك الشخصي. أنت ترى ملفك الشخصي كاملًا دائمًا.';
 
   @override
   String get profil2VisibilitySection => 'ظهور الملف الشخصي';
@@ -5451,7 +5535,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get profil2SharedHintLead => 'السياق المشترك:';
 
   @override
-  String get profil2SharedHintBody => 'الأشخاص الذين تشترك معهم في نادٍ أو محادثة أو فعالية.';
+  String get profil2SharedHintBody =>
+      'الأشخاص الذين تشترك معهم في نادٍ أو محادثة أو فعالية.';
 
   @override
   String get profil2ShowEmail => 'إظهار بريدي الإلكتروني في ملفي';
@@ -5478,7 +5563,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get profil2DataTitle => 'بياناتي';
 
   @override
-  String get profil2DataIntro => 'يمكنك تنزيل نسخة من بياناتك الشخصية التي نحتفظ بها في التطبيق وفق قانون حماية البيانات الشخصية (KVKK).';
+  String get profil2DataIntro =>
+      'يمكنك تنزيل نسخة من بياناتك الشخصية التي نحتفظ بها في التطبيق وفق قانون حماية البيانات الشخصية (KVKK).';
 
   @override
   String get profil2DataFileSub => 'يتم إعدادها كملف JSON';
@@ -5502,7 +5588,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get profil2DataItemSupport => 'سجلات الدعم والملاحظات';
 
   @override
-  String get profil2DataLimit => 'يمكنك التنزيل حتى 3 مرات يوميًا. احتفظ بالملف بأمان فهو يحتوي على معلومات شخصية.';
+  String get profil2DataLimit =>
+      'يمكنك التنزيل حتى 3 مرات يوميًا. احتفظ بالملف بأمان فهو يحتوي على معلومات شخصية.';
 
   @override
   String get profil2DataOther => 'أخرى';
@@ -5514,19 +5601,23 @@ class AppLocalizationsAr extends AppLocalizations {
   String get profil2DelWarnLead => 'لا يمكن التراجع عن هذا الإجراء.';
 
   @override
-  String get profil2DelWarnBody => 'سيتم إخفاء هوية حسابك ولن تتمكن من تسجيل الدخول مجددًا.';
+  String get profil2DelWarnBody =>
+      'سيتم إخفاء هوية حسابك ولن تتمكن من تسجيل الدخول مجددًا.';
 
   @override
   String get profil2DelWhatHappens => 'ماذا سيحدث';
 
   @override
-  String get profil2DelItem1 => 'يتم حذف اسمك وبريدك وصورتك ومعلومات ملفك. يبقى الحساب باسم مستخدم محذوف.';
+  String get profil2DelItem1 =>
+      'يتم حذف اسمك وبريدك وصورتك ومعلومات ملفك. يبقى الحساب باسم مستخدم محذوف.';
 
   @override
-  String get profil2DelItem2 => 'يتم حذف إشعاراتك وأخبارك المحفوظة وسجلات أجهزتك وتفضيلاتك.';
+  String get profil2DelItem2 =>
+      'يتم حذف إشعاراتك وأخبارك المحفوظة وسجلات أجهزتك وتفضيلاتك.';
 
   @override
-  String get profil2DelItem3 => 'تتم إزالة عضوياتك في النوادي ومشاركاتك في الفعاليات.';
+  String get profil2DelItem3 =>
+      'تتم إزالة عضوياتك في النوادي ومشاركاتك في الفعاليات.';
 
   @override
   String get profil2DelItem4 => 'يتم إغلاق جلساتك على جميع الأجهزة.';
@@ -5535,7 +5626,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get profil2DelBackupHint => 'إن أردت، يمكنك تنزيل بياناتك قبل الحذف.';
 
   @override
-  String get profil2DelAck => 'أفهم أنه سيتم حذف حسابي نهائيًا ولا يمكن التراجع عن ذلك.';
+  String get profil2DelAck =>
+      'أفهم أنه سيتم حذف حسابي نهائيًا ولا يمكن التراجع عن ذلك.';
 
   @override
   String get profil2Continue => 'متابعة';
@@ -5544,7 +5636,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get profil2DelConfirmTitle => 'تأكيد الحذف';
 
   @override
-  String get profil2DelConfirmBody => 'أدخل كلمة المرور للمتابعة. سيتم إخفاء هوية حسابك فورًا وتسجيل خروجك من جميع الأجهزة.';
+  String get profil2DelConfirmBody =>
+      'أدخل كلمة المرور للمتابعة. سيتم إخفاء هوية حسابك فورًا وتسجيل خروجك من جميع الأجهزة.';
 
   @override
   String get profil2SecTitle => 'الحساب والأمان';
@@ -5568,7 +5661,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get profil2SecNewLabel => 'كلمة المرور الجديدة';
 
   @override
-  String get profil2SecNewHint => '8 أحرف على الأقل';
+  String get profil2SecNewHint => '6 أرقام';
 
   @override
   String get profil2SecRepeatLabel => 'كلمة المرور الجديدة (تكرار)';
@@ -5577,7 +5670,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get profil2SecRepeatHint => 'أعد كتابة كلمة المرور الجديدة';
 
   @override
-  String get profil2SecPwRule => 'من 8 إلى 72 حرفًا. خلط الحروف والأرقام يجعلها أقوى.';
+  String get profil2SecPwRule =>
+      '6 أرقام. لا تُقبل الأرقام المتسلسلة (123456) أو المكررة (111111).';
 
   @override
   String get profil2SecPwButton => 'تحديث كلمة المرور';
@@ -5586,13 +5680,15 @@ class AppLocalizationsAr extends AppLocalizations {
   String get profil2SecMismatch => 'كلمتا المرور غير متطابقتين.';
 
   @override
-  String get profil2SecSame => 'لا يمكن أن تكون كلمة المرور الجديدة مثل الحالية.';
+  String get profil2SecSame =>
+      'لا يمكن أن تكون كلمة المرور الجديدة مثل الحالية.';
 
   @override
   String get profil2SecWrongCurrent => 'كلمة المرور الحالية غير صحيحة.';
 
   @override
-  String get profil2SecFailed => 'تعذر تحديث كلمة المرور. يرجى المحاولة لاحقًا.';
+  String get profil2SecFailed =>
+      'تعذر تحديث كلمة المرور. يرجى المحاولة لاحقًا.';
 
   @override
   String get profil2SecUpdated => 'تم تحديث كلمة المرور.';
@@ -5802,7 +5898,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get gonderiDiscardTitle => 'هل تريد التخلي عن المشاركة؟';
 
   @override
-  String get gonderiDiscardBody => 'سيتم حذف الصورة التي اخترتها والنص الذي كتبته.';
+  String get gonderiDiscardBody =>
+      'سيتم حذف الصورة التي اخترتها والنص الذي كتبته.';
 
   @override
   String get gonderiDiscardYes => 'تخلَّ';
@@ -5863,10 +5960,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get anketScopeMenu => 'الوجبة';
 
   @override
-  String get anketSecretNote => 'صوتك سري. لا يرى اختيارك أحد غيرك، ولا يستطيع أحد، بمن فيهم الإدارة، معرفة من اختار أي خيار.';
+  String get anketSecretNote =>
+      'صوتك سري. لا يرى اختيارك أحد غيرك، ولا يستطيع أحد، بمن فيهم الإدارة، معرفة من اختار أي خيار.';
 
   @override
-  String get anketSecretVoteNote => 'يبقى صوتك سريًا ولا يستطيع أحد معرفة من اختار أي خيار.';
+  String get anketSecretVoteNote =>
+      'يبقى صوتك سريًا ولا يستطيع أحد معرفة من اختار أي خيار.';
 
   @override
   String get anketMineBadge => 'اختيارك';
@@ -5947,7 +6046,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get icerikFavorites => 'الأخبار المفضلة';
 
   @override
-  String get icerikMaintenance => 'تعذر الوصول إلى مصدر الأخبار حاليًا. يتم عرض آخر الأخبار المحفوظة.';
+  String get icerikMaintenance =>
+      'تعذر الوصول إلى مصدر الأخبار حاليًا. يتم عرض آخر الأخبار المحفوظة.';
 
   @override
   String get icerikOpenSource => 'فتح في الموقع المصدر';
@@ -6091,10 +6191,12 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get sistemuiPermNotifText => 'لتصلك إشعارات فورية عن الرسائل والفعاليات والإعلانات.';
+  String get sistemuiPermNotifText =>
+      'لتصلك إشعارات فورية عن الرسائل والفعاليات والإعلانات.';
 
   @override
-  String get sistemuiPermContactsText => 'للعثور على جهات اتصال الجامعة في دفتر العناوين وبدء المحادثات. لا يتم إرسال جهات اتصالك إلى الخادم.';
+  String get sistemuiPermContactsText =>
+      'للعثور على جهات اتصال الجامعة في دفتر العناوين وبدء المحادثات. لا يتم إرسال جهات اتصالك إلى الخادم.';
 
   @override
   String get sistemuiPermCameraTitle => 'الكاميرا والمعرض';
@@ -6132,7 +6234,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get sistemuiQrHint => 'ضع رمز QR داخل الإطار';
 
   @override
-  String get sistemuiQrNotice => 'يفتح تسجيل الحضور في وقت الفعالية. امسح الرمز الذي يعرضه المنظم.';
+  String get sistemuiQrNotice =>
+      'يفتح تسجيل الحضور في وقت الفعالية. امسح الرمز الذي يعرضه المنظم.';
 
   @override
   String get sistemuiQrOr => 'أو';
@@ -6144,13 +6247,15 @@ class AppLocalizationsAr extends AppLocalizations {
   String get sistemuiQrSubmit => 'إرسال الحضور';
 
   @override
-  String get profilyardBlockedNote => 'لا يمكن للأشخاص الذين تحظرهم رؤية ملفك الشخصي أو مراسلتك أو متابعتك.';
+  String get profilyardBlockedNote =>
+      'لا يمكن للأشخاص الذين تحظرهم رؤية ملفك الشخصي أو مراسلتك أو متابعتك.';
 
   @override
   String get profilyardBlockedEmptyTitle => 'لم تحظر أي شخص';
 
   @override
-  String get profilyardBlockedEmptyBody => 'يمكنك حظر مستخدم مزعج من ملفه الشخصي.';
+  String get profilyardBlockedEmptyBody =>
+      'يمكنك حظر مستخدم مزعج من ملفه الشخصي.';
 
   @override
   String profilyardUnblockOf(String name) {
@@ -6185,7 +6290,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get profilyardClubsEmptyTitle => 'ليس لديك أي نادٍ بعد';
 
   @override
-  String get profilyardClubsEmptyBody => 'يمكنك استكشاف الأندية والانضمام إليها أو تأسيس ناديك الخاص.';
+  String get profilyardClubsEmptyBody =>
+      'يمكنك استكشاف الأندية والانضمام إليها أو تأسيس ناديك الخاص.';
 
   @override
   String get profilyardClubsDiscover => 'استكشف الأندية';
@@ -6220,7 +6326,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get profilyardEventsEmptyTitle => 'ليس لديك أي فعالية بعد';
 
   @override
-  String get profilyardEventsEmptyBody => 'تصفح الفعاليات أو أنشئ فعاليتك الخاصة.';
+  String get profilyardEventsEmptyBody =>
+      'تصفح الفعاليات أو أنشئ فعاليتك الخاصة.';
 
   @override
   String profilyardFollowersTab(String count) {
@@ -6251,7 +6358,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get profilyardFollowNoMatch => 'لا يوجد أشخاص مطابقون.';
 
   @override
-  String get profilyardFbIntro => 'ساعدنا في تحسين التطبيق. اكتب اقتراحك أو الخطأ الذي واجهته أو أفكارك.';
+  String get profilyardFbIntro =>
+      'ساعدنا في تحسين التطبيق. اكتب اقتراحك أو الخطأ الذي واجهته أو أفكارك.';
 
   @override
   String get profilyardFbType => 'النوع';
@@ -6324,7 +6432,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get etkinlik2JoinPolicyLabel => 'المشاركة';
 
   @override
-  String get etkinlik2PolicyApprovalHint => 'عند اختيار \"بطلب\" توافق أنت على كل مشارك.';
+  String get etkinlik2PolicyApprovalHint =>
+      'عند اختيار \"بطلب\" توافق أنت على كل مشارك.';
 
   @override
   String get etkinlik2FormClub => 'باسم نادٍ (اختياري)';
@@ -6345,7 +6454,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get etkinlik2ChatAutoTitle => 'تُفتح محادثة الفعالية تلقائيًا';
 
   @override
-  String get etkinlik2ChatAutoBody => 'يدخل المشاركون وأنت إلى المحادثة. في الانضمام بطلب يدخل المعتمدون فقط.';
+  String get etkinlik2ChatAutoBody =>
+      'يدخل المشاركون وأنت إلى المحادثة. في الانضمام بطلب يدخل المعتمدون فقط.';
 
   @override
   String get etkinlik2CapacityOptional => 'السعة (اختياري)';
@@ -6368,7 +6478,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get etkinlik2SendRequest => 'إرسال طلب انضمام';
 
   @override
-  String get etkinlik2RequestHint => 'تدخل محادثة الفعالية عندما يوافق المنظّم.';
+  String get etkinlik2RequestHint =>
+      'تدخل محادثة الفعالية عندما يوافق المنظّم.';
 
   @override
   String get etkinlik2RequestSent => 'تم إرسال الطلب';
@@ -6442,7 +6553,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get etkinlik2ReqNoLimit => 'لا حد للسعة';
 
   @override
-  String get etkinlik2ReqFullBanner => 'اكتملت السعة؛ لا يمكن الموافقة على طلبات جديدة. ارفع السعة لإتاحة أماكن.';
+  String get etkinlik2ReqFullBanner =>
+      'اكتملت السعة؛ لا يمكن الموافقة على طلبات جديدة. ارفع السعة لإتاحة أماكن.';
 
   @override
   String etkinlik2ReqPendingHeader(String n) {
@@ -6506,13 +6618,15 @@ class AppLocalizationsAr extends AppLocalizations {
   String get etkinlik2SettingsRegOpen => 'التسجيل مفتوح';
 
   @override
-  String get etkinlik2SettingsRegHint => 'عند الإيقاف لا تُقبل طلبات أو مشاركات جديدة.';
+  String get etkinlik2SettingsRegHint =>
+      'عند الإيقاف لا تُقبل طلبات أو مشاركات جديدة.';
 
   @override
   String get etkinlik2SettingsChatOpen => 'محادثة الفعالية مفتوحة';
 
   @override
-  String get etkinlik2SettingsChatHint => 'عند الإيقاف تتوقف الرسائل ويُحتفظ بالسجل.';
+  String get etkinlik2SettingsChatHint =>
+      'عند الإيقاف تتوقف الرسائل ويُحتفظ بالسجل.';
 
   @override
   String get etkinlik2SettingsDanger => 'منطقة الخطر';
@@ -6652,7 +6766,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get evcEmptyTitle => 'يجب أن تكون مديرًا في نادٍ لإنشاء فعالية';
 
   @override
-  String get evcEmptyBody => 'تُنشأ الفعاليات باسم الأندية. عندما تصبح مديرًا في نادٍ يمكنك إنشاء الفعاليات هنا.';
+  String get evcEmptyBody =>
+      'تُنشأ الفعاليات باسم الأندية. عندما تصبح مديرًا في نادٍ يمكنك إنشاء الفعاليات هنا.';
 
   @override
   String get evcBrowseClubs => 'تصفّح الأندية';
@@ -6661,7 +6776,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get evcSubmittedTitle => 'أُرسلت للموافقة';
 
   @override
-  String get evcSubmittedBody => 'ستُنشر فعاليتك بعد موافقة الإدارة. يمكنك متابعة حالتها من تبويب ما أنشأته.';
+  String get evcSubmittedBody =>
+      'ستُنشر فعاليتك بعد موافقة الإدارة. يمكنك متابعة حالتها من تبويب ما أنشأته.';
 
   @override
   String get evcOk => 'حسنًا';
@@ -6765,31 +6881,40 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get clubMgmtCategoryInvalid => 'الفئة المحددة غير صالحة. اختر فئة أخرى من القائمة.';
+  String get clubMgmtCategoryInvalid =>
+      'الفئة المحددة غير صالحة. اختر فئة أخرى من القائمة.';
 
   @override
-  String get errEmailAliasNotAllowed => 'لا يمكن استخدام وسم + في عنوان البريد الإلكتروني.';
+  String get errEmailAliasNotAllowed =>
+      'لا يمكن استخدام وسم + في عنوان البريد الإلكتروني.';
 
   @override
-  String get errPasswordTooLong => 'كلمة المرور طويلة جدًا: الحد الأقصى 72 بايت (الأحرف التركية والعربية تشغل أكثر من بايت).';
+  String get errPasswordTooLong =>
+      'كلمة المرور طويلة جدًا: الحد الأقصى 72 بايت (الأحرف التركية والعربية تشغل أكثر من بايت).';
 
   @override
-  String get errPayloadTooLarge => 'حجم البيانات المرسلة كبير جدًا. جرّب ملفًا أصغر أو نصًا أقصر.';
+  String get errPayloadTooLarge =>
+      'حجم البيانات المرسلة كبير جدًا. جرّب ملفًا أصغر أو نصًا أقصر.';
 
   @override
-  String get errUploadBusy => 'هناك عملية رفع أخرى قيد التنفيذ أو الخادم مشغول. انتظر قليلًا ثم حاول مرة أخرى.';
+  String get errUploadBusy =>
+      'هناك عملية رفع أخرى قيد التنفيذ أو الخادم مشغول. انتظر قليلًا ثم حاول مرة أخرى.';
 
   @override
-  String get errUploadQuota => 'لقد أجريت عددًا كبيرًا من عمليات الرفع. حاول مرة أخرى بعد قليل.';
+  String get errUploadQuota =>
+      'لقد أجريت عددًا كبيرًا من عمليات الرفع. حاول مرة أخرى بعد قليل.';
 
   @override
-  String get errMailQuota => 'لا يمكننا إرسال رموز التحقق حاليًا. يرجى المحاولة لاحقًا.';
+  String get errMailQuota =>
+      'لا يمكننا إرسال رموز التحقق حاليًا. يرجى المحاولة لاحقًا.';
 
   @override
-  String get errServiceBusy => 'النظام مشغول حاليًا. يرجى المحاولة مرة أخرى بعد بضع ثوانٍ.';
+  String get errServiceBusy =>
+      'النظام مشغول حاليًا. يرجى المحاولة مرة أخرى بعد بضع ثوانٍ.';
 
   @override
-  String get errLegalReaccept => 'تم تحديث الاتفاقيات. يجب عليك الموافقة على الاتفاقيات المحدّثة للمتابعة.';
+  String get errLegalReaccept =>
+      'تم تحديث الاتفاقيات. يجب عليك الموافقة على الاتفاقيات المحدّثة للمتابعة.';
 
   @override
   String coreErrRetryAfterSec(String n) {
@@ -6817,10 +6942,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get legalReacceptTitle => 'تم تحديث الاتفاقيات';
 
   @override
-  String get legalReacceptIntro => 'أجرينا تغييرات على شروط الاستخدام ووثائق الخصوصية. لمواصلة استخدام التطبيق، يرجى قراءة الوثائق المحدّثة والموافقة عليها.';
+  String get legalReacceptIntro =>
+      'أجرينا تغييرات على شروط الاستخدام ووثائق الخصوصية. لمواصلة استخدام التطبيق، يرجى قراءة الوثائق المحدّثة والموافقة عليها.';
 
   @override
-  String get legalReacceptIntroSoft => 'تم نشر إصدارات جديدة من بعض الوثائق. يمكنك مراجعتها والموافقة عليها الآن أو لاحقًا، وستحتاج إلى الموافقة عليها في الأيام القادمة.';
+  String get legalReacceptIntroSoft =>
+      'تم نشر إصدارات جديدة من بعض الوثائق. يمكنك مراجعتها والموافقة عليها الآن أو لاحقًا، وستحتاج إلى الموافقة عليها في الأيام القادمة.';
 
   @override
   String get legalReacceptListTitle => 'الوثائق المحدّثة';
@@ -6838,7 +6965,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get legalReacceptTypeRules => 'قواعد المجتمع';
 
   @override
-  String get legalReacceptNoteExplicit => 'أذونات الموافقة الصريحة الاختيارية منفصلة عن هذه الموافقة ولا تُعدّ ممنوحة بها.';
+  String get legalReacceptNoteExplicit =>
+      'أذونات الموافقة الصريحة الاختيارية منفصلة عن هذه الموافقة ولا تُعدّ ممنوحة بها.';
 
   @override
   String get legalReacceptCheck => 'لقد قرأت الوثائق المحدّثة وأوافق عليها';
@@ -6856,7 +6984,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get legalReacceptDeclineTitle => 'لا يمكن المتابعة دون الموافقة';
 
   @override
-  String get legalReacceptDeclineBody => 'إذا لم توافق على الاتفاقيات الحالية فلن تتمكن من استخدام التطبيق. يمكنك حذف حسابك، أو تسجيل الخروج واتخاذ القرار لاحقًا.';
+  String get legalReacceptDeclineBody =>
+      'إذا لم توافق على الاتفاقيات الحالية فلن تتمكن من استخدام التطبيق. يمكنك حذف حسابك، أو تسجيل الخروج واتخاذ القرار لاحقًا.';
 
   @override
   String get legalReacceptDeleteAccount => 'حذف حسابي';
@@ -6865,16 +6994,19 @@ class AppLocalizationsAr extends AppLocalizations {
   String get legalReacceptSignOut => 'تسجيل الخروج';
 
   @override
-  String get legalReacceptOutdated => 'تم تحديث الوثائق مرة أخرى. يرجى مراجعة الإصدارات الجديدة والموافقة عليها من جديد.';
+  String get legalReacceptOutdated =>
+      'تم تحديث الوثائق مرة أخرى. يرجى مراجعة الإصدارات الجديدة والموافقة عليها من جديد.';
 
   @override
   String get authVerifyPasswordLabel => 'كلمة المرور التي اخترتها عند التسجيل';
 
   @override
-  String get authVerifyPasswordNote => 'لأسباب أمنية، أعد إدخال كلمة المرور التي استخدمتها عند التسجيل.';
+  String get authVerifyPasswordNote =>
+      'لأسباب أمنية، أعد إدخال كلمة المرور التي استخدمتها عند التسجيل.';
 
   @override
-  String get authVerifyPasswordRequired => 'أدخل كلمة المرور التي اخترتها عند التسجيل.';
+  String get authVerifyPasswordRequired =>
+      'أدخل كلمة المرور التي اخترتها عند التسجيل.';
 
   @override
   String get chatClosedBanner => 'أغلق أحد المشرفين هذه المحادثة.';
@@ -6892,16 +7024,19 @@ class AppLocalizationsAr extends AppLocalizations {
   String get clubUnavailable => 'هذا النادي غير متاح حاليًا.';
 
   @override
-  String get profil2DelItemUsage => 'يتم حذف سجلات أجهزتك وعنوان IP وبيانات الاستخدام (التحليلات) فورًا.';
+  String get profil2DelItemUsage =>
+      'يتم حذف سجلات أجهزتك وعنوان IP وبيانات الاستخدام (التحليلات) فورًا.';
 
   @override
-  String get profil2DelItemClubOwner => 'تُنقل ملكية النوادي التي تملكها إلى عضو مشرف؛ وإذا لم يوجد مرشح يُغلق النادي.';
+  String get profil2DelItemClubOwner =>
+      'تُنقل ملكية النوادي التي تملكها إلى عضو مشرف؛ وإذا لم يوجد مرشح يُغلق النادي.';
 
   @override
   String get settingsCrashReports => 'إرسال تقارير الأعطال';
 
   @override
-  String get settingsCrashReportsDesc => 'عند حدوث خطأ في التطبيق أو إغلاقه بشكل غير متوقع، يُرسل تقرير أعطال مجهول إلى خادم BÜ Kampüs: إصدار التطبيق ونظام التشغيل ونوع الخطأ وتتبع تقني للمكدس دون بيانات شخصية. لا يتم إرسال بريدك الإلكتروني أو كلمة المرور أو محتوى الرسائل أو هويتك، ولا يُنقل أي شيء إلى خدمات خارجية. يمكنك إيقاف ذلك في أي وقت.';
+  String get settingsCrashReportsDesc =>
+      'عند حدوث خطأ في التطبيق أو إغلاقه بشكل غير متوقع، يُرسل تقرير أعطال مجهول إلى خادم BÜ Kampüs: إصدار التطبيق ونظام التشغيل ونوع الخطأ وتتبع تقني للمكدس دون بيانات شخصية. لا يتم إرسال بريدك الإلكتروني أو كلمة المرور أو محتوى الرسائل أو هويتك، ولا يُنقل أي شيء إلى خدمات خارجية. يمكنك إيقاف ذلك في أي وقت.';
 
   @override
   String get welcomeChipNews => 'الأخبار';
@@ -6922,19 +7057,24 @@ class AppLocalizationsAr extends AppLocalizations {
   String get authResetDoneTitle => 'تم تحديث كلمة المرور';
 
   @override
-  String get authResetDoneBody => 'يمكنك الآن تسجيل الدخول بكلمة المرور الجديدة. تم إغلاق الجلسات على الأجهزة الأخرى.';
+  String get authResetDoneBody =>
+      'يمكنك الآن تسجيل الدخول بكلمة المرور الجديدة. تم إغلاق الجلسات على الأجهزة الأخرى.';
 
   @override
-  String get authTrustAcademic => 'يُستخدم قسمك لعرض الإعلانات والأندية المناسبة لك.';
+  String get authTrustAcademic =>
+      'يُستخدم قسمك لعرض الإعلانات والأندية المناسبة لك.';
 
   @override
-  String get authTrustName => 'يظهر اسمك للطلاب الآخرين في ملفك الشخصي وفي المحادثات.';
+  String get authTrustName =>
+      'يظهر اسمك للطلاب الآخرين في ملفك الشخصي وفي المحادثات.';
 
   @override
-  String get authTrustPassword => 'تُخزَّن كلمة المرور على شكل بصمة مشفّرة فقط؛ لا يمكن لأحد قراءتها.';
+  String get authTrustPassword =>
+      'تُخزَّن كلمة المرور على شكل بصمة مشفّرة فقط؛ لا يمكن لأحد قراءتها.';
 
   @override
-  String get authTrustCode => 'إذا لم يصل البريد، فتحقق من مجلد الرسائل غير المرغوبة أيضًا.';
+  String get authTrustCode =>
+      'إذا لم يصل البريد، فتحقق من مجلد الرسائل غير المرغوبة أيضًا.';
 
   @override
   String get authTrustSecure => 'اتصالك مشفّر وآمن.';
@@ -7047,7 +7187,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get p10SourceCameraHint => 'التقط صورة أو سجّل فيديو';
 
   @override
-  String get p10PrivacyNote => 'تتم مشاركة العناصر التي تختارها فقط، ولا يُفتح معرض صورك بالكامل.';
+  String get p10PrivacyNote =>
+      'تتم مشاركة العناصر التي تختارها فقط، ولا يُفتح معرض صورك بالكامل.';
 
   @override
   String get p10PickedHeader => 'المحدد';
@@ -7098,19 +7239,23 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get p14EmptyMonthBody => 'تصفح شهرًا آخر؛ ستظهر الفعاليات الجديدة هنا فور إضافتها.';
+  String get p14EmptyMonthBody =>
+      'تصفح شهرًا آخر؛ ستظهر الفعاليات الجديدة هنا فور إضافتها.';
 
   @override
   String get p14EmptyDayBody => 'اختر يومًا آخر أو اعرض الشهر كاملًا.';
 
   @override
-  String get p14EmptyUpcomingBody => 'انضم إلى فعاليات الأندية وستجد ما تشارك فيه هنا.';
+  String get p14EmptyUpcomingBody =>
+      'انضم إلى فعاليات الأندية وستجد ما تشارك فيه هنا.';
 
   @override
-  String get p14EmptyPastBody => 'تُحفظ هنا الفعاليات التي شاركت فيها بعد انتهائها.';
+  String get p14EmptyPastBody =>
+      'تُحفظ هنا الفعاليات التي شاركت فيها بعد انتهائها.';
 
   @override
-  String get p14EmptyCreatedBody => 'أنشئ فعالية باسم ناديك وأدر الطلبات والحضور من هنا.';
+  String get p14EmptyCreatedBody =>
+      'أنشئ فعالية باسم ناديك وأدر الطلبات والحضور من هنا.';
 
   @override
   String get p13SuppAskTitle => 'كيف يمكننا مساعدتك؟';
@@ -7119,13 +7264,15 @@ class AppLocalizationsAr extends AppLocalizations {
   String get p13SuppAskBody => 'تصفّح الأسئلة الشائعة أو راسل فريق الدعم.';
 
   @override
-  String get p13TicketIntro => 'اشرح مشكلتك باختصار، وسيردّ فريق الدعم في أقرب وقت.';
+  String get p13TicketIntro =>
+      'اشرح مشكلتك باختصار، وسيردّ فريق الدعم في أقرب وقت.';
 
   @override
   String get p13TicketsEmptyHint => 'إذا واجهت مشكلة، يمكنك إنشاء طلب جديد.';
 
   @override
-  String get p13FeedbackEmptyHint => 'تظهر هنا الاقتراحات وبلاغات الأخطاء التي ترسلها.';
+  String get p13FeedbackEmptyHint =>
+      'تظهر هنا الاقتراحات وبلاغات الأخطاء التي ترسلها.';
 
   @override
   String get p13SugEmptyTitle => 'الأفكار تجتمع هنا';
@@ -7202,7 +7349,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get p11RequestsEmptyBody => 'ستظهر هنا طلبات الانضمام الجديدة.';
 
   @override
-  String get p06EmptyNoneBody => 'ابدأ المراسلة مع أصدقائك أو الأندية الطلابية أو مجموعات الفعاليات.';
+  String get p06EmptyNoneBody =>
+      'ابدأ المراسلة مع أصدقائك أو الأندية الطلابية أو مجموعات الفعاليات.';
 
   @override
   String p06NoMatchBody(String q) {
@@ -7213,7 +7361,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get p06ResetSearch => 'إعادة ضبط البحث';
 
   @override
-  String get p06ArchiveEmptyBody => 'تُحفظ المحادثات المؤرشفة هنا لتبقى قائمتك مرتبة.';
+  String get p06ArchiveEmptyBody =>
+      'تُحفظ المحادثات المؤرشفة هنا لتبقى قائمتك مرتبة.';
 
   @override
   String get p06BackToChats => 'العودة إلى المحادثات';
@@ -7222,7 +7371,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get p06LoadFailedTitle => 'تعذّر التحميل، حاول مجددًا';
 
   @override
-  String get p06LoadFailedBody => 'حدث خطأ في الاتصال أثناء تحديث قائمة المحادثات. يرجى التحقق من اتصالك.';
+  String get p06LoadFailedBody =>
+      'حدث خطأ في الاتصال أثناء تحديث قائمة المحادثات. يرجى التحقق من اتصالك.';
 
   @override
   String get p06MenuDeleteChat => 'حذف المحادثة';
@@ -7251,7 +7401,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get p01ConfigTitle => 'خطأ في الإعدادات';
 
   @override
-  String get p01ConfigBody => 'عنوان الخادم (API_BASE) غير آمن (https). أعد بناء التطبيق بالعنوان الصحيح.';
+  String get p01ConfigBody =>
+      'عنوان الخادم (API_BASE) غير آمن (https). أعد بناء التطبيق بالعنوان الصحيح.';
 
   @override
   String get p01ConfigCode => 'رمز الخطأ • BUILD_ENV';
@@ -7373,7 +7524,8 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get p03NotifEmptyBody => 'تظهر هنا إشعارات الأندية والفعاليات والرسائل.';
+  String get p03NotifEmptyBody =>
+      'تظهر هنا إشعارات الأندية والفعاليات والرسائل.';
 
   @override
   String get p03NotifUnreadEmptyBody => 'لقد قرأت كل شيء.';
@@ -7403,7 +7555,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get p05NewsErrorTitle => 'تعذّر تحميل المحتوى';
 
   @override
-  String get p05NewsErrorBody => 'حدثت مشكلة أثناء تحميل المحتوى. يرجى التحقق من اتصال الإنترنت والمحاولة مرة أخرى.';
+  String get p05NewsErrorBody =>
+      'حدثت مشكلة أثناء تحميل المحتوى. يرجى التحقق من اتصال الإنترنت والمحاولة مرة أخرى.';
 
   @override
   String p05SearchCountFor(String q) {
@@ -7447,13 +7600,15 @@ class AppLocalizationsAr extends AppLocalizations {
   String get p11PendingInfoTitle => 'الطلب قيد المراجعة';
 
   @override
-  String get p11PendingInfoBody => 'طلب انضمامك بانتظار موافقة مديري النادي. سيصلك إشعار عند صدور القرار.';
+  String get p11PendingInfoBody =>
+      'طلب انضمامك بانتظار موافقة مديري النادي. سيصلك إشعار عند صدور القرار.';
 
   @override
   String get p11LockPrivateTitle => 'هذا النادي خاص';
 
   @override
-  String get p11LockPrivateBody => 'لا يستطيع رؤية المنشورات وقائمة الأعضاء إلا الأعضاء المعتمدون.';
+  String get p11LockPrivateBody =>
+      'لا يستطيع رؤية المنشورات وقائمة الأعضاء إلا الأعضاء المعتمدون.';
 
   @override
   String get p11LockMembersTitle => 'المحتوى للأعضاء فقط';
@@ -7471,10 +7626,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get p11BannedTitle => 'تمت إزالتك من النادي';
 
   @override
-  String get p11BannedBody => 'لا يمكنك الانضمام إلى هذا النادي أو التقديم على فعالياته.';
+  String get p11BannedBody =>
+      'لا يمكنك الانضمام إلى هذا النادي أو التقديم على فعالياته.';
 
   @override
-  String get p11ApprovalNote => 'يُفتح محتوى النادي بعد موافقة المديرين على طلبك.';
+  String get p11ApprovalNote =>
+      'يُفتح محتوى النادي بعد موافقة المديرين على طلبك.';
 
   @override
   String get p11PostPinSub => 'ضعه في أعلى صفحة النادي';
@@ -7500,7 +7657,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get p11ClearSearch => 'مسح البحث';
 
   @override
-  String get p11RequestsEmptyAll => 'تم الرد على جميع الطلبات أو لم يصل طلب جديد بعد.';
+  String get p11RequestsEmptyAll =>
+      'تم الرد على جميع الطلبات أو لم يصل طلب جديد بعد.';
 
   @override
   String get p11LoadErrorBody => 'حدث خطأ في الاتصال. تعذّر جلب البيانات.';
@@ -7524,7 +7682,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get p12QuestionPlaceholder => 'اكتب سؤالك...';
 
   @override
-  String get p12ConsentNote => 'بإنشائك النادي فإنك توافق على الالتزام بمبادئ المجتمع وقواعد الطلاب.';
+  String get p12ConsentNote =>
+      'بإنشائك النادي فإنك توافق على الالتزام بمبادئ المجتمع وقواعد الطلاب.';
 
   @override
   String get p12PartialTitle => 'حُفظ جزئيًا';
@@ -7575,10 +7734,12 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get p15ErrBannerBody => 'بعض المعلومات التي أدخلتها ناقصة أو لا تلتزم بالقواعد. راجع الحقول المحددة.';
+  String get p15ErrBannerBody =>
+      'بعض المعلومات التي أدخلتها ناقصة أو لا تلتزم بالقواعد. راجع الحقول المحددة.';
 
   @override
-  String get p15ErrHint => 'يصبح زر الإنشاء نشطًا تلقائيًا بعد تصحيح الحقول المطلوبة.';
+  String get p15ErrHint =>
+      'يصبح زر الإنشاء نشطًا تلقائيًا بعد تصحيح الحقول المطلوبة.';
 
   @override
   String p15ErrLocked(String n) {
@@ -7609,10 +7770,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get p15PickerInfoTitle => 'معلومات الصلاحيات';
 
   @override
-  String get p15PickerInfoBody => 'تُنشر الأحداث فورًا في الأندية التي تديرها أو تشرف عليها. أما أحداث الأعضاء الذين لديهم صلاحية الأحداث فتُنشر بعد موافقة الإدارة.';
+  String get p15PickerInfoBody =>
+      'تُنشر الأحداث فورًا في الأندية التي تديرها أو تشرف عليها. أما أحداث الأعضاء الذين لديهم صلاحية الأحداث فتُنشر بعد موافقة الإدارة.';
 
   @override
-  String get p15PickerEmptyBody => 'لا يوجد نادٍ تملك فيه صلاحية المدير أو المشرف.';
+  String get p15PickerEmptyBody =>
+      'لا يوجد نادٍ تملك فيه صلاحية المدير أو المشرف.';
 
   @override
   String get p15RefreshPerms => 'تحديث الصلاحيات';
@@ -7636,7 +7799,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get p16ReqFullTitle => 'اكتملت السعة';
 
   @override
-  String get p16ReqFullBody => 'لا يمكن قبول طلبات جديدة. ارفع السعة أو حدّث قائمة المشاركين لتوفير مكان.';
+  String get p16ReqFullBody =>
+      'لا يمكن قبول طلبات جديدة. ارفع السعة أو حدّث قائمة المشاركين لتوفير مكان.';
 
   @override
   String get p16ReqRaiseQuota => 'رفع السعة';
@@ -7656,7 +7820,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get p16ReqBackToEvent => 'العودة إلى تفاصيل الحدث';
 
   @override
-  String get p16ReqEmptyBody => 'تمت الإجابة على جميع الطلبات أو لم يصل طلب جديد بعد.';
+  String get p16ReqEmptyBody =>
+      'تمت الإجابة على جميع الطلبات أو لم يصل طلب جديد بعد.';
 
   @override
   String p16SetApproved(String n) {
@@ -7765,13 +7930,15 @@ class AppLocalizationsAr extends AppLocalizations {
   String get p17NoCourseBody => 'احفظ أول مقرر لبناء جدولك الأسبوعي.';
 
   @override
-  String get p17DayFreeBody => 'يمكنك قضاء اليوم في الراحة أو الدراسة في المكتبة أو شرب القهوة في الحرم الجامعي!';
+  String get p17DayFreeBody =>
+      'يمكنك قضاء اليوم في الراحة أو الدراسة في المكتبة أو شرب القهوة في الحرم الجامعي!';
 
   @override
   String get p17TodayDoneBody => 'أنهيت كل محاضرات اليوم، استمتع بالراحة.';
 
   @override
-  String get p17WeekDoneBody => 'انتهى جدول هذا الأسبوع. أنت جاهز للأسبوع القادم!';
+  String get p17WeekDoneBody =>
+      'انتهى جدول هذا الأسبوع. أنت جاهز للأسبوع القادم!';
 
   @override
   String get p17OutOfRangeBody => 'اليوم المحدد خارج التقويم الأكاديمي.';
@@ -7791,16 +7958,19 @@ class AppLocalizationsAr extends AppLocalizations {
   String get p17ExamDetail => 'التفاصيل';
 
   @override
-  String get p17ExamsNoUpcomingBody => 'تهانينا! لا توجد اختبارات قادمة حاليًا.';
+  String get p17ExamsNoUpcomingBody =>
+      'تهانينا! لا توجد اختبارات قادمة حاليًا.';
 
   @override
   String get p17ExamsEmptyMineTitle => 'لم تضف أي اختبار شخصي.';
 
   @override
-  String get p17ExamsEmptyMineBody => 'أضف أول اختبار لبناء جدولك ومتابعة العد التنازلي.';
+  String get p17ExamsEmptyMineBody =>
+      'أضف أول اختبار لبناء جدولك ومتابعة العد التنازلي.';
 
   @override
-  String get p17OfficialEmptyBody => 'ستظهر هنا قائمة اختبارات قسمك عند الإعلان عنها.';
+  String get p17OfficialEmptyBody =>
+      'ستظهر هنا قائمة اختبارات قسمك عند الإعلان عنها.';
 
   @override
   String get p17CourseInfoSemantic => 'تفاصيل المقرر';
@@ -7815,16 +7985,19 @@ class AppLocalizationsAr extends AppLocalizations {
   String get p20HubNoDeptTitle => 'لا يوجد قسم في ملفك الشخصي';
 
   @override
-  String get p20HubNoDeptBody => 'أكمل بيانات كليتك للحصول على جدول وإعلانات مخصصة.';
+  String get p20HubNoDeptBody =>
+      'أكمل بيانات كليتك للحصول على جدول وإعلانات مخصصة.';
 
   @override
-  String get p20HubTimetableEmptyBody => 'أضف مقرراتك لمتابعة جدولك الأسبوعي وبناء تقويم الصف.';
+  String get p20HubTimetableEmptyBody =>
+      'أضف مقرراتك لمتابعة جدولك الأسبوعي وبناء تقويم الصف.';
 
   @override
   String get p20HubExamBadge => 'نصفي ونهائي';
 
   @override
-  String get p20HubExamEmptyBody => 'تهانينا! لا يوجد اختبار نصفي أو نهائي مخطط في تقويمك حاليًا.';
+  String get p20HubExamEmptyBody =>
+      'تهانينا! لا يوجد اختبار نصفي أو نهائي مخطط في تقويمك حاليًا.';
 
   @override
   String get p20HubCalEmptySub => 'انتهت الفترات الزمنية داخل الفصل';
@@ -7833,7 +8006,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get p20HubAnnEmptyTitle => 'لا توجد إعلانات غير مقروءة';
 
   @override
-  String get p20HubAnnEmptyBody => 'ستظهر هنا الإشعارات الجديدة من سكرتارية القسم أو المرشد.';
+  String get p20HubAnnEmptyBody =>
+      'ستظهر هنا الإشعارات الجديدة من سكرتارية القسم أو المرشد.';
 
   @override
   String get p20HubDateTime => 'التاريخ والوقت';
@@ -7856,16 +8030,19 @@ class AppLocalizationsAr extends AppLocalizations {
   String get p20AnnFooterTitle => 'لا توجد إعلانات أخرى لقسمك.';
 
   @override
-  String get p20AnnFooterBody => 'ستصلك إشعارات عند نشر تقويم أو اختبارات جديدة.';
+  String get p20AnnFooterBody =>
+      'ستصلك إشعارات عند نشر تقويم أو اختبارات جديدة.';
 
   @override
-  String get p20AnnLinkErrBody => 'تعذر الوصول إلى خادم الملفات. يرجى التحقق من اتصالك.';
+  String get p20AnnLinkErrBody =>
+      'تعذر الوصول إلى خادم الملفات. يرجى التحقق من اتصالك.';
 
   @override
   String get p20RemPermTitle => 'لم يتم منح إذن الإشعارات';
 
   @override
-  String get p20RemPermBody => 'تحتاج التذكيرات إلى إذن إشعارات النظام لتعمل في وقتها.';
+  String get p20RemPermBody =>
+      'تحتاج التذكيرات إلى إذن إشعارات النظام لتعمل في وقتها.';
 
   @override
   String get p20RemOpenSettings => 'فتح من الإعدادات';
@@ -7893,7 +8070,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get p13PollClosingSoon => 'ينتهي قريبًا';
 
   @override
-  String get p13PollClubEmptyBody => 'لم يشارك مسؤولو النادي أي استطلاع للتصويت بعد.';
+  String get p13PollClubEmptyBody =>
+      'لم يشارك مسؤولو النادي أي استطلاع للتصويت بعد.';
 
   @override
   String get p13PollDateTime => 'التاريخ والوقت';
@@ -7902,10 +8080,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get p13PollEditMode => 'وضع تغيير التصويت';
 
   @override
-  String get p13PollEditNote => 'عند تغيير اختيارك يُلغى تصويتك السابق تلقائيًا ويُحتسب اختيارك الجديد.';
+  String get p13PollEditNote =>
+      'عند تغيير اختيارك يُلغى تصويتك السابق تلقائيًا ويُحتسب اختيارك الجديد.';
 
   @override
-  String get p13PollEmptyClosedBody => 'تُنقل الاستطلاعات المنتهية إلى الأرشيف.';
+  String get p13PollEmptyClosedBody =>
+      'تُنقل الاستطلاعات المنتهية إلى الأرشيف.';
 
   @override
   String get p13PollEmptyMineBody => 'تُجمع هنا الاستطلاعات التي صوّتَّ فيها.';
@@ -7958,7 +8138,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get p13PollRateCta => 'قيّم';
 
   @override
-  String get p13PollSecretBody => 'لا يمكن لأي مسؤول أو ممثل نادٍ أو طالب رؤية هويتك.';
+  String get p13PollSecretBody =>
+      'لا يمكن لأي مسؤول أو ممثل نادٍ أو طالب رؤية هويتك.';
 
   @override
   String p13PollSelectedCount(String n, String max) {
@@ -8055,7 +8236,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get p13PollNoMoreActive => 'لا يوجد استطلاع نشط آخر لهذا النادي.';
 
   @override
-  String get p13PollNoMoreBody => 'تُنشر هنا قرارات المجتمع وتفضيلات الفعاليات.';
+  String get p13PollNoMoreBody =>
+      'تُنشر هنا قرارات المجتمع وتفضيلات الفعاليات.';
 
   @override
   String get p04DiscoverSub => 'تعرّف على نبض الحرم الجامعي والمنشورات الحية';
@@ -8087,7 +8269,8 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get p11UnavailableBody => 'تم تجميد هذا المجتمع مؤقتًا أو أنه قيد المراجعة.';
+  String get p11UnavailableBody =>
+      'تم تجميد هذا المجتمع مؤقتًا أو أنه قيد المراجعة.';
 
   @override
   String get p11UnderReview => 'قيد المراجعة';
@@ -8096,7 +8279,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get p12ConsentBold => 'مبادئ المجتمع';
 
   @override
-  String get p03NotifLoadFailedBody => 'تعذّرت مزامنة آخر التحديثات مع الخادم. يرجى التحقق من اتصالك.';
+  String get p03NotifLoadFailedBody =>
+      'تعذّرت مزامنة آخر التحديثات مع الخادم. يرجى التحقق من اتصالك.';
 
   @override
   String p03NotifShortDay(String n) {
@@ -8196,7 +8380,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get p04Recrop => 'اقتصاص مجدد';
 
   @override
-  String get p04PostNotFound => 'لم يتم العثور على المنشور (ربما حُذف أو أُخفي)';
+  String get p04PostNotFound =>
+      'لم يتم العثور على المنشور (ربما حُذف أو أُخفي)';
 
   @override
   String get p04PostSharing => 'جارٍ النشر...';
@@ -8268,10 +8453,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get p10ItemUnit => 'عنصر';
 
   @override
-  String get p10LimitedBody => 'يمكنك اختيار المزيد من الصور من مكتبتك لإرسالها في الدردشة.';
+  String get p10LimitedBody =>
+      'يمكنك اختيار المزيد من الصور من مكتبتك لإرسالها في الدردشة.';
 
   @override
-  String get p10DeniedBody => 'لإرسال الصور والفيديو، اسمح بالوصول إلى المعرض من إعدادات التطبيق.';
+  String get p10DeniedBody =>
+      'لإرسال الصور والفيديو، اسمح بالوصول إلى المعرض من إعدادات التطبيق.';
 
   @override
   String get p10GalleryEmpty => 'لا توجد صور أو فيديوهات في المعرض.';
@@ -8305,7 +8492,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get p14ErrorBody => 'حدثت مشكلة أثناء الاتصال بالخادم.';
 
   @override
-  String get p14OfflineStrip => 'لا يوجد اتصال بالإنترنت · عرض البيانات المحفوظة';
+  String get p14OfflineStrip =>
+      'لا يوجد اتصال بالإنترنت · عرض البيانات المحفوظة';
 
   @override
   String get p14EmptyUpcomingBody2 => 'تصفّح فعاليات أندية الحرم وانضم فورًا.';
@@ -8314,7 +8502,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get p14EmptyPastBody2 => 'تُؤرشف هنا الفعاليات التي حضرتها أو انتهت.';
 
   @override
-  String get p14EmptyCreatedBody2 => 'أدر هنا ورش العمل والندوات واللقاءات التي تخطط لها مع ناديك.';
+  String get p14EmptyCreatedBody2 =>
+      'أدر هنا ورش العمل والندوات واللقاءات التي تخطط لها مع ناديك.';
 
   @override
   String get p14Detail => 'التفاصيل';
@@ -8337,13 +8526,16 @@ class AppLocalizationsAr extends AppLocalizations {
   String get p18FollowErrorTitle => 'خطأ في الاتصال';
 
   @override
-  String get p18FollowersEmptyBody => 'عندما يصبح ملفك نشطًا سيبدأ أصدقاؤك بمتابعتك هنا.';
+  String get p18FollowersEmptyBody =>
+      'عندما يصبح ملفك نشطًا سيبدأ أصدقاؤك بمتابعتك هنا.';
 
   @override
-  String get p18FollowingEmptyBody => 'تابع الطلاب وأعضاء الأندية الذين تهتم بهم حتى لا تفوتك منشورات الحرم الجامعي.';
+  String get p18FollowingEmptyBody =>
+      'تابع الطلاب وأعضاء الأندية الذين تهتم بهم حتى لا تفوتك منشورات الحرم الجامعي.';
 
   @override
-  String get p18FollowNoMatchBody => 'لم يتم العثور على مستخدم يطابق بحثك. تحقق من الكتابة وحاول مرة أخرى.';
+  String get p18FollowNoMatchBody =>
+      'لم يتم العثور على مستخدم يطابق بحثك. تحقق من الكتابة وحاول مرة أخرى.';
 
   @override
   String p18AllFollowers(String n) {
@@ -8359,13 +8551,15 @@ class AppLocalizationsAr extends AppLocalizations {
   String get p19AcademicInfo => 'المعلومات الأكاديمية';
 
   @override
-  String get p19ShowEmailDesc => 'يمكن للطلاب الذين يزورون ملفك رؤية بريدك الإلكتروني.';
+  String get p19ShowEmailDesc =>
+      'يمكن للطلاب الذين يزورون ملفك رؤية بريدك الإلكتروني.';
 
   @override
   String get p19LangSystemDesc => 'يستخدم لغة جهازك الافتراضية';
 
   @override
-  String get p19CrashReportsShort => 'يُرسل تقرير خطأ مجهول عند حدوث خطأ في التطبيق.';
+  String get p19CrashReportsShort =>
+      'يُرسل تقرير خطأ مجهول عند حدوث خطأ في التطبيق.';
 
   @override
   String get p19LogoutAllSub => 'يغلق جلسات الهاتف والمتصفح الأخرى المفتوحة.';
@@ -8380,13 +8574,15 @@ class AppLocalizationsAr extends AppLocalizations {
   String get p05SavedEmptyTitle2 => 'لا توجد أخبار محفوظة بعد.';
 
   @override
-  String get p05SavedEmptyBody2 => 'استخدم علامة الحفظ في صفحة الخبر لإضافة الأخبار هنا.';
+  String get p05SavedEmptyBody2 =>
+      'استخدم علامة الحفظ في صفحة الخبر لإضافة الأخبار هنا.';
 
   @override
   String get p05ListErrorTitle => 'تعذّر التحميل، حاول مرة أخرى';
 
   @override
-  String get p05ListErrorBody => 'حدثت مشكلة أثناء الاتصال بالخادم. يرجى التحقق من اتصالك بالإنترنت.';
+  String get p05ListErrorBody =>
+      'حدثت مشكلة أثناء الاتصال بالخادم. يرجى التحقق من اتصالك بالإنترنت.';
 
   @override
   String get p13SuppLoadFailed => 'تعذّر التحميل';
@@ -8422,7 +8618,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get p20AcademicInfo => 'المعلومات الأكاديمية';
 
   @override
-  String get p20AvatarHidden => 'تم إخفاء صورة ملفك الشخصي بسبب الإشراف. ستظهر الأحرف الأولى من اسمك حتى ترفع صورة تلتزم بقواعد الحرم.';
+  String get p20AvatarHidden =>
+      'تم إخفاء صورة ملفك الشخصي بسبب الإشراف. ستظهر الأحرف الأولى من اسمك حتى ترفع صورة تلتزم بقواعد الحرم.';
 
   @override
   String get p20BlockInfo => 'لن ترى منشورات هذا الشخص ولن تتمكن من مراسلته.';
@@ -8437,7 +8634,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get p20PrefAcademicSub => 'إعلانات القسم والكلية والاختبارات';
 
   @override
-  String get p20PrefDetailHead => 'أدر الأنواع الفرعية لكل فئة على حدة. عند إيقاف المفتاح الرئيسي تُكتم الأنواع الفرعية التابعة له.';
+  String get p20PrefDetailHead =>
+      'أدر الأنواع الفرعية لكل فئة على حدة. عند إيقاف المفتاح الرئيسي تُكتم الأنواع الفرعية التابعة له.';
 
   @override
   String get p20PrefDetailSub => 'الفئات الفرعية وأنواع الإشعارات';
@@ -8515,7 +8713,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get p20RemDaySub => 'تذكير قبل الاختبار بيوم';
 
   @override
-  String get p20RemHourSub => 'يصل من الخادم حتى لو كان التطبيق مغلقًا؛ ويتبع إعداد الإعلانات الأكاديمية';
+  String get p20RemHourSub =>
+      'يصل من الخادم حتى لو كان التطبيق مغلقًا؛ ويتبع إعداد الإعلانات الأكاديمية';
 
   @override
   String get p13SugSortTop => 'الأكثر تصويتًا';
@@ -8611,7 +8810,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get p15AboutTitle => 'عن الفعالية';
 
   @override
-  String get p15AttOpenHint => 'امسح رمز QR في القاعة أو أدخل الرمز الذي أعلنه المنظّم لتسجيل حضورك.';
+  String get p15AttOpenHint =>
+      'امسح رمز QR في القاعة أو أدخل الرمز الذي أعلنه المنظّم لتسجيل حضورك.';
 
   @override
   String get p15CheckedInBody => 'تم تسجيل حضورك في الفعالية.';
@@ -8637,7 +8837,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get p23GroupNameHint => 'مثال: فريق مشروع الهندسة...';
 
   @override
-  String get p23NoneText => 'لم يُعثر على أحد من جهات اتصالك يستخدم التطبيق ببريد جامعة بينغول.';
+  String get p23NoneText =>
+      'لم يُعثر على أحد من جهات اتصالك يستخدم التطبيق ببريد جامعة بينغول.';
 
   @override
   String p09GradeYear(String n) {
@@ -8648,7 +8849,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get p14UpcomingOther => 'فعاليات الأيام القادمة';
 
   @override
-  String get p14ErrorBodyCache => 'حدثت مشكلة أثناء الاتصال بالخادم. تُعرض النسخة المخزّنة دون اتصال.';
+  String get p14ErrorBodyCache =>
+      'حدثت مشكلة أثناء الاتصال بالخادم. تُعرض النسخة المخزّنة دون اتصال.';
 
   @override
   String get p14Completed => 'اكتملت';
@@ -8715,7 +8917,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get p19FormErrTitle => 'هناك حقول تحتاج إلى تصحيح';
 
   @override
-  String get p19FormErrBody => 'يرجى التحقق من صورة ملفك والحقول المطلوبة المحددة.';
+  String get p19FormErrBody =>
+      'يرجى التحقق من صورة ملفك والحقول المطلوبة المحددة.';
 
   @override
   String get p19PhotoChange => 'تغيير الصورة';
@@ -8727,13 +8930,15 @@ class AppLocalizationsAr extends AppLocalizations {
   String get p20GradeLevel => 'المستوى الدراسي';
 
   @override
-  String get p21ChanChatDesc => 'رسائل المحادثات الفردية والجماعية. تصل بصوت واهتزاز.';
+  String get p21ChanChatDesc =>
+      'رسائل المحادثات الفردية والجماعية. تصل بصوت واهتزاز.';
 
   @override
   String get p21ChanEventDesc => 'تذكيرات الفعاليات والتغييرات ونتائج الحضور.';
 
   @override
-  String get p21ChanAnnouncementDesc => 'إشعارات الأخبار والإعلانات والأندية والنظام.';
+  String get p21ChanAnnouncementDesc =>
+      'إشعارات الأخبار والإعلانات والأندية والنظام.';
 
   @override
   String get p21ChanSocialDesc => 'إشعارات الإعجاب والمتابعة. تصل بصمت.';
@@ -8754,7 +8959,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get p21HelpAllGood => 'كل شيء يبدو سليماً على هذا الجهاز.';
 
   @override
-  String get p21HelpSomeIssue => 'هناك ما يمنعك من تلقي الإشعارات. راجع الخطوات أدناه.';
+  String get p21HelpSomeIssue =>
+      'هناك ما يمنعك من تلقي الإشعارات. راجع الخطوات أدناه.';
 
   @override
   String get p21HelpPermTitle => 'إذن الإشعارات';
@@ -8763,16 +8969,19 @@ class AppLocalizationsAr extends AppLocalizations {
   String get p21HelpPermOk => 'إشعارات التطبيق مفعّلة.';
 
   @override
-  String get p21HelpPermOff => 'الإشعارات معطّلة من إعدادات النظام. لن تصلك أي إشعارات قبل تفعيلها.';
+  String get p21HelpPermOff =>
+      'الإشعارات معطّلة من إعدادات النظام. لن تصلك أي إشعارات قبل تفعيلها.';
 
   @override
   String get p21HelpChanTitle => 'فئات الإشعارات';
 
   @override
-  String get p21HelpChanChat => 'فئة الرسائل معطّلة من إعدادات النظام. فعّلها وإلا لن تصلك إشعارات الرسائل الجديدة.';
+  String get p21HelpChanChat =>
+      'فئة الرسائل معطّلة من إعدادات النظام. فعّلها وإلا لن تصلك إشعارات الرسائل الجديدة.';
 
   @override
-  String get p21HelpChanOther => 'بعض فئات الإشعارات معطّلة من إعدادات النظام. فعّل ما تريده.';
+  String get p21HelpChanOther =>
+      'بعض فئات الإشعارات معطّلة من إعدادات النظام. فعّل ما تريده.';
 
   @override
   String get p21HelpDeviceTitle => 'تسجيل هذا الجهاز';
@@ -8781,10 +8990,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get p21HelpDeviceOk => 'جهازك مسجّل ليتمكن الخادم من إرسال الإشعارات.';
 
   @override
-  String get p21HelpDeviceBad => 'جهازك غير مسجّل بعد. تحقق من اتصال الإنترنت ثم سجّله مجدداً.';
+  String get p21HelpDeviceBad =>
+      'جهازك غير مسجّل بعد. تحقق من اتصال الإنترنت ثم سجّله مجدداً.';
 
   @override
-  String get p21HelpDeviceUnsupported => 'الإشعارات الفورية غير مهيأة في هذا الإصدار.';
+  String get p21HelpDeviceUnsupported =>
+      'الإشعارات الفورية غير مهيأة في هذا الإصدار.';
 
   @override
   String get p21HelpDeviceRetry => 'إعادة التسجيل';
@@ -8793,28 +9004,34 @@ class AppLocalizationsAr extends AppLocalizations {
   String get p21HelpBatteryTitle => 'البطارية والخلفية';
 
   @override
-  String get p21HelpBatteryOem => 'قد يغلق هاتفك التطبيق لتوفير البطارية. إذا لم تصل الإشعارات والتطبيق مغلق، أزل القيود عن BÜ Kampüs في إعدادات البطارية، وفعّل التشغيل التلقائي إن وُجد، وثبّت التطبيق في التطبيقات الأخيرة.';
+  String get p21HelpBatteryOem =>
+      'قد يغلق هاتفك التطبيق لتوفير البطارية. إذا لم تصل الإشعارات والتطبيق مغلق، أزل القيود عن BÜ Kampüs في إعدادات البطارية، وفعّل التشغيل التلقائي إن وُجد، وثبّت التطبيق في التطبيقات الأخيرة.';
 
   @override
-  String get p21HelpBatteryGeneric => 'إذا لم تصل الإشعارات والتطبيق مغلق، أزل قيود البطارية عن BÜ Kampüs في إعدادات البطارية. إغلاق التطبيق بالسحب من التطبيقات الأخيرة يوقف الإشعارات في بعض الهواتف.';
+  String get p21HelpBatteryGeneric =>
+      'إذا لم تصل الإشعارات والتطبيق مغلق، أزل قيود البطارية عن BÜ Kampüs في إعدادات البطارية. إغلاق التطبيق بالسحب من التطبيقات الأخيرة يوقف الإشعارات في بعض الهواتف.';
 
   @override
   String get p21HelpBatteryOpen => 'فتح إعدادات البطارية';
 
   @override
-  String get p21HelpFooter => 'قد تمنع ساعات الهدوء وتفضيلات الإشعارات وصول الإشعار أيضاً. تحقق منها في تفضيلات الإشعارات.';
+  String get p21HelpFooter =>
+      'قد تمنع ساعات الهدوء وتفضيلات الإشعارات وصول الإشعار أيضاً. تحقق منها في تفضيلات الإشعارات.';
 
   @override
   String get p22SaveGalleryTitle => 'حفظ الصور في المعرض';
 
   @override
-  String get p22SaveGalleryDesc => 'تُحفظ الصور التي تستلمها وترسلها في المحادثات في معرض هاتفك، ولا تُحفظ الصور ذات العرض لمرة واحدة.';
+  String get p22SaveGalleryDesc =>
+      'تُحفظ الصور التي تستلمها وترسلها في المحادثات في معرض هاتفك، ولا تُحفظ الصور ذات العرض لمرة واحدة.';
 
   @override
-  String get p22SaveGalleryCloud => 'إذا كان النسخ الاحتياطي السحابي لمعرضك مفعّلاً فقد تُرفع الصور إليه أيضاً.';
+  String get p22SaveGalleryCloud =>
+      'إذا كان النسخ الاحتياطي السحابي لمعرضك مفعّلاً فقد تُرفع الصور إليه أيضاً.';
 
   @override
-  String get p22SaveDeniedToast => 'تعذّر حفظ الصور في المعرض لأن الإذن غير ممنوح. يمكنك السماح به من الإعدادات.';
+  String get p22SaveDeniedToast =>
+      'تعذّر حفظ الصور في المعرض لأن الإذن غير ممنوح. يمكنك السماح به من الإعدادات.';
 
   @override
   String get p22OpenSettings => 'الإعدادات';
@@ -8823,16 +9040,19 @@ class AppLocalizationsAr extends AppLocalizations {
   String get p21PreviewTitle => 'معاينة الرسالة في الإشعار';
 
   @override
-  String get p21PreviewSub => 'عند التفعيل يظهر بداية نص الرسالة في الإشعار وعلى شاشة القفل، ويمر النص عبر خوادم إشعارات Google/Apple. عند الإيقاف يظهر اسم المرسل فقط.';
+  String get p21PreviewSub =>
+      'عند التفعيل يظهر بداية نص الرسالة في الإشعار وعلى شاشة القفل، ويمر النص عبر خوادم إشعارات Google/Apple. عند الإيقاف يظهر اسم المرسل فقط.';
 
   @override
   String get p26PrefNeedsAnnouncements => 'لن تصلك إشعارات عند إيقاف الإعلانات';
 
   @override
-  String get p26PrefPollsNeedsParents => 'لن تصلك إشعارات الاستطلاعات عند إيقاف الإعلانات أو الأندية';
+  String get p26PrefPollsNeedsParents =>
+      'لن تصلك إشعارات الاستطلاعات عند إيقاف الإعلانات أو الأندية';
 
   @override
-  String get p32ExportShareFailed => 'تعذّر تجهيز بياناتك للمشاركة. يُرجى المحاولة مرة أخرى.';
+  String get p32ExportShareFailed =>
+      'تعذّر تجهيز بياناتك للمشاركة. يُرجى المحاولة مرة أخرى.';
 
   @override
   String get p31ChatPlaceholderBlocked => 'رسالة مستخدم قمت بحظره مخفية';
@@ -8852,7 +9072,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get p30AutosaveConsentTitle => 'حفظ الصور في المعرض؟';
 
   @override
-  String get p30AutosaveConsentBody => 'تُحفظ الصور التي ترسلها وتستقبلها في المحادثات الفردية في معرض هاتفك (ألبوم BU Kampus). لا تُحفظ الصور ذات المشاهدة الواحدة. يمكنك إيقاف ذلك من هنا في أي وقت.';
+  String get p30AutosaveConsentBody =>
+      'تُحفظ الصور التي ترسلها وتستقبلها في المحادثات الفردية في معرض هاتفك (ألبوم BU Kampus). لا تُحفظ الصور ذات المشاهدة الواحدة. يمكنك إيقاف ذلك من هنا في أي وقت.';
 
   @override
   String get p30AutosaveConsentOk => 'تشغيل';
@@ -8947,7 +9168,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get p66HelpAction => 'احصل على مساعدة';
 
   @override
-  String get p66HelpSub => 'إذا تعذّر عليك تسجيل الدخول فراسلنا. سنرسل رمز التحقق إلى بريدك الإلكتروني.';
+  String get p66HelpSub =>
+      'إذا تعذّر عليك تسجيل الدخول فراسلنا. سنرسل رمز التحقق إلى بريدك الإلكتروني.';
 
   @override
   String get p66FieldName => 'الاسم الكامل';
@@ -9004,13 +9226,15 @@ class AppLocalizationsAr extends AppLocalizations {
   String get p66MyTicket => 'طلبي';
 
   @override
-  String get p66AboutBody => 'تطبيق طلابي مستقل مخصص لطلاب وموظفي جامعة بينغول.';
+  String get p66AboutBody =>
+      'تطبيق طلابي مستقل مخصص لطلاب وموظفي جامعة بينغول.';
 
   @override
   String get p67AttachRecent => 'أحدث الصور';
 
   @override
-  String get p67AttachOnceHint => 'لإرسال صورة تُعرض مرة واحدة، اختر الصورة ثم المس الرمز 1.';
+  String get p67AttachOnceHint =>
+      'لإرسال صورة تُعرض مرة واحدة، اختر الصورة ثم المس الرمز 1.';
 
   @override
   String get p67AttachGrant => 'سماح';
@@ -9060,7 +9284,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get p64CropDone => 'تم';
 
   @override
-  String get p64FeedOffline => 'أنت غير متصل. قد تكون المنشورات المعروضة قديمة.';
+  String get p64FeedOffline =>
+      'أنت غير متصل. قد تكون المنشورات المعروضة قديمة.';
 
   @override
   String get p67ChatBgDensity => 'الكثافة';
@@ -9134,7 +9359,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get p69TimeLabel => 'الوقت';
 
   @override
-  String get p69ExamNote => 'ستصلك تذكير محلي قبل الامتحان بيوم وإشعار فوري قبله بساعتين.';
+  String get p69ExamNote =>
+      'ستصلك تذكير محلي قبل الامتحان بيوم وإشعار فوري قبله بساعتين.';
 
   @override
   String p69SemesterTerm(String name) {
@@ -9159,7 +9385,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get p69ExamReminder => 'تذكير الامتحان';
 
   @override
-  String get p69ExamReminderSub => 'على هاتفك قبل الامتحان بيوم، وكإشعار قبله بساعتين.';
+  String get p69ExamReminderSub =>
+      'على هاتفك قبل الامتحان بيوم، وكإشعار قبله بساعتين.';
 
   @override
   String p69ClassReminderSub(String n) {
@@ -9176,7 +9403,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get p69RemindersFooter => 'تُنشأ التذكيرات على هذا الهاتف.';
 
   @override
-  String get p69PermOff => 'إذن الإشعارات متوقف. اسمح به من الإعدادات لتلقي التذكيرات.';
+  String get p69PermOff =>
+      'إذن الإشعارات متوقف. اسمح به من الإعدادات لتلقي التذكيرات.';
 
   @override
   String get p69NoExams => 'لم تضف أي امتحان بعد.';
@@ -9390,13 +9618,15 @@ class AppLocalizationsAr extends AppLocalizations {
   String get frqPrivateTitle => 'حساب خاص';
 
   @override
-  String get frqPrivateSub => 'في الحساب الخاص لا يرى منشوراتك وقائمة متابعيك إلا من توافق عليهم. يبقى متابعوك الحاليون.';
+  String get frqPrivateSub =>
+      'في الحساب الخاص لا يرى منشوراتك وقائمة متابعيك إلا من توافق عليهم. يبقى متابعوك الحاليون.';
 
   @override
   String get frqPrivateOffTitle => 'جعل الحساب عامًا؟';
 
   @override
-  String get frqPrivateOffBody => 'تُقبل طلبات المتابعة المعلّقة تلقائيًا. سيتمكن الجميع من رؤية منشوراتك وقائمة متابعيك.';
+  String get frqPrivateOffBody =>
+      'تُقبل طلبات المتابعة المعلّقة تلقائيًا. سيتمكن الجميع من رؤية منشوراتك وقائمة متابعيك.';
 
   @override
   String get frqPrivateOffConfirm => 'جعله عامًا';
@@ -9414,7 +9644,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get frqUnfollowBody => 'لن تتابع هذا الشخص بعد الآن.';
 
   @override
-  String get frqUnfollowBodyPrivate => 'هذا الحساب خاص. إذا ألغيت المتابعة فعليك إرسال طلب جديد.';
+  String get frqUnfollowBodyPrivate =>
+      'هذا الحساب خاص. إذا ألغيت المتابعة فعليك إرسال طلب جديد.';
 
   @override
   String get frqUnfollowConfirm => 'إلغاء المتابعة';
@@ -9423,7 +9654,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get frqCancelReqTitle => 'سحب الطلب؟';
 
   @override
-  String get frqCancelReqBody => 'سيتم سحب طلب المتابعة. يمكنك إرساله مجددًا لاحقًا.';
+  String get frqCancelReqBody =>
+      'سيتم سحب طلب المتابعة. يمكنك إرساله مجددًا لاحقًا.';
 
   @override
   String get frqCancelReqConfirm => 'سحب الطلب';
@@ -9435,7 +9667,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get frqLockedBody => 'أرسل طلب متابعة لترى منشوراته.';
 
   @override
-  String get frqLockedBodyRequested => 'ستتمكن من رؤية منشوراته عند الموافقة على طلبك.';
+  String get frqLockedBodyRequested =>
+      'ستتمكن من رؤية منشوراته عند الموافقة على طلبك.';
 
   @override
   String get frqReqTitle => 'طلبات المتابعة';
@@ -9481,7 +9714,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get frqMsgReqTitle => 'طلبات الرسائل';
 
   @override
-  String get frqMsgReqInfo => 'تظهر هنا رسائل الأشخاص الذين لا تتابعهم ولا يشاركونك نادياً أو فعالية. حتى تقبل الطلب لا يرى المرسل ما إذا قرأت رسائله. عند الرد يُقبل الطلب تلقائيًا.';
+  String get frqMsgReqInfo =>
+      'تظهر هنا رسائل الأشخاص الذين لا تتابعهم ولا يشاركونك نادياً أو فعالية. حتى تقبل الطلب لا يرى المرسل ما إذا قرأت رسائله. عند الرد يُقبل الطلب تلقائيًا.';
 
   @override
   String get frqMsgReqAccept => 'قبول';
@@ -9499,7 +9733,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get frqMsgReqDeclineGroupTitle => 'حذف دعوة المجموعة؟';
 
   @override
-  String get frqMsgReqDeclineGroupBody => 'ستغادر المجموعة ولن يتمكن الشخص الذي أضافك من إضافتك مرة أخرى.';
+  String get frqMsgReqDeclineGroupBody =>
+      'ستغادر المجموعة ولن يتمكن الشخص الذي أضافك من إضافتك مرة أخرى.';
 
   @override
   String get frqMsgReqDeclineGroupConfirm => 'حذف الدعوة';
@@ -9524,4 +9759,21 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get homeViewAll => 'عرض الكل';
+
+  @override
+  String get authPinWeak =>
+      'كلمة مرور سهلة التخمين؛ تجنب الأرقام المتسلسلة أو المكررة.';
+
+  @override
+  String get authPinLegacyHint =>
+      'إذا كانت كلمة مرورك القديمة أطول، فعيّن كلمة مرور جديدة من 6 أرقام عبر «نسيت كلمة المرور».';
+
+  @override
+  String pinFieldSemantics(String label, String count) {
+    return '$label، 6 أرقام، تم إدخال $count';
+  }
+
+  @override
+  String get errAccountTempLocked =>
+      'محاولات فاشلة كثيرة. تم قفل حسابك مؤقتًا.';
 }

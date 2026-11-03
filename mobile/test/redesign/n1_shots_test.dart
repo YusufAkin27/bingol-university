@@ -220,9 +220,9 @@ final _shots = <_Shot>[
   }),
   _Shot('15_hesap_guvenlik', (b, s) => AccountSecurityPage(session: s), height: 900),
   _Shot('16_hesap_guvenlik_hatalar', (b, s) => AccountSecurityPage(session: s), height: 900, after: (t) async {
-    await _enter(t, find.byKey(const ValueKey('sec-current')), 'eskiSifre1');
-    await _enter(t, find.byKey(const ValueKey('sec-new')), 'eskiSifre1');
-    await _enter(t, find.byKey(const ValueKey('sec-repeat')), 'baskaSifre2');
+    await _enter(t, find.byKey(const ValueKey('sec-current')), '481952');
+    await _enter(t, find.byKey(const ValueKey('sec-new')), '481952');
+    await _enter(t, find.byKey(const ValueKey('sec-repeat')), '615038');
     await t.tap(find.byKey(const ValueKey('sec-submit')));
     await t.pump(const Duration(milliseconds: 300));
   }),
@@ -281,7 +281,7 @@ final _shots = <_Shot>[
     await t.tap(find.byKey(const ValueKey('delete-continue')));
     await t.pump(const Duration(seconds: 1));
     await t.pump(const Duration(seconds: 1));
-    await _enter(t, find.byKey(const ValueKey('delete-password')), 'yanlis1234');
+    await _enter(t, find.byKey(const ValueKey('delete-password')), '902714');
     await t.tap(find.byKey(const ValueKey('delete-submit')));
     await t.pump(const Duration(milliseconds: 600));
   }),

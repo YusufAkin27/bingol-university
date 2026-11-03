@@ -124,21 +124,25 @@ void main() {
       expect(errorText(ApiError(0, 'NETWORK', '')), contains('Sunucuya ulaşılamadı'));
     });
 
-    testWidgets('şifre doğrulayıcı 72 BAYT sınırını uygular (ö, ş = 2 bayt)', (tester) async {
+    testWidgets('şifre doğrulayıcı tam 6 rakam ister; ardışık/aynı rakamlar kolay tahmin diye reddedilir', (tester) async {
       late String? Function(String?) v;
       await tester.pumpWidget(buildApp(Builder(builder: (c) {
         v = newPasswordValidator(c);
         return const SizedBox();
       })));
-      expect(v('a' * 72), isNull);
-      expect(v('ö' * 36), isNull); // 72 bayt
-      expect(v('ö' * 37), contains('72 bayt'));
-      expect(v('a' * 73), isNotNull);
+      expect(v('481952'), isNull);
+      expect(v('48195'), 'Şifre 6 haneli rakamlardan oluşmalı.');
+      expect(v('4819520'), 'Şifre 6 haneli rakamlardan oluşmalı.');
+      expect(v('ö' * 6), 'Şifre 6 haneli rakamlardan oluşmalı.');
+      expect(v('a' * 73), 'Şifre 6 haneli rakamlardan oluşmalı.');
+      expect(v('111111'), 'Çok kolay bir şifre; ardışık ya da aynı rakamlar kullanma.');
+      expect(v('123456'), 'Çok kolay bir şifre; ardışık ya da aynı rakamlar kullanma.');
+      expect(v('121212'), 'Çok kolay bir şifre; ardışık ya da aynı rakamlar kullanma.');
     });
   });
 
   group('Kayıt: EMAIL_ALIAS_NOT_ALLOWED', () {
-    testWidgets('+ etiketi istemcide alan altında reddedilir; istek atılmaz', (tester) async {
+    testWidgets('+ etiketi yazılamaz: alan yalnız rakam alır (harf, + ve @ süzülür); boş alan reddedilir', (tester) async {
       useScreen(tester, const Size(390, 1800));
       final b = FakeBackend();
       fakeCatalog(b);
@@ -151,9 +155,10 @@ void main() {
       await tester.enterText(fields.at(0), 'Ayşe Yılmaz');
       await tester.enterText(fields.at(1), 'ayse+etiket@bingol.edu.tr');
       await tester.pump();
+      expect(tester.widget<TextField>(find.byType(TextField).at(1)).controller!.text, '');
       await tester.tap(find.text('Devam'));
       await tester.pump(const Duration(milliseconds: 400));
-      expect(find.text('E-posta adresinde + etiketi kullanılamaz.'), findsOneWidget);
+      expect(find.text('Okul numaranızı veya e-posta adresinizi girin.'), findsOneWidget);
       expect(find.text('Adım 2/3'), findsOneWidget);
       expect(b.count('/auth/register'), 0);
       await unmount(tester);
@@ -172,7 +177,7 @@ void main() {
       expect(find.text('Adım 2/3'), findsOneWidget);
       expect(find.text('E-posta adresinde + etiketi kullanılamaz.'), findsOneWidget);
       // E-posta değişince hata kalkar.
-      await tester.enterText(find.byType(TextFormField).at(1), 'ayse2@bingol.edu.tr');
+      await tester.enterText(find.byType(TextFormField).at(1), '226051016');
       await tester.pump();
       expect(find.text('E-posta adresinde + etiketi kullanılamaz.'), findsNothing);
       await unmount(tester);
@@ -304,13 +309,15 @@ void main() {
   });
 
   group('Erişilebilirlik: kontrast ve dokunma hedefi (L34, L35)', () {
-    testWidgets('AuthPasswordGuide: güç etiketi renkle değil sözcükle anlatılır; etiket ink belirtecidir ve AA kontrastı sağlar', (tester) async {
-      // Stitch v3: zayıf/orta/güçlü için kırmızı/amber/yeşil kullanılmaz; etiket ink rengindedir.
-      Future<Color?> labelColor(String pw, Brightness br) async {
+    testWidgets('AuthPasswordGuide: 6 haneli PIN kuralları renkle değil tikle anlatılır; metinler AA kontrastlı (ink/mut)', (tester) async {
+      // Stitch v3: kural durumu için kırmızı/yeşil kullanılmaz; sağlanan kural ink, bekleyen mut renginde.
+      Future<List<Color?>> colors(String pw, Brightness br) async {
         await tester.pumpWidget(buildApp(Scaffold(body: AuthPasswordGuide(password: pw)), brightness: br));
         await tester.pumpAndSettle(); // AnimatedTheme geçişi
-        final label = {'Zayıf', 'Orta', 'Güçlü'}.map((s) => find.text(s)).firstWhere((f) => f.evaluate().isNotEmpty);
-        return tester.widget<Text>(label).style?.color;
+        return [
+          for (final label in ['6 rakamdan oluşur', 'Kolay tahmin edilmez'])
+            tester.widget<AnimatedDefaultTextStyle>(find.ancestor(of: find.text(label), matching: find.byType(AnimatedDefaultTextStyle)).first).style.color,
+        ];
       }
 
       double ratio(Color a, Color b) {
@@ -319,13 +326,14 @@ void main() {
       }
 
       for (final (br, tk) in [(Brightness.light, BuTokens.light), (Brightness.dark, BuTokens.dark)]) {
-        for (final pw in ['abc', 'abcdefg1', 'Abcdefghijk1!']) {
-          final c = await labelColor(pw, br);
-          expect(c, tk.ink, reason: '$pw / ${br.name}: etiket rengi ink olmalı');
-          expect(c, isNot(tk.danger));
-          expect(c, isNot(tk.ok));
-        }
+        expect(await colors('48', br), [tk.mut, tk.mut], reason: '${br.name}: boşken ikisi de mut');
+        expect(await colors('123456', br), [tk.ink, tk.mut], reason: '${br.name}: 6 rakam ama kolay tahmin edilir');
+        final ok = await colors('481952', br);
+        expect(ok, [tk.ink, tk.ink], reason: '${br.name}: ikisi de sağlandı');
+        expect(ok, everyElement(isNot(tk.danger)));
+        expect(ok, everyElement(isNot(tk.ok)));
         expect(ratio(tk.ink, tk.bg), greaterThanOrEqualTo(4.5));
+        expect(ratio(tk.mut, tk.bg), greaterThanOrEqualTo(4.5));
       }
       // Uyarı bandı metin belirteci (RefBanner warn) hâlâ AA kontrastlı olmalı.
       expect(ratio(BuTokens.light.onWarnSoft, BuTokens.light.bg), greaterThanOrEqualTo(4.5));

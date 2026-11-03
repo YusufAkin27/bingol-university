@@ -98,7 +98,7 @@ void main() {
       final b = newB()..fail('/auth/login', status: 401, code: 'INVALID_CREDENTIALS', message: 'E-posta veya şifre hatalı.');
       await tester.pumpWidget(buildApp(LoginPage(session: makeSession(b, signedIn: false))));
       await tester.enterText(find.byType(TextFormField).at(0), '226051015');
-      await tester.enterText(find.byType(TextFormField).at(1), 'Sifre1234');
+      await tester.enterText(find.byType(TextFormField).at(1), '481952');
       await tester.pump(const Duration(milliseconds: 700)); // giriş animasyonu (Stitch v3 aşamalı giriş) bitmeden dokunma isabet etmez
       await tester.tap(find.text('Giriş yap'));
       await settle(tester, const Duration(milliseconds: 300));
@@ -111,7 +111,7 @@ void main() {
       final b = newB()..network('/auth/login');
       await tester.pumpWidget(buildApp(LoginPage(session: makeSession(b, signedIn: false))));
       await tester.enterText(find.byType(TextFormField).at(0), '226051015');
-      await tester.enterText(find.byType(TextFormField).at(1), 'Sifre1234');
+      await tester.enterText(find.byType(TextFormField).at(1), '481952');
       await tester.pump(const Duration(milliseconds: 700)); // giriş animasyonu (Stitch v3 aşamalı giriş) bitmeden dokunma isabet etmez
       await tester.tap(find.text('Giriş yap'));
       await settle(tester, const Duration(milliseconds: 300));
@@ -123,7 +123,7 @@ void main() {
       final b = newB()..fail('/auth/login', status: 403, code: 'EMAIL_NOT_VERIFIED');
       await tester.pumpWidget(buildApp(LoginPage(session: makeSession(b, signedIn: false))));
       await tester.enterText(find.byType(TextFormField).at(0), '226051015');
-      await tester.enterText(find.byType(TextFormField).at(1), 'Sifre1234');
+      await tester.enterText(find.byType(TextFormField).at(1), '481952');
       await tester.pump(const Duration(milliseconds: 700)); // giriş animasyonu (Stitch v3 aşamalı giriş) bitmeden dokunma isabet etmez
       await tester.tap(find.text('Giriş yap'));
       await settle(tester, const Duration(milliseconds: 500));
@@ -246,13 +246,13 @@ void main() {
       final c = TextEditingController();
       addTearDown(c.dispose);
       // Kayıt şifresi bellekte: parola alanı çıkmaz, doğrulama isteğine şifre eklenir.
-      final s = makeSession(b, signedIn: false)..rememberCredentials('a@bingol.edu.tr', 'Sifre1234');
+      final s = makeSession(b, signedIn: false)..rememberCredentials('a@bingol.edu.tr', '481952');
       await tester.pumpWidget(buildApp(VerifyCodePage(session: s, email: 'a@bingol.edu.tr')));
       expect(find.text('Kayıtta belirlediğiniz şifre'), findsNothing);
       await tester.enterText(find.byType(EditableText).first, '123456');
       await settle(tester, const Duration(milliseconds: 400));
       expect(find.text('Kod geçersiz.'), findsOneWidget);
-      expect((b.bodies['POST /auth/verify-email'] as Map)['password'], 'Sifre1234');
+      expect((b.bodies['POST /auth/verify-email'] as Map)['password'], '481952');
       await unmount(tester);
       noErr(tester);
     });
@@ -266,13 +266,13 @@ void main() {
       await settle(tester, const Duration(milliseconds: 300));
       expect(find.text('Kayıtta belirlediğiniz şifreyi girin.'), findsOneWidget);
       expect(b.count('POST /auth/verify-email'), 0);
-      await tester.enterText(find.byType(TextFormField).first, 'Sifre1234');
+      await tester.enterText(find.byType(TextFormField).first, '481952');
       await tester.pump();
       await tester.ensureVisible(find.text('Doğrula'));
       await tester.tap(find.text('Doğrula'));
       await settle(tester, const Duration(milliseconds: 400));
       expect(b.count('POST /auth/verify-email'), 1);
-      expect((b.bodies['POST /auth/verify-email'] as Map)['password'], 'Sifre1234');
+      expect((b.bodies['POST /auth/verify-email'] as Map)['password'], '481952');
       await unmount(tester);
     });
 
@@ -313,13 +313,18 @@ void main() {
       await settle(tester, const Duration(milliseconds: 500));
       final f = find.byType(TextFormField);
       expect(f, findsNWidgets(2));
-      await tester.enterText(f.at(0), 'kisa');
+      await tester.enterText(f.at(0), '48195');
       await tester.ensureVisible(find.text('Şifreyi güncelle'));
       await tester.tap(find.text('Şifreyi güncelle'));
       await tester.pump();
-      expect(find.text('Şifre en az 8 karakter olmalı.'), findsOneWidget);
-      await tester.enterText(f.at(0), 'Sifre1234');
-      await tester.enterText(f.at(1), 'Sifre1234');
+      expect(find.text('Şifre 6 haneli rakamlardan oluşmalı.'), findsOneWidget);
+      // Kolay tahmin edilen PIN (ardışık) de reddedilir; sunucuyla aynı kural.
+      await tester.enterText(f.at(0), '123456');
+      await tester.tap(find.text('Şifreyi güncelle'));
+      await tester.pump();
+      expect(find.text('Çok kolay bir şifre; ardışık ya da aynı rakamlar kullanma.'), findsOneWidget);
+      await tester.enterText(f.at(0), '481952');
+      await tester.enterText(f.at(1), '481952');
       await tester.ensureVisible(find.text('Şifreyi güncelle'));
       await tester.tap(find.text('Şifreyi güncelle'));
       await settle(tester, const Duration(milliseconds: 800));

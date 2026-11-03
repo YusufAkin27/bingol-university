@@ -138,13 +138,14 @@ void main() {
       fakeCatalog(b);
       await tester.pumpWidget(_app(RegisterPage(session: _s(b))));
       await settle(tester, const Duration(milliseconds: 600));
-      await fillRegister(tester, password: 'abc');
+      await fillRegister(tester, password: '48');
       List<bool> rules() => tester.widgetList<AuthRule>(find.byType(AuthRule)).map((w) => w.ok).toList();
       expect(rules(), [false, false]);
-      await tester.enterText(find.byType(TextFormField).first, 'abcdefgh');
+      // 6 rakam ama kolay tahmin edilir (ardışık): yalnız birinci kural sağlanır.
+      await tester.enterText(find.byType(TextFormField).first, '123456');
       await tester.pump();
       expect(rules(), [true, false]);
-      await tester.enterText(find.byType(TextFormField).first, 'abcdefg1');
+      await tester.enterText(find.byType(TextFormField).first, '481952');
       await tester.pump();
       expect(rules(), [true, true]);
       await unmount(tester);
@@ -176,7 +177,7 @@ void main() {
       useScreen(tester, kPhoneMedium);
       final b = FakeBackend()
         ..fail('/auth/verify-email', status: 429, code: 'TOO_MANY_ATTEMPTS', message: 'Çok fazla hatalı deneme. Yeni kod isteyin.');
-      final s = _s(b)..rememberCredentials('a@bingol.edu.tr', 'Sifre1234');
+      final s = _s(b)..rememberCredentials('a@bingol.edu.tr', '481952');
       await tester.pumpWidget(_app(VerifyCodePage(session: s, email: 'a@bingol.edu.tr')));
       await settle(tester, const Duration(milliseconds: 1200));
       expect(find.text('Kodu yeniden gönder'), findsNothing);

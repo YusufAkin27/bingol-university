@@ -89,7 +89,7 @@
   "authDepartmentsLoadFailed": "Could not load the department list. Please try again.",
   "authNameRequired": "Enter your first and last name.",
   "authNameHint": "Full name",
-  "authPasswordMin8": "Password (at least 8 characters)",
+  "authPasswordMin8": "Password (6 digits)",
   "authTermsPrefix": "I accept the ",
   "authTermsLink": "Terms of Use",
   "authTermsSep": " and ",
@@ -1559,12 +1559,12 @@
   "authSectionPassword": "Set a password",
   "authHintAcademic": "Select your department and year of study.",
   "authHintPersonal": "Enter your name and school email.",
-  "authHintPassword": "Choose a password with at least 8 characters.",
+  "authHintPassword": "Choose a 6-digit password that is not easy to guess.",
   "authNext": "Continue",
   "authTermsAutoPrefix": "By signing up, you agree to the ",
   "authTermsAutoSuffix": ".",
-  "authPwMinErr": "Password must be at least 8 characters.",
-  "authPwMaxErr": "Password can be at most 72 characters.",
+  "authPwMinErr": "Password must be exactly 6 digits.",
+  "authPwMaxErr": "Password must be exactly 6 digits.",
   "authIdHelper": "226051015 or first.last@bingol.edu.tr",
   "authRegIdLabel": "Your school email address",
   "authRegIdHelper": "e.g. first.last@bingol.edu.tr",
@@ -1652,8 +1652,8 @@
   "authBackToLogin": "Back to log in",
   "authChangeEmail": "Change email",
   "authNewPwSub": "This replaces your old password. You will be logged out on all devices.",
-  "authRuleLen": "At least 8 characters",
-  "authRuleMix": "Contains letters and numbers",
+  "authRuleLen": "Exactly 6 digits",
+  "authRuleMix": "Not easy to guess",
   "authStep1Title": "Which department are you in?",
   "authStep2Title": "Let us get to know you",
   "welcomeHeadline": "Campus is now\nin your pocket",
@@ -1739,10 +1739,10 @@
   "profil2SecCurrentLabel": "Current password",
   "profil2SecCurrentHint": "Your current password",
   "profil2SecNewLabel": "New password",
-  "profil2SecNewHint": "At least 8 characters",
+  "profil2SecNewHint": "6 digits",
   "profil2SecRepeatLabel": "New password (repeat)",
   "profil2SecRepeatHint": "Repeat the new password",
-  "profil2SecPwRule": "8 to 72 characters. Mixing letters and digits makes it stronger.",
+  "profil2SecPwRule": "6 digits. Sequences (123456) and repeated digits (111111) are not accepted.",
   "profil2SecPwButton": "Update password",
   "profil2SecMismatch": "Passwords do not match.",
   "profil2SecSame": "The new password cannot be the same as the current one.",
@@ -3135,5 +3135,19 @@
   "homeFeaturedMenu": "Meal Menu",
   "homeSearchFilters": "Search filters",
   "homeMore": "More",
-  "homeViewAll": "View all"
+  "homeViewAll": "View all",
+  "authPinWeak": "Too easy to guess; avoid sequential or repeated digits.",
+  "authPinLegacyHint": "If your old password is longer, set a new 6-digit one with “Forgot password?”.",
+  "pinFieldSemantics": "{label}, 6 digits, {count} entered",
+  "@pinFieldSemantics": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      },
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "errAccountTempLocked": "Too many failed attempts. Your account is temporarily locked."
 }

@@ -10,9 +10,14 @@ void main() {
     expect(validateEmail(''), isNotNull);
   });
 
-  test('yeni şifre 8-72 karakter olmalı', () {
+  test('yeni şifre tam 6 rakam olmalı ve kolay tahmin edilmemeli', () {
     expect(validateNewPassword('kisa'), isNotNull);
-    expect(validateNewPassword('Sifre1234x'), isNull);
-    expect(validateNewPassword('a' * 73), isNotNull);
+    expect(validateNewPassword('12345'), isNotNull);
+    expect(validateNewPassword('4819520'), isNotNull);
+    expect(validateNewPassword('48195a'), isNotNull);
+    expect(validateNewPassword('Sifre1234x'), isNotNull);
+    expect(validateNewPassword('481952'), isNull);
+    expect(validateNewPassword('111111'), isNotNull);
+    expect(validateNewPassword('123456'), isNotNull);
   });
 }

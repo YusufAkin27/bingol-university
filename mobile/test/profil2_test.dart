@@ -312,10 +312,10 @@ void main() {
       await tester.tap(cont);
       await settle(tester, const Duration(milliseconds: 600));
       expect(find.text('Silmeyi onayla'), findsOneWidget);
-      await tester.enterText(find.byKey(const ValueKey('delete-password')), 'yanlis123');
+      await tester.enterText(find.byKey(const ValueKey('delete-password')), '902714');
       await tester.tap(find.byKey(const ValueKey('delete-submit')));
       await settle(tester);
-      expect(b.bodies['DELETE /users/me'], {'password': 'yanlis123'});
+      expect(b.bodies['DELETE /users/me'], {'password': '902714'});
       expect(find.byKey(const ValueKey('delete-error')), findsOneWidget);
       await unmount(tester);
     });
@@ -355,7 +355,7 @@ void main() {
   });
 
   group('Hesap ve güvenlik', () {
-    Future<void> fill(WidgetTester tester, {String cur = 'eskiSifre1', String nw = 'YeniSifre123', String rep = 'YeniSifre123'}) async {
+    Future<void> fill(WidgetTester tester, {String cur = '481952', String nw = '739204', String rep = '739204'}) async {
       await tester.enterText(find.descendant(of: find.byKey(const ValueKey('sec-current')), matching: find.byType(TextField)), cur);
       await tester.enterText(find.descendant(of: find.byKey(const ValueKey('sec-new')), matching: find.byType(TextField)), nw);
       await tester.enterText(find.descendant(of: find.byKey(const ValueKey('sec-repeat')), matching: find.byType(TextField)), rep);
@@ -375,7 +375,7 @@ void main() {
       final b = FakeBackend();
       await tester.pumpWidget(buildApp(AccountSecurityPage(session: makeSession(b)), size: kPhoneMedium));
       await settle(tester);
-      await fill(tester, rep: 'baska12345');
+      await fill(tester, rep: '502917');
       await tester.ensureVisible(find.byKey(const ValueKey('sec-submit')));
       await tester.tap(find.byKey(const ValueKey('sec-submit')));
       await settle(tester);
@@ -393,7 +393,7 @@ void main() {
       await tester.ensureVisible(find.byKey(const ValueKey('sec-submit')));
       await tester.tap(find.byKey(const ValueKey('sec-submit')));
       await settle(tester);
-      expect(b.bodies['POST /auth/change-password'], {'currentPassword': 'eskiSifre1', 'newPassword': 'YeniSifre123'});
+      expect(b.bodies['POST /auth/change-password'], {'currentPassword': '481952', 'newPassword': '739204'});
       expect(find.text('Şifren güncellendi.'), findsOneWidget);
       await unmount(tester);
     });
