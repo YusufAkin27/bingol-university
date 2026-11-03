@@ -134,7 +134,7 @@ export default {
   'admin.v2m.td.spanDay': '{n} gün',
   'admin.v2m.td.sendDisabled': 'Yanıt yazınca düğme açılır.',
   'admin.v2m.td.dangerTitle': 'Geri alınamaz işlemler',
-  'admin.v2m.td.dangerHint': 'Talebi kalıcı olarak siler; yazışma ve notlar geri getirilemez. Yalnızca kapatmak için sayfanın üstündeki Talebi kapat düğmesini kullanın.',
+  'admin.v2m.td.dangerHint': 'Talebi kalıcı olarak siler; yazışma ve notlar geri getirilemez. Yalnızca kapatmak için talep bilgisi panelindeki Talebi kapat düğmesini kullanın.',
   'admin.v2m.fb.summary': 'Geri bildirimlerin durum özeti',
   'admin.v2m.fb.newHint': 'Henüz kimse bakmadı',
   'admin.v2m.fb.newHintMore': 'Yüklenen kayıtlardan; daha fazlası olabilir',

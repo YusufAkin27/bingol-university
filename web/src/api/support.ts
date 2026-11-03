@@ -11,6 +11,10 @@ export const listTickets = (
     size: p.size,
   });
 export const getTicket = (id: number) => api.get<TicketDetail>(`/admin/support/tickets/${id}`);
-export const replyTicket = (id: number, text: string) =>
-  api.post<StaffReplyResult>(`/admin/support/tickets/${id}/reply`, { text });
+/** `attachmentIds` yalnız ek varken gönderilir (en çok 4; kendi yüklediğiniz bekleyen ekler). */
+export const replyTicket = (id: number, text: string, attachmentIds: number[] = []) =>
+  api.post<StaffReplyResult>(
+    `/admin/support/tickets/${id}/reply`,
+    attachmentIds.length ? { text, attachmentIds } : { text },
+  );
 export const closeTicket = (id: number) => api.post(`/admin/support/tickets/${id}/close`);

@@ -1,8 +1,9 @@
 // Destek tamamlama (P12): yeniden açma, öncelik/atama, İÇ NOT (müşteriye görünmez), talep/geri bildirim silme,
 // geri bildirim birleştirme, SSS sıralama, CSV. Sözleşme: docs/ADMIN_API.md "P12".
-import { api, apiBlob } from './client';
+import { api, apiBlob, uploadForm, type UploadOptions } from './client';
 import { guardHeaders, type GuardOpts } from './guard';
 import type {
+  AttachmentView,
   FaqAdminView,
   FeedbackCategory,
   FeedbackStatus,
@@ -28,6 +29,7 @@ export interface AdminMessage {
   text: string;
   createdAt: string;
   authorId: number | null;
+  attachments?: AttachmentView[];
 }
 
 export interface AdminTicketDetail {
@@ -105,3 +107,10 @@ export const exportFeedbackCsv = (f: FeedbackCsvFilters = {}): Promise<Blob> =>
     query: { status: f.status || undefined, category: f.category || undefined, from: f.from || undefined, to: f.to || undefined },
   });
 
+
+/** Yanıta eklenecek dosyayı yükler (bekleyen ek; 24 saat içinde yanıta bağlanmazsa temizlenir). İlerleme için XMLHttpRequest. */
+export const uploadAttachment = (file: File, o: UploadOptions = {}) => {
+  const form = new FormData();
+  form.append('file', file);
+  return uploadForm<AttachmentView>('/admin/support/attachments', form, o);
+};

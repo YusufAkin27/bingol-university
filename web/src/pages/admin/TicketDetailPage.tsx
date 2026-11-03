@@ -1,12 +1,12 @@
 // SAYFA: Talep ayrıntısı (/admin/support/tickets/:id)
-// API: GET /api/admin/support/tickets/{id}, POST .../{id}/reply {text}, POST .../{id}/close (api/support.ts).
+// API: GET /api/admin/support/tickets/{id}, POST .../{id}/reply {text, attachmentIds?}, POST .../{id}/close, POST /api/admin/support/attachments (api/support.ts, api/supportAdmin.ts).
 // Hazır yanıtlar yalnızca bu tarayıcının localStorage'ındadır (support/supportLogic.ts).
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRef, useState, type KeyboardEvent } from 'react';
-import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { qk, supportAdminApi, supportApi } from '../../api';
 import { TICKET_PRIORITIES, messageKey, type AdminTicketDetail, type TicketPriority } from '../../api/supportAdmin';
-import type { StaffReplyResult } from '../../api/types';
+import type { StaffReplyResult, TicketEmailStatus } from '../../api/types';
 import {
   Badge,
   Button,
@@ -22,7 +22,6 @@ import {
   PageHeader,
   Select,
   Skeleton,
-  StatTile,
   StatusPill,
   Tabs,
   Textarea,
@@ -39,6 +38,9 @@ import { adminError } from '../../lib/errors';
 import { internalNotes, mergeThread, parseAssignee, threadMessages } from './moderation/p11Logic';
 import p11 from './moderation/p11.module.css';
 import { ChatThread } from './support/ChatThread';
+import { ReplyComposer } from './support/ReplyComposer';
+import { MAX_ATTACHMENTS, readyIds } from './support/attachmentLogic';
+import { useAttachmentUploads } from './support/useAttachmentUploads';
 import v2 from './moderation/v2.module.css';
 import styles from './support/Support.module.css';
 import {
@@ -73,7 +75,14 @@ export default function TicketDetailPage() {
   const [templates, setTemplates] = useState<ReplyTemplate[]>(loadTemplates);
   const [newTpl, setNewTpl] = useState('');
   const replyRef = useRef<HTMLTextAreaElement>(null);
+  const [mailStatus, setMailStatus] = useState<TicketEmailStatus | null>(null);
   const narrow = useIsNarrow(960);
+  const uploads = useAttachmentUploads({
+    upload: supportAdminApi.uploadAttachment,
+    errorText: (e) => adminError(i18n, e, 'admin.support.att.err'),
+    problemText: (file, problem) =>
+      t(`admin.support.att.problem.${problem}`, { name: file.name, n: String(MAX_ATTACHMENTS) }),
+  });
   const span = (ms: number) => (ms < 3600000 ? t('admin.v2m.td.spanMin', { n: String(Math.max(1, Math.round(ms / 60000))) }) : ms < 86400000 ? t('admin.v2m.td.spanHour', { n: String(Math.round(ms / 3600000)) }) : t('admin.v2m.td.spanDay', { n: String(Math.round(ms / 86400000)) }));
   const canWrite = useCan('support.write'); // VIEWER yalnız okur (A3-06): yazma denetimleri devre dışı
 
@@ -93,11 +102,13 @@ export default function TicketDetailPage() {
   }
 
   const reply = useMutation({
-    mutationFn: () => supportApi.replyTicket(id, text.trim()),
+    mutationFn: () => supportApi.replyTicket(id, text.trim(), readyIds(uploads.items)),
     onSuccess: (d) => {
       if (d.emailStatus === 'FAILED') toast.error(t('admin.tickets.reply.mailFailed'));
       else toast.success(t(d.emailStatus === 'SENT' ? 'admin.tickets.reply.sentMail' : 'admin.tickets.reply.sent'));
+      setMailStatus(d.emailStatus);
       setText('');
+      uploads.reset();
       applyDetail(d);
     },
     onError: (e) => toast.error(errorMessage(i18n, e)),
@@ -255,58 +266,163 @@ export default function TicketDetailPage() {
     );
   }
 
+  const stateUserId = (location.state as { userId?: number | null } | null)?.userId ?? null;
+  const userId = query.data?.userId ?? stateUserId;
+
+  const infoCard = ticket ? (
+    <Card title={t('admin.support.info.title')} data-search-anchor="td-timeline">
+      <dl className={styles.info}>
+        <div>
+          <dt>{t('admin.tickets.col.status')}</dt>
+          <dd>
+            <StatusPill tone={toneFor(ticket.status)}>{t(`admin.tickets.status.${ticket.status}`)}</StatusPill>
+          </dd>
+        </div>
+        <div className={styles.infoStack}>
+          <dt>{t('admin.tickets.col.user')}</dt>
+          <dd>
+            {email ? <span className={`ltr ${styles.infoWrap}`}>{email}</span> : '—'}
+            {isPublic && (
+              <>
+                {' '}
+                <Badge tone="info">{t('admin.support.list.guest')}</Badge>
+              </>
+            )}
+            {userId ? (
+              <>
+                <br />
+                <Link to={paths.admin.user(userId)} className={styles.infoLink}>
+                  {t('admin.tickets.detail.userId', { id: String(userId) })}
+                </Link>
+              </>
+            ) : null}
+          </dd>
+        </div>
+        <div>
+          <dt>{t('admin.tickets.col.category')}</dt>
+          <dd>{t(`admin.tickets.category.${ticket.category}`)}</dd>
+        </div>
+        <div>
+          <dt>{t('admin.support.info.created')}</dt>
+          <dd>
+            <time dateTime={ticket.createdAt}>{formatDateTime(ticket.createdAt)}</time>
+          </dd>
+        </div>
+        <div>
+          <dt>{t('admin.tickets.col.updated')}</dt>
+          <dd>
+            <time dateTime={ticket.updatedAt}>{formatDateTime(ticket.updatedAt)}</time>
+          </dd>
+        </div>
+        <div>
+          <dt>{t('admin.v2m.td.firstReply')}</dt>
+          <dd>{firstReplyMs === null ? t('admin.v2m.td.noReply') : span(firstReplyMs)}</dd>
+        </div>
+      </dl>
+      <div className={styles.quick}>
+        {canClose(ticket.status) ? (
+          <PermissionButton permission="support.write" variant="secondary" onClick={() => setCloseOpen(true)}>
+            {t('admin.tickets.close.button')}
+          </PermissionButton>
+        ) : (
+          <PermissionButton permission="support.write" variant="secondary" loading={reopen.isPending} onClick={() => reopen.mutate()}>
+            {t('admin.p12.reopen.button')}
+          </PermissionButton>
+        )}
+      </div>
+    </Card>
+  ) : (
+    <Card>
+      <Skeleton height="9rem" radius="var(--radius-lg)" />
+    </Card>
+  );
+
+  const triageCard = query.data && (
+    <Card title={t('admin.p12.triage.title')}>
+      <div className={p11.sideForm}>
+        <FormField label={t('admin.p12.triage.priority')}>
+          <Select
+            value={query.data.priority ?? 'NORMAL'}
+            disabled={patch.isPending || !canWrite}
+            onChange={(e) => patch.mutate({ priority: e.target.value as TicketPriority })}
+          >
+            {TICKET_PRIORITIES.map((p) => (
+              <option key={p} value={p}>
+                {t(`admin.p12.priority.${p}`)}
+              </option>
+            ))}
+          </Select>
+        </FormField>
+        <p className={styles.hint} data-search-anchor="td-priority" data-testid="assignee-now">
+          {query.data.assigneeId
+            ? t('admin.p12.triage.assigned', { name: query.data.assigneeName ?? `#${query.data.assigneeId}` })
+            : t('admin.p12.triage.unassigned')}
+        </p>
+        <div className={p11.inlineRow}>
+          <FormField label={t('admin.p12.triage.assigneeId')} hint={t('admin.p12.triage.assigneeHint')}>
+            <Input inputMode="numeric" className="ltr" value={assignee} onChange={(e) => setAssignee(e.target.value)} />
+          </FormField>
+          <PermissionButton
+            permission="support.write"
+            size="sm"
+            variant="secondary"
+            disabled={parseAssignee(assignee) === null}
+            loading={patch.isPending}
+            onClick={() => {
+              const a = parseAssignee(assignee);
+              if (a !== null) patch.mutate({ assigneeId: a });
+            }}
+          >
+            {t('admin.p12.triage.assign')}
+          </PermissionButton>
+          {query.data.assigneeId && (
+            <PermissionButton permission="support.write" size="sm" variant="ghost" disabled={patch.isPending} onClick={() => patch.mutate({ unassign: true })}>
+              {t('admin.p12.triage.unassign')}
+            </PermissionButton>
+          )}
+        </div>
+      </div>
+    </Card>
+  );
+
+  const dangerCard = ticket && (
+    <Card title={t('admin.v2m.td.dangerTitle')} data-search-anchor="td-danger">
+      <p className={styles.hint}>{t('admin.v2m.td.dangerHint')}</p>
+      <div className={v2.touch}>
+        <GuardedAction
+          permission="support.write"
+          variant="ghost"
+          className={v2.softDanger}
+          danger
+          irreversible
+          requireReason
+          typeToConfirm={t('admin.p12.delete.confirmWord')}
+          title={t('admin.p12.delete.title')}
+          confirmLabel={t('admin.p12.delete.button')}
+          message={<strong dir="auto">{ticket.subject}</strong>}
+          consequence={t(isPublic ? 'admin.p12.delete.consequencePublic' : 'admin.p12.delete.consequence')}
+          successMessage={t('admin.p12.delete.done')}
+          errorMessage={(e) => adminError(i18n, e)}
+          invalidateKeys={[qk.tickets.all]}
+          onSuccess={() => navigate(paths.admin.tickets)}
+          onConfirm={({ reason, idempotencyKey }) => supportAdminApi.deleteTicket(id, { reason, idempotencyKey })}
+        >
+          {t('admin.p12.delete.button')}
+        </GuardedAction>
+      </div>
+    </Card>
+  );
+
   return (
     <>
       <PageHeader
         breadcrumbs={crumbs}
         title={ticket ? <span dir="auto">{ticket.subject}</span> : t('admin.tickets.detail.title')}
-        description={
-          ticket ? (
-            <span className={styles.meta}>
-              <StatusPill tone={toneFor(ticket.status)}>{t(`admin.tickets.status.${ticket.status}`)}</StatusPill>
-              <span>{t(`admin.tickets.category.${ticket.category}`)}</span>
-              <span>{t('admin.tickets.detail.opened', { date: formatDateTime(ticket.createdAt) })}</span>
-              {email && <span className="ltr">{t('admin.tickets.detail.user', { email })}</span>}
-              {isPublic && <Badge tone="info">{t('admin.tickets.public.badge')}</Badge>}
-            </span>
-          ) : undefined
-        }
-        actions={
-          ticket ? (
-            <>
-              {canClose(ticket.status) ? (
-                <PermissionButton permission="support.write" variant="secondary" onClick={() => setCloseOpen(true)}>
-                  {t('admin.tickets.close.button')}
-                </PermissionButton>
-              ) : (
-                <PermissionButton permission="support.write" variant="secondary" loading={reopen.isPending} onClick={() => reopen.mutate()}>
-                  {t('admin.p12.reopen.button')}
-                </PermissionButton>
-              )}
-            </>
-          ) : undefined
-        }
       />
-
-      {ticket && query.data && (
-        <section className={v2.sentenceBlock} data-search-anchor="td-timeline" aria-label={t('admin.v2m.td.timeline')}>
-          <ol className={v2.chips}>
-            <li className={v2.chip}>{t('admin.v2m.td.stepOpened', { when: formatDateTime(ticket.createdAt) })}</li>
-            {firstReplyAt && <li className={v2.chip}>{t('admin.v2m.td.stepAnswered', { when: formatDateTime(firstReplyAt) })}</li>}
-            {ticket.status === 'CLOSED' && <li className={v2.chip}>{t('admin.v2m.td.stepClosed')}</li>}
-          </ol>
-          <div className={v2.tiles}>
-            <StatTile
-              label={t('admin.v2m.td.firstReply')}
-              value={firstReplyMs === null ? t('admin.v2m.td.noReply') : span(firstReplyMs)}
-              caption={t(firstReplyMs === null ? 'admin.v2m.td.noReplyHint' : 'admin.v2m.td.firstReplyHint')}
-            />
-          </div>
-        </section>
-      )}
 
       <div className={styles.detailGrid}>
         <div className={styles.main}>
+          {narrow && infoCard}
           <Tabs
             label={t('admin.p12.tabs')}
             value={tab}
@@ -321,6 +437,11 @@ export default function TicketDetailPage() {
           />
           {tab === 'thread' ? (
             <Card>
+              {mailStatus === 'FAILED' && (
+                <p className={`${p11.callout} ${p11.calloutWarn}`} role="alert">
+                  {t('admin.tickets.reply.mailFailed')}
+                </p>
+              )}
               {query.isLoading || !query.data ? (
                 <div style={{ display: 'grid', gap: 12 }}>
                   <Skeleton height="4rem" radius="var(--radius-lg)" />
@@ -380,133 +501,37 @@ export default function TicketDetailPage() {
             </Card>
           )}
 
-          {narrow && templatesCard}
           <Card>
             {open ? (
-              <div className={styles.compose}>
-                <label htmlFor="ticket-reply" className={styles.composeLabel}>
-                  {t('admin.tickets.reply.label')}
-                </label>
-                <Textarea
-                  id="ticket-reply"
-                  ref={replyRef}
-                  rows={5}
-                  dir="auto"
-                  value={text}
-                  maxLength={MAX_REPLY}
-                  placeholder={t('admin.tickets.reply.placeholder')}
-                  onChange={(e) => setText(e.target.value)}
-                  onKeyDown={onKeyDown}
-                />
-                <div className={styles.composeFoot}>
-                  <span className={styles.hint}>
-                    {t(isPublic ? 'admin.tickets.reply.hintMail' : 'admin.tickets.reply.hint')}
-                  </span>
-                  <span
-                    className={`${styles.counter} ${text.length > MAX_REPLY - 100 ? styles.counterWarn : ''} ltr`}
-                    aria-live="polite"
-                  >
-                    {t('admin.tickets.reply.counter', { n: text.length, max: MAX_REPLY })}
-                  </span>
-                  <PermissionButton permission="support.write" onClick={send} disabled={!canSend} loading={reply.isPending}>
-                    {t('admin.tickets.reply.send')}
-                  </PermissionButton>
-                  {!canSend && !text.trim() && <span className={styles.hint}>{t('admin.v2m.td.sendDisabled')}</span>}
-                </div>
-              </div>
+              <ReplyComposer
+                text={text}
+                onText={setText}
+                maxLength={MAX_REPLY}
+                textRef={replyRef}
+                onKeyDown={onKeyDown}
+                uploads={uploads}
+                canSend={canSend}
+                sending={reply.isPending}
+                onSend={send}
+                hint={t(isPublic ? 'admin.tickets.reply.hintMail' : 'admin.tickets.reply.hint')}
+              />
             ) : (
               ticket && <p className={styles.closedNote}>{t('admin.tickets.reply.closed')}</p>
             )}
           </Card>
-          {ticket && (
-            <Card title={t('admin.v2m.td.dangerTitle')} data-search-anchor="td-danger">
-              <p className={styles.hint}>{t('admin.v2m.td.dangerHint')}</p>
-              <div className={v2.touch}>
-                <GuardedAction
-                  permission="support.write"
-                  variant="ghost"
-                  className={v2.softDanger}
-                  danger
-                  irreversible
-                  requireReason
-                  typeToConfirm={t('admin.p12.delete.confirmWord')}
-                  title={t('admin.p12.delete.title')}
-                  confirmLabel={t('admin.p12.delete.button')}
-                  message={<strong dir="auto">{ticket.subject}</strong>}
-                  consequence={t(isPublic ? 'admin.p12.delete.consequencePublic' : 'admin.p12.delete.consequence')}
-                  successMessage={t('admin.p12.delete.done')}
-                  errorMessage={(e) => adminError(i18n, e)}
-                  invalidateKeys={[qk.tickets.all]}
-                  onSuccess={() => navigate(paths.admin.tickets)}
-                  onConfirm={({ reason, idempotencyKey }) => supportAdminApi.deleteTicket(id, { reason, idempotencyKey })}
-                >
-                  {t('admin.p12.delete.button')}
-                </GuardedAction>
-              </div>
-            </Card>
-          )}
+          {narrow && triageCard}
+          {narrow && templatesCard}
+          {narrow && dangerCard}
         </div>
 
-        <aside className={styles.aside} aria-label={t('admin.tickets.tpl.title')}>
-          {query.data && (
-            <Card title={t('admin.p12.triage.title')}>
-              <div className={p11.sideForm}>
-                <FormField label={t('admin.p12.triage.priority')}>
-                  <Select
-                    value={query.data.priority ?? 'NORMAL'}
-                    disabled={patch.isPending || !canWrite}
-                    onChange={(e) => patch.mutate({ priority: e.target.value as TicketPriority })}
-                  >
-                    {TICKET_PRIORITIES.map((p) => (
-                      <option key={p} value={p}>
-                        {t(`admin.p12.priority.${p}`)}
-                      </option>
-                    ))}
-                  </Select>
-                </FormField>
-                <p className={styles.hint} data-search-anchor="td-priority">
-                  <Badge tone={query.data.priority === 'URGENT' ? 'danger' : query.data.priority === 'HIGH' ? 'warning' : 'neutral'}>
-                    {query.data.priority === 'URGENT' ? '! ' : ''}
-                    {t(`admin.p12.priority.${query.data.priority ?? 'NORMAL'}`)}
-                  </Badge>
-                </p>
-                <p className={styles.hint} data-testid="assignee-now">
-                  {query.data.assigneeId
-                    ? t('admin.p12.triage.assigned', { name: query.data.assigneeName ?? `#${query.data.assigneeId}` })
-                    : t('admin.p12.triage.unassigned')}
-                </p>
-                <div className={p11.inlineRow}>
-                  <FormField label={t('admin.p12.triage.assigneeId')} hint={t('admin.p12.triage.assigneeHint')}>
-                    <Input
-                      inputMode="numeric"
-                      className="ltr"
-                      value={assignee}
-                      onChange={(e) => setAssignee(e.target.value)}
-                    />
-                  </FormField>
-                  <PermissionButton permission="support.write"
-                    size="sm"
-                    variant="secondary"
-                    disabled={parseAssignee(assignee) === null}
-                    loading={patch.isPending}
-                    onClick={() => {
-                      const a = parseAssignee(assignee);
-                      if (a !== null) patch.mutate({ assigneeId: a });
-                    }}
-                  >
-                    {t('admin.p12.triage.assign')}
-                  </PermissionButton>
-                  {query.data.assigneeId && (
-                    <PermissionButton permission="support.write" size="sm" variant="ghost" disabled={patch.isPending} onClick={() => patch.mutate({ unassign: true })}>
-                      {t('admin.p12.triage.unassign')}
-                    </PermissionButton>
-                  )}
-                </div>
-              </div>
-            </Card>
-          )}
-          {!narrow && templatesCard}
-        </aside>
+        {!narrow && (
+          <aside className={styles.aside} aria-label={t('admin.support.info.title')}>
+            {infoCard}
+            {triageCard}
+            {templatesCard}
+            {dangerCard}
+          </aside>
+        )}
       </div>
 
       <ConfirmDialog

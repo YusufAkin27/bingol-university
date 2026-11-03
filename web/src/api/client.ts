@@ -204,6 +204,86 @@ export async function apiFetch<T = void>(path: string, opts: RequestOptions = {}
   return parseBody<T>(await execute(path, opts));
 }
 
+export interface UploadOptions {
+  /** 0..1 arası gönderim ilerlemesi. */
+  onProgress?: (fraction: number) => void;
+  signal?: AbortSignal;
+}
+
+interface XhrResult {
+  status: number;
+  text: string;
+  retryAfter: string | null;
+}
+
+function xhrSend(path: string, form: FormData, token: string | null, o: UploadOptions): Promise<XhrResult> {
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', buildUrl(path));
+    xhr.setRequestHeader('Accept', 'application/json');
+    xhr.setRequestHeader('Accept-Language', getCurrentLang());
+    if (token) xhr.setRequestHeader('Authorization', `Bearer ${token}`);
+    xhr.upload.onprogress = (e) => {
+      if (e.lengthComputable && e.total > 0) o.onProgress?.(Math.min(1, e.loaded / e.total));
+    };
+    xhr.onload = () =>
+      resolve({ status: xhr.status, text: xhr.responseText, retryAfter: xhr.getResponseHeader('Retry-After') });
+    xhr.onerror = () => reject(new ApiError(0, 'NETWORK_ERROR', 'Network error'));
+    xhr.onabort = () => reject(new DOMException('Aborted', 'AbortError'));
+    if (o.signal) {
+      if (o.signal.aborted) {
+        reject(new DOMException('Aborted', 'AbortError'));
+        return;
+      }
+      o.signal.addEventListener('abort', () => xhr.abort(), { once: true });
+    }
+    xhr.send(form);
+  });
+}
+
+/**
+ * multipart yükleme + ilerleme bildirimi (fetch yükleme ilerlemesi vermez, bu yüzden XMLHttpRequest).
+ * 401'de tek-uçuş refresh ile bir kez yeniden dener; oturum kuralları `execute` ile aynıdır.
+ */
+export async function uploadForm<T>(path: string, form: FormData, o: UploadOptions = {}): Promise<T> {
+  let r = await xhrSend(path, form, getAccessToken(), o);
+  if (r.status === 401) {
+    let fresh: string;
+    try {
+      fresh = await refreshAccessToken();
+    } catch (e) {
+      if (!isSessionRejected(e)) throw e;
+      expireSession();
+      throw errorFromText(r);
+    }
+    o.onProgress?.(0);
+    r = await xhrSend(path, form, fresh, o);
+    if (r.status === 401) expireSession();
+  }
+  if (r.status < 200 || r.status >= 300) throw errorFromText(r);
+  if (!r.text) return undefined as T;
+  try {
+    return JSON.parse(r.text) as T;
+  } catch {
+    throw new ApiError(r.status, 'INVALID_RESPONSE', 'Invalid JSON response');
+  }
+}
+
+function errorFromText(r: XhrResult): ApiError {
+  const ra = Number(r.retryAfter);
+  const retryAfter = Number.isFinite(ra) && ra > 0 ? Math.ceil(ra) : undefined;
+  let body: Partial<ApiErrorBody> | null = null;
+  try {
+    body = JSON.parse(r.text) as Partial<ApiErrorBody>;
+  } catch {
+    body = null;
+  }
+  if (body && typeof body.code === 'string') {
+    return new ApiError(r.status, body.code, typeof body.message === 'string' ? body.message : body.code, retryAfter);
+  }
+  return new ApiError(r.status, r.status >= 500 ? 'SERVER_ERROR' : `HTTP_${r.status}`, `HTTP ${r.status}`, retryAfter);
+}
+
 /** Gövde ile birlikte yanıt başlıklarını da döner (örn. sayfalı listelerde `X-Next-Cursor`). */
 export async function apiFetchMeta<T = void>(
   path: string,

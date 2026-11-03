@@ -712,6 +712,8 @@ export interface AdminTicketSummary {
   status: TicketStatus;
   createdAt: string;
   updatedAt: string;
+  /** Taleptaki toplam ek sayısı (eski sunucuda yok olabilir; yoksa liste ek simgesi çizmez). */
+  attachmentCount?: number;
 }
 export interface TicketSummary {
   id: number;
@@ -722,11 +724,26 @@ export interface TicketSummary {
   createdAt: string;
   updatedAt: string;
 }
+/** Destek eki (Sözleşme B): `url`/`thumbUrl` yetkili (Bearer) uçlardır; yalnız talep sahibi ve yönetici açabilir. */
+export interface AttachmentView {
+  id: number;
+  kind: 'IMAGE' | 'VIDEO';
+  url: string;
+  thumbUrl: string | null;
+  mime: string;
+  bytes: number;
+  name: string;
+  width: number | null;
+  height: number | null;
+  durationMs: number | null;
+}
 export interface TicketMessage {
   id: number;
   fromStaff: boolean;
   text: string;
   createdAt: string;
+  /** Eski sunucuda yok olabilir. */
+  attachments?: AttachmentView[];
 }
 export interface TicketDetail {
   ticket: TicketSummary;

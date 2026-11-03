@@ -130,7 +130,7 @@ test.describe('destek talebi', () => {
     const id = await createTicket(subject);
     await openAs(page);
     await page.goto('/admin/support/tickets');
-    const row = page.getByRole('row', { name: new RegExp(subject) });
+    const row = page.getByRole('link', { name: new RegExp(subject) });
     await revealWithLoadMore(page, row);
     await expect(row).toBeVisible();
     await expect(row).toContainText('Yanıt bekliyor');

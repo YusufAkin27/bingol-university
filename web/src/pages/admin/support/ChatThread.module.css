@@ -1,3 +1,12 @@
+/* Kendi içinde kaydırılan akış: kompozer her zaman erişilebilir kalır. */
+.scroller {
+  max-block-size: min(34rem, 62vh);
+  min-block-size: 8rem;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-inline-end: var(--space-1);
+  scrollbar-gutter: stable;
+}
 .thread {
   list-style: none;
   margin: 0;
@@ -6,9 +15,28 @@
   flex-direction: column;
   gap: var(--space-3);
 }
+.item {
+  display: grid;
+  gap: var(--space-3);
+  min-inline-size: 0;
+}
+.day {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
+.day::before,
+.day::after {
+  content: '';
+  flex: 1;
+  block-size: 1px;
+  background: var(--border);
+}
 .row {
   display: flex;
-  min-width: 0;
+  min-inline-size: 0;
 }
 .user {
   justify-content: flex-start;
@@ -17,8 +45,8 @@
   justify-content: flex-end;
 }
 .bubble {
-  max-width: min(36rem, 88%);
-  min-width: 0;
+  max-inline-size: min(36rem, 90%);
+  min-inline-size: 0;
   display: grid;
   gap: var(--space-1);
   padding: var(--space-3) var(--space-4);
@@ -30,7 +58,7 @@
   border-end-start-radius: var(--radius-xs);
 }
 .staff .bubble {
-  background: var(--primary-soft);
+  background: var(--select-bg);
   border-color: transparent;
   border-end-end-radius: var(--radius-xs);
 }
@@ -49,4 +77,13 @@
   font-size: var(--text-xs);
   color: var(--text-faint);
   justify-self: end;
+}
+@media (max-width: 560px) {
+  .bubble {
+    max-inline-size: 96%;
+    padding: var(--space-3);
+  }
+  .scroller {
+    max-block-size: min(32rem, 70vh);
+  }
 }
