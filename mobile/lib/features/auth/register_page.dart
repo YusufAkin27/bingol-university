@@ -124,14 +124,14 @@ class _RegisterPageState extends State<RegisterPage> {
     });
     try {
       final full = await widget.session.register(
-        email: _email.text,
+        email: fullEmail(_email.text),
         password: _password.text,
         displayName: _name.text,
         faculty: _faculty,
         department: _department,
         grade: _grade,
       );
-      final id = normalizeIdentifier(_email.text);
+      final id = normalizeIdentifier(fullEmail(_email.text));
       widget.session.rememberCredentials(id, _password.text);
       await widget.session.pending.save(id);
       if (!mounted) return;
@@ -174,12 +174,8 @@ class _RegisterPageState extends State<RegisterPage> {
   String? _validateRegisterId(String? v) {
     final server = _emailFieldError;
     if (server != null) return server;
-    final base = validateRegisterEmail(v);
-    if (base != null) return base;
-    final s = normalizeIdentifier(v);
-    final at = s.indexOf('@');
-    if (at > 0 && s.substring(0, at).contains('+')) return context.l10n.errEmailAliasNotAllowed;
-    return null;
+    // Alan yalnız rakam kabul eder (6-12 hane): giriştekiyle aynı kural.
+    return validateIdentifier(v);
   }
 
   String _title(BuildContext c) => switch (_step) {
@@ -190,7 +186,7 @@ class _RegisterPageState extends State<RegisterPage> {
 
   String _hint(BuildContext c) => switch (_step) {
         0 => c.l10n.authHintAcademic,
-        1 => c.l10n.authHintPersonal,
+        1 => c.l10n.authHintPersonalNumber,
         _ => c.l10n.authHintPassword,
       };
 
@@ -236,11 +232,10 @@ class _RegisterPageState extends State<RegisterPage> {
               validator: (v) => (v == null || v.trim().isEmpty) ? l.authNameRequired : null,
             ),
             const SizedBox(height: 28),
-            LoginUnderlineField(
+            // Giriş ile aynı alan: okul numarası (iri rakamlar, rakam klavyesi, @bingol.edu.tr soneki). Kayıt e-postası
+            // `<numara>@bingol.edu.tr` olur; böylece girişte aynı numara geçer.
+            LoginNumberField(
               controller: _email,
-              label: l.authRegIdLabel,
-              keyboardType: TextInputType.emailAddress,
-              autofillHints: const [AutofillHints.username, AutofillHints.email],
               enabled: !_busy,
               validator: _validateRegisterId,
               textInputAction: TextInputAction.done,

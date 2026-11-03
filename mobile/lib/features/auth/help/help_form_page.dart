@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../../../core/api.dart';
 import '../../../core/locale_controller.dart';
@@ -6,6 +7,7 @@ import '../../../core/session.dart';
 import '../../../widgets/bu.dart';
 import '../widgets/auth_motion.dart';
 import '../widgets/auth_ref.dart';
+import '../widgets/login_underline_field.dart';
 import 'help_code_page.dart';
 import 'public_support_api.dart';
 
@@ -113,22 +115,21 @@ class _HelpFormPageState extends State<HelpFormPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              RefTextField(
+              LoginUnderlineField(
                 controller: _name,
                 label: l.p66FieldName,
                 enabled: !_busy,
-                maxLength: PublicSupportApi.nameMax,
+                inputFormatters: [LengthLimitingTextInputFormatter(PublicSupportApi.nameMax)],
                 textCapitalization: TextCapitalization.words,
                 autofillHints: const [AutofillHints.name],
                 validator: (v) => validatePublicSupport(name: v ?? '', email: 'a@b.cd', message: 'x' * 10).name == null ? null : l.p66ErrName,
               ),
               const SizedBox(height: 24),
-              RefTextField(
+              LoginUnderlineField(
                 controller: _email,
                 label: l.p66FieldEmail,
                 enabled: !_busy,
                 keyboardType: TextInputType.emailAddress,
-                autocorrect: false,
                 autofillHints: const [AutofillHints.email],
                 validator: (v) => validatePublicSupport(name: 'x', email: v ?? '', message: 'x' * 10).email == null ? null : l.p66ErrEmail,
               ),
@@ -144,13 +145,13 @@ class _HelpFormPageState extends State<HelpFormPage> {
                 ],
               ),
               const SizedBox(height: 24),
-              RefTextField(
+              LoginUnderlineField(
                 controller: _message,
                 label: l.p66FieldMessage,
                 enabled: !_busy,
                 minLines: 4,
                 maxLines: 6,
-                maxLength: PublicSupportApi.messageMax,
+                inputFormatters: [LengthLimitingTextInputFormatter(PublicSupportApi.messageMax)],
                 validator: (v) {
                   final e = validatePublicSupport(name: 'x', email: 'a@b.cd', message: v ?? '').message;
                   if (e == null) return null;

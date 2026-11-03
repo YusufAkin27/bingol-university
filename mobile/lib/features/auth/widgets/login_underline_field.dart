@@ -29,6 +29,8 @@ class LoginUnderlineField extends StatefulWidget {
     this.trailing,
     this.hint,
     this.textCapitalization = TextCapitalization.none,
+    this.minLines = 1,
+    this.maxLines = 1,
   });
 
   final TextEditingController controller;
@@ -52,6 +54,10 @@ class LoginUnderlineField extends StatefulWidget {
   final Widget? trailing;
   final String? hint;
   final TextCapitalization textCapitalization;
+
+  /// Çok satırlı metin (mesaj kutusu): şifre alanında yok sayılır.
+  final int minLines;
+  final int maxLines;
 
   @override
   State<LoginUnderlineField> createState() => _LoginUnderlineFieldState();
@@ -151,7 +157,9 @@ class _LoginUnderlineFieldState extends State<LoginUnderlineField> {
       focusNode: _focus,
       enabled: widget.enabled,
       obscureText: widget.obscureText,
-      keyboardType: widget.keyboardType,
+      minLines: widget.obscureText ? 1 : widget.minLines,
+      maxLines: widget.obscureText ? 1 : widget.maxLines,
+      keyboardType: widget.maxLines > 1 ? TextInputType.multiline : widget.keyboardType,
       inputFormatters: widget.inputFormatters,
       textInputAction: widget.textInputAction,
       autofillHints: widget.autofillHints,
@@ -311,8 +319,11 @@ class _Underline extends StatelessWidget {
 
 /// Okul numarası alanı (lg4): yalnız rakam, rakam klavyesi, en çok 12 hane; rakam yazılınca sağda `@bingol.edu.tr`.
 class LoginNumberField extends StatelessWidget {
-  const LoginNumberField({super.key, required this.controller, required this.enabled, this.onSubmitted});
+  const LoginNumberField({super.key, required this.controller, required this.enabled, this.onSubmitted, this.validator, this.textInputAction = TextInputAction.next});
 
+  /// Varsayılan: [validateIdentifier] (6-12 rakam). Kayıtta sunucu hatasını da gösterir.
+  final String? Function(String?)? validator;
+  final TextInputAction textInputAction;
   final TextEditingController controller;
   final bool enabled;
   final VoidCallback? onSubmitted;
@@ -329,7 +340,8 @@ class LoginNumberField extends StatelessWidget {
         keyboardType: TextInputType.number,
         inputFormatters: [FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(12)],
         autofillHints: const [AutofillHints.username],
-        validator: validateIdentifier,
+        validator: validator ?? validateIdentifier,
+        textInputAction: textInputAction,
         onSubmitted: onSubmitted,
         hint: '000000000',
         suffix: isStudentNumberInput(value.text) ? '@$kEmailDomain' : null,

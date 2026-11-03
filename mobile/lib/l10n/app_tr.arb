@@ -83,6 +83,7 @@
   "authPasswordLabel": "Şifre",
   "authIdHint": "Okul e-postanız",
   "authIdNumberLabel": "Okul numaranız",
+  "authHintPersonalNumber": "Adınızı ve okul numaranızı girin.",
   "loginSubtitleNumber": "Okul numaranızla giriş yapın.",
   "authVerify": "Doğrula",
   "authResendCode": "Kodu yeniden gönder",
