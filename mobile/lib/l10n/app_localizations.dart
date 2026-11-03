@@ -17850,6 +17850,258 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Profil fotoğrafı seç'**
   String get photoSetupAvatarSemantic;
+
+  /// No description provided for @avatarEdTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Fotoğrafı düzenle'**
+  String get avatarEdTitle;
+
+  /// No description provided for @avatarEdCancel.
+  ///
+  /// In tr, this message translates to:
+  /// **'İptal'**
+  String get avatarEdCancel;
+
+  /// No description provided for @avatarEdDone.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bitti'**
+  String get avatarEdDone;
+
+  /// No description provided for @avatarEdUndo.
+  ///
+  /// In tr, this message translates to:
+  /// **'Geri al'**
+  String get avatarEdUndo;
+
+  /// No description provided for @avatarEdRedo.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yinele'**
+  String get avatarEdRedo;
+
+  /// No description provided for @avatarEdTabCrop.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kırp'**
+  String get avatarEdTabCrop;
+
+  /// No description provided for @avatarEdTabBg.
+  ///
+  /// In tr, this message translates to:
+  /// **'Zemin'**
+  String get avatarEdTabBg;
+
+  /// No description provided for @avatarEdTabFilter.
+  ///
+  /// In tr, this message translates to:
+  /// **'Filtre'**
+  String get avatarEdTabFilter;
+
+  /// No description provided for @avatarEdTabAdjust.
+  ///
+  /// In tr, this message translates to:
+  /// **'Ayarla'**
+  String get avatarEdTabAdjust;
+
+  /// No description provided for @avatarEdRotateLeft.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sola döndür'**
+  String get avatarEdRotateLeft;
+
+  /// No description provided for @avatarEdRotateRight.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sağa döndür'**
+  String get avatarEdRotateRight;
+
+  /// No description provided for @avatarEdMirror.
+  ///
+  /// In tr, this message translates to:
+  /// **'Aynala'**
+  String get avatarEdMirror;
+
+  /// No description provided for @avatarEdReset.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sıfırla'**
+  String get avatarEdReset;
+
+  /// No description provided for @avatarEdZoom.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yakınlaştırma'**
+  String get avatarEdZoom;
+
+  /// No description provided for @avatarEdAngle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Açı'**
+  String get avatarEdAngle;
+
+  /// No description provided for @avatarEdBgBlur.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bulanık'**
+  String get avatarEdBgBlur;
+
+  /// No description provided for @avatarEdBgWhite.
+  ///
+  /// In tr, this message translates to:
+  /// **'Beyaz'**
+  String get avatarEdBgWhite;
+
+  /// No description provided for @avatarEdBgBlack.
+  ///
+  /// In tr, this message translates to:
+  /// **'Siyah'**
+  String get avatarEdBgBlack;
+
+  /// No description provided for @avatarEdBgBrand.
+  ///
+  /// In tr, this message translates to:
+  /// **'Marka'**
+  String get avatarEdBgBrand;
+
+  /// No description provided for @avatarEdBgNavy.
+  ///
+  /// In tr, this message translates to:
+  /// **'Lacivert'**
+  String get avatarEdBgNavy;
+
+  /// No description provided for @avatarEdBgSand.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kum'**
+  String get avatarEdBgSand;
+
+  /// No description provided for @avatarEdBgHint.
+  ///
+  /// In tr, this message translates to:
+  /// **'Fotoğraf çerçeveden küçükse boşluk bu zeminle dolar.'**
+  String get avatarEdBgHint;
+
+  /// No description provided for @avatarEdFOriginal.
+  ///
+  /// In tr, this message translates to:
+  /// **'Orijinal'**
+  String get avatarEdFOriginal;
+
+  /// No description provided for @avatarEdFVivid.
+  ///
+  /// In tr, this message translates to:
+  /// **'Canlı'**
+  String get avatarEdFVivid;
+
+  /// No description provided for @avatarEdFCool.
+  ///
+  /// In tr, this message translates to:
+  /// **'Soğuk'**
+  String get avatarEdFCool;
+
+  /// No description provided for @avatarEdFWarm.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sıcak'**
+  String get avatarEdFWarm;
+
+  /// No description provided for @avatarEdFMono.
+  ///
+  /// In tr, this message translates to:
+  /// **'Siyah-beyaz'**
+  String get avatarEdFMono;
+
+  /// No description provided for @avatarEdFFaded.
+  ///
+  /// In tr, this message translates to:
+  /// **'Solgun'**
+  String get avatarEdFFaded;
+
+  /// No description provided for @avatarEdBrightness.
+  ///
+  /// In tr, this message translates to:
+  /// **'Parlaklık'**
+  String get avatarEdBrightness;
+
+  /// No description provided for @avatarEdContrast.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kontrast'**
+  String get avatarEdContrast;
+
+  /// No description provided for @avatarEdSaturation.
+  ///
+  /// In tr, this message translates to:
+  /// **'Doygunluk'**
+  String get avatarEdSaturation;
+
+  /// No description provided for @avatarEdWarmth.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sıcaklık'**
+  String get avatarEdWarmth;
+
+  /// No description provided for @avatarEdVignette.
+  ///
+  /// In tr, this message translates to:
+  /// **'Vinyet'**
+  String get avatarEdVignette;
+
+  /// No description provided for @avatarEdStageSemantic.
+  ///
+  /// In tr, this message translates to:
+  /// **'Fotoğraf düzenleme alanı. Sürükleyin, iki parmakla yakınlaştırın veya uzaklaştırın, çift dokunarak sığdırın.'**
+  String get avatarEdStageSemantic;
+
+  /// No description provided for @avatarSheetTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Profil fotoğrafı'**
+  String get avatarSheetTitle;
+
+  /// No description provided for @avatarSheetEdit.
+  ///
+  /// In tr, this message translates to:
+  /// **'Mevcut fotoğrafı düzenle'**
+  String get avatarSheetEdit;
+
+  /// No description provided for @avatarRemoveTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Profil fotoğrafınız kaldırılsın mı?'**
+  String get avatarRemoveTitle;
+
+  /// No description provided for @avatarRemoveBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Varsayılan görsel gösterilir. İstediğiniz zaman yeniden fotoğraf ekleyebilirsiniz.'**
+  String get avatarRemoveBody;
+
+  /// No description provided for @avatarRemoveConfirm.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kaldır'**
+  String get avatarRemoveConfirm;
+
+  /// No description provided for @avatarFetchFailed.
+  ///
+  /// In tr, this message translates to:
+  /// **'Mevcut fotoğraf açılamadı. Bağlantınızı kontrol edip tekrar deneyin.'**
+  String get avatarFetchFailed;
+
+  /// No description provided for @avatarUpdated.
+  ///
+  /// In tr, this message translates to:
+  /// **'Profil fotoğrafınız güncellendi.'**
+  String get avatarUpdated;
+
+  /// No description provided for @avatarRemoved.
+  ///
+  /// In tr, this message translates to:
+  /// **'Profil fotoğrafınız kaldırıldı.'**
+  String get avatarRemoved;
 }
 
 class _AppLocalizationsDelegate

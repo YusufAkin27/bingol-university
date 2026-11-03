@@ -9864,4 +9864,134 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get photoSetupAvatarSemantic => 'Choose profile photo';
+
+  @override
+  String get avatarEdTitle => 'Edit photo';
+
+  @override
+  String get avatarEdCancel => 'Cancel';
+
+  @override
+  String get avatarEdDone => 'Done';
+
+  @override
+  String get avatarEdUndo => 'Undo';
+
+  @override
+  String get avatarEdRedo => 'Redo';
+
+  @override
+  String get avatarEdTabCrop => 'Crop';
+
+  @override
+  String get avatarEdTabBg => 'Backdrop';
+
+  @override
+  String get avatarEdTabFilter => 'Filter';
+
+  @override
+  String get avatarEdTabAdjust => 'Adjust';
+
+  @override
+  String get avatarEdRotateLeft => 'Rotate left';
+
+  @override
+  String get avatarEdRotateRight => 'Rotate right';
+
+  @override
+  String get avatarEdMirror => 'Mirror';
+
+  @override
+  String get avatarEdReset => 'Reset';
+
+  @override
+  String get avatarEdZoom => 'Zoom';
+
+  @override
+  String get avatarEdAngle => 'Angle';
+
+  @override
+  String get avatarEdBgBlur => 'Blur';
+
+  @override
+  String get avatarEdBgWhite => 'White';
+
+  @override
+  String get avatarEdBgBlack => 'Black';
+
+  @override
+  String get avatarEdBgBrand => 'Brand';
+
+  @override
+  String get avatarEdBgNavy => 'Navy';
+
+  @override
+  String get avatarEdBgSand => 'Sand';
+
+  @override
+  String get avatarEdBgHint =>
+      'If the photo is smaller than the frame, the gap is filled with this backdrop.';
+
+  @override
+  String get avatarEdFOriginal => 'Original';
+
+  @override
+  String get avatarEdFVivid => 'Vivid';
+
+  @override
+  String get avatarEdFCool => 'Cool';
+
+  @override
+  String get avatarEdFWarm => 'Warm';
+
+  @override
+  String get avatarEdFMono => 'Black & white';
+
+  @override
+  String get avatarEdFFaded => 'Faded';
+
+  @override
+  String get avatarEdBrightness => 'Brightness';
+
+  @override
+  String get avatarEdContrast => 'Contrast';
+
+  @override
+  String get avatarEdSaturation => 'Saturation';
+
+  @override
+  String get avatarEdWarmth => 'Warmth';
+
+  @override
+  String get avatarEdVignette => 'Vignette';
+
+  @override
+  String get avatarEdStageSemantic =>
+      'Photo editing area. Drag, pinch to zoom in or out, double-tap to fit.';
+
+  @override
+  String get avatarSheetTitle => 'Profile photo';
+
+  @override
+  String get avatarSheetEdit => 'Edit current photo';
+
+  @override
+  String get avatarRemoveTitle => 'Remove your profile photo?';
+
+  @override
+  String get avatarRemoveBody =>
+      'The default picture will be shown. You can add a photo again at any time.';
+
+  @override
+  String get avatarRemoveConfirm => 'Remove';
+
+  @override
+  String get avatarFetchFailed =>
+      'Could not open the current photo. Check your connection and try again.';
+
+  @override
+  String get avatarUpdated => 'Your profile photo was updated.';
+
+  @override
+  String get avatarRemoved => 'Your profile photo was removed.';
 }

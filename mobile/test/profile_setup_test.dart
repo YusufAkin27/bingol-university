@@ -1,5 +1,6 @@
 import 'package:bu_kampus/core/session.dart';
 import 'package:bu_kampus/core/theme.dart';
+import 'package:bu_kampus/features/auth/profile_photo_setup_page.dart';
 import 'package:bu_kampus/features/auth/profile_setup_page.dart';
 import 'package:bu_kampus/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
@@ -215,7 +216,7 @@ void main() {
       await unmount(tester);
     });
 
-    testWidgets('kaydedince ana ekrana geçer ve bir daha sorulmaz', (tester) async {
+    testWidgets('kaydedince (fotoğraf yok) önce isteğe bağlı fotoğraf adımı, atlayınca ana ekran; bir daha sorulmaz', (tester) async {
       useScreen(tester, const Size(390, 1200));
       final b = backend()..on('/users/me', {'id': 1, 'department': null, 'grade': null});
       await tester.pumpWidget(gate(makeSession(b)));
@@ -223,7 +224,12 @@ void main() {
       await fillAcademic(tester);
       await tester.tap(find.byKey(const ValueKey('profile-setup-submit')));
       await settle(tester, const Duration(milliseconds: 800));
+      expect(find.byType(ProfilePhotoSetupPage), findsOneWidget);
+      expect(find.text('KABUK'), findsNothing);
+      await tester.tap(find.byKey(const ValueKey('photo-setup-skip')));
+      await settle(tester, const Duration(milliseconds: 600));
       expect(find.text('KABUK'), findsOneWidget);
+      expect(find.byType(ProfilePhotoSetupPage), findsNothing);
       expect(find.byType(ProfileSetupPage), findsNothing);
       await unmount(tester);
     });

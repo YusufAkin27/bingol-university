@@ -346,7 +346,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
       _photoError = null;
     });
     try {
-      await widget.session.api.delete('/users/me/avatar');
+      await removeAvatar(widget.session);
       if (!mounted) return;
       setState(() {
         _avatarUrl = null;

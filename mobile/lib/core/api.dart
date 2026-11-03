@@ -235,6 +235,10 @@ class ApiClient {
     return inv == null || c.cachedAt.isAfter(inv);
   }
 
+  /// [path] ile aynı kaynak grubundaki önbellek yanıtlarını bayat sayar (api dışı yazmalar, örn. çok parçalı yükleme,
+  /// sonrası: `/users/me` hemen yeniden çekilsin).
+  void invalidate(String path) => _invalidatedAt[_segment(path)] = DateTime.now();
+
   void clearCache() {
     _cache.clear();
     _cacheBytes = 0;

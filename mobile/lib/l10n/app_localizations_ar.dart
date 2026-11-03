@@ -9762,4 +9762,134 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get photoSetupAvatarSemantic => 'اختيار صورة الملف الشخصي';
+
+  @override
+  String get avatarEdTitle => 'تعديل الصورة';
+
+  @override
+  String get avatarEdCancel => 'إلغاء';
+
+  @override
+  String get avatarEdDone => 'تم';
+
+  @override
+  String get avatarEdUndo => 'تراجع';
+
+  @override
+  String get avatarEdRedo => 'إعادة';
+
+  @override
+  String get avatarEdTabCrop => 'اقتصاص';
+
+  @override
+  String get avatarEdTabBg => 'الخلفية';
+
+  @override
+  String get avatarEdTabFilter => 'فلتر';
+
+  @override
+  String get avatarEdTabAdjust => 'ضبط';
+
+  @override
+  String get avatarEdRotateLeft => 'تدوير لليسار';
+
+  @override
+  String get avatarEdRotateRight => 'تدوير لليمين';
+
+  @override
+  String get avatarEdMirror => 'قلب أفقي';
+
+  @override
+  String get avatarEdReset => 'إعادة ضبط';
+
+  @override
+  String get avatarEdZoom => 'التقريب';
+
+  @override
+  String get avatarEdAngle => 'الزاوية';
+
+  @override
+  String get avatarEdBgBlur => 'ضبابية';
+
+  @override
+  String get avatarEdBgWhite => 'أبيض';
+
+  @override
+  String get avatarEdBgBlack => 'أسود';
+
+  @override
+  String get avatarEdBgBrand => 'لون الهوية';
+
+  @override
+  String get avatarEdBgNavy => 'كحلي';
+
+  @override
+  String get avatarEdBgSand => 'رملي';
+
+  @override
+  String get avatarEdBgHint =>
+      'إذا كانت الصورة أصغر من الإطار، تُملأ المساحة الفارغة بهذه الخلفية.';
+
+  @override
+  String get avatarEdFOriginal => 'الأصلية';
+
+  @override
+  String get avatarEdFVivid => 'نابض';
+
+  @override
+  String get avatarEdFCool => 'بارد';
+
+  @override
+  String get avatarEdFWarm => 'دافئ';
+
+  @override
+  String get avatarEdFMono => 'أبيض وأسود';
+
+  @override
+  String get avatarEdFFaded => 'باهت';
+
+  @override
+  String get avatarEdBrightness => 'السطوع';
+
+  @override
+  String get avatarEdContrast => 'التباين';
+
+  @override
+  String get avatarEdSaturation => 'التشبع';
+
+  @override
+  String get avatarEdWarmth => 'الدفء';
+
+  @override
+  String get avatarEdVignette => 'التعتيم الحواف';
+
+  @override
+  String get avatarEdStageSemantic =>
+      'منطقة تعديل الصورة. اسحب، وقرّب أو بعّد بإصبعين، وانقر مرتين للملاءمة.';
+
+  @override
+  String get avatarSheetTitle => 'صورة الملف الشخصي';
+
+  @override
+  String get avatarSheetEdit => 'تعديل الصورة الحالية';
+
+  @override
+  String get avatarRemoveTitle => 'هل تريد إزالة صورة ملفك الشخصي؟';
+
+  @override
+  String get avatarRemoveBody =>
+      'ستظهر الصورة الافتراضية. يمكنك إضافة صورة من جديد في أي وقت.';
+
+  @override
+  String get avatarRemoveConfirm => 'إزالة';
+
+  @override
+  String get avatarFetchFailed =>
+      'تعذّر فتح الصورة الحالية. تحقق من اتصالك وحاول مرة أخرى.';
+
+  @override
+  String get avatarUpdated => 'تم تحديث صورة ملفك الشخصي.';
+
+  @override
+  String get avatarRemoved => 'تمت إزالة صورة ملفك الشخصي.';
 }

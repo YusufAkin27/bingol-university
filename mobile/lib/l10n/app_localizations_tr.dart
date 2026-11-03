@@ -9832,4 +9832,134 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get photoSetupAvatarSemantic => 'Profil fotoğrafı seç';
+
+  @override
+  String get avatarEdTitle => 'Fotoğrafı düzenle';
+
+  @override
+  String get avatarEdCancel => 'İptal';
+
+  @override
+  String get avatarEdDone => 'Bitti';
+
+  @override
+  String get avatarEdUndo => 'Geri al';
+
+  @override
+  String get avatarEdRedo => 'Yinele';
+
+  @override
+  String get avatarEdTabCrop => 'Kırp';
+
+  @override
+  String get avatarEdTabBg => 'Zemin';
+
+  @override
+  String get avatarEdTabFilter => 'Filtre';
+
+  @override
+  String get avatarEdTabAdjust => 'Ayarla';
+
+  @override
+  String get avatarEdRotateLeft => 'Sola döndür';
+
+  @override
+  String get avatarEdRotateRight => 'Sağa döndür';
+
+  @override
+  String get avatarEdMirror => 'Aynala';
+
+  @override
+  String get avatarEdReset => 'Sıfırla';
+
+  @override
+  String get avatarEdZoom => 'Yakınlaştırma';
+
+  @override
+  String get avatarEdAngle => 'Açı';
+
+  @override
+  String get avatarEdBgBlur => 'Bulanık';
+
+  @override
+  String get avatarEdBgWhite => 'Beyaz';
+
+  @override
+  String get avatarEdBgBlack => 'Siyah';
+
+  @override
+  String get avatarEdBgBrand => 'Marka';
+
+  @override
+  String get avatarEdBgNavy => 'Lacivert';
+
+  @override
+  String get avatarEdBgSand => 'Kum';
+
+  @override
+  String get avatarEdBgHint =>
+      'Fotoğraf çerçeveden küçükse boşluk bu zeminle dolar.';
+
+  @override
+  String get avatarEdFOriginal => 'Orijinal';
+
+  @override
+  String get avatarEdFVivid => 'Canlı';
+
+  @override
+  String get avatarEdFCool => 'Soğuk';
+
+  @override
+  String get avatarEdFWarm => 'Sıcak';
+
+  @override
+  String get avatarEdFMono => 'Siyah-beyaz';
+
+  @override
+  String get avatarEdFFaded => 'Solgun';
+
+  @override
+  String get avatarEdBrightness => 'Parlaklık';
+
+  @override
+  String get avatarEdContrast => 'Kontrast';
+
+  @override
+  String get avatarEdSaturation => 'Doygunluk';
+
+  @override
+  String get avatarEdWarmth => 'Sıcaklık';
+
+  @override
+  String get avatarEdVignette => 'Vinyet';
+
+  @override
+  String get avatarEdStageSemantic =>
+      'Fotoğraf düzenleme alanı. Sürükleyin, iki parmakla yakınlaştırın veya uzaklaştırın, çift dokunarak sığdırın.';
+
+  @override
+  String get avatarSheetTitle => 'Profil fotoğrafı';
+
+  @override
+  String get avatarSheetEdit => 'Mevcut fotoğrafı düzenle';
+
+  @override
+  String get avatarRemoveTitle => 'Profil fotoğrafınız kaldırılsın mı?';
+
+  @override
+  String get avatarRemoveBody =>
+      'Varsayılan görsel gösterilir. İstediğiniz zaman yeniden fotoğraf ekleyebilirsiniz.';
+
+  @override
+  String get avatarRemoveConfirm => 'Kaldır';
+
+  @override
+  String get avatarFetchFailed =>
+      'Mevcut fotoğraf açılamadı. Bağlantınızı kontrol edip tekrar deneyin.';
+
+  @override
+  String get avatarUpdated => 'Profil fotoğrafınız güncellendi.';
+
+  @override
+  String get avatarRemoved => 'Profil fotoğrafınız kaldırıldı.';
 }

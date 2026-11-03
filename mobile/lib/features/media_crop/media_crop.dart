@@ -5,10 +5,15 @@ import 'package:flutter/material.dart';
 import '../../core/locale_controller.dart';
 import '../../core/platform/image_service.dart';
 import '../../widgets/bu.dart';
+import 'avatar_editor_page.dart';
 import 'crop_page.dart';
 import 'crop_spec.dart';
 
 export 'crop_spec.dart';
+
+/// Profil fotoğrafı düzenleyicisini ([AvatarEditorPage]) tam ekran açar; "Bitti" -> [CropOutcome.cropped], iptal -> null.
+Future<CropOutcome?> openAvatarEditor(BuildContext context, Uint8List bytes) => Navigator.of(context)
+    .push<CropOutcome>(MaterialPageRoute(fullscreenDialog: true, builder: (_) => AvatarEditorPage(bytes: bytes)));
 
 /// Elinizdeki fotoğraf baytlarını kırpma sayfasında açar. Kullanıcı kaydederse [CropOutcome.cropped] (JPEG),
 /// yan eylem seçerse [CropOutcome.removed]/[CropOutcome.change]; vazgeçerse null döner.
@@ -39,7 +44,10 @@ Future<Uint8List?> pickAndCrop(
   while (true) {
     final bytes = await picker(src);
     if (bytes == null || !context.mounted) return null;
-    final out = await cropImage(context, bytes, spec);
+    // Profil fotoğrafı: tek gelişmiş düzenleyici (uzaklaştırma + zemin, açı, filtre...). Diğer türler klasik kırpma sayfasını kullanır.
+    final out = spec.kind == CropKind.profile
+        ? await openAvatarEditor(context, bytes)
+        : await cropImage(context, bytes, spec);
     if (out == null || !context.mounted) return null;
     if (out.changeRequested) {
       src = ImageSource.gallery;
@@ -50,12 +58,16 @@ Future<Uint8List?> pickAndCrop(
 }
 
 /// [showPhotoSourceSheet] sonucu.
-enum PhotoSource { gallery, camera, remove }
+enum PhotoSource { gallery, camera, remove, edit }
 
 /// "Fotoğraf" kaynak alt sayfası (referans 09/6): Galeriden seç / Fotoğraf çek / (isteğe bağlı) Fotoğrafı kaldır, sağ üstte
 /// kapat düğmesi. [error] verilirse altta kırmızı uyarı kartı (başlık [errorTitle], örn. "Dosya boyutu yüksek" + 2 MB metni).
 /// İptalde null.
-Future<PhotoSource?> showPhotoSourceSheet(BuildContext context, {bool removable = false, String? error, String? errorTitle, bool simple = false}) {
+///
+/// Profil fotoğrafı sayfası için: [title] başlığı değiştirir, [cameraFirst] kamerayı üste alır, [editable] "Mevcut fotoğrafı
+/// düzenle" satırını ([PhotoSource.edit]) ekler.
+Future<PhotoSource?> showPhotoSourceSheet(BuildContext context,
+    {bool removable = false, String? error, String? errorTitle, bool simple = false, String? title, bool cameraFirst = false, bool editable = false}) {
   final l = context.l10n;
   if (simple) return _showSimpleSourceSheet(context);
   return BuSheet.show<PhotoSource>(
@@ -85,7 +97,7 @@ Future<PhotoSource?> showPhotoSourceSheet(BuildContext context, {bool removable 
           );
       return Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
         Row(children: [
-          Expanded(child: Text(l.p04SrcTitle, style: tt.titleLarge?.copyWith(color: t.ink, fontWeight: FontWeight.w700))),
+          Expanded(child: Text(title ?? l.p04SrcTitle, style: tt.titleLarge?.copyWith(color: t.ink, fontWeight: FontWeight.w700))),
           Tooltip(
             message: l.postComposeClose,
             child: Material(
@@ -101,9 +113,19 @@ Future<PhotoSource?> showPhotoSourceSheet(BuildContext context, {bool removable 
           ),
         ]),
         const SizedBox(height: 8),
-        row(const ValueKey('photoSrcGallery'), BuIcons.images, l.p04SrcGallery, PhotoSource.gallery),
-        Divider(height: 1, color: t.bd),
-        row(const ValueKey('photoSrcCamera'), BuIcons.camera, l.p04SrcCamera, PhotoSource.camera),
+        if (cameraFirst) ...[
+          row(const ValueKey('photoSrcCamera'), BuIcons.camera, l.p04SrcCamera, PhotoSource.camera),
+          Divider(height: 1, color: t.bd),
+          row(const ValueKey('photoSrcGallery'), BuIcons.images, l.p04SrcGallery, PhotoSource.gallery),
+        ] else ...[
+          row(const ValueKey('photoSrcGallery'), BuIcons.images, l.p04SrcGallery, PhotoSource.gallery),
+          Divider(height: 1, color: t.bd),
+          row(const ValueKey('photoSrcCamera'), BuIcons.camera, l.p04SrcCamera, PhotoSource.camera),
+        ],
+        if (editable) ...[
+          Divider(height: 1, color: t.bd),
+          row(const ValueKey('photoSrcEdit'), BuIcons.pencil, l.avatarSheetEdit, PhotoSource.edit),
+        ],
         if (removable) ...[
           Divider(height: 1, color: t.bd),
           row(const ValueKey('photoSrcRemove'), BuIcons.trash2, l.p04SrcRemove, PhotoSource.remove, danger: true),
