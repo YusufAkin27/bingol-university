@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Alt çubuk ve kaydırma animasyonu</title>
+<style>
+:root{
+  --bg:#F8F9FA; --sf:#FFFFFF; --sf2:#F1F3F5; --bd:#E4E4E7; --ink:#18181B; --mut:#71717A;
+  --pr:#DC4C46; --prP:#B93833; --soft:#FCECEB; --onSoft:#922D29;
+  --stage:#E9E6E3;
+  --ease:cubic-bezier(.65,0,.35,1); --enter:cubic-bezier(.33,1,.68,1);
+  --fast:140ms; --normal:220ms;
+}
+*{box-sizing:border-box;margin:0}
+body{background:var(--stage);font:16px/1.4 Inter,Roboto,system-ui,sans-serif;color:var(--ink);min-height:100vh;display:flex;gap:40px;justify-content:center;align-items:flex-start;flex-wrap:wrap;padding:28px 16px 48px}
+.phone{position:relative;width:390px;height:844px;border-radius:44px;overflow:hidden;background:var(--bg);box-shadow:0 0 0 10px #111,0 24px 60px #0006;touch-action:pan-y;user-select:none}
+.status{height:44px;padding:14px 26px 0;display:flex;justify-content:space-between;font-weight:600;font-size:14px}
+.stack{position:absolute;inset:44px 0 0 0}
+.page{position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;padding:12px 20px 120px;opacity:0;pointer-events:none;scrollbar-width:none;will-change:transform,opacity}
+.page::-webkit-scrollbar{display:none}
+.page.on{opacity:1;pointer-events:auto}
+h1{font-size:30px;font-weight:800;letter-spacing:-.01em;line-height:1.15}
+.sub{color:var(--mut);font-size:14px;margin:4px 0 16px}
+.card{background:var(--sf);border:1px solid var(--bd);border-radius:20px;padding:16px;margin-bottom:14px}
+.card h3{font-size:18px;margin-bottom:10px}
+.row{display:flex;align-items:center;gap:12px}
+.ico{width:40px;height:40px;border-radius:12px;background:var(--soft);color:var(--onSoft);display:grid;place-items:center;flex:none}
+svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px}
+.tile{background:var(--sf);border:1px solid var(--bd);border-radius:18px;padding:12px 4px;text-align:center;font-size:12px;font-weight:600}
+.tile .ico{margin:0 auto 6px}
+.photo{height:150px;border-radius:16px;background:linear-gradient(135deg,#d9b07a,#8c5a2b 55%,#5b3a1a);margin-bottom:10px;position:relative}
+.photo::after{content:"860 kcal";position:absolute;left:10px;bottom:10px;background:#fff;border-radius:999px;padding:4px 10px;font-size:12px;font-weight:700}
+.map{height:150px;border-radius:16px;background:#EEF0F2;position:relative;overflow:hidden}
+.map i{position:absolute;background:#fff;border-radius:3px}
+.map b{position:absolute;width:12px;height:12px;border-radius:50%;background:var(--prP);border:2px solid #fff}
+.skel{height:14px;border-radius:7px;background:var(--sf2);margin:10px 0}
+/* alt çubuk */
+.nav{position:absolute;left:16px;right:16px;bottom:18px;height:64px;background:var(--sf);border:1px solid var(--bd);border-radius:32px;display:flex;align-items:center;justify-content:space-between;padding:0 8px;box-shadow:0 2px 10px #0000000f}
+.it{position:relative;height:48px;width:48px;border-radius:24px;display:flex;align-items:center;justify-content:center;gap:6px;color:var(--mut);cursor:pointer;border:0;background:transparent;font:inherit;overflow:hidden;
+  transition:width var(--normal) var(--ease),background-color var(--normal) var(--ease),color var(--fast) var(--ease)}
+.it.sel{width:118px;background:var(--soft);color:var(--onSoft)}
+.it .g{position:relative;width:22px;height:22px;flex:none}
+.it .g svg{position:absolute;inset:0;transition:opacity var(--fast) var(--ease)}
+.it .g .fill{opacity:0}
+.it.sel .g .fill{opacity:1}.it.sel .g .line{opacity:0}
+.it.pop .g{animation:pop var(--normal) var(--enter)}
+@keyframes pop{0%{transform:scale(1)}45%{transform:scale(1.08)}100%{transform:scale(1)}}
+.it .lb{max-width:0;opacity:0;font-size:13px;font-weight:700;white-space:nowrap;transition:max-width var(--normal) var(--ease),opacity var(--fast) var(--ease)}
+.it.sel .lb{max-width:70px;opacity:1;transition-delay:0s,60ms}
+.badge{position:absolute;top:5px;right:7px;min-width:17px;height:17px;border-radius:9px;background:var(--prP);color:#fff;font-size:10px;font-weight:700;display:grid;place-items:center;padding:0 4px;animation:bd var(--fast) var(--enter) both}
+@keyframes bd{from{transform:scale(0)}to{transform:scale(1)}}
+.it.sel .badge{opacity:0}
+.fab{width:56px;height:56px;border-radius:50%;background:var(--prP);color:#fff;border:0;display:grid;place-items:center;margin-top:-18px;box-shadow:0 4px 12px #b9383340;cursor:pointer;transition:transform 140ms var(--enter)}
+.fab:active,.fab.press{transform:scale(.94);transition-duration:80ms}
+.fab svg{width:26px;height:26px;stroke-width:2.2}
+.panel{width:360px;font-size:14px}
+.panel h2{font-size:20px;margin-bottom:8px}
+.panel table{width:100%;border-collapse:collapse;background:var(--sf);border-radius:14px;overflow:hidden;border:1px solid var(--bd)}
+.panel td,.panel th{padding:9px 12px;text-align:left;border-bottom:1px solid var(--bd);font-size:13px;vertical-align:top}
+.panel th{background:var(--sf2)}
+.panel p{color:var(--mut);margin:10px 0}
+.tg{border:1px solid var(--bd);background:var(--sf);border-radius:999px;padding:10px 16px;font:inherit;cursor:pointer;margin:6px 6px 0 0;min-height:44px}
+.slow .it,.slow .it *,.slow .page{transition-duration:900ms!important;animation-duration:900ms!important}
+@media (prefers-reduced-motion:reduce){.it,.it *,.fab,.page{transition:none!important;animation:none!important}}
+.rm .it,.rm .it *,.rm .fab,.rm .page{transition:none!important;animation:none!important}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+ <defs>
+  <symbol id="home" viewBox="0 0 24 24"><path d="M4 11 12 4l8 7v8a1 1 0 0 1-1 1h-4v-6H9v6H5a1 1 0 0 1-1-1z"/></symbol>
+  <symbol id="homeF" viewBox="0 0 24 24"><path fill="currentColor" d="M4 11 12 4l8 7v8a1 1 0 0 1-1 1h-4v-6H9v6H5a1 1 0 0 1-1-1z"/></symbol>
+  <symbol id="cmp" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m15.5 8.5-2 5-5 2 2-5z"/></symbol>
+  <symbol id="cmpF" viewBox="0 0 24 24"><circle fill="currentColor" cx="12" cy="12" r="9"/><path stroke="#FCECEB" fill="#FCECEB" d="m15.5 8.5-2 5-5 2 2-5z"/></symbol>
+  <symbol id="chat" viewBox="0 0 24 24"><path d="M4 5h16v11H9l-5 4z"/></symbol>
+  <symbol id="chatF" viewBox="0 0 24 24"><path fill="currentColor" d="M4 5h16v11H9l-5 4z"/></symbol>
+  <symbol id="usr" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"/></symbol>
+  <symbol id="usrF" viewBox="0 0 24 24"><circle fill="currentColor" cx="12" cy="8" r="4"/><path fill="currentColor" d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7z"/></symbol>
+  <symbol id="plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="cal" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="15" rx="3"/><path d="M8 3v4M16 3v4M4 10h16"/></symbol>
+  <symbol id="food" viewBox="0 0 24 24"><path d="M7 3v8M5 3v5a2 2 0 0 0 4 0V3M7 11v10M17 21V3c-2 1-3 4-3 8h3"/></symbol>
+  <symbol id="book" viewBox="0 0 24 24"><path d="M12 6c-2-1.5-5-2-8-2v14c3 0 6 .5 8 2 2-1.5 5-2 8-2V4c-3 0-6 .5-8 2zM12 6v14"/></symbol>
+  <symbol id="grp" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><circle cx="17" cy="9" r="2.4"/></symbol>
+ </defs>
+</svg>
+
+<div>
+  <div class="phone" id="phone">
+    <div class="status"><span>9:41</span><span>●●● ▮</span></div>
+    <div class="stack" id="stack">
+      <section class="page on" data-p="0">
+        <h1>İyi akşamlar, Zeki</h1><p class="sub">3 Kasım 2026 Salı</p>
+        <div class="tiles">
+          <div class="tile"><div class="ico"><svg><use href="#cal"/></svg></div>Ders Programı</div>
+          <div class="tile"><div class="ico"><svg><use href="#food"/></svg></div>Yemek Menüsü</div>
+          <div class="tile"><div class="ico"><svg><use href="#book"/></svg></div>Kütüphane</div>
+          <div class="tile"><div class="ico"><svg><use href="#grp"/></svg></div>Kulüpler</div>
+        </div>
+        <div class="card"><h3>Bugünün menüsü</h3><div class="photo"></div><div class="row"><b>Süzme mercimek çorbası, Orman kebabı +2</b></div></div>
+        <div class="card"><h3>Kampüs haritası</h3>
+          <div class="map"><i style="left:20px;top:24px;width:70px;height:40px"></i><i style="left:120px;top:60px;width:90px;height:50px"></i><i style="left:240px;top:20px;width:60px;height:70px"></i><i style="left:0;right:0;top:100px;height:6px"></i><b style="left:50px;top:36px"></b><b style="left:160px;top:76px"></b><b style="left:262px;top:48px"></b></div></div>
+      </section>
+      <section class="page" data-p="1"><h1>Keşfet</h1><p class="sub">Gönderiler ve kişiler</p>
+        <div class="card"><div class="skel" style="width:60%"></div><div class="skel"></div><div class="skel" style="width:80%"></div></div>
+        <div class="card"><div class="skel" style="width:50%"></div><div class="skel"></div></div></section>
+      <section class="page" data-p="2"><h1>Sohbet</h1><p class="sub">Son konuşmalar</p>
+        <div class="card"><div class="row"><div class="ico"><svg><use href="#chat"/></svg></div><div style="flex:1"><div class="skel" style="width:50%;margin:0"></div><div class="skel" style="width:80%;margin:8px 0 0"></div></div></div></div>
+        <div class="card"><div class="row"><div class="ico"><svg><use href="#chat"/></svg></div><div style="flex:1"><div class="skel" style="width:40%;margin:0"></div><div class="skel" style="width:70%;margin:8px 0 0"></div></div></div></div></section>
+      <section class="page" data-p="3"><h1>Profilim</h1><p class="sub">Bilgilerin ve tercihlerin</p>
+        <div class="card"><div class="skel" style="width:40%"></div><div class="skel"></div></div>
+        <div class="card"><div class="skel" style="width:70%"></div><div class="skel"></div></div></section>
+    </div>
+
+    <nav class="nav" id="nav" aria-label="Ana gezinme">
+      <button class="it sel" data-t="0"><span class="g"><svg class="line"><use href="#home"/></svg><svg class="fill"><use href="#homeF"/></svg></span><span class="lb">Ana Sayfa</span></button>
+      <button class="it" data-t="1"><span class="g"><svg class="line"><use href="#cmp"/></svg><svg class="fill"><use href="#cmpF"/></svg></span><span class="lb">Keşfet</span></button>
+      <button class="fab" id="fab" aria-label="Ekle"><svg><use href="#plus"/></svg></button>
+      <button class="it" data-t="2"><span class="g"><svg class="line"><use href="#chat"/></svg><svg class="fill"><use href="#chatF"/></svg></span><span class="lb">Sohbet</span><span class="badge">2</span></button>
+      <button class="it" data-t="3"><span class="g"><svg class="line"><use href="#usr"/></svg><svg class="fill"><use href="#usrF"/></svg></span><span class="lb">Profil</span></button>
+    </nav>
+  </div>
+</div>
+
+<aside class="panel">
+  <h2>Hareket belirtimi</h2>
+  <p>Telefonda sekmelere dokunun ya da içeriği <b>sağa/sola kaydırın</b> (fare ile sürükleyin).</p>
+  <button class="tg" id="slow">Yavaş çek (görmek için)</button>
+  <button class="tg" id="rm">Azaltılmış hareket</button>
+  <table>
+   <tr><th>Öğe</th><th>Hareket</th></tr>
+   <tr><td>Seçili sekme hapı</td><td>Yeni sekmeye genişleyerek kayar: 220 ms, easeInOutCubic. Etiket uzunluğuna göre uzar/kısalır.</td></tr>
+   <tr><td>İkon</td><td>Çizgi → dolu çapraz geçiş 140 ms; ölçek 1.0 → 1.08 → 1.0 (220 ms).</td></tr>
+   <tr><td>Etiket</td><td>Yalnız seçili sekmede; 140 ms solarak açılır/kapanır.</td></tr>
+   <tr><td>"+" düğmesi</td><td>Basınca 80 ms'de 0.94'e küçülür, bırakınca 140 ms'de döner. Zıplama/dönme yok.</td></tr>
+   <tr><td>Rozet</td><td>İlk belirişte 140 ms ölçek.</td></tr>
+   <tr><td>Yan kaydırma</td><td>Parmağı 12-16 px paralaksla takip eder; eski içerik solar; yeni içerik 12 px yandan kayarak 220 ms, easeOutCubic ile belirir. Tam ekran kayma yok.</td></tr>
+   <tr><td>Alt çubuk</td><td>Kaydırırken sabit kalır, gizlenmez.</td></tr>
+   <tr><td>Azaltılmış hareket</td><td>Tüm geçişler anında (sistem tercihine uyar).</td></tr>
+  </table>
+</aside>
+
+<script>
+(function(){
+  var pages=[].slice.call(document.querySelectorAll('.page')), items=[].slice.call(document.querySelectorAll('.it'));
+  var cur=0, busy=false;
+  function reduced(){return document.body.classList.contains('rm')||matchMedia('(prefers-reduced-motion:reduce)').matches}
+  function go(n,dir){
+    if(n===cur||n<0||n>3)return;
+    dir=dir||(n>cur?1:-1);
+    var from=pages[cur],to=pages[n];
+    items.forEach(function(b){var on=+b.dataset.t===n;b.classList.toggle('sel',on);if(on){b.classList.remove('pop');void b.offsetWidth;b.classList.add('pop')}});
+    from.style.transition=to.style.transition='';
+    if(reduced()){from.classList.remove('on');to.classList.add('on');from.style.transform=to.style.transform='';cur=n;return}
+    to.classList.add('on');
+    to.style.transition='none';to.style.opacity='0';to.style.transform='translateX('+(12*dir)+'px)';
+    void to.offsetWidth;
+    var d=document.body.classList.contains('slow')?900:220;
+    from.style.transition='opacity '+(d*.64)+'ms cubic-bezier(.33,1,.68,1), transform '+d+'ms cubic-bezier(.33,1,.68,1)';
+    from.style.opacity='0';from.style.transform='translateX('+(-8*dir)+'px)';
+    to.style.transition='opacity '+d+'ms cubic-bezier(.33,1,.68,1), transform '+d+'ms cubic-bezier(.33,1,.68,1)';
+    to.style.opacity='1';to.style.transform='translateX(0)';
+    cur=n;
+    setTimeout(function(){pages.forEach(function(p,i){if(i!==cur){p.classList.remove('on')}p.style.transition='';p.style.opacity='';p.style.transform=''})},d+40);
+  }
+  items.forEach(function(b){b.addEventListener('click',function(){go(+b.dataset.t)})});
+  var fab=document.getElementById('fab');
+  ['pointerdown'].forEach(function(e){fab.addEventListener(e,function(){fab.classList.add('press')})});
+  ['pointerup','pointerleave','pointercancel'].forEach(function(e){fab.addEventListener(e,function(){fab.classList.remove('press')})});
+  // yan kaydırma
+  var phone=document.getElementById('phone'),sx=null,dx=0;
+  phone.addEventListener('pointerdown',function(e){if(e.target.closest('.nav'))return;sx=e.clientX;dx=0});
+  phone.addEventListener('pointermove',function(e){
+    if(sx===null)return;dx=e.clientX-sx;
+    if(reduced())return;
+    var p=pages[cur];p.style.transition='none';
+    var k=Math.max(-16,Math.min(16,dx*.08));p.style.transform='translateX('+k+'px)';p.style.opacity=String(1-Math.min(.25,Math.abs(dx)/700));
+  });
+  function end(){
+    if(sx===null)return;var d=dx;sx=null;dx=0;
+    var p=pages[cur];p.style.transition='opacity 140ms cubic-bezier(.33,1,.68,1), transform 140ms cubic-bezier(.33,1,.68,1)';p.style.transform='';p.style.opacity='';
+    if(d<=-60)go(cur+1,1);else if(d>=60)go(cur-1,-1);
+  }
+  ['pointerup','pointercancel','pointerleave'].forEach(function(e){phone.addEventListener(e,end)});
+  document.getElementById('slow').addEventListener('click',function(){document.body.classList.toggle('slow')});
+  document.getElementById('rm').addEventListener('click',function(){document.body.classList.toggle('rm')});
+  window.__go=go;
+})();
+</script>
+</body>
+</html>
