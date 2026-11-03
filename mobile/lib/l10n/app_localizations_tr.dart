@@ -9820,4 +9820,136 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get homeViewAll => 'Tümünü gör';
+
+  @override
+  String get supAttTitle => 'Ekler';
+
+  @override
+  String get supAttAdd => 'Ek ekle';
+
+  @override
+  String get supAttSheetTitle => 'Ek ekle';
+
+  @override
+  String get supAttLimits =>
+      'En çok 4 ek: fotoğraf (her biri en çok 8 MB) ya da 1 video (en çok 50 MB ve 60 saniye).';
+
+  @override
+  String get supAttPhotoGallery => 'Galeriden fotoğraf';
+
+  @override
+  String get supAttPhotoCamera => 'Fotoğraf çek';
+
+  @override
+  String get supAttVideoGallery => 'Galeriden video';
+
+  @override
+  String get supAttVideoCamera => 'Video çek';
+
+  @override
+  String get supAttPhoto => 'Fotoğraf';
+
+  @override
+  String get supAttVideo => 'Video';
+
+  @override
+  String get supAttPreparing => 'Hazırlanıyor';
+
+  @override
+  String get supAttUploading => 'Yükleniyor';
+
+  @override
+  String get supAttReady => 'Yüklendi';
+
+  @override
+  String get supAttFailed => 'Yüklenemedi, yeniden denemek için dokun';
+
+  @override
+  String get supAttRemove => 'Eki kaldır';
+
+  @override
+  String get supAttWaitUpload => 'Ekler yükleniyor…';
+
+  @override
+  String get supAttFailedPending =>
+      'Yüklenemeyen eki kaldır ya da yeniden dene.';
+
+  @override
+  String supAttOpenPhoto(String n, String total) {
+    return 'Fotoğraf $n / $total, aç';
+  }
+
+  @override
+  String supAttOpenVideo(String n, String total) {
+    return 'Video $n / $total, oynat';
+  }
+
+  @override
+  String supAttErrLimit(String max) {
+    return 'En çok $max ek ekleyebilirsin.';
+  }
+
+  @override
+  String get supAttErrOneVideo => 'Bir talebe en çok 1 video ekleyebilirsin.';
+
+  @override
+  String get supAttErrType =>
+      'Bu dosya türü desteklenmiyor. JPEG, PNG ya da WebP görsel; MP4, MOV ya da WebM video seç.';
+
+  @override
+  String supAttErrImageSize(String mb) {
+    return 'Görsel en çok $mb MB olabilir.';
+  }
+
+  @override
+  String supAttErrVideoSize(String mb) {
+    return 'Video en çok $mb MB olabilir.';
+  }
+
+  @override
+  String supAttErrVideoLong(String sec) {
+    return 'Video en çok $sec saniye olabilir.';
+  }
+
+  @override
+  String get supAttErrFailed => 'Ek eklenemedi. Tekrar dene.';
+
+  @override
+  String get supReplyNeedsText => 'Eklerle birlikte kısa bir mesaj da yaz.';
+
+  @override
+  String get supOpenMeterLabel => 'Açık talep';
+
+  @override
+  String supOpenMeterSemantics(String n, String max) {
+    return 'Açık talep: $n / $max';
+  }
+
+  @override
+  String get supLimitTitle => 'Açık talep sınırına ulaştın';
+
+  @override
+  String supLimitBody(String max) {
+    return 'Aynı anda en çok $max açık talebin olabilir. Yeni talep için birini kapat ya da yanıtlanıp kapanmasını bekle.';
+  }
+
+  @override
+  String get supEmptyBody =>
+      'Bir sorunla karşılaşırsan buradan yaz. Yanıtı bildirim ve e-posta ile alırsın.';
+
+  @override
+  String get supNewReply => 'Yeni yanıt';
+
+  @override
+  String supLastStaff(String text) {
+    return 'Destek: $text';
+  }
+
+  @override
+  String supLastYou(String text) {
+    return 'Sen: $text';
+  }
+
+  @override
+  String get supAttachmentSent => 'Ek gönderildi';
 }

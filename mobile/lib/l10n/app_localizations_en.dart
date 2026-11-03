@@ -9853,4 +9853,137 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get homeViewAll => 'View all';
+
+  @override
+  String get supAttTitle => 'Attachments';
+
+  @override
+  String get supAttAdd => 'Add';
+
+  @override
+  String get supAttSheetTitle => 'Add attachment';
+
+  @override
+  String get supAttLimits =>
+      'Up to 4 attachments: photos (8 MB each) or 1 video (up to 50 MB and 60 seconds).';
+
+  @override
+  String get supAttPhotoGallery => 'Photo from gallery';
+
+  @override
+  String get supAttPhotoCamera => 'Take a photo';
+
+  @override
+  String get supAttVideoGallery => 'Video from gallery';
+
+  @override
+  String get supAttVideoCamera => 'Record a video';
+
+  @override
+  String get supAttPhoto => 'Photo';
+
+  @override
+  String get supAttVideo => 'Video';
+
+  @override
+  String get supAttPreparing => 'Preparing';
+
+  @override
+  String get supAttUploading => 'Uploading';
+
+  @override
+  String get supAttReady => 'Uploaded';
+
+  @override
+  String get supAttFailed => 'Upload failed, tap to retry';
+
+  @override
+  String get supAttRemove => 'Remove attachment';
+
+  @override
+  String get supAttWaitUpload => 'Uploading attachments…';
+
+  @override
+  String get supAttFailedPending =>
+      'Remove or retry the attachment that failed to upload.';
+
+  @override
+  String supAttOpenPhoto(String n, String total) {
+    return 'Photo $n of $total, open';
+  }
+
+  @override
+  String supAttOpenVideo(String n, String total) {
+    return 'Video $n of $total, play';
+  }
+
+  @override
+  String supAttErrLimit(String max) {
+    return 'You can add up to $max attachments.';
+  }
+
+  @override
+  String get supAttErrOneVideo => 'You can add only 1 video to a request.';
+
+  @override
+  String get supAttErrType =>
+      'This file type is not supported. Choose a JPEG, PNG or WebP image, or an MP4, MOV or WebM video.';
+
+  @override
+  String supAttErrImageSize(String mb) {
+    return 'Images can be up to $mb MB.';
+  }
+
+  @override
+  String supAttErrVideoSize(String mb) {
+    return 'Videos can be up to $mb MB.';
+  }
+
+  @override
+  String supAttErrVideoLong(String sec) {
+    return 'Videos can be up to $sec seconds long.';
+  }
+
+  @override
+  String get supAttErrFailed => 'Could not add the attachment. Try again.';
+
+  @override
+  String get supReplyNeedsText =>
+      'Write a short message along with the attachments.';
+
+  @override
+  String get supOpenMeterLabel => 'Open requests';
+
+  @override
+  String supOpenMeterSemantics(String n, String max) {
+    return 'Open requests: $n of $max';
+  }
+
+  @override
+  String get supLimitTitle => 'Open request limit reached';
+
+  @override
+  String supLimitBody(String max) {
+    return 'You can have up to $max open requests at a time. Close one or wait for one to be answered and closed before starting a new request.';
+  }
+
+  @override
+  String get supEmptyBody =>
+      'If you run into a problem, write to us here. You will get the reply by notification and email.';
+
+  @override
+  String get supNewReply => 'New reply';
+
+  @override
+  String supLastStaff(String text) {
+    return 'Support: $text';
+  }
+
+  @override
+  String supLastYou(String text) {
+    return 'You: $text';
+  }
+
+  @override
+  String get supAttachmentSent => 'Attachment sent';
 }

@@ -298,7 +298,7 @@ void main() {
       await settle(t, const Duration(milliseconds: 700));
       expect(find.text('Henüz sık sorulan soru yok.'), findsOneWidget);
       expect(find.text('Henüz talebin yok.'), findsOneWidget);
-      expect(find.widgetWithText(TextButton, 'Yeni talep'), findsOneWidget); // bos durumda tek "Yeni talep" metin dugmesi
+      expect(find.widgetWithText(BuButton, 'Yeni talep'), findsOneWidget); // bos durum kartinda tek "Yeni talep" dugmesi
       await unmount(t);
       final f = FakeBackend()
         ..fail('/faq')

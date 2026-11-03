@@ -284,9 +284,10 @@ void main() {
       expect(find.text('Taleplerim'), findsOneWidget);
       expect(find.byType(BuCard), findsNothing);
       expect(find.byType(TextField), findsNothing); // 3 soru: arama/sutuz yok
-      expect(find.text('12 Ekim · Yanıtlandı', findRichText: true), findsOneWidget);
-      expect(find.text('10 Ekim · Açık', findRichText: true), findsOneWidget);
-      expect(find.text('28 Eylül 2025 · Kapalı', findRichText: true), findsOneWidget);
+      // Talep kartı: tarih + durum hapı ayrı öğeler.
+      for (final s in ['12 Ekim', '10 Ekim', '28 Eylül 2025', 'Yanıtlandı', 'Açık', 'Kapalı']) {
+        expect(find.text(s), findsOneWidget, reason: s);
+      }
       expect(find.widgetWithText(BuButton, 'Yeni talep'), findsOneWidget);
       expect(find.text('Geri bildirim'), findsOneWidget);
       expect(find.text('Öneri panosu'), findsOneWidget);
@@ -304,7 +305,7 @@ void main() {
       await settle(t, const Duration(milliseconds: 900));
       expect(find.text('Henüz talebin yok.'), findsOneWidget);
       expect(find.text('Yeni talep'), findsOneWidget);
-      expect(find.byType(BuButton), findsNothing);
+      expect(find.byType(BuButton), findsOneWidget); // bos durum kartindaki tek dugme
       await unmount(t);
 
       useScreen(t, const Size(390, 900));

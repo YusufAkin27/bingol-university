@@ -9750,4 +9750,136 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get homeViewAll => 'عرض الكل';
+
+  @override
+  String get supAttTitle => 'المرفقات';
+
+  @override
+  String get supAttAdd => 'إضافة';
+
+  @override
+  String get supAttSheetTitle => 'إضافة مرفق';
+
+  @override
+  String get supAttLimits =>
+      'حتى 4 مرفقات: صور (8 ميغابايت لكل صورة) أو فيديو واحد (حتى 50 ميغابايت و60 ثانية).';
+
+  @override
+  String get supAttPhotoGallery => 'صورة من المعرض';
+
+  @override
+  String get supAttPhotoCamera => 'التقاط صورة';
+
+  @override
+  String get supAttVideoGallery => 'فيديو من المعرض';
+
+  @override
+  String get supAttVideoCamera => 'تسجيل فيديو';
+
+  @override
+  String get supAttPhoto => 'صورة';
+
+  @override
+  String get supAttVideo => 'فيديو';
+
+  @override
+  String get supAttPreparing => 'جارٍ التحضير';
+
+  @override
+  String get supAttUploading => 'جارٍ الرفع';
+
+  @override
+  String get supAttReady => 'تم الرفع';
+
+  @override
+  String get supAttFailed => 'تعذّر الرفع، المس للمحاولة مجددًا';
+
+  @override
+  String get supAttRemove => 'إزالة المرفق';
+
+  @override
+  String get supAttWaitUpload => 'جارٍ رفع المرفقات…';
+
+  @override
+  String get supAttFailedPending =>
+      'أزل المرفق الذي تعذّر رفعه أو أعد المحاولة.';
+
+  @override
+  String supAttOpenPhoto(String n, String total) {
+    return 'الصورة $n من $total، افتح';
+  }
+
+  @override
+  String supAttOpenVideo(String n, String total) {
+    return 'الفيديو $n من $total، شغّل';
+  }
+
+  @override
+  String supAttErrLimit(String max) {
+    return 'يمكنك إضافة $max مرفقات كحد أقصى.';
+  }
+
+  @override
+  String get supAttErrOneVideo => 'يمكنك إضافة فيديو واحد فقط إلى الطلب.';
+
+  @override
+  String get supAttErrType =>
+      'نوع الملف غير مدعوم. اختر صورة JPEG أو PNG أو WebP، أو فيديو MP4 أو MOV أو WebM.';
+
+  @override
+  String supAttErrImageSize(String mb) {
+    return 'الحد الأقصى لحجم الصورة $mb ميغابايت.';
+  }
+
+  @override
+  String supAttErrVideoSize(String mb) {
+    return 'الحد الأقصى لحجم الفيديو $mb ميغابايت.';
+  }
+
+  @override
+  String supAttErrVideoLong(String sec) {
+    return 'الحد الأقصى لمدة الفيديو $sec ثانية.';
+  }
+
+  @override
+  String get supAttErrFailed => 'تعذّرت إضافة المرفق. حاول مجددًا.';
+
+  @override
+  String get supReplyNeedsText => 'اكتب رسالة قصيرة مع المرفقات.';
+
+  @override
+  String get supOpenMeterLabel => 'الطلبات المفتوحة';
+
+  @override
+  String supOpenMeterSemantics(String n, String max) {
+    return 'الطلبات المفتوحة: $n من $max';
+  }
+
+  @override
+  String get supLimitTitle => 'بلغت حد الطلبات المفتوحة';
+
+  @override
+  String supLimitBody(String max) {
+    return 'يمكنك الاحتفاظ بـ $max طلبات مفتوحة كحد أقصى في الوقت نفسه. أغلق أحدها أو انتظر الرد عليه وإغلاقه قبل فتح طلب جديد.';
+  }
+
+  @override
+  String get supEmptyBody =>
+      'إذا واجهت مشكلة فاكتب لنا هنا. ستصلك الإجابة بإشعار وبريد إلكتروني.';
+
+  @override
+  String get supNewReply => 'رد جديد';
+
+  @override
+  String supLastStaff(String text) {
+    return 'الدعم: $text';
+  }
+
+  @override
+  String supLastYou(String text) {
+    return 'أنت: $text';
+  }
+
+  @override
+  String get supAttachmentSent => 'تم إرسال مرفق';
 }

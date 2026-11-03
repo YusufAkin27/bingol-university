@@ -7,6 +7,7 @@ import '../../widgets/common.dart' show niceDate;
 import '../polls/anket_style.dart';
 import '../polls/anket_widgets.dart';
 import 'support_common.dart';
+import 'support_list_widgets.dart';
 
 /// Geri bildirim formu + gönderdiklerim listesi (imleçli).
 class FeedbackPage extends StatefulWidget {
@@ -151,9 +152,9 @@ class _FeedbackPageState extends State<FeedbackPage> {
                   width: double.infinity,
                   child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                     caption(l.profilyardFbType),
-                    SupportCategoryChips(options: types, value: _category, onChanged: (v) => setState(() => _category = v)),
+                    SupportChoiceGrid(options: types, value: _category, icons: supportFeedbackIcons, onChanged: (v) => setState(() => _category = v)),
                     caption(l.profilyardFbTitle),
-                    SupportField(controller: _subject, hint: l.profilyardFbTitleHint, label: l.profilyardFbTitle, maxLength: 80, soft: true),
+                    SupportField(controller: _subject, hint: l.profilyardFbTitleHint, label: l.profilyardFbTitle, maxLength: 80, soft: true, counter: true),
                     caption(l.profilyardFbMessage),
                     SupportField(
                       controller: _message,

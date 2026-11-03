@@ -17832,6 +17832,222 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Tümünü gör'**
   String get homeViewAll;
+
+  /// No description provided for @supAttTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Ekler'**
+  String get supAttTitle;
+
+  /// No description provided for @supAttAdd.
+  ///
+  /// In tr, this message translates to:
+  /// **'Ek ekle'**
+  String get supAttAdd;
+
+  /// No description provided for @supAttSheetTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Ek ekle'**
+  String get supAttSheetTitle;
+
+  /// No description provided for @supAttLimits.
+  ///
+  /// In tr, this message translates to:
+  /// **'En çok 4 ek: fotoğraf (her biri en çok 8 MB) ya da 1 video (en çok 50 MB ve 60 saniye).'**
+  String get supAttLimits;
+
+  /// No description provided for @supAttPhotoGallery.
+  ///
+  /// In tr, this message translates to:
+  /// **'Galeriden fotoğraf'**
+  String get supAttPhotoGallery;
+
+  /// No description provided for @supAttPhotoCamera.
+  ///
+  /// In tr, this message translates to:
+  /// **'Fotoğraf çek'**
+  String get supAttPhotoCamera;
+
+  /// No description provided for @supAttVideoGallery.
+  ///
+  /// In tr, this message translates to:
+  /// **'Galeriden video'**
+  String get supAttVideoGallery;
+
+  /// No description provided for @supAttVideoCamera.
+  ///
+  /// In tr, this message translates to:
+  /// **'Video çek'**
+  String get supAttVideoCamera;
+
+  /// No description provided for @supAttPhoto.
+  ///
+  /// In tr, this message translates to:
+  /// **'Fotoğraf'**
+  String get supAttPhoto;
+
+  /// No description provided for @supAttVideo.
+  ///
+  /// In tr, this message translates to:
+  /// **'Video'**
+  String get supAttVideo;
+
+  /// No description provided for @supAttPreparing.
+  ///
+  /// In tr, this message translates to:
+  /// **'Hazırlanıyor'**
+  String get supAttPreparing;
+
+  /// No description provided for @supAttUploading.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yükleniyor'**
+  String get supAttUploading;
+
+  /// No description provided for @supAttReady.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yüklendi'**
+  String get supAttReady;
+
+  /// No description provided for @supAttFailed.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yüklenemedi, yeniden denemek için dokun'**
+  String get supAttFailed;
+
+  /// No description provided for @supAttRemove.
+  ///
+  /// In tr, this message translates to:
+  /// **'Eki kaldır'**
+  String get supAttRemove;
+
+  /// No description provided for @supAttWaitUpload.
+  ///
+  /// In tr, this message translates to:
+  /// **'Ekler yükleniyor…'**
+  String get supAttWaitUpload;
+
+  /// No description provided for @supAttFailedPending.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yüklenemeyen eki kaldır ya da yeniden dene.'**
+  String get supAttFailedPending;
+
+  /// No description provided for @supAttOpenPhoto.
+  ///
+  /// In tr, this message translates to:
+  /// **'Fotoğraf {n} / {total}, aç'**
+  String supAttOpenPhoto(String n, String total);
+
+  /// No description provided for @supAttOpenVideo.
+  ///
+  /// In tr, this message translates to:
+  /// **'Video {n} / {total}, oynat'**
+  String supAttOpenVideo(String n, String total);
+
+  /// No description provided for @supAttErrLimit.
+  ///
+  /// In tr, this message translates to:
+  /// **'En çok {max} ek ekleyebilirsin.'**
+  String supAttErrLimit(String max);
+
+  /// No description provided for @supAttErrOneVideo.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bir talebe en çok 1 video ekleyebilirsin.'**
+  String get supAttErrOneVideo;
+
+  /// No description provided for @supAttErrType.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu dosya türü desteklenmiyor. JPEG, PNG ya da WebP görsel; MP4, MOV ya da WebM video seç.'**
+  String get supAttErrType;
+
+  /// No description provided for @supAttErrImageSize.
+  ///
+  /// In tr, this message translates to:
+  /// **'Görsel en çok {mb} MB olabilir.'**
+  String supAttErrImageSize(String mb);
+
+  /// No description provided for @supAttErrVideoSize.
+  ///
+  /// In tr, this message translates to:
+  /// **'Video en çok {mb} MB olabilir.'**
+  String supAttErrVideoSize(String mb);
+
+  /// No description provided for @supAttErrVideoLong.
+  ///
+  /// In tr, this message translates to:
+  /// **'Video en çok {sec} saniye olabilir.'**
+  String supAttErrVideoLong(String sec);
+
+  /// No description provided for @supAttErrFailed.
+  ///
+  /// In tr, this message translates to:
+  /// **'Ek eklenemedi. Tekrar dene.'**
+  String get supAttErrFailed;
+
+  /// No description provided for @supReplyNeedsText.
+  ///
+  /// In tr, this message translates to:
+  /// **'Eklerle birlikte kısa bir mesaj da yaz.'**
+  String get supReplyNeedsText;
+
+  /// No description provided for @supOpenMeterLabel.
+  ///
+  /// In tr, this message translates to:
+  /// **'Açık talep'**
+  String get supOpenMeterLabel;
+
+  /// No description provided for @supOpenMeterSemantics.
+  ///
+  /// In tr, this message translates to:
+  /// **'Açık talep: {n} / {max}'**
+  String supOpenMeterSemantics(String n, String max);
+
+  /// No description provided for @supLimitTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Açık talep sınırına ulaştın'**
+  String get supLimitTitle;
+
+  /// No description provided for @supLimitBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Aynı anda en çok {max} açık talebin olabilir. Yeni talep için birini kapat ya da yanıtlanıp kapanmasını bekle.'**
+  String supLimitBody(String max);
+
+  /// No description provided for @supEmptyBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bir sorunla karşılaşırsan buradan yaz. Yanıtı bildirim ve e-posta ile alırsın.'**
+  String get supEmptyBody;
+
+  /// No description provided for @supNewReply.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yeni yanıt'**
+  String get supNewReply;
+
+  /// No description provided for @supLastStaff.
+  ///
+  /// In tr, this message translates to:
+  /// **'Destek: {text}'**
+  String supLastStaff(String text);
+
+  /// No description provided for @supLastYou.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sen: {text}'**
+  String supLastYou(String text);
+
+  /// No description provided for @supAttachmentSent.
+  ///
+  /// In tr, this message translates to:
+  /// **'Ek gönderildi'**
+  String get supAttachmentSent;
 }
 
 class _AppLocalizationsDelegate

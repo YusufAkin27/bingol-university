@@ -6,16 +6,24 @@ import '../../core/session.dart';
 import '../../widgets/bu.dart';
 import '../../widgets/common.dart' show niceDate;
 import '../polls/anket_flat.dart';
+import 'support_attachments.dart';
 import 'support_common.dart';
+import 'support_list_widgets.dart';
 
-/// Talep yazışması (Stitch v3 02): başlık = talep konusu; "● Yanıtlandı · Bilet #n" durum satırı + sağda "Talebi kapat";
-/// gün ayracı; destek yanıtı solda beyaz + ince çizgili balon ("Destek" etiketi), benim mesajım sağda `sf2` balon;
-/// altta "Yanıtını yaz" alanı + `pr` yuvarlak gönder. Değişiklik olduysa `true` ile döner.
+/// Talep yazışması: üstte talep kartı (konu, kategori, "Bilet #n", durum, "Talebi kapat"), gün ayracı, destek yanıtı
+/// solda avatarlı beyaz balon, benim mesajım sağda `sf2` balon (ekler balon içinde küçük resim ızgarası; dokununca
+/// sohbetin tam ekran görüntüleyicisi), altta ek şeritli yanıt alanı. Değişiklik olduysa `true` ile döner.
 class SupportTicketPage extends StatefulWidget {
-  const SupportTicketPage({super.key, required this.session, required this.ticketId});
+  const SupportTicketPage({super.key, required this.session, required this.ticketId, this.attachmentUploader, this.attachments});
 
   final Session session;
   final int ticketId;
+
+  /// Testlerde sahte yükleyici.
+  final SupportAttachmentUploader? attachmentUploader;
+
+  /// Testlerde hazır denetleyici.
+  final SupportAttachmentsController? attachments;
 
   @override
   State<SupportTicketPage> createState() => _SupportTicketPageState();
@@ -24,24 +32,37 @@ class SupportTicketPage extends StatefulWidget {
 class _SupportTicketPageState extends State<SupportTicketPage> {
   final _reply = TextEditingController();
   final _scroll = ScrollController();
+  late final SupportAttachmentsController _att =
+      widget.attachments ?? SupportAttachmentsController(uploader: widget.attachmentUploader ?? SessionAttachmentUploader(widget.session));
   Map<String, dynamic>? _ticket;
   List<Map<String, dynamic>> _messages = [];
   Object? _error;
+  String? _composeError;
   bool _loading = true;
   bool _sending = false;
   bool _closing = false;
   bool _changed = false;
+  bool _firstLoad = true;
 
   String get _path => '/support/tickets/${widget.ticketId}';
 
   @override
   void initState() {
     super.initState();
+    _att.addListener(_onAtt);
+    _reply.addListener(_onAtt);
     _load();
+  }
+
+  void _onAtt() {
+    if (mounted) setState(() {});
   }
 
   @override
   void dispose() {
+    _att.removeListener(_onAtt);
+    _reply.removeListener(_onAtt);
+    if (widget.attachments == null) _att.dispose();
     _reply.dispose();
     _scroll.dispose();
     super.dispose();
@@ -58,6 +79,15 @@ class _SupportTicketPageState extends State<SupportTicketPage> {
         _error = null;
         _loading = false;
       });
+      // Son yanıt görüldü: listede "Yeni yanıt" vurgusu kalkar.
+      final tk = _ticket;
+      if (tk != null) SupportSeenStore.mark(widget.ticketId, '${tk['updatedAt'] ?? tk['createdAt'] ?? ''}');
+      if (_firstLoad) {
+        _firstLoad = false;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted && _scroll.hasClients) _scroll.jumpTo(_scroll.position.maxScrollExtent);
+        });
+      }
     } catch (e) {
       if (!mounted) return;
       setState(() {
@@ -74,13 +104,41 @@ class _SupportTicketPageState extends State<SupportTicketPage> {
     });
   }
 
+  Future<void> _addAttachment() async {
+    if (_sending) return;
+    setState(() => _composeError = null);
+    await runSupportAttachFlow(context, _att, onError: (m) {
+      if (mounted) setState(() => _composeError = m);
+    });
+  }
+
   Future<void> _send() async {
+    final l = context.l10n;
     final text = _reply.text.trim();
-    if (text.isEmpty || _sending) return;
-    setState(() => _sending = true);
+    if (_sending) return;
+    if (text.isEmpty) {
+      // Sunucu boş metni kabul etmez; ek varsa kısa bir not da istenir.
+      setState(() => _composeError = _att.isEmpty ? null : l.supReplyNeedsText);
+      return;
+    }
+    if (_att.hasPending) {
+      setState(() => _composeError = l.supAttWaitUpload);
+      return;
+    }
+    if (_att.hasFailed) {
+      setState(() => _composeError = l.supAttFailedPending);
+      buHaptic(BuHaptic.light);
+      return;
+    }
+    setState(() {
+      _sending = true;
+      _composeError = null;
+    });
     try {
-      await widget.session.api.post('$_path/messages', {'text': text});
+      final ids = _att.ids;
+      await widget.session.api.post('$_path/messages', {'text': text, if (ids.isNotEmpty) 'attachmentIds': ids});
       _reply.clear();
+      _att.clear();
       _changed = true;
       await _load(silent: true);
       _toEnd();
@@ -115,14 +173,13 @@ class _SupportTicketPageState extends State<SupportTicketPage> {
   Widget build(BuildContext context) {
     final closed = _ticket?['status'] == 'CLOSED';
     final state = _loading ? BuViewState.loading : (_error != null && _ticket == null ? BuViewState.error : BuViewState.ready);
-    final subject = '${_ticket?['subject'] ?? ''}'.trim();
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, _) {
         if (!didPop) Navigator.pop(context, _changed);
       },
       child: BuPageScaffold(
-        title: subject.isEmpty ? context.l10n.supportTicketTitle : subject,
+        title: context.l10n.supportTicketTitle,
         large: false,
         state: state,
         error: _error,
@@ -133,9 +190,9 @@ class _SupportTicketPageState extends State<SupportTicketPage> {
         bottomInset: 20,
         bottomBar: _ticket != null && !closed ? _composer() : null,
         slivers: [
-          SliverToBoxAdapter(child: _statusRow(closed)),
+          SliverToBoxAdapter(child: _headerCard(closed)),
           SliverPadding(
-            padding: const EdgeInsetsDirectional.fromSTEB(kAnketPad, 8, kAnketPad, 0),
+            padding: const EdgeInsetsDirectional.fromSTEB(kAnketPad, 4, kAnketPad, 0),
             sliver: SliverList.builder(
               itemCount: _messages.length,
               itemBuilder: (_, i) {
@@ -155,9 +212,14 @@ class _SupportTicketPageState extends State<SupportTicketPage> {
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsetsDirectional.fromSTEB(kAnketPad, 8, kAnketPad, 0),
-                child: Center(
-                  child: Text(context.l10n.supportTicketClosedNote,
-                      textAlign: TextAlign.center, style: Theme.of(context).textTheme.bodyMedium!.copyWith(color: context.bu.mut)),
+                child: Container(
+                  padding: const EdgeInsetsDirectional.fromSTEB(14, 12, 14, 12),
+                  decoration: BoxDecoration(color: context.bu.sf2, borderRadius: BorderRadius.circular(16)),
+                  child: Row(children: [
+                    ExcludeSemantics(child: Icon(BuIcons.lock, size: 18, color: context.bu.mut)),
+                    const SizedBox(width: 10),
+                    Expanded(child: Text(context.l10n.supportTicketClosedNote, style: Theme.of(context).textTheme.bodyMedium!.copyWith(color: context.bu.mut))),
+                  ]),
                 ),
               ),
             ),
@@ -166,34 +228,69 @@ class _SupportTicketPageState extends State<SupportTicketPage> {
     );
   }
 
-  /// "● Yanıtlandı · Bilet #3812" + sağda muted "Talebi kapat" (kapalıysa yalnız sol taraf).
-  Widget _statusRow(bool closed) {
+  /// Talep özeti kartı: kategori karosu, konu (tam), "Durum · Bilet #n" ve sağda "Talebi kapat".
+  Widget _headerCard(bool closed) {
     final t = context.bu;
     final tx = Theme.of(context).textTheme;
     final l = context.l10n;
-    final st = _ticket?['status'] as String?;
+    final tk = _ticket;
+    final st = tk?['status'] as String?;
+    final no = (tk?['id'] as num?)?.toInt() ?? widget.ticketId;
+    final cat = tk?['category'] as String?;
+    final catLabel = supportTicketCategories(l)[cat];
+    final subject = '${tk?['subject'] ?? ''}'.trim();
+    final created = tk?['createdAt'] as String?;
     final style = supportTicketStatusStyle(context, st);
-    final color = switch (st) {
+    final dotColor = switch (st) {
       'ANSWERED' => t.ok,
       'CLOSED' => t.mut,
       _ => t.onWarnSoft,
     };
-    final no = (_ticket?['id'] as num?)?.toInt() ?? widget.ticketId;
-    return Transform.translate(
-        offset: const Offset(0, -2.5), // 48 dp dokunma satırı referanstaki 44 dp'lik satıra hizalanır
-        child: Padding(
-          padding: const EdgeInsetsDirectional.fromSTEB(kAnketPad, 0, 8, 0),
-          child: Row(children: [
+    return Padding(
+      padding: const EdgeInsetsDirectional.fromSTEB(kAnketPad, 4, kAnketPad, 14),
+      child: Container(
+        padding: const EdgeInsetsDirectional.fromSTEB(14, 14, 14, 12),
+        decoration: BoxDecoration(color: t.sf, borderRadius: BorderRadius.circular(20), border: Border.all(color: t.bd), boxShadow: BuElevation.of(context, 1)),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+          Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(color: t.soft, borderRadius: BorderRadius.circular(13)),
+              child: ExcludeSemantics(child: Icon(supportTicketCategoryIcons[cat] ?? BuIcons.messageCircle, size: 20, color: t.onSoft)),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Semantics(
+                  header: true,
+                  child: Text(subject,
+                      maxLines: 3,
+                      overflow: TextOverflow.ellipsis,
+                      style: tx.titleMedium!.copyWith(color: t.ink, fontWeight: FontWeight.w800, height: 1.3)),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  [if (catLabel != null) catLabel, if (created != null) niceDate(created, context: context)].join(' · '),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: tx.bodySmall!.copyWith(color: t.mut),
+                ),
+              ]),
+            ),
+          ]),
+          const SizedBox(height: 10),
+          Row(children: [
             Expanded(
               child: Semantics(
                 container: true,
                 child: Row(children: [
-                  ExcludeSemantics(child: Container(width: 8, height: 8, decoration: BoxDecoration(color: color, shape: BoxShape.circle))),
+                  ExcludeSemantics(child: Container(width: 8, height: 8, decoration: BoxDecoration(color: dotColor, shape: BoxShape.circle))),
                   const SizedBox(width: 6),
                   Flexible(
                     child: Text.rich(
                       TextSpan(style: tx.bodySmall!.copyWith(color: t.mut, fontSize: 13, height: 1.3), children: [
-                        TextSpan(text: style.label, style: TextStyle(color: color, fontWeight: FontWeight.w600)),
+                        TextSpan(text: style.label, style: TextStyle(color: dotColor, fontWeight: FontWeight.w700)),
                         TextSpan(text: ' · ${l.p68TicketNo('$no')}'),
                       ]),
                       maxLines: 1,
@@ -205,12 +302,14 @@ class _SupportTicketPageState extends State<SupportTicketPage> {
             ),
             if (!closed)
               TextButton(
-                style: TextButton.styleFrom(foregroundColor: t.mut, minimumSize: const Size(48, 48), padding: const EdgeInsets.symmetric(horizontal: 12)),
+                style: TextButton.styleFrom(foregroundColor: t.mut, minimumSize: const Size(48, 48), padding: const EdgeInsets.symmetric(horizontal: 10)),
                 onPressed: _closing ? null : _close,
-                child: Text(l.supportCloseTicketTitle, style: tx.bodyMedium!.copyWith(color: t.mut, fontWeight: FontWeight.w400)),
+                child: Text(l.supportCloseTicketTitle, style: tx.bodyMedium!.copyWith(color: t.mut, fontWeight: FontWeight.w600)),
               ),
           ]),
-        ));
+        ]),
+      ),
+    );
   }
 
   String _dayOf(Map<String, dynamic> m) {
@@ -235,7 +334,7 @@ class _SupportTicketPageState extends State<SupportTicketPage> {
   Widget _daySeparator(Map<String, dynamic> m) {
     final t = context.bu;
     return Padding(
-      padding: const EdgeInsets.only(top: 10, bottom: 17),
+      padding: const EdgeInsets.only(top: 6, bottom: 14),
       child: Semantics(
         header: true,
         child: Row(children: [
@@ -259,37 +358,68 @@ class _SupportTicketPageState extends State<SupportTicketPage> {
     final staff = m['fromStaff'] == true;
     final d = DateTime.tryParse('${m['createdAt'] ?? ''}')?.toLocal();
     final time = d == null ? '' : DateFormat('HH:mm').format(d);
-    final maxW = (MediaQuery.sizeOf(context).width - 2 * kAnketPad) * .85;
+    final atts = SupportAttachment.listFrom(m['attachments']);
+    final text = '${m['text'] ?? ''}'.trim();
+    final contentW = MediaQuery.sizeOf(context).width - 2 * kAnketPad;
+    final avatar = staff ? 36.0 : 0.0;
+    final maxW = (contentW - avatar) * .86;
+    // Kuyruk köşesi: balonun konuştuğu tarafa bakan köşe sivri.
+    const r = Radius.circular(20);
+    const tail = Radius.circular(6);
+    final radius = staff
+        ? const BorderRadiusDirectional.only(topStart: tail, topEnd: r, bottomStart: r, bottomEnd: r)
+        : const BorderRadiusDirectional.only(topStart: r, topEnd: tail, bottomStart: r, bottomEnd: r);
+    final inner = maxW - 28;
     final bubble = Container(
       constraints: BoxConstraints(maxWidth: maxW),
-      padding: const EdgeInsetsDirectional.fromSTEB(15, 14, 15, 8),
+      padding: const EdgeInsetsDirectional.fromSTEB(14, 12, 14, 8),
       decoration: BoxDecoration(
-        color: staff ? t.sf : t.soft,
+        color: staff ? t.sf : t.sf2,
         border: staff ? Border.all(color: t.bd) : null,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: radius,
         boxShadow: staff ? BuElevation.of(context, 1) : null,
       ),
       child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        Text('${m['text'] ?? ''}', style: tx.bodyLarge!.copyWith(fontSize: 16, height: 1.45, color: t.ink)),
+        if (atts.isNotEmpty) ...[
+          SupportAttachmentGallery(
+            attachments: atts,
+            headers: supportAuthHeaders(widget.session),
+            maxWidth: inner,
+            onOpen: (i) => openSupportAttachments(context, widget.session, atts, i),
+          ),
+          if (text.isNotEmpty) const SizedBox(height: 8),
+        ],
+        if (text.isNotEmpty) Text(text, style: tx.bodyLarge!.copyWith(fontSize: 16, height: 1.45, color: t.ink)),
         const SizedBox(height: 2),
         Align(alignment: AlignmentDirectional.centerEnd, child: Text(time, style: tx.bodySmall!.copyWith(color: t.mut, fontSize: 11.5, height: 1.2))),
       ]),
     );
     return Padding(
-      padding: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.only(bottom: 14),
       child: Semantics(
         container: true,
-        child: Column(
-          crossAxisAlignment: staff ? CrossAxisAlignment.start : CrossAxisAlignment.end,
-          children: [
-            if (staff)
-              Padding(
-                padding: const EdgeInsetsDirectional.only(start: 4, bottom: 4),
-                child: Text(context.l10n.p68Staff, style: tx.bodySmall!.copyWith(color: t.mut, fontSize: 12, height: 1.3)),
-              ),
-            bubble,
-          ],
-        ),
+        child: staff
+            ? Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
+                ExcludeSemantics(
+                  child: Container(
+                    width: 28,
+                    height: 28,
+                    margin: const EdgeInsetsDirectional.only(end: 8),
+                    decoration: BoxDecoration(color: t.soft, shape: BoxShape.circle),
+                    child: Icon(BuIcons.headset, size: 15, color: t.onSoft),
+                  ),
+                ),
+                Flexible(
+                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    Padding(
+                      padding: const EdgeInsetsDirectional.only(start: 4, bottom: 4),
+                      child: Text(context.l10n.p68Staff, style: tx.bodySmall!.copyWith(color: t.mut, fontSize: 12, fontWeight: FontWeight.w600, height: 1.3)),
+                    ),
+                    bubble,
+                  ]),
+                ),
+              ])
+            : Align(alignment: AlignmentDirectional.centerEnd, child: bubble),
       ),
     );
   }
@@ -297,44 +427,74 @@ class _SupportTicketPageState extends State<SupportTicketPage> {
   Widget _composer() {
     final t = context.bu;
     final tx = Theme.of(context).textTheme;
+    final l = context.l10n;
+    final blocked = _sending || _att.hasPending;
     return DecoratedBox(
       decoration: BoxDecoration(color: t.bg, border: Border(top: BorderSide(color: t.bd))),
       child: Padding(
-        padding: EdgeInsetsDirectional.fromSTEB(kAnketPad, 12, kAnketPad, 12 + MediaQuery.paddingOf(context).bottom),
-        child: Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
-          Expanded(
-            child: TextField(
-              controller: _reply,
-              minLines: 1,
-              maxLines: 4,
-              maxLength: 2000,
-              textCapitalization: TextCapitalization.sentences,
-              style: tx.bodyLarge!.copyWith(color: t.ink),
-              decoration: anketFieldDeco(context, hint: context.l10n.p68ReplyHint),
+        padding: EdgeInsetsDirectional.fromSTEB(kAnketPad, 10, kAnketPad - 4, 10 + MediaQuery.paddingOf(context).bottom),
+        child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+          if (!_att.isEmpty)
+            Padding(
+              padding: const EdgeInsetsDirectional.only(bottom: 6, end: 4),
+              child: SupportAttachmentStrip(controller: _att),
             ),
+          AnimatedSize(
+            duration: BuMotion.of(context, BuMotion.medium),
+            curve: BuMotion.emphasized,
+            alignment: Alignment.topCenter,
+            child: _composeError == null
+                ? const SizedBox(width: double.infinity)
+                : Padding(padding: const EdgeInsetsDirectional.only(bottom: 8, end: 4), child: AnketFieldError(_composeError!)),
           ),
-          const SizedBox(width: 6),
-          IconButton.filled(
-            tooltip: context.l10n.supportSend,
-            onPressed: _sending ? null : _send,
-            style: IconButton.styleFrom(
-              minimumSize: const Size(44, 44),
-              fixedSize: const Size(44, 44),
-              tapTargetSize: MaterialTapTargetSize.padded,
-              foregroundColor: t.onPr,
-              backgroundColor: t.pr,
+          Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
+            Semantics(
+              button: true,
+              label: l.supAttAdd,
+              excludeSemantics: true,
+              onTap: _addAttachment,
+              child: IconButton(
+                key: const ValueKey('supComposerAttach'),
+                tooltip: l.supAttAdd,
+                onPressed: _sending ? null : _addAttachment,
+                style: IconButton.styleFrom(minimumSize: const Size(44, 44), fixedSize: const Size(44, 44), tapTargetSize: MaterialTapTargetSize.padded),
+                icon: Icon(BuIcons.imagePlus, size: 24, color: t.mut),
+              ),
             ),
-            icon: _sending
-                ? SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2.2, color: t.onPr))
-                : const Icon(BuIcons.arrowUp, size: 22),
-          ),
+            Expanded(
+              child: TextField(
+                controller: _reply,
+                minLines: 1,
+                maxLines: 4,
+                maxLength: 2000,
+                textCapitalization: TextCapitalization.sentences,
+                style: tx.bodyLarge!.copyWith(color: t.ink),
+                decoration: anketFieldDeco(context, hint: l.p68ReplyHint),
+              ),
+            ),
+            const SizedBox(width: 6),
+            IconButton.filled(
+              tooltip: l.supportSend,
+              onPressed: blocked ? null : _send,
+              style: IconButton.styleFrom(
+                minimumSize: const Size(44, 44),
+                fixedSize: const Size(44, 44),
+                tapTargetSize: MaterialTapTargetSize.padded,
+                foregroundColor: t.onPr,
+                backgroundColor: t.pr,
+              ),
+              icon: blocked
+                  ? SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2.2, color: t.onPr))
+                  : const Icon(BuIcons.arrowUp, size: 22),
+            ),
+          ]),
         ]),
       ),
     );
   }
 }
 
-/// Talep iskeleti: durum satırı + üç balon.
+/// Talep iskeleti: özet kartı + üç balon.
 class _TicketSkeleton extends StatelessWidget {
   const _TicketSkeleton();
 
@@ -345,10 +505,10 @@ class _TicketSkeleton extends StatelessWidget {
         container: true,
         child: const BuSkeletonScope(
           child: Padding(
-            padding: EdgeInsetsDirectional.fromSTEB(kAnketPad, 12, kAnketPad, 20),
+            padding: EdgeInsetsDirectional.fromSTEB(kAnketPad, 4, kAnketPad, 20),
             child: Column(children: [
-              Align(alignment: AlignmentDirectional.centerStart, child: BuSkeleton.line(width: 160, height: 13)),
-              SizedBox(height: 28),
+              BuSkeleton(height: 104, radius: 20),
+              SizedBox(height: 24),
               Align(alignment: AlignmentDirectional.centerStart, child: BuSkeleton(width: 250, height: 100, radius: 16)),
               SizedBox(height: 16),
               Align(alignment: AlignmentDirectional.centerEnd, child: BuSkeleton(width: 240, height: 80, radius: 16)),

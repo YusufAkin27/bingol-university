@@ -78,7 +78,7 @@ void main() {
       await settle(t, const Duration(milliseconds: 700));
       expect(find.text('Sifremi unuttum'), findsOneWidget);
       expect(find.text('Uygulama acilmiyor'), findsOneWidget);
-      await t.tap(find.text('Teknik'));
+      await t.tap(find.text('Teknik').first); // ilki SSS cipi (talep kartinda da kategori adi var)
       await settle(t, const Duration(milliseconds: 400));
       expect(find.text('Sifremi unuttum'), findsNothing);
       expect(find.text('Uygulama acilmiyor'), findsOneWidget);

@@ -29,5 +29,15 @@ Design 6 separate mobile screens (no bottom nav, header with back arrow).
 - [ ] Kapalı talep notu; kapatma onayı
 
 ## Dikkat
-- Canlı destek hattı, telefon numarası, WhatsApp bağlantısı, dosya eki yok.
+- Canlı destek hattı, telefon numarası, WhatsApp bağlantısı yok.
 - Kategori adları yalnız Hesap, Teknik, İçerik, Diğer.
+
+## Güncelleme (MB3, destek ekleri ve olgunlaştırma)
+- Eklere izin verildi: talep/yanıt başına en çok 4 ek (görsel ≤ 8 MB, en çok 1 video ≤ 50 MB ve 60 sn); sınırlar istemcide yüklemeden önce denetlenir
+  (`support_attachments.dart`), sunucu yine doğrular. Mesajdaki ekler balon içinde ızgara; dokununca sohbetin tam ekran görüntüleyicisi.
+- Taleplerim: "Açık talep n / 5" sayacı (`openCount`/`maxOpen`), sınırda "Yeni talep" yerine açıklama (`TICKET_OPEN_LIMIT` sunucu hatası da işlenir),
+  talep kartı (kategori karosu, durum hapı, tarih), "Yeni yanıt" vurgusu (sunucu `unread` vermezse cihazda görülenler `SupportSeenStore`),
+  son mesaj önizlemesi sunucu `lastMessage {text, fromStaff, attachmentCount}` verirse görünür.
+- Yeni talep: kategori kartları (2x2), konu/mesaj sayaçları, ek şeridi (yükleniyor halkası, hata + yeniden dene, kaldır).
+- Talep yazışması: üstte özet kartı, avatarlı destek balonu, ek şeritli yanıt alanı. Geri bildirim: tür kartları; öneri satırında durum hapı.
+- Ekran görüntüleri: `test/redesign/sup_redesign_shots_test.dart` (`STORE_SHOTS_OUT`).

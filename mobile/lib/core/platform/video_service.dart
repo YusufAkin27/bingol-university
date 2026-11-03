@@ -229,7 +229,10 @@ class VideoService {
   }
 
   /// Doğrular ve sıkıştırır. [VideoException] fırlatır; iptalde `CANCELLED`.
-  Future<PreparedVideo> prepare(PickedVideo picked, {void Function(double)? onProgress, VideoCancel? cancel}) async {
+  /// [maxBytes] verilirse sohbetin 40 MB sınırı yerine o kullanılır (destek ekleri 50 MB).
+  Future<PreparedVideo> prepare(PickedVideo picked,
+      {void Function(double)? onProgress, VideoCancel? cancel, int? maxBytes}) async {
+    final byteLimit = maxBytes ?? VideoService.maxBytes;
     cancel?._onCancel = _compressor.cancel;
     void check() {
       if (cancel?.cancelled == true) throw VideoException('CANCELLED');
@@ -273,7 +276,7 @@ class VideoService {
       }
     }
     onProgress?.call(1);
-    if (best.sizeBytes > maxBytes) throw VideoException('TOO_LARGE');
+    if (best.sizeBytes > byteLimit) throw VideoException('TOO_LARGE');
     if (best.durationMs > maxDurationMs + 500) throw VideoException('TOO_LONG');
 
     final at = best.durationMs > 1500 ? 500 : 0;

@@ -6,14 +6,16 @@ import '../../core/session.dart';
 import '../../widgets/bu.dart';
 import '../../widgets/common.dart' show niceDate;
 import '../polls/anket_flat.dart';
+import '../polls/anket_style.dart' show AnketPill;
 import 'support_common.dart';
 import 'support_feedback_page.dart';
+import 'support_list_widgets.dart';
 import 'support_new_ticket_page.dart';
 import 'support_suggestions_page.dart';
 import 'support_ticket_page.dart';
 
-/// Destek (Stitch v3 01): "Sık sorulan sorular" akordeonu, "Taleplerim" satırları, `pr` "Yeni talep" ve altta
-/// "Geri bildirim · Öneri panosu" metin bağlantıları. Kartsız, ince `bd` ayraçlı satırlar.
+/// Destek: "Sık sorulan sorular" akordeonu, "Taleplerim" (açık talep sayacı + talep kartları; sınırda "Yeni talep"
+/// yerine açıklama) ve altta "Geri bildirim · Öneri panosu" metin bağlantıları.
 class SupportPage extends StatefulWidget {
   const SupportPage({super.key, required this.session});
 
@@ -35,6 +37,9 @@ class _SupportPageState extends State<SupportPage> {
   Object? _error;
   String? _ticketsError;
   bool _rateLimited = false;
+  int? _openCount; // sunucu `openCount` (yoksa yüklenen taleplerden türetilir)
+  int _maxOpen = kSupportDefaultMaxOpen;
+  Map<int, String> _seen = {};
   final Set<int> _open = {};
   final _search = TextEditingController();
   String _q = '';
@@ -74,11 +79,14 @@ class _SupportPageState extends State<SupportPage> {
         ..clear()
         ..addAll(((r['items'] as List?) ?? []).whereType<Map>().map((e) => e.cast<String, dynamic>()));
       _next = (r['nextCursor'] as num?)?.toInt();
+      _openCount = (r['openCount'] as num?)?.toInt();
+      _maxOpen = (r['maxOpen'] as num?)?.toInt() ?? kSupportDefaultMaxOpen;
     } catch (e) {
       if (!mounted) return;
       tErr = supportError(context, e);
       limited = e is ApiError && e.status == 429;
     }
+    _seen = await SupportSeenStore.load();
     if (!mounted) return;
     setState(() {
       // Her iki istek de başarısızsa tam ekran hata göster.
@@ -104,8 +112,23 @@ class _SupportPageState extends State<SupportPage> {
 
   Future<void> _push(Widget page) async {
     final changed = await Navigator.push<bool>(context, MaterialPageRoute(builder: (_) => page));
-    if (changed == true) _load();
+    if (changed == true) {
+      _load();
+    } else {
+      // Talep açıldıysa "Yeni yanıt" vurgusu kalkar (görülenler cihazda tutulur).
+      final seen = await SupportSeenStore.load();
+      if (mounted) setState(() => _seen = seen);
+    }
   }
+
+  /// Açık talep sayısı: sunucudan; eski sunucuda tüm talepler yüklendiyse kapalı olmayanları saymak.
+  int? get _openNow {
+    if (_openCount != null) return _openCount;
+    if (_next != null || _tickets.isEmpty) return null;
+    return _tickets.where((t) => t['status'] != 'CLOSED').length;
+  }
+
+  bool get _limitReached => (_openNow ?? 0) >= _maxOpen;
 
   List<String> get _categories => [
         for (final g in _faq)
@@ -171,12 +194,20 @@ class _SupportPageState extends State<SupportPage> {
           ),
         SliverToBoxAdapter(child: _faqList()),
         SliverToBoxAdapter(child: _SectionTitle(l.p13TicketsHeading, top: 25, icon: BuIcons.messageCircle)),
+        if (_openNow != null && (_tickets.isNotEmpty || _openNow! > 0))
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsetsDirectional.fromSTEB(kAnketPad, 0, kAnketPad, 14),
+              child: SupportOpenMeter(open: _openNow!, max: _maxOpen),
+            ),
+          ),
         ..._ticketSlivers(newTicket),
         SliverToBoxAdapter(
           child: Padding(
-            padding: const EdgeInsetsDirectional.fromSTEB(kAnketPad, 33, kAnketPad, 0),
+            padding: const EdgeInsetsDirectional.fromSTEB(kAnketPad, 24, kAnketPad, 0),
             child: Column(children: [
-              if (!noTickets) BuButton(label: l.supportNewTicketTitle, onPressed: newTicket),
+              if (!noTickets && _limitReached) SupportLimitNote(max: _maxOpen),
+              if (!noTickets && !_limitReached) BuButton(label: l.supportNewTicketTitle, icon: BuIcons.plus, onPressed: newTicket),
               Padding(
                 padding: EdgeInsets.only(top: noTickets ? 0 : 6),
                 child: Wrap(alignment: WrapAlignment.center, crossAxisAlignment: WrapCrossAlignment.center, children: [
@@ -246,11 +277,9 @@ class _SupportPageState extends State<SupportPage> {
     if (_tickets.isEmpty) {
       return [
         SliverToBoxAdapter(
-          child: AnketStateLine(
-            text: l.p68NoTickets,
-            actionLabel: l.supportNewTicketTitle,
-            onAction: newTicket,
+          child: Padding(
             padding: const EdgeInsetsDirectional.fromSTEB(kAnketPad, 0, kAnketPad, 0),
+            child: _EmptyTickets(onNew: newTicket),
           ),
         ),
       ];
@@ -261,12 +290,48 @@ class _SupportPageState extends State<SupportPage> {
           for (var i = 0; i < _tickets.length; i++)
             _TicketTile(
               ticket: _tickets[i],
+              unread: supportTicketUnread(_tickets[i], _seen),
               onTap: () => _push(SupportTicketPage(session: widget.session, ticketId: (_tickets[i]['id'] as num).toInt())),
             ),
           if (_more) const BuSkeletonScope(child: AnketSkeletonRow()),
         ]),
       ),
     ];
+  }
+}
+
+/// Talep yokken: simgeli açıklama kartı + "Yeni talep" düğmesi.
+class _EmptyTickets extends StatelessWidget {
+  const _EmptyTickets({required this.onNew});
+
+  final VoidCallback onNew;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.bu;
+    final tx = Theme.of(context).textTheme;
+    final l = context.l10n;
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(color: t.sf, borderRadius: BorderRadius.circular(20), border: Border.all(color: t.bd), boxShadow: BuElevation.of(context, 1)),
+      child: Column(children: [
+        ExcludeSemantics(
+          child: Container(
+            width: 56,
+            height: 56,
+            decoration: BoxDecoration(color: t.soft, borderRadius: BorderRadius.circular(18)),
+            child: Icon(BuIcons.messageCircle, size: 26, color: t.onSoft),
+          ),
+        ),
+        const SizedBox(height: 12),
+        Semantics(header: true, child: Text(l.p68NoTickets, textAlign: TextAlign.center, style: tx.titleSmall!.copyWith(color: t.ink, fontWeight: FontWeight.w800))),
+        const SizedBox(height: 4),
+        Text(l.supEmptyBody, textAlign: TextAlign.center, style: tx.bodyMedium!.copyWith(color: t.mut, height: 1.45)),
+        const SizedBox(height: 14),
+        BuButton(label: l.supportNewTicketTitle, icon: BuIcons.plus, kind: BuButtonKind.soft, onPressed: onNew),
+      ]),
+    );
   }
 }
 
@@ -377,12 +442,15 @@ class _FaqTile extends StatelessWidget {
   }
 }
 
-/// Talep satırı: kartsız; başlık 16 sp/600, altta "12 Ekim · Yanıtlandı" (muted; durum sözcüğü renkli); alt `bd` ayraç.
+/// Talep kartı: kategori karosu, konu (okunmamış yanıtta kalın + "Yeni yanıt" rozeti), son mesaj önizlemesi
+/// (sunucu `lastMessage` verirse; yoksa kategori adı), altta durum hapı + tarih ve sağda ok.
+/// Yeni yanıtlı kart marka zeminli ve `pr` çerçevelidir.
 class _TicketTile extends StatelessWidget {
-  const _TicketTile({required this.ticket, required this.onTap});
+  const _TicketTile({required this.ticket, required this.onTap, this.unread = false});
 
   final Map<String, dynamic> ticket;
   final VoidCallback onTap;
+  final bool unread;
 
   /// Aynı yıl: "12 Ekim"; değilse "12 Ekim 2025".
   static String dateLabel(BuildContext context, String? iso) {
@@ -390,52 +458,96 @@ class _TicketTile extends StatelessWidget {
     return d == null ? niceDate(iso, context: context) : anketDayLabel(context, d);
   }
 
+  /// "Destek: ..." / "Sen: ..." / "Ek gönderildi"; sunucu `lastMessage` vermezse null.
+  static String? previewOf(BuildContext context, Map<String, dynamic> ticket) {
+    final lm = ticket['lastMessage'];
+    if (lm is! Map) return null;
+    final l = context.l10n;
+    final text = '${lm['text'] ?? ''}'.replaceAll(RegExp(r'\s+'), ' ').trim();
+    final hasAtt = ((lm['attachmentCount'] as num?)?.toInt() ?? 0) > 0 || lm['hasAttachments'] == true;
+    final body = text.isNotEmpty ? text : (hasAtt ? l.supAttachmentSent : '');
+    if (body.isEmpty) return null;
+    return lm['fromStaff'] == true ? l.supLastStaff(body) : l.supLastYou(body);
+  }
+
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
     final tx = Theme.of(context).textTheme;
+    final l = context.l10n;
     final status = ticket['status'] as String?;
     final st = supportTicketStatusStyle(context, status);
     final date = dateLabel(context, ticket['createdAt'] as String?);
-    final statusColor = switch (status) {
-      'ANSWERED' => t.ok,
-      'CLOSED' => t.mut,
-      _ => t.onWarnSoft,
-    };
-    final meta = tx.bodyMedium!.copyWith(color: t.mut, height: 1.3);
+    final cat = ticket['category'] as String?;
+    final catLabel = supportTicketCategories(l)[cat];
+    final preview = previewOf(context, ticket);
+    final subject = '${ticket['subject'] ?? ''}';
+    final second = preview ?? catLabel;
     return Semantics(
       button: true,
-      label: '${ticket['subject'] ?? ''}, ${st.label}, $date',
+      label: '$subject, ${st.label}, $date${unread ? ', ${l.supNewReply}' : ''}',
       excludeSemantics: true,
       onTap: onTap,
-      child: InkWell(
-        onTap: onTap,
-        child: Container(
-          width: double.infinity,
-          margin: const EdgeInsetsDirectional.fromSTEB(kAnketPad, 0, kAnketPad, 8),
-          padding: const EdgeInsets.all(16),
-          decoration:
-              BoxDecoration(color: t.sf, borderRadius: BorderRadius.circular(20), border: Border.all(color: t.bd), boxShadow: BuElevation.of(context, 1)),
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text('${ticket['subject'] ?? ''}',
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: tx.titleMedium!.copyWith(color: t.ink, fontSize: 16, fontWeight: FontWeight.w600, height: 1.3)),
-            const SizedBox(height: 4),
-            Text.rich(
-              TextSpan(style: meta, children: [
-                TextSpan(text: '$date · '),
-                TextSpan(text: st.label, style: TextStyle(color: statusColor, fontWeight: FontWeight.w500)),
+      child: Container(
+        margin: const EdgeInsetsDirectional.fromSTEB(kAnketPad, 0, kAnketPad, 10),
+        decoration: BoxDecoration(
+          color: unread ? t.soft : t.sf,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: unread ? t.selectedBorder : t.bd, width: unread ? 1.5 : 1),
+          boxShadow: BuElevation.of(context, 1),
+        ),
+        child: Material(
+          type: MaterialType.transparency,
+          child: InkWell(
+            key: ValueKey('supTicket${ticket['id']}'),
+            borderRadius: BorderRadius.circular(20),
+            onTap: () {
+              buHaptic(BuHaptic.selection);
+              onTap();
+            },
+            child: Padding(
+              padding: const EdgeInsetsDirectional.fromSTEB(14, 14, 10, 14),
+              child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(color: unread ? t.sf : t.soft, borderRadius: BorderRadius.circular(14)),
+                  child: Icon(supportTicketCategoryIcons[cat] ?? BuIcons.messageCircle, size: 22, color: t.onSoft),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    Text(subject,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: tx.titleMedium!.copyWith(color: t.ink, fontSize: 16, fontWeight: unread ? FontWeight.w800 : FontWeight.w700, height: 1.3)),
+                    if (second != null && second.isNotEmpty) ...[
+                      const SizedBox(height: 3),
+                      Text(second, maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.bodyMedium!.copyWith(color: unread ? t.ink : t.mut, height: 1.35)),
+                    ],
+                    const SizedBox(height: 8),
+                    Wrap(spacing: 8, runSpacing: 4, crossAxisAlignment: WrapCrossAlignment.center, children: [
+                      if (unread)
+                        AnketPill(l.supNewReply, bg: t.pr, fg: t.onPr, small: true)
+                      else
+                        AnketPill(st.label, bg: st.bg, fg: st.fg, icon: st.icon, small: true),
+                      Text(date, maxLines: 1, style: tx.bodySmall!.copyWith(color: t.mut, height: 1.2)),
+                    ]),
+                  ]),
+                ),
+                Padding(
+                  padding: const EdgeInsetsDirectional.only(top: 12),
+                  child: ExcludeSemantics(child: Icon(BuIcons.chevronRight, size: 20, color: t.mut)),
+                ),
               ]),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
             ),
-          ]),
+          ),
         ),
       ),
     );
   }
 }
+
 
 /// İlk yükleme iskeleti: iki bölüm başlığı + satırlar.
 class _SupportSkeleton extends StatelessWidget {

@@ -240,10 +240,8 @@ class _SuggestionTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.bu;
     final tx = Theme.of(context).textTheme;
-    final l = context.l10n;
     final voted = item['votedByMe'] == true;
     final count = (item['voteCount'] as num?)?.toInt() ?? 0;
-    final status = supportFeedbackStatuses(l)[item['status']] ?? l.supportStNew;
     return Semantics(
       container: true,
       child: Container(
@@ -261,8 +259,8 @@ class _SuggestionTile extends StatelessWidget {
                     style: tx.titleMedium!.copyWith(color: t.ink, fontSize: 18, fontWeight: FontWeight.w600, height: 1.3)),
                 const SizedBox(height: 4),
                 Text('${item['message'] ?? ''}', maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.bodyMedium!.copyWith(height: 1.45, color: t.mut)),
-                const SizedBox(height: 7),
-                Text(status, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.bodySmall!.copyWith(color: t.mut, fontSize: 13, height: 1.3)),
+                const SizedBox(height: 8),
+                Align(alignment: AlignmentDirectional.centerStart, child: SupportFeedbackPill(item['status'] as String?)),
               ]),
             ),
           ),
