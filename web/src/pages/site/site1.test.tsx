@@ -164,8 +164,10 @@ describe('vitrin sayfaları (SITE1)', () => {
     renderAt('/download');
     await screen.findByRole('heading', { level: 1, name: 'Uygulamayı indir' });
     const main = within(screen.getByRole('main'));
-    expect(main.getByRole('heading', { level: 2, name: 'Android' })).toBeInTheDocument();
-    expect(main.getByRole('heading', { level: 2, name: 'iPhone ve iPad' })).toBeInTheDocument();
+    const status = await main.findByRole('list', { name: 'Mağaza durumu' });
+    expect(within(status).getAllByRole('listitem')).toHaveLength(2);
+    expect(within(status).getByText('Android')).toBeInTheDocument();
+    expect(within(status).getByText('iPhone ve iPad')).toBeInTheDocument();
     expect(main.getAllByRole('button', { name: /Yakında/ })).toHaveLength(2);
     expect(main.getByText(/resmî uygulaması değildir/)).toBeInTheDocument();
   });
