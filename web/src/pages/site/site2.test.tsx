@@ -72,7 +72,7 @@ describe('SITE2 metinleri ve görseli', () => {
   });
 
   it('destek ekranı kayıt defterinde, tam boy oranında', () => {
-    expect(SHOTS.support).toMatchObject({ width: 600, height: 1298, peek: false });
+    expect(SHOTS.support).toMatchObject({ width: 900, height: 1948, peek: false });
   });
 
   it('metinlerde resmî uygulama iddiası yok; bağımsızlık belirtilir', () => {
@@ -91,8 +91,8 @@ describe('AppCallout ve PageHero', () => {
     const { unmount } = renderWithProviders(<AppCallout shot="support" title="Başlık" text="Metin" />);
     expect(screen.getByRole('heading', { level: 2, name: 'Başlık' })).toBeInTheDocument();
     const img = screen.getByRole('img');
-    expect(img).toHaveAttribute('width', '600');
-    expect(img).toHaveAttribute('height', '1298');
+    expect(img).toHaveAttribute('width', '900');
+    expect(img).toHaveAttribute('height', '1948');
     expect(img.getAttribute('alt')).toMatch(/Destek ekranı/);
     expect(screen.getAllByRole('button', { name: /Yakında/ })).toHaveLength(2);
     unmount();

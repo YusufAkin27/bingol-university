@@ -27,15 +27,15 @@ export interface Shot {
 }
 
 export const SHOTS: Record<ShotId, Shot> = {
-  home: { src: home, width: 600, height: 1298, peek: false, alt: 'site.shot.home.alt' },
-  discover: { src: discover, width: 600, height: 1298, peek: false, alt: 'site.shot.discover.alt' },
-  chat: { src: chat, width: 600, height: 1298, peek: false, alt: 'site.shot.chat.alt' },
-  clubs: { src: clubs, width: 600, height: 1298, peek: false, alt: 'site.shot.clubs.alt' },
-  events: { src: events, width: 600, height: 1298, peek: false, alt: 'site.shot.events.alt' },
-  qr: { src: qr, width: 600, height: 940, peek: true, alt: 'site.shot.qr.alt' },
-  menu: { src: menu, width: 600, height: 900, peek: true, alt: 'site.shot.menu.alt' },
-  poll: { src: poll, width: 600, height: 920, peek: true, alt: 'site.shot.poll.alt' },
-  support: { src: support, width: 600, height: 1298, peek: false, alt: 'site.shot.support.alt' },
-  academic: { src: academic, width: 600, height: 860, peek: true, alt: 'site.shot.academic.alt' },
-  delete: { src: deleteAccount, width: 600, height: 1298, peek: false, alt: 'site.shot.delete.alt' },
+  home: { src: home, width: 900, height: 1948, peek: false, alt: 'site.shot.home.alt' },
+  discover: { src: discover, width: 900, height: 1948, peek: false, alt: 'site.shot.discover.alt' },
+  chat: { src: chat, width: 900, height: 1948, peek: false, alt: 'site.shot.chat.alt' },
+  clubs: { src: clubs, width: 900, height: 1948, peek: false, alt: 'site.shot.clubs.alt' },
+  events: { src: events, width: 900, height: 1948, peek: false, alt: 'site.shot.events.alt' },
+  qr: { src: qr, width: 900, height: 1538, peek: true, alt: 'site.shot.qr.alt' },
+  menu: { src: menu, width: 900, height: 1948, peek: false, alt: 'site.shot.menu.alt' },
+  poll: { src: poll, width: 900, height: 1948, peek: false, alt: 'site.shot.poll.alt' },
+  support: { src: support, width: 900, height: 1948, peek: false, alt: 'site.shot.support.alt' },
+  academic: { src: academic, width: 900, height: 1462, peek: true, alt: 'site.shot.academic.alt' },
+  delete: { src: deleteAccount, width: 900, height: 1948, peek: false, alt: 'site.shot.delete.alt' },
 };
