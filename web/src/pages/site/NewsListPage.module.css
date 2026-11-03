@@ -7,7 +7,7 @@
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: var(--space-3);
+  gap: var(--space-3) var(--space-5);
 }
 .filters {
   display: flex;
@@ -15,19 +15,23 @@
   gap: var(--space-2);
 }
 .search {
-  flex: 1 1 260px;
-  max-inline-size: 380px;
+  flex: 1 1 280px;
+  max-inline-size: 400px;
 }
 .chip {
-  min-height: 48px;
-  padding: 0 var(--space-4);
+  min-height: 44px;
+  padding: 0 var(--space-5);
   border-radius: var(--radius-pill);
   border: 1px solid var(--border-strong);
   background: var(--surface);
   color: var(--text);
   font: inherit;
+  font-size: var(--text-sm);
   font-weight: 600;
   cursor: pointer;
+  transition:
+    background-color 0.15s var(--ease),
+    border-color 0.15s var(--ease);
 }
 .chip:focus-visible {
   outline: 3px solid var(--focus);
@@ -42,9 +46,55 @@
   color: var(--badge-contrast);
   border-color: var(--badge);
 }
+.active {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+.activeLabel {
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+  margin-inline-end: var(--space-1);
+}
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 44px;
+  padding: 0 var(--space-3) 0 var(--space-4);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-pill);
+  background: var(--surface-2);
+  color: var(--text);
+  font: inherit;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  cursor: pointer;
+}
+:global(:root[dir='rtl']) .pill {
+  padding: 0 var(--space-4) 0 var(--space-3);
+}
+.pill:hover {
+  background: var(--surface-3);
+}
+.pill:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
 .results {
   /* iskelet -> veri geçişinde alttaki bölüm kaymasın (CLS) */
-  min-block-size: 30rem;
+  min-block-size: 26rem;
+}
+/* Boş / hata durumu: sayfa zemininde kaybolmasın diye çerçeveli yüzey */
+.stateBox {
+  display: grid;
+  align-content: center;
+  min-block-size: 22rem;
+  padding: var(--space-6) var(--space-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
 }
 .stack {
   display: grid;
@@ -52,10 +102,16 @@
 }
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr));
-  gap: var(--space-4);
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
+  gap: var(--space-5);
 }
 .more {
-  display: flex;
-  justify-content: center;
+  display: grid;
+  justify-items: center;
+  gap: var(--space-3);
+}
+.shown {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--text-muted);
 }
