@@ -18,10 +18,6 @@ import org.springframework.http.HttpStatus;
  * dahil), tek karakter tekrari / rakam dizisi olmama ve kisisel veri icermeme (e-posta kullanici adi, okul numarasi,
  * gorunen ad sozcukleri). Karakter sinifi zorunlulugu YOKTUR (NIST). Hata: 400 PASSWORD_TOO_WEAK.
  * Giris (login) bu kurallara baglanmaz: eski hesaplar girebilir, yalniz yeni/degisen parola denetlenir.
- *
- * <p>6 HANELI PIN (banka uygulamasi gibi): YONETICI OLMAYAN hesaplarin yeni sifresi tam 6 rakamdir
- * ({@link #validateNew}); cok zayif PIN'ler (hepsi ayni, duz artan/azalan, ababab) reddedilir. Bu kisa sifrenin
- * guvenligi hesap basina kilitle saglanir (bkz. {@code AccountLock}). Yonetici hesaplari yukaridaki guclu kuralda kalir.
  */
 public final class PasswordPolicy {
 
@@ -38,71 +34,6 @@ public final class PasswordPolicy {
     /** Kisisel veri baglami: e-posta (tam), gorunen ad; ikisi de bos olabilir. */
     public record Context(String email, String displayName) {
         public static final Context NONE = new Context(null, null);
-    }
-
-    public static final int PIN_LENGTH = 6;
-
-    /**
-     * Yeni sifre denetimi tek noktada. Yonetici hesabi: guclu kural (en az {@code adminMinLength} karakter, 72 bayt
-     * ustu PASSWORD_TOO_LONG, PASSWORD_TOO_WEAK). Diger hesaplar: tam 6 rakam (400 PASSWORD_INVALID_PIN) ve zayif PIN
-     * degil (400 PASSWORD_PIN_TOO_WEAK). Istemci (mobil) AYNI kurali uygular.
-     */
-    public static void validateNew(String password, boolean adminAccount, int adminMinLength, Context ctx) {
-        if (adminAccount) {
-            if (password != null && password.getBytes(StandardCharsets.UTF_8).length > 72) {
-                throw new ApiException(HttpStatus.BAD_REQUEST, "PASSWORD_TOO_LONG",
-                        "Şifre çok uzun (en fazla 72 bayt; Türkçe/Arapça karakterler birden çok bayt tutar).");
-            }
-            require(password, adminMinLength, ctx);
-            return;
-        }
-        if (!isPinFormat(password)) {
-            throw new ApiException(HttpStatus.BAD_REQUEST, "PASSWORD_INVALID_PIN",
-                    "Şifre tam olarak 6 haneli rakamlardan oluşmalıdır.");
-        }
-        if (isWeakPin(password)) {
-            throw new ApiException(HttpStatus.BAD_REQUEST, "PASSWORD_PIN_TOO_WEAK",
-                    "Çok kolay bir şifre; ardışık ya da aynı rakamlar kullanmayın.");
-        }
-    }
-
-    /** Yonetici ayrintisi gerekmeyen kisa biçim: yonetici icin {@link #DEFAULT_ADMIN_MIN}, kisisel veri baglami yok. */
-    public static void validateNew(String password, boolean adminAccount) {
-        validateNew(password, adminAccount, DEFAULT_ADMIN_MIN, Context.NONE);
-    }
-
-    /** Tam 6 ASCII rakam (Arapca-Hint rakamlari ya da bosluk kabul edilmez). */
-    static boolean isPinFormat(String p) {
-        if (p == null || p.length() != PIN_LENGTH) {
-            return false;
-        }
-        for (int i = 0; i < PIN_LENGTH; i++) {
-            char c = p.charAt(i);
-            if (c < '0' || c > '9') {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    /**
-     * Zayif PIN: tum rakamlar ayni (000000); duz artan ya da azalan dizi (123456, 654321; 9'dan sonra 0'a doner:
-     * 789012); iki rakamli tekrar (121212). Girdi 6 rakam olmalidir.
-     */
-    static boolean isWeakPin(String p) {
-        boolean up = true;
-        boolean down = true;
-        boolean twoDigit = true;
-        for (int i = 1; i < PIN_LENGTH; i++) {
-            int step = Math.floorMod(p.charAt(i) - p.charAt(i - 1), 10);
-            up &= step == 1;
-            down &= step == 9;
-            if (i >= 2) {
-                twoDigit &= p.charAt(i) == p.charAt(i - 2);
-            }
-        }
-        boolean same = p.chars().distinct().count() == 1;
-        return same || up || down || twoDigit;
     }
 
     /** Zayifsa 400 PASSWORD_TOO_WEAK; guclu ise sessizce doner. {@code minLength}: bu hesap icin gecerli en az uzunluk. */

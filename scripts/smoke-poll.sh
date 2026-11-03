@@ -17,21 +17,19 @@ jid() { grep -o '"id":[0-9]*' | head -1 | cut -d: -f2; }
 has() { grep -q "$1"; }
 
 register() { # email ad
-  curl -s -o /dev/null -X POST -H "$H" $A/auth/register -d "{\"email\":\"$1\",\"password\":\"$(pwfor "$1")\",\"displayName\":\"$2\",\"acceptTerms\":true}"
+  curl -s -o /dev/null -X POST -H "$H" $A/auth/register -d "{\"email\":\"$1\",\"password\":\"Zk7-Qmv-Lpx92w\",\"displayName\":\"$2\",\"acceptTerms\":true}"
   sleep 1
   local c
   c=$(docker compose logs backend 2>&1 | grep "$1 icin" | grep -o 'kodu: [0-9]*' | tail -1 | cut -d' ' -f2)
-  curl -s -X POST -H "$H" $A/auth/verify-email -d "{\"email\":\"$1\",\"code\":\"$c\",\"password\":\"$(pwfor "$1")\"}" |
+  curl -s -X POST -H "$H" $A/auth/verify-email -d "{\"email\":\"$1\",\"code\":\"$c\",\"password\":\"Zk7-Qmv-Lpx92w\"}" |
     grep -o '"accessToken":"[^"]*' | cut -d'"' -f4
 }
 
 SFX=$RANDOM
 ADMIN_EMAIL=${ADMIN_EMAIL:-boss@bingol.edu.tr}
-# Sifre: yonetici hesabi guclu sifre ister (>= 12 karakter), digerleri 6 haneli PIN
-pwfor() { if [ "$1" = "$ADMIN_EMAIL" ]; then echo 'Zk7-Qmv-Lpx92w'; else echo 481952; fi; }
 TAD=$(register "$ADMIN_EMAIL" "Yonetici")
 if [ -z "$TAD" ]; then
-  TAD=$(curl -s -X POST -H "$H" $A/auth/login -d "{\"email\":\"$ADMIN_EMAIL\",\"password\":\"$(pwfor "$ADMIN_EMAIL")\"}" | grep -o '"accessToken":"[^"]*' | cut -d'"' -f4)
+  TAD=$(curl -s -X POST -H "$H" $A/auth/login -d "{\"email\":\"$ADMIN_EMAIL\",\"password\":\"Zk7-Qmv-Lpx92w\"}" | grep -o '"accessToken":"[^"]*' | cut -d'"' -f4)
 fi
 [ -n "$TAD" ] || { echo "yonetici token yok (ADMIN_EMAILS ayarli mi?)"; exit 1; }
 TA=$(register "polla$SFX@bingol.edu.tr" "Oy Veren A")

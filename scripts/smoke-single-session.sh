@@ -14,16 +14,16 @@ field() { grep -o "\"$1\":\"[^\"]*" | head -1 | cut -d'"' -f4; }
 
 EMAIL="tek$RANDOM$RANDOM@bingol.edu.tr"
 curl -s -o /dev/null -X POST -H "$H" $A/auth/register \
-  -d "{\"email\":\"$EMAIL\",\"password\":\"481952\",\"displayName\":\"Tek Oturum\",\"acceptTerms\":true}"
+  -d "{\"email\":\"$EMAIL\",\"password\":\"Zk7-Qmv-Lpx92w\",\"displayName\":\"Tek Oturum\",\"acceptTerms\":true}"
 sleep 1
 CODE=$(docker compose logs backend 2>&1 | grep "$EMAIL icin" | grep -o 'kodu: [0-9]*' | tail -1 | cut -d' ' -f2)
-curl -s -o /dev/null -X POST -H "$H" $A/auth/verify-email -d "{\"email\":\"$EMAIL\",\"code\":\"$CODE\",\"password\":\"481952\"}"
+curl -s -o /dev/null -X POST -H "$H" $A/auth/verify-email -d "{\"email\":\"$EMAIL\",\"code\":\"$CODE\",\"password\":\"Zk7-Qmv-Lpx92w\"}"
 
 login() { # $1 = client (mobile|web|bos)
   if [ -n "${1:-}" ]; then
-    curl -s -X POST -H "$H" $A/auth/login -d "{\"email\":\"$EMAIL\",\"password\":\"481952\",\"client\":\"$1\"}"
+    curl -s -X POST -H "$H" $A/auth/login -d "{\"email\":\"$EMAIL\",\"password\":\"Zk7-Qmv-Lpx92w\",\"client\":\"$1\"}"
   else
-    curl -s -X POST -H "$H" $A/auth/login -d "{\"email\":\"$EMAIL\",\"password\":\"481952\"}"
+    curl -s -X POST -H "$H" $A/auth/login -d "{\"email\":\"$EMAIL\",\"password\":\"Zk7-Qmv-Lpx92w\"}"
   fi
 }
 me() { curl -s -w '\n%{http_code}' -H "Authorization: Bearer $1" -H "Accept-Language: ${2:-tr}" $A/auth/me; }

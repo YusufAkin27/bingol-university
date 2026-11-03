@@ -16,7 +16,7 @@ const ROOT = path.join(__dirname, '..');
 const SPEC = JSON.parse(fs.readFileSync(path.join(ROOT, 'docs', 'openapi.json'), 'utf8'));
 const USER_EMAIL = process.env.CHECK_USER || 'contract-user@bingol.edu.tr';
 const ADMIN_EMAIL = process.env.CHECK_ADMIN || 'admin1@bingol.edu.tr';
-const PASS = '481952';
+const PASS = 'Sifre1234x';
 const FORCE_SEED = process.env.FORCE_SEED === '1'; // her kosuda ornek kayit olusturup POST govdelerini de dogrula
 
 const failures = [];

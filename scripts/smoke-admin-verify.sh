@@ -41,9 +41,9 @@ TA=$(grep -o '"accessToken":"[^"]*' "$TMP/out" | cut -d'"' -f4)
 AAD="Authorization: Bearer $TA"
 
 echo "== kayit (bekleyen)"
-printf '{"email":"%s","password":"481952","displayName":"Smoke Dogrula","acceptTerms":true,"language":"tr"}' "$EMAIL" > "$TMP/reg.json"
+printf '{"email":"%s","password":"Zk7-Qmv-Lpx92w","displayName":"Smoke Dogrula","acceptTerms":true,"language":"tr"}' "$EMAIL" > "$TMP/reg.json"
 check "register" 202 "$(post /auth/register "$TMP/reg.json")"
-printf '{"email":"%s","password":"481952"}' "$NUM" > "$TMP/ulogin.json"
+printf '{"email":"%s","password":"Zk7-Qmv-Lpx92w"}' "$NUM" > "$TMP/ulogin.json"
 check "dogrulanmadan giris 403" 403 "$(post /auth/login "$TMP/ulogin.json")"
 
 echo "== yonetici listesi (q) ve dogrulama"

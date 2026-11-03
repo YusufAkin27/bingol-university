@@ -36,7 +36,7 @@ POST /api/auth/register
 Content-Type: application/json
 Accept-Language: tr
 
-{"email":"ayse@bingol.edu.tr","password":"481952","displayName":"Ayşe Yılmaz","acceptTerms":true,"language":"tr"}
+{"email":"ayse@bingol.edu.tr","password":"Sifre1234x","displayName":"Ayşe Yılmaz","acceptTerms":true,"language":"tr"}
 ```
 `202 Accepted` → `{"message":"Doğrulama kodu e-posta adresinize gönderildi."}`
 
@@ -46,7 +46,7 @@ Accept-Language: tr
 
 **Mail kuyruğu:** `register`/`resend-code` e-postayı kuyruğa yazıp hemen döner; gönderim arka planda yapılır, yani **kod birkaç saniye (SMTP sorunlarında daha geç) sonra gelir**. Arayüzde "kod gönderildi" deyip geri sayımı hemen başlatın, ekranı kilitlemeyin. Kuyruğa yazılamazsa `503 MAIL_UNAVAILABLE`. Gönderim başarısızsa sunucu en çok 5 kez yeniden dener (1 dk, 5 dk, 30 dk, 2 sa, 12 sa); kullanıcı yine de "kodu yeniden gönder" ile yeni kod isteyebilir.
 
-- Yalnızca `bingol.edu.tr` ve alt alanları; aksi `400 EMAIL_DOMAIN_NOT_ALLOWED`. `acceptTerms` **true olmalı** (sözleşme kabulü sunucuda kaydedilir); `password` **tam 6 rakam** (6 haneli PIN; çok zayıf PIN'ler reddedilir: `111111`, `123456`/`654321` gibi düz dizi, `121212`; hata `400 PASSWORD_INVALID_PIN` / `400 PASSWORD_PIN_TOO_WEAK`; yönetici hesapları hariç, onlar >= 12 karakterli güçlü şifre); `displayName` ≤ 80; `language` isteğe bağlı `tr|en|ar` (verilmezse `Accept-Language`).
+- Yalnızca `bingol.edu.tr` ve alt alanları; aksi `400 EMAIL_DOMAIN_NOT_ALLOWED`. `acceptTerms` **true olmalı** (sözleşme kabulü sunucuda kaydedilir); `password` 8-72 karakter; `displayName` ≤ 80; `language` isteğe bağlı `tr|en|ar` (verilmezse `Accept-Language`).
 - E-postası zaten doğrulanmış hesap için `409 EMAIL_ALREADY_REGISTERED` (kullanıcıyı giriş ekranına yönlendirin).
 - IP başına saatte 10 kayıt (`429 RATE_LIMITED`); `resend-code` IP başına saatte 10, e-posta başına saatte 5.
 - **Akademik alanlar (isteğe bağlı):** `faculty`, `department`, `grade` (bkz. 1.8). Verilirse katalogla doğrulanır; geçersizse `400 ACADEMIC_INVALID`. Bekleyen kayıtla taşınır, `verify-email` ile hesaba yazılır.
@@ -54,7 +54,7 @@ Accept-Language: tr
 ### 1.2 Kod gönderme/doğrulama
 ```http
 POST /api/auth/resend-code    {"email":"ayse@bingol.edu.tr"}   → 202 (hesap var olsun olmasın aynı yanıt)
-POST /api/auth/verify-email   {"email":"ayse@bingol.edu.tr","code":"482913","password":"481952","client":"mobile"}
+POST /api/auth/verify-email   {"email":"ayse@bingol.edu.tr","code":"482913","password":"Sifre1234","client":"mobile"}
 ```
 **Parola kanıtı (`password`, zorunlu):** istemci kayıt adımında girdiği şifreyi doğrulama isteğinde yeniden gönderir; sunucu bekleyen kaydın şifre özetiyle karşılaştırır. Uyuşmazsa/eksikse genel `400 INVALID_CODE` ve yanlış deneme sayılır (kod tüketilmez). Amaç: aynı e-postaya başkasının yeniden kayıt göndermesiyle sahibin koduna kendi şifresini bağlamasını (hesap devralma) engellemek. Şifre bellekte yoksa (uygulama yeniden açıldı) istemci kullanıcıdan "kayıtta belirlediğiniz şifre"yi ister. Eski istemciler için sunucu bayrağı `app.auth.verify-requires-password=false` (varsayılan true; yalnız geçiş penceresi).
 `verify-email` → `200`:
@@ -67,11 +67,11 @@ POST /api/auth/verify-email   {"email":"ayse@bingol.edu.tr","code":"482913","pas
 
 ### 1.3 Giriş
 ```http
-POST /api/auth/login   {"email":"ayse@bingol.edu.tr","password":"481952","client":"mobile"}   → 200 (TokenResponse)
+POST /api/auth/login   {"email":"ayse@bingol.edu.tr","password":"Sifre1234x","client":"mobile"}   → 200 (TokenResponse)
 ```
 - **`client`** (opsiyonel, `mobile` | `web`, varsayılan `web`; geçersiz değer `400`): mobil uygulama **her zaman `"client":"mobile"`** göndermelidir (`verify-email` gövdesinde de aynı alan vardır: açılan hesabın token'ları mobil etiketlenir). **Tek cihaz kuralı**: `mobile` girişi, kullanıcının önceki **tüm mobil oturumlarını** sonlandırır (refresh token'lar silinir, eski access token'lar reddedilir, WebSocket kapatılır, FCM `device` kayıtları silinir) ve ardından yeni token'lar verilir; yeni token ile hemen istek atılabilir. `web`/`client` yok girişleri hiçbir oturumu sonlandırmaz (web paneli ile mobil aynı anda açık kalabilir). Aynı cihazdan yeniden giriş de eski oturumu kapatır. Eski cihaza (varsa) "yeni cihazdan giriş" güvenlik e-postası gider.
 - Yeni giriş sonrası push için `POST /api/devices` ile FCM token'ı **yeniden kaydedin** (girişte eski kayıtlar silinir).
-Hatalar: `401 INVALID_CREDENTIALS` (kullanıcı yok ve yanlış şifre **aynı yanıt**; ayırt etmeyin), `403 EMAIL_NOT_VERIFIED` (doğrulama ekranına yönlendirin), `403 ACCOUNT_SUSPENDED`. Sınır: IP başına 15 dk'da 30, e-posta başına 15 dk'da 10 deneme. **Hesap kilidi:** aynı hesapta 5 ardışık yanlış şifreden sonra 15 dk `429 ACCOUNT_TEMP_LOCKED` + `Retry-After` (saniye; kilitliyken doğru şifre de reddedilir, var olmayan hesapta da aynı davranır; başarılı giriş ya da şifre sıfırlama kilidi kaldırır). Giriş şifre biçimini sınırlamaz: eski (uzun) şifreli kullanıcılar girebilir, ancak mobil alan yalnız 6 rakam aldığından onları "Şifremi unuttum" ile 6 haneli yeni şifreye yönlendirin.
+Hatalar: `401 INVALID_CREDENTIALS` (kullanıcı yok ve yanlış şifre **aynı yanıt**; ayırt etmeyin), `403 EMAIL_NOT_VERIFIED` (doğrulama ekranına yönlendirin), `403 ACCOUNT_SUSPENDED`. Sınır: IP başına 15 dk'da 30, e-posta başına 15 dk'da 10 deneme.
 
 ### 1.4 Token'lar
 - **Access token**: JWT (HS256), **15 dk** (`expiresInSeconds: 900`). Yük: `sub` (kullanıcı id), `email`, `role` (`USER|ADMIN`), `iat`, `exp`. İmzayı istemci doğrulayamaz; `exp`'i yalnızca *proaktif yenileme zamanı* için okuyun.
@@ -130,7 +130,7 @@ Ek öneriler: access token'ın bitişine ~60 sn kala proaktif yenileyin (özelli
 ```http
 POST /api/auth/forgot-password   {"email":"ayse@bingol.edu.tr"}                              → 202 (hesap olsun olmasın aynı yanıt; kod e-postayla, asenkron)
 POST /api/auth/verify-reset-code {"email":"...","code":"482913"}                              → 200 {"resetToken":"..."}
-POST /api/auth/reset-password    {"email":"...","resetToken":"...","newPassword":"739204"} → 200 {"message":"..."}
+POST /api/auth/reset-password    {"email":"...","resetToken":"...","newPassword":"Yeni1234x"} → 200 {"message":"..."}
 ```
 - Kod 6 hane, 10 dk, tek kullanımlık; deneme/kilit kuralı kayıt koduyla aynıdır (`TOO_MANY_ATTEMPTS`, `INVALID_CODE`). `resetToken` tek kullanımlık, kısa ömürlü bir anahtardır: yalnızca bellekte tutun, saklamayın.
 - `newPassword` 8-72 karakter. Başarılı sıfırlamada kullanıcının **tüm oturumları kapanır** (refresh token'lar silinir, eski access token'lar reddedilir): kullanıcıyı giriş ekranına yönlendirin.
@@ -139,12 +139,12 @@ POST /api/auth/reset-password    {"email":"...","resetToken":"...","newPassword"
 ### 1.7a Şifre değiştirme (oturum açıkken)
 ```http
 POST /api/auth/change-password   (Bearer)
-{"currentPassword":"Eski1234x","newPassword":"739204"}
+{"currentPassword":"Eski1234x","newPassword":"Yeni1234x"}
 → 200 {"accessToken":"...","refreshToken":"...","expiresInSeconds":900,"tokenType":"Bearer"}
 ```
 - Yanıt `login` ile aynı biçimdedir ve **204 değildir**: başarıda kullanıcının tüm oturumları (diğer cihazlar dahil, çağıran cihazın eski token çifti de) kapanır; sunucu çağıran cihaza aynı istemci türünde (`cl`) **yeni token çifti** verir. İstemci eski access/refresh token'ı bu çiftle **hemen değiştirmelidir**; aksi halde sonraki istek `401 SESSION_REPLACED` alır. Eski token'la uçuşta olan istekler 401 alabilir: yeni çiftle bir kez yeniden deneyin.
 - Çağıran cihazın açık WebSocket bağlantısı iptal olayıyla (`session-replaced`) kapanır: bu olayda çıkış yapmayın, yeni access token'la yeniden bağlanın (diğer cihazlar giriş ekranına döner).
-- `newPassword` tam 6 rakam (kayıt/sıfırlama ile aynı kural: `400 PASSWORD_INVALID_PIN`, `400 PASSWORD_PIN_TOO_WEAK`; yönetici hesabı için güçlü şifre). Hatalar: `403 WRONG_PASSWORD` (mevcut şifre yanlış), `422 PASSWORD_UNCHANGED` (yeni şifre mevcutla aynı), `429 RATE_LIMITED` (kullanıcı başına saatte 5, IP başına saatte 10). Başarıda kullanıcıya (kayıtlı dilinde) "şifreniz değiştirildi" güvenlik e-postası gider.
+- `newPassword` 8-72 karakter (kayıt/sıfırlama ile aynı; `400 VALIDATION_ERROR`). Hatalar: `403 WRONG_PASSWORD` (mevcut şifre yanlış), `422 PASSWORD_UNCHANGED` (yeni şifre mevcutla aynı), `429 RATE_LIMITED` (kullanıcı başına saatte 5, IP başına saatte 10). Başarıda kullanıcıya (kayıtlı dilinde) "şifreniz değiştirildi" güvenlik e-postası gider.
 
 ### 1.8 Akademik katalog (fakülte, bölüm, sınıf)
 Kimlik gerektirmez (kayıt ekranında kullanılır). IP başına dakikada 120 istek.
@@ -580,9 +580,6 @@ Genel durum kodları: `400` doğrulama/iş kuralı, `401` kimlik, `403` yetki/as
 | `VALIDATION_ERROR` | 400 | Geçersiz istek. | Invalid request. | طلب غير صالح. |
 | `VERSION_OUTDATED` | 409 | Bu belgenin yeni bir sürümü yayımlandı. Güncel sürümü onaylayın. | A newer version of this document has been published. Please accept the current version. | تم نشر إصدار أحدث من هذا المستند. يرجى قبول الإصدار الحالي. |
 | `WRONG_PASSWORD` | 403 | Şifre hatalı. | Incorrect password. | كلمة المرور غير صحيحة. |
-| `PASSWORD_INVALID_PIN` | 400 | Şifre tam olarak 6 haneli rakamlardan oluşmalıdır. | The password must be exactly 6 digits. | يجب أن تتكون كلمة المرور من 6 أرقام بالضبط. |
-| `PASSWORD_PIN_TOO_WEAK` | 400 | Çok kolay bir şifre; ardışık ya da aynı rakamlar kullanmayın (örn. 123456, 111111, 121212). | This password is too easy to guess; do not use consecutive or repeated digits (e.g. 123456, 111111, 121212). | كلمة المرور هذه سهلة التخمين؛ لا تستخدم أرقاما متتالية أو متكررة (مثل 123456 أو 111111 أو 121212). |
-| `ACCOUNT_TEMP_LOCKED` | 429 (+`Retry-After`) | Çok fazla hatalı şifre denemesi yapıldı. Hesabınız geçici olarak kilitlendi; bir süre sonra tekrar deneyin ya da "Şifremi unuttum" ile yeni şifre belirleyin. | Too many incorrect password attempts. Your account is temporarily locked; try again later or set a new password with "Forgot password". | تم إدخال كلمة مرور خاطئة مرات كثيرة. تم قفل حسابك مؤقتا؛ حاول لاحقا أو عيّن كلمة مرور جديدة عبر "نسيت كلمة المرور". |
 | `PASSWORD_UNCHANGED` | 422 | Yeni şifre mevcut şifreyle aynı olamaz. | The new password must differ from the current password. | يجب أن تختلف كلمة المرور الجديدة عن الحالية. |
 
 <!-- ERRORS:END -->

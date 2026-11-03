@@ -58,7 +58,7 @@ class AuthServiceAccessBanTest {
         user = new User();
         user.setId(7L);
         user.setEmail(EMAIL);
-        user.setPasswordHash(encoder.encode("481952"));
+        user.setPasswordHash(encoder.encode("Sifre1234"));
         user.setEmailVerified(true);
         when(users.findByEmail(EMAIL)).thenReturn(Optional.of(user));
         when(jwt.createAccessToken(any(), anyString())).thenReturn("access");
@@ -68,7 +68,7 @@ class AuthServiceAccessBanTest {
 
     @Test
     void loginSucceedsAndWritesDeviceLog() {
-        auth.login(EMAIL, "481952", "mobile", ctx);
+        auth.login(EMAIL, "Sifre1234", "mobile", ctx);
 
         verify(guard).require(ctx, 7L, "/api/auth/login");
         verify(deviceLog).record(7L, ctx, "LOGIN");
@@ -79,7 +79,7 @@ class AuthServiceAccessBanTest {
     void loginFromBlockedDeviceIsRejectedWithoutTokensOrSessionChanges() {
         doThrow(AccessGuard.accessBlocked()).when(guard).require(eq(ctx), eq(7L), anyString());
 
-        ApiException e = assertThrows(ApiException.class, () -> auth.login(EMAIL, "481952", "mobile", ctx));
+        ApiException e = assertThrows(ApiException.class, () -> auth.login(EMAIL, "Sifre1234", "mobile", ctx));
 
         assertEquals("ACCESS_BLOCKED", e.code());
         assertEquals(403, e.status().value());
@@ -112,21 +112,21 @@ class AuthServiceAccessBanTest {
 
     @Test
     void verifyEmailWritesRegisterDeviceLog() {
-        PendingRegistrationStore.Pending p = new PendingRegistrationStore.Pending(encoder.encode("481952"), "Ali", "tr");
+        PendingRegistrationStore.Pending p = new PendingRegistrationStore.Pending(encoder.encode("Sifre1234"), "Ali", "tr");
         when(pending.find(EMAIL)).thenReturn(p);
         when(users.findByEmail(EMAIL)).thenReturn(Optional.empty());
         // Baglam varsa deneme sayaci (e-posta, IP/64) cifti basinadir (3 argumanli dogrulama)
         when(verification.verify(EMAIL, "123456", "203.0.113.9")).thenReturn(true);
         when(accounts.create(EMAIL, p)).thenReturn(user);
 
-        auth.verifyEmail(EMAIL, "123456", "mobile", ctx, "481952");
+        auth.verifyEmail(EMAIL, "123456", "mobile", ctx, "Sifre1234");
 
         verify(deviceLog).record(7L, ctx, "REGISTER");
     }
 
     @Test
     void legacyOverloadsWorkWithoutContext() {
-        auth.login(EMAIL, "481952", "mobile");
+        auth.login(EMAIL, "Sifre1234", "mobile");
 
         verify(guard, never()).require(any(), any(), anyString());
         verify(deviceLog, never()).record(any(), any(), anyString());

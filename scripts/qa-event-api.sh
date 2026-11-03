@@ -7,8 +7,6 @@ set -u
 BASE=${BASE:-http://localhost:8080}
 A=$BASE/api
 ADMIN_EMAIL=${ADMIN_EMAIL:-boss@bingol.edu.tr}
-# Sifre: yonetici hesabi guclu sifre ister (>= 12 karakter), digerleri 6 haneli PIN
-pwfor() { if [ "$1" = "$ADMIN_EMAIL" ]; then echo 'Zk7-Qmv-Lpx92w'; else echo 481952; fi; }
 RACERS=${RACERS:-6}  # kayit ucu IP basina saatte 10: 4 ana kullanici + 6 yarisci = 10
 CAP=2
 BURST=3              # her yarisci ayni anda BURST istek yollar
@@ -37,13 +35,13 @@ iso() { date -u -d "$1" +%Y-%m-%dT%H:%M:%SZ; }
 logs() { docker compose logs backend 2>&1; }
 
 register() { # email ad
-  curl -s -o /dev/null -X POST -H "$H" $A/auth/register -d "{\"email\":\"$1\",\"password\":\"$(pwfor "$1")\",\"displayName\":\"$2\",\"acceptTerms\":true}"
+  curl -s -o /dev/null -X POST -H "$H" $A/auth/register -d "{\"email\":\"$1\",\"password\":\"Zk7-Qmv-Lpx92w\",\"displayName\":\"$2\",\"acceptTerms\":true}"
   sleep 1
   local c tok
   c=$(logs | grep "$1 icin" | grep -o 'kodu: [0-9]*' | tail -1 | cut -d' ' -f2)
-  tok=$(curl -s -X POST -H "$H" $A/auth/verify-email -d "{\"email\":\"$1\",\"code\":\"$c\",\"password\":\"$(pwfor "$1")\"}" | grep -o '"accessToken":"[^"]*' | cut -d'"' -f4)
+  tok=$(curl -s -X POST -H "$H" $A/auth/verify-email -d "{\"email\":\"$1\",\"code\":\"$c\",\"password\":\"Zk7-Qmv-Lpx92w\"}" | grep -o '"accessToken":"[^"]*' | cut -d'"' -f4)
   if [ -z "$tok" ]; then
-    tok=$(curl -s -X POST -H "$H" $A/auth/login -d "{\"email\":\"$1\",\"password\":\"$(pwfor "$1")\"}" | grep -o '"accessToken":"[^"]*' | cut -d'"' -f4)
+    tok=$(curl -s -X POST -H "$H" $A/auth/login -d "{\"email\":\"$1\",\"password\":\"Zk7-Qmv-Lpx92w\"}" | grep -o '"accessToken":"[^"]*' | cut -d'"' -f4)
   fi
   echo "$tok"
 }
@@ -224,7 +222,7 @@ for NAME in '=1+1' '+1+1' '-2+3' '@SUM(1)' 'x,y"z'; do
     *) contains "tirnak kacirildi" '"x,y""z"' "$CSV" ;;
   esac
 done
-step "kullanici hesabini siler (T3)" 204 DELETE /users/me "$T3" '{"password":"481952"}'
+step "kullanici hesabini siler (T3)" 204 DELETE /users/me "$T3" '{"password":"Zk7-Qmv-Lpx92w"}'
 CSV=$(curl -s -H "Authorization: Bearer $TCSV" "$A/events/$EVC/attendance.csv")
 lacks "silinen kullanicinin eski adi csv'de yok" 'x,y""z' "$CSV"
 step "silinen kullanici elle isaretlenemez 404" 404 PUT /events/$EVC/attendance/$ID3 "$TCSV" '{"present":true}'

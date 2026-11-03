@@ -7,8 +7,6 @@ set -u
 BASE=${BASE:-http://localhost:8080}
 A=$BASE/api
 ADMIN_EMAIL=${ADMIN_EMAIL:-boss@bingol.edu.tr}
-# Sifre: yonetici hesabi guclu sifre ister (>= 12 karakter), digerleri 6 haneli PIN
-pwfor() { if [ "$1" = "$ADMIN_EMAIL" ]; then echo 'Zk7-Qmv-Lpx92w'; else echo 481952; fi; }
 H='Content-Type: application/json'
 FAIL=0
 
@@ -19,14 +17,14 @@ code() { curl -s -o /dev/null -w '%{http_code}' "$@"; }
 idof() { grep -o '"id":[0-9]*' | head -1 | cut -d: -f2; }
 
 register() {
-  curl -s -o /dev/null -X POST -H "$H" $A/auth/register -d "{\"email\":\"$1\",\"password\":\"$(pwfor "$1")\",\"displayName\":\"$2\",\"acceptTerms\":true,\"language\":\"tr\"}"
+  curl -s -o /dev/null -X POST -H "$H" $A/auth/register -d "{\"email\":\"$1\",\"password\":\"Zk7-Qmv-Lpx92w\",\"displayName\":\"$2\",\"acceptTerms\":true,\"language\":\"tr\"}"
   sleep 1
   local c t
   c=$(docker compose logs backend 2>&1 | grep "$1 icin" | grep -o 'kodu: [0-9]*' | tail -1 | cut -d' ' -f2)
-  t=$(curl -s -X POST -H "$H" $A/auth/verify-email -d "{\"email\":\"$1\",\"code\":\"$c\",\"password\":\"$(pwfor "$1")\"}" |
+  t=$(curl -s -X POST -H "$H" $A/auth/verify-email -d "{\"email\":\"$1\",\"code\":\"$c\",\"password\":\"Zk7-Qmv-Lpx92w\"}" |
     grep -o '"accessToken":"[^"]*' | cut -d'"' -f4)
   if [ -z "$t" ]; then
-    t=$(curl -s -X POST -H "$H" $A/auth/login -d "{\"email\":\"$1\",\"password\":\"$(pwfor "$1")\"}" |
+    t=$(curl -s -X POST -H "$H" $A/auth/login -d "{\"email\":\"$1\",\"password\":\"Zk7-Qmv-Lpx92w\"}" |
       grep -o '"accessToken":"[^"]*' | cut -d'"' -f4)
   fi
   echo "$t"
@@ -90,8 +88,8 @@ USID=$(curl -s -H "Authorization: Bearer $TSU" $A/users/me | idof); UVID=$(curl 
 check "SUPPORT adayi ADMIN" 204 "$(code -X PATCH -H "$H" -H "$AD" -H "$RS" $A/admin/users/$USID/role -d '{"role":"ADMIN"}')"
 check "VIEWER adayi ADMIN" 204 "$(code -X PATCH -H "$H" -H "$AD" -H "$RS" $A/admin/users/$UVID/role -d '{"role":"ADMIN"}')"
 check "SUPPORT ata" 204 "$(code -X PUT -H "$H" -H "$AD" $A/admin/rbac/users/$USID/profile -d '{"profile":"SUPPORT","reason":"duman testi atamasi"}')"
-TSU=$(curl -s -X POST -H "$H" $A/auth/login -d "{\"email\":\"$SE\",\"password\":\"$(pwfor "$SE")\"}" | grep -o '"accessToken":"[^"]*' | cut -d'"' -f4)
-TVW=$(curl -s -X POST -H "$H" $A/auth/login -d "{\"email\":\"$VE\",\"password\":\"$(pwfor "$VE")\"}" | grep -o '"accessToken":"[^"]*' | cut -d'"' -f4)
+TSU=$(curl -s -X POST -H "$H" $A/auth/login -d "{\"email\":\"$SE\",\"password\":\"Zk7-Qmv-Lpx92w\"}" | grep -o '"accessToken":"[^"]*' | cut -d'"' -f4)
+TVW=$(curl -s -X POST -H "$H" $A/auth/login -d "{\"email\":\"$VE\",\"password\":\"Zk7-Qmv-Lpx92w\"}" | grep -o '"accessToken":"[^"]*' | cut -d'"' -f4)
 SU="Authorization: Bearer $TSU"; VW="Authorization: Bearer $TVW"
 T2=$(curl -s -X POST -H "$H" -H "$US" $A/support/tickets -d "{\"category\":\"TECHNICAL\",\"subject\":\"Maske talep $SFX\",\"message\":\"Maske mesaj\"}")
 TID2=$(echo "$T2" | idof)

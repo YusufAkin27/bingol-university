@@ -5,7 +5,7 @@
 set -u
 BASE=${BASE:-http://localhost:8105}
 A=$BASE/api
-PASS=481952
+PASS=Sifre1234
 
 b64url() { openssl base64 -A | tr '+/' '-_' | tr -d '='; }
 # JWT payload'undan "sub" (kullanici id) okur; base64url -> base64 donusumu + dolgu eklenir.
@@ -103,12 +103,12 @@ fi
 # --- 5) mass assignment: kayit sirasinda role alani gonderme ---
 MA_EMAIL="sec-t5-massassign-$RUN@bingol.edu.tr"
 mk_user_resp=$(curl -s -X POST -H 'Content-Type: application/json' "$A/auth/register" \
-  -d "{\"email\":\"$MA_EMAIL\",\"password\":\"481952\",\"displayName\":\"MA\",\"acceptTerms\":true,\"role\":\"ADMIN\"}")
+  -d "{\"email\":\"$MA_EMAIL\",\"password\":\"Sifre1234\",\"displayName\":\"MA\",\"acceptTerms\":true,\"role\":\"ADMIN\"}")
 sleep 1
 CODE=$(docker compose logs backend 2>&1 | grep "$MA_EMAIL icin" | grep -o 'kodu: [0-9]*' | tail -1 | cut -d' ' -f2)
 if [ -n "$CODE" ]; then
   MA_TOKEN=$(curl -s -X POST -H 'Content-Type: application/json' "$A/auth/verify-email" \
-    -d "{\"email\":\"$MA_EMAIL\",\"code\":\"$CODE\",\"password\":\"481952\"}" | grep -o '"accessToken":"[^"]*' | cut -d'"' -f4)
+    -d "{\"email\":\"$MA_EMAIL\",\"code\":\"$CODE\",\"password\":\"Sifre1234\"}" | grep -o '"accessToken":"[^"]*' | cut -d'"' -f4)
   ME=$(curl -s -H "Authorization: Bearer $MA_TOKEN" "$A/auth/me")
   if echo "$ME" | grep -q '"role":"ADMIN"'; then
     fail "KRITIK: kayitta 'role':'ADMIN' alani gonderilerek ADMIN rolu alindi (mass assignment) -> $ME"

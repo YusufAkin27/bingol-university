@@ -7,7 +7,7 @@ BASE=${BASE:-http://localhost:8080}
 A=$BASE/api
 H='Content-Type: application/json'
 SFX=$(date +%s)
-PASS=481952
+PASS=Zk7-Qmv-Lpx92w
 FAIL=0
 ok() { echo "OK   $1"; }
 bad() { echo "FAIL $1"; FAIL=1; }

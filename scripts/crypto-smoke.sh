@@ -7,8 +7,6 @@ set -u
 BASE=${BASE:-http://localhost:8080}
 A=$BASE/api
 ADMIN_EMAIL=${ADMIN_EMAIL:-boss@bingol.edu.tr}
-# Sifre: yonetici hesabi guclu sifre ister (>= 12 karakter), digerleri 6 haneli PIN
-pwfor() { if [ "$1" = "$ADMIN_EMAIL" ]; then echo 'Zk7-Qmv-Lpx92w'; else echo 481952; fi; }
 H='Content-Type: application/json'
 FAIL=0
 PSQL="docker compose exec -T postgres psql -U bingol -d bingol -tA"
@@ -18,11 +16,11 @@ has()  { if echo "$3" | grep -qF -- "$2"; then echo "  ok   $1"; else echo "  FA
 code() { curl -s -o /dev/null -w '%{http_code}' "$@"; }
 
 token() { # e-posta -> access token (kayit + dogrulama, varsa giris)
-  curl -s -o /dev/null -X POST -H "$H" $A/auth/register -d "{\"email\":\"$1\",\"password\":\"$(pwfor "$1")\",\"displayName\":\"Crypto Test\",\"acceptTerms\":true}"
+  curl -s -o /dev/null -X POST -H "$H" $A/auth/register -d "{\"email\":\"$1\",\"password\":\"Zk7-Qmv-Lpx92w\",\"displayName\":\"Crypto Test\",\"acceptTerms\":true}"
   sleep 1
   CODE=$(docker compose logs backend 2>&1 | grep "$1 icin" | grep -o 'kodu: [0-9]*' | tail -1 | cut -d' ' -f2)
-  T=$(curl -s -X POST -H "$H" $A/auth/verify-email -d "{\"email\":\"$1\",\"code\":\"$CODE\",\"password\":\"$(pwfor "$1")\"}" | grep -o '"accessToken":"[^"]*' | cut -d'"' -f4)
-  [ -z "$T" ] && T=$(curl -s -X POST -H "$H" $A/auth/login -d "{\"email\":\"$1\",\"password\":\"$(pwfor "$1")\"}" | grep -o '"accessToken":"[^"]*' | cut -d'"' -f4)
+  T=$(curl -s -X POST -H "$H" $A/auth/verify-email -d "{\"email\":\"$1\",\"code\":\"$CODE\",\"password\":\"Zk7-Qmv-Lpx92w\"}" | grep -o '"accessToken":"[^"]*' | cut -d'"' -f4)
+  [ -z "$T" ] && T=$(curl -s -X POST -H "$H" $A/auth/login -d "{\"email\":\"$1\",\"password\":\"Zk7-Qmv-Lpx92w\"}" | grep -o '"accessToken":"[^"]*' | cut -d'"' -f4)
   echo "$T"
 }
 

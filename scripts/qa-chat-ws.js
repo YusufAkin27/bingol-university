@@ -132,7 +132,7 @@ const em = (n) => '\u{1F600}'.repeat(n);
   clearMsgLimits();
   es.send('/app/chat.send', { conversationId: ae, text: 'silinmeden once', clientId: 'del-1' });
   check('silmeden once gonderir', !!(await es.on('messages', (m) => m.clientId === 'del-1')));
-  check('hesap silinir', (await api('DELETE', '/users/me', E.token, { password: '481952' })).status === 204);
+  check('hesap silinir', (await api('DELETE', '/users/me', E.token, { password: 'Sifre1234' })).status === 204);
   es.send('/app/chat.send', { conversationId: ae, text: 'hayalet', clientId: 'del-2' });
   const delErr = await es.waitFor((f) => (f.command === 'MESSAGE' && f.headers.destination === '/user/queue/errors') || f.command === 'ERROR', 3000);
   const ghostSaved = (await api('GET', `/conversations/${ae}/messages`, A.token)).json.items.some((m) => m.clientId === 'del-2');

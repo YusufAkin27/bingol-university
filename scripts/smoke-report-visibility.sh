@@ -19,13 +19,13 @@ code() { curl -s -o /dev/null -w '%{http_code}' "$@"; }
 jget() { node -e "let d='';process.stdin.on('data',c=>d+=c).on('end',()=>{try{const j=JSON.parse(d);const v=process.argv[1].split('.').reduce((o,k)=>o==null?o:o[k],j);console.log(v===undefined||v===null?'':v)}catch(e){console.log('')}})" "$1"; }
 
 register() {
-  curl -s -o /dev/null -X POST -H "$H" $A/auth/register -d "{\"email\":\"$1\",\"password\":\"481952\",\"displayName\":\"$2\",\"acceptTerms\":true}"
+  curl -s -o /dev/null -X POST -H "$H" $A/auth/register -d "{\"email\":\"$1\",\"password\":\"Zk7-Qmv-Lpx92w\",\"displayName\":\"$2\",\"acceptTerms\":true}"
   sleep 1
   local c t
   c=$(docker compose logs backend 2>&1 | grep "$1 icin" | grep -o 'kodu: [0-9]*' | tail -1 | cut -d' ' -f2)
-  t=$(curl -s -X POST -H "$H" $A/auth/verify-email -d "{\"email\":\"$1\",\"code\":\"$c\",\"password\":\"481952\"}" | grep -o '"accessToken":"[^"]*' | cut -d'"' -f4)
+  t=$(curl -s -X POST -H "$H" $A/auth/verify-email -d "{\"email\":\"$1\",\"code\":\"$c\",\"password\":\"Zk7-Qmv-Lpx92w\"}" | grep -o '"accessToken":"[^"]*' | cut -d'"' -f4)
   if [ -z "$t" ]; then
-    t=$(curl -s -X POST -H "$H" $A/auth/login -d "{\"email\":\"$1\",\"password\":\"481952\"}" | grep -o '"accessToken":"[^"]*' | cut -d'"' -f4)
+    t=$(curl -s -X POST -H "$H" $A/auth/login -d "{\"email\":\"$1\",\"password\":\"Zk7-Qmv-Lpx92w\"}" | grep -o '"accessToken":"[^"]*' | cut -d'"' -f4)
   fi
   echo "$t"
 }
@@ -59,8 +59,8 @@ check "uye B raporlar" 201 "$(report "$AUTH_B" CONVERSATION $G)"
 check "ayni uye tekrar raporlayamaz" 409 "$(report "$AUTH_B" CONVERSATION $G)"
 
 echo "== T-058 acik raporu olan hesap silme bekler"
-check "B hakkinda acik rapor: silme 409" 409 "$(code -X DELETE -H "$H" -H "$AUTH_B" $A/users/me -d '{"password":"481952"}')"
-BODY=$(curl -s -X DELETE -H "$H" -H "$AUTH_B" $A/users/me -d '{"password":"481952"}')
+check "B hakkinda acik rapor: silme 409" 409 "$(code -X DELETE -H "$H" -H "$AUTH_B" $A/users/me -d '{"password":"Zk7-Qmv-Lpx92w"}')"
+BODY=$(curl -s -X DELETE -H "$H" -H "$AUTH_B" $A/users/me -d '{"password":"Zk7-Qmv-Lpx92w"}')
 has "kod ACCOUNT_DELETE_ON_HOLD" ACCOUNT_DELETE_ON_HOLD "$BODY"
 check "B hala giris yapabiliyor (hesap silinmedi)" 200 "$(code -H "$AUTH_B" $A/users/me)"
 

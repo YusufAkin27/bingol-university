@@ -7,7 +7,7 @@ set -u
 BASE=${BASE:-http://localhost:8080}
 A=$BASE/api
 H='Content-Type: application/json'
-PW='481952'
+PW='Zk7-Qmv-Lpx92w'
 CONC=${CONC:-250}
 FAIL=0
 check() { if [ "$2" = "$3" ]; then echo "  ok   $1 ($3)"; else echo "  FAIL $1 (beklenen $2, gelen $3)"; FAIL=1; fi; }

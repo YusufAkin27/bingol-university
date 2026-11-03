@@ -330,7 +330,7 @@ const fillDirect = async (a, b) => (await api('POST', '/conversations', a.token,
   const ce = await fillDirect(e, c);
   const gdel = (await api('POST', '/conversations', e.token, { title: 'SilGrup', memberIds: [c.id, b.id] })).json.id;
   await send(c, ce.id, 'silinmeden once');
-  const del = await api('DELETE', '/users/me', c.token, { password: '481952' });
+  const del = await api('DELETE', '/users/me', c.token, { password: 'Sifre1234' });
   check('hesap silme 204', del.status === 204, del);
   const toDeleted = await send(e, ce.id, 'silinene yaz');
   check('silinene mesaj 403 USER_UNAVAILABLE', toDeleted.status === 403 && toDeleted.json.code === 'USER_UNAVAILABLE', toDeleted);

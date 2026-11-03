@@ -34,12 +34,12 @@ async function api(method, path, token, body) {
 }
 
 async function register(email, name) {
-  await api('POST', '/auth/register', null, { email, password: '481952', displayName: name, acceptTerms: true });
+  await api('POST', '/auth/register', null, { email, password: 'Sifre1234', displayName: name, acceptTerms: true });
   await sleep(1000);
   const logs = execSync('docker compose logs backend', { encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 });
   const m = [...logs.matchAll(new RegExp(email.replace('.', '\\.') + ' icin dogrulama kodu: (\\d+)', 'g'))].pop();
-  let r = await api('POST', '/auth/verify-email', null, { email, code: m && m[1], password: '481952' });
-  if (!r.json || !r.json.accessToken) r = await api('POST', '/auth/login', null, { email, password: '481952' });
+  let r = await api('POST', '/auth/verify-email', null, { email, code: m && m[1], password: 'Sifre1234' });
+  if (!r.json || !r.json.accessToken) r = await api('POST', '/auth/login', null, { email, password: 'Sifre1234' });
   const token = r.json.accessToken;
   const me = await api('GET', '/users/me', token);
   return { token, id: me.json.id };

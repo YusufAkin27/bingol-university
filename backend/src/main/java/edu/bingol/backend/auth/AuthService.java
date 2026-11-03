@@ -96,9 +96,9 @@ public class AuthService {
         this.dummyHash = encoder.encode("dummy-password-for-timing");
     }
 
-    /** Yonetici hesaplari icin en kisa parola uzunlugu (diger hesaplar 6 haneli PIN: bkz. PasswordPolicy.validateNew). */
-    private int adminMinPassword() {
-        return Math.max(passwordMinLength, passwordMinLengthAdmin);
+    /** Bu hesap icin gecerli en kisa parola uzunlugu (yoneticiler daha uzun). */
+    private int minPasswordFor(boolean adminAccount) {
+        return adminAccount ? Math.max(passwordMinLength, passwordMinLengthAdmin) : passwordMinLength;
     }
 
     void setVerifyRequiresPassword(boolean v) {
@@ -175,12 +175,12 @@ public class AuthService {
             throw new ApiException(HttpStatus.BAD_REQUEST, "EMAIL_ALIAS_NOT_ALLOWED",
                     "E-posta adresinde + etiketi kullanılamaz.");
         }
+        requirePasswordBytes(password);
         // Gorunen ad politikasi + parola politikasi: hicbir yan etki (kota, kod e-postasi) olmadan ONCE (T-001/T-005).
         // ADMIN_EMAILS yalniz "ayrilmis ad" kisitindan muaftir; bicim kurallari (gorunmez karakter, baglanti...) herkese.
         boolean adminAddress = authorizedAdmin || adminPortal;
         String name = DisplayNamePolicy.normalize(displayName, adminAddress);
-        // Yonetici adresi: guclu kural; digerleri: 6 haneli PIN (72 bayt denetimi de burada, bcrypt'ten once).
-        PasswordPolicy.validateNew(password, adminAddress, adminMinPassword(), new PasswordPolicy.Context(email, name));
+        PasswordPolicy.require(password, minPasswordFor(adminAddress), new PasswordPolicy.Context(email, name));
         String fa = blankToNull(faculty);
         String de = blankToNull(department);
         String gr = blankToNull(grade);
@@ -280,6 +280,7 @@ public class AuthService {
     }
 
     public void resetPassword(String rawEmail, String resetToken, String newPassword) {
+        requirePasswordBytes(newPassword);
         String email = normalizeEmail(rawEmail);
         User user = users.findByEmail(email).filter(User::isEmailVerified).filter(User::isActive)
                 .orElseThrow(() -> new ApiException(HttpStatus.BAD_REQUEST, "INVALID_CODE", "Kod geçersiz veya süresi dolmuş."));
@@ -287,7 +288,7 @@ public class AuthService {
         if (!verification.checkResetToken(email, resetToken)) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "INVALID_CODE", "Kod geçersiz veya süresi dolmuş.");
         }
-        PasswordPolicy.validateNew(newPassword, isAdminAccount(user), adminMinPassword(),
+        PasswordPolicy.require(newPassword, minPasswordFor(isAdminAccount(user)),
                 new PasswordPolicy.Context(user.getEmail(), user.getDisplayName()));
         if (encoder.matches(newPassword, user.getPasswordHash())) {
             throw new ApiException(HttpStatus.UNPROCESSABLE_ENTITY, "PASSWORD_UNCHANGED",
@@ -320,11 +321,12 @@ public class AuthService {
         if (!fitsBcrypt(currentPassword) || !encoder.matches(currentPassword, user.getPasswordHash())) {
             throw new ApiException(HttpStatus.FORBIDDEN, "WRONG_PASSWORD", "Şifre hatalı.");
         }
+        requirePasswordBytes(newPassword);
         if (currentPassword.equals(newPassword)) {
             throw new ApiException(HttpStatus.UNPROCESSABLE_ENTITY, "PASSWORD_UNCHANGED",
                     "Yeni şifre mevcut şifreyle aynı olamaz.");
         }
-        PasswordPolicy.validateNew(newPassword, isAdminAccount(user), adminMinPassword(),
+        PasswordPolicy.require(newPassword, minPasswordFor(isAdminAccount(user)),
                 new PasswordPolicy.Context(user.getEmail(), user.getDisplayName()));
         user.setPasswordHash(encoder.encode(newPassword));
         users.save(user);
@@ -605,5 +607,12 @@ public class AuthService {
     /** BCrypt yalniz ilk 72 BAYT'i kullanir (ustu istisna); karakter degil bayt sayilir (Turkce/Arapca/emoji). */
     static boolean fitsBcrypt(String password) {
         return password != null && password.getBytes(StandardCharsets.UTF_8).length <= 72;
+    }
+
+    private static void requirePasswordBytes(String password) {
+        if (!fitsBcrypt(password)) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "PASSWORD_TOO_LONG",
+                    "Şifre çok uzun (en fazla 72 bayt; Türkçe/Arapça karakterler birden çok bayt tutar).");
+        }
     }
 }

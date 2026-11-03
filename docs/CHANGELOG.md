@@ -4,11 +4,6 @@
 
 Ayrıntılı modül notları: `docs/changes/*.md`. Mobil API rehberi: [MOBILE_API_GUIDE.md](MOBILE_API_GUIDE.md).
 
-### Kullanıcı şifresi 6 haneli PIN + hesap kilidi (PIN6)
-
-- **Şifre:** yönetici olmayan hesapların yeni şifresi (kayıt, sıfırlama, değiştirme) tam 6 rakam; çok zayıf PIN'ler (aynı rakamlar, düz artan/azalan, `ababab`) reddedilir (`PASSWORD_INVALID_PIN`, `PASSWORD_PIN_TOO_WEAK`). Yönetici hesapları güçlü şifre kuralında kalır; eski şifreler girişte çalışır (mobil giriş yalnız 6 rakam aldığından uzun şifreliler "Şifremi unuttum" ile yeni PIN belirler). Migration yok.
-- **Kilit:** hesap başına 5 ardışık yanlış şifre → 15 dk `429 ACCOUNT_TEMP_LOCKED` + `Retry-After` (Redis `lf:*`; doğru şifre de kilitliyken reddedilir, hesap var/yok ayırmaz). Ayrıntı: `changes/auth.md`, [MOBILE_API_GUIDE.md](MOBILE_API_GUIDE.md) 1.
-
 ### Resmî ders programı (Excel yükleme, V1070) + yeni hesap varsayılanı
 
 - **Ders programı:** yönetim panelinde `Akademik > Resmî ders programı` (`/admin/academic/timetable`): şablon Excel yüklenir, önce önizleme (program/oturum sayısı, hata ve uyarılar), onaylanınca birim+program bazında değiştirilerek yazılır. Tablolar `official_timetable_batch|entry`; kullanıcı ucu `GET /api/timetable/official`. Ayrıntı: `docs/ADMIN_API.md` "Resmi ders programı". Excel okuyucu bağımlılıksızdır (`XlsxReader`, StAX; XXE ve zip-bombası sınırları).

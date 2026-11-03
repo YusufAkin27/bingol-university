@@ -57,8 +57,6 @@ public class AuthController {
     private final LoginThrottle loginThrottle;
     private final RateLimitProperties limits;
     private final RefreshTokenService refreshTokens;
-    /** Hesap basina gecici kilit (6 haneli PIN korumasi); yoksa (birim testleri) uygulanmaz. */
-    private AccountLock accountLock;
 
     public AuthController(AuthService auth, RateLimiter limiter, I18n i18n, ClientIp clientIp,
                           ClientContexts contexts, JwtService jwt, LoginThrottle loginThrottle,
@@ -72,11 +70,6 @@ public class AuthController {
         this.i18n = i18n;
         this.auth = auth;
         this.limiter = limiter;
-    }
-
-    @org.springframework.beans.factory.annotation.Autowired(required = false)
-    void setAccountLock(AccountLock accountLock) {
-        this.accountLock = accountLock;
     }
 
     /** Kod e-postasi gonderen uclar (register, resend, forgot) icin adres basina ortak gunluk tavan. */
@@ -152,10 +145,6 @@ public class AuthController {
     public MessageResponse resetPassword(@Valid @RequestBody ResetPasswordRequest r, HttpServletRequest http) {
         limiter.check("reset:ip:" + clientIp.limitKey(http), limits.resetIpMax(), Duration.ofMinutes(10));
         auth.resetPassword(r.email(), r.resetToken(), r.newPassword());
-        // E-posta koduyla sahiplik kanitlandi: gecici hesap kilidi kalkar (sahibi 15 dk disarida kalmasin).
-        if (accountLock != null) {
-            accountLock.recordSuccess(AuthService.normalizeEmail(r.email()));
-        }
         return new MessageResponse(i18n.current("msg.reset.done"));
     }
 
@@ -178,26 +167,16 @@ public class AuthController {
         String dev = deviceOf(http);
         // Yalniz BASARISIZ denemeler (e-posta, cihaz|ag) cifti basina sayilir; kilit baskasinin hesabini kapatamaz.
         loginThrottle.check(email, ip, dev);
-        // Hesap kilidi: kilitliyken dogru sifre bile reddedilir; hesap var/yok ayirmaz (sayac e-posta ozetine bagli).
-        if (accountLock != null) {
-            accountLock.requireUnlocked(email);
-        }
         TokenResponse res;
         try {
             res = auth.login(email, r.password(), r.client(), contexts.of(http));
         } catch (ApiException e) {
             if ("INVALID_CREDENTIALS".equals(e.code())) {
                 loginThrottle.recordFailure(email, ip, dev);
-                if (accountLock != null) {
-                    accountLock.recordFailure(email);
-                }
             }
             throw e;
         }
         loginThrottle.recordSuccess(email, ip, dev);
-        if (accountLock != null) {
-            accountLock.recordSuccess(email);
-        }
         return res;
     }
 

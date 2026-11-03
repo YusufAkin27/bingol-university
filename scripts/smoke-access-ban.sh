@@ -10,8 +10,6 @@ set -u
 BASE=${BASE:-http://localhost:8080}
 A=$BASE/api
 ADMIN_EMAIL=${ADMIN_EMAIL:-boss@bingol.edu.tr}
-# Sifre: yonetici hesabi guclu sifre ister (>= 12 karakter), digerleri 6 haneli PIN
-pwfor() { if [ "$1" = "$ADMIN_EMAIL" ]; then echo 'Zk7-Qmv-Lpx92w'; else echo 481952; fi; }
 H='Content-Type: application/json'
 FAIL=0
 SFX=$RANDOM$RANDOM
@@ -24,13 +22,13 @@ idof()  { grep -o '"id":[0-9]*' | head -1 | cut -d: -f2; }
 # kayit + dogrulama -> access token (hesap varsa giris). Ek basliklar: $3...
 register() {
   local email=$1 name=$2
-  curl -s -o /dev/null -X POST -H "$H" $A/auth/register -d "{\"email\":\"$email\",\"password\":\"$(pwfor "$email")\",\"displayName\":\"$name\",\"acceptTerms\":true,\"language\":\"tr\"}"
+  curl -s -o /dev/null -X POST -H "$H" $A/auth/register -d "{\"email\":\"$email\",\"password\":\"Zk7-Qmv-Lpx92w\",\"displayName\":\"$name\",\"acceptTerms\":true,\"language\":\"tr\"}"
   sleep 1
   local c t
   c=$(docker compose logs backend 2>&1 | grep "$email icin" | grep -o 'kodu: [0-9]*' | tail -1 | cut -d' ' -f2)
-  t=$(curl -s -X POST -H "$H" $A/auth/verify-email -d "{\"email\":\"$email\",\"code\":\"$c\",\"password\":\"$(pwfor "$email")\",\"client\":\"mobile\"}" | grep -o '"accessToken":"[^"]*' | cut -d'"' -f4)
+  t=$(curl -s -X POST -H "$H" $A/auth/verify-email -d "{\"email\":\"$email\",\"code\":\"$c\",\"password\":\"Zk7-Qmv-Lpx92w\",\"client\":\"mobile\"}" | grep -o '"accessToken":"[^"]*' | cut -d'"' -f4)
   if [ -z "$t" ]; then
-    t=$(curl -s -X POST -H "$H" $A/auth/login -d "{\"email\":\"$email\",\"password\":\"$(pwfor "$email")\"}" | grep -o '"accessToken":"[^"]*' | cut -d'"' -f4)
+    t=$(curl -s -X POST -H "$H" $A/auth/login -d "{\"email\":\"$email\",\"password\":\"Zk7-Qmv-Lpx92w\"}" | grep -o '"accessToken":"[^"]*' | cut -d'"' -f4)
   fi
   echo "$t"
 }
@@ -78,25 +76,25 @@ echo "== cihaz engeli (VPN'den bagimsiz)"
 DEV1="smoke-dev-$SFX-aaaa"; DEV2="smoke-dev-$SFX-bbbb"
 U="smkban$SFX@bingol.edu.tr"
 TU=$(register "$U" "Smoke Ban")
-check "kullanici giris (cihaz 1)" 200 "$(code -X POST -H "$H" -H "X-Device-Id: $DEV1" -H "X-Device-Platform: ANDROID" -H "X-App-Version: 1.0.0" -H "X-Forwarded-For: 203.0.113.201" $A/auth/login -d "{\"email\":\"$U\",\"password\":\"$(pwfor "$U")\",\"client\":\"mobile\"}")"
+check "kullanici giris (cihaz 1)" 200 "$(code -X POST -H "$H" -H "X-Device-Id: $DEV1" -H "X-Device-Platform: ANDROID" -H "X-App-Version: 1.0.0" -H "X-Forwarded-For: 203.0.113.201" $A/auth/login -d "{\"email\":\"$U\",\"password\":\"Zk7-Qmv-Lpx92w\",\"client\":\"mobile\"}")"
 UID1=$(adm "$A/admin/users?q=$U" | idof)
 has "kullanici cihaz listesi" '"deviceShort"' "$(adm $A/admin/users/$UID1/devices)"
 R=$(adm -X POST $A/admin/access-bans -d "{\"kind\":\"DEVICE\",\"value\":\"$DEV1\",\"reasonCode\":\"FRAUD\"}")
 has "cihaz engeli (ham deger saklanmaz)" '"kind":"DEVICE"' "$R"
 case "$R" in *"$DEV1"*) echo "  FAIL ham cihaz kimligi yanitta"; FAIL=1;; *) echo "  ok   ham cihaz kimligi yanitta yok";; esac
 DBID=$(echo "$R" | idof)
-check "engelli cihaz: baska IP'den (VPN) giris 403" 403 "$(code -X POST -H "$H" -H "X-Device-Id: $DEV1" -H "X-Forwarded-For: 203.0.113.202" $A/auth/login -d "{\"email\":\"$U\",\"password\":\"$(pwfor "$U")\",\"client\":\"mobile\"}")"
-check "engelli cihaz: anonim kayit ucu 403" 403 "$(code -X POST -H "$H" -H "X-Device-Id: $DEV1" $A/auth/register -d '{"email":"x@bingol.edu.tr","password":"481952","displayName":"X","acceptTerms":true}')"
-check "baska cihazla giris 200" 200 "$(code -X POST -H "$H" -H "X-Device-Id: $DEV2" -H "X-Forwarded-For: 203.0.113.203" $A/auth/login -d "{\"email\":\"$U\",\"password\":\"$(pwfor "$U")\",\"client\":\"mobile\"}")"
+check "engelli cihaz: baska IP'den (VPN) giris 403" 403 "$(code -X POST -H "$H" -H "X-Device-Id: $DEV1" -H "X-Forwarded-For: 203.0.113.202" $A/auth/login -d "{\"email\":\"$U\",\"password\":\"Zk7-Qmv-Lpx92w\",\"client\":\"mobile\"}")"
+check "engelli cihaz: anonim kayit ucu 403" 403 "$(code -X POST -H "$H" -H "X-Device-Id: $DEV1" $A/auth/register -d '{"email":"x@bingol.edu.tr","password":"Zk7-Qmv-Lpx92w","displayName":"X","acceptTerms":true}')"
+check "baska cihazla giris 200" 200 "$(code -X POST -H "$H" -H "X-Device-Id: $DEV2" -H "X-Forwarded-For: 203.0.113.203" $A/auth/login -d "{\"email\":\"$U\",\"password\":\"Zk7-Qmv-Lpx92w\",\"client\":\"mobile\"}")"
 check "cihaz basligi yok: engel uygulanamaz (200)" 200 "$(code $A/news)"
 
 echo "== kullanici + cihaz tek tikla engel, mevcut oturumlar kapanir"
-TU2=$(curl -s -X POST -H "$H" -H "X-Device-Id: $DEV2" $A/auth/login -d "{\"email\":\"$U\",\"password\":\"$(pwfor "$U")\",\"client\":\"mobile\"}" | grep -o '"accessToken":"[^"]*' | cut -d'"' -f4)
+TU2=$(curl -s -X POST -H "$H" -H "X-Device-Id: $DEV2" $A/auth/login -d "{\"email\":\"$U\",\"password\":\"Zk7-Qmv-Lpx92w\",\"client\":\"mobile\"}" | grep -o '"accessToken":"[^"]*' | cut -d'"' -f4)
 check "oturum acik" 200 "$(code -H "Authorization: Bearer $TU2" $A/auth/me)"
 R=$(adm -X POST $A/admin/users/$UID1/block-access -d '{"devices":true,"ips":false,"userBan":true,"reasonCode":"ABUSE","note":"smoke"}')
 has "block-access: kullanici engeli" '"kind":"USER"' "$R"
 check "oturum kapandi (401)" 401 "$(code -H "Authorization: Bearer $TU2" $A/auth/me)"
-check "engelli kullanici giris 403" 403 "$(code -X POST -H "$H" -H "X-Device-Id: smoke-fresh-$SFX-cccc" $A/auth/login -d "{\"email\":\"$U\",\"password\":\"$(pwfor "$U")\",\"client\":\"mobile\"}")"
+check "engelli kullanici giris 403" 403 "$(code -X POST -H "$H" -H "X-Device-Id: smoke-fresh-$SFX-cccc" $A/auth/login -d "{\"email\":\"$U\",\"password\":\"Zk7-Qmv-Lpx92w\",\"client\":\"mobile\"}")"
 check "yanlis sifre ban durumunu sizdirmaz (401)" 401 "$(code -X POST -H "$H" -H "X-Device-Id: smoke-fresh-$SFX-cccc" $A/auth/login -d "{\"email\":\"$U\",\"password\":\"yanlis\",\"client\":\"mobile\"}")"
 
 echo "== istatistik"

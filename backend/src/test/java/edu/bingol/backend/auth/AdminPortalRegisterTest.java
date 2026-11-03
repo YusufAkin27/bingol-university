@@ -50,7 +50,6 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 class AdminPortalRegisterTest {
 
     private static final String PW = "Kx7-mQ2vLp9z"; // 12 karakter: yonetici asgari uzunlugu
-    private static final String PIN = "481952"; // yonetici olmayan hesap: 6 haneli PIN
     private static final String ADMIN_GMAIL = "ops.admin@gmail.com";
     private static final String STUDENT = "ali@bingol.edu.tr";
 
@@ -121,7 +120,7 @@ class AdminPortalRegisterTest {
     void generalRegistrationOfAUniversityEmailIsUnchanged() {
         when(users.findByEmail(STUDENT)).thenReturn(Optional.empty());
 
-        auth.register(STUDENT, PIN, "Ali", Lang.TR, null, null, null, false);
+        auth.register(STUDENT, "Kx7-mQ2vLp9z", "Ali", Lang.TR, null, null, null, false);
 
         verify(verification).issue(STUDENT, Lang.TR);
         verify(pending).save(org.mockito.ArgumentMatchers.eq(STUDENT), any(Pending.class));
@@ -209,7 +208,7 @@ class AdminPortalRegisterTest {
         when(users.findByEmail(STUDENT)).thenReturn(Optional.of(verified));
 
         ApiException e = assertThrows(ApiException.class,
-                () -> auth.register(STUDENT, PIN, "Ali", Lang.TR, null, null, null, false));
+                () -> auth.register(STUDENT, PW, "Ali", Lang.TR, null, null, null, false));
 
         assertEquals("EMAIL_ALREADY_REGISTERED", e.code());
     }
