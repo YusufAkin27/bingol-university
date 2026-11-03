@@ -31,6 +31,12 @@ export interface MenuDay {
   items: string[];
   /** Günün isteğe bağlı fotoğrafı (yoksa null/eksik). */
   imageUrl?: string | null;
+  /** Yemek başına yönetici kalorisi (items ile aynı sırada); eski sunucularda yok. */
+  dishes?: { name: string; kcal: number | null }[];
+  /** Kalorisi bilinen yemeklerin toplamı (hiçbiri bilinmiyorsa null). */
+  totalKcal?: number | null;
+  /** Tüm yemeklerin kalorisi girilmiş mi (false ise toplam eksiktir). */
+  kcalComplete?: boolean;
 }
 
 export interface SourceStatus {
