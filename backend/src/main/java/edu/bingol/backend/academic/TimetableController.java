@@ -19,6 +19,8 @@ import edu.bingol.backend.common.CurrentUser;
 import edu.bingol.backend.common.RateLimiter;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -39,13 +41,17 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api")
 public class TimetableController {
 
+    private static final Logger log = LoggerFactory.getLogger(TimetableController.class);
+
     private final TimetableService service;
     private final ExamService exams;
+    private final OfficialTimetableSeeder seeder;
     private final RateLimiter limiter;
 
-    public TimetableController(TimetableService service, ExamService exams, RateLimiter limiter) {
+    public TimetableController(TimetableService service, ExamService exams, OfficialTimetableSeeder seeder, RateLimiter limiter) {
         this.service = service;
         this.exams = exams;
+        this.seeder = seeder;
         this.limiter = limiter;
     }
 
@@ -65,7 +71,16 @@ public class TimetableController {
 
     @GetMapping("/timetable")
     public TimetableView timetable(@RequestParam(required = false) Long semesterId) {
-        return service.timetable(read(), semesterId);
+        Long uid = read();
+        if (semesterId == null) {
+            // ilk acilista resmi program kisisel programa kopyalanir; hata okumayi bozmaz
+            try {
+                seeder.autoSeed(uid);
+            } catch (RuntimeException e) {
+                log.warn("resmi program tohumlanamadi (kullanici {}): {}", uid, e.toString());
+            }
+        }
+        return service.timetable(uid, semesterId);
     }
 
     @PostMapping("/timetable/courses")

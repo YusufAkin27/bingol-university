@@ -13,6 +13,7 @@ public class AcademicAccountPurger {
             "DELETE FROM tt_session WHERE course_id IN (SELECT id FROM tt_course WHERE user_id = ?)",
             "DELETE FROM tt_course WHERE user_id = ?",
             "DELETE FROM tt_semester WHERE user_id = ?",
+            "DELETE FROM tt_official_seed WHERE user_id = ?",
             "DELETE FROM announcement_read WHERE user_id = ?");
 
     private final JdbcTemplate jdbc;

@@ -4,6 +4,11 @@
 
 Ayrıntılı modül notları: `docs/changes/*.md`. Mobil API rehberi: [MOBILE_API_GUIDE.md](MOBILE_API_GUIDE.md).
 
+### Resmi ders programı kişisel programa tohumlanır (V1160)
+
+- **Tohumlama:** `GET /api/timetable`, kişisel dersi olmayan ve resmi programı tek birimden gelen öğrencinin programını resmi programdan otomatik doldurur; `tt_official_seed` işareti sayesinde dersler silinse de aynı dönem için tekrarlanmaz. Çoklu birimde mobil birim seçtirir.
+- **Yeni uçlar:** `GET /api/timetable/official/status`, `POST /api/timetable/official/apply` (`unit`, `replace`, `force`); yeni hata kodları `OFFICIAL_UNIT_REQUIRED` (422), `OFFICIAL_TIMETABLE_NOT_FOUND` (404). Ders eklemede kod/renk/not/derslik artık zorunlu değil. Ayrıntı: [MOBILE_API_GUIDE.md](MOBILE_API_GUIDE.md) "Resmi programdan kişisel program".
+
 ### Menü: yemek adına bağlı kalori + içeriğe bağlı görsel (V1040)
 
 - **Kalori:** yönetici bir yemeğe kalori girince değer yemek adına (`menu_dish_calorie`) da kaydedilir; aynı adlı yemek tarihe özel satırı olmayan günlerde (gelecek ay menüsü dahil) otomatik kalorili görünür. Kalori silmek kayıtlı değeri de siler.

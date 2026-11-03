@@ -47,7 +47,7 @@ class AcademicServiceTest {
     @BeforeEach
     void setUp() {
         for (String t : List.of("announcement_read", "department_announcement", "academic_event", "exam_schedule", "tt_exam",
-                "tt_session", "tt_course", "tt_semester")) {
+                "tt_session", "tt_course", "tt_semester", "tt_official_seed")) {
             jdbc.update("DELETE FROM " + t);
         }
         jdbc.update("DELETE FROM app_user WHERE email LIKE 'acd-%'");
@@ -95,6 +95,28 @@ class AcademicServiceTest {
         // baska kullanici etkilenmez
         tt.createCourse(uid2, course("Fizik", 1, "10:00", "11:00", false));
         assertEquals(3, tt.timetable(uid, null).courses().size());
+    }
+
+    /** Sozlesme A: kod, renk, not, derslik zorunlu degil; renk otomatik atanir. */
+    @Test
+    void createCourseWithOnlyNameAndSession() {
+        CourseView c = tt.createCourse(uid, new CourseRequest("Fizik", null, null, null, null, null, null,
+                List.of(new SessionIn(2, "09:00", "10:00", null)), null, null, null, null));
+        assertEquals("Fizik", c.name());
+        assertNull(c.code());
+        assertNull(c.note());
+        assertNull(c.instructor());
+        assertNull(c.sessions().get(0).room());
+        assertTrue(TimetableLogic.COLORS.contains(c.color()), "renk otomatik atanir");
+        // ayni ad her zaman ayni rengi alir (belirleyici)
+        assertEquals(c.color(), tt.createCourse(uid2, new CourseRequest("Fizik", "", "", "", "", null, null,
+                List.of(new SessionIn(2, "09:00", "10:00", "")), null, null, null, null)).color());
+        // duzenleme de yalniz istenen alani ister
+        CourseView u = tt.updateCourse(uid, c.id(), new CourseRequest("Fizik 1", null, null, null, null, null, null,
+                null, null, null, null, null));
+        assertEquals("Fizik 1", u.name());
+        assertEquals(c.color(), u.color());
+        assertEquals(1, u.sessions().size());
     }
 
     @Test
