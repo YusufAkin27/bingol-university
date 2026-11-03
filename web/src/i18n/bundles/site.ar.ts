@@ -18,5 +18,6 @@ import childSafety from '../ar/child-safety';
 import siteTrust from '../ar/site-trust';
 import siteRd10 from '../ar/site-rd10';
 
-export default { ...common, ...site, ...siteNew, ...siteV3, ...legal, ...pages, ...supportPublic, ...seo, ...childSafety, ...siteTrust, ...siteRd10, ...siteRd01, ...siteRd02, ...siteRd03, ...siteRd04, ...siteRd05, ...siteRd06, ...siteRd07, ...siteRd08 };
+export default { ...common, ...site, ...siteNew, ...siteV3, ...legal, ...pages, ...supportPublic, ...seo, ...childSafety, ...siteTrust, ...siteRd10, ...siteRd01, ...siteRd02, ...siteRd03, ...siteRd04, ...siteRd05, ...siteRd06, ...siteRd07, ...siteRd08, ...siteRd09 };
 import siteRd08 from '../ar/site-rd08';
+import siteRd09 from '../ar/site-rd09';

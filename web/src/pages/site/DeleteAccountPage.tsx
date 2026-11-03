@@ -27,7 +27,8 @@ export const DELETE_TABLE_ROWS = 10;
 
 export function deleteTableKeys(): string[] {
   const keys = ['pg.delete.t.caption', 'pg.delete.t.data', 'pg.delete.t.action', 'pg.delete.t.period'];
-  for (let i = 1; i <= DELETE_TABLE_ROWS; i++) for (const c of ['a', 'b', 'c']) keys.push(`pg.delete.t.r${i}.${c}`);
+  for (let i = 1; i <= DELETE_TABLE_ROWS; i++)
+    for (const c of ['a', 'b', 'c']) keys.push(`pg.delete.t.r${i}.${c}`);
   return keys;
 }
 
@@ -40,8 +41,10 @@ export default function DeleteAccountPage() {
     <InfoPage
       slug="delete"
       path={paths.site.deleteAccount}
+      related={false}
+      numbered={false}
       sections={DELETE_SECTIONS}
-      figure={{ s1: <PhoneMockup shot="delete" width="min(62vw, 240px)" tilt={-2} /> }}
+      figure={{ s1: <PhoneMockup shot="delete" width="min(72vw, 300px)" tilt={-2} /> }}
       intro={
         <p className={styles.app} data-testid="delete-app-line">
           {operatorName
@@ -56,17 +59,29 @@ export default function DeleteAccountPage() {
               <caption className="sr-only">{t('pg.delete.t.caption')}</caption>
               <thead className={styles.thead} role="rowgroup">
                 <tr role="row">
-                  <th scope="col" role="columnheader">{t('pg.delete.t.data')}</th>
-                  <th scope="col" role="columnheader">{t('pg.delete.t.action')}</th>
-                  <th scope="col" role="columnheader">{t('pg.delete.t.period')}</th>
+                  <th scope="col" role="columnheader">
+                    {t('pg.delete.t.data')}
+                  </th>
+                  <th scope="col" role="columnheader">
+                    {t('pg.delete.t.action')}
+                  </th>
+                  <th scope="col" role="columnheader">
+                    {t('pg.delete.t.period')}
+                  </th>
                 </tr>
               </thead>
               <tbody role="rowgroup">
                 {Array.from({ length: DELETE_TABLE_ROWS }, (_, i) => (
                   <tr key={i} role="row">
-                    <th scope="row" role="rowheader">{k(`pg.delete.t.r${i + 1}.a`)}</th>
-                    <td role="cell" data-label={t('pg.delete.t.action')}>{k(`pg.delete.t.r${i + 1}.b`)}</td>
-                    <td role="cell" data-label={t('pg.delete.t.period')}>{k(`pg.delete.t.r${i + 1}.c`)}</td>
+                    <th scope="row" role="rowheader">
+                      {k(`pg.delete.t.r${i + 1}.a`)}
+                    </th>
+                    <td role="cell" data-label={t('pg.delete.t.action')}>
+                      {k(`pg.delete.t.r${i + 1}.b`)}
+                    </td>
+                    <td role="cell" data-label={t('pg.delete.t.period')}>
+                      {k(`pg.delete.t.r${i + 1}.c`)}
+                    </td>
                   </tr>
                 ))}
               </tbody>

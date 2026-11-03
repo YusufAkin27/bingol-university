@@ -52,38 +52,47 @@ function LegalDocPage({ type }: { type: LegalType }) {
     return () => document.documentElement.classList.remove('print-doc');
   }, []);
 
-  const lead = doc.data
-    ? `${t('legal.version', { version: doc.data.version })}, ${t('legal.publishedAt', {
-        date: formatDate(doc.data.publishedAt),
-      })}`
-    : ' '; // yüklenirken bir satır yer tutar: sürüm satırı gelince içerik kaymaz (CLS)
   const older = (versions.data ?? []).filter((v) => !doc.data || v.version < doc.data.version);
+  const idx = TYPES.indexOf(type);
+  const prev = idx > 0 ? TYPES[idx - 1] : null;
+  const next = idx >= 0 && idx < TYPES.length - 1 ? TYPES[idx + 1] : null;
 
   return (
     <>
       <div className={styles.noPrint}>
-        <PageHero
-          title={title}
-          lead={lead}
-          crumbs={[{ label: t('legal.allDocs'), to: LEGAL_INDEX }, { label: title }]}
-        />
-      </div>
-      <section className={`${shared.section} ${shared.sectionTop}`}>
-        <div className="container">
-          <div className={`${styles.tools} ${styles.noPrint}`}>
-            <Link to={paths.site.dataRequest} className={styles.toolLink}>
-              {t('legal.dataRequest')}
-            </Link>
-            <Button
-              variant="secondary"
-              size="md"
-              leftIcon={<Icon name="file" size={16} />}
-              onClick={() => window.print()}
-            >
-              {t('legal.print')}
-            </Button>
+        <PageHero title={title} crumbs={[{ label: t('legal.allDocs'), to: LEGAL_INDEX }, { label: title }]}>
+          {/* Sürüm/tarih/araçlar tek satırda; yüklenirken yer tutulur (CLS) */}
+          <div className={styles.meta}>
+            {doc.data && (
+              <>
+                <span className={`${styles.pill} ${styles.pillCurrent}`}>
+                  <Icon name="check" size={14} />
+                  {t('legal.version', { version: doc.data.version })} · {t('site.rd09.legal.current')}
+                </span>
+                <span className={styles.pill}>
+                  <Icon name="clock" size={14} />
+                  {t('legal.publishedAt', { date: formatDate(doc.data.publishedAt) })}
+                </span>
+              </>
+            )}
+            <span className={styles.metaTools}>
+              <Link to={paths.site.dataRequest} className={styles.toolLink}>
+                {t('legal.dataRequest')}
+              </Link>
+              <Button
+                variant="secondary"
+                size="md"
+                leftIcon={<Icon name="file" size={16} />}
+                onClick={() => window.print()}
+              >
+                {t('legal.print')}
+              </Button>
+            </span>
           </div>
-
+        </PageHero>
+      </div>
+      <section className={`${shared.section} ${styles.docSection}`}>
+        <div className="container">
           {doc.isLoading && (
             <div className={styles.skeleton} role="status" aria-label={t('common.loading')}>
               {[90, 70, 85, 60, 80, 50].map((w, i) => (
@@ -101,7 +110,9 @@ function LegalDocPage({ type }: { type: LegalType }) {
                 onRetry={() => void doc.refetch()}
               />
             ))}
-          {doc.data && <LegalDocument title={doc.data.title} content={doc.data.content} docLang={doc.data.lang} />}
+          {doc.data && (
+            <LegalDocument title={doc.data.title} content={doc.data.content} docLang={doc.data.lang} />
+          )}
 
           {(type === 'PRIVACY' || type === 'KVKK') && (
             <div className={styles.notice}>
@@ -110,8 +121,8 @@ function LegalDocPage({ type }: { type: LegalType }) {
           )}
 
           <div className={`${styles.more} ${styles.noPrint}`}>
-            <section aria-labelledby="legal-versions">
-              <h2 id="legal-versions" className={shared.h3}>
+            <section aria-labelledby="legal-versions" className={styles.history}>
+              <h2 id="legal-versions" className={styles.moreTitle}>
                 {t('legal.versions')}
               </h2>
               {older.length === 0 ? (
@@ -126,20 +137,39 @@ function LegalDocPage({ type }: { type: LegalType }) {
                 </ul>
               )}
             </section>
-            <nav aria-labelledby="legal-others">
-              <h2 id="legal-others" className={shared.h3}>
+            <nav aria-labelledby="legal-others" className={styles.pager}>
+              <h2 id="legal-others" className="sr-only">
                 {t('legal.otherDocs')}
               </h2>
-              <ul>
-                {TYPES.filter((x) => x !== type).map((x) => (
-                  <li key={x}>
-                    <Link to={paths.site.legal(x)}>{t(`legal.title.${x}`)}</Link>
-                  </li>
-                ))}
-                <li>
-                  <Link to={LEGAL_INDEX}>{t('legal.allDocs')}</Link>
-                </li>
-              </ul>
+              {prev ? (
+                <Link to={paths.site.legal(prev)} className={styles.pagerLink} rel="prev">
+                  <Icon name="chevronLeft" size={20} className={styles.flip} />
+                  <span>
+                    <small>{t('site.rd09.legal.prev')}</small>
+                    <strong>{t(`legal.title.${prev}`)}</strong>
+                  </span>
+                </Link>
+              ) : (
+                <span />
+              )}
+              {next ? (
+                <Link
+                  to={paths.site.legal(next)}
+                  className={`${styles.pagerLink} ${styles.pagerNext}`}
+                  rel="next"
+                >
+                  <span>
+                    <small>{t('site.rd09.legal.next')}</small>
+                    <strong>{t(`legal.title.${next}`)}</strong>
+                  </span>
+                  <Icon name="chevronRight" size={20} className={styles.flip} />
+                </Link>
+              ) : (
+                <span />
+              )}
+              <Link to={LEGAL_INDEX} className={styles.allLink}>
+                {t('legal.allDocs')}
+              </Link>
             </nav>
           </div>
         </div>

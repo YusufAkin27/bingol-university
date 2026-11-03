@@ -1,6 +1,7 @@
+/* Site haritası: gruplar kart olarak; bağlantı satırları ince çizgiyle ayrılır, dokunma hedefi >= 44 px */
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 16rem), 1fr));
   gap: var(--space-4);
 }
 .grid section {
@@ -11,6 +12,11 @@
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   background: var(--surface);
+}
+.grid h2 {
+  padding-block-end: var(--space-2);
+  border-block-end: 1px solid var(--border);
+  font-size: var(--text-base);
 }
 .grid ul {
   list-style: none;
@@ -23,4 +29,16 @@
   display: flex;
   align-items: center;
   min-height: 44px;
+  color: var(--text);
+  font-weight: 500;
+  text-decoration: none;
+}
+.grid li a:hover {
+  color: var(--primary);
+  text-decoration: underline;
+}
+.grid li a:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+  border-radius: var(--radius-xs);
 }
