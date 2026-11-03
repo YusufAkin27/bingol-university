@@ -97,6 +97,26 @@ export const entries: SearchEntry[] = [
     description: 'Liste görünümünde birden çok olayı seçip aynı anda işlem yapar.',
   },
 
+  // ---- Resmî ders programı ----
+  {
+    id: 'acdTimetable.upload',
+    kind: 'action',
+    page: 'acdTimetable',
+    title: 'Ders programı Excel yükle',
+    anchor: 'tt-upload',
+    keywords: ['excel', 'xlsx', 'ders programı yükle', 'toplu ders programı', 'şablon'],
+    description: 'Şablona uygun Excel ile bölüm ve sınıf bazlı ders programını yükler (önce önizleme gösterilir).',
+  },
+  {
+    id: 'acdTimetable.filters',
+    kind: 'field',
+    page: 'acdTimetable',
+    title: 'Ders programı dönemi ve arama',
+    anchor: 'tt-filters',
+    keywords: ['dönem', 'güz', 'bahar', 'program ara', 'birim'],
+    description: 'Yüklü ders programlarını döneme, birime veya programa göre daraltır.',
+  },
+
   // ---- Sınavlar ----
   {
     id: 'acdExams.add',

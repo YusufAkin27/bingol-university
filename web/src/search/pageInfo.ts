@@ -107,6 +107,10 @@ export const pageInfo: Record<string, PageInfo> = {
     d: 'Vize, final ve bütünleme sınav tarihleri.',
     k: ['sınav', 'vize', 'final', 'bütünleme', 'sınav tarihi', 'sınav günü', 'exam'],
   },
+  acdTimetable: {
+    d: 'Bölüm ve sınıf bazlı ders programını Excel ile yükle.',
+    k: ['ders programı', 'haftalık program', 'excel yükle', 'ders saati', 'program yükle', 'timetable', 'güz programı'],
+  },
   acdAnnouncements: {
     d: 'Fakülte ve bölümlere özel duyuru gönder.',
     k: ['duyuru', 'bölüm duyurusu', 'fakülte duyurusu', 'toplu duyuru', 'öğrencilere haber ver'],
