@@ -14,8 +14,9 @@ import 'register_page.dart';
 import 'verify_code_page.dart';
 import 'widgets/auth_motion.dart';
 import 'widgets/auth_ref.dart';
+import 'widgets/login_underline_field.dart';
 
-/// Giriş (Stitch 01): beyaz kart içinde e-posta/okul numarası + şifre; üstte bekleyen doğrulama ve
+/// Giriş (lg4, tipografik): kartsız, büyük ölçekli okul numarası + şifre satırları, ince alt çizgiler; üstte bekleyen doğrulama ve
 /// "başka cihazdan giriş" bantları; hız sınırı ve ağ hataları satır içi bantla gösterilir.
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key, required this.session});
@@ -200,22 +201,40 @@ class _LoginPageState extends State<LoginPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const Align(alignment: AlignmentDirectional.centerStart, child: RefBrandMark(size: 44)),
-                  const SizedBox(height: 28),
+                  // Marka satırı: küçük karo + kelime işareti; klavye açılınca sayfa yer açsın diye kapanır.
+                  AnimatedSize(
+                    duration: AppMotion.of(context, AppMotion.normal),
+                    curve: AppMotion.enter,
+                    alignment: Alignment.topCenter,
+                    child: keyboard
+                        ? const SizedBox(width: double.infinity)
+                        : Padding(
+                            padding: const EdgeInsets.only(top: 8, bottom: 48),
+                            child: Row(
+                              children: [
+                                const RefBrandMark(size: 32),
+                                const SizedBox(width: 10),
+                                Text('BÜ Kampüs', style: tx.titleMedium!.copyWith(color: t.ink, fontWeight: FontWeight.w700, letterSpacing: -.2)),
+                              ],
+                            ),
+                          ),
+                  ),
                   Semantics(
                     header: true,
-                    child: Text(l.loginWelcome, style: tx.headlineMedium!.copyWith(color: t.ink, fontWeight: FontWeight.w700)),
+                    child: Text(
+                      l.loginWelcome,
+                      style: tx.displayMedium!.copyWith(color: t.ink, fontWeight: FontWeight.w800, height: 1.1),
+                    ),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 10),
                   Text(l.loginSubtitleNumber, style: tx.bodyLarge!.copyWith(color: t.mut)),
-                  const SizedBox(height: 32),
-                  // Örnek e-posta satırı (helper) gösterilmez: alan etiketi yeterli.
-                  RefIdentifierField(controller: _email, enabled: !_busy, helper: false, numberOnly: true),
-                  const SizedBox(height: 24),
-                  RefPasswordField(
+                  SizedBox(height: keyboard ? 28 : 56),
+                  // Örnek e-posta satırı gösterilmez: alan etiketi yeterli. Yalnız okul numarası (rakam klavyesi).
+                  LoginNumberField(controller: _email, enabled: !_busy),
+                  const SizedBox(height: 28),
+                  LoginPasswordField(
                     controller: _password,
                     enabled: !_busy,
-                    hint: l.loginPasswordRequired.replaceAll(RegExp(r'\.$'), ''),
                     validator: (v) => (v == null || v.isEmpty) ? l.loginPasswordRequired : null,
                     onSubmitted: _submit,
                   ),
