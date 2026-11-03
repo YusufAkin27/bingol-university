@@ -239,89 +239,85 @@ void main() {
     }
   });
 
-  group('RegisterPage akademik', () {
-    testWidgets('adım adım: boş adım ilerletmez, hatalar gösterilir; istek atılmaz', (tester) async {
+  group('RegisterPage (tek sayfa)', () {
+    testWidgets('üç alan + bağlantılı onay satırı; adım çubuğu, bölüm/sınıf, şifre gücü ve bilgi notu yok', (tester) async {
       useScreen(tester, const Size(390, 1800));
       final b = FakeBackend();
       fakeCatalog(b);
       await tester.pumpWidget(buildApp(RegisterPage(session: makeSession(b, signedIn: false))));
       await settle(tester, const Duration(milliseconds: 300));
-      expect(find.text('Adım 1/3'), findsOneWidget);
-      await tester.tap(find.text('Devam'));
-      await tester.pump();
-      expect(find.text('Bölümünüzü seçin.'), findsOneWidget);
-      expect(find.text('Sınıfınızı seçin.'), findsOneWidget);
-      expect(find.text('Adım 1/3'), findsOneWidget);
-      await fillAcademic(tester);
-      await tester.tap(find.text('Devam'));
-      await tester.pump(const Duration(milliseconds: 400));
-      expect(find.text('Adım 2/3'), findsOneWidget);
-      await tester.tap(find.text('Devam'));
+      expect(find.byType(TextFormField), findsNWidgets(3));
+      expect(find.text('Ad soyad'), findsOneWidget);
+      expect(find.text('Okul numaranız'), findsOneWidget);
+      expect(find.text('Şifre (en az 6 karakter)'), findsOneWidget);
+      expect(find.text('Bölüm seçin'), findsNothing);
+      expect(find.text('Sınıf seçin'), findsNothing);
+      expect(find.textContaining('Adım'), findsNothing);
+      expect(find.text('Şifre gücü'), findsNothing);
+      expect(find.byType(CheckboxListTile), findsNothing);
+      expect(find.textContaining('kabul etmiş sayılırsınız', findRichText: true), findsOneWidget);
+      expect(find.textContaining('Kullanım koşulları', findRichText: true), findsOneWidget);
+      expect(find.textContaining('Zaten hesabınız var mı?', findRichText: true), findsOneWidget);
+      // Katalog bu sayfada hiç istenmez (bölüm/sınıf profil tamamlamada).
+      expect(b.count('/catalog/academic'), 0);
+      await unmount(tester);
+    });
+
+    testWidgets('boş form: ad, numara ve şifre hataları; istek atılmaz', (tester) async {
+      useScreen(tester, const Size(390, 1800));
+      final b = FakeBackend();
+      await tester.pumpWidget(buildApp(RegisterPage(session: makeSession(b, signedIn: false))));
+      await settle(tester, const Duration(milliseconds: 300));
+      await tester.tap(find.text('Kayıt ol').last);
       await tester.pump();
       expect(find.text('Adınızı ve soyadınızı girin.'), findsOneWidget);
-      // Kayıt alanı girişle aynıdır (yalnız okul numarası): boş alan "Okul numaranızı girin."
       expect(find.text('Okul numaranızı girin.'), findsOneWidget);
-      expect(find.text('Adım 2/3'), findsOneWidget);
+      expect(find.text('Şifre en az 6 karakter olmalı.'), findsOneWidget);
       expect(b.count('/auth/register'), 0);
       await unmount(tester);
     });
 
-    testWidgets('sınıf seçici bölüm seçici gibi liste; fakülte seçici ve şifre tekrar alanı yok', (tester) async {
+    testWidgets('5 karakterli şifre uyarılır; ad boşken yalnız ad hatası; istek atılmaz', (tester) async {
       useScreen(tester, const Size(390, 1800));
       final b = FakeBackend();
-      fakeCatalog(b);
       await tester.pumpWidget(buildApp(RegisterPage(session: makeSession(b, signedIn: false))));
       await settle(tester, const Duration(milliseconds: 300));
-      expect(find.text('Fakülte seçin'), findsNothing);
-      expect(find.text('Şifre (tekrar)'), findsNothing);
-      expect(find.byType(TextFormField), findsNothing);
-      await tester.tap(find.text('Bölüm seçin'));
-      await pickFromSearch(tester, 'bilg', 'Bilgisayar Mühendisliği');
-      expect(find.text('Bilgisayar Mühendisliği'), findsOneWidget);
-      // Otomatik sınıf önerilmez: sınıf seçilmeden ilerlenemez.
-      await tester.tap(find.text('Devam'));
+      await fillRegister(tester, password: '12345');
+      await tester.tap(find.text('Kayıt ol').last);
       await tester.pump();
-      expect(find.text('Sınıfınızı seçin.'), findsOneWidget);
-      expect(find.text('Bölümünüzü seçin.'), findsNothing);
+      expect(find.text('Şifre en az 6 karakter olmalı.'), findsOneWidget);
+      await fillRegister(tester, name: '  ', password: '123456');
+      await tester.tap(find.text('Kayıt ol').last);
+      await tester.pump();
+      expect(find.text('Adınızı ve soyadınızı girin.'), findsOneWidget);
+      expect(find.text('Şifre en az 6 karakter olmalı.'), findsNothing);
+      expect(b.count('/auth/register'), 0);
       await unmount(tester);
     });
 
-    testWidgets('son adımda onay kutusu yok, bilgi satırı var; gövdeye faculty/department/grade/acceptTerms eklenir', (tester) async {
+    testWidgets('gövde: email, password, displayName, acceptTerms; fakülte/bölüm/sınıf YOK; sonra VerifyCodePage', (tester) async {
       useScreen(tester, const Size(390, 1800));
       final b = FakeBackend();
-      fakeCatalog(b);
       await tester.pumpWidget(buildApp(RegisterPage(session: makeSession(b, signedIn: false))));
       await settle(tester, const Duration(milliseconds: 300));
-      await fillRegister(tester);
-      expect(find.byType(CheckboxListTile), findsNothing);
-      expect(find.textContaining('kabul etmiş sayılırsınız', findRichText: true), findsOneWidget);
+      await fillRegister(tester, password: '123456');
       await tester.tap(find.text('Kayıt ol').last);
       await settle(tester, const Duration(milliseconds: 500));
       final body = b.bodies['POST /auth/register'] as Map;
-      expect(body['faculty'], 'Mühendislik Fakültesi');
-      expect(body['department'], 'Bilgisayar Mühendisliği');
-      expect(body['grade'], '3');
+      expect(body['email'], '226051015@bingol.edu.tr');
+      expect(body['password'], '123456');
+      expect(body['displayName'], 'Ayşe Yılmaz');
       expect(body['acceptTerms'], true);
-      // Parola kaniti: doğrulama adımında kayıtta girilen şifre yeniden gönderilir (parola alanı çıkmaz)
+      expect(body.containsKey('faculty'), isFalse);
+      expect(body.containsKey('department'), isFalse);
+      expect(body.containsKey('grade'), isFalse);
+      // Parola kanıtı: doğrulama adımında kayıtta girilen şifre yeniden gönderilir (parola alanı çıkmaz)
       b.on('/auth/verify-email', {'accessToken': 'a', 'refreshToken': 'r'});
       expect(find.byType(VerifyCodePage), findsOneWidget);
       expect(find.text('Kayıtta belirlediğiniz şifre'), findsNothing);
       await tester.enterText(find.byType(EditableText).first, '123456');
       await settle(tester, const Duration(milliseconds: 600));
-      expect((b.bodies['POST /auth/verify-email'] as Map)['password'], 'Sifre1234');
-      await unmount(tester);
-    });
-
-    testWidgets('katalog yüklenemezse açık hata gösterilir', (tester) async {
-      useScreen(tester, const Size(390, 1800));
-      final b = FakeBackend()..network('/catalog/academic');
-      await tester.pumpWidget(buildApp(RegisterPage(session: makeSession(b, signedIn: false))));
-      await settle(tester, const Duration(milliseconds: 300));
-      expect(find.text('Yeniden dene'), findsOneWidget);
-      await tester.tap(find.text('Devam'));
-      await tester.pump();
-      expect(find.textContaining('yüklenemedi'), findsWidgets);
-      expect(b.count('/auth/register'), 0);
+      expect((b.bodies['POST /auth/verify-email'] as Map)['password'], '123456');
       await unmount(tester);
     });
 
@@ -330,7 +326,6 @@ void main() {
         testWidgets('RegisterPage ${br.name} ${size.width.toInt()} taşma yok', (tester) async {
           useScreen(tester, size);
           final b = FakeBackend();
-          fakeCatalog(b);
           await tester.pumpWidget(buildApp(RegisterPage(session: makeSession(b, signedIn: false)),
               brightness: br, size: size));
           await settle(tester, const Duration(milliseconds: 300));

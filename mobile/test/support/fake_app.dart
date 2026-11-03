@@ -147,6 +147,9 @@ class FakeBackend {
           'id': 1,
           'email': 'ayse@bingol.edu.tr',
           'displayName': 'Ayşe Yılmaz',
+          'faculty': 'Mühendislik Fakültesi',
+          'department': 'Bilgisayar Mühendisliği',
+          'grade': '3',
           'role': 'USER',
         }),
       '/news' => ok(newsPage(const [])),
@@ -433,24 +436,17 @@ Future<void> fillAcademic(WidgetTester tester) async {
   await tester.pump(const Duration(milliseconds: 400));
 }
 
-/// Kayıt akışını 3 adımda doldurur; son adımda (şifre) "Kayıt ol" düğmesi basılmadan kalır.
+/// Tek sayfa kayıt formunu doldurur (ad soyad, okul numarası, şifre); "Kayıt ol" düğmesine basılmadan kalır.
 Future<void> fillRegister(WidgetTester tester,
     {String name = 'Ayşe Yılmaz', String number = '226051015', String password = 'Sifre1234'}) async {
-  await fillAcademic(tester);
-  await tester.tap(find.text('Devam'));
-  await tester.pump(const Duration(milliseconds: 400));
   final fields = find.byType(TextFormField);
   await tester.enterText(fields.at(0), name);
   // Kayıt alanı yalnız rakam alır (okul numarası); istekte `<numara>@bingol.edu.tr` gider.
   await tester.enterText(fields.at(1), number);
-  await tester.pump();
-  await tester.tap(find.text('Devam'));
-  // Adım geçiş animasyonu bitmeden eski adımın alanı hâlâ ağaçta olur ('first' yanlış alanı bulur).
-  await tester.pump(const Duration(milliseconds: 400));
-  await tester.pump(const Duration(milliseconds: 400));
-  await tester.enterText(find.byType(TextFormField).first, password);
+  await tester.enterText(fields.at(2), password);
   await tester.pump();
 }
+
 /// Varsayılan avatar/grup görselleri hariç, içerik görselleri (ağ/bellek) için bulucu.
 Finder contentImages() => find.byWidgetPredicate((w) {
       if (w is! Image) return false;
