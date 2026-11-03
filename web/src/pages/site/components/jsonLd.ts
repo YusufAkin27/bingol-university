@@ -7,6 +7,21 @@ function clean<T extends Record<string, unknown>>(o: T): T {
   ) as T;
 }
 
+/** Arama motorlarının "bukampus" / "BuKampüs" yazımlarını marka adıyla eşlemesi için alternatif adlar. */
+const ALT_NAMES = ['bukampus', 'BuKampüs', 'BÜ Kampüs Bingöl Üniversitesi'];
+
+/** WebSite: Google'ın site adı (sitelinks/başlık) için; alternatif adlarla "bukampus" aramasını markaya bağlar. */
+export function websiteLd(info: AppInfo | undefined, origin: string): Record<string, unknown> {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name: info?.appName ?? 'BÜ Kampüs',
+    alternateName: ALT_NAMES,
+    url: info?.website ?? origin,
+    inLanguage: ['tr', 'en', 'ar'],
+  };
+}
+
 export function organizationLd(info: AppInfo | undefined, origin: string): Record<string, unknown> {
   const sameAs = [info?.social.instagram, info?.social.twitter, info?.social.youtube].filter(
     (x): x is string => !!x,
@@ -15,6 +30,7 @@ export function organizationLd(info: AppInfo | undefined, origin: string): Recor
     '@context': 'https://schema.org',
     '@type': 'EducationalOrganization',
     name: info?.appName ?? 'BÜ Kampüs',
+    alternateName: ALT_NAMES,
     url: info?.website ?? origin,
     logo: `${origin}/icon-512.png`,
     email: info?.contactEmail,
@@ -34,6 +50,7 @@ export function mobileAppLd(
     '@context': 'https://schema.org',
     '@type': 'MobileApplication',
     name: info?.appName ?? 'BÜ Kampüs',
+    alternateName: ALT_NAMES,
     applicationCategory: 'EducationApplication',
     operatingSystem: [links.android ? 'Android' : null, links.ios ? 'iOS' : null].filter(Boolean).join(', '),
     url: origin,
