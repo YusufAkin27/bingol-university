@@ -478,6 +478,12 @@ abstract class AppLocalizations {
   /// **'Okul numaranızla giriş yapın.'**
   String get loginSubtitleNumber;
 
+  /// No description provided for @loginIdExample.
+  ///
+  /// In tr, this message translates to:
+  /// **'Örn. 226051015'**
+  String get loginIdExample;
+
   /// No description provided for @authVerify.
   ///
   /// In tr, this message translates to:

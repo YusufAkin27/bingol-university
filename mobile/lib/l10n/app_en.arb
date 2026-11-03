@@ -63,6 +63,7 @@
   "authIdHint": "Your school email",
   "authIdNumberLabel": "Your student number",
   "loginSubtitleNumber": "Log in with your student number.",
+  "loginIdExample": "e.g. 226051015",
   "authVerify": "Verify",
   "authResendCode": "Resend code",
   "authResendIn": "Resend in {seconds}s",

@@ -6,6 +6,7 @@ import '../../core/identifier.dart';
 import '../../core/locale_controller.dart';
 import '../../core/pending_verification.dart';
 import '../../core/session.dart';
+import '../../l10n/app_localizations.dart';
 import '../../widgets/bu.dart';
 import 'forgot_password_page.dart';
 import 'help/about_page.dart';
@@ -14,9 +15,12 @@ import 'register_page.dart';
 import 'verify_code_page.dart';
 import 'widgets/auth_motion.dart';
 import 'widgets/auth_ref.dart';
+import 'widgets/login_grouped_form.dart';
 
-/// Giriş (Stitch 01): beyaz kart içinde e-posta/okul numarası + şifre; üstte bekleyen doğrulama ve
-/// "başka cihazdan giriş" bantları; hız sınırı ve ağ hataları satır içi bantla gösterilir.
+/// Giriş (lg1, iOS Ayarlar / Apple ID düzeni): sol üstte büyük başlık, tek yuvarlak gruplu kart içinde iki satır
+/// (okul numarası | şifre), sayfa altına sabit tam genişlik düğme (klavye açılınca onunla yükselir), sakin alt
+/// bağlantılar. Üstte bekleyen doğrulama ve "başka cihazdan giriş" bantları; hız sınırı ve ağ hataları satır içi
+/// bantla gösterilir.
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key, required this.session});
 
@@ -136,10 +140,86 @@ class _LoginPageState extends State<LoginPage> {
     final l = context.l10n;
     final tx = Theme.of(context).textTheme;
     final keyboard = MediaQuery.viewInsetsOf(context).bottom > 0;
-    return RefPage(
-      showBack: Navigator.canPop(context),
+    // Kısa ekran / büyük yazıda sabit alt bölüm gövdeyi ezmesin: bağlantılar kaydırılan içeriğin sonuna geçer.
+    final mq = MediaQuery.of(context);
+    final inlineLinks = mq.size.height / mq.textScaler.scale(1) < 660;
+    return Scaffold(
+      backgroundColor: t.bg,
+      body: SafeArea(
+        child: Column(
+          children: [
+            SizedBox(
+              height: BuSize.appBar,
+              child: Padding(
+                padding: const EdgeInsetsDirectional.symmetric(horizontal: 8),
+                child: Align(
+                  alignment: AlignmentDirectional.centerStart,
+                  child: Navigator.canPop(context)
+                      ? Semantics(
+                          button: true,
+                          label: l.authBack,
+                          excludeSemantics: true,
+                          onTap: () => Navigator.maybePop(context),
+                          child: IconButton(
+                            constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
+                            icon: Icon(buDirIcon(context, BuIcons.arrowLeft), color: t.ink, size: 24),
+                            onPressed: () => Navigator.maybePop(context),
+                          ),
+                        )
+                      : null,
+                ),
+              ),
+            ),
+            Expanded(
+              child: SingleChildScrollView(
+                keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+                padding: const EdgeInsetsDirectional.fromSTEB(kRefPad, 0, kRefPad, 16),
+                child: Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 440),
+                    child: BuStaggerScope(child: _content(context, t, l, tx, inlineLinks && !keyboard)),
+                  ),
+                ),
+              ),
+            ),
+            // Sabit alt bölüm: düğme sayfa altında durur; klavye açılınca (Scaffold gövdeyi küçültür) onunla yükselir.
+            Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 440),
+                child: Padding(
+                  padding: EdgeInsetsDirectional.fromSTEB(kRefPad, 8, kRefPad, keyboard ? 12 : 4),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      RefButton(
+                        label: l.loginSubmit,
+                        busy: _busy,
+                        busyLabel: l.p02LoginBusy,
+                        onPressed: _submit,
+                      ),
+                      AnimatedSize(
+                        duration: AppMotion.of(context, AppMotion.normal),
+                        curve: AppMotion.enter,
+                        alignment: Alignment.topCenter,
+                        child: keyboard || inlineLinks ? const SizedBox(width: double.infinity) : _quietLinks(context, t, l, tx),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _content(BuildContext context, BuTokens t, AppLocalizations l, TextTheme tx, bool withLinks) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        // Yuva her zaman ağaçta (alt öğelerin durumu korunur). Stitch v3: kart/logo/ikon yok, düz zemin.
+        // Yuva her zaman ağaçta (alt öğelerin durumu korunur).
         ValueListenableBuilder<bool>(
           valueListenable: widget.session.replacedNotice,
           builder: (context, show, _) => AnimatedSize(
@@ -194,41 +274,54 @@ class _LoginPageState extends State<LoginPage> {
         ),
         BuStaggerItem(
           index: 0,
+          child: Padding(
+            padding: const EdgeInsetsDirectional.only(start: 4, top: 4, bottom: 28),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Marka satırı: küçük karo + "BÜ Kampüs" (ikincil renk); büyük başlığın üstünde sakin bir imza.
+                Row(
+                  children: [
+                    const RefBrandMark(size: 28),
+                    const SizedBox(width: 10),
+                    Flexible(child: Text('BÜ Kampüs', style: tx.titleSmall!.copyWith(color: t.mut, fontWeight: FontWeight.w600))),
+                  ],
+                ),
+                const SizedBox(height: 24),
+                Semantics(
+                  header: true,
+                  child: Text(
+                    l.loginWelcome,
+                    style: tx.headlineMedium!.copyWith(color: t.ink, fontSize: 32, fontWeight: FontWeight.w700, letterSpacing: -.4, height: 1.15),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(l.loginSubtitleNumber, style: tx.bodyLarge!.copyWith(color: t.mut, height: 1.4)),
+              ],
+            ),
+          ),
+        ),
+        BuStaggerItem(
+          index: 1,
           child: Form(
             key: _form,
             child: AutofillGroup(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const Align(alignment: AlignmentDirectional.centerStart, child: RefBrandMark(size: 44)),
-                  const SizedBox(height: 28),
-                  Semantics(
-                    header: true,
-                    child: Text(l.loginWelcome, style: tx.headlineMedium!.copyWith(color: t.ink, fontWeight: FontWeight.w700)),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(l.loginSubtitleNumber, style: tx.bodyLarge!.copyWith(color: t.mut)),
-                  const SizedBox(height: 32),
-                  // Örnek e-posta satırı (helper) gösterilmez: alan etiketi yeterli.
-                  RefIdentifierField(controller: _email, enabled: !_busy, helper: false, numberOnly: true),
-                  const SizedBox(height: 24),
-                  RefPasswordField(
-                    controller: _password,
+                  LoginGroupedFields(
+                    idController: _email,
+                    passwordController: _password,
                     enabled: !_busy,
-                    hint: l.loginPasswordRequired.replaceAll(RegExp(r'\.$'), ''),
-                    validator: (v) => (v == null || v.isEmpty) ? l.loginPasswordRequired : null,
                     onSubmitted: _submit,
+                    passwordValidator: (v) => (v == null || v.isEmpty) ? l.loginPasswordRequired : null,
                   ),
                   Align(
-                    alignment: AlignmentDirectional.centerEnd,
-                    child: RefLink(label: l.loginForgotPassword, compact: true, onPressed: _busy ? null : _forgot),
-                  ),
-                  const SizedBox(height: 24),
-                  RefButton(
-                    label: l.loginSubmit,
-                    busy: _busy,
-                    busyLabel: l.p02LoginBusy,
-                    onPressed: _submit,
+                    alignment: AlignmentDirectional.centerStart,
+                    child: Padding(
+                      padding: const EdgeInsetsDirectional.only(start: 6),
+                      child: RefLink(label: l.loginForgotPassword, compact: true, onPressed: _busy ? null : _forgot),
+                    ),
                   ),
                   AnimatedSize(
                     duration: AppMotion.of(context, AppMotion.fast),
@@ -237,7 +330,7 @@ class _LoginPageState extends State<LoginPage> {
                     child: _error == null
                         ? const SizedBox(width: double.infinity)
                         : Padding(
-                            padding: const EdgeInsets.only(top: 16),
+                            padding: const EdgeInsets.only(top: 8),
                             // Yeni hatada metin hafifçe sarsılır (azalt açıkken sarsılmaz).
                             child: AuthShake(
                               trigger: _shake,
@@ -252,45 +345,48 @@ class _LoginPageState extends State<LoginPage> {
             ),
           ),
         ),
-        AnimatedSize(
-          duration: AppMotion.of(context, AppMotion.normal),
-          curve: AppMotion.enter,
-          alignment: Alignment.topCenter,
-          child: keyboard
-              ? const SizedBox(width: double.infinity)
-              : BuStaggerItem(
-                  index: 1,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      const SizedBox(height: 40),
-                      Center(
-                        child: RefFooterPrompt(
-                          prompt: l.loginNoAccount,
-                          action: l.loginRegister,
-                          onPressed: _busy
-                              ? null
-                              : () => Navigator.push(context, MaterialPageRoute(builder: (_) => RegisterPage(session: widget.session))),
-                        ),
-                      ),
-                      Center(
-                        child: RefFooterPrompt(
-                          prompt: l.p66HelpPrompt,
-                          action: l.p66HelpAction,
-                          onPressed: _busy ? null : () => Navigator.push(context, MaterialPageRoute(builder: (_) => HelpFormPage(session: widget.session))),
-                        ),
-                      ),
-                      // Sürüm satırına dokunmak Hakkında'yı açar (giriş öncesi herkese açık).
-                      Center(
-                        child: TextButton(
-                          onPressed: _busy ? null : () => Navigator.push(context, MaterialPageRoute(builder: (_) => AboutPage(session: widget.session))),
-                          style: TextButton.styleFrom(foregroundColor: t.mut, minimumSize: const Size(48, 48)),
-                          child: Text(l.profileVersion(appVersion), style: tx.bodySmall!.copyWith(color: t.mut)),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+        if (withLinks) Padding(padding: const EdgeInsets.only(top: 16), child: _quietLinks(context, t, l, tx)),
+      ],
+    );
+  }
+
+  /// Sakin, küçük alt bağlantılar: kayıt, yardım, sürüm (sürüm → Hakkında). Klavye açıkken gizlenir.
+  Widget _quietLinks(BuildContext context, BuTokens t, AppLocalizations l, TextTheme tx) {
+    Widget link(String prompt, String action, VoidCallback? onTap) => Wrap(
+          alignment: WrapAlignment.center,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          children: [
+            Text(prompt, style: tx.bodySmall!.copyWith(color: t.mut)),
+            TextButton(
+              onPressed: onTap,
+              style: TextButton.styleFrom(
+                minimumSize: const Size(48, 48),
+                padding: const EdgeInsets.symmetric(horizontal: 6),
+                foregroundColor: t.prPressed,
+              ),
+              child: Text(action, style: tx.bodySmall!.copyWith(color: t.prPressed, fontWeight: FontWeight.w700)),
+            ),
+          ],
+        );
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const SizedBox(height: 4),
+        link(l.loginNoAccount, l.loginRegister,
+            _busy ? null : () => Navigator.push(context, MaterialPageRoute(builder: (_) => RegisterPage(session: widget.session)))),
+        Wrap(
+          alignment: WrapAlignment.center,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          children: [
+            link(l.p66HelpPrompt, l.p66HelpAction,
+                _busy ? null : () => Navigator.push(context, MaterialPageRoute(builder: (_) => HelpFormPage(session: widget.session)))),
+            // Sürüm satırına dokunmak Hakkında'yı açar (giriş öncesi herkese açık).
+            TextButton(
+              onPressed: _busy ? null : () => Navigator.push(context, MaterialPageRoute(builder: (_) => AboutPage(session: widget.session))),
+              style: TextButton.styleFrom(foregroundColor: t.mut, minimumSize: const Size(48, 48)),
+              child: Text(l.profileVersion(appVersion), style: tx.bodySmall!.copyWith(color: t.mut)),
+            ),
+          ],
         ),
       ],
     );

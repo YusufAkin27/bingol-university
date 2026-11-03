@@ -84,6 +84,7 @@
   "authIdHint": "Okul e-postanız",
   "authIdNumberLabel": "Okul numaranız",
   "loginSubtitleNumber": "Okul numaranızla giriş yapın.",
+  "loginIdExample": "Örn. 226051015",
   "authVerify": "Doğrula",
   "authResendCode": "Kodu yeniden gönder",
   "authResendIn": "Yeniden gönder ({seconds} sn)",

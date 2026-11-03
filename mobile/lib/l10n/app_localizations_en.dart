@@ -209,6 +209,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get loginSubtitleNumber => 'Log in with your student number.';
 
   @override
+  String get loginIdExample => 'e.g. 226051015';
+
+  @override
   String get authVerify => 'Verify';
 
   @override

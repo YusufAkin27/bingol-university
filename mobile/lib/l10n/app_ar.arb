@@ -63,6 +63,7 @@
   "authIdHint": "بريدك الجامعي",
   "authIdNumberLabel": "رقمك الجامعي",
   "loginSubtitleNumber": "سجّل الدخول برقمك الجامعي.",
+  "loginIdExample": "مثال: 226051015",
   "authVerify": "تحقق",
   "authResendCode": "إعادة إرسال الرمز",
   "authResendIn": "إعادة الإرسال ({seconds} ث)",

@@ -210,6 +210,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get loginSubtitleNumber => 'سجّل الدخول برقمك الجامعي.';
 
   @override
+  String get loginIdExample => 'مثال: 226051015';
+
+  @override
   String get authVerify => 'تحقق';
 
   @override

@@ -209,6 +209,9 @@ class AppLocalizationsTr extends AppLocalizations {
   String get loginSubtitleNumber => 'Okul numaranızla giriş yapın.';
 
   @override
+  String get loginIdExample => 'Örn. 226051015';
+
+  @override
   String get authVerify => 'Doğrula';
 
   @override
