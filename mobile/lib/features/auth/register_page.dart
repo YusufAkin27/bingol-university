@@ -176,7 +176,7 @@ class _RegisterPageState extends State<RegisterPage> {
     final server = _emailFieldError;
     if (server != null) return server;
     // Alan yalnız rakam kabul eder (6-12 hane): giriştekiyle aynı kural.
-    return validateIdentifier(v);
+    return validateSchoolNumber(v);
   }
 
   String _title(BuildContext c) => switch (_step) {

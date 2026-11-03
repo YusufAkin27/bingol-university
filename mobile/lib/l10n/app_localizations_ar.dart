@@ -207,6 +207,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get authIdNumberLabel => 'رقمك الجامعي';
 
   @override
+  String get authIdNumberEmpty => 'أدخل رقمك الجامعي.';
+
+  @override
   String get authHintPersonalNumber => 'أدخل اسمك ورقمك الجامعي.';
 
   @override

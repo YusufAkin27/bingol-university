@@ -7,8 +7,8 @@ import '../../../core/pin.dart';
 import '../../../widgets/bu.dart';
 import 'auth_motion.dart';
 
-/// Banka uygulaması tarzı 6 haneli şifre (PIN) alanı: etiket üstte, altında 6 hane (dolu = ink nokta,
-/// boş = ince halka, sıradaki hane marka halkası), sağda 48 dp göz düğmesi (rakamları gösterir).
+/// Banka uygulaması tarzı 6 haneli şifre (PIN) alanı: etiket üstte, altında 6 segment (her hane üstte nokta,
+/// altta kendi çizgisi; sıradaki hane marka renginde kalın çizgi), sağda 48 dp göz düğmesi (rakamları gösterir).
 ///
 /// İçte gizli bir `TextFormField` vardır: rakam klavyesi, yalnız rakam, en çok 6, otomatik doldurma ve
 /// `Form` doğrulaması çalışır; metin görünmez, haneler [controller]'dan çizilir. Bu yüzden testler
@@ -206,24 +206,23 @@ class _PinFieldState extends State<PinField> {
                 valueListenable: widget.controller,
                 builder: (context, value, _) {
                   final text = value.text.length > kPinLength ? value.text.substring(0, kPinLength) : value.text;
-                  // Sabit genişlikli haneler alana yayılır; ilk hane etiketin hizasına yakın başlar.
+                  // Altı eşit segment (çizgili alanla aynı dil): her hane üstte nokta/rakam, altta kendi çizgisi.
                   return Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      for (var i = 0; i < kPinLength; i++)
-                        SizedBox(
-                          width: 30,
-                          child: Center(
-                            child: _PinSlot(
-                              digit: i < text.length ? text[i] : null,
-                              revealed: !_hidden,
-                              active: _focused && widget.enabled && i == text.length && text.length < kPinLength,
-                              error: hasError,
-                              duration: fast,
-                              scaler: scaler,
-                            ),
+                      for (var i = 0; i < kPinLength; i++) ...[
+                        if (i > 0) const SizedBox(width: 10),
+                        Expanded(
+                          child: _PinSlot(
+                            digit: i < text.length ? text[i] : null,
+                            revealed: !_hidden,
+                            active: _focused && widget.enabled && i == text.length && text.length < kPinLength,
+                            error: hasError,
+                            duration: fast,
+                            scaler: scaler,
                           ),
                         ),
+                      ],
                     ],
                   );
                 },
@@ -312,7 +311,8 @@ class _PinFieldState extends State<PinField> {
   }
 }
 
-/// Tek hane: dolu = ink nokta (açıkken rakam), boş = ince halka, sıradaki = marka halkası, hata = danger.
+/// Tek hane: üstte nokta (dolunca yumuşakça belirir; rakam açıksa rakam), altta kendi çizgisi. Sıradaki hane çizgisi marka
+/// renginde ve kalındır; dolu hane çizgisi `ink`, boş `bdStrong`, hata `danger`.
 class _PinSlot extends StatelessWidget {
   const _PinSlot({
     required this.digit,
@@ -336,31 +336,40 @@ class _PinSlot extends StatelessWidget {
     final tx = Theme.of(context).textTheme;
     final filled = digit != null;
     final tone = error ? t.danger : t.ink;
-    final ring = error ? t.danger : (active ? t.pr : t.bdStrong);
+    final line = error ? t.danger : (active ? t.pr : (filled ? t.ink : t.bdStrong));
+    final Widget mark;
     if (filled && revealed) {
-      // Rakam açık: sabit genişlikli rakamlar, hane başına en çok 1 satır.
-      return SizedBox(
-        height: 32,
-        child: Center(
-          child: Text(
-            digit!,
-            maxLines: 1,
-            textScaler: scaler,
-            style: tx.headlineSmall!.copyWith(color: tone, fontSize: 24, fontWeight: FontWeight.w600, height: 1.1, fontFeatures: const [FontFeature.tabularFigures()]),
-          ),
-        ),
+      // Rakam açık: sabit genişlikli rakam, hane başına tek satır.
+      mark = Text(
+        digit!,
+        maxLines: 1,
+        textScaler: scaler,
+        style: tx.headlineSmall!.copyWith(color: tone, fontSize: 26, fontWeight: FontWeight.w600, height: 1.1, fontFeatures: const [FontFeature.tabularFigures()]),
+      );
+    } else {
+      mark = AnimatedScale(
+        scale: filled ? 1 : 0,
+        duration: duration,
+        curve: AppMotion.interactive,
+        child: Container(width: 14, height: 14, decoration: BoxDecoration(shape: BoxShape.circle, color: tone)),
       );
     }
-    return AnimatedContainer(
-      duration: duration,
-      curve: AppMotion.standard,
-      width: 16,
-      height: 16,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: filled ? tone : Colors.transparent,
-        border: filled ? null : Border.all(color: ring, width: active ? 2 : 1.5),
-      ),
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        Positioned(left: 0, right: 0, top: 0, bottom: 10, child: Center(child: mark)),
+        Positioned(
+          left: 0,
+          right: 0,
+          bottom: 0,
+          child: AnimatedContainer(
+            duration: duration,
+            curve: AppMotion.standard,
+            height: active ? 3 : 2,
+            decoration: BoxDecoration(color: line, borderRadius: BorderRadius.circular(2)),
+          ),
+        ),
+      ],
     );
   }
 }

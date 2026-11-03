@@ -319,7 +319,7 @@ void main() {
       expect(tester.widget<TextField>(find.byType(TextField).at(1)).controller!.text, '');
       await tester.tap(find.text('Devam'));
       await tester.pump();
-      expect(find.text('Okul numaranızı veya e-posta adresinizi girin.'), findsOneWidget);
+      expect(find.text('Okul numaranızı girin.'), findsOneWidget);
       expect(find.text('Adım 2/3'), findsOneWidget);
       expect(b.count('/auth/register'), 0);
       await unmount(tester);
