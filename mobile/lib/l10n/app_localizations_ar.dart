@@ -9743,4 +9743,23 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get profileSetupSubtitle =>
       'أدخل قسمك وصفك مرة واحدة؛ يمكنك تغييرهما لاحقًا من ملفك الشخصي.';
+
+  @override
+  String get photoSetupTitle => 'هل تريد إضافة صورة للملف الشخصي؟';
+
+  @override
+  String get photoSetupSubtitle =>
+      'سيتعرّف عليك الطلاب الآخرون بسهولة أكبر. يمكنك إضافتها أو تغييرها من ملفك الشخصي في أي وقت.';
+
+  @override
+  String get photoSetupPick => 'اختر صورة';
+
+  @override
+  String get photoSetupChange => 'تغيير';
+
+  @override
+  String get photoSetupSkip => 'تخطَّ الآن';
+
+  @override
+  String get photoSetupAvatarSemantic => 'اختيار صورة الملف الشخصي';
 }

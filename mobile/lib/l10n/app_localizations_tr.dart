@@ -9813,4 +9813,23 @@ class AppLocalizationsTr extends AppLocalizations {
   @override
   String get profileSetupSubtitle =>
       'Bölümünüzü ve sınıfınızı bir kez girin; sonradan profilinizden değiştirebilirsiniz.';
+
+  @override
+  String get photoSetupTitle => 'Profil fotoğrafı eklemek ister misiniz?';
+
+  @override
+  String get photoSetupSubtitle =>
+      'Diğer öğrenciler sizi daha kolay tanır. İstediğiniz zaman profilinizden ekleyebilir ya da değiştirebilirsiniz.';
+
+  @override
+  String get photoSetupPick => 'Fotoğraf seç';
+
+  @override
+  String get photoSetupChange => 'Değiştir';
+
+  @override
+  String get photoSetupSkip => 'Şimdilik atla';
+
+  @override
+  String get photoSetupAvatarSemantic => 'Profil fotoğrafı seç';
 }

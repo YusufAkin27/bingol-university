@@ -9845,4 +9845,23 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get profileSetupSubtitle =>
       'Enter your department and year once; you can change them later from your profile.';
+
+  @override
+  String get photoSetupTitle => 'Would you like to add a profile photo?';
+
+  @override
+  String get photoSetupSubtitle =>
+      'Other students will recognize you more easily. You can add or change it from your profile at any time.';
+
+  @override
+  String get photoSetupPick => 'Choose photo';
+
+  @override
+  String get photoSetupChange => 'Change';
+
+  @override
+  String get photoSetupSkip => 'Skip for now';
+
+  @override
+  String get photoSetupAvatarSemantic => 'Choose profile photo';
 }

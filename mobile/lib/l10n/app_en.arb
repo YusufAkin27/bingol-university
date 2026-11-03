@@ -3129,5 +3129,11 @@
   "regTitle": "Create your account",
   "regSubtitle": "Enter your name, school number and a password.",
   "profileSetupTitle": "Choose your department",
-  "profileSetupSubtitle": "Enter your department and year once; you can change them later from your profile."
+  "profileSetupSubtitle": "Enter your department and year once; you can change them later from your profile.",
+  "photoSetupTitle": "Would you like to add a profile photo?",
+  "photoSetupSubtitle": "Other students will recognize you more easily. You can add or change it from your profile at any time.",
+  "photoSetupPick": "Choose photo",
+  "photoSetupChange": "Change",
+  "photoSetupSkip": "Skip for now",
+  "photoSetupAvatarSemantic": "Choose profile photo"
 }

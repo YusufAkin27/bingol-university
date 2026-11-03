@@ -4924,5 +4924,11 @@
   "regTitle": "Hesap oluşturun",
   "regSubtitle": "Adınızı, okul numaranızı ve şifrenizi girin.",
   "profileSetupTitle": "Bölümünüzü seçin",
-  "profileSetupSubtitle": "Bölümünüzü ve sınıfınızı bir kez girin; sonradan profilinizden değiştirebilirsiniz."
+  "profileSetupSubtitle": "Bölümünüzü ve sınıfınızı bir kez girin; sonradan profilinizden değiştirebilirsiniz.",
+  "photoSetupTitle": "Profil fotoğrafı eklemek ister misiniz?",
+  "photoSetupSubtitle": "Diğer öğrenciler sizi daha kolay tanır. İstediğiniz zaman profilinizden ekleyebilir ya da değiştirebilirsiniz.",
+  "photoSetupPick": "Fotoğraf seç",
+  "photoSetupChange": "Değiştir",
+  "photoSetupSkip": "Şimdilik atla",
+  "photoSetupAvatarSemantic": "Profil fotoğrafı seç"
 }

@@ -7,6 +7,7 @@ import '../../core/api.dart';
 import '../../core/locale_controller.dart';
 import '../../core/session.dart';
 import '../../widgets/bu.dart';
+import 'profile_photo_setup_page.dart';
 import 'widgets/auth_academic.dart';
 import 'widgets/auth_motion.dart';
 import 'widgets/auth_ref.dart';
@@ -27,7 +28,9 @@ bool isProfileComplete(Map<dynamic, dynamic> p) {
 /// ekrana geçemez); doluysa [child]. Karar verilirken kısa süre düz zemin görünür. Kullanıcıyı kilitlememek için:
 /// - ağ yok / sunucu hatası / [loadTimeout] aşımı: kapı AÇILMAZ, [child] gösterilir; bağlantı gelince ve uygulama öne
 ///   gelince profil yeniden sorulur, eksikse o anda kapı kapanır (aşırı kısıtlama yok, ama atlanamaz);
-/// - tamamlanınca bir daha sorulmaz (profil verisi dolu olur).
+/// - tamamlanınca bir daha sorulmaz (profil verisi dolu olur);
+/// - bölüm + sınıf az önce ilk kez tamamlandıysa ve fotoğraf yoksa, kabuktan önce İSTEĞE BAĞLI [ProfilePhotoSetupPage] gelir
+///   (atlanabilir; uygulama bu adımda kapatılırsa tekrar sorulmaz).
 class ProfileCompletionGate extends StatefulWidget {
   const ProfileCompletionGate({
     super.key,
@@ -46,12 +49,13 @@ class ProfileCompletionGate extends StatefulWidget {
   State<ProfileCompletionGate> createState() => _ProfileCompletionGateState();
 }
 
-enum _GateState { checking, complete, incomplete, unknown }
+enum _GateState { checking, complete, incomplete, photo, unknown }
 
 class _ProfileCompletionGateState extends State<ProfileCompletionGate> with WidgetsBindingObserver {
   _GateState _state = _GateState.checking;
   Timer? _timeout;
   bool _loading = false;
+  bool _hasAvatar = false; // son profil yanıtında fotoğraf var mı (varsa "fotoğraf ekle" adımı atlanır)
 
   @override
   void initState() {
@@ -73,12 +77,17 @@ class _ProfileCompletionGateState extends State<ProfileCompletionGate> with Widg
   }
 
   void _onReconnect() {
-    if (mounted && _state != _GateState.complete) _check();
+    if (mounted && _state != _GateState.complete && _state != _GateState.photo) _check();
   }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState s) {
-    if (s == AppLifecycleState.resumed && _state != _GateState.complete && _state != _GateState.incomplete) _check();
+    if (s == AppLifecycleState.resumed &&
+        _state != _GateState.complete &&
+        _state != _GateState.incomplete &&
+        _state != _GateState.photo) {
+      _check();
+    }
   }
 
   Future<void> _check() async {
@@ -86,15 +95,18 @@ class _ProfileCompletionGateState extends State<ProfileCompletionGate> with Widg
     _loading = true;
     try {
       final r = await widget.session.api.get('/users/me');
-      if (!mounted) return;
+      // Fotoğraf adımı sürerken gelen geç yanıt adımı bozmaz.
+      if (!mounted || _state == _GateState.photo) return;
       if (r is! Map) {
         _settle(_GateState.unknown);
         return;
       }
+      final av = r['avatarUrl'];
+      _hasAvatar = av is String && av.trim().isNotEmpty;
       _settle(isProfileComplete(r) ? _GateState.complete : _GateState.incomplete);
     } catch (_) {
       // Ağ yok, 5xx, 429 ya da yetki hatası: kapı açılmaz (yetki hatasını oturum katmanı zaten ele alır).
-      if (mounted) _settle(_GateState.unknown);
+      if (mounted && _state != _GateState.photo) _settle(_GateState.unknown);
     } finally {
       _loading = false;
     }
@@ -106,7 +118,15 @@ class _ProfileCompletionGateState extends State<ProfileCompletionGate> with Widg
     setState(() => _state = s);
   }
 
+  /// Bölüm + sınıf az önce ilk kez tamamlandı: fotoğrafı yoksa İSTEĞE BAĞLI "fotoğraf ekle" adımı, varsa doğrudan kabuk.
+  /// Adım yalnız bu geçişte gösterilir (sonraki açılışlarda bölüm + sınıf dolu olduğundan kapı zaten açıktır).
   void _done() {
+    if (!mounted) return;
+    final hasAvatar = _hasAvatar || (widget.session.avatarUrl.value ?? '').isNotEmpty;
+    setState(() => _state = hasAvatar ? _GateState.complete : _GateState.photo);
+  }
+
+  void _photoDone() {
     if (mounted) setState(() => _state = _GateState.complete);
   }
 
@@ -118,6 +138,8 @@ class _ProfileCompletionGateState extends State<ProfileCompletionGate> with Widg
         return Scaffold(backgroundColor: context.bu.bg);
       case _GateState.incomplete:
         return ProfileSetupPage(key: const ValueKey('profile-setup-gate'), session: widget.session, onDone: _done);
+      case _GateState.photo:
+        return ProfilePhotoSetupPage(key: const ValueKey('profile-photo-gate'), session: widget.session, onDone: _photoDone);
       case _GateState.complete:
       case _GateState.unknown:
         return widget.child;

@@ -17814,6 +17814,42 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Bölümünüzü ve sınıfınızı bir kez girin; sonradan profilinizden değiştirebilirsiniz.'**
   String get profileSetupSubtitle;
+
+  /// No description provided for @photoSetupTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Profil fotoğrafı eklemek ister misiniz?'**
+  String get photoSetupTitle;
+
+  /// No description provided for @photoSetupSubtitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Diğer öğrenciler sizi daha kolay tanır. İstediğiniz zaman profilinizden ekleyebilir ya da değiştirebilirsiniz.'**
+  String get photoSetupSubtitle;
+
+  /// No description provided for @photoSetupPick.
+  ///
+  /// In tr, this message translates to:
+  /// **'Fotoğraf seç'**
+  String get photoSetupPick;
+
+  /// No description provided for @photoSetupChange.
+  ///
+  /// In tr, this message translates to:
+  /// **'Değiştir'**
+  String get photoSetupChange;
+
+  /// No description provided for @photoSetupSkip.
+  ///
+  /// In tr, this message translates to:
+  /// **'Şimdilik atla'**
+  String get photoSetupSkip;
+
+  /// No description provided for @photoSetupAvatarSemantic.
+  ///
+  /// In tr, this message translates to:
+  /// **'Profil fotoğrafı seç'**
+  String get photoSetupAvatarSemantic;
 }
 
 class _AppLocalizationsDelegate

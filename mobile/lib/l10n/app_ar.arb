@@ -3129,5 +3129,11 @@
   "regTitle": "أنشئ حسابك",
   "regSubtitle": "أدخل اسمك ورقمك الدراسي وكلمة مرور.",
   "profileSetupTitle": "اختر قسمك",
-  "profileSetupSubtitle": "أدخل قسمك وصفك مرة واحدة؛ يمكنك تغييرهما لاحقًا من ملفك الشخصي."
+  "profileSetupSubtitle": "أدخل قسمك وصفك مرة واحدة؛ يمكنك تغييرهما لاحقًا من ملفك الشخصي.",
+  "photoSetupTitle": "هل تريد إضافة صورة للملف الشخصي؟",
+  "photoSetupSubtitle": "سيتعرّف عليك الطلاب الآخرون بسهولة أكبر. يمكنك إضافتها أو تغييرها من ملفك الشخصي في أي وقت.",
+  "photoSetupPick": "اختر صورة",
+  "photoSetupChange": "تغيير",
+  "photoSetupSkip": "تخطَّ الآن",
+  "photoSetupAvatarSemantic": "اختيار صورة الملف الشخصي"
 }

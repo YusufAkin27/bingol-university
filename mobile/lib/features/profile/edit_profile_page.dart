@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 
 import '../../core/academic_catalog.dart';
-import '../../core/api.dart';
 import '../../core/locale_controller.dart';
 import '../../core/platform/image_service.dart';
 import '../../core/session.dart';
 import '../../widgets/academic_pickers.dart';
 import '../../widgets/bu.dart';
 import '../media_crop/media_crop.dart';
+import 'avatar_upload.dart';
 import 'profil2_widgets.dart';
 import 'profil_widgets.dart' show ProfilTopBar;
 
@@ -309,21 +309,23 @@ class _EditProfilePageState extends State<EditProfilePage> {
       _photoError = null;
     });
     try {
-      // Seç -> 1:1 daire kırp -> doğrula/sıkıştır -> yükle.
-      final crop = widget.cropPhoto;
-      final bytes = crop != null
-          ? await crop(source)
-          : await pickAndCrop(context, CropSpec.profile(previewName: _name.text.trim()), source: source);
+      // Seç -> 1:1 daire kırp -> doğrula/sıkıştır -> yükle (ortak hat: avatar_upload.dart).
+      final r = await uploadAvatarFrom(
+        context,
+        widget.session,
+        source,
+        previewName: _name.text.trim(),
+        cropPhoto: widget.cropPhoto,
+        images: _images,
+      );
       if (seq != _uploadSeq) return;
-      if (bytes == null) {
+      if (r == null) {
         if (mounted) setState(() => _uploading = false);
         return; // kullanıcı vazgeçti
       }
-      final prepared = await _images.prepare(bytes, avatar: true);
-      final r = await MultipartUploader(widget.session).upload('/users/me/avatar', prepared);
       if (!mounted || seq != _uploadSeq) return;
       setState(() {
-        if (r is Map && r['avatarUrl'] is String) _avatarUrl = r['avatarUrl'] as String;
+        if (r.url != null) _avatarUrl = r.url;
         widget.session.avatarUrl.value = _avatarUrl;
         _avatarChanged = true;
         _uploading = false;
@@ -332,7 +334,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
       if (!mounted || seq != _uploadSeq) return;
       setState(() {
         _uploading = false;
-        _photoError = _uploadError(e);
+        _photoError = avatarUploadErrorText(context, e);
       });
     }
   }
@@ -359,21 +361,6 @@ class _EditProfilePageState extends State<EditProfilePage> {
         _photoError = errorText(e);
       });
     }
-  }
-
-  String _uploadError(Object e) {
-    if (e is ImageException) {
-      switch (e.code) {
-        case 'TOO_LARGE':
-          return context.l10n.profilePhotoTooLargeHint;
-        case 'UNSUPPORTED_TYPE':
-          return context.l10n.profilePhotoUnsupported;
-        default:
-          return context.l10n.profilePhotoUnreadable;
-      }
-    }
-    if (e is ApiError && e.status == 413) return context.l10n.profilePhotoTooLarge;
-    return errorText(e);
   }
 
   // ---------------------------------------------------------------------------------------------------------------
