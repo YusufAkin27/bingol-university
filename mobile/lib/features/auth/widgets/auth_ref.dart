@@ -512,6 +512,7 @@ class RefTextField extends StatefulWidget {
     this.helper,
     this.validator,
     this.keyboardType,
+    this.inputFormatters,
     this.textInputAction = TextInputAction.next,
     this.autofillHints,
     this.obscureText = false,
@@ -548,6 +549,7 @@ class RefTextField extends StatefulWidget {
   final Widget? labelAction;
   final String? Function(String?)? validator;
   final TextInputType? keyboardType;
+  final List<TextInputFormatter>? inputFormatters;
   final TextInputAction textInputAction;
   final Iterable<String>? autofillHints;
   final bool obscureText;
@@ -668,6 +670,7 @@ class _RefTextFieldState extends State<RefTextField> {
       autofillHints: widget.autofillHints,
       autocorrect: widget.autocorrect,
       enableSuggestions: widget.autocorrect,
+      inputFormatters: widget.inputFormatters,
       maxLength: widget.maxLength,
       maxLengthEnforcement: MaxLengthEnforcement.enforced,
       textCapitalization: widget.textCapitalization,
@@ -873,7 +876,11 @@ class RefIdentifierField extends StatelessWidget {
     this.helper = true,
     this.label,
     this.allowStudentNumber = true,
+    this.numberOnly = false,
   });
+
+  /// Açıksa (giriş) yalnız okul numarası yazılır: rakam klavyesi, harf girilemez (en çok 12 hane).
+  final bool numberOnly;
 
   /// Kapalıysa (kayıt) okul numarası kısayolu yoktur: hap gösterilmez, varsayılan doğrulayıcı tam e-posta ister.
   final bool allowStudentNumber;
@@ -896,15 +903,16 @@ class RefIdentifierField extends StatelessWidget {
       valueListenable: controller,
       builder: (context, value, _) => RefTextField(
         controller: controller,
-        label: label ?? (allowStudentNumber ? context.l10n.authIdHint : context.l10n.authRegIdLabel),
+        label: label ?? (numberOnly ? context.l10n.authIdNumberLabel : allowStudentNumber ? context.l10n.authIdHint : context.l10n.authRegIdLabel),
         helper: helper ? (allowStudentNumber ? context.l10n.authIdHelper : context.l10n.authRegIdHelper) : null,
         enabled: enabled,
         onCard: onCard,
         forceError: forceError,
-        keyboardType: TextInputType.emailAddress,
+        keyboardType: numberOnly ? TextInputType.number : TextInputType.emailAddress,
+        inputFormatters: numberOnly ? [FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(12)] : null,
         textInputAction: textInputAction,
         autocorrect: false,
-        autofillHints: const [AutofillHints.username, AutofillHints.email],
+        autofillHints: numberOnly ? const [AutofillHints.username] : const [AutofillHints.username, AutofillHints.email],
         validator: validator ?? (allowStudentNumber ? validateIdentifier : validateRegisterEmail),
         onSubmitted: onSubmitted,
         suffixChip: allowStudentNumber && isStudentNumberInput(value.text) ? '@$kEmailDomain' : null,

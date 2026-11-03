@@ -203,6 +203,12 @@ class AppLocalizationsTr extends AppLocalizations {
   String get authIdHint => 'Okul e-postanız';
 
   @override
+  String get authIdNumberLabel => 'Okul numaranız';
+
+  @override
+  String get loginSubtitleNumber => 'Okul numaranızla giriş yapın.';
+
+  @override
   String get authVerify => 'Doğrula';
 
   @override

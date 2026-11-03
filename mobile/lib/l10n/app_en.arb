@@ -61,6 +61,8 @@
   "authHidePassword": "Hide password",
   "authPasswordLabel": "Password",
   "authIdHint": "Your school email",
+  "authIdNumberLabel": "Your student number",
+  "loginSubtitleNumber": "Log in with your student number.",
   "authVerify": "Verify",
   "authResendCode": "Resend code",
   "authResendIn": "Resend in {seconds}s",

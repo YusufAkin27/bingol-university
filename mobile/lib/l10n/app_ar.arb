@@ -61,6 +61,8 @@
   "authHidePassword": "إخفاء كلمة المرور",
   "authPasswordLabel": "كلمة المرور",
   "authIdHint": "بريدك الجامعي",
+  "authIdNumberLabel": "رقمك الجامعي",
+  "loginSubtitleNumber": "سجّل الدخول برقمك الجامعي.",
   "authVerify": "تحقق",
   "authResendCode": "إعادة إرسال الرمز",
   "authResendIn": "إعادة الإرسال ({seconds} ث)",

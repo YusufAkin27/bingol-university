@@ -82,6 +82,8 @@
   "authHidePassword": "Şifreyi gizle",
   "authPasswordLabel": "Şifre",
   "authIdHint": "Okul e-postanız",
+  "authIdNumberLabel": "Okul numaranız",
+  "loginSubtitleNumber": "Okul numaranızla giriş yapın.",
   "authVerify": "Doğrula",
   "authResendCode": "Kodu yeniden gönder",
   "authResendIn": "Yeniden gönder ({seconds} sn)",

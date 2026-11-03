@@ -59,21 +59,21 @@ void main() {
   });
 
   group('giris', () {
-    testWidgets('rakam yazinca sonek gorunur, @ yazinca kaybolur', (tester) async {
+    testWidgets('yalniz rakam: sonek gorunur, harf ve @ girilemez, rakam klavyesi', (tester) async {
       useScreen(tester, kPhoneMedium);
       final b = FakeBackend();
       await tester.pumpWidget(buildApp(LoginPage(session: makeSession(b, signedIn: false))));
       await settle(tester, const Duration(milliseconds: 200));
       expect(_suffix(), findsNothing);
-      expect(find.text('Okul e-postanız'), findsOneWidget);
+      expect(find.text('Okul numaranız'), findsOneWidget);
       await tester.enterText(find.byType(TextFormField).at(0), '226051015');
       await tester.pump();
       expect(_suffix(), findsOneWidget);
-      await tester.enterText(find.byType(TextFormField).at(0), '226051015@bingol.edu.tr');
+      // Harf ve @ süzülür: yalnız rakamlar kalır.
+      await tester.enterText(find.byType(TextFormField).at(0), 'ab226051015@bingol.edu.tr');
       await tester.pump();
-      expect(_suffix(), findsNothing);
-      final f = tester.widget<TextField>(find.byType(TextField).at(0));
-      expect(f.keyboardType, TextInputType.emailAddress);
+      expect(tester.widget<TextField>(find.byType(TextField).at(0)).controller!.text, '226051015');
+      expect(tester.widget<TextField>(find.byType(TextField).at(0)).keyboardType, TextInputType.number);
       await unmount(tester);
     });
 
@@ -99,12 +99,12 @@ void main() {
       await unmount(tester);
     });
 
-    testWidgets('tam e-posta govdede e-posta olarak gider', (tester) async {
+    testWidgets('e-posta yazilamaz: harfler suzulur, bos kalan alan istek atmaz', (tester) async {
       final b = FakeBackend()..on('/auth/login', {'accessToken': 'a', 'refreshToken': 'r'});
       await tester.pumpWidget(buildApp(LoginPage(session: makeSession(b, signedIn: false))));
       await _fillLogin(tester, 'Ayse@bingol.edu.tr', 'Sifre1234');
-      await settle(tester, const Duration(milliseconds: 400));
-      expect((b.bodies['POST /auth/login'] as Map)['email'], 'ayse@bingol.edu.tr');
+      await tester.pump();
+      expect(b.count('/auth/login'), 0);
       await unmount(tester);
     });
 

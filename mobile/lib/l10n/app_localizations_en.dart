@@ -203,6 +203,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get authIdHint => 'Your school email';
 
   @override
+  String get authIdNumberLabel => 'Your student number';
+
+  @override
+  String get loginSubtitleNumber => 'Log in with your student number.';
+
+  @override
   String get authVerify => 'Verify';
 
   @override

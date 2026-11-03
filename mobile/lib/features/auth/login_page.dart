@@ -207,9 +207,10 @@ class _LoginPageState extends State<LoginPage> {
                     child: Text(l.loginWelcome, style: tx.headlineMedium!.copyWith(color: t.ink, fontWeight: FontWeight.w700)),
                   ),
                   const SizedBox(height: 8),
-                  Text(l.loginSubtitle, style: tx.bodyLarge!.copyWith(color: t.mut)),
+                  Text(l.loginSubtitleNumber, style: tx.bodyLarge!.copyWith(color: t.mut)),
                   const SizedBox(height: 32),
-                  RefIdentifierField(controller: _email, enabled: !_busy),
+                  // Örnek e-posta satırı (helper) gösterilmez: alan etiketi yeterli.
+                  RefIdentifierField(controller: _email, enabled: !_busy, helper: false, numberOnly: true),
                   const SizedBox(height: 24),
                   RefPasswordField(
                     controller: _password,
