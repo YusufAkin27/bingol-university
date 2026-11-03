@@ -3,6 +3,7 @@ import common from '../en/common';
 import site from '../en/site';
 import siteNew from '../en/site-new';
 import siteV3 from '../en/site-v3';
+import siteRd03 from '../en/site-rd03';
 import legal from '../en/legal';
 import pages from '../en/pages';
 import supportPublic from '../en/support-public';
@@ -10,4 +11,4 @@ import seo from '../en/seo';
 import childSafety from '../en/child-safety';
 import siteTrust from '../en/site-trust';
 
-export default { ...common, ...site, ...siteNew, ...siteV3, ...legal, ...pages, ...supportPublic, ...seo, ...childSafety, ...siteTrust };
+export default { ...common, ...site, ...siteNew, ...siteV3, ...siteRd03, ...legal, ...pages, ...supportPublic, ...seo, ...childSafety, ...siteTrust };
