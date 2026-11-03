@@ -1,6 +1,6 @@
 import type { FunnelStep } from '../../../api/types';
 
-export const TABS = ['overview', 'growth', 'engagement', 'retention', 'demographics'] as const;
+export const TABS = ['overview', 'growth', 'engagement', 'retention', 'demographics', 'behavior'] as const;
 export type TabId = (typeof TABS)[number];
 
 export function parseTab(v: string | null | undefined): TabId {

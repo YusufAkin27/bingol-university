@@ -1,0 +1,255 @@
+/* Analitik > Davranış sekmesi. Yalnız tasarım belirteçleri (tokens.css); mantıksal özellikler (RTL uyumlu). */
+
+.rangeBar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3) var(--space-4);
+  align-items: flex-end;
+}
+.presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+.dateField {
+  display: grid;
+  gap: var(--space-1);
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
+.dateField input {
+  min-block-size: 44px;
+  padding-inline: var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: var(--text-sm);
+}
+.rangeHint {
+  margin: 0;
+  flex-basis: 100%;
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
+
+.kpiGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-3);
+}
+@media (max-width: 960px) {
+  .kpiGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 520px) {
+  .kpiGrid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.bucketCard {
+  display: grid;
+  gap: var(--space-2);
+}
+
+/* ısı çubuğu hücresi */
+.heatCell {
+  display: grid;
+  gap: 4px;
+  min-inline-size: 5.5rem;
+  justify-items: end;
+}
+.heatText {
+  font-variant-numeric: tabular-nums;
+}
+.heatTrack {
+  display: block;
+  inline-size: 100%;
+  block-size: 4px;
+  border-radius: var(--radius-pill);
+  background: var(--surface-2);
+  overflow: hidden;
+}
+.heatFill {
+  display: block;
+  block-size: 100%;
+  border-radius: var(--radius-pill);
+  background: var(--chart-1);
+}
+.heatWarn {
+  background: var(--chart-4);
+}
+
+.screenName {
+  display: grid;
+  gap: 2px;
+  min-inline-size: 9rem;
+  overflow-wrap: anywhere;
+}
+.rawName {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  max-inline-size: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chipList {
+  min-inline-size: 11rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-2);
+}
+.chip {
+  padding: 2px var(--space-2);
+  border-radius: var(--radius-pill);
+  background: var(--surface-2);
+  font-size: var(--text-xs);
+}
+.chip strong {
+  font-variant-numeric: tabular-nums;
+}
+
+.userSearch {
+  margin-block: var(--space-3);
+  max-inline-size: 28rem;
+}
+.userCell {
+  display: grid;
+  gap: 2px;
+  min-inline-size: 14rem;
+  overflow-wrap: anywhere;
+}
+
+/* kullanıcı çekmecesi */
+.drawerBody {
+  display: grid;
+  gap: var(--space-4);
+  min-inline-size: 0;
+}
+.drawerLoading {
+  display: grid;
+  gap: var(--space-3);
+}
+.drawerKpis {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-3);
+}
+@media (max-width: 640px) {
+  .drawerKpis {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+.profileLink {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: 44px;
+  color: var(--primary);
+  font-weight: 600;
+}
+
+.sessionList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--space-2);
+}
+.session {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+}
+.session details > summary {
+  list-style: none;
+  cursor: pointer;
+}
+.session details > summary::-webkit-details-marker {
+  display: none;
+}
+.sessionHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-3);
+  min-block-size: 44px;
+  padding: var(--space-2) var(--space-3);
+}
+.sessionHead:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: -2px;
+  border-radius: var(--radius-sm);
+}
+.sessionWhen {
+  font-size: var(--text-sm);
+}
+.sessionDur {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.sessionBadges {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+}
+
+.steps {
+  list-style: none;
+  margin: 0;
+  padding: var(--space-2) var(--space-3) var(--space-3);
+  display: grid;
+  gap: 0;
+  border-block-start: 1px solid var(--border);
+}
+.step {
+  display: grid;
+  grid-template-columns: 8.5rem 1.5rem minmax(0, 1fr);
+  align-items: baseline;
+  gap: var(--space-2);
+  padding-block: var(--space-1);
+  font-size: var(--text-sm);
+}
+@media (max-width: 520px) {
+  .step {
+    grid-template-columns: 1.5rem minmax(0, 1fr);
+  }
+  .stepTime {
+    grid-column: 1 / -1;
+  }
+}
+.stepTime {
+  font-variant-numeric: tabular-nums;
+  color: var(--text-muted);
+  font-size: var(--text-xs);
+}
+.stepOffset {
+  color: var(--text-faint);
+}
+.stepDot {
+  display: inline-flex;
+  justify-content: center;
+  color: var(--chart-1);
+}
+.stepAction .stepDot {
+  color: var(--chart-3);
+}
+.stepBody {
+  min-inline-size: 0;
+  overflow-wrap: anywhere;
+}
+
+/* sütun min-content'e göre şişmesin: geniş tablolar kendi kaydırma kabında kalır */
+.stack {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-5);
+  min-inline-size: 0;
+}
