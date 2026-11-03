@@ -363,7 +363,8 @@ class AuthTwoFactorFlowTest {
         verify(mail, org.mockito.Mockito.times(2)).sendTwoFactorCode(eq(EMAIL), any(), anyInt(), any());
         assertNotNull(complete(ch, lastCode(), true, DEV_A));
         // sinir: challenge basina 3 / 10 dk
-        verify(limiter).check(org.mockito.ArgumentMatchers.startsWith("tf2:resend:"), eq(3), eq(Duration.ofMinutes(10)));
+        // erken (bekleme dolmadan) deneme de controller sinirini harcar: iki cagri (bilinen taviz, bkz. docs/changes/auth.md COOLDOWN)
+        verify(limiter, org.mockito.Mockito.times(2)).check(org.mockito.ArgumentMatchers.startsWith("tf2:resend:"), eq(3), eq(Duration.ofMinutes(10)));
         // bilinmeyen challenge icin yeniden gonderme olmaz
         assertEquals("TWO_FACTOR_CHALLENGE_EXPIRED", assertThrows(ApiException.class,
                 () -> tfController.resendLoginCode(new TwoFactorDtos.ChallengeRequest("yok"), req(DEV_A))).code());
