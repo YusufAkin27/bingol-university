@@ -6,6 +6,7 @@ import siteV3 from '../tr/site-v3';
 import siteRd01 from '../tr/site-rd01';
 import siteRd02 from '../tr/site-rd02';
 import siteRd03 from '../tr/site-rd03';
+import siteRd04 from '../tr/site-rd04';
 import legal from '../tr/legal';
 import pages from '../tr/pages';
 import supportPublic from '../tr/support-public';
@@ -14,4 +15,4 @@ import childSafety from '../tr/child-safety';
 import siteTrust from '../tr/site-trust';
 import siteRd10 from '../tr/site-rd10';
 
-export default { ...common, ...site, ...siteNew, ...siteV3, ...legal, ...pages, ...supportPublic, ...seo, ...childSafety, ...siteTrust, ...siteRd10, ...siteRd01, ...siteRd02, ...siteRd03 };
+export default { ...common, ...site, ...siteNew, ...siteV3, ...legal, ...pages, ...supportPublic, ...seo, ...childSafety, ...siteTrust, ...siteRd10, ...siteRd01, ...siteRd02, ...siteRd03, ...siteRd04 };

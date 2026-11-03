@@ -3,9 +3,10 @@
 // Tür ve arama URL'de (?type=&q=); "Daha fazla yükle" sayfaları birikimli getirir. En yeni kayıt öne çıkan kart olur (aramada olmaz).
 // Görseller yalnızca *.bingol.edu.tr'den yüklenir (nginx CSP img-src); yüklenemezse gradyan/ikon yedeği gösterilir.
 import { useInfiniteQuery } from '@tanstack/react-query';
+import { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { getPublicNews, NEWS_KINDS, type NewsKind } from '../../api/publicContent';
-import { Button, EmptyState, ErrorState, SearchInput } from '../../components/ui';
+import { Button, EmptyState, ErrorState, Icon, SearchInput } from '../../components/ui';
 import type { TranslationKey } from '../../i18n';
 import { useI18n } from '../../i18n/I18nProvider';
 import { errorMessage } from '../../lib/errors';
@@ -57,14 +58,22 @@ export default function NewsListPage() {
   const items = query.data?.pages.flatMap((p) => p.items) ?? [];
   const total = query.data?.pages[0]?.totalItems ?? 0;
   const searching = q !== '';
+  const filtered = searching || !!type;
   const [first, ...rest] = items;
   const featured = !searching && first ? first : null;
   const grid = featured ? rest : items;
+  // Girdi kontrolsüzdür (debounce); "temizle" yalnızca anahtarı değiştirerek yeniden kurar, yazarken odak kaybolmaz.
+  const [searchKey, setSearchKey] = useState(0);
+  const clearAll = () => {
+    update({ type: null, q: '' });
+    setSearchKey((k) => k + 1);
+  };
+  const typeLabel = type ? t(`pg.news.type.${type}` as TranslationKey) : '';
 
   return (
     <>
       <PageHero
-        eyebrow={t('site.v3.eyebrow')}
+        eyebrow={t('site.rd04.eyebrow')}
         title={title}
         lead={t('pg.news.lead')}
         crumbs={[{ label: title }]}
@@ -87,6 +96,7 @@ export default function NewsListPage() {
             </div>
             <div className={styles.search}>
               <SearchInput
+                key={searchKey}
                 defaultValue={rawQ}
                 label={t('pg.news.search')}
                 placeholder={t('pg.news.searchPlaceholder')}
@@ -94,6 +104,35 @@ export default function NewsListPage() {
               />
             </div>
           </div>
+
+          {filtered && (
+            <div className={styles.active} role="group" aria-label={t('site.rd04.activeFilters')}>
+              <span className={styles.activeLabel}>{t('site.rd04.activeFilters')}</span>
+              {type && (
+                <button
+                  type="button"
+                  className={styles.pill}
+                  aria-label={t('site.rd04.filterRemove', { label: typeLabel })}
+                  onClick={() => update({ type: null })}
+                >
+                  {t('site.rd04.filterType')}: {typeLabel} <Icon name="x" size={14} />
+                </button>
+              )}
+              {searching && (
+                <button
+                  type="button"
+                  className={styles.pill}
+                  aria-label={t('site.rd04.filterRemove', { label: q })}
+                  onClick={() => {
+                    update({ q: '' });
+                    setSearchKey((k) => k + 1);
+                  }}
+                >
+                  {t('site.rd04.filterQuery')}: “{q}” <Icon name="x" size={14} />
+                </button>
+              )}
+            </div>
+          )}
 
           <div className={styles.results}>
             {query.isLoading && (
@@ -107,18 +146,33 @@ export default function NewsListPage() {
               </div>
             )}
             {query.isError && !query.data && (
-              <ErrorState
-                title={t('pg.news.error')}
-                description={errorMessage(i18n, query.error)}
-                onRetry={() => void query.refetch()}
-              />
+              <div className={styles.stateBox}>
+                <ErrorState
+                  title={t('pg.news.error')}
+                  description={errorMessage(i18n, query.error)}
+                  onRetry={() => void query.refetch()}
+                />
+              </div>
             )}
             {query.data && items.length === 0 && (
-              <EmptyState
-                icon="news"
-                title={searching ? t('pg.news.emptySearch') : t('pg.news.empty')}
-                description={searching ? t('pg.news.emptySearchHint') : t('pg.news.emptyHint')}
-              />
+              <div className={styles.stateBox}>
+                <EmptyState
+                  icon="news"
+                  title={searching ? t('pg.news.emptySearch') : t('pg.news.empty')}
+                  description={searching ? t('pg.news.emptySearchHint') : t('pg.news.emptyHint')}
+                  action={
+                    filtered ? (
+                      <Button
+                        variant="primary"
+                        leftIcon={<Icon name="filter" size={16} />}
+                        onClick={clearAll}
+                      >
+                        {t('site.rd04.clearFilters')}
+                      </Button>
+                    ) : undefined
+                  }
+                />
+              </div>
             )}
             {items.length > 0 && (
               <div className={styles.stack}>
@@ -143,8 +197,11 @@ export default function NewsListPage() {
                     onRetry={() => void query.fetchNextPage()}
                   />
                 )}
-                {query.hasNextPage && (
-                  <div className={styles.more}>
+                <div className={styles.more}>
+                  <p className={styles.shown} role="status" aria-live="polite">
+                    {t('site.rd04.shown', { shown: items.length, total })}
+                  </p>
+                  {query.hasNextPage && (
                     <Button
                       variant="secondary"
                       loading={query.isFetchingNextPage}
@@ -152,14 +209,19 @@ export default function NewsListPage() {
                     >
                       {t('common.loadMore')}
                     </Button>
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
             )}
           </div>
         </div>
       </section>
-      <AppCallout shot="home" title={t('site.s2.news.appTitle')} text={t('site.s2.news.appText')} crop={0.8} />
+      <AppCallout
+        shot="home"
+        title={t('site.s2.news.appTitle')}
+        text={t('site.s2.news.appText')}
+        crop={0.8}
+      />
     </>
   );
 }
