@@ -244,26 +244,19 @@ void main() {
   });
 
   group('kayit', () {
-    testWidgets('tum alanlar tek istekte; tam e-posta govdede; dogrulama sayfasi tam e-postayi gosterir', (tester) async {
+    testWidgets('ad + numara + sifre tek istekte; tam e-posta govdede; dogrulama sayfasi tam e-postayi gosterir', (tester) async {
       useScreen(tester, const Size(390, 1800));
       final b = FakeBackend();
-      fakeCatalog(b);
       final s = makeSession(b, signedIn: false);
       await tester.pumpWidget(buildApp(RegisterPage(session: s)));
       await settle(tester, const Duration(milliseconds: 300));
-      await fillAcademic(tester);
-      await tester.tap(find.text('Devam'));
-      await tester.pump(const Duration(milliseconds: 400));
       final fields = find.byType(TextFormField);
       await tester.enterText(fields.at(0), 'Ayşe Yılmaz');
       // Alan yalnız rakam alır: numara yazılır, sonek `@bingol.edu.tr` görünür, istekte tam e-posta gider.
       await tester.enterText(fields.at(1), '226051015');
       await tester.pump();
       expect(_suffix(), findsOneWidget);
-      await tester.tap(find.text('Devam'));
-      await tester.pump(const Duration(milliseconds: 400));
-      await tester.pump(const Duration(milliseconds: 400));
-      await tester.enterText(find.byType(TextFormField).first, 'Sifre1234');
+      await tester.enterText(fields.at(2), 'Sifre1234');
       await tester.pump();
       await tester.tap(find.text('Kayıt ol').last);
       await settle(tester, const Duration(milliseconds: 600));
@@ -273,30 +266,23 @@ void main() {
       expect(body['displayName'], 'Ayşe Yılmaz');
       expect(body['password'], 'Sifre1234');
       expect(body['acceptTerms'], true);
-      expect(body['department'], isNotNull);
-      expect(body['grade'], '3');
+      expect(body.containsKey('department'), isFalse);
+      expect(body.containsKey('grade'), isFalse);
       expect(find.byType(VerifyCodePage), findsOneWidget);
       expect(find.textContaining('226051015@bingol.edu.tr adresine gönderildi'), findsOneWidget);
       expect((await s.pending.load())?.identifier, '226051015@bingol.edu.tr');
       await unmount(tester);
     });
 
-    testWidgets('gecersiz numara kayitta reddedilir (5 hane): 2. adimda kalir, istek yok', (tester) async {
+    testWidgets('gecersiz numara kayitta reddedilir (5 hane): istek yok', (tester) async {
       useScreen(tester, const Size(390, 1800));
       final b = FakeBackend();
-      fakeCatalog(b);
       await tester.pumpWidget(buildApp(RegisterPage(session: makeSession(b, signedIn: false))));
       await settle(tester, const Duration(milliseconds: 300));
-      await fillAcademic(tester);
-      await tester.tap(find.text('Devam'));
-      await tester.pump(const Duration(milliseconds: 400));
-      await tester.enterText(find.byType(TextFormField).at(0), 'Ayşe Yılmaz');
-      await tester.enterText(find.byType(TextFormField).at(1), '12345');
-      await tester.pump();
-      await tester.tap(find.text('Devam'));
+      await fillRegister(tester, number: '12345');
+      await tester.tap(find.text('Kayıt ol').last);
       await tester.pump();
       expect(find.text('Okul numarasını kontrol edin.'), findsOneWidget);
-      expect(find.text('Adım 2/3'), findsOneWidget);
       expect(b.count('/auth/register'), 0);
       await unmount(tester);
     });
@@ -304,21 +290,16 @@ void main() {
     testWidgets('tam e-posta artik yazilamaz: harf ve @ suzulur, bos kalan alan reddedilir', (tester) async {
       useScreen(tester, const Size(390, 1800));
       final b = FakeBackend();
-      fakeCatalog(b);
       await tester.pumpWidget(buildApp(RegisterPage(session: makeSession(b, signedIn: false))));
       await settle(tester, const Duration(milliseconds: 300));
-      // Kayıt 3 adımlı sihirbaz: numara 2. adımda doğrulanır, geçersizse 3. adıma geçilmez.
-      await fillAcademic(tester);
-      await tester.tap(find.text('Devam'));
-      await tester.pump(const Duration(milliseconds: 400));
       await tester.enterText(find.byType(TextFormField).at(0), 'Ayşe Yılmaz');
       await tester.enterText(find.byType(TextFormField).at(1), 'ayse@gmail.com');
+      await tester.enterText(find.byType(TextFormField).at(2), 'Sifre1234');
       await tester.pump();
       expect(tester.widget<TextField>(find.byType(TextField).at(1)).controller!.text, '');
-      await tester.tap(find.text('Devam'));
+      await tester.tap(find.text('Kayıt ol').last);
       await tester.pump();
       expect(find.text('Okul numaranızı girin.'), findsOneWidget);
-      expect(find.text('Adım 2/3'), findsOneWidget);
       expect(b.count('/auth/register'), 0);
       await unmount(tester);
     });
@@ -340,23 +321,17 @@ void main() {
 
   group('tasma matrisi', () {
     for (final br in Brightness.values) {
-      testWidgets('kayit e-posta adimi + hata | ${br.name} 320 x1.3', (tester) async {
+      testWidgets('kayit sayfasi + hata | ${br.name} 320 x1.3', (tester) async {
         useScreen(tester, kPhoneSmall);
         tester.platformDispatcher.textScaleFactorTestValue = 1.3;
         addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
         final b = FakeBackend();
-        fakeCatalog(b);
         await tester.pumpWidget(
             buildApp(RegisterPage(session: makeSession(b, signedIn: false)), brightness: br, size: kPhoneSmall));
         await settle(tester, const Duration(milliseconds: 300));
-        await fillAcademic(tester);
-        await tester.ensureVisible(find.text('Devam'));
-        await tester.tap(find.text('Devam'));
-        await tester.pump(const Duration(milliseconds: 400));
-        await tester.enterText(find.byType(TextFormField).at(1), '12345');
-        await tester.pump();
-        await tester.ensureVisible(find.text('Devam'));
-        await tester.tap(find.text('Devam'));
+        await fillRegister(tester, number: '12345');
+        await tester.ensureVisible(find.text('Kayıt ol').last);
+        await tester.tap(find.text('Kayıt ol').last);
         await settle(tester, const Duration(milliseconds: 600));
         expect(find.text('Okul numarasını kontrol edin.'), findsOneWidget);
         expect(tester.takeException(), isNull);

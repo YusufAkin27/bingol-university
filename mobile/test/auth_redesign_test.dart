@@ -10,7 +10,6 @@ import 'package:bu_kampus/features/auth/reset_code_page.dart';
 import 'package:bu_kampus/features/auth/reset_success_page.dart';
 import 'package:bu_kampus/features/auth/verify_code_page.dart';
 import 'package:bu_kampus/features/auth/welcome_page.dart';
-import 'package:bu_kampus/features/auth/widgets/auth_controls.dart';
 import 'package:bu_kampus/features/legal/legal_reaccept.dart';
 import 'package:bu_kampus/features/legal/legal_reaccept_page.dart';
 import 'package:bu_kampus/features/system/splash_screen.dart';
@@ -129,24 +128,6 @@ void main() {
       await tester.enterText(find.byType(TextFormField), 'ayse@bingol.edu.tr');
       await tester.pump();
       expect(find.textContaining('uzantılı'), findsNothing);
-      await unmount(tester);
-    });
-
-    testWidgets('kayıt: parola kuralları yazdıkça tik alır', (tester) async {
-      useScreen(tester, const Size(390, 1800));
-      final b = FakeBackend();
-      fakeCatalog(b);
-      await tester.pumpWidget(_app(RegisterPage(session: _s(b))));
-      await settle(tester, const Duration(milliseconds: 600));
-      await fillRegister(tester, password: 'abc');
-      List<bool> rules() => tester.widgetList<AuthRule>(find.byType(AuthRule)).map((w) => w.ok).toList();
-      expect(rules(), [false, false]);
-      await tester.enterText(find.byType(TextFormField).first, 'abcdefgh');
-      await tester.pump();
-      expect(rules(), [true, false]);
-      await tester.enterText(find.byType(TextFormField).first, 'abcdefg1');
-      await tester.pump();
-      expect(rules(), [true, true]);
       await unmount(tester);
     });
   });

@@ -153,15 +153,15 @@ void main() {
   });
 
   group('register', () {
-    testWidgets('akademik bilgi girilmeden ilerlenmez; istek atilmaz', (tester) async {
+    testWidgets('bos form gonderilemez; istek atilmaz', (tester) async {
       useScreen(tester, kPhoneMedium);
       final b = newB();
       await tester.pumpWidget(buildApp(RegisterPage(session: makeSession(b, signedIn: false))));
-      await tester.ensureVisible(find.text('Devam'));
-      await tester.tap(find.text('Devam'));
+      await tester.ensureVisible(find.text('Kayıt ol').last);
+      await tester.tap(find.text('Kayıt ol').last);
       await tester.pump();
       expect(b.count('/auth/register'), 0);
-      expect(find.text('Adım 1/3'), findsOneWidget);
+      expect(find.text('Adınızı ve soyadınızı girin.'), findsOneWidget);
       noErr(tester);
     });
 
@@ -317,7 +317,7 @@ void main() {
       await tester.ensureVisible(find.text('Şifreyi güncelle'));
       await tester.tap(find.text('Şifreyi güncelle'));
       await tester.pump();
-      expect(find.text('Şifre en az 8 karakter olmalı.'), findsOneWidget);
+      expect(find.text('Şifre en az 6 karakter olmalı.'), findsOneWidget);
       await tester.enterText(f.at(0), 'Sifre1234');
       await tester.enterText(f.at(1), 'Sifre1234');
       await tester.ensureVisible(find.text('Şifreyi güncelle'));

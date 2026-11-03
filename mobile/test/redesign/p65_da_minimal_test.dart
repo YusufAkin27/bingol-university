@@ -144,15 +144,11 @@ void main() {
   });
 
   group('Kayıt', () {
-    testWidgets('adım 1: bölüm başlığı tek (ayrıca "AKADEMİK BİLGİLER" etiketi yok), not tek sakin satır', (tester) async {
+    testWidgets('tek sayfa: bilgi notu ve ikon karosu yok', (tester) async {
       useScreen(tester, kPhoneMedium);
-      final be = FakeBackend()..on('/catalog/academic', {'version': 1, 'faculties': [], 'grades': []});
-      final s = makeSession(be, signedIn: false);
+      final s = makeSession(FakeBackend(), signedIn: false);
       await tester.pumpWidget(buildApp(RegisterPage(session: s)));
       await settle(tester, const Duration(milliseconds: 900));
-      expect(find.text('AKADEMİK BİLGİLER'), findsNothing);
-      expect(find.text('Akademik bilgiler'), findsNothing);
-      expect(find.byType(RefNote), findsOneWidget);
       expect(find.byType(RefIconTile), findsNothing);
       await unmount(tester);
     });

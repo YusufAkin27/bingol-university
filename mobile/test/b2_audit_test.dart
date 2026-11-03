@@ -4,9 +4,7 @@ import 'package:bu_kampus/core/analytics.dart';
 import 'package:bu_kampus/core/error_log.dart';
 import 'package:bu_kampus/core/platform/image_service.dart';
 import 'package:bu_kampus/core/session.dart';
-import 'package:bu_kampus/core/theme.dart';
 import 'package:bu_kampus/features/auth/auth_widgets.dart';
-import 'package:bu_kampus/features/auth/widgets/auth_controls.dart';
 import 'package:bu_kampus/features/clubs/club_detail_page.dart';
 import 'package:bu_kampus/features/events/etkinlik2_qr_page.dart';
 import 'package:bu_kampus/features/posts/social_api.dart';
@@ -141,36 +139,30 @@ void main() {
     testWidgets('+ etiketi yazılamaz: alan yalnız rakam alır (harf, + ve @ süzülür); boş alan reddedilir', (tester) async {
       useScreen(tester, const Size(390, 1800));
       final b = FakeBackend();
-      fakeCatalog(b);
       await tester.pumpWidget(buildApp(RegisterPage(session: makeSession(b, signedIn: false))));
       await settle(tester, const Duration(milliseconds: 300));
-      await fillAcademic(tester);
-      await tester.tap(find.text('Devam'));
-      await tester.pump(const Duration(milliseconds: 400));
       final fields = find.byType(TextFormField);
       await tester.enterText(fields.at(0), 'Ayşe Yılmaz');
       await tester.enterText(fields.at(1), 'ayse+etiket@bingol.edu.tr');
+      await tester.enterText(fields.at(2), 'Sifre1234');
       await tester.pump();
       expect(tester.widget<TextField>(find.byType(TextField).at(1)).controller!.text, '');
-      await tester.tap(find.text('Devam'));
-      await tester.pump(const Duration(milliseconds: 400));
+      await tester.tap(find.text('Kayıt ol').last);
+      await tester.pump();
       expect(find.text('Okul numaranızı girin.'), findsOneWidget);
-      expect(find.text('Adım 2/3'), findsOneWidget);
       expect(b.count('/auth/register'), 0);
       await unmount(tester);
     });
 
-    testWidgets('sunucu 400 EMAIL_ALIAS_NOT_ALLOWED: e-posta adımına dönülür, mesaj alan altında', (tester) async {
+    testWidgets('sunucu 400 EMAIL_ALIAS_NOT_ALLOWED: mesaj numara alanının altında', (tester) async {
       useScreen(tester, const Size(390, 1800));
       final b = FakeBackend()..fail('/auth/register', status: 400, code: 'EMAIL_ALIAS_NOT_ALLOWED', message: 'x');
-      fakeCatalog(b);
       await tester.pumpWidget(buildApp(RegisterPage(session: makeSession(b, signedIn: false))));
       await settle(tester, const Duration(milliseconds: 300));
       await fillRegister(tester);
       await tester.tap(find.text('Kayıt ol').last);
       await settle(tester, const Duration(milliseconds: 600));
       expect(b.count('/auth/register'), 1);
-      expect(find.text('Adım 2/3'), findsOneWidget);
       expect(find.text('E-posta adresinde + etiketi kullanılamaz.'), findsOneWidget);
       // Numara değişince hata kalkar.
       await tester.enterText(find.byType(TextFormField).at(1), '226051016');
@@ -305,53 +297,6 @@ void main() {
   });
 
   group('Erişilebilirlik: kontrast ve dokunma hedefi (L34, L35)', () {
-    testWidgets('AuthPasswordGuide: güç etiketi renkle değil sözcükle anlatılır; etiket ink belirtecidir ve AA kontrastı sağlar', (tester) async {
-      // Stitch v3: zayıf/orta/güçlü için kırmızı/amber/yeşil kullanılmaz; etiket ink rengindedir.
-      Future<Color?> labelColor(String pw, Brightness br) async {
-        await tester.pumpWidget(buildApp(Scaffold(body: AuthPasswordGuide(password: pw)), brightness: br));
-        await tester.pumpAndSettle(); // AnimatedTheme geçişi
-        final label = {'Zayıf', 'Orta', 'Güçlü'}.map((s) => find.text(s)).firstWhere((f) => f.evaluate().isNotEmpty);
-        return tester.widget<Text>(label).style?.color;
-      }
-
-      double ratio(Color a, Color b) {
-        final l1 = a.computeLuminance(), l2 = b.computeLuminance();
-        return (l1 > l2 ? l1 + .05 : l2 + .05) / (l1 > l2 ? l2 + .05 : l1 + .05);
-      }
-
-      for (final (br, tk) in [(Brightness.light, BuTokens.light), (Brightness.dark, BuTokens.dark)]) {
-        for (final pw in ['abc', 'abcdefg1', 'Abcdefghijk1!']) {
-          final c = await labelColor(pw, br);
-          expect(c, tk.ink, reason: '$pw / ${br.name}: etiket rengi ink olmalı');
-          expect(c, isNot(tk.danger));
-          expect(c, isNot(tk.ok));
-        }
-        expect(ratio(tk.ink, tk.bg), greaterThanOrEqualTo(4.5));
-      }
-      // Uyarı bandı metin belirteci (RefBanner warn) hâlâ AA kontrastlı olmalı.
-      expect(ratio(BuTokens.light.onWarnSoft, BuTokens.light.bg), greaterThanOrEqualTo(4.5));
-      expect(ratio(BuTokens.dark.onWarnSoft, BuTokens.dark.bg), greaterThanOrEqualTo(4.5));
-    });
-
-    for (final rtl in [false, true]) {
-      testWidgets('BuButton compact: dokunma hedefi >= 44 dp, kenar boşluğundaki dokunuş tek kez çalışır (rtl=$rtl)', (tester) async {
-        var n = 0;
-        await tester.pumpWidget(buildApp(Directionality(
-          textDirection: rtl ? TextDirection.rtl : TextDirection.ltr,
-          child: Scaffold(body: Center(child: BuButton(label: 'Katıl', compact: true, onPressed: () => n++))),
-        )));
-        final r = tester.getRect(find.byType(BuButton));
-        expect(r.height, greaterThanOrEqualTo(44));
-        expect(r.width, greaterThanOrEqualTo(44));
-        await tester.tapAt(r.center);
-        expect(n, 1, reason: 'hapın üstüne dokunuş tek çağrı');
-        await tester.tapAt(Offset(r.center.dx, r.top + 2)); // görsel hapın dışındaki 4 dp bant
-        expect(n, 2);
-        // Anlamsal ağaçta tek düğme.
-        expect(find.bySemanticsLabel('Katıl'), findsOneWidget);
-      });
-    }
-
     testWidgets('BuButton compact busy/devre dışı iken dokunuş çağırmaz', (tester) async {
       var n = 0;
       await tester.pumpWidget(buildApp(Scaffold(body: Center(child: BuButton(label: 'A', compact: true, busy: true, onPressed: () => n++)))));

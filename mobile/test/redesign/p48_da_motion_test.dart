@@ -1,6 +1,5 @@
 import 'package:bu_kampus/core/permissions/permission_service.dart';
 import 'package:bu_kampus/features/auth/otp_code_boxes.dart';
-import 'package:bu_kampus/features/auth/widgets/auth_motion.dart';
 import 'package:bu_kampus/features/auth/widgets/auth_ref.dart';
 import 'package:bu_kampus/features/platform/qr_scan_page.dart';
 import 'package:bu_kampus/features/system/gate_views.dart';
@@ -22,64 +21,6 @@ void main() {
         data: MediaQueryData(size: const Size(390, 844), disableAnimations: on),
         child: child,
       );
-
-  /// Adim cubugundaki i. parcanin doluluk orani (ScaleX).
-  double fill(WidgetTester tester, int i) {
-    final f = find.descendant(of: find.byKey(ValueKey('auth-step-fill-$i')), matching: find.byType(Transform));
-    final m = tester.widget<Transform>(f.first).transform;
-    return m.storage[0];
-  }
-
-  group('AuthStepBar', () {
-    testWidgets('ilerleyince yeni parca soldan dolar (ara kare), geri gidince bosalir', (tester) async {
-      useScreen(tester, kPhoneMedium);
-      var step = 0;
-      late StateSetter set;
-      await tester.pumpWidget(buildApp(Scaffold(
-        body: StatefulBuilder(builder: (c, s) {
-          set = s;
-          return Padding(padding: const EdgeInsets.all(16), child: AuthStepBar(step: step, steps: 3));
-        }),
-      )));
-      await tester.pump();
-      expect(fill(tester, 0), closeTo(1, .001));
-      expect(fill(tester, 1), closeTo(0, .001));
-      expect(fill(tester, 2), closeTo(0, .001));
-      set(() => step = 1);
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 80));
-      final mid = fill(tester, 1);
-      expect(mid, greaterThan(0));
-      expect(mid, lessThan(1));
-      await tester.pump(const Duration(milliseconds: 400));
-      expect(fill(tester, 1), closeTo(1, .001));
-      expect(fill(tester, 2), closeTo(0, .001));
-      set(() => step = 0);
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 400));
-      expect(fill(tester, 1), closeTo(0, .001));
-      expect(fill(tester, 0), closeTo(1, .001));
-      await unmount(tester);
-    });
-
-    testWidgets('azalt aciksa ilk karede son durum', (tester) async {
-      useScreen(tester, kPhoneMedium);
-      var step = 0;
-      late StateSetter set;
-      await tester.pumpWidget(reduce(buildApp(Scaffold(
-        body: StatefulBuilder(builder: (c, s) {
-          set = s;
-          return AuthStepBar(step: step, steps: 3);
-        }),
-      ))));
-      await tester.pump();
-      set(() => step = 2);
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 1));
-      expect(fill(tester, 2), closeTo(1, .001));
-      await unmount(tester);
-    });
-  });
 
   group('OtpCodeBoxes', () {
     testWidgets('yeni rakam kucukten yerine oturur; sonunda tam olcek', (tester) async {
