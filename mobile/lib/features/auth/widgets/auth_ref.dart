@@ -122,9 +122,9 @@ class RefHeading extends StatelessWidget {
       children: [
         Semantics(
           header: true,
-          child: Text(title, textAlign: align, style: tx.headlineMedium!.copyWith(color: t.ink, fontSize: BuScale.display - 2, fontWeight: FontWeight.w700, height: 1.2)),
+          child: Text(title, textAlign: align, style: tx.displaySmall!.copyWith(color: t.ink, fontWeight: FontWeight.w800, height: 1.1)),
         ),
-        if (sub != null) Padding(padding: const EdgeInsets.only(top: 8), child: sub),
+        if (sub != null) Padding(padding: const EdgeInsets.only(top: 10), child: sub),
       ],
     );
   }

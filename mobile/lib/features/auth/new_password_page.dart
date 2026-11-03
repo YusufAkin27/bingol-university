@@ -9,6 +9,7 @@ import 'reset_success_page.dart';
 import 'widgets/auth_controls.dart';
 import 'widgets/auth_motion.dart';
 import 'widgets/auth_ref.dart';
+import 'widgets/login_underline_field.dart';
 
 /// Şifremi unuttum, 3. adım (Stitch 03): kod doğrulandıktan sonra yeni şifre + tekrarı. Başarıda onay ekranı açılır.
 class NewPasswordPage extends StatefulWidget {
@@ -95,24 +96,21 @@ class _NewPasswordPageState extends State<NewPasswordPage> {
                   RefBanner(_error!, key: ValueKey('np-error-$_error')),
                   const SizedBox(height: 16),
                 ],
-                RefPasswordField(
+                LoginPasswordField(
                   controller: _password,
                   label: l.authNewPasswordLabel,
-                  onCard: true,
                   enabled: !_busy,
                   validator: validate,
-                  textInputAction: TextInputAction.next,
                   autofillHints: const [AutofillHints.newPassword],
                 ),
                 ValueListenableBuilder<TextEditingValue>(
                   valueListenable: _password,
                   builder: (_, v, __) => AuthPasswordGuide(password: v.text),
                 ),
-                const SizedBox(height: 18),
-                RefPasswordField(
+                const SizedBox(height: 28),
+                LoginPasswordField(
                   controller: _repeat,
                   label: l.profil2SecRepeatLabel,
-                  onCard: true,
                   enabled: !_busy,
                   validator: (v) => (v ?? '') == _password.text ? null : l.profil2SecMismatch,
                   autofillHints: const [AutofillHints.newPassword],

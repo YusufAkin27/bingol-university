@@ -8,6 +8,7 @@ import '../../widgets/bu.dart';
 import 'reset_code_page.dart';
 import 'widgets/auth_motion.dart';
 import 'widgets/auth_ref.dart';
+import 'widgets/login_underline_field.dart';
 
 /// Girişten bu ada sahip rota ile açılır; yeni şifre adımında süre dolarsa buraya dönülür.
 const kForgotPasswordRoute = '/forgot-password';
@@ -113,7 +114,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
     return RefPage(
       children: [
         RefHeading(title: l.authResetTitle, subtitle: l.authForgotSub),
-        const SizedBox(height: 24),
+        const SizedBox(height: 32),
         Padding(
           padding: EdgeInsets.zero,
           child: Form(
@@ -131,13 +132,19 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                         )
                       : const SizedBox(width: double.infinity),
                 ),
-                RefIdentifierField(
-                  controller: _email,
-                  enabled: !_busy,
-                  onCard: true,
-                  helper: false,
-                  textInputAction: TextInputAction.done,
-                  onSubmitted: _sendCode,
+                ValueListenableBuilder<TextEditingValue>(
+                  valueListenable: _email,
+                  builder: (context, v, _) => LoginUnderlineField(
+                    controller: _email,
+                    label: l.authIdHint,
+                    keyboardType: TextInputType.emailAddress,
+                    autofillHints: const [AutofillHints.username, AutofillHints.email],
+                    enabled: !_busy,
+                    validator: validateIdentifier,
+                    textInputAction: TextInputAction.done,
+                    onSubmitted: _sendCode,
+                    suffix: isStudentNumberInput(v.text) ? '@$kEmailDomain' : null,
+                  ),
                 ),
                 AnimatedSize(
                   duration: const Duration(milliseconds: 220),
