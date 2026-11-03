@@ -14,6 +14,7 @@ import 'register_page.dart';
 import 'verify_code_page.dart';
 import 'widgets/auth_motion.dart';
 import 'widgets/auth_ref.dart';
+import 'widgets/login_glass.dart';
 
 /// Giriş (Stitch 01): beyaz kart içinde e-posta/okul numarası + şifre; üstte bekleyen doğrulama ve
 /// "başka cihazdan giriş" bantları; hız sınırı ve ağ hataları satır içi bantla gösterilir.
@@ -200,52 +201,59 @@ class _LoginPageState extends State<LoginPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const Align(alignment: AlignmentDirectional.centerStart, child: RefBrandMark(size: 44)),
-                  const SizedBox(height: 28),
-                  Semantics(
-                    header: true,
-                    child: Text(l.loginWelcome, style: tx.headlineMedium!.copyWith(color: t.ink, fontWeight: FontWeight.w700)),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(l.loginSubtitleNumber, style: tx.bodyLarge!.copyWith(color: t.mut)),
-                  const SizedBox(height: 32),
-                  // Örnek e-posta satırı (helper) gösterilmez: alan etiketi yeterli.
-                  RefIdentifierField(controller: _email, enabled: !_busy, helper: false, numberOnly: true),
-                  const SizedBox(height: 24),
-                  RefPasswordField(
-                    controller: _password,
-                    enabled: !_busy,
-                    hint: l.loginPasswordRequired.replaceAll(RegExp(r'\.$'), ''),
-                    validator: (v) => (v == null || v.isEmpty) ? l.loginPasswordRequired : null,
-                    onSubmitted: _submit,
-                  ),
-                  Align(
-                    alignment: AlignmentDirectional.centerEnd,
-                    child: RefLink(label: l.loginForgotPassword, compact: true, onPressed: _busy ? null : _forgot),
-                  ),
-                  const SizedBox(height: 24),
-                  RefButton(
-                    label: l.loginSubmit,
-                    busy: _busy,
-                    busyLabel: l.p02LoginBusy,
-                    onPressed: _submit,
-                  ),
-                  AnimatedSize(
-                    duration: AppMotion.of(context, AppMotion.fast),
-                    curve: AppMotion.enter,
-                    alignment: Alignment.topCenter,
-                    child: _error == null
-                        ? const SizedBox(width: double.infinity)
-                        : Padding(
-                            padding: const EdgeInsets.only(top: 16),
-                            // Yeni hatada metin hafifçe sarsılır (azalt açıkken sarsılmaz).
-                            child: AuthShake(
-                              trigger: _shake,
-                              child: _retry != null
-                                  ? RefBanner(_error!, key: ValueKey('login-error-$_error'), tone: RefTone.warn, sub: _retry)
-                                  : RefBanner(_error!, key: ValueKey('login-error-$_error')),
-                            ),
+                  // Başlık bloğu: klavye açılınca marka küçülür, alt başlık söner (içerik akıcı yukarı kayar).
+                  _LoginHeader(compact: keyboard, title: l.loginWelcome, subtitle: l.loginSubtitleNumber),
+                  SizedBox(height: keyboard ? 4 : 12),
+                  GlassCard(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        // Örnek e-posta satırı (helper) gösterilmez: alan etiketi yeterli.
+                        GlassNumberField(controller: _email, enabled: !_busy),
+                        const SizedBox(height: 18),
+                        GlassPasswordField(
+                          controller: _password,
+                          enabled: !_busy,
+                          hint: l.loginPasswordRequired.replaceAll(RegExp(r'\.$'), ''),
+                          validator: (v) => (v == null || v.isEmpty) ? l.loginPasswordRequired : null,
+                          onSubmitted: _submit,
+                        ),
+                        Align(
+                          alignment: AlignmentDirectional.centerEnd,
+                          child: RefLink(label: l.loginForgotPassword, compact: true, onPressed: _busy ? null : _forgot),
+                        ),
+                        const SizedBox(height: 8),
+                        GlassButtonFrame(
+                          busy: _busy,
+                          child: RefButton(
+                            label: l.loginSubmit,
+                            busy: _busy,
+                            busyLabel: l.p02LoginBusy,
+                            onPressed: _submit,
                           ),
+                        ),
+                        AnimatedSize(
+                          duration: AppMotion.of(context, AppMotion.fast),
+                          curve: AppMotion.enter,
+                          alignment: Alignment.topCenter,
+                          child: _error == null
+                              ? const SizedBox(width: double.infinity)
+                              : Padding(
+                                  padding: const EdgeInsets.only(top: 16),
+                                  // Yeni hatada yumuşakça süzülür ve metin hafifçe sarsılır (azalt açıkken ikisi de yok).
+                                  child: SoftEnter(
+                                    key: ValueKey('login-notice-$_error-$_shake'),
+                                    child: AuthShake(
+                                      trigger: _shake,
+                                      child: _retry != null
+                                          ? RefBanner(_error!, key: ValueKey('login-error-$_error'), tone: RefTone.warn, sub: _retry)
+                                          : GlassNotice(child: RefBanner(_error!, key: ValueKey('login-error-$_error'))),
+                                    ),
+                                  ),
+                                ),
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),
@@ -263,7 +271,7 @@ class _LoginPageState extends State<LoginPage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      const SizedBox(height: 40),
+                      const SizedBox(height: 28),
                       Center(
                         child: RefFooterPrompt(
                           prompt: l.loginNoAccount,
@@ -293,6 +301,51 @@ class _LoginPageState extends State<LoginPage> {
                 ),
         ),
       ],
+    );
+  }
+}
+
+/// Marka karosu + karşılama başlığı. [compact] (klavye açık): karo küçülür, alt başlık yumuşakça kaybolur.
+class _LoginHeader extends StatelessWidget {
+  const _LoginHeader({required this.compact, required this.title, required this.subtitle});
+
+  final bool compact;
+  final String title;
+  final String subtitle;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.bu;
+    final tx = Theme.of(context).textTheme;
+    final d = AppMotion.of(context, AppMotion.normal);
+    return AnimatedSize(
+      duration: d,
+      curve: AppMotion.enter,
+      alignment: Alignment.topCenter,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Align(
+            alignment: AlignmentDirectional.centerStart,
+            child: TweenAnimationBuilder<double>(
+              tween: Tween<double>(end: compact ? 36 : 48),
+              duration: d,
+              curve: AppMotion.enter,
+              builder: (context, size, _) => RefBrandMark(size: size),
+            ),
+          ),
+          SizedBox(height: compact ? 12 : 22),
+          Semantics(
+            header: true,
+            child: Text(title, style: tx.headlineMedium!.copyWith(color: t.ink, fontWeight: FontWeight.w700)),
+          ),
+          if (!compact) ...[
+            const SizedBox(height: 6),
+            Text(subtitle, style: tx.bodyLarge!.copyWith(color: t.mut)),
+          ],
+          SizedBox(height: compact ? 16 : 26),
+        ],
+      ),
     );
   }
 }
