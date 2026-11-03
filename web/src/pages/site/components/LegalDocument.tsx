@@ -3,6 +3,7 @@ import { Icon, MarkdownText } from '../../../components/ui';
 import { useI18n } from '../../../i18n/I18nProvider';
 import { useMediaQuery } from '../../../lib/useMediaQuery';
 import { prepareLegal } from './legalDoc';
+import { useActiveSection } from './useActiveSection';
 import styles from './LegalDocument.module.css';
 
 interface Props {
@@ -18,7 +19,22 @@ interface Props {
  */
 export function LegalDocument({ title, content, docLang }: Props) {
   const { t, lang } = useI18n();
-  const doc = useMemo(() => prepareLegal(content), [content]);
+  const doc = useMemo(() => {
+    const d = prepareLegal(content);
+    // Metnin ilk başlığı belge adının tekrarıysa (sayfa başlığı zaten h1): yalnız sunumda gizlenir, içerik değişmez.
+    const first = d.sections[0];
+    const same =
+      !!first?.title && first.title.trim().toLocaleLowerCase('tr') === title.trim().toLocaleLowerCase('tr');
+    return {
+      sections: same ? d.sections.map((x, i) => (i === 0 ? { ...x, title: null } : x)) : d.sections,
+      toc: same ? d.toc.filter((e) => e.id !== first.id) : d.toc,
+    };
+  }, [content, title]);
+  const minutes = useMemo(
+    () => Math.max(1, Math.ceil(content.split(/\s+/).filter(Boolean).length / 200)),
+    [content],
+  );
+  const active = useActiveSection(doc.toc.map((e) => e.id));
   const compact = useMediaQuery('(max-width: 900px)');
   const [open, setOpen] = useState(false);
   const panelId = useId();
@@ -26,7 +42,12 @@ export function LegalDocument({ title, content, docLang }: Props) {
     <ol>
       {doc.toc.map((e) => (
         <li key={e.id}>
-          <a href={`#${e.id}`} onClick={() => setOpen(false)}>
+          <a
+            href={`#${e.id}`}
+            onClick={() => setOpen(false)}
+            className={active === e.id ? styles.tocActive : undefined}
+            aria-current={active === e.id ? 'location' : undefined}
+          >
             {e.title}
           </a>
         </li>
@@ -46,7 +67,11 @@ export function LegalDocument({ title, content, docLang }: Props) {
               onClick={() => setOpen((v) => !v)}
             >
               <span>{t('legal.onThisPage')}</span>
-              <Icon name="chevronDown" size={20} className={`${styles.chev} ${open ? styles.chevOpen : ''}`} />
+              <Icon
+                name="chevronDown"
+                size={20}
+                className={`${styles.chev} ${open ? styles.chevOpen : ''}`}
+              />
             </button>
             <div id={panelId} hidden={!open} className={styles.tocPanel}>
               {links}
@@ -56,6 +81,10 @@ export function LegalDocument({ title, content, docLang }: Props) {
           <nav className={styles.toc} aria-label={t('legal.toc')}>
             <h2 className={styles.tocTitle}>{t('legal.toc')}</h2>
             {links}
+            <p className={styles.tocMeta}>
+              {t('site.rd09.legal.sections', { n: String(doc.toc.length) })} ·{' '}
+              {t('site.rd09.legal.readTime', { n: String(minutes) })}
+            </p>
           </nav>
         ))}
       <article className={styles.article} lang={docLang}>
@@ -67,7 +96,7 @@ export function LegalDocument({ title, content, docLang }: Props) {
           </div>
         )}
         {doc.sections.map((s, i) => (
-          <section key={s.id ?? `intro-${i}`} aria-labelledby={s.id ?? undefined}>
+          <section key={s.id ?? `intro-${i}`} aria-labelledby={s.title ? (s.id ?? undefined) : undefined}>
             {s.title &&
               (s.level === 2 ? (
                 <h2 id={s.id ?? undefined} className={styles.h2}>

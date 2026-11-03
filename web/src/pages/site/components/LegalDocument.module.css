@@ -7,8 +7,8 @@
 }
 @media (min-width: 901px) {
   .layout {
-    grid-template-columns: 240px minmax(0, 1fr);
-    gap: var(--space-7);
+    grid-template-columns: 15rem minmax(0, 1fr);
+    gap: var(--space-8);
   }
   .layout:has(.article:only-child) {
     grid-template-columns: minmax(0, 1fr);
@@ -23,12 +23,45 @@
   min-width: 0;
 }
 @media (min-width: 901px) {
+  /* Geniş ekran: kartsız, ince çizgili yapışkan içindekiler; okunan bölüm vurgulanır */
   .toc {
     position: sticky;
-    inset-block-start: calc(var(--header-h) + var(--space-4));
+    inset-block-start: calc(var(--header-h) + var(--space-5));
     max-height: calc(100vh - var(--header-h) - var(--space-6));
     overflow-y: auto;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: none;
   }
+  .toc ol {
+    border-inline-start: 1px solid var(--border);
+    gap: 0;
+  }
+  .toc a {
+    margin-inline-start: -1px;
+    padding-inline: var(--space-3);
+    border-inline-start: 2px solid transparent;
+    border-radius: 0;
+    line-height: 1.35;
+  }
+  .toc a:hover {
+    background: none;
+    border-inline-start-color: var(--primary);
+  }
+  .toc a.tocActive {
+    color: var(--primary);
+    font-weight: 600;
+    border-inline-start-color: var(--primary);
+  }
+}
+.tocMeta {
+  margin: var(--space-4) 0 0;
+  padding-block-start: var(--space-3);
+  border-block-start: 1px solid var(--border);
+  color: var(--text-muted);
+  font-size: var(--text-xs);
+  line-height: 1.5;
 }
 .tocCompact {
   padding: 0;
@@ -91,7 +124,7 @@
 }
 @media (min-width: 901px) {
   .toc a {
-    min-height: 32px;
+    min-height: 36px;
   }
 }
 .toc a:hover {
@@ -113,6 +146,10 @@
   font-size: var(--text-base);
   line-height: 1.7;
   overflow-wrap: break-word;
+}
+/* belge gövdesindeki ilk h2'nin üst boşluğu gereksiz (sayfa başlığı hemen üstte) */
+.article > section:first-of-type > .h2 {
+  margin-block-start: 0;
 }
 /* uzun metinde 17 px: satır ~68 karakterde kalır */
 @media (min-width: 640px) {
