@@ -408,36 +408,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get acadDayShort7 => 'Sun';
 
   @override
-  String get acadColorRed => 'Red';
-
-  @override
-  String get acadColorOrange => 'Orange';
-
-  @override
-  String get acadColorAmber => 'Yellow';
-
-  @override
-  String get acadColorGreen => 'Green';
-
-  @override
-  String get acadColorTeal => 'Teal';
-
-  @override
-  String get acadColorBlue => 'Blue';
-
-  @override
-  String get acadColorIndigo => 'Indigo';
-
-  @override
-  String get acadColorPurple => 'Purple';
-
-  @override
-  String get acadColorPink => 'Pink';
-
-  @override
-  String get acadColorGray => 'Gray';
-
-  @override
   String get acadExamTypeVize => 'Midterm';
 
   @override
@@ -678,9 +648,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get acadFormEndHint => 'End (optional)';
 
   @override
-  String get acadFormRoom => 'Room';
-
-  @override
   String get acadFormRoomHint => 'E.g. B-204';
 
   @override
@@ -797,36 +764,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get acadTimeDayShort7 => 'Sun';
 
   @override
-  String get acadTimeColorRed => 'Red';
-
-  @override
-  String get acadTimeColorOrange => 'Orange';
-
-  @override
-  String get acadTimeColorAmber => 'Yellow';
-
-  @override
-  String get acadTimeColorGreen => 'Green';
-
-  @override
-  String get acadTimeColorTeal => 'Teal';
-
-  @override
-  String get acadTimeColorBlue => 'Blue';
-
-  @override
-  String get acadTimeColorIndigo => 'Indigo';
-
-  @override
-  String get acadTimeColorPurple => 'Purple';
-
-  @override
-  String get acadTimeColorPink => 'Pink';
-
-  @override
-  String get acadTimeColorGray => 'Gray';
-
-  @override
   String get acadTimeExamVize => 'Midterm';
 
   @override
@@ -845,9 +782,38 @@ class AppLocalizationsEn extends AppLocalizations {
   String get acadTimeExamOther => 'Other';
 
   @override
-  String acadTimeRemClass(String min, String time, String room) {
-    return 'Starts in $min min ($time$room)';
+  String acadTimeRemClass(String min, String time) {
+    return 'Starts in $min min ($time)';
   }
+
+  @override
+  String get ttOfficialPickTitle => 'Choose your unit';
+
+  @override
+  String get ttOfficialFoundTitle => 'Official timetable is ready';
+
+  @override
+  String get ttOfficialFoundBody =>
+      'The official timetable for your department is published under more than one unit. Choose your unit and its classes will be added to your timetable; you can edit them afterwards.';
+
+  @override
+  String get ttOfficialPickAction => 'Choose unit';
+
+  @override
+  String get ttOfficialMenu => 'More';
+
+  @override
+  String get ttOfficialReload => 'Reload official timetable';
+
+  @override
+  String get ttOfficialReloadTitle => 'Reload the official timetable?';
+
+  @override
+  String get ttOfficialReloadText =>
+      'Your personal changes (courses you added, deleted or edited) will be removed and the official timetable will be loaded again.';
+
+  @override
+  String get ttOfficialReloadAction => 'Reload';
 
   @override
   String acadTimeRemExamLabel(String type, String title) {
@@ -1025,37 +991,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get acadTimeNameHint => 'e.g. Data Structures';
 
   @override
-  String get acadTimeCourseCode => 'Course code';
-
-  @override
   String get acadTimeInstructor => 'Instructor';
 
   @override
   String get acadTimeInstructorHint => 'Dr. Jane Smith';
 
   @override
-  String get acadTimeColor => 'Color';
-
-  @override
-  String acadTimeColorSemantic(String color) {
-    return 'Color $color';
-  }
-
-  @override
-  String get acadTimeColorAuto =>
-      'A color is assigned automatically if you do not choose one.';
-
-  @override
   String get acadTimeDaysAndTimes => 'Days and times';
 
   @override
   String get acadTimeAddSession => 'Add another day/time';
-
-  @override
-  String get acadTimeNote => 'Note';
-
-  @override
-  String get acadTimeNoteHint => 'Optional (e.g. bring a laptop)';
 
   @override
   String get acadTimeSave => 'Save';
@@ -1076,9 +1021,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get acadTimeEndTime => 'End time';
-
-  @override
-  String get acadTimeRoomHint => 'Room (e.g. B-204)';
 
   @override
   String get acadTimeSemester => 'Semester';
@@ -7979,11 +7921,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get p17SlotWaiting => 'Upcoming';
 
   @override
-  String p17RoomLabel(String room) {
-    return 'Room $room';
-  }
-
-  @override
   String p17HoursPerWeek(String n) {
     return '$n h / week';
   }
@@ -8268,11 +8205,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get p17ConflictIntro => 'The times clash with these courses:';
-
-  @override
-  String p17ColorSelected(String name) {
-    return 'Selected: $name';
-  }
 
   @override
   String get p17WeekDay => 'Day of the week';
@@ -9680,11 +9612,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get p60NoAnnouncements => 'No announcements yet.';
-
-  @override
-  String p60Classroom(String room) {
-    return 'Room $room';
-  }
 
   @override
   String get p60EmptySub => 'You have not chosen any section to show.';

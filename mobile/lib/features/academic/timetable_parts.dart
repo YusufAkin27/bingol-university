@@ -183,7 +183,7 @@ class TtDayStrip extends StatelessWidget {
 }
 
 /// Zaman çizelgesi satırı (kartsız): solda başlangıç/bitiş saati, 3 dp dikey çubuk (süren ders `pr`), ders adı
-/// 17 sp/600 + sağda durum metni, muted "kod · derslik", varsa öğretim üyesi. Altta (satır içi) ayraç ayrı çizilir.
+/// 17 sp/600 + sağda durum metni, varsa öğretim üyesi. Altta (satır içi) ayraç ayrı çizilir.
 class TtSlotCard extends StatelessWidget {
   const TtSlotCard({super.key, required this.slot, required this.todayView, required this.onTap, this.trailing});
 
@@ -203,8 +203,6 @@ class TtSlotCard extends StatelessWidget {
     final c = s.course;
     final past = todayView && s.status == SlotStatus.past;
     final ongoing = todayView && s.status == SlotStatus.ongoing;
-    final room = s.session.room;
-    final sub = [if (c.code != null) c.code!, if (room != null) l.p17RoomLabel(room)].join(' · ');
     final status = !todayView
         ? null
         : switch (s.status) {
@@ -213,7 +211,7 @@ class TtSlotCard extends StatelessWidget {
             SlotStatus.upcoming => null,
           };
     final semantic =
-        '${l.acadTimeSlotSemantic(c.name, acadDayName(l, s.session.dayOfWeek.clamp(1, 7)), s.session.start, s.session.end)}${room != null ? ', $room' : ''}${status != null ? ', $status' : ''}';
+        '${l.acadTimeSlotSemantic(c.name, acadDayName(l, s.session.dayOfWeek.clamp(1, 7)), s.session.start, s.session.end)}${status != null ? ', $status' : ''}';
     final titleColor = past ? t.mut : t.ink;
     final barColor = ongoing ? t.pr : t.bd;
     return Semantics(
@@ -258,12 +256,8 @@ class TtSlotCard extends StatelessWidget {
                         ),
                       ],
                     ]),
-                    if (sub.isNotEmpty) ...[
-                      const SizedBox(height: 4),
-                      Text(sub, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.bodySmall!.copyWith(fontSize: 13, color: t.mut)),
-                    ],
                     if (c.instructor != null) ...[
-                      const SizedBox(height: 6),
+                      const SizedBox(height: 4),
                       Text(c.instructor!, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.bodySmall!.copyWith(fontSize: 13, fontWeight: FontWeight.w500, color: t.ink.withValues(alpha: .8))),
                     ],
                   ]),
@@ -344,10 +338,23 @@ class TtSummary extends StatelessWidget {
 
 /// Dönem ya da ders yokken ortalı boş durum (kartsız): başlık + muted açıklama + birincil düğme.
 class TtEmpty extends StatelessWidget {
-  const TtEmpty({super.key, required this.title, required this.body, required this.actionLabel, required this.onAction, this.semesterLabel, this.onPickSemester});
+  const TtEmpty(
+      {super.key,
+      required this.title,
+      required this.body,
+      required this.actionLabel,
+      required this.onAction,
+      this.semesterLabel,
+      this.onPickSemester,
+      this.secondaryLabel,
+      this.onSecondary});
 
   final String title, body, actionLabel;
   final VoidCallback onAction;
+
+  /// İkincil metin eylemi (ör. resmî program varken "Dersi kendim ekleyeyim").
+  final String? secondaryLabel;
+  final VoidCallback? onSecondary;
   final String? semesterLabel;
   final VoidCallback? onPickSemester;
 
@@ -366,9 +373,26 @@ class TtEmpty extends StatelessWidget {
         Text(body, textAlign: TextAlign.center, style: tx.bodyMedium!.copyWith(color: t.mut)),
         const SizedBox(height: 24),
         BuButton(label: actionLabel, onPressed: onAction),
+        if (secondaryLabel != null && onSecondary != null) Center(child: AcadTextAction(secondaryLabel!, onTap: onSecondary!, size: 15, weight: FontWeight.w700)),
       ]),
     );
   }
+}
+
+/// Resmî programdan gelen birimler için seçim alt sayfası: birim adı satırları; seçilen birim `Navigator.pop` ile döner.
+class OfficialUnitList extends StatelessWidget {
+  const OfficialUnitList({super.key, required this.units});
+
+  final List<String> units;
+
+  @override
+  Widget build(BuildContext context) => Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          for (final u in units) BuListTile(title: u, showChevron: true, onTap: () => Navigator.pop(context, u)),
+        ],
+      );
 }
 
 /// Ders programı yükleniyor iskeleti: üst satır, gün şeridi, satırlar.

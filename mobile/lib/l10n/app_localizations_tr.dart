@@ -408,36 +408,6 @@ class AppLocalizationsTr extends AppLocalizations {
   String get acadDayShort7 => 'Paz';
 
   @override
-  String get acadColorRed => 'Kırmızı';
-
-  @override
-  String get acadColorOrange => 'Turuncu';
-
-  @override
-  String get acadColorAmber => 'Sarı';
-
-  @override
-  String get acadColorGreen => 'Yeşil';
-
-  @override
-  String get acadColorTeal => 'Turkuaz';
-
-  @override
-  String get acadColorBlue => 'Mavi';
-
-  @override
-  String get acadColorIndigo => 'Çivit';
-
-  @override
-  String get acadColorPurple => 'Mor';
-
-  @override
-  String get acadColorPink => 'Pembe';
-
-  @override
-  String get acadColorGray => 'Gri';
-
-  @override
   String get acadExamTypeVize => 'Vize';
 
   @override
@@ -678,9 +648,6 @@ class AppLocalizationsTr extends AppLocalizations {
   String get acadFormEndHint => 'Bitiş (ops.)';
 
   @override
-  String get acadFormRoom => 'Derslik';
-
-  @override
   String get acadFormRoomHint => 'Örn. B-204';
 
   @override
@@ -797,36 +764,6 @@ class AppLocalizationsTr extends AppLocalizations {
   String get acadTimeDayShort7 => 'Paz';
 
   @override
-  String get acadTimeColorRed => 'Kırmızı';
-
-  @override
-  String get acadTimeColorOrange => 'Turuncu';
-
-  @override
-  String get acadTimeColorAmber => 'Sarı';
-
-  @override
-  String get acadTimeColorGreen => 'Yeşil';
-
-  @override
-  String get acadTimeColorTeal => 'Turkuaz';
-
-  @override
-  String get acadTimeColorBlue => 'Mavi';
-
-  @override
-  String get acadTimeColorIndigo => 'Çivit';
-
-  @override
-  String get acadTimeColorPurple => 'Mor';
-
-  @override
-  String get acadTimeColorPink => 'Pembe';
-
-  @override
-  String get acadTimeColorGray => 'Gri';
-
-  @override
   String get acadTimeExamVize => 'Vize';
 
   @override
@@ -845,9 +782,38 @@ class AppLocalizationsTr extends AppLocalizations {
   String get acadTimeExamOther => 'Diğer';
 
   @override
-  String acadTimeRemClass(String min, String time, String room) {
-    return '$min dk sonra başlıyor ($time$room)';
+  String acadTimeRemClass(String min, String time) {
+    return '$min dk sonra başlıyor ($time)';
   }
+
+  @override
+  String get ttOfficialPickTitle => 'Birimini seç';
+
+  @override
+  String get ttOfficialFoundTitle => 'Resmî ders programı hazır';
+
+  @override
+  String get ttOfficialFoundBody =>
+      'Bölümünün resmî ders programı birden çok birimde yayınlanıyor. Birimini seç, dersler programına eklensin; sonra dilediğin gibi düzenleyebilirsin.';
+
+  @override
+  String get ttOfficialPickAction => 'Birimi seç';
+
+  @override
+  String get ttOfficialMenu => 'Daha fazla';
+
+  @override
+  String get ttOfficialReload => 'Resmî programı yeniden yükle';
+
+  @override
+  String get ttOfficialReloadTitle => 'Resmî program yeniden yüklensin mi?';
+
+  @override
+  String get ttOfficialReloadText =>
+      'Programında yaptığın kişisel değişiklikler (eklediğin, silip düzenlediğin dersler) silinir ve resmî program yeniden yüklenir.';
+
+  @override
+  String get ttOfficialReloadAction => 'Yeniden yükle';
 
   @override
   String acadTimeRemExamLabel(String type, String title) {
@@ -1024,36 +990,16 @@ class AppLocalizationsTr extends AppLocalizations {
   String get acadTimeNameHint => 'Örn. Veri Yapıları';
 
   @override
-  String get acadTimeCourseCode => 'Ders kodu';
-
-  @override
   String get acadTimeInstructor => 'Öğretim üyesi';
 
   @override
   String get acadTimeInstructorHint => 'Dr. Ayşe Yılmaz';
 
   @override
-  String get acadTimeColor => 'Renk';
-
-  @override
-  String acadTimeColorSemantic(String color) {
-    return 'Renk $color';
-  }
-
-  @override
-  String get acadTimeColorAuto => 'Seçmezseniz otomatik atanır.';
-
-  @override
   String get acadTimeDaysAndTimes => 'Gün ve saatler';
 
   @override
   String get acadTimeAddSession => 'Başka gün/saat ekle';
-
-  @override
-  String get acadTimeNote => 'Not';
-
-  @override
-  String get acadTimeNoteHint => 'İsteğe bağlı (örn. laptop getir)';
 
   @override
   String get acadTimeSave => 'Kaydet';
@@ -1074,9 +1020,6 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get acadTimeEndTime => 'Bitiş saati';
-
-  @override
-  String get acadTimeRoomHint => 'Derslik (örn. B-204)';
 
   @override
   String get acadTimeSemester => 'Dönem';
@@ -7941,11 +7884,6 @@ class AppLocalizationsTr extends AppLocalizations {
   String get p17SlotWaiting => 'Bekliyor';
 
   @override
-  String p17RoomLabel(String room) {
-    return 'Derslik $room';
-  }
-
-  @override
   String p17HoursPerWeek(String n) {
     return '$n saat / hafta';
   }
@@ -8234,11 +8172,6 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get p17ConflictIntro => 'Şu derslerle saatler çakışıyor:';
-
-  @override
-  String p17ColorSelected(String name) {
-    return 'Seçili: $name';
-  }
 
   @override
   String get p17WeekDay => 'Haftanın günü';
@@ -9646,11 +9579,6 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get p60NoAnnouncements => 'Henüz duyuru yok.';
-
-  @override
-  String p60Classroom(String room) {
-    return 'Derslik $room';
-  }
 
   @override
   String get p60EmptySub => 'Gösterilecek bir bölüm seçmediniz.';

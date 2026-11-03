@@ -32,19 +32,6 @@ String acadDayShort(AppLocalizations l, int d) => switch (d) {
       _ => l.acadTimeDayShort7,
     };
 
-String acadColorName(AppLocalizations l, String key) => switch (key) {
-      'red' => l.acadTimeColorRed,
-      'orange' => l.acadTimeColorOrange,
-      'amber' => l.acadTimeColorAmber,
-      'green' => l.acadTimeColorGreen,
-      'teal' => l.acadTimeColorTeal,
-      'blue' => l.acadTimeColorBlue,
-      'indigo' => l.acadTimeColorIndigo,
-      'purple' => l.acadTimeColorPurple,
-      'pink' => l.acadTimeColorPink,
-      _ => l.acadTimeColorGray,
-    };
-
 String acadExamTypeName(AppLocalizations l, String t) => switch (t) {
       'VIZE' => l.acadTimeExamVize,
       'FINAL' => l.acadTimeExamFinal,
@@ -146,12 +133,11 @@ List<PlannedReminder> planReminders({
         final startAt = wallToInstant(day.year, day.month, day.day).add(Duration(minutes: s.session.startMin));
         final at = startAt.subtract(Duration(minutes: settings.classLeadMin));
         if (!at.isAfter(now)) continue;
-        final room = s.session.room != null ? ' · ${s.session.room}' : '';
         out.add(PlannedReminder(
           _hash('c${s.course.id}:${s.session.id ?? s.session.startMin}:${isoDate(day)}'),
           at,
           s.course.name,
-          l.acadTimeRemClass(settings.classLeadMin.toString(), s.session.start, room),
+          l.acadTimeRemClass(settings.classLeadMin.toString(), s.session.start),
         ));
       }
     }

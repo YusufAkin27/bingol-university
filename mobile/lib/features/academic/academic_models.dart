@@ -94,7 +94,7 @@ String dayShortL(AppLocalizations l, int weekday) => switch (weekday) {
     };
 
 /// Ders rengi anahtarları (sunucu ile aynı).
-/// Seçicide gösterilen 6 renk (palet: mavi, su mavisi, yeşil, amber, kırmızı, nötr). Sunucu eski anahtarları
+/// Sunucunun atadığı 6 renk (palet: mavi, su mavisi, yeşil, amber, kırmızı, nötr). Sunucu eski anahtarları
 /// (orange/indigo/purple/pink) hâlâ saklayabilir; [courseColor] bunları en yakın aileye eşler.
 const courseColorKeys = ['blue', 'teal', 'green', 'amber', 'red', 'gray'];
 
@@ -108,41 +108,13 @@ Color courseColor(String? key) => switch (key) {
       _ => const Color(0xFF5C5A56),
     };
 
-String colorLabel(String key) => switch (key) {
-      'red' => 'Kırmızı',
-      'orange' => 'Turuncu',
-      'amber' => 'Sarı',
-      'green' => 'Yeşil',
-      'teal' => 'Turkuaz',
-      'blue' => 'Mavi',
-      'indigo' => 'Çivit',
-      'purple' => 'Mor',
-      'pink' => 'Pembe',
-      _ => 'Gri',
-    };
-
-/// Dile göre renk adı.
-String colorLabelL(AppLocalizations l, String key) => switch (key) {
-      'red' => l.acadColorRed,
-      'orange' => l.acadColorOrange,
-      'amber' => l.acadColorAmber,
-      'green' => l.acadColorGreen,
-      'teal' => l.acadColorTeal,
-      'blue' => l.acadColorBlue,
-      'indigo' => l.acadColorIndigo,
-      'purple' => l.acadColorPurple,
-      'pink' => l.acadColorPink,
-      _ => l.acadColorGray,
-    };
-
 class CourseSession {
-  const CourseSession({this.id, required this.dayOfWeek, required this.start, required this.end, this.room});
+  const CourseSession({this.id, required this.dayOfWeek, required this.start, required this.end});
 
   final int? id;
   final int dayOfWeek; // 1=Pzt..7=Paz
   final String start; // HH:mm
   final String end;
-  final String? room;
 
   int get startMin => minutesOf(start);
   int get endMin => minutesOf(end);
@@ -152,35 +124,34 @@ class CourseSession {
         dayOfWeek: _i(j['dayOfWeek']),
         start: _s(j['start']).isEmpty ? _s(j['startTime']) : _s(j['start']),
         end: _s(j['end']).isEmpty ? _s(j['endTime']) : _s(j['end']),
-        room: _sn(j['room']),
       );
 
+  // Derslik artık istenmez/gösterilmez (sunucu eski kayıtlarda tutsa da istemci okumaz).
   Map<String, dynamic> toJson() => {
         'dayOfWeek': dayOfWeek,
         'start': start,
         'end': end,
-        if (room != null && room!.trim().isNotEmpty) 'room': room!.trim(),
       };
 
-  CourseSession copyWith({int? dayOfWeek, String? start, String? end, String? room}) => CourseSession(
-      id: id, dayOfWeek: dayOfWeek ?? this.dayOfWeek, start: start ?? this.start, end: end ?? this.end, room: room ?? this.room);
+  CourseSession copyWith({int? dayOfWeek, String? start, String? end}) =>
+      CourseSession(id: id, dayOfWeek: dayOfWeek ?? this.dayOfWeek, start: start ?? this.start, end: end ?? this.end);
 }
 
 class Course {
   const Course({
     required this.id,
     required this.name,
-    this.code,
     this.instructor,
     this.color = 'blue',
-    this.note,
     this.semesterId,
     this.sessions = const [],
   });
 
   final int id;
   final String name;
-  final String? code, instructor, note;
+  final String? instructor;
+
+  /// Sunucunun atadığı renk anahtarı (seçici yok); [courseColor] ile çizilir.
   final String color;
   final int? semesterId;
   final List<CourseSession> sessions;
@@ -188,10 +159,8 @@ class Course {
   factory Course.fromJson(Map<String, dynamic> j) => Course(
         id: _i(j['id']),
         name: _s(j['name']),
-        code: _sn(j['code']),
         instructor: _sn(j['instructor']),
         color: _sn(j['color']) ?? 'blue',
-        note: _sn(j['note']),
         semesterId: j['semesterId'] is num ? _i(j['semesterId']) : null,
         sessions: [
           for (final s in (j['sessions'] as List? ?? const []))
@@ -235,6 +204,28 @@ class TimetableData {
         courses: [
           for (final c in (j['courses'] as List? ?? const []))
             if (c is Map) Course.fromJson(c.cast<String, dynamic>())
+        ],
+      );
+}
+
+/// `GET /api/timetable/official/status`: resmî ders programı bu öğrenci için var mı, uygulandı mı, hangi birimlerden.
+class OfficialTimetableStatus {
+  const OfficialTimetableStatus({this.available = false, this.applied = false, this.term, this.units = const []});
+
+  final bool available, applied;
+  final String? term;
+  final List<String> units;
+
+  /// Kişisel program boşken birim seçtirilmeli mi (sunucu birden çok birim yüzünden kendiliğinden tohumlayamadı).
+  bool get needsUnitPick => available && !applied && units.length > 1;
+
+  factory OfficialTimetableStatus.fromJson(Map<String, dynamic> j) => OfficialTimetableStatus(
+        available: j['available'] == true,
+        applied: j['applied'] == true,
+        term: _sn(j['term']),
+        units: [
+          for (final u in (j['units'] as List? ?? const []))
+            if (u is String && u.trim().isNotEmpty) u
         ],
       );
 }
@@ -612,7 +603,7 @@ String buildIcs(List<Course> courses, Semester? semester, List<Exam> exams, {Dat
       while (first.weekday != s.dayOfWeek) {
         first = first.add(const Duration(days: 1));
       }
-      final desc = [if (c.instructor != null) c.instructor!, if (c.code != null) c.code!, if (c.note != null) c.note!].join(' - ');
+      final desc = c.instructor ?? '';
       final until = semester?.endDate;
       final rule = until != null
           ? 'RRULE:FREQ=WEEKLY;UNTIL=${_icsUtc(wallToInstant(until.year, until.month, until.day, 23, 59))}'
@@ -624,7 +615,6 @@ String buildIcs(List<Course> courses, Semester? semester, List<Exam> exams, {Dat
         ..write('DTEND;TZID=Europe/Istanbul:${_icsLocal(first, s.endMin)}\r\n')
         ..write('$rule\r\n')
         ..write('SUMMARY:${_icsEscape(c.name)}\r\n');
-      if (s.room != null) b.write('LOCATION:${_icsEscape(s.room!)}\r\n');
       if (desc.isNotEmpty) b.write('DESCRIPTION:${_icsEscape(desc)}\r\n');
       b.write('END:VEVENT\r\n');
     }

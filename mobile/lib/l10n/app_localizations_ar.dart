@@ -409,36 +409,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get acadDayShort7 => 'أح';
 
   @override
-  String get acadColorRed => 'أحمر';
-
-  @override
-  String get acadColorOrange => 'برتقالي';
-
-  @override
-  String get acadColorAmber => 'أصفر';
-
-  @override
-  String get acadColorGreen => 'أخضر';
-
-  @override
-  String get acadColorTeal => 'تركوازي';
-
-  @override
-  String get acadColorBlue => 'أزرق';
-
-  @override
-  String get acadColorIndigo => 'نيلي';
-
-  @override
-  String get acadColorPurple => 'بنفسجي';
-
-  @override
-  String get acadColorPink => 'وردي';
-
-  @override
-  String get acadColorGray => 'رمادي';
-
-  @override
   String get acadExamTypeVize => 'امتحان نصفي';
 
   @override
@@ -678,9 +648,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get acadFormEndHint => 'الانتهاء (اختياري)';
 
   @override
-  String get acadFormRoom => 'القاعة';
-
-  @override
   String get acadFormRoomHint => 'مثال: B-204';
 
   @override
@@ -797,36 +764,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get acadTimeDayShort7 => 'أحد';
 
   @override
-  String get acadTimeColorRed => 'أحمر';
-
-  @override
-  String get acadTimeColorOrange => 'برتقالي';
-
-  @override
-  String get acadTimeColorAmber => 'أصفر';
-
-  @override
-  String get acadTimeColorGreen => 'أخضر';
-
-  @override
-  String get acadTimeColorTeal => 'تركوازي';
-
-  @override
-  String get acadTimeColorBlue => 'أزرق';
-
-  @override
-  String get acadTimeColorIndigo => 'نيلي';
-
-  @override
-  String get acadTimeColorPurple => 'بنفسجي';
-
-  @override
-  String get acadTimeColorPink => 'وردي';
-
-  @override
-  String get acadTimeColorGray => 'رمادي';
-
-  @override
   String get acadTimeExamVize => 'امتحان نصفي';
 
   @override
@@ -845,9 +782,38 @@ class AppLocalizationsAr extends AppLocalizations {
   String get acadTimeExamOther => 'أخرى';
 
   @override
-  String acadTimeRemClass(String min, String time, String room) {
-    return 'يبدأ بعد $min دقيقة ($time$room)';
+  String acadTimeRemClass(String min, String time) {
+    return 'يبدأ بعد $min دقيقة ($time)';
   }
+
+  @override
+  String get ttOfficialPickTitle => 'اختر وحدتك';
+
+  @override
+  String get ttOfficialFoundTitle => 'الجدول الرسمي جاهز';
+
+  @override
+  String get ttOfficialFoundBody =>
+      'الجدول الرسمي لقسمك منشور في أكثر من وحدة. اختر وحدتك لتُضاف مقرراتها إلى جدولك، ويمكنك تعديلها بعد ذلك.';
+
+  @override
+  String get ttOfficialPickAction => 'اختر الوحدة';
+
+  @override
+  String get ttOfficialMenu => 'المزيد';
+
+  @override
+  String get ttOfficialReload => 'إعادة تحميل الجدول الرسمي';
+
+  @override
+  String get ttOfficialReloadTitle => 'هل تريد إعادة تحميل الجدول الرسمي؟';
+
+  @override
+  String get ttOfficialReloadText =>
+      'ستُحذف تغييراتك الشخصية (المقررات التي أضفتها أو حذفتها أو عدّلتها) ويُعاد تحميل الجدول الرسمي.';
+
+  @override
+  String get ttOfficialReloadAction => 'إعادة التحميل';
 
   @override
   String acadTimeRemExamLabel(String type, String title) {
@@ -1024,36 +990,16 @@ class AppLocalizationsAr extends AppLocalizations {
   String get acadTimeNameHint => 'مثال: هياكل البيانات';
 
   @override
-  String get acadTimeCourseCode => 'رمز المقرر';
-
-  @override
   String get acadTimeInstructor => 'المحاضر';
 
   @override
   String get acadTimeInstructorHint => 'د. أحمد علي';
 
   @override
-  String get acadTimeColor => 'اللون';
-
-  @override
-  String acadTimeColorSemantic(String color) {
-    return 'اللون $color';
-  }
-
-  @override
-  String get acadTimeColorAuto => 'إذا لم تختر، سيتم تعيين لون تلقائيًا.';
-
-  @override
   String get acadTimeDaysAndTimes => 'الأيام والأوقات';
 
   @override
   String get acadTimeAddSession => 'إضافة يوم/وقت آخر';
-
-  @override
-  String get acadTimeNote => 'ملاحظة';
-
-  @override
-  String get acadTimeNoteHint => 'اختياري (مثال: أحضر حاسوبًا محمولًا)';
 
   @override
   String get acadTimeSave => 'حفظ';
@@ -1074,9 +1020,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get acadTimeEndTime => 'وقت الانتهاء';
-
-  @override
-  String get acadTimeRoomHint => 'القاعة (مثال: B-204)';
 
   @override
   String get acadTimeSemester => 'الفصل';
@@ -7899,11 +7842,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get p17SlotWaiting => 'قادمة';
 
   @override
-  String p17RoomLabel(String room) {
-    return 'القاعة $room';
-  }
-
-  @override
   String p17HoursPerWeek(String n) {
     return '$n ساعة / أسبوع';
   }
@@ -8183,11 +8121,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get p17ConflictIntro => 'تتعارض الأوقات مع هذه المقررات:';
-
-  @override
-  String p17ColorSelected(String name) {
-    return 'المحدد: $name';
-  }
 
   @override
   String get p17WeekDay => 'يوم الأسبوع';
@@ -9577,11 +9510,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get p60NoAnnouncements => 'لا توجد إعلانات بعد.';
-
-  @override
-  String p60Classroom(String room) {
-    return 'القاعة $room';
-  }
 
   @override
   String get p60EmptySub => 'لم تختر أي قسم للعرض.';

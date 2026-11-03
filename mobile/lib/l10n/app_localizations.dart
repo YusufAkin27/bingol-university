@@ -856,66 +856,6 @@ abstract class AppLocalizations {
   /// **'Paz'**
   String get acadDayShort7;
 
-  /// No description provided for @acadColorRed.
-  ///
-  /// In tr, this message translates to:
-  /// **'Kırmızı'**
-  String get acadColorRed;
-
-  /// No description provided for @acadColorOrange.
-  ///
-  /// In tr, this message translates to:
-  /// **'Turuncu'**
-  String get acadColorOrange;
-
-  /// No description provided for @acadColorAmber.
-  ///
-  /// In tr, this message translates to:
-  /// **'Sarı'**
-  String get acadColorAmber;
-
-  /// No description provided for @acadColorGreen.
-  ///
-  /// In tr, this message translates to:
-  /// **'Yeşil'**
-  String get acadColorGreen;
-
-  /// No description provided for @acadColorTeal.
-  ///
-  /// In tr, this message translates to:
-  /// **'Turkuaz'**
-  String get acadColorTeal;
-
-  /// No description provided for @acadColorBlue.
-  ///
-  /// In tr, this message translates to:
-  /// **'Mavi'**
-  String get acadColorBlue;
-
-  /// No description provided for @acadColorIndigo.
-  ///
-  /// In tr, this message translates to:
-  /// **'Çivit'**
-  String get acadColorIndigo;
-
-  /// No description provided for @acadColorPurple.
-  ///
-  /// In tr, this message translates to:
-  /// **'Mor'**
-  String get acadColorPurple;
-
-  /// No description provided for @acadColorPink.
-  ///
-  /// In tr, this message translates to:
-  /// **'Pembe'**
-  String get acadColorPink;
-
-  /// No description provided for @acadColorGray.
-  ///
-  /// In tr, this message translates to:
-  /// **'Gri'**
-  String get acadColorGray;
-
   /// No description provided for @acadExamTypeVize.
   ///
   /// In tr, this message translates to:
@@ -1338,12 +1278,6 @@ abstract class AppLocalizations {
   /// **'Bitiş (ops.)'**
   String get acadFormEndHint;
 
-  /// No description provided for @acadFormRoom.
-  ///
-  /// In tr, this message translates to:
-  /// **'Derslik'**
-  String get acadFormRoom;
-
   /// No description provided for @acadFormRoomHint.
   ///
   /// In tr, this message translates to:
@@ -1566,66 +1500,6 @@ abstract class AppLocalizations {
   /// **'Paz'**
   String get acadTimeDayShort7;
 
-  /// No description provided for @acadTimeColorRed.
-  ///
-  /// In tr, this message translates to:
-  /// **'Kırmızı'**
-  String get acadTimeColorRed;
-
-  /// No description provided for @acadTimeColorOrange.
-  ///
-  /// In tr, this message translates to:
-  /// **'Turuncu'**
-  String get acadTimeColorOrange;
-
-  /// No description provided for @acadTimeColorAmber.
-  ///
-  /// In tr, this message translates to:
-  /// **'Sarı'**
-  String get acadTimeColorAmber;
-
-  /// No description provided for @acadTimeColorGreen.
-  ///
-  /// In tr, this message translates to:
-  /// **'Yeşil'**
-  String get acadTimeColorGreen;
-
-  /// No description provided for @acadTimeColorTeal.
-  ///
-  /// In tr, this message translates to:
-  /// **'Turkuaz'**
-  String get acadTimeColorTeal;
-
-  /// No description provided for @acadTimeColorBlue.
-  ///
-  /// In tr, this message translates to:
-  /// **'Mavi'**
-  String get acadTimeColorBlue;
-
-  /// No description provided for @acadTimeColorIndigo.
-  ///
-  /// In tr, this message translates to:
-  /// **'Çivit'**
-  String get acadTimeColorIndigo;
-
-  /// No description provided for @acadTimeColorPurple.
-  ///
-  /// In tr, this message translates to:
-  /// **'Mor'**
-  String get acadTimeColorPurple;
-
-  /// No description provided for @acadTimeColorPink.
-  ///
-  /// In tr, this message translates to:
-  /// **'Pembe'**
-  String get acadTimeColorPink;
-
-  /// No description provided for @acadTimeColorGray.
-  ///
-  /// In tr, this message translates to:
-  /// **'Gri'**
-  String get acadTimeColorGray;
-
   /// No description provided for @acadTimeExamVize.
   ///
   /// In tr, this message translates to:
@@ -1665,8 +1539,62 @@ abstract class AppLocalizations {
   /// No description provided for @acadTimeRemClass.
   ///
   /// In tr, this message translates to:
-  /// **'{min} dk sonra başlıyor ({time}{room})'**
-  String acadTimeRemClass(String min, String time, String room);
+  /// **'{min} dk sonra başlıyor ({time})'**
+  String acadTimeRemClass(String min, String time);
+
+  /// No description provided for @ttOfficialPickTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Birimini seç'**
+  String get ttOfficialPickTitle;
+
+  /// No description provided for @ttOfficialFoundTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Resmî ders programı hazır'**
+  String get ttOfficialFoundTitle;
+
+  /// No description provided for @ttOfficialFoundBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bölümünün resmî ders programı birden çok birimde yayınlanıyor. Birimini seç, dersler programına eklensin; sonra dilediğin gibi düzenleyebilirsin.'**
+  String get ttOfficialFoundBody;
+
+  /// No description provided for @ttOfficialPickAction.
+  ///
+  /// In tr, this message translates to:
+  /// **'Birimi seç'**
+  String get ttOfficialPickAction;
+
+  /// No description provided for @ttOfficialMenu.
+  ///
+  /// In tr, this message translates to:
+  /// **'Daha fazla'**
+  String get ttOfficialMenu;
+
+  /// No description provided for @ttOfficialReload.
+  ///
+  /// In tr, this message translates to:
+  /// **'Resmî programı yeniden yükle'**
+  String get ttOfficialReload;
+
+  /// No description provided for @ttOfficialReloadTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Resmî program yeniden yüklensin mi?'**
+  String get ttOfficialReloadTitle;
+
+  /// No description provided for @ttOfficialReloadText.
+  ///
+  /// In tr, this message translates to:
+  /// **'Programında yaptığın kişisel değişiklikler (eklediğin, silip düzenlediğin dersler) silinir ve resmî program yeniden yüklenir.'**
+  String get ttOfficialReloadText;
+
+  /// No description provided for @ttOfficialReloadAction.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yeniden yükle'**
+  String get ttOfficialReloadAction;
 
   /// No description provided for @acadTimeRemExamLabel.
   ///
@@ -1945,12 +1873,6 @@ abstract class AppLocalizations {
   /// **'Örn. Veri Yapıları'**
   String get acadTimeNameHint;
 
-  /// No description provided for @acadTimeCourseCode.
-  ///
-  /// In tr, this message translates to:
-  /// **'Ders kodu'**
-  String get acadTimeCourseCode;
-
   /// No description provided for @acadTimeInstructor.
   ///
   /// In tr, this message translates to:
@@ -1963,24 +1885,6 @@ abstract class AppLocalizations {
   /// **'Dr. Ayşe Yılmaz'**
   String get acadTimeInstructorHint;
 
-  /// No description provided for @acadTimeColor.
-  ///
-  /// In tr, this message translates to:
-  /// **'Renk'**
-  String get acadTimeColor;
-
-  /// No description provided for @acadTimeColorSemantic.
-  ///
-  /// In tr, this message translates to:
-  /// **'Renk {color}'**
-  String acadTimeColorSemantic(String color);
-
-  /// No description provided for @acadTimeColorAuto.
-  ///
-  /// In tr, this message translates to:
-  /// **'Seçmezseniz otomatik atanır.'**
-  String get acadTimeColorAuto;
-
   /// No description provided for @acadTimeDaysAndTimes.
   ///
   /// In tr, this message translates to:
@@ -1992,18 +1896,6 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Başka gün/saat ekle'**
   String get acadTimeAddSession;
-
-  /// No description provided for @acadTimeNote.
-  ///
-  /// In tr, this message translates to:
-  /// **'Not'**
-  String get acadTimeNote;
-
-  /// No description provided for @acadTimeNoteHint.
-  ///
-  /// In tr, this message translates to:
-  /// **'İsteğe bağlı (örn. laptop getir)'**
-  String get acadTimeNoteHint;
 
   /// No description provided for @acadTimeSave.
   ///
@@ -2040,12 +1932,6 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Bitiş saati'**
   String get acadTimeEndTime;
-
-  /// No description provided for @acadTimeRoomHint.
-  ///
-  /// In tr, this message translates to:
-  /// **'Derslik (örn. B-204)'**
-  String get acadTimeRoomHint;
 
   /// No description provided for @acadTimeSemester.
   ///
@@ -14515,12 +14401,6 @@ abstract class AppLocalizations {
   /// **'Bekliyor'**
   String get p17SlotWaiting;
 
-  /// No description provided for @p17RoomLabel.
-  ///
-  /// In tr, this message translates to:
-  /// **'Derslik {room}'**
-  String p17RoomLabel(String room);
-
   /// No description provided for @p17HoursPerWeek.
   ///
   /// In tr, this message translates to:
@@ -15018,12 +14898,6 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Şu derslerle saatler çakışıyor:'**
   String get p17ConflictIntro;
-
-  /// No description provided for @p17ColorSelected.
-  ///
-  /// In tr, this message translates to:
-  /// **'Seçili: {name}'**
-  String p17ColorSelected(String name);
 
   /// No description provided for @p17WeekDay.
   ///
@@ -17532,12 +17406,6 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Henüz duyuru yok.'**
   String get p60NoAnnouncements;
-
-  /// No description provided for @p60Classroom.
-  ///
-  /// In tr, this message translates to:
-  /// **'Derslik {room}'**
-  String p60Classroom(String room);
 
   /// No description provided for @p60EmptySub.
   ///

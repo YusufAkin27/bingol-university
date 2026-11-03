@@ -124,7 +124,7 @@ class _ExamFormPageState extends State<ExamFormPage> {
     if (r != null && mounted) setState(() => _courseId = r < 0 ? null : r);
   }
 
-  String _courseLabel(Course c) => c.code == null ? c.name : '${c.code} ${c.name}';
+  String _courseLabel(Course c) => c.name;
 
   Future<void> _delete() async {
     final l = context.l10n;

@@ -175,16 +175,6 @@
   "acadDayShort5": "Cum",
   "acadDayShort6": "Cmt",
   "acadDayShort7": "Paz",
-  "acadColorRed": "Kırmızı",
-  "acadColorOrange": "Turuncu",
-  "acadColorAmber": "Sarı",
-  "acadColorGreen": "Yeşil",
-  "acadColorTeal": "Turkuaz",
-  "acadColorBlue": "Mavi",
-  "acadColorIndigo": "Çivit",
-  "acadColorPurple": "Mor",
-  "acadColorPink": "Pembe",
-  "acadColorGray": "Gri",
   "acadExamTypeVize": "Vize",
   "acadExamTypeFinal": "Final",
   "acadExamTypeBut": "Bütünleme",
@@ -372,7 +362,6 @@
   "acadFormStartTime": "Başlangıç saati",
   "acadFormEndTime": "Bitiş saati",
   "acadFormEndHint": "Bitiş (ops.)",
-  "acadFormRoom": "Derslik",
   "acadFormRoomHint": "Örn. B-204",
   "acadFormNote": "Not",
   "acadFormNoteHint": "İsteğe bağlı",
@@ -424,23 +413,13 @@
   "acadTimeDayShort5": "Cum",
   "acadTimeDayShort6": "Cmt",
   "acadTimeDayShort7": "Paz",
-  "acadTimeColorRed": "Kırmızı",
-  "acadTimeColorOrange": "Turuncu",
-  "acadTimeColorAmber": "Sarı",
-  "acadTimeColorGreen": "Yeşil",
-  "acadTimeColorTeal": "Turkuaz",
-  "acadTimeColorBlue": "Mavi",
-  "acadTimeColorIndigo": "Çivit",
-  "acadTimeColorPurple": "Mor",
-  "acadTimeColorPink": "Pembe",
-  "acadTimeColorGray": "Gri",
   "acadTimeExamVize": "Vize",
   "acadTimeExamFinal": "Final",
   "acadTimeExamBut": "Bütünleme",
   "acadTimeExamQuiz": "Quiz",
   "acadTimeExamOdev": "Ödev",
   "acadTimeExamOther": "Diğer",
-  "acadTimeRemClass": "{min} dk sonra başlıyor ({time}{room})",
+  "acadTimeRemClass": "{min} dk sonra başlıyor ({time})",
   "@acadTimeRemClass": {
     "placeholders": {
       "min": {
@@ -448,12 +427,18 @@
       },
       "time": {
         "type": "String"
-      },
-      "room": {
-        "type": "String"
       }
     }
   },
+  "ttOfficialPickTitle": "Birimini seç",
+  "ttOfficialFoundTitle": "Resmî ders programı hazır",
+  "ttOfficialFoundBody": "Bölümünün resmî ders programı birden çok birimde yayınlanıyor. Birimini seç, dersler programına eklensin; sonra dilediğin gibi düzenleyebilirsin.",
+  "ttOfficialPickAction": "Birimi seç",
+  "ttOfficialMenu": "Daha fazla",
+  "ttOfficialReload": "Resmî programı yeniden yükle",
+  "ttOfficialReloadTitle": "Resmî program yeniden yüklensin mi?",
+  "ttOfficialReloadText": "Programında yaptığın kişisel değişiklikler (eklediğin, silip düzenlediğin dersler) silinir ve resmî program yeniden yüklenir.",
+  "ttOfficialReloadAction": "Yeniden yükle",
   "acadTimeRemExamLabel": "{type}: {title}",
   "@acadTimeRemExamLabel": {
     "placeholders": {
@@ -646,23 +631,10 @@
   "acadTimeNewCourse": "Yeni ders",
   "acadTimeCourseName": "Ders adı",
   "acadTimeNameHint": "Örn. Veri Yapıları",
-  "acadTimeCourseCode": "Ders kodu",
   "acadTimeInstructor": "Öğretim üyesi",
   "acadTimeInstructorHint": "Dr. Ayşe Yılmaz",
-  "acadTimeColor": "Renk",
-  "acadTimeColorSemantic": "Renk {color}",
-  "@acadTimeColorSemantic": {
-    "placeholders": {
-      "color": {
-        "type": "String"
-      }
-    }
-  },
-  "acadTimeColorAuto": "Seçmezseniz otomatik atanır.",
   "acadTimeDaysAndTimes": "Gün ve saatler",
   "acadTimeAddSession": "Başka gün/saat ekle",
-  "acadTimeNote": "Not",
-  "acadTimeNoteHint": "İsteğe bağlı (örn. laptop getir)",
   "acadTimeSave": "Kaydet",
   "acadTimeAddCourseBtn": "Dersi ekle",
   "acadTimeSessionN": "{n}. oturum",
@@ -676,7 +648,6 @@
   "acadTimeRemoveSession": "Oturumu kaldır",
   "acadTimeStartTime": "Başlangıç saati",
   "acadTimeEndTime": "Bitiş saati",
-  "acadTimeRoomHint": "Derslik (örn. B-204)",
   "acadTimeSemester": "Dönem",
   "acadTimeNoSemester": "Henüz dönem yok. Bir dönem ekleyerek derslerini düzenleyebilirsin.",
   "acadTimeAddSemester": "Yeni dönem ekle",
@@ -4225,8 +4196,6 @@
   "p17DayPlanned": "{n} ders planlandı",
   "@p17DayPlanned": {"placeholders": {"n": {"type": "String"}}},
   "p17SlotWaiting": "Bekliyor",
-  "p17RoomLabel": "Derslik {room}",
-  "@p17RoomLabel": {"placeholders": {"room": {"type": "String"}}},
   "p17HoursPerWeek": "{n} saat / hafta",
   "@p17HoursPerWeek": {"placeholders": {"n": {"type": "String"}}},
   "p17NoSemesterTitle": "Henüz dönem yok",
@@ -4324,8 +4293,6 @@
   "p12BasicInfo": "Temel bilgiler",
   "p12VisibilityAndJoin": "Görünürlük ve katılım",
   "p17ConflictIntro": "Şu derslerle saatler çakışıyor:",
-  "p17ColorSelected": "Seçili: {name}",
-  "@p17ColorSelected": {"placeholders": {"name": {"type": "String"}}},
   "p17WeekDay": "Haftanın günü",
   "p13PollViewAll": "Tümünü Gör",
   "p13PollReview": "Oyu İncele",
@@ -4867,8 +4834,6 @@
   "p60OpenMenu": "Menüyü aç",
   "p60NoNews": "Henüz haber yok.",
   "p60NoAnnouncements": "Henüz duyuru yok.",
-  "p60Classroom": "Derslik {room}",
-  "@p60Classroom": {"placeholders": {"room": {"type": "String"}}},
   "p60EmptySub": "Gösterilecek bir bölüm seçmediniz.",
   "p60Selected": "Seçilen kısayollar (sıralama)",
   "p60AllShortcuts": "Tüm kısayollar",

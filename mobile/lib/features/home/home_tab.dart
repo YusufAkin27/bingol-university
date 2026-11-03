@@ -390,10 +390,9 @@ class _HomeTabState extends State<HomeTab> {
         final w = _wallNow;
         final isToday = s.date.year == w.year && s.date.month == w.month && s.date.day == w.day;
         final prefix = isToday ? '' : '${newsWeekdayName(context, s.date.weekday, short: true)} ';
-        final room = s.session.room;
         rows.add((
           label: l.p60NextClass,
-          value: '$prefix${s.session.start} ${s.course.name}${room != null && room.trim().isNotEmpty ? ' · ${room.trim()}' : ''}',
+          value: '$prefix${s.session.start} ${s.course.name}',
           onTap: () => _push(AcademicHubPage(session: _s)),
           muted: false,
         ));
@@ -579,7 +578,6 @@ class _HomeTabState extends State<HomeTab> {
               time: e.session.start,
               title: e.course.name,
               sub: [
-                if ((e.session.room ?? '').trim().isNotEmpty) l.p60Classroom(e.session.room!.trim()),
                 if ((e.course.instructor ?? '').trim().isNotEmpty) e.course.instructor!.trim(),
               ].join(' · '),
             ),

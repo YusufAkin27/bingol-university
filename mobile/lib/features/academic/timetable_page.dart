@@ -34,6 +34,9 @@ class _TimetablePageState extends State<TimetablePage> {
   TimetableData? _data;
   Object? _error;
   bool _loading = true;
+  OfficialTimetableStatus? _official; // resmî program durumu; alınamazsa null (ilgili eylemler gizli)
+  bool _unitPrompted = false; // birim seçimi alt sayfası oturum başına bir kez kendiliğinden açılır
+  bool _applying = false;
   int? _semesterId;
   int _day = istanbulWall(academicClock()).weekday;
   int _dayDir = 1; // gün şeridi geçişinin yönü: içerik o yöne kayar
@@ -64,6 +67,7 @@ class _TimetablePageState extends State<TimetablePage> {
         _error = null;
         _loading = false;
       });
+      await _loadOfficial();
     } catch (e) {
       if (!mounted) return;
       setState(() {
@@ -71,6 +75,92 @@ class _TimetablePageState extends State<TimetablePage> {
         _loading = false;
       });
     }
+  }
+
+  /// Resmî program durumu (hata sessiz: program çalışmaya devam eder). Kişisel program boşken birden çok birim
+  /// eşleşiyorsa birim seçtiren alt sayfa bir kez kendiliğinden açılır.
+  Future<void> _loadOfficial() async {
+    OfficialTimetableStatus? st;
+    try {
+      st = await _api.officialStatus();
+    } catch (_) {}
+    if (!mounted) return;
+    setState(() => _official = st);
+    final empty = _data?.courses.isEmpty ?? false;
+    if (st != null && st.needsUnitPick && empty && !_unitPrompted) {
+      _unitPrompted = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _pickUnit();
+      });
+    }
+  }
+
+  /// Birim seçtirir; seçilmezse null.
+  Future<String?> _askUnit(OfficialTimetableStatus st) => BuSheet.show<String>(
+        context,
+        title: context.l10n.ttOfficialPickTitle,
+        subtitle: st.term,
+        builder: (_) => OfficialUnitList(units: st.units),
+      );
+
+  /// Boş programa resmî programı getir: birim seç (birden çoksa), uygula.
+  Future<void> _pickUnit() async {
+    final st = _official;
+    if (st == null || _applying) return;
+    final unit = await _askUnit(st);
+    if (unit == null || !mounted) return;
+    await _apply(unit: unit);
+  }
+
+  Future<void> _apply({String? unit, bool replace = false}) async {
+    setState(() => _applying = true);
+    try {
+      final d = await _api.applyOfficial(unit: unit, replace: replace);
+      if (!mounted) return;
+      setState(() {
+        _data = d;
+        _error = null;
+        _applying = false;
+      });
+      unawaited(ReminderService.sync(_api));
+      await _loadOfficial();
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _applying = false);
+      academicToast(context, errorText(e), kind: BuToastKind.error);
+    }
+  }
+
+  /// Menü: kişisel değişiklikler silinir uyarısıyla resmî programı yeniden yükler (birden çok birimde önce birim seçilir).
+  Future<void> _reloadOfficial() async {
+    final st = _official;
+    if (st == null || _applying) return;
+    final l = context.l10n;
+    String? unit;
+    if (st.units.length > 1) {
+      unit = await _askUnit(st);
+      if (unit == null || !mounted) return;
+    }
+    final ok = await confirmDialog(context,
+        title: l.ttOfficialReloadTitle, text: l.ttOfficialReloadText, action: l.ttOfficialReloadAction, danger: true, icon: BuIcons.refreshCcw);
+    if (!ok || !mounted) return;
+    await _apply(unit: unit ?? (st.units.length == 1 ? st.units.first : null), replace: true);
+  }
+
+  Future<void> _openMenu() async {
+    final l = context.l10n;
+    final act = await BuSheet.show<String>(
+      context,
+      builder: (ctx) => Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        BuListTile(
+          title: l.ttOfficialReload,
+          subtitle: _official?.term,
+          leading: const Icon(BuIcons.refreshCcw),
+          onTap: () => Navigator.pop(ctx, 'reload'),
+        ),
+      ]),
+    );
+    if (act == 'reload' && mounted) await _reloadOfficial();
   }
 
   Future<void> _openForm({Course? course, int? day}) async {
@@ -127,8 +217,12 @@ class _TimetablePageState extends State<TimetablePage> {
   Widget build(BuildContext context) {
     final l = context.l10n;
     final data = _data;
+    final off = _official;
     return AcademicScaffold(
       title: l.acadTimeTitle,
+      actions: [
+        if (data != null && off != null && off.available) BuIconButton(icon: BuIcons.ellipsis, tooltip: l.ttOfficialMenu, onTap: _applying ? null : _openMenu),
+      ],
       child: Column(children: [
         if (_error != null && data != null) Padding(padding: const EdgeInsets.fromLTRB(20, 0, 20, 8), child: AcadAmberNote(text: l.acadTimeStale)),
         Expanded(child: _body(data)),
@@ -137,6 +231,7 @@ class _TimetablePageState extends State<TimetablePage> {
   }
 
   Widget _body(TimetableData? data) {
+    if (_applying) return const SingleChildScrollView(physics: NeverScrollableScrollPhysics(), child: TtSkeleton());
     if (data == null) {
       if (_loading) return const SingleChildScrollView(physics: NeverScrollableScrollPhysics(), child: TtSkeleton());
       return RefreshIndicator(
@@ -197,6 +292,21 @@ class _TimetablePageState extends State<TimetablePage> {
     final t = context.bu;
     final sem = data.semester;
     final nowWall = istanbulWall(academicClock());
+    final off = _official;
+    if (data.courses.isEmpty && off != null && off.needsUnitPick) {
+      return [
+        TtEmpty(
+          title: l.ttOfficialFoundTitle,
+          body: l.ttOfficialFoundBody,
+          actionLabel: l.ttOfficialPickAction,
+          onAction: _applying ? () {} : _pickUnit,
+          secondaryLabel: l.acadTimeAddFirst,
+          onSecondary: () => _openForm(day: _day),
+          semesterLabel: sem?.name,
+          onPickSemester: sem == null ? null : _pickSemester,
+        ),
+      ];
+    }
     if (sem == null && data.courses.isEmpty) {
       return [TtEmpty(title: l.p17NoSemesterTitle, body: l.p17NoSemesterBody, actionLabel: l.acadTimeAddSemester, onAction: _pickSemester)];
     }

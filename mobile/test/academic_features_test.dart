@@ -133,13 +133,14 @@ void main() {
       expect(countdownText(DateTime.utc(2026, 11, 1), _now), isNull);
       final sem = Semester(id: 1, name: 'Guz', startDate: DateTime.utc(2026, 9, 14), endDate: DateTime.utc(2027, 1, 15));
       final ics = buildIcs([
-        const Course(id: 1, name: 'Veri, Yapıları', instructor: 'Dr. A', sessions: [CourseSession(dayOfWeek: 3, start: '09:00', end: '10:50', room: 'B-204')])
+        const Course(id: 1, name: 'Veri, Yapıları', instructor: 'Dr. A', sessions: [CourseSession(dayOfWeek: 3, start: '09:00', end: '10:50')])
       ], sem, const [], now: _now);
       expect(ics, contains('BEGIN:VCALENDAR'));
       expect(ics, contains('DTSTART;TZID=Europe/Istanbul:20260916T090000')); // 14 Eylul Pazartesi -> ilk Carsamba 16 Eylul
       expect(ics, contains('RRULE:FREQ=WEEKLY;UNTIL=20270115T205900Z'));
       expect(ics, contains('SUMMARY:Veri\\, Yapıları'));
-      expect(ics, contains('LOCATION:B-204'));
+      expect(ics, isNot(contains('LOCATION')));
+      expect(ics, contains('DESCRIPTION:Dr. A'));
     });
 
     test('ISO ayrisma: ofsetsiz Istanbul varsayilir', () {
@@ -160,7 +161,10 @@ void main() {
       await tester.pumpWidget(buildApp(TimetablePage(session: makeSession(b)), size: kPhoneMedium));
       await settle(tester);
       expect(find.text('Son oturum'), findsOneWidget); // gunun tek dersi
-      expect(find.text('BIL201 · Derslik B-204'), findsOneWidget);
+      // Eski kayıtta sunucu derslik/kod dönse de gösterilmez.
+      expect(find.textContaining('BIL201'), findsNothing);
+      expect(find.textContaining('B-204'), findsNothing);
+      expect(find.textContaining('Derslik'), findsNothing);
       expect(find.text('Dr. Ayşe Yılmaz'), findsWidgets);
       expect(find.text('2026-2027 Güz'), findsOneWidget);
       // Çarşamba sekmesi
@@ -205,6 +209,11 @@ void main() {
       await settle(tester);
       await tester.tap(find.text('İlk dersini ekle'));
       await settle(tester);
+      // Ders kodu, renk, derslik ve not alanları yok: yalnız ad + öğretim üyesi (2 metin alanı).
+      expect(find.byType(TextField), findsNWidgets(2));
+      for (final gone in ['Ders kodu', 'Renk', 'Derslik', 'Not']) {
+        expect(find.text(gone), findsNothing, reason: gone);
+      }
       await tester.enterText(find.byType(TextField).first, 'Algoritmalar');
       await tester.tap(find.text('Pzt').last);
       await tester.pump();
@@ -215,6 +224,10 @@ void main() {
       expect(body['name'], 'Algoritmalar');
       expect(body['force'], false);
       expect((body['sessions'] as List).single, containsPair('dayOfWeek', 1));
+      for (final k in ['code', 'color', 'note', 'room']) {
+        expect(body.containsKey(k), isFalse, reason: 'gövdede $k olmamalı');
+      }
+      expect((body['sessions'] as List).single, isNot(contains('room')));
       expect(body['semesterId'], 3);
       expect(find.text('Algoritmalar'), findsWidgets);
       expect(platform.calls, greaterThan(0));

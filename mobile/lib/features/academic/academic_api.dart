@@ -23,6 +23,14 @@ class AcademicApi {
 
   Future<void> deleteCourse(int id) async => session.api.delete('/timetable/courses/$id');
 
+  // ---- resmî ders programı -> kişisel program
+  Future<OfficialTimetableStatus> officialStatus() async =>
+      OfficialTimetableStatus.fromJson(_map(await session.api.get('/timetable/official/status')));
+
+  /// Resmî programı kişisel programa kopyalar. [unit]: birden çok birim varken zorunlu; [replace]: mevcut kişisel dersleri siler.
+  Future<TimetableData> applyOfficial({String? unit, bool replace = false}) async => TimetableData.fromJson(_map(await session.api.post(
+      '/timetable/official/apply', {if (unit != null) 'unit': unit, if (replace) 'replace': true})));
+
   // ---- dönemler
   Future<({List<Semester> items, Map<String, dynamic>? official})> semesters() async {
     final m = _map(await session.api.get('/timetable/semesters'));

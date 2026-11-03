@@ -32,6 +32,18 @@ class FakeAcademic {
   int pageSize = 2;
   int unread = 0;
 
+  /// Resmî ders programı (Sözleşme A): birim -> o birimin dersleri (`addCourse` biçimi). `officialUnits` boşsa resmî program yok.
+  String officialTerm = '2026-2027 Güz';
+  bool officialApplied = false;
+  final Map<String, List<Map<String, dynamic>>> officialByUnit = {};
+
+  Map<String, dynamic> get officialStatus => {
+        'available': officialByUnit.isNotEmpty,
+        'applied': officialApplied,
+        'term': officialByUnit.isEmpty ? null : officialTerm,
+        'units': officialByUnit.keys.toList(),
+      };
+
   /// Çakışma 409'u üretmek için: true iken `force` yoksa her yazma 409 döner.
   bool conflictOnce = false;
 
@@ -92,6 +104,24 @@ class FakeAcademic {
     Map<String, dynamic> body() => req.body.isEmpty ? {} : (jsonDecode(req.body) as Map).cast<String, dynamic>();
 
     if (path == '/timetable' && m == 'GET') return _j({'semester': semester, 'courses': courses});
+    if (path == '/timetable/official/status' && m == 'GET') return _j(officialStatus);
+    if (path == '/timetable/official/apply' && m == 'POST') {
+      final bd = body();
+      final units = officialByUnit.keys.toList();
+      final unit = bd['unit'] as String?;
+      if (units.isEmpty || (unit != null && !units.contains(unit))) {
+        return _j({'code': 'OFFICIAL_TIMETABLE_NOT_FOUND', 'message': 'Resmî program yok.'}, 404);
+      }
+      if (unit == null && units.length > 1) {
+        return _j({'code': 'OFFICIAL_UNIT_REQUIRED', 'message': 'Birim seçmelisin.'}, 422);
+      }
+      if (bd['replace'] == true) courses.clear();
+      for (final c in officialByUnit[unit ?? units.first]!) {
+        courses.add({...c, 'id': ++_id});
+      }
+      officialApplied = true;
+      return _j({'semester': semester, 'courses': courses});
+    }
     if (path == '/timetable/courses' && m == 'POST') {
       final bd = body();
       if (conflictOnce && bd['force'] != true) {

@@ -415,7 +415,7 @@ final _scenes = <_Scene>[
   // ---- 44
   _Scene('07_ders_formu', (b) => CourseFormPage(session: makeSession(b), initialDay: 1), setup: (b) => _fa(b), height: 1200),
   _Scene('08a_ders_formu_hata', (b) {
-    const c = Course(id: 1, name: '', color: 'red', sessions: [CourseSession(dayOfWeek: 4, start: '14:00', end: '11:00', room: 'B-204')]);
+    const c = Course(id: 1, name: '', color: 'red', sessions: [CourseSession(dayOfWeek: 4, start: '14:00', end: '11:00')]);
     return CourseFormPage(session: makeSession(b), course: c);
   }, setup: (b) => _fa(b), height: 1350, after: (t) async {
     await t.ensureVisible(find.text(_l.acadTimeSave));
@@ -431,8 +431,8 @@ final _scenes = <_Scene>[
   }),
   _Scene('08c_ders_formu_kendi_cakisma', (b) {
     const c = Course(id: 1, name: 'Kimya', color: 'teal', sessions: [
-      CourseSession(dayOfWeek: 4, start: '10:00', end: '12:00', room: 'B-204'),
-      CourseSession(dayOfWeek: 4, start: '10:30', end: '12:30', room: 'B-204'),
+      CourseSession(dayOfWeek: 4, start: '10:00', end: '12:00'),
+      CourseSession(dayOfWeek: 4, start: '10:30', end: '12:30'),
     ]);
     return CourseFormPage(session: makeSession(b), course: c);
   }, setup: (b) => _fa(b), height: 2200, after: (t) async {

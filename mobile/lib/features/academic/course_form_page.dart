@@ -12,19 +12,19 @@ import 'akad_widgets.dart';
 import 'reminders.dart';
 
 class _SessionDraft {
-  _SessionDraft({required this.day, required this.start, required this.end, String? room, this.id}) : room = TextEditingController(text: room ?? '');
+  _SessionDraft({required this.day, required this.start, required this.end, this.id});
 
   int day;
   int start; // dakika
   int end;
   final int? id;
-  final TextEditingController room;
 
-  CourseSession toSession() => CourseSession(id: id, dayOfWeek: day, start: hhmm(start), end: hhmm(end), room: room.text);
+  CourseSession toSession() => CourseSession(id: id, dayOfWeek: day, start: hhmm(start), end: hhmm(end));
 }
 
 /// Ders ekle / düzenle (Stitch 44). Başarıda `true` ile kapanır (liste yenilenir).
-/// Üstte ders bilgileri + renk, ardından oturum kartları (gün çipleri, saatler, derslik) ve not.
+/// Yalnız ders adı (zorunlu), öğretim üyesi (isteğe bağlı) ve oturum kartları (gün çipleri + başlangıç/bitiş saati).
+/// Ders kodu, renk, derslik ve not yoktur; rengi sunucu atar.
 class CourseFormPage extends StatefulWidget {
   const CourseFormPage({
     super.key,
@@ -48,10 +48,7 @@ class CourseFormPage extends StatefulWidget {
 class _CourseFormPageState extends State<CourseFormPage> {
   late final AcademicApi _api = AcademicApi(widget.session);
   late final _name = TextEditingController(text: widget.course?.name ?? '');
-  late final _code = TextEditingController(text: widget.course?.code ?? '');
   late final _instructor = TextEditingController(text: widget.course?.instructor ?? '');
-  late final _note = TextEditingController(text: widget.course?.note ?? '');
-  late String? _color = widget.course?.color;
   late final List<_SessionDraft> _sessions;
   bool _busy = false;
   String? _nameError;
@@ -65,18 +62,14 @@ class _CourseFormPageState extends State<CourseFormPage> {
     super.initState();
     final c = widget.course;
     _sessions = c != null && c.sessions.isNotEmpty
-        ? [for (final s in c.sessions) _SessionDraft(day: s.dayOfWeek, start: s.startMin, end: s.endMin, room: s.room, id: s.id)]
+        ? [for (final s in c.sessions) _SessionDraft(day: s.dayOfWeek, start: s.startMin, end: s.endMin, id: s.id)]
         : [_SessionDraft(day: widget.initialDay ?? 1, start: 9 * 60, end: 10 * 60 + 50)];
   }
 
   @override
   void dispose() {
-    for (final c in [_name, _code, _instructor, _note]) {
-      c.dispose();
-    }
-    for (final s in _sessions) {
-      s.room.dispose();
-    }
+    _name.dispose();
+    _instructor.dispose();
     super.dispose();
   }
 
@@ -119,15 +112,6 @@ class _CourseFormPageState extends State<CourseFormPage> {
                       const SizedBox(width: 6),
                       Expanded(child: Text('${acadDayShort(l, c.session.dayOfWeek.clamp(1, 7))} ${c.session.start}-${c.session.end}', style: tx.bodySmall!.copyWith(color: t.mut))),
                     ]),
-                    if (c.session.room != null)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 2),
-                        child: Row(children: [
-                          Icon(BuIcons.mapPin, size: 14, color: t.mut),
-                          const SizedBox(width: 6),
-                          Expanded(child: Text(c.session.room!, style: tx.bodySmall!.copyWith(color: t.mut))),
-                        ]),
-                      ),
                   ]),
                 ),
               if (own) Text(l.acadTimeOwnConflict, style: tx.bodyMedium!.copyWith(fontWeight: FontWeight.w600, color: t.danger)),
@@ -170,10 +154,7 @@ class _CourseFormPageState extends State<CourseFormPage> {
     }
     final body = <String, dynamic>{
       'name': name,
-      'code': _code.text.trim(),
       'instructor': _instructor.text.trim(),
-      'note': _note.text.trim(),
-      if (_color != null) 'color': _color,
       if (!_editing && widget.semesterId != null) 'semesterId': widget.semesterId,
       'force': force,
       'sessions': [for (final s in sessions) s.toJson()],
@@ -247,9 +228,6 @@ class _CourseFormPageState extends State<CourseFormPage> {
               ),
               const SizedBox(height: 16),
               AkadTextField(
-                  label: l.acadTimeCourseCode, controller: _code, maxLength: 20, capitalization: TextCapitalization.characters, hint: 'BIL201', icon: BuIcons.hash),
-              const SizedBox(height: 16),
-              AkadTextField(
                 label: l.acadTimeInstructor,
                 controller: _instructor,
                 maxLength: 120,
@@ -257,19 +235,6 @@ class _CourseFormPageState extends State<CourseFormPage> {
                 hint: l.acadTimeInstructorHint,
                 icon: BuIcons.idCard,
               ),
-              const SizedBox(height: 16),
-              AkadFieldLabel(l.acadTimeColor,
-                  trailing: _color == null
-                      ? null
-                      : Text(l.p17ColorSelected(acadColorName(l, _color!)),
-                          maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.labelMedium!.copyWith(fontWeight: FontWeight.w700, color: t.pr))),
-              Row(children: [for (final k in courseColorKeys) Expanded(child: _swatch(t, k))]),
-              const SizedBox(height: 4),
-              Row(children: [
-                Icon(BuIcons.info, size: 14, color: t.mut),
-                const SizedBox(width: 6),
-                Expanded(child: Text(l.acadTimeColorAuto, style: tx.bodySmall!.copyWith(color: t.mut))),
-              ]),
             ]),
           ),
           const SizedBox(height: 20),
@@ -317,20 +282,6 @@ class _CourseFormPageState extends State<CourseFormPage> {
               ),
             ),
           ],
-          const SizedBox(height: 20),
-          AkadCard(
-            padding: const EdgeInsets.all(16),
-            child: AkadTextField(
-              label: l.acadTimeNote,
-              controller: _note,
-              maxLength: 500,
-              minLines: 3,
-              maxLines: 5,
-              capitalization: TextCapitalization.sentences,
-              hint: l.acadTimeNoteHint,
-              icon: BuIcons.textAlignStart,
-            ),
-          ),
           const SizedBox(height: 24),
           BuButton(
             label: _editing ? l.acadTimeSave : l.acadTimeAddCourseBtn,
@@ -379,53 +330,6 @@ class _CourseFormPageState extends State<CourseFormPage> {
         ),
       );
 
-  Widget _swatch(BuTokens t, String k) {
-    final l = context.l10n;
-    final sel = _color == k;
-    final color = courseColor(k);
-    void tap() {
-      buHaptic(BuHaptic.selection);
-      setState(() => _color = sel ? null : k);
-    }
-
-    return Semantics(
-      button: true,
-      selected: sel,
-      label: l.acadTimeColorSemantic(acadColorName(l, k)),
-      excludeSemantics: true,
-      onTap: tap,
-      child: BuPressable(
-        scale: .9,
-        child: InkWell(
-          customBorder: const CircleBorder(),
-          onTap: tap,
-          child: SizedBox(
-            height: 48,
-            child: Center(
-              child: AnimatedContainer(
-                duration: BuMotion.of(context, BuMotion.short),
-                curve: BuMotion.standard,
-                width: 28,
-                height: 28,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: color,
-                  shape: BoxShape.circle,
-                  border: Border.all(color: sel ? t.ink : Colors.transparent, width: 2),
-                ),
-                child: AnimatedScale(
-                  scale: sel ? 1 : 0,
-                  duration: BuMotion.of(context, BuMotion.short),
-                  child: Icon(BuIcons.check, size: 15, color: t.onMedia),
-                ),
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
   Widget _sessionBlock(BuTokens t, int i) {
     final s = _sessions[i];
     final l = context.l10n;
@@ -442,7 +346,7 @@ class _CourseFormPageState extends State<CourseFormPage> {
             TextButton.icon(
               style: TextButton.styleFrom(foregroundColor: t.danger, minimumSize: const Size(48, 48), padding: const EdgeInsets.symmetric(horizontal: 8)),
               onPressed: () => setState(() {
-                _sessions.removeAt(i).room.dispose();
+                _sessions.removeAt(i);
                 _endErrors.clear();
               }),
               icon: const Icon(BuIcons.trash2, size: 16),
@@ -520,8 +424,6 @@ class _CourseFormPageState extends State<CourseFormPage> {
               ]),
             ),
           ),
-        const SizedBox(height: 14),
-        AkadTextField(label: l.acadFormRoom, controller: s.room, maxLength: 60, hint: l.acadTimeRoomHint, icon: BuIcons.doorOpen),
       ]),
     );
   }

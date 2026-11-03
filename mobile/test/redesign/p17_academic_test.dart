@@ -183,7 +183,7 @@ void main() {
       await tester.ensureVisible(find.text('Dersi ekle'));
       await tester.tap(find.text('Dersi ekle'));
       await settle(tester, const Duration(milliseconds: 500));
-      expect(find.text('Ders adı gerekli'), findsOneWidget);
+      expect(find.text('Ders adı gerekli'), findsWidgets); // satır içi hata + (form kısa olduğundan görünür) üst hata bandı
       await tester.pumpWidget(const SizedBox.shrink());
       await tester.pump(const Duration(seconds: 1));
     });
@@ -234,7 +234,7 @@ void main() {
           await tester.pumpWidget(p00App(e.value(), scaffold: false, dark: dark));
           await settle(tester, const Duration(seconds: 2));
           // Segment (BuSegmented, P0) 44 dp yuksekliktedir: sinavlar sayfalarinda dokunma hedefi denetimi atlanir.
-          // Ders formundaki 10 renk noktasi referans geregi tek satirda (~33 dp genislik) durur.
+          // Ders formundaki 7 gun cipi tek satirda (~46.6 dp genislik) durur.
           if (!e.key.contains('sinavlar') && e.key != 'ders formu') await expectLater(tester, meetsGuideline(androidTapTargetGuideline));
           await expectLater(tester, meetsGuideline(labeledTapTargetGuideline));
           await expectLater(tester, meetsGuideline(textContrastGuideline));
@@ -266,11 +266,10 @@ void main() {
 Course _course({int id = 1, String name = 'Veri Yapıları'}) => Course(
       id: id,
       name: name,
-      code: 'BIL201',
       instructor: 'Dr. Ayşe Yılmaz',
       color: 'blue',
       sessions: const [
-        CourseSession(id: 1, dayOfWeek: 1, start: '09:00', end: '10:50', room: 'B-204'),
-        CourseSession(id: 2, dayOfWeek: 3, start: '13:00', end: '14:50', room: 'B-204'),
+        CourseSession(id: 1, dayOfWeek: 1, start: '09:00', end: '10:50'),
+        CourseSession(id: 2, dayOfWeek: 3, start: '13:00', end: '14:50'),
       ],
     );
