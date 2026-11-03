@@ -297,7 +297,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get authNameHint => 'Ad soyad';
 
   @override
-  String get authPasswordMin8 => 'Şifre (6 rakam)';
+  String get authPasswordMin8 => 'Şifre (en az 8 karakter)';
 
   @override
   String get authTermsPrefix => '';
@@ -5109,8 +5109,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get authHintPersonal => 'Adınızı ve okul e-postanızı girin.';
 
   @override
-  String get authHintPassword =>
-      '6 haneli, kolay tahmin edilmeyen bir şifre seçin.';
+  String get authHintPassword => 'En az 8 karakterli bir şifre seçin.';
 
   @override
   String get authNext => 'Devam';
@@ -5122,10 +5121,10 @@ class AppLocalizationsTr extends AppLocalizations {
   String get authTermsAutoSuffix => ' kabul etmiş sayılırsınız.';
 
   @override
-  String get authPwMinErr => 'Şifre 6 haneli rakamlardan oluşmalı.';
+  String get authPwMinErr => 'Şifre en az 8 karakter olmalı.';
 
   @override
-  String get authPwMaxErr => 'Şifre 6 haneli rakamlardan oluşmalı.';
+  String get authPwMaxErr => 'Şifre en çok 72 karakter olabilir.';
 
   @override
   String get authIdHelper => '226051015 ya da ad.soyad@bingol.edu.tr';
@@ -5407,10 +5406,10 @@ class AppLocalizationsTr extends AppLocalizations {
       'Bu şifre eski şifrenizin yerine geçer. Tüm cihazlardaki oturumlar kapanır.';
 
   @override
-  String get authRuleLen => '6 rakamdan oluşur';
+  String get authRuleLen => 'En az 8 karakter';
 
   @override
-  String get authRuleMix => 'Kolay tahmin edilmez';
+  String get authRuleMix => 'Harf ve rakam içerir';
 
   @override
   String get authStep1Title => 'Hangi bölümdesiniz?';
@@ -5689,7 +5688,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get profil2SecNewLabel => 'Yeni şifre';
 
   @override
-  String get profil2SecNewHint => '6 haneli rakam';
+  String get profil2SecNewHint => 'En az 8 karakter';
 
   @override
   String get profil2SecRepeatLabel => 'Yeni şifre (tekrar)';
@@ -5699,7 +5698,7 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get profil2SecPwRule =>
-      '6 rakamdan oluşur; ardışık (123456) ya da aynı rakamlar (111111) kabul edilmez.';
+      '8 ile 72 karakter. Harf ve rakam karıştırırsanız güçlenir.';
 
   @override
   String get profil2SecPwButton => 'Şifreyi güncelle';
@@ -9830,21 +9829,4 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get homeViewAll => 'Tümünü gör';
-
-  @override
-  String get authPinWeak =>
-      'Çok kolay bir şifre; ardışık ya da aynı rakamlar kullanma.';
-
-  @override
-  String get authPinLegacyHint =>
-      'Eski şifreniz uzunsa “Şifremi unuttum” ile 6 haneli yeni şifre belirleyin.';
-
-  @override
-  String pinFieldSemantics(String label, String count) {
-    return '$label, 6 haneli, $count hane girildi';
-  }
-
-  @override
-  String get errAccountTempLocked =>
-      'Çok fazla hatalı deneme. Hesabınız geçici olarak kilitlendi.';
 }

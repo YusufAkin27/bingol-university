@@ -16,7 +16,6 @@ import 'widgets/auth_controls.dart';
 import 'widgets/auth_motion.dart';
 import 'widgets/auth_ref.dart';
 import 'widgets/login_underline_field.dart';
-import 'widgets/pin_field.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key, required this.session});
@@ -251,7 +250,7 @@ class _RegisterPageState extends State<RegisterPage> {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            PinField(
+            LoginPasswordField(
               controller: _password,
               label: l.authPasswordMin8,
               enabled: !_busy,

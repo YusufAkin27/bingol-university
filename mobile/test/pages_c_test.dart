@@ -501,7 +501,7 @@ void main() {
       final b = backend();
       await openDelete(tester, b);
       b.fail('/users/me', status: 403, code: 'WRONG_PASSWORD', message: 'Şifre yanlış (sunucu).');
-      await tester.enterText(find.byType(TextField), '902714');
+      await tester.enterText(find.byType(TextField), 'yanlis');
       await tester.tap(find.byKey(const ValueKey('delete-submit')));
       await settle(tester, const Duration(milliseconds: 500));
       expect(find.text('Şifre yanlış (sunucu).'), findsOneWidget);
@@ -514,7 +514,7 @@ void main() {
       final b = backend();
       await openDelete(tester, b);
       b.fail('/users/me', status: 403, code: 'WRONG_PASSWORD');
-      await tester.enterText(find.byType(TextField), '902714');
+      await tester.enterText(find.byType(TextField), 'yanlis');
       await tester.tap(find.byKey(const ValueKey('delete-submit')));
       await settle(tester, const Duration(milliseconds: 500));
       expect(find.text('Şifre hatalı.'), findsOneWidget);

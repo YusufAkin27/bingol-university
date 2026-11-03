@@ -5,7 +5,6 @@ import '../../core/app_gate.dart' show appVersion;
 import '../../core/identifier.dart';
 import '../../core/locale_controller.dart';
 import '../../core/pending_verification.dart';
-import '../../core/pin.dart';
 import '../../core/session.dart';
 import '../../widgets/bu.dart';
 import 'forgot_password_page.dart';
@@ -16,7 +15,6 @@ import 'verify_code_page.dart';
 import 'widgets/auth_motion.dart';
 import 'widgets/auth_ref.dart';
 import 'widgets/login_underline_field.dart';
-import 'widgets/pin_field.dart';
 
 /// Giriş (lg4, tipografik): kartsız, büyük ölçekli okul numarası + şifre satırları, ince alt çizgiler; üstte bekleyen doğrulama ve
 /// "başka cihazdan giriş" bantları; hız sınırı ve ağ hataları satır içi bantla gösterilir.
@@ -39,9 +37,6 @@ class _LoginPageState extends State<LoginPage> {
 
   /// 429: bandın ikinci satırı ("40 sn sonra tekrar deneyin.").
   String? _retry;
-
-  /// Yanlış şifrede bandın ikinci satırı: eski (uzun) şifreli kullanıcıya "Şifremi unuttum" yolu gösterilir.
-  String? _hint;
   PendingVerification? _pending;
 
   @override
@@ -73,22 +68,15 @@ class _LoginPageState extends State<LoginPage> {
     authHaptic(AuthHaptic.error);
     final l = context.l10n;
     String? retry;
-    String? hint;
     var text = errorText(e);
     if (e is ApiError && e.status == 429 && !e.isNetwork) {
-      // Başlık ile bekleme süresi ayrı satırlarda gösterilir. Hesap kilidinde (5 yanlış deneme, 15 dk) sunucu metni
-      // gelmezse yerel metin kullanılır.
+      // Başlık ile bekleme süresi ayrı satırlarda gösterilir.
       retry = retryAfterText(e.retryAfter, l);
-      text = e.code == 'ACCOUNT_TEMP_LOCKED'
-          ? l.errAccountTempLocked
-          : (e.message.isNotEmpty ? e.message : l.coreErrTooMany);
-    } else if (e is ApiError && !e.isNetwork && (e.status == 400 || e.status == 401)) {
-      hint = l.authPinLegacyHint;
+      text = e.message.isNotEmpty ? e.message : l.coreErrTooMany;
     }
     setState(() {
       _error = text;
       _retry = retry;
-      _hint = hint;
       _shake++;
     });
   }
@@ -103,7 +91,6 @@ class _LoginPageState extends State<LoginPage> {
       _busy = true;
       _error = null;
       _retry = null;
-      _hint = null;
     });
     try {
       await widget.session.login(_email.text, _password.text);
@@ -245,13 +232,10 @@ class _LoginPageState extends State<LoginPage> {
                   // Örnek e-posta satırı gösterilmez: alan etiketi yeterli. Yalnız okul numarası (rakam klavyesi).
                   LoginNumberField(controller: _email, enabled: !_busy),
                   const SizedBox(height: 28),
-                  // Banka tarzı 6 haneli şifre; doğrulama yalnız biçimi (6 rakam) denetler, zayıflığı değil.
-                  PinField(
+                  LoginPasswordField(
                     controller: _password,
                     enabled: !_busy,
-                    validator: (v) => (v == null || v.isEmpty)
-                        ? l.loginPasswordRequired
-                        : (isPinFormat(v) ? null : l.authPwMinErr),
+                    validator: (v) => (v == null || v.isEmpty) ? l.loginPasswordRequired : null,
                     onSubmitted: _submit,
                   ),
                   Align(
@@ -278,7 +262,7 @@ class _LoginPageState extends State<LoginPage> {
                               trigger: _shake,
                               child: _retry != null
                                   ? RefBanner(_error!, key: ValueKey('login-error-$_error'), tone: RefTone.warn, sub: _retry)
-                                  : RefBanner(_error!, key: ValueKey('login-error-$_error'), sub: _hint),
+                                  : RefBanner(_error!, key: ValueKey('login-error-$_error')),
                             ),
                           ),
                   ),

@@ -138,7 +138,7 @@
   "authDepartmentsLoadFailed": "Bölüm listesi yüklenemedi. Yeniden deneyin.",
   "authNameRequired": "Adınızı ve soyadınızı girin.",
   "authNameHint": "Ad soyad",
-  "authPasswordMin8": "Şifre (6 rakam)",
+  "authPasswordMin8": "Şifre (en az 8 karakter)",
   "authTermsPrefix": "",
   "authTermsLink": "Kullanım koşulları",
   "authTermsSep": " ve ",
@@ -2822,12 +2822,12 @@
   "authSectionPassword": "Şifre belirleyin",
   "authHintAcademic": "Bölümünüzü ve sınıfınızı seçin.",
   "authHintPersonal": "Adınızı ve okul e-postanızı girin.",
-  "authHintPassword": "6 haneli, kolay tahmin edilmeyen bir şifre seçin.",
+  "authHintPassword": "En az 8 karakterli bir şifre seçin.",
   "authNext": "Devam",
   "authTermsAutoPrefix": "Kayıt olarak ",
   "authTermsAutoSuffix": " kabul etmiş sayılırsınız.",
-  "authPwMinErr": "Şifre 6 haneli rakamlardan oluşmalı.",
-  "authPwMaxErr": "Şifre 6 haneli rakamlardan oluşmalı.",
+  "authPwMinErr": "Şifre en az 8 karakter olmalı.",
+  "authPwMaxErr": "Şifre en çok 72 karakter olabilir.",
   "authIdHelper": "226051015 ya da ad.soyad@bingol.edu.tr",
   "authRegIdLabel": "Okul e-posta adresiniz",
   "authRegIdHelper": "Örn. ad.soyad@bingol.edu.tr",
@@ -2960,8 +2960,8 @@
   "authBackToLogin": "Girişe dön",
   "authChangeEmail": "E-postayı değiştir",
   "authNewPwSub": "Bu şifre eski şifrenizin yerine geçer. Tüm cihazlardaki oturumlar kapanır.",
-  "authRuleLen": "6 rakamdan oluşur",
-  "authRuleMix": "Kolay tahmin edilmez",
+  "authRuleLen": "En az 8 karakter",
+  "authRuleMix": "Harf ve rakam içerir",
   "authStep1Title": "Hangi bölümdesiniz?",
   "authStep2Title": "Sizi tanıyalım",
   "welcomeHeadline": "Kampüs artık\ncebinizde",
@@ -3068,10 +3068,10 @@
   "profil2SecCurrentLabel": "Mevcut şifre",
   "profil2SecCurrentHint": "Mevcut şifreniz",
   "profil2SecNewLabel": "Yeni şifre",
-  "profil2SecNewHint": "6 haneli rakam",
+  "profil2SecNewHint": "En az 8 karakter",
   "profil2SecRepeatLabel": "Yeni şifre (tekrar)",
   "profil2SecRepeatHint": "Yeni şifreyi tekrarlayın",
-  "profil2SecPwRule": "6 rakamdan oluşur; ardışık (123456) ya da aynı rakamlar (111111) kabul edilmez.",
+  "profil2SecPwRule": "8 ile 72 karakter. Harf ve rakam karıştırırsanız güçlenir.",
   "profil2SecPwButton": "Şifreyi güncelle",
   "profil2SecMismatch": "Şifreler eşleşmiyor.",
   "profil2SecSame": "Yeni şifre mevcut şifreyle aynı olamaz.",
@@ -4933,19 +4933,5 @@
   "homeFeaturedMenu": "Yemek Menüsü",
   "homeSearchFilters": "Arama filtreleri",
   "homeMore": "Diğer",
-  "homeViewAll": "Tümünü gör",
-  "authPinWeak": "Çok kolay bir şifre; ardışık ya da aynı rakamlar kullanma.",
-  "authPinLegacyHint": "Eski şifreniz uzunsa “Şifremi unuttum” ile 6 haneli yeni şifre belirleyin.",
-  "pinFieldSemantics": "{label}, 6 haneli, {count} hane girildi",
-  "@pinFieldSemantics": {
-    "placeholders": {
-      "label": {
-        "type": "String"
-      },
-      "count": {
-        "type": "String"
-      }
-    }
-  },
-  "errAccountTempLocked": "Çok fazla hatalı deneme. Hesabınız geçici olarak kilitlendi."
+  "homeViewAll": "Tümünü gör"
 }

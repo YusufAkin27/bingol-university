@@ -783,6 +783,83 @@ class _RefTextFieldState extends State<RefTextField> {
   }
 }
 
+/// Parola alanı: göster/gizle gözü (48 dp hedef).
+class RefPasswordField extends StatefulWidget {
+  const RefPasswordField({
+    super.key,
+    required this.controller,
+    this.label,
+    this.hint,
+    this.validator,
+    this.textInputAction = TextInputAction.done,
+    this.onSubmitted,
+    this.autofillHints = const [AutofillHints.password],
+    this.onChanged,
+    this.enabled = true,
+    this.innerLabel = false,
+    this.onCard = false,
+    this.forceError,
+    this.labelAction,
+    this.showIcon = false,
+  });
+
+  final TextEditingController controller;
+  final String? label;
+  final bool showIcon;
+  final String? hint;
+  final Widget? labelAction;
+  final String? Function(String?)? validator;
+  final TextInputAction textInputAction;
+  final VoidCallback? onSubmitted;
+  final Iterable<String> autofillHints;
+  final ValueChanged<String>? onChanged;
+  final bool enabled;
+  final bool innerLabel;
+  final bool onCard;
+  final String? forceError;
+
+  @override
+  State<RefPasswordField> createState() => _RefPasswordFieldState();
+}
+
+class _RefPasswordFieldState extends State<RefPasswordField> {
+  bool _hidden = true;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.bu;
+    return RefTextField(
+      controller: widget.controller,
+      label: widget.label ?? context.l10n.authPasswordLabel,
+      hint: widget.hint,
+      icon: widget.showIcon ? BuIcons.lock : null,
+      obscureText: _hidden,
+      autocorrect: false,
+      validator: widget.validator,
+      textInputAction: widget.textInputAction,
+      autofillHints: widget.autofillHints,
+      onSubmitted: widget.onSubmitted,
+      onChanged: widget.onChanged,
+      enabled: widget.enabled,
+      innerLabel: widget.innerLabel,
+      onCard: widget.onCard,
+      forceError: widget.forceError,
+      labelAction: widget.labelAction,
+      keyboardType: TextInputType.visiblePassword,
+      trailing: IconButton(
+        tooltip: _hidden ? context.l10n.authShowPassword : context.l10n.authHidePassword,
+        constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
+        padding: EdgeInsets.zero,
+        icon: Icon(_hidden ? BuIcons.eye : BuIcons.eyeOff, size: 22, color: t.mut),
+        onPressed: () {
+          authHaptic(AuthHaptic.tap);
+          setState(() => _hidden = !_hidden);
+        },
+      ),
+    );
+  }
+}
+
 /// Okul numarası ya da e-posta alanı. Yalnız rakam yazılırken (okul numarası) sağda `@bingol.edu.tr` hapı görünür;
 /// tam adres yazılınca hap kalkar. `allowStudentNumber: false` (kayıt): yalnız tam e-posta; hap yok, yardımcı metin
 /// e-posta örneği verir.

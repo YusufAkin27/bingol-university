@@ -2,10 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../../core/api.dart';
 import '../../core/locale_controller.dart';
-import '../../core/pin.dart';
 import '../../core/session.dart';
 import '../../widgets/bu.dart';
-import '../auth/widgets/pin_field.dart';
 import 'profil_widgets.dart';
 
 /// Şifre güncelleme çağrısı: `POST /auth/change-password {currentPassword,newPassword}`.
@@ -66,13 +64,11 @@ class _AccountSecurityPageState extends State<AccountSecurityPage> {
       bad.add('current');
     }
     final n = _new.text;
-    // Yeni şifre 6 haneli PIN: sunucuyla aynı kural (biçim + kolay tahmin edilen diziler).
-    final chk = checkNewPin(n);
-    if (chk == PinCheck.format) {
+    if (n.length < 8) {
       errors.add(l.authPwMinErr);
       bad.add('new');
-    } else if (chk == PinCheck.weak) {
-      errors.add(l.authPinWeak);
+    } else if (n.length > 72) {
+      errors.add(l.authPwMaxErr);
       bad.add('new');
     } else if (n == _current.text) {
       errors.add(l.profil2SecSame);
@@ -111,7 +107,7 @@ class _AccountSecurityPageState extends State<AccountSecurityPage> {
         _setErrors([e.message.isNotEmpty ? e.message : l.profil2SecWrongCurrent], {'current'});
       } else if (e is ApiError && e.code == 'PASSWORD_UNCHANGED') {
         _setErrors([e.message.isNotEmpty ? e.message : l.profil2SecSame], {'new'});
-      } else if (e is ApiError && e.code.startsWith('PASSWORD_') && e.code != 'PASSWORD_UNCHANGED') {
+      } else if (e is ApiError && e.code == 'PASSWORD_TOO_LONG') {
         _setErrors([errorText(e)], {'new'});
       } else if (e is ApiError && (e.status == 429 || e.status == 422 || e.isNetwork || knownErrorText(e, l) != null)) {
         _toast(errorText(e), kind: BuToastKind.error);
@@ -192,32 +188,35 @@ class _AccountSecurityPageState extends State<AccountSecurityPage> {
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20),
                   child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-                    PinField(
+                    _PwField(
                       key: const ValueKey('sec-current'),
                       label: l.profil2SecCurrentLabel,
+                      hint: l.profil2SecCurrentHint,
                       controller: _current,
-                      invalid: _bad.contains('current'),
-                      textInputAction: TextInputAction.next,
-                      autofillHints: const [AutofillHints.password],
+                      bad: _bad.contains('current'),
+                      action: TextInputAction.next,
+                      hints: const [AutofillHints.password],
                     ),
                     const SizedBox(height: 16),
-                    PinField(
+                    _PwField(
                       key: const ValueKey('sec-new'),
                       label: l.profil2SecNewLabel,
+                      hint: l.profil2SecNewHint,
                       controller: _new,
-                      invalid: _bad.contains('new'),
-                      textInputAction: TextInputAction.next,
-                      autofillHints: const [AutofillHints.newPassword],
+                      bad: _bad.contains('new'),
+                      action: TextInputAction.next,
+                      hints: const [AutofillHints.newPassword],
                     ),
                     const SizedBox(height: 8),
                     Text(l.profil2SecPwRule, style: tx.bodySmall!.copyWith(fontSize: 12, color: t.mut, height: 1.4)),
                     const SizedBox(height: 16),
-                    PinField(
+                    _PwField(
                       key: const ValueKey('sec-repeat'),
                       label: l.profil2SecRepeatLabel,
+                      hint: l.profil2SecRepeatHint,
                       controller: _repeat,
-                      invalid: _bad.contains('repeat'),
-                      autofillHints: const [AutofillHints.newPassword],
+                      bad: _bad.contains('repeat'),
+                      hints: const [AutofillHints.newPassword],
                       onSubmitted: _submit,
                     ),
                     // Hata satırları: ikonsuz danger 12 sp (Stitch v3).
@@ -266,5 +265,74 @@ class _AccountSecurityPageState extends State<AccountSecurityPage> {
         ],
       ),
     );
+  }
+}
+
+/// Şifre alanı: küçük etiket üstte, dolgulu kutu, göz düğmesi; hatalıysa kırmızı çerçeve.
+class _PwField extends StatefulWidget {
+  const _PwField({
+    super.key,
+    required this.label,
+    required this.hint,
+    required this.controller,
+    this.bad = false,
+    this.action = TextInputAction.done,
+    this.hints,
+    this.onSubmitted,
+  });
+
+  final String label;
+  final String hint;
+  final TextEditingController controller;
+  final bool bad;
+  final TextInputAction action;
+  final Iterable<String>? hints;
+  final VoidCallback? onSubmitted;
+
+  @override
+  State<_PwField> createState() => _PwFieldState();
+}
+
+class _PwFieldState extends State<_PwField> {
+  bool _hidden = true;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.bu;
+    final l = context.l10n;
+    final tx = Theme.of(context).textTheme;
+    OutlineInputBorder b(Color c, double w) =>
+        OutlineInputBorder(borderRadius: BuRadius.bMd, borderSide: w == 0 ? BorderSide.none : BorderSide(color: c, width: w));
+    return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+      Padding(
+        padding: const EdgeInsetsDirectional.only(start: 2, bottom: 6),
+        child: Text(widget.label, style: tx.bodyLarge!.copyWith(fontSize: 16, color: t.ink)),
+      ),
+      TextField(
+        controller: widget.controller,
+        obscureText: _hidden,
+        autocorrect: false,
+        enableSuggestions: false,
+        autofillHints: widget.hints,
+        textInputAction: widget.action,
+        onSubmitted: widget.onSubmitted == null ? null : (_) => widget.onSubmitted!(),
+        style: tx.bodyLarge!.copyWith(color: t.ink),
+        decoration: InputDecoration(
+          hintText: widget.hint,
+          hintStyle: tx.bodyLarge!.copyWith(color: t.mut),
+          filled: true,
+          fillColor: t.sf,
+          contentPadding: const EdgeInsetsDirectional.fromSTEB(16, 14, 4, 14),
+          border: b(t.sf, 0),
+          enabledBorder: widget.bad ? b(t.danger, 1.5) : b(t.sf, 0),
+          focusedBorder: b(widget.bad ? t.danger : t.pr, 2),
+          suffixIcon: IconButton(
+            tooltip: _hidden ? l.authShowPassword : l.authHidePassword,
+            icon: Icon(_hidden ? BuIcons.eye : BuIcons.eyeOff, size: 20, color: widget.bad ? t.danger : t.mut),
+            onPressed: () => setState(() => _hidden = !_hidden),
+          ),
+        ),
+      ),
+    ]);
   }
 }

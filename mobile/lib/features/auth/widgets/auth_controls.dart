@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import '../../../core/locale_controller.dart';
-import '../../../core/pin.dart';
 import '../../../widgets/bu.dart';
 import 'auth_motion.dart';
 import 'auth_ref.dart';
@@ -109,25 +108,76 @@ class AuthResendRowState extends State<AuthResendRow> {
   }
 }
 
-/// Şifre (6 haneli PIN) kural ipuçları: "6 rakamdan oluşur" ve "Kolay tahmin edilmez"; sağlandıkça tik atar.
-/// Kural sunucuyla birebir aynıdır (bkz. `core/pin.dart`).
+/// Parola gücü ("Şifre gücü" + durum, 3 parçalı çubuk) ve tek tek tik atan kural listesi.
 class AuthPasswordGuide extends StatelessWidget {
   const AuthPasswordGuide({super.key, required this.password});
 
   final String password;
 
+  static int score(String p) {
+    if (p.isEmpty) return 0;
+    var s = 0;
+    if (p.length >= 8) s++;
+    if (p.length >= 12 || (RegExp(r'[A-Za-z]').hasMatch(p) && RegExp(r'\d').hasMatch(p))) s++;
+    if (RegExp(r'[^A-Za-z0-9]').hasMatch(p) && p.length >= 8 ||
+        (p.length >= 12 && RegExp(r'[A-Z]').hasMatch(p) && RegExp(r'\d').hasMatch(p))) {
+      s++;
+    }
+    return s == 0 ? 1 : s;
+  }
+
   @override
   Widget build(BuildContext context) {
+    final t = context.bu;
     final l = context.l10n;
-    final formatOk = isPinFormat(password);
+    final tx = Theme.of(context).textTheme;
+    final sc = score(password);
+    // Stitch v3: renk yok; doluluk (ink) + kelime ile anlatılır (zayıf/orta/güçlü için kırmızı/amber/yeşil kullanılmaz).
+    final color = t.ink;
+    final labelColor = t.ink;
+    final label = sc <= 1 ? l.authPwWeak : (sc == 2 ? l.authPwFair : l.authPwStrong);
+    final hasMix = RegExp(r'[A-Za-z]').hasMatch(password) && RegExp(r'\d').hasMatch(password);
     return Padding(
       padding: const EdgeInsets.only(top: 14),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          AuthRule(ok: formatOk, label: l.authRuleLen),
+          Row(
+            children: [
+              Expanded(child: Text(l.p02PwStrengthTitle, style: tx.bodySmall!.copyWith(color: t.mut, fontWeight: FontWeight.w500))),
+              AnimatedSwitcher(
+                duration: BuMotion.of(context, BuMotion.short),
+                child: Text(
+                  password.isEmpty ? '' : label,
+                  key: ValueKey(password.isEmpty ? '' : label),
+                  style: tx.labelLarge!.copyWith(color: labelColor, fontWeight: FontWeight.w600),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              for (var i = 0; i < 3; i++) ...[
+                Expanded(
+                  child: AnimatedContainer(
+                    duration: BuMotion.of(context, BuMotion.medium),
+                    curve: BuMotion.decelerate,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(2),
+                      color: password.isNotEmpty && i < sc ? color : t.bd,
+                    ),
+                  ),
+                ),
+                if (i < 2) const SizedBox(width: 6),
+              ],
+            ],
+          ),
+          const SizedBox(height: 14),
+          AuthRule(ok: password.length >= 8, label: l.authRuleLen),
           const SizedBox(height: 10),
-          AuthRule(ok: formatOk && !isWeakPin(password), label: l.authRuleMix),
+          AuthRule(ok: hasMix, label: l.authRuleMix),
         ],
       ),
     );

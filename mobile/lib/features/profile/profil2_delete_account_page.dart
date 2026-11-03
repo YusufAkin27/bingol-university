@@ -4,7 +4,6 @@ import '../../core/api.dart';
 import '../../core/locale_controller.dart';
 import '../../core/session.dart';
 import '../../widgets/bu.dart';
-import '../auth/widgets/pin_field.dart';
 import 'profil2_my_data_page.dart';
 import 'profil_widgets.dart' show ProfilFlatSection, ProfilTopBar;
 import 'profil2_widgets.dart';
@@ -158,6 +157,7 @@ class DeleteConfirmSheet extends StatefulWidget {
 class _DeleteConfirmSheetState extends State<DeleteConfirmSheet> {
   final _pw = TextEditingController();
   bool _busy = false;
+  bool _hidden = true;
   String? _error;
 
   @override
@@ -196,6 +196,7 @@ class _DeleteConfirmSheetState extends State<DeleteConfirmSheet> {
     final l = context.l10n;
     final tx = Theme.of(context).textTheme;
     final hasError = _error != null;
+    OutlineInputBorder b(Color c, double w) => OutlineInputBorder(borderRadius: BuRadius.bMd, borderSide: BorderSide(color: c, width: w));
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -216,17 +217,39 @@ class _DeleteConfirmSheetState extends State<DeleteConfirmSheet> {
           padding: const EdgeInsets.only(top: 12, bottom: 14),
           child: Text(l.profil2DelConfirmBody, style: tx.bodyMedium!.copyWith(color: t.mut, height: 1.5)),
         ),
-        PinField(
+        Padding(
+          padding: const EdgeInsetsDirectional.only(start: 2, bottom: 6),
+          child: Text(l.profilePrefsPassword, style: tx.labelMedium!.copyWith(fontWeight: FontWeight.w700, color: t.ink)),
+        ),
+        TextField(
           key: const ValueKey('delete-password'),
           controller: _pw,
-          label: l.profilePrefsPassword,
+          obscureText: _hidden,
           enabled: !_busy,
-          invalid: hasError,
           autofocus: true,
+          autocorrect: false,
+          enableSuggestions: false,
+          autofillHints: const [AutofillHints.password],
+          textInputAction: TextInputAction.done,
+          onSubmitted: (_) => _submit(),
           onChanged: (_) {
             if (_error != null) setState(() => _error = null);
           },
-          onSubmitted: _submit,
+          style: tx.bodyLarge!.copyWith(color: t.ink),
+          decoration: InputDecoration(
+            filled: true,
+            fillColor: hasError ? Theme.of(context).colorScheme.errorContainer.withValues(alpha: .6) : t.sf2,
+            contentPadding: const EdgeInsetsDirectional.fromSTEB(16, 14, 4, 14),
+            border: b(t.sf2, 0),
+            enabledBorder: b(hasError ? t.danger : t.sf2, hasError ? 1.5 : 0),
+            focusedBorder: b(hasError ? t.danger : t.pr, 2),
+            disabledBorder: b(t.sf2, 0),
+            suffixIcon: IconButton(
+              tooltip: _hidden ? l.authShowPassword : l.authHidePassword,
+              icon: Icon(_hidden ? BuIcons.eye : BuIcons.eyeOff, size: 20, color: hasError ? t.danger : t.mut),
+              onPressed: () => setState(() => _hidden = !_hidden),
+            ),
+          ),
         ),
         if (hasError)
           Padding(
