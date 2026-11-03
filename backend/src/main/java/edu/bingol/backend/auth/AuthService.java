@@ -57,8 +57,8 @@ public class AuthService {
     /** Dogrulamada parola kaniti zorunlu mu (varsayilan evet; eski istemciler icin kapatilabilir). */
     @org.springframework.beans.factory.annotation.Value("${app.auth.verify-requires-password:true}")
     private boolean verifyRequiresPassword = true;
-    /** Parola politikasi (T-005, K-09): en az uzunluk; yonetici hesaplari icin daha uzun. */
-    @org.springframework.beans.factory.annotation.Value("${app.auth.password-min-length:10}")
+    /** Parola politikasi: kullanici icin yalniz en az uzunluk (6); yonetici hesaplari icin daha uzun + tam guc denetimi (T-005). */
+    @org.springframework.beans.factory.annotation.Value("${app.auth.password-min-length:6}")
     private int passwordMinLength = PasswordPolicy.DEFAULT_MIN;
     @org.springframework.beans.factory.annotation.Value("${app.auth.password-min-length-admin:12}")
     private int passwordMinLengthAdmin = PasswordPolicy.DEFAULT_ADMIN_MIN;
@@ -99,6 +99,15 @@ public class AuthService {
     /** Bu hesap icin gecerli en kisa parola uzunlugu (yoneticiler daha uzun). */
     private int minPasswordFor(boolean adminAccount) {
         return adminAccount ? Math.max(passwordMinLength, passwordMinLengthAdmin) : passwordMinLength;
+    }
+
+    /** Yonetici: tam guc politikasi (PASSWORD_TOO_WEAK); diger hesaplar: yalniz en az uzunluk (PASSWORD_TOO_SHORT). */
+    private void requirePasswordPolicy(String password, boolean adminAccount, PasswordPolicy.Context ctx) {
+        if (adminAccount) {
+            PasswordPolicy.require(password, minPasswordFor(true), ctx);
+        } else {
+            PasswordPolicy.requireForUser(password, passwordMinLength);
+        }
     }
 
     void setVerifyRequiresPassword(boolean v) {
@@ -179,8 +188,12 @@ public class AuthService {
         // Gorunen ad politikasi + parola politikasi: hicbir yan etki (kota, kod e-postasi) olmadan ONCE (T-001/T-005).
         // ADMIN_EMAILS yalniz "ayrilmis ad" kisitindan muaftir; bicim kurallari (gorunmez karakter, baglanti...) herkese.
         boolean adminAddress = authorizedAdmin || adminPortal;
-        String name = DisplayNamePolicy.normalize(displayName, adminAddress);
-        PasswordPolicy.require(password, minPasswordFor(adminAddress), new PasswordPolicy.Context(email, name));
+        // Ad kayitta istege bagli (mobil: kayittan sonra profil tamamlama adiminda girilir): bos gelirse gecici varsayilan.
+        // Yonetici kaydi icin ad zorunlu kalir (bos ad = INVALID_DISPLAY_NAME, eski davranis).
+        boolean nameGiven = adminAddress || (displayName != null && !displayName.isBlank());
+        String name = nameGiven ? DisplayNamePolicy.normalize(displayName, adminAddress) : DisplayNamePolicy.temporaryFor(email);
+        String guardedName = nameGiven ? name : null; // turetilmis ad uygunsuz ifade filtresine sokulmaz
+        requirePasswordPolicy(password, adminAddress, new PasswordPolicy.Context(email, name));
         String fa = blankToNull(faculty);
         String de = blankToNull(department);
         String gr = blankToNull(grade);
@@ -192,7 +205,7 @@ public class AuthService {
         verification.requireMailQuota();
         if (adminPortal && !authorizedAdmin) {
             // Yetkisiz adres: yetkili akisla ayni sure/cevap (parola ozeti + ayni dogrulamalar), yan etki YOK.
-            ContentGuard.clean(contentGuard, Entity.PROFILE, "displayName", null, name);
+            ContentGuard.clean(contentGuard, Entity.PROFILE, "displayName", null, guardedName);
             encoder.encode(password);
             log.info("Yonetici portali kaydi yetkisiz adres icin sessizce atlandi: {}", LogMasking.email(email));
             return;
@@ -201,7 +214,7 @@ public class AuthService {
         if (user != null && user.isEmailVerified()) {
             if (adminPortal) {
                 // Yetkili ama zaten kayitli: 409 ADMIN_EMAILS uyeligini sizdirirdi; yetkisizle ayni sessiz 202.
-                ContentGuard.clean(contentGuard, Entity.PROFILE, "displayName", null, name);
+                ContentGuard.clean(contentGuard, Entity.PROFILE, "displayName", null, guardedName);
                 encoder.encode(password);
                 log.info("Yonetici portali kaydi zaten kayitli adres icin atlandi: {}", LogMasking.email(email));
                 return;
@@ -210,7 +223,7 @@ public class AuthService {
                     "Bu e-posta ile zaten kayıt olunmuş.");
         }
         // Kod e-postasi gitmeden once her sey dogrulansin (hata kod gonderiminden sonra kalmasin).
-        ContentGuard.clean(contentGuard, Entity.PROFILE, "displayName", null, name);
+        ContentGuard.clean(contentGuard, Entity.PROFILE, "displayName", null, guardedName);
         String hash = encoder.encode(password);
         // Kod once gider (bekleme suresi doluysa burada 429); bekleyen kayit ancak sonra ezilir.
         try {
@@ -231,13 +244,18 @@ public class AuthService {
         verification.requireMailQuota();
         Pending p = pending.find(email);
         if (p == null) {
+            verification.touchResendCooldown(email);
             return;
         }
         try {
             verification.issue(email, Lang.of(p.language()));
             pending.markResend(email);
         } catch (ApiException e) {
-            // Bekleme suresi cevabi hesabin varligini sizdirirdi: ayni genel cevap doner.
+            // 180 sn bekleme (429 RESEND_COOLDOWN + Retry-After) istemciye aynen doner; bekleyen kayit yoksa da
+            // touchResendCooldown ayni 429'u verdiginden cevap farki kayit varligini sezdirmez.
+            if ("RESEND_COOLDOWN".equals(e.code())) {
+                throw e;
+            }
             log.debug("resend-code atlandi: {}", e.code());
         } catch (RuntimeException e) {
             log.warn("Dogrulama e-postasi gonderilemedi: {}", e.getMessage());
@@ -245,20 +263,19 @@ public class AuthService {
         // Hesap yoksa/dogrulanmissa da ayni cevap doner (e-posta taramasini engellemek icin).
     }
 
-    /** Hesap var ve dogrulanmissa sifirlama kodu gonderir; her durumda ayni cevap (enumerasyon yok). */
+    /**
+     * Dogrulanmis ve aktif hesaba sifirlama kodu gonderir. BILINCLI ISTISNA (kullanici karari): hesap yoksa (dogrulanmamis,
+     * askida, silinmis/anonimlestirilmis dahil) kod GONDERILMEZ ve 404 ACCOUNT_NOT_FOUND doner (yalniz bu uc; diger
+     * kimlik uclari genel cevap verir). Koruma: IP/cihaz/e-posta hiz sinirlari ve kod kotasi (controller + requireMailQuota).
+     * Hesap varsa 180 sn icinde ikinci istek 429 RESEND_COOLDOWN (+ Retry-After).
+     */
     public void forgotPassword(String rawEmail) {
         String email = normalizeEmail(rawEmail);
         verification.requireMailQuota();
-        users.findByEmail(email).filter(User::isEmailVerified).filter(User::isActive).ifPresent(u -> {
-            try {
-                verification.issueReset(email, Lang.of(u.getLanguage()));
-            } catch (ApiException e) {
-                // Bekleme suresi cevabi hesabin varligini sizdirirdi: sessizce yutulur.
-                if (!"RESEND_COOLDOWN".equals(e.code())) {
-                    throw e;
-                }
-            }
-        });
+        User u = users.findByEmail(email).filter(User::isEmailVerified).filter(User::isActive)
+                .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "ACCOUNT_NOT_FOUND",
+                        "Bu okul numarasına ait kayıtlı hesap bulunamadı."));
+        verification.issueReset(email, Lang.of(u.getLanguage()));
     }
 
     /** Sifirlama kodunu dogrular; dogruysa yeni sifre adimi icin tek kullanimlik anahtar verir. */
@@ -288,7 +305,7 @@ public class AuthService {
         if (!verification.checkResetToken(email, resetToken)) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "INVALID_CODE", "Kod geçersiz veya süresi dolmuş.");
         }
-        PasswordPolicy.require(newPassword, minPasswordFor(isAdminAccount(user)),
+        requirePasswordPolicy(newPassword, isAdminAccount(user),
                 new PasswordPolicy.Context(user.getEmail(), user.getDisplayName()));
         if (encoder.matches(newPassword, user.getPasswordHash())) {
             throw new ApiException(HttpStatus.UNPROCESSABLE_ENTITY, "PASSWORD_UNCHANGED",
@@ -326,7 +343,7 @@ public class AuthService {
             throw new ApiException(HttpStatus.UNPROCESSABLE_ENTITY, "PASSWORD_UNCHANGED",
                     "Yeni şifre mevcut şifreyle aynı olamaz.");
         }
-        PasswordPolicy.require(newPassword, minPasswordFor(isAdminAccount(user)),
+        requirePasswordPolicy(newPassword, isAdminAccount(user),
                 new PasswordPolicy.Context(user.getEmail(), user.getDisplayName()));
         user.setPasswordHash(encoder.encode(newPassword));
         users.save(user);

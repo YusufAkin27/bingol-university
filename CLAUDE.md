@@ -126,7 +126,7 @@ Yapı: `lib/core/` (tek HTTP katmanı `api.dart` + ETag/304 LRU önbelleği, `se
 2. **Kayıt yalnızca `bingol.edu.tr`** (alt alanlar dahil) ve **sözleşme kabulüyle** (`acceptTerms=true`; onaylar `legal_acceptance`'a yazılır). **E-posta doğrulaması şart.** Tek istisna: yapılandırmadaki `ADMIN_EMAILS` adresleri alan adı kısıtından muaftır (`AuthService.register`; bağımsız/gmail yönetici hesabı için; kod yine o adrese gider, `+etiket` yasağı ve diğer kurallar aynıdır).
 3. **Token'lar:** access JWT 15 dk (`role` claim'i içerir); refresh opak, tek kullanımlık, Redis'te hash'li. Doğrulama kodları hash'li, 10 dk, 5 deneme.
 4. **Auth ve yazma uçlarında rate limit zorunlu** (`RateLimiter`); yeni uç → limit.
-5. **Enumerasyona karşı genel cevaplar** (login, resend-code, geçersiz kod).
+5. **Enumerasyona karşı genel cevaplar** (login, resend-code, geçersiz kod). Bilinçli tek istisna: `POST /api/auth/forgot-password` kayıtsız hesap için 404 `ACCOUNT_NOT_FOUND` döner (kullanıcı kararı; koruma: IP/cihaz/e-posta hız sınırları + kod kotası).
 6. **`/api/admin/**` yalnızca ADMIN.** Askıya alınan kullanıcı Redis anahtarıyla anında reddedilir (HTTP ve WebSocket). Yönetici kendini silemez/rolünü düşüremez; son yönetici korunur.
 7. **Doğrulama kodu log'a yalnız `app.mail.enabled=false` iken** yazılır.
 8. **KVKK:** hesap silme = anonimleştirme; `GET /api/users/me/export`; yeni kişisel veri tutan modül `DataExporter` ekler. Analitik toplulaştırılmıştır; ham olaylar 45 gün saklanır, günlük özet (`analytics_event_daily`) kalıcıdır.

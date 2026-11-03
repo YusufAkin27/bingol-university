@@ -39,6 +39,7 @@ public class PublicSupportService {
     private static final Logger log = LoggerFactory.getLogger(PublicSupportService.class);
 
     static final Duration CODE_TTL = Duration.ofMinutes(10);
+    static final Duration CODE_RESEND_COOLDOWN = Duration.ofSeconds(180);
     static final Duration UNVERIFIED_TTL = Duration.ofHours(24);
     static final int MAX_ATTEMPTS = 5;
 
@@ -114,6 +115,8 @@ public class PublicSupportService {
         // Kota harcayan kimliksiz istek: once IP gunluk + kimliksiz kod butcesi (requireCodeQuota). Ortak saatlik
         // "global" tavan KALDIRILDI (T-062): tek saldirgan formu herkese kilitleyebiliyordu; koruma kod butcesinde.
         limiter.check("pubsup:ipd:" + ip, 15, Duration.ofDays(1));
+        // Ayni adrese yeni dogrulama kodu 180 sn'de bir (429 RATE_LIMITED + Retry-After = kalan saniye)
+        limiter.check("pubsup:emcd:" + Hashing.sha256(email), 1, CODE_RESEND_COOLDOWN);
         mailer.requireQuota();
         SupportTicket t = new SupportTicket();
         t.setPublicTicket(true);

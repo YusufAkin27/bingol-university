@@ -43,7 +43,27 @@ public final class DisplayNamePolicy {
             + "|[\\p{L}\\p{N}-]+\\.(?:com|net|org|edu|gov|info|biz|xyz|ly|gl|me|io|co|cc|tk|to|ws|app|link|site"
             + "|online|top|click|shop|store|live|tr|ru|de|uk|us|bz|vip|club|fun|pw|ml|ga|cf|gq)(?![\\p{L}\\p{N}]))");
 
+    /** Kayitta ad verilmediyse (ve e-posta yerel kismi gecmiyorsa) atanan gecici ad. */
+    public static final String TEMPORARY_NAME = "Öğrenci";
+
     private DisplayNamePolicy() {}
+
+    /**
+     * Kayitta ad verilmediginde gecici gorunen ad: e-postanin yerel kismi kurallardan geciyorsa o (okul numarasi
+     * yalniz rakam oldugundan gecmez), degilse {@link #TEMPORARY_NAME}. Profil tamamlanana kadar kalir.
+     */
+    public static String temporaryFor(String email) {
+        if (email == null) {
+            return TEMPORARY_NAME;
+        }
+        int at = email.indexOf('@');
+        String local = at < 0 ? email : email.substring(0, at);
+        try {
+            return normalize(local, false);
+        } catch (ApiException e) {
+            return TEMPORARY_NAME;
+        }
+    }
 
     public static String normalize(String raw, boolean exemptFromReserved) {
         if (raw == null) {

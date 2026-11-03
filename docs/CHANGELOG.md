@@ -5,6 +5,16 @@
 Ayrıntılı modül notları: `docs/changes/*.md`. Mobil API rehberi: [MOBILE_API_GUIDE.md](MOBILE_API_GUIDE.md).
 
 ### Resmi ders programı kişisel programa tohumlanır (V1160)
+### Şifre kuralı gevşetildi + kayıtta ad isteğe bağlı
+
+- **Şifre:** yönetici olmayan hesaplarda (kayıt, şifre sıfırlama, şifre değiştirme) yalnız **en az 6 karakter** ister; bileşim, yaygın liste, dizi/tekrar ve kişisel veri denetimi kalktı. Kısa şifre `400 PASSWORD_TOO_SHORT` (tr/en/ar). Yönetici hesapları eski güçlü kuralda (12+ karakter, `PASSWORD_TOO_WEAK`) kalır; giriş, hesap kilidi ve hız sınırı değişmedi. `app.auth.password-min-length` varsayılanı 10 → 6.
+- **Kayıt:** ad kayıtta alınır; fakülte/bölüm/sınıf kayıttan sonra `PATCH /api/users/me` ile tek istekte girilir (kota yok). `displayName` sunucuda isteğe bağlı kabul edilir (boşsa geçici ad: e-posta kullanıcı adı ya da "Öğrenci"; geçici adın ilk değişimi 7 günlük bekleme kuralına sayılmaz). Yönetici kaydında ad zorunlu kalır. Bkz. `docs/changes/auth.md`.
+
+### Şifremi unuttum 404 + kod süresi/bekleme
+
+- **`forgot-password`:** kayıtlı olmayan hesap için e-posta gitmez, `404 ACCOUNT_NOT_FOUND` döner (bilinçli enumerasyon istisnası; IP başına dakikada 15 ek sınır). **Kodlar:** geçerlilik tam 10 dk; yeniden kod bekleme süresi 60 sn → **180 sn** (`resend-code`, `forgot-password`, tekrar `register`, destek formu): erken istek `429 RESEND_COOLDOWN` + `Retry-After`. Bkz. `docs/changes/auth.md`.
+
+### Resmî ders programı (Excel yükleme, V1070) + yeni hesap varsayılanı
 
 - **Tohumlama:** `GET /api/timetable`, kişisel dersi olmayan ve resmi programı tek birimden gelen öğrencinin programını resmi programdan otomatik doldurur; `tt_official_seed` işareti sayesinde dersler silinse de aynı dönem için tekrarlanmaz. Çoklu birimde mobil birim seçtirir.
 - **Yeni uçlar:** `GET /api/timetable/official/status`, `POST /api/timetable/official/apply` (`unit`, `replace`, `force`); yeni hata kodları `OFFICIAL_UNIT_REQUIRED` (422), `OFFICIAL_TIMETABLE_NOT_FOUND` (404). Ders eklemede kod/renk/not/derslik artık zorunlu değil. Ayrıntı: [MOBILE_API_GUIDE.md](MOBILE_API_GUIDE.md) "Resmi programdan kişisel program".

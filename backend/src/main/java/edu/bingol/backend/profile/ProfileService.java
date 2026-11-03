@@ -190,7 +190,8 @@ public class ProfileService {
         if (r.displayName() != null) {
             String newName = DisplayNamePolicy.normalize(r.displayName(), u.getRole() == Role.ADMIN);
             ContentGuard.changed(guard, Entity.PROFILE, "displayName", id, u.getDisplayName(), newName);
-            if (!newName.equals(u.getDisplayName())) {
+            if (!newName.equals(u.getDisplayName()) && !isTemporaryName(u)) {
+                // Kayitta atanan gecici ad (profil tamamlama adimi) kotaya/bekleme suresine sayilmaz
                 requireNameCooldown(u);
                 recordNameChange(u, newName);
             }
@@ -371,6 +372,16 @@ public class ProfileService {
     }
 
     /** Raporlanan kisinin adi surekli degisip iz kaybettirmesin: son degisimden bu yana N gun gecmeli. */
+    /** Gecici ad (kayitta verilmedi) hic degistirilmemisse: ilk gercek ad atamasi bekleme suresi baslatmaz. */
+    private boolean isTemporaryName(User u) {
+        String cur = u.getDisplayName();
+        if (cur == null || nameHistory == null) {
+            return false;
+        }
+        boolean temp = cur.equals(DisplayNamePolicy.TEMPORARY_NAME) || cur.equals(DisplayNamePolicy.temporaryFor(u.getEmail()));
+        return temp && nameHistory.findFirstByUserIdOrderByChangedAtDesc(u.getId()).isEmpty();
+    }
+
     private void requireNameCooldown(User u) {
         if (nameHistory == null || nameCooldownDays <= 0) {
             return;

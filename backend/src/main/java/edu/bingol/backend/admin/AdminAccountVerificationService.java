@@ -79,7 +79,7 @@ public class AdminAccountVerificationService {
         return user;
     }
 
-    /** Bekleyen kayda yeni kod gonderir; 60 sn bekleme kurali aynen gecerlidir (429 RESEND_COOLDOWN). */
+    /** Bekleyen kayda yeni kod gonderir; 180 sn bekleme kurali aynen gecerlidir (429 RESEND_COOLDOWN). */
     public void resendPending(String rawEmail) {
         String email = LoginIdentifier.normalize(rawEmail);
         Pending p = pending.find(email);

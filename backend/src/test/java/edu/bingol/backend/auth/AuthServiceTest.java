@@ -105,20 +105,25 @@ class AuthServiceTest {
     }
 
     @Test
-    void resendCodeWithoutPendingRegistrationDoesNothing() {
+    void resendCodeWithoutPendingRegistrationSendsNothingButAppliesTheCooldown() {
         auth.resendCode(EMAIL);
 
         verify(verification).requireMailQuota();
+        verify(verification).touchResendCooldown(EMAIL);
         verifyNoMoreInteractions(verification);
     }
 
     @Test
-    void resendCodeSwallowsCooldownAndMailFailures() {
+    void resendCodePropagatesCooldownButSwallowsMailFailures() {
         when(pending.find(EMAIL)).thenReturn(new Pending("h", "Ali", "tr"));
-        doThrow(new ApiException(HttpStatus.TOO_MANY_REQUESTS, "RESEND_COOLDOWN", "x"))
+        doThrow(new edu.bingol.backend.common.RateLimitedException("RESEND_COOLDOWN", "x", 120, "120"))
                 .when(verification).issue(anyString(), any());
 
-        auth.resendCode(EMAIL);
+        edu.bingol.backend.common.RateLimitedException e = assertThrows(
+                edu.bingol.backend.common.RateLimitedException.class, () -> auth.resendCode(EMAIL));
+        assertEquals("RESEND_COOLDOWN", e.code());
+        assertEquals(120, e.retryAfterSeconds());
+        verify(pending, never()).markResend(any());
 
         doThrow(new IllegalStateException("smtp")).when(verification).issue(anyString(), any());
         auth.resendCode(EMAIL);
@@ -187,6 +192,61 @@ class AuthServiceTest {
         assertTrue(new BCryptPasswordEncoder(4).matches("GercekSahip123", cap.getValue().passwordHash()));
         org.junit.jupiter.api.Assertions.assertFalse(
                 new BCryptPasswordEncoder(4).matches("SaldirganSifre1", cap.getValue().passwordHash()));
+    }
+
+    @org.junit.jupiter.params.ParameterizedTest
+    @org.junit.jupiter.params.provider.NullAndEmptySource
+    @ValueSource(strings = {"   "})
+    void registerWithoutDisplayNameAssignsTemporaryNameFromEmailLocalPart(String name) {
+        when(users.findByEmail(any())).thenReturn(Optional.empty());
+
+        auth.register("ali.veli@bingol.edu.tr", "123456", name, Lang.TR);
+
+        org.mockito.ArgumentCaptor<Pending> cap = org.mockito.ArgumentCaptor.forClass(Pending.class);
+        verify(verification).issue("ali.veli@bingol.edu.tr", Lang.TR);
+        verify(pending).save(eq("ali.veli@bingol.edu.tr"), cap.capture());
+        assertEquals("ali.veli", cap.getValue().displayName());
+    }
+
+    @Test
+    void registerWithoutDisplayNameFallsBackToOgrenciForSchoolNumbers() {
+        when(users.findByEmail(any())).thenReturn(Optional.empty());
+
+        auth.register("226051015@bingol.edu.tr", "123456", null, Lang.TR);
+
+        org.mockito.ArgumentCaptor<Pending> cap = org.mockito.ArgumentCaptor.forClass(Pending.class);
+        verify(pending).save(eq("226051015@bingol.edu.tr"), cap.capture());
+        assertEquals("Öğrenci", cap.getValue().displayName());
+    }
+
+    @Test
+    void registerWithDisplayNameStillUsesIt() {
+        when(users.findByEmail(any())).thenReturn(Optional.empty());
+
+        auth.register(EMAIL, "123456", "Ali Veli", Lang.TR);
+
+        org.mockito.ArgumentCaptor<Pending> cap = org.mockito.ArgumentCaptor.forClass(Pending.class);
+        verify(pending).save(eq(EMAIL), cap.capture());
+        assertEquals("Ali Veli", cap.getValue().displayName());
+    }
+
+    @Test
+    void administratorRegistrationStillRequiresDisplayName() {
+        String admin = "ysufakin23@gmail.com";
+        AuthService a = authWithAdmins(admin);
+
+        ApiException e = assertThrows(ApiException.class, () -> a.register(admin, "Kx7-mQ2vLp9z", null, Lang.TR));
+
+        assertEquals("INVALID_DISPLAY_NAME", e.code());
+    }
+
+    @Test
+    void registerRequestDoesNotRequireDisplayName() {
+        var v = jakarta.validation.Validation.buildDefaultValidatorFactory().getValidator();
+        var r = new edu.bingol.backend.auth.dto.RegisterRequest("ali@bingol.edu.tr", "123456", null, true, null, null,
+                null, null, null);
+
+        assertTrue(v.validate(r).isEmpty());
     }
 
     @Test
@@ -604,21 +664,50 @@ class AuthServiceTest {
     }
 
     @Test
-    void forgotPasswordIsSilentForUnknownAccount() {
+    void forgotPasswordForUnknownAccountIs404AndSendsNothing() {
         when(users.findByEmail("yok@bingol.edu.tr")).thenReturn(Optional.empty());
 
-        auth.forgotPassword("yok@bingol.edu.tr");
+        ApiException e = assertThrows(ApiException.class, () -> auth.forgotPassword("yok@bingol.edu.tr"));
 
+        assertEquals("ACCOUNT_NOT_FOUND", e.code());
+        assertEquals(HttpStatus.NOT_FOUND, e.status());
         verify(verification, never()).issueReset(any(), any());
     }
 
     @Test
-    void forgotPasswordSwallowsCooldownSoExistenceDoesNotLeak() {
+    void forgotPasswordForUnverifiedOrSuspendedAccountIs404() {
+        User unverified = verifiedUser();
+        unverified.setEmailVerified(false);
+        when(users.findByEmail(EMAIL)).thenReturn(Optional.of(unverified));
+        assertEquals("ACCOUNT_NOT_FOUND", assertThrows(ApiException.class, () -> auth.forgotPassword(EMAIL)).code());
+
+        User suspended = verifiedUser();
+        suspended.setStatus(edu.bingol.backend.user.UserStatus.SUSPENDED);
+        when(users.findByEmail(EMAIL)).thenReturn(Optional.of(suspended));
+        assertEquals("ACCOUNT_NOT_FOUND", assertThrows(ApiException.class, () -> auth.forgotPassword(EMAIL)).code());
+        verify(verification, never()).issueReset(any(), any());
+    }
+
+    @Test
+    void forgotPasswordForRegisteredAccountSendsTheCode() {
         when(users.findByEmail(EMAIL)).thenReturn(Optional.of(verifiedUser()));
-        doThrow(new ApiException(HttpStatus.TOO_MANY_REQUESTS, "RESEND_COOLDOWN", "bekleyin"))
-                .when(verification).issueReset(any(), any());
 
         auth.forgotPassword(EMAIL);
+
+        verify(verification).issueReset(eq(EMAIL), any());
+    }
+
+    @Test
+    void forgotPasswordPropagatesTheCooldown429() {
+        when(users.findByEmail(EMAIL)).thenReturn(Optional.of(verifiedUser()));
+        doThrow(new edu.bingol.backend.common.RateLimitedException("RESEND_COOLDOWN", "bekleyin", 90, "90"))
+                .when(verification).issueReset(any(), any());
+
+        edu.bingol.backend.common.RateLimitedException e = assertThrows(
+                edu.bingol.backend.common.RateLimitedException.class, () -> auth.forgotPassword(EMAIL));
+
+        assertEquals("RESEND_COOLDOWN", e.code());
+        assertEquals(90, e.retryAfterSeconds());
     }
 
     @Test
@@ -854,19 +943,41 @@ class AuthServiceTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"12345678", "password1", "1234567890", "qwertyuiop", "Sifre1234567", "Galatasaray1905", "Abc12345!"})
-    void registerRejectsWeakPasswordsWithoutSendingMail(String pw) {
+    @ValueSource(strings = {"", "1", "12345", "abcde"})
+    void registerRejectsPasswordsShorterThanSixWithoutSendingMail(String pw) {
         ApiException e = assertThrows(ApiException.class, () -> auth.register(EMAIL, pw, "Ali Veli", Lang.TR));
 
-        assertEquals("PASSWORD_TOO_WEAK", e.code());
+        assertEquals("PASSWORD_TOO_SHORT", e.code());
         assertEquals(HttpStatus.BAD_REQUEST, e.status());
+        assertEquals("6", e.args()[0]);
         verifyNoInteractions(users, verification, pending);
     }
 
+    @ParameterizedTest
+    @ValueSource(strings = {"123456", "aaaaaa", "password", "12345678", "Galatasaray1905", "226051015"})
+    void registerAcceptsAnySixCharactersForNormalUsers(String pw) {
+        when(users.findByEmail(any())).thenReturn(Optional.empty());
+
+        auth.register(EMAIL, pw, "Ali Veli", Lang.TR);
+
+        verify(pending).save(eq(EMAIL), any(Pending.class));
+    }
+
     @Test
-    void registerRejectsPasswordContainingSchoolNumberFromTheEmail() {
-        ApiException e = assertThrows(ApiException.class,
-                () -> auth.register("226051015@bingol.edu.tr", "Zk-226051015-q", "Ali Veli", Lang.TR));
+    void registerAcceptsPasswordContainingSchoolNumberOrNameForNormalUsers() {
+        when(users.findByEmail(any())).thenReturn(Optional.empty());
+
+        auth.register("226051015@bingol.edu.tr", "Zk-226051015-q", "Ali Veli", Lang.TR);
+
+        verify(pending).save(eq("226051015@bingol.edu.tr"), any(Pending.class));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"123456", "password1", "Abc12345!", "Kx7-mQ2vLp9"})
+    void administratorRegistrationKeepsTheStrictPolicy(String pw) {
+        String admin = "ysufakin23@gmail.com";
+        AuthService a = authWithAdmins(admin);
+        ApiException e = assertThrows(ApiException.class, () -> a.register(admin, pw, "Ali Veli", Lang.TR));
 
         assertEquals("PASSWORD_TOO_WEAK", e.code());
     }
@@ -888,10 +999,10 @@ class AuthServiceTest {
         when(users.findByEmail(EMAIL)).thenReturn(Optional.of(u));
         when(verification.checkResetToken(EMAIL, "tok")).thenReturn(true);
 
-        ApiException weak = assertThrows(ApiException.class, () -> auth.resetPassword(EMAIL, "tok", "12345678"));
+        ApiException weak = assertThrows(ApiException.class, () -> auth.resetPassword(EMAIL, "tok", "12345"));
         ApiException same = assertThrows(ApiException.class, () -> auth.resetPassword(EMAIL, "tok", PW));
 
-        assertEquals("PASSWORD_TOO_WEAK", weak.code());
+        assertEquals("PASSWORD_TOO_SHORT", weak.code());
         assertEquals("PASSWORD_UNCHANGED", same.code());
         verify(verification, never()).consumeResetToken(any(), any());
         verify(sessions, never()).revokeAll(any());
