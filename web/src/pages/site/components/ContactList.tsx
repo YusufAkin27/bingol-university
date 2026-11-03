@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import type { AppInfo } from '../../../api/types';
-import { Icon, type IconName } from '../../../components/ui';
+import { CopyButton, Icon, type IconName } from '../../../components/ui';
 import { useI18n } from '../../../i18n/I18nProvider';
 import type { TranslationKey } from '../../../i18n';
 import styles from './ContactList.module.css';
@@ -10,6 +10,8 @@ interface Item {
   icon: IconName;
   label: TranslationKey;
   value: ReactNode;
+  /** Panoya kopyalanabilir düz değer (e-posta, telefon). */
+  copy?: string;
 }
 
 /** `GET /api/app/info` alanlarından yalnızca dolu olanları listeler; hiçbiri yoksa boş döner. */
@@ -22,13 +24,20 @@ export function contactItems(info: AppInfo | undefined): Item[] {
     </a>
   );
   if (info.contactEmail)
-    items.push({ id: 'contact', icon: 'mail', label: 'site.contact.general', value: mail(info.contactEmail) });
+    items.push({ id: 'contact', icon: 'mail', label: 'site.contact.general', value: mail(info.contactEmail), copy: info.contactEmail });
   if (info.supportEmail && info.supportEmail !== info.contactEmail)
-    items.push({ id: 'support', icon: 'lifebuoy', label: 'site.contact.support', value: mail(info.supportEmail) });
+    items.push({
+      id: 'support',
+      icon: 'lifebuoy',
+      label: 'site.contact.support',
+      value: mail(info.supportEmail),
+      copy: info.supportEmail,
+    });
   if (info.phone)
     items.push({
       id: 'phone',
       icon: 'phone',
+      copy: info.phone,
       label: 'site.contact.phone',
       value: (
         <a href={`tel:${info.phone.replace(/\s+/g, '')}`} className="ltr">
@@ -71,6 +80,7 @@ export function contactItems(info: AppInfo | undefined): Item[] {
   return items;
 }
 
+/** Tek panel: ince çizgiyle ayrılmış satırlar; yalnız dolu alanlar. */
 export function ContactList({ info }: { info: AppInfo | undefined }) {
   const { t } = useI18n();
   const items = contactItems(info);
@@ -84,6 +94,11 @@ export function ContactList({ info }: { info: AppInfo | undefined }) {
           </span>
           <dt>{t(it.label)}</dt>
           <dd>{it.value}</dd>
+          {it.copy && (
+            <span className={styles.copy}>
+              <CopyButton value={it.copy} />
+            </span>
+          )}
         </div>
       ))}
     </dl>

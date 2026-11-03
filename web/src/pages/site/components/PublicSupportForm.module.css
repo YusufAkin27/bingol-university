@@ -63,3 +63,32 @@
   background: var(--success-soft);
   color: var(--success);
 }
+
+.head {
+  display: grid;
+  gap: var(--space-2);
+  padding-block-end: var(--space-4);
+  border-block-end: 1px solid var(--border);
+}
+.title {
+  font-size: var(--text-2xl);
+  line-height: 1.15;
+}
+.footer {
+  display: grid;
+  gap: var(--space-4);
+  align-items: center;
+  padding-block-start: var(--space-4);
+  border-block-start: 1px solid var(--border);
+}
+.footer > button {
+  justify-self: stretch;
+}
+@media (min-width: 640px) {
+  .footer {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+  .footer > button {
+    justify-self: end;
+  }
+}

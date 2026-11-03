@@ -197,10 +197,12 @@ export function PublicSupportForm() {
 
   return (
     <form className={styles.card} onSubmit={onSubmit} noValidate aria-labelledby="pubsup-title">
-      <h2 id="pubsup-title" className={shared.h3}>
-        {t('site.pubsup.title')}
-      </h2>
-      <p className={shared.muted}>{t('site.pubsup.lead')}</p>
+      <header className={styles.head}>
+        <h2 id="pubsup-title" className={styles.title}>
+          {t('site.pubsup.title')}
+        </h2>
+        <p className={shared.muted}>{t('site.pubsup.lead')}</p>
+      </header>
       <div className={styles.row}>
         <FormField label={t('site.pubsup.name')} required error={errText('name')}>
           <Input value={name} maxLength={NAME_MAX + 20} autoComplete="name" onChange={(e) => setName(e.target.value)} />
@@ -252,13 +254,15 @@ export function PublicSupportForm() {
           {errorMessage(i18n, send.error)}
         </p>
       )}
-      <Button type="submit" loading={send.isPending}>
-        {t('site.pubsup.submit')}
-      </Button>
-      <p className={styles.privacy}>
-        {t('site.pubsup.privacy')}{' '}
-        <Link to={paths.site.dataRequest}>{t('site.pubsup.privacyLink')}</Link>
-      </p>
+      <div className={styles.footer}>
+        <p className={styles.privacy}>
+          {t('site.pubsup.privacy')}{' '}
+          <Link to={paths.site.dataRequest}>{t('site.pubsup.privacyLink')}</Link>
+        </p>
+        <Button type="submit" loading={send.isPending}>
+          {t('site.pubsup.submit')}
+        </Button>
+      </div>
     </form>
   );
 }
