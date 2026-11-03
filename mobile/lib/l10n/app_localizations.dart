@@ -6877,6 +6877,30 @@ abstract class AppLocalizations {
   /// **'Yemek listesi güncellenemedi; son bilinen liste gösteriliyor.'**
   String get menuStale;
 
+  /// No description provided for @menuTopUpTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yemek kartı bakiyesi'**
+  String get menuTopUpTitle;
+
+  /// No description provided for @menuTopUpBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bakiyen bittiyse yukle.al üzerinden yemekhane kartına güvenle bakiye yükleyebilirsin.'**
+  String get menuTopUpBody;
+
+  /// No description provided for @menuTopUpAction.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bakiye yükle'**
+  String get menuTopUpAction;
+
+  /// No description provided for @menuTopUpFailed.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bağlantı açılamadı. Lütfen tarayıcından yukle.al adresine git.'**
+  String get menuTopUpFailed;
+
   /// No description provided for @menuPrevMonth.
   ///
   /// In tr, this message translates to:

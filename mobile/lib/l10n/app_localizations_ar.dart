@@ -3652,6 +3652,20 @@ class AppLocalizationsAr extends AppLocalizations {
   String get menuStale => 'تعذر تحديث قائمة الطعام، وتُعرض آخر قائمة معروفة.';
 
   @override
+  String get menuTopUpTitle => 'رصيد بطاقة الطعام';
+
+  @override
+  String get menuTopUpBody =>
+      'نفد رصيدك؟ يمكنك شحن بطاقة المطعم بأمان عبر yukle.al.';
+
+  @override
+  String get menuTopUpAction => 'شحن الرصيد';
+
+  @override
+  String get menuTopUpFailed =>
+      'تعذر فتح الرابط. يرجى زيارة yukle.al من المتصفح.';
+
+  @override
   String get menuPrevMonth => 'الشهر السابق';
 
   @override

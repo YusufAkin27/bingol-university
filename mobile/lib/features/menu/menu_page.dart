@@ -8,6 +8,7 @@ import '../news/news_tile.dart' show newsMonthName, newsWeekdayName;
 import '../polls/poll_menu_card.dart';
 import 'menu_models.dart';
 import 'menu_parts.dart';
+import 'menu_topup.dart';
 
 String _monthParam(DateTime m) => '${m.year}-${m.month.toString().padLeft(2, '0')}';
 
@@ -168,6 +169,9 @@ class _MenuPageState extends State<MenuPage> {
             ),
           ),
           if (today && has) ...[const SizedBox(height: 24), PollMenuCard(session: widget.session)],
+          // Bakiye biten öğrenci için yukle.al kartı: menü boş olsa da görünür.
+          SizedBox(height: has ? 24 : 0),
+          const MenuTopUpCard(),
         ],
       ),
     );

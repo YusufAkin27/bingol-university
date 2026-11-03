@@ -3669,6 +3669,20 @@ class AppLocalizationsTr extends AppLocalizations {
       'Yemek listesi güncellenemedi; son bilinen liste gösteriliyor.';
 
   @override
+  String get menuTopUpTitle => 'Yemek kartı bakiyesi';
+
+  @override
+  String get menuTopUpBody =>
+      'Bakiyen bittiyse yukle.al üzerinden yemekhane kartına güvenle bakiye yükleyebilirsin.';
+
+  @override
+  String get menuTopUpAction => 'Bakiye yükle';
+
+  @override
+  String get menuTopUpFailed =>
+      'Bağlantı açılamadı. Lütfen tarayıcından yukle.al adresine git.';
+
+  @override
   String get menuPrevMonth => 'Önceki ay';
 
   @override

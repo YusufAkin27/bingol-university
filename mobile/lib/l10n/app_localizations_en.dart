@@ -3684,6 +3684,20 @@ class AppLocalizationsEn extends AppLocalizations {
       'The menu could not be updated; showing the last known menu.';
 
   @override
+  String get menuTopUpTitle => 'Meal card balance';
+
+  @override
+  String get menuTopUpBody =>
+      'Out of balance? Top up your cafeteria card securely on yukle.al.';
+
+  @override
+  String get menuTopUpAction => 'Top up balance';
+
+  @override
+  String get menuTopUpFailed =>
+      'Could not open the link. Please visit yukle.al in your browser.';
+
+  @override
   String get menuPrevMonth => 'Previous month';
 
   @override
