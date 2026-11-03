@@ -87,7 +87,15 @@
   "loginSubtitleNumber": "Okul numaranızla giriş yapın.",
   "authVerify": "Doğrula",
   "authResendCode": "Kodu yeniden gönder",
+  "authResendInTime": "Yeniden gönder ({time})",
   "authResendIn": "Yeniden gönder ({seconds} sn)",
+  "@authResendInTime": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
   "@authResendIn": {
     "placeholders": {
       "seconds": {
@@ -2939,6 +2947,7 @@
       }
     }
   },
+  "authForgotSubNumber": "Okul numaranızı girin, e-postanıza 6 haneli bir kod gönderelim.",
   "authForgotSub": "Okul e-postanızı girin, size 6 haneli bir kod gönderelim.",
   "authBackToLogin": "Girişe dön",
   "authChangeEmail": "E-postayı değiştir",

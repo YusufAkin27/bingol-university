@@ -218,6 +218,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get authResendCode => 'Resend code';
 
   @override
+  String authResendInTime(String time) {
+    return 'Resend ($time)';
+  }
+
+  @override
   String authResendIn(String seconds) {
     return 'Resend in ${seconds}s';
   }
@@ -5391,6 +5396,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String storyViewersTitle(String count) {
     return 'Viewers ($count)';
   }
+
+  @override
+  String get authForgotSubNumber =>
+      'Enter your student number and we will email you a 6-digit code.';
 
   @override
   String get authForgotSub =>

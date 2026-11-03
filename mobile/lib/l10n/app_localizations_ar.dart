@@ -219,6 +219,11 @@ class AppLocalizationsAr extends AppLocalizations {
   String get authResendCode => 'إعادة إرسال الرمز';
 
   @override
+  String authResendInTime(String time) {
+    return 'إعادة الإرسال ($time)';
+  }
+
+  @override
   String authResendIn(String seconds) {
     return 'إعادة الإرسال ($seconds ث)';
   }
@@ -5345,6 +5350,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String storyViewersTitle(String count) {
     return 'المشاهدون ($count)';
   }
+
+  @override
+  String get authForgotSubNumber =>
+      'أدخل رقمك الجامعي وسنرسل إلى بريدك رمزًا من 6 أرقام.';
 
   @override
   String get authForgotSub => 'أدخل بريدك الجامعي وسنرسل لك رمزًا من 6 أرقام.';

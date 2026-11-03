@@ -7,7 +7,7 @@ import 'widgets/auth_motion.dart';
 
 /// Altı kutulu kod girişi: içte tek (görünmez) TextField, üstte 6 kutu çizimi.
 /// Tek alan olduğu için yapıştırma ve oneTimeCode otomatik doldurma çalışır. Kutular: odak halkası,
-/// rakam girince "yaylanma", hata durumunda sarsıntı + kırmızı çerçeve; altta "Yapıştır" kısayolu.
+/// rakam girince "yaylanma", hata durumunda sarsıntı + kırmızı çerçeve; yapıştırma düğmesi yok (kutuya uzun basmak panodaki kodu yapıştırır).
 class OtpCodeBoxes extends StatefulWidget {
   const OtpCodeBoxes({
     super.key,
@@ -167,24 +167,7 @@ class _OtpCodeBoxesState extends State<OtpCodeBoxes> {
             ),
           ),
         ),
-        ListenableBuilder(
-          listenable: widget.controller,
-          builder: (context, _) => Align(
-            alignment: AlignmentDirectional.centerEnd,
-            child: widget.showPaste && widget.enabled && widget.controller.text.length < 6
-                ? TextButton(
-                    onPressed: _paste,
-                    style: TextButton.styleFrom(
-                      foregroundColor: t.pr,
-                      minimumSize: const Size(48, 40),
-                      padding: const EdgeInsets.symmetric(horizontal: 6),
-                      tapTargetSize: MaterialTapTargetSize.padded,
-                    ),
-                    child: Text(context.l10n.authPaste, style: tx.labelLarge!.copyWith(color: t.pr, fontWeight: FontWeight.w600)),
-                  )
-                : const SizedBox(height: 40),
-          ),
-        ),
+        const SizedBox(height: 8),
       ],
     );
   }

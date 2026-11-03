@@ -496,6 +496,12 @@ abstract class AppLocalizations {
   /// **'Kodu yeniden gönder'**
   String get authResendCode;
 
+  /// No description provided for @authResendInTime.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yeniden gönder ({time})'**
+  String authResendInTime(String time);
+
   /// No description provided for @authResendIn.
   ///
   /// In tr, this message translates to:
@@ -9948,6 +9954,12 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Görüntüleyenler ({count})'**
   String storyViewersTitle(String count);
+
+  /// No description provided for @authForgotSubNumber.
+  ///
+  /// In tr, this message translates to:
+  /// **'Okul numaranızı girin, e-postanıza 6 haneli bir kod gönderelim.'**
+  String get authForgotSubNumber;
 
   /// No description provided for @authForgotSub.
   ///

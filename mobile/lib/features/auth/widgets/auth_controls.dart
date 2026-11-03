@@ -12,7 +12,7 @@ class AuthResendRow extends StatefulWidget {
     required this.onResend,
     required this.waitingLabel,
     required this.resendLabel,
-    this.initialSeconds = 60,
+    this.initialSeconds = 180,
     this.startReady = false,
   });
 

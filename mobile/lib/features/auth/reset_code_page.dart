@@ -141,7 +141,7 @@ class _ResetCodePageState extends State<ResetCodePage> {
             AuthResendRow(
               key: _resendKey,
               onResend: _busy ? () {} : _resend,
-              waitingLabel: (s) => l.authResendIn('$s'),
+              waitingLabel: (s) => l.authResendInTime('${s ~/ 60}:${(s % 60).toString().padLeft(2, '0')}'),
               resendLabel: l.authResendCode,
             ),
             RefLink(label: l.authChangeEmail, compact: true, onPressed: _busy ? null : () => Navigator.maybePop(context)),

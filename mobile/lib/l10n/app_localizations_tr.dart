@@ -218,6 +218,11 @@ class AppLocalizationsTr extends AppLocalizations {
   String get authResendCode => 'Kodu yeniden gönder';
 
   @override
+  String authResendInTime(String time) {
+    return 'Yeniden gönder ($time)';
+  }
+
+  @override
   String authResendIn(String seconds) {
     return 'Yeniden gönder ($seconds sn)';
   }
@@ -5367,6 +5372,10 @@ class AppLocalizationsTr extends AppLocalizations {
   String storyViewersTitle(String count) {
     return 'Görüntüleyenler ($count)';
   }
+
+  @override
+  String get authForgotSubNumber =>
+      'Okul numaranızı girin, e-postanıza 6 haneli bir kod gönderelim.';
 
   @override
   String get authForgotSub =>

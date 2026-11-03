@@ -113,7 +113,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
     final l = context.l10n;
     return RefPage(
       children: [
-        RefHeading(title: l.authResetTitle, subtitle: l.authForgotSub),
+        RefHeading(title: l.authResetTitle, subtitle: l.authForgotSubNumber),
         const SizedBox(height: 32),
         Padding(
           padding: EdgeInsets.zero,
@@ -132,19 +132,12 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                         )
                       : const SizedBox(width: double.infinity),
                 ),
-                ValueListenableBuilder<TextEditingValue>(
-                  valueListenable: _email,
-                  builder: (context, v, _) => LoginUnderlineField(
-                    controller: _email,
-                    label: l.authIdHint,
-                    keyboardType: TextInputType.emailAddress,
-                    autofillHints: const [AutofillHints.username, AutofillHints.email],
-                    enabled: !_busy,
-                    validator: validateIdentifier,
-                    textInputAction: TextInputAction.done,
-                    onSubmitted: _sendCode,
-                    suffix: isStudentNumberInput(v.text) ? '@$kEmailDomain' : null,
-                  ),
+                // Giriş ile aynı alan: okul numarası (iri rakamlar, rakam klavyesi, @bingol.edu.tr soneki).
+                LoginNumberField(
+                  controller: _email,
+                  enabled: !_busy,
+                  textInputAction: TextInputAction.done,
+                  onSubmitted: _sendCode,
                 ),
                 AnimatedSize(
                   duration: const Duration(milliseconds: 220),

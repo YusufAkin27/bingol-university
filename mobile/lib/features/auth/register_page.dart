@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import '../../core/api.dart';
 import '../../core/identifier.dart';
 import '../../core/locale_controller.dart';
+import '../../core/name_format.dart';
 import '../../core/session.dart';
 import '../../widgets/bu.dart';
 import '../profile/legal_pages.dart';
@@ -148,7 +149,8 @@ class _RegisterPageState extends State<RegisterPage> {
                   label: l.authNameHint,
                   textCapitalization: TextCapitalization.words,
                   autofillHints: const [AutofillHints.name],
-                  inputFormatters: [LengthLimitingTextInputFormatter(80)],
+                  // Her kelimenin ilk harfi otomatik büyük (Türkçe i/İ kuralıyla): "ahmet yılmaz" -> "Ahmet Yılmaz".
+                  inputFormatters: [const NameCaseFormatter(), LengthLimitingTextInputFormatter(80)],
                   enabled: !_busy,
                   validator: (v) => (v == null || v.trim().isEmpty) ? l.authNameRequired : null,
                 ),
