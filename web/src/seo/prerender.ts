@@ -8,7 +8,7 @@ import type { TranslationKey } from '../i18n';
 import { dictionaries } from '../i18n/all'; // önrender tüm dilleri eşzamanlı ister (çalışma zamanı paketine girmez)
 import { LANGS, dirOf, type Lang } from '../i18n/lang';
 import { buildNewFaq } from '../pages/site/components/newFaq';
-import { breadcrumbLd, faqLd, mobileAppLd, organizationLd } from '../pages/site/components/jsonLd';
+import { breadcrumbLd, faqLd, mobileAppLd, organizationLd, websiteLd } from '../pages/site/components/jsonLd';
 import { buildHeadModel, normalizeOrigin, pageUrl, type HeadModel } from './headModel';
 import { ROUTE_META, resolveMeta, type RouteMeta } from './routeMeta';
 
@@ -47,7 +47,7 @@ export function routeJsonLd(meta: RouteMeta, lang: Lang, origin: string): unknow
   const resolved = resolveMeta(meta, lang);
   const blocks: unknown[] = [];
   const stores = { android: null, ios: null };
-  if (meta.id === 'home') blocks.push(organizationLd(undefined, origin), mobileAppLd(undefined, stores, origin));
+  if (meta.id === 'home') blocks.push(websiteLd(undefined, origin), organizationLd(undefined, origin), mobileAppLd(undefined, stores, origin));
   if (meta.id === 'about' || meta.id === 'contact') blocks.push(organizationLd(undefined, origin));
   if (meta.id === 'download') blocks.push(mobileAppLd(undefined, stores, origin));
   if (meta.faq) {

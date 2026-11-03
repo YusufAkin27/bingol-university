@@ -320,8 +320,8 @@ describe('JSON-LD (önrender)', () => {
   const types = (id: string, lang: 'tr' | 'en' | 'ar' = 'tr') =>
     routeJsonLd(routeById(id), lang, ORIGIN).map((b) => (b as { '@type': string })['@type']);
 
-  it('ana sayfa: kuruluş + mobil uygulama; diğer sayfalar BreadcrumbList', () => {
-    expect(types('home')).toEqual(['EducationalOrganization', 'MobileApplication']);
+  it('ana sayfa: site + kuruluş + mobil uygulama; diğer sayfalar BreadcrumbList', () => {
+    expect(types('home')).toEqual(['WebSite', 'EducationalOrganization', 'MobileApplication']);
     expect(types('download')).toEqual(['MobileApplication', 'BreadcrumbList']);
     expect(types('about')).toEqual(['EducationalOrganization', 'BreadcrumbList']);
     expect(types('privacy')).toEqual(['BreadcrumbList']);

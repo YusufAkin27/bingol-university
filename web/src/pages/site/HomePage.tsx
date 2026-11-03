@@ -10,7 +10,7 @@ import { paths } from '../../paths';
 import { siteOrigin } from '../../seo/siteUrl';
 import { CtaBand } from './components/CtaBand';
 import { SHOWCASE } from './components/features';
-import { mobileAppLd, organizationLd } from './components/jsonLd';
+import { mobileAppLd, organizationLd, websiteLd } from './components/jsonLd';
 import { MaintenanceNotice } from './components/Notices';
 import { useHeadingFocus } from './components/PageHero';
 import { PhoneMockup } from './components/PhoneMockup';
@@ -34,7 +34,7 @@ export default function HomePage() {
   const origin = siteOrigin();
   usePageMeta({
     route: 'home',
-    jsonLd: [organizationLd(info.data, origin), mobileAppLd(info.data, stores, origin)],
+    jsonLd: [websiteLd(info.data, origin), organizationLd(info.data, origin), mobileAppLd(info.data, stores, origin)],
   });
 
   const privacy: Point[] = ([1, 2, 3, 4] as const).map((n) => ({

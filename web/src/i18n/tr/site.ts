@@ -19,7 +19,7 @@ const site = {
   'site.store.soonNote': 'Mağaza bağlantısı henüz yayınlanmadı. Yayınlandığında bu düğme çalışır hâle gelecek.',
   'site.store.newTab': 'Yeni sekmede açılır',
 
-  'site.meta.home': 'Bingöl Üniversitesi öğrencileri ve personeli için duyurular, haberler, yemek listesi, etkinlikler ve kampüs iletişimi tek uygulamada.',
+  'site.meta.home': 'BÜ Kampüs (bukampus): Bingöl Üniversitesi öğrencileri ve personeli için duyurular, haberler, yemek listesi, ders programı ve etkinlikler tek uygulamada.',
   'site.meta.features': 'Haber ve duyurular, yemek listesi, mesajlaşma, topluluklar, QR yoklamalı etkinlikler, destek ve bildirimler: BÜ Kampüs uygulamasının özellikleri.',
   'site.meta.about': 'BÜ Kampüs uygulamasının amacı, değerleri ve nasıl çalıştığı. Yalnızca bingol.edu.tr hesaplarıyla kullanılır.',
   'site.meta.download': 'BÜ Kampüs uygulamasını Android ve iOS için indirin.',
