@@ -117,6 +117,7 @@ D|fen-edebiyat|bitki-koruma|Bitki Koruma
 D|fen-edebiyat|yonetim-bilisim-sistemleri|Yönetim Bilişim Sistemleri
 D|fen-edebiyat|bilgisayar-bilimleri|Bilgisayar Bilimleri
 D|fen-edebiyat|veri-bilimi-ve-analitigi|Veri Bilimi ve Analitiği
+D|fen-edebiyat|zaza-dili-ve-edebiyati|Zaza Dili ve Edebiyatı
 F|iibf|İktisadi ve İdari Bilimler Fakültesi
 D|iibf|isletme|İşletme
 D|iibf|iktisat|İktisat
@@ -768,6 +769,16 @@ D|meslek-yuksekokulu|hemsirelik-hizmetleri|Hemşirelik Hizmetleri
 D|meslek-yuksekokulu|tibbi-terapi|Tıbbi Terapi
 D|meslek-yuksekokulu|fizyoterapi-teknikerligi|Fizyoterapi Teknikerliği
 D|meslek-yuksekokulu|isitme-engelliler-isaret-dili|İşitme Engelliler İşaret Dili
+D|meslek-yuksekokulu|dijital-donusum-elektronigi|Dijital Dönüşüm Elektroniği
+D|meslek-yuksekokulu|saglik-bilgi-sistemleri-teknikerligi|Sağlık Bilgi Sistemleri Teknikerliği
+D|meslek-yuksekokulu|tibbi-ve-aromatik-bitkiler|Tıbbi ve Aromatik Bitkiler
+D|meslek-yuksekokulu|dis-protez-teknolojisi|Diş Protez Teknolojisi
+D|meslek-yuksekokulu|cocuk-koruma-ve-bakim-hizmetleri|Çocuk Koruma ve Bakım Hizmetleri
+D|meslek-yuksekokulu|cagri-merkezi-hizmetleri|Çağrı Merkezi Hizmetleri
+D|meslek-yuksekokulu|ozel-guvenlik-ve-koruma|Özel Güvenlik ve Koruma
+D|meslek-yuksekokulu|alternatif-enerji-kaynaklari-teknolojisi|Alternatif Enerji Kaynakları Teknolojisi
+D|meslek-yuksekokulu|dogalgaz-ve-tesisati-teknolojisi|Doğalgaz ve Tesisatı Teknolojisi
+D|meslek-yuksekokulu|halicilik-ve-kilimcilik|Halıcılık ve Kilimcilik
 G|PREP|Hazırlık
 G|1|1. sınıf
 G|2|2. sınıf

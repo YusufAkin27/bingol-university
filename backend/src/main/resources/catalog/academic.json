@@ -716,6 +716,12 @@
      "name": "Veri Bilimi ve Analitiği",
      "nameEn": "Data Science and Analytics",
      "nameAr": "علم البيانات والتحليلات"
+    },
+    {
+     "id": "zaza-dili-ve-edebiyati",
+     "name": "Zaza Dili ve Edebiyatı",
+     "nameEn": "Zaza Language and Literature",
+     "nameAr": "اللغة والأدب الزازاكي"
     }
    ]
   },
@@ -4670,6 +4676,66 @@
      "name": "İşitme Engelliler İşaret Dili",
      "nameEn": "Sign Language for the Hearing Impaired",
      "nameAr": "لغة الإشارة لذوي الإعاقة السمعية"
+    },
+    {
+     "id": "dijital-donusum-elektronigi",
+     "name": "Dijital Dönüşüm Elektroniği",
+     "nameEn": "Digital Transformation Electronics",
+     "nameAr": "إلكترونيات التحول الرقمي"
+    },
+    {
+     "id": "saglik-bilgi-sistemleri-teknikerligi",
+     "name": "Sağlık Bilgi Sistemleri Teknikerliği",
+     "nameEn": "Health Information Systems Technician",
+     "nameAr": "فني نظم المعلومات الصحية"
+    },
+    {
+     "id": "tibbi-ve-aromatik-bitkiler",
+     "name": "Tıbbi ve Aromatik Bitkiler",
+     "nameEn": "Medicinal and Aromatic Plants",
+     "nameAr": "النباتات الطبية والعطرية"
+    },
+    {
+     "id": "dis-protez-teknolojisi",
+     "name": "Diş Protez Teknolojisi",
+     "nameEn": "Dental Prosthetics Technology",
+     "nameAr": "تقنية تركيبات الأسنان"
+    },
+    {
+     "id": "cocuk-koruma-ve-bakim-hizmetleri",
+     "name": "Çocuk Koruma ve Bakım Hizmetleri",
+     "nameEn": "Child Protection and Care Services",
+     "nameAr": "خدمات حماية الأطفال ورعايتهم"
+    },
+    {
+     "id": "cagri-merkezi-hizmetleri",
+     "name": "Çağrı Merkezi Hizmetleri",
+     "nameEn": "Call Center Services",
+     "nameAr": "خدمات مراكز الاتصال"
+    },
+    {
+     "id": "ozel-guvenlik-ve-koruma",
+     "name": "Özel Güvenlik ve Koruma",
+     "nameEn": "Private Security and Protection",
+     "nameAr": "الأمن والحماية الخاصة"
+    },
+    {
+     "id": "alternatif-enerji-kaynaklari-teknolojisi",
+     "name": "Alternatif Enerji Kaynakları Teknolojisi",
+     "nameEn": "Alternative Energy Sources Technology",
+     "nameAr": "تقنية مصادر الطاقة البديلة"
+    },
+    {
+     "id": "dogalgaz-ve-tesisati-teknolojisi",
+     "name": "Doğalgaz ve Tesisatı Teknolojisi",
+     "nameEn": "Natural Gas and Installation Technology",
+     "nameAr": "تقنية الغاز الطبيعي وتركيباته"
+    },
+    {
+     "id": "halicilik-ve-kilimcilik",
+     "name": "Halıcılık ve Kilimcilik",
+     "nameEn": "Carpet and Kilim Weaving",
+     "nameAr": "صناعة السجاد والكليم"
     }
    ]
   }
