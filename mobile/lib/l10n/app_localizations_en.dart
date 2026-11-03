@@ -9125,13 +9125,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get p22OpenSettings => 'Settings';
 
   @override
-  String get p21PreviewTitle => 'Message preview in notifications';
-
-  @override
-  String get p21PreviewSub =>
-      'When on, the start of the message shows in the notification and on the lock screen; the text passes through Google/Apple notification servers. When off, only the sender name is shown.';
-
-  @override
   String get p26PrefNeedsAnnouncements =>
       'No notifications while Announcements is off';
 

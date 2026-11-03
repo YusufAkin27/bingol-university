@@ -126,7 +126,6 @@ String _prefLabel(BuildContext context, String key) {
     'messages' => l.profilePrefsNotifMessages,
     'polls' => l.profilePrefsNotifPolls,
     'academicAnnouncements' => l.profilePrefsNotifAcademic,
-    'messagePreview' => l.p21PreviewTitle,
     'MESSAGE_DIRECT' => l.profil1SubMsgDirect,
     'MESSAGE_GROUP' => l.profil1SubMsgGroup,
     'EVENT_REMINDER' => l.profil1SubEventReminder,
@@ -150,7 +149,6 @@ String? _prefSub(BuildContext context, String key) {
     'communities' => l.profil1ClubsSub,
     'polls' => l.p20PrefPollsSub,
     'academicAnnouncements' => l.p20PrefAcademicSub,
-    'messagePreview' => l.p21PreviewSub,
     _ => null,
   };
 }
@@ -454,12 +452,7 @@ class _NotificationPrefsGroupState extends State<NotificationPrefsGroup> with Wi
           opacity: widget.showPushCard && _pushStatus != 'on' && _pushStatus != '...' ? .5 : 1,
           child: _card(child: Column(children: [for (var i = 0; i < rows.length; i++) _toggleRow(rows[i], last: i == rows.length - 1)])),
         ));
-      // Kilit ekranında mesaj metni (KVKK: varsayılan kapalı; yalnız sunucu `messagePreview` gönderdiyse görünür).
-      if (prefs.containsKey('messagePreview')) {
-        children
-          ..add(const SizedBox(height: 16))
-          ..add(_card(child: _toggleRow('messagePreview', last: true)));
-      }
+      // Mesaj ön izlemesi (gönderen + metin) her zaman açıktır; anahtar yok. Sunucu `messagePreview` döndürse de çizilmez/yazılmaz.
       if (hasSubs || quiet != null) {
         children
           ..add(const SizedBox(height: 24))

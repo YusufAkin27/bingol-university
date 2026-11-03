@@ -1,3 +1,4 @@
+import 'package:bu_kampus/core/icons/bu_icons.dart';
 import 'package:bu_kampus/core/theme_controller.dart';
 import 'package:bu_kampus/features/follow/follow_list_page.dart';
 import 'package:bu_kampus/features/follow/follow_suggestions.dart';

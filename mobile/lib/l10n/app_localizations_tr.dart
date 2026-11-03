@@ -9092,13 +9092,6 @@ class AppLocalizationsTr extends AppLocalizations {
   String get p22OpenSettings => 'Ayarlar';
 
   @override
-  String get p21PreviewTitle => 'Bildirimde mesaj önizlemesi';
-
-  @override
-  String get p21PreviewSub =>
-      'Açıkken mesajın ilk kısmı bildirimde ve kilit ekranında görünür; metin Google/Apple bildirim sunucularından geçer. Kapalıyken yalnızca gönderen adı gösterilir.';
-
-  @override
   String get p26PrefNeedsAnnouncements =>
       'Duyurular kapalıyken bildirim gelmez';
 

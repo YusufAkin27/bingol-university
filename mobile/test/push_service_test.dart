@@ -1,4 +1,5 @@
 import 'package:bu_kampus/core/push/active_conversation.dart';
+import 'package:bu_kampus/core/push/push_banner.dart';
 import 'package:bu_kampus/core/push/push_service.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -33,5 +34,18 @@ void main() {
     expect(s.pushToken!(), isNull); // henuz jeton alinmadi
     push.registrar.token = 'abc';
     expect(s.pushToken!(), 'abc');
+  });
+
+  test('mesaj push on izlemesi her zaman acik: gonderen adi + mesaj metni oldugu gibi seride tasinir (maskeleme yok)', () {
+    final s = makeSession(FakeBackend());
+    final push = PushService(s, active: ActiveConversation.test());
+    final data = {'type': 'MESSAGE', 'conversationId': '9', 'messageId': '900'};
+    expect(push.handleForeground(title: 'Ali Veli', body: 'Selam, derste görüşürüz', data: data), isTrue);
+    // Birlestirme gonderen adini ve govdeyi degistirmez; "Yeni mesaj" yer tutucusuna dusmez.
+    final item = BannerItem(key: bannerKey(data, 'Ali Veli'), title: 'Ali Veli', body: 'Selam, derste görüşürüz', data: data);
+    final merged = mergeBanner(null, item);
+    expect(merged.title, 'Ali Veli');
+    expect(merged.body, 'Selam, derste görüşürüz');
+    expect(merged.body, isNot('Yeni mesaj'));
   });
 }
