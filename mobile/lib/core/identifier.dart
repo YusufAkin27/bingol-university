@@ -42,6 +42,15 @@ String? validateRegisterEmail(String? v) {
   return _emailRe.hasMatch(s) ? null : l.coreIdDomain;
 }
 
+/// Giriş ve kayıt alanı (yalnız okul numarası, 6-12 rakam).
+String? validateSchoolNumber(String? v) {
+  final s = normalizeIdentifier(v);
+  final l = lookupAppLocalizations(LocaleController.current?.locale ?? const Locale('tr'));
+  if (s.isEmpty) return l.authIdNumberEmpty;
+  if (_digitsRe.hasMatch(s) && s.length >= 6 && s.length <= 12) return null;
+  return l.coreIdNumber;
+}
+
 String? validateIdentifier(String? v) {
   final s = normalizeIdentifier(v);
   final l = lookupAppLocalizations(LocaleController.current?.locale ?? const Locale('tr'));
