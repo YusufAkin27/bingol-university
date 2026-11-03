@@ -14,7 +14,7 @@ has() { case "$2" in *"$3"*) ok "$1";; *) bad "$1 (yok: $3) -> $2";; esac; }
 U=ntf$(date +%s)@bingol.edu.tr
 DIR=$(dirname "$0")
 BASE=$BASE "$DIR/make-user.sh" "$U" "Bildirim Test" >/dev/null || { echo "kullanici olusturulamadi"; exit 1; }
-TOKEN=$(curl -s -X POST -H "$H" $A/auth/login -d "{\"email\":\"$U\",\"password\":\"Zk7-Qmv-Lpx92w\"}" | grep -o '"accessToken":"[^"]*' | cut -d'"' -f4)
+TOKEN=$(curl -s -X POST -H "$H" $A/auth/login -d "{\"email\":\"$U\",\"password\":\"481952\"}" | grep -o '"accessToken":"[^"]*' | cut -d'"' -f4)
 AUTH="Authorization: Bearer $TOKEN"
 code() { curl -s -o /dev/null -w '%{http_code}' -H "$AUTH" -H "$H" "$@"; }
 body() { curl -s -H "$AUTH" -H "$H" "$@"; }

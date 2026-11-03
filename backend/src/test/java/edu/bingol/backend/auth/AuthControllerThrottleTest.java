@@ -59,8 +59,8 @@ class AuthControllerThrottleTest {
 
     @Test
     void ipv6AddressesOfTheSame64ShareTheLoginIpKey() {
-        controller.login(new LoginRequest(EMAIL, "Sifre1234", null), from("2001:db8:1:2:aaaa::1"));
-        controller.login(new LoginRequest(EMAIL, "Sifre1234", null), from("2001:db8:1:2:bbbb::2"));
+        controller.login(new LoginRequest(EMAIL, "481952", null), from("2001:db8:1:2:aaaa::1"));
+        controller.login(new LoginRequest(EMAIL, "481952", null), from("2001:db8:1:2:bbbb::2"));
 
         verify(limiter, org.mockito.Mockito.times(2)).check(eq("login:ip:" + IP64), anyInt(), any(Duration.class));
     }
@@ -113,7 +113,7 @@ class AuthControllerThrottleTest {
 
     @Test
     void registerHasPerEmailHourlyAndDailyLimitsKeyedByAliasDigest() {
-        RegisterRequest r = new RegisterRequest("Ali+1@bingol.edu.tr", "Sifre1234", "Ali", true, null, null, null, null, null);
+        RegisterRequest r = new RegisterRequest("Ali+1@bingol.edu.tr", "481952", "Ali", true, null, null, null, null, null);
 
         controller.register(r, from("203.0.113.9"));
 
@@ -126,7 +126,7 @@ class AuthControllerThrottleTest {
 
     @Test
     void adminPortalFlagIsForwardedAndConsumesTheSameLimits() {
-        RegisterRequest r = new RegisterRequest(EMAIL, "Sifre1234", "Ali", true, null, null, null, null, true);
+        RegisterRequest r = new RegisterRequest(EMAIL, "481952", "Ali", true, null, null, null, null, true);
 
         controller.register(r, from("203.0.113.9"));
 
@@ -134,15 +134,15 @@ class AuthControllerThrottleTest {
         verify(limiter).check("register:email:" + digest, 5, Duration.ofHours(1));
         verify(limiter).check("codemail:day:" + digest, 20, Duration.ofHours(24));
         verify(limiter).check(startsWith("register:ip:"), anyInt(), any(Duration.class));
-        verify(auth).register(eq(EMAIL), eq("Sifre1234"), eq("Ali"), any(), any(), any(), any(), eq(true));
+        verify(auth).register(eq(EMAIL), eq("481952"), eq("Ali"), any(), any(), any(), any(), eq(true));
     }
 
     @Test
     void missingAdminPortalFlagMeansTheGeneralRegistrationRule() {
-        controller.register(new RegisterRequest(EMAIL, "Sifre1234", "Ali", true, null, null, null, null, null),
+        controller.register(new RegisterRequest(EMAIL, "481952", "Ali", true, null, null, null, null, null),
                 from("203.0.113.9"));
 
-        verify(auth).register(eq(EMAIL), eq("Sifre1234"), eq("Ali"), any(), any(), any(), any(), eq(false));
+        verify(auth).register(eq(EMAIL), eq("481952"), eq("Ali"), any(), any(), any(), any(), eq(false));
     }
 
     @Test
@@ -151,7 +151,7 @@ class AuthControllerThrottleTest {
                 .check(startsWith("register:email:"), anyInt(), any(Duration.class));
 
         assertThrows(RateLimitedException.class, () -> controller.register(
-                new RegisterRequest(EMAIL, "Sifre1234", "Ali", true, null, null, null, null, null), from("203.0.113.9")));
+                new RegisterRequest(EMAIL, "481952", "Ali", true, null, null, null, null, null), from("203.0.113.9")));
 
         verify(auth, never()).register(anyString(), anyString(), anyString(), any(), any(), any(), any(), anyBoolean());
     }
@@ -170,7 +170,7 @@ class AuthControllerThrottleTest {
 
     @Test
     void loginIpLimitIsTheHighNatCeilingNotTheOldTwoHundred() {
-        controller.login(new LoginRequest(EMAIL, "Sifre1234", null), from("203.0.113.9"));
+        controller.login(new LoginRequest(EMAIL, "481952", null), from("203.0.113.9"));
 
         verify(limiter).check("login:ip:203.0.113.9", 5000, Duration.ofMinutes(15));
     }

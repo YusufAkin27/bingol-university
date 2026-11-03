@@ -8,6 +8,8 @@ set -u
 BASE=${BASE:-http://localhost:8080}
 A=$BASE/api
 ADMIN_EMAIL=${ADMIN_EMAIL:-boss@bingol.edu.tr}
+# Sifre: yonetici hesabi guclu sifre ister (>= 12 karakter), digerleri 6 haneli PIN
+pwfor() { if [ "$1" = "$ADMIN_EMAIL" ]; then echo 'Zk7-Qmv-Lpx92w'; else echo 481952; fi; }
 ADMIN_PASSWORD=${ADMIN_PASSWORD:-adminpw123}
 H='Content-Type: application/json'
 FAIL=0
@@ -23,14 +25,14 @@ num() { grep -o "\"$1\":[0-9.]*" | head -1 | cut -d: -f2; }   # ilk "alan":sayi
 
 # kayit + dogrulama -> access token (hesap varsa giris)
 register() {
-  curl -s -o /dev/null -X POST -H "$H" $A/auth/register -d "{\"email\":\"$1\",\"password\":\"Zk7-Qmv-Lpx92w\",\"displayName\":\"$2\",\"acceptTerms\":true,\"language\":\"${3:-tr}\"}"
+  curl -s -o /dev/null -X POST -H "$H" $A/auth/register -d "{\"email\":\"$1\",\"password\":\"$(pwfor "$1")\",\"displayName\":\"$2\",\"acceptTerms\":true,\"language\":\"${3:-tr}\"}"
   sleep 1
   local c t
   c=$(docker compose logs backend 2>&1 | grep "$1 icin" | grep -o 'kodu: [0-9]*' | tail -1 | cut -d' ' -f2)
-  t=$(curl -s -X POST -H "$H" $A/auth/verify-email -d "{\"email\":\"$1\",\"code\":\"$c\",\"password\":\"Zk7-Qmv-Lpx92w\"}" |
+  t=$(curl -s -X POST -H "$H" $A/auth/verify-email -d "{\"email\":\"$1\",\"code\":\"$c\",\"password\":\"$(pwfor "$1")\"}" |
     grep -o '"accessToken":"[^"]*' | cut -d'"' -f4)
   if [ -z "$t" ]; then
-    t=$(curl -s -X POST -H "$H" $A/auth/login -d "{\"email\":\"$1\",\"password\":\"Zk7-Qmv-Lpx92w\"}" |
+    t=$(curl -s -X POST -H "$H" $A/auth/login -d "{\"email\":\"$1\",\"password\":\"$(pwfor "$1")\"}" |
       grep -o '"accessToken":"[^"]*' | cut -d'"' -f4)
   fi
   echo "$t"
@@ -209,7 +211,7 @@ check "detay bulunamadi" 404 "$(code -H "$AAD" $A/admin/users/999999999)"
 echo "== rol degistirme ve eski token"
 check "rol: admin yap" 204 "$(code -X PATCH -H "$H" -H "$AAD" $A/admin/users/$ID2/role -d '{"role":"ADMIN"}')"
 check "eski token reddedilir (rol degisti)" 401 "$(code -H "$A2" $A/users/me)"
-LG=$(curl -s -X POST -H "$H" $A/auth/login -d "{\"email\":\"$E2\",\"password\":\"Zk7-Qmv-Lpx92w\"}")
+LG=$(curl -s -X POST -H "$H" $A/auth/login -d "{\"email\":\"$E2\",\"password\":\"$(pwfor "$E2")\"}")
 RT2=$(echo "$LG" | grep -o '"refreshToken":"[^"]*' | cut -d'"' -f4)
 NT2=$(curl -s -X POST -H "$H" $A/auth/refresh -d "{\"refreshToken\":\"$RT2\"}" | grep -o '"accessToken":"[^"]*' | cut -d'"' -f4)
 check "yeni token yeni rolde calisir" 200 "$(code -H "Authorization: Bearer $NT2" $A/admin/me)"
@@ -334,7 +336,7 @@ D4=$(curl -s -H "$AAD" $A/admin/users/$ID4)
 has "silinen: durum" '"status":"DELETED"' "$D4"
 has "silinen: anonim e-posta" "deleted-$ID4@deleted.invalid" "$D4"
 check "silinen kullanicinin token'i gecersiz" 401 "$(code -H "$A4" $A/users/me)"
-check "silinen kullanici girisi" 401 "$(code -X POST -H "$H" $A/auth/login -d "{\"email\":\"$E4\",\"password\":\"Zk7-Qmv-Lpx92w\"}")"
+check "silinen kullanici girisi" 401 "$(code -X POST -H "$H" $A/auth/login -d "{\"email\":\"$E4\",\"password\":\"$(pwfor "$E4")\"}")"
 check "tekrar silme 404" 404 "$(code -X DELETE -H "$AAD" $A/admin/users/$ID4)"
 has "audit: DELETE kaydi" "\"path\":\"/api/admin/users/$ID4\"" "$(curl -s -H "$AAD" "$A/admin/audit?method=DELETE&size=20")"
 # test kullanicilarini anonimlestir: sayimlar ve dagilimlar baslangica doner

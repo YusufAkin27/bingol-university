@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 # Gelistirme: kullanici olusturur ve e-postasini dogrular (kod docker compose log'undan okunur).
-# Kullanim: BASE=http://localhost:8080 ./scripts/make-user.sh ad@bingol.edu.tr "Gorunen Ad" [Zk7-Qmv-Lpx92w]
+# Kullanim: BASE=http://localhost:8080 ./scripts/make-user.sh ad@bingol.edu.tr "Gorunen Ad" [sifre; varsayilan 6 haneli PIN. Yonetici hesabi icin >= 12 karakterli guclu sifre verin]
 # Yonetici yapmak icin e-posta backend'in ADMIN_EMAILS listesinde olmali.
 set -u
 BASE=${BASE:-http://localhost:8080}
 A=$BASE/api
 EMAIL=${1:?e-posta gerekli}
 NAME=${2:-Kullanici}
-PASS=${3:-Zk7-Qmv-Lpx92w}
+PASS=${3:-481952}
 H='Content-Type: application/json'
 
 curl -s -o /dev/null -X POST -H "$H" $A/auth/register \

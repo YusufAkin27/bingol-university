@@ -5,7 +5,7 @@
 set -u
 BASE=${BASE:-http://localhost:8105}
 A=$BASE/api
-PASS=Sifre1234
+PASS=481952
 RUN=$(date +%s)
 # mktemp Windows/MSYS yol donusumunde curl ile sorun cikarabilir; depo icinde sabit, gocidnore'lu bir
 # gecici klasor kullanilir (betik sonunda silinir).

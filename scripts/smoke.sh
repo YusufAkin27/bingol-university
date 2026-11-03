@@ -6,6 +6,8 @@ set -u
 BASE=${BASE:-http://localhost:8080}
 A=$BASE/api
 ADMIN_EMAIL=${ADMIN_EMAIL:-boss@bingol.edu.tr}
+# Sifre: yonetici hesabi guclu sifre ister (>= 12 karakter), digerleri 6 haneli PIN
+pwfor() { if [ "$1" = "$ADMIN_EMAIL" ]; then echo 'Zk7-Qmv-Lpx92w'; else echo 481952; fi; }
 H='Content-Type: application/json'
 FAIL=0
 
@@ -16,15 +18,15 @@ code() { curl -s -o /dev/null -w '%{http_code}' "$@"; }
 
 # kayit + dogrulama -> access token
 register() {
-  curl -s -o /dev/null -X POST -H "$H" $A/auth/register -d "{\"email\":\"$1\",\"password\":\"Zk7-Qmv-Lpx92w\",\"displayName\":\"$2\",\"acceptTerms\":true,\"language\":\"${3:-tr}\"}"
+  curl -s -o /dev/null -X POST -H "$H" $A/auth/register -d "{\"email\":\"$1\",\"password\":\"$(pwfor "$1")\",\"displayName\":\"$2\",\"acceptTerms\":true,\"language\":\"${3:-tr}\"}"
   sleep 1
   local c t
   c=$(docker compose logs backend 2>&1 | grep "$1 icin" | grep -o 'kodu: [0-9]*' | tail -1 | cut -d' ' -f2)
-  t=$(curl -s -X POST -H "$H" $A/auth/verify-email -d "{\"email\":\"$1\",\"code\":\"$c\",\"password\":\"Zk7-Qmv-Lpx92w\"}" |
+  t=$(curl -s -X POST -H "$H" $A/auth/verify-email -d "{\"email\":\"$1\",\"code\":\"$c\",\"password\":\"$(pwfor "$1")\"}" |
     grep -o '"accessToken":"[^"]*' | cut -d'"' -f4)
   # Hesap onceden kayitliysa (ornek: onceki betik) giris yap
   if [ -z "$t" ]; then
-    t=$(curl -s -X POST -H "$H" $A/auth/login -d "{\"email\":\"$1\",\"password\":\"Zk7-Qmv-Lpx92w\"}" |
+    t=$(curl -s -X POST -H "$H" $A/auth/login -d "{\"email\":\"$1\",\"password\":\"$(pwfor "$1")\"}" |
       grep -o '"accessToken":"[^"]*' | cut -d'"' -f4)
   fi
   echo "$t"
@@ -75,7 +77,7 @@ if [ -n "$TA" ]; then
   # (RID: yukarida olusturulan raporun id si)
   check "rapor coz (askiya al)" 204 "$(code -X POST -H "$H" -H "$AUTHA" $A/admin/reports/$RID/resolve -d '{"action":"SUSPEND_USER","message":"test"}')"
   check "askidaki kullanici token'i gecersiz" 401 "$(code -H "$AUTH2" $A/users/me)"
-  check "askidaki giris 403" 403 "$(code -X POST -H "$H" $A/auth/login -d "{\"email\":\"ayse$SFX@bingol.edu.tr\",\"password\":\"Zk7-Qmv-Lpx92w\"}")"
+  check "askidaki giris 403" 403 "$(code -X POST -H "$H" $A/auth/login -d "{\"email\":\"ayse$SFX@bingol.edu.tr\",\"password\":\"481952\"}")"
   check "geri ac" 204 "$(code -X POST -H "$AUTHA" $A/admin/users/$ID2/unsuspend)"
 else
   echo "  atlandi: admin token yok (ADMIN_EMAILS ayarli mi?)"
@@ -91,12 +93,32 @@ echo "== kimlik politikalari (W1-A: T-001/T-005)"
 reg_code() { code -X POST -H "$H" $A/auth/register -d "{\"email\":\"$1\",\"password\":\"$2\",\"displayName\":\"$3\",\"acceptTerms\":true}"; }
 check "zayif parola 400" 400 "$(reg_code "zayif$SFX@bingol.edu.tr" "12345678" "Zayif Parola")"
 check "yaygin parola+yil 400" 400 "$(reg_code "zayif$SFX@bingol.edu.tr" "Galatasaray1905" "Zayif Parola")"
-check "ayrilmis ad 400" 400 "$(reg_code "ad$SFX@bingol.edu.tr" "Zk7-Qmv-Lpx92w" "Admin Destek")"
-check "rektorluk adi 400" 400 "$(reg_code "ad$SFX@bingol.edu.tr" "Zk7-Qmv-Lpx92w" "Rektörlük Duyuru")"
-check "gorunmez karakterli ad 400" 400 "$(reg_code "ad$SFX@bingol.edu.tr" "Zk7-Qmv-Lpx92w" "Ali​Veli")"
-check "baglanti adi 400" 400 "$(reg_code "ad$SFX@bingol.edu.tr" "Zk7-Qmv-Lpx92w" "bit.ly")"
-check "% yerel kisim 400" 400 "$(reg_code "a%evil.com@bingol.edu.tr" "Zk7-Qmv-Lpx92w" "Ali Veli")"
-check "ardisik nokta 400" 400 "$(reg_code "a..b$SFX@bingol.edu.tr" "Zk7-Qmv-Lpx92w" "Ali Veli")"
+check "ayrilmis ad 400" 400 "$(reg_code "ad$SFX@bingol.edu.tr" "481952" "Admin Destek")"
+check "rektorluk adi 400" 400 "$(reg_code "ad$SFX@bingol.edu.tr" "481952" "Rektörlük Duyuru")"
+check "gorunmez karakterli ad 400" 400 "$(reg_code "ad$SFX@bingol.edu.tr" "481952" "Ali​Veli")"
+check "baglanti adi 400" 400 "$(reg_code "ad$SFX@bingol.edu.tr" "481952" "bit.ly")"
+check "% yerel kisim 400" 400 "$(reg_code "a%evil.com@bingol.edu.tr" "481952" "Ali Veli")"
+check "ardisik nokta 400" 400 "$(reg_code "a..b$SFX@bingol.edu.tr" "481952" "Ali Veli")"
+
+echo "== 6 haneli sifre (PIN) ve hesap kilidi"
+check "PIN: 5 hane 400" 400 "$(reg_code "pin$SFX@bingol.edu.tr" "48195" "Pin Test")"
+check "PIN: 7 hane 400" 400 "$(reg_code "pin$SFX@bingol.edu.tr" "4819523" "Pin Test")"
+check "PIN: harf 400" 400 "$(reg_code "pin$SFX@bingol.edu.tr" "48195a" "Pin Test")"
+check "PIN: hepsi ayni 400" 400 "$(reg_code "pin$SFX@bingol.edu.tr" "111111" "Pin Test")"
+check "PIN: artan dizi 400" 400 "$(reg_code "pin$SFX@bingol.edu.tr" "123456" "Pin Test")"
+check "PIN: azalan dizi 400" 400 "$(reg_code "pin$SFX@bingol.edu.tr" "654321" "Pin Test")"
+check "PIN: ababab 400" 400 "$(reg_code "pin$SFX@bingol.edu.tr" "121212" "Pin Test")"
+LK="kilit$SFX@bingol.edu.tr"
+TLK=$(register "$LK" "Kilit Test")
+check "kilit: kayit+giris" 1 "$([ -n "$TLK" ] && echo 1 || echo 0)"
+for i in 1 2 3 4 5; do
+  check "kilit: yanlis sifre $i 401" 401 "$(code -X POST -H "$H" $A/auth/login -d "{\"email\":\"$LK\",\"password\":\"999000\"}")"
+done
+check "kilit: 6. deneme 429" 429 "$(code -X POST -H "$H" $A/auth/login -d "{\"email\":\"$LK\",\"password\":\"999000\"}")"
+check "kilit: dogru sifre kilitliyken 429" 429 "$(code -X POST -H "$H" $A/auth/login -d "{\"email\":\"$LK\",\"password\":\"481952\"}")"
+LKB=$(curl -s -X POST -H "$H" $A/auth/login -d "{\"email\":\"$LK\",\"password\":\"481952\"}")
+case "$LKB" in *'"code":"ACCOUNT_TEMP_LOCKED"'*) check "kilit govde code" 1 1;; *) check "kilit govde code ($LKB)" 1 0;; esac
+check "kilit: var olmayan hesap da ayni sayac (5 yanlis -> 429)" 429 "$(for i in 1 2 3 4 5; do code -X POST -H "$H" $A/auth/login -d "{\"email\":\"yok$SFX@bingol.edu.tr\",\"password\":\"999000\"}" >/dev/null; done; code -X POST -H "$H" $A/auth/login -d "{\"email\":\"yok$SFX@bingol.edu.tr\",\"password\":\"999000\"}")"
 
 echo "== hata zarfi (W1-A: T-004)"
 BODY=$(curl -s -X DELETE -H "$AUTH1" $A/news)
@@ -111,14 +133,14 @@ case "$HDRS" in *[Ww][Ww][Ww]-[Aa]uthenticate*) check "bozuk Bearer'a Basic chal
 
 if [ -n "${TA:-}" ]; then
   echo "== yonetici kendini silemez (W1-A: T-002)"
-  check "yonetici self-delete 409" 409 "$(code -X DELETE -H "$H" -H "Authorization: Bearer $TA" $A/users/me -d '{"password":"Zk7-Qmv-Lpx92w"}')"
+  check "yonetici self-delete 409" 409 "$(code -X DELETE -H "$H" -H "Authorization: Bearer $TA" $A/users/me -d "{\"password\":\"$(pwfor "$ADMIN_EMAIL")\"}")"
   check "yonetici hala yonetici" 200 "$(code -H "Authorization: Bearer $TA" "$A/admin/users")"
 fi
 
 echo "== hesap silme"
 check "yanlis sifre" 403 "$(code -X DELETE -H "$H" -H "$AUTH1" $A/users/me -d '{"password":"yanlis"}')"
-check "hesap sil" 204 "$(code -X DELETE -H "$H" -H "$AUTH1" $A/users/me -d '{"password":"Zk7-Qmv-Lpx92w"}')"
-check "silinmis giris 401" 401 "$(code -X POST -H "$H" $A/auth/login -d "{\"email\":\"ali$SFX@bingol.edu.tr\",\"password\":\"Zk7-Qmv-Lpx92w\"}")"
+check "hesap sil" 204 "$(code -X DELETE -H "$H" -H "$AUTH1" $A/users/me -d '{"password":"481952"}')"
+check "silinmis giris 401" 401 "$(code -X POST -H "$H" $A/auth/login -d "{\"email\":\"ali$SFX@bingol.edu.tr\",\"password\":\"481952\"}")"
 
 [ $FAIL -eq 0 ] && echo "TUMU GECTI" || echo "HATA VAR"
 exit $FAIL
