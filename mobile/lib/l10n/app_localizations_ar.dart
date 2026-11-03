@@ -301,7 +301,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get authNameHint => 'الاسم الكامل';
 
   @override
-  String get authPasswordMin8 => 'كلمة المرور (8 أحرف على الأقل)';
+  String get authPasswordMin8 => 'كلمة المرور (6 أحرف على الأقل)';
 
   @override
   String get authTermsPrefix => 'أوافق على ';
@@ -5090,7 +5090,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get authHintPersonal => 'أدخل اسمك وبريدك الجامعي.';
 
   @override
-  String get authHintPassword => 'اختر كلمة مرور من 8 أحرف على الأقل.';
+  String get authHintPassword => 'اختر كلمة مرور من 6 أحرف على الأقل.';
 
   @override
   String get authNext => 'متابعة';
@@ -5102,7 +5102,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get authTermsAutoSuffix => '.';
 
   @override
-  String get authPwMinErr => 'يجب ألا تقل كلمة المرور عن 8 أحرف.';
+  String get authPwMinErr => 'يجب ألا تقل كلمة المرور عن 6 أحرف.';
 
   @override
   String get authPwMaxErr => 'يجب ألا تزيد كلمة المرور عن 72 حرفًا.';
@@ -5664,7 +5664,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get profil2SecNewLabel => 'كلمة المرور الجديدة';
 
   @override
-  String get profil2SecNewHint => '8 أحرف على الأقل';
+  String get profil2SecNewHint => '6 أحرف على الأقل';
 
   @override
   String get profil2SecRepeatLabel => 'كلمة المرور الجديدة (تكرار)';

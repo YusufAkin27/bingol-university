@@ -300,7 +300,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get authNameHint => 'Full name';
 
   @override
-  String get authPasswordMin8 => 'Password (at least 8 characters)';
+  String get authPasswordMin8 => 'Password (at least 6 characters)';
 
   @override
   String get authTermsPrefix => 'I accept the ';
@@ -5136,7 +5136,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get authHintPassword =>
-      'Choose a password with at least 8 characters.';
+      'Choose a password with at least 6 characters.';
 
   @override
   String get authNext => 'Continue';
@@ -5148,7 +5148,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get authTermsAutoSuffix => '.';
 
   @override
-  String get authPwMinErr => 'Password must be at least 8 characters.';
+  String get authPwMinErr => 'Password must be at least 6 characters.';
 
   @override
   String get authPwMaxErr => 'Password can be at most 72 characters.';
@@ -5716,7 +5716,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profil2SecNewLabel => 'New password';
 
   @override
-  String get profil2SecNewHint => 'At least 8 characters';
+  String get profil2SecNewHint => 'At least 6 characters';
 
   @override
   String get profil2SecRepeatLabel => 'New password (repeat)';

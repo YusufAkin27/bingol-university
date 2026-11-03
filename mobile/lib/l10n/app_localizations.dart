@@ -643,7 +643,7 @@ abstract class AppLocalizations {
   /// No description provided for @authPasswordMin8.
   ///
   /// In tr, this message translates to:
-  /// **'Şifre (en az 8 karakter)'**
+  /// **'Şifre (en az 6 karakter)'**
   String get authPasswordMin8;
 
   /// No description provided for @authTermsPrefix.
@@ -9466,7 +9466,7 @@ abstract class AppLocalizations {
   /// No description provided for @authHintPassword.
   ///
   /// In tr, this message translates to:
-  /// **'En az 8 karakterli bir şifre seçin.'**
+  /// **'En az 6 karakterli bir şifre seçin.'**
   String get authHintPassword;
 
   /// No description provided for @authNext.
@@ -9490,7 +9490,7 @@ abstract class AppLocalizations {
   /// No description provided for @authPwMinErr.
   ///
   /// In tr, this message translates to:
-  /// **'Şifre en az 8 karakter olmalı.'**
+  /// **'Şifre en az 6 karakter olmalı.'**
   String get authPwMinErr;
 
   /// No description provided for @authPwMaxErr.
@@ -10546,7 +10546,7 @@ abstract class AppLocalizations {
   /// No description provided for @profil2SecNewHint.
   ///
   /// In tr, this message translates to:
-  /// **'En az 8 karakter'**
+  /// **'En az 6 karakter'**
   String get profil2SecNewHint;
 
   /// No description provided for @profil2SecRepeatLabel.

@@ -6,7 +6,6 @@ import '../../core/session.dart';
 import 'auth_widgets.dart' show newPasswordValidator;
 import 'forgot_password_page.dart';
 import 'reset_success_page.dart';
-import 'widgets/auth_controls.dart';
 import 'widgets/auth_motion.dart';
 import 'widgets/auth_ref.dart';
 import 'widgets/login_underline_field.dart';
@@ -102,10 +101,6 @@ class _NewPasswordPageState extends State<NewPasswordPage> {
                   enabled: !_busy,
                   validator: validate,
                   autofillHints: const [AutofillHints.newPassword],
-                ),
-                ValueListenableBuilder<TextEditingValue>(
-                  valueListenable: _password,
-                  builder: (_, v, __) => AuthPasswordGuide(password: v.text),
                 ),
                 const SizedBox(height: 28),
                 LoginPasswordField(

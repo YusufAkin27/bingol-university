@@ -300,7 +300,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get authNameHint => 'Ad soyad';
 
   @override
-  String get authPasswordMin8 => 'Şifre (en az 8 karakter)';
+  String get authPasswordMin8 => 'Şifre (en az 6 karakter)';
 
   @override
   String get authTermsPrefix => '';
@@ -5112,7 +5112,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get authHintPersonal => 'Adınızı ve okul e-postanızı girin.';
 
   @override
-  String get authHintPassword => 'En az 8 karakterli bir şifre seçin.';
+  String get authHintPassword => 'En az 6 karakterli bir şifre seçin.';
 
   @override
   String get authNext => 'Devam';
@@ -5124,7 +5124,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get authTermsAutoSuffix => ' kabul etmiş sayılırsınız.';
 
   @override
-  String get authPwMinErr => 'Şifre en az 8 karakter olmalı.';
+  String get authPwMinErr => 'Şifre en az 6 karakter olmalı.';
 
   @override
   String get authPwMaxErr => 'Şifre en çok 72 karakter olabilir.';
@@ -5691,7 +5691,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get profil2SecNewLabel => 'Yeni şifre';
 
   @override
-  String get profil2SecNewHint => 'En az 8 karakter';
+  String get profil2SecNewHint => 'En az 6 karakter';
 
   @override
   String get profil2SecRepeatLabel => 'Yeni şifre (tekrar)';

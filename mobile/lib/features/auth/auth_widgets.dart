@@ -15,7 +15,7 @@ String? validateEmail(String? v) {
 
 String? validateNewPassword(String? v) {
   final s = v ?? '';
-  if (s.length < 8) return 'Şifre en az 8 karakter olmalı.';
+  if (s.length < 6) return 'Şifre en az 6 karakter olmalı.';
   if (s.length > 72) return 'Şifre en çok 72 karakter olabilir.';
   if (utf8.encode(s).length > 72) return 'Şifre en fazla 72 bayt olabilir.';
   return null;
@@ -26,7 +26,7 @@ String? Function(String?) newPasswordValidator(BuildContext context) {
   final l = context.l10n;
   return (v) {
     final s = v ?? '';
-    if (s.length < 8) return l.authPwMinErr;
+    if (s.length < 6) return l.authPwMinErr;
     if (s.length > 72) return l.authPwMaxErr;
     // Sunucu sınırı 72 BAYT'tır: Türkçe/Arapça karakterler birden çok bayt tutar (PASSWORD_TOO_LONG).
     if (utf8.encode(s).length > 72) return l.errPasswordTooLong;

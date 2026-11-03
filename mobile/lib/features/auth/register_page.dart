@@ -12,7 +12,6 @@ import '../profile/legal_pages.dart';
 import 'auth_widgets.dart' show newPasswordValidator;
 import 'verify_code_page.dart';
 import 'widgets/auth_academic.dart';
-import 'widgets/auth_controls.dart';
 import 'widgets/auth_motion.dart';
 import 'widgets/auth_ref.dart';
 import 'widgets/login_underline_field.dart';
@@ -214,8 +213,6 @@ class _RegisterPageState extends State<RegisterPage> {
                 _error = null;
               }),
             ),
-            const SizedBox(height: 20),
-            RefNote(l.authTrustAcademic, icon: BuIcons.info),
           ],
         );
       case 1:
@@ -241,8 +238,6 @@ class _RegisterPageState extends State<RegisterPage> {
               textInputAction: TextInputAction.done,
               onSubmitted: _next,
             ),
-            const SizedBox(height: 20),
-            RefNote(l.authTrustName, icon: BuIcons.info),
           ],
         );
       default:
@@ -257,10 +252,6 @@ class _RegisterPageState extends State<RegisterPage> {
               validator: newPasswordValidator(context),
               autofillHints: const [AutofillHints.newPassword],
               onSubmitted: _next,
-            ),
-            ValueListenableBuilder<TextEditingValue>(
-              valueListenable: _password,
-              builder: (_, v, __) => AuthPasswordGuide(password: v.text),
             ),
             const SizedBox(height: 24),
             Text.rich(

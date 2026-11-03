@@ -64,7 +64,7 @@ class _AccountSecurityPageState extends State<AccountSecurityPage> {
       bad.add('current');
     }
     final n = _new.text;
-    if (n.length < 8) {
+    if (n.length < 6) {
       errors.add(l.authPwMinErr);
       bad.add('new');
     } else if (n.length > 72) {
