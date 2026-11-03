@@ -26,11 +26,29 @@ final class BuNativeBridge: NSObject, FlutterPlugin, UNUserNotificationCenterDel
   private static var shared: BuNativeBridge?
 
   private let notifyChannel: FlutterMethodChannel
+  private let pushChannel: FlutterMethodChannel
+  private var pushReady = false
+  private static var remotePending: [String: String]?
+
+  static func handleRemoteResponse(_ response: UNNotificationResponse) {
+    var payload: [String: String] = [:]
+    for (key, value) in response.notification.request.content.userInfo {
+      if let key = key as? String, let value = value as? String { payload[key] = value }
+    }
+    payload["notificationAction"] = String(response.actionIdentifier.dropFirst(3))
+    payload["notificationTag"] = response.notification.request.identifier
+    payload["actionId"] = UUID().uuidString
+    if let text = response as? UNTextInputNotificationResponse { payload["replyText"] = text.userText }
+    if let bridge = shared, bridge.pushReady {
+      bridge.pushChannel.invokeMethod("onTap", arguments: payload)
+    } else { remotePending = payload }
+  }
   private var dartReady = false
   private var pending: (payload: [String: String], at: Date)?
 
-  private init(notifyChannel: FlutterMethodChannel) {
+  private init(notifyChannel: FlutterMethodChannel, pushChannel: FlutterMethodChannel) {
     self.notifyChannel = notifyChannel
+    self.pushChannel = pushChannel
     super.init()
   }
 
@@ -38,7 +56,24 @@ final class BuNativeBridge: NSObject, FlutterPlugin, UNUserNotificationCenterDel
     let messenger = registrar.messenger()
     let notify = FlutterMethodChannel(name: "bu_kampus/notify", binaryMessenger: messenger)
     let badge = FlutterMethodChannel(name: "bu_kampus/badge", binaryMessenger: messenger)
-    let instance = BuNativeBridge(notifyChannel: notify)
+    let push = FlutterMethodChannel(name: "bu_kampus/push_actions", binaryMessenger: messenger)
+    let instance = BuNativeBridge(notifyChannel: notify, pushChannel: push)
+    push.setMethodCallHandler { call, result in
+      switch call.method {
+      case "takeLaunchPayload":
+        instance.pushReady = true
+        result(remotePending); remotePending = nil
+      case "clear":
+        instance.pushReady = false; remotePending = nil
+        UNUserNotificationCenter.current().removeAllDeliveredNotifications(); result(nil)
+      case "dismiss":
+        if let args = call.arguments as? [String: Any], let tag = args["tag"] as? String {
+          UNUserNotificationCenter.current().removeDeliveredNotifications(withIdentifiers: [tag])
+        }
+        result(nil)
+      default: result(FlutterMethodNotImplemented)
+      }
+    }
     shared = instance
     notify.setMethodCallHandler { call, result in instance.handleNotify(call, result) }
     badge.setMethodCallHandler { call, result in BuNativeBridge.handleBadge(call, result) }

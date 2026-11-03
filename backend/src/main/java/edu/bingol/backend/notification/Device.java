@@ -40,6 +40,10 @@ public class Device {
     @Column(length = 16)
     private String locale;
 
+    /** Explicit native renderer capability; older apps keep standard FCM alerts. */
+    @Column(nullable = false)
+    private boolean richNotifications;
+
     /** Uygulama her acilista kaydi yeniler; 60 gun gorulmeyen token'lar zamanlanmis isle silinir. */
     @Column(nullable = false)
     private Instant lastSeenAt = Instant.now();

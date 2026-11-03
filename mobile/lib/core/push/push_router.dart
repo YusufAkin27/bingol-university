@@ -9,9 +9,12 @@ import '../../features/events/event_detail_page.dart';
 import '../../features/follow/follow_requests_page.dart';
 import '../../features/news/news_detail_page.dart';
 import '../../features/notifications/notifications_page.dart';
-import '../../features/polls/poll_routes.dart';
+import '../../features/notifications/notification_exam_detail.dart';
+import '../../features/polls/poll_detail_page.dart';
 import '../../features/posts/post_routes.dart';
 import '../../features/profile/user_profile_page.dart';
+import '../../features/profile/account_security_page.dart';
+import '../../features/menu/menu_page.dart';
 import '../../features/support/support_page.dart';
 import '../../features/support/support_ticket_page.dart';
 import '../api.dart';
@@ -32,7 +35,8 @@ class PushRouter {
   /// [localReminder] = yük yerel hatırlatma dokunuşundan geldi (Android intent ekstrası dışarıdan sahte
   /// basılabilir): yalnız hedef anahtarları beyaz listeden geçer, sohbet durumu (kapandı/yeniden açıldı) ASLA
   /// işlenmez. Durum değiştiren anahtarlar (`event`...) yalnız sunucudan gelen FCM yükünde etkilidir.
-  static Future<void> open(Map<String, dynamic> data, {bool localReminder = false}) async {
+  static Future<void> open(Map<String, dynamic> data,
+      {bool localReminder = false, bool compose = false}) async {
     final s = session;
     final payload = localReminder ? sanitizeLocalReminderPayload(data) : data;
     // Sohbet kapatıldı/yeniden açıldı bildirimi: durum, hedef ekran açılmadan önce işlenir (bantlı açılsın).
@@ -41,12 +45,13 @@ class PushRouter {
     final nav = rootNavigatorKey.currentState;
     if (s == null || nav == null || s.state != SessionState.signedIn) return;
     try {
-      if (await _go(nav, s, target)) return;
+      if (await _go(nav, s, target, compose: !localReminder && compose)) return;
     } catch (_) {
       // Açılamayan hedef: bildirim listesine düş.
     }
     if (!nav.mounted) return;
-    nav.push(MaterialPageRoute<void>(builder: (_) => NotificationsPage(session: s)));
+    nav.push(
+        MaterialPageRoute<void>(builder: (_) => NotificationsPage(session: s)));
   }
 
   /// `GET /conversations/{id}` yanıtı `{conversation, members}` sarmalayıcısıdır (ChatDetailPage
@@ -60,16 +65,19 @@ class PushRouter {
   }
 
   /// true = hedef açıldı.
-  static Future<bool> _go(NavigatorState nav, Session s, PushTarget t) async {
+  static Future<bool> _go(NavigatorState nav, Session s, PushTarget t, {bool compose = false}) async {
     final id = t.id;
     final ctx = nav.context;
-    void push(Widget page) => nav.push(MaterialPageRoute<void>(builder: (_) => page));
+    void push(Widget page) =>
+        nav.push(MaterialPageRoute<void>(builder: (_) => page));
     switch (t.dest) {
       case PushDest.conversation:
         try {
-          final conv = conversationFromDetail(await s.api.get('/conversations/$id'));
-          if (conv == null) return false; // beklenmeyen biçim: Bildirimler listesine düş
-          push(ChatDetailPage(session: s, conversation: conv));
+          final conv =
+              conversationFromDetail(await s.api.get('/conversations/$id'));
+          if (conv == null)
+            return false; // beklenmeyen biçim: Bildirimler listesine düş
+          push(ChatDetailPage(session: s, conversation: conv, focusComposer: compose));
           return true;
         } on ApiError {
           return false;
@@ -80,7 +88,16 @@ class PushRouter {
         shellTabRequest.value = 2;
         return true;
       case PushDest.event:
-        push(EventDetailPage(session: s, eventId: id!));
+        showModalBottomSheet<void>(
+            context: ctx,
+            useRootNavigator: true,
+            useSafeArea: true,
+            isScrollControlled: true,
+            showDragHandle: true,
+            clipBehavior: Clip.antiAlias,
+            builder: (_) => FractionallySizedBox(
+                heightFactor: .94,
+                child: EventDetailPage(session: s, eventId: id!)));
         return true;
       case PushDest.community:
         push(ClubDetailPage(session: s, communityId: id!));
@@ -93,7 +110,16 @@ class PushRouter {
         await openPostDetail(ctx, s, id!, stream: const PostStreamSeed.fresh());
         return true;
       case PushDest.poll:
-        await openPollDetail(ctx, s, id!);
+        showModalBottomSheet<void>(
+            context: ctx,
+            useRootNavigator: true,
+            useSafeArea: true,
+            isScrollControlled: true,
+            showDragHandle: true,
+            clipBehavior: Clip.antiAlias,
+            builder: (_) => FractionallySizedBox(
+                heightFactor: .9,
+                child: PollDetailPage(session: s, pollId: id!)));
         return true;
       case PushDest.user:
         await openUserProfile(ctx, s, userId: id!);
@@ -108,15 +134,35 @@ class PushRouter {
         push(TimetablePage(session: s));
         return true;
       case PushDest.exams:
-        push(ExamsPage(session: s));
+        if (id != null) {
+          showModalBottomSheet<void>(
+              context: ctx,
+              useRootNavigator: true,
+              useSafeArea: true,
+              isScrollControlled: true,
+              showDragHandle: true,
+              builder: (_) => ConstrainedBox(
+                  constraints: BoxConstraints(
+                      maxHeight: MediaQuery.sizeOf(ctx).height * .9),
+                  child: NotificationExamDetail(session: s, examId: id)));
+        } else {
+          push(ExamsPage(session: s));
+        }
         return true;
       case PushDest.ticket:
         push(SupportTicketPage(session: s, ticketId: id!));
         return true;
+      case PushDest.meal:
+        push(MenuPage(session: s));
+        return true;
+      case PushDest.accountSecurity:
+        push(AccountSecurityPage(session: s));
+        return true;
       case PushDest.feedback:
         push(SupportPage(session: s));
         return true;
-      case PushDest.signOut: // ölü değer (bkz. PushDest.signOut): hiçbir yük buraya çözülmez, çıkış yapılmaz
+      case PushDest
+            .signOut: // ölü değer (bkz. PushDest.signOut): hiçbir yük buraya çözülmez, çıkış yapılmaz
       case PushDest.notifications:
         return false;
     }

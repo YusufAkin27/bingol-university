@@ -26,7 +26,7 @@ public final class PushPayload {
             new String[] {"eventId", "EVENT"}, new String[] {"communityId", "COMMUNITY"},
             new String[] {"newsId", "NEWS"}, new String[] {"ticketId", "TICKET"},
             new String[] {"feedbackId", "FEEDBACK"});
-    private static final List<String> CONTRACT = List.of("type", "subtype", "target", "value", "targetType", "targetId", "count");
+    private static final List<String> CONTRACT = List.of("type", "subtype", "target", "value", "targetType", "targetId", "count", "category");
 
     private PushPayload() {}
 
@@ -36,7 +36,7 @@ public final class PushPayload {
         if (data != null) {
             data.forEach((k, v) -> {
                 // FCM ayrilmis anahtarlari reddeder; null deger de olmaz.
-                if (k != null && v != null && !k.startsWith("google") && !k.startsWith("gcm") && !k.equals("from")) {
+                if (k != null && v != null && !java.util.Set.of("richNotification", "richChat", "notificationAction", "replyText", "actionId", "notificationTag").contains(k) && !k.startsWith("google") && !k.startsWith("gcm") && !k.equals("from")) {
                     out.put(k, v);
                 }
             });
@@ -62,6 +62,7 @@ public final class PushPayload {
         if (groupCount > 1) {
             out.put("count", String.valueOf(groupCount));
         }
+        out.put("category", NotificationPresentation.category(type, subtype == null ? null : subtype.name(), out));
         return fit(out);
     }
 

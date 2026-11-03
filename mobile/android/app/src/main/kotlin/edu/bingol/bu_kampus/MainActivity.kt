@@ -20,6 +20,18 @@ import org.json.JSONObject
 class MainActivity : FlutterActivity() {
     private var notifyChannel: MethodChannel? = null
     private var launchPayload: String? = null
+    private var pushChannel: MethodChannel? = null
+    private var pendingPush: Map<String, String>? = null
+    private var pushReady = false
+
+    private fun trustedPush(i: Intent?): Map<String, String>? {
+        val json = i?.getStringExtra(RichPushNotifications.EXTRA_PAYLOAD) ?: return null
+        if (json.length > 16000 || !LocalReminderStore.verify(this, json, i.getStringExtra(RichPushNotifications.EXTRA_SIGNATURE))) return null
+        return runCatching {
+            val data = JSONObject(json)
+            data.keys().asSequence().associateWith { data.optString(it) }
+        }.getOrNull()
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         // Ekran görüntüsü ve ekran kaydını engeller; son uygulamalar görünümünde de içerik gizlenir.
@@ -34,6 +46,7 @@ class MainActivity : FlutterActivity() {
         // kanal yoksa Android 8+ bildirimi sessiz "Diğer" kanalına düşürür. Idempotent oluşturulur.
         Channels.ensure(this)
         launchPayload = trustedPayload(intent)
+        pendingPush = trustedPush(intent)
     }
 
     /**
@@ -50,6 +63,11 @@ class MainActivity : FlutterActivity() {
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
+        val push = trustedPush(intent)
+        if (push != null) {
+            if (pushReady) pushChannel?.invokeMethod("onTap", push) else pendingPush = push
+            return
+        }
         val p = trustedPayload(intent) ?: return
         // Uygulama açıkken hatırlatmaya dokunuldu: Dart'a ilet.
         try {
@@ -62,6 +80,28 @@ class MainActivity : FlutterActivity() {
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
         val messenger = flutterEngine.dartExecutor.binaryMessenger
+        pushChannel = MethodChannel(messenger, "bu_kampus/push_actions").apply {
+            setMethodCallHandler { call, result ->
+                when (call.method) {
+                    "supportsRichNotifications" -> result.success(true)
+                    "authorize" -> { val userId = call.argument<Number>("userId")?.toLong(); if (userId != null && userId > 0) RichPushNotifications.authorize(this@MainActivity, userId); result.success(null) }
+                    "takeLaunchPayload" -> { pushReady = true; val payload = pendingPush; pendingPush = null; result.success(payload) }
+                    "dismiss" -> { val tag = call.argument<String>("tag"); if (tag != null) RichPushNotifications.dismiss(this@MainActivity, tag); result.success(null) }
+                    "clear" -> { pushReady = false; pendingPush = null; RichPushNotifications.clear(this@MainActivity); result.success(null) }
+                    "addCalendar" -> {
+                        try {
+                            val insert = Intent(Intent.ACTION_INSERT).setData(android.provider.CalendarContract.Events.CONTENT_URI)
+                                .putExtra(android.provider.CalendarContract.Events.TITLE, call.argument<String>("title"))
+                                .putExtra(android.provider.CalendarContract.Events.EVENT_LOCATION, call.argument<String>("location"))
+                                .putExtra(android.provider.CalendarContract.EXTRA_EVENT_BEGIN_TIME, call.argument<Number>("start")?.toLong() ?: 0L)
+                                .putExtra(android.provider.CalendarContract.EXTRA_EVENT_END_TIME, call.argument<Number>("end")?.toLong() ?: 0L)
+                            startActivity(insert); result.success(true)
+                        } catch (_: Exception) { result.success(false) }
+                    }
+                    else -> result.notImplemented()
+                }
+            }
+        }
         val ch = MethodChannel(messenger, "bu_kampus/notify")
         notifyChannel = ch
         ch.setMethodCallHandler { call, result -> handle(call, result) }
@@ -236,7 +276,7 @@ class MainActivity : FlutterActivity() {
         // lib/core/push/push_targets.dart kLocalReminderPayloadKeys ile ayni liste (type/event BILEREK yok).
         val PAYLOAD_KEYS = setOf(
             "targetType", "targetId", "conversationId", "eventId", "postId", "communityId",
-            "newsId", "ticketId", "pollId", "userId", "announcementId"
+            "newsId", "ticketId", "pollId", "userId", "announcementId", "examId"
         )
     }
 }

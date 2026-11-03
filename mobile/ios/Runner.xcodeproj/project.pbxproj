@@ -106,6 +106,8 @@
 		97C146E51CF9000F007C117D = {
 			isa = PBXGroup;
 			children = (
+				A91700000000000000000005,
+				A91700000000000000000015,
 				9740EEB11CF90186004384FC /* Flutter */,
 				97C146F01CF9000F007C117D /* Runner */,
 				97C146EF1CF9000F007C117D /* Products */,
@@ -118,6 +120,8 @@
 			children = (
 				97C146EE1CF9000F007C117D /* Runner.app */,
 				331C8081294A63A400263BE5 /* RunnerTests.xctest */,
+				A91700000000000000000006,
+				A91700000000000000000016,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -145,6 +149,40 @@
 		};
 /* End PBXGroup section */
 
+/* Native notification extension targets */
+A9170000000000000000000f = {isa = XCBuildConfiguration; baseConfigurationReference = 9740EEB21CF90195004384FC; buildSettings = {APPLICATION_EXTENSION_API_ONLY = YES; CLANG_ENABLE_MODULES = YES; CODE_SIGN_STYLE = Automatic; CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)"; MARKETING_VERSION = "$(FLUTTER_BUILD_NAME)"; GENERATE_INFOPLIST_FILE = NO; INFOPLIST_FILE = NotificationService/Info.plist; IPHONEOS_DEPLOYMENT_TARGET = 15.0; LD_RUNPATH_SEARCH_PATHS = ("$(inherited)", "@executable_path/Frameworks", "@executable_path/../../Frameworks"); PRODUCT_BUNDLE_IDENTIFIER = tr.com.bukampus.app.NotificationService; PRODUCT_NAME = "$(TARGET_NAME)"; SDKROOT = iphoneos; SKIP_INSTALL = YES; SWIFT_VERSION = 5.0; TARGETED_DEVICE_FAMILY = "1,2"; }; name = Debug; };
+A91700000000000000000010 = {isa = XCBuildConfiguration; baseConfigurationReference = 7AFA3C8E1D35360C0083082E; buildSettings = {APPLICATION_EXTENSION_API_ONLY = YES; CLANG_ENABLE_MODULES = YES; CODE_SIGN_STYLE = Automatic; CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)"; MARKETING_VERSION = "$(FLUTTER_BUILD_NAME)"; GENERATE_INFOPLIST_FILE = NO; INFOPLIST_FILE = NotificationService/Info.plist; IPHONEOS_DEPLOYMENT_TARGET = 15.0; LD_RUNPATH_SEARCH_PATHS = ("$(inherited)", "@executable_path/Frameworks", "@executable_path/../../Frameworks"); PRODUCT_BUNDLE_IDENTIFIER = tr.com.bukampus.app.NotificationService; PRODUCT_NAME = "$(TARGET_NAME)"; SDKROOT = iphoneos; SKIP_INSTALL = YES; SWIFT_VERSION = 5.0; TARGETED_DEVICE_FAMILY = "1,2"; }; name = Release; };
+A91700000000000000000011 = {isa = XCBuildConfiguration; baseConfigurationReference = 7AFA3C8E1D35360C0083082E; buildSettings = {APPLICATION_EXTENSION_API_ONLY = YES; CLANG_ENABLE_MODULES = YES; CODE_SIGN_STYLE = Automatic; CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)"; MARKETING_VERSION = "$(FLUTTER_BUILD_NAME)"; GENERATE_INFOPLIST_FILE = NO; INFOPLIST_FILE = NotificationService/Info.plist; IPHONEOS_DEPLOYMENT_TARGET = 15.0; LD_RUNPATH_SEARCH_PATHS = ("$(inherited)", "@executable_path/Frameworks", "@executable_path/../../Frameworks"); PRODUCT_BUNDLE_IDENTIFIER = tr.com.bukampus.app.NotificationService; PRODUCT_NAME = "$(TARGET_NAME)"; SDKROOT = iphoneos; SKIP_INSTALL = YES; SWIFT_VERSION = 5.0; TARGETED_DEVICE_FAMILY = "1,2"; }; name = Profile; };
+A91700000000000000000003 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationService.swift; sourceTree = "<group>"; };
+A91700000000000000000004 = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+A91700000000000000000006 = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = NotificationService.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+A91700000000000000000005 = {isa = PBXGroup; children = (A91700000000000000000003, A91700000000000000000004); path = NotificationService; sourceTree = "<group>"; };
+A91700000000000000000007 = {isa = PBXBuildFile; fileRef = A91700000000000000000003; };
+A91700000000000000000008 = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (A91700000000000000000007); runOnlyForDeploymentPostprocessing = 0; };
+A91700000000000000000009 = {isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
+A9170000000000000000000a = {isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
+A9170000000000000000000b = {isa = XCConfigurationList; buildConfigurations = (A9170000000000000000000f,A91700000000000000000010,A91700000000000000000011); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
+A91700000000000000000002 = {isa = PBXNativeTarget; buildConfigurationList = A9170000000000000000000b; buildPhases = (A91700000000000000000008, A91700000000000000000009, A9170000000000000000000a); buildRules = (); dependencies = (); name = NotificationService; productName = NotificationService; productReference = A91700000000000000000006; productType = "com.apple.product-type.app-extension"; };
+A9170000000000000000000c = {isa = PBXContainerItemProxy; containerPortal = 97C146E61CF9000F007C117D; proxyType = 1; remoteGlobalIDString = A91700000000000000000002; remoteInfo = NotificationService; };
+A9170000000000000000000d = {isa = PBXTargetDependency; target = A91700000000000000000002; targetProxy = A9170000000000000000000c; };
+A9170000000000000000000e = {isa = PBXBuildFile; fileRef = A91700000000000000000006; settings = {ATTRIBUTES = (RemoveHeadersOnCopy); }; };
+A9170000000000000000001f = {isa = XCBuildConfiguration; baseConfigurationReference = 9740EEB21CF90195004384FC; buildSettings = {APPLICATION_EXTENSION_API_ONLY = YES; CLANG_ENABLE_MODULES = YES; CODE_SIGN_STYLE = Automatic; CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)"; MARKETING_VERSION = "$(FLUTTER_BUILD_NAME)"; GENERATE_INFOPLIST_FILE = NO; INFOPLIST_FILE = NotificationContent/Info.plist; IPHONEOS_DEPLOYMENT_TARGET = 15.0; LD_RUNPATH_SEARCH_PATHS = ("$(inherited)", "@executable_path/Frameworks", "@executable_path/../../Frameworks"); PRODUCT_BUNDLE_IDENTIFIER = tr.com.bukampus.app.NotificationContent; PRODUCT_NAME = "$(TARGET_NAME)"; SDKROOT = iphoneos; SKIP_INSTALL = YES; SWIFT_VERSION = 5.0; TARGETED_DEVICE_FAMILY = "1,2"; }; name = Debug; };
+A91700000000000000000020 = {isa = XCBuildConfiguration; baseConfigurationReference = 7AFA3C8E1D35360C0083082E; buildSettings = {APPLICATION_EXTENSION_API_ONLY = YES; CLANG_ENABLE_MODULES = YES; CODE_SIGN_STYLE = Automatic; CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)"; MARKETING_VERSION = "$(FLUTTER_BUILD_NAME)"; GENERATE_INFOPLIST_FILE = NO; INFOPLIST_FILE = NotificationContent/Info.plist; IPHONEOS_DEPLOYMENT_TARGET = 15.0; LD_RUNPATH_SEARCH_PATHS = ("$(inherited)", "@executable_path/Frameworks", "@executable_path/../../Frameworks"); PRODUCT_BUNDLE_IDENTIFIER = tr.com.bukampus.app.NotificationContent; PRODUCT_NAME = "$(TARGET_NAME)"; SDKROOT = iphoneos; SKIP_INSTALL = YES; SWIFT_VERSION = 5.0; TARGETED_DEVICE_FAMILY = "1,2"; }; name = Release; };
+A91700000000000000000021 = {isa = XCBuildConfiguration; baseConfigurationReference = 7AFA3C8E1D35360C0083082E; buildSettings = {APPLICATION_EXTENSION_API_ONLY = YES; CLANG_ENABLE_MODULES = YES; CODE_SIGN_STYLE = Automatic; CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)"; MARKETING_VERSION = "$(FLUTTER_BUILD_NAME)"; GENERATE_INFOPLIST_FILE = NO; INFOPLIST_FILE = NotificationContent/Info.plist; IPHONEOS_DEPLOYMENT_TARGET = 15.0; LD_RUNPATH_SEARCH_PATHS = ("$(inherited)", "@executable_path/Frameworks", "@executable_path/../../Frameworks"); PRODUCT_BUNDLE_IDENTIFIER = tr.com.bukampus.app.NotificationContent; PRODUCT_NAME = "$(TARGET_NAME)"; SDKROOT = iphoneos; SKIP_INSTALL = YES; SWIFT_VERSION = 5.0; TARGETED_DEVICE_FAMILY = "1,2"; }; name = Profile; };
+A91700000000000000000013 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationViewController.swift; sourceTree = "<group>"; };
+A91700000000000000000014 = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+A91700000000000000000016 = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = NotificationContent.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+A91700000000000000000015 = {isa = PBXGroup; children = (A91700000000000000000013, A91700000000000000000014); path = NotificationContent; sourceTree = "<group>"; };
+A91700000000000000000017 = {isa = PBXBuildFile; fileRef = A91700000000000000000013; };
+A91700000000000000000018 = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (A91700000000000000000017); runOnlyForDeploymentPostprocessing = 0; };
+A91700000000000000000019 = {isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
+A9170000000000000000001a = {isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
+A9170000000000000000001b = {isa = XCConfigurationList; buildConfigurations = (A9170000000000000000001f,A91700000000000000000020,A91700000000000000000021); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
+A91700000000000000000012 = {isa = PBXNativeTarget; buildConfigurationList = A9170000000000000000001b; buildPhases = (A91700000000000000000018, A91700000000000000000019, A9170000000000000000001a); buildRules = (); dependencies = (); name = NotificationContent; productName = NotificationContent; productReference = A91700000000000000000016; productType = "com.apple.product-type.app-extension"; };
+A9170000000000000000001c = {isa = PBXContainerItemProxy; containerPortal = 97C146E61CF9000F007C117D; proxyType = 1; remoteGlobalIDString = A91700000000000000000012; remoteInfo = NotificationContent; };
+A9170000000000000000001d = {isa = PBXTargetDependency; target = A91700000000000000000012; targetProxy = A9170000000000000000001c; };
+A9170000000000000000001e = {isa = PBXBuildFile; fileRef = A91700000000000000000016; settings = {ATTRIBUTES = (RemoveHeadersOnCopy); }; };
+A91700000000000000000001 = {isa = PBXCopyFilesBuildPhase; buildActionMask = 2147483647; dstPath = ""; dstSubfolderSpec = 13; files = (A9170000000000000000000e,A9170000000000000000001e); name = "Embed App Extensions"; runOnlyForDeploymentPostprocessing = 0; };
 /* Begin PBXNativeTarget section */
 		331C8080294A63A400263BE5 /* RunnerTests */ = {
 			isa = PBXNativeTarget;
@@ -167,6 +205,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 97C147051CF9000F007C117D /* Build configuration list for PBXNativeTarget "Runner" */;
 			buildPhases = (
+				A91700000000000000000001,
 				9740EEB61CF901F6004384FC /* Run Script */,
 				97C146EA1CF9000F007C117D /* Sources */,
 				97C146EB1CF9000F007C117D /* Frameworks */,
@@ -178,6 +217,8 @@
 			buildRules = (
 			);
 			dependencies = (
+				A9170000000000000000000d,
+				A9170000000000000000001d,
 			);
 			name = Runner;
 			packageProductDependencies = (
@@ -227,6 +268,8 @@
 			targets = (
 				97C146ED1CF9000F007C117D /* Runner */,
 				331C8080294A63A400263BE5 /* RunnerTests */,
+				A91700000000000000000002,
+				A91700000000000000000012,
 			);
 		};
 /* End PBXProject section */

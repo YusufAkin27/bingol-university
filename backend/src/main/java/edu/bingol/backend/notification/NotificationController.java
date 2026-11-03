@@ -52,7 +52,7 @@ public class NotificationController {
         // Uygulama her acilista/token yenilemede kaydolur: dar sinir (eski 30/sa) 429 ile kaydi dusurup kullaniciyi
         // push'suz birakabilirdi. Silme sayaci ayri tutulur.
         limiter.check("dev-reg:" + uid, 120, Duration.ofHours(1));
-        devices.register(uid, r.fcmToken(), r.platform(), r.appVersion(), r.locale());
+        devices.register(uid, r.fcmToken(), r.platform(), r.appVersion(), r.locale(), Boolean.TRUE.equals(r.richNotifications()));
     }
 
     @GetMapping("/devices")
@@ -73,10 +73,16 @@ public class NotificationController {
     public NotificationPage list(@RequestParam(required = false) Long cursor,
                                  @RequestParam(defaultValue = "20") int size,
                                  @RequestParam(required = false) String type,
-                                 @RequestParam(defaultValue = "false") boolean unread) {
+                                 @RequestParam(defaultValue = "false") boolean unread,
+                                 @RequestParam(required = false) String category) {
         Long uid = CurrentUser.id();
         limiter.check("notif-list:" + uid, 120, MINUTE); // T-060
-        return inbox.list(uid, cursor, size, type, unread);
+        return inbox.list(uid, cursor, size, type, unread, category);
+    }
+
+    /** Backward-compatible Java entry point used by internal callers. */
+    public NotificationPage list(Long cursor, int size, String type, boolean unread) {
+        return list(cursor, size, type, unread, null);
     }
 
     /** Hafif sayac (rozet icin sik cagrilabilir). */

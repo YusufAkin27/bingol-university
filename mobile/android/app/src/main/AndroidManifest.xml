@@ -58,6 +58,9 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
+        <receiver android:name=".RichPushReceiver" android:exported="true" android:permission="com.google.android.c2dm.permission.SEND">
+            <intent-filter><action android:name="com.google.android.c2dm.intent.RECEIVE"/><category android:name="${applicationId}"/></intent-filter>
+        </receiver>
         <receiver android:name=".ReminderReceiver" android:exported="false"/>
         <!-- Yalniz sistem yayinlari (BOOT_COMPLETED vb.) alinir; exported=false disaridan sahte tetiklemeyi engeller
              (sistem yayinlari yine iletilir). rearmAll sadece yerel alarmlari yeniden kurar. -->

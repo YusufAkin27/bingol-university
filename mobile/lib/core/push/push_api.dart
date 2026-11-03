@@ -12,12 +12,13 @@ class PushApi {
   bool _noState = false;
   bool _noViewing = false;
 
-  Future<void> register(String token, {required String platform, required String appVersion}) async {
+  Future<void> register(String token, {required String platform, required String appVersion, bool richNotifications = false}) async {
     await api.post('/devices', {
       'fcmToken': token,
       'platform': platform, // ANDROID|IOS
       'appVersion': appVersion,
       'locale': api.lang,
+      'richNotifications': richNotifications,
     });
   }
 

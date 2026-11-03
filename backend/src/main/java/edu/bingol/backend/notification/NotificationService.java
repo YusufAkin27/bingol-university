@@ -277,21 +277,30 @@ public class NotificationService {
             }
             int count = c.row().groupCount();
             String pBody = pushPreview == null || pushPreview.isBlank() ? c.stored() : pushPreview;
-            if (previewRequiresOptIn && (c.pref() == null || !c.pref().isMessagePreview())) {
+            if (previewRequiresOptIn && (c.pref() != null && !c.pref().isMessagePreview())) {
                 pBody = c.stored(); // onizleme izni yok: sabit "Yeni mesaj"
             }
             if (count > 1 && java.util.Objects.equals(pBody, c.stored())) {
                 pBody = i18n.msg("notif.message.many", c.lang(), String.valueOf(count));
             }
-            Map<String, String> pushData = data;
-            Map<String, String> extra = c.target().pushExtra();
-            if (extra != null && !extra.isEmpty()) {
-                pushData = new java.util.HashMap<>(data == null ? Map.of() : data);
-                pushData.putAll(extra);
-            }
+            Map<String, String> pushData = messagePushData(data, c.target().pushExtra(),
+                    !previewRequiresOptIn || c.pref() == null || c.pref().isMessagePreview());
+            pushData.put("recipientId", uid.toString());
+            pushData.put("locale", c.lang().code());
             push(toks, title, pBody, NotificationType.MESSAGE, sub, pushData, count, key,
                     (int) (badges.getOrDefault(uid, 0L) + 1));
         }
+    }
+
+    /** Gorsel onizleme tercihi metinle aynidir; avatar kendi gizlilik kontrolunden gecer. */
+    static Map<String, String> messagePushData(Map<String, String> data, Map<String, String> extra, boolean preview) {
+        var out = new java.util.HashMap<String, String>(data == null ? Map.of() : data);
+        if (extra != null) out.putAll(extra);
+        if (!preview) {
+            out.remove("imageUrl");
+            out.remove("imageAttachmentId");
+        }
+        return out;
     }
 
     /** Saklanan govde (`body`) ile push govdesi (`pushBody`) ayri olabilir. */
@@ -369,7 +378,7 @@ public class NotificationService {
             }
             String pTitle = title;
             String pBody = pushBody;
-            if (previewRequiresOptIn && (pref == null || !pref.isMessagePreview())) {
+            if (previewRequiresOptIn && (pref != null && !pref.isMessagePreview())) {
                 pBody = body; // onizleme izni yok: sabit "Yeni mesaj"
             }
             if (type == NotificationType.MESSAGE) {
@@ -390,11 +399,10 @@ public class NotificationService {
             }
             List<String> tokens = devices.findByUserId(userId).stream().map(Device::getFcmToken).toList();
             int badge = (int) badgeOf(userId);
-            Map<String, String> pushData = data;
-            if (pushExtra != null && !pushExtra.isEmpty()) {
-                pushData = new java.util.HashMap<>(data == null ? Map.of() : data);
-                pushData.putAll(pushExtra);
-            }
+            Map<String, String> pushData = messagePushData(data, pushExtra,
+                    type != NotificationType.MESSAGE || !previewRequiresOptIn || pref == null || pref.isMessagePreview());
+            pushData.put("recipientId", userId.toString());
+            pushData.put("locale", i18n.langOf(userId).code());
             push(tokens, pTitle, pBody, type, subtype, pushData, count, key, badge);
         } catch (RuntimeException e) {
             log.warn("Bildirim gonderilemedi (kullanici {}): {}", userId, e.toString());

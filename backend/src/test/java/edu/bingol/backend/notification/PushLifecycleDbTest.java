@@ -95,13 +95,13 @@ class PushLifecycleDbTest {
     }
 
     @Test
-    void messagePreviewPreferencePersistsAndDefaultsOff() {
+    void messagePreviewPreferencePersistsAndDefaultsOn() {
         User u = user(Instant.now());
         NotificationPref p = NotificationPref.defaults(u.getId());
-        assertFalse(p.isMessagePreview());
-        p.setMessagePreview(true);
+        assertTrue(p.isMessagePreview());
+        p.setMessagePreview(false);
         prefs.saveAndFlush(p);
 
-        assertTrue(prefs.findById(u.getId()).orElseThrow().isMessagePreview());
+        assertFalse(prefs.findById(u.getId()).orElseThrow().isMessagePreview());
     }
 }

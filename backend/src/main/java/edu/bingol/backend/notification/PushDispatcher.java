@@ -39,6 +39,9 @@ public class PushDispatcher {
         void schedule(Runnable task, long delayMs);
     }
 
+    @org.springframework.beans.factory.annotation.Value("${PUBLIC_WEB_URL:}")
+    private String publicWebUrl = "";
+
     private final FcmSender fcm;
     private final DeviceRepository devices;
     private final Executor executor;
@@ -109,9 +112,37 @@ public class PushDispatcher {
     }
 
     /** Kuyruga atar ve hemen doner; hata cagirana sizmaz. */
-    public void dispatch(Collection<String> tokens, PushMessage message) {
+    public void dispatch(Collection<String> tokens, PushMessage original) {
+        final PushMessage message = RichPushPayload.normalizeMedia(original, publicWebUrl);
         if (tokens == null || tokens.isEmpty()) {
             return;
+        }
+        if (!RichPushPayload.isRich(message)) {
+            try {
+                var all = List.copyOf(tokens);
+                var nativeTokens = new java.util.HashSet<String>();
+                var byLocale = new java.util.HashMap<String, java.util.List<String>>();
+                for (int i = 0; i < all.size(); i += CHUNK) {
+                    var rows = devices.findByFcmTokenIn(all.subList(i, Math.min(i + CHUNK, all.size())));
+                    if (rows != null) for (Device device : rows) {
+                        if (!device.isRichNotifications() || !"ANDROID".equals(device.getPlatform())) continue;
+                        nativeTokens.add(device.getFcmToken());
+                        String locale = device.getLocale() == null ? "tr" : device.getLocale();
+                        byLocale.computeIfAbsent(device.getUserId() + ":" + locale, k -> new ArrayList<>()).add(device.getFcmToken());
+                    }
+                }
+                for (var entry : byLocale.entrySet()) {
+                    String[] recipient = entry.getKey().split(":", 2);
+                    var rich = RichPushPayload.enrich(message, publicWebUrl, recipient[1], Long.valueOf(recipient[0]));
+                    // Oversized enrichment falls back once, without recursive re-enrichment.
+                    if (RichPushPayload.isRich(rich)) dispatch(entry.getValue(), rich);
+                    else nativeTokens.removeAll(entry.getValue());
+                }
+                tokens = all.stream().filter(t -> !nativeTokens.contains(t)).toList();
+                if (tokens.isEmpty()) return;
+            } catch (RuntimeException e) {
+                log.warn("Native notification capability check failed: {}", e.getClass().getSimpleName());
+            }
         }
         if (outbox != null) {
             if (!outbox.accepting()) {

@@ -67,6 +67,10 @@ class _AkadHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (showTitle) return BuHeader(
+      title: title, subtitle: subtitle, actions: actions,
+      onBack: () => Navigator.maybePop(context),
+    );
     final t = context.bu;
     final tx = Theme.of(context).textTheme;
     return ColoredBox(

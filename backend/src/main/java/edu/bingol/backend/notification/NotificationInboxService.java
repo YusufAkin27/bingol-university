@@ -29,13 +29,22 @@ public class NotificationInboxService {
     }
 
     public NotificationPage list(Long userId, Long cursor, int size, String type, boolean unreadOnly) {
+        return list(userId, cursor, size, type, unreadOnly, null);
+    }
+
+    public NotificationPage list(Long userId, Long cursor, int size, String type, boolean unreadOnly, String category) {
+        String selected = category == null || category.isBlank() ? null : category.trim().toUpperCase(java.util.Locale.ROOT);
+        if (selected != null && !List.of("EVENT", "ANNOUNCEMENT", "ACADEMIC", "POLL", "SOCIAL", "SYSTEM").contains(selected)) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "VALIDATION_ERROR", "Geçersiz bildirim kategorisi.");
+        }
         int s = CursorPage.clampSize(size);
         if (isMessageType(type)) {
             // Sohbet mesaji kutuda yok (yalniz push): gecerli tur ama bos liste
             return new NotificationPage(List.of(), null, notifications.countUnreadInbox(userId));
         }
-        List<Notification> rows = notifications.pageFiltered(userId, cursor, types(type), unreadOnly,
-                PageRequest.of(0, s + 1));
+        List<Notification> rows = selected == null
+                ? notifications.pageFiltered(userId, cursor, types(type), unreadOnly, PageRequest.of(0, s + 1))
+                : notifications.pageCategory(userId, cursor, types(type), unreadOnly, selected, PageRequest.of(0, s + 1));
         CursorPage<NotificationView> page = CursorPage.of(rows, s, Notification::getId, NotificationView::of);
         return new NotificationPage(page.items(), page.nextCursor(), notifications.countUnreadInbox(userId));
     }

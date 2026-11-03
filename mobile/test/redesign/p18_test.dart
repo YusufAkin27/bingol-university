@@ -155,7 +155,7 @@ void main() {
       await settle(tester, const Duration(seconds: 1));
       expect(s.avatarUrl.value, '/files/avatars/1.jpg');
       expect(find.byKey(const ValueKey('nav-4')), findsOneWidget);
-      expect(find.descendant(of: find.byKey(const ValueKey('nav-4')), matching: find.byType(Image)), findsOneWidget);
+      expect(find.descendant(of: find.byKey(const ValueKey('nav-4')), matching: find.byIcon(BuIcons.user)), findsOneWidget);
       await unmount(tester);
     });
 

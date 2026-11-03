@@ -7,6 +7,8 @@ import '../../core/session.dart';
 import '../../widgets/bu.dart';
 import '../../core/push/push_router.dart';
 import '../../core/push/push_targets.dart';
+import '../../core/push/notification_presentation.dart';
+import '../follow/follow_requests_api.dart';
 import '../follow/follow_requests_entry.dart';
 import '../news/news_tile.dart' show newsLocalDate, newsMonthName;
 import 'notif_row.dart';
@@ -28,6 +30,9 @@ class _NotificationsPageState extends State<NotificationsPage> {
   bool _loading = true;
   bool _more = false;
   bool _unreadOnly = false;
+  NotificationCategory? _category;
+  int _generation = 0;
+  final _acting = <Object?>{};
   Object? _error;
 
   /// Yenilemede artar: üstteki "Takip istekleri" satırı sayısını yeniden yükler.
@@ -53,25 +58,28 @@ class _NotificationsPageState extends State<NotificationsPage> {
   }
 
   Future<void> _load({bool silent = false}) async {
+    final generation = ++_generation;
     if (!silent) setState(() => _loading = _items.isEmpty);
     if (silent) _reqRefresh++;
     try {
-      final r = await _s.api.get('/notifications') as Map<String, dynamic>;
-      if (!mounted) return;
+      final r = await _s.api.get(_listPath()) as Map<String, dynamic>;
+      if (!mounted || generation != _generation) return;
       setState(() {
         _items
           ..clear()
           ..addAll(_inbox(r['items']));
         _cursor = (r['nextCursor'] as num?)?.toInt();
         _error = null;
+        _more = false;
         _loading = false;
       });
       final u = (r['unreadCount'] as num?)?.toInt();
       if (u != null) _s.badges.notifications.value = u;
     } catch (e) {
-      if (!mounted) return;
+      if (!mounted || generation != _generation) return;
       setState(() {
         _error = e;
+        _more = false;
         _loading = false;
       });
     }
@@ -79,17 +87,19 @@ class _NotificationsPageState extends State<NotificationsPage> {
 
   Future<void> _loadMore() async {
     if (_cursor == null || _more || _loading) return;
+    final generation = _generation;
     setState(() => _more = true);
     try {
-      final r = await _s.api.get('/notifications?cursor=$_cursor') as Map<String, dynamic>;
-      if (!mounted) return;
+      final r =
+          await _s.api.get(_listPath(cursor: _cursor)) as Map<String, dynamic>;
+      if (!mounted || generation != _generation) return;
       setState(() {
         _items.addAll(_inbox(r['items']));
         _cursor = (r['nextCursor'] as num?)?.toInt();
         _more = false;
       });
     } catch (_) {
-      if (mounted) setState(() => _more = false);
+      if (mounted && generation == _generation) setState(() => _more = false);
     }
   }
 
@@ -97,8 +107,53 @@ class _NotificationsPageState extends State<NotificationsPage> {
   /// artık `MESSAGE` döndürmez; eski sürüm/önbellekten gelen satır istemcide de gizlenir.
   static List<Map<String, dynamic>> _inbox(Object? items) => [
         for (final e in (items as List?) ?? const [])
-          if (e is Map<String, dynamic> && '${e['type'] ?? ''}'.toUpperCase() != 'MESSAGE') e,
+          if (e is Map<String, dynamic> &&
+              '${e['type'] ?? ''}'.toUpperCase() != 'MESSAGE')
+            e,
       ];
+
+  String _listPath({int? cursor}) {
+    final query = <String, String>{
+      if (cursor != null) 'cursor': cursor.toString(),
+      if (_category != null) 'category': _category!.name.toUpperCase(),
+      if (_unreadOnly) 'unread': 'true',
+    };
+    return Uri(
+            path: '/notifications',
+            queryParameters: query.isEmpty ? null : query)
+        .toString();
+  }
+
+  void _selectUnread(bool unread) {
+    if (_unreadOnly == unread) return;
+    setState(() {
+      _unreadOnly = unread;
+      _items.clear();
+      _cursor = null;
+      _more = false;
+      _error = null;
+    });
+    _load();
+  }
+
+  void _selectCategory(NotificationCategory? category) {
+    if (_category == category) return;
+    setState(() {
+      _category = category;
+      _items.clear();
+      _cursor = null;
+      _more = false;
+      _error = null;
+    });
+    _load();
+  }
+
+  Map<String, dynamic> _presentationData(Map<String, dynamic> n) => {
+        ..._data(n),
+        'type': n['type'],
+        if (n['subtype'] != null) 'subtype': n['subtype'],
+        if (n['category'] != null) 'category': n['category'],
+      };
 
   int get _unread => _items.where((n) => n['read'] != true).length;
 
@@ -151,7 +206,44 @@ class _NotificationsPageState extends State<NotificationsPage> {
     // Tek yönlendirme tablosu: push dokunuşu ile aynı (core/push/push_targets.dart).
     final d = _data(n);
     final t = resolvePushTarget(d);
-    if (t.dest == PushDest.notifications || t.dest == PushDest.signOut) return;
+    if (t.dest == PushDest.notifications || t.dest == PushDest.signOut) {
+      await showModalBottomSheet<void>(
+        context: context,
+        isScrollControlled: true,
+        useSafeArea: true,
+        showDragHandle: true,
+        builder: (context) => SafeArea(
+            child: SingleChildScrollView(
+          padding: const EdgeInsets.fromLTRB(20, 0, 20, 28),
+          child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Row(children: [
+                  Icon(notificationIcon(_presentationData(n)),
+                      color: context.bu.pr),
+                  const SizedBox(width: 10),
+                  Expanded(
+                      child: Text(_typeLabel(n['type'] as String?),
+                          style: BuType.caption)),
+                  IconButton(
+                      tooltip: context.l10n.commonClose,
+                      onPressed: () => Navigator.pop(context),
+                      icon: const Icon(Icons.close)),
+                ]),
+                const SizedBox(height: 12),
+                Text(n['title'] as String? ?? '',
+                    style: Theme.of(context).textTheme.titleLarge),
+                const SizedBox(height: 12),
+                Text(n['body'] as String? ?? '',
+                    style: Theme.of(context).textTheme.bodyLarge),
+                const SizedBox(height: 16),
+                Text(_ago(n['createdAt'] as String?), style: BuType.caption),
+              ]),
+        )),
+      );
+      return;
+    }
     await PushRouter.open(d);
   }
 
@@ -187,6 +279,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
       case 'POST_COMMENT':
       case 'COMMENT_REPLY':
         return l.bildirimTypePost;
+      case 'USER_FOLLOW':
       case 'FOLLOW':
       case 'FOLLOW_REQUEST':
       case 'FOLLOW_ACCEPTED':
@@ -207,12 +300,16 @@ class _NotificationsPageState extends State<NotificationsPage> {
     if (diff.inMinutes < 60) {
       return l.bildirimShortMin(diff.inMinutes.toString());
     }
-    final days = DateTime(now.year, now.month, now.day).difference(DateTime(d.year, d.month, d.day)).inDays;
+    final days = DateTime(now.year, now.month, now.day)
+        .difference(DateTime(d.year, d.month, d.day))
+        .inDays;
     if (days <= 0) return l.bildirimShortHour(diff.inHours.toString());
     if (days == 1) return l.bildirimYesterday;
     if (days < 7) return l.p03NotifShortDay(days.toString());
     // Aynı yıl: "22 Ekim"; daha eski: yıllı tam tarih.
-    return d.year == now.year ? '${d.day} ${newsMonthName(context, d.month)}' : newsLocalDate(context, iso);
+    return d.year == now.year
+        ? '${d.day} ${newsMonthName(context, d.month)}'
+        : newsLocalDate(context, iso);
   }
 
   Future<void> _delete(Map<String, dynamic> n) async {
@@ -231,43 +328,86 @@ class _NotificationsPageState extends State<NotificationsPage> {
     }
   }
 
-  Widget _filters(BuTokens t) {
-    final l = context.l10n;
-    // Çipin 48 dp dokunma alanı görsel 34 dp'nin 7 dp üstüne taşar; görsel konumu Stitch ölçüsüne oturtmak için
-    // paint + hit-test 7 dp yukarı alınır (yer ayırma aynı kalır, alt boşluk buna göre).
-    return Transform.translate(
-      offset: const Offset(0, -7),
-      child: Align(
-        alignment: AlignmentDirectional.centerStart,
-        child: Padding(
-      padding: const EdgeInsets.fromLTRB(20, 0, 20, 15),
-      child: Wrap(spacing: 8, runSpacing: 8, children: [
-        _NotifFilterChip(
-            key: const ValueKey('notif-seg-all'),
-            label: l.bildirimFilterAll,
-            selected: !_unreadOnly,
-            onTap: () => setState(() => _unreadOnly = false)),
-        _NotifFilterChip(
-            key: const ValueKey('notif-seg-unread'),
-            label: l.bildirimFilterUnread,
-            selected: _unreadOnly,
-            onTap: () => setState(() => _unreadOnly = true)),
-      ]),
-      ),
-      ),
-    );
+  Future<void> _decide(Map<String, dynamic> n, int userId, bool accept) async {
+    if (!_acting.add(n['id'])) return;
+    setState(() {});
+    try {
+      final api = FollowRequestsApi(_s);
+      if (accept) {
+        await api.accept(userId);
+      } else {
+        await api.decline(userId);
+      }
+      if (!mounted) return;
+      setState(() => n['actionResolved'] = true);
+      await _markOne(n);
+      if (mounted) setState(() => _reqRefresh++);
+    } catch (e) {
+      if (mounted) _snack(errorText(e));
+    } finally {
+      _acting.remove(n['id']);
+      if (mounted) setState(() {});
+    }
   }
+
+  void _resetFilters() {
+    if (_category == null && !_unreadOnly) return;
+    setState(() {
+      _category = null;
+      _unreadOnly = false;
+      _items.clear();
+      _cursor = null;
+      _more = false;
+      _error = null;
+    });
+    _load();
+  }
+
+  Widget _categories() => SizedBox(
+        height: 56,
+        child: ListView(
+          scrollDirection: Axis.horizontal,
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          children: [
+            Padding(
+                padding: const EdgeInsetsDirectional.only(end: 8),
+                child: _NotifFilterChip(
+                    key: const ValueKey('notif-seg-all'),
+                    label: context.l10n.bildirimFilterAll,
+                    selected: _category == null && !_unreadOnly,
+                    onTap: _resetFilters)),
+            Padding(
+                padding: const EdgeInsetsDirectional.only(end: 8),
+                child: _NotifFilterChip(
+                    key: const ValueKey('notif-seg-unread'),
+                    label: context.l10n.bildirimFilterUnread,
+                    selected: _unreadOnly,
+                    onTap: () => _selectUnread(!_unreadOnly))),
+            for (final category in NotificationCategory.values)
+              Padding(
+                  padding: const EdgeInsetsDirectional.only(end: 8),
+                  child: _NotifFilterChip(
+                      key: ValueKey('notif-category-${category.name}'),
+                      label: notificationCategoryLabel(context, category),
+                      selected: _category == category,
+                      onTap: () => _selectCategory(category))),
+          ],
+        ),
+      );
 
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
     final l = context.l10n;
     // Geniş ekranda "Tümünü okundu yap" başlık satırının sağında; dar ekran / büyük yazıda başlığın altında.
-    final bigText = MediaQuery.textScalerOf(context).scale(10) > 11.5 || MediaQuery.sizeOf(context).width < 380;
+    final bigText = MediaQuery.textScalerOf(context).scale(10) > 11.5 ||
+        MediaQuery.sizeOf(context).width < 380;
     final pill = _unread > 0 || _s.badges.notifications.value > 0
         ? ConstrainedBox(
             // Başlığı ezmesin: genişliğin sınırlı bölümü, metin kısalır.
-            constraints: BoxConstraints(maxWidth: MediaQuery.sizeOf(context).width * (bigText ? .9 : .5)),
+            constraints: BoxConstraints(
+                maxWidth:
+                    MediaQuery.sizeOf(context).width * (bigText ? .9 : .5)),
             child: BuPressable(
               onTap: _markAll,
               child: Container(
@@ -277,13 +417,18 @@ class _NotificationsPageState extends State<NotificationsPage> {
                     maxLines: bigText ? 2 : 1,
                     textAlign: TextAlign.end,
                     overflow: TextOverflow.ellipsis,
-                    style: BuType.caption.copyWith(fontSize: 14, height: 1.3, fontWeight: FontWeight.w600, color: t.pr)),
+                    style: BuType.caption.copyWith(
+                        fontSize: 14,
+                        height: 1.3,
+                        fontWeight: FontWeight.w600,
+                        color: t.pr)),
               ),
             ),
           )
         : null;
 
-    final shown = _unreadOnly ? _items.where((n) => n['read'] != true).toList() : _items;
+    final shown =
+        _unreadOnly ? _items.where((n) => n['read'] != true).toList() : _items;
     final failed = _error != null;
 
     Widget body;
@@ -306,8 +451,11 @@ class _NotificationsPageState extends State<NotificationsPage> {
                 child: Center(
                   child: Semantics(
                     liveRegion: true,
-                    child: Text(unreadEmpty ? l.bildirimEmptyUnread : l.notifEmpty,
-                        textAlign: TextAlign.center, style: BuType.caption.copyWith(fontSize: 16, height: 1.5, color: t.mut)),
+                    child: Text(
+                        unreadEmpty ? l.bildirimEmptyUnread : l.notifEmpty,
+                        textAlign: TextAlign.center,
+                        style: BuType.caption
+                            .copyWith(fontSize: 16, height: 1.5, color: t.mut)),
                   ),
                 ),
               ),
@@ -316,7 +464,9 @@ class _NotificationsPageState extends State<NotificationsPage> {
     } else {
       final children = <Widget>[];
       if (failed) {
-        children.add(Padding(padding: const EdgeInsets.fromLTRB(20, 0, 20, 8), child: _ErrorCard(onRetry: _load)));
+        children.add(Padding(
+            padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
+            child: _ErrorCard(onRetry: _load)));
       }
       String? last;
       var row = 0;
@@ -325,16 +475,24 @@ class _NotificationsPageState extends State<NotificationsPage> {
         if (g != last) {
           last = g;
           children.add(Padding(
-            padding: EdgeInsetsDirectional.fromSTEB(20, row == 0 ? 8 : 16, 20, 6),
+            padding:
+                EdgeInsetsDirectional.fromSTEB(20, row == 0 ? 8 : 16, 20, 6),
             child: Semantics(
               header: true,
-              child: Text(trUpper(g), style: BuType.caption.copyWith(fontSize: 13, height: 1.3, fontWeight: FontWeight.w600, letterSpacing: .6, color: t.mut)),
+              child: Text(trUpper(g),
+                  style: BuType.caption.copyWith(
+                      fontSize: 13,
+                      height: 1.3,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: .6,
+                      color: t.mut)),
             ),
           ));
         }
         // İlk görünürde ilk 8 satır sırayla belirir; kaydırınca ya da süzünce yeniden oynamaz.
         children.add(Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20), child: BuStaggerItem(index: row++, child: _tile(t, n))));
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: BuStaggerItem(index: row++, child: _tile(t, n))));
       }
       if (_more) {
         children.add(Padding(
@@ -343,16 +501,30 @@ class _NotificationsPageState extends State<NotificationsPage> {
             child: Semantics(
               label: l.p03NotifLoadingMore,
               liveRegion: true,
-              child: SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: t.mut)),
+              child: SizedBox(
+                  width: 20,
+                  height: 20,
+                  child:
+                      CircularProgressIndicator(strokeWidth: 2, color: t.mut)),
             ),
           ),
         ));
-      } else if (_cursor == null) {
+      } else if (_cursor != null) {
+        children.add(Center(
+            child: TextButton(
+          key: const ValueKey('notif-load-more'),
+          onPressed: _loadMore,
+          child: Text(l.eventFormShowMore),
+        )));
+      } else {
         // Liste sonu: tek sakin satır.
         children.add(Padding(
           padding: const EdgeInsets.symmetric(vertical: 32),
           child: Center(
-            child: Text(l.bildirimAllCaughtUp, textAlign: TextAlign.center, style: BuType.caption.copyWith(fontSize: 13, height: 1.4, color: t.mut)),
+            child: Text(l.bildirimAllCaughtUp,
+                textAlign: TextAlign.center,
+                style: BuType.caption
+                    .copyWith(fontSize: 13, height: 1.4, color: t.mut)),
           ),
         ));
       }
@@ -362,7 +534,8 @@ class _NotificationsPageState extends State<NotificationsPage> {
           child: ListView(
             controller: _scroll,
             physics: const AlwaysScrollableScrollPhysics(),
-            padding: EdgeInsets.fromLTRB(0, 0, 0, MediaQuery.of(context).padding.bottom),
+            padding: EdgeInsets.fromLTRB(
+                0, 0, 0, MediaQuery.of(context).padding.bottom),
             children: children,
           ),
         ),
@@ -372,7 +545,8 @@ class _NotificationsPageState extends State<NotificationsPage> {
     // İskelet -> içerik: yalnız opaklık geçişi (düzen kayması yok).
     body = BuSwapIn(
       loading: _loading,
-      skeleton: const BuSkeletonList(itemCount: 6, padding: EdgeInsets.fromLTRB(20, 12, 20, 24)),
+      skeleton: const BuSkeletonList(
+          itemCount: 6, padding: EdgeInsets.fromLTRB(20, 12, 20, 24)),
       child: body,
     );
 
@@ -387,10 +561,11 @@ class _NotificationsPageState extends State<NotificationsPage> {
         if (pill != null && bigText)
           Padding(
             padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
-            child: Align(alignment: AlignmentDirectional.centerEnd, child: pill),
+            child:
+                Align(alignment: AlignmentDirectional.centerEnd, child: pill),
           ),
         FollowRequestsEntry(session: _s, refresh: _reqRefresh),
-        if (!_loading) _filters(t),
+        _categories(),
         Expanded(child: body),
       ]),
     );
@@ -399,6 +574,16 @@ class _NotificationsPageState extends State<NotificationsPage> {
   Widget _tile(BuTokens t, Map<String, dynamic> n) {
     final un = n['read'] != true;
     final type = n['type'] as String?;
+    final data = _presentationData(n);
+    final category = notificationCategory(data);
+    final destination = resolvePushTarget(data).dest;
+    final requester =
+        int.tryParse((data['userId'] ?? data['requesterId'] ?? '').toString());
+    final followRequest = type == 'FOLLOW_REQUEST' &&
+        n['read'] != true &&
+        n['actionResolved'] != true &&
+        requester != null &&
+        requester > 0;
     return Dismissible(
       key: ValueKey('notif-${n['id']}'),
       direction: DismissDirection.endToStart,
@@ -411,11 +596,47 @@ class _NotificationsPageState extends State<NotificationsPage> {
         color: t.danger,
         alignment: AlignmentDirectional.centerEnd,
         padding: const EdgeInsetsDirectional.only(end: 24),
-        child: Text(context.l10n.bildirimDelete, style: BuType.caption.copyWith(fontSize: 14, fontWeight: FontWeight.w600, color: t.onMedia)),
+        child: Text(context.l10n.bildirimDelete,
+            style: BuType.caption.copyWith(
+                fontSize: 14, fontWeight: FontWeight.w600, color: t.onMedia)),
       ),
       child: NotifRow(
         title: (n['title'] as String?) ?? '',
-        typeLabel: _typeLabel(type),
+        typeLabel: category == NotificationCategory.academic ||
+                category == NotificationCategory.system
+            ? notificationCategoryLabel(context, category)
+            : _typeLabel(type),
+        icon: notificationIcon(data),
+        critical: data['severity'] == 'critical',
+        actions: [
+          if (followRequest) ...[
+            FilledButton(
+              style: FilledButton.styleFrom(
+                  minimumSize: const Size(0, 44),
+                  padding: const EdgeInsets.symmetric(horizontal: 16)),
+              onPressed: _acting.contains(n['id'])
+                  ? null
+                  : () => _decide(n, requester, true),
+              child: Text(context.l10n.frqReqAccept),
+            ),
+            TextButton(
+              style: TextButton.styleFrom(
+                  minimumSize: const Size(0, 44),
+                  padding: const EdgeInsets.symmetric(horizontal: 16)),
+              onPressed: _acting.contains(n['id'])
+                  ? null
+                  : () => _decide(n, requester, false),
+              child: Text(context.l10n.frqReqDecline),
+            ),
+          ],
+          if (!followRequest &&
+              destination != PushDest.notifications &&
+              destination != PushDest.followRequests)
+            TextButton.icon(
+                onPressed: () => _open(n),
+                icon: const Icon(Icons.arrow_forward, size: 16),
+                label: Text(context.l10n.p14Detail)),
+        ],
         body: (n['body'] as String?) ?? '',
         time: _ago(n['createdAt'] as String?),
         unread: un,
@@ -429,7 +650,11 @@ class _NotificationsPageState extends State<NotificationsPage> {
 /// Süzgeç hapı (Stitch v3): seçili = `soft` zemin + `pr` metin (çerçevesiz); seçili değil = 1 dp `bd` çerçeve +
 /// ink metin. Görünür yükseklik 34 dp, dokunma alanı 48 dp; sayaç rozeti yok.
 class _NotifFilterChip extends StatelessWidget {
-  const _NotifFilterChip({super.key, required this.label, required this.selected, required this.onTap});
+  const _NotifFilterChip(
+      {super.key,
+      required this.label,
+      required this.selected,
+      required this.onTap});
 
   final String label;
   final bool selected;
@@ -449,11 +674,15 @@ class _NotifFilterChip extends StatelessWidget {
             constraints: const BoxConstraints(minHeight: 34),
             padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 5),
             decoration: BoxDecoration(
-              color: selected ? t.soft : t.bg,
+              color: selected ? t.ink : t.sf2,
               borderRadius: BorderRadius.circular(BuRadius.pill),
-              border: Border.all(color: selected ? t.soft : t.bd),
             ),
-            child: Text(label, style: BuType.caption.copyWith(fontSize: 14, height: 1.3, fontWeight: FontWeight.w500, color: selected ? t.pr : t.ink)),
+            child: Text(label,
+                style: BuType.caption.copyWith(
+                    fontSize: 14,
+                    height: 1.3,
+                    fontWeight: FontWeight.w500,
+                    color: selected ? t.bg : t.ink)),
           ),
         ),
       ),
@@ -476,7 +705,10 @@ class _ErrorCard extends StatelessWidget {
       child: Column(mainAxisSize: MainAxisSize.min, children: [
         Semantics(
           liveRegion: true,
-          child: Text(l.p03NotifLoadFailed, textAlign: TextAlign.center, style: BuType.caption.copyWith(fontSize: 16, height: 1.5, color: t.mut)),
+          child: Text(l.p03NotifLoadFailed,
+              textAlign: TextAlign.center,
+              style: BuType.caption
+                  .copyWith(fontSize: 16, height: 1.5, color: t.mut)),
         ),
         const SizedBox(height: 8),
         BuPressable(
@@ -485,7 +717,9 @@ class _ErrorCard extends StatelessWidget {
             constraints: const BoxConstraints(minHeight: 48, minWidth: 48),
             alignment: Alignment.center,
             padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Text(l.commonRetry, style: BuType.caption.copyWith(fontSize: 14, fontWeight: FontWeight.w600, color: t.pr)),
+            child: Text(l.commonRetry,
+                style: BuType.caption.copyWith(
+                    fontSize: 14, fontWeight: FontWeight.w600, color: t.pr)),
           ),
         ),
       ]),

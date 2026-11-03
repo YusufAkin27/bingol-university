@@ -42,7 +42,7 @@ final class PushMessages {
         if (badge != null) {
             data.put("badge", String.valueOf(badge));
         }
-        return new PushMessage(title, body, data, collapseKey, thread, channel, type.name(), badge, urgent,
+        return new PushMessage(title, body, data, collapseKey, thread, channel, "BU_" + RichPushPayload.style(payload), badge, urgent,
                 ttlSeconds(type, subtype));
     }
 

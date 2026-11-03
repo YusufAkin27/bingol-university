@@ -250,13 +250,6 @@ object Channels {
 }
 
 /** Surec FCM ile (uygulama kapaliyken) baslasa bile kanallar hazir olsun: sistem bildirimi dogru kanaldan/sesle gosterir. */
-class BuApplication : android.app.Application() {
-    override fun onCreate() {
-        super.onCreate()
-        Channels.ensure(this)
-    }
-}
-
 class ReminderReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         try {

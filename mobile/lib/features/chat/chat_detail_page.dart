@@ -84,6 +84,7 @@ class ChatDetailPage extends StatefulWidget {
     super.key,
     required this.session,
     required this.conversation,
+    this.focusComposer = false,
     @visibleForTesting this.connectRealtime = true,
     @visibleForTesting this.realtime,
     @visibleForTesting this.mediaLibrary,
@@ -96,6 +97,7 @@ class ChatDetailPage extends StatefulWidget {
 
   final Session session;
   final Map<String, dynamic> conversation;
+  final bool focusComposer;
 
   /// Testlerde false: gerçek WebSocket bağlantısı kurulmaz.
   final bool connectRealtime;
@@ -3253,6 +3255,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
                     key: const ValueKey('composerField'),
                     controller: _input,
                     focusNode: _focus,
+                  autofocus: widget.focusComposer,
                     minLines: 1,
                     maxLines: 5,
                     textCapitalization: TextCapitalization.sentences,

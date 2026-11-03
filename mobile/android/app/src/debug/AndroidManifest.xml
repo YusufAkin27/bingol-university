@@ -1,5 +1,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <!-- Flutter aracinin (hot reload, hata ayiklama) calisan uygulamayla konusmasi icin gerekir. -->
     <uses-permission android:name="android.permission.INTERNET"/>
-    <application android:networkSecurityConfig="@xml/network_security_config" />
+    <application android:networkSecurityConfig="@xml/network_security_config">
+        <activity android:name=".PushPreviewActivity" android:exported="true" android:theme="@android:style/Theme.Material.Light.NoActionBar"/>
+    </application>
 </manifest>

@@ -29,12 +29,16 @@ public class DeviceService {
      * son gorulmeyi yeniler.
      */
     public void register(Long userId, String token, String platform, String appVersion, String locale) {
+        register(userId, token, platform, appVersion, locale, false);
+    }
+
+    public void register(Long userId, String token, String platform, String appVersion, String locale, boolean richNotifications) {
         try {
-            upsert(userId, token, platform, appVersion, locale);
+            upsert(userId, token, platform, appVersion, locale, richNotifications);
         } catch (DataIntegrityViolationException e) {
             // Es zamanli iki kayit: token benzersizligi. Digeri kazandi; yeniden okuyup sahipligi biz guncelleriz.
             try {
-                upsert(userId, token, platform, appVersion, locale);
+                upsert(userId, token, platform, appVersion, locale, richNotifications);
             } catch (DataIntegrityViolationException again) {
                 return;
             }
@@ -45,7 +49,7 @@ public class DeviceService {
         }
     }
 
-    private void upsert(Long userId, String token, String platform, String appVersion, String locale) {
+    private void upsert(Long userId, String token, String platform, String appVersion, String locale, boolean richNotifications) {
         Device d = devices.findByFcmToken(token).orElseGet(Device::new);
         Instant now = Instant.now();
         d.setFcmToken(token);
@@ -53,6 +57,7 @@ public class DeviceService {
         d.setPlatform(platform.toUpperCase(Locale.ROOT));
         d.setAppVersion(appVersion);
         d.setLocale(locale);
+        d.setRichNotifications(richNotifications && "ANDROID".equalsIgnoreCase(platform));
         d.setUpdatedAt(now);
         d.setLastSeenAt(now);
         devices.saveAndFlush(d);

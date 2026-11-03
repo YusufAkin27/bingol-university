@@ -16,6 +16,9 @@ import '../../l10n/app_localizations.dart';
 import 'active_conversation.dart';
 import 'icon_badge.dart';
 import 'push_api.dart';
+import 'push_actions.dart';
+import '../nav.dart';
+import '../../widgets/bu.dart';
 import 'push_banner.dart';
 import 'push_registrar.dart';
 import 'push_router.dart';
@@ -24,9 +27,9 @@ const _appVersion = String.fromEnvironment('APP_VERSION', defaultValue: '2.0.8')
 
 /// Arka plan / kapalı durum işleyicisi: top-level + entry-point olmalı (ayrı isolate'ta çalışır) ve
 /// `main()` içinde ([PushService.prepare]) oturumdan bağımsız kaydedilir.
-/// Sunucu her zaman `notification` bloklu (+ Android kanal/etiket) mesaj gönderdiği için uygulama kapalıyken
-/// bildirimi SİSTEM gösterir (işleyici gerekmez); işleyici yalnız ileride veri-yüklü mesaj gelirse Firebase'i
-/// hazır tutar (yük işlenmez, UI/oturuma dokunulmaz). Dokunuş [PushService] ile yönlendirilir.
+/// Standart FCM alert'lerini sistem gosterir. Yerel renderer yetenegi bildiren Android cihazlarda
+/// veri-yuklu push kartini RichPushReceiver cizer. Bu isleyici yalniz Firebase'i hazirlar;
+/// ayni bildirimi ikinci kez cizmez ve oturum durumunu degistirmez.
 @pragma('vm:entry-point')
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   try {
@@ -170,6 +173,37 @@ class PushService with WidgetsBindingObserver {
   final _seenMessageIds = <String>{}; // ön plan şeridi tekilleştirmesi (son 60 mesaj)
 
   bool _tapBridge = false;
+  bool _nativeBridge = false;
+  late final PushActions _actions = PushActions(session);
+
+  Future<void> _nativePush(Map<String, dynamic> data) async {
+    try {
+      if (await _actions.perform(data)) {
+        await PushActions.channel.invokeMethod<void>('dismiss', {'tag': data['notificationTag']});
+      }
+    } catch (error) {
+      final context = rootNavigatorKey.currentContext;
+      if (context != null && context.mounted) BuToast.show(context, errorText(error), kind: BuToastKind.error);
+    }
+  }
+
+  Future<void> _attachNativePush() async {
+    if (!_nativeBridge) {
+      _nativeBridge = true;
+      PushActions.channel.setMethodCallHandler((call) async {
+        if (call.method == 'onTap' && call.arguments is Map) {
+          await _nativePush(Map<String, dynamic>.from(call.arguments as Map));
+        }
+      });
+    }
+    try {
+      final payload = await PushActions.channel.invokeMapMethod<String, dynamic>('takeLaunchPayload');
+      if (payload != null && payload.isNotEmpty) {
+        WidgetsBinding.instance.addPostFrameCallback((_) => unawaited(_nativePush(payload)));
+        WidgetsBinding.instance.scheduleFrame();
+      }
+    } on MissingPluginException { /* Older native builds retain the FCM tap path. */ }
+  }
 
   /// Yerel hatırlatma dokunuşları (soğuk başlatma: bekleyen yük; ön plan: 'onTap') push ile aynı yönlendiriciye gider.
   Future<void> _attachReminderTaps() async {
@@ -192,6 +226,7 @@ class PushService with WidgetsBindingObserver {
     _active = true;
     PushRouter.session = session;
     unawaited(_attachReminderTaps());
+    unawaited(_attachNativePush());
     unawaited(_syncChannelNames()); // FCM'den bağımsız: kanal adları/açıklamaları kullanıcının dilinde
     _iconBadge.attach(session.badges.notifications, extra: session.badges.chat); // iOS: push'un bıraktığı eski rozet düzeltilir, okununca düşer (kutu + sohbet toplamı)
     if (!await _ensureInit()) return;
@@ -329,6 +364,7 @@ class PushService with WidgetsBindingObserver {
     if (!_active) return; // kanca iki kez (beforeSignOut + durum değişimi) gelebilir
     _active = false;
     _permDenied = false;
+    PushBannerCenter.instance.hide();
     _iconBadge.detach(); // rozeti sıfırla (başka hesabın sayısı kalmasın)
     _viewing?.stop();
     _viewing = null;
@@ -338,6 +374,7 @@ class PushService with WidgetsBindingObserver {
     }
     // Kullanıcıya özel yerel hatırlatmalar çıkışta silinir (başka hesapta görünmesin).
     unawaited(LocalReminders.instance.cancelAll());
+    try { await PushActions.channel.invokeMethod<void>('clear'); } on MissingPluginException { }
     final t = _token ?? registrar.token;
     _token = null;
     registrar.reset();
@@ -365,7 +402,20 @@ class PushService with WidgetsBindingObserver {
   /// [PushRegistrar.send]: oturum açıkken `POST /devices` (+ ön plan durumu).
   Future<void> _send(String token) async {
     if (session.state != SessionState.signedIn) throw StateError('signed out');
-    await _api.register(token, platform: Platform.isIOS ? 'IOS' : 'ANDROID', appVersion: _appVersion);
+    bool rich = false;
+    if (Platform.isAndroid) {
+      try {
+        rich = await PushActions.channel.invokeMethod<bool>('supportsRichNotifications') ?? false;
+        if (rich) {
+          final info = session.userId == null ? await session.api.get('/auth/me') : null;
+          final current = session.userId ?? (info is Map ? int.tryParse((info['id'] as Object?)?.toString() ?? '') : null);
+          if (session.state != SessionState.signedIn || current == null) throw StateError('No active push recipient');
+          await PushActions.channel.invokeMethod<void>('authorize', {'userId': current});
+        }
+      }
+      on MissingPluginException { }
+    }
+    await _api.register(token, platform: Platform.isIOS ? 'IOS' : 'ANDROID', appVersion: _appVersion, richNotifications: rich);
     unawaited(_api.setState(token, active.foreground)); // uç yoksa sessiz
   }
 
@@ -376,8 +426,8 @@ class PushService with WidgetsBindingObserver {
   }
 
   void _showBanner(RemoteMessage m) => handleForeground(
-        title: m.notification?.title ?? '',
-        body: m.notification?.body ?? '',
+        title: m.notification?.title ?? m.data['title']?.toString() ?? '',
+        body: m.notification?.body ?? m.data['body']?.toString() ?? '',
         data: m.data,
       );
 
@@ -404,6 +454,10 @@ class PushService with WidgetsBindingObserver {
     PushBannerCenter.instance.show(
       BannerItem(key: bannerKey(data, title), title: title, body: body, data: data),
       onTap: _open,
+      onAction: (action, data) => unawaited(_nativePush({
+        ...data, 'replyText': null, 'notificationAction': action,
+        'actionId': 'banner-' + DateTime.now().microsecondsSinceEpoch.toString(),
+      })),
     );
     return true;
   }

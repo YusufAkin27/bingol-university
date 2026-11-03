@@ -24,6 +24,8 @@ enum PushDest {
   exams,
   ticket,
   feedback,
+  accountSecurity,
+  meal,
   notifications,
 }
 
@@ -36,13 +38,17 @@ class PushTarget {
 
   @override
   bool operator ==(Object other) =>
-      other is PushTarget && other.dest == dest && other.id == id && other.commentId == commentId;
+      other is PushTarget &&
+      other.dest == dest &&
+      other.id == id &&
+      other.commentId == commentId;
 
   @override
   int get hashCode => Object.hash(dest, id, commentId);
 
   @override
-  String toString() => 'PushTarget($dest, $id${commentId != null ? ', c$commentId' : ''})';
+  String toString() =>
+      'PushTarget($dest, $id${commentId != null ? ', c$commentId' : ''})';
 }
 
 /// Yerel hatırlatma (Android intent ekstrası / iOS bildirim userInfo) yükünde İZİN VERİLEN anahtarlar.
@@ -60,6 +66,7 @@ const Set<String> kLocalReminderPayloadKeys = {
   'pollId',
   'userId',
   'announcementId',
+  'examId',
 };
 
 /// Yerel hatırlatma yükünde bir değerin en çok uzunluğu.
@@ -118,6 +125,12 @@ PushDest? _destOf(String t) {
     case 'STORY':
       // Hikâyeler kaldırıldı: eski bildirim sahibinin profiline gider.
       return PushDest.user;
+    case 'MEAL':
+    case 'MENU':
+      return PushDest.meal;
+    case 'SECURITY':
+    case 'ACCOUNT_SECURITY':
+      return PushDest.accountSecurity;
     case 'TICKET':
       return PushDest.ticket;
     case 'FEEDBACK':
@@ -145,7 +158,8 @@ PushDest? _destOf(String t) {
 PushTarget resolvePushTarget(Map<String, dynamic>? data) {
   final d = data ?? const <String, dynamic>{};
   // P08: yönetici sohbetten çıkardı/oda kaldırıldı: sohbet artık yok, kullanıcı listeye gider.
-  if ('${d['event'] ?? ''}'.toUpperCase() == 'CONVERSATION_REMOVED') return const PushTarget(PushDest.chatList);
+  if ('${d['event'] ?? ''}'.toUpperCase() == 'CONVERSATION_REMOVED')
+    return const PushTarget(PushDest.chatList);
 
   final target = '${d['targetType'] ?? d['target'] ?? ''}'.trim().toUpperCase();
   final value = _id(d['targetId'] ?? d['value']);
@@ -155,38 +169,50 @@ PushTarget resolvePushTarget(Map<String, dynamic>? data) {
   final pollId = _id(d['pollId']);
   final postId = _id(d['postId']);
   final eventId = _id(d['eventId']);
+  final examId = _id(d['examId']);
   final communityId = _id(d['communityId']);
   final newsId = _id(d['newsId']);
   final announcementId = _id(d['announcementId']);
 
   // Doğrudan anahtarlar (eski öncelik: sohbet yoksa anket, sonra gönderi).
-  if (conversationId != null) return PushTarget(PushDest.conversation, id: conversationId);
+  if (conversationId != null)
+    return PushTarget(PushDest.conversation, id: conversationId);
   if (pollId != null) return PushTarget(PushDest.poll, id: pollId);
-  if (postId != null) return PushTarget(PushDest.post, id: postId, commentId: commentId);
+  if (postId != null)
+    return PushTarget(PushDest.post, id: postId, commentId: commentId);
+
+  if (examId != null) return PushTarget(PushDest.exams, id: examId);
 
   final dest = _destOf(target);
   if (dest == PushDest.deptAnnouncement && (announcementId ?? value) != null) {
     return PushTarget(dest!, id: announcementId ?? value);
   }
   if (eventId != null) return PushTarget(PushDest.event, id: eventId);
-  if (communityId != null && dest != PushDest.post) return PushTarget(PushDest.community, id: communityId);
+  if (communityId != null && dest != PushDest.post)
+    return PushTarget(PushDest.community, id: communityId);
   if (newsId != null) return PushTarget(PushDest.news, id: newsId);
-  if (announcementId != null) return PushTarget(PushDest.deptAnnouncement, id: announcementId);
+  if (announcementId != null)
+    return PushTarget(PushDest.deptAnnouncement, id: announcementId);
 
   if (dest != null) {
     switch (dest) {
       case PushDest.timetable:
       case PushDest.exams:
-        return PushTarget(dest, id: value); // kimliksiz de geçerli: ilgili listeyi açar
+        return PushTarget(dest,
+            id: value); // kimliksiz de geçerli: ilgili listeyi açar
+      case PushDest.meal:
+      case PushDest.accountSecurity:
       case PushDest.followRequests:
         return PushTarget(dest); // kimlik yok: istekler ekranı
       case PushDest.post:
-        if (value != null) return PushTarget(dest, id: value, commentId: commentId);
+        if (value != null)
+          return PushTarget(dest, id: value, commentId: commentId);
       default:
         if (value != null) return PushTarget(dest, id: value);
     }
   }
   final userId = _id(d['userId']);
-  if (userId != null && (dest == null || dest == PushDest.user)) return PushTarget(PushDest.user, id: userId);
+  if (userId != null && (dest == null || dest == PushDest.user))
+    return PushTarget(PushDest.user, id: userId);
   return const PushTarget(PushDest.notifications);
 }

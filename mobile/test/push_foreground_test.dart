@@ -112,7 +112,7 @@ void main() {
       expect(find.text('Ayşe'), findsOneWidget);
       show('naber');
       await tester.pump(const Duration(milliseconds: 300));
-      expect(find.text('+1 yeni mesaj daha'), findsOneWidget);
+      expect(find.text('2 new messages'), findsOneWidget);
       expect(find.text('naber'), findsOneWidget);
       await tester.tap(find.text('naber'));
       await tester.pump();

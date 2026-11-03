@@ -49,29 +49,33 @@ class AcadhubNextExam extends StatelessWidget {
 
 /// Kartsız gezinme satırı: başlık 17 sp/600 + muted tek satır + chevron; altta 1 dp ayraç.
 class AcadhubNavRow extends StatelessWidget {
-  const AcadhubNavRow({super.key, required this.title, required this.sub, this.onTap});
+  const AcadhubNavRow({super.key, required this.title, required this.sub, this.onTap, this.icon = BuIcons.bookOpen});
 
   final String title, sub;
   final VoidCallback? onTap;
+  final IconData icon;
 
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
-    final tx = Theme.of(context).textTheme;
-    return AcadRow(
-      onTap: onTap,
-      semanticLabel: '$title. $sub',
-      child: Row(children: [
-        Expanded(
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
-            Text(title, maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.titleMedium!.copyWith(fontSize: 17, fontWeight: FontWeight.w600, color: t.ink)),
-            const SizedBox(height: 3),
-            Text(sub, maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.bodySmall!.copyWith(fontSize: 13, color: t.mut)),
+    return Padding(padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
+      child: Semantics(button: onTap != null, label: '$title. $sub', excludeSemantics: true, onTap: onTap,
+        child: BuCard(radius: 22, padding: const EdgeInsets.all(16), onTap: onTap,
+          child: Row(children: [
+            BuFeatureIcon(icon: icon),
+            const SizedBox(width: 12),
+            Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text(title, maxLines: 2, overflow: TextOverflow.ellipsis,
+                style: Theme.of(context).textTheme.titleMedium!.copyWith(fontWeight: FontWeight.w600, color: t.ink)),
+              const SizedBox(height: 4),
+              Text(sub, maxLines: 3, overflow: TextOverflow.ellipsis,
+                style: Theme.of(context).textTheme.bodySmall!.copyWith(color: t.mut)),
+            ])),
+            const SizedBox(width: 8),
+            Icon(buDirIcon(context, BuIcons.chevronRight), size: 18, color: t.mut),
           ]),
         ),
-        const SizedBox(width: 12),
-        ExcludeSemantics(child: Icon(buDirIcon(context, BuIcons.chevronRight), size: 20, color: t.mut)),
-      ]),
+      ),
     );
   }
 }
