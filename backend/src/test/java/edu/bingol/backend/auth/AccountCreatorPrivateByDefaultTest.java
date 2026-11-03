@@ -22,7 +22,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.test.util.ReflectionTestUtils;
 
-/** Yeni hesap varsayilan GIZLI acilir (profile_privacy.private_account); ayar kapatilabilir, mevcut hesaba dokunulmaz. */
+/** Varsayilan artik herkese acik; ayar acikca true yapilirsa yeni hesap GIZLI acilir (profile_privacy.private_account), mevcut hesaba dokunulmaz. */
 class AccountCreatorPrivateByDefaultTest {
 
     private static final String EMAIL = "ali@bingol.edu.tr";

@@ -30,8 +30,8 @@ public class AccountCreator {
     @org.springframework.beans.factory.annotation.Autowired(required = false)
     private ProfilePrivacyRepository privacy;
 
-    /** Yeni hesaplar gizli acilir; kullanici ayarlardan herkese acik yapar (acik yapma: PrivacyService). */
-    @org.springframework.beans.factory.annotation.Value("${app.profile.default-private-account:true}")
+    /** Yeni hesaplar varsayilan HERKESE ACIK acilir; kullanici ayarlardan gizli yapabilir. Ayar true yapilirsa yeni hesaplar gizli acilir. */
+    @org.springframework.beans.factory.annotation.Value("${app.profile.default-private-account:false}")
     private boolean defaultPrivateAccount;
 
     public AccountCreator(UserRepository users, LegalService legal, AdminProperties admin) {
