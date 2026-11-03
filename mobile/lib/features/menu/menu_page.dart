@@ -1,3 +1,4 @@
+import '../../core/analytics.dart';
 import 'package:flutter/material.dart';
 
 import '../../core/locale_controller.dart';
@@ -151,7 +152,7 @@ class _MenuPageState extends State<MenuPage> {
     final day = _menus[d.day];
     final has = day != null && day.items.isNotEmpty;
     return RefreshIndicator(
-      onRefresh: () => _load(silent: true),
+      onRefresh: Analytics.pullRefresh(() => _load(silent: true)),
       child: ListView(
         physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.fromLTRB(_hPad, 22, _hPad, 32),

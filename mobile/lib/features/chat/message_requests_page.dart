@@ -1,3 +1,4 @@
+import '../../core/analytics.dart';
 import 'package:flutter/material.dart';
 
 import '../../core/locale_controller.dart';
@@ -194,7 +195,7 @@ class _MessageRequestsPageState extends State<MessageRequestsPage> {
   Future<void> _open(Map<String, dynamic> c) async {
     await Navigator.push<void>(
       context,
-      MaterialPageRoute<void>(builder: (_) => ChatDetailPage(session: widget.session, conversation: c)),
+      MaterialPageRoute<void>(settings: const RouteSettings(name: 'chat_detail'), builder: (_) => ChatDetailPage(session: widget.session, conversation: c)),
     );
     // Sohbette yanıt yazılmış olabilir (istek kabul edilmiş sayılır): liste yeniden alınır.
     if (mounted) {
@@ -247,7 +248,7 @@ class _MessageRequestsPageState extends State<MessageRequestsPage> {
         BuHeader(title: l.frqMsgReqTitle, onBack: () => Navigator.maybePop(context)),
         Expanded(
           child: RefreshIndicator(
-            onRefresh: () => _load(silent: true),
+            onRefresh: Analytics.pullRefresh(() => _load(silent: true)),
             child: ListView(
               controller: _scroll,
               physics: const AlwaysScrollableScrollPhysics(),

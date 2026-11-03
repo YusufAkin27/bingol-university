@@ -35,7 +35,7 @@ class _AboutPageState extends State<AboutPage> {
     if (mounted) setState(() => _token = t);
   }
 
-  void _push(Widget page) => Navigator.push(context, MaterialPageRoute(builder: (_) => page)).then((_) => _loadToken());
+  void _push(Widget page, [String? screen]) => Navigator.push(context, MaterialPageRoute(settings: RouteSettings(name: screen), builder: (_) => page)).then((_) => _loadToken());
 
   @override
   Widget build(BuildContext context) {
@@ -43,12 +43,12 @@ class _AboutPageState extends State<AboutPage> {
     final l = context.l10n;
     final tx = Theme.of(context).textTheme;
     final rows = <(String, VoidCallback)>[
-      (l.legalReacceptTypeTerms, () => _push(LegalDocPage(session: widget.session, type: 'TERMS'))),
-      (l.legalReacceptTypePrivacy, () => _push(LegalDocPage(session: widget.session, type: 'PRIVACY'))),
-      (l.legalReacceptTypeKvkk, () => _push(LegalDocPage(session: widget.session, type: 'KVKK'))),
-      (l.legalReacceptTypeRules, () => _push(LegalDocPage(session: widget.session, type: 'COMMUNITY_RULES'))),
-      if (_token != null) (l.p66MyTicket, () => _push(HelpTrackPage(session: widget.session, token: _token!))),
-      (l.p66HelpAction, () => _push(HelpFormPage(session: widget.session))),
+      (l.legalReacceptTypeTerms, () => _push(LegalDocPage(session: widget.session, type: 'TERMS'), 'legal_doc')),
+      (l.legalReacceptTypePrivacy, () => _push(LegalDocPage(session: widget.session, type: 'PRIVACY'), 'legal_doc')),
+      (l.legalReacceptTypeKvkk, () => _push(LegalDocPage(session: widget.session, type: 'KVKK'), 'legal_doc')),
+      (l.legalReacceptTypeRules, () => _push(LegalDocPage(session: widget.session, type: 'COMMUNITY_RULES'), 'legal_doc')),
+      if (_token != null) (l.p66MyTicket, () => _push(HelpTrackPage(session: widget.session, token: _token!), 'help_track')),
+      (l.p66HelpAction, () => _push(HelpFormPage(session: widget.session), 'help_form')),
     ];
     return Scaffold(
       backgroundColor: t.bg,

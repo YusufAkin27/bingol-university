@@ -1,3 +1,4 @@
+import '../../core/analytics.dart';
 import 'package:flutter/material.dart';
 
 import '../../core/locale_controller.dart';
@@ -49,6 +50,7 @@ class _PollMenuCardState extends State<PollMenuCard> {
     });
     try {
       final r = await _api.vote(p.id, PollSelection(PollType.rating)..setRating(v));
+      Analytics.instance.action('rate_menu');
       if (mounted) setState(() => _poll = r);
     } catch (e) {
       if (mounted) setState(() => _msg = pollErrorText(e, context.l10n));

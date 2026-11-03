@@ -1,3 +1,4 @@
+import '../../core/analytics.dart';
 import 'package:flutter/material.dart';
 
 import '../../core/locale_controller.dart';
@@ -173,6 +174,7 @@ class _NewsListPageState extends State<NewsListPage> {
       } else {
         await widget.session.api.put('/bookmarks/news/$id');
       }
+      Analytics.instance.action('bookmark', target: was ? 'remove' : 'add');
       if (mounted) {
         final l = context.l10n;
         BuToast.show(context, was ? l.p05UnsavedToast : l.p05SavedToast, kind: BuToastKind.success);
@@ -188,7 +190,7 @@ class _NewsListPageState extends State<NewsListPage> {
     final id = (n['id'] as num).toInt();
     await Navigator.push<void>(
       context,
-      MaterialPageRoute<void>(
+      MaterialPageRoute<void>(settings: const RouteSettings(name: 'news_detail'), 
         builder: (_) => NewsDetailPage(
           session: widget.session,
           item: n,
@@ -202,12 +204,12 @@ class _NewsListPageState extends State<NewsListPage> {
 
   Future<void> _openFavorites() async {
     await Navigator.push<void>(
-        context, MaterialPageRoute<void>(builder: (_) => SavedNewsPage(session: widget.session)));
+        context, MaterialPageRoute<void>(settings: const RouteSettings(name: 'saved_news'), builder: (_) => SavedNewsPage(session: widget.session)));
     if (mounted) _loadSavedIds();
   }
 
   void _openSearch() => Navigator.push<void>(
-      context, MaterialPageRoute<void>(builder: (_) => SearchPage(session: widget.session)));
+      context, MaterialPageRoute<void>(settings: const RouteSettings(name: 'search'), builder: (_) => SearchPage(session: widget.session)));
 
   String _tabLabel(int i) {
     final l = context.l10n;
@@ -276,7 +278,7 @@ class _NewsListPageState extends State<NewsListPage> {
                 child: Padding(padding: EdgeInsets.only(top: 16), child: IcerikListSkeleton(featured: false)),
               ),
               child: BuRefreshIndicator(
-                onRefresh: _refresh,
+                onRefresh: Analytics.pullRefresh(_refresh),
                 child: CustomScrollView(
                   controller: _scroll,
                   physics: const AlwaysScrollableScrollPhysics(),

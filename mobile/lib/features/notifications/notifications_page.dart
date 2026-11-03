@@ -1,3 +1,4 @@
+import '../../core/analytics.dart';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
@@ -202,6 +203,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
   }
 
   Future<void> _open(Map<String, dynamic> n) async {
+    Analytics.instance.action('notif_open');
     _markOne(n);
     // Tek yönlendirme tablosu: push dokunuşu ile aynı (core/push/push_targets.dart).
     final d = _data(n);
@@ -441,7 +443,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
       final unreadEmpty = _unreadOnly && _items.isNotEmpty;
       // Boş: ortada soluk tek cümle (illüstrasyon yok).
       body = RefreshIndicator(
-        onRefresh: () => _load(silent: true),
+        onRefresh: Analytics.pullRefresh(() => _load(silent: true)),
         child: ListView(
             physics: const AlwaysScrollableScrollPhysics(),
             padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
@@ -529,7 +531,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
         ));
       }
       body = RefreshIndicator(
-        onRefresh: () => _load(silent: true),
+        onRefresh: Analytics.pullRefresh(() => _load(silent: true)),
         child: BuStaggerScope(
           child: ListView(
             controller: _scroll,

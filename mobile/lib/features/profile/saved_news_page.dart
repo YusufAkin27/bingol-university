@@ -1,3 +1,4 @@
+import '../../core/analytics.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -121,7 +122,7 @@ class _SavedNewsPageState extends State<SavedNewsPage> {
           child: Padding(padding: EdgeInsets.only(top: 140), child: IcerikListSkeleton(featured: false, count: 5)),
         ),
         child: BuRefreshIndicator(
-          onRefresh: _reload,
+          onRefresh: Analytics.pullRefresh(_reload),
           child: CustomScrollView(
             controller: _scroll,
             physics: const AlwaysScrollableScrollPhysics(),
@@ -196,7 +197,7 @@ class _SavedNewsPageState extends State<SavedNewsPage> {
                               onToggleSave: () => _remove(n),
                               onTap: () => Navigator.push(
                                 context,
-                                MaterialPageRoute(
+                                MaterialPageRoute(settings: const RouteSettings(name: 'news_detail'), 
                                   builder: (_) => NewsDetailPage(session: widget.session, item: n, saved: true),
                                 ),
                               ),

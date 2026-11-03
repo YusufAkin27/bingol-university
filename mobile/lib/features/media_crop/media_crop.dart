@@ -14,7 +14,7 @@ export 'crop_spec.dart';
 /// yan eylem seçerse [CropOutcome.removed]/[CropOutcome.change]; vazgeçerse null döner.
 Future<CropOutcome?> cropImage(BuildContext context, Uint8List bytes, CropSpec spec) =>
     Navigator.of(context).push<CropOutcome>(
-      MaterialPageRoute(fullscreenDialog: true, builder: (_) => CropPage(bytes: bytes, spec: spec)),
+      MaterialPageRoute(settings: const RouteSettings(name: 'crop'), fullscreenDialog: true, builder: (_) => CropPage(bytes: bytes, spec: spec)),
     );
 
 /// Galeriden ya da kameradan tek fotoğraf baytı döndürür (iptalde null); testlerde sahtesi verilir.

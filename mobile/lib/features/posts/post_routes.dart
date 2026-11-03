@@ -25,7 +25,7 @@ Future<Post?> openPostDetail(
   ValueChanged<Post>? onChanged,
   ValueChanged<int>? onDeleted,
 }) =>
-    Navigator.of(context).push<Post>(MaterialPageRoute<Post>(
+    Navigator.of(context).push<Post>(MaterialPageRoute<Post>(settings: const RouteSettings(name: 'post_detail'), 
         builder: (_) => PostDetailPage(
               session: session,
               postId: postId,
@@ -39,4 +39,4 @@ Future<Post?> openPostDetail(
 /// Bir kullanıcının gönderileri.
 Future<void> openUserPosts(BuildContext context, Session session, {required int userId, String? name}) =>
     Navigator.push<void>(context,
-        MaterialPageRoute<void>(builder: (_) => UserPostsPage(session: session, userId: userId, name: name)));
+        MaterialPageRoute<void>(settings: const RouteSettings(name: 'user_posts'), builder: (_) => UserPostsPage(session: session, userId: userId, name: name)));

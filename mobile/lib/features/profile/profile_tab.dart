@@ -1,3 +1,4 @@
+import '../../core/analytics.dart';
 import 'package:flutter/material.dart';
 
 import '../../core/academic_catalog.dart' show AcademicLabels, gradeLabelL;
@@ -107,15 +108,15 @@ class _ProfileTabState extends State<ProfileTab> {
     } catch (_) {}
   }
 
-  Future<void> _go(Widget page) async {
-    await Navigator.push(context, MaterialPageRoute(builder: (_) => page));
+  Future<void> _go(Widget page, [String? screen]) async {
+    await Navigator.push(context, MaterialPageRoute(settings: RouteSettings(name: screen), builder: (_) => page));
     if (mounted) _loadStats();
   }
 
   Future<void> _edit(Map<String, dynamic> p) async {
     final changed = await Navigator.push<bool>(
       context,
-      MaterialPageRoute(builder: (_) => EditProfilePage(session: widget.session, profile: p)),
+      MaterialPageRoute(settings: const RouteSettings(name: 'edit_profile'), builder: (_) => EditProfilePage(session: widget.session, profile: p)),
     );
     if (changed == true) {
       _load();
@@ -139,6 +140,7 @@ class _ProfileTabState extends State<ProfileTab> {
         backgroundColor: t.sf3,
         edgeOffset: top,
         onRefresh: () {
+          Analytics.instance.action('pull_refresh');
           buHaptic(BuHaptic.selection);
           return _load();
         },
@@ -159,7 +161,7 @@ class _ProfileTabState extends State<ProfileTab> {
     final uid = widget.session.userId;
     int? n(String? v) => int.tryParse(v ?? '');
     final extraCells = [
-      StatCell(label: l.icerikStatPosts, value: n(_posts), onTap: () => _go(UserPostsPage(session: widget.session))),
+      StatCell(label: l.icerikStatPosts, value: n(_posts), onTap: () => _go(UserPostsPage(session: widget.session), 'user_posts')),
     ];
     // Stitch v3: bölüm etiketi + 56 dp simgesiz satırlar, tek kutu; kulüp/etkinlik sayıları satırın sağında (mut).
     return BuStaggerScope(
@@ -194,35 +196,35 @@ class _ProfileTabState extends State<ProfileTab> {
                     icon: BuIcons.userPlus,
                     label: l.frqReqTitle,
                     value: '$_followReq',
-                    onTap: () => _go(FollowRequestsPage(session: widget.session)),
+                    onTap: () => _go(FollowRequestsPage(session: widget.session), 'follow_requests'),
                   ),
                 ProfilRow(
                   icon: BuIcons.image,
                   label: l.profileMyPosts,
-                  onTap: () => _go(UserPostsPage(session: widget.session)),
+                  onTap: () => _go(UserPostsPage(session: widget.session), 'user_posts'),
                 ),
                 ProfilRow(
                   icon: BuIcons.bookmark,
                   label: l.profileSaved,
                   value: _saved,
-                  onTap: () => _go(SavedNewsPage(session: widget.session)),
+                  onTap: () => _go(SavedNewsPage(session: widget.session), 'saved_news'),
                 ),
                 ProfilRow(
                   icon: BuIcons.users,
                   label: l.profileMyClubs,
                   value: _clubs,
-                  onTap: () => _go(MyClubsPage(session: widget.session)),
+                  onTap: () => _go(MyClubsPage(session: widget.session), 'my_clubs'),
                 ),
                 ProfilRow(
                   icon: BuIcons.calendar,
                   label: l.profileMyEvents,
                   value: _events,
-                  onTap: () => _go(MyEventsPage(session: widget.session)),
+                  onTap: () => _go(MyEventsPage(session: widget.session), 'my_events'),
                 ),
                 ProfilRow(
                   icon: BuIcons.userPlus,
                   label: l.profileSuggested,
-                  onTap: () => _go(FollowSuggestionsPage(session: widget.session)),
+                  onTap: () => _go(FollowSuggestionsPage(session: widget.session), 'follow_suggestions'),
                 ),
               ]),
             ]),
@@ -235,12 +237,12 @@ class _ProfileTabState extends State<ProfileTab> {
                 ProfilRow(
                   icon: BuIcons.graduationCap,
                   label: l.profileAcademic,
-                  onTap: () => _go(AcademicHubPage(session: widget.session)),
+                  onTap: () => _go(AcademicHubPage(session: widget.session), 'academic_hub'),
                 ),
                 ProfilRow(
                   icon: BuIcons.bell,
                   label: l.notifTitle,
-                  onTap: () => _go(NotificationPrefsPage(session: widget.session)),
+                  onTap: () => _go(NotificationPrefsPage(session: widget.session), 'notification_prefs'),
                 ),
                 ProfilRow(
                   icon: BuIcons.settings,
@@ -249,12 +251,12 @@ class _ProfileTabState extends State<ProfileTab> {
                     session: widget.session,
                     themeController: widget.themeController,
                     localeController: widget.localeController,
-                  )),
+                  ), 'settings'),
                 ),
                 ProfilRow(
                   icon: BuIcons.headset,
                   label: l.profil1Support,
-                  onTap: () => _go(SupportPage(session: widget.session)),
+                  onTap: () => _go(SupportPage(session: widget.session), 'support'),
                 ),
               ]),
             ]),

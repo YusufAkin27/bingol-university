@@ -170,7 +170,7 @@ class _ReminderSettingsPageState extends State<ReminderSettingsPage> with Widget
         minHeight: 60,
         padding: const EdgeInsets.symmetric(vertical: 8),
         semanticLabel: '${l.acadTimeHourBefore}. ${l.p20RemHourSub}',
-        onTap: () => Navigator.push<void>(context, MaterialPageRoute<void>(builder: (_) => NotificationPrefsPage(session: widget.session))),
+        onTap: () => Navigator.push<void>(context, MaterialPageRoute<void>(settings: const RouteSettings(name: 'notification_prefs'), builder: (_) => NotificationPrefsPage(session: widget.session))),
         child: Row(children: [
           Expanded(
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [

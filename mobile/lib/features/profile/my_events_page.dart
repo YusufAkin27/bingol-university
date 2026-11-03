@@ -1,3 +1,4 @@
+import '../../core/analytics.dart';
 import 'package:flutter/material.dart';
 
 import '../../core/locale_controller.dart';
@@ -148,13 +149,13 @@ class _MyEventsPageState extends State<MyEventsPage> {
     if (id == null) return;
     await Navigator.push(
       context,
-      MaterialPageRoute(builder: (_) => EventDetailPage(session: widget.session, eventId: id)),
+      MaterialPageRoute(settings: const RouteSettings(name: 'event_detail'), builder: (_) => EventDetailPage(session: widget.session, eventId: id)),
     );
     if (mounted) _loadTab(silent: true);
   }
 
   void _discover() {
-    Navigator.push(context, MaterialPageRoute(builder: (_) => EventsPage(session: widget.session)));
+    Navigator.push(context, MaterialPageRoute(settings: const RouteSettings(name: 'events'), builder: (_) => EventsPage(session: widget.session)));
   }
 
   void _setSub(int i) {
@@ -188,6 +189,7 @@ class _MyEventsPageState extends State<MyEventsPage> {
     if (!ok || !mounted) return;
     try {
       await widget.session.api.delete('/events/$id/rsvp');
+      Analytics.instance.action('rsvp', target: 'cancel');
       if (!mounted) return;
       BuToast.show(context, request ? l.etkinlik2WithdrawnToast : l.eventListLeft, kind: BuToastKind.success);
       _loadTab(silent: true);

@@ -19,14 +19,14 @@ import 'club_ref_widgets.dart';
 Future<bool> openCreateClub(BuildContext context, Session session) async {
   final res = await Navigator.push<Map<String, dynamic>>(
     context,
-    MaterialPageRoute(builder: (_) => ClubFormPage(session: session)),
+    MaterialPageRoute(settings: const RouteSettings(name: 'club_form'), builder: (_) => ClubFormPage(session: session)),
   );
   if (res == null || !context.mounted) return false;
   final id = (res['id'] as num?)?.toInt();
   if (res['status'] == 'ACTIVE' && id != null) {
     await Navigator.push(
       context,
-      MaterialPageRoute(
+      MaterialPageRoute(settings: const RouteSettings(name: 'club_detail'), 
           builder: (_) => ClubDetailPage(session: session, communityId: id)),
     );
   } else if (context.mounted) {

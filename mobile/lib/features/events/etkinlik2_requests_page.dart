@@ -1,3 +1,4 @@
+import '../../core/analytics.dart';
 import 'package:flutter/material.dart';
 
 import '../../core/api.dart';
@@ -175,7 +176,7 @@ class _Etkinlik2RequestsPageState extends State<Etkinlik2RequestsPage> {
               loading: _loading,
               skeleton: const SingleChildScrollView(primary: false, physics: NeverScrollableScrollPhysics(), child: _RequestsSkeleton()),
               child: RefreshIndicator(
-                onRefresh: () => _load(silent: true),
+                onRefresh: Analytics.pullRefresh(() => _load(silent: true)),
                 child: BuStaggerScope(
                   child: ListView(
                     physics: const AlwaysScrollableScrollPhysics(),
@@ -232,7 +233,7 @@ class _Etkinlik2RequestsPageState extends State<Etkinlik2RequestsPage> {
   Future<void> _raiseQuota() async {
     await Navigator.push(
       context,
-      MaterialPageRoute(
+      MaterialPageRoute(settings: const RouteSettings(name: 'etkinlik2_settings'), 
         builder: (_) => Etkinlik2SettingsPage(
           session: widget.session,
           event: {...widget.event, 'goingCount': _going, 'capacity': _cap},

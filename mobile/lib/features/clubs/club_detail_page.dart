@@ -1,3 +1,4 @@
+import '../../core/analytics.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show SystemUiOverlayStyle;
 
@@ -238,6 +239,7 @@ class _ClubDetailPageState extends State<ClubDetailPage> {
     setState(() => _busy = true);
     try {
       await widget.session.api.delete('$_base/membership');
+      Analytics.instance.action('leave_club');
       await _load();
     } catch (e) {
       if (mounted) _snack(errorText(e));
@@ -263,7 +265,7 @@ class _ClubDetailPageState extends State<ClubDetailPage> {
   Future<void> _edit() async {
     final res = await Navigator.push<Map<String, dynamic>>(
       context,
-      MaterialPageRoute(builder: (_) => ClubFormPage(session: widget.session, club: _club)),
+      MaterialPageRoute(settings: const RouteSettings(name: 'club_form'), builder: (_) => ClubFormPage(session: widget.session, club: _club)),
     );
     if (res != null && mounted) await _load();
   }
@@ -271,7 +273,7 @@ class _ClubDetailPageState extends State<ClubDetailPage> {
   Future<void> _openRequests() async {
     await Navigator.push<bool>(
       context,
-      MaterialPageRoute(builder: (_) => ClubRequestsPage(session: widget.session, communityId: widget.communityId)),
+      MaterialPageRoute(settings: const RouteSettings(name: 'club_requests'), builder: (_) => ClubRequestsPage(session: widget.session, communityId: widget.communityId)),
     );
     if (mounted) await _load();
   }
@@ -279,7 +281,7 @@ class _ClubDetailPageState extends State<ClubDetailPage> {
   Future<void> _openMembers() async {
     await Navigator.push<bool>(
       context,
-      MaterialPageRoute(
+      MaterialPageRoute(settings: const RouteSettings(name: 'club_members'), 
           builder: (_) => ClubMembersPage(
               session: widget.session,
               communityId: widget.communityId,
@@ -347,7 +349,7 @@ class _ClubDetailPageState extends State<ClubDetailPage> {
       if (!mounted) return;
       await Navigator.push(
         context,
-        MaterialPageRoute(
+        MaterialPageRoute(settings: const RouteSettings(name: 'chat_detail'), 
           builder: (_) => ChatDetailPage(
             session: widget.session,
             conversation: {
@@ -692,7 +694,7 @@ class _ClubDetailPageState extends State<ClubDetailPage> {
 
   Future<void> _createEvent() async {
     await Navigator.push<bool>(
-        context, MaterialPageRoute(builder: (_) => EventFormPage(session: widget.session, communityId: widget.communityId)));
+        context, MaterialPageRoute(settings: const RouteSettings(name: 'event_form'), builder: (_) => EventFormPage(session: widget.session, communityId: widget.communityId)));
   }
 
   /// Üyelik durumuna göre ana eylem(ler): Katıl (dolu) / Kulüp sohbeti (çerçeveli) / Etkinlik oluştur (yönetici).
@@ -839,7 +841,7 @@ class _ClubDetailPageState extends State<ClubDetailPage> {
   VoidCallback? _eventTap(Map<String, dynamic> e) {
     final id = (e['id'] as num?)?.toInt();
     if (id == null) return null;
-    return () => Navigator.push(context, MaterialPageRoute(builder: (_) => EventDetailPage(session: widget.session, eventId: id)));
+    return () => Navigator.push(context, MaterialPageRoute(settings: const RouteSettings(name: 'event_detail'), builder: (_) => EventDetailPage(session: widget.session, eventId: id)));
   }
 
   Widget _composer() => ListenableBuilder(

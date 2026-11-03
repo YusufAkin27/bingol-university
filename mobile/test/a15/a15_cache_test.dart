@@ -308,7 +308,7 @@ void main() {
 
     // Cihaza ozel (hesaptan bagimsiz) anahtarlar: cikista KALIR. Yeni bir kullaniciya ozel anahtar eklenirse bu envanter
     // testi kirilir (temizleyici + docs/MOBILE_UI.md 4.2 guncellenmeli).
-    const deviceKeys = {'device_id', 'welcome_seen', 'perms_onboarded', 'theme_mode', 'app_language', 'crash_reports_enabled', 'update_notice_shown', 'pending_verification'};
+    const deviceKeys = {'device_id', 'welcome_seen', 'perms_onboarded', 'theme_mode', 'app_language', 'crash_reports_enabled', 'analytics_enabled', 'update_notice_shown', 'pending_verification'};
 
     test('S2.9b cikis sonrasi guvenli depoda yalniz CIHAZA OZEL anahtarlar kalir (belirtecler, kuyruk, arama gecmisi...)', () async {
       final client = MockClient((r) async => http.Response(jsonEncode({'items': []}), 200, headers: {'etag': '"1"', 'content-type': 'application/json'}));

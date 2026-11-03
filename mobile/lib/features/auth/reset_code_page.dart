@@ -69,7 +69,7 @@ class _ResetCodePageState extends State<ResetCodePage> {
       if (!mounted) return;
       await Navigator.push(
         context,
-        MaterialPageRoute(
+        MaterialPageRoute(settings: const RouteSettings(name: 'new_password'), 
           builder: (_) => NewPasswordPage(
               session: widget.session, email: widget.email, resetToken: token),
         ),

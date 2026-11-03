@@ -163,13 +163,12 @@ class _AppGateState extends State<AppGate> with WidgetsBindingObserver {
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState s) {
+    Analytics.instance.onLifecycle(s); // oturum/ekran süresi; arka plana atılırken olaylar hemen gönderilir
     if (s == AppLifecycleState.resumed) {
       widget.api.outbox?.nudge(); // bekleyen mesajlar hemen denenir
       // Zorunlu güncelleme uygulama günlerce arka planda kalsa da devreye girsin: öne dönüşte (15 dk'da bir; kilit açıkken her dönüşte) tazelenir.
       if (_d.kind == GateKind.updateRequired || shouldRecheckOnResume(_lastCheck, DateTime.now())) _check(force: true);
       Analytics.instance.appOpen();
-    } else if (s == AppLifecycleState.paused) {
-      Analytics.instance.flush();
     }
   }
 
@@ -254,35 +253,41 @@ class _AppGateState extends State<AppGate> with WidgetsBindingObserver {
           onClose: () => setState(() => _dismissedBanner = _d.banner),
         ),
     ];
-    return Stack(
-      children: [
-        Column(
-          children: [
-            if (strips.isNotEmpty)
-              Material(
-                color: Colors.transparent,
-                child: SafeArea(bottom: false, child: Column(children: strips)),
+    // Dokunuş = kullanım etkinliği (30 dk hareketsizlik sayacı); olay üretmez, dokunuşları engellemez.
+    return Listener(
+      behavior: HitTestBehavior.translucent,
+      onPointerDown: (_) => Analytics.instance.touch(),
+      child: Stack(
+        children: [
+          Column(
+            children: [
+              if (strips.isNotEmpty)
+                Material(
+                  color: Colors.transparent,
+                  child: SafeArea(bottom: false, child: Column(children: strips)),
+                ),
+              Expanded(
+                child: strips.isEmpty
+                    ? child
+                    : MediaQuery.removePadding(context: context, removeTop: true, child: child),
               ),
-            Expanded(
-              child: strips.isEmpty
-                  ? child
-                  : MediaQuery.removePadding(context: context, removeTop: true, child: child),
-            ),
-          ],
-        ),
-        if (_noticeVisible && _d.kind == GateKind.updateAvailable)
-          Positioned(
-            left: 16,
-            right: 16,
-            bottom: kNavInset - 8 + MediaQuery.of(context).padding.bottom,
-            child: UpdateNotice(
-              latest: _d.latest,
-              storeUrl: _d.storeUrl,
-              marketUrl: _d.marketUrl,
-              onClose: () => setState(() => _noticeVisible = false),
-            ),
+            ],
           ),
-      ],
+          if (_noticeVisible && _d.kind == GateKind.updateAvailable)
+            Positioned(
+              left: 16,
+              right: 16,
+              bottom: kNavInset - 8 + MediaQuery.of(context).padding.bottom,
+              child: UpdateNotice(
+                latest: _d.latest,
+                storeUrl: _d.storeUrl,
+                marketUrl: _d.marketUrl,
+                onClose: () => setState(() => _noticeVisible = false),
+              ),
+            ),
+        ],
+
+      ),
     );
   }
 }

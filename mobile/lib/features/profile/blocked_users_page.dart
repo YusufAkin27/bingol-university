@@ -1,3 +1,4 @@
+import '../../core/analytics.dart';
 import 'package:flutter/material.dart';
 
 import '../../core/locale_controller.dart';
@@ -116,7 +117,7 @@ class _BlockedUsersPageState extends State<BlockedUsersPage> {
     } else if (_items!.isEmpty) {
       // Stitch v3: illüstrasyonsuz; ortada başlık 18/600 + mut 15.
       body = RefreshIndicator(
-        onRefresh: _load,
+        onRefresh: Analytics.pullRefresh(_load),
         child: ListView(
           physics: const AlwaysScrollableScrollPhysics(),
           padding: const EdgeInsets.fromLTRB(32, 96, 32, 32),
@@ -134,7 +135,7 @@ class _BlockedUsersPageState extends State<BlockedUsersPage> {
       );
     } else {
       body = RefreshIndicator(
-        onRefresh: _load,
+        onRefresh: Analytics.pullRefresh(_load),
         child: ListView(
           controller: _scroll,
           physics: const AlwaysScrollableScrollPhysics(),

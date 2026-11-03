@@ -4934,5 +4934,7 @@
   "homeFeaturedMenu": "Yemek Menüsü",
   "homeSearchFilters": "Arama filtreleri",
   "homeMore": "Diğer",
-  "homeViewAll": "Tümünü gör"
+  "homeViewAll": "Tümünü gör",
+  "settingsAnalytics": "Kullanım analizi",
+  "settingsAnalyticsSub": "Uygulamayı iyileştirmek için ekranlarda geçirilen süre ve yapılan eylemler gibi kullanım bilgileri gönderilir. Mesaj içeriği, arama metni ve kişisel bilgiler gönderilmez. Kapatınca toplama durur, bekleyenler silinir."
 }

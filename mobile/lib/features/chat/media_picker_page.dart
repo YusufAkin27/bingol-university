@@ -201,7 +201,7 @@ class _MediaPickerPageState extends State<MediaPickerPage> {
     if (_picked.isEmpty) return;
     final plan = await Navigator.push<MediaSendPlan>(
       context,
-      MaterialPageRoute(builder: (_) => MediaPreviewPage(picks: List.of(_picked))),
+      MaterialPageRoute(settings: const RouteSettings(name: 'media_preview'), builder: (_) => MediaPreviewPage(picks: List.of(_picked))),
     );
     if (plan != null && mounted) Navigator.pop(context, plan);
   }

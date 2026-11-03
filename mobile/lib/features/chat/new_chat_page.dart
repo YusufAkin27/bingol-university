@@ -187,7 +187,7 @@ class _NewChatPageState extends State<NewChatPage> {
       final conv = Map<String, dynamic>.from(res as Map);
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (_) => ChatDetailPage(session: widget.session, conversation: conv)),
+        MaterialPageRoute(settings: const RouteSettings(name: 'chat_detail'), builder: (_) => ChatDetailPage(session: widget.session, conversation: conv)),
       );
     } catch (e) {
       if (!mounted) return;

@@ -1,3 +1,4 @@
+import '../core/analytics.dart';
 import 'package:flutter/material.dart';
 
 import '../core/theme.dart';
@@ -146,6 +147,7 @@ class BuPageScaffold extends StatelessWidget {
         backgroundColor: t.sf3,
         edgeOffset: MediaQuery.paddingOf(context).top + kToolbarHeight,
         onRefresh: () {
+          Analytics.instance.action('pull_refresh');
           buHaptic(BuHaptic.selection);
           return onRefresh!();
         },

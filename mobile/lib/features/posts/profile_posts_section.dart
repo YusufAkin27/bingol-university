@@ -58,7 +58,7 @@ class _ProfilePostsSectionState extends State<ProfilePostsSection> {
             key: const ValueKey('profile-posts-all'),
             onPressed: () => Navigator.push<void>(
               context,
-              MaterialPageRoute<void>(
+              MaterialPageRoute<void>(settings: const RouteSettings(name: 'user_posts'), 
                   builder: (_) => UserPostsPage(session: widget.session, userId: widget.userId, name: widget.name)),
             ),
             child: Text(context.l10n.postViewSeeAll),

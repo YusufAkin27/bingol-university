@@ -196,7 +196,7 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
   void _openViewer(int index) {
     Navigator.push(
       context,
-      MaterialPageRoute<void>(
+      MaterialPageRoute<void>(settings: const RouteSettings(name: 'chat_media_viewer'), 
         builder: (_) => ChatMediaViewer(
           items: List.of(_feed.items),
           headers: _headers,
@@ -210,7 +210,7 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
   void _openAllMedia() {
     Navigator.push(
       context,
-      MaterialPageRoute<void>(
+      MaterialPageRoute<void>(settings: const RouteSettings(name: 'chat_media_grid'), 
           builder: (_) => ChatMediaGridPage(
               feed: _feed, headers: _headers, onOpen: _openViewer)),
     );
@@ -477,7 +477,7 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
   void _openMembers() {
     Navigator.push(
       context,
-      MaterialPageRoute<void>(
+      MaterialPageRoute<void>(settings: const RouteSettings(name: 'chat_members'), 
         builder: (_) => ChatMembersPage(
           members: List.of(_members),
           selfId: widget.session.userId,

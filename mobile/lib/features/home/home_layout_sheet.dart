@@ -51,7 +51,7 @@ IconData homeShortcutIcon(HomeShortcut s) => switch (s) {
 /// düğmeleriyle sıralar, anahtarla gizler/gösterir, Hızlı Erişim kısayol seçicisini açar; "Varsayılana dön", "Bitti".
 /// Her değişiklik anında uygulanır ve kaydedilir (arkadaki Ana Sayfa canlı değişir).
 Future<void> openHomeLayoutPage(BuildContext context, HomeLayoutController c) =>
-    Navigator.of(context).push<void>(MaterialPageRoute(builder: (_) => HomeLayoutPage(controller: c)));
+    Navigator.of(context).push<void>(MaterialPageRoute(settings: const RouteSettings(name: 'home_layout'), builder: (_) => HomeLayoutPage(controller: c)));
 
 class HomeLayoutPage extends StatelessWidget {
   const HomeLayoutPage({super.key, required this.controller});

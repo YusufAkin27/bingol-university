@@ -18,7 +18,7 @@ import 'language_sync.dart';
 /// [ApiClient.setTokens] / `Session` içinde temizlenir.
 ///
 /// Cihaza özel (hesaptan bağımsız) anahtarlar bilerek KALIR: device_id, welcome_seen, perms_onboarded,
-/// theme_mode, app_language, crash_reports_enabled, update_notice_shown.
+/// theme_mode, app_language, crash_reports_enabled, analytics_enabled, update_notice_shown.
 void registerUserDataCleaners(ApiClient api) {
   api.onUserDataCleared
     ..add(() => MessageCache.instance.clear())

@@ -1,3 +1,4 @@
+import '../../core/analytics.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -137,7 +138,7 @@ class _AnnouncementsPageState extends State<AnnouncementsPage> {
   }
 
   Future<void> _open(Announcement a) async {
-    await Navigator.of(context).push(MaterialPageRoute(builder: (_) => AnnouncementDetailPage(session: widget.session, id: a.id, preview: a)));
+    await Navigator.of(context).push(MaterialPageRoute(settings: const RouteSettings(name: 'announcement_detail'), builder: (_) => AnnouncementDetailPage(session: widget.session, id: a.id, preview: a)));
     if (!mounted) return;
     final i = _items.indexWhere((x) => x.id == a.id);
     if (i >= 0 && !_items[i].read) setState(() => _items[i] = _items[i].asRead());
@@ -192,7 +193,7 @@ class _AnnouncementsPageState extends State<AnnouncementsPage> {
       ]);
     }
     return RefreshIndicator(
-      onRefresh: _reload,
+      onRefresh: Analytics.pullRefresh(_reload),
       child: ListView(
         controller: _scroll,
         physics: const AlwaysScrollableScrollPhysics(),

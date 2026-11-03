@@ -72,7 +72,7 @@ class _HelpFormPageState extends State<HelpFormPage> {
       // Yanıt hep genel (hesap var/yok sızdırmaz): doğrudan kod adımı.
       await Navigator.push(
         context,
-        MaterialPageRoute(
+        MaterialPageRoute(settings: const RouteSettings(name: 'help_code'), 
           builder: (_) => HelpCodePage(session: widget.session, email: _email.text.trim(), resend: () => _send(api)),
         ),
       );

@@ -353,7 +353,7 @@ Future<void> openEditProfile(BuildContext context, Session session) async {
   try {
     final p = await session.api.get('/users/me') as Map<String, dynamic>;
     if (!context.mounted) return;
-    await Navigator.of(context).push<bool>(MaterialPageRoute(builder: (_) => EditProfilePage(session: session, profile: p)));
+    await Navigator.of(context).push<bool>(MaterialPageRoute(settings: const RouteSettings(name: 'edit_profile'), builder: (_) => EditProfilePage(session: session, profile: p)));
   } catch (e) {
     if (context.mounted) academicToast(context, errorText(e), kind: BuToastKind.error);
   }

@@ -9832,4 +9832,11 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get homeViewAll => 'Tümünü gör';
+
+  @override
+  String get settingsAnalytics => 'Kullanım analizi';
+
+  @override
+  String get settingsAnalyticsSub =>
+      'Uygulamayı iyileştirmek için ekranlarda geçirilen süre ve yapılan eylemler gibi kullanım bilgileri gönderilir. Mesaj içeriği, arama metni ve kişisel bilgiler gönderilmez. Kapatınca toplama durur, bekleyenler silinir.';
 }

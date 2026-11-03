@@ -51,7 +51,7 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   Future<void> _openVerify(String identifier) async {
-    await Navigator.push(context, MaterialPageRoute(builder: (_) {
+    await Navigator.push(context, MaterialPageRoute(settings: const RouteSettings(name: 'verify_code'), builder: (_) {
       return VerifyCodePage(session: widget.session, email: identifier, unverified: true);
     }));
     if (mounted) _loadPending();
@@ -289,7 +289,7 @@ class _LoginPageState extends State<LoginPage> {
                   action: l.loginRegister,
                   onPressed: _busy
                       ? null
-                      : () => Navigator.push(context, MaterialPageRoute(builder: (_) => RegisterPage(session: widget.session))),
+                      : () => Navigator.push(context, MaterialPageRoute(settings: const RouteSettings(name: 'register'), builder: (_) => RegisterPage(session: widget.session))),
                 ),
               ),
               AnimatedSize(
@@ -305,13 +305,13 @@ class _LoginPageState extends State<LoginPage> {
                             child: RefFooterPrompt(
                               prompt: l.p66HelpPrompt,
                               action: l.p66HelpAction,
-                              onPressed: _busy ? null : () => Navigator.push(context, MaterialPageRoute(builder: (_) => HelpFormPage(session: widget.session))),
+                              onPressed: _busy ? null : () => Navigator.push(context, MaterialPageRoute(settings: const RouteSettings(name: 'help_form'), builder: (_) => HelpFormPage(session: widget.session))),
                             ),
                           ),
                           // Sürüm satırına dokunmak Hakkında'yı açar (giriş öncesi herkese açık).
                           Center(
                             child: TextButton(
-                              onPressed: _busy ? null : () => Navigator.push(context, MaterialPageRoute(builder: (_) => AboutPage(session: widget.session))),
+                              onPressed: _busy ? null : () => Navigator.push(context, MaterialPageRoute(settings: const RouteSettings(name: 'about'), builder: (_) => AboutPage(session: widget.session))),
                               style: TextButton.styleFrom(foregroundColor: t.mut, minimumSize: const Size(48, 48)),
                               child: Text(l.profileVersion(appVersion), style: tx.bodySmall!.copyWith(color: t.mut)),
                             ),

@@ -59,7 +59,7 @@ class _DiscoverTabState extends State<DiscoverTab> {
 
   void _openSearch() => Navigator.push(
         context,
-        MaterialPageRoute(builder: (_) => SearchPage(session: widget.session)),
+        MaterialPageRoute(settings: const RouteSettings(name: 'search'), builder: (_) => SearchPage(session: widget.session)),
       );
 
   Future<void> _compose() async {

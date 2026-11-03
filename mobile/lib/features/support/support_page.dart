@@ -102,8 +102,8 @@ class _SupportPageState extends State<SupportPage> {
     if (mounted) setState(() => _more = false);
   }
 
-  Future<void> _push(Widget page) async {
-    final changed = await Navigator.push<bool>(context, MaterialPageRoute(builder: (_) => page));
+  Future<void> _push(Widget page, [String? screen]) async {
+    final changed = await Navigator.push<bool>(context, MaterialPageRoute(settings: RouteSettings(name: screen), builder: (_) => page));
     if (changed == true) _load();
   }
 
@@ -121,7 +121,7 @@ class _SupportPageState extends State<SupportPage> {
     final state = _loading ? BuViewState.loading : (_error != null ? BuViewState.error : BuViewState.ready);
     final cats = _categories;
     final filters = _faqCount > _filterThreshold;
-    void newTicket() => _push(NewTicketPage(session: widget.session));
+    void newTicket() => _push(NewTicketPage(session: widget.session), 'new_ticket');
     final noTickets = _tickets.isEmpty && _ticketsError == null;
     return BuPageScaffold(
       title: l.supportTitle,
@@ -182,7 +182,7 @@ class _SupportPageState extends State<SupportPage> {
                 child: Wrap(alignment: WrapAlignment.center, crossAxisAlignment: WrapCrossAlignment.center, children: [
                   _LinkText(
                     label: l.supportFeedbackTitle,
-                    onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => FeedbackPage(session: widget.session))),
+                    onTap: () => Navigator.push(context, MaterialPageRoute(settings: const RouteSettings(name: 'feedback'), builder: (_) => FeedbackPage(session: widget.session))),
                   ),
                   ExcludeSemantics(
                       child: Padding(
@@ -190,7 +190,7 @@ class _SupportPageState extends State<SupportPage> {
                           child: Text('·', style: Theme.of(context).textTheme.bodyMedium!.copyWith(color: t.mut)))),
                   _LinkText(
                     label: l.supportBoard,
-                    onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => SuggestionsPage(session: widget.session))),
+                    onTap: () => Navigator.push(context, MaterialPageRoute(settings: const RouteSettings(name: 'suggestions'), builder: (_) => SuggestionsPage(session: widget.session))),
                   ),
                 ]),
               ),
@@ -261,7 +261,7 @@ class _SupportPageState extends State<SupportPage> {
           for (var i = 0; i < _tickets.length; i++)
             _TicketTile(
               ticket: _tickets[i],
-              onTap: () => _push(SupportTicketPage(session: widget.session, ticketId: (_tickets[i]['id'] as num).toInt())),
+              onTap: () => _push(SupportTicketPage(session: widget.session, ticketId: (_tickets[i]['id'] as num).toInt()), 'support_ticket'),
             ),
           if (_more) const BuSkeletonScope(child: AnketSkeletonRow()),
         ]),

@@ -69,7 +69,7 @@ class _HelpCodePageState extends State<HelpCodePage> {
       if (!mounted) return;
       await Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (_) => HelpTrackPage(session: widget.session, token: token)),
+        MaterialPageRoute(settings: const RouteSettings(name: 'help_track'), builder: (_) => HelpTrackPage(session: widget.session, token: token)),
       );
       return;
     } catch (e) {

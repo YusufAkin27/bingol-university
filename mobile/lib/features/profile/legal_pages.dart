@@ -1,3 +1,4 @@
+import '../../core/analytics.dart';
 import 'package:flutter/material.dart';
 
 import '../../core/locale_controller.dart';
@@ -79,7 +80,7 @@ class _LegalListPageState extends State<LegalListPage> {
     }
     return RefreshIndicator(
       key: const ValueKey('legal-list'),
-      onRefresh: _refresh,
+      onRefresh: Analytics.pullRefresh(_refresh),
       child: ListView(
         padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
         children: [
@@ -90,7 +91,7 @@ class _LegalListPageState extends State<LegalListPage> {
               doc: docs[i],
               onTap: () => Navigator.push(
                 context,
-                MaterialPageRoute(builder: (_) => LegalDocPage(session: widget.session, type: docs[i]['type'] as String)),
+                MaterialPageRoute(settings: const RouteSettings(name: 'legal_doc'), builder: (_) => LegalDocPage(session: widget.session, type: docs[i]['type'] as String)),
               ),
             ),
           ],

@@ -1,3 +1,4 @@
+import '../../core/analytics.dart';
 import 'dart:async';
 import 'dart:math' as math;
 
@@ -157,6 +158,7 @@ class _LikeButtonState extends State<LikeButton> with TickerProviderStateMixin {
     try {
       final api = widget.session.api;
       final r = want ? await api.put('/posts/${_post.id}/like') : await api.delete('/posts/${_post.id}/like');
+      Analytics.instance.action(want ? 'like' : 'unlike');
       final res = LikeResult.fromJson(r is Map ? Map<String, dynamic>.from(r) : null);
       _confirmedLiked = res.liked;
       _confirmedCount = res.likeCount;

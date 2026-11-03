@@ -1,3 +1,4 @@
+import '../analytics.dart';
 import 'package:flutter/material.dart';
 
 import '../../features/academic/announcements_page.dart';
@@ -44,6 +45,7 @@ class PushRouter {
     final target = resolvePushTarget(payload);
     final nav = rootNavigatorKey.currentState;
     if (s == null || nav == null || s.state != SessionState.signedIn) return;
+    Analytics.instance.action('push_open', target: localReminder ? 'reminder' : 'push');
     try {
       if (await _go(nav, s, target, compose: !localReminder && compose)) return;
     } catch (_) {
@@ -51,7 +53,7 @@ class PushRouter {
     }
     if (!nav.mounted) return;
     nav.push(
-        MaterialPageRoute<void>(builder: (_) => NotificationsPage(session: s)));
+        MaterialPageRoute<void>(settings: const RouteSettings(name: 'notifications'), builder: (_) => NotificationsPage(session: s)));
   }
 
   /// `GET /conversations/{id}` yanıtı `{conversation, members}` sarmalayıcısıdır (ChatDetailPage
@@ -68,8 +70,8 @@ class PushRouter {
   static Future<bool> _go(NavigatorState nav, Session s, PushTarget t, {bool compose = false}) async {
     final id = t.id;
     final ctx = nav.context;
-    void push(Widget page) =>
-        nav.push(MaterialPageRoute<void>(builder: (_) => page));
+    void push(Widget page, [String? screen]) =>
+        nav.push(MaterialPageRoute<void>(settings: RouteSettings(name: screen), builder: (_) => page));
     switch (t.dest) {
       case PushDest.conversation:
         try {
@@ -77,7 +79,7 @@ class PushRouter {
               conversationFromDetail(await s.api.get('/conversations/$id'));
           if (conv == null)
             return false; // beklenmeyen biçim: Bildirimler listesine düş
-          push(ChatDetailPage(session: s, conversation: conv, focusComposer: compose));
+          push(ChatDetailPage(session: s, conversation: conv, focusComposer: compose), 'chat_detail');
           return true;
         } on ApiError {
           return false;
@@ -100,10 +102,10 @@ class PushRouter {
                 child: EventDetailPage(session: s, eventId: id!)));
         return true;
       case PushDest.community:
-        push(ClubDetailPage(session: s, communityId: id!));
+        push(ClubDetailPage(session: s, communityId: id!), 'club_detail');
         return true;
       case PushDest.news:
-        push(NewsDetailPage(session: s, item: <String, dynamic>{'id': id}));
+        push(NewsDetailPage(session: s, item: <String, dynamic>{'id': id}), 'news_detail');
         return true;
       case PushDest.post:
         // Push/derin bağlantı: gönderi ilk sırada, altında akış sürer (alınamazsa yalnız o gönderi).
@@ -125,13 +127,13 @@ class PushRouter {
         await openUserProfile(ctx, s, userId: id!);
         return true;
       case PushDest.followRequests:
-        push(FollowRequestsPage(session: s));
+        push(FollowRequestsPage(session: s), 'follow_requests');
         return true;
       case PushDest.deptAnnouncement:
-        push(AnnouncementDetailPage(session: s, id: id!));
+        push(AnnouncementDetailPage(session: s, id: id!), 'announcement_detail');
         return true;
       case PushDest.timetable:
-        push(TimetablePage(session: s));
+        push(TimetablePage(session: s), 'timetable');
         return true;
       case PushDest.exams:
         if (id != null) {
@@ -146,20 +148,20 @@ class PushRouter {
                       maxHeight: MediaQuery.sizeOf(ctx).height * .9),
                   child: NotificationExamDetail(session: s, examId: id)));
         } else {
-          push(ExamsPage(session: s));
+          push(ExamsPage(session: s), 'exams');
         }
         return true;
       case PushDest.ticket:
-        push(SupportTicketPage(session: s, ticketId: id!));
+        push(SupportTicketPage(session: s, ticketId: id!), 'support_ticket');
         return true;
       case PushDest.meal:
-        push(MenuPage(session: s));
+        push(MenuPage(session: s), 'menu');
         return true;
       case PushDest.accountSecurity:
-        push(AccountSecurityPage(session: s));
+        push(AccountSecurityPage(session: s), 'account_security');
         return true;
       case PushDest.feedback:
-        push(SupportPage(session: s));
+        push(SupportPage(session: s), 'support');
         return true;
       case PushDest
             .signOut: // ölü değer (bkz. PushDest.signOut): hiçbir yük buraya çözülmez, çıkış yapılmaz

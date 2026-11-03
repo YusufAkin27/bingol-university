@@ -15,17 +15,17 @@ export 'poll_club_section.dart' show PollClubSection;
 Future<void> openPollList(BuildContext context, Session session, {int? communityId, String? title, bool canCreate = false}) =>
     Navigator.push<void>(
         context,
-        MaterialPageRoute<void>(
+        MaterialPageRoute<void>(settings: const RouteSettings(name: 'poll_list'), 
             builder: (_) => PollListPage(session: session, communityId: communityId, title: title, canCreate: canCreate)));
 
 /// Anket detayı. Oy verildi/geri çekildi ise true döner (çağıran listeyi tazeler).
 Future<bool?> openPollDetail(BuildContext context, Session session, int pollId, {Poll? initial}) =>
     Navigator.push<bool>(
         context,
-        MaterialPageRoute<bool>(
+        MaterialPageRoute<bool>(settings: const RouteSettings(name: 'poll_detail'), 
             builder: (_) => PollDetailPage(session: session, pollId: pollId, initial: initial)));
 
 /// Anket oluşturma formu (kulüp yöneticisi). Oluşturulan anketi döner.
 Future<Poll?> openPollForm(BuildContext context, Session session, {required int communityId}) =>
     Navigator.push<Poll>(context,
-        MaterialPageRoute<Poll>(builder: (_) => PollFormPage(session: session, communityId: communityId)));
+        MaterialPageRoute<Poll>(settings: const RouteSettings(name: 'poll_form'), builder: (_) => PollFormPage(session: session, communityId: communityId)));

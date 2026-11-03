@@ -1,3 +1,4 @@
+import '../../core/analytics.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -290,7 +291,7 @@ class _HomeTabState extends State<HomeTab> {
     }
   }
 
-  void _push(Widget page) => Navigator.push(context, MaterialPageRoute(builder: (_) => page));
+  void _push(Widget page, [String? screen]) => Navigator.push(context, MaterialPageRoute(settings: RouteSettings(name: screen), builder: (_) => page));
 
   String _greeting(BuildContext context) {
     final l = context.l10n;
@@ -340,7 +341,7 @@ class _HomeTabState extends State<HomeTab> {
             ? const SizedBox.shrink()
             : RefreshIndicator(
                 color: t.pr,
-                onRefresh: _reload,
+                onRefresh: Analytics.pullRefresh(_reload),
                 child: BuStaggerScope(
                   child: ListView(
                     padding: const EdgeInsets.only(bottom: kNavInset),
@@ -374,12 +375,12 @@ class _HomeTabState extends State<HomeTab> {
     final day = _today == null ? const MenuDay() : MenuDay.fromJson(_today!);
     final names = [for (final d in _dishes(day)) d.name];
     if (names.isEmpty) {
-      rows.add((label: l.yemekLunch, value: l.homeNoMenuToday, onTap: () => _push(MenuPage(session: _s)), muted: true));
+      rows.add((label: l.yemekLunch, value: l.homeNoMenuToday, onTap: () => _push(MenuPage(session: _s), 'menu'), muted: true));
     } else {
       final extra = names.length - 2;
       final kcal = day.totalKcal;
       final value = '${names.take(2).join(', ')}${extra > 0 ? ' +$extra' : ''}${kcal != null ? ' · ${day.kcalComplete ? l.p03MenuKcal('$kcal') : l.p03MenuAtLeast('$kcal')}' : ''}';
-      rows.add((label: l.yemekLunch, value: value, onTap: () => _push(MenuPage(session: _s)), muted: false));
+      rows.add((label: l.yemekLunch, value: value, onTap: () => _push(MenuPage(session: _s), 'menu'), muted: false));
     }
     // Sıradaki ders (akademik veri yoksa satır gizlenir).
     final tt = _timetable;
@@ -394,7 +395,7 @@ class _HomeTabState extends State<HomeTab> {
         rows.add((
           label: l.p60NextClass,
           value: '$prefix${s.session.start} ${s.course.name}${room != null && room.trim().isNotEmpty ? ' · ${room.trim()}' : ''}',
-          onTap: () => _push(AcademicHubPage(session: _s)),
+          onTap: () => _push(AcademicHubPage(session: _s), 'academic_hub'),
           muted: false,
         ));
       }
@@ -406,7 +407,7 @@ class _HomeTabState extends State<HomeTab> {
       final e = ex.first;
       final w = istanbulWall(e.startsAt);
       final name = (e.courseName ?? '').trim().isNotEmpty ? e.courseName!.trim() : e.title;
-      rows.add((label: l.p60UpcomingExam, value: '${w.day} ${newsMonthName(context, w.month)} · $name', onTap: () => _push(AcademicHubPage(session: _s)), muted: false));
+      rows.add((label: l.p60UpcomingExam, value: '${w.day} ${newsMonthName(context, w.month)} · $name', onTap: () => _push(AcademicHubPage(session: _s), 'academic_hub'), muted: false));
     }
     rows.sort((a, b) => (a.label == l.p60NextClass ? 0 : a.label == l.yemekLunch ? 1 : 2).compareTo(b.label == l.p60NextClass ? 0 : b.label == l.yemekLunch ? 1 : 2));
     return rows;
@@ -453,7 +454,7 @@ class _HomeTabState extends State<HomeTab> {
       stag(_header(context, afterBanner: banners.isNotEmpty)),
       stag(Padding(
         padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
-        child: HomeSearchBox(hint: l.homeSearchHint, onTap: () => _push(SearchPage(session: _s))),
+        child: HomeSearchBox(hint: l.homeSearchHint, onTap: () => _push(SearchPage(session: _s), 'search')),
       )),
       stag(Padding(padding: const EdgeInsets.fromLTRB(20, 20, 20, 8), child: _featuredShortcuts(context))),
       // "Bugün": sabit, gizlenemez; satırlar yüklendikçe/boşalınca yükseklik + solma geçişi.
@@ -463,7 +464,7 @@ class _HomeTabState extends State<HomeTab> {
         builder: () => stag(Padding(
           padding: const EdgeInsets.fromLTRB(20, 8, 20, 0), // Stitch: arama alt boşluğu 20 (12 + satır içi 12 = 24 yerine 8 + 12)
           child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-            HomeSectionHeader(title: l.p60Today, action: l.homeViewAll, accent: true, onAction: () => _push(AcademicHubPage(session: _s)), onLongPress: _editLayout),
+            HomeSectionHeader(title: l.p60Today, action: l.homeViewAll, accent: true, onAction: () => _push(AcademicHubPage(session: _s), 'academic_hub'), onLongPress: _editLayout),
             HomeTodayCard(rows: todayRows),
           ]),
         )),
@@ -527,7 +528,7 @@ class _HomeTabState extends State<HomeTab> {
       list = _pad(HomeAnnouncementList(
         items: [
           for (final n in news)
-            (title: (n['title'] as String?) ?? '', date: newsLocalDate(context, n['publishedDate'] as String?), onTap: () => _push(NewsDetailPage(session: _s, item: n))),
+            (title: (n['title'] as String?) ?? '', date: newsLocalDate(context, n['publishedDate'] as String?), onTap: () => _push(NewsDetailPage(session: _s, item: n), 'news_detail')),
         ],
       ));
     } else {
@@ -543,7 +544,7 @@ class _HomeTabState extends State<HomeTab> {
             dateText: newsLocalDate(context, n['publishedDate'] as String?),
             imageUrl: n['imageUrl'] as String?,
             heroId: (n['id'] as num?)?.toInt(),
-            onTap: () => _push(NewsDetailPage(session: _s, item: n)),
+            onTap: () => _push(NewsDetailPage(session: _s, item: n), 'news_detail'),
           );
         },
       );
@@ -557,7 +558,7 @@ class _HomeTabState extends State<HomeTab> {
           _pad(HomeSectionHeader(
             title: announce ? l.anasayfaAnnouncements : l.p03HomeFeaturedNews,
             action: l.homeAll,
-            onAction: () => _push(NewsListPage(session: _s, initialType: type)),
+            onAction: () => _push(NewsListPage(session: _s, initialType: type), 'news_list'),
             onLongPress: _editLayout,
           )),
           list,
@@ -584,7 +585,7 @@ class _HomeTabState extends State<HomeTab> {
               ].join(' · '),
             ),
         ],
-        onTap: () => _push(AcademicHubPage(session: _s)),
+        onTap: () => _push(AcademicHubPage(session: _s), 'academic_hub'),
       ),
     ]));
   }
@@ -606,7 +607,7 @@ class _HomeTabState extends State<HomeTab> {
               icon: BuIcons.bell,
               badge: n > 0,
               tooltip: l.notifTitle,
-              onTap: () => _push(NotificationsPage(session: _s)),
+              onTap: () => _push(NotificationsPage(session: _s), 'notifications'),
             ),
           ),
         ],
@@ -618,7 +619,7 @@ class _HomeTabState extends State<HomeTab> {
   Widget _eventSection(BuildContext context) {
     final l = context.l10n;
     return _pad(Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-      HomeSectionHeader(title: l.p03HomeUpcoming, action: l.homeAll, onAction: () => _push(EventsPage(session: _s)), onLongPress: _editLayout),
+      HomeSectionHeader(title: l.p03HomeUpcoming, action: l.homeAll, onAction: () => _push(EventsPage(session: _s), 'events'), onLongPress: _editLayout),
       _eventBody(context),
     ]));
   }
@@ -640,7 +641,7 @@ class _HomeTabState extends State<HomeTab> {
         icon: BuIcons.calendarClock,
         headline: l.homeNoUpcoming,
         actionLabel: l.homeBrowseEvents,
-        onAction: () => _push(EventsPage(session: _s)),
+        onAction: () => _push(EventsPage(session: _s), 'events'),
       );
     }
     final id = (e['id'] as num?)?.toInt();
@@ -667,8 +668,8 @@ class _HomeTabState extends State<HomeTab> {
                     'imageUrl': e['imageUrl'],
                     'publishedDate': e['date'],
                     'url': e['url'],
-                  }))
-                : _push(EventDetailPage(session: _s, eventId: id)),
+                  }), 'news_detail')
+                : _push(EventDetailPage(session: _s, eventId: id), 'event_detail'),
       ),
     ]);
   }
@@ -684,8 +685,8 @@ class _HomeTabState extends State<HomeTab> {
     final t = context.bu;
     final l = context.l10n;
     return HomeFeaturedShortcuts(items: [
-      (label: l.homeFeaturedSchedule, icon: BuIcons.calendar, bg: t.soft, fg: t.onSoft, onTap: () => _push(AcademicHubPage(session: _s))),
-      (label: l.homeFeaturedMenu, icon: BuIcons.utensils, bg: t.infoSoft, fg: t.onInfoSoft, onTap: () => _push(MenuPage(session: _s))),
+      (label: l.homeFeaturedSchedule, icon: BuIcons.calendar, bg: t.soft, fg: t.onSoft, onTap: () => _push(AcademicHubPage(session: _s), 'academic_hub')),
+      (label: l.homeFeaturedMenu, icon: BuIcons.utensils, bg: t.infoSoft, fg: t.onInfoSoft, onTap: () => _push(MenuPage(session: _s), 'menu')),
       (label: l.homeLibrary, icon: BuIcons.bookOpen, bg: t.okSoft, fg: t.onOkSoft, onTap: () => _openUrl('https://kutuphane.bingol.edu.tr/')),
       (label: l.navClubs, icon: BuIcons.users, bg: t.campusClubSoft, fg: t.onCampusClubSoft, onTap: () => widget.onOpenTab(AppTab.clubs)),
     ]);
@@ -694,9 +695,9 @@ class _HomeTabState extends State<HomeTab> {
   void _openMore(BuildContext context) {
     final l = context.l10n;
     final entries = <({String label, IconData icon, VoidCallback action})>[
-      (label: l.supportTitle, icon: BuIcons.headset, action: () => _push(SupportPage(session: _s))),
-      (label: l.notifTitle, icon: BuIcons.bell, action: () => _push(NotificationsPage(session: _s))),
-      (label: l.icerikSavedList, icon: BuIcons.bookmark, action: () => _push(SavedNewsPage(session: _s))),
+      (label: l.supportTitle, icon: BuIcons.headset, action: () => _push(SupportPage(session: _s), 'support')),
+      (label: l.notifTitle, icon: BuIcons.bell, action: () => _push(NotificationsPage(session: _s), 'notifications')),
+      (label: l.icerikSavedList, icon: BuIcons.bookmark, action: () => _push(SavedNewsPage(session: _s), 'saved_news')),
       (label: l.p60EditHome, icon: BuIcons.pencil, action: _editLayout),
     ];
     showModalBottomSheet<void>(context: context, showDragHandle: true, builder: (sheetContext) => SafeArea(
@@ -717,17 +718,17 @@ class _HomeTabState extends State<HomeTab> {
     final l = context.l10n;
     VoidCallback go(HomeShortcut sc) => switch (sc) {
           HomeShortcut.more => () => _openMore(context),
-          HomeShortcut.news => () => _push(NewsListPage(session: _s)),
-          HomeShortcut.menu => () => _push(MenuPage(session: _s)),
-          HomeShortcut.events => () => _push(EventsPage(session: _s)),
+          HomeShortcut.news => () => _push(NewsListPage(session: _s), 'news_list'),
+          HomeShortcut.menu => () => _push(MenuPage(session: _s), 'menu'),
+          HomeShortcut.events => () => _push(EventsPage(session: _s), 'events'),
           HomeShortcut.polls => () => openPollList(context, _s),
-          HomeShortcut.schedule => () => _push(AcademicHubPage(session: _s)),
+          HomeShortcut.schedule => () => _push(AcademicHubPage(session: _s), 'academic_hub'),
           HomeShortcut.clubs => () => widget.onOpenTab(AppTab.clubs),
           HomeShortcut.chat => () => widget.onOpenTab(AppTab.chat),
-          HomeShortcut.support => () => _push(SupportPage(session: _s)),
-          HomeShortcut.search => () => _push(SearchPage(session: _s)),
-          HomeShortcut.notifications => () => _push(NotificationsPage(session: _s)),
-          HomeShortcut.bookmarks => () => _push(SavedNewsPage(session: _s)),
+          HomeShortcut.support => () => _push(SupportPage(session: _s), 'support'),
+          HomeShortcut.search => () => _push(SearchPage(session: _s), 'search'),
+          HomeShortcut.notifications => () => _push(NotificationsPage(session: _s), 'notifications'),
+          HomeShortcut.bookmarks => () => _push(SavedNewsPage(session: _s), 'saved_news'),
         };
     final shortcuts = _layout.value.shortcuts;
     final labels = [for (final sc in shortcuts) homeShortcutLabel(l, sc)];
@@ -750,7 +751,7 @@ class _HomeTabState extends State<HomeTab> {
     final l = context.l10n;
     final day = _today == null ? const MenuDay() : MenuDay.fromJson(_today!);
     final dishes = _dishes(day);
-    final header = HomeSectionHeader(title: l.p03HomeMealTitle, action: l.p60OpenMenu, accent: true, onAction: () => _push(MenuPage(session: _s)), onLongPress: _editLayout);
+    final header = HomeSectionHeader(title: l.p03HomeMealTitle, action: l.p60OpenMenu, accent: true, onAction: () => _push(MenuPage(session: _s), 'menu'), onLongPress: _editLayout);
     if (dishes.isEmpty) {
       return _pad(Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
         header,
@@ -766,7 +767,7 @@ class _HomeTabState extends State<HomeTab> {
         kcalText: anyKcal,
         totalLabel: total == null ? null : l.p03MenuTotalEnergy,
         totalValue: total == null ? null : (day.kcalComplete ? '${l.p03MenuTotal} ${l.p03MenuKcal('$total')}' : l.p03MenuAtLeast('$total')),
-        onTap: () => _push(MenuPage(session: _s)),
+        onTap: () => _push(MenuPage(session: _s), 'menu'),
       ),
     ]));
   }

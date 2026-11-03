@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import '../news/news_list_page.dart';
+import '../../core/analytics.dart';
 import '../../core/locale_controller.dart';
 import '../../core/nav.dart';
 import 'package:flutter/material.dart';
@@ -24,6 +25,9 @@ export 'floating_nav.dart' show FloatingNav;
 /// Sekme sırası: 0 Ana Sayfa, 1 Keşfet, 2 Sohbet, 3 Kulüpler, 4 Profil.
 abstract final class AppTab {
   static const home = 0, discover = 1, chat = 2, clubs = 3, profile = 4;
+
+  /// Kullanım analizi için sekme anahtarları (ekran adı `tab_<anahtar>`).
+  static const analyticsKeys = ['home', 'discover', 'chat', 'clubs', 'profile'];
 }
 
 /// Giriş yapılmış kullanıcının kabuğu: sekmeler TEMBEL kurulur (ilk karede yalnız ana sekme; diğerleri ilk
@@ -57,6 +61,7 @@ class _AppShellState extends State<AppShell> with WidgetsBindingObserver, Single
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    Analytics.instance.setTab('tab_${AppTab.analyticsKeys[_tab]}'); // açılış sekmesi ekran süresi için
     s.realtime?.start();
     _msgSub = s.realtime?.messages.listen(_onRealtimeMessage);
     shellTabRequest.addListener(_onTabRequest);
@@ -69,6 +74,7 @@ class _AppShellState extends State<AppShell> with WidgetsBindingObserver, Single
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    Analytics.instance.setTab(null);
     shellTabRequest.removeListener(_onTabRequest);
     _poll?.cancel();
     _msgSub?.cancel();
@@ -124,7 +130,7 @@ class _AppShellState extends State<AppShell> with WidgetsBindingObserver, Single
     if (newsType != null) {
       // Keşfet artık yalnız gönderiler: haber/duyuru/etkinlik listesi ayrı sayfada açılır.
       Navigator.of(context).push<void>(
-          MaterialPageRoute<void>(builder: (_) => NewsListPage(session: s, initialType: newsType)));
+          MaterialPageRoute<void>(settings: const RouteSettings(name: 'news_list'), builder: (_) => NewsListPage(session: s, initialType: newsType)));
       return;
     }
     _select(i);
@@ -133,6 +139,7 @@ class _AppShellState extends State<AppShell> with WidgetsBindingObserver, Single
   /// Sekmeyi seçer: ilk seçimde kurar, geçişte fade-through oynatır ("animasyonları azalt" ise anlık).
   void _select(int i) {
     if (i == _tab) return;
+    Analytics.instance.tabSwitch(AppTab.analyticsKeys[i]);
     setState(() {
       _tab = i;
       _built.add(i);

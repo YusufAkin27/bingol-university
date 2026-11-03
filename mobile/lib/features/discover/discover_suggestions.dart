@@ -73,7 +73,7 @@ class _DiscoverSuggestionsState extends State<DiscoverSuggestions> {
                 key: const ValueKey('discoverSuggestionsAll'),
                 borderRadius: BuRadius.bXs,
                 onTap: () => Navigator.push(
-                    context, MaterialPageRoute(builder: (_) => FollowSuggestionsPage(session: widget.session))),
+                    context, MaterialPageRoute(settings: const RouteSettings(name: 'follow_suggestions'), builder: (_) => FollowSuggestionsPage(session: widget.session))),
                 child: ConstrainedBox(
                   constraints: const BoxConstraints(minHeight: 44),
                   child: Align(

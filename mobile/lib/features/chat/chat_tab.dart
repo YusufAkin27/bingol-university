@@ -1,3 +1,4 @@
+import '../../core/analytics.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -201,7 +202,7 @@ class _ChatTabState extends State<ChatTab> {
   }
 
   Future<void> _openMsgRequests() async {
-    await Navigator.push(context, MaterialPageRoute(builder: (_) => MessageRequestsPage(session: widget.session)));
+    await Navigator.push(context, MaterialPageRoute(settings: const RouteSettings(name: 'message_requests'), builder: (_) => MessageRequestsPage(session: widget.session)));
     if (mounted) {
       _loadMsgReq();
       _load(silent: true);
@@ -287,7 +288,7 @@ class _ChatTabState extends State<ChatTab> {
   Future<void> _openNew() async {
     await Navigator.push(
         context,
-        MaterialPageRoute(
+        MaterialPageRoute(settings: const RouteSettings(name: 'new_chat'), 
             builder: (_) => NewChatPage(session: widget.session)));
     if (mounted) _load(silent: true);
   }
@@ -295,7 +296,7 @@ class _ChatTabState extends State<ChatTab> {
   Future<void> _openChat(Map<String, dynamic> c) async {
     await Navigator.push(
       context,
-      MaterialPageRoute(
+      MaterialPageRoute(settings: const RouteSettings(name: 'chat_detail'), 
           builder: (_) =>
               ChatDetailPage(session: widget.session, conversation: c)),
     );
@@ -507,7 +508,7 @@ class _ChatTabState extends State<ChatTab> {
       backgroundColor: t.bg,
       body: RefreshIndicator(
         color: t.pr,
-        onRefresh: () => _load(silent: true),
+        onRefresh: Analytics.pullRefresh(() => _load(silent: true)),
         // Satırların kademeli girişi: her indeks yalnız bir kez oynar (kaydırma/yenileme/süzme tekrar oynatmaz).
         child: BuStaggerScope(
           child: CustomScrollView(

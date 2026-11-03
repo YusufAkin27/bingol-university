@@ -1,3 +1,4 @@
+import '../../core/analytics.dart';
 import 'package:flutter/material.dart';
 
 import '../../core/locale_controller.dart';
@@ -105,7 +106,7 @@ class _Etkinlik2AttendancePageState extends State<Etkinlik2AttendancePage> {
     if (widget.fromQr) {
       Navigator.pop(context);
     } else {
-      Navigator.push(context, MaterialPageRoute(builder: (_) => Etkinlik2QrPage(session: widget.session, event: widget.event)));
+      Navigator.push(context, MaterialPageRoute(settings: const RouteSettings(name: 'etkinlik2_qr'), builder: (_) => Etkinlik2QrPage(session: widget.session, event: widget.event)));
     }
   }
 
@@ -201,7 +202,7 @@ class _Etkinlik2AttendancePageState extends State<Etkinlik2AttendancePage> {
             loading: _loading,
             skeleton: const SingleChildScrollView(primary: false, physics: NeverScrollableScrollPhysics(), child: _AttendanceSkeleton()),
             child: RefreshIndicator(
-              onRefresh: () => _load(silent: true),
+              onRefresh: Analytics.pullRefresh(() => _load(silent: true)),
               child: ListView(physics: const AlwaysScrollableScrollPhysics(), padding: const EdgeInsets.only(bottom: 32), children: [body]),
             ),
           ),

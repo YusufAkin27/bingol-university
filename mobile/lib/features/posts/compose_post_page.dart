@@ -27,7 +27,7 @@ Future<Uint8List?> _defaultPicker(ImageSource source) async {
 
 /// Oluşturucuyu tam ekran açar; paylaşılırsa oluşan [Post] döner, kapatılırsa null.
 Future<Post?> openComposePost(BuildContext context, Session session) => Navigator.of(context).push<Post>(
-      MaterialPageRoute(fullscreenDialog: true, builder: (_) => ComposePostPage(session: session)),
+      MaterialPageRoute(settings: const RouteSettings(name: 'compose_post'), fullscreenDialog: true, builder: (_) => ComposePostPage(session: session)),
     );
 
 enum _Err { none, generic, profanity, rate, network }

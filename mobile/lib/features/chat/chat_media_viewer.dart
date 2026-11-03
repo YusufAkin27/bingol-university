@@ -271,7 +271,7 @@ class _VideoPosterPage extends StatelessWidget {
     buHaptic(BuHaptic.light);
     Navigator.push(
       context,
-      MaterialPageRoute<void>(
+      MaterialPageRoute<void>(settings: const RouteSettings(name: 'chat_video_player'), 
         builder: (_) => ChatVideoPlayerPage(
           url: item.url,
           headers: headers,

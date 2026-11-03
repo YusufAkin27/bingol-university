@@ -148,7 +148,7 @@ Future<void> _bootstrap() async {
     await session.restore();
   }());
   // Tema ve dil ilk karede doğru olsun (yanıp sönme yok): paralel yüklenir, runApp yalnız bunları bekler.
-  await Future.wait([theme.load(), localeCtl.load(), crashInit]);
+  await Future.wait([theme.load(), localeCtl.load(), crashInit, Analytics.instance.init()]);
   runApp(BingolApp(session: session, themeController: theme, push: push, localeController: localeCtl));
 }
 
@@ -281,7 +281,7 @@ class _SignedOutRootState extends State<_SignedOutRoot> {
     if (register) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted) return;
-        Navigator.of(context).push(MaterialPageRoute(builder: (_) => RegisterPage(session: widget.session)));
+        Navigator.of(context).push(MaterialPageRoute(settings: const RouteSettings(name: 'register'), builder: (_) => RegisterPage(session: widget.session)));
       });
     }
   }

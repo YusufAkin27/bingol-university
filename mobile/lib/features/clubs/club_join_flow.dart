@@ -1,3 +1,4 @@
+import '../../core/analytics.dart';
 import 'package:flutter/material.dart';
 
 import '../../core/locale_controller.dart';
@@ -40,6 +41,7 @@ Future<String?> joinClubFlow(
     '/communities/$communityId/join',
     answers == null ? null : {'answers': answers},
   );
+  Analytics.instance.action('join_club');
   final st = res is Map ? res['status']?.toString() : null;
   return st ?? (needsApproval ? 'PENDING' : 'ACTIVE');
 }

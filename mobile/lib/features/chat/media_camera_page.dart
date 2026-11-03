@@ -17,7 +17,7 @@ typedef MediaCameraLauncher = Future<MediaPick?> Function(BuildContext context);
 
 Future<MediaPick?> openMediaCamera(BuildContext context) => Navigator.push<MediaPick>(
       context,
-      MaterialPageRoute(fullscreenDialog: true, builder: (_) => const MediaCameraPage()),
+      MaterialPageRoute(settings: const RouteSettings(name: 'media_camera'), fullscreenDialog: true, builder: (_) => const MediaCameraPage()),
     );
 
 /// Uygulama içi sade kamera: dokununca fotoğraf, basılı tutunca video (en çok 60 sn, yalnız süre sayacı).

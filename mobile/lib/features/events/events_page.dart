@@ -1,3 +1,4 @@
+import '../../core/analytics.dart';
 import 'package:flutter/material.dart';
 
 import '../../core/api.dart';
@@ -449,6 +450,7 @@ class _EventsPageState extends State<EventsPage> {
     try {
       final res =
           await widget.session.api.put('/events/$id/rsvp', {'status': status});
+      Analytics.instance.action('rsvp', target: status.toLowerCase());
       if (!mounted) return;
       final going =
           (res is Map ? (res['goingCount'] as num?)?.toInt() : null) ??
@@ -488,6 +490,7 @@ class _EventsPageState extends State<EventsPage> {
     if (!ok || !mounted) return;
     try {
       await widget.session.api.delete('/events/$id/rsvp');
+      Analytics.instance.action('rsvp', target: 'cancel');
       if (!mounted) return;
       setState(() {
         for (final f in _feeds.values) {
@@ -509,7 +512,7 @@ class _EventsPageState extends State<EventsPage> {
         case 'edit':
           final ok = await Navigator.push<bool>(
             context,
-            MaterialPageRoute(
+            MaterialPageRoute(settings: const RouteSettings(name: 'event_form'), 
                 builder: (_) =>
                     EventFormPage(session: widget.session, event: ev)),
           );
@@ -560,7 +563,7 @@ class _EventsPageState extends State<EventsPage> {
     if (ev['source'] == 'OFFICIAL') {
       await Navigator.push(
         context,
-        MaterialPageRoute(
+        MaterialPageRoute(settings: const RouteSettings(name: 'news_detail'), 
           builder: (_) => NewsDetailPage(session: widget.session, item: {
             'id': ev['id'],
             'title': ev['title'],
@@ -576,7 +579,7 @@ class _EventsPageState extends State<EventsPage> {
     }
     await Navigator.push(
       context,
-      MaterialPageRoute(
+      MaterialPageRoute(settings: const RouteSettings(name: 'event_detail'), 
         builder: (_) => EventDetailPage(
             session: widget.session, eventId: (ev['id'] as num).toInt()),
       ),
@@ -587,7 +590,7 @@ class _EventsPageState extends State<EventsPage> {
   Future<void> _create() async {
     final ok = await Navigator.push<bool>(
       context,
-      MaterialPageRoute(builder: (_) => EventFormPage(session: widget.session)),
+      MaterialPageRoute(settings: const RouteSettings(name: 'event_form'), builder: (_) => EventFormPage(session: widget.session)),
     );
     if (ok == true && mounted) {
       _cache.clear();
@@ -604,7 +607,7 @@ class _EventsPageState extends State<EventsPage> {
   Future<void> _scanCheckin() async {
     await Navigator.push<String>(
       context,
-      MaterialPageRoute(builder: (_) => QrScanPage(title: context.l10n.eventListScanTitle, onSubmit: _verifyCheckin)),
+      MaterialPageRoute(settings: const RouteSettings(name: 'qr_scan'), builder: (_) => QrScanPage(title: context.l10n.eventListScanTitle, onSubmit: _verifyCheckin)),
     );
   }
 
@@ -616,6 +619,7 @@ class _EventsPageState extends State<EventsPage> {
     if (id == null) return l.eventListNotCode;
     try {
       await widget.session.api.post('/events/$id/check-in', {'code': code});
+      Analytics.instance.action('checkin', target: 'qr');
       buHaptic(BuHaptic.medium);
       return null;
     } catch (e) {
@@ -672,7 +676,7 @@ class _EventsPageState extends State<EventsPage> {
                 loading: loading,
                 skeleton: SingleChildScrollView(primary: false, physics: const NeverScrollableScrollPhysics(), child: _EventSkeleton(calendar: _tab == 0)),
                 child: RefreshIndicator(
-                  onRefresh: _refresh,
+                  onRefresh: Analytics.pullRefresh(_refresh),
                   child: CustomScrollView(
                     controller: _scroll,
                     physics: const AlwaysScrollableScrollPhysics(),
@@ -825,7 +829,7 @@ class _EventsPageState extends State<EventsPage> {
 
   void _browseClubs() => Navigator.push(
         context,
-        MaterialPageRoute(builder: (_) => Scaffold(body: ClubsTab(session: widget.session))),
+        MaterialPageRoute(settings: const RouteSettings(name: 'clubs'), builder: (_) => Scaffold(body: ClubsTab(session: widget.session))),
       );
 
   // ---- Keşfet: takvim (kartsız, Stitch v3) ----

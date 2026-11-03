@@ -1,3 +1,4 @@
+import '../../core/analytics.dart';
 import 'package:flutter/material.dart';
 
 import '../../core/academic_catalog.dart';
@@ -12,7 +13,7 @@ import 'follow_widgets.dart';
 
 /// "Takip istekleri" ekranını açar; döndüğünde (kabul/red sayıyı değiştirmiş olabilir) çağıran sayacı yeniler.
 Future<void> openFollowRequests(BuildContext context, Session session) =>
-    Navigator.push<void>(context, MaterialPageRoute<void>(builder: (_) => FollowRequestsPage(session: session)));
+    Navigator.push<void>(context, MaterialPageRoute<void>(settings: const RouteSettings(name: 'follow_requests'), builder: (_) => FollowRequestsPage(session: session)));
 
 /// Gizli hesabın gelen takip istekleri: üstte başlık + bekleyen sayısı, satırlarda Onayla (birincil) / Sil (çizgili).
 /// Kabul/red sonrası satır kayarak kalkar; hata olursa satır geri gelir. Boş/yükleniyor/hata durumları ve imleçli sayfalama.
@@ -191,7 +192,7 @@ class _FollowRequestsPageState extends State<FollowRequestsPage> {
         BuHeader(title: l.frqReqTitle, onBack: () => Navigator.maybePop(context)),
         Expanded(
           child: RefreshIndicator(
-            onRefresh: () => _load(silent: true),
+            onRefresh: Analytics.pullRefresh(() => _load(silent: true)),
             child: ListView(
               controller: _scroll,
               physics: const AlwaysScrollableScrollPhysics(),
