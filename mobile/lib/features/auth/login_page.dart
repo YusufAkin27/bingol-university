@@ -271,45 +271,56 @@ class _LoginPageState extends State<LoginPage> {
             ),
           ),
         ),
-        AnimatedSize(
-          duration: AppMotion.of(context, AppMotion.normal),
-          curve: AppMotion.enter,
-          alignment: Alignment.topCenter,
-          child: keyboard
-              ? const SizedBox(width: double.infinity)
-              : BuStaggerItem(
-                  index: 1,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      const SizedBox(height: 40),
-                      Center(
-                        child: RefFooterPrompt(
-                          prompt: l.loginNoAccount,
-                          action: l.loginRegister,
-                          onPressed: _busy
-                              ? null
-                              : () => Navigator.push(context, MaterialPageRoute(builder: (_) => RegisterPage(session: widget.session))),
-                        ),
-                      ),
-                      Center(
-                        child: RefFooterPrompt(
-                          prompt: l.p66HelpPrompt,
-                          action: l.p66HelpAction,
-                          onPressed: _busy ? null : () => Navigator.push(context, MaterialPageRoute(builder: (_) => HelpFormPage(session: widget.session))),
-                        ),
-                      ),
-                      // Sürüm satırına dokunmak Hakkında'yı açar (giriş öncesi herkese açık).
-                      Center(
-                        child: TextButton(
-                          onPressed: _busy ? null : () => Navigator.push(context, MaterialPageRoute(builder: (_) => AboutPage(session: widget.session))),
-                          style: TextButton.styleFrom(foregroundColor: t.mut, minimumSize: const Size(48, 48)),
-                          child: Text(l.profileVersion(appVersion), style: tx.bodySmall!.copyWith(color: t.mut)),
-                        ),
-                      ),
-                    ],
-                  ),
+        // "Kayıt ol" her zaman görünür (klavye açıkken de): yeni kullanıcı yolu gizlenmez. Yardım ve sürüm satırı yalnız
+        // klavye kapalıyken gösterilir.
+        BuStaggerItem(
+          index: 1,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              AnimatedContainer(
+                duration: AppMotion.of(context, AppMotion.normal),
+                curve: AppMotion.enter,
+                height: keyboard ? 20 : 40,
+              ),
+              Center(
+                child: RefFooterPrompt(
+                  prompt: l.loginNoAccount,
+                  action: l.loginRegister,
+                  onPressed: _busy
+                      ? null
+                      : () => Navigator.push(context, MaterialPageRoute(builder: (_) => RegisterPage(session: widget.session))),
                 ),
+              ),
+              AnimatedSize(
+                duration: AppMotion.of(context, AppMotion.normal),
+                curve: AppMotion.enter,
+                alignment: Alignment.topCenter,
+                child: keyboard
+                    ? const SizedBox(width: double.infinity)
+                    : Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Center(
+                            child: RefFooterPrompt(
+                              prompt: l.p66HelpPrompt,
+                              action: l.p66HelpAction,
+                              onPressed: _busy ? null : () => Navigator.push(context, MaterialPageRoute(builder: (_) => HelpFormPage(session: widget.session))),
+                            ),
+                          ),
+                          // Sürüm satırına dokunmak Hakkında'yı açar (giriş öncesi herkese açık).
+                          Center(
+                            child: TextButton(
+                              onPressed: _busy ? null : () => Navigator.push(context, MaterialPageRoute(builder: (_) => AboutPage(session: widget.session))),
+                              style: TextButton.styleFrom(foregroundColor: t.mut, minimumSize: const Size(48, 48)),
+                              child: Text(l.profileVersion(appVersion), style: tx.bodySmall!.copyWith(color: t.mut)),
+                            ),
+                          ),
+                        ],
+                      ),
+              ),
+            ],
+          ),
         ),
       ],
     );

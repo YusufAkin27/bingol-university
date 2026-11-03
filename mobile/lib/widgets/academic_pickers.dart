@@ -5,20 +5,26 @@ import '../core/locale_controller.dart';
 import '../features/auth/widgets/auth_ref.dart';
 import 'bu.dart';
 
-/// Bölüm seçici (Stitch 02 "Bölüm seçici"): tam ekran; arama alanı + fakülte grupları (kart), seçili satır tonlu
-/// ve işaretli. Sonuç yoksa "Sonuç bulunamadı.", liste yüklenemediyse "Bölüm listesi yüklenemedi." + "Yeniden dene".
-/// Seçilen [AcademicDepartment] ile kapanır.
+/// Bölüm seçici: alttan açılan sayfa (sınıf seçici gibi): tutamaç, başlık + kapat, arama alanı, fakülte grupları;
+/// seçili satır tonlu ve işaretli. Sonuç yoksa "Sonuç bulunamadı.", liste yüklenemediyse "Bölüm listesi yüklenemedi." +
+/// "Yeniden dene". Aşağı çekilerek ya da kapat düğmesiyle kapanır. Seçilen [AcademicDepartment] ile kapanır.
 Future<AcademicDepartment?> showDepartmentPicker(
   BuildContext context, {
   required AcademicCatalog catalog,
   String? selectedFaculty,
   String? selected,
 }) {
-  return Navigator.push<AcademicDepartment>(
-    context,
-    MaterialPageRoute(
-      fullscreenDialog: true,
-      builder: (_) => DepartmentPickerPage(catalog: catalog, selectedFaculty: selectedFaculty, selected: selected),
+  return showModalBottomSheet<AcademicDepartment>(
+    context: context,
+    isScrollControlled: true,
+    useSafeArea: true,
+    backgroundColor: Colors.transparent,
+    builder: (ctx) => DraggableScrollableSheet(
+      expand: false,
+      initialChildSize: .92,
+      minChildSize: .5,
+      maxChildSize: .95,
+      builder: (ctx, scroll) => _DepartmentSheet(catalog: catalog, selectedFaculty: selectedFaculty, selected: selected, scroll: scroll),
     ),
   );
 }
@@ -29,6 +35,134 @@ String _facultyHeading(String lang, String label) => switch (lang) {
       'ar' => label,
       _ => label.toUpperCase(),
     };
+
+class _DepartmentSheet extends StatefulWidget {
+  const _DepartmentSheet({required this.catalog, required this.scroll, this.selectedFaculty, this.selected});
+
+  final AcademicCatalog catalog;
+  final ScrollController scroll;
+  final String? selectedFaculty;
+  final String? selected;
+
+  @override
+  State<_DepartmentSheet> createState() => _DepartmentSheetState();
+}
+
+class _DepartmentSheetState extends State<_DepartmentSheet> {
+  final _q = TextEditingController();
+
+  @override
+  void dispose() {
+    _q.dispose();
+    super.dispose();
+  }
+
+  List<(AcademicFaculty, List<AcademicDepartment>)> _groups(Locale locale) {
+    final out = <AcademicFaculty, List<AcademicDepartment>>{};
+    for (final d in widget.catalog.searchDepartments(_q.text, locale: locale)) {
+      out.putIfAbsent(d.faculty, () => []).add(d);
+    }
+    return [for (final e in out.entries) (e.key, e.value)];
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.bu;
+    final l = context.l10n;
+    final tx = Theme.of(context).textTheme;
+    final lang = uiLocale(context).languageCode;
+    final sel = widget.selected == null ? null : foldTr(widget.selected!);
+    final selF = widget.selectedFaculty == null ? null : foldTr(widget.selectedFaculty!);
+    return DecoratedBox(
+      decoration: BoxDecoration(color: t.sf3, borderRadius: const BorderRadius.vertical(top: Radius.circular(28))),
+      child: Padding(
+        // Klavye açılınca liste klavyenin üstünde kalır.
+        padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
+        child: Column(
+          children: [
+            const SizedBox(height: 10),
+            Container(width: 40, height: 4, decoration: BoxDecoration(color: t.bd, borderRadius: BorderRadius.circular(2))),
+            Padding(
+              padding: const EdgeInsetsDirectional.fromSTEB(20, 12, 12, 8),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Semantics(
+                      header: true,
+                      child: Text(l.pickDepartment, style: tx.titleLarge!.copyWith(color: t.ink, fontWeight: FontWeight.w800)),
+                    ),
+                  ),
+                  IconButton(
+                    tooltip: l.commonClose,
+                    style: IconButton.styleFrom(backgroundColor: t.sf2),
+                    constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
+                    icon: Icon(BuIcons.x, size: 20, color: t.ink),
+                    onPressed: () => Navigator.maybePop(context),
+                  ),
+                ],
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
+              child: BuSearchField(hint: l.pickSearch, controller: _q, onChanged: (_) => setState(() {})),
+            ),
+            Expanded(
+              child: ListenableBuilder(
+                listenable: widget.catalog,
+                builder: (context, _) {
+                  final failed = widget.catalog.state == CatalogState.error;
+                  final groups = _groups(uiLocale(context));
+                  return ListView(
+                    controller: widget.scroll,
+                    keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+                    padding: EdgeInsets.fromLTRB(12, 0, 12, 16 + MediaQuery.paddingOf(context).bottom),
+                    children: [
+                      for (final g in groups) ...[
+                        Padding(
+                          padding: const EdgeInsetsDirectional.fromSTEB(8, 12, 8, 4),
+                          child: Row(
+                            children: [
+                              Icon(BuIcons.building2, size: 18, color: t.mut),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  _facultyHeading(lang, g.$1.label(lang)),
+                                  style: tx.labelLarge!.copyWith(color: t.mut, fontWeight: FontWeight.w800, letterSpacing: .3),
+                                ),
+                              ),
+                              Text(l.p02FacultyCount(g.$2.length), style: tx.labelMedium!.copyWith(color: t.mut)),
+                            ],
+                          ),
+                        ),
+                        for (var i = 0; i < g.$2.length; i++) ...[
+                          if (i > 0) Divider(height: 1, color: t.bd, indent: 8, endIndent: 8),
+                          _DeptRow(
+                            name: g.$2[i].label(lang),
+                            query: _q.text,
+                            selected: sel == foldTr(g.$2[i].name) && (selF == null || selF == foldTr(g.$2[i].faculty.name)),
+                            onTap: () => Navigator.pop(context, g.$2[i]),
+                          ),
+                        ],
+                      ],
+                      if (groups.isEmpty && !failed) _InfoRow(icon: BuIcons.searchX, text: l.pickNoResults),
+                      if (failed)
+                        _InfoRow(
+                          icon: BuIcons.refreshCcw,
+                          text: l.pickListFailed,
+                          action: l.pickRetry,
+                          onAction: widget.catalog.retry,
+                        ),
+                    ],
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
 
 class DepartmentPickerPage extends StatefulWidget {
   const DepartmentPickerPage({super.key, required this.catalog, this.selectedFaculty, this.selected});
