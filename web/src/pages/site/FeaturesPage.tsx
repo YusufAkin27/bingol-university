@@ -1,12 +1,13 @@
 // SAYFA: Özellikler (/features)
 // API: yok (statik içerik; mağaza bağlantıları CtaBand içinde useStoreLinks ile).
-// Yapı: sekiz ekran vitrini (zikzak FeatureRow: telefon + başlık + metin) > "Ve daha fazlası" ayrıntı ızgarası > alt CTA.
+// Yapı: ortalı başlık + iki gerçek ekran > "Sekiz temel ekran" özet ızgarası (satırlara bağlantı) > dönüşümlü ekran satırları
+// (numaralı etiket, başlık, metin, üç madde, büyük telefon) > "Ve daha fazlası" ayrıntı ızgarası > alt CTA.
 import { Icon } from '../../components/ui';
 import { useI18n } from '../../i18n/I18nProvider';
 import { CtaBand } from './components/CtaBand';
 import { FEATURES, MORE_FEATURE_IDS, SHOWCASE } from './components/features';
-import { FeatureRow } from './components/FeatureRow';
-import { PageHero } from './components/PageHero';
+import { FeaturesHero } from './components/FeaturesHero';
+import { FeaturesRow } from './components/FeaturesRow';
 import { Reveal } from './components/Reveal';
 import { SectionHeading } from './components/SectionHeading';
 import { usePageMeta } from './components/usePageMeta';
@@ -19,17 +20,56 @@ export default function FeaturesPage() {
   usePageMeta({ route: 'features' });
   return (
     <>
-      <PageHero eyebrow={t('site.v3.eyebrow')} title={t('site.features.title')} lead={t('site.features.lead')} />
+      <FeaturesHero
+        eyebrow={t('site.v3.eyebrow')}
+        title={t('site.features.title')}
+        lead={t('site.features.lead')}
+        note={t('site.rd02.hero.note')}
+      />
+
+      <section className={styles.overview} aria-labelledby="feat-overview">
+        <div className="container">
+          <SectionHeading
+            id="feat-overview"
+            eyebrow={t('site.rd02.overview.eyebrow')}
+            title={t('site.rd02.overview.title')}
+            lead={t('site.rd02.overview.lead')}
+          />
+          <ul className={styles.tiles} aria-label={t('site.rd02.overview.label')}>
+            {SHOWCASE.map((s, i) => (
+              <li key={s.id}>
+                <Reveal delay={(i % 4) * 60} className={styles.tileWrap}>
+                  <a className={styles.tile} href={`#feat-${s.id}`}>
+                    <span className={styles.tileIco}>
+                      <Icon name={s.icon} size={22} />
+                    </span>
+                    <span className={styles.tileTitle}>{t(s.title)}</span>
+                    <span className={styles.tileText}>{t(s.text)}</span>
+                    <span className={styles.tileLink}>
+                      {t('site.rd02.overview.link')}
+                      <Icon name="arrowDown" size={16} />
+                    </span>
+                  </a>
+                </Reveal>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </section>
+
       <section className="container" aria-label={t('site.features.title')}>
         <ul className={styles.rows}>
           {SHOWCASE.map((s, i) => (
             <li key={s.id}>
-              <FeatureRow
+              <FeaturesRow
                 id={`feat-${s.id}`}
-                shot={s.shot}
-                secondShot={s.secondShot}
+                index={i + 1}
+                category={t(s.category)}
                 title={t(s.title)}
                 text={t(s.text)}
+                points={s.points.map((p) => t(p))}
+                shot={s.shot}
+                secondShot={s.secondShot}
                 flip={i % 2 === 1}
               />
             </li>
@@ -39,7 +79,11 @@ export default function FeaturesPage() {
 
       <section className={styles.more} aria-labelledby="feat-more">
         <div className="container">
-          <SectionHeading id="feat-more" title={t('site.v3.features.moreTitle')} lead={t('site.v3.features.moreLead')} />
+          <SectionHeading
+            id="feat-more"
+            title={t('site.v3.features.moreTitle')}
+            lead={t('site.v3.features.moreLead')}
+          />
           <ul className={styles.grid}>
             {MORE.map((f, i) => (
               <li key={f.id}>
