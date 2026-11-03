@@ -166,19 +166,19 @@ describe('bilgi sayfaları (SITE2)', () => {
   });
 
   it.each([
-    ['tr', 'Sayfa bulunamadı', 'Bunlara göz atabilirsiniz'],
-    ['en', 'Page not found', 'You might want to try these'],
-    ['ar', null, 'يمكنك تصفّح هذه الصفحات'],
-  ] as const)('404 (%s): tek h1, açıklama, ana sayfa düğmesi ve dil önekli öneri bağlantıları', async (lang, h1, tryText) => {
+    ['tr', 'Sayfa bulunamadı'],
+    ['en', 'Page not found'],
+    ['ar', null],
+  ] as const)('404 (%s): tek h1, açıklama, ana sayfa düğmesi ve dil önekli öneri bağlantıları', async (lang, h1) => {
     renderAt('/zzz-yok', lang);
     const heading = await screen.findByRole('heading', { level: 1 });
     if (h1) expect(heading).toHaveTextContent(h1);
     expect(screen.getAllByRole('heading', { level: 1 })).toHaveLength(1);
-    const nav = screen.getByRole('navigation', { name: tryText });
+    const nav = screen.getByRole('navigation', { name: dictionaries[lang]['site.rd10.nf.linksTitle'] });
     const links = within(nav).getAllByRole('link');
-    expect(links).toHaveLength(6);
+    expect(links).toHaveLength(4);
     for (const a of links) expect(a.getAttribute('href')).toMatch(new RegExp(`^/${lang}/`));
     expect(document.head.querySelector('meta[name="robots"]')?.getAttribute('content')).toMatch(/noindex/);
-    expect(screen.getByText('404')).toHaveAttribute('aria-hidden', 'true');
+    for (const el of screen.getAllByText('404')) expect(el).toHaveAttribute('aria-hidden', 'true');
   });
 });

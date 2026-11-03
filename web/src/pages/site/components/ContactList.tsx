@@ -79,10 +79,12 @@ export function ContactList({ info }: { info: AppInfo | undefined }) {
     <dl className={styles.list}>
       {items.map((it) => (
         <div key={it.id} className={styles.item}>
-          <span className={styles.ico}>
-            <Icon name={it.icon} size={20} />
-          </span>
-          <dt>{t(it.label)}</dt>
+          <dt className={styles.term}>
+            <span className={styles.ico}>
+              <Icon name={it.icon} size={20} />
+            </span>
+            <span className={styles.label}>{t(it.label)}</span>
+          </dt>
           <dd>{it.value}</dd>
         </div>
       ))}

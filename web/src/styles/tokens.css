@@ -43,6 +43,16 @@
   --focus: #1f5fd1;
   --scrim: rgba(23, 30, 51, 0.55);
 
+  /* Site kabuğu (RD10): alt bilgi, mobil çekmece, anahtar, yükleme iskeleti, durum ekranı kodu */
+  --footer-bg: var(--surface);
+  --footer-line: var(--border);
+  --drawer-w: min(88vw, 22.5rem);
+  --toggle-off: #8a7c72;
+  --toggle-knob: #ffffff;
+  --skeleton-a: var(--surface-2);
+  --skeleton-b: var(--surface-3);
+  --status-code: var(--ink);
+
   --success: #1b7a4b;
   --success-soft: #dff3e8;
   --warning: #8a5a00;
@@ -145,6 +155,13 @@
     --scrim: rgba(6, 7, 12, 0.72);
     --chrome: #0c0e15;
     --chrome-2: #171a26;
+    --footer-bg: var(--chrome);
+    --footer-line: var(--chrome-2);
+    --toggle-off: #6a7190;
+    --toggle-knob: #14161f;
+    --skeleton-a: var(--surface-2);
+    --skeleton-b: var(--surface-3);
+    --status-code: var(--text);
     --hero: #c62a20;
     --hero-end: #9e1f17;
     --hero-contrast: #ffffff;
@@ -198,6 +215,13 @@
   --scrim: rgba(6, 7, 12, 0.72);
   --chrome: #0c0e15;
   --chrome-2: #171a26;
+  --footer-bg: var(--chrome);
+  --footer-line: var(--chrome-2);
+  --toggle-off: #6a7190;
+  --toggle-knob: #14161f;
+  --skeleton-a: var(--surface-2);
+  --skeleton-b: var(--surface-3);
+  --status-code: var(--text);
   --hero: #c62a20;
   --hero-end: #9e1f17;
   --hero-contrast: #ffffff;

@@ -9,5 +9,6 @@ import supportPublic from '../tr/support-public';
 import seo from '../tr/seo';
 import childSafety from '../tr/child-safety';
 import siteTrust from '../tr/site-trust';
+import siteRd10 from '../tr/site-rd10';
 
-export default { ...common, ...site, ...siteNew, ...siteV3, ...legal, ...pages, ...supportPublic, ...seo, ...childSafety, ...siteTrust };
+export default { ...common, ...site, ...siteNew, ...siteV3, ...legal, ...pages, ...supportPublic, ...seo, ...childSafety, ...siteTrust, ...siteRd10 };

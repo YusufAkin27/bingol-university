@@ -30,7 +30,7 @@
   vertical-align: middle;
   min-width: 2em;
   border-radius: var(--radius-xs);
-  background: linear-gradient(90deg, var(--surface-2) 25%, var(--surface-3) 50%, var(--surface-2) 75%);
+  background: linear-gradient(90deg, var(--skeleton-a) 25%, var(--skeleton-b) 50%, var(--skeleton-a) 75%);
   background-size: 200% 100%;
   animation: shimmer 1.4s ease-in-out infinite;
 }
@@ -58,11 +58,12 @@
 .stateIcon {
   display: grid;
   place-items: center;
-  width: 52px;
-  height: 52px;
-  border-radius: var(--radius-pill);
-  /* boş durum bilgi tonunda: kırmızı yalnız hata (.error) içindir */
-  background: var(--info-soft);
+  width: 64px;
+  height: 64px;
+  border-radius: var(--radius-lg);
+  /* boş durum nötr yüzeyli kare çerçeve (RD10); kırmızı yalnız hata (.error) içindir */
+  background: var(--surface-2);
+  border: 1px solid var(--border);
   color: var(--info);
 }
 .error .stateIcon {

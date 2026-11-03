@@ -104,10 +104,10 @@ describe('alt bilgi', () => {
     const footer = await screen.findByRole('contentinfo');
     const btn = within(footer).getByRole('button', { name: 'Yasal' });
     expect(btn).toHaveAttribute('aria-expanded', 'false');
-    expect(within(footer).queryByRole('link', { name: 'Güvenlik' })).toBeNull();
+    expect(within(footer).queryByRole('link', { name: 'Tüm belgeler' })).toBeNull();
     fireEvent.click(btn);
     expect(btn).toHaveAttribute('aria-expanded', 'true');
-    expect(within(footer).getByRole('link', { name: 'Güvenlik' })).toBeInTheDocument();
+    expect(within(footer).getByRole('link', { name: 'Tüm belgeler' })).toBeInTheDocument();
   });
 });
 
