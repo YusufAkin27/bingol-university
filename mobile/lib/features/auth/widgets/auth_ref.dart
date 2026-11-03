@@ -352,7 +352,7 @@ class RefButton extends StatelessWidget {
     final tx = Theme.of(context).textTheme;
     final dark = Theme.of(context).brightness == Brightness.dark;
     final (bg, fg) = switch (kind) {
-      RefButtonKind.primary => (t.pr, t.onPr),
+      RefButtonKind.primary => (t.prPressed, t.onPr),
       RefButtonKind.warn => (t.warn, dark ? t.bg : t.onMedia),
       RefButtonKind.secondary => (t.sf, t.ink),
       RefButtonKind.danger => (Theme.of(context).colorScheme.error, Theme.of(context).colorScheme.onError),
@@ -403,13 +403,9 @@ class RefButton extends StatelessWidget {
       child: BuPressable(
         scale: .985,
         enabled: tap != null,
+        // Premium kural: güçlü gölge yok; birincil düğme düz zemin.
         child: DecoratedBox(
-          decoration: BoxDecoration(
-            borderRadius: BuRadius.bControl,
-            boxShadow: kind == RefButtonKind.primary && !faded && !dark
-                ? [BoxShadow(color: t.pr.withValues(alpha: .28), blurRadius: 16, offset: const Offset(0, 6), spreadRadius: -4)]
-                : const [],
-          ),
+          decoration: const BoxDecoration(borderRadius: BuRadius.bControl),
           child: Material(
             color: fill,
             shape: shape,
@@ -423,7 +419,7 @@ class RefButton extends StatelessWidget {
                   // Etiket <-> çember yumuşak geçer (150 ms; azalt açıkken anında).
                   child: Center(
                     heightFactor: 1,
-                    child: AnimatedSwitcher(duration: BuMotion.of(context, BuMotion.short), child: content),
+                    child: AnimatedSwitcher(duration: AppMotion.of(context, AppMotion.fast), child: content),
                   ),
                 ),
               ),
@@ -452,7 +448,7 @@ class RefLink extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.bu;
     final tx = Theme.of(context).textTheme;
-    final c = color ?? (muted ? t.mut : t.pr);
+    final c = color ?? (muted ? t.mut : t.prPressed);
     return TextButton(
       onPressed: onPressed,
       style: TextButton.styleFrom(
@@ -494,9 +490,9 @@ class RefFooterPrompt extends StatelessWidget {
           style: TextButton.styleFrom(
             minimumSize: const Size(48, 48),
             padding: const EdgeInsets.symmetric(horizontal: 8),
-            foregroundColor: t.pr,
+            foregroundColor: t.prPressed,
           ),
-          child: Text(action, style: tx.titleSmall!.copyWith(color: t.pr, fontWeight: FontWeight.w800)),
+          child: Text(action, style: tx.titleSmall!.copyWith(color: t.prPressed, fontWeight: FontWeight.w700)),
         ),
       ],
     );
@@ -941,7 +937,7 @@ class RefPill extends StatelessWidget {
   }
 }
 
-/// Marka karosu: kırmızı yuvarlak kare + beyaz "BU" (Stitch karşılama/giriş logosu).
+/// Marka karosu: kırmızı yuvarlak kare + beyaz "BU" (karşılama/giriş logosu); gölgesiz.
 class RefBrandMark extends StatelessWidget {
   const RefBrandMark({super.key, this.size = 48, this.badge = false});
 
@@ -960,7 +956,6 @@ class RefBrandMark extends StatelessWidget {
       decoration: BoxDecoration(
         color: t.pr,
         borderRadius: BorderRadius.circular(size * .28),
-        boxShadow: [BoxShadow(color: t.pr.withValues(alpha: .25), blurRadius: size * .25, offset: Offset(0, size * .08))],
       ),
       child: Text('BU',
           style: Theme.of(context).textTheme.titleLarge!.copyWith(

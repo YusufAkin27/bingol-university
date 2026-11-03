@@ -5,7 +5,7 @@ import '../theme.dart';
 /// Marka belirteçlerinden Material 3 [ColorScheme] (tohum: marka kırmızısı; tüm roller açıkça verilir,
 /// bu yüzden `fromSeed` hesabı yapılmaz ve tema kurulumu ucuzdur).
 ///
-/// Eşleme: primary = `pr`; primaryContainer = `soft`; secondary = `ink`; **secondaryContainer = `soft`**
+/// Eşleme: primary = `prPressed` (beyaz yazıda AA); primaryContainer = `soft`; secondary = `ink`; **secondaryContainer = `soft`**
 /// (NavigationBar göstergesi, FilledTonalButton, seçili çip/segment marka tonunda olur);
 /// tertiary = `ok` (başarı); error = `danger`; surface = `sf` (kart); yüzey konteynerleri `sf`..`sf3`.
 abstract final class BuColorScheme {
@@ -13,7 +13,8 @@ abstract final class BuColorScheme {
     final dark = b == Brightness.dark;
     return ColorScheme(
       brightness: b,
-      primary: t.pr,
+      // Material bileşenleri (dolu düğme, odak, ilerleme) AA için `prPressed` kullanır; marka vurgusu `pr` ayrıdır.
+      primary: t.prPressed,
       onPrimary: t.onPr,
       primaryContainer: t.soft,
       onPrimaryContainer: t.onSoft,

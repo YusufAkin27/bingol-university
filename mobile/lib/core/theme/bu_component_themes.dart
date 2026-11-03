@@ -46,7 +46,7 @@ class BuComponentThemes {
 
   TextButtonThemeData get textButton => TextButtonThemeData(
         style: TextButton.styleFrom(
-          foregroundColor: t.pr,
+          foregroundColor: t.prPressed,
           minimumSize: const Size(48, 48),
           shape: _md,
           textStyle: _label,

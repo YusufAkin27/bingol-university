@@ -22,7 +22,7 @@ void main() {
       for (final b in Brightness.values) {
         final t = b == Brightness.light ? BuTokens.light : BuTokens.dark;
         final cs = BuTheme.forLocale(b, 'tr').colorScheme;
-        expect(cs.primary, t.pr);
+        expect(cs.primary, t.prPressed);
         expect(cs.primaryContainer, t.soft);
         expect(cs.secondaryContainer, t.soft, reason: 'NavigationBar gostergesi/tonal dugme marka tonu');
         expect(cs.surface, t.sf);
@@ -117,11 +117,11 @@ void main() {
           'mut/bg': (t.mut, t.bg),
           'mut/sf': (t.mut, t.sf),
           'mut/sf2': (t.mut, t.sf2),
-          'onPr/pr': (t.onPr, t.pr),
+          'onPr/prPressed': (t.onPr, t.prPressed),
           'onSoft/soft': (t.onSoft, t.soft),
-          'pr/bg': (t.pr, t.bg),
-          'pr/sf': (t.pr, t.sf),
-          'ok/okSoft': (t.ok, t.okSoft),
+          'prPressed/bg': (t.prPressed, t.bg),
+          'prPressed/sf': (t.prPressed, t.sf),
+          'onOkSoft/okSoft': (t.onOkSoft, t.okSoft),
           'ok/sf': (t.ok, t.sf),
           'danger/sf': (t.danger, t.sf),
           'danger/bg': (t.danger, t.bg),

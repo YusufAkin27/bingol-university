@@ -1,6 +1,7 @@
 import 'package:bu_kampus/core/locale_controller.dart';
 import 'package:bu_kampus/core/permissions/permission_service.dart';
 import 'package:bu_kampus/core/session.dart';
+import 'package:bu_kampus/core/theme.dart';
 import 'package:bu_kampus/features/auth/permissions_page.dart';
 import 'package:bu_kampus/features/auth/register_page.dart';
 import 'package:bu_kampus/features/auth/welcome_page.dart';
@@ -36,12 +37,12 @@ void main() {
     testWidgets('tek dolgulu düğme (Giriş yap) + sakin ikincil (Kayıt ol)', (tester) async {
       await welcome(tester);
       final kinds = tester.widgetList<RefButton>(find.byType(RefButton)).map((b) => b.kind).toList();
-      expect(kinds, [RefButtonKind.primary, RefButtonKind.ghost]);
-      // İkincil düğme dolgusuz ve çerçevesiz: ekranda tek vurgu.
-      final ghost = find.widgetWithText(RefButton, 'Kayıt ol');
-      expect(ghost, findsOneWidget);
-      final m = tester.widget<Material>(find.descendant(of: ghost, matching: find.byType(Material)).first);
-      expect(m.color, Colors.transparent);
+      expect(kinds, [RefButtonKind.primary, RefButtonKind.secondary]);
+      // İkincil düğme beyaz yüzey + ince çerçeve: ekranda tek dolgulu (marka) vurgu birincildir.
+      final second = find.widgetWithText(RefButton, 'Kayıt ol');
+      expect(second, findsOneWidget);
+      final m = tester.widget<Material>(find.descendant(of: second, matching: find.byType(Material)).first);
+      expect(m.color, BuTokens.light.sf);
       await unmount(tester);
     });
 

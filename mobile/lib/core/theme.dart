@@ -5,8 +5,8 @@ import 'theme/bu_theme_builder.dart';
 import 'typography.dart';
 
 /// Marka renkleri (Kampüs Kırmızısı + lacivert mürekkep). `red600` uygulama simgesiyle aynıdır; arayüzdeki eylem
-/// kırmızısı (`red700`) simge tonundan türetilip biraz sakinleştirildi (RENK-1, bkz. docs/design/RENK_ENVANTERI.md).
-/// Web (`web/src/styles/tokens.css`) bu sakinleştirmeyi henüz almadı.
+/// kırmızısı (`red700`) simge tonundan türetilip biraz sakinleştirildi. Arayüz renkleri [BuTokens] içindedir
+/// (bkz. docs/MOBILE_DESIGN_SYSTEM.md); web (`web/src/styles/tokens.css`) bu paleti henüz almadı.
 class BuColors {
   BuColors._();
 
@@ -41,7 +41,7 @@ abstract final class BuTintId {
 /// Tasarım belirteçleri (mobile/design/*.dc.html içindeki CSS değişkenleriyle birebir).
 /// Kullanım: `final t = context.bu;` sonra `t.pr`, `t.sf`, `t.mut`...
 ///
-/// Mevcut alanlar KİLİTLİ; P0 ile eklenen alanlar isteğe bağlıdır: `sf3`, `warn`, `warnSoft`, `onWarnSoft`,
+/// P0 ile eklenen alanlar isteğe bağlıdır: `sf3`, `warn`, `warnSoft`, `onWarnSoft`,
 /// `onMedia`, `scrim`, `qrInk`, `qrPaper`, `shadow`, `tints`. RENK-1 ile eklenenler (hepsi isteğe bağlı):
 /// `info*` (koyu mavi), `aqua*` (su mavisi), `onOkSoft`, `dangerSoft`.
 ///
@@ -69,6 +69,9 @@ class BuTokens extends ThemeExtension<BuTokens> {
     required this.ok,
     required this.okSoft,
     required this.danger,
+    required this.prPressed,
+    required this.mutSoft,
+    required this.bdSubtle,
     this.sf3 = const Color(0xFFFFFFFF),
     this.bdStrong = const Color(0xFF8A857E),
     this.onOkSoft = const Color(0xFF0F5132),
@@ -111,6 +114,15 @@ class BuTokens extends ThemeExtension<BuTokens> {
   final Color ok;
   final Color okSoft;
   final Color danger;
+
+  /// Küçük beyaz yazılı dolu düğme/bağlantı zemini (AA >= 4.5:1; açıkta `pr`'den koyu, koyuda `pr`'den açık).
+  final Color prPressed;
+
+  /// Üçüncül metin/ipucu rengi (textTertiary): yalnız dekoratif ya da büyük metinde.
+  final Color mutSoft;
+
+  /// Çok ince ayraç (borderSubtle); kart çerçevesi için [bd].
+  final Color bdSubtle;
 
   /// En üst yüzey: diyalog, alt sayfa, menü, gezinme çubuğu zemini.
   final Color sf3;
@@ -170,16 +182,16 @@ class BuTokens extends ThemeExtension<BuTokens> {
   BuTint tint(int i) => tints[i.abs() % tints.length];
 
   static const _tintsLight = <BuTint>[
-    BuTint(Color(0xFFFBE9E6), Color(0xFF8A2A20)), // 0 marka
-    BuTint(Color(0xFFE4ECF8), Color(0xFF173F7B)), // 1 mavi (bilgi/haber/duyuru)
-    BuTint(Color(0xFFE0F2E8), Color(0xFF0F5132)), // 2 yeşil (başarı/yemek)
-    BuTint(Color(0xFFFFF1D6), Color(0xFF6B3E00)), // 3 amber (uyarı/hatırlatma)
+    BuTint(Color(0xFFFCECEB), Color(0xFF922D29)), // 0 marka
+    BuTint(Color(0xFFE8F0FB), Color(0xFF224D8A)), // 1 mavi (bilgi/haber/duyuru)
+    BuTint(Color(0xFFE3F3EC), Color(0xFF14533C)), // 2 yeşil (başarı/yemek)
+    BuTint(Color(0xFFFDF3DC), Color(0xFF7A4F10)), // 3 amber (uyarı/hatırlatma)
     BuTint(Color(0xFFDDF1F6), Color(0xFF0A5468)), // 4 su mavisi (ikincil)
-    BuTint(Color(0xFFEAE8E4), Color(0xFF45423E)), // 5 nötr
+    BuTint(Color(0xFFF1F3F5), Color(0xFF3F3F46)), // 5 nötr
   ];
 
   static const _tintsDark = <BuTint>[
-    BuTint(Color(0xFF3B2321), Color(0xFFFFBBB2)),
+    BuTint(Color(0xFF3B2223), Color(0xFFFFBBB2)),
     BuTint(Color(0xFF1B2B45), Color(0xFFB9D2FA)),
     BuTint(Color(0xFF16301F), Color(0xFF9BE3BE)),
     BuTint(Color(0xFF3A2B0E), Color(0xFFFFD98F)),
@@ -188,47 +200,65 @@ class BuTokens extends ThemeExtension<BuTokens> {
   ];
 
   static const light = BuTokens(
-    // Sıcak-nötr yüzeyler (kırık beyaz), lacivert mürekkep, sakin marka kırmızısı (RENK-1).
-    bg: Color(0xFFFAF6F3),
+    // Premium nötr yüzeyler (açık gri zemin, beyaz kart), yumuşak koyu metin, ölçülü marka kırmızısı.
+    // `pr` marka vurgusudur (aktif ikon, gösterge, büyük metin); küçük BEYAZ yazılı dolu düğmeler AA için
+    // `prPressed` kullanır (beyaz üstünde `pr` 4.07:1, `prPressed` 5.7:1).
+    bg: Color(0xFFF8F9FA),
     sf: Color(0xFFFFFFFF),
-    sf2: Color(0xFFEEEBE6),
-    ink: Color(0xFF171E33),
-    mut: Color(0xFF5C5A56),
-    bd: Color(0xFFDAD5CD), // kart/ayraç çizgisi; kontrol çerçevesi için bdStrong
-    pr: Color(0xFFC62A20),
+    sf2: Color(0xFFF1F3F5),
+    ink: Color(0xFF18181B),
+    mut: Color(0xFF6B6B74),
+    bd: Color(0xFFE4E4E7), // kart/ayraç çizgisi; kontrol çerçevesi için bdStrong
+    pr: Color(0xFFDC4C46),
     onPr: Color(0xFFFFFFFF),
-    soft: Color(0xFFFBE9E6),
-    onSoft: Color(0xFF8A2A20),
-    nav: Color(0xFF171E33),
-    onNav: Color(0xFFFFFFFF),
-    h1: Color(0xFFC8402F), // beyaz yazı AA (>= 4.5:1); h1-h2 farkı çok hafif (gradyan neredeyse düz)
-    h2: Color(0xFFBB3628),
-    ok: Color(0xFF1E7A50),
-    okSoft: Color(0xFFE0F2E8),
-    danger: Color(0xFFA3162E),
+    soft: Color(0xFFFCECEB),
+    onSoft: Color(0xFF922D29),
+    nav: Color(0xFFFFFFFF),
+    onNav: Color(0xFF18181B),
+    h1: Color(0xFFB93833),
+    h2: Color(0xFFB93833),
+    ok: Color(0xFF1C775A),
+    okSoft: Color(0xFFE3F3EC),
+    danger: Color(0xFFC43030),
+    prPressed: Color(0xFFB93833),
+    mutSoft: Color(0xFFA1A1AA),
+    bdSubtle: Color(0xFFF1F1F3),
+    bdStrong: Color(0xFF8A8A93),
+    onOkSoft: Color(0xFF14533C),
+    dangerSoft: Color(0xFFFCE9E9),
+    info: Color(0xFF356BB8),
+    infoSoft: Color(0xFFE8F0FB),
+    onInfoSoft: Color(0xFF224D8A),
+    warn: Color(0xFF946010),
+    warnSoft: Color(0xFFFDF3DC),
+    onWarnSoft: Color(0xFF7A4F10),
+    shadow: Color(0xFF18181B),
   );
 
   static const dark = BuTokens(
-    // Yumuşak kömür (saf siyah değil), sıcak-nötr; ana tonlar açık ve pastel (RENK-1).
-    bg: Color(0xFF171819),
-    sf: Color(0xFF202123),
-    sf2: Color(0xFF2A2B2E),
-    ink: Color(0xFFF2EFEA),
-    mut: Color(0xFFA9A7A2),
-    bd: Color(0xFF3A3B3F),
-    pr: Color(0xFFF0766A),
-    onPr: Color(0xFF2A0B07),
-    soft: Color(0xFF3B2321),
+    // Koyu: yumuşak kömür yüzeyler (saf siyah değil), aynı görsel hiyerarşi; marka tonu açık ve pastel.
+    bg: Color(0xFF101114),
+    sf: Color(0xFF191B20),
+    sf2: Color(0xFF24262D),
+    ink: Color(0xFFF4F4F5),
+    mut: Color(0xFFA1A1AA),
+    bd: Color(0xFF33363D),
+    pr: Color(0xFFF0726C),
+    onPr: Color(0xFF2B0A07),
+    soft: Color(0xFF3B2223),
     onSoft: Color(0xFFFFBBB2),
-    nav: Color(0xFF35373B),
-    onNav: Color(0xFFF2EFEA),
+    nav: Color(0xFF191B20),
+    onNav: Color(0xFFF4F4F5),
     h1: Color(0xFFB5362B),
-    h2: Color(0xFF992E24),
+    h2: Color(0xFFB5362B),
     ok: Color(0xFF6FD0A0),
     okSoft: Color(0xFF16301F),
     danger: Color(0xFFFF8FA0),
-    sf3: Color(0xFF313235),
-    bdStrong: Color(0xFF7D8087),
+    prPressed: Color(0xFFF58A84),
+    mutSoft: Color(0xFF71717A),
+    bdSubtle: Color(0xFF24262D),
+    sf3: Color(0xFF24262D),
+    bdStrong: Color(0xFF7A7E87),
     onOkSoft: Color(0xFF9BE3BE),
     dangerSoft: Color(0xFF3D1D24),
     info: Color(0xFF8DB4F0),
@@ -263,6 +293,9 @@ class BuTokens extends ThemeExtension<BuTokens> {
     Color? ok,
     Color? okSoft,
     Color? danger,
+    Color? prPressed,
+    Color? mutSoft,
+    Color? bdSubtle,
     Color? sf3,
     Color? bdStrong,
     Color? onOkSoft,
@@ -301,6 +334,9 @@ class BuTokens extends ThemeExtension<BuTokens> {
         ok: ok ?? this.ok,
         okSoft: okSoft ?? this.okSoft,
         danger: danger ?? this.danger,
+        prPressed: prPressed ?? this.prPressed,
+        mutSoft: mutSoft ?? this.mutSoft,
+        bdSubtle: bdSubtle ?? this.bdSubtle,
         sf3: sf3 ?? this.sf3,
         bdStrong: bdStrong ?? this.bdStrong,
         onOkSoft: onOkSoft ?? this.onOkSoft,
@@ -344,6 +380,9 @@ class BuTokens extends ThemeExtension<BuTokens> {
       ok: c(ok, other.ok),
       okSoft: c(okSoft, other.okSoft),
       danger: c(danger, other.danger),
+      prPressed: c(prPressed, other.prPressed),
+      mutSoft: c(mutSoft, other.mutSoft),
+      bdSubtle: c(bdSubtle, other.bdSubtle),
       sf3: c(sf3, other.sf3),
       bdStrong: c(bdStrong, other.bdStrong),
       onOkSoft: c(onOkSoft, other.onOkSoft),

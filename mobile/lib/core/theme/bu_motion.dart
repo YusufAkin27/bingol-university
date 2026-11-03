@@ -36,3 +36,21 @@ abstract final class BuMotion {
   /// [d] süresi; hareket azaltılmışsa sıfır.
   static Duration of(BuildContext context, [Duration d = medium]) => reduced(context) ? Duration.zero : d;
 }
+
+/// Merkezi hareket tokenları (sade, akıcı, amaca yönelik). Değerleri bileşenin davranışına göre seçin;
+/// "animasyonları azalt" açıksa [of] sıfır süre döner. Eski [BuMotion] geriye uyum için durur.
+abstract final class AppMotion {
+  static const Duration instant = Duration(milliseconds: 80);
+  static const Duration fast = Duration(milliseconds: 140);
+  static const Duration normal = Duration(milliseconds: 220);
+  static const Duration emphasized = Duration(milliseconds: 300);
+  static const Duration sheet = Duration(milliseconds: 340);
+
+  static const Curve standard = Curves.easeInOutCubic;
+  static const Curve enter = Curves.easeOutCubic;
+  static const Curve exit = Curves.easeInCubic;
+  static const Curve interactive = Curves.easeOutQuart;
+
+  /// [d] süresi; hareket azaltılmışsa sıfır.
+  static Duration of(BuildContext context, [Duration d = normal]) => BuMotion.of(context, d);
+}

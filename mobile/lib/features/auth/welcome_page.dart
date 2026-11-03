@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 
-import '../../core/locale_controller.dart';
 import '../../core/app_gate.dart' show appVersion;
+import '../../core/locale_controller.dart';
 import '../../widgets/bu.dart';
 import 'widgets/auth_ref.dart';
 
-/// İlk açılışta (cihaz başına bir kez) gösterilen karşılama (Stitch v3 "01 Karşılama"): zemin düz, tek mesaj
-/// (iki satırlı başlık + tek satır açıklama), üç nokta-metin satırı, altta tek birincil düğme (Giriş yap), düz metin
-/// ikincil (Kayıt ol), kayıt notu ve sürüm. Hero kartı, logo karosu, kart/ikon ve bilgi kutusu yok. Sağ üstte TR | EN | AR.
+/// İlk açılışta (cihaz başına bir kez) gösterilen karşılama: sakin nötr zemin, solda küçük marka karosu, sağda
+/// TR | EN | AR; tek mesaj (başlık + açıklama), beyaz tek kart içinde üç özellik satırı, altta birincil düğme
+/// (Giriş yap), ikincil çerçeveli düğme (Kayıt ol), kayıt notu ve sürüm. Marka rengi yalnız küçük vurgularda
+/// (karo, simge zemini, birincil düğme); büyük kırmızı alan, gradyan ve güçlü gölge yok.
 class WelcomePage extends StatelessWidget {
   const WelcomePage({super.key, required this.onLogin, required this.onRegister});
 
@@ -19,13 +20,16 @@ class WelcomePage extends StatelessWidget {
     final t = context.bu;
     final l = context.l10n;
     final tx = Theme.of(context).textTheme;
-    final features = [l.welcomeNews, l.welcomeMenu, l.welcomeClubs];
+    final features = [
+      (BuIcons.newspaper, l.welcomeNews),
+      (BuIcons.utensils, l.welcomeMenu),
+      (BuIcons.users, l.welcomeClubs),
+    ];
     return Scaffold(
       backgroundColor: t.bg,
       body: SafeArea(
         child: LayoutBuilder(
           builder: (context, c) => SingleChildScrollView(
-            padding: EdgeInsets.zero,
             child: ConstrainedBox(
               constraints: BoxConstraints(minHeight: c.maxHeight),
               child: Center(
@@ -34,12 +38,22 @@ class WelcomePage extends StatelessWidget {
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: kRefPad),
                     child: BuStaggerScope(
+                      // Boşluk (Spacer) için sınırlı yükseklik: düğmeler kısa ekranda içeriğin altında, uzunda dipte durur.
+                      child: ConstrainedBox(
+                      constraints: BoxConstraints(minHeight: c.maxHeight),
+                      child: IntrinsicHeight(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          const Align(alignment: AlignmentDirectional.centerEnd, child: _LangPill()),
-                          const SizedBox(height: 72),
-                          // Tek mesaj: iki satırlı başlık + tek satır açıklama + üç kısa satır.
+                          const SizedBox(height: 12),
+                          const Row(
+                            children: [
+                              RefBrandMark(size: 40),
+                              Spacer(),
+                              _LangPill(),
+                            ],
+                          ),
+                          const SizedBox(height: 56),
                           BuStaggerItem(
                             index: 0,
                             child: Column(
@@ -50,45 +64,51 @@ class WelcomePage extends StatelessWidget {
                                   child: Text(l.welcomeHeadline,
                                       style: tx.headlineLarge!.copyWith(color: t.ink, fontWeight: FontWeight.w700, height: 1.15)),
                                 ),
-                                const SizedBox(height: 16),
+                                const SizedBox(height: 12),
                                 Text(l.welcomeSub, style: tx.bodyLarge!.copyWith(color: t.mut, height: 1.5)),
                               ],
                             ),
                           ),
-                          const SizedBox(height: 32),
-                          for (var i = 0; i < features.length; i++)
-                            BuStaggerItem(
-                              index: i + 1,
-                              // Yalnız bilgi (dokunulmaz): ikon/ok yok, solda küçük nokta.
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(vertical: 8),
-                                child: Row(
-                                  children: [
-                                    Container(width: 6, height: 6, decoration: BoxDecoration(color: t.ink, shape: BoxShape.circle)),
-                                    const SizedBox(width: 16),
-                                    Expanded(child: Text(features[i], style: tx.bodyLarge!.copyWith(color: t.ink))),
+                          const SizedBox(height: 28),
+                          BuStaggerItem(
+                            index: 1,
+                            child: DecoratedBox(
+                              decoration: BoxDecoration(
+                                color: t.sf,
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(color: t.bd),
+                              ),
+                              child: Column(
+                                children: [
+                                  for (var i = 0; i < features.length; i++) ...[
+                                    if (i > 0) Divider(height: 1, thickness: 1, indent: 68, color: t.bdSubtle),
+                                    _FeatureRow(icon: features[i].$1, label: features[i].$2),
                                   ],
-                                ),
+                                ],
                               ),
                             ),
-                          const SizedBox(height: 64),
+                          ),
+                          const Spacer(),
+                          const SizedBox(height: 40),
                           BuStaggerItem(
-                            index: features.length + 1,
+                            index: 2,
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.stretch,
                               children: [
                                 RefButton(label: l.loginSubmit, onPressed: onLogin),
-                                const SizedBox(height: 8),
-                                RefButton(label: l.loginRegister, kind: RefButtonKind.ghost, onPressed: onRegister),
-                                const SizedBox(height: 8),
-                                _DomainNote(l.welcomeNote),
+                                const SizedBox(height: 12),
+                                RefButton(label: l.loginRegister, kind: RefButtonKind.secondary, onPressed: onRegister),
                                 const SizedBox(height: 16),
+                                _DomainNote(l.welcomeNote),
+                                const SizedBox(height: 12),
                                 Center(child: Text(l.profileVersion(appVersion), style: tx.bodySmall!.copyWith(color: t.mut))),
-                                const SizedBox(height: 24),
+                                const SizedBox(height: 20),
                               ],
                             ),
                           ),
                         ],
+                      ),
+                      ),
                       ),
                     ),
                   ),
@@ -102,7 +122,36 @@ class WelcomePage extends StatelessWidget {
   }
 }
 
-/// Sağ üst dil seçici: üç dilimli hap, seçili dilim marka kırmızısı. Dokununca dil hemen değişir.
+/// Bilgi satırı (dokunulmaz): yumuşak zeminli küçük simge karosu + metin.
+class _FeatureRow extends StatelessWidget {
+  const _FeatureRow({required this.icon, required this.label});
+
+  final IconData icon;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.bu;
+    final tx = Theme.of(context).textTheme;
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      child: Row(
+        children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(color: t.soft, borderRadius: BorderRadius.circular(12)),
+            child: Icon(icon, size: 20, color: t.onSoft),
+          ),
+          const SizedBox(width: 12),
+          Expanded(child: Text(label, style: tx.bodyLarge!.copyWith(color: t.ink, fontWeight: FontWeight.w500))),
+        ],
+      ),
+    );
+  }
+}
+
+/// Sağ üst dil seçici: üç dilimli hap, seçili dilim yumuşak marka zemini. Dokununca dil hemen değişir.
 class _LangPill extends StatelessWidget {
   const _LangPill();
 
@@ -117,40 +166,37 @@ class _LangPill extends StatelessWidget {
     final cur = Localizations.localeOf(context).languageCode;
     return Semantics(
       label: context.l10n.welcomeLanguage,
-      child: Container(
-        padding: const EdgeInsets.all(2),
-        decoration: const BoxDecoration(),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            for (final c in _codes)
-              Semantics(
-                button: true,
-                selected: c == cur,
-                child: InkWell(
-                  borderRadius: BorderRadius.circular(999),
-                  onTap: c == cur ? null : () => lc.set(c),
-                  child: ConstrainedBox(
-                    // Dokunma hedefi 40 dp yükseklik (sabit: hap 44 dp'de kalır, üst çubuğu doldurmaz), >= 44 dp genişlik.
-                    constraints: const BoxConstraints(minWidth: 44, minHeight: 40, maxHeight: 40),
-                    child: AnimatedContainer(
-                      duration: BuMotion.of(context, BuMotion.short),
-                      alignment: Alignment.center,
-                      padding: const EdgeInsets.symmetric(horizontal: 8),
-                      decoration: BoxDecoration(
-                        color: c == cur ? t.soft : Colors.transparent,
-                        borderRadius: BorderRadius.circular(999),
-                      ),
-                      child: Text(
-                        c.toUpperCase(),
-                        style: tx.labelMedium!.copyWith(color: c == cur ? t.pr : t.mut, fontWeight: c == cur ? FontWeight.w700 : FontWeight.w500),
-                      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          for (final c in _codes)
+            Semantics(
+              button: true,
+              selected: c == cur,
+              child: InkWell(
+                borderRadius: BorderRadius.circular(999),
+                onTap: c == cur ? null : () => lc.set(c),
+                child: ConstrainedBox(
+                  // Dokunma hedefi: >= 44 dp genişlik, 40 dp yükseklik (üst çubuğu doldurmaz).
+                  constraints: const BoxConstraints(minWidth: 44, minHeight: 40, maxHeight: 40),
+                  child: AnimatedContainer(
+                    duration: AppMotion.of(context, AppMotion.fast),
+                    curve: AppMotion.standard,
+                    alignment: Alignment.center,
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    decoration: BoxDecoration(
+                      color: c == cur ? t.soft : Colors.transparent,
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                    child: Text(
+                      c.toUpperCase(),
+                      style: tx.labelMedium!.copyWith(color: c == cur ? t.onSoft : t.mut, fontWeight: c == cur ? FontWeight.w700 : FontWeight.w500),
                     ),
                   ),
                 ),
               ),
-          ],
-        ),
+            ),
+        ],
       ),
     );
   }

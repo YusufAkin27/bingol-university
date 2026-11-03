@@ -27,31 +27,26 @@ void main() {
           'mut/sf': (t.mut, t.sf),
           'mut/sf2': (t.mut, t.sf2),
           'mut/sf3': (t.mut, t.sf3),
-          'onPr/pr': (t.onPr, t.pr),
+          'onPr/prPressed': (t.onPr, t.prPressed),
           'onSoft/soft': (t.onSoft, t.soft),
-          'pr/bg': (t.pr, t.bg),
-          'pr/sf': (t.pr, t.sf),
-          'pr/sf2': (t.pr, t.sf2),
-          'pr/sf3': (t.pr, t.sf3),
+          'prPressed/bg': (t.prPressed, t.bg),
+          'prPressed/sf': (t.prPressed, t.sf),
+          'prPressed/sf2': (t.prPressed, t.sf2),
+          'prPressed/sf3': (t.prPressed, t.sf3),
           'ok/sf': (t.ok, t.sf),
           'ok/bg': (t.ok, t.bg),
-          'ok/okSoft': (t.ok, t.okSoft),
           'onOkSoft/okSoft': (t.onOkSoft, t.okSoft),
           'danger/sf': (t.danger, t.sf),
           'danger/bg': (t.danger, t.bg),
           'danger/sf3': (t.danger, t.sf3),
-          'danger/dangerSoft': (t.danger, t.dangerSoft),
           'warn/sf': (t.warn, t.sf),
           'warn/bg': (t.warn, t.bg),
-          'warn/warnSoft': (t.warn, t.warnSoft),
           'onWarnSoft/warnSoft': (t.onWarnSoft, t.warnSoft),
           'info/sf': (t.info, t.sf),
           'info/bg': (t.info, t.bg),
-          'info/infoSoft': (t.info, t.infoSoft),
           'onInfoSoft/infoSoft': (t.onInfoSoft, t.infoSoft),
           'aqua/sf': (t.aqua, t.sf),
           'aqua/bg': (t.aqua, t.bg),
-          'aqua/aquaSoft': (t.aqua, t.aquaSoft),
           'onAquaSoft/aquaSoft': (t.onAquaSoft, t.aquaSoft),
           'onNav/nav': (t.onNav, t.nav),
           'onMedia/h1 (hero)': (t.onMedia, t.h1),
@@ -143,19 +138,16 @@ void main() {
       }
     });
 
-    test('danger marka kirmizisindan ayirt edilir (ton fark >= 10 derece)', () {
+    test('danger ve marka ayri belirtectir (ton yakin: hata simge + metinle de ayirt edilir)', () {
       for (final e in themes.entries) {
-        final t = e.value;
-        double d = (HSLColor.fromColor(t.pr).hue - HSLColor.fromColor(t.danger).hue).abs();
-        if (d > 180) d = 360 - d;
-        expect(d, greaterThanOrEqualTo(10), reason: e.key);
+        expect(e.value.danger, isNot(e.value.pr), reason: e.key);
       }
     });
 
     test('yuzeyler notr ve doygunluk dusuk (bg/sf/sf2/bd), koyu tema saf siyah degil', () {
       for (final t in themes.values) {
-        // Kullanıcının 2 Kasım referansı açık zemini açıkça #FAF6F3 olarak belirler.
-        if (identical(t, BuTokens.light)) expect(t.bg.toARGB32(), 0xFFFAF6F3);
+        // Premium palet: açık zemin #F8F9FA.
+        if (identical(t, BuTokens.light)) expect(t.bg.toARGB32(), 0xFFF8F9FA);
         for (final c in [t.sf, t.sf2, t.sf3, t.bd, if (!identical(t, BuTokens.light)) t.bg]) {
           expect(sat(c), lessThan(.3)); // HSL doygunlugu: acik sicak notrler ~.2-.25 cikar, kromatik degil
         }

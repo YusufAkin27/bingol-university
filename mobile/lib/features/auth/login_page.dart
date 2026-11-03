@@ -143,8 +143,8 @@ class _LoginPageState extends State<LoginPage> {
         ValueListenableBuilder<bool>(
           valueListenable: widget.session.replacedNotice,
           builder: (context, show, _) => AnimatedSize(
-            duration: const Duration(milliseconds: 240),
-            curve: Curves.easeOutCubic,
+            duration: AppMotion.of(context, AppMotion.normal),
+            curve: AppMotion.enter,
             alignment: Alignment.topCenter,
             child: show
                 ? Padding(
@@ -162,8 +162,8 @@ class _LoginPageState extends State<LoginPage> {
           ),
         ),
         AnimatedSize(
-          duration: const Duration(milliseconds: 240),
-          curve: Curves.easeOutCubic,
+          duration: AppMotion.of(context, AppMotion.normal),
+          curve: AppMotion.enter,
           alignment: Alignment.topCenter,
           child: _pending == null
               ? const SizedBox(width: double.infinity)
@@ -200,6 +200,8 @@ class _LoginPageState extends State<LoginPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
+                  const Align(alignment: AlignmentDirectional.centerStart, child: RefBrandMark(size: 44)),
+                  const SizedBox(height: 28),
                   Semantics(
                     header: true,
                     child: Text(l.loginWelcome, style: tx.headlineMedium!.copyWith(color: t.ink, fontWeight: FontWeight.w700)),
@@ -228,8 +230,8 @@ class _LoginPageState extends State<LoginPage> {
                     onPressed: _submit,
                   ),
                   AnimatedSize(
-                    duration: BuMotion.of(context, BuMotion.short),
-                    curve: BuMotion.decelerate,
+                    duration: AppMotion.of(context, AppMotion.fast),
+                    curve: AppMotion.enter,
                     alignment: Alignment.topCenter,
                     child: _error == null
                         ? const SizedBox(width: double.infinity)
@@ -250,8 +252,8 @@ class _LoginPageState extends State<LoginPage> {
           ),
         ),
         AnimatedSize(
-          duration: BuMotion.of(context, BuMotion.medium),
-          curve: BuMotion.decelerate,
+          duration: AppMotion.of(context, AppMotion.normal),
+          curve: AppMotion.enter,
           alignment: Alignment.topCenter,
           child: keyboard
               ? const SizedBox(width: double.infinity)

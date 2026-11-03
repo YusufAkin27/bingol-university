@@ -19,15 +19,18 @@ void main() {
   test('kritik token değerleri', () {
     final l = BuTheme.light().extension<BuTokens>()!;
     final d = BuTheme.dark().extension<BuTokens>()!;
-    expect(l.pr, const Color(0xFFC0392B)); // RENK-1: sakinleştirilmiş marka kırmızısı
-    expect(d.pr, const Color(0xFFF0766A));
-    expect(BuTheme.light().colorScheme.primary, l.pr);
-    expect(BuTheme.dark().colorScheme.primary, d.pr);
+    expect(l.pr, const Color(0xFFDC4C46)); // premium palet: marka vurgusu
+    expect(l.prPressed, const Color(0xFFB93833)); // beyaz yazılı dolu düğme/bağlantı (AA)
+    expect(d.pr, const Color(0xFFF0726C));
+    // Material bileşenleri (dolu düğme, odak) AA için prPressed kullanır.
+    expect(BuTheme.light().colorScheme.primary, l.prPressed);
+    expect(BuTheme.dark().colorScheme.primary, d.prPressed);
   });
 
-  test('onPr, pr üstünde en az 4.5:1 kontrast verir', () {
-    expect(contrast(BuTokens.light.onPr, BuTokens.light.pr), greaterThanOrEqualTo(4.5));
-    expect(contrast(BuTokens.dark.onPr, BuTokens.dark.pr), greaterThanOrEqualTo(4.5));
+  test('onPr, prPressed üstünde en az 4.5:1 kontrast verir (pr üstünde küçük yazı AA vermez)', () {
+    expect(contrast(BuTokens.light.onPr, BuTokens.light.prPressed), greaterThanOrEqualTo(4.5));
+    expect(contrast(BuTokens.dark.onPr, BuTokens.dark.prPressed), greaterThanOrEqualTo(4.5));
+    expect(contrast(BuTokens.light.onPr, BuTokens.light.pr), greaterThanOrEqualTo(3)); // büyük/kalın metin
   });
 
   test('ana yazı zemin üstünde okunur', () {
