@@ -41,7 +41,7 @@ function preview(dryRun: boolean, errors: { row: number; message: string }[] = [
   };
 }
 
-function setup(errors: { row: number; message: string }[] = []) {
+function setup(errors: { row: number; message: string }[] = [], listSize = 5) {
   const calls: Call[] = [];
   mockFetch((url, init) => {
     calls.push({ url, init });
@@ -54,7 +54,7 @@ function setup(errors: { row: number; message: string }[] = []) {
       return jsonResponse(200, {
         terms: [{ term: '2026-2027 Güz', sessions: 3396, programs: 114 }],
         term: '2026-2027 Güz',
-        items: Array.from({ length: 5 }, (_, i) => program(i)),
+        items: Array.from({ length: listSize }, (_, i) => program(i)),
       });
     }
     return jsonResponse(404, { code: 'NOT_FOUND', message: 'x' });
@@ -100,5 +100,39 @@ describe('Resmî ders programı sayfası', () => {
     expect(within(dialog).getByRole('button', { name: /Onayla ve yükle/ })).toBeDisabled();
     await user.click(within(dialog).getByRole('button', { name: /İptal|Vazgeç/ }));
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+  });
+
+  it('program listesi yirmişerli sayfalanır; sonraki sayfa ve birim süzgeci çalışır', async () => {
+    setup([], 45);
+    const user = userEvent.setup();
+    renderWithProviders(<AcademicTimetablePage />);
+    await screen.findByText('Program 0');
+    expect(screen.getAllByRole('listitem').filter((li) => li.textContent?.includes('Program ')).length).toBe(20);
+    expect(screen.queryByText('Program 20')).not.toBeInTheDocument();
+    expect(screen.getByText(/Sayfa 1 \/ 3/)).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: /Sonraki/i }));
+    expect(await screen.findByText('Program 20')).toBeInTheDocument();
+    expect(screen.queryByText('Program 0')).not.toBeInTheDocument();
+    expect(screen.getByText(/Sayfa 2 \/ 3/)).toBeInTheDocument();
+
+    // birim süzgeci: ilk sayfaya döner, yalnız o birimin programları kalır (45 program, 12 birim)
+    await user.selectOptions(screen.getByLabelText('Birim'), 'Birim 3');
+    await waitFor(() => expect(screen.getByText(/Sayfa 1 \/ 1/)).toBeInTheDocument());
+    expect(screen.queryByText('Program 20')).not.toBeInTheDocument();
+    expect(screen.getByText('Program 3')).toBeInTheDocument();
+  });
+
+  it('önizleme penceresinde programlar onar onar sayfalanır', async () => {
+    setup();
+    const user = userEvent.setup();
+    const { container } = renderWithProviders(<AcademicTimetablePage />);
+    await screen.findByText('Program 1');
+    await user.upload(container.querySelector('input[type="file"]') as HTMLInputElement, xlsx());
+    const dialog = await screen.findByRole('dialog');
+    expect(within(dialog).getByText('Program 9')).toBeInTheDocument();
+    expect(within(dialog).queryByText('Program 10')).not.toBeInTheDocument();
+    expect(within(dialog).getByText(/Sayfa 1 \/ 12/)).toBeInTheDocument();
+    await user.click(within(dialog).getByRole('button', { name: /Sonraki/i }));
+    expect(await within(dialog).findByText('Program 10')).toBeInTheDocument();
   });
 });

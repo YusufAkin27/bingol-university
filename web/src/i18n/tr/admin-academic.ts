@@ -178,6 +178,10 @@ const m = {
   'admin.acd.tt.deleteBody':
     'Bu birim ve programın tüm ders saatleri kalıcı olarak silinir ve mobil uygulamadan kalkar. Emin misiniz?',
   'admin.acd.tt.entriesTitle': '{program} · ders saatleri',
+  'admin.acd.tt.unit': 'Birim',
+  'admin.acd.tt.unitAll': 'Tüm birimler',
+  'admin.acd.tt.noMatchTitle': 'Eşleşen program yok',
+  'admin.acd.tt.noMatchHint': 'Birim veya arama süzgecini değiştirin.',
   'admin.acd.tt.day.1': 'Pazartesi',
   'admin.acd.tt.day.2': 'Salı',
   'admin.acd.tt.day.3': 'Çarşamba',

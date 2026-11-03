@@ -181,6 +181,10 @@ const m: Record<keyof typeof tr, string> = {
   'admin.acd.tt.deleteBody':
     'All class sessions of this unit and program are deleted permanently and disappear from the mobile app. Are you sure?',
   'admin.acd.tt.entriesTitle': '{program} · class sessions',
+  'admin.acd.tt.unit': 'Unit',
+  'admin.acd.tt.unitAll': 'All units',
+  'admin.acd.tt.noMatchTitle': 'No matching program',
+  'admin.acd.tt.noMatchHint': 'Change the unit or search filter.',
   'admin.acd.tt.day.1': 'Monday',
   'admin.acd.tt.day.2': 'Tuesday',
   'admin.acd.tt.day.3': 'Wednesday',
