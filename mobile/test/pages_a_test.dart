@@ -97,7 +97,7 @@ void main() {
     testWidgets('yanlis sifre sunucu mesajini gosterir, dugme tekrar aktif', (tester) async {
       final b = newB()..fail('/auth/login', status: 401, code: 'INVALID_CREDENTIALS', message: 'E-posta veya şifre hatalı.');
       await tester.pumpWidget(buildApp(LoginPage(session: makeSession(b, signedIn: false))));
-      await tester.enterText(find.byType(TextFormField).at(0), 'ayse@bingol.edu.tr');
+      await tester.enterText(find.byType(TextFormField).at(0), '226051015');
       await tester.enterText(find.byType(TextFormField).at(1), 'Sifre1234');
       await tester.pump(const Duration(milliseconds: 700)); // giriş animasyonu (Stitch v3 aşamalı giriş) bitmeden dokunma isabet etmez
       await tester.tap(find.text('Giriş yap'));
@@ -110,7 +110,7 @@ void main() {
     testWidgets('ag hatasi yerel metin gosterir', (tester) async {
       final b = newB()..network('/auth/login');
       await tester.pumpWidget(buildApp(LoginPage(session: makeSession(b, signedIn: false))));
-      await tester.enterText(find.byType(TextFormField).at(0), 'ayse@bingol.edu.tr');
+      await tester.enterText(find.byType(TextFormField).at(0), '226051015');
       await tester.enterText(find.byType(TextFormField).at(1), 'Sifre1234');
       await tester.pump(const Duration(milliseconds: 700)); // giriş animasyonu (Stitch v3 aşamalı giriş) bitmeden dokunma isabet etmez
       await tester.tap(find.text('Giriş yap'));
@@ -122,7 +122,7 @@ void main() {
     testWidgets('EMAIL_NOT_VERIFIED dogrulama ekranina gider ve kodu yeniden gonderir', (tester) async {
       final b = newB()..fail('/auth/login', status: 403, code: 'EMAIL_NOT_VERIFIED');
       await tester.pumpWidget(buildApp(LoginPage(session: makeSession(b, signedIn: false))));
-      await tester.enterText(find.byType(TextFormField).at(0), 'ayse@bingol.edu.tr');
+      await tester.enterText(find.byType(TextFormField).at(0), '226051015');
       await tester.enterText(find.byType(TextFormField).at(1), 'Sifre1234');
       await tester.pump(const Duration(milliseconds: 700)); // giriş animasyonu (Stitch v3 aşamalı giriş) bitmeden dokunma isabet etmez
       await tester.tap(find.text('Giriş yap'));
