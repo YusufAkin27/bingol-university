@@ -97,9 +97,9 @@ export function ContactList({ info }: { info: AppInfo | undefined }) {
           </dt>
           <dd>{it.value}</dd>
           {it.copy && (
-            <span className={styles.copy}>
+            <dd className={styles.copy}>
               <CopyButton value={it.copy} />
-            </span>
+            </dd>
           )}
         </div>
       ))}

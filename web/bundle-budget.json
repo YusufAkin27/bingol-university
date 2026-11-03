@@ -1,9 +1,9 @@
 {
-  "_aciklama": "Paket boyutu butcesi (gzip -9, KB). `npm run check:bundle` (build sonrasi) asimda cikis kodu 1 verir; CI'da continue-on-error ile uyari. Olcum 2026-10-29: girdi 90.8, en agir site sayfasi (ar) 124.1, toplam JS 613. Kasitli buyutme gerekiyorsa degeri gerekceyle guncelleyin. 2026-10-31 (SITE3): site.* 21 -> 23 KB: yeni tanitim sitesi metinleri (vitrin, guven sayfalari Kisaca maddeleri, bilgi sayfalari) uc dilde; Arapca gzip en kotu sikisan dil (ar 21.98 KB). 2026-11-01 (UPDATEGATE): admin.tr 66 -> 67 KB: Uygulama guncelleme zorlama sayfasinin Turkce metinleri (admin-uv1.ts, ~3 KB ham); sayfa kodu ayri lazy parca. 2026-11-01 (KIT): admin.tr 67 -> 68 KB: gorsel kit (StatTile, ChartPanel, ResponsiveTable...) Turkce metinleri (admin-kit.ts, ~3 KB ham). 2026-11-01 (SEARCH): panel aramasi (motor + dizin + QuickNav) yalniz kullanilinca yuklenen ayri lazy parcalar; admin.tr 68 -> 69 KB (admin.search.* metinleri, ~1 KB ham), routes.admin 16 -> 17 KB (SearchAnchor/useUrlTab/kabuk baglantilari), totalJs 680 -> 700 KB (arama motoru + ~100 girdilik dizin, sonraki dalgada sayfa girdileri artinca yeniden olculur). 2026-11-01 (ADMIN-GORSEL son): yonetim paneli gorsel yenileme (PEOPLE/MOD/COMM/NOTIF sayfalari, ~600 arama girdisi, her grafigin duz Turkce yorumlari) - yalniz /admin icin yuklenen parcalar buyudu, herkese acik site (girdi 92.6/100, site.* <=22/23 KB) degismedi: admin.tr 69 -> 82 KB (olculen 81.2), routes.admin 17 -> 18 KB (17.55), totalJs 700 -> 770 KB (755.4).",
+  "_aciklama": "Paket boyutu butcesi (gzip -9, KB). `npm run check:bundle` (build sonrasi) asimda cikis kodu 1 verir; CI'da continue-on-error ile uyari. Olcum 2026-10-29: girdi 90.8, en agir site sayfasi (ar) 124.1, toplam JS 613. Kasitli buyutme gerekiyorsa degeri gerekceyle guncelleyin. 2026-10-31 (SITE3): site.* 21 -> 23 KB: yeni tanitim sitesi metinleri (vitrin, guven sayfalari Kisaca maddeleri, bilgi sayfalari) uc dilde; Arapca gzip en kotu sikisan dil (ar 21.98 KB). 2026-11-01 (UPDATEGATE): admin.tr 66 -> 67 KB: Uygulama guncelleme zorlama sayfasinin Turkce metinleri (admin-uv1.ts, ~3 KB ham); sayfa kodu ayri lazy parca. 2026-11-01 (KIT): admin.tr 67 -> 68 KB: gorsel kit (StatTile, ChartPanel, ResponsiveTable...) Turkce metinleri (admin-kit.ts, ~3 KB ham). 2026-11-01 (SEARCH): panel aramasi (motor + dizin + QuickNav) yalniz kullanilinca yuklenen ayri lazy parcalar; admin.tr 68 -> 69 KB (admin.search.* metinleri, ~1 KB ham), routes.admin 16 -> 17 KB (SearchAnchor/useUrlTab/kabuk baglantilari), totalJs 680 -> 700 KB (arama motoru + ~100 girdilik dizin, sonraki dalgada sayfa girdileri artinca yeniden olculur). 2026-11-01 (ADMIN-GORSEL son): yonetim paneli gorsel yenileme (PEOPLE/MOD/COMM/NOTIF sayfalari, ~600 arama girdisi, her grafigin duz Turkce yorumlari) - yalniz /admin icin yuklenen parcalar buyudu, herkese acik site (girdi 92.6/100, site.* <=22/23 KB) degismedi: admin.tr 69 -> 82 KB (olculen 81.2), routes.admin 17 -> 18 KB (17.55), totalJs 700 -> 770 KB (755.4). 2026-11-03 (WEB-YENIDEN-TASARIM, olcum 788.2): totalJs 770 -> 800, site.* 23 -> 27 KB: 10 site sayfa grubunun yeniden tasarimi (ana sayfa, ozellikler, indir, haberler, yemek, yardim/SSS, hakkimizda/iletisim, marka/surum notlari, hukuki sayfalar, kabuk+cerez tercihleri+cekmece) icin uc dilde ~150 yeni metin anahtari (site-rd01..10; ar 25.6, tr 23.3, en 22.1 KB gzip) ve sayfa bilesenleri/CSS; yeni cekmece ve cerez tercih penceresi tembel yuklenir. Ilk yukleme parcalari (initialJs 94.5/100, index 22.9/24, routeJs 133.8/135) butce icinde kaldi.",
   "initialJsGzipKB": 100,
   "routeJsGzipKB": 135,
   "initialCssGzipKB": 10,
-  "totalJsGzipKB": 770,
+  "totalJsGzipKB": 800,
   "chunks": {
     "*": 70,
     "index": 24,
@@ -11,7 +11,7 @@
     "vendor-router": 16,
     "vendor-query": 15,
     "vendor-charts": 125,
-    "site.*": 23,
+    "site.*": 27,
     "admin.tr": 82,
     "routes.admin": 18
   }

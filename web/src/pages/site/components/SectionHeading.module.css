@@ -23,7 +23,7 @@
   content: '';
   width: 20px;
   height: 2px;
-  border-radius: 2px;
+  border-radius: var(--radius-pill);
   background: currentColor;
 }
 :global(:lang(ar)) .eyebrow {
