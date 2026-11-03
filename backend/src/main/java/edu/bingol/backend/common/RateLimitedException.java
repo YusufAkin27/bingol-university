@@ -12,6 +12,12 @@ public class RateLimitedException extends ApiException {
         this.retryAfterSeconds = Math.max(1, retryAfterSeconds);
     }
 
+    /** Ozel koda (ornegin RESEND_COOLDOWN) sahip 429; `args` ceviri argumanlaridir (metin olarak). */
+    public RateLimitedException(String code, String message, long retryAfterSeconds, Object... args) {
+        super(HttpStatus.TOO_MANY_REQUESTS, code, message, args);
+        this.retryAfterSeconds = Math.max(1, retryAfterSeconds);
+    }
+
     public long retryAfterSeconds() {
         return retryAfterSeconds;
     }

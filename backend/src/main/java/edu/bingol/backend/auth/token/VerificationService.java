@@ -2,6 +2,7 @@ package edu.bingol.backend.auth.token;
 
 import edu.bingol.backend.common.ApiException;
 import edu.bingol.backend.common.Hashing;
+import edu.bingol.backend.common.RateLimitedException;
 import edu.bingol.backend.i18n.Lang;
 import edu.bingol.backend.mail.MailService;
 
@@ -33,7 +34,8 @@ public class VerificationService {
 
     static final Duration CODE_TTL = Duration.ofMinutes(10);
     static final Duration LOCK_TTL = Duration.ofMinutes(10);
-    private static final Duration RESEND_COOLDOWN = Duration.ofSeconds(60);
+    /** Ayni adrese yeni kod ancak bundan sonra istenebilir (resend-code, forgot-password, kayit tekrari). */
+    static final Duration RESEND_COOLDOWN = Duration.ofSeconds(180);
     static final int MAX_ATTEMPTS = 5;
     /** Bir kod icin tum istemcilerden toplam deneme siniri (istemci basina sinirin ustunde, DoS'a kapali). */
     static final int GLOBAL_ATTEMPTS = 20;
@@ -64,9 +66,21 @@ public class VerificationService {
         mail.requireCodeQuota();
     }
 
-    /** Yeni kayit dogrulama kodu uretip gonderir. Ayni adrese 60 sn icinde tekrar gonderimi reddeder. */
+    /** Yeni kayit dogrulama kodu uretip gonderir. Ayni adrese 180 sn icinde tekrar gonderimi reddeder (429 RESEND_COOLDOWN + Retry-After). */
     public void issue(String email, Lang lang) {
         issue(VERIFY, email, lang);
+    }
+
+    /**
+     * Bekleyen kaydi OLMAYAN adres icin resend-code: kod gonderilmez ama ayni 180 sn beklemesi uygulanir (ikinci istek
+     * 429); boylece "bekleyen kayit var mi" cevap farkindan anlasilmaz. Ayri anahtar: sonraki gercek kayit etkilenmez.
+     */
+    public void touchResendCooldown(String email) {
+        String key = VERIFY + ":rcd:" + email;
+        Boolean first = redis.opsForValue().setIfAbsent(key, "1", RESEND_COOLDOWN);
+        if (!Boolean.TRUE.equals(first)) {
+            throw resendCooldown(key);
+        }
     }
 
     /** Sifre sifirlama kodu uretip gonderir (ayri anahtar alani, ayni kurallar). */
@@ -140,8 +154,7 @@ public class VerificationService {
     private void issue(String ns, String email, Lang lang) {
         Boolean first = redis.opsForValue().setIfAbsent(ns + ":cd:" + email, "1", RESEND_COOLDOWN);
         if (!Boolean.TRUE.equals(first)) {
-            throw new ApiException(HttpStatus.TOO_MANY_REQUESTS, "RESEND_COOLDOWN",
-                    "Yeni kod için lütfen 1 dakika bekleyin.");
+            throw resendCooldown(ns + ":cd:" + email);
         }
         String code = String.format("%06d", random.nextInt(1_000_000));
         redis.opsForValue().set(ns + ":" + email, hash(email, code), CODE_TTL);
@@ -166,6 +179,13 @@ public class VerificationService {
             redis.delete(ns + ":" + email);
             throw e;
         }
+    }
+
+    /** 429 RESEND_COOLDOWN; Retry-After ve {0} = kalan saniye. */
+    private RateLimitedException resendCooldown(String key) {
+        Long left = redis.getExpire(key, java.util.concurrent.TimeUnit.SECONDS);
+        long secs = left == null || left <= 0 ? RESEND_COOLDOWN.toSeconds() : left;
+        return new RateLimitedException("RESEND_COOLDOWN", "Yeni kod için lütfen bekleyin.", secs, String.valueOf(secs));
     }
 
     private void clearScoped(String ns, String email) {

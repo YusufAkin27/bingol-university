@@ -67,6 +67,22 @@ class DisplayNameCooldownTest {
     }
 
     @Test
+    void firstRealNameReplacingTheTemporaryOneIsNotRecordedNorBlocked() {
+        u.setDisplayName("Öğrenci");
+        when(history.findFirstByUserIdOrderByChangedAtDesc(1L)).thenReturn(Optional.empty());
+
+        // ad + bolum + sinif TEK istekte, bekleme/kota yok
+        service.update(1L, new UpdateProfileRequest("Ayse Yilmaz", "Mühendislik Fakültesi",
+                "Bilgisayar Mühendisliği", null, "3", null, null, null));
+
+        assertEquals("Ayse Yilmaz", u.getDisplayName());
+        assertEquals("Mühendislik Fakültesi", u.getFaculty());
+        assertEquals("Bilgisayar Mühendisliği", u.getDepartment());
+        assertEquals("3", u.getGrade());
+        verify(history, never()).save(any());
+    }
+
+    @Test
     void secondChangeWithinSevenDaysIs429() {
         lastChange(Duration.ofDays(2));
 

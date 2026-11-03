@@ -4,6 +4,15 @@
 
 Ayrıntılı modül notları: `docs/changes/*.md`. Mobil API rehberi: [MOBILE_API_GUIDE.md](MOBILE_API_GUIDE.md).
 
+### Şifre kuralı gevşetildi + kayıtta ad isteğe bağlı
+
+- **Şifre:** yönetici olmayan hesaplarda (kayıt, şifre sıfırlama, şifre değiştirme) yalnız **en az 6 karakter** ister; bileşim, yaygın liste, dizi/tekrar ve kişisel veri denetimi kalktı. Kısa şifre `400 PASSWORD_TOO_SHORT` (tr/en/ar). Yönetici hesapları eski güçlü kuralda (12+ karakter, `PASSWORD_TOO_WEAK`) kalır; giriş, hesap kilidi ve hız sınırı değişmedi. `app.auth.password-min-length` varsayılanı 10 → 6.
+- **Kayıt:** ad kayıtta alınır; fakülte/bölüm/sınıf kayıttan sonra `PATCH /api/users/me` ile tek istekte girilir (kota yok). `displayName` sunucuda isteğe bağlı kabul edilir (boşsa geçici ad: e-posta kullanıcı adı ya da "Öğrenci"; geçici adın ilk değişimi 7 günlük bekleme kuralına sayılmaz). Yönetici kaydında ad zorunlu kalır. Bkz. `docs/changes/auth.md`.
+
+### Şifremi unuttum 404 + kod süresi/bekleme
+
+- **`forgot-password`:** kayıtlı olmayan hesap için e-posta gitmez, `404 ACCOUNT_NOT_FOUND` döner (bilinçli enumerasyon istisnası; IP başına dakikada 15 ek sınır). **Kodlar:** geçerlilik tam 10 dk; yeniden kod bekleme süresi 60 sn → **180 sn** (`resend-code`, `forgot-password`, tekrar `register`, destek formu): erken istek `429 RESEND_COOLDOWN` + `Retry-After`. Bkz. `docs/changes/auth.md`.
+
 ### Resmî ders programı (Excel yükleme, V1070) + yeni hesap varsayılanı
 
 - **Ders programı:** yönetim panelinde `Akademik > Resmî ders programı` (`/admin/academic/timetable`): şablon Excel yüklenir, önce önizleme (program/oturum sayısı, hata ve uyarılar), onaylanınca birim+program bazında değiştirilerek yazılır. Tablolar `official_timetable_batch|entry`; kullanıcı ucu `GET /api/timetable/official`. Ayrıntı: `docs/ADMIN_API.md` "Resmi ders programı". Excel okuyucu bağımlılıksızdır (`XlsxReader`, StAX; XXE ve zip-bombası sınırları).

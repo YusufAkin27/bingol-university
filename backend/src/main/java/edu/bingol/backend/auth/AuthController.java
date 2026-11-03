@@ -124,6 +124,8 @@ public class AuthController {
     @ResponseStatus(HttpStatus.ACCEPTED)
     public MessageResponse forgotPassword(@Valid @RequestBody EmailRequest r, HttpServletRequest http) {
         codeRequestLimits("forgot", http);
+        // Hesap yoksa 404 verildiginden numara taramasini zorlastirmak icin IP basina dakikada 15 (kayitsiz adres de sayilir)
+        limiter.check("forgot:ipmin:" + clientIp.limitKey(http), 15, Duration.ofMinutes(1));
         String ed = LoginThrottle.digest(AuthService.normalizeEmail(r.email()));
         limiter.check("forgot:email:" + ed, 5, Duration.ofHours(1));
         codeMailCap(ed);

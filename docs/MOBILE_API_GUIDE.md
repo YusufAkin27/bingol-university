@@ -36,7 +36,7 @@ POST /api/auth/register
 Content-Type: application/json
 Accept-Language: tr
 
-{"email":"ayse@bingol.edu.tr","password":"Sifre1234x","displayName":"Ayşe Yılmaz","acceptTerms":true,"language":"tr"}
+{"email":"ayse@bingol.edu.tr","password":"123456","displayName":"Ayşe Yılmaz","acceptTerms":true,"language":"tr"}
 ```
 `202 Accepted` → `{"message":"Doğrulama kodu e-posta adresinize gönderildi."}`
 
@@ -46,7 +46,8 @@ Accept-Language: tr
 
 **Mail kuyruğu:** `register`/`resend-code` e-postayı kuyruğa yazıp hemen döner; gönderim arka planda yapılır, yani **kod birkaç saniye (SMTP sorunlarında daha geç) sonra gelir**. Arayüzde "kod gönderildi" deyip geri sayımı hemen başlatın, ekranı kilitlemeyin. Kuyruğa yazılamazsa `503 MAIL_UNAVAILABLE`. Gönderim başarısızsa sunucu en çok 5 kez yeniden dener (1 dk, 5 dk, 30 dk, 2 sa, 12 sa); kullanıcı yine de "kodu yeniden gönder" ile yeni kod isteyebilir.
 
-- Yalnızca `bingol.edu.tr` ve alt alanları; aksi `400 EMAIL_DOMAIN_NOT_ALLOWED`. `acceptTerms` **true olmalı** (sözleşme kabulü sunucuda kaydedilir); `password` 8-72 karakter; `displayName` ≤ 80; `language` isteğe bağlı `tr|en|ar` (verilmezse `Accept-Language`).
+- Yalnızca `bingol.edu.tr` ve alt alanları; aksi `400 EMAIL_DOMAIN_NOT_ALLOWED`. `acceptTerms` **true olmalı** (sözleşme kabulü sunucuda kaydedilir); `password` **en az 6**, en çok 72 karakter (başka kural yok; kısa ise `400 PASSWORD_TOO_SHORT`; yönetici hesapları 12+ ve güçlü şifre ister, `400 PASSWORD_TOO_WEAK`); `displayName` **isteğe bağlı** (≤ 80; verilmezse sunucu geçici ad atar: e-posta kullanıcı adı ya da `"Öğrenci"`; yönetici kaydında zorunlu); `language` isteğe bağlı `tr|en|ar` (verilmezse `Accept-Language`).
+- **Kayıtta `faculty`/`department`/`grade` gönderilmez** (boş kalır); e-posta doğrulandıktan sonra tek seferlik zorunlu "profili tamamla" adımında girilir: `PATCH /api/users/me` gövde `{"faculty":"Mühendislik Fakültesi","department":"Bilgisayar Mühendisliği","grade":"3"}` (tek istek; bölüm/sınıfın ilk atanmasında kota yok; geçici adın ilk değişimi de 7 günlük `DISPLAY_NAME_COOLDOWN` kuralına sayılmaz). Profil tamamlanana kadar `GET /users/me` içinde `faculty`/`department`/`grade` `null`'dır. (`displayName` kayıtta verilmezse — eski istemci — geçici ad atanır; bkz. yukarı.)
 - E-postası zaten doğrulanmış hesap için `409 EMAIL_ALREADY_REGISTERED` (kullanıcıyı giriş ekranına yönlendirin).
 - IP başına saatte 10 kayıt (`429 RATE_LIMITED`); `resend-code` IP başına saatte 10, e-posta başına saatte 5.
 - **Akademik alanlar (isteğe bağlı):** `faculty`, `department`, `grade` (bkz. 1.8). Verilirse katalogla doğrulanır; geçersizse `400 ACADEMIC_INVALID`. Bekleyen kayıtla taşınır, `verify-email` ile hesaba yazılır.
@@ -62,7 +63,7 @@ POST /api/auth/verify-email   {"email":"ayse@bingol.edu.tr","code":"482913","pas
 {"accessToken":"eyJhbGciOiJIUzI1NiJ9...","refreshToken":"cn219myvLJlkbdbg-_aBxsQygQN2L8_spDoX26JW3XE","expiresInSeconds":900,"tokenType":"Bearer"}
 ```
 - Kod 6 hane, **10 dk** geçerli, tek kullanımlık, **5 yanlış deneme** (sonra adres 10 dk kilitlenir: `429 TOO_MANY_ATTEMPTS`; `resend-code` veya yeni `register` kilidi açar). Yanlış/süresi dolmuş/bekleyen kayıt yok: aynı `400 INVALID_CODE` (ayırt edilmez). `verify-email` ek sınırı: e-posta başına 10 dk'da 10.
-- Yeniden gönderme için **60 sn bekleme** vardır (`429 RESEND_COOLDOWN`): arayüzde geri sayım gösterin.
+- Yeniden gönderme (`resend-code`, `forgot-password`, aynı adrese tekrar `register`) için **180 sn (3 dk) bekleme** vardır: erken istek `429 RESEND_COOLDOWN` + `Retry-After` (kalan saniye; mesajdaki `{0}` de kalan saniyedir), yeni kod üretilmez/gönderilmez. İlk gönderim beklemesizdir. Kod **tam 10 dakika** geçerlidir (kayıt, şifre sıfırlama ve herkese açık destek formu kodu); 5 yanlış deneme sınırı ve kilit aynen. `resend-code` bekleyen kaydı olmayan adreste kod göndermez ama aynı 180 sn beklemesini ve 429'u uygular (kayıt varlığı sızmaz). Herkese açık destek formunda aynı adrese 180 sn içinde ikinci talep `429 RATE_LIMITED` + `Retry-After` döner.
 - Geliştirme ortamında (`MAIL_ENABLED=false`) kod e-posta yerine backend log'una yazılır; `scripts/make-user.sh` bunu otomatikleştirir.
 
 ### 1.3 Giriş
@@ -128,12 +129,12 @@ Ek öneriler: access token'ın bitişine ~60 sn kala proaktif yenileyin (özelli
 
 ### 1.7 Şifre sıfırlama (3 adım)
 ```http
-POST /api/auth/forgot-password   {"email":"ayse@bingol.edu.tr"}                              → 202 (hesap olsun olmasın aynı yanıt; kod e-postayla, asenkron)
+POST /api/auth/forgot-password   {"email":"ayse@bingol.edu.tr"}                              → 202 (kayıtlı hesap: kod e-postayla, asenkron) | 404 ACCOUNT_NOT_FOUND (kayıtlı/doğrulanmış/aktif hesap yok; e-posta GİTMEZ) | 429 RESEND_COOLDOWN (180 sn içinde ikinci istek, Retry-After)
 POST /api/auth/verify-reset-code {"email":"...","code":"482913"}                              → 200 {"resetToken":"..."}
 POST /api/auth/reset-password    {"email":"...","resetToken":"...","newPassword":"Yeni1234x"} → 200 {"message":"..."}
 ```
 - Kod 6 hane, 10 dk, tek kullanımlık; deneme/kilit kuralı kayıt koduyla aynıdır (`TOO_MANY_ATTEMPTS`, `INVALID_CODE`). `resetToken` tek kullanımlık, kısa ömürlü bir anahtardır: yalnızca bellekte tutun, saklamayın.
-- `newPassword` 8-72 karakter. Başarılı sıfırlamada kullanıcının **tüm oturumları kapanır** (refresh token'lar silinir, eski access token'lar reddedilir): kullanıcıyı giriş ekranına yönlendirin.
+- `newPassword` en az 6, en çok 72 karakter (kısa ise `400 PASSWORD_TOO_SHORT`; yönetici hesapları 12+ ve güçlü, `PASSWORD_TOO_WEAK`). Başarılı sıfırlamada kullanıcının **tüm oturumları kapanır** (refresh token'lar silinir, eski access token'lar reddedilir): kullanıcıyı giriş ekranına yönlendirin.
 - Sınırlar: `forgot-password` IP başına saatte 10 ve e-posta başına saatte 5; `verify-reset-code` ve `reset-password` IP başına 10 dk'da 20 (`429 RATE_LIMITED`).
 
 ### 1.7a Şifre değiştirme (oturum açıkken)
@@ -144,7 +145,7 @@ POST /api/auth/change-password   (Bearer)
 ```
 - Yanıt `login` ile aynı biçimdedir ve **204 değildir**: başarıda kullanıcının tüm oturumları (diğer cihazlar dahil, çağıran cihazın eski token çifti de) kapanır; sunucu çağıran cihaza aynı istemci türünde (`cl`) **yeni token çifti** verir. İstemci eski access/refresh token'ı bu çiftle **hemen değiştirmelidir**; aksi halde sonraki istek `401 SESSION_REPLACED` alır. Eski token'la uçuşta olan istekler 401 alabilir: yeni çiftle bir kez yeniden deneyin.
 - Çağıran cihazın açık WebSocket bağlantısı iptal olayıyla (`session-replaced`) kapanır: bu olayda çıkış yapmayın, yeni access token'la yeniden bağlanın (diğer cihazlar giriş ekranına döner).
-- `newPassword` 8-72 karakter (kayıt/sıfırlama ile aynı; `400 VALIDATION_ERROR`). Hatalar: `403 WRONG_PASSWORD` (mevcut şifre yanlış), `422 PASSWORD_UNCHANGED` (yeni şifre mevcutla aynı), `429 RATE_LIMITED` (kullanıcı başına saatte 5, IP başına saatte 10). Başarıda kullanıcıya (kayıtlı dilinde) "şifreniz değiştirildi" güvenlik e-postası gider.
+- `newPassword` en az 6, en çok 72 karakter (kayıt/sıfırlama ile aynı; kısa ise `400 PASSWORD_TOO_SHORT`). Hatalar: `403 WRONG_PASSWORD` (mevcut şifre yanlış), `422 PASSWORD_UNCHANGED` (yeni şifre mevcutla aynı), `429 RATE_LIMITED` (kullanıcı başına saatte 5, IP başına saatte 10). Başarıda kullanıcıya (kayıtlı dilinde) "şifreniz değiştirildi" güvenlik e-postası gider.
 
 ### 1.8 Akademik katalog (fakülte, bölüm, sınıf)
 Kimlik gerektirmez (kayıt ekranında kullanılır). IP başına dakikada 120 istek.
@@ -558,7 +559,8 @@ Genel durum kodları: `400` doğrulama/iş kuralı, `401` kimlik, `403` yetki/as
 | `REPORT_NOT_FOUND` | 404 | Rapor bulunamadı. | Report not found. | البلاغ غير موجود. |
 | `REQUEST_NOT_FOUND` | 404 | Bekleyen istek bulunamadı. | Pending request not found. | لم يتم العثور على طلب معلّق. |
 | `REQUEST_PENDING` | 409 | Katılma isteğiniz zaten bekliyor. | Your join request is already pending. | طلب الانضمام الخاص بك قيد الانتظار بالفعل. |
-| `RESEND_COOLDOWN` | 429 | Yeni kod için lütfen 1 dakika bekleyin. | Please wait 1 minute before requesting a new code. | يرجى الانتظار دقيقة واحدة قبل طلب رمز جديد. |
+| `RESEND_COOLDOWN` | 429 | Yeni kod için {0} saniye sonra tekrar deneyin. | Please try again in {0} seconds to request a new code. | يرجى المحاولة بعد {0} ثانية لطلب رمز جديد. |
+| `ACCOUNT_NOT_FOUND` | 404 | Bu okul numarasına ait kayıtlı hesap bulunamadı. | No registered account was found for this school number. | لم يتم العثور على حساب مسجل لهذا الرقم الجامعي. |
 | `RSVP_CONFLICT` | 409 | İsteğiniz zaten işleniyor, tekrar deneyin. | Your request is already being processed, please try again. | طلبك قيد المعالجة بالفعل، يرجى المحاولة مرة أخرى. |
 | `SETTING_NOT_FOUND` | 404 | Ayar bulunamadı. | Setting not found. | الإعداد غير موجود. |
 | `SLUG_CONFLICT` | 409 | Topluluk adı çakıştı, tekrar deneyin. | The community name conflicted, please try again. | تعارض اسم المجتمع، يرجى المحاولة مرة أخرى. |
@@ -580,6 +582,7 @@ Genel durum kodları: `400` doğrulama/iş kuralı, `401` kimlik, `403` yetki/as
 | `VALIDATION_ERROR` | 400 | Geçersiz istek. | Invalid request. | طلب غير صالح. |
 | `VERSION_OUTDATED` | 409 | Bu belgenin yeni bir sürümü yayımlandı. Güncel sürümü onaylayın. | A newer version of this document has been published. Please accept the current version. | تم نشر إصدار أحدث من هذا المستند. يرجى قبول الإصدار الحالي. |
 | `WRONG_PASSWORD` | 403 | Şifre hatalı. | Incorrect password. | كلمة المرور غير صحيحة. |
+| `PASSWORD_TOO_SHORT` | 400 | Şifre en az {0} karakter olmalı. | The password must be at least {0} characters. | يجب أن تتكون كلمة المرور من {0} أحرف على الأقل. |
 | `PASSWORD_UNCHANGED` | 422 | Yeni şifre mevcut şifreyle aynı olamaz. | The new password must differ from the current password. | يجب أن تختلف كلمة المرور الجديدة عن الحالية. |
 
 <!-- ERRORS:END -->
