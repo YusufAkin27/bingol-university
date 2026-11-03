@@ -238,6 +238,7 @@ export const api = {
     apiFetch<T>(path, { ...extra, method: 'PUT', body: body ?? undefined }),
   /** multipart/form-data yükleme (gövde FormData; başlık tarayıcıda kurulur). */
   putForm: <T = void>(path: string, form: FormData) => apiFetch<T>(path, { method: 'PUT', body: form }),
+  postForm: <T = void>(path: string, form: FormData) => apiFetch<T>(path, { method: 'POST', body: form }),
   patch: <T = void>(path: string, body?: unknown, extra?: ExtraOptions) =>
     apiFetch<T>(path, { ...extra, method: 'PATCH', body: body ?? undefined }),
   del: <T = void>(path: string, extra?: ExtraOptions) => apiFetch<T>(path, { ...extra, method: 'DELETE' }),

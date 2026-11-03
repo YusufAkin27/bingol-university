@@ -47,6 +47,7 @@ const ProfanityPage = lazy(() => import('./pages/admin/ProfanityPage'));
 const CommunityCategoriesPage = lazy(() => import('./pages/admin/CommunityCategoriesPage'));
 const AcademicCalendarPage = lazy(() => import('./pages/admin/academic/AcademicCalendarPage'));
 const AcademicExamsPage = lazy(() => import('./pages/admin/academic/AcademicExamsPage'));
+const AcademicTimetablePage = lazy(() => import('./pages/admin/academic/AcademicTimetablePage'));
 const AcademicAnnouncementsPage = lazy(() => import('./pages/admin/academic/AcademicAnnouncementsPage'));
 const PendingUsersPage = lazy(() => import('./pages/admin/PendingUsersPage'));
 const CryptoPage = lazy(() => import('./pages/admin/CryptoPage'));
@@ -118,6 +119,7 @@ export default function AdminRoutes() {
           <Route path="community-categories" element={<CommunityCategoriesPage />} />
           <Route path="academic/calendar" element={<AcademicCalendarPage />} />
           <Route path="academic/exams" element={<AcademicExamsPage />} />
+          <Route path="academic/timetable" element={<AcademicTimetablePage />} />
           <Route path="academic/announcements" element={<AcademicAnnouncementsPage />} />
           <Route path="pending-users" element={<PendingUsersPage />} />
           <Route path="crypto" element={<CryptoPage />} />
