@@ -14,8 +14,9 @@ import 'register_page.dart';
 import 'verify_code_page.dart';
 import 'widgets/auth_motion.dart';
 import 'widgets/auth_ref.dart';
+import 'widgets/login_sheet.dart';
 
-/// Giriş (Stitch 01): beyaz kart içinde e-posta/okul numarası + şifre; üstte bekleyen doğrulama ve
+/// Giriş (alt sayfa / sheet): üstte marka + karşılama, altta yuvarlak beyaz sheet içinde okul numarası + şifre; üstte bekleyen doğrulama ve
 /// "başka cihazdan giriş" bantları; hız sınırı ve ağ hataları satır içi bantla gösterilir.
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key, required this.session});
@@ -136,10 +137,52 @@ class _LoginPageState extends State<LoginPage> {
     final l = context.l10n;
     final tx = Theme.of(context).textTheme;
     final keyboard = MediaQuery.viewInsetsOf(context).bottom > 0;
-    return RefPage(
+    return LoginSheetPage(
       showBack: Navigator.canPop(context),
+      title: l.loginWelcome,
+      subtitle: l.loginSubtitleNumber,
+      // Alt bağlantılar klavye açılınca gizlenir; sheet'in dibinde ince çizgiyle ayrılmış durur.
+      footer: AnimatedSize(
+        duration: AppMotion.of(context, AppMotion.normal),
+        curve: AppMotion.enter,
+        alignment: Alignment.topCenter,
+        child: keyboard
+            ? const SizedBox(width: double.infinity)
+            : Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const SizedBox(height: 16),
+                  Divider(height: 1, thickness: 1, color: t.bd),
+                  const SizedBox(height: 4),
+                  Center(
+                    child: RefFooterPrompt(
+                      prompt: l.loginNoAccount,
+                      action: l.loginRegister,
+                      onPressed: _busy
+                          ? null
+                          : () => Navigator.push(context, MaterialPageRoute(builder: (_) => RegisterPage(session: widget.session))),
+                    ),
+                  ),
+                  Center(
+                    child: RefFooterPrompt(
+                      prompt: l.p66HelpPrompt,
+                      action: l.p66HelpAction,
+                      onPressed: _busy ? null : () => Navigator.push(context, MaterialPageRoute(builder: (_) => HelpFormPage(session: widget.session))),
+                    ),
+                  ),
+                  // Sürüm satırına dokunmak Hakkında'yı açar (giriş öncesi herkese açık).
+                  Center(
+                    child: TextButton(
+                      onPressed: _busy ? null : () => Navigator.push(context, MaterialPageRoute(builder: (_) => AboutPage(session: widget.session))),
+                      style: TextButton.styleFrom(foregroundColor: t.mut, minimumSize: const Size(48, 48)),
+                      child: Text(l.profileVersion(appVersion), style: tx.bodySmall!.copyWith(color: t.mut)),
+                    ),
+                  ),
+                ],
+              ),
+      ),
       children: [
-        // Yuva her zaman ağaçta (alt öğelerin durumu korunur). Stitch v3: kart/logo/ikon yok, düz zemin.
+        // Yuva her zaman ağaçta (alt öğelerin durumu korunur).
         ValueListenableBuilder<bool>(
           valueListenable: widget.session.replacedNotice,
           builder: (context, show, _) => AnimatedSize(
@@ -200,18 +243,9 @@ class _LoginPageState extends State<LoginPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const Align(alignment: AlignmentDirectional.centerStart, child: RefBrandMark(size: 44)),
-                  const SizedBox(height: 28),
-                  Semantics(
-                    header: true,
-                    child: Text(l.loginWelcome, style: tx.headlineMedium!.copyWith(color: t.ink, fontWeight: FontWeight.w700)),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(l.loginSubtitleNumber, style: tx.bodyLarge!.copyWith(color: t.mut)),
-                  const SizedBox(height: 32),
                   // Örnek e-posta satırı (helper) gösterilmez: alan etiketi yeterli.
                   RefIdentifierField(controller: _email, enabled: !_busy, helper: false, numberOnly: true),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 20),
                   RefPasswordField(
                     controller: _password,
                     enabled: !_busy,
@@ -223,7 +257,7 @@ class _LoginPageState extends State<LoginPage> {
                     alignment: AlignmentDirectional.centerEnd,
                     child: RefLink(label: l.loginForgotPassword, compact: true, onPressed: _busy ? null : _forgot),
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 20),
                   RefButton(
                     label: l.loginSubmit,
                     busy: _busy,
@@ -251,46 +285,6 @@ class _LoginPageState extends State<LoginPage> {
               ),
             ),
           ),
-        ),
-        AnimatedSize(
-          duration: AppMotion.of(context, AppMotion.normal),
-          curve: AppMotion.enter,
-          alignment: Alignment.topCenter,
-          child: keyboard
-              ? const SizedBox(width: double.infinity)
-              : BuStaggerItem(
-                  index: 1,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      const SizedBox(height: 40),
-                      Center(
-                        child: RefFooterPrompt(
-                          prompt: l.loginNoAccount,
-                          action: l.loginRegister,
-                          onPressed: _busy
-                              ? null
-                              : () => Navigator.push(context, MaterialPageRoute(builder: (_) => RegisterPage(session: widget.session))),
-                        ),
-                      ),
-                      Center(
-                        child: RefFooterPrompt(
-                          prompt: l.p66HelpPrompt,
-                          action: l.p66HelpAction,
-                          onPressed: _busy ? null : () => Navigator.push(context, MaterialPageRoute(builder: (_) => HelpFormPage(session: widget.session))),
-                        ),
-                      ),
-                      // Sürüm satırına dokunmak Hakkında'yı açar (giriş öncesi herkese açık).
-                      Center(
-                        child: TextButton(
-                          onPressed: _busy ? null : () => Navigator.push(context, MaterialPageRoute(builder: (_) => AboutPage(session: widget.session))),
-                          style: TextButton.styleFrom(foregroundColor: t.mut, minimumSize: const Size(48, 48)),
-                          child: Text(l.profileVersion(appVersion), style: tx.bodySmall!.copyWith(color: t.mut)),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
         ),
       ],
     );
