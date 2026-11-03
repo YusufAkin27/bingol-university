@@ -110,46 +110,39 @@ void main() {
   });
 
   group('satır içi doğrulama', () {
-    testWidgets('e-posta alanı: yazarken hata yok, alandan çıkınca hata, düzeltince anında kalkar', (tester) async {
+    testWidgets('okul numarası alanı: yazarken hata yok, alandan çıkınca hata, düzeltince anında kalkar', (tester) async {
       useScreen(tester, kPhoneMedium);
       final b = FakeBackend();
       await tester.pumpWidget(_app(ForgotPasswordPage(session: _s(b))));
       await settle(tester, const Duration(milliseconds: 1200));
-      const err = 'Okul numaranızı veya e-posta adresinizi girin.';
+      const err = 'Okul numarasını kontrol edin.';
       await tester.tap(find.byType(TextFormField));
-      await tester.enterText(find.byType(TextFormField), 'ayse@gmail.com');
+      await tester.enterText(find.byType(TextFormField), '123');
       await tester.pump();
-      expect(find.textContaining('bingol.edu.tr uzantılı', findRichText: true), findsNothing);
+      expect(find.text(err), findsNothing);
       // Alandan çık: odak başka yere.
       FocusManager.instance.primaryFocus?.unfocus();
       await settle(tester, const Duration(milliseconds: 300));
-      expect(find.textContaining('bingol.edu.tr'), findsWidgets);
-      expect(find.text(err), findsNothing);
-      await tester.enterText(find.byType(TextFormField), 'ayse@bingol.edu.tr');
+      expect(find.text(err), findsOneWidget);
+      await tester.enterText(find.byType(TextFormField), '226051015');
       await tester.pump();
-      expect(find.textContaining('uzantılı'), findsNothing);
+      expect(find.text(err), findsNothing);
       await unmount(tester);
     });
   });
 
   group('kod girişi', () {
-    testWidgets('Yapıştır panodaki 6 haneyi yazar ve tamamlanınca onCompleted çağırır', (tester) async {
+    testWidgets('yapıştır düğmesi yok; 6. rakamda onCompleted çağrılır', (tester) async {
       final c = TextEditingController();
       addTearDown(c.dispose);
       var done = 0;
-      tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(SystemChannels.platform, (call) async {
-        if (call.method == 'Clipboard.getData') return <String, dynamic>{'text': 'Kodunuz: 482 913'};
-        return null;
-      });
-      addTearDown(() => tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(SystemChannels.platform, null));
       await tester.pumpWidget(_app(Scaffold(body: Padding(padding: const EdgeInsets.all(20), child: OtpCodeBoxes(controller: c, onCompleted: () => done++)))));
       await tester.pump();
-      await tester.tap(find.text('Yapıştır'));
-      await settle(tester, const Duration(milliseconds: 300));
+      expect(find.text('Yapıştır'), findsNothing);
+      await tester.enterText(find.byType(EditableText).first, '482913');
+      await tester.pump();
       expect(c.text, '482913');
       expect(done, 1);
-      // Dolu alanda yapıştır kısayolu gizlenir.
-      expect(find.text('Yapıştır'), findsNothing);
       await unmount(tester);
     });
 
