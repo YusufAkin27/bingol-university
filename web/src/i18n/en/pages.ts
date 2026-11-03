@@ -397,10 +397,10 @@ const m = {
   'pg.brand.color.paperContrast': '15.4:1 with Ink text (AAA).',
   'pg.brand.type.title': 'Typography',
   'pg.brand.type.text':
-    'No extra fonts are loaded: the device system sans-serif is used for body text and a serif stack for headings.',
-  'pg.brand.type.display': 'Heading · serif',
+    'The brand typeface is Inter; the website and the mobile app use the same family. It fully supports Turkish characters (ğ, ü, ş, ı, ö, ç, İ).',
+  'pg.brand.type.display': 'Heading · Inter 800',
   'pg.brand.type.displaySample': 'BÜ Kampüs',
-  'pg.brand.type.body': 'Text · system sans-serif',
+  'pg.brand.type.body': 'Text · Inter 400',
   'pg.brand.type.bodySample': 'The campus app for Bingöl University students and staff.',
   'pg.brand.rules': 'Quick usage rules',
   'pg.brand.rule.1':

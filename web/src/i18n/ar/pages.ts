@@ -387,10 +387,10 @@ const m = {
   'pg.brand.color.paperContrast': 'التباين مع نص الحبر 15.4:1 (AAA).',
   'pg.brand.type.title': 'الخطوط',
   'pg.brand.type.text':
-    'لا تُحمَّل خطوط إضافية: يُستخدم خط النظام بلا زوائد للنص الأساسي وخط ذو زوائد للعناوين.',
-  'pg.brand.type.display': 'العنوان · بزوائد',
+    'خط الهوية هو Inter؛ يستخدم الموقع والتطبيق العائلة نفسها. ويدعم الحروف التركية (ğ, ü, ş, ı, ö, ç, İ) بالكامل.',
+  'pg.brand.type.display': 'العنوان · Inter 800',
   'pg.brand.type.displaySample': 'BÜ Kampüs',
-  'pg.brand.type.body': 'النص · خط النظام',
+  'pg.brand.type.body': 'النص · Inter 400',
   'pg.brand.type.bodySample': 'تطبيق الحرم الجامعي لطلاب جامعة بينغول وموظفيها.',
   'pg.brand.rules': 'قواعد استخدام موجزة',
   'pg.brand.rule.1': 'يُكتب اسم المنتج دائمًا «BÜ Kampüs» ولا يُترجم حتى في النص العربي.',
