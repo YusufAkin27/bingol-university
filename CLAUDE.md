@@ -123,7 +123,7 @@ Yapı: `lib/core/` (tek HTTP katmanı `api.dart` + ETag/304 LRU önbelleği, `se
 ## 4. Güvenlik kuralları (kesin)
 1. **Sırlar kodda/commit'te olmaz.** `.env`, anahtarlar, FCM JSON'u, `data/` commit'lenmez. Varsayılan `dev-only-…` JWT anahtarı yalnızca yerel içindir.
 2. **Kayıt yalnızca `bingol.edu.tr`** (alt alanlar dahil) ve **sözleşme kabulüyle** (`acceptTerms=true`; onaylar `legal_acceptance`'a yazılır). **E-posta doğrulaması şart.** Tek istisna: yapılandırmadaki `ADMIN_EMAILS` adresleri alan adı kısıtından muaftır (`AuthService.register`; bağımsız/gmail yönetici hesabı için; kod yine o adrese gider, `+etiket` yasağı ve diğer kurallar aynıdır).
-3. **Token'lar:** access JWT 15 dk (`role` claim'i içerir); refresh opak, tek kullanımlık, Redis'te hash'li. Doğrulama kodları hash'li, 10 dk, 5 deneme.
+3. **Token'lar:** access JWT 15 dk (`role` claim'i içerir); refresh opak, tek kullanımlık, Redis'te hash'li. Doğrulama kodları hash'li, 10 dk, 5 deneme. **Kullanıcı şifresi tam 6 haneli PIN** (zayıf PIN'ler reddedilir; yönetici hesapları hariç, onlar güçlü şifrede kalır) ve bunun karşılığı olarak **hesap başına 5 yanlış girişten sonra 15 dk kilit** (`AccountLock`, 429 `ACCOUNT_TEMP_LOCKED`).
 4. **Auth ve yazma uçlarında rate limit zorunlu** (`RateLimiter`); yeni uç → limit.
 5. **Enumerasyona karşı genel cevaplar** (login, resend-code, geçersiz kod).
 6. **`/api/admin/**` yalnızca ADMIN.** Askıya alınan kullanıcı Redis anahtarıyla anında reddedilir (HTTP ve WebSocket). Yönetici kendini silemez/rolünü düşüremez; son yönetici korunur.

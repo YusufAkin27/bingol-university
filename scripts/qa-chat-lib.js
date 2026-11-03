@@ -44,7 +44,7 @@ function redis(cmd) {
 }
 
 async function register(email, name) {
-  await api('POST', '/auth/register', null, { email, password: 'Sifre1234', displayName: name, acceptTerms: true });
+  await api('POST', '/auth/register', null, { email, password: '481952', displayName: name, acceptTerms: true });
   let code = null;
   for (let i = 0; i < 10 && !code; i++) {
     await sleep(500);
@@ -52,8 +52,8 @@ async function register(email, name) {
     const m = [...logs.matchAll(new RegExp(email.replace(/\./g, '\\.') + ' icin dogrulama kodu: (\\d+)', 'g'))].pop();
     code = m && m[1];
   }
-  let r = await api('POST', '/auth/verify-email', null, { email, code, password: 'Sifre1234' });
-  if (!r.json || !r.json.accessToken) r = await api('POST', '/auth/login', null, { email, password: 'Sifre1234' });
+  let r = await api('POST', '/auth/verify-email', null, { email, code, password: '481952' });
+  if (!r.json || !r.json.accessToken) r = await api('POST', '/auth/login', null, { email, password: '481952' });
   if (!r.json || !r.json.accessToken) throw new Error('kayit basarisiz: ' + email + ' ' + r.text);
   const token = r.json.accessToken;
   const me = await api('GET', '/users/me', token);

@@ -7,7 +7,7 @@
 set -u
 BASE=${BASE:-http://localhost:8105}
 A=$BASE/api
-PASS=Sifre1234
+PASS=481952
 RUN=$(date +%s)
 
 pass() { echo "[OK]      $1"; }
