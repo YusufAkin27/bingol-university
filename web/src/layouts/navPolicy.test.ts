@@ -34,6 +34,7 @@ const NAV_ENDPOINT: Record<string, string> = {
   eventApplications: '/api/admin/events/applications',
   acdCalendar: '/api/admin/academic/events',
   acdExams: '/api/admin/academic/exams',
+  acdTimetable: '/api/admin/academic/timetable/programs',
   acdAnnouncements: '/api/admin/announcements',
   tickets: '/api/admin/support/tickets',
   feedback: '/api/admin/feedback',
