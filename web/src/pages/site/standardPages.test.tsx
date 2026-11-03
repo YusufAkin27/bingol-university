@@ -380,7 +380,7 @@ describe('marka kiti', () => {
         expect(screen.getByText(c.hex)).toBeInTheDocument();
         expect(screen.getByLabelText(c.hex + ' kodunu kopyala')).toBeInTheDocument();
       }
-      expect(screen.getByText('Koruma alanı', { selector: 'h2' })).toBeInTheDocument();
+      expect(screen.getByText('Koruma alanı', { selector: 'h3' })).toBeInTheDocument();
       expect(screen.getByText('Yapmayın', { selector: 'h2' })).toBeInTheDocument();
       expect(
         await within(screen.getByRole('main')).findByRole('link', { name: 'info@bingol.edu.tr' }),
