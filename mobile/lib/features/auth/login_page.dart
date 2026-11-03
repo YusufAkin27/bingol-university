@@ -14,6 +14,7 @@ import 'register_page.dart';
 import 'verify_code_page.dart';
 import 'widgets/auth_motion.dart';
 import 'widgets/auth_ref.dart';
+import 'widgets/login_centered_parts.dart';
 
 /// Giriş (Stitch 01): beyaz kart içinde e-posta/okul numarası + şifre; üstte bekleyen doğrulama ve
 /// "başka cihazdan giriş" bantları; hız sınırı ve ağ hataları satır içi bantla gösterilir.
@@ -200,28 +201,52 @@ class _LoginPageState extends State<LoginPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const Align(alignment: AlignmentDirectional.centerStart, child: RefBrandMark(size: 44)),
-                  const SizedBox(height: 28),
+                  // Ortalanmış marka: karo, ad, başlık, alt başlık.
+                  SizedBox(height: keyboard ? 0 : 24),
+                  // Klavye açılınca karo küçülür, ad satırı kaybolur: düğme klavyenin üstünde görünür kalır.
+                  Center(
+                    child: TweenAnimationBuilder<double>(
+                      tween: Tween<double>(end: keyboard ? 56 : 84),
+                      duration: AppMotion.of(context, AppMotion.normal),
+                      curve: AppMotion.enter,
+                      builder: (context, size, _) => LoginBrandTile(size: size),
+                    ),
+                  ),
+                  AnimatedSize(
+                    duration: AppMotion.of(context, AppMotion.normal),
+                    curve: AppMotion.enter,
+                    alignment: Alignment.topCenter,
+                    child: keyboard
+                        ? const SizedBox(width: double.infinity)
+                        : Padding(
+                            padding: const EdgeInsets.only(top: 16),
+                            child: Center(
+                              child: ExcludeSemantics(
+                                child: Text('BÜ Kampüs', style: tx.labelLarge!.copyWith(color: t.mut, fontWeight: FontWeight.w600, letterSpacing: .3)),
+                              ),
+                            ),
+                          ),
+                  ),
+                  SizedBox(height: keyboard ? 16 : 20),
                   Semantics(
                     header: true,
-                    child: Text(l.loginWelcome, style: tx.headlineMedium!.copyWith(color: t.ink, fontWeight: FontWeight.w700)),
+                    child: Text(
+                      l.loginWelcome,
+                      textAlign: TextAlign.center,
+                      style: tx.headlineMedium!.copyWith(color: t.ink, fontWeight: FontWeight.w700),
+                    ),
                   ),
                   const SizedBox(height: 8),
-                  Text(l.loginSubtitleNumber, style: tx.bodyLarge!.copyWith(color: t.mut)),
-                  const SizedBox(height: 32),
-                  // Örnek e-posta satırı (helper) gösterilmez: alan etiketi yeterli.
-                  RefIdentifierField(controller: _email, enabled: !_busy, helper: false, numberOnly: true),
-                  const SizedBox(height: 24),
-                  RefPasswordField(
+                  Text(l.loginSubtitleNumber, textAlign: TextAlign.center, style: tx.bodyLarge!.copyWith(color: t.mut)),
+                  SizedBox(height: keyboard ? 24 : 32),
+                  LoginNumberField(controller: _email, enabled: !_busy),
+                  const SizedBox(height: 16),
+                  LoginPasswordField(
                     controller: _password,
                     enabled: !_busy,
                     hint: l.loginPasswordRequired.replaceAll(RegExp(r'\.$'), ''),
                     validator: (v) => (v == null || v.isEmpty) ? l.loginPasswordRequired : null,
                     onSubmitted: _submit,
-                  ),
-                  Align(
-                    alignment: AlignmentDirectional.centerEnd,
-                    child: RefLink(label: l.loginForgotPassword, compact: true, onPressed: _busy ? null : _forgot),
                   ),
                   const SizedBox(height: 24),
                   RefButton(
@@ -247,6 +272,9 @@ class _LoginPageState extends State<LoginPage> {
                             ),
                           ),
                   ),
+                  // "Şifremi unuttum": düğmenin altında ortalı, ikincil bağlantı.
+                  const SizedBox(height: 4),
+                  Center(child: RefLink(label: l.loginForgotPassword, onPressed: _busy ? null : _forgot)),
                 ],
               ),
             ),
@@ -263,7 +291,9 @@ class _LoginPageState extends State<LoginPage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      const SizedBox(height: 40),
+                      const SizedBox(height: 16),
+                      Divider(height: 1, thickness: 1, color: t.bd),
+                      const SizedBox(height: 12),
                       Center(
                         child: RefFooterPrompt(
                           prompt: l.loginNoAccount,
@@ -274,7 +304,7 @@ class _LoginPageState extends State<LoginPage> {
                         ),
                       ),
                       Center(
-                        child: RefFooterPrompt(
+                        child: LoginQuietPrompt(
                           prompt: l.p66HelpPrompt,
                           action: l.p66HelpAction,
                           onPressed: _busy ? null : () => Navigator.push(context, MaterialPageRoute(builder: (_) => HelpFormPage(session: widget.session))),
