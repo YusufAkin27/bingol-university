@@ -62,7 +62,6 @@
   "authPasswordLabel": "كلمة المرور",
   "authIdHint": "بريدك الجامعي",
   "authIdNumberLabel": "رقمك الجامعي",
-  "authIdNumberEmpty": "أدخل رقمك الجامعي.",
   "authHintPersonalNumber": "أدخل اسمك ورقمك الجامعي.",
   "loginSubtitleNumber": "سجّل الدخول برقمك الجامعي.",
   "authVerify": "تحقق",

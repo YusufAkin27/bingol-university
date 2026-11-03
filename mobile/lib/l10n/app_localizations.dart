@@ -472,12 +472,6 @@ abstract class AppLocalizations {
   /// **'Okul numaranız'**
   String get authIdNumberLabel;
 
-  /// No description provided for @authIdNumberEmpty.
-  ///
-  /// In tr, this message translates to:
-  /// **'Okul numaranızı girin.'**
-  String get authIdNumberEmpty;
-
   /// No description provided for @authHintPersonalNumber.
   ///
   /// In tr, this message translates to:

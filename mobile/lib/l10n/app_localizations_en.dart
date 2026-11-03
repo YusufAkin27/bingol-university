@@ -206,9 +206,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get authIdNumberLabel => 'Your student number';
 
   @override
-  String get authIdNumberEmpty => 'Enter your student number.';
-
-  @override
   String get authHintPersonalNumber => 'Enter your name and student number.';
 
   @override

@@ -88,7 +88,7 @@ void main() {
       await tester.pump(const Duration(milliseconds: 700)); // giriş animasyonu (Stitch v3 aşamalı giriş) bitmeden dokunma isabet etmez
       await tester.tap(find.text('Giriş yap'));
       await tester.pump();
-      expect(find.text('Okul numaranızı girin.'), findsOneWidget);
+      expect(find.text('Okul numaranızı veya e-posta adresinizi girin.'), findsOneWidget);
       expect(find.text('Şifrenizi girin.'), findsOneWidget);
       expect(b.count('/auth/login'), 0);
       noErr(tester);

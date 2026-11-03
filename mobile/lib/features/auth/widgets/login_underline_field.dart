@@ -340,7 +340,7 @@ class LoginNumberField extends StatelessWidget {
         keyboardType: TextInputType.number,
         inputFormatters: [FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(12)],
         autofillHints: const [AutofillHints.username],
-        validator: validator ?? validateSchoolNumber,
+        validator: validator ?? validateIdentifier,
         textInputAction: textInputAction,
         onSubmitted: onSubmitted,
         hint: '000000000',

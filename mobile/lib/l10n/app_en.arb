@@ -62,7 +62,6 @@
   "authPasswordLabel": "Password",
   "authIdHint": "Your school email",
   "authIdNumberLabel": "Your student number",
-  "authIdNumberEmpty": "Enter your student number.",
   "authHintPersonalNumber": "Enter your name and student number.",
   "loginSubtitleNumber": "Log in with your student number.",
   "authVerify": "Verify",

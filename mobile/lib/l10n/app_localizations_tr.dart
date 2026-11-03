@@ -206,9 +206,6 @@ class AppLocalizationsTr extends AppLocalizations {
   String get authIdNumberLabel => 'Okul numaranız';
 
   @override
-  String get authIdNumberEmpty => 'Okul numaranızı girin.';
-
-  @override
   String get authHintPersonalNumber => 'Adınızı ve okul numaranızı girin.';
 
   @override
