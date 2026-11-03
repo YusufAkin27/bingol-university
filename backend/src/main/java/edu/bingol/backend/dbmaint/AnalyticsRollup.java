@@ -1,5 +1,7 @@
 package edu.bingol.backend.dbmaint;
 
+import edu.bingol.backend.analytics.AnalyticsConfig;
+import edu.bingol.backend.analytics.behavior.BehaviorRollupSql;
 import java.time.Clock;
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -44,6 +46,35 @@ public class AnalyticsRollup {
         }
         if (days > 0) {
             log.info("Analitik toplulastirma: {} gun ({} .. {})", days, from, today.minusDays(1));
+        }
+        return days;
+    }
+
+    /**
+     * Davranis analizi gunluk ozetleri (analytics_session_daily, analytics_screen_daily; V1200): son doldurulan gunden
+     * dunun sonuna kadar; ayrica her gece SON IKI gun yeniden hesaplanir (gec gelen cevrimdisi olaylar icin; idempotent
+     * upsert). Ham olay saklama suresi (45 gun) kadar geriye gidilir. Bir gunun hatasi digerlerini durdurmaz.
+     * @return hesaplanan gun sayisi.
+     */
+    public int rollUpBehaviorDays() {
+        LocalDate today = LocalDate.now(clock.withZone(IST));
+        LocalDate last = jdbc.getJdbcTemplate().queryForObject("SELECT max(day) FROM analytics_session_daily", LocalDate.class);
+        LocalDate oldest = today.minusDays(AnalyticsConfig.EVENT_RETENTION_DAYS);
+        LocalDate from = last == null ? oldest : last.minusDays(1); // son gun + bir onceki yeniden hesaplanir
+        if (from.isBefore(oldest)) {
+            from = oldest;
+        }
+        int days = 0;
+        for (LocalDate d = from; d.isBefore(today); d = d.plusDays(1)) {
+            try {
+                BehaviorRollupSql.rollUpDay(jdbc, d);
+                days++;
+            } catch (RuntimeException e) {
+                log.warn("Davranis ozeti {} gunu basarisiz: {}", d, e.toString());
+            }
+        }
+        if (days > 0) {
+            log.info("Davranis toplulastirma: {} gun ({} .. {})", days, from, today.minusDays(1));
         }
         return days;
     }

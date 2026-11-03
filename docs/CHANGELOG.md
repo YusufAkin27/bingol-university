@@ -4,6 +4,10 @@
 
 Ayrıntılı modül notları: `docs/changes/*.md`. Mobil API rehberi: [MOBILE_API_GUIDE.md](MOBILE_API_GUIDE.md).
 
+### Kullanıcı davranış analizi (V1200, yönetim paneli)
+
+- **Sunucu (BK6):** mobil olay sözleşmesi genişledi (`props.sid` oturum kimliği, `session_start|session_end|screen_exit|action`, 22 izinli eylem türü; sözleşmeyi bozan olay tek tek elenir; `props` 5 -> 8 anahtar). Yeni `analytics.behavior` paketi: `GET /api/admin/analytics/behavior/{overview,screens,flows,actions}` (`analytics.read`) ve `/users`, `/users/{id}` (`users.pii`, her çağrı denetim kaydına yazılır): oturum/ekran süresi, çıkış ve bounce oranları, akışlar, eylem sayıları, kullanıcı oturum zaman çizelgesi. Aralık en çok 45 gün (`RANGE_TOO_LARGE`). Kalıcı günlük özetler `analytics_session_daily` / `analytics_screen_daily` (kullanıcı kimliği yok; gece dolum). Ayrıntı: `docs/ADMIN_API.md` "Kullanıcı davranış analizi", `docs/changes/ops.md`. Duman: `scripts/smoke-behavior.sh`.
+
 ### Resmî ders programı (Excel yükleme, V1070) + yeni hesap varsayılanı
 
 - **Ders programı:** yönetim panelinde `Akademik > Resmî ders programı` (`/admin/academic/timetable`): şablon Excel yüklenir, önce önizleme (program/oturum sayısı, hata ve uyarılar), onaylanınca birim+program bazında değiştirilerek yazılır. Tablolar `official_timetable_batch|entry`; kullanıcı ucu `GET /api/timetable/official`. Ayrıntı: `docs/ADMIN_API.md` "Resmi ders programı". Excel okuyucu bağımlılıksızdır (`XlsxReader`, StAX; XXE ve zip-bombası sınırları).

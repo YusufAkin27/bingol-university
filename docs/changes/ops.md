@@ -44,7 +44,7 @@ N+1: incelenen liste servislerinde (BlockController kullanicilari `findAllById` 
   {"name":"search_submit","screen":"search","props":{"results":12,"tab":"news"}}
 ]}
 ```
-Sinirlar: istek basina <=50 olay; `name` ve `props` anahtari `[a-z0-9_]{1,40}`; `screen` `[A-Za-z0-9_./-]{1,60}`; en cok 5 `props`, deger skaler (string/sayi/bool) ve <=100 karakter; `at` son 7 gun/+5 dk disindaysa sunucu saati kullanilir. **PII reddi**: deger `@` icerirse veya 10+ ardisik rakam (telefon/TC kimlik no) icerirse tum istek `400 INVALID_EVENT` ile reddedilir (hicbiri kaydedilmez). Testler: `AnalyticsServiceTest`.
+Sinirlar: istek basina <=50 olay; `name` `[a-z0-9_]{1,40}`; `props` anahtari `[A-Za-z0-9_]{1,40}` (camelCase: `dwellMs`); `screen` `[A-Za-z0-9_./-]{1,60}`; en cok 8 `props`, deger skaler (string/sayi/bool) ve <=100 karakter; `at` son 7 gun/+5 dk disindaysa sunucu saati kullanilir. **PII reddi**: deger `@` icerirse veya 10+ ardisik rakam (telefon/TC kimlik no) icerirse tum istek `400 INVALID_EVENT` ile reddedilir (hicbiri kaydedilmez). Testler: `AnalyticsServiceTest`.
 
 
 ## V280 — Erisim engelleri (IP / CIDR / cihaz / kullanici)
@@ -257,3 +257,10 @@ API sekli DEGISMEZ. Docker yok: PostgreSQL'e ozel parcalar (rol betikleri) DOGRU
 - **Mobil (`app_gate.dart`, `gate_views.dart`):** "Güncelle" önce `marketUrl` (`market://` / `itms-apps://`; yalnız bu şemalar kabul edilir), açılmazsa https `storeUrl`; ikisi de yoksa ölü düğme yerine "Mağazadan güncelleyin" yazısı. Sunucu `message` doluysa varsayılan açıklamanın yerine tek paragraf. Kontrol anı: açılış + öne dönüş (en çok 15 dk'da bir; zorunlu güncelleme ekranı açıkken HER dönüşte) + bağlantı geri gelince; ağ hatası sessiz, çevrimdışıyken kilitlenmez (fail-open). Yeni ARB anahtarı `updateRequiredFromStore` (tr/en/ar).
 - **Web:** `/admin/app-versions` sayfası + Ayarlar > Mağaza ve sürümler'de paket adı / Apple kimliği / üç dilli güncelleme metni alanları.
 - **Dağıtım sırası:** önce backend (V1030 + yeni uçlar; eski mobil yeni alanları yok sayar), sonra web, sonra mobil sürümü. Eski uygulamalar `storeUrl` (artık türetilmiş) ile zaten Play Store'a gider.
+
+## Kullanici davranis analizi (V1200, `analytics.behavior`)
+
+- **Olay sozlesmesi (mobil -> sunucu):** `props.sid` (oturum kimligi `[a-z0-9]{8,32}`), yeni adlar `session_start`, `session_end {durationMs, screens?, reason?}`, `screen_exit {dwellMs}`, `action {kind, target?}` (22 izinli `kind`, beyaz liste `EventContract`). Sozlesmeyi bozan olay **tek tek elenir** (istek 204, sayac artmaz); yapisal bozukluk eskisi gibi tum istegi `400 INVALID_EVENT` yapar. `props` siniri 5 -> 8, anahtar camelCase olabilir, `sid` degeri uzun-rakam (telefon) kuralindan muaf. Eski olaylar degismedi. Ayrinti: `docs/ADMIN_API.md` "Kullanici davranis analizi".
+- **Yonetici uclari:** `/api/admin/analytics/behavior/{overview,screens,flows,actions}` (`analytics.read`) ve `/users`, `/users/{id}` (`users.pii`: FULL, MODERATOR; her cagri `admin_audit`'e yazilir). Aralik en cok 45 gun (`RANGE_TOO_LARGE`, tr/en/ar), varsayilan son 7 gun. Oturumlastirma ham `analytics_event` uzerinde PostgreSQL pencere fonksiyonlariyla; `sid` yoksa 30 dk bosluk. bounce = <=1 ekran ve < 10 sn; hemen kapatma = < 5 sn.
+- **Gunluk ozet (V1200):** `analytics_session_daily`, `analytics_screen_daily` (kalici, kullanici kimligi yok); `AnalyticsRollup.rollUpBehaviorDays` gece 03:00 `DbMaintenanceJob` icinde (dun + bir onceki gun yeniden hesaplanir). API bu surumde yalniz ham tablodan okur.
+- **Smoke:** `scripts/smoke-behavior.sh`; `smoke-admin.sh` "6 props" adimi "9 props 400" oldu.

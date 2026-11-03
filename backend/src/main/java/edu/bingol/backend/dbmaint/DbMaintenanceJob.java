@@ -106,6 +106,7 @@ public class DbMaintenanceJob {
         Map<String, Integer> out = new LinkedHashMap<>();
         // once toplulastir, sonra ham olayi sil (toplulastirilmamis gun silinmesin)
         out.put("analytics_rollup_days", safe("analytics_rollup", rollup::rollUpMissingDays));
+        out.put("behavior_rollup_days", safe("behavior_rollup", rollup::rollUpBehaviorDays));
         out.put("analytics_event", safe("analytics_event", () -> rawEvents(now)));
         out.put("activity_daily", safe("activity_daily", () -> activityDaily()));
         out.put("notification_read", safe("notification_read", () -> notifRead(now)));

@@ -25,7 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class AnalyticsService {
 
     public static final int MAX_EVENTS = 50;
-    static final int MAX_PROPS = 5;
+    static final int MAX_PROPS = 8;
     static final int MAX_VALUE_LEN = 100;
     /** Cevrimdisi birikmis olaylar icin kabul edilen azami gecmis. */
     static final Duration MAX_AGE = Duration.ofDays(7);
@@ -35,7 +35,8 @@ public class AnalyticsService {
     public static final String OPEN_EVENT = "app_open";
 
     private static final Pattern NAME = Pattern.compile("[a-z0-9_]{1,40}");
-    private static final Pattern PROP_KEY = Pattern.compile("[a-z0-9_]{1,40}");
+    /** Anahtar camelCase olabilir (dwellMs, durationMs); kisisel veri tasimaz. */
+    private static final Pattern PROP_KEY = Pattern.compile("[A-Za-z0-9_]{1,40}");
     /** 10+ ardisik rakam telefon/TC kimlik no benzeri kisisel veri sayilir. */
     private static final Pattern LONG_DIGITS = Pattern.compile("\\d{10,}");
     private static final Pattern SCREEN = Pattern.compile("[A-Za-z0-9_./-]{1,60}");
@@ -116,7 +117,10 @@ public class AnalyticsService {
         }
     }
 
-    /** Tum olaylar gecerli degilse hicbiri kaydedilmez (400 INVALID_EVENT). */
+    /**
+     * Yapisal olarak bozuk olay (ad/ekran/props bicimi, 50'den fazla olay) tum istegi 400 INVALID_EVENT ile reddeder;
+     * davranis sozlesmesine uymayan olay ({@link EventContract}) tek tek elenir.
+     */
     static List<ValidEvent> validate(List<EventIn> events, Instant now) {
         if (events == null || events.size() > MAX_EVENTS) {
             throw invalid();
@@ -130,7 +134,12 @@ public class AnalyticsService {
             if (screen != null && !SCREEN.matcher(screen).matches()) {
                 throw invalid();
             }
-            out.add(new ValidEvent(e.name(), screen, propsJson(e.props()), time(e.at(), now)));
+            String props = propsJson(e.props());
+            // Davranis sozlesmesine uymayan (sid/sure/eylem turu) olay istegi dusurmez, tek basina elenir
+            if (!EventContract.accepts(e.name(), screen, e.props())) {
+                continue;
+            }
+            out.add(new ValidEvent(e.name(), screen, props, time(e.at(), now)));
         }
         return out;
     }
@@ -141,7 +150,7 @@ public class AnalyticsService {
         return t.atOffset(ZoneOffset.UTC);
     }
 
-    /** props: en cok 5 anahtar, anahtar [a-z0-9_]{1,40}, deger skaler ve <=100 karakter, e-posta benzeri ('@') yasak. */
+    /** props: en cok 8 anahtar, anahtar [A-Za-z0-9_]{1,40}, deger skaler ve <=100 karakter, e-posta benzeri ('@') yasak. */
     static String propsJson(Map<String, Object> props) {
         if (props == null || props.isEmpty()) {
             return null;
@@ -158,8 +167,9 @@ public class AnalyticsService {
                 throw invalid();
             }
             String text = String.valueOf(v);
+            // sid rastgele oturum kimligidir (desen EventContract'ta dogrulanir): uzun rakam dizisi rastlantidir, kisisel veri sayilmaz
             if (text.length() > MAX_VALUE_LEN || text.indexOf('@') >= 0
-                    || LONG_DIGITS.matcher(text).find()) {
+                    || (!"sid".equals(p.getKey()) && LONG_DIGITS.matcher(text).find())) {
                 throw invalid();
             }
             if (!first) {
@@ -169,6 +179,9 @@ public class AnalyticsService {
             sb.append(quote(p.getKey())).append(':');
             if (v instanceof String) {
                 sb.append(quote(text));
+            } else if ((v instanceof Double || v instanceof Float) && Math.abs(((Number) v).doubleValue()) < 1e15
+                    && ((Number) v).doubleValue() == Math.rint(((Number) v).doubleValue())) {
+                sb.append((long) ((Number) v).doubleValue()); // 1200.0 -> 1200 (sureler tam sayi saklanir)
             } else {
                 sb.append(text);
             }
