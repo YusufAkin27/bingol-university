@@ -4,6 +4,11 @@
 
 Ayrıntılı modül notları: `docs/changes/*.md`. Mobil API rehberi: [MOBILE_API_GUIDE.md](MOBILE_API_GUIDE.md).
 
+### Resmî ders programı (Excel yükleme, V1070) + yeni hesap varsayılanı
+
+- **Ders programı:** yönetim panelinde `Akademik > Resmî ders programı` (`/admin/academic/timetable`): şablon Excel yüklenir, önce önizleme (program/oturum sayısı, hata ve uyarılar), onaylanınca birim+program bazında değiştirilerek yazılır. Tablolar `official_timetable_batch|entry`; kullanıcı ucu `GET /api/timetable/official`. Ayrıntı: `docs/ADMIN_API.md` "Resmi ders programı". Excel okuyucu bağımlılıksızdır (`XlsxReader`, StAX; XXE ve zip-bombası sınırları).
+- **Yeni hesap varsayılanı:** `app.profile.default-private-account` varsayılanı `true` → **`false`**: yeni kayıtlar herkese açık başlar (ayar `true` yapılırsa yine gizli açılır; mevcut hesaplara dokunulmaz).
+
 ### Menü: yemek adına bağlı kalori + içeriğe bağlı görsel (V1040)
 
 - **Kalori:** yönetici bir yemeğe kalori girince değer yemek adına (`menu_dish_calorie`) da kaydedilir; aynı adlı yemek tarihe özel satırı olmayan günlerde (gelecek ay menüsü dahil) otomatik kalorili görünür. Kalori silmek kayıtlı değeri de siler.
