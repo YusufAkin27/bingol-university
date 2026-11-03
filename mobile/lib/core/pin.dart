@@ -1,6 +1,6 @@
 /// Kullanıcı şifresi (PIN) kuralı. Sunucudaki `PasswordPolicy` ile BİREBİR aynıdır:
-/// tam 6 rakam; tüm rakamlar aynı (000000), düz artan/azalan dizi (123456, 654321) ve iki rakamlı
-/// tekrar (121212) reddedilir.
+/// tam 6 rakam; tüm rakamlar aynı (000000), düz artan/azalan dizi (123456, 654321, dönüşlü 789012)
+/// ve iki rakamlı tekrar (121212) reddedilir.
 const int kPinLength = 6;
 
 final _digitsOnly = RegExp(r'^[0-9]+$');
@@ -18,8 +18,9 @@ bool isWeakPin(String s) {
   var pair = true;
   for (var i = 1; i < d.length; i++) {
     if (d[i] != d[0]) allSame = false;
-    if (d[i] != d[i - 1] + 1) asc = false;
-    if (d[i] != d[i - 1] - 1) desc = false;
+    // 9'dan sonra 0'a dönüş de dizidir (789012, 210987): sunucu `PasswordPolicy` ile aynı.
+    if (d[i] != (d[i - 1] + 1) % 10) asc = false;
+    if (d[i] != (d[i - 1] + 9) % 10) desc = false;
     if (i >= 2 && d[i] != d[i - 2]) pair = false;
   }
   // `pair` aynı zamanda tüm-aynı durumunu kapsar (aaaaaa = ababab, a == b).
