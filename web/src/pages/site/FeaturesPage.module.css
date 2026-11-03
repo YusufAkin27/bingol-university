@@ -3,9 +3,89 @@
   margin: 0;
   padding: 0;
 }
-/* satırlar arası ince ayraç */
-.rows > li + li {
-  border-block-start: 1px solid var(--border);
+
+.overview {
+  padding-block: clamp(2.5rem, 6vw, 4.5rem);
+  border-block: 1px solid var(--border);
+  background: var(--surface-2);
+}
+.tiles {
+  list-style: none;
+  margin: var(--space-6) 0 0;
+  padding: 0;
+  display: grid;
+  gap: var(--space-3);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+@media (min-width: 1000px) {
+  .tiles {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: var(--space-4);
+  }
+}
+.tiles > li,
+.tileWrap {
+  display: grid;
+}
+.tile {
+  display: grid;
+  align-content: start;
+  gap: var(--space-2);
+  height: 100%;
+  padding: var(--space-5);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  color: var(--text);
+  text-decoration: none;
+  transition: border-color 0.18s var(--ease);
+}
+.tile:hover {
+  border-color: var(--primary);
+}
+.tileIco {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  margin-block-end: var(--space-2);
+  border-radius: var(--radius-md);
+  background: var(--primary-soft);
+  color: var(--on-soft);
+}
+.tileTitle {
+  font-size: var(--text-lg);
+  font-weight: 700;
+  line-height: 1.25;
+}
+.tileText {
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+/* dar ekranda kart kısa kalır: başlık + bağlantı (metin satırda zaten var) */
+@media (max-width: 639px) {
+  .tile {
+    padding: var(--space-4);
+  }
+  .tileText {
+    display: none;
+  }
+}
+.tileLink {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  min-height: 44px;
+  margin-block-start: auto;
+  padding-block-start: var(--space-2);
+  color: var(--link);
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+@media (prefers-reduced-motion: reduce) {
+  .tile {
+    transition: none;
+  }
 }
 
 .more {
