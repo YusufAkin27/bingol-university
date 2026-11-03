@@ -84,7 +84,6 @@
   "authIdHint": "Okul e-postanız",
   "authIdNumberLabel": "Okul numaranız",
   "authIdNumberEmpty": "Okul numaranızı girin.",
-  "authHintPersonalNumber": "Adınızı ve okul numaranızı girin.",
   "loginSubtitleNumber": "Okul numaranızla giriş yapın.",
   "authVerify": "Doğrula",
   "authResendCode": "Kodu yeniden gönder",
@@ -150,9 +149,6 @@
   "authRegisterSubtitle": "Birkaç adımda kampüse katılın.",
   "authSectionAcademic": "Akademik bilgiler",
   "authSectionAccount": "Hesap bilgileri",
-  "authPwWeak": "Zayıf",
-  "authPwFair": "Orta",
-  "authPwStrong": "Güçlü",
   "acadMonth1": "Ocak",
   "acadMonth2": "Şubat",
   "acadMonth3": "Mart",
@@ -2808,22 +2804,8 @@
   "pickSelectGrade": "Sınıf seçin",
   "pickSearch": "Ara",
   "pickNoResults": "Sonuç bulunamadı.",
-  "authStepOf": "Adım {n}/{total}",
-  "@authStepOf": {
-    "placeholders": {
-      "n": {
-        "type": "String"
-      },
-      "total": {
-        "type": "String"
-      }
-    }
-  },
   "authSectionPersonal": "Kişisel bilgiler",
-  "authSectionPassword": "Şifre belirleyin",
-  "authHintAcademic": "Bölümünüzü ve sınıfınızı seçin.",
   "authHintPersonal": "Adınızı ve okul e-postanızı girin.",
-  "authHintPassword": "En az 6 karakterli bir şifre seçin.",
   "authNext": "Devam",
   "authTermsAutoPrefix": "Kayıt olarak ",
   "authTermsAutoSuffix": " kabul etmiş sayılırsınız.",
@@ -2961,10 +2943,6 @@
   "authBackToLogin": "Girişe dön",
   "authChangeEmail": "E-postayı değiştir",
   "authNewPwSub": "Bu şifre eski şifrenizin yerine geçer. Tüm cihazlardaki oturumlar kapanır.",
-  "authRuleLen": "En az 8 karakter",
-  "authRuleMix": "Harf ve rakam içerir",
-  "authStep1Title": "Hangi bölümdesiniz?",
-  "authStep2Title": "Sizi tanıyalım",
   "welcomeHeadline": "Kampüs artık\ncebinizde",
   "welcomeSub": "Duyurular, yemek listesi, kulüpler ve etkinlikler tek uygulamada.",
   "welcomeNews": "Haberler ve duyurular",
@@ -4006,7 +3984,6 @@
   "p02WelcomeClubsSub": "Topluluklar, atölyeler ve katılım yoklaması.",
   "p02BrandSub": "Bağımsız öğrenci uygulaması",
   "p02LoginBusy": "Giriş yapılıyor…",
-  "p02PwStrengthTitle": "Şifre gücü",
   "p02TipTitle": "İpucu",
   "p02FacultyCount": "{n} Bölüm",
   "@p02FacultyCount": {
@@ -4934,5 +4911,9 @@
   "homeFeaturedMenu": "Yemek Menüsü",
   "homeSearchFilters": "Arama filtreleri",
   "homeMore": "Diğer",
-  "homeViewAll": "Tümünü gör"
+  "homeViewAll": "Tümünü gör",
+  "regTitle": "Hesap oluşturun",
+  "regSubtitle": "Adınızı, okul numaranızı ve şifrenizi girin.",
+  "profileSetupTitle": "Bölümünüzü seçin",
+  "profileSetupSubtitle": "Bölümünüzü ve sınıfınızı bir kez girin; sonradan profilinizden değiştirebilirsiniz."
 }

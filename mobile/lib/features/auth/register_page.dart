@@ -2,7 +2,6 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import '../../core/academic_catalog.dart';
 import '../../core/api.dart';
 import '../../core/identifier.dart';
 import '../../core/locale_controller.dart';
@@ -11,7 +10,6 @@ import '../../widgets/bu.dart';
 import '../profile/legal_pages.dart';
 import 'auth_widgets.dart' show newPasswordValidator;
 import 'verify_code_page.dart';
-import 'widgets/auth_academic.dart';
 import 'widgets/auth_motion.dart';
 import 'widgets/auth_ref.dart';
 import 'widgets/login_underline_field.dart';
@@ -25,29 +23,21 @@ class RegisterPage extends StatefulWidget {
   State<RegisterPage> createState() => _RegisterPageState();
 }
 
-/// Kayıt 3 adımda istenir (Stitch 02): akademik bilgi, kişisel bilgi, şifre. Sözleşme onayı kayıtla birlikte
-/// otomatik verilmiş sayılır (sunucuya `acceptTerms=true` gider); kullanıcıya yalnız bilgi metni gösterilir.
+/// Kayıt tek sayfadır: ad soyad + okul numarası + şifre. Bölüm ve sınıf burada istenmez; e-posta doğrulanıp oturum
+/// açılınca zorunlu "bölümünü seç" adımında bir kez alınır ([ProfileSetupPage]). Sözleşme onayı kayıtla birlikte
+/// otomatik verilmiş sayılır (sunucuya `acceptTerms=true` gider); kullanıcıya yalnız bağlantılı bilgi satırı gösterilir.
 class _RegisterPageState extends State<RegisterPage> {
-  static const _steps = 3;
-
   final _form = GlobalKey<FormState>();
   final _name = TextEditingController();
   final _email = TextEditingController();
   final _password = TextEditingController();
-  int _step = 0;
-
-  /// Son adım değişimi geri yönde mi (paylaşılan eksen geçişinin yönü).
-  bool _back = false;
   bool _busy = false;
   String? _error;
   int _shake = 0;
 
-  /// Sunucudan dönen e-posta hatası (EMAIL_ALIAS_NOT_ALLOWED): e-posta alanının altında gösterilir.
+  /// Sunucudan dönen e-posta hatası (EMAIL_ALIAS_NOT_ALLOWED): numara alanının altında gösterilir.
   String? _emailFieldError;
   String _emailErrorFor = '';
-  late final AcademicCatalog _catalog = AcademicCatalog.of(widget.session);
-  String? _faculty, _department, _grade;
-  bool _tried = false;
   late final _termsLink = TapGestureRecognizer()..onTap = () => _openLegal('TERMS');
   late final _privacyLink = TapGestureRecognizer()..onTap = () => _openLegal('PRIVACY');
 
@@ -57,15 +47,11 @@ class _RegisterPageState extends State<RegisterPage> {
   @override
   void initState() {
     super.initState();
-    _catalog.load();
-    // Kullanıcı e-postayı değiştirince eski sunucu hatası kalkar.
+    // Kullanıcı numarayı değiştirince eski sunucu hatası kalkar.
     _email.addListener(() {
       if (_emailFieldError != null && _email.text != _emailErrorFor) setState(() => _emailFieldError = null);
     });
   }
-
-  String? get _departmentErr => _tried && (_department ?? '').isEmpty ? context.l10n.authSelectDepartment : null;
-  String? get _gradeErr => _tried && (_grade ?? '').isEmpty ? context.l10n.authSelectGrade : null;
 
   @override
   void dispose() {
@@ -77,59 +63,18 @@ class _RegisterPageState extends State<RegisterPage> {
     super.dispose();
   }
 
-  bool get _academicOk => (_faculty ?? '').isNotEmpty && (_department ?? '').isNotEmpty && (_grade ?? '').isNotEmpty;
-
-  void _goTo(int step) => setState(() {
-        _back = step < _step;
-        _step = step;
-        _error = null;
-      });
-
-  void _reject() => authHaptic(AuthHaptic.error);
-
-  Future<void> _next() async {
-    if (_busy) return;
-    if (_step == 0) {
-      setState(() {
-        _tried = true;
-        if (!_academicOk && _catalog.state == CatalogState.error) {
-          _error = context.l10n.authDepartmentsLoadFailed;
-        }
-      });
-      if (_academicOk) {
-        authHaptic(AuthHaptic.tap);
-        _goTo(1);
-      } else {
-        _reject();
-      }
-      return;
-    }
-    if (!(_form.currentState?.validate() ?? false)) {
-      _reject();
-      return;
-    }
-    if (_step < _steps - 1) {
-      authHaptic(AuthHaptic.tap);
-      _goTo(_step + 1);
-    } else {
-      await _submit();
-    }
-  }
-
   Future<void> _submit() async {
+    if (_busy) return;
+    if (!(_form.currentState?.validate() ?? false)) {
+      authHaptic(AuthHaptic.error);
+      return;
+    }
     setState(() {
       _busy = true;
       _error = null;
     });
     try {
-      final full = await widget.session.register(
-        email: fullEmail(_email.text),
-        password: _password.text,
-        displayName: _name.text,
-        faculty: _faculty,
-        department: _department,
-        grade: _grade,
-      );
+      final full = await widget.session.register(email: fullEmail(_email.text), password: _password.text, displayName: _name.text);
       final id = normalizeIdentifier(fullEmail(_email.text));
       widget.session.rememberCredentials(id, _password.text);
       await widget.session.pending.save(id);
@@ -140,33 +85,30 @@ class _RegisterPageState extends State<RegisterPage> {
     } on ApiError catch (e) {
       if (!mounted) return;
       if (e.code == 'EMAIL_ALIAS_NOT_ALLOWED') {
-        // Alan altında göster: e-posta adımına dön ve doğrulamayı tetikle.
+        // Alan altında göster: doğrulamayı yeniden tetikle.
         setState(() {
           _emailFieldError = errorText(e);
           _emailErrorFor = _email.text;
-          _back = _step > 1;
-          _step = 1;
           _error = null;
         });
+        authHaptic(AuthHaptic.error);
         WidgetsBinding.instance.addPostFrameCallback((_) => _form.currentState?.validate());
       } else {
-        authHaptic(AuthHaptic.error);
-        setState(() {
-          _error = errorText(e);
-          _shake++;
-        });
+        _fail(e);
       }
     } catch (e) {
-      if (mounted) {
-        authHaptic(AuthHaptic.error);
-        setState(() {
-          _error = errorText(e);
-          _shake++;
-        });
-      }
+      if (mounted) _fail(e);
     } finally {
       if (mounted) setState(() => _busy = false);
     }
+  }
+
+  void _fail(Object e) {
+    authHaptic(AuthHaptic.error);
+    setState(() {
+      _error = errorText(e);
+      _shake++;
+    });
   }
 
   /// Kayıtta kimlik alanı: genel kurallar + "+" etiketi (sunucu 400 EMAIL_ALIAS_NOT_ALLOWED döner).
@@ -177,182 +119,98 @@ class _RegisterPageState extends State<RegisterPage> {
     return validateSchoolNumber(v);
   }
 
-  String _title(BuildContext c) => switch (_step) {
-        0 => c.l10n.authStep1Title,
-        1 => c.l10n.authStep2Title,
-        _ => c.l10n.authSectionPassword,
-      };
-
-  String _hint(BuildContext c) => switch (_step) {
-        0 => c.l10n.authHintAcademic,
-        1 => c.l10n.authHintPersonalNumber,
-        _ => c.l10n.authHintPassword,
-      };
-
-  Widget _stepBody(BuildContext context) {
-    final l = context.l10n;
-    final t = context.bu;
-    final tx = Theme.of(context).textTheme;
-    switch (_step) {
-      case 0:
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            AuthAcademicFields(
-              catalog: _catalog,
-              faculty: _faculty,
-              department: _department,
-              grade: _grade,
-              enabled: !_busy,
-              departmentError: _departmentErr,
-              gradeError: _gradeErr,
-              onChanged: (f, d, g) => setState(() {
-                _faculty = f;
-                _department = d;
-                _grade = g;
-                _error = null;
-              }),
-            ),
-          ],
-        );
-      case 1:
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            LoginUnderlineField(
-              controller: _name,
-              label: l.authNameHint,
-              textCapitalization: TextCapitalization.words,
-              autofillHints: const [AutofillHints.name],
-              inputFormatters: [LengthLimitingTextInputFormatter(80)],
-              enabled: !_busy,
-              validator: (v) => (v == null || v.trim().isEmpty) ? l.authNameRequired : null,
-            ),
-            const SizedBox(height: 28),
-            // Giriş ile aynı alan: okul numarası (iri rakamlar, rakam klavyesi, @bingol.edu.tr soneki). Kayıt e-postası
-            // `<numara>@bingol.edu.tr` olur; böylece girişte aynı numara geçer.
-            LoginNumberField(
-              controller: _email,
-              enabled: !_busy,
-              validator: _validateRegisterId,
-              textInputAction: TextInputAction.done,
-              onSubmitted: _next,
-            ),
-          ],
-        );
-      default:
-        final link = TextStyle(color: t.ink, fontWeight: FontWeight.w700, decoration: TextDecoration.underline);
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            LoginPasswordField(
-              controller: _password,
-              label: l.authPasswordMin8,
-              enabled: !_busy,
-              validator: newPasswordValidator(context),
-              autofillHints: const [AutofillHints.newPassword],
-              onSubmitted: _next,
-            ),
-            const SizedBox(height: 24),
-            Text.rich(
-              TextSpan(
-                style: tx.bodySmall!.copyWith(color: t.mut, height: 1.5),
-                children: [
-                  TextSpan(text: l.authTermsAutoPrefix),
-                  TextSpan(text: l.authTermsLink, recognizer: _termsLink, style: link),
-                  TextSpan(text: l.authTermsSep),
-                  TextSpan(text: l.authPrivacyLink, recognizer: _privacyLink, style: link),
-                  TextSpan(text: l.authTermsAutoSuffix),
-                ],
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        );
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
     final l = context.l10n;
     final tx = Theme.of(context).textTheme;
-    final last = _step == _steps - 1;
-    final keyboard = MediaQuery.viewInsetsOf(context).bottom > 0;
-    return PopScope(
-      canPop: _step == 0,
-      onPopInvokedWithResult: (didPop, _) {
-        if (!didPop && !_busy) _goTo(_step - 1);
-      },
-      child: RefPage(
-        trailing: Text(l.authStepOf('${_step + 1}', '$_steps'), style: tx.labelLarge!.copyWith(color: t.mut, fontWeight: FontWeight.w500)),
-        onBack: () {
-          if (_step == 0) {
-            Navigator.maybePop(context);
-          } else if (!_busy) {
-            _goTo(_step - 1);
-          }
-        },
-        children: [
-          Semantics(
-            label: l.authStepOf('${_step + 1}', '$_steps'),
-            child: ExcludeSemantics(child: AuthStepBar(step: _step, steps: _steps)),
+    final link = TextStyle(color: t.ink, fontWeight: FontWeight.w700, decoration: TextDecoration.underline);
+    return RefPage(
+      children: [
+        Semantics(
+          header: true,
+          child: Text(
+            l.regTitle,
+            style: tx.displayMedium!.copyWith(color: t.ink, fontWeight: FontWeight.w800, height: 1.1),
           ),
-          const SizedBox(height: 24),
-          Semantics(
-            header: true,
-            child: Text(_title(context), style: tx.displaySmall!.copyWith(color: t.ink, fontWeight: FontWeight.w800, height: 1.1)),
-          ),
-          const SizedBox(height: 10),
-          Text(_hint(context), style: tx.bodyLarge!.copyWith(color: t.mut, height: 1.4)),
-          const SizedBox(height: 32),
-          // Hata bandı yumuşakça açılır; yeni hatada hafifçe sarsılır.
-          AnimatedSize(
-            duration: BuMotion.of(context, BuMotion.short),
-            curve: BuMotion.decelerate,
-            alignment: Alignment.topCenter,
-            child: _error == null
-                ? const SizedBox(width: double.infinity)
-                : Padding(
-                    padding: const EdgeInsets.only(bottom: 16),
-                    child: AuthShake(trigger: _shake, child: RefBanner(_error!, key: ValueKey('reg-error-$_error'))),
-                  ),
-          ),
-          Form(
-            key: _form,
-            child: AutofillGroup(
-              // Adım geçişi: ileri/geri yönde paylaşılan eksen (kayma + solma); yükseklik farkı yumuşakça kapanır.
-              child: AnimatedSize(
-                duration: BuMotion.of(context, BuMotion.medium),
-                curve: BuMotion.decelerate,
-                alignment: Alignment.topCenter,
-                child: BuSharedAxis(
-                  reverse: _back,
-                  duration: BuMotion.medium,
-                  distance: 24,
-                  child: KeyedSubtree(key: ValueKey(_step), child: _stepBody(context)),
+        ),
+        const SizedBox(height: 10),
+        Text(l.regSubtitle, style: tx.bodyLarge!.copyWith(color: t.mut, height: 1.4)),
+        const SizedBox(height: 40),
+        Form(
+          key: _form,
+          child: AutofillGroup(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                LoginUnderlineField(
+                  controller: _name,
+                  label: l.authNameHint,
+                  textCapitalization: TextCapitalization.words,
+                  autofillHints: const [AutofillHints.name],
+                  inputFormatters: [LengthLimitingTextInputFormatter(80)],
+                  enabled: !_busy,
+                  validator: (v) => (v == null || v.trim().isEmpty) ? l.authNameRequired : null,
                 ),
-              ),
+                const SizedBox(height: 28),
+                // Giriş ile aynı alan: okul numarası (iri rakamlar, rakam klavyesi, @bingol.edu.tr soneki). Kayıt e-postası
+                // `<numara>@bingol.edu.tr` olur; böylece girişte aynı numara geçer.
+                LoginNumberField(
+                  controller: _email,
+                  enabled: !_busy,
+                  validator: _validateRegisterId,
+                ),
+                const SizedBox(height: 28),
+                LoginPasswordField(
+                  controller: _password,
+                  label: l.authPasswordMin8,
+                  enabled: !_busy,
+                  validator: newPasswordValidator(context),
+                  autofillHints: const [AutofillHints.newPassword],
+                  onSubmitted: _submit,
+                ),
+              ],
             ),
           ),
-          const SizedBox(height: 24),
-          RefButton(
-            onPressed: _next,
-            busy: _busy,
-            label: last ? l.loginRegister : l.authNext,
+        ),
+        const SizedBox(height: 24),
+        // Hukuki gereklilik: koşullar ve gizlilik politikası bağlantıları kalır.
+        Text.rich(
+          TextSpan(
+            style: tx.bodySmall!.copyWith(color: t.mut, height: 1.5),
+            children: [
+              TextSpan(text: l.authTermsAutoPrefix),
+              TextSpan(text: l.authTermsLink, recognizer: _termsLink, style: link),
+              TextSpan(text: l.authTermsSep),
+              TextSpan(text: l.authPrivacyLink, recognizer: _privacyLink, style: link),
+              TextSpan(text: l.authTermsAutoSuffix),
+            ],
           ),
-          if (_step == 0 && !keyboard) ...[
-            const SizedBox(height: 8),
-            Center(
-              child: RefFooterPrompt(
-                prompt: l.authHaveAccount,
-                action: l.loginSubmit,
-                onPressed: _busy ? null : () => Navigator.maybePop(context),
-              ),
-            ),
-          ],
-        ],
-      ),
+          textAlign: TextAlign.center,
+        ),
+        const SizedBox(height: 20),
+        RefButton(onPressed: _submit, busy: _busy, label: l.loginRegister),
+        // Hata bandı yumuşakça açılır; yeni hatada hafifçe sarsılır.
+        AnimatedSize(
+          duration: BuMotion.of(context, BuMotion.short),
+          curve: BuMotion.decelerate,
+          alignment: Alignment.topCenter,
+          child: _error == null
+              ? const SizedBox(width: double.infinity)
+              : Padding(
+                  padding: const EdgeInsets.only(top: 16),
+                  child: AuthShake(trigger: _shake, child: RefBanner(_error!, key: ValueKey('reg-error-$_error'))),
+                ),
+        ),
+        const SizedBox(height: 24),
+        Center(
+          child: RefFooterPrompt(
+            prompt: l.authHaveAccount,
+            action: l.loginSubmit,
+            onPressed: _busy ? null : () => Navigator.maybePop(context),
+          ),
+        ),
+      ],
     );
   }
 }

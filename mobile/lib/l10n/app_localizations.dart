@@ -478,12 +478,6 @@ abstract class AppLocalizations {
   /// **'Okul numaranızı girin.'**
   String get authIdNumberEmpty;
 
-  /// No description provided for @authHintPersonalNumber.
-  ///
-  /// In tr, this message translates to:
-  /// **'Adınızı ve okul numaranızı girin.'**
-  String get authHintPersonalNumber;
-
   /// No description provided for @loginSubtitleNumber.
   ///
   /// In tr, this message translates to:
@@ -705,24 +699,6 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Hesap bilgileri'**
   String get authSectionAccount;
-
-  /// No description provided for @authPwWeak.
-  ///
-  /// In tr, this message translates to:
-  /// **'Zayıf'**
-  String get authPwWeak;
-
-  /// No description provided for @authPwFair.
-  ///
-  /// In tr, this message translates to:
-  /// **'Orta'**
-  String get authPwFair;
-
-  /// No description provided for @authPwStrong.
-  ///
-  /// In tr, this message translates to:
-  /// **'Güçlü'**
-  String get authPwStrong;
 
   /// No description provided for @acadMonth1.
   ///
@@ -9433,41 +9409,17 @@ abstract class AppLocalizations {
   /// **'Sonuç bulunamadı.'**
   String get pickNoResults;
 
-  /// No description provided for @authStepOf.
-  ///
-  /// In tr, this message translates to:
-  /// **'Adım {n}/{total}'**
-  String authStepOf(String n, String total);
-
   /// No description provided for @authSectionPersonal.
   ///
   /// In tr, this message translates to:
   /// **'Kişisel bilgiler'**
   String get authSectionPersonal;
 
-  /// No description provided for @authSectionPassword.
-  ///
-  /// In tr, this message translates to:
-  /// **'Şifre belirleyin'**
-  String get authSectionPassword;
-
-  /// No description provided for @authHintAcademic.
-  ///
-  /// In tr, this message translates to:
-  /// **'Bölümünüzü ve sınıfınızı seçin.'**
-  String get authHintAcademic;
-
   /// No description provided for @authHintPersonal.
   ///
   /// In tr, this message translates to:
   /// **'Adınızı ve okul e-postanızı girin.'**
   String get authHintPersonal;
-
-  /// No description provided for @authHintPassword.
-  ///
-  /// In tr, this message translates to:
-  /// **'En az 6 karakterli bir şifre seçin.'**
-  String get authHintPassword;
 
   /// No description provided for @authNext.
   ///
@@ -10020,30 +9972,6 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Bu şifre eski şifrenizin yerine geçer. Tüm cihazlardaki oturumlar kapanır.'**
   String get authNewPwSub;
-
-  /// No description provided for @authRuleLen.
-  ///
-  /// In tr, this message translates to:
-  /// **'En az 8 karakter'**
-  String get authRuleLen;
-
-  /// No description provided for @authRuleMix.
-  ///
-  /// In tr, this message translates to:
-  /// **'Harf ve rakam içerir'**
-  String get authRuleMix;
-
-  /// No description provided for @authStep1Title.
-  ///
-  /// In tr, this message translates to:
-  /// **'Hangi bölümdesiniz?'**
-  String get authStep1Title;
-
-  /// No description provided for @authStep2Title.
-  ///
-  /// In tr, this message translates to:
-  /// **'Sizi tanıyalım'**
-  String get authStep2Title;
 
   /// No description provided for @welcomeHeadline.
   ///
@@ -13776,12 +13704,6 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Giriş yapılıyor…'**
   String get p02LoginBusy;
-
-  /// No description provided for @p02PwStrengthTitle.
-  ///
-  /// In tr, this message translates to:
-  /// **'Şifre gücü'**
-  String get p02PwStrengthTitle;
 
   /// No description provided for @p02TipTitle.
   ///
@@ -17856,6 +17778,30 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Tümünü gör'**
   String get homeViewAll;
+
+  /// No description provided for @regTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Hesap oluşturun'**
+  String get regTitle;
+
+  /// No description provided for @regSubtitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Adınızı, okul numaranızı ve şifrenizi girin.'**
+  String get regSubtitle;
+
+  /// No description provided for @profileSetupTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bölümünüzü seçin'**
+  String get profileSetupTitle;
+
+  /// No description provided for @profileSetupSubtitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bölümünüzü ve sınıfınızı bir kez girin; sonradan profilinizden değiştirebilirsiniz.'**
+  String get profileSetupSubtitle;
 }
 
 class _AppLocalizationsDelegate

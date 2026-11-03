@@ -288,43 +288,6 @@ class RefBanner extends StatelessWidget {
   }
 }
 
-/// Kısa, sakin bilgi satırı: kutu/zemin yok; küçük soluk simge + ikincil metin (kalıcı olmayan bilgi kutusu yerine).
-/// [tone]/[iconTint] eski çağrılar için kabul edilir, görünümü değiştirmez.
-class RefNote extends StatelessWidget {
-  const RefNote(this.text, {super.key, this.icon = BuIcons.info, this.tone = RefTone.neutral, this.title, this.iconTint});
-
-  final String text;
-  final IconData icon;
-  final RefTone tone;
-  final String? title;
-  final BuTint? iconTint;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = context.bu;
-    final tx = Theme.of(context).textTheme;
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.only(top: 2),
-          child: ExcludeSemantics(child: Icon(icon, size: 16, color: t.mut)),
-        ),
-        const SizedBox(width: 10),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              if (title != null) Text(title!, style: tx.bodySmall!.copyWith(color: t.ink, fontWeight: FontWeight.w700)),
-              Text(text, style: tx.bodySmall!.copyWith(color: t.mut, height: 1.45)),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-}
-
 enum RefButtonKind { primary, secondary, warn, danger, soft, ghost }
 
 /// Ana eylem: 48 dp ([BuSize.button]), 14 dp yuvarlak; etiket + sonda ok; yüklenirken çember + [busyLabel].

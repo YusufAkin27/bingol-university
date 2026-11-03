@@ -209,9 +209,6 @@ class AppLocalizationsTr extends AppLocalizations {
   String get authIdNumberEmpty => 'Okul numaranızı girin.';
 
   @override
-  String get authHintPersonalNumber => 'Adınızı ve okul numaranızı girin.';
-
-  @override
   String get loginSubtitleNumber => 'Okul numaranızla giriş yapın.';
 
   @override
@@ -331,15 +328,6 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get authSectionAccount => 'Hesap bilgileri';
-
-  @override
-  String get authPwWeak => 'Zayıf';
-
-  @override
-  String get authPwFair => 'Orta';
-
-  @override
-  String get authPwStrong => 'Güçlü';
 
   @override
   String get acadMonth1 => 'Ocak';
@@ -5095,24 +5083,10 @@ class AppLocalizationsTr extends AppLocalizations {
   String get pickNoResults => 'Sonuç bulunamadı.';
 
   @override
-  String authStepOf(String n, String total) {
-    return 'Adım $n/$total';
-  }
-
-  @override
   String get authSectionPersonal => 'Kişisel bilgiler';
 
   @override
-  String get authSectionPassword => 'Şifre belirleyin';
-
-  @override
-  String get authHintAcademic => 'Bölümünüzü ve sınıfınızı seçin.';
-
-  @override
   String get authHintPersonal => 'Adınızı ve okul e-postanızı girin.';
-
-  @override
-  String get authHintPassword => 'En az 6 karakterli bir şifre seçin.';
 
   @override
   String get authNext => 'Devam';
@@ -5407,18 +5381,6 @@ class AppLocalizationsTr extends AppLocalizations {
   @override
   String get authNewPwSub =>
       'Bu şifre eski şifrenizin yerine geçer. Tüm cihazlardaki oturumlar kapanır.';
-
-  @override
-  String get authRuleLen => 'En az 8 karakter';
-
-  @override
-  String get authRuleMix => 'Harf ve rakam içerir';
-
-  @override
-  String get authStep1Title => 'Hangi bölümdesiniz?';
-
-  @override
-  String get authStep2Title => 'Sizi tanıyalım';
 
   @override
   String get welcomeHeadline => 'Kampüs artık\ncebinizde';
@@ -7498,9 +7460,6 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get p02LoginBusy => 'Giriş yapılıyor…';
-
-  @override
-  String get p02PwStrengthTitle => 'Şifre gücü';
 
   @override
   String get p02TipTitle => 'İpucu';
@@ -9832,4 +9791,17 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get homeViewAll => 'Tümünü gör';
+
+  @override
+  String get regTitle => 'Hesap oluşturun';
+
+  @override
+  String get regSubtitle => 'Adınızı, okul numaranızı ve şifrenizi girin.';
+
+  @override
+  String get profileSetupTitle => 'Bölümünüzü seçin';
+
+  @override
+  String get profileSetupSubtitle =>
+      'Bölümünüzü ve sınıfınızı bir kez girin; sonradan profilinizden değiştirebilirsiniz.';
 }

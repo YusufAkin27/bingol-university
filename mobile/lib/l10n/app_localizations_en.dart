@@ -209,9 +209,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get authIdNumberEmpty => 'Enter your student number.';
 
   @override
-  String get authHintPersonalNumber => 'Enter your name and student number.';
-
-  @override
   String get loginSubtitleNumber => 'Log in with your student number.';
 
   @override
@@ -331,15 +328,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get authSectionAccount => 'Account details';
-
-  @override
-  String get authPwWeak => 'Weak';
-
-  @override
-  String get authPwFair => 'Fair';
-
-  @override
-  String get authPwStrong => 'Strong';
 
   @override
   String get acadMonth1 => 'January';
@@ -5118,25 +5106,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get pickNoResults => 'No results found.';
 
   @override
-  String authStepOf(String n, String total) {
-    return 'Step $n of $total';
-  }
-
-  @override
   String get authSectionPersonal => 'Personal details';
 
   @override
-  String get authSectionPassword => 'Set a password';
-
-  @override
-  String get authHintAcademic => 'Select your department and year of study.';
-
-  @override
   String get authHintPersonal => 'Enter your name and school email.';
-
-  @override
-  String get authHintPassword =>
-      'Choose a password with at least 6 characters.';
 
   @override
   String get authNext => 'Continue';
@@ -5432,18 +5405,6 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get authNewPwSub =>
       'This replaces your old password. You will be logged out on all devices.';
-
-  @override
-  String get authRuleLen => 'At least 8 characters';
-
-  @override
-  String get authRuleMix => 'Contains letters and numbers';
-
-  @override
-  String get authStep1Title => 'Which department are you in?';
-
-  @override
-  String get authStep2Title => 'Let us get to know you';
 
   @override
   String get welcomeHeadline => 'Campus is now\nin your pocket';
@@ -7529,9 +7490,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get p02LoginBusy => 'Signing in…';
-
-  @override
-  String get p02PwStrengthTitle => 'Password strength';
 
   @override
   String get p02TipTitle => 'Tip';
@@ -9865,4 +9823,17 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get homeViewAll => 'View all';
+
+  @override
+  String get regTitle => 'Create your account';
+
+  @override
+  String get regSubtitle => 'Enter your name, school number and a password.';
+
+  @override
+  String get profileSetupTitle => 'Choose your department';
+
+  @override
+  String get profileSetupSubtitle =>
+      'Enter your department and year once; you can change them later from your profile.';
 }

@@ -210,9 +210,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get authIdNumberEmpty => 'أدخل رقمك الجامعي.';
 
   @override
-  String get authHintPersonalNumber => 'أدخل اسمك ورقمك الجامعي.';
-
-  @override
   String get loginSubtitleNumber => 'سجّل الدخول برقمك الجامعي.';
 
   @override
@@ -332,15 +329,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get authSectionAccount => 'معلومات الحساب';
-
-  @override
-  String get authPwWeak => 'ضعيفة';
-
-  @override
-  String get authPwFair => 'متوسطة';
-
-  @override
-  String get authPwStrong => 'قوية';
 
   @override
   String get acadMonth1 => 'يناير';
@@ -5073,24 +5061,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get pickNoResults => 'لا توجد نتائج.';
 
   @override
-  String authStepOf(String n, String total) {
-    return 'الخطوة $n من $total';
-  }
-
-  @override
   String get authSectionPersonal => 'المعلومات الشخصية';
 
   @override
-  String get authSectionPassword => 'عيّن كلمة مرور';
-
-  @override
-  String get authHintAcademic => 'اختر قسمك وسنتك الدراسية.';
-
-  @override
   String get authHintPersonal => 'أدخل اسمك وبريدك الجامعي.';
-
-  @override
-  String get authHintPassword => 'اختر كلمة مرور من 6 أحرف على الأقل.';
 
   @override
   String get authNext => 'متابعة';
@@ -5384,18 +5358,6 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get authNewPwSub =>
       'ستحل محل كلمة المرور القديمة. سيتم إنهاء الجلسات على جميع الأجهزة.';
-
-  @override
-  String get authRuleLen => '8 أحرف على الأقل';
-
-  @override
-  String get authRuleMix => 'تحتوي على أحرف وأرقام';
-
-  @override
-  String get authStep1Title => 'في أي قسم أنت؟';
-
-  @override
-  String get authStep2Title => 'لنتعرف عليك';
 
   @override
   String get welcomeHeadline => 'الحرم الجامعي\nفي جيبك';
@@ -7455,9 +7417,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get p02LoginBusy => 'جارٍ تسجيل الدخول…';
-
-  @override
-  String get p02PwStrengthTitle => 'قوة كلمة المرور';
 
   @override
   String get p02TipTitle => 'نصيحة';
@@ -9762,4 +9721,17 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get homeViewAll => 'عرض الكل';
+
+  @override
+  String get regTitle => 'أنشئ حسابك';
+
+  @override
+  String get regSubtitle => 'أدخل اسمك ورقمك الدراسي وكلمة مرور.';
+
+  @override
+  String get profileSetupTitle => 'اختر قسمك';
+
+  @override
+  String get profileSetupSubtitle =>
+      'أدخل قسمك وصفك مرة واحدة؛ يمكنك تغييرهما لاحقًا من ملفك الشخصي.';
 }

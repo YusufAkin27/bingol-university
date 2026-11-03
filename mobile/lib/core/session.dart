@@ -209,7 +209,7 @@ class Session extends ChangeNotifier {
   Future<String> register({
     required String email,
     required String password,
-    required String displayName,
+    String? displayName,
     String? faculty,
     String? department,
     String? grade,
@@ -219,12 +219,13 @@ class Session extends ChangeNotifier {
       {
         'email': normalizeIdentifier(email),
         'password': password,
-        'displayName': displayName.trim(),
+        // Kayıt yalnız numara + şifre ile yapılır; ad/bölüm/sınıf doğrulamadan sonra profil tamamlamada alınır.
+        if (displayName != null && displayName.trim().isNotEmpty) 'displayName': displayName.trim(),
         'acceptTerms': true,
         'language': api.lang,
-        if (faculty != null) 'faculty': faculty,
-        if (department != null) 'department': department,
-        if (grade != null) 'grade': grade,
+        if (faculty != null && faculty.isNotEmpty) 'faculty': faculty,
+        if (department != null && department.isNotEmpty) 'department': department,
+        if (grade != null && grade.isNotEmpty) 'grade': grade,
       },
       false,
     );

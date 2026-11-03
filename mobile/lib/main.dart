@@ -38,6 +38,7 @@ import 'features/auth/login_page.dart';
 import 'features/auth/register_page.dart';
 import 'features/auth/welcome_page.dart';
 import 'features/auth/permissions_page.dart';
+import 'features/auth/profile_setup_page.dart';
 import 'features/legal/legal_reaccept_page.dart';
 import 'features/shell/app_shell.dart';
 import 'features/system/error_views.dart';
@@ -228,12 +229,16 @@ class BingolApp extends StatelessWidget {
                   SessionState.loading => const SplashScreen(),
                   SessionState.signedOut => _SignedOutRoot(session: session),
                   // İlk girişte (cihaz başına bir kez) izin sayfası; sonra kabuk.
-                  SessionState.signedIn => PostLoginGate(
-                      onNotificationsGranted: push == null ? null : () => push!.onSignedIn(),
-                      // Yeni sözleşme sürümü onayı bekleniyorsa kabuğun üstüne tam ekran onay (ağ hatasında açılmaz).
-                      child: LegalReacceptGate(
-                        session: session,
-                        child: AppShell(session: session, themeController: themeController),
+                  // Önce zorunlu profil tamamlama (ad soyad + bölüm + sınıf eksikse atlanamaz), sonra izinler ve kabuk.
+                  SessionState.signedIn => ProfileCompletionGate(
+                      session: session,
+                      child: PostLoginGate(
+                        onNotificationsGranted: push == null ? null : () => push!.onSignedIn(),
+                        // Yeni sözleşme sürümü onayı bekleniyorsa kabuğun üstüne tam ekran onay (ağ hatasında açılmaz).
+                        child: LegalReacceptGate(
+                          session: session,
+                          child: AppShell(session: session, themeController: themeController),
+                        ),
                       ),
                     ),
                 },
