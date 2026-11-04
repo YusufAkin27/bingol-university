@@ -221,7 +221,7 @@ class _PollDetailPageState extends State<PollDetailPage> {
                 if (p.maxChoices != null) ...[
                   const SizedBox(width: 12),
                   Text(l.p13PollSelectedCount('${s.ids.length}', '${p.maxChoices}'),
-                      style: Theme.of(context).textTheme.bodySmall!.copyWith(color: context.bu.pr, fontSize: 13, fontWeight: FontWeight.w600, height: 1.45)),
+                      style: Theme.of(context).textTheme.bodySmall!.copyWith(color: context.bu.prText, fontSize: 13, fontWeight: FontWeight.w600, height: 1.45)),
                 ],
               ]),
             ),
@@ -310,7 +310,7 @@ class _PollDetailPageState extends State<PollDetailPage> {
             : SizedBox(
                 key: ValueKey(r),
                 height: 26,
-                child: Center(child: Text('${l.pollStars('$r')} · ${_rateWord(r)}', style: tx.titleSmall!.copyWith(color: t.pr, fontWeight: FontWeight.w600))),
+                child: Center(child: Text('${l.pollStars('$r')} · ${_rateWord(r)}', style: tx.titleSmall!.copyWith(color: t.prText, fontWeight: FontWeight.w600))),
               ),
       ),
       const SizedBox(height: 8),
@@ -399,9 +399,9 @@ class _PollDetailPageState extends State<PollDetailPage> {
           AnketOutlineButton(label: l.p68Retract, onPressed: _busy ? null : _retract),
           if (p.canVote)
             TextButton(
-              style: TextButton.styleFrom(foregroundColor: t.pr, minimumSize: const Size(48, 48)),
+              style: TextButton.styleFrom(foregroundColor: t.prText, minimumSize: const Size(48, 48)),
               onPressed: _busy ? null : () => setState(() => _editing = true),
-              child: Text(l.pollChangeVote, style: tx.titleSmall!.copyWith(color: t.pr, fontWeight: FontWeight.w600)),
+              child: Text(l.pollChangeVote, style: tx.titleSmall!.copyWith(color: t.prText, fontWeight: FontWeight.w600)),
             ),
         ]),
       ),
@@ -472,7 +472,7 @@ class _PollDetailPageState extends State<PollDetailPage> {
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             StarRating(value: avg?.round(), size: 16, compact: true),
             Text(l.pollRatingCount('$n'), style: tx.bodySmall!.copyWith(color: t.mut, fontSize: 13)),
-            if (p.myRating != null) Text(l.pollYourRating('${p.myRating}'), style: tx.bodySmall!.copyWith(color: t.pr, fontSize: 13, fontWeight: FontWeight.w500)),
+            if (p.myRating != null) Text(l.pollYourRating('${p.myRating}'), style: tx.bodySmall!.copyWith(color: t.prText, fontSize: 13, fontWeight: FontWeight.w500)),
           ]),
         ),
       ]),
@@ -603,7 +603,7 @@ class _OptionTile extends StatelessWidget {
                           if (ranked) ...[
                             const SizedBox(height: 2),
                             Text(on && rank != null ? l.p13PollRankLabel('$rank') : l.p13PollRankTap,
-                                style: tx.bodySmall!.copyWith(color: on ? t.pr : t.mut, fontSize: 12.5, fontWeight: FontWeight.w500)),
+                                style: tx.bodySmall!.copyWith(color: on ? t.prText : t.mut, fontSize: 12.5, fontWeight: FontWeight.w500)),
                           ],
                         ]),
                       ),

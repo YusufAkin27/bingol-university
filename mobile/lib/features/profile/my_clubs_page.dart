@@ -472,9 +472,9 @@ class _MyClubsPageState extends State<MyClubsPage> {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(BuIcons.undo2, size: 16, color: t.pr),
+                          Icon(BuIcons.undo2, size: 16, color: t.prText),
                           const SizedBox(width: 6),
-                          Text(l.profilePrefsWithdrawTitle, style: tx.labelLarge!.copyWith(color: t.pr, fontWeight: FontWeight.w800)),
+                          Text(l.profilePrefsWithdrawTitle, style: tx.labelLarge!.copyWith(color: t.prText, fontWeight: FontWeight.w800)),
                         ],
                       ),
                     ),

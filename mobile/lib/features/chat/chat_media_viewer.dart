@@ -318,7 +318,7 @@ class _VideoPosterPage extends StatelessWidget {
                 bottom: 14,
                 end: 14,
                 child: ChatdBarPill(
-                  iconWidget: Icon(BuIcons.video, size: 14, color: t.pr),
+                  iconWidget: Icon(BuIcons.video, size: 14, color: t.prText),
                   label: formatMediaDuration(item.durationMs!),
                   color: t.scrim.withValues(alpha: .7),
                 ),

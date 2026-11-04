@@ -202,7 +202,7 @@ class _Etkinlik2QrPageState extends State<Etkinlik2QrPage> {
               data: qr ?? long,
               size: 228,
               radius: BuRadius.xs,
-              fallback: SelectableText(code,textAlign: TextAlign.center, style: tx.titleMedium!.copyWith(color: t.pr)),
+              fallback: SelectableText(code,textAlign: TextAlign.center, style: tx.titleMedium!.copyWith(color: t.prText)),
             ),
           ),
         ),
@@ -282,9 +282,9 @@ class _Etkinlik2QrPageState extends State<Etkinlik2QrPage> {
         BuButton(label: l.eventFormRefreshCode, busy: _busy, onPressed: _busy ? null : _loadCode),
         const SizedBox(height: 4),
         TextButton(
-          style: TextButton.styleFrom(foregroundColor: t.pr, minimumSize: const Size(48, 48)),
+          style: TextButton.styleFrom(foregroundColor: t.prText, minimumSize: const Size(48, 48)),
           onPressed: _busy ? null : _loadCode,
-          child: Text(l.commonRetry, style: tx.bodyLarge!.copyWith(color: t.pr, fontWeight: FontWeight.w600)),
+          child: Text(l.commonRetry, style: tx.bodyLarge!.copyWith(color: t.prText, fontWeight: FontWeight.w600)),
         ),
       ]),
     );

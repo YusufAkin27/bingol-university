@@ -261,7 +261,7 @@ class _AcademicCalendarPageState extends State<AcademicCalendarPage> {
     final has = evs.isNotEmpty;
     final exam = evs.any((e) => _isExam(e.kind));
     final Color fg = sel || (isToday && inMonth)
-        ? t.pr
+        ? t.prText
         : !inMonth
             ? t.mut.withValues(alpha: .4)
             : (weekend ? t.mut : t.ink);
@@ -378,7 +378,7 @@ class _AcademicCalendarPageState extends State<AcademicCalendarPage> {
     final l = context.l10n;
     final loc = Localizations.localeOf(context).toString();
     final exam = _isExam(e.kind);
-    final color = exam ? t.pr : t.ink;
+    final color = exam ? t.prText : t.ink;
     final d = e.startDay;
     final dayName = DateFormat('EEEE', loc).format(d);
     final multi = e.endDay != e.startDay;

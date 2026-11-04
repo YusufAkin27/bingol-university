@@ -111,7 +111,7 @@ class ClubTextTabs extends StatelessWidget {
                             child: AnimatedDefaultTextStyle(
                               duration: BuMotion.of(context, BuMotion.short),
                               curve: BuMotion.standard,
-                              style: tx.bodyLarge!.copyWith(fontWeight: FontWeight.w600, color: on ? t.pr : t.mut),
+                              style: tx.bodyLarge!.copyWith(fontWeight: FontWeight.w600, color: on ? t.prText : t.mut),
                               child: Text(labels[i], maxLines: 1, softWrap: false),
                             ),
                           ),
@@ -463,9 +463,9 @@ class ClubsStateText extends StatelessWidget {
             if (actionLabel != null) ...[
               const SizedBox(height: 4),
               TextButton(
-                style: TextButton.styleFrom(foregroundColor: t.pr, minimumSize: const Size(48, 48), padding: const EdgeInsets.symmetric(horizontal: 16)),
+                style: TextButton.styleFrom(foregroundColor: t.prText, minimumSize: const Size(48, 48), padding: const EdgeInsets.symmetric(horizontal: 16)),
                 onPressed: onAction,
-                child: Text(actionLabel!, style: tx.titleMedium!.copyWith(color: t.pr, fontWeight: FontWeight.w600)),
+                child: Text(actionLabel!, style: tx.titleMedium!.copyWith(color: t.prText, fontWeight: FontWeight.w600)),
               ),
             ],
           ],

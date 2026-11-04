@@ -336,7 +336,7 @@ class _RequestTile extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.only(top: 3),
               child: Text(l.frqMsgReqGroupInvite,
-                  maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.labelMedium!.copyWith(fontWeight: FontWeight.w600, color: t.pr)),
+                  maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.labelMedium!.copyWith(fontWeight: FontWeight.w600, color: t.prText)),
             ),
           if (preview.isNotEmpty)
             Padding(

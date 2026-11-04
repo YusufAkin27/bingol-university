@@ -423,7 +423,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
                         fontSize: 14,
                         height: 1.3,
                         fontWeight: FontWeight.w600,
-                        color: t.pr)),
+                        color: t.prText)),
               ),
             ),
           )
@@ -721,7 +721,7 @@ class _ErrorCard extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Text(l.commonRetry,
                 style: BuType.caption.copyWith(
-                    fontSize: 14, fontWeight: FontWeight.w600, color: t.pr)),
+                    fontSize: 14, fontWeight: FontWeight.w600, color: t.prText)),
           ),
         ),
       ]),

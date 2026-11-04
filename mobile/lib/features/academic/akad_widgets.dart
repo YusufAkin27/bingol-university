@@ -71,7 +71,7 @@ class AkadChip extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.bu;
     final tx = Theme.of(context).textTheme;
-    final fg = selected ? t.pr : t.ink;
+    final fg = selected ? t.prText : t.ink;
     final style = tx.labelLarge!.copyWith(fontWeight: selected ? FontWeight.w700 : FontWeight.w600, color: fg);
     final text = MediaQuery.withClampedTextScaling(
       maxScaleFactor: 1.3,

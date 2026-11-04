@@ -496,7 +496,7 @@ class TopStrip extends StatelessWidget {
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 4),
                     child: Text(actionLabel!,
-                        style: tx.labelMedium!.copyWith(color: t.pr, fontWeight: FontWeight.w700, decoration: TextDecoration.none)),
+                        style: tx.labelMedium!.copyWith(color: t.prText, fontWeight: FontWeight.w700, decoration: TextDecoration.none)),
                   ),
                 ),
               ),

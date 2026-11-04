@@ -191,7 +191,7 @@ class NcPillButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.bu;
     final tx = Theme.of(context).textTheme;
-    final fg = t.pr;
+    final fg = t.prText;
     return Semantics(
       button: true,
       label: label,

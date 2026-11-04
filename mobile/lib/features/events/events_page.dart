@@ -759,12 +759,12 @@ class _EventsPageState extends State<EventsPage> {
         ),
         TextButton(
           key: const ValueKey('events-checkin'),
-          style: TextButton.styleFrom(foregroundColor: t.pr, minimumSize: const Size(48, 48), padding: const EdgeInsets.symmetric(horizontal: 8)),
+          style: TextButton.styleFrom(foregroundColor: t.prText, minimumSize: const Size(48, 48), padding: const EdgeInsets.symmetric(horizontal: 8)),
           onPressed: () {
             buHaptic(BuHaptic.selection);
             _scanCheckin();
           },
-          child: Text(l.eventListCheckin, style: tx.bodyLarge!.copyWith(color: t.pr, fontWeight: FontWeight.w600)),
+          child: Text(l.eventListCheckin, style: tx.bodyLarge!.copyWith(color: t.prText, fontWeight: FontWeight.w600)),
         ),
         ClubBarIcon(key: const ValueKey('events-create'), icon: BuIcons.plus, tooltip: l.eventListCreate, onTap: _create, width: 44),
       ]),
@@ -784,9 +784,9 @@ class _EventsPageState extends State<EventsPage> {
           Expanded(child: Text(l.p51ClubsLoadFailed, style: tx.titleMedium!.copyWith(fontSize: 17, color: t.ink, fontWeight: FontWeight.w600))),
           TextButton(
             key: const ValueKey('events-retry'),
-            style: TextButton.styleFrom(foregroundColor: t.pr, minimumSize: const Size(48, 48), padding: const EdgeInsets.symmetric(horizontal: 8)),
+            style: TextButton.styleFrom(foregroundColor: t.prText, minimumSize: const Size(48, 48), padding: const EdgeInsets.symmetric(horizontal: 8)),
             onPressed: _tab == 0 ? () => _load() : () => _loadFeed(_feedKey),
-            child: Text(l.commonRetry, style: tx.titleMedium!.copyWith(color: t.pr, fontWeight: FontWeight.w700)),
+            child: Text(l.commonRetry, style: tx.titleMedium!.copyWith(color: t.prText, fontWeight: FontWeight.w700)),
           ),
         ]),
         if (cached) Text(l.p14ErrorBodyCache, style: tx.bodySmall!.copyWith(color: t.mut)),
@@ -822,9 +822,9 @@ class _EventsPageState extends State<EventsPage> {
           Align(
             alignment: AlignmentDirectional.centerStart,
             child: TextButton(
-              style: TextButton.styleFrom(foregroundColor: t.pr, minimumSize: const Size(48, 48), padding: EdgeInsets.zero),
+              style: TextButton.styleFrom(foregroundColor: t.prText, minimumSize: const Size(48, 48), padding: EdgeInsets.zero),
               onPressed: onAction,
-              child: Text(actionLabel, style: tx.bodyLarge!.copyWith(color: t.pr, fontWeight: FontWeight.w600)),
+              child: Text(actionLabel, style: tx.bodyLarge!.copyWith(color: t.prText, fontWeight: FontWeight.w600)),
             ),
           ),
       ]),
@@ -916,9 +916,9 @@ class _EventsPageState extends State<EventsPage> {
             ),
             if (_showToday)
               TextButton(
-                style: TextButton.styleFrom(foregroundColor: t.pr, minimumSize: const Size(48, 48), padding: const EdgeInsets.symmetric(horizontal: 8)),
+                style: TextButton.styleFrom(foregroundColor: t.prText, minimumSize: const Size(48, 48), padding: const EdgeInsets.symmetric(horizontal: 8)),
                 onPressed: _goToday,
-                child: Text(l.p14Today, style: tx.bodyLarge!.copyWith(color: t.pr, fontWeight: FontWeight.w600)),
+                child: Text(l.p14Today, style: tx.bodyLarge!.copyWith(color: t.prText, fontWeight: FontWeight.w600)),
               ),
             ClubBarIcon(
               icon: BuIcons.chevronLeft,
@@ -1357,7 +1357,7 @@ class _EventsPageState extends State<EventsPage> {
               Expanded(
                 child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                   if (org != null && org.isNotEmpty)
-                    Text(org, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.bodySmall!.copyWith(fontSize: 13, color: dim ? t.mut : t.pr, fontWeight: FontWeight.w500)),
+                    Text(org, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.bodySmall!.copyWith(fontSize: 13, color: dim ? t.mut : t.prText, fontWeight: FontWeight.w500)),
                   Padding(
                     padding: const EdgeInsets.only(top: 2),
                     child: Text('${ev['title'] ?? ''}',
@@ -1385,7 +1385,7 @@ class _EventsPageState extends State<EventsPage> {
                   if (mode == _Mode.created && !cancelled && !rejected && !pendingReview && pending != null && pending > 0)
                     Padding(
                       padding: const EdgeInsets.only(top: 6),
-                      child: Text(l.profilyardEventPendingCount('$pending'), style: tx.bodySmall!.copyWith(color: t.pr, fontWeight: FontWeight.w600)),
+                      child: Text(l.profilyardEventPendingCount('$pending'), style: tx.bodySmall!.copyWith(color: t.prText, fontWeight: FontWeight.w600)),
                     ),
                 ]),
               ),

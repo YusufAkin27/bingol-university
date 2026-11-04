@@ -113,8 +113,8 @@ class _ChatBackgroundSettingsPageState extends State<ChatBackgroundSettingsPage>
                   child: TextButton(
                     key: const ValueKey('chatBgReset'),
                     onPressed: _reset,
-                    style: TextButton.styleFrom(foregroundColor: t.pr, minimumSize: const Size(48, 48)),
-                    child: Text(l.p67ChatBgReset, style: tx.bodyMedium!.copyWith(color: t.pr, fontWeight: FontWeight.w500)),
+                    style: TextButton.styleFrom(foregroundColor: t.prText, minimumSize: const Size(48, 48)),
+                    child: Text(l.p67ChatBgReset, style: tx.bodyMedium!.copyWith(color: t.prText, fontWeight: FontWeight.w500)),
                   ),
                 ),
               ],

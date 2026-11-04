@@ -82,7 +82,7 @@ class HomeLayoutPage extends StatelessWidget {
                 onTap: () => Navigator.of(context).maybePop(),
                 child: ConstrainedBox(
                   constraints: const BoxConstraints(minHeight: BuSize.touch, minWidth: BuSize.touch),
-                  child: Center(widthFactor: 1, child: Padding(padding: const EdgeInsets.symmetric(horizontal: 6), child: Text(l.p60Done, style: BuType.body.copyWith(fontSize: 15, fontWeight: FontWeight.w600, color: t.pr)))),
+                  child: Center(widthFactor: 1, child: Padding(padding: const EdgeInsets.symmetric(horizontal: 6), child: Text(l.p60Done, style: BuType.body.copyWith(fontSize: 15, fontWeight: FontWeight.w600, color: t.prText)))),
                 ),
               ),
             ),
@@ -318,7 +318,7 @@ class _SectionRow extends StatelessWidget {
                 index: index,
                 child: Semantics(
                   label: name,
-                  child: SizedBox(width: 40, height: BuSize.touch, child: Center(child: Icon(BuIcons.gripVertical, size: 16, color: dragging ? t.pr : t.mut))),
+                  child: SizedBox(width: 40, height: BuSize.touch, child: Center(child: Icon(BuIcons.gripVertical, size: 16, color: dragging ? t.prText : t.mut))),
                 ),
               ),
               Expanded(
@@ -375,7 +375,7 @@ class _ShortcutEditor extends StatelessWidget {
               decoration: BoxDecoration(color: t.soft, borderRadius: BorderRadius.circular(BuRadius.pill)),
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
-                child: Text('${v.shortcutOn.length}/${HomeLayout.maxShortcuts}', style: BuType.label.copyWith(fontSize: 13, fontWeight: FontWeight.w600, color: t.pr, fontFeatures: const [FontFeature.tabularFigures()])),
+                child: Text('${v.shortcutOn.length}/${HomeLayout.maxShortcuts}', style: BuType.label.copyWith(fontSize: 13, fontWeight: FontWeight.w600, color: t.prText, fontFeatures: const [FontFeature.tabularFigures()])),
               ),
             ),
           ]),

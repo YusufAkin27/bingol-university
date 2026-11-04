@@ -112,7 +112,7 @@ class AcadTextAction extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
-    final c = onTap == null ? t.mut : (color ?? t.pr);
+    final c = onTap == null ? t.mut : (color ?? t.prText);
     return Semantics(
       button: true,
       enabled: onTap != null,

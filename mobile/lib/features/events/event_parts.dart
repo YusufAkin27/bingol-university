@@ -215,7 +215,7 @@ class _EventConfirmDialog extends StatelessWidget {
           Row(children: [
             btn(const ValueKey('event-confirm-no'), cancelLabel, t.mut.withValues(alpha: .12), t.ink, false),
             const SizedBox(width: 10),
-            btn(const ValueKey('event-confirm-yes'), confirmLabel, danger ? t.danger : t.pr, t.onPr, true),
+            btn(const ValueKey('event-confirm-yes'), confirmLabel, danger ? t.danger : t.prText, t.onPr, true),
           ]),
         ]),
       ),

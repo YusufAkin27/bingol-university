@@ -1351,7 +1351,7 @@ class ViewOnceCard extends StatelessWidget {
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                           style: tx.bodyMedium!.copyWith(
-                              color: t.pr, fontWeight: FontWeight.w700)),
+                              color: t.prText, fontWeight: FontWeight.w700)),
                       Text(l.p08OnceSentSub,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,

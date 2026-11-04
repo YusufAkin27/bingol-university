@@ -338,7 +338,7 @@ class _QuickRoute extends StatelessWidget {
       child: Row(children: [
         Expanded(
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(l.campusQuickRoute, style: tx.labelSmall!.copyWith(color: t.pr, letterSpacing: .8, fontWeight: FontWeight.w800)),
+            Text(l.campusQuickRoute, style: tx.labelSmall!.copyWith(color: t.prText, letterSpacing: .8, fontWeight: FontWeight.w800)),
             const SizedBox(height: 2),
             Text(l.campusNearestTitle, style: tx.titleMedium!.copyWith(color: t.ink, fontWeight: FontWeight.w800)),
             const SizedBox(height: 2),

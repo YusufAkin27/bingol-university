@@ -313,7 +313,7 @@ class CampusPlaceTile extends StatelessWidget {
       title = Text.rich(
         TextSpan(style: base, children: [
           TextSpan(text: place.name.substring(0, h.start)),
-          TextSpan(text: place.name.substring(h.start, h.end), style: base.copyWith(color: t.pr)),
+          TextSpan(text: place.name.substring(h.start, h.end), style: base.copyWith(color: t.prText)),
           TextSpan(text: place.name.substring(h.end)),
         ]),
         maxLines: 2,

@@ -1044,7 +1044,7 @@ class HomeEmptyCard extends StatelessWidget {
             Expanded(child: text),
             if (actionLabel != null) ...[
               const SizedBox(width: 8),
-              _TextLink(label: actionLabel!, onTap: onAction, color: t.pr),
+              _TextLink(label: actionLabel!, onTap: onAction, color: t.prText),
             ],
           ]),
         ),

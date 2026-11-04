@@ -132,6 +132,10 @@ class BuTokens extends ThemeExtension<BuTokens> {
   final Color bdStrong;
 
   /// Seçili çip/segment çerçevesi: tek "seçili" stili = [soft] zemin + [onSoft] yazı + bu çerçeve (A6-03).
+  /// Metin ve küçük (<18 dp) simge için AA geçen marka kırmızısı: açıkta `prPressed` (beyaz üstünde 5.7:1),
+  /// koyuda `pr`. Dolgu/rozet/ilerleme/seçili çerçeve gibi dekoratif kullanımlar `pr` kalır.
+  Color get prText => bg.computeLuminance() > .5 ? prPressed : pr;
+
   Color get selectedBorder => pr.withValues(alpha: .45);
 
   /// `okSoft` zemini üstündeki yazı/simge (başarı ailesinin "zemin üstü yazı" tonu).

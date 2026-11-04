@@ -84,7 +84,7 @@ class IcerikIconButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.bu;
     final Color bg = plain ? Colors.transparent : (overlay ? t.sf.withValues(alpha: .88) : t.sf);
-    final Color fg = on ? t.pr : t.ink;
+    final Color fg = on ? t.prText : t.ink;
     return Semantics(
       button: true,
       toggled: toggled,
@@ -195,7 +195,7 @@ class IcerikBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
-    final bg = tint?.bg ?? (soft ? t.soft : t.pr);
+    final bg = tint?.bg ?? (soft ? t.soft : t.prText);
     final fg = tint?.fg ?? (soft ? t.onSoft : t.onPr);
     // Genişlik içeriğe göre (Wrap/Column içinde şeritlenmez); yükseklik yazı ölçeğiyle büyür.
     return Container(
@@ -317,13 +317,13 @@ class IcerikTabs extends StatelessWidget {
                             padding: const EdgeInsets.symmetric(horizontal: 6),
                             child: Row(mainAxisSize: MainAxisSize.min, children: [
                               if (icons != null && i < icons!.length) ...[
-                                Icon(icons![i], size: 16, color: i == index ? (raised ? t.pr : t.onSoft) : t.mut),
+                                Icon(icons![i], size: 16, color: i == index ? (raised ? t.prText : t.onSoft) : t.mut),
                                 const SizedBox(width: 6),
                               ],
                               AnimatedDefaultTextStyle(
                                 duration: BuMotion.of(context, BuMotion.short),
                                 style: tx.labelLarge!.copyWith(
-                                    fontWeight: FontWeight.w700, color: i == index ? (raised ? t.pr : t.onSoft) : t.mut),
+                                    fontWeight: FontWeight.w700, color: i == index ? (raised ? t.prText : t.onSoft) : t.mut),
                                 child: Text(labels[i], maxLines: 1),
                               ),
                             ]),
@@ -566,7 +566,7 @@ class IcerikErrorCard extends StatelessWidget {
             buHaptic(BuHaptic.selection);
             onRetry();
           },
-          child: Text(retryLabel, style: tx.bodyLarge!.copyWith(fontSize: 16, fontWeight: FontWeight.w600, color: t.pr)),
+          child: Text(retryLabel, style: tx.bodyLarge!.copyWith(fontSize: 16, fontWeight: FontWeight.w600, color: t.prText)),
         ),
       ]),
     );

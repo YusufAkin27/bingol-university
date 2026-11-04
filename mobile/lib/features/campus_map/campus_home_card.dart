@@ -53,7 +53,7 @@ class CampusHomeCard extends StatelessWidget {
                 padding: const EdgeInsetsDirectional.fromSTEB(8, 5, 12, 5),
                 decoration: BoxDecoration(color: t.sf.withValues(alpha: .94), borderRadius: BuRadius.bPill),
                 child: Row(mainAxisSize: MainAxisSize.min, children: [
-                  Icon(BuIcons.map, size: 16, color: t.pr),
+                  Icon(BuIcons.map, size: 16, color: t.prText),
                   const SizedBox(width: 6),
                   Text(l.campusCardTitle, style: tx.labelMedium!.copyWith(color: t.ink, fontWeight: FontWeight.w800)),
                 ]),

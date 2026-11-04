@@ -990,7 +990,7 @@ class _DiscardDialog extends StatelessWidget {
           TextButton(
             key: const ValueKey('composeDiscard'),
             onPressed: () => Navigator.pop(context, true),
-            style: TextButton.styleFrom(minimumSize: const Size.fromHeight(48), foregroundColor: t.pr),
+            style: TextButton.styleFrom(minimumSize: const Size.fromHeight(48), foregroundColor: t.prText),
             child: Text(l.gonderiDiscardYes, style: const TextStyle(fontWeight: FontWeight.w700)),
           ),
         ]),
