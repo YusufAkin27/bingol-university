@@ -187,8 +187,9 @@ class _SettingsPageState extends State<SettingsPage> {
               padding: EdgeInsets.only(bottom: MediaQuery.paddingOf(context).bottom + 32),
               children: [
                 ProfilFlatSection(l.settingsSectionAppearance, top: 12),
-                ProfilFlatGroup(children: [
+                ProfilFlatGroup(outlined: true, children: [
                   ProfilFlatRow(
+                    plainIcon: true,
                     key: const ValueKey('settings-language'),
                     icon: BuIcons.globe,
                     label: l.settingsLanguage,
@@ -196,6 +197,7 @@ class _SettingsPageState extends State<SettingsPage> {
                     onTap: lc != null ? _pickLang : null,
                   ),
                   ProfilFlatRow(
+                    plainIcon: true,
                     key: const ValueKey('settings-theme'),
                     icon: BuIcons.palette,
                     label: l.profil1Theme,
@@ -204,30 +206,34 @@ class _SettingsPageState extends State<SettingsPage> {
                   ),
                 ]),
                 ProfilFlatSection(l.navChat),
-                ProfilFlatGroup(children: [
+                ProfilFlatGroup(outlined: true, children: [
                   ProfilFlatRow(
+                    plainIcon: true,
                     key: const ValueKey('settings-chats'),
                     icon: BuIcons.image,
                     label: l.p67ChatBgTitle,
                     onTap: () => _push(const ChatBackgroundSettingsPage()),
                   ),
                   ProfilFlatRow(
+                    plainIcon: true,
                     icon: BuIcons.users,
                     label: l.settingsFindContacts,
                     onTap: () => _push(ContactsMatchPage(session: widget.session)),
                   ),
                 ]),
                 ProfilFlatSection(l.settingsSectionNotifications),
-                ProfilFlatGroup(children: [
+                ProfilFlatGroup(outlined: true, children: [
                   ProfilFlatRow(
+                    plainIcon: true,
                     key: const ValueKey('settings-notif-prefs'),
                     icon: BuIcons.bell,
                     label: l.profil1Notifications,
                     onTap: () => _push(NotificationPrefsPage(session: widget.session)),
                   ),
                   ProfilFlatRow(
+                    plainIcon: true,
                     key: const ValueKey('settings-push'),
-                    icon: BuIcons.bell,
+                    icon: BuIcons.bellRing,
                     label: l.p21HelpPermTitle,
                     value: pushValue,
                     // Bildirim izni işletim sistemindedir: dokununca sistem ayarları açılır (toast yok).
@@ -237,28 +243,33 @@ class _SettingsPageState extends State<SettingsPage> {
                 ProfilFlatSection(l.settingsSectionPrivacy),
                 ListenableBuilder(
                   listenable: _crash,
-                  builder: (_, __) => ProfilFlatGroup(children: [
+                  builder: (_, __) => ProfilFlatGroup(outlined: true, children: [
                     ProfilFlatRow(
+                    plainIcon: true,
                       icon: BuIcons.lock,
                       label: l.settingsPrivacyData,
                       onTap: () => _push(PrivacyDataPage(session: widget.session)),
                     ),
                     ProfilFlatRow(
+                    plainIcon: true,
                       icon: BuIcons.shieldCheck,
                       label: l.profil1AccountSecurity,
                       onTap: () => _push(AccountSecurityPage(session: widget.session)),
                     ),
                     ProfilFlatRow(
+                    plainIcon: true,
                       icon: BuIcons.userX,
                       label: l.profilePrefsBlockedTitle,
                       onTap: () => _push(BlockedUsersPage(session: widget.session)),
                     ),
                     ProfilFlatRow(
+                    plainIcon: true,
                       icon: BuIcons.headset,
                       label: l.settingsSupport,
                       onTap: () => _push(SupportPage(session: widget.session)),
                     ),
                     ProfilFlatRow(
+                    plainIcon: true,
                       icon: BuIcons.info,
                       label: l.profileAboutShort,
                       onTap: () => _push(AboutPage(session: widget.session)),
@@ -272,6 +283,7 @@ class _SettingsPageState extends State<SettingsPage> {
                       onChanged: (v) => _crash.setEnabled(v),
                     ),
                     ProfilFlatRow(
+                    plainIcon: true,
                       key: const ValueKey('settings-logout-all'),
                       icon: BuIcons.logOut,
                       label: l.settingsLogoutAll,
@@ -280,6 +292,7 @@ class _SettingsPageState extends State<SettingsPage> {
                     ),
                     // Uygulama içinde hesap silme (App Store 2.1 / 5.1.1(v)): ayarlardan doğrudan erişilir.
                     ProfilFlatRow(
+                    plainIcon: true,
                       key: const ValueKey('settings-delete-account'),
                       icon: BuIcons.trash2,
                       label: l.profilePrefsDeleteMyAccount,
@@ -287,6 +300,7 @@ class _SettingsPageState extends State<SettingsPage> {
                       onTap: () => _push(DeleteAccountPage(session: widget.session)),
                     ),
                     ProfilFlatRow(
+                    plainIcon: true,
                       key: const ValueKey('settings-sign-out'),
                       icon: BuIcons.logOut,
                       label: l.profileSignOut,
