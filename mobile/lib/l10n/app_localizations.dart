@@ -100,6 +100,72 @@ abstract class AppLocalizations {
     Locale('tr')
   ];
 
+  /// No description provided for @chatReactionPickerTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Tepki seç'**
+  String get chatReactionPickerTitle;
+
+  /// No description provided for @chatReactionKeyboardHint.
+  ///
+  /// In tr, this message translates to:
+  /// **'Klavyenden bir emoji seç'**
+  String get chatReactionKeyboardHint;
+
+  /// No description provided for @chatReactionOneEmoji.
+  ///
+  /// In tr, this message translates to:
+  /// **'Tek bir emoji seçin.'**
+  String get chatReactionOneEmoji;
+
+  /// No description provided for @chatMessageInfoTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Mesaj bilgisi'**
+  String get chatMessageInfoTitle;
+
+  /// No description provided for @chatMessageSent.
+  ///
+  /// In tr, this message translates to:
+  /// **'Gönderildi'**
+  String get chatMessageSent;
+
+  /// No description provided for @chatMessageDelivered.
+  ///
+  /// In tr, this message translates to:
+  /// **'İletildi'**
+  String get chatMessageDelivered;
+
+  /// No description provided for @chatMessageRead.
+  ///
+  /// In tr, this message translates to:
+  /// **'Okundu'**
+  String get chatMessageRead;
+
+  /// No description provided for @chatMessageTimeUnknown.
+  ///
+  /// In tr, this message translates to:
+  /// **'Zaman kaydı bulunmuyor'**
+  String get chatMessageTimeUnknown;
+
+  /// No description provided for @chatMessageWaiting.
+  ///
+  /// In tr, this message translates to:
+  /// **'Henüz gerçekleşmedi'**
+  String get chatMessageWaiting;
+
+  /// No description provided for @chatMessageReplies.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu mesaja yanıtlar'**
+  String get chatMessageReplies;
+
+  /// No description provided for @chatMessageNoReplies.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu mesaja henüz yanıt verilmedi.'**
+  String get chatMessageNoReplies;
+
   /// No description provided for @commonRetry.
   ///
   /// In tr, this message translates to:

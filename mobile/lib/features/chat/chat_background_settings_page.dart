@@ -161,7 +161,7 @@ class _PreviewBubble extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         decoration: BoxDecoration(
-          color: mine ? t.pr : t.sf,
+          color: mine ? t.prPressed : t.sf,
           border: mine ? null : Border.all(color: t.bd),
           borderRadius: BorderRadiusDirectional.only(topStart: r, topEnd: mine ? small : r, bottomStart: mine ? r : small, bottomEnd: r),
         ),

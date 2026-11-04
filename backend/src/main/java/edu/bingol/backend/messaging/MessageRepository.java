@@ -13,6 +13,22 @@ import org.springframework.transaction.annotation.Transactional;
 
 public interface MessageRepository extends JpaRepository<Message, Long> {
 
+    @Modifying
+    @Transactional
+    @Query("UPDATE Message m SET m.deliveredAt = :at WHERE m.conversationId = :cid AND m.id > :after AND m.id <= :upto AND m.senderId <> :actor AND m.suppressed = false AND m.deliveredAt IS NULL")
+    int recordDelivered(@Param("cid") Long cid, @Param("actor") Long actor, @Param("after") long after,
+                        @Param("upto") long upto, @Param("at") Instant at);
+
+    @Modifying
+    @Transactional
+    @Query("UPDATE Message m SET m.readAt = :at WHERE m.conversationId = :cid AND m.id > :after AND m.id <= :upto AND m.senderId <> :actor AND m.suppressed = false AND m.readAt IS NULL")
+    int recordRead(@Param("cid") Long cid, @Param("actor") Long actor, @Param("after") long after,
+                   @Param("upto") long upto, @Param("at") Instant at);
+
+    @Query("SELECT m FROM Message m WHERE m.conversationId = :cid AND m.replyToMessageId = :parent AND m.id > :cleared AND (:before IS NULL OR m.id < :before) AND (m.suppressed = false OR m.senderId = :viewer) ORDER BY m.id DESC")
+    List<Message> repliesTo(@Param("cid") Long cid, @Param("parent") Long parent, @Param("viewer") Long viewer,
+                            @Param("cleared") long cleared, @Param("before") Long before, Pageable pageable);
+
     Optional<Message> findByConversationIdAndSenderIdAndClientId(Long conversationId, Long senderId, String clientId);
 
     /** KVKK dis aktarim: kullanicinin kendi gonderdigi GORUNUR mesajlar (yeni -> eski); herkes icin silinenler haric. */

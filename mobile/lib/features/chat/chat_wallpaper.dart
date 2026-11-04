@@ -9,13 +9,16 @@ import '../../widgets/bu.dart';
 
 /// Sohbet arka planı (konuşma ekranı duvar kağıdı; sohbet LİSTESİNE uygulanmaz).
 ///
-/// Tasarım: sıcak nötr zemin (tema `bg`) üstüne tek renkli, çok düşük opaklıklı kampüs/öğrenci temalı ince çizgi
-/// ikon deseni (kitap, kep, kahve, defter, takvim, nota, top, ampul, kalem, mesaj...). Kırmızı/mavi vurgu YOK; desen
-/// yalnız `ink` jetonunun düşük alfa tonudur (açık temada koyu tint, koyu temada açık tint).
+/// Tasarım: sıcak nötr zemin (tema `bg`) üstüne tek renkli, düşük opaklıklı kampüs/öğrenci temalı ince çizgi
+/// ikon deseni (kitap, kep, kahve, defter, takvim, nota, top, ampul, kalem, mesaj...). Kırmızı/mavi vurgu YOK;
+/// desen yalnız `ink` jetonunun düşük alfa tonudur (açık temada koyu tint, koyu temada açık tint).
 ///
-/// Performans: desen TEK SEFER küçük bir kare dokuya (360 x 360 dp) çizilir (`Picture.toImageSync`), (tema, stil,
-/// piksel oranı) anahtarıyla önbelleğe alınır ve `ImageShader` ile döşenir; kaydırırken yeniden hesap/çizim yok
-/// (ayrı `RepaintBoundary`), blur/BackdropFilter yok. Tema, stil ya da piksel oranı değişince yeniden üretilir.
+/// Desen: 360 dp tile, 20 akademik çizgi ikon; açık temada %7, koyu temada %6 opaklık (çok düşük kontrast).
+///
+/// Performans: desen TEK SEFER küçük bir kare dokuya (240 × 240 dp) çizilir (`Picture.toImageSync`),
+/// (tema, stil, piksel oranı) anahtarıyla önbelleğe alınır ve `ImageShader` ile döşenir; kaydırırken
+/// yeniden hesap/çizim yok (ayrı `RepaintBoundary`), blur/BackdropFilter yok. Tema, stil ya da piksel
+/// oranı değişince yeniden üretilir.
 enum ChatBgStyle {
   pattern,
   soft,
@@ -44,7 +47,8 @@ enum ChatBgStyle {
 const List<ChatBgStyle> kChatWallpaperAssets = <ChatBgStyle>[];
 
 /// Varlık dosya yolu (tema başına ayrı görsel).
-String chatWallpaperAssetPath(ChatBgStyle s, {required bool dark}) => 'assets/chat_wallpapers/${s.assetName}_${dark ? 'dark' : 'light'}.png';
+String chatWallpaperAssetPath(ChatBgStyle s, {required bool dark}) =>
+    'assets/chat_wallpapers/${s.assetName}_${dark ? 'dark' : 'light'}.png';
 
 /// Seçili arka plan tercihi: cihazda, kullanıcıya özel (güvenli depoda tek anahtar; sunucu ucu yok). Varsayılan
 /// (Desen) kayıt tutmaz. Çıkışta [clear] silinir (bkz. `registerUserDataCleaners`).
@@ -136,27 +140,30 @@ class ChatWallpaper extends StatefulWidget {
   /// Dokunun kenar uzunluğu (dp).
   static const tileSize = 360.0;
 
-  /// Kare dokuda yer alan ikonlar: ızgara + hafif kayma, hiçbiri kenara taşmaz (kesintisiz döşenir).
-  static final List<_Glyph> _glyphs = [
-    const _Glyph(BuIcons.bookOpen, 40, 34, 26, -12),
-    const _Glyph(BuIcons.coffee, 135, 52, 24, 10),
-    const _Glyph(BuIcons.lightbulb, 225, 30, 24, 14),
-    const _Glyph(BuIcons.music, 318, 56, 24, -8),
-    const _Glyph(BuIcons.graduationCap, 60, 128, 28, 8),
-    const _Glyph(BuIcons.messageCircle, 160, 140, 24, -14),
-    const _Glyph(BuIcons.pencil, 262, 118, 24, 22),
-    const _Glyph(BuIcons.calendar, 330, 150, 22, -10),
-    const _Glyph(BuIcons.notebookPen, 30, 222, 26, 12),
-    const _Glyph(BuIcons.volleyball, 118, 230, 26, -6),
-    const _Glyph(BuIcons.laptop, 210, 214, 26, 6),
-    const _Glyph(BuIcons.trophy, 302, 240, 24, -14),
-    const _Glyph(BuIcons.atom, 70, 318, 26, -8),
-    const _Glyph(BuIcons.backpack, 160, 326, 24, 12),
-    const _Glyph(BuIcons.palette, 250, 312, 24, -10),
-    const _Glyph(BuIcons.library, 335, 330, 22, 8),
-  ];
+  /// Üniversite/akademik çizgi ikonlar (kitap, kep, kalem, kahve, takvim, ampul, kampüs...): 5 satır x 4 sütun,
+  /// tek satırlar kaydırılır; hiçbiri kenara taşmaz (kesintisiz döşenir). Yoğunluk bilerek düşük: sade.
+  static final List<_Glyph> _glyphs = () {
+    const icons = <IconData>[
+      BuIcons.bookOpen, BuIcons.graduationCap, BuIcons.pencil, BuIcons.coffee,
+      BuIcons.calendar, BuIcons.lightbulb, BuIcons.library, BuIcons.notebookPen,
+      BuIcons.backpack, BuIcons.atom, BuIcons.laptop, BuIcons.flaskConical,
+      BuIcons.bookmark, BuIcons.globe, BuIcons.clock, BuIcons.pencilLine,
+      BuIcons.compass, BuIcons.building2, BuIcons.bookOpen, BuIcons.graduationCap,
+    ];
+    const tilts = <double>[-12, 8, 18, -8, 12, -16, 6, -10, 14, -6];
+    return [
+      for (var i = 0; i < 20; i++)
+        _Glyph(
+          icons[i],
+          ((i ~/ 4).isOdd ? 78.0 : 33.0) + (i % 4) * 90,
+          36.0 + (i ~/ 4) * 72,
+          22.0 + (i % 3) * 2,
+          tilts[i % tilts.length],
+        ),
+    ];
+  }();
 
-  /// Desen opaklığı (ink jetonu üstüne): açık temada %4.5-11, koyu temada %4-9.
+  /// Desen opaklığı (ink jetonu üstüne): çok düşük kontrast, mesajlar net ayrışır.
   static double alphaOf(ChatBgStyle s, bool dark) => switch (s) {
         ChatBgStyle.pattern => dark ? .06 : .07,
         ChatBgStyle.soft => dark ? .04 : .045,
@@ -196,11 +203,19 @@ class ChatWallpaper extends StatefulWidget {
       final c = Canvas(rec);
       c.scale(dpr);
       final color = ink.withValues(alpha: alpha);
+
+      // --- İkonları çiz ---
       for (final g in _glyphs) {
         final tp = TextPainter(
           text: TextSpan(
             text: String.fromCharCode(g.icon.codePoint),
-            style: TextStyle(inherit: false, fontSize: g.size, fontFamily: g.icon.fontFamily, package: g.icon.fontPackage, color: color),
+            style: TextStyle(
+              inherit: false,
+              fontSize: g.size,
+              fontFamily: g.icon.fontFamily,
+              package: g.icon.fontPackage,
+              color: color,
+            ),
           ),
           textDirection: TextDirection.ltr,
         )..layout();
@@ -212,12 +227,13 @@ class ChatWallpaper extends StatefulWidget {
         c.restore();
         tp.dispose();
       }
+
       final pic = rec.endRecording();
       final img = pic.toImageSync(px, px);
       pic.dispose();
       debugTileBuilds++;
-      // Bellek sınırı: en çok 3 doku (tema/stil/yoğunluk değişimlerinde eskisi atılır).
-      while (_cache.length >= 3) {
+      // Bellek sınırı: en çok 4 doku (tema/stil/yoğunluk değişimlerinde eskisi atılır).
+      while (_cache.length >= 4) {
         _cache.remove(_cache.keys.first);
       }
       _cache[key] = img;
