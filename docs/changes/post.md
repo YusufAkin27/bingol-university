@@ -275,7 +275,7 @@ Keşfet filtreleri **Senin İçin | Popüler | Reels | En Yeni | Takip Ettikleri
 - Testler: `PostFeedSeenTest` (foryou, reels, geçmiş, ilgilenmiyorum), `ReelsRankerTest`, `UserPopularityTest`, `PostRankTest`, `WebmInfoTest`, `PostMediaServiceTest` (MOV/WebM/HEIC), `PostServiceTest`/`PostTopFeedTest` güncel.
   PostgreSQL'e özgü kısımlar (V1220 migration, `NOT IN` + kısmi indeks planı, Redis ZSET işlemleri) H2'de değil `scripts/smoke-kesfet-video.sh` ile doğrulanır.
 - Dağıtım notu (koordinatör): `MULTIPART_MAX_FILE=52MB`, `MULTIPART_MAX_REQUEST=54MB` (compose/.env.prod.example güncellendi), Caddy `CADDY_MAX_BODY` >= 55 MB; V1220 yalnız
-  ALTER ADD COLUMN (varsayılanlı) + UPDATE + CREATE; Flyway V1210 (davranış analizi) ile çakışmaz.
+  ALTER ADD COLUMN (varsayılanlı) + UPDATE + CREATE; Flyway V1240 (davranış analizi) ile çakışmaz.
 ## KS-BE2 (V1230): Keşfet yorumları + yanıtlar + yorum beğenisi, gönderi kaydetme, kullanıcı arama, REELS arama, profil sayaçları (2026-11-04)
 
 **Kararlar (kullanıcı, 2026-11-04):** V470'te kaldırılan **yorum** ve **kaydet** özellikleri geri geliyor (gönderi + reel için), iç içe yanıtlar ve yorum beğenisi eklendi; genel kullanıcı arama iyileşti (Türkçe harf duyarsız, kısmi eşleşme); Reels arama türü; profil sayaçları. Bu bölüm mobil ajanların (KS-MB, SR-MB, CI-MB) sözleşmesidir. `docs/MOBILE_API_GUIDE.md` içindeki eski "SADE KEŞFET" kutusunun "yorum/kaydet kaldırıldı (410)" satırı bununla çelişirse **bu bölüm geçerlidir** (etiket `#`, bahsetme `@`, hikâye, video-dışı kaldırılanlar aynen kaldırıdır). Aşağıdaki kod haritası KS-BE (V1220) ile birleşmeye hazırdır (bkz. "Birleşme notları").

@@ -258,9 +258,9 @@ API sekli DEGISMEZ. Docker yok: PostgreSQL'e ozel parcalar (rol betikleri) DOGRU
 - **Web:** `/admin/app-versions` sayfası + Ayarlar > Mağaza ve sürümler'de paket adı / Apple kimliği / üç dilli güncelleme metni alanları.
 - **Dağıtım sırası:** önce backend (V1030 + yeni uçlar; eski mobil yeni alanları yok sayar), sonra web, sonra mobil sürümü. Eski uygulamalar `storeUrl` (artık türetilmiş) ile zaten Play Store'a gider.
 
-## Kullanici davranis analizi (V1210, `analytics.behavior`)
+## Kullanici davranis analizi (V1240, `analytics.behavior`)
 
 - **Olay sozlesmesi (mobil -> sunucu):** `props.sid` (oturum kimligi `[a-z0-9]{8,32}`), yeni adlar `session_start`, `session_end {durationMs, screens?, reason?}`, `screen_exit {dwellMs}`, `action {kind, target?}` (22 izinli `kind`, beyaz liste `EventContract`). Sozlesmeyi bozan olay **tek tek elenir** (istek 204, sayac artmaz); yapisal bozukluk eskisi gibi tum istegi `400 INVALID_EVENT` yapar. `props` siniri 5 -> 8, anahtar camelCase olabilir, `sid` degeri uzun-rakam (telefon) kuralindan muaf. Eski olaylar degismedi. Ayrinti: `docs/ADMIN_API.md` "Kullanici davranis analizi".
 - **Yonetici uclari:** `/api/admin/analytics/behavior/{overview,screens,flows,actions}` (`analytics.read`) ve `/users`, `/users/{id}` (`users.pii`: FULL, MODERATOR; her cagri `admin_audit`'e yazilir). Aralik en cok 45 gun (`RANGE_TOO_LARGE`, tr/en/ar), varsayilan son 7 gun. Oturumlastirma ham `analytics_event` uzerinde PostgreSQL pencere fonksiyonlariyla; `sid` yoksa 30 dk bosluk. bounce = <=1 ekran ve < 10 sn; hemen kapatma = < 5 sn.
-- **Gunluk ozet (V1210):** `analytics_session_daily`, `analytics_screen_daily` (kalici, kullanici kimligi yok); `AnalyticsRollup.rollUpBehaviorDays` gece 03:00 `DbMaintenanceJob` icinde (dun + bir onceki gun yeniden hesaplanir). API bu surumde yalniz ham tablodan okur.
+- **Gunluk ozet (V1240):** `analytics_session_daily`, `analytics_screen_daily` (kalici, kullanici kimligi yok); `AnalyticsRollup.rollUpBehaviorDays` gece 03:00 `DbMaintenanceJob` icinde (dun + bir onceki gun yeniden hesaplanir). API bu surumde yalniz ham tablodan okur.
 - **Smoke:** `scripts/smoke-behavior.sh`; `smoke-admin.sh` "6 props" adimi "9 props 400" oldu.

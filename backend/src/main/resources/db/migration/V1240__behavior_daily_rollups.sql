@@ -1,4 +1,4 @@
--- V1210: kullanici davranis analizi (oturum / ekran suresi) gunluk kalici ozetleri. Ayrinti: docs/ADMIN_API.md "Kullanici davranis analizi".
+-- V1240: kullanici davranis analizi (oturum / ekran suresi) gunluk kalici ozetleri. Ayrinti: docs/ADMIN_API.md "Kullanici davranis analizi".
 -- Ham olaylar (analytics_event) 45 gun saklanir; bu tablolar yalniz TOPLU sayilar tutar, kullanici kimligi YOKTUR.
 -- Gun = Europe/Istanbul takvim gunu. Dolum: dbmaint.AnalyticsRollup.rollUpBehaviorDays (gece, idempotent upsert).
 -- "users" = o gunun tekil kullanicisi; araliklarda toplanirsa "gun-kullanici" olur. Oturum, BASLADIGI gune sayilir.

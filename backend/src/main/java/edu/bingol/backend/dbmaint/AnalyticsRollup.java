@@ -51,7 +51,7 @@ public class AnalyticsRollup {
     }
 
     /**
-     * Davranis analizi gunluk ozetleri (analytics_session_daily, analytics_screen_daily; V1210): son doldurulan gunden
+     * Davranis analizi gunluk ozetleri (analytics_session_daily, analytics_screen_daily; V1240): son doldurulan gunden
      * dunun sonuna kadar; ayrica her gece SON IKI gun yeniden hesaplanir (gec gelen cevrimdisi olaylar icin; idempotent
      * upsert). Ham olay saklama suresi (45 gun) kadar geriye gidilir. Bir gunun hatasi digerlerini durdurmaz.
      * @return hesaplanan gun sayisi.

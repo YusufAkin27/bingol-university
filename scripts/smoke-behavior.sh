@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 # BK6 duman testi (kullanici davranis analizi): olay sozlesmesi dogrulamasi (sid/sure/eylem beyaz listesi, bozuk olay tek tek
 # elenir) -> oturumlastirma (sid'li + sid'siz eski olaylar) -> /api/admin/analytics/behavior/{overview,screens,flows,actions,
-# users,users/{id}} -> yetki (anonim 401, kullanici 403) -> sayfalama/siralama/aralik hatalari -> denetim kaydi -> V1210 tablolari.
+# users,users/{id}} -> yetki (anonim 401, kullanici 403) -> sayfalama/siralama/aralik hatalari -> denetim kaydi -> V1240 tablolari.
 # Calisan compose yigina karsi, ASCII, tekrar calistirilabilir (her kosuda yeni kullanici + yeni sid'ler).
 # Kullanim: BASE=http://localhost:8080 ADMIN_EMAIL=boss@bingol.edu.tr ./scripts/smoke-behavior.sh
-# Onkosul: compose'ta MAIL_ENABLED=false (kod log'dan okunur), ADMIN_EMAILS=$ADMIN_EMAIL, V1210 migration uygulanmis.
+# Onkosul: compose'ta MAIL_ENABLED=false (kod log'dan okunur), ADMIN_EMAILS=$ADMIN_EMAIL, V1240 migration uygulanmis.
 # Not: COMPOSE_PROJECT_NAME ile ayri proje kullaniliyorsa ayni degisken bu betikte de verilmelidir (docker compose logs).
 set -u
 BASE=${BASE:-http://localhost:8080}
@@ -182,7 +182,7 @@ echo "== denetim kaydi (kullanici bazli uclar)"
 AU=$(curl -s -H "$AD" "$A/admin/audit?size=60")
 has "denetimde behavior/users okumasi" '/api/admin/analytics/behavior/users' "$AU"
 
-echo "== V1210 tablolari"
+echo "== V1240 tablolari"
 if docker compose exec -T postgres psql -U "$DB_USER" -d "$DB_NAME" -At -c "SELECT count(*) FROM analytics_session_daily" >/dev/null 2>&1; then
   echo "  ok   analytics_session_daily var"
   docker compose exec -T postgres psql -U "$DB_USER" -d "$DB_NAME" -At -c "SELECT count(*) FROM analytics_screen_daily" >/dev/null 2>&1 \
