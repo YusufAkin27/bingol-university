@@ -5646,7 +5646,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get profil2SecPwRule =>
-      'من 8 إلى 72 حرفًا. خلط الحروف والأرقام يجعلها أقوى.';
+      '6 أحرف على الأقل. خلط الحروف والأرقام يجعلها أقوى.';
 
   @override
   String get profil2SecPwButton => 'تحديث كلمة المرور';

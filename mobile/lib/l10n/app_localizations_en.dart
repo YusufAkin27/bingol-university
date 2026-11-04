@@ -5697,7 +5697,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get profil2SecPwRule =>
-      '8 to 72 characters. Mixing letters and digits makes it stronger.';
+      'At least 6 characters. Mixing letters and digits makes it stronger.';
 
   @override
   String get profil2SecPwButton => 'Update password';

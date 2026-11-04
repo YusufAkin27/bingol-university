@@ -5673,7 +5673,7 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get profil2SecPwRule =>
-      '8 ile 72 karakter. Harf ve rakam karıştırırsanız güçlenir.';
+      'En az 6 karakter. Harf ve rakam karıştırırsanız güçlenir.';
 
   @override
   String get profil2SecPwButton => 'Şifreyi güncelle';

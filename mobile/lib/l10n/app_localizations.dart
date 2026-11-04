@@ -10504,7 +10504,7 @@ abstract class AppLocalizations {
   /// No description provided for @profil2SecPwRule.
   ///
   /// In tr, this message translates to:
-  /// **'8 ile 72 karakter. Harf ve rakam karıştırırsanız güçlenir.'**
+  /// **'En az 6 karakter. Harf ve rakam karıştırırsanız güçlenir.'**
   String get profil2SecPwRule;
 
   /// No description provided for @profil2SecPwButton.
