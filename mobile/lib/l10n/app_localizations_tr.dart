@@ -5497,6 +5497,67 @@ class AppLocalizationsTr extends AppLocalizations {
   String get kesfetSearchHint => 'Gönderi veya kişi ara';
 
   @override
+  String get kesSegPosts => 'Gönderiler';
+
+  @override
+  String get kesSegReels => 'Reels';
+
+  @override
+  String get kesSegA11y => 'Keşfet görünümü';
+
+  @override
+  String get kesPopularity => 'Popülerlik';
+
+  @override
+  String kesPopularityOf(String score) {
+    return 'Popülerlik puanı $score / 100';
+  }
+
+  @override
+  String get kesPopularityHow =>
+      'Takipçi sayın, aldığın beğeniler ve gönderi sayından hesaplanır.';
+
+  @override
+  String get kesLikesReceived => 'Alınan beğeni';
+
+  @override
+  String get kesPickVideo => 'Video seç';
+
+  @override
+  String get kesRecordVideo => 'Video çek';
+
+  @override
+  String get kesVideoLimits => 'Video en fazla 60 saniye ve 50 MB olabilir.';
+
+  @override
+  String kesVideoPreparing(String pct) {
+    return 'Video hazırlanıyor… $pct';
+  }
+
+  @override
+  String kesVideoUploading(String pct) {
+    return 'Video yükleniyor… $pct';
+  }
+
+  @override
+  String get kesVideoChange => 'Videoyu değiştir';
+
+  @override
+  String get kesErrVideoTooLarge => 'Video çok büyük (en fazla 50 MB).';
+
+  @override
+  String get kesFullscreen => 'Tam ekran izle';
+
+  @override
+  String get kesReelsEmptyTitle => 'Henüz reel yok';
+
+  @override
+  String get kesReelsEmptyBody => 'İlk videoyu sen paylaş.';
+
+  @override
+  String get kesSeenAll => 'Hepsini gördün, gönderiler yeniden gösteriliyor.';
+
+  @override
   String get profil2PrivacyTitle => 'Gizlilik ve engellenenler';
 
   @override

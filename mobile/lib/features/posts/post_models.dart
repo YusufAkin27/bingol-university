@@ -43,20 +43,41 @@ Map<String, dynamic>? _map(Object? v) => v is Map ? Map<String, dynamic>.from(v)
 List<Map<String, dynamic>> _maps(Object? v) =>
     v is List ? [for (final e in v) if (e is Map) Map<String, dynamic>.from(e)] : const [];
 
+/// Popülerlik puanı: sunucu 0..100 üretir; ondalıklı gelirse yuvarlanır, aralık dışı değer kıstırılır.
+int? _scoreOrNull(Object? v) {
+  final n = v is num ? v : (v is String ? num.tryParse(v) : null);
+  return n?.round().clamp(0, 100);
+}
+
 class PostAuthor {
-  const PostAuthor({required this.id, required this.displayName, this.avatarUrl, this.department});
+  const PostAuthor({
+    required this.id,
+    required this.displayName,
+    this.avatarUrl,
+    this.department,
+    this.followerCount,
+    this.popularityScore,
+  });
 
   factory PostAuthor.fromJson(Map<String, dynamic>? j) => PostAuthor(
         id: _int(j?['id']),
         displayName: _str(j?['displayName']) ?? '',
         avatarUrl: _str(j?['avatarUrl']),
         department: _str(j?['department']),
+        followerCount: _intOrNull(j?['followerCount']),
+        popularityScore: _scoreOrNull(j?['popularityScore']),
       );
 
   final int id;
   final String displayName;
   final String? avatarUrl;
   final String? department;
+
+  /// Sunucunun hesapladığı gerçek takipçi sayısı (yoksa null: gösterilmez).
+  final int? followerCount;
+
+  /// Yazarın popülerlik puanı 0..100 (yoksa null).
+  final int? popularityScore;
 }
 
 enum PostMediaKind { image, video }
@@ -115,12 +136,44 @@ class LikeResult {
   final int likeCount;
 }
 
+/// Video gönderinin oynatma bilgisi (`video {url, posterUrl, durationMs, width, height}`).
+class PostVideo {
+  const PostVideo({required this.url, this.posterUrl, this.durationMs, this.width, this.height});
+
+  factory PostVideo.fromJson(Map<String, dynamic> j) => PostVideo(
+        url: postMediaUrl(_str(j['url']) ?? ''),
+        posterUrl: postMediaUrlOrNull(_str(j['posterUrl']) ?? _str(j['thumbUrl'])),
+        durationMs: _intOrNull(j['durationMs']),
+        width: _intOrNull(j['width']),
+        height: _intOrNull(j['height']),
+      );
+
+  /// Eski biçim: `media[]` içindeki `kind: VIDEO` öğesi.
+  factory PostVideo.fromMedia(PostMedia m) =>
+      PostVideo(url: m.url, posterUrl: m.thumbUrl, durationMs: m.durationMs, width: m.width, height: m.height);
+
+  /// Mutlak adres (yetkili: Bearer gerekir).
+  final String url;
+  final String? posterUrl;
+  final int? durationMs;
+  final int? width;
+  final int? height;
+
+  /// Genişlik/yükseklik; bilinmiyorsa dikey 9:16 varsayılır (Reels).
+  double get aspect {
+    final w = width, h = height;
+    if (w == null || h == null || w <= 0 || h <= 0) return 9 / 16;
+    return w / h;
+  }
+}
+
 class Post {
   const Post({
     required this.id,
     required this.author,
     this.text,
     this.media = const [],
+    this.video,
     this.likeCount = 0,
     this.likedByMe = false,
     this.mine = false,
@@ -128,26 +181,47 @@ class Post {
     this.canDelete = false,
     this.createdAt,
     this.editedAt,
+    this.popularityScore,
   });
 
-  factory Post.fromJson(Map<String, dynamic>? j) => Post(
-        id: _int(j?['id']),
-        author: PostAuthor.fromJson(_map(j?['author'])),
-        text: _str(j?['text']),
-        media: [for (final m in _maps(j?['media'])) PostMedia.fromJson(m)],
-        likeCount: _int(j?['likeCount']),
-        likedByMe: j?['likedByMe'] == true,
-        mine: j?['mine'] == true,
-        canEdit: j?['canEdit'] == true,
-        canDelete: j?['canDelete'] == true,
-        createdAt: _str(j?['createdAt']),
-        editedAt: _str(j?['editedAt']),
-      );
+  factory Post.fromJson(Map<String, dynamic>? j) {
+    final media = [for (final m in _maps(j?['media'])) PostMedia.fromJson(m)];
+    final v = _map(j?['video']);
+    PostVideo? video;
+    if (v != null && (_str(v['url']) ?? '').isNotEmpty) {
+      video = PostVideo.fromJson(v);
+    } else if (_str(j?['type']) == 'VIDEO' || (j?['type'] == null && media.isNotEmpty && media.every((m) => m.isVideo))) {
+      for (final m in media) {
+        if (m.isVideo) {
+          video = PostVideo.fromMedia(m);
+          break;
+        }
+      }
+    }
+    return Post(
+      id: _int(j?['id']),
+      author: PostAuthor.fromJson(_map(j?['author'])),
+      text: _str(j?['text']),
+      media: media,
+      video: video,
+      likeCount: _int(j?['likeCount']),
+      likedByMe: j?['likedByMe'] == true,
+      mine: j?['mine'] == true,
+      canEdit: j?['canEdit'] == true,
+      canDelete: j?['canDelete'] == true,
+      createdAt: _str(j?['createdAt']),
+      editedAt: _str(j?['editedAt']),
+      popularityScore: _scoreOrNull(j?['popularityScore']),
+    );
+  }
 
   final int id;
   final PostAuthor author;
   final String? text;
   final List<PostMedia> media;
+
+  /// Video gönderi: oynatma bilgisi (fotoğraf gönderisinde null).
+  final PostVideo? video;
   final int likeCount;
   final bool likedByMe;
   final bool mine;
@@ -156,18 +230,30 @@ class Post {
   final String? createdAt;
   final String? editedAt;
 
+  /// Gönderinin popülerlik puanı 0..100 (sunucu hesaplar; yoksa null: gösterge çizilmez).
+  final int? popularityScore;
+
   bool get hasText => (text ?? '').trim().isNotEmpty;
 
-  /// Gösterilecek tek fotoğraf: çoklu görselli eski gönderilerde yalnız ilk fotoğraf; video yok sayılır.
+  bool get isVideo => video != null;
+
+  /// Gösterilecek tek görsel: fotoğraf gönderisinde ilk fotoğraf; video gönderisinde poster kare (poster yoksa null).
   PostMedia? get photo {
+    final v = video;
+    if (v != null) {
+      final poster = v.posterUrl;
+      if (poster == null) return null;
+      return PostMedia(
+          id: -id, kind: PostMediaKind.image, url: poster, thumbUrl: poster, width: v.width, height: v.height, durationMs: v.durationMs);
+    }
     for (final m in media) {
       if (!m.isVideo) return m;
     }
     return null;
   }
 
-  /// Eski video-only gönderiler (yalnız video, fotoğraf yok) akışta gösterilmez.
-  bool get hiddenInFeed => media.isNotEmpty && photo == null;
+  /// Ne fotoğrafı ne videosu olan (yalnız bilinmeyen medya taşıyan) kayıtlar akışta gösterilmez.
+  bool get hiddenInFeed => media.isNotEmpty && video == null && photo == null;
 
   /// [editedAt] ve [text] için null verilemez; `clearText` metni siler.
   Post copyWith({
@@ -176,12 +262,14 @@ class Post {
     String? text,
     String? editedAt,
     List<PostMedia>? media,
+    int? popularityScore,
   }) =>
       Post(
         id: id,
         author: author,
         text: text ?? this.text,
         media: media ?? this.media,
+        video: video,
         likeCount: likeCount ?? this.likeCount,
         likedByMe: likedByMe ?? this.likedByMe,
         mine: mine,
@@ -189,16 +277,20 @@ class Post {
         canDelete: canDelete,
         createdAt: createdAt,
         editedAt: editedAt ?? this.editedAt,
+        popularityScore: popularityScore ?? this.popularityScore,
       );
 }
 
 /// İmleçli sayfa.
 class PostPage<T> {
-  const PostPage({required this.items, this.nextCursor, this.total});
+  const PostPage({required this.items, this.nextCursor, this.total, this.exhausted = false});
 
   final List<T> items;
   final String? nextCursor;
   final int? total;
+
+  /// Keşfet: bütün havuz görülmüştü, sunucu en eski görülenlerden başlayıp tekrar ediyor (`exhausted: true`).
+  final bool exhausted;
 
   bool get hasMore => nextCursor != null && nextCursor!.isNotEmpty;
 
@@ -209,6 +301,7 @@ class PostPage<T> {
       items: [for (final e in _maps(m['items'])) map(e)],
       nextCursor: c?.toString(),
       total: _intOrNull(m['total']),
+      exhausted: m['exhausted'] == true,
     );
   }
 }

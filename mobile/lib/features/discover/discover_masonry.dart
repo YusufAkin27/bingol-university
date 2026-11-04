@@ -6,6 +6,7 @@ import '../../core/api.dart' show ApiError;
 import '../../core/locale_controller.dart';
 import '../../core/session.dart';
 import '../../widgets/bu.dart';
+import '../posts/feed_seen.dart';
 import '../posts/post_actions.dart';
 import '../posts/post_api.dart';
 import '../posts/post_models.dart';
@@ -67,6 +68,7 @@ class _DiscoverMasonryFeedState extends State<DiscoverMasonryFeed> {
   final _scrollKey = GlobalKey(); // kapsam anahtarı değişince kaydırma durumu (ve denetleyici) taşınır, yeniden kurulmaz
   final List<Post> _items = [];
   late PostApi _api;
+  late FeedSeenReporter _seen;
 
   int _gen = 0;
   String? _cursor;
@@ -83,6 +85,7 @@ class _DiscoverMasonryFeedState extends State<DiscoverMasonryFeed> {
   void initState() {
     super.initState();
     _api = PostApi(widget.session);
+    _seen = FeedSeenReporter(_api);
     widget.controller?._state = this;
     _scroll.addListener(_onScroll);
     _reload();
@@ -95,13 +98,18 @@ class _DiscoverMasonryFeedState extends State<DiscoverMasonryFeed> {
       if (old.controller?._state == this) old.controller!._state = null;
       widget.controller?._state = this;
     }
-    if (old.session != widget.session) _api = PostApi(widget.session);
+    if (old.session != widget.session) {
+      _seen.dispose();
+      _api = PostApi(widget.session);
+      _seen = FeedSeenReporter(_api);
+    }
     if (old.scope != widget.scope) _reload();
   }
 
   @override
   void dispose() {
     if (widget.controller?._state == this) widget.controller!._state = null;
+    _seen.dispose();
     _scroll.dispose();
     super.dispose();
   }
@@ -137,25 +145,8 @@ class _DiscoverMasonryFeedState extends State<DiscoverMasonryFeed> {
       _error = null;
       _moreError = null;
     });
-    // Önbellekte bu kapsamın ilk sayfası varsa hemen çiz (iskelet görünmez), sonra ağdan doğrula.
-    PostPage<Post>? cached;
-    try {
-      cached = await _api.peekFeed(scope: widget.scope, size: _pageSize);
-    } catch (_) {
-      cached = null;
-    }
-    if (!mounted || gen != _gen) return;
-    if (cached != null && cached.items.isNotEmpty) {
-      final page = cached;
-      setState(() {
-        _items.addAll(page.items);
-        _cursor = page.nextCursor;
-        _hasMore = page.hasMore;
-        _loaded = true;
-      });
-      await _fetch(gen, replace: true, quiet: true);
-      return;
-    }
+    // Önbellekteki eski sayfa BİLEREK gösterilmez: yenileyen kişiye aynı gönderiler yine gelmesin (sunucu görülmüşleri
+    // hariç tutar). Eski sayfa yalnız ağ yokken yedek olarak çizilir (_fetch).
     await _fetch(gen);
   }
 
@@ -194,6 +185,10 @@ class _DiscoverMasonryFeedState extends State<DiscoverMasonryFeed> {
         _moreError = null;
         _stale = false;
       });
+      // Bütün havuz görülmüştü: sunucu baştan tekrar ediyor; kısaca haber ver (yalnız ilk sayfada).
+      if (page.exhausted && (replace || _items.length == page.items.length) && page.items.isNotEmpty) {
+        BuToast.show(context, context.l10n.kesSeenAll);
+      }
       // İçerik ekranı doldurmuyorsa kaydırma olmayacağından sonraki sayfayı kendimiz iste.
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted && _hasMore && _scroll.hasClients && _scroll.position.maxScrollExtent <= 0) _loadMore();
@@ -205,6 +200,30 @@ class _DiscoverMasonryFeedState extends State<DiscoverMasonryFeed> {
         _loading = false;
         await _reload();
         return;
+      }
+      // Ağ yok ve hiç gönderi yüklenmedi: varsa önbellekteki eski ilk sayfayı yedek olarak göster.
+      if (!_loaded && e is ApiError && e.isNetwork) {
+        PostPage<Post>? cached;
+        try {
+          cached = await _api.peekFeed(scope: widget.scope, size: _pageSize);
+        } catch (_) {
+          cached = null;
+        }
+        if (!mounted || gen != _gen) return;
+        if (cached != null && cached.items.isNotEmpty) {
+          final page = cached;
+          setState(() {
+            _items
+              ..clear()
+              ..addAll(page.items);
+            _cursor = page.nextCursor;
+            _hasMore = page.hasMore;
+            _loaded = true;
+            _loading = false;
+            _stale = true;
+          });
+          return;
+        }
       }
       setState(() {
         _loading = false;
@@ -318,6 +337,7 @@ class _DiscoverMasonryFeedState extends State<DiscoverMasonryFeed> {
         delegate: SliverChildBuilderDelegate(
           (_, i) {
             final p = items[i];
+            _seen.mark(p.id);
             Widget box = DiscoverPostBox(
               key: ValueKey('discover-post-${p.id}'),
               session: widget.session,

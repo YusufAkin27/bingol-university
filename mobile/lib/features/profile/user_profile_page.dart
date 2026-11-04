@@ -15,6 +15,7 @@ import '../follow/follow_button.dart';
 import '../follow/follow_list_page.dart';
 import '../follow/locked_profile_block.dart';
 import '../posts/social_api.dart';
+import 'popularity_card.dart';
 import '../posts/social_models.dart';
 import 'edit_profile_page.dart';
 import 'icerik_user_posts_grid.dart';
@@ -525,6 +526,10 @@ class _UserProfilePageState extends State<UserProfilePage> {
         ],
         if (!_blocked) ...[
           const SizedBox(height: 14),
+          if (!locked && _p != null && PopularityCard.scoreOf(_p) != null) ...[
+            PopularityCard(profile: _p!),
+            const SizedBox(height: 14),
+          ],
           _infoCard(t, bio: bio, faculty: faculty, dept: dept, grade: grade, email: email),
           if (locked)
             LockedProfileBlock(requested: _stats?.followState == FollowState.requested)

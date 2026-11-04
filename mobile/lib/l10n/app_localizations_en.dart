@@ -5520,6 +5520,67 @@ class AppLocalizationsEn extends AppLocalizations {
   String get kesfetSearchHint => 'Search posts or people';
 
   @override
+  String get kesSegPosts => 'Posts';
+
+  @override
+  String get kesSegReels => 'Reels';
+
+  @override
+  String get kesSegA11y => 'Explore view';
+
+  @override
+  String get kesPopularity => 'Popularity';
+
+  @override
+  String kesPopularityOf(String score) {
+    return 'Popularity score $score out of 100';
+  }
+
+  @override
+  String get kesPopularityHow =>
+      'Calculated from your followers, the likes you receive and your post count.';
+
+  @override
+  String get kesLikesReceived => 'Likes received';
+
+  @override
+  String get kesPickVideo => 'Choose video';
+
+  @override
+  String get kesRecordVideo => 'Record video';
+
+  @override
+  String get kesVideoLimits => 'Videos can be up to 60 seconds and 50 MB.';
+
+  @override
+  String kesVideoPreparing(String pct) {
+    return 'Preparing video… $pct';
+  }
+
+  @override
+  String kesVideoUploading(String pct) {
+    return 'Uploading video… $pct';
+  }
+
+  @override
+  String get kesVideoChange => 'Change video';
+
+  @override
+  String get kesErrVideoTooLarge => 'The video is too large (50 MB at most).';
+
+  @override
+  String get kesFullscreen => 'Watch full screen';
+
+  @override
+  String get kesReelsEmptyTitle => 'No reels yet';
+
+  @override
+  String get kesReelsEmptyBody => 'Be the first to share a video.';
+
+  @override
+  String get kesSeenAll => 'You have seen everything, posts are shown again.';
+
+  @override
   String get profil2PrivacyTitle => 'Privacy and blocked users';
 
   @override

@@ -10177,6 +10177,114 @@ abstract class AppLocalizations {
   /// **'Gönderi veya kişi ara'**
   String get kesfetSearchHint;
 
+  /// No description provided for @kesSegPosts.
+  ///
+  /// In tr, this message translates to:
+  /// **'Gönderiler'**
+  String get kesSegPosts;
+
+  /// No description provided for @kesSegReels.
+  ///
+  /// In tr, this message translates to:
+  /// **'Reels'**
+  String get kesSegReels;
+
+  /// No description provided for @kesSegA11y.
+  ///
+  /// In tr, this message translates to:
+  /// **'Keşfet görünümü'**
+  String get kesSegA11y;
+
+  /// No description provided for @kesPopularity.
+  ///
+  /// In tr, this message translates to:
+  /// **'Popülerlik'**
+  String get kesPopularity;
+
+  /// No description provided for @kesPopularityOf.
+  ///
+  /// In tr, this message translates to:
+  /// **'Popülerlik puanı {score} / 100'**
+  String kesPopularityOf(String score);
+
+  /// No description provided for @kesPopularityHow.
+  ///
+  /// In tr, this message translates to:
+  /// **'Takipçi sayın, aldığın beğeniler ve gönderi sayından hesaplanır.'**
+  String get kesPopularityHow;
+
+  /// No description provided for @kesLikesReceived.
+  ///
+  /// In tr, this message translates to:
+  /// **'Alınan beğeni'**
+  String get kesLikesReceived;
+
+  /// No description provided for @kesPickVideo.
+  ///
+  /// In tr, this message translates to:
+  /// **'Video seç'**
+  String get kesPickVideo;
+
+  /// No description provided for @kesRecordVideo.
+  ///
+  /// In tr, this message translates to:
+  /// **'Video çek'**
+  String get kesRecordVideo;
+
+  /// No description provided for @kesVideoLimits.
+  ///
+  /// In tr, this message translates to:
+  /// **'Video en fazla 60 saniye ve 50 MB olabilir.'**
+  String get kesVideoLimits;
+
+  /// No description provided for @kesVideoPreparing.
+  ///
+  /// In tr, this message translates to:
+  /// **'Video hazırlanıyor… {pct}'**
+  String kesVideoPreparing(String pct);
+
+  /// No description provided for @kesVideoUploading.
+  ///
+  /// In tr, this message translates to:
+  /// **'Video yükleniyor… {pct}'**
+  String kesVideoUploading(String pct);
+
+  /// No description provided for @kesVideoChange.
+  ///
+  /// In tr, this message translates to:
+  /// **'Videoyu değiştir'**
+  String get kesVideoChange;
+
+  /// No description provided for @kesErrVideoTooLarge.
+  ///
+  /// In tr, this message translates to:
+  /// **'Video çok büyük (en fazla 50 MB).'**
+  String get kesErrVideoTooLarge;
+
+  /// No description provided for @kesFullscreen.
+  ///
+  /// In tr, this message translates to:
+  /// **'Tam ekran izle'**
+  String get kesFullscreen;
+
+  /// No description provided for @kesReelsEmptyTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Henüz reel yok'**
+  String get kesReelsEmptyTitle;
+
+  /// No description provided for @kesReelsEmptyBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'İlk videoyu sen paylaş.'**
+  String get kesReelsEmptyBody;
+
+  /// No description provided for @kesSeenAll.
+  ///
+  /// In tr, this message translates to:
+  /// **'Hepsini gördün, gönderiler yeniden gösteriliyor.'**
+  String get kesSeenAll;
+
   /// No description provided for @profil2PrivacyTitle.
   ///
   /// In tr, this message translates to:

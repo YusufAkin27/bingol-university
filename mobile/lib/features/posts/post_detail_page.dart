@@ -5,6 +5,7 @@ import '../../core/locale_controller.dart';
 import '../../core/session.dart';
 import '../../widgets/bu.dart';
 import '../../widgets/common.dart' show ErrorView;
+import 'feed_seen.dart';
 import 'post_api.dart';
 import 'post_card.dart';
 import 'post_models.dart';
@@ -51,6 +52,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
 
   final _scroll = ScrollController();
   late final PostApi _api = PostApi(widget.session);
+  late final FeedSeenReporter _seen = FeedSeenReporter(_api);
 
   /// [0] = açılan gönderi, sonrası akış.
   final List<Post> _posts = [];
@@ -80,6 +82,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
 
   @override
   void dispose() {
+    _seen.dispose();
     _scroll.dispose();
     super.dispose();
   }
@@ -226,6 +229,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
                 itemBuilder: (_, i) {
                   if (i >= _posts.length) return _footer();
                   final p = _posts[i];
+                  _seen.mark(p.id);
                   return PostCard(
                     key: ValueKey('stream-post-${p.id}'),
                     session: widget.session,

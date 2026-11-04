@@ -203,6 +203,7 @@ class VideoService {
     ImagePicker? picker,
     VideoCompressor? compressor,
     Future<PickedVideo?> Function(ImageSource source)? pick,
+    this.limitBytes = maxBytes,
   })  : _picker = picker,
         _compressor = compressor ?? PlatformVideoCompressor(),
         _pick = pick;
@@ -213,6 +214,12 @@ class VideoService {
 
   static const maxDurationMs = 60 * 1000;
   static const maxBytes = 40 * 1024 * 1024;
+
+  /// Gönderi videosu üst sınırı (Keşfet): sunucuyla aynı 50 MB. Sohbet [maxBytes] ile kalır.
+  static const postMaxBytes = 50 * 1024 * 1024;
+
+  /// Bu örneğin kabul ettiği en büyük dosya boyutu.
+  final int limitBytes;
 
   /// Bu boyutun altındaki ve en çok 1280 px'lik videolar olduğu gibi gönderilir.
   static const skipCompressBytes = 6 * 1024 * 1024;
@@ -273,7 +280,7 @@ class VideoService {
       }
     }
     onProgress?.call(1);
-    if (best.sizeBytes > maxBytes) throw VideoException('TOO_LARGE');
+    if (best.sizeBytes > limitBytes) throw VideoException('TOO_LARGE');
     if (best.durationMs > maxDurationMs + 500) throw VideoException('TOO_LONG');
 
     final at = best.durationMs > 1500 ? 500 : 0;

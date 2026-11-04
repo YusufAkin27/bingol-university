@@ -20,6 +20,7 @@ import 'edit_profile_page.dart';
 import 'my_clubs_page.dart';
 import 'my_events_page.dart';
 import 'notification_prefs_page.dart';
+import 'popularity_card.dart';
 import 'profil_widgets.dart';
 import 'settings_page.dart';
 import 'saved_news_page.dart';
@@ -253,6 +254,12 @@ class _ProfileTabState extends State<ProfileTab> {
                   )
                 : StatStrip(cells: extraCells),
           ),
+          // Popülerlik puanı (sunucu hesaplar; yanıtta yoksa hiç çizilmez).
+          if (PopularityCard.scoreOf(p) != null)
+            BuStaggerItem(
+              index: 1,
+              child: Padding(padding: const EdgeInsets.only(top: 16), child: PopularityCard(profile: p, self: true)),
+            ),
           BuStaggerItem(
             index: 2,
             child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [

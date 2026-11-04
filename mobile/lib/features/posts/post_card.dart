@@ -7,8 +7,10 @@ import '../../widgets/bu.dart';
 import 'like_button.dart';
 import 'post_actions.dart';
 import 'post_models.dart';
+import 'popularity_meter.dart';
 import 'post_photo_viewer.dart';
 import 'post_routes.dart';
+import 'post_video.dart';
 import '../../core/academic_catalog.dart';
 
 /// Gönderinin tek fotoğrafı: yetkili medya uçları için Bearer başlığı ile yüklenir. Oran varsayılan 4:5 (tasarım 17).
@@ -295,7 +297,29 @@ class _PostCardState extends State<PostCard> {
                 ),
             ]),
           ),
-          if (p.photo != null)
+          if (p.isVideo)
+            Padding(
+              padding: BuSpace.pageH,
+              child: Stack(children: [
+                DoubleTapLike(
+                  onLike: _like.like,
+                  // Tek dokunuş: ses aç/kapat (video sessiz başlar).
+                  onTap: () => postVideoMuted.value = !postVideoMuted.value,
+                  radius: 16,
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(16),
+                    child: AspectRatio(
+                      aspectRatio: postVideoCardRatio(p),
+                      child: PostVideoView(session: widget.session, post: p, handleTap: false, showControls: false),
+                    ),
+                  ),
+                ),
+                // Düğmeler çift dokunuş sarmalayıcısının DIŞINDA: dokunma gecikmez.
+                const PositionedDirectional(end: 0, bottom: 0, child: PostVideoSoundButton()),
+                PositionedDirectional(end: 0, top: 0, child: PostVideoFullscreenButton(session: widget.session, post: p)),
+              ]),
+            )
+          else if (p.photo != null)
             Padding(
               padding: BuSpace.pageH,
               child: DoubleTapLike(
@@ -329,6 +353,11 @@ class _PostCardState extends State<PostCard> {
               ],
             ]),
           ),
+          if (p.popularityScore != null)
+            Padding(
+              padding: const EdgeInsetsDirectional.fromSTEB(BuSpace.page, 8, BuSpace.page, 0),
+              child: Align(alignment: AlignmentDirectional.centerStart, child: PopularityMeter(score: p.popularityScore!)),
+            ),
           if (p.editedAt != null)
             Padding(
               padding: const EdgeInsetsDirectional.fromSTEB(BuSpace.page, 6, BuSpace.page, 0),
@@ -427,13 +456,30 @@ class _PostCardState extends State<PostCard> {
                 onTap: widget.detail ? _openViewer : _open,
                 // Detayda fotoğraf ekran kenarlarına dayanır: köşe yuvarlağı ekran kenarında bozuk görünür.
                 radius: detail ? 0 : BuRadius.lg,
-                child: PostPhoto(
-                  session: widget.session,
-                  post: p,
-                  radius: detail ? 0 : BuRadius.lg,
-                  // Detayda küçük resim de kullanılır: Hero uçuşunda ve ilk açılışta boş kare görünmez.
-                  progressive: detail,
-                  heroTag: _heroTag,
+                child: Stack(alignment: Alignment.center, children: [
+                  PostPhoto(
+                    session: widget.session,
+                    post: p,
+                    radius: detail ? 0 : BuRadius.lg,
+                    // Detayda küçük resim de kullanılır: Hero uçuşunda ve ilk açılışta boş kare görünmez.
+                    progressive: detail,
+                    heroTag: _heroTag,
+                  ),
+                  if (p.isVideo) const IgnorePointer(child: PostPlayBadge()),
+                ]),
+              ),
+            ] else if (p.isVideo) ...[
+              BuGap.h16,
+              GestureDetector(
+                key: const ValueKey('post-video-teaser'),
+                behavior: HitTestBehavior.opaque,
+                onTap: _open,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(BuRadius.lg),
+                  child: AspectRatio(
+                    aspectRatio: postVideoCardRatio(p),
+                    child: ColoredBox(color: t.sf2, child: Center(child: Icon(BuIcons.playFilled, color: t.mut, size: 32))),
+                  ),
                 ),
               ),
             ],

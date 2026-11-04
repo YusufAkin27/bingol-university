@@ -5473,6 +5473,67 @@ class AppLocalizationsAr extends AppLocalizations {
   String get kesfetSearchHint => 'ابحث عن منشورات أو أشخاص';
 
   @override
+  String get kesSegPosts => 'المنشورات';
+
+  @override
+  String get kesSegReels => 'ريلز';
+
+  @override
+  String get kesSegA11y => 'عرض الاستكشاف';
+
+  @override
+  String get kesPopularity => 'الشعبية';
+
+  @override
+  String kesPopularityOf(String score) {
+    return 'نقاط الشعبية $score من 100';
+  }
+
+  @override
+  String get kesPopularityHow =>
+      'تُحسب من عدد متابعيك والإعجابات التي تتلقاها وعدد منشوراتك.';
+
+  @override
+  String get kesLikesReceived => 'الإعجابات المتلقاة';
+
+  @override
+  String get kesPickVideo => 'اختيار فيديو';
+
+  @override
+  String get kesRecordVideo => 'تسجيل فيديو';
+
+  @override
+  String get kesVideoLimits => 'يمكن أن يصل الفيديو إلى 60 ثانية و50 ميغابايت.';
+
+  @override
+  String kesVideoPreparing(String pct) {
+    return 'جارٍ تجهيز الفيديو… $pct';
+  }
+
+  @override
+  String kesVideoUploading(String pct) {
+    return 'جارٍ رفع الفيديو… $pct';
+  }
+
+  @override
+  String get kesVideoChange => 'تغيير الفيديو';
+
+  @override
+  String get kesErrVideoTooLarge => 'الفيديو كبير جدًا (50 ميغابايت كحد أقصى).';
+
+  @override
+  String get kesFullscreen => 'المشاهدة بملء الشاشة';
+
+  @override
+  String get kesReelsEmptyTitle => 'لا توجد ريلز بعد';
+
+  @override
+  String get kesReelsEmptyBody => 'كن أول من يشارك فيديو.';
+
+  @override
+  String get kesSeenAll => 'شاهدت كل شيء، تُعرض المنشورات مرة أخرى.';
+
+  @override
   String get profil2PrivacyTitle => 'الخصوصية والمحظورون';
 
   @override

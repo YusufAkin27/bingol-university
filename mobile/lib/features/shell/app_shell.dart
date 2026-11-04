@@ -182,7 +182,8 @@ class _AppShellState extends State<AppShell> with WidgetsBindingObserver, Single
       case AppTab.home:
         return HomeTab(session: s, onOpenTab: _go);
       case AppTab.discover:
-        return DiscoverTab(key: ValueKey(_publishedVersion), session: s, typeRequest: _discoverType);
+        return DiscoverTab(
+            key: ValueKey(_publishedVersion), session: s, typeRequest: _discoverType, tabActive: _tab == AppTab.discover);
       case AppTab.chat:
         return ChatTab(session: s);
       case AppTab.clubs:

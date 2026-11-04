@@ -5,11 +5,13 @@ import '../../core/session.dart';
 import '../../widgets/bu.dart';
 import 'post_card.dart';
 import 'post_models.dart';
+import 'post_video.dart';
 
 /// Gönderi fotoğrafını tam ekran açar: iki parmakla yakınlaştırma, çift dokunuşla yakınlaştır/uzaklaştır,
 /// yakınlaştırılmamışken aşağı/yukarı sürükleyerek kapatma (arka plan sürükledikçe açılır). [heroTag] listeden
 /// gelen etiketse fotoğraf detaydan buraya paylaşılan öğe olarak uçar.
 Future<void> openPostPhotoViewer(BuildContext context, Session session, Post post, {Object? heroTag}) {
+  if (post.isVideo) return openPostVideoViewer(context, session, post);
   if (post.photo == null) return Future<void>.value();
   return Navigator.of(context).push<void>(PageRouteBuilder<void>(
     opaque: false,

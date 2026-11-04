@@ -1,11 +1,14 @@
 import 'dart:async';
+import 'dart:io' show File;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:video_player/video_player.dart';
 
 import '../../core/api.dart';
 import '../../core/locale_controller.dart';
 import '../../core/platform/image_service.dart';
+import '../../core/platform/video_service.dart';
 import '../../core/session.dart';
 import '../../widgets/bu.dart';
 import '../media_crop/media_crop.dart';
@@ -13,6 +16,7 @@ import 'post_api.dart';
 import 'post_media_uploader.dart';
 import 'post_models.dart';
 import 'post_text_rules.dart';
+import 'post_video.dart';
 
 /// Galeriden ya da kameradan tek fotoğraf baytı döndürür (iptalde null); testlerde sahtesi verilir.
 typedef PostPhotoPicker = Future<Uint8List?> Function(ImageSource source);
@@ -35,12 +39,26 @@ enum _Err { none, generic, profanity, rate, network }
 /// Önizleme / boş alan köşesi (Stitch v3: 24 dp).
 const double kComposeRadius = 24;
 
-/// Sade gönderi oluşturucu: tam 1 fotoğraf (zorunlu, 4:5 kırpılır) + isteğe bağlı kısa metin (en çok 7 kelime, canlı
-/// sayaç). Fotoğraf `POST /posts/media` ile yüklenir, sonra gönderi `mediaIds: [id]` ile oluşturulur.
+/// Sade gönderi oluşturucu: tam 1 fotoğraf (4:5 kırpılır) VEYA 1 video (en çok 60 sn, 50 MB) + isteğe bağlı kısa metin
+/// (en çok 7 kelime, canlı sayaç). Medya `POST /posts/media` ile yüklenir (video: ilerleme çubuğu, poster karesiyle),
+/// sonra gönderi `mediaIds: [id]` ile oluşturulur.
 class ComposePostPage extends StatefulWidget {
-  const ComposePostPage({super.key, required this.session, this.pickPhoto, this.cropPhoto, this.uploader, this.api});
+  const ComposePostPage({
+    super.key,
+    required this.session,
+    this.pickPhoto,
+    this.cropPhoto,
+    this.uploader,
+    this.api,
+    this.videoService,
+    this.videoUploader,
+  });
 
   final Session session;
+
+  /// Testler için: video seçme/hazırlama ve yükleme enjeksiyonu.
+  final VideoService? videoService;
+  final VideoUploader? videoUploader;
 
   /// Testler için: seçici/kırpıcı/yükleyici/API enjeksiyonu.
   final PostPhotoPicker? pickPhoto;
@@ -57,6 +75,15 @@ class _ComposePostPageState extends State<ComposePostPage> {
   final _focus = FocusNode();
   late final PostMediaUploader _uploader = widget.uploader ?? PostMediaUploader(widget.session);
   late final PostApi _api = widget.api ?? PostApi(widget.session);
+  late final VideoService _videoSvc = widget.videoService ?? VideoService(limitBytes: VideoService.postMaxBytes);
+  late final VideoUploader _videoUp = widget.videoUploader ?? VideoUploader(widget.session);
+
+  // Video: seçildi + hazırlandı (en çok 60 sn / 50 MB), yüklendi mi, ilerleme (0..1).
+  PreparedVideo? _video;
+  PostMedia? _uploadedVideo;
+  VideoCancel? _prepCancel;
+  bool _preparing = false;
+  double _progress = 0;
 
   Uint8List? _original; // kırpılmamış seçim (yeniden kırpmak için)
   Uint8List? _photo; // kırpılmış 4:5
@@ -69,6 +96,7 @@ class _ComposePostPageState extends State<ComposePostPage> {
 
   @override
   void dispose() {
+    _prepCancel?.cancel();
     _timer?.cancel();
     _text.dispose();
     _focus.dispose();
@@ -77,8 +105,8 @@ class _ComposePostPageState extends State<ComposePostPage> {
 
   int get _words => postWordCount(_text.text);
   bool get _textOk => postTextOk(_text.text);
-  bool get _dirty => _photo != null || _text.text.trim().isNotEmpty;
-  bool get _canShare => !_publishing && _photo != null && _textOk;
+  bool get _dirty => _photo != null || _video != null || _preparing || _text.text.trim().isNotEmpty;
+  bool get _canShare => !_publishing && !_preparing && (_photo != null || _video != null) && _textOk;
 
   CropSpec get _spec => CropSpec.post(
         previewName: widget.session.displayName,
@@ -152,6 +180,61 @@ class _ComposePostPageState extends State<ComposePostPage> {
     await _pick(src == PhotoSource.camera ? ImageSource.camera : ImageSource.gallery);
   }
 
+  /// Video seç/çek: sınırlar (60 sn, 50 MB) hazırlama adımında denetlenir; Android'de gerekirse 720p'ye sıkıştırılır.
+  Future<void> _pickVideo(ImageSource source) async {
+    if (_publishing || _preparing) return;
+    FocusScope.of(context).unfocus();
+    final cancel = VideoCancel();
+    try {
+      final picked = await _videoSvc.pick(source);
+      if (picked == null || !mounted) return;
+      setState(() {
+        _preparing = true;
+        _prepCancel = cancel;
+        _progress = 0;
+        _err = _Err.none;
+      });
+      final prepared = await _videoSvc.prepare(picked, cancel: cancel, onProgress: (p) {
+        if (mounted) setState(() => _progress = p);
+      });
+      if (!mounted) return;
+      setState(() {
+        _video = prepared;
+        _uploadedVideo = null;
+        _photo = null; // gönderi = 1 fotoğraf YA DA 1 video
+        _original = null;
+        _uploaded = null;
+        _preparing = false;
+        _prepCancel = null;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _preparing = false;
+        _prepCancel = null;
+        if (!(e is VideoException && e.code == 'CANCELLED')) _setError(e);
+      });
+    }
+  }
+
+  void _removeVideo() {
+    if (_publishing) return;
+    setState(() {
+      _video = null;
+      _uploadedVideo = null;
+      _err = _Err.none;
+    });
+  }
+
+  Future<PostMedia> _uploadVideo(PreparedVideo v) async {
+    final json = await _videoUp.upload(PostMediaUploader.path, v, onProgress: (p) {
+      if (mounted) setState(() => _progress = p);
+    });
+    if (json is! Map) throw ApiError(500, 'BAD_RESPONSE', '');
+    final m = json['media'] is Map ? json['media'] as Map : json;
+    return PostMedia.fromJson(Map<String, dynamic>.from(m));
+  }
+
   Future<void> _recrop() async {
     final orig = _original;
     if (orig == null || _publishing) return;
@@ -166,22 +249,29 @@ class _ComposePostPageState extends State<ComposePostPage> {
 
   Future<void> _publish() async {
     final bytes = _photo;
-    if (!_canShare || bytes == null) return;
+    final video = _video;
+    if (!_canShare || (bytes == null && video == null)) return;
     FocusScope.of(context).unfocus();
     setState(() {
       _publishing = true;
+      _progress = 0;
       _err = _Err.none;
     });
     final messenger = ScaffoldMessenger.maybeOf(context);
     try {
-      final media = _uploaded ??= await _uploader.upload(bytes);
+      final PostMedia media = video != null
+          ? (_uploadedVideo ??= await _uploadVideo(video))
+          : (_uploaded ??= await _uploader.upload(bytes!));
       final post = await _api.create(text: _text.text, mediaId: media.id);
       if (!mounted) return;
       messenger?.showSnackBar(SnackBar(content: Text(context.l10n.postComposeShared), duration: const Duration(seconds: 2)));
       Navigator.pop(context, post);
     } catch (e) {
       if (!mounted) return;
-      if (e is ApiError && e.code == 'POST_MEDIA_INVALID') _uploaded = null;
+      if (e is ApiError && e.code == 'POST_MEDIA_INVALID') {
+        _uploaded = null;
+        _uploadedVideo = null;
+      }
       setState(() {
         _publishing = false;
         _setError(e);
@@ -190,6 +280,11 @@ class _ComposePostPageState extends State<ComposePostPage> {
   }
 
   Future<void> _close() async {
+    if (_preparing) {
+      // Hazırlama sürüyorsa sıkıştırma durdurulur, sonra onay sorusu normal akışla sorulur.
+      await _prepCancel?.cancel();
+      if (!mounted) return;
+    }
     if (_dirty) {
       final ok = await showDialog<bool>(context: context, builder: (c) => const _DiscardDialog());
       if (ok != true || !mounted) return;
@@ -222,7 +317,7 @@ class _ComposePostPageState extends State<ComposePostPage> {
                       duration: BuMotion.of(context, BuMotion.medium),
                       switchInCurve: BuMotion.standard,
                       switchOutCurve: BuMotion.standard,
-                      child: KeyedSubtree(key: ValueKey(_photo != null), child: _photoArea(t)),
+                      child: KeyedSubtree(key: ValueKey('${_photo != null}-${_video != null}-$_preparing'), child: _photoArea(t)),
                     ),
                     const SizedBox(height: 16),
                     _textField(t),
@@ -314,8 +409,80 @@ class _ComposePostPageState extends State<ComposePostPage> {
     );
   }
 
+  /// Video hazırlama/yükleme ilerlemesi: ön izleme üstünde ince çubuk + yüzde.
+  Widget _progressOverlay(BuTokens t, String label) {
+    final tt = Theme.of(context).textTheme;
+    return ColoredBox(
+      key: const ValueKey('composeVideoProgress'),
+      color: t.scrim.withValues(alpha: .45),
+      child: Center(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 32),
+          child: Column(mainAxisSize: MainAxisSize.min, children: [
+            Text(label, textAlign: TextAlign.center, style: tt.labelLarge?.copyWith(color: t.onMedia, fontWeight: FontWeight.w600)),
+            const SizedBox(height: 12),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(3),
+              child: LinearProgressIndicator(
+                value: _progress <= 0 ? null : _progress.clamp(0.0, 1.0),
+                minHeight: 6,
+                color: t.onMedia,
+                backgroundColor: t.onMedia.withValues(alpha: .25),
+              ),
+            ),
+          ]),
+        ),
+      ),
+    );
+  }
+
+  String _pct() => '${(_progress.clamp(0.0, 1.0) * 100).round()}%';
+
   Widget _photoArea(BuTokens t) {
     final tt = Theme.of(context).textTheme;
+    final video = _video;
+    if (video != null) {
+      return Container(
+        key: const ValueKey('composeVideoPreview'),
+        decoration: BoxDecoration(borderRadius: BorderRadius.circular(kComposeRadius), boxShadow: BuElevation.of(context, 1)),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(kComposeRadius),
+          child: AspectRatio(
+            aspectRatio: 4 / 5,
+            child: Stack(fit: StackFit.expand, children: [
+              ColoredBox(color: t.sf2),
+              if (video.poster != null)
+                Image.memory(video.poster!, fit: BoxFit.cover, gaplessPlayback: true, errorBuilder: (_, __, ___) => const SizedBox.shrink()),
+              if (video.path != null) _LocalVideoPreview(path: video.path!),
+              if (!_publishing) const Center(child: PostPlayBadge(size: 56)),
+              if (video.durationMs > 0) PositionedDirectional(start: 12, top: 12, child: DurationChip(durationMs: video.durationMs)),
+              if (!_publishing)
+                PositionedDirectional(
+                  start: 12,
+                  end: 12,
+                  bottom: 12,
+                  child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+                    Flexible(child: _pill(const ValueKey('composeVideoChange'), BuIcons.video, context.l10n.kesVideoChange, () => _pickVideo(ImageSource.gallery))),
+                    const SizedBox(width: 8),
+                    Flexible(child: _pill(const ValueKey('composeVideoRemove'), BuIcons.x, context.l10n.postComposeDelete, _removeVideo)),
+                  ]),
+                ),
+              if (_publishing) _progressOverlay(t, context.l10n.kesVideoUploading(_pct())),
+            ]),
+          ),
+        ),
+      );
+    }
+    if (_preparing) {
+      return DecoratedBox(
+        key: const ValueKey('composePreparing'),
+        decoration: BoxDecoration(color: t.sf2, borderRadius: BorderRadius.circular(kComposeRadius)),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(kComposeRadius),
+          child: AspectRatio(aspectRatio: 4 / 5, child: _progressOverlay(t, context.l10n.kesVideoPreparing(_pct()))),
+        ),
+      );
+    }
     final bytes = _photo;
     if (bytes != null) {
       return Container(
@@ -361,12 +528,21 @@ class _ComposePostPageState extends State<ComposePostPage> {
                 label: context.l10n.gonderiPickPhoto,
                 onPressed: _chooseSource),
             const SizedBox(height: 12),
-            TextButton(
-              key: const ValueKey('composeCamera'),
-              onPressed: () => _pick(ImageSource.camera),
-              style: TextButton.styleFrom(minimumSize: const Size(BuSize.touch, BuSize.touch), foregroundColor: t.mut),
-              child: Text(context.l10n.postComposeCamera, style: tt.labelLarge?.copyWith(color: t.mut, fontSize: 15, fontWeight: FontWeight.w500)),
-            ),
+            // İkincil eylemler: Kamera (fotoğraf) · Video seç · Video çek.
+            Wrap(alignment: WrapAlignment.center, children: [
+              for (final (key, label, onTap) in <(String, String, VoidCallback)>[
+                ('composeCamera', context.l10n.postComposeCamera, () => _pick(ImageSource.camera)),
+                ('composeVideoGallery', context.l10n.kesPickVideo, () => _pickVideo(ImageSource.gallery)),
+                ('composeVideoCamera', context.l10n.kesRecordVideo, () => _pickVideo(ImageSource.camera)),
+              ])
+                TextButton(
+                  key: ValueKey(key),
+                  onPressed: onTap,
+                  style: TextButton.styleFrom(minimumSize: const Size(BuSize.touch, BuSize.touch), foregroundColor: t.mut),
+                  child: Text(label, style: tt.labelLarge?.copyWith(color: t.mut, fontSize: 15, fontWeight: FontWeight.w500)),
+                ),
+            ]),
+            Text(context.l10n.kesVideoLimits, textAlign: TextAlign.center, style: tt.bodySmall?.copyWith(color: t.mut, fontSize: 12)),
             if (hint) ...[
               const SizedBox(height: 8),
               Text(context.l10n.gonderiPhotoRequired,
@@ -537,6 +713,62 @@ class _ComposePostPageState extends State<ComposePostPage> {
             color: t.danger),
     ];
     return [for (final w in items) _Appear(child: w)];
+  }
+}
+
+/// Seçilen videonun yerel, sessiz ve döngülü ön izlemesi. Oynatıcı kurulamazsa (platform yok/bozuk dosya) sessizce
+/// yalnız poster kalır.
+class _LocalVideoPreview extends StatefulWidget {
+  const _LocalVideoPreview({required this.path});
+
+  final String path;
+
+  @override
+  State<_LocalVideoPreview> createState() => _LocalVideoPreviewState();
+}
+
+class _LocalVideoPreviewState extends State<_LocalVideoPreview> {
+  VideoPlayerController? _c;
+
+  @override
+  void initState() {
+    super.initState();
+    _init();
+  }
+
+  Future<void> _init() async {
+    try {
+      final c = VideoPlayerController.file(File(widget.path), videoPlayerOptions: VideoPlayerOptions(mixWithOthers: true));
+      _c = c;
+      await c.initialize();
+      await c.setVolume(0);
+      await c.setLooping(true);
+      await c.play();
+      if (mounted) setState(() {});
+    } catch (_) {
+      final c = _c;
+      _c = null;
+      try {
+        await c?.dispose();
+      } catch (_) {}
+    }
+  }
+
+  @override
+  void dispose() {
+    _c?.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final c = _c;
+    if (c == null || !c.value.isInitialized) return const SizedBox.shrink();
+    return FittedBox(
+      fit: BoxFit.cover,
+      clipBehavior: Clip.hardEdge,
+      child: SizedBox(width: c.value.size.width, height: c.value.size.height, child: VideoPlayer(c)),
+    );
   }
 }
 

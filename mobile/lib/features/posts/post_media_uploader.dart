@@ -7,6 +7,7 @@ import 'package:image/image.dart' as img;
 
 import '../../core/api.dart';
 import '../../core/platform/image_service.dart';
+import '../../core/platform/video_service.dart' show VideoException;
 import '../../core/session.dart';
 import '../../l10n/app_localizations.dart';
 import 'post_models.dart';
@@ -24,9 +25,26 @@ String postErrorText(Object e, [AppLocalizations? l]) {
       _ => t.postComposeErrImageUnreadable,
     };
   }
+  if (e is VideoException) {
+    return switch (e.code) {
+      'TOO_LONG' => t.postComposeErrVideoTooLong,
+      'TOO_LARGE' => t.kesErrVideoTooLarge,
+      'UNSUPPORTED' => t.postComposeErrVideoUnsupported,
+      'CANCELLED' => t.postComposeErrCancelled,
+      _ => t.postComposeErrVideoFailed,
+    };
+  }
   if (e is ApiError) {
     if (e.isNetwork) return t.postComposeErrNetwork;
     switch (e.code) {
+      case 'VIDEO_TOO_LONG':
+        return t.postComposeErrVideoTooLong;
+      case 'VIDEO_TOO_LARGE':
+      case 'MEDIA_TOO_LARGE':
+        return t.kesErrVideoTooLarge;
+      case 'VIDEO_INVALID':
+      case 'MEDIA_UNSUPPORTED':
+        return t.postComposeErrVideoInvalid;
       case 'MEDIA_BLOCKED':
         return t.postComposeErrBlocked;
       case 'POST_MEDIA_INVALID':

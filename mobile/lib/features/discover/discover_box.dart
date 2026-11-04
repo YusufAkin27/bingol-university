@@ -7,6 +7,7 @@ import '../posts/like_button.dart';
 import '../posts/post_card.dart';
 import '../posts/post_models.dart';
 import '../posts/post_routes.dart';
+import '../posts/post_video.dart';
 
 /// Kutu köşesi (BuRadius.md) ve fotoğraf oran aralığı (genişlik/yükseklik): 1:1 (kare) .. 2:3 (en dik).
 const double kDiscoverBoxRadius = BuRadius.md;
@@ -57,7 +58,8 @@ class DiscoverPostBox extends StatelessWidget {
     final p = post;
     final name = p.author.displayName;
     final text = (p.text ?? '').trim();
-    final label = [if (text.isNotEmpty) text, name].join(', ');
+    final dur = p.video?.durationMs ?? 0;
+    final label = [if (p.isVideo) context.l10n.postComposeVideo, if (text.isNotEmpty) text, name].join(', ');
     const radius = BorderRadius.all(Radius.circular(kDiscoverBoxRadius));
     final photo = p.photo;
     return BuPressable(
@@ -100,6 +102,11 @@ class DiscoverPostBox extends StatelessWidget {
             ),
           ),
         ),
+        // Video gönderi: ortada oynat rozeti, sağ üstte süre (otomatik oynatma yok; gönderi sayfasında oynar).
+        if (p.isVideo) ...[
+          const Center(child: IgnorePointer(child: PostPlayBadge())),
+          if (dur > 0) PositionedDirectional(top: 8, end: 8, child: IgnorePointer(child: DurationChip(durationMs: dur))),
+        ],
         PositionedDirectional(
           start: 9,
           end: 4,
