@@ -166,6 +166,24 @@ abstract class AppLocalizations {
   /// **'Bu mesaja henüz yanıt verilmedi.'**
   String get chatMessageNoReplies;
 
+  /// No description provided for @chatMessageReactions.
+  ///
+  /// In tr, this message translates to:
+  /// **'Tepkiler'**
+  String get chatMessageReactions;
+
+  /// No description provided for @chatMessageEditedNote.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu mesaj düzenlendi'**
+  String get chatMessageEditedNote;
+
+  /// No description provided for @chatPremiumAllPhotos.
+  ///
+  /// In tr, this message translates to:
+  /// **'Tüm fotoğraflar'**
+  String get chatPremiumAllPhotos;
+
   /// No description provided for @commonRetry.
   ///
   /// In tr, this message translates to:

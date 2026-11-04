@@ -1368,11 +1368,14 @@ class _ChatDetailPageState extends State<ChatDetailPage>
   Future<void> _openAttach() async {
     if (_attachOpen) return;
     final library = widget.mediaLibrary ?? PhotoManagerLibrary();
+    final box = _plusKey.currentContext?.findRenderObject() as RenderBox?;
+    final anchor = box != null && box.hasSize
+        ? box.localToGlobal(Offset.zero) & box.size
+        : Rect.fromLTWH(8, MediaQuery.sizeOf(context).height - 120, 48, 48);
     setState(() => _attachOpen = true);
     ChatAttachResult? choice;
     try {
-      choice = await showChatAttachSheet(context,
-          library: library, ensureAccess: widget.ensureAccess);
+      choice = await showChatAttachMenu(context, anchor: anchor);
     } finally {
       if (mounted) setState(() => _attachOpen = false);
     }
@@ -1380,16 +1383,11 @@ class _ChatDetailPageState extends State<ChatDetailPage>
     MediaSendPlan? plan;
     switch (choice) {
       case ChatAttachGallery():
-        plan = await Navigator.push<MediaSendPlan>(
+        plan = await showMediaPickerSheet(
           context,
-          MaterialPageRoute(
-            builder: (_) => MediaPickerPage(
-              library: library,
-              ensureAccess: widget.ensureAccess,
-              openCamera: widget.openCamera,
-              // Stitch v3: ilk karo Kamera ("+" menüsünde de var).
-            ),
-          ),
+          library: library,
+          ensureAccess: widget.ensureAccess,
+          openCamera: widget.openCamera,
         );
       case ChatAttachCamera():
         final launcher = widget.openCamera;
@@ -2000,6 +1998,8 @@ class _ChatDetailPageState extends State<ChatDetailPage>
         if (!deleted) MessageAction('reply', l.chatDetailReply, BuIcons.reply),
         if (!deleted && hasText)
           MessageAction('copy', l.chatDetailCopy, BuIcons.copy),
+        if (!deleted && _direct && mine && m['id'] != null)
+          MessageAction('info', l.chatMessageInfoTitle, BuIcons.info),
         if (!deleted && hasText && !hasAtt)
           MessageAction('forward', l.chatDetailForward, BuIcons.forward),
         if (!deleted && mine && hasText)
@@ -2043,6 +2043,8 @@ class _ChatDetailPageState extends State<ChatDetailPage>
         await Clipboard.setData(
             ClipboardData(text: (m['text'] as String?) ?? ''));
         _toast(l.chatDetailCopied, kind: BuToastKind.success);
+      case 'info':
+        _openMessageInfo(m);
       case 'forward':
         await _forward(m);
       case 'edit':
@@ -2066,6 +2068,17 @@ class _ChatDetailPageState extends State<ChatDetailPage>
         if (ob != null) await ob.remove('${m['clientId']}');
         if (mounted) setState(() => _msgs.remove(m));
     }
+  }
+
+  /// Mesaj bilgisi sayfası (yalnız birebir sohbette kendi gönderdiğim mesaj; sunucu diğerlerine 404 verir).
+  void _openMessageInfo(Map<String, dynamic> m) {
+    FocusManager.instance.primaryFocus?.unfocus();
+    Navigator.of(context).push(MaterialPageRoute<void>(
+        builder: (_) => MessageInfoPage(
+              session: widget.session,
+              message: Map<String, dynamic>.from(m),
+              peerName: _title,
+            )));
   }
 
   /// Metin mesajını seçilen sohbetlere (en çok 5) aynen gönderir.
@@ -2955,7 +2968,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
           controller: _scroll,
           reverse: true,
           keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
+          padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
           itemCount: _msgs.length + 1,
           findChildIndexCallback: (key) {
             if (key is ValueKey<String>) return indexOf[key.value];
@@ -3108,13 +3121,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
               preview || !_direct || !mine || id == null || m['_state'] != null
                   ? null
                   : () {
-                      FocusManager.instance.primaryFocus?.unfocus();
-                      Navigator.of(context).push(MaterialPageRoute<void>(
-                          builder: (_) => MessageInfoPage(
-                                session: widget.session,
-                                message: Map<String, dynamic>.from(m),
-                                peerName: _title,
-                              )));
+                      _openMessageInfo(m);
                     },
           onMenuRect: (r) => _openMessageMenu(m, r),
           onReplyTap: replyId == null ? null : () => _jumpTo(replyId),
@@ -3209,9 +3216,12 @@ class _ChatDetailPageState extends State<ChatDetailPage>
 
   /// Tek "+" düğmesi (Ekle): 44 dp yumuşak nötr daire, 48 dp dokunma alanı; menü açıkken 45 derece dönüp "x" olur
   /// (yalnız transform; "animasyonları azalt"ta anında). Kamera ve galeri bu menüdedir.
+  final _plusKey = GlobalKey();
+
   Widget _plusButton(BuTokens t) {
     final label = context.l10n.chatDetailAdd;
     return Semantics(
+      key: _plusKey,
       button: true,
       label: label,
       excludeSemantics: true,
@@ -3229,8 +3239,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
               child: Container(
                 width: 44,
                 height: 44,
-                decoration:
-                    BoxDecoration(color: t.sf, borderRadius: BuRadius.bControl),
+                decoration: BoxDecoration(color: t.sf2, shape: BoxShape.circle),
                 child: AnimatedRotation(
                   turns: _attachOpen ? .125 : 0,
                   duration: BuMotion.of(context, BuMotion.short),
@@ -3248,57 +3257,88 @@ class _ChatDetailPageState extends State<ChatDetailPage>
   /// Yanıt / düzenleme çubuğu: solda kırmızı çizgi, ad ya da "Mesaj düzenleniyor", alıntı, kapat.
   Widget _replyBar(BuTokens t, Map<String, dynamic> banner) {
     final tx = Theme.of(context).textTheme;
+    final l = context.l10n;
     final editing = _editing != null;
-    return Container(
-      key: ValueKey(editing ? 'editBar' : 'replyBar'),
-      width: double.infinity,
-      color: t.sf2,
-      padding: const EdgeInsetsDirectional.fromSTEB(16, 6, 4, 6),
-      child: Row(children: [
-        Container(
-          width: 3,
-          height: 40,
-          decoration: BoxDecoration(
-              color: t.pr, borderRadius: BorderRadius.circular(2)),
-        ),
-        const SizedBox(width: 10),
-        Expanded(
-          child:
-              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Row(children: [
-              Icon(editing ? BuIcons.pencil : BuIcons.reply,
-                  size: 14, color: t.mut),
-              const SizedBox(width: 6),
-              Expanded(
-                child: Text(
-                    editing
-                        ? context.l10n.chatDetailEditing
-                        : _nameOf((banner['senderId'] as num?)?.toInt()),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: tx.labelMedium!
-                        .copyWith(color: t.ink, fontWeight: FontWeight.w600)),
+    final text = ((banner['text'] as String?) ?? '').trim();
+    final atts = banner['attachments'];
+    final first = atts is List && atts.isNotEmpty && atts.first is Map
+        ? atts.first as Map
+        : null;
+    final isVideo = first != null && '${first['kind'] ?? ''}' == 'VIDEO';
+    final mediaIcon = first == null
+        ? null
+        : (isVideo ? BuIcons.video : BuIcons.image);
+    final preview = text.isNotEmpty
+        ? text
+        : (first == null
+            ? ''
+            : (isVideo ? l.chatMiscVideo : l.chatMiscPhoto));
+    // Kompakt yanıt/düzenleme kutusu: yumuşak köşe, solda ince marka çizgisi, ad + tek satır önizleme, kapat.
+    return Padding(
+      padding: const EdgeInsetsDirectional.fromSTEB(10, 8, 10, 0),
+      child: Container(
+        key: ValueKey(editing ? 'editBar' : 'replyBar'),
+        width: double.infinity,
+        decoration: BoxDecoration(
+            color: t.sf2, borderRadius: BorderRadius.circular(14)),
+        clipBehavior: Clip.antiAlias,
+        child: IntrinsicHeight(
+          child: Row(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+            Container(width: 3, color: t.pr),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 6),
+                child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(children: [
+                        Icon(editing ? BuIcons.pencil : BuIcons.reply,
+                            size: 14, color: t.mut),
+                        const SizedBox(width: 6),
+                        Expanded(
+                          child: Text(
+                              editing
+                                  ? l.chatDetailEditing
+                                  : _nameOf(
+                                      (banner['senderId'] as num?)?.toInt()),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: tx.labelMedium!.copyWith(
+                                  color: t.ink, fontWeight: FontWeight.w600)),
+                        ),
+                      ]),
+                      const SizedBox(height: 2),
+                      Row(children: [
+                        if (mediaIcon != null && !editing) ...[
+                          Icon(mediaIcon, size: 14, color: t.mut),
+                          const SizedBox(width: 4),
+                        ],
+                        Expanded(
+                          child: Text(preview,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: tx.labelMedium!.copyWith(
+                                  color: t.mut, fontWeight: FontWeight.w400)),
+                        ),
+                      ]),
+                    ]),
               ),
-            ]),
-            const SizedBox(height: 2),
-            Text((banner['text'] as String?) ?? '',
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: tx.labelMedium!
-                    .copyWith(color: t.mut, fontWeight: FontWeight.w400)),
+            ),
+            IconButton(
+              constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
+              tooltip: l.chatDetailNevermind,
+              icon: Icon(BuIcons.x, size: 20, color: t.ink),
+              onPressed: () => setState(() {
+                if (_editing != null) _input.clear();
+                _editing = null;
+                _replyTo = null;
+              }),
+            ),
           ]),
         ),
-        IconButton(
-          constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
-          tooltip: context.l10n.chatDetailNevermind,
-          icon: Icon(BuIcons.x, size: 20, color: t.ink),
-          onPressed: () => setState(() {
-            if (_editing != null) _input.clear();
-            _editing = null;
-            _replyTo = null;
-          }),
-        ),
-      ]),
+      ),
     );
   }
 
@@ -3317,7 +3357,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
         color: canSend ? t.onPr : t.mut);
     return Container(
       decoration: BoxDecoration(
-          color: t.sf, border: Border(top: BorderSide(color: t.bdSubtle))),
+          color: t.bg, border: Border(top: BorderSide(color: t.bdSubtle))),
       child: Column(mainAxisSize: MainAxisSize.min, children: [
         if (banner != null) _replyBar(t, banner),
         if (len >= 1500)
@@ -3348,9 +3388,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
                   constraints: const BoxConstraints(minHeight: 46),
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   decoration: BoxDecoration(
-                      color: t.bg,
-                      border: Border.all(color: t.bd),
-                      borderRadius: BorderRadius.circular(24)),
+                      color: t.sf2, borderRadius: BorderRadius.circular(24)),
                   child: TextField(
                     key: const ValueKey('composerField'),
                     controller: _input,
@@ -3412,7 +3450,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
                                 height: 44,
                                 decoration: BoxDecoration(
                                     color: canSend ? t.pr : t.sf2,
-                                    borderRadius: BuRadius.bControl),
+                                    shape: BoxShape.circle),
                                 child: sendIcon,
                               ),
                             ),

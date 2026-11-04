@@ -42,6 +42,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chatMessageNoReplies => 'No replies to this message yet.';
 
   @override
+  String get chatMessageReactions => 'Reactions';
+
+  @override
+  String get chatMessageEditedNote => 'This message was edited';
+
+  @override
+  String get chatPremiumAllPhotos => 'All photos';
+
+  @override
   String get commonRetry => 'Try again';
 
   @override

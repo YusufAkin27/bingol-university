@@ -42,6 +42,15 @@ class AppLocalizationsAr extends AppLocalizations {
   String get chatMessageNoReplies => 'لا توجد ردود على هذه الرسالة بعد.';
 
   @override
+  String get chatMessageReactions => 'التفاعلات';
+
+  @override
+  String get chatMessageEditedNote => 'تم تعديل هذه الرسالة';
+
+  @override
+  String get chatPremiumAllPhotos => 'كل الصور';
+
+  @override
   String get commonRetry => 'إعادة المحاولة';
 
   @override

@@ -1,16 +1,10 @@
-import 'dart:typed_data';
-
 import 'package:flutter/material.dart';
 
 import '../../core/locale_controller.dart';
-import '../../core/permissions/ensure_permission.dart';
 import '../../widgets/bu.dart';
-import 'media_library.dart';
 import 'media_pick.dart';
-import 'media_picker_page.dart' show EnsureAccess;
-import 'sohbety_sheet.dart';
 
-/// "+" menüsünün sonucu: galeri, kamera ya da şeritten seçilen tek fotoğraf.
+/// "+" menüsünün sonucu: galeri paneli ya da kamera. ([ChatAttachRecent] eski şeritten kalan tek fotoğraf sonucu.)
 sealed class ChatAttachResult {
   const ChatAttachResult();
 }
@@ -28,197 +22,93 @@ class ChatAttachRecent extends ChatAttachResult {
   final MediaPick pick;
 }
 
-/// "+" menüsü (tek yüzey ailesi: sohbet alt sayfası): üstte Galeri ve Kamera karoları, altında son fotoğraflar şeridi
-/// (yatay kaydırmalı, sonda "Tümü"). Galeri izni yoksa şerit yerine tek satır "Fotoğraflara erişime izin ver".
-/// İzin YALNIZ bu satıra dokunulunca istenir (menü açılırken sistem izin penceresi çıkmaz).
-Future<ChatAttachResult?> showChatAttachSheet(BuildContext context, {required MediaLibrary library, EnsureAccess? ensureAccess}) {
-  return showSohbetySheet<ChatAttachResult>(context, (c) => ChatAttachSheet(library: library, ensureAccess: ensureAccess));
-}
-
-class ChatAttachSheet extends StatefulWidget {
-  const ChatAttachSheet({super.key, required this.library, this.ensureAccess, this.stripCount = 10});
-
-  final MediaLibrary library;
-  final EnsureAccess? ensureAccess;
-
-  /// Şeritteki en çok fotoğraf sayısı (8-12 arası).
-  final int stripCount;
-
-  @override
-  State<ChatAttachSheet> createState() => _ChatAttachSheetState();
-}
-
-class _ChatAttachSheetState extends State<ChatAttachSheet> {
-  List<GalleryItem>? _recent;
-  bool _loading = true;
-  bool _asking = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadStrip(ask: false);
-  }
-
-  /// [ask] false: yalnız mevcut izne bakar (istemez); true: izin akışını çalıştırır.
-  Future<void> _loadStrip({required bool ask}) async {
-    try {
-      var access = await widget.library.currentAccess();
-      if (ask && (access == null || access == LibraryAccess.denied)) {
-        if (!mounted) return;
-        final ensure = widget.ensureAccess ?? ensurePermission;
-        final ok = await ensure(context, AppPermission.photos, rationale: context.l10n.chatMiscGalleryRationale);
-        if (!mounted) return;
-        access = ok ? await widget.library.requestAccess() : LibraryAccess.denied;
-      }
-      if (access == LibraryAccess.full || access == LibraryAccess.limited) {
-        final items = await widget.library.items(null, page: 0, size: widget.stripCount * 2);
-        if (!mounted) return;
-        setState(() {
-          _recent = items.where((g) => !g.isVideo).take(widget.stripCount).toList();
-          _loading = false;
-          _asking = false;
-        });
-        return;
-      }
-    } catch (_) {}
-    if (mounted) {
-      setState(() {
-        _recent = null;
-        _loading = false;
-        _asking = false;
-      });
-    }
-  }
-
-  MediaPick _pickOf(GalleryItem g) => MediaPick(
-        key: g.id,
-        isVideo: g.isVideo,
-        durationMs: g.durationMs,
-        thumb: (s) => widget.library.thumb(g, s),
-        imageBytes: g.isVideo ? null : () => widget.library.imageBytes(g),
-        videoPath: g.isVideo ? () => widget.library.videoPath(g) : null,
+/// "+" menüsü (ChatGPT tarzı): tam ekran modal DEĞİL; "+" düğmesinin hemen üstünde küçük yüzen panel.
+/// Satırlar: Kamera, Fotoğraflar (galeri paneli). Dışarı dokununca kapanır. Ses/dosya satırı backend desteği yokken
+/// (yalnız IMAGE/VIDEO ek türü var) eklenmez: sahte seçenek gösterilmez.
+/// [anchor] "+" düğmesinin ekran dikdörtgenidir; panel onun üst kenarının 8 dp üstüne, düğmeyle aynı başlangıç hizasına
+/// açılır (RTL'de ayna). 180 ms solma + hafif ölçek; "animasyonları azalt"ta anında.
+Future<ChatAttachResult?> showChatAttachMenu(BuildContext context, {required Rect anchor}) {
+  final reduced = BuMotion.reduced(context);
+  return showGeneralDialog<ChatAttachResult>(
+    context: context,
+    barrierDismissible: true,
+    barrierLabel: MaterialLocalizations.of(context).modalBarrierDismissLabel,
+    barrierColor: Colors.transparent,
+    transitionDuration: reduced ? Duration.zero : const Duration(milliseconds: 180),
+    pageBuilder: (c, a, b) => ChatAttachMenu(anchor: anchor),
+    transitionBuilder: (c, anim, sec, child) {
+      final curved = CurvedAnimation(parent: anim, curve: Curves.easeOutCubic, reverseCurve: Curves.easeInCubic);
+      return FadeTransition(
+        opacity: curved,
+        child: ScaleTransition(
+          scale: Tween<double>(begin: .92, end: 1).animate(curved),
+          alignment: AlignmentDirectional.bottomStart.resolve(Directionality.of(c)),
+          child: child,
+        ),
       );
+    },
+  );
+}
+
+class ChatAttachMenu extends StatelessWidget {
+  const ChatAttachMenu({super.key, required this.anchor});
+
+  final Rect anchor;
+
+  static const double width = 232;
 
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
     final l = context.l10n;
     final mq = MediaQuery.of(context);
-    return Padding(
-      padding: EdgeInsets.only(bottom: mq.viewInsets.bottom),
-      child: SafeArea(
-        top: false,
-        child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-          ExcludeSemantics(
-            child: Center(
-              child: Container(
-                width: 36,
-                height: 4,
-                margin: const EdgeInsets.only(top: 10, bottom: 16),
-                decoration: BoxDecoration(color: t.bd, borderRadius: BuRadius.bPill),
-              ),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: Row(children: [
-              Expanded(child: _Tile(key: const ValueKey('attachGallery'), icon: BuIcons.images, label: l.chatMiscGallery, onTap: () => Navigator.pop(context, const ChatAttachGallery()))),
-              const SizedBox(width: 12),
-              Expanded(child: _Tile(key: const ValueKey('attachCamera'), icon: BuIcons.camera, label: l.chatMiscCamera, onTap: () => Navigator.pop(context, const ChatAttachCamera()))),
-            ]),
-          ),
-          const SizedBox(height: 16),
-          _strip(context),
-          const SizedBox(height: 16),
-        ]),
-      ),
-    );
-  }
-
-  Widget _strip(BuildContext context) {
-    final t = context.bu;
-    final l = context.l10n;
-    final tx = Theme.of(context).textTheme;
-    final recent = _recent;
-    if (_loading) {
-      return const SizedBox(height: 72, child: ExcludeSemantics(child: SizedBox.shrink()));
-    }
-    if (recent == null) {
-      // İzin yok / henüz verilmedi: tek satır.
-      return Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20),
+    final rtl = Directionality.of(context) == TextDirection.rtl;
+    final left = rtl ? null : anchor.left.clamp(8.0, mq.size.width - width - 8);
+    final right = rtl ? (mq.size.width - anchor.right).clamp(8.0, mq.size.width - width - 8) : null;
+    return Stack(children: [
+      Positioned(
+        left: left,
+        right: right,
+        bottom: mq.size.height - anchor.top + 8,
+        width: width,
         child: Semantics(
-          button: true,
-          label: l.p67AttachAllowPhotos,
-          excludeSemantics: true,
-          child: BuPressable(
-            key: const ValueKey('attachAllowPhotos'),
-            onTap: _asking
-                ? null
-                : () {
-                    setState(() => _asking = true);
-                    _loadStrip(ask: true);
-                  },
-            haptic: BuHaptic.selection,
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(minHeight: BuSize.row),
-              child: Row(children: [
-                Icon(BuIcons.image, size: 22, color: t.mut),
-                const SizedBox(width: 12),
-                Expanded(child: Text(l.p67AttachAllowPhotos, style: tx.bodyLarge!.copyWith(color: t.ink))),
-                Text(l.p67AttachGrant, style: tx.bodyMedium!.copyWith(color: t.pr, fontWeight: FontWeight.w600)),
-              ]),
-            ),
-          ),
-        ),
-      );
-    }
-    return Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-      Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20),
-        child: Row(children: [
-          Expanded(child: Text(l.p67AttachRecent, style: tx.bodyMedium!.copyWith(color: t.mut, fontWeight: FontWeight.w500))),
-          Semantics(
-            button: true,
-            label: l.chatMiscAll,
-            excludeSemantics: true,
-            child: BuPressable(
-              key: const ValueKey('attachAll'),
-              onTap: () => Navigator.pop(context, const ChatAttachGallery()),
-              haptic: BuHaptic.selection,
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(minHeight: 48, minWidth: 48),
-                child: Center(child: Text(l.chatMiscAll, maxLines: 1, style: tx.bodyMedium!.copyWith(color: t.pr, fontWeight: FontWeight.w600))),
+          scopesRoute: true,
+          explicitChildNodes: true,
+          child: DecoratedBox(
+            decoration: BoxDecoration(borderRadius: BorderRadius.circular(22), boxShadow: BuElevation.of(context, 2)),
+            child: Material(
+              color: t.sf,
+              elevation: 0,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22), side: BorderSide(color: t.bdSubtle)),
+              clipBehavior: Clip.antiAlias,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 6),
+                child: Column(mainAxisSize: MainAxisSize.min, children: [
+                  _Row(
+                    key: const ValueKey('attachCamera'),
+                    icon: BuIcons.camera,
+                    label: l.chatMiscCamera,
+                    onTap: () => Navigator.pop(context, const ChatAttachCamera()),
+                  ),
+                  _Row(
+                    key: const ValueKey('attachGallery'),
+                    icon: BuIcons.images,
+                    label: l.permPhotosTitle,
+                    onTap: () => Navigator.pop(context, const ChatAttachGallery()),
+                  ),
+                ]),
               ),
             ),
           ),
-        ]),
-      ),
-      SizedBox(
-        height: 72,
-        child: ListView.separated(
-          key: const ValueKey('attachStrip'),
-          scrollDirection: Axis.horizontal,
-          padding: const EdgeInsets.symmetric(horizontal: 20),
-          itemCount: recent.length,
-          separatorBuilder: (c, i) => const SizedBox(width: 8),
-          itemBuilder: (c, i) {
-            final g = recent[i];
-            return _Thumb(key: ValueKey('attachRecent_${g.id}'), item: g, library: widget.library, onTap: () => Navigator.pop(context, ChatAttachRecent(_pickOf(g))));
-          },
         ),
-      ),
-      Padding(
-        padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
-        child: Text(l.p67AttachOnceHint, style: tx.bodySmall!.copyWith(color: t.mut)),
       ),
     ]);
   }
 }
 
-/// Büyük yuvarlak köşeli karo: simge + kısa etiket (tek ton).
-class _Tile extends StatelessWidget {
-  const _Tile({super.key, required this.icon, required this.label, required this.onTap});
+/// Solda dairesel simge, sağda başlık; 52 dp yüksek dokunma alanı.
+class _Row extends StatelessWidget {
+  const _Row({super.key, required this.icon, required this.label, required this.onTap});
 
   final IconData icon;
   final String label;
@@ -234,61 +124,24 @@ class _Tile extends StatelessWidget {
       child: BuPressable(
         onTap: onTap,
         haptic: BuHaptic.selection,
-        child: Container(
-          height: 100,
-          decoration: BoxDecoration(color: t.bg, borderRadius: BuRadius.bMd, border: Border.all(color: t.bd)),
-          child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-            Icon(icon, size: 28, color: t.ink),
-            const SizedBox(height: 8),
-            Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, style: Theme.of(context).textTheme.labelLarge!.copyWith(color: t.ink, fontWeight: FontWeight.w600)),
-          ]),
-        ),
-      ),
-    );
-  }
-}
-
-class _Thumb extends StatefulWidget {
-  const _Thumb({super.key, required this.item, required this.library, required this.onTap});
-
-  final GalleryItem item;
-  final MediaLibrary library;
-  final VoidCallback onTap;
-
-  @override
-  State<_Thumb> createState() => _ThumbState();
-}
-
-class _ThumbState extends State<_Thumb> {
-  late final Future<Uint8List?> _data = widget.library.thumb(widget.item, 200);
-
-  @override
-  Widget build(BuildContext context) {
-    final t = context.bu;
-    return Semantics(
-      button: true,
-      label: context.l10n.chatMiscPhoto,
-      excludeSemantics: true,
-      child: BuPressable(
-        onTap: widget.onTap,
-        haptic: BuHaptic.selection,
-        child: ClipRRect(
-          borderRadius: BuRadius.bSm,
-          child: SizedBox(
-            width: 72,
-            height: 72,
-            child: Stack(fit: StackFit.expand, children: [
-              ColoredBox(color: t.sf2),
-              FutureBuilder<Uint8List?>(
-                future: _data,
-                builder: (c, s) => s.data == null
-                    ? const SizedBox.shrink()
-                    : Image.memory(s.data!,
-                        fit: BoxFit.cover,
-                        gaplessPlayback: true,
-                        cacheWidth: 200,
-                        errorBuilder: (c, e, st) => const SizedBox.shrink(), // çözülemeyen küçük resim: düz zemin kalır
-                        frameBuilder: (c, child, frame, sync) => sync ? child : AnimatedOpacity(opacity: frame == null ? 0 : 1, duration: BuMotion.of(c, BuMotion.medium), child: child)),
+        scale: .98,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minHeight: 52),
+          child: Padding(
+            padding: const EdgeInsetsDirectional.fromSTEB(10, 4, 16, 4),
+            child: Row(children: [
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(color: t.sf2, shape: BoxShape.circle),
+                child: Icon(icon, size: 20, color: t.ink),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: Theme.of(context).textTheme.bodyLarge!.copyWith(color: t.ink, fontWeight: FontWeight.w500)),
               ),
             ]),
           ),

@@ -18,12 +18,53 @@ export 'media_pick.dart' show kMaxPicks, kMaxVideoMs;
 
 typedef EnsureAccess = Future<bool> Function(BuildContext context, AppPermission permission, {String? rationale});
 
-/// Tam ekran galeri seçici (P3-CHAT, modern ızgara): en yeni önce, 3 sütunlu sayfalı ızgara (4 dp aralık, 12 dp köşe),
+/// ChatGPT tarzı galeri paneli: alttan açılır (ilk %58), yukarı sürükleyince neredeyse tam ekran (%96), aşağı
+/// sürükleyince küçülür/kapanır; arka plan karartılır. İçerik [MediaPickerPage] (`asSheet`). Seçim/önizleme sonrası
+/// [MediaSendPlan] döner; kapatılırsa null.
+Future<MediaSendPlan?> showMediaPickerSheet(
+  BuildContext context, {
+  required MediaLibrary library,
+  EnsureAccess? ensureAccess,
+  MediaCameraLauncher? openCamera,
+  int pageSize = 60,
+}) {
+  final t = context.bu;
+  final controller = DraggableScrollableController();
+  return showModalBottomSheet<MediaSendPlan>(
+    context: context,
+    isScrollControlled: true,
+    useSafeArea: false,
+    backgroundColor: Colors.transparent,
+    barrierColor: t.scrim.withValues(alpha: .5),
+    builder: (c) => DraggableScrollableSheet(
+      key: const ValueKey('galleryPanel'),
+      controller: controller,
+      expand: false,
+      initialChildSize: .58,
+      minChildSize: 0,
+      maxChildSize: .96,
+      snap: true,
+      snapSizes: const [.58, .96],
+      builder: (c, sc) => MediaPickerPage(
+        library: library,
+        ensureAccess: ensureAccess,
+        openCamera: openCamera,
+        pageSize: pageSize,
+        showCameraTile: false,
+        asSheet: true,
+        sheetScroll: sc,
+        sheetController: controller,
+      ),
+    ),
+  );
+}
+
+/// Galeri seçici (P3-CHAT, modern ızgara; sohbette [showMediaPickerSheet] ile panel, `asSheet` false iken tam sayfa): en yeni önce, 3 sütunlu sayfalı ızgara (4 dp aralık, 12 dp köşe),
 /// seçilince köşede dolu kırmızı onay (çoklu seçimde sayı), seçili kare hafif küçülüp çerçeve alır; üstte sade çubuk
 /// (Kapat, albüm, "Gönder (n)") ve alt çubuk YOK. [showCameraTile] ilk karoda kamera (gönderi oluşturucu); sohbette kamera
 /// "+" menüsündedir. "Gönder (n)" önizlemeye gider; önizlemeden [MediaSendPlan] döner; kapatılırsa null.
 class MediaPickerPage extends StatefulWidget {
-  const MediaPickerPage({super.key, required this.library, this.ensureAccess, this.openCamera, this.pageSize = 60, this.maxItems = kMaxPicks, this.showCameraTile = true});
+  const MediaPickerPage({super.key, required this.library, this.ensureAccess, this.openCamera, this.pageSize = 60, this.maxItems = kMaxPicks, this.showCameraTile = true, this.asSheet = false, this.sheetScroll, this.sheetController});
 
   final MediaLibrary library;
   final EnsureAccess? ensureAccess;
@@ -36,12 +77,19 @@ class MediaPickerPage extends StatefulWidget {
   /// İlk karoda kamera karosu (sohbette false: kamera "+" menüsünde).
   final bool showCameraTile;
 
+  /// Panel kipi: Scaffold yok, üstte tutamaç + yuvarlak üst köşe; ızgara [sheetScroll] ile sürüklemeye bağlanır.
+  final bool asSheet;
+  final ScrollController? sheetScroll;
+
+  /// Panel boyutunu tutamaç/başlık sürüklemesiyle de değiştirmek için (ızgara dışındaki alanlar kaydırılamaz).
+  final DraggableScrollableController? sheetController;
+
   @override
   State<MediaPickerPage> createState() => _MediaPickerPageState();
 }
 
 class _MediaPickerPageState extends State<MediaPickerPage> {
-  final _scroll = ScrollController();
+  late final ScrollController _scroll = widget.sheetScroll ?? ScrollController();
   final _items = <GalleryItem>[];
   final _picked = <MediaPick>[];
   List<GalleryAlbum> _albums = const [];
@@ -72,7 +120,8 @@ class _MediaPickerPageState extends State<MediaPickerPage> {
 
   @override
   void dispose() {
-    _scroll.dispose();
+    _scroll.removeListener(_onScroll);
+    if (widget.sheetScroll == null) _scroll.dispose();
     super.dispose();
   }
 
@@ -149,7 +198,7 @@ class _MediaPickerPageState extends State<MediaPickerPage> {
   }
 
   void _onScroll() {
-    if (_scroll.position.pixels > _scroll.position.maxScrollExtent - 600) _loadMore();
+    if (_scroll.hasClients && _scroll.position.pixels > _scroll.position.maxScrollExtent - 600) _loadMore();
   }
 
   void _toast(String msg) => BuToast.show(context, msg, kind: BuToastKind.warning);
@@ -223,9 +272,72 @@ class _MediaPickerPageState extends State<MediaPickerPage> {
     if (mounted) await _reload();
   }
 
+  /// Tutamak/başlık sürüklemesi panel boyutunu izler (yukarı = büyür).
+  void _dragSheet(DragUpdateDetails d) {
+    final c = widget.sheetController;
+    if (c == null || !c.isAttached) return;
+    final h = MediaQuery.sizeOf(context).height;
+    c.jumpTo((c.size - (d.primaryDelta ?? 0) / h).clamp(0.0, .96));
+  }
+
+  /// Bırakınca: hızlı hareket yönüne, değilse en yakın duruma (kapalı / %58 / %96) oturur; %30 altı kapanır.
+  void _endDragSheet(DragEndDetails d) {
+    final c = widget.sheetController;
+    if (c == null || !c.isAttached) return;
+    final v = d.primaryVelocity ?? 0;
+    final size = c.size;
+    double target;
+    if (v < -700) {
+      target = .96;
+    } else if (v > 700) {
+      target = size > .58 ? .58 : 0;
+    } else if (size < .3) {
+      target = 0;
+    } else {
+      target = size > .77 ? .96 : .58;
+    }
+    if (target == 0) {
+      Navigator.maybePop(context);
+      return;
+    }
+    c.animateTo(target, duration: BuMotion.of(context, BuMotion.medium), curve: Curves.easeOutCubic);
+  }
+
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
+    if (widget.asSheet) {
+      return Container(
+        key: const ValueKey('pickerSheet'),
+        decoration: BoxDecoration(
+          color: t.bg,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: Column(children: [
+          GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onVerticalDragUpdate: _dragSheet,
+            onVerticalDragEnd: _endDragSheet,
+            child: Column(children: [
+              ExcludeSemantics(
+                child: Center(
+                  child: Container(
+                    key: const ValueKey('sheetHandle'),
+                    width: 40,
+                    height: 4,
+                    margin: const EdgeInsets.only(top: 10, bottom: 2),
+                    decoration: BoxDecoration(color: t.bd, borderRadius: BuRadius.bPill),
+                  ),
+                ),
+              ),
+              _header(context),
+            ]),
+          ),
+          Expanded(child: _body(context)),
+        ]),
+      );
+    }
     return Scaffold(
       backgroundColor: t.bg,
       body: SafeArea(
@@ -243,7 +355,7 @@ class _MediaPickerPageState extends State<MediaPickerPage> {
     final l = context.l10n;
     final tx = Theme.of(context).textTheme;
     final has = _picked.isNotEmpty;
-    final title = _album == null || _album!.isAll ? l.sohbetmedyaRecent : _album!.name;
+    final title = _album == null || _album!.isAll ? (widget.asSheet ? l.chatPremiumAllPhotos : l.sohbetmedyaRecent) : _album!.name;
     return DecoratedBox(
       decoration: BoxDecoration(border: Border(bottom: BorderSide(color: t.bd))),
       child: SizedBox(
@@ -453,6 +565,7 @@ class _MediaPickerPageState extends State<MediaPickerPage> {
     final tx = Theme.of(context).textTheme;
     return Center(
       child: SingleChildScrollView(
+        controller: widget.sheetScroll,
         padding: const EdgeInsets.all(16),
         child: Container(
           key: const ValueKey('galleryDenied'),
@@ -508,7 +621,8 @@ class _MediaPickerPageState extends State<MediaPickerPage> {
     return BuSkeletonScope(
       child: GridView.builder(
         key: const ValueKey('galleryLoading'),
-        physics: const NeverScrollableScrollPhysics(),
+        controller: widget.sheetScroll,
+        physics: widget.asSheet ? null : const NeverScrollableScrollPhysics(),
         padding: const EdgeInsets.fromLTRB(4, 4, 4, 0),
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 3, mainAxisSpacing: 2, crossAxisSpacing: 2),
         itemCount: 18,
