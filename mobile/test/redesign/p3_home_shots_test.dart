@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:typed_data';
 import 'dart:ui' as ui;
 
 import 'package:bu_kampus/core/locale_controller.dart';
@@ -7,6 +8,8 @@ import 'package:bu_kampus/features/academic/academic_models.dart';
 import 'package:bu_kampus/features/home/home_layout.dart';
 import 'package:bu_kampus/features/home/home_layout_sheet.dart';
 import 'package:bu_kampus/features/home/home_tab.dart';
+import 'package:bu_kampus/features/menu/menu_photo.dart';
+import 'package:image/image.dart' as im;
 import 'package:bu_kampus/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -30,7 +33,21 @@ String _day(int offset) {
   return '${n.year}-${n.month.toString().padLeft(2, '0')}-${n.day.toString().padLeft(2, '0')}';
 }
 
+/// Menü fotoğrafı yerine gri tepsi + tabaklar çizilen yerel görsel (ağ yok).
+ImageProvider _menuPhoto() {
+  final g = im.Image(width: 640, height: 360);
+  im.fill(g, color: im.ColorRgb8(226, 226, 228));
+  im.fillRect(g, x1: 70, y1: 40, x2: 570, y2: 330, color: im.ColorRgb8(150, 153, 158));
+  im.fillCircle(g, x: 200, y: 150, radius: 70, color: im.ColorRgb8(240, 240, 240));
+  im.fillCircle(g, x: 200, y: 150, radius: 52, color: im.ColorRgb8(201, 98, 40));
+  im.fillCircle(g, x: 400, y: 190, radius: 95, color: im.ColorRgb8(245, 245, 243));
+  im.fillCircle(g, x: 380, y: 190, radius: 55, color: im.ColorRgb8(176, 80, 50));
+  im.fillCircle(g, x: 450, y: 170, radius: 38, color: im.ColorRgb8(248, 244, 232));
+  return MemoryImage(Uint8List.fromList(im.encodePng(g)));
+}
+
 void _data(FakeBackend b) {
+  fakePolls(b, count: 0).menuPoll = samplePoll(id: 50, title: 'Menu', type: 'RATING', communityId: null, communityName: null);
   final wall = istanbulWall(academicClock());
   b
     ..on('/me/summary', {'unreadNotifications': 3, 'unreadMessages': 2})
@@ -45,6 +62,7 @@ void _data(FakeBackend b) {
       ],
       'totalKcal': 860,
       'kcalComplete': true,
+      'imageUrl': '/files/menu/today.jpg',
     })
     ..on('/timetable', {
       'semester': null,
@@ -83,8 +101,8 @@ void _data(FakeBackend b) {
     })
     ..on('/news?type=HABER*', {
       'items': [
-        {'id': 1, 'type': 'HABER', 'title': 'Kütüphane vize dönemi çalışma saatleri güncellendi', 'publishedDate': _day(-3), 'imageUrl': null},
-        {'id': 2, 'type': 'HABER', 'title': 'Güz dönemi festivali duyuruldu', 'publishedDate': _day(-5), 'imageUrl': null},
+        {'id': 1, 'type': 'HABER', 'title': 'Kütüphane vize dönemi çalışma saatleri güncellendi', 'publishedDate': _day(-3), 'imageUrl': '/files/news/1.jpg'},
+        {'id': 2, 'type': 'HABER', 'title': 'Güz dönemi festivali duyuruldu', 'publishedDate': _day(-5), 'imageUrl': '/files/news/2.jpg'},
       ],
     })
     ..on('/news?type=DUYURU*', {
@@ -116,7 +134,7 @@ Widget _phone(FakeBackend b) => Stack(children: [
 
 final _shots = <_Shot>[
   const _Shot('00_telefon', _phone, height: 844),
-  const _Shot('01_ana_sayfa', _home),
+  const _Shot('01_ana_sayfa', _home, height: 2900),
   const _Shot('02_iskelet', _home, loading: true, height: 844),
   _Shot('03_tum_gizli', _home, height: 844, layout: _allHidden()),
   _Shot('05_duzenle', (b) => HomeLayoutPage(controller: HomeLayoutController(uid: 1)), height: 900),
@@ -192,6 +210,8 @@ void main() {
       final name = '${shot.file}${v.$1}_$_lang';
       testWidgets('p3home $name', skip: skip != null, (tester) async {
         debugNetworkImageHttpClientProvider = () => StoreImageHttpClient();
+        MenuPhotoGate.debugProvider = (_) => _menuPhoto();
+        addTearDown(() => MenuPhotoGate.debugProvider = null);
         tester.view.devicePixelRatio = _dpr;
         tester.view.physicalSize = Size(_w * _dpr, shot.height * _dpr);
         tester.view.padding = const FakeViewPadding(top: 28 * _dpr, bottom: 16 * _dpr);

@@ -17,10 +17,11 @@ import '../events/events_page.dart';
 import '../menu/menu_models.dart';
 import '../menu/menu_page.dart';
 import '../menu/menu_parts.dart' show menuDishTitle;
+import '../menu/menu_topup.dart' show menuTopUpUri;
 import '../news/news_detail_page.dart';
 import '../news/news_list_page.dart';
 import '../news/news_tile.dart'
-    show newsLocalDate, newsMonthName, newsWeekdayName;
+    show newsLocalDate, newsMonthName, newsTypeLabel, newsWeekdayName;
 import '../notifications/notifications_page.dart';
 import '../polls/poll_routes.dart';
 import '../profile/saved_news_page.dart';
@@ -29,6 +30,7 @@ import '../shell/app_shell.dart' show AppTab;
 import '../support/support_page.dart';
 import 'home_layout.dart';
 import 'home_layout_sheet.dart';
+import 'home_menu_rating.dart';
 import 'home_parts.dart';
 
 /// Ana sayfa (Stitch v3): selamlama + düzenle/zil, arama, "Bugün" tek bakış yüzeyi, ardından kullanıcının sıraladığı
@@ -528,33 +530,33 @@ class _HomeTabState extends State<HomeTab> {
             onTap: () => _push(SearchPage(session: _s))),
       )),
     ];
-    var todayInserted = false;
+    out.addAll([
+      // Stitch v5: 4 ana hedef (tek tonlu beyaz karolar), ardından "Bugün kampüste" (sabit, gizlenemez).
+      stag(Padding(
+        padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+        child: _featuredShortcuts(context),
+      )),
+      // "Bugün": satırlar yüklendikçe/boşalınca yükseklik + solma geçişi.
+      HomeSectionSlot(
+        key: const ValueKey('slot-today'),
+        visible: todayRows.isNotEmpty,
+        builder: () => stag(Padding(
+          padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
+          child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                HomeSectionHeader(
+                    title: l.p60Today,
+                    action: l.homeViewAll,
+                    accent: true,
+                    onAction: () => _push(AcademicHubPage(session: _s)),
+                    onLongPress: _editLayout),
+                HomeTodayCard(rows: todayRows),
+              ]),
+        )),
+      ),
+    ]);
     for (final s in layout.order) {
-      if (s == HomeSection.featuredNews) {
-        todayInserted = true;
-        out.addAll([
-          // "Bugün": sabit, gizlenemez; satırlar yüklendikçe/boşalınca yükseklik + solma geçişi.
-          HomeSectionSlot(
-            key: const ValueKey('slot-today'),
-            visible: todayRows.isNotEmpty,
-            builder: () => stag(Padding(
-              padding: const EdgeInsets.fromLTRB(20, 8, 20,
-                  0), // Stitch: arama alt boşluğu 20 (12 + satır içi 12 = 24 yerine 8 + 12)
-              child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    HomeSectionHeader(
-                        title: l.p60Today,
-                        action: l.homeViewAll,
-                        accent: true,
-                        onAction: () => _push(AcademicHubPage(session: _s)),
-                        onLongPress: _editLayout),
-                    HomeTodayCard(rows: todayRows),
-                  ]),
-            )),
-          ),
-        ]);
-      }
       final on = layout.isVisible(s) && hasContent(s);
       out.add(HomeSectionSlot(
         key: ValueKey('slot-${s.id}'),
@@ -564,9 +566,6 @@ class _HomeTabState extends State<HomeTab> {
             padding: const EdgeInsets.only(top: 12),
             child: _sectionBody(context, s, slots))),
       ));
-    }
-    if (!todayInserted && todayRows.isNotEmpty) {
-      out.add(_pad(HomeTodayCard(rows: todayRows)));
     }
     if (!anyVisible) {
       out.add(Padding(
@@ -651,6 +650,7 @@ class _HomeTabState extends State<HomeTab> {
             title: (n['title'] as String?) ?? '',
             dateText: newsLocalDate(context, n['publishedDate'] as String?),
             imageUrl: n['imageUrl'] as String?,
+            badge: newsTypeLabel(context, n['type'] as String? ?? type),
             heroId: (n['id'] as num?)?.toInt(),
             onTap: () => _push(NewsDetailPage(session: _s, item: n)),
           );
@@ -665,7 +665,7 @@ class _HomeTabState extends State<HomeTab> {
         children: [
           _pad(HomeSectionHeader(
             title: announce ? l.anasayfaAnnouncements : l.p03HomeFeaturedNews,
-            action: l.homeAll,
+            action: l.homeViewAll,
             onAction: () => _push(NewsListPage(session: _s, initialType: type)),
             onLongPress: _editLayout,
           )),
@@ -739,7 +739,7 @@ class _HomeTabState extends State<HomeTab> {
         Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
       HomeSectionHeader(
           title: l.p03HomeUpcoming,
-          action: l.homeAll,
+          action: l.homeViewAll,
           onAction: () => _push(EventsPage(session: _s)),
           onLongPress: _editLayout),
       _eventBody(context),
@@ -783,11 +783,11 @@ class _HomeTabState extends State<HomeTab> {
         month: month,
         day: d == null ? '' : '${d.day}',
         title: (e['title'] as String?) ?? '',
-        sub: [
-          if (!official && club.isNotEmpty) club,
-          if (time.isNotEmpty) time,
-          if (time.isEmpty && loc.isNotEmpty) loc
-        ].join(' · '),
+        host: !official && club.isNotEmpty
+            ? '${l.eventFormOrganizedBy} $club'
+            : '',
+        time: time,
+        place: loc,
         onTap: id == null
             ? null
             : () => official
@@ -809,6 +809,33 @@ class _HomeTabState extends State<HomeTab> {
     final name = newsMonthName(context, month);
     if (Localizations.localeOf(context).languageCode == 'ar') return name;
     return trUpper(name).characters.take(3).toString();
+  }
+
+  /// Stitch v5 üst blok: Ders Programı, Yemek Menüsü, Kütüphane, Kulüpler (hepsi aynı tek tonlu karo).
+  Widget _featuredShortcuts(BuildContext context) {
+    final l = context.l10n;
+    return HomeFeaturedShortcuts(items: [
+      (
+        label: l.homeFeaturedSchedule,
+        icon: BuIcons.clock,
+        onTap: () => _push(AcademicHubPage(session: _s))
+      ),
+      (
+        label: l.homeFeaturedMenu,
+        icon: BuIcons.utensils,
+        onTap: () => _push(MenuPage(session: _s))
+      ),
+      (
+        label: l.homeLibrary,
+        icon: BuIcons.library,
+        onTap: () => _openUrl('https://kutuphane.bingol.edu.tr/')
+      ),
+      (
+        label: l.navClubs,
+        icon: BuIcons.users,
+        onTap: () => widget.onOpenTab(AppTab.clubs)
+      ),
+    ]);
   }
 
   void _openMore(BuildContext context) {
@@ -943,14 +970,18 @@ class _HomeTabState extends State<HomeTab> {
             )
         ],
         kcalText: anyKcal,
-        totalLabel: total == null ? null : l.p03MenuTotalEnergy,
-        totalValue: total == null
+        imageUrl: day.imageUrl,
+        totalText: total == null
             ? null
             : (day.kcalComplete
                 ? '${l.p03MenuTotal} ${l.p03MenuKcal('$total')}'
                 : l.p03MenuAtLeast('$total')),
+        rating: HomeMenuRating(session: _s),
         onTap: () => _push(MenuPage(session: _s)),
       ),
+      HomeInlineLink(
+          label: '${l.menuTopUpAction} · ${menuTopUpUri.host}',
+          onTap: () => _openUrl(menuTopUpUri.toString())),
     ]));
   }
 }

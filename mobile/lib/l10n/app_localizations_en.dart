@@ -9522,6 +9522,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeFeaturedMenu => 'Meal Menu';
 
   @override
+  String get homeMenuRate => 'Rate the menu';
+
+  @override
+  String get homeMenuPhotoPending => 'Waiting for a new photo';
+
+  @override
   String get homeSearchFilters => 'Search filters';
 
   @override

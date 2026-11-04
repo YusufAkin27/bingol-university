@@ -51,16 +51,19 @@ void main() {
           expect(find.text('Hızlı erişim'), findsOneWidget);
           expect(find.text('Etkinlikler'), findsOneWidget);
           expect(find.text('Anketler'), findsOneWidget);
-          expect(find.text('Kampüs Haritası'), findsOneWidget);
           expect(find.bySemanticsLabel('Program'), findsOneWidget);
           // "Bugün" yüzeyi: öğle yemeği satırı (ilk iki yemek + "+N"); kırmızı dolu vitrin ve fotoğraf yok.
           await tester.scrollUntilVisible(find.text('Bugün kampüste'), 250,
               scrollable: find.byType(Scrollable).first);
           expect(find.text('Bugün kampüste'), findsOneWidget);
-          expect(find.text('Öğle yemeği'), findsOneWidget);
+          expect(find.text('ÖĞLE YEMEĞİ'), findsOneWidget);
           expect(find.textContaining('Mercimek çorbası, Orman kebabı +2'), findsOneWidget);
           expect(find.text('Menü Detayı'), findsNothing);
-          expect(find.bySemanticsLabel(RegExp('menüsü fotoğrafı')), findsNothing);
+          // Günün menüsü (Stitch v5): fotoğraf varsa 16:9 görsel, yoksa aynı alanda yer tutucu; ardından harita kartı.
+          await tester.scrollUntilVisible(find.text('Günün menüsü'), 250, scrollable: find.byType(Scrollable).first);
+          expect(find.text('Yeni görsel bekliyor'), photo ? findsNothing : findsOneWidget);
+          await tester.scrollUntilVisible(find.text('Kampüs Haritası'), 250, scrollable: find.byType(Scrollable).first);
+          expect(find.text('Kampüs Haritası'), findsOneWidget);
           expect(tester.takeException(), isNull);
         });
       }
@@ -96,10 +99,10 @@ void main() {
     await tester.pumpWidget(buildApp(home(b)));
     await settle(tester, const Duration(seconds: 2));
     await tester.scrollUntilVisible(find.text('Öne çıkan haberler'), 300, scrollable: find.byType(Scrollable).first);
-    await tester.ensureVisible(find.text('Tümü').first);
+    await tester.ensureVisible(find.text('Tümünü gör').last);
     await tester.drag(find.byType(Scrollable).first, const Offset(0, -200));
     await settle(tester, const Duration(milliseconds: 500));
-    await tester.tap(find.text('Tümü').first);
+    await tester.tap(find.text('Tümünü gör').last);
     await settle(tester, const Duration(milliseconds: 600));
     expect(find.byType(NewsListPage), findsOneWidget);
   });

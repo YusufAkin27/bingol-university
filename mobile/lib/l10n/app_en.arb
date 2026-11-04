@@ -3137,6 +3137,8 @@
   "homeLibrary": "Library",
   "homeFeaturedSchedule": "Class Schedule",
   "homeFeaturedMenu": "Meal Menu",
+  "homeMenuRate": "Rate the menu",
+  "homeMenuPhotoPending": "Waiting for a new photo",
   "homeSearchFilters": "Search filters",
   "homeMore": "More",
   "homeViewAll": "View all",
