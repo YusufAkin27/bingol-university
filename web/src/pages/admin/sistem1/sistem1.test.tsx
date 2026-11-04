@@ -1,6 +1,6 @@
 // Sistem sağlığı görselleri: trafik ışığı, ana göstergeler, çizelge, görev şeridi, yedek tazeliği, çökme dağılımı,
 // büyüme tahmini ve arama dizini (yazım hatalı sorgular dahil).
-import { screen, within } from '@testing-library/react';
+import { screen, waitFor, within } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { BackupStatus } from '../../../api/backup';
 import type { CrashGroup } from '../../../api/crashes';
@@ -90,7 +90,8 @@ describe('Sistem durumu: ana göstergeler, çizelge, görev şeridi', () => {
     const timeline = await screen.findByTestId('health-timeline');
     expect(within(timeline).getAllByRole('listitem')).toHaveLength(1);
     expect(screen.getByText(/Şimdilik tek kontrol var/)).toBeInTheDocument();
-    expect(window.sessionStorage.getItem('bu-admin-sys-health-history')).toContain('WARN');
+    // Yazım render sonrası bir efektte yapılır: yük altında gecikebilir, bu yüzden beklenir.
+    await waitFor(() => expect(window.sessionStorage.getItem('bu-admin-sys-health-history')).toContain('WARN'));
   });
 });
 
