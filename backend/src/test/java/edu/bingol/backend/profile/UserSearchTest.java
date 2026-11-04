@@ -51,7 +51,7 @@ class UserSearchTest {
     void returnsNextCursorWhenMoreRowsExist() {
         echoMapper();
         when(blocks.hiddenFrom(1L)).thenReturn(Set.of());
-        when(users.searchByName(any(), any(), eq(3), eq(0))).thenReturn(rows(3));
+        when(users.searchByNameFolded(any(), any(), any(), any(), any(), any(), eq(3), eq(0))).thenReturn(rows(3));
 
         UserSearchResult r = service.search(1L, "ab", 2, null);
 
@@ -63,14 +63,14 @@ class UserSearchTest {
     void lastPageHasNoCursorAndExcludesSelfAndBlocked() {
         echoMapper();
         when(blocks.hiddenFrom(1L)).thenReturn(Set.of(9L));
-        when(users.searchByName(any(), any(), anyInt(), eq(2))).thenReturn(rows(1));
+        when(users.searchByNameFolded(any(), any(), any(), any(), any(), any(), anyInt(), eq(2))).thenReturn(rows(1));
 
         UserSearchResult r = service.search(1L, "ab", 2, 2L);
 
         assertNull(r.nextCursor());
         @SuppressWarnings("unchecked")
         ArgumentCaptor<java.util.Collection<Long>> ex = ArgumentCaptor.forClass(java.util.Collection.class);
-        verify(users).searchByName(any(), ex.capture(), anyInt(), eq(2));
+        verify(users).searchByNameFolded(any(), any(), any(), any(), any(), ex.capture(), anyInt(), eq(2));
         assertEquals(true, ex.getValue().containsAll(Set.of(1L, 9L)));
     }
 
@@ -78,11 +78,11 @@ class UserSearchTest {
     void escapesLikeWildcards() {
         echoMapper();
         when(blocks.hiddenFrom(1L)).thenReturn(Set.of());
-        when(users.searchByName(any(), any(), anyInt(), anyInt())).thenReturn(List.of());
+        when(users.searchByNameFolded(any(), any(), any(), any(), any(), any(), anyInt(), anyInt())).thenReturn(List.of());
 
         service.search(1L, "50%_a", 20, null);
 
-        verify(users).searchByName(eq("50\\%\\_a"), any(), anyInt(), eq(0));
+        verify(users).searchByNameFolded(eq("50%_a"), eq("50\\%\\_a"), eq("50\\%\\_a"), eq(""), eq(""), any(), anyInt(), eq(0));
     }
 
     @Test
@@ -91,5 +91,23 @@ class UserSearchTest {
         assertThrows(ApiException.class, () -> service.search(1L, "ab", 20, -1L));
         assertThrows(ApiException.class,
                 () -> service.search(1L, "ab", 20, (long) ProfileService.MAX_SEARCH_OFFSET + 1));
+    }
+
+    @Test
+    void foldsTurkishCharactersAndSplitsIntoAtMostThreeParts() {
+        echoMapper();
+        when(blocks.hiddenFrom(1L)).thenReturn(Set.of());
+        when(users.searchByNameFolded(any(), any(), any(), any(), any(), any(), anyInt(), anyInt())).thenReturn(List.of());
+
+        service.search(1L, "  ŞİRİN   Yıldız  ÇELİK Ağa ", 20, null);
+
+        verify(users).searchByNameFolded(eq("sirin yildiz celik aga"), eq("sirin yildiz celik aga"), eq("sirin"),
+                eq("yildiz"), eq("celik aga"), any(), anyInt(), eq(0));
+    }
+
+    @Test
+    void searchTokensPadsMissingPartsWithEmpty() {
+        assertEquals(java.util.List.of("ali", "", ""), java.util.Arrays.asList(ProfileService.searchTokens("ali")));
+        assertEquals(java.util.List.of("a", "b", "c d e"), java.util.Arrays.asList(ProfileService.searchTokens("a b c d e")));
     }
 }

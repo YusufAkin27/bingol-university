@@ -19,6 +19,7 @@ import edu.bingol.backend.moderation.BlockService;
 import edu.bingol.backend.profile.naming.DisplayNamePolicy;
 import edu.bingol.backend.profile.privacy.AvatarCleanups;
 import edu.bingol.backend.profile.privacy.PublicProfileMapper;
+import edu.bingol.backend.search.TrFold;
 import edu.bingol.backend.profile.dto.ProfileDtos.PublicProfile;
 import edu.bingol.backend.profile.dto.ProfileDtos.UpdateProfileRequest;
 import edu.bingol.backend.profile.dto.ProfileDtos.UserSearchResult;
@@ -106,6 +107,7 @@ public class ProfileService {
             // Sayaclar sabit 0/false: null, engelli cift ile normal profili ayirt ettirirdi (T-029).
             return new PublicProfile(u.getId(), u.getDisplayName(), null, null, null, null, null, null)
                     .withFollow(0, 0, false, false)
+                    .withCounts(0, 0)
                     .withBlockedByMe(blocks.hasBlocked(viewerId, targetId));
         }
         PublicProfile view = mapper.map(viewerId, u);
@@ -113,7 +115,28 @@ public class ProfileService {
         view = self ? withEmail(view, u.getEmail()) : view;
         view = withFollow(view, viewerId, targetId);
         view = withRelation(view, viewerId, targetId);
+        view = withPostCounts(view, targetId);
         return self ? view : view.withBlockedByMe(false);
+    }
+
+    /** Gorunur gonderi/Reels sayilari (KS-BE2); kilitli (gizli hesap) profilde ve hata halinde alan eklenmez. */
+    private edu.bingol.backend.post.reel.ProfilePostCounts postCounts;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setPostCounts(edu.bingol.backend.post.reel.ProfilePostCounts postCounts) {
+        this.postCounts = postCounts;
+    }
+
+    private PublicProfile withPostCounts(PublicProfile p, Long targetId) {
+        if (postCounts == null || Boolean.TRUE.equals(p.locked())) {
+            return p;
+        }
+        try {
+            edu.bingol.backend.post.reel.ProfilePostCounts.Counts c = postCounts.counts(targetId);
+            return p.withCounts(c.postCount(), c.reelCount());
+        } catch (RuntimeException e) {
+            return p; // sayaclar profil yanitini asla bozmaz
+        }
     }
 
     /** Gizli hesap kapisi (post.follow; yoksa alanlar eklenmez). */
@@ -285,7 +308,11 @@ public class ProfileService {
         return u;
     }
 
-    /** En az 2 harfli arama; kendisi, engel iliskisi olanlar, askidaki ve silinmis hesaplar donmez. */
+    /**
+     * En az 2 harfli arama (Turkce harf ve buyuk/kucuk harf duyarsiz, kismi eslesme, en cok 3 sozcuk parcasi); kendisi,
+     * engel iliskisi olanlar, askidaki ve silinmis hesaplar donmez. Satirlarda followedByMe/followsMe ile gercek takipci
+     * ve takip sayilari gelir (gizli hesapta sayilar gizlenir).
+     */
     public UserSearchResult search(Long viewerId, String q, int size, Long cursor) {
         String query = q == null ? "" : q.trim();
         if (query.codePointCount(0, query.length()) < MIN_QUERY) {
@@ -296,12 +323,40 @@ public class ProfileService {
         Set<Long> excluded = new HashSet<>(blocks.hiddenFrom(viewerId));
         excluded.add(viewerId);
         excluded.add(-1L); // NOT IN () bos kalmasin
+        String folded = TrFold.fold(query);
+        String[] t = searchTokens(folded);
         // limit+1: devam olup olmadigini ek sorgu olmadan anlamak icin
-        List<User> rows = users.searchByName(escapeLike(query), excluded, limit + 1, offset);
+        List<User> rows = users.searchByNameFolded(folded, TrFold.escapeLike(folded), TrFold.escapeLike(t[0]),
+                TrFold.escapeLike(t[1]), TrFold.escapeLike(t[2]), excluded, limit + 1, offset);
         boolean more = rows.size() > limit && offset + limit <= MAX_SEARCH_OFFSET;
         List<User> page = rows.size() > limit ? rows.subList(0, limit) : rows;
-        return new UserSearchResult(withRelations(viewerId, mapper.mapAll(viewerId, page)),
+        return new UserSearchResult(withRelations(viewerId, withFollowFlags(viewerId, mapper.mapAll(viewerId, page))),
                 more ? (long) offset + limit : null);
+    }
+
+    /** Katlanmis sorguyu en cok 3 parcaya boler (fazlasi son parcaya eklenir); eksik parcalar '' (hepsiyle eslesir). */
+    static String[] searchTokens(String folded) {
+        String[] parts = folded.isBlank() ? new String[0] : folded.split(" ", 3);
+        String[] out = {"", "", ""};
+        System.arraycopy(parts, 0, out, 0, Math.min(parts.length, 3));
+        return out;
+    }
+
+    /** Takip sayaclari + followedByMe/followsMe (toplu; modul yoksa ya da hata olursa satirlar aynen doner). */
+    private List<PublicProfile> withFollowFlags(Long viewerId, List<PublicProfile> rows) {
+        if (followService == null || rows.isEmpty()) {
+            return rows;
+        }
+        try {
+            java.util.Map<Long, edu.bingol.backend.post.follow.FollowService.Stats> st =
+                    followService.statsFor(viewerId, rows.stream().map(PublicProfile::id).toList());
+            return rows.stream().map(p -> {
+                edu.bingol.backend.post.follow.FollowService.Stats s = st.get(p.id());
+                return s == null ? p : p.withFollow(s.followerCount(), s.followingCount(), s.followedByMe(), s.followsMe());
+            }).toList();
+        } catch (RuntimeException e) {
+            return rows;
+        }
     }
 
     /** Imlec = atlanacak kayit sayisi; ust sinir toplu taramayi (kullanici dizinini dokmeyi) zorlastirir. */
