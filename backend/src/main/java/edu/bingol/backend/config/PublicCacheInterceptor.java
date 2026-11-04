@@ -50,16 +50,11 @@ public class PublicCacheInterceptor implements HandlerInterceptor {
                 return new Policy(60, 120);
             case "/api/menu":
             case "/api/menu/today":
-<<<<<<< HEAD
                 return new Policy(300, 600);
-=======
-                // Gun donumunden sonra dunun menusu ara onbellekte 15 dk kalmasin (P07-B14)
-                return new Policy(60, 120);
             case "/api/campus/map":
                 return new Policy(300, 600);
             case "/api/campus/places":
                 return new Policy(60, 120);
->>>>>>> 1cef039b (CAMPUS-BE: campus paketi (kullanici ve yonetici uclari, onbellek, RBAC campus.read|write, i18n, testler))
             case "/api/status":
                 return new Policy(30, 60);
             case "/api/faq":
