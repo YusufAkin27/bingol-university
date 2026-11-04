@@ -519,11 +519,13 @@ class BuButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.bu;
     final cs = Theme.of(context).colorScheme;
+    // Açık temada beyaz yazı AA için koyu ton ister (`pr` 4.07:1, `prPressed` 5.7:1).
+    final strong = Theme.of(context).brightness == Brightness.light ? t.prPressed : t.pr;
     final (bg, fg, side) = switch (kind) {
-      BuButtonKind.primary => (background ?? t.pr, t.onPr, BorderSide.none),
+      BuButtonKind.primary => (background ?? strong, t.onPr, BorderSide.none),
       BuButtonKind.soft => (t.soft, t.onSoft, BorderSide.none),
       BuButtonKind.outline => (Colors.transparent, t.ink, BorderSide(color: t.bd, width: 1.2)),
-      BuButtonKind.text => (Colors.transparent, t.pr, BorderSide.none),
+      BuButtonKind.text => (Colors.transparent, strong, BorderSide.none),
       BuButtonKind.danger => (cs.error, cs.onError, BorderSide.none),
     };
     final h = compact ? BuSize.buttonCompact : BuSize.button;
