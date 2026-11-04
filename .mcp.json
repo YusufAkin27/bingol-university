@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "dart": {
+      "command": "C:\\src\\flutter\\bin\\dart.bat",
+      "args": ["mcp-server"],
+      "env": {
+        "PUB_CACHE": "C:\\pubcache"
+      }
+    }
+  }
+}
