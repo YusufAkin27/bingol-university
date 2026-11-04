@@ -263,7 +263,7 @@ class _CourseFormPageState extends State<CourseFormPage> {
                   trailing: _color == null
                       ? null
                       : Text(l.p17ColorSelected(acadColorName(l, _color!)),
-                          maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.labelMedium!.copyWith(fontWeight: FontWeight.w700, color: t.pr))),
+                          maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.labelMedium!.copyWith(fontWeight: FontWeight.w700, color: t.prText))),
               Row(children: [for (final k in courseColorKeys) Expanded(child: _swatch(t, k))]),
               const SizedBox(height: 4),
               Row(children: [

@@ -505,7 +505,7 @@ class _SearchPageState extends State<SearchPage> {
             TextButton(
               style: TextButton.styleFrom(minimumSize: const Size(48, 48), padding: const EdgeInsets.symmetric(horizontal: 4)),
               onPressed: _clearRecent,
-              child: Text(l.searchClearRecent, style: tx.bodySmall!.copyWith(fontSize: 13, fontWeight: FontWeight.w500, color: t.pr)),
+              child: Text(l.searchClearRecent, style: tx.bodySmall!.copyWith(fontSize: 13, fontWeight: FontWeight.w500, color: t.prText)),
             ),
           ]),
           for (var i = 0; i < _recent.length; i++)
@@ -691,8 +691,8 @@ class _SearchPageState extends State<SearchPage> {
         TextButton.icon(
           style: TextButton.styleFrom(minimumSize: const Size(48, 48), padding: const EdgeInsets.symmetric(horizontal: 4)),
           onPressed: onRetry,
-          icon: Icon(BuIcons.refreshCw, size: 16, color: t.pr),
-          label: Text(l.commonRetry, style: tx.bodyMedium!.copyWith(fontSize: 14, fontWeight: FontWeight.w500, color: t.pr)),
+          icon: Icon(BuIcons.refreshCw, size: 16, color: t.prText),
+          label: Text(l.commonRetry, style: tx.bodyMedium!.copyWith(fontSize: 14, fontWeight: FontWeight.w500, color: t.prText)),
         ),
       ]),
       if (limited) ...[
@@ -731,7 +731,7 @@ class _SearchPageState extends State<SearchPage> {
                 TextButton(
                   style: TextButton.styleFrom(minimumSize: const Size(48, 48), padding: const EdgeInsets.symmetric(horizontal: 4)),
                   onPressed: () => _selectTab(tab),
-                  child: Text(l.p05SearchSeeAllN('${hits.length}'), style: tx.bodySmall!.copyWith(fontSize: 13, fontWeight: FontWeight.w500, color: t.pr)),
+                  child: Text(l.p05SearchSeeAllN('${hits.length}'), style: tx.bodySmall!.copyWith(fontSize: 13, fontWeight: FontWeight.w500, color: t.prText)),
                 ),
               ]),
             ),
@@ -820,7 +820,7 @@ class _SearchPageState extends State<SearchPage> {
       final i = src.indexOf(q, from);
       if (i < 0) break;
       if (i > from) spans.add(TextSpan(text: text.substring(from, i), style: base));
-      spans.add(TextSpan(text: text.substring(i, i + q.length), style: base.copyWith(fontWeight: FontWeight.w600, color: t.pr)));
+      spans.add(TextSpan(text: text.substring(i, i + q.length), style: base.copyWith(fontWeight: FontWeight.w600, color: t.prText)));
       from = i + q.length;
     }
     if (from < text.length) spans.add(TextSpan(text: text.substring(from), style: base));
@@ -883,7 +883,7 @@ class _SearchPageState extends State<SearchPage> {
               decoration: BoxDecoration(borderRadius: BorderRadius.circular(BuRadius.sm), border: Border.all(color: t.bd)),
               child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
                 Text(trUpper(newsMonthName(context, d.month)).characters.take(3).toString(),
-                    style: tx.labelSmall!.copyWith(fontSize: 11.5, fontWeight: FontWeight.w700, height: 1.1, color: t.pr)),
+                    style: tx.labelSmall!.copyWith(fontSize: 11.5, fontWeight: FontWeight.w700, height: 1.1, color: t.prText)),
                 Text('${d.day}',
                     style: tx.titleMedium!.copyWith(
                         fontSize: 20, fontWeight: FontWeight.w600, height: 1.1, color: t.ink, fontFeatures: const [FontFeature.tabularFigures()])),
@@ -976,7 +976,7 @@ class _ClubPill extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
-    final style = Theme.of(context).textTheme.labelMedium!.copyWith(fontSize: 12.5, fontWeight: FontWeight.w500, color: member ? t.ink : t.pr);
+    final style = Theme.of(context).textTheme.labelMedium!.copyWith(fontSize: 12.5, fontWeight: FontWeight.w500, color: member ? t.ink : t.prText);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
       decoration: BoxDecoration(
@@ -1187,7 +1187,7 @@ class _TabChipsState extends State<_TabChips> {
                       child: AnimatedDefaultTextStyle(
                         duration: BuMotion.of(context, BuMotion.short),
                         style: tx.labelLarge!.copyWith(
-                            fontSize: 13, fontWeight: i == widget.selected ? FontWeight.w500 : FontWeight.w400, color: i == widget.selected ? t.pr : t.ink),
+                            fontSize: 13, fontWeight: i == widget.selected ? FontWeight.w500 : FontWeight.w400, color: i == widget.selected ? t.prText : t.ink),
                         child: Text(widget.labels[i]),
                       ),
                     ),

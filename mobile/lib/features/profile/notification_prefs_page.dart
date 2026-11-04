@@ -384,7 +384,7 @@ class _NotificationPrefsGroupState extends State<NotificationPrefsGroup> with Wi
             child: TextButton(
               onPressed: () => PermissionService.instance.openSettings(),
               style: TextButton.styleFrom(minimumSize: const Size(48, 48), padding: EdgeInsets.zero),
-              child: Text(l.p20RemOpenSettings, style: BuType.caption.copyWith(fontSize: 14, fontWeight: FontWeight.w600, color: t.pr)),
+              child: Text(l.p20RemOpenSettings, style: BuType.caption.copyWith(fontSize: 14, fontWeight: FontWeight.w600, color: t.prText)),
             ),
           ),
         ]),

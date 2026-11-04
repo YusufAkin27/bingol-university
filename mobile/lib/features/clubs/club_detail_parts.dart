@@ -44,7 +44,7 @@ class ClubRoundButton extends StatelessWidget {
     final Color fg;
     BorderSide side = BorderSide.none;
     if (filled) {
-      bg = enabled ? t.pr : t.sf2;
+      bg = enabled ? t.prText : t.sf2;
       fg = enabled ? t.onPr : t.mut.withValues(alpha: .6);
     } else if (plain) {
       bg = t.sf.withValues(alpha: 0);
@@ -316,7 +316,7 @@ class _ClubExpandableTextState extends State<ClubExpandableText> {
                   child: Align(
                     alignment: AlignmentDirectional.centerStart,
                     widthFactor: 1,
-                    child: Text(_open ? l.p11ReadLess : l.p11ReadMore, style: tx.bodyMedium!.copyWith(color: t.pr, fontWeight: FontWeight.w700)),
+                    child: Text(_open ? l.p11ReadLess : l.p11ReadMore, style: tx.bodyMedium!.copyWith(color: t.prText, fontWeight: FontWeight.w700)),
                   ),
                 ),
               ),

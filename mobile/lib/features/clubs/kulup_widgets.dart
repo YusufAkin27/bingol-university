@@ -149,7 +149,7 @@ class KulupPillButton extends StatelessWidget {
       );
     }
     final (bg, fg, side) = switch (kind) {
-      KulupPillKind.primary => (t.pr, t.onPr, BorderSide.none),
+      KulupPillKind.primary => (t.prText, t.onPr, BorderSide.none),
       KulupPillKind.soft => (t.soft, t.onSoft, BorderSide.none),
       KulupPillKind.outline => (t.sf2, t.mut, BorderSide(color: t.bd)),
     };

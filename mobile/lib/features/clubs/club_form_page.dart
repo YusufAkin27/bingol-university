@@ -677,12 +677,12 @@ class _ClubFormPageState extends State<ClubFormPage> {
   Widget _addQuestionButton(BuTokens t, TextTheme tx) => Align(
         alignment: AlignmentDirectional.centerStart,
         child: TextButton(
-          style: TextButton.styleFrom(foregroundColor: t.pr, minimumSize: const Size(48, 48), padding: const EdgeInsets.symmetric(horizontal: 0)),
+          style: TextButton.styleFrom(foregroundColor: t.prText, minimumSize: const Size(48, 48), padding: const EdgeInsets.symmetric(horizontal: 0)),
           onPressed: () => setState(() {
             if (_policy != 'APPROVAL' && _visibility != 'PRIVATE') _policy = 'APPROVAL';
             _questions.add(TextEditingController());
           }),
-          child: Text('+ ${context.l10n.p51AddJoinQuestion}', style: tx.titleSmall!.copyWith(color: t.pr, fontWeight: FontWeight.w600)),
+          child: Text('+ ${context.l10n.p51AddJoinQuestion}', style: tx.titleSmall!.copyWith(color: t.prText, fontWeight: FontWeight.w600)),
         ),
       );
 

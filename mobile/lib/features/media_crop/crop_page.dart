@@ -713,9 +713,9 @@ class _Previews extends StatelessWidget {
             child: ConstrainedBox(
               constraints: const BoxConstraints(minHeight: 48),
               child: Row(mainAxisSize: MainAxisSize.min, children: [
-                Icon(icon, size: 16, color: color ?? t.pr),
+                Icon(icon, size: 16, color: color ?? t.prText),
                 const SizedBox(width: 6),
-                Text(label, style: tt.labelLarge?.copyWith(color: color ?? t.pr, fontWeight: FontWeight.w700)),
+                Text(label, style: tt.labelLarge?.copyWith(color: color ?? t.prText, fontWeight: FontWeight.w700)),
               ]),
             ),
           ),
@@ -837,7 +837,7 @@ class _Previews extends StatelessWidget {
                         child: Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                           child: Row(mainAxisSize: MainAxisSize.min, children: [
-                            Icon(BuIcons.calendar, size: 14, color: t.pr),
+                            Icon(BuIcons.calendar, size: 14, color: t.prText),
                             const SizedBox(width: 6),
                             Text(spec.previewDate!, style: tt.labelMedium?.copyWith(color: t.ink, fontWeight: FontWeight.w700)),
                           ]),

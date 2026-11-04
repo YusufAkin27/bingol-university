@@ -366,13 +366,13 @@ class _MyEventsPageState extends State<MyEventsPage> {
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 if (org != null && org.isNotEmpty)
                   Row(mainAxisSize: MainAxisSize.min, children: [
-                    ExcludeSemantics(child: Icon(BuIcons.users, size: 14, color: past ? t.mut : t.pr)),
+                    ExcludeSemantics(child: Icon(BuIcons.users, size: 14, color: past ? t.mut : t.prText)),
                     const SizedBox(width: 6),
                     Flexible(
                       child: Text(org,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: tx.labelMedium!.copyWith(fontWeight: FontWeight.w700, color: past ? t.mut : t.pr)),
+                          style: tx.labelMedium!.copyWith(fontWeight: FontWeight.w700, color: past ? t.mut : t.prText)),
                     ),
                   ]),
                 const SizedBox(height: 2),

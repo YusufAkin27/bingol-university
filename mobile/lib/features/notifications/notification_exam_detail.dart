@@ -105,7 +105,7 @@ class _NotificationExamDetailState extends State<NotificationExamDetail> {
                           Expanded(
                               child: Text(countdown,
                                   style: TextStyle(
-                                      color: t.pr,
+                                      color: t.prText,
                                       fontWeight: FontWeight.w700))),
                         ]),
                       ),

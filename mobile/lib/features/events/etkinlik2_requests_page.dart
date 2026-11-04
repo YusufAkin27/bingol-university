@@ -325,9 +325,9 @@ class _Etkinlik2RequestsPageState extends State<Etkinlik2RequestsPage> {
             Text(_full ? l.p16ReqFullBody : l.p51EvQuotaNote, style: tx.bodyMedium!.copyWith(height: 1.4, color: t.onWarnSoft, fontWeight: FontWeight.w500)),
             if (_full)
               TextButton(
-                style: TextButton.styleFrom(foregroundColor: t.pr, minimumSize: const Size(48, 48), padding: EdgeInsets.zero, alignment: AlignmentDirectional.centerStart),
+                style: TextButton.styleFrom(foregroundColor: t.prText, minimumSize: const Size(48, 48), padding: EdgeInsets.zero, alignment: AlignmentDirectional.centerStart),
                 onPressed: _raiseQuota,
-                child: Text(l.p16ReqRaiseQuota, style: tx.bodyLarge!.copyWith(color: t.pr, fontWeight: FontWeight.w700)),
+                child: Text(l.p16ReqRaiseQuota, style: tx.bodyLarge!.copyWith(color: t.prText, fontWeight: FontWeight.w700)),
               ),
           ]),
         ),
@@ -347,9 +347,9 @@ class _Etkinlik2RequestsPageState extends State<Etkinlik2RequestsPage> {
         Text(l.p16ReqEmptyBody, style: tx.bodyMedium!.copyWith(height: 1.45, color: t.mut)),
         TextButton(
           key: const ValueKey('et2-req-back'),
-          style: TextButton.styleFrom(foregroundColor: t.pr, minimumSize: const Size(48, 48), padding: EdgeInsets.zero),
+          style: TextButton.styleFrom(foregroundColor: t.prText, minimumSize: const Size(48, 48), padding: EdgeInsets.zero),
           onPressed: () => Navigator.pop(context, _changed),
-          child: Text(l.p16ReqBackToEvent, style: tx.bodyLarge!.copyWith(color: t.pr, fontWeight: FontWeight.w600)),
+          child: Text(l.p16ReqBackToEvent, style: tx.bodyLarge!.copyWith(color: t.prText, fontWeight: FontWeight.w600)),
         ),
       ]),
     );
@@ -418,7 +418,7 @@ class _Etkinlik2RequestsPageState extends State<Etkinlik2RequestsPage> {
           ),
         ),
         action(ValueKey('et2-reject-$uid'), l.etkinlik2Reject, l.etkinlik2RejectSem(name), t.mut, busy ? null : () => _decide(a, false)),
-        action(ValueKey('et2-approve-$uid'), l.etkinlik2Approve, l.etkinlik2ApproveSem(name), t.pr, (busy || full) ? null : () => _decide(a, true)),
+        action(ValueKey('et2-approve-$uid'), l.etkinlik2Approve, l.etkinlik2ApproveSem(name), t.prText, (busy || full) ? null : () => _decide(a, true)),
       ]),
     );
   }

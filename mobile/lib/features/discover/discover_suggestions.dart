@@ -81,7 +81,7 @@ class _DiscoverSuggestionsState extends State<DiscoverSuggestions> {
                   child: Align(
                     widthFactor: 1,
                     child: Text(l.p04SuggestSeeAll,
-                        style: tt.labelMedium?.copyWith(color: t.pr, fontSize: 14, fontWeight: FontWeight.w600)),
+                        style: tt.labelMedium?.copyWith(color: t.prText, fontSize: 14, fontWeight: FontWeight.w600)),
                   ),
                 ),
               ),

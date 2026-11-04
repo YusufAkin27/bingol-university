@@ -166,7 +166,7 @@ void main() {
       expect(tester.getSize(btn).height, 48);
       expect(tester.getSize(btn).width, 350);
       // Kayıtlı yer imi: marka renkli dolu simge.
-      final pr = tester.element(find.byType(Scaffold).first).bu.pr;
+      final pr = tester.element(find.byType(Scaffold).first).bu.prText;
       expect(tester.widget<Icon>(find.descendant(of: find.byKey(const ValueKey('news-save')), matching: find.byType(Icon))).color, pr);
       expect(find.byType(BuCard), findsNothing);
       _ok(tester);
@@ -294,7 +294,7 @@ void main() {
       expect(find.textContaining('elif@'), findsNothing);
       expect(find.text('EY'), findsOneWidget);
       // Eşleşen "Kamp" marka rengi + 600.
-      final pr = tester.element(find.byType(Scaffold).first).bu.pr;
+      final pr = tester.element(find.byType(Scaffold).first).bu.prText;
       var found = false;
       for (final r in tester.widgetList<RichText>(find.byType(RichText))) {
         r.text.visitChildren((span) {

@@ -522,11 +522,11 @@ class _CampusMapPageState extends State<CampusMapPage> with WidgetsBindingObserv
               ),
               TextButton(
                 onPressed: _openCategoryList,
-                style: TextButton.styleFrom(minimumSize: const Size(48, 48), foregroundColor: t.pr),
+                style: TextButton.styleFrom(minimumSize: const Size(48, 48), foregroundColor: t.prText),
                 child: Row(mainAxisSize: MainAxisSize.min, children: [
-                  Text(l.campusSeeAll, style: tx.labelLarge!.copyWith(color: t.pr, fontWeight: FontWeight.w700)),
+                  Text(l.campusSeeAll, style: tx.labelLarge!.copyWith(color: t.prText, fontWeight: FontWeight.w700)),
                   const SizedBox(width: 2),
-                  Icon(buDirIcon(context, BuIcons.chevronRight), size: 16, color: t.pr),
+                  Icon(buDirIcon(context, BuIcons.chevronRight), size: 16, color: t.prText),
                 ]),
               ),
             ]),

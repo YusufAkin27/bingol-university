@@ -91,9 +91,9 @@ class _PollClubSectionState extends State<PollClubSection> {
                   excludeSemantics: true,
                   onTap: _create,
                   child: TextButton(
-                    style: TextButton.styleFrom(foregroundColor: t.pr, minimumSize: const Size(48, 48), padding: const EdgeInsets.symmetric(horizontal: 12)),
+                    style: TextButton.styleFrom(foregroundColor: t.prText, minimumSize: const Size(48, 48), padding: const EdgeInsets.symmetric(horizontal: 12)),
                     onPressed: _create,
-                    child: Text('+ ${l.p68New}', style: tx.titleSmall!.copyWith(color: t.pr, fontWeight: FontWeight.w700)),
+                    child: Text('+ ${l.p68New}', style: tx.titleSmall!.copyWith(color: t.prText, fontWeight: FontWeight.w700)),
                   ),
                 ),
             ],
@@ -122,9 +122,9 @@ class _PollClubSectionState extends State<PollClubSection> {
               child: Align(
                 alignment: AlignmentDirectional.centerStart,
                 child: TextButton(
-                  style: TextButton.styleFrom(foregroundColor: t.pr, minimumSize: const Size(48, 48), padding: EdgeInsets.zero),
+                  style: TextButton.styleFrom(foregroundColor: t.prText, minimumSize: const Size(48, 48), padding: EdgeInsets.zero),
                   onPressed: seeAll,
-                  child: Text(l.pollSeeAll, style: tx.titleSmall!.copyWith(color: t.pr, fontWeight: FontWeight.w600)),
+                  child: Text(l.pollSeeAll, style: tx.titleSmall!.copyWith(color: t.prText, fontWeight: FontWeight.w600)),
                 ),
               ),
             ),

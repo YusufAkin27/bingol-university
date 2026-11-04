@@ -141,7 +141,7 @@ class _MenuDayStripState extends State<MenuDayStrip> {
                     AnimatedDefaultTextStyle(
                       duration: dur,
                       maxLines: 1,
-                      style: BuType.caption.copyWith(fontSize: 11.5, height: 1.2, fontWeight: sel ? FontWeight.w600 : FontWeight.w500, color: sel ? t.pr : t.mut),
+                      style: BuType.caption.copyWith(fontSize: 11.5, height: 1.2, fontWeight: sel ? FontWeight.w600 : FontWeight.w500, color: sel ? t.prText : t.mut),
                       child: Text(dayName),
                     ),
                     const SizedBox(height: 2),
@@ -152,7 +152,7 @@ class _MenuDayStripState extends State<MenuDayStrip> {
                           fontSize: 15,
                           height: 1.3,
                           fontWeight: sel ? FontWeight.w700 : FontWeight.w600,
-                          color: sel ? t.pr : t.ink,
+                          color: sel ? t.prText : t.ink,
                           fontFeatures: const [FontFeature.tabularFigures()]),
                       child: Text('${d.day}'),
                     ),

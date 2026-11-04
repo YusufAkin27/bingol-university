@@ -591,8 +591,8 @@ class DiscoverErrorCard extends StatelessWidget {
           TextButton(
             key: const ValueKey('discoverRetry'),
             onPressed: onRetry,
-            style: TextButton.styleFrom(minimumSize: const Size(BuSize.touch, BuSize.touch), foregroundColor: t.pr),
-            child: Text(l.postViewRetry, style: tt.labelLarge?.copyWith(color: t.pr, fontSize: 15, fontWeight: FontWeight.w600)),
+            style: TextButton.styleFrom(minimumSize: const Size(BuSize.touch, BuSize.touch), foregroundColor: t.prText),
+            child: Text(l.postViewRetry, style: tt.labelLarge?.copyWith(color: t.prText, fontSize: 15, fontWeight: FontWeight.w600)),
           ),
         ],
       ),

@@ -597,9 +597,9 @@ class _EventFormPageState extends State<EventFormPage> {
                 const SizedBox(height: 28),
                 BuButton(label: l.evcBrowseClubs, onPressed: _browseClubs),
                 TextButton(
-                  style: TextButton.styleFrom(foregroundColor: t.pr, minimumSize: const Size(48, 48)),
+                  style: TextButton.styleFrom(foregroundColor: t.prText, minimumSize: const Size(48, 48)),
                   onPressed: _loadClubs,
-                  child: Text(l.p15RefreshPerms, style: tx.bodyMedium!.copyWith(color: t.pr, fontWeight: FontWeight.w600)),
+                  child: Text(l.p15RefreshPerms, style: tx.bodyMedium!.copyWith(color: t.prText, fontWeight: FontWeight.w600)),
                 ),
               ]),
             ),

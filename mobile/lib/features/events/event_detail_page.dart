@@ -797,7 +797,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
                       widthFactor: 1,
                       child: Text(
                           (club != null && club.isNotEmpty) ? club : '${l.etkinlik2Organizer}: $orgName',
-                          style: tx.bodyMedium!.copyWith(color: cid == null ? t.mut : t.pr, fontWeight: FontWeight.w500)),
+                          style: tx.bodyMedium!.copyWith(color: cid == null ? t.mut : t.prText, fontWeight: FontWeight.w500)),
                     ),
                   ),
                 ),

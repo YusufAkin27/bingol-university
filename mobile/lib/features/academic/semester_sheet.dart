@@ -355,7 +355,7 @@ class _NewSemesterDialogState extends State<_NewSemesterDialog> {
           const SizedBox(height: 14),
           AkadPicker(
             icon: _start == null ? BuIcons.calendar : BuIcons.calendarCheck,
-            iconColor: t.pr,
+            iconColor: t.prText,
             label: l.acadTimeStartDate,
             hint: l.acadSelect,
             value: _start == null ? null : _fmt(_start!),
@@ -367,7 +367,7 @@ class _NewSemesterDialogState extends State<_NewSemesterDialog> {
           const SizedBox(height: 14),
           AkadPicker(
             icon: _end == null ? BuIcons.calendar : BuIcons.calendarCheck,
-            iconColor: t.pr,
+            iconColor: t.prText,
             label: l.acadTimeEndDate,
             hint: l.acadSelect,
             value: _end == null ? null : _fmt(_end!),

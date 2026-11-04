@@ -303,7 +303,7 @@ class _ExamsPageState extends State<ExamsPage> {
         const SizedBox(width: 12),
         Flexible(
           flex: 0,
-          child: Text(right, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.bodyMedium!.copyWith(fontWeight: FontWeight.w600, color: first && !past ? t.pr : t.mut)),
+          child: Text(right, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.bodyMedium!.copyWith(fontWeight: FontWeight.w600, color: first && !past ? t.prText : t.mut)),
         ),
       ]),
     );

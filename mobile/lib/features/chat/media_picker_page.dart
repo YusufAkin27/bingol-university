@@ -405,7 +405,7 @@ class _MediaPickerPageState extends State<MediaPickerPage> {
                       child: Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 8),
                         child: Text(has ? l.p67PickerSend(_picked.length.toString()) : l.chatDetailSend,
-                            maxLines: 1, style: tx.titleSmall!.copyWith(color: has ? t.pr : t.mut, fontWeight: FontWeight.w600, fontFeatures: const [FontFeature.tabularFigures()])),
+                            maxLines: 1, style: tx.titleSmall!.copyWith(color: has ? t.prText : t.mut, fontWeight: FontWeight.w600, fontFeatures: const [FontFeature.tabularFigures()])),
                       ),
                     ),
                   ),
@@ -961,7 +961,7 @@ class _AlbumRowState extends State<_AlbumRow> {
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                     decoration: BoxDecoration(color: sel ? t.sf : t.sf2, borderRadius: BuRadius.bPill),
                     child: Text(count,
-                        style: tx.labelMedium!.copyWith(color: sel ? t.pr : t.mut, fontWeight: sel ? FontWeight.w600 : FontWeight.w500)),
+                        style: tx.labelMedium!.copyWith(color: sel ? t.prText : t.mut, fontWeight: sel ? FontWeight.w600 : FontWeight.w500)),
                   ),
                   BuGap.w4,
                   Flexible(

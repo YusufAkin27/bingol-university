@@ -127,9 +127,9 @@ class _PollListPageState extends State<PollListPage> {
               excludeSemantics: true,
               onTap: _create,
               child: TextButton(
-                style: TextButton.styleFrom(foregroundColor: t.pr, minimumSize: const Size(48, 48), padding: const EdgeInsets.symmetric(horizontal: 12)),
+                style: TextButton.styleFrom(foregroundColor: t.prText, minimumSize: const Size(48, 48), padding: const EdgeInsets.symmetric(horizontal: 12)),
                 onPressed: _create,
-                child: Text('+ ${l.p68New}', style: Theme.of(context).textTheme.titleMedium!.copyWith(color: t.pr, fontSize: 17, fontWeight: FontWeight.w700)),
+                child: Text('+ ${l.p68New}', style: Theme.of(context).textTheme.titleMedium!.copyWith(color: t.prText, fontSize: 17, fontWeight: FontWeight.w700)),
               ),
             ),
           ),

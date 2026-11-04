@@ -40,7 +40,7 @@ class TtTopRow extends StatelessWidget {
         TextSpan(text: l.p69WeeklyFlow, style: tx.bodySmall!.copyWith(fontWeight: FontWeight.w500, color: t.mut)),
         if (week != null) ...[
           TextSpan(text: '  •  ', style: tx.bodySmall!.copyWith(color: t.mut)),
-          TextSpan(text: l.p69WeekN(week.toString()), style: tx.bodySmall!.copyWith(fontWeight: FontWeight.w600, color: t.pr)),
+          TextSpan(text: l.p69WeekN(week.toString()), style: tx.bodySmall!.copyWith(fontWeight: FontWeight.w600, color: t.prText)),
         ],
       ]),
       maxLines: 2,
@@ -164,9 +164,9 @@ class TtDayStrip extends StatelessWidget {
                         padding: const EdgeInsets.fromLTRB(8, 7, 8, 6),
                         decoration: BoxDecoration(color: sel ? t.soft : Colors.transparent, borderRadius: BorderRadius.circular(24)),
                         child: Column(mainAxisSize: MainAxisSize.min, children: [
-                          Text(acadDayShort(l, d), maxLines: 1, style: tx.labelMedium!.copyWith(fontSize: 13, fontWeight: sel ? FontWeight.w600 : FontWeight.w500, color: sel ? t.pr : t.mut)),
+                          Text(acadDayShort(l, d), maxLines: 1, style: tx.labelMedium!.copyWith(fontSize: 13, fontWeight: sel ? FontWeight.w600 : FontWeight.w500, color: sel ? t.prText : t.mut)),
                           const SizedBox(height: 2),
-                          Text(date == null ? '' : '${date.day}', maxLines: 1, style: tx.headlineSmall!.copyWith(fontWeight: FontWeight.w700, color: sel ? t.pr : t.ink)),
+                          Text(date == null ? '' : '${date.day}', maxLines: 1, style: tx.headlineSmall!.copyWith(fontWeight: FontWeight.w700, color: sel ? t.prText : t.ink)),
                           const SizedBox(height: 3),
                           SizedBox(height: 5, child: today ? const AcadDot(size: 5) : null),
                         ]),
@@ -253,7 +253,7 @@ class TtSlotCard extends StatelessWidget {
                           flex: 0,
                           child: Padding(
                             padding: const EdgeInsets.only(top: 3),
-                            child: Text(trailing!, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.bodySmall!.copyWith(fontSize: 13, fontWeight: ongoing ? FontWeight.w600 : FontWeight.w400, color: ongoing ? t.pr : t.mut)),
+                            child: Text(trailing!, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.bodySmall!.copyWith(fontSize: 13, fontWeight: ongoing ? FontWeight.w600 : FontWeight.w400, color: ongoing ? t.prText : t.mut)),
                           ),
                         ),
                       ],
@@ -307,7 +307,7 @@ class TtNowLine extends StatelessWidget {
             child: Row(children: [
               const Padding(padding: EdgeInsetsDirectional.only(start: 4), child: AcadDot(size: 8)),
               const SizedBox(width: 6),
-              Text(text, maxLines: 1, style: tx.bodySmall!.copyWith(fontSize: 13, fontWeight: FontWeight.w600, color: t.pr, fontFeatures: const [FontFeature.tabularFigures()])),
+              Text(text, maxLines: 1, style: tx.bodySmall!.copyWith(fontSize: 13, fontWeight: FontWeight.w600, color: t.prText, fontFeatures: const [FontFeature.tabularFigures()])),
               const SizedBox(width: 9),
               const Expanded(child: AcadRule()),
             ]),

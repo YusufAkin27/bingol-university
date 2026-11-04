@@ -353,7 +353,7 @@ void main() {
       final root = (rich.text as TextSpan).children!.single as TextSpan;
       final spans = root.children!.cast<TextSpan>();
       expect(spans[1].text, 'Mü');
-      expect(spans[1].style!.color, BuTheme.light().extension<BuTokens>()!.pr, reason: 'eşleşen parça marka renginde');
+      expect(spans[1].style!.color, BuTheme.light().extension<BuTokens>()!.prText, reason: 'eşleşen parça marka renginde');
       await tester.enterText(find.byType(TextField), 'zzzz');
       await pumpMs(tester);
       expect(find.text('Kampüs içinde sonuç bulunamadı. Farklı bir ad deneyin.'), findsOneWidget);

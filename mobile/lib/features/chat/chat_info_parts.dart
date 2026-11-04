@@ -369,7 +369,7 @@ class ChatInfoTag extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
-    final (bg, fg) = roomRed ? (t.pr, t.onPr) : (soft ? (t.soft, t.onSoft) : (t.ink, t.bg));
+    final (bg, fg) = roomRed ? (t.prText, t.onPr) : (soft ? (t.soft, t.onSoft) : (t.ink, t.bg));
     return Container(
       padding: EdgeInsetsDirectional.symmetric(horizontal: large ? 10 : 8, vertical: 4),
       decoration: BoxDecoration(color: bg, borderRadius: BuRadius.bPill),
@@ -437,7 +437,7 @@ class ChatInfoSectionHead extends StatelessWidget {
                   widthFactor: 1,
                   child: Text(actionLabel!,
                       maxLines: 1,
-                      style: largeAction ? chatInfoLabel14(context, color: t.pr) : chatInfoLabel12(context, color: t.pr)),
+                      style: largeAction ? chatInfoLabel14(context, color: t.prText) : chatInfoLabel12(context, color: t.prText)),
                 ),
               ),
             ),

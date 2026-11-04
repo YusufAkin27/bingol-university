@@ -36,7 +36,7 @@ InlineSpan searchHighlight(BuildContext context, String text, String query, Text
     final i = src.indexOf(q, from);
     if (i < 0) break;
     if (i > from) spans.add(TextSpan(text: text.substring(from, i), style: base));
-    spans.add(TextSpan(text: text.substring(i, i + q.length), style: base.copyWith(fontWeight: FontWeight.w700, color: t.pr)));
+    spans.add(TextSpan(text: text.substring(i, i + q.length), style: base.copyWith(fontWeight: FontWeight.w700, color: t.prText)));
     from = i + q.length;
   }
   if (spans.isEmpty) return TextSpan(text: text, style: base);

@@ -144,7 +144,7 @@ class _ClubDeleteDialogState extends State<ClubDeleteDialog> {
                 : Text.rich(
                     TextSpan(children: [
                       TextSpan(text: prompt.substring(0, at)),
-                      TextSpan(text: widget.name, style: TextStyle(color: t.pr, fontWeight: FontWeight.w800)),
+                      TextSpan(text: widget.name, style: TextStyle(color: t.prText, fontWeight: FontWeight.w800)),
                       TextSpan(text: prompt.substring(at + widget.name.length)),
                     ]),
                     textAlign: TextAlign.center,

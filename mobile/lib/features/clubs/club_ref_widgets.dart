@@ -26,7 +26,7 @@ class ClubBtn extends StatelessWidget {
     final (bg, fg) = switch (kind) {
       ClubBtnKind.neutral => (t.sf2, t.ink),
       ClubBtnKind.danger => (t.danger, t.onPr),
-      ClubBtnKind.primary => (t.pr, t.onPr),
+      ClubBtnKind.primary => (t.prText, t.onPr),
       ClubBtnKind.ink => (t.ink, t.bg),
     };
     final on = onPressed != null && !busy;
@@ -158,14 +158,14 @@ class ClubSheetRow extends StatelessWidget {
                     Text(title,
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
-                        style: tx.titleSmall!.copyWith(color: danger ? t.pr : t.ink, fontWeight: FontWeight.w700)),
+                        style: tx.titleSmall!.copyWith(color: danger ? t.prText : t.ink, fontWeight: FontWeight.w700)),
                     if (subtitle != null)
                       Padding(
                         padding: const EdgeInsets.only(top: 2),
                         child: Text(subtitle!,
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
-                            style: tx.bodySmall!.copyWith(color: danger ? t.pr : t.mut)),
+                            style: tx.bodySmall!.copyWith(color: danger ? t.prText : t.mut)),
                       ),
                   ],
                 ),
@@ -349,7 +349,7 @@ Future<String?> showClubDropdown(BuildContext anchor, List<ClubMenuEntry> entrie
                 child: Text(e.label,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: tx.titleSmall!.copyWith(color: e.danger ? t.pr : t.ink, fontWeight: FontWeight.w600)),
+                    style: tx.titleSmall!.copyWith(color: e.danger ? t.prText : t.ink, fontWeight: FontWeight.w600)),
               ),
               if (e.count > 0) ...[const SizedBox(width: 10), BuCountBadge(e.count)],
             ],
@@ -394,7 +394,7 @@ class ClubLockCard extends StatelessWidget {
                       width: 22,
                       height: 22,
                       decoration: BoxDecoration(color: t.sf, shape: BoxShape.circle, border: Border.all(color: t.bd)),
-                      child: Icon(badge, size: 12, color: t.pr),
+                      child: Icon(badge, size: 12, color: t.prText),
                     ),
                   ),
               ],

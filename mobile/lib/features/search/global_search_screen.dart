@@ -437,7 +437,7 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
             TextButton(
               style: TextButton.styleFrom(minimumSize: const Size(48, 48), padding: const EdgeInsets.symmetric(horizontal: 4)),
               onPressed: _clearRecent,
-              child: Text(l.searchClearRecent, style: tx.bodySmall!.copyWith(fontSize: 13, fontWeight: FontWeight.w500, color: t.pr)),
+              child: Text(l.searchClearRecent, style: tx.bodySmall!.copyWith(fontSize: 13, fontWeight: FontWeight.w500, color: t.prText)),
             ),
           ]),
           for (var i = 0; i < _recent.length; i++)
@@ -566,7 +566,7 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
               key: ValueKey('see-all-${tab.name}'),
               style: TextButton.styleFrom(minimumSize: const Size(48, 48), padding: const EdgeInsets.symmetric(horizontal: 8)),
               onPressed: () => _selectTab(tab),
-              child: Text(context.l10n.srSeeAll, style: tx.bodySmall!.copyWith(fontSize: 13, fontWeight: FontWeight.w500, color: t.pr)),
+              child: Text(context.l10n.srSeeAll, style: tx.bodySmall!.copyWith(fontSize: 13, fontWeight: FontWeight.w500, color: t.prText)),
             ),
         ]),
       ),
@@ -895,7 +895,7 @@ class _TabChipsState extends State<_TabChips> {
                         style: tx.labelLarge!.copyWith(
                           fontSize: 13,
                           fontWeight: i == widget.selected ? FontWeight.w600 : FontWeight.w400,
-                          color: i == widget.selected ? t.pr : t.ink,
+                          color: i == widget.selected ? t.prText : t.ink,
                         ),
                         child: Text(widget.labels[i]),
                       ),

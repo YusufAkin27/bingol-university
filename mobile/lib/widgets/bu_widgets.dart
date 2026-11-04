@@ -829,7 +829,7 @@ class BuSectionTitle extends StatelessWidget {
                 child: Align(
                   alignment: AlignmentDirectional.centerEnd,
                   widthFactor: 1,
-                  child: Text(action!, style: BuType.label.copyWith(color: t.pr)),
+                  child: Text(action!, style: BuType.label.copyWith(color: t.prText)),
                 ),
               ),
             ),
@@ -914,7 +914,7 @@ class BuMenuRow extends StatelessWidget {
                 width: 32,
                 height: 32,
                 decoration: BoxDecoration(color: danger ? cs.errorContainer : t.soft, borderRadius: BuRadius.bSm),
-                child: Icon(icon, size: 17, color: danger ? t.danger : t.pr),
+                child: Icon(icon, size: 17, color: danger ? t.danger : t.prText),
               ),
             ),
             const SizedBox(width: 14),

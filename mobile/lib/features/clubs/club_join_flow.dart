@@ -112,7 +112,7 @@ class _JoinQuestionsSheetState extends State<_JoinQuestionsSheet> {
           Text.rich(
             TextSpan(children: [
               TextSpan(text: (widget.questions[i]['question'] ?? '').toString()),
-              TextSpan(text: ' *', style: TextStyle(color: t.pr)),
+              TextSpan(text: ' *', style: TextStyle(color: t.prText)),
             ]),
             style: tx.titleSmall!.copyWith(color: t.ink, fontWeight: FontWeight.w700),
           ),

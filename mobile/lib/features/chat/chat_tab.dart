@@ -948,7 +948,7 @@ class _ConversationRow extends StatelessWidget {
                               ],
                               Text(_stamp(context, when),
                                   style: tx.labelMedium!.copyWith(
-                                      color: hot ? t.pr : t.mut, // okunmamışta saat marka rengi (Stitch v3)
+                                      color: hot ? t.prText : t.mut, // okunmamışta saat marka rengi (Stitch v3)
                                       fontWeight: hot ? FontWeight.w600 : FontWeight.w400,
                                       fontFeatures: const [FontFeature.tabularFigures()])),
                             ],

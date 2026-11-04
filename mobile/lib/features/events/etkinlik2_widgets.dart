@@ -102,7 +102,7 @@ class Et2Segment<T> extends StatelessWidget {
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
                     child: Row(mainAxisSize: MainAxisSize.min, children: [
                       if (icons != null && i < icons!.length) ...[
-                        ExcludeSemantics(child: Icon(icons![i], size: 16, color: i == sel ? t.pr : t.mut)),
+                        ExcludeSemantics(child: Icon(icons![i], size: 16, color: i == sel ? t.prText : t.mut)),
                         const SizedBox(width: 6),
                       ],
                       Flexible(

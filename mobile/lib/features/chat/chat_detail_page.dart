@@ -2561,7 +2561,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
                                             maxLines: 1,
                                             overflow: TextOverflow.ellipsis,
                                             style: tx.labelMedium!.copyWith(
-                                                color: typing ? t.pr : t.mut,
+                                                color: typing ? t.prText : t.mut,
                                                 fontWeight: FontWeight.w400)),
                                       ),
                                       if (typing) ...[
@@ -2795,11 +2795,11 @@ class _ChatDetailPageState extends State<ChatDetailPage>
                   onPressed: _stopSearch,
                   style: TextButton.styleFrom(
                       minimumSize: const Size(48, 48),
-                      foregroundColor: t.pr,
+                      foregroundColor: t.prText,
                       padding: const EdgeInsets.symmetric(horizontal: 12)),
                   child: Text(l.chatDetailClose,
                       style: tx.labelLarge!
-                          .copyWith(color: t.pr, fontWeight: FontWeight.w700)),
+                          .copyWith(color: t.prText, fontWeight: FontWeight.w700)),
                 ),
               ]),
             ),
@@ -2819,7 +2819,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
                       decoration: BoxDecoration(
                           color: t.sf2, borderRadius: BuRadius.bPill),
                       child: Row(mainAxisSize: MainAxisSize.min, children: [
-                        Icon(BuIcons.history, size: 16, color: t.pr),
+                        Icon(BuIcons.history, size: 16, color: t.prText),
                         const SizedBox(width: 8),
                         Flexible(
                           child: Text(l.chatDetailSearchOlder,
@@ -3221,10 +3221,10 @@ class _ChatDetailPageState extends State<ChatDetailPage>
           key: const ValueKey('chatUnblockButton'),
           onPressed: _unblockPeer,
           style: TextButton.styleFrom(
-              minimumSize: const Size(48, 48), foregroundColor: t.pr),
+              minimumSize: const Size(48, 48), foregroundColor: t.prText),
           child: Text(context.l10n.chatDetailUnblock,
               style: tx.labelLarge!
-                  .copyWith(color: t.pr, fontWeight: FontWeight.w700)),
+                  .copyWith(color: t.prText, fontWeight: FontWeight.w700)),
         ),
       ]),
     );

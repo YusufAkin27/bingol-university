@@ -281,7 +281,7 @@ class _Etkinlik2SettingsPageState extends State<Etkinlik2SettingsPage> {
                   Expanded(
                     child: Text(l.p16SetCapLabel, style: tx.labelLarge!.copyWith(fontWeight: FontWeight.w700, color: t.ink)),
                   ),
-                  Text(l.p16SetCapCurrent('$_going'), style: tx.labelMedium!.copyWith(fontWeight: FontWeight.w600, color: t.pr)),
+                  Text(l.p16SetCapCurrent('$_going'), style: tx.labelMedium!.copyWith(fontWeight: FontWeight.w600, color: t.prText)),
                 ]),
               ),
               BuCard(

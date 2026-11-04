@@ -36,7 +36,7 @@ class BuSectionHeader extends StatelessWidget {
           if (action != null)
             TextButton(
               onPressed: onAction,
-              style: TextButton.styleFrom(foregroundColor: t.pr, minimumSize: const Size(48, 48), padding: const EdgeInsets.symmetric(horizontal: 12)),
+              style: TextButton.styleFrom(foregroundColor: t.prText, minimumSize: const Size(48, 48), padding: const EdgeInsets.symmetric(horizontal: 12)),
               child: Text(action!),
             ),
         ],
@@ -59,7 +59,7 @@ class BuCountBadge extends StatelessWidget {
     final t = context.bu;
     final text = count > max ? '$max+' : '$count';
     return DecoratedBox(
-      decoration: BoxDecoration(color: muted ? t.mut : t.pr, borderRadius: BuRadius.bPill),
+      decoration: BoxDecoration(color: muted ? t.mut : t.prText, borderRadius: BuRadius.bPill),
       child: ConstrainedBox(
         constraints: const BoxConstraints(minWidth: 20, minHeight: 20),
         child: Padding(

@@ -278,7 +278,7 @@ class _ReplyBar extends StatelessWidget {
                     valueListenable: controller,
                     builder: (_, v, __) => TextButton(
                       onPressed: (sending || v.text.trim().isEmpty) ? null : onSend,
-                      style: TextButton.styleFrom(foregroundColor: t.pr, minimumSize: const Size(48, 48), padding: const EdgeInsets.symmetric(horizontal: 12)),
+                      style: TextButton.styleFrom(foregroundColor: t.prText, minimumSize: const Size(48, 48), padding: const EdgeInsets.symmetric(horizontal: 12)),
                       child: Text(l.p66TrackSend, style: tx.labelLarge!.copyWith(fontWeight: FontWeight.w700)),
                     ),
                   ),

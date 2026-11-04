@@ -184,9 +184,9 @@ class _Etkinlik2AttendancePageState extends State<Etkinlik2AttendancePage> {
               padding: const EdgeInsetsDirectional.only(start: 12, top: 8),
               child: TextButton(
                 key: const ValueKey('et2-show-qr'),
-                style: TextButton.styleFrom(foregroundColor: t.pr, minimumSize: const Size(48, 48)),
+                style: TextButton.styleFrom(foregroundColor: t.prText, minimumSize: const Size(48, 48)),
                 onPressed: _showQr,
-                child: Text(l.etkinlik2ShowQrSem, style: tx.bodyLarge!.copyWith(color: t.pr, fontWeight: FontWeight.w600)),
+                child: Text(l.etkinlik2ShowQrSem, style: tx.bodyLarge!.copyWith(color: t.prText, fontWeight: FontWeight.w600)),
               ),
             ),
           ),

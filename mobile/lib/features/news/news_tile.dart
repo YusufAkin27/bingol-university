@@ -320,7 +320,7 @@ class _SaveIcon extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.bu;
     final label = saved ? context.l10n.newsSaveRemove : context.l10n.newsSaveAdd;
-    final fg = overlay ? (saved ? t.pr : t.onMedia) : (saved ? t.pr : t.ink);
+    final fg = overlay ? (saved ? t.prText : t.onMedia) : (saved ? t.prText : t.ink);
     final icon = Icon(
       saved ? BuIcons.bookmarkFilled : BuIcons.bookmark,
       key: ValueKey(saved),

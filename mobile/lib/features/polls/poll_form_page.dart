@@ -251,9 +251,9 @@ class _PollFormPageState extends State<PollFormPage> {
                           ),
                           if (_opts.length < _maxOptions)
                             TextButton(
-                              style: TextButton.styleFrom(foregroundColor: t.pr, minimumSize: const Size(48, 48), padding: const EdgeInsetsDirectional.only(start: 12)),
+                              style: TextButton.styleFrom(foregroundColor: t.prText, minimumSize: const Size(48, 48), padding: const EdgeInsetsDirectional.only(start: 12)),
                               onPressed: _addOption,
-                              child: Text('+ ${l.pollAddOption}', style: tx.titleSmall!.copyWith(color: t.pr, fontWeight: FontWeight.w700)),
+                              child: Text('+ ${l.pollAddOption}', style: tx.titleSmall!.copyWith(color: t.prText, fontWeight: FontWeight.w700)),
                             ),
                         ])),
                       ]),
