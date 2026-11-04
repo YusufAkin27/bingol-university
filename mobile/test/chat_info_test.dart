@@ -4,6 +4,8 @@ import 'package:bu_kampus/core/platform/image_service.dart';
 import 'package:bu_kampus/features/chat/chat_info_media.dart';
 import 'package:bu_kampus/features/chat/chat_info_members.dart';
 import 'package:bu_kampus/features/chat/chat_info_page.dart';
+import 'package:bu_kampus/features/chat/chat_media_gallery_page.dart';
+import 'package:bu_kampus/features/chat/chat_media_viewer.dart';
 import 'package:bu_kampus/features/chat/chat_info_parts.dart';
 import 'package:bu_kampus/widgets/bu.dart';
 import 'package:flutter/material.dart';
@@ -123,7 +125,7 @@ void main() {
     });
   });
 
-  testWidgets('yükleniyor iskeleti, sonra 4 karolu şerit ve +N', (tester) async {
+  testWidgets('yükleniyor iskeleti, sonra yatay medya şeridi', (tester) async {
     final be = backend();
     final slow = FakeBackend(delay: const Duration(milliseconds: 200))
       ..on('/conversations/5/messages?size=40', {
@@ -135,12 +137,12 @@ void main() {
     expect(find.byType(BuSkeleton), findsWidgets);
     expect(find.byType(CircularProgressIndicator), findsNothing);
     await settle(tester);
-    // Stitch v3: 72 dp sabit kare küçük resimler (4 karo), 8 dp aralık.
-    expect(find.byType(ChatInfoThumb), findsNWidgets(4));
-    expect(tester.getSize(find.byType(ChatInfoThumb).first), const Size(72, 72));
+    // Yatay medya şeridi: 96 dp kare kartlar, 8 dp aralık; geri kalanı kaydırınca/"Tümü" ile.
+    expect(find.byType(ChatInfoThumb), findsWidgets);
+    expect(tester.getSize(find.byType(ChatInfoThumb).first), const Size(96, 96));
     expect(find.text('Medya · 12'), findsOneWidget);
-    expect(find.text('+9'), findsOneWidget);
-    expect(contentImages(), findsNWidgets(4));
+    expect(find.byKey(const ValueKey('chatInfoMediaStrip')), findsOneWidget);
+    expect(contentImages(), findsWidgets);
     expect(find.text('Mehmet Kaya'), findsOneWidget);
     await unmount(tester);
     expect(be.requests, isEmpty);
@@ -274,6 +276,8 @@ void main() {
     expect(find.text('Sessize al'), findsOneWidget);
     expect(find.text('Arşivle'), findsOneWidget);
     expect(find.text('Profili görüntüle'), findsOneWidget);
+    expect(find.text('Sohbette ara'), findsOneWidget);
+    expect(find.text('Medya ve dosyalar'), findsOneWidget);
     expect(find.text('Bildirimleri sessize al'), findsOneWidget);
     expect(find.text('Açık'), findsOneWidget);
     expect(find.text('Engelle'), findsOneWidget);
@@ -320,6 +324,7 @@ void main() {
     await settle(tester);
     expect(be.bodies['PUT /conversations/5/archive'], {'keepArchived': false});
     expect(find.text('Arşivden çıkar'), findsOneWidget);
+    await scrollTo(tester, find.byKey(const ValueKey('info-block')));
     await tester.tap(find.text('Engelle').first);
     await settle(tester);
     expect(find.text('Kullanıcı engellensin mi?'), findsOneWidget);
@@ -390,10 +395,10 @@ void main() {
     await pump(tester, be, conv: _group(admin: false), members: _manyMembers(3));
     await settle(tester);
     await scrollTo(tester, find.text('Tümünü gör'));
-    expect(contentImages(), findsNWidgets(3));
+    expect(contentImages(), findsWidgets);
     await tester.tap(find.text('Tümünü gör'));
     await settle(tester);
-    expect(find.byType(ChatMediaGridPage), findsOneWidget);
+    expect(find.byType(ChatMediaGalleryPage), findsOneWidget);
     await unmount(tester);
   });
 
@@ -654,31 +659,47 @@ void main() {
     await unmount(tester);
   });
 
-  testWidgets('medya sayfası: video rozeti; yükleniyor, boş ve hata kartları', (tester) async {
+  testWidgets('galeri: Fotoğraflar/Videolar süzülür; Dosyalar desteklenmiyor; yükleniyor, boş ve hata kartları', (tester) async {
     final be = backend(images: 6, videos: {2});
     useScreen(tester, kPhoneMedium);
     final feed = ChatMediaFeed(api: makeSession(be).api, conversationId: 5, senderName: (m) => null);
-    await tester.pumpWidget(buildApp(ChatMediaGridPage(feed: feed, headers: const {}, onOpen: (i) {}), size: kPhoneMedium));
+    Widget gallery(ChatMediaFeed f) =>
+        ChatMediaGalleryPage(feed: f, headers: const {}, onOpen: (items, i) {});
+    await tester.pumpWidget(buildApp(gallery(feed), size: kPhoneMedium));
     await tester.pump();
     expect(find.text('Yükleniyor...'), findsOneWidget);
     feed.load(first: true);
     await settle(tester);
     expect(find.text('Yükleniyor...'), findsNothing);
+    expect(find.text('Fotoğraflar'), findsOneWidget);
+    expect(find.text('Videolar'), findsOneWidget);
+    expect(find.text('Dosyalar'), findsOneWidget);
+    expect(find.text('0:42'), findsNothing); // video fotoğraf sekmesinde yok
+    expect(contentImages(), findsNWidgets(5));
+    await tester.tap(find.text('Videolar'));
+    await settle(tester);
     expect(find.text('0:42'), findsOneWidget);
-    expect(contentImages(), findsNWidgets(6));
+    expect(contentImages(), findsNWidgets(1));
+    await tester.tap(find.text('Dosyalar'));
+    await settle(tester);
+    expect(find.text('Dosya paylaşımı desteklenmiyor'), findsOneWidget);
+    expect(contentImages(), findsNothing);
     await unmount(tester);
 
     final empty = FakeBackend()..on('/conversations/5/messages?size=40', {'items': [], 'nextCursor': null});
     final f2 = ChatMediaFeed(api: makeSession(empty).api, conversationId: 5, senderName: (m) => null)..load(first: true);
-    await tester.pumpWidget(buildApp(ChatMediaGridPage(feed: f2, headers: const {}, onOpen: (i) {}), size: kPhoneMedium));
+    await tester.pumpWidget(buildApp(gallery(f2), size: kPhoneMedium));
     await settle(tester);
-    expect(find.text('Bu sohbette henüz görsel yok.'), findsOneWidget);
+    expect(find.text('Bu sohbette henüz fotoğraf yok.'), findsOneWidget);
     expect(find.text('Paylaşılan fotoğraflar ve videolar burada görünür.'), findsOneWidget);
+    await tester.tap(find.text('Videolar'));
+    await settle(tester);
+    expect(find.text('Bu sohbette henüz video yok.'), findsOneWidget);
     await unmount(tester);
 
     final bad = FakeBackend()..fail('/conversations/5/messages?size=40');
     final f3 = ChatMediaFeed(api: makeSession(bad).api, conversationId: 5, senderName: (m) => null)..load(first: true);
-    await tester.pumpWidget(buildApp(ChatMediaGridPage(feed: f3, headers: const {}, onOpen: (i) {}), size: kPhoneMedium));
+    await tester.pumpWidget(buildApp(gallery(f3), size: kPhoneMedium));
     await settle(tester, const Duration(seconds: 3));
     expect(find.text('Hata oluştu'), findsOneWidget);
     expect(find.text('Medya yüklenemedi.'), findsOneWidget);
@@ -687,6 +708,141 @@ void main() {
     await settle(tester);
     expect(find.text('Hata oluştu'), findsNothing);
     expect(contentImages(), findsNWidgets(1));
+    await unmount(tester);
+  });
+
+  for (final b in Brightness.values) {
+    for (final size in kPhoneSizes) {
+      for (final scale in [1.0, 1.3]) {
+        testWidgets('birebir + galeri taşma yok: ${b.name} ${size.width.toInt()}x${size.height.toInt()} x$scale', (tester) async {
+          final be = backend(images: 14, videos: {3, 5})
+            ..on('/users/2', {'id': 2, 'displayName': 'Mehmet Kaya', 'department': 'Bilgisayar Mühendisliği', 'classYear': 3});
+          await pump(tester, be, b: b, size: size, scale: scale, conv: {
+            'id': 5,
+            'type': 'DIRECT',
+            'peer': {'id': 2, 'displayName': 'Çok Uzun Bir Kullanıcı Adı Soyadı Burada Çok Uzun Bir Ad'},
+          });
+          await settle(tester);
+          expect(tester.takeException(), isNull);
+          await tester.tap(find.byKey(const ValueKey('info-media-files')), warnIfMissed: false);
+          await settle(tester);
+          expect(tester.takeException(), isNull);
+          await tester.tap(find.text('Videolar'), warnIfMissed: false);
+          await settle(tester);
+          await tester.tap(find.text('Dosyalar'), warnIfMissed: false);
+          await settle(tester);
+          expect(tester.takeException(), isNull);
+          await unmount(tester);
+        });
+      }
+    }
+  }
+
+  testWidgets('galeri kartı görüntüleyiciye süzülmüş listeyi verir', (tester) async {
+    final be = backend(images: 6, videos: {2});
+    useScreen(tester, kPhoneMedium);
+    final feed = ChatMediaFeed(api: makeSession(be).api, conversationId: 5, senderName: (m) => null)..load(first: true);
+    List<ChatMediaItem>? got;
+    var idx = -1;
+    await tester.pumpWidget(buildApp(
+        ChatMediaGalleryPage(
+            feed: feed,
+            headers: const {},
+            onOpen: (items, i) {
+              got = items;
+              idx = i;
+            }),
+        size: kPhoneMedium));
+    await settle(tester);
+    await tester.tap(contentImages().at(1));
+    await settle(tester);
+    expect(got!.length, 5);
+    expect(idx, 1);
+    await unmount(tester);
+  });
+
+  testWidgets('büyük avatar: dokununca blur önizleme; fotoğraf yoksa açılmaz', (tester) async {
+    final be = backend();
+    await pump(tester, be, conv: {
+      'id': 5,
+      'type': 'DIRECT',
+      'peer': {'id': 2, 'displayName': 'Mehmet Kaya', 'avatarUrl': '/files/avatars/2.jpg'},
+    });
+    await settle(tester);
+    await tester.tap(find.byKey(const ValueKey('chatInfoAvatarPreview')));
+    await settle(tester);
+    expect(find.byKey(const ValueKey('chatAvatarPreview')), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('chatAvatarPreviewClose')));
+    await settle(tester);
+    expect(find.byKey(const ValueKey('chatAvatarPreview')), findsNothing);
+    await unmount(tester);
+
+    await pump(tester, backend());
+    await settle(tester);
+    await tester.tap(find.byKey(const ValueKey('chatInfoAvatarPreview')));
+    await settle(tester);
+    expect(find.byKey(const ValueKey('chatAvatarPreview')), findsNothing);
+    await unmount(tester);
+  });
+
+  testWidgets('ad dokununca profil açılır', (tester) async {
+    final be = backend()..on('/users/2', {'id': 2, 'displayName': 'Mehmet Kaya'});
+    await pump(tester, be);
+    await settle(tester);
+    final before = be.count('/users/2');
+    await tester.tap(find.byKey(const ValueKey('chatInfoName')));
+    await settle(tester);
+    expect(be.count('/users/2'), greaterThan(before));
+    await unmount(tester);
+  });
+
+  testWidgets('Sohbette ara satırı ve hızlı eylem "search" sonucuyla kapanır', (tester) async {
+    for (final label in ['Sohbette ara', 'Ara']) {
+      Object? result;
+      useScreen(tester, kPhoneMedium);
+      await tester.pumpWidget(buildApp(
+        Builder(
+          builder: (c) => Scaffold(
+            body: Center(
+              child: TextButton(
+                onPressed: () async => result = await Navigator.push<Object?>(
+                    c,
+                    MaterialPageRoute<Object?>(
+                        builder: (_) => ChatInfoPage(
+                            session: makeSession(backend()),
+                            conversation: Map.of(_conv)))),
+                child: const Text('aç'),
+              ),
+            ),
+          ),
+        ),
+        size: kPhoneMedium,
+      ));
+      await tester.tap(find.text('aç'));
+      await settle(tester);
+      await tester.tap(find.text(label));
+      await settle(tester);
+      expect(result, 'search', reason: label);
+      await unmount(tester);
+    }
+  });
+
+  testWidgets('şikâyet gönderilince satır pasifleşir ve tekrar açılmaz', (tester) async {
+    final be = backend()..on('POST /reports', {});
+    await pump(tester, be);
+    await settle(tester);
+    await scrollTo(tester, find.byKey(const ValueKey('info-report')));
+    await tester.tap(find.byKey(const ValueKey('info-report')));
+    await settle(tester);
+    await tester.tap(find.text('Spam veya reklam'));
+    await tester.pump();
+    await tester.tap(find.text('Gönder'));
+    await settle(tester);
+    expect(be.count('POST /reports'), 1);
+    expect(find.text('Şikâyet edildi'), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('info-report')), warnIfMissed: false);
+    await settle(tester);
+    expect(find.text('Spam veya reklam'), findsNothing); // alt sayfa yeniden açılmadı
     await unmount(tester);
   });
 }

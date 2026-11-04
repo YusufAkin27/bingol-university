@@ -1793,6 +1793,36 @@ class AppLocalizationsAr extends AppLocalizations {
   String get chatInfoGroupName => 'اسم المجموعة';
 
   @override
+  String get chatInfoSearchInChat => 'البحث في المحادثة';
+
+  @override
+  String get chatInfoMediaFiles => 'الوسائط والملفات';
+
+  @override
+  String get chatInfoTabPhotos => 'الصور';
+
+  @override
+  String get chatInfoTabVideos => 'الفيديوهات';
+
+  @override
+  String get chatInfoTabFiles => 'الملفات';
+
+  @override
+  String get chatInfoNoPhotos => 'لا توجد صور في هذه المحادثة بعد.';
+
+  @override
+  String get chatInfoNoVideos => 'لا توجد فيديوهات في هذه المحادثة بعد.';
+
+  @override
+  String get chatInfoFilesUnsupportedTitle => 'مشاركة الملفات غير مدعومة';
+
+  @override
+  String get chatInfoFilesUnsupportedBody => 'يمكن حاليًا مشاركة الصور والفيديوهات فقط في هذه المحادثة.';
+
+  @override
+  String get chatInfoReported => 'تم الإبلاغ';
+
+  @override
   String get chatMiscFilterAll => 'الكل';
 
   @override

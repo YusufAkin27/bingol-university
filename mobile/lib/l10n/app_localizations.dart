@@ -3367,6 +3367,66 @@ abstract class AppLocalizations {
   /// **'Ayarlar'**
   String get chatInfoSettings;
 
+  /// No description provided for @chatInfoSearchInChat.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sohbette ara'**
+  String get chatInfoSearchInChat;
+
+  /// No description provided for @chatInfoMediaFiles.
+  ///
+  /// In tr, this message translates to:
+  /// **'Medya ve dosyalar'**
+  String get chatInfoMediaFiles;
+
+  /// No description provided for @chatInfoTabPhotos.
+  ///
+  /// In tr, this message translates to:
+  /// **'Fotoğraflar'**
+  String get chatInfoTabPhotos;
+
+  /// No description provided for @chatInfoTabVideos.
+  ///
+  /// In tr, this message translates to:
+  /// **'Videolar'**
+  String get chatInfoTabVideos;
+
+  /// No description provided for @chatInfoTabFiles.
+  ///
+  /// In tr, this message translates to:
+  /// **'Dosyalar'**
+  String get chatInfoTabFiles;
+
+  /// No description provided for @chatInfoNoPhotos.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu sohbette henüz fotoğraf yok.'**
+  String get chatInfoNoPhotos;
+
+  /// No description provided for @chatInfoNoVideos.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu sohbette henüz video yok.'**
+  String get chatInfoNoVideos;
+
+  /// No description provided for @chatInfoFilesUnsupportedTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Dosya paylaşımı desteklenmiyor'**
+  String get chatInfoFilesUnsupportedTitle;
+
+  /// No description provided for @chatInfoFilesUnsupportedBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu sohbette şimdilik yalnızca fotoğraf ve video paylaşılabiliyor.'**
+  String get chatInfoFilesUnsupportedBody;
+
+  /// No description provided for @chatInfoReported.
+  ///
+  /// In tr, this message translates to:
+  /// **'Şikâyet edildi'**
+  String get chatInfoReported;
+
   /// No description provided for @chatInfoGroupName.
   ///
   /// In tr, this message translates to:
@@ -18864,6 +18924,8 @@ class _AppLocalizationsDelegate
   }
 
   @override
+
+
   bool isSupported(Locale locale) =>
       <String>['ar', 'en', 'tr'].contains(locale.languageCode);
 

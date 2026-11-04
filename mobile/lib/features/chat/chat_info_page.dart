@@ -10,7 +10,8 @@ import '../../widgets/report_sheet.dart';
 import '../media_crop/media_crop.dart';
 import '../profile/user_profile_page.dart';
 import 'chat_info_media.dart';
-import 'chat_avatar_preview.dart';
+import 'chat_info_photo_viewer.dart';
+import 'chat_media_gallery_page.dart';
 import 'chat_info_members.dart';
 import 'chat_info_parts.dart';
 import 'chat_sheet_parts.dart';
@@ -72,6 +73,13 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
   Map<String, dynamic>? _profile;
   bool _membersFailed = false;
   int _avatarVersion = 0;
+
+  /// Yanlışlıkla/çift dokunmayı engeller: engelleme isteği sürerken ve şikâyet açıkken yeni işlem başlamaz.
+  bool _blockBusy = false;
+  bool _reportOpen = false;
+
+  /// Bu açılışta şikâyet gönderildi: aynı kişi için satır pasifleşir (tekrar önleme).
+  bool _reported = false;
 
   ApiClient get _api => widget.session.api;
   int get _cid => (_conv['id'] as num).toInt();
@@ -208,12 +216,28 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
     );
   }
 
+  /// Galeri sekmesinden: süzülmüş listede görüntüleyici.
+  void _openGalleryViewer(List<ChatMediaItem> items, int index) {
+    Navigator.push(
+      context,
+      MaterialPageRoute<void>(
+        builder: (_) => ChatMediaViewer(
+          items: List.of(items),
+          headers: _headers,
+          initialIndex: index,
+          saveImage: widget.saveImage,
+        ),
+      ),
+    );
+  }
+
+  /// Medya ve dosyalar galerisi (Fotoğraflar | Videolar | Dosyalar).
   void _openAllMedia() {
     Navigator.push(
       context,
       MaterialPageRoute<void>(
-          builder: (_) => ChatMediaGridPage(
-              feed: _feed, headers: _headers, onOpen: _openViewer)),
+          builder: (_) => ChatMediaGalleryPage(
+              feed: _feed, headers: _headers, onOpen: _openGalleryViewer)),
     );
   }
 
@@ -315,8 +339,9 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
 
   Future<void> _toggleBlock() async {
     final pid = _peerId;
-    if (pid == null) return;
+    if (pid == null || _blockBusy) return;
     final l = context.l10n;
+    _blockBusy = true;
     try {
       if (_blocked) {
         await _api.delete('/users/$pid/block');
@@ -339,16 +364,24 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
       }
     } catch (e) {
       _toast(errorText(e), kind: BuToastKind.error);
+    } finally {
+      _blockBusy = false;
     }
   }
 
   Future<void> _report() async {
     final pid = _peerId;
-    if (pid == null) return;
-    await ReportSheet.show(context, widget.session,
-        targetType: 'USER',
-        targetId: pid,
-        title: context.l10n.chatInfoReportUser);
+    if (pid == null || _reported || _reportOpen) return;
+    _reportOpen = true;
+    try {
+      final sent = await ReportSheet.show(context, widget.session,
+          targetType: 'USER',
+          targetId: pid,
+          title: context.l10n.chatInfoReportUser);
+      if (sent && mounted) setState(() => _reported = true);
+    } finally {
+      _reportOpen = false;
+    }
   }
 
   /// Onay (Stitch 24-5) + çıkarma. Başarılıysa true; üye yerel listeden düşer.
@@ -553,6 +586,9 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
         ],
       ]);
 
+  /// Sohbet içinde mesaj arama: sohbet ekranı `'search'` sonucuyla kendi arama çubuğunu açar.
+  void _searchInChat() => Navigator.pop(context, 'search');
+
   /// Ara · Sessize al · Arşivle.
   Widget _quickRow({required bool dense}) {
     final l = context.l10n;
@@ -562,51 +598,64 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
           dense: dense,
           icon: BuIcons.search,
           label: l.chatInfoSearch,
-          onTap: () => Navigator.pop(context, 'search')),
+          onTap: _searchInChat),
       ChatInfoQuickAction(
           dense: dense,
           icon: _muted ? BuIcons.bell : BuIcons.bellOff,
           label: _muted ? l.chatInfoUnmute : l.chatInfoMute,
+          active: _muted,
           onTap: _toggleMute),
       ChatInfoQuickAction(
           dense: dense,
           icon: archived ? BuIcons.archiveRestore : BuIcons.archive,
           label: archived ? l.chatInfoUnarchive : l.chatInfoArchive,
+          active: archived,
           onTap: _toggleArchive),
     ]);
   }
 
-  Widget _bigAvatar({bool badge = false}) {
-    final t = context.bu;
+  Map<String, String>? get _photoHeaders {
     final tok = _api.tokens?.access;
     final au = _avatarUrl;
-    final photoHeaders = (tok != null && au != null && au.startsWith('/api/'))
+    return (tok != null && au != null && au.startsWith('/api/'))
         ? {'Authorization': 'Bearer $tok'}
         : null;
+  }
+
+  /// Büyük avatara dokununca blur arka planlı tam ekran önizleme (fotoğraf yoksa açılmaz).
+  void _openAvatar() => ChatInfoPhotoViewer.show(context,
+      imageUrl: _avatarUrl,
+      thumbUrl: _avatarUrl,
+      heroTag: 'chat-info-avatar-$_cid',
+      name: _title,
+      headers: _photoHeaders);
+
+  static const _avatarSize = 120.0;
+
+  Widget _bigAvatar({bool badge = false}) {
+    final t = context.bu;
+    final au = _avatarUrl;
     final avatar = Semantics(
       button: au != null,
       label: context.l10n.avatarSheetTitle,
       child: GestureDetector(
         key: const ValueKey('chatInfoAvatarPreview'),
-        onTap: au == null
-            ? null
-            : () => showChatAvatarPreview(context,
-                name: _title, url: au, headers: photoHeaders),
+        onTap: au == null ? null : _openAvatar,
         child: ChatlistAvatar(
           name: _title,
           url: au,
-          size: 96,
+          size: _avatarSize,
           monogram: true,
-          cornerRadius: 20,
+          cornerRadius: 36,
           group: !_direct,
-          headers: photoHeaders,
+          headers: _photoHeaders,
         ),
       ),
     );
     if (!badge) return avatar;
     return SizedBox(
-      width: 96,
-      height: 96,
+      width: _avatarSize,
+      height: _avatarSize,
       child: Stack(clipBehavior: Clip.none, children: [
         avatar,
         PositionedDirectional(
@@ -661,6 +710,35 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
     ].join(' · ');
   }
 
+  /// Ad soyad: dokununca karşı kişinin profili (kendi profilimse/kimlik yoksa düz metin).
+  Widget _directNameButton(BuTokens t) {
+    final name = Text(_title,
+        textAlign: TextAlign.center,
+        maxLines: 2,
+        overflow: TextOverflow.ellipsis,
+        style: _nameStyle(t));
+    if (_peerId == null) return name;
+    return Semantics(
+      button: true,
+      label: '$_title, ${context.l10n.chatInfoViewProfile}',
+      excludeSemantics: true,
+      child: GestureDetector(
+        key: const ValueKey('chatInfoName'),
+        behavior: HitTestBehavior.opaque,
+        onTap: _openPeerProfile,
+        child: ConstrainedBox(
+            constraints: const BoxConstraints(minHeight: 44),
+            child: Center(child: name)),
+      ),
+    );
+  }
+
+  void _openPeerProfile() => _openProfile({
+        'userId': _peerId,
+        'displayName': _title,
+        'avatarUrl': _peer?['avatarUrl']
+      });
+
   List<Widget> _directBody(BuTokens t) {
     final l = context.l10n;
     final sub = _directSub;
@@ -670,12 +748,8 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
             const EdgeInsets.fromLTRB(kChatInfoMargin, 24, kChatInfoMargin, 13),
         child: Column(children: [
           _bigAvatar(),
-          const SizedBox(height: 10),
-          Text(_title,
-              textAlign: TextAlign.center,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: _nameStyle(t)),
+          const SizedBox(height: 12),
+          _directNameButton(t),
           if (sub.isNotEmpty)
             Padding(
               padding: const EdgeInsets.only(top: 2),
@@ -695,11 +769,7 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
           ChatInfoRow(
               icon: BuIcons.idCard,
               label: l.chatInfoViewProfile,
-              onTap: () => _openProfile({
-                    'userId': _peerId,
-                    'displayName': _title,
-                    'avatarUrl': _peer?['avatarUrl']
-                  })),
+              onTap: _openPeerProfile),
         ChatInfoRow(
             icon: _muted ? BuIcons.bellOff : BuIcons.bell,
             label: l.chatInfoMuteNotifications,
@@ -707,22 +777,36 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
             value: _muted ? null : _muteStatus(),
             sub: _muted ? _muteStatus() : null,
             onTap: _toggleMute),
+        ChatInfoRow(
+            key: const ValueKey('info-search-in-chat'),
+            icon: BuIcons.search,
+            label: l.chatInfoSearchInChat,
+            onTap: _searchInChat),
+        ChatInfoRow(
+            key: const ValueKey('info-media-files'),
+            icon: BuIcons.images,
+            label: l.chatInfoMediaFiles,
+            onTap: _openAllMedia),
       ]),
+      const SizedBox(height: 24),
       _mediaCard(t, direct: true),
       const SizedBox(height: 24),
       ChatInfoRows(children: [
         ChatInfoRow(
+            key: const ValueKey('info-block'),
             icon: BuIcons.ban,
             label: _blocked ? l.chatInfoUnblock : l.chatInfoBlock,
             danger: true,
             chevron: false,
             onTap: _toggleBlock),
         ChatInfoRow(
+            key: const ValueKey('info-report'),
             icon: BuIcons.octagonAlert,
             label: l.chatInfoReportUser,
+            sub: _reported ? l.chatInfoReported : null,
             danger: true,
             chevron: false,
-            onTap: _report),
+            onTap: _reported ? null : _report),
       ]),
     ];
   }
@@ -1027,19 +1111,20 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
     final f = _feed;
     final n = f.items.length;
     final total = '$n${f.more ? '+' : ''}';
-    final cols = direct ? 4 : 3;
     final Widget body;
     if (f.loading) {
       body = BuSkeletonScope(
-        child: Row(children: [
-          for (var i = 0; i < cols; i++) ...[
-            if (i > 0) const SizedBox(width: 8),
-            const Expanded(
-                child: AspectRatio(
-                    aspectRatio: 1,
-                    child: BuSkeleton(radius: 12, height: 200))),
-          ],
-        ]),
+        child: SizedBox(
+          height: 96,
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: 4,
+            separatorBuilder: (_, __) => const SizedBox(width: 8),
+            itemBuilder: (_, __) =>
+                const SizedBox(width: 96, child: BuSkeleton(radius: 14, height: 96)),
+          ),
+        ),
       );
     } else if (f.error != null) {
       body = Row(children: [
@@ -1054,31 +1139,11 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
     } else if (n == 0) {
       body = Text(l.chatInfoNoMedia, style: chatInfoBody14(context));
     } else {
-      final tiles = f.items.take(cols).toList();
-      // Birebir şerit: 4'ten fazla görselde son karo "+N" örtüsü taşır.
-      final overflow = direct && n > cols ? n - (cols - 1) : null;
-      // Stitch v3: 72 dp sabit kare küçük resimler, 8 dp aralık.
-      body = Wrap(
-        spacing: 8,
-        runSpacing: 8,
-        children: [
-          for (var i = 0; i < tiles.length; i++)
-            SizedBox(
-              width: 72,
-              height: 72,
-              child: ChatInfoThumb(
-                item: tiles[i],
-                video: f.isVideo(tiles[i]),
-                durationMs: f.videoMeta[tiles[i].url],
-                headers: _headers,
-                moreCount: overflow != null && i == cols - 1 ? overflow : null,
-                onTap: overflow != null && i == cols - 1
-                    ? _openAllMedia
-                    : () => _openViewer(i),
-              ),
-            ),
-        ],
-      );
+      body = ChatInfoMediaStrip(
+          feed: f,
+          headers: _headers,
+          onOpen: _openViewer,
+          onSeeAll: _openAllMedia);
     }
     return ChatInfoCard(
       padding: EdgeInsets.fromLTRB(direct ? 16 : 20, 6, direct ? 16 : 20, 20),
