@@ -711,6 +711,33 @@ void main() {
     await unmount(tester);
   });
 
+  for (final b in Brightness.values) {
+    for (final size in kPhoneSizes) {
+      for (final scale in [1.0, 1.3]) {
+        testWidgets('birebir + galeri taşma yok: ${b.name} ${size.width.toInt()}x${size.height.toInt()} x$scale', (tester) async {
+          final be = backend(images: 14, videos: {3, 5})
+            ..on('/users/2', {'id': 2, 'displayName': 'Mehmet Kaya', 'department': 'Bilgisayar Mühendisliği', 'classYear': 3});
+          await pump(tester, be, b: b, size: size, scale: scale, conv: {
+            'id': 5,
+            'type': 'DIRECT',
+            'peer': {'id': 2, 'displayName': 'Çok Uzun Bir Kullanıcı Adı Soyadı Burada Çok Uzun Bir Ad'},
+          });
+          await settle(tester);
+          expect(tester.takeException(), isNull);
+          await tester.tap(find.byKey(const ValueKey('info-media-files')), warnIfMissed: false);
+          await settle(tester);
+          expect(tester.takeException(), isNull);
+          await tester.tap(find.text('Videolar'), warnIfMissed: false);
+          await settle(tester);
+          await tester.tap(find.text('Dosyalar'), warnIfMissed: false);
+          await settle(tester);
+          expect(tester.takeException(), isNull);
+          await unmount(tester);
+        });
+      }
+    }
+  }
+
   testWidgets('galeri kartı görüntüleyiciye süzülmüş listeyi verir', (tester) async {
     final be = backend(images: 6, videos: {2});
     useScreen(tester, kPhoneMedium);
