@@ -3734,6 +3734,18 @@ class AppLocalizationsTr extends AppLocalizations {
   String get searchClear => 'Aramayı temizle';
 
   @override
+  String get srPhotoViewerTitle => 'Profil fotoğrafı';
+
+  @override
+  String get srPhotoViewerError => 'Fotoğraf yüklenemedi';
+
+  @override
+  String get srPhotoViewerClose => 'Önizlemeyi kapat';
+
+  @override
+  String get srAvatarLongPressHint => 'Büyük fotoğrafı görmek için uzun bas';
+
+  @override
   String get searchPrompt => 'Haber, duyuru, kulüp, etkinlik veya kişi aramak için en az 2 karakter yazın.';
 
   @override

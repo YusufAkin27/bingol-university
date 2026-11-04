@@ -3734,6 +3734,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get searchClear => 'Clear search';
 
   @override
+  String get srPhotoViewerTitle => 'Profile photo';
+
+  @override
+  String get srPhotoViewerError => 'The photo could not be loaded';
+
+  @override
+  String get srPhotoViewerClose => 'Close preview';
+
+  @override
+  String get srAvatarLongPressHint => 'Long press to see the large photo';
+
+  @override
   String get searchPrompt => 'Type at least 2 characters to search news, announcements, clubs, events or people.';
 
   @override

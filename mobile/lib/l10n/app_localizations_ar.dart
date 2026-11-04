@@ -3734,6 +3734,18 @@ class AppLocalizationsAr extends AppLocalizations {
   String get searchClear => 'مسح البحث';
 
   @override
+  String get srPhotoViewerTitle => 'صورة الملف الشخصي';
+
+  @override
+  String get srPhotoViewerError => 'تعذّر تحميل الصورة';
+
+  @override
+  String get srPhotoViewerClose => 'إغلاق المعاينة';
+
+  @override
+  String get srAvatarLongPressHint => 'اضغط مطولًا لعرض الصورة الكبيرة';
+
+  @override
   String get searchPrompt => 'اكتب حرفين على الأقل للبحث عن أخبار أو إعلانات أو أندية أو فعاليات أو أشخاص.';
 
   @override

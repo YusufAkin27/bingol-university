@@ -7129,6 +7129,30 @@ abstract class AppLocalizations {
   /// **'Aramayı temizle'**
   String get searchClear;
 
+  /// No description provided for @srPhotoViewerTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Profil fotoğrafı'**
+  String get srPhotoViewerTitle;
+
+  /// No description provided for @srPhotoViewerError.
+  ///
+  /// In tr, this message translates to:
+  /// **'Fotoğraf yüklenemedi'**
+  String get srPhotoViewerError;
+
+  /// No description provided for @srPhotoViewerClose.
+  ///
+  /// In tr, this message translates to:
+  /// **'Önizlemeyi kapat'**
+  String get srPhotoViewerClose;
+
+  /// No description provided for @srAvatarLongPressHint.
+  ///
+  /// In tr, this message translates to:
+  /// **'Büyük fotoğrafı görmek için uzun bas'**
+  String get srAvatarLongPressHint;
+
   /// No description provided for @searchPrompt.
   ///
   /// In tr, this message translates to:
