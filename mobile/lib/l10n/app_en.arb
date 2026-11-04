@@ -1747,7 +1747,7 @@
   "profil2SecNewHint": "At least 6 characters",
   "profil2SecRepeatLabel": "New password (repeat)",
   "profil2SecRepeatHint": "Repeat the new password",
-  "profil2SecPwRule": "8 to 72 characters. Mixing letters and digits makes it stronger.",
+  "profil2SecPwRule": "At least 6 characters. Mixing letters and digits makes it stronger.",
   "profil2SecPwButton": "Update password",
   "profil2SecMismatch": "Passwords do not match.",
   "profil2SecSame": "The new password cannot be the same as the current one.",

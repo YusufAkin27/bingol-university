@@ -273,7 +273,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
             constraints: const BoxConstraints(minHeight: 48, minWidth: 48),
             child: Center(
               widthFactor: 1,
-              child: Text(l.profileChangePhoto, style: tx.labelLarge!.copyWith(fontSize: 13, fontWeight: FontWeight.w600, color: t.pr)),
+              child: Text(l.profileChangePhoto, style: tx.labelLarge!.copyWith(fontSize: 13, fontWeight: FontWeight.w600, color: t.prPressed)),
             ),
           ),
         ),
@@ -555,6 +555,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
               child: BuButton(
                 key: const ValueKey('edit-save'),
                 label: l.profileSave,
+                background: t.prPressed, // Stitch profil-v4: #B93833
                 busy: _busy,
                 onPressed: (_busy || _uploading) ? null : _save,
               ),
@@ -629,8 +630,8 @@ class _TextBox extends StatelessWidget {
           filled: true,
           fillColor: t.sf,
           contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: minLines == null ? 14 : 16),
-          border: b(t.sf),
-          enabledBorder: hasError ? b(t.danger, 1.5) : b(t.sf),
+          border: b(t.bd, 1),
+          enabledBorder: hasError ? b(t.danger, 1.5) : b(t.bd, 1),
           focusedBorder: b(hasError ? t.danger : t.pr, 2),
         ),
       ),
@@ -675,7 +676,7 @@ class _SelectBox extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
               decoration: BoxDecoration(
                 borderRadius: BuRadius.bMd,
-                border: hasError ? Border.all(color: t.danger, width: 1.5) : null,
+                border: Border.all(color: hasError ? t.danger : t.bd, width: hasError ? 1.5 : 1),
               ),
               child: Row(children: [
                 Expanded(

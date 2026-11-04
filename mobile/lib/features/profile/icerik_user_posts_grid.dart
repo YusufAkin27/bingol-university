@@ -63,7 +63,7 @@ class _IcerikUserPostsGridState extends State<IcerikUserPostsGrid> {
       padding: const EdgeInsets.only(top: 16),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Padding(
-          padding: const EdgeInsetsDirectional.only(start: 26, end: 14),
+          padding: const EdgeInsetsDirectional.only(start: 24, end: 14),
           child: Row(children: [
             Expanded(
               child: Semantics(header: true, child: Text(context.l10n.icerikPostsHeading, style: icerikSectionStyle(t))),
@@ -72,7 +72,7 @@ class _IcerikUserPostsGridState extends State<IcerikUserPostsGrid> {
               TextButton(
                 key: const ValueKey('profile-posts-all'),
                 onPressed: () => openUserPosts(context, widget.session, userId: widget.userId, name: widget.name),
-                child: Text(context.l10n.postViewSeeAll, style: Theme.of(context).textTheme.labelLarge!.copyWith(color: t.pr)),
+                child: Text(context.l10n.postViewSeeAll, style: Theme.of(context).textTheme.labelLarge!.copyWith(fontSize: 14, fontWeight: FontWeight.w600, color: t.pr)),
               ),
           ]),
         ),
@@ -81,8 +81,8 @@ class _IcerikUserPostsGridState extends State<IcerikUserPostsGrid> {
           padding: const EdgeInsets.symmetric(horizontal: 20),
           child: GridView.count(
             crossAxisCount: 3,
-            mainAxisSpacing: 3,
-            crossAxisSpacing: 3,
+            mainAxisSpacing: 4,
+            crossAxisSpacing: 4,
             shrinkWrap: true,
             padding: EdgeInsets.zero,
             physics: const NeverScrollableScrollPhysics(),
@@ -113,7 +113,7 @@ class _Tile extends StatelessWidget {
         scale: .96,
         onTap: () => openPostDetail(context, session, post.id, initial: post),
         child: ClipRRect(
-          borderRadius: BuRadius.bXs,
+          borderRadius: BorderRadius.circular(12),
           child: Stack(fit: StackFit.expand, children: [
             ColoredBox(color: t.sf2),
             if (m != null)

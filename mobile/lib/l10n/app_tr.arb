@@ -3073,7 +3073,7 @@
   "profil2SecNewHint": "En az 6 karakter",
   "profil2SecRepeatLabel": "Yeni şifre (tekrar)",
   "profil2SecRepeatHint": "Yeni şifreyi tekrarlayın",
-  "profil2SecPwRule": "8 ile 72 karakter. Harf ve rakam karıştırırsanız güçlenir.",
+  "profil2SecPwRule": "En az 6 karakter. Harf ve rakam karıştırırsanız güçlenir.",
   "profil2SecPwButton": "Şifreyi güncelle",
   "profil2SecMismatch": "Şifreler eşleşmiyor.",
   "profil2SecSame": "Yeni şifre mevcut şifreyle aynı olamaz.",

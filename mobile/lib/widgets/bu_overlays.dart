@@ -174,10 +174,14 @@ abstract final class BuConfirmSheet {
               onPressed: () => Navigator.of(ctx).pop(true),
             ),
             const SizedBox(height: 8),
-            BuButton(
-              label: cancelLabel ?? l.commonCancel,
-              kind: BuButtonKind.text,
-              onPressed: () => Navigator.of(ctx).pop(false),
+            // Stitch profil-v4: "Vazgeç" düz gri metin düğmesi (vurgu rengi değil).
+            TextButton(
+              style: TextButton.styleFrom(foregroundColor: t.mut, minimumSize: const Size.fromHeight(48)),
+              onPressed: () {
+                buHaptic(BuHaptic.selection);
+                Navigator.of(ctx).pop(false);
+              },
+              child: Text(cancelLabel ?? l.commonCancel, style: tx.labelLarge!.copyWith(fontSize: 16, fontWeight: FontWeight.w600, color: t.mut)),
             ),
           ],
         );

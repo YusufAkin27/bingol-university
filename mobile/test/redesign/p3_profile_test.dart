@@ -261,7 +261,7 @@ void main() {
   });
 
   group('Takip satiri (Stitch v3)', () {
-    testWidgets('Takip et cizgili (bdStrong), Takipte tonal sf2; dolgu kirmizi yok; dokunma alani 48', (tester) async {
+    testWidgets('Takip et dolu (prPressed), Takipte tonal soft (Stitch profil-v4); dokunma alani 48', (tester) async {
       final b = _backend()..on('/users/11/follow', {'followerCount': 2});
       await _open(tester, FollowListPage(session: makeSession(b), userId: 7, followers: true, name: 'A'));
       final key = find.byKey(const ValueKey('followButton'));
@@ -270,14 +270,14 @@ void main() {
       final bu = ctx.bu;
       var box = tester.widget<AnimatedContainer>(find.descendant(of: key, matching: find.byType(AnimatedContainer)));
       var deco = box.decoration! as BoxDecoration;
-      expect(deco.color, Colors.transparent);
-      expect((deco.border! as Border).top.color, bu.bdStrong);
+      expect(deco.color, bu.prPressed);
+      expect(deco.border, isNull);
       await tester.tap(key);
       await tester.pump(const Duration(milliseconds: 400));
       box = tester.widget<AnimatedContainer>(find.descendant(of: key, matching: find.byType(AnimatedContainer)));
       deco = box.decoration! as BoxDecoration;
-      expect(deco.color, bu.sf2);
-      expect((deco.border! as Border).top.color, Colors.transparent);
+      expect(deco.color, bu.soft);
+      expect(deco.border, isNull);
       await settle(tester, const Duration(milliseconds: 300));
       await unmount(tester);
     });

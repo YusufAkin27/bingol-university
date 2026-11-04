@@ -1747,7 +1747,7 @@
   "profil2SecNewHint": "6 أحرف على الأقل",
   "profil2SecRepeatLabel": "كلمة المرور الجديدة (تكرار)",
   "profil2SecRepeatHint": "أعد كتابة كلمة المرور الجديدة",
-  "profil2SecPwRule": "من 8 إلى 72 حرفًا. خلط الحروف والأرقام يجعلها أقوى.",
+  "profil2SecPwRule": "6 أحرف على الأقل. خلط الحروف والأرقام يجعلها أقوى.",
   "profil2SecPwButton": "تحديث كلمة المرور",
   "profil2SecMismatch": "كلمتا المرور غير متطابقتين.",
   "profil2SecSame": "لا يمكن أن تكون كلمة المرور الجديدة مثل الحالية.",

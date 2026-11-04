@@ -502,6 +502,7 @@ class BuButton extends StatelessWidget {
     this.kind = BuButtonKind.primary,
     this.busy = false,
     this.compact = false,
+    this.background,
   });
 
   final String label;
@@ -511,12 +512,15 @@ class BuButton extends StatelessWidget {
   final bool busy;
   final bool compact;
 
+  /// Yalnız [BuButtonKind.primary] zemini (örn. `prPressed`: beyaz yazıyla AA); null = `pr`.
+  final Color? background;
+
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
     final cs = Theme.of(context).colorScheme;
     final (bg, fg, side) = switch (kind) {
-      BuButtonKind.primary => (t.pr, t.onPr, BorderSide.none),
+      BuButtonKind.primary => (background ?? t.pr, t.onPr, BorderSide.none),
       BuButtonKind.soft => (t.soft, t.onSoft, BorderSide.none),
       BuButtonKind.outline => (Colors.transparent, t.ink, BorderSide(color: t.bd, width: 1.2)),
       BuButtonKind.text => (Colors.transparent, t.pr, BorderSide.none),
@@ -573,7 +577,7 @@ class BuButton extends StatelessWidget {
         child: ConstrainedBox(
           constraints: BoxConstraints(minHeight: h),
           child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: compact ? 16 : 20, vertical: compact ? 0 : 6),
+            padding: EdgeInsets.symmetric(horizontal: compact ? 16 : 14, vertical: compact ? 0 : 6),
             child: Center(widthFactor: compact ? 1 : null, heightFactor: 1, child: content),
           ),
         ),
@@ -694,6 +698,7 @@ class BuSearchField extends StatefulWidget {
     this.onTap,
     this.readOnly = false,
     this.autofocus = false,
+    this.radius,
   });
 
   final String? hint;
@@ -703,6 +708,9 @@ class BuSearchField extends StatefulWidget {
   final VoidCallback? onTap;
   final bool readOnly;
   final bool autofocus;
+
+  /// Köşe yarıçapı; null = tam hap.
+  final double? radius;
 
   @override
   State<BuSearchField> createState() => _BuSearchFieldState();
@@ -742,7 +750,7 @@ class _BuSearchFieldState extends State<BuSearchField> {
       padding: const EdgeInsetsDirectional.only(start: 16, end: 4),
       decoration: BoxDecoration(
         color: t.sf,
-        borderRadius: BorderRadius.circular(BuSize.search / 2),
+        borderRadius: BorderRadius.circular(widget.radius ?? BuSize.search / 2),
         border: Border.all(color: focused ? t.pr : t.bd, width: focused ? 2 : 1),
       ),
       child: Row(

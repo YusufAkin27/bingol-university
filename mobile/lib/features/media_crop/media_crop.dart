@@ -103,14 +103,14 @@ Future<PhotoSource?> showPhotoSourceSheet(BuildContext context,
                 ),
                 const SizedBox(width: 14),
                 Expanded(
-                    child: Text(label, style: tt.titleSmall?.copyWith(color: danger ? t.danger : t.ink, fontWeight: FontWeight.w700))),
-                Icon(danger ? BuIcons.x : BuIcons.chevronRight, size: 18, color: danger ? t.danger : t.mut),
+                    child: Text(label, style: tt.titleSmall?.copyWith(fontSize: 16, color: danger ? t.danger : t.ink, fontWeight: FontWeight.w600))),
+                Icon(danger ? BuIcons.x : BuIcons.chevronRight, size: 20, color: danger ? t.danger : t.mut),
               ]),
             ),
           );
       return Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
         Row(children: [
-          Expanded(child: Text(title ?? l.p04SrcTitle, style: tt.titleLarge?.copyWith(color: t.ink, fontWeight: FontWeight.w700))),
+          Expanded(child: Text(title ?? l.p04SrcTitle, style: tt.titleLarge?.copyWith(fontSize: 22, color: t.ink, fontWeight: FontWeight.w700))),
           Tooltip(
             message: l.postComposeClose,
             child: Material(

@@ -33,7 +33,7 @@ class StatStrip extends StatelessWidget {
     final big = MediaQuery.textScalerOf(context).scale(10) > 11 && cells.length > 3;
     Widget row(List<StatCell> part) => Row(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
           for (var i = 0; i < part.length; i++) ...[
-            if (i > 0) VerticalDivider(width: 1, thickness: 1, indent: 10, endIndent: 10, color: t.bd),
+            if (i > 0) VerticalDivider(width: 1, thickness: 1, color: t.bd),
             Expanded(child: _Cell(cell: part[i])),
           ],
         ]);
@@ -48,7 +48,7 @@ class StatStrip extends StatelessWidget {
     } else {
       body = IntrinsicHeight(child: row(cells));
     }
-    return BuCard(padding: EdgeInsets.zero, radius: BuRadius.md, child: body);
+    return BuCard(padding: EdgeInsets.zero, radius: 16, child: body);
   }
 }
 
@@ -74,7 +74,7 @@ class _Cell extends StatelessWidget {
         child: ConstrainedBox(
           constraints: const BoxConstraints(minHeight: 64, minWidth: 48),
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 16),
+            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 10),
             child: Column(mainAxisSize: MainAxisSize.min, mainAxisAlignment: MainAxisAlignment.center, children: [
               if (n != null)
                 KeyedSubtree(key: cell.valueKey, child: BuCountUp(value: n, style: style))
@@ -83,7 +83,7 @@ class _Cell extends StatelessWidget {
               const SizedBox(height: 2),
               FittedBox(
                 fit: BoxFit.scaleDown,
-                child: Text(cell.label, maxLines: 1, style: tx.labelMedium!.copyWith(fontSize: 13, color: t.mut)),
+                child: Text(cell.label, maxLines: 1, style: tx.labelMedium!.copyWith(fontSize: 13, fontWeight: FontWeight.w400, color: t.mut)),
               ),
             ]),
           ),
