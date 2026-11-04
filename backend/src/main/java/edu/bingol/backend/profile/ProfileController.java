@@ -47,11 +47,31 @@ public class ProfileController {
         this.privacy = privacy;
     }
 
+    /** Gorunur gonderi/Reels sayilari (KS-BE2; yoksa alanlar eklenmez). */
+    private edu.bingol.backend.post.reel.ProfilePostCounts postCounts;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setPostCounts(edu.bingol.backend.post.reel.ProfilePostCounts postCounts) {
+        this.postCounts = postCounts;
+    }
+
     @GetMapping("/users/me")
     public ProfileView me() {
         Long uid = CurrentUser.id();
         ProfileView v = ProfileView.of(profiles.get(uid));
-        return privacy == null ? v : v.withAvatarHidden(privacy.get(uid).isAvatarHidden());
+        var pop = profiles.popularityOf(uid);
+        if (pop != null) {
+            v = v.withPopularity(pop.score(), pop.followerCount(), pop.likesReceived(), pop.postCount());
+        }
+        v = privacy == null ? v : v.withAvatarHidden(privacy.get(uid).isAvatarHidden());
+        if (postCounts != null) {
+            try {
+                v = v.withReelCount(postCounts.counts(uid).reelCount());
+            } catch (RuntimeException e) {
+                // sayaclar profil yanitini asla bozmaz
+            }
+        }
+        return v;
     }
 
     @PatchMapping("/users/me")

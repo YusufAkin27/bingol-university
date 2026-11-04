@@ -1,3 +1,5 @@
+ > Tarihsel çalışma planıdır; aşağıdaki eksik ve varsayımlar güncel durum değildir. Etkinlikler yalnız kulüp adına açılır (EventService, EVENT_CLUB_REQUIRED). Güncel durum: CLAUDE.md, docs/changes/ ve kaynak kod. Sohbet görselleri, mesaj işlemleri ve medya doğrulaması uygulanmıştır.
+
 # Çalışma planı: sohbet + görsel, etkinlik yönetimi, kulüpler, profil fotoğrafı (20 görev)
 
 Hedef (kullanıcı isteği): kullanıcılar birbirine anlık mesaj atar, sohbet eder, **görsel gönderir**; her kullanıcı **etkinlik başlatır ve katılımcı alımını kendisi yönetir**; kullanıcılar **profil fotoğrafı** koyar; **kulüp kurar, yönetir ve yetki devreder**. Her şey test edilir, eksikler kodlanır.

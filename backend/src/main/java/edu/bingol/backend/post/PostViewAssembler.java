@@ -4,6 +4,9 @@ import edu.bingol.backend.common.CurrentUser;
 import edu.bingol.backend.post.PostDtos.AuthorView;
 import edu.bingol.backend.post.PostDtos.MediaView;
 import edu.bingol.backend.post.PostDtos.PostView;
+import edu.bingol.backend.post.spi.PostSaveLookup;
+import edu.bingol.backend.post.PostDtos.VideoView;
+import edu.bingol.backend.post.popularity.UserPopularityService;
 import edu.bingol.backend.post.spi.PostLikeLookup;
 import edu.bingol.backend.post.spi.PostMediaLookup;
 import edu.bingol.backend.profile.dto.ProfileDtos.PublicProfile;
@@ -39,6 +42,28 @@ public class PostViewAssembler {
         this.likeLookups = likeLookups;
     }
 
+    /** Bakanin kaydettikleri (KS-BE2; setter: kurucu imzasi degismesin, yoksa savedByMe false). */
+    private ObjectProvider<PostSaveLookup> saveLookups;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setSaveLookups(ObjectProvider<PostSaveLookup> saveLookups) {
+        this.saveLookups = saveLookups;
+    }
+
+    /** Gosterim puani ve yazar populerligi (setter: kurucu imzasi degismesin; yoksa alanlar null). */
+    private PostRankProperties rankProps;
+    private UserPopularityService popularity;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setRankProps(PostRankProperties rankProps) {
+        this.rankProps = rankProps;
+    }
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setPopularity(UserPopularityService popularity) {
+        this.popularity = popularity;
+    }
+
     public List<PostView> assemble(Long viewerId, List<Post> posts) {
         if (posts.isEmpty()) {
             return List.of();
@@ -50,19 +75,46 @@ public class PostViewAssembler {
                 .collect(Collectors.toMap(PublicProfile::id, Function.identity(), (a, b) -> a));
         Map<Long, List<MediaView>> media = mediaFor(postIds, viewerId);
         Set<Long> liked = likedFor(viewerId, postIds);
+        PostSaveLookup saves = saveLookups == null ? null : saveLookups.getIfAvailable();
+        Set<Long> saved = saves == null ? Set.of() : saves.savedPostIds(viewerId, postIds);
         boolean admin = CurrentUser.isAdmin();
+        Map<Long, UserPopularityService.Snapshot> pops = popularityOf(authorIds);
 
         List<PostView> out = new ArrayList<>(posts.size());
         for (Post p : posts) {
             PublicProfile a = byId.get(p.getAuthorId());
-            AuthorView author = a == null ? new AuthorView(p.getAuthorId(), "", null, null)
-                    : new AuthorView(a.id(), a.displayName(), a.avatarUrl(), a.department());
+            UserPopularityService.Snapshot pop = pops.get(p.getAuthorId());
+            Integer followers = pop == null ? null : pop.followerCount();
+            AuthorView author = a == null ? new AuthorView(p.getAuthorId(), "", null, null, followers,
+                    pop == null ? null : pop.score())
+                    : new AuthorView(a.id(), a.displayName(), a.avatarUrl(), a.department(), followers,
+                            pop == null ? null : pop.score());
             boolean mine = p.getAuthorId().equals(viewerId);
-            out.add(new PostView(p.getId(), author, p.getBody(), media.getOrDefault(p.getId(), List.of()),
+            List<MediaView> mv = media.getOrDefault(p.getId(), List.of());
+            MediaView first = mv.isEmpty() ? null : mv.get(0);
+            boolean video = first != null && "VIDEO".equals(first.kind());
+            VideoView vv = video ? new VideoView(first.id(), first.url(), first.thumbUrl(), first.durationMs(),
+                    first.width(), first.height()) : null;
+            Integer viewCount = video ? p.getViewCount() : null;
+            Integer score = rankProps == null ? null : PostRank.displayScore(rankProps, p.getLikeCount(),
+                    followers == null ? 0 : followers, video ? p.getViewCount() : 0, video ? p.avgCompletion() : 0);
+            out.add(new PostView(p.getId(), author, p.getBody(), mv,
                     p.getLikeCount(), liked.contains(p.getId()), mine, mine, mine || admin,
-                    p.getCreatedAt(), p.getEditedAt()));
+                    p.getCreatedAt(), p.getEditedAt(), video ? Post.KIND_VIDEO : Post.KIND_PHOTO, vv, viewCount,
+                    score, p.getCommentCount(), saved.contains(p.getId())));
         }
         return out;
+    }
+
+    private Map<Long, UserPopularityService.Snapshot> popularityOf(Collection<Long> authorIds) {
+        if (popularity == null) {
+            return Map.of();
+        }
+        try {
+            return popularity.forUsers(authorIds);
+        } catch (RuntimeException e) {
+            return Map.of(); // populerlik gosterimi akisi asla dusurmez
+        }
     }
 
     public PostView assemble(Long viewerId, Post post) {
@@ -72,11 +124,14 @@ public class PostViewAssembler {
     private Map<Long, List<MediaView>> mediaFor(Collection<Long> postIds, Long viewerId) {
         Map<Long, List<MediaView>> all = new HashMap<>();
         mediaLookups.orderedStream().forEach(l -> all.putAll(l.viewsFor(postIds, viewerId)));
-        // Yalniz ilk FOTOGRAF gosterilir: eski video/coklu gorselli gonderilerde fazlasi gizlenir (veri silinmez)
-        Map<Long, List<MediaView>> firstImage = new HashMap<>();
-        all.forEach((id, list) -> list.stream().filter(m -> "IMAGE".equals(m.kind())).findFirst()
-                .ifPresent(m -> firstImage.put(id, List.of(m))));
-        return firstImage;
+        // Gonderi = 1 medya (fotograf ya da video): eski coklu medyali gonderilerde yalniz ilk medya gosterilir (veri silinmez)
+        Map<Long, List<MediaView>> first = new HashMap<>();
+        all.forEach((id, list) -> {
+            if (!list.isEmpty()) {
+                first.put(id, List.of(list.get(0)));
+            }
+        });
+        return first;
     }
 
     private Set<Long> likedFor(Long viewerId, Collection<Long> postIds) {

@@ -401,10 +401,10 @@ const m = {
   'pg.brand.color.paperContrast': 'Mürekkep yazıyla 15,4:1 (AAA).',
   'pg.brand.type.title': 'Tipografi',
   'pg.brand.type.text':
-    'Ek yazı tipi yüklenmez: gövde metni için cihazın sistem sans-serif yazı tipi, başlıklar için serif yığını kullanılır.',
-  'pg.brand.type.display': 'Başlık · serif',
+    'Marka yazı tipi Inter’dir; web sitesi ve mobil uygulama aynı aileyi kullanır. Türkçe karakterleri (ğ, ü, ş, ı, ö, ç, İ) eksiksiz destekler.',
+  'pg.brand.type.display': 'Başlık · Inter 800',
   'pg.brand.type.displaySample': 'BÜ Kampüs',
-  'pg.brand.type.body': 'Metin · sistem sans-serif',
+  'pg.brand.type.body': 'Metin · Inter 400',
   'pg.brand.type.bodySample': 'Bingöl Üniversitesi öğrencileri ve personeli için kampüs uygulaması.',
   'pg.brand.rules': 'Kısa kullanım kuralları',
   'pg.brand.rule.1': 'Ürün adı her yerde “BÜ Kampüs” biçiminde yazılır; Arapça metinde de çevrilmez.',

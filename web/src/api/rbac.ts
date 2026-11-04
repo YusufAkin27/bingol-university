@@ -42,6 +42,8 @@ export type Permission =
   | 'system.write'
   | 'audit.read'
   | 'rbac.manage'
+  | 'campus.read'
+  | 'campus.write'
   | 'data.retention.read'
   | 'data.retention.export'
   | 'data.retention.purge'

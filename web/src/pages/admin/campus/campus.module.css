@@ -1,0 +1,289 @@
+/* Kampüs haritası yönetimi: yalnızca tasarım token'ları ve mantıksal özellikler (RTL uyumlu). */
+.stack {
+  display: grid;
+  gap: var(--space-4);
+  margin-block-start: var(--space-4);
+  min-width: 0;
+}
+.muted {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+.mono {
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+.meta {
+  margin: 0 0 var(--space-3);
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+.pager {
+  margin-block-start: var(--space-4);
+}
+.cellStack {
+  display: grid;
+  gap: 2px;
+  min-inline-size: 7rem;
+}
+
+/* Göstergeler */
+.catTile {
+  display: grid;
+  gap: var(--space-2);
+  align-content: start;
+  padding: var(--space-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  min-width: 0;
+}
+.catTitle {
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+/* Süzgeç çubuğu */
+.filterBar {
+  display: grid;
+  gap: var(--space-3);
+  margin-block-end: var(--space-3);
+}
+.filterGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3) var(--space-4);
+  align-items: flex-end;
+}
+.filterGrid > * {
+  flex: 1 1 11rem;
+  min-width: 11rem;
+}
+
+/* Satır eylemleri (dokunma hedefi >= 44 px dar ekranda) */
+.rowActions {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  justify-content: flex-end;
+  align-items: center;
+}
+.extLink {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  min-block-size: 2rem;
+  padding-inline: var(--space-3);
+  border: 1px solid var(--border-strong, var(--border));
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  color: var(--link, var(--primary));
+  font-size: var(--text-sm);
+  font-weight: 500;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.extLink:hover {
+  background: var(--surface-2);
+}
+.extLink:focus-visible {
+  outline: 2px solid var(--focus, var(--primary));
+  outline-offset: 2px;
+}
+.extLinkOff {
+  color: var(--text-faint);
+  cursor: not-allowed;
+  background: var(--surface-2);
+}
+.extLinkOff:hover {
+  background: var(--surface-2);
+}
+@media (max-width: 639px) {
+  .extLink {
+    min-block-size: 2.75rem;
+  }
+}
+
+/* Form */
+.formGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+  gap: var(--space-3) var(--space-4);
+  align-items: start;
+}
+.formGrid .wide,
+.wide {
+  grid-column: 1 / -1;
+}
+.coords,
+.group {
+  margin: 0;
+  padding: var(--space-3) var(--space-4) var(--space-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  display: grid;
+  gap: var(--space-3);
+  min-width: 0;
+}
+.legend {
+  padding-inline: var(--space-2);
+  font-weight: 600;
+}
+.coordRow,
+.zoomRow {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+  gap: var(--space-3) var(--space-4);
+}
+.coordActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+}
+.okNote {
+  margin: 0;
+  color: var(--success);
+  font-size: var(--text-sm);
+}
+.callout {
+  margin: 0;
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--border);
+  border-inline-start: 4px solid var(--info, var(--primary));
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  font-size: var(--text-sm);
+}
+.calloutWarn {
+  border-inline-start-color: var(--warning, var(--primary));
+  background: var(--warning-soft, var(--surface));
+}
+.formInvalid {
+  margin: 0;
+  color: var(--danger);
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+.subTitle {
+  margin: 0;
+  font-size: var(--text-base);
+}
+
+/* Birim etiketleri */
+.chips {
+  list-style: none;
+  margin: var(--space-2) 0 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding-block: 2px;
+  padding-inline: var(--space-3) var(--space-1);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  background: var(--surface-2);
+  font-size: var(--text-sm);
+}
+.chipX {
+  display: inline-grid;
+  place-items: center;
+  inline-size: 1.75rem;
+  block-size: 1.75rem;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+.chipX:hover {
+  background: var(--surface-3, var(--surface));
+  color: var(--text);
+}
+.chipX:focus-visible {
+  outline: 2px solid var(--focus, var(--primary));
+}
+
+/* Şematik önizleme */
+.previewBox {
+  display: grid;
+  gap: var(--space-2);
+}
+.preview {
+  inline-size: 100%;
+  max-inline-size: 22rem;
+  block-size: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface-2);
+}
+.pvBoundary {
+  fill: none;
+  stroke: var(--text-muted);
+  stroke-width: 1.5;
+  stroke-dasharray: 5 4;
+}
+.pvFootprint {
+  fill: var(--primary-soft, var(--info-soft));
+  stroke: var(--primary);
+  stroke-width: 1.5;
+}
+.pvHalo {
+  fill: var(--primary-soft, var(--info-soft));
+  opacity: 0.8;
+}
+.pvDot {
+  fill: var(--primary);
+  stroke: var(--surface);
+  stroke-width: 1.5;
+}
+
+/* Ayarlar */
+.cfgForm {
+  display: grid;
+  gap: var(--space-4);
+  max-inline-size: 48rem;
+}
+.cfgActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.chipStatic {
+  padding-inline: var(--space-3);
+}
+.photoBox {
+  display: grid;
+  gap: var(--space-2);
+  justify-items: start;
+}
+.photoLabel {
+  font-weight: 600;
+  font-size: var(--text-sm);
+}
+.photoThumb {
+  max-inline-size: 16rem;
+  max-block-size: 10rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  object-fit: cover;
+}
+.srcInfo {
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
+}

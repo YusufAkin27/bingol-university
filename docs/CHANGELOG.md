@@ -4,6 +4,33 @@
 
 Ayrıntılı modül notları: `docs/changes/*.md`. Mobil API rehberi: [MOBILE_API_GUIDE.md](MOBILE_API_GUIDE.md).
 
+### UNION (2026-11-04): iki dağıtım hattının birleşimi (`deploy/union-20261104`)
+
+- `deploy/final-all-20261101` (Drive yedek, 2FA, birim haberleri, admin arama/panel yenileme, P01-P10 düzeltmeleri, V1040-V1141) + `deploy/final-20261104` (Keşfet V1220-V1230, kampüs V1200-V1201, resmî ders programı V1150-V1160, parola/kod süresi, davranış analizi V1240, site yeniden tasarımı). Migration numarası çakışması yok; A'nın V1040-V1141 dosyaları ve B'nin V1150+ dosyaları kaynaklarıyla bayt bayt aynıdır (Flyway checksum korunur). Yeni numara yok: en yüksek V1240.
+- Site sayfaları B'nin yeniden tasarımıdır; A'nın SEO/içerik işleri (JSON-LD `@id` grafiği, SSS +15 soru, iç bağlantılar, haber JSON-LD, menü fotoğrafı doğrulaması `safeMenuImageUrl`, StoreButton `pending`) üzerine yeniden uygulandı. WebSite/Organization/MobileApplication JSON-LD'ye "bukampus"/"BuKampüs" takma adları eklendi (Organization türü A'daki gibi; üniversite adı takma ad olarak yazılmaz).
+- Redis: `user: redis` (B, canlıda doğrulanmış); `DAC_READ_SEARCH` ekli kök yolu düştü. `REDIS_PASSWORD`/`--requirepass` (A) korunur.
+- `DbMaintenanceJob`: P09 "rollup başarısızsa ham olay silme atlanır" + `behavior_rollup_days` birlikte.
+- `docs/openapi.json` `OpenApiExportTest` ile yeniden üretildi.
+
+### Resmi ders programı kişisel programa tohumlanır (V1160)
+### Şifre kuralı gevşetildi + kayıtta ad isteğe bağlı
+
+- **Şifre:** yönetici olmayan hesaplarda (kayıt, şifre sıfırlama, şifre değiştirme) yalnız **en az 6 karakter** ister; bileşim, yaygın liste, dizi/tekrar ve kişisel veri denetimi kalktı. Kısa şifre `400 PASSWORD_TOO_SHORT` (tr/en/ar). Yönetici hesapları eski güçlü kuralda (12+ karakter, `PASSWORD_TOO_WEAK`) kalır; giriş, hesap kilidi ve hız sınırı değişmedi. `app.auth.password-min-length` varsayılanı 10 → 6.
+- **Kayıt:** ad kayıtta alınır; fakülte/bölüm/sınıf kayıttan sonra `PATCH /api/users/me` ile tek istekte girilir (kota yok). `displayName` sunucuda isteğe bağlı kabul edilir (boşsa geçici ad: e-posta kullanıcı adı ya da "Öğrenci"; geçici adın ilk değişimi 7 günlük bekleme kuralına sayılmaz). Yönetici kaydında ad zorunlu kalır. Bkz. `docs/changes/auth.md`.
+
+### Şifremi unuttum 404 + kod süresi/bekleme
+
+- **`forgot-password`:** kayıtlı olmayan hesap için e-posta gitmez, `404 ACCOUNT_NOT_FOUND` döner (bilinçli enumerasyon istisnası; IP başına dakikada 15 ek sınır). **Kodlar:** geçerlilik tam 10 dk; yeniden kod bekleme süresi 60 sn → **180 sn** (`resend-code`, `forgot-password`, tekrar `register`, destek formu): erken istek `429 RESEND_COOLDOWN` + `Retry-After`. Bkz. `docs/changes/auth.md`.
+
+### Kullanıcı davranış analizi (V1240, yönetim paneli)
+
+- **Sunucu (BK6):** mobil olay sözleşmesi genişledi (`props.sid` oturum kimliği, `session_start|session_end|screen_exit|action`, 22 izinli eylem türü; sözleşmeyi bozan olay tek tek elenir; `props` 5 -> 8 anahtar). Yeni `analytics.behavior` paketi: `GET /api/admin/analytics/behavior/{overview,screens,flows,actions}` (`analytics.read`) ve `/users`, `/users/{id}` (`users.pii`, her çağrı denetim kaydına yazılır): oturum/ekran süresi, çıkış ve bounce oranları, akışlar, eylem sayıları, kullanıcı oturum zaman çizelgesi. Aralık en çok 45 gün (`RANGE_TOO_LARGE`). Kalıcı günlük özetler `analytics_session_daily` / `analytics_screen_daily` (kullanıcı kimliği yok; gece dolum). Ayrıntı: `docs/ADMIN_API.md` "Kullanıcı davranış analizi", `docs/changes/ops.md`. Duman: `scripts/smoke-behavior.sh`.
+
+### Resmî ders programı (Excel yükleme, V1070) + yeni hesap varsayılanı
+
+- **Tohumlama:** `GET /api/timetable`, kişisel dersi olmayan ve resmi programı tek birimden gelen öğrencinin programını resmi programdan otomatik doldurur; `tt_official_seed` işareti sayesinde dersler silinse de aynı dönem için tekrarlanmaz. Çoklu birimde mobil birim seçtirir.
+- **Yeni uçlar:** `GET /api/timetable/official/status`, `POST /api/timetable/official/apply` (`unit`, `replace`, `force`); yeni hata kodları `OFFICIAL_UNIT_REQUIRED` (422), `OFFICIAL_TIMETABLE_NOT_FOUND` (404). Ders eklemede kod/renk/not/derslik artık zorunlu değil. Ayrıntı: [MOBILE_API_GUIDE.md](MOBILE_API_GUIDE.md) "Resmi programdan kişisel program".
+
 ### FINAL-ALL (2026-11-01): backend düzeltme paketleri P01-P10 + panel dalı tek dalda (`deploy/final-all-20261101`)
 
 - **Birleşen paketler (sırayla):** P10 altyapı/test hızı, P01 Redis dayanıklılığı + hız sınırı, P04 bildirim/e-posta, P02 kimlik/oturum + erişim engelleri, P03 sohbet/medya, P05 topluluk/etkinlik, P06 keşfet/gönderi, P07 içerik/destek/arama, P08 akademik/profil, P09 yönetim/çökme/dbmaint. Ayrıntı: `docs/changes/*.md` ("FIX-Pxx" bölümleri), istemci etkisi tablosu [CLIENT_IMPACT_20261101.md](CLIENT_IMPACT_20261101.md).

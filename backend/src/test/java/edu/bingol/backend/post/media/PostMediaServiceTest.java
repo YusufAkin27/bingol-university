@@ -28,6 +28,7 @@ import edu.bingol.backend.media.BlobCipher;
 import edu.bingol.backend.media.ImageProcessor;
 import edu.bingol.backend.media.NoopBlobCipher;
 import edu.bingol.backend.media.PrivateMediaStore;
+import edu.bingol.backend.media.WebmFixtures;
 import edu.bingol.backend.messaging.media.Mp4Fixtures;
 import edu.bingol.backend.moderation.BlockService;
 import edu.bingol.backend.moderation.ContentBlocklist;
@@ -396,16 +397,65 @@ class PostMediaServiceTest {
         service.setVideoLimits(1000, 60);
         assertApi(HttpStatus.PAYLOAD_TOO_LARGE, "VIDEO_TOO_LARGE",
                 () -> service.upload(ME, videoFile(Mp4Fixtures.mp4(5.0, 320, 240, 5000)), null));
-        service.setVideoLimits(40L << 20, 60);
+        service.setVideoLimits(50L << 20, 60);
         byte[] junk = new byte[64];
         assertApi(HttpStatus.BAD_REQUEST, "VIDEO_INVALID", () -> service.upload(ME, videoFile(junk), null));
         byte[] ftypOnly = Arrays.copyOf(Mp4Fixtures.mp4(5.0, 320, 240, 10), 24); // moov kesik
         assertApi(HttpStatus.BAD_REQUEST, "VIDEO_INVALID", () -> service.upload(ME, videoFile(ftypOnly), null));
         assertApi(HttpStatus.BAD_REQUEST, "VIDEO_INVALID", () -> service.upload(ME,
-                new MockMultipartFile("file", "v.mp4", "video/quicktime", Mp4Fixtures.mp4(5.0, 320, 240, 10)), null));
+                new MockMultipartFile("file", "v.mp4", "application/pdf", Mp4Fixtures.mp4(5.0, 320, 240, 10)), null));
         assertApi(HttpStatus.BAD_REQUEST, "VIDEO_INVALID", () -> service.upload(ME,
                 new MockMultipartFile("file", "v.mp4", "video/mp4", new byte[0]), null));
         assertEquals(1, db.size());
+    }
+
+    @Test
+    void videoContainersMovAndWebmAreAcceptedByContentNotByName() throws Exception {
+        // MOV (iPhone): ana marka "qt  " -> video/quicktime olarak saklanir ve sunulur
+        byte[] mov = Mp4Fixtures.mp4(8.0, 1080, 1920, 200);
+        System.arraycopy("qt  ".getBytes(java.nio.charset.StandardCharsets.US_ASCII), 0, mov, 8, 4);
+        PostMediaService.Uploaded u = service.upload(ME,
+                new MockMultipartFile("file", "IMG_0001.MOV", "video/quicktime", mov), null);
+        assertEquals("VIDEO", u.kind());
+        assertEquals(8000, u.durationMs());
+        assertEquals("video/quicktime", db.get(u.id()).getContentType());
+        // octet-stream + bilinen uzanti de kabul (bazi istemciler tur gondermez)
+        service.upload(ME, new MockMultipartFile("file", "clip.mp4", "application/octet-stream",
+                Mp4Fixtures.mp4(3.0, 320, 240, 50)), null);
+        // WebM: yalniz gercek EBML + DocType webm + sure; video/webm olarak saklanir
+        PostMediaService.Uploaded w = service.upload(ME,
+                new MockMultipartFile("file", "clip.webm", "video/webm", WebmFixtures.webm(9.0, 640, 360, 300)), null);
+        assertEquals("VIDEO", w.kind());
+        assertEquals(9000, w.durationMs());
+        assertEquals("video/webm", db.get(w.id()).getContentType());
+        assertApi(HttpStatus.BAD_REQUEST, "VIDEO_TOO_LONG", () -> service.upload(ME,
+                new MockMultipartFile("file", "long.webm", "video/webm", WebmFixtures.webm(61.0, 640, 360, 50)), null));
+        // sure okunamayan WebM (canli kayit) ve doctype'i webm olmayan reddedilir
+        assertApi(HttpStatus.BAD_REQUEST, "VIDEO_INVALID", () -> service.upload(ME,
+                new MockMultipartFile("file", "live.webm", "video/webm", WebmFixtures.webm(5, 64, 64, 10, false, "webm")), null));
+        // Content-Type video diyor ama icerik gercek kap degil: ret (ad/Content-Type'a guvenilmez)
+        assertApi(HttpStatus.BAD_REQUEST, "VIDEO_INVALID", () -> service.upload(ME,
+                new MockMultipartFile("file", "fake.mp4", "video/mp4", "<html>not a video</html>................".getBytes()), null));
+        // HEIC goruntusu de ftyp tasir: video degil
+        byte[] heic = Mp4Fixtures.mp4(5.0, 320, 240, 10);
+        System.arraycopy("heic".getBytes(java.nio.charset.StandardCharsets.US_ASCII), 0, heic, 8, 4);
+        assertApi(HttpStatus.BAD_REQUEST, "VIDEO_INVALID", () -> service.upload(ME,
+                new MockMultipartFile("file", "photo.mp4", "video/mp4", heic), null));
+        // 50 MB varsayilan sinir: 60,3 sn tolerans icinde gecer, 61 sn gecmez (yukarida)
+        service.upload(ME, videoFile(Mp4Fixtures.mp4(60.3, 320, 240, 20)), null);
+    }
+
+    @Test
+    void requireMediaReturnsKindAndEnforcesOwnership() throws Exception {
+        PostMediaService.Uploaded img = uploadImage(ME);
+        PostMediaService.Uploaded vid = service.upload(ME, videoFile(Mp4Fixtures.mp4(5.0, 320, 240, 100)), null);
+        assertEquals("IMAGE", service.requireMedia(ME, List.of(img.id())));
+        assertEquals("VIDEO", service.requireMedia(ME, List.of(vid.id())));
+        assertApi(HttpStatus.BAD_REQUEST, "POST_MEDIA_INVALID", () -> service.requireMedia(ME + 1, List.of(vid.id())));
+        assertApi(HttpStatus.BAD_REQUEST, "POST_MEDIA_INVALID", () -> service.requireMedia(ME, List.of(img.id(), vid.id())));
+        assertApi(HttpStatus.BAD_REQUEST, "POST_MEDIA_INVALID", () -> service.requireMedia(ME, List.of(999999L)));
+        // requireImage eski sozlesme: video reddedilir
+        assertApi(HttpStatus.BAD_REQUEST, "POST_VIDEO_NOT_ALLOWED", () -> service.requireImage(ME, List.of(vid.id())));
     }
 
     @Test

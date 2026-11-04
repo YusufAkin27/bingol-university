@@ -214,6 +214,30 @@ public class FollowService {
         return new Stats(c[0], c[1], mine, theirs);
     }
 
+    /** Arama satirlari icin toplu {@link #stats}: sayaclar + followedByMe/followsMe (en cok 3 sorgu). Kendisi icin bayraklar false. */
+    @Transactional(readOnly = true)
+    public Map<Long, Stats> statsFor(Long viewer, java.util.Collection<Long> targets) {
+        Map<Long, Stats> out = new HashMap<>();
+        if (targets == null || targets.isEmpty()) {
+            return out;
+        }
+        org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate named =
+                new org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate(jdbc);
+        Map<Long, long[]> counts = new HashMap<>();
+        named.query("SELECT user_id, follower_count, following_count FROM user_follow_stats WHERE user_id IN (:ids)",
+                new org.springframework.jdbc.core.namedparam.MapSqlParameterSource("ids", targets),
+                (org.springframework.jdbc.core.RowCallbackHandler) rs ->
+                        counts.put(rs.getLong(1), new long[] {rs.getLong(2), rs.getLong(3)}));
+        Set<Long> mine = viewer == null ? Set.of() : new HashSet<>(follows.followedAmong(viewer, targets));
+        Set<Long> theirs = viewer == null ? Set.of() : new HashSet<>(follows.followingMeAmong(viewer, targets));
+        for (Long id : targets) {
+            long[] c = counts.getOrDefault(id, new long[] {0, 0});
+            boolean self = id.equals(viewer);
+            out.put(id, new Stats(c[0], c[1], !self && mine.contains(id), !self && theirs.contains(id)));
+        }
+        return out;
+    }
+
     // ---------------------------------------------------------------- listeler
 
     @Transactional(readOnly = true)

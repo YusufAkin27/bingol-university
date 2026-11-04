@@ -15,5 +15,7 @@ public enum ReportTargetType {
     /** Kulup duyurusu (community_post.announcement = true; T-057). */
     ANNOUNCEMENT,
     /** Anket (T-057). */
-    POLL
+    POLL,
+    /** Kesfet gonderi/reel yorumu veya yaniti (post.comment, V1230). */
+    COMMENT
 }

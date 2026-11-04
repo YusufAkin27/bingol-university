@@ -14,6 +14,10 @@ import org.springframework.boot.context.properties.bind.DefaultValue;
  * @param windowDays puan yalnız bu kadar gün yaşındaki gönderiler için hesaplanır; eskiler 0 olur
  * @param maxAuthorRun bir sayfada ardışık aynı yazardan en çok bu kadar gönderi
  * @param recomputeMs toplu yeniden hesap aralığı
+ * @param viewWeight video izlenme sayısı (log) ağırlığı (yalnız video; fotoğrafta izlenme 0)
+ * @param completionWeight ortalama izleme tamamlanma oranı (0..1) x log(izlenme) ağırlığı: sık izlenen VE sonuna
+ *                         kadar izlenen video öne çıkar
+ * @param popularityScale gösterim puanı (0..100) doygunluk ölçeği: 100 * (1 - e^(-etkileşim/ölçek))
  */
 @ConfigurationProperties("app.post.rank")
 public record PostRankProperties(
@@ -30,5 +34,8 @@ public record PostRankProperties(
         @DefaultValue("2") int maxAuthorRun,
         @DefaultValue("12") int defaultPageSize,
         @DefaultValue("30") int maxPageSize,
-        @DefaultValue("300000") long recomputeMs) {
+        @DefaultValue("300000") long recomputeMs,
+        @DefaultValue("0.8") double viewWeight,
+        @DefaultValue("1.5") double completionWeight,
+        @DefaultValue("8.0") double popularityScale) {
 }

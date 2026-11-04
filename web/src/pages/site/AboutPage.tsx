@@ -1,6 +1,7 @@
 // SAYFA: Hakkımızda (/about)
 // API: GET /api/app/info (appName, website, contactEmail, phone, address, social) → yalnızca dolu alanlar gösterilir.
-// Yapı: amaç + telefon > değerler (4 madde) > nasıl çalışır (3 adım) > taahhütler > biz kimiz / bağımsızlık notu + iletişim > alt CTA.
+// Yapı: başlık > illüstrasyon + doğrulama kartı > bağımsızlık notu > misyon/vizyon + telefon > ilkeler (4 kart) >
+// nasıl çalışır (3 adım) > taahhütler > iletişim (yalnız bilgi varsa) > alt CTA.
 import { Link } from '../../components/LocalizedLink';
 import { useAppInfo } from '../../api/hooks';
 import { Icon, type IconName } from '../../components/ui';
@@ -8,6 +9,7 @@ import type { TranslationKey } from '../../i18n';
 import { useI18n } from '../../i18n/I18nProvider';
 import { paths } from '../../paths';
 import { siteOrigin } from '../../seo/siteUrl';
+import { AboutArt } from './components/AboutArt';
 import { ContactList, contactItems } from './components/ContactList';
 import { CtaBand } from './components/CtaBand';
 import { InlineLinks } from './components/InlineLinks';
@@ -41,14 +43,50 @@ export default function AboutPage() {
     <>
       <PageHero eyebrow={t('site.v3.eyebrow')} title={t('site.about.title')} lead={t('site.about.lead')} />
 
-      <section className={styles.sec}>
+      <section className={styles.top} aria-labelledby="about-who">
+        <div className={`container ${styles.topGrid}`}>
+          <AboutArt className={styles.art} />
+          <aside className={styles.verify}>
+            <span className={styles.verifyIcon}>
+              <Icon name="mail" size={22} />
+            </span>
+            <p className={styles.eyebrow}>{t('site.rd07.about.verifyEyebrow')}</p>
+            <h2 className={styles.h3}>{t('site.about.how2.title')}</h2>
+            <p className={styles.muted}>{t('site.about.how2.text')}</p>
+          </aside>
+          <div className={styles.notice}>
+            <span className={styles.noticeIcon}>
+              <Icon name="shield" size={22} />
+            </span>
+            <div className={styles.noticeBody}>
+              <p className={styles.eyebrow}>{t('site.v3.about.indTitle')}</p>
+              <h2 id="about-who" className={styles.h3}>
+                {t('site.about.whoTitle')}
+              </h2>
+              <p className={styles.muted}>{t('site.about.whoText')}</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className={styles.sec} aria-labelledby="about-purpose">
         <div className={`container ${styles.purpose}`}>
-          <Reveal className={styles.purposeCopy}>
-            <h2 className={styles.h2}>{t('site.about.purposeTitle')}</h2>
-            <p className={styles.purposeText}>{t('site.about.purposeText')}</p>
-          </Reveal>
-          <Reveal className={styles.purposeShot} delay={80}>
-            <PhoneMockup shot="menu" width="min(56vw, 230px)" tilt={-2} />
+          <div className={styles.purposeCards}>
+            <Reveal as="article" className={styles.card}>
+              <p className={styles.eyebrow}>{t('site.rd07.about.missionEyebrow')}</p>
+              <h2 id="about-purpose" className={styles.h3}>
+                {t('site.rd07.about.missionTitle')}
+              </h2>
+              <p className={styles.body}>{t('site.about.purposeText')}</p>
+            </Reveal>
+            <Reveal as="article" className={styles.card} delay={80}>
+              <p className={styles.eyebrow}>{t('site.rd07.about.visionEyebrow')}</p>
+              <h2 className={styles.h3}>{t('site.rd07.about.visionTitle')}</h2>
+              <p className={styles.body}>{t('site.rd07.about.visionText')}</p>
+            </Reveal>
+          </div>
+          <Reveal className={styles.purposeShot} delay={120}>
+            <PhoneMockup shot="menu" width="min(72vw, 300px)" tilt={-2} />
           </Reveal>
         </div>
       </section>
@@ -56,19 +94,17 @@ export default function AboutPage() {
       <section className={`${styles.sec} ${styles.soft}`} aria-labelledby="about-values">
         <div className="container">
           <SectionHeading id="about-values" title={t('site.about.valuesTitle')} />
-          <div className={styles.block}>
-            <PointList
-              items={VALUES.map((v) => ({
-                icon: v.icon,
-                text: (
-                  <>
-                    <strong>{t(`site.about.value.${v.id}.title` as TranslationKey)}</strong>
-                    <span className={styles.muted}>{t(`site.about.value.${v.id}.text` as TranslationKey)}</span>
-                  </>
-                ),
-              }))}
-            />
-          </div>
+          <ul className={styles.values}>
+            {VALUES.map((v, i) => (
+              <Reveal as="li" key={v.id} className={styles.value} delay={i * 60}>
+                <span className={styles.valueIcon}>
+                  <Icon name={v.icon} size={22} />
+                </span>
+                <h3 className={styles.valueTitle}>{t(`site.about.value.${v.id}.title` as TranslationKey)}</h3>
+                <p className={styles.muted}>{t(`site.about.value.${v.id}.text` as TranslationKey)}</p>
+              </Reveal>
+            ))}
+          </ul>
         </div>
       </section>
 
@@ -104,17 +140,20 @@ export default function AboutPage() {
         </div>
       </section>
 
-      <section className={styles.sec} aria-labelledby="about-who">
-        <div className={`container ${styles.who}`}>
-          <SectionHeading id="about-who" eyebrow={t('site.v3.about.indTitle')} title={t('site.about.whoTitle')} lead={t('site.about.whoText')} />
-          {hasContact && (
-            <div className={styles.contact}>
+      {hasContact && (
+        <section className={styles.sec} aria-labelledby="about-contact">
+          <div className={`container ${styles.contact}`}>
+            <SectionHeading id="about-contact" title={t('site.rd07.about.contactTitle')} lead={t('site.about.whoContact')} />
+            <div className={styles.contactList}>
               <ContactList info={info.data} />
-              <p className={styles.note}>{t('site.about.whoContact')}</p>
+              <Link to={paths.site.contact} className={styles.more}>
+                {t('site.rd07.about.contactLink')}
+                <Icon name="chevronRight" size={18} className={styles.moreIcon} />
+              </Link>
             </div>
-          )}
-        </div>
-      </section>
+          </div>
+        </section>
+      )}
 
       <InlineLinks
         label={t('site.links.about.label')}

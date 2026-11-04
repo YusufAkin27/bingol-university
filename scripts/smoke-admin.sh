@@ -111,7 +111,7 @@ check "olay gonder" 204 "$(code -X POST -H "$H" -H "$A1" $A/analytics/events -d 
 check "bos liste" 204 "$(code -X POST -H "$H" -H "$A1" $A/analytics/events -d '{"events":[]}')"
 R=$(curl -s -X POST -H "$H" -H 'Accept-Language: en' -H "$A1" $A/analytics/events -d '{"events":[{"name":"Bad-Name"}]}')
 has "gecersiz olay adi" '"code":"INVALID_EVENT"' "$R"
-check "6 props 400" 400 "$(code -X POST -H "$H" -H "$A1" $A/analytics/events -d '{"events":[{"name":"x","props":{"a":"1","b":"2","c":"3","d":"4","e":"5","f":"6"}}]}')"
+check "9 props 400" 400 "$(code -X POST -H "$H" -H "$A1" $A/analytics/events -d '{"events":[{"name":"x","props":{"a":"1","b":"2","c":"3","d":"4","e":"5","f":"6","g":"7","h":"8","i":"9"}}]}')"
 check "uzun deger 400" 400 "$(code -X POST -H "$H" -H "$A1" $A/analytics/events -d "{\"events\":[{\"name\":\"x\",\"props\":{\"a\":\"$(printf 'q%.0s' $(seq 1 101))\"}}]}")"
 check "e-posta degeri 400" 400 "$(code -X POST -H "$H" -H "$A1" $A/analytics/events -d '{"events":[{"name":"x","props":{"who":"a@b.com"}}]}')"
 EV51=$(printf '{"name":"e"},%.0s' $(seq 1 51)); EV51="[${EV51%,}]"

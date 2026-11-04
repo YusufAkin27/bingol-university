@@ -166,6 +166,7 @@ class AuthControllerThrottleTest {
         verify(limiter, org.mockito.Mockito.times(2)).check("codemail:day:" + digest, 20, Duration.ofHours(24));
         verify(limiter).check("resend:email:" + digest, 5, Duration.ofHours(1));
         verify(limiter).check("forgot:email:" + digest, 5, Duration.ofHours(1));
+        verify(limiter).check("forgot:ipmin:203.0.113.9", 15, Duration.ofMinutes(1));
     }
 
     @Test

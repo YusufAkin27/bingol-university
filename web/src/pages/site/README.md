@@ -15,24 +15,26 @@ Kalan site sayfalarını yazacak ajanlar için. Tüm bileşenler `src/pages/site
 
 ## Ekran görüntüleri (kaynak → web)
 
-Kaynak: uygulamanın kendi ekran çıktıları `C:\bu_qa\shots\tasarim\...` (RENK-1, Türkçe; Stitch ham ekran çıktıları kullanılmadı; tek istisna Keşfet ekranındaki manzara fotoğraflarıdır, bkz. `src/assets/site/CREDITS.md`). Kişi adı içerenler (Ana Sayfa karşılaması "Merhaba!", Keşfet gönderi sahipleri, Sohbet başlığı "Çalışma Grubu") yazılarak temizlendi; hepsi 600 px genişlikte WebP.
+Kaynak: GÜNCEL uygulamanın gerçek ekran çıktıları. Tek üretici: `mobile/test/redesign/site_shots_test.dart` (gerçek widget'lar + uydurma veri: "Elif K." gibi sade adlar, gerçek kişi/e-posta yok; Türkçe, açık tema, 390x844 dp, dpr 3 = 1170x2532 PNG, elle çizilmiş 9:41 durum çubuğu). Üretim (PowerShell, `C:u_mobile` içinde): `$env:SITE_SHOTS_OUT='C:u_qa\shots\site2'; flutter test test/redesign/site_shots_test.dart --tags store-shots` (`SITE_SHOTS_ONLY=home,menu` ile daraltılır). PNG'ler 900 px genişlikte WebP'ye çevrilir (Pillow, quality 82, her biri <= 90 KB; `app-<ad>.webp`, 900x1948). Altı kısa kalan iki ekran (`qr`, `academic`) içeriğin altından kırpılır ve `peek` çizilir.
 
-| Web yolu (`src/assets/site/`) | Kaynak |
+| Web yolu (`src/assets/site/`) | Test sahnesi (kaynak ekran) |
 |---|---|
-| `app-home.webp` | `p3/home/birebir/01_ana_sayfa_tr.png` (üst 2110 px, karşılama satırı düzeltilmiş) |
-| `app-discover.webp` | Keşfet 2 sütun masonry (Stitch v3 kesfet2 A): `C:\bu_design\stitch\v3_kesfet2\_render\img\*.jpg` manzara fotoğrafları + uygulama düzeni, Playwright ile 390x844 @2x ekran görüntüsü (kişi adı yok; fotoğraf kaynakları `src/assets/site/CREDITS.md`) |
-| `app-chat.webp` | `chat_bg/sonra/konusma_acik_tr.png` (başlık adı ve bozuk tepki simgesi temizlenmiş) |
-| `app-clubs.webp` | `dd/birebir_kulup/01_kesfet_tr.png` |
-| `app-events.webp` | `dd/birebir_etkinlik/01_liste_tr.png` |
-| `app-qr.webp` | `dd/birebir_etkinlik/07_yoklama_qr_tr.png` (alt boşluk kırpılmış) |
-| `app-menu.webp` | `p3/birebir/menu/10_yemek_tr.png` (alt boşluk kırpılmış) |
-| `app-poll.webp` | `pollsup/a02_oy_verme_tr.png` (alt boşluk kırpılmış) |
-| `app-academic.webp` | `acad/birebir_akademik/01_hub_tr.png` (alt boşluk kırpılmış) |
+| `app-home.webp` | `home`: `AppShell` Ana Sayfa sekmesi (alt gezinme çubuğu dahil) |
+| `app-discover.webp` | `discover`: `AppShell` Keşfet sekmesi (2 sütun masonry) |
+| `app-chat.webp` | `chat`: `ChatDetailPage` birebir konuşma (görsel + okundu) |
+| `app-clubs.webp` | `clubs`: `AppShell` Kulüpler sekmesi (Keşfet) |
+| `app-events.webp` | `events`: `EventsPage` (takvim + gün listesi) |
+| `app-qr.webp` | `qr`: `Etkinlik2QrPage` (yoklama QR, 900x1538 kırpık, peek) |
+| `app-menu.webp` | `menu`: `MenuPage` (günün menüsü + kalori + "Yemek kartı bakiyesi / Bakiye yükle" kartı) |
+| `app-poll.webp` | `poll`: `PollDetailPage` (oy verme, "Oy ver" düğmesi) |
+| `app-academic.webp` | `academic`: `AcademicHubPage` (sıradaki sınav + 4 kart, 900x1462 kırpık, peek) |
+| `app-delete.webp` | `delete`: `DeleteAccountPage` (Hesabı sil) |
+| `app-support.webp` | `support`: `SupportPage` (SSS açık + taleplerim + Yeni talep) |
 
 ## Hukuki ve güven sayfaları (SITE3)
 
 - **`InfoPage`** (Güvenlik, Çocuk Güvenliği, Topluluk Kuralları, Erişilebilirlik, Çerezler, Hesap Silme): `PageHero` + isteğe bağlı `highlights` ("Kısaca": `PointList`, metinler `site.trust.<sayfa>.pt1..`, yalnız sayfanın kendi `pg.*` metinlerini özetler, `components/trustPoints.ts`) + okuma sütunu (~68 karakter) + bölümler ince çizgiyle ayrılır; >= 5 bölümde >= 1040 px yapışkan "Bu sayfada" içindekileri. `figure={{ s1: <PhoneMockup .../> }}` bir bölümün yanına (mobilde altına) görsel koyar; `after`/`intro`/`children` eskisi gibi.
 - **`Steps stack`**: tek sütun, adım cümleleri başlık değil paragraf (uzun yönergeler için; `o` numaralı listeler InfoPage'de bununla çizilir).
-- **Hesap silme** (`/delete-account`, Google Play için herkese açık URL): adımlar uygulamadaki gerçek yolu anlatır (Ayarlar > Gizlilik ve veriler > Verilerim > Hesabımı sil > onay kutusu > Devam et > şifre). Ekran görüntüsü `app-delete.webp` ← `C:/bu_qa/shots/tasarim/p3/profile/birebir_raw/11_hesap_sil_tr.png` (kişisel veri içermez).
+- **Hesap silme** (`/delete-account`, Google Play için herkese açık URL): adımlar uygulamadaki gerçek yolu anlatır (Ayarlar > Gizlilik ve veriler > Verilerim > Hesabımı sil > onay kutusu > Devam et > şifre). Ekran görüntüsü `app-delete.webp` ← `site_shots_test.dart` `delete` sahnesi (kişisel veri içermez).
 - **Sözleşme okuma** (`LegalPage`/`LegalDocument`): 17 px / 1.75 satır, ~68 karakter, mobilde açılır içindekiler, yazdırma stili (üst/alt bilgi gizli); yüklenirken sürüm satırı yer tutucudur ve iskelet >= 70vh'dir (CLS).
 

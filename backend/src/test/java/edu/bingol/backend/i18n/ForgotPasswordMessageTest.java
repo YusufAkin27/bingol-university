@@ -28,7 +28,7 @@ class ForgotPasswordMessageTest {
     @Test
     void turkishTextSaysCodeNotLink() throws IOException {
         String tr = msg("messages.properties");
-        assertThat(tr).isEqualTo("Hesap uygunsa e-posta adresinize \u015fifre s\u0131f\u0131rlama kodu g\u00f6nderildi.");
+        assertThat(tr).isEqualTo("\u015eifre s\u0131f\u0131rlama kodu e-posta adresinize g\u00f6nderildi.");
         assertThat(tr).doesNotContain("ba\u011flant\u0131");
     }
 

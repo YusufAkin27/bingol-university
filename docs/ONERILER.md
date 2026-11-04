@@ -1,3 +1,5 @@
+> Tarihsel öneri listesidir; işaretler güncel uygulama durumunu göstermez. Kalıcı push kuyruğu, CI, moderasyon filtresi, akademik özellikler ve önbellek uygulanmıştır. Yeni iş seçmeden önce CLAUDE.md, docs/changes/ ve kaynak kodla doğrulayın. Canlı ortam/hesap ayarları ayrıca doğrulanmalıdır.
+
 # Öneriler (öncelik sırasıyla)
 
 Durum: ✅ yapıldı · 🔜 sırada · 💡 öneri (onay bekliyor)

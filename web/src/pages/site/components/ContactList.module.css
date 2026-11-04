@@ -1,22 +1,25 @@
+/* İletişim satırları: tek panel, aralarda ince çizgi; boş alan hiç çizilmez. */
 .list {
   margin: 0;
   display: grid;
-  gap: var(--space-3);
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  overflow: hidden;
 }
 .item {
   display: grid;
-  grid-template-columns: auto 1fr;
+  grid-template-columns: auto minmax(0, 1fr) auto;
   grid-template-areas:
-    'ico dt'
-    'ico dd';
+    'ico dt copy'
+    'ico dd dd';
   column-gap: var(--space-3);
   align-items: center;
   padding: var(--space-4);
-  border-radius: var(--radius-lg);
-  background: var(--surface);
-  border: 1px solid var(--border);
   min-width: 0;
+}
+.item + .item {
+  border-block-start: 1px solid var(--border);
 }
 .ico {
   grid-area: ico;
@@ -26,9 +29,13 @@
   height: 44px;
   border-radius: var(--radius-md);
   background: var(--primary-soft);
-  color: var(--primary);
+  color: var(--on-soft);
 }
-.item dt {
+/* simge dt içinde (axe: dl yalnız dt/dd içerir); dt kutu üretmez, çocukları ızgara öğesi olur */
+.term {
+  display: contents;
+}
+.label {
   grid-area: dt;
   font-size: var(--text-xs);
   color: var(--text-muted);
@@ -38,6 +45,12 @@
   margin: 0;
   font-weight: 600;
   overflow-wrap: anywhere;
+}
+.copy {
+  grid-area: copy;
+  display: grid;
+  place-items: center;
+  margin-block: calc(var(--space-2) * -1) 0;
 }
 .social {
   display: flex;

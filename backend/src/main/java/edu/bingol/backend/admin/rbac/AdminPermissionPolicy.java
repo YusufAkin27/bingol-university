@@ -50,6 +50,9 @@ public final class AdminPermissionPolicy {
         one(null, "/api/admin/rbac(/.*)?", RBAC_MANAGE);
 
         // --- analitik ---
+        // Kullanici bazli davranis (kisi + ekran/eylem zaman cizelgesi) kisisel veridir: analytics.read yetmez, users.pii
+        // (FULL, MODERATOR) ister; cagrilar AuditRecorder'da denetlenir. Ozet/ekran/akis/eylem toplu veridir (analytics.read).
+        one(Set.of("GET"), "/api/admin/analytics/behavior/users(/" + ID + ")?", USERS_PII);
         one(null, "/api/admin/analytics(/.*)?", ANALYTICS_READ);
         one(Set.of("GET"), "/api/admin/notifications/stats", ANALYTICS_READ);
 
@@ -92,9 +95,11 @@ public final class AdminPermissionPolicy {
         one(Set.of("POST"), "/api/admin/(sync|sync-menu|sources/sync)", SYSTEM_WRITE);
 
         // --- icerik: gizle/kaldir alt kumesi ---
-        one(Set.of("POST"), "/api/admin/(events|community-posts|posts)/" + ID + "/(hide|unhide)", CONTENT_HIDE);
+        one(Set.of("POST"), "/api/admin/(events|community-posts|posts|post-comments)/" + ID + "/(hide|unhide)", CONTENT_HIDE);
         one(Set.of("PATCH"), "/api/admin/news/" + ID, CONTENT_HIDE);
         one(Set.of("PATCH", "DELETE"), "/api/admin/(posts|community-posts)/" + ID, CONTENT_HIDE);
+        // KS-BE2: Kesfet yorum moderasyonu (gizle/geri al/sil = gonderi kaldirma ile ayni izin; listeleme posts/{id}/comments alan kuralinda)
+        one(Set.of("DELETE"), "/api/admin/post-comments/" + ID, CONTENT_HIDE);
 
         // --- duyuru (akademik duyuru): yalniz duyuru yetkisi ---
         area("/api/admin/announcements(/.*)?", COMMS_READ, COMMS_ANNOUNCE);
@@ -104,7 +109,10 @@ public final class AdminPermissionPolicy {
 
         // --- icerik ---
         area("/api/admin/(news|menu|academic|faq|communities|communitiespage|community-categories|community-posts"
-                + "|events|polls|posts|sources|unit-news)(/.*)?", CONTENT_READ, CONTENT_WRITE);
+                + "|events|polls|posts|post-comments|sources|unit-news)(/.*)?", CONTENT_READ, CONTENT_WRITE);
+
+        // --- kampus haritasi: FULL/EDITOR yazar, diger profiller yalniz okur ---
+        area("/api/admin/campus(/.*)?", CAMPUS_READ, CAMPUS_WRITE);
 
         // --- destek ---
         area("/api/admin/(support|feedback)(/.*)?", SUPPORT_READ, SUPPORT_WRITE);

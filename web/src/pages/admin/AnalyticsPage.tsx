@@ -1,6 +1,6 @@
-// SAYFA: Analitik (/admin/analytics?tab=overview|growth|engagement|retention|demographics&from=&to=&dim=)
+// SAYFA: Analitik (/admin/analytics?tab=overview|growth|engagement|retention|demographics|behavior&from=&to=&dim=)
 // API: /api/admin/analytics/{overview,registrations,active-users,breakdown,engagement,retention,support,push,content} (api/analytics.ts).
-// KVKK: yalnızca toplulaştırılmış veri gösterilir. Sekmeler, tarih aralığı ve demografi boyutu URL'dedir.
+// KVKK: yalnızca toplulaştırılmış veri gösterilir (istisna: Davranış sekmesinin Kullanıcılar bölümü; users.pii ister, denetim kaydına yazılır). Sekmeler, tarih aralığı ve demografi boyutu URL'dedir.
 import { useMemo } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
 import type { BreakdownDimension } from '../../api/types';
@@ -11,6 +11,7 @@ import { lastDays } from '../../lib/date';
 import { useSearchReveal } from '../../search/anchor';
 import { usePageTitle } from '../../lib/hooks';
 import styles from './analytics/analytics.module.css';
+import BehaviorTab from './analytics/behavior/BehaviorTab';
 import DemographicsTab from './analytics/DemographicsTab';
 import EngagementTab from './analytics/EngagementTab';
 import GrowthTab from './analytics/GrowthTab';
@@ -37,6 +38,16 @@ const TAB_OF_ANCHOR: Record<string, TabId> = {
   'anl-screens': 'engagement',
   'anl-retention': 'retention',
   'anl-demo-dims': 'demographics',
+};
+/** Davranış sekmesindeki bölümler: anchor -> alt bölüm (?sub=). */
+const BEHAVIOR_SUB_OF_ANCHOR: Record<string, string> = {
+  'anl-behavior-range': 'overview',
+  'anl-behavior-kpi': 'overview',
+  'anl-behavior-buckets': 'overview',
+  'anl-behavior-screens': 'screens',
+  'anl-behavior-flows': 'flows',
+  'anl-behavior-actions': 'actions',
+  'anl-behavior-users': 'users',
 };
 
 export default function AnalyticsPage() {
@@ -71,6 +82,11 @@ export default function AnalyticsPage() {
 
   // arama derin bağlantısı: anchor hangi sekmedeyse o sekme açılır (aynı sekmeyi tekrar atamak etkisizdir)
   useSearchReveal((anchor) => {
+    const sub = BEHAVIOR_SUB_OF_ANCHOR[anchor];
+    if (sub) {
+      patch({ tab: 'behavior', sub });
+      return;
+    }
     const target = TAB_OF_ANCHOR[anchor];
     if (target && target !== tab) patch({ tab: target });
   });
@@ -83,6 +99,8 @@ export default function AnalyticsPage() {
   return (
     <div>
       <PageHeader title={t('admin.analytics.title')} />
+      {/* Davranış sekmesi kişi bazlı gösterim içerir: genel "tek tek kullanıcı listelenmez" notu orada geçerli değildir, sekme kendi notunu taşır */}
+      {tab !== 'behavior' && (
       <details className={styles.kvkkBox} data-search-anchor="anl-kvkk">
         <summary className={styles.kvkkSummary}>
           <Icon name="shield" size={18} aria-hidden="true" />
@@ -92,6 +110,7 @@ export default function AnalyticsPage() {
           <span>{t('admin.analytics.kvkk')}</span>
         </p>
       </details>
+      )}
 
       <Tabs
         label={t('admin.analytics.tabs.label')}
@@ -135,6 +154,7 @@ export default function AnalyticsPage() {
         {tab === 'growth' && <GrowthTab range={range} compare={compare} />}
         {tab === 'engagement' && <EngagementTab range={range} />}
         {tab === 'retention' && <RetentionTab />}
+        {tab === 'behavior' && <BehaviorTab />}
         {tab === 'demographics' && (
           <DemographicsTab dimension={dimension} onDimensionChange={(d) => patch({ dim: d })} />
         )}

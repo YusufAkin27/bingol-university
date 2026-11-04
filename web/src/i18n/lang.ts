@@ -1,3 +1,4 @@
+import { isPrefStorageAllowed } from '../lib/cookieConsent';
 import { readStorage, writeStorage } from '../lib/storage';
 
 export type Lang = 'tr' | 'en' | 'ar';
@@ -51,7 +52,7 @@ export function setForcedLang(lang: Lang | null): void {
 
 export function setCurrentLang(lang: Lang): void {
   current = lang;
-  writeStorage('local', KEY, lang);
+  if (isPrefStorageAllowed()) writeStorage('local', KEY, lang);
   applyDocumentLang(lang);
 }
 

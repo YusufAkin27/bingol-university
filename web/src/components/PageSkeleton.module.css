@@ -1,0 +1,94 @@
+.wrap {
+  display: grid;
+  gap: var(--space-6);
+  padding-block: var(--space-7);
+  min-height: 60vh;
+  align-content: start;
+}
+.bar {
+  display: block;
+  border-radius: var(--radius-sm);
+  background: linear-gradient(90deg, var(--skeleton-a) 25%, var(--skeleton-b) 50%, var(--skeleton-a) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s ease-in-out infinite;
+}
+.head {
+  display: grid;
+  gap: var(--space-3);
+}
+.title {
+  width: min(22rem, 70%);
+  height: 2.25rem;
+}
+.sub {
+  width: min(34rem, 90%);
+  height: 1rem;
+}
+.cards {
+  display: grid;
+  gap: var(--space-4);
+  grid-template-columns: repeat(auto-fit, minmax(min(16rem, 100%), 1fr));
+}
+.card {
+  display: grid;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+}
+.media {
+  height: 9rem;
+  border-radius: var(--radius-md);
+}
+.line {
+  width: 80%;
+  height: 0.9rem;
+}
+.lineShort {
+  width: 50%;
+  height: 0.75rem;
+}
+.list {
+  display: grid;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+}
+.row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-4);
+}
+.row + .row {
+  border-block-start: 1px solid var(--border);
+}
+.rowText {
+  display: grid;
+  gap: var(--space-2);
+}
+.dot {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+}
+.pill {
+  width: 4.5rem;
+  height: 1.75rem;
+  border-radius: var(--radius-pill);
+}
+@keyframes shimmer {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .bar {
+    animation: none;
+  }
+}

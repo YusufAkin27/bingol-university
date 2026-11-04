@@ -254,7 +254,8 @@ class PostAdminTest {
         Map<?, ?> p = (Map<?, ?>) export("posts", a.getId());
         assertEquals(1, p.get("count"));
         assertFalse(p.toString().contains("baskasi"));
-        assertTrue(exporters.stream().noneMatch(e -> e.section().equals("postComments")));
+        // KS-BE2: yorumlar geri geldi (V1230); disa aktarim yalniz kendi yorumlarini kapsar
+        assertEquals(0, ((Map<?, ?>) export("postComments", a.getId())).get("count"));
         assertEquals(1, ((Map<?, ?>) export("postLikes", a.getId())).get("count"));
     }
 

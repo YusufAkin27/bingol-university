@@ -14,6 +14,8 @@ function clean<T extends Record<string, unknown>>(o: T): T {
 }
 
 const APP_NAME = 'BÜ Kampüs';
+/** Arama motorlarının "bukampus" / "BuKampüs" yazımlarını marka adıyla eşlemesi için alternatif adlar (üniversite adı içermez: resmî uygulama değildir). */
+const ALT_NAMES = ['bukampus', 'BuKampüs'];
 
 /** Kuruluş düğümünün kararlı kimliği: WebSite/MobileApplication/NewsArticle buna `@id` ile bağlanır. */
 export const organizationId = (origin: string): string => `${origin}/#organization`;
@@ -35,6 +37,7 @@ export function organizationLd(info: AppInfo | undefined, origin: string): Recor
     '@type': 'Organization',
     '@id': organizationId(origin),
     name: APP_NAME,
+    alternateName: ALT_NAMES,
     url: origin,
     logo: `${origin}/icon-512.png`,
     email: info?.contactEmail,
@@ -51,6 +54,7 @@ export function websiteLd(origin: string, lang: string, url: string): Record<str
     '@type': 'WebSite',
     '@id': `${origin}/#website`,
     name: APP_NAME,
+    alternateName: ALT_NAMES,
     url,
     inLanguage: lang,
     publisher: orgRef(origin),
@@ -68,6 +72,7 @@ export function mobileAppLd(
     '@context': 'https://schema.org',
     '@type': 'MobileApplication',
     name: info?.appName ?? APP_NAME,
+    alternateName: ALT_NAMES,
     description,
     applicationCategory: 'EducationalApplication',
     operatingSystem: 'Android, iOS',

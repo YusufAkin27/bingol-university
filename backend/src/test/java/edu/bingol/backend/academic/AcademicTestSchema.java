@@ -22,7 +22,8 @@ public class AcademicTestSchema {
     @Bean
     SmartInitializingSingleton academicSchema(JdbcTemplate jdbc) {
         return () -> {
-            for (String file : new String[] {"V320__academic.sql", "V1010__exr9_exam_reminder.sql"}) {
+            for (String file : new String[] {"V320__academic.sql", "V1010__exr9_exam_reminder.sql", "V1150__official_timetable.sql",
+                "V1160__official_timetable_seed.sql"}) {
                 apply(jdbc, file);
             }
         };

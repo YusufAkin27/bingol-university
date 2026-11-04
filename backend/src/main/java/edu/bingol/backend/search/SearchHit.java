@@ -5,7 +5,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 /**
  * Tek bir arama sonucu. targetId ilgili turun kendi id'sidir (mobil, type'a gore detay ucuna gider).
  * snippet kisa, duz metin ozet (HTML icermez). Opsiyonel (yoksa JSON'a hic yazilmaz): COMMUNITY icin memberCount, category ve
- * istek sahibinin uyeligi myStatus (ACTIVE | PENDING | NONE); POSTS icin likeCount; EVENT icin startsAt/endsAt (ISO, saat araligi).
+ * istek sahibinin uyeligi myStatus (ACTIVE | PENDING | NONE); POSTS icin likeCount; EVENT icin startsAt/endsAt (ISO, saat araligi); REELS icin likeCount + durationMs (video suresi, ms).
  */
 public record SearchHit(SearchType type, Long targetId, String title, String snippet, String imageUrl, String date,
                         @JsonInclude(JsonInclude.Include.NON_NULL) Long memberCount,
@@ -13,14 +13,22 @@ public record SearchHit(SearchType type, Long targetId, String title, String sni
                         @JsonInclude(JsonInclude.Include.NON_NULL) String myStatus,
                         @JsonInclude(JsonInclude.Include.NON_NULL) Long likeCount,
                         @JsonInclude(JsonInclude.Include.NON_NULL) String startsAt,
-                        @JsonInclude(JsonInclude.Include.NON_NULL) String endsAt) {
+                        @JsonInclude(JsonInclude.Include.NON_NULL) String endsAt,
+                        @JsonInclude(JsonInclude.Include.NON_NULL) Integer durationMs) {
+
+    /** durationMs'siz 12 alanli kurucu (REELS disindaki turler). */
+    public SearchHit(SearchType type, Long targetId, String title, String snippet, String imageUrl, String date,
+                     Long memberCount, String category, String myStatus, Long likeCount, String startsAt, String endsAt) {
+        this(type, targetId, title, snippet, imageUrl, date, memberCount, category, myStatus, likeCount, startsAt, endsAt,
+                null);
+    }
 
     public SearchHit(SearchType type, Long targetId, String title, String snippet, String imageUrl, String date) {
-        this(type, targetId, title, snippet, imageUrl, date, null, null, null, null, null, null);
+        this(type, targetId, title, snippet, imageUrl, date, null, null, null, null, null, null, null);
     }
 
     public SearchHit(SearchType type, Long targetId, String title, String snippet, String imageUrl, String date,
                      Long memberCount, String category, String myStatus, Long likeCount) {
-        this(type, targetId, title, snippet, imageUrl, date, memberCount, category, myStatus, likeCount, null, null);
+        this(type, targetId, title, snippet, imageUrl, date, memberCount, category, myStatus, likeCount, null, null, null);
     }
 }

@@ -1,16 +1,32 @@
 .acc {
   display: grid;
-  gap: var(--space-2);
+  gap: var(--space-3);
 }
 .item {
+  position: relative;
   border: 1px solid var(--border);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-lg);
   background: var(--surface);
   transition: border-color 0.2s var(--ease), background-color 0.2s var(--ease);
 }
+/* Açık soru: başlangıç kenarında kısa kırmızı çizgi */
+.item::before {
+  content: '';
+  position: absolute;
+  inset-inline-start: 0;
+  inset-block: var(--space-4) auto;
+  width: 4px;
+  height: 0;
+  border-start-end-radius: var(--radius-xs);
+  border-end-end-radius: var(--radius-xs);
+  background: var(--primary);
+  transition: height 0.2s var(--ease);
+}
 .open {
   border-color: var(--border-strong);
-  background: var(--surface);
+}
+.open::before {
+  height: 28px;
 }
 .h {
   font-family: var(--font-sans);
@@ -27,18 +43,17 @@
   padding: var(--space-3) var(--space-4);
   background: none;
   border: 0;
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-lg);
   cursor: pointer;
   text-align: start;
-  font-weight: 700;
+  font-weight: 600;
   font-size: var(--text-base);
   color: var(--text);
-  line-height: 1.35;
-  min-height: 56px;
+  line-height: 1.4;
+  min-height: 64px;
 }
 .btn:hover {
   color: var(--primary);
-  background: var(--surface-2);
 }
 .btn:focus-visible {
   outline: 3px solid var(--focus);
@@ -46,8 +61,16 @@
 }
 .chev {
   flex: none;
+  box-sizing: content-box;
+  padding: 8px;
+  border-radius: 50%;
+  background: var(--surface-2);
+  color: var(--text);
+  transition: transform 0.2s var(--ease), background-color 0.2s var(--ease);
+}
+.btn:hover .chev {
+  background: var(--primary-soft);
   color: var(--primary);
-  transition: transform 0.2s var(--ease);
 }
 .open .chev {
   transform: rotate(180deg);
@@ -55,6 +78,7 @@
 .panel {
   padding: 0 var(--space-4) var(--space-4);
   color: var(--text-muted);
+  line-height: var(--leading-body);
 }
 .btn > span {
   min-width: 0;
@@ -67,10 +91,12 @@
   }
   .panel {
     padding-inline: var(--space-5);
+    max-width: 68ch;
   }
 }
 @media (prefers-reduced-motion: reduce) {
   .item,
+  .item::before,
   .chev {
     transition: none;
   }

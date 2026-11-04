@@ -1,12 +1,40 @@
-.tools {
+/* Belge okuma düzeni: başlık altı künye çubuğu, yapışkan içindekiler (LegalDocument), belge sonu sayfalayıcı */
+.docSection {
+  padding-block: var(--space-4) clamp(2.5rem, 7vw, 5rem);
+}
+.meta {
   display: flex;
   flex-wrap: wrap;
-  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-2) var(--space-3);
+  /* yüklenirken bile aynı yükseklik: sürüm etiketleri gelince içerik kaymaz */
+  min-height: 44px;
+  width: 100%;
+}
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  min-height: 32px;
+  padding-inline: var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  background: var(--surface);
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+.pillCurrent {
+  border-color: transparent;
+  background: var(--primary-soft);
+  color: var(--primary);
+}
+.metaTools {
+  display: inline-flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: var(--space-3);
-  margin-block-end: var(--space-5);
-  padding-block: var(--space-2);
-  border-block: 1px solid var(--border);
+  margin-inline-start: auto;
 }
 .toolLink {
   display: inline-flex;
@@ -22,27 +50,86 @@
   /* alt bilgi ilk ekranın altında kalsın: metin gelince alttaki öğeler görünür alanda kaymasın (CLS) */
   min-height: max(70vh, 26rem);
 }
+
 .more {
   display: grid;
-  grid-template-columns: 1fr 1fr;
   gap: var(--space-6);
   margin-block-start: var(--space-7);
-  padding-block-start: var(--space-5);
+  padding-block-start: var(--space-6);
   border-block-start: 1px solid var(--border);
 }
-@media (max-width: 640px) {
-  .more {
-    grid-template-columns: 1fr;
-  }
+.moreTitle {
+  font-size: var(--text-base);
+  margin-block-end: var(--space-2);
 }
-.more h2 {
-  margin-block-end: var(--space-3);
-}
-.more ul {
+.history ul {
   margin: 0;
   padding-inline-start: 1.2em;
   display: grid;
-  gap: var(--space-2);
+  gap: var(--space-1);
+  color: var(--text-muted);
+}
+.pager {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3);
+}
+.pagerLink {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: 72px;
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  color: var(--text);
+  text-decoration: none;
+  transition: border-color 0.2s var(--ease);
+}
+.pagerLink:hover {
+  border-color: var(--primary);
+}
+.pagerLink:focus-visible,
+.allLink:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+.pagerLink > span {
+  display: grid;
+  text-align: start;
+  gap: 2px;
+  min-width: 0;
+}
+.pagerLink small {
+  color: var(--text-muted);
+  font-size: var(--text-xs);
+}
+.pagerNext {
+  justify-content: space-between;
+}
+.pagerLink svg {
+  flex: none;
+  color: var(--primary);
+}
+.allLink {
+  grid-column: 1 / -1;
+  justify-self: start;
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  font-weight: 600;
+}
+:global(:root[dir='rtl']) .flip {
+  transform: scaleX(-1);
+}
+@media (max-width: 640px) {
+  .pager {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .metaTools {
+    margin-inline-start: 0;
+  }
 }
 
 @media print {
@@ -61,22 +148,24 @@
   }
 }
 
-/* Dokunma hedefleri >= 44px */
-.more li a {
-  display: inline-flex;
-  align-items: center;
-  min-height: 44px;
-}
-.more ul {
-  gap: 0;
-}
-
 /* Yönetici erişim bildirimi okuma sütunuyla aynı kenara hizalanır (ortalanmaz) */
+.notice {
+  margin-block-start: var(--space-6);
+}
 .notice > aside {
   margin-inline: 0;
   max-inline-size: 68ch;
 }
+@media (min-width: 901px) {
+  /* belge gövdesi 15rem içindekiler sütunundan sonra başlar: bildirim de aynı çizgide */
+  .notice {
+    margin-inline-start: calc(15rem + var(--space-8));
+  }
+}
 @media print {
+  .notice {
+    margin-inline-start: 0;
+  }
   .notice > aside {
     max-inline-size: none;
   }

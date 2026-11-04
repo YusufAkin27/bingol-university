@@ -58,6 +58,8 @@ export const qk = {
     support: () => ['analytics', 'support'] as const,
     push: () => ['analytics', 'push'] as const,
     content: (r: DateRange) => ['analytics', 'content', r] as const,
+    // Davranış analizi (analytics/behavior/*): her uç kendi parametreleriyle önbelleklenir
+    behavior: (kind: string, p: object = {}) => ['analytics', 'behavior', kind, p] as const,
   },
   reports: {
     all: ['reports'] as const,

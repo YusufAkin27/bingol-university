@@ -212,6 +212,70 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/admin/academic/timetable/entries": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["entries"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/academic/timetable/import": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["importXlsx"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/academic/timetable/programs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["programs"];
+        put?: never;
+        post?: never;
+        delete: operations["deleteProgram"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/academic/timetable/publish": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["publish_2"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/admin/access-bans": {
         parameters: {
             query?: never;
@@ -219,9 +283,9 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["list_9"];
+        get: operations["list_11"];
         put?: never;
-        post: operations["create_15"];
+        post: operations["create_17"];
         delete?: never;
         options?: never;
         head?: never;
@@ -332,6 +396,102 @@ export interface paths {
             cookie?: never;
         };
         get: operations["activeUsers"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/analytics/behavior/actions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["actions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/analytics/behavior/flows": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["flows"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/analytics/behavior/overview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["overview_2"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/analytics/behavior/screens": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["screens"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/analytics/behavior/users": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["users_1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/analytics/behavior/users/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["userDetail"];
         put?: never;
         post?: never;
         delete?: never;
@@ -603,7 +763,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["list_27"];
+        get: operations["list_30"];
         put?: never;
         post?: never;
         delete?: never;
@@ -639,6 +799,70 @@ export interface paths {
         put?: never;
         post?: never;
         delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/campus/config": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["config_1"];
+        put: operations["updateConfig"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/campus/places": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["list_10"];
+        put?: never;
+        post: operations["create_16"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/campus/places/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["get_3"];
+        put: operations["update_7"];
+        post?: never;
+        delete: operations["delete_3"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/campus/places/{id}/photo": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["setPhoto"];
+        delete: operations["removePhoto"];
         options?: never;
         head?: never;
         patch?: never;
@@ -699,7 +923,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["list_26"];
+        get: operations["list_29"];
         put?: never;
         post?: never;
         delete?: never;
@@ -734,10 +958,10 @@ export interface paths {
         get: operations["detail_4"];
         put?: never;
         post?: never;
-        delete: operations["delete_13"];
+        delete: operations["delete_14"];
         options?: never;
         head?: never;
-        patch: operations["update_13"];
+        patch: operations["update_14"];
         trace?: never;
     };
     "/api/admin/communities/{id}/approve": {
@@ -987,9 +1211,9 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["list_8"];
+        get: operations["list_9"];
         put?: never;
-        post: operations["create_14"];
+        post: operations["create_15"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1051,7 +1275,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["list_25"];
+        get: operations["list_28"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1070,7 +1294,7 @@ export interface paths {
         get: operations["detail_3"];
         put?: never;
         post?: never;
-        delete: operations["delete_12"];
+        delete: operations["delete_13"];
         options?: never;
         head?: never;
         patch: operations["edit_3"];
@@ -1085,7 +1309,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["hide_3"];
+        post: operations["hide_4"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1101,7 +1325,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["unhide_3"];
+        post: operations["unhide_4"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1195,7 +1419,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["list_24"];
+        get: operations["list_27"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1230,7 +1454,7 @@ export interface paths {
         get: operations["detail_10"];
         put?: never;
         post?: never;
-        delete: operations["delete_18"];
+        delete: operations["delete_20"];
         options?: never;
         head?: never;
         patch?: never;
@@ -1387,7 +1611,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["list_23"];
+        get: operations["list_26"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1438,7 +1662,7 @@ export interface paths {
         get: operations["detail_2"];
         put?: never;
         post?: never;
-        delete: operations["delete_11"];
+        delete: operations["delete_12"];
         options?: never;
         head?: never;
         patch: operations["edit_2"];
@@ -1709,7 +1933,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["hide_2"];
+        post: operations["hide_3"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1773,7 +1997,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["unhide_2"];
+        post: operations["unhide_3"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1789,7 +2013,7 @@ export interface paths {
         };
         get: operations["adminList"];
         put?: never;
-        post: operations["create_13"];
+        post: operations["create_14"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1915,9 +2139,9 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["list_7"];
+        get: operations["list_8"];
         put?: never;
-        post: operations["create_12"];
+        post: operations["create_13"];
         delete?: never;
         options?: never;
         head?: never;
@@ -2187,9 +2411,9 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["list_6"];
+        get: operations["list_7"];
         put?: never;
-        post: operations["create_11"];
+        post: operations["create_12"];
         delete?: never;
         options?: never;
         head?: never;
@@ -2363,7 +2587,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["list_22"];
+        get: operations["list_25"];
         put?: never;
         post?: never;
         delete?: never;
@@ -2493,7 +2717,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["hide_1"];
+        post: operations["hide_2"];
         delete?: never;
         options?: never;
         head?: never;
@@ -2509,7 +2733,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["unhide_1"];
+        post: operations["unhide_2"];
         delete?: never;
         options?: never;
         head?: never;
@@ -2731,7 +2955,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["list_21"];
+        get: operations["list_24"];
         put?: never;
         post?: never;
         delete?: never;
@@ -2891,7 +3115,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["list_20"];
+        get: operations["list_23"];
         put?: never;
         post?: never;
         delete?: never;
@@ -2987,7 +3211,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["list_19"];
+        get: operations["list_22"];
         put?: never;
         post?: never;
         delete?: never;
@@ -3035,10 +3259,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["get_20"];
+        get: operations["get_22"];
         put?: never;
         post?: never;
-        delete: operations["delete_17"];
+        delete: operations["delete_19"];
         options?: never;
         head?: never;
         patch?: never;
@@ -3092,6 +3316,54 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/admin/post-comments/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: operations["delete_21"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/post-comments/{id}/hide": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["hide_1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/post-comments/{id}/unhide": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["unhide_1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/admin/posts": {
         parameters: {
             query?: never;
@@ -3099,7 +3371,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["list_18"];
+        get: operations["list_20"];
         put?: never;
         post?: never;
         delete?: never;
@@ -3150,10 +3422,26 @@ export interface paths {
         get: operations["detail_1"];
         put?: never;
         post?: never;
-        delete: operations["delete_10"];
+        delete: operations["delete_11"];
         options?: never;
         head?: never;
         patch: operations["edit_1"];
+        trace?: never;
+    };
+    "/api/admin/posts/{id}/comments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["list_21"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/api/admin/posts/{id}/hide": {
@@ -3195,7 +3483,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["list_5"];
+        get: operations["list_6"];
         put?: never;
         post: operations["add_1"];
         delete?: never;
@@ -3339,9 +3627,9 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["list_4"];
+        get: operations["list_5"];
         put?: never;
-        post: operations["create_10"];
+        post: operations["create_11"];
         delete?: never;
         options?: never;
         head?: never;
@@ -3371,7 +3659,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["get_19"];
+        get: operations["get_21"];
         put?: never;
         post?: never;
         delete?: never;
@@ -3515,7 +3803,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["list_17"];
+        get: operations["list_19"];
         put?: never;
         post?: never;
         delete?: never;
@@ -4411,7 +4699,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["list_16"];
+        get: operations["list_18"];
         put?: never;
         post?: never;
         delete?: never;
@@ -4462,7 +4750,7 @@ export interface paths {
         get: operations["detail_7"];
         put?: never;
         post?: never;
-        delete: operations["delete_16"];
+        delete: operations["delete_18"];
         options?: never;
         head?: never;
         patch?: never;
@@ -4843,7 +5131,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["get_18"];
+        get: operations["get_20"];
         put?: never;
         post?: never;
         delete?: never;
@@ -4925,7 +5213,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["create_9"];
+        post: operations["create_10"];
         delete?: never;
         options?: never;
         head?: never;
@@ -5275,7 +5563,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["list_15"];
+        get: operations["list_17"];
         put?: never;
         post?: never;
         delete?: never;
@@ -5311,6 +5599,54 @@ export interface paths {
         put: operations["add"];
         post?: never;
         delete: operations["remove"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/campus/map": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["map"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/campus/places": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["places"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/campus/places/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["place"];
+        put?: never;
+        post?: never;
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -5373,7 +5709,7 @@ export interface paths {
         };
         get: operations["discover"];
         put?: never;
-        post: operations["create_8"];
+        post: operations["create_9"];
         delete?: never;
         options?: never;
         head?: never;
@@ -5435,13 +5771,13 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["get_7"];
+        get: operations["get_8"];
         put?: never;
         post?: never;
-        delete: operations["delete_9"];
+        delete: operations["delete_10"];
         options?: never;
         head?: never;
-        patch: operations["update_12"];
+        patch: operations["update_13"];
         trace?: never;
     };
     "/api/communities/{id}/announcements": {
@@ -5963,9 +6299,9 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["list_3"];
+        get: operations["list_4"];
         put?: never;
-        post: operations["create_7"];
+        post: operations["create_8"];
         delete?: never;
         options?: never;
         head?: never;
@@ -6043,10 +6379,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["get_17"];
+        get: operations["get_19"];
         put?: never;
         post?: never;
-        delete: operations["delete_15"];
+        delete: operations["delete_17"];
         options?: never;
         head?: never;
         patch?: never;
@@ -6110,7 +6446,7 @@ export interface paths {
         get: operations["detail"];
         put?: never;
         post?: never;
-        delete: operations["delete_8"];
+        delete: operations["delete_9"];
         options?: never;
         head?: never;
         patch: operations["rename"];
@@ -6395,9 +6731,9 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["list_1"];
+        get: operations["list_2"];
         put?: never;
-        post: operations["create_6"];
+        post: operations["create_7"];
         delete?: never;
         options?: never;
         head?: never;
@@ -6459,13 +6795,13 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["get_6"];
+        get: operations["get_7"];
         put?: never;
         post?: never;
-        delete: operations["delete_7"];
+        delete: operations["delete_8"];
         options?: never;
         head?: never;
-        patch: operations["update_11"];
+        patch: operations["update_12"];
         trace?: never;
     };
     "/api/events/{id}/admission": {
@@ -6507,7 +6843,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["list_2"];
+        get: operations["list_3"];
         put?: never;
         post: operations["apply"];
         delete?: never;
@@ -6763,7 +7099,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["get_3"];
+        get: operations["get_4"];
         put?: never;
         post: operations["open"];
         delete?: never;
@@ -7115,7 +7451,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["official"];
+        get: operations["official_1"];
         put?: never;
         post?: never;
         delete?: never;
@@ -7147,7 +7483,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["list_14"];
+        get: operations["list_16"];
         put?: never;
         post?: never;
         delete?: never;
@@ -7172,6 +7508,38 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/feed/reels": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["reels_1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/feed/seen": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["seen"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/feedback": {
         parameters: {
             query?: never;
@@ -7181,7 +7549,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["create_5"];
+        post: operations["create_6"];
         delete?: never;
         options?: never;
         head?: never;
@@ -7227,7 +7595,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["list_13"];
+        get: operations["list_15"];
         put?: never;
         post?: never;
         delete?: never;
@@ -7323,7 +7691,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["get_16"];
+        get: operations["get_18"];
         put?: never;
         post?: never;
         delete?: never;
@@ -7419,7 +7787,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["get_15"];
+        get: operations["get_17"];
         put?: never;
         post?: never;
         delete?: never;
@@ -7486,7 +7854,7 @@ export interface paths {
         get?: never;
         put?: never;
         post?: never;
-        delete: operations["delete_6"];
+        delete: operations["delete_7"];
         options?: never;
         head?: never;
         patch: operations["edit"];
@@ -7531,7 +7899,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["list_12"];
+        get: operations["list_14"];
         put?: never;
         post?: never;
         delete?: never;
@@ -7579,7 +7947,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["get_14"];
+        get: operations["get_16"];
         put?: never;
         post?: never;
         delete?: never;
@@ -7595,7 +7963,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["list_11"];
+        get: operations["list_13"];
         put?: never;
         post?: never;
         delete: operations["deleteAll"];
@@ -7691,9 +8059,9 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["list"];
+        get: operations["list_1"];
         put?: never;
-        post: operations["create_4"];
+        post: operations["create_5"];
         delete?: never;
         options?: never;
         head?: never;
@@ -7723,13 +8091,13 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["get_5"];
+        get: operations["get_6"];
         put?: never;
         post?: never;
-        delete: operations["delete_5"];
+        delete: operations["delete_6"];
         options?: never;
         head?: never;
-        patch: operations["update_10"];
+        patch: operations["update_11"];
         trace?: never;
     };
     "/api/polls/{id}/close": {
@@ -7780,6 +8148,54 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/post-comments/{cid}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["get_15"];
+        put?: never;
+        post?: never;
+        delete: operations["delete_16"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/post-comments/{cid}/like": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["like_1"];
+        post?: never;
+        delete: operations["unlike_1"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/post-comments/{cid}/replies": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["replies"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/posts": {
         parameters: {
             query?: never;
@@ -7819,10 +8235,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["get_13"];
+        get: operations["get_14"];
         put?: never;
         post?: never;
-        delete: operations["delete_14"];
+        delete: operations["delete_15"];
         options?: never;
         head?: never;
         patch?: never;
@@ -7844,6 +8260,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/posts/saved": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["saved"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/posts/{id}": {
         parameters: {
             query?: never;
@@ -7851,13 +8283,29 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["get_4"];
+        get: operations["get_5"];
         put?: never;
         post?: never;
-        delete: operations["delete_4"];
+        delete: operations["delete_5"];
         options?: never;
         head?: never;
-        patch: operations["update_9"];
+        patch: operations["update_10"];
+        trace?: never;
+    };
+    "/api/posts/{id}/comments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["list"];
+        put?: never;
+        post: operations["create_4"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/api/posts/{id}/like": {
@@ -7871,6 +8319,54 @@ export interface paths {
         put: operations["like"];
         post?: never;
         delete: operations["unlike"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/posts/{id}/not-interested": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["notInterested"];
+        delete: operations["undoNotInterested"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/posts/{id}/save": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["save"];
+        post?: never;
+        delete: operations["unsave"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/posts/{id}/view": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["view_1"];
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -8158,10 +8654,10 @@ export interface paths {
         get?: never;
         put?: never;
         post?: never;
-        delete: operations["delete_3"];
+        delete: operations["delete_4"];
         options?: never;
         head?: never;
-        patch: operations["update_8"];
+        patch: operations["update_9"];
         trace?: never;
     };
     "/api/timetable/exams": {
@@ -8238,6 +8734,54 @@ export interface paths {
         get?: never;
         put?: never;
         post: operations["importCourses"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/timetable/official": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["official"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/timetable/official/apply": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["officialApply"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/timetable/official/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["officialStatus"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -8385,7 +8929,7 @@ export interface paths {
         delete: operations["deleteAccount"];
         options?: never;
         head?: never;
-        patch: operations["update_7"];
+        patch: operations["update_8"];
         trace?: never;
     };
     "/api/users/me/avatar": {
@@ -8427,7 +8971,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["get_12"];
+        get: operations["get_13"];
         put?: never;
         post?: never;
         delete?: never;
@@ -8459,7 +9003,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["list_10"];
+        get: operations["list_12"];
         put?: never;
         post?: never;
         delete?: never;
@@ -8571,7 +9115,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["get_11"];
+        get: operations["get_12"];
         put?: never;
         post?: never;
         delete?: never;
@@ -8676,6 +9220,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/users/{id}/reels": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["reels"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/error": {
         parameters: {
             query?: never;
@@ -8699,7 +9259,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["get_10"];
+        get: operations["get_11"];
         put?: never;
         post?: never;
         delete?: never;
@@ -8715,7 +9275,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["get_9"];
+        get: operations["get_10"];
         put?: never;
         post?: never;
         delete?: never;
@@ -8731,7 +9291,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["get_8"];
+        get: operations["get_9"];
         put?: never;
         post?: never;
         delete?: never;
@@ -8815,6 +9375,17 @@ export interface components {
             /** Format: int64 */
             id?: number | null;
             status?: string | null;
+        };
+        ActionStat: {
+            /** Format: int32 */
+            count?: number | null;
+            kind?: string | null;
+            perScreen?: components["schemas"]["ScreenCount"][];
+            /** Format: int32 */
+            users?: number | null;
+        };
+        Actions: {
+            items?: components["schemas"]["ActionStat"][];
         };
         ActiveRequest: {
             active: boolean;
@@ -9106,6 +9677,41 @@ export interface components {
             /** Format: int32 */
             totalPages?: number | null;
         };
+        AdminPlace: {
+            active?: boolean | null;
+            category?: string | null;
+            /** Format: date-time */
+            createdAt?: string | null;
+            departments?: string[];
+            footprint?: number[][];
+            /** Format: int64 */
+            id?: number | null;
+            /** Format: double */
+            lat?: number | null;
+            /** Format: double */
+            lng?: number | null;
+            name?: string | null;
+            photoUrl?: string | null;
+            remote?: boolean | null;
+            /** Format: int32 */
+            sortKey?: number | null;
+            sourceRef?: string | null;
+            summary?: string | null;
+            unitSourceCode?: string | null;
+            units?: string[];
+            /** Format: date-time */
+            updatedAt?: string | null;
+            webUrl?: string | null;
+        };
+        AdminPlacePage: {
+            items?: components["schemas"]["AdminPlace"][];
+            /** Format: int32 */
+            page?: number | null;
+            /** Format: int32 */
+            size?: number | null;
+            /** Format: int64 */
+            total?: number | null;
+        };
         AdminPollPage: {
             items?: components["schemas"]["AdminPollRow"][];
             /** Format: int32 */
@@ -9136,6 +9742,11 @@ export interface components {
             /** Format: int32 */
             totalVotes?: number | null;
             type?: string | null;
+        };
+        AdminProgramsView: {
+            items?: components["schemas"]["ProgramSummary"][];
+            term?: string | null;
+            terms?: components["schemas"]["TermView"][];
         };
         AdminRow: {
             displayName?: string | null;
@@ -9400,7 +10011,7 @@ export interface components {
             /** Format: int64 */
             targetId: number;
             /** @enum {string} */
-            targetType: "USER" | "MESSAGE" | "POST" | "COMMUNITY" | "EVENT" | "MESSAGE_IMAGE" | "USER_AVATAR" | "COMMUNITY_COVER" | "EVENT_COVER" | "FEED_POST" | "CONVERSATION" | "ANNOUNCEMENT" | "POLL";
+            targetType: "USER" | "MESSAGE" | "POST" | "COMMUNITY" | "EVENT" | "MESSAGE_IMAGE" | "USER_AVATAR" | "COMMUNITY_COVER" | "EVENT_COVER" | "FEED_POST" | "CONVERSATION" | "ANNOUNCEMENT" | "POLL" | "COMMENT";
         };
         AppealView: {
             adminNote?: string | null;
@@ -9414,7 +10025,7 @@ export interface components {
             /** Format: int64 */
             targetId?: number | null;
             /** @enum {string|null} */
-            targetType?: "USER" | "MESSAGE" | "POST" | "COMMUNITY" | "EVENT" | "MESSAGE_IMAGE" | "USER_AVATAR" | "COMMUNITY_COVER" | "EVENT_COVER" | "FEED_POST" | "CONVERSATION" | "ANNOUNCEMENT" | "POLL" | null;
+            targetType?: "USER" | "MESSAGE" | "POST" | "COMMUNITY" | "EVENT" | "MESSAGE_IMAGE" | "USER_AVATAR" | "COMMUNITY_COVER" | "EVENT_COVER" | "FEED_POST" | "CONVERSATION" | "ANNOUNCEMENT" | "POLL" | "COMMENT" | null;
             /** Format: int64 */
             userId?: number | null;
         };
@@ -9487,8 +10098,9 @@ export interface components {
             updatedAt?: string | null;
         };
         ApplyRequest: {
-            answers?: string[];
-            note?: string | null;
+            force?: boolean | null;
+            replace?: boolean | null;
+            unit?: string | null;
         };
         ArchiveRequest: {
             keepArchived?: boolean | null;
@@ -9676,8 +10288,12 @@ export interface components {
             avatarUrl?: string | null;
             department?: string | null;
             displayName?: string | null;
+            /** Format: int32 */
+            followerCount?: number | null;
             /** Format: int64 */
             id?: number | null;
+            /** Format: int32 */
+            popularityScore?: number | null;
         };
         BackupReport: {
             lastStatus?: string | null;
@@ -9772,6 +10388,16 @@ export interface components {
             targetId?: number | null;
             /** @enum {string|null} */
             targetType?: "NEWS" | null;
+        };
+        Bounds: {
+            /** Format: double */
+            east?: number | null;
+            /** Format: double */
+            north?: number | null;
+            /** Format: double */
+            south?: number | null;
+            /** Format: double */
+            west?: number | null;
         };
         Breakdown: {
             dimension?: string | null;
@@ -9923,6 +10549,12 @@ export interface components {
             grades?: components["schemas"]["Grade"][];
             /** Format: int32 */
             version?: number | null;
+        };
+        CategoryView: {
+            color?: string | null;
+            icon?: string | null;
+            key?: string | null;
+            label?: string | null;
         };
         Certificate: {
             code?: string | null;
@@ -10102,6 +10734,40 @@ export interface components {
             /** Format: int32 */
             expiresInMinutes?: number | null;
             status?: string | null;
+        };
+        CommentAuthor: {
+            avatarUrl?: string | null;
+            department?: string | null;
+            displayName?: string | null;
+            /** Format: int64 */
+            id?: number | null;
+        };
+        CommentPage: {
+            items?: components["schemas"]["CommentView"][];
+            nextCursor?: string | null;
+            /** Format: int64 */
+            total?: number | null;
+        };
+        CommentView: {
+            author?: components["schemas"]["CommentAuthor"] | null;
+            byPostAuthor?: boolean | null;
+            canDelete?: boolean | null;
+            /** Format: date-time */
+            createdAt?: string | null;
+            /** Format: int64 */
+            id?: number | null;
+            /** Format: int32 */
+            likeCount?: number | null;
+            likedByMe?: boolean | null;
+            mine?: boolean | null;
+            /** Format: int64 */
+            parentId?: number | null;
+            /** Format: int64 */
+            postId?: number | null;
+            /** Format: int32 */
+            replyCount?: number | null;
+            replyTo?: components["schemas"]["ReplyTo"] | null;
+            text?: string | null;
         };
         CommunityDtosMemberView: {
             avatarUrl?: string | null;
@@ -10341,6 +11007,12 @@ export interface components {
             /** Format: int64 */
             unreadCount?: number | null;
         };
+        Coord: {
+            /** Format: double */
+            lat?: number | null;
+            /** Format: double */
+            lng?: number | null;
+        };
         CountView: {
             /** Format: int32 */
             count?: number | null;
@@ -10443,6 +11115,11 @@ export interface components {
             /** @enum {string|null} */
             type?: "NEWS" | "ANNOUNCEMENT" | "EVENT" | "MESSAGE" | "COMMUNITY" | "SYSTEM" | "POST_LIKE" | "POST_COMMENT" | "COMMENT_REPLY" | "POST_MENTION" | "USER_FOLLOW" | "FOLLOW_REQUEST" | "FOLLOW_ACCEPTED" | null;
         };
+        CreateCommentRequest: {
+            /** Format: int64 */
+            parentId?: number | null;
+            text?: string | null;
+        };
         CreateCommunityRequest: {
             category?: string | null;
             description?: string | null;
@@ -10492,7 +11169,7 @@ export interface components {
             /** Format: int64 */
             targetId: number;
             /** @enum {string} */
-            targetType: "USER" | "MESSAGE" | "POST" | "COMMUNITY" | "EVENT" | "MESSAGE_IMAGE" | "USER_AVATAR" | "COMMUNITY_COVER" | "EVENT_COVER" | "FEED_POST" | "CONVERSATION" | "ANNOUNCEMENT" | "POLL";
+            targetType: "USER" | "MESSAGE" | "POST" | "COMMUNITY" | "EVENT" | "MESSAGE_IMAGE" | "USER_AVATAR" | "COMMUNITY_COVER" | "EVENT_COVER" | "FEED_POST" | "CONVERSATION" | "ANNOUNCEMENT" | "POLL" | "COMMENT";
         };
         CreateRequest: {
             allowChangeVote?: boolean | null;
@@ -10674,6 +11351,11 @@ export interface components {
         DeleteAccountRequest: {
             password: string;
         };
+        DeleteResult: {
+            deleted?: boolean | null;
+            /** Format: int64 */
+            id?: number | null;
+        };
         DeletedCount: {
             /** Format: int32 */
             deleted?: number | null;
@@ -10766,6 +11448,15 @@ export interface components {
             content: components["schemas"]["LangContentRequest"];
             lang?: string | null;
         };
+        DropOff: {
+            /** Format: int32 */
+            entered?: number | null;
+            /** Format: int32 */
+            left?: number | null;
+            /** Format: double */
+            leftRate?: number | null;
+            screen?: string | null;
+        };
         EditMessageRequest: {
             text: string;
         };
@@ -10827,6 +11518,28 @@ export interface components {
         EntryPage: {
             items?: components["schemas"]["Entry"][];
             nextCursor?: string | null;
+        };
+        EntryView: {
+            code?: string | null;
+            /** Format: int32 */
+            day?: number | null;
+            department?: string | null;
+            end?: string | null;
+            faculty?: string | null;
+            grade?: string | null;
+            group?: string | null;
+            /** Format: int64 */
+            id?: number | null;
+            instructor?: string | null;
+            name?: string | null;
+            note?: string | null;
+            program?: string | null;
+            published?: boolean | null;
+            room?: string | null;
+            sourceUrl?: string | null;
+            start?: string | null;
+            term?: string | null;
+            unit?: string | null;
         };
         EventChatView: {
             closed?: boolean | null;
@@ -11047,6 +11760,7 @@ export interface components {
             validated?: boolean | null;
         };
         FeedPage: {
+            exhausted?: boolean | null;
             hint?: string | null;
             items?: components["schemas"]["PostDtosPostView"][];
             locked?: boolean | null;
@@ -11095,6 +11809,12 @@ export interface components {
             /** @enum {string|null} */
             role?: "USER" | "ADMIN" | null;
         };
+        Flows: {
+            dropOff?: components["schemas"]["DropOff"][];
+            entryScreens?: components["schemas"]["ScreenSessions"][];
+            exitScreens?: components["schemas"]["ScreenSessions"][];
+            topTransitions?: components["schemas"]["Transition"][];
+        };
         FollowResult: {
             followState?: string | null;
             /** Format: int64 */
@@ -11131,7 +11851,7 @@ export interface components {
         Group: {
             items?: components["schemas"]["SearchHit"][];
             /** @enum {string|null} */
-            type?: "NEWS" | "ANNOUNCEMENT" | "EVENT_OFFICIAL" | "COMMUNITY" | "EVENT" | "POSTS" | null;
+            type?: "NEWS" | "ANNOUNCEMENT" | "EVENT_OFFICIAL" | "COMMUNITY" | "EVENT" | "POSTS" | "REELS" | null;
         };
         GroupDetail: {
             events?: components["schemas"]["EventRow"][];
@@ -11177,7 +11897,7 @@ export interface components {
             /** Format: int64 */
             targetId?: number | null;
             /** @enum {string|null} */
-            targetType?: "USER" | "MESSAGE" | "POST" | "COMMUNITY" | "EVENT" | "MESSAGE_IMAGE" | "USER_AVATAR" | "COMMUNITY_COVER" | "EVENT_COVER" | "FEED_POST" | "CONVERSATION" | "ANNOUNCEMENT" | "POLL" | null;
+            targetType?: "USER" | "MESSAGE" | "POST" | "COMMUNITY" | "EVENT" | "MESSAGE_IMAGE" | "USER_AVATAR" | "COMMUNITY_COVER" | "EVENT_COVER" | "FEED_POST" | "CONVERSATION" | "ANNOUNCEMENT" | "POLL" | "COMMENT" | null;
         };
         IdsRequest: {
             ids?: number[];
@@ -11409,6 +12129,16 @@ export interface components {
         Maintenance: {
             enabled?: boolean | null;
             message?: string | null;
+        };
+        MapConfig: {
+            boundary?: number[][];
+            bounds?: components["schemas"]["Bounds"] | null;
+            categories?: components["schemas"]["CategoryView"][];
+            center?: components["schemas"]["Coord"] | null;
+            tiles?: components["schemas"]["Tiles"] | null;
+            /** Format: int64 */
+            version?: number | null;
+            zoom?: components["schemas"]["Zoom"] | null;
         };
         MarkReadRequest: {
             all?: boolean | null;
@@ -11899,6 +12629,18 @@ export interface components {
             name?: string | null;
             startDate?: string | null;
         };
+        OfficialStatus: {
+            applied?: boolean | null;
+            available?: boolean | null;
+            term?: string | null;
+            units?: string[];
+        };
+        OfficialView: {
+            items?: components["schemas"]["EntryView"][];
+            profileComplete?: boolean | null;
+            term?: string | null;
+            units?: string[];
+        };
         OpsHealth: {
             components?: {
                 [key: string]: components["schemas"]["ComponentStatus"];
@@ -11968,6 +12710,11 @@ export interface components {
             /** @enum {string|null} */
             overall?: "OK" | "WARN" | "CRIT" | "UNKNOWN" | null;
         };
+        Page: {
+            items?: components["schemas"]["Row"][];
+            /** Format: int64 */
+            nextCursor?: number | null;
+        };
         PageAdminAcademicEventView: {
             items?: components["schemas"]["AdminAcademicEventView"][];
             /** Format: int32 */
@@ -11988,6 +12735,15 @@ export interface components {
         };
         PageAdminExamScheduleView: {
             items?: components["schemas"]["AdminExamScheduleView"][];
+            /** Format: int32 */
+            page?: number | null;
+            /** Format: int32 */
+            size?: number | null;
+            /** Format: int64 */
+            total?: number | null;
+        };
+        PageEntryView: {
+            items?: components["schemas"]["EntryView"][];
             /** Format: int32 */
             page?: number | null;
             /** Format: int32 */
@@ -12193,6 +12949,45 @@ export interface components {
             /** Format: int64 */
             id?: number | null;
         };
+        PlaceList: {
+            items?: components["schemas"]["PlaceView"][];
+        };
+        PlaceRequest: {
+            active?: boolean | null;
+            category: string;
+            footprint?: number[][];
+            /** Format: double */
+            lat: number;
+            /** Format: double */
+            lng: number;
+            name: string;
+            remote?: boolean | null;
+            /** Format: int32 */
+            sortKey?: number | null;
+            summary?: string | null;
+            units?: string[];
+            webUrl?: string | null;
+        };
+        PlaceView: {
+            category?: string | null;
+            departments?: string[];
+            footprint?: number[][];
+            /** Format: int64 */
+            id?: number | null;
+            /** Format: double */
+            lat?: number | null;
+            /** Format: double */
+            lng?: number | null;
+            name?: string | null;
+            photoUrl?: string | null;
+            remote?: boolean | null;
+            /** Format: int32 */
+            sortKey?: number | null;
+            summary?: string | null;
+            unitSourceCode?: string | null;
+            units?: string[];
+            webUrl?: string | null;
+        };
         PollPage: {
             items?: components["schemas"]["PollView"][];
             /** Format: int64 */
@@ -12262,6 +13057,8 @@ export interface components {
             author?: components["schemas"]["AuthorView"] | null;
             canDelete?: boolean | null;
             canEdit?: boolean | null;
+            /** Format: int32 */
+            commentCount?: number | null;
             /** Format: date-time */
             createdAt?: string | null;
             /** Format: date-time */
@@ -12273,7 +13070,14 @@ export interface components {
             likedByMe?: boolean | null;
             media?: components["schemas"]["MediaView"][];
             mine?: boolean | null;
+            /** Format: int32 */
+            popularityScore?: number | null;
+            savedByMe?: boolean | null;
             text?: string | null;
+            type?: string | null;
+            video?: components["schemas"]["VideoView"] | null;
+            /** Format: int32 */
+            viewCount?: number | null;
         };
         PostEditRequest: {
             reason?: string | null;
@@ -12286,6 +13090,8 @@ export interface components {
         };
         PostRow: {
             author?: components["schemas"]["Author"] | null;
+            /** Format: int32 */
+            avgCompletionPct?: number | null;
             createdAt?: string | null;
             deleted?: boolean | null;
             deletedAt?: string | null;
@@ -12305,6 +13111,9 @@ export interface components {
             /** Format: int32 */
             openReportCount?: number | null;
             text?: string | null;
+            type?: string | null;
+            /** Format: int32 */
+            viewCount?: number | null;
         };
         PrefsUpdate: {
             academicAnnouncements?: boolean | null;
@@ -12397,13 +13206,34 @@ export interface components {
             displayName?: string | null;
             email?: string | null;
             faculty?: string | null;
+            /** Format: int32 */
+            followerCount?: number | null;
             grade?: string | null;
             /** Format: int64 */
             id?: number | null;
             language?: string | null;
+            /** Format: int64 */
+            likesReceived?: number | null;
+            /** Format: int32 */
+            popularityScore?: number | null;
+            /** Format: int32 */
+            postCount?: number | null;
+            /** Format: int64 */
+            reelCount?: number | null;
             /** @enum {string|null} */
             role?: "USER" | "ADMIN" | null;
             showEmail?: boolean | null;
+        };
+        ProgramSummary: {
+            catalogMatched?: boolean | null;
+            department?: string | null;
+            faculty?: string | null;
+            grades?: string[];
+            program?: string | null;
+            published?: boolean | null;
+            /** Format: int32 */
+            sessions?: number | null;
+            unit?: string | null;
         };
         ProposeRequest: {
             /** @enum {string} */
@@ -12442,7 +13272,15 @@ export interface components {
             /** Format: int64 */
             id?: number | null;
             isPrivate?: boolean | null;
+            /** Format: int64 */
+            likesReceived?: number | null;
             locked?: boolean | null;
+            /** Format: int32 */
+            popularityScore?: number | null;
+            /** Format: int32 */
+            postCount?: number | null;
+            /** Format: int64 */
+            reelCount?: number | null;
         };
         PublishRequest: {
             ar?: components["schemas"]["Translation"] | null;
@@ -12712,7 +13550,7 @@ export interface components {
             acceptTerms?: boolean | null;
             adminPortal?: boolean | null;
             department?: string | null;
-            displayName: string;
+            displayName?: string | null;
             email: string;
             faculty?: string | null;
             grade?: string | null;
@@ -12791,6 +13629,13 @@ export interface components {
         };
         ReplyRequest: {
             text: string;
+        };
+        ReplyTo: {
+            /** Format: int64 */
+            authorId?: number | null;
+            /** Format: int64 */
+            commentId?: number | null;
+            displayName?: string | null;
         };
         ReplyView: {
             deleted?: boolean | null;
@@ -12909,7 +13754,7 @@ export interface components {
             /** Format: int64 */
             targetId?: number | null;
             /** @enum {string|null} */
-            targetType?: "USER" | "MESSAGE" | "POST" | "COMMUNITY" | "EVENT" | "MESSAGE_IMAGE" | "USER_AVATAR" | "COMMUNITY_COVER" | "EVENT_COVER" | "FEED_POST" | "CONVERSATION" | "ANNOUNCEMENT" | "POLL" | null;
+            targetType?: "USER" | "MESSAGE" | "POST" | "COMMUNITY" | "EVENT" | "MESSAGE_IMAGE" | "USER_AVATAR" | "COMMUNITY_COVER" | "EVENT_COVER" | "FEED_POST" | "CONVERSATION" | "ANNOUNCEMENT" | "POLL" | "COMMENT" | null;
             viewerPath?: string | null;
         };
         RequestCounts: {
@@ -12969,7 +13814,7 @@ export interface components {
             /** Format: int64 */
             targetId?: number | null;
             /** @enum {string|null} */
-            targetType?: "USER" | "MESSAGE" | "POST" | "COMMUNITY" | "EVENT" | "MESSAGE_IMAGE" | "USER_AVATAR" | "COMMUNITY_COVER" | "EVENT_COVER" | "FEED_POST" | "CONVERSATION" | "ANNOUNCEMENT" | "POLL" | null;
+            targetType?: "USER" | "MESSAGE" | "POST" | "COMMUNITY" | "EVENT" | "MESSAGE_IMAGE" | "USER_AVATAR" | "COMMUNITY_COVER" | "EVENT_COVER" | "FEED_POST" | "CONVERSATION" | "ANNOUNCEMENT" | "POLL" | "COMMENT" | null;
             unhidden?: boolean | null;
         };
         Result: {
@@ -13013,6 +13858,32 @@ export interface components {
             /** Format: int32 */
             rewrapped?: number | null;
         };
+        Row: {
+            author?: components["schemas"]["Author"] | null;
+            createdAt?: string | null;
+            deleted?: boolean | null;
+            deletedAt?: string | null;
+            /** Format: int64 */
+            deletedBy?: number | null;
+            hidden?: boolean | null;
+            hiddenAt?: string | null;
+            hiddenReason?: string | null;
+            /** Format: int64 */
+            id?: number | null;
+            /** Format: int32 */
+            likeCount?: number | null;
+            /** Format: int32 */
+            openReportCount?: number | null;
+            /** Format: int64 */
+            parentId?: number | null;
+            /** Format: int64 */
+            postId?: number | null;
+            /** Format: int32 */
+            replyCount?: number | null;
+            /** Format: int64 */
+            replyToId?: number | null;
+            text?: string | null;
+        };
         RsvpRequest: {
             /** @enum {string} */
             status: "GOING" | "INTERESTED" | "PENDING" | "REJECTED";
@@ -13040,6 +13911,11 @@ export interface components {
             nameEn?: string | null;
             nameTr: string;
         };
+        SaveState: {
+            /** Format: int64 */
+            saveCount?: number | null;
+            saved?: boolean | null;
+        };
         Schedule: {
             cron?: string | null;
             remoteCron?: string | null;
@@ -13049,14 +13925,54 @@ export interface components {
             /** Format: date-time */
             scheduledAt?: string | null;
         };
+        ScreenCount: {
+            /** Format: int32 */
+            count?: number | null;
+            screen?: string | null;
+        };
+        ScreenSessions: {
+            screen?: string | null;
+            /** Format: int32 */
+            sessions?: number | null;
+        };
+        ScreenStat: {
+            /** Format: int64 */
+            avgDwellMs?: number | null;
+            /** Format: double */
+            bounceRate?: number | null;
+            /** Format: double */
+            exitRate?: number | null;
+            /** Format: int64 */
+            medianDwellMs?: number | null;
+            /** Format: int64 */
+            p90DwellMs?: number | null;
+            screen?: string | null;
+            /** Format: double */
+            sharePct?: number | null;
+            /** Format: int32 */
+            users?: number | null;
+            /** Format: int32 */
+            views?: number | null;
+        };
         ScreenViews: {
             screen?: string | null;
             /** Format: int64 */
             views?: number | null;
         };
+        ScreensPage: {
+            items?: components["schemas"]["ScreenStat"][];
+            /** Format: int32 */
+            page?: number | null;
+            /** Format: int32 */
+            size?: number | null;
+            /** Format: int64 */
+            total?: number | null;
+        };
         SearchHit: {
             category?: string | null;
             date?: string | null;
+            /** Format: int32 */
+            durationMs?: number | null;
             endsAt?: string | null;
             imageUrl?: string | null;
             /** Format: int64 */
@@ -13070,13 +13986,16 @@ export interface components {
             targetId?: number | null;
             title?: string | null;
             /** @enum {string|null} */
-            type?: "NEWS" | "ANNOUNCEMENT" | "EVENT_OFFICIAL" | "COMMUNITY" | "EVENT" | "POSTS" | null;
+            type?: "NEWS" | "ANNOUNCEMENT" | "EVENT_OFFICIAL" | "COMMUNITY" | "EVENT" | "POSTS" | "REELS" | null;
         };
         SearchResult: {
             groups?: components["schemas"]["Group"][];
             /** Format: int64 */
             nextCursor?: number | null;
             q?: string | null;
+        };
+        SeenRequest: {
+            ids: number[];
         };
         SemesterRequest: {
             current?: boolean | null;
@@ -13149,6 +14068,19 @@ export interface components {
             items?: components["schemas"]["SessionInfo"][];
             /** Format: int32 */
             total?: number | null;
+        };
+        SessionOut: {
+            bounce?: boolean | null;
+            /** Format: int64 */
+            durationMs?: number | null;
+            /** Format: date-time */
+            endedAt?: string | null;
+            quickClose?: boolean | null;
+            reason?: string | null;
+            sid?: string | null;
+            /** Format: date-time */
+            startedAt?: string | null;
+            steps?: components["schemas"]["StepOut"][];
         };
         SessionView: {
             /** Format: int32 */
@@ -13256,6 +14188,15 @@ export interface components {
             /** Format: int64 */
             trustedDeviceCount?: number | null;
         };
+        StepOut: {
+            /** Format: date-time */
+            at?: string | null;
+            /** Format: int64 */
+            dwellMs?: number | null;
+            kind?: string | null;
+            screen?: string | null;
+            type?: string | null;
+        };
         StoredPreviewRequest: {
             lang?: string | null;
             /** Format: int32 */
@@ -13278,7 +14219,7 @@ export interface components {
             /** Format: int64 */
             targetId?: number | null;
             /** @enum {string|null} */
-            targetType?: "USER" | "MESSAGE" | "POST" | "COMMUNITY" | "EVENT" | "MESSAGE_IMAGE" | "USER_AVATAR" | "COMMUNITY_COVER" | "EVENT_COVER" | "FEED_POST" | "CONVERSATION" | "ANNOUNCEMENT" | "POLL" | null;
+            targetType?: "USER" | "MESSAGE" | "POST" | "COMMUNITY" | "EVENT" | "MESSAGE_IMAGE" | "USER_AVATAR" | "COMMUNITY_COVER" | "EVENT_COVER" | "FEED_POST" | "CONVERSATION" | "ANNOUNCEMENT" | "POLL" | "COMMENT" | null;
             userEmail?: string | null;
             /** Format: int64 */
             userId?: number | null;
@@ -13551,6 +14492,13 @@ export interface components {
             subject?: string | null;
             updatedAt?: string | null;
         };
+        Tiles: {
+            attribution?: string | null;
+            /** Format: int32 */
+            maxNativeZoom?: number | null;
+            urlTemplate?: string | null;
+            userAgentHint?: string | null;
+        };
         TimelineEvent: {
             at?: string | null;
             detail?: string | null;
@@ -13625,6 +14573,12 @@ export interface components {
             toName?: string | null;
             /** Format: int64 */
             toUserId?: number | null;
+        };
+        Transition: {
+            /** Format: int32 */
+            count?: number | null;
+            from?: string | null;
+            to?: string | null;
         };
         Translation: {
             content: string;
@@ -13757,9 +14711,22 @@ export interface components {
             /** Format: int32 */
             width?: number | null;
         };
+        UserDetail: {
+            sessions?: components["schemas"]["SessionOut"][];
+            summary?: components["schemas"]["UserSummary"] | null;
+            user?: components["schemas"]["UserInfo"] | null;
+        };
         UserDevices: {
             devices?: components["schemas"]["DeviceView"][];
             unidentifiedIps?: components["schemas"]["IpSeen"][];
+            /** Format: int64 */
+            userId?: number | null;
+        };
+        UserInfo: {
+            department?: string | null;
+            displayName?: string | null;
+            email?: string | null;
+            grade?: string | null;
             /** Format: int64 */
             userId?: number | null;
         };
@@ -13781,6 +14748,17 @@ export interface components {
             items?: components["schemas"]["UserItem"][];
             locked?: boolean | null;
             nextCursor?: string | null;
+        };
+        UserRow: {
+            displayName?: string | null;
+            email?: string | null;
+            enabledAt?: string | null;
+            lastLoginAt?: string | null;
+            role?: string | null;
+            /** Format: int64 */
+            trustedDeviceCount?: number | null;
+            /** Format: int64 */
+            userId?: number | null;
         };
         UserSearchResult: {
             items?: components["schemas"]["PublicProfile"][];
@@ -13823,6 +14801,15 @@ export interface components {
             email?: string | null;
             /** Format: int64 */
             id?: number | null;
+        };
+        UsersPage: {
+            items?: components["schemas"]["UserRow"][];
+            /** Format: int32 */
+            page?: number | null;
+            /** Format: int32 */
+            size?: number | null;
+            /** Format: int64 */
+            total?: number | null;
         };
         VariableInfo: {
             automatic?: boolean | null;
@@ -13910,6 +14897,24 @@ export interface components {
             /** Format: int32 */
             version?: number | null;
         };
+        VideoView: {
+            /** Format: int32 */
+            durationMs?: number | null;
+            /** Format: int32 */
+            height?: number | null;
+            /** Format: int64 */
+            id?: number | null;
+            posterUrl?: string | null;
+            url?: string | null;
+            /** Format: int32 */
+            width?: number | null;
+        };
+        ViewRequest: {
+            /** Format: int64 */
+            durationMs?: number | null;
+            /** Format: int64 */
+            watchedMs?: number | null;
+        };
         VoteRequest: {
             optionIds?: number[];
             /** Format: int32 */
@@ -13924,6 +14929,14 @@ export interface components {
         WeekView: {
             days?: components["schemas"]["WeekDay"][];
             weekStart?: string | null;
+        };
+        Zoom: {
+            /** Format: int32 */
+            initial?: number | null;
+            /** Format: int32 */
+            max?: number | null;
+            /** Format: int32 */
+            min?: number | null;
         };
     };
     responses: never;
@@ -14979,7 +15992,300 @@ export interface operations {
             };
         };
     };
-    list_9: {
+    entries: {
+        parameters: {
+            query: {
+                page?: number;
+                size?: number;
+                term: string;
+                unit: string;
+                program: string;
+                grade?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["PageEntryView"];
+                };
+            };
+            /** @description Dogrulama / is kurali hatasi (code alanina bakin) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Token yok/gecersiz/suresi dolmus */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description ADMIN rolu gerekli */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    importXlsx: {
+        parameters: {
+            query?: {
+                term?: string;
+                dryRun?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "multipart/form-data": {
+                    /** Format: binary */
+                    file: string;
+                };
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ImportResult"];
+                };
+            };
+            /** @description Dogrulama / is kurali hatasi (code alanina bakin) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Token yok/gecersiz/suresi dolmus */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description ADMIN rolu gerekli */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description RATE_LIMITED: istek siniri asildi */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    programs: {
+        parameters: {
+            query?: {
+                term?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["AdminProgramsView"];
+                };
+            };
+            /** @description Dogrulama / is kurali hatasi (code alanina bakin) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Token yok/gecersiz/suresi dolmus */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description ADMIN rolu gerekli */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    deleteProgram: {
+        parameters: {
+            query: {
+                term: string;
+                unit: string;
+                program: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": {
+                        [key: string]: number;
+                    };
+                };
+            };
+            /** @description Dogrulama / is kurali hatasi (code alanina bakin) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Token yok/gecersiz/suresi dolmus */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description ADMIN rolu gerekli */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description RATE_LIMITED: istek siniri asildi */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    publish_2: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PublishRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": {
+                        [key: string]: number;
+                    };
+                };
+            };
+            /** @description Dogrulama / is kurali hatasi (code alanina bakin) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Token yok/gecersiz/suresi dolmus */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description ADMIN rolu gerekli */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description RATE_LIMITED: istek siniri asildi */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    list_11: {
         parameters: {
             query?: {
                 kind?: string;
@@ -15032,7 +16338,7 @@ export interface operations {
             };
         };
     };
-    create_15: {
+    create_17: {
         parameters: {
             query?: never;
             header?: never;
@@ -15614,6 +16920,316 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["ActiveUsersReport"];
+                };
+            };
+            /** @description Dogrulama / is kurali hatasi (code alanina bakin) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Token yok/gecersiz/suresi dolmus */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description ADMIN rolu gerekli */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    actions: {
+        parameters: {
+            query?: {
+                from?: string;
+                to?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["Actions"];
+                };
+            };
+            /** @description Dogrulama / is kurali hatasi (code alanina bakin) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Token yok/gecersiz/suresi dolmus */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description ADMIN rolu gerekli */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    flows: {
+        parameters: {
+            query?: {
+                from?: string;
+                to?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["Flows"];
+                };
+            };
+            /** @description Dogrulama / is kurali hatasi (code alanina bakin) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Token yok/gecersiz/suresi dolmus */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description ADMIN rolu gerekli */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    overview_2: {
+        parameters: {
+            query?: {
+                from?: string;
+                to?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["Overview"];
+                };
+            };
+            /** @description Dogrulama / is kurali hatasi (code alanina bakin) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Token yok/gecersiz/suresi dolmus */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description ADMIN rolu gerekli */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    screens: {
+        parameters: {
+            query?: {
+                from?: string;
+                to?: string;
+                sort?: string;
+                dir?: string;
+                page?: number;
+                size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ScreensPage"];
+                };
+            };
+            /** @description Dogrulama / is kurali hatasi (code alanina bakin) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Token yok/gecersiz/suresi dolmus */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description ADMIN rolu gerekli */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    users_1: {
+        parameters: {
+            query?: {
+                from?: string;
+                to?: string;
+                sort?: string;
+                dir?: string;
+                q?: string;
+                page?: number;
+                size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["UsersPage"];
+                };
+            };
+            /** @description Dogrulama / is kurali hatasi (code alanina bakin) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Token yok/gecersiz/suresi dolmus */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description ADMIN rolu gerekli */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    userDetail: {
+        parameters: {
+            query?: {
+                days?: number;
+            };
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["UserDetail"];
                 };
             };
             /** @description Dogrulama / is kurali hatasi (code alanina bakin) */
@@ -16589,7 +18205,7 @@ export interface operations {
         parameters: {
             query?: {
                 status?: string;
-                targetType?: "USER" | "MESSAGE" | "POST" | "COMMUNITY" | "EVENT" | "MESSAGE_IMAGE" | "USER_AVATAR" | "COMMUNITY_COVER" | "EVENT_COVER" | "FEED_POST" | "CONVERSATION" | "ANNOUNCEMENT" | "POLL";
+                targetType?: "USER" | "MESSAGE" | "POST" | "COMMUNITY" | "EVENT" | "MESSAGE_IMAGE" | "USER_AVATAR" | "COMMUNITY_COVER" | "EVENT_COVER" | "FEED_POST" | "CONVERSATION" | "ANNOUNCEMENT" | "POLL" | "COMMENT";
                 from?: string;
                 to?: string;
             };
@@ -16635,7 +18251,7 @@ export interface operations {
             };
         };
     };
-    list_27: {
+    list_30: {
         parameters: {
             query?: {
                 adminId?: number;
@@ -16795,6 +18411,517 @@ export interface operations {
             };
             /** @description ADMIN rolu gerekli */
             403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    config_1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["MapConfig"];
+                };
+            };
+            /** @description Dogrulama / is kurali hatasi (code alanina bakin) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Token yok/gecersiz/suresi dolmus */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description ADMIN rolu gerekli */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    updateConfig: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ConfigRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["MapConfig"];
+                };
+            };
+            /** @description Dogrulama / is kurali hatasi (code alanina bakin) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Token yok/gecersiz/suresi dolmus */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description ADMIN rolu gerekli */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description RATE_LIMITED: istek siniri asildi */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    list_10: {
+        parameters: {
+            query?: {
+                category?: string;
+                q?: string;
+                page?: number;
+                size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["AdminPlacePage"];
+                };
+            };
+            /** @description Dogrulama / is kurali hatasi (code alanina bakin) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Token yok/gecersiz/suresi dolmus */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description ADMIN rolu gerekli */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    create_16: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PlaceRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["AdminPlace"];
+                };
+            };
+            /** @description Dogrulama / is kurali hatasi (code alanina bakin) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Token yok/gecersiz/suresi dolmus */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description ADMIN rolu gerekli */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description RATE_LIMITED: istek siniri asildi */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    get_3: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["AdminPlace"];
+                };
+            };
+            /** @description Dogrulama / is kurali hatasi (code alanina bakin) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Token yok/gecersiz/suresi dolmus */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description ADMIN rolu gerekli */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    update_7: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PlaceRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["AdminPlace"];
+                };
+            };
+            /** @description Dogrulama / is kurali hatasi (code alanina bakin) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Token yok/gecersiz/suresi dolmus */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description ADMIN rolu gerekli */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description RATE_LIMITED: istek siniri asildi */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    delete_3: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["DeleteResult"];
+                };
+            };
+            /** @description Dogrulama / is kurali hatasi (code alanina bakin) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Token yok/gecersiz/suresi dolmus */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description ADMIN rolu gerekli */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description RATE_LIMITED: istek siniri asildi */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    setPhoto: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "multipart/form-data": {
+                    /** Format: binary */
+                    file: string;
+                };
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["AdminPlace"];
+                };
+            };
+            /** @description Dogrulama / is kurali hatasi (code alanina bakin) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Token yok/gecersiz/suresi dolmus */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description ADMIN rolu gerekli */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description RATE_LIMITED: istek siniri asildi */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    removePhoto: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["AdminPlace"];
+                };
+            };
+            /** @description Dogrulama / is kurali hatasi (code alanina bakin) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Token yok/gecersiz/suresi dolmus */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description ADMIN rolu gerekli */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description RATE_LIMITED: istek siniri asildi */
+            429: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -16967,7 +19094,7 @@ export interface operations {
             };
         };
     };
-    list_26: {
+    list_29: {
         parameters: {
             query?: {
                 status?: "PENDING_REVIEW" | "ACTIVE" | "REJECTED" | "HIDDEN" | "DELETED";
@@ -17129,7 +19256,7 @@ export interface operations {
             };
         };
     };
-    delete_13: {
+    delete_14: {
         parameters: {
             query?: never;
             header?: never;
@@ -17191,7 +19318,7 @@ export interface operations {
             };
         };
     };
-    update_13: {
+    update_14: {
         parameters: {
             query?: never;
             header?: never;
@@ -18190,7 +20317,7 @@ export interface operations {
             };
         };
     };
-    list_8: {
+    list_9: {
         parameters: {
             query?: never;
             header?: never;
@@ -18237,7 +20364,7 @@ export interface operations {
             };
         };
     };
-    create_14: {
+    create_15: {
         parameters: {
             query?: never;
             header?: never;
@@ -18537,7 +20664,7 @@ export interface operations {
             };
         };
     };
-    list_25: {
+    list_28: {
         parameters: {
             query?: {
                 communityId?: number;
@@ -18645,7 +20772,7 @@ export interface operations {
             };
         };
     };
-    delete_12: {
+    delete_13: {
         parameters: {
             query?: never;
             header?: never;
@@ -18769,7 +20896,7 @@ export interface operations {
             };
         };
     };
-    hide_3: {
+    hide_4: {
         parameters: {
             query?: never;
             header?: never;
@@ -18831,7 +20958,7 @@ export interface operations {
             };
         };
     };
-    unhide_3: {
+    unhide_4: {
         parameters: {
             query?: never;
             header?: never;
@@ -19183,7 +21310,7 @@ export interface operations {
             };
         };
     };
-    list_24: {
+    list_27: {
         parameters: {
             query?: {
                 status?: string;
@@ -19334,7 +21461,7 @@ export interface operations {
             };
         };
     };
-    delete_18: {
+    delete_20: {
         parameters: {
             query?: never;
             header?: never;
@@ -19974,7 +22101,7 @@ export interface operations {
             };
         };
     };
-    list_23: {
+    list_26: {
         parameters: {
             query?: {
                 status?: string;
@@ -20193,7 +22320,7 @@ export interface operations {
             };
         };
     };
-    delete_11: {
+    delete_12: {
         parameters: {
             query?: {
                 reason?: string;
@@ -21222,7 +23349,7 @@ export interface operations {
             };
         };
     };
-    hide_2: {
+    hide_3: {
         parameters: {
             query?: never;
             header?: never;
@@ -21454,7 +23581,7 @@ export interface operations {
             };
         };
     };
-    unhide_2: {
+    unhide_3: {
         parameters: {
             query?: never;
             header?: never;
@@ -21566,7 +23693,7 @@ export interface operations {
             };
         };
     };
-    create_13: {
+    create_14: {
         parameters: {
             query?: never;
             header?: never;
@@ -22078,7 +24205,7 @@ export interface operations {
             };
         };
     };
-    list_7: {
+    list_8: {
         parameters: {
             query?: {
                 status?: "DRAFT" | "SCHEDULED" | "SENDING" | "PAUSED" | "DONE" | "CANCELLED" | "FAILED";
@@ -22130,7 +24257,7 @@ export interface operations {
             };
         };
     };
-    create_12: {
+    create_13: {
         parameters: {
             query?: never;
             header?: never;
@@ -23251,7 +25378,7 @@ export interface operations {
             };
         };
     };
-    list_6: {
+    list_7: {
         parameters: {
             query?: {
                 status?: "DRAFT" | "PUBLISHED" | "ARCHIVED";
@@ -23303,7 +25430,7 @@ export interface operations {
             };
         };
     };
-    create_11: {
+    create_12: {
         parameters: {
             query?: never;
             header?: never;
@@ -24026,7 +26153,7 @@ export interface operations {
             };
         };
     };
-    list_22: {
+    list_25: {
         parameters: {
             query?: {
                 from?: string;
@@ -24549,7 +26676,7 @@ export interface operations {
             };
         };
     };
-    hide_1: {
+    hide_2: {
         parameters: {
             query?: never;
             header?: never;
@@ -24611,7 +26738,7 @@ export interface operations {
             };
         };
     };
-    unhide_1: {
+    unhide_2: {
         parameters: {
             query?: never;
             header?: never;
@@ -24953,7 +27080,7 @@ export interface operations {
     hidden_1: {
         parameters: {
             query?: {
-                targetType?: "USER" | "MESSAGE" | "POST" | "COMMUNITY" | "EVENT" | "MESSAGE_IMAGE" | "USER_AVATAR" | "COMMUNITY_COVER" | "EVENT_COVER" | "FEED_POST" | "CONVERSATION" | "ANNOUNCEMENT" | "POLL";
+                targetType?: "USER" | "MESSAGE" | "POST" | "COMMUNITY" | "EVENT" | "MESSAGE_IMAGE" | "USER_AVATAR" | "COMMUNITY_COVER" | "EVENT_COVER" | "FEED_POST" | "CONVERSATION" | "ANNOUNCEMENT" | "POLL" | "COMMENT";
                 hiddenBy?: "AUTO" | "ADMIN";
                 from?: string;
                 to?: string;
@@ -25296,7 +27423,7 @@ export interface operations {
         parameters: {
             query?: {
                 userId?: number;
-                targetType?: "USER" | "MESSAGE" | "POST" | "COMMUNITY" | "EVENT" | "MESSAGE_IMAGE" | "USER_AVATAR" | "COMMUNITY_COVER" | "EVENT_COVER" | "FEED_POST" | "CONVERSATION" | "ANNOUNCEMENT" | "POLL";
+                targetType?: "USER" | "MESSAGE" | "POST" | "COMMUNITY" | "EVENT" | "MESSAGE_IMAGE" | "USER_AVATAR" | "COMMUNITY_COVER" | "EVENT_COVER" | "FEED_POST" | "CONVERSATION" | "ANNOUNCEMENT" | "POLL" | "COMMENT";
                 resolution?: "DISMISS" | "HIDE" | "WARN" | "SUSPEND_USER";
                 status?: string;
                 from?: string;
@@ -25573,7 +27700,7 @@ export interface operations {
             };
         };
     };
-    list_21: {
+    list_24: {
         parameters: {
             query?: {
                 q?: string;
@@ -26088,7 +28215,7 @@ export interface operations {
             };
         };
     };
-    list_20: {
+    list_23: {
         parameters: {
             query?: {
                 cursor?: string;
@@ -26416,7 +28543,7 @@ export interface operations {
             };
         };
     };
-    list_19: {
+    list_22: {
         parameters: {
             query?: {
                 status?: string;
@@ -26576,7 +28703,7 @@ export interface operations {
             };
         };
     };
-    get_20: {
+    get_22: {
         parameters: {
             query?: never;
             header?: never;
@@ -26625,7 +28752,7 @@ export interface operations {
             };
         };
     };
-    delete_17: {
+    delete_19: {
         parameters: {
             query?: never;
             header?: never;
@@ -26846,7 +28973,187 @@ export interface operations {
             };
         };
     };
-    list_18: {
+    delete_21: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["ReasonRequest"];
+            };
+        };
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Dogrulama / is kurali hatasi (code alanina bakin) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Token yok/gecersiz/suresi dolmus */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description ADMIN rolu gerekli */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description RATE_LIMITED: istek siniri asildi */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    hide_1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["ReasonRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["Row"];
+                };
+            };
+            /** @description Dogrulama / is kurali hatasi (code alanina bakin) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Token yok/gecersiz/suresi dolmus */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description ADMIN rolu gerekli */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description RATE_LIMITED: istek siniri asildi */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    unhide_1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["Row"];
+                };
+            };
+            /** @description Dogrulama / is kurali hatasi (code alanina bakin) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Token yok/gecersiz/suresi dolmus */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description ADMIN rolu gerekli */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description RATE_LIMITED: istek siniri asildi */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    list_20: {
         parameters: {
             query?: {
                 cursor?: number;
@@ -26860,6 +29167,7 @@ export interface operations {
                 status?: string;
                 authorId?: number;
                 minReports?: number;
+                type?: string;
             };
             header?: never;
             path?: never;
@@ -27055,7 +29363,7 @@ export interface operations {
             };
         };
     };
-    delete_10: {
+    delete_11: {
         parameters: {
             query?: never;
             header?: never;
@@ -27168,6 +29476,59 @@ export interface operations {
             };
             /** @description RATE_LIMITED: istek siniri asildi */
             429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    list_21: {
+        parameters: {
+            query?: {
+                cursor?: number;
+                size?: number;
+                status?: string;
+            };
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["Page"];
+                };
+            };
+            /** @description Dogrulama / is kurali hatasi (code alanina bakin) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Token yok/gecersiz/suresi dolmus */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description ADMIN rolu gerekli */
+            403: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -27301,7 +29662,7 @@ export interface operations {
             };
         };
     };
-    list_5: {
+    list_6: {
         parameters: {
             query?: {
                 kind?: "BLOCK" | "ALLOW";
@@ -27852,7 +30213,7 @@ export interface operations {
             };
         };
     };
-    list_4: {
+    list_5: {
         parameters: {
             query?: {
                 cursor?: number;
@@ -27903,7 +30264,7 @@ export interface operations {
             };
         };
     };
-    create_10: {
+    create_11: {
         parameters: {
             query?: never;
             header?: never;
@@ -28023,7 +30384,7 @@ export interface operations {
             };
         };
     };
-    get_19: {
+    get_21: {
         parameters: {
             query?: never;
             header?: never;
@@ -28497,7 +30858,7 @@ export interface operations {
             };
         };
     };
-    list_17: {
+    list_19: {
         parameters: {
             query?: {
                 status?: string;
@@ -29383,7 +31744,7 @@ export interface operations {
             query?: {
                 status?: "OPEN" | "RESOLVED";
                 order?: string;
-                targetType?: "USER" | "MESSAGE" | "POST" | "COMMUNITY" | "EVENT" | "MESSAGE_IMAGE" | "USER_AVATAR" | "COMMUNITY_COVER" | "EVENT_COVER" | "FEED_POST" | "CONVERSATION" | "ANNOUNCEMENT" | "POLL";
+                targetType?: "USER" | "MESSAGE" | "POST" | "COMMUNITY" | "EVENT" | "MESSAGE_IMAGE" | "USER_AVATAR" | "COMMUNITY_COVER" | "EVENT_COVER" | "FEED_POST" | "CONVERSATION" | "ANNOUNCEMENT" | "POLL" | "COMMENT";
                 cursor?: number;
                 size?: number;
             };
@@ -29495,7 +31856,7 @@ export interface operations {
         parameters: {
             query?: {
                 status?: string;
-                targetType?: "USER" | "MESSAGE" | "POST" | "COMMUNITY" | "EVENT" | "MESSAGE_IMAGE" | "USER_AVATAR" | "COMMUNITY_COVER" | "EVENT_COVER" | "FEED_POST" | "CONVERSATION" | "ANNOUNCEMENT" | "POLL";
+                targetType?: "USER" | "MESSAGE" | "POST" | "COMMUNITY" | "EVENT" | "MESSAGE_IMAGE" | "USER_AVATAR" | "COMMUNITY_COVER" | "EVENT_COVER" | "FEED_POST" | "CONVERSATION" | "ANNOUNCEMENT" | "POLL" | "COMMENT";
                 resolution?: "DISMISS" | "HIDE" | "WARN" | "SUSPEND_USER";
                 reasonCode?: string;
                 from?: string;
@@ -31724,7 +34085,7 @@ export interface operations {
             };
         };
     };
-    list_16: {
+    list_18: {
         parameters: {
             query?: {
                 q?: string;
@@ -31957,7 +34318,7 @@ export interface operations {
             };
         };
     };
-    delete_16: {
+    delete_18: {
         parameters: {
             query?: never;
             header?: never;
@@ -33246,7 +35607,7 @@ export interface operations {
             };
         };
     };
-    get_18: {
+    get_20: {
         parameters: {
             query?: never;
             header?: never;
@@ -33443,7 +35804,7 @@ export interface operations {
             };
         };
     };
-    create_9: {
+    create_10: {
         parameters: {
             query?: never;
             header?: never;
@@ -34481,7 +36842,7 @@ export interface operations {
             };
         };
     };
-    list_15: {
+    list_17: {
         parameters: {
             query?: {
                 cursor?: number;
@@ -34654,6 +37015,126 @@ export interface operations {
             };
         };
     };
+    map: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["MapConfig"];
+                };
+            };
+            /** @description Dogrulama / is kurali hatasi (code alanina bakin) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Token yok/gecersiz/suresi dolmus */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    places: {
+        parameters: {
+            query?: {
+                category?: string;
+                q?: string;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["PlaceList"];
+                };
+            };
+            /** @description Dogrulama / is kurali hatasi (code alanina bakin) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Token yok/gecersiz/suresi dolmus */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    place: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["PlaceView"];
+                };
+            };
+            /** @description Dogrulama / is kurali hatasi (code alanina bakin) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Token yok/gecersiz/suresi dolmus */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
     academic: {
         parameters: {
             query?: never;
@@ -34798,7 +37279,7 @@ export interface operations {
             };
         };
     };
-    create_8: {
+    create_9: {
         parameters: {
             query?: never;
             header?: never;
@@ -34976,7 +37457,7 @@ export interface operations {
             };
         };
     };
-    get_7: {
+    get_8: {
         parameters: {
             query?: never;
             header?: never;
@@ -35016,7 +37497,7 @@ export interface operations {
             };
         };
     };
-    delete_9: {
+    delete_10: {
         parameters: {
             query?: never;
             header?: never;
@@ -35063,7 +37544,7 @@ export interface operations {
             };
         };
     };
-    update_12: {
+    update_13: {
         parameters: {
             query?: never;
             header?: never;
@@ -37118,7 +39599,7 @@ export interface operations {
             };
         };
     };
-    list_3: {
+    list_4: {
         parameters: {
             query?: {
                 cursor?: number;
@@ -37160,7 +39641,7 @@ export interface operations {
             };
         };
     };
-    create_7: {
+    create_8: {
         parameters: {
             query?: never;
             header?: never;
@@ -37397,7 +39878,7 @@ export interface operations {
             };
         };
     };
-    get_17: {
+    get_19: {
         parameters: {
             query?: never;
             header?: {
@@ -37440,7 +39921,7 @@ export interface operations {
             };
         };
     };
-    delete_15: {
+    delete_17: {
         parameters: {
             query?: never;
             header?: never;
@@ -37666,7 +40147,7 @@ export interface operations {
             };
         };
     };
-    delete_8: {
+    delete_9: {
         parameters: {
             query?: never;
             header?: never;
@@ -38891,7 +41372,7 @@ export interface operations {
             };
         };
     };
-    list_1: {
+    list_2: {
         parameters: {
             query?: {
                 from?: string;
@@ -38935,7 +41416,7 @@ export interface operations {
             };
         };
     };
-    create_6: {
+    create_7: {
         parameters: {
             query?: never;
             header?: never;
@@ -39124,7 +41605,7 @@ export interface operations {
             };
         };
     };
-    get_6: {
+    get_7: {
         parameters: {
             query?: never;
             header?: never;
@@ -39164,7 +41645,7 @@ export interface operations {
             };
         };
     };
-    delete_7: {
+    delete_8: {
         parameters: {
             query?: never;
             header?: never;
@@ -39211,7 +41692,7 @@ export interface operations {
             };
         };
     };
-    update_11: {
+    update_12: {
         parameters: {
             query?: never;
             header?: never;
@@ -39410,7 +41891,7 @@ export interface operations {
             };
         };
     };
-    list_2: {
+    list_3: {
         parameters: {
             query?: {
                 status?: "PENDING" | "ACCEPTED" | "REJECTED" | "WAITLISTED" | "CANCELLED";
@@ -40243,7 +42724,7 @@ export interface operations {
             };
         };
     };
-    get_3: {
+    get_4: {
         parameters: {
             query?: never;
             header?: never;
@@ -41668,7 +44149,7 @@ export interface operations {
             };
         };
     };
-    official: {
+    official_1: {
         parameters: {
             query?: {
                 scope?: string;
@@ -41737,7 +44218,7 @@ export interface operations {
             };
         };
     };
-    list_14: {
+    list_16: {
         parameters: {
             query?: never;
             header?: never;
@@ -41808,7 +44289,98 @@ export interface operations {
             };
         };
     };
-    create_5: {
+    reels_1: {
+        parameters: {
+            query?: {
+                cursor?: string;
+                size?: number;
+                replay?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["FeedPage"];
+                };
+            };
+            /** @description Dogrulama / is kurali hatasi (code alanina bakin) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Token yok/gecersiz/suresi dolmus */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    seen: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SeenRequest"];
+            };
+        };
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Dogrulama / is kurali hatasi (code alanina bakin) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Token yok/gecersiz/suresi dolmus */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description RATE_LIMITED: istek siniri asildi */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    create_6: {
         parameters: {
             query?: never;
             header?: never;
@@ -41933,7 +44505,7 @@ export interface operations {
             };
         };
     };
-    list_13: {
+    list_15: {
         parameters: {
             query?: never;
             header?: never;
@@ -42165,7 +44737,7 @@ export interface operations {
             };
         };
     };
-    get_16: {
+    get_18: {
         parameters: {
             query?: never;
             header?: never;
@@ -42389,7 +44961,7 @@ export interface operations {
             };
         };
     };
-    get_15: {
+    get_17: {
         parameters: {
             query?: never;
             header?: never;
@@ -42527,7 +45099,7 @@ export interface operations {
             };
         };
     };
-    delete_6: {
+    delete_7: {
         parameters: {
             query?: never;
             header?: never;
@@ -42784,7 +45356,7 @@ export interface operations {
             };
         };
     };
-    list_12: {
+    list_14: {
         parameters: {
             query?: {
                 type?: string;
@@ -42880,7 +45452,7 @@ export interface operations {
             };
         };
     };
-    get_14: {
+    get_16: {
         parameters: {
             query?: never;
             header?: never;
@@ -42911,7 +45483,7 @@ export interface operations {
             };
         };
     };
-    list_11: {
+    list_13: {
         parameters: {
             query?: {
                 cursor?: number;
@@ -43274,7 +45846,7 @@ export interface operations {
             };
         };
     };
-    list: {
+    list_1: {
         parameters: {
             query?: {
                 scope?: string;
@@ -43316,7 +45888,7 @@ export interface operations {
             };
         };
     };
-    create_4: {
+    create_5: {
         parameters: {
             query?: never;
             header?: never;
@@ -43405,7 +45977,7 @@ export interface operations {
             };
         };
     };
-    get_5: {
+    get_6: {
         parameters: {
             query?: never;
             header?: never;
@@ -43445,7 +46017,7 @@ export interface operations {
             };
         };
     };
-    delete_5: {
+    delete_6: {
         parameters: {
             query?: never;
             header?: never;
@@ -43492,7 +46064,7 @@ export interface operations {
             };
         };
     };
-    update_10: {
+    update_11: {
         parameters: {
             query?: never;
             header?: never;
@@ -43736,6 +46308,234 @@ export interface operations {
             };
         };
     };
+    get_15: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                cid: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["CommentView"];
+                };
+            };
+            /** @description Dogrulama / is kurali hatasi (code alanina bakin) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Token yok/gecersiz/suresi dolmus */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    delete_16: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                cid: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Dogrulama / is kurali hatasi (code alanina bakin) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Token yok/gecersiz/suresi dolmus */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description RATE_LIMITED: istek siniri asildi */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    like_1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                cid: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["LikeState"];
+                };
+            };
+            /** @description Dogrulama / is kurali hatasi (code alanina bakin) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Token yok/gecersiz/suresi dolmus */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description RATE_LIMITED: istek siniri asildi */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    unlike_1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                cid: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["LikeState"];
+                };
+            };
+            /** @description Dogrulama / is kurali hatasi (code alanina bakin) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Token yok/gecersiz/suresi dolmus */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description RATE_LIMITED: istek siniri asildi */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    replies: {
+        parameters: {
+            query?: {
+                cursor?: string;
+                size?: number;
+            };
+            header?: never;
+            path: {
+                cid: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["CommentPage"];
+                };
+            };
+            /** @description Dogrulama / is kurali hatasi (code alanina bakin) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Token yok/gecersiz/suresi dolmus */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
     create_3: {
         parameters: {
             query?: never;
@@ -43843,7 +46643,7 @@ export interface operations {
             };
         };
     };
-    get_13: {
+    get_14: {
         parameters: {
             query?: {
                 thumb?: boolean;
@@ -43888,7 +46688,7 @@ export interface operations {
             };
         };
     };
-    delete_14: {
+    delete_15: {
         parameters: {
             query?: never;
             header?: never;
@@ -43976,7 +46776,48 @@ export interface operations {
             };
         };
     };
-    get_4: {
+    saved: {
+        parameters: {
+            query?: {
+                cursor?: string;
+                size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["FeedPage"];
+                };
+            };
+            /** @description Dogrulama / is kurali hatasi (code alanina bakin) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Token yok/gecersiz/suresi dolmus */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    get_5: {
         parameters: {
             query?: never;
             header?: never;
@@ -44016,7 +46857,7 @@ export interface operations {
             };
         };
     };
-    delete_4: {
+    delete_5: {
         parameters: {
             query?: never;
             header?: never;
@@ -44063,7 +46904,7 @@ export interface operations {
             };
         };
     };
-    update_9: {
+    update_10: {
         parameters: {
             query?: never;
             header?: never;
@@ -44085,6 +46926,103 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["PostDtosPostView"];
+                };
+            };
+            /** @description Dogrulama / is kurali hatasi (code alanina bakin) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Token yok/gecersiz/suresi dolmus */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description RATE_LIMITED: istek siniri asildi */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    list: {
+        parameters: {
+            query?: {
+                sort?: string;
+                cursor?: string;
+                size?: number;
+            };
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["CommentPage"];
+                };
+            };
+            /** @description Dogrulama / is kurali hatasi (code alanina bakin) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Token yok/gecersiz/suresi dolmus */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    create_4: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateCommentRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["CommentView"];
                 };
             };
             /** @description Dogrulama / is kurali hatasi (code alanina bakin) */
@@ -44184,6 +47122,249 @@ export interface operations {
                 content: {
                     "*/*": components["schemas"]["LikeState"];
                 };
+            };
+            /** @description Dogrulama / is kurali hatasi (code alanina bakin) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Token yok/gecersiz/suresi dolmus */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description RATE_LIMITED: istek siniri asildi */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    notInterested: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Dogrulama / is kurali hatasi (code alanina bakin) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Token yok/gecersiz/suresi dolmus */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description RATE_LIMITED: istek siniri asildi */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    undoNotInterested: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Dogrulama / is kurali hatasi (code alanina bakin) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Token yok/gecersiz/suresi dolmus */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description RATE_LIMITED: istek siniri asildi */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    save: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["SaveState"];
+                };
+            };
+            /** @description Dogrulama / is kurali hatasi (code alanina bakin) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Token yok/gecersiz/suresi dolmus */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description RATE_LIMITED: istek siniri asildi */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    unsave: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["SaveState"];
+                };
+            };
+            /** @description Dogrulama / is kurali hatasi (code alanina bakin) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Token yok/gecersiz/suresi dolmus */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description RATE_LIMITED: istek siniri asildi */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    view_1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ViewRequest"];
+            };
+        };
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Dogrulama / is kurali hatasi (code alanina bakin) */
             400: {
@@ -44604,7 +47785,7 @@ export interface operations {
         parameters: {
             query: {
                 q: string;
-                type?: "NEWS" | "ANNOUNCEMENT" | "EVENT_OFFICIAL" | "COMMUNITY" | "EVENT" | "POSTS";
+                type?: "NEWS" | "ANNOUNCEMENT" | "EVENT_OFFICIAL" | "COMMUNITY" | "EVENT" | "POSTS" | "REELS";
                 limit?: number;
                 cursor?: number;
             };
@@ -45133,7 +48314,7 @@ export interface operations {
             };
         };
     };
-    delete_3: {
+    delete_4: {
         parameters: {
             query?: never;
             header?: never;
@@ -45180,7 +48361,7 @@ export interface operations {
             };
         };
     };
-    update_8: {
+    update_9: {
         parameters: {
             query?: never;
             header?: never;
@@ -45547,6 +48728,138 @@ export interface operations {
             };
             /** @description RATE_LIMITED: istek siniri asildi */
             429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    official: {
+        parameters: {
+            query?: {
+                term?: string;
+                department?: string;
+                grade?: string;
+                unit?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["OfficialView"];
+                };
+            };
+            /** @description Dogrulama / is kurali hatasi (code alanina bakin) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Token yok/gecersiz/suresi dolmus */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    officialApply: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["ApplyRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["TimetableView"];
+                };
+            };
+            /** @description Dogrulama / is kurali hatasi (code alanina bakin) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Token yok/gecersiz/suresi dolmus */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description RATE_LIMITED: istek siniri asildi */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    officialStatus: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["OfficialStatus"];
+                };
+            };
+            /** @description Dogrulama / is kurali hatasi (code alanina bakin) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Token yok/gecersiz/suresi dolmus */
+            401: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -46139,7 +49452,7 @@ export interface operations {
             };
         };
     };
-    update_7: {
+    update_8: {
         parameters: {
             query?: never;
             header?: never;
@@ -46332,7 +49645,7 @@ export interface operations {
             };
         };
     };
-    get_12: {
+    get_13: {
         parameters: {
             query?: never;
             header?: never;
@@ -46410,7 +49723,7 @@ export interface operations {
             };
         };
     };
-    list_10: {
+    list_12: {
         parameters: {
             query?: {
                 cursor?: number;
@@ -46809,7 +50122,7 @@ export interface operations {
             };
         };
     };
-    get_11: {
+    get_12: {
         parameters: {
             query?: never;
             header?: never;
@@ -47210,6 +50523,49 @@ export interface operations {
             };
         };
     };
+    reels: {
+        parameters: {
+            query?: {
+                cursor?: string;
+                size?: number;
+            };
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["FeedPage"];
+                };
+            };
+            /** @description Dogrulama / is kurali hatasi (code alanina bakin) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Token yok/gecersiz/suresi dolmus */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
     error: {
         parameters: {
             query?: never;
@@ -47516,7 +50872,7 @@ export interface operations {
             };
         };
     };
-    get_10: {
+    get_11: {
         parameters: {
             query?: {
                 t?: number;
@@ -47554,7 +50910,7 @@ export interface operations {
             };
         };
     };
-    get_9: {
+    get_10: {
         parameters: {
             query?: {
                 exp?: number;
@@ -47589,7 +50945,7 @@ export interface operations {
             };
         };
     };
-    get_8: {
+    get_9: {
         parameters: {
             query?: never;
             header?: never;

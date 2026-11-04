@@ -7,6 +7,8 @@ import jakarta.validation.constraints.Size;
 
 /**
  * acceptTerms: kullanim kosullari, gizlilik, KVKK aydinlatma ve topluluk kurallarinin kabulu (zorunlu).
+ * displayName: opsiyonel; bos/yoksa sunucu gecici ad atar (e-posta yerel kismi ya da "Öğrenci"), asil ad ve bolum/sinif
+ * kayittan sonra profil guncellemesiyle girilir. Yonetici kaydinda (ADMIN_EMAILS / adminPortal) ad zorunludur.
  * language: tr | en | ar (opsiyonel; verilmezse Accept-Language, o da yoksa tr) — bildirim ve e-posta dili.
  * faculty/department/grade: opsiyonel; verilirse akademik katalogla dogrulanir (ACADEMIC_INVALID).
  * adminPortal: yonetici paneli kayit sayfasi true gonderir (opsiyonel, varsayilan false). YALNIZ daha siki davranis ister:
@@ -15,7 +17,7 @@ import jakarta.validation.constraints.Size;
  */
 public record RegisterRequest(@NotBlank @Size(max = 254) String email,
                               @NotBlank @Size(max = 72) String password,
-                              @NotBlank @Size(max = 80) String displayName,
+                              @Size(max = 80) String displayName,
                               @AssertTrue(message = "{error.TERMS_NOT_ACCEPTED}") boolean acceptTerms,
                               @Pattern(regexp = "tr|en|ar") String language,
                               @Size(max = 120) String faculty,

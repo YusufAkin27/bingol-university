@@ -50,6 +50,7 @@ public class FakeRedis {
                 return false;
             }
             values.put(k, i.getArgument(1));
+            ttls.put(k, i.getArgument(2));
             return true;
         });
         when(ops.increment(anyString())).thenAnswer(i -> {
@@ -119,5 +120,9 @@ public class FakeRedis {
         }).when(template).rename(anyString(), anyString());
         when(template.expire(anyString(), any(Duration.class))).thenReturn(true);
         when(template.getExpire(anyString())).thenReturn(600L);
+        when(template.getExpire(anyString(), any(java.util.concurrent.TimeUnit.class))).thenAnswer(i -> {
+            Duration d = ttls.get(i.<String>getArgument(0));
+            return d == null ? -1L : d.toSeconds();
+        });
     }
 }

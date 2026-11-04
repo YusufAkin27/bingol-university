@@ -1,4 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { isPrefStorageAllowed } from './cookieConsent';
 import { readStorage, writeStorage } from './storage';
 
 export type ThemeChoice = 'light' | 'dark' | 'system';
@@ -54,6 +55,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
   const setChoice = useCallback((c: ThemeChoice) => {
     setChoiceState(c);
+    if (!isPrefStorageAllowed()) return;
     if (c === 'system') writeStorage('local', KEY, 'system');
     else writeStorage('local', KEY, c);
   }, []);

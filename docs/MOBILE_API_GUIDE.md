@@ -36,7 +36,7 @@ POST /api/auth/register
 Content-Type: application/json
 Accept-Language: tr
 
-{"email":"ayse@bingol.edu.tr","password":"Sifre1234x","displayName":"Ayşe Yılmaz","acceptTerms":true,"language":"tr"}
+{"email":"ayse@bingol.edu.tr","password":"123456","displayName":"Ayşe Yılmaz","acceptTerms":true,"language":"tr"}
 ```
 `202 Accepted` → `{"message":"Doğrulama kodu e-posta adresinize gönderildi."}`
 
@@ -46,7 +46,8 @@ Accept-Language: tr
 
 **Mail kuyruğu:** `register`/`resend-code` e-postayı kuyruğa yazıp hemen döner; gönderim arka planda yapılır, yani **kod birkaç saniye (SMTP sorunlarında daha geç) sonra gelir**. Arayüzde "kod gönderildi" deyip geri sayımı hemen başlatın, ekranı kilitlemeyin. Kuyruğa yazılamazsa `503 MAIL_UNAVAILABLE`. Gönderim başarısızsa sunucu en çok 5 kez yeniden dener (1 dk, 5 dk, 30 dk, 2 sa, 12 sa); kullanıcı yine de "kodu yeniden gönder" ile yeni kod isteyebilir.
 
-- Yalnızca `bingol.edu.tr` ve alt alanları; aksi `400 EMAIL_DOMAIN_NOT_ALLOWED`. `acceptTerms` **true olmalı** (sözleşme kabulü sunucuda kaydedilir); `password` 8-72 karakter; `displayName` ≤ 80; `language` isteğe bağlı `tr|en|ar` (verilmezse `Accept-Language`).
+- Yalnızca `bingol.edu.tr` ve alt alanları; aksi `400 EMAIL_DOMAIN_NOT_ALLOWED`. `acceptTerms` **true olmalı** (sözleşme kabulü sunucuda kaydedilir); `password` **en az 6**, en çok 72 karakter (başka kural yok; kısa ise `400 PASSWORD_TOO_SHORT`; yönetici hesapları 12+ ve güçlü şifre ister, `400 PASSWORD_TOO_WEAK`); `displayName` **isteğe bağlı** (≤ 80; verilmezse sunucu geçici ad atar: e-posta kullanıcı adı ya da `"Öğrenci"`; yönetici kaydında zorunlu); `language` isteğe bağlı `tr|en|ar` (verilmezse `Accept-Language`).
+- **Kayıtta `faculty`/`department`/`grade` gönderilmez** (boş kalır); e-posta doğrulandıktan sonra tek seferlik zorunlu "profili tamamla" adımında girilir: `PATCH /api/users/me` gövde `{"faculty":"Mühendislik Fakültesi","department":"Bilgisayar Mühendisliği","grade":"3"}` (tek istek; bölüm/sınıfın ilk atanmasında kota yok; geçici adın ilk değişimi de 7 günlük `DISPLAY_NAME_COOLDOWN` kuralına sayılmaz). Profil tamamlanana kadar `GET /users/me` içinde `faculty`/`department`/`grade` `null`'dır. (`displayName` kayıtta verilmezse — eski istemci — geçici ad atanır; bkz. yukarı.)
 - E-postası zaten doğrulanmış hesap için `409 EMAIL_ALREADY_REGISTERED` (kullanıcıyı giriş ekranına yönlendirin).
 - IP başına saatte 10 kayıt (`429 RATE_LIMITED`); `resend-code` IP başına saatte 10, e-posta başına saatte 5.
 - **Akademik alanlar (isteğe bağlı):** `faculty`, `department`, `grade` (bkz. 1.8). Verilirse katalogla doğrulanır; geçersizse `400 ACADEMIC_INVALID`. Bekleyen kayıtla taşınır, `verify-email` ile hesaba yazılır.
@@ -62,7 +63,7 @@ POST /api/auth/verify-email   {"email":"ayse@bingol.edu.tr","code":"482913","pas
 {"accessToken":"eyJhbGciOiJIUzI1NiJ9...","refreshToken":"cn219myvLJlkbdbg-_aBxsQygQN2L8_spDoX26JW3XE","expiresInSeconds":900,"tokenType":"Bearer"}
 ```
 - Kod 6 hane, **10 dk** geçerli, tek kullanımlık, **5 yanlış deneme** (sonra adres 10 dk kilitlenir: `429 TOO_MANY_ATTEMPTS`; `resend-code` veya yeni `register` kilidi açar). Yanlış/süresi dolmuş/bekleyen kayıt yok: aynı `400 INVALID_CODE` (ayırt edilmez). `verify-email` ek sınırı: e-posta başına 10 dk'da 10.
-- Yeniden gönderme için **60 sn bekleme** vardır (`429 RESEND_COOLDOWN`): arayüzde geri sayım gösterin.
+- Yeniden gönderme (`resend-code`, `forgot-password`, aynı adrese tekrar `register`) için **180 sn (3 dk) bekleme** vardır: erken istek `429 RESEND_COOLDOWN` + `Retry-After` (kalan saniye; mesajdaki `{0}` de kalan saniyedir), yeni kod üretilmez/gönderilmez. İlk gönderim beklemesizdir. Kod **tam 10 dakika** geçerlidir (kayıt, şifre sıfırlama ve herkese açık destek formu kodu); 5 yanlış deneme sınırı ve kilit aynen. `resend-code` bekleyen kaydı olmayan adreste kod göndermez ama aynı 180 sn beklemesini ve 429'u uygular (kayıt varlığı sızmaz). Herkese açık destek formunda aynı adrese 180 sn içinde ikinci talep `429 RATE_LIMITED` + `Retry-After` döner.
 - Geliştirme ortamında (`MAIL_ENABLED=false`) kod e-posta yerine backend log'una yazılır; `scripts/make-user.sh` bunu otomatikleştirir.
 
 ### 1.3 Giriş
@@ -130,12 +131,12 @@ Ek öneriler: access token'ın bitişine ~60 sn kala proaktif yenileyin (özelli
 
 ### 1.7 Şifre sıfırlama (3 adım)
 ```http
-POST /api/auth/forgot-password   {"email":"ayse@bingol.edu.tr"}                              → 202 (hesap olsun olmasın aynı yanıt; kod e-postayla, asenkron)
+POST /api/auth/forgot-password   {"email":"ayse@bingol.edu.tr"}                              → 202 (kayıtlı hesap: kod e-postayla, asenkron) | 404 ACCOUNT_NOT_FOUND (kayıtlı/doğrulanmış/aktif hesap yok; e-posta GİTMEZ) | 429 RESEND_COOLDOWN (180 sn içinde ikinci istek, Retry-After)
 POST /api/auth/verify-reset-code {"email":"...","code":"482913"}                              → 200 {"resetToken":"..."}
 POST /api/auth/reset-password    {"email":"...","resetToken":"...","newPassword":"Yeni1234x"} → 200 {"message":"..."}
 ```
 - Kod 6 hane, 10 dk, tek kullanımlık; deneme/kilit kuralı kayıt koduyla aynıdır (`TOO_MANY_ATTEMPTS`, `INVALID_CODE`). `resetToken` tek kullanımlık, kısa ömürlü bir anahtardır: yalnızca bellekte tutun, saklamayın.
-- `newPassword` 8-72 karakter. Başarılı sıfırlamada kullanıcının **tüm oturumları kapanır** (refresh token'lar silinir, eski access token'lar reddedilir): kullanıcıyı giriş ekranına yönlendirin.
+- `newPassword` en az 6, en çok 72 karakter (kısa ise `400 PASSWORD_TOO_SHORT`; yönetici hesapları 12+ ve güçlü, `PASSWORD_TOO_WEAK`). Başarılı sıfırlamada kullanıcının **tüm oturumları kapanır** (refresh token'lar silinir, eski access token'lar reddedilir): kullanıcıyı giriş ekranına yönlendirin.
 - Sınırlar: `forgot-password` IP başına saatte 10 ve e-posta başına saatte 5; `verify-reset-code` ve `reset-password` IP başına 10 dk'da 20 (`429 RATE_LIMITED`).
 
 ### 1.7a Şifre değiştirme (oturum açıkken)
@@ -146,7 +147,7 @@ POST /api/auth/change-password   (Bearer)
 ```
 - Yanıt `login` ile aynı biçimdedir ve **204 değildir**: başarıda kullanıcının tüm oturumları (diğer cihazlar dahil, çağıran cihazın eski token çifti de) kapanır; sunucu çağıran cihaza aynı istemci türünde (`cl`) **yeni token çifti** verir. İstemci eski access/refresh token'ı bu çiftle **hemen değiştirmelidir**; aksi halde sonraki istek `401 SESSION_REPLACED` alır. Eski token'la uçuşta olan istekler 401 alabilir: yeni çiftle bir kez yeniden deneyin.
 - Çağıran cihazın açık WebSocket bağlantısı iptal olayıyla (`session-replaced`) kapanır: bu olayda çıkış yapmayın, yeni access token'la yeniden bağlanın (diğer cihazlar giriş ekranına döner).
-- `newPassword` 8-72 karakter (kayıt/sıfırlama ile aynı; `400 VALIDATION_ERROR`). Hatalar: `403 WRONG_PASSWORD` (mevcut şifre yanlış), `422 PASSWORD_UNCHANGED` (yeni şifre mevcutla aynı), `429 RATE_LIMITED` (kullanıcı başına saatte 5, IP başına saatte 10). Başarıda kullanıcıya (kayıtlı dilinde) "şifreniz değiştirildi" güvenlik e-postası gider.
+- `newPassword` en az 6, en çok 72 karakter (kayıt/sıfırlama ile aynı; kısa ise `400 PASSWORD_TOO_SHORT`). Hatalar: `403 WRONG_PASSWORD` (mevcut şifre yanlış), `422 PASSWORD_UNCHANGED` (yeni şifre mevcutla aynı), `429 RATE_LIMITED` (kullanıcı başına saatte 5, IP başına saatte 10). Başarıda kullanıcıya (kayıtlı dilinde) "şifreniz değiştirildi" güvenlik e-postası gider.
 
 ### 1.8 Akademik katalog (fakülte, bölüm, sınıf)
 Kimlik gerektirmez (kayıt ekranında kullanılır). IP başına dakikada 120 istek.
@@ -427,6 +428,7 @@ Yükleme uçları `multipart/form-data`, **alan adı `file`** (topluluk/etkinlik
 | `POST /api/communities/{id}/cover` | `file` | jpg, png, webp | **3 MB** | saatte 10 |
 | `POST /api/communities/{id}/posts/upload` | `file` | jpg, png, webp | **3 MB** | saatte 20 |
 | `PUT /api/events/{id}/cover` (eski ad `POST` de çalışır) | `file` | jpg, png, webp | **3 MB** | saatte 10 |
+| `POST /api/posts/media` (Keşfet gönderisi) | `file` (+ video için `poster`) | fotoğraf: jpg, png, webp; **video: mp4, mov (quicktime), m4v, webm (≤ 60 sn)** | fotoğraf 3 MB; **video 50 MB** | saatte 30 |
 
 - Doğrulama **`Content-Type`** üzerinden yapılır: parçanın `Content-Type`'ı mutlaka `image/jpeg|image/png|image/webp` olmalı (Dio `MultipartFile.fromFile(path, contentType: MediaType('image','jpeg'))`). Dosya adını sunucu üretir (UUID); istemcinin adı kullanılmaz.
 - Hatalar: `400 INVALID_FILE` (tür/boş), `413 FILE_TOO_LARGE` (ayrıca Spring genel üst sınırı 5 MB; istek 6 MB'ı aşarsa da `FILE_TOO_LARGE`), `503 STORAGE_UNAVAILABLE`. Yüklemeden önce istemcide küçültüp sıkıştırın.
@@ -550,7 +552,8 @@ Genel durum kodları: `400` doğrulama/iş kuralı, `401` kimlik, `403` yetki/as
 | `REPORT_NOT_FOUND` | 404 | Rapor bulunamadı. | Report not found. | البلاغ غير موجود. |
 | `REQUEST_NOT_FOUND` | 404 | Bekleyen istek bulunamadı. | Pending request not found. | لم يتم العثور على طلب معلّق. |
 | `REQUEST_PENDING` | 409 | Katılma isteğiniz zaten bekliyor. | Your join request is already pending. | طلب الانضمام الخاص بك قيد الانتظار بالفعل. |
-| `RESEND_COOLDOWN` | 429 | Yeni kod için lütfen 1 dakika bekleyin. | Please wait 1 minute before requesting a new code. | يرجى الانتظار دقيقة واحدة قبل طلب رمز جديد. |
+| `RESEND_COOLDOWN` | 429 | Yeni kod için {0} saniye sonra tekrar deneyin. | Please try again in {0} seconds to request a new code. | يرجى المحاولة بعد {0} ثانية لطلب رمز جديد. |
+| `ACCOUNT_NOT_FOUND` | 404 | Bu okul numarasına ait kayıtlı hesap bulunamadı. | No registered account was found for this school number. | لم يتم العثور على حساب مسجل لهذا الرقم الجامعي. |
 | `RSVP_CONFLICT` | 409 | İsteğiniz zaten işleniyor, tekrar deneyin. | Your request is already being processed, please try again. | طلبك قيد المعالجة بالفعل، يرجى المحاولة مرة أخرى. |
 | `SETTING_NOT_FOUND` | 404 | Ayar bulunamadı. | Setting not found. | الإعداد غير موجود. |
 | `SLUG_CONFLICT` | 409 | Topluluk adı çakıştı, tekrar deneyin. | The community name conflicted, please try again. | تعارض اسم المجتمع، يرجى المحاولة مرة أخرى. |
@@ -572,6 +575,7 @@ Genel durum kodları: `400` doğrulama/iş kuralı, `401` kimlik, `403` yetki/as
 | `VALIDATION_ERROR` | 400 | Geçersiz istek. | Invalid request. | طلب غير صالح. |
 | `VERSION_OUTDATED` | 409 | Bu belgenin yeni bir sürümü yayımlandı. Güncel sürümü onaylayın. | A newer version of this document has been published. Please accept the current version. | تم نشر إصدار أحدث من هذا المستند. يرجى قبول الإصدار الحالي. |
 | `WRONG_PASSWORD` | 403 | Şifre hatalı. | Incorrect password. | كلمة المرور غير صحيحة. |
+| `PASSWORD_TOO_SHORT` | 400 | Şifre en az {0} karakter olmalı. | The password must be at least {0} characters. | يجب أن تتكون كلمة المرور من {0} أحرف على الأقل. |
 | `PASSWORD_UNCHANGED` | 422 | Yeni şifre mevcut şifreyle aynı olamaz. | The new password must differ from the current password. | يجب أن تختلف كلمة المرور الجديدة عن الحالية. |
 
 <!-- ERRORS:END -->
@@ -676,7 +680,9 @@ Kullanıcı rehberindeki e-posta adreslerinden uygulamadaki (bingol.edu.tr) kiş
 ## Gönderiler (Keşfet akışı)
 Tek sözleşme: [POSTS_DESIGN.md](POSTS_DESIGN.md); değişiklik notu: `docs/changes/post.md`. Tüm uçlar Bearer ister.
 
-> **SADE KEŞFET (2026-10-28) — bu bölümün ve aşağıdaki "Yorum ve yanıt" / "Gönderi sosyal özellikleri" bölümlerinin eski satırlarıyla çelişirse bu kutu geçerlidir.**
+> **GÜNCELLEME (2026-11-04): video geri geldi, Keşfet tek sıralama oldu; bu kutudaki "yalnız fotoğraf / video `POST_VIDEO_NOT_ALLOWED`" ve `scope=latest|popular` ifadeleri geçersizdir. Geçerli sözleşme: sayfa sonundaki "Keşfet v2" bölümü.**
+>
+> **SADE KEŞFET (2026-10-28) — bu bölümün ve aşağıdaki "Yorum ve yanıt" / "Gönderi sosyal özellikleri" bölümlerinin eski satırlarıyla çelişirse bu kutu geçerlidir (video/kapsam kısımları hariç, bkz. yukarı).**
 > - Gönderi: **tam 1 fotoğraf zorunlu**, metin isteğe bağlı: tek satır, **en çok 7 kelime ve 60 karakter**. Önce `POST /api/posts/media` (yalnız görsel; video `400 POST_VIDEO_NOT_ALLOWED`), sonra `POST /api/posts` `{"text":"güzel bir gün","mediaIds":[12]}` → 201 `PostView`.
 > - Hatalar: `400 POST_PHOTO_REQUIRED` (mediaIds boş), `400 POST_SINGLE_PHOTO_ONLY` (2+), `400 POST_VIDEO_NOT_ALLOWED`, `400 POST_MEDIA_INVALID`, `422 POST_TEXT_TOO_LONG` (7 kelime/60 karakter aşıldı; PATCH'te de), `422 POST_TEXT_INVALID` (satır sonu), `422 CONTENT_PROFANITY`. Eski `POST_TOO_LONG` (2000) ve `POST_EMPTY` (oluşturmada) artık dönmez.
 > - **Kaldırıldı → `410 FEATURE_REMOVED`** (`{"code","message"}`): yorumlar (`/api/posts/{id}/comments`, `/api/comments/**`), hikâyeler (`/api/stories/**`, `/api/users/{id}/stories`), etiketler (`/api/hashtags/**`), `GET /api/users/mention-suggest`, kaydet (`/api/posts/{id}/save`, `/api/posts/saved`), `GET /api/posts/{id}/likes`. İstemci 410'u yeniden denememeli; ilgili arayüzü kaldırıp (gerekirse "uygulamayı güncelleyin" göstererek) çağrıyı bırakmalıdır.
@@ -690,7 +696,7 @@ Tek sözleşme: [POSTS_DESIGN.md](POSTS_DESIGN.md); değişiklik notu: `docs/cha
 | `GET /api/posts/{id}` | `PostView`; silinmiş/gizli/engelli/yazarı pasif → `404 POST_NOT_FOUND`. |
 | `PATCH /api/posts/{id}` `{text}` | Yalnız yazar (`403 POST_FORBIDDEN`); `editedAt` dolar, medya değişmez. |
 | `DELETE /api/posts/{id}` | 204; yazar veya ADMIN (yumuşak silme). |
-| `GET /api/feed?scope=latest\|popular&cursor=&size=` | `{items:[PostView], nextCursor:string\|null}`; size 1-20 (varsayılan 10). `latest` yeniden eskiye, `popular` son 7 gün puanına göre. |
+| `GET /api/feed?cursor=&size=` | **Tek puanlı akış** (`scope` yok/`top`/`popular`/`latest` aynı akış; `following`/`department` ayrı). Bkz. "Keşfet v2". |
 | `GET /api/users/{id}/posts`, `GET /api/posts/mine` | Aynı sayfa biçimi (`cursor`, `size`); engel ilişkisinde boş liste. |
 
 - **İmleç opaktır**: `nextCursor` değerini aynen `cursor` olarak geri verin; `scope` değiştirilince imleç atılır. Bozuk imleç `400 POST_CURSOR_INVALID`. `popular`'da puan saatlik güncellendiği için nadiren aynı gönderi sayfalar arasında tekrar edebilir (istemci `id` ile tekilleştirsin).
@@ -744,6 +750,7 @@ HTTP 422
 Tam sözleşme (JSON örnekleri, hata kodları, saat biçimleri): [API_CONTRACTS_V2.md](API_CONTRACTS_V2.md) "Akademik". Özet:
 
 - **Ders programı (kişisel):** `GET /api/timetable`, `POST|PATCH|DELETE /api/timetable/courses[/{id}]` (bir ders + çok oturum; çakışma `409 COURSE_CONFLICT`, `force=true` ile geçilir), `POST /api/timetable/import` (en çok 60 oturum), `GET /api/timetable/today|week|reminders`, `GET /api/timetable/export.ics` (VTIMEZONE Europe/Istanbul, haftalık RRULE), dönemler `/api/timetable/semesters` (+ `from-official`).
+- **Resmi programdan kişisel program (V1160):** profildeki bölüm + sınıfa göre yayındaki resmi program kişisel programa (`tt_course` + `tt_session`) kopyalanır. `GET /api/timetable` kişisel dersi hiç olmayan, bu dönem için tohum işareti bulunmayan ve resmi programı TEK birimden gelen kullanıcıya bunu otomatik yapar (işaret `tt_official_seed(user_id, term)`; kullanıcı hepsini silse bile aynı dönem için yeniden tohumlanmaz; birden çok birim eşleşirse yapılmaz; sınıf profilde yoksa eşleşme boş). Güncel dönem = yayındaki resmi programın en yenisi. `GET /api/timetable/official/status` → `{available, applied, term|null, units[]}`; `POST /api/timetable/official/apply` gövde `{unit?, replace?, force?}` → `TimetableView`: birden çok birim varken `unit` zorunlu (`422 OFFICIAL_UNIT_REQUIRED`), geçersiz birim ya da eşleşen program yoksa `404 OFFICIAL_TIMETABLE_NOT_FOUND`; `replace=true` görünen kişisel dersleri siler ve yeniden kopyalar (onay istemcide); `replace` yoksa mevcut derslerle çakışma `409 COURSE_CONFLICT`, `force=true` ile geçilir. Kopyalama: aynı dersin (kod varsa kod+ad+hoca, yoksa ad+hoca) gün/saatleri TEK derse oturum olarak toplanır; renk otomatik; ders kodu, derslik ve not kopyalanmaz; grup/şube (I./II. öğretim) ayrımı yapılmaz, aynı gün-saat tek oturuma iner. En çok 40 ders. Ders eklerken/düzenlerken `code`, `color`, `note`, `room` zorunlu değildir (gönderilirse kabul edilir); zorunlu: ders adı + en az bir oturum.
 - **Sınavlar:** kişisel `/api/timetable/exams[/upcoming]`, resmi program `GET /api/exams/official` (profildeki fakülte/bölüm/sınıfa göre; en çok 500 kayıt, **bitişi 30 günden eski sınavlar `scope=all` dahil listelenmez**, `starts_at` artan).
 - **Akademik takvim:** `GET /api/academic/calendar?month=YYYY-MM|from&to`, `GET /api/academic/calendar/next`.
 - **Bölüm duyuruları:** `GET /api/announcements?scope=mine|all&cursor&size` (opak string imleç, sabitlenmişler önce), `GET /api/announcements/{id}` (okundu işaretler), `POST /api/announcements/{id}/read`, `POST /api/announcements/read-all`, `GET /api/announcements/unread-count`. Push: tür `ANNOUNCEMENT`, `targetType=ANNOUNCEMENT`, `targetId=<duyuru id>`.
@@ -780,7 +787,7 @@ Tam sözleşme (alanlar, hata kodları, hız sınırları): `docs/API_CONTRACTS_
 
 Ayrıntı ve örnekler: [changes/event.md](changes/event.md) "Herkes etkinlik açar". Özet: `POST /api/events` herkese açık (`communityId` isteğe bağlı), gövdeye `joinPolicy` (`OPEN` varsayılan | `APPROVAL`); `EventView` yeni alanları `joinPolicy`, `organizer{id,displayName,avatarUrl}`, `pendingCount` (yalnız yöneten), `myRsvp` = `GOING|INTERESTED|PENDING|REJECTED|null`. `APPROVAL` etkinlikte `PUT /rsvp {status:GOING}` istek açar ve `myRsvp:"PENDING"` döner; geri çekme `DELETE /rsvp`. Sorulu etkinlikte 400 `ANSWERS_REQUIRED` → `POST /events/{id}/applications {note,answers}`. Organizatör: `GET /events/{id}/requests?status=PENDING`, `POST /events/{id}/requests/{userId}/approve|reject` (doluysa 409 `EVENT_FULL`). Sohbet (`GET /events/{id}/chat`) yalnız `GOING` katılımcı + organizatörlere açıktır.
 
-## Keşfet puanlı akış (`scope=top`)
+## Keşfet puanlı akış (`scope=top`) (Keşfet v2'de tek akış oldu; aşağıdaki "Keşfet v2" geçerli)
 
 `GET /api/feed?scope=top&size=12&cursor=...` → `{items, nextCursor, hint}`. `size` varsayılan 12, üst sınır 30. `nextCursor` opaktır, olduğu gibi geri gönderilir; `null` = son sayfa. `hint:"RANK_REFRESHED"` gelirse (puanlar yeniden hesaplandı) nadiren aynı gönderi tekrar gelebilir: istemci `id`'ye göre tekilleştirir. Puan dönmez. `latest`/`popular` aynen çalışır. Ayrıntı: [POSTS_DESIGN.md](POSTS_DESIGN.md) "Keşfet puanlama".
 
@@ -872,3 +879,70 @@ Gizli hesapta "yeni takipçi" (`USER_FOLLOW`) bildirimi gitmez (istek anında `F
 **Mesaj isteği ile ilişki:** ilk DM'de "alıcı göndereni takip ediyor" bağlamı yalnız KABUL EDİLMİŞ takibe dayanır; bekleyen istek bağlam sayılmaz.
 
 Hata kodu (3 dilde çeviri var): 422 `FOLLOW_REQUEST_LIMIT`. Ayrıntı: `docs/changes/post.md` ve `docs/changes/profile.md` (FOLLOWREQ).
+
+## Kampüs haritası (CAMPUS-BE)
+
+Kategori anahtarları (13): faculty, institute, school, vocational, dining, library, sports, health, admin, service, dorm, gate, social. Tam sözleşme, kategori tablosu (anahtar/ikon/renk) ve OSM lisans notu: [CAMPUS_MAP.md](CAMPUS_MAP.md). Özet (hepsi giriş gerektirir, `Accept-Language` etiketleri çevirir, `ETag`/`304` ve `Cache-Control: private, max-age` döner):
+
+- `GET /api/campus/map` → `{version, center{lat,lng}, zoom{initial,min,max}, bounds{south,west,north,east}, boundary[[lat,lng]…], tiles{urlTemplate, attribution, maxNativeZoom, userAgentHint}, categories[{key,label,icon,color}]}`. Harita altlığı `tiles.urlTemplate` ile çizilir (`{z}/{x}/{y}`), `attribution` köşede her zaman görünür, `userAgentHint` içindeki `{version}` istemci sürümüyle değiştirilip karo isteklerinin `User-Agent`'ı yapılır. `boundary` boşsa sınır çizilmez. Kamera `bounds` dışına çıkmaz. Karo adresi sunucudan değişebilir; istemci adresi sabit yazmaz.
+- `GET /api/campus/places?category=&q=&limit=` → `{items:[{id,name,category,lat,lng,summary,photoUrl,units[],footprint[[lat,lng]…]|null,sortKey,webUrl|null,remote,unitSourceCode|null,departments[]|null}]}`. `remote=true` birimler (ana yerleşke dışı: Ilıcalar, Hayvan Hastanesi, Genç MYO, Solhan MYO vb.) ana harita sınırlarında gösterilmez; aramada/listede "Diğer yerleşkeler" grubu olur. `departments` yalnız `/places/{id}` yanıtında dolu (akademik birimlerde, `unit_department` salt okuma), listede `null`. `q` Türkçe-duyarsızdır ("mü" = "mu" = "MÜ"), yalnız kampüs kayıtları döner (kampüs dışı arama yok; istemci başka coğrafi arama yapmaz). `limit` varsayılan 100, en çok 200. `photoUrl` göreli `/files/...` yoludur. Yürüme süresi/mesafe istemcide hesaplanır; favoriler yerel saklanır (sunucuda kişisel veri yok).
+- `GET /api/campus/places/{id}` → tek yer; yoksa 404 `CAMPUS_PLACE_NOT_FOUND`. Geçersiz `category` → 400 `CAMPUS_CATEGORY_INVALID`.
+- `version` değişince önbelleğe alınmış harita/yer listesi bayattır; HTTP önbelleği harita için 300 sn, liste için 60 sn.
+
+
+## Keşfet v2 (KS-BE, 2026-11-04): tek sıralama, puanlama, video, Reels, tekrar göstermeme
+**Bu bölüm yukarıdaki "SADE KEŞFET" kutusu, `GET /api/feed?scope=latest|popular` satırı ve "Keşfet puanlı akış" bölümüyle çelişirse GEÇERLİDİR.** Ayrıntılı gerekçe, formüller ve
+şema: `docs/changes/post.md` "KS-BE (V1220)". Tüm uçlar Bearer ister.
+
+| Uç | Gövde / yanıt |
+|---|---|
+| `POST /api/posts/media` (multipart `file`, video için `poster` isteğe bağlı) | 201 `{id, kind:"IMAGE"\|"VIDEO", url, thumbUrl, width, height, durationMs, bytes}`. Video: MP4/MOV/M4V/WebM, **≤ 60 sn, ≤ 50 MB**; hatalar `400 VIDEO_INVALID`, `400 VIDEO_TOO_LONG`, `413 VIDEO_TOO_LARGE`, `422 MEDIA_BLOCKED`, `429 POST_MEDIA_PENDING_LIMIT`. Saatte 30 yükleme. |
+| `POST /api/posts` `{text?, mediaIds:[id]}` | 201 `PostView`. Tam 1 medya (foto **veya** video); `400 POST_PHOTO_REQUIRED` (boş), `400 POST_SINGLE_PHOTO_ONLY` (2+), `400 POST_MEDIA_INVALID`; metin ≤ 7 kelime/60 karakter. Saatte 20. |
+| `GET /api/feed?scope=foryou\|popular\|latest\|following&cursor=&size=` | `{items:[PostView], nextCursor, hint, exhausted}`. **Filtre eşlemesi:** Senin İçin = `foryou` (varsayılan, kişiselleştirilmiş), Popüler = `popular` (eski `top` aynı), En Yeni = `latest`, Takip Ettiklerim = `following`; `size` varsayılan 12 (üst sınır 30). `exhausted` yalnız `foryou`/`popular`. |
+| `GET /api/feed/reels?cursor=&size=&replay=` | Yalnız video; **öneri algoritması** (kural tabanlı puan, oturumda tekrar yok, izlenmemişler öncelikli); `size` varsayılan 8, üst sınır 20. Aday kalmayınca `items:[]`/son sayfa + **`exhausted:true`**; **`replay=true`** = "Tekrar izle" (imleçsiz ilk çağrı). |
+| `POST /api/posts/{id}/not-interested` / `DELETE` | 204 / 204. "İlgilenmiyorum" (Reels + Senin İçin önerilerinden kalkar, 45 gün); DELETE geri alır. |
+| `POST /api/feed/seen` `{ids:[…≤100]}` | 204. Ekranda **gerçekten görünen** gönderi/reel kimlikleri (dakikada 60); video kimlikleri Reels izleme geçmişine **gösterim** olarak yazılır (Reels sayfa dönüşü gösterim yazmaz). |
+| `POST /api/posts/{id}/view` `{watchedMs, durationMs}` | 204. Video izlenme olayı (dakikada 240): gönderi sayacı + kullanıcı izleme geçmişi (süre, tamamlanma, hızlı geçme: < 1,5 sn ya da < %15); bkz. aşağıdaki kurallar. |
+| `GET /api/posts/media/{id}` / `?thumb=true` | Fotoğraf; video (**Range 206/416**) ve poster. Bearer başlığı gerekir (video oynatıcıya `httpHeaders` verin). |
+| `GET /api/users/me`, `GET /api/users/{id}` | Yeni alanlar: `popularityScore` (0..100), `likesReceived`, `postCount`, (`ProfileView`'da ayrıca `followerCount`). |
+| `GET /api/admin/posts?type=PHOTO\|VIDEO` | Satırda `type`, `viewCount`, `avgCompletionPct`. |
+
+`PostView` yeni alanlar (eskiler aynen): `type:"PHOTO"|"VIDEO"`, `video:{id,url,posterUrl,durationMs,width,height}` (yalnız VIDEO), `viewCount` (yalnız VIDEO),
+`popularityScore` (gönderi, 0..100), `author.followerCount`, `author.popularityScore` (kullanıcı, 0..100). `media[0]` aynı medyadır. Örnek:
+```json
+{"id":91,"author":{"id":7,"displayName":"Ayşe Y.","avatarUrl":null,"department":"Bilgisayar Müh.","followerCount":42,"popularityScore":63},
+ "text":"kampüste akşam","media":[{"id":12,"kind":"VIDEO","url":"/api/posts/media/12","thumbUrl":"/api/posts/media/12?thumb=true","width":720,"height":1280,"durationMs":18400}],
+ "likeCount":5,"likedByMe":false,"mine":false,"canEdit":false,"canDelete":false,"createdAt":"2026-11-04T10:00:00Z","editedAt":null,
+ "type":"VIDEO","video":{"id":12,"url":"/api/posts/media/12","posterUrl":"/api/posts/media/12?thumb=true","durationMs":18400,"width":720,"height":1280},"viewCount":130,"popularityScore":71}
+```
+- **Puanlar gerçek sayılardır** (beğeni, takipçi, izlenme, tamamlanma, gönderi sayısı); uydurma rozet/ödül yok. İstemci puan HESAPLAMAZ, `popularityScore`'u çubuk/rozet olarak çizer
+  (0 = boş). Kullanıcı puanı en çok ~1 saat gecikmelidir; gizli (kilitli) hesapta ve engel gölge profilinde alanlar gelmez (null/yok: çizme).
+- **Tekrar göstermeme (Keşfet `foryou`/`popular`):** sunucu döndürdüğü her sayfayı **kendisi görülmüş sayar** (Redis, 48 sa, ≤ 2000); `cursor`'suz çağrı (yenileme) görülmüşleri hariç tutar. **Reels** ise kendi 45 günlük izleme geçmişini kullanır (aşağıda).
+  İstemci ek olarak ekranda ≥ ~1 sn görünen kartları `POST /api/feed/seen` ile toplu (örn. sayfa değişiminde/duraklamada, ≤ 100) bildirmelidir. Hepsi görüldüyse sunucu en eski
+  görülmüşlerden tekrar eder ve **`exhausted:true`** döner (boş liste yok): istemci isterse "hepsini gördün" ipucu gösterir. Tekrar sayfaları da `nextCursor` ile gezilir.
+  `nextCursor` opaktır; yenilemede imleci atın.
+- **İzlenme olayı:** video kartı/Reels'ten çıkarken ya da bitince **bir kez** `POST /api/posts/{id}/view {watchedMs, durationMs}`. Sunucu aynı kullanıcı+gönderiyi 6 saatte bir sayar, kendi videosunu,
+  fotoğrafı ve < 1 sn'yi saymaz; yanıt hep 204 (sayıldı mı bildirilmez). Döngüde `watchedMs` toplamı süreyi aşabilir (kenetlenir).
+- **Reels akışı (mobil sözleşmesi):** ilk çağrı imleçsiz (`GET /api/feed/reels?size=8`), sonra `nextCursor`; ekranda ≥ ~1 sn görünen video için `POST /api/feed/seen`, videodan çıkınca/bitince **bir kez** `POST /api/posts/{id}/view`. `exhausted:true` gelince "Şimdilik tüm videoları gördün" bilgi alanı + **Tekrar izle** (`GET /api/feed/reels?replay=true`) + alternatif (Keşfet gönderileri / takip önerileri); pull-to-refresh imleçsiz çağrıdır (yeni oturum, kontrollü yeniden sıralama, yeni videolar katılır). Üç nokta menüsünde "İlgilenmiyorum" → `POST /api/posts/{id}/not-interested`. Ağırlıklar: `docs/changes/post.md` bölüm 6.
+- **Eski sürüm riski:** ≤ 2.0.6 istemciler video gönderiyi görsel gibi yükleyemez; yeni istemci `type`'a bakmalıdır. Bilinmeyen `type` değeri gelirse kartı yoksayın.
+## Keşfet: yorumlar, yanıtlar, kaydetme, kullanıcı arama, Reels arama, profil sayaçları (KS-BE2, V1230)
+
+Tam sözleşme (alanlar, hata kodları, birleşme notları): [changes/post.md](changes/post.md) "KS-BE2 (V1230)". Bu bölüm, "SADE KEŞFET" kutusundaki **"yorumlar kaldırıldı / 410"** ve "kaydet kaldırıldı" satırlarını geçersiz kılar (etiket, bahsetme, hikâye kaldırılmış kalır). Tüm uçlar Bearer ister.
+
+| Uç | Açıklama |
+|---|---|
+| `GET /api/posts/{id}/comments?sort=top\|new&cursor=&size=` | Ust düzey yorumlar → `{items:[CommentView], nextCursor, total}`; `total` = gönderideki yorum + yanıt sayısı. `sort` varsayılan `top` (beğeni, sonra yeni); `size` 20 (en çok 50). |
+| `POST /api/posts/{id}/comments` `{text, parentId?}` | 201 `CommentView`. Metin 1-300 karakter; `parentId` = yanıtlanan yorum (yanıta yanıt ust yoruma yassılanır, `replyTo` ile asıl muhatap döner). |
+| `GET /api/post-comments/{cid}/replies?cursor=&size=` | Yanıtlar eskiden yeniye (`size` 10, en çok 50). |
+| `GET /api/post-comments/{cid}` · `DELETE /api/post-comments/{cid}` | Tek yorum · sil (204; yorum yazarı, gönderi sahibi ya da yetkili yönetici). |
+| `PUT\|DELETE /api/post-comments/{cid}/like` | `{liked, likeCount}`; idempotent. |
+| `PUT\|DELETE /api/posts/{id}/save` · `GET /api/posts/saved?cursor=&size=` | `{saved, saveCount}` · kaydedilenler (`FeedPage`, yeni kaydedilen önce; görünmez olanlar sessizce elenir). |
+| `GET /api/users/search?q=&size=&cursor=` | **Aynı yol/biçim**; artık Türkçe harf + büyük/küçük harf duyarsız, kısmi eşleşme, satırlarda `followedByMe`/`followsMe`/`followerCount`/`followingCount`. Kullanıcı adı (@) yoktur; yalnız görünen ad aranır. |
+| `GET /api/search?q=&type=REELS` | Video gönderiler (açıklama aranır); `SearchHit.durationMs` + `likeCount`, `targetId` = gönderi id. `type` verilmezse gruplu özette `REELS` grubu da gelir. |
+| `GET /api/users/{id}/reels?cursor=&size=` | Kullanıcının Reels'leri (`FeedPage`, yeni önce; gizli hesapta `locked:true`). |
+
+- `PostView` yeni alanlar: `commentCount` (görünür yorum + yanıt), `savedByMe`. Profil yanıtlarında (`GET /api/users/me`, `GET /api/users/{id}`) `postCount` (görünür gönderi; Reels dahil) ve `reelCount` — gizli/kilitli hesapta başkasına gelmez, engel gölge profilinde 0.
+- `CommentView`: `{id, postId, parentId, author{id,displayName,avatarUrl,department}, text, likeCount, likedByMe, replyCount, createdAt, mine, byPostAuthor, canDelete, replyTo?{commentId,authorId,displayName}}`.
+- Şikâyet: `POST /api/reports` `{targetType:"COMMENT", targetId, reason}`. Bildirim: `POST_COMMENT` / `COMMENT_REPLY` (push `data.target=POST`, `postId`, `commentId`).
+- Hata kodları (tr/en/ar): `COMMENT_NOT_FOUND` 404, `COMMENT_EMPTY` 400, `COMMENT_TOO_LONG` 422, `COMMENT_FORBIDDEN` 403; küfür `422 CONTENT_PROFANITY` (`field:"text"`).
+- Hız sınırları: yorum yazma dakikada 20 / saatte 200, kaydet/beğeni dakikada 120, okuma dakikada 240.

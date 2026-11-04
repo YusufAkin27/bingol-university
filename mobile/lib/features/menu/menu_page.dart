@@ -64,7 +64,7 @@ class _MenuPageState extends State<MenuPage> {
       final res = resp.body;
       var maintenance = false;
       try {
-        final st = await api.get('/status');
+        final st = await api.get('/status', force: silent);
         maintenance = (st is Map && st['MENU'] is Map && st['MENU']['maintenance'] == true);
       } catch (_) {}
       final map = <int, MenuDay>{};

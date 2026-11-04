@@ -337,12 +337,17 @@ describe('erişilebilirlik temel kontrolleri', () => {
     expect(hrefs.some((h) => h.startsWith('/admin'))).toBe(false);
   });
 
-  it('hamburger düğmesi menüyü açar ve aria-expanded günceller', async () => {
+  it('hamburger düğmesi çekmeceyi açar (aria-expanded); dil grubu, tema anahtarı var; Escape kapatır', async () => {
     renderAt('/help');
     const btn = await screen.findByRole('button', { name: 'Menüyü aç' });
     expect(btn).toHaveAttribute('aria-expanded', 'false');
     fireEvent.click(btn);
-    expect(screen.getByRole('button', { name: 'Menüyü kapat' })).toHaveAttribute('aria-expanded', 'true');
+    const dialog = await screen.findByRole('dialog', { name: 'Gezinme' });
+    expect(within(dialog).getByRole('button', { name: 'Menüyü kapat' })).toBeInTheDocument();
+    expect(within(dialog).getByRole('group', { name: 'Dil' })).toBeInTheDocument();
+    expect(within(dialog).getByRole('switch', { name: 'Koyu temayı kullan' })).toBeInTheDocument();
+    fireEvent.keyDown(document, { key: 'Escape' });
+    expect(screen.queryByRole('dialog', { name: 'Gezinme' })).toBeNull();
   });
 
   it('marka kitindeki her görselin alternatif metni vardır', async () => {
@@ -375,7 +380,7 @@ describe('marka kiti', () => {
         expect(screen.getByText(c.hex)).toBeInTheDocument();
         expect(screen.getByLabelText(c.hex + ' kodunu kopyala')).toBeInTheDocument();
       }
-      expect(screen.getByText('Koruma alanı', { selector: 'h2' })).toBeInTheDocument();
+      expect(screen.getByText('Koruma alanı', { selector: 'h3' })).toBeInTheDocument();
       expect(screen.getByText('Yapmayın', { selector: 'h2' })).toBeInTheDocument();
       expect(
         await within(screen.getByRole('main')).findByRole('link', { name: 'info@bingol.edu.tr' }),

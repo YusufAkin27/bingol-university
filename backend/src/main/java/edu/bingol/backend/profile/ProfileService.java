@@ -19,6 +19,7 @@ import edu.bingol.backend.moderation.BlockService;
 import edu.bingol.backend.profile.naming.DisplayNamePolicy;
 import edu.bingol.backend.profile.privacy.AvatarCleanups;
 import edu.bingol.backend.profile.privacy.PublicProfileMapper;
+import edu.bingol.backend.search.TrFold;
 import edu.bingol.backend.profile.dto.ProfileDtos.PublicProfile;
 import edu.bingol.backend.profile.dto.ProfileDtos.UpdateProfileRequest;
 import edu.bingol.backend.profile.dto.ProfileDtos.UserSearchResult;
@@ -108,6 +109,7 @@ public class ProfileService {
             // Sayaclar sabit 0/false: null, engelli cift ile normal profili ayirt ettirirdi (T-029).
             return new PublicProfile(u.getId(), u.getDisplayName(), null, null, null, null, null, null)
                     .withFollow(0, 0, false, false)
+                    .withReelCount(0)
                     .withBlockedByMe(blocks.hasBlocked(viewerId, targetId));
         }
         PublicProfile view = mapper.map(viewerId, u);
@@ -115,7 +117,60 @@ public class ProfileService {
         view = self ? withEmail(view, u.getEmail()) : view;
         view = withFollow(view, viewerId, targetId);
         view = withRelation(view, viewerId, targetId);
+        view = withPopularity(view, targetId);
+        view = withReelCount(view, targetId);
         return self ? view : view.withBlockedByMe(false);
+    }
+
+    /** Populerlik puani (post.popularity; yoksa/gizli hesapta kilitliyse alanlar eklenmez). Hata profil yanitini bozmaz. */
+    private edu.bingol.backend.post.popularity.UserPopularityService popularity;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setPopularity(edu.bingol.backend.post.popularity.UserPopularityService popularity) {
+        this.popularity = popularity;
+    }
+
+    /** Kendi profilim icin populerlik (GET /users/me); hata/modul yoksa null. */
+    public edu.bingol.backend.post.popularity.UserPopularityService.Snapshot popularityOf(Long userId) {
+        if (popularity == null) {
+            return null;
+        }
+        try {
+            return popularity.of(userId);
+        } catch (RuntimeException e) {
+            return null;
+        }
+    }
+
+    private PublicProfile withPopularity(PublicProfile p, Long targetId) {
+        if (popularity == null || Boolean.TRUE.equals(p.locked())) {
+            return p; // kilitli (gizli) hesapta sayaclar gibi populerlik de gizli
+        }
+        try {
+            edu.bingol.backend.post.popularity.UserPopularityService.Snapshot s = popularity.of(targetId);
+            return p.withPopularity(s.score(), s.likesReceived(), s.postCount());
+        } catch (RuntimeException e) {
+            return p;
+        }
+    }
+
+    /** Reels sayisi (KS-BE2, post.reel); kilitli (gizli hesap) profilde ve hata halinde alan eklenmez. */
+    private edu.bingol.backend.post.reel.ProfilePostCounts postCounts;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setPostCounts(edu.bingol.backend.post.reel.ProfilePostCounts postCounts) {
+        this.postCounts = postCounts;
+    }
+
+    private PublicProfile withReelCount(PublicProfile p, Long targetId) {
+        if (postCounts == null || Boolean.TRUE.equals(p.locked())) {
+            return p;
+        }
+        try {
+            return p.withReelCount(postCounts.counts(targetId).reelCount());
+        } catch (RuntimeException e) {
+            return p; // sayaclar profil yanitini asla bozmaz
+        }
     }
 
     /** Gizli hesap kapisi (post.follow; yoksa alanlar eklenmez). */
@@ -192,7 +247,8 @@ public class ProfileService {
         if (r.displayName() != null) {
             String newName = DisplayNamePolicy.normalize(r.displayName(), u.getRole() == Role.ADMIN);
             ContentGuard.changed(guard, Entity.PROFILE, "displayName", id, u.getDisplayName(), newName);
-            if (!newName.equals(u.getDisplayName())) {
+            if (!newName.equals(u.getDisplayName()) && !isTemporaryName(u)) {
+                // Kayitta atanan gecici ad (profil tamamlama adimi) kotaya/bekleme suresine sayilmaz
                 requireNameCooldown(u);
                 recordNameChange(u, newName);
             }
@@ -286,7 +342,11 @@ public class ProfileService {
         return u;
     }
 
-    /** En az 2 harfli arama; kendisi, engel iliskisi olanlar, askidaki ve silinmis hesaplar donmez. */
+    /**
+     * En az 2 harfli arama (Turkce harf ve buyuk/kucuk harf duyarsiz, kismi eslesme, en cok 3 sozcuk parcasi); kendisi,
+     * engel iliskisi olanlar, askidaki ve silinmis hesaplar donmez. Satirlarda followedByMe/followsMe ile gercek takipci
+     * ve takip sayilari gelir (gizli hesapta sayilar gizlenir).
+     */
     public UserSearchResult search(Long viewerId, String q, int size, Long cursor) {
         String query = q == null ? "" : q.trim();
         if (query.codePointCount(0, query.length()) < MIN_QUERY) {
@@ -297,12 +357,40 @@ public class ProfileService {
         Set<Long> excluded = new HashSet<>(blocks.hiddenFrom(viewerId));
         excluded.add(viewerId);
         excluded.add(-1L); // NOT IN () bos kalmasin
+        String folded = TrFold.fold(query);
+        String[] t = searchTokens(folded);
         // limit+1: devam olup olmadigini ek sorgu olmadan anlamak icin
-        List<User> rows = users.searchByName(escapeLike(query), excluded, limit + 1, offset);
+        List<User> rows = users.searchByNameFolded(folded, TrFold.escapeLike(folded), TrFold.escapeLike(t[0]),
+                TrFold.escapeLike(t[1]), TrFold.escapeLike(t[2]), excluded, limit + 1, offset);
         boolean more = rows.size() > limit && offset + limit <= MAX_SEARCH_OFFSET;
         List<User> page = rows.size() > limit ? rows.subList(0, limit) : rows;
-        return new UserSearchResult(withRelations(viewerId, mapper.mapAll(viewerId, page)),
+        return new UserSearchResult(withRelations(viewerId, withFollowFlags(viewerId, mapper.mapAll(viewerId, page))),
                 more ? (long) offset + limit : null);
+    }
+
+    /** Katlanmis sorguyu en cok 3 parcaya boler (fazlasi son parcaya eklenir); eksik parcalar '' (hepsiyle eslesir). */
+    static String[] searchTokens(String folded) {
+        String[] parts = folded.isBlank() ? new String[0] : folded.split(" ", 3);
+        String[] out = {"", "", ""};
+        System.arraycopy(parts, 0, out, 0, Math.min(parts.length, 3));
+        return out;
+    }
+
+    /** Takip sayaclari + followedByMe/followsMe (toplu; modul yoksa ya da hata olursa satirlar aynen doner). */
+    private List<PublicProfile> withFollowFlags(Long viewerId, List<PublicProfile> rows) {
+        if (followService == null || rows.isEmpty()) {
+            return rows;
+        }
+        try {
+            java.util.Map<Long, edu.bingol.backend.post.follow.FollowService.Stats> st =
+                    followService.statsFor(viewerId, rows.stream().map(PublicProfile::id).toList());
+            return rows.stream().map(p -> {
+                edu.bingol.backend.post.follow.FollowService.Stats s = st.get(p.id());
+                return s == null ? p : p.withFollow(s.followerCount(), s.followingCount(), s.followedByMe(), s.followsMe());
+            }).toList();
+        } catch (RuntimeException e) {
+            return rows;
+        }
     }
 
     /** Imlec = atlanacak kayit sayisi; ust sinir toplu taramayi (kullanici dizinini dokmeyi) zorlastirir. */
@@ -375,6 +463,16 @@ public class ProfileService {
     }
 
     /** Raporlanan kisinin adi surekli degisip iz kaybettirmesin: son degisimden bu yana N gun gecmeli. */
+    /** Gecici ad (kayitta verilmedi) hic degistirilmemisse: ilk gercek ad atamasi bekleme suresi baslatmaz. */
+    private boolean isTemporaryName(User u) {
+        String cur = u.getDisplayName();
+        if (cur == null || nameHistory == null) {
+            return false;
+        }
+        boolean temp = cur.equals(DisplayNamePolicy.TEMPORARY_NAME) || cur.equals(DisplayNamePolicy.temporaryFor(u.getEmail()));
+        return temp && nameHistory.findFirstByUserIdOrderByChangedAtDesc(u.getId()).isEmpty();
+    }
+
     private void requireNameCooldown(User u) {
         if (nameHistory == null || nameCooldownDays <= 0) {
             return;

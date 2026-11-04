@@ -143,6 +143,7 @@ public class DbMaintenanceJob {
         // basarisizsa ham olay silme ATLANIR (ham olay bir sonraki gece yeniden denenene kadar kalir).
         boolean[] rollupOk = {true};
         out.put("analytics_rollup_days", safe("analytics_rollup", rollup::rollUpMissingDays, () -> rollupOk[0] = false));
+        out.put("behavior_rollup_days", safe("behavior_rollup", rollup::rollUpBehaviorDays));
         if (rollupOk[0]) {
             out.put("analytics_event", safe("analytics_event", () -> rawEvents(now)));
         } else {

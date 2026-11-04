@@ -40,8 +40,8 @@ describe('yemek listesi: menü fotoğrafı', () => {
     expect(img).toHaveAttribute('fetchpriority', 'high');
     const card = img.closest('article') as HTMLElement;
     expect(card).toBeTruthy();
-    // fotoğraf kartın ilk çocuğudur (başlıktan önce)
-    expect(card.firstElementChild?.contains(img)).toBe(true);
+    // yeniden tasarımda fotoğraf kart başlığının hemen altında, menü gövdesinin üstündedir
+    expect(card.querySelector('header')?.nextElementSibling?.contains(img)).toBe(true);
   }, 20_000);
 
   it('alt metin İngilizce ve Arapça dillerinde çevrilir', async () => {

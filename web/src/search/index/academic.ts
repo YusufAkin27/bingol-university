@@ -124,6 +124,25 @@ export const entries: SearchEntry[] = [
     keywords: ['sonraki dönem', 'önceki dönem', 'bugüne git', 'ay kaydır'],
     description: 'Çizelgenin gösterdiği 6 aylık aralığı kaydırır.',
   },
+  // ---- Resmî ders programı ----
+  {
+    id: 'acdTimetable.upload',
+    kind: 'action',
+    page: 'acdTimetable',
+    title: 'Ders programı Excel yükle',
+    anchor: 'tt-upload',
+    keywords: ['excel', 'xlsx', 'ders programı yükle', 'toplu ders programı', 'şablon'],
+    description: 'Şablona uygun Excel ile bölüm ve sınıf bazlı ders programını yükler (önce önizleme gösterilir).',
+  },
+  {
+    id: 'acdTimetable.filters',
+    kind: 'field',
+    page: 'acdTimetable',
+    title: 'Ders programı dönemi ve arama',
+    anchor: 'tt-filters',
+    keywords: ['dönem', 'güz', 'bahar', 'program ara', 'birim'],
+    description: 'Yüklü ders programlarını döneme, birime veya programa göre daraltır.',
+  },
 
   // ---- Sınavlar ----
   {

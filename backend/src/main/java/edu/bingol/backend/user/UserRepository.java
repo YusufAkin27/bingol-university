@@ -51,17 +51,30 @@ public interface UserRepository extends JpaRepository<User, Long> {
     @Query("SELECT DISTINCT u.department FROM User u WHERE u.department IS NOT NULL AND u.status = edu.bingol.backend.user.UserStatus.ACTIVE ORDER BY u.department")
     List<String> distinctDepartments();
 
-    /** Isme gore arama (buyuk/kucuk harf duyarsiz). Yalnizca aktif ve dogrulanmis kullanicilar. */
-    @Query(value = """
-            SELECT * FROM app_user
-            WHERE status = 'ACTIVE' AND email_verified = TRUE
-              AND display_name ILIKE concat('%', :q, '%') ESCAPE '\\'
-              AND id NOT IN (:excluded)
-            ORDER BY display_name, id
-            LIMIT :lim OFFSET :off
-            """, nativeQuery = true)
-    List<User> searchByName(@Param("q") String escapedQuery, @Param("excluded") Collection<Long> excluded,
-                            @Param("lim") int limit, @Param("off") int offset);
+    /** Katlanmis ad ifadesi: V1230 trigram indeksiyle BIREBIR ayni (edu.bingol.backend.search.TrFold). */
+    String NAME_FOLD = "lower(translate(u.display_name, '" + edu.bingol.backend.search.TrFold.SQL_FROM + "', '"
+            + edu.bingol.backend.search.TrFold.SQL_TO + "'))";
+
+    /**
+     * Isme gore arama: Turkce harf ve buyuk/kucuk harf duyarsiz, KISMI eslesme (her sozcuk-parcasi adin herhangi bir
+     * yerinde gecmeli, en cok 3 parca; kullanilmayanlar '' = hepsi). Siralama: tam ad, ad/soyad onek eslesmesi, sonra
+     * digerleri; alfabetik. Yalnizca aktif, dogrulanmis, silinmemis kullanicilar. Parametreler TrFold ile katlanmis,
+     * LIKE kacisli (\, %, _) gelir; q = kacissiz katlanmis tam sorgu (esitlik icin).
+     */
+    @Query(value = "SELECT u.* FROM app_user u WHERE u.status = 'ACTIVE' AND u.email_verified = TRUE AND u.deleted_at IS NULL "
+            + "AND u.id NOT IN (:excluded) "
+            + "AND " + NAME_FOLD + " LIKE concat('%', :t1, '%') ESCAPE '\\' "
+            + "AND " + NAME_FOLD + " LIKE concat('%', :t2, '%') ESCAPE '\\' "
+            + "AND " + NAME_FOLD + " LIKE concat('%', :t3, '%') ESCAPE '\\' "
+            + "ORDER BY CASE WHEN " + NAME_FOLD + " = :q THEN 0 "
+            + "WHEN " + NAME_FOLD + " LIKE concat(:qe, '%') ESCAPE '\\' THEN 1 "
+            + "WHEN concat(' ', " + NAME_FOLD + ") LIKE concat('% ', :qe, '%') ESCAPE '\\' THEN 2 ELSE 3 END, "
+            + NAME_FOLD + ", u.id "
+            + "LIMIT :lim OFFSET :off", nativeQuery = true)
+    List<User> searchByNameFolded(@Param("q") String foldedQuery, @Param("qe") String escapedQuery,
+                                  @Param("t1") String t1, @Param("t2") String t2, @Param("t3") String t3,
+                                  @Param("excluded") Collection<Long> excluded, @Param("lim") int limit,
+                                  @Param("off") int offset);
 
     /**
      * Rehber eslestirme: e-posta hash'i ile aktif, dogrulanmis, bingol.edu.tr (ve alt alan) kullanicilari bulur.

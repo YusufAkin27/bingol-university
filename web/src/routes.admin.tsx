@@ -21,6 +21,7 @@ const LegacyMessageRedirect = lazy(() => import('./pages/admin/chat/LegacyMessag
 const ChatFeedPage = lazy(() => import('./pages/admin/ChatFeedPage'));
 const PostsAdminPage = lazy(() => import('./pages/admin/PostsAdminPage'));
 const MenuAdminPage = lazy(() => import('./pages/admin/MenuAdminPage'));
+const CampusMapPage = lazy(() => import('./pages/admin/CampusMapPage'));
 const PollsAdminPage = lazy(() => import('./pages/admin/PollsAdminPage'));
 const AnalyticsPage = lazy(() => import('./pages/admin/AnalyticsPage'));
 const ReportsPage = lazy(() => import('./pages/admin/ReportsPage'));
@@ -47,6 +48,7 @@ const ProfanityPage = lazy(() => import('./pages/admin/ProfanityPage'));
 const CommunityCategoriesPage = lazy(() => import('./pages/admin/CommunityCategoriesPage'));
 const AcademicCalendarPage = lazy(() => import('./pages/admin/academic/AcademicCalendarPage'));
 const AcademicExamsPage = lazy(() => import('./pages/admin/academic/AcademicExamsPage'));
+const AcademicTimetablePage = lazy(() => import('./pages/admin/academic/AcademicTimetablePage'));
 const AcademicAnnouncementsPage = lazy(() => import('./pages/admin/academic/AcademicAnnouncementsPage'));
 const PendingUsersPage = lazy(() => import('./pages/admin/PendingUsersPage'));
 const CryptoPage = lazy(() => import('./pages/admin/CryptoPage'));
@@ -93,6 +95,7 @@ export default function AdminRoutes() {
           <Route path="posts" element={<PostsAdminPage />} />
           <Route path="polls" element={<PollsAdminPage />} />
           <Route path="content/menu" element={<MenuAdminPage />} />
+          <Route path="campus" element={<CampusMapPage />} />
           <Route path="analytics/:tab?" element={<AnalyticsPage />} />
           <Route path="reports" element={<ReportsPage />} />
           <Route path="support/tickets" element={<TicketsPage />} />
@@ -118,6 +121,7 @@ export default function AdminRoutes() {
           <Route path="community-categories" element={<CommunityCategoriesPage />} />
           <Route path="academic/calendar" element={<AcademicCalendarPage />} />
           <Route path="academic/exams" element={<AcademicExamsPage />} />
+          <Route path="academic/timetable" element={<AcademicTimetablePage />} />
           <Route path="academic/announcements" element={<AcademicAnnouncementsPage />} />
           <Route path="pending-users" element={<PendingUsersPage />} />
           <Route path="crypto" element={<CryptoPage />} />

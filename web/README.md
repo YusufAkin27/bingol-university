@@ -1,9 +1,9 @@
 # BÜ Kampüs Web
 
 Tek bir React uygulaması: herkese açık **tanıtım sitesi** (`/`) ve `/admin` altında **yönetim paneli**.
-Bu dizin iskelettir: kabuk, tasarım sistemi, API istemcisi, kimlik, i18n ve rota yer tutucuları hazırdır; sayfalar sırayla doldurulur.
+Tanıtım ve içerik sayfaları ile yönetim modülleri uygulanmıştır. Güncel kapsam için src/routes.tsx, src/routes.admin.tsx ve docs/ADMIN_API.md esas alınır.
 
-Yığın: Vite 5 · React 18 · TypeScript (strict) · react-router-dom 6 (`<Routes>`, `React.lazy`) · TanStack Query 5 · Recharts 2 ·
+Yığın: Vite 5 · React 18 · TypeScript (strict) · react-router-dom 7 (`<Routes>`, `React.lazy`) · TanStack Query 5 · Recharts 2 ·
 CSS değişkenleri + CSS Modules (Tailwind yok) · Vitest + Testing Library · ESLint (typescript-eslint, react-hooks) + Prettier.
 Dış CDN/font bağımlılığı yoktur (yerel font yığınları, CSP `default-src 'self'`).
 

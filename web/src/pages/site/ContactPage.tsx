@@ -1,5 +1,6 @@
 // SAYFA: İletişim (/contact)
 // API: GET /api/app/info (contactEmail, supportEmail, phone, address, social); herkese açık 'Bize ulaşın' formu (POST /api/public/support/*, T27).
+// İletişim bilgisi yalnızca appInfo'dan gelir; boş alan çizilmez.
 import { Link } from '../../components/LocalizedLink';
 import { useAppInfo } from '../../api/hooks';
 import { ErrorState, Icon } from '../../components/ui';
@@ -13,7 +14,6 @@ import { PageHero } from './components/PageHero';
 import { PublicSupportForm } from './components/PublicSupportForm';
 import { siteOrigin } from '../../seo/siteUrl';
 import { usePageMeta } from './components/usePageMeta';
-import shared from './components/site.module.css';
 import styles from './ContactPage.module.css';
 
 export default function ContactPage() {
@@ -28,8 +28,8 @@ export default function ContactPage() {
   const items = contactItems(info.data);
   return (
     <>
-      <PageHero eyebrow={t('site.v3.eyebrow')} title={t('site.contact.title')} lead={t('site.contact.lead')} />
-      <section className={`${shared.section} ${shared.sectionTop}`}>
+      <PageHero eyebrow={t('site.rd07.contact.eyebrow')} title={t('site.contact.title')} lead={t('site.contact.lead')} />
+      <section className={styles.section}>
         <div className={`container ${styles.grid}`}>
           <div className={styles.main}>
             <PublicSupportForm />
@@ -44,7 +44,15 @@ export default function ContactPage() {
                 onRetry={() => void info.refetch()}
               />
             ) : items.length > 0 ? (
-              <ContactList info={info.data} />
+              <section className={styles.panel} aria-labelledby="contact-direct">
+                <header className={styles.panelHead}>
+                  <h2 id="contact-direct" className={styles.h3}>
+                    {t('site.rd07.contact.directTitle')}
+                  </h2>
+                  <p className={styles.sub}>{t('site.rd07.contact.directSub')}</p>
+                </header>
+                <ContactList info={info.data} />
+              </section>
             ) : (
               info.isSuccess && (
                 <div className={styles.empty}>
@@ -56,13 +64,46 @@ export default function ContactPage() {
                 </div>
               )
             )}
-            <aside className={styles.data}>
-              <h2 className={shared.h3}>{t('site.contact.dataTitle')}</h2>
-              <p className={shared.muted}>{t('site.contact.dataText')}</p>
+
+            <section className={styles.panel} aria-labelledby="contact-tips">
+              <h2 id="contact-tips" className={styles.h3}>
+                {t('site.rd07.contact.tipsTitle')}
+              </h2>
+              <p className={styles.tip}>
+                <strong>{t('site.rd07.contact.tipCodeTitle')}</strong> {t('site.rd07.contact.tipCodeText')}
+              </p>
+              <Link to={paths.site.faq} className={styles.link}>
+                {t('site.rd07.contact.tipFaq')}
+                <Icon name="chevronRight" size={18} className={styles.linkIcon} />
+              </Link>
+            </section>
+
+            <aside className={styles.panel} aria-labelledby="contact-data">
+              <h2 id="contact-data" className={styles.h3}>
+                {t('site.contact.dataTitle')}
+              </h2>
+              <p className={styles.sub}>{t('site.contact.dataText')}</p>
               <Link to={paths.site.dataRequest} className={styles.link}>
                 {t('site.contact.dataLink')}
+                <Icon name="chevronRight" size={18} className={styles.linkIcon} />
               </Link>
             </aside>
+          </div>
+        </div>
+      </section>
+
+      <section className={styles.official} aria-labelledby="contact-official">
+        <div className="container">
+          <div className={styles.officialCard}>
+            <span className={styles.officialIcon}>
+              <Icon name="shield" size={22} />
+            </span>
+            <div className={styles.officialBody}>
+              <h2 id="contact-official" className={styles.officialTitle}>
+                {t('site.rd07.contact.officialTitle')}
+              </h2>
+              <p className={styles.sub}>{t('site.rd07.contact.officialText')}</p>
+            </div>
           </div>
         </div>
       </section>

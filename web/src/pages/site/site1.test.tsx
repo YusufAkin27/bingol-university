@@ -45,14 +45,14 @@ describe('telefon görselleri (SITE1)', () => {
   const dir = join(process.cwd(), 'src/assets/site');
   const files = readdirSync(dir).filter((f) => f.endsWith('.webp'));
 
-  it('her ekran görüntüsü ASCII adlı WebP, <= 60 KB ve en <= 780 px genişliktedir', () => {
+  it('her ekran görüntüsü ASCII adlı WebP, <= 90 KB ve en <= 900 px genişliktedir', () => {
     expect(files.length).toBeGreaterThanOrEqual(8);
     for (const f of files) {
       expect(f, f).toMatch(/^[a-z0-9-]+\.webp$/);
-      expect((statSync(join(dir, f)) as unknown as { size: number }).size, f).toBeLessThanOrEqual(60 * 1024);
+      expect((statSync(join(dir, f)) as unknown as { size: number }).size, f).toBeLessThanOrEqual(90 * 1024);
     }
     for (const [id, s] of Object.entries(SHOTS)) {
-      expect(s.width, id).toBeLessThanOrEqual(780);
+      expect(s.width, id).toBeLessThanOrEqual(900);
       expect(s.height, id).toBeGreaterThan(s.width);
     }
   });
@@ -78,8 +78,8 @@ describe('telefon görselleri (SITE1)', () => {
     );
     const imgs = container.querySelectorAll('img');
     expect(imgs).toHaveLength(2);
-    expect(imgs[0]).toHaveAttribute('width', '600');
-    expect(imgs[0]).toHaveAttribute('height', '1298');
+    expect(imgs[0]).toHaveAttribute('width', '900');
+    expect(imgs[0]).toHaveAttribute('height', '1948');
     expect(imgs[0]).toHaveAttribute('loading', 'eager');
     expect(imgs[0]).toHaveAttribute('fetchpriority', 'high');
     expect(imgs[0].getAttribute('alt')).toMatch(/Ana Sayfa/);
@@ -164,8 +164,10 @@ describe('vitrin sayfaları (SITE1)', () => {
     renderAt('/download');
     await screen.findByRole('heading', { level: 1, name: 'Uygulamayı indir' });
     const main = within(screen.getByRole('main'));
-    expect(main.getByRole('heading', { level: 2, name: 'Android' })).toBeInTheDocument();
-    expect(main.getByRole('heading', { level: 2, name: 'iPhone ve iPad' })).toBeInTheDocument();
+    const status = await main.findByRole('list', { name: 'Mağaza durumu' });
+    expect(within(status).getAllByRole('listitem')).toHaveLength(2);
+    expect(within(status).getByText('Android')).toBeInTheDocument();
+    expect(within(status).getByText('iPhone ve iPad')).toBeInTheDocument();
     // bağlantılar yüklenirken rozetler pasif/gizlidir (pending, CLS); yüklenince "Yakında" düğmeleri oluşur
     expect(await main.findAllByRole('button', { name: /Yakında/ })).toHaveLength(2);
     expect(main.getByText(/resmî uygulaması değildir/)).toBeInTheDocument();

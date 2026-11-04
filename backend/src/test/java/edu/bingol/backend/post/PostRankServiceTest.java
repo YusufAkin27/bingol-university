@@ -29,7 +29,7 @@ class PostRankServiceTest {
 
     private final PostRepository posts = mock(PostRepository.class);
     private final PostRankRepository ranks = mock(PostRankRepository.class);
-    private final PostRankProperties props = new PostRankProperties(1.0, 1.5, 0.6, 1.2, 60, 6, 2.0, 0.5, 5, 14, 2, 12, 30, 300000);
+    private final PostRankProperties props = new PostRankProperties(1.0, 1.5, 0.6, 1.2, 60, 6, 2.0, 0.5, 5, 14, 2, 12, 30, 300000, 0.8, 1.5, 8.0);
     private final SchedulerLock lock = mock(SchedulerLock.class);
     private final TransactionTemplate tx = new TransactionTemplate(mock(PlatformTransactionManager.class));
 

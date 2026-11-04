@@ -18,6 +18,10 @@ export interface ParsedDay {
   totalKcal: number | null;
   allergens: string[];
   dishCount: number;
+  /** Toplam, tüm yemeklerin kalorisinden mi geliyor (false ise "en az" diye gösterilir). */
+  kcalComplete: boolean;
+  /** Günün isteğe bağlı fotoğrafı. */
+  imageUrl: string | null;
 }
 
 const HEADING = /^(kahvaltı|kahvalti|breakfast|öğle(?:\s+yemeği)?|ogle(?:\s+yemegi)?|lunch|akşam(?:\s+yemeği)?|aksam(?:\s+yemegi)?|dinner)\s*:?\s*$/i;
@@ -70,7 +74,39 @@ export function parseDay(items: string[]): ParsedDay {
     current.dishes.push(dish);
     dishCount += 1;
   }
-  return { sections: sections.filter((s) => s.dishes.length > 0), totalKcal, allergens, dishCount };
+  const kept = sections.filter((s) => s.dishes.length > 0);
+  const known = kept.flatMap((s) => s.dishes).filter((d) => d.kcal !== null);
+  const complete = totalKcal !== null || (dishCount > 0 && known.length === dishCount);
+  if (totalKcal === null && known.length > 0) totalKcal = known.reduce((n, d) => n + (d.kcal ?? 0), 0);
+  return { sections: kept, totalKcal, allergens, dishCount, kcalComplete: complete, imageUrl: null };
+}
+
+interface MenuDayInput {
+  items: string[];
+  imageUrl?: string | null;
+  dishes?: { name: string; kcal: number | null }[];
+  totalKcal?: number | null;
+  kcalComplete?: boolean;
+}
+
+/** API gününü ayrıştırır; sunucunun yemek başına kalorisi ve toplamı (varsa) satır içi kaloriden önceliklidir. */
+export function parseMenuDay(d: MenuDayInput): ParsedDay {
+  const p = parseDay(d.items);
+  const byName = new Map<string, number>();
+  for (const x of d.dishes ?? []) if (x.kcal !== null) byName.set(x.name.trim(), x.kcal);
+  if (byName.size > 0) {
+    for (const s of p.sections)
+      for (const dish of s.dishes) {
+        const k = byName.get(dish.text);
+        if (k !== undefined) dish.kcal = k;
+      }
+  }
+  if (d.totalKcal !== undefined && d.totalKcal !== null) {
+    p.totalKcal = d.totalKcal;
+    p.kcalComplete = d.kcalComplete ?? false;
+  }
+  p.imageUrl = d.imageUrl || null;
+  return p;
 }
 
 /** Verilen günün haftasını (Pazartesi–Pazar) yyyy-MM-dd olarak döndürür. */

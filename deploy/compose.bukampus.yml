@@ -16,5 +16,10 @@ services:
     volumes:
       - webdyn:/var/lib/bu-dyn:ro
 
+  backup:
+    volumes:
+      # Kalici OAuth config: rclone yenilenen tokeni bu dizine yazar (uid 70, dizin 0700).
+      - /opt/bukampus-data/rclone:/config/rclone
+
 volumes:
   webdyn: {}

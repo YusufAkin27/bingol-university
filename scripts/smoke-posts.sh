@@ -67,10 +67,7 @@ echo "== gonderi: kurallar (tek foto + en cok 7 kelime)"
 check "girissiz akis 401" 401 "$(code $A/feed)"
 check "fotografsiz 400" 400 "$(code -X POST -H "$AA" -H "$H" $A/posts -d '{"text":"yalniz metin"}')"
 check "baskasinin medyasi 400" 400 "$(code -X POST -H "$AB" -H "$H" $A/posts -d "{\"mediaIds\":[$MID]}")"
-MV=$(curl -s -X POST -H "$AA" -F "file=@$TMPW/v.mp4;type=video/mp4" $A/posts/media | jid)
-if [ -n "$MV" ]; then
-  check "video gonderi 400" 400 "$(code -X POST -H "$AA" -H "$H" $A/posts -d "{\"mediaIds\":[$MV]}")"
-fi
+# Video gonderi artik serbest (2026-11-04, V1220): kapsamli video akislari scripts/smoke-kesfet-video.sh'de
 M2=$(upload "$AA")
 check "iki foto 400" 400 "$(code -X POST -H "$AA" -H "$H" $A/posts -d "{\"mediaIds\":[$MID,$M2]}")"
 check "8 kelime 422" 422 "$(code -X POST -H "$AA" -H "$H" $A/posts -d "{\"text\":\"bir iki uc dort bes alti yedi sekiz\",\"mediaIds\":[$MID]}")"

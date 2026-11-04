@@ -120,7 +120,7 @@ public class PostRankService {
                     double ageH = Duration.between(p.getCreatedAt(), now).toSeconds() / 3600.0;
                     double score = PostRank.compute(props, p.getLikeCount(), 0,
                             followers.getOrDefault(p.getAuthorId(), 0), recent.getOrDefault(p.getId(), 0),
-                            reports.getOrDefault(p.getId(), 0), ageH);
+                            p.getViewCount(), p.avgCompletion(), reports.getOrDefault(p.getId(), 0), ageH);
                     // T-075 (A2-14): sonum nedeniyle her turda binlerce satir yeniden yazilmasin; anlamli degisim esikli
                     if (shouldWrite(p.getRankScore(), score)) {
                         p.setRankScore(score);

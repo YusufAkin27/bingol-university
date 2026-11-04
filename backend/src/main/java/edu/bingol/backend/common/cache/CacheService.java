@@ -55,7 +55,7 @@ public class CacheService {
 
     /** Bilinen tum ad alanlari: her acilista gecersiz kilinir (Redis kayitlari yeniden dagitimdan sag cikar; migration ile degisen veri bayat kalmasin). */
     public static final java.util.List<String> NAMESPACES =
-            java.util.List.of("news", "menu", "status", "appinfo", "legal", "faq", "categories", "unitnews");
+            java.util.List.of("news", "menu", "status", "appinfo", "legal", "faq", "categories", "unitnews", "campus");
 
     private record L1Entry(Object value, long l1FreshUntil, long freshUntil, long staleUntil, long localVer) {}
 

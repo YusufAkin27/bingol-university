@@ -120,14 +120,39 @@ export const BRAND_LOGOS: LogoFile[] = [
 
 const GROUPS: Group[] = ['horizontal', 'vertical', 'mark'];
 
+/** `token`: tokens.css değişken adı (web arayüzünde aynı değer bu adla kullanılır). */
 export const BRAND_COLORS = [
-  { id: 'campus', hex: '#F73A2E' },
-  { id: 'action', hex: '#C62A20' },
-  { id: 'deep', hex: '#8E1B13' },
-  { id: 'soft', hex: '#FDE7E4' },
-  { id: 'ink', hex: '#171E33' },
-  { id: 'paper', hex: '#FAF6F3' },
+  { id: 'campus', hex: '#F73A2E', token: '--red-600' },
+  { id: 'action', hex: '#C62A20', token: '--red-700' },
+  { id: 'deep', hex: '#8E1B13', token: '--red-800' },
+  { id: 'soft', hex: '#FDE7E4', token: '--red-100' },
+  { id: 'ink', hex: '#171E33', token: '--ink' },
+  { id: 'paper', hex: '#FAF6F3', token: '--bg' },
 ] as const;
+
+/** Tipografi ölçeği (tokens.css ile aynı değerler: --weight-display 800, --text-3xl 36-60 px, --text-base 16 px, --text-xs 13 px). */
+const TYPE_SCALE = [
+  { id: 'display', spec: 'Inter 800 · 36–60 px' },
+  { id: 'body', spec: 'Inter 400 · 16 px' },
+  { id: 'caption', spec: 'Inter 400 · 13 px' },
+] as const;
+
+const TR_CHARS = 'ğ ü ş ı ö ç İ Ğ Ü Ş Ö Ç';
+
+/** Bölüm başlığı: numara + h2 + açıklama. */
+function SecHead({ n, id, title, text }: { n: string; id: string; title: string; text?: string }) {
+  return (
+    <header className={styles.secHead}>
+      <span className={styles.secNum} aria-hidden="true">
+        {n}
+      </span>
+      <h2 id={id} className={shared.h3}>
+        {title}
+      </h2>
+      {text && <p className={shared.muted}>{text}</p>}
+    </header>
+  );
+}
 
 const RULES = [1, 2, 3, 4, 5] as const;
 
@@ -178,77 +203,87 @@ export default function BrandPage() {
       <PageHero eyebrow={t('site.v3.eyebrow')} title={title} lead={t('pg.brand.lead')} crumbs={[{ label: title }]} />
       <section className={`${shared.section} ${shared.sectionTop}`}>
         <div className={`container ${styles.wrap}`}>
-          <section aria-labelledby="brand-logos">
-            <h2 id="brand-logos" className={shared.h3}>
-              {t('pg.brand.logos')}
-            </h2>
-            <p className={shared.muted}>{t('pg.brand.logosText')}</p>
-            {GROUPS.map((g) => (
-              <div key={g} className={styles.group}>
-                <h3 className={styles.groupTitle}>{t(`pg.brand.group.${g}` as TranslationKey)}</h3>
-                <p className={shared.muted}>{t(`pg.brand.group.${g}Text` as TranslationKey)}</p>
-                <ul className={styles.logos}>
-                  {BRAND_LOGOS.filter((l) => l.group === g).map((l) => {
-                    const name = t(l.name);
-                    return (
-                      <li key={l.file} className={styles.logo}>
-                        <div className={`${styles.preview} ${styles[l.bg]}`}>
-                          <img src={previewSrc(l)} alt={name} width={l.w} height={l.h} loading="lazy" />
-                        </div>
-                        <strong>{name}</strong>
-                        <span className={styles.dl}>
-                          <Download l={l} format="png" />
-                          {l.svgBytes && <Download l={l} format="svg" />}
-                        </span>
-                      </li>
-                    );
-                  })}
+          <aside className={styles.notice} aria-labelledby="brand-note">
+            <Icon name="shield" size={22} />
+            <div>
+              <strong id="brand-note">{t('site.rd08.note.title')}</strong>
+              <p>{t('site.v3.independent')}</p>
+            </div>
+          </aside>
+
+          <section aria-labelledby="brand-use">
+            <SecHead n="01" id="brand-use" title={t('site.rd08.use.title')} text={t('site.rd08.use.text')} />
+            <div className={styles.useGrid}>
+              <figure className={`${styles.usePanel} ${styles.light}`}>
+                <span className={styles.useTag}>{t('site.rd08.use.primary')}</span>
+                <img
+                  src="/brand/horizontal-light.svg"
+                  alt={t('pg.brand.logo.horizontalLight')}
+                  width={1965}
+                  height={512}
+                  loading="lazy"
+                  decoding="async"
+                />
+                <figcaption>
+                  <strong>{t('site.rd08.use.light')}</strong>
+                  <span>{t('site.rd08.use.lightText')}</span>
+                </figcaption>
+              </figure>
+              <figure className={`${styles.usePanel} ${styles.dark}`}>
+                <span className={styles.useTag}>{t('site.rd08.use.alt')}</span>
+                <img
+                  src="/brand/horizontal-dark.svg"
+                  alt={t('pg.brand.logo.horizontalDark')}
+                  width={1965}
+                  height={512}
+                  loading="lazy"
+                  decoding="async"
+                />
+                <figcaption>
+                  <strong>{t('site.rd08.use.dark')}</strong>
+                  <span>{t('site.rd08.use.darkText')}</span>
+                </figcaption>
+              </figure>
+            </div>
+            <div className={styles.two}>
+              <div className={styles.panel}>
+                <h3 id="brand-space" className={styles.panelTitle}>
+                  {t('pg.brand.space.title')}
+                </h3>
+                <p className={shared.muted}>{t('pg.brand.space.text')}</p>
+                <div className={styles.spaceBox} aria-hidden="true">
+                  <div className={styles.spaceInner}>
+                    <img src="/brand/horizontal-light.svg" alt="" height={64} loading="lazy" decoding="async" />
+                  </div>
+                  <span className={`${styles.x} ${styles.xTop}`}>x</span>
+                  <span className={`${styles.x} ${styles.xBottom}`}>x</span>
+                  <span className={`${styles.x} ${styles.xStart}`}>x</span>
+                  <span className={`${styles.x} ${styles.xEnd}`}>x</span>
+                </div>
+              </div>
+              <div className={styles.panel}>
+                <h3 className={styles.panelTitle}>{t('pg.brand.min.title')}</h3>
+                <p className={shared.muted}>{t('pg.brand.min.text')}</p>
+                <ul className={styles.minRow}>
+                  <li>
+                    <img src="/brand/mark.svg" alt="" width={16} height={16} loading="lazy" decoding="async" />
+                    <span>{t('pg.brand.min.mark')}</span>
+                  </li>
+                  <li>
+                    <img src="/brand/horizontal-light.svg" alt="" height={28} loading="lazy" decoding="async" />
+                    <span>{t('pg.brand.min.horizontal')}</span>
+                  </li>
+                  <li>
+                    <img src="/brand/vertical-light.svg" alt="" height={64} loading="lazy" decoding="async" />
+                    <span>{t('pg.brand.min.vertical')}</span>
+                  </li>
                 </ul>
               </div>
-            ))}
-          </section>
-
-          <section aria-labelledby="brand-space" className={styles.two}>
-            <div className={styles.panel}>
-              <h2 id="brand-space" className={shared.h3}>
-                {t('pg.brand.space.title')}
-              </h2>
-              <p className={shared.muted}>{t('pg.brand.space.text')}</p>
-              <div className={styles.spaceBox} aria-hidden="true">
-                <div className={styles.spaceInner}>
-                  <img src="/brand/horizontal-light.svg" alt="" height={64} loading="lazy" decoding="async" />
-                </div>
-                <span className={`${styles.x} ${styles.xTop}`}>x</span>
-                <span className={`${styles.x} ${styles.xBottom}`}>x</span>
-                <span className={`${styles.x} ${styles.xStart}`}>x</span>
-                <span className={`${styles.x} ${styles.xEnd}`}>x</span>
-              </div>
-            </div>
-            <div className={styles.panel}>
-              <h2 className={shared.h3}>{t('pg.brand.min.title')}</h2>
-              <p className={shared.muted}>{t('pg.brand.min.text')}</p>
-              <ul className={styles.minRow}>
-                <li>
-                  <img src="/brand/mark.svg" alt="" width={16} height={16} loading="lazy" decoding="async" />
-                  <span>{t('pg.brand.min.mark')}</span>
-                </li>
-                <li>
-                  <img src="/brand/horizontal-light.svg" alt="" height={28} loading="lazy" decoding="async" />
-                  <span>{t('pg.brand.min.horizontal')}</span>
-                </li>
-                <li>
-                  <img src="/brand/vertical-light.svg" alt="" height={64} loading="lazy" decoding="async" />
-                  <span>{t('pg.brand.min.vertical')}</span>
-                </li>
-              </ul>
             </div>
           </section>
 
           <section aria-labelledby="brand-dont">
-            <h2 id="brand-dont" className={shared.h3}>
-              {t('pg.brand.dont.title')}
-            </h2>
-            <p className={shared.muted}>{t('pg.brand.dont.text')}</p>
+            <SecHead n="02" id="brand-dont" title={t('pg.brand.dont.title')} text={t('pg.brand.dont.text')} />
             <ul className={styles.donts}>
               <li className={styles.dont}>
                 <div className={`${styles.preview} ${styles.light}`}>
@@ -283,22 +318,35 @@ export default function BrandPage() {
           </section>
 
           <section aria-labelledby="brand-colors">
-            <h2 id="brand-colors" className={shared.h3}>
-              {t('pg.brand.colors')}
-            </h2>
-            <p className={shared.muted}>{t('pg.brand.colorsText')}</p>
+            <SecHead n="03" id="brand-colors" title={t('pg.brand.colors')} text={t('pg.brand.colorsText')} />
             <ul className={styles.colors}>
               {BRAND_COLORS.map((c) => (
                 <li key={c.id} className={styles.color}>
                   <span className={styles.swatch} style={{ background: c.hex }} aria-hidden="true" />
                   <div className={styles.colorBody}>
                     <strong>{t(`pg.brand.color.${c.id}` as TranslationKey)}</strong>
-                    <span className={styles.hexRow}>
-                      <code className="ltr">{c.hex}</code>
-                      <CopyButton value={c.hex} label={t('pg.brand.copyHex', { hex: c.hex })} />
-                    </span>
-                    <code className={`ltr ${styles.rgb}`}>RGB {hexToRgb(c.hex)}</code>
                     <span className={shared.muted}>{t(`pg.brand.color.${c.id}Use` as TranslationKey)}</span>
+                    <dl className={styles.codes}>
+                      <div>
+                        <dt>HEX</dt>
+                        <dd className={styles.hexRow}>
+                          <code className="ltr">{c.hex}</code>
+                          <CopyButton value={c.hex} label={t('pg.brand.copyHex', { hex: c.hex })} />
+                        </dd>
+                      </div>
+                      <div>
+                        <dt>RGB</dt>
+                        <dd>
+                          <code className="ltr">{hexToRgb(c.hex)}</code>
+                        </dd>
+                      </div>
+                      <div>
+                        <dt>{t('site.rd08.color.token')}</dt>
+                        <dd>
+                          <code className="ltr">{c.token}</code>
+                        </dd>
+                      </div>
+                    </dl>
                     <span className={styles.contrast}>
                       {t(`pg.brand.color.${c.id}Contrast` as TranslationKey)}
                     </span>
@@ -309,26 +357,79 @@ export default function BrandPage() {
           </section>
 
           <section aria-labelledby="brand-type">
-            <h2 id="brand-type" className={shared.h3}>
-              {t('pg.brand.type.title')}
-            </h2>
-            <p className={shared.muted}>{t('pg.brand.type.text')}</p>
-            <div className={styles.two}>
-              <div className={styles.panel}>
-                <span className={styles.typeLabel}>{t('pg.brand.type.display')}</span>
-                <p className={styles.specDisplay}>{t('pg.brand.type.displaySample')}</p>
+            <SecHead n="04" id="brand-type" title={t('pg.brand.type.title')} text={t('pg.brand.type.text')} />
+            <div className={styles.typeGrid}>
+              <div className={`${styles.panel} ${styles.family}`}>
+                <span className={styles.typeLabel}>{t('site.rd08.type.family')}</span>
+                <p className={styles.aa} aria-hidden="true">
+                  Aa
+                </p>
+                <p className={styles.familyName}>Inter</p>
+                <p className={shared.muted}>{t('site.rd08.type.familyText')}</p>
               </div>
               <div className={styles.panel}>
-                <span className={styles.typeLabel}>{t('pg.brand.type.body')}</span>
-                <p className={styles.specBody}>{t('pg.brand.type.bodySample')}</p>
+                <span className={styles.typeLabel}>{t('site.rd08.type.scale')}</span>
+                <ul className={styles.scale}>
+                  {TYPE_SCALE.map((r) => (
+                    <li key={r.id} className={styles.scaleRow}>
+                      <span className={styles.scaleMeta}>
+                        <strong>{t(`site.rd08.type.scale${r.id[0].toUpperCase()}${r.id.slice(1)}` as TranslationKey)}</strong>
+                        <code className="ltr">{r.spec}</code>
+                      </span>
+                      <span className={styles[`sample_${r.id}`]}>
+                        {r.id === 'display'
+                          ? t('pg.brand.type.displaySample')
+                          : r.id === 'body'
+                            ? t('pg.brand.type.bodySample')
+                            : t('site.rd08.type.captionSample')}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+                <div className={styles.chars}>
+                  <span className={styles.typeLabel}>{t('site.rd08.type.chars')}</span>
+                  <p lang="tr" dir="ltr">
+                    {TR_CHARS}
+                  </p>
+                </div>
               </div>
             </div>
           </section>
 
+          <section aria-labelledby="brand-logos">
+            <SecHead
+              n="05"
+              id="brand-logos"
+              title={t('site.rd08.assets.title')}
+              text={`${t('site.rd08.assets.text')} ${t('pg.brand.logosText')}`}
+            />
+            {GROUPS.map((g) => (
+              <div key={g} className={styles.group}>
+                <h3 className={styles.groupTitle}>{t(`pg.brand.group.${g}` as TranslationKey)}</h3>
+                <p className={shared.muted}>{t(`pg.brand.group.${g}Text` as TranslationKey)}</p>
+                <ul className={styles.logos}>
+                  {BRAND_LOGOS.filter((l) => l.group === g).map((l) => {
+                    const name = t(l.name);
+                    return (
+                      <li key={l.file} className={styles.logo}>
+                        <div className={`${styles.preview} ${styles[l.bg]}`}>
+                          <img src={previewSrc(l)} alt={name} width={l.w} height={l.h} loading="lazy" />
+                        </div>
+                        <strong>{name}</strong>
+                        <span className={styles.dl}>
+                          <Download l={l} format="png" />
+                          {l.svgBytes && <Download l={l} format="svg" />}
+                        </span>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            ))}
+          </section>
+
           <section aria-labelledby="brand-rules">
-            <h2 id="brand-rules" className={shared.h3}>
-              {t('pg.brand.rules')}
-            </h2>
+            <SecHead n="06" id="brand-rules" title={t('pg.brand.rules')} />
             <ul className={styles.rules}>
               {RULES.map((n) => (
                 <li key={n}>{t(`pg.brand.rule.${n}` as TranslationKey)}</li>
@@ -337,10 +438,7 @@ export default function BrandPage() {
           </section>
 
           <section aria-labelledby="brand-shots">
-            <h2 id="brand-shots" className={shared.h3}>
-              {t('site.s2.brand.shotsTitle')}
-            </h2>
-            <p className={shared.muted}>{t('site.s2.brand.shotsText')}</p>
+            <SecHead n="07" id="brand-shots" title={t('site.s2.brand.shotsTitle')} text={t('site.s2.brand.shotsText')} />
             <ul className={styles.shots}>
               {PRESS_SHOTS.map((id, i) => (
                 <li key={id}>

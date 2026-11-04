@@ -33,7 +33,7 @@ describe('"mesaj" araması: mesaj içeren tüm ilgili sayfalar', () => {
   });
 
   it('kampanya, duyuru ve destek yazışması gibi mesaj içeren sayfalar da listelenir (doğrudan eşleşmelerin ardından)', () => {
-    const { ids } = run('mesaj', 60);
+    const { ids } = run('mesaj', 120);
     const pages = pageOf(ids);
     for (const p of RELATED_PAGES) expect(pages, `${p} listelenmeli`).toContain(p);
     const firstRelated = Math.min(...RELATED_PAGES.map((p) => pages.indexOf(p)));

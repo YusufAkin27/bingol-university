@@ -45,6 +45,7 @@ export const paths = {
     posts: `${ADMIN_BASE}/posts`,
     polls: `${ADMIN_BASE}/polls`,
     menu: `${ADMIN_BASE}/content/menu`,
+    campus: `${ADMIN_BASE}/campus`,
     analytics: (tab?: 'overview' | 'growth' | 'engagement' | 'retention' | 'demographics') =>
       `${ADMIN_BASE}/analytics${tab ? `/${tab}` : ''}`,
     reports: `${ADMIN_BASE}/reports`,
@@ -71,6 +72,7 @@ export const paths = {
     contentReview: `${ADMIN_BASE}/content-review`,
     acdCalendar: `${ADMIN_BASE}/academic/calendar`,
     acdExams: `${ADMIN_BASE}/academic/exams`,
+    acdTimetable: `${ADMIN_BASE}/academic/timetable`,
     acdAnnouncements: `${ADMIN_BASE}/academic/announcements`,
     crypto: `${ADMIN_BASE}/crypto`,
     ops: `${ADMIN_BASE}/ops`,

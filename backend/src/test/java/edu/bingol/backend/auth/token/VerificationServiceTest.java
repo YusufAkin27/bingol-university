@@ -53,7 +53,7 @@ class VerificationServiceTest {
         for (int i = 0; i < VerificationService.MAX_ATTEMPTS; i++) {
             assertFalse(vs.verify(EMAIL, "000000", scope));
         }
-        fake.values.remove("vc:cd:" + EMAIL); // 60 sn bekleme gecti
+        fake.values.remove("vc:cd:" + EMAIL); // 180 sn bekleme gecti
         vs.issue(EMAIL, Lang.TR);
         verify(mail, org.mockito.Mockito.times(2)).sendVerificationCode(eq(EMAIL), code.capture(), anyInt(), any());
 
@@ -191,7 +191,62 @@ class VerificationServiceTest {
         ApiException e = assertThrows(ApiException.class, () -> service.issue(EMAIL, Lang.TR));
 
         assertEquals("RESEND_COOLDOWN", e.code());
+        assertEquals(429, e.status().value());
         verify(mail, never()).sendVerificationCode(anyString(), anyString(), anyInt(), any());
+    }
+
+    @Test
+    void codeLivesExactlyTenMinutesAndResendWaitIsThreeMinutes() {
+        edu.bingol.backend.auth.FakeRedis fake = new edu.bingol.backend.auth.FakeRedis();
+        VerificationService vs = new VerificationService(fake.template, mail);
+
+        vs.issue(EMAIL, Lang.TR);
+        vs.issueReset(EMAIL, Lang.TR);
+
+        assertEquals(java.time.Duration.ofMinutes(10), VerificationService.CODE_TTL);
+        assertEquals(java.time.Duration.ofMinutes(10), fake.ttls.get("vc:" + EMAIL));
+        assertEquals(java.time.Duration.ofMinutes(10), fake.ttls.get("pr:" + EMAIL));
+        assertEquals(java.time.Duration.ofSeconds(180), VerificationService.RESEND_COOLDOWN);
+        assertEquals(java.time.Duration.ofSeconds(180), fake.ttls.get("vc:cd:" + EMAIL));
+        assertEquals(java.time.Duration.ofSeconds(180), fake.ttls.get("pr:cd:" + EMAIL));
+        verify(mail).sendVerificationCode(eq(EMAIL), anyString(), eq(10), any());
+        verify(mail).sendPasswordResetCode(eq(EMAIL), anyString(), eq(10), any());
+    }
+
+    @Test
+    void earlyResendIs429WithRetryAfterAndSendsNothingNewThenWorksAfterCooldown() {
+        edu.bingol.backend.auth.FakeRedis fake = new edu.bingol.backend.auth.FakeRedis();
+        VerificationService vs = new VerificationService(fake.template, mail);
+
+        vs.issueReset(EMAIL, Lang.TR); // ilk gonderim beklemesiz
+        edu.bingol.backend.common.RateLimitedException e = assertThrows(
+                edu.bingol.backend.common.RateLimitedException.class, () -> vs.issueReset(EMAIL, Lang.TR));
+
+        assertEquals("RESEND_COOLDOWN", e.code());
+        assertEquals(429, e.status().value());
+        assertEquals(180, e.retryAfterSeconds());
+        assertEquals("180", e.args()[0]);
+        verify(mail, org.mockito.Mockito.times(1)).sendPasswordResetCode(anyString(), anyString(), anyInt(), any());
+
+        fake.values.remove("pr:cd:" + EMAIL); // 180 sn sonra (TTL dolar)
+        vs.issueReset(EMAIL, Lang.TR);
+        verify(mail, org.mockito.Mockito.times(2)).sendPasswordResetCode(anyString(), anyString(), anyInt(), any());
+    }
+
+    @Test
+    void resendWithoutPendingRegistrationAlsoGetsTheSame429OnSecondRequest() {
+        edu.bingol.backend.auth.FakeRedis fake = new edu.bingol.backend.auth.FakeRedis();
+        VerificationService vs = new VerificationService(fake.template, mail);
+
+        vs.touchResendCooldown(EMAIL);
+        edu.bingol.backend.common.RateLimitedException e = assertThrows(
+                edu.bingol.backend.common.RateLimitedException.class, () -> vs.touchResendCooldown(EMAIL));
+
+        assertEquals("RESEND_COOLDOWN", e.code());
+        assertEquals(180, e.retryAfterSeconds());
+        // gercek kayit icin ayri anahtar: sonraki issue() etkilenmez
+        vs.issue(EMAIL, Lang.TR);
+        verify(mail).sendVerificationCode(eq(EMAIL), anyString(), anyInt(), any());
     }
 
     private static final String SCOPE = "203.0.113.9";
