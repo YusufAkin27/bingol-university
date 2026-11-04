@@ -119,7 +119,8 @@ class PostTopFeedTest {
         }
         rank.recompute();
         assertEquals(12, service.feed(viewer.getId(), "top", null, 0).items().size());
-        assertEquals(30, service.feed(viewer.getId(), "top", null, 100).items().size());
+        // gorulmus kumesi kullanici basinadir: ikinci cagri icin yeni bir kullanici (yoksa ilk 12 haric tutulur)
+        assertEquals(30, service.feed(newUser().getId(), "top", null, 100).items().size());
     }
 
     @Test
