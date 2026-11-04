@@ -214,3 +214,9 @@ Mesaj isteği (T-026) ile ilişki: "alıcı göndereni takip ediyor" bağlamı y
 - **Eşzamanlı yanıtsız istek sınırı:** `MessageService.persist` (yalnız kabul edilmemiş konuşmada) konuşma satırını `lockById` ile kilitler ve 3 mesaj sınırını kilit içinde yeniden sayar; paralel gönderimle 3'ü aşmak artık 409 `MESSAGE_REQUEST_PENDING`.
 - **Sürüm kontrolü:** `GET /api/app/version` sürüm parçaları en çok 9 hane (`INVALID_VERSION` 400); 20+ haneli sürüm `Long.parseLong` taşmasıyla 500 veriyordu.
 - Duman: `scripts/smoke-qa-private.sh`.
+
+## CHAT-PREMIUM: mobil sohbet arayüzü (yalnız istemci; API değişmedi)
+
+- "+" menüsü artık küçük yüzen panel (Kamera, Fotoğraflar); Fotoğraflar sürüklenebilir galeri paneli (ilk %58, yukarı %96, aşağı kapanır; tutamak/başlık da sürükler). Ses ve dosya satırı **yoktur**: sunucu yalnız `IMAGE`/`VIDEO` ek türünü kabul eder (sesli mesaj ve belge eki için backend gerekir).
+- Uzun basma menüsüne "Mesaj bilgisi" (yalnız birebir, kendi mesajım); mesaj bilgisi sayfasına tepkiler ve "düzenlendi" notu. Gönderen kişi tepki listesi sunucuda yok (yalnız emoji + sayı).
+- Tek medya balonu oranı sunucudaki `width/height` ile korunur (3:4..4:3 arası); oynat düğmesi yarı saydam.

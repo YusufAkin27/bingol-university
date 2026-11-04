@@ -42,6 +42,15 @@ class AppLocalizationsTr extends AppLocalizations {
   String get chatMessageNoReplies => 'Bu mesaja henüz yanıt verilmedi.';
 
   @override
+  String get chatMessageReactions => 'Tepkiler';
+
+  @override
+  String get chatMessageEditedNote => 'Bu mesaj düzenlendi';
+
+  @override
+  String get chatPremiumAllPhotos => 'Tüm fotoğraflar';
+
+  @override
   String get commonRetry => 'Yeniden dene';
 
   @override

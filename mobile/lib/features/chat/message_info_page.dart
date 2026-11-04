@@ -69,12 +69,20 @@ class _MessageInfoPageState extends State<MessageInfoPage> {
     return '${local.formatFullDate(date)} · $time:${date.second.toString().padLeft(2, '0')}';
   }
 
+  /// Alıntılanan mesajın sahibi: ben (bilgisi açılan mesajın göndericisi) ya da karşı taraf.
+  String? _replyName(Map<String, dynamic> message) {
+    final reply = message['replyTo'];
+    if (reply is! Map) return null;
+    final mineId = widget.message['senderId'];
+    return reply['senderId'] == mineId ? context.l10n.chatDetailYou : widget.peerName;
+  }
+
   Widget _bubble(Map<String, dynamic> message, {required bool mine}) =>
       MessageBubble(
         message: message,
         mine: mine,
         senderName: null,
-        replyName: null,
+        replyName: _replyName(message),
         seen: message['status'] == 'READ',
         authHeaders: widget.session.api.tokens?.access == null
             ? const {}
@@ -165,6 +173,56 @@ class _MessageInfoPageState extends State<MessageInfoPage> {
                       status == 'READ'),
                 ]),
               ),
+              if (message['edited'] == true) ...[
+                const SizedBox(height: 12),
+                Row(children: [
+                  Icon(BuIcons.pencil, size: 14, color: t.mut),
+                  const SizedBox(width: 6),
+                  Text(l.chatMessageEditedNote,
+                      style: Theme.of(context)
+                          .textTheme
+                          .bodySmall!
+                          .copyWith(color: t.mut)),
+                ]),
+              ],
+              if (message['reactions'] is List &&
+                  (message['reactions'] as List).isNotEmpty) ...[
+                const SizedBox(height: 28),
+                Text(l.chatMessageReactions,
+                    style: Theme.of(context)
+                        .textTheme
+                        .titleMedium!
+                        .copyWith(fontWeight: FontWeight.w700)),
+                const SizedBox(height: 12),
+                Wrap(spacing: 8, runSpacing: 8, children: [
+                  for (final rx
+                      in (message['reactions'] as List).whereType<Map>())
+                    Container(
+                      key: ValueKey('infoReaction_${rx['emoji']}'),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 8),
+                      decoration: BoxDecoration(
+                          color: t.sf,
+                          border: Border.all(color: t.bdSubtle),
+                          borderRadius: BorderRadius.circular(999)),
+                      child: Row(mainAxisSize: MainAxisSize.min, children: [
+                        Text('${rx['emoji']}',
+                            style: const TextStyle(fontSize: 18)),
+                        const SizedBox(width: 6),
+                        Text('${rx['count'] ?? 1}',
+                            style: Theme.of(context)
+                                .textTheme
+                                .labelLarge!
+                                .copyWith(
+                                    color: t.ink,
+                                    fontWeight: FontWeight.w600,
+                                    fontFeatures: const [
+                                  FontFeature.tabularFigures()
+                                ])),
+                      ]),
+                    ),
+                ]),
+              ],
               const SizedBox(height: 28),
               Text(l.chatMessageReplies,
                   style: Theme.of(context)

@@ -1998,6 +1998,8 @@ class _ChatDetailPageState extends State<ChatDetailPage>
         if (!deleted) MessageAction('reply', l.chatDetailReply, BuIcons.reply),
         if (!deleted && hasText)
           MessageAction('copy', l.chatDetailCopy, BuIcons.copy),
+        if (!deleted && _direct && mine && m['id'] != null)
+          MessageAction('info', l.chatMessageInfoTitle, BuIcons.info),
         if (!deleted && hasText && !hasAtt)
           MessageAction('forward', l.chatDetailForward, BuIcons.forward),
         if (!deleted && mine && hasText)
@@ -2041,6 +2043,8 @@ class _ChatDetailPageState extends State<ChatDetailPage>
         await Clipboard.setData(
             ClipboardData(text: (m['text'] as String?) ?? ''));
         _toast(l.chatDetailCopied, kind: BuToastKind.success);
+      case 'info':
+        _openMessageInfo(m);
       case 'forward':
         await _forward(m);
       case 'edit':
@@ -2064,6 +2068,17 @@ class _ChatDetailPageState extends State<ChatDetailPage>
         if (ob != null) await ob.remove('${m['clientId']}');
         if (mounted) setState(() => _msgs.remove(m));
     }
+  }
+
+  /// Mesaj bilgisi sayfası (yalnız birebir sohbette kendi gönderdiğim mesaj; sunucu diğerlerine 404 verir).
+  void _openMessageInfo(Map<String, dynamic> m) {
+    FocusManager.instance.primaryFocus?.unfocus();
+    Navigator.of(context).push(MaterialPageRoute<void>(
+        builder: (_) => MessageInfoPage(
+              session: widget.session,
+              message: Map<String, dynamic>.from(m),
+              peerName: _title,
+            )));
   }
 
   /// Metin mesajını seçilen sohbetlere (en çok 5) aynen gönderir.
@@ -2953,7 +2968,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
           controller: _scroll,
           reverse: true,
           keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
+          padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
           itemCount: _msgs.length + 1,
           findChildIndexCallback: (key) {
             if (key is ValueKey<String>) return indexOf[key.value];
@@ -3106,13 +3121,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
               preview || !_direct || !mine || id == null || m['_state'] != null
                   ? null
                   : () {
-                      FocusManager.instance.primaryFocus?.unfocus();
-                      Navigator.of(context).push(MaterialPageRoute<void>(
-                          builder: (_) => MessageInfoPage(
-                                session: widget.session,
-                                message: Map<String, dynamic>.from(m),
-                                peerName: _title,
-                              )));
+                      _openMessageInfo(m);
                     },
           onMenuRect: (r) => _openMessageMenu(m, r),
           onReplyTap: replyId == null ? null : () => _jumpTo(replyId),

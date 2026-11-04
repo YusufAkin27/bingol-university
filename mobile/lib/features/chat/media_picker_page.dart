@@ -29,6 +29,7 @@ Future<MediaSendPlan?> showMediaPickerSheet(
   int pageSize = 60,
 }) {
   final t = context.bu;
+  final controller = DraggableScrollableController();
   return showModalBottomSheet<MediaSendPlan>(
     context: context,
     isScrollControlled: true,
@@ -37,6 +38,7 @@ Future<MediaSendPlan?> showMediaPickerSheet(
     barrierColor: t.scrim.withValues(alpha: .5),
     builder: (c) => DraggableScrollableSheet(
       key: const ValueKey('galleryPanel'),
+      controller: controller,
       expand: false,
       initialChildSize: .58,
       minChildSize: 0,
@@ -51,6 +53,7 @@ Future<MediaSendPlan?> showMediaPickerSheet(
         showCameraTile: false,
         asSheet: true,
         sheetScroll: sc,
+        sheetController: controller,
       ),
     ),
   );
@@ -61,7 +64,7 @@ Future<MediaSendPlan?> showMediaPickerSheet(
 /// (Kapat, albüm, "Gönder (n)") ve alt çubuk YOK. [showCameraTile] ilk karoda kamera (gönderi oluşturucu); sohbette kamera
 /// "+" menüsündedir. "Gönder (n)" önizlemeye gider; önizlemeden [MediaSendPlan] döner; kapatılırsa null.
 class MediaPickerPage extends StatefulWidget {
-  const MediaPickerPage({super.key, required this.library, this.ensureAccess, this.openCamera, this.pageSize = 60, this.maxItems = kMaxPicks, this.showCameraTile = true, this.asSheet = false, this.sheetScroll});
+  const MediaPickerPage({super.key, required this.library, this.ensureAccess, this.openCamera, this.pageSize = 60, this.maxItems = kMaxPicks, this.showCameraTile = true, this.asSheet = false, this.sheetScroll, this.sheetController});
 
   final MediaLibrary library;
   final EnsureAccess? ensureAccess;
@@ -77,6 +80,9 @@ class MediaPickerPage extends StatefulWidget {
   /// Panel kipi: Scaffold yok, üstte tutamaç + yuvarlak üst köşe; ızgara [sheetScroll] ile sürüklemeye bağlanır.
   final bool asSheet;
   final ScrollController? sheetScroll;
+
+  /// Panel boyutunu tutamaç/başlık sürüklemesiyle de değiştirmek için (ızgara dışındaki alanlar kaydırılamaz).
+  final DraggableScrollableController? sheetController;
 
   @override
   State<MediaPickerPage> createState() => _MediaPickerPageState();
@@ -266,6 +272,37 @@ class _MediaPickerPageState extends State<MediaPickerPage> {
     if (mounted) await _reload();
   }
 
+  /// Tutamak/başlık sürüklemesi panel boyutunu izler (yukarı = büyür).
+  void _dragSheet(DragUpdateDetails d) {
+    final c = widget.sheetController;
+    if (c == null || !c.isAttached) return;
+    final h = MediaQuery.sizeOf(context).height;
+    c.jumpTo((c.size - (d.primaryDelta ?? 0) / h).clamp(0.0, .96));
+  }
+
+  /// Bırakınca: hızlı hareket yönüne, değilse en yakın duruma (kapalı / %58 / %96) oturur; %30 altı kapanır.
+  void _endDragSheet(DragEndDetails d) {
+    final c = widget.sheetController;
+    if (c == null || !c.isAttached) return;
+    final v = d.primaryVelocity ?? 0;
+    final size = c.size;
+    double target;
+    if (v < -700) {
+      target = .96;
+    } else if (v > 700) {
+      target = size > .58 ? .58 : 0;
+    } else if (size < .3) {
+      target = 0;
+    } else {
+      target = size > .77 ? .96 : .58;
+    }
+    if (target == 0) {
+      Navigator.maybePop(context);
+      return;
+    }
+    c.animateTo(target, duration: BuMotion.of(context, BuMotion.medium), curve: Curves.easeOutCubic);
+  }
+
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
@@ -278,18 +315,25 @@ class _MediaPickerPageState extends State<MediaPickerPage> {
         ),
         clipBehavior: Clip.antiAlias,
         child: Column(children: [
-          ExcludeSemantics(
-            child: Center(
-              child: Container(
-                key: const ValueKey('sheetHandle'),
-                width: 40,
-                height: 4,
-                margin: const EdgeInsets.only(top: 10, bottom: 2),
-                decoration: BoxDecoration(color: t.bd, borderRadius: BuRadius.bPill),
+          GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onVerticalDragUpdate: _dragSheet,
+            onVerticalDragEnd: _endDragSheet,
+            child: Column(children: [
+              ExcludeSemantics(
+                child: Center(
+                  child: Container(
+                    key: const ValueKey('sheetHandle'),
+                    width: 40,
+                    height: 4,
+                    margin: const EdgeInsets.only(top: 10, bottom: 2),
+                    decoration: BoxDecoration(color: t.bd, borderRadius: BuRadius.bPill),
+                  ),
+                ),
               ),
-            ),
+              _header(context),
+            ]),
           ),
-          _header(context),
           Expanded(child: _body(context)),
         ]),
       );
@@ -311,7 +355,7 @@ class _MediaPickerPageState extends State<MediaPickerPage> {
     final l = context.l10n;
     final tx = Theme.of(context).textTheme;
     final has = _picked.isNotEmpty;
-    final title = _album == null || _album!.isAll ? l.sohbetmedyaRecent : _album!.name;
+    final title = _album == null || _album!.isAll ? (widget.asSheet ? l.chatPremiumAllPhotos : l.sohbetmedyaRecent) : _album!.name;
     return DecoratedBox(
       decoration: BoxDecoration(border: Border(bottom: BorderSide(color: t.bd))),
       child: SizedBox(

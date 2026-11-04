@@ -373,7 +373,7 @@ class MessageBubble extends StatelessWidget {
       constraints: BoxConstraints(maxWidth: maxW),
       clipBehavior: mediaStyle ? Clip.antiAlias : Clip.none,
       padding: EdgeInsets.symmetric(
-          horizontal: mediaStyle ? 0 : 14, vertical: mediaStyle ? 0 : 10),
+          horizontal: mediaStyle ? 0 : 12, vertical: mediaStyle ? 0 : 8),
       decoration: BoxDecoration(
         color: onceLocked
             ? BuTokens.light.ink
@@ -943,7 +943,12 @@ class _AttachmentImage extends StatelessWidget {
     final dpr = MediaQuery.devicePixelRatioOf(context);
     // SABİT KARE (boyut/oran bilinmeden yerleşir: kaydırmada yükseklik zıplamaz); BoxFit.cover merkezden kırpar.
     final width = side ?? maxW;
-    final height = sideH ?? side ?? width;
+    // Tek medyada oran korunur (dikey video yatay esnemez): sunucunun genişlik/yüksekliğinden, 3:4..4:3 aralığına
+    // sıkıştırılarak (kutu önceden bilindiği için kaydırmada zıplama yok). Bilinmiyorsa kare.
+    final aw = (attachment['width'] as num?)?.toDouble() ?? 0;
+    final ah = (attachment['height'] as num?)?.toDouble() ?? 0;
+    final ratio = (aw > 0 && ah > 0) ? (aw / ah).clamp(.75, 1.4) : 1.0;
+    final height = sideH ?? side ?? (width / ratio);
     final video = isVideoAttachment(attachment);
     // Kaynak: kutu x DPR'yi karşılayan en küçük (thumbUrl yeterliyse o, değilse ana görsel); videoda yalnız poster.
     final src =

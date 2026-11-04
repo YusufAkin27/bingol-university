@@ -606,7 +606,7 @@ void main() {
       for (final l in ['Galeriden seç', 'Fotoğraf çek', 'Galeriden video seç', 'Video çek']) {
         expect(find.text(l), findsNothing); // eski 4'lü menü yok, doğrudan galeri
       }
-      expect(find.text('Son eklenenler'), findsOneWidget);
+      expect(find.text('Tüm fotoğraflar'), findsOneWidget);
       be.delay = const Duration(milliseconds: 500);
       await tester.tap(find.byKey(const ValueKey('galleryTile_v1')));
       await tester.pump();
