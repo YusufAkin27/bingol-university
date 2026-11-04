@@ -160,7 +160,8 @@ class _PollListPageState extends State<PollListPage> {
 
   Widget _empty(AppLocalizations l) {
     if (widget.communityId != null) {
-      return AnketStateLine(text: l.pollClubEmpty, actionLabel: l.pollSeeAll, onAction: () => openPollList(context, widget.session));
+      // Kulüp listesi boşken "Tümü" genel listeyi açıp aynı ekranda iç içe liste yaratıyordu: eylem yok.
+      return AnketStateLine(text: l.pollClubEmpty);
     }
     return AnketStateLine(text: switch (_tab) { 0 => l.pollEmptyOpen, 1 => l.pollEmptyMine, _ => l.pollEmptyClosed });
   }

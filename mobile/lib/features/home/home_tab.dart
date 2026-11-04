@@ -318,11 +318,15 @@ class _HomeTabState extends State<HomeTab> {
     return l.homeGreetEvening;
   }
 
+  /// Dış bağlantı (banner, Kütüphane): açılamazsa sessiz kalmaz, kısa bir uyarı gösterir (MenuTopUpCard ile aynı davranış).
   Future<void> _openUrl(String? url) async {
     final u = url == null ? null : Uri.tryParse(url);
-    if (u != null && u.scheme == 'https') {
-      await launchUrl(u, mode: LaunchMode.externalApplication);
-    }
+    if (u == null || u.scheme != 'https') return;
+    var ok = false;
+    try {
+      ok = await launchUrl(u, mode: LaunchMode.externalApplication);
+    } catch (_) {}
+    if (!ok && mounted) BuToast.show(context, context.l10n.newsLinkOpenFailed, kind: BuToastKind.error);
   }
 
   void _toast(String m) {

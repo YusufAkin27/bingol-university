@@ -5,6 +5,8 @@ import '../../core/session.dart';
 import '../../widgets/bu.dart';
 import '../follow/follow_button.dart';
 import '../follow/follow_suggestions.dart';
+import '../posts/avatar_preview.dart';
+import '../profile/user_profile_page.dart' show openUserProfile;
 import '../posts/post_models.dart';
 import '../posts/social_api.dart';
 import '../posts/social_models.dart';
@@ -151,21 +153,41 @@ class _SuggestionCard extends StatelessWidget {
     final tt = Theme.of(context).textTheme;
     final u = user;
     final dept = context.departmentName((u.department ?? '').trim());
+    void open() => openUserProfile(context, session, userId: u.id, name: u.displayName, avatarUrl: u.avatarUrl);
     return _SuggestionSurface(
       child: Column(children: [
-        BuAvatar(
-            name: u.displayName, url: u.avatarUrl, size: 56, headers: postAuthHeaders(session)),
-        BuGap.h8,
-        Text(u.displayName,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            textAlign: TextAlign.center,
-            style: tt.titleSmall?.copyWith(color: t.ink, fontSize: 14, fontWeight: FontWeight.w600)),
-        Text(dept,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            textAlign: TextAlign.center,
-            style: tt.labelSmall?.copyWith(color: t.mut, fontSize: 12)),
+        // Avatar + ad + bölüm: dokunma = profil, avatara uzun basma = büyük önizleme (diğer avatarlarla tutarlı).
+        Semantics(
+          button: true,
+          label: u.displayName,
+          excludeSemantics: true,
+          onTap: open,
+          child: GestureDetector(
+            key: ValueKey('discover-suggestion-${u.id}'),
+            behavior: HitTestBehavior.opaque,
+            onTap: open,
+            child: Column(mainAxisSize: MainAxisSize.min, children: [
+              AvatarPreviewTap(
+                session: session,
+                url: u.avatarUrl,
+                name: u.displayName,
+                onTap: open,
+                child: BuAvatar(name: u.displayName, url: u.avatarUrl, size: 56, headers: postAuthHeaders(session)),
+              ),
+              BuGap.h8,
+              Text(u.displayName,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.center,
+                  style: tt.titleSmall?.copyWith(color: t.ink, fontSize: 14, fontWeight: FontWeight.w600)),
+              Text(dept,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.center,
+                  style: tt.labelSmall?.copyWith(color: t.mut, fontSize: 12)),
+            ]),
+          ),
+        ),
         const Spacer(),
         FollowStateButton(
           session: session,

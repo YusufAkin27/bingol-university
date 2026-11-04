@@ -25,7 +25,9 @@ class NewsDetailPage extends StatefulWidget {
 
   /// Favori durumu verilmezse (ana sayfadan açılış) kaydetme düğmesi çalışırken yüklenir.
   final bool? saved;
-  final VoidCallback? onToggleSave;
+
+  /// Listenin kaydetme işlevi: kesinleşen durumu döndürür (hata olursa eski durum). Detay buna göre kendini eşitler.
+  final Future<bool> Function()? onToggleSave;
 
   @override
   State<NewsDetailPage> createState() => _NewsDetailPageState();
@@ -84,8 +86,9 @@ class _NewsDetailPageState extends State<NewsDetailPage> {
   Future<void> _toggle() async {
     final l = context.l10n;
     if (widget.onToggleSave != null) {
-      widget.onToggleSave!();
       setState(() => _saved = !_saved);
+      final now = await widget.onToggleSave!();
+      if (mounted) setState(() => _saved = now);
       return;
     }
     final was = _saved;
