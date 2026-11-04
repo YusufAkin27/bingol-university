@@ -259,12 +259,6 @@ class _ProfileTabState extends State<ProfileTab> {
                   )
                 : StatStrip(cells: extraCells),
           ),
-          // Popülerlik puanı (sunucu hesaplar; yanıtta yoksa hiç çizilmez).
-          if (PopularityCard.scoreOf(p) != null)
-            BuStaggerItem(
-              index: 1,
-              child: Padding(padding: const EdgeInsets.only(top: 16), child: PopularityCard(profile: p, self: true)),
-            ),
           // Gönderiler | Reels (ilk 9 kare, "Daha fazla göster"): Instagram profili gibi kimlik altında, ayar satırlarının üstünde.
           if (uid != null)
             BuStaggerItem(
@@ -282,6 +276,12 @@ class _ProfileTabState extends State<ProfileTab> {
                   reelCount: (p['reelCount'] as num?)?.toInt(),
                 ),
               ),
+            ),
+          // Popülerlik puanı (sunucu hesaplar; yanıtta yoksa hiç çizilmez): içeriğin altında, ilk ekranı kaplamaz.
+          if (PopularityCard.scoreOf(p) != null)
+            BuStaggerItem(
+              index: 2,
+              child: Padding(padding: const EdgeInsets.only(top: 16), child: PopularityCard(profile: p, self: true)),
             ),
           BuStaggerItem(
             index: 2,

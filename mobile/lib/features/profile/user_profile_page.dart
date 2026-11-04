@@ -529,30 +529,32 @@ class _UserProfilePageState extends State<UserProfilePage> {
         ],
         if (!_blocked) ...[
           const SizedBox(height: 14),
-          if (!locked && _p != null && PopularityCard.scoreOf(_p) != null) ...[
-            PopularityCard(profile: _p!),
-            const SizedBox(height: 14),
-          ],
-          _infoCard(t, bio: bio, faculty: faculty, dept: dept, grade: grade, email: email),
-          if (locked)
-            LockedProfileBlock(requested: _stats?.followState == FollowState.requested)
-          else
-            Padding(
-              padding: const EdgeInsets.only(top: 16),
-              child: ProfileContentTabs(
-                key: ValueKey('profile-tabs-${widget.userId}'),
-                session: widget.session,
-                userId: widget.userId,
-                name: _name,
-                gutter: 0,
-                pageSize: 9,
-                postCount: _profileCount('postCount'),
-                reelCount: _profileCount('reelCount'),
-                onPostsLoaded: (n, more) {
-                  if (mounted) setState(() => _postCount = '$n${more ? '+' : ''}');
-                },
-              ),
+          // Kilitli: Hakkında + kilit bilgisi. Açık: içerik (Gönderiler | Reels) ilk ekranda görünsün diye önce gelir;
+          // popülerlik ve "Hakkında" altta (eskiden iki kart ızgarayı ilk ekranın dışına itiyordu).
+          if (locked) ...[
+            _infoCard(t, bio: bio, faculty: faculty, dept: dept, grade: grade, email: email),
+            LockedProfileBlock(requested: _stats?.followState == FollowState.requested),
+          ] else ...[
+            ProfileContentTabs(
+              key: ValueKey('profile-tabs-${widget.userId}'),
+              session: widget.session,
+              userId: widget.userId,
+              name: _name,
+              gutter: 0,
+              pageSize: 9,
+              postCount: _profileCount('postCount'),
+              reelCount: _profileCount('reelCount'),
+              onPostsLoaded: (n, more) {
+                if (mounted) setState(() => _postCount = '$n${more ? '+' : ''}');
+              },
             ),
+            const SizedBox(height: 14),
+            if (_p != null && PopularityCard.scoreOf(_p) != null) ...[
+              PopularityCard(profile: _p!),
+              const SizedBox(height: 14),
+            ],
+            _infoCard(t, bio: bio, faculty: faculty, dept: dept, grade: grade, email: email),
+          ],
         ],
       ],
     );
