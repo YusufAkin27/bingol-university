@@ -2,6 +2,7 @@ import 'dart:async';
 
 import '../news/news_list_page.dart';
 import '../../core/locale_controller.dart';
+import '../../core/haptics.dart';
 import '../../core/nav.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -27,8 +28,10 @@ abstract final class AppTab {
 }
 
 /// Giriş yapılmış kullanıcının kabuğu: sekmeler TEMBEL kurulur (ilk karede yalnız ana sekme; diğerleri ilk
-/// seçimde kurulur, sonra IndexedStack'te canlı kalır: konum ve veri kaybolmaz) + M3 alt gezinme.
-/// Sekme geçişi "fade-through" (kısa soluklaşma + hafif ölçek; yalnız seçilen sekme animasyonlanır).
+/// seçimde kurulur, sonra Offstage'te canlı kalır: konum ve veri kaybolmaz) + M3 alt gezinme.
+/// Sekmeler arası geçiş MİNİMAL (docs/MOBILE_MOTION_TABS.md): içerik yandan 12 dp kayarak 220 ms'de belirir, eskisi
+/// 140 ms'de solar; boş/dikey alanda sağa-sola sürükleme (eşik 60 dp ya da hızlı fırlatma) komşu sekmeye geçirir, sürüklerken
+/// içerik 12-16 dp paralaksla parmağı izler. Yatay kaydırılan iç bileşenler (haber şeridi, harita) sürüklemeyi kendisi alır.
 class AppShell extends StatefulWidget {
   const AppShell({super.key, required this.session, required this.themeController});
 
@@ -39,14 +42,20 @@ class AppShell extends StatefulWidget {
   State<AppShell> createState() => _AppShellState();
 }
 
-class _AppShellState extends State<AppShell> with WidgetsBindingObserver, SingleTickerProviderStateMixin {
+class _AppShellState extends State<AppShell> with WidgetsBindingObserver, TickerProviderStateMixin {
   int _tab = 0;
   int _publishedVersion = 0;
   bool _publishing = false;
   // Bir kez açılmış sekmeler (tembel kurulum; kapanınca da canlı kalır).
   final Set<int> _built = {AppTab.home};
-  late final AnimationController _fade = AnimationController(vsync: this, duration: BuMotion.medium, value: 1);
-  late final Animation<double> _fadeIn = CurvedAnimation(parent: _fade, curve: BuMotion.emphasizedDecelerate);
+  // Geçiş: 0 -> 1 (220 ms). Gelen sekme `enter` eğrisiyle, giden sekme ilk 140 ms'de solar.
+  late final AnimationController _anim = AnimationController(vsync: this, duration: AppMotion.normal, value: 1);
+  late final AnimationController _snap = AnimationController(vsync: this, duration: AppMotion.fast);
+  final _drag = ValueNotifier<double>(0); // sürükleme (dp, işaretli)
+  int? _prev; // geçiş boyunca hâlâ görünen giden sekme
+  double _enterDir = 1; // gelen içeriğin geldiği yan (+1: fiziksel sağ)
+  double _leaveFrom = 0; // giden içeriğin bıraktığı paralaks konumu
+  double _snapFrom = 0;
   Timer? _poll;
   StreamSubscription<Map<String, dynamic>>? _msgSub;
   final _discoverType = ValueNotifier<String?>(null);
@@ -60,6 +69,10 @@ class _AppShellState extends State<AppShell> with WidgetsBindingObserver, Single
     s.realtime?.start();
     _msgSub = s.realtime?.messages.listen(_onRealtimeMessage);
     shellTabRequest.addListener(_onTabRequest);
+    _anim.addStatusListener((st) {
+      if (st == AnimationStatus.completed && _prev != null && mounted) setState(() => _prev = null);
+    });
+    _snap.addListener(() => _drag.value = _snapFrom * (1 - AppMotion.standard.transform(_snap.value)));
     WidgetsBinding.instance.addPostFrameCallback((_) => _onTabRequest());
     _refreshBadges();
     _loadAvatar();
@@ -74,7 +87,9 @@ class _AppShellState extends State<AppShell> with WidgetsBindingObserver, Single
     _msgSub?.cancel();
     s.realtime?.stop();
     _discoverType.dispose();
-    _fade.dispose();
+    _anim.dispose();
+    _snap.dispose();
+    _drag.dispose();
     super.dispose();
   }
 
@@ -130,17 +145,76 @@ class _AppShellState extends State<AppShell> with WidgetsBindingObserver, Single
     _select(i);
   }
 
-  /// Sekmeyi seçer: ilk seçimde kurar, geçişte fade-through oynatır ("animasyonları azalt" ise anlık).
+  /// Alt çubuktaki sıra (Kulüpler çubukta yok; o sekmedeyken komşuları Sohbet ve Profil sayılır).
+  List<int> get _order => _tab == AppTab.clubs
+      ? const [AppTab.home, AppTab.discover, AppTab.chat, AppTab.clubs, AppTab.profile]
+      : const [AppTab.home, AppTab.discover, AppTab.chat, AppTab.profile];
+
+  bool get _rtl => Directionality.of(context) == TextDirection.rtl;
+
+  /// Sekmeyi seçer: ilk seçimde kurar, geçişi oynatır ("animasyonları azalt" ise anlık). Sürükleme konumu giden
+  /// içeriğin başlangıcı olur (içerik bırakıldığı yerden sürer).
   void _select(int i) {
     if (i == _tab) return;
+    final reduce = BuMotion.reduced(context);
+    final from = _parallax(_drag.value);
+    _snap.stop();
     setState(() {
+      _prev = reduce ? null : _tab;
+      // Sekme numarası alt çubuk sırasıyla aynıdır: büyük = ileri (LTR'de sağdan gelir, RTL'de soldan).
+      _enterDir = (i > _tab ? 1.0 : -1.0) * (_rtl ? -1.0 : 1.0);
+      _leaveFrom = from;
       _tab = i;
       _built.add(i);
     });
-    if (BuMotion.reduced(context)) {
-      _fade.value = 1;
+    _drag.value = 0;
+    if (reduce) {
+      _anim.value = 1;
     } else {
-      _fade.forward(from: 0);
+      _anim.forward(from: 0);
+    }
+  }
+
+  /// Sürükleme -> paralaks: 12-16 dp (dx * 0.08, +-16 ile sınırlı).
+  static double _parallax(double dx) => (dx * .08).clamp(-16.0, 16.0);
+
+  // --- sağa/sola sürükleyerek sekme değiştirme ---
+
+  void _dragStart(DragStartDetails _) {
+    _snap.stop();
+    _drag.value = 0;
+  }
+
+  void _dragUpdate(DragUpdateDetails d) => _drag.value += d.delta.dx;
+
+  /// Sürükleme yönündeki komşu sekme (yoksa null). LTR'de sola sürükleme sonraki sekmedir; RTL'de tersi.
+  int? _neighbor(double dir) {
+    if (dir == 0) return null;
+    final order = _order;
+    final to = order.indexOf(_tab) + ((dir < 0) != _rtl ? 1 : -1);
+    return to < 0 || to >= order.length ? null : order[to];
+  }
+
+  void _dragEnd(DragEndDetails d) {
+    final dx = _drag.value;
+    final v = d.primaryVelocity ?? 0;
+    final fling = v.abs() > 700;
+    final to = (dx.abs() >= 60 || fling) ? _neighbor(fling ? v : dx) : null;
+    if (to != null) {
+      BuHaptics.selection();
+      _select(to);
+      return;
+    }
+    _snapBack();
+  }
+
+  void _snapBack() {
+    _snapFrom = _drag.value;
+    if (_snapFrom == 0) return;
+    if (BuMotion.reduced(context)) {
+      _drag.value = 0;
+    } else {
+      _snap.forward(from: 0);
     }
   }
 
@@ -220,26 +294,68 @@ class _AppShellState extends State<AppShell> with WidgetsBindingObserver, Single
     }
   }
 
+  /// Sekme katmanı: yalnız seçili (ve geçişte giden) sekme çizilir/dokunulur; diğerleri Offstage'de canlı kalır
+  /// (konum ve veri korunur, yeniden kurulmaz). Çocuk her zaman aynı sarmalayıcı zincirindedir (durum kaybolmaz).
+  Widget _tabLayer(int i) {
+    final active = i == _tab;
+    final leaving = i == _prev;
+    return Offstage(
+      key: ValueKey('tab-$i'),
+      offstage: !(active || leaving),
+      child: TickerMode(
+        enabled: active || leaving,
+        child: ExcludeSemantics(
+          excluding: !active,
+          child: IgnorePointer(
+            ignoring: !active,
+            child: AnimatedBuilder(
+              animation: Listenable.merge([_anim, _drag]),
+              child: _tabBody(i),
+              builder: (context, child) {
+                final v = _anim.value;
+                var dx = 0.0;
+                var opacity = 1.0;
+                if (active) {
+                  final enter = AppMotion.enter.transform(v);
+                  final dragging = _drag.value;
+                  dx = (1 - enter) * 12 * _enterDir + _parallax(dragging);
+                  opacity = (_prev != null ? enter : 1.0) * (1 - (dragging.abs() / 240).clamp(0.0, .25));
+                } else if (leaving) {
+                  // Giden içerik ilk 140 ms'de solar ve 8 dp ters yöne kayar.
+                  final out = AppMotion.exit.transform((v * 220 / 140).clamp(0.0, 1.0));
+                  dx = _leaveFrom - 8 * _enterDir * out;
+                  opacity = 1 - out;
+                }
+                return Opacity(opacity: opacity, child: Transform.translate(offset: Offset(dx, 0), child: child));
+              },
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _scaffoldBody() {
     return Scaffold(
       extendBody: true,
       body: Stack(
         children: [
           Positioned.fill(
-            child: IndexedStack(
-              index: _tab,
-              children: [
-                for (var i = 0; i <= AppTab.profile; i++)
-                  // Kurulmamış sekme boş kalır: ağ isteği/ağaç maliyeti ilk seçime ertelenir.
-                  if (_built.contains(i))
-                    _TabFade(
-                      key: ValueKey('tab-$i'),
-                      animation: i == _tab ? _fadeIn : null,
-                      child: _tabBody(i),
-                    )
-                  else
-                    const SizedBox.shrink(),
-              ],
+            child: GestureDetector(
+              // Çocuklar (yatay kaydırılan şerit/harita) önce kazanır; boş ve dikey alanda yatay sürükleme sekme değiştirir.
+              behavior: HitTestBehavior.translucent,
+              onHorizontalDragStart: _dragStart,
+              onHorizontalDragUpdate: _dragUpdate,
+              onHorizontalDragEnd: _dragEnd,
+              onHorizontalDragCancel: _snapBack,
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  for (var i = 0; i <= AppTab.profile; i++)
+                    // Kurulmamış sekme boş kalır: ağ isteği/ağaç maliyeti ilk seçime ertelenir.
+                    if (_built.contains(i)) _tabLayer(i) else const SizedBox.shrink(),
+                ],
+              ),
             ),
           ),
           // Edge-to-edge: kaydırılan içerik saat/simgelerin altında okunmaz kalmasın diye durağan zemin örtüsü.
@@ -259,26 +375,6 @@ class _AppShellState extends State<AppShell> with WidgetsBindingObserver, Single
           avatarUrl: s.avatarUrl,
           avatarName: s.displayName,
         ),
-      ),
-    );
-  }
-}
-
-/// Seçilen sekmeyi soluklaştırıp hafifçe ölçekler; animasyon yoksa/bittiğinde ek katman oluşmaz.
-class _TabFade extends StatelessWidget {
-  const _TabFade({super.key, required this.child, this.animation});
-
-  final Widget child;
-  final Animation<double>? animation;
-
-  @override
-  Widget build(BuildContext context) {
-    final a = animation ?? const AlwaysStoppedAnimation<double>(1);
-    return FadeTransition(
-      opacity: Tween<double>(begin: .0, end: 1).animate(a),
-      child: ScaleTransition(
-        scale: Tween<double>(begin: .985, end: 1).animate(a),
-        child: child,
       ),
     );
   }

@@ -182,7 +182,7 @@ void main() {
         final t = dark ? BuTokens.dark : BuTokens.light;
         // Gelen balon: yüzey üstünde ink; giden: marka rengi üstünde onPr (dolgulu balonlar desenden bağımsız).
         expect(_contrast(t.ink, t.sf), greaterThanOrEqualTo(4.5));
-        expect(_contrast(t.onPr, t.pr), greaterThanOrEqualTo(4.5));
+        expect(_contrast(t.onPr, t.prPressed), greaterThanOrEqualTo(4.5));
         // En yoğun desen noktasında bile (zemin + ink alfa) metin/ikincil metin okunur kalır.
         final worst = _over(t.ink.withValues(alpha: ChatWallpaper.alphaOf(ChatBgStyle.strong, dark)), t.bg);
         expect(_contrast(t.ink, worst), greaterThanOrEqualTo(7));

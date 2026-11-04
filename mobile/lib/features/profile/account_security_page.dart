@@ -241,6 +241,7 @@ class _AccountSecurityPageState extends State<AccountSecurityPage> {
                     BuButton(
                       key: const ValueKey('sec-submit'),
                       label: l.profil2SecPwButton,
+                      background: t.prPressed, // Stitch profil-v4: #B93833
                       busy: _busy,
                       onPressed: _busy ? null : _submit,
                     ),
@@ -249,10 +250,11 @@ class _AccountSecurityPageState extends State<AccountSecurityPage> {
                 const SizedBox(height: 24),
                 Divider(height: 1, thickness: 1, color: t.bd),
                 ProfilFlatSection(l.profil2SecSessions, top: 24, upper: true),
-                ProfilFlatGroup(children: [
+                ProfilFlatGroup(outlined: true, children: [
                   ProfilFlatRow(
                     key: const ValueKey('sec-logout-all'),
                     icon: BuIcons.logOut,
+                    plainIcon: true,
                     label: l.settingsLogoutAll,
                     danger: true,
                     trailing: _loggingOut ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2)) : null,
@@ -268,7 +270,7 @@ class _AccountSecurityPageState extends State<AccountSecurityPage> {
   }
 }
 
-/// Şifre alanı: küçük etiket üstte, dolgulu kutu, göz düğmesi; hatalıysa kırmızı çerçeve.
+/// Şifre alanı: etiket üstte, 1 dp çizgili kutu (Stitch profil-v4), göz düğmesi; hatalıysa kırmızı çerçeve.
 class _PwField extends StatefulWidget {
   const _PwField({
     super.key,
@@ -306,7 +308,7 @@ class _PwFieldState extends State<_PwField> {
     return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
       Padding(
         padding: const EdgeInsetsDirectional.only(start: 2, bottom: 6),
-        child: Text(widget.label, style: tx.bodyLarge!.copyWith(fontSize: 16, color: t.ink)),
+        child: Text(widget.label, style: tx.bodyLarge!.copyWith(fontSize: 15, fontWeight: FontWeight.w500, color: t.ink)),
       ),
       TextField(
         controller: widget.controller,
@@ -323,8 +325,8 @@ class _PwFieldState extends State<_PwField> {
           filled: true,
           fillColor: t.sf,
           contentPadding: const EdgeInsetsDirectional.fromSTEB(16, 14, 4, 14),
-          border: b(t.sf, 0),
-          enabledBorder: widget.bad ? b(t.danger, 1.5) : b(t.sf, 0),
+          border: b(t.bd, 1),
+          enabledBorder: widget.bad ? b(t.danger, 1.5) : b(t.bd, 1),
           focusedBorder: b(widget.bad ? t.danger : t.pr, 2),
           suffixIcon: IconButton(
             tooltip: _hidden ? l.authShowPassword : l.authHidePassword,

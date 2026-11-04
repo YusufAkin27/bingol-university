@@ -9,6 +9,48 @@ class AppLocalizationsAr extends AppLocalizations {
   AppLocalizationsAr([String locale = 'ar']) : super(locale);
 
   @override
+  String get chatReactionPickerTitle => 'اختر تفاعلاً';
+
+  @override
+  String get chatReactionKeyboardHint => 'اختر رمزاً تعبيرياً من لوحة المفاتيح';
+
+  @override
+  String get chatReactionOneEmoji => 'اختر رمزاً تعبيرياً واحداً.';
+
+  @override
+  String get chatMessageInfoTitle => 'معلومات الرسالة';
+
+  @override
+  String get chatMessageSent => 'تم الإرسال';
+
+  @override
+  String get chatMessageDelivered => 'تم التسليم';
+
+  @override
+  String get chatMessageRead => 'تمت القراءة';
+
+  @override
+  String get chatMessageTimeUnknown => 'لم يتم تسجيل الوقت';
+
+  @override
+  String get chatMessageWaiting => 'ليس بعد';
+
+  @override
+  String get chatMessageReplies => 'الردود على هذه الرسالة';
+
+  @override
+  String get chatMessageNoReplies => 'لا توجد ردود على هذه الرسالة بعد.';
+
+  @override
+  String get chatMessageReactions => 'التفاعلات';
+
+  @override
+  String get chatMessageEditedNote => 'تم تعديل هذه الرسالة';
+
+  @override
+  String get chatPremiumAllPhotos => 'كل الصور';
+
+  @override
   String get commonRetry => 'إعادة المحاولة';
 
   @override
@@ -1749,6 +1791,37 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get chatInfoGroupName => 'اسم المجموعة';
+
+  @override
+  String get chatInfoSearchInChat => 'البحث في المحادثة';
+
+  @override
+  String get chatInfoMediaFiles => 'الوسائط والملفات';
+
+  @override
+  String get chatInfoTabPhotos => 'الصور';
+
+  @override
+  String get chatInfoTabVideos => 'الفيديوهات';
+
+  @override
+  String get chatInfoTabFiles => 'الملفات';
+
+  @override
+  String get chatInfoNoPhotos => 'لا توجد صور في هذه المحادثة بعد.';
+
+  @override
+  String get chatInfoNoVideos => 'لا توجد فيديوهات في هذه المحادثة بعد.';
+
+  @override
+  String get chatInfoFilesUnsupportedTitle => 'مشاركة الملفات غير مدعومة';
+
+  @override
+  String get chatInfoFilesUnsupportedBody =>
+      'يمكن حاليًا مشاركة الصور والفيديوهات فقط في هذه المحادثة.';
+
+  @override
+  String get chatInfoReported => 'تم الإبلاغ';
 
   @override
   String get chatMiscFilterAll => 'الكل';
@@ -3759,6 +3832,81 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get searchClear => 'مسح البحث';
+
+  @override
+  String get srLoadMore => 'عرض المزيد';
+
+  @override
+  String get srSearchHint => 'ابحث عن مستخدم أو منشور';
+
+  @override
+  String get srTabUsers => 'المستخدمون';
+
+  @override
+  String get srTabPosts => 'المنشورات';
+
+  @override
+  String get srTabReels => 'ريلز';
+
+  @override
+  String get srSearchTabsLabel => 'أنواع نتائج البحث';
+
+  @override
+  String get srSearchPrompt =>
+      'اكتب حرفين على الأقل للبحث عن مستخدمين أو منشورات أو ريلز.';
+
+  @override
+  String get srSeeAll => 'عرض الكل';
+
+  @override
+  String get srReelsUnavailable => 'البحث في الريلز غير متاح حاليًا.';
+
+  @override
+  String get srPrivateAccount => 'حساب خاص';
+
+  @override
+  String srLikeCount(String count) {
+    return '$count إعجاب';
+  }
+
+  @override
+  String srOpenProfileOf(String name) {
+    return 'فتح ملف $name';
+  }
+
+  @override
+  String srPostByAuthor(String name) {
+    return 'منشور $name';
+  }
+
+  @override
+  String get srVideoBadge => 'فيديو';
+
+  @override
+  String get srProfileTabsLabel => 'محتوى الملف الشخصي';
+
+  @override
+  String get srProfilePostsEmpty => 'لا توجد منشورات بعد.';
+
+  @override
+  String get srProfileReelsEmpty => 'لا توجد ريلز بعد.';
+
+  @override
+  String srViewCount(String count) {
+    return '$count مشاهدة';
+  }
+
+  @override
+  String get srPhotoViewerTitle => 'صورة الملف الشخصي';
+
+  @override
+  String get srPhotoViewerError => 'تعذّر تحميل الصورة';
+
+  @override
+  String get srPhotoViewerClose => 'إغلاق المعاينة';
+
+  @override
+  String get srAvatarLongPressHint => 'اضغط مطولًا لعرض الصورة الكبيرة';
 
   @override
   String get searchPrompt =>
@@ -5816,7 +5964,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get profil2SecPwRule =>
-      'من 8 إلى 72 حرفًا. خلط الحروف والأرقام يجعلها أقوى.';
+      '6 أحرف على الأقل. خلط الحروف والأرقام يجعلها أقوى.';
 
   @override
   String get profil2SecPwButton => 'تحديث كلمة المرور';
@@ -9894,6 +10042,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get homeFeaturedMenu => 'قائمة الطعام';
 
   @override
+  String get homeMenuRate => 'قيّم القائمة';
+
+  @override
+  String get homeMenuPhotoPending => 'بانتظار صورة جديدة';
+
+  @override
   String get homeSearchFilters => 'فلاتر البحث';
 
   @override
@@ -10038,6 +10192,16 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get avatarEdStageSemantic =>
       'منطقة تعديل الصورة. اسحب، وقرّب أو بعّد بإصبعين، وانقر مرتين للملاءمة.';
+
+  @override
+  String get photoEdTabRatio => 'النسبة';
+
+  @override
+  String get photoEdRatioFree => 'حر';
+
+  @override
+  String get photoEdRatioHint =>
+      'اختر نسبة الإطار؛ تُقصّ الصورة وفقها. «حر» يحافظ على نسبة الصورة الأصلية.';
 
   @override
   String get avatarSheetTitle => 'صورة الملف الشخصي';

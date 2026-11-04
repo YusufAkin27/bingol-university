@@ -167,16 +167,16 @@ void main() {
       await settle(tester, const Duration(milliseconds: 600));
       await tester.longPress(find.byKey(const ValueKey('discover-author-2002')));
       await settle(tester, const Duration(milliseconds: 400));
-      expect(find.byKey(const ValueKey('avatarPreviewBackdrop')), findsNothing);
+      expect(find.byKey(const ValueKey('profilePhotoViewerBackdrop')), findsNothing);
       // Fotografsiz avatarda onizleme yok; uzun basma gonderi menusunu acar (kapat).
       await tester.tapAt(const Offset(10, 60));
       await settle(tester, const Duration(milliseconds: 400));
       await tester.longPress(find.byKey(const ValueKey('discover-author-2001')));
       await settle(tester, const Duration(milliseconds: 500));
-      expect(find.byKey(const ValueKey('avatarPreviewBackdrop')), findsOneWidget);
+      expect(find.byKey(const ValueKey('profilePhotoViewerBackdrop')), findsOneWidget);
       await tester.tapAt(const Offset(10, 300));
       await settle(tester, const Duration(milliseconds: 500));
-      expect(find.byKey(const ValueKey('avatarPreviewBackdrop')), findsNothing);
+      expect(find.byKey(const ValueKey('profilePhotoViewerBackdrop')), findsNothing);
       noErr(tester);
     });
   });

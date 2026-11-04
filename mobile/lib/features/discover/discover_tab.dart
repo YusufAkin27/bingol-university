@@ -5,7 +5,7 @@ import '../../core/session.dart';
 import '../../widgets/bu.dart';
 import '../posts/post_routes.dart';
 import '../reels/reels_feed.dart';
-import '../search/search_page.dart';
+import '../search/global_search_screen.dart';
 import 'discover_masonry.dart';
 import 'discover_suggestions.dart';
 
@@ -86,10 +86,7 @@ class _DiscoverTabState extends State<DiscoverTab> {
     if (widget.typeRequest.value != null) widget.typeRequest.value = null;
   }
 
-  void _openSearch() => Navigator.push(
-        context,
-        MaterialPageRoute(builder: (_) => SearchPage(session: widget.session)),
-      );
+  void _openSearch() => Navigator.push(context, GlobalSearchScreen.route(widget.session));
 
   Future<void> _compose() async {
     final p = await openComposePost(context, widget.session);

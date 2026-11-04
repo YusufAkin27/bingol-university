@@ -100,6 +100,90 @@ abstract class AppLocalizations {
     Locale('tr')
   ];
 
+  /// No description provided for @chatReactionPickerTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Tepki seç'**
+  String get chatReactionPickerTitle;
+
+  /// No description provided for @chatReactionKeyboardHint.
+  ///
+  /// In tr, this message translates to:
+  /// **'Klavyenden bir emoji seç'**
+  String get chatReactionKeyboardHint;
+
+  /// No description provided for @chatReactionOneEmoji.
+  ///
+  /// In tr, this message translates to:
+  /// **'Tek bir emoji seçin.'**
+  String get chatReactionOneEmoji;
+
+  /// No description provided for @chatMessageInfoTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Mesaj bilgisi'**
+  String get chatMessageInfoTitle;
+
+  /// No description provided for @chatMessageSent.
+  ///
+  /// In tr, this message translates to:
+  /// **'Gönderildi'**
+  String get chatMessageSent;
+
+  /// No description provided for @chatMessageDelivered.
+  ///
+  /// In tr, this message translates to:
+  /// **'İletildi'**
+  String get chatMessageDelivered;
+
+  /// No description provided for @chatMessageRead.
+  ///
+  /// In tr, this message translates to:
+  /// **'Okundu'**
+  String get chatMessageRead;
+
+  /// No description provided for @chatMessageTimeUnknown.
+  ///
+  /// In tr, this message translates to:
+  /// **'Zaman kaydı bulunmuyor'**
+  String get chatMessageTimeUnknown;
+
+  /// No description provided for @chatMessageWaiting.
+  ///
+  /// In tr, this message translates to:
+  /// **'Henüz gerçekleşmedi'**
+  String get chatMessageWaiting;
+
+  /// No description provided for @chatMessageReplies.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu mesaja yanıtlar'**
+  String get chatMessageReplies;
+
+  /// No description provided for @chatMessageNoReplies.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu mesaja henüz yanıt verilmedi.'**
+  String get chatMessageNoReplies;
+
+  /// No description provided for @chatMessageReactions.
+  ///
+  /// In tr, this message translates to:
+  /// **'Tepkiler'**
+  String get chatMessageReactions;
+
+  /// No description provided for @chatMessageEditedNote.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu mesaj düzenlendi'**
+  String get chatMessageEditedNote;
+
+  /// No description provided for @chatPremiumAllPhotos.
+  ///
+  /// In tr, this message translates to:
+  /// **'Tüm fotoğraflar'**
+  String get chatPremiumAllPhotos;
+
   /// No description provided for @commonRetry.
   ///
   /// In tr, this message translates to:
@@ -3288,6 +3372,66 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Grup adı'**
   String get chatInfoGroupName;
+
+  /// No description provided for @chatInfoSearchInChat.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sohbette ara'**
+  String get chatInfoSearchInChat;
+
+  /// No description provided for @chatInfoMediaFiles.
+  ///
+  /// In tr, this message translates to:
+  /// **'Medya ve dosyalar'**
+  String get chatInfoMediaFiles;
+
+  /// No description provided for @chatInfoTabPhotos.
+  ///
+  /// In tr, this message translates to:
+  /// **'Fotoğraflar'**
+  String get chatInfoTabPhotos;
+
+  /// No description provided for @chatInfoTabVideos.
+  ///
+  /// In tr, this message translates to:
+  /// **'Videolar'**
+  String get chatInfoTabVideos;
+
+  /// No description provided for @chatInfoTabFiles.
+  ///
+  /// In tr, this message translates to:
+  /// **'Dosyalar'**
+  String get chatInfoTabFiles;
+
+  /// No description provided for @chatInfoNoPhotos.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu sohbette henüz fotoğraf yok.'**
+  String get chatInfoNoPhotos;
+
+  /// No description provided for @chatInfoNoVideos.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu sohbette henüz video yok.'**
+  String get chatInfoNoVideos;
+
+  /// No description provided for @chatInfoFilesUnsupportedTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Dosya paylaşımı desteklenmiyor'**
+  String get chatInfoFilesUnsupportedTitle;
+
+  /// No description provided for @chatInfoFilesUnsupportedBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu sohbette şimdilik yalnızca fotoğraf ve video paylaşılabiliyor.'**
+  String get chatInfoFilesUnsupportedBody;
+
+  /// No description provided for @chatInfoReported.
+  ///
+  /// In tr, this message translates to:
+  /// **'Şikâyet edildi'**
+  String get chatInfoReported;
 
   /// No description provided for @chatMiscFilterAll.
   ///
@@ -7063,6 +7207,138 @@ abstract class AppLocalizations {
   /// **'Aramayı temizle'**
   String get searchClear;
 
+  /// No description provided for @srLoadMore.
+  ///
+  /// In tr, this message translates to:
+  /// **'Daha fazla göster'**
+  String get srLoadMore;
+
+  /// No description provided for @srSearchHint.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kullanıcı veya gönderi ara'**
+  String get srSearchHint;
+
+  /// No description provided for @srTabUsers.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kullanıcılar'**
+  String get srTabUsers;
+
+  /// No description provided for @srTabPosts.
+  ///
+  /// In tr, this message translates to:
+  /// **'Gönderiler'**
+  String get srTabPosts;
+
+  /// No description provided for @srTabReels.
+  ///
+  /// In tr, this message translates to:
+  /// **'Reels'**
+  String get srTabReels;
+
+  /// No description provided for @srSearchTabsLabel.
+  ///
+  /// In tr, this message translates to:
+  /// **'Arama sonucu türleri'**
+  String get srSearchTabsLabel;
+
+  /// No description provided for @srSearchPrompt.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kullanıcı, gönderi veya reels aramak için en az 2 karakter yazın.'**
+  String get srSearchPrompt;
+
+  /// No description provided for @srSeeAll.
+  ///
+  /// In tr, this message translates to:
+  /// **'Tümünü gör'**
+  String get srSeeAll;
+
+  /// No description provided for @srReelsUnavailable.
+  ///
+  /// In tr, this message translates to:
+  /// **'Reels araması şu an kullanılamıyor.'**
+  String get srReelsUnavailable;
+
+  /// No description provided for @srPrivateAccount.
+  ///
+  /// In tr, this message translates to:
+  /// **'Gizli hesap'**
+  String get srPrivateAccount;
+
+  /// No description provided for @srLikeCount.
+  ///
+  /// In tr, this message translates to:
+  /// **'{count} beğeni'**
+  String srLikeCount(String count);
+
+  /// No description provided for @srOpenProfileOf.
+  ///
+  /// In tr, this message translates to:
+  /// **'{name} profilini aç'**
+  String srOpenProfileOf(String name);
+
+  /// No description provided for @srPostByAuthor.
+  ///
+  /// In tr, this message translates to:
+  /// **'{name} gönderisi'**
+  String srPostByAuthor(String name);
+
+  /// No description provided for @srVideoBadge.
+  ///
+  /// In tr, this message translates to:
+  /// **'Video'**
+  String get srVideoBadge;
+
+  /// No description provided for @srProfileTabsLabel.
+  ///
+  /// In tr, this message translates to:
+  /// **'Profil içeriği'**
+  String get srProfileTabsLabel;
+
+  /// No description provided for @srProfilePostsEmpty.
+  ///
+  /// In tr, this message translates to:
+  /// **'Henüz gönderi yok.'**
+  String get srProfilePostsEmpty;
+
+  /// No description provided for @srProfileReelsEmpty.
+  ///
+  /// In tr, this message translates to:
+  /// **'Henüz reels yok.'**
+  String get srProfileReelsEmpty;
+
+  /// No description provided for @srViewCount.
+  ///
+  /// In tr, this message translates to:
+  /// **'{count} görüntülenme'**
+  String srViewCount(String count);
+
+  /// No description provided for @srPhotoViewerTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Profil fotoğrafı'**
+  String get srPhotoViewerTitle;
+
+  /// No description provided for @srPhotoViewerError.
+  ///
+  /// In tr, this message translates to:
+  /// **'Fotoğraf yüklenemedi'**
+  String get srPhotoViewerError;
+
+  /// No description provided for @srPhotoViewerClose.
+  ///
+  /// In tr, this message translates to:
+  /// **'Önizlemeyi kapat'**
+  String get srPhotoViewerClose;
+
+  /// No description provided for @srAvatarLongPressHint.
+  ///
+  /// In tr, this message translates to:
+  /// **'Büyük fotoğrafı görmek için uzun bas'**
+  String get srAvatarLongPressHint;
+
   /// No description provided for @searchPrompt.
   ///
   /// In tr, this message translates to:
@@ -10816,7 +11092,7 @@ abstract class AppLocalizations {
   /// No description provided for @profil2SecPwRule.
   ///
   /// In tr, this message translates to:
-  /// **'8 ile 72 karakter. Harf ve rakam karıştırırsanız güçlenir.'**
+  /// **'En az 6 karakter. Harf ve rakam karıştırırsanız güçlenir.'**
   String get profil2SecPwRule;
 
   /// No description provided for @profil2SecPwButton.
@@ -18085,6 +18361,18 @@ abstract class AppLocalizations {
   /// **'Yemek Menüsü'**
   String get homeFeaturedMenu;
 
+  /// No description provided for @homeMenuRate.
+  ///
+  /// In tr, this message translates to:
+  /// **'Menüyü puanla'**
+  String get homeMenuRate;
+
+  /// No description provided for @homeMenuPhotoPending.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yeni görsel bekliyor'**
+  String get homeMenuPhotoPending;
+
   /// No description provided for @homeSearchFilters.
   ///
   /// In tr, this message translates to:
@@ -18366,6 +18654,24 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Fotoğraf düzenleme alanı. Sürükleyin, iki parmakla yakınlaştırın veya uzaklaştırın, çift dokunarak sığdırın.'**
   String get avatarEdStageSemantic;
+
+  /// No description provided for @photoEdTabRatio.
+  ///
+  /// In tr, this message translates to:
+  /// **'Oran'**
+  String get photoEdTabRatio;
+
+  /// No description provided for @photoEdRatioFree.
+  ///
+  /// In tr, this message translates to:
+  /// **'Serbest'**
+  String get photoEdRatioFree;
+
+  /// No description provided for @photoEdRatioHint.
+  ///
+  /// In tr, this message translates to:
+  /// **'Çerçeve oranını seçin; fotoğraf buna göre kırpılır. Serbest, fotoğrafın kendi oranını korur.'**
+  String get photoEdRatioHint;
 
   /// No description provided for @avatarSheetTitle.
   ///

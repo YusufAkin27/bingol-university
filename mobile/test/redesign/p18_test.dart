@@ -1,4 +1,5 @@
 import 'package:bu_kampus/core/theme_controller.dart';
+import 'package:bu_kampus/features/chat/chatlist_widgets.dart' show ChatlistAvatar;
 import 'package:bu_kampus/features/follow/follow_list_page.dart';
 import 'package:bu_kampus/features/follow/follow_suggestions.dart';
 import 'package:bu_kampus/features/posts/user_posts_page.dart';
@@ -132,15 +133,15 @@ void main() {
       // Profil ve Kulupler sekmeleri henuz kurulmadi. Kabuk yalniz alt gezinme avatari icin TEK sessiz GET /users/me atar.
       expect(b.requests.where((r) => r == 'GET /users/me').length, 1, reason: b.requests.join('\n'));
       expect(find.byType(ProfileTab), findsNothing);
-      await tester.tap(find.text('Profil'));
+      await tester.tap(find.byKey(const ValueKey('nav-4')));
       await settle(tester, const Duration(seconds: 1));
       expect(find.byType(ProfileTab), findsOneWidget);
       expect(b.requests.where((r) => r == 'GET /users/me').length, 2);
       final n = b.requests.where((r) => r == 'GET /users/me').length;
       // Ana sayfaya don, tekrar profil: yeniden kurulmaz (istek sayisi artmaz).
-      await tester.tap(find.text('Ana Sayfa'));
+      await tester.tap(find.byKey(const ValueKey('nav-0')));
       await settle(tester, const Duration(milliseconds: 600));
-      await tester.tap(find.text('Profil'));
+      await tester.tap(find.byKey(const ValueKey('nav-4')));
       await settle(tester, const Duration(milliseconds: 600));
       expect(b.requests.where((r) => r == 'GET /users/me').length, n);
       expect(tester.takeException(), isNull);
@@ -155,7 +156,7 @@ void main() {
       await settle(tester, const Duration(seconds: 1));
       expect(s.avatarUrl.value, '/files/avatars/1.jpg');
       expect(find.byKey(const ValueKey('nav-4')), findsOneWidget);
-      expect(find.descendant(of: find.byKey(const ValueKey('nav-4')), matching: find.byIcon(BuIcons.user)), findsOneWidget);
+      expect(find.descendant(of: find.byKey(const ValueKey('nav-4')), matching: find.byType(ChatlistAvatar)), findsOneWidget);
       await unmount(tester);
     });
 
@@ -165,12 +166,12 @@ void main() {
       addTearDown(tester.platformDispatcher.clearAccessibilityFeaturesTestValue);
       await tester.pumpWidget(buildApp(AppShell(session: makeSession(_backend()), themeController: ThemeController())));
       await settle(tester, const Duration(milliseconds: 600));
-      await tester.tap(find.text('Keşfet'));
+      await tester.tap(find.byKey(const ValueKey('nav-1')));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 16));
-      final al = tester.widget<AnimatedAlign>(find.byKey(const ValueKey('nav-indicator')));
-      expect(al.alignment, const AlignmentDirectional(-.5, 0));
-      expect(al.duration, Duration.zero); // animasyonlari azalt: kayma anlik
+      final pill = tester.getRect(find.byKey(const ValueKey('nav-indicator')));
+      final cell = tester.getRect(find.byKey(const ValueKey('nav-1')));
+      expect(pill.center.dx, closeTo(cell.center.dx, 0.6)); // animasyonlari azalt: kayma anlik
       expect(tester.takeException(), isNull);
       await unmount(tester);
     });

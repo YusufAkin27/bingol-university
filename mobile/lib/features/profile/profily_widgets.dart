@@ -267,7 +267,7 @@ class ProfilySearchField extends StatelessWidget {
   Widget build(BuildContext context) => Semantics(
         label: label,
         textField: true,
-        child: BuSearchField(hint: hint, controller: controller, onChanged: onChanged),
+        child: BuSearchField(hint: hint, controller: controller, onChanged: onChanged, radius: 16),
       );
 }
 

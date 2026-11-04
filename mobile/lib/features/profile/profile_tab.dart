@@ -242,7 +242,7 @@ class _ProfileTabState extends State<ProfileTab> {
           BuStaggerItem(index: 0, child: _TitleRow(onEdit: () => _edit(p))),
           const SizedBox(height: 16),
           BuStaggerItem(index: 0, child: _ProfileHero(profile: p, busy: _avatarBusy, onAvatarTap: _avatarTap)),
-          const SizedBox(height: 24),
+          const SizedBox(height: 16),
           BuStaggerItem(
             index: 1,
             child: uid != null
@@ -358,7 +358,22 @@ class _TitleRow extends StatelessWidget {
         child: Semantics(
           container: true,
           header: true,
-          child: BuFeatureTitle(title: l.p18ProfileTitle, icon: BuIcons.user),
+          child: Row(children: [
+            // Stitch profil-v4: 48 dp soft karo (16 dp köşe), simge vurgu rengi.
+            ExcludeSemantics(
+              child: Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(color: t.soft, borderRadius: BorderRadius.circular(16)),
+                child: Icon(BuIcons.user, size: 24, color: t.pr),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(l.p18ProfileTitle,
+                  maxLines: 2, overflow: TextOverflow.ellipsis, style: BuType.display.copyWith(fontSize: 28, height: 1.1, fontWeight: FontWeight.w700, color: t.ink)),
+            ),
+          ]),
         ),
       ),
       const SizedBox(width: 12),
@@ -416,7 +431,7 @@ class _ProfileHero extends StatelessWidget {
     final bio = (profile['bio'] as String?) ?? '';
     return BuCard(
         radius: 24,
-        style: BuCardStyle.elevated,
+        style: BuCardStyle.outlined,
         padding: const EdgeInsets.all(20),
         child: Column(mainAxisSize: MainAxisSize.min, children: [
           _TappableAvatar(name: name, url: profile['avatarUrl'] as String?, busy: busy, onTap: onAvatarTap),
@@ -496,8 +511,8 @@ class _TappableAvatar extends StatelessWidget {
                 child: Container(
                   width: 28,
                   height: 28,
-                  decoration: BoxDecoration(color: t.sf3, shape: BoxShape.circle, border: Border.all(color: t.bg, width: 2)),
-                  child: Icon(BuIcons.camera, size: 14, color: t.ink),
+                  decoration: BoxDecoration(color: t.sf3, shape: BoxShape.circle, border: Border.all(color: t.bd)),
+                  child: Icon(BuIcons.camera, size: 15, color: t.mut),
                 ),
               ),
             ),

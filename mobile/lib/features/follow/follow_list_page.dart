@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../core/locale_controller.dart';
 import '../../core/session.dart';
 import '../../widgets/bu.dart';
+import '../../widgets/profile_photo_viewer.dart';
 import '../posts/post_models.dart' show PostPage, postAuthHeaders;
 import '../posts/social_models.dart';
 import '../profile/profily_widgets.dart';
@@ -227,9 +228,26 @@ class _FollowListPageState extends State<FollowListPage> {
     return Scaffold(
       backgroundColor: context.bu.bg,
       body: Column(children: [
-        BuHeader(
-          title: name.isEmpty ? (widget.followers ? l.followersTitle : l.followingTitle) : name,
-          onBack: () => Navigator.maybePop(context),
+        // Stitch profil-v4: düz geri oku (48 dp dokunma) + başlık 20/700.
+        Padding(
+          padding: EdgeInsetsDirectional.fromSTEB(8, MediaQuery.paddingOf(context).top + 8, 20, 0),
+          child: Row(children: [
+            IconButton(
+              constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
+              tooltip: l.commonBack,
+              icon: Icon(buDirIcon(context, BuIcons.chevronLeft), size: 26, color: context.bu.ink),
+              onPressed: () => Navigator.maybePop(context),
+            ),
+            Expanded(
+              child: Semantics(
+                header: true,
+                child: Text(name.isEmpty ? (widget.followers ? l.followersTitle : l.followingTitle) : name,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: BuType.display.copyWith(fontSize: 20, fontWeight: FontWeight.w700, height: 1.2, color: context.bu.ink)),
+              ),
+            ),
+          ]),
         ),
         Expanded(
           child: RefreshIndicator(
@@ -285,7 +303,12 @@ class SocialUserTile extends StatelessWidget {
         onTap: () =>
             openUserProfile(context, session, userId: user.id, name: user.displayName, avatarUrl: user.avatarUrl),
         child: Row(children: [
-          BuAvatar(name: user.displayName, url: user.avatarUrl, size: 46, headers: postAuthHeaders(session)),
+          AvatarLongPress(
+            imageUrl: user.avatarUrl,
+            headers: postAuthHeaders(session),
+            title: user.displayName,
+            child: BuAvatar(name: user.displayName, url: user.avatarUrl, size: 46, headers: postAuthHeaders(session)),
+          ),
           const SizedBox(width: 12),
           Expanded(child: ProfilyTitleBlock(title: user.displayName, sub: context.departmentName(user.department))),
           if (trailing != null)

@@ -90,12 +90,16 @@ class ChatdPlay extends StatelessWidget {
     return Container(
       width: size,
       height: size,
-      decoration: BoxDecoration(shape: BoxShape.circle, color: t.onMedia.withValues(alpha: .92)),
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: t.scrim.withValues(alpha: .5),
+        border: Border.all(color: t.onMedia.withValues(alpha: .7), width: 1.5),
+      ),
       alignment: Alignment.center,
       child: Padding(
         // Üçgenin optik merkezi geometrik merkezden biraz sağdadır; ortalamak için hafif içeri.
         padding: EdgeInsetsDirectional.only(start: size * .04),
-        child: Icon(BuIcons.playFilled, size: size * .6, color: t.scrim),
+        child: Icon(BuIcons.playFilled, size: size * .5, color: t.onMedia),
       ),
     );
   }

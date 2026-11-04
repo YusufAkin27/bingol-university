@@ -394,7 +394,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
   }
 
   Widget _card({required Widget child, EdgeInsetsGeometry padding = const EdgeInsets.all(16)}) => DecoratedBox(
-        decoration: BoxDecoration(color: context.bu.sf, borderRadius: BorderRadius.circular(24), boxShadow: BuElevation.of(context, 1)),
+        decoration: BoxDecoration(color: context.bu.sf, borderRadius: BorderRadius.circular(24), border: Border.all(color: context.bu.bd)),
         child: Padding(padding: padding, child: child),
       );
 
@@ -501,9 +501,9 @@ class _UserProfilePageState extends State<UserProfilePage> {
             IntrinsicHeight(
               child: Row(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
                 Expanded(child: _stat(t, stat ?? _postCount ?? '0', l.icerikStatPosts)),
-                VerticalDivider(width: 1, thickness: 1, indent: 10, endIndent: 10, color: t.bd),
+                VerticalDivider(width: 1, thickness: 1, color: t.bd),
                 Expanded(child: _stat(t, stat ?? (s == null ? '0' : '${s.followers}'), l.icerikStatFollowers, followers: _blocked || locked ? null : true)),
-                VerticalDivider(width: 1, thickness: 1, indent: 10, endIndent: 10, color: t.bd),
+                VerticalDivider(width: 1, thickness: 1, color: t.bd),
                 Expanded(child: _stat(t, stat ?? (s == null ? '0' : '${s.following}'), l.icerikStatFollowing, followers: _blocked || locked ? null : false)),
               ]),
             ),
@@ -596,12 +596,12 @@ class _UserProfilePageState extends State<UserProfilePage> {
   Widget _stat(BuTokens t, String n, String label, {bool? followers}) {
     final tx = Theme.of(context).textTheme;
     final child = Padding(
-      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
+      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
       child: Column(mainAxisSize: MainAxisSize.min, children: [
         Text(n,
             key: followers == null ? null : ValueKey(followers ? 'followerCount' : 'followingCount'),
-            style: tx.titleLarge!.copyWith(fontWeight: FontWeight.w800, color: t.ink, fontFeatures: const [FontFeature.tabularFigures()])),
-        Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.bodySmall!.copyWith(color: t.mut)),
+            style: tx.titleLarge!.copyWith(fontSize: 20, fontWeight: FontWeight.w800, color: t.ink, fontFeatures: const [FontFeature.tabularFigures()])),
+        Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.bodySmall!.copyWith(fontSize: 13, color: t.mut)),
       ]),
     );
     if (followers == null) return child;
@@ -635,10 +635,10 @@ class _UserProfilePageState extends State<UserProfilePage> {
     if (rows.isEmpty && bio.isEmpty) return const SizedBox.shrink();
     return _card(
       child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        Semantics(header: true, child: Text(lockedAll ? l.p20AcademicInfo : l.profileAboutShort, style: tx.titleMedium!.copyWith(fontWeight: FontWeight.w800, color: t.ink))),
+        Semantics(header: true, child: Text(lockedAll ? l.p20AcademicInfo : l.profileAboutShort, style: tx.titleMedium!.copyWith(fontSize: 18, fontWeight: FontWeight.w800, color: t.ink))),
         if (bio.isNotEmpty && !lockedAll) ...[
           const SizedBox(height: 10),
-          Text(bio, style: tx.bodyMedium!.copyWith(color: t.mut, height: 1.45)),
+          Text(bio, style: tx.bodyMedium!.copyWith(fontSize: 15, color: t.mut, height: 1.6)),
         ],
         if (rows.isNotEmpty) const SizedBox(height: 12),
         for (var i = 0; i < rows.length; i++) ...[if (i > 0) const SizedBox(height: 12), rows[i]],
@@ -679,8 +679,9 @@ class _UserProfilePageState extends State<UserProfilePage> {
               Text(context.l10n.icerikHidden, style: tx.labelMedium!.copyWith(fontWeight: FontWeight.w700, color: t.mut)),
             ])
           : Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(label, style: tx.labelMedium!.copyWith(color: t.mut)),
-              Text(value, maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.titleSmall!.copyWith(fontWeight: FontWeight.w700, color: t.ink)),
+              Text(label, style: tx.labelMedium!.copyWith(fontSize: 13, fontWeight: FontWeight.w500, color: t.mut)),
+              const SizedBox(height: 4),
+              Text(value, maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.titleSmall!.copyWith(fontSize: 15, fontWeight: FontWeight.w700, color: t.ink)),
             ]),
     );
   }

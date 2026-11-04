@@ -10,6 +10,8 @@ import '../../widgets/report_sheet.dart';
 import '../media_crop/media_crop.dart';
 import '../profile/user_profile_page.dart';
 import 'chat_info_media.dart';
+import 'chat_info_photo_viewer.dart';
+import 'chat_media_gallery_page.dart';
 import 'chat_info_members.dart';
 import 'chat_info_parts.dart';
 import 'chat_sheet_parts.dart';
@@ -71,6 +73,13 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
   Map<String, dynamic>? _profile;
   bool _membersFailed = false;
   int _avatarVersion = 0;
+
+  /// Yanlışlıkla/çift dokunmayı engeller: engelleme isteği sürerken ve şikâyet açıkken yeni işlem başlamaz.
+  bool _blockBusy = false;
+  bool _reportOpen = false;
+
+  /// Bu açılışta şikâyet gönderildi: aynı kişi için satır pasifleşir (tekrar önleme).
+  bool _reported = false;
 
   ApiClient get _api => widget.session.api;
   int get _cid => (_conv['id'] as num).toInt();
@@ -207,12 +216,28 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
     );
   }
 
+  /// Galeri sekmesinden: süzülmüş listede görüntüleyici.
+  void _openGalleryViewer(List<ChatMediaItem> items, int index) {
+    Navigator.push(
+      context,
+      MaterialPageRoute<void>(
+        builder: (_) => ChatMediaViewer(
+          items: List.of(items),
+          headers: _headers,
+          initialIndex: index,
+          saveImage: widget.saveImage,
+        ),
+      ),
+    );
+  }
+
+  /// Medya ve dosyalar galerisi (Fotoğraflar | Videolar | Dosyalar).
   void _openAllMedia() {
     Navigator.push(
       context,
       MaterialPageRoute<void>(
-          builder: (_) => ChatMediaGridPage(
-              feed: _feed, headers: _headers, onOpen: _openViewer)),
+          builder: (_) => ChatMediaGalleryPage(
+              feed: _feed, headers: _headers, onOpen: _openGalleryViewer)),
     );
   }
 
@@ -314,8 +339,9 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
 
   Future<void> _toggleBlock() async {
     final pid = _peerId;
-    if (pid == null) return;
+    if (pid == null || _blockBusy) return;
     final l = context.l10n;
+    _blockBusy = true;
     try {
       if (_blocked) {
         await _api.delete('/users/$pid/block');
@@ -338,14 +364,24 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
       }
     } catch (e) {
       _toast(errorText(e), kind: BuToastKind.error);
+    } finally {
+      _blockBusy = false;
     }
   }
 
   Future<void> _report() async {
     final pid = _peerId;
-    if (pid == null) return;
-    await ReportSheet.show(context, widget.session,
-        targetType: 'USER', targetId: pid, title: context.l10n.chatInfoReportUser);
+    if (pid == null || _reported || _reportOpen) return;
+    _reportOpen = true;
+    try {
+      final sent = await ReportSheet.show(context, widget.session,
+          targetType: 'USER',
+          targetId: pid,
+          title: context.l10n.chatInfoReportUser);
+      if (sent && mounted) setState(() => _reported = true);
+    } finally {
+      _reportOpen = false;
+    }
   }
 
   /// Onay (Stitch 24-5) + çıkarma. Başarılıysa true; üye yerel listeden düşer.
@@ -382,7 +418,8 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
   // ---- grup adı / fotoğrafı (yalnız kullanıcı grubu yöneticisi) ----
 
   Future<void> _rename() async {
-    final name = await showChatRenameDialog(context, initial: (_conv['title'] as String?) ?? '');
+    final name = await showChatRenameDialog(context,
+        initial: (_conv['title'] as String?) ?? '');
     if (name == null || !mounted) return;
     try {
       final res = await _api.patch('/conversations/$_cid', {'title': name});
@@ -405,7 +442,9 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
       final src = await showChatPhotoSheet(context,
           name: _title,
           avatarUrl: au,
-          headers: (tok != null && au != null && au.startsWith('/api/')) ? {'Authorization': 'Bearer $tok'} : null,
+          headers: (tok != null && au != null && au.startsWith('/api/'))
+              ? {'Authorization': 'Bearer $tok'}
+              : null,
           removable: has,
           error: error);
       if (src == null || !mounted) return;
@@ -420,9 +459,13 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
         if (widget.pickAvatar != null) {
           img = await widget.pickAvatar!();
         } else {
-          final bytes = await pickAndCrop(context, CropSpec.profile(previewName: _title),
-              source: src == PhotoSource.camera ? ImageSource.camera : ImageSource.gallery);
-          if (bytes != null) img = await ImageService().prepare(bytes, avatar: true);
+          final bytes = await pickAndCrop(
+              context, CropSpec.profile(previewName: _title),
+              source: src == PhotoSource.camera
+                  ? ImageSource.camera
+                  : ImageSource.gallery);
+          if (bytes != null)
+            img = await ImageService().prepare(bytes, avatar: true);
         }
         if (img == null || !mounted) return;
         final path = '/conversations/$_cid/avatar';
@@ -439,7 +482,9 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
       } on ImageException catch (e) {
         if (!mounted) return;
         // Biçim/boyut hatası: kaynak sayfası uyarıyla yeniden açılır.
-        error = e.code == 'TOO_LARGE' ? context.l10n.chatInfoImageTooLarge : context.l10n.chatInfoImageTypeOnly;
+        error = e.code == 'TOO_LARGE'
+            ? context.l10n.chatInfoImageTooLarge
+            : context.l10n.chatInfoImageTypeOnly;
       } catch (e) {
         _toast(errorText(e), kind: BuToastKind.error);
         return;
@@ -533,14 +578,16 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
       child: child);
 
   /// Tam genişlik bantlar, aralarında 24 dp sayfa zemini (Stitch v3).
-  Widget _gap(List<Widget> cards) => Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
+  Widget _gap(List<Widget> cards) =>
+      Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
         for (var i = 0; i < cards.length; i++) ...[
           if (i > 0) const SizedBox(height: 24),
           cards[i],
         ],
       ]);
+
+  /// Sohbet içinde mesaj arama: sohbet ekranı `'search'` sonucuyla kendi arama çubuğunu açar.
+  void _searchInChat() => Navigator.pop(context, 'search');
 
   /// Ara · Sessize al · Arşivle.
   Widget _quickRow({required bool dense}) {
@@ -551,42 +598,64 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
           dense: dense,
           icon: BuIcons.search,
           label: l.chatInfoSearch,
-          onTap: () => Navigator.pop(context, 'search')),
+          onTap: _searchInChat),
       ChatInfoQuickAction(
           dense: dense,
           icon: _muted ? BuIcons.bell : BuIcons.bellOff,
           label: _muted ? l.chatInfoUnmute : l.chatInfoMute,
+          active: _muted,
           onTap: _toggleMute),
       ChatInfoQuickAction(
           dense: dense,
           icon: archived ? BuIcons.archiveRestore : BuIcons.archive,
           label: archived ? l.chatInfoUnarchive : l.chatInfoArchive,
+          active: archived,
           onTap: _toggleArchive),
     ]);
   }
 
-  Widget _bigAvatar({bool badge = false}) {
-    final t = context.bu;
+  Map<String, String>? get _photoHeaders {
     final tok = _api.tokens?.access;
     final au = _avatarUrl;
-    final avatar = DecoratedBox(
-      decoration: const BoxDecoration(),
-      child: ChatlistAvatar(
-        name: _title,
-        url: au,
-        size: 96,
-        monogram: true,
-        cornerRadius: 20,
-        group: !_direct,
-        headers: (tok != null && au != null && au.startsWith('/api/'))
-            ? {'Authorization': 'Bearer $tok'}
-            : null,
+    return (tok != null && au != null && au.startsWith('/api/'))
+        ? {'Authorization': 'Bearer $tok'}
+        : null;
+  }
+
+  /// Büyük avatara dokununca blur arka planlı tam ekran önizleme (fotoğraf yoksa açılmaz).
+  void _openAvatar() => ChatInfoPhotoViewer.show(context,
+      imageUrl: _avatarUrl,
+      thumbUrl: _avatarUrl,
+      heroTag: 'chat-info-avatar-$_cid',
+      name: _title,
+      headers: _photoHeaders);
+
+  static const _avatarSize = 120.0;
+
+  Widget _bigAvatar({bool badge = false}) {
+    final t = context.bu;
+    final au = _avatarUrl;
+    final avatar = Semantics(
+      button: au != null,
+      label: context.l10n.avatarSheetTitle,
+      child: GestureDetector(
+        key: const ValueKey('chatInfoAvatarPreview'),
+        onTap: au == null ? null : _openAvatar,
+        child: ChatlistAvatar(
+          name: _title,
+          url: au,
+          size: _avatarSize,
+          monogram: true,
+          cornerRadius: 36,
+          group: !_direct,
+          headers: _photoHeaders,
+        ),
       ),
     );
     if (!badge) return avatar;
     return SizedBox(
-      width: 96,
-      height: 96,
+      width: _avatarSize,
+      height: _avatarSize,
       child: Stack(clipBehavior: Clip.none, children: [
         avatar,
         PositionedDirectional(
@@ -619,10 +688,12 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
     );
   }
 
-  TextStyle _nameStyle(BuTokens t) => Theme.of(context)
-      .textTheme
-      .headlineSmall!
-      .copyWith(fontWeight: FontWeight.w700, fontSize: 22, height: 1.27, color: t.ink);
+  TextStyle _nameStyle(BuTokens t) =>
+      Theme.of(context).textTheme.headlineSmall!.copyWith(
+          fontWeight: FontWeight.w700,
+          fontSize: 22,
+          height: 1.27,
+          color: t.ink);
 
   // ---- Birebir ----
 
@@ -630,7 +701,8 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
   String get _directSub {
     final p = _profile;
     final dept = context.departmentOrFacultyName(
-        (p?['department'] ?? _peer?['department'])?.toString(), (p?['faculty'] ?? _peer?['faculty'])?.toString());
+        (p?['department'] ?? _peer?['department'])?.toString(),
+        (p?['faculty'] ?? _peer?['faculty'])?.toString());
     final year = (p?['classYear'] as num?)?.toInt();
     return [
       if (dept.isNotEmpty) dept,
@@ -638,20 +710,54 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
     ].join(' · ');
   }
 
+  /// Ad soyad: dokununca karşı kişinin profili (kendi profilimse/kimlik yoksa düz metin).
+  Widget _directNameButton(BuTokens t) {
+    final name = Text(_title,
+        textAlign: TextAlign.center,
+        maxLines: 2,
+        overflow: TextOverflow.ellipsis,
+        style: _nameStyle(t));
+    if (_peerId == null) return name;
+    return Semantics(
+      button: true,
+      label: '$_title, ${context.l10n.chatInfoViewProfile}',
+      excludeSemantics: true,
+      child: GestureDetector(
+        key: const ValueKey('chatInfoName'),
+        behavior: HitTestBehavior.opaque,
+        onTap: _openPeerProfile,
+        child: ConstrainedBox(
+            constraints: const BoxConstraints(minHeight: 44),
+            child: Center(child: name)),
+      ),
+    );
+  }
+
+  void _openPeerProfile() => _openProfile({
+        'userId': _peerId,
+        'displayName': _title,
+        'avatarUrl': _peer?['avatarUrl']
+      });
+
   List<Widget> _directBody(BuTokens t) {
     final l = context.l10n;
     final sub = _directSub;
     return [
       Padding(
-        padding: const EdgeInsets.fromLTRB(kChatInfoMargin, 24, kChatInfoMargin, 13),
+        padding:
+            const EdgeInsets.fromLTRB(kChatInfoMargin, 24, kChatInfoMargin, 13),
         child: Column(children: [
           _bigAvatar(),
-          const SizedBox(height: 10),
-          Text(_title, textAlign: TextAlign.center, maxLines: 2, overflow: TextOverflow.ellipsis, style: _nameStyle(t)),
+          const SizedBox(height: 12),
+          _directNameButton(t),
           if (sub.isNotEmpty)
             Padding(
               padding: const EdgeInsets.only(top: 2),
-              child: Text(sub, textAlign: TextAlign.center, maxLines: 2, overflow: TextOverflow.ellipsis, style: chatInfoBody14(context)),
+              child: Text(sub,
+                  textAlign: TextAlign.center,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: chatInfoBody14(context)),
             ),
         ]),
       ),
@@ -663,7 +769,7 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
           ChatInfoRow(
               icon: BuIcons.idCard,
               label: l.chatInfoViewProfile,
-              onTap: () => _openProfile({'userId': _peerId, 'displayName': _title, 'avatarUrl': _peer?['avatarUrl']})),
+              onTap: _openPeerProfile),
         ChatInfoRow(
             icon: _muted ? BuIcons.bellOff : BuIcons.bell,
             label: l.chatInfoMuteNotifications,
@@ -671,17 +777,36 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
             value: _muted ? null : _muteStatus(),
             sub: _muted ? _muteStatus() : null,
             onTap: _toggleMute),
+        ChatInfoRow(
+            key: const ValueKey('info-search-in-chat'),
+            icon: BuIcons.search,
+            label: l.chatInfoSearchInChat,
+            onTap: _searchInChat),
+        ChatInfoRow(
+            key: const ValueKey('info-media-files'),
+            icon: BuIcons.images,
+            label: l.chatInfoMediaFiles,
+            onTap: _openAllMedia),
       ]),
+      const SizedBox(height: 24),
       _mediaCard(t, direct: true),
       const SizedBox(height: 24),
       ChatInfoRows(children: [
         ChatInfoRow(
+            key: const ValueKey('info-block'),
             icon: BuIcons.ban,
             label: _blocked ? l.chatInfoUnblock : l.chatInfoBlock,
             danger: true,
             chevron: false,
             onTap: _toggleBlock),
-        ChatInfoRow(icon: BuIcons.octagonAlert, label: l.chatInfoReportUser, danger: true, chevron: false, onTap: _report),
+        ChatInfoRow(
+            key: const ValueKey('info-report'),
+            icon: BuIcons.octagonAlert,
+            label: l.chatInfoReportUser,
+            sub: _reported ? l.chatInfoReported : null,
+            danger: true,
+            chevron: false,
+            onTap: _reported ? null : _report),
       ]),
     ];
   }
@@ -694,14 +819,18 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
     final count = _members.length > n ? _members.length : n;
     return [
       Padding(
-        padding: const EdgeInsets.fromLTRB(kChatInfoMargin, 16, kChatInfoMargin, 20),
+        padding:
+            const EdgeInsets.fromLTRB(kChatInfoMargin, 16, kChatInfoMargin, 20),
         child: Column(children: [
           _bigAvatar(badge: _admin),
           SizedBox(height: _admin ? 6 : 16),
           Row(mainAxisAlignment: MainAxisAlignment.center, children: [
             Flexible(
               child: Text(_title,
-                  textAlign: TextAlign.center, maxLines: 2, overflow: TextOverflow.ellipsis, style: _nameStyle(t)),
+                  textAlign: TextAlign.center,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: _nameStyle(t)),
             ),
             if (_admin)
               SizedBox(
@@ -718,7 +847,8 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
           if (count > 0)
             Padding(
               padding: const EdgeInsets.only(top: 2),
-              child: Text(l.chatInfoMemberCount(count.toString()), style: chatInfoLabel12(context, color: t.mut)),
+              child: Text(l.chatInfoMemberCount(count.toString()),
+                  style: chatInfoLabel12(context, color: t.mut)),
             ),
         ]),
       ),
@@ -786,19 +916,25 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
       height: 80,
       child: Stack(clipBehavior: Clip.none, children: [
         DecoratedBox(
-          decoration: BoxDecoration(borderRadius: BuRadius.bMd, boxShadow: BuElevation.of(context, 2)),
+          decoration: BoxDecoration(
+              borderRadius: BuRadius.bMd,
+              boxShadow: BuElevation.of(context, 2)),
           child: au != null
               ? ChatlistAvatar(
                   name: _title,
                   url: au,
                   size: 80,
                   group: true,
-                  headers: (tok != null && au.startsWith('/api/')) ? {'Authorization': 'Bearer $tok'} : null)
+                  headers: (tok != null && au.startsWith('/api/'))
+                      ? {'Authorization': 'Bearer $tok'}
+                      : null)
               : Container(
                   width: 80,
                   height: 80,
-                  decoration: BoxDecoration(color: club ? t.ink : t.pr, borderRadius: BuRadius.bMd),
-                  child: Icon(club ? BuIcons.users : BuIcons.calendarDays, size: 40, color: club ? t.bg : t.onPr),
+                  decoration: BoxDecoration(
+                      color: club ? t.ink : t.pr, borderRadius: BuRadius.bMd),
+                  child: Icon(club ? BuIcons.users : BuIcons.calendarDays,
+                      size: 40, color: club ? t.bg : t.onPr),
                 ),
         ),
         if (!club && _closed)
@@ -807,7 +943,10 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
             bottom: -4,
             child: Container(
               padding: const EdgeInsets.all(4),
-              decoration: BoxDecoration(color: t.sf, shape: BoxShape.circle, boxShadow: BuElevation.of(context, 1)),
+              decoration: BoxDecoration(
+                  color: t.sf,
+                  shape: BoxShape.circle,
+                  boxShadow: BuElevation.of(context, 1)),
               child: Icon(BuIcons.lock, size: 14, color: t.mut),
             ),
           ),
@@ -822,13 +961,17 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
             textAlign: TextAlign.center,
             maxLines: 3,
             overflow: TextOverflow.ellipsis,
-            style: Theme.of(context).textTheme.titleLarge!.copyWith(color: t.ink, fontWeight: FontWeight.w700, height: 1.33)),
+            style: Theme.of(context).textTheme.titleLarge!.copyWith(
+                color: t.ink, fontWeight: FontWeight.w700, height: 1.33)),
         const SizedBox(height: 4),
-        Center(child: ChatInfoTag(club ? l.chatInfoClubRoom : l.chatInfoEventRoom, roomRed: !club)),
+        Center(
+            child: ChatInfoTag(club ? l.chatInfoClubRoom : l.chatInfoEventRoom,
+                roomRed: !club)),
         if (n > 0)
           Padding(
             padding: const EdgeInsets.only(top: 8),
-            child: Text(l.chatInfoMemberCount(n.toString()), textAlign: TextAlign.center, style: chatInfoBody14(context)),
+            child: Text(l.chatInfoMemberCount(n.toString()),
+                textAlign: TextAlign.center, style: chatInfoBody14(context)),
           ),
         if (_closed) ...[
           const SizedBox(height: 16),
@@ -839,16 +982,21 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
               Container(
                 width: 40,
                 height: 40,
-                decoration: BoxDecoration(color: t.bd, borderRadius: BuRadius.bXs),
+                decoration:
+                    BoxDecoration(color: t.bd, borderRadius: BuRadius.bXs),
                 child: Icon(BuIcons.lockKeyhole, size: 22, color: t.ink),
               ),
               const SizedBox(width: 16),
               Expanded(
-                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Text(l.chatInfoClosed, style: chatInfoTitle16(context).copyWith(fontWeight: FontWeight.w700)),
-                  const SizedBox(height: 2),
-                  Text(l.chatInfoClosedSub, style: chatInfoBody14(context)),
-                ]),
+                child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(l.chatInfoClosed,
+                          style: chatInfoTitle16(context)
+                              .copyWith(fontWeight: FontWeight.w700)),
+                      const SizedBox(height: 2),
+                      Text(l.chatInfoClosedSub, style: chatInfoBody14(context)),
+                    ]),
               ),
             ]),
           ),
@@ -877,17 +1025,27 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
               Container(
                 width: 36,
                 height: 36,
-                decoration: BoxDecoration(color: t.sf, borderRadius: BuRadius.bXs),
-                child: Icon(club ? BuIcons.users : BuIcons.calendarDays, size: 20, color: club ? t.ink : t.pr),
+                decoration:
+                    BoxDecoration(color: t.sf, borderRadius: BuRadius.bXs),
+                child: Icon(club ? BuIcons.users : BuIcons.calendarDays,
+                    size: 20, color: club ? t.ink : t.pr),
               ),
               const SizedBox(width: 16),
               Expanded(
-                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Text(club ? l.chatInfoOpenClubPage : l.chatInfoOpenEventPage, style: chatInfoTitle16(context)),
-                  if (club) Text(l.p09ClubPageSub, style: chatInfoBody12(context)),
-                ]),
+                child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                          club
+                              ? l.chatInfoOpenClubPage
+                              : l.chatInfoOpenEventPage,
+                          style: chatInfoTitle16(context)),
+                      if (club)
+                        Text(l.p09ClubPageSub, style: chatInfoBody12(context)),
+                    ]),
               ),
-              Icon(buDirIcon(context, BuIcons.chevronRight), size: 20, color: t.mut),
+              Icon(buDirIcon(context, BuIcons.chevronRight),
+                  size: 20, color: t.mut),
             ]),
           ),
         ),
@@ -916,8 +1074,14 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
             padding: const EdgeInsets.symmetric(vertical: 8),
             child: _membersFailed
                 ? Row(children: [
-                    Expanded(child: Text(l.p09MembersLoadFailed, style: chatInfoBody14(context))),
-                    BuButton(label: l.commonRetry, kind: BuButtonKind.text, compact: true, onPressed: _loadMembers),
+                    Expanded(
+                        child: Text(l.p09MembersLoadFailed,
+                            style: chatInfoBody14(context))),
+                    BuButton(
+                        label: l.commonRetry,
+                        kind: BuButtonKind.text,
+                        compact: true,
+                        onPressed: _loadMembers),
                   ])
                 : Text(l.chatInfoNoMembers, style: chatInfoBody14(context)),
           )
@@ -929,7 +1093,8 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
               selfId: widget.session.userId,
               onTap: () => _openProfile(shown[i]),
               onRemove: _admin &&
-                      (shown[i]['userId'] as num?)?.toInt() != widget.session.userId &&
+                      (shown[i]['userId'] as num?)?.toInt() !=
+                          widget.session.userId &&
                       !isAdminRole(shown[i])
                   ? () => _removeMember(shown[i])
                   : null,
@@ -946,20 +1111,25 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
     final f = _feed;
     final n = f.items.length;
     final total = '$n${f.more ? '+' : ''}';
-    final cols = direct ? 4 : 3;
     final Widget body;
     if (f.loading) {
       body = BuSkeletonScope(
-        child: Row(children: [
-          for (var i = 0; i < cols; i++) ...[
-            if (i > 0) const SizedBox(width: 8),
-            const Expanded(child: AspectRatio(aspectRatio: 1, child: BuSkeleton(radius: 12, height: 200))),
-          ],
-        ]),
+        child: SizedBox(
+          height: 96,
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: 4,
+            separatorBuilder: (_, __) => const SizedBox(width: 8),
+            itemBuilder: (_, __) =>
+                const SizedBox(width: 96, child: BuSkeleton(radius: 14, height: 96)),
+          ),
+        ),
       );
     } else if (f.error != null) {
       body = Row(children: [
-        Expanded(child: Text(l.p09MediaErrorBody, style: chatInfoBody14(context))),
+        Expanded(
+            child: Text(l.p09MediaErrorBody, style: chatInfoBody14(context))),
         BuButton(
             label: l.chatInfoRetry,
             kind: BuButtonKind.text,
@@ -969,29 +1139,11 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
     } else if (n == 0) {
       body = Text(l.chatInfoNoMedia, style: chatInfoBody14(context));
     } else {
-      final tiles = f.items.take(cols).toList();
-      // Birebir şerit: 4'ten fazla görselde son karo "+N" örtüsü taşır.
-      final overflow = direct && n > cols ? n - (cols - 1) : null;
-      // Stitch v3: 72 dp sabit kare küçük resimler, 8 dp aralık.
-      body = Wrap(
-        spacing: 8,
-        runSpacing: 8,
-        children: [
-          for (var i = 0; i < tiles.length; i++)
-            SizedBox(
-              width: 72,
-              height: 72,
-              child: ChatInfoThumb(
-              item: tiles[i],
-              video: f.isVideo(tiles[i]),
-              durationMs: f.videoMeta[tiles[i].url],
-              headers: _headers,
-              moreCount: overflow != null && i == cols - 1 ? overflow : null,
-              onTap: overflow != null && i == cols - 1 ? _openAllMedia : () => _openViewer(i),
-            ),
-            ),
-        ],
-      );
+      body = ChatInfoMediaStrip(
+          feed: f,
+          headers: _headers,
+          onOpen: _openViewer,
+          onSeeAll: _openAllMedia);
     }
     return ChatInfoCard(
       padding: EdgeInsets.fromLTRB(direct ? 16 : 20, 6, direct ? 16 : 20, 20),
@@ -1013,7 +1165,8 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
     final l = context.l10n;
     if (!_muted) return l.chatInfoMuteOn;
     if (_conv['mutedForever'] == true) return l.chatInfoMutedAlways;
-    final u = DateTime.tryParse((_conv['mutedUntil'] as String?) ?? '')?.toLocal();
+    final u =
+        DateTime.tryParse((_conv['mutedUntil'] as String?) ?? '')?.toLocal();
     if (u != null) {
       final d = u.difference(DateTime.now());
       if (!d.isNegative) {

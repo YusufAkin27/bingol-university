@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../core/locale_controller.dart';
 import '../../core/session.dart';
 import '../../widgets/bu.dart';
+import '../../widgets/profile_photo_viewer.dart';
 import '../posts/post_models.dart' show postAuthHeaders;
 import '../posts/social_models.dart';
 import '../profile/user_profile_page.dart';
@@ -98,7 +99,7 @@ class FollowSectionLabel extends StatelessWidget {
               style: Theme.of(context)
                   .textTheme
                   .labelMedium!
-                  .copyWith(fontWeight: FontWeight.w700, letterSpacing: .4, color: context.bu.mut)),
+                  .copyWith(fontSize: 13, fontWeight: FontWeight.w700, letterSpacing: .8, color: context.bu.mut)),
         ),
       );
 }
@@ -115,7 +116,7 @@ class FollowCard extends StatelessWidget {
     final t = context.bu;
     return BuCard(
       padding: EdgeInsets.zero,
-      radius: BuRadius.md,
+      radius: 24,
       child: Column(children: [
         for (var i = 0; i < children.length; i++) ...[
           if (i > 0) Divider(height: 1, indent: dividerIndent, endIndent: 16, color: t.bd),
@@ -191,14 +192,19 @@ class FollowPersonRow extends StatelessWidget {
           constraints: const BoxConstraints(minHeight: 64),
           padding: const EdgeInsetsDirectional.fromSTEB(16, 12, 16, 12),
           child: Row(children: [
-            BuAvatar(name: user.displayName, url: user.avatarUrl, size: 44, headers: postAuthHeaders(session)),
+            AvatarLongPress(
+              imageUrl: user.avatarUrl,
+              headers: postAuthHeaders(session),
+              title: user.displayName,
+              child: BuAvatar(name: user.displayName, url: user.avatarUrl, size: 44, headers: postAuthHeaders(session)),
+            ),
             const SizedBox(width: 12),
             Expanded(
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
                 Text(user.displayName,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: tx.titleMedium!.copyWith(fontSize: 15, fontWeight: FontWeight.w600, color: t.ink)),
+                    style: tx.titleMedium!.copyWith(fontSize: 16, fontWeight: FontWeight.w600, color: t.ink)),
                 if (sub.isNotEmpty)
                   Padding(
                     padding: const EdgeInsets.only(top: 1),

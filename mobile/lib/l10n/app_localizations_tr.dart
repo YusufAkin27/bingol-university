@@ -9,6 +9,48 @@ class AppLocalizationsTr extends AppLocalizations {
   AppLocalizationsTr([String locale = 'tr']) : super(locale);
 
   @override
+  String get chatReactionPickerTitle => 'Tepki seç';
+
+  @override
+  String get chatReactionKeyboardHint => 'Klavyenden bir emoji seç';
+
+  @override
+  String get chatReactionOneEmoji => 'Tek bir emoji seçin.';
+
+  @override
+  String get chatMessageInfoTitle => 'Mesaj bilgisi';
+
+  @override
+  String get chatMessageSent => 'Gönderildi';
+
+  @override
+  String get chatMessageDelivered => 'İletildi';
+
+  @override
+  String get chatMessageRead => 'Okundu';
+
+  @override
+  String get chatMessageTimeUnknown => 'Zaman kaydı bulunmuyor';
+
+  @override
+  String get chatMessageWaiting => 'Henüz gerçekleşmedi';
+
+  @override
+  String get chatMessageReplies => 'Bu mesaja yanıtlar';
+
+  @override
+  String get chatMessageNoReplies => 'Bu mesaja henüz yanıt verilmedi.';
+
+  @override
+  String get chatMessageReactions => 'Tepkiler';
+
+  @override
+  String get chatMessageEditedNote => 'Bu mesaj düzenlendi';
+
+  @override
+  String get chatPremiumAllPhotos => 'Tüm fotoğraflar';
+
+  @override
   String get commonRetry => 'Yeniden dene';
 
   @override
@@ -1753,6 +1795,37 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get chatInfoGroupName => 'Grup adı';
+
+  @override
+  String get chatInfoSearchInChat => 'Sohbette ara';
+
+  @override
+  String get chatInfoMediaFiles => 'Medya ve dosyalar';
+
+  @override
+  String get chatInfoTabPhotos => 'Fotoğraflar';
+
+  @override
+  String get chatInfoTabVideos => 'Videolar';
+
+  @override
+  String get chatInfoTabFiles => 'Dosyalar';
+
+  @override
+  String get chatInfoNoPhotos => 'Bu sohbette henüz fotoğraf yok.';
+
+  @override
+  String get chatInfoNoVideos => 'Bu sohbette henüz video yok.';
+
+  @override
+  String get chatInfoFilesUnsupportedTitle => 'Dosya paylaşımı desteklenmiyor';
+
+  @override
+  String get chatInfoFilesUnsupportedBody =>
+      'Bu sohbette şimdilik yalnızca fotoğraf ve video paylaşılabiliyor.';
+
+  @override
+  String get chatInfoReported => 'Şikâyet edildi';
 
   @override
   String get chatMiscFilterAll => 'Tümü';
@@ -3775,6 +3848,81 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get searchClear => 'Aramayı temizle';
+
+  @override
+  String get srLoadMore => 'Daha fazla göster';
+
+  @override
+  String get srSearchHint => 'Kullanıcı veya gönderi ara';
+
+  @override
+  String get srTabUsers => 'Kullanıcılar';
+
+  @override
+  String get srTabPosts => 'Gönderiler';
+
+  @override
+  String get srTabReels => 'Reels';
+
+  @override
+  String get srSearchTabsLabel => 'Arama sonucu türleri';
+
+  @override
+  String get srSearchPrompt =>
+      'Kullanıcı, gönderi veya reels aramak için en az 2 karakter yazın.';
+
+  @override
+  String get srSeeAll => 'Tümünü gör';
+
+  @override
+  String get srReelsUnavailable => 'Reels araması şu an kullanılamıyor.';
+
+  @override
+  String get srPrivateAccount => 'Gizli hesap';
+
+  @override
+  String srLikeCount(String count) {
+    return '$count beğeni';
+  }
+
+  @override
+  String srOpenProfileOf(String name) {
+    return '$name profilini aç';
+  }
+
+  @override
+  String srPostByAuthor(String name) {
+    return '$name gönderisi';
+  }
+
+  @override
+  String get srVideoBadge => 'Video';
+
+  @override
+  String get srProfileTabsLabel => 'Profil içeriği';
+
+  @override
+  String get srProfilePostsEmpty => 'Henüz gönderi yok.';
+
+  @override
+  String get srProfileReelsEmpty => 'Henüz reels yok.';
+
+  @override
+  String srViewCount(String count) {
+    return '$count görüntülenme';
+  }
+
+  @override
+  String get srPhotoViewerTitle => 'Profil fotoğrafı';
+
+  @override
+  String get srPhotoViewerError => 'Fotoğraf yüklenemedi';
+
+  @override
+  String get srPhotoViewerClose => 'Önizlemeyi kapat';
+
+  @override
+  String get srAvatarLongPressHint => 'Büyük fotoğrafı görmek için uzun bas';
 
   @override
   String get searchPrompt =>
@@ -5844,7 +5992,7 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get profil2SecPwRule =>
-      '8 ile 72 karakter. Harf ve rakam karıştırırsanız güçlenir.';
+      'En az 6 karakter. Harf ve rakam karıştırırsanız güçlenir.';
 
   @override
   String get profil2SecPwButton => 'Şifreyi güncelle';
@@ -9965,6 +10113,12 @@ class AppLocalizationsTr extends AppLocalizations {
   String get homeFeaturedMenu => 'Yemek Menüsü';
 
   @override
+  String get homeMenuRate => 'Menüyü puanla';
+
+  @override
+  String get homeMenuPhotoPending => 'Yeni görsel bekliyor';
+
+  @override
   String get homeSearchFilters => 'Arama filtreleri';
 
   @override
@@ -10109,6 +10263,16 @@ class AppLocalizationsTr extends AppLocalizations {
   @override
   String get avatarEdStageSemantic =>
       'Fotoğraf düzenleme alanı. Sürükleyin, iki parmakla yakınlaştırın veya uzaklaştırın, çift dokunarak sığdırın.';
+
+  @override
+  String get photoEdTabRatio => 'Oran';
+
+  @override
+  String get photoEdRatioFree => 'Serbest';
+
+  @override
+  String get photoEdRatioHint =>
+      'Çerçeve oranını seçin; fotoğraf buna göre kırpılır. Serbest, fotoğrafın kendi oranını korur.';
 
   @override
   String get avatarSheetTitle => 'Profil fotoğrafı';

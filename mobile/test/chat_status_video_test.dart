@@ -282,7 +282,7 @@ void main() {
                     (w) => w is Container && w.decoration is BoxDecoration && (w.decoration as BoxDecoration).color == c))
             .evaluate()
             .isNotEmpty;
-        expect(hasBg(_bubbleOf('okundu mesaj'), tk.pr), isTrue);
+        expect(hasBg(_bubbleOf('okundu mesaj'), tk.prPressed), isTrue);
         expect(hasBg(_bubbleOf('karsi mesaj'), tk.sf), isTrue);
         // Yazılı durum metni yok.
         expect(find.textContaining('görüldü', findRichText: true), findsNothing);
@@ -399,11 +399,11 @@ void main() {
   group('Saat ve metin cakismasi', () {
     Map<String, dynamic> mine(String text, {String status = 'READ'}) => _msg(5, 1, text, extra: {'status': status});
 
-    testWidgets('kisa mesaj: saat HER ZAMAN metnin altinda sagda (Stitch v3 referansi)', (tester) async {
+    testWidgets('kisa mesaj: saat metnin yaninda, alt kenara yasli', (tester) async {
       useScreen(tester, kPhoneSmall);
       await tester.pumpWidget(_harness(mine('Selam')));
       await tester.pump();
-      expect(_expectNoOverlap(tester, reason: 'kisa'), isFalse); // altta
+      expect(_expectNoOverlap(tester, reason: 'kisa'), isTrue);
       _ok(tester);
     });
 
@@ -436,7 +436,7 @@ void main() {
             await tester.pump();
             _expectNoOverlap(tester, reason: 'x*$k');
           }
-          expect(inline, 0, reason: 'saat hicbir uzunlukta metnin yanina gelmez');
+          expect(inline, greaterThan(0), reason: 'son satirda yer varsa saat yanda olmali');
           expect(wrapped, greaterThan(0));
           _ok(tester);
         });
@@ -606,7 +606,7 @@ void main() {
       for (final l in ['Galeriden seç', 'Fotoğraf çek', 'Galeriden video seç', 'Video çek']) {
         expect(find.text(l), findsNothing); // eski 4'lü menü yok, doğrudan galeri
       }
-      expect(find.text('Son eklenenler'), findsOneWidget);
+      expect(find.text('Tüm fotoğraflar'), findsOneWidget);
       be.delay = const Duration(milliseconds: 500);
       await tester.tap(find.byKey(const ValueKey('galleryTile_v1')));
       await tester.pump();

@@ -96,70 +96,52 @@ void main() {
       expect(turns(), 0);
       await tester.tap(find.byKey(const ValueKey('attachButton')));
       await tester.pump(const Duration(milliseconds: 400));
-      expect(find.byType(ChatAttachSheet), findsOneWidget);
+      expect(find.byType(ChatAttachMenu), findsOneWidget);
       expect(turns(), .125);
       await tester.tapAt(const Offset(10, 20)); // sheet dışı: kapanır
       await tester.pump(const Duration(milliseconds: 500));
-      expect(find.byType(ChatAttachSheet), findsNothing);
+      expect(find.byType(ChatAttachMenu), findsNothing);
       expect(turns(), 0);
     });
   });
 
   group('"+" menüsü', () {
-    testWidgets('Galeri ve Kamera karoları + son fotoğraflar şeridi (en çok 10) + Tümü', (tester) async {
+    testWidgets('"+" üstünde küçük yüzen menü: Kamera + Fotoğraflar (tam ekran değil); dışarı dokununca kapanır', (tester) async {
       await _pump(tester, _page());
       await tester.tap(find.byKey(const ValueKey('attachButton')));
       await settle(tester, const Duration(milliseconds: 600));
       expect(find.byKey(const ValueKey('attachGallery')), findsOneWidget);
       expect(find.byKey(const ValueKey('attachCamera')), findsOneWidget);
-      expect(find.text('Galeri'), findsOneWidget);
+      expect(find.text('Fotoğraflar'), findsOneWidget);
       expect(find.text('Kamera'), findsOneWidget);
-      expect(find.byKey(const ValueKey('attachStrip')), findsOneWidget);
-      expect(find.byKey(const ValueKey('attachAllowPhotos')), findsNothing);
-      // Şerit yatay kaydırmalı; ilk karelerden bazıları görünür.
-      expect(find.byKey(const ValueKey('attachRecent_p1')), findsOneWidget);
-      expect(find.text('Son fotoğraflar'), findsOneWidget);
-      expect(find.byKey(const ValueKey('attachAll')), findsOneWidget);
-      expect(find.text('Tümü'), findsOneWidget);
-      expect(find.textContaining('1 simgesine dokunun'), findsOneWidget);
+      // Ses/dosya backend'de yok: sahte satır yok; eski şerit/izin satırı yok.
+      expect(find.text('Dosyalar'), findsNothing);
+      expect(find.byKey(const ValueKey('attachStrip')), findsNothing);
+      // Küçük panel: genişlik 232, "+" düğmesinin üstünde.
+      final panel = tester.getRect(find.byKey(const ValueKey('attachCamera')));
+      expect(panel.width, lessThan(260));
+      expect(panel.bottom, lessThan(tester.getRect(find.byKey(const ValueKey('attachButton'))).top));
+      await tester.tapAt(const Offset(200, 120));
+      await tester.pump(const Duration(milliseconds: 500));
+      await tester.pump(const Duration(milliseconds: 500));
+      expect(find.byKey(const ValueKey('attachCamera')), findsNothing);
       expect(tester.takeException(), isNull);
     });
 
-    testWidgets('izin yokken şerit yerine tek satır; dokununca izin akışı', (tester) async {
-      var asked = 0;
-      // Kütüphane "izin verilmedi" bildirir.
-      final denied = _Denied();
-      await _pump(tester, ChatDetailPage(
-        session: makeSession(_be()),
-        connectRealtime: false,
-        mediaLibrary: denied,
-        ensureAccess: (c, p, {rationale}) async {
-          asked++;
-          return false;
-        },
-        conversation: const {'id': 1, 'type': 'DIRECT', 'title': 'Ali Veli', 'peer': {'id': 11, 'displayName': 'Ali Veli'}},
-      ));
-      await tester.tap(find.byKey(const ValueKey('attachButton')));
-      await settle(tester, const Duration(milliseconds: 600));
-      expect(find.byKey(const ValueKey('attachStrip')), findsNothing);
-      expect(find.text('Fotoğraflara erişime izin ver'), findsOneWidget);
-      expect(find.byKey(const ValueKey('attachAllowPhotos')), findsOneWidget);
-      expect(asked, 0, reason: 'menü açılırken izin istenmez');
-      await tester.tap(find.byKey(const ValueKey('attachAllowPhotos')));
-      await settle(tester, const Duration(milliseconds: 400));
-      expect(asked, 1);
-      expect(find.text('Fotoğraflara erişime izin ver'), findsOneWidget, reason: 'reddedilince satır kalır');
-    });
-
-    testWidgets('Galeri karosu seçiciyi açar (ilk karo Kamera: Stitch v3)', (tester) async {
+    testWidgets('Fotoğraflar satırı galeri panelini açar (alttan, tutamaçlı; sohbette kamera karosu yok)', (tester) async {
       await _pump(tester, _page());
       await tester.tap(find.byKey(const ValueKey('attachButton')));
       await settle(tester, const Duration(milliseconds: 600));
       await tester.tap(find.byKey(const ValueKey('attachGallery')));
       await settle(tester, const Duration(milliseconds: 800));
       expect(find.byType(MediaPickerPage), findsOneWidget);
-      expect(find.byKey(const ValueKey('cameraTile')), findsOneWidget);
+      expect(find.byKey(const ValueKey('galleryPanel')), findsOneWidget);
+      expect(find.byKey(const ValueKey('sheetHandle')), findsOneWidget);
+      expect(find.byKey(const ValueKey('cameraTile')), findsNothing);
       expect(find.byKey(const ValueKey('galleryTile_p1')), findsOneWidget);
+      // İlk açılış ~%58: panel üstü ekranın ~%42'sinde.
+      final top = tester.getTopLeft(find.byKey(const ValueKey('pickerSheet'))).dy;
+      expect(top, inInclusiveRange(844 * .38, 844 * .46));
     });
 
     for (final rtl in [false, true]) {
@@ -168,7 +150,7 @@ void main() {
           await _pump(tester, _page(), dark: dark, rtl: rtl, scale: 1.3, size: kPhoneSmall);
           await tester.tap(find.byKey(const ValueKey('attachButton')));
           await settle(tester, const Duration(milliseconds: 700));
-          expect(find.byType(ChatAttachSheet), findsOneWidget);
+          expect(find.byType(ChatAttachMenu), findsOneWidget);
           expect(tester.takeException(), isNull);
         });
       }

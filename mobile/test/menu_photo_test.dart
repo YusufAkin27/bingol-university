@@ -106,17 +106,20 @@ void main() {
 
     for (final dark in [false, true]) {
       for (final photo in [false, true]) {
-        testWidgets('${photo ? 'fotoğraflı gün' : 'fotoğrafsız gün'}: düz yüzey, fotoğraf yok, taşma yok (320 dp, ${dark ? 'koyu' : 'acik'})', (tester) async {
+        testWidgets('${photo ? 'fotoğraflı gün' : 'fotoğrafsız gün'}: ${photo ? '16:9 fotoğraf' : 'yer tutucu'}, taşma yok (320 dp, ${dark ? 'koyu' : 'acik'})', (tester) async {
+          final sem = tester.ensureSemantics();
           useScreen(tester, const Size(320, 1400));
           MenuPhotoGate.debugProvider = (_) => MemoryImage(_png);
           final b = FakeBackend()..on('/menu/today', today(image: photo ? '/files/menu/t.jpg' : null));
           await tester.pumpWidget(buildApp(home(b), brightness: dark ? Brightness.dark : Brightness.light));
           await settle(tester, const Duration(seconds: 2));
-          expect(find.bySemanticsLabel(RegExp('menüsü fotoğrafı')), findsNothing);
+          expect(find.bySemanticsLabel(RegExp('menüsü fotoğrafı')), photo ? findsOneWidget : findsNothing);
+          expect(find.text('Yeni görsel bekliyor'), photo ? findsNothing : findsOneWidget);
           expect(find.text('Günün menüsü'), findsOneWidget);
           expect(find.text('Menüyü aç'), findsOneWidget);
           expect(find.text('Mercimek çorbası'), findsOneWidget); // menü yüzeyindeki satır ("Bugün" satırı birleşik metindir)
           expect(tester.takeException(), isNull);
+          sem.dispose();
         });
       }
     }

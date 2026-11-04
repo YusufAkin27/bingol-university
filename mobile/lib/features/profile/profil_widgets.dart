@@ -9,7 +9,7 @@ import 'notification_prefs_page.dart' show PrefSwitch;
 /// Mavi ikon tonu (tasarım sistemindeki mavi kategori rengi; açık/koyu temaya göre okunur ton).
 Color profilBlue(BuildContext context) => context.bu.tint(1).fg;
 
-/// Katmanlı kart ([BuCard], ince çizgi + 20 dp köşe); satırlar simge karosunun hizasından başlayan çizgiyle ayrılır.
+/// Çizgili kart ([BuCard] outlined, 24 dp köşe, Stitch profil-v4); satırlar tam genişlikte çok ince çizgiyle ayrılır.
 class ProfilCard extends StatelessWidget {
   const ProfilCard({super.key, required this.children, this.margin});
 
@@ -21,13 +21,13 @@ class ProfilCard extends StatelessWidget {
     final t = context.bu;
     final card = BuCard(
       padding: EdgeInsets.zero,
-      radius: 22,
-      style: BuCardStyle.elevated,
+      radius: 24,
+      style: BuCardStyle.outlined,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           for (var i = 0; i < children.length; i++) ...[
-            if (i > 0) Divider(height: 1, thickness: 1, color: t.bd),
+            if (i > 0) Divider(height: 1, thickness: 1, color: t.bdSubtle),
             children[i],
           ],
         ],
@@ -87,10 +87,13 @@ class ProfilFlatSection extends StatelessWidget {
 
 /// Tam genişlik satır grubu: [color] (varsayılan sf) zemin, satırlar arasında 1 dp bd ayırıcı.
 class ProfilFlatGroup extends StatelessWidget {
-  const ProfilFlatGroup({super.key, required this.children, this.color});
+  const ProfilFlatGroup({super.key, required this.children, this.color, this.outlined = false});
 
   final List<Widget> children;
   final Color? color;
+
+  /// true: gölgesiz çizgili kart, 16 dp köşe (Stitch profil-v4 Hesap ve güvenlik).
+  final bool outlined;
 
   @override
   Widget build(BuildContext context) {
@@ -98,8 +101,8 @@ class ProfilFlatGroup extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: BuCard(
-        radius: 22,
-        style: BuCardStyle.elevated,
+        radius: outlined ? 16 : 22,
+        style: outlined ? BuCardStyle.outlined : BuCardStyle.elevated,
         color: color,
         padding: EdgeInsets.zero,
         child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
@@ -115,9 +118,12 @@ class ProfilFlatGroup extends StatelessWidget {
 
 /// 56 dp düz satır: etiket 16 ink, sağda değer 15 mut + chevron 20 mut. [danger]: etiket danger (chevron yok).
 class ProfilFlatRow extends StatelessWidget {
-  const ProfilFlatRow({super.key, required this.label, this.value, this.onTap, this.danger = false, this.chevron = true, this.trailing, this.icon});
+  const ProfilFlatRow({super.key, required this.label, this.value, this.onTap, this.danger = false, this.chevron = true, this.trailing, this.icon, this.plainIcon = false});
 
   final IconData? icon;
+
+  /// true: simge karosuz, düz 22 dp simge (danger renginde).
+  final bool plainIcon;
   final String label;
   final String? value;
   final VoidCallback? onTap;
@@ -142,8 +148,11 @@ class ProfilFlatRow extends StatelessWidget {
           padding: const EdgeInsetsDirectional.fromSTEB(16, 10, 12, 10),
           child: Row(children: [
             if (icon != null) ...[
-              ProfilIconTile(icon: icon!, danger: danger),
-              const SizedBox(width: 12),
+              if (plainIcon)
+                ExcludeSemantics(child: Icon(icon!, size: 22, color: danger ? t.danger : t.ink))
+              else
+                ProfilIconTile(icon: icon!, danger: danger),
+              SizedBox(width: plainIcon ? 14 : 12),
             ],
             Expanded(
               child: Text(label,
@@ -225,12 +234,12 @@ class ProfilSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
-    // Stitch v3: bölüm etiketi 13 sp / 500, soluk, BÜYÜK HARF DEĞİL.
+    // Stitch profil-v4: bölüm etiketi 15 sp / 500, soluk, BÜYÜK HARF DEĞİL.
     return Padding(
-      padding: EdgeInsetsDirectional.only(start: 4, bottom: 8, top: top),
+      padding: EdgeInsetsDirectional.only(start: 4, bottom: 10, top: top),
       child: Semantics(
         header: true,
-        child: Text(text, style: Theme.of(context).textTheme.labelLarge!.copyWith(fontSize: 13, fontWeight: FontWeight.w500, color: t.mut)),
+        child: Text(text, style: Theme.of(context).textTheme.labelLarge!.copyWith(fontSize: 15, fontWeight: FontWeight.w500, color: t.mut)),
       ),
     );
   }
@@ -238,7 +247,13 @@ class ProfilSection extends StatelessWidget {
 
 /// 36x36 yuvarlatılmış simge karosu: varsayılan NÖTR (tur 3: listelerde tek simge tonu), [tint] ile verilen ton, [danger] ile hata tonu.
 class ProfilIconTile extends StatelessWidget {
-  const ProfilIconTile({super.key, required this.icon, this.color, this.tint, this.danger = false});
+  const ProfilIconTile({super.key, required this.icon, this.color, this.tint, this.danger = false, this.size = 36, this.accent = false});
+
+  /// Karo kenarı (dp); simge 0,5 oranında. Stitch profil listeleri 40.
+  final double size;
+
+  /// true: simge vurgu rengi [BuTokens.pr] (Stitch profil-v4 liste simgeleri), aksi halde [BuTokens.onSoft].
+  final bool accent;
 
   final IconData icon;
 
@@ -251,12 +266,12 @@ class ProfilIconTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.bu;
     final bg = danger ? Theme.of(context).colorScheme.errorContainer : (tint?.bg ?? t.soft);
-    final fg = color ?? (danger ? t.danger : (tint?.fg ?? t.onSoft));
+    final fg = color ?? (danger ? t.danger : (tint?.fg ?? (accent ? t.pr : t.onSoft)));
     return Container(
-      width: 36,
-      height: 36,
-      decoration: BoxDecoration(color: bg, borderRadius: BuRadius.bSm),
-      child: ExcludeSemantics(child: Icon(icon, size: 19, color: fg)),
+      width: size,
+      height: size,
+      decoration: BoxDecoration(color: bg, borderRadius: size > 36 ? BorderRadius.circular(12) : BuRadius.bSm),
+      child: ExcludeSemantics(child: Icon(icon, size: size > 36 ? 20 : 19, color: fg)),
     );
   }
 }
@@ -306,11 +321,11 @@ class ProfilRow extends StatelessWidget {
             },
       child: Container(
         // Tüm satırlar aynı yükseklikte; yazı ölçeği büyüse de metin tek satırda kalır.
-        constraints: BoxConstraints(minHeight: icon == null ? 56 : 60),
+        constraints: BoxConstraints(minHeight: icon == null ? 56 : 64),
         padding: const EdgeInsetsDirectional.fromSTEB(16, 8, 16, 8),
         child: Row(
           children: [
-            if (icon != null) ...[ProfilIconTile(icon: icon!, tint: tone, danger: danger), const SizedBox(width: 14)],
+            if (icon != null) ...[ProfilIconTile(icon: icon!, tint: tone, danger: danger, size: 40, accent: true), const SizedBox(width: 12)],
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -320,7 +335,7 @@ class ProfilRow extends StatelessWidget {
                       maxLines: 1,
                       softWrap: false,
                       overflow: TextOverflow.ellipsis,
-                      style: tx.bodyLarge!.copyWith(fontWeight: icon == null ? FontWeight.w400 : FontWeight.w600, color: c)),
+                      style: tx.bodyLarge!.copyWith(fontSize: icon == null ? null : 17, fontWeight: icon == null ? FontWeight.w400 : FontWeight.w600, color: c)),
                   if (sub != null) Text(sub!, maxLines: 1, softWrap: false, overflow: TextOverflow.ellipsis, style: tx.bodySmall!.copyWith(color: t.mut)),
                 ],
               ),
@@ -330,7 +345,7 @@ class ProfilRow extends StatelessWidget {
               ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 110),
                 child: Text(value!,
-                    maxLines: 1, softWrap: false, overflow: TextOverflow.ellipsis, style: tx.bodyMedium!.copyWith(fontWeight: FontWeight.w400, color: t.mut)),
+                    maxLines: 1, softWrap: false, overflow: TextOverflow.ellipsis, style: tx.bodyMedium!.copyWith(fontSize: 15, fontWeight: FontWeight.w400, color: t.mut)),
               ),
             ],
             if (trailing != null) ...[const SizedBox(width: 8), trailing!],
@@ -339,7 +354,7 @@ class ProfilRow extends StatelessWidget {
             SizedBox(
               width: 20,
               child: (chevron && !danger && onTap != null)
-                  ? ExcludeSemantics(child: Icon(buDirIcon(context, BuIcons.chevronRight), size: 20, color: t.mut))
+                  ? ExcludeSemantics(child: Icon(buDirIcon(context, BuIcons.chevronRight), size: 20, color: t.mutSoft))
                   : null,
             ),
           ],

@@ -2,6 +2,14 @@
 
 Tum degisiklikler geriye uyumludur (yalniz ekleme / uyumlu duzeltme).
 
+## Sohbet tasarımı, emoji seçici ve birebir mesaj bilgisi (2026-11-04)
+
+- Mobil: sohbet bilgisindeki profil fotoğrafı dokununca bulanık arka planda büyür ve yakınlaştırılabilir. Kısa mesajların saati son satırın yanında görünür; duvar kâğıdı, başlık ve yazma alanı yenilendi.
+- Tepkiler: büyük emoji düğmeleri ve `+` seçici; tek emoji seçilebilir. Son altı başarılı tepki cihazda kullanıcıya özel saklanır ve çıkışta temizlenir. Varsayılan kalp kırmızıdır. Sunucu artık sabit altılı dışında da tek Unicode emoji grafemini kabul eder (en fazla 16 UTF-16 birimi).
+- Birebir sohbette kendi mesajını fiziksel olarak sağdan sola kaydırmak mesaj bilgisi sayfasını açar. `GET /api/messages/{id}/info?before=&size=20`: `message`, `sentAt`, nullable `deliveredAt`/`readAt`, `status`, imleçli `replies`. Yalnız mesajın göndereni ve kabul edilmiş aktif üye erişebilir; gruplar ve temizlenmiş mesajlar 404 döner. Yanıtlar mevcut mesaj görünürlüğü ve maskeleme kurallarını kullanır.
+- V1071, mesajlara ilk alıcı teslim/okuma onayının zamanını kaydeden nullable sütunlar ve yanıt listeleme indeksi ekler. Eski mesajlar için zaman uydurulmaz; durum biliniyor ama zaman kaydı yoksa mobil bunu açıkça gösterir.
+- Yeni mesaj bilgisi ve serbest emoji desteğinin canlıda çalışması backend güncellemesini ve V1071 migration'ını gerektirir. Bu çalışma sırasında üretim sunucusuna dağıtım yapılmadı. Push bildirimi metni değişmedi.
+
 ## Degisenler
 
 | Uc / alan | Degisiklik |
@@ -206,3 +214,9 @@ Mesaj isteği (T-026) ile ilişki: "alıcı göndereni takip ediyor" bağlamı y
 - **Eşzamanlı yanıtsız istek sınırı:** `MessageService.persist` (yalnız kabul edilmemiş konuşmada) konuşma satırını `lockById` ile kilitler ve 3 mesaj sınırını kilit içinde yeniden sayar; paralel gönderimle 3'ü aşmak artık 409 `MESSAGE_REQUEST_PENDING`.
 - **Sürüm kontrolü:** `GET /api/app/version` sürüm parçaları en çok 9 hane (`INVALID_VERSION` 400); 20+ haneli sürüm `Long.parseLong` taşmasıyla 500 veriyordu.
 - Duman: `scripts/smoke-qa-private.sh`.
+
+## CHAT-PREMIUM: mobil sohbet arayüzü (yalnız istemci; API değişmedi)
+
+- "+" menüsü artık küçük yüzen panel (Kamera, Fotoğraflar); Fotoğraflar sürüklenebilir galeri paneli (ilk %58, yukarı %96, aşağı kapanır; tutamak/başlık da sürükler). Ses ve dosya satırı **yoktur**: sunucu yalnız `IMAGE`/`VIDEO` ek türünü kabul eder (sesli mesaj ve belge eki için backend gerekir).
+- Uzun basma menüsüne "Mesaj bilgisi" (yalnız birebir, kendi mesajım); mesaj bilgisi sayfasına tepkiler ve "düzenlendi" notu. Gönderen kişi tepki listesi sunucuda yok (yalnız emoji + sayı).
+- Tek medya balonu oranı sunucudaki `width/height` ile korunur (3:4..4:3 arası); oynat düğmesi yarı saydam.

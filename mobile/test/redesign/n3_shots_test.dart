@@ -6,6 +6,7 @@ import 'dart:ui' as ui;
 
 import 'package:bu_kampus/core/locale_controller.dart';
 import 'package:bu_kampus/features/chat/chat_info_members.dart';
+import 'package:bu_kampus/features/chat/chat_media_gallery_page.dart';
 import 'package:bu_kampus/features/chat/chat_info_media.dart';
 import 'package:bu_kampus/features/chat/chat_info_page.dart';
 import 'package:bu_kampus/features/chat/chat_info_parts.dart';
@@ -124,11 +125,11 @@ Widget _membersPage(FakeBackend be, {List<Map<String, dynamic>>? members, bool a
   );
 }
 
-ChatMediaGridPage _grid(FakeBackend be, {bool load = true}) {
+ChatMediaGalleryPage _grid(FakeBackend be, {bool load = true}) {
   final s = makeSession(be);
   final feed = ChatMediaFeed(api: s.api, conversationId: 5, senderName: (m) => null);
   if (load) feed.load(first: true);
-  return ChatMediaGridPage(feed: feed, headers: const {}, onOpen: (i) {});
+  return ChatMediaGalleryPage(feed: feed, headers: const {}, onOpen: (items, i) {});
 }
 
 /// Acilista verilen islevi calistirip bos bir sohbet zemini birakir (alt sayfa/diyalog ekran goruntuleri).

@@ -105,13 +105,14 @@ void main() {
 
     Finder networkImages() => find.byWidgetPredicate((w) => w is Image && w.image is ResizeImage);
 
-    testWidgets('dikey, yatay ve kare gorsel AYNI kare kutuda (224x224); decode >= 224 x DPR', (tester) async {
-      for (final dim in [(1200, 1600, 960), (1600, 900, 1280), (900, 900, 720)]) {
+    testWidgets('dikey, yatay ve kare gorsel ORANI korur (genislik 224, oran 3:4..4:3 araliginda); decode >= 224 x DPR', (tester) async {
+      for (final dim in [(1200, 1600, 960, 224.0 / .75), (1600, 900, 1280, 224.0 / 1.4), (900, 900, 720, 224.0)]) {
         await pumpBubble(tester, msg([_att(1, w: dim.$1, h: dim.$2, thumbEdge: dim.$3)]), kPhoneMedium);
         final im = networkImages();
         expect(im, findsOneWidget);
         final box = tester.getSize(find.ancestor(of: im, matching: find.byType(SizedBox)).first);
-        expect(box, const Size(224, 224), reason: '${dim.$1}x${dim.$2}');
+        expect(box.width, 224, reason: '${dim.$1}x${dim.$2}');
+        expect(box.height, closeTo(dim.$4, .5), reason: '${dim.$1}x${dim.$2}');
         final rz = tester.widget<Image>(im).image as ResizeImage;
         expect(rz.width, greaterThanOrEqualTo(224 * 3));
         expect(rz.width, lessThanOrEqualTo(1600));
@@ -128,14 +129,15 @@ void main() {
       expect(rz.width, 672);
     });
 
-    testWidgets('video posteri de ayni kare', (tester) async {
+    testWidgets('video posteri de orani korur (yatay 16:9 -> 4:3 sinirinda 224x160)', (tester) async {
       await pumpBubble(tester, msg([_att(3, kind: 'VIDEO', w: 1280, h: 720)]), kPhoneMedium);
       final box = tester.getSize(find.ancestor(of: networkImages(), matching: find.byType(SizedBox)).first);
-      expect(box, const Size(224, 224));
+      expect(box.width, 224);
+      expect(box.height, closeTo(160, .5));
     });
 
-    testWidgets('dar ekranda (260 dp) kare mesaj alanina sigar', (tester) async {
-      await pumpBubble(tester, msg([_att(4, thumbEdge: 960)]), const Size(260, 640));
+    testWidgets('dar ekranda (260 dp) medya mesaj alanina sigar', (tester) async {
+      await pumpBubble(tester, msg([_att(4, w: 900, h: 900, thumbEdge: 960)]), const Size(260, 640));
       final box = tester.getSize(find.ancestor(of: networkImages(), matching: find.byType(SizedBox)).first);
       expect(box.width, box.height);
       expect(box.width, lessThan(224));

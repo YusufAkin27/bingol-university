@@ -19,7 +19,7 @@ import 'event_parts.dart';
 /// Görsel seçici: kaynak verilir, hazırlanmış görsel (ya da iptalde null) döner. Testte değiştirilebilir.
 typedef CoverPicker = Future<PreparedImage?> Function(ImageSource source);
 
-/// Kapak kırpıcı: seçilen görseli 16:9 kırpma sayfasında açar (varsayılan [cropImage]). Testte değiştirilebilir.
+/// Kapak kırpıcı: seçilen görseli 16:9 fotoğraf düzenleyicide açar (varsayılan [editPhoto]). Testte değiştirilebilir.
 typedef CoverCropper = Future<CropOutcome?> Function(BuildContext context, Uint8List bytes, CropSpec spec);
 
 /// Kapak yükleyici: `PUT /events/{id}/cover`. Testte değiştirilebilir.
@@ -213,7 +213,7 @@ class _EventFormPageState extends State<EventFormPage> {
         final img = await _pick(source);
         if (img == null || !mounted) return;
         // 16:9 kırpma: "Fotoğrafı değiştir" yeni seçim açar, "Kapağı kaldır" kapağı siler, vazgeçmek hiçbir şey değiştirmez.
-        final crop = widget.cropCover ?? cropImage;
+        final crop = widget.cropCover ?? editPhoto;
         final title = _title.text.trim();
         final out = await crop(
           context,

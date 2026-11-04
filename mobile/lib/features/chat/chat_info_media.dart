@@ -229,8 +229,8 @@ class _MediaStateCard extends StatelessWidget {
       child: ChatInfoCard(padding: const EdgeInsets.all(20), child: child));
 }
 
-class _MediaLoadingCard extends StatelessWidget {
-  const _MediaLoadingCard();
+class ChatMediaLoadingCard extends StatelessWidget {
+  const ChatMediaLoadingCard({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -277,8 +277,13 @@ class _SkeletonTile extends StatelessWidget {
   }
 }
 
-class _MediaEmptyCard extends StatelessWidget {
-  const _MediaEmptyCard();
+/// Boş / desteklenmiyor durumu: ortada simge, başlık ve açıklama. Başlık/açıklama verilmezse "görsel yok".
+class ChatMediaEmptyCard extends StatelessWidget {
+  const ChatMediaEmptyCard({super.key, this.icon, this.title, this.body});
+
+  final IconData? icon;
+  final String? title;
+  final String? body;
 
   @override
   Widget build(BuildContext context) {
@@ -289,19 +294,19 @@ class _MediaEmptyCard extends StatelessWidget {
           width: 64,
           height: 64,
           decoration: BoxDecoration(color: t.sf2, shape: BoxShape.circle),
-          child: Icon(BuIcons.images, size: 32, color: t.mut),
+          child: Icon(icon ?? BuIcons.images, size: 32, color: t.mut),
         ),
         const SizedBox(height: 12),
-        Text(context.l10n.chatInfoNoMedia, textAlign: TextAlign.center, style: chatInfoTitle16(context)),
+        Text(title ?? context.l10n.chatInfoNoMedia, textAlign: TextAlign.center, style: chatInfoTitle16(context)),
         const SizedBox(height: 4),
-        Text(context.l10n.p09MediaEmptyBody, textAlign: TextAlign.center, style: chatInfoBody14(context)),
+        Text(body ?? context.l10n.p09MediaEmptyBody, textAlign: TextAlign.center, style: chatInfoBody14(context)),
       ]),
     );
   }
 }
 
-class _MediaErrorCard extends StatelessWidget {
-  const _MediaErrorCard({required this.onRetry});
+class ChatMediaErrorCard extends StatelessWidget {
+  const ChatMediaErrorCard({super.key, required this.onRetry});
 
   final VoidCallback onRetry;
 
@@ -348,147 +353,81 @@ class _MediaErrorCard extends StatelessWidget {
   }
 }
 
-/// Tüm görseller: tam ekran, sonsuz kaydırmalı 3 sütunlu ızgara.
-class ChatMediaGridPage extends StatefulWidget {
-  const ChatMediaGridPage(
-      {super.key,
-      required this.feed,
-      required this.headers,
-      required this.onOpen});
+/// Bilgi sayfası medya şeridi: yatay kaydırılan [tile] dp kare kartlar; sondaki "Tümü" kartı galeriyi açar.
+class ChatInfoMediaStrip extends StatelessWidget {
+  const ChatInfoMediaStrip({
+    super.key,
+    required this.feed,
+    required this.headers,
+    required this.onOpen,
+    required this.onSeeAll,
+    this.max = 9,
+    this.tile = 96,
+  });
 
   final ChatMediaFeed feed;
   final Map<String, String> headers;
   final void Function(int index) onOpen;
-
-  @override
-  State<ChatMediaGridPage> createState() => _ChatMediaGridPageState();
-}
-
-class _ChatMediaGridPageState extends State<ChatMediaGridPage> {
-  final _scroll = ScrollController();
-
-  ChatMediaFeed get _f => widget.feed;
-
-  @override
-  void initState() {
-    super.initState();
-    _scroll.addListener(_onScroll);
-    _f.addListener(_fill);
-    WidgetsBinding.instance.addPostFrameCallback((_) => _fill());
-  }
-
-  @override
-  void dispose() {
-    _f.removeListener(_fill);
-    _scroll.dispose();
-    super.dispose();
-  }
-
-  void _onScroll() {
-    if (_scroll.hasClients &&
-        _scroll.position.pixels > _scroll.position.maxScrollExtent - 400) {
-      _f.load();
-    }
-  }
-
-  /// Izgara ekranı doldurmuyorsa kaydırma olmayacağından devamını kendimiz iste.
-  void _fill() {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted ||
-          !_f.more ||
-          _f.loadingMore ||
-          _f.loading ||
-          _f.moreError != null ||
-          !_scroll.hasClients) {
-        return;
-      }
-      if (_scroll.position.maxScrollExtent <= 0) _f.load();
-    });
-  }
-
-  Widget _tail(BuildContext context) {
-    if (_f.items.isEmpty) return const SizedBox.shrink();
-    if (_f.moreError != null) {
-      return Padding(
-        padding: const EdgeInsets.all(kChatInfoMargin),
-        child: Center(
-          child: BuButton(
-            label: context.l10n.chatInfoRetry,
-            icon: BuIcons.refreshCw,
-            kind: BuButtonKind.outline,
-            compact: true,
-            onPressed: () => _f.load(),
-          ),
-        ),
-      );
-    }
-    if (!_f.more) return const SizedBox.shrink();
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(kChatInfoMargin, 8, kChatInfoMargin, 0),
-      child: BuSkeletonScope(
-        child: Row(children: [
-          for (var i = 0; i < 3; i++) ...[
-            if (i > 0) const SizedBox(width: 8),
-            const Expanded(child: AspectRatio(aspectRatio: 1, child: BuSkeleton(radius: 8, height: 200))),
-          ],
-        ]),
-      ),
-    );
-  }
+  final VoidCallback onSeeAll;
+  final int max;
+  final double tile;
 
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
-    final bottom = MediaQuery.paddingOf(context).bottom + 16;
-    return Scaffold(
-      backgroundColor: t.bg,
-      body: Column(children: [
-        ChatInfoBar(title: context.l10n.chatInfoMedia),
-        Expanded(
-          child: ListenableBuilder(
-            listenable: _f,
-            builder: (context, _) {
-              final empty = _f.items.isEmpty;
-              return CustomScrollView(
-                controller: _scroll,
-                slivers: [
-                  if (empty)
-                    SliverToBoxAdapter(
-                      child: _f.loading
-                          ? const _MediaLoadingCard()
-                          : _f.error != null
-                              ? _MediaErrorCard(onRetry: () => _f.load(first: true))
-                              : const _MediaEmptyCard(),
-                    )
-                  else
-                    SliverPadding(
-                      padding: const EdgeInsets.fromLTRB(kChatInfoMargin, 8, kChatInfoMargin, 0),
-                      sliver: SliverGrid(
-                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 3,
-                          mainAxisSpacing: 8,
-                          crossAxisSpacing: 8,
-                        ),
-                        delegate: SliverChildBuilderDelegate(
-                          (c, i) => ChatInfoThumb(
-                              item: _f.items[i],
-                              video: _f.isVideo(_f.items[i]),
-                              durationMs: _f.videoMeta[_f.items[i].url],
-                              radius: 8,
-                              headers: widget.headers,
-                              onTap: () => widget.onOpen(i)),
-                          childCount: _f.items.length,
-                        ),
-                      ),
+    final shown = feed.items.take(max).toList();
+    final more = feed.items.length > shown.length || feed.more;
+    final count = shown.length + (more ? 1 : 0);
+    return SizedBox(
+      height: tile,
+      child: ListView.separated(
+        key: const ValueKey('chatInfoMediaStrip'),
+        scrollDirection: Axis.horizontal,
+        padding: EdgeInsets.zero,
+        itemCount: count,
+        separatorBuilder: (_, __) => const SizedBox(width: 8),
+        itemBuilder: (c, i) {
+          if (i == shown.length) {
+            return Semantics(
+              button: true,
+              label: context.l10n.chatInfoSeeAllMedia,
+              child: BuPressable(
+                onTap: onSeeAll,
+                scale: .97,
+                child: Container(
+                  width: tile,
+                  height: tile,
+                  decoration: BoxDecoration(color: t.soft, borderRadius: BorderRadius.circular(14)),
+                  child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+                    Icon(buDirIcon(context, BuIcons.chevronRight), size: 24, color: t.onSoft),
+                    const SizedBox(height: 4),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 6),
+                      child: Text(context.l10n.chatInfoAll,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: chatInfoLabel12(context, color: t.onSoft)),
                     ),
-                  SliverToBoxAdapter(child: _tail(context)),
-                  SliverToBoxAdapter(child: SizedBox(height: bottom)),
-                ],
-              );
-            },
-          ),
-        ),
-      ]),
+                  ]),
+                ),
+              ),
+            );
+          }
+          final item = shown[i];
+          return SizedBox(
+            width: tile,
+            height: tile,
+            child: ChatInfoThumb(
+              item: item,
+              video: feed.isVideo(item),
+              durationMs: feed.videoMeta[item.url],
+              radius: 14,
+              headers: headers,
+              onTap: () => onOpen(i),
+            ),
+          );
+        },
+      ),
     );
   }
 }

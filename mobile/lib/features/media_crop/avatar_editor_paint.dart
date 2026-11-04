@@ -33,7 +33,7 @@ void paintAvatarComposition(
   required AvatarGeometry geometry,
   Rect? viewport,
 }) {
-  final k = frame.width / AvatarGeometry.frame;
+  final k = frame.width / geometry.frameW;
   final angle = geometry.angle(state);
   final ratio = image.width / geometry.imageWidth; // gerçek piksel / mantıksal piksel
   final src = Rect.fromLTWH(0, 0, image.width.toDouble(), image.height.toDouble());
@@ -64,7 +64,7 @@ void paintAvatarComposition(
     canvas.drawRect(frame, Paint()..color = bgColor);
   } else {
     // Bulanık: aynı görsel çerçeveyi kaplayacak kadar büyütülüp bulanıklaştırılır (kenar sızıntısı için %30 pay).
-    final sigma = frame.width * .045;
+    final sigma = frame.longestSide * .045;
     canvas.saveLayer(frame.inflate(frame.width * .2), Paint()..imageFilter = ui.ImageFilter.blur(sigmaX: sigma, sigmaY: sigma, tileMode: TileMode.clamp));
     drawImage(geometry.fillScale(angle) * k * 1.3, frame.center);
     canvas.restore();
@@ -84,7 +84,7 @@ void paintAvatarComposition(
     canvas.clipRect(frame);
     final shader = ui.Gradient.radial(
       frame.center,
-      frame.width * .75,
+      frame.longestSide * .75,
       [BuTokens.dark.scrim.withValues(alpha: 0), BuTokens.dark.scrim.withValues(alpha: 0), BuTokens.dark.scrim.withValues(alpha: .8 * v)],
       const [0, .45, 1],
     );
@@ -94,7 +94,8 @@ void paintAvatarComposition(
   canvas.restore();
 }
 
-/// Nihai çıktı: [size] x [size] kare, JPEG (EXIF/meta yok). Sunucu yükleme hattı bunu olduğu gibi (<= 2 MB) alır.
+/// Nihai çıktı: UZUN kenarı [size] piksel olan JPEG (EXIF/meta yok); kısa kenar çerçeve oranına göre (kare çerçevede
+/// [size] x [size]). Sunucu yükleme hattı bunu olduğu gibi (<= 2 MB) alır.
 /// Çizim ana isolate'ta (GPU), JPEG kodlama ayrı isolate'ta yapılır. Hata durumunda null.
 Future<Uint8List?> renderAvatarJpeg({
   required ui.Image image,
@@ -105,17 +106,18 @@ Future<Uint8List?> renderAvatarJpeg({
 }) async {
   ui.Image? out;
   try {
+    final o = geometry.outputSize(size);
     final rec = ui.PictureRecorder();
     final canvas = Canvas(rec);
-    final frame = Rect.fromLTWH(0, 0, size.toDouble(), size.toDouble());
+    final frame = Rect.fromLTWH(0, 0, o.w.toDouble(), o.h.toDouble());
     paintAvatarComposition(canvas, frame, image: image, state: state, geometry: geometry);
     final pic = rec.endRecording();
-    out = await pic.toImage(size, size);
+    out = await pic.toImage(o.w, o.h);
     pic.dispose();
     final data = await out.toByteData(format: ui.ImageByteFormat.rawRgba);
     if (data == null) return null;
     final raw = data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes);
-    final args = (raw: raw, size: size, quality: quality);
+    final args = (raw: raw, w: o.w, h: o.h, quality: quality);
     return await Isolate.run(() => _encodeJpeg(args));
   } catch (_) {
     return null;
@@ -124,17 +126,21 @@ Future<Uint8List?> renderAvatarJpeg({
   }
 }
 
-Uint8List _encodeJpeg(({Uint8List raw, int size, int quality}) a) {
+Uint8List _encodeJpeg(({Uint8List raw, int w, int h, int quality}) a) {
   final im = img.Image.fromBytes(
-      width: a.size, height: a.size, bytes: a.raw.buffer, bytesOffset: a.raw.offsetInBytes, numChannels: 4, order: img.ChannelOrder.rgba);
+      width: a.w, height: a.h, bytes: a.raw.buffer, bytesOffset: a.raw.offsetInBytes, numChannels: 4, order: img.ChannelOrder.rgba);
   return Uint8List.fromList(img.encodeJpg(im, quality: a.quality));
 }
 
 /// Karartma + daire maske + ince beyaz halka + (isteğe bağlı) kılavuzlar.
 class AvatarMaskPainter extends CustomPainter {
-  const AvatarMaskPainter({required this.frame, required this.guides, required this.fineGrid, required this.scrimColor, required this.lineColor});
+  const AvatarMaskPainter(
+      {required this.frame, required this.guides, required this.fineGrid, required this.scrimColor, required this.lineColor, this.circle = true});
 
   final Rect frame;
+
+  /// Daire maske (profil/logo); false: dikdörtgen çerçeve (gönderi, kapak, sohbet).
+  final bool circle;
 
   /// Sürüklerken: üçte bir ızgarası + merkez artısı.
   final bool guides;
@@ -145,12 +151,17 @@ class AvatarMaskPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final circle = Path()..addOval(frame);
+    final shape = Path()..addOval(frame);
+    if (!circle) {
+      shape
+        ..reset()
+        ..addRect(frame);
+    }
     final all = Path()..addRect(Offset.zero & size);
-    canvas.drawPath(Path.combine(PathOperation.difference, all, circle), Paint()..color = scrimColor);
+    canvas.drawPath(Path.combine(PathOperation.difference, all, shape), Paint()..color = scrimColor);
     if (guides || fineGrid) {
       canvas.save();
-      canvas.clipPath(circle);
+      canvas.clipPath(shape);
       final p = Paint()
         ..color = lineColor.withValues(alpha: fineGrid ? .35 : .45)
         ..strokeWidth = 1;
@@ -173,18 +184,20 @@ class AvatarMaskPainter extends CustomPainter {
       }
       canvas.restore();
     }
-    canvas.drawOval(
-      frame,
-      Paint()
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 1.5
-        ..color = lineColor.withValues(alpha: .92),
-    );
+    final ring = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.5
+      ..color = lineColor.withValues(alpha: .92);
+    if (circle) {
+      canvas.drawOval(frame, ring);
+    } else {
+      canvas.drawRect(frame, ring);
+    }
   }
 
   @override
   bool shouldRepaint(AvatarMaskPainter o) =>
-      o.frame != frame || o.guides != guides || o.fineGrid != fineGrid || o.scrimColor != scrimColor || o.lineColor != lineColor;
+      o.circle != circle || o.frame != frame || o.guides != guides || o.fineGrid != fineGrid || o.scrimColor != scrimColor || o.lineColor != lineColor;
 }
 
 /// Tuvalin canlı önizlemesi.

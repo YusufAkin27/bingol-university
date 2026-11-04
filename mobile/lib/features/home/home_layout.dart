@@ -79,7 +79,7 @@ class HomeLayout {
   final List<HomeShortcut> shortcutOn;
 
   static const defaults = HomeLayout(
-    order: [HomeSection.quickAccess, HomeSection.campusMap, HomeSection.featuredNews, HomeSection.menu, HomeSection.todayClasses, HomeSection.upcomingEvents, HomeSection.announcements],
+    order: [HomeSection.quickAccess, HomeSection.menu, HomeSection.campusMap, HomeSection.featuredNews, HomeSection.todayClasses, HomeSection.upcomingEvents, HomeSection.announcements],
     hidden: <HomeSection>{},
     shortcutOn: [HomeShortcut.news, HomeShortcut.events, HomeShortcut.polls, HomeShortcut.schedule, HomeShortcut.more],
   );

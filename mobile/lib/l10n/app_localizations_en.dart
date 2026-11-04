@@ -9,6 +9,48 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
+  String get chatReactionPickerTitle => 'Choose a reaction';
+
+  @override
+  String get chatReactionKeyboardHint => 'Choose an emoji from your keyboard';
+
+  @override
+  String get chatReactionOneEmoji => 'Choose a single emoji.';
+
+  @override
+  String get chatMessageInfoTitle => 'Message info';
+
+  @override
+  String get chatMessageSent => 'Sent';
+
+  @override
+  String get chatMessageDelivered => 'Delivered';
+
+  @override
+  String get chatMessageRead => 'Read';
+
+  @override
+  String get chatMessageTimeUnknown => 'Time was not recorded';
+
+  @override
+  String get chatMessageWaiting => 'Not yet';
+
+  @override
+  String get chatMessageReplies => 'Replies to this message';
+
+  @override
+  String get chatMessageNoReplies => 'No replies to this message yet.';
+
+  @override
+  String get chatMessageReactions => 'Reactions';
+
+  @override
+  String get chatMessageEditedNote => 'This message was edited';
+
+  @override
+  String get chatPremiumAllPhotos => 'All photos';
+
+  @override
   String get commonRetry => 'Try again';
 
   @override
@@ -1763,6 +1805,37 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get chatInfoGroupName => 'Group name';
+
+  @override
+  String get chatInfoSearchInChat => 'Search in chat';
+
+  @override
+  String get chatInfoMediaFiles => 'Media and files';
+
+  @override
+  String get chatInfoTabPhotos => 'Photos';
+
+  @override
+  String get chatInfoTabVideos => 'Videos';
+
+  @override
+  String get chatInfoTabFiles => 'Files';
+
+  @override
+  String get chatInfoNoPhotos => 'No photos in this chat yet.';
+
+  @override
+  String get chatInfoNoVideos => 'No videos in this chat yet.';
+
+  @override
+  String get chatInfoFilesUnsupportedTitle => 'File sharing is not supported';
+
+  @override
+  String get chatInfoFilesUnsupportedBody =>
+      'For now only photos and videos can be shared in this chat.';
+
+  @override
+  String get chatInfoReported => 'Reported';
 
   @override
   String get chatMiscFilterAll => 'All';
@@ -3791,6 +3864,81 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get searchClear => 'Clear search';
+
+  @override
+  String get srLoadMore => 'Show more';
+
+  @override
+  String get srSearchHint => 'Search users or posts';
+
+  @override
+  String get srTabUsers => 'Users';
+
+  @override
+  String get srTabPosts => 'Posts';
+
+  @override
+  String get srTabReels => 'Reels';
+
+  @override
+  String get srSearchTabsLabel => 'Search result types';
+
+  @override
+  String get srSearchPrompt =>
+      'Type at least 2 characters to search users, posts or reels.';
+
+  @override
+  String get srSeeAll => 'See all';
+
+  @override
+  String get srReelsUnavailable => 'Reels search is not available right now.';
+
+  @override
+  String get srPrivateAccount => 'Private account';
+
+  @override
+  String srLikeCount(String count) {
+    return '$count likes';
+  }
+
+  @override
+  String srOpenProfileOf(String name) {
+    return 'Open profile of $name';
+  }
+
+  @override
+  String srPostByAuthor(String name) {
+    return 'Post by $name';
+  }
+
+  @override
+  String get srVideoBadge => 'Video';
+
+  @override
+  String get srProfileTabsLabel => 'Profile content';
+
+  @override
+  String get srProfilePostsEmpty => 'No posts yet.';
+
+  @override
+  String get srProfileReelsEmpty => 'No reels yet.';
+
+  @override
+  String srViewCount(String count) {
+    return '$count views';
+  }
+
+  @override
+  String get srPhotoViewerTitle => 'Profile photo';
+
+  @override
+  String get srPhotoViewerError => 'The photo could not be loaded';
+
+  @override
+  String get srPhotoViewerClose => 'Close preview';
+
+  @override
+  String get srAvatarLongPressHint => 'Long press to see the large photo';
 
   @override
   String get searchPrompt =>
@@ -5868,7 +6016,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get profil2SecPwRule =>
-      '8 to 72 characters. Mixing letters and digits makes it stronger.';
+      'At least 6 characters. Mixing letters and digits makes it stronger.';
 
   @override
   String get profil2SecPwButton => 'Update password';
@@ -9997,6 +10145,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeFeaturedMenu => 'Meal Menu';
 
   @override
+  String get homeMenuRate => 'Rate the menu';
+
+  @override
+  String get homeMenuPhotoPending => 'Waiting for a new photo';
+
+  @override
   String get homeSearchFilters => 'Search filters';
 
   @override
@@ -10141,6 +10295,16 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get avatarEdStageSemantic =>
       'Photo editing area. Drag, pinch to zoom in or out, double-tap to fit.';
+
+  @override
+  String get photoEdTabRatio => 'Ratio';
+
+  @override
+  String get photoEdRatioFree => 'Free';
+
+  @override
+  String get photoEdRatioHint =>
+      'Pick the frame ratio; the photo is cropped to it. Free keeps the photo\'s own ratio.';
 
   @override
   String get avatarSheetTitle => 'Profile photo';

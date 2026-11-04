@@ -192,12 +192,13 @@ class _FollowStateButtonState extends State<FollowStateButton> {
           label: label,
           icon: BuIcons.userPlus,
           compact: widget.compact,
+          background: context.bu.prPressed, // Stitch profil-v4: #B93833
           onPressed: _tap,
         );
     }
   }
 
-  /// Liste satırı: Takip et = çizgili (bdStrong); İstek gönderildi = çizgili (bd, soluk); Takiptesin = tonal (sf2).
+  /// Liste satırı: Takip et = dolu (prPressed); İstek gönderildi = çizgili (bd, soluk); Takiptesin = tonal (soft).
   Widget _row(BuildContext context) {
     final t = context.bu;
     final none = _state == FollowState.none;
@@ -215,11 +216,12 @@ class _FollowStateButtonState extends State<FollowStateButton> {
           child: AnimatedContainer(
             duration: BuMotion.of(context, BuMotion.short),
             curve: BuMotion.standard,
-            height: 36,
+            height: 40,
             padding: const EdgeInsets.symmetric(horizontal: 16),
+            // Stitch profil-v4: Takip et = dolu (prPressed, beyaz yazı AA), Takipte = tonal soft, istek = çizgili.
             decoration: BoxDecoration(
-              color: none || req ? Colors.transparent : t.sf2,
-              border: Border.all(color: none ? t.bdStrong : (req ? t.bd : Colors.transparent)),
+              color: none ? t.prPressed : (req ? Colors.transparent : t.soft),
+              border: req ? Border.all(color: t.bd) : null,
               borderRadius: r,
             ),
             // alignment yerine Center(widthFactor): kapta genişliğe yayılmasın, metin kadar olsun.
@@ -231,7 +233,7 @@ class _FollowStateButtonState extends State<FollowStateButton> {
                   style: Theme.of(context)
                       .textTheme
                       .labelLarge!
-                      .copyWith(fontSize: 14, fontWeight: FontWeight.w600, color: req ? t.mut : t.ink)),
+                      .copyWith(fontSize: 14, fontWeight: FontWeight.w600, color: none ? t.onPr : (req ? t.mut : t.onSoft))),
             ),
           ),
         ),

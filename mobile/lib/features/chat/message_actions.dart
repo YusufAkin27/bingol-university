@@ -7,6 +7,8 @@ import '../../core/locale_controller.dart';
 import '../../core/theme.dart';
 import '../../core/theme/bu_motion.dart';
 import '../../core/typography.dart';
+import '../../core/icons/bu_icons.dart';
+import 'reaction_picker.dart';
 
 /// Eylem listesindeki tek satır.
 class MessageAction {
@@ -80,11 +82,11 @@ class _MessageActionsOverlay extends StatelessWidget {
   final List<String> emojis;
   final String? myReaction;
 
-  static const _barH = 52.0;
+  static const _barH = 60.0;
   static const _gap = 8.0;
   static const _rowH = 52.0;
   static const _cardPad = 6.0;
-  static const _chip = 44.0;
+  static const _chip = 48.0;
   static const _edge = 12.0;
 
   @override
@@ -94,7 +96,8 @@ class _MessageActionsOverlay extends StatelessWidget {
     final size = MediaQuery.sizeOf(context);
     final pad = MediaQuery.paddingOf(context);
     // Baloncuk fiziksel olarak sağda mı: giden mesaj sağdan sola düzende solda durur.
-    final right = Directionality.of(context) == TextDirection.rtl ? !mine : mine;
+    final right =
+        Directionality.of(context) == TextDirection.rtl ? !mine : mine;
 
     final hasBar = emojis.isNotEmpty;
     final hasCard = actions.isNotEmpty;
@@ -122,7 +125,8 @@ class _MessageActionsOverlay extends StatelessWidget {
             .clamp(_edge, math.max(_edge, size.width - _edge - w))
             .toDouble();
 
-    final barW = math.min(emojis.length * _chip + 8.0, size.width - _edge * 2);
+    final barW =
+        math.min((emojis.length + 1) * _chip + 12.0, size.width - _edge * 2);
     final cardW = math.min(248.0, size.width - _edge * 2);
 
     final scale = Tween<double>(begin: .86, end: 1)
@@ -156,7 +160,8 @@ class _MessageActionsOverlay extends StatelessWidget {
                 behavior: HitTestBehavior.opaque,
                 onTap: close,
                 // Stitch v3 (30_mesaj_menusu): bulanıklık yok, düz karartma.
-                child: ColoredBox(color: t.scrim.withValues(alpha: dark ? .6 : .38)),
+                child: ColoredBox(
+                    color: t.scrim.withValues(alpha: dark ? .6 : .38)),
               ),
             ),
           ),
@@ -210,16 +215,37 @@ class _MessageActionsOverlay extends StatelessWidget {
                       borderRadius: BorderRadius.circular(999),
                       boxShadow: shadow,
                     ),
-                    child: SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
+                    child: Padding(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 4, vertical: 4),
-                      child: Row(mainAxisSize: MainAxisSize.min, children: [
-                        for (final e in emojis)
-                          _EmojiChip(
-                              emoji: e,
-                              selected: myReaction == e,
-                              onTap: () => close('react:$e')),
+                          horizontal: 4, vertical: 5),
+                      child: Row(children: [
+                        Expanded(
+                            child: SingleChildScrollView(
+                                scrollDirection: Axis.horizontal,
+                                child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      for (final e in emojis)
+                                        _EmojiChip(
+                                            emoji: e,
+                                            selected: myReaction?.replaceAll(
+                                                    '\uFE0F', '') ==
+                                                e.replaceAll('\uFE0F', ''),
+                                            onTap: () => close('react:$e')),
+                                    ]))),
+                        IconButton(
+                          key: const ValueKey('msgActions.moreReactions'),
+                          tooltip: context.l10n.chatReactionPickerTitle,
+                          style: IconButton.styleFrom(
+                              backgroundColor: t.sf2,
+                              minimumSize: const Size(48, 48)),
+                          icon: Icon(BuIcons.plus, color: t.ink, size: 24),
+                          onPressed: () async {
+                            final emoji = await showReactionPicker(context);
+                            if (context.mounted && emoji != null)
+                              close('react:$emoji');
+                          },
+                        ),
                       ]),
                     ),
                   ),
@@ -298,7 +324,10 @@ class _EmojiChip extends StatelessWidget {
             shape: BoxShape.circle,
           ),
           child: Text(emoji,
+              textScaler: TextScaler.noScaling,
               style: BuType.title.copyWith(
+                  fontSize: 30,
+                  fontFamily: 'Apple Color Emoji',
                   height: 1.1,
                   decoration: TextDecoration.none,
                   fontFamilyFallback: _emojiFallback)),
@@ -326,7 +355,8 @@ class _ActionRow extends StatelessWidget {
       child: Container(
         height: _MessageActionsOverlay._rowH,
         padding: const EdgeInsetsDirectional.symmetric(horizontal: 16),
-        decoration: BoxDecoration(border: first ? null : Border(top: BorderSide(color: t.bd))),
+        decoration: BoxDecoration(
+            border: first ? null : Border(top: BorderSide(color: t.bd))),
         child: Row(children: [
           // Stitch v3: simge kutusuz 24 dp çizgi ikon, etiket 16 sp normal ağırlık.
           ExcludeSemantics(child: Icon(action.icon, size: 24, color: color)),
@@ -335,7 +365,10 @@ class _ActionRow extends StatelessWidget {
             child: Text(action.label,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: BuType.body.copyWith(color: color, fontWeight: FontWeight.w400, decoration: TextDecoration.none)),
+                style: BuType.body.copyWith(
+                    color: color,
+                    fontWeight: FontWeight.w400,
+                    decoration: TextDecoration.none)),
           ),
         ]),
       ),
