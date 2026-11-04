@@ -109,7 +109,7 @@ class _Etkinlik2QrPageState extends State<Etkinlik2QrPage> {
   Future<void> _openList() async {
     await Navigator.push(
       context,
-      MaterialPageRoute(builder: (_) => Etkinlik2AttendancePage(session: widget.session, event: widget.event, fromQr: true)),
+      MaterialPageRoute(settings: const RouteSettings(name: 'etkinlik2_attendance'), builder: (_) => Etkinlik2AttendancePage(session: widget.session, event: widget.event, fromQr: true)),
     );
     if (mounted) _loadCounts();
   }

@@ -1,3 +1,4 @@
+import '../../core/analytics.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -99,6 +100,7 @@ class _NewsDetailPageState extends State<NewsDetailPage> {
       } else {
         await widget.session.api.put('/bookmarks/news/$_id');
       }
+      Analytics.instance.action('bookmark', target: was ? 'remove' : 'add');
       if (mounted) BuToast.show(context, was ? l.p05UnsavedToast : l.p05SavedToast, kind: BuToastKind.success);
     } catch (e) {
       if (!mounted) return;
@@ -129,6 +131,7 @@ class _NewsDetailPageState extends State<NewsDetailPage> {
     final text = (url != null && url.isNotEmpty) ? url : ((n['title'] as String?) ?? '');
     if (text.isEmpty) return;
     await Clipboard.setData(ClipboardData(text: text));
+    Analytics.instance.action('share', target: 'copy_link');
     if (!mounted) return;
     BuToast.show(context, context.l10n.icerikLinkCopied, kind: BuToastKind.success);
   }

@@ -1,3 +1,4 @@
+import '../../core/analytics.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -103,7 +104,7 @@ class _ExamsPageState extends State<ExamsPage> {
 
   Future<void> _openForm([Exam? exam]) async {
     final ok = await Navigator.of(context).push<bool>(
-      MaterialPageRoute(builder: (_) => ExamFormPage(session: widget.session, exam: exam, courses: _courses)),
+      MaterialPageRoute(settings: const RouteSettings(name: 'exam_form'), builder: (_) => ExamFormPage(session: widget.session, exam: exam, courses: _courses)),
     );
     if (ok == true) {
       await _loadMine();
@@ -122,7 +123,7 @@ class _ExamsPageState extends State<ExamsPage> {
       title: l.acadExamsTitle,
       showTitle: false,
       child: RefreshIndicator(
-        onRefresh: mine ? _loadMine : _loadOfficial,
+        onRefresh: Analytics.pullRefresh(mine ? _loadMine : _loadOfficial),
         child: ListView(
           physics: const AlwaysScrollableScrollPhysics(),
           padding: const EdgeInsets.only(bottom: 32),

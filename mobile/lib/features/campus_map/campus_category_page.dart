@@ -122,7 +122,7 @@ class _CampusCategoryPageState extends State<CampusCategoryPage> {
                         separatorBuilder: (_, __) => const SizedBox(height: 8),
                         itemBuilder: (context, i) {
                           if (i == list.length) {
-                            return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: campusRemoteSection(context, ctl, remotes, (p) => Navigator.of(context).push(MaterialPageRoute<void>(
+                            return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: campusRemoteSection(context, ctl, remotes, (p) => Navigator.of(context).push(MaterialPageRoute<void>(settings: const RouteSettings(name: 'campus_place'), 
                                   builder: (_) => CampusPlacePage(controller: ctl, place: p, tileProvider: widget.tileProvider),
                                 ))));
                           }
@@ -135,7 +135,7 @@ class _CampusCategoryPageState extends State<CampusCategoryPage> {
                             strongIcon: true,
                             icon: campusIconFor(c?.icon ?? '', fallbackKey: p.category),
                             categoryLabel: l.campusMainCampus,
-                            onTap: () => Navigator.of(context).push(MaterialPageRoute<void>(
+                            onTap: () => Navigator.of(context).push(MaterialPageRoute<void>(settings: const RouteSettings(name: 'campus_place'), 
                               builder: (_) => CampusPlacePage(controller: ctl, place: p, tileProvider: widget.tileProvider),
                             )),
                             trailing: Row(mainAxisSize: MainAxisSize.min, children: [
@@ -191,7 +191,7 @@ class _CampusCategoryPageState extends State<CampusCategoryPage> {
           label: l.campusSearchHint,
           icon: BuIcons.search,
           kind: BuButtonKind.soft,
-          onPressed: () => unawaited(Navigator.of(context).push(MaterialPageRoute<void>(
+          onPressed: () => unawaited(Navigator.of(context).push(MaterialPageRoute<void>(settings: const RouteSettings(name: 'campus_search'), 
             builder: (_) => CampusSearchPage(controller: widget.controller, tileProvider: widget.tileProvider),
           ))),
         ),

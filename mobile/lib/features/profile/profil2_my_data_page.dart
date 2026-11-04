@@ -123,7 +123,7 @@ class _MyDataPageState extends State<MyDataPage> with WidgetsBindingObserver {
     unawaited(ExportShare.purge());
   }
 
-  void _push(Widget page) => Navigator.push(context, MaterialPageRoute(builder: (_) => page));
+  void _push(Widget page, [String? screen]) => Navigator.push(context, MaterialPageRoute(settings: RouteSettings(name: screen), builder: (_) => page));
 
   Future<void> _export() async {
     if (_exporting || _limitMessage != null) return;
@@ -228,14 +228,14 @@ class _MyDataPageState extends State<MyDataPage> with WidgetsBindingObserver {
                   ProfilFlatRow(
                     icon: BuIcons.fileText,
                     label: l.profil2DataKvkk,
-                    onTap: () => _push(LegalListPage(session: widget.session)),
+                    onTap: () => _push(LegalListPage(session: widget.session), 'legal_list'),
                   ),
                   ProfilFlatRow(
                     key: const ValueKey('my-data-delete-row'),
                     icon: BuIcons.trash2,
                     label: l.profilePrefsDeleteMyAccount,
                     danger: true,
-                    onTap: () => _push(DeleteAccountPage(session: widget.session)),
+                    onTap: () => _push(DeleteAccountPage(session: widget.session), 'delete_account'),
                   ),
                 ]),
                 Divider(height: 1, thickness: 1, color: t.bd),

@@ -10510,4 +10510,11 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get campusPanelHandle => 'لوحة الأماكن';
+
+  @override
+  String get settingsAnalytics => 'تحليل الاستخدام';
+
+  @override
+  String get settingsAnalyticsSub =>
+      'تُرسل بيانات الاستخدام، مثل مدة البقاء في الشاشات والإجراءات، لتحسين التطبيق. لا يتم إرسال محتوى الرسائل أو نص البحث أو البيانات الشخصية. عند الإيقاف يتوقف الجمع وتُحذف البيانات المعلقة.';
 }

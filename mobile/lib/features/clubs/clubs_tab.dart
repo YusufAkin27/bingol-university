@@ -1,3 +1,4 @@
+import '../../core/analytics.dart';
 import 'package:flutter/material.dart';
 
 import '../../core/api.dart';
@@ -196,7 +197,7 @@ class _ClubsTabState extends State<ClubsTab> {
   Future<void> _open(Map<String, dynamic> c) async {
     await Navigator.push(
       context,
-      MaterialPageRoute(
+      MaterialPageRoute(settings: const RouteSettings(name: 'club_detail'), 
         builder: (_) => ClubDetailPage(
           session: widget.session,
           communityId: ((c['id'] as num?)?.toInt() ?? -1),
@@ -391,7 +392,7 @@ class _ClubsTabState extends State<ClubsTab> {
       final e = _error!;
       final maintenance = e is ApiError && e.status == 503;
       return RefreshIndicator(
-        onRefresh: _refresh,
+        onRefresh: Analytics.pullRefresh(_refresh),
         child: LayoutBuilder(
           builder: (context, c) => ListView(
             physics: const AlwaysScrollableScrollPhysics(),
@@ -418,7 +419,7 @@ class _ClubsTabState extends State<ClubsTab> {
               ? ClubsStateText(text: l.clubMgmtNotFound)
               : ClubsStateText(text: l.p51ClubsEmpty, actionLabel: l.clubMgmtCreateTitle, onAction: _create);
       return RefreshIndicator(
-        onRefresh: _refresh,
+        onRefresh: Analytics.pullRefresh(_refresh),
         child: LayoutBuilder(
           builder: (context, c) => ListView(
             physics: const AlwaysScrollableScrollPhysics(),
@@ -439,7 +440,7 @@ class _ClubsTabState extends State<ClubsTab> {
       // Bölümlü kısa liste (kaydırma sayfalaması yok).
       final secs = _sections();
       return RefreshIndicator(
-        onRefresh: _refresh,
+        onRefresh: Analytics.pullRefresh(_refresh),
         child: ListView(
           physics: const AlwaysScrollableScrollPhysics(),
           padding: const EdgeInsets.only(bottom: kNavInset),
@@ -453,7 +454,7 @@ class _ClubsTabState extends State<ClubsTab> {
       );
     }
     return RefreshIndicator(
-      onRefresh: _refresh,
+      onRefresh: Analytics.pullRefresh(_refresh),
       // İlk 8 satır sırayla belirir; yenileme/kaydırma geri gelen satırlar tekrar oynamaz (BuStaggerScope).
       child: BuStaggeredList(
         controller: _scroll,

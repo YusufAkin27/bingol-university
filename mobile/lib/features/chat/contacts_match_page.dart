@@ -27,7 +27,7 @@ class ContactsEntryRow extends StatelessWidget {
         tile: NcTile(icon: BuIcons.contact, bg: t.sf2, fg: t.ink),
         title: context.l10n.chatMiscContactsFind,
         subtitle: context.l10n.chatMiscContactsSubtitle,
-        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => ContactsMatchPage(session: session))),
+        onTap: () => Navigator.push(context, MaterialPageRoute(settings: const RouteSettings(name: 'contacts_match'), builder: (_) => ContactsMatchPage(session: session))),
       ),
     );
   }
@@ -130,7 +130,7 @@ class _ContactsMatchPageState extends State<ContactsMatchPage> {
       if (!mounted) return;
       final conv = Map<String, dynamic>.from(res as Map);
       setState(() => _opening = null);
-      Navigator.push(context, MaterialPageRoute(builder: (_) => ChatDetailPage(session: widget.session, conversation: conv)));
+      Navigator.push(context, MaterialPageRoute(settings: const RouteSettings(name: 'chat_detail'), builder: (_) => ChatDetailPage(session: widget.session, conversation: conv)));
     } catch (e) {
       if (!mounted) return;
       setState(() {

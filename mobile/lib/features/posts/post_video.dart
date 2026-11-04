@@ -29,7 +29,7 @@ final ValueNotifier<bool> postVideoMuted = ValueNotifier<bool>(true);
 Future<void> openPostVideoViewer(BuildContext context, Session session, Post post) {
   final v = post.video;
   if (v == null) return Future<void>.value();
-  return Navigator.of(context).push<void>(MaterialPageRoute<void>(
+  return Navigator.of(context).push<void>(MaterialPageRoute<void>(settings: const RouteSettings(name: 'post_video'), 
     fullscreenDialog: true,
     builder: (_) => ChatVideoPlayerPage(
       url: v.url,

@@ -13,7 +13,7 @@ import 'post_video.dart';
 Future<void> openPostPhotoViewer(BuildContext context, Session session, Post post, {Object? heroTag}) {
   if (post.isVideo) return openPostVideoViewer(context, session, post);
   if (post.photo == null) return Future<void>.value();
-  return Navigator.of(context).push<void>(PageRouteBuilder<void>(
+  return Navigator.of(context).push<void>(PageRouteBuilder<void>(settings: const RouteSettings(name: 'post_photo'), 
     opaque: false,
     barrierDismissible: false,
     transitionDuration: BuMotion.medium,

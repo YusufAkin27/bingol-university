@@ -234,19 +234,19 @@ class _CampusMapPageState extends State<CampusMapPage> with WidgetsBindingObserv
   }
 
   void _openSearch() {
-    Navigator.of(context).push(MaterialPageRoute<void>(
+    Navigator.of(context).push(MaterialPageRoute<void>(settings: const RouteSettings(name: 'campus_search'), 
       builder: (_) => CampusSearchPage(controller: _ctl),
     ));
   }
 
   void _openDetail(CampusPlace p) {
-    Navigator.of(context).push(MaterialPageRoute<void>(
+    Navigator.of(context).push(MaterialPageRoute<void>(settings: const RouteSettings(name: 'campus_place'), 
       builder: (_) => CampusPlacePage(controller: _ctl, place: p, tileProvider: widget.tileProvider),
     ));
   }
 
   void _openCategoryList() {
-    Navigator.of(context).push(MaterialPageRoute<void>(
+    Navigator.of(context).push(MaterialPageRoute<void>(settings: const RouteSettings(name: 'campus_category'), 
       builder: (_) => CampusCategoryPage(controller: _ctl, category: _ctl.category, tileProvider: widget.tileProvider),
     ));
   }

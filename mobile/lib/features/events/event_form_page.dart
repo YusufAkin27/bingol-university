@@ -497,7 +497,7 @@ class _EventFormPageState extends State<EventFormPage> {
       if (!_editing && status == 'ACTIVE' && id != null) {
         final newId = id;
         nav.pushReplacement(
-          MaterialPageRoute<bool>(builder: (_) => EventDetailPage(session: widget.session, eventId: newId)),
+          MaterialPageRoute<bool>(settings: const RouteSettings(name: 'event_detail'), builder: (_) => EventDetailPage(session: widget.session, eventId: newId)),
           result: true,
         );
         return;
@@ -572,7 +572,7 @@ class _EventFormPageState extends State<EventFormPage> {
 
   void _browseClubs() => Navigator.push(
         context,
-        MaterialPageRoute(builder: (_) => Scaffold(body: ClubsTab(session: widget.session))),
+        MaterialPageRoute(settings: const RouteSettings(name: 'clubs'), builder: (_) => Scaffold(body: ClubsTab(session: widget.session))),
       );
 
   // ---- bölümler ----

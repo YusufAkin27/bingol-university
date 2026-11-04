@@ -113,7 +113,7 @@ class _PrivacyDataPageState extends State<PrivacyDataPage> {
     ));
   }
 
-  void _push(Widget page) => Navigator.push(context, MaterialPageRoute(builder: (_) => page));
+  void _push(Widget page, [String? screen]) => Navigator.push(context, MaterialPageRoute(settings: RouteSettings(name: screen), builder: (_) => page));
 
   Future<void> _load() async {
     setState(() => _error = null);
@@ -304,12 +304,12 @@ class _PrivacyDataPageState extends State<PrivacyDataPage> {
               icon: BuIcons.userX,
               label: l.profil2BlockedSection,
               value: _blockedCount,
-              onTap: () => _push(BlockedUsersPage(session: widget.session)),
+              onTap: () => _push(BlockedUsersPage(session: widget.session), 'blocked_users'),
             ),
             ProfilFlatRow(
               icon: BuIcons.download,
               label: l.profil2MyDataRow,
-              onTap: () => _push(MyDataPage(session: widget.session)),
+              onTap: () => _push(MyDataPage(session: widget.session), 'my_data'),
             ),
           ]),
           Padding(

@@ -82,7 +82,7 @@ class _DeleteAccountPageState extends State<DeleteAccountPage> {
                 InkWell(
                   key: const ValueKey('delete-backup-link'),
                   borderRadius: BuRadius.bXs,
-                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => MyDataPage(session: widget.session))),
+                  onTap: () => Navigator.push(context, MaterialPageRoute(settings: const RouteSettings(name: 'my_data'), builder: (_) => MyDataPage(session: widget.session))),
                   child: ConstrainedBox(
                     constraints: const BoxConstraints(minHeight: 48),
                     child: Align(

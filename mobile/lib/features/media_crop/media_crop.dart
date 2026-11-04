@@ -13,7 +13,7 @@ export 'crop_spec.dart';
 
 /// Profil fotoğrafı düzenleyicisini ([AvatarEditorPage]) tam ekran açar; "Bitti" -> [CropOutcome.cropped], iptal -> null.
 Future<CropOutcome?> openAvatarEditor(BuildContext context, Uint8List bytes) => Navigator.of(context)
-    .push<CropOutcome>(MaterialPageRoute(fullscreenDialog: true, builder: (_) => AvatarEditorPage(bytes: bytes)));
+    .push<CropOutcome>(MaterialPageRoute(settings: const RouteSettings(name: 'avatar_editor'), fullscreenDialog: true, builder: (_) => AvatarEditorPage(bytes: bytes)));
 
 /// Fotoğraf düzenleyicisini ([AvatarEditorPage]) [spec] biçiminde açar: aynı gelişmiş araçlar (yakınlaştır/uzaklaştır + zemin,
 /// açı, döndür, aynala, filtre, ayarlar, geri al/yinele) her kullanım yerinde; çerçeve oranı ve en-boy seçenekleri [spec]'ten
@@ -24,7 +24,7 @@ Future<CropOutcome?> openAvatarEditor(BuildContext context, Uint8List bytes) => 
 Future<CropOutcome?> editPhoto(BuildContext context, Uint8List bytes, CropSpec spec) {
   if (spec.kind == CropKind.profile) return openAvatarEditor(context, bytes);
   return Navigator.of(context).push<CropOutcome>(
-      MaterialPageRoute(fullscreenDialog: true, builder: (_) => AvatarEditorPage(bytes: bytes, spec: spec)));
+      MaterialPageRoute(settings: const RouteSettings(name: 'avatar_editor'), fullscreenDialog: true, builder: (_) => AvatarEditorPage(bytes: bytes, spec: spec)));
 }
 
 /// ESKİ kırpma sayfasını ([CropPage]) açar; geriye dönük uyum içindir (testler, eski çağıranlar). Yeni kod [editPhoto]
@@ -34,7 +34,7 @@ Future<CropOutcome?> editPhoto(BuildContext context, Uint8List bytes, CropSpec s
 /// yan eylem seçerse [CropOutcome.removed]/[CropOutcome.change]; vazgeçerse null döner.
 Future<CropOutcome?> cropImage(BuildContext context, Uint8List bytes, CropSpec spec) =>
     Navigator.of(context).push<CropOutcome>(
-      MaterialPageRoute(fullscreenDialog: true, builder: (_) => CropPage(bytes: bytes, spec: spec)),
+      MaterialPageRoute(settings: const RouteSettings(name: 'crop'), fullscreenDialog: true, builder: (_) => CropPage(bytes: bytes, spec: spec)),
     );
 
 /// Galeriden ya da kameradan tek fotoğraf baytı döndürür (iptalde null); testlerde sahtesi verilir.

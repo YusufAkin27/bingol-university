@@ -1,3 +1,4 @@
+import '../../core/analytics.dart';
 import 'package:flutter/material.dart';
 
 import '../../core/locale_controller.dart';
@@ -14,7 +15,7 @@ Future<void> openFollowList(BuildContext context, Session session,
         {required int userId, required bool followers, String? name}) =>
     Navigator.push<void>(
         context,
-        MaterialPageRoute<void>(
+        MaterialPageRoute<void>(settings: const RouteSettings(name: 'follow_list'), 
             builder: (_) => FollowListPage(session: session, userId: userId, followers: followers, name: name)));
 
 class FollowListPage extends StatefulWidget {
@@ -249,7 +250,7 @@ class _FollowListPageState extends State<FollowListPage> {
         ),
         Expanded(
           child: RefreshIndicator(
-            onRefresh: () => _load(_tab, silent: true),
+            onRefresh: Analytics.pullRefresh(() => _load(_tab, silent: true)),
             child: BuStaggerScope(
               child: ListView(
                 controller: _scroll,

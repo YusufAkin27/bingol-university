@@ -152,7 +152,7 @@ class _LegalReacceptPageState extends State<LegalReacceptPage> {
   Future<void> _later() => widget.session.legal.defer();
 
   void _open(LegalItem i) {
-    Navigator.push(context, MaterialPageRoute(builder: (_) => LegalDocPage(session: widget.session, type: i.type)));
+    Navigator.push(context, MaterialPageRoute(settings: const RouteSettings(name: 'legal_doc'), builder: (_) => LegalDocPage(session: widget.session, type: i.type)));
   }
 
   Future<void> _decline() async {
@@ -201,7 +201,7 @@ class _LegalReacceptPageState extends State<LegalReacceptPage> {
                     icon: BuIcons.trash2,
                     onPressed: () {
                       Navigator.pop(sheet);
-                      Navigator.push(context, MaterialPageRoute(builder: (_) => DeleteAccountPage(session: widget.session)));
+                      Navigator.push(context, MaterialPageRoute(settings: const RouteSettings(name: 'delete_account'), builder: (_) => DeleteAccountPage(session: widget.session)));
                     },
                   ),
                   const SizedBox(height: 10),

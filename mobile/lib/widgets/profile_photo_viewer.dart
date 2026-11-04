@@ -40,7 +40,7 @@ abstract final class ProfilePhotoViewer {
     if (full == null) return;
     final thumb = fileUrl(thumbUrl);
     final nav = Navigator.of(context, rootNavigator: true);
-    await nav.push<void>(PageRouteBuilder<void>(
+    await nav.push<void>(PageRouteBuilder<void>(settings: const RouteSettings(name: 'profile_photo'), 
       opaque: false,
       barrierDismissible: false,
       fullscreenDialog: true,

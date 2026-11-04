@@ -1,3 +1,4 @@
+import '../../core/analytics.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -117,7 +118,7 @@ class _AcademicCalendarPageState extends State<AcademicCalendarPage> {
     return AcademicScaffold(
       title: l.acadCalTitle,
       child: RefreshIndicator(
-        onRefresh: _load,
+        onRefresh: Analytics.pullRefresh(_load),
         child: ListView(
           physics: const AlwaysScrollableScrollPhysics(),
           padding: const EdgeInsets.only(bottom: 32),

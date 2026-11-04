@@ -43,7 +43,7 @@ class _RegisterPageState extends State<RegisterPage> {
   late final _privacyLink = TapGestureRecognizer()..onTap = () => _openLegal('PRIVACY');
 
   void _openLegal(String type) =>
-      Navigator.push(context, MaterialPageRoute(builder: (_) => LegalDocPage(session: widget.session, type: type)));
+      Navigator.push(context, MaterialPageRoute(settings: const RouteSettings(name: 'legal_doc'), builder: (_) => LegalDocPage(session: widget.session, type: type)));
 
   @override
   void initState() {
@@ -80,7 +80,7 @@ class _RegisterPageState extends State<RegisterPage> {
       widget.session.rememberCredentials(id, _password.text);
       await widget.session.pending.save(id);
       if (!mounted) return;
-      await Navigator.push(context, MaterialPageRoute(builder: (_) {
+      await Navigator.push(context, MaterialPageRoute(settings: const RouteSettings(name: 'verify_code'), builder: (_) {
         return VerifyCodePage(session: widget.session, email: id, displayEmail: full);
       }));
     } on ApiError catch (e) {

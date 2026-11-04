@@ -10617,4 +10617,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get campusPanelHandle => 'Places panel';
+
+  @override
+  String get settingsAnalytics => 'Usage analytics';
+
+  @override
+  String get settingsAnalyticsSub =>
+      'Usage data such as time spent on screens and actions is sent to improve the app. Message content, search text and personal details are never sent. Turning this off stops collection and deletes anything pending.';
 }

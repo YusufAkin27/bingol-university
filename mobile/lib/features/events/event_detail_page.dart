@@ -1,3 +1,4 @@
+import '../../core/analytics.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -111,7 +112,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
   Future<void> _edit() async {
     final ok = await Navigator.push<bool>(
       context,
-      MaterialPageRoute(builder: (_) => EventFormPage(session: widget.session, event: _ev)),
+      MaterialPageRoute(settings: const RouteSettings(name: 'event_form'), builder: (_) => EventFormPage(session: widget.session, event: _ev)),
     );
     if (ok == true && mounted) _load(refresh: true);
   }
@@ -157,6 +158,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
     setState(() => _rsvpBusy = true);
     try {
       final r = await widget.session.api.put('$_path/rsvp', {'status': status});
+      Analytics.instance.action('rsvp', target: status.toLowerCase());
       if (!mounted) return;
       setState(() => _rsvpBusy = false);
       if (r is Map && r['myRsvp'] == 'PENDING') {
@@ -203,6 +205,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
         if (res.note != null) 'note': res.note,
         'answers': res.answers,
       });
+      Analytics.instance.action('rsvp', target: 'apply');
       if (!mounted) return;
       setState(() => _rsvpBusy = false);
       _toast(context.l10n.etkinlik2RequestSentToast);
@@ -217,7 +220,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
     if (!mounted) return;
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (_) => EventsPage(session: widget.session, initialTab: 1)),
+      MaterialPageRoute(settings: const RouteSettings(name: 'events'), builder: (_) => EventsPage(session: widget.session, initialTab: 1)),
     );
   }
 
@@ -238,6 +241,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
     setState(() => _rsvpBusy = true);
     try {
       await widget.session.api.delete('$_path/rsvp');
+      Analytics.instance.action('rsvp', target: 'cancel');
       if (mounted) setState(() => _rsvpBusy = false);
       if (withdraw) _toast(l.etkinlik2WithdrawnToast);
       await _load(refresh: true);
@@ -294,7 +298,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
   Future<void> _openSettings() async {
     final r = await Navigator.push<Etkinlik2SettingsResult>(
       context,
-      MaterialPageRoute(builder: (_) => Etkinlik2SettingsPage(session: widget.session, event: _ev!)),
+      MaterialPageRoute(settings: const RouteSettings(name: 'etkinlik2_settings'), builder: (_) => Etkinlik2SettingsPage(session: widget.session, event: _ev!)),
     );
     if (r != null && mounted) _load(refresh: true);
   }
@@ -302,7 +306,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
   Future<void> _openRequests() async {
     await Navigator.push<bool>(
       context,
-      MaterialPageRoute(builder: (_) => Etkinlik2RequestsPage(session: widget.session, event: _ev!)),
+      MaterialPageRoute(settings: const RouteSettings(name: 'etkinlik2_requests'), builder: (_) => Etkinlik2RequestsPage(session: widget.session, event: _ev!)),
     );
     if (mounted) _load(refresh: true);
   }
@@ -310,7 +314,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
   Future<void> _openQr() async {
     await Navigator.push(
       context,
-      MaterialPageRoute(builder: (_) => Etkinlik2QrPage(session: widget.session, event: _ev!)),
+      MaterialPageRoute(settings: const RouteSettings(name: 'etkinlik2_qr'), builder: (_) => Etkinlik2QrPage(session: widget.session, event: _ev!)),
     );
     if (mounted) _loadExtras();
   }
@@ -318,7 +322,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
   Future<void> _openAttendance() async {
     await Navigator.push(
       context,
-      MaterialPageRoute(builder: (_) => Etkinlik2AttendancePage(session: widget.session, event: _ev!)),
+      MaterialPageRoute(settings: const RouteSettings(name: 'etkinlik2_attendance'), builder: (_) => Etkinlik2AttendancePage(session: widget.session, event: _ev!)),
     );
     if (mounted) _loadExtras();
   }
@@ -333,6 +337,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
     final code = input.code;
     try {
       final r = await widget.session.api.post('$_path/check-in', {'code': code});
+      Analytics.instance.action('checkin', target: 'qr');
       if (mounted) setState(() => _myAtt = Map<String, dynamic>.from(r as Map));
       return null;
     } catch (e) {
@@ -344,7 +349,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
   Future<void> _scan() async {
     await Navigator.push<String>(
       context,
-      MaterialPageRoute(builder: (_) => QrScanPage(title: context.l10n.eventFormScanTitle, onSubmit: _verifyScanned)),
+      MaterialPageRoute(settings: const RouteSettings(name: 'qr_scan'), builder: (_) => QrScanPage(title: context.l10n.eventFormScanTitle, onSubmit: _verifyScanned)),
     );
   }
 
@@ -377,7 +382,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
       if (!mounted) return;
       await Navigator.push(
         context,
-        MaterialPageRoute(
+        MaterialPageRoute(settings: const RouteSettings(name: 'chat_detail'), 
           builder: (_) => ChatDetailPage(session: widget.session, conversation: Map<String, dynamic>.from(r as Map)),
         ),
       );
@@ -411,7 +416,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
     } else {
       body = RefreshIndicator(
         color: t.pr,
-        onRefresh: () => _load(refresh: true),
+        onRefresh: Analytics.pullRefresh(() => _load(refresh: true)),
         child: CustomScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
           slivers: [
@@ -530,7 +535,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
           child: BuButton(
             key: const ValueKey('et2-browse'),
             label: l.eventListDiscover,
-            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => EventsPage(session: widget.session))),
+            onPressed: () => Navigator.push(context, MaterialPageRoute(settings: const RouteSettings(name: 'events'), builder: (_) => EventsPage(session: widget.session))),
           ),
         );
       }
@@ -601,6 +606,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
     setState(() => _rsvpBusy = true);
     try {
       await widget.session.api.delete('$_path/rsvp');
+      Analytics.instance.action('rsvp', target: 'cancel');
       if (mounted) setState(() => _rsvpBusy = false);
       await _load(refresh: true);
     } catch (e) {
@@ -782,7 +788,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
                 child: BuPressable(
                   onTap: cid == null
                       ? null
-                      : () => Navigator.push(context, MaterialPageRoute(builder: (_) => ClubDetailPage(session: widget.session, communityId: cid))),
+                      : () => Navigator.push(context, MaterialPageRoute(settings: const RouteSettings(name: 'club_detail'), builder: (_) => ClubDetailPage(session: widget.session, communityId: cid))),
                   enabled: cid != null,
                   child: ConstrainedBox(
                     constraints: const BoxConstraints(minHeight: 32),

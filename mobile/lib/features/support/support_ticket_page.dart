@@ -1,3 +1,4 @@
+import '../../core/analytics.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart' show DateFormat;
 
@@ -80,6 +81,7 @@ class _SupportTicketPageState extends State<SupportTicketPage> {
     setState(() => _sending = true);
     try {
       await widget.session.api.post('$_path/messages', {'text': text});
+      Analytics.instance.action('ticket_reply');
       _reply.clear();
       _changed = true;
       await _load(silent: true);

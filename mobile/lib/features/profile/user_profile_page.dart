@@ -32,7 +32,7 @@ Future<void> openUserProfile(
 }) =>
     Navigator.push<void>(
       context,
-      MaterialPageRoute<void>(
+      MaterialPageRoute<void>(settings: const RouteSettings(name: 'user_profile'), 
         builder: (_) => UserProfilePage(
           session: session,
           userId: userId,
@@ -204,7 +204,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
       }
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute<void>(builder: (_) => ChatDetailPage(session: widget.session, conversation: conv)),
+        MaterialPageRoute<void>(settings: const RouteSettings(name: 'chat_detail'), builder: (_) => ChatDetailPage(session: widget.session, conversation: conv)),
       );
     } catch (e) {
       if (!mounted) return;
@@ -248,7 +248,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
     if (p == null) return;
     final changed = await Navigator.push<bool>(
       context,
-      MaterialPageRoute<bool>(builder: (_) => EditProfilePage(session: widget.session, profile: p)),
+      MaterialPageRoute<bool>(settings: const RouteSettings(name: 'edit_profile'), builder: (_) => EditProfilePage(session: widget.session, profile: p)),
     );
     if (changed == true) {
       widget.session.refreshName();
@@ -266,7 +266,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
     if (url == null) return;
     Navigator.push<void>(
       context,
-      MaterialPageRoute<void>(
+      MaterialPageRoute<void>(settings: const RouteSettings(name: 'avatar_viewer'), 
         fullscreenDialog: true,
         builder: (_) => _AvatarViewer(url: url, headers: _headersFor(_avatar), title: _name),
       ),

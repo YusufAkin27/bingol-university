@@ -102,13 +102,13 @@ class _SuggestionsPageState extends State<SuggestionsPage> {
 
   void _add() => Navigator.push(
         context,
-        MaterialPageRoute<void>(builder: (_) => FeedbackPage(session: widget.session, initialCategory: 'SUGGESTION')),
+        MaterialPageRoute<void>(settings: const RouteSettings(name: 'feedback'), builder: (_) => FeedbackPage(session: widget.session, initialCategory: 'SUGGESTION')),
       );
 
   Future<void> _openDetail(Map<String, dynamic> s) async {
     await Navigator.push<void>(
       context,
-      MaterialPageRoute<void>(builder: (_) => SuggestionDetailPage(item: s, onVote: () => _toggleVote(s))),
+      MaterialPageRoute<void>(settings: const RouteSettings(name: 'suggestion_detail'), builder: (_) => SuggestionDetailPage(item: s, onVote: () => _toggleVote(s))),
     );
     if (mounted) setState(() {});
   }

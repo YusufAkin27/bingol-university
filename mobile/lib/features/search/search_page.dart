@@ -1,3 +1,4 @@
+import '../../core/analytics.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -245,13 +246,17 @@ class _SearchPageState extends State<SearchPage> {
   void _submit(String v) {
     _debounce?.cancel();
     final q = v.trim();
-    if (q.length >= 2) _run(q);
+    if (q.length >= 2) {
+      Analytics.instance.action('search_submit');
+      _run(q);
+    }
   }
 
   void _useRecent(String q) {
     _ctrl.text = q;
     _ctrl.selection = TextSelection.collapsed(offset: q.length);
     _debounce?.cancel();
+    Analytics.instance.action('search_submit', target: 'recent');
     _run(q);
   }
 
@@ -407,6 +412,7 @@ class _SearchPageState extends State<SearchPage> {
   void _open(_Hit h) {
     final s = widget.session;
     Widget page;
+    String screen;
     switch (h.type) {
       case 'NEWS':
       case 'ANNOUNCEMENT':
@@ -418,12 +424,15 @@ class _SearchPageState extends State<SearchPage> {
           'imageUrl': h.imageUrl,
           'publishedDate': h.date,
         });
+        screen = 'news_detail';
         break;
       case 'COMMUNITY':
         page = ClubDetailPage(session: s, communityId: h.id);
+        screen = 'club_detail';
         break;
       case 'EVENT':
         page = EventDetailPage(session: s, eventId: h.id);
+        screen = 'event_detail';
         break;
       case 'POSTS':
       case 'POST':
@@ -433,7 +442,7 @@ class _SearchPageState extends State<SearchPage> {
         openUserProfile(context, s, userId: h.id, name: h.title, avatarUrl: h.imageUrl);
         return;
     }
-    Navigator.push(context, MaterialPageRoute<void>(builder: (_) => page));
+    Navigator.push(context, MaterialPageRoute<void>(settings: RouteSettings(name: screen), builder: (_) => page));
   }
 
   @override
@@ -651,7 +660,7 @@ class _SearchPageState extends State<SearchPage> {
     return RefreshIndicator(
       color: t.pr,
       backgroundColor: t.sf3,
-      onRefresh: () => paged ? _retryTab(_tab) : _run(_query),
+      onRefresh: Analytics.pullRefresh(() => paged ? _retryTab(_tab) : _run(_query)),
       child: BuStaggerScope(
         key: ValueKey('$_seq-${_tab.name}'),
         child: ListView.builder(

@@ -309,7 +309,7 @@ class _NotificationPrefsGroupState extends State<NotificationPrefsGroup> with Wi
 
   void _openPushHelp() => Navigator.push<void>(
         context,
-        MaterialPageRoute<void>(builder: (_) => PushHelpPage(source: SystemPushHealthSource(widget.push))),
+        MaterialPageRoute<void>(settings: const RouteSettings(name: 'push_help'), builder: (_) => PushHelpPage(source: SystemPushHealthSource(widget.push))),
       );
 
   Widget _helpLink() {
@@ -477,13 +477,13 @@ class _NotificationPrefsGroupState extends State<NotificationPrefsGroup> with Wi
                 _PrefRow(
                   title: l.profil1Detailed,
                   trailing: _chevron(),
-                  onTap: () => Navigator.push<void>(context, MaterialPageRoute<void>(builder: (_) => _DetailedPrefsPage(store: _store))),
+                  onTap: () => Navigator.push<void>(context, MaterialPageRoute<void>(settings: const RouteSettings(name: 'detailed_prefs'), builder: (_) => _DetailedPrefsPage(store: _store))),
                 ),
               if (hasSubs && quiet != null) const _PrefDivider(),
               if (quiet != null)
                 _PrefRow(
                   title: l.profil1QuietTitle,
-                  onTap: () => Navigator.push<void>(context, MaterialPageRoute<void>(builder: (_) => _QuietHoursPage(store: _store))),
+                  onTap: () => Navigator.push<void>(context, MaterialPageRoute<void>(settings: const RouteSettings(name: 'quiet_hours'), builder: (_) => _QuietHoursPage(store: _store))),
                   trailing: Row(mainAxisSize: MainAxisSize.min, children: [
                     Text(quietOn ? '${(quiet['start'] as String?) ?? '23:00'} – ${(quiet['end'] as String?) ?? '07:00'}' : l.profil1PillOff,
                         style: BuType.caption.copyWith(fontSize: 13, height: 1.4, color: t.mut, fontFeatures: const [FontFeature.tabularFigures()])),
@@ -503,7 +503,7 @@ class _NotificationPrefsGroupState extends State<NotificationPrefsGroup> with Wi
       ..add(_card(
         child: _PrefRow(
           title: l.profilePrefsReminders,
-          onTap: () => Navigator.push<void>(context, MaterialPageRoute<void>(builder: (_) => ReminderSettingsPage(session: widget.session))),
+          onTap: () => Navigator.push<void>(context, MaterialPageRoute<void>(settings: const RouteSettings(name: 'reminder_settings'), builder: (_) => ReminderSettingsPage(session: widget.session))),
           trailing: _PrefSwitch(value: remOn, onChanged: rem == null ? null : _setReminders),
         ),
       ));

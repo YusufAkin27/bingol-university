@@ -1,3 +1,4 @@
+import '../../core/analytics.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -150,6 +151,7 @@ class _AnnouncementsPageState extends State<AnnouncementsPage> {
     }
 
     await Navigator.of(context).push(MaterialPageRoute(
+        settings: const RouteSettings(name: 'announcement_detail'),
         builder: (_) => AnnouncementDetailPage(session: widget.session, id: a.id, preview: a, onLoaded: markRead)));
   }
 
@@ -202,7 +204,7 @@ class _AnnouncementsPageState extends State<AnnouncementsPage> {
       ]);
     }
     return RefreshIndicator(
-      onRefresh: _reload,
+      onRefresh: Analytics.pullRefresh(_reload),
       child: ListView(
         controller: _scroll,
         physics: const AlwaysScrollableScrollPhysics(),

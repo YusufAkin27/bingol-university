@@ -1,3 +1,4 @@
+import '../../core/analytics.dart';
 import 'package:flutter/material.dart';
 
 import '../../core/api.dart';
@@ -76,6 +77,7 @@ class _PollDetailPageState extends State<PollDetailPage> {
     setState(() => _busy = true);
     try {
       final p = await _api.vote(widget.pollId, s);
+      Analytics.instance.action(p.scope == 'MENU' ? 'rate_menu' : 'vote');
       if (!mounted) return;
       setState(() {
         _poll = p;

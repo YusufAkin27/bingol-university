@@ -82,7 +82,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
       setState(() => _sent = true);
       await Navigator.push(
         context,
-        MaterialPageRoute(
+        MaterialPageRoute(settings: const RouteSettings(name: 'reset_code'), 
           builder: (_) => ResetCodePage(session: widget.session, email: normalizeIdentifier(_email.text)),
         ),
       );

@@ -3,6 +3,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 
 import '../../core/app_gate.dart' show appVersion;
+import '../../core/analytics.dart';
 import '../../core/crash/crash_reporter.dart';
 import '../../core/locale_controller.dart';
 import '../../core/permissions/permission_service.dart';
@@ -162,7 +163,7 @@ class _SettingsPageState extends State<SettingsPage> {
     }[chosen]!);
   }
 
-  void _push(Widget page) => Navigator.push(context, MaterialPageRoute(builder: (_) => page));
+  void _push(Widget page, [String? screen]) => Navigator.push(context, MaterialPageRoute(settings: RouteSettings(name: screen), builder: (_) => page));
 
   @override
   Widget build(BuildContext context) {
@@ -212,13 +213,13 @@ class _SettingsPageState extends State<SettingsPage> {
                     key: const ValueKey('settings-chats'),
                     icon: BuIcons.image,
                     label: l.p67ChatBgTitle,
-                    onTap: () => _push(const ChatBackgroundSettingsPage()),
+                    onTap: () => _push(const ChatBackgroundSettingsPage(), 'chat_background_settings'),
                   ),
                   ProfilFlatRow(
                     plainIcon: true,
                     icon: BuIcons.users,
                     label: l.settingsFindContacts,
-                    onTap: () => _push(ContactsMatchPage(session: widget.session)),
+                    onTap: () => _push(ContactsMatchPage(session: widget.session), 'contacts_match'),
                   ),
                 ]),
                 ProfilFlatSection(l.settingsSectionNotifications),
@@ -228,7 +229,7 @@ class _SettingsPageState extends State<SettingsPage> {
                     key: const ValueKey('settings-notif-prefs'),
                     icon: BuIcons.bell,
                     label: l.profil1Notifications,
-                    onTap: () => _push(NotificationPrefsPage(session: widget.session)),
+                    onTap: () => _push(NotificationPrefsPage(session: widget.session), 'notification_prefs'),
                   ),
                   ProfilFlatRow(
                     plainIcon: true,
@@ -242,37 +243,37 @@ class _SettingsPageState extends State<SettingsPage> {
                 ]),
                 ProfilFlatSection(l.settingsSectionPrivacy),
                 ListenableBuilder(
-                  listenable: _crash,
+                  listenable: Listenable.merge([_crash, Analytics.instance]),
                   builder: (_, __) => ProfilFlatGroup(outlined: true, children: [
                     ProfilFlatRow(
                     plainIcon: true,
                       icon: BuIcons.lock,
                       label: l.settingsPrivacyData,
-                      onTap: () => _push(PrivacyDataPage(session: widget.session)),
+                      onTap: () => _push(PrivacyDataPage(session: widget.session), 'privacy_data'),
                     ),
                     ProfilFlatRow(
                     plainIcon: true,
                       icon: BuIcons.shieldCheck,
                       label: l.profil1AccountSecurity,
-                      onTap: () => _push(AccountSecurityPage(session: widget.session)),
+                      onTap: () => _push(AccountSecurityPage(session: widget.session), 'account_security'),
                     ),
                     ProfilFlatRow(
                     plainIcon: true,
                       icon: BuIcons.userX,
                       label: l.profilePrefsBlockedTitle,
-                      onTap: () => _push(BlockedUsersPage(session: widget.session)),
+                      onTap: () => _push(BlockedUsersPage(session: widget.session), 'blocked_users'),
                     ),
                     ProfilFlatRow(
                     plainIcon: true,
                       icon: BuIcons.headset,
                       label: l.settingsSupport,
-                      onTap: () => _push(SupportPage(session: widget.session)),
+                      onTap: () => _push(SupportPage(session: widget.session), 'support'),
                     ),
                     ProfilFlatRow(
                     plainIcon: true,
                       icon: BuIcons.info,
                       label: l.profileAboutShort,
-                      onTap: () => _push(AboutPage(session: widget.session)),
+                      onTap: () => _push(AboutPage(session: widget.session), 'about'),
                     ),
                     // Anonim hata raporu: açık/kapalı anahtarı (açıklama altında).
                     ProfilFlatToggle(
@@ -281,6 +282,14 @@ class _SettingsPageState extends State<SettingsPage> {
                       sub: l.p19CrashReportsShort,
                       value: _crash.enabled,
                       onChanged: (v) => _crash.setEnabled(v),
+                    ),
+                    // Kullanım analizi: kapatınca olay toplama durur, bekleyen kuyruk silinir.
+                    ProfilFlatToggle(
+                      key: const ValueKey('analyticsSwitch'),
+                      label: l.settingsAnalytics,
+                      sub: l.settingsAnalyticsSub,
+                      value: Analytics.instance.enabled,
+                      onChanged: (v) => Analytics.instance.setEnabled(v),
                     ),
                     ProfilFlatRow(
                     plainIcon: true,

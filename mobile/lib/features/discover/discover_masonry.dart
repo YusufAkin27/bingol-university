@@ -1,3 +1,4 @@
+import '../../core/analytics.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -304,7 +305,7 @@ class _DiscoverMasonryFeedState extends State<DiscoverMasonryFeed> {
       body = _masonry(context);
     }
     return RefreshIndicator(
-      onRefresh: _refresh,
+      onRefresh: Analytics.pullRefresh(_refresh),
       child: BuStaggerScope(
         key: ValueKey('discover-scope-$_scopeGen'),
         child: CustomScrollView(

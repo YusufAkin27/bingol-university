@@ -59,7 +59,7 @@ class _NewPasswordPageState extends State<NewPasswordPage> {
     try {
       await widget.session.resetPassword(widget.email, widget.resetToken, _password.text);
       if (!mounted) return;
-      await Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => const ResetSuccessPage()));
+      await Navigator.of(context).pushReplacement(MaterialPageRoute(settings: const RouteSettings(name: 'reset_success'), builder: (_) => const ResetSuccessPage()));
       return;
     } on ApiError catch (e) {
       if (!mounted) return;

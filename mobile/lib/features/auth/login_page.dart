@@ -51,7 +51,7 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   Future<void> _openVerify(String identifier) async {
-    await Navigator.push(context, MaterialPageRoute(builder: (_) {
+    await Navigator.push(context, MaterialPageRoute(settings: const RouteSettings(name: 'verify_code'), builder: (_) {
       return VerifyCodePage(
           session: widget.session, email: identifier, unverified: true);
     }));
@@ -358,6 +358,7 @@ class _LoginPageState extends State<LoginPage> {
                       : () => Navigator.push(
                           context,
                           MaterialPageRoute(
+                              settings: const RouteSettings(name: 'register'),
                               builder: (_) =>
                                   RegisterPage(session: widget.session))),
                 ),
@@ -384,6 +385,7 @@ class _LoginPageState extends State<LoginPage> {
                                   : () => Navigator.push(
                                       context,
                                       MaterialPageRoute(
+                                          settings: const RouteSettings(name: 'help_form'),
                                           builder: (_) => HelpFormPage(
                                               session: widget.session))),
                             ),
@@ -396,6 +398,7 @@ class _LoginPageState extends State<LoginPage> {
                                   : () => Navigator.push(
                                       context,
                                       MaterialPageRoute(
+                                          settings: const RouteSettings(name: 'about'),
                                           builder: (_) => AboutPage(
                                               session: widget.session))),
                               style: TextButton.styleFrom(

@@ -70,7 +70,7 @@ class _CampusSearchPageState extends State<CampusSearchPage> {
 
   void _open(CampusPlace p) {
     unawaited(_remember(_text.text));
-    Navigator.of(context).push(MaterialPageRoute<void>(
+    Navigator.of(context).push(MaterialPageRoute<void>(settings: const RouteSettings(name: 'campus_place'), 
       builder: (_) => CampusPlacePage(controller: _c, place: p, tileProvider: widget.tileProvider),
     ));
   }
@@ -175,7 +175,7 @@ class _CampusSearchPageState extends State<CampusSearchPage> {
             Padding(
               padding: const EdgeInsets.only(bottom: 8),
               child: BuPressable(
-                onTap: () => Navigator.of(context).push(MaterialPageRoute<void>(
+                onTap: () => Navigator.of(context).push(MaterialPageRoute<void>(settings: const RouteSettings(name: 'campus_category'), 
                   builder: (_) => CampusCategoryPage(controller: _c, category: c.key, tileProvider: widget.tileProvider),
                 )),
                 semanticLabel: c.label,

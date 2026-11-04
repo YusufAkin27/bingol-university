@@ -71,7 +71,7 @@ Future<Post?> openComposePost(BuildContext context, Session session, {ComposeKin
     if (k == null || !context.mounted) return null;
   }
   return Navigator.of(context).push<Post>(
-    MaterialPageRoute(fullscreenDialog: true, builder: (_) => ComposePostPage(session: session, initialKind: k)),
+    MaterialPageRoute(settings: const RouteSettings(name: 'compose_post'), fullscreenDialog: true, builder: (_) => ComposePostPage(session: session, initialKind: k)),
   );
 }
 

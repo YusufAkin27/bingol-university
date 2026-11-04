@@ -1,3 +1,4 @@
+import '../../core/analytics.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -92,8 +93,8 @@ class _AcademicHubPageState extends State<AcademicHubPage> {
     } catch (_) {}
   }
 
-  Future<void> _go(Widget page) async {
-    await Navigator.of(context).push(MaterialPageRoute(builder: (_) => page));
+  Future<void> _go(Widget page, [String? screen]) async {
+    await Navigator.of(context).push(MaterialPageRoute(settings: RouteSettings(name: screen), builder: (_) => page));
     if (mounted) _refresh();
   }
 
@@ -112,11 +113,11 @@ class _AcademicHubPageState extends State<AcademicHubPage> {
     final annSub = (un == null || un == 0) ? l.acadHubAnnouncementsSub : l.acadHubUnread(un.toString());
     return AcademicScaffold(
       title: l.acadHubTitle,
-      actions: [AcadTextAction(l.acadHubReminders, onTap: () => _go(ReminderSettingsPage(session: s)), size: 14)],
+      actions: [AcadTextAction(l.acadHubReminders, onTap: () => _go(ReminderSettingsPage(session: s), 'reminder_settings'), size: 14)],
       child: RefreshIndicator(
-        onRefresh: () async {
+        onRefresh: Analytics.pullRefresh(() async {
           await _refresh();
-        },
+        }),
         child: ListView(
           physics: const AlwaysScrollableScrollPhysics(),
           padding: const EdgeInsets.only(bottom: 32),
@@ -144,21 +145,21 @@ class _AcademicHubPageState extends State<AcademicHubPage> {
                 title: ex.title.isNotEmpty ? ex.title : (ex.courseName ?? ''),
                 detail: _examWhen(l, ex),
                 countdown: countdownTextL(l, ex.startsAt, academicClock()),
-                onTap: () => _go(ExamsPage(session: s)),
+                onTap: () => _go(ExamsPage(session: s), 'exams'),
               ),
               const SizedBox(height: 22),
             ] else
               const SizedBox(height: 14),
             const Padding(padding: EdgeInsets.symmetric(horizontal: 20), child: AcadRule()),
-            AcadhubNavRow(key: const ValueKey('acadhub-timetable'), icon: BuIcons.calendar, title: l.acadHubTimetable, sub: timetableSub, onTap: () => _go(TimetablePage(session: s))),
-            AcadhubNavRow(key: const ValueKey('acadhub-exams'), icon: BuIcons.notebookPen, title: l.acadExamsTitle, sub: examsSub, onTap: () => _go(ExamsPage(session: s))),
+            AcadhubNavRow(key: const ValueKey('acadhub-timetable'), icon: BuIcons.calendar, title: l.acadHubTimetable, sub: timetableSub, onTap: () => _go(TimetablePage(session: s), 'timetable')),
+            AcadhubNavRow(key: const ValueKey('acadhub-exams'), icon: BuIcons.notebookPen, title: l.acadExamsTitle, sub: examsSub, onTap: () => _go(ExamsPage(session: s), 'exams')),
             AcadhubNavRow(
               key: const ValueKey('acadhub-calendar'), icon: BuIcons.calendarDays,
               title: l.acadCalTitle,
               sub: l.acadHubCalendarSub,
-              onTap: () => _go(AcademicCalendarPage(session: s)),
+              onTap: () => _go(AcademicCalendarPage(session: s), 'academic_calendar'),
             ),
-            AcadhubNavRow(key: const ValueKey('acadhub-announcements'), icon: BuIcons.bell, title: l.acadAnnTitle, sub: annSub, onTap: () => _go(AnnouncementsPage(session: s))),
+            AcadhubNavRow(key: const ValueKey('acadhub-announcements'), icon: BuIcons.bell, title: l.acadAnnTitle, sub: annSub, onTap: () => _go(AnnouncementsPage(session: s), 'announcements')),
           ],
         ),
       ),

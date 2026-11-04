@@ -19242,6 +19242,18 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Yer listesi paneli'**
   String get campusPanelHandle;
+
+  /// No description provided for @settingsAnalytics.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kullanım analizi'**
+  String get settingsAnalytics;
+
+  /// No description provided for @settingsAnalyticsSub.
+  ///
+  /// In tr, this message translates to:
+  /// **'Uygulamayı iyileştirmek için ekranlarda geçirilen süre ve yapılan eylemler gibi kullanım bilgileri gönderilir. Mesaj içeriği, arama metni ve kişisel bilgiler gönderilmez. Kapatınca toplama durur, bekleyenler silinir.'**
+  String get settingsAnalyticsSub;
 }
 
 class _AppLocalizationsDelegate

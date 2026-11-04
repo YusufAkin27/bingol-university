@@ -597,8 +597,30 @@ Tam liste ve şemalar için `docs/openapi.json` (gruplar: `1-public`, `2-authent
 | Arama / favori | `GET /api/search`, `/api/bookmarks*` |
 | Destek | `/api/feedback`, `/api/suggestions`, `/api/support/tickets*`, `/api/faq` |
 | Moderasyon | `POST /api/reports`, `POST /api/messages/{id}/report`, engelleme uçları |
-| Analitik | `POST /api/analytics/events` (≤ 50 olay; `app_open`, `screen_view`, `search`; kişisel veri göndermeyin, `@` içeren değer reddedilir) |
+| Analitik | `POST /api/analytics/events` (≤ 50 olay; oturum/ekran süresi/eylem olayları, kişisel veri göndermeyin, `@` içeren değer reddedilir; sözleşme: bölüm 11.2) |
 | KVKK | `GET /api/users/me/export`, `DELETE /api/users/me` (bölüm 9) |
+
+### 11.2 Kullanım analizi (davranış) olay sözleşmesi
+Gövde değişmez: `POST /api/analytics/events` `{events:[{name, screen?, props?, at}]}` (istek başına en çok 50 olay, oturumlu). Uygulama tarafı `lib/core/analytics.dart` (`Analytics`, `AnalyticsNavigatorObserver`). Olaylarda kişisel veri yoktur: e-posta/ad/numara/mesaj metni/arama sorgusu metni/serbest metin gönderilmez; `props` yalnız sayı ve kısa küçük harf enum içerir; `@` içeren herhangi bir değer olayı istemcide düşürür (`Analytics.isSafe`). Kullanıcı kimliği olay gövdesinde yoktur, sunucu `user_id`'yi Bearer jetonundan bağlar.
+
+**Her olayın `props.sid` alanı** vardır (açık oturum varken): oturum açılışında üretilen rastgele 16 karakterlik kimlik (`[a-z0-9]{16}`, kişisel veri değildir). Olay adları `[a-z0-9_]{1,40}`:
+
+| Olay | `screen` | `props` | Ne zaman |
+|---|---|---|---|
+| `session_start` | yok | `sid` | Oturum açıkken uygulama ilk ön plana gelince (giriş sonrası / soğuk açılış), arka plandan **30 dk'dan uzun** süre sonra dönüşte ve 30 dk hareketsizlikten sonraki ilk etkinlikte. Sürecin ilk oturumunda eski `app_open` de gönderilir. |
+| `screen_view` | rota adı | `sid` | Ekran açılınca (sayfa rotası push/pop/replace, sekme geçişi). Oturum yeni başlarsa açık ekran için de gönderilir (giriş ekranı). |
+| `screen_exit` | rota adı | `sid`, `dwellMs` | Ekran kapanınca/değişince/uygulama arka plana atılınca. `dwellMs` ekranın **ön planda** geçen süresidir (arka plan sayılmaz; 0..86400000). Kısa ayrılıkla dönüşte aynı ekran için ikinci bir `screen_exit` gelebilir (süreler toplanır). |
+| `session_end` | yok | `sid`, `durationMs`, `screens`, `reason` | `reason`: `background` (arka plana atılınca; olaylar **hemen** gönderilir), `timeout` (30 dk hareketsizlik; olay zamanı son etkinlik anıdır), `exit` (`detached`). `durationMs` oturumun **kümülatif ön plan** süresidir (arka plan hariç), `screens` bu oturumdaki `screen_view` sayısı. Aynı `sid` 30 dk içinde dönüşte sürerse sonraki `session_end` daha büyük `durationMs` ile gelir (son olan geçerlidir). |
+| `action` | olduğu ekran | `sid`, `kind`, `target?` | Kullanıcı eylemi, aşağıdaki listeden. |
+| `app_open`, `search`, `app_error` | | | Eski olaylar aynen çalışır (`app_open` her ön plana dönüşte; `app_error` çökme günlüğünden). `sid` açık oturum varsa eklenir. |
+
+**Ekran adları** (rota adı): sayfa rotalarının (`PageRoute`) `RouteSettings.name` değeridir, küçük harf + alt çizgi (`chat_detail`, `event_detail`, `club_detail`, `news_detail`, `notifications`, `edit_profile`...); adsız rota `other`. Alt gezinme sekmeleri de ekran sayılır: `tab_home`, `tab_discover`, `tab_chat`, `tab_clubs`, `tab_profile` (kökte açık sayfa yokken geçerli ekran sekmedir; sekme geçişi ayrıca `action tab_switch` üretir). **Diyaloglar, alt sayfalar ve menüler ekran sayılmaz** (altındaki ekranın süresi sürer). Sınıf adı kullanılmaz (`--obfuscate` ile anlamsızlaşır): yeni bir `MaterialPageRoute` eklerken `settings: const RouteSettings(name: '<snake_ad>')` verin.
+
+**`action.kind` beyaz listesi** (sunucuyla aynı): `like`, `unlike` (gönderi beğeni), `follow`, `unfollow`, `share` (`target: copy_link`), `bookmark` (`target: add|remove`; haber kaydet), `join_club`, `leave_club`, `rsvp` (`target: going|maybe|not_going|apply|cancel`; ham durum küçük harfle), `checkin` (`target: qr`), `vote` (anket), `rate_menu` (günlük menü puanı / MENU anketi oyu), `search_submit` (klavyeden gönder ya da son aramadan seç, `target: recent`; sorgu METNİ gönderilmez), `send_message` (`target: media` görselli; mesaj metni gönderilmez), `post_create`, `ticket_create`, `ticket_reply`, `profile_edit`, `notif_open` (uygulama içi bildirim açma), `push_open` (`target: push|reminder`), `pull_refresh` (çekip yenileme), `tab_switch` (`target: home|discover|chat|clubs|profile`; olduğu ekran önceki sekmedir). `target` en çok 24 karakter `[a-z0-9_]`; uymayan `target` istemcide düşer. İstemci listede olmayan `kind`'i hiç göndermez.
+
+**Oturum kuralları:** `at` = UTC ISO-8601. Ön plan/arka plan `AppGate`'ten (`WidgetsBindingObserver`) gelir; ekrana dokunuş etkinlik sayılır (30 dk sayacı). Oturum açık değilken hiçbir olay biriktirilmez/gönderilmez; çıkışta kuyruk ve açık oturum silinir. Kuyruk en çok 200 olay; 20 olayda ya da 20 sn'de gönderilir (arka plana atılırken kuyruk boşalana dek); gönderim hatası sessizce atılır (yeniden deneme yok). Eski sürümler `sid` göndermez; sunucu 30 dk boşlukla oturum türetir.
+
+**Kullanıcı ayarı:** Ayarlar > Gizlilik > **Kullanım analizi** anahtarı (varsayılan AÇIK; cihazda güvenli depoda `analytics_enabled`). Kapalıyken hiçbir olay üretilmez, kapatma anında bekleyen kuyruk ve açık oturum silinir, `flush` istek atmaz. Çökme raporu anahtarından (`crash_reports_enabled`) bağımsızdır.
 
 ### 11.1 Yeni ve değişen uçlar (özet)
 - **`GET /api/me/summary`** (Bearer, dakikada 120) → `{"communities":3,"events":1,"bookmarks":12,"unreadNotifications":4,"unreadMessages":7}`. Ana sayfa/sekme rozetleri için tek istek.

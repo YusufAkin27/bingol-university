@@ -1,3 +1,4 @@
+import '../../core/analytics.dart';
 import 'package:flutter/material.dart';
 
 import '../../core/locale_controller.dart';
@@ -78,7 +79,7 @@ class _MyClubsPageState extends State<MyClubsPage> {
   Future<void> _open(Map<String, dynamic> c) async {
     await Navigator.push(
       context,
-      MaterialPageRoute(builder: (_) => ClubDetailPage(session: widget.session, communityId: _id(c))),
+      MaterialPageRoute(settings: const RouteSettings(name: 'club_detail'), builder: (_) => ClubDetailPage(session: widget.session, communityId: _id(c))),
     );
     if (mounted) _load(silent: true);
   }
@@ -106,6 +107,7 @@ class _MyClubsPageState extends State<MyClubsPage> {
     if (!ok || !mounted) return;
     try {
       await widget.session.api.delete('/communities/${_id(c)}/membership');
+      Analytics.instance.action('leave_club');
       if (mounted) setState(() => _items.remove(c));
     } catch (e) {
       if (mounted) _snack(errorText(e));
@@ -122,7 +124,7 @@ class _MyClubsPageState extends State<MyClubsPage> {
     if (!mounted) return;
     final res = await Navigator.push<Map<String, dynamic>>(
       context,
-      MaterialPageRoute(builder: (_) => ClubFormPage(session: widget.session, club: club)),
+      MaterialPageRoute(settings: const RouteSettings(name: 'club_form'), builder: (_) => ClubFormPage(session: widget.session, club: club)),
     );
     if (res != null && mounted) _load(silent: true);
   }
@@ -130,7 +132,7 @@ class _MyClubsPageState extends State<MyClubsPage> {
   Future<void> _requests(Map<String, dynamic> c) async {
     await Navigator.push(
       context,
-      MaterialPageRoute(builder: (_) => ClubRequestsPage(session: widget.session, communityId: _id(c))),
+      MaterialPageRoute(settings: const RouteSettings(name: 'club_requests'), builder: (_) => ClubRequestsPage(session: widget.session, communityId: _id(c))),
     );
     if (mounted) _load(silent: true);
   }
@@ -138,7 +140,7 @@ class _MyClubsPageState extends State<MyClubsPage> {
   Future<void> _members(Map<String, dynamic> c) async {
     await Navigator.push(
       context,
-      MaterialPageRoute(
+      MaterialPageRoute(settings: const RouteSettings(name: 'club_members'), 
         builder: (_) => ClubMembersPage(
           session: widget.session,
           communityId: _id(c),
@@ -154,7 +156,7 @@ class _MyClubsPageState extends State<MyClubsPage> {
   Future<void> _discover() async {
     await Navigator.push(
       context,
-      MaterialPageRoute(builder: (_) => Scaffold(body: ClubsTab(session: widget.session))),
+      MaterialPageRoute(settings: const RouteSettings(name: 'clubs'), builder: (_) => Scaffold(body: ClubsTab(session: widget.session))),
     );
     if (mounted) _load(silent: true);
   }
@@ -236,7 +238,7 @@ class _MyClubsPageState extends State<MyClubsPage> {
     } else if (_items.isEmpty) {
       body = RefreshIndicator(
         color: t.pr,
-        onRefresh: () => _load(silent: true),
+        onRefresh: Analytics.pullRefresh(() => _load(silent: true)),
         child: LayoutBuilder(
           builder: (context, c) => SingleChildScrollView(
             physics: const AlwaysScrollableScrollPhysics(),
@@ -268,7 +270,7 @@ class _MyClubsPageState extends State<MyClubsPage> {
     } else {
       body = RefreshIndicator(
         color: t.pr,
-        onRefresh: () => _load(silent: true),
+        onRefresh: Analytics.pullRefresh(() => _load(silent: true)),
         child: ListView(
           padding: const EdgeInsets.fromLTRB(16, 0, 16, 28),
           physics: const AlwaysScrollableScrollPhysics(),

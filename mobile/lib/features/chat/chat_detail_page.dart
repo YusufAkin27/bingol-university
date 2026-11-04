@@ -1,3 +1,4 @@
+import '../../core/analytics.dart';
 import 'dart:async';
 import 'dart:ui' show ImageFilter;
 
@@ -250,6 +251,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
     Navigator.push(
       context,
       MaterialPageRoute<void>(
+        settings: RouteSettings(name: _type == 'CLUB' ? 'club_detail' : 'event_detail'),
         builder: (_) => _type == 'CLUB'
             ? ClubDetailPage(session: widget.session, communityId: id)
             : EventDetailPage(session: widget.session, eventId: id),
@@ -273,7 +275,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
   Future<void> _openInfo() async {
     final res = await Navigator.push<String>(
       context,
-      MaterialPageRoute<String>(
+      MaterialPageRoute<String>(settings: const RouteSettings(name: 'chat_info'), 
         builder: (_) => ChatInfoPage(
           session: widget.session,
           conversation: _conv,
@@ -1104,6 +1106,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
       _replyTo = null;
     });
     _scrollToEnd();
+    Analytics.instance.action('send_message');
     await _transmit(local);
   }
 
@@ -1415,7 +1418,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
   Future<MediaSendPlan?> _previewPlan(MediaPick pick) =>
       Navigator.push<MediaSendPlan>(
         context,
-        MaterialPageRoute(builder: (_) => MediaPreviewPage(picks: [pick])),
+        MaterialPageRoute(settings: const RouteSettings(name: 'media_preview'), builder: (_) => MediaPreviewPage(picks: [pick])),
       );
 
   static String _videoErrorText(AppLocalizations l, String code) =>
@@ -1496,6 +1499,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
     });
     _scrollToEnd();
     for (final l in locals) {
+      Analytics.instance.action('send_message', target: 'media');
       await _transmit(l);
     }
   }
@@ -1578,7 +1582,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
     if (url == null) return;
     Navigator.push(
       context,
-      MaterialPageRoute<void>(
+      MaterialPageRoute<void>(settings: const RouteSettings(name: 'chat_video_player'), 
         builder: (_) => ChatVideoPlayerPage(
           url: url,
           headers: _authHeaders,
@@ -1602,7 +1606,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
     if (aid == null) return;
     Navigator.push(
       context,
-      MaterialPageRoute<void>(
+      MaterialPageRoute<void>(settings: const RouteSettings(name: 'view_once_viewer'), 
         builder: (_) => ViewOnceViewer(
           api: _api,
           conversationId: _cid,
@@ -1629,7 +1633,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
     if (items.isEmpty) return;
     Navigator.push(
         context,
-        MaterialPageRoute<void>(
+        MaterialPageRoute<void>(settings: const RouteSettings(name: 'chat_media_viewer'), 
             builder: (_) => ChatMediaViewer(
                 items: items,
                 headers: _authHeaders,
@@ -1651,7 +1655,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
     if (url == null) return;
     Navigator.push(
         context,
-        MaterialPageRoute<void>(
+        MaterialPageRoute<void>(settings: const RouteSettings(name: 'chat_image_viewer'), 
             builder: (_) => ChatImageViewer(url: url, headers: _authHeaders)));
   }
 
@@ -2087,7 +2091,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
   /// Mesaj bilgisi sayfası (yalnız birebir sohbette kendi gönderdiğim mesaj; sunucu diğerlerine 404 verir).
   void _openMessageInfo(Map<String, dynamic> m) {
     FocusManager.instance.primaryFocus?.unfocus();
-    Navigator.of(context).push(MaterialPageRoute<void>(
+    Navigator.of(context).push(MaterialPageRoute<void>(settings: const RouteSettings(name: 'message_info'), 
         builder: (_) => MessageInfoPage(
               session: widget.session,
               message: Map<String, dynamic>.from(m),

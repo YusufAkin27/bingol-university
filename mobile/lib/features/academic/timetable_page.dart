@@ -1,3 +1,4 @@
+import '../../core/analytics.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -74,7 +75,7 @@ class _TimetablePageState extends State<TimetablePage> {
   }
 
   Future<void> _openForm({Course? course, int? day}) async {
-    final changed = await Navigator.of(context).push<bool>(MaterialPageRoute(
+    final changed = await Navigator.of(context).push<bool>(MaterialPageRoute(settings: const RouteSettings(name: 'course_form'), 
       builder: (_) => CourseFormPage(
         session: widget.session,
         course: course,
@@ -140,12 +141,12 @@ class _TimetablePageState extends State<TimetablePage> {
     if (data == null) {
       if (_loading) return const SingleChildScrollView(physics: NeverScrollableScrollPhysics(), child: TtSkeleton());
       return RefreshIndicator(
-        onRefresh: () => _load(quiet: true),
+        onRefresh: Analytics.pullRefresh(() => _load(quiet: true)),
         child: ListView(physics: const AlwaysScrollableScrollPhysics(), padding: const EdgeInsets.only(bottom: 32), children: [_errorBlock()]),
       );
     }
     return RefreshIndicator(
-      onRefresh: () => _load(quiet: true),
+      onRefresh: Analytics.pullRefresh(() => _load(quiet: true)),
       child: ListView(
         physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.only(bottom: 32),
@@ -287,7 +288,7 @@ class _TimetablePageState extends State<TimetablePage> {
         TtSummary(
           text: todayView ? l.p69TodayTotal(list.length.toString(), ttHoursText(context, totalMin)) : l.p17DayPlanned(list.length.toString()),
           actionLabel: l.p69ExamCalendar,
-          onAction: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => ExamsPage(session: widget.session))),
+          onAction: () => Navigator.of(context).push(MaterialPageRoute(settings: const RouteSettings(name: 'exams'), builder: (_) => ExamsPage(session: widget.session))),
         ),
       ],
       Align(

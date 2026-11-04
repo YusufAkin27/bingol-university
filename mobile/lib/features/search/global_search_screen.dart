@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import '../../core/analytics.dart';
 import '../../core/api.dart';
 import '../../core/locale_controller.dart';
 import '../../core/session.dart';
@@ -156,6 +157,7 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
     _debounce?.cancel();
     final q = v.trim();
     if (q.length < 2) return;
+    Analytics.instance.action('search_submit');
     _saveRecent(q);
     if (q != _query) _start(q);
   }
@@ -164,6 +166,7 @@ class _GlobalSearchScreenState extends State<GlobalSearchScreen> {
     _ctrl.text = q;
     _ctrl.selection = TextSelection.collapsed(offset: q.length);
     _debounce?.cancel();
+    Analytics.instance.action('search_submit', target: 'recent');
     _saveRecent(q);
     _start(q);
   }

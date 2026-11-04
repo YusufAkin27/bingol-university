@@ -1,3 +1,4 @@
+import '../../core/analytics.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -306,8 +307,10 @@ class _HomeTabState extends State<HomeTab> {
     }
   }
 
-  void _push(Widget page) =>
-      Navigator.push(context, MaterialPageRoute(builder: (_) => page));
+  void _push(Widget page, [String? screen]) => Navigator.push(
+      context,
+      MaterialPageRoute(
+          settings: RouteSettings(name: screen), builder: (_) => page));
 
   String _greeting(BuildContext context) {
     final l = context.l10n;
@@ -361,7 +364,7 @@ class _HomeTabState extends State<HomeTab> {
             ? const SizedBox.shrink()
             : RefreshIndicator(
                 color: t.pr,
-                onRefresh: _reload,
+                onRefresh: Analytics.pullRefresh(_reload),
                 child: BuStaggerScope(
                   child: ListView(
                     padding: const EdgeInsets.only(bottom: kNavInset),
@@ -403,7 +406,7 @@ class _HomeTabState extends State<HomeTab> {
       rows.add((
         label: l.yemekLunch,
         value: l.homeNoMenuToday,
-        onTap: () => _push(MenuPage(session: _s)),
+        onTap: () => _push(MenuPage(session: _s), 'menu'),
         muted: true
       ));
     } else {
@@ -414,7 +417,7 @@ class _HomeTabState extends State<HomeTab> {
       rows.add((
         label: l.yemekLunch,
         value: value,
-        onTap: () => _push(MenuPage(session: _s)),
+        onTap: () => _push(MenuPage(session: _s), 'menu'),
         muted: false
       ));
     }
@@ -436,7 +439,7 @@ class _HomeTabState extends State<HomeTab> {
           label: l.p60NextClass,
           value:
               '$prefix${s.session.start} ${s.course.name}${room != null && room.trim().isNotEmpty ? ' · ${room.trim()}' : ''}',
-          onTap: () => _push(AcademicHubPage(session: _s)),
+          onTap: () => _push(AcademicHubPage(session: _s), 'academic_hub'),
           muted: false,
         ));
       }
@@ -456,7 +459,7 @@ class _HomeTabState extends State<HomeTab> {
       rows.add((
         label: l.p60UpcomingExam,
         value: '${w.day} ${newsMonthName(context, w.month)} · $name',
-        onTap: () => _push(AcademicHubPage(session: _s)),
+        onTap: () => _push(AcademicHubPage(session: _s), 'academic_hub'),
         muted: false
       ));
     }
@@ -531,7 +534,7 @@ class _HomeTabState extends State<HomeTab> {
         padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
         child: HomeSearchBox(
             hint: l.homeSearchHint,
-            onTap: () => _push(SearchPage(session: _s))),
+            onTap: () => _push(SearchPage(session: _s), 'search')),
       )),
     ];
     out.addAll([
@@ -553,7 +556,7 @@ class _HomeTabState extends State<HomeTab> {
                     title: l.p60Today,
                     action: l.homeViewAll,
                     accent: true,
-                    onAction: () => _push(AcademicHubPage(session: _s)),
+                    onAction: () => _push(AcademicHubPage(session: _s), 'academic_hub'),
                     onLongPress: _editLayout),
                 HomeTodayCard(rows: todayRows),
               ]),
@@ -638,7 +641,7 @@ class _HomeTabState extends State<HomeTab> {
             (
               title: (n['title'] as String?) ?? '',
               date: newsLocalDate(context, n['publishedDate'] as String?),
-              onTap: () => _push(NewsDetailPage(session: _s, item: n))
+              onTap: () => _push(NewsDetailPage(session: _s, item: n), 'news_detail')
             ),
         ],
       ));
@@ -656,7 +659,7 @@ class _HomeTabState extends State<HomeTab> {
             imageUrl: n['imageUrl'] as String?,
             badge: newsTypeLabel(context, n['type'] as String? ?? type),
             heroId: (n['id'] as num?)?.toInt(),
-            onTap: () => _push(NewsDetailPage(session: _s, item: n)),
+            onTap: () => _push(NewsDetailPage(session: _s, item: n), 'news_detail'),
           );
         },
       );
@@ -670,7 +673,7 @@ class _HomeTabState extends State<HomeTab> {
           _pad(HomeSectionHeader(
             title: announce ? l.anasayfaAnnouncements : l.p03HomeFeaturedNews,
             action: l.homeViewAll,
-            onAction: () => _push(NewsListPage(session: _s, initialType: type)),
+            onAction: () => _push(NewsListPage(session: _s, initialType: type), 'news_list'),
             onLongPress: _editLayout,
           )),
           list,
@@ -703,7 +706,7 @@ class _HomeTabState extends State<HomeTab> {
               ].join(' · '),
             ),
         ],
-        onTap: () => _push(AcademicHubPage(session: _s)),
+        onTap: () => _push(AcademicHubPage(session: _s), 'academic_hub'),
       ),
     ]));
   }
@@ -728,7 +731,7 @@ class _HomeTabState extends State<HomeTab> {
               icon: BuIcons.bell,
               badge: n > 0,
               tooltip: l.notifTitle,
-              onTap: () => _push(NotificationsPage(session: _s)),
+              onTap: () => _push(NotificationsPage(session: _s), 'notifications'),
             ),
           ),
         ],
@@ -744,7 +747,7 @@ class _HomeTabState extends State<HomeTab> {
       HomeSectionHeader(
           title: l.p03HomeUpcoming,
           action: l.homeViewAll,
-          onAction: () => _push(EventsPage(session: _s)),
+          onAction: () => _push(EventsPage(session: _s), 'events'),
           onLongPress: _editLayout),
       _eventBody(context),
     ]));
@@ -767,7 +770,7 @@ class _HomeTabState extends State<HomeTab> {
         icon: BuIcons.calendarClock,
         headline: l.homeNoUpcoming,
         actionLabel: l.homeBrowseEvents,
-        onAction: () => _push(EventsPage(session: _s)),
+        onAction: () => _push(EventsPage(session: _s), 'events'),
       );
     }
     final id = (e['id'] as num?)?.toInt();
@@ -802,8 +805,8 @@ class _HomeTabState extends State<HomeTab> {
                     'imageUrl': e['imageUrl'],
                     'publishedDate': e['date'],
                     'url': e['url'],
-                  }))
-                : _push(EventDetailPage(session: _s, eventId: id)),
+                  }), 'news_detail')
+                : _push(EventDetailPage(session: _s, eventId: id), 'event_detail'),
       ),
     ]);
   }
@@ -822,12 +825,12 @@ class _HomeTabState extends State<HomeTab> {
       (
         label: l.homeFeaturedSchedule,
         icon: BuIcons.clock,
-        onTap: () => _push(AcademicHubPage(session: _s))
+        onTap: () => _push(AcademicHubPage(session: _s), 'academic_hub')
       ),
       (
         label: l.homeFeaturedMenu,
         icon: BuIcons.utensils,
-        onTap: () => _push(MenuPage(session: _s))
+        onTap: () => _push(MenuPage(session: _s), 'menu')
       ),
       (
         label: l.homeLibrary,
@@ -858,17 +861,17 @@ class _HomeTabState extends State<HomeTab> {
       (
         label: l.supportTitle,
         icon: BuIcons.headset,
-        action: () => _push(SupportPage(session: _s))
+        action: () => _push(SupportPage(session: _s), 'support')
       ),
       (
         label: l.notifTitle,
         icon: BuIcons.bell,
-        action: () => _push(NotificationsPage(session: _s))
+        action: () => _push(NotificationsPage(session: _s), 'notifications')
       ),
       (
         label: l.icerikSavedList,
         icon: BuIcons.bookmark,
-        action: () => _push(SavedNewsPage(session: _s))
+        action: () => _push(SavedNewsPage(session: _s), 'saved_news')
       ),
       (label: l.p60EditHome, icon: BuIcons.pencil, action: _editLayout),
     ];
@@ -901,18 +904,18 @@ class _HomeTabState extends State<HomeTab> {
     VoidCallback go(HomeShortcut sc) => switch (sc) {
           HomeShortcut.more => () => _openMore(context),
           HomeShortcut.campusMap => () => openCampusMap(context, _s),
-          HomeShortcut.news => () => _push(NewsListPage(session: _s)),
-          HomeShortcut.menu => () => _push(MenuPage(session: _s)),
-          HomeShortcut.events => () => _push(EventsPage(session: _s)),
+          HomeShortcut.news => () => _push(NewsListPage(session: _s), 'news_list'),
+          HomeShortcut.menu => () => _push(MenuPage(session: _s), 'menu'),
+          HomeShortcut.events => () => _push(EventsPage(session: _s), 'events'),
           HomeShortcut.polls => () => openPollList(context, _s),
-          HomeShortcut.schedule => () => _push(AcademicHubPage(session: _s)),
+          HomeShortcut.schedule => () => _push(AcademicHubPage(session: _s), 'academic_hub'),
           HomeShortcut.clubs => () => widget.onOpenTab(AppTab.clubs),
           HomeShortcut.chat => () => widget.onOpenTab(AppTab.chat),
-          HomeShortcut.support => () => _push(SupportPage(session: _s)),
-          HomeShortcut.search => () => _push(SearchPage(session: _s)),
+          HomeShortcut.support => () => _push(SupportPage(session: _s), 'support'),
+          HomeShortcut.search => () => _push(SearchPage(session: _s), 'search'),
           HomeShortcut.notifications => () =>
-              _push(NotificationsPage(session: _s)),
-          HomeShortcut.bookmarks => () => _push(SavedNewsPage(session: _s)),
+              _push(NotificationsPage(session: _s), 'notifications'),
+          HomeShortcut.bookmarks => () => _push(SavedNewsPage(session: _s), 'saved_news'),
         };
     final shortcuts = _layout.value.shortcuts;
     final labels = [for (final sc in shortcuts) homeShortcutLabel(l, sc)];
@@ -948,7 +951,7 @@ class _HomeTabState extends State<HomeTab> {
         title: l.p03HomeMealTitle,
         action: l.p60OpenMenu,
         accent: true,
-        onAction: () => _push(MenuPage(session: _s)),
+        onAction: () => _push(MenuPage(session: _s), 'menu'),
         onLongPress: _editLayout);
     if (dishes.isEmpty) {
       return _pad(
@@ -981,7 +984,7 @@ class _HomeTabState extends State<HomeTab> {
                 ? '${l.p03MenuTotal} ${l.p03MenuKcal('$total')}'
                 : l.p03MenuAtLeast('$total')),
         rating: HomeMenuRating(session: _s),
-        onTap: () => _push(MenuPage(session: _s)),
+        onTap: () => _push(MenuPage(session: _s), 'menu'),
       ),
       HomeInlineLink(
           label: '${l.menuTopUpAction} · ${menuTopUpUri.host}',

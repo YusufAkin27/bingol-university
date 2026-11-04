@@ -1,3 +1,4 @@
+import '../../core/analytics.dart';
 import 'package:flutter/material.dart';
 
 import '../../core/api.dart' show ApiError;
@@ -208,7 +209,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
       final loadingHead = _posts.isEmpty;
       final extra = loadingHead ? 0 : (_loadingMore || _moreError != null ? 1 : 0);
       content = RefreshIndicator(
-        onRefresh: _loadPost,
+        onRefresh: Analytics.pullRefresh(_loadPost),
         child: CustomScrollView(
           key: const ValueKey('postStream'),
           controller: _scroll,
