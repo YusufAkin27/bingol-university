@@ -151,3 +151,100 @@ GET /api/feed?scope=top&cursor=VHwx...&size=12   (son sayfada nextCursor=null)
 - **Karar: silme değil, okundu işaretle.** `FollowRequestService` istek sonuçlandığında hedefin ilgili okunmamış satırını `read_at = now` yapar: `accept`, `decline`, `withdraw` (`DELETE /users/{id}/follow` ve takip yazılırken eski istek kalıntısı), `dropBetween` (engelleme, iki yön), `purgeUser` (askı/silme: gönderilen isteklerin hedefleri + kendi kutusu). Gizli -> açık geçişte (`acceptAllPending`, 200'lük parçalar bittikten sonra, `FollowRequestJob` iyileştirmesi dahil) hedefin tüm okunmamış `followreq:%` bildirimleri TEK sorguyla okundu yapılır (LIKE kaçışı `\`, `%`, `_`).
 - **Depo:** `NotificationRepository.markReadByTypeAndCollapseKey` ve `markReadByTypeAndCollapseKeyLike` (düz parametreli JPQL, yalnız `FOLLOW_REQUEST` türü, başka kullanıcının/türün satırına dokunmaz). `unread-count` ve liste `countUnreadInbox` ile aynı kaynaktan okunduğundan rozet otomatik düşer. Yeniden istek (red sonrası) yeni okunmamış satır üretir. İş en iyi çabadır: işaretleme hatası kabul/red akışını bozmaz (log uyarısı).
 - **Test:** `FollowRequestNotificationReadTest` (H2). Migration yok.
+
+
+## KS-BE (V1220): Keşfet tek sıralama + puanlama, video, Reels, tekrar göstermeme (2026-11-04)
+
+**Kararlar (kullanıcı, 2026-11-04):** Keşfet'te seçenek yok, tek "popülerlik" sıralaması; gönderi paylaşırken **video** da paylaşılabilir
+(V470 "video kaldırıldı" kararı **geçersiz**); yenilemede aynı gönderiler gelmez; Reels (dikey video akışı); mobilde puanlama göstergesi.
+Bu bölüm mobil ajanların (KS-MB) sözleşmesidir. `docs/MOBILE_API_GUIDE.md` içindeki eski "SADE KEŞFET" kutusu ve "Keşfet puanlı akış" bölümü bununla çelişirse **bu bölüm geçerlidir**.
+
+### 1. Gönderi = 1 fotoğraf VEYA 1 video
+- `POST /api/posts/media` (multipart `file`, video için isteğe bağlı `poster`): fotoğraf (jpg/png/webp, eski kurallar) **ya da video**:
+  MP4 / MOV (QuickTime, iPhone) / M4V / WebM, **en çok 60 sn (+0,5 sn tolerans), en çok 50 MB** (`app.post.media.video-max-*`; Spring multipart
+  52/54 MB, Caddy `CADDY_MAX_BODY` >= 55 MB olmalı). Doğrulama gerçek içeriktedir (Content-Type'a/uzantıya güvenilmez): ISO-BMFF `ftyp` + `moov/mvhd`
+  süresi (HEIC/AVIF/M4A markaları reddedilir) ya da EBML + DocType `webm` + Segment/Info süresi (süresi okunamayan canlı WebM reddedilir). Codec
+  (H.264/HEVC/VP9) denetlenmez; oynatma istemcide. Hatalar: `400 VIDEO_INVALID`, `400 VIDEO_TOO_LONG` (arg: saniye), `413 VIDEO_TOO_LARGE` (arg: MB),
+  `422 MEDIA_BLOCKED`, `429 POST_MEDIA_PENDING_LIMIT`. Yanıt (201): `{id, kind:"IMAGE"|"VIDEO", url, thumbUrl, width, height, durationMs, bytes}`.
+  `poster` (JPEG/PNG kare, <= 720 px'e küçültülür) yoksa ffmpeg açıksa sunucu üretir; yoksa `thumbUrl` `null`. Mobil poster yüklemelidir.
+- Sunucu videoyu (ffmpeg varsa) arka planda 720p/H.264 MP4'e çevirir; bitene dek orijinal sunulur. Dönüşünce `contentType` `video/mp4` olur, süre/boyut güncellenir.
+- Sunum: `GET /api/posts/media/{id}` (Bearer; **HTTP Range** `206/416`), poster `?thumb=true`. Dosya diskte dosya-başına DEK ile şifrelidir.
+- `POST /api/posts` `{text?, mediaIds:[tek id]}` -> 201 `PostView`. `mediaIds` tam 1 öğe (fotoğraf VEYA video; ikisi bir arada `400 POST_SINGLE_PHOTO_ONLY`,
+  boş `400 POST_PHOTO_REQUIRED`; kod adları geriye uyum için aynı, metinleri "fotoğraf ya da video"). Metin kuralı aynı (7 kelime/60 karakter/tek satır).
+  Eski `POST_VIDEO_NOT_ALLOWED` artık hiçbir uçta dönmez (anahtar çeviri dosyalarında kalır).
+- Video gönderi beğeni/şikâyet/yönetici denetimini fotoğrafla aynı alır. Yüklenen medya 24 sa içinde gönderiye bağlanmazsa `PostMediaJanitor` siler.
+
+### 2. `PostView` (tüm gönderi listeleri ve `GET /api/posts/{id}`)
+```json
+{"id":91,"author":{"id":7,"displayName":"Ayşe Y.","avatarUrl":"/files/avatars/x.jpg","department":"Bilgisayar Müh.","followerCount":42,"popularityScore":63},
+ "text":"kampüste akşam","media":[{"id":12,"kind":"VIDEO","url":"/api/posts/media/12","thumbUrl":"/api/posts/media/12?thumb=true","width":720,"height":1280,"durationMs":18400}],
+ "likeCount":5,"likedByMe":false,"mine":false,"canEdit":false,"canDelete":false,"createdAt":"…","editedAt":null,
+ "type":"VIDEO","video":{"id":12,"url":"/api/posts/media/12","posterUrl":"/api/posts/media/12?thumb=true","durationMs":18400,"width":720,"height":1280},
+ "viewCount":130,"popularityScore":71}
+```
+- `type`: `PHOTO` | `VIDEO`. `video` ve `viewCount` yalnız `VIDEO`'da bulunur (fotoğrafta alan hiç gelmez). `media[0]` her zaman aynı medyadır (fotoğrafta `kind:"IMAGE"`).
+  Eski çok medyalı gönderilerde yalnız **ilk** medya (position) gösterilir.
+- `popularityScore` **0..100, gönderi puanı** (yaştan bağımsız saf etkileşim; sunucu hesaplar, mobil yalnız gösterir): `100*(1-e^(-e/popularityScale))`,
+  `e = likeW*ln(1+beğeni) + followerW*ln(1+yazarTakipçi) + viewW*ln(1+izlenme) + completionW*ortTamamlanma*ln(1+izlenme)` (son iki terim yalnız video). Etkileşim yoksa 0.
+- `author.followerCount` (takipçi) ve `author.popularityScore` (**kullanıcı** puanı 0..100, bkz. 4) gerçek sayılardan türetilir; uydurma rozet/ödül yoktur.
+  Eski alanlar (`likeCount`, `likedByMe`, ...) değişmedi.
+- **Geriye uyum riski:** eski mobil sürümler (<= 2.0.6) `media[0].kind:"VIDEO"` görünce görsel olarak yükleyemez (kırık kare); video yükleme arayüzü yalnız yeni mobilde
+  açılacağından risk, yeni sürümü kullananların yüklediği videolarla sınırlıdır.
+
+### 3. Tek sıralama: `GET /api/feed`
+- `scope` verilmezse / `top` / `popular` / `latest` => **aynı puanlı akış** (taze içerik soğuk-başlangıç bonusuyla). `following` ve `department` (takip/bölüm
+  akışı, profil sekmesi vb.) aynen kalır; yeni mantık (görülmüş kümesi) yalnız Keşfet akışına ve Reels'e uygulanır. Bilinmeyen kapsam `400 FEED_SCOPE_INVALID`.
+- Yanıt `{items:[PostView], nextCursor, hint, exhausted}`; `size` varsayılan 12, üst sınır 30; `nextCursor` opak, `null` = son sayfa; `hint:"RANK_REFRESHED"` nadiren aynı gönderi tekrarı olabilir (id ile tekilleştirin).
+- Fotoğraf ve video aynı akışta karışık gelir. Sayfa içi aynı yazar ardışık en çok `maxAuthorRun` (2).
+- **Puan formülü** (`PostRank`, ağırlıklar `app.post.rank.*`, 5 dk'da bir `PostRankService` yeniden hesaplar; yeni gönderi anında soğuk-başlangıç puanı alır):
+  `engagement = likeW*ln(1+beğeni) + followerW*ln(1+yazarTakipçi) + velocityW*ln(1+son24saatBeğeni) + viewW*ln(1+izlenme) + completionW*ortTamamlanma*ln(1+izlenme)`;
+  `puan = (engagement * 0.5^(yaşSaat/halfLifeHours) + soğukBonus) * reportPenalty^min(açıkŞikâyet, 5)`. Yeni anahtarlar: `viewWeight` 0,8, `completionWeight` 1,5,
+  `popularityScale` 8. Ham puan istemciye dönmez (yalnız 0..100 gösterim puanı döner).
+
+### 4. Kullanıcı "Popülerlik puanı"
+- **Profilim** `GET /api/users/me` (`ProfileView`) ve **başkasının profili** `GET /api/users/{id}` (`PublicProfile`) yanıtına eklendi (alanlar yalnız doluysa gelir):
+  `popularityScore` (0..100), `likesReceived` (aldığı toplam beğeni; görünür gönderiler), `postCount` (görünür gönderi sayısı), `followerCount`
+  (`PublicProfile`'da zaten vardı; `ProfileView`'a eklendi). Gizli (kilitli) hesapta başkasına sayaçlar gibi bu alanlar da gelmez; engel gölge profilinde yoktur.
+- Formül (`UserPopularityService.score`, `app.post.popularity.*`): her bileşen log ölçekli ve tavanlı `c = min(1, ln(1+x)/ln(1+tavan))` (takipçi tavanı 500, beğeni 2000,
+  gönderi 60); `puan = round(100 * (0,45*c_takipçi + 0,40*c_beğeni + 0,15*c_gönderi))`. Saatlik iş (`recomputeMs`, `SchedulerLock`) `user_popularity` tablosunu günceller
+  (yalnız değişen satır yazılır); satırı olmayan yeni kullanıcı için anında hesaplanır. Gecikme en çok ~1 saat; `followerCount` (profilde) canlıdır.
+- Hesap silinince satır silinir (`PostAccountPurger`).
+
+### 5. Tekrar göstermeme (görülmüş kümesi): yalnız `GET /api/feed` (top) ve `GET /api/feed/reels`
+- Redis `feedseen:<uid>` (ZSET, skor = görülme damgası, **TTL 48 sa, en çok 2000 öğe**; `FeedSeenService`). Sunucu bu akışlarda **döndürdüğü her sayfayı otomatik
+  görülmüş sayar**; istemci ayrıca `POST /api/feed/seen {"ids":[91,92,...]}` (en çok **100** kimlik, dakikada 60) ile ekranda gerçekten görünenleri bildirir (yedek). Yanıt 204.
+  Geçersiz kimlikler yok sayılır; küme Reels ile ortaktır (Reels'te görülen gönderi Keşfet'te de gelmez).
+- `cursor` yok (yenileme/ilk açılış): görülmüşler **hariç** akış döner. Aynı oturumda sayfalama imleci tekrar üretmez.
+- **Havuz tükenirse** (ilk sayfada görülmemiş gönderi kalmadı): en eski görülmüşlerden başlayarak tekrar eder, yanıtta **`exhausted:true`** (boş akış yok);
+  tekrar sayfaları da kendi `nextCursor`'ı (`R|…` imleci) ile sonuna kadar gezilir ve aynı gezintide tekrar yoktur; tekrar gösterilenler yeni damga alır
+  (sonraki yenileme farklı gönderilerle başlar). Normal sayfalarda `exhausted:false`. Sınır: son normal sayfa dolu değilse (az görülmemiş kaldı) o sayfa kısa
+  döner, doldurma yapılmaz; sonraki yenileme tekrar moduna geçer. `following`/`department` ve eski `latest`/`popular` servis kapsamlarında alan hiç gelmez.
+- Depo hatasında (Redis yok) küme boş sayılır: akış çalışır, tekrar göstermeme geçici olarak uygulanmaz.
+- KVKK: kısa ömürlü teknik veri (48 sa), kimliklerden başka bir şey içermez; hesap silinince `feedseen:<uid>` silinir; `GET /api/users/me/export`'a **girmez**.
+
+### 6. Reels: `GET /api/feed/reels?cursor&size`
+- Yalnız **video** gönderiler, aynı puan sıralaması + görülmüş hariç tutma/tekrar modu (yanıt `FeedPage` + `exhausted`). `size` varsayılan **8**, üst sınır **20**.
+  İlk sayfa için `cursor` boş; imleç opak. Dakikada 120 okuma. Tam ekran dikey oynatma istemcidedir (`video.url` Bearer + Range).
+- **İzlenme olayı:** `POST /api/posts/{id}/view` `{"watchedMs":12000,"durationMs":18400}` -> **204** (sayılmayan olaylar sessizce yok sayılır).
+  Yalnız başkasının görünür **video** gönderisi; kullanıcı başına gönderi başına **6 saatte bir kez** sayılır (Redis `pview:<postId>:<uid>`); en az `min(1 sn, süre)` izlenmiş olmalı;
+  süre olarak sunucudaki video süresi kullanılır (istemcinin `durationMs`'i yalnız yedek); tamamlanma yüzdesi `min(100, watchedMs*100/süre)` (döngüde 100'e kenetlenir).
+  İstemci videodan çıkınca/bitince **bir kez** göndermelidir (erken olay pencereyi tüketir). Dakikada 240. `404 POST_NOT_FOUND` yalnız gönderi yoksa/görünmezse.
+  Etki: `post.view_count`, `post.completion_pct_sum` -> puan `viewWeight`/`completionWeight`. Analytics `kind` listesine yeni eylem EKLENMEDİ.
+
+### 7. Yönetici
+- `GET /api/admin/posts` yeni süzgeç `type=PHOTO|VIDEO`; satırda `type`, `viewCount`, `avgCompletionPct` (ortalama tamamlanma %) ve `media[]` (video için `kind:"VIDEO"`,
+  `durationMs`, önizleme `GET /api/admin/posts/media/{id}` Range destekli, `thumbUrl` poster). Gizle/sil/düzenle uçları aynı; yeni admin ucu yok, `AdminPermissionPolicy` değişmedi.
+- Web yönetim paneli (`PostsAdminPage`) video satırını `kind` ile ayırt edip oynatıcı göstermelidir (bu görevin kapsamı dışında: backend ajanı).
+
+### 8. Şema (`V1220__kesfet_video_popularity.sql`) ve kod haritası
+- `post.kind` (`PHOTO|VIDEO`, eski veri ilk medyasına göre doldurulur), `post.view_count`, `post.completion_pct_sum`; indeks `pv_post_kind_rank_idx` (reels); tablo `user_popularity`
+  (`user_id` PK, `score`, `follower_count`, `likes_received`, `post_count`, `computed_at`).
+- Yeni: `post.feed` (`FeedSeenService`, `FeedSeenStore` = `RedisFeedSeenStore` | `InMemoryFeedSeenStore` (test, `app.feed.seen-store=memory`)), `post.popularity`
+  (`UserPopularityService`, `PopularityProperties`, `UserPopularity*`), `WebmInfo`/`Mp4Info.isVideoBrand` (`media`), `PostMediaBinder.requireMedia`, `PostCounters.addView`,
+  `PostRankRepository.{topFirst,topAfter,reelsFirst,reelsAfter,visibleByIds,visibleVideosByIds}` (görülmüş hariç tutma `NOT IN`).
+- `PostRepository.FEED_VISIBLE` artık "görünür **herhangi bir** medya" ister (önceden yalnız fotoğraf); medyasız eski metin gönderileri hâlâ listelerde/aramada yok.
+  `PostSearchProvider` aynı kuralı izler (video gönderisi aramada da çıkar).
+- Testler: `PostFeedSeenTest`, `UserPopularityTest`, `PostRankTest`, `WebmInfoTest`, `PostMediaServiceTest` (MOV/WebM/HEIC), `PostServiceTest`/`PostTopFeedTest` güncel.
+  PostgreSQL'e özgü kısımlar (V1220 migration, `NOT IN` + kısmi indeks planı, Redis ZSET işlemleri) H2'de değil `scripts/smoke-kesfet-video.sh` ile doğrulanır.
+- Dağıtım notu (koordinatör): `MULTIPART_MAX_FILE=52MB`, `MULTIPART_MAX_REQUEST=54MB` (compose/.env.prod.example güncellendi), Caddy `CADDY_MAX_BODY` >= 55 MB; V1220 yalnız
+  ALTER ADD COLUMN (varsayılanlı) + UPDATE + CREATE; Flyway V1210 (davranış analizi) ile çakışmaz.

@@ -426,6 +426,7 @@ Yükleme uçları `multipart/form-data`, **alan adı `file`** (topluluk/etkinlik
 | `POST /api/communities/{id}/cover` | `file` | jpg, png, webp | **3 MB** | saatte 10 |
 | `POST /api/communities/{id}/posts/upload` | `file` | jpg, png, webp | **3 MB** | saatte 20 |
 | `PUT /api/events/{id}/cover` (eski ad `POST` de çalışır) | `file` | jpg, png, webp | **3 MB** | saatte 10 |
+| `POST /api/posts/media` (Keşfet gönderisi) | `file` (+ video için `poster`) | fotoğraf: jpg, png, webp; **video: mp4, mov (quicktime), m4v, webm (≤ 60 sn)** | fotoğraf 3 MB; **video 50 MB** | saatte 30 |
 
 - Doğrulama **`Content-Type`** üzerinden yapılır: parçanın `Content-Type`'ı mutlaka `image/jpeg|image/png|image/webp` olmalı (Dio `MultipartFile.fromFile(path, contentType: MediaType('image','jpeg'))`). Dosya adını sunucu üretir (UUID); istemcinin adı kullanılmaz.
 - Hatalar: `400 INVALID_FILE` (tür/boş), `413 FILE_TOO_LARGE` (ayrıca Spring genel üst sınırı 5 MB; istek 6 MB'ı aşarsa da `FILE_TOO_LARGE`), `503 STORAGE_UNAVAILABLE`. Yüklemeden önce istemcide küçültüp sıkıştırın.
@@ -677,7 +678,9 @@ Kullanıcı rehberindeki e-posta adreslerinden uygulamadaki (bingol.edu.tr) kiş
 ## Gönderiler (Keşfet akışı)
 Tek sözleşme: [POSTS_DESIGN.md](POSTS_DESIGN.md); değişiklik notu: `docs/changes/post.md`. Tüm uçlar Bearer ister.
 
-> **SADE KEŞFET (2026-10-28) — bu bölümün ve aşağıdaki "Yorum ve yanıt" / "Gönderi sosyal özellikleri" bölümlerinin eski satırlarıyla çelişirse bu kutu geçerlidir.**
+> **GÜNCELLEME (2026-11-04): video geri geldi, Keşfet tek sıralama oldu; bu kutudaki "yalnız fotoğraf / video `POST_VIDEO_NOT_ALLOWED`" ve `scope=latest|popular` ifadeleri geçersizdir. Geçerli sözleşme: sayfa sonundaki "Keşfet v2" bölümü.**
+>
+> **SADE KEŞFET (2026-10-28) — bu bölümün ve aşağıdaki "Yorum ve yanıt" / "Gönderi sosyal özellikleri" bölümlerinin eski satırlarıyla çelişirse bu kutu geçerlidir (video/kapsam kısımları hariç, bkz. yukarı).**
 > - Gönderi: **tam 1 fotoğraf zorunlu**, metin isteğe bağlı: tek satır, **en çok 7 kelime ve 60 karakter**. Önce `POST /api/posts/media` (yalnız görsel; video `400 POST_VIDEO_NOT_ALLOWED`), sonra `POST /api/posts` `{"text":"güzel bir gün","mediaIds":[12]}` → 201 `PostView`.
 > - Hatalar: `400 POST_PHOTO_REQUIRED` (mediaIds boş), `400 POST_SINGLE_PHOTO_ONLY` (2+), `400 POST_VIDEO_NOT_ALLOWED`, `400 POST_MEDIA_INVALID`, `422 POST_TEXT_TOO_LONG` (7 kelime/60 karakter aşıldı; PATCH'te de), `422 POST_TEXT_INVALID` (satır sonu), `422 CONTENT_PROFANITY`. Eski `POST_TOO_LONG` (2000) ve `POST_EMPTY` (oluşturmada) artık dönmez.
 > - **Kaldırıldı → `410 FEATURE_REMOVED`** (`{"code","message"}`): yorumlar (`/api/posts/{id}/comments`, `/api/comments/**`), hikâyeler (`/api/stories/**`, `/api/users/{id}/stories`), etiketler (`/api/hashtags/**`), `GET /api/users/mention-suggest`, kaydet (`/api/posts/{id}/save`, `/api/posts/saved`), `GET /api/posts/{id}/likes`. İstemci 410'u yeniden denememeli; ilgili arayüzü kaldırıp (gerekirse "uygulamayı güncelleyin" göstererek) çağrıyı bırakmalıdır.
@@ -691,7 +694,7 @@ Tek sözleşme: [POSTS_DESIGN.md](POSTS_DESIGN.md); değişiklik notu: `docs/cha
 | `GET /api/posts/{id}` | `PostView`; silinmiş/gizli/engelli/yazarı pasif → `404 POST_NOT_FOUND`. |
 | `PATCH /api/posts/{id}` `{text}` | Yalnız yazar (`403 POST_FORBIDDEN`); `editedAt` dolar, medya değişmez. |
 | `DELETE /api/posts/{id}` | 204; yazar veya ADMIN (yumuşak silme). |
-| `GET /api/feed?scope=latest\|popular&cursor=&size=` | `{items:[PostView], nextCursor:string\|null}`; size 1-20 (varsayılan 10). `latest` yeniden eskiye, `popular` son 7 gün puanına göre. |
+| `GET /api/feed?cursor=&size=` | **Tek puanlı akış** (`scope` yok/`top`/`popular`/`latest` aynı akış; `following`/`department` ayrı). Bkz. "Keşfet v2". |
 | `GET /api/users/{id}/posts`, `GET /api/posts/mine` | Aynı sayfa biçimi (`cursor`, `size`); engel ilişkisinde boş liste. |
 
 - **İmleç opaktır**: `nextCursor` değerini aynen `cursor` olarak geri verin; `scope` değiştirilince imleç atılır. Bozuk imleç `400 POST_CURSOR_INVALID`. `popular`'da puan saatlik güncellendiği için nadiren aynı gönderi sayfalar arasında tekrar edebilir (istemci `id` ile tekilleştirsin).
@@ -782,7 +785,7 @@ Tam sözleşme (alanlar, hata kodları, hız sınırları): `docs/API_CONTRACTS_
 
 Ayrıntı ve örnekler: [changes/event.md](changes/event.md) "Herkes etkinlik açar". Özet: `POST /api/events` herkese açık (`communityId` isteğe bağlı), gövdeye `joinPolicy` (`OPEN` varsayılan | `APPROVAL`); `EventView` yeni alanları `joinPolicy`, `organizer{id,displayName,avatarUrl}`, `pendingCount` (yalnız yöneten), `myRsvp` = `GOING|INTERESTED|PENDING|REJECTED|null`. `APPROVAL` etkinlikte `PUT /rsvp {status:GOING}` istek açar ve `myRsvp:"PENDING"` döner; geri çekme `DELETE /rsvp`. Sorulu etkinlikte 400 `ANSWERS_REQUIRED` → `POST /events/{id}/applications {note,answers}`. Organizatör: `GET /events/{id}/requests?status=PENDING`, `POST /events/{id}/requests/{userId}/approve|reject` (doluysa 409 `EVENT_FULL`). Sohbet (`GET /events/{id}/chat`) yalnız `GOING` katılımcı + organizatörlere açıktır.
 
-## Keşfet puanlı akış (`scope=top`)
+## Keşfet puanlı akış (`scope=top`) (Keşfet v2'de tek akış oldu; aşağıdaki "Keşfet v2" geçerli)
 
 `GET /api/feed?scope=top&size=12&cursor=...` → `{items, nextCursor, hint}`. `size` varsayılan 12, üst sınır 30. `nextCursor` opaktır, olduğu gibi geri gönderilir; `null` = son sayfa. `hint:"RANK_REFRESHED"` gelirse (puanlar yeniden hesaplandı) nadiren aynı gönderi tekrar gelebilir: istemci `id`'ye göre tekilleştirir. Puan dönmez. `latest`/`popular` aynen çalışır. Ayrıntı: [POSTS_DESIGN.md](POSTS_DESIGN.md) "Keşfet puanlama".
 
@@ -883,3 +886,38 @@ Kategori anahtarları (13): faculty, institute, school, vocational, dining, libr
 - `GET /api/campus/places?category=&q=&limit=` → `{items:[{id,name,category,lat,lng,summary,photoUrl,units[],footprint[[lat,lng]…]|null,sortKey,webUrl|null,remote,unitSourceCode|null,departments[]|null}]}`. `remote=true` birimler (ana yerleşke dışı: Ilıcalar, Hayvan Hastanesi, Genç MYO, Solhan MYO vb.) ana harita sınırlarında gösterilmez; aramada/listede "Diğer yerleşkeler" grubu olur. `departments` yalnız `/places/{id}` yanıtında dolu (akademik birimlerde, `unit_department` salt okuma), listede `null`. `q` Türkçe-duyarsızdır ("mü" = "mu" = "MÜ"), yalnız kampüs kayıtları döner (kampüs dışı arama yok; istemci başka coğrafi arama yapmaz). `limit` varsayılan 100, en çok 200. `photoUrl` göreli `/files/...` yoludur. Yürüme süresi/mesafe istemcide hesaplanır; favoriler yerel saklanır (sunucuda kişisel veri yok).
 - `GET /api/campus/places/{id}` → tek yer; yoksa 404 `CAMPUS_PLACE_NOT_FOUND`. Geçersiz `category` → 400 `CAMPUS_CATEGORY_INVALID`.
 - `version` değişince önbelleğe alınmış harita/yer listesi bayattır; HTTP önbelleği harita için 300 sn, liste için 60 sn.
+
+
+## Keşfet v2 (KS-BE, 2026-11-04): tek sıralama, puanlama, video, Reels, tekrar göstermeme
+**Bu bölüm yukarıdaki "SADE KEŞFET" kutusu, `GET /api/feed?scope=latest|popular` satırı ve "Keşfet puanlı akış" bölümüyle çelişirse GEÇERLİDİR.** Ayrıntılı gerekçe, formüller ve
+şema: `docs/changes/post.md` "KS-BE (V1220)". Tüm uçlar Bearer ister.
+
+| Uç | Gövde / yanıt |
+|---|---|
+| `POST /api/posts/media` (multipart `file`, video için `poster` isteğe bağlı) | 201 `{id, kind:"IMAGE"\|"VIDEO", url, thumbUrl, width, height, durationMs, bytes}`. Video: MP4/MOV/M4V/WebM, **≤ 60 sn, ≤ 50 MB**; hatalar `400 VIDEO_INVALID`, `400 VIDEO_TOO_LONG`, `413 VIDEO_TOO_LARGE`, `422 MEDIA_BLOCKED`, `429 POST_MEDIA_PENDING_LIMIT`. Saatte 30 yükleme. |
+| `POST /api/posts` `{text?, mediaIds:[id]}` | 201 `PostView`. Tam 1 medya (foto **veya** video); `400 POST_PHOTO_REQUIRED` (boş), `400 POST_SINGLE_PHOTO_ONLY` (2+), `400 POST_MEDIA_INVALID`; metin ≤ 7 kelime/60 karakter. Saatte 20. |
+| `GET /api/feed?cursor=&size=` (`scope` yok/`top`/`popular`/`latest` = **aynı tek puanlı akış**) | `{items:[PostView], nextCursor, hint, exhausted}`; `size` varsayılan 12, üst sınır 30. `following`/`department` değişmedi. |
+| `GET /api/feed/reels?cursor=&size=` | Yalnız video gönderiler; aynı yanıt biçimi; `size` varsayılan 8, üst sınır 20. |
+| `POST /api/feed/seen` `{ids:[…≤100]}` | 204. Ekranda görünen gönderi/reel kimlikleri (dakikada 60). |
+| `POST /api/posts/{id}/view` `{watchedMs, durationMs}` | 204. Video izlenme olayı (dakikada 240); bkz. aşağıdaki kurallar. |
+| `GET /api/posts/media/{id}` / `?thumb=true` | Fotoğraf; video (**Range 206/416**) ve poster. Bearer başlığı gerekir (video oynatıcıya `httpHeaders` verin). |
+| `GET /api/users/me`, `GET /api/users/{id}` | Yeni alanlar: `popularityScore` (0..100), `likesReceived`, `postCount`, (`ProfileView`'da ayrıca `followerCount`). |
+| `GET /api/admin/posts?type=PHOTO\|VIDEO` | Satırda `type`, `viewCount`, `avgCompletionPct`. |
+
+`PostView` yeni alanlar (eskiler aynen): `type:"PHOTO"|"VIDEO"`, `video:{id,url,posterUrl,durationMs,width,height}` (yalnız VIDEO), `viewCount` (yalnız VIDEO),
+`popularityScore` (gönderi, 0..100), `author.followerCount`, `author.popularityScore` (kullanıcı, 0..100). `media[0]` aynı medyadır. Örnek:
+```json
+{"id":91,"author":{"id":7,"displayName":"Ayşe Y.","avatarUrl":null,"department":"Bilgisayar Müh.","followerCount":42,"popularityScore":63},
+ "text":"kampüste akşam","media":[{"id":12,"kind":"VIDEO","url":"/api/posts/media/12","thumbUrl":"/api/posts/media/12?thumb=true","width":720,"height":1280,"durationMs":18400}],
+ "likeCount":5,"likedByMe":false,"mine":false,"canEdit":false,"canDelete":false,"createdAt":"2026-11-04T10:00:00Z","editedAt":null,
+ "type":"VIDEO","video":{"id":12,"url":"/api/posts/media/12","posterUrl":"/api/posts/media/12?thumb=true","durationMs":18400,"width":720,"height":1280},"viewCount":130,"popularityScore":71}
+```
+- **Puanlar gerçek sayılardır** (beğeni, takipçi, izlenme, tamamlanma, gönderi sayısı); uydurma rozet/ödül yok. İstemci puan HESAPLAMAZ, `popularityScore`'u çubuk/rozet olarak çizer
+  (0 = boş). Kullanıcı puanı en çok ~1 saat gecikmelidir; gizli (kilitli) hesapta ve engel gölge profilinde alanlar gelmez (null/yok: çizme).
+- **Tekrar göstermeme:** sunucu `GET /api/feed` ve `/reels` ile döndürdüğü her sayfayı **kendisi görülmüş sayar** (Redis, 48 sa, ≤ 2000); `cursor`'suz çağrı (yenileme) görülmüşleri hariç tutar.
+  İstemci ek olarak ekranda ≥ ~1 sn görünen kartları `POST /api/feed/seen` ile toplu (örn. sayfa değişiminde/duraklamada, ≤ 100) bildirmelidir. Hepsi görüldüyse sunucu en eski
+  görülmüşlerden tekrar eder ve **`exhausted:true`** döner (boş liste yok): istemci isterse "hepsini gördün" ipucu gösterir. Tekrar sayfaları da `nextCursor` ile gezilir.
+  `nextCursor` opaktır; yenilemede imleci atın.
+- **İzlenme olayı:** video kartı/Reels'ten çıkarken ya da bitince **bir kez** `POST /api/posts/{id}/view {watchedMs, durationMs}`. Sunucu aynı kullanıcı+gönderiyi 6 saatte bir sayar, kendi videosunu,
+  fotoğrafı ve < 1 sn'yi saymaz; yanıt hep 204 (sayıldı mı bildirilmez). Döngüde `watchedMs` toplamı süreyi aşabilir (kenetlenir).
+- **Eski sürüm riski:** ≤ 2.0.6 istemciler video gönderiyi görsel gibi yükleyemez; yeni istemci `type`'a bakmalıdır. Bilinmeyen `type` değeri gelirse kartı yoksayın.
