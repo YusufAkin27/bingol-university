@@ -204,7 +204,7 @@ void main() {
         expect(find.text('İstek gönderildi'), findsOneWidget);
         await unmount(tester);
         await _mountButton(tester, b, state: FollowState.following, look: look);
-        expect(find.text(look == FollowLook.row ? 'Takipte' : 'Takiptesin'), findsOneWidget);
+        expect(find.text(look == FollowLook.row || look == FollowLook.media ? 'Takipte' : 'Takiptesin'), findsOneWidget);
         await unmount(tester);
         await _mountButton(tester, b, look: look);
         expect(find.text(look == FollowLook.chip ? 'Takip Et' : 'Takip et'), findsOneWidget);

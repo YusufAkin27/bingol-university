@@ -21,6 +21,9 @@ enum FollowLook {
 
   /// Keşfet öneri kartı: tam genişlik ince çerçeveli hap.
   chip,
+
+  /// Koyu video üstü (Reels): şeffaf, ince açık çerçeveli küçük hap (30 dp görünür, 44 dp dokunma alanı).
+  media,
 }
 
 /// Üç durumlu takip düğmesi (`followState` TEK kaynak): "Takip et" -> GİZLİ hesapta "İstek gönderildi" -> "Takiptesin".
@@ -155,6 +158,7 @@ class _FollowStateButtonState extends State<FollowStateButton> {
       FollowLook.row => _row(context),
       FollowLook.pill => _pill(context),
       FollowLook.chip => _chip(context),
+      FollowLook.media => _media(context),
     };
     return Semantics(
       button: true,
@@ -287,6 +291,41 @@ class _FollowStateButtonState extends State<FollowStateButton> {
                 ),
               ),
             ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Reels: video üstünde şeffaf hap; Takip et = belirgin açık çerçeve, İstek/Takipte = soluk.
+  Widget _media(BuildContext context) {
+    final t = context.bu;
+    final none = _state == FollowState.none;
+    return GestureDetector(
+      key: widget.tapKey,
+      behavior: HitTestBehavior.opaque,
+      onTap: _busy ? null : _tap,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(minHeight: 44, minWidth: 44),
+        child: Center(
+          widthFactor: 1,
+          child: AnimatedContainer(
+            duration: BuMotion.of(context, BuMotion.short),
+            curve: BuMotion.standard,
+            height: 30,
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(BuRadius.pill),
+              border: Border.all(color: t.onMedia.withValues(alpha: none ? .9 : .45)),
+            ),
+            child: Text(_text(context, row: true),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: Theme.of(context)
+                    .textTheme
+                    .labelMedium
+                    ?.copyWith(color: none ? t.onMedia : t.onMedia.withValues(alpha: .8), fontSize: 13, fontWeight: FontWeight.w600)),
           ),
         ),
       ),

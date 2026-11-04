@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../../core/api.dart' show ApiError;
 import '../../core/locale_controller.dart';
+import '../../core/nav.dart' show shellImmersive;
 import '../../core/session.dart';
 import '../../l10n/app_localizations.dart';
 import '../../widgets/bu.dart';
@@ -16,6 +17,9 @@ import '../posts/post_api.dart';
 import '../posts/post_media_uploader.dart' show postErrorText;
 import '../posts/post_models.dart';
 import '../posts/post_video.dart';
+import '../posts/social_api.dart';
+import '../posts/social_models.dart';
+import '../follow/follow_button.dart';
 import '../profile/user_profile_page.dart' show openUserProfile;
 import 'reels_comments.dart';
 
@@ -88,10 +92,50 @@ class _ReelsFeedState extends State<ReelsFeed> {
 
   bool get _on => widget.active && _routeCurrent;
 
+  /// Yazar takip durumları (reel başına istek atmamak için akış boyunca önbellek; GET /users/{id}).
+  final Map<int, FollowStats> _authors = {};
+  final Map<int, Future<FollowStats?>> _authorLoads = {};
+
+  /// Sürükleyici mod bayrağını bu akış açtı mı (alt gezinme saydamlığı; bkz. [shellImmersive]).
+  bool _immersiveOn = false;
+
   @override
   void initState() {
     super.initState();
+    _syncImmersive();
     if (widget.active) _reload();
+  }
+
+  /// Reels görünürken alt gezinme saydam olur; çizim sırasında dinleyici tetiklenmesin diye kare sonrası yazılır.
+  void _syncImmersive() {
+    final want = widget.active;
+    if (want == _immersiveOn) return;
+    _immersiveOn = want;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (shellImmersive.value != _immersiveOn) shellImmersive.value = _immersiveOn;
+    });
+  }
+
+  /// Yazarın takip durumu (başarısızsa null: düğme çizilmez, sahte durum gösterilmez).
+  Future<FollowStats?> _authorStats(int id) {
+    final have = _authors[id];
+    if (have != null) return Future<FollowStats?>.value(have);
+    return _authorLoads[id] ??= () async {
+      try {
+        final s = await SocialApi(widget.session).followStats(id);
+        _authors[id] = s;
+        return s;
+      } catch (_) {
+        return null;
+      } finally {
+        _authorLoads.remove(id);
+      }
+    }();
+  }
+
+  void _followChanged(int id, FollowState st) {
+    final s = _authors[id];
+    if (s != null) _authors[id] = s.copyWith(followState: st);
   }
 
   @override
@@ -103,6 +147,7 @@ class _ReelsFeedState extends State<ReelsFeed> {
   @override
   void didUpdateWidget(ReelsFeed old) {
     super.didUpdateWidget(old);
+    _syncImmersive();
     if (!old.active && widget.active) {
       final at = _loadedAt;
       if (!_loaded && !_loading) {
@@ -119,6 +164,10 @@ class _ReelsFeedState extends State<ReelsFeed> {
 
   @override
   void dispose() {
+    if (_immersiveOn) {
+      _immersiveOn = false;
+      WidgetsBinding.instance.addPostFrameCallback((_) => shellImmersive.value = false);
+    }
     _seen.dispose();
     _pager.dispose();
     super.dispose();
@@ -249,6 +298,8 @@ class _ReelsFeedState extends State<ReelsFeed> {
           controller: _pager,
           scrollDirection: Axis.vertical,
           physics: const AlwaysScrollableScrollPhysics(),
+          // Komşu sayfalar kurulur: sıradaki video önceden hazırlanır (yalnız aktif olan oynar).
+          allowImplicitScrolling: true,
           itemCount: _items.length + extra,
           onPageChanged: _onPage,
           itemBuilder: (_, i) {
@@ -259,7 +310,10 @@ class _ReelsFeedState extends State<ReelsFeed> {
               session: widget.session,
               post: p,
               active: _on && i == _index,
+              prepare: _on && i == _index + 1,
               topInset: widget.topInset,
+              authorStats: _authorStats,
+              onFollowState: _followChanged,
               api: _api,
               comments: widget.comments,
               onChanged: _changed,
@@ -303,12 +357,20 @@ class _ReelPage extends StatefulWidget {
     required this.api,
     required this.onChanged,
     required this.onRemoved,
+    required this.authorStats,
+    required this.onFollowState,
+    this.prepare = false,
     this.comments,
   });
 
   final Session session;
   final Post post;
   final bool active;
+
+  /// Sıradaki reel: oynatıcı hazırlanır ama oynamaz.
+  final bool prepare;
+  final Future<FollowStats?> Function(int authorId) authorStats;
+  final void Function(int authorId, FollowState state) onFollowState;
   final double topInset;
   final PostApi api;
   final CommentsRepository? comments;
@@ -321,8 +383,30 @@ class _ReelPage extends StatefulWidget {
 
 class _ReelPageState extends State<_ReelPage> {
   bool _expanded = false;
+  FollowStats? _follow;
 
   Post get p => widget.post;
+
+  bool get _mine => p.mine || p.author.id == widget.session.userId;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.active) _loadFollow();
+  }
+
+  @override
+  void didUpdateWidget(_ReelPage old) {
+    super.didUpdateWidget(old);
+    if (!old.active && widget.active) _loadFollow();
+  }
+
+  /// Yalnız göründüğü reel için, kendi gönderisi değilse yazarın takip durumunu getirir.
+  Future<void> _loadFollow() async {
+    if (_follow != null || _mine || p.author.id <= 0) return;
+    final s = await widget.authorStats(p.author.id);
+    if (mounted && s != null) setState(() => _follow = s);
+  }
 
   Future<void> _toggleSave() async {
     final want = !(p.savedByMe ?? false);
@@ -353,6 +437,7 @@ class _ReelPageState extends State<_ReelPage> {
         tap: PostVideoTap.playPause,
         showFullscreen: false,
         showProgress: true,
+        prepare: widget.prepare,
         soundOnTop: true,
         inset: EdgeInsets.only(top: widget.topInset, bottom: kNavInset),
         api: widget.api,
@@ -381,33 +466,54 @@ class _ReelPageState extends State<_ReelPage> {
         end: 80,
         bottom: kNavInset + 14,
         child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
-          AvatarPreviewTap(
-            key: ValueKey('reel-author-${p.id}'),
-            session: widget.session,
-            url: p.author.avatarUrl,
-            name: p.author.displayName,
-            onTap: () => openUserProfile(context, widget.session,
-                userId: p.author.id, name: p.author.displayName, avatarUrl: p.author.avatarUrl),
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(minHeight: 44),
-              child: Row(mainAxisSize: MainAxisSize.min, children: [
-                DecoratedBox(
-                  decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: t.onMedia.withValues(alpha: .45), width: 1.5)),
-                  child: Padding(
-                    padding: const EdgeInsets.all(1.5),
-                    child: BuAvatar(name: p.author.displayName, url: p.author.avatarUrl, size: 32, headers: postAuthHeaders(widget.session)),
-                  ),
+          // Yazar satırı: avatar + ad (profil; uzun basma = önizleme) ve yanında "Takip et" (kendi gönderi değilse).
+          Row(mainAxisSize: MainAxisSize.min, children: [
+            Flexible(
+              child: AvatarPreviewTap(
+                key: ValueKey('reel-author-${p.id}'),
+                session: widget.session,
+                url: p.author.avatarUrl,
+                name: p.author.displayName,
+                onTap: () => openUserProfile(context, widget.session,
+                    userId: p.author.id, name: p.author.displayName, avatarUrl: p.author.avatarUrl),
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(minHeight: 44),
+                  child: Row(mainAxisSize: MainAxisSize.min, children: [
+                    DecoratedBox(
+                      decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: t.onMedia.withValues(alpha: .45), width: 1.5)),
+                      child: Padding(
+                        padding: const EdgeInsets.all(1.5),
+                        child: BuAvatar(name: p.author.displayName, url: p.author.avatarUrl, size: 32, headers: postAuthHeaders(widget.session)),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Flexible(
+                      child: Text(p.author.displayName,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: tt.titleSmall?.copyWith(color: t.onMedia, fontSize: 15, fontWeight: FontWeight.w600)),
+                    ),
+                  ]),
                 ),
-                const SizedBox(width: 8),
-                Flexible(
-                  child: Text(p.author.displayName,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: tt.titleSmall?.copyWith(color: t.onMedia, fontSize: 15, fontWeight: FontWeight.w600)),
-                ),
-              ]),
+              ),
             ),
-          ),
+            if (_follow != null && !_mine && _follow!.followState != FollowState.self) ...[
+              const SizedBox(width: 4),
+              FollowStateButton(
+                key: ValueKey('reel-follow-${p.id}'),
+                session: widget.session,
+                userId: p.author.id,
+                state: _follow!.followState,
+                isPrivate: _follow!.isPrivate,
+                look: FollowLook.media,
+                tapKey: ValueKey('reel-follow-btn-${p.id}'),
+                onState: (st, _) {
+                  _follow = _follow!.copyWith(followState: st);
+                  widget.onFollowState(p.author.id, st);
+                },
+              ),
+            ],
+          ]),
           if (text.isNotEmpty) ...[
             const SizedBox(height: 4),
             GestureDetector(

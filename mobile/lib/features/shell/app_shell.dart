@@ -271,12 +271,20 @@ class _AppShellState extends State<AppShell> with WidgetsBindingObserver, Ticker
     // Sekmelerde AppBar yok: durum çubuğu simge rengini burada tema parlaklığına göre sabitleriz. Aksi halde kapaklı
     // bir sayfanın (açık renk simge) bıraktığı stil geri dönüşte açık temada beyaz simge olarak takılı kalır.
     final dark = Theme.of(context).brightness == Brightness.dark;
-    return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: SystemUiOverlayStyle(
-        statusBarColor: Colors.transparent,
-        statusBarIconBrightness: dark ? Brightness.light : Brightness.dark,
-        statusBarBrightness: dark ? Brightness.dark : Brightness.light,
-      ),
+    // Reels (sürükleyici mod) koyu video üstünde olduğundan durum çubuğu simgeleri her temada açık renk olur.
+    return ValueListenableBuilder<bool>(
+      valueListenable: shellImmersive,
+      builder: (context, immersive, child) {
+        final light = dark || immersive;
+        return AnnotatedRegion<SystemUiOverlayStyle>(
+          value: SystemUiOverlayStyle(
+            statusBarColor: Colors.transparent,
+            statusBarIconBrightness: light ? Brightness.light : Brightness.dark,
+            statusBarBrightness: light ? Brightness.dark : Brightness.light,
+          ),
+          child: child!,
+        );
+      },
       child: _scaffoldBody(),
     );
   }
@@ -359,21 +367,34 @@ class _AppShellState extends State<AppShell> with WidgetsBindingObserver, Ticker
             ),
           ),
           // Edge-to-edge: kaydırılan içerik saat/simgelerin altında okunmaz kalmasın diye durağan zemin örtüsü.
-          const PositionedDirectional(top: 0, start: 0, end: 0, child: _StatusBarScrim()),
+          // Reels'te (sürükleyici mod) zemin örtüsü video üstünde parlak şerit olurdu: kalkar.
+          PositionedDirectional(
+            top: 0,
+            start: 0,
+            end: 0,
+            child: ValueListenableBuilder<bool>(
+              valueListenable: shellImmersive,
+              builder: (context, immersive, _) => immersive ? const SizedBox.shrink() : const _StatusBarScrim(),
+            ),
+          ),
         ],
       ),
       bottomNavigationBar: ListenableBuilder(
         listenable: s,
-        builder: (context, _) => FloatingNav(
-          index: _tab,
-          onPublish: _publish,
-          onChanged: (i) {
-            _go(i);
-            if (i == AppTab.chat) _refreshBadges();
-          },
-          chatBadge: s.badges.chat,
-          avatarUrl: s.avatarUrl,
-          avatarName: s.displayName,
+        builder: (context, _) => ValueListenableBuilder<bool>(
+          valueListenable: shellImmersive,
+          builder: (context, immersive, _) => FloatingNav(
+            index: _tab,
+            immersive: immersive && _tab == AppTab.discover,
+            onPublish: _publish,
+            onChanged: (i) {
+              _go(i);
+              if (i == AppTab.chat) _refreshBadges();
+            },
+            chatBadge: s.badges.chat,
+            avatarUrl: s.avatarUrl,
+            avatarName: s.displayName,
+          ),
         ),
       ),
     );
