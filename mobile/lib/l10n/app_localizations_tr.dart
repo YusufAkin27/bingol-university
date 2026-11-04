@@ -3734,6 +3734,9 @@ class AppLocalizationsTr extends AppLocalizations {
   String get searchClear => 'Aramayı temizle';
 
   @override
+  String get srLoadMore => 'Daha fazla göster';
+
+  @override
   String get srSearchHint => 'Kullanıcı veya gönderi ara';
 
   @override

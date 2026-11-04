@@ -1171,6 +1171,7 @@
   "searchUserDefault": "User",
   "searchHint": "Search news, clubs, events, posts, people",
   "searchClear": "Clear search",
+  "srLoadMore": "Show more",
   "srSearchHint": "Search users or posts",
   "srTabUsers": "Users",
   "srTabPosts": "Posts",

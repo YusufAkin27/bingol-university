@@ -3734,6 +3734,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get searchClear => 'مسح البحث';
 
   @override
+  String get srLoadMore => 'عرض المزيد';
+
+  @override
   String get srSearchHint => 'ابحث عن مستخدم أو منشور';
 
   @override

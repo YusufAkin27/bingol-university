@@ -3734,6 +3734,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get searchClear => 'Clear search';
 
   @override
+  String get srLoadMore => 'Show more';
+
+  @override
   String get srSearchHint => 'Search users or posts';
 
   @override

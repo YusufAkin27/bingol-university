@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../core/locale_controller.dart';
 import '../../core/session.dart';
 import '../../widgets/bu.dart';
+import '../../widgets/profile_photo_viewer.dart';
 import '../posts/post_models.dart' show postAuthHeaders;
 import '../posts/social_models.dart';
 import '../profile/user_profile_page.dart';
@@ -191,7 +192,12 @@ class FollowPersonRow extends StatelessWidget {
           constraints: const BoxConstraints(minHeight: 64),
           padding: const EdgeInsetsDirectional.fromSTEB(16, 12, 16, 12),
           child: Row(children: [
-            BuAvatar(name: user.displayName, url: user.avatarUrl, size: 44, headers: postAuthHeaders(session)),
+            AvatarLongPress(
+              imageUrl: user.avatarUrl,
+              headers: postAuthHeaders(session),
+              title: user.displayName,
+              child: BuAvatar(name: user.displayName, url: user.avatarUrl, size: 44, headers: postAuthHeaders(session)),
+            ),
             const SizedBox(width: 12),
             Expanded(
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [

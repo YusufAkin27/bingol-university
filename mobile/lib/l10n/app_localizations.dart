@@ -7129,6 +7129,12 @@ abstract class AppLocalizations {
   /// **'Aramayı temizle'**
   String get searchClear;
 
+  /// No description provided for @srLoadMore.
+  ///
+  /// In tr, this message translates to:
+  /// **'Daha fazla göster'**
+  String get srLoadMore;
+
   /// No description provided for @srSearchHint.
   ///
   /// In tr, this message translates to:
