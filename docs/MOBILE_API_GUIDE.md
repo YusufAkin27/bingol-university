@@ -883,3 +883,26 @@ Kategori anahtarları (13): faculty, institute, school, vocational, dining, libr
 - `GET /api/campus/places?category=&q=&limit=` → `{items:[{id,name,category,lat,lng,summary,photoUrl,units[],footprint[[lat,lng]…]|null,sortKey,webUrl|null,remote,unitSourceCode|null,departments[]|null}]}`. `remote=true` birimler (ana yerleşke dışı: Ilıcalar, Hayvan Hastanesi, Genç MYO, Solhan MYO vb.) ana harita sınırlarında gösterilmez; aramada/listede "Diğer yerleşkeler" grubu olur. `departments` yalnız `/places/{id}` yanıtında dolu (akademik birimlerde, `unit_department` salt okuma), listede `null`. `q` Türkçe-duyarsızdır ("mü" = "mu" = "MÜ"), yalnız kampüs kayıtları döner (kampüs dışı arama yok; istemci başka coğrafi arama yapmaz). `limit` varsayılan 100, en çok 200. `photoUrl` göreli `/files/...` yoludur. Yürüme süresi/mesafe istemcide hesaplanır; favoriler yerel saklanır (sunucuda kişisel veri yok).
 - `GET /api/campus/places/{id}` → tek yer; yoksa 404 `CAMPUS_PLACE_NOT_FOUND`. Geçersiz `category` → 400 `CAMPUS_CATEGORY_INVALID`.
 - `version` değişince önbelleğe alınmış harita/yer listesi bayattır; HTTP önbelleği harita için 300 sn, liste için 60 sn.
+
+
+## Keşfet: yorumlar, yanıtlar, kaydetme, kullanıcı arama, Reels arama, profil sayaçları (KS-BE2, V1230)
+
+Tam sözleşme (alanlar, hata kodları, birleşme notları): [changes/post.md](changes/post.md) "KS-BE2 (V1230)". Bu bölüm, "SADE KEŞFET" kutusundaki **"yorumlar kaldırıldı / 410"** ve "kaydet kaldırıldı" satırlarını geçersiz kılar (etiket, bahsetme, hikâye kaldırılmış kalır). Tüm uçlar Bearer ister.
+
+| Uç | Açıklama |
+|---|---|
+| `GET /api/posts/{id}/comments?sort=top\|new&cursor=&size=` | Ust düzey yorumlar → `{items:[CommentView], nextCursor, total}`; `total` = gönderideki yorum + yanıt sayısı. `sort` varsayılan `top` (beğeni, sonra yeni); `size` 20 (en çok 50). |
+| `POST /api/posts/{id}/comments` `{text, parentId?}` | 201 `CommentView`. Metin 1-300 karakter; `parentId` = yanıtlanan yorum (yanıta yanıt ust yoruma yassılanır, `replyTo` ile asıl muhatap döner). |
+| `GET /api/post-comments/{cid}/replies?cursor=&size=` | Yanıtlar eskiden yeniye (`size` 10, en çok 50). |
+| `GET /api/post-comments/{cid}` · `DELETE /api/post-comments/{cid}` | Tek yorum · sil (204; yorum yazarı, gönderi sahibi ya da yetkili yönetici). |
+| `PUT\|DELETE /api/post-comments/{cid}/like` | `{liked, likeCount}`; idempotent. |
+| `PUT\|DELETE /api/posts/{id}/save` · `GET /api/posts/saved?cursor=&size=` | `{saved, saveCount}` · kaydedilenler (`FeedPage`, yeni kaydedilen önce; görünmez olanlar sessizce elenir). |
+| `GET /api/users/search?q=&size=&cursor=` | **Aynı yol/biçim**; artık Türkçe harf + büyük/küçük harf duyarsız, kısmi eşleşme, satırlarda `followedByMe`/`followsMe`/`followerCount`/`followingCount`. Kullanıcı adı (@) yoktur; yalnız görünen ad aranır. |
+| `GET /api/search?q=&type=REELS` | Video gönderiler (açıklama aranır); `SearchHit.durationMs` + `likeCount`, `targetId` = gönderi id. `type` verilmezse gruplu özette `REELS` grubu da gelir. |
+| `GET /api/users/{id}/reels?cursor=&size=` | Kullanıcının Reels'leri (`FeedPage`, yeni önce; gizli hesapta `locked:true`). |
+
+- `PostView` yeni alanlar: `commentCount` (görünür yorum + yanıt), `savedByMe`. Profil yanıtlarında (`GET /api/users/me`, `GET /api/users/{id}`) `postCount` (görünür gönderi; Reels dahil) ve `reelCount` — gizli/kilitli hesapta başkasına gelmez, engel gölge profilinde 0.
+- `CommentView`: `{id, postId, parentId, author{id,displayName,avatarUrl,department}, text, likeCount, likedByMe, replyCount, createdAt, mine, byPostAuthor, canDelete, replyTo?{commentId,authorId,displayName}}`.
+- Şikâyet: `POST /api/reports` `{targetType:"COMMENT", targetId, reason}`. Bildirim: `POST_COMMENT` / `COMMENT_REPLY` (push `data.target=POST`, `postId`, `commentId`).
+- Hata kodları (tr/en/ar): `COMMENT_NOT_FOUND` 404, `COMMENT_EMPTY` 400, `COMMENT_TOO_LONG` 422, `COMMENT_FORBIDDEN` 403; küfür `422 CONTENT_PROFANITY` (`field:"text"`).
+- Hız sınırları: yorum yazma dakikada 20 / saatte 200, kaydet/beğeni dakikada 120, okuma dakikada 240.

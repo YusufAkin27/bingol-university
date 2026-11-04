@@ -151,3 +151,108 @@ GET /api/feed?scope=top&cursor=VHwx...&size=12   (son sayfada nextCursor=null)
 - **Karar: silme değil, okundu işaretle.** `FollowRequestService` istek sonuçlandığında hedefin ilgili okunmamış satırını `read_at = now` yapar: `accept`, `decline`, `withdraw` (`DELETE /users/{id}/follow` ve takip yazılırken eski istek kalıntısı), `dropBetween` (engelleme, iki yön), `purgeUser` (askı/silme: gönderilen isteklerin hedefleri + kendi kutusu). Gizli -> açık geçişte (`acceptAllPending`, 200'lük parçalar bittikten sonra, `FollowRequestJob` iyileştirmesi dahil) hedefin tüm okunmamış `followreq:%` bildirimleri TEK sorguyla okundu yapılır (LIKE kaçışı `\`, `%`, `_`).
 - **Depo:** `NotificationRepository.markReadByTypeAndCollapseKey` ve `markReadByTypeAndCollapseKeyLike` (düz parametreli JPQL, yalnız `FOLLOW_REQUEST` türü, başka kullanıcının/türün satırına dokunmaz). `unread-count` ve liste `countUnreadInbox` ile aynı kaynaktan okunduğundan rozet otomatik düşer. Yeniden istek (red sonrası) yeni okunmamış satır üretir. İş en iyi çabadır: işaretleme hatası kabul/red akışını bozmaz (log uyarısı).
 - **Test:** `FollowRequestNotificationReadTest` (H2). Migration yok.
+
+
+## KS-BE2 (V1230): Keşfet yorumları + yanıtlar + yorum beğenisi, gönderi kaydetme, kullanıcı arama, REELS arama, profil sayaçları (2026-11-04)
+
+**Kararlar (kullanıcı, 2026-11-04):** V470'te kaldırılan **yorum** ve **kaydet** özellikleri geri geliyor (gönderi + reel için), iç içe yanıtlar ve yorum beğenisi eklendi; genel kullanıcı arama iyileşti (Türkçe harf duyarsız, kısmi eşleşme); Reels arama türü; profil sayaçları. Bu bölüm mobil ajanların (KS-MB, SR-MB, CI-MB) sözleşmesidir. `docs/MOBILE_API_GUIDE.md` içindeki eski "SADE KEŞFET" kutusunun "yorum/kaydet kaldırıldı (410)" satırı bununla çelişirse **bu bölüm geçerlidir** (etiket `#`, bahsetme `@`, hikâye, video-dışı kaldırılanlar aynen kaldırıdır). Aşağıdaki kod haritası KS-BE (V1220) ile birleşmeye hazırdır (bkz. "Birleşme notları").
+
+### 1. `PostView` ek alanları (tüm gönderi listeleri ve `GET /api/posts/{id}`)
+- `commentCount` (int): gönderideki **görünür** yorum + yanıt sayısı (silinmiş/gizlenmiş yorum ve onların yanıtları sayılmaz). Atomik sayaç (`post.comment_count`); gece onarımı (`CommentCounterRepairJob`, 03:40).
+- `savedByMe` (bool): bakan bu gönderiyi kaydetmiş mi (yalnız kendi görünümünüzde; başkasının kaydettiği hiçbir yerde görünmez).
+- Diğer alanlar değişmedi. (Video/Reels alanları — `type`, `video`, `viewCount`, `popularityScore` — KS-BE sözleşmesindedir.)
+
+### 2. Yorumlar ve yanıtlar (`post.comment`)
+Tüm uçlar Bearer ister. Yorum **görünürlüğü gönderinin görünürlüğünü izler**: gönderi bakana görünür değilse (silinmiş, gizli, yazar pasif, iki yönlü engel, gizli hesap + takipçi değil) `404 COMMENT_NOT_FOUND` (gönderi varlığı sızdırılmaz). Yorum yazarı pasifse ya da bakanla arada engel varsa o yorum listede/uçlarda **yoktur** (iki yönlü). Silinmiş ya da yönetici/rapor ile gizlenmiş yorum listelerde yoktur.
+
+**Modelin kuralları**
+- En çok **iki seviye**: ust düzey yorum + yanıtlar. Bir yanıta verilen yanıt **ust düzey yoruma yassılanır**: sunucu `parentId`'yi ust yorum yapar, asıl muhatabı `replyTo` ile döner (UI "@ad" gösterir). İstemci yanıtlanan yorumun `id`'sini `parentId` alanında göndermeye devam eder (ust yorum ya da yanıt).
+- Metin: **1-300 karakter** (Unicode kod noktası), baş/son boşluk ve 3+ ardışık satır sonu temizlenir, kontrol karakterleri atılır; satır sonu serbest. `ContentGuard` (uygunsuz ifade filtresi) uygulanır: `422 CONTENT_PROFANITY` + `field:"text"` (kelime yankılanmaz).
+- Düzenleme **yok** (silip yeniden yazılır).
+
+**Uçlar**
+
+| Uç | Açıklama |
+|---|---|
+| `GET /api/posts/{id}/comments?sort=top\|new&cursor=&size=` | `CommentPage`. `sort` varsayılan `top` (beğeni çok olan önce, sonra yeni), `new` (yeniden eskiye). `size` varsayılan 20, üst sınır 50. `nextCursor` opak (`null` = son); sort değişince imleç atılır. |
+| `POST /api/posts/{id}/comments` `{text, parentId?}` | **201** `CommentView`. `parentId` aynı gönderideki görünür bir yorum olmalı (başka gönderinin yorumu → 404 `COMMENT_NOT_FOUND`). Dakikada 20 / saatte 200. |
+| `GET /api/post-comments/{cid}` | Tek yorum (`CommentView`); bildirimden yorumu açmak için. |
+| `GET /api/post-comments/{cid}/replies?cursor=&size=` | Bir ust yorumun yanıtları **eskiden yeniye**, `CommentPage` (`total` = yanıt sayısı). `size` varsayılan 10, üst sınır 50. Yanıtın yanıtı yoktur: yanıt id'si verilirse 404. |
+| `DELETE /api/post-comments/{cid}` | **204**. Yorumun yazarı, **gönderinin sahibi** ya da (content.hide izinli) yönetici. Ust yorum silinince yanıtları da gider; yetkisiz ama görünür → `403 COMMENT_FORBIDDEN`, görünmez → 404. Metin temizlenir (KVKK). |
+| `PUT /api/post-comments/{cid}/like` | `{liked:true, likeCount}`; idempotent (çift PUT sayacı bozmaz). Dakikada 120. |
+| `DELETE /api/post-comments/{cid}/like` | `{liked:false, likeCount}`; idempotent. |
+| Şikâyet: `POST /api/reports` `{targetType:"COMMENT", targetId:<yorum id>, reason, note?}` | Mevcut rapor akışı (bkz. MOBILE_API_GUIDE moderasyon). Görünmeyen yorum 404; eşik aşılırsa **otomatik gizlenir** (geri alınabilir, itiraz edilebilir). |
+
+Okuma uçları dakikada 240; yazma 60. Aşımda `429` + `Retry-After`.
+
+**`CommentView`**
+```json
+{"id":55,"postId":91,"parentId":null,
+ "author":{"id":7,"displayName":"Ayşe Y.","avatarUrl":"/files/avatars/x.jpg","department":"Bilgisayar Müh."},
+ "text":"harika kare","likeCount":3,"likedByMe":false,"replyCount":2,"createdAt":"2026-11-04T10:00:00Z",
+ "mine":false,"byPostAuthor":false,"canDelete":false}
+```
+Yanıtta ek: `"parentId":55` ve (yanıta verilen yanıtta) `"replyTo":{"commentId":56,"authorId":9,"displayName":"Veli K."}`; ust yoruma doğrudan yanıtta `replyTo` **yok** (asıl muhatap `parentId`'nin yazarıdır).
+- `author.avatarUrl`/`department` yazarın gizlilik ayarına göre `null` olabilir (profil gizliliği). Avatara uzun basma/profil için `author.id` kullanılır.
+- `byPostAuthor`: yorumu gönderi sahibi yazdı ("Yazar" rozeti). `canDelete`: kendi yorumunuz, gönderi sahibisiniz ya da yetkili yönetici.
+- `replyCount`: görünür yanıt sayısı (yalnız ust yorumda anlamlı); yanıtlar ayrı uçla çekilir (satırda önizleme yok).
+
+**`CommentPage`:** `{items:[CommentView], nextCursor:string|null, total:int}`. Ust yorum listesinde `total` = gönderi `commentCount`'u (yorum + yanıt); yanıt listesinde `total` = o yorumun `replyCount`'u.
+
+**Bildirimler** (alıcının dilinde; tercih/sessiz saat uygulanır; kendine ve engelliye gitmez): `POST_COMMENT` ("{ad} gönderine yorum yaptı", gönderi sahibine) ve `COMMENT_REPLY` ("{ad} yorumuna yanıt verdi", yanıtlanan yorumun yazarına; gönderi sahibi başka biriyse ona da "yorum yaptı" gider). Push `data`: `target=POST`, `targetType=POST`, `targetId=<gönderi id>`, `postId`, `commentId` (mobil gönderi/reel yorum panelini açar, `commentId` vurgulanır). Beğeni bildirimi **yok** (spam).
+
+**Hata kodları (tr/en/ar `i18n/comment*.properties`):** `COMMENT_NOT_FOUND` 404, `COMMENT_EMPTY` 400, `COMMENT_TOO_LONG` 422 (arg: 300), `COMMENT_FORBIDDEN` 403; mevcut: `POST_CURSOR_INVALID` 400, `VALIDATION_ERROR` 400 (geçersiz `sort`), `CONTENT_PROFANITY` 422.
+
+### 3. Gönderi / reel kaydetme (`post.save`)
+| Uç | Açıklama |
+|---|---|
+| `PUT /api/posts/{id}/save` | `{saved:true, saveCount}`; idempotent. Gönderi bakana görünür değilse `404 POST_NOT_FOUND`. Kendi gönderiniz de kaydedilebilir. Dakikada 120. |
+| `DELETE /api/posts/{id}/save` | `{saved:false, saveCount}`; idempotent; gönderi sonradan gizlense/silinse de kaydı kaldırabilirsiniz. |
+| `GET /api/posts/saved?cursor=&size=` | Kaydedilenler, **yeni kaydedilen önce**, `FeedPage` (`{items:[PostView], nextCursor, hint, locked}`; `savedByMe` hep true). `size` varsayılan 20, üst sınır 30. Sonradan silinen/gizlenen/engellenen yazarın/gizli hesabın gönderisi **sessizce listelenmez** (kayıt satırı kalır; görünür olunca geri gelir). |
+- `saveCount` yalnız bilgi (kim kaydetti **hiçbir yerde** gösterilmez). Reel de bir gönderidir: aynı uçlar.
+- Hesap silinince kayıtlar silinir; KVKK dışa aktarım `postSaves`.
+
+### 4. Kullanıcı arama: `GET /api/users/search` (geriye uyumlu genişletme)
+`GET /api/users/search?q=&size=20&cursor=` yolu, parametreleri ve yanıt biçimi (`{items:[PublicProfile], nextCursor:number|null}`) **aynı**; davranış iyileşti:
+- **Türkçe harf ve büyük/küçük harf duyarsız:** `ŞİRİN`, `sirin`, `Şirin`, `ısık`/`ISIK`/`Işık` hepsi eşleşir (İ I ı i, Ş ş, Ğ ğ, Ü ü, Ö ö, Ç ç ve â î û katlanır).
+- **Kısmi eşleşme (adın herhangi bir yerinde):** her boşlukla ayrılmış parça (en çok 3; fazlası son parçaya eklenir) adda geçmeli: `yıl` → "Şirin **Yıl**dız", `sirin yil` → "Şirin Yıldız". Sıralama: tam ad > ad/soyad **önek** eşleşmesi > diğerleri; sonra alfabetik.
+- **Dışlananlar:** kendiniz, iki yönlü engel ilişkisi olanlar, askıdaki/silinmiş/e-postası doğrulanmamış hesaplar. Gizli (private) hesaplar **aranabilir** (satırda `isPrivate`/`followState`/`locked`; takipçi/takip sayıları kilitliyse `null`).
+- **Yeni satır alanları:** `followedByMe` (bakan o kişiyi takip ediyor; gizli hesapta yalnız kabul edilmiş takip), `followsMe` (o kişi bakanı takip ediyor), gerçek `followerCount`/`followingCount`. Eskiden bu alanlar arama satırında `null`'dı.
+- **İmleç:** `cursor`/`nextCursor` **sayısal** (atlanacak kayıt sayısı; mobil `int` okumaya devam eder), arama başına en çok 200 sonuç (kullanıcı dizini taramayı zorlaştırır); sonda `nextCursor:null`. `q` en az 2 karakter (`400 QUERY_TOO_SHORT`). Dakikada 60, günde 500.
+- Arama yalnız **görünen ad** üzerindedir; **kullanıcı adı (@handle) yoktur** (modelde alan yok — ürün kararı gerekir); bölüm/fakülte araması yoktur (gizlilik ayarına tabi alan; sızdırmamak için eklenmedi).
+- Performans: `usr1230_name_fold_trgm` (pg_trgm GIN, katlanmış ad). Sorgu ifadesi `TrFold.SQL_FROM/SQL_TO` ile indeksle **birebir** aynıdır (değişirse ikisi birlikte).
+
+### 5. Genel arama: `GET /api/search` yeni tür `REELS`
+`GET /api/search?q=&type=REELS&limit=&cursor=` (ve `type` verilmezse gruplu özette yeni `REELS` grubu). Reels = **görünür VIDEO medyalı gönderiler**, **açıklaması** (gönderi metni) aranır (PostgreSQL Türkçe tam metin + ILIKE yedeği; `POSTS` türüyle aynı görünürlük: silinmemiş, gizli değil, aktif yazar, iki yönlü engel yok, gizli hesap kapısı).
+- `SearchHit` (REELS): `{type:"REELS", targetId:<gönderi id>, title:<yazar adı>, snippet:<açıklama ≤160>, imageUrl:<poster ya da null>, date, likeCount, durationMs}`; sonuca dokunulunca `GET /api/posts/{targetId}` (`PostView`) ile Reels oynatıcı açılır. `imageUrl` poster yoksa `null`.
+- `type=POSTS` değişmedi. **Not:** KS-BE birleşince `POSTS` sonuçları video gönderileri de içerir (aynı gönderi `POSTS` ve `REELS`'te çıkar); mobil `Tümü` sekmesinde `REELS` grubunu ayrı çizmeli ya da `POSTS` içinde `REELS`'e giren id'leri ayıklamalıdır (Gönderiler sekmesi `PostView.type==PHOTO` ile süzülebilir).
+- Sayfalama aynı: `nextCursor` sayısal, en çok 1000 sonuç.
+
+### 6. Profil sayaçları ve `GET /api/users/{id}/reels`
+- **`GET /api/users/me`** (`ProfileView`) ve **`GET /api/users/{id}`** (`PublicProfile`) yanıtlarına `postCount` ve `reelCount` eklendi (alan yoksa hiç gelmez): `postCount` = bakandan bağımsız **görünür gönderi sayısı** (silinmemiş, gizlenmemiş, en az bir görünür medya; **Reels dahil**), `reelCount` = bunlardan **video** olanlar. Gizli (kilitli) hesapta başkasına **gelmez** (sayaçlar gibi gizlenir); engel gölge profilinde sabit `0/0`; kendi profilinizde hep gelir.
+- **`GET /api/users/{id}/reels?cursor=&size=`**: o kullanıcının video gönderileri, **yeni önce**, `FeedPage` (`{items:[PostView], nextCursor, hint, locked}`); `size` varsayılan 12, üst sınır 20. Gizli hesap + takipçi değil → boş liste + `locked:true` (403 değil; `/users/{id}/posts` ile aynı). Engel/pasif yazar → boş. Dakikada 120. Profilde sekme: **Gönderiler** = `GET /api/users/{id}/posts` (KS-BE birleşince foto + video), **Reels** = bu uç. Reel kapağında görüntülenme için `PostView.viewCount` (KS-BE; video gönderide).
+
+### 7. Yönetici (RBAC)
+| Uç | İzin |
+|---|---|
+| `GET /api/admin/posts/{id}/comments?cursor=&size=&status=ALL\|VISIBLE\|HIDDEN\|DELETED` | `content.read`. Yorum + yanıt satırı: `{id, postId, parentId, replyToId, author{id,displayName,email(maskeli),avatarUrl}, text, likeCount, replyCount, hidden, deleted, hiddenReason, createdAt, hiddenAt, deletedAt, deletedBy, openReportCount}`; imleç = yorum id (yeni önce), `{items, nextCursor}`. |
+| `POST /api/admin/post-comments/{id}/hide` `{reason?}` · `POST .../unhide` | `content.hide`; satır döner; sayaçlar yeniden hesaplanır. |
+| `DELETE /api/admin/post-comments/{id}` `{reason?}` | `content.hide`; 204. Açık COMMENT raporu varsa `ReportService.resolve(HIDE)` ile sonuçlandırılır (yazara + raporlayanlara bildirim, ihlal kaydı), yoksa yazara "kaldırıldı" bildirimi. Yazma işlemleri `AuditInterceptor` ile denetlenir. |
+- `AdminPermissionPolicy` kuralları eklendi (`RbacCoverageTest` yeşil). Kullanıcı ucu `DELETE /api/post-comments/{cid}` içerik-kaldırma izni (`content.hide`) olan yöneticide başkasının yorumunu siler ve `admin_audit`'e düşer (`SystemAdminAudit`, `POST_COMMENT`).
+- Moderasyon kuyruğu: `ReportTargetType.COMMENT` (`CommentReportHandler`: görünürlük, gizle/geri al, önizleme metni). Web yönetim paneli arayüzü bu görevin kapsamı dışındadır (`PostsAdminPage`'de yorum listesi için yukarıdaki uçlar kullanılır).
+
+### 8. KVKK
+- Hesap silme (`AccountDataPurger` → `PostAccountPurger` → `CommentAccountPurger`): yorum beğenileri ve kaydedilenler silinir (sayaçlar düşer); yazılan yorum/yanıtların metni temizlenip yumuşak silinir, etkilenen gönderi/yorum sayaçları yeniden hesaplanır. `AccountDataPurgerCoverageTest` listeleri: `post_comment.author_id`, `post_comment_like.user_id`, `post_save.user_id` (HANDLED_ELSEWHERE), `post_comment.deleted_by` (RETAINED).
+- Dışa aktarım (`GET /api/users/me/export`): `postComments`, `postCommentLikes`, `postSaves` bölümleri (yalnız kendi verisi).
+
+### 9. Şema (`V1230__kesfet_comments_saves.sql`) ve kod haritası
+- `post.comment_count`; tablolar `post_comment` (`parent_id` ust yorum, `reply_to_id` asıl muhatap, `like_count`, `reply_count`, `deleted_at/by`, `hidden_at/reason`), `post_comment_like`, `post_save`; indeksler `pcm1230_*`, `pcl1230_*`, `psv1230_*`, `usr1230_name_fold_trgm` (V470'te düşen eski tablolarla çakışmaz; indeks adları benzersiz).
+- Yeni kod: `post.comment` (`PostCommentService/Controller`, `CommentCounters`, `CommentNotifier`, `CommentReportHandler`, `AdminPostComment*`, `CommentAccountPurger`, `CommentExporters`, `CommentCounterRepairJob`), `post.save` (`PostSaveService/Controller`; `post.spi.PostSaveLookup`), `post.reel` (`UserReelsService/Controller`, `ReelRepository`, `ReelSearchProvider`, `ProfilePostCounts`), `search.TrFold`, `UserRepository.searchByNameFolded`, `FollowService.statsFor`.
+- Testler (H2): `PostCommentServiceTest`, `PostSaveServiceTest`, `UserReelsTest`, `TrFoldTest`, `UserSearchTest`; PostgreSQL'e özgü kısımlar (V1230, kullanıcı arama sorgusu + trigram, REELS arama) H2'de değil `scripts/smoke-kesfet-social.sh` ile doğrulanır (geçici `postgres:16` konteynerinde sınandı).
+
+### 10. Birleşme notları (KS-BE V1220 ile)
+- `PostDtos.PostView` (KS-BE `type`, `video`, `viewCount`, `popularityScore` ekliyor; bu dal `commentCount`, `savedByMe` ekliyor) → iki dalın alanlarını **sırayla** tutun: `..., editedAt, type, video, viewCount, popularityScore, commentCount, savedByMe`; `PostViewAssembler`'da tek `new PostView(...)` çağrısı iki taraftan güncellenir.
+- `ProfileDtos.ProfileView/PublicProfile`: KS-BE `popularityScore`, `likesReceived`, `postCount`, `followerCount` ekliyor; bu dal `postCount` + `reelCount` ekliyor → **tek** `postCount` bırakın (anlam aynı: görünür gönderi sayısı), `reelCount` ek kalır; `withCounts(...)` yardımcıları tek imzada birleştirilir.
+- `Post.java` (KS-BE `kind`, `viewCount`, `completionPctSum`; bu dal `commentCount`), `PostAccountPurger`, `AccountDataPurger` listeleri, `docs/changes/post.md` ve `MOBILE_API_GUIDE.md` sonları: metin birleşimi (iki taraf da ekleme).
+- `ReelRepository.VIDEO` (EXISTS gorunur VIDEO medyası) KS-BE `post.kind='VIDEO'` ile eşdeğerdir; birleşince `kind` sütununa geçirilebilir (şart değil).
+- KS-BE'nin `FEED_VISIBLE` değişikliği (foto-dışı medya da görünür) `ReelRepository` ve `ProfilePostCounts`'ı etkilemez (kendi `VISIBLE` + video koşulunu kullanırlar).
