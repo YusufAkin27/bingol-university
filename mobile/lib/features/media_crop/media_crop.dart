@@ -15,6 +15,21 @@ export 'crop_spec.dart';
 Future<CropOutcome?> openAvatarEditor(BuildContext context, Uint8List bytes) => Navigator.of(context)
     .push<CropOutcome>(MaterialPageRoute(fullscreenDialog: true, builder: (_) => AvatarEditorPage(bytes: bytes)));
 
+/// Fotoğraf düzenleyicisini ([AvatarEditorPage]) [spec] biçiminde açar: aynı gelişmiş araçlar (yakınlaştır/uzaklaştır + zemin,
+/// açı, döndür, aynala, filtre, ayarlar, geri al/yinele) her kullanım yerinde; çerçeve oranı ve en-boy seçenekleri [spec]'ten
+/// gelir (gönderi: 4:5 + 1:1/3:4/16:9/serbest, kapak: 16:9, sohbet: serbest + diğerleri; logo/profil: daire maske).
+/// Sonuç [cropImage] ile aynıdır: [CropOutcome.cropped] (JPEG), yan eylem ya da vazgeçilirse null.
+///
+/// Profil fotoğrafı ([CropKind.profile]) değişmeden 1024x1024 kare çıktı veren profil düzenleyicisini açar.
+Future<CropOutcome?> editPhoto(BuildContext context, Uint8List bytes, CropSpec spec) {
+  if (spec.kind == CropKind.profile) return openAvatarEditor(context, bytes);
+  return Navigator.of(context).push<CropOutcome>(
+      MaterialPageRoute(fullscreenDialog: true, builder: (_) => AvatarEditorPage(bytes: bytes, spec: spec)));
+}
+
+/// ESKİ kırpma sayfasını ([CropPage]) açar; geriye dönük uyum içindir (testler, eski çağıranlar). Yeni kod [editPhoto]
+/// kullanmalıdır: uygulamadaki tüm fotoğraf akışları (gönderi, kulüp logosu/kapağı, etkinlik kapağı, sohbet) artık onu açar.
+///
 /// Elinizdeki fotoğraf baytlarını kırpma sayfasında açar. Kullanıcı kaydederse [CropOutcome.cropped] (JPEG),
 /// yan eylem seçerse [CropOutcome.removed]/[CropOutcome.change]; vazgeçerse null döner.
 Future<CropOutcome?> cropImage(BuildContext context, Uint8List bytes, CropSpec spec) =>
@@ -44,10 +59,8 @@ Future<Uint8List?> pickAndCrop(
   while (true) {
     final bytes = await picker(src);
     if (bytes == null || !context.mounted) return null;
-    // Profil fotoğrafı: tek gelişmiş düzenleyici (uzaklaştırma + zemin, açı, filtre...). Diğer türler klasik kırpma sayfasını kullanır.
-    final out = spec.kind == CropKind.profile
-        ? await openAvatarEditor(context, bytes)
-        : await cropImage(context, bytes, spec);
+    // Tüm türler tek gelişmiş düzenleyiciyi kullanır (uzaklaştırma + zemin, açı, filtre...); oran/maske [spec]'ten.
+    final out = await editPhoto(context, bytes, spec);
     if (out == null || !context.mounted) return null;
     if (out.changeRequested) {
       src = ImageSource.gallery;

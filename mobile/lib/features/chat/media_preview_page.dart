@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 
 import '../../core/locale_controller.dart';
 import '../../widgets/bu.dart';
+import '../media_crop/media_crop.dart';
 import 'chat_media.dart';
 import 'media_pick.dart';
 
@@ -81,6 +82,32 @@ class _MediaPreviewPageState extends State<MediaPreviewPage> {
     buHaptic();
     setState(() => _index = i);
     _page.animateToPage(i, duration: BuMotion.of(context, BuMotion.short), curve: BuMotion.standard);
+  }
+
+  /// Geçerli fotoğrafı tam fotoğraf düzenleyicide açar (kırp/oran, döndür, filtre, ayarlar); sonuç aynı yerde pick'in
+  /// yerine geçer. Tek gönderimlik işareti korunur. Video düzenlenmez.
+  Future<void> _edit() async {
+    if (_picks.isEmpty) return;
+    final i = _index.clamp(0, _picks.length - 1);
+    final p = _picks[i];
+    if (p.isVideo) return;
+    buHaptic(BuHaptic.light);
+    final src = await _fullOf(p);
+    if (src == null || !mounted) return;
+    final out = await editPhoto(context, src, const CropSpec.chat());
+    final bytes = out?.bytes;
+    if (bytes == null || !mounted || i >= _picks.length || _picks[i] != p) return;
+    final np = MediaPick(
+      key: '${p.key}#e${DateTime.now().microsecondsSinceEpoch}',
+      isVideo: false,
+      thumb: (_) async => bytes,
+      imageBytes: () async => bytes,
+    );
+    setState(() {
+      _picks[i] = np;
+      _full.remove(p.key);
+      if (_once.remove(p.key)) _once.add(np.key);
+    });
   }
 
   void _send() {
@@ -168,6 +195,31 @@ class _MediaPreviewPageState extends State<MediaPreviewPage> {
               ),
             ),
           ),
+          if (_picks.isNotEmpty && !_picks[_index.clamp(0, _picks.length - 1)].isVideo)
+            Align(
+              alignment: AlignmentDirectional.centerEnd,
+              child: Semantics(
+                button: true,
+                label: l.avatarEdTitle,
+                excludeSemantics: true,
+                child: BuPressable(
+                  key: const ValueKey('previewEdit'),
+                  onTap: _edit,
+                  child: SizedBox(
+                    width: 48,
+                    height: 48,
+                    child: Center(
+                      child: Container(
+                        width: 40,
+                        height: 40,
+                        decoration: BoxDecoration(color: t.scrim.withValues(alpha: .6), shape: BoxShape.circle),
+                        child: Icon(BuIcons.slidersHorizontal, size: 20, color: t.onMedia),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
             decoration: BoxDecoration(color: t.scrim.withValues(alpha: .7), borderRadius: BuRadius.bPill),

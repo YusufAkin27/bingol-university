@@ -31,10 +31,10 @@ Future<void> _pump(WidgetTester tester, Widget w) async {
 Future<void> _cropAndSave(WidgetTester tester) async {
   await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 300)));
   await tester.pump(const Duration(milliseconds: 400));
-  expect(find.byKey(const ValueKey('cropSave')), findsOneWidget);
-  await tester.tap(find.byKey(const ValueKey('cropSave')));
+  expect(find.byKey(const ValueKey('avatarEdDone')), findsOneWidget);
+  await tester.tap(find.byKey(const ValueKey('avatarEdDone')));
   await tester.pump();
-  for (var i = 0; i < 60 && find.byKey(const ValueKey('cropSave')).evaluate().isNotEmpty; i++) {
+  for (var i = 0; i < 60 && find.byKey(const ValueKey('avatarEdDone')).evaluate().isNotEmpty; i++) {
     await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 50)));
     await tester.pump(const Duration(milliseconds: 100));
   }
@@ -73,7 +73,8 @@ void main() {
     await tester.pump();
     await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 300)));
     await tester.pump(const Duration(milliseconds: 400));
-    expect(find.text('Kulüp logosu'), findsOneWidget); // 1:1 logo kırpma sayfası
+    expect(find.byKey(const ValueKey('avatarEdStage')), findsOneWidget); // logo: fotoğraf düzenleyici (daire maske)
+    expect(find.byKey(const ValueKey('avatarEdTab-ratio')), findsNothing); // logo oranı kilitli (1:1)
     await _cropAndSave(tester);
     expect(find.text('Logo ekle'), findsNothing); // logo seçildi
 

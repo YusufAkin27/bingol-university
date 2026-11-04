@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:image/image.dart' as img;
 
 import '../../core/api.dart';
 import '../../core/locale_controller.dart';
@@ -59,7 +60,8 @@ class _ComposePostPageState extends State<ComposePostPage> {
   late final PostApi _api = widget.api ?? PostApi(widget.session);
 
   Uint8List? _original; // kırpılmamış seçim (yeniden kırpmak için)
-  Uint8List? _photo; // kırpılmış 4:5
+  Uint8List? _photo; // düzenlenmiş fotoğraf (varsayılan 4:5; düzenleyicide oran seçilebilir)
+  double _photoAspect = 4 / 5; // önizleme oranı: düzenlenmiş fotoğrafın gerçek oranı (0.5-1.91)
   PostMedia? _uploaded; // aynı fotoğraf için yeniden yüklemeyi önler (metin hatasından sonra tekrar dene)
   bool _publishing = false;
   _Err _err = _Err.none;
@@ -86,7 +88,7 @@ class _ComposePostPageState extends State<ComposePostPage> {
         allowChange: true,
       );
 
-  Future<CropOutcome?> _crop(Uint8List bytes) => (widget.cropPhoto ?? ((c, b, s) => cropImage(c, b, s)))(context, bytes, _spec);
+  Future<CropOutcome?> _crop(Uint8List bytes) => (widget.cropPhoto ?? ((c, b, s) => editPhoto(c, b, s)))(context, bytes, _spec);
 
   void _setError(Object e) {
     final l = context.l10n;
@@ -134,6 +136,7 @@ class _ComposePostPageState extends State<ComposePostPage> {
         setState(() {
           _original = bytes;
           _photo = cropped;
+          _photoAspect = _aspectOf(cropped);
           _uploaded = null;
           _err = _Err.none;
         });
@@ -152,6 +155,17 @@ class _ComposePostPageState extends State<ComposePostPage> {
     await _pick(src == PhotoSource.camera ? ImageSource.camera : ImageSource.gallery);
   }
 
+  /// Düzenlenmiş fotoğrafın en/boy oranı (başlıktan okunur, çözümlenmez); okunamazsa 4:5.
+  static double _aspectOf(Uint8List b) {
+    try {
+      final i = img.findDecoderForData(b)?.startDecode(b);
+      if (i == null || i.width <= 0 || i.height <= 0) return 4 / 5;
+      return (i.width / i.height).clamp(0.5, 1.91).toDouble();
+    } catch (_) {
+      return 4 / 5;
+    }
+  }
+
   Future<void> _recrop() async {
     final orig = _original;
     if (orig == null || _publishing) return;
@@ -160,6 +174,7 @@ class _ComposePostPageState extends State<ComposePostPage> {
     if (cropped == null || !mounted) return;
     setState(() {
       _photo = cropped;
+      _photoAspect = _aspectOf(cropped);
       _uploaded = null;
     });
   }
@@ -324,7 +339,7 @@ class _ComposePostPageState extends State<ComposePostPage> {
         child: ClipRRect(
           borderRadius: BorderRadius.circular(kComposeRadius),
           child: AspectRatio(
-            aspectRatio: 4 / 5,
+            aspectRatio: _photoAspect,
             child: Stack(fit: StackFit.expand, children: [
               ColoredBox(color: t.sf2),
               Image.memory(bytes, fit: BoxFit.cover, gaplessPlayback: true, errorBuilder: (_, __, ___) => Center(child: Icon(BuIcons.image, color: t.mut))),

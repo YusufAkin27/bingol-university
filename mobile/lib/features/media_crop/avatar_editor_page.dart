@@ -12,25 +12,31 @@ import 'avatar_editor_paint.dart';
 import 'crop_engine.dart';
 import 'crop_spec.dart';
 
-/// Profil fotoğrafı düzenleyicisi (tam ekran): koyu tuval + daire maske, tek parmak sürükle, iki parmak yakınlaştır /
-/// UZAKLAŞTIR (görsel maskeden küçülebilir; boşluk bulanık ya da düz renk zeminle dolar), çift dokunma sığdır/doldur,
-/// 90° döndür + ince açı (-45..45), aynala, geri al/yinele, hazır filtreler ve parlaklık/kontrast/doygunluk/sıcaklık/vinyet.
+/// Fotoğraf düzenleyicisi (tam ekran): koyu tuval + çerçeve maskesi (profil/logo: daire; gönderi/kapak/sohbet: dikdörtgen),
+/// tek parmak sürükle, iki parmak yakınlaştır / UZAKLAŞTIR (görsel çerçeveden küçülebilir; boşluk bulanık ya da düz renk
+/// zeminle dolar), çift dokunma sığdır/doldur, 90° döndür + ince açı (-45..45), aynala, geri al/yinele, hazır filtreler ve
+/// parlaklık/kontrast/doygunluk/sıcaklık/vinyet. [spec] verilirse çerçeve oranı ([CropSpec.aspect]) ve izin verilen
+/// oranlar ([CropSpec.aspects]: "Oran" sekmesi) ile "Fotoğrafı değiştir"/"Kapağı kaldır" yan eylemleri açılır.
 ///
-/// "Bitti" kare 1024x1024 JPEG'i [CropOutcome.cropped] olarak döndürür; "İptal" null. Profil fotoğrafının tek
-/// düzenleyicisidir: `pickAndCrop(CropSpec.profile)` bunu açar (profil düzenleme + kayıt sonrası fotoğraf adımı).
+/// "Bitti" JPEG'i [CropOutcome.cropped] olarak döndürür; "İptal" null. [spec] yoksa (profil fotoğrafı) çıktı kare
+/// [outputSize] x [outputSize]'tır: `pickAndCrop(CropSpec.profile)` bunu açar (profil düzenleme + kayıt sonrası fotoğraf
+/// adımı). [spec] ile çıktının uzun kenarı en çok [CropSpec.maxEdge] piksel olur ve gereksiz büyütülmez.
 class AvatarEditorPage extends StatefulWidget {
-  const AvatarEditorPage({super.key, required this.bytes, this.outputSize = 1024});
+  const AvatarEditorPage({super.key, required this.bytes, this.outputSize = 1024, this.spec});
 
   final Uint8List bytes;
 
-  /// Çıktı karenin kenarı (piksel).
+  /// [spec] yokken çıktı karenin kenarı (piksel).
   final int outputSize;
+
+  /// Kullanım yeri/oran biçimi; null: profil fotoğrafı (kare, daire maske, 1024).
+  final CropSpec? spec;
 
   @override
   State<AvatarEditorPage> createState() => _AvatarEditorPageState();
 }
 
-enum _Tab { crop, bg, filter, adjust }
+enum _Tab { crop, ratio, bg, filter, adjust }
 
 enum _Adj { brightness, contrast, saturation, warmth, vignette }
 
@@ -39,8 +45,35 @@ class _AvatarEditorPageState extends State<AvatarEditorPage> with SingleTickerPr
 
   ui.Image? _full; // nihai çıktı için (<= ~2600 px)
   ui.Image? _preview; // tuval ve küçük önizlemeler için (<= ~1024 px): düşük cihazda akıcılık
-  AvatarGeometry? _geo;
   AvatarHistory? _hist;
+
+  /// Çerçeve oranı ve dönüşe göre geometri (görsel yüklenene kadar null).
+  AvatarGeometry? get _geo {
+    final f = _full;
+    return f == null ? null : AvatarGeometry.forState(f.width.toDouble(), f.height.toDouble(), _view);
+  }
+
+  /// Daire maske: profil (spec yok) ve logo gibi daire kılavuzlu türler.
+  bool get _circle => widget.spec?.circle ?? true;
+
+  /// Kullanıcının seçebileceği oranlar; boşsa oran kilitli ve "Oran" sekmesi yok.
+  late final List<AvatarRatio> _ratios = () {
+    final sp = widget.spec;
+    final list = sp?.aspects;
+    if (sp == null || sp.circle || list == null) return const <AvatarRatio>[];
+    final out = <AvatarRatio>[];
+    for (final a in list) {
+      final r = AvatarRatio.nearest(a);
+      if (!out.contains(r)) out.add(r);
+    }
+    return out.length > 1 ? out : const <AvatarRatio>[];
+  }();
+
+  AvatarRatio get _initialRatio {
+    final sp = widget.spec;
+    if (sp == null || sp.circle) return AvatarRatio.square;
+    return AvatarRatio.nearest(sp.aspect);
+  }
   AvatarEditState _view = const AvatarEditState();
   bool _failed = false;
   bool _busy = false;
@@ -63,7 +96,7 @@ class _AvatarEditorPageState extends State<AvatarEditorPage> with SingleTickerPr
   AvatarEditState _animFrom = const AvatarEditState();
   AvatarEditState _animTo = const AvatarEditState();
 
-  double get _k => _frame.width / AvatarGeometry.frame;
+  double get _k => _frame.width / (_geo?.frameW ?? AvatarGeometry.frame);
 
   @override
   void initState() {
@@ -111,12 +144,10 @@ class _AvatarEditorPageState extends State<AvatarEditorPage> with SingleTickerPr
         full.dispose();
         return;
       }
-      final geo = AvatarGeometry(full.width.toDouble(), full.height.toDouble());
       setState(() {
         _full = full;
         _preview = preview;
-        _geo = geo;
-        _hist = AvatarHistory(const AvatarEditState());
+        _hist = AvatarHistory(AvatarEditState(ratio: _initialRatio));
         _view = _hist!.current;
       });
     } catch (_) {
@@ -144,7 +175,7 @@ class _AvatarEditorPageState extends State<AvatarEditorPage> with SingleTickerPr
     _anim.stop();
     final dur = AppMotion.of(context, AppMotion.emphasized);
     final from = _view;
-    final structural = from.turns != target.turns || from.flip != target.flip;
+    final structural = from.turns != target.turns || from.flip != target.flip || from.ratio != target.ratio;
     if (dur == Duration.zero || structural || from == target) {
       setState(() => _view = target);
     } else {
@@ -246,7 +277,10 @@ class _AvatarEditorPageState extends State<AvatarEditorPage> with SingleTickerPr
       _busy = true;
       _view = target;
     });
-    final out = await renderAvatarJpeg(image: full, state: target, geometry: g, size: widget.outputSize);
+    final sp = widget.spec;
+    // Profilde sabit kare çıktı; diğerlerinde kaynak çözünürlüğü aşılmadan (en az 512) [CropSpec.maxEdge] sınırına kadar.
+    final longSide = sp == null ? widget.outputSize : math.min(sp.maxEdge, math.max(512, g.nativeLongSide(target).round()));
+    final out = await renderAvatarJpeg(image: full, state: target, geometry: g, size: longSide);
     if (!mounted) return;
     if (out == null) {
       setState(() => _busy = false);
@@ -356,8 +390,15 @@ class _AvatarEditorPageState extends State<AvatarEditorPage> with SingleTickerPr
     final g = _geo!;
     final img = _preview!;
     return LayoutBuilder(builder: (context, box) {
-      final side = math.max(120.0, math.min(box.maxWidth - 32, box.maxHeight - 16));
-      _frame = Rect.fromCenter(center: Offset(box.maxWidth / 2, box.maxHeight / 2), width: side, height: side);
+      // Çerçeve, oranını koruyarak tuvale sığar.
+      var w = math.max(96.0, box.maxWidth - 32);
+      var h = w / g.aspect;
+      final maxH = math.max(96.0, box.maxHeight - 16);
+      if (h > maxH) {
+        h = maxH;
+        w = h * g.aspect;
+      }
+      _frame = Rect.fromCenter(center: Offset(box.maxWidth / 2, box.maxHeight / 2), width: w, height: h);
       return Semantics(
         container: true,
         label: l.avatarEdStageSemantic,
@@ -375,6 +416,7 @@ class _AvatarEditorPageState extends State<AvatarEditorPage> with SingleTickerPr
                 child: CustomPaint(
                   painter: AvatarMaskPainter(
                     frame: _frame,
+                    circle: _circle,
                     guides: _dragging,
                     fineGrid: _angleDragging,
                     scrimColor: _d.scrim.withValues(alpha: .62),
@@ -410,6 +452,7 @@ class _AvatarEditorPageState extends State<AvatarEditorPage> with SingleTickerPr
               padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
               child: switch (_tab) {
                 _Tab.crop => _cropTools(context, l),
+                _Tab.ratio => _ratioTools(context, l),
                 _Tab.bg => _bgTools(context, l),
                 _Tab.filter => _filterTools(context, l),
                 _Tab.adjust => _adjustTools(context, l),
@@ -426,6 +469,7 @@ class _AvatarEditorPageState extends State<AvatarEditorPage> with SingleTickerPr
     final tx = Theme.of(context).textTheme;
     final items = <(_Tab, IconData, String)>[
       (_Tab.crop, BuIcons.crop, l.avatarEdTabCrop),
+      if (_ratios.isNotEmpty) (_Tab.ratio, BuIcons.image, l.photoEdTabRatio),
       (_Tab.bg, BuIcons.palette, l.avatarEdTabBg),
       (_Tab.filter, BuIcons.wandSparkles, l.avatarEdTabFilter),
       (_Tab.adjust, BuIcons.slidersHorizontal, l.avatarEdTabAdjust),
@@ -600,6 +644,103 @@ class _AvatarEditorPageState extends State<AvatarEditorPage> with SingleTickerPr
           _commit();
         },
       ),
+      ..._sideActions(context, l),
+    ]);
+  }
+
+  /// Yan eylemler ([CropSpec.allowChange] / [CropSpec.allowRemove]): düzenleyiciyi kapatıp çağırana bildirir.
+  List<Widget> _sideActions(BuildContext context, AppLocalizations l) {
+    final sp = widget.spec;
+    if (sp == null || (!sp.allowChange && !sp.allowRemove)) return const [];
+    final t = context.bu;
+    Widget link(Key key, IconData icon, String label, CropOutcome out, {bool danger = false}) => TextButton.icon(
+          key: key,
+          onPressed: _busy ? null : () => Navigator.of(context).pop(out),
+          style: TextButton.styleFrom(
+              minimumSize: const Size(BuSize.touch, BuSize.touch), foregroundColor: danger ? t.danger : t.ink),
+          icon: Icon(icon, size: 18),
+          label: Text(label, textAlign: TextAlign.center),
+        );
+    return [
+      const SizedBox(height: 4),
+      Wrap(alignment: WrapAlignment.center, spacing: 8, children: [
+        if (sp.allowChange) link(const ValueKey('avatarEdChange'), BuIcons.repeat, l.gonderiChangePhoto, const CropOutcome.change()),
+        if (sp.allowRemove)
+          link(const ValueKey('avatarEdRemove'), BuIcons.trash2, l.p04CropRemoveCover, const CropOutcome.removed(), danger: true),
+      ]),
+    ];
+  }
+
+  // Oran sekmesi -------------------------------------------------------------------------------------------------
+
+  String _ratioLabel(AppLocalizations l, AvatarRatio r) => switch (r) {
+        AvatarRatio.free => l.photoEdRatioFree,
+        AvatarRatio.square => '1:1',
+        AvatarRatio.p45 => '4:5',
+        AvatarRatio.p34 => '3:4',
+        AvatarRatio.w169 => '16:9',
+      };
+
+  Widget _ratioTools(BuildContext context, AppLocalizations l) {
+    final t = context.bu;
+    final tx = Theme.of(context).textTheme;
+    final g = _geo!;
+    // Serbest: görselin kendi (döndürülmüş) oranı; rozet şekli buna göre çizilir.
+    double shapeAspect(AvatarRatio r) => r.value ?? (_view.turns.isOdd ? g.imageHeight / g.imageWidth : g.imageWidth / g.imageHeight);
+    return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+      Text(l.photoEdRatioHint, style: tx.bodySmall?.copyWith(color: t.mut, height: 1.35)),
+      const SizedBox(height: 10),
+      Row(children: [
+        for (final r in _ratios)
+          Expanded(
+            child: Semantics(
+              button: true,
+              selected: _view.ratio == r,
+              label: _ratioLabel(l, r),
+              excludeSemantics: true,
+              child: InkWell(
+                key: ValueKey('avatarEdRatio-${r.name}'),
+                borderRadius: BorderRadius.circular(BuRadius.md),
+                onTap: _busy
+                    ? null
+                    : () {
+                        if (_view.ratio == r) return;
+                        BuHaptics.selection();
+                        _animateTo(_view.copyWith(ratio: r, zoom: 1, offset: Offset.zero));
+                      },
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(minHeight: 76),
+                  child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+                    SizedBox(
+                      width: 44,
+                      height: 44,
+                      child: Center(
+                        child: AspectRatio(
+                          aspectRatio: shapeAspect(r).clamp(.4, 2.5).toDouble(),
+                          child: DecoratedBox(
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(4),
+                              color: _view.ratio == r ? t.soft : Colors.transparent,
+                              border: Border.all(color: _view.ratio == r ? t.pr : t.bdStrong, width: _view.ratio == r ? 2.5 : 1.5),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(_ratioLabel(l, r),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        textDirection: r == AvatarRatio.free ? null : TextDirection.ltr,
+                        textAlign: TextAlign.center,
+                        style: tx.labelMedium?.copyWith(
+                            fontSize: 12, fontWeight: _view.ratio == r ? FontWeight.w700 : FontWeight.w500, color: t.ink)),
+                  ]),
+                ),
+              ),
+            ),
+          ),
+      ]),
     ]);
   }
 

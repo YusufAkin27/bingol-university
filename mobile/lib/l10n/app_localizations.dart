@@ -18055,6 +18055,24 @@ abstract class AppLocalizations {
   /// **'Fotoğraf düzenleme alanı. Sürükleyin, iki parmakla yakınlaştırın veya uzaklaştırın, çift dokunarak sığdırın.'**
   String get avatarEdStageSemantic;
 
+  /// No description provided for @photoEdTabRatio.
+  ///
+  /// In tr, this message translates to:
+  /// **'Oran'**
+  String get photoEdTabRatio;
+
+  /// No description provided for @photoEdRatioFree.
+  ///
+  /// In tr, this message translates to:
+  /// **'Serbest'**
+  String get photoEdRatioFree;
+
+  /// No description provided for @photoEdRatioHint.
+  ///
+  /// In tr, this message translates to:
+  /// **'Çerçeve oranını seçin; fotoğraf buna göre kırpılır. Serbest, fotoğrafın kendi oranını korur.'**
+  String get photoEdRatioHint;
+
   /// No description provided for @avatarSheetTitle.
   ///
   /// In tr, this message translates to:

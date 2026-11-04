@@ -9940,6 +9940,16 @@ class AppLocalizationsTr extends AppLocalizations {
       'Fotoğraf düzenleme alanı. Sürükleyin, iki parmakla yakınlaştırın veya uzaklaştırın, çift dokunarak sığdırın.';
 
   @override
+  String get photoEdTabRatio => 'Oran';
+
+  @override
+  String get photoEdRatioFree => 'Serbest';
+
+  @override
+  String get photoEdRatioHint =>
+      'Çerçeve oranını seçin; fotoğraf buna göre kırpılır. Serbest, fotoğrafın kendi oranını korur.';
+
+  @override
   String get avatarSheetTitle => 'Profil fotoğrafı';
 
   @override

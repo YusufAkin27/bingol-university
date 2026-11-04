@@ -9870,6 +9870,16 @@ class AppLocalizationsAr extends AppLocalizations {
       'منطقة تعديل الصورة. اسحب، وقرّب أو بعّد بإصبعين، وانقر مرتين للملاءمة.';
 
   @override
+  String get photoEdTabRatio => 'النسبة';
+
+  @override
+  String get photoEdRatioFree => 'حر';
+
+  @override
+  String get photoEdRatioHint =>
+      'اختر نسبة الإطار؛ تُقصّ الصورة وفقها. «حر» يحافظ على نسبة الصورة الأصلية.';
+
+  @override
   String get avatarSheetTitle => 'صورة الملف الشخصي';
 
   @override

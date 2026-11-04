@@ -20,6 +20,7 @@ class CropSpec {
     this.previewDate,
     this.allowChange = false,
     this.allowRemove = false,
+    this.aspects,
   });
 
   /// Profil fotoğrafı: 1:1, daire önizleme.
@@ -34,7 +35,8 @@ class CropSpec {
             maxEdge: 1350,
             previewName: previewName,
             previewCaption: previewCaption,
-            allowChange: allowChange);
+            allowChange: allowChange,
+            aspects: const [4 / 5, 1, 3 / 4, 16 / 9, null]);
 
   /// Kulüp logosu: 1:1, daire kılavuzu. [previewName] kulüp adı.
   const CropSpec.logo({String? previewName})
@@ -52,7 +54,7 @@ class CropSpec {
             allowRemove: allowRemove);
 
   /// Sohbet görseli: oran serbest (görselin kendi oranı; yalnız kaydır/yakınlaştır/döndür).
-  const CropSpec.chat() : this(kind: CropKind.chat, aspect: null, maxEdge: 1600);
+  const CropSpec.chat() : this(kind: CropKind.chat, aspect: null, maxEdge: 1600, aspects: const [null, 1, 4 / 5, 3 / 4, 16 / 9]);
 
   final CropKind kind;
 
@@ -78,6 +80,10 @@ class CropSpec {
 
   /// "Kapağı kaldır" bağlantısı (cover).
   final bool allowRemove;
+
+  /// Fotoğraf düzenleyicide kullanıcının seçebileceği en-boy oranları (null öğe = serbest/görselin kendi oranı);
+  /// başlangıç oranı her zaman [aspect]'tir. Null ya da tek öğe: oran kilitli ([aspect]). Eski kırpma sayfası bunu yok sayar.
+  final List<double?>? aspects;
 
   /// Kırpma çerçevesinin sanal boyutu (en uzun kenar [side]); [imageAspect] yalnız serbest oranda kullanılır.
   Size frame(double imageAspect, {double side = 300}) {

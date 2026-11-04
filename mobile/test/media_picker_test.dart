@@ -1,3 +1,4 @@
+import 'package:bu_kampus/features/media_crop/avatar_editor_page.dart';
 import 'package:bu_kampus/features/chat/chat_detail_page.dart';
 import 'package:bu_kampus/features/chat/media_camera_page.dart';
 import 'package:bu_kampus/features/chat/media_library.dart';
@@ -261,6 +262,21 @@ void main() {
       await _tap(tester, find.byKey(const ValueKey('previewThumb_2')));
       await settle(tester, const Duration(milliseconds: 400));
       expect(find.text('3 / 3'), findsOneWidget);
+      _ok(tester);
+    });
+
+    testWidgets('duzenle dugmesi yalniz fotografta; basinca fotograf duzenleyici acilir', (tester) async {
+      await _openHost(tester, () => preview([fakePhotoPick('a'), fakeVideoPick('v')]), []);
+      expect(find.byKey(const ValueKey('previewEdit')), findsOneWidget);
+      expect(tester.getSize(find.byKey(const ValueKey('previewEdit'))).height, greaterThanOrEqualTo(44));
+      await _tap(tester, find.byKey(const ValueKey('previewThumb_1')));
+      await settle(tester, const Duration(milliseconds: 400));
+      expect(find.byKey(const ValueKey('previewEdit')), findsNothing); // video duzenlenmez
+      await _tap(tester, find.byKey(const ValueKey('previewThumb_0')));
+      await settle(tester, const Duration(milliseconds: 400));
+      await _tap(tester, find.byKey(const ValueKey('previewEdit')));
+      await settle(tester, const Duration(milliseconds: 600));
+      expect(find.byType(AvatarEditorPage), findsOneWidget);
       _ok(tester);
     });
 

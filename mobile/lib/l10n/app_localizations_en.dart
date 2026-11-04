@@ -9972,6 +9972,16 @@ class AppLocalizationsEn extends AppLocalizations {
       'Photo editing area. Drag, pinch to zoom in or out, double-tap to fit.';
 
   @override
+  String get photoEdTabRatio => 'Ratio';
+
+  @override
+  String get photoEdRatioFree => 'Free';
+
+  @override
+  String get photoEdRatioHint =>
+      'Pick the frame ratio; the photo is cropped to it. Free keeps the photo\'s own ratio.';
+
+  @override
   String get avatarSheetTitle => 'Profile photo';
 
   @override
