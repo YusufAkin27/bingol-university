@@ -36,7 +36,18 @@ public class PostAccountPurger {
         this.social = social;
     }
 
+    /** Yorum/kaydet temizligi (post.comment; yoksa atlanir). */
+    private edu.bingol.backend.post.comment.CommentAccountPurger comments;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setComments(edu.bingol.backend.post.comment.CommentAccountPurger comments) {
+        this.comments = comments;
+    }
+
     public void purge(Long userId) {
+        if (comments != null) {
+            comments.purge(userId);
+        }
         List<Long> postIds = jdbc.queryForList("SELECT id FROM post WHERE author_id = ? AND deleted_at IS NULL", Long.class, userId);
         // Olay icin medya kimlikleri, medya temizligi calismadan ONCE okunur
         List<PostDeletedEvent> evts = postIds.stream().map(id -> new PostDeletedEvent(id,

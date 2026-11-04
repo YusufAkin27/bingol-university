@@ -88,9 +88,11 @@ public final class AdminPermissionPolicy {
         one(Set.of("POST"), "/api/admin/(sync|sync-menu|sources/sync)", SYSTEM_WRITE);
 
         // --- icerik: gizle/kaldir alt kumesi ---
-        one(Set.of("POST"), "/api/admin/(events|community-posts|posts)/" + ID + "/(hide|unhide)", CONTENT_HIDE);
+        one(Set.of("POST"), "/api/admin/(events|community-posts|posts|post-comments)/" + ID + "/(hide|unhide)", CONTENT_HIDE);
         one(Set.of("PATCH"), "/api/admin/news/" + ID, CONTENT_HIDE);
         one(Set.of("PATCH", "DELETE"), "/api/admin/(posts|community-posts)/" + ID, CONTENT_HIDE);
+        // KS-BE2: Kesfet yorum moderasyonu (gizle/geri al/sil = gonderi kaldirma ile ayni izin; listeleme posts/{id}/comments alan kuralinda)
+        one(Set.of("DELETE"), "/api/admin/post-comments/" + ID, CONTENT_HIDE);
 
         // --- duyuru (akademik duyuru): yalniz duyuru yetkisi ---
         area("/api/admin/announcements(/.*)?", COMMS_READ, COMMS_ANNOUNCE);
@@ -100,7 +102,7 @@ public final class AdminPermissionPolicy {
 
         // --- icerik ---
         area("/api/admin/(news|menu|academic|faq|communities|communitiespage|community-categories|community-posts"
-                + "|events|polls|posts|sources|unit-news)(/.*)?", CONTENT_READ, CONTENT_WRITE);
+                + "|events|polls|posts|post-comments|sources|unit-news)(/.*)?", CONTENT_READ, CONTENT_WRITE);
 
         // --- kampus haritasi: FULL/EDITOR yazar, diger profiller yalniz okur ---
         area("/api/admin/campus(/.*)?", CAMPUS_READ, CAMPUS_WRITE);

@@ -99,6 +99,9 @@ public class AccountDataPurger {
             Map.entry("post.author_id", "PostAccountPurger (yumusak silme + medya)"),
             Map.entry("post_like.user_id", "PostAccountPurger"),
             Map.entry("post_media.owner_id", "PostAccountPurger"),
+            Map.entry("post_comment.author_id", "PostAccountPurger -> CommentAccountPurger (yorum metni temizlenir, yumusak silinir)"),
+            Map.entry("post_comment_like.user_id", "PostAccountPurger -> CommentAccountPurger"),
+            Map.entry("post_save.user_id", "PostAccountPurger -> CommentAccountPurger"),
             Map.entry("user_follow.follower_id", "SocialAccountPurger"),
             Map.entry("user_follow.followee_id", "SocialAccountPurger"),
             Map.entry("user_follow_stats.user_id", "SocialAccountPurger"),
@@ -166,6 +169,7 @@ public class AccountDataPurger {
             Map.entry("message.admin_hidden_by", "Moderasyon izi (yonetici gizledi); mesaj saklama suresiyle temizlenir"),
             Map.entry("message.deleted_by", "Silen kisi izi; silinmis mesaj govdesi saklama suresiyle (90 gun) kalici silinir"),
             Map.entry("moderation_strike.forgiven_by", "Ihlal affeden yonetici izi"),
+            Map.entry("post_comment.deleted_by", "Yumusak silme izi (yazar/gonderi sahibi/yonetici; hesap silmede yazar=silen yazar); yorum metni silinirken temizlenir"),
             Map.entry("post.deleted_by", "Yumusak silme izi (PostAccountPurger hesap silmede yazar=silen yazar); dosyalar saklama suresiyle silinir"),
             Map.entry("support_ticket_note.author_id", "Personelin ic notu yazari (yonetici izi, kullanici degil)"),
             Map.entry("user_event.moderated_by", "Etkinlik moderasyonunu yapan yonetici izi"));

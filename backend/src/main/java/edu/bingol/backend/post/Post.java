@@ -34,6 +34,10 @@ public class Post {
     @Column(nullable = false)
     private short mediaCount;
 
+    /** Gorunur yorum + yanit sayisi (V1230; atomik SQL ile guncellenir: post.comment.CommentCounters). */
+    @Column(nullable = false)
+    private int commentCount;
+
     @Column(nullable = false)
     private Instant createdAt = Instant.now();
 

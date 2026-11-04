@@ -4,6 +4,7 @@ import edu.bingol.backend.common.CurrentUser;
 import edu.bingol.backend.post.PostDtos.AuthorView;
 import edu.bingol.backend.post.PostDtos.MediaView;
 import edu.bingol.backend.post.PostDtos.PostView;
+import edu.bingol.backend.post.spi.PostSaveLookup;
 import edu.bingol.backend.post.spi.PostLikeLookup;
 import edu.bingol.backend.post.spi.PostMediaLookup;
 import edu.bingol.backend.profile.dto.ProfileDtos.PublicProfile;
@@ -39,6 +40,14 @@ public class PostViewAssembler {
         this.likeLookups = likeLookups;
     }
 
+    /** Bakanin kaydettikleri (KS-BE2; setter: kurucu imzasi degismesin, yoksa savedByMe false). */
+    private ObjectProvider<PostSaveLookup> saveLookups;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setSaveLookups(ObjectProvider<PostSaveLookup> saveLookups) {
+        this.saveLookups = saveLookups;
+    }
+
     public List<PostView> assemble(Long viewerId, List<Post> posts) {
         if (posts.isEmpty()) {
             return List.of();
@@ -50,6 +59,8 @@ public class PostViewAssembler {
                 .collect(Collectors.toMap(PublicProfile::id, Function.identity(), (a, b) -> a));
         Map<Long, List<MediaView>> media = mediaFor(postIds, viewerId);
         Set<Long> liked = likedFor(viewerId, postIds);
+        PostSaveLookup saves = saveLookups == null ? null : saveLookups.getIfAvailable();
+        Set<Long> saved = saves == null ? Set.of() : saves.savedPostIds(viewerId, postIds);
         boolean admin = CurrentUser.isAdmin();
 
         List<PostView> out = new ArrayList<>(posts.size());
@@ -60,7 +71,7 @@ public class PostViewAssembler {
             boolean mine = p.getAuthorId().equals(viewerId);
             out.add(new PostView(p.getId(), author, p.getBody(), media.getOrDefault(p.getId(), List.of()),
                     p.getLikeCount(), liked.contains(p.getId()), mine, mine, mine || admin,
-                    p.getCreatedAt(), p.getEditedAt()));
+                    p.getCreatedAt(), p.getEditedAt(), p.getCommentCount(), saved.contains(p.getId())));
         }
         return out;
     }

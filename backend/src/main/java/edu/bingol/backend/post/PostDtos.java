@@ -21,10 +21,10 @@ public final class PostDtos {
 
     public record AuthorView(Long id, String displayName, String avatarUrl, String department) {}
 
-    /** Sade gonderi gorunumu: 1 fotograf + kisa metin + begeni (yorum/kaydet/etiket/bahsetme kaldirildi). */
+    /** Gonderi gorunumu: 1 fotograf (ya da video) + kisa metin + begeni; commentCount/savedByMe KS-BE2 (V1230: yorum + kaydet geri geldi). */
     public record PostView(Long id, AuthorView author, String text, List<MediaView> media, int likeCount,
                            boolean likedByMe, boolean mine, boolean canEdit, boolean canDelete,
-                           Instant createdAt, Instant editedAt) {}
+                           Instant createdAt, Instant editedAt, int commentCount, boolean savedByMe) {}
 
     public record CreatePostRequest(@Size(max = 1000) String text, @Size(max = 10) List<Long> mediaIds) {}
 
