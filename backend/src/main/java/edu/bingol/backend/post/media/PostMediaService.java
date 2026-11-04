@@ -9,6 +9,7 @@ import edu.bingol.backend.media.Mp4Info;
 import edu.bingol.backend.media.PrivateMedia;
 import edu.bingol.backend.media.PrivateMediaStore;
 import edu.bingol.backend.media.UploadGuard;
+import edu.bingol.backend.media.WebmInfo;
 import edu.bingol.backend.media.transcode.MediaCdnLinks;
 import edu.bingol.backend.media.transcode.VideoTranscoder;
 import edu.bingol.backend.moderation.BlockService;
@@ -75,8 +76,8 @@ public class PostMediaService implements PostMediaLookup, PostMediaBinder {
     private final BlockService blocks;
     private final RateLimiter limiter;
 
-    @Value("${app.post.media.video-max-bytes:41943040}")
-    private long videoMaxBytes = 40L << 20;
+    @Value("${app.post.media.video-max-bytes:52428800}")
+    private long videoMaxBytes = 50L << 20;
     @Value("${app.post.media.video-max-seconds:60}")
     private int videoMaxSeconds = 60;
     @Value("${app.post.media.uploads-per-hour:30}")
@@ -180,16 +181,11 @@ public class PostMediaService implements PostMediaLookup, PostMediaBinder {
         requirePendingRoom(userId);
         byte[] raw = readVideo(file);
         chargeUpload(userId, raw.length);
-        Mp4Info.Info info;
-        try {
-            info = Mp4Info.parse(raw);
-        } catch (Mp4Info.Invalid | RuntimeException e) {
-            throw videoInvalid();
-        }
+        VideoMeta info = inspectVideo(raw);
         if (info.durationMs() <= 0) {
             throw videoInvalid();
         }
-        if (info.durationMs() > videoMaxSeconds * 1000L) {
+        if (info.durationMs() > videoMaxSeconds * 1000L + DURATION_TOLERANCE_MS) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "VIDEO_TOO_LONG",
                     "Video en fazla " + videoMaxSeconds + " saniye olabilir.", String.valueOf(videoMaxSeconds));
         }
@@ -223,7 +219,7 @@ public class PostMediaService implements PostMediaLookup, PostMediaBinder {
             m.setWidth(w > 0 ? w : null);
             m.setHeight(h > 0 ? h : null);
             m.setBytes(raw.length);
-            m.setContentType("video/mp4");
+            m.setContentType(info.contentType());
             m.setDurationMs((int) Math.min(info.durationMs(), Integer.MAX_VALUE));
             m.setSha256(sha256Hex(raw));
             m.setWrappedDek(wrapped);
@@ -239,20 +235,66 @@ public class PostMediaService implements PostMediaLookup, PostMediaBinder {
         }
     }
 
+    /** Sure siniri tolerans: kodlayicilar tam 60,00 sn'yi birkac on ms asabilir. */
+    static final long DURATION_TOLERANCE_MS = 500;
+
+    /** Kabul edilen video Content-Type degerleri (MP4, MOV/QuickTime, M4V, WebM). */
+    private static final java.util.Set<String> VIDEO_TYPES = java.util.Set.of("video/mp4", "video/quicktime",
+            "video/x-m4v", "video/mov", "video/webm");
+
+    /** Kap ust verisi: sure (ms), boyutlar ve sunulacak Content-Type (kapa gore). */
+    private record VideoMeta(long durationMs, int width, int height, String contentType) {}
+
+    /**
+     * Gercek icerik dogrulamasi (Content-Type'a guvenmez): ISO-BMFF (MP4/MOV) ftyp + moov/mvhd ya da WebM EBML
+     * (DocType webm) + sure. Goruntu (HEIC/AVIF) ve ses (M4A) ftyp'leri reddedilir. Codec (H.264/HEVC/VP9) denetlenmez.
+     */
+    private static VideoMeta inspectVideo(byte[] raw) {
+        try {
+            if (Mp4Info.hasFtyp(raw)) {
+                if (!Mp4Info.isVideoBrand(raw)) {
+                    throw videoInvalid();
+                }
+                Mp4Info.Info i = Mp4Info.parse(raw);
+                String brand = Mp4Info.majorBrand(raw);
+                String ct = "qt  ".equals(brand) ? "video/quicktime" : "video/mp4";
+                return new VideoMeta(i.durationMs(), i.width(), i.height(), ct);
+            }
+            if (WebmInfo.hasMagic(raw)) {
+                WebmInfo.Info i = WebmInfo.parse(raw);
+                return new VideoMeta(i.durationMs(), i.width(), i.height(), "video/webm");
+            }
+        } catch (Mp4Info.Invalid | RuntimeException e) {
+            if (e instanceof ApiException api) {
+                throw api;
+            }
+            throw videoInvalid();
+        }
+        throw videoInvalid();
+    }
+
     private static boolean isVideoUpload(MultipartFile file) {
         if (file == null) {
             return false;
         }
         String type = file.getContentType() == null ? "" : file.getContentType().toLowerCase(Locale.ROOT);
         String name = file.getOriginalFilename() == null ? "" : file.getOriginalFilename().toLowerCase(Locale.ROOT);
-        return type.startsWith("video/") || name.endsWith(".mp4") || name.endsWith(".mov");
+        return type.startsWith("video/") || name.endsWith(".mp4") || name.endsWith(".mov") || name.endsWith(".m4v")
+                || name.endsWith(".webm");
     }
 
-    /** Content-Type video/mp4, boyut siniri, ftyp imzasi; belleğe yalniz sinirli okunur. */
+    /**
+     * Content-Type (mp4/quicktime/m4v/webm ya da bilinen uzantili octet-stream), boyut siniri, kap imzasi;
+     * belleğe yalniz sinirli okunur.
+     */
     private byte[] readVideo(MultipartFile file) {
         String type = file.getContentType() == null ? ""
                 : file.getContentType().toLowerCase(Locale.ROOT).split(";")[0].trim();
-        if (file.isEmpty() || !"video/mp4".equals(type)) {
+        String name = file.getOriginalFilename() == null ? "" : file.getOriginalFilename().toLowerCase(Locale.ROOT);
+        boolean knownExt = name.endsWith(".mp4") || name.endsWith(".mov") || name.endsWith(".m4v")
+                || name.endsWith(".webm");
+        boolean typeOk = VIDEO_TYPES.contains(type) || ("application/octet-stream".equals(type) && knownExt);
+        if (file.isEmpty() || !typeOk) {
             throw videoInvalid();
         }
         if (file.getSize() > videoMaxBytes) {
@@ -263,7 +305,7 @@ public class PostMediaService implements PostMediaLookup, PostMediaBinder {
             if (data.length > videoMaxBytes) {
                 throw videoTooLarge();
             }
-            if (!Mp4Info.hasFtyp(data)) {
+            if (!Mp4Info.hasFtyp(data) && !WebmInfo.hasMagic(data)) {
                 throw videoInvalid();
             }
             return data;
@@ -323,6 +365,19 @@ public class PostMediaService implements PostMediaLookup, PostMediaBinder {
         if (m.isVideo()) {
             throw videoNotAllowed();
         }
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public String requireMedia(long ownerId, List<Long> mediaIds) {
+        if (mediaIds == null || mediaIds.size() != 1 || mediaIds.get(0) == null) {
+            throw invalid();
+        }
+        PostMedia m = repo.findById(mediaIds.get(0)).orElse(null);
+        if (m == null || !m.getOwnerId().equals(ownerId) || m.getPostId() != null || m.isHidden()) {
+            throw invalid();
+        }
+        return m.getKind();
     }
 
     public static ApiException videoNotAllowed() {
@@ -533,7 +588,8 @@ public class PostMediaService implements PostMediaLookup, PostMediaBinder {
             return;
         }
         resp.setStatus(status);
-        resp.setContentType("video/mp4");
+        String ct = m.getContentType();
+        resp.setContentType(ct != null && ct.startsWith("video/") ? ct : "video/mp4");
         resp.setHeader(HttpHeaders.CACHE_CONTROL, cacheControl(cdnMaxAge).getHeaderValue());
         resp.setHeader(HttpHeaders.ETAG, etag);
         resp.setHeader("X-Content-Type-Options", "nosniff");

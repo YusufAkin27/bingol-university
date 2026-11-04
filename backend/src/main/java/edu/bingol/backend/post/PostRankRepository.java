@@ -14,12 +14,33 @@ public interface PostRankRepository extends Repository<Post, Long> {
 
     String ORDER = "ORDER BY p.rankScore DESC, p.id DESC";
 
-    @Query("SELECT p FROM Post p WHERE " + PostRepository.FEED_VISIBLE + ORDER)
-    List<Post> topFirst(@Param("viewer") Long viewer, Pageable page);
+    /** Gorulmus kumesi disarida birakma ({@code :seen} bos olamaz: cagiran {-1} verir). */
+    String UNSEEN = "AND p.id NOT IN :seen ";
+    String VIDEO_ONLY = "AND p.kind = 'VIDEO' ";
 
-    @Query("SELECT p FROM Post p WHERE " + PostRepository.FEED_VISIBLE
+    @Query("SELECT p FROM Post p WHERE " + PostRepository.FEED_VISIBLE + UNSEEN + ORDER)
+    List<Post> topFirst(@Param("viewer") Long viewer, @Param("seen") Collection<Long> seen, Pageable page);
+
+    @Query("SELECT p FROM Post p WHERE " + PostRepository.FEED_VISIBLE + UNSEEN
             + "AND (p.rankScore < :sc OR (p.rankScore = :sc AND p.id < :cid)) " + ORDER)
-    List<Post> topAfter(@Param("viewer") Long viewer, @Param("sc") double score, @Param("cid") Long cid, Pageable page);
+    List<Post> topAfter(@Param("viewer") Long viewer, @Param("seen") Collection<Long> seen,
+                        @Param("sc") double score, @Param("cid") Long cid, Pageable page);
+
+    /** Reels: yalniz video gonderiler, ayni puan siralamasi. */
+    @Query("SELECT p FROM Post p WHERE " + PostRepository.FEED_VISIBLE + VIDEO_ONLY + UNSEEN + ORDER)
+    List<Post> reelsFirst(@Param("viewer") Long viewer, @Param("seen") Collection<Long> seen, Pageable page);
+
+    @Query("SELECT p FROM Post p WHERE " + PostRepository.FEED_VISIBLE + VIDEO_ONLY + UNSEEN
+            + "AND (p.rankScore < :sc OR (p.rankScore = :sc AND p.id < :cid)) " + ORDER)
+    List<Post> reelsAfter(@Param("viewer") Long viewer, @Param("seen") Collection<Long> seen,
+                          @Param("sc") double score, @Param("cid") Long cid, Pageable page);
+
+    /** Tekrar (gorulmus) modu: verilen kimliklerden bakana gorunur olanlar (sira cagirana aittir). */
+    @Query("SELECT p FROM Post p WHERE " + PostRepository.FEED_VISIBLE + "AND p.id IN :ids")
+    List<Post> visibleByIds(@Param("viewer") Long viewer, @Param("ids") Collection<Long> ids);
+
+    @Query("SELECT p FROM Post p WHERE " + PostRepository.FEED_VISIBLE + VIDEO_ONLY + "AND p.id IN :ids")
+    List<Post> visibleVideosByIds(@Param("viewer") Long viewer, @Param("ids") Collection<Long> ids);
 
     /** Yazar başına takipçi sayısı (tek sorgu): [userId, followerCount]. */
     @Query("SELECT f.userId, f.followerCount FROM FollowStats f WHERE f.userId IN :ids")

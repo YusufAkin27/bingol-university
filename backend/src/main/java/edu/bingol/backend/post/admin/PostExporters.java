@@ -31,6 +31,19 @@ public class PostExporters {
         });
     }
 
+    /** Reels izleme geçmişi (45 gün saklanır): kimlik, zaman, sayaçlar, "ilgilenmiyorum". */
+    @Bean
+    DataExporter postWatchExporter(JdbcTemplate jdbc) {
+        return DataExporter.of("reelWatchHistory", uid -> {
+            List<Map<String, Object>> rows = jdbc.queryForList("SELECT post_id AS \"postId\", "
+                    + "CAST(first_seen_at AS varchar) AS \"firstSeenAt\", CAST(last_seen_at AS varchar) AS \"lastSeenAt\", "
+                    + "impressions, watch_ms AS \"watchMs\", completion_pct AS \"completionPct\", skips, "
+                    + "not_interested AS \"notInterested\" FROM post_watch WHERE user_id = ? "
+                    + "ORDER BY last_seen_at DESC LIMIT " + MAX_ROWS, uid);
+            return Map.of("count", rows.size(), "items", rows);
+        });
+    }
+
     @Bean
     DataExporter postLikesExporter(JdbcTemplate jdbc) {
         return DataExporter.of("postLikes", uid -> {

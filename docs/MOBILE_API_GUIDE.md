@@ -896,10 +896,11 @@ Kategori anahtarları (13): faculty, institute, school, vocational, dining, libr
 |---|---|
 | `POST /api/posts/media` (multipart `file`, video için `poster` isteğe bağlı) | 201 `{id, kind:"IMAGE"\|"VIDEO", url, thumbUrl, width, height, durationMs, bytes}`. Video: MP4/MOV/M4V/WebM, **≤ 60 sn, ≤ 50 MB**; hatalar `400 VIDEO_INVALID`, `400 VIDEO_TOO_LONG`, `413 VIDEO_TOO_LARGE`, `422 MEDIA_BLOCKED`, `429 POST_MEDIA_PENDING_LIMIT`. Saatte 30 yükleme. |
 | `POST /api/posts` `{text?, mediaIds:[id]}` | 201 `PostView`. Tam 1 medya (foto **veya** video); `400 POST_PHOTO_REQUIRED` (boş), `400 POST_SINGLE_PHOTO_ONLY` (2+), `400 POST_MEDIA_INVALID`; metin ≤ 7 kelime/60 karakter. Saatte 20. |
-| `GET /api/feed?cursor=&size=` (`scope` yok/`top`/`popular`/`latest` = **aynı tek puanlı akış**) | `{items:[PostView], nextCursor, hint, exhausted}`; `size` varsayılan 12, üst sınır 30. `following`/`department` değişmedi. |
-| `GET /api/feed/reels?cursor=&size=` | Yalnız video gönderiler; aynı yanıt biçimi; `size` varsayılan 8, üst sınır 20. |
-| `POST /api/feed/seen` `{ids:[…≤100]}` | 204. Ekranda görünen gönderi/reel kimlikleri (dakikada 60). |
-| `POST /api/posts/{id}/view` `{watchedMs, durationMs}` | 204. Video izlenme olayı (dakikada 240); bkz. aşağıdaki kurallar. |
+| `GET /api/feed?scope=foryou\|popular\|latest\|following&cursor=&size=` | `{items:[PostView], nextCursor, hint, exhausted}`. **Filtre eşlemesi:** Senin İçin = `foryou` (varsayılan, kişiselleştirilmiş), Popüler = `popular` (eski `top` aynı), En Yeni = `latest`, Takip Ettiklerim = `following`; `size` varsayılan 12 (üst sınır 30). `exhausted` yalnız `foryou`/`popular`. |
+| `GET /api/feed/reels?cursor=&size=&replay=` | Yalnız video; **öneri algoritması** (kural tabanlı puan, oturumda tekrar yok, izlenmemişler öncelikli); `size` varsayılan 8, üst sınır 20. Aday kalmayınca `items:[]`/son sayfa + **`exhausted:true`**; **`replay=true`** = "Tekrar izle" (imleçsiz ilk çağrı). |
+| `POST /api/posts/{id}/not-interested` / `DELETE` | 204 / 204. "İlgilenmiyorum" (Reels + Senin İçin önerilerinden kalkar, 45 gün); DELETE geri alır. |
+| `POST /api/feed/seen` `{ids:[…≤100]}` | 204. Ekranda **gerçekten görünen** gönderi/reel kimlikleri (dakikada 60); video kimlikleri Reels izleme geçmişine **gösterim** olarak yazılır (Reels sayfa dönüşü gösterim yazmaz). |
+| `POST /api/posts/{id}/view` `{watchedMs, durationMs}` | 204. Video izlenme olayı (dakikada 240): gönderi sayacı + kullanıcı izleme geçmişi (süre, tamamlanma, hızlı geçme: < 1,5 sn ya da < %15); bkz. aşağıdaki kurallar. |
 | `GET /api/posts/media/{id}` / `?thumb=true` | Fotoğraf; video (**Range 206/416**) ve poster. Bearer başlığı gerekir (video oynatıcıya `httpHeaders` verin). |
 | `GET /api/users/me`, `GET /api/users/{id}` | Yeni alanlar: `popularityScore` (0..100), `likesReceived`, `postCount`, (`ProfileView`'da ayrıca `followerCount`). |
 | `GET /api/admin/posts?type=PHOTO\|VIDEO` | Satırda `type`, `viewCount`, `avgCompletionPct`. |
@@ -914,10 +915,11 @@ Kategori anahtarları (13): faculty, institute, school, vocational, dining, libr
 ```
 - **Puanlar gerçek sayılardır** (beğeni, takipçi, izlenme, tamamlanma, gönderi sayısı); uydurma rozet/ödül yok. İstemci puan HESAPLAMAZ, `popularityScore`'u çubuk/rozet olarak çizer
   (0 = boş). Kullanıcı puanı en çok ~1 saat gecikmelidir; gizli (kilitli) hesapta ve engel gölge profilinde alanlar gelmez (null/yok: çizme).
-- **Tekrar göstermeme:** sunucu `GET /api/feed` ve `/reels` ile döndürdüğü her sayfayı **kendisi görülmüş sayar** (Redis, 48 sa, ≤ 2000); `cursor`'suz çağrı (yenileme) görülmüşleri hariç tutar.
+- **Tekrar göstermeme (Keşfet `foryou`/`popular`):** sunucu döndürdüğü her sayfayı **kendisi görülmüş sayar** (Redis, 48 sa, ≤ 2000); `cursor`'suz çağrı (yenileme) görülmüşleri hariç tutar. **Reels** ise kendi 45 günlük izleme geçmişini kullanır (aşağıda).
   İstemci ek olarak ekranda ≥ ~1 sn görünen kartları `POST /api/feed/seen` ile toplu (örn. sayfa değişiminde/duraklamada, ≤ 100) bildirmelidir. Hepsi görüldüyse sunucu en eski
   görülmüşlerden tekrar eder ve **`exhausted:true`** döner (boş liste yok): istemci isterse "hepsini gördün" ipucu gösterir. Tekrar sayfaları da `nextCursor` ile gezilir.
   `nextCursor` opaktır; yenilemede imleci atın.
 - **İzlenme olayı:** video kartı/Reels'ten çıkarken ya da bitince **bir kez** `POST /api/posts/{id}/view {watchedMs, durationMs}`. Sunucu aynı kullanıcı+gönderiyi 6 saatte bir sayar, kendi videosunu,
   fotoğrafı ve < 1 sn'yi saymaz; yanıt hep 204 (sayıldı mı bildirilmez). Döngüde `watchedMs` toplamı süreyi aşabilir (kenetlenir).
+- **Reels akışı (mobil sözleşmesi):** ilk çağrı imleçsiz (`GET /api/feed/reels?size=8`), sonra `nextCursor`; ekranda ≥ ~1 sn görünen video için `POST /api/feed/seen`, videodan çıkınca/bitince **bir kez** `POST /api/posts/{id}/view`. `exhausted:true` gelince "Şimdilik tüm videoları gördün" bilgi alanı + **Tekrar izle** (`GET /api/feed/reels?replay=true`) + alternatif (Keşfet gönderileri / takip önerileri); pull-to-refresh imleçsiz çağrıdır (yeni oturum, kontrollü yeniden sıralama, yeni videolar katılır). Üç nokta menüsünde "İlgilenmiyorum" → `POST /api/posts/{id}/not-interested`. Ağırlıklar: `docs/changes/post.md` bölüm 6.
 - **Eski sürüm riski:** ≤ 2.0.6 istemciler video gönderiyi görsel gibi yükleyemez; yeni istemci `type`'a bakmalıdır. Bilinmeyen `type` değeri gelirse kartı yoksayın.

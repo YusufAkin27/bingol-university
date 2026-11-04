@@ -191,15 +191,25 @@ Bu bölüm mobil ajanların (KS-MB) sözleşmesidir. `docs/MOBILE_API_GUIDE.md` 
 - **Geriye uyum riski:** eski mobil sürümler (<= 2.0.6) `media[0].kind:"VIDEO"` görünce görsel olarak yükleyemez (kırık kare); video yükleme arayüzü yalnız yeni mobilde
   açılacağından risk, yeni sürümü kullananların yüklediği videolarla sınırlıdır.
 
-### 3. Tek sıralama: `GET /api/feed`
-- `scope` verilmezse / `top` / `popular` / `latest` => **aynı puanlı akış** (taze içerik soğuk-başlangıç bonusuyla). `following` ve `department` (takip/bölüm
-  akışı, profil sekmesi vb.) aynen kalır; yeni mantık (görülmüş kümesi) yalnız Keşfet akışına ve Reels'e uygulanır. Bilinmeyen kapsam `400 FEED_SCOPE_INVALID`.
-- Yanıt `{items:[PostView], nextCursor, hint, exhausted}`; `size` varsayılan 12, üst sınır 30; `nextCursor` opak, `null` = son sayfa; `hint:"RANK_REFRESHED"` nadiren aynı gönderi tekrarı olabilir (id ile tekilleştirin).
-- Fotoğraf ve video aynı akışta karışık gelir. Sayfa içi aynı yazar ardışık en çok `maxAuthorRun` (2).
+### 3. Kapsamlar: `GET /api/feed?scope=`  (genişletme: 2. istek)
+Keşfet filtreleri **Senin İçin | Popüler | Reels | En Yeni | Takip Ettiklerim** şu kapsamlara bağlanır (`scope` verilmezse `foryou`):
+
+| Filtre | Çağrı | Davranış |
+|---|---|---|
+| Senin İçin | `GET /api/feed?scope=foryou` | Kişiselleştirilmiş tek akış: ortak popülerlik puanı havuzundan (görülmüş hariç) **takip önceliği + yazar ilgisi (beğendiğin yazarlar) + kontrollü rastgelelik** ile yeniden sıralanır. Sayfalar aynı oturumda kararlıdır (imleç yalnız oturum tohumunu taşır); yenileme (imleçsiz) yeni tohum alır. Görülmüş kümesi (bölüm 5) ve `exhausted` geçerlidir. |
+| Popüler | `GET /api/feed?scope=popular` (eski ad `top` aynı) | Genel popülerlik puanı sırası (`rank_score DESC`), görülmüş hariç, `exhausted` tekrar modu. |
+| En Yeni | `GET /api/feed?scope=latest` | Kronolojik (yeniden eskiye), foto + video; görülmüş kümesi UYGULANMAZ, `exhausted` alanı yok. |
+| Takip Ettiklerim | `GET /api/feed?scope=following` | Takip ettiklerin (+ kendi) gönderileri, kronolojik (değişmedi; `department` de aynen). |
+| Reels | `GET /api/feed/reels` | Ayrı uç, öneri algoritması: bölüm 6. |
+
+- Yanıt `{items:[PostView], nextCursor, hint, exhausted}`; `size` varsayılan 12, üst sınır 30 (`latest`/`following`: 10/20); `nextCursor` opak, `null` = son sayfa; `hint:"RANK_REFRESHED"` (yalnız popular) nadiren
+  aynı gönderi tekrarı olabilir (id ile tekilleştirin). Bilinmeyen kapsam `400 FEED_SCOPE_INVALID`, bozuk imleç `400 POST_CURSOR_INVALID`. İmleçler kapsama özeldir: kapsam değişince imleci atın.
+- Fotoğraf ve video aynı akışlarda karışık gelir. Sayfa içi aynı yazar ardışık en çok `maxAuthorRun` (2).
 - **Puan formülü** (`PostRank`, ağırlıklar `app.post.rank.*`, 5 dk'da bir `PostRankService` yeniden hesaplar; yeni gönderi anında soğuk-başlangıç puanı alır):
   `engagement = likeW*ln(1+beğeni) + followerW*ln(1+yazarTakipçi) + velocityW*ln(1+son24saatBeğeni) + viewW*ln(1+izlenme) + completionW*ortTamamlanma*ln(1+izlenme)`;
   `puan = (engagement * 0.5^(yaşSaat/halfLifeHours) + soğukBonus) * reportPenalty^min(açıkŞikâyet, 5)`. Yeni anahtarlar: `viewWeight` 0,8, `completionWeight` 1,5,
   `popularityScale` 8. Ham puan istemciye dönmez (yalnız 0..100 gösterim puanı döner).
+- **Senin İçin puanı** (`ReelsRanker.forYou`, `app.post.reels.forYou*`): `2,0*r/(r+3) + (takip ? 1,5 : 0) + 0,8*min(1, ln(1+yazarBeğenin)/ln 4) + 0,6*rastgele(tohum, gönderi)`; aday havuzu `forYouPoolSize` (150).
 
 ### 4. Kullanıcı "Popülerlik puanı"
 - **Profilim** `GET /api/users/me` (`ProfileView`) ve **başkasının profili** `GET /api/users/{id}` (`PublicProfile`) yanıtına eklendi (alanlar yalnız doluysa gelir):
@@ -210,26 +220,43 @@ Bu bölüm mobil ajanların (KS-MB) sözleşmesidir. `docs/MOBILE_API_GUIDE.md` 
   (yalnız değişen satır yazılır); satırı olmayan yeni kullanıcı için anında hesaplanır. Gecikme en çok ~1 saat; `followerCount` (profilde) canlıdır.
 - Hesap silinince satır silinir (`PostAccountPurger`).
 
-### 5. Tekrar göstermeme (görülmüş kümesi): yalnız `GET /api/feed` (top) ve `GET /api/feed/reels`
+### 5. Tekrar göstermeme (görülmüş kümesi): `GET /api/feed` `foryou` ve `popular` kapsamları (Reels kendi geçmişini kullanır, bölüm 6)
 - Redis `feedseen:<uid>` (ZSET, skor = görülme damgası, **TTL 48 sa, en çok 2000 öğe**; `FeedSeenService`). Sunucu bu akışlarda **döndürdüğü her sayfayı otomatik
   görülmüş sayar**; istemci ayrıca `POST /api/feed/seen {"ids":[91,92,...]}` (en çok **100** kimlik, dakikada 60) ile ekranda gerçekten görünenleri bildirir (yedek). Yanıt 204.
-  Geçersiz kimlikler yok sayılır; küme Reels ile ortaktır (Reels'te görülen gönderi Keşfet'te de gelmez).
-- `cursor` yok (yenileme/ilk açılış): görülmüşler **hariç** akış döner. Aynı oturumda sayfalama imleci tekrar üretmez.
+  Geçersiz kimlikler yok sayılır. Video kimlikleri ayrıca izleme geçmişine gösterim olarak yazılır (bölüm 6). `latest`/`following`/`department` ve Reels bu Redis kümesini kullanmaz.
+- `cursor` yok (yenileme/ilk açılış): görülmüşler **hariç** akış döner (`foryou`, `popular`). Aynı oturumda sayfalama imleci tekrar üretmez.
 - **Havuz tükenirse** (ilk sayfada görülmemiş gönderi kalmadı): en eski görülmüşlerden başlayarak tekrar eder, yanıtta **`exhausted:true`** (boş akış yok);
   tekrar sayfaları da kendi `nextCursor`'ı (`R|…` imleci) ile sonuna kadar gezilir ve aynı gezintide tekrar yoktur; tekrar gösterilenler yeni damga alır
   (sonraki yenileme farklı gönderilerle başlar). Normal sayfalarda `exhausted:false`. Sınır: son normal sayfa dolu değilse (az görülmemiş kaldı) o sayfa kısa
-  döner, doldurma yapılmaz; sonraki yenileme tekrar moduna geçer. `following`/`department` ve eski `latest`/`popular` servis kapsamlarında alan hiç gelmez.
+  döner, doldurma yapılmaz; sonraki yenileme tekrar moduna geçer. `latest`/`following`/`department` kapsamlarında `exhausted` alanı hiç gelmez.
 - Depo hatasında (Redis yok) küme boş sayılır: akış çalışır, tekrar göstermeme geçici olarak uygulanmaz.
 - KVKK: kısa ömürlü teknik veri (48 sa), kimliklerden başka bir şey içermez; hesap silinince `feedseen:<uid>` silinir; `GET /api/users/me/export`'a **girmez**.
 
-### 6. Reels: `GET /api/feed/reels?cursor&size`
-- Yalnız **video** gönderiler, aynı puan sıralaması + görülmüş hariç tutma/tekrar modu (yanıt `FeedPage` + `exhausted`). `size` varsayılan **8**, üst sınır **20**.
-  İlk sayfa için `cursor` boş; imleç opak. Dakikada 120 okuma. Tam ekran dikey oynatma istemcidedir (`video.url` Bearer + Range).
+### 6. Reels: `GET /api/feed/reels?cursor&size&replay` (öneri algoritması, genişletme: 2. istek)
+- Yalnız **video** gönderiler; yanıt `FeedPage` (`items, nextCursor, hint, exhausted`). `size` varsayılan **8**, üst sınır **20**; dakikada 120 okuma. İlk sayfa `cursor` boş (pull-to-refresh = yeni oturum);
+  imleç opak (oturum kimliği + tohum + tekrar modu + önceki sayfanın son yazarı taşır). Tam ekran dikey oynatma istemcidedir (`video.url` Bearer + Range).
+- **Oturum** = imleçsiz çağrıdan sonraki imleç zinciri. Sunucu döndürdüğü videoları oturum kümesine yazar (Redis `reelsess:<uid>:<sid>`, 6 sa): **aynı video aynı oturumda tekrar gelmez**.
+  Pull-to-refresh yeni oturum + yeni rastgelelik tohumu başlatır: sıra kontrollü yeniden üretilir (aynı video hep ilk gelmez), yeni yüklenen videolar katılır.
+- **Aday havuzu (normal mod):** görünür videolar − "ilgilenmiyorum" dediklerin − son `resurfaceAfterDays` (14) günde **ekranda gördüklerin** (izleme geçmişi) − oturumda gösterilenler. Yani **izlenmemişler öncelikli**:
+  önce hiç görmediğin videolar gelir; 14 günden eski izleme kaydı olanlar yeniden aday olur (cezalı).
+- **Puan** (kural tabanlı, ML yok; `ReelsRanker.score`, ağırlıklar `app.post.reels.*`, aday havuzu rank_score sırasında ilk `poolSize` (200) video):
+  `puan = freshWeight*0,5^(yaşSaat/freshHalfLifeHours) + (izlenmemişse unseenBonus) + interestWeight*min(1, ln(1+yazarBeğenin)/ln 4) + (takip ? followBonus : 0) + qualityWeight*gönderiPuanı/100 + randomWeight*rastgele(tohum, video)`
+  `− recentSeenPenalty*max(0, 1 − sonİzlenmedenSaat/recentSeenHours) − repeatPenalty*ln(1+gösterim) − quickSkipPenalty*min(hızlıGeçme, 3)`.
+  Varsayılanlar: fresh 2,0 (yarı ömür 72 sa), unseen 1,5, interest 1,0, follow 1,2 (ölçülü), quality 2,0, random 1,0, recentSeen 2,5 (24 sa), repeat 0,8, quickSkip 1,0 (hızlı geçme = < 1500 ms ya da süresi ≥ 5 sn videoda < %15).
+  Tek yazarın videoları ardışık gelmez (`maxAuthorRun` 1; sayfa sınırında da önceki sayfanın son yazarı bir sonrakinin ilki olmaz).
+- **İçerik tükenince (sonsuz döngü YOK):** aday kalmadıysa sayfa `items:[]` (ya da son kısmi sayfa) + `nextCursor:null` + **`exhausted:true`** döner (`exhausted = nextCursor == null`). İstemci
+  "Şimdilik tüm videoları gördün" bilgi alanını + **Tekrar izle** + alternatif (Keşfet gönderileri / takip önerileri) gösterir. **Tekrar izle:** `GET /api/feed/reels?replay=true` (imleçsiz, ilk çağrı) =
+  geçmişi yok sayan yeni oturum: tüm görünür videolar aday (yalnız "ilgilenmiyorum" hariç), sıralama cezalarla yapılır (en az yakın zamanda izlenen, hızlı geçilmemiş önce); imleçle sonuna kadar gezilir (`replay` imleçte taşınır), biterse yine `exhausted:true`.
+  Geçmiş silinmez (`replay` yalnız bu oturum için yok sayar); 45 günden eskisi zaten düşer.
+- **İzleme geçmişi** (tablo `post_watch`, V1221; kullanıcı + video: ilk/son görülme, gösterim sayısı, toplam izleme süresi, en yüksek tamamlanma %, hızlı geçme sayısı, ilgilenmiyorum; beğeni/yorum/kaydetme durumu kendi tablolarından okunur):
+  - **Gösterim:** istemci ekranda görünen video kimliklerini `POST /api/feed/seen` ile bildirir (sunucu Reels sayfası döndürmekle gösterim YAZMAZ; istemci önden yüklediği ama göstermediği videolar "görülmüş" sayılmaz).
+  - **İzleme olayı:** `POST /api/posts/{id}/view {watchedMs, durationMs}` (bölüm aşağıda) aynı zamanda geçmişe yazar: toplam süre, tamamlanma, hızlı geçme. Geçmiş yazımı Redis 6 saatlik sayaç tekilleştirmesinden bağımsızdır (her olay geçmişe işlenir).
+  - **Saklama:** 45 gün (`PostWatchRetentionJob`, 05:20; `app.post.reels.retention-days`). KVKK: hesap silinince satırlar silinir (`PostAccountPurger` → `ReelsService.purge`), `GET /api/users/me/export` içinde `reelWatchHistory` bölümü vardır; Redis oturum kümeleri 6 saat TTL ile düşer.
+- **"İlgilenmiyorum":** `POST /api/posts/{id}/not-interested` → **204** (gönderi görünürse; yoksa 404 `POST_NOT_FOUND`; dakikada 30). Gönderi bu kullanıcının Reels ve "Senin İçin" önerilerinden kalkar (45 gün). Geri alma: `DELETE /api/posts/{id}/not-interested` → 204. Üç nokta menüsünde kullanın.
 - **İzlenme olayı:** `POST /api/posts/{id}/view` `{"watchedMs":12000,"durationMs":18400}` -> **204** (sayılmayan olaylar sessizce yok sayılır).
-  Yalnız başkasının görünür **video** gönderisi; kullanıcı başına gönderi başına **6 saatte bir kez** sayılır (Redis `pview:<postId>:<uid>`); en az `min(1 sn, süre)` izlenmiş olmalı;
-  süre olarak sunucudaki video süresi kullanılır (istemcinin `durationMs`'i yalnız yedek); tamamlanma yüzdesi `min(100, watchedMs*100/süre)` (döngüde 100'e kenetlenir).
-  İstemci videodan çıkınca/bitince **bir kez** göndermelidir (erken olay pencereyi tüketir). Dakikada 240. `404 POST_NOT_FOUND` yalnız gönderi yoksa/görünmezse.
-  Etki: `post.view_count`, `post.completion_pct_sum` -> puan `viewWeight`/`completionWeight`. Analytics `kind` listesine yeni eylem EKLENMEDİ.
+  Gönderi sayacı: yalnız başkasının görünür **video** gönderisi; kullanıcı başına gönderi başına **6 saatte bir kez** (Redis `pview:<postId>:<uid>`); en az `min(1 sn, süre)` izlenmiş olmalı;
+  süre olarak sunucudaki video süresi (istemcinin `durationMs`'i yalnız yedek); tamamlanma yüzdesi `min(100, watchedMs*100/süre)`. İstemci videodan çıkınca/bitince **bir kez** göndermelidir (erken olay pencereyi tüketir).
+  Dakikada 240. `404 POST_NOT_FOUND` yalnız gönderi yoksa/görünmezse. Etki: `post.view_count`, `post.completion_pct_sum` -> puan `viewWeight`/`completionWeight`. Analytics `kind` listesine yeni eylem EKLENMEDİ.
 
 ### 7. Yönetici
 - `GET /api/admin/posts` yeni süzgeç `type=PHOTO|VIDEO`; satırda `type`, `viewCount`, `avgCompletionPct` (ortalama tamamlanma %) ve `media[]` (video için `kind:"VIDEO"`,
@@ -239,12 +266,13 @@ Bu bölüm mobil ajanların (KS-MB) sözleşmesidir. `docs/MOBILE_API_GUIDE.md` 
 ### 8. Şema (`V1220__kesfet_video_popularity.sql`) ve kod haritası
 - `post.kind` (`PHOTO|VIDEO`, eski veri ilk medyasına göre doldurulur), `post.view_count`, `post.completion_pct_sum`; indeks `pv_post_kind_rank_idx` (reels); tablo `user_popularity`
   (`user_id` PK, `score`, `follower_count`, `likes_received`, `post_count`, `computed_at`).
+- V1221 (`post_watch`): kullanıcı bazlı izleme geçmişi (bölüm 6); indeks `pv_post_watch_*`. Yeni paket `post.reels` (`ReelsService`, `ReelsRanker`, `ReelsProperties` = `app.post.reels.*`, `PostWatch*`, `PostWatchRetentionJob`); `PostCursor` `E|` (Reels) ve `F|` (Senin İçin) imleçleri; `FeedSeenStore.sessionAdd/sessionIds`.
 - Yeni: `post.feed` (`FeedSeenService`, `FeedSeenStore` = `RedisFeedSeenStore` | `InMemoryFeedSeenStore` (test, `app.feed.seen-store=memory`)), `post.popularity`
   (`UserPopularityService`, `PopularityProperties`, `UserPopularity*`), `WebmInfo`/`Mp4Info.isVideoBrand` (`media`), `PostMediaBinder.requireMedia`, `PostCounters.addView`,
   `PostRankRepository.{topFirst,topAfter,reelsFirst,reelsAfter,visibleByIds,visibleVideosByIds}` (görülmüş hariç tutma `NOT IN`).
 - `PostRepository.FEED_VISIBLE` artık "görünür **herhangi bir** medya" ister (önceden yalnız fotoğraf); medyasız eski metin gönderileri hâlâ listelerde/aramada yok.
   `PostSearchProvider` aynı kuralı izler (video gönderisi aramada da çıkar).
-- Testler: `PostFeedSeenTest`, `UserPopularityTest`, `PostRankTest`, `WebmInfoTest`, `PostMediaServiceTest` (MOV/WebM/HEIC), `PostServiceTest`/`PostTopFeedTest` güncel.
+- Testler: `PostFeedSeenTest` (foryou, reels, geçmiş, ilgilenmiyorum), `ReelsRankerTest`, `UserPopularityTest`, `PostRankTest`, `WebmInfoTest`, `PostMediaServiceTest` (MOV/WebM/HEIC), `PostServiceTest`/`PostTopFeedTest` güncel.
   PostgreSQL'e özgü kısımlar (V1220 migration, `NOT IN` + kısmi indeks planı, Redis ZSET işlemleri) H2'de değil `scripts/smoke-kesfet-video.sh` ile doğrulanır.
 - Dağıtım notu (koordinatör): `MULTIPART_MAX_FILE=52MB`, `MULTIPART_MAX_REQUEST=54MB` (compose/.env.prod.example güncellendi), Caddy `CADDY_MAX_BODY` >= 55 MB; V1220 yalnız
   ALTER ADD COLUMN (varsayılanlı) + UPDATE + CREATE; Flyway V1210 (davranış analizi) ile çakışmaz.

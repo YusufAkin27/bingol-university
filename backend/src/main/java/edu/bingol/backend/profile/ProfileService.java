@@ -113,7 +113,40 @@ public class ProfileService {
         view = self ? withEmail(view, u.getEmail()) : view;
         view = withFollow(view, viewerId, targetId);
         view = withRelation(view, viewerId, targetId);
+        view = withPopularity(view, targetId);
         return self ? view : view.withBlockedByMe(false);
+    }
+
+    /** Populerlik puani (post.popularity; yoksa/gizli hesapta kilitliyse alanlar eklenmez). Hata profil yanitini bozmaz. */
+    private edu.bingol.backend.post.popularity.UserPopularityService popularity;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setPopularity(edu.bingol.backend.post.popularity.UserPopularityService popularity) {
+        this.popularity = popularity;
+    }
+
+    /** Kendi profilim icin populerlik (GET /users/me); hata/modul yoksa null. */
+    public edu.bingol.backend.post.popularity.UserPopularityService.Snapshot popularityOf(Long userId) {
+        if (popularity == null) {
+            return null;
+        }
+        try {
+            return popularity.of(userId);
+        } catch (RuntimeException e) {
+            return null;
+        }
+    }
+
+    private PublicProfile withPopularity(PublicProfile p, Long targetId) {
+        if (popularity == null || Boolean.TRUE.equals(p.locked())) {
+            return p; // kilitli (gizli) hesapta sayaclar gibi populerlik de gizli
+        }
+        try {
+            edu.bingol.backend.post.popularity.UserPopularityService.Snapshot s = popularity.of(targetId);
+            return p.withPopularity(s.score(), s.likesReceived(), s.postCount());
+        } catch (RuntimeException e) {
+            return p;
+        }
     }
 
     /** Gizli hesap kapisi (post.follow; yoksa alanlar eklenmez). */

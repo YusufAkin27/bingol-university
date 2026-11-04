@@ -51,6 +51,10 @@ public class ProfileController {
     public ProfileView me() {
         Long uid = CurrentUser.id();
         ProfileView v = ProfileView.of(profiles.get(uid));
+        var pop = profiles.popularityOf(uid);
+        if (pop != null) {
+            v = v.withPopularity(pop.score(), pop.followerCount(), pop.likesReceived(), pop.postCount());
+        }
         return privacy == null ? v : v.withAvatarHidden(privacy.get(uid).isAvatarHidden());
     }
 

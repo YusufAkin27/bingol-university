@@ -123,7 +123,7 @@ class PostTopFeedTest {
     }
 
     @Test
-    void blockedAuthorAndVideoOnlyAreFilteredOut() {
+    void blockedAuthorIsFilteredOutAndVideoPostsAreListedButMediaLessAreNot() {
         User viewer = newUser();
         User blocked = newUser();
         User ok = newUser();
@@ -135,12 +135,14 @@ class PostTopFeedTest {
         videoOnly.setMediaCount((short) 1);
         videoOnly = posts.saveAndFlush(videoOnly);
         PostFixtures.media(mediaRepo, ok.getId(), videoOnly.getId(), "VIDEO");
+        Post textOnly = PostFixtures.textOnly(posts, ok.getId(), "eski metin");
         blocks.saveAndFlush(new UserBlock(viewer.getId(), blocked.getId()));
         rank.recompute();
 
         List<Long> all = walk(viewer.getId(), 30, 200);
         assertFalse(all.contains(b.getId()), "engelli yazar");
-        assertFalse(all.contains(videoOnly.getId()), "video-only gizli");
+        assertTrue(all.contains(videoOnly.getId()), "video gonderisi akista");
+        assertFalse(all.contains(textOnly.getId()), "medyasiz eski gonderi gizli");
         assertTrue(all.contains(g.getId()));
     }
 

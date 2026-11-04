@@ -6,12 +6,22 @@ import edu.bingol.backend.moderation.profanity.ContentGuard;
 import edu.bingol.backend.post.PostDtos.CreatePostRequest;
 import edu.bingol.backend.post.PostDtos.FeedPage;
 import edu.bingol.backend.post.PostDtos.PostView;
+import edu.bingol.backend.post.feed.FeedSeenService;
+import edu.bingol.backend.post.feed.FeedSeenStore;
+import edu.bingol.backend.post.reels.ReelsService;
 import edu.bingol.backend.post.spi.PostMediaBinder;
+import edu.bingol.backend.post.spi.PostMediaLookup;
 import edu.bingol.backend.user.UserRepository;
 import edu.bingol.backend.user.UserStatus;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.function.Function;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.context.ApplicationEventPublisher;
@@ -25,6 +35,8 @@ import org.springframework.transaction.annotation.Transactional;
 public class PostService {
 
     public static final Duration POPULAR_WINDOW = Duration.ofDays(7);
+    /** Izlenme sayilmasi icin en az izleme suresi (video bundan kisaysa videonun tamami). */
+    static final long MIN_VIEW_MS = 1000;
 
     private final PostRepository posts;
     private final UserRepository users;
@@ -52,6 +64,32 @@ public class PostService {
         this.rankRepo = rankRepo;
     }
 
+    /** Gorulmus kumesi (tekrar gostermeme) + izlenme sayaci + video suresi (setter: kurucu imzasi degismesin). */
+    private FeedSeenService seen;
+    private ReelsService reelsService;
+    private PostCounters counters;
+    private ObjectProvider<PostMediaLookup> mediaLookups;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setSeen(FeedSeenService seen) {
+        this.seen = seen;
+    }
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setReelsService(ReelsService reelsService) {
+        this.reelsService = reelsService;
+    }
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setCounters(PostCounters counters) {
+        this.counters = counters;
+    }
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setMediaLookups(ObjectProvider<PostMediaLookup> mediaLookups) {
+        this.mediaLookups = mediaLookups;
+    }
+
     /** Gizli hesap kapisi (setter: kurucu imzasi degismesin; yoksa tum hesaplar herkese acik sayilir). */
     private edu.bingol.backend.post.follow.PrivateAccountGate gate;
 
@@ -72,7 +110,7 @@ public class PostService {
         this.events = events;
     }
 
-    /** Sade gonderi: tam 1 fotograf (zorunlu) + en cok 7 kelimelik, istege bagli tek satir metin. */
+    /** Gonderi: tam 1 medya (fotograf ya da video, zorunlu) + en cok 7 kelimelik, istege bagli tek satir metin. */
     @Transactional
     public PostView create(Long uid, CreatePostRequest req) {
         String text = normalize(req.text());
@@ -91,10 +129,11 @@ public class PostService {
         if (binder == null) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "POST_MEDIA_INVALID", "Seçilen medya geçersiz.");
         }
-        binder.requireImage(uid, mediaIds); // video/yabancı/geçersiz medya: gönderi kaydedilmeden reddedilir
+        String kind = binder.requireMedia(uid, mediaIds); // yabancı/geçersiz medya: gönderi kaydedilmeden reddedilir
         Post p = new Post();
         p.setAuthorId(uid);
         p.setBody(text);
+        p.setKind("VIDEO".equals(kind) ? Post.KIND_VIDEO : Post.KIND_PHOTO);
         if (rank != null) {
             p.setRankScore(rank.initialScore(p)); // soguk baslangic: yeni gonderi hemen gorunur
         }
@@ -171,8 +210,14 @@ public class PostService {
         if ("following".equalsIgnoreCase(scope) || "department".equalsIgnoreCase(scope)) {
             return socialFeed(viewer, scope.toLowerCase(java.util.Locale.ROOT), cursor, n);
         }
-        if ("top".equalsIgnoreCase(scope) && rank != null) {
-            return topFeed(viewer, cursor, size);
+        if ("foryou".equalsIgnoreCase(scope) && rank != null) {
+            return forYouFeed(viewer, cursor, size);
+        }
+        if (("popular".equalsIgnoreCase(scope) || "top".equalsIgnoreCase(scope)) && rank != null) {
+            return rankedFeed(viewer, cursor, size, false); // popularite puani sirasi (tek puan altyapisi)
+        }
+        if ("foryou".equalsIgnoreCase(scope)) {
+            scope = "latest"; // puan altyapisi yoksa (yalniz test/elle kurulum) kronolojik akisa dus
         }
         if (scope != null && !scope.isBlank() && !"latest".equalsIgnoreCase(scope) && !"popular".equalsIgnoreCase(scope)) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "FEED_SCOPE_INVALID", "Geçersiz akış türü.");
@@ -193,17 +238,35 @@ public class PostService {
     }
 
     /**
-     * top: onceden hesaplanmis rank_score'a gore (rank_score DESC, id DESC) imecli sayfa. Varsayilan 12, ust sinir 30.
-     * Puan istemciye donmez. Sayfa icinde ayni yazar ardisik en cok maxAuthorRun (kayipsiz yeniden siralama).
-     * Imlec yeniden hesap sonrasi eskiyse hint=RANK_REFRESHED (nadir kopya olabilir; istemci id ile ayiklar).
+     * Keşfet (tek sıralama) ve Reels: önceden hesaplanmış rank_score'a göre (rank_score DESC, id DESC) imeçli sayfa.
+     * Varsayılan 12 (reels 8), üst sınır 30 (reels 20). Puan istemciye dönmez. Sayfa içinde aynı yazar ardışık en çok
+     * maxAuthorRun (kayıpsız yeniden sıralama). İmleç yeniden hesap sonrası eskiyse hint=RANK_REFRESHED.
+     *
+     * <p>Tekrar göstermeme: kullanıcının görülmüş kümesi (Redis feedseen) akıştan hariç tutulur; dönen sayfa da
+     * görülmüş sayılır. İlk sayfada (imleç yok) hariç tutma sonucu boş kalır ve küme boş değilse havuz tükenmiştir:
+     * en eski görülmüşlerden başlayıp tekrar eder, exhausted=true (boş akış yok).
      */
-    private FeedPage topFeed(Long viewer, String cursor, int size) {
+    private FeedPage rankedFeed(Long viewer, String cursor, int size, boolean reels) {
         PostRankProperties cfg = rank.props();
         int n = size <= 0 ? cfg.defaultPageSize() : Math.min(size, cfg.maxPageSize());
+        PostCursor.Recycle rc = PostCursor.decodeRecycle(cursor);
+        if (rc != null) {
+            return recycledPage(viewer, rc.after(), rc.t0(), n, reels);
+        }
         PostCursor.Top c = PostCursor.decodeTop(cursor);
-        List<Post> rows = c == null
-                ? rankRepo.topFirst(viewer, PageRequest.of(0, n + 1))
-                : rankRepo.topAfter(viewer, c.score(), c.id(), PageRequest.of(0, n + 1));
+        Set<Long> seenIds = seen == null ? Set.of() : seen.ids(viewer);
+        Collection<Long> excl = seenIds.isEmpty() ? List.of(-1L) : seenIds;
+        PageRequest pr = PageRequest.of(0, n + 1);
+        List<Post> rows;
+        if (c == null) {
+            rows = reels ? rankRepo.reelsFirst(viewer, excl, pr) : rankRepo.topFirst(viewer, excl, pr);
+        } else {
+            rows = reels ? rankRepo.reelsAfter(viewer, excl, c.score(), c.id(), pr)
+                    : rankRepo.topAfter(viewer, excl, c.score(), c.id(), pr);
+        }
+        if (c == null && rows.isEmpty() && !seenIds.isEmpty()) {
+            return recycledPage(viewer, 0L, FeedSeenService.stamp(System.currentTimeMillis()), n, reels);
+        }
         boolean more = rows.size() > n;
         List<Post> items = more ? rows.subList(0, n) : rows;
         String next = null;
@@ -213,7 +276,145 @@ public class PostService {
         }
         String hint = c != null && c.version() != rank.version() ? "RANK_REFRESHED" : null;
         List<Post> shown = PostRank.diversify(items, Post::getAuthorId, cfg.maxAuthorRun());
-        return new FeedPage(assembler.assemble(viewer, shown), next, hint);
+        if (seen != null) {
+            seen.mark(viewer, shown.stream().map(Post::getId).toList());
+        }
+        return new FeedPage(assembler.assemble(viewer, shown), next, hint).withExhausted(false);
+    }
+
+    /** Reels: yalnız video gönderiler (aynı puan + görülmüş hariç tutma; görülmüş kümesi Keşfet ile ortaktır). */
+    @Transactional(readOnly = true)
+    public FeedPage reels(Long viewer, String cursor, int size, boolean replay) {
+        if (reelsService == null) {
+            return new FeedPage(List.of(), null, null).withExhausted(true);
+        }
+        return reelsService.reels(viewer, cursor, size, replay);
+    }
+
+    /**
+     * "Senin Icin": ortak puanli havuzdan (gorulmus haric) takip + yazar ilgisi + populerlik + kontrollu rastgelelikle
+     * yeniden siralanmis tek akis. Imlec yalniz oturum tohumunu tasir (gorulen sayfa gorulmus sayilip havuzdan
+     * dustugu icin sonraki sayfa yeniden hesaplanir). Havuz tukenince en eski gorulmuslerden tekrar + exhausted=true.
+     */
+    private FeedPage forYouFeed(Long viewer, String cursor, int size) {
+        PostRankProperties cfg = rank.props();
+        int n = size <= 0 ? cfg.defaultPageSize() : Math.min(size, cfg.maxPageSize());
+        PostCursor.Recycle rc = PostCursor.decodeRecycle(cursor);
+        if (rc != null) {
+            return recycledPage(viewer, rc.after(), rc.t0(), n, false);
+        }
+        PostCursor.ForYou fc = PostCursor.decodeForYou(cursor);
+        long seed = fc != null ? fc.seed() : java.util.concurrent.ThreadLocalRandom.current().nextLong();
+        Set<Long> seenIds = seen == null ? Set.of() : seen.ids(viewer);
+        Collection<Long> excl = seenIds.isEmpty() ? List.of(-1L) : seenIds;
+        int pool = reelsService == null ? n + 1 : Math.max(reelsService.props().forYouPoolSize(), n + 1);
+        List<Post> rows = rankRepo.topFirst(viewer, excl, PageRequest.of(0, pool));
+        if (fc == null && rows.isEmpty() && !seenIds.isEmpty()) {
+            return recycledPage(viewer, 0L, FeedSeenService.stamp(System.currentTimeMillis()), n, false);
+        }
+        List<Post> ordered = reelsService == null ? rows : reelsService.orderForYou(viewer, rows, seed);
+        ordered = PostRank.diversify(ordered, Post::getAuthorId, cfg.maxAuthorRun());
+        boolean more = ordered.size() > n;
+        List<Post> items = more ? ordered.subList(0, n) : ordered;
+        if (seen != null) {
+            seen.mark(viewer, items.stream().map(Post::getId).toList());
+        }
+        return new FeedPage(assembler.assemble(viewer, items), more ? PostCursor.forYou(seed) : null, null)
+                .withExhausted(false);
+    }
+
+    /**
+     * Tekrar modu: görülme damgası (after, t0) aralığındaki en eski görülmüşler, bakana hâlâ görünür olanlar. Döndürülen
+     * gönderiler yeni damga alır (>= t0) ve aynı gezintide yeniden gelmez; imleç t0 ile sabit kalır.
+     */
+    private FeedPage recycledPage(Long viewer, long after, long t0, int n, boolean reels) {
+        List<Post> picked = new ArrayList<>();
+        List<Long> stamps = new ArrayList<>();
+        long cursorAfter = after;
+        int limit = (n + 1) * 2;
+        for (int round = 0; round < 10 && picked.size() <= n; round++) {
+            List<FeedSeenStore.Entry> batch = seen == null ? List.of() : seen.range(viewer, cursorAfter, t0, limit);
+            if (batch.isEmpty()) {
+                break;
+            }
+            List<Long> ids = batch.stream().map(FeedSeenStore.Entry::postId).toList();
+            Map<Long, Post> visible = new HashMap<>();
+            (reels ? rankRepo.visibleVideosByIds(viewer, ids) : rankRepo.visibleByIds(viewer, ids))
+                    .forEach(p -> visible.put(p.getId(), p));
+            for (FeedSeenStore.Entry e : batch) {
+                cursorAfter = e.stamp();
+                Post p = visible.get(e.postId());
+                if (p != null && picked.size() <= n) {
+                    picked.add(p);
+                    stamps.add(e.stamp());
+                }
+            }
+            if (batch.size() < limit) {
+                break;
+            }
+        }
+        boolean more = picked.size() > n;
+        List<Post> items = more ? picked.subList(0, n) : picked;
+        String next = more ? PostCursor.recycle(stamps.get(n - 1), t0) : null;
+        if (seen != null && !items.isEmpty()) {
+            seen.mark(viewer, items.stream().map(Post::getId).toList());
+        }
+        return new FeedPage(assembler.assemble(viewer, items), next, null).withExhausted(true);
+    }
+
+    /** POST /api/feed/seen: istemcinin görünen gönderi/reel kimlikleri (yedek bildirim; sunucu zaten döndürdüğünü işaretler). */
+    public void markSeen(Long viewer, List<Long> ids) {
+        if (seen == null || ids == null) {
+            return;
+        }
+        List<Long> clean = ids.stream().filter(Objects::nonNull).filter(i -> i > 0).distinct().limit(100).toList();
+        seen.mark(viewer, clean);
+        if (reelsService != null) {
+            reelsService.recordImpressions(viewer, clean); // video gosterimleri izleme gecmisine (hata sizmaz)
+        }
+    }
+
+    /**
+     * Video izlenme olayı: yalnız başkasının görünür VIDEO gönderisi; kullanıcı başına gönderi başına
+     * viewDedupeHours (6 sa) içinde bir kez sayılır; en az min(1 sn, süre) izlenmiş olmalı. Süre sunucudaki video
+     * süresidir (istemcininki yalnız yedek). Döner: sayıldı mı.
+     */
+    @Transactional
+    public boolean recordView(Long viewer, Long id, long watchedMs, long clientDurationMs) {
+        Post p = requireVisible(id, viewer);
+        if (!p.isVideo() || p.getAuthorId().equals(viewer) || counters == null || seen == null) {
+            return false;
+        }
+        long dur = serverDurationMs(viewer, id);
+        if (dur <= 0) {
+            dur = clientDurationMs;
+        }
+        if (dur <= 0 || watchedMs < Math.min(MIN_VIEW_MS, dur)) {
+            return false;
+        }
+        if (!seen.claimView(viewer, id)) {
+            return false;
+        }
+        int pct = (int) Math.max(0, Math.min(100, watchedMs * 100 / dur));
+        counters.addView(id, pct);
+        return true;
+    }
+
+    private long serverDurationMs(Long viewer, Long postId) {
+        if (mediaLookups == null) {
+            return 0;
+        }
+        try {
+            for (PostMediaLookup l : mediaLookups.orderedStream().toList()) {
+                List<PostDtos.MediaView> v = l.viewsFor(List.of(postId), viewer).get(postId);
+                if (v != null && !v.isEmpty() && v.get(0).durationMs() != null) {
+                    return v.get(0).durationMs();
+                }
+            }
+        } catch (RuntimeException e) {
+            return 0;
+        }
+        return 0;
     }
 
     /** following | department kapsamları (post.social sorguları). */
