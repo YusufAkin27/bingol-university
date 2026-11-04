@@ -3734,6 +3734,65 @@ class AppLocalizationsTr extends AppLocalizations {
   String get searchClear => 'Aramayı temizle';
 
   @override
+  String get srSearchHint => 'Kullanıcı veya gönderi ara';
+
+  @override
+  String get srTabUsers => 'Kullanıcılar';
+
+  @override
+  String get srTabPosts => 'Gönderiler';
+
+  @override
+  String get srTabReels => 'Reels';
+
+  @override
+  String get srSearchTabsLabel => 'Arama sonucu türleri';
+
+  @override
+  String get srSearchPrompt => 'Kullanıcı, gönderi veya reels aramak için en az 2 karakter yazın.';
+
+  @override
+  String get srSeeAll => 'Tümünü gör';
+
+  @override
+  String get srReelsUnavailable => 'Reels araması şu an kullanılamıyor.';
+
+  @override
+  String get srPrivateAccount => 'Gizli hesap';
+
+  @override
+  String srLikeCount(String count) {
+    return '$count beğeni';
+  }
+
+  @override
+  String srOpenProfileOf(String name) {
+    return '$name profilini aç';
+  }
+
+  @override
+  String srPostByAuthor(String name) {
+    return '$name gönderisi';
+  }
+
+  @override
+  String get srVideoBadge => 'Video';
+
+  @override
+  String get srProfileTabsLabel => 'Profil içeriği';
+
+  @override
+  String get srProfilePostsEmpty => 'Henüz gönderi yok.';
+
+  @override
+  String get srProfileReelsEmpty => 'Henüz reels yok.';
+
+  @override
+  String srViewCount(String count) {
+    return '$count görüntülenme';
+  }
+
+  @override
   String get srPhotoViewerTitle => 'Profil fotoğrafı';
 
   @override
