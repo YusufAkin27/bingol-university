@@ -904,6 +904,7 @@ class _ConversationRow extends StatelessWidget {
                       url: avatarUrl,
                       group: !isDirect,
                       online: online,
+                      preview: true,
                       // Tür adı yanındaki nötr etiketle (ya da ekran okuyucuyla) söylenir; avatarda ikinci işaret yok.
                       heroTag: 'chat-avatar-${conversation['id']}',
                     ),

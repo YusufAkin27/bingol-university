@@ -146,7 +146,7 @@ class NcPersonRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.bu;
     final tx = Theme.of(context).textTheme;
-    final avatar = ChatlistAvatar(name: name, url: avatarUrl, size: 48, circle: true);
+    final avatar = ChatlistAvatar(name: name, url: avatarUrl, size: 48, circle: true, preview: true);
     return NcCard(
       key: rowKey,
       onTap: onTap,
