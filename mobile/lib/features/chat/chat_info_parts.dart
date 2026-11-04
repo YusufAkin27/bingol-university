@@ -273,20 +273,30 @@ class ChatInfoIconDot extends StatelessWidget {
   }
 }
 
-/// Hızlı eylem kartı: 48 dp daire + etiket. [dense] grup düzeni (dar kart, 12 dp etiket).
+/// Hızlı eylem: 52 dp daire (ikincil zemin; [active] iken marka tonu) + etiket. [dense] grup düzeni.
 class ChatInfoQuickAction extends StatelessWidget {
-  const ChatInfoQuickAction({super.key, required this.icon, required this.label, required this.onTap, this.dense = false});
+  const ChatInfoQuickAction(
+      {super.key,
+      required this.icon,
+      required this.label,
+      required this.onTap,
+      this.dense = false,
+      this.active = false});
 
   final IconData icon;
   final String label;
   final VoidCallback onTap;
   final bool dense;
 
+  /// Eylem açık (sessizde / arşivde): marka tonlu daire.
+  final bool active;
+
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
     return Semantics(
       button: true,
+      selected: active,
       label: label,
       excludeSemantics: true,
       child: BuPressable(
@@ -295,8 +305,16 @@ class ChatInfoQuickAction extends StatelessWidget {
         child: ConstrainedBox(
           constraints: const BoxConstraints(minHeight: BuSize.touch + 16),
           child: Column(mainAxisSize: MainAxisSize.min, mainAxisAlignment: MainAxisAlignment.center, children: [
-            Icon(icon, size: 24, color: t.ink),
-            const SizedBox(height: 4),
+            AnimatedContainer(
+              duration: AppMotion.of(context, AppMotion.fast),
+              curve: AppMotion.standard,
+              width: 52,
+              height: 52,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(color: active ? t.soft : t.sf2, shape: BoxShape.circle),
+              child: Icon(icon, size: 24, color: active ? t.onSoft : t.ink),
+            ),
+            const SizedBox(height: 6),
             Text(label,
                 maxLines: 2,
                 textAlign: TextAlign.center,

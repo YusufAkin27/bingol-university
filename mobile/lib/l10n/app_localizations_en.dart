@@ -1761,6 +1761,36 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chatInfoGroupName => 'Group name';
 
   @override
+  String get chatInfoSearchInChat => 'Search in chat';
+
+  @override
+  String get chatInfoMediaFiles => 'Media and files';
+
+  @override
+  String get chatInfoTabPhotos => 'Photos';
+
+  @override
+  String get chatInfoTabVideos => 'Videos';
+
+  @override
+  String get chatInfoTabFiles => 'Files';
+
+  @override
+  String get chatInfoNoPhotos => 'No photos in this chat yet.';
+
+  @override
+  String get chatInfoNoVideos => 'No videos in this chat yet.';
+
+  @override
+  String get chatInfoFilesUnsupportedTitle => 'File sharing is not supported';
+
+  @override
+  String get chatInfoFilesUnsupportedBody => 'For now only photos and videos can be shared in this chat.';
+
+  @override
+  String get chatInfoReported => 'Reported';
+
+  @override
   String get chatMiscFilterAll => 'All';
 
   @override

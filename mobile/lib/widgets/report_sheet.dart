@@ -36,7 +36,8 @@ abstract final class ReportSheet {
         _ => BuIcons.ellipsis,
       };
 
-  static Future<void> show(
+  /// Gönderildiyse `true` (çağıran tekrar şikâyeti engelleyebilir).
+  static Future<bool> show(
     BuildContext context,
     Session session, {
     required String targetType,
@@ -105,7 +106,7 @@ abstract final class ReportSheet {
     return r == true;
   }
 
-  static Future<void> _open(
+  static Future<bool> _open(
     BuildContext context,
     Session session,
     String? title,
@@ -123,6 +124,7 @@ abstract final class ReportSheet {
     if (done == true && context.mounted) {
       BuToast.show(context, context.l10n.reportThanks, kind: BuToastKind.success);
     }
+    return done == true;
   }
 }
 

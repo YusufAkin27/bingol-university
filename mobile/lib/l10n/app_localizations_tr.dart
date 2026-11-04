@@ -1761,6 +1761,36 @@ class AppLocalizationsTr extends AppLocalizations {
   String get chatInfoGroupName => 'Grup adı';
 
   @override
+  String get chatInfoSearchInChat => 'Sohbette ara';
+
+  @override
+  String get chatInfoMediaFiles => 'Medya ve dosyalar';
+
+  @override
+  String get chatInfoTabPhotos => 'Fotoğraflar';
+
+  @override
+  String get chatInfoTabVideos => 'Videolar';
+
+  @override
+  String get chatInfoTabFiles => 'Dosyalar';
+
+  @override
+  String get chatInfoNoPhotos => 'Bu sohbette henüz fotoğraf yok.';
+
+  @override
+  String get chatInfoNoVideos => 'Bu sohbette henüz video yok.';
+
+  @override
+  String get chatInfoFilesUnsupportedTitle => 'Dosya paylaşımı desteklenmiyor';
+
+  @override
+  String get chatInfoFilesUnsupportedBody => 'Bu sohbette şimdilik yalnızca fotoğraf ve video paylaşılabiliyor.';
+
+  @override
+  String get chatInfoReported => 'Şikâyet edildi';
+
+  @override
   String get chatMiscFilterAll => 'Tümü';
 
   @override
