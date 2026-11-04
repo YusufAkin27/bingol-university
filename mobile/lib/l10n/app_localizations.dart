@@ -10285,6 +10285,210 @@ abstract class AppLocalizations {
   /// **'Hepsini gördün, gönderiler yeniden gösteriliyor.'**
   String get kesSeenAll;
 
+  /// No description provided for @kesFilterForYou.
+  ///
+  /// In tr, this message translates to:
+  /// **'Senin İçin'**
+  String get kesFilterForYou;
+
+  /// No description provided for @kesFilterPopular.
+  ///
+  /// In tr, this message translates to:
+  /// **'Popüler'**
+  String get kesFilterPopular;
+
+  /// No description provided for @kesFilterLatest.
+  ///
+  /// In tr, this message translates to:
+  /// **'En Yeni'**
+  String get kesFilterLatest;
+
+  /// No description provided for @kesFilterFollowing.
+  ///
+  /// In tr, this message translates to:
+  /// **'Takip Ettiklerim'**
+  String get kesFilterFollowing;
+
+  /// No description provided for @kesFollowingEmptyTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Takip ettiklerin henüz bir şey paylaşmadı'**
+  String get kesFollowingEmptyTitle;
+
+  /// No description provided for @kesFollowingEmptyBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yeni kişiler takip et, paylaşımları burada görünsün.'**
+  String get kesFollowingEmptyBody;
+
+  /// No description provided for @kesReelsDoneTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Şimdilik tüm videoları gördün'**
+  String get kesReelsDoneTitle;
+
+  /// No description provided for @kesReelsDoneBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yeni videolar geldikçe burada olacak.'**
+  String get kesReelsDoneBody;
+
+  /// No description provided for @kesReelsReplay.
+  ///
+  /// In tr, this message translates to:
+  /// **'Tekrar izle'**
+  String get kesReelsReplay;
+
+  /// No description provided for @kesReelsToPosts.
+  ///
+  /// In tr, this message translates to:
+  /// **'Keşfet gönderilerine bak'**
+  String get kesReelsToPosts;
+
+  /// No description provided for @kesActionComments.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yorumlar'**
+  String get kesActionComments;
+
+  /// No description provided for @kesActionSave.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kaydet'**
+  String get kesActionSave;
+
+  /// No description provided for @kesActionSaved.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kaydedildi'**
+  String get kesActionSaved;
+
+  /// No description provided for @kesNotInterested.
+  ///
+  /// In tr, this message translates to:
+  /// **'İlgilenmiyorum'**
+  String get kesNotInterested;
+
+  /// No description provided for @kesNotInterestedDone.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu video artık önerilmeyecek.'**
+  String get kesNotInterestedDone;
+
+  /// No description provided for @kesMore.
+  ///
+  /// In tr, this message translates to:
+  /// **'Diğer işlemler'**
+  String get kesMore;
+
+  /// No description provided for @kesViews.
+  ///
+  /// In tr, this message translates to:
+  /// **'{count} izlenme'**
+  String kesViews(String count);
+
+  /// No description provided for @kesCoverTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kapak karesi'**
+  String get kesCoverTitle;
+
+  /// No description provided for @kesCoverHint.
+  ///
+  /// In tr, this message translates to:
+  /// **'Videodan bir kare seç.'**
+  String get kesCoverHint;
+
+  /// No description provided for @kesComposeMenuPhoto.
+  ///
+  /// In tr, this message translates to:
+  /// **'Fotoğraf paylaş'**
+  String get kesComposeMenuPhoto;
+
+  /// No description provided for @kesComposeMenuVideo.
+  ///
+  /// In tr, this message translates to:
+  /// **'Video / Reels paylaş'**
+  String get kesComposeMenuVideo;
+
+  /// No description provided for @kesCommentsTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yorumlar'**
+  String get kesCommentsTitle;
+
+  /// No description provided for @kesCommentsEmpty.
+  ///
+  /// In tr, this message translates to:
+  /// **'Henüz yorum yok.'**
+  String get kesCommentsEmpty;
+
+  /// No description provided for @kesCommentsWrite.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yorum yaz…'**
+  String get kesCommentsWrite;
+
+  /// No description provided for @kesCommentsSend.
+  ///
+  /// In tr, this message translates to:
+  /// **'Gönder'**
+  String get kesCommentsSend;
+
+  /// No description provided for @kesCommentsReply.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yanıtla'**
+  String get kesCommentsReply;
+
+  /// No description provided for @kesCommentsReplyingTo.
+  ///
+  /// In tr, this message translates to:
+  /// **'{name} kişisine yanıt'**
+  String kesCommentsReplyingTo(String name);
+
+  /// No description provided for @kesCommentsMoreReplies.
+  ///
+  /// In tr, this message translates to:
+  /// **'{count} yanıtı gör'**
+  String kesCommentsMoreReplies(String count);
+
+  /// No description provided for @kesCommentsLoadFailed.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yorumlar yüklenemedi.'**
+  String get kesCommentsLoadFailed;
+
+  /// No description provided for @kesCommentsDelete.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yorumu sil'**
+  String get kesCommentsDelete;
+
+  /// No description provided for @kesAvatarPreview.
+  ///
+  /// In tr, this message translates to:
+  /// **'Profil fotoğrafı'**
+  String get kesAvatarPreview;
+
+  /// No description provided for @kesCommentsSortTop.
+  ///
+  /// In tr, this message translates to:
+  /// **'En iyi'**
+  String get kesCommentsSortTop;
+
+  /// No description provided for @kesCommentsSortNew.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yeni'**
+  String get kesCommentsSortNew;
+
+  /// No description provided for @kesCommentsAuthorBadge.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yazar'**
+  String get kesCommentsAuthorBadge;
+
   /// No description provided for @profil2PrivacyTitle.
   ///
   /// In tr, this message translates to:

@@ -63,6 +63,12 @@ void main() {
       await pumpShell(tester);
       await tester.tap(find.byKey(const ValueKey('nav-publish')));
       await settle(tester);
+      // Paylas menusu: Fotograf paylas | Video / Reels paylas.
+      await tester.tap(find.byKey(const ValueKey('composeMenuPhoto')));
+      await settle(tester);
+      expect(find.byType(ComposePostPage), findsOneWidget);
+      await back(tester); // acilista kendiliginden gelen kaynak sayfasi kapanir
+      await settle(tester);
       expect(find.byType(ComposePostPage), findsOneWidget);
       await back(tester);
       await settle(tester);
@@ -74,6 +80,10 @@ void main() {
     testWidgets('basarili paylasim Kesfet sekmesine doner', (tester) async {
       await pumpShell(tester);
       await tester.tap(find.byKey(const ValueKey('nav-publish')));
+      await settle(tester);
+      await tester.tap(find.byKey(const ValueKey('composeMenuPhoto')));
+      await settle(tester);
+      await back(tester); // kaynak sayfasi
       await settle(tester);
       Navigator.of(tester.element(find.byType(ComposePostPage))).pop(Post.fromJson({'id': 99, 'author': {'id': 1, 'displayName': 'Ayşe'}}));
       await settle(tester);

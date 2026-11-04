@@ -173,7 +173,7 @@ void main() {
   });
 
   group('akis ve detay', () {
-    test('video-only gonderi akistan gizlenir, cok gorselli gonderide yalniz ilk foto', () async {
+    test('video-only (eski bicim) gonderi artik video olarak gorunur, cok gorselli gonderide yalniz ilk foto', () async {
       final b = FakeBackend();
       b.on('/feed*', {
         'items': [
@@ -184,9 +184,10 @@ void main() {
         'nextCursor': null,
       });
       final page = await PostApi(makeSession(b)).feed();
-      expect(page.items.map((p) => p.id), [2, 3]);
-      expect(page.items[0].photo!.id, 21);
-      expect(page.items[1].photo!.id, 30);
+      expect(page.items.map((p) => p.id), [1, 2, 3]);
+      expect(page.items[0].isVideo, isTrue);
+      expect(page.items[1].photo!.id, 21);
+      expect(page.items[2].photo!.id, 30);
     });
 
     testWidgets('detay: foto + yazar + metin + begeni; yorum ve kaydet yok, yorum ucu cagrilmaz', (tester) async {

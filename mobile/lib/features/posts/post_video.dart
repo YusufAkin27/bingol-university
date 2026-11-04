@@ -270,16 +270,22 @@ class _PostVideoViewState extends State<PostVideoView> with WidgetsBindingObserv
     if (mounted) setState(() {});
   }
 
-  /// İzlenen süreyi toplar ve (en az 1 sn ise) bildirir.
-  void _flushView() {
+  /// Oynama süresini toplar (gönderim yok): kullanıcı duraklatınca erken olay göndermemek için.
+  void _accumulate() {
     final s = _since;
     if (s != null) {
       _watchedMs += DateTime.now().difference(s).inMilliseconds;
       _since = null;
     }
+  }
+
+  /// İzlenen süreyi toplar ve bildirir. Sunucu olayı 6 saatte bir sayar ve hızlı geçmeyi (< 1,5 sn) kendisi çıkarır;
+  /// bu yüzden video ekrandan ÇIKINCA/kapanınca BİR kez gönderilir (duraklatmada değil). 300 ms altı yok sayılır.
+  void _flushView() {
+    _accumulate();
     final ms = _watchedMs;
     _watchedMs = 0;
-    if (!widget.reportViews || ms < 1000) return;
+    if (!widget.reportViews || ms < 300) return;
     final dur = _c?.value.duration.inMilliseconds ?? _video.durationMs ?? 0;
     final id = widget.post.id;
     unawaited(_api.view(id, watchedMs: ms, durationMs: dur > 0 ? dur : (_video.durationMs ?? ms)));
@@ -304,7 +310,7 @@ class _PostVideoViewState extends State<PostVideoView> with WidgetsBindingObserv
     if (c.value.isPlaying) {
       _userPaused = true;
       c.pause();
-      _flushView();
+      _accumulate();
     } else {
       _userPaused = false;
       _apply();

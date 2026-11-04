@@ -9,6 +9,7 @@ import 'package:bu_kampus/features/posts/post_models.dart';
 import 'package:bu_kampus/features/posts/post_routes.dart';
 import 'package:bu_kampus/features/posts/user_posts_page.dart';
 import 'package:bu_kampus/l10n/app_localizations.dart';
+import 'package:bu_kampus/features/profile/user_profile_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -265,7 +266,7 @@ void main() {
       noErr(tester);
     });
 
-    testWidgets('yazar adina dokunma yazarin gonderilerini acar; kutuya degil', (tester) async {
+    testWidgets('yazar adina dokunma yazarin PROFILINI acar; kutuya degil', (tester) async {
       useScreen(tester, const Size(390, 844));
       final b = FakeBackend();
       feed(b, count: 6);
@@ -273,9 +274,9 @@ void main() {
       await settle(tester, const Duration(milliseconds: 800));
       await tester.tap(find.descendant(of: find.byKey(const ValueKey('discover-author-1000')), matching: find.text('Yazar 0')));
       await settle(tester, const Duration(milliseconds: 600));
-      expect(find.byType(UserPostsPage), findsOneWidget);
+      expect(find.byType(UserProfilePage), findsOneWidget);
       expect(find.byType(PostDetailPage), findsNothing);
-      expect(b.requests.any((r) => r.contains('/users/20/posts')), isTrue, reason: b.requests.join('|'));
+      expect(b.requests.any((r) => r.contains('/users/20')), isTrue, reason: b.requests.join('|'));
       noErr(tester);
     });
 
@@ -398,13 +399,13 @@ void main() {
       noErr(tester);
     });
 
-    testWidgets('populer cipi: kutu sayisi/iskelet degisir, scope=popular istenir; yenileme imleci sifirlar', (tester) async {
+    testWidgets('Populer kapsul filtresi: scope=popular istenir', (tester) async {
       useScreen(tester, const Size(390, 844));
       final b = FakeBackend();
       feed(b, count: 20);
       await tester.pumpWidget(buildApp(discover(b)));
       await settle(tester, const Duration(milliseconds: 800));
-      await tester.tap(find.byKey(const ValueKey('discoverChipPopular')));
+      await tester.tap(find.byKey(const ValueKey('discoverFilter-popular')));
       await settle(tester, const Duration(milliseconds: 800));
       expect(b.requests.any((r) => r.contains('scope=popular')), isTrue);
       expect(find.byType(DiscoverPostBox), findsWidgets);

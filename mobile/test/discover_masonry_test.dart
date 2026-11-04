@@ -25,14 +25,15 @@ void main() {
       fakePosts(b);
       await tester.pumpWidget(buildApp(discover(b)));
       await settle(tester, const Duration(milliseconds: 600));
-      expect(b.requests.any((r) => r.contains('/feed') && r.contains('scope=top')), isTrue);
+      expect(b.requests.any((r) => r.contains('/feed') && r.contains('scope=foryou')), isTrue);
       expect(b.requests.any((r) => r.contains('/news')), isFalse);
       expect(find.byType(DiscoverPostBox), findsWidgets);
       expect(find.text('Keşfet'), findsOneWidget);
-      // Haber/kategori yok; yalniz Tumu + Populer cipleri.
+      // Haber/kategori yok; 5 kapsul filtre.
       expect(find.text('Haberler'), findsNothing);
-      expect(find.text('Tümü'), findsOneWidget);
+      expect(find.text('Senin İçin'), findsOneWidget);
       expect(find.text('Popüler'), findsOneWidget);
+      expect(find.text('En Yeni'), findsOneWidget);
       // Iki sutun masonry (Stitch v3 kesfet2): kutular iki sol kenarda (12 ve 12+179+8) ve 179 dp genisliginde.
       final lefts = {
         for (final e in tester.elementList(find.byType(DiscoverPostBox))) tester.getTopLeft(find.byWidget(e.widget)).dx.round()
@@ -46,13 +47,13 @@ void main() {
       noErr(tester);
     });
 
-    testWidgets('Populer cipi akisi scope=popular ile bastan yukler', (tester) async {
+    testWidgets('Populer kapsul filtresi akisi scope=popular ile bastan yukler', (tester) async {
       useScreen(tester, const Size(390, 844));
       final b = FakeBackend();
       fakePosts(b);
       await tester.pumpWidget(buildApp(discover(b)));
       await settle(tester, const Duration(milliseconds: 600));
-      await tester.tap(find.byKey(const ValueKey('discoverChipPopular')));
+      await tester.tap(find.byKey(const ValueKey('discoverFilter-popular')));
       await settle(tester, const Duration(milliseconds: 600));
       expect(b.requests.any((r) => r.contains('/feed') && r.contains('scope=popular')), isTrue);
       expect(find.byType(DiscoverPostBox), findsWidgets);
@@ -277,7 +278,7 @@ void main() {
       ], seen);
       await tester.pumpWidget(buildApp(discover(b)));
       await settle(tester, const Duration(milliseconds: 600));
-      expect(seen.first.queryParameters['scope'], 'top');
+      expect(seen.first.queryParameters['scope'], 'foryou');
       expect(seen.first.queryParameters['size'], '12');
       await tester.drag(find.byType(CustomScrollView).last, const Offset(0, -3000));
       await settle(tester, const Duration(milliseconds: 600));

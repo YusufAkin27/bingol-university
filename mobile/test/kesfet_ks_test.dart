@@ -170,14 +170,18 @@ void main() {
   });
 
   group('PostApi + FeedSeenReporter', () {
-    test('feed tek siralama: scope=top; reels ayri uc; markSeen 100luk parcalar; view govdesi', () async {
+    test('feed varsayilan scope=foryou; popular/latest/following; reels ayri uc; markSeen 100luk parcalar; view govdesi', () async {
       final b = FakeBackend();
       b.on('/feed*', {'items': [], 'nextCursor': null});
       b.on('/feed/reels*', {'items': [], 'nextCursor': null});
       final api = PostApi(makeSession(b));
       await api.feed();
+      await api.feed(scope: 'popular');
       await api.reels(size: 4);
-      expect(b.requests.any((r) => r.startsWith('GET /feed?') && r.contains('scope=top')), isTrue);
+      await api.reels(replay: true);
+      expect(b.requests.any((r) => r.startsWith('GET /feed?') && r.contains('scope=foryou')), isTrue);
+      expect(b.requests.any((r) => r.startsWith('GET /feed?') && r.contains('scope=popular')), isTrue);
+      expect(b.requests.any((r) => r.startsWith('GET /feed/reels?') && r.contains('replay=true')), isTrue);
       expect(b.requests.any((r) => r.startsWith('GET /feed/reels?') && r.contains('size=4')), isTrue);
       await api.markSeen(List.generate(150, (i) => i + 1));
       expect(b.count('POST /feed/seen'), 2);
@@ -216,29 +220,6 @@ void main() {
     Widget discover(FakeBackend b, {bool tabActive = true}) =>
         DiscoverTab(session: makeSession(b), typeRequest: ValueNotifier<String?>(null), tabActive: tabActive);
 
-    testWidgets('secenek cipleri yok (tek siralama); Gonderiler | Reels segmenti var; akis scope=top ve seen bildirir',
-        (tester) async {
-      useScreen(tester, const Size(390, 844));
-      final b = FakeBackend();
-      fakePosts(b);
-      await tester.pumpWidget(buildApp(discover(b)));
-      await settle(tester, const Duration(milliseconds: 600));
-      expect(find.byKey(const ValueKey('discoverChipAll')), findsNothing);
-      expect(find.byKey(const ValueKey('discoverChipPopular')), findsNothing);
-      expect(find.text('Popüler'), findsNothing);
-      expect(find.byKey(const ValueKey('discoverSegment')), findsOneWidget);
-      expect(find.text('Gönderiler'), findsOneWidget);
-      expect(find.text('Reels'), findsOneWidget);
-      expect(b.requests.any((r) => r.contains('/feed') && r.contains('scope=top')), isTrue);
-      // Gorunen kutular ~2 sn sonra toplu "gorulmus" bildirilir.
-      await tester.pump(const Duration(seconds: 3));
-      expect(b.count('POST /feed/seen'), greaterThanOrEqualTo(1));
-      final ids = (b.bodies['POST /feed/seen'] as Map)['ids'] as List;
-      expect(ids, isNotEmpty);
-      expect(ids.length, lessThanOrEqualTo(100));
-      noErr(tester);
-    });
-
     testWidgets('yenileme (imecsiz ilk sayfa) onbellekten degil agdan gelir; ag yoksa onbellek yedegi', (tester) async {
       useScreen(tester, const Size(390, 844));
       final b = FakeBackend();
@@ -266,61 +247,6 @@ void main() {
       expect(find.byKey(const ValueKey('videoDuration')), findsNWidgets(2)); // 0:23 sure etiketleri
       expect(find.text('0:23'), findsNWidgets(2));
       noErr(tester);
-    });
-
-    testWidgets('Reels segmenti: /feed/reels istenir, dikey sayfa + yazar + puan; Gonderiler\'e donus', (tester) async {
-      useScreen(tester, const Size(390, 844));
-      final plat = FakeVideoPlatformKs();
-      final prev = VideoPlayerPlatform.instance;
-      VideoPlayerPlatform.instance = plat;
-      addTearDown(() => VideoPlayerPlatform.instance = prev);
-      final b = FakeBackend();
-      fakePosts(b);
-      b.on('/feed/reels*', {
-        'items': [videoPost(id: 2001), videoPost(id: 2002, score: 30)],
-        'nextCursor': null,
-        'exhausted': false,
-      });
-      await tester.pumpWidget(buildApp(discover(b)));
-      await settle(tester, const Duration(milliseconds: 600));
-      expect(b.count('/feed/reels'), 0); // Reels ilk secime kadar kurulmaz
-      await tester.tap(find.text('Reels'));
-      await settle(tester, const Duration(milliseconds: 900));
-      expect(b.count('GET /feed/reels'), 1);
-      expect(find.byKey(const ValueKey('reelsPager')), findsOneWidget);
-      expect(find.text('Ayşe Yılmaz'), findsWidgets);
-      expect(find.byKey(const ValueKey('popularityMeter')), findsWidgets);
-      // Gorunen reel oynar (sessiz): oynatici kuruldu ve play cagrildi.
-      expect(plat.created, isNotEmpty);
-      expect(plat.calls, contains('play'));
-      // Reel gorulmus bildirilir.
-      await tester.pump(const Duration(seconds: 3));
-      expect((b.bodies['POST /feed/seen'] as Map)['ids'], contains(2001));
-      // Gonderilere donus: Reels durur.
-      await tester.tap(find.text('Gönderiler'));
-      await settle(tester, const Duration(milliseconds: 500));
-      expect(plat.calls.last, 'pause');
-      await unmount(tester);
-    });
-
-    testWidgets('Reels bos ise bos durum + paylas; sekme gizliyken oynatma yok', (tester) async {
-      useScreen(tester, const Size(390, 844));
-      final plat = FakeVideoPlatformKs();
-      final prev = VideoPlayerPlatform.instance;
-      VideoPlayerPlatform.instance = plat;
-      addTearDown(() => VideoPlayerPlatform.instance = prev);
-      final b = FakeBackend();
-      b.on('/feed/reels*', {'items': [], 'nextCursor': null});
-      await tester.pumpWidget(buildApp(ReelsFeed(session: makeSession(b), active: true, onCompose: () {})));
-      await settle(tester, const Duration(milliseconds: 600));
-      expect(find.byKey(const ValueKey('reelsEmpty')), findsOneWidget);
-      expect(find.text('Henüz reel yok'), findsOneWidget);
-      // Video varken ama sekme gizli (active:false): hic oynatici kurulmaz.
-      b.on('/feed/reels*', {'items': [videoPost()], 'nextCursor': null});
-      await tester.pumpWidget(buildApp(ReelsFeed(key: UniqueKey(), session: makeSession(b), active: false)));
-      await settle(tester, const Duration(milliseconds: 400));
-      expect(plat.created, isEmpty);
-      await unmount(tester);
     });
   });
 

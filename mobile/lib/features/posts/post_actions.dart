@@ -8,6 +8,7 @@ import '../../widgets/bu.dart';
 import '../../widgets/report_sheet.dart';
 import '../profile/user_profile_page.dart';
 import 'post_api.dart';
+import 'post_media_uploader.dart' show postErrorText;
 import 'post_models.dart';
 import 'post_text_rules.dart';
 
@@ -24,10 +25,13 @@ Future<void> showPostActions(
   BuildContext? anchorContext,
   BuildContext? cardContext,
   ValueChanged<bool>? onOpenChanged,
+  bool notInterested = false,
 }) async {
   final mine = post.mine || post.author.id == session.userId;
   final l = context.l10n;
   final actions = <PostMenuAction>[
+    // Reels/Senin İçin önerisinden çıkar ("İlgilenmiyorum"): yalnız başkasının gönderisinde.
+    if (notInterested && !mine) PostMenuAction('notInterested', l.kesNotInterested, BuIcons.eyeOff),
     if (post.canEdit) PostMenuAction('edit', l.postComposeEdit, BuIcons.squarePen),
     if (post.canDelete) PostMenuAction('delete', l.postComposeDelete, BuIcons.trash2, danger: true),
     if (!mine) ...[
@@ -59,6 +63,14 @@ Future<void> showPostActions(
   }
   if (id == null || !context.mounted) return;
   switch (id) {
+    case 'notInterested':
+      try {
+        await PostApi(session).notInterested(post.id);
+        onDeleted?.call();
+        if (context.mounted) BuToast.show(context, l.kesNotInterestedDone);
+      } catch (e) {
+        if (context.mounted) BuToast.show(context, postErrorText(e, l), kind: BuToastKind.error);
+      }
     case 'edit':
       final edited = await showDialog<Post>(
         context: context,

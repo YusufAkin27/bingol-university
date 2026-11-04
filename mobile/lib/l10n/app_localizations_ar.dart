@@ -5534,6 +5534,115 @@ class AppLocalizationsAr extends AppLocalizations {
   String get kesSeenAll => 'شاهدت كل شيء، تُعرض المنشورات مرة أخرى.';
 
   @override
+  String get kesFilterForYou => 'لك';
+
+  @override
+  String get kesFilterPopular => 'الأكثر شعبية';
+
+  @override
+  String get kesFilterLatest => 'الأحدث';
+
+  @override
+  String get kesFilterFollowing => 'من أتابعهم';
+
+  @override
+  String get kesFollowingEmptyTitle => 'لم ينشر من تتابعهم شيئًا بعد';
+
+  @override
+  String get kesFollowingEmptyBody =>
+      'تابع المزيد من الأشخاص لتظهر منشوراتهم هنا.';
+
+  @override
+  String get kesReelsDoneTitle => 'شاهدت كل الفيديوهات حاليًا';
+
+  @override
+  String get kesReelsDoneBody => 'ستظهر الفيديوهات الجديدة هنا.';
+
+  @override
+  String get kesReelsReplay => 'شاهد مرة أخرى';
+
+  @override
+  String get kesReelsToPosts => 'تصفح منشورات الاستكشاف';
+
+  @override
+  String get kesActionComments => 'التعليقات';
+
+  @override
+  String get kesActionSave => 'حفظ';
+
+  @override
+  String get kesActionSaved => 'تم الحفظ';
+
+  @override
+  String get kesNotInterested => 'غير مهتم';
+
+  @override
+  String get kesNotInterestedDone => 'لن يُقترح هذا الفيديو مرة أخرى.';
+
+  @override
+  String get kesMore => 'المزيد من الإجراءات';
+
+  @override
+  String kesViews(String count) {
+    return '$count مشاهدة';
+  }
+
+  @override
+  String get kesCoverTitle => 'إطار الغلاف';
+
+  @override
+  String get kesCoverHint => 'اختر إطارًا من الفيديو.';
+
+  @override
+  String get kesComposeMenuPhoto => 'مشاركة صورة';
+
+  @override
+  String get kesComposeMenuVideo => 'مشاركة فيديو / ريلز';
+
+  @override
+  String get kesCommentsTitle => 'التعليقات';
+
+  @override
+  String get kesCommentsEmpty => 'لا توجد تعليقات بعد.';
+
+  @override
+  String get kesCommentsWrite => 'اكتب تعليقًا…';
+
+  @override
+  String get kesCommentsSend => 'إرسال';
+
+  @override
+  String get kesCommentsReply => 'رد';
+
+  @override
+  String kesCommentsReplyingTo(String name) {
+    return 'الرد على $name';
+  }
+
+  @override
+  String kesCommentsMoreReplies(String count) {
+    return 'عرض $count ردود';
+  }
+
+  @override
+  String get kesCommentsLoadFailed => 'تعذّر تحميل التعليقات.';
+
+  @override
+  String get kesCommentsDelete => 'حذف التعليق';
+
+  @override
+  String get kesAvatarPreview => 'صورة الملف الشخصي';
+
+  @override
+  String get kesCommentsSortTop => 'الأفضل';
+
+  @override
+  String get kesCommentsSortNew => 'الأحدث';
+
+  @override
+  String get kesCommentsAuthorBadge => 'الكاتب';
+
+  @override
   String get profil2PrivacyTitle => 'الخصوصية والمحظورون';
 
   @override

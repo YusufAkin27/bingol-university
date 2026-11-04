@@ -182,6 +182,9 @@ class Post {
     this.createdAt,
     this.editedAt,
     this.popularityScore,
+    this.viewCount,
+    this.commentCount,
+    this.savedByMe,
   });
 
   factory Post.fromJson(Map<String, dynamic>? j) {
@@ -212,6 +215,9 @@ class Post {
       createdAt: _str(j?['createdAt']),
       editedAt: _str(j?['editedAt']),
       popularityScore: _scoreOrNull(j?['popularityScore']),
+      viewCount: _intOrNull(j?['viewCount']),
+      commentCount: _intOrNull(j?['commentCount']),
+      savedByMe: j?['savedByMe'] is bool ? j!['savedByMe'] as bool : null,
     );
   }
 
@@ -232,6 +238,15 @@ class Post {
 
   /// Gönderinin popülerlik puanı 0..100 (sunucu hesaplar; yoksa null: gösterge çizilmez).
   final int? popularityScore;
+
+  /// Yalnız video gönderide: izlenme sayısı (yoksa null).
+  final int? viewCount;
+
+  /// Yorum sayısı: yalnız sunucu yorum özelliğini sunuyorsa gelir (yoksa null: yorum düğmesi gizlenir).
+  final int? commentCount;
+
+  /// Kaydetme durumu: yalnız sunucu kaydetmeyi sunuyorsa gelir (yoksa null: kaydet düğmesi gizlenir).
+  final bool? savedByMe;
 
   bool get hasText => (text ?? '').trim().isNotEmpty;
 
@@ -263,6 +278,8 @@ class Post {
     String? editedAt,
     List<PostMedia>? media,
     int? popularityScore,
+    int? commentCount,
+    bool? savedByMe,
   }) =>
       Post(
         id: id,
@@ -278,6 +295,9 @@ class Post {
         createdAt: createdAt,
         editedAt: editedAt ?? this.editedAt,
         popularityScore: popularityScore ?? this.popularityScore,
+        viewCount: viewCount,
+        commentCount: commentCount ?? this.commentCount,
+        savedByMe: savedByMe ?? this.savedByMe,
       );
 }
 

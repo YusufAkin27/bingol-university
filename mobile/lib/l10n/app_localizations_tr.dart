@@ -5558,6 +5558,116 @@ class AppLocalizationsTr extends AppLocalizations {
   String get kesSeenAll => 'Hepsini gördün, gönderiler yeniden gösteriliyor.';
 
   @override
+  String get kesFilterForYou => 'Senin İçin';
+
+  @override
+  String get kesFilterPopular => 'Popüler';
+
+  @override
+  String get kesFilterLatest => 'En Yeni';
+
+  @override
+  String get kesFilterFollowing => 'Takip Ettiklerim';
+
+  @override
+  String get kesFollowingEmptyTitle =>
+      'Takip ettiklerin henüz bir şey paylaşmadı';
+
+  @override
+  String get kesFollowingEmptyBody =>
+      'Yeni kişiler takip et, paylaşımları burada görünsün.';
+
+  @override
+  String get kesReelsDoneTitle => 'Şimdilik tüm videoları gördün';
+
+  @override
+  String get kesReelsDoneBody => 'Yeni videolar geldikçe burada olacak.';
+
+  @override
+  String get kesReelsReplay => 'Tekrar izle';
+
+  @override
+  String get kesReelsToPosts => 'Keşfet gönderilerine bak';
+
+  @override
+  String get kesActionComments => 'Yorumlar';
+
+  @override
+  String get kesActionSave => 'Kaydet';
+
+  @override
+  String get kesActionSaved => 'Kaydedildi';
+
+  @override
+  String get kesNotInterested => 'İlgilenmiyorum';
+
+  @override
+  String get kesNotInterestedDone => 'Bu video artık önerilmeyecek.';
+
+  @override
+  String get kesMore => 'Diğer işlemler';
+
+  @override
+  String kesViews(String count) {
+    return '$count izlenme';
+  }
+
+  @override
+  String get kesCoverTitle => 'Kapak karesi';
+
+  @override
+  String get kesCoverHint => 'Videodan bir kare seç.';
+
+  @override
+  String get kesComposeMenuPhoto => 'Fotoğraf paylaş';
+
+  @override
+  String get kesComposeMenuVideo => 'Video / Reels paylaş';
+
+  @override
+  String get kesCommentsTitle => 'Yorumlar';
+
+  @override
+  String get kesCommentsEmpty => 'Henüz yorum yok.';
+
+  @override
+  String get kesCommentsWrite => 'Yorum yaz…';
+
+  @override
+  String get kesCommentsSend => 'Gönder';
+
+  @override
+  String get kesCommentsReply => 'Yanıtla';
+
+  @override
+  String kesCommentsReplyingTo(String name) {
+    return '$name kişisine yanıt';
+  }
+
+  @override
+  String kesCommentsMoreReplies(String count) {
+    return '$count yanıtı gör';
+  }
+
+  @override
+  String get kesCommentsLoadFailed => 'Yorumlar yüklenemedi.';
+
+  @override
+  String get kesCommentsDelete => 'Yorumu sil';
+
+  @override
+  String get kesAvatarPreview => 'Profil fotoğrafı';
+
+  @override
+  String get kesCommentsSortTop => 'En iyi';
+
+  @override
+  String get kesCommentsSortNew => 'Yeni';
+
+  @override
+  String get kesCommentsAuthorBadge => 'Yazar';
+
+  @override
   String get profil2PrivacyTitle => 'Gizlilik ve engellenenler';
 
   @override

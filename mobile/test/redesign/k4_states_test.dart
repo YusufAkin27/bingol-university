@@ -37,6 +37,9 @@ void main() {
       expect(find.byType(DiscoverPostBox), findsNothing);
       await tester.tap(find.byKey(const ValueKey('discoverEmptyCompose')));
       await settle(tester, const Duration(milliseconds: 600));
+      // Paylas menusu -> Fotograf paylas -> olusturucu.
+      await tester.tap(find.byKey(const ValueKey('composeMenuPhoto')));
+      await settle(tester, const Duration(milliseconds: 600));
       expect(find.text('Yeni gönderi'), findsOneWidget);
       noErr(tester);
     });

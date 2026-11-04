@@ -35,19 +35,33 @@ class PostApi {
     );
   }
 
-  /// Keşfet akışı: TEK popülerlik sıralaması (`scope=top`; eski `popular`/`latest` değerleri sunucuda aynı akışa
-  /// yönlenir). İmleçsiz çağrı (yenileme) sunucuda "görülmüşleri hariç tut" demektir; sayfa içindeki gönderiler
-  /// sunucuca görülmüş sayılır. Tüm havuz görüldüyse `exhausted: true` ile baştan tekrar başlar.
-  Future<PostPage<Post>> feed({String scope = 'top', String? cursor, int size = 10}) =>
+  /// Keşfet akışı. `scope`: `foryou` (Senin İçin, kişiselleştirilmiş), `popular` (genel popülerlik puanı; eski `top` aynı),
+  /// `latest` (En Yeni), `following` (Takip Ettiklerim). `foryou`/`popular` için imleçsiz çağrı (yenileme) sunucuda
+  /// "görülmüşleri hariç tut" demektir; döndürülen sayfa sunucuca görülmüş sayılır. Tüm havuz görüldüyse `exhausted: true`
+  /// ile en eski görülenlerden tekrar başlar. İmleçler kapsama özeldir.
+  Future<PostPage<Post>> feed({String scope = 'foryou', String? cursor, int size = 10}) =>
       _posts('/feed', {'scope': scope, 'cursor': cursor, 'size': size}, force: cursor == null);
 
-  /// Reels: yalnız video gönderiler, aynı puan ve görülmüş-hariç mantığı (`GET /feed/reels`).
-  Future<PostPage<Post>> reels({String? cursor, int size = 6}) =>
-      _posts('/feed/reels', {'cursor': cursor, 'size': size}, force: cursor == null);
+  /// Reels: yalnız video gönderiler, öneri algoritması sunucuda (`GET /feed/reels`). İmleçsiz çağrı yeni oturum başlatır
+  /// (pull-to-refresh). Aday kalmayınca `items: []`, `nextCursor: null`, `exhausted: true`; [replay] geçmişi bu oturum
+  /// için yok sayan "Tekrar izle" oturumunu başlatır.
+  Future<PostPage<Post>> reels({String? cursor, int size = 8, bool replay = false}) =>
+      _posts('/feed/reels', {'cursor': cursor, 'size': size, if (replay && cursor == null) 'replay': 'true'},
+          force: cursor == null);
+
+  /// "İlgilenmiyorum": gönderi bu kullanıcının Reels ve Senin İçin önerilerinden kalkar. [undo] geri alır.
+  Future<void> notInterested(int id, {bool undo = false}) =>
+      undo ? session.api.delete('/posts/$id/not-interested') : session.api.post('/posts/$id/not-interested', {});
+
+  /// Kaydet / kaydı kaldır (`PUT|DELETE /posts/{id}/save`); yalnız sunucu kaydetmeyi sunuyorsa çağrılır.
+  Future<bool> setSaved(int id, bool saved) async {
+    final r = saved ? await session.api.put('/posts/$id/save') : await session.api.delete('/posts/$id/save');
+    return r is Map && r['saved'] is bool ? r['saved'] as bool : saved;
+  }
 
   /// Ağa gitmeden, önbellekteki (bayat olabilir) ilk akış sayfası; yoksa null. YALNIZ ağ yokken yedek olarak kullanılır:
   /// yenilemede eski sayfayı göstermek "aynı gönderiler yine geldi" demektir.
-  Future<PostPage<Post>?> peekFeed({String scope = 'top', int size = 10}) async {
+  Future<PostPage<Post>?> peekFeed({String scope = 'foryou', int size = 10}) async {
     final r = await session.api.peekCache('/feed${_q({'scope': scope, 'size': size})}');
     return r == null ? null : _page(r.body);
   }

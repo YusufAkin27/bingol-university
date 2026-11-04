@@ -5,31 +5,53 @@ import 'package:flutter/material.dart';
 import '../../core/api.dart' show ApiError;
 import '../../core/locale_controller.dart';
 import '../../core/session.dart';
+import '../../l10n/app_localizations.dart';
 import '../../widgets/bu.dart';
+import '../posts/avatar_preview.dart';
 import '../posts/feed_seen.dart';
 import '../posts/like_button.dart';
 import '../posts/popularity_meter.dart';
 import '../posts/post_actions.dart';
 import '../posts/post_api.dart';
+import '../posts/post_media_uploader.dart' show postErrorText;
 import '../posts/post_models.dart';
-import '../posts/post_routes.dart';
 import '../posts/post_video.dart';
+import '../profile/user_profile_page.dart' show openUserProfile;
+import 'reels_comments.dart';
 
-/// Reels: dikey, tam ekran video akışı (`GET /feed/reels`). Yalnız video gönderiler; sıralama sunucudaki popülerlik
-/// puanıdır, görülmüş reeller hariç tutulur (tümü görüldüyse `exhausted` ile baştan). Her sayfa ekranı doldurur;
-/// yalnız göründüğü sayfa oynar. Dokununca oynat/duraklat, sağ altta ses; ilerleme çizgisi altta.
+/// Reels: dikey, tam ekran video akışı (`GET /feed/reels`). Yalnız video gönderiler; öneri sırası sunucudadır (izlenmemiş
+/// öncelikli, aynı oturumda tekrar yok). Her sayfa ekranı doldurur; YALNIZ göründüğü sayfa oynar (diğerlerinin
+/// oynatıcısı kurulmaz/atılır). Dokununca oynat/duraklat; sağ eylem çubuğu: Beğen, Yorumlar (sunucu sunuyorsa), Kaydet
+/// (sunucu sunuyorsa), Üç nokta (İlgilenmiyorum/Şikâyet/...). Altta avatar + ad (profil; avatara uzun basma = önizleme) +
+/// açıklama ("Devamını gör") + puan.
 ///
-/// [active] false iken (Keşfet'te "Gönderiler" görünümü ya da başka sekme) oynatma durur. İlk etkinleşmede yüklenir;
-/// uzun süre sonra geri dönülürse akış yenilenir (aynı reeller yine gelmesin).
+/// İçerik tükenince sonsuz döngü YOK: "Şimdilik tüm videoları gördün" + Tekrar izle + Keşfet gönderilerine bak. En üstteyken
+/// aşağı çekmek yeni oturum (yeni sıra, yeni videolar) başlatır. [active] false iken (başka filtre/sekme/üst rota) oynatma
+/// durur; uzun süre sonra geri dönülürse akış yenilenir.
 class ReelsFeed extends StatefulWidget {
-  const ReelsFeed({super.key, required this.session, required this.active, this.onCompose, this.api, this.topInset = 0});
+  const ReelsFeed({
+    super.key,
+    required this.session,
+    required this.active,
+    this.onCompose,
+    this.onOpenPosts,
+    this.api,
+    this.comments,
+    this.topInset = 0,
+  });
 
   final Session session;
   final bool active;
   final VoidCallback? onCompose;
+
+  /// "Keşfet gönderilerine bak" (tükenince alternatif).
+  final VoidCallback? onOpenPosts;
   final PostApi? api;
 
-  /// Üstte (durum çubuğu + segment) boş bırakılacak alan: yazılar buraya taşmaz.
+  /// Yorum erişimi (testlerde sahte); null: gerçek uçlar.
+  final CommentsRepository? comments;
+
+  /// Üstte (durum çubuğu + başlık + filtreler) boş bırakılacak alan.
   final double topInset;
 
   @override
@@ -37,10 +59,13 @@ class ReelsFeed extends StatefulWidget {
 }
 
 class _ReelsFeedState extends State<ReelsFeed> {
-  static const _pageSize = 6;
+  static const _pageSize = 8;
 
   /// Etkinleşmede akışı yenilemek için gereken boşta kalma süresi.
   static const _staleAfter = Duration(minutes: 3);
+
+  /// En üstte aşağı çekme eşiği (dp): aşılırsa yeni oturum.
+  static const _pullThreshold = 90.0;
 
   final PageController _pager = PageController();
   late final PostApi _api = widget.api ?? PostApi(widget.session);
@@ -49,12 +74,14 @@ class _ReelsFeedState extends State<ReelsFeed> {
 
   String? _cursor;
   bool _hasMore = true;
+  bool _exhausted = false;
   bool _loading = false;
   bool _loaded = false;
   Object? _error;
   int _index = 0;
   int _gen = 0;
   DateTime? _loadedAt;
+  double _pull = 0;
 
   /// Üstte başka bir rota açıkken (ör. yazar profili) oynatma durur.
   bool _routeCurrent = true;
@@ -99,18 +126,18 @@ class _ReelsFeedState extends State<ReelsFeed> {
 
   /// Kaydırma konumundaki reeli "görüldü" işaretler (yalnız gerçekten ekrandayken).
   void _markCurrent() {
-    if (!widget.active || _index < 0 || _index >= _items.length) return;
+    if (!_on || _index < 0 || _index >= _items.length) return;
     _seen.mark(_items[_index].id);
   }
 
-  Future<void> _reload() async {
+  Future<void> _reload({bool replay = false}) async {
     final gen = ++_gen;
     setState(() {
       _loading = true;
       _error = null;
     });
     try {
-      final page = await _api.reels(size: _pageSize);
+      final page = await _api.reels(size: _pageSize, replay: replay);
       if (!mounted || gen != _gen) return;
       setState(() {
         _items
@@ -118,13 +145,13 @@ class _ReelsFeedState extends State<ReelsFeed> {
           ..addAll(page.items.where((p) => p.isVideo));
         _cursor = page.nextCursor;
         _hasMore = page.hasMore;
+        _exhausted = page.exhausted;
         _loaded = true;
         _loading = false;
         _index = 0;
         _loadedAt = DateTime.now();
       });
       if (_pager.hasClients) _pager.jumpToPage(0);
-      if (page.exhausted && _items.isNotEmpty) BuToast.show(context, context.l10n.kesSeenAll);
       _markCurrent();
     } catch (e) {
       if (!mounted || gen != _gen) return;
@@ -132,6 +159,7 @@ class _ReelsFeedState extends State<ReelsFeed> {
         _loading = false;
         if (!_loaded) _error = e;
       });
+      if (_loaded) BuToast.show(context, postErrorText(e, context.l10n), kind: BuToastKind.error);
     }
   }
 
@@ -147,6 +175,7 @@ class _ReelsFeedState extends State<ReelsFeed> {
         _items.addAll(page.items.where((p) => p.isVideo && have.add(p.id)));
         _cursor = page.nextCursor;
         _hasMore = page.hasMore;
+        _exhausted = page.exhausted;
         _loading = false;
       });
     } catch (e) {
@@ -154,7 +183,10 @@ class _ReelsFeedState extends State<ReelsFeed> {
       // Bozuk imleç ya da ağ hatası: sessizce dur; kullanıcı yukarı-aşağı kaydırınca yeniden denenir.
       setState(() {
         _loading = false;
-        if (e is ApiError && e.code == 'POST_CURSOR_INVALID') _hasMore = false;
+        if (e is ApiError && e.code == 'POST_CURSOR_INVALID') {
+          _hasMore = false;
+          _exhausted = true;
+        }
       });
     }
   }
@@ -174,56 +206,94 @@ class _ReelsFeedState extends State<ReelsFeed> {
     if (mounted) setState(() => _items.removeWhere((e) => e.id == id));
   }
 
+  /// En üstte aşağı çekme (iOS sıçrama / Android taşma) -> yeni oturum.
+  bool _onScroll(ScrollNotification n) {
+    if (n.depth != 0 || _index != 0 || _loading) return false;
+    if (n is OverscrollNotification && n.overscroll < 0) {
+      _pull += -n.overscroll;
+    } else if (n is ScrollUpdateNotification && n.metrics.pixels < n.metrics.minScrollExtent) {
+      _pull = n.metrics.minScrollExtent - n.metrics.pixels;
+    } else if (n is ScrollEndNotification) {
+      if (_pull >= _pullThreshold) {
+        _pull = 0;
+        buHaptic(BuHaptic.light);
+        _reload();
+      }
+      _pull = 0;
+    }
+    return false;
+  }
+
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
+    final l = context.l10n;
     final Widget body;
     if (!_loaded && _error == null) {
       body = Center(child: CircularProgressIndicator(key: const ValueKey('reelsLoading'), strokeWidth: 2, color: t.onMedia));
     } else if (_error != null && !_loaded) {
       body = _Message(
         key: const ValueKey('reelsError'),
-        title: context.l10n.p04FeedErrTitle,
-        body: context.l10n.p04FeedErrBody,
-        action: context.l10n.postViewRetry,
-        onAction: _reload,
+        title: l.p04FeedErrTitle,
+        body: l.p04FeedErrBody,
+        actions: [_Act(l.postViewRetry, _reload)],
       );
     } else if (_items.isEmpty) {
-      body = _Message(
-        key: const ValueKey('reelsEmpty'),
-        title: context.l10n.kesReelsEmptyTitle,
-        body: context.l10n.kesReelsEmptyBody,
-        action: widget.onCompose == null ? null : context.l10n.discoverCompose,
-        onAction: widget.onCompose,
-      );
+      body = _exhausted ? _done(l) : _empty(l);
     } else {
-      body = PageView.builder(
-        key: const ValueKey('reelsPager'),
-        controller: _pager,
-        scrollDirection: Axis.vertical,
-        itemCount: _items.length,
-        onPageChanged: _onPage,
-        itemBuilder: (_, i) {
-          final p = _items[i];
-          return _ReelPage(
-            key: ValueKey('reel-${p.id}'),
-            session: widget.session,
-            post: p,
-            active: _on && i == _index,
-            topInset: widget.topInset,
-            api: _api,
-            onChanged: _changed,
-            onRemoved: () => _removed(p.id),
-          );
-        },
+      final extra = _exhausted && !_hasMore ? 1 : 0; // son sayfa: "tüm videoları gördün"
+      body = NotificationListener<ScrollNotification>(
+        onNotification: _onScroll,
+        child: PageView.builder(
+          key: const ValueKey('reelsPager'),
+          controller: _pager,
+          scrollDirection: Axis.vertical,
+          physics: const AlwaysScrollableScrollPhysics(),
+          itemCount: _items.length + extra,
+          onPageChanged: _onPage,
+          itemBuilder: (_, i) {
+            if (i >= _items.length) return _done(l);
+            final p = _items[i];
+            return _ReelPage(
+              key: ValueKey('reel-${p.id}'),
+              session: widget.session,
+              post: p,
+              active: _on && i == _index,
+              topInset: widget.topInset,
+              api: _api,
+              comments: widget.comments,
+              onChanged: _changed,
+              onRemoved: () => _removed(p.id),
+            );
+          },
+        ),
       );
     }
     return ColoredBox(color: t.scrim, child: body);
   }
+
+  Widget _empty(AppLocalizations l) => _Message(
+        key: const ValueKey('reelsEmpty'),
+        title: l.kesReelsEmptyTitle,
+        body: l.kesReelsEmptyBody,
+        actions: [if (widget.onCompose != null) _Act(l.discoverCompose, widget.onCompose!)],
+      );
+
+  /// İçerik tükendi: sonsuz döngü yok; Tekrar izle + alternatifler.
+  Widget _done(AppLocalizations l) => _Message(
+        key: const ValueKey('reelsDone'),
+        title: l.kesReelsDoneTitle,
+        body: l.kesReelsDoneBody,
+        actions: [
+          _Act(l.kesReelsReplay, () => _reload(replay: true), key: const ValueKey('reelsReplay')),
+          if (widget.onOpenPosts != null) _Act(l.kesReelsToPosts, widget.onOpenPosts!, key: const ValueKey('reelsToPosts')),
+          if (widget.onCompose != null) _Act(l.discoverCompose, widget.onCompose!),
+        ],
+      );
 }
 
-/// Tek reel: tam ekran video + alt sol yazar/metin/puan, sağ alt beğeni ve menü.
-class _ReelPage extends StatelessWidget {
+/// Tek reel: tam ekran video + sağ eylem çubuğu + alt sol yazar/açıklama/puan.
+class _ReelPage extends StatefulWidget {
   const _ReelPage({
     super.key,
     required this.session,
@@ -233,6 +303,7 @@ class _ReelPage extends StatelessWidget {
     required this.api,
     required this.onChanged,
     required this.onRemoved,
+    this.comments,
   });
 
   final Session session;
@@ -240,35 +311,57 @@ class _ReelPage extends StatelessWidget {
   final bool active;
   final double topInset;
   final PostApi api;
+  final CommentsRepository? comments;
   final ValueChanged<Post> onChanged;
   final VoidCallback onRemoved;
+
+  @override
+  State<_ReelPage> createState() => _ReelPageState();
+}
+
+class _ReelPageState extends State<_ReelPage> {
+  bool _expanded = false;
+
+  Post get p => widget.post;
+
+  Future<void> _toggleSave() async {
+    final want = !(p.savedByMe ?? false);
+    widget.onChanged(p.copyWith(savedByMe: want));
+    try {
+      final got = await widget.api.setSaved(p.id, want);
+      if (mounted) widget.onChanged(p.copyWith(savedByMe: got));
+    } catch (e) {
+      if (!mounted) return;
+      widget.onChanged(p.copyWith(savedByMe: !want));
+      BuToast.show(context, postErrorText(e, context.l10n), kind: BuToastKind.error);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
     final tt = Theme.of(context).textTheme;
-    final p = post;
+    final l = context.l10n;
+    final mine = p.mine || p.author.id == widget.session.userId;
     final text = (p.text ?? '').trim();
-    final mine = p.mine || p.author.id == session.userId;
-    final hasMenu = !(mine && !p.canEdit && !p.canDelete);
     return Stack(fit: StackFit.expand, children: [
       PostVideoView(
-        session: session,
+        session: widget.session,
         post: p,
-        active: active,
+        active: widget.active,
         fit: p.video!.aspect >= 1 ? BoxFit.contain : BoxFit.cover,
         tap: PostVideoTap.playPause,
         showFullscreen: false,
         showProgress: true,
         soundOnTop: true,
-        inset: EdgeInsets.only(top: topInset, bottom: kNavInset),
-        api: api,
+        inset: EdgeInsets.only(top: widget.topInset, bottom: kNavInset),
+        api: widget.api,
       ),
       // Okunaklılık için alt gradyan.
       Align(
         alignment: Alignment.bottomCenter,
         child: FractionallySizedBox(
-          heightFactor: .4,
+          heightFactor: .42,
           widthFactor: 1,
           child: IgnorePointer(
             child: DecoratedBox(
@@ -276,7 +369,7 @@ class _ReelPage extends StatelessWidget {
                 gradient: LinearGradient(
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
-                  colors: [t.scrim.withValues(alpha: 0), t.scrim.withValues(alpha: .35), t.scrim.withValues(alpha: .7)],
+                  colors: [t.scrim.withValues(alpha: 0), t.scrim.withValues(alpha: .35), t.scrim.withValues(alpha: .72)],
                 ),
               ),
             ),
@@ -285,13 +378,16 @@ class _ReelPage extends StatelessWidget {
       ),
       PositionedDirectional(
         start: BuSpace.page,
-        end: 76,
+        end: 80,
         bottom: kNavInset + 14,
         child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
-          GestureDetector(
+          AvatarPreviewTap(
             key: ValueKey('reel-author-${p.id}'),
-            behavior: HitTestBehavior.opaque,
-            onTap: () => openUserPosts(context, session, userId: p.author.id, name: p.author.displayName),
+            session: widget.session,
+            url: p.author.avatarUrl,
+            name: p.author.displayName,
+            onTap: () => openUserProfile(context, widget.session,
+                userId: p.author.id, name: p.author.displayName, avatarUrl: p.author.avatarUrl),
             child: ConstrainedBox(
               constraints: const BoxConstraints(minHeight: 44),
               child: Row(mainAxisSize: MainAxisSize.min, children: [
@@ -299,7 +395,7 @@ class _ReelPage extends StatelessWidget {
                   decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: t.onMedia.withValues(alpha: .45), width: 1.5)),
                   child: Padding(
                     padding: const EdgeInsets.all(1.5),
-                    child: BuAvatar(name: p.author.displayName, url: p.author.avatarUrl, size: 32, headers: postAuthHeaders(session)),
+                    child: BuAvatar(name: p.author.displayName, url: p.author.avatarUrl, size: 32, headers: postAuthHeaders(widget.session)),
                   ),
                 ),
                 const SizedBox(width: 8),
@@ -314,49 +410,127 @@ class _ReelPage extends StatelessWidget {
           ),
           if (text.isNotEmpty) ...[
             const SizedBox(height: 4),
-            Text(text, maxLines: 3, overflow: TextOverflow.ellipsis, style: tt.bodyLarge?.copyWith(color: t.onMedia, fontSize: 15, height: 1.35)),
+            GestureDetector(
+              key: ValueKey('reel-caption-${p.id}'),
+              behavior: HitTestBehavior.opaque,
+              onTap: () => setState(() => _expanded = !_expanded),
+              child: Text(text,
+                  maxLines: _expanded ? null : 2,
+                  overflow: _expanded ? TextOverflow.visible : TextOverflow.ellipsis,
+                  style: tt.bodyLarge?.copyWith(color: t.onMedia, fontSize: 15, height: 1.35)),
+            ),
+          ],
+          if (p.viewCount != null && p.viewCount! > 0) ...[
+            const SizedBox(height: 6),
+            Text(l.kesViews('${p.viewCount}'),
+                style: tt.labelMedium?.copyWith(color: t.onMedia.withValues(alpha: .75), fontFeatures: const [FontFeature.tabularFigures()])),
           ],
           if (p.popularityScore != null) ...[
-            const SizedBox(height: 10),
+            const SizedBox(height: 8),
             PopularityMeter(score: p.popularityScore!, onMedia: true, width: 72),
           ],
         ]),
       ),
+      // Sağ eylem çubuğu: Beğen, Yorumlar, Kaydet, Üç nokta.
       PositionedDirectional(
-        end: 8,
+        end: 4,
         bottom: kNavInset + 14,
         child: Column(mainAxisSize: MainAxisSize.min, children: [
           LikeButton(
-            session: session,
+            session: widget.session,
             post: p,
             tile: true,
             compact: true,
             size: 28,
-            a11yCount: (n) => context.l10n.p04LikeCount('$n'),
-            onChanged: onChanged,
+            a11yCount: (n) => l.p04LikeCount('$n'),
+            onChanged: widget.onChanged,
           ),
-          if (hasMenu)
-            IconButton(
-              key: ValueKey('reel-menu-${p.id}'),
-              tooltip: context.l10n.postComposeEdit,
-              constraints: const BoxConstraints(minWidth: BuSize.touch, minHeight: BuSize.touch),
-              icon: Icon(BuIcons.ellipsis, color: t.onMedia, size: 24),
-              onPressed: () => showPostActions(context, session: session, post: p, onEdited: onChanged, onDeleted: onRemoved),
+          if (p.commentCount != null)
+            _RailButton(
+              key: ValueKey('reel-comments-${p.id}'),
+              icon: BuIcons.messageCircle,
+              label: '${p.commentCount}',
+              tooltip: l.kesActionComments,
+              onTap: () => showReelsComments(context,
+                  session: widget.session,
+                  post: p,
+                  repository: widget.comments,
+                  onCountChanged: (n) => widget.onChanged(p.copyWith(commentCount: n))),
             ),
+          if (p.savedByMe != null)
+            _RailButton(
+              key: ValueKey('reel-save-${p.id}'),
+              icon: p.savedByMe! ? BuIcons.bookmarkFilled : BuIcons.bookmark,
+              tooltip: p.savedByMe! ? l.kesActionSaved : l.kesActionSave,
+              onTap: _toggleSave,
+            ),
+          _RailButton(
+            key: ValueKey('reel-menu-${p.id}'),
+            icon: BuIcons.ellipsis,
+            tooltip: l.kesMore,
+            onTap: () => showPostActions(context,
+                session: widget.session,
+                post: p,
+                notInterested: !mine,
+                onEdited: widget.onChanged,
+                onDeleted: widget.onRemoved),
+          ),
         ]),
       ),
     ]);
   }
 }
 
-/// Boş / hata durumu: koyu zeminde başlık + gövde + tek eylem.
+/// Eylem çubuğu düğmesi: 48 dp dokunma alanı, ikon + isteğe bağlı sayı (`onMedia`).
+class _RailButton extends StatelessWidget {
+  const _RailButton({super.key, required this.icon, required this.tooltip, required this.onTap, this.label});
+
+  final IconData icon;
+  final String tooltip;
+  final String? label;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.bu;
+    return Semantics(
+      button: true,
+      label: label == null ? tooltip : '$tooltip, $label',
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: onTap,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minWidth: BuSize.touch, minHeight: BuSize.touch + 8),
+          child: Column(mainAxisSize: MainAxisSize.min, mainAxisAlignment: MainAxisAlignment.center, children: [
+            Icon(icon, color: t.onMedia, size: 26),
+            if (label != null)
+              Text(label!,
+                  style: Theme.of(context)
+                      .textTheme
+                      .labelSmall
+                      ?.copyWith(color: t.onMedia, fontWeight: FontWeight.w600, fontFeatures: const [FontFeature.tabularFigures()])),
+          ]),
+        ),
+      ),
+    );
+  }
+}
+
+class _Act {
+  const _Act(this.label, this.onTap, {this.key});
+
+  final String label;
+  final VoidCallback onTap;
+  final Key? key;
+}
+
+/// Boş / hata / tükendi durumu: koyu zeminde başlık + gövde + eylemler.
 class _Message extends StatelessWidget {
-  const _Message({super.key, required this.title, required this.body, this.action, this.onAction});
+  const _Message({super.key, required this.title, required this.body, this.actions = const []});
 
   final String title;
   final String body;
-  final String? action;
-  final VoidCallback? onAction;
+  final List<_Act> actions;
 
   @override
   Widget build(BuildContext context) {
@@ -369,14 +543,14 @@ class _Message extends StatelessWidget {
           Text(title, textAlign: TextAlign.center, style: tt.titleMedium?.copyWith(color: t.onMedia, fontSize: 18, fontWeight: FontWeight.w600)),
           BuGap.h6,
           Text(body, textAlign: TextAlign.center, style: tt.bodyLarge?.copyWith(color: t.onMedia.withValues(alpha: .75), fontSize: 15)),
-          if (action != null && onAction != null) ...[
-            BuGap.h16,
+          BuGap.h16,
+          for (final a in actions)
             TextButton(
-              onPressed: onAction,
+              key: a.key,
+              onPressed: a.onTap,
               style: TextButton.styleFrom(minimumSize: const Size(BuSize.touch, BuSize.touch), foregroundColor: t.onMedia),
-              child: Text(action!, style: tt.labelLarge?.copyWith(color: t.onMedia, fontSize: 15, fontWeight: FontWeight.w600)),
+              child: Text(a.label, style: tt.labelLarge?.copyWith(color: t.onMedia, fontSize: 15, fontWeight: FontWeight.w600)),
             ),
-          ],
         ]),
       ),
     );

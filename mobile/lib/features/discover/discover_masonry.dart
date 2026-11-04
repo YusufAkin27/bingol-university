@@ -38,11 +38,18 @@ class DiscoverMasonryFeed extends StatefulWidget {
     required this.session,
     this.controller,
     this.header,
-    this.scope = 'top',
+    this.pinnedHeader,
+    this.scope = 'foryou',
     this.onCompose,
     this.inline,
     this.inlineAfter = 4,
+    this.emptyTitle,
+    this.emptyBody,
   });
+
+  /// Boş durum metni (null: varsayılan "henüz gönderi yok").
+  final String? emptyTitle;
+  final String? emptyBody;
 
   /// Akış içi öneri bölümü (ör. "Tanıyor Olabilirsin").
   final Widget? inline;
@@ -51,6 +58,9 @@ class DiscoverMasonryFeed extends StatefulWidget {
   final Session session;
   final DiscoverFeedController? controller;
   final Widget? header;
+
+  /// Sabitlenen üst alan (kapsül filtreler kaydırınca da erişilebilir kalsın): [header] yerine kullanılır.
+  final SliverPersistentHeaderDelegate? pinnedHeader;
   final String scope;
 
   /// Boş durumdaki "Gönderi oluştur" düğmesi.
@@ -131,6 +141,9 @@ class _DiscoverMasonryFeedState extends State<DiscoverMasonryFeed> {
       _scroll.animateTo(0, duration: const Duration(milliseconds: 250), curve: Curves.easeOut);
     }
   }
+
+  /// Görülmüş kümesi yalnız Senin İçin ve Popüler akışlarında vardır (En Yeni/Takip Ettiklerim'de yok).
+  bool get _marksSeen => widget.scope == 'foryou' || widget.scope == 'popular' || widget.scope == 'top';
 
   Future<void> _reload() async {
     final gen = ++_gen;
@@ -285,7 +298,8 @@ class _DiscoverMasonryFeedState extends State<DiscoverMasonryFeed> {
       body = SliverToBoxAdapter(
           child: _EntryRise(child: DiscoverErrorCard(offline: _error is ApiError && (_error as ApiError).isNetwork, onRetry: _reload)));
     } else if (_items.isEmpty) {
-      body = SliverToBoxAdapter(child: _EntryRise(child: DiscoverEmptyCard(onCompose: widget.onCompose)));
+      body = SliverToBoxAdapter(
+          child: _EntryRise(child: DiscoverEmptyCard(onCompose: widget.onCompose, title: widget.emptyTitle, body: widget.emptyBody)));
     } else {
       body = _masonry(context);
     }
@@ -298,7 +312,10 @@ class _DiscoverMasonryFeedState extends State<DiscoverMasonryFeed> {
           controller: _scroll,
           physics: const AlwaysScrollableScrollPhysics(),
           slivers: [
-            if (widget.header != null) SliverToBoxAdapter(child: widget.header),
+            if (widget.pinnedHeader != null)
+              SliverPersistentHeader(pinned: true, delegate: widget.pinnedHeader!)
+            else if (widget.header != null)
+              SliverToBoxAdapter(child: widget.header),
             if (_stale && _loaded && _items.isNotEmpty) const SliverToBoxAdapter(child: _OfflineNote(key: ValueKey('discoverOffline'))),
             body,
             SliverToBoxAdapter(child: _footer()),
@@ -337,7 +354,7 @@ class _DiscoverMasonryFeedState extends State<DiscoverMasonryFeed> {
         delegate: SliverChildBuilderDelegate(
           (_, i) {
             final p = items[i];
-            _seen.mark(p.id);
+            if (_marksSeen) _seen.mark(p.id);
             Widget box = DiscoverPostBox(
               key: ValueKey('discover-post-${p.id}'),
               session: widget.session,
@@ -509,16 +526,20 @@ class _SkeletonBox extends StatelessWidget {
 
 /// Boş durum: sade kamera dairesi, tek cümle, tek eylem (kart/gölge yok; sayfa zemininde durur).
 class DiscoverEmptyCard extends StatelessWidget {
-  const DiscoverEmptyCard({super.key, this.onCompose});
+  const DiscoverEmptyCard({super.key, this.onCompose, this.title, this.body});
 
   final VoidCallback? onCompose;
+
+  /// Verilirse varsayılan "gönderi yok" metninin yerine geçer.
+  final String? title;
+  final String? body;
 
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
     final tt = Theme.of(context).textTheme;
     final l = context.l10n;
-    final parts = l.postViewFeedEmpty.split(RegExp(r'(?<=[.!?])\s+'));
+    final parts = title != null ? [title!, if (body != null) body!] : l.postViewFeedEmpty.split(RegExp(r'(?<=[.!?])\s+'));
     return Padding(
       padding: const EdgeInsets.fromLTRB(BuSpace.page, BuSpace.huge, BuSpace.page, 0),
       child: Column(

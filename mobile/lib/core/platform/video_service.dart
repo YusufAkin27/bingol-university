@@ -57,6 +57,17 @@ class PreparedVideo {
   final Uint8List? poster;
 
   String get fileName => 'video.mp4';
+
+  /// Aynı video, farklı kapak (poster) karesiyle.
+  PreparedVideo withPoster(Uint8List? poster) => PreparedVideo(
+        path: path,
+        bytes: bytes,
+        sizeBytes: sizeBytes,
+        durationMs: durationMs,
+        width: width,
+        height: height,
+        poster: poster,
+      );
 }
 
 class VideoException implements Exception {
@@ -223,6 +234,9 @@ class VideoService {
 
   /// Bu boyutun altındaki ve en çok 1280 px'lik videolar olduğu gibi gönderilir.
   static const skipCompressBytes = 6 * 1024 * 1024;
+
+  /// Videonun [positionMs] anındaki kare (JPEG); alınamazsa null (iOS'ta kare çıkarma yok: kapak seçimi gösterilmez).
+  Future<Uint8List?> frameAt(String path, int positionMs) => _compressor.poster(path, positionMs: positionMs);
 
   /// Galeriden ya da kameradan seçer (kamera en çok 60 sn kaydeder). İptalde null.
   Future<PickedVideo?> pick(ImageSource source) async {

@@ -3,11 +3,12 @@ import 'package:flutter/material.dart';
 import '../../core/locale_controller.dart';
 import '../../core/session.dart';
 import '../../widgets/bu.dart';
+import '../posts/avatar_preview.dart';
 import '../posts/like_button.dart';
 import '../posts/post_card.dart';
 import '../posts/post_models.dart';
-import '../posts/post_routes.dart';
 import '../posts/post_video.dart';
+import '../profile/user_profile_page.dart' show openUserProfile;
 
 /// Kutu köşesi (BuRadius.md) ve fotoğraf oran aralığı (genişlik/yükseklik): 1:1 (kare) .. 2:3 (en dik).
 const double kDiscoverBoxRadius = BuRadius.md;
@@ -142,10 +143,13 @@ class _AuthorLabel extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.bu;
     final name = post.author.displayName;
-    return GestureDetector(
+    // Dokunma: kullanıcı profili; uzun basma: blur büyük fotoğraf önizlemesi.
+    return AvatarPreviewTap(
       key: ValueKey('discover-author-${post.id}'),
-      behavior: HitTestBehavior.opaque,
-      onTap: () => openUserPosts(context, session, userId: post.author.id, name: name),
+      session: session,
+      url: post.author.avatarUrl,
+      name: name,
+      onTap: () => openUserProfile(context, session, userId: post.author.id, name: name, avatarUrl: post.author.avatarUrl),
       child: ConstrainedBox(
         constraints: const BoxConstraints(minHeight: 44),
         child: Row(children: [

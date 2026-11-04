@@ -5581,6 +5581,116 @@ class AppLocalizationsEn extends AppLocalizations {
   String get kesSeenAll => 'You have seen everything, posts are shown again.';
 
   @override
+  String get kesFilterForYou => 'For You';
+
+  @override
+  String get kesFilterPopular => 'Popular';
+
+  @override
+  String get kesFilterLatest => 'Latest';
+
+  @override
+  String get kesFilterFollowing => 'Following';
+
+  @override
+  String get kesFollowingEmptyTitle =>
+      'The people you follow have not posted yet';
+
+  @override
+  String get kesFollowingEmptyBody =>
+      'Follow more people to see their posts here.';
+
+  @override
+  String get kesReelsDoneTitle => 'You have watched all videos for now';
+
+  @override
+  String get kesReelsDoneBody => 'New videos will appear here.';
+
+  @override
+  String get kesReelsReplay => 'Watch again';
+
+  @override
+  String get kesReelsToPosts => 'Browse Explore posts';
+
+  @override
+  String get kesActionComments => 'Comments';
+
+  @override
+  String get kesActionSave => 'Save';
+
+  @override
+  String get kesActionSaved => 'Saved';
+
+  @override
+  String get kesNotInterested => 'Not interested';
+
+  @override
+  String get kesNotInterestedDone => 'This video will not be suggested again.';
+
+  @override
+  String get kesMore => 'More actions';
+
+  @override
+  String kesViews(String count) {
+    return '$count views';
+  }
+
+  @override
+  String get kesCoverTitle => 'Cover frame';
+
+  @override
+  String get kesCoverHint => 'Pick a frame from the video.';
+
+  @override
+  String get kesComposeMenuPhoto => 'Share a photo';
+
+  @override
+  String get kesComposeMenuVideo => 'Share a video / Reel';
+
+  @override
+  String get kesCommentsTitle => 'Comments';
+
+  @override
+  String get kesCommentsEmpty => 'No comments yet.';
+
+  @override
+  String get kesCommentsWrite => 'Write a comment…';
+
+  @override
+  String get kesCommentsSend => 'Send';
+
+  @override
+  String get kesCommentsReply => 'Reply';
+
+  @override
+  String kesCommentsReplyingTo(String name) {
+    return 'Replying to $name';
+  }
+
+  @override
+  String kesCommentsMoreReplies(String count) {
+    return 'View $count replies';
+  }
+
+  @override
+  String get kesCommentsLoadFailed => 'Comments could not be loaded.';
+
+  @override
+  String get kesCommentsDelete => 'Delete comment';
+
+  @override
+  String get kesAvatarPreview => 'Profile photo';
+
+  @override
+  String get kesCommentsSortTop => 'Top';
+
+  @override
+  String get kesCommentsSortNew => 'New';
+
+  @override
+  String get kesCommentsAuthorBadge => 'Author';
+
+  @override
   String get profil2PrivacyTitle => 'Privacy and blocked users';
 
   @override

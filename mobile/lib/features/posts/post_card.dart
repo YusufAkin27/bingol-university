@@ -7,11 +7,13 @@ import '../../widgets/bu.dart';
 import 'like_button.dart';
 import 'post_actions.dart';
 import 'post_models.dart';
+import 'avatar_preview.dart';
 import 'popularity_meter.dart';
 import 'post_photo_viewer.dart';
 import 'post_routes.dart';
 import 'post_video.dart';
 import '../../core/academic_catalog.dart';
+import '../profile/user_profile_page.dart' show openUserProfile;
 
 /// Gönderinin tek fotoğrafı: yetkili medya uçları için Bearer başlığı ile yüklenir. Oran varsayılan 4:5 (tasarım 17).
 /// Çözümleme genişliği ekrana göre sınırlıdır (en çok 1080 px): bellek ve çözme süresi küçük kalır.
@@ -257,12 +259,21 @@ class _PostCardState extends State<PostCard> {
           Padding(
             padding: const EdgeInsetsDirectional.fromSTEB(BuSpace.page, 4, BuSpace.xs, 12),
             child: Row(children: [
-              BuAvatar(name: p.author.displayName, url: p.author.avatarUrl, size: 40, headers: postAuthHeaders(widget.session)),
+              // Avatar: dokunma = profil, uzun basma = blur büyük fotoğraf önizlemesi.
+              AvatarPreviewTap(
+                session: widget.session,
+                url: p.author.avatarUrl,
+                name: p.author.displayName,
+                onTap: () => openUserProfile(context, widget.session,
+                    userId: p.author.id, name: p.author.displayName, avatarUrl: p.author.avatarUrl),
+                child: BuAvatar(name: p.author.displayName, url: p.author.avatarUrl, size: 40, headers: postAuthHeaders(widget.session)),
+              ),
               BuGap.w12,
               Expanded(
                 child: GestureDetector(
                   behavior: HitTestBehavior.opaque,
-                  onTap: () => openUserPosts(context, widget.session, userId: p.author.id, name: p.author.displayName),
+                  onTap: () => openUserProfile(context, widget.session,
+                      userId: p.author.id, name: p.author.displayName, avatarUrl: p.author.avatarUrl),
                   child: ConstrainedBox(
                     constraints: const BoxConstraints(minHeight: BuSize.touch),
                     child: Column(

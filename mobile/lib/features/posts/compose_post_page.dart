@@ -29,10 +29,50 @@ Future<Uint8List?> _defaultPicker(ImageSource source) async {
   return f?.readAsBytes();
 }
 
-/// Oluşturucuyu tam ekran açar; paylaşılırsa oluşan [Post] döner, kapatılırsa null.
-Future<Post?> openComposePost(BuildContext context, Session session) => Navigator.of(context).push<Post>(
-      MaterialPageRoute(fullscreenDialog: true, builder: (_) => ComposePostPage(session: session)),
+/// Paylaşım türü: fotoğraf ya da video/Reels (metin-only gönderi backend'de yoktur: menüde de yok).
+enum ComposeKind { photo, video }
+
+/// Paylaş (+) menüsü: Fotoğraf paylaş | Video / Reels paylaş. Seçilen tür oluşturucuyu doğrudan ilgili seçiciyle açar.
+/// [kind] verilirse menü atlanır. Vazgeçilirse null.
+Future<Post?> openComposePost(BuildContext context, Session session, {ComposeKind? kind, bool menu = true}) async {
+  var k = kind;
+  if (k == null && menu) {
+    k = await BuSheet.show<ComposeKind>(
+      context,
+      scrollable: false,
+      padding: EdgeInsets.zero,
+      builder: (ctx) {
+        final t = ctx.bu;
+        Widget row(Key key, IconData icon, String label, ComposeKind v) => InkWell(
+              key: key,
+              onTap: () => Navigator.pop(ctx, v),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(minHeight: 56),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: BuSpace.page),
+                  child: Row(children: [
+                    Icon(icon, size: 22, color: t.ink),
+                    const SizedBox(width: 14),
+                    Expanded(
+                        child: Text(label, style: Theme.of(ctx).textTheme.titleSmall?.copyWith(color: t.ink, fontWeight: FontWeight.w600))),
+                  ]),
+                ),
+              ),
+            );
+        return Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+          row(const ValueKey('composeMenuPhoto'), BuIcons.image, ctx.l10n.kesComposeMenuPhoto, ComposeKind.photo),
+          Divider(height: 1, color: t.bd),
+          row(const ValueKey('composeMenuVideo'), BuIcons.video, ctx.l10n.kesComposeMenuVideo, ComposeKind.video),
+          SizedBox(height: MediaQuery.paddingOf(ctx).bottom > 0 ? 0 : 8),
+        ]);
+      },
     );
+    if (k == null || !context.mounted) return null;
+  }
+  return Navigator.of(context).push<Post>(
+    MaterialPageRoute(fullscreenDialog: true, builder: (_) => ComposePostPage(session: session, initialKind: k)),
+  );
+}
 
 enum _Err { none, generic, profanity, rate, network }
 
@@ -52,9 +92,13 @@ class ComposePostPage extends StatefulWidget {
     this.api,
     this.videoService,
     this.videoUploader,
+    this.initialKind,
   });
 
   final Session session;
+
+  /// Açılışta doğrudan ilgili kaynak seçiciyi aç (Paylaş menüsünden gelince).
+  final ComposeKind? initialKind;
 
   /// Testler için: video seçme/hazırlama ve yükleme enjeksiyonu.
   final VideoService? videoService;
@@ -82,6 +126,8 @@ class _ComposePostPageState extends State<ComposePostPage> {
   PreparedVideo? _video;
   PostMedia? _uploadedVideo;
   VideoCancel? _prepCancel;
+  List<Uint8List> _frames = const []; // kapak karesi adayları (video başına en çok 6)
+  int _coverIndex = 0;
   bool _preparing = false;
   double _progress = 0;
 
@@ -93,6 +139,23 @@ class _ComposePostPageState extends State<ComposePostPage> {
   String _errText = '';
   int _wait = 0; // hız sınırı geri sayımı (sn)
   Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    final k = widget.initialKind;
+    if (k != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
+        if (!mounted) return;
+        if (k == ComposeKind.photo) {
+          await _chooseSource();
+        } else {
+          final src = await showPhotoSourceSheet(context, simple: true);
+          if (src != null && mounted) await _pickVideo(src == PhotoSource.camera ? ImageSource.camera : ImageSource.gallery);
+        }
+      });
+    }
+  }
 
   @override
   void dispose() {
@@ -201,12 +264,15 @@ class _ComposePostPageState extends State<ComposePostPage> {
       setState(() {
         _video = prepared;
         _uploadedVideo = null;
+        _frames = const [];
+        _coverIndex = 0;
         _photo = null; // gönderi = 1 fotoğraf YA DA 1 video
         _original = null;
         _uploaded = null;
         _preparing = false;
         _prepCancel = null;
       });
+      unawaited(_loadFrames(prepared));
     } catch (e) {
       if (!mounted) return;
       setState(() {
@@ -217,9 +283,82 @@ class _ComposePostPageState extends State<ComposePostPage> {
     }
   }
 
+  /// Kapak karesi adaylarını videodan eşit aralıklı alır (kare çıkarma desteklenmiyorsa — iOS — şerit hiç görünmez).
+  Future<void> _loadFrames(PreparedVideo v) async {
+    final path = v.path;
+    if (path == null || v.durationMs <= 0) return;
+    const n = 6;
+    final out = <Uint8List>[];
+    for (var i = 0; i < n; i++) {
+      final at = (v.durationMs * (i + .5) / n).round();
+      final f = await _videoSvc.frameAt(path, at);
+      if (!mounted || _video != v) return;
+      if (f != null && f.isNotEmpty) out.add(f);
+    }
+    if (!mounted || _video != v || out.length < 2) return;
+    setState(() {
+      _frames = out;
+      // Varsayılan kapak: hazırlama adımındaki ilk anlamlı kare (poster) zaten seçili; şeritte ilk kare işaretlenmez.
+      _coverIndex = -1;
+    });
+  }
+
+  void _pickCover(int i) {
+    final v = _video;
+    if (v == null || _publishing || i < 0 || i >= _frames.length) return;
+    setState(() {
+      _coverIndex = i;
+      _video = v.withPoster(_frames[i]);
+      _uploadedVideo = null; // poster videoyla birlikte yüklenir
+    });
+  }
+
+  Widget _coverStrip(BuTokens t) {
+    final tt = Theme.of(context).textTheme;
+    return Padding(
+      key: const ValueKey('composeCoverStrip'),
+      padding: const EdgeInsets.only(top: 14),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Text(context.l10n.kesCoverTitle, style: tt.titleSmall?.copyWith(color: t.ink, fontWeight: FontWeight.w600)),
+        Text(context.l10n.kesCoverHint, style: tt.bodySmall?.copyWith(color: t.mut)),
+        const SizedBox(height: 8),
+        SizedBox(
+          height: 84,
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            itemCount: _frames.length,
+            separatorBuilder: (_, __) => const SizedBox(width: 8),
+            itemBuilder: (_, i) => GestureDetector(
+              key: ValueKey('composeCover-$i'),
+              onTap: () => _pickCover(i),
+              child: Semantics(
+                button: true,
+                selected: i == _coverIndex,
+                label: '${context.l10n.kesCoverTitle} ${i + 1}',
+                child: AnimatedContainer(
+                  duration: BuMotion.of(context, BuMotion.short),
+                  width: 64,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(BuRadius.sm),
+                    border: Border.all(color: i == _coverIndex ? t.pr : t.bd, width: i == _coverIndex ? 2.5 : 1),
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(BuRadius.sm - 1),
+                    child: Image.memory(_frames[i], fit: BoxFit.cover, gaplessPlayback: true),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ]),
+    );
+  }
+
   void _removeVideo() {
     if (_publishing) return;
     setState(() {
+      _frames = const [];
       _video = null;
       _uploadedVideo = null;
       _err = _Err.none;
@@ -296,9 +435,10 @@ class _ComposePostPageState extends State<ComposePostPage> {
   Widget build(BuildContext context) {
     final t = context.bu;
     return PopScope(
-      canPop: !_dirty || _publishing,
+      // Yükleme sürerken geri engellenir (yarım kalan yükleme/gönderi sessizce arka planda bitmesin).
+      canPop: !_dirty && !_publishing,
       onPopInvokedWithResult: (didPop, _) {
-        if (!didPop) _close();
+        if (!didPop && !_publishing) _close();
       },
       child: Scaffold(
         backgroundColor: t.bg,
@@ -319,6 +459,8 @@ class _ComposePostPageState extends State<ComposePostPage> {
                       switchOutCurve: BuMotion.standard,
                       child: KeyedSubtree(key: ValueKey('${_photo != null}-${_video != null}-$_preparing'), child: _photoArea(t)),
                     ),
+                    const SizedBox(height: 16),
+                    if (_video != null && _frames.length >= 2 && !_publishing) _coverStrip(t),
                     const SizedBox(height: 16),
                     _textField(t),
                     // Uyarı/hata satırları açılırken yükseklik yumuşakça büyür, satır solarak belirir.
