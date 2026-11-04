@@ -82,6 +82,9 @@ class ProfileContentTabs extends StatefulWidget {
     this.reelCount,
     this.initialIndex = 0,
     this.onOpenReel,
+    this.onPostsLoaded,
+    this.gutter = 20,
+    this.pageSize = 18,
   });
 
   final Session session;
@@ -99,6 +102,16 @@ class ProfileContentTabs extends StatefulWidget {
   /// Reel karosuna dokununca (Reels görüntüleyici entegrasyonu için); verilmezse gönderi ayrıntısı açılır.
   final void Function(ProfileGridItem item, List<ProfileGridItem> all)? onOpenReel;
 
+  /// Gönderiler sekmesinin ilk sayfası yüklenince: bilinen toplam (sunucu `total` verirse) ya da yüklenen sayı + daha var mı.
+  /// Üst sayfadaki "Gönderi" sayacı profil yanıtında `postCount` yoksa buradan beslenir.
+  final void Function(int count, bool hasMore)? onPostsLoaded;
+
+  /// Yan boşluk (dp): ana sayfa zaten kenar boşluğu veriyorsa 0.
+  final double gutter;
+
+  /// Sayfa başına kare sayısı (3 sütunun katı).
+  final int pageSize;
+
   @override
   State<ProfileContentTabs> createState() => _ProfileContentTabsState();
 }
@@ -115,7 +128,7 @@ class _Col {
 }
 
 class _ProfileContentTabsState extends State<ProfileContentTabs> {
-  static const _size = 18;
+  int get _size => widget.pageSize;
   late int _index = widget.initialIndex.clamp(0, 1);
   final _cols = [_Col(), _Col()];
 
@@ -165,6 +178,10 @@ class _ProfileContentTabsState extends State<ProfileContentTabs> {
         c.loaded = true;
         c.loading = false;
       });
+      if (i == 0 && !more) {
+        final total = r is Map ? r['total'] : null;
+        widget.onPostsLoaded?.call(total is num ? total.toInt() : c.items.length, total is num ? false : !c.done);
+      }
     } catch (e) {
       if (!mounted || gen != c.gen) return;
       setState(() {
@@ -205,7 +222,7 @@ class _ProfileContentTabsState extends State<ProfileContentTabs> {
       label: l.srProfileTabsLabel,
       child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20),
+          padding: EdgeInsets.symmetric(horizontal: widget.gutter),
           child: BuSegmented(
             items: [label(l.srTabPosts, widget.postCount), label(l.srTabReels, widget.reelCount)],
             index: _index,
@@ -215,7 +232,7 @@ class _ProfileContentTabsState extends State<ProfileContentTabs> {
         const SizedBox(height: 12),
         if (widget.locked)
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+            padding: EdgeInsets.symmetric(horizontal: widget.gutter, vertical: 24),
             child: Column(children: [
               Icon(BuIcons.lock, size: 28, color: t.mut),
               const SizedBox(height: 8),
@@ -250,11 +267,11 @@ class _ProfileContentTabsState extends State<ProfileContentTabs> {
       );
     }
     if (!c.loaded) {
-      return const BuSkeletonList(variant: BuSkeletonVariant.grid, itemCount: 6, shrinkWrap: true, padding: EdgeInsets.symmetric(horizontal: 20));
+      return BuSkeletonList(variant: BuSkeletonVariant.grid, itemCount: 6, shrinkWrap: true, padding: EdgeInsets.symmetric(horizontal: widget.gutter));
     }
     if (c.items.isEmpty) {
       return Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 32),
+        padding: EdgeInsets.symmetric(horizontal: widget.gutter, vertical: 32),
         child: Text(i == 0 ? l.srProfilePostsEmpty : l.srProfileReelsEmpty,
             key: ValueKey('profile-tab-empty-$i'),
             textAlign: TextAlign.center,
@@ -264,7 +281,7 @@ class _ProfileContentTabsState extends State<ProfileContentTabs> {
     final reels = i == 1;
     return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
       Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20),
+        padding: EdgeInsets.symmetric(horizontal: widget.gutter),
         child: GridView.builder(
           shrinkWrap: true,
           padding: EdgeInsets.zero,

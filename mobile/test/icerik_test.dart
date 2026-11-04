@@ -255,7 +255,8 @@ void main() {
             expect(find.text('Mesaj gönder'), findsOneWidget);
             expect(tester.widget<Text>(find.byKey(const ValueKey('followerCount'))).data, '126');
             expect(find.text('Gizli'), findsNWidgets(2)); // fakülte + sınıf (bölüm görünür)
-            expect(find.text('GÖNDERİLER'), findsOneWidget);
+            expect(find.text('Gönderiler'), findsOneWidget); // Gönderiler | Reels sekmeleri
+            expect(find.text('Reels'), findsOneWidget);
             await tester.tap(find.byKey(const ValueKey('profile-more')));
             await tester.pump(const Duration(milliseconds: 500));
             expect(find.text('Kullanıcıyı şikâyet et'), findsOneWidget);

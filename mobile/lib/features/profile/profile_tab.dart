@@ -21,6 +21,7 @@ import 'my_clubs_page.dart';
 import 'my_events_page.dart';
 import 'notification_prefs_page.dart';
 import 'popularity_card.dart';
+import 'profile_content_tabs.dart';
 import 'profil_widgets.dart';
 import 'settings_page.dart';
 import 'saved_news_page.dart';
@@ -55,6 +56,9 @@ class _ProfileTabState extends State<ProfileTab> {
   /// Bekleyen takip isteği sayısı (satır yalnız > 0 iken görünür).
   int _followReq = 0;
 
+  /// Çekerek yenilemede artar: içerik sekmeleri (Gönderiler | Reels) baştan yüklenir.
+  int _tabsVersion = 0;
+
   /// Avatar değişimi (yükle/kaldır) sürerken true: çift dokunuş engellenir, avatar üstünde ilerleme halkası görünür.
   bool _avatarBusy = false;
 
@@ -65,7 +69,7 @@ class _ProfileTabState extends State<ProfileTab> {
   }
 
   /// Profili yükler; veri varken (yenileme) iskelet gösterilmez, eski içerik kalır.
-  Future<void> _load() async {
+  Future<void> _load({bool refresh = false}) async {
     final gen = ++_gen;
     if (_profile == null) setState(() => _loading = true);
     try {
@@ -77,6 +81,7 @@ class _ProfileTabState extends State<ProfileTab> {
         _profile = p;
         _error = null;
         _loading = false;
+        if (refresh) _tabsVersion++;
       });
       _loadStats();
     } catch (e) {
@@ -212,7 +217,7 @@ class _ProfileTabState extends State<ProfileTab> {
         edgeOffset: top,
         onRefresh: () {
           buHaptic(BuHaptic.selection);
-          return _load();
+          return _load(refresh: true);
         },
         child: _content(p, top),
       );
@@ -231,7 +236,7 @@ class _ProfileTabState extends State<ProfileTab> {
     final uid = widget.session.userId;
     int? n(String? v) => int.tryParse(v ?? '');
     final extraCells = [
-      StatCell(label: l.icerikStatPosts, value: n(_posts), onTap: () => _go(UserPostsPage(session: widget.session))),
+      StatCell(label: l.icerikStatPosts, value: n(p['postCount']?.toString()) ?? n(_posts), onTap: () => _go(UserPostsPage(session: widget.session))),
     ];
     // Stitch v3: bölüm etiketi + 56 dp simgesiz satırlar, tek kutu; kulüp/etkinlik sayıları satırın sağında (mut).
     return BuStaggerScope(
@@ -260,6 +265,24 @@ class _ProfileTabState extends State<ProfileTab> {
               index: 1,
               child: Padding(padding: const EdgeInsets.only(top: 16), child: PopularityCard(profile: p, self: true)),
             ),
+          // Gönderiler | Reels (ilk 9 kare, "Daha fazla göster"): Instagram profili gibi kimlik altında, ayar satırlarının üstünde.
+          if (uid != null)
+            BuStaggerItem(
+              index: 2,
+              child: Padding(
+                padding: const EdgeInsets.only(top: 24),
+                child: ProfileContentTabs(
+                  key: ValueKey('profile-tabs-$_tabsVersion'),
+                  session: widget.session,
+                  userId: uid,
+                  name: widget.session.displayName,
+                  gutter: 0,
+                  pageSize: 9,
+                  postCount: (p['postCount'] as num?)?.toInt(),
+                  reelCount: (p['reelCount'] as num?)?.toInt(),
+                ),
+              ),
+            ),
           BuStaggerItem(
             index: 2,
             child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
@@ -274,11 +297,6 @@ class _ProfileTabState extends State<ProfileTab> {
                     value: '$_followReq',
                     onTap: () => _go(FollowRequestsPage(session: widget.session)),
                   ),
-                ProfilRow(
-                  icon: BuIcons.image,
-                  label: l.profileMyPosts,
-                  onTap: () => _go(UserPostsPage(session: widget.session)),
-                ),
                 ProfilRow(
                   icon: BuIcons.bookmark,
                   label: l.profileSaved,
