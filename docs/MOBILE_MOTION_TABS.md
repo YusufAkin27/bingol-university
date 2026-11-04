@@ -29,4 +29,4 @@ Minimal; tam ekran kayma yok.
 - `lib/features/shell/app_shell.dart` ve alt gezinme çubuğu bileşeni; `PageView(physics: ClampingScrollPhysics)` + özel `PageTransitions` yerine tek `AnimatedBuilder` ile paralaks/solma.
 - Predictive back ve sekme durum koruma davranışı değişmez.
 - Test: widget testi (sekme değişince seçili öğe/etiket, eşik altı geri dönme, azaltılmış hareket anlık), ekran görüntüsü testi (çubuk seçili durumları).
-- Durum: Stitch ana sayfa tasarımı onaylanınca birlikte uygulanır (ana sayfa + çubuk + geçiş tek iş).
+- Durum: UYGULANDI (HM-MB, `feat/home-stitch-mb`): `floating_nav.dart` (kayan hap + etiket + "+" dairesi; hücre genişlikleri hapla birlikte animasyonlanır, dar ekranda seçili hap küçülür, seçili olmayan hücre en az 44 dp) ve `app_shell.dart` (sekmeler `Offstage` ile canlı, `GestureDetector` yatay sürükleme: çocuklar önce kazanır; Kulüpler sekmesindeyken komşular Sohbet/Profil). Testler: `floating_nav_test.dart`, `shell_swipe_test.dart`; görüntüler `test/redesign/hm_nav_shots_test.dart`.

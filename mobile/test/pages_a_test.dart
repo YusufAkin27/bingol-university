@@ -587,9 +587,12 @@ void main() {
       await tester.pumpWidget(buildApp(Scaffold(body: HomeTab(session: makeSession(b), onOpenTab: (i, {newsType}) {}))));
       await settle(tester, const Duration(seconds: 1));
       await toNews(tester);
-      final all = find.text('Tümü');
-      await tester.ensureVisible(all.first);
-      await tester.tap(all.first);
+      // "Öne çıkan haberler" başlığıyla aynı satırdaki "Tümünü gör" (Bugün başlığındaki başka bir yere gider).
+      final titleY = tester.getCenter(find.text('Öne çıkan haberler')).dy;
+      final all = find.text('Tümünü gör').evaluate().map((e) => find.byWidget(e.widget)).reduce((a, b) =>
+          (tester.getCenter(a).dy - titleY).abs() < (tester.getCenter(b).dy - titleY).abs() ? a : b);
+      await tester.ensureVisible(all);
+      await tester.tap(all);
       await settle(tester, const Duration(milliseconds: 600));
       expect(find.byType(NewsListPage), findsOneWidget);
       noErr(tester);
