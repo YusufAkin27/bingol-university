@@ -36,6 +36,14 @@ export function isLoaded(lang: Lang, scope: DictScope = 'site'): boolean {
   return done.has(partKey(scope, lang));
 }
 
+/**
+ * Sayfaya özgü ek Türkçe girdiler (yönetim paneli yalnız tr). Ana `admin.tr` parçasını şişirmemek için ağır sayfalar
+ * metinlerini kendi tembel parçalarında taşır ve modül yüklenirken burada kaydeder. Parça "yüklendi" işaretlenmez.
+ */
+export function registerExtraEntries(entries: Entries): void {
+  store.tr = { ...store.tr, ...entries };
+}
+
 /** Parçayı yükler (aynı anda tek istek); hata durumunda reddeder, sonraki çağrı yeniden dener. */
 export function loadDictionary(lang: Lang, scope: DictScope = 'site'): Promise<void> {
   const key = partKey(scope, lang);
