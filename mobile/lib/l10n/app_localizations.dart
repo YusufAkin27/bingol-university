@@ -7147,6 +7147,138 @@ abstract class AppLocalizations {
   /// **'Aramayı temizle'**
   String get searchClear;
 
+  /// No description provided for @srLoadMore.
+  ///
+  /// In tr, this message translates to:
+  /// **'Daha fazla göster'**
+  String get srLoadMore;
+
+  /// No description provided for @srSearchHint.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kullanıcı veya gönderi ara'**
+  String get srSearchHint;
+
+  /// No description provided for @srTabUsers.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kullanıcılar'**
+  String get srTabUsers;
+
+  /// No description provided for @srTabPosts.
+  ///
+  /// In tr, this message translates to:
+  /// **'Gönderiler'**
+  String get srTabPosts;
+
+  /// No description provided for @srTabReels.
+  ///
+  /// In tr, this message translates to:
+  /// **'Reels'**
+  String get srTabReels;
+
+  /// No description provided for @srSearchTabsLabel.
+  ///
+  /// In tr, this message translates to:
+  /// **'Arama sonucu türleri'**
+  String get srSearchTabsLabel;
+
+  /// No description provided for @srSearchPrompt.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kullanıcı, gönderi veya reels aramak için en az 2 karakter yazın.'**
+  String get srSearchPrompt;
+
+  /// No description provided for @srSeeAll.
+  ///
+  /// In tr, this message translates to:
+  /// **'Tümünü gör'**
+  String get srSeeAll;
+
+  /// No description provided for @srReelsUnavailable.
+  ///
+  /// In tr, this message translates to:
+  /// **'Reels araması şu an kullanılamıyor.'**
+  String get srReelsUnavailable;
+
+  /// No description provided for @srPrivateAccount.
+  ///
+  /// In tr, this message translates to:
+  /// **'Gizli hesap'**
+  String get srPrivateAccount;
+
+  /// No description provided for @srLikeCount.
+  ///
+  /// In tr, this message translates to:
+  /// **'{count} beğeni'**
+  String srLikeCount(String count);
+
+  /// No description provided for @srOpenProfileOf.
+  ///
+  /// In tr, this message translates to:
+  /// **'{name} profilini aç'**
+  String srOpenProfileOf(String name);
+
+  /// No description provided for @srPostByAuthor.
+  ///
+  /// In tr, this message translates to:
+  /// **'{name} gönderisi'**
+  String srPostByAuthor(String name);
+
+  /// No description provided for @srVideoBadge.
+  ///
+  /// In tr, this message translates to:
+  /// **'Video'**
+  String get srVideoBadge;
+
+  /// No description provided for @srProfileTabsLabel.
+  ///
+  /// In tr, this message translates to:
+  /// **'Profil içeriği'**
+  String get srProfileTabsLabel;
+
+  /// No description provided for @srProfilePostsEmpty.
+  ///
+  /// In tr, this message translates to:
+  /// **'Henüz gönderi yok.'**
+  String get srProfilePostsEmpty;
+
+  /// No description provided for @srProfileReelsEmpty.
+  ///
+  /// In tr, this message translates to:
+  /// **'Henüz reels yok.'**
+  String get srProfileReelsEmpty;
+
+  /// No description provided for @srViewCount.
+  ///
+  /// In tr, this message translates to:
+  /// **'{count} görüntülenme'**
+  String srViewCount(String count);
+
+  /// No description provided for @srPhotoViewerTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Profil fotoğrafı'**
+  String get srPhotoViewerTitle;
+
+  /// No description provided for @srPhotoViewerError.
+  ///
+  /// In tr, this message translates to:
+  /// **'Fotoğraf yüklenemedi'**
+  String get srPhotoViewerError;
+
+  /// No description provided for @srPhotoViewerClose.
+  ///
+  /// In tr, this message translates to:
+  /// **'Önizlemeyi kapat'**
+  String get srPhotoViewerClose;
+
+  /// No description provided for @srAvatarLongPressHint.
+  ///
+  /// In tr, this message translates to:
+  /// **'Büyük fotoğrafı görmek için uzun bas'**
+  String get srAvatarLongPressHint;
+
   /// No description provided for @searchPrompt.
   ///
   /// In tr, this message translates to:

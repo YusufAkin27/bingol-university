@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../core/locale_controller.dart';
 import '../../core/session.dart';
 import '../../widgets/bu.dart';
+import '../../widgets/profile_photo_viewer.dart';
 import '../posts/post_models.dart' show PostPage, postAuthHeaders;
 import '../posts/social_models.dart';
 import '../profile/profily_widgets.dart';
@@ -302,7 +303,12 @@ class SocialUserTile extends StatelessWidget {
         onTap: () =>
             openUserProfile(context, session, userId: user.id, name: user.displayName, avatarUrl: user.avatarUrl),
         child: Row(children: [
-          BuAvatar(name: user.displayName, url: user.avatarUrl, size: 46, headers: postAuthHeaders(session)),
+          AvatarLongPress(
+            imageUrl: user.avatarUrl,
+            headers: postAuthHeaders(session),
+            title: user.displayName,
+            child: BuAvatar(name: user.displayName, url: user.avatarUrl, size: 46, headers: postAuthHeaders(session)),
+          ),
           const SizedBox(width: 12),
           Expanded(child: ProfilyTitleBlock(title: user.displayName, sub: context.departmentName(user.department))),
           if (trailing != null)

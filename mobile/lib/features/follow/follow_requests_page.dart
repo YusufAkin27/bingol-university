@@ -4,6 +4,7 @@ import '../../core/academic_catalog.dart';
 import '../../core/locale_controller.dart';
 import '../../core/session.dart';
 import '../../widgets/bu.dart';
+import '../../widgets/profile_photo_viewer.dart';
 import '../news/news_tile.dart' show newsLocalDate, newsMonthName;
 import '../posts/post_models.dart' show postAuthHeaders;
 import '../profile/user_profile_page.dart';
@@ -272,7 +273,12 @@ class _RequestRow extends StatelessWidget {
           child: Text(sub, maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.bodyMedium!.copyWith(fontSize: 13, color: t.mut)),
         ),
     ]);
-    final avatar = BuAvatar(name: r.displayName, url: r.avatarUrl, size: 44, headers: postAuthHeaders(session));
+    final avatar = AvatarLongPress(
+      imageUrl: r.avatarUrl,
+      headers: postAuthHeaders(session),
+      title: r.displayName,
+      child: BuAvatar(name: r.displayName, url: r.avatarUrl, size: 44, headers: postAuthHeaders(session)),
+    );
 
     final content = narrow
         ? Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
