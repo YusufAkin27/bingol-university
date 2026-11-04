@@ -47,35 +47,35 @@ class AcadhubNextExam extends StatelessWidget {
   }
 }
 
-/// Kartsız gezinme satırı: başlık 17 sp/600 + muted tek satır + chevron; altta 1 dp ayraç.
+/// Kartsız gezinme satırı: başlık 17 sp/600 + muted alt satır + chevron; altta 1 dp ayraç (kart, kenarlık ve
+/// simge karosu yok: aynı ekranda dört kez tekrarlanan yuvarlak kutu "şablon" görünümü veriyordu).
 class AcadhubNavRow extends StatelessWidget {
-  const AcadhubNavRow({super.key, required this.title, required this.sub, this.onTap, this.icon = BuIcons.bookOpen});
+  // [icon] eski çağıranlar için kabul edilir; satır artık simge çizmez.
+  const AcadhubNavRow({super.key, required this.title, required this.sub, this.onTap, this.icon});
 
   final String title, sub;
   final VoidCallback? onTap;
-  final IconData icon;
+  final IconData? icon;
 
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
-    return Padding(padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
-      child: Semantics(button: onTap != null, label: '$title. $sub', excludeSemantics: true, onTap: onTap,
-        child: BuCard(radius: 22, padding: const EdgeInsets.all(16), onTap: onTap,
-          child: Row(children: [
-            BuFeatureIcon(icon: icon),
-            const SizedBox(width: 12),
-            Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(title, maxLines: 2, overflow: TextOverflow.ellipsis,
-                style: Theme.of(context).textTheme.titleMedium!.copyWith(fontWeight: FontWeight.w600, color: t.ink)),
-              const SizedBox(height: 4),
-              Text(sub, maxLines: 3, overflow: TextOverflow.ellipsis,
-                style: Theme.of(context).textTheme.bodySmall!.copyWith(color: t.mut)),
-            ])),
-            const SizedBox(width: 8),
-            Icon(buDirIcon(context, BuIcons.chevronRight), size: 18, color: t.mut),
+    final tx = Theme.of(context).textTheme;
+    return AcadRow(
+      minHeight: 76,
+      onTap: onTap,
+      semanticLabel: '$title. $sub',
+      child: Row(children: [
+        Expanded(
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
+            Text(title, maxLines: 2, overflow: TextOverflow.ellipsis, style: tx.titleMedium!.copyWith(fontWeight: FontWeight.w600, color: t.ink)),
+            const SizedBox(height: 3),
+            Text(sub, maxLines: 3, overflow: TextOverflow.ellipsis, style: tx.bodySmall!.copyWith(color: t.mut)),
           ]),
         ),
-      ),
+        const SizedBox(width: 8),
+        ExcludeSemantics(child: Icon(buDirIcon(context, BuIcons.chevronRight), size: 18, color: t.mut)),
+      ]),
     );
   }
 }

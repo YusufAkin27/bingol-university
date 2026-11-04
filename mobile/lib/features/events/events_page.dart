@@ -1161,7 +1161,6 @@ class _EventsPageState extends State<EventsPage> {
   List<Widget> _feedSlivers(DateTime? stale) {
     final f = _feeds[_feedKey]!;
     final l = context.l10n;
-    final t = context.bu;
     final mode = _tab == 2 ? _Mode.created : (_sub == 1 ? _Mode.past : _Mode.upcoming);
     return [
       SliverPadding(
@@ -1176,12 +1175,8 @@ class _EventsPageState extends State<EventsPage> {
                 selected: _sub,
                 onSelected: _setSub,
               ),
-            )
-          else if (f.items.isNotEmpty)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 4, 20, 10),
-              child: Text(l.eventListCreatedHint, style: Theme.of(context).textTheme.bodyMedium!.copyWith(color: t.mut, height: 1.4)),
             ),
+          // "Oluşturduklarım" üstündeki "buradan yönetebilirsin" açıklaması kaldırıldı: liste kendini anlatır.
           if (f.items.isEmpty) _emptyForTab(),
         ]),
       ),
