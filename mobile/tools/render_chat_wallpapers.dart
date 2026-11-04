@@ -1,4 +1,5 @@
 // Run: flutter test tools/render_chat_wallpapers.dart
+// Saydam PNG (yalniz desen, tema zemini altta kalir): boyut kucuk, <= 250 KB.
 import 'dart:io';
 import 'dart:typed_data';
 import 'dart:ui' as ui;
@@ -17,18 +18,10 @@ void main() {
     await loader.load();
     for (final dark in [false, true]) {
       final t = dark ? BuTokens.dark : BuTokens.light;
-      final tile = ChatWallpaper.tile(t.ink, dark ? .06 : .068, 3)!;
+      final tile = ChatWallpaper.tile(t.ink, dark ? .06 : .07, 3)!;
       final recorder = ui.PictureRecorder();
       final canvas = ui.Canvas(recorder)..scale(3);
       const bounds = ui.Rect.fromLTWH(0, 0, 390, 844);
-      canvas.drawRect(
-          bounds,
-          ui.Paint()
-            ..shader = ui.Gradient.linear(
-              ui.Offset.zero,
-              const ui.Offset(390, 844),
-              [ui.Color.lerp(t.bg, t.soft, dark ? .055 : .12)!, t.bg],
-            ));
       final shader = ui.ImageShader(
           tile,
           ui.TileMode.repeated,

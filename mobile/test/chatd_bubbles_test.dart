@@ -129,8 +129,8 @@ void main() {
       return box.color;
     }
 
-    expect(colorOf('İyiyim, sen?'), BuTokens.light.pr); // giden balon = marka eylem kırmızısı (RENK-1: #C0392B)
-    expect(colorOf('Merhaba, nasılsın?'), const Color(0xFFFFFFFF));
+    expect(colorOf('İyiyim, sen?'), BuTokens.light.prPressed); // giden balon = marka kırmızısı (koyu ton, beyaz yazıda AA)
+    expect(colorOf('Merhaba, nasılsın?'), BuTokens.light.sf);
     await unmount(tester);
   });
 }

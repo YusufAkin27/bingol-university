@@ -1,6 +1,5 @@
 import 'dart:math' as math;
 import 'dart:ui' as ui;
-import 'dart:typed_data';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -14,9 +13,7 @@ import '../../widgets/bu.dart';
 /// ikon deseni (kitap, kep, kahve, defter, takvim, nota, top, ampul, kalem, mesaj...). Kırmızı/mavi vurgu YOK;
 /// desen yalnız `ink` jetonunun düşük alfa tonudur (açık temada koyu tint, koyu temada açık tint).
 ///
-/// Desen yoğunluğu: 240 dp tile, 8×6 = 48 glyph, ~30-40 dp aralıklı ızgara.
-/// Açık tema: belirgin, sıcak kahverengi/lacivert tint (%12-20 opaklık).
-/// Koyu tema: parlak beyaz tint (%10-16 opaklık).
+/// Desen: 360 dp tile, 20 akademik çizgi ikon; açık temada %7, koyu temada %6 opaklık (çok düşük kontrast).
 ///
 /// Performans: desen TEK SEFER küçük bir kare dokuya (240 × 240 dp) çizilir (`Picture.toImageSync`),
 /// (tema, stil, piksel oranı) anahtarıyla önbelleğe alınır ve `ImageShader` ile döşenir; kaydırırken
@@ -140,60 +137,37 @@ class ChatWallpaper extends StatefulWidget {
   /// Verilirse tercih yerine bu stil çizilir (ayarlar önizlemesi).
   final ChatBgStyle? style;
 
-  /// Dokunun kenar uzunluğu (dp). 240 dp → ~30-40 dp aralıklı yoğun desen.
-  static const tileSize = 240.0;
+  /// Dokunun kenar uzunluğu (dp).
+  static const tileSize = 360.0;
 
-  /// Kampüs temalı sık desen: 8×6 = 48 glyph, 240 dp tile, ~30 dp aralıklı ızgara.
-  /// Farklı satır/kolon offsetleri + rastgele eğimler düzenli ızgara hissini kırar.
-  static final List<_Glyph> _glyphs = List.generate(48, (i) {
-    // Zengin kampüs emoji seti (22 farklı ikon)
-    const icons = [
-      BuIcons.bookOpen,       // açık kitap
-      BuIcons.coffee,         // kahve
-      BuIcons.lightbulb,      // fikir ampülü
-      BuIcons.music,          // nota
-      BuIcons.graduationCap,  // mezuniyet
-      BuIcons.messageCircle,  // sohbet balonu
-      BuIcons.pencil,         // kalem
-      BuIcons.calendar,       // takvim
-      BuIcons.notebookPen,    // defter
-      BuIcons.volleyball,     // top
-      BuIcons.laptop,         // bilgisayar
-      BuIcons.trophy,         // kupa
-      BuIcons.atom,           // atom
-      BuIcons.backpack,       // sırt çantası
-      BuIcons.palette,        // palet
-      BuIcons.mapPin,         // konum
-      BuIcons.bookmark,       // yer imi
-      BuIcons.alarmClock,     // çalar saat
-      BuIcons.star,           // yıldız
-      BuIcons.heart,          // kalp
-      BuIcons.search,         // arama
-      BuIcons.bell,           // zil
+  /// Üniversite/akademik çizgi ikonlar (kitap, kep, kalem, kahve, takvim, ampul, kampüs...): 5 satır x 4 sütun,
+  /// tek satırlar kaydırılır; hiçbiri kenara taşmaz (kesintisiz döşenir). Yoğunluk bilerek düşük: sade.
+  static final List<_Glyph> _glyphs = () {
+    const icons = <IconData>[
+      BuIcons.bookOpen, BuIcons.graduationCap, BuIcons.pencil, BuIcons.coffee,
+      BuIcons.calendar, BuIcons.lightbulb, BuIcons.library, BuIcons.notebookPen,
+      BuIcons.backpack, BuIcons.atom, BuIcons.laptop, BuIcons.flaskConical,
+      BuIcons.bookmark, BuIcons.globe, BuIcons.clock, BuIcons.pencilLine,
+      BuIcons.compass, BuIcons.building2, BuIcons.bookOpen, BuIcons.graduationCap,
     ];
-    final row = i ~/ 8;      // 6 satır
-    final col = i % 8;       // 8 kolon
-    // Çift/tek satır arası 15 dp yatay kaydırma: yarım-tuğla düzeni
-    final rowShift = (row % 2 == 0) ? 0.0 : 15.0;
-    // Küçük rastlantısal titreme (tekdüze ızgarayı kırar)
-    final jx = ((i * 13 + row * 7 + col * 3) % 11) - 5.0;
-    final jy = ((i * 11 + col * 5 + row * 2) % 11) - 5.0;
-    return _Glyph(
-      icons[(i * 7 + row * 5 + col * 3) % icons.length],
-      12.0 + col * 30 + rowShift + jx,  // x: 30 dp aralıklı kolon
-      14.0 + row * 40 + jy,             // y: 40 dp aralıklı satır
-      18.0 + (i % 5) * 2.5,            // boyut: 18-28 dp arası değişken
-      ((i * 13 + row * 7) % 42 - 21).toDouble(), // -21..+21 derece
-    );
-  });
+    const tilts = <double>[-12, 8, 18, -8, 12, -16, 6, -10, 14, -6];
+    return [
+      for (var i = 0; i < 20; i++)
+        _Glyph(
+          icons[i],
+          ((i ~/ 4).isOdd ? 78.0 : 33.0) + (i % 4) * 90,
+          36.0 + (i ~/ 4) * 72,
+          22.0 + (i % 3) * 2,
+          tilts[i % tilts.length],
+        ),
+    ];
+  }();
 
-  /// Desen opaklığı: açık temada %8-20, koyu temada %7-16 (WhatsApp/Telegram gibi belirgin).
-  /// Light modda: ink (koyu lacivert) düşük opaklıkta → ılık, sıcak desen.
-  /// Dark modda: ink (açık gri/beyaz) düşük opaklıkta → zarif, göze batmayan desen.
+  /// Desen opaklığı (ink jetonu üstüne): çok düşük kontrast, mesajlar net ayrışır.
   static double alphaOf(ChatBgStyle s, bool dark) => switch (s) {
-        ChatBgStyle.pattern => dark ? .10 : .12,
-        ChatBgStyle.soft    => dark ? .07 : .08,
-        ChatBgStyle.strong  => dark ? .16 : .20,
+        ChatBgStyle.pattern => dark ? .06 : .07,
+        ChatBgStyle.soft => dark ? .04 : .045,
+        ChatBgStyle.strong => dark ? .10 : .12,
         _ => 0,
       };
 
@@ -252,62 +226,6 @@ class ChatWallpaper extends StatefulWidget {
         tp.paint(c, Offset.zero);
         c.restore();
         tp.dispose();
-      }
-
-      // --- İkonlar arası boşlukları dolduran dekoratif detaylar ---
-      // Küçük yıldız kıvılcımlar, noktalı izler ve kıvrımlı tireler.
-      final detailColor = color.withValues(alpha: alpha * .55);
-      final detailThin = Paint()
-        ..color = detailColor
-        ..strokeWidth = 0.8
-        ..strokeCap = StrokeCap.round
-        ..style = PaintingStyle.stroke;
-      final detailNorm = Paint()
-        ..color = detailColor
-        ..strokeWidth = 1.0
-        ..strokeCap = StrokeCap.round
-        ..style = PaintingStyle.stroke;
-
-      // 8 kolon × 6 satır detay noktaları (ikon merkezlerinin arasında)
-      for (var dRow = 0; dRow < 6; dRow++) {
-        for (var dCol = 0; dCol < 8; dCol++) {
-          // İkon merkezlerinin arasındaki ara nokta
-          final dx2 = 27.0 + dCol * 30 + (dRow % 2 == 0 ? 0 : 15);
-          final dy2 = 34.0 + dRow * 40;
-          final p = Offset(dx2, dy2);
-          final seed = dRow * 8 + dCol;
-          if (seed % 4 == 0) {
-            // ✦ 4 kollu kıvılcım
-            c.drawLine(p.translate(-3, 0), p.translate(3, 0), detailNorm);
-            c.drawLine(p.translate(0, -3), p.translate(0, 3), detailNorm);
-            c.drawLine(p.translate(-2, -2), p.translate(2, 2), detailThin);
-            c.drawLine(p.translate(2, -2), p.translate(-2, 2), detailThin);
-          } else if (seed % 4 == 1) {
-            // Küçük kıvrımlı dal
-            final curvePath = Path()
-              ..moveTo(p.dx - 6, p.dy + 2)
-              ..quadraticBezierTo(p.dx, p.dy - 5, p.dx + 6, p.dy - 1);
-            c.drawPath(curvePath, detailNorm);
-          } else if (seed % 4 == 2) {
-            // 3 noktalı iz
-            final dotPaint = Paint()
-              ..color = color.withValues(alpha: alpha * .70);
-            for (var dot = 0; dot < 3; dot++) {
-              c.drawCircle(
-                p.translate(-4.0 + dot * 4, dot.isOdd ? 1.5 : -1.5),
-                0.85,
-                dotPaint,
-              );
-            }
-          } else {
-            // Küçük daire (nokta)
-            c.drawCircle(
-              p,
-              1.0,
-              Paint()..color = color.withValues(alpha: alpha * .60),
-            );
-          }
-        }
       }
 
       final pic = rec.endRecording();
