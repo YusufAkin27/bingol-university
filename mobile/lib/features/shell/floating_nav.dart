@@ -1,5 +1,3 @@
-import 'dart:ui' show ImageFilter;
-
 import 'package:flutter/foundation.dart' show ValueListenable;
 import 'package:flutter/material.dart';
 
@@ -13,16 +11,19 @@ import '../../widgets/bu_pressable.dart' show BuHaptic, BuPressable, buHaptic;
 import '../chat/chatlist_widgets.dart' show ChatlistAvatar;
 import '../../core/icons/bu_icons.dart';
 
-/// Yüzen "cam" alt gezinme (N4): kenarlardan ve alttan boşluklu, süper-elips köşeli, hafif bulanık-saydam yüzey.
-/// Seçili sekmenin simgesinin arkasında marka renginde yumuşak bir gösterge KAYAR (250 ms easeOutCubic); seçili
-/// simge dolgulu, seçili olmayan çizgilidir; etiketler her zaman görünür (seçili: marka rengi + kalın).
-/// Profil sekmesi simge yerine kullanıcının avatarını gösterir (fotoğraf yoksa varsayılan profil görseli);
-/// seçiliyken 2 px marka halkası + hafif gölge, değilken ince gri halka. Sohbet sekmesinde okunmamış rozeti vardır.
+/// Yüzen alt gezinme (Stitch ana sayfa v5, `docs/MOBILE_MOTION_TABS.md`): kenarlardan ve alttan 16 dp boşluklu,
+/// 64 dp yüksekliğinde beyaz hap (ince `bd` kenarlık, çok hafif gölge). Beş öğe: Ana Sayfa, Keşfet, ortada "+"
+/// (`prPressed` daire, çubuktan yukarı taşar), Sohbet (okunmamış rozeti), Profil (kullanıcının avatarı).
 ///
-/// Sınıf adı ve zorunlu parametreler eski gezinmeyle aynıdır (kabuk ve testler değişmeden kullanır). Klavye
-/// açılınca çubuk gizlenir. Erişilebilirlik: her sekme tek düğüm ("Sohbet, 3 okunmamış", seçili durumu, "Tab 3 of 5").
-/// "Animasyonları azalt" açıkken kayma/ölçek anlıktır. Yazı ölçeği etiketlerde en çok 1.15'e sınırlanır (hap taşmasın);
-/// çubuk yüksekliği ölçekle büyür.
+/// Seçili sekmede `soft` zeminli "kayan hap" ve yanında etiket görünür (diğerlerinde yalnız ikon). Sekme değişince
+/// hap yeni sekmeye yayılarak kayar (220 ms, `AppMotion.standard`; genişlik etiket uzunluğuna göre uzar/kısalır),
+/// ikon çizgiden doluya geçer (140 ms) ve 1.0 -> 1.08 -> 1.0 ölçeklenir, etiket 140 ms solarak açılır/kapanır.
+/// "+" basılınca 80 ms'de 0.94'e küçülür, bırakınca 140 ms'de döner (zıplama/dönme yok). Rozet ilk belirişte
+/// 140 ms ölçeklenir. "Animasyonları azalt" açıkken hepsi anlıktır. İçerik kaydırılırken çubuk sabit kalır.
+///
+/// Sınıf adı ve zorunlu parametreler eski gezinmeyle aynıdır (kabuk ve testler değişmeden kullanır). Klavye açılınca
+/// çubuk gizlenir. Erişilebilirlik: her sekme tek düğüm ("Sohbet, 3 okunmamış", seçili durumu, "Tab 3 of 5").
+/// Yazı ölçeği etiketlerde en çok 1.15'e sınırlanır (hap taşmasın).
 class FloatingNav extends StatelessWidget {
   const FloatingNav({
     super.key,
@@ -46,22 +47,27 @@ class FloatingNav extends StatelessWidget {
   /// Varsayılan görselin renk varyantı için ad (aynı kişi her yerde aynı rengi alır).
   final String? avatarName;
 
-  /// Çubuğun nominal içerik yüksekliği (yazı ölçeği 1).
+  /// Çubuğun nominal içerik yüksekliği.
   static const double height = BuSize.nav;
 
   /// Çubuğun kenarlardan ve alttan dış boşluğu.
   static const double gap = BuSize.navGap;
 
-  static const double _iconSlot = 28; // gösterge + simge alanı yüksekliği
+  /// "+" dairesinin çubuğun üstüne taşan kısmı için ayrılan şeffaf pay (dokunma alanı içinde kalsın).
+  static const double lift = 12;
+
+  static const double _hPad = 6; // çubuk iç yan boşluğu
+  static const double _plusSlot = 48; // "+" hücresi
+  static const double _plusSize = 52; // "+" dairesi çapı
+  static const double _plusRise = 10; // dairenin çubuktan yukarı taşması
+  static const double _minItem = 44; // seçili olmayan sekme hücresi (en az)
+  static const double _maxSelected = 118; // seçili sekme hapı (en çok)
+  static const double _pillHeight = 40;
+  static const double _icon = 22;
   static const double _avatar = 22; // avatar çapı (halka dışı)
 
-  // Etkin sekme: ayni cizgi glif + renk (t.pr) + yumusak hap zemin (t.soft); dolu glif kullanilmaz.
-  static const _outline = [
-    BuIcons.home,
-    BuIcons.discover,
-    BuIcons.chat,
-    BuIcons.users,
-  ];
+  static const _outline = [BuIcons.home, BuIcons.discover, BuIcons.chat, BuIcons.users];
+  static const _filled = [BuIcons.homeFilled, BuIcons.discoverFilled, BuIcons.chatFilled, BuIcons.usersFilled];
 
   static List<String> _labels(BuildContext context) {
     final l = context.l10n;
@@ -73,8 +79,8 @@ class FloatingNav extends StatelessWidget {
     // Klavye açıkken çubuk yüzmez: yumuşakça kapanır (içerik alanı genişler).
     final keyboard = MediaQuery.viewInsetsOf(context).bottom > 0;
     return AnimatedSize(
-      duration: BuMotion.of(context, BuMotion.short),
-      curve: BuMotion.standard,
+      duration: AppMotion.of(context, AppMotion.fast),
+      curve: AppMotion.standard,
       alignment: Alignment.bottomCenter,
       child: keyboard ? const SizedBox(width: double.infinity) : _bar(context),
     );
@@ -83,158 +89,244 @@ class FloatingNav extends StatelessWidget {
   Widget _bar(BuildContext context) {
     final t = context.bu;
     final dark = Theme.of(context).brightness == Brightness.dark;
-    final labels = _labels(context);
-    // Büyük yazı ölçeğinde etiket bölünmesin/kırpılmasın: ölçek 1.15 ile sınırlanır, çubuk yüksekliği ölçekle büyür.
-    final scale =
-        MediaQuery.textScalerOf(context).clamp(maxScaleFactor: 1.15).scale(1);
-    final labelSlot = 16 * scale;
-    final barHeight = _iconSlot + 2 + labelSlot + 18; // ölçek 1: 64 (BuSize.nav)
-    final topPad = (barHeight - (_iconSlot + 2 + labelSlot)) / 2;
-    final shape =
-        RoundedSuperellipseBorder(borderRadius: BorderRadius.circular(28));
-    final edge = RoundedSuperellipseBorder(
-      borderRadius: BorderRadius.circular(28),
-      side: BorderSide(
-          color: dark
-              ? context.bu.onMedia.withValues(alpha: .10)
-              : t.bd.withValues(alpha: .9)),
-    );
-    // Cam: açık temada beyaz, koyu temada tonlu yüzey; ~%90 opak + arkadaki içeriğin bulanıklaştırılması.
-    final surface = (dark ? t.sf3 : t.sf).withValues(alpha: .9);
+    final shape = StadiumBorder(
+        side: BorderSide(color: dark ? t.onMedia.withValues(alpha: .10) : t.bd));
+    final surface = dark ? t.sf3 : t.sf;
     final shadows = dark
-        ? [
-            BoxShadow(
-                color: context.bu.scrim.withValues(alpha: .38),
-                blurRadius: 26,
-                offset: const Offset(0, 10))
-          ]
-        : [
-            BoxShadow(
-                color: t.shadow.withValues(alpha: .13),
-                blurRadius: 28,
-                offset: const Offset(0, 10)),
-            BoxShadow(
-                color: t.shadow.withValues(alpha: .06),
-                blurRadius: 4,
-                offset: const Offset(0, 1)),
-          ];
+        ? [BoxShadow(color: t.scrim.withValues(alpha: .32), blurRadius: 20, offset: const Offset(0, 6))]
+        : [BoxShadow(color: t.shadow.withValues(alpha: .08), blurRadius: 16, offset: const Offset(0, 4))];
     final slots = onPublish == null ? const [0, 1, 2, 3, 4] : const [0, 1, -1, 2, 4];
-    final selectedPosition = slots.indexOf(index);
-    final cells = <Widget>[
-      for (final i in slots)
-        if (i == -1)
-          Expanded(child: Center(child: Semantics(
-            button: true,
-            label: context.l10n.discoverCompose,
-            onTap: onPublish,
-            child: Tooltip(message: context.l10n.discoverCompose, excludeFromSemantics: true,
-              child: ExcludeSemantics(child: BuPressable(onTap: onPublish, child: Container(
-                key: const ValueKey('nav-publish'),
-                width: 54, height: 54,
-                decoration: BoxDecoration(color: BuColors.red600, shape: BoxShape.circle,
-                  border: Border.all(color: t.sf3, width: 3),
-                  boxShadow: [BoxShadow(color: t.pr.withValues(alpha: .2), blurRadius: 12, offset: const Offset(0, 4))]),
-                child: Icon(BuIcons.plus, size: 30, color: t.onMedia),
-              ))),
-            ),
-          )))
-        else
-        Expanded(
-          child: _NavItem(
-            key: ValueKey('nav-$i'),
-            position: slots.indexOf(i),
-            selected: i == index,
-            label: labels[i],
-            topPad: topPad,
-            iconSlot: _iconSlot,
-            labelSlot: labelSlot,
-            onTap: () {
-              if (i != index) buHaptic(BuHaptic.selection);
-              onChanged(i);
-            },
-            outline: i < 4 ? _outline[i] : onPublish == null ? null : BuIcons.user,
-            badge: i == _chatIndex ? chatBadge : null,
-            avatarUrl: i == 4 ? avatarUrl : null,
-            avatarName: avatarName,
-          ),
-        ),
-    ];
     return SafeArea(
       top: false,
       minimum: const EdgeInsets.only(bottom: gap),
       child: Padding(
         padding: const EdgeInsets.fromLTRB(gap, 0, gap, 0),
-        child: RepaintBoundary(
-          child: CustomPaint(
-            key: const ValueKey('nav-pill'),
-            painter: _OutsideShadow(shape, shadows),
-            child: ClipPath(
-              clipper: ShapeBorderClipper(shape: shape),
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
+        child: SizedBox(
+          height: height + lift,
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              // Cam yüzey: yalnız çubuğun kendisi (taşan "+" bunun dışında, üst katmanda).
+              Positioned(
+                top: lift,
+                left: 0,
+                right: 0,
+                bottom: 0,
                 child: DecoratedBox(
-                  // İnce kenar çizgisi içeriğin ÜSTÜNE çizilir (bulanık katmanın altında kalmasın).
-                  position: DecorationPosition.foreground,
-                  decoration: ShapeDecoration(shape: edge),
-                  child: ColoredBox(
-                    color: surface,
-                    child: SizedBox(
-                      height: barHeight,
-                      child: MediaQuery.withClampedTextScaling(
-                        maxScaleFactor: 1.15,
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 6),
-                          child: Stack(
-                            children: [
-                              // Kayan gösterge: seçili hücrenin simge alanında (yön duyarlı: RTL'de aynalanır).
-                              if (selectedPosition >= 0) Positioned.fill(
-                                top: topPad,
-                                bottom: barHeight - topPad - _iconSlot,
-                                child: ExcludeSemantics(
-                                  child: AnimatedAlign(
-                                    key: const ValueKey('nav-indicator'),
-                                    alignment: AlignmentDirectional(
-                                        -1 + 2 * selectedPosition / 4, 0),
-                                    duration:
-                                        BuMotion.of(context, BuMotion.medium),
-                                    curve: BuMotion.decelerate,
-                                    child: FractionallySizedBox(
-                                      widthFactor: .2,
-                                      child: Center(
-                                        child: FractionallySizedBox(
-                                          widthFactor: .84,
-                                          child: ConstrainedBox(
-                                            constraints: const BoxConstraints(
-                                                maxWidth: 62),
-                                            child: DecoratedBox(
-                                              decoration: ShapeDecoration(
-                                                color: t.soft,
-                                                shape:
-                                                    RoundedSuperellipseBorder(
-                                                        borderRadius:
-                                                            BorderRadius
-                                                                .circular(18)),
-                                              ),
-                                              child: const SizedBox(
-                                                  height: _iconSlot),
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              Row(
-                                  crossAxisAlignment:
-                                      CrossAxisAlignment.stretch,
-                                  children: cells),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
+                  key: const ValueKey('nav-pill'),
+                  decoration: ShapeDecoration(color: surface, shape: shape, shadows: shadows),
+                ),
+              ),
+              Positioned.fill(
+                child: MediaQuery.withClampedTextScaling(
+                  maxScaleFactor: 1.15,
+                  child: _NavRow(
+                    index: index,
+                    slots: slots,
+                    labels: _labels(context),
+                    onChanged: onChanged,
+                    onPublish: onPublish,
+                    chatBadge: chatBadge,
+                    avatarUrl: avatarUrl,
+                    avatarName: avatarName,
                   ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+const _chatIndex = 2; // AppTab.chat (döngüsel içe aktarmayı önlemek için)
+
+/// Hücre yerleşimi: her slotun başlangıcı ve genişliği + seçili hapın en geniş hâli.
+class _NavGeometry {
+  _NavGeometry(double inner, List<int> slots, int selected) {
+    final hasPlus = slots.contains(-1);
+    final tabs = slots.where((i) => i >= 0).length;
+    final remaining = inner - (hasPlus ? FloatingNav._plusSlot : 0);
+    final others = tabs - 1;
+    // Seçili hap, kalan alanın izin verdiği kadar (en çok 118) genişler; diğerleri en az 44 dp kalır.
+    maxSelected = (remaining - others * FloatingNav._minItem).clamp(FloatingNav._minItem, FloatingNav._maxSelected).toDouble();
+    final hasSel = selected >= 0 && slots.contains(selected);
+    final tabW = hasSel ? (remaining - maxSelected) / others : remaining / tabs;
+    var x = 0.0;
+    for (final i in slots) {
+      final w = i == -1 ? FloatingNav._plusSlot : (hasSel && i == selected ? maxSelected : tabW);
+      lefts.add(x);
+      widths.add(w);
+      x += w;
+    }
+  }
+
+  final lefts = <double>[];
+  final widths = <double>[];
+  late final double maxSelected;
+}
+
+/// Hücreleri ve kayan hapı yerleştirir; seçim değişince hepsi aynı süre/eğriyle (220 ms, standard) animasyonlanır.
+class _NavRow extends StatefulWidget {
+  const _NavRow({
+    required this.index,
+    required this.slots,
+    required this.labels,
+    required this.onChanged,
+    required this.chatBadge,
+    this.onPublish,
+    this.avatarUrl,
+    this.avatarName,
+  });
+
+  final int index;
+  final List<int> slots;
+  final List<String> labels;
+  final ValueChanged<int> onChanged;
+  final ValueNotifier<int> chatBadge;
+  final VoidCallback? onPublish;
+  final ValueListenable<String?>? avatarUrl;
+  final String? avatarName;
+
+  @override
+  State<_NavRow> createState() => _NavRowState();
+}
+
+class _NavRowState extends State<_NavRow> {
+  /// Hap son seçili konumda kalır (seçili sekme çubukta yoksa yalnızca solar).
+  int _pillSlot = 0;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.bu;
+    final dur = AppMotion.of(context, AppMotion.normal);
+    final slots = widget.slots;
+    final selPos = slots.indexOf(widget.index);
+    if (selPos >= 0) _pillSlot = selPos;
+    return LayoutBuilder(builder: (context, c) {
+      final geo = _NavGeometry(c.maxWidth - 2 * FloatingNav._hPad, slots, widget.index);
+      final labelMax = geo.maxSelected - 16 - FloatingNav._icon - 4;
+      const top = FloatingNav.lift;
+      const pillTop = top + (FloatingNav.height - FloatingNav._pillHeight) / 2;
+      Widget cell(int pos, Widget child) => AnimatedPositionedDirectional(
+            duration: dur,
+            curve: AppMotion.standard,
+            start: FloatingNav._hPad + geo.lefts[pos],
+            width: geo.widths[pos],
+            top: top,
+            height: FloatingNav.height,
+            child: child,
+          );
+      return Stack(
+        clipBehavior: Clip.none,
+        children: [
+          // Kayan hap: seçili hücrenin arkasında; hücrelerle birlikte genişler/daralır.
+          AnimatedPositionedDirectional(
+            duration: dur,
+            curve: AppMotion.standard,
+            start: FloatingNav._hPad + geo.lefts[_pillSlot],
+            width: geo.widths[_pillSlot],
+            top: pillTop,
+            height: FloatingNav._pillHeight,
+            child: ExcludeSemantics(
+              child: AnimatedOpacity(
+                duration: AppMotion.of(context, AppMotion.fast),
+                opacity: selPos >= 0 ? 1 : 0,
+                child: DecoratedBox(
+                  key: const ValueKey('nav-indicator'),
+                  decoration: ShapeDecoration(color: t.soft, shape: const StadiumBorder()),
+                ),
+              ),
+            ),
+          ),
+          for (var pos = 0; pos < slots.length; pos++)
+            if (slots[pos] == -1)
+              AnimatedPositionedDirectional(
+                duration: dur,
+                curve: AppMotion.standard,
+                start: FloatingNav._hPad + geo.lefts[pos] + (FloatingNav._plusSlot - FloatingNav._plusSize) / 2,
+                width: FloatingNav._plusSize,
+                top: top - FloatingNav._plusRise,
+                height: FloatingNav._plusSize,
+                child: _PlusButton(onPublish: widget.onPublish),
+              )
+            else
+              cell(
+                pos,
+                _NavItem(
+                  key: ValueKey('nav-${slots[pos]}'),
+                  position: pos,
+                  selected: slots[pos] == widget.index,
+                  label: widget.labels[slots[pos]],
+                  labelMax: labelMax,
+                  onTap: () {
+                    if (slots[pos] != widget.index) buHaptic(BuHaptic.selection);
+                    widget.onChanged(slots[pos]);
+                  },
+                  outline: slots[pos] < 4 ? FloatingNav._outline[slots[pos]] : (widget.onPublish == null ? null : BuIcons.user),
+                  filled: slots[pos] < 4 ? FloatingNav._filled[slots[pos]] : null,
+                  badge: slots[pos] == _chatIndex ? widget.chatBadge : null,
+                  avatarUrl: slots[pos] == 4 ? widget.avatarUrl : null,
+                  avatarName: widget.avatarName,
+                ),
+              ),
+        ],
+      );
+    });
+  }
+}
+
+/// Ortadaki "+" düğmesi: `prPressed` daire; basınca 80 ms'de 0.94'e küçülür, bırakınca 140 ms'de döner.
+class _PlusButton extends StatefulWidget {
+  const _PlusButton({this.onPublish});
+
+  final VoidCallback? onPublish;
+
+  @override
+  State<_PlusButton> createState() => _PlusButtonState();
+}
+
+class _PlusButtonState extends State<_PlusButton> {
+  bool _down = false;
+
+  void _set(bool v) {
+    if (_down != v && mounted) setState(() => _down = v);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.bu;
+    final l = context.l10n;
+    final pressed = _down && !BuMotion.reduced(context);
+    return Semantics(
+      button: true,
+      label: l.discoverCompose,
+      onTap: widget.onPublish,
+      child: Tooltip(
+        message: l.discoverCompose,
+        excludeFromSemantics: true,
+        child: ExcludeSemantics(
+          child: Listener(
+            behavior: HitTestBehavior.opaque,
+            onPointerDown: (_) => _set(true),
+            onPointerUp: (_) => _set(false),
+            onPointerCancel: (_) => _set(false),
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: widget.onPublish,
+              child: AnimatedScale(
+                scale: pressed ? .94 : 1,
+                duration: pressed ? AppMotion.instant : AppMotion.fast,
+                curve: AppMotion.standard,
+                child: DecoratedBox(
+                  key: const ValueKey('nav-publish'),
+                  decoration: BoxDecoration(
+                    color: t.prPressed,
+                    shape: BoxShape.circle,
+                    boxShadow: [BoxShadow(color: t.prPressed.withValues(alpha: .22), blurRadius: 10, offset: const Offset(0, 3))],
+                  ),
+                  child: Center(child: Icon(BuIcons.plus, size: 26, color: t.onPr)),
                 ),
               ),
             ),
@@ -245,44 +337,17 @@ class FloatingNav extends StatelessWidget {
   }
 }
 
-/// Gölgeyi YALNIZ şeklin dışına çizer: yarı saydam yüzeyin altından gri leke sızmaz.
-class _OutsideShadow extends CustomPainter {
-  const _OutsideShadow(this.shape, this.shadows);
-
-  final ShapeBorder shape;
-  final List<BoxShadow> shadows;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final rect = Offset.zero & size;
-    final path = shape.getOuterPath(rect);
-    final outside = Path.combine(PathOperation.difference, Path()..addRect(rect.inflate(120)), path);
-    canvas.save();
-    canvas.clipPath(outside);
-    for (final s in shadows) {
-      canvas.drawPath(path.shift(s.offset), s.toPaint());
-    }
-    canvas.restore();
-  }
-
-  @override
-  bool shouldRepaint(_OutsideShadow old) => old.shape != shape || old.shadows != shadows;
-}
-
-const _chatIndex = 2; // AppTab.chat (döngüsel içe aktarmayı önlemek için)
-
-/// Tek sekme: simge (ya da Profil'de avatar) + etiket; tüm hücre dokunma alanıdır (en az 57 x 64 dp).
+/// Tek sekme: simge (Profil'de avatar) + yalnız seçiliyken etiket; tüm hücre dokunma alanıdır (en az 44 x 64 dp).
 class _NavItem extends StatelessWidget {
   const _NavItem({
     super.key,
     required this.position,
     required this.selected,
     required this.label,
-    required this.topPad,
-    required this.iconSlot,
-    required this.labelSlot,
+    required this.labelMax,
     required this.onTap,
     this.outline,
+    this.filled,
     this.badge,
     this.avatarUrl,
     this.avatarName,
@@ -291,63 +356,73 @@ class _NavItem extends StatelessWidget {
   final int position;
   final bool selected;
   final String label;
-  final double topPad;
-  final double iconSlot;
-  final double labelSlot;
+
+  /// Etiketin sığabileceği en geniş alan (seçili hap genişliği - iç boşluk - simge); sığmazsa küçülür.
+  final double labelMax;
   final VoidCallback onTap;
   final IconData? outline;
+  final IconData? filled;
   final ValueNotifier<int>? badge;
   final ValueListenable<String?>? avatarUrl;
   final String? avatarName;
 
-  bool get _isProfile => outline == null;
+  bool get _isProfile => outline == null || filled == null;
 
   @override
   Widget build(BuildContext context) {
     final t = context.bu;
     final tx = Theme.of(context).textTheme;
-    final color = selected ? t.pr : t.mut;
+    final color = selected ? t.onSoft : t.mut;
     final unread = badge;
     Widget glyph = _isProfile ? _profile(context, t) : _icon(context, color);
     if (unread != null) glyph = _withBadge(context, glyph, unread);
+    final style = (tx.labelMedium ?? const TextStyle()).copyWith(fontSize: 12, height: 1.2, fontWeight: FontWeight.w600, color: t.onSoft);
     final visual = ExcludeSemantics(
-      child: Padding(
-        padding: EdgeInsets.only(top: topPad),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: [
-            SizedBox(height: iconSlot, child: Center(child: glyph)),
-            const SizedBox(height: 2),
-            SizedBox(
-              height: labelSlot,
-              child: FittedBox(
-                fit: BoxFit.scaleDown,
-                child: AnimatedDefaultTextStyle(
-                  duration: BuMotion.of(context, BuMotion.short),
-                  style: tx.labelSmall!.copyWith(
-                      fontWeight: selected ? FontWeight.w700 : FontWeight.w600,
-                      color: color),
-                  maxLines: 1,
-                  softWrap: false,
-                  child: Text(label),
+      child: Center(
+        child: FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              glyph,
+              // Etiket: 140 ms solarak (60 ms gecikmeli) açılır/kapanır; genişlik hapla aynı eğriyle değişir.
+              TweenAnimationBuilder<double>(
+                tween: Tween<double>(end: selected ? 1 : 0),
+                duration: AppMotion.of(context, AppMotion.normal),
+                curve: AppMotion.standard,
+                builder: (context, v, child) => v <= 0 && !selected
+                    ? const SizedBox.shrink()
+                    : ClipRect(
+                        child: Align(
+                          alignment: AlignmentDirectional.centerStart,
+                          widthFactor: v,
+                          child: Opacity(opacity: ((v - .3) / .7).clamp(0.0, 1.0), child: child),
+                        ),
+                      ),
+                child: Padding(
+                  padding: const EdgeInsetsDirectional.only(start: 4),
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(maxWidth: labelMax < 0 ? 0 : labelMax),
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(label, maxLines: 1, softWrap: false, style: style),
+                    ),
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
-    final tab = MaterialLocalizations.of(context)
-        .tabLabel(tabIndex: position + 1, tabCount: 5);
-    Widget item = BuPressable(onTap: onTap, scale: .92, child: visual);
+    final tab = MaterialLocalizations.of(context).tabLabel(tabIndex: position + 1, tabCount: 5);
+    final Widget item = BuPressable(onTap: onTap, scale: .95, child: visual);
     // Ekran okuyucu: tek düğüm; rozet metni sekme etiketine eklenir ("Sohbet, 3 okunmamış").
     if (unread != null) {
       return ValueListenableBuilder<int>(
         valueListenable: unread,
         builder: (c, n, _) => _semantic(
-          n > 0 && !selected
-              ? '$label, ${c.l10n.p18NavUnread(n > 99 ? '99+' : '$n')}'
-              : label,
+          n > 0 && !selected ? '$label, ${c.l10n.p18NavUnread(n > 99 ? '99+' : '$n')}' : label,
           tab,
           item,
         ),
@@ -368,55 +443,39 @@ class _NavItem extends StatelessWidget {
       );
 
   Widget _icon(BuildContext context, Color color) {
-    return AnimatedScale(
-      scale: selected ? 1.06 : 1,
-      duration: BuMotion.of(context, BuMotion.medium),
-      curve: BuMotion.emphasizedDecelerate,
+    return _IconPop(
+      selected: selected,
       child: AnimatedSwitcher(
-        duration: BuMotion.of(context, BuMotion.short),
-        child: Icon(outline,
-            key: ValueKey(selected), size: 22, color: color),
+        duration: AppMotion.of(context, AppMotion.fast),
+        child: Icon(selected ? filled : outline, key: ValueKey(selected), size: FloatingNav._icon, color: color),
       ),
     );
   }
 
   Widget _profile(BuildContext context, BuTokens t) {
-    final dur = BuMotion.of(context, BuMotion.medium);
+    final dur = AppMotion.of(context, AppMotion.fast);
     final source = avatarUrl;
-    Widget avatar(String? url) => ChatlistAvatar(
-        name: avatarName ?? '',
-        url: url,
-        size: FloatingNav._avatar,
-        circle: true);
-    return AnimatedContainer(
-      duration: dur,
-      curve: BuMotion.decelerate,
-      width: 28,
-      height: 28,
-      alignment: Alignment.center,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        border: Border.all(
-            color: selected ? t.pr : t.mut.withValues(alpha: .45),
-            width: selected ? 2 : 1.25),
-        boxShadow: selected
-            ? [
-                BoxShadow(
-                    color: t.pr.withValues(alpha: .38),
-                    blurRadius: 10,
-                    offset: const Offset(0, 2))
-              ]
-            : const [],
+    Widget avatar(String? url) => ChatlistAvatar(name: avatarName ?? '', url: url, size: FloatingNav._avatar, circle: true);
+    return _IconPop(
+      selected: selected,
+      child: AnimatedContainer(
+        duration: dur,
+        curve: AppMotion.standard,
+        width: 28,
+        height: 28,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          border: Border.all(color: selected ? t.onSoft : t.mut.withValues(alpha: .45), width: selected ? 2 : 1.25),
+        ),
+        child: source == null
+            ? avatar(null)
+            : ValueListenableBuilder<String?>(valueListenable: source, builder: (_, url, __) => avatar(url)),
       ),
-      child: source == null
-          ? avatar(null)
-          : ValueListenableBuilder<String?>(
-              valueListenable: source, builder: (_, url, __) => avatar(url)),
     );
   }
 
-  Widget _withBadge(
-      BuildContext context, Widget glyph, ValueNotifier<int> badge) {
+  Widget _withBadge(BuildContext context, Widget glyph, ValueNotifier<int> badge) {
     return Stack(
       clipBehavior: Clip.none,
       alignment: Alignment.center,
@@ -432,11 +491,9 @@ class _NavItem extends StatelessWidget {
               return ExcludeSemantics(
                 child: AnimatedScale(
                   scale: show ? 1 : 0,
-                  duration: BuMotion.of(context, BuMotion.medium),
+                  duration: AppMotion.of(context, AppMotion.fast),
                   curve: Curves.easeOutBack,
-                  child: n > 0
-                      ? BuPop(trigger: n, child: BuCountBadge(n, key: const ValueKey('nav-badge')))
-                      : const SizedBox.shrink(),
+                  child: n > 0 ? BuPop(trigger: n, child: BuCountBadge(n, key: const ValueKey('nav-badge'))) : const SizedBox.shrink(),
                 ),
               );
             },
@@ -445,4 +502,38 @@ class _NavItem extends StatelessWidget {
       ],
     );
   }
+}
+
+/// Seçilince ölçek 1.0 -> 1.08 -> 1.0 (220 ms); seçimden çıkınca ya da "animasyonları azalt" açıkken oynamaz.
+class _IconPop extends StatefulWidget {
+  const _IconPop({required this.selected, required this.child});
+
+  final bool selected;
+  final Widget child;
+
+  @override
+  State<_IconPop> createState() => _IconPopState();
+}
+
+class _IconPopState extends State<_IconPop> with SingleTickerProviderStateMixin {
+  late final AnimationController _c = AnimationController(vsync: this, duration: AppMotion.normal);
+  static final _scale = TweenSequence<double>([
+    TweenSequenceItem(tween: Tween(begin: 1.0, end: 1.08).chain(CurveTween(curve: AppMotion.enter)), weight: 50),
+    TweenSequenceItem(tween: Tween(begin: 1.08, end: 1.0).chain(CurveTween(curve: AppMotion.standard)), weight: 50),
+  ]);
+
+  @override
+  void didUpdateWidget(_IconPop old) {
+    super.didUpdateWidget(old);
+    if (widget.selected && !old.selected && !BuMotion.reduced(context)) _c.forward(from: 0);
+  }
+
+  @override
+  void dispose() {
+    _c.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => ScaleTransition(scale: _scale.animate(_c), child: widget.child);
 }
