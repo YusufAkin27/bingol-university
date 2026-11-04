@@ -141,11 +141,14 @@ class _ClubDetailPageState extends State<ClubDetailPage> {
       }
     } catch (e) {
       if (!mounted) return;
+      final stale = _club != null && !clubIsGone(e);
       setState(() {
         _error = e;
         // Kulüp kapatıldı/silindi (404): eski veriyi göstermeye devam etme.
         if (clubIsGone(e)) _club = null;
       });
+      // Yenileme hatası (katıl/ayrıl sonrası dahil): eski veri görünür kalır ama kullanıcı bilgilendirilir.
+      if (stale) _snack(errorText(e));
     }
   }
 
@@ -693,6 +696,9 @@ class _ClubDetailPageState extends State<ClubDetailPage> {
   Future<void> _createEvent() async {
     await Navigator.push<bool>(
         context, MaterialPageRoute(builder: (_) => EventFormPage(session: widget.session, communityId: widget.communityId)));
+    // Form başarıda detay sayfasıyla yer değiştirir (pop sonucu güvenilir değil): dönünce etkinlik listesi her durumda tazelenir.
+    if (!mounted) return;
+    if (_events.loaded || _tab == _tabEvents) _fetch(_events, '/events?communityId=${widget.communityId}', reset: true);
   }
 
   /// Üyelik durumuna göre ana eylem(ler): Katıl (dolu) / Kulüp sohbeti (çerçeveli) / Etkinlik oluştur (yönetici).

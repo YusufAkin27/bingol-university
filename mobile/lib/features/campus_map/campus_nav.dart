@@ -55,7 +55,8 @@ Future<void> _launch(BuildContext context, Uri uri, {required Uri fallback}) asy
   if (!ok && context.mounted) BuToast.show(context, context.l10n.campusOpenFailed, kind: BuToastKind.error);
 }
 
-/// Paylaş: uygulamada başka yerde de olduğu gibi (haber) metin + bağlantı panoya kopyalanır.
+/// "Bağlantıyı kopyala": sistem paylaşım sayfası için yerel köprü yok; ad + bağlantı panoya kopyalanır ve düğme
+/// bunu dürüstçe söyler (etiket `campusShare` = "Bağlantıyı kopyala").
 Future<void> sharePlace(BuildContext context, CampusPlace p) async {
   final text = '${p.name} - BÜ Kampüs\n${shareUri(p.point)}';
   await Clipboard.setData(ClipboardData(text: text));

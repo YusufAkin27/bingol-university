@@ -114,6 +114,8 @@ class _AnnouncementsPageState extends State<AnnouncementsPage> {
 
   Future<void> _loadMore() async {
     if (_more || !_hasMore || _loading || _cursor == null) return;
+    final failed = _moreFailedAt;
+    if (failed != null && academicClock().difference(failed) < const Duration(seconds: 5)) return;
     final gen = _gen;
     setState(() => _more = true);
     try {
@@ -128,19 +130,27 @@ class _AnnouncementsPageState extends State<AnnouncementsPage> {
       _fillIfShort();
     } catch (e) {
       if (!mounted || gen != _gen) return;
+      // Liste sonuna gelinmiş sayılmaz: imleç korunur, kullanıcı biraz bekleyip kaydırınca yeniden denenir.
       setState(() {
         _more = false;
-        _hasMore = false;
+        _moreFailedAt = academicClock();
       });
       academicToast(context, errorText(e));
     }
   }
 
+  DateTime? _moreFailedAt;
+
   Future<void> _open(Announcement a) async {
-    await Navigator.of(context).push(MaterialPageRoute(builder: (_) => AnnouncementDetailPage(session: widget.session, id: a.id, preview: a)));
-    if (!mounted) return;
-    final i = _items.indexWhere((x) => x.id == a.id);
-    if (i >= 0 && !_items[i].read) setState(() => _items[i] = _items[i].asRead());
+    // Satır, ayrıntı BAŞARIYLA yüklenince okundu olur (yükleme hatasında sunucu okundu işaretlemedi; liste yalan söylemesin).
+    void markRead() {
+      if (!mounted) return;
+      final i = _items.indexWhere((x) => x.id == a.id);
+      if (i >= 0 && !_items[i].read) setState(() => _items[i] = _items[i].asRead());
+    }
+
+    await Navigator.of(context).push(MaterialPageRoute(
+        builder: (_) => AnnouncementDetailPage(session: widget.session, id: a.id, preview: a, onLoaded: markRead)));
   }
 
   Future<void> _readAll() async {
@@ -245,11 +255,14 @@ class _AnnouncementsPageState extends State<AnnouncementsPage> {
 /// Duyuru ayrıntısı (Stitch v3 09): başlık 24 sp/700, muted "birim · tarih", ayraç, gövde 16 sp/1.6 (madde işaretli
 /// satırlar liste olur), `pr` "Ekli belgeyi aç". Açılınca sunucu okundu işaretler.
 class AnnouncementDetailPage extends StatefulWidget {
-  const AnnouncementDetailPage({super.key, required this.session, required this.id, this.preview});
+  const AnnouncementDetailPage({super.key, required this.session, required this.id, this.preview, this.onLoaded});
 
   final Session session;
   final int id;
   final Announcement? preview;
+
+  /// Ayrıntı gerçekten yüklenince (yani sunucu okundu işaretleyince) çağrılır; liste satırı yalnız o zaman okundu olur.
+  final VoidCallback? onLoaded;
 
   @override
   State<AnnouncementDetailPage> createState() => _AnnouncementDetailPageState();
@@ -272,7 +285,10 @@ class _AnnouncementDetailPageState extends State<AnnouncementDetailPage> {
     setState(() => _error = null);
     try {
       final a = await _api.announcement(widget.id);
-      if (mounted) setState(() => _a = a);
+      if (mounted) {
+        setState(() => _a = a);
+        widget.onLoaded?.call();
+      }
     } catch (e) {
       if (mounted) setState(() => _error = e);
     }

@@ -3238,6 +3238,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get eventListNotCode => 'هذا ليس رمز حضور.';
 
   @override
+  String get eventListShortCodeNeedsEvent =>
+      'لا توجد لديك فعالية مفتوحة للحضور الآن. أدخل الرمز القصير في صفحة الفعالية ضمن «إدخال الرمز يدويًا».';
+
+  @override
   String get eventListCheckedIn => 'تم تسجيل حضورك.';
 
   @override
@@ -10290,7 +10294,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get campusOpenInMaps => 'افتح في الخرائط';
 
   @override
-  String get campusShare => 'مشاركة';
+  String get campusShare => 'نسخ الرابط';
 
   @override
   String get campusDetailTitle => 'تفاصيل المكان';

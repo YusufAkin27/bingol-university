@@ -9,6 +9,7 @@ import '../../core/session.dart';
 import '../../widgets/bu.dart';
 import 'etkinlik2_attendance_page.dart';
 import '../clubs/clubs_widgets.dart' show ClubOutlineButton, ClubPageHeader;
+import 'checkin_input.dart';
 import 'etkinlik2_widgets.dart';
 import 'qr_painter.dart';
 
@@ -179,16 +180,17 @@ class _Etkinlik2QrPageState extends State<Etkinlik2QrPage> {
     );
   }
 
-  /// "482913" -> "482 913" (6 hane; başka uzunlukta olduğu gibi).
-  String _spaced(String c) => c.length == 6 && RegExp(r'^\d{6}$').hasMatch(c) ? '${c.substring(0, 3)} ${c.substring(3)}' : c;
 
   Widget _qrCard(BuildContext context) {
     final t = context.bu;
     final tx = Theme.of(context).textTheme;
     final l = context.l10n;
-    final code = _code?['code'] as String?;
+    final long = _code?['code'] as String?;
     final qr = _code?['qrPayload'] as String?;
-    if (code == null) return _noCode(context);
+    if (long == null) return _noCode(context);
+    // Elle giriş için sunucunun kısa kodu (6 karakter); eski sunucuda yalnız uzun jeton gelirse o gösterilir.
+    final manual = (_code?['manualCode'] as String?)?.trim();
+    final code = (manual != null && manual.isNotEmpty) ? manual : long;
     return Column(children: [
       ValueListenableBuilder<int>(
         valueListenable: _left,
@@ -197,10 +199,10 @@ class _Etkinlik2QrPageState extends State<Etkinlik2QrPage> {
           child: Semantics(
             label: l.eventFormCheckInCode,
             child: QrView(
-              data: qr ?? code,
+              data: qr ?? long,
               size: 228,
               radius: BuRadius.xs,
-              fallback: SelectableText(code, textAlign: TextAlign.center, style: tx.titleMedium!.copyWith(color: t.pr)),
+              fallback: SelectableText(code,textAlign: TextAlign.center, style: tx.titleMedium!.copyWith(color: t.pr)),
             ),
           ),
         ),
@@ -215,7 +217,7 @@ class _Etkinlik2QrPageState extends State<Etkinlik2QrPage> {
           onTap: () => _copy(code),
           child: Directionality(
             textDirection: TextDirection.ltr,
-            child: Text(_spaced(code),
+            child: Text(spacedManualCode(code),
                 key: const ValueKey('et2-manual-code'),
                 maxLines: 1,
                 style: tx.headlineMedium!.copyWith(

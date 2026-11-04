@@ -25,6 +25,8 @@ class _Etkinlik2RequestsPageState extends State<Etkinlik2RequestsPage> {
   final _pending = <Map<String, dynamic>>[];
   final _answered = <Map<String, dynamic>>[];
   int? _pendingNext;
+  int? _okNext;
+  int? _noNext;
   int? _going;
   int? _cap;
   bool _loading = true;
@@ -57,13 +59,20 @@ class _Etkinlik2RequestsPageState extends State<Etkinlik2RequestsPage> {
     try {
       final p = await api.get('/events/$_id/requests?status=PENDING&size=50');
       List<Map<String, dynamic>> ok = [], no = [];
+      int? okNext, noNext;
       try {
-        ok = _items(await api.get('/events/$_id/requests?status=ACCEPTED&size=50'));
-        no = _items(await api.get('/events/$_id/requests?status=REJECTED&size=50'));
+        final okRes = await api.get('/events/$_id/requests?status=ACCEPTED&size=50');
+        ok = _items(okRes);
+        okNext = okRes is Map ? (okRes['nextCursor'] as num?)?.toInt() : null;
+        final noRes = await api.get('/events/$_id/requests?status=REJECTED&size=50');
+        no = _items(noRes);
+        noNext = noRes is Map ? (noRes['nextCursor'] as num?)?.toInt() : null;
       } catch (_) {}
       await _refreshCounts();
       if (!mounted) return;
       setState(() {
+        _okNext = okNext;
+        _noNext = noNext;
         _pending
           ..clear()
           ..addAll(_items(p));
@@ -102,15 +111,33 @@ class _Etkinlik2RequestsPageState extends State<Etkinlik2RequestsPage> {
     } catch (_) {}
   }
 
+  /// Görünen sekmenin sonraki sayfası (Bekleyen / Onaylanan / Reddedilen; her biri kendi imlecine sahip).
   Future<void> _loadMore() async {
-    if (_more || _pendingNext == null) return;
+    final tab = _tab;
+    final cursor = switch (tab) { 0 => _pendingNext, 1 => _okNext, _ => _noNext };
+    if (_more || cursor == null) return;
+    final status = switch (tab) { 0 => 'PENDING', 1 => 'ACCEPTED', _ => 'REJECTED' };
     setState(() => _more = true);
     try {
-      final r = await widget.session.api.get('/events/$_id/requests?status=PENDING&size=50&cursor=$_pendingNext');
+      final r = await widget.session.api.get('/events/$_id/requests?status=$status&size=50&cursor=$cursor');
       if (!mounted) return;
+      final next = r is Map ? (r['nextCursor'] as num?)?.toInt() : null;
       setState(() {
-        _pending.addAll(_items(r));
-        _pendingNext = r is Map ? (r['nextCursor'] as num?)?.toInt() : null;
+        if (tab == 0) {
+          _pending.addAll(_items(r));
+          _pendingNext = next;
+        } else {
+          final seen = {for (final a in _answered) _uid(a)};
+          _answered.addAll([
+            for (final a in _items(r))
+              if (seen.add(_uid(a))) {...a, 'status': status}
+          ]);
+          if (tab == 1) {
+            _okNext = next;
+          } else {
+            _noNext = next;
+          }
+        }
       });
     } catch (e) {
       _toast(errorText(e), error: true);
@@ -208,7 +235,7 @@ class _Etkinlik2RequestsPageState extends State<Etkinlik2RequestsPage> {
                         if (list.isEmpty) _empty(context),
                         for (var i = 0; i < list.length; i++)
                           BuStaggerItem(index: i, child: _tab == 0 ? _pendingRow(context, list[i]) : _answeredRow(context, list[i])),
-                        if (_tab == 0 && _pendingNext != null)
+                        if ((_tab == 0 ? _pendingNext : (_tab == 1 ? _okNext : _noNext)) != null)
                           Padding(
                             padding: const EdgeInsets.only(top: 12),
                             child: Center(child: BuButton(label: l.eventFormShowMore, kind: BuButtonKind.soft, compact: true, busy: _more, onPressed: _loadMore)),

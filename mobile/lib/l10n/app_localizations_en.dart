@@ -3269,6 +3269,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get eventListNotCode => 'This is not a check-in code.';
 
   @override
+  String get eventListShortCodeNeedsEvent =>
+      'None of your events has check-in open right now. Enter the short code on the event page under “Enter code manually”.';
+
+  @override
   String get eventListCheckedIn => 'You are checked in.';
 
   @override
@@ -10393,7 +10397,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get campusOpenInMaps => 'Open in Maps';
 
   @override
-  String get campusShare => 'Share';
+  String get campusShare => 'Copy link';
 
   @override
   String get campusDetailTitle => 'Place details';

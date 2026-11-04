@@ -125,7 +125,11 @@ class _AcademicHubPageState extends State<AcademicHubPage> {
             if (_noDept)
               Padding(
                 padding: const EdgeInsets.fromLTRB(20, 4, 20, 12),
-                child: AcadAmberNote(text: '${l.p20HubNoDeptTitle}. ${l.p20HubNoDeptBody}', actionLabel: l.p20EditProfile, onAction: () => openEditProfile(context, s)),
+                child: AcadAmberNote(text: '${l.p20HubNoDeptTitle}. ${l.p20HubNoDeptBody}', actionLabel: l.p20EditProfile, onAction: () async {
+                  await openEditProfile(context, s);
+                  // Bölüm kaydedildiyse uyarı notu ve sınav/duyuru verileri çek-yenilemeyi beklemeden tazelenir.
+                  if (mounted) unawaited(_refresh());
+                }),
               ),
             if (_semester != null)
               Padding(
