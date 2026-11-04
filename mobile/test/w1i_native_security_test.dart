@@ -59,7 +59,7 @@ void main() {
     test('beyaz liste = spec listesi (Kotlin MainActivity ile aynı)', () {
       const spec = {
         'targetType', 'targetId', 'conversationId', 'eventId', 'postId', 'communityId',
-        'newsId', 'ticketId', 'pollId', 'userId', 'announcementId', //
+        'newsId', 'ticketId', 'pollId', 'userId', 'announcementId', 'examId', //
       };
       expect(kLocalReminderPayloadKeys, spec);
       final kt = _read('$kotlinDir/MainActivity.kt');

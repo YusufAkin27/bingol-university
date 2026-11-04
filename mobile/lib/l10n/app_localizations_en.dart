@@ -3810,6 +3810,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get notifEmpty => 'No notifications yet.';
 
   @override
+  String get notifTargetOpenFailed => 'This notification could not be opened.';
+
+  @override
   String get notifUnread => 'Unread notification';
 
   @override
@@ -7370,6 +7373,10 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get chatClosedBanner =>
       'This conversation was closed by an administrator.';
+
+  @override
+  String get chatRealtimeLost =>
+      'Live connection lost; messages are refreshed periodically.';
 
   @override
   String get chatAdminRemovedMsg =>

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../core/locale_controller.dart';
 import '../../core/session.dart';
 import '../../core/theme.dart';
+import '../../widgets/bu.dart';
 import '../../widgets/bu_widgets.dart';
 import '../../widgets/common.dart';
 import 'profil_widgets.dart' show ProfilFlatGroup, ProfilTopBar;
@@ -94,7 +95,7 @@ class _BlockedUsersPageState extends State<BlockedUsersPage> {
       await widget.session.api.delete('/users/$id/block');
       if (mounted) setState(() => _items!.removeWhere((x) => x['id'] == u['id']));
     } catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(errorText(e))));
+      if (mounted) BuToast.show(context, errorText(e), kind: BuToastKind.error);
     } finally {
       if (mounted) setState(() => _busy.remove(id));
     }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../features/academic/announcements_page.dart';
 import '../../features/academic/exams_page.dart';
@@ -35,23 +36,28 @@ class PushRouter {
   /// [localReminder] = yük yerel hatırlatma dokunuşundan geldi (Android intent ekstrası dışarıdan sahte
   /// basılabilir): yalnız hedef anahtarları beyaz listeden geçer, sohbet durumu (kapandı/yeniden açıldı) ASLA
   /// işlenmez. Durum değiştiren anahtarlar (`event`...) yalnız sunucudan gelen FCM yükünde etkilidir.
-  static Future<void> open(Map<String, dynamic> data,
-      {bool localReminder = false, bool compose = false}) async {
+  ///
+  /// Dönüş: hedef açıldı mı. [listFallback] false ise açılamayan hedef Bildirimler listesine DÜŞMEZ (zaten o
+  /// listenin içindeyken ikinci bir liste yığılmasın; çağıran hatayı kendi gösterir).
+  static Future<bool> open(Map<String, dynamic> data,
+      {bool localReminder = false, bool compose = false, bool listFallback = true}) async {
     final s = session;
     final payload = localReminder ? sanitizeLocalReminderPayload(data) : data;
     // Sohbet kapatıldı/yeniden açıldı bildirimi: durum, hedef ekran açılmadan önce işlenir (bantlı açılsın).
     if (!localReminder) ClosedConversations.instance.applyPushData(payload);
     final target = resolvePushTarget(payload);
     final nav = rootNavigatorKey.currentState;
-    if (s == null || nav == null || s.state != SessionState.signedIn) return;
+    if (s == null || nav == null || s.state != SessionState.signedIn) return false;
     try {
-      if (await _go(nav, s, target, compose: !localReminder && compose)) return;
+      if (await _go(nav, s, target, compose: !localReminder && compose)) return true;
     } catch (_) {
       // Açılamayan hedef: bildirim listesine düş.
     }
-    if (!nav.mounted) return;
-    nav.push(
-        MaterialPageRoute<void>(builder: (_) => NotificationsPage(session: s)));
+    if (listFallback && nav.mounted) {
+      nav.push(
+          MaterialPageRoute<void>(builder: (_) => NotificationsPage(session: s)));
+    }
+    return false;
   }
 
   /// `GET /conversations/{id}` yanıtı `{conversation, members}` sarmalayıcısıdır (ChatDetailPage
@@ -161,6 +167,11 @@ class PushRouter {
       case PushDest.feedback:
         push(SupportPage(session: s));
         return true;
+      case PushDest.url:
+        // Kampanya bağlantısı (yalnız https; resolvePushTarget doğruladı): dış tarayıcıda açılır.
+        final u = t.url == null ? null : Uri.tryParse(t.url!);
+        if (u == null || u.scheme != 'https') return false;
+        return launchUrl(u, mode: LaunchMode.externalApplication);
       case PushDest
             .signOut: // ölü değer (bkz. PushDest.signOut): hiçbir yük buraya çözülmez, çıkış yapılmaz
       case PushDest.notifications:

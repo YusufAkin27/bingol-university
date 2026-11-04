@@ -17,6 +17,7 @@ import '../../core/permissions/ensure_permission.dart';
 import '../../core/platform/image_service.dart';
 import '../../core/platform/video_service.dart';
 import '../../core/realtime/chat_realtime.dart';
+import '../../core/realtime/stomp_client.dart' show StompFatal;
 import '../../core/session.dart';
 import '../../l10n/app_localizations.dart';
 import '../../widgets/bu.dart';
@@ -283,6 +284,9 @@ class _ChatDetailPageState extends State<ChatDetailPage>
       ),
     );
     if (!mounted) return;
+    // Bilgi sayfası ortak `conversation` haritasını değiştirir (engelle/sessize al/ad): başlık ve yazma alanı
+    // (engelli çubuğu <-> yazma alanı) dönüşte hemen yenilensin.
+    setState(() {});
     if (res == 'search') {
       _startSearch();
     } else if (res == 'left') {
@@ -817,6 +821,11 @@ class _ChatDetailPageState extends State<ChatDetailPage>
         if (on) _poll(force: true);
       }),
       _rt.resync.listen((_) => _poll(force: true)),
+      // Soket kalıcı durdu (yetkisiz hedef): sessizce ölmesin; mesajlar REST yoklamasıyla gelmeye devam eder.
+      _rt.fatal.listen((f) {
+        if (!mounted || f == StompFatal.sessionExpired || f == StompFatal.sessionReplaced) return;
+        _notice(context.l10n.chatRealtimeLost, SohbetyNoticeKind.info);
+      }),
     ]);
     // Paylaşılan soketi kabuk başlatır (start/stop yalnız orada); yalnız enjekte edilen/yedek örnek burada başlar.
     if (widget.connectRealtime && (widget.realtime != null || _ownRt != null))
@@ -1631,6 +1640,11 @@ class _ChatDetailPageState extends State<ChatDetailPage>
   void _openImage(Map<String, dynamic> a) {
     if (isVideoAttachment(a)) {
       _openVideo(a);
+      return;
+    }
+    // Tek görsel de galeri görüntüleyicisinde açılır: çok görselli mesajla aynı davranış (galeriye kaydet dahil).
+    if (ChatMediaItem.tryFromAttachment(a) != null) {
+      _openMessageGallery([a], 0);
       return;
     }
     final url = (a['url'] ?? a['thumbUrl']) as String?;

@@ -1,3 +1,5 @@
+import 'dart:convert' show utf8;
+
 import 'package:flutter/material.dart';
 
 import '../../core/api.dart';
@@ -69,6 +71,10 @@ class _AccountSecurityPageState extends State<AccountSecurityPage> {
       bad.add('new');
     } else if (n.length > 72) {
       errors.add(l.authPwMaxErr);
+      bad.add('new');
+    } else if (utf8.encode(n).length > 72) {
+      // Sunucu sınırı 72 BAYT: Türkçe/Arapça karakterler birden çok bayt tutar.
+      errors.add(l.errPasswordTooLong);
       bad.add('new');
     } else if (n == _current.text) {
       errors.add(l.profil2SecSame);

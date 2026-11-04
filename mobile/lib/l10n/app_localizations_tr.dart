@@ -3794,6 +3794,9 @@ class AppLocalizationsTr extends AppLocalizations {
   String get notifEmpty => 'Henüz bildiriminiz yok.';
 
   @override
+  String get notifTargetOpenFailed => 'Bu bildirimin hedefi açılamadı.';
+
+  @override
   String get notifUnread => 'Okunmamış bildirim';
 
   @override
@@ -7341,6 +7344,10 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get chatClosedBanner => 'Bu sohbet yönetici tarafından kapatıldı.';
+
+  @override
+  String get chatRealtimeLost =>
+      'Canlı bağlantı kesildi; mesajlar kısa aralıklarla yenileniyor.';
 
   @override
   String get chatAdminRemovedMsg => 'Bu mesaj yönetici tarafından kaldırıldı';

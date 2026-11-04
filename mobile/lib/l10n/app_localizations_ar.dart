@@ -3777,6 +3777,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get notifEmpty => 'لا توجد إشعارات بعد.';
 
   @override
+  String get notifTargetOpenFailed => 'تعذّر فتح هذا الإشعار.';
+
+  @override
   String get notifUnread => 'إشعار غير مقروء';
 
   @override
@@ -7303,6 +7306,10 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get chatClosedBanner => 'أغلق أحد المشرفين هذه المحادثة.';
+
+  @override
+  String get chatRealtimeLost =>
+      'انقطع الاتصال المباشر؛ تُحدَّث الرسائل بشكل دوري.';
 
   @override
   String get chatAdminRemovedMsg => 'أزال أحد المشرفين هذه الرسالة';

@@ -102,7 +102,17 @@ class _LoginPageState extends State<LoginPage> {
         // Kod gönderilmemiş olabilir: yeniden gönderip doğrulama ekranına geç.
         try {
           await widget.session.resendCode(_email.text);
-        } catch (_) {}
+        } on ApiError catch (re) {
+          // 429: kod az önce gönderilmiş, doğrulama ekranı yeniden gönderme sayacını gösterir. Başka hata: kod
+          // gitmeden kullanıcıyı bekleyen bir ekrana düşürme, nedeni göster.
+          if (re.status != 429) {
+            if (mounted) _fail(re);
+            return;
+          }
+        } catch (re) {
+          if (mounted) _fail(re);
+          return;
+        }
         if (!mounted) return;
         final id = normalizeIdentifier(_email.text);
         widget.session.rememberCredentials(id, _password.text);

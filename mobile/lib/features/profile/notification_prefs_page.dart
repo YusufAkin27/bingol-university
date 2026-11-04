@@ -358,7 +358,15 @@ class _NotificationPrefsGroupState extends State<NotificationPrefsGroup> with Wi
           title: l.profil1PushTitle,
           sub: on ? l.profil1PushGranted : null,
           strong: true,
-          trailing: on ? _PrefSwitch(value: true, onChanged: (_) => PermissionService.instance.openSettings()) : const SizedBox(height: 28),
+          // İzin işletim sistemindedir: uygulama açıp kapatamaz. Sahte anahtar yerine durum + sistem ayarına geçiş.
+          onTap: on ? () => PermissionService.instance.openSettings() : null,
+          trailing: on
+              ? Row(mainAxisSize: MainAxisSize.min, children: [
+                  Text(l.pushOn, style: BuType.caption.copyWith(fontSize: 14, color: context.bu.mut)),
+                  const SizedBox(width: 4),
+                  _chevron(),
+                ])
+              : const SizedBox(height: 28),
         ),
       );
     }

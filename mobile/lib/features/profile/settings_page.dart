@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import '../../core/app_gate.dart' show appVersion;
 import '../../core/crash/crash_reporter.dart';
 import '../../core/locale_controller.dart';
+import '../../core/permissions/permission_service.dart';
 import '../../core/push/push_service.dart';
 import '../../core/session.dart';
 import '../../core/theme_controller.dart';
@@ -17,6 +18,7 @@ import 'account_security_page.dart';
 import 'blocked_users_page.dart';
 import 'notification_prefs_page.dart';
 import 'privacy_data_page.dart';
+import 'profil2_delete_account_page.dart';
 import 'profil_widgets.dart';
 
 const _langNames = {'tr': 'Türkçe', 'en': 'English', 'ar': 'العربية'};
@@ -82,13 +84,12 @@ class _SettingsPageState extends State<SettingsPage> {
     );
     if (!ok) return;
     try {
-      // Session.logoutAll henüz yoksa uç doğrudan çağrılır.
-      await widget.session.api.post('/auth/logout-all');
+      // Hesap güvenliği sayfasıyla aynı yol (401 = oturum zaten bitmiş sayılır).
+      await widget.session.logoutAll();
     } catch (e) {
       if (mounted) _toast(errorText(e));
       return;
     }
-    await widget.session.signOut(remote: false);
     if (mounted) Navigator.of(context).popUntil((r) => r.isFirst);
   }
 
@@ -170,14 +171,7 @@ class _SettingsPageState extends State<SettingsPage> {
     final tx = Theme.of(context).textTheme;
     final lc = _lc;
     final langName = lc == null ? '' : (lc.pref == 'system' ? l.languageSystem : (_langNames[lc.pref] ?? lc.pref));
-    final pushText = switch (_pushStatus) {
-      'notConfigured' => l.pushNotConfigured,
-      'on' => l.pushOn,
-      'off' => l.pushOff,
-      'notGranted' => l.pushNotGranted,
-      _ => _pushStatus,
-    };
-    // Değer kısa metin taşır (tek satır); uzun açıklama dokununca bildirimde.
+    // Değer kısa metin taşır (tek satır).
     final pushValue = switch (_pushStatus) {
       'on' => l.pushOn,
       'notGranted' => l.pushNotGranted,
@@ -236,7 +230,8 @@ class _SettingsPageState extends State<SettingsPage> {
                     icon: BuIcons.bell,
                     label: l.p21HelpPermTitle,
                     value: pushValue,
-                    onTap: () => _toast(_pushStatus == 'on' ? l.pushOnToast : l.pushStatusToast(pushText)),
+                    // Bildirim izni işletim sistemindedir: dokununca sistem ayarları açılır (toast yok).
+                    onTap: () => PermissionService.instance.openSettings(),
                   ),
                 ]),
                 ProfilFlatSection(l.settingsSectionPrivacy),
@@ -282,6 +277,14 @@ class _SettingsPageState extends State<SettingsPage> {
                       label: l.settingsLogoutAll,
                       danger: true,
                       onTap: _logoutAll,
+                    ),
+                    // Uygulama içinde hesap silme (App Store 2.1 / 5.1.1(v)): ayarlardan doğrudan erişilir.
+                    ProfilFlatRow(
+                      key: const ValueKey('settings-delete-account'),
+                      icon: BuIcons.trash2,
+                      label: l.profilePrefsDeleteMyAccount,
+                      danger: true,
+                      onTap: () => _push(DeleteAccountPage(session: widget.session)),
                     ),
                     ProfilFlatRow(
                       key: const ValueKey('settings-sign-out'),
