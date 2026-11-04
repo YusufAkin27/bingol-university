@@ -318,7 +318,7 @@ void main() {
       for (final k in deviceKeys) {
         await st.write(key: k, value: 'cihaz');
       }
-      for (final k in ['recent_searches', 'academic_reminders', 'synced_language', 'legal_later', 'chat_background']) {
+      for (final k in ['recent_searches', 'academic_reminders', 'synced_language', 'legal_later', 'chat_background', 'chat_recent_reactions']) {
         await st.write(key: k, value: 'x');
       }
       outbox.enqueue(conversationId: 5, clientId: 'bekleyen', text: 'gonderilmemis mesaj');
@@ -331,7 +331,7 @@ void main() {
       // ignore: avoid_print
       print('S2.9b cikis sonrasi kalan guvenli depo anahtarlari: $left');
       expect(left.difference(deviceKeys), isEmpty, reason: 'cikista kullaniciya ozel anahtar kalmamali: $left');
-      for (final k in ['access', 'refresh', 'outbox_v1', 'outbox_v1_corrupt', 'recent_searches', 'academic_reminders', 'synced_language', 'legal_later', 'chat_background']) {
+      for (final k in ['access', 'refresh', 'outbox_v1', 'outbox_v1_corrupt', 'recent_searches', 'academic_reminders', 'synced_language', 'legal_later', 'chat_background', 'chat_recent_reactions']) {
         expect(left.contains(k), isFalse, reason: '$k cikista silinmedi');
       }
       for (final k in deviceKeys) {

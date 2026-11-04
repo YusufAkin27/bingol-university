@@ -5,6 +5,7 @@ import '../features/auth/help/public_support_api.dart' show TrackTokenStore;
 import '../features/campus_map/campus_local_store.dart';
 import '../features/chat/chat_wallpaper.dart';
 import '../features/chat/photo_autosave.dart';
+import '../features/chat/recent_reactions.dart';
 import '../features/home/home_layout.dart';
 import '../features/search/recent_searches.dart';
 import 'api.dart';
@@ -29,6 +30,7 @@ void registerUserDataCleaners(ApiClient api) {
     ..add(ReminderService.clearUserData) // ders hatırlatıcı ayarı + kurulu yerel hatırlatmalar
     ..add(LanguageSync.clear) // son eşitlenen profil dili
     ..add(ChatBackgroundPrefs.clear) // sohbet arka planı tercihi (Desen/Hafif/Orta/Düz)
+    ..add(RecentReactions.clear) // hesaba ozel son alti tepki
     ..add(CampusLocalStore.clear) // kampüs haritası: favori yerler + son aramalar
     ..add(HomeLayoutStore.clear) // Ana Sayfa düzeni (bölüm sırası/görünürlüğü + Hızlı Erişim kısayolları)
     ..add(TrackTokenStore.clear) // herkese açık destek talebinin takip jetonu (e-postaya bağlı)

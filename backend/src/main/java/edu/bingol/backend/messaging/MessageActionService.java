@@ -190,7 +190,7 @@ public class MessageActionService {
 
     public ReactionSummary react(Long userId, Long messageId, String emoji) {
         String e = emoji == null ? "" : normalize(emoji);
-        if (e.isEmpty() || !allowedReactions.contains(e)) {
+        if (e.isEmpty() || (!allowedReactions.contains(e) && !EmojiReaction.valid(e))) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "REACTION_NOT_ALLOWED", "Bu tepki kullanılamaz.");
         }
         Access a = reactable(userId, messageId);

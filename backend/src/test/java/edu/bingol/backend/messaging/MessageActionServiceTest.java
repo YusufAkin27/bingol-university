@@ -392,8 +392,8 @@ class MessageActionServiceTest {
     }
 
     @Test
-    void reactionOutsideAllowedListIs400() {
-        ApiException e = fail(() -> service.react(ME, MSG, "💩"));
+    void textInsteadOfEmojiIs400() {
+        ApiException e = fail(() -> service.react(ME, MSG, "hello"));
 
         assertEquals("REACTION_NOT_ALLOWED", e.code());
         assertEquals(HttpStatus.BAD_REQUEST, e.status());

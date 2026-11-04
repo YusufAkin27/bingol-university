@@ -2,6 +2,14 @@
 
 Tum degisiklikler geriye uyumludur (yalniz ekleme / uyumlu duzeltme).
 
+## Sohbet tasarımı, emoji seçici ve birebir mesaj bilgisi (2026-11-04)
+
+- Mobil: sohbet bilgisindeki profil fotoğrafı dokununca bulanık arka planda büyür ve yakınlaştırılabilir. Kısa mesajların saati son satırın yanında görünür; duvar kâğıdı, başlık ve yazma alanı yenilendi.
+- Tepkiler: büyük emoji düğmeleri ve `+` seçici; tek emoji seçilebilir. Son altı başarılı tepki cihazda kullanıcıya özel saklanır ve çıkışta temizlenir. Varsayılan kalp kırmızıdır. Sunucu artık sabit altılı dışında da tek Unicode emoji grafemini kabul eder (en fazla 16 UTF-16 birimi).
+- Birebir sohbette kendi mesajını fiziksel olarak sağdan sola kaydırmak mesaj bilgisi sayfasını açar. `GET /api/messages/{id}/info?before=&size=20`: `message`, `sentAt`, nullable `deliveredAt`/`readAt`, `status`, imleçli `replies`. Yalnız mesajın göndereni ve kabul edilmiş aktif üye erişebilir; gruplar ve temizlenmiş mesajlar 404 döner. Yanıtlar mevcut mesaj görünürlüğü ve maskeleme kurallarını kullanır.
+- V1071, mesajlara ilk alıcı teslim/okuma onayının zamanını kaydeden nullable sütunlar ve yanıt listeleme indeksi ekler. Eski mesajlar için zaman uydurulmaz; durum biliniyor ama zaman kaydı yoksa mobil bunu açıkça gösterir.
+- Yeni mesaj bilgisi ve serbest emoji desteğinin canlıda çalışması backend güncellemesini ve V1071 migration'ını gerektirir. Bu çalışma sırasında üretim sunucusuna dağıtım yapılmadı. Push bildirimi metni değişmedi.
+
 ## Degisenler
 
 | Uc / alan | Degisiklik |
