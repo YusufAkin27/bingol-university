@@ -13,6 +13,8 @@ import '../follow/follow_widgets.dart' show FollowRowButton;
 import '../news/icerik_parts.dart';
 import '../news/news_detail_page.dart';
 import '../news/news_tile.dart' show newsLocalDate, newsMonthName;
+import '../../widgets/profile_photo_viewer.dart' show AvatarLongPress;
+import '../posts/post_models.dart' show postAuthHeaders;
 import '../posts/post_routes.dart';
 import '../posts/social_models.dart' show FollowState, followStateOf;
 import '../profile/user_profile_page.dart';
@@ -898,7 +900,11 @@ class _SearchPageState extends State<SearchPage> {
         titleLines = 1;
       case _Tab.person:
       case _Tab.all:
-        leading = hasImg ? BuAvatar(name: h.title, url: h.imageUrl, size: 44) : _initialsCircle(t, h.title, 2);
+        // Kişi avatarına uzun basma = büyük önizleme (diğer avatarlarla tutarlı); fotoğraf yoksa hiçbir şey açılmaz.
+        final personAvatar = hasImg ? BuAvatar(name: h.title, url: h.imageUrl, size: 44) : _initialsCircle(t, h.title, 2);
+        leading = hasImg && h.type == 'USER'
+            ? AvatarLongPress(imageUrl: h.imageUrl, headers: postAuthHeaders(widget.session), title: h.title, child: personAvatar)
+            : personAvatar;
         sub = snip;
         final fs = h.followState;
         // Kişi satırında takip düğmesi (sunucu `followState` verdiyse; kendi satırında yok): 3 durumlu.

@@ -3,11 +3,9 @@ import 'package:flutter/material.dart';
 import '../../core/locale_controller.dart';
 import '../../core/session.dart';
 import '../../widgets/bu.dart';
-import '../../widgets/profile_photo_viewer.dart';
-import '../posts/post_models.dart' show PostPage, postAuthHeaders;
+import '../posts/post_models.dart' show PostPage;
 import '../posts/social_models.dart';
 import '../profile/profily_widgets.dart';
-import '../profile/user_profile_page.dart';
 import 'follow_widgets.dart';
 import '../../core/academic_catalog.dart';
 
@@ -279,47 +277,6 @@ class _FollowListPageState extends State<FollowListPage> {
           ),
         ),
       ]),
-    );
-  }
-}
-
-/// Kullanıcı satırı: avatar, ad, bölüm, (kendisi değilse) Takip düğmesi. Dokununca profil.
-class SocialUserTile extends StatelessWidget {
-  const SocialUserTile({super.key, required this.session, required this.user, this.trailing});
-
-  final Session session;
-  final SocialUser user;
-  final Widget? trailing;
-
-  @override
-  Widget build(BuildContext context) {
-    final self = user.id == session.userId;
-    return Semantics(
-      container: true,
-      label: user.displayName,
-      child: ProfilyRow(
-        minHeight: 68,
-        padding: const EdgeInsetsDirectional.fromSTEB(0, 8, 0, 8),
-        onTap: () =>
-            openUserProfile(context, session, userId: user.id, name: user.displayName, avatarUrl: user.avatarUrl),
-        child: Row(children: [
-          AvatarLongPress(
-            imageUrl: user.avatarUrl,
-            headers: postAuthHeaders(session),
-            title: user.displayName,
-            child: BuAvatar(name: user.displayName, url: user.avatarUrl, size: 46, headers: postAuthHeaders(session)),
-          ),
-          const SizedBox(width: 12),
-          Expanded(child: ProfilyTitleBlock(title: user.displayName, sub: context.departmentName(user.department))),
-          if (trailing != null)
-            trailing!
-          else if (!self)
-            Padding(
-              padding: const EdgeInsetsDirectional.only(start: 8),
-              child: ProfilyFollowButton(session: session, userId: user.id, state: user.followState, isPrivate: user.isPrivate),
-            ),
-        ]),
-      ),
     );
   }
 }

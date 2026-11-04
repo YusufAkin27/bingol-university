@@ -95,12 +95,15 @@ class HomeSearchBox extends StatelessWidget {
                   ]),
                 )),
           )),
-          SizedBox(height: 24, child: VerticalDivider(width: 1, color: t.bd)),
-          IconButton(
-              tooltip: context.l10n.homeSearchFilters,
-              onPressed: onFilter ?? onTap,
-              icon: Icon(BuIcons.slidersHorizontal, size: 22, color: t.mut)),
-          const SizedBox(width: 4),
+          // Süzgeç düğmesi yalnız gerçekten bir süzgeç eylemi verilmişse çizilir (eskiden aramayı açıyordu: yanıltıcıydı).
+          if (onFilter != null) ...[
+            SizedBox(height: 24, child: VerticalDivider(width: 1, color: t.bd)),
+            IconButton(
+                tooltip: context.l10n.homeSearchFilters,
+                onPressed: onFilter,
+                icon: Icon(BuIcons.slidersHorizontal, size: 22, color: t.mut)),
+            const SizedBox(width: 4),
+          ],
         ]),
       ),
     );

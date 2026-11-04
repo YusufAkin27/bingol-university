@@ -11,7 +11,7 @@ import 'package:bu_kampus/core/theme_controller.dart';
 import 'package:bu_kampus/features/follow/follow_list_page.dart';
 import 'package:bu_kampus/features/follow/follow_suggestions.dart';
 import 'package:bu_kampus/features/posts/user_posts_page.dart';
-import 'package:bu_kampus/features/profile/icerik_user_posts_grid.dart';
+import 'package:bu_kampus/features/profile/profile_content_tabs.dart';
 import 'package:bu_kampus/features/profile/profile_paged_list.dart';
 import 'package:bu_kampus/features/profile/profile_tab.dart';
 import 'package:bu_kampus/features/shell/app_shell.dart';
@@ -234,7 +234,7 @@ final _shots = <_Shot>[
         backgroundColor: Colors.transparent,
         body: ListView(children: [
           const SizedBox(height: 60),
-          IcerikUserPostsGrid(session: s, userId: 1, name: 'Ayşe Kaya'),
+          ProfileContentTabs(session: s, userId: 7, gutter: 20, pageSize: 9),
         ]),
       ), setup: _base),
   _Shot('28_sayfali_liste_dolu', (b, s) => ProfilePagedList(

@@ -163,7 +163,8 @@ class _NewsListPageState extends State<NewsListPage> {
     }
   }
 
-  Future<void> _toggleSave(Map<String, dynamic> n) async {
+  /// Kaydetme/kaldırma; kesinleşen "kayıtlı mı" durumunu döndürür (hatada eski durum: açık detay sayfası buna eşitlenir).
+  Future<bool> _toggleSave(Map<String, dynamic> n) async {
     final id = (n['id'] as num).toInt();
     final was = _savedIds.contains(id);
     setState(() => was ? _savedIds.remove(id) : _savedIds.add(id));
@@ -177,10 +178,12 @@ class _NewsListPageState extends State<NewsListPage> {
         final l = context.l10n;
         BuToast.show(context, was ? l.p05UnsavedToast : l.p05SavedToast, kind: BuToastKind.success);
       }
+      return !was;
     } catch (e) {
-      if (!mounted) return;
+      if (!mounted) return was;
       setState(() => was ? _savedIds.add(id) : _savedIds.remove(id));
       BuToast.show(context, errorText(e), kind: BuToastKind.error);
+      return was;
     }
   }
 

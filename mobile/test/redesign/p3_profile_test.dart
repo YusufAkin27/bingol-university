@@ -145,7 +145,7 @@ void main() {
 
     testWidgets('listeler simgesiz 56 dp satir; kulup/etkinlik sayisi satirin sagindaki deger', (tester) async {
       await _open(tester, ProfileTab(session: makeSession(_backend()), themeController: ThemeController()));
-      for (final s in ['Gönderilerim', 'Kayıtlı haberler', 'Kulüplerim', 'Etkinliklerim', 'Önerilen kişiler']) {
+      for (final s in ['Kayıtlı haberler', 'Kulüplerim', 'Etkinliklerim', 'Önerilen kişiler']) {
         expect(find.text(s), findsOneWidget, reason: s);
       }
       expect(find.byIcon(BuIcons.newspaper), findsNothing);

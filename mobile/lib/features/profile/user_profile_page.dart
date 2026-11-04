@@ -18,7 +18,7 @@ import '../posts/social_api.dart';
 import 'popularity_card.dart';
 import '../posts/social_models.dart';
 import 'edit_profile_page.dart';
-import 'icerik_user_posts_grid.dart';
+import 'profile_content_tabs.dart';
 
 /// Kullanıcı profili sayfasını açan ortak giriş. [fromConversationId], çağıranın zaten açık olan
 /// sohbetidir; "Mesaj" aynı birebir sohbete çıkarsa yeni sayfa yığılmaz, geri dönülür.
@@ -74,6 +74,9 @@ class _UserProfilePageState extends State<UserProfilePage> {
   bool _busyBlock = false;
   FollowStats? _stats;
   String? _postCount;
+
+  /// Profil yanıtındaki sayaçlar (sunucu `postCount`/`reelCount` verirse; yoksa null).
+  int? _profileCount(String key) => (_p?[key] as num?)?.toInt();
 
   bool get _self => widget.userId == widget.session.userId;
 
@@ -500,7 +503,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
             Divider(height: 1, thickness: 1, color: t.bd),
             IntrinsicHeight(
               child: Row(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-                Expanded(child: _stat(t, stat ?? _postCount ?? '0', l.icerikStatPosts)),
+                Expanded(child: _stat(t, stat ?? (_profileCount('postCount') != null ? '${_profileCount('postCount')}' : _postCount) ?? '0', l.icerikStatPosts)),
                 VerticalDivider(width: 1, thickness: 1, color: t.bd),
                 Expanded(child: _stat(t, stat ?? (s == null ? '0' : '${s.followers}'), l.icerikStatFollowers, followers: _blocked || locked ? null : true)),
                 VerticalDivider(width: 1, thickness: 1, color: t.bd),
@@ -526,22 +529,32 @@ class _UserProfilePageState extends State<UserProfilePage> {
         ],
         if (!_blocked) ...[
           const SizedBox(height: 14),
-          if (!locked && _p != null && PopularityCard.scoreOf(_p) != null) ...[
-            PopularityCard(profile: _p!),
-            const SizedBox(height: 14),
-          ],
-          _infoCard(t, bio: bio, faculty: faculty, dept: dept, grade: grade, email: email),
-          if (locked)
-            LockedProfileBlock(requested: _stats?.followState == FollowState.requested)
-          else
-            IcerikUserPostsGrid(
+          // Kilitli: Hakkında + kilit bilgisi. Açık: içerik (Gönderiler | Reels) ilk ekranda görünsün diye önce gelir;
+          // popülerlik ve "Hakkında" altta (eskiden iki kart ızgarayı ilk ekranın dışına itiyordu).
+          if (locked) ...[
+            _infoCard(t, bio: bio, faculty: faculty, dept: dept, grade: grade, email: email),
+            LockedProfileBlock(requested: _stats?.followState == FollowState.requested),
+          ] else ...[
+            ProfileContentTabs(
+              key: ValueKey('profile-tabs-${widget.userId}'),
               session: widget.session,
               userId: widget.userId,
               name: _name,
-              onCount: (c) {
-                if (mounted) setState(() => _postCount = c);
+              gutter: 0,
+              pageSize: 9,
+              postCount: _profileCount('postCount'),
+              reelCount: _profileCount('reelCount'),
+              onPostsLoaded: (n, more) {
+                if (mounted) setState(() => _postCount = '$n${more ? '+' : ''}');
               },
             ),
+            const SizedBox(height: 14),
+            if (_p != null && PopularityCard.scoreOf(_p) != null) ...[
+              PopularityCard(profile: _p!),
+              const SizedBox(height: 14),
+            ],
+            _infoCard(t, bio: bio, faculty: faculty, dept: dept, grade: grade, email: email),
+          ],
         ],
       ],
     );

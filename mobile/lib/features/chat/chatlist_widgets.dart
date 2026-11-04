@@ -5,6 +5,7 @@ import '../../core/cache/image_disk_cache.dart';
 import '../../core/push/push_router.dart';
 import '../../core/session.dart';
 import '../../widgets/bu.dart';
+import '../../widgets/profile_photo_viewer.dart' show AvatarLongPress;
 
 /// Sohbet listesi bileşenleri (referans 18).
 
@@ -167,7 +168,12 @@ class ChatlistAvatar extends StatelessWidget {
     this.heroTag,
     this.monogram = false,
     this.cornerRadius,
+    this.preview = false,
   });
+
+  /// true: UZUN BASMA büyük fotoğraf önizlemesini açar ([AvatarLongPress], diğer avatarlarla tutarlı); fotoğraf yoksa
+  /// (ya da gizliyse) hiçbir şey açılmaz ve dokunuş/uzun basma üstteki satıra düşer.
+  final bool preview;
 
   /// Köşe yarıçapını sabitler (varsayılan: boyutun %34'ü; büyük avatarda 20 dp).
   final double? cornerRadius;
@@ -226,6 +232,12 @@ class ChatlistAvatar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final avatar = _avatar(context);
+    if (!preview) return avatar;
+    return AvatarLongPress(imageUrl: url, headers: headers ?? authHeadersFor(url), title: name, child: avatar);
+  }
+
+  Widget _avatar(BuildContext context) {
     final t = context.bu;
     final radius = circle ? size / 2 : (cornerRadius ?? size * .34);
     // Varsayılan profil görseli her zaman altta durur: görsel yüklenirken, hata verince ya da url yokken görünür.

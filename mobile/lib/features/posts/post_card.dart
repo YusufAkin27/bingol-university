@@ -266,9 +266,17 @@ class _PostCardState extends State<PostCard> {
                 name: p.author.displayName,
                 onTap: () => openUserProfile(context, widget.session,
                     userId: p.author.id, name: p.author.displayName, avatarUrl: p.author.avatarUrl),
-                child: BuAvatar(name: p.author.displayName, url: p.author.avatarUrl, size: 40, headers: postAuthHeaders(widget.session)),
+                // 40 dp avatar, 44 dp dokunma alanı (erişilebilirlik); metin konumu değişmesin diye boşluk 8 dp.
+                child: Semantics(
+                  label: p.author.displayName,
+                  child: SizedBox(
+                  width: 44,
+                  height: 44,
+                  child: Center(child: BuAvatar(name: p.author.displayName, url: p.author.avatarUrl, size: 40, headers: postAuthHeaders(widget.session))),
+                  ),
+                ),
               ),
-              BuGap.w12,
+              BuGap.w8,
               Expanded(
                 child: GestureDetector(
                   behavior: HitTestBehavior.opaque,

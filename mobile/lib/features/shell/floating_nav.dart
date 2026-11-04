@@ -33,9 +33,14 @@ class FloatingNav extends StatelessWidget {
     this.avatarUrl,
     this.avatarName,
     this.onPublish,
+    this.immersive = false,
   });
 
   final VoidCallback? onPublish;
+
+  /// Tam ekran video (Reels) üstünde: çubuk yüzeyi saydamlaşır (kenarlık/gölge yok), simgeler açık renk olur;
+  /// video engellenmez. Geçiş 180 ms.
+  final bool immersive;
 
   final int index;
   final ValueChanged<int> onChanged;
@@ -90,11 +95,13 @@ class FloatingNav extends StatelessWidget {
     final t = context.bu;
     final dark = Theme.of(context).brightness == Brightness.dark;
     final shape = StadiumBorder(
-        side: BorderSide(color: dark ? t.onMedia.withValues(alpha: .10) : t.bd));
-    final surface = dark ? t.sf3 : t.sf;
-    final shadows = dark
-        ? [BoxShadow(color: t.scrim.withValues(alpha: .32), blurRadius: 20, offset: const Offset(0, 6))]
-        : [BoxShadow(color: t.shadow.withValues(alpha: .08), blurRadius: 16, offset: const Offset(0, 4))];
+        side: BorderSide(color: immersive ? t.bd.withValues(alpha: 0) : (dark ? t.onMedia.withValues(alpha: .10) : t.bd)));
+    final surface = immersive ? t.sf.withValues(alpha: 0) : (dark ? t.sf3 : t.sf);
+    final shadows = immersive
+        ? <BoxShadow>[]
+        : dark
+            ? [BoxShadow(color: t.scrim.withValues(alpha: .32), blurRadius: 20, offset: const Offset(0, 6))]
+            : [BoxShadow(color: t.shadow.withValues(alpha: .08), blurRadius: 16, offset: const Offset(0, 4))];
     final slots = onPublish == null ? const [0, 1, 2, 3, 4] : const [0, 1, -1, 2, 4];
     return SafeArea(
       top: false,
@@ -112,8 +119,10 @@ class FloatingNav extends StatelessWidget {
                 left: 0,
                 right: 0,
                 bottom: 0,
-                child: DecoratedBox(
+                child: AnimatedContainer(
                   key: const ValueKey('nav-pill'),
+                  duration: AppMotion.of(context, AppMotion.fast),
+                  curve: AppMotion.standard,
                   decoration: ShapeDecoration(color: surface, shape: shape, shadows: shadows),
                 ),
               ),
@@ -129,6 +138,7 @@ class FloatingNav extends StatelessWidget {
                     chatBadge: chatBadge,
                     avatarUrl: avatarUrl,
                     avatarName: avatarName,
+                    immersive: immersive,
                   ),
                 ),
               ),
@@ -178,8 +188,10 @@ class _NavRow extends StatefulWidget {
     this.onPublish,
     this.avatarUrl,
     this.avatarName,
+    this.immersive = false,
   });
 
+  final bool immersive;
   final int index;
   final List<int> slots;
   final List<String> labels;
@@ -235,7 +247,7 @@ class _NavRowState extends State<_NavRow> {
                 opacity: selPos >= 0 ? 1 : 0,
                 child: DecoratedBox(
                   key: const ValueKey('nav-indicator'),
-                  decoration: ShapeDecoration(color: t.soft, shape: const StadiumBorder()),
+                  decoration: ShapeDecoration(color: widget.immersive ? t.onMedia.withValues(alpha: .22) : t.soft, shape: const StadiumBorder()),
                 ),
               ),
             ),
@@ -269,6 +281,7 @@ class _NavRowState extends State<_NavRow> {
                   badge: slots[pos] == _chatIndex ? widget.chatBadge : null,
                   avatarUrl: slots[pos] == 4 ? widget.avatarUrl : null,
                   avatarName: widget.avatarName,
+                  immersive: widget.immersive,
                 ),
               ),
         ],
@@ -351,8 +364,10 @@ class _NavItem extends StatelessWidget {
     this.badge,
     this.avatarUrl,
     this.avatarName,
+    this.immersive = false,
   });
 
+  final bool immersive;
   final int position;
   final bool selected;
   final String label;
@@ -372,11 +387,12 @@ class _NavItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.bu;
     final tx = Theme.of(context).textTheme;
-    final color = selected ? t.onSoft : t.mut;
+    final fg = immersive ? t.onMedia : t.onSoft;
+    final color = selected ? fg : (immersive ? t.onMedia.withValues(alpha: .8) : t.mut);
     final unread = badge;
-    Widget glyph = _isProfile ? _profile(context, t) : _icon(context, color);
+    Widget glyph = _isProfile ? _profile(context, t, fg) : _icon(context, color);
     if (unread != null) glyph = _withBadge(context, glyph, unread);
-    final style = (tx.labelMedium ?? const TextStyle()).copyWith(fontSize: 12, height: 1.2, fontWeight: FontWeight.w600, color: t.onSoft);
+    final style = (tx.labelMedium ?? const TextStyle()).copyWith(fontSize: 12, height: 1.2, fontWeight: FontWeight.w600, color: fg);
     final visual = ExcludeSemantics(
       child: Center(
         child: FittedBox(
@@ -452,7 +468,7 @@ class _NavItem extends StatelessWidget {
     );
   }
 
-  Widget _profile(BuildContext context, BuTokens t) {
+  Widget _profile(BuildContext context, BuTokens t, Color fg) {
     final dur = AppMotion.of(context, AppMotion.fast);
     final source = avatarUrl;
     Widget avatar(String? url) => ChatlistAvatar(name: avatarName ?? '', url: url, size: FloatingNav._avatar, circle: true);
@@ -466,7 +482,7 @@ class _NavItem extends StatelessWidget {
         alignment: Alignment.center,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          border: Border.all(color: selected ? t.onSoft : t.mut.withValues(alpha: .45), width: selected ? 2 : 1.25),
+          border: Border.all(color: selected ? fg : (immersive ? t.onMedia.withValues(alpha: .6) : t.mut.withValues(alpha: .45)), width: selected ? 2 : 1.25),
         ),
         child: source == null
             ? avatar(null)

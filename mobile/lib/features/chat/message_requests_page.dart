@@ -327,7 +327,7 @@ class _RequestTile extends StatelessWidget {
     final preview = _preview(context);
 
     final head = Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      ChatlistAvatar(name: title, url: avatar, group: !direct, size: 48),
+      ChatlistAvatar(name: title, url: avatar, group: !direct, size: 48, preview: true),
       const SizedBox(width: 12),
       Expanded(
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [

@@ -2611,6 +2611,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
         size: 40,
         group: !_direct,
         monogram: true,
+        preview: true,
         headers: _avatarHeaders(_avatarUrl),
         heroTag: _conv['id'] is num ? 'chat-avatar-$_cid' : null,
       );
@@ -3074,7 +3075,7 @@ class _ChatDetailPageState extends State<ChatDetailPage>
                 key: ValueKey('sender-avatar-${m['id']}'),
                 onTap: () => _openProfileOf(sid),
                 child: ChatlistAvatar(
-                    name: name, url: url, size: 28, monogram: true))
+                    name: name, url: url, size: 28, monogram: true, preview: true))
             : null,
       ),
       const SizedBox(width: 8),

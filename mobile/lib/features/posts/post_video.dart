@@ -79,6 +79,7 @@ class PostVideoView extends StatefulWidget {
     this.inset = EdgeInsets.zero,
     this.soundOnTop = false,
     this.showControls = true,
+    this.prepare = false,
     this.api,
   });
 
@@ -108,6 +109,10 @@ class PostVideoView extends StatefulWidget {
 
   /// false: ses/tam ekran düğmeleri çizilmez (üst öğe [PostVideoSoundButton]/[PostVideoFullscreenButton] ile kendisi çizer).
   final bool showControls;
+
+  /// true: [active] false iken bile oynatıcı kurulur ve ilk kareye hazırlanır AMA OYNATILMAZ (Reels'te sıradaki video:
+  /// kaydırınca gecikmeden başlasın). Yalnız aktif olan oynar.
+  final bool prepare;
   final PostApi? api;
 
   @override
@@ -166,7 +171,7 @@ class _PostVideoViewState extends State<PostVideoView> with WidgetsBindingObserv
       _release();
       _failed = false;
     }
-    if (old.active != widget.active) _apply();
+    if (old.active != widget.active || old.prepare != widget.prepare) _apply();
   }
 
   @override
@@ -226,6 +231,8 @@ class _PostVideoViewState extends State<PostVideoView> with WidgetsBindingObserv
         c.pause();
         _flushView();
         setState(() {});
+      } else if (c == null && widget.prepare && _foreground) {
+        _init(); // hazırlık: kur + ilk kare, oynatma yok (_init yalnız _want iken oynatır)
       }
     }
   }
