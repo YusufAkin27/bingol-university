@@ -442,8 +442,15 @@ class _AvatarEditorPageState extends State<AvatarEditorPage> with SingleTickerPr
       child: SafeArea(
         top: false,
         child: Column(mainAxisSize: MainAxisSize.min, children: [
+          // Stitch profil-v4: panel tutamacı (40 x 4).
           Padding(
-            padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
+            padding: const EdgeInsets.only(top: 8),
+            child: ExcludeSemantics(
+              child: Container(width: 40, height: 4, decoration: BoxDecoration(color: t.bd, borderRadius: BorderRadius.circular(2))),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(12, 6, 12, 0),
             child: _tabs(context, l),
           ),
           ConstrainedBox(
@@ -561,24 +568,41 @@ class _AvatarEditorPageState extends State<AvatarEditorPage> with SingleTickerPr
       Padding(
         padding: const EdgeInsets.symmetric(horizontal: 4),
         child: Row(children: [
-          Expanded(child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.labelLarge?.copyWith(color: t.ink, fontWeight: FontWeight.w600))),
+          Expanded(child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, style: tx.labelLarge?.copyWith(fontSize: 16, color: t.ink, fontWeight: FontWeight.w600))),
           const SizedBox(width: 8),
-          Text(value, style: tx.labelLarge?.copyWith(color: t.mut, fontFeatures: const [ui.FontFeature.tabularFigures()])),
+          Text(value, style: tx.labelLarge?.copyWith(fontSize: 16, color: t.mut, fontFeatures: const [ui.FontFeature.tabularFigures()])),
         ]),
       ),
       SizedBox(
         height: BuSize.touch,
-        child: Slider(
-          key: key,
-          value: v.clamp(min, max).toDouble(),
-          min: min,
-          max: max,
-          divisions: divisions,
-          semanticFormatterCallback: (_) => '$label $value',
-          onChangeStart: onStart == null ? null : (_) => onStart(),
-          onChanged: _busy ? null : onChanged,
-          onChangeEnd: onEnd == null ? null : (_) => onEnd(),
-        ),
+        // Stitch profil-v4: iz panel kenar boşluğuna (16) kadar uzanır; baş 12 dp'lik kaydırıcı iç boşluğu dışarı taşırılır.
+        child: Stack(clipBehavior: Clip.none, children: [
+          Positioned(
+            left: -14,
+            right: -14,
+            top: 0,
+            bottom: 0,
+            child: SliderTheme(
+              data: SliderTheme.of(context).copyWith(
+                trackHeight: 4,
+                thumbShape: _RingThumbShape(ring: t.sf3),
+                overlayShape: const RoundSliderOverlayShape(overlayRadius: 12),
+                trackShape: const RoundedRectSliderTrackShape(),
+              ),
+              child: Slider(
+                key: key,
+                value: v.clamp(min, max).toDouble(),
+                min: min,
+                max: max,
+                divisions: divisions,
+                semanticFormatterCallback: (_) => '$label $value',
+                onChangeStart: onStart == null ? null : (_) => onStart(),
+                onChanged: _busy ? null : onChanged,
+                onChangeEnd: onEnd == null ? null : (_) => onEnd(),
+              ),
+            ),
+          ),
+        ]),
       ),
     ]);
   }
@@ -881,7 +905,7 @@ class _AvatarEditorPageState extends State<AvatarEditorPage> with SingleTickerPr
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       textAlign: TextAlign.center,
-                      style: tx.labelMedium?.copyWith(fontSize: 12, fontWeight: sel ? FontWeight.w700 : FontWeight.w500, color: t.ink)),
+                      style: tx.labelMedium?.copyWith(fontSize: 12, fontWeight: sel ? FontWeight.w700 : FontWeight.w500, color: sel ? t.prPressed : t.ink)),
                 ]),
               ),
             ),
@@ -993,5 +1017,35 @@ class _AvatarEditorPageState extends State<AvatarEditorPage> with SingleTickerPr
         ),
       ),
     ]);
+  }
+}
+
+/// Stitch profil-v4 kaydırıcı tutamacı: 11 dp dolu daire + 3 dp açık halka (gölgesiz).
+class _RingThumbShape extends SliderComponentShape {
+  const _RingThumbShape({required this.ring});
+
+  final Color ring;
+
+  @override
+  Size getPreferredSize(bool isEnabled, bool isDiscrete) => const Size.fromRadius(14);
+
+  @override
+  void paint(
+    PaintingContext context,
+    Offset center, {
+    required Animation<double> activationAnimation,
+    required Animation<double> enableAnimation,
+    required bool isDiscrete,
+    required TextPainter labelPainter,
+    required RenderBox parentBox,
+    required SliderThemeData sliderTheme,
+    required TextDirection textDirection,
+    required double value,
+    required double textScaleFactor,
+    required Size sizeWithOverflow,
+  }) {
+    final c = context.canvas;
+    c.drawCircle(center, 14, Paint()..color = ring);
+    c.drawCircle(center, 11, Paint()..color = sliderTheme.thumbColor ?? ring);
   }
 }
