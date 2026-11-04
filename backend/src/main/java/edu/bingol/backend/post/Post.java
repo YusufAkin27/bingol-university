@@ -60,6 +60,30 @@ public class Post {
     @Column(nullable = false)
     private double rankScore;
 
+    /** PHOTO | VIDEO: ilk medyanin turu (reels yalniz VIDEO okur). */
+    @Column(nullable = false, length = 8)
+    private String kind = KIND_PHOTO;
+
+    /** Video izlenme sayisi (kullanici basina gonderi basina tek sayim). */
+    @Column(nullable = false)
+    private int viewCount;
+
+    /** Izlenme basina izleme tamamlanma yuzdesi (0..100) toplami; ortalama = toplam / (izlenme * 100). */
+    @Column(nullable = false)
+    private long completionPctSum;
+
+    public static final String KIND_PHOTO = "PHOTO";
+    public static final String KIND_VIDEO = "VIDEO";
+
+    public boolean isVideo() {
+        return KIND_VIDEO.equals(kind);
+    }
+
+    /** Ortalama izleme tamamlanma orani 0..1 (izlenme yoksa 0). */
+    public double avgCompletion() {
+        return viewCount <= 0 ? 0 : Math.min(1.0, completionPctSum / (100.0 * viewCount));
+    }
+
     public boolean isVisible() {
         return deletedAt == null && hiddenAt == null;
     }

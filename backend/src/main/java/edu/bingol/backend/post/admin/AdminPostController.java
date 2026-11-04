@@ -46,7 +46,9 @@ public class AdminPostController {
 
     /**
      * Imlec = gonderi id (en yeni once). q = gonderi metni / yazar adi / e-postasi; status = ALL|VISIBLE|HIDDEN|DELETED;
-     * authorId; minReports = en az N acik sikayet; from/to = YYYY-AA-GG (Europe/Istanbul).
+     * authorId; minReports = en az N acik sikayet; type = PHOTO|VIDEO; from/to = YYYY-AA-GG (Europe/Istanbul).
+     * Satirda type, viewCount (video izlenme) ve avgCompletionPct (ort. tamamlanma %) bulunur; video onizlemesi
+     * media[].url (GET /api/admin/posts/media/{id}, Range destekli) + thumbUrl (poster).
      */
     @GetMapping("/posts")
     public PostPage list(@RequestParam(required = false) Long cursor, @RequestParam(defaultValue = "20") int size,
@@ -55,9 +57,10 @@ public class AdminPostController {
                          @RequestParam(required = false) Boolean hasMedia, @RequestParam(required = false) String from,
                          @RequestParam(required = false) String to, @RequestParam(required = false) String status,
                          @RequestParam(required = false) Long authorId,
-                         @RequestParam(required = false) Integer minReports) {
+                         @RequestParam(required = false) Integer minReports,
+                         @RequestParam(required = false) String type) {
         limit();
-        return service.list(cursor, size, q, hidden, deleted, hasMedia, from, to, status, authorId, minReports);
+        return service.list(cursor, size, q, hidden, deleted, hasMedia, from, to, status, authorId, minReports, type);
     }
 
     @GetMapping("/posts/stats")

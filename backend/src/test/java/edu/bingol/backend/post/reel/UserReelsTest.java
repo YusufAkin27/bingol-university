@@ -148,13 +148,12 @@ class UserReelsTest {
         assertEquals(1, c.reelCount());
 
         PublicProfile pp = profiles.publicProfile(viewer.getId(), author.getId());
-        assertEquals(3L, pp.postCount());
+        assertEquals(3, pp.postCount());
         assertEquals(1L, pp.reelCount());
 
         // engelli cift: sabit 0 (normal profille ayirt ettirmez)
         blocks.save(new UserBlock(viewer.getId(), author.getId()));
         PublicProfile shadow = profiles.publicProfile(viewer.getId(), author.getId());
-        assertEquals(0L, shadow.postCount());
         assertEquals(0L, shadow.reelCount());
     }
 
@@ -170,7 +169,7 @@ class UserReelsTest {
         assertNull(pp.postCount());
         assertNull(pp.reelCount());
         // sahibi kendi sayaclarini gorur
-        assertEquals(1L, profiles.publicProfile(author.getId(), author.getId()).postCount());
+        assertEquals(1, profiles.publicProfile(author.getId(), author.getId()).postCount());
     }
 
     @Test

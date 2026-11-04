@@ -31,6 +31,22 @@ public final class PostFixtures {
         return posts.saveAndFlush(p);
     }
 
+    /** Videolu gonderi (kind=VIDEO, 20 sn); reels ve akista gorunur. */
+    public static Post withVideo(PostRepository posts, PostMediaRepository media, Long author, String text) {
+        Post p = new Post();
+        p.setAuthorId(author);
+        p.setBody(text);
+        p.setKind(Post.KIND_VIDEO);
+        p.setMediaCount((short) 1);
+        p = posts.saveAndFlush(p);
+        PostMedia m = media(media, author, p.getId(), PostMedia.VIDEO);
+        m.setDurationMs(20_000);
+        m.setWidth(720);
+        m.setHeight(1280);
+        media.saveAndFlush(m);
+        return p;
+    }
+
     /** Fotografli gonderi (feed'de gorunur). */
     public static Post withPhoto(PostRepository posts, PostMediaRepository media, Long author, String text) {
         Post p = new Post();

@@ -9,7 +9,34 @@ import org.junit.jupiter.api.Test;
 /** Keşfet puan formülü ve yazar çeşitliliği (saf birim testleri). */
 class PostRankTest {
 
-    private static final PostRankProperties P = new PostRankProperties(1.0, 1.5, 0.6, 1.2, 60, 6, 2.0, 0.5, 5, 14, 2, 12, 30, 300000);
+    private static final PostRankProperties P = new PostRankProperties(1.0, 1.5, 0.6, 1.2, 60, 6, 2.0, 0.5, 5, 14, 2, 12, 30, 300000, 0.8, 1.5, 8.0);
+
+    @Test
+    void viewsAndCompletionRaiseScoreAndOldSignatureIsUnchanged() {
+        double base = PostRank.compute(P, 5, 0, 10, 2, 0, 24);
+        assertEquals(base, PostRank.compute(P, 5, 0, 10, 2, 0, 0.0, 0, 24), 1e-12, "izlenmesiz = eski formul");
+        double viewed = PostRank.compute(P, 5, 0, 10, 2, 100, 0.0, 0, 24);
+        double completed = PostRank.compute(P, 5, 0, 10, 2, 100, 0.9, 0, 24);
+        assertTrue(viewed > base, "izlenme puani arttirir");
+        assertTrue(completed > viewed, "tamamlanma orani puani arttirir");
+        // izlenme log olceklidir: ayni +10 izlenme dusuk tabanda daha degerli
+        double d1 = PostRank.compute(P, 0, 0, 0, 0, 10, 0.5, 0, 12) - PostRank.compute(P, 0, 0, 0, 0, 0, 0.5, 0, 12);
+        double d2 = PostRank.compute(P, 0, 0, 0, 0, 1010, 0.5, 0, 12) - PostRank.compute(P, 0, 0, 0, 0, 1000, 0.5, 0, 12);
+        assertTrue(d1 > d2 * 10);
+        // tamamlanma 0..1'e kenetlenir
+        assertEquals(PostRank.compute(P, 0, 0, 0, 0, 50, 1.0, 0, 5), PostRank.compute(P, 0, 0, 0, 0, 50, 7.0, 0, 5), 1e-12);
+    }
+
+    @Test
+    void displayScoreIsBoundedMonotonicAndAgeIndependent() {
+        assertEquals(0, PostRank.displayScore(P, 0, 0, 0, 0));
+        int low = PostRank.displayScore(P, 3, 0, 0, 0);
+        int mid = PostRank.displayScore(P, 30, 50, 0, 0);
+        int high = PostRank.displayScore(P, 5000, 5000, 100000, 1.0);
+        assertTrue(low > 0 && low < mid && mid < high);
+        assertTrue(high <= 100 && high > 90);
+        assertTrue(PostRank.displayScore(P, 5, 0, 200, 0.9) > PostRank.displayScore(P, 5, 0, 200, 0.1));
+    }
 
     private static double s(int likes, int comments, int followers, int likes24h, int reports, double ageH) {
         return PostRank.compute(P, likes, comments, followers, likes24h, reports, ageH);

@@ -159,8 +159,8 @@ services:
       # ayni host dizini ${BACKUP_METRICS_DIR}); bicim {"lastSuccessAt":"...Z"}. Yol/biçim uyusmazsa gosterge hep UNKNOWN olur (M25).
       BACKUP_STATUS_FILE: /backup-status/last-success.json
       # Gönderi videosu 40 MB: prod varsayılanı (5 MB) yeterli olmaz
-      MULTIPART_MAX_FILE: ${MULTIPART_MAX_FILE:-45MB}
-      MULTIPART_MAX_REQUEST: ${MULTIPART_MAX_REQUEST:-50MB}
+      MULTIPART_MAX_FILE: ${MULTIPART_MAX_FILE:-52MB}
+      MULTIPART_MAX_REQUEST: ${MULTIPART_MAX_REQUEST:-54MB}
       # Medya dönüştürme (ffmpeg) ve CDN (docs/MEDIA_PIPELINE.md, docs/DEPLOY.md bölüm 10)
       MEDIA_TRANSCODE_ENABLED: ${MEDIA_TRANSCODE_ENABLED:-true}
       MEDIA_TRANSCODE_WORKERS: ${MEDIA_TRANSCODE_WORKERS:-2}

@@ -9,6 +9,7 @@ import edu.bingol.backend.post.PostDtos.CreatePostRequest;
 import edu.bingol.backend.post.PostDtos.FeedPage;
 import edu.bingol.backend.post.PostDtos.PostView;
 import edu.bingol.backend.post.PostDtos.UpdatePostRequest;
+import edu.bingol.backend.post.PostDtos.ViewRequest;
 import jakarta.validation.Valid;
 import java.time.Duration;
 import org.springframework.http.HttpStatus;
@@ -44,12 +45,58 @@ public class PostController {
         this.adminAudit = adminAudit;
     }
 
+    /** Reels izleme geçmişi / "ilgilenmiyorum" (setter: kurucu imzası değişmesin). */
+    private edu.bingol.backend.post.reels.ReelsService reels;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setReels(edu.bingol.backend.post.reels.ReelsService reels) {
+        this.reels = reels;
+    }
+
     @PostMapping("/posts")
     @ResponseStatus(HttpStatus.CREATED)
     public PostView create(@Valid @RequestBody CreatePostRequest req) {
         Long uid = CurrentUser.id();
         limiter.check("post:create:" + uid, 20, Duration.ofHours(1));
         return service.create(uid, req);
+    }
+
+    /**
+     * Video izlenme olayı (Reels/kart oynatma bittiğinde ya da ekrandan çıkınca BİR kez): puana viewWeight /
+     * completionWeight ile girer. Yinelenen/çok kısa/kendi videosu/fotoğraf olayı sessizce sayılmaz (hep 204).
+     */
+    @PostMapping("/posts/{id}/view")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void view(@PathVariable Long id, @Valid @RequestBody ViewRequest req) {
+        Long uid = CurrentUser.id();
+        limiter.check("post:view:" + uid, 240, Duration.ofMinutes(1));
+        service.recordView(uid, id, req.watchedMs(), req.durationMs());
+        if (reels != null) {
+            reels.recordWatch(uid, id, req.watchedMs(), req.durationMs()); // izleme geçmişi (kendi işlemi, hata sızmaz)
+        }
+    }
+
+    /** "İlgilenmiyorum": gönderi Reels ve Senin İçin önerilerinden kalkar (45 gün; DELETE ile geri alınır). */
+    @PostMapping("/posts/{id}/not-interested")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void notInterested(@PathVariable Long id) {
+        Long uid = CurrentUser.id();
+        limiter.check("post:write:" + uid, 30, Duration.ofMinutes(1));
+        service.requireVisible(id, uid);
+        if (reels != null) {
+            reels.setNotInterested(uid, id, true);
+        }
+    }
+
+    @DeleteMapping("/posts/{id}/not-interested")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void undoNotInterested(@PathVariable Long id) {
+        Long uid = CurrentUser.id();
+        limiter.check("post:write:" + uid, 30, Duration.ofMinutes(1));
+        service.requireVisible(id, uid);
+        if (reels != null) {
+            reels.setNotInterested(uid, id, false);
+        }
     }
 
     /** Sabit yol "mine", {id} eşlemesinden önceliklidir. */

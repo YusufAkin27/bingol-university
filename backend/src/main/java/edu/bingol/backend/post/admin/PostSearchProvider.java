@@ -20,15 +20,15 @@ public class PostSearchProvider implements SearchProvider {
     static final int SNIPPET_LEN = 160;
 
     /**
-     * Akis ({@code PostRepository.FEED_VISIBLE}) ile ayni gorunurluk: aktif yazar + en az bir gorunur FOTOGRAF
-     * (video-only/metin-only eski gonderiler aramada da cikmaz). Standart SQL; H2 testinde calisir.
+     * Akis ({@code PostRepository.FEED_VISIBLE}) ile ayni gorunurluk: aktif yazar + en az bir gorunur medya
+     * (fotograf ya da video; medyasiz eski metin gonderileri aramada da cikmaz). Standart SQL; H2 testinde calisir.
      */
     static final String VISIBLE_SQL = "p.deleted_at IS NULL AND p.hidden_at IS NULL AND u.deleted_at IS NULL "
             + "AND u.status = 'ACTIVE' "
-            + "AND EXISTS (SELECT 1 FROM post_media pm WHERE pm.post_id = p.id AND pm.kind = 'IMAGE' AND pm.hidden_at IS NULL) ";
+            + "AND EXISTS (SELECT 1 FROM post_media pm WHERE pm.post_id = p.id AND pm.hidden_at IS NULL) ";
 
     static final String SQL = "SELECT p.id, p.body, u.display_name, CAST(p.created_at AS varchar) AS created, p.like_count, "
-            + "(SELECT m.id FROM post_media m WHERE m.post_id = p.id AND m.kind = 'IMAGE' AND m.hidden_at IS NULL ORDER BY m.position, m.id LIMIT 1) AS media_id "
+            + "(SELECT m.id FROM post_media m WHERE m.post_id = p.id AND m.hidden_at IS NULL ORDER BY m.position, m.id LIMIT 1) AS media_id "
             + "FROM post p JOIN app_user u ON u.id = p.author_id "
             + "WHERE " + VISIBLE_SQL + "AND p.body IS NOT NULL "
             + "AND (to_tsvector('turkish', p.body) @@ websearch_to_tsquery('turkish', ?) OR p.body ILIKE ?) "

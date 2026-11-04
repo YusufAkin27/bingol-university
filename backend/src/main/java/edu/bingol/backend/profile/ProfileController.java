@@ -59,11 +59,14 @@ public class ProfileController {
     public ProfileView me() {
         Long uid = CurrentUser.id();
         ProfileView v = ProfileView.of(profiles.get(uid));
+        var pop = profiles.popularityOf(uid);
+        if (pop != null) {
+            v = v.withPopularity(pop.score(), pop.followerCount(), pop.likesReceived(), pop.postCount());
+        }
         v = privacy == null ? v : v.withAvatarHidden(privacy.get(uid).isAvatarHidden());
         if (postCounts != null) {
             try {
-                edu.bingol.backend.post.reel.ProfilePostCounts.Counts c = postCounts.counts(uid);
-                v = v.withCounts(c.postCount(), c.reelCount());
+                v = v.withReelCount(postCounts.counts(uid).reelCount());
             } catch (RuntimeException e) {
                 // sayaclar profil yanitini asla bozmaz
             }

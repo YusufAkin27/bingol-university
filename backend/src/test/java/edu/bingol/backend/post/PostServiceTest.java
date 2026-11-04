@@ -70,11 +70,36 @@ class PostServiceTest {
         assertEquals("POST_SINGLE_PHOTO_ONLY", fails(() -> service.create(a.getId(), new CreatePostRequest("x", List.of(i1, i2)))).code());
         assertEquals("POST_SINGLE_PHOTO_ONLY", fails(() -> service.create(a.getId(), new CreatePostRequest("x", List.of(i1, i1)))).code());
         Long vid = uploaded(a, "VIDEO");
-        assertEquals("POST_VIDEO_NOT_ALLOWED", fails(() -> service.create(a.getId(), new CreatePostRequest("x", List.of(vid)))).code());
+        Long vid2 = uploaded(a, "VIDEO");
+        assertEquals("POST_SINGLE_PHOTO_ONLY", fails(() -> service.create(a.getId(), new CreatePostRequest("x", List.of(vid, vid2)))).code(),
+                "1 video + 1 video de tek medya sinirini asar");
+        assertEquals("POST_SINGLE_PHOTO_ONLY", fails(() -> service.create(a.getId(), new CreatePostRequest("x", List.of(i1, vid)))).code(),
+                "fotograf + video birlikte olmaz");
         User b = newUser();
         Long foreign = uploaded(b, "IMAGE");
         assertEquals("POST_MEDIA_INVALID", fails(() -> service.create(a.getId(), new CreatePostRequest(null, List.of(foreign)))).code());
         assertEquals("POST_MEDIA_INVALID", fails(() -> service.create(a.getId(), new CreatePostRequest(null, List.of(987654321L)))).code());
+    }
+
+    @Test
+    void createVideoPostIsTypedVideoAndCarriesVideoView() {
+        User a = newUser();
+        Long vid = uploaded(a, "VIDEO");
+        PostView v = service.create(a.getId(), new CreatePostRequest("kısa klip", List.of(vid)));
+        assertEquals("VIDEO", v.type());
+        assertEquals("VIDEO", v.media().get(0).kind());
+        org.junit.jupiter.api.Assertions.assertNotNull(v.video());
+        assertEquals("/api/posts/media/" + vid, v.video().url());
+        assertEquals(0, v.viewCount());
+        assertEquals("VIDEO", posts.findById(v.id()).orElseThrow().getKind());
+        PostView photo = service.create(a.getId(), new CreatePostRequest(null, List.of(uploaded(a, "IMAGE"))));
+        assertEquals("PHOTO", photo.type());
+        assertNull(photo.video());
+        assertNull(photo.viewCount());
+        // video de ayni metin kuralina tabidir
+        Long vid2 = uploaded(a, "VIDEO");
+        assertEquals("POST_TEXT_TOO_LONG", fails(() -> service.create(a.getId(),
+                new CreatePostRequest("bir iki üç dört beş altı yedi sekiz", List.of(vid2)))).code());
     }
 
     @Test
@@ -112,7 +137,7 @@ class PostServiceTest {
     }
 
     @Test
-    void feedHidesPostsWithoutImageAndShowsOnlyFirstImage() {
+    void feedHidesPostsWithoutMediaAndShowsOnlyFirstMedia() {
         User a = newUser();
         User v = newUser();
         PostView photo = post(a, "foto");
@@ -140,15 +165,17 @@ class PostServiceTest {
         List<PostView> items = service.byAuthor(v.getId(), a.getId(), null, 20).items();
         List<Long> ids = items.stream().map(PostView::id).toList();
         assertTrue(ids.contains(photo.id()) && ids.contains(multi.getId()));
-        assertFalse(ids.contains(videoOnly.getId()), "video-only akistan gizli");
-        assertFalse(ids.contains(textOnly.getId()), "fotografsiz eski gonderi akistan gizli");
-        Long hiddenId = videoOnly.getId();
+        assertTrue(ids.contains(videoOnly.getId()), "video gonderisi akista gorunur (video geri geldi)");
+        assertFalse(ids.contains(textOnly.getId()), "medyasiz eski gonderi akistan gizli");
+        Long hiddenId = textOnly.getId();
         assertTrue(service.feed(v.getId(), "latest", null, 20).items().stream().noneMatch(i -> i.id().equals(hiddenId)));
         assertTrue(service.feed(v.getId(), "popular", null, 20).items().stream().noneMatch(i -> i.id().equals(hiddenId)));
         Long multiId = multi.getId();
         PostView m = items.stream().filter(i -> i.id().equals(multiId)).findFirst().orElseThrow();
-        assertEquals(List.of(im1.getId()), m.media().stream().map(x -> x.id()).toList());
+        assertEquals(1, m.media().size(), "yalniz ilk medya gosterilir");
+        assertEquals("VIDEO", m.media().get(0).kind(), "ilk medya (position 0) videodur");
         assertTrue(posts.findById(hiddenId).isPresent() && mediaRepo.findById(onlyVid.getId()).isPresent(), "veri silinmedi");
+        assertNotNull(im1.getId());
     }
 
     @Test
@@ -247,22 +274,20 @@ class PostServiceTest {
         PostView high = post(a, "yuksek");
         counters.incrementLikes(high.id(), 10);
         scoreJob.recompute();
-        List<Long> ids = service.feed(v.getId(), "popular", null, 20).items().stream().map(PostView::id).toList();
+        // eski (7 günlük) puan sorgusu hâlâ iş tarafından beslenir; HTTP "popular" kapsamı artık rank_score akışıdır
+        Instant since = Instant.now().minus(PostService.POPULAR_WINDOW);
+        List<Long> ids = posts.popularFirst(v.getId(), since, org.springframework.data.domain.PageRequest.of(0, 50))
+                .stream().map(Post::getId).toList();
         assertTrue(ids.indexOf(high.id()) >= 0 && ids.indexOf(high.id()) < ids.indexOf(low.id()));
-        // popüler imleç ikinci sayfaya geçer
-        FeedPage p1 = service.feed(v.getId(), "popular", null, 1);
-        assertNotNull(p1.nextCursor());
-        FeedPage p2 = service.feed(v.getId(), "popular", p1.nextCursor(), 1);
-        assertFalse(p2.items().isEmpty());
-        assertFalse(p2.items().get(0).id().equals(p1.items().get(0).id()));
-        // 7 günden eski gönderi popülerde yok ve puanı sıfırlanır
+        // 7 günden eski gönderi eski popüler sorguda yok ve puanı sıfırlanır
         Post old = posts.findById(low.id()).orElseThrow();
         old.setCreatedAt(Instant.now().minus(10, ChronoUnit.DAYS));
         old.setScore(5);
         posts.saveAndFlush(old);
         scoreJob.recompute();
         assertEquals(0.0, posts.findById(low.id()).orElseThrow().getScore());
-        assertTrue(service.feed(v.getId(), "popular", null, 20).items().stream().noneMatch(i -> i.id().equals(low.id())));
+        assertTrue(posts.popularFirst(v.getId(), since, org.springframework.data.domain.PageRequest.of(0, 50))
+                .stream().noneMatch(i -> i.getId().equals(low.id())));
     }
 
     @Test

@@ -15,6 +15,12 @@ public interface PostMediaBinder {
      */
     void requireImage(long ownerId, List<Long> mediaIds);
 
+    /**
+     * Gonderi: medya tam 1 adet, ownerId'ye ait, baglanmamis ve gizli degil (fotograf ya da video).
+     * Gecersizlik -> 400 POST_MEDIA_INVALID. Doner: medyanin turu ("IMAGE" | "VIDEO").
+     */
+    String requireMedia(long ownerId, List<Long> mediaIds);
+
     void attach(long postId, long ownerId, List<Long> mediaIds);
 
     /** Gonderiye bagli medya id'leri (silme olayi icin). */

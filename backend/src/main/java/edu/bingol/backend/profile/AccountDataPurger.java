@@ -102,6 +102,8 @@ public class AccountDataPurger {
             Map.entry("post_comment.author_id", "PostAccountPurger -> CommentAccountPurger (yorum metni temizlenir, yumusak silinir)"),
             Map.entry("post_comment_like.user_id", "PostAccountPurger -> CommentAccountPurger"),
             Map.entry("post_save.user_id", "PostAccountPurger -> CommentAccountPurger"),
+            Map.entry("post_watch.user_id", "PostAccountPurger (Reels izleme gecmisi, ReelsService.purge)"),
+            Map.entry("user_popularity.user_id", "PostAccountPurger (populerlik puani satiri silinir; Redis feedseen anahtari da)"),
             Map.entry("user_follow.follower_id", "SocialAccountPurger"),
             Map.entry("user_follow.followee_id", "SocialAccountPurger"),
             Map.entry("user_follow_stats.user_id", "SocialAccountPurger"),

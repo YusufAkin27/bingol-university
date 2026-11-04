@@ -107,7 +107,7 @@ public class ProfileService {
             // Sayaclar sabit 0/false: null, engelli cift ile normal profili ayirt ettirirdi (T-029).
             return new PublicProfile(u.getId(), u.getDisplayName(), null, null, null, null, null, null)
                     .withFollow(0, 0, false, false)
-                    .withCounts(0, 0)
+                    .withReelCount(0)
                     .withBlockedByMe(blocks.hasBlocked(viewerId, targetId));
         }
         PublicProfile view = mapper.map(viewerId, u);
@@ -115,11 +115,44 @@ public class ProfileService {
         view = self ? withEmail(view, u.getEmail()) : view;
         view = withFollow(view, viewerId, targetId);
         view = withRelation(view, viewerId, targetId);
-        view = withPostCounts(view, targetId);
+        view = withPopularity(view, targetId);
+        view = withReelCount(view, targetId);
         return self ? view : view.withBlockedByMe(false);
     }
 
-    /** Gorunur gonderi/Reels sayilari (KS-BE2); kilitli (gizli hesap) profilde ve hata halinde alan eklenmez. */
+    /** Populerlik puani (post.popularity; yoksa/gizli hesapta kilitliyse alanlar eklenmez). Hata profil yanitini bozmaz. */
+    private edu.bingol.backend.post.popularity.UserPopularityService popularity;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setPopularity(edu.bingol.backend.post.popularity.UserPopularityService popularity) {
+        this.popularity = popularity;
+    }
+
+    /** Kendi profilim icin populerlik (GET /users/me); hata/modul yoksa null. */
+    public edu.bingol.backend.post.popularity.UserPopularityService.Snapshot popularityOf(Long userId) {
+        if (popularity == null) {
+            return null;
+        }
+        try {
+            return popularity.of(userId);
+        } catch (RuntimeException e) {
+            return null;
+        }
+    }
+
+    private PublicProfile withPopularity(PublicProfile p, Long targetId) {
+        if (popularity == null || Boolean.TRUE.equals(p.locked())) {
+            return p; // kilitli (gizli) hesapta sayaclar gibi populerlik de gizli
+        }
+        try {
+            edu.bingol.backend.post.popularity.UserPopularityService.Snapshot s = popularity.of(targetId);
+            return p.withPopularity(s.score(), s.likesReceived(), s.postCount());
+        } catch (RuntimeException e) {
+            return p;
+        }
+    }
+
+    /** Reels sayisi (KS-BE2, post.reel); kilitli (gizli hesap) profilde ve hata halinde alan eklenmez. */
     private edu.bingol.backend.post.reel.ProfilePostCounts postCounts;
 
     @org.springframework.beans.factory.annotation.Autowired(required = false)
@@ -127,13 +160,12 @@ public class ProfileService {
         this.postCounts = postCounts;
     }
 
-    private PublicProfile withPostCounts(PublicProfile p, Long targetId) {
+    private PublicProfile withReelCount(PublicProfile p, Long targetId) {
         if (postCounts == null || Boolean.TRUE.equals(p.locked())) {
             return p;
         }
         try {
-            edu.bingol.backend.post.reel.ProfilePostCounts.Counts c = postCounts.counts(targetId);
-            return p.withCounts(c.postCount(), c.reelCount());
+            return p.withReelCount(postCounts.counts(targetId).reelCount());
         } catch (RuntimeException e) {
             return p; // sayaclar profil yanitini asla bozmaz
         }

@@ -44,7 +44,37 @@ public class PostAccountPurger {
         this.comments = comments;
     }
 
+
+    /** Gorulmus kumesi (Redis feedseen) ve populerlik satiri (KVKK: hesap silinince kalmaz). */
+    private edu.bingol.backend.post.feed.FeedSeenService seen;
+    private edu.bingol.backend.post.popularity.UserPopularityService popularity;
+    private edu.bingol.backend.post.reels.ReelsService reelsService;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setReelsService(edu.bingol.backend.post.reels.ReelsService reelsService) {
+        this.reelsService = reelsService;
+    }
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setSeen(edu.bingol.backend.post.feed.FeedSeenService seen) {
+        this.seen = seen;
+    }
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setPopularity(edu.bingol.backend.post.popularity.UserPopularityService popularity) {
+        this.popularity = popularity;
+    }
+
     public void purge(Long userId) {
+        if (seen != null) {
+            seen.forget(userId);
+        }
+        if (popularity != null) {
+            popularity.purge(userId);
+        }
+        if (reelsService != null) {
+            reelsService.purge(userId); // izleme gecmisi (post_watch)
+        }
         if (comments != null) {
             comments.purge(userId);
         }

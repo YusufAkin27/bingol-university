@@ -21,9 +21,9 @@ public interface PostRepository extends JpaRepository<Post, Long> {
             + "AND pp.privateAccount = TRUE) OR EXISTS (SELECT 1 FROM UserFollow uf WHERE uf.id.a = :viewer "
             + "AND uf.id.b = p.authorId)) ";
 
-    /** Sade Kesfet: yalniz gorunur FOTOGRAFI olan gonderiler akista listelenir (video-only/metin-only eskiler gizli; veri silinmez). */
-    String PHOTO = "AND EXISTS (SELECT 1 FROM PostMedia pm WHERE pm.postId = p.id AND pm.kind = 'IMAGE' AND pm.hiddenAt IS NULL) ";
-    String FEED_VISIBLE = VISIBLE + PHOTO;
+    /** Kesfet: gorunur bir medyasi (fotograf ya da video) olan gonderiler akista listelenir (medyasiz metin-only eskiler gizli; veri silinmez). */
+    String MEDIA = "AND EXISTS (SELECT 1 FROM PostMedia pm WHERE pm.postId = p.id AND pm.hiddenAt IS NULL) ";
+    String FEED_VISIBLE = VISIBLE + MEDIA;
 
     String LATEST_AFTER = "AND (p.createdAt < :at OR (p.createdAt = :at AND p.id < :cid)) ";
     String POPULAR_AFTER = "AND (p.score < :sc OR (p.score = :sc AND p.id < :cid)) ";
