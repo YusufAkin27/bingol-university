@@ -74,8 +74,15 @@ class _HelpCodePageState extends State<HelpCodePage> {
       return;
     } catch (e) {
       if (mounted) {
-        _fail(e is ApiError && e.status == 429 ? _rate(e) : context.l10n.p66CodeBad);
-        _code.clear();
+        // Yalnız gerçek "kod yanlış" (400 INVALID_CODE) kutuları temizler; ağ/sunucu hatası kodu silmez ve doğru
+        // nedeni söyler (aksi halde kullanıcı doğru kodu yanlış sanıp yeniden yazar).
+        final wrongCode = e is ApiError && (e.code == 'INVALID_CODE' || e.status == 400);
+        _fail(e is ApiError && e.status == 429
+            ? _rate(e)
+            : wrongCode
+                ? context.l10n.p66CodeBad
+                : errorText(e));
+        if (wrongCode || (e is ApiError && e.status == 429)) _code.clear();
         if (e is ApiError && e.code == 'TOO_MANY_ATTEMPTS') _resendKey.currentState?.makeReady();
       }
     }

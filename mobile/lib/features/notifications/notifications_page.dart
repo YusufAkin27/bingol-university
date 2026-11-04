@@ -244,7 +244,9 @@ class _NotificationsPageState extends State<NotificationsPage> {
       );
       return;
     }
-    await PushRouter.open(d);
+    // Hedef açılamazsa ikinci bir Bildirimler sayfası yığma; kullanıcıya nedenini söyle.
+    final opened = await PushRouter.open(d, listFallback: false);
+    if (!opened && mounted) _snack(context.l10n.notifTargetOpenFailed);
   }
 
   String _group(String? iso) {

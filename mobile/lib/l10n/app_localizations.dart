@@ -7111,6 +7111,12 @@ abstract class AppLocalizations {
   /// **'Henüz bildiriminiz yok.'**
   String get notifEmpty;
 
+  /// No description provided for @notifTargetOpenFailed.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu bildirimin hedefi açılamadı.'**
+  String get notifTargetOpenFailed;
+
   /// No description provided for @notifUnread.
   ///
   /// In tr, this message translates to:
@@ -13518,6 +13524,12 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Bu sohbet yönetici tarafından kapatıldı.'**
   String get chatClosedBanner;
+
+  /// No description provided for @chatRealtimeLost.
+  ///
+  /// In tr, this message translates to:
+  /// **'Canlı bağlantı kesildi; mesajlar kısa aralıklarla yenileniyor.'**
+  String get chatRealtimeLost;
 
   /// No description provided for @chatAdminRemovedMsg.
   ///

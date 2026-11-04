@@ -65,7 +65,9 @@ Future<AvatarUploadResult?> editExistingAvatar(
 }) async {
   final full = fileUrl(url);
   if (full == null) return null;
-  final src = await (hooks.fetchBytes ?? _fetch)(full);
+  // /api/ altındaki (korumalı) avatar adresleri Authorization ister; /files/** herkese açıktır.
+  final token = url.startsWith('/api/') ? session.api.tokens?.access : null;
+  final src = await (hooks.fetchBytes ?? (u) => _fetch(u, token))(full);
   if (!context.mounted) return null;
   final edited = hooks.editPhoto != null ? await hooks.editPhoto!(src) : (await openAvatarEditor(context, src))?.bytes;
   if (edited == null) return null;
@@ -86,9 +88,11 @@ Future<AvatarUploadResult> _prepareAndUpload(Session session, Uint8List bytes, I
   return AvatarUploadResult(url, prepared.bytes);
 }
 
-Future<Uint8List> _fetch(String url) async {
+Future<Uint8List> _fetch(String url, [String? token]) async {
   try {
-    final res = await http.get(Uri.parse(url)).timeout(const Duration(seconds: 20));
+    final res = await http
+        .get(Uri.parse(url), headers: token == null ? null : {'Authorization': 'Bearer $token'})
+        .timeout(const Duration(seconds: 20));
     if (res.statusCode != 200 || res.bodyBytes.isEmpty) throw ApiError(res.statusCode, 'HTTP_${res.statusCode}', '');
     return res.bodyBytes;
   } on ApiError {

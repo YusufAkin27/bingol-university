@@ -26,25 +26,32 @@ enum PushDest {
   feedback,
   accountSecurity,
   meal,
+
+  /// Kampanya `target=URL`: yalnız https adresi, dış tarayıcıda açılır ([PushTarget.url]).
+  url,
   notifications,
 }
 
 class PushTarget {
-  const PushTarget(this.dest, {this.id, this.commentId});
+  const PushTarget(this.dest, {this.id, this.commentId, this.url});
 
   final PushDest dest;
   final int? id;
   final int? commentId;
+
+  /// Yalnız [PushDest.url] için: doğrulanmış https adresi.
+  final String? url;
 
   @override
   bool operator ==(Object other) =>
       other is PushTarget &&
       other.dest == dest &&
       other.id == id &&
-      other.commentId == commentId;
+      other.commentId == commentId &&
+      other.url == url;
 
   @override
-  int get hashCode => Object.hash(dest, id, commentId);
+  int get hashCode => Object.hash(dest, id, commentId, url);
 
   @override
   String toString() =>
@@ -92,6 +99,16 @@ Map<String, dynamic> sanitizeLocalReminderPayload(Map<dynamic, dynamic>? raw) {
 int? _id(Object? v) {
   final n = v == null ? null : int.tryParse('$v');
   return n != null && n > 0 ? n : null;
+}
+
+/// Yalnız `https://` + ana makine adı olan adres; aksi halde null (kullanıcı bilgisi içeren adresler reddedilir).
+String? _httpsUrl(Object? v) {
+  if (v is! String) return null;
+  final t = v.trim();
+  if (t.isEmpty || t.length > 2000) return null;
+  final u = Uri.tryParse(t);
+  if (u == null || u.scheme.toLowerCase() != 'https' || u.host.isEmpty || u.userInfo.isNotEmpty) return null;
+  return u.toString();
 }
 
 /// `targetType` -> hedef. Önek eşleşmeleri: POLL_*, POST_*, EVENT_*, ACADEMIC_*.
@@ -182,6 +199,12 @@ PushTarget resolvePushTarget(Map<String, dynamic>? data) {
     return PushTarget(PushDest.post, id: postId, commentId: commentId);
 
   if (examId != null) return PushTarget(PushDest.exams, id: examId);
+
+  // Kampanya bağlantısı: yalnız geçerli https adresi (sunucu da https dayatır); diğer şemalar/bozuk metin listeye düşer.
+  if (target == 'URL') {
+    final u = _httpsUrl(d['value'] ?? d['targetId']);
+    return u == null ? const PushTarget(PushDest.notifications) : PushTarget(PushDest.url, url: u);
+  }
 
   final dest = _destOf(target);
   if (dest == PushDest.deptAnnouncement && (announcementId ?? value) != null) {

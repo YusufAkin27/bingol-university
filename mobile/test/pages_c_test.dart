@@ -474,8 +474,8 @@ void main() {
       await tester.pumpWidget(
           buildApp(SettingsPage(session: makeSession(b), themeController: ThemeController())));
       await settle(tester);
-      // Ana ayar listesinde görünmez; Gizlilik ve veriler sayfasının en altındadır.
-      expect(find.text('Hesabımı sil'), findsNothing);
+      // Hesap silme hem Ayarlar'da (doğrudan satır, App Store 5.1.1(v); qa_chat_auth_test) hem Gizlilik > Verilerim
+      // sayfasında vardır; bu test ikinci (daha uzun) yolu doğrular.
       await tester.scrollUntilVisible(find.text('Gizlilik ve veriler'), 200, scrollable: find.byType(Scrollable).first);
       await tester.ensureVisible(find.text('Gizlilik ve veriler'));
       await tester.pump(); // kaydırma çerçevesi uygulansın (liste uzadıkça öğe ekran dışında kalıyordu)

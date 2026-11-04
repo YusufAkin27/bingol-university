@@ -5,7 +5,6 @@ import 'dart:isolate';
 import 'package:flutter/foundation.dart' show kReleaseMode;
 import 'package:http/http.dart' as http;
 
-import 'app_gate.dart' show ConnectivityHint;
 import 'cache/cache_policy.dart';
 import 'cache/disk_cache.dart';
 import 'connectivity/connectivity_service.dart';
@@ -209,7 +208,6 @@ class ApiClient {
 
   // ETag önbelleği (LRU, kullanıcıya özel): anahtar = dil + yetkili mi + yol.
   final _cache = <String, _CacheEntry>{}; // LinkedHashMap: ekleme sırası = LRU sırası
-  DateTime? _lastNetHint;
 
   /// Yazma isteği (POST/PUT/PATCH/DELETE) sonrası ilgili kaynak grubunun "taze" sayılma anı sıfırlanır
   /// (ilk yol parçası: `/events/5/rsvp` -> `events`); yeni GET ağdan doğrulanır.
@@ -324,7 +322,6 @@ class ApiClient {
     } catch (_) {
       _ensureGen(g);
       connectivity.reportFailure();
-      _hintNetwork(path);
       throw ApiError(0, 'NETWORK', '');
     }
     _ensureGen(g); // çıkış / hesap değişimi sırasında dönen yanıt yeni oturuma verilmez
@@ -411,7 +408,6 @@ class ApiClient {
             body: body, auth: auth, retried: retried, retriedTransient: true, gen: g);
       }
       connectivity.reportFailure();
-      _hintNetwork(path);
       if (haveStale) return _staleResponse(cached);
       if (method == 'POST') outbox?.captureRequest(path, body);
       throw ApiError(0, 'NETWORK', '');
@@ -500,16 +496,6 @@ class ApiClient {
       }
     } catch (_) {}
     return false;
-  }
-
-  /// Bağlantı kapısına haber verir; /status yoklaması döngü yaratmasın diye hariç, 5 sn'de en çok bir kez.
-  void _hintNetwork(String path) {
-    if (path.startsWith('/status')) return;
-    final now = DateTime.now();
-    final last = _lastNetHint;
-    if (last != null && now.difference(last) < const Duration(seconds: 5)) return;
-    _lastNetHint = now;
-    ConnectivityHint.reportNetworkError();
   }
 
   /// Büyük gövde: JSON çözümü ayrı izolatta (ana izolat kare atlamasın). Hata olursa ana izolatta dener.

@@ -113,12 +113,6 @@ GateDecision decideGate(Map<String, dynamic>? version, Map<String, dynamic>? inf
 bool shouldShowUpdateNotice(DateTime? lastShown, DateTime now) =>
     lastShown == null || now.difference(lastShown) >= const Duration(days: 1);
 
-/// Ağ hatası alan katmanlar çağırabilir; kapı hemen yoklama yapar.
-class ConnectivityHint {
-  static final ValueNotifier<int> network = ValueNotifier<int>(0);
-  static void reportNetworkError() => network.value++;
-}
-
 /// Açılış kapısı: sürüm/bakım/banner. MaterialApp.builder içinde kullanılır. Pasif "internet yok" şeridi YOK
 /// (çevrimdışıyken kayıtlı veri sessizce gösterilir); bağlantı geri gelince sunucu durumu bir kez yeniden sorulur.
 class AppGate extends StatefulWidget {

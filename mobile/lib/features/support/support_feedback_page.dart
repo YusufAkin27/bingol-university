@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../core/app_gate.dart' show appVersion;
+import '../../core/device_identity.dart';
 import '../../core/locale_controller.dart';
 import '../../core/session.dart';
 import '../../widgets/bu.dart';
@@ -90,7 +92,10 @@ class _FeedbackPageState extends State<FeedbackPage> {
         'category': _category,
         'subject': s,
         'message': m,
-        'platform': 'ANDROID',
+        // Gerçek cihaz platformu (iOS'ta ANDROID raporlanmasın); tanınmayan platformda alan gönderilmez.
+        if (DeviceIdentity.platform == 'ios') 'platform': 'IOS',
+        if (DeviceIdentity.platform == 'android') 'platform': 'ANDROID',
+        'appVersion': appVersion,
       });
       if (!mounted) return;
       _subject.clear();

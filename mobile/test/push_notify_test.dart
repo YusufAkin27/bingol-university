@@ -92,7 +92,9 @@ void main() {
       expect(r({'targetType': 'EVENT', 'targetId': 'abc'}), n);
       expect(r({'targetType': 'POLL', 'targetId': '-4'}), n);
       expect(r({'targetType': 42, 'targetId': <int>[1]}), n);
-      expect(r({'targetType': 'URL', 'value': 'https://x.y'}), n);
+      // target=URL artık tarayıcıda açılır (geçerli https); geçersiz şema listede kalır.
+      expect(r({'targetType': 'URL', 'value': 'https://x.y'}), const PushTarget(PushDest.url, url: 'https://x.y'));
+      expect(r({'targetType': 'URL', 'value': 'ftp://x.y'}), n);
     });
   });
 
