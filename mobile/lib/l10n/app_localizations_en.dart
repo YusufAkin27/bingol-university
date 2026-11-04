@@ -1831,7 +1831,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chatInfoFilesUnsupportedTitle => 'File sharing is not supported';
 
   @override
-  String get chatInfoFilesUnsupportedBody => 'For now only photos and videos can be shared in this chat.';
+  String get chatInfoFilesUnsupportedBody =>
+      'For now only photos and videos can be shared in this chat.';
 
   @override
   String get chatInfoReported => 'Reported';
@@ -3863,6 +3864,81 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get searchClear => 'Clear search';
+
+  @override
+  String get srLoadMore => 'Show more';
+
+  @override
+  String get srSearchHint => 'Search users or posts';
+
+  @override
+  String get srTabUsers => 'Users';
+
+  @override
+  String get srTabPosts => 'Posts';
+
+  @override
+  String get srTabReels => 'Reels';
+
+  @override
+  String get srSearchTabsLabel => 'Search result types';
+
+  @override
+  String get srSearchPrompt =>
+      'Type at least 2 characters to search users, posts or reels.';
+
+  @override
+  String get srSeeAll => 'See all';
+
+  @override
+  String get srReelsUnavailable => 'Reels search is not available right now.';
+
+  @override
+  String get srPrivateAccount => 'Private account';
+
+  @override
+  String srLikeCount(String count) {
+    return '$count likes';
+  }
+
+  @override
+  String srOpenProfileOf(String name) {
+    return 'Open profile of $name';
+  }
+
+  @override
+  String srPostByAuthor(String name) {
+    return 'Post by $name';
+  }
+
+  @override
+  String get srVideoBadge => 'Video';
+
+  @override
+  String get srProfileTabsLabel => 'Profile content';
+
+  @override
+  String get srProfilePostsEmpty => 'No posts yet.';
+
+  @override
+  String get srProfileReelsEmpty => 'No reels yet.';
+
+  @override
+  String srViewCount(String count) {
+    return '$count views';
+  }
+
+  @override
+  String get srPhotoViewerTitle => 'Profile photo';
+
+  @override
+  String get srPhotoViewerError => 'The photo could not be loaded';
+
+  @override
+  String get srPhotoViewerClose => 'Close preview';
+
+  @override
+  String get srAvatarLongPressHint => 'Long press to see the large photo';
 
   @override
   String get searchPrompt =>

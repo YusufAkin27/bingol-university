@@ -3367,6 +3367,12 @@ abstract class AppLocalizations {
   /// **'Ayarlar'**
   String get chatInfoSettings;
 
+  /// No description provided for @chatInfoGroupName.
+  ///
+  /// In tr, this message translates to:
+  /// **'Grup adı'**
+  String get chatInfoGroupName;
+
   /// No description provided for @chatInfoSearchInChat.
   ///
   /// In tr, this message translates to:
@@ -3426,12 +3432,6 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Şikâyet edildi'**
   String get chatInfoReported;
-
-  /// No description provided for @chatInfoGroupName.
-  ///
-  /// In tr, this message translates to:
-  /// **'Grup adı'**
-  String get chatInfoGroupName;
 
   /// No description provided for @chatMiscFilterAll.
   ///
@@ -18924,8 +18924,6 @@ class _AppLocalizationsDelegate
   }
 
   @override
-
-
   bool isSupported(Locale locale) =>
       <String>['ar', 'en', 'tr'].contains(locale.languageCode);
 
