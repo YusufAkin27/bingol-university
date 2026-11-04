@@ -9724,6 +9724,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get homeFeaturedMenu => 'قائمة الطعام';
 
   @override
+  String get homeMenuRate => 'قيّم القائمة';
+
+  @override
+  String get homeMenuPhotoPending => 'بانتظار صورة جديدة';
+
+  @override
   String get homeSearchFilters => 'فلاتر البحث';
 
   @override

@@ -31,9 +31,9 @@ void main() {
       const d = HomeLayout.defaults;
       expect(d.visible, [
         HomeSection.quickAccess,
+        HomeSection.menu,
         HomeSection.campusMap,
         HomeSection.featuredNews,
-        HomeSection.menu,
         HomeSection.todayClasses,
         HomeSection.upcomingEvents,
         HomeSection.announcements,
@@ -43,12 +43,12 @@ void main() {
     });
 
     test('siralama: moveSection, reorderSection (onReorderItem kurali), sinirda degismez', () {
-      var v = HomeLayout.defaults.moveSection(HomeSection.menu, -1);
+      var v = HomeLayout.defaults.moveSection(HomeSection.campusMap, -1);
       expect(v.order.take(4), [HomeSection.quickAccess, HomeSection.campusMap, HomeSection.menu, HomeSection.featuredNews]);
       expect(v.moveSection(HomeSection.quickAccess, -1), v, reason: 'ilk satir yukari tasinamaz');
       expect(v.moveSection(HomeSection.announcements, 1), v, reason: 'son satir asagi tasinamaz');
       v = HomeLayout.defaults.reorderSection(0, 2); // quickAccess -> 3. siraya (cikarildiktan sonraki indeks)
-      expect(v.order.take(3), [HomeSection.campusMap, HomeSection.featuredNews, HomeSection.quickAccess]);
+      expect(v.order.take(3), [HomeSection.menu, HomeSection.campusMap, HomeSection.quickAccess]);
       expect(v.isDefault, isFalse);
     });
 
@@ -196,7 +196,7 @@ void main() {
       final b = be();
       await tester.pumpWidget(buildApp(home(b)));
       await settle(tester, const Duration(seconds: 2));
-      expect(b.count('/menu/today'), 1);
+      expect(b.count('GET /menu/today'), 1);
       expect(b.count('/events/featured'), 1);
       expect(b.count('type=HABER'), 1);
       expect(b.count('type=DUYURU'), 1);
@@ -205,10 +205,11 @@ void main() {
       expect(find.text('Hızlı erişim'), findsOneWidget);
       expect(find.text('Duyurular'), findsOneWidget);
       expect(find.text('Bugün kampüste'), findsOneWidget);
-      // Varsayilan sira: Hizli erisim < menu < haberler < etkinlikler < duyurular (dersler veri yoksa cizilmez).
+      // Varsayilan sira (Stitch v5): Bugun < Hizli erisim < menu < harita < haberler < etkinlikler < duyurular.
       double y(String s) => tester.getTopLeft(find.text(s)).dy;
       expect(y('Hızlı erişim'), lessThan(y('Günün menüsü')));
-      expect(y('Öne çıkan haberler'), lessThan(y('Günün menüsü')));
+      expect(y('Bugün kampüste'), lessThan(y('Hızlı erişim')));
+      expect(y('Günün menüsü'), lessThan(y('Öne çıkan haberler')));
       expect(y('Öne çıkan haberler'), lessThan(y('Yaklaşan etkinlikler')));
       expect(y('Yaklaşan etkinlikler'), lessThan(y('Duyurular')));
       expect(tester.takeException(), isNull);
@@ -237,7 +238,7 @@ void main() {
 
     testWidgets('kayitli siralama uygulanir: haberler menuden once', (tester) async {
       useScreen(tester, const Size(390, 2400));
-      await saved(HomeLayout.defaults.reorderSection(4, 2));
+      await saved(HomeLayout.defaults.reorderSection(3, 1)); // haberler: menuden once
       final b = be();
       await tester.pumpWidget(buildApp(home(b)));
       await settle(tester, const Duration(seconds: 2));
@@ -280,7 +281,7 @@ void main() {
       await tester.tap(up('Günün menüsü'));
       await settle(tester, const Duration(milliseconds: 600));
       final saved1 = jsonDecode((await st.read(key: HomeLayoutStore.key))!) as Map;
-      expect((saved1['order'] as List).take(3), ['quickAccess', 'campusMap', 'menu']);
+      expect((saved1['order'] as List).take(3), ['menu', 'quickAccess', 'campusMap']);
       // Menu'yu gizle.
       await tester.tap(rowSwitch('Günün menüsü'));
       await settle(tester, const Duration(milliseconds: 600));

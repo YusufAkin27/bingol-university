@@ -9794,6 +9794,12 @@ class AppLocalizationsTr extends AppLocalizations {
   String get homeFeaturedMenu => 'Yemek Menüsü';
 
   @override
+  String get homeMenuRate => 'Menüyü puanla';
+
+  @override
+  String get homeMenuPhotoPending => 'Yeni görsel bekliyor';
+
+  @override
   String get homeSearchFilters => 'Arama filtreleri';
 
   @override

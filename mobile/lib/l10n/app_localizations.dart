@@ -17773,6 +17773,18 @@ abstract class AppLocalizations {
   /// **'Yemek Menüsü'**
   String get homeFeaturedMenu;
 
+  /// No description provided for @homeMenuRate.
+  ///
+  /// In tr, this message translates to:
+  /// **'Menüyü puanla'**
+  String get homeMenuRate;
+
+  /// No description provided for @homeMenuPhotoPending.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yeni görsel bekliyor'**
+  String get homeMenuPhotoPending;
+
   /// No description provided for @homeSearchFilters.
   ///
   /// In tr, this message translates to:

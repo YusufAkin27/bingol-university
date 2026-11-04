@@ -102,11 +102,53 @@ class CampusHomeCard extends StatelessWidget {
         ),
         Padding(
           padding: const EdgeInsets.fromLTRB(12, 4, 12, 12),
-          child: Wrap(spacing: 8, runSpacing: 0, children: [
-            for (final c in chips) BuChip(label: c.label, icon: c.icon, onTap: () => onChip(c.label)),
+          // Üç kategori çipi tek satırda (Stitch v5): eşit genişlik, sığmazsa etiket küçülür.
+          child: Row(children: [
+            for (var i = 0; i < chips.length; i++) ...[
+              if (i > 0) const SizedBox(width: 8),
+              Expanded(child: _CampusChip(label: chips[i].label, icon: chips[i].icon, onTap: () => onChip(chips[i].label))),
+            ],
           ]),
         ),
       ]),
+    );
+  }
+}
+
+/// Kategori çipi: 48 dp yüksek, beyaz zemin + 1 dp çerçeve, `prPressed` ikon + 13/600 etiket.
+class _CampusChip extends StatelessWidget {
+  const _CampusChip({required this.label, required this.icon, required this.onTap});
+
+  final String label;
+  final IconData icon;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.bu;
+    return Semantics(
+      button: true,
+      label: label,
+      excludeSemantics: true,
+      onTap: onTap,
+      child: BuPressable(
+        onTap: onTap,
+        child: Container(
+          height: 48,
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          decoration: BoxDecoration(color: t.sf, borderRadius: BuRadius.bPill, border: Border.all(color: t.bd)),
+          child: Center(
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Row(mainAxisSize: MainAxisSize.min, children: [
+                Icon(icon, size: 16, color: t.prPressed),
+                const SizedBox(width: 6),
+                Text(label, maxLines: 1, style: BuType.label.copyWith(fontSize: 13, fontWeight: FontWeight.w600, color: t.ink)),
+              ]),
+            ),
+          ),
+        ),
+      ),
     );
   }
 }
@@ -171,13 +213,10 @@ class CampusPreviewPainter extends CustomPainter {
       canvas.drawCircle(c, 3.2, Paint()..color = t.onMedia);
     }
 
+    // Stitch v5: üç etiketsiz kırmızı iğne (uydurma konum/mavi nokta yok).
     pin(Offset(w * .26, h * .3), t.pr);
-    pin(Offset(w * .62, h * .28), t.info);
-    pin(Offset(w * .7, h * .7), t.ok);
-    // Kullanıcı noktası
-    canvas.drawCircle(Offset(w * .44, h * .55), 12, Paint()..color = t.info.withValues(alpha: .18));
-    canvas.drawCircle(Offset(w * .44, h * .55), 6.5, Paint()..color = t.onMedia);
-    canvas.drawCircle(Offset(w * .44, h * .55), 4.5, Paint()..color = t.info);
+    pin(Offset(w * .62, h * .28), t.pr);
+    pin(Offset(w * .7, h * .7), t.pr);
   }
 
   @override
